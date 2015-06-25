@@ -1,8 +1,9 @@
 Package: RxODE
-Title: What the package does (one line)
+Title: This package facilitates pharmacometric simulation with ODE models in R
 Version: 0.1
-Authors@R: "First Last <first.last@example.com> [aut, cre]"
-Description: What the package does (one paragraph)
+Authors@R: "Melissa Hallow <hallowkm@uga.edu> [aut, cre]"
+Description: RxODE facilitates quick and efficient simulations of ordinary differential equation (ODE) models in R. This package provides an elegant, efficient, and versatile way to specify dosing scenarios and sampling schedules. It also facilitates simulation with variability, and minimizes the amount of custom coding required for pharmacometric simulation. The model is compiled in C, and thus run times are extremely fast. It is designed with pharmacometric models in mind, but can be applied more generally to any ODE model.  
+
 Depends: R (>= 3.1.1)
 License: What license is it under?
 LazyData: true
