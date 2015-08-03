@@ -1,0 +1,246 @@
+C -----------------------------------------------------------------------------------
+C     THIS MODULE IS PART OF THE CODE BIM.
+C     THE CODE BIM NUMERICALLY SOLVES (STIFF) DIFFERENTIAL ODE 
+C     PROBLEMS.
+C
+C     Copyright (C)2002-2007   
+C
+C     Authors: CECILIA MAGHERINI (cecilia.magherini@ing.unipi.it)
+C              LUIGI   BRUGNANO  (brugnano@math.unifi.it) 
+C
+C
+C     This program is free software; you can redistribute it and/or
+C     modify it under the terms of the GNU General Public License
+C     as published by the Free Software Foundation; either version 2
+C     of the License, or (at your option) any later version.
+C
+C     This program is distributed in the hope that it will be useful,
+C     but WITHOUT ANY WARRANTY; without even the implied warranty of
+C     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+C     GNU General Public License for more details.
+C
+C     Licensed under The GNU General Public License, Version 2 or later.
+C       http://www.gnu.org/licenses/info/GPLv2orLater.html
+C
+C     You should have received a copy of the GNU General Public License
+C     along with this program; if not, write to the Free Software
+C     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
+C     USA.
+C -----------------------------------------------------------------------------------
+
+C ------------------------------------------------------------------------
+C GAMMA
+C ------------------------------------------------------------------------
+      double precision gamma4,gamma6,gamma8,gamma10,gamma12
+	  parameter(gamma4 =7387D0/10000D0,
+     &          gamma6 =4241D0/5000D0,
+     &          gamma8 =1457D0/2000D0,
+     &          gamma10=1349D0/2000D0,
+     &          gamma12=6433D0/10000D0)
+
+C ------------------------------------------------------------------------
+C RHOTILDE
+C ------------------------------------------------------------------------
+      double precision rhot4,rhot6,rhot8,rhot10,rhot12
+      parameter(rhot4 =.5021d0,
+     &          rhot6 =.8975d0,
+     &          rhot8 =.9178d0,
+     &          rhot10=.9287d0,
+     &          rhot12=.9361d0)
+C ------------------------------------------------------------------------
+C RHOMAX
+C ------------------------------------------------------------------------
+      double precision rhom4,rhom6,rhom8,rhom10,rhom12
+      parameter(rhom4 =.3398d0,
+     &          rhom6 =.5291d0,
+     &          rhom8 =.6299d0,
+     &          rhom10=.6885d0,
+     &          rhom12=.7276d0)
+C ------------------------------------------------------------------------
+C RHOTILDEINF
+C ------------------------------------------------------------------------
+      double precision rhoi4,rhoi6,rhoi8,rhoi10,rhoi12
+      parameter(rhoi4 =  .9201d0,
+     &          rhoi6 = 1.2475d0,
+     &          rhoi8 = 1.7294d0,
+     &          rhoi10= 2.0414d0,
+     &          rhoi12= 2.2621d0)
+C ----------------------------------------------------------------------
+C  ERROR ESTIMATE
+C ----------------------------------------------------------------------
+      double precision PSI4_1,PSI4_2,VMAX4_1,VMAX4_2
+      parameter(  PSI4_1 = -1D0,
+     &            PSI4_2 =  3D0,
+     &           VMAX4_1 = 1D0/15D0,
+     &           VMAX4_2 = 1D0/4D0)
+
+      double precision PSI6_1,PSI6_2,PSI6_3,VMAX6_1,VMAX6_2
+      parameter ( PSI6_1 =  1D0,
+     &            PSI6_2 = -4D0,
+     &            PSI6_3 =  6D0,
+     &           VMAX6_1 =  4D0/45D0,
+     &           VMAX6_2 =  1D0/5D0)
+
+      double precision PSI8_1,PSI8_2,PSI8_3,PSI8_4,VMAX8_1,VMAX8_2
+      parameter( PSI8_1 =  1D0,
+     &           PSI8_2 = -6D0,
+     &           PSI8_3 =  15D0,
+     &           PSI8_4 = -20D0,
+     &          VMAX8_1 = 81D0/28D2,
+     &          VMAX8_2 = 1D0/7D0)
+
+      double precision PSI10_1,PSI10_2,PSI10_3,PSI10_4,PSI10_5,
+     &                 VMAX10_1,VMAX10_2
+      parameter (PSI10_1 =  1D0,
+     &           PSI10_2 = -8D0,
+     &           PSI10_3 = 28D0,
+     &           PSI10_4 =-56D0,
+     &           PSI10_5 = 70D0,
+     &          VMAX10_1 = 73D0/4619D0,
+     &          VMAX10_2 = 1D0/9D0) 
+
+      double precision PSI12_1,PSI12_2,PSI12_3,PSI12_4,PSI12_5,PSI12_6,
+     &                 VMAX12_1,VMAX12_2
+      parameter (PSI12_1 =   1D0,
+     &           PSI12_2 = -10D0,
+     &           PSI12_3 =  45D0,
+     &           PSI12_4 = -12D1,
+     &           PSI12_5 =  21D1,
+     &           PSI12_6 =-252D0,
+     &          VMAX12_1 = 62D0/9913D0,
+     &          VMAX12_2 =  1D0/11D0)
+
+C -----------------------------------------------------------------------
+C VARIOUS PARAMETERS
+C -----------------------------------------------------------------------
+      double precision facu1,facu2,facnocon,faclro,
+     &     rhobad4,rhobad6,rhobad8,rhobad10,rhobad12,
+     &     tolminy0,tolminf0,tolmaxf0
+     
+      integer flmx,flhlt
+
+C     Interval for the new stepsize for which order can be augmented:
+C              facu2*h<=hnew<=facu1*h
+      parameter(facu1=1.25d0,facu2=.8d0)
+
+C     Factors for determining the new stepsize in case of Newton 
+C     failure and large spectral radius, respectively. 
+C     (In both cases, the order is decreased).
+      parameter(facnocon=.5d0, faclro=.5d0)
+
+C     Max number of consecutive failures, after which a constant 
+C     initial guess is used.
+      parameter(flmx=1)
+
+C     Max number of consecutive failures, after which integration stops.
+      parameter(flhlt=10) 
+
+C     Maximum value of the spectral radious, for having failure.
+      parameter(rhobad4 =.99d0,
+     &          rhobad6 =.99d0,
+     &          rhobad8 =.99d0,
+     &          rhobad10=.99d0,
+     &          rhobad12=.99d0)
+
+C     Parameters for the stop criterion, when the solution is 'small'.
+      parameter(tolminy0=1d-2,
+     &          tolminf0=1d-4,
+     &          tolmaxf0=1d-3)
+C ----------------------------------------------------------------------
+C JACOBIAN EVALUATION
+C ----------------------------------------------------------------------
+      double precision fatdJ04,fatdJ06,fatdJ08,fatdJ010,fatdJ012,
+     &                 fatdJ04i,fatdJ06i,fatdJ08i,fatdJ010i,fatdJ012i,
+     &                 alfajac,scalJ0,
+     &                 tolrhoJ0_1,toldJ0,
+     &                 tolrhoJ4,tolrhoJ6,tolrhoJ8,tolrhoJ10,tolrhoJ12
+      integer  itmaxJ0,itmaxJ0_1
+C     If hnew<h the Jacobian is not evaluated, if the estimated spectral
+C     radius is less than alfajac.
+      parameter( alfajac=.1d0) 
+
+C     Scaling factor used in the estimate of dJ0.
+      parameter (scalJ0     =1d-3,
+     &           tolrhoJ0_1 =1d-1,
+     &           toldJ0     =1d-8,
+     &           itmaxJ0    =3,
+     &           itmaxJ0_1  =6)
+
+      parameter(tolrhoJ4=5d-3,
+     &          tolrhoJ6=4d-3,
+     &          tolrhoJ8=3d-3,
+     &          tolrhoJ10=2d-3,
+     &          tolrhoJ12=1d-3)
+
+C     If deltaJ0/J0 > fatdJ0 the Jacobian must be evaluated.
+      parameter( fatdJ04 = 2d-2,
+     &           fatdJ06 = 1d-2,
+     &           fatdJ08 = 1d-3,
+     &           fatdJ010= 2d-4,
+     &           fatdJ012= 3d-5)
+
+      parameter( fatdJ04i = 5d-2,
+     &           fatdJ06i = 4d-2,
+     &           fatdJ08i = 3d-2,
+     &           fatdJ010i= 2d-2,
+     &           fatdJ012i= 1d-2)
+C ------------------------------------------------------------------------
+C FACTORIZATION
+C ------------------------------------------------------------------------
+      double precision deltah2_4,deltah2_6,deltah2_8,deltah2_10,
+     &                 deltah2_12,
+     &                 deltah1_4sf,deltah1_6sf,deltah1_8sf,deltah1_10sf,
+     &                 deltah1_12sf
+      double precision cfat4_1 ,cfat4_2, cfat6_1, cfat6_2,  cfat8_1, 
+     &                 cfat8_2, cfat10_1,cfat10_2,cfat12_1,cfat12_2
+
+C     The factorization of theta is not computed if
+C         max(deltah1,deltah1sf)<hnew/h<deltah2
+      parameter (deltah2_4   =1.10d0,
+     &           deltah2_6   =1.09d0,
+     &           deltah2_8   =1.08d0,
+     &           deltah2_10  =1.07d0,
+     &           deltah2_12  =1.06d0,
+     &           deltah1_4sf =.90d0,
+     &           deltah1_6sf =.91d0,
+     &           deltah1_8sf =.92d0,
+     &           deltah1_10sf=.93d0,
+     &           deltah1_12sf=.94d0)
+
+C     Parameter cfat involved in computing deltah1 (see above).
+      parameter (cfat4_1=-1.4487d0,  cfat4_2=2.3593d0,
+     &           cfat6_1=-1.4983d0,  cfat6_2=3.1163d0,
+     &           cfat8_1=-1.4662d0,  cfat8_2=3.5197d0,
+     &           cfat10_1=-1.4290d0, cfat10_2=3.7538d0,
+     &           cfat12_1=-1.3964d0, cfat12_2=3.9104d0)
+C ------------------------------------------------------------------------
+C ORDER REDUCTION RECOVERY
+C ------------------------------------------------------------------------
+      double precision faterr4,faterr6,faterr8,faterr10,
+     &                 faterr0,rath1,rath2,
+     &                 ratrho1,ratrho2,ratrho1_2,ratrho2_2
+
+      parameter( rath1=.95d0,rath2=1.05d0,ratrho1=.95d0,
+     &           ratrho2 = 1.05d0,
+     &           ratrho1_2=.925d0,ratrho2_2=1.075d0)
+
+      parameter (faterr4=7D0,faterr6=6D0,faterr8=5D0,faterr10 = 4D0)
+
+C ------------------------------------------------------------------------
+C VUP
+C ------------------------------------------------------------------------
+      double precision VUP4,VUP6,VUP8,VUP10
+      parameter (VUP4 = 1D0/5D0,
+     &           VUP6 = 1D0/7D0,
+     &           VUP8 = 1D0/9D0,
+     &           VUP10= 1D0/11D0)
+C ------------------------------------------------------------------------
+C SISERR
+C ------------------------------------------------------------------------
+      double precision SISERR4,SISERR6,SISERR8,SISERR10,SISERR12
+
+      parameter (SISERR4  = 2D0,
+     &           SISERR6  = 3D0,
+     &           SISERR8  = 3D0,
+     &           SISERR10 = 3D0,
+     &           SISERR12 = 3D0)

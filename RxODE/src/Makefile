@@ -1,0 +1,33 @@
+CC = `"$(R_HOME)/bin/R" CMD config CC`
+FC = `"$(R_HOME)/bin/R" CMD config FC`
+CFLAGS = `"$(R_HOME)/bin/R" CMD config CFLAGS`
+FFLAGS = `"$(R_HOME)/bin/R" CMD config FFLAGS`
+
+# CFLAGS for ttf2pt1 - force 32-bit binary
+# Disable a bunch of warnings because they cause problems with R CMD check
+# as of R 3.1.1
+MY_CFLAGS = $(CFLAGS) -m32 -DWINDOWS \
+  -Wno-comment -Wno-format -Wno-logical-op-parentheses -Wno-pointer-sign \
+  -Wno-unused-function -Wno-unused-variable -Wno-parentheses \
+  -Wno-unused-label
+
+# Run make in subdirs
+all: libodeaux libdparse libtran
+
+libodeaux:
+	echo "make libodeaux.a in ode/ ..."
+	(cd ode; $(MAKE) CC="$(CC)" FC="$(FC)" CFLAGS="$(CFLAGS) -fPIC" FFLAGS="$(FFLAGS) -fPIC" libodeaux.a)
+
+libdparse:
+	echo "make libodeaux.a ..."
+	(cd dparser; $(MAKE) CC="$(CC)" CFLAGS="$(CFLAGS)" libdparse.a)
+
+libtran:
+	echo "make tran ..."
+	($(CC) tran*.c -Idparser -Ldparser -ldparse -o tran.exe)
+
+clean:
+	echo "cleaning ..."
+	(cd dparser;rm -f *.o *.a)
+	(cd ode;rm -f *.o *.a)
+	rm -f *.exe
