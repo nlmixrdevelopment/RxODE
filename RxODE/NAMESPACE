@@ -1,1 +1,10 @@
-exportPattern("^[^\\.]")
+# we only import tools::md5suam
+importFrom("tools", "md5sum")   # to ensure equality
+
+# export only 3 functions and print methods
+export("RxODE", "rx.initCmpMgr", "eventTable")
+S3method("print", "RxODE")
+S3method("print", "EventTable")
+S3method("print", "RxCompilationManager")
+
+#useDynLib("RxODE")

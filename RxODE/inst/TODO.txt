@@ -1,0 +1,48 @@
+* Develop more comprehensive testing scripts (high priority)
+
+* Allow tran.c to be called from R (ie., replace main by tran())
+
+* Under Windows, system() uses COMSPEC, which causes problems with
+  pathnames that have spaces. 
+
+* Modify call_dvode.c and tran.c to use function pointers to avoid
+  the current hack of editing/replacing function names with model-
+  specific names (see rx.initCmpMgr in RxODE.R)
+
+* Move InfusionRate[] from global to local (per model). Remove
+  limitation to 99 entries.
+
+* We no longer need the variable.txt file, as that info is part of
+  the compilation manager.
+
+* Replace .C for .Call 
+
+* eventTable(), should we expand the encoded/packed "evid" column 
+  in the event table?  (e.g., provide columns flags for infusion vs 
+  bolus, etc.)
+
+* How should we manage model files life cycle? Instead of simple
+  directories we could create zip/tar archives per model (maybe).
+  Or should we just leave the *.so and remove everything else?
+
+* Define methods for EventTable objects (plot, points/lines, summary, 
+  any other?)
+
+* Define methods for RxODE models (summary, fitted, predict,
+  update, simulate, residuals, plot, points/lines, llikliood, 
+  anova, ...) But note that RxODE is closer to approx() than to
+  lm().
+
+* Connect to gls, nlme, lme3, ...
+
+* Do we need  the following? can we query R CMD config for this info?
+  .gflibs <- if (is.win) "-lRblas -lgfortran" else "-lgfortran" 
+
+* RxODE() includes a hack that fishes arguments "S1", "S2, ... a-la-nonmem
+  for scaling the corresponding compartment.  Provide a more
+  explicit mechanism, say, scale = c(centr = 7.5) similar in spirit to
+  parms= and inits= arguments.
+
+* Add C code to register the C function, as in R-ext Section 5.4.
+
+* Add "**" as a synonim for the exponentiation "^" operator (low priority).

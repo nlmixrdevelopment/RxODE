@@ -1,9 +1,27 @@
 Package: RxODE
-Title: This package facilitates pharmacometric simulation with ODE models in R
-Version: 0.1
-Authors@R: "Melissa Hallow <hallowkm@uga.edu> [aut, cre]"
-Description: RxODE facilitates quick and efficient simulations of ordinary differential equation (ODE) models in R. This package provides an elegant, efficient, and versatile way to specify dosing scenarios and sampling schedules. It also facilitates simulation with variability, and minimizes the amount of custom coding required for pharmacometric simulation. The model is compiled in C, and thus run times are extremely fast. It is designed with pharmacometric models in mind, but can be applied more generally to any ODE model.  
-
-Depends: R (>= 3.1.1)
-License: What license is it under?
-LazyData: true
+Version: 0.5-0
+Date: 2015-06-26
+Title: Facilities for Simulating from ODE-based Models 
+Authors@R: c(
+   person("Melissa", "Hallow", 
+      role = c("aut", "cre"), email = "hallowkm@uga.edu"),
+   person("Wenping", "Wang", 
+      role = "aut", email = "Wenping.wang@outlook.com"),
+   person(c("David", "A."), "James",
+      role = "aut", email = "daj025@gmail.com")
+   )
+Author: Melissa Hallow [aut, cre], Wenping Wang [aut], David A. James [aut]
+Maintainer: Melissa Hallow <hallowkm@uga.edu>
+Depends: R (>= 3.0.0)
+Imports: tools
+Suggests: knitr, nlme
+Description: Facilities for running simulations from ordinary 
+   differential equation (ODE) models, such as pharmacometrics and other 
+   compartmental models.  A compilation manager translates the ODE model 
+   into C, compiles it, and dynamically loads the object code into R for 
+   improved computational efficiency.  An event table object facilitates 
+   the specification of complex dosing regimens (optional) and sampling 
+   schedules.
+NeedsCompilation: yes
+VignetteBuilder: knitr
+License: GPL (>= 2)
