@@ -10,13 +10,14 @@ ode <- "
 m1 <- RxODE(model = ode, modName = "m1")
 
 # create dosing and observation (sampling) events
-# QD dosing, 5 days
+# QD (once daily) dosing, 5 days
 
-qd <- eventTable(amount.units="umg", time.units = "days")
-qd$add.dosing(dose=10000, nbr.doses=5, dosing.interval = 1)
+qd <- eventTable(amount.units="umg", time.units = "hours")
+qd$add.dosing(dose=10000, nbr.doses=5, dosing.interval = 24)
 
-qd$add.sampling(0:24)
-qd$add.sampling(96+0:24)
+# hourly sampling during 1st day, every 4 hours afterwards
+qd$add.sampling(0:24)                        # hourly
+qd$add.sampling(seq(from=28, to=96, by=4) )  # every 4 hours
 
 # BID dosing, 5 days
 

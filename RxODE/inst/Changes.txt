@@ -1,3 +1,15 @@
+Version 0.5-1
+
+* Mainly changes to prepare for CRAN (minor tying loose ends).
+
+* Clean up the ode directory to remove unused fortran code causing
+  too many warnings.
+
+* Added a $copy() method to the eventTable object, reverse the default
+  time.interval=24 in eventTable$add.dosing().
+
+* Added "tests" subdirectory; more scripts to be written.
+
 Version 0.5-0
 
 * Move to github.

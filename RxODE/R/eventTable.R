@@ -13,7 +13,7 @@
 #       and covariates.
 
 "eventTable" <-
-function(amount.units = NA, time.units = NA)
+function(amount.units = NA, time.units = "hours")
 {
    .EventTable <- NULL
    .obs.rec <- logical(0)     # flag for observation records
@@ -24,7 +24,7 @@ function(amount.units = NA, time.units = NA)
    "add.dosing" <- 
    function(dose,      # amount per dose,
       nbr.doses = 1,      # single dose default
-      dosing.interval = 1,
+      dosing.interval = 24,
       dosing.to=1,         #to which cmt dosing is admin'ed
       rate=NULL,            #infusion rate if infusion
       amount.units = NA, 
@@ -39,6 +39,14 @@ function(amount.units = NA, time.units = NA)
             stop("dosing units differ from EventTable's")
         }
       } # else assume amount.units as per eventTable() definition
+
+      if(!is.na(time.units)){
+         if(is.na(.time.units)) 
+            .time.units <<- time.units   # initialize
+         else if(tolower(.time.units)!=tolower(time.units)){
+            stop("time units differ from EventTable's")
+        }
+      } # else assume time.units as per eventTable() definition
 
       if(missing(dosing.interval) && nbr.doses>1 )
          stop("must specify 'dosing.interval' with multiple doses")
@@ -126,6 +134,21 @@ function(amount.units = NA, time.units = NA)
       invisible()
    }
 
+   "copy" <-
+   function() 
+   {
+      # Make a copy (clone) of the current event table.
+      # Can test the output with identical(old, new, ignore.closure=TRUE).
+      self <- environment(add.dosing)     # current environment 
+      nms <- objects(all.names = TRUE, envir = self)
+
+      out <- eventTable()                 # new, pristine eventTable
+      env2 <- environment(out$add.dosing)
+      for(name in nms)
+         assign(name, get(name, envir = self), envir = env2)
+      out
+   }
+
    out <-
       list(
          get.EventTable = function() .EventTable,
@@ -136,7 +159,8 @@ function(amount.units = NA, time.units = NA)
          add.sampling = add.sampling,
          get.sampling = function() .EventTable[.obs.rec, ,drop = FALSE],
          get.units = function() c(dosing = .amount.units, time = .time.units),
-         import.EventTable = import.EventTable
+         import.EventTable = import.EventTable,
+         copy = copy
       )
    class(out) <- "EventTable"
    out

@@ -10,7 +10,7 @@
 #endif
 
 
-void F77_NAME(lsoda)(
+void F77_NAME(dlsoda)(
      void (*)(int *, double *, double *, double *),
      int *, double *, double *, double *, int *, double *, double *,
      int *, int *, int *, double *,int *,int *, int *,
@@ -83,7 +83,7 @@ void call_lsoda(int neq, double *x, int *evid, int nx, double *inits, double *do
 
 		if(xout>xp)
 		{
-	        F77_CALL(lsoda)(dydt_lsoda_dum, &neq, yp, &xp, &xout, &itol, &rtol, &atol, &itask,
+	        F77_CALL(dlsoda)(dydt_lsoda_dum, &neq, yp, &xp, &xout, &itol, &rtol, &atol, &itask,
                 &istate, &iopt, rwork, &lrw, iwork, &liw, &jdum_lsoda, &jt);
 
 			if (istate<0)

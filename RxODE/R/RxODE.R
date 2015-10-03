@@ -16,12 +16,21 @@ function(model, modName = basename(wd), wd = getwd(),
    # after parsing, thus it needs to be dynamically computed in cmpMgr
    get.modelVars <- cmpMgr$get.modelVars
 
+   .version <- "0.5"          # object version
+   .last.solve.args <- NULL   # to be populated by solve()
+
    solve <- 
    function(params, events, inits = NULL, stiff = TRUE, transit_abs = FALSE, 
         atol = 1.0e-8, rtol = 1.0e-6, ...)
    {
       event.table <- events$get.EventTable()
       modelVars <- get.modelVars()
+
+      # preserve input arguments. 
+      .last.solve.args <<-
+         list(params = params, events = events$copy(),
+              inits = inits, stiff = stiff, 
+              transit_abs = transit_abs, atol = atol, rtol = rtol, ...)
 
       # check that starting values for all needed parameters are 
       # specified in the input "params" 
@@ -110,6 +119,7 @@ function(model, modName = basename(wd), wd = getwd(),
          cmpMgr = cmpMgr, 
          dynLoad = cmpMgr$dynLoad, 
          isValid = cmpMgr$isValid, 
+         version = function() .version,
          delete = cmpMgr$delete, 
          # the next is for backward compatibility and will be deprecated
          parse = cmpMgr$parse, compile = cmpMgr$compile, 

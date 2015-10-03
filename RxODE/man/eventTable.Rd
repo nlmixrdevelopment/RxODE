@@ -8,7 +8,7 @@
    adding and querying dosing and observation records
 }
 \usage{
-eventTable(amount.units = NA, time.units = NA)
+eventTable(amount.units = NA, time.units = "hours")
 }
 \arguments{
    \item{amount.units}{
@@ -17,7 +17,7 @@ eventTable(amount.units = NA, time.units = NA)
    }
    \item{time.units}{
      string denoting the time units, e.g., \dQuote{hours}, \dQuote{days}.
-     Default to \code{NA} to denote unspecified units.
+     Default to \code{"hours"}.
    }
 }
 \details{
@@ -44,7 +44,7 @@ A closure with the following list of functions:
       \code{nbr.doses}: integer, number of doses;
 
       \code{dosing.interval}: required numeric scalar, time between doses
-      in \code{time.units};
+      in \code{time.units}, defaults to 24 of \code{time.units="hours"};
 
       \code{dosing.to}: integer, compartment the dose goes into 
       (first compartment by default);
@@ -62,7 +62,7 @@ A closure with the following list of functions:
       definition.
 
       \code{time.units}: optional string indicating the time units. 
-      Defaults to \code{NA} to indicate as per the original \code{EventTable}
+      Defaults to \code{"hours"} to indicate as per the original \code{EventTable}
       definition.
    }
 
@@ -71,13 +71,15 @@ A closure with the following list of functions:
    \item{add.sampling}{adds sampling time observation records to the
    event table. Its arguments are
 
-      \code{time} a vector of time values (in \code{sampling.units}).
+      \code{time} a vector of time values (in \code{time.units}).
   
-      \code{sampling.units} an optional string specifying the time 
+      \code{time.units} an optional string specifying the time 
       units. Defaults to the units specified when the \code{EventTable}
       was initialized.
 
-		%\code{sampling.interval}: scalar, time between samples.
+      % TODO: should add.sampling() have similar calling sequence
+      % as add.dosing()?
+      %\code{sampling.interval}: scalar, time between samples.
       %\code{start.time}: scalar, starting observation time.
       %\code{end.time}: scalar, end observation time.
    }
@@ -93,6 +95,9 @@ A closure with the following list of functions:
    \item{get.units}{returns a two-element character vector with the
    dosing and time units, respectively.}
 
+   \item{copy}{makes a copy of the current event table. To create
+   a copy of an event table object use \code{qd2 <- qd$copy()}.}
+   
 }
 \author{Melissa Hallow, Wenping Wang, David A. James}
 
@@ -112,7 +117,7 @@ qd$add.dosing(dose=50, nbr.doses=5, dosing.interval = 1, do.sampling=FALSE)
 qd$add.sampling(seq(from = 0, to = 1, by = 1/24))
 qd$add.sampling(seq(from = 1, to = 5, by = 12/24))
 
-#print(qd$dosing())     # table of dosing records
+#print(qd$get.dosing())     # table of dosing records
 print(qd$get.nobs())   # number of observation (not dosing) records
 
 # BID dosing, 5 days
@@ -120,6 +125,14 @@ print(qd$get.nobs())   # number of observation (not dosing) records
 bid <- eventTable("mg", "days")  # only dosing
 bid$add.dosing(dose=10000, nbr.doses=2*5, 
    dosing.interval = 12, do.sampling=FALSE)
+
+# Use the copy() method to create a copy (clone) of an existing
+# event table (simple assignments just create a new reference to
+# the same event table object (closure)).
+
+bid.ext <- bid$copy()      # three-day extension for a 2nd cohort
+bid.ext$add.dosing(dose = 5000, nbr.doses = 2*3,
+   dosing.interval = 12, do.sampling = TRUE)
 }
 
 \keyword{models}

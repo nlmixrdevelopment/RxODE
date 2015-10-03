@@ -5,7 +5,7 @@
 
 LIBODEAUX = libodeaux.a
 
-LIB_SRCS = bim.f  lsoda_all.f  radaua_ww.f  subbim.f  vode.f
+LIB_SRCS = opkda2.f dlsoda.f opkda1_abbr.f  vode.f 
 LIB_OBJS = $(LIB_SRCS:%.f=%.o) dop853.o
 
 all: $(LIBODEAUX)
@@ -15,3 +15,6 @@ $(LIBODEAUX): $(LIB_OBJS)
 	ranlib $@
 
 dop853.o: dop853.c
+
+
+ 
