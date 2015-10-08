@@ -1,25 +1,28 @@
 Version 0.5-1
 
-* Mainly changes to prepare for CRAN (minor tying loose ends).
+* Mainly changes to prepare for CRAN.
 
-* Clean up the ode directory to remove unused fortran code causing
+* Added workaround for the Windows issue of folder names with embedded 
+  spaces. 
+
+* Cleaned up the ode directory to remove unused fortran code causing
   too many warnings.
 
-* Added a $copy() method to the eventTable object, reverse the default
+* Added a $copy() method to the eventTable object; reversed the default
   time.interval=24 in eventTable$add.dosing().
 
-* Added "tests" subdirectory; more scripts to be written.
+* Added "tests" subdirectory; more scripts need to be written.
 
 Version 0.5-0
 
-* Move to github.
+* Moved to github.
 
 Version 0.4-1 
 
 * RxODE objects include get.modelVars() to extract model params, lhs, 
   and state variables
 
-* Update call_dvode.c to prevent aborting R
+* Update call_dvode.c to prevent aborting R.
 
 Version 0.4-0 (svn revision 123, 06Jan2015)
 

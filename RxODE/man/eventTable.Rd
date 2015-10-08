@@ -132,7 +132,7 @@ bid$add.dosing(dose=10000, nbr.doses=2*5,
 
 bid.ext <- bid$copy()      # three-day extension for a 2nd cohort
 bid.ext$add.dosing(dose = 5000, nbr.doses = 2*3,
-   dosing.interval = 12, do.sampling = TRUE)
+   start.time = 120, dosing.interval = 12, do.sampling = FALSE)
 }
 
 \keyword{models}

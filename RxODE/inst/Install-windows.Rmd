@@ -1,12 +1,12 @@
-`RxODE` installion under R for Windows
-====================================
+`RxODE` installation under R for Windows
+========================================
 
 These notes briefly describe steps to properly install `RxODE` and to
-ensure Rtools (http://cran-r.project.org/bin/windows/Rtoos) are properly 
+ensure `Rtools` (http://cran-r.project.org/bin/windows/Rtoos) are properly 
 configured to avoid compilation issues during the use of `RxODE`. 
 
 In a nutshell, installing `RxODE` is very straight forwad, but installing
-and configuring Rtools is a bit more delicate and you need to 
+and configuring `Rtools` is a bit more delicate and you need to 
 carefully follow the instructions in the "R Installation and Adminstration" 
 manual, in particular Section 6.3, and Appendix D "The Windows Toolset". 
 We point out a couple of details worth extra attention.  Please read on.
@@ -14,32 +14,54 @@ We point out a couple of details worth extra attention.  Please read on.
 Steps:
 ------
 
-1. Install the appropriate Rtools for your R for Windows version,
-   e.g., Rtools 3.2 for R versions 3.1.x through 3.2.x (for full details
+1. Install the appropriate `Rtools` for your R for Windows version,
+   e.g., `Rtools` 3.2 for R versions 3.1.x through 3.2.x (for full details
    see http://cran.r-project.org/bin/windows/Rtools). A couple of 
    important details:
 
-   * Make sure Rtools and R for Windows use the same architecture, either
-     32- or 64-bit.
+   * When installing `Rtools`, in the "Select Components" dialog box, 
+     you may select the default "Package authoring installation".
+
+   * In the "Select Additional Tasks" dialog window, check the
+     option "Edit the system PATH".  This is important to be able to
+     locate the C, Fortran compilers and other tools needed during 
+     the use of `RxODE`.  
+
+   * A simple way to test whether `Rtools` was properly installed is
+     to compile the `hello.c` program.  Simply open a new MSDOS command 
+     window, create a text file `hello.c` and compile it as follows:
+   
+     ```
+     C:\hello> type hello.c
+     #include<stdio.h>
      
-   * NB: Make sure your system `PATH` includes the gcc toolchain appropiate
-     folder `libexec` executables, e.g., 
-      `C:<Rtools-dir>\gcc-<version>\libexec\gcc\i686-w64-mingw32\<version>\;`
-     where `C:<Rtools-dir>` refers to the folder where you have installed
-     `Rtools` and `<version>` is the version of the GNU C complier in 
-     Rtools.
+     void main(int argc, char **argv)
+     {
+         printf("Hello World!\n");
+     }
 
-2.  Obtain the `RxODE` package, either from github or CRAN 
+     C:\hello> gcc -o hello hello.c
 
-    * CRAN. Use the usual method of installing CRAN pacakges, either 
-      through the R GUI or at the command line use, say,
-      `install.packages("RxODE", lib="C:/Rlib")`.
+     C:\hello> .\hello
+     Hello World!
+     ```
 
-    * Github. First install the `devtools` package (if needed) and 
-      then `RxODE` from GitHub.  Make sure that the library folder where you 
-      install `RxODE` has no embeded spaces (see question 4.1 in the
-      "R for Windows FAQ" and the pointers therein).
- 
+     If you get the error `gcc: error: CreateProcess: No such file or directory`     then you know `Rtools` was not properly installed, in particular,
+     it did not update your system `PATH` variable.
+
+2.  Obtain the `RxODE` package, either from github or CRAN.  The 
+    installation requires use of the gcc compiler, so you'll know if Step 1 
+    was successfully executed.
+
+    * CRAN. Use the usual method for installing pacakges from CRAN.
+
+    * GitHub. First install the `devtools` package (if needed) and 
+      then `RxODE` from GitHub.  You may want to avoid using a library 
+      folder that has spaces in its name (see question 4.1 in the 
+      "R for Windows FAQ" and the pointers therein).  As of `RxODE`
+      version 0.5-1, we've been able to test installations on folder with 
+      spaces in their name, but you may want to be on the safe side.
+      
       ``` 
       install.packages("devtools")
       library("devtools", lib = "C:/Rlib")
@@ -53,47 +75,9 @@ Steps:
     demo("demo1","RxODE")
     ```
 
-If the demo runs without error, click on the plot window and see if a new plot comes 
-up each time. If so, `RxODE` has been installed correctly.
+If the demo runs without error, click on the plot window and see if a 
+new plot comes up each time. If so, `RxODE` has been installed correctly.
 
-See `browseVignettes("RxODE")` for an extended example on using `RxODE` for simulations.
-
-Troubleshooting
----------------
-
-1. A potential error under Windows is
-
-```
-mod1 <- RxODE(model = ode, modName = "mod1") 
-
-C:/PROGRA~1/R/R-32~1.0/etc/x64/Makeconf:204: warning: overriding commands for target `.m.o' 
-C:/PROGRA~1/R/R-32~1.0/etc/x64/Makeconf:197: warning: ignoring old commands for target `.m.o' 
-C:\PROGRA~2\GnuWin32\bin\make.exe: Interrupt/Exception caught (code = 0xc00000fd, addr = 0x4227d3) 
-Warning message: 
-running command 'make -f "Makevars" -f "C:/PROGRA~1/R/R-32~1.0/etc/x64/Makeconf" -f "C:/PROGRA~1/R/R-32~1.0/share/make/winshlib.mk" SHLIB="c:/data/mod1.d/mod1.dll" PKG_LIBS='-LC:/Users//xxxx/Documents/R/win-library/3.2/RxODE/libs/x64 -lodeaux -lRblas -lgfortran' WIN=64 TCLBIN=64 OBJECTS="c:/data/mod1.d/mod1.o c:/data/mod1.d/call_dvode.o"' had status 255 
-Error in cmpMgr$compile() : 
-error loading dll file c:/data/mod1.d/mod1.dll 
-In addition: Warning message: 
-running command 'C:/PROGRA~1/R/R-32~1.0/bin/R CMD SHLIB c:/data/mod1.d/mod1.c c:/data/mod1.d/call_dvode.o -LC:/Users/xxxx/Documents/R/win-library/3.2/RxODE/libs/x64 -lodeaux -lRblas -lgfortran' had status 1 
-```
-
-The cause of such an error is typically an improperly installed `Rtools`, 
-namely, failing to update the `PATH` system variable to include the `libexec`
-as indicated in Step 1 above.
-
-2. Another potential error is when `RxODE` is installed into a folder whose name
-   includes spaces.  You may see something like
-
-```
-m1 <- RxODE(model = ode, modName = "m1")
-Error in file(con, "r") : cannot open the connection
-In addition: Warning messages:
-1: running command 'C:/Program Files/R/R-3.1.1/library/RxODE/bin/i386/tran.exe C:/Temp/FMD/m1.d/model.txt C:/Temp/FMD/m1.d/m1.c C:/Temp/FMD/m1.d/ 2>C:/Temp/FMD/m1.d/error.txt' had status 127 
-2: In file(con, "r") :
-  cannot open file 'C:/Temp/FMD/m1.d/m1.c': No such file or directory
-```
-
-Notice that path `C:/Program Files/...` contains a space.  The workaround for this
-issue is to install `RxODE` on a different folder, say, `C:\Rlib`.
-
+See `browseVignettes("RxODE")` for an extended example on using 
+`RxODE` for simulations.
 

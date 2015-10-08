@@ -11,7 +11,7 @@ libodeaux:
 	(cd ode; $(MAKE) CC="$(CC)" FC="$(FC)" CFLAGS="$(CFLAGS) -fPIC" FFLAGS="$(FFLAGS) -fPIC" libodeaux.a)
 
 libdparse:
-	echo "make libodeaux.a ..."
+	echo "make libdparse.a in dparser/ ..."
 	(cd dparser; $(MAKE) -f Makefile.org CC="$(CC)" CFLAGS="$(CFLAGS)" libdparse.a)
 
 libtran:

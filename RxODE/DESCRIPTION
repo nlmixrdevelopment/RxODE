@@ -1,6 +1,6 @@
 Package: RxODE
 Version: 0.5-1
-Date: 2015-10-02
+Date: 2015-10-08
 Title: Facilities for Simulating from ODE-based Models 
 Authors@R: c(
    person("Melissa", "Hallow", 
@@ -13,7 +13,6 @@ Authors@R: c(
 Author: Melissa Hallow [aut, cre], Wenping Wang [aut], David A. James [aut]
 Maintainer: Melissa Hallow <hallowkm@uga.edu>
 Depends: R (>= 3.0.0)
-Imports: tools
 Suggests: knitr, nlme
 Description: Facilities for running simulations from ordinary 
    differential equation (ODE) models, such as pharmacometrics and other 

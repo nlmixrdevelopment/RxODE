@@ -159,9 +159,9 @@ function(model, modName, wd)
    .parsed <- FALSE
    .compiled <- FALSE
    .modelVars <- list()            # params, state, LHS in the model
-   .md5sum <- NULL
 
    is.win <- .Platform$OS.type=="windows"
+   win.path <- function(p) gsub("\\\\", "/", shortPathName(p))
    R_ARCH <- .Platform$r_arch
 
    # locations for the various libs and header files, plus 
@@ -172,6 +172,16 @@ function(model, modName, wd)
 
    # model-specific directory under .md (default current dir)
    .mdir <- file.path(.wd, sprintf("%s.d", .modName))
+
+   if(is.win){  
+      # on Windows ensure there are no spaces in path names and 
+      # no backslashes to avoid tripping system("R CMD SHLIB")
+      .wd <- win.path(.wd)
+      .bin <- win.path(.bin)
+      .libs <- win.path(.libs)
+      .incl <- win.path(.incl)
+      .mdir <- win.path(.mdir)
+   }
 
    # filenames and shell command required for parsing (these are unique
    # within a given model directory
@@ -204,10 +214,11 @@ function(model, modName, wd)
       dir.create(.mdir, recursive = TRUE)
 
    cat(model, file = .modfile, "\n")   
-   .md5 <- tools::md5sum(.modfile)  # a bit strict 
 
    # Hack: copy "call_dvode.c" to .mdir to avoid dyn.load() errors
    common <- system.file("common", package = "RxODE")
+   if(is.win) 
+      common <- win.path(common)
    # replace "dydt" and "calc_lhs" by Rx_ODE_mod_<modName>_* inside the code 
    # of call_dvode.c to avoid symbol conflicts
    safe_name <- gsub("\\W", "_", .modName)  # replace non-alphanumeric by "_"
@@ -226,15 +237,6 @@ function(model, modName, wd)
       if(!do.it)
          return(invisible(.parsed))
 
-      # do we need to parse? (not if the file hasn't changed
-      if(FALSE && file.exists(.modfile)){
-         prev.md5 <- tools::md5sum(.modfile)
-         if(!is.null(.md5sum) && .md5==prev.md5){
-            .parsed <<- TRUE
-            return(invisible(.parsed))
-         }
-      }
-      
       rc <- do.call(.sh, list(.parse.cmd))  # parse command (shell)
       if(file.exists(.errfile))
          err <- readLines(.errfile)
@@ -242,6 +244,7 @@ function(model, modName, wd)
          err <- NULL
       if(rc!=0 && length(err))
          stop(sprintf("error parsing ODE system in %s: %s", .modfile, err))
+
       # HACK: replace the common dydt by RxODE_mod_<mod>_dydt
       src <- gsub("dydt", .dydt, readLines(.cfile))
       src <- gsub("calc_lhs", .calc_lhs, src)
@@ -272,7 +275,7 @@ function(model, modName, wd)
       # may need to unload previous model object code
       if (is.loaded(.objName)) try(dyn.unload(.dllfile), silent = TRUE)
 
-      #on.exit(unlink("Makevars"))
+      on.exit(unlink("Makevars"))
       cat(sprintf("PKG_CPPFLAGS=-I%s",.incl), file="Makevars")
 
       # create SHLIB
