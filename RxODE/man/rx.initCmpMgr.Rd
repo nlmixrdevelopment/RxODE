@@ -4,8 +4,8 @@
   A compilation manager for RxODE models
 }
 \description{
-   This function parses, compiles, links, and loads the shared object that
-      implements an RxODE model. 
+   This function parses, compiles, links, and loads the shared 
+   object that implements an RxODE model. 
 }
 \usage{
    rx.initCmpMgr(model, modName, wd)
@@ -34,30 +34,39 @@
 }
 \value{
    An object (closure) with the following member functions:
-   \item{parse}{this function parses (translates) the ODE-based model 
+   \item{parse}{
+      this function parses (translates) the ODE-based model 
       specification and generates a C file to implement the model.}
-   \item{compile}{compiles the generated C file for the ODE system
+   \item{compile}{
+      compiles the generated C file for the ODE system
       and dynamically loads the machine code in the shared object.}
-   \item{dynLoad}{if needed, dynamically loads the dynamic library
+   \item{dynLoad}{
+      if needed, dynamically loads the dynamic library
       produced in the \code{compile()} step.  Note that the shared
       object persists across R sessions, thus the \code{dynLoad} needs
       to be issued as needed.}
-   \item{ode_solver}{a string with the name of the C symbol for this 
-      model solver.}
-   \item{dllfile}{a string with the name of the dynamic link (or
-      shared object) file.}
-   \item{get.modelVars}{function that returns a list with 3 character
+   \item{dynUnload}{
+      this function unloads the previously dynamically loaded
+      model object code.  Mainly for internal use.}
+   \item{ode_solver}{
+      a string with the name of the C symbol for this model solver.}
+   \item{dllfile}{
+      a string with the name of the dynamic link (or shared object) file.}
+   \item{get.modelVars}{
+      function that returns a list with 3 character
       vectors, \code{params}, \code{state}, and \code{lhs} of variable 
-      names used in the model specification. 
+      names (identifiers) used in the model specification. 
       These will be output when the model is computed (i.e., the ODE 
       solved).}
-   \item{isValid}{a function that (naively) checks for model validity,
+   \item{isValid}{
+      a function that (naively) checks for model validity,
       namely that the C object code reflects the latest model 
       specification.}
-   \item{get.index}{helper function to extract the index of one or
-      more system variables (state, parameter, or other).
-   }
-   \item{getObj}{internal (not user callable) function.}
+   \item{get.index}{
+      helper function to extract the index of one or
+      more system variables (state, parameter, or other).}
+   \item{getObj}{
+      internal (not user callable) function.}
 }
 \seealso{
   \code{\link{RxODE}}

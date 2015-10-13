@@ -1,13 +1,17 @@
 <!--
 %\VignetteEngine{knitr::knitr}
 %\VignetteIndexEntry{Introduction to RxODE}
+%\VignetteKeyword{ordinary differential equations}
+%\VignetteKeyword{PK/PD}
+%\VignetteKeyword{simulations}
 -->
 ```{r setup, include = FALSE}
 library(knitr)
 ```
 
-## RxODE package for R: a tool for performing simulations with 
-Ordinary Different Equation models in R, with applications for pharmacometrics
+## RxODE: A tool for performing simulations from 
+Ordinary Differential Equation (ODE) models, with 
+applications for pharmacometrics
 ***  
 
 ##### Authors: Melissa Hallow, Wenping Wang, David A. James
@@ -15,11 +19,11 @@ Ordinary Different Equation models in R, with applications for pharmacometrics
 ***
 
 #### Introduction
-RxODE is an R package that facilitates simulation with ODE models in
+`RxODE` is an R package that facilitates simulation with ODE models in
 R. It is designed with pharmacometrics models in mind, but can be
 applied more generally to any ODE model. Here, a typical
 pharmacokinetics-pharmacodynamics (PKPD) model is used to illustrate
-the application of RxODE. This model is illustrated in Figure 1. It is
+the application of `RxODE`. This model is illustrated in Figure 1. It is
 assumed that all model parameters have been estimated previously.
 
 ![Figure 1. A two compartment pharmacokinetics model with an effect compartment](Model_schematic_w500.png)  
@@ -42,10 +46,11 @@ ode <- "
    d/dt(eff)  = Kin - Kout*(1-C2/(EC50+C2))*eff;
 "
 ```
-To load RxODE package and compile the model: 
+To load `RxODE` package and compile the model: 
 ```{r}
 library(RxODE)
-mod1 <- RxODE(model = ode, modName = "mod1")   
+work <- tempfile("Rx_intro-")
+mod1 <- RxODE(model = ode, modName = "mod1", wd = work)
 ```
 
 Model parameters are defined in named vectors. Names of parameters in
@@ -53,27 +58,27 @@ the vector must be a superset of parameters in the ODE model, and the
 order of parameters within the vector is not important. 
 ```{r}
 theta <- 
-   c(KA=2.94E-01, CL=1.86E+01,             # central 
-     V2=4.02E+01, Q=1.05E+01, V3=2.97E+02, # peripheral
-     Kin=1, Kout=1, EC50=200)              # effects  
+   c(KA=2.94E-01, CL=1.86E+01, V2=4.02E+01, # central 
+     Q=1.05E+01,  V3=2.97E+02,              # peripheral
+     Kin=1, Kout=1, EC50=200)               # effects  
 ```
 
 Initial conditions (ICs) are defined through a vector as well. The
 number of ICs must equal exactly the number of ODEs in the model, and
 the order must be the same as the order in which the ODEs are listed
-in the model. Elements may be names if desired: 
+in the model. Elements may be named if desired: 
 
 ```{r}
 inits <- c(depot=0, centr=0, peri=0, eff=1)    
 ```
 
-RxODE provides a simple and very flexible way to specify dosing and
+`RxODE` provides a simple and very flexible way to specify dosing and
 sampling through functions that generate an event table. First, an
 empty event table is generated through the "eventTable()" function:
 ```{r}
 ev <- eventTable(amount.units='mg', time.units='hours')
 ```
-Next, use the add.dosing() and add.sampling() functions of the
+Next, use the `add.dosing()` and `add.sampling()` functions of the
 `EventTable` object to specify the dosing (amounts, frequency and/or
 times, etc.) and observation times at which to sample the state of the
 system.  These functions can be called multiple times to specify more
@@ -102,7 +107,7 @@ function. Simulation results for all variables in the model are stored
 in the output matrix x. 
 
 ```{r}
-x <- mod1$run(theta, ev, inits)
+x <- mod1$solve(theta, ev, inits)
 head(x)
 ```
 
@@ -121,14 +126,15 @@ of parameter values for use in the simulation. In the example below,
 nsub <- 100						  #number of subproblems
 CL <- 1.86E+01*exp(rnorm(nsub,0,.4^2))
 theta.all <- 
-	cbind(KA=2.94E-01, CL=CL,             # central 
-	V2=4.02E+01, Q=1.05E+01, V3=2.97E+02, # peripheral
-	Kin=1, Kout=1, EC50=200)              # effects  
+	cbind(KA=2.94E-01, CL=CL, V2=4.02E+01,  # central 
+	Q=1.05E+01, V3=2.97E+02,                # peripheral
+	Kin=1, Kout=1, EC50=200)                # effects  
 head(theta.all)
 ```
 
-Each subproblem can be simulated by using a loop to run the simulation
-for each set of parameters of in the parameter matrix. 
+Each subproblem can be simulated by using an explicit loop (or the `apply()`
+function) to run the simulation for each set of parameters of in the parameter
+matrix. 
 
 ```{r fig.width=10}
 nobs <- ev$get.nobs()
@@ -136,7 +142,7 @@ cp.all <- matrix(NA, nobs, nsub)
 for (i in 1:nsub)
 {
 	theta <- theta.all[i,]
-	x <- mod1$run(theta, ev, inits=inits)
+	x <- mod1$solve(theta, ev, inits=inits)
 	cp.all[, i] <- x[, "C2"]
 }
 
@@ -149,34 +155,34 @@ with the simulated data. Below,  the 5th, 50th, and 95th percentiles
 of the simulated data are plotted. 
 
 ```{r fig.width=10}
-cp.q <- matrix(NA, nobs, 3)
-for (i in 1:nrow(cp.all))
-{
-	cp.q[i, ] <- quantile(cp.all[i,], prob=c(.05, .5, .95))
-}
-matplot(cp.q, type="l", lty=c(2,1,2), col=c(2,1,2), ylab="Central Concentration")
+cp.q <- apply(cp.all, 1, quantile, prob = c(0.05, 0.50, 0.95))
+matplot(t(cp.q), type="l", lty=c(2,1,2), col=c(2,1,2), ylab="Central Concentration")
 
 ```
 
-#### RxODE facilitates efficient generation of interactive model interfaces through Rshiny
+#### Facilities for generating R shiny applications
 
-The RxODE package includes a function genShinyApp() that automatically
-generates an interactive shiny application for running and interacting
-with the model. This function creates four key files: a
-platform-specific compiled C model file, a script that can call and
-run the compiled model within the shiny app, and the ui.R and server.R
-files make up the shiny app.  The default app includes widgets for
-varying the dose, dosing regimen, dose cycle, and number of cycles.
-The default output is a table of state variables and plot of one state
-variable, as shown below. The user is then free to adapt the shiny app
-to their needs by editing the ui.R and server.R files. 
+An example of creating an R [shiny application](http://shiny.rstudio.com) to
+interactively explore responses of various complex dosing regimens is available
+at http://qsp.engr.uga.edu:3838/RxODE/RegimenSimulator.  Shiny applications
+like this one may be programmatically created with the experimental function
+`genShinyApp.template()`.
+
+The above application includes widgets for varying the dose, dosing
+regimen, dose cycle, and number of cycles.  
 
 ```
-library(RxODEextra)   # To be implemented
-mod1.genShinyApp()    # To be implemented
 
-library("shiny")
-runApp("mod1.d")
+genShinyApp.template(appDir = "shinyExample", verbose=TRUE)
+
+library(shiny)
+runApp("shinyExample")
+
 ```
 
 ### [Click here to go to the Shiny App](http://qsp.engr.uga.edu:3838/RxODE/RegimenSimulator)
+
+```{r cleanup, include = FALSE}
+mod1$dynUnload()   # otherwise we can't unlink(work)
+unlink(work, recursive = TRUE)
+```

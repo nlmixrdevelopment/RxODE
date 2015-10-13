@@ -8,7 +8,8 @@
   translation into fast C code
 }
 \usage{
-RxODE(model, modName = basename(wd), wd = getwd(), filename = NULL, do.compile = TRUE, ...)
+RxODE(model, modName = basename(wd), wd = getwd(), 
+   filename = NULL, do.compile = TRUE, ...)
 }
 
 \arguments{
@@ -16,8 +17,9 @@ RxODE(model, modName = basename(wd), wd = getwd(), filename = NULL, do.compile =
      a string containing the set of ordinary differential equations (ODE)
      and other expressions defining the changes in the dynamic 
      system (see also the \code{filename} argument).
-     For details, see the section \dQuote{\code{RxODE} Syntax} below.
-     }
+     For details, see the sections \dQuote{Details} and 
+     \dQuote{\code{RxODE Syntax}} below.
+   }
    \item{modName}{
      a string to be used as the model name. This string is
      used for naming various aspects of the computations,
@@ -47,54 +49,89 @@ RxODE(model, modName = basename(wd), wd = getwd(), filename = NULL, do.compile =
    (e.g., encoding).
    }
 }
+
+\details{
+   The \dQuote{Rx} in the name \code{RxODE} is meant to suggest the
+   abbreviation \emph{Rx} for a medical prescription, and thus to suggest
+   the package emphasis on pharmacometrics modeling, including
+   pharmacokinetics (PK), pharmacodynamics (PD), disease progression,
+   drug-disease modeling, etc.  
+
+   The ODE-based model specification may be coded inside a character
+   string or in a text file, see Section \emph{RxODE Syntax} below for
+   coding details.  An internal \code{RxODE} compilation manager object
+   translates the ODE system into C, compiles it, and dynamically loads the
+   object code into the current R session.  The call to \code{RxODE}
+   produces an object of class \code{RxODE} which consists of a list-like
+   structure (closure) with various member functions (see Section
+   \emph{Value} below).
+
+   For evaluating \code{RxODE} models, two types of inputs may be
+   provided: a required set of time points for querying the state of the
+   ODE system and an optional set of doses (input amounts).  These inputs
+   are combined into a single \emph{event table} object created with the
+   function \code{\link{eventTable}}.
+
+}
+
 \section{RxODE Syntax}{
    An \code{RxODE} model specification consists of one or more 
    statements terminated by semi-colons, \sQuote{\code{;}}, and
    optional comments (comments are delimited by \code{#} and an 
-	end-of-line marker).  \strong{NB:} Comments are not allowed 
-	inside statements.
+   end-of-line marker).  \strong{NB:} Comments are not allowed 
+   inside statements.
 
    A block of statements is a set of statements delimeted by
-	curly braces, \sQuote{\code{\{ ... \}}}.
+   curly braces, \sQuote{\code{\{ ... \}}}.
    Statements can be either assignments or conditional \code{if}
    statements. Assignment statements can be either \dQuote{simple}
-	assignmets, where the left hand is an identifier (i.e., variable), or 
-	special \dQuote{time-derivative} assignments, where the left hand
+   assignmets, where the left hand is an identifier (i.e., variable), or 
+   special \dQuote{time-derivative} assignments, where the left hand
    specifies the change of that variable with respect to time  
-	e.g., \code{d/dt(depot)}.
+   e.g., \code{d/dt(depot)}.
 
    Expressions in assignment and \sQuote{\code{if}} statements can be 
-	numeric or logical (no character expressions are currently supported).
+   numeric or logical (no character expressions are currently supported).
    Numeric expressions can include the following numeric operators 
-	(\sQuote{\code{+}}, \sQuote{\code{-}}, \sQuote{\code{*}},
-   \sQuote{\code{/}}, \sQuote{\code{^}}),	and
-	those mathematical functions defined in the C or the
-	R math libraries (e.g., \code{fabs}, \code{exp}, \code{log}, \code{sin}).
+   (\sQuote{\code{+}}, \sQuote{\code{-}}, \sQuote{\code{*}},
+   \sQuote{\code{/}}, \sQuote{\code{^}}),   and
+   those mathematical functions defined in the C or the
+   R math libraries (e.g., \code{fabs}, \code{exp}, \code{log}, \code{sin}).
    (Notice that the modulo operator \sQuote{\code{\%}} is currently
    not supported.)
 
    Identifiers in an \code{RxODE} model specification can refer to:
-	\itemize{
+   \itemize{
       \item state variables in the dynamic system (e.g., compartments in a
-	   pharmacokinetics/pharamcodynamics model);
-		\item implied input variable, \code{t} (time), 
+      pharmacokinetics/pharamcodynamics model);
+      \item implied input variable, \code{t} (time), 
       \code{podo} (oral dose, for absorption models), and
       \code{tlast} (last time point);
-		\item model parameters, (\code{ka} rate of absorption, \code{CL} 
+      \item model parameters, (\code{ka} rate of absorption, \code{CL} 
       clearance, etc.);
-		\item others, as created by assignments as part of the model
-		specification.
+      \item others, as created by assignments as part of the model
+      specification.
    }
 
-	The values of these variables at pre-specified time points are
-	saved as part of the fitted/integrated/solved model (see
-	\code{\link{eventTable}}, in particular its member function 
-	\code{add.sampling} that defines a set of time points at which
-	to capture a snapshot of the syste via the values of these variables).
+   Identifiers consists of case-sensitive alphanumeric characters, 
+   plus the underscore \sQuote{_} character.  \strong{NB:} the
+   dot \sQuote{.} character is \strong{not} a valid character
+   identifier.
+
+   The values of these variables at pre-specified time points are
+   saved as part of the fitted/integrated/solved model (see
+   \code{\link{eventTable}}, in particular its member function 
+   \code{add.sampling} that defines a set of time points at which
+   to capture a snapshot of the syste via the values of these variables).
+
+   The ODE specification mini-language is parsed with the help of
+   the open source tool \emph{DParser}, Plevyak (2015).
 }
+
 \value{
-An object (closure) of class \dQuote{\code{RxODE}} consisting of
-the following list of strings and functions:
+   An object (closure) of class \dQuote{\code{RxODE}} (see Chambers and 
+   Temple Lang (2001)) consisting of the following list of strings and 
+   functions:
 
    \item{modName}{the name of the model (a copy of the input argument).}
    \item{model}{a character string holding the source model specification.}
@@ -106,18 +143,31 @@ the following list of strings and functions:
    \item{solve}{this function solves (integrates) the ODE. The following
       are its arguments:
 
-      \code{params}: a numeric named vector of starting estimates for
-      every parameter in the ODE system; 
+      \code{params}: a numeric named vector with values for every parameter 
+      in the ODE system; the names must correspond to the parameter 
+      identifiers used in the ODE specification;
  
       \code{events}: an \code{EventTable} object describing the 
-      input (e.g., doses) to the dynamic system and observation sampling time points
-      (see  \code{\link{eventTable}});
+      input (e.g., doses) to the dynamic system and observation 
+      sampling time points (see  \code{\link{eventTable}});
 
       \code{inits}: a vector of initial values of the state variables
-      (e.g., amounts in each compartment);
+      (e.g., amounts in each compartment), and the order in this vector
+      must be the same as the state variables (e.g., PK/PD compartments);
+     
 
       \code{stiff}: a logical (\code{TRUE} by default) indicating whether
-      the ODE system is stifff or not;
+      the ODE system is stifff or not.  
+
+      For stiff ODE sytems (\code{stiff=TRUE}), \code{RxODE} uses
+      the LSODA (Livermore Solver for Ordinary Differential Equations) 
+      Fortran package, which implements an automatic method switching 
+      for stiff and non-stiff problems along the integration interval, 
+      authored by Hindmarsh and Petzold (2003).  
+
+      For non-stiff systems (\code{stiff=FALSE}), \code{RxODE} uses DOP853,
+      an explicit Runge-Kutta method of order 8(5,3) of Dormand and Prince
+      as implemented in C by Hairer and Wanner (1993).
 
       \code{trans_abs}: a logical (\code{FALSE} by default) indicating
       whether to fit a transit absorption term 
@@ -131,12 +181,16 @@ the following list of strings and functions:
       are sampled time points and as many columns as system variables 
       (as defined by the ODEs and additional assigments in the RxODE model 
       code).
-   }
+      }
    \item{isValid}{a function that (naively) checks for model validity,
       namely that the C object code reflects the latest model 
       specification.}
+   \item{version}{a string scaler with the version of the \code{RxODE}
+      object (not the package).}
    \item{dynLoad}{a function with one \code{force=FALSE} argument
       that dynamically loads the object code if needed.}
+   \item{dynUnload}{a function with no argument that unloads 
+      the model object code.}
    \item{cmpMgr}{a \dQuote{compilation manager} object, see 
       \code{\link{rx.initCmpMgr}}.}
    \item{delete}{removes all created model files, including C and DDL files.
@@ -145,12 +199,37 @@ the following list of strings and functions:
    \item{run}{deprecated, use \code{solve}.}
    \item{parse}{deprecated.}
    \item{compile}{deprecated.}
-   \item{get.index}{helper function to extract the index of one or
-      more system variables (state, parameter, or other).
-   }
+   \item{get.index}{deprecated.}
    \item{getObj}{internal (not user callable) function.}
 }
+
+\references{
+   Chamber, J. M. and Temple Lang, D. (2001) 
+   \emph{Object Oriented Programming in R}. 
+   R News, Vol. 1, No. 3, September 2001.
+   \url{https://cran.r-project.org/doc/Rnews/Rnews_2001-3.pdf}.
+
+   Hindmarsh, A. C. 
+   \emph{ODEPACK, A Systematized Collection of ODE Solvers}. 
+   Scientific Computing, R. S. Stepleman et al. (Eds.),
+   North-Holland, Amsterdam, 1983, pp. 55-64.
+
+   Petzold, L. R.
+   \emph{Automatic Selection of Methods for Solving Stiff and Nonstiff 
+   Systems of Ordinary Differential Equations}.
+   Siam J. Sci. Stat. Comput. 4 (1983), pp. 136-148.
+
+   Hairer, E., Norsett, S. P., and Wanner, G.
+   \emph{Solving ordinary differential equations I, nonstiff problems}. 
+   2nd edition, Springer Series in Computational Mathematics, 
+   Springer-Verlag (1993).
+   
+   Plevyek, J.
+   \emph{Dparser}, \url{http://dparser.sourceforge.net}. Web. 12 Oct. 2015.
+}
+
 \author{Melissa Hallow, Wenping Wang, David A. James}
+
 \seealso{
    \code{\link{eventTable}}
 }

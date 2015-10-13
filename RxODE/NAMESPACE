@@ -1,10 +1,17 @@
 # we only import tools::md5suam
 importFrom("tools", "md5sum")   # to ensure equality
 
-# export only 3 functions and print methods
+# export only these 3 RxODE functions and print methods
 export("RxODE", "rx.initCmpMgr", "eventTable")
+
 S3method("print", "RxODE")
 S3method("print", "EventTable")
 S3method("print", "RxCompilationManager")
+
+# the following is very experimental, probably will be 
+# moved to a helper pkg
+export("genShinyApp.template", 
+   "write.template.server", 
+   "write.template.ui")
 
 #useDynLib("RxODE")

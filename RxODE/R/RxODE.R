@@ -118,8 +118,9 @@ function(model, modName = basename(wd), wd = getwd(),
          solve = solve, 
          cmpMgr = cmpMgr, 
          dynLoad = cmpMgr$dynLoad, 
+         dynUnload = cmpMgr$dynUnload,
          isValid = cmpMgr$isValid, 
-         version = function() .version,
+         version = .version,
          delete = cmpMgr$delete, 
          # the next is for backward compatibility and will be deprecated
          parse = cmpMgr$parse, compile = cmpMgr$compile, 
@@ -308,6 +309,14 @@ function(model, modName, wd)
          stop(sprintf("error loading dll file %s", .dllfile))
    }
 
+   dynUnload <- function(){
+      if(!is.loaded(.objName))
+         return()
+      rc <- try(dyn.unload(.dllfile), silent = TRUE)
+      if(inherits(rc, "try-error"))
+         stop(sprintf("error unloading dll file %s", .dllfile))
+   }
+
    delete <- function(){
       if (is.loaded(.objName))
          try(dyn.unload(.dllfile), silent = TRUE)
@@ -334,7 +343,8 @@ function(model, modName, wd)
    }
 
    out <- 
-      list(parse = parse, compile = compile, dynLoad = dynLoad, 
+      list(parse = parse, compile = compile, 
+         dynLoad = dynLoad, dynUnload = dynUnload,
          ode_solver = .ode_solver,   # name of C function
          modelDir = .mdir,               # model directory
          dllfile = .dllfile,
