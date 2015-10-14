@@ -4,7 +4,7 @@ function(appDir = "shinyExample", verbose = TRUE)
    if(.Platform$OS.type=="windows")
       appDir <- gsub("\\\\", "/", shortPathName(appDir))  # safe pathname
 
-   if(!dir.exists(appDir))
+   if(!file.exists(appDir))
          dir.create(appDir, recursive = TRUE)
 
    pkpd = "
