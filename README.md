@@ -129,10 +129,10 @@ The RxODE package includes a function genShinyApp() that automatically generates
 widgets for varying the dose, dosing regimen, dose cycle, and number of cycles. The default output is a table of state variables and plot of one state variable, as shown below. The user is then free to adapt the shiny app to their needs by editing the ui.R and server.R files. 
 
 ```
-mod1.genShinyApp()
+genShinyApp.template("myapp")
 
 library("shiny")
-runApp("mod1.d")
+runApp("myapp")
 ```
 
 ###[Click here to go to the Shiny App](http://qsp.engr.uga.edu:3838/RxODE/RegimenSimulator)
