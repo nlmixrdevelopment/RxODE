@@ -99,7 +99,7 @@ A closure with the following list of functions:
    a copy of an event table object use \code{qd2 <- qd$copy()}.}
    
 }
-\author{Melissa Hallow, Wenping Wang, David A. James}
+\author{Melissa Hallow and Wenping Wang}
 
 \seealso{
    \code{\link{RxODE}}   

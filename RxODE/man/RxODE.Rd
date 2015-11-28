@@ -228,7 +228,7 @@ RxODE(model, modName = basename(wd), wd = getwd(),
    \emph{Dparser}, \url{http://dparser.sourceforge.net}. Web. 12 Oct. 2015.
 }
 
-\author{Melissa Hallow, Wenping Wang, David A. James}
+\author{Melissa Hallow and Wenping Wang}
 
 \seealso{
    \code{\link{eventTable}}

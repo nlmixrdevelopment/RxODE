@@ -1,16 +1,14 @@
 Package: RxODE
-Version: 0.5-1
-Date: 2015-10-12
+Version: 0.5-2
+Date: 2015-11-16
 Title: Facilities for Simulating from ODE-Based Models 
 Authors@R: c(
    person("Melissa", "Hallow", 
       role = c("aut", "cre"), email = "hallowkm@uga.edu"),
    person("Wenping", "Wang", 
-      role = "aut", email = "Wenping.wang@outlook.com"),
-   person(c("David", "A."), "James",
-      role = "aut", email = "daj025@gmail.com")
+      role = "aut", email = "Wenping.wang@outlook.com")
    )
-Author: Melissa Hallow [aut, cre], Wenping Wang [aut], David A. James [aut]
+Author: Melissa Hallow [aut, cre], Wenping Wang [aut]
 Maintainer: Melissa Hallow <hallowkm@uga.edu>
 Depends: R (>= 3.0.0)
 Suggests: knitr, nlme, shiny
@@ -26,5 +24,6 @@ Description: Facilities for running simulations from ordinary
    Installation" manual. 
 NeedsCompilation: yes
 VignetteBuilder: knitr
+SystemRequirements: GNU make
 License: GPL (>= 2)
 URL: https://www.r-project.org, https://github.com/hallowkm/RxODE

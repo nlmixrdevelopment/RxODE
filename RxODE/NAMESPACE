@@ -1,5 +1,5 @@
-# we only import tools::md5suam
 importFrom("tools", "md5sum")   # to ensure equality
+importFrom("utils", "shortPathName")
 
 # export only these 3 RxODE functions and print methods
 export("RxODE", "rx.initCmpMgr", "eventTable")

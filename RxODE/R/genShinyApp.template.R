@@ -1,11 +1,11 @@
 genShinyApp.template <-
 function(appDir = "shinyExample", verbose = TRUE)
 {
-   if(.Platform$OS.type=="windows")
-      appDir <- gsub("\\\\", "/", shortPathName(appDir))  # safe pathname
-
    if(!file.exists(appDir))
          dir.create(appDir, recursive = TRUE)
+
+   if(.Platform$OS.type=="windows")
+      appDir <- gsub("\\\\", "/", shortPathName(normalizePath(appDir)))  # safe pathname
 
    pkpd = "
    C2 = centr/V2;
@@ -45,8 +45,8 @@ function(appDir = "shinyExample", verbose = TRUE)
 
    fn <- file.path(appDir, "rx_shiny_data.rda")
    stiff <- TRUE
-   atol <- 1e08
-   rtol <- 1e06
+   atol <- 1e-08
+   rtol <- 1e-06
    save(mod1, params, inits, stiff, atol, rtol, file = fn)
 
    # write the shiny server.R and ui.R files 
@@ -82,8 +82,9 @@ function(appDir)
       library(RxODE)
 
       # read objects from "rx_shiny_data.rda" in the  AppDir folder,
-      # objects include, mod1, params, inits, stiff, atol, rtol.
-      load(file.path("rx_shiny_data.rda"))
+      # objects include, mod1, params, inits, stiff, atol, rtol.]
+
+      load(file.path("%s", "rx_shiny_data.rda"))
 
       # Define server logic 
       shinyServer(function(input, output) {
@@ -127,7 +128,7 @@ function(appDir)
                main = cmp, type = "l")
         })
       })
-   ')
+   ', appDir)
    writeLines(server.code, con = server)
 }
 
