@@ -162,7 +162,7 @@ function(model, modName, wd)
    .modelVars <- list()            # params, state, LHS in the model
 
    is.win <- .Platform$OS.type=="windows"
-   win.path <- function(p) gsub("\\\\", "/", shortPathName(p))
+   win.path <- function(p) gsub("\\\\", "/", utils::shortPathName(p))
    R_ARCH <- .Platform$r_arch
 
    # locations for the various libs and header files, plus 
