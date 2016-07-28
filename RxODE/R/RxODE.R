@@ -16,7 +16,7 @@ function(model, modName = basename(wd), wd = getwd(),
    # after parsing, thus it needs to be dynamically computed in cmpMgr
    get.modelVars <- cmpMgr$get.modelVars
 
-   .version <- "0.5"          # object version
+   .version <- "0.6"          # object version
    .last.solve.args <- NULL   # to be populated by solve()
 
    solve <- 
@@ -105,11 +105,16 @@ function(model, modName = basename(wd), wd = getwd(),
       cbind(time=event.table$time, x)[events$get.obs.rec(),]
    }
 
+   if (is.null(do.compile) & !cmpMgr$isValid()){
+       do.compile <- TRUE
+   } else {
+       do.compile <- FALSE
+   }
    if (do.compile) {
       cmpMgr$parse()
       cmpMgr$compile()
-      cmpMgr$dynLoad()
    }
+   cmpMgr$dynLoad()
 
    out <- 
       list(modName = modName, 
@@ -154,6 +159,7 @@ function(model, modName, wd)
    # filenames for the C file, dll, and the translator 
    # model file, parameter file, state variables, etc.
 
+   .digest <- digest(model);
    .modName <- modName  
    .wd <- wd  
 
@@ -232,6 +238,7 @@ function(model, modName, wd)
    src <- gsub("ode_solver", .ode_solver, src)
    writeLines(src, file.path(.mdir, "call_dvode.c"))
    .objName <- .dydt
+    writeLines(.digest,file.path(.mdir,"model_md5"))
 
    parse <- function(force = FALSE){
       do.it <- force || !.parsed 
@@ -276,21 +283,28 @@ function(model, modName, wd)
       # may need to unload previous model object code
       if (is.loaded(.objName)) try(dyn.unload(.dllfile), silent = TRUE)
 
-      on.exit(unlink("Makevars"))
-      cat(sprintf("PKG_CPPFLAGS=-I%s",.incl), file="Makevars")
+      #on.exit(unlink("Makevars"))
+      cat(sprintf("PKG_CPPFLAGS=-I%s\n",.incl), file="Makevars")
+      cat(
+         sprintf("PKG_LIBS=-L%s -lodeaux $(BLAS_LIBS) $(FLIBS)", .libs),
+         file="Makevars", append=TRUE
+      )
 
       # create SHLIB
       rc <- try(do.call(.sh, list(.shlib)), silent = FALSE)
       if(inherits(rc, "try-error"))
-         stop(sprintf("error compiling %s", .cfile))
-
+          stop(sprintf("error compiling %s", .cfile))
+      cat(sprintf("Copy! %s->%s\n",.dllfile.0,.dllfile))
+      if (file.exists(.dllfile.0)){
+          file.copy(.dllfile.0,.dllfile)
+      }
       # dyn load it
       rc <- try(dyn.load(.dllfile), silent = TRUE)
       if(inherits(rc, "try-error"))
          stop(sprintf("error loading dll file %s", .dllfile))
       
       .compiled <<- TRUE
-
+      
       invisible(.compiled)
    }
 
@@ -330,17 +344,26 @@ function(model, modName, wd)
 
    isValid <- function(){
       # need a better valid.object()
-      file.exists(.mdir) 
+       return(file.exists(.dllfile) &
+              file.exists(file.path(.mdir,"model_md5")) &
+              readLines(file.path(.mdir, "model_md5")) == .digest)
    }
 
    get.index = function(s) {
       # return the (one) state varible index
       if(length(s)!=1) 
-         warning("only one state variable should be input", immediate = TRUE)
-      ix <- match(s, scan(.stvfile, what = "", quiet = T), nomatch=0)
+          warning("only one state variable should be input", immediate = TRUE)
+       ix <- match(s, scan(.stvfile, what = "", quiet = T), nomatch=0)
       if(!ix) stop(paste("state var not found:", s))
       ix
    }
+
+    if (isValid()){
+        if (!.parsed){
+            parse()
+        }
+        .compiled <- TRUE
+    }
 
    out <- 
       list(parse = parse, compile = compile, 
