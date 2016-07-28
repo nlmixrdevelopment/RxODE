@@ -1,6 +1,6 @@
 "RxODE" <-
-function(model, modName = basename(wd), wd = getwd(), 
-   filename = NULL, do.compile = TRUE, ...)
+    function(model, modName = basename(wd), wd = getwd(), 
+             filename = NULL, do.compile = NULL, ...)
 {
    if(!missing(model) && !missing(filename))
       stop("must specify exactly one of 'model' or 'filename'")
@@ -16,7 +16,7 @@ function(model, modName = basename(wd), wd = getwd(),
    # after parsing, thus it needs to be dynamically computed in cmpMgr
    get.modelVars <- cmpMgr$get.modelVars
 
-   .version <- "0.5"          # object version
+   .version <- "0.6"          # object version
    .last.solve.args <- NULL   # to be populated by solve()
 
    solve <- 
@@ -105,11 +105,17 @@ function(model, modName = basename(wd), wd = getwd(),
       cbind(time=event.table$time, x)[events$get.obs.rec(),]
    }
 
+   if (is.null(do.compile) & !cmpMgr$isValid()){
+       do.compile <- TRUE
+   } else {
+       do.compile <- FALSE
+       cmpMgr$.compiled <- TRUE;
+   }
    if (do.compile) {
       cmpMgr$parse()
       cmpMgr$compile()
-      cmpMgr$dynLoad()
    }
+   cmpMgr$dynLoad()
 
    out <- 
       list(modName = modName, 
@@ -154,6 +160,7 @@ function(model, modName, wd)
    # filenames for the C file, dll, and the translator 
    # model file, parameter file, state variables, etc.
 
+   .digest <- digest(model);
    .modName <- modName  
    .wd <- wd  
 
@@ -183,7 +190,7 @@ function(model, modName, wd)
       .incl <- win.path(.incl)
       .mdir <- win.path(.mdir)
    }
-
+    
    # filenames and shell command required for parsing (these are unique
    # within a given model directory
    .modfile <- file.path(.mdir, "model.txt")  # copy of user-specified model
@@ -192,13 +199,15 @@ function(model, modName, wd)
    # files needed for compiling the C output of the parsed ODE
    .cfile <- file.path(.mdir, sprintf("%s.c", .modName))
    .ofile <- file.path(.mdir, sprintf("%s.o", .modName))
-   .dllfile.0 <- sprintf("%s%s", .modName, .Platform$dynlib.ext) 
+   .dllfile.0 <- sprintf("%s-%s%s", .modName, R_ARCH,.Platform$dynlib.ext)
    .dllfile <- file.path(.mdir, .dllfile.0)
+   .dllfile.0 <- file.path(.mdir, sprintf("%s%s", .modName,.Platform$dynlib.ext));
    .parfile <- file.path(.mdir, "ODE_PARS.txt")
    .stvfile <- file.path(.mdir, "STATE_VARS.txt")
    .lhsfile <- file.path(.mdir, "LHS_VARS.txt")
 
-   # shell calls to parsing and compiling (via R CMD SHLIB)
+   
+   ## shell calls to parsing and compiling (via R CMD SHLIB)
    .gflibs <- if (is.win) "-lRblas -lgfortran" else "-lgfortran" # TODO: check do we need this
    #.sh <- if(is.win) "shell" else "system"
    .sh <- "system"   # windows's default shell COMSPEC does not handle UNC paths
@@ -208,9 +217,8 @@ function(model, modName, wd)
       sprintf("%s/tran.exe %s %s %s 2>%s", 
          .bin, .modfile, .cfile, .prefix, .errfile)
    .shlib <- 
-      sprintf("%s/bin/R CMD SHLIB %s %s -L%s -lodeaux %s", 
-         Sys.getenv("R_HOME"), .cfile, .dvode, .libs, .gflibs)
-
+      sprintf("%s/bin/R CMD SHLIB %s %s", 
+         Sys.getenv("R_HOME"), .cfile, .dvode)
    if(!file.exists(.mdir))
       dir.create(.mdir, recursive = TRUE)
 
@@ -232,6 +240,7 @@ function(model, modName, wd)
    src <- gsub("ode_solver", .ode_solver, src)
    writeLines(src, file.path(.mdir, "call_dvode.c"))
    .objName <- .dydt
+    writeLines(.digest,file.path(.mdir,"model_md5"))
 
    parse <- function(force = FALSE){
       do.it <- force || !.parsed 
@@ -276,21 +285,28 @@ function(model, modName, wd)
       # may need to unload previous model object code
       if (is.loaded(.objName)) try(dyn.unload(.dllfile), silent = TRUE)
 
-      on.exit(unlink("Makevars"))
-      cat(sprintf("PKG_CPPFLAGS=-I%s",.incl), file="Makevars")
+      #on.exit(unlink("Makevars"))
+      cat(sprintf("PKG_CPPFLAGS=-I%s\n",.incl), file="Makevars")
+      cat(
+         sprintf("PKG_LIBS=-L%s -lodeaux $(BLAS_LIBS) $(FLIBS)", .libs),
+         file="Makevars", append=TRUE
+      )
 
       # create SHLIB
       rc <- try(do.call(.sh, list(.shlib)), silent = FALSE)
       if(inherits(rc, "try-error"))
-         stop(sprintf("error compiling %s", .cfile))
-
+          stop(sprintf("error compiling %s", .cfile))
+      cat(sprintf("Copy! %s->%s\n",.dllfile.0,.dllfile))
+      if (file.exists(.dllfile.0)){
+          file.copy(.dllfile.0,.dllfile)
+      }
       # dyn load it
       rc <- try(dyn.load(.dllfile), silent = TRUE)
       if(inherits(rc, "try-error"))
          stop(sprintf("error loading dll file %s", .dllfile))
       
       .compiled <<- TRUE
-
+      
       invisible(.compiled)
    }
 
@@ -330,17 +346,26 @@ function(model, modName, wd)
 
    isValid <- function(){
       # need a better valid.object()
-      file.exists(.mdir) 
+       return(file.exists(.dllfile) &
+              file.exists(file.path(.mdir,"model_md5")) &
+              readLines(file.path(.mdir, "model_md5")) == .digest)
    }
 
    get.index = function(s) {
       # return the (one) state varible index
       if(length(s)!=1) 
-         warning("only one state variable should be input", immediate = TRUE)
-      ix <- match(s, scan(.stvfile, what = "", quiet = T), nomatch=0)
+          warning("only one state variable should be input", immediate = TRUE)
+       ix <- match(s, scan(.stvfile, what = "", quiet = T), nomatch=0)
       if(!ix) stop(paste("state var not found:", s))
       ix
    }
+
+    if (isValid()){
+        if (!.parsed){
+            parse()
+        }
+        .compiled <- TRUE
+    }
 
    out <- 
       list(parse = parse, compile = compile, 
