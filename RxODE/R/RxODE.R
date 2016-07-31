@@ -160,7 +160,7 @@ function(model, modName, wd)
    # filenames for the C file, dll, and the translator 
    # model file, parameter file, state variables, etc.
 
-   .digest <- digest(model);
+   .digest <- digest::digest(model);
    .modName <- modName  
    .wd <- wd  
 
