@@ -1,6 +1,6 @@
 "RxODE" <-
 function(model, modName = basename(wd), wd = getwd(), 
-   filename = NULL, do.compile = TRUE, ...)
+   filename = NULL, do.compile = NULL, ...)
 {
    if(!missing(model) && !missing(filename))
       stop("must specify exactly one of 'model' or 'filename'")
@@ -107,15 +107,16 @@ function(model, modName = basename(wd), wd = getwd(),
 
    if (is.null(do.compile) & !cmpMgr$isValid()){
        do.compile <- TRUE
-   } else {
+   } else if (is.null(do.compile)) {
        do.compile <- FALSE
    }
    if (do.compile) {
       cmpMgr$parse()
       cmpMgr$compile()
    }
-   cmpMgr$dynLoad()
-
+   if (cmpMgr$isValid()){
+       cmpMgr$dynLoad()
+   }
    out <- 
       list(modName = modName, 
          model = model,           # actual model code
