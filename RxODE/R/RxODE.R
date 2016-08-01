@@ -1,5 +1,5 @@
 "RxODE" <-
-    function(model, modName = basename(wd), wd = ifelse(flat,NULL,getwd()), 
+    function(model, modName = basename(wd), wd = getwd(),
              filename = NULL, do.compile = NULL, flat = FALSE,...)
 {
    if(!missing(model) && !missing(filename))
@@ -11,7 +11,7 @@
    # RxODE compilation manager (location of parsed code, generated C, 
    # shared libs, etc.)
 
-   cmpMgr <- rx.initCmpMgr(model, modName, wd) 
+   cmpMgr <- rx.initCmpMgr(model, modName, wd, flat) 
    # NB: the set of model variables (modelVars) is only available 
    # after parsing, thus it needs to be dynamically computed in cmpMgr
    get.modelVars <- cmpMgr$get.modelVars
@@ -152,7 +152,7 @@ function(x, ...)
 }
 
 "rx.initCmpMgr" <-
-function(model, modName, wd)
+function(model, modName, wd, flat)
 {
    # Initialize the RxODE compilation manager (all parsing,
    # compilation, and loading of dynamic shared objects is 
@@ -161,7 +161,7 @@ function(model, modName, wd)
    # model file, parameter file, state variables, etc.
 
    .digest <- digest::digest(model);
-   .modName <- modName  
+   .modName <- modName
    .wd <- wd  
 
    .parsed <- FALSE
@@ -198,8 +198,8 @@ function(model, modName, wd)
    # files needed for compiling the C output of the parsed ODE
    .cfile <- file.path(.mdir, sprintf("%s.c", .modName))
    .ofile <- file.path(.mdir, sprintf("%s.o", .modName))
-   .dllfile.0 <- sprintf("%s%s", .modName, .Platform$dynlib.ext) 
-   .dllfile <- file.path(.mdir, .dllfile.0)
+   .dllfile.0 <- file.path(.mdir,sprintf("%s%s", .modName, .Platform$dynlib.ext)) 
+   .dllfile <- file.path(.mdir,sprintf("%s-%s%s", .modName, R_ARCH,.Platform$dynlib.ext)) 
    .parfile <- file.path(.mdir, "ODE_PARS.txt")
    .stvfile <- file.path(.mdir, "STATE_VARS.txt")
    .lhsfile <- file.path(.mdir, "LHS_VARS.txt")
