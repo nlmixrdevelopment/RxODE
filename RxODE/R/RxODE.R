@@ -1,6 +1,6 @@
 "RxODE" <-
     function(model, modName = basename(wd), wd = ifelse(flat,NULL,getwd()), 
-         filename = NULL, do.compile = NULL, flat = FALSE,...)
+             filename = NULL, do.compile = NULL, flat = FALSE,...)
 {
    if(!missing(model) && !missing(filename))
       stop("must specify exactly one of 'model' or 'filename'")
@@ -166,7 +166,6 @@ function(model, modName, wd)
 
    .parsed <- FALSE
    .compiled <- FALSE
-   .modelVars <- list()            # params, state, LHS in the model
 
    is.win <- .Platform$OS.type=="windows"
    win.path <- function(p) gsub("\\\\", "/", utils::shortPathName(p))
@@ -205,6 +204,12 @@ function(model, modName, wd)
    .stvfile <- file.path(.mdir, "STATE_VARS.txt")
    .lhsfile <- file.path(.mdir, "LHS_VARS.txt")
 
+   .modelVarsFile <- file.path(.mdir,sprintf("%s.Rdata", .modName))
+   if (file.exists(.modelVarsFile)){
+       load(.modelVarsFile);
+   } else {
+       .modelVars <- list()            # params, state, LHS in the model
+   }
    # shell calls to parsing and compiling (via R CMD SHLIB)
    .gflibs <- if (is.win) "-lRblas -lgfortran" else "-lgfortran" # TODO: check do we need this
    #.sh <- if(is.win) "shell" else "system"
@@ -269,7 +274,7 @@ function(model, modName, wd)
             state = scan(.stvfile, what = "", quiet = TRUE),
             lhs = scan(.lhsfile, what = "", quiet = TRUE)
          )
-
+      save(.modelVars,.parsed,file=.modelVarsFile)
       invisible(.parsed)
    }
 
@@ -359,9 +364,6 @@ function(model, modName, wd)
    }
 
     if (isValid()){
-        if (!.parsed){
-            parse()
-        }
         .compiled <- TRUE
     }
 
