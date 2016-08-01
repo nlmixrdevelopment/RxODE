@@ -162,8 +162,14 @@ function(model, modName, wd, flat)
 
    .digest <- digest::digest(model);
    .modName <- modName
-   .wd <- wd  
-
+   .flat <- flat
+   .flatOut <- NULL
+   if (.flat){
+        .wd <- tempfile("RxODE-");
+        .flatOut <- wd;
+   } else {
+       .wd <- wd
+   }
    .parsed <- FALSE
    .compiled <- FALSE
 
@@ -188,6 +194,9 @@ function(model, modName, wd, flat)
       .libs <- win.path(.libs)
       .incl <- win.path(.incl)
       .mdir <- win.path(.mdir)
+      if (!is.null(.flatOut)){
+           .flatOut <- win.path(.flatOut)
+      }
    }
 
    # filenames and shell command required for parsing (these are unique
@@ -198,17 +207,20 @@ function(model, modName, wd, flat)
    # files needed for compiling the C output of the parsed ODE
    .cfile <- file.path(.mdir, sprintf("%s.c", .modName))
    .ofile <- file.path(.mdir, sprintf("%s.o", .modName))
-   .dllfile.0 <- file.path(.mdir,sprintf("%s%s", .modName, .Platform$dynlib.ext)) 
-   .dllfile <- file.path(.mdir,sprintf("%s-%s%s", .modName, R_ARCH,.Platform$dynlib.ext)) 
+   .dllfile.0 <- file.path(.mdir,sprintf("%s%s", .modName, .Platform$dynlib.ext))
+   if (.flat) {
+        .dllfile <- file.path(.flatOut,sprintf("%s-%s-%s%s", .modName, .digest, R_ARCH,.Platform$dynlib.ext)) 
+   } else {
+       .dllfile <- file.path(.mdir,sprintf("%s-%s%s", .modName, R_ARCH,.Platform$dynlib.ext)) 
+   }
    .parfile <- file.path(.mdir, "ODE_PARS.txt")
    .stvfile <- file.path(.mdir, "STATE_VARS.txt")
    .lhsfile <- file.path(.mdir, "LHS_VARS.txt")
 
-   .modelVarsFile <- file.path(.mdir,sprintf("%s.Rdata", .modName))
-   if (file.exists(.modelVarsFile)){
-       load(.modelVarsFile);
+   if (.flat){
+        .modelVarsFile <- file.path(.flatOut,sprintf("%s-%s.Rdata", .modName, .digest))
    } else {
-       .modelVars <- list()            # params, state, LHS in the model
+       .modelVarsFile <- file.path(.mdir,sprintf("%s.Rdata", .modName))
    }
    # shell calls to parsing and compiling (via R CMD SHLIB)
    .gflibs <- if (is.win) "-lRblas -lgfortran" else "-lgfortran" # TODO: check do we need this
@@ -223,33 +235,39 @@ function(model, modName, wd, flat)
       sprintf("%s/bin/R CMD SHLIB %s %s -L%s -lodeaux %s", 
          Sys.getenv("R_HOME"), .cfile, .dvode, .libs, .gflibs)
 
-   if(!file.exists(.mdir))
-      dir.create(.mdir, recursive = TRUE)
-
-   cat(model, file = .modfile, "\n")   
-
-   # Hack: copy "call_dvode.c" to .mdir to avoid dyn.load() errors
-   common <- system.file("common", package = "RxODE")
-   if(is.win) 
-      common <- win.path(common)
-   # replace "dydt" and "calc_lhs" by Rx_ODE_mod_<modName>_* inside the code 
-   # of call_dvode.c to avoid symbol conflicts
-   safe_name <- gsub("\\W", "_", .modName)  # replace non-alphanumeric by "_"
-   .dydt <- paste0("RxODE_mod_", safe_name, "_dydt")
-   .calc_lhs <- paste0("RxODE_mod_", safe_name, "_calc_lhs")
-   .ode_solver <- paste0("RxODE_mod_", safe_name, "_ode_solver")
-   src <- readLines(file.path(common, "call_dvode.c"))
-   src <- gsub("dydt", .dydt, src)
-   src <- gsub("calc_lhs", .calc_lhs, src)
-   src <- gsub("ode_solver", .ode_solver, src)
-   writeLines(src, file.path(.mdir, "call_dvode.c"))
-   .objName <- .dydt
-    writeLines(.digest,file.path(.mdir,"model_md5"))
+   .dydt <- .calc_lhs <- .ode_solver <- .objName <- NULL;
+   if (file.exists(.modelVarsFile)){
+       load(.modelVarsFile);
+   } else {
+       .modelVars <- list()            # params, state, LHS in the model
+   }
 
    parse <- function(force = FALSE){
       do.it <- force || !.parsed 
       if(!do.it)
-         return(invisible(.parsed))
+          return(invisible(.parsed))
+         if(!file.exists(.mdir))
+      dir.create(.mdir, recursive = TRUE)
+      cat(model, file = .modfile, "\n")   
+      
+      # Hack: copy "call_dvode.c" to .mdir to avoid dyn.load() errors
+      common <- system.file("common", package = "RxODE")
+      if(is.win) 
+        common <- win.path(common)
+      # replace "dydt" and "calc_lhs" by Rx_ODE_mod_<modName>_* inside the code 
+      # of call_dvode.c to avoid symbol conflicts
+      safe_name <- gsub("\\W", "_", .modName)  # replace non-alphanumeric by "_"
+      .dydt <<- paste0("RxODE_mod_", safe_name, "_dydt")
+      .calc_lhs <<- paste0("RxODE_mod_", safe_name, "_calc_lhs")
+      .ode_solver <<- paste0("RxODE_mod_", safe_name, "_ode_solver")
+      src <- readLines(file.path(common, "call_dvode.c"))
+      src <- gsub("dydt", .dydt, src)
+      src <- gsub("calc_lhs", .calc_lhs, src)
+      src <- gsub("ode_solver", .ode_solver, src)
+      writeLines(src, file.path(.mdir, "call_dvode.c"))
+      .objName <<- .dydt
+      writeLines(.digest,file.path(.mdir,"model_md5"))
+
 
       rc <- do.call(.sh, list(.parse.cmd))  # parse command (shell)
       if(file.exists(.errfile))
@@ -274,7 +292,7 @@ function(model, modName, wd, flat)
             state = scan(.stvfile, what = "", quiet = TRUE),
             lhs = scan(.lhsfile, what = "", quiet = TRUE)
          )
-      save(.modelVars,.parsed,file=.modelVarsFile)
+      save(.modelVars,.parsed,.dydt,.objName,.calc_lhs,.ode_solver,file=.modelVarsFile)
       invisible(.parsed)
    }
 
@@ -303,6 +321,10 @@ function(model, modName, wd, flat)
       if (file.exists(.dllfile.0)){
           file.copy(.dllfile.0,.dllfile)
       }
+      if (.flat){
+          unlink(.wd, recursive = TRUE)
+      }
+      
       # dyn load it
       rc <- try(dyn.load(.dllfile), silent = TRUE)
       if(inherits(rc, "try-error"))
@@ -312,7 +334,7 @@ function(model, modName, wd, flat)
       
       invisible(.compiled)
    }
-
+   
    dynLoad <- function(force = FALSE){
       # NB: we may need to reload (e.g., when we re-start R and
       # re-instantiate the RxODE object from a save.image.
@@ -347,12 +369,18 @@ function(model, modName, wd, flat)
       unlink(.mdir, recursive = TRUE) # leave dir
    }
 
-   isValid <- function(){
-      # need a better valid.object()
-       return(file.exists(.dllfile) &
-              file.exists(file.path(.mdir,"model_md5")) &
-              readLines(file.path(.mdir, "model_md5")) == .digest)
-   }
+    isValid <- function(){
+        valid <- file.exists(.dllfile) & file.exists(.modelVarsFile);
+        if (valid){
+            if (!.flat){
+                valid <- file.exists(file.path(.mdir,"model_md5"));
+                if (valid){
+                    valid <- readLines(file.path(.mdir, "model_md5")) == .digest;
+                }
+            }
+        } 
+        return(valid);
+    }
 
    get.index = function(s) {
       # return the (one) state varible index
