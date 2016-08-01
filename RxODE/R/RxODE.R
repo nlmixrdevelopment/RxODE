@@ -1,6 +1,6 @@
 "RxODE" <-
-function(model, modName = basename(wd), wd = getwd(), 
-   filename = NULL, do.compile = NULL, ...)
+    function(model, modName = basename(wd), wd = ifelse(flat,NULL,getwd()), 
+         filename = NULL, do.compile = NULL, flat = FALSE,...)
 {
    if(!missing(model) && !missing(filename))
       stop("must specify exactly one of 'model' or 'filename'")
@@ -295,7 +295,6 @@ function(model, modName, wd)
       rc <- try(do.call(.sh, list(.shlib)), silent = FALSE)
       if(inherits(rc, "try-error"))
           stop(sprintf("error compiling %s", .cfile))
-      cat(sprintf("Copy! %s->%s\n",.dllfile.0,.dllfile))
       if (file.exists(.dllfile.0)){
           file.copy(.dllfile.0,.dllfile)
       }
