@@ -8,7 +8,13 @@
 
    if (missing(modName) && missing(wd) & missing(flat)){
        flat <- TRUE;
-       modName <- "RxODE";
+       if (!is.null(filename) && missing(model)){
+           modName <- basename(filename);
+       } else if (missing(filename)&& file.exists(model)){
+           modName <- basename(model)
+       } else {
+           modName <- "RxODE";
+       }
    }
    
    if(!is.null(filename) && missing(model))
