@@ -40,7 +40,8 @@
                paste(setdiff(modelVars$params, names(params)), collapse=" "))
          stop(msg)
       }
-      params <- params[modelVars$params]
+      inits <- RxODE.inits(inits,modelVars$state)
+      params <- RxODE.inits(inits,modelVars$parms,NA)
       s <- as.list(match.call(expand.dots = TRUE)) 
       wh <- grep(pattern="S\\d+$", names(s))[1]
       # HACK: fishing scaling variables "S1 S2 S3 ..." from params call
@@ -136,6 +137,30 @@
    class(out) <- "RxODE"
    out
 }
+
+RxODE.inits <- function(vec,names,default = 0){
+    ret <- vec;
+    nv <- names(vec)
+    if (!is.null(nv)){
+        ret <- ret[nv %in% names];
+        missing <- names[!(names %in%  names(ret))];
+        if (is.na(default) & length(missing) > 1){
+            stop(sprintf("Missing the following parameter(s): %s.",paste(missing,collapse=", ")))
+        }
+        if (length(missing) > 1){
+            ret[missing] <- default;
+            warning(sprintf("Assiged %s to %s.",paste(missing,collapse=", "),default))
+        }
+        ret <- ret[names];
+    }
+    return(ret);
+}
+
+"solve.RxODE" <- function(x,...){
+    x$solve(...);
+}
+
+
 
 "print.RxODE" <-
 function(x, ...)
@@ -269,8 +294,13 @@ igraph.RxODE <- function(x,                                   # RxODE object
                          lineColor  = "accent1",              # Line Color
                          shapeEnd   = c("none","sphere","circle","square","csquare","rectangle","crectangle","vrectangle"),
                          sizeEnd    = 10,                     # Size of End
+                         tk         = FALSE,                  # For tkplot; transparancy not supported.
                          ...){
     ## igraph.RxODE returns igraph object from RxODE
+    if (!requireNamespace("igraph", quietly = TRUE)) {
+        stop("Package igraph needed for this function to work. Please install it.",
+             call. = FALSE)
+    }
     with(RxODE.nodeInfo(x),{
         ret <- eval(parse(text=sprintf("igraph::graph_from_literal(%s);",paste(unlist(lapply(edgeList,function(x){sprintf("\"%s\" -+ \"%s\"",x[1],x[2])})),collapse=","))));
         if (length(shape) > 1){
