@@ -294,9 +294,13 @@ igraph.RxODE <- function(x,                                   # RxODE object
         ret <- igraph::set_vertex_attr(ret,"label.color",value=getColor(labelColor));
         for (n in nodes){
             if (substring(n,0,1) == "."){
-                ret <- igraph::set_vertex_attr(ret,"shape",igraph::V(ret)[n],value=shapeEnd);
-                ret <- igraph::set_vertex_attr(ret,"size",igraph::V(ret)[n],value=sizeEnd);
-                ## ret <- igraph::set_vertex_attr(ret,"label.color",igraph::V(ret)[n],value="transparent");
+                if (!tk){
+                    ret <- igraph::set_vertex_attr(ret,"label.color",igraph::V(ret)[n],value="transparent");
+                    ret <- igraph::set_vertex_attr(ret,"shape",igraph::V(ret)[n],value=shapeEnd);
+                    ret <- igraph::set_vertex_attr(ret,"size",igraph::V(ret)[n],value=sizeEnd);
+                } else{
+                    ret <- igraph::set_vertex_attr(ret,"size",igraph::V(ret)[n],value=sizeEnd);
+                }
             }
         }
         ret <- igraph::set_edge_attr(ret,"color",value=getColor(lineColor))
@@ -320,10 +324,10 @@ plot.RxODE <- function(x,
                        ...)
 {
     if (!requireNamespace("igraph", quietly = TRUE)) {
-        stop("Igraph needed for this function to work. Please install it.",
+        stop("Package igraph needed for this function to work. Please install it.",
              call. = FALSE)
     }
-    ig <- igraph(x,family=family);
+    ig <- igraph(x,family=family,tk=interactive);
     layout <- -igraph::layout.grid(ig);
     
     if (!interactive){
