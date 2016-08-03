@@ -7,10 +7,12 @@ Authors@R: c(
       role = c("aut", "cre"), email = "hallowkm@uga.edu"),
    person("Wenping", "Wang", 
       role = "aut", email = "Wenping.wang@outlook.com"),
+   person("David","James",
+      role = "aut", email = "matthew.fidler@gmail.com")
    person("Matthew","Fidler",
       role = "aut", email = "matthew.fidler@gmail.com")
    )
-Author: Melissa Hallow [aut, cre], Wenping Wang [aut], Matthew Fidler [aut]
+Author: Melissa Hallow [aut, cre], Wenping Wang [aut], David A James [aut], Matthew  L. Fidler [aut]
 Maintainer: Melissa Hallow <hallowkm@uga.edu>
 Depends: R (>= 3.0.0)
 Suggests: knitr, nlme, shiny, igraph, tcltk

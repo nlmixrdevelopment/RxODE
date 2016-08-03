@@ -78,7 +78,6 @@ than `abc`, `Abc`, `ABc`, etc.
 
 Identifiers (variable names) may consist of one or more alphanumeric 
 and underscore `_` characters, but the first character cannot be a digit.
-*NB:* The dot `.` character may not be used as part of an identifier.
 
 Identifiers in a model specification can refer to:
 * State variables in the dynamic system (e.g., compartments in a
@@ -127,18 +126,5 @@ part of the modeling output.
 
 ## Bugs and/or deficiencies
 
-Comments are not allowed inside statements, therefore
-the following code is syntactically incorrect:
-
-```
- # incorrect syntax (comments not allowed inside statements)
- S2 = 1.0    # scaler for the central compartment ;
-
- # correct syntax
- S2 = 1.0;   # scaler for the central compartment
-```
-
 The modulo operator `%` is currently unsupported. 
-Similarly, the old-style exponentiation operator `**` is unsupported 
-(use `^`).
 

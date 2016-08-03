@@ -1,6 +1,7 @@
 "RxODE" <-
     function(model, modName = basename(wd), wd = getwd(),
-             filename = NULL, do.compile = NULL, flat = FALSE,...)
+             filename = NULL, do.compile = NULL, flat = FALSE,
+             strict = FALSE,...)
 {
    if(!missing(model) && !missing(filename))
       stop("must specify exactly one of 'model' or 'filename'")
@@ -16,8 +17,8 @@
    # RxODE compilation manager (location of parsed code, generated C, 
    # shared libs, etc.)
 
-   cmpMgr <- rx.initCmpMgr(model, modName, wd, flat) 
-   # NB: the set of model variables (modelVars) is only available 
+   cmpMgr <- rx.initCmpMgr(model, modName, wd, flat, strict);
+                                        # NB: the set of model variables (modelVars) is only available 
    # after parsing, thus it needs to be dynamically computed in cmpMgr
    get.modelVars <- cmpMgr$get.modelVars
 
@@ -31,6 +32,9 @@
       event.table <- events$get.EventTable()
       modelVars <- get.modelVars()
 
+      names(params) <- gsub("[.]","_",names(params));
+      names(inits) <- gsub("[.]","_",names(inits));
+      
       # preserve input arguments. 
       .last.solve.args <<-
          list(params = params, events = events$copy(),
@@ -417,18 +421,22 @@ plot.RxODE <- function(x,
 } # end function plot.RxODE
 
 "rx.initCmpMgr" <-
-function(model, modName, wd, flat)
+function(model, modName, wd, flat, strict)
 {
-   # Initialize the RxODE compilation manager (all parsing,
-   # compilation, and loading of dynamic shared objects is 
-   # done through this object. It also keeps tracks of 
-   # filenames for the C file, dll, and the translator 
-   # model file, parameter file, state variables, etc.
-   .mod.parsed <- gsub("[*][*]","^",model); #Support ** operator since R does
-   .mod.parsed <- gsub("[<][-]","=",.mod.parsed); #Support <- operator since R does
-   .mod.parsed <- gsub("#[^\n]*\n","\n",.mod.parsed); # Strip comments
-   .mod.parsed <- gsub("=([^\n;]*);* *\n","=\\1;\n",.mod.parsed); # Don't require semicolons.
-   .mod.parsed <- gsub("[.]","_",.mod.parsed); # Allow [.] notation because R does
+   ## Initialize the RxODE compilation manager (all parsing,
+   ## compilation, and loading of dynamic shared objects is 
+   ## done through this object. It also keeps tracks of 
+   ## filenames for the C file, dll, and the translator 
+   ## model file, parameter file, state variables, etc.
+    if (strict){
+        .mod.parsed <- model;
+    } else {
+        .mod.parsed <- gsub("[*][*]","^",model); #Support ** operator since R does
+        .mod.parsed <- gsub("[<][-]","=",.mod.parsed); #Support <- operator since R does
+        .mod.parsed <- gsub("#[^\n]*\n","\n",.mod.parsed); # Strip comments
+        .mod.parsed <- gsub("=([^\n;]*);* *\n","=\\1;\n",.mod.parsed); # Don't require semicolons.
+        .mod.parsed <- gsub("[.]","_",.mod.parsed); # Allow [.] notation because R does
+    }
    .digest <- digest::digest(.mod.parsed);
    .modName <- modName
    .flat <- flat

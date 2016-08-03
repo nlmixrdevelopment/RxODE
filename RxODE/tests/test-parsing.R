@@ -92,7 +92,7 @@ for(i in 1:N){
    cat("Input:\n", code, "\n", sep="")
    cat("\nRxODE message is:\n")
 
-   assertError(RxODE(model = code, wd = tmp, modName=paste0("err",i)))
+   assertError(RxODE(model = code, wd = tmp, modName=paste0("err",i),strict=TRUE))
 
    cat("\n")
 }
