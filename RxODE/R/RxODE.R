@@ -12,7 +12,11 @@
    }
    
    if(!is.null(filename) && missing(model))
-      model <- paste0(readLines(filename, ...), collapse="\n")
+       model <- paste0(readLines(filename, ...), collapse="\n")
+
+   if (missing(filename) && file.exists(model)){
+       model <- paste0(readLines(model, ...), collapse="\n")
+   }
    
    # RxODE compilation manager (location of parsed code, generated C, 
    # shared libs, etc.)
