@@ -425,6 +425,10 @@ function(model, modName, wd, flat)
    # filenames for the C file, dll, and the translator 
    # model file, parameter file, state variables, etc.
     model <- gsub("[*][*]","^",model); #Support ** operator since R does
+    model <- gsub("<-","=",model); #Support <- operator since R does
+    model <- gsub("#.*","=",model); # Strip comments
+    model <- gsub("=(.*);? *$","=\\1;",model); # Don't require semicolons.
+    model <- gsub("[.]","_",model); # Allow [.] notation because R does
     .digest <- digest::digest(model);
    .modName <- modName
    .flat <- flat
