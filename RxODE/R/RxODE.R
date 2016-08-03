@@ -417,19 +417,23 @@ function(model, modName, wd, flat)
       sprintf("%s/bin/R CMD SHLIB %s %s -L%s -lodeaux %s", 
          Sys.getenv("R_HOME"), .cfile, .dvode, .libs, .gflibs)
 
-   .dydt <- .calc_lhs <- .ode_solver <- .objName <- NULL;
-   if (file.exists(.modelVarsFile)){
-       load(.modelVarsFile);
-   } else {
-       .modelVars <- list()            # params, state, LHS in the model
+    .dydt <- .calc_lhs <- .ode_solver <- .objName <- NULL;
+    .md5file <- file.path(.mdir,"model_md5");
+    if (file.exists(.modelVarsFile) && file.exists(.md5file) && readLines(.md5file) == .digest){
+        load(.modelVarsFile);
+    } else {
+        if (file.exists(.mdir) & !flat){
+            unlink(.mdir, recursive = TRUE)
+        }
+        .modelVars <- list()            # params, state, LHS in the model
    }
 
    parse <- function(force = FALSE){
       do.it <- force || !.parsed 
       if(!do.it)
           return(invisible(.parsed))
-         if(!file.exists(.mdir))
-      dir.create(.mdir, recursive = TRUE)
+      if(!file.exists(.mdir))
+          dir.create(.mdir, recursive = TRUE)
       cat(model, file = .modfile, "\n")   
       
       # Hack: copy "call_dvode.c" to .mdir to avoid dyn.load() errors
@@ -448,7 +452,7 @@ function(model, modName, wd, flat)
       src <- gsub("ode_solver", .ode_solver, src)
       writeLines(src, file.path(.mdir, "call_dvode.c"))
       .objName <<- .dydt
-      writeLines(.digest,file.path(.mdir,"model_md5"))
+      writeLines(.digest,.md5file)
 
 
       rc <- do.call(.sh, list(.parse.cmd))  # parse command (shell)
@@ -555,12 +559,12 @@ function(model, modName, wd, flat)
         valid <- file.exists(.dllfile) & file.exists(.modelVarsFile);
         if (valid){
             if (!.flat){
-                valid <- file.exists(file.path(.mdir,"model_md5"));
+                valid <- file.exists(.md5file);
                 if (valid){
-                    valid <- readLines(file.path(.mdir, "model_md5")) == .digest;
+                    valid <- readLines(.md5file) == .digest;
                 }
             }
-        } 
+        }
         return(valid);
     }
 
