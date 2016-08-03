@@ -212,12 +212,50 @@ RxODE.nodeInfo <- function(x, # RxODE object
     nodes <- unique(nodes);
     for (i in 1:length(negDe)){
         if (length(negDe[[i]]) == 1){
-            edgeList[[negDe[[i]]]] <- c(names(negDe)[i]," ");
+            edgeList[[negDe[[i]]]] <- c(names(negDe)[i],".out");
+            nodes <- c(nodes,".out");
         }
+    }
+    w <- which(sapply(fullDe,function(x){
+        lx <- tolower(x)
+        return(regexpr("kin",lx)  != -1 && regexpr("kout",lx) != -1)
+    }))
+    if (length(w) == 1){
+        idr <- fullDe[w];
+        idrl <- tolower(idr);
+        isKout <- regexpr("^ *kin *[-]",idrl) != -1;
+        isInb <- regexpr("[(] *1 *[-]",idrl) != -1;
+        idr.from <- gsub(sprintf("^.*(%s).*",paste(names(fullDe)[-w],collapse="|")),"\\1",idr)
+        ef <- names(fullDe)[w]
+        if (isKout){
+            if (isInb){
+                Kout <- "Kout\n\u25BC IC50"
+                Kin <- "Kin\n";
+                idr <- "Indirect\nEffect (II)"
+            } else {
+                Kout <- "Kout\n\u25B3 EC50";
+                Kin <- "Kin\n";
+                idr <- "Indirect\nEffect (IV)"
+            }
+        } else {
+            if (isInb){
+                Kout <- "Kout"
+                Kin <- "Kin\n\u25BC IC50";
+                idr <- "Indirect\nEffect (I)"
+            } else {
+                Kout <- "Kout\n";
+                Kin <- "Kin\n\u25B3 EC50";
+                idr <- "Indirect\nEffect (III)"
+            }
+        }
+        edgeList[[idr]] <- c(idr.from,ef);
+        edgeList[[Kin]] <- c(".Kin",ef);
+        edgeList[[Kout]] <- c(ef,".Kout");
+        nodes <- c(nodes,ef,".Kin",".Kout");
     }
     return(list(nodes    = nodes,
                 edgeList = edgeList,
-                biList   = biList))
+                biList   = biList));
 } # end function RxODE.nodeInfo
 
 igraph.RxODE <- function(x,                                   # RxODE object
@@ -254,8 +292,13 @@ igraph.RxODE <- function(x,                                   # RxODE object
         ret <- igraph::set_vertex_attr(ret,"label.family",value=family)
         ret <- igraph::set_vertex_attr(ret,"label.font",value=font);
         ret <- igraph::set_vertex_attr(ret,"label.color",value=getColor(labelColor));
-        ret <- igraph::set_vertex_attr(ret,"shape",igraph::V(ret)[" "],value=shapeEnd);
-        ret <- igraph::set_vertex_attr(ret,"size",igraph::V(ret)[" "],value=sizeEnd);
+        for (n in nodes){
+            if (substring(n,0,1) == "."){
+                ret <- igraph::set_vertex_attr(ret,"shape",igraph::V(ret)[n],value=shapeEnd);
+                ret <- igraph::set_vertex_attr(ret,"size",igraph::V(ret)[n],value=sizeEnd);
+                ## ret <- igraph::set_vertex_attr(ret,"label.color",igraph::V(ret)[n],value="transparent");
+            }
+        }
         ret <- igraph::set_edge_attr(ret,"color",value=getColor(lineColor))
         ret <- igraph::set_edge_attr(ret,"curved",value=FALSE)
         ret <- igraph::set_edge_attr(ret,"label.font",value=font)
@@ -280,10 +323,13 @@ plot.RxODE <- function(x,
         stop("Igraph needed for this function to work. Please install it.",
              call. = FALSE)
     }
+    ig <- igraph(x,family=family);
+    layout <- -igraph::layout.grid(ig);
+    
     if (!interactive){
-        plot(igraph(x,family=family),edge.label.family=family)
+        plot(ig,edge.label.family=family, layout = layout,...)
     } else {
-        igraph::tkplot(igraph(x,family=family),edge.label.family=family)
+        igraph::tkplot(ig,edge.label.family=family, layout = layout, ...)
     }
     
     ## plot.RxODE returns nothing, but plots the ode graph diagram
@@ -423,6 +469,8 @@ function(model, modName, wd, flat)
         load(.modelVarsFile);
     } else {
         if (file.exists(.mdir) & !flat){
+            ## Unload the .dllfile first...
+            try(dyn.unload(.dllfile), silent = TRUE)
             unlink(.mdir, recursive = TRUE)
         }
         .modelVars <- list()            # params, state, LHS in the model
