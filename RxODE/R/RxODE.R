@@ -45,8 +45,8 @@
                paste(setdiff(modelVars$params, names(params)), collapse=" "))
          stop(msg)
       }
-      inits <- RxODE.inits(inits,modelVars$state)
-      params <- RxODE.inits(inits,modelVars$parms,NA)
+      inits <- RxODE.inits(inits,modelVars$state);
+      params <- params[modelVars$params];
       s <- as.list(match.call(expand.dots = TRUE)) 
       wh <- grep(pattern="S\\d+$", names(s))[1]
       # HACK: fishing scaling variables "S1 S2 S3 ..." from params call
@@ -96,7 +96,7 @@
 
       rc <- xx[[length(xx)]]
       if(rc!=0)
-         stop(sprintf("could not solve ODE, IDID=%d (see further messages)", rc))
+          stop(sprintf("could not solve ODE, IDID=%d (see further messages)", rc))
       x <- cbind(
             matrix(xx[[8]], ncol=neq, byrow=T),
             if(nlhs) matrix(xx[[14]], ncol=nlhs, byrow=T) else NULL
@@ -187,7 +187,7 @@ igraph <- function(obj,...){
 RxODE.nodeInfo <- function(x, # RxODE object
                            ...){
     ## RxODE.nodeInfo returns a list containing edgeList, biList and nodes
-    mod0 <- strsplit(strsplit(gsub("\n","",gsub(" *=","=",gsub("\n *","\n",gsub("#.*","",x$model)))),";")[[1]],"=");
+    mod0 <- strsplit(strsplit(gsub("\n","",gsub(" *=","=",gsub("\n *","\n",gsub("#.*","",x$cmpMgr$model)))),";")[[1]],"=");
     mod <- eval(parse(text=sprintf("c(%s)",paste(unlist(lapply(mod0,function(x){
         if (length(x) == 2){
             return(sprintf("\"%s\"=\"%s\"",x[1],gsub(" *$","",gsub("^ *","",x[2])))) 
@@ -424,17 +424,17 @@ function(model, modName, wd, flat)
    # done through this object. It also keeps tracks of 
    # filenames for the C file, dll, and the translator 
    # model file, parameter file, state variables, etc.
-    model <- gsub("[*][*]","^",model); #Support ** operator since R does
-    model <- gsub("<-","=",model); #Support <- operator since R does
-    model <- gsub("#.*","=",model); # Strip comments
-    model <- gsub("=(.*);? *$","=\\1;",model); # Don't require semicolons.
-    model <- gsub("[.]","_",model); # Allow [.] notation because R does
-    .digest <- digest::digest(model);
+   .mod.parsed <- gsub("[*][*]","^",model); #Support ** operator since R does
+   .mod.parsed <- gsub("[<][-]","=",.mod.parsed); #Support <- operator since R does
+   .mod.parsed <- gsub("#[^\n]*\n","\n",.mod.parsed); # Strip comments
+   .mod.parsed <- gsub("=([^\n;]*);* *\n","=\\1;\n",.mod.parsed); # Don't require semicolons.
+   .mod.parsed <- gsub("[.]","_",.mod.parsed); # Allow [.] notation because R does
+   .digest <- digest::digest(.mod.parsed);
    .modName <- modName
    .flat <- flat
    .flatOut <- NULL
    if (.flat){
-        .wd <- tempfile("RxODE-");
+       .wd <- tempfile("RxODE-");
         .flatOut <- wd;
    } else {
        .wd <- wd
@@ -486,7 +486,7 @@ function(model, modName, wd, flat)
    .stvfile <- file.path(.mdir, "STATE_VARS.txt")
    .lhsfile <- file.path(.mdir, "LHS_VARS.txt")
 
-   if (.flat){
+    if (.flat){
         .modelVarsFile <- file.path(.flatOut,sprintf("%s-%s.Rdata", .modName, .digest))
    } else {
        .modelVarsFile <- file.path(.mdir,sprintf("%s.Rdata", .modName))
@@ -506,7 +506,8 @@ function(model, modName, wd, flat)
 
     .dydt <- .calc_lhs <- .ode_solver <- NULL;
     .md5file <- file.path(.mdir,"model_md5");
-    if (file.exists(.modelVarsFile) && file.exists(.md5file) && readLines(.md5file) == .digest){
+    if (file.exists(.modelVarsFile) && (flat || (file.exists(.md5file) && readLines(.md5file) == .digest))){
+        .objName <- NULL;
         load(.modelVarsFile);
     } else {
         if (file.exists(.mdir) & !flat){
@@ -523,15 +524,15 @@ function(model, modName, wd, flat)
           return(invisible(.parsed))
       if(!file.exists(.mdir))
           dir.create(.mdir, recursive = TRUE)
-      cat(model, file = .modfile, "\n")   
+      cat(.mod.parsed, file = .modfile, "\n")   
       
-      # Hack: copy "call_dvode.c" to .mdir to avoid dyn.load() errors
+      ## Hack: copy "call_dvode.c" to .mdir to avoid dyn.load() errors
       common <- system.file("common", package = "RxODE")
       if(is.win) 
         common <- win.path(common)
       # replace "dydt" and "calc_lhs" by Rx_ODE_mod_<modName>_* inside the code 
       # of call_dvode.c to avoid symbol conflicts
-      safe_name <- gsub("\\W", "_", .modName)  # replace non-alphanumeric by "_"
+      safe_name <- paste0(gsub("\\W", "_", .modName),.digest)  # replace non-alphanumeric by "_"
       .dydt <<- paste0("RxODE_mod_", safe_name, "_dydt")
       .calc_lhs <<- paste0("RxODE_mod_", safe_name, "_calc_lhs")
       .ode_solver <<- paste0("RxODE_mod_", safe_name, "_ode_solver")
@@ -622,7 +623,7 @@ function(model, modName, wd, flat)
       } 
       rc <- try(dyn.load(.dllfile), silent = TRUE)
       if(inherits(rc, "try-error"))
-         stop(sprintf("error loading dll file %s", .dllfile))
+          stop(sprintf("error loading dll file %s", .dllfile))
    }
 
    dynUnload <- function(){
@@ -671,16 +672,17 @@ function(model, modName, wd, flat)
     }
 
    out <- 
-      list(parse = parse, compile = compile, 
-         dynLoad = dynLoad, dynUnload = dynUnload,
-         ode_solver = .ode_solver,   # name of C function
-         modelDir = .mdir,               # model directory
-         dllfile = .dllfile,
-         get.modelVars = function() .modelVars,   
-         isValid = isValid, delete = delete,
-         get.index = get.index, 
-         getObj = function(obj) get(obj, envir = environment(parse))
-      )
+       list(parse = parse, compile = compile,
+            model = .mod.parsed,
+            dynLoad = dynLoad, dynUnload = dynUnload,
+            ode_solver = .ode_solver,   # name of C function
+            modelDir = .mdir,               # model directory
+            dllfile = .dllfile,
+            get.modelVars = function() .modelVars,   
+            isValid = isValid, delete = delete,
+            get.index = get.index, 
+            getObj = function(obj) get(obj, envir = environment(parse))
+            )
    class(out) <- "RxCompilationManager"
    out
 }
