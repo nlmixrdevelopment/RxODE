@@ -5,10 +5,14 @@
    if(!missing(model) && !missing(filename))
       stop("must specify exactly one of 'model' or 'filename'")
 
+   if (missing(modName) && missing(wd) & missing(flat)){
+       flat <- TRUE;
+       modName <- "RxODE";
+   }
+   
    if(!is.null(filename) && missing(model))
       model <- paste0(readLines(filename, ...), collapse="\n")
-
-   model <- gsub("[*][*]","^",model); #Support ** operator since R does
+   
    # RxODE compilation manager (location of parsed code, generated C, 
    # shared libs, etc.)
 
@@ -160,8 +164,6 @@ RxODE.inits <- function(vec,names,default = 0){
 "solve.RxODE" <- function(x,...){
     x$solve(...);
 }
-
-
 
 "print.RxODE" <-
 function(x, ...)
@@ -422,8 +424,8 @@ function(model, modName, wd, flat)
    # done through this object. It also keeps tracks of 
    # filenames for the C file, dll, and the translator 
    # model file, parameter file, state variables, etc.
-
-   .digest <- digest::digest(model);
+    model <- gsub("[*][*]","^",model); #Support ** operator since R does
+    .digest <- digest::digest(model);
    .modName <- modName
    .flat <- flat
    .flatOut <- NULL
@@ -498,7 +500,7 @@ function(model, modName, wd, flat)
       sprintf("%s/bin/R CMD SHLIB %s %s -L%s -lodeaux %s", 
          Sys.getenv("R_HOME"), .cfile, .dvode, .libs, .gflibs)
 
-    .dydt <- .calc_lhs <- .ode_solver <- .objName <- NULL;
+    .dydt <- .calc_lhs <- .ode_solver <- NULL;
     .md5file <- file.path(.mdir,"model_md5");
     if (file.exists(.modelVarsFile) && file.exists(.md5file) && readLines(.md5file) == .digest){
         load(.modelVarsFile);
