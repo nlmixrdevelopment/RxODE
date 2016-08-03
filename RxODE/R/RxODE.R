@@ -8,6 +8,7 @@
    if(!is.null(filename) && missing(model))
       model <- paste0(readLines(filename, ...), collapse="\n")
 
+   model <- gsub("[*][*]","^",model); #Support ** operator since R does
    # RxODE compilation manager (location of parsed code, generated C, 
    # shared libs, etc.)
 
