@@ -151,6 +151,188 @@ function(x, ...)
    invisible(x)
 }
 
+igraph <- function(obj,...){
+    ## In case anyone else wants to use the method...
+    UseMethod("igraph");
+}
+
+RxODE.nodeInfo <- function(x, # RxODE object
+                           ...){
+    ## RxODE.nodeInfo returns a list containing edgeList, biList and nodes
+    mod0 <- strsplit(strsplit(gsub("\n","",gsub(" *=","=",gsub("\n *","\n",gsub("#.*","",x$model)))),";")[[1]],"=");
+    mod <- eval(parse(text=sprintf("c(%s)",paste(unlist(lapply(mod0,function(x){
+        if (length(x) == 2){
+            return(sprintf("\"%s\"=\"%s\"",x[1],gsub(" *$","",gsub("^ *","",x[2])))) 
+        } else {
+            return(NULL);
+        }
+    })),collapse=","))))
+    modVars <- x$get.modelVars();
+    de <- c()
+    for (v in modVars$state){
+        de <- c(de,mod[sprintf("d/dt(%s)",v)])
+    }
+    names(de) <- modVars$state;
+    for (v in modVars$lhs){
+        de <- gsub(sprintf("\\b%s\\b",v),mod[v],de,perl=TRUE);
+    }
+    fullDe <- de;
+    de <- de[which(regexpr("[(]",de) == -1)];
+    parDe <- de;
+    negDe <- gsub(" *$","",gsub("^ *","",gsub("^ *[^-][^-+]*","",gsub("[+] *[^-+]*","",de))))
+    de <- gsub(" *$","",gsub("^ *","",gsub("- *[^-+]*","",de)));
+    nde <- names(de)
+    de <- de[de != ""];
+    de <- strsplit(de," *[+] *");
+    negDe <- negDe[negDe != ""];
+    negDe <- lapply(strsplit(negDe," *[-] *"),function(x){return(x[x != ""])});
+    for (v in names(negDe)){
+        negDe[[v]] <- gsub(sprintf("[*] *%s",v),"",negDe[[v]])
+    }
+    nodes <- c();
+    edges <- NULL;
+    edgeList <- list();
+    biList <- list();
+    for (n in names(de)){
+        for (n2 in nde){
+            w <- which(regexpr(sprintf("[*] *%s",n2),de[[n]]) != -1);
+            if (length(w) == 1){
+                nodes <- c(nodes,n2,n);
+                var <- gsub(sprintf("[*] *%s",n2),"",de[[n]][w]);
+                for (e in edgeList){
+                    if (e[1] == n & e[2] == n2){
+                        biList[[length(biList) + 1]] <- c(n,n2);
+                    }
+                }
+                edgeList[[var]] <- c(n2,n);
+                negDe[[n2]] <- negDe[[n2]][negDe[[n2]] != var];
+            }
+        }
+    }
+    nodes <- unique(nodes);
+    for (i in 1:length(negDe)){
+        if (length(negDe[[i]]) == 1){
+            edgeList[[negDe[[i]]]] <- c(names(negDe)[i]," ");
+        }
+    }
+    return(list(nodes    = nodes,
+                edgeList = edgeList,
+                biList   = biList))
+} # end function RxODE.nodeInfo
+
+igraph.RxODE <- function(x,                                   # RxODE object
+                         shape      = c("square","circle","csquare","rectangle","crectangle","vrectangle","sphere","none"),
+                         size       = 30,                     # Size of square
+                         colors     = c("accent1"="#0460A9"), # Colors
+                         fillColor  = "accent1",              # Color to fill 
+                         family     = "sans",                 # font Family
+                         font       = 2,                      # Font (1: plain, 2: bold, 3: italic, 4: bold/italic, 5:symbol)
+                         labelColor = "white",                # Label Color
+                         lineColor  = "accent1",              # Line Color
+                         shapeEnd   = c("none","sphere","circle","square","csquare","rectangle","crectangle","vrectangle"),
+                         sizeEnd    = 10,                     # Size of End
+                         ...){
+    ## igraph.RxODE returns igraph object from RxODE
+    with(RxODE.nodeInfo(x),{
+        ret <- eval(parse(text=sprintf("igraph::graph_from_literal(%s);",paste(unlist(lapply(edgeList,function(x){sprintf("\"%s\" -+ \"%s\"",x[1],x[2])})),collapse=","))));
+        if (length(shape) > 1){
+            shape <- shape[1];
+        }
+        if (length(shapeEnd) > 1){
+            shapeEnd <- shapeEnd[1];
+        }
+        getColor <- function(x){
+            if (any(names(colors) == x)){
+                return(colors[x]);
+            } else {
+                return(x);
+            }
+        }
+        ret <- igraph::set_vertex_attr(ret,"shape",value=shape);
+        ret <- igraph::set_vertex_attr(ret,"size",value=size);
+        ret <- igraph::set_vertex_attr(ret,"color",value=getColor(fillColor));
+        ret <- igraph::set_vertex_attr(ret,"label.family",value=family)
+        ret <- igraph::set_vertex_attr(ret,"label.font",value=font);
+        ret <- igraph::set_vertex_attr(ret,"label.color",value=getColor(labelColor));
+        ret <- igraph::set_vertex_attr(ret,"shape",igraph::V(ret)[" "],value=shapeEnd);
+        ret <- igraph::set_vertex_attr(ret,"size",igraph::V(ret)[" "],value=sizeEnd);
+        ret <- igraph::set_edge_attr(ret,"color",value=getColor(lineColor))
+        ret <- igraph::set_edge_attr(ret,"curved",value=FALSE)
+        ret <- igraph::set_edge_attr(ret,"label.font",value=font)
+        ## Set bidirectional to curved.
+        eval(parse(text=paste(lapply(biList,function(x){sprintf("ret <- igraph::set_edge_attr(ret,\"curved\",igraph::E(ret)[\"%s\" %%--%% \"%s\"],value=TRUE)",x[1],x[2])}),collapse=";")));
+        ## add the labels
+        for (l in names(edgeList)){
+            v <- edgeList[[l]];
+            eg <- igraph::E(ret)[v[1] %->% v[2]];
+            ret <- igraph::set_edge_attr(ret,"label",eg,value=l);
+        }
+        return(ret);
+    });
+} # end function igraph.RxODE
+
+plot.RxODE <- function(x,
+                       family="sans",
+                       interactive = FALSE,
+                       ...)
+{
+    if (!requireNamespace("igraph", quietly = TRUE)) {
+        stop("Igraph needed for this function to work. Please install it.",
+             call. = FALSE)
+    }
+    if (!interactive){
+        plot(igraph(x,family=family),edge.label.family=family)
+    } else {
+        igraph::tkplot(igraph(x,family=family),edge.label.family=family)
+    }
+    
+    ## plot.RxODE returns nothing, but plots the ode graph diagram
+    ## Sort of works with the Rgraphviz package...
+    ## But Rgraphviz was removed from CRAN, so I wont use it...
+    
+    ## oldGraphPar <- graph.par()
+    ## if (length(engine) > 1){
+    ##     engine <- engine[1];
+    ## }
+    ## if (length(nodeShape) > 1){
+    ##     nodeShape <- nodeShape[1];
+    ## } 
+    ## ret <- new("graphNEL",nodes=nodes,edgemode="directed");
+    ## for (i in 1:length(edgeList)){
+    ##     n2 <- edgeList[[i]][1];
+    ##     n <- edgeList[[i]][2];
+    ##     ret <- addEdge(n2,n,ret,1);
+    ##     labs[sprintf("%s~%s",n2,n)] <- var;
+    ## }
+    ## if (!labels){
+    ##     nl <- names(labs)
+    ##     labs <- rep("",length(nl));
+    ##     names(labs) <- nl;
+    ## }
+    ## attrs <- getDefaultAttrs();
+    ## attrs$node$fillcolor <- colors["accent1"];
+    ## attrs$node$color <- colors["accent1"];
+    ## attrs$node$fontsize <- nodeFontSize;
+    ## attrs$node$fixedsize <- FALSE;
+    ## attrs$node$fontcolor <- "white"
+    ## attrs$node$shape <- nodeShape;
+    ## attrs$node$width <- nodeWidth;
+    ## attrs$node$height <- nodeHeight;
+    ## attrs$edge$color <- colors["accent1"];
+    ## attrs$edge$lwd <- edgeLwd;
+    ## attrs$edge$fontsize <- edgeFontSize;
+    ## attrs$edge$fontcolor <- colors["accent1"];
+    ## ret <- agopen(ret,"RxODE",layoutType=engine,recipEdges="distinct",
+    ##               edgeAttrs=list(label=labs),attrs=attrs);
+    ## for (i in 1:length(AgEdge(ret))){
+    ##     AgEdge(ret)[[i]]@txtLabel@labelJust <- labelJust;
+    ##     str(AgEdge(ret)[[i]])
+    ## }
+    ## plot(ret);
+    ## graph.par(oldGraphPar);
+    invisible(NULL)
+} # end function plot.RxODE
+
 "rx.initCmpMgr" <-
 function(model, modName, wd, flat)
 {

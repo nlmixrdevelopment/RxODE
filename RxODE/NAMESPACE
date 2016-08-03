@@ -7,6 +7,7 @@ export("RxODE", "rx.initCmpMgr", "eventTable")
 S3method("print", "RxODE")
 S3method("print", "EventTable")
 S3method("print", "RxCompilationManager")
+S3method("plot", "RxODE")
 
 # the following is very experimental, probably will be 
 # moved to a helper pkg

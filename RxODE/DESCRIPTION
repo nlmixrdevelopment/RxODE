@@ -6,12 +6,14 @@ Authors@R: c(
    person("Melissa", "Hallow", 
       role = c("aut", "cre"), email = "hallowkm@uga.edu"),
    person("Wenping", "Wang", 
-      role = "aut", email = "Wenping.wang@outlook.com")
+      role = "aut", email = "Wenping.wang@outlook.com"),
+   person("Matthew","Fidler",
+      role = "aut", email = "matthew.fidler@gmail.com")
    )
-Author: Melissa Hallow [aut, cre], Wenping Wang [aut]
+Author: Melissa Hallow [aut, cre], Wenping Wang [aut], Matthew Fidler [aut]
 Maintainer: Melissa Hallow <hallowkm@uga.edu>
 Depends: R (>= 3.0.0)
-Suggests: knitr, nlme, shiny
+Suggests: knitr, nlme, shiny, igraph
 Imports: utils, digest
 Description: Facilities for running simulations from ordinary 
    differential equation (ODE) models, such as pharmacometrics and other 
