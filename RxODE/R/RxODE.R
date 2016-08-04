@@ -222,7 +222,6 @@ RxODE.nodeInfo <- function(x, # RxODE object
 
     ## First change the totally parsed  model specifciation to a named R vector.
     mod0 <- strsplit(strsplit(gsub("[}]","",gsub("else[ \t]*[{]","",gsub("if[ \t]*[(][^)]*[])][ \t]*[{]",";",gsub("\n","",gsub(" *=","=",gsub("[=>!<]=","\\1~",gsub("\n *","\n",gsub("#.*","",x$cmpMgr$model)))))))),";")[[1]],"=");
-    print(mod0)
     mod <- eval(parse(text=sprintf("c(%s)",paste(unlist(lapply(mod0,function(x){
         if (length(x) == 2){
             return(sprintf("\"%s\"=\"%s\"",gsub("^ *","",gsub(" *$","",x[1])),gsub(" *$","",gsub("^ *","",x[2])))) 
