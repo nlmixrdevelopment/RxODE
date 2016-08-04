@@ -197,7 +197,7 @@ function(x, ...)
    cat("\nModel:\n")
    cat(x$model)
    cat("\n")
-   cat(sprintf("dll: %s\n",x$cmpMgr$.dllfile))
+   cat(sprintf("dll: %s\n",x$cmpMgr$dllfile))
    invisible(x)
 }
 
