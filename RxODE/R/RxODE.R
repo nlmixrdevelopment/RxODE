@@ -452,6 +452,7 @@ function(model, modName, wd, flat, strict)
         .mod.parsed <- gsub("[*][*]","^",model); #Support ** operator since R does
         .mod.parsed <- gsub("[<][-]","=",.mod.parsed); #Support <- operator since R does
         .mod.parsed <- gsub("#[^\n]*\n","\n",.mod.parsed); # Strip comments
+        .mod.parsed <- gsub("([+*/]|-) *\n","\\1",.mod.parsed); # Allow operators to continue statements
         .mod.parsed <- gsub("=([^\n;]*);* *\n","=\\1;\n",.mod.parsed); # Don't require semicolons.
         .mod.parsed <- gsub("[.]","_",.mod.parsed); # Allow [.] notation because R does
         .mod.parsed <- gsub("^([^\n]*)\\[([^\n]*)\\]([^\n]*)=","\\1(\\2)\\3=",.mod.parsed) # Change [] to ()
