@@ -446,6 +446,11 @@ function(model, modName, wd, flat, strict)
         .mod.parsed <- gsub("#[^\n]*\n","\n",.mod.parsed); # Strip comments
         .mod.parsed <- gsub("=([^\n;]*);* *\n","=\\1;\n",.mod.parsed); # Don't require semicolons.
         .mod.parsed <- gsub("[.]","_",.mod.parsed); # Allow [.] notation because R does
+        .mod.parsed <- gsub("^([^\n]*)\\[([^\n]*)\\]([^\n]*)=","\\1(\\2)\\3=",.mod.parsed) # Change [] to ()
+        .mod.parsed <- gsub("[(][ \t]*\"[ \t]*([^ \n\"]*)[ \t]*\"[ \t]*[)]","(\\1)",.mod.parsed) # Change ("z") to (z)
+        .mod.parsed <- gsub("\n[^\n(]*[(]([^\n)]+)[)][^\n=]*=","\nd/dt(\\1)=",.mod.parsed)
+        .mod.parsed <- gsub(" *","",.mod.parsed);
+        cat(.mod.parsed);
     }
    .digest <- digest::digest(.mod.parsed);
    .modName <- modName
