@@ -3,7 +3,7 @@
              filename = NULL, do.compile = NULL, flat = FALSE,
              strict = FALSE,...)
 {
-   if(!missing(model) && !missing(filename))
+    if(!missing(model) && !missing(filename))
       stop("must specify exactly one of 'model' or 'filename'")
 
    if (missing(modName) && missing(wd) & missing(flat)){
@@ -209,7 +209,20 @@ igraph <- function(obj,...){
 RxODE.nodeInfo <- function(x, # RxODE object
                            ...){
     ## RxODE.nodeInfo returns a list containing edgeList, biList and nodes
-    mod0 <- strsplit(strsplit(gsub("\n","",gsub(" *=","=",gsub("\n *","\n",gsub("#.*","",x$cmpMgr$model)))),";")[[1]],"=");
+    
+    ##  The nodes object is the compartments in the model that will be
+    ##  drawn.  Compartments that should be hidden are prefixed with a
+    ##  "."
+
+    ## The edgeList has a list of nodes and the directions they
+    ## connect like c("A","B") is an arrow from compartent A to B.
+
+    ## The names of the edgeList is the label applied to the arrow.
+    ##
+
+    ## First change the totally parsed  model specifciation to a named R vector.
+    mod0 <- strsplit(strsplit(gsub("[}]","",gsub("else[ \t]*[{]","",gsub("if[ \t]*[(][^)]*[])][ \t]*[{]",";",gsub("\n","",gsub(" *=","=",gsub("[=>!<]=","\\1~",gsub("\n *","\n",gsub("#.*","",x$cmpMgr$model)))))))),";")[[1]],"=");
+    print(mod0)
     mod <- eval(parse(text=sprintf("c(%s)",paste(unlist(lapply(mod0,function(x){
         if (length(x) == 2){
             return(sprintf("\"%s\"=\"%s\"",gsub("^ *","",gsub(" *$","",x[1])),gsub(" *$","",gsub("^ *","",x[2])))) 
@@ -217,19 +230,38 @@ RxODE.nodeInfo <- function(x, # RxODE object
             return(NULL);
         }
     })),collapse=","))))
+
+    
+    ## Get the variables from the parser
     modVars <- x$get.modelVars();
+
+    ## Subset to the ODE equations.
     de <- c()
     for (v in modVars$state){
         de <- c(de,mod[sprintf("d/dt(%s)",v)])
     }
     names(de) <- modVars$state;
+
+    ## Now substitute the left hand sided quantities into the final form.
+    ## Currently this only supports a single left-handed equation.
     for (v in modVars$lhs){
-        de <- gsub(sprintf("\\b%s\\b",v),mod[v],de,perl=TRUE);
+        ## Only apply if there is 
+        if (sum(names(mod) == v) == 1){
+            de <- gsub(sprintf("\\b%s\\b",v),mod[v],de,perl=TRUE);
+        }
+        ## FIXME: combine F= 1\nF = F+3 ,etc...
     }
     fullDe <- de;
+    
+    ## Currently only parses simple expressions.
+    ## FIXME: Add michelis-menton / Hill kinetics
     de <- de[which(regexpr("[(]",de) == -1)];
     parDe <- de;
+    
+    ## Find the negative exressions in the ODEs
     negDe <- gsub(" *$","",gsub("^ *","",gsub("^ *[^-][^-+]*","",gsub("[+] *[^-+]*","",de))))
+
+    ## Find the positive expressions in the ODEs
     de <- gsub(" *$","",gsub("^ *","",gsub("- *[^-+]*","",de)));
     nde <- names(de)
     de <- de[de != ""];
@@ -239,6 +271,8 @@ RxODE.nodeInfo <- function(x, # RxODE object
     for (v in names(negDe)){
         negDe[[v]] <- gsub(sprintf("[*] *%s",v),"",negDe[[v]])
     }
+
+    ## Look for connections between compartments from the positive direction
     nodes <- c();
     edges <- NULL;
     edgeList <- list();
@@ -255,10 +289,13 @@ RxODE.nodeInfo <- function(x, # RxODE object
                     }
                 }
                 edgeList[[var]] <- c(n2,n);
+                ## If the corresponding negative direction exists,
+                ## remove it from negDe.  The negDe should have overall body clearances.
                 negDe[[n2]] <- negDe[[n2]][negDe[[n2]] != var];
             }
         }
     }
+    ## Assign overall body clerances
     nodes <- unique(nodes);
     for (i in 1:length(negDe)){
         if (length(negDe[[i]]) == 1){
@@ -266,6 +303,10 @@ RxODE.nodeInfo <- function(x, # RxODE object
             nodes <- c(nodes,".out");
         }
     }
+    ## Now see if we can recognize kin/kout from indirect response models
+    
+    ## FIXME: more robust parsing.  Currently requires kin/kout combination
+    ## Also assigns suppression by the presence of "(1-" in either the kin or kout term.
     w <- which(sapply(fullDe,function(x){
         lx <- tolower(x)
         return(regexpr("kin",lx)  != -1 && regexpr("kout",lx) != -1)
@@ -277,6 +318,10 @@ RxODE.nodeInfo <- function(x, # RxODE object
         isInb <- regexpr("[(] *1 *[-]",idrl) != -1;
         idr.from <- gsub(sprintf("^.*(%s).*",paste(names(fullDe)[-w],collapse="|")),"\\1",idr)
         ef <- names(fullDe)[w]
+        ## FIXME: Get the actual IC50
+
+        ## FIXME: Indicate if this is a Hill equation, or any other
+        ## sort of dose-response equations.
         if (isKout){
             if (isInb){
                 Kout <- "Kout\n\u25BC IC50"
