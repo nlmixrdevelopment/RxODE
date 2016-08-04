@@ -157,6 +157,8 @@
    out
 }
 
+"rxOde" <- "RxODE";
+
 RxODE.inits <- function(vec,names,default = 0){
     ret <- vec;
     nv <- names(vec)
@@ -194,11 +196,18 @@ function(x, ...)
       .msg <- if(.ready) "ready to run" else "needs compilation"
    }
    cat(sprintf('RxODE model named "%s" (%s)\n', x$modName, .msg))
-   cat("\nModel:\n")
-   cat(x$model)
-   cat("\n")
-   cat(sprintf("dll: %s\n",x$cmpMgr$dllfile))
    invisible(x)
+}
+
+"summary.RxODE" <-
+function(x, ...)
+{
+    print.RxODE(x);
+    cat("\nModel:\n")
+    cat(x$model)
+    cat("\n")
+    cat(sprintf("dll: %s\n",x$cmpMgr$dllfile))
+    invisible(x)
 }
 
 igraph <- function(obj,...){
