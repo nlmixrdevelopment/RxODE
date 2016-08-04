@@ -194,6 +194,10 @@ function(x, ...)
       .msg <- if(.ready) "ready to run" else "needs compilation"
    }
    cat(sprintf('RxODE model named "%s" (%s)\n', x$modName, .msg))
+   cat("\nModel:\n")
+   cat(x$model)
+   cat("\n")
+   cat(sprintf("dll: %s\n",x$cmpMgr$.dllfile))
    invisible(x)
 }
 
@@ -454,7 +458,6 @@ function(model, modName, wd, flat, strict)
         .mod.parsed <- gsub("[(][ \t]*\"[ \t]*([^ \n\"]*)[ \t]*\"[ \t]*[)]","(\\1)",.mod.parsed) # Change ("z") to (z)
         .mod.parsed <- gsub("\n[^\n(]*[(]([^\n)]+)[)][^\n=]*=","\nd/dt(\\1)=",.mod.parsed)
         .mod.parsed <- gsub(" *","",.mod.parsed);
-        cat(.mod.parsed);
     }
    .digest <- digest::digest(.mod.parsed);
    .modName <- modName
