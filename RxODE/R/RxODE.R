@@ -204,7 +204,7 @@ RxODE.nodeInfo <- function(x, # RxODE object
     mod0 <- strsplit(strsplit(gsub("\n","",gsub(" *=","=",gsub("\n *","\n",gsub("#.*","",x$cmpMgr$model)))),";")[[1]],"=");
     mod <- eval(parse(text=sprintf("c(%s)",paste(unlist(lapply(mod0,function(x){
         if (length(x) == 2){
-            return(sprintf("\"%s\"=\"%s\"",x[1],gsub(" *$","",gsub("^ *","",x[2])))) 
+            return(sprintf("\"%s\"=\"%s\"",gsub("^ *","",gsub(" *$","",x[1])),gsub(" *$","",gsub("^ *","",x[2])))) 
         } else {
             return(NULL);
         }
