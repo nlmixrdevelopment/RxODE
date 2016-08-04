@@ -6,6 +6,7 @@ export("RxODE", "rx.initCmpMgr", "eventTable","igraph.RxODE","igraph")
 
 S3method("print", "RxODE")
 S3method("solve", "RxODE")
+S3method("predict", "RxODE")
 S3method("print", "EventTable")
 S3method("print", "RxCompilationManager")
 S3method("plot", "RxODE")

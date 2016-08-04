@@ -179,6 +179,10 @@ RxODE.inits <- function(vec,names,default = 0){
     x$solve(...);
 }
 
+"predict.RxODE" <- function(x,...){
+    x$solve(...);
+}
+
 "print.RxODE" <-
 function(x, ...)
 {
