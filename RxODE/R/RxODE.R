@@ -500,7 +500,17 @@ function(model, modName, wd, flat, strict)
    ## filenames for the C file, dll, and the translator 
    ## model file, parameter file, state variables, etc.
     if (strict){
+        ## Check for rhs d/dt
+        if (regexpr("=.*d/dt[(][^) \n]*[)]",model) != -1){
+            stop("d/dt() expressions cannot be on the right side of the equations.")
+        }
         .mod.parsed <- model;
+        .split <- strsplit(.mod.parsed,"\n")[[1]];
+        .w <- which(regexpr("^[^\n(]*[(]([^\n)]+)[)][^\n=]*=",.split) != -1);
+        .split <- gsub("^ *","",gsub(" *=.*","\\1",.split[.w]))
+        if (any(duplicated(.split))){
+            stop("Duplicate d/dt() on left hand side of equations.  This is not supported.")
+        }
     } else {
         .mod.parsed <- gsub("[*][*]","^",model); #Support ** operator since R does
         .mod.parsed <- gsub("[<][-]","=",.mod.parsed); #Support <- operator since R does
@@ -512,11 +522,36 @@ function(model, modName, wd, flat, strict)
         .mod.parsed <- gsub("([A-Za-z][A-Za-z0-9]*)[.]","\\1_",.mod.parsed); # Allow [.] notation because R does
         .mod.parsed <- gsub("^([^\n]*)\\[([^\n]*)\\]([^\n]*)=","\\1(\\2)\\3=",.mod.parsed) # Change [] to ()
         .mod.parsed <- gsub("[(][ \t]*\"[ \t]*([^ \n\"]*)[ \t]*\"[ \t]*[)]","(\\1)",.mod.parsed) # Change ("z") to (z)
+        .split <- strsplit(.mod.parsed,"\n")[[1]];
+        .w <- which(regexpr("^[^\n(]*[(]([^\n)]+)[)][^\n=]*=",.split) != -1);
+        .split <- lapply(unique(gsub("^ *","",gsub(" *=.*","\\1",.split[.w]))),
+                         function(x){
+                             y <- gsub("[^\n(]*[(]([^\n)]+)[)][^\n=]*","\\1",x);
+                             return(c(x,sprintf("d/dt(%s)",y),sprintf("d____%s",y)));
+                         });
+        ## In the strict RxODE the following doesn't work
+        ## d/dt(matt) = ka*depot
+        ## d/dt(matt) = d/dt(matt)-kel*matt
+        ## This makes it work by defining d____matt and d____depot
+        ##
+        ## Its a hack, but after looking at the dparser, I would have
+        ## to save the variable number for each compartment and then
+        ## assign them correctly.  This seems a bit easier (to me).
+        ##
+        ## The strict RxODE would say
+        ## d/dt(matt) -> dt[1]
+        ## d/dt(matt) -> dt[2]
+        ##
+        ## even though they specify the same system.
+        for (i in 1:length(.split)){
+            y <- .split[[i]]
+            .mod.parsed <- sprintf("%s\n%s=%s;",gsub(y[1],y[3],.mod.parsed,fixed=TRUE),
+                                   y[2],y[3]);
+        }
         .mod.parsed <- gsub("\n[^\n(]*[(]([^\n)]+)[)][^\n=]*=","\nd/dt(\\1)=",.mod.parsed)
         .mod.parsed <- gsub(" *","",.mod.parsed);
         .mod.parsed <- gsub("~~","==",.mod.parsed);
         .mod.parsed <- gsub("([!><])~","\\1=",.mod.parsed);
-        cat(.mod.parsed);
     }
    .digest <- digest::digest(.mod.parsed);
    .modName <- modName
