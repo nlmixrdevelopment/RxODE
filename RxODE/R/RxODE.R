@@ -208,9 +208,8 @@ function(model, modName, wd)
       sprintf("%s/tran.exe %s %s %s 2>%s", 
          .bin, .modfile, .cfile, .prefix, .errfile)
    .shlib <- 
-      sprintf("%s/bin/R CMD SHLIB %s %s -L%s -lodeaux %s", 
-         Sys.getenv("R_HOME"), .cfile, .dvode, .libs, .gflibs)
-
+      sprintf("%s/bin/R CMD SHLIB %s %s", 
+         Sys.getenv("R_HOME"), .cfile, .dvode)
    if(!file.exists(.mdir))
       dir.create(.mdir, recursive = TRUE)
 
@@ -276,8 +275,12 @@ function(model, modName, wd)
       # may need to unload previous model object code
       if (is.loaded(.objName)) try(dyn.unload(.dllfile), silent = TRUE)
 
-      on.exit(unlink("Makevars"))
-      cat(sprintf("PKG_CPPFLAGS=-I%s",.incl), file="Makevars")
+      #on.exit(unlink("Makevars"))
+      cat(sprintf("PKG_CPPFLAGS=-I%s\n",.incl), file="Makevars")
+      cat(
+         sprintf("PKG_LIBS=-L%s -lodeaux $(BLAS_LIBS) $(FLIBS)", .libs),
+         file="Makevars", append=TRUE
+      )
 
       # create SHLIB
       rc <- try(do.call(.sh, list(.shlib)), silent = FALSE)

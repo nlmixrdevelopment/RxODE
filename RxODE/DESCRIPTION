@@ -1,6 +1,6 @@
 Package: RxODE
-Version: 0.5-2
-Date: 2015-11-16
+Version: 0.5-3
+Date: 2016-05-18
 Title: Facilities for Simulating from ODE-Based Models 
 Authors@R: c(
    person("Melissa", "Hallow", 
