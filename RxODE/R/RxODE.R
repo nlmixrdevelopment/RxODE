@@ -1,7 +1,7 @@
 "RxODE" <-
     function(model, modName = basename(wd), wd = getwd(),
              filename = NULL, do.compile = NULL, flat = FALSE,
-             strict = FALSE,...)
+             strict = FALSE,reduce.rounding = TRUE,...)
 {
     if(!missing(model) && !missing(filename))
       stop("must specify exactly one of 'model' or 'filename'")
@@ -27,7 +27,7 @@
    # RxODE compilation manager (location of parsed code, generated C, 
    # shared libs, etc.)
 
-   cmpMgr <- rx.initCmpMgr(model, modName, wd, flat, strict);
+    cmpMgr <- rx.initCmpMgr(model, modName, wd, flat, strict, reduce.rounding);
                                         # NB: the set of model variables (modelVars) is only available 
    # after parsing, thus it needs to be dynamically computed in cmpMgr
    get.modelVars <- cmpMgr$get.modelVars
@@ -239,7 +239,6 @@ RxODE.nodeInfo <- function(x, # RxODE object
         }
     })),collapse=","))))
 
-    
     ## Get the variables from the parser
     modVars <- x$get.modelVars();
 
@@ -279,7 +278,6 @@ RxODE.nodeInfo <- function(x, # RxODE object
     for (v in names(negDe)){
         negDe[[v]] <- gsub(sprintf("[*] *%s",v),"",negDe[[v]])
     }
-
     ## Look for connections between compartments from the positive direction
     nodes <- c();
     edges <- NULL;
@@ -299,16 +297,20 @@ RxODE.nodeInfo <- function(x, # RxODE object
                 edgeList[[var]] <- c(n2,n);
                 ## If the corresponding negative direction exists,
                 ## remove it from negDe.  The negDe should have overall body clearances.
-                negDe[[n2]] <- negDe[[n2]][negDe[[n2]] != var];
+                if (any(names(negDe) == n2)){
+                    negDe[[n2]] <- negDe[[n2]][negDe[[n2]] != var];
+                }
             }
         }
     }
     ## Assign overall body clerances
     nodes <- unique(nodes);
-    for (i in 1:length(negDe)){
-        if (length(negDe[[i]]) == 1){
-            edgeList[[negDe[[i]]]] <- c(names(negDe)[i],".out");
-            nodes <- c(nodes,".out");
+    if (length(negDe) > 0){
+        for (i in 1:length(negDe)){
+            if (length(negDe[[i]]) == 1){
+                edgeList[[negDe[[i]]]] <- c(names(negDe)[i],".out");
+                nodes <- c(nodes,".out");
+            }
         }
     }
     ## Now see if we can recognize kin/kout from indirect response models
@@ -492,7 +494,7 @@ plot.RxODE <- function(x,
 } # end function plot.RxODE
 
 "rx.initCmpMgr" <-
-function(model, modName, wd, flat, strict)
+function(model, modName, wd, flat, strict, reduce.rounding)
 {
    ## Initialize the RxODE compilation manager (all parsing,
    ## compilation, and loading of dynamic shared objects is 
@@ -543,18 +545,50 @@ function(model, modName, wd, flat, strict)
         ## d/dt(matt) -> dt[2]
         ##
         ## even though they specify the same system.
+        tmp <- c();
         for (i in 1:length(.split)){
             y <- .split[[i]]
-            .mod.parsed <- sprintf("%s\n%s=%s;",gsub(y[1],y[3],.mod.parsed,fixed=TRUE),
-                                   y[2],y[3]);
+            if (any(tmp == y[3])){
+                .mod.parsed <- sprintf("%s",gsub(y[1],y[3],.mod.parsed,fixed=TRUE));
+            } else {
+                .mod.parsed <- sprintf("%s\n%s=%s;",gsub(y[1],y[3],.mod.parsed,fixed=TRUE),
+                                       y[2],y[3]);
+                tmp <- c(tmp,y[3]);
+            }
         }
         .mod.parsed <- gsub("\n[^\n(]*[(]([^\n)]+)[)][^\n=]*=","\nd/dt(\\1)=",.mod.parsed)
         .mod.parsed <- gsub(" *","",.mod.parsed);
         .mod.parsed <- gsub("~~","==",.mod.parsed);
         .mod.parsed <- gsub("([!><])~","\\1=",.mod.parsed);
     }
-   .digest <- digest::digest(.mod.parsed);
-   .modName <- modName
+    .mod.round <-  .mod.parsed;
+    if (reduce.rounding){
+        .var <- "[ \t]*([a-zA-Z_][a-zA-Z0-9_]*|0|[1-9][0-9]*|[0-9]+[.][0-9]*(?:[eE][\\-\\+]?[0-9]+)?|[0-9]+[eE][\\-\\+]?[0-9]+|[(][^()]*(?:[(][^()]*[)][^()]*)*[)])[ \t]*";
+        i <- 7;
+        while (i > 0){
+            if (i > 1){
+                ## (a*b*c)^d -> exp(d*(log(a)+log(b)+log(c)))
+                r1 <- sprintf("[(]%s[)]^%s",paste(rep(.var,i),collapse="[*]"),.var);
+                r2 <- sprintf("exp(\\%s*(%s))",i+1,paste(paste0("log(\\",seq(1,i),")"),collapse="+"));
+                .mod.round <- gsub(r1,r2,.mod.round);
+                ## a*b*c -> exp(log(a)+log(b)+log(c))
+                r1 <- sprintf("([+=]|-)%s([+\n;]|-)",paste(rep(.var,i),collapse="[*]"));
+                r2 <- sprintf("\\1exp(%s)\\%d",paste(paste0("log(\\",seq(2,i+1),")"),collapse="+"),i+2);
+                .mod.round <- gsub(r1,r2,.mod.round)
+            }
+            ## (a*b/c)^d -> exp(d*(log(a)+log(b)-log(c)))
+            r1 <- sprintf("[(]%s[/]%s[)]^%s",paste(rep(.var,i),collapse="[*]"),.var,.var);
+            r2 <- sprintf("exp(\\%s*(%s-log(\\%s)))",i+2,paste(paste0("log(\\",seq(1,i),")"),collapse="+"),i+1);
+            .mod.round <- gsub(r1,r2,.mod.round)
+            ## a*b/c -> exp(log(a)+log(b)-log(c))
+            r1 <- sprintf("([+=]|-)%s[/]%s([+\n;]|-)",paste(rep(.var,i),collapse="[*]"),.var);
+            r2 <- sprintf("\\1exp(%s-log(\\%s))\\%d",paste(paste0("log(\\",seq(2,i+1),")"),collapse="+"),i+2,i+3);
+            .mod.round <- gsub(r1,r2,.mod.round)
+            i <- i - 1;
+        }
+    }
+    .digest <- digest::digest(.mod.round);
+    .modName <- modName
    .flat <- flat
    .flatOut <- NULL
    if (.flat){
@@ -648,7 +682,7 @@ function(model, modName, wd, flat, strict)
           return(invisible(.parsed))
       if(!file.exists(.mdir))
           dir.create(.mdir, recursive = TRUE)
-      cat(.mod.parsed, file = .modfile, "\n")   
+      cat(.mod.round, file = .modfile, "\n")   
       
       ## Hack: copy "call_dvode.c" to .mdir to avoid dyn.load() errors
       common <- system.file("common", package = "RxODE")
