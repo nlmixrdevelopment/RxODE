@@ -1,7 +1,8 @@
 "RxODE" <-
     function(model, modName = basename(wd), wd = getwd(),
              filename = NULL, do.compile = NULL, flat = FALSE,
-             strict = FALSE,reduce.rounding = TRUE,...)
+             strict = FALSE,reduce.rounding = TRUE,
+             clean.flat.dlls=NULL,...)
 {
     if(!missing(model) && !missing(filename))
       stop("must specify exactly one of 'model' or 'filename'")
@@ -10,12 +11,24 @@
        flat <- TRUE;
        if (!is.null(filename) && missing(model)){
            modName <- basename(filename);
+           if (missing(clean.flat.dlls)){
+               clean.flat.dlls <- TRUE
+           }
        } else if (missing(filename)&& file.exists(model)){
            modName <- basename(model)
+           if (missing(clean.flat.dlls)){
+               clean.flat.dlls <- TRUE
+           }
        } else {
            modName <- "RxODE";
+           if (missing(clean.flat.dlls)){
+               clean.flat.dlls <- FALSE
+           }
        }
    }
+    if  (!missing(flat) & flat & !missing(modName)& missing(clean.flat.dlls)){
+        clean.flat.dlls <- TRUE;
+    }
    
    if(!is.null(filename) && missing(model))
        model <- paste0(readLines(filename, ...), collapse="\n")
@@ -27,7 +40,7 @@
    # RxODE compilation manager (location of parsed code, generated C, 
                                         # shared libs, etc.)
 
-    cmpMgr <- rx.initCmpMgr(model, modName, wd, flat, strict, reduce.rounding);
+    cmpMgr <- rx.initCmpMgr(model, modName, wd, flat, strict, reduce.rounding, clean.flat.dlls);
                                         # NB: the set of model variables (modelVars) is only available 
    # after parsing, thus it needs to be dynamically computed in cmpMgr
    get.modelVars <- cmpMgr$get.modelVars
@@ -156,8 +169,6 @@
    class(out) <- "RxODE"
    out
 }
-
-"rxOde" <- "RxODE";
 
 RxODE.inits <- function(vec,names,default = 0){
     ret <- vec;
@@ -494,7 +505,7 @@ plot.RxODE <- function(x,
 } # end function plot.RxODE
 
 "rx.initCmpMgr" <-
-function(model, modName, wd, flat, strict, reduce.rounding)
+    function(model, modName, wd, flat, strict, reduce.rounding, clean.flat.dlls)
 {
    ## Initialize the RxODE compilation manager (all parsing,
    ## compilation, and loading of dynamic shared objects is 
@@ -587,6 +598,7 @@ function(model, modName, wd, flat, strict, reduce.rounding)
             i <- i - 1;
         }
     }
+    ## cat(.mod.round);
     .digest <- digest::digest(.mod.round);
     .modName <- modName
    .flat <- flat
@@ -636,7 +648,17 @@ function(model, modName, wd, flat, strict, reduce.rounding)
    .ofile <- file.path(.mdir, sprintf("%s.o", .modName))
    .dllfile.0 <- file.path(.mdir,sprintf("%s%s", .modName, .Platform$dynlib.ext))
    if (.flat) {
-        .dllfile <- file.path(.flatOut,sprintf("%s-%s-%s%s", .modName, .digest, R_ARCH,.Platform$dynlib.ext)) 
+       .dllfile <- file.path(.flatOut,sprintf("%s-%s-%s%s", .modName, .digest, R_ARCH,.Platform$dynlib.ext))
+       if (clean.flat.dlls){
+           for( f in list.files(.flatOut,sprintf("%s-.*",.modName))){
+               if (regexpr(.digest,f) == -1){
+                   if (regexpr(.Platform$dynlib.ext,f) != -1){
+                       try(dyn.unload(f), silent = TRUE)
+                   }
+                   unlink(f)
+               }
+           }
+       }
    } else {
        .dllfile <- file.path(.mdir,sprintf("%s-%s%s", .modName, R_ARCH,.Platform$dynlib.ext)) 
    }
