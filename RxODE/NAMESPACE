@@ -2,7 +2,7 @@ importFrom("tools", "md5sum")   # to ensure equality
 import("utils")
 
 # export only these 3 RxODE functions and print methods
-export("RxODE", "rx.initCmpMgr", "eventTable","igraph.RxODE","igraph","rxOde")
+export("RxODE", "rx.initCmpMgr", "eventTable","igraph.RxODE","igraph")
 
 S3method("print", "RxODE")
 S3method("summary", "RxODE")

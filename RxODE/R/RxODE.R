@@ -56,7 +56,9 @@
       modelVars <- get.modelVars()
 
       names(params) <- gsub("[.]","_",names(params));
-      names(inits) <- gsub("[.]","_",names(inits));
+      if (!is.null(inits)){
+          names(inits) <- gsub("[.]","_",names(inits));
+      }
       
       # preserve input arguments. 
       .last.solve.args <<-
@@ -135,7 +137,9 @@
       }
       
       
-      cbind(time=event.table$time, x)[events$get.obs.rec(),]
+      ret <- cbind(time=event.table$time, x)[events$get.obs.rec(),];
+      dimnames(ret) <- list(NULL,gsub("d____(.*)","d/dt(\\1)",dimnames(ret)[[2]]));
+      return(ret)
    }
 
    if (is.null(do.compile) & !cmpMgr$isValid()){
@@ -536,7 +540,7 @@ plot.RxODE <- function(x,
         .mod.parsed <- gsub("^([^\n]*)\\[([^\n]*)\\]([^\n]*)=","\\1(\\2)\\3=",.mod.parsed) # Change [] to ()
         .mod.parsed <- gsub("[(][ \t]*\"[ \t]*([^ \n\"]*)[ \t]*\"[ \t]*[)]","(\\1)",.mod.parsed) # Change ("z") to (z)
         .split <- strsplit(.mod.parsed,"\n")[[1]];
-        .w <- which(regexpr("^[^\n(]*[(]([^\n)]+)[)][^\n=]*=",.split) != -1);
+        .w <- which(regexpr("^[^\n(]*[(]([^\n)]+)[)][^\n=]*=",.split) != -1); #d(x) d/dt(x) d(x)
         .split <- lapply(unique(gsub("^ *","",gsub(" *=.*","\\1",.split[.w]))),
                          function(x){
                              y <- gsub("[^\n(]*[(]([^\n)]+)[)][^\n=]*","\\1",x);
@@ -640,7 +644,7 @@ plot.RxODE <- function(x,
 
    # filenames and shell command required for parsing (these are unique
    # within a given model directory
-   .modfile <- file.path(.mdir, "model.txt")  # copy of user-specified model
+    .modfile <- file.path(.mdir, "model.txt")  # copy of user-specified model
    .errfile <- file.path(.mdir, "error.txt")
 
    # files needed for compiling the C output of the parsed ODE
@@ -685,6 +689,10 @@ plot.RxODE <- function(x,
          Sys.getenv("R_HOME"), .cfile, .dvode)
 
     .dydt <- .calc_lhs <- .ode_solver <- NULL;
+    safe_name <- paste0(gsub("\\W", "_", .modName),.digest)  # replace non-alphanumeric by "_"
+    .dydt <- paste0("RxODE_mod_", safe_name, "_dydt")
+    .calc_lhs <- paste0("RxODE_mod_", safe_name, "_calc_lhs")
+    .ode_solver <- paste0("RxODE_mod_", safe_name, "_ode_solver")
     .md5file <- file.path(.mdir,"model_md5");
     if (file.exists(.modelVarsFile) && (flat || (file.exists(.md5file) && readLines(.md5file) == .digest))){
         .objName <- NULL;
@@ -712,10 +720,7 @@ plot.RxODE <- function(x,
         common <- win.path(common)
       # replace "dydt" and "calc_lhs" by Rx_ODE_mod_<modName>_* inside the code 
       # of call_dvode.c to avoid symbol conflicts
-      safe_name <- paste0(gsub("\\W", "_", .modName),.digest)  # replace non-alphanumeric by "_"
-      .dydt <<- paste0("RxODE_mod_", safe_name, "_dydt")
-      .calc_lhs <<- paste0("RxODE_mod_", safe_name, "_calc_lhs")
-      .ode_solver <<- paste0("RxODE_mod_", safe_name, "_ode_solver")
+      
       src <- readLines(file.path(common, "call_dvode.c"))
       src <- gsub("dydt", .dydt, src)
       src <- gsub("calc_lhs", .calc_lhs, src)
@@ -748,7 +753,7 @@ plot.RxODE <- function(x,
             state = scan(.stvfile, what = "", quiet = TRUE),
             lhs = scan(.lhsfile, what = "", quiet = TRUE)
          )
-      save(.modelVars,.parsed,.dydt,.objName,.calc_lhs,.ode_solver,file=.modelVarsFile)
+      save(.modelVars,.parsed,.dydt,.objName,file=.modelVarsFile)
       invisible(.parsed)
    }
 
@@ -787,7 +792,6 @@ plot.RxODE <- function(x,
          stop(sprintf("error loading dll file %s", .dllfile))
       
       .compiled <<- TRUE
-      
       invisible(.compiled)
    }
    
@@ -850,7 +854,7 @@ plot.RxODE <- function(x,
     if (isValid()){
         .compiled <- TRUE
     }
-
+    
    out <- 
        list(parse = parse, compile = compile,
             model = .mod.parsed,
