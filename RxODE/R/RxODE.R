@@ -245,15 +245,135 @@ RxODE.nodeInfo <- function(x, # RxODE object
     ##
 
     ## First change the totally parsed  model specifciation to a named R vector.
-    mod0 <- strsplit(strsplit(gsub("[}]","",gsub("else[ \t]*[{]","",gsub("if[ \t]*[(][^)]*[])][ \t]*[{]",";",gsub("\n","",gsub(" *=","=",gsub("[=>!<]=","\\1~",gsub("\n *","\n",gsub("#.*","",x$cmpMgr$model)))))))),";")[[1]],"=");
+    ## Take out any comments.
+    mod0 <- gsub(rex::rex(any_spaces,"#",anything,newline),
+                 "",x$cmpMgr$model,perl=TRUE);
+    ## make sure that spaces before and after newlines are chomped out
+    ## of model.
+    mod0 <- gsub(rex::rex(any_spaces,newline,any_spaces),"\n",mod0,
+                 perl=TRUE);
+    ## Move any of the equals logical operators to ~ operators so they
+    ## wont be split...
+    mod0 <- gsub(rex::rex(capture(one_of(">!<")),"="),
+                 "\\1~",mod0,perl=TRUE);
+    mod0 <- gsub(rex::rex("=="),"~~",mod0,perl=TRUE);
+    ## Make sure there are no spaces around remaining = sign
+    mod0 <- gsub(rex::rex(any_spaces,"=",any_spaces),"=",mod0,perl=TRUE)
+    ## remove the newlines
+    mod0 <- gsub(rex::rex(newlines),"",mod0,perl=TRUE)
+    ## Remove any if statements
+    mod0 <- gsub(rex::rex(any_spaces,"if",any_spaces,
+                          one_of("("),except_any_of(")"),one_of(")"),
+                          any_spaces,one_of("{"),
+                          except_any_of("}"),one_of("}")),
+                 "",mod0,perl=TRUE);
+    ## Remove any else statements
+    mod0 <- gsub(rex::rex(any_spaces,"else",any_spaces,one_of("{"),except_any_of("}"),one_of("}")),
+                 "",mod0,perl=TRUE);
+    ## Split by semicolon, and =.
+    mod0 <- strsplit(strsplit(mod0,rex::rex(some_of(";")))[[1]],
+                     rex::rex(one_of("=")));
     mod <- eval(parse(text=sprintf("c(%s)",paste(unlist(lapply(mod0,function(x){
         if (length(x) == 2){
-            return(sprintf("\"%s\"=\"%s\"",gsub("^ *","",gsub(" *$","",x[1])),gsub(" *$","",gsub("^ *","",x[2])))) 
+            x1 <- gsub(rex::rex(start,any_spaces,capture(anything),any_spaces,end),
+                       "\\1",x[1]);
+            x2 <- gsub(rex::rex(start,any_spaces,capture(anything),any_spaces,end),
+                       "\\1",x[2]);
+            return(sprintf("\"%s\"=\"%s\"",x1,x2));
         } else {
             return(NULL);
         }
     })),collapse=","))))
 
+    quoteVar <- function(var,word=TRUE){
+        ret <- c();
+        for (i in 1:nchar(var)){
+            ret <- c(ret,sprintf("one_of(\"%s\")",substr(var,i,i)));
+        }
+        ret <- parse(text=sprintf(ifelse(word,"rex::rex(boundary,%s,boundary)",
+                                         "rex::rex(%s)"),
+                                  paste(ret,collapse=",")));
+        ret <- eval(ret)
+        return(ret);
+    }
+    ## Expand  - abc*() and - ()*abc expressions
+    expandFactor <- function(var = "F*KA*depot-C2*(CL+Q)+Q*C3" ){
+        ## Expand any simple factored expressions.
+        pr <- rex::rex(anything,
+                       capture(one_of("-+"),any_spaces,
+                               or(
+                                   ## - abc * (a+b+c+d+e...)
+                                   group(except_some_of("*"),
+                                         any_spaces,
+                                         one_of("*"),
+                                         any_spaces,
+                                         one_of("("),
+                                         except_any_of("()"),
+                                         one_of(")")),
+                                   ## - (a+b+c+d+e) * abc
+                                   group(one_of("("),
+                                         except_any_of("()"),
+                                         one_of(")"),
+                                         any_spaces,
+                                         one_of("*"),
+                                         or(except_some_of("*-+;"),
+                                            newline)))),
+                       anything);
+        neg <- rex::rex(start,any_spaces,one_of("-"))
+        ## Add initial + if needed
+        if (regexpr(neg,var,perl=TRUE) == -1){
+            var <- sprintf("+%s",var);
+        }
+        while(regexpr(pr,var,perl=TRUE) != -1){
+            ## Get expression to expand
+            totalExpr <- gsub(pr,"\\1",var,perl=TRUE);
+            v <- gsub(rex::rex(any_of("-+"),any_spaces),"",
+                      gsub(rex::rex(any_of("*"),
+                                    any_spaces,
+                                    one_of("("),except_any_of("()"),one_of(")"),
+                                    any_spaces,
+                                    any_of("*")),
+                           "",totalExpr,perl=TRUE),perl=TRUE);
+            ## Is this an negative expression?
+            negVar <- FALSE
+            if (regexpr(neg,totalExpr,perl=TRUE) != -1){
+                negVar <- TRUE;
+            }
+            ## Capture the parenthetical expression
+            p <- gsub(rex::rex(anything,
+                               one_of("("),capture(except_any_of("()")),one_of(")"),
+                               anything),"\\1",totalExpr,perl=TRUE)
+            ## Add a positive to the beginning of the expression, if needed.
+            if (regexpr(rex::rex(start,any_spaces,one_of("-")),
+                       p,perl=TRUE) == -1){
+                p <- paste0("+",p);
+            }
+            ## Protect negative expressions for later use
+            p <- gsub(rex::rex(one_of("-")),"~~~~",p,perl=TRUE);
+            ## Expand the positive expression
+            p <- gsub(rex::rex(one_of("+")),sprintf("%s%s*",ifelse(negVar,"-","+"),v),p,perl=TRUE)
+            ## Expand the negative expression
+            p <- gsub(rex::rex(n_times(one_of("~"),4)),sprintf("%s%s*",ifelse(negVar,"+","-"),v),p,perl=TRUE)
+            ## replace in original
+            var <- gsub(quoteVar(totalExpr,FALSE),p,var,perl=TRUE);
+        }
+        var <- gsub(rex::rex(start,any_spaces,one_of("+"),any_spaces),"",var);
+        return(var)
+    }
+    ## Expand factored expressions
+    for (i in 1:length(mod)){
+        mod[i] <- expandFactor(mod[i]);
+    }
+    
+    ## now replace defined variables in overall expressions.
+    for (i in 1:length(mod)){
+        if (i > 1){
+            for (j in seq(1,i-1)){
+                mod[i] <- gsub(quoteVar(names(mod)[j]),
+                               mod[j],mod[i]);
+            }
+        }
+    }
     ## Get the variables from the parser
     modVars <- x$get.modelVars();
 
@@ -263,16 +383,7 @@ RxODE.nodeInfo <- function(x, # RxODE object
         de <- c(de,mod[sprintf("d/dt(%s)",v)])
     }
     names(de) <- modVars$state;
-
-    ## Now substitute the left hand sided quantities into the final form.
-    ## Currently this only supports a single left-handed equation.
-    for (v in modVars$lhs){
-        ## Only apply if there is 
-        if (sum(names(mod) == v) == 1){
-            de <- gsub(sprintf("\\b%s\\b",v),mod[v],de,perl=TRUE);
-        }
-        ## FIXME: combine F= 1\nF = F+3 ,etc...
-    }
+    
     fullDe <- de;
     
     ## Currently only parses simple expressions.

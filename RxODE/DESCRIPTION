@@ -16,7 +16,7 @@ Author: Melissa Hallow [aut, cre], Wenping Wang [aut], David A James [aut], Matt
 Maintainer: Melissa Hallow <hallowkm@uga.edu>
 Depends: R (>= 3.0.0)
 Suggests: knitr, nlme, shiny, igraph, tcltk
-Imports: utils, digest
+Imports: utils, digest, rex
 Description: Facilities for running simulations from ordinary 
    differential equation (ODE) models, such as pharmacometrics and other 
    compartmental models.  A compilation manager translates the ODE model 
