@@ -364,13 +364,12 @@ RxODE.nodeInfo <- function(x, # RxODE object
     for (i in 1:length(mod)){
         mod[i] <- expandFactor(mod[i]);
     }
-    
     ## now replace defined variables in overall expressions.
     for (i in 1:length(mod)){
         if (i > 1){
             for (j in seq(1,i-1)){
                 mod[i] <- gsub(quoteVar(names(mod)[j]),
-                               mod[j],mod[i]);
+                               mod[j],mod[i],perl=TRUE);
             }
         }
     }
@@ -382,27 +381,43 @@ RxODE.nodeInfo <- function(x, # RxODE object
     for (v in modVars$state){
         de <- c(de,mod[sprintf("d/dt(%s)",v)])
     }
+    w <- which(regexpr(rex::rex(start,any_spaces,one_of("-")),de,perl=TRUE) == -1);
+    de[w] <- paste0("+",de[w]);
     names(de) <- modVars$state;
-    
+
     fullDe <- de;
     
     ## Currently only parses simple expressions.
     ## FIXME: Add michelis-menton / Hill kinetics
     de <- de[which(regexpr("[(]",de) == -1)];
     parDe <- de;
+
+    sortDe <- function(x=c("centr/V2*CL","centr/V2*Q")){
+        ## First protect the / operators.
+        x <- unlist(lapply(strsplit(gsub(rex::rex(any_spaces,one_of("/"),any_spaces),
+                                  "/zzzzzzz",x[x != ""],perl=TRUE),
+                             rex::rex(any_spaces,one_of("/*"),any_spaces),
+                             perl=TRUE),
+                    function(x){
+                        x <- paste(gsub(rex::rex(one_of("*"),n_times("z",7)),"/",paste0("*",sort(x))),collapse="");
+                        return(x)
+                    }));
+        return(x);
+    }
     
     ## Find the negative exressions in the ODEs
-    negDe <- gsub(" *$","",gsub("^ *","",gsub("^ *[^-][^-+]*","",gsub("[+] *[^-+]*","",de))))
-
+    negDe <- gsub(rex::rex(one_of("+"),any_spaces,except_any_of("+-")),"",de,perl=TRUE);
+    negDe <- negDe[negDe != ""];
+    negDe <- lapply(strsplit(negDe,rex::rex(any_spaces,one_of("-"),any_spaces)),sortDe);
+    
+    
     ## Find the positive expressions in the ODEs
-    de <- gsub(" *$","",gsub("^ *","",gsub("- *[^-+]*","",de)));
+    de <- gsub(rex::rex(one_of("-"),any_spaces,except_any_of("+-")),"",de,perl=TRUE) 
     nde <- names(de)
     de <- de[de != ""];
-    de <- strsplit(de," *[+] *");
-    negDe <- negDe[negDe != ""];
-    negDe <- lapply(strsplit(negDe," *[-] *"),function(x){return(x[x != ""])});
+    de <- lapply(strsplit(de,rex::rex(any_spaces,one_of("+"),any_spaces)),sortDe);
     for (v in names(negDe)){
-        negDe[[v]] <- gsub(sprintf("[*] *%s",v),"",negDe[[v]])
+        negDe[[v]] <- gsub(rex::rex(any_spaces,one_of("*"),any_spaces,quoteVar(v)),"",negDe[[v]])
     }
     ## Look for connections between compartments from the positive direction
     nodes <- c();
@@ -411,10 +426,11 @@ RxODE.nodeInfo <- function(x, # RxODE object
     biList <- list();
     for (n in names(de)){
         for (n2 in nde){
-            w <- which(regexpr(sprintf("[*] *%s",n2),de[[n]]) != -1);
+            reg <- rex::rex(any_spaces,one_of("*"),any_spaces,quoteVar(n2))
+            w <- which(regexpr(reg,de[[n]],perl=TRUE) != -1);
             if (length(w) == 1){
                 nodes <- c(nodes,n2,n);
-                var <- gsub(sprintf("[*] *%s",n2),"",de[[n]][w]);
+                var <- gsub(reg,"",de[[n]][w],perl=TRUE);
                 for (e in edgeList){
                     if (e[1] == n & e[2] == n2){
                         biList[[length(biList) + 1]] <- c(n,n2);
@@ -423,22 +439,34 @@ RxODE.nodeInfo <- function(x, # RxODE object
                 edgeList[[var]] <- c(n2,n);
                 ## If the corresponding negative direction exists,
                 ## remove it from negDe.  The negDe should have overall body clearances.
+                noFvar <- gsub(rex::rex(any_spaces,one_of("*"),any_spaces,one_of("Ff"),any_alnums),"",var,perl=TRUE)
                 if (any(names(negDe) == n2)){
                     negDe[[n2]] <- negDe[[n2]][negDe[[n2]] != var];
+                    negDe[[n2]] <- negDe[[n2]][negDe[[n2]] != noFvar];
+
                 }
             }
         }
     }
     ## Assign overall body clerances
     nodes <- unique(nodes);
+    outn <- 1;
     if (length(negDe) > 0){
         for (i in 1:length(negDe)){
             if (length(negDe[[i]]) == 1){
-                edgeList[[negDe[[i]]]] <- c(names(negDe)[i],".out");
-                nodes <- c(nodes,".out");
+                outNode <- sprintf(".out%s",outn)
+                edgeList[[negDe[[i]]]] <- c(names(negDe)[i],outNode);
+                nodes <- c(nodes,outNode);
+                outn <- outn +1;
             }
         }
     }
+    reg <- rex::rex(capture(anything),any_spaces,one_of("*"),any_spaces,capture(one_of("Ff"),any_alnums),capture(anything));
+    w <- which(regexpr(reg,names(edgeList),perl=TRUE) != -1);
+    if (length(w) > 0){
+        names(edgeList)[w] <- gsub(reg,"\\1\\3\n\\2",names(edgeList)[w],perl=TRUE);
+    }
+    names(edgeList) <- gsub(rex::rex(any_spaces,one_of("*"),any_spaces),"",names(edgeList),perl=TRUE)
     ## Now see if we can recognize kin/kout from indirect response models
     
     ## FIXME: more robust parsing.  Currently requires kin/kout combination
