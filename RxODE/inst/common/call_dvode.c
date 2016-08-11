@@ -25,7 +25,7 @@ void F77_NAME(dvode)(
      int *, double *, int *);
 
 
-long slvr_counter, dadt_counter, jac_counter;
+		    long slvr_counter, dadt_counter, jac_counter;
 double InfusionRate[99];
 double ATOL;		//absolute error
 double RTOL;		//relative error
@@ -156,8 +156,8 @@ void dydt_dvode_dum(int *neq, double *t, double *A, double *DADT, double *RPAR, 
 	dydt(*neq, *t, A, DADT);
 }
 
-void jdum_dvode(int *a, double *b, double *c, int *d, int *e, double *f, int *g, double *h, int *i){
-  
+void jdum_dvode(int *neq, double *t, double *A,int *ml, int *mu, double *JAC, int *nrowpd, double *RPAR, int *IPAR) {
+  calc_jac(*neq, *t, A, JAC, *nrowpd);
 }
 
 void call_dvode(int neq, double *x, int *evid, int nx, double *inits, double *dose, double *ret, int *rc)
@@ -402,7 +402,6 @@ void ode_solver(
 )
 {
 	int i;
-
 	for (i=0; i<99; i++) InfusionRate[i] = 0.0;
 	ATOL = *atol;
 	RTOL = *rtol;

@@ -1,11 +1,18 @@
 "RxODE" <-
     function(model, modName = basename(wd), wd = getwd(),
              filename = NULL, do.compile = NULL, flat = FALSE,
-             strict = FALSE,reduce.rounding = TRUE,
-             clean.flat.dlls=NULL,...)
+             strict = FALSE,## reduce.rounding = TRUE,
+             clean.flat.dlls=NULL,
+             extra.c=NULL,...)
 {
     if(!missing(model) && !missing(filename))
-      stop("must specify exactly one of 'model' or 'filename'")
+        stop("must specify exactly one of 'model' or 'filename'")
+
+    if (!missing(model) & class(extra.c) ==  "character"){
+        if (!file.exists(extra.c)){
+            extra.c <- FALSE;
+        }
+    }
 
    if (missing(modName) && missing(wd) & missing(flat)){
        flat <- TRUE;
@@ -40,7 +47,8 @@
    # RxODE compilation manager (location of parsed code, generated C, 
                                         # shared libs, etc.)
 
-    cmpMgr <- rx.initCmpMgr(model, modName, wd, flat, strict, reduce.rounding, clean.flat.dlls);
+    cmpMgr <- rx.initCmpMgr(model, modName, wd, flat, strict, ## reduce.rounding,
+                            clean.flat.dlls,extra.c);
                                         # NB: the set of model variables (modelVars) is only available 
    # after parsing, thus it needs to be dynamically computed in cmpMgr
    get.modelVars <- cmpMgr$get.modelVars
@@ -50,7 +58,7 @@
 
    solve <- 
    function(params, events, inits = NULL, stiff = TRUE, transit_abs = FALSE, 
-        atol = 1.0e-8, rtol = 1.0e-6, ...)
+            atol = 1.0e-8, rtol = 1.0e-6, ...)
    {
       event.table <- events$get.EventTable()
       modelVars <- get.modelVars()
@@ -649,13 +657,15 @@ plot.RxODE <- function(x,
 } # end function plot.RxODE
 
 "rx.initCmpMgr" <-
-    function(model, modName, wd, flat, strict, reduce.rounding, clean.flat.dlls)
+    function(model, modName, wd, flat, strict, ## reduce.rounding,
+             clean.flat.dlls,extra.c)
 {
    ## Initialize the RxODE compilation manager (all parsing,
    ## compilation, and loading of dynamic shared objects is 
-   ## done through this object. It also keeps tracks of 
+    ## done through this object. It also keeps tracks of 
    ## filenames for the C file, dll, and the translator 
-   ## model file, parameter file, state variables, etc.
+    ## model file, parameter file, state variables, etc.
+    .extra.c <- extra.c;
     if (strict){
         ## Check for rhs d/dt
         if (regexpr("=.*d/dt[(][^) \n]*[)]",model) != -1){
@@ -694,34 +704,34 @@ plot.RxODE <- function(x,
         .mod.parsed <- gsub("([!><])~","\\1=",.mod.parsed);
     }
     ## cat(.mod.parsed);
-    .mod.round <-  .mod.parsed;
-    if (reduce.rounding){
-        .var <- "[ \t]*([a-zA-Z_][a-zA-Z0-9_]*|0|[1-9][0-9]*|[0-9]+[.][0-9]*(?:[eE][\\-\\+]?[0-9]+)?|[0-9]+[eE][\\-\\+]?[0-9]+|[(][^()]*(?:[(][^()]*[)][^()]*)*[)])[ \t]*";
-        i <- 7;
-        while (i > 0){
-            if (i > 1){
-                ## (a*b*c)^d -> exp(d*(log(a)+log(b)+log(c)))
-                r1 <- sprintf("[(]%s[)]^%s",paste(rep(.var,i),collapse="[*]"),.var);
-                r2 <- sprintf("exp(\\%s*(%s))",i+1,paste(paste0("log(\\",seq(1,i),")"),collapse="+"));
-                .mod.round <- gsub(r1,r2,.mod.round);
-                ## a*b*c -> exp(log(a)+log(b)+log(c))
-                r1 <- sprintf("([+=]|-)%s([+\n;]|-)",paste(rep(.var,i),collapse="[*]"));
-                r2 <- sprintf("\\1exp(%s)\\%d",paste(paste0("log(\\",seq(2,i+1),")"),collapse="+"),i+2);
-                .mod.round <- gsub(r1,r2,.mod.round)
-            }
-            ## (a*b/c)^d -> exp(d*(log(a)+log(b)-log(c)))
-            r1 <- sprintf("[(]%s[/]%s[)]^%s",paste(rep(.var,i),collapse="[*]"),.var,.var);
-            r2 <- sprintf("exp(\\%s*(%s-log(\\%s)))",i+2,paste(paste0("log(\\",seq(1,i),")"),collapse="+"),i+1);
-            .mod.round <- gsub(r1,r2,.mod.round)
-            ## a*b/c -> exp(log(a)+log(b)-log(c))
-            r1 <- sprintf("([+=]|-)%s[/]%s([+\n;]|-)",paste(rep(.var,i),collapse="[*]"),.var);
-            r2 <- sprintf("\\1exp(%s-log(\\%s))\\%d",paste(paste0("log(\\",seq(2,i+1),")"),collapse="+"),i+2,i+3);
-            .mod.round <- gsub(r1,r2,.mod.round)
-            i <- i - 1;
-        }
-    }
+    ## .mod.round <-  .mod.parsed;
+    ## if (reduce.rounding){
+    ##     .var <- "[ \t]*([a-zA-Z_][a-zA-Z0-9_]*|0|[1-9][0-9]*|[0-9]+[.][0-9]*(?:[eE][\\-\\+]?[0-9]+)?|[0-9]+[eE][\\-\\+]?[0-9]+|[(][^()]*(?:[(][^()]*[)][^()]*)*[)])[ \t]*";
+    ##     i <- 7;
+    ##     while (i > 0){
+    ##         if (i > 1){
+    ##             ## (a*b*c)^d -> exp(d*(log(a)+log(b)+log(c)))
+    ##             r1 <- sprintf("[(]%s[)]^%s",paste(rep(.var,i),collapse="[*]"),.var);
+    ##             r2 <- sprintf("exp(\\%s*(%s))",i+1,paste(paste0("log(\\",seq(1,i),")"),collapse="+"));
+    ##             .mod.round <- gsub(r1,r2,.mod.round);
+    ##             ## a*b*c -> exp(log(a)+log(b)+log(c))
+    ##             r1 <- sprintf("([+=]|-)%s([+\n;]|-)",paste(rep(.var,i),collapse="[*]"));
+    ##             r2 <- sprintf("\\1exp(%s)\\%d",paste(paste0("log(\\",seq(2,i+1),")"),collapse="+"),i+2);
+    ##             .mod.round <- gsub(r1,r2,.mod.round)
+    ##         }
+    ##         ## (a*b/c)^d -> exp(d*(log(a)+log(b)-log(c)))
+    ##         r1 <- sprintf("[(]%s[/]%s[)]^%s",paste(rep(.var,i),collapse="[*]"),.var,.var);
+    ##         r2 <- sprintf("exp(\\%s*(%s-log(\\%s)))",i+2,paste(paste0("log(\\",seq(1,i),")"),collapse="+"),i+1);
+    ##         .mod.round <- gsub(r1,r2,.mod.round)
+    ##         ## a*b/c -> exp(log(a)+log(b)-log(c))
+    ##         r1 <- sprintf("([+=]|-)%s[/]%s([+\n;]|-)",paste(rep(.var,i),collapse="[*]"),.var);
+    ##         r2 <- sprintf("\\1exp(%s-log(\\%s))\\%d",paste(paste0("log(\\",seq(2,i+1),")"),collapse="+"),i+2,i+3);
+    ##         .mod.round <- gsub(r1,r2,.mod.round)
+    ##         i <- i - 1;
+    ##     }
+    ## }
     ## cat(.mod.round);
-    .digest <- digest::digest(.mod.round);
+    .digest <- digest::digest(.mod.parsed);
     .modName <- modName
    .flat <- flat
    .flatOut <- NULL
@@ -831,7 +841,7 @@ plot.RxODE <- function(x,
           return(invisible(.parsed))
       if(!file.exists(.mdir))
           dir.create(.mdir, recursive = TRUE)
-      cat(.mod.round, file = .modfile, "\n")   
+      cat(.mod.parsed, file = .modfile, "\n")   
       
       ## Hack: copy "call_dvode.c" to .mdir to avoid dyn.load() errors
       common <- system.file("common", package = "RxODE")
@@ -844,7 +854,11 @@ plot.RxODE <- function(x,
       src <- gsub("dydt", .dydt, src)
       src <- gsub("calc_lhs", .calc_lhs, src)
       src <- gsub("calc_jac", .jac, src);
-      src <- gsub("ode_solver", .ode_solver, src)
+      src <- gsub("ode_solver", .ode_solver, src);
+      if (!is.null(.extra.c)){
+          src <- c(src,readLines(.extra.c))
+      }
+      ##
       writeLines(src, file.path(.mdir, "call_dvode.c"))
       .objName <<- .dydt
       writeLines(.digest,.md5file)
@@ -986,7 +1000,8 @@ plot.RxODE <- function(x,
             get.modelVars = function() .modelVars,   
             isValid = isValid, delete = delete,
             get.index = get.index, 
-            getObj = function(obj) get(obj, envir = environment(parse))
+            getObj = function(obj) get(obj, envir = environment(parse)),
+            extra.c = .extra.c
             )
     class(out) <- "RxCompilationManager"
    out
