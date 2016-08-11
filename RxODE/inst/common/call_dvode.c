@@ -25,7 +25,7 @@ void F77_NAME(dvode)(
      int *, double *, int *);
 
 
-long slvr_counter, dadt_counter;
+long slvr_counter, dadt_counter, jac_counter;
 double InfusionRate[99];
 double ATOL;		//absolute error
 double RTOL;		//relative error
@@ -34,24 +34,29 @@ double tlast=0;
 double podo=0;
 double *par_ptr;
 FILE *fp;
+extern int lsoda_jt;
 
 
 void dydt(unsigned int neq, double t, double *A, double *DADT);
 void calc_lhs(double t, double *A, double *lhs);
+void calc_jac(unsigned int neq, double t, double *A, double *JAC, unsigned int __NROWPD__);
 
 //--------------------------------------------------------------------------
 void dydt_lsoda_dum(int *neq, double *t, double *A, double *DADT)
 {
 	dydt(*neq, *t, A, DADT);
 }
-void jdum_lsoda(int *a, double *b, double *c, int *d, int *e, double *f, int *g){}
+void jdum_lsoda(int *neq, double *t, double *A,int *ml, int *mu, double *JAC, int *nrowpd){
+  calc_jac(*neq, *t, A, JAC, *nrowpd);
+}
 void call_lsoda(int neq, double *x, int *evid, int nx, double *inits, double *dose, double *ret, int *rc)
 {
 	int ixds=0, i, j;
  	double xout, xp=x[0], yp[99];
     int itol = 1;
     double  rtol = RTOL, atol = ATOL;
-    int itask = 1, istate = 1, iopt = 0, lrw=22+neq*max(16, neq+9), liw=20+neq, jt = 2;
+    // Set jt to 1 if full is specified.
+    int itask = 1, istate = 1, iopt = 0, lrw=22+neq*max(16, neq+9), liw=20+neq;
 	double *rwork;
 	int *iwork;
 	int wh, cmt;
@@ -84,7 +89,7 @@ void call_lsoda(int neq, double *x, int *evid, int nx, double *inits, double *do
 		if(xout>xp)
 		{
 	        F77_CALL(dlsoda)(dydt_lsoda_dum, &neq, yp, &xp, &xout, &itol, &rtol, &atol, &itask,
-                &istate, &iopt, rwork, &lrw, iwork, &liw, &jdum_lsoda, &jt);
+                &istate, &iopt, rwork, &lrw, iwork, &liw, &jdum_lsoda, &lsoda_jt);
 
 			if (istate<0)
 			{
@@ -99,6 +104,7 @@ void call_lsoda(int neq, double *x, int *evid, int nx, double *inits, double *do
 
 			slvr_counter++;
 			dadt_counter = 0;
+			jac_counter  = 0;
 		}
 		if (wh)
 		{
@@ -150,7 +156,9 @@ void dydt_dvode_dum(int *neq, double *t, double *A, double *DADT, double *RPAR, 
 	dydt(*neq, *t, A, DADT);
 }
 
-void jdum_dvode(int *a, double *b, double *c, int *d, int *e, double *f, int *g, double *h, int *i){}
+void jdum_dvode(int *a, double *b, double *c, int *d, int *e, double *f, int *g, double *h, int *i){
+  
+}
 
 void call_dvode(int neq, double *x, int *evid, int nx, double *inits, double *dose, double *ret, int *rc)
 {
@@ -217,6 +225,7 @@ void call_dvode(int neq, double *x, int *evid, int nx, double *inits, double *do
 
 			slvr_counter++;
 			dadt_counter = 0;
+			jac_counter  = 0;
 		}
 		if (wh)
 		{
@@ -335,6 +344,7 @@ void call_dop(int neq, double *x, int *evid, int nx, double *inits, double *dose
 			xp = xRead();
 			slvr_counter++;
 			dadt_counter = 0;
+			jac_counter  = 0;
 		}
 		if (wh)
 		{

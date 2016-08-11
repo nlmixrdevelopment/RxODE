@@ -5,6 +5,7 @@ statement_list : (statement)+ ;
 statement 
   : assignment ';'
   | derivative ';'
+  | jac ';'
   | compound_statement
   | selection_statement
   | ';' ;
@@ -15,7 +16,11 @@ compound_statement : '{' statement_list? '}' ;
 selection_statement
   : 'if' '(' logical_or_expression ')' statement ('else' statement)?;
 
-derivative : 'd/dt' '(' identifier ')' '=' additive_expression;
+derivative : 'd/dt' '(' identifier_no_output ')' '=' additive_expression;
+der_rhs    : 'd/dt' '(' identifier_no_output ')';
+jac        : 'jac' '(' identifier_no_output ',' identifier_no_output ')' '=' additive_expression;
+jac_rhs    : 'jac' '(' identifier_no_output ',' identifier_no_output ')';
+
 assignment : identifier '=' additive_expression;
 
 
@@ -44,6 +49,8 @@ power_expression : primary_expression '^' primary_expression ;
 
 primary_expression 
   : identifier
+  | der_rhs
+  | jac_rhs
   | constant
   | function
   | '(' additive_expression ')'
@@ -58,5 +65,6 @@ decimalint: "0|([1-9][0-9]*)" $term -1;
 float1: "([0-9]+.[0-9]*|[0-9]*.[0-9]+)([eE][\-\+]?[0-9]+)?" $term -2;
 float2: "[0-9]+[eE][\-\+]?[0-9]+" $term -3;
 identifier: "[a-zA-Z_][a-zA-Z0-9_]*" $term -4;
+identifier_no_output: "[a-zA-Z_][a-zA-Z0-9_]*" $term -4;
 whitespace: ( "[ \t\r\n]+" | singleLineComment )*;
 singleLineComment: '#' "[^\n]*" '\n';

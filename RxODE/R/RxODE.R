@@ -138,7 +138,6 @@
       
       
       ret <- cbind(time=event.table$time, x)[events$get.obs.rec(),];
-      dimnames(ret) <- list(NULL,gsub("d____(.*)","d/dt(\\1)",dimnames(ret)[[2]]));
       return(ret)
    }
 
@@ -174,16 +173,34 @@
    out
 }
 
+RxODE.quoteVar <- function(var,word=TRUE){
+    ret <- c();
+    for (i in 1:nchar(var)){
+        ret <- c(ret,sprintf("one_of(\"%s\")",substr(var,i,i)));
+    }
+    ret <- parse(text=sprintf(ifelse(word,"rex::rex(boundary,%s,boundary)",
+                                     "rex::rex(%s)"),
+                              paste(ret,collapse=",")));
+    ret <- eval(ret)
+    return(ret);
+}
+
+solve.RxODE <- function(obj,...){
+    obj$solve(...);
+}
+
+predict.RxODE <- solve.RxODE;
+
 RxODE.inits <- function(vec,names,default = 0){
     ret <- vec;
     nv <- names(vec)
     if (!is.null(nv)){
         ret <- ret[nv %in% names];
         missing <- names[!(names %in%  names(ret))];
-        if (is.na(default) & length(missing) > 1){
+        if (is.na(default) & length(missing) > 0){
             stop(sprintf("Missing the following parameter(s): %s.",paste(missing,collapse=", ")))
         }
-        if (length(missing) > 1){
+        if (length(missing) > 0){
             ret[missing] <- default;
             warning(sprintf("Assiged %s to %s.",paste(missing,collapse=", "),default))
         }
@@ -192,13 +209,6 @@ RxODE.inits <- function(vec,names,default = 0){
     return(ret);
 }
 
-"solve.RxODE" <- function(x,...){
-    x$solve(...);
-}
-
-"predict.RxODE" <- function(x,...){
-    x$solve(...);
-}
 
 "print.RxODE" <-
 function(x, ...)
@@ -284,18 +294,7 @@ RxODE.nodeInfo <- function(x, # RxODE object
             return(NULL);
         }
     })),collapse=","))))
-
-    quoteVar <- function(var,word=TRUE){
-        ret <- c();
-        for (i in 1:nchar(var)){
-            ret <- c(ret,sprintf("one_of(\"%s\")",substr(var,i,i)));
-        }
-        ret <- parse(text=sprintf(ifelse(word,"rex::rex(boundary,%s,boundary)",
-                                         "rex::rex(%s)"),
-                                  paste(ret,collapse=",")));
-        ret <- eval(ret)
-        return(ret);
-    }
+    
     ## Expand  - abc*() and - ()*abc expressions
     expandFactor <- function(var = "F*KA*depot-C2*(CL+Q)+Q*C3" ){
         ## Expand any simple factored expressions.
@@ -319,7 +318,7 @@ RxODE.nodeInfo <- function(x, # RxODE object
                                          or(except_some_of("*-+;"),
                                             newline)))),
                        anything);
-        neg <- rex::rex(start,any_spaces,one_of("-"))
+        neg <- rex::rex(start,any_spaces,one_of("-+"))
         ## Add initial + if needed
         if (regexpr(neg,var,perl=TRUE) == -1){
             var <- sprintf("+%s",var);
@@ -355,8 +354,10 @@ RxODE.nodeInfo <- function(x, # RxODE object
             ## Expand the negative expression
             p <- gsub(rex::rex(n_times(one_of("~"),4)),sprintf("%s%s*",ifelse(negVar,"+","-"),v),p,perl=TRUE)
             ## replace in original
-            var <- gsub(quoteVar(totalExpr,FALSE),p,var,perl=TRUE);
+            var <- gsub(RxODE.quoteVar(totalExpr,FALSE),p,var,perl=TRUE);
+            print(var);
         }
+        ## Replace initial +
         var <- gsub(rex::rex(start,any_spaces,one_of("+"),any_spaces),"",var);
         return(var)
     }
@@ -368,7 +369,7 @@ RxODE.nodeInfo <- function(x, # RxODE object
     for (i in 1:length(mod)){
         if (i > 1){
             for (j in seq(1,i-1)){
-                mod[i] <- gsub(quoteVar(names(mod)[j]),
+                mod[i] <- gsub(RxODE.quoteVar(names(mod)[j]),
                                mod[j],mod[i],perl=TRUE);
             }
         }
@@ -417,7 +418,7 @@ RxODE.nodeInfo <- function(x, # RxODE object
     de <- de[de != ""];
     de <- lapply(strsplit(de,rex::rex(any_spaces,one_of("+"),any_spaces)),sortDe);
     for (v in names(negDe)){
-        negDe[[v]] <- gsub(rex::rex(any_spaces,one_of("*"),any_spaces,quoteVar(v)),"",negDe[[v]])
+        negDe[[v]] <- gsub(rex::rex(any_spaces,one_of("*"),any_spaces,RxODE.quoteVar(v)),"",negDe[[v]])
     }
     ## Look for connections between compartments from the positive direction
     nodes <- c();
@@ -426,7 +427,7 @@ RxODE.nodeInfo <- function(x, # RxODE object
     biList <- list();
     for (n in names(de)){
         for (n2 in nde){
-            reg <- rex::rex(any_spaces,one_of("*"),any_spaces,quoteVar(n2))
+            reg <- rex::rex(any_spaces,one_of("*"),any_spaces,RxODE.quoteVar(n2))
             w <- which(regexpr(reg,de[[n]],perl=TRUE) != -1);
             if (length(w) == 1){
                 nodes <- c(nodes,n2,n);
@@ -471,47 +472,47 @@ RxODE.nodeInfo <- function(x, # RxODE object
     
     ## FIXME: more robust parsing.  Currently requires kin/kout combination
     ## Also assigns suppression by the presence of "(1-" in either the kin or kout term.
-    w <- which(sapply(fullDe,function(x){
-        lx <- tolower(x)
-        return(regexpr("kin",lx)  != -1 && regexpr("kout",lx) != -1)
-    }))
-    if (length(w) == 1){
-        idr <- fullDe[w];
-        idrl <- tolower(idr);
-        isKout <- regexpr("^ *kin *[-]",idrl) != -1;
-        isInb <- regexpr("[(] *1 *[-]",idrl) != -1;
-        idr.from <- gsub(sprintf("^.*(%s).*",paste(names(fullDe)[-w],collapse="|")),"\\1",idr)
-        ef <- names(fullDe)[w]
-        ## FIXME: Get the actual IC50
+    ## w <- which(sapply(fullDe,function(x){
+    ##     lx <- tolower(x)
+    ##     return(regexpr("kin",lx)  != -1 && regexpr("kout",lx) != -1)
+    ## }))
+    ## if (length(w) == 1){
+    ##     idr <- fullDe[w];
+    ##     idrl <- tolower(idr);
+    ##     isKout <- regexpr("^ *kin *[-]",idrl) != -1;
+    ##     isInb <- regexpr("[(] *1 *[-]",idrl) != -1;
+    ##     idr.from <- gsub(sprintf("^.*(%s).*",paste(names(fullDe)[-w],collapse="|")),"\\1",idr)
+    ##     ef <- names(fullDe)[w]
+    ##     ## FIXME: Get the actual IC50
 
-        ## FIXME: Indicate if this is a Hill equation, or any other
-        ## sort of dose-response equations.
-        if (isKout){
-            if (isInb){
-                Kout <- "Kout\n\u25BC IC50"
-                Kin <- "Kin\n";
-                idr <- "Indirect\nEffect (II)"
-            } else {
-                Kout <- "Kout\n\u25B3 EC50";
-                Kin <- "Kin\n";
-                idr <- "Indirect\nEffect (IV)"
-            }
-        } else {
-            if (isInb){
-                Kout <- "Kout"
-                Kin <- "Kin\n\u25BC IC50";
-                idr <- "Indirect\nEffect (I)"
-            } else {
-                Kout <- "Kout\n";
-                Kin <- "Kin\n\u25B3 EC50";
-                idr <- "Indirect\nEffect (III)"
-            }
-        }
-        edgeList[[idr]] <- c(idr.from,ef);
-        edgeList[[Kin]] <- c(".Kin",ef);
-        edgeList[[Kout]] <- c(ef,".Kout");
-        nodes <- c(nodes,ef,".Kin",".Kout");
-    }
+    ##     ## FIXME: Indicate if this is a Hill equation, or any other
+    ##     ## sort of dose-response equations.
+    ##     if (isKout){
+    ##         if (isInb){
+    ##             Kout <- "Kout\n\u25BC IC50"
+    ##             Kin <- "Kin\n";
+    ##             idr <- "Indirect\nEffect (II)"
+    ##         } else {
+    ##             Kout <- "Kout\n\u25B3 EC50";
+    ##             Kin <- "Kin\n";
+    ##             idr <- "Indirect\nEffect (IV)"
+    ##         }
+    ##     } else {
+    ##         if (isInb){
+    ##             Kout <- "Kout"
+    ##             Kin <- "Kin\n\u25BC IC50";
+    ##             idr <- "Indirect\nEffect (I)"
+    ##         } else {
+    ##             Kout <- "Kout\n";
+    ##             Kin <- "Kin\n\u25B3 EC50";
+    ##             idr <- "Indirect\nEffect (III)"
+    ##         }
+    ##     }
+    ##     edgeList[[idr]] <- c(idr.from,ef);
+    ##     edgeList[[Kin]] <- c(".Kin",ef);
+    ##     edgeList[[Kout]] <- c(ef,".Kout");
+    ##     nodes <- c(nodes,ef,".Kin",".Kout");
+    ## }
     return(list(nodes    = nodes,
                 edgeList = edgeList,
                 biList   = biList));
@@ -668,53 +669,31 @@ plot.RxODE <- function(x,
             stop("Duplicate d/dt() on left hand side of equations.  This is not supported.")
         }
     } else {
-        .mod.parsed <- gsub("[*][*]","^",model); #Support ** operator since R does
-        .mod.parsed <- gsub("[<][-]","=",.mod.parsed); #Support <- operator since R does
-        .mod.parsed <- gsub("#[^\n]*\n","\n",.mod.parsed); # Strip comments
-        .mod.parsed <- gsub("([+*/]|-) *\n","\\1",.mod.parsed); # Allow operators to continue statements
+        ## .mod.parsed <- gsub("[*][*]","^",model);Support ** operator since R does
+        ## .mod.parsed <- gsub("[<][-]","=",.mod.parsed);Support <- operator since R does
+
+        ## First take out any comments
+        .mod.parsed <- gsub(rex::rex(any_spaces,one_of("#"),anything,newline),"\n",model,perl=TRUE); # Strip comments
+        ## Have continuation operators add to the same line
+        .mod.parsed <- gsub(rex::rex(any_spaces,capture(one_of("-+*/^(")),any_spaces,newline),"\\1",.mod.parsed,perl=TRUE); # Allow operators to continue statements
+        ## Protect equal sign operators
         .mod.parsed <- gsub("==","~~",.mod.parsed);
         .mod.parsed <- gsub("([!><])=","\\1~",.mod.parsed);
-        .mod.parsed <- gsub("=([^\n;]*);* *\n","=\\1;\n",.mod.parsed); # Don't require semicolons.
-        .mod.parsed <- gsub("([A-Za-z][A-Za-z0-9]*)[.]","\\1_",.mod.parsed); # Allow [.] notation because R does
-        .mod.parsed <- gsub("^([^\n]*)\\[([^\n]*)\\]([^\n]*)=","\\1(\\2)\\3=",.mod.parsed) # Change [] to ()
-        .mod.parsed <- gsub("[(][ \t]*\"[ \t]*([^ \n\"]*)[ \t]*\"[ \t]*[)]","(\\1)",.mod.parsed) # Change ("z") to (z)
-        .split <- strsplit(.mod.parsed,"\n")[[1]];
-        .w <- which(regexpr("^[^\n(]*[(]([^\n)]+)[)][^\n=]*=",.split) != -1); #d(x) d/dt(x) d(x)
-        .split <- lapply(unique(gsub("^ *","",gsub(" *=.*","\\1",.split[.w]))),
-                         function(x){
-                             y <- gsub("[^\n(]*[(]([^\n)]+)[)][^\n=]*","\\1",x);
-                             return(c(x,sprintf("d/dt(%s)",y),sprintf("d____%s",y)));
-                         });
-        ## In the strict RxODE the following doesn't work
-        ## d/dt(matt) = ka*depot
-        ## d/dt(matt) = d/dt(matt)-kel*matt
-        ## This makes it work by defining d____matt and d____depot
-        ##
-        ## Its a hack, but after looking at the dparser, I would have
-        ## to save the variable number for each compartment and then
-        ## assign them correctly.  This seems a bit easier (to me).
-        ##
-        ## The strict RxODE would say
-        ## d/dt(matt) -> dt[1]
-        ## d/dt(matt) -> dt[2]
-        ##
-        ## even though they specify the same system.
-        tmp <- c();
-        for (i in 1:length(.split)){
-            y <- .split[[i]]
-            if (any(tmp == y[3])){
-                .mod.parsed <- sprintf("%s",gsub(y[1],y[3],.mod.parsed,fixed=TRUE));
-            } else {
-                .mod.parsed <- sprintf("%s\n%s=%s;",gsub(y[1],y[3],.mod.parsed,fixed=TRUE),
-                                       y[2],y[3]);
-                tmp <- c(tmp,y[3]);
-            }
-        }
-        .mod.parsed <- gsub("\n[^\n(]*[(]([^\n)]+)[)][^\n=]*=","\nd/dt(\\1)=",.mod.parsed)
-        .mod.parsed <- gsub(" *","",.mod.parsed);
+        ## Don't require semicolons.
+        .mod.parsed <- strsplit(.mod.parsed,"\n")[[1]];
+        .mod.parsed <- gsub(rex::rex(any_spaces,one_of("="),any_spaces,capture(except_any_of(";")),any_of("; ")),
+                            "=\\1;",.mod.parsed,perl=TRUE);
+        .mod.parsed <- paste(.mod.parsed,collapse="\n")
+        names(.mod.parsed) <- ""
+        ##.mod.parsed <- gsub("([A-Za-z][A-Za-z0-9]*)[.]","\\1_",.mod.parsed); # Allow [.] notation because R does
+        ##.mod.parsed <- gsub("^([^\n]*)\\[([^\n]*)\\]([^\n]*)=","\\1(\\2)\\3=",.mod.parsed) # Change [] to ()
+        ##.mod.parsed <- gsub("[(][ \t]*\"[ \t]*([^ \n\"]*)[ \t]*\"[ \t]*[)]","(\\1)",.mod.parsed) # Change ("z") to (z)
+
+        .mod.parsed <- paste(gsub(rex::rex(any_spaces),"",strsplit(.mod.parsed,"\n")[[1]],perl=TRUE),collapse="\n");
         .mod.parsed <- gsub("~~","==",.mod.parsed);
         .mod.parsed <- gsub("([!><])~","\\1=",.mod.parsed);
     }
+    ## cat(.mod.parsed);
     .mod.round <-  .mod.parsed;
     if (reduce.rounding){
         .var <- "[ \t]*([a-zA-Z_][a-zA-Z0-9_]*|0|[1-9][0-9]*|[0-9]+[.][0-9]*(?:[eE][\\-\\+]?[0-9]+)?|[0-9]+[eE][\\-\\+]?[0-9]+|[(][^()]*(?:[(][^()]*[)][^()]*)*[)])[ \t]*";
@@ -827,10 +806,11 @@ plot.RxODE <- function(x,
        sprintf("%s/bin/R CMD SHLIB %s %s", 
          Sys.getenv("R_HOME"), .cfile, .dvode)
 
-    .dydt <- .calc_lhs <- .ode_solver <- NULL;
+    .dydt <- .calc_lhs <- .jac <- .ode_solver <- NULL;
     safe_name <- paste0(gsub("\\W", "_", .modName),.digest)  # replace non-alphanumeric by "_"
     .dydt <- paste0("RxODE_mod_", safe_name, "_dydt")
     .calc_lhs <- paste0("RxODE_mod_", safe_name, "_calc_lhs")
+    .jac <- paste0("RxODE_mod_", safe_name, "_calc_jac")
     .ode_solver <- paste0("RxODE_mod_", safe_name, "_ode_solver")
     .md5file <- file.path(.mdir,"model_md5");
     if (file.exists(.modelVarsFile) && (flat || (file.exists(.md5file) && readLines(.md5file) == .digest))){
@@ -863,6 +843,7 @@ plot.RxODE <- function(x,
       src <- readLines(file.path(common, "call_dvode.c"))
       src <- gsub("dydt", .dydt, src)
       src <- gsub("calc_lhs", .calc_lhs, src)
+      src <- gsub("calc_jac", .jac, src);
       src <- gsub("ode_solver", .ode_solver, src)
       writeLines(src, file.path(.mdir, "call_dvode.c"))
       .objName <<- .dydt
@@ -879,6 +860,7 @@ plot.RxODE <- function(x,
 
       # HACK: replace the common dydt by RxODE_mod_<mod>_dydt
       src <- gsub("dydt", .dydt, readLines(.cfile))
+      src <- gsub("calc_jac", .jac, src)
       src <- gsub("calc_lhs", .calc_lhs, src)
       writeLines(src, .cfile)    # overwrite with replaced symbol
       .parsed <<- TRUE
@@ -1006,14 +988,14 @@ plot.RxODE <- function(x,
             get.index = get.index, 
             getObj = function(obj) get(obj, envir = environment(parse))
             )
-   class(out) <- "RxCompilationManager"
+    class(out) <- "RxCompilationManager"
    out
 }
 
 "print.RxCompilationManager" <-
 function(x, ...)
 {
-   modName <- x$getObj(".modName")
+    modName <- x$getObj(".modName")
    cat(sprintf("RxCompilationManager for RxODE model '%s'\n", modName))
    invisible(x)
 }
