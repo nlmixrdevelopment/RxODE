@@ -25,6 +25,7 @@ typedef struct symtab {
   int di[MXDER];	/* ith of state vars */
   int nv;			/* nbr of symbols */
   int ix;                       /* ith of curr symbol */
+  int id;                       /* ith of curr symbol */
   int fn;			/* curr symbol a fn?*/
   int nd;			/* nbr of dydt */
 } symtab;
@@ -65,7 +66,7 @@ int new_de(const char *s){
   for (i=0; i<tb.nv; i++) {
     len = tb.deo[i+1] - tb.deo[i] - 1;
     if (!strncmp(tb.de+tb.deo[i], s, max(len, len_s))) { /* note we need take the max in order not to match a sub-string */
-      tb.ix = i;
+      tb.id = i;
       return 0;
     }
   }
@@ -84,11 +85,14 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
   char pexpr[80];
 
 
-  if (!strcmp("identifier", name) && new_or_ith(value)) {
+  if ((!strcmp("identifier", name) || !strcmp("identifier_no_output",name)) &&
+      new_or_ith(value)) {
     static int pos=0;
+    /* printf("[%d]->%s\n",tb.nv,value); */
     sprintf(tb.ss+pos, "%s,", value);
     pos += strlen(value)+1;
     tb.vo[++tb.nv] = pos;
+    
   }
 
   if (!strcmp("(", name)) {sprintf(SBPTR, "("); sb.o++;}
@@ -201,22 +205,21 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	static int pos_de = 0;
         char *v = (char*)dup_str(xpn->start_loc.s, xpn->end);
 	if (new_de(v)){
-	  sprintf(sb.s, "__DDtStateVar__[%d] = ", tb.nd);
+	  sprintf(sb.s, "__DDtStateVar__[%d] = InfusionRate[%d] + ", tb.nd, tb.nd);
           sb.o = strlen(sb.s);
 	  new_or_ith(v);
           tb.lh[tb.ix] = 9;
           tb.di[tb.nd] = tb.ix;
+	  /* printf("de[%d]->%s[%d]\n",tb.nd,v,tb.ix); */
           sprintf(tb.de+pos_de, "%s,", v);
 	  pos_de += strlen(v)+1;
-	  sprintf(SBPTR,"InfusionRate[%d] + ",tb.nd);
-	  sb.o = strlen(sb.s);
           tb.deo[++tb.nd] = pos_de;
+          /* free(buf); */
         } else {
-	  sprintf(sb.s, "__DDtStateVar__[%d] = ", tb.ix);
+	  new_or_ith(v);
+          /* printf("de[%d]->%s[%d]\n",tb.id,v,tb.ix); */
+          sprintf(sb.s, "__DDtStateVar__[%d] = ", tb.id);
 	  sb.o = strlen(sb.s);
-          new_or_ith(v);
-          tb.lh[tb.ix] = 9;
-          tb.di[tb.nd] = tb.ix;
 	}
         free(v);
         continue;
@@ -230,7 +233,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
           if (tb.de) free(tb.de);
 	  exit(-1);
 	} else {
-	  sprintf(SBPTR, "__DDtStateVar__[%d]", tb.ix);
+	  sprintf(SBPTR, "__DDtStateVar__[%d]", tb.id);
 	  sb.o = strlen(sb.s);
 	}
         free(v);
@@ -241,10 +244,9 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         char *v = (char*)dup_str(xpn->start_loc.s, xpn->end);
         sprintf(sb.s, "%s", v);
         sb.o = strlen(v);
-
         new_or_ith(v);
         tb.lh[tb.ix] = 1;
-        free(v);
+	free(v);
       }
 
     }
@@ -364,14 +366,11 @@ void codegen(FILE *outpt, int show_ode) {
     prnt_vars(0, outpt, 0, "double", "\n");     /* declare all used vars */
     prnt_vars(1, outpt, 1, "", "\n");                   /* pass system pars */
 
-    
-    fprintf(outpt,"\n");
-    if (show_ode == 1){
-      for (i=0; i<tb.nd; i++) {                   /* name state vars */
-        retieve_var(tb.di[i], buf);
-        fprintf(outpt, "\t\n", buf, i);
-      }
+    for (i=0; i<tb.nd; i++) {                   /* name state vars */
+      retieve_var(tb.di[i], buf);
+      fprintf(outpt, "\t%s = __zzStateVar__[%d];\n", buf, i);
     }
+    fprintf(outpt,"\n");
 
     fpIO = fopen("out2.txt", "r");
     err_msg((intptr_t) fpIO, "Coudln't access out2.txt.\n", -1);
