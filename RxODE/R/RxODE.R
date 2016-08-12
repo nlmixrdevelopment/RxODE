@@ -62,11 +62,6 @@
    {
       event.table <- events$get.EventTable()
       modelVars <- get.modelVars()
-
-      names(params) <- gsub("[.]","_",names(params));
-      if (!is.null(inits)){
-          names(inits) <- gsub("[.]","_",names(inits));
-      }
       
       # preserve input arguments. 
       .last.solve.args <<-
@@ -84,6 +79,7 @@
       }
       inits <- RxODE.inits(inits,modelVars$state);
       params <- params[modelVars$params];
+      print(params);
       s <- as.list(match.call(expand.dots = TRUE)) 
       wh <- grep(pattern="S\\d+$", names(s))[1]
                                         # HACK: fishing scaling variables "S1 S2 S3 ..." from params call
