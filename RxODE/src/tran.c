@@ -88,7 +88,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
   if ((!strcmp("identifier", name) || !strcmp("identifier_no_output",name)) &&
       new_or_ith(value)) {
     static int pos=0;
-    /* printf("[%d]->%s\n",tb.nv,value); */
     sprintf(tb.ss+pos, "%s,", value);
     pos += strlen(value)+1;
     tb.vo[++tb.nv] = pos;
@@ -170,7 +169,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	sprintf(SBPTR, "__CMT_NUM_%s__]",v);
 	sb.o = strlen(sb.s);
 	if (strcmp("jac",name) == 0){
-	  sprintf(SBPTR ," = ");
+	  sprintf(SBPTR ," = (double) ");
 	  sb.o += 3;
 	}
         free(v);
@@ -205,7 +204,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	static int pos_de = 0;
         char *v = (char*)dup_str(xpn->start_loc.s, xpn->end);
 	if (new_de(v)){
-	  sprintf(sb.s, "__DDtStateVar__[%d] = InfusionRate[%d] + ", tb.nd, tb.nd);
+	  sprintf(sb.s, "__ld_DDtStateVar__[%d] = InfusionRate[%d] + ", tb.nd, tb.nd);
           sb.o = strlen(sb.s);
 	  new_or_ith(v);
           tb.lh[tb.ix] = 9;
@@ -218,7 +217,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         } else {
 	  new_or_ith(v);
           /* printf("de[%d]->%s[%d]\n",tb.id,v,tb.ix); */
-          sprintf(sb.s, "__DDtStateVar__[%d] = ", tb.id);
+          sprintf(sb.s, "__ld_DDtStateVar__[%d] = ", tb.id);
 	  sb.o = strlen(sb.s);
 	}
         free(v);
@@ -233,13 +232,12 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
           if (tb.de) free(tb.de);
 	  exit(-1);
 	} else {
-	  sprintf(SBPTR, "__DDtStateVar__[%d]", tb.id);
+	  sprintf(SBPTR, "__ld_DDtStateVar__[%d]", tb.id);
 	  sb.o = strlen(sb.s);
 	}
         free(v);
 	continue;
       }
-
       if (!strcmp("assignment", name) && i==0) {
         char *v = (char*)dup_str(xpn->start_loc.s, xpn->end);
         sprintf(sb.s, "%s", v);
@@ -248,7 +246,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         tb.lh[tb.ix] = 1;
 	free(v);
       }
-
     }
 
     if (!strcmp("assignment", name) || !strcmp("derivative", name) || !strcmp("jac",name))
@@ -358,17 +355,20 @@ void codegen(FILE *outpt, int show_ode) {
     
     fprintf(outpt, "%s", hdft[1]);
   } else if (show_ode == 2){
-    fprintf(outpt, "// Jacobian derived vars\nvoid calc_jac(unsigned int neq, double t, double *__zzStateVar__, double *__PDStateVar__, unsigned int __NROWPD__) {\n\tdouble __DDtStateVar__[%d];\n",tb.nd+1);
+    fprintf(outpt, "// Jacobian derived vars\nvoid calc_jac(unsigned int neq, double t, double *__zzStateVar__, double *__PDStateVar__, unsigned int __NROWPD__) {\n\t",tb.nd*tb.nd+1);
   } else {
     fprintf(outpt, "// prj-specific derived vars\nvoid calc_lhs(double t, double *__zzStateVar__, double *lhs) {\n");
   }
   if ((show_ode == 2 && found_jac == 1) || show_ode != 2){
-    prnt_vars(0, outpt, 0, "double", "\n");     /* declare all used vars */
+    prnt_vars(0, outpt, 0, "long double", "\n");     /* declare all used vars */
+    if (show_ode == 1 || show_ode == 2){
+      fprintf(outpt,"long double __ld_DDtStateVar__[%d];\n",tb.nd);
+    }
     prnt_vars(1, outpt, 1, "", "\n");                   /* pass system pars */
 
     for (i=0; i<tb.nd; i++) {                   /* name state vars */
       retieve_var(tb.di[i], buf);
-      fprintf(outpt, "\t%s = __zzStateVar__[%d];\n", buf, i);
+      fprintf(outpt, "\t%s = (long double) __zzStateVar__[%d];\n", buf, i);
     }
     fprintf(outpt,"\n");
 
@@ -376,7 +376,7 @@ void codegen(FILE *outpt, int show_ode) {
     err_msg((intptr_t) fpIO, "Coudln't access out2.txt.\n", -1);
     while(fgets(sLine, MXLEN, fpIO)) {  /* parsed eqns */
       char *s;
-      s = strstr(sLine, "__DDtStateVar__");
+      s = strstr(sLine, "__ld_DDtStateVar__");
       if ((show_ode == 0) && s) continue;
       s = strstr(sLine,"__PDStateVar__");
       if ((show_ode != 2) && s) continue;
@@ -385,16 +385,24 @@ void codegen(FILE *outpt, int show_ode) {
   }
   
   if (show_ode == 1){
+    fprintf(outpt,"\n\n\t//convert from long double to required double.\n");
+    for (i=0; i<tb.nd; i++) {                   /* name state vars */
+      retieve_var(tb.di[i], buf);
+      fprintf(outpt, "\t__DDtStateVar__[%d] = (double) __ld_DDtStateVar__[%d];\n", i, i);
+    }
+    //fprintf(outpt,"\tfree(__ld_DDtStateVar__);\n");
     fprintf(outpt, "%s", hdft[2]);
   } else if (show_ode == 2){
-    fprintf(outpt, "  jac_counter++;\n");
+    if (found_jac == 1){
+      fprintf(outpt, "  jac_counter++;\n");
+    }
     fprintf(outpt, "}\n");
   } else {
     fprintf(outpt, "\n");
     for (i=0, j=0; i<tb.nv; i++) {
       if (tb.lh[i] != 1) continue;
       retieve_var(i, buf);
-      fprintf(outpt, "\tlhs[%d]=%s;\n", j, buf);
+      fprintf(outpt, "\tlhs[%d]=(double) %s;\n", j, buf);
       j++;
     }
     fprintf(outpt, "}\n");
