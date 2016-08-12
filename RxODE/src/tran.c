@@ -343,11 +343,11 @@ void codegen(FILE *outpt, int show_ode) {
 
   if (show_ode == 1){
     fprintf(outpt, "%s", hdft[0]);
-    for (i=0; i<tb.nd; i++) {                   /* name state vars */
-      retieve_var(tb.di[i], buf);
-      fprintf(outpt, "#define __CMT_NUM_%s__ %d\n", buf, i);
-    }
     if (found_jac == 1){
+      for (i=0; i<tb.nd; i++) {                   /* name state vars */
+        retieve_var(tb.di[i], buf);
+        fprintf(outpt, "#define __CMT_NUM_%s__ %d\n", buf, i);
+      }
       fprintf(outpt,"int lsoda_jt = 1;\n"); // Full user-specified matrix
     } else {
       fprintf(outpt,"int lsoda_jt = 2;\n"); // Algorithm caluluated full matrix.
@@ -394,6 +394,7 @@ void codegen(FILE *outpt, int show_ode) {
     fprintf(outpt, "%s", hdft[2]);
   } else if (show_ode == 2){
     if (found_jac == 1){
+      //fprintf(outpt,"\tfree(__ld_DDtStateVar__);\n");
       fprintf(outpt, "  jac_counter++;\n");
     }
     fprintf(outpt, "}\n");
