@@ -1,12 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include <R.h>
 #include "dop853.h"
 #define max(a, b) ((a) > (b) ? (a) : (b))
 #ifdef __STANDALONE__
 #define Rprintf printf
 #define R_alloc calloc
+#else
+#include <R.h>
 #endif
 
 

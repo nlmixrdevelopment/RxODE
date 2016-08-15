@@ -345,7 +345,7 @@ void codegen(FILE *outpt, int show_ode) {
 
   char *hdft[]=
     {
-      "#include <math.h>\n#define max(a,b) (((a)>(b))?(a):(b))\n#define min(a,b) (((a)<(b))?(a):(b))\n",
+      "#include <math.h>\n#ifdef __STANDALONE__\n#define Rprintf printf\n#define R_alloc calloc\n#else\n#include <R.h>\n#endif\n#define max(a,b) (((a)>(b))?(a):(b))\n#define min(a,b) (((a)<(b))?(a):(b))\n",
       "extern long dadt_counter;\nextern long jac_counter;\nextern double InfusionRate[99];\nextern double *par_ptr;\nextern double podo;\nextern double tlast;\n\n// prj-specific differential eqns\nvoid dydt(unsigned int neq, double t, double *__zzStateVar__, double *__DDtStateVar__)\n{\n",
       "    dadt_counter++;\n}\n\n"
     };
