@@ -852,7 +852,7 @@ plot.RxODE <- function(x,
       src <- gsub("calc_jac", .jac, src);
       src <- gsub("ode_solver", .ode_solver, src);
       if (!is.null(.extra.c)){
-          src <- c(src,readLines(.extra.c))
+          src <- c(src,"",sprintf("// From %s",.extra.c),"",readLines(.extra.c))
       }
       ##
       writeLines(src, file.path(.mdir, "call_dvode.c"))
