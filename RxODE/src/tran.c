@@ -155,6 +155,22 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       D_ParseNode *xpn = d_get_child(pn,i);
       wprint_parsetree(pt, xpn, depth, fn, client_data);
       /* printf("%s[%d]: %s\n",name,i,sb.s); */
+      if (!strcmp("printf_statement",name)){
+	char *v = (char*)dup_str(xpn->start_loc.s, xpn->end);
+	if (i == 0){
+	  sprintf(sb.s,"Rprintf(");
+	  sb.o = 7;
+        }
+	if (i == 2 || i == 3){
+	  sprintf(SBPTR,"%s",v);
+	  sb.o = strlen(sb.s);
+	}
+	if (i == 4){
+	  fprintf(fpIO, "%s;\n", sb.s);
+	}
+	free(v);
+	continue;
+      } 
 
       if ( (strcmp("jac",name) == 0 || strcmp("jac_rhs",name) == 0) && i == 2){
 	found_jac = 1;
@@ -204,6 +220,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         sprintf(SBPTR, ",");
         sb.o++;
       }
+      
 
       if (!strcmp("derivative", name) && i==2) {
         /* sprintf(sb.s, "__DDtStateVar__[%d] = InfusionRate[%d] +", tb.nd, tb.nd); */
