@@ -161,13 +161,13 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  sprintf(sb.s,"Rprintf(");
 	  sb.o = 7;
         }
-	if (i == 2 || i == 3){
+	if (i == 2){
 	  sprintf(SBPTR,"%s",v);
 	  sb.o = strlen(sb.s);
 	}
 	if (i == 4){
 	  fprintf(fpIO, "%s;\n", sb.s);
-	}
+  	}
 	free(v);
 	continue;
       } 
