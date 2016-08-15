@@ -158,8 +158,25 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       if (!strcmp("printf_statement",name)){
 	char *v = (char*)dup_str(xpn->start_loc.s, xpn->end);
 	if (i == 0){
-	  sprintf(sb.s,"Rprintf(");
-	  sb.o = 7;
+	  if (!strncmp(v,"ode0",4)){
+	    sprintf(sb.s,"ODE0_Rprintf(");
+            sb.o = 12;
+ 	  } else if (!strncmp(v,"jac0",4)) {
+	    sprintf(sb.s,"JAC0_Rprintf(");
+	    sb.o = 12;
+          } else if (!strncmp(v,"ode",3)){
+	    sprintf(sb.s,"ODE_Rprintf(");
+            sb.o = 11;
+	  } else if (!strncmp(v,"jac",3)){
+	    sprintf(sb.s,"JAC_Rprintf(");
+            sb.o = 11;
+	  } else if (!strncmp(v,"lhs",3)){
+	    sprintf(sb.s,"LHS_Rprintf(");
+            sb.o = 11;
+	  } else {
+	    sprintf(sb.s,"Rprintf(");
+            sb.o = 7;
+	  }
         }
 	if (i == 2){
 	  sprintf(SBPTR,"%s",v);
@@ -362,7 +379,7 @@ void codegen(FILE *outpt, int show_ode) {
 
   char *hdft[]=
     {
-      "#include <math.h>\n#ifdef __STANDALONE__\n#define Rprintf printf\n#define R_alloc calloc\n#else\n#include <R.h>\n#endif\n#define max(a,b) (((a)>(b))?(a):(b))\n#define min(a,b) (((a)<(b))?(a):(b))\n",
+      "#include <math.h>\n#ifdef __STANDALONE__\n#define Rprintf printf\n#define JAC_Rprintf printf\n#define JAC0_Rprintf if (jac_counter == 0) printf\n#define ODE_Rprintf printf\n#define ODE0_Rprintf if (dadt_counter == 0) printf\n#define LHS_Rprintf printf\n#define R_alloc calloc\n#else\n#include <R.h>\n#define JAC_Rprintf Rprintf\n#define JAC0_Rprintf if (jac_counter == 0) Rprintf\n#define ODE_Rprintf Rprintf\n#define ODE0_Rprintf if (dadt_counter == 0) Rprintf\n#define LHS_Rprintf Rprintf\n#endif\n#define max(a,b) (((a)>(b))?(a):(b))\n#define min(a,b) (((a)<(b))?(a):(b))\n",
       "extern long dadt_counter;\nextern long jac_counter;\nextern double InfusionRate[99];\nextern double *par_ptr;\nextern double podo;\nextern double tlast;\n\n// prj-specific differential eqns\nvoid dydt(unsigned int neq, double t, double *__zzStateVar__, double *__DDtStateVar__)\n{\n",
       "    dadt_counter++;\n}\n\n"
     };
@@ -399,8 +416,24 @@ void codegen(FILE *outpt, int show_ode) {
     err_msg((intptr_t) fpIO, "Coudln't access out2.txt.\n", -1);
     while(fgets(sLine, MXLEN, fpIO)) {  /* parsed eqns */
       char *s;
+      s = strstr(sLine,"ODE_Rprintf");
+      if ((show_ode != 1) && s) continue;
+      
+      s = strstr(sLine,"ODE0_Rprintf");
+      if ((show_ode != 1) && s) continue;
+      
       s = strstr(sLine, "__DDtStateVar__");
       if ((show_ode == 0) && s) continue;
+      
+      s = strstr(sLine,"JAC_Rprintf");
+      if ((show_ode != 2) && s) continue;
+
+      s = strstr(sLine,"JAC0_Rprintf");
+      if ((show_ode != 2) && s) continue;
+
+      s = strstr(sLine,"LHS_Rprintf");
+      if ((show_ode != 0) && s) continue;
+      
       s = strstr(sLine,"__PDStateVar__");
       if ((show_ode != 2) && s) continue;
       fprintf(outpt, "\t%s", sLine);

@@ -21,7 +21,13 @@ printf_statement
   : printf_command '(' string (',' identifier)* ')';
 
 printf_command
-  : 'printf' | 'Rprintf' | 'print';
+  : 'printf' | 'Rprintf' | 'print' |
+    'jac_printf' | 'jac_Rprintf' | 'jac_print' |
+    'ode_printf' | 'ode_Rprintf' | 'ode_print' |
+    'jac0_printf'| 'jac0_Rprintf'| 'jac0_print'|
+    'ode_printf' | 'ode_Rprintf' | 'ode_print' |
+    'ode0_printf'| 'ode0_Rprintf'| 'ode0_print'|
+    'lhs_printf' | 'lhs_Rprintf' | 'lhs_print' ;
 
 derivative : 'd/dt' '(' identifier_no_output ')' '=' additive_expression;
 der_rhs    : 'd/dt' '(' identifier_no_output ')';
