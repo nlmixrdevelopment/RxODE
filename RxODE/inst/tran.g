@@ -3,14 +3,14 @@
 statement_list : (statement)+ ;
 
 statement 
-  : assignment ';'
-  | derivative ';'
-  | jac ';'
+  : assignment end_statement
+  | derivative end_statement
+  | jac end_statement
   | compound_statement
   | selection_statement
-  | printf_statement ';'
-  | print_command ';'
-  | ';' ;
+  | printf_statement end_statement
+  | print_command end_statement
+  | end_statement ;
 
 
 compound_statement : '{' statement_list? '}' ;
@@ -37,6 +37,7 @@ derivative : 'd/dt' '(' identifier_no_output ')' '=' additive_expression;
 der_rhs    : 'd/dt' '(' identifier_no_output ')';
 jac        : 'jac' '(' identifier_no_output ',' identifier_no_output ')' '=' additive_expression;
 jac_rhs    : 'jac' '(' identifier_no_output ',' identifier_no_output ')';
+end_statement : (';')* ;
 
 assignment : identifier '=' additive_expression;
 
@@ -46,7 +47,7 @@ logical_or_expression :	logical_and_expression
   ('||' logical_and_expression)* ;
 
 logical_and_expression : equality_expression 
-  ('&&' equality_expression)* ;
+    ('&&' equality_expression)* ;
 
 equality_expression : relational_expression 
   (('!=' | '==') relational_expression)* ;

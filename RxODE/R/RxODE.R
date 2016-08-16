@@ -662,72 +662,10 @@ plot.RxODE <- function(x,
    ## filenames for the C file, dll, and the translator 
     ## model file, parameter file, state variables, etc.
     .extra.c <- extra.c;
-    if (strict){
-        ## Check for rhs d/dt
-        if (regexpr("=.*d/dt[(][^) \n]*[)]",model) != -1){
-            stop("d/dt() expressions cannot be on the right side of the equations.")
-        }
-        .mod.parsed <- model;
-        .split <- strsplit(.mod.parsed,"\n")[[1]];
-        .w <- which(regexpr("^[^\n(]*[(]([^\n)]+)[)][^\n=]*=",.split) != -1);
-        .split <- gsub("^ *","",gsub(" *=.*","\\1",.split[.w]))
-        if (any(duplicated(.split))){
-            stop("Duplicate d/dt() on left hand side of equations.  This is not supported.")
-        }
-    } else {
-        ## .mod.parsed <- gsub("[*][*]","^",model);Support ** operator since R does
-        ## .mod.parsed <- gsub("[<][-]","=",.mod.parsed);Support <- operator since R does
-
-        ## First take out any comments
-        .mod.parsed <- gsub(rex::rex(any_spaces,one_of("#"),anything,newline),"\n",model,perl=TRUE); # Strip comments
-        ## Have continuation operators add to the same line
-        .mod.parsed <- gsub(rex::rex(any_spaces,capture(one_of("-+*/^(")),any_spaces,newline),"\\1",.mod.parsed,perl=TRUE); # Allow operators to continue statements
-        ## Protect equal sign operators
-        .mod.parsed <- gsub("==","~~",.mod.parsed);
-        .mod.parsed <- gsub("([!><])=","\\1~",.mod.parsed);
-        ## Don't require semicolons.
-        .mod.parsed <- strsplit(.mod.parsed,"\n")[[1]];
-        .mod.parsed <- gsub(rex::rex(any_spaces,one_of("="),any_spaces,capture(except_any_of(";")),any_of("; ")),
-                            "=\\1;",.mod.parsed,perl=TRUE);
-        .mod.parsed <- paste(.mod.parsed,collapse="\n")
-        names(.mod.parsed) <- ""
-        ##.mod.parsed <- gsub("([A-Za-z][A-Za-z0-9]*)[.]","\\1_",.mod.parsed); # Allow [.] notation because R does
-        ##.mod.parsed <- gsub("^([^\n]*)\\[([^\n]*)\\]([^\n]*)=","\\1(\\2)\\3=",.mod.parsed) # Change [] to ()
-        ##.mod.parsed <- gsub("[(][ \t]*\"[ \t]*([^ \n\"]*)[ \t]*\"[ \t]*[)]","(\\1)",.mod.parsed) # Change ("z") to (z)
-
-        .mod.parsed <- paste(gsub(rex::rex(any_spaces),"",strsplit(.mod.parsed,"\n")[[1]],perl=TRUE),collapse="\n");
-        .mod.parsed <- gsub("~~","==",.mod.parsed);
-        .mod.parsed <- gsub("([!><])~","\\1=",.mod.parsed);
-    }
-    ## cat(.mod.parsed);
-    ## .mod.round <-  .mod.parsed;
-    ## if (reduce.rounding){
-    ##     .var <- "[ \t]*([a-zA-Z_][a-zA-Z0-9_]*|0|[1-9][0-9]*|[0-9]+[.][0-9]*(?:[eE][\\-\\+]?[0-9]+)?|[0-9]+[eE][\\-\\+]?[0-9]+|[(][^()]*(?:[(][^()]*[)][^()]*)*[)])[ \t]*";
-    ##     i <- 7;
-    ##     while (i > 0){
-    ##         if (i > 1){
-    ##             ## (a*b*c)^d -> exp(d*(log(a)+log(b)+log(c)))
-    ##             r1 <- sprintf("[(]%s[)]^%s",paste(rep(.var,i),collapse="[*]"),.var);
-    ##             r2 <- sprintf("exp(\\%s*(%s))",i+1,paste(paste0("log(\\",seq(1,i),")"),collapse="+"));
-    ##             .mod.round <- gsub(r1,r2,.mod.round);
-    ##             ## a*b*c -> exp(log(a)+log(b)+log(c))
-    ##             r1 <- sprintf("([+=]|-)%s([+\n;]|-)",paste(rep(.var,i),collapse="[*]"));
-    ##             r2 <- sprintf("\\1exp(%s)\\%d",paste(paste0("log(\\",seq(2,i+1),")"),collapse="+"),i+2);
-    ##             .mod.round <- gsub(r1,r2,.mod.round)
-    ##         }
-    ##         ## (a*b/c)^d -> exp(d*(log(a)+log(b)-log(c)))
-    ##         r1 <- sprintf("[(]%s[/]%s[)]^%s",paste(rep(.var,i),collapse="[*]"),.var,.var);
-    ##         r2 <- sprintf("exp(\\%s*(%s-log(\\%s)))",i+2,paste(paste0("log(\\",seq(1,i),")"),collapse="+"),i+1);
-    ##         .mod.round <- gsub(r1,r2,.mod.round)
-    ##         ## a*b/c -> exp(log(a)+log(b)-log(c))
-    ##         r1 <- sprintf("([+=]|-)%s[/]%s([+\n;]|-)",paste(rep(.var,i),collapse="[*]"),.var);
-    ##         r2 <- sprintf("\\1exp(%s-log(\\%s))\\%d",paste(paste0("log(\\",seq(2,i+1),")"),collapse="+"),i+2,i+3);
-    ##         .mod.round <- gsub(r1,r2,.mod.round)
-    ##         i <- i - 1;
-    ##     }
-    ## }
-    ## cat(.mod.round);
-    .digest <- digest::digest(.mod.parsed);
+    .mod.parsed <- model;
+    .mod.md5 <- gsub(rex::rex(any_spaces,one_of("#"),anything,newline),"\n",model,perl=TRUE); # Strip comments
+    .mod.md5 <- gsub(rex::rex(any_spaces)," ",.mod.md5,perl=TRUE); # strip spurrios spaces
+    .digest <- digest::digest(.mod.md5);
     .modName <- modName
    .flat <- flat
    .flatOut <- NULL
