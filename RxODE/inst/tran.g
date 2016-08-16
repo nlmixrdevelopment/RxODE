@@ -9,6 +9,7 @@ statement
   | compound_statement
   | selection_statement
   | printf_statement ';'
+  | print_command ';'
   | ';' ;
 
 
@@ -28,6 +29,9 @@ printf_command
     'ode_printf' | 'ode_Rprintf' | 'ode_print' |
     'ode0_printf'| 'ode0_Rprintf'| 'ode0_print'|
     'lhs_printf' | 'lhs_Rprintf' | 'lhs_print' ;
+
+print_command
+  : 'print' | 'ode_print' | 'jac_print' | 'lhs_print';
 
 derivative : 'd/dt' '(' identifier_no_output ')' '=' additive_expression;
 der_rhs    : 'd/dt' '(' identifier_no_output ')';

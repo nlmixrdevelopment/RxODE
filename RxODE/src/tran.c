@@ -155,6 +155,17 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       D_ParseNode *xpn = d_get_child(pn,i);
       wprint_parsetree(pt, xpn, depth, fn, client_data);
       /* printf("%s[%d]: %s\n",name,i,sb.s); */
+      if (!strcmp("print_command",name)){
+	char *v = (char*)dup_str(xpn->start_loc.s, xpn->end);
+	if  (!strncmp(v,"print",5)){
+	  fprintf(fpIO,"full_print;\n");
+	} else {
+	  fprintf(fpIO, "%s;\n", v);
+	}
+	/* sprintf(sb.s,"%s",v); */
+        /* sb.o = str; */
+        free(v);
+      }
       if (!strcmp("printf_statement",name)){
 	char *v = (char*)dup_str(xpn->start_loc.s, xpn->end);
 	if (i == 0){
@@ -334,7 +345,7 @@ void prnt_vars(int scenario, FILE *outpt, int lhs, const char *pre_str, const ch
     j++;
     retieve_var(i, buf);
     switch(scenario) {
-      case 0: fprintf(outpt, i<tb.nv-1 ? "\t%s,\n" : "\t%s;\n", buf); break;
+    case 0: fprintf(outpt, i<tb.nv-1 ? "\t%s,\n" : "\t%s;\n", buf); break;
       case 1: fprintf(outpt, "\t%s = par_ptr[%d];\n", buf, j-1); break;
       default: break;
     }
@@ -372,7 +383,7 @@ void prnt_aux_files(char *prefix) {
 }
 
 void codegen(FILE *outpt, int show_ode) {
-  int i, j;
+  int i, j,print_ode=0, print_vars = 0, print_parm = 0, print_jac=0;
   char sLine[MXLEN+1];
   char buf[64];
   FILE *fpIO;
@@ -380,7 +391,7 @@ void codegen(FILE *outpt, int show_ode) {
   char *hdft[]=
     {
       "#include <math.h>\n#ifdef __STANDALONE__\n#define Rprintf printf\n#define JAC_Rprintf printf\n#define JAC0_Rprintf if (jac_counter == 0) printf\n#define ODE_Rprintf printf\n#define ODE0_Rprintf if (dadt_counter == 0) printf\n#define LHS_Rprintf printf\n#define R_alloc calloc\n#else\n#include <R.h>\n#define JAC_Rprintf Rprintf\n#define JAC0_Rprintf if (jac_counter == 0) Rprintf\n#define ODE_Rprintf Rprintf\n#define ODE0_Rprintf if (dadt_counter == 0) Rprintf\n#define LHS_Rprintf Rprintf\n#endif\n#define max(a,b) (((a)>(b))?(a):(b))\n#define min(a,b) (((a)<(b))?(a):(b))\n",
-      "extern long dadt_counter;\nextern long jac_counter;\nextern double InfusionRate[99];\nextern double *par_ptr;\nextern double podo;\nextern double tlast;\n\n// prj-specific differential eqns\nvoid dydt(unsigned int neq, double t, double *__zzStateVar__, double *__DDtStateVar__)\n{\n",
+      "extern long dadt_counter;\nextern long jac_counter;\nextern double InfusionRate[99];\nextern double *par_ptr;\nextern double podo;\nextern double tlast;\n\n// prj-specific differential eqns\nvoid dydt(unsigned int neq, double t, double *__zzStateVar__, double *__DDtStateVar__)\n{\n\tint __print_ode__ = 0, __print_vars__ = 0,__print_parm__ = 0,__print_jac__ = 0;\n",
       "    dadt_counter++;\n}\n\n"
     };
 
@@ -398,9 +409,9 @@ void codegen(FILE *outpt, int show_ode) {
     
     fprintf(outpt, "%s", hdft[1]);
   } else if (show_ode == 2){
-    fprintf(outpt, "// Jacobian derived vars\nvoid calc_jac(unsigned int neq, double t, double *__zzStateVar__, double *__PDStateVar__, unsigned int __NROWPD__) {\n\tdouble __DDtStateVar__[%d];\n",tb.nd+1);
+    fprintf(outpt, "// Jacobian derived vars\nvoid calc_jac(unsigned int neq, double t, double *__zzStateVar__, double *__PDStateVar__, unsigned int __NROWPD__) {\n\tint __print_ode__ = 0, __print_vars__ = 0,__print_parm__ = 0,__print_jac__ = 0;\n\tdouble __DDtStateVar__[%d];\n",tb.nd+1);
   } else {
-    fprintf(outpt, "// prj-specific derived vars\nvoid calc_lhs(double t, double *__zzStateVar__, double *lhs) {\n");
+    fprintf(outpt, "// prj-specific derived vars\nvoid calc_lhs(double t, double *__zzStateVar__, double *lhs) {\n\tint __print_ode__ = 0, __print_vars__ = 0,__print_parm__ = 0,__print_jac__ = 0;\n");
   }
   if ((show_ode == 2 && found_jac == 1) || show_ode != 2){
     prnt_vars(0, outpt, 0, "double", "\n");     /* declare all used vars */
@@ -416,6 +427,22 @@ void codegen(FILE *outpt, int show_ode) {
     err_msg((intptr_t) fpIO, "Coudln't access out2.txt.\n", -1);
     while(fgets(sLine, MXLEN, fpIO)) {  /* parsed eqns */
       char *s;
+      
+      s = strstr(sLine,"ode_print;");
+      if (show_ode == 1 && !s) s = strstr(sLine,"full_print;");
+      if (show_ode != 1 && s) continue;
+      else if (s) {
+	fprintf(outpt,"\tRprintf(\"================================================================================\\n\");\n");
+	fprintf(outpt,"\tRprintf(\"ODE Count: %%d\\tTime (t): %%f\\n\",dadt_counter,t);\n");
+	fprintf(outpt,"\tRprintf(\"================================================================================\\n\");\n");
+	fprintf(outpt,"\t__print_ode__ = 1;\n");
+	fprintf(outpt,"\t__print_vars__ = 1;\n");
+	fprintf(outpt,"\t__print_parm__ = 1;\n");
+	print_ode  = 1;
+	print_vars = 1;
+	print_parm = 1;
+	continue;
+      }      
       s = strstr(sLine,"ODE_Rprintf");
       if ((show_ode != 1) && s) continue;
       
@@ -428,18 +455,90 @@ void codegen(FILE *outpt, int show_ode) {
       s = strstr(sLine,"JAC_Rprintf");
       if ((show_ode != 2) && s) continue;
 
+      s = strstr(sLine,"jac_print;");
+      if (show_ode == 2 && !s) s = strstr(sLine,"full_print;");
+      if (show_ode != 2 && s) continue;
+      else if (s) {
+        fprintf(outpt,"\tRprintf(\"================================================================================\\n\");\n");
+        fprintf(outpt,"\tRprintf(\"JAC Count: %%d\\tTime (t): %%f\\n\",jac_counter,t);\n");
+        fprintf(outpt,"\tRprintf(\"================================================================================\\n\");\n");
+	fprintf(outpt,"\t__print_ode__ = 1;\n");
+	fprintf(outpt,"\t__print_jac__ = 1;\n");
+        fprintf(outpt,"\t__print_vars__ = 1;\n");
+        fprintf(outpt,"\t__print_parm__ = 1;\n");
+        print_ode  = 1;
+        print_vars = 1;
+        print_parm = 1;
+	print_jac = 1;
+        continue;
+      }
+
       s = strstr(sLine,"JAC0_Rprintf");
       if ((show_ode != 2) && s) continue;
 
       s = strstr(sLine,"LHS_Rprintf");
       if ((show_ode != 0) && s) continue;
+
+      s = strstr(sLine,"lhs_print;");
+      if (show_ode == 0 && !s) s = strstr(sLine,"full_print;");
+      if (show_ode != 0 && s) continue;
+      else if (s) {
+        fprintf(outpt,"\tRprintf(\"================================================================================\\n\");\n");
+        fprintf(outpt,"\tRprintf(\"LHS Time (t): %%f\\n\",t);\n");
+        fprintf(outpt,"\tRprintf(\"================================================================================\\n\");\n");
+        //fprintf(outpt,"\t__print_ode__ = 1;\n");
+        fprintf(outpt,"\t__print_vars__ = 1;\n");
+        fprintf(outpt,"\t__print_parm__ = 1;\n");
+        //print_ode  = 1;
+        print_vars = 1;
+        print_parm = 1;
+        continue;
+      }
       
       s = strstr(sLine,"__PDStateVar__");
       if ((show_ode != 2) && s) continue;
+      
       fprintf(outpt, "\t%s", sLine);
     }
   }
-  
+  if (print_ode && show_ode != 0){
+    fprintf(outpt,"\tif (__print_ode__ == 1){\n");
+    for (i=0; i<tb.nd; i++) {                   /* name state vars */
+      retieve_var(tb.di[i], buf);
+      fprintf(outpt, "\t\tRprintf(\"d/dt(%s)[%d]:\\t%%f\\t%s:\\t%%f\\n\", __DDtStateVar__[%d],%s);\n", buf, i,buf,i,buf);
+    }
+    fprintf(outpt,"\t}\n");
+  }
+  if (print_jac && show_ode == 2){
+    fprintf(outpt,"\tif (__print_jac__ == 1){\n");
+    fprintf(outpt,"\tRprintf(\"Fixme\\n\");");
+    fprintf(outpt,"\t}\n");
+  }
+  if (print_vars){
+    fprintf(outpt,"\tif (__print_vars__ == 1){\n");
+    fprintf(outpt,"\t\tRprintf(\".Left Handed Variables:.........................................................\\n\");\n");      
+    for (i=0, j=0; i<tb.nv; i++) {
+      if (tb.lh[i] != 1) continue;
+      retieve_var(i, buf);
+      fprintf(outpt, "\t\tRprintf(\"%s = %%d\\n\", %s);\n", buf, buf);
+    }
+    fprintf(outpt,"\t}\n");
+  }
+  if (print_parm){
+    fprintf(outpt,"\tif (__print_parm__ == 1){\n");
+    fprintf(outpt,"\t\tRprintf(\".User Supplied Variables:.......................................................\\n\");\n");
+    for (i=0, j=0; i<tb.nv; i++) {
+      if (tb.lh[i]>0) continue;
+      j++;
+      retieve_var(i, buf);
+      fprintf(outpt, "\t\tRprintf(\"%s=%%d\\tpar_ptr[%d]=%%d\\n\",%s,par_ptr[%d]);\n", buf, j-1, buf,j-1);
+    }
+    fprintf(outpt,"\t}\n");
+  }
+  if (print_jac || print_vars || print_ode || print_parm){
+    fprintf(outpt,"\tif (__print_jac__ || __print_vars__ || __print_ode__ || __print_parm__){\n");
+    fprintf(outpt,"\t\tRprintf(\"================================================================================\\n\\n\\n\");\n\t}\n");
+  }
   if (show_ode == 1){
     fprintf(outpt, "%s", hdft[2]);
   } else if (show_ode == 2){
