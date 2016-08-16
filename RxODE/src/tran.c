@@ -520,7 +520,7 @@ void codegen(FILE *outpt, int show_ode) {
     for (i=0, j=0; i<tb.nv; i++) {
       if (tb.lh[i] != 1) continue;
       retieve_var(i, buf);
-      fprintf(outpt, "\t\tRprintf(\"%s = %%d\\n\", %s);\n", buf, buf);
+      fprintf(outpt, "\t\tRprintf(\"%s = %%f\\n\", %s);\n", buf, buf);
     }
     fprintf(outpt,"\t}\n");
   }
@@ -531,7 +531,7 @@ void codegen(FILE *outpt, int show_ode) {
       if (tb.lh[i]>0) continue;
       j++;
       retieve_var(i, buf);
-      fprintf(outpt, "\t\tRprintf(\"%s=%%d\\tpar_ptr[%d]=%%d\\n\",%s,par_ptr[%d]);\n", buf, j-1, buf,j-1);
+      fprintf(outpt, "\t\tRprintf(\"%s=%%f\\tpar_ptr[%d]=%%f\\n\",%s,par_ptr[%d]);\n", buf, j-1, buf,j-1);
     }
     fprintf(outpt,"\t}\n");
   }
