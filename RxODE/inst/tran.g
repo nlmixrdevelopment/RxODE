@@ -35,8 +35,11 @@ print_command
 
 derivative : 'd/dt' '(' identifier_no_output ')' '=' additive_expression;
 der_rhs    : 'd/dt' '(' identifier_no_output ')';
-jac        : 'jac' '(' identifier_no_output ',' identifier_no_output ')' '=' additive_expression;
-jac_rhs    : 'jac' '(' identifier_no_output ',' identifier_no_output ')';
+jac        : jac_command '(' identifier_no_output ',' identifier_no_output ')' '=' additive_expression;
+jac_rhs    : jac_command '(' identifier_no_output ',' identifier_no_output ')';
+
+jac_command : 'jac' | 'df/dy';
+
 end_statement : (';')* ;
 
 assignment : identifier '=' additive_expression;
