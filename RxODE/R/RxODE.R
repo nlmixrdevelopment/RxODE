@@ -231,11 +231,24 @@ function(x, ...)
 function(x, ...)
 {
     print.RxODE(x);
+    modelvars <- x$get.modelVars();
     cat(sprintf("dll: %s\n",x$cmpMgr$dllfile))
-    cat(sprintf("Jacobian: %s\n",ifelse(mod1$get.modelVars()$jac == "fulluser","Full User Specified","Full Internally Caluclated")))
+    cat(sprintf("Jacobian: %s\n",ifelse(modelvars$jac == "fulluser","Full User Specified","Full Internally Caluclated")))
+    if (length(modelvars$params) > 0){
+        cat("\nUser Supplied Parameters:\n");
+        print(modelvars$params);
+    }
+    cat("\nCompartents:\n");
+    tmp <- modelvars$state;
+    names(tmp) <- paste0("cmt=",1:length(tmp));
+    print(tmp);
+    if (length(modelvars$lhs) > 0){
+        cat("\nCalculated Variables:\n");
+        print(modelvars$lhs);
+    }
     cat("\nModel:\n")
     cat(x$model)
-    cat("\n")    
+    cat("\n");
 
     invisible(x)
 }
