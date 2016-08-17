@@ -765,9 +765,14 @@ plot.RxODE <- function(x,
    .sh <- "system"   # windows's default shell COMSPEC does not handle UNC paths
    .dvode <- file.path(.mdir, "call_dvode.o")
    .prefix <- paste(.mdir, "/", sep="")
-   .parse.cmd <- 
-      sprintf("%s/tran.exe %s %s %s 2>%s", 
-         .bin, .modfile, .cfile, .prefix, .errfile)
+    if (is.null(extra.c)) {
+        .extra.c <- ""
+    } else {
+        .extra.c <- extra.c;
+    }
+    .parse.cmd <- 
+      sprintf("%s/tran.exe %s %s %s %s 2>%s", 
+         .bin, .modfile, .cfile, .prefix, .extra.c, .errfile)
    .shlib <- 
        sprintf("%s/bin/R CMD SHLIB %s %s", 
          Sys.getenv("R_HOME"), .cfile, .dvode)
