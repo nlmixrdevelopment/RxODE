@@ -79,7 +79,6 @@
       }
       inits <- RxODE.inits(inits,modelVars$state);
       params <- params[modelVars$params];
-      print(params);
       s <- as.list(match.call(expand.dots = TRUE)) 
       wh <- grep(pattern="S\\d+$", names(s))[1]
                                         # HACK: fishing scaling variables "S1 S2 S3 ..." from params call
@@ -232,10 +231,12 @@ function(x, ...)
 function(x, ...)
 {
     print.RxODE(x);
+    cat(sprintf("dll: %s\n",x$cmpMgr$dllfile))
+    cat(sprintf("Jacobian: %s\n",ifelse(mod1$get.modelVars()$jac == "fulluser","Full User Specified","Full Internally Caluclated")))
     cat("\nModel:\n")
     cat(x$model)
-    cat("\n")
-    cat(sprintf("dll: %s\n",x$cmpMgr$dllfile))
+    cat("\n")    
+
     invisible(x)
 }
 
@@ -739,7 +740,7 @@ plot.RxODE <- function(x,
    .parfile <- file.path(.mdir, "ODE_PARS.txt")
    .stvfile <- file.path(.mdir, "STATE_VARS.txt")
    .lhsfile <- file.path(.mdir, "LHS_VARS.txt")
-
+   .jacfile <- file.path(.mdir, "JAC_TYPE.txt")
     if (.flat){
         .modelVarsFile <- file.path(.flatOut,sprintf("%s-%s.Rdata", .modName, .digest))
    } else {
@@ -824,7 +825,8 @@ plot.RxODE <- function(x,
          list(
             params = scan(.parfile, what  = "", quiet = TRUE),
             state = scan(.stvfile, what = "", quiet = TRUE),
-            lhs = scan(.lhsfile, what = "", quiet = TRUE)
+            lhs = scan(.lhsfile, what = "", quiet = TRUE),
+            jac = scan(.jacfile, what = "", quiet = TRUE)
          )
       save(.modelVars,.parsed,.dydt,.objName,file=.modelVarsFile)
       invisible(.parsed)
@@ -841,8 +843,13 @@ plot.RxODE <- function(x,
       # may need to unload previous model object code
       if (is.loaded(.objName)) try(dyn.unload(.dllfile), silent = TRUE)
 
+      if (.modelVars$jac == "fulluser"){
+          .jac <- " -D__JT__=1 -D__MF__=21";
+      } else if (.modelVars$jac == "fullint"){
+          .jac <- " -D__JT__=2 -D__MF__=22";
+      }
       #on.exit(unlink("Makevars"))
-      cat(sprintf("PKG_CPPFLAGS=-I%s%s\n",.incl,.debug), file="Makevars")
+      cat(sprintf("PKG_CPPFLAGS=-I%s%s%s\n",.incl,.debug,.jac), file="Makevars")
       cat(
          sprintf("PKG_LIBS=-L%s -lodeaux $(BLAS_LIBS) $(FLIBS)", .libs),
          file="Makevars", append=TRUE

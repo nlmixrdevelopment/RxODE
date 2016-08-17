@@ -35,7 +35,6 @@ double tlast=0;
 double podo=0;
 double *par_ptr;
 FILE *fp;
-extern int lsoda_jt;
 
 
 void dydt(unsigned int neq, double t, double *A, double *DADT);
@@ -57,14 +56,14 @@ void call_lsoda(int neq, double *x, int *evid, int nx, double *inits, double *do
     int itol = 1;
     double  rtol = RTOL, atol = ATOL;
     // Set jt to 1 if full is specified.
-    int itask = 1, istate = 1, iopt = 0, lrw=22+neq*max(16, neq+9), liw=20+neq;
+    int itask = 1, istate = 1, iopt = 0, lrw=22+neq*max(16, neq+9), liw=20+neq, jt = __JT__;
 	double *rwork;
 	int *iwork;
 	int wh, cmt;
 
 	char *err_msg[]=
 		{
-			"excess work done on this call (perhaps wrong jt).",
+		  "excess work done on this call (perhaps wrong jt).",
 			"excess accuracy requested (tolerances too small).",
 			"illegal input detected (see printed message).",
 			"repeated error test failures (check all inputs).",
@@ -72,7 +71,9 @@ void call_lsoda(int neq, double *x, int *evid, int nx, double *inits, double *do
 			"error weight became zero during problem. (solution component i vanished, and atol or atol(i) = 0.)",
 			"work space insufficient to finish (see messages)."
 		};
-
+#ifdef __DEBUG__
+	Rprintf("JT: %d\n",jt);
+#endif
 	rwork = (double*)R_alloc(lrw, sizeof(double));
 	iwork = (int*)R_alloc(liw, sizeof(int));
 
@@ -89,8 +90,8 @@ void call_lsoda(int neq, double *x, int *evid, int nx, double *inits, double *do
 
 		if(xout>xp)
 		{
-	        F77_CALL(dlsoda)(dydt_lsoda_dum, &neq, yp, &xp, &xout, &itol, &rtol, &atol, &itask,
-                &istate, &iopt, rwork, &lrw, iwork, &liw, &jdum_lsoda, &lsoda_jt);
+		  F77_CALL(dlsoda)(dydt_lsoda_dum, &neq, yp, &xp, &xout, &itol, &rtol, &atol, &itask,
+                &istate, &iopt, rwork, &lrw, iwork, &liw, &jdum_lsoda, &jt);
 
 			if (istate<0)
 			{
@@ -168,7 +169,7 @@ void call_dvode(int neq, double *x, int *evid, int nx, double *inits, double *do
 	double xout, xp=x[0], yp[99];
     int itol = 1;
     double  rtol = RTOL, atol = ATOL;
-    int itask = 1, istate = 1, iopt = 0, mf=22;
+    int itask = 1, istate = 1, iopt = 0, mf=__MF__;
     int lrw = 22+9*neq+2*neq*neq, liw = 30+neq;
     double *rwork;
     int *iwork;
@@ -186,8 +187,10 @@ void call_dvode(int neq, double *x, int *evid, int nx, double *inits, double *do
 			"repeated convergence failures",
 			"error weight became zero during problem"
 		};
-
-	rwork = (double*)R_alloc(lrw, sizeof(double));
+#ifdef __DEBUG__
+        Rprintf("MF: %d\n",mf);
+#endif
+        rwork = (double*)R_alloc(lrw, sizeof(double));
 	iwork = (int*)R_alloc(liw, sizeof(int));
 #ifdef __STANDALONE__
 	if (!(rwork && iwork))

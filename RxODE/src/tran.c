@@ -360,11 +360,12 @@ void prnt_vars(int scenario, FILE *outpt, int lhs, const char *pre_str, const ch
 void prnt_aux_files(char *prefix) {
   int i, islhs;
   char buf[512];
-  FILE *fp[3];
+  FILE *fp[4];
 
   sprintf(buf, "%sODE_PARS.txt",   prefix); fp[0] = fopen(buf, "w");
   sprintf(buf, "%sLHS_VARS.txt",   prefix); fp[1] = fopen(buf, "w");
   sprintf(buf, "%sSTATE_VARS.txt", prefix); fp[2] = fopen(buf, "w");
+  sprintf(buf, "%sJAC_TYPE.txt",   prefix); fp[3] = fopen(buf, "w");
   i = (intptr_t) fp[0] * (intptr_t) fp[1] * (intptr_t) fp[2];  /* dj: sizeof(int)!=ptr */
   err_msg(i, "Coudln't open file to write.\n", -1);
 
@@ -380,9 +381,16 @@ void prnt_aux_files(char *prefix) {
     fprintf(fp[2], "%s ", buf);
   }
 
+  if (found_jac == 1){
+    fprintf(fp[3],"fulluser",buf); // Full User Matrix
+  } else {
+    fprintf(fp[3],"fullint",buf); // Full Internal Calculated Matrix
+  }
+
   fclose(fp[0]);
   fclose(fp[1]);
   fclose(fp[2]);
+  fclose(fp[3]);
 }
 
 void codegen(FILE *outpt, int show_ode) {
@@ -405,10 +413,7 @@ void codegen(FILE *outpt, int show_ode) {
         retieve_var(tb.di[i], buf);
         fprintf(outpt, "#define __CMT_NUM_%s__ %d\n", buf, i);
       }
-      fprintf(outpt,"int lsoda_jt = 1;\n"); // Full user-specified matrix
-    } else {
-      fprintf(outpt,"int lsoda_jt = 2;\n"); // Algorithm caluluated full matrix.
-    }
+    } 
     fprintf(outpt,"\n%s\n",extra_buf);
     fprintf(outpt, "%s", hdft[1]);
   } else if (show_ode == 2){
