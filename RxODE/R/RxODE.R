@@ -3,7 +3,7 @@
              filename = NULL, do.compile = NULL, flat = FALSE,
              strict = FALSE,## reduce.rounding = TRUE,
              clean.flat.dlls=NULL,
-             extra.c=NULL,...)
+             extra.c=NULL,debug = FALSE,...)
 {
     if(!missing(model) && !missing(filename))
         stop("must specify exactly one of 'model' or 'filename'")
@@ -48,7 +48,7 @@
                                         # shared libs, etc.)
 
     cmpMgr <- rx.initCmpMgr(model, modName, wd, flat, strict, ## reduce.rounding,
-                            clean.flat.dlls,extra.c);
+                            clean.flat.dlls,extra.c,debug);
                                         # NB: the set of model variables (modelVars) is only available 
    # after parsing, thus it needs to be dynamically computed in cmpMgr
    get.modelVars <- cmpMgr$get.modelVars
@@ -654,18 +654,26 @@ plot.RxODE <- function(x,
 
 "rx.initCmpMgr" <-
     function(model, modName, wd, flat, strict, ## reduce.rounding,
-             clean.flat.dlls,extra.c)
+             clean.flat.dlls,extra.c,debug)
 {
    ## Initialize the RxODE compilation manager (all parsing,
    ## compilation, and loading of dynamic shared objects is 
     ## done through this object. It also keeps tracks of 
    ## filenames for the C file, dll, and the translator 
     ## model file, parameter file, state variables, etc.
-    .extra.c <- extra.c;
+    if (is.null(extra.c)){
+        .extra.c <- "";
+    } else {
+        .extra.c <- extra.c;
+    }
+    .debug <- "";
+    if (debug){
+        .debug <- " -D__DEBUG__";
+    }
     .mod.parsed <- model;
     .mod.md5 <- gsub(rex::rex(any_spaces,one_of("#"),anything,newline),"\n",model,perl=TRUE); # Strip comments
-    .mod.md5 <- gsub(rex::rex(any_spaces)," ",.mod.md5,perl=TRUE); # strip spurrios spaces
-    .digest <- digest::digest(.mod.md5);
+    .mod.md5 <- gsub(rex::rex(any_spaces)," ",.mod.md5,perl=TRUE); # strip spurrios spaecs
+    .digest <- digest::digest(sprintf("%s%s",.mod.md5,.debug));
     .modName <- modName
    .flat <- flat
    .flatOut <- NULL
@@ -789,14 +797,10 @@ plot.RxODE <- function(x,
       src <- gsub("calc_lhs", .calc_lhs, src)
       src <- gsub("calc_jac", .jac, src);
       src <- gsub("ode_solver", .ode_solver, src);
-      if (!is.null(.extra.c)){
-          src <- c(src,"",sprintf("// From %s",.extra.c),"",readLines(.extra.c))
-      }
-      ##
+      
       writeLines(src, file.path(.mdir, "call_dvode.c"))
       .objName <<- .dydt
       writeLines(.digest,.md5file)
-
 
       rc <- do.call(.sh, list(.parse.cmd))  # parse command (shell)
       if(file.exists(.errfile))
@@ -838,7 +842,7 @@ plot.RxODE <- function(x,
       if (is.loaded(.objName)) try(dyn.unload(.dllfile), silent = TRUE)
 
       #on.exit(unlink("Makevars"))
-      cat(sprintf("PKG_CPPFLAGS=-I%s\n",.incl), file="Makevars")
+      cat(sprintf("PKG_CPPFLAGS=-I%s%s\n",.incl,.debug), file="Makevars")
       cat(
          sprintf("PKG_LIBS=-L%s -lodeaux $(BLAS_LIBS) $(FLIBS)", .libs),
          file="Makevars", append=TRUE

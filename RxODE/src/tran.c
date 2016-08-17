@@ -11,6 +11,7 @@
 
 char *sbuf_read(char *pathname);  /* defined in util.h */
 char *dup_str(char *s, char *e);  /* dj: defined in dparser's util.h */
+
 extern D_ParserTables parser_tables_gram;
 
 unsigned int found_jac = 0;
@@ -37,6 +38,8 @@ typedef struct sbuf {
 } sbuf;
 sbuf sb;			/* buffer w/ current parsed & translated line */
         			/* to be stored in a temp file */
+
+static char *extra_buf;
 
 static FILE *fpIO, *fp_inits;
 
@@ -406,7 +409,7 @@ void codegen(FILE *outpt, int show_ode) {
     } else {
       fprintf(outpt,"int lsoda_jt = 2;\n"); // Algorithm caluluated full matrix.
     }
-    
+    fprintf(outpt,"\n%s\n",extra_buf);
     fprintf(outpt, "%s", hdft[1]);
   } else if (show_ode == 2){
     fprintf(outpt, "// Jacobian derived vars\nvoid calc_jac(unsigned int neq, double t, double *__zzStateVar__, double *__PDStateVar__, unsigned int __NROWPD__) {\n\tint __print_ode__ = 0, __print_vars__ = 0,__print_parm__ = 0,__print_jac__ = 0;\n\tdouble __DDtStateVar__[%d];\n",tb.nd+1);
@@ -585,12 +588,17 @@ int main(int argc, char *argv[]) {
   p->save_parse_tree = 1;
 
   if (argc<3) {
-    fprintf(stderr,"Usage: %s FILE_to_parse c_FILE [aux file direcory]\n",argv[0]);
+    fprintf(stderr,"Usage: %s FILE_to_parse c_FILE [aux_file_direcory extra_c]\n",argv[0]);
     return -1;
   } else {
     buf = sbuf_read(argv[1]);
-    err_msg((intptr_t) buf, "error: empty buf\n", -2);
+    err_msg((intptr_t) buf, "error: empty buf for FILE_to_parse\n", -2);
   }
+  if (argc >= 4){
+    extra_buf = sbuf_read(argv[4]);
+    err_msg((intptr_t) extra_buf, "error: empty buf for extra_c\n", -2);
+  }
+  
 
   if ((pn=dparse(p, buf, strlen(buf))) && !p->syntax_errors) {
     inits();
