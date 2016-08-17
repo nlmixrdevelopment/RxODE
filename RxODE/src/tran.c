@@ -148,6 +148,14 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       if (!strcmp("jac_rhs", name) && i == 5) continue;
       if (!strcmp("jac", name)     && i == 6) continue;
 
+      if (!strcmp("dfdy", name)     && i< 2)   continue;
+      if (!strcmp("dfdy_rhs", name) && i< 2)   continue;
+      if (!strcmp("dfdy", name)     && i == 3) continue;
+      if (!strcmp("dfdy_rhs", name) && i == 3) continue;
+      if (!strcmp("dfdy", name)     && i == 5) continue;
+      if (!strcmp("dfdy_rhs", name) && i == 5) continue;
+      if (!strcmp("dfdy", name)     && i == 6) continue;
+
       if (!strcmp("decimalint",name)){
 	// Make implicit double
 	sprintf(SBPTR,".0");
@@ -157,7 +165,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       tb.fn = (!strcmp("function", name) && i==0) ? 1 : 0;
       D_ParseNode *xpn = d_get_child(pn,i);
       wprint_parsetree(pt, xpn, depth, fn, client_data);
-      /* printf("%s[%d]: %s\n",name,i,sb.s); */
       if (!strcmp("print_command",name)){
 	char *v = (char*)dup_str(xpn->start_loc.s, xpn->end);
 	if  (!strncmp(v,"print",5)){
@@ -203,10 +210,11 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	continue;
       } 
 
-      if ( (strcmp("jac",name) == 0 || strcmp("jac_rhs",name) == 0) && i == 2){
+      if ( (!strcmp("jac",name) || !strcmp("jac_rhs",name) ||
+	    !strcmp("dfdy",name) || !strcmp("dfdy_rhs",name)) && i == 2){
 	found_jac = 1;
         char *v = (char*)dup_str(xpn->start_loc.s, xpn->end);
-	if (strcmp("jac_rhs",name) == 0){
+	if (!strcmp("jac_rhs",name) || !strcmp("dfdy_rhs",name)){
 	  // Continuation statement
 	  sprintf(SBPTR,"__PDStateVar__[__CMT_NUM_%s__*(__NROWPD__)+",v);
 	} else {
@@ -218,7 +226,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         free(v);
 	continue;
       }
-      if ((strcmp("jac",name) == 0 || strcmp("jac_rhs",name) == 0) && i == 4){
+      if ((!strcmp("jac",name)  || !strcmp("jac_rhs",name) ||
+	   !strcmp("dfdy",name) || !strcmp("dfdy_rhs",name)) && i == 4){
         char *v = (char*)dup_str(xpn->start_loc.s, xpn->end);
 	sprintf(SBPTR, "__CMT_NUM_%s__]",v);
 	sb.o = strlen(sb.s);
@@ -305,7 +314,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 
     }
 
-    if (!strcmp("assignment", name) || !strcmp("derivative", name) || !strcmp("jac",name))
+    if (!strcmp("assignment", name) || !strcmp("derivative", name) || !strcmp("jac",name) || !strcmp("dfdy",name))
       fprintf(fpIO, "%s;\n", sb.s);
 
     if (!strcmp("selection_statement", name))

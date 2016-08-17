@@ -6,6 +6,7 @@ statement
   : assignment end_statement
   | derivative end_statement
   | jac end_statement
+  | dfdy end_statement
   | compound_statement
   | selection_statement
   | printf_statement end_statement
@@ -38,13 +39,14 @@ der_rhs    : 'd/dt' '(' identifier_no_output ')';
 jac        : jac_command '(' identifier_no_output ',' identifier_no_output ')' '=' additive_expression;
 jac_rhs    : jac_command '(' identifier_no_output ',' identifier_no_output ')';
 
+dfdy        : 'df' '(' identifier_no_output ')/dy(' identifier_no_output ')' '=' additive_expression;
+dfdy_rhs    : 'df' '(' identifier_no_output ')/dy(' identifier_no_output ')';
+
 jac_command : 'jac' | 'df/dy';
 
 end_statement : (';')* ;
 
 assignment : identifier '=' additive_expression;
-
-
 
 logical_or_expression :	logical_and_expression 
   ('||' logical_and_expression)* ;
@@ -72,6 +74,7 @@ primary_expression
   : identifier
   | der_rhs
   | jac_rhs
+  | dfdy_rhs
   | constant
   | function
   | '(' additive_expression ')'
