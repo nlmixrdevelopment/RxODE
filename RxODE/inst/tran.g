@@ -19,7 +19,7 @@ selection_statement
   : 'if' '(' logical_or_expression ')' statement ('else' statement)?;
 
 printf_statement
-  : printf_command '(' string (',' (identifier | der_rhs | jac_rhs ))* ')';
+  : printf_command '(' string (',' additive_expression )* ')';
 
 printf_command
   : 'printf' | 'Rprintf' | 'print' |
