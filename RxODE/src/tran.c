@@ -601,10 +601,17 @@ int main(int argc, char *argv[]) {
   }
   if (argc >= 4){
     extra_buf = sbuf_read(argv[4]);
-    err_msg((intptr_t) extra_buf, "error: empty buf for extra_c\n", -2);
+    if (!((intptr_t) extra_buf)){
+      extra_buf = (char *) malloc(2);
+      sprintf(extra_buf,"");
+    } 
+  } else {
+    if (!((intptr_t) extra_buf)){
+      extra_buf = (char *) malloc(2);
+      sprintf(extra_buf,"");
+    }
   }
   
-
   if ((pn=dparse(p, buf, strlen(buf))) && !p->syntax_errors) {
     inits();
     fpIO = fopen( "out2.txt", "w" );
