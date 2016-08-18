@@ -34,22 +34,22 @@ printf_command
 print_command
   : 'print' | 'ode_print' | 'jac_print' | 'lhs_print';
 
-derivative : 'd/dt' '(' identifier_no_output ')' '=' additive_expression;
+derivative : 'd/dt' '(' identifier_no_output ')' ('=' | '<-') additive_expression;
 der_rhs    : 'd/dt' '(' identifier_no_output ')';
-jac        : jac_command '(' identifier_no_output ',' identifier_no_output ')' '=' additive_expression;
+jac        : jac_command '(' identifier_no_output ',' identifier_no_output ')' ('=' | '<-') additive_expression;
 jac_rhs    : jac_command '(' identifier_no_output ',' identifier_no_output ')';
 
-dfdy        : 'df' '(' identifier_no_output ')/dy(' identifier_no_output ')' '=' additive_expression;
+dfdy        : 'df' '(' identifier_no_output ')/dy(' identifier_no_output ')' ('=' | '<-') additive_expression;
 dfdy_rhs    : 'df' '(' identifier_no_output ')/dy(' identifier_no_output ')';
 
 jac_command : 'jac' | 'df/dy';
 
 end_statement : (';')* ;
 
-assignment : identifier '=' additive_expression;
+assignment : identifier ('=' | '<-') additive_expression;
 
 logical_or_expression :	logical_and_expression 
-  ('||' logical_and_expression)* ;
+    ('||'  logical_and_expression)* ;
 
 logical_and_expression : equality_expression 
     ('&&' equality_expression)* ;

@@ -101,7 +101,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
   if (!strcmp("(", name)) {sprintf(SBPTR, "("); sb.o++;}
   if (!strcmp(")", name)) {sprintf(SBPTR, ")"); sb.o++;}
   if (!strcmp(",", name)) {sprintf(SBPTR, ","); sb.o++;}
-
+  
   if (
       !strcmp("identifier", name) ||
       !strcmp("constant", name) ||
@@ -123,14 +123,26 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       !strcmp("=", name)
      )
     fn(depth, name, value, client_data);
-  free(value);
 
+  // Operator synonyms  
+  if (!strcmp("<-",name)){
+    sprintf(SBPTR," = ");
+    sb.o += 3;
+  }
+  
+  free(value);
+  
   depth++;
   if (nch != 0) {
-
+    
+    
     if (!strcmp("power_expression", name)) {
       sprintf(SBPTR, " pow(");
-      sb.o+=5;
+      sb.o += 5;
+    }
+    if (!strcmp("assign_operator", name)){
+      sprintf(SBPTR," = ");
+      sb.o += 3;
     }
     for (i = 0; i < nch; i++) {
       
@@ -629,7 +641,7 @@ int main(int argc, char *argv[]) {
     fclose(fpIO);
     if (fp_inits) fclose(fp_inits);
 
-	fpIO = fopen(argv[2], "w");
+    fpIO = fopen(argv[2], "w");
     codegen(fpIO, 1);
     codegen(fpIO, 2);
     codegen(fpIO, 0);
