@@ -2,6 +2,14 @@
 #include <string.h>
 #include <stdint.h>   /* dj: import intptr_t */
 #include "dparse_tree.h"
+#ifdef __STANDALONE__
+#define Rprintf printf
+#define R_alloc calloc
+#else
+#include <R.h>
+#include <Rinternals.h>
+#include <Rmath.h>
+#endif
 #define max(a,b) (a)>(b) ? (a):(b)
 #define MXSYM 5000
 #define MXDER 500
@@ -623,34 +631,27 @@ void inits() {
   tb.fn=0;
 }
 
-int main(int argc, char *argv[]) {
+void trans_internal(char* parse_file, char* c_file,
+		    char* aux_dir, char* extra_c){
   char *buf;
   D_ParseNode *pn;
   /* any number greater than sizeof(D_ParseNode_User) will do;
      below 1024 is used */
   D_Parser *p = new_D_Parser(&parser_tables_gram, 1024);
   p->save_parse_tree = 1;
-
-  if (argc<3) {
-    fprintf(stderr,"Usage: %s FILE_to_parse c_FILE [aux_file_direcory extra_c]\n",argv[0]);
-    return -1;
-  } else {
-    buf = sbuf_read(argv[1]);
-    err_msg((intptr_t) buf, "error: empty buf for FILE_to_parse\n", -2);
-  }
-  if (argc >= 4){
-    extra_buf = sbuf_read(argv[4]);
-    if (!((intptr_t) extra_buf)){
-      extra_buf = (char *) malloc(2);
-      sprintf(extra_buf,"");
-    } 
-  } else {
+  buf = sbuf_read(parse_file);
+  err_msg((intptr_t) buf, "error: empty buf for FILE_to_parse\n", -2);
+  // Read extra c file.
+  if (!strcmp("",extra_c)){
+    extra_buf = sbuf_read(extra_c);
     if (!((intptr_t) extra_buf)){
       extra_buf = (char *) malloc(2);
       sprintf(extra_buf,"");
     }
+  } else {
+    extra_buf = (char *) malloc(2);
+    sprintf(extra_buf,"");
   }
-  
   if ((pn=dparse(p, buf, strlen(buf))) && !p->syntax_errors) {
     inits();
     fpIO = fopen( "out2.txt", "w" );
@@ -659,18 +660,34 @@ int main(int argc, char *argv[]) {
     fclose(fpIO);
     if (fp_inits) fclose(fp_inits);
 
-    fpIO = fopen(argv[2], "w");
+    fpIO = fopen(c_file, "w");
     codegen(fpIO, 1);
     codegen(fpIO, 2);
     codegen(fpIO, 0);
     fclose(fpIO);
-    prnt_aux_files(argc<4 ? "" : argv[3]);
+    prnt_aux_files(aux_dir);
     remove("out2.txt");
     free(tb.ss);
     free(tb.de);
   } else {
-    printf("\nfailure\n");
+    Rprintf("\nfailure\n");
   }
+}
+
+#ifdef __STANDALONE__
+int main(int argc, char *argv[]) {
+  if (argc<3) {
+    fprintf(stderr,"Usage: %s FILE_to_parse c_FILE [aux_file_direcory extra_c]\n",argv[0]);
+    return -1;
+  }
+  trans_internal(argv[1], argv[2], ((argc >= 3) ? argv[3] : ""),
+		 ((argc >= 4) ? argv[4] : ""));
   return 0;
 }
 
+#else
+SEXP trans(SEXP parse_file, SEXP aux_directory, SEXP extra_c){
+  // FIXME -- call trans_internal
+}
+//FILE_to_parse c_FILE [aux_file_direcory extra_c]\n",argv[0]);
+#endif

@@ -16,7 +16,7 @@ libdparse:
 
 libtran:
 	echo "make tran ..."
-	($(CC) tran*.c -Idparser -Ldparser -ldparse -o tran.exe)
+	($(CC) tran.c -Idparser -Ldparser -ldparse -D__STANDALONE__ -o tran.exe)
 
 clean:
 	echo "cleaning ..."
