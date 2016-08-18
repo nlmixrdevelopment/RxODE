@@ -101,7 +101,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
   if (!strcmp("(", name)) {sprintf(SBPTR, "("); sb.o++;}
   if (!strcmp(")", name)) {sprintf(SBPTR, ")"); sb.o++;}
   if (!strcmp(",", name)) {sprintf(SBPTR, ","); sb.o++;}
-  
+
   if (
       !strcmp("identifier", name) ||
       !strcmp("constant", name) ||
@@ -118,12 +118,11 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       !strcmp(">=", name) ||
       !strcmp("!", name) ||
       !strcmp("<", name) ||
-      !strcmp(">", name)/*  || */
+      !strcmp(">", name) ||
 
-      /* !strcmp("=", name) */
+      !strcmp("=", name)
      )
     fn(depth, name, value, client_data);
-  
   free(value);
 
   depth++;
@@ -131,11 +130,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 
     if (!strcmp("power_expression", name)) {
       sprintf(SBPTR, " pow(");
-      sb.o += 5;
-    }
-    if (!strcmp("assign_operator", name)){
-      sprintf(SBPTR," = ");
-      sb.o += 3;
+      sb.o+=5;
     }
     for (i = 0; i < nch; i++) {
       
