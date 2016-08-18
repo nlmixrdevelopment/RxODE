@@ -49,13 +49,13 @@ end_statement : (';')* ;
 assignment : identifier ('=' | '<-') additive_expression;
 
 logical_or_expression :	logical_and_expression 
-    ('||'  logical_and_expression)* ;
+    (('||' | '|')  logical_and_expression)* ;
 
 logical_and_expression : equality_expression 
-    ('&&' equality_expression)* ;
+    (('&&' | '&') equality_expression)* ;
 
 equality_expression : relational_expression 
-  (('!=' | '==') relational_expression)* ;
+  (('!=' | '~=' | '<>' | '/=' | '==') relational_expression)* ;
 
 relational_expression : additive_expression
  (('<' | '>' | '<=' | '>=') additive_expression)* ;

@@ -130,6 +130,24 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
     sb.o += 3;
   }
   
+  if (!strcmp("|",name)){
+    sprintf(SBPTR," || ");
+    sb.o += 4;
+  }
+
+  if (!strcmp("&",name)){
+    sprintf(SBPTR," && ");
+    sb.o += 4;
+  }
+
+  if (!strcmp("<>",name) ||
+      !strcmp("~=",name) ||
+      !strcmp("/=",name) 
+      ){
+    sprintf(SBPTR," != ");
+    sb.o += 4;
+  }
+  
   free(value);
   
   depth++;
