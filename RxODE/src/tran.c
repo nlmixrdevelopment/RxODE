@@ -10,6 +10,7 @@
 #include <Rinternals.h>
 #include <Rmath.h>
 #endif
+#include "tran.g.d_parser.c"
 #define max(a,b) (a)>(b) ? (a):(b)
 #define MXSYM 5000
 #define MXDER 500

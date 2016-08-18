@@ -1,4 +1,4 @@
-# Copy libs, headers, and binaries to to
+                                        # Copy libs, headers, and binaries to to
 # R_PACKAGE_DIR/{libs,include,bin} as per architecture
 
 bin  <- file.path(R_PACKAGE_DIR, paste0("bin", R_ARCH))
@@ -16,6 +16,10 @@ if(!file.exists(incl))
 
 # binary files
 files <- file.path(".", "tran.exe")
+message("Installing ", files, " to ", bin)
+file.copy(files, bin, overwrite = TRUE)
+
+files <- file.path(".", sprintf("tran%s",.Platform$dynlib.ext))
 message("Installing ", files, " to ", bin)
 file.copy(files, bin, overwrite = TRUE)
 
