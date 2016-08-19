@@ -29,7 +29,7 @@ void F77_NAME(dvode)(
 
 
 		    long slvr_counter, dadt_counter, jac_counter;
-double InfusionRate[99];
+double *InfusionRate;
 double ATOL;		//absolute error
 double RTOL;		//relative error
 int do_transit_abs=0;
@@ -39,17 +39,17 @@ double *par_ptr;
 FILE *fp;
 
 
-void dydt(unsigned int neq, double t, double *A, double *DADT);
-void calc_lhs(double t, double *A, double *lhs);
-void calc_jac(unsigned int neq, double t, double *A, double *JAC, unsigned int __NROWPD__);
+void __DYDT__(unsigned int neq, double t, double *A, double *DADT);
+void __CALC_LHS__(double t, double *A, double *lhs);
+void __CALC_JAC__(unsigned int neq, double t, double *A, double *JAC, unsigned int __NROWPD__);
 
 //--------------------------------------------------------------------------
 void dydt_lsoda_dum(int *neq, double *t, double *A, double *DADT)
 {
-	dydt(*neq, *t, A, DADT);
+	__DYDT__(*neq, *t, A, DADT);
 }
 void jdum_lsoda(int *neq, double *t, double *A,int *ml, int *mu, double *JAC, int *nrowpd){
-  calc_jac(*neq, *t, A, JAC, *nrowpd);
+  __CALC_JAC__(*neq, *t, A, JAC, *nrowpd);
 }
 void call_lsoda(int neq, double *x, int *evid, int nx, double *inits, double *dose, double *ret, int *rc)
 {
@@ -157,11 +157,11 @@ void call_lsoda(int neq, double *x, int *evid, int nx, double *inits, double *do
 
 void dydt_dvode_dum(int *neq, double *t, double *A, double *DADT, double *RPAR, int *IPAR)
 {
-	dydt(*neq, *t, A, DADT);
+	__DYDT__(*neq, *t, A, DADT);
 }
 
 void jdum_dvode(int *neq, double *t, double *A,int *ml, int *mu, double *JAC, int *nrowpd, double *RPAR, int *IPAR) {
-  calc_jac(*neq, *t, A, JAC, *nrowpd);
+  __CALC_JAC__(*neq, *t, A, JAC, *nrowpd);
 }
 
 void call_dvode(int neq, double *x, int *evid, int nx, double *inits, double *dose, double *ret, int *rc)
@@ -312,7 +312,7 @@ void call_dop(int neq, double *x, int *evid, int nx, double *inits, double *dose
 		{
 			idid = dop853(
 							  neq,      	/* dimension of the system <= UINT_MAX-1*/
-							  dydt,       	/* function computing the value of f(x,y) */
+							  __DYDT__,    	/* function computing the value of f(x,y) */
 							  xp,           /* initial x-value */
 							  yp,           /* initial values for y */
 							  xout,         /* final x-value (xend-x may be positive or negative) */
@@ -389,7 +389,7 @@ void call_dop(int neq, double *x, int *evid, int nx, double *inits, double *dose
 }
 
 //wrapper
-void ode_solver(
+void __ODE_SOLVER__(
 	int *neq,
 	double *theta,	//order:
 	double *time,
@@ -408,7 +408,8 @@ void ode_solver(
 )
 {
 	int i;
-	for (i=0; i<99; i++) InfusionRate[i] = 0.0;
+	InfusionRate = (double *) malloc((*neq)*sizeof(double));
+	for (i=0; i< *neq; i++) InfusionRate[i] = 0.0;
 	ATOL = *atol;
 	RTOL = *rtol;
 	do_transit_abs = *transit_abs;
@@ -421,7 +422,9 @@ void ode_solver(
 		call_lsoda(*neq, time, evid, *ntime, inits, dose, ret, rc);
 
 	if (*nlhs) for (i=0; i<*ntime; i++)
-		calc_lhs(time[i], ret+i*(*neq), lhs+i*(*nlhs));
+		__CALC_LHS__(time[i], ret+i*(*neq), lhs+i*(*nlhs));
 
 	if (fp) fclose(fp);
+	free(InfusionRate);
 }
+

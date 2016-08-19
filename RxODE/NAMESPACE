@@ -2,7 +2,8 @@ importFrom("tools", "md5sum")   # to ensure equality
 import("utils")
 
 # export only these 3 RxODE functions and print methods
-export("RxODE", "rx.initCmpMgr", "eventTable","igraph.RxODE","igraph")
+export("RxODE", "rx.initCmpMgr", "eventTable","igraph.RxODE","igraph",
+       "rxTrans")
 
 S3method("print", "RxODE")
 S3method("summary", "RxODE")
@@ -18,4 +19,4 @@ export("genShinyApp.template",
    "write.template.server", 
    "write.template.ui")
 
-#useDynLib("RxODE")
+useDynLib(RxODE,trans)

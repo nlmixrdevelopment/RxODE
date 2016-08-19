@@ -4,7 +4,7 @@ CFLAGS = `"$(R_HOME)/bin/R" CMD config CFLAGS`
 FFLAGS = `"$(R_HOME)/bin/R" CMD config FFLAGS`
 
 # Run make in subdirs
-all: libodeaux libdparse libtran trandll
+all: libodeaux libdparse trandll # libtran
 
 libodeaux:
 	echo "make libodeaux.a in ode/ ..."
@@ -19,8 +19,8 @@ libtran:
 	($(CC) tran.c -Idparser -Ldparser -ldparse -D__STANDALONE__ -o tran.exe)
 
 trandll:
-	echo "make tran.so ..."
-	(mkdir dll; cp *.c dll; cp Makevars-dll dll/Makevars; cd dll; "$(R_HOME)/bin/R" CMD SHLIB tran.c; mv tran.so ..; cd ..; rm -rf dll)
+	echo "make RxODE.so or RxODE.sl ..."
+	(mkdir dll; cp *.c dll; cp Makevars-dll dll/Makevars; cd dll; mv tran.c RxODE.c; "$(R_HOME)/bin/R" CMD SHLIB RxODE.c; mv RxODE.s* ..; cd ..; rm -rf dll)
 
 
 clean:
@@ -28,4 +28,4 @@ clean:
 	(cd dparser;rm -f *.o *.a)
 	(cd ode;rm -f *.o *.a)
 	rm -f *.exe
-	rm -f *.so
+	rm -f *.s*

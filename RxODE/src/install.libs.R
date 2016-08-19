@@ -15,13 +15,13 @@ if(!file.exists(incl))
    dir.create(incl, recursive = TRUE, showWarnings = FALSE)
 
 # binary files
-files <- file.path(".", "tran.exe")
-message("Installing ", files, " to ", bin)
-file.copy(files, bin, overwrite = TRUE)
+## files <- file.path(".", "tran.exe")
+## message("Installing ", files, " to ", bin)
+## file.copy(files, bin, overwrite = TRUE)
 
-files <- file.path(".", sprintf("tran%s",.Platform$dynlib.ext))
-message("Installing ", files, " to ", bin)
-file.copy(files, bin, overwrite = TRUE)
+files <- file.path(".", sprintf("RxODE%s",.Platform$dynlib.ext))
+message("Installing ", files, " to ", libs)
+file.copy(files, libs, overwrite = TRUE)
 
 # libs
 files <- file.path("ode", "libodeaux.a")

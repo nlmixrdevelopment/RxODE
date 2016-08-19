@@ -23,7 +23,7 @@ char *dup_str(char *s, char *e);  /* dj: defined in dparser's util.h */
 
 extern D_ParserTables parser_tables_gram;
 
-unsigned int found_jac = 0;
+unsigned int found_jac = 0, ini = 0;
 
 
 typedef struct symtab {
@@ -38,6 +38,8 @@ typedef struct symtab {
   int id;                       /* ith of curr symbol */
   int fn;			/* curr symbol a fn?*/
   int nd;			/* nbr of dydt */
+  int pos;
+  int pos_de;
 } symtab;
 symtab tb;
 
@@ -48,9 +50,9 @@ typedef struct sbuf {
 sbuf sb;			/* buffer w/ current parsed & translated line */
         			/* to be stored in a temp file */
 
-static char *extra_buf;
+char *extra_buf, *model_prefix;
 
-static FILE *fpIO, *fp_inits;
+static FILE *fpIO;
 
 
 /* new symbol? if no, find it's ith */
@@ -99,11 +101,10 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 
   if ((!strcmp("identifier", name) || !strcmp("identifier_no_output",name)) &&
       new_or_ith(value)) {
-    static int pos=0;
     /* printf("[%d]->%s\n",tb.nv,value); */
-    sprintf(tb.ss+pos, "%s,", value);
-    pos += strlen(value)+1;
-    tb.vo[++tb.nv] = pos;
+    sprintf(tb.ss+tb.pos, "%s,", value);
+    tb.pos += strlen(value)+1;
+    tb.vo[++tb.nv] = tb.pos;
     
   }
 
@@ -166,10 +167,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
     if (!strcmp("power_expression", name)) {
       sprintf(SBPTR, " pow(");
       sb.o += 5;
-    }
-    if (!strcmp("assign_operator", name)){
-      sprintf(SBPTR," = ");
-      sb.o += 3;
     }
     for (i = 0; i < nch; i++) {
       
@@ -304,7 +301,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       if (!strcmp("derivative", name) && i==2) {
         /* sprintf(sb.s, "__DDtStateVar__[%d] = InfusionRate[%d] +", tb.nd, tb.nd); */
         /* sb.o = strlen(sb.s); */
-	static int pos_de = 0;
         char *v = (char*)dup_str(xpn->start_loc.s, xpn->end);
 	if (new_de(v)){
 	  sprintf(sb.s, "__DDtStateVar__[%d] = InfusionRate[%d] + ", tb.nd, tb.nd);
@@ -313,9 +309,9 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
           tb.lh[tb.ix] = 9;
           tb.di[tb.nd] = tb.ix;
 	  /* printf("de[%d]->%s[%d]\n",tb.nd,v,tb.ix); */
-          sprintf(tb.de+pos_de, "%s,", v);
-	  pos_de += strlen(v)+1;
-          tb.deo[++tb.nd] = pos_de;
+          sprintf(tb.de+tb.pos_de, "%s,", v);
+	  tb.pos_de += strlen(v)+1;
+          tb.deo[++tb.nd] = tb.pos_de;
           /* free(buf); */
         } else {
 	  new_or_ith(v);
@@ -329,11 +325,16 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       if (!strcmp("der_rhs", name)) {
       	char *v = (char*)dup_str(xpn->start_loc.s, xpn->end);
         if (new_de(v)){
-	  fprintf(stderr,"Tried to use d/dt(%s) before it was defined",v);
+#ifdef __STANDALONE__
+          fprintf(stderr,"Tried to use d/dt(%s) before it was defined",v);
 	  free(v);
-	  if (tb.ss) free(tb.ss);
+          if (tb.ss) free(tb.ss);
           if (tb.de) free(tb.de);
-	  exit(-1);
+          exit(-1);
+#else
+	  error("Tried to use d/dt(%s) before it was defined",v);
+	  free(v);
+#endif
 	} else {
 	  sprintf(SBPTR, "__DDtStateVar__[%d]", tb.id);
 	  sb.o = strlen(sb.s);
@@ -378,10 +379,14 @@ void retieve_var(int i, char *buf) {
 void err_msg(int chk, const char *msg, int code)
 {
   if(!chk) {
+#ifdef __STANDALONE__
     if (tb.ss) free(tb.ss);
     if (tb.de) free(tb.de);
     fprintf(stderr, "%s", msg);
     exit(code);
+#else
+    error("%s",msg);
+#endif
   }
 }
 
@@ -404,41 +409,80 @@ void prnt_vars(int scenario, FILE *outpt, int lhs, const char *pre_str, const ch
   fprintf(outpt, "%s", post_str);  /* dj: security calls for const format */
 }
 
-//output aux_files -- to be read by dvode() in R.
-void prnt_aux_files(char *prefix) {
-  int i, islhs;
+void print_aux_info(FILE *outpt){
+  int i, islhs,pi = 0,li = 0, o=0, statei = 0;
+  char *s;
   char buf[512];
-  FILE *fp[4];
-
-  sprintf(buf, "%sODE_PARS.txt",   prefix); fp[0] = fopen(buf, "w");
-  sprintf(buf, "%sLHS_VARS.txt",   prefix); fp[1] = fopen(buf, "w");
-  sprintf(buf, "%sSTATE_VARS.txt", prefix); fp[2] = fopen(buf, "w");
-  sprintf(buf, "%sJAC_TYPE.txt",   prefix); fp[3] = fopen(buf, "w");
-  i = (intptr_t) fp[0] * (intptr_t) fp[1] * (intptr_t) fp[2];  /* dj: sizeof(int)!=ptr */
-  err_msg(i, "Coudln't open file to write.\n", -1);
-
+  s = (char *) malloc(64*MXSYM);
   for (i=0; i<tb.nv; i++) {
     islhs = tb.lh[i];
-    if (islhs>1) continue;	/* is a state var */
+    if (islhs>1) continue;      /* is a state var */
     retieve_var(i, buf);
-    fprintf(fp[islhs], "%s ", buf);
+    if (islhs == 0){
+      sprintf(s+o, "\tSET_STRING_ELT(params,%d,mkChar(\"%s\"));\n", pi++, buf);
+    } else {
+      sprintf(s+o, "\tSET_STRING_ELT(lhs,%d,mkChar(\"%s\"));\n", li++, buf);
+    }
+    o = strlen(s);
   }
-
-  for (i=0; i<tb.nd; i++) {			/* name state vars */
+  for (i=0; i<tb.nd; i++) {                     /* name state vars */
     retieve_var(tb.di[i], buf);
-    fprintf(fp[2], "%s ", buf);
+    sprintf(s+o, "\tSET_STRING_ELT(state,%d,mkChar(\"%s\"));\n", statei++, buf);
+    o = strlen(s);
   }
+  fprintf(outpt,"extern SEXP %smodel_vars(){\n",model_prefix);
+  fprintf(outpt,"\tSEXP lst = PROTECT(allocVector(VECSXP,4));\n");
+  fprintf(outpt,"\tSEXP params = PROTECT(allocVector(STRSXP, %d));\n",pi);
+  fprintf(outpt,"\tSEXP lhs = PROTECT(allocVector(STRSXP, %d));\n",li);
+  fprintf(outpt,"\tSEXP state = PROTECT(allocVector(STRSXP, %d));\n",statei);
+  fprintf(outpt,"\tSEXP names = PROTECT(allocVector(STRSXP, 4));\n");
+  fprintf(outpt,"\tSEXP tran =PROTECT(allocVector(STRSXP, 7));\n");
+  fprintf(outpt,"\tSEXP trann=PROTECT(allocVector(STRSXP, 7));\n");
+  // Vector Names
+  fprintf(outpt,"\tSET_STRING_ELT(names,0,mkChar(\"params\"));\n");
+  fprintf(outpt,"\tSET_VECTOR_ELT(lst,0,params);\n");
+  fprintf(outpt,"\tSET_STRING_ELT(names,1,mkChar(\"lhs\"));\n");
+  fprintf(outpt,"\tSET_VECTOR_ELT(lst,1,lhs);\n");
+  fprintf(outpt,"\tSET_STRING_ELT(names,2,mkChar(\"state\"));\n");
+  fprintf(outpt,"\tSET_VECTOR_ELT(lst,2,state);\n");
+  fprintf(outpt,"\tSET_STRING_ELT(names,3,mkChar(\"trans\"));\n");
+  fprintf(outpt,"\tSET_VECTOR_ELT(lst,3,tran);\n");
 
+  fprintf(outpt,"%s",s);
+  free(s);
+
+  // now trans output
+  fprintf(outpt,"\tSET_STRING_ELT(trann,0,mkChar(\"jac\"));\n");
   if (found_jac == 1){
-    fprintf(fp[3],"fulluser",buf); // Full User Matrix
+    fprintf(outpt,"\tSET_STRING_ELT(tran,0,mkChar(\"fulluser\"));\n"); // Full User Matrix
   } else {
-    fprintf(fp[3],"fullint",buf); // Full Internal Calculated Matrix
+    fprintf(outpt,"\tSET_STRING_ELT(tran,0,mkChar(\"fullint\"));\n"); // Full Internal Matrix
   }
+  fprintf(outpt,"\tSET_STRING_ELT(trann,1,mkChar(\"prefix\"));\n");
+  fprintf(outpt,"\tSET_STRING_ELT(tran, 1,mkChar(\"%s\"));\n",model_prefix);
 
-  fclose(fp[0]);
-  fclose(fp[1]);
-  fclose(fp[2]);
-  fclose(fp[3]);
+  fprintf(outpt,"\tSET_STRING_ELT(trann,2,mkChar(\"dydt\"));\n");
+  fprintf(outpt,"\tSET_STRING_ELT(tran, 2,mkChar(\"%sdydt\"));\n",model_prefix);
+
+  fprintf(outpt,"\tSET_STRING_ELT(trann,3,mkChar(\"calc_jac\"));\n");
+  fprintf(outpt,"\tSET_STRING_ELT(tran, 3,mkChar(\"%scalc_jac\"));\n",model_prefix);
+
+  fprintf(outpt,"\tSET_STRING_ELT(trann,4,mkChar(\"calc_lhs\"));\n");
+  fprintf(outpt,"\tSET_STRING_ELT(tran, 4,mkChar(\"%scalc_lhs\"));\n",model_prefix);
+
+  fprintf(outpt,"\tSET_STRING_ELT(trann,5,mkChar(\"model_vars\"));\n");
+  fprintf(outpt,"\tSET_STRING_ELT(tran, 5,mkChar(\"%smodel_vars\"));\n",model_prefix);
+  
+  fprintf(outpt,"\tSET_STRING_ELT(trann,6,mkChar(\"ode_solver\"));\n");
+  fprintf(outpt,"\tSET_STRING_ELT(tran, 6,mkChar(\"%sode_solver\"));\n",model_prefix);
+  
+  fprintf(outpt,"\tsetAttrib(tran, R_NamesSymbol, trann);\n");
+  fprintf(outpt,"\tsetAttrib(lst, R_NamesSymbol, names);\n");
+
+  fprintf(outpt,"\tUNPROTECT(7);\n");
+  
+  fprintf(outpt,"\treturn lst;\n");
+  fprintf(outpt,"}\n");
 }
 
 void codegen(FILE *outpt, int show_ode) {
@@ -450,10 +494,10 @@ void codegen(FILE *outpt, int show_ode) {
   char *hdft[]=
     {
       "#include <math.h>\n#ifdef __STANDALONE__\n#define Rprintf printf\n#define JAC_Rprintf printf\n#define JAC0_Rprintf if (jac_counter == 0) printf\n#define ODE_Rprintf printf\n#define ODE0_Rprintf if (dadt_counter == 0) printf\n#define LHS_Rprintf printf\n#define R_alloc calloc\n#else\n#include <R.h>\n#include <Rinternals.h>\n#include <Rmath.h>\n#define JAC_Rprintf Rprintf\n#define JAC0_Rprintf if (jac_counter == 0) Rprintf\n#define ODE_Rprintf Rprintf\n#define ODE0_Rprintf if (dadt_counter == 0) Rprintf\n#define LHS_Rprintf Rprintf\n#endif\n#define max(a,b) (((a)>(b))?(a):(b))\n#define min(a,b) (((a)<(b))?(a):(b))\n",
-      "extern long dadt_counter;\nextern long jac_counter;\nextern double InfusionRate[99];\nextern double *par_ptr;\nextern double podo;\nextern double tlast;\n\n// prj-specific differential eqns\nvoid dydt(unsigned int neq, double t, double *__zzStateVar__, double *__DDtStateVar__)\n{\n\tint __print_ode__ = 0, __print_vars__ = 0,__print_parm__ = 0,__print_jac__ = 0;\n",
+      "extern long dadt_counter;\nextern long jac_counter;\nextern double InfusionRate[99];\nextern double *par_ptr;\nextern double podo;\nextern double tlast;\n\n// prj-specific differential eqns\nvoid ",
+      "dydt(unsigned int neq, double t, double *__zzStateVar__, double *__DDtStateVar__)\n{\n\tint __print_ode__ = 0, __print_vars__ = 0,__print_parm__ = 0,__print_jac__ = 0;\n",
       "    dadt_counter++;\n}\n\n"
     };
-
   if (show_ode == 1){
     fprintf(outpt, "%s", hdft[0]);
     if (found_jac == 1){
@@ -464,10 +508,12 @@ void codegen(FILE *outpt, int show_ode) {
     } 
     fprintf(outpt,"\n%s\n",extra_buf);
     fprintf(outpt, "%s", hdft[1]);
+    fprintf(outpt, "%s", model_prefix);
+    fprintf(outpt, "%s", hdft[2]);
   } else if (show_ode == 2){
-    fprintf(outpt, "// Jacobian derived vars\nvoid calc_jac(unsigned int neq, double t, double *__zzStateVar__, double *__PDStateVar__, unsigned int __NROWPD__) {\n\tint __print_ode__ = 0, __print_vars__ = 0,__print_parm__ = 0,__print_jac__ = 0;\n\tdouble __DDtStateVar__[%d];\n",tb.nd+1);
+    fprintf(outpt, "// Jacobian derived vars\nvoid %scalc_jac(unsigned int neq, double t, double *__zzStateVar__, double *__PDStateVar__, unsigned int __NROWPD__) {\n\tint __print_ode__ = 0, __print_vars__ = 0,__print_parm__ = 0,__print_jac__ = 0;\n\tdouble __DDtStateVar__[%d];\n",model_prefix,tb.nd+1);
   } else {
-    fprintf(outpt, "// prj-specific derived vars\nvoid calc_lhs(double t, double *__zzStateVar__, double *lhs) {\n\tint __print_ode__ = 0, __print_vars__ = 0,__print_parm__ = 0,__print_jac__ = 0;\n");
+    fprintf(outpt, "// prj-specific derived vars\nvoid %scalc_lhs(double t, double *__zzStateVar__, double *lhs) {\n\tint __print_ode__ = 0, __print_vars__ = 0,__print_parm__ = 0,__print_jac__ = 0;\n",model_prefix);
   }
   if ((show_ode == 2 && found_jac == 1) || show_ode != 2){
     prnt_vars(0, outpt, 0, "double", "\n");     /* declare all used vars */
@@ -556,6 +602,7 @@ void codegen(FILE *outpt, int show_ode) {
       
       fprintf(outpt, "\t%s", sLine);
     }
+    fclose(fpIO);
   }
   if (print_ode && show_ode != 0){
     fprintf(outpt,"\tif (__print_ode__ == 1){\n");
@@ -596,7 +643,7 @@ void codegen(FILE *outpt, int show_ode) {
     fprintf(outpt,"\t\tRprintf(\"================================================================================\\n\\n\\n\");\n\t}\n");
   }
   if (show_ode == 1){
-    fprintf(outpt, "%s", hdft[2]);
+    fprintf(outpt, "%s", hdft[3]);
   } else if (show_ode == 2){
     if (found_jac == 1){
       //fprintf(outpt,"\tfree(__ld_DDtStateVar__);\n");
@@ -613,27 +660,33 @@ void codegen(FILE *outpt, int show_ode) {
     }
     fprintf(outpt, "}\n");
   }
-  
-  fclose(fpIO);
-
 }
-
-void inits() {
-  tb.ss = (char *) malloc(64*MXSYM);
-  err_msg((intptr_t) tb.ss, "error allocating vars", 1);
-  tb.de = (char *) malloc(64*MXSYM);
-  err_msg((intptr_t) tb.de, "error allocating des", 1);
-
+void reset (){
   tb.vo[0]=0;
   tb.deo[0]=0;
   memset(tb.lh, 0, MXSYM);
   tb.nv=0;
   tb.nd=0;
   tb.fn=0;
+  tb.ix=0;
+  tb.id=0;
+  tb.pos =0;
+  tb.pos_de = 0;
 }
 
-void trans_internal(char* parse_file, char* c_file,
-		    char* aux_dir, char* extra_c){
+void inits() {
+  if (!ini){
+    tb.ss = (char *) malloc(64*MXSYM);
+    err_msg((intptr_t) tb.ss, "error allocating vars", 1);
+    tb.de = (char *) malloc(64*MXSYM);
+    err_msg((intptr_t) tb.de, "error allocating des", 1);
+    ini = 1;
+  }
+  reset();
+}
+
+
+void trans_internal(char* parse_file, char* c_file){
   char *buf;
   D_ParseNode *pn;
   /* any number greater than sizeof(D_ParseNode_User) will do;
@@ -642,53 +695,129 @@ void trans_internal(char* parse_file, char* c_file,
   p->save_parse_tree = 1;
   buf = sbuf_read(parse_file);
   err_msg((intptr_t) buf, "error: empty buf for FILE_to_parse\n", -2);
-  // Read extra c file.
-  if (!strcmp("",extra_c)){
-    extra_buf = sbuf_read(extra_c);
-    if (!((intptr_t) extra_buf)){
-      extra_buf = (char *) malloc(2);
-      sprintf(extra_buf,"");
-    }
-  } else {
-    extra_buf = (char *) malloc(2);
-    sprintf(extra_buf,"");
-  }
   if ((pn=dparse(p, buf, strlen(buf))) && !p->syntax_errors) {
     inits();
     fpIO = fopen( "out2.txt", "w" );
     err_msg((intptr_t) fpIO, "error opening out2.txt\n", -2);
     wprint_parsetree(parser_tables_gram, pn, 0, wprint_node, NULL);
     fclose(fpIO);
-    if (fp_inits) fclose(fp_inits);
-
     fpIO = fopen(c_file, "w");
+    err_msg((intptr_t) fpIO, "error opening output c file\n", -2);
     codegen(fpIO, 1);
     codegen(fpIO, 2);
     codegen(fpIO, 0);
+    print_aux_info(fpIO);
     fclose(fpIO);
-    prnt_aux_files(aux_dir);
     remove("out2.txt");
-    free(tb.ss);
-    free(tb.de);
   } else {
     Rprintf("\nfailure\n");
   }
+#ifdef __STANDALONE__
+  if (tb.ss) free(tb.ss);
+  if (tb.de) free(tb.de);
+  if (extra_buf) free(extra_buf);
+  if (model_prefix) free(model_prefix);
+#else
+  reset();
+#endif
+  
 }
 
 #ifdef __STANDALONE__
 int main(int argc, char *argv[]) {
   if (argc<3) {
-    fprintf(stderr,"Usage: %s FILE_to_parse c_FILE [aux_file_direcory extra_c]\n",argv[0]);
+    fprintf(stderr,"Usage: %s FILE_to_parse c_FILE [extra_c]\n",argv[0]);
     return -1;
   }
-  trans_internal(argv[1], argv[2], ((argc >= 3) ? argv[3] : ""),
-		 ((argc >= 4) ? argv[4] : ""));
+  model_prefix = (char *) malloc(2);
+  sprintf(model_prefix,"");
+  printf("trans_internal(%s, %s)\n",argv[1],argv[2]);
+  if (argc >= 3){ 
+    extra_buf = sbuf_read(argv[3]); 
+    if (!((intptr_t) extra_buf)){ 
+      extra_buf = (char *) malloc(2); 
+      sprintf(extra_buf,""); 
+    }
+  } else { 
+    if (!((intptr_t) extra_buf)){ 
+      extra_buf = (char *) malloc(2); 
+      sprintf(extra_buf,""); 
+    } 
+  } 
+     
+  trans_internal(argv[1], argv[2]);
   return 0;
 }
 
 #else
-SEXP trans(SEXP parse_file, SEXP aux_directory, SEXP extra_c){
-  // FIXME -- call trans_internal
+
+
+SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix){
+  const char *in, *out;
+  char buf[512];
+  if (!isString(parse_file) || length(parse_file) != 1){
+    error("parse_file is not a single string");
+  }
+  if (!isString(c_file) || length(c_file) != 1){
+    error("c_file is not a single string");
+  }
+  in = CHAR(STRING_ELT(parse_file,0));
+  out = CHAR(STRING_ELT(c_file,0));
+  if (extra_buf) free(extra_buf);
+  if (isString(extra_c) && length(extra_c) == 1){
+    extra_buf = sbuf_read(CHAR(STRING_ELT(extra_c,0)));
+    if (!((intptr_t) extra_buf)){ 
+      extra_buf = (char *) malloc(2); 
+      sprintf(extra_buf,""); 
+    }
+  } else {
+    extra_buf = (char *) malloc(2); 
+    sprintf(extra_buf,""); 
+  }
+  if (model_prefix) free(model_prefix);
+  if (isString(prefix) && length(prefix) == 1){
+    model_prefix = CHAR(STRING_ELT(prefix,0));
+  } else {
+    model_prefix = (char *) malloc(2);
+    sprintf(model_prefix,"");
+  }
+  trans_internal(in, out);
+  SEXP tran =PROTECT(allocVector(STRSXP, 7));
+  SEXP trann=PROTECT(allocVector(STRSXP, 7));
+  SET_STRING_ELT(trann,0,mkChar("jac"));
+  if (found_jac == 1){
+    SET_STRING_ELT(tran,0,mkChar("fulluser")); // Full User Matrix
+  } else {
+    SET_STRING_ELT(tran,0,mkChar("fullint")); // Full Internal Matrix
+  }
+  SET_STRING_ELT(trann,1,mkChar("prefix"));
+  SET_STRING_ELT(tran,1,mkChar(model_prefix));
+
+  sprintf(buf,"%sdydt",model_prefix);
+  SET_STRING_ELT(trann,2,mkChar("dydt"));
+  SET_STRING_ELT(tran,2,mkChar(buf));
+
+  sprintf(buf,"%scalc_jac",model_prefix);
+  SET_STRING_ELT(trann,3,mkChar("calc_jac"));
+  SET_STRING_ELT(tran, 3,mkChar(buf));
+
+  sprintf(buf,"%scalc_lhs",model_prefix);
+  SET_STRING_ELT(trann,4,mkChar("calc_lhs"));
+  SET_STRING_ELT(tran, 4,mkChar(buf));
+
+  sprintf(buf,"%smodel_vars",model_prefix);
+  SET_STRING_ELT(trann,5,mkChar("model_vars"));
+  SET_STRING_ELT(tran, 5,mkChar(buf));
+
+  sprintf(buf,"%sode_solver",model_prefix);
+  SET_STRING_ELT(trann,6,mkChar("ode_solver"));
+  SET_STRING_ELT(tran, 6,mkChar(buf));
+  
+  setAttrib(tran, R_NamesSymbol, trann);
+  UNPROTECT(2);
+  return tran;
 }
+
+
 //FILE_to_parse c_FILE [aux_file_direcory extra_c]\n",argv[0]);
 #endif
