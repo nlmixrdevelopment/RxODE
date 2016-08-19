@@ -8,6 +8,7 @@
 #else
 #include <R.h>
 #include <Rinternals.h>
+#include <R_ext/Rdynload.h>
 #include <Rmath.h>
 #endif
 #include "tran.g.d_parser.c"
@@ -751,6 +752,16 @@ int main(int argc, char *argv[]) {
 
 #else
 
+void R_init_RxODE(DllInfo *info){
+  inits();
+}
+
+void R_unload_RxODE(DllInfo *info){
+  if (tb.ss) free(tb.ss);
+  if (tb.de) free(tb.de);
+  if (extra_buf) free(extra_buf);
+  if (model_prefix) free(model_prefix);  
+}
 
 SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix){
   const char *in, *out;
