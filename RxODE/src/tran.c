@@ -51,7 +51,11 @@ typedef struct sbuf {
 sbuf sb;			/* buffer w/ current parsed & translated line */
         			/* to be stored in a temp file */
 
-char *extra_buf, *model_prefix;
+char *extra_buf, *model_prefix, *md5;
+#ifndef __STANDALONE__
+char *out2;
+#endif
+
 
 static FILE *fpIO;
 
@@ -78,7 +82,7 @@ int new_or_ith(const char *s) {
 
 int new_de(const char *s){
   int i, len, len_s=strlen(s);
-  for (i=0; i<tb.nv; i++) {
+  for (i=0; i<tb.nd; i++) {
     len = tb.deo[i+1] - tb.deo[i] - 1;
     if (!strncmp(tb.de+tb.deo[i], s, max(len, len_s))) { /* note we need take the max in order not to match a sub-string */
       tb.id = i;
@@ -137,26 +141,26 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 
   // Operator synonyms  
   if (!strcmp("<-",name)){
-    sprintf(SBPTR," = ");
-    sb.o += 3;
+    sprintf(SBPTR," =");
+    sb.o += 2;
   }
   
   if (!strcmp("|",name)){
-    sprintf(SBPTR," || ");
-    sb.o += 4;
+    sprintf(SBPTR," ||");
+    sb.o += 3;
   }
 
   if (!strcmp("&",name)){
-    sprintf(SBPTR," && ");
-    sb.o += 4;
+    sprintf(SBPTR," &&");
+    sb.o += 3;
   }
 
   if (!strcmp("<>",name) ||
       !strcmp("~=",name) ||
       !strcmp("/=",name) 
       ){
-    sprintf(SBPTR," != ");
-    sb.o += 4;
+    sprintf(SBPTR," !=");
+    sb.o += 3;
   }
   
   free(value);
@@ -309,7 +313,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  new_or_ith(v);
           tb.lh[tb.ix] = 9;
           tb.di[tb.nd] = tb.ix;
-	  /* printf("de[%d]->%s[%d]\n",tb.nd,v,tb.ix); */
+	  /* Rprintf("de[%d]->%s[%d]\n",tb.nd,v,tb.ix); */
           sprintf(tb.de+tb.pos_de, "%s,", v);
 	  tb.pos_de += strlen(v)+1;
           tb.deo[++tb.nd] = tb.pos_de;
@@ -432,13 +436,15 @@ void print_aux_info(FILE *outpt){
     o = strlen(s);
   }
   fprintf(outpt,"extern SEXP %smodel_vars(){\n",model_prefix);
-  fprintf(outpt,"\tSEXP lst = PROTECT(allocVector(VECSXP,4));\n");
+  fprintf(outpt,"\tSEXP lst = PROTECT(allocVector(VECSXP,5));\n");
   fprintf(outpt,"\tSEXP params = PROTECT(allocVector(STRSXP, %d));\n",pi);
-  fprintf(outpt,"\tSEXP lhs = PROTECT(allocVector(STRSXP, %d));\n",li);
-  fprintf(outpt,"\tSEXP state = PROTECT(allocVector(STRSXP, %d));\n",statei);
-  fprintf(outpt,"\tSEXP names = PROTECT(allocVector(STRSXP, 4));\n");
-  fprintf(outpt,"\tSEXP tran =PROTECT(allocVector(STRSXP, 7));\n");
-  fprintf(outpt,"\tSEXP trann=PROTECT(allocVector(STRSXP, 7));\n");
+  fprintf(outpt,"\tSEXP lhs    = PROTECT(allocVector(STRSXP, %d));\n",li);
+  fprintf(outpt,"\tSEXP state  = PROTECT(allocVector(STRSXP, %d));\n",statei);
+  fprintf(outpt,"\tSEXP names  = PROTECT(allocVector(STRSXP, 5));\n");
+  fprintf(outpt,"\tSEXP tran   = PROTECT(allocVector(STRSXP, 7));\n");
+  fprintf(outpt,"\tSEXP trann  = PROTECT(allocVector(STRSXP, 7));\n");
+  fprintf(outpt,"\tSEXP mmd5   = PROTECT(allocVector(STRSXP, 2));\n");
+  fprintf(outpt,"\tSEXP mmd5n  = PROTECT(allocVector(STRSXP, 2));\n");
   // Vector Names
   fprintf(outpt,"\tSET_STRING_ELT(names,0,mkChar(\"params\"));\n");
   fprintf(outpt,"\tSET_VECTOR_ELT(lst,0,params);\n");
@@ -448,6 +454,14 @@ void print_aux_info(FILE *outpt){
   fprintf(outpt,"\tSET_VECTOR_ELT(lst,2,state);\n");
   fprintf(outpt,"\tSET_STRING_ELT(names,3,mkChar(\"trans\"));\n");
   fprintf(outpt,"\tSET_VECTOR_ELT(lst,3,tran);\n");
+  fprintf(outpt,"\tSET_STRING_ELT(names,4,mkChar(\"md5\"));\n");
+  fprintf(outpt,"\tSET_VECTOR_ELT(lst,  4,mmd5);\n");
+
+  // md5 values
+  fprintf(outpt,"\tSET_STRING_ELT(mmd5n,0,mkChar(\"file_md5\"));\n");
+  fprintf(outpt,"\tSET_STRING_ELT(mmd5,0,mkChar(\"%s\"));\n",md5);
+  fprintf(outpt,"\tSET_STRING_ELT(mmd5n,1,mkChar(\"parsed_md5\"));\n");
+  fprintf(outpt,"\tSET_STRING_ELT(mmd5,1,mkChar(__PARSED_MD5__));\n");
 
   fprintf(outpt,"%s",s);
   free(s);
@@ -478,9 +492,10 @@ void print_aux_info(FILE *outpt){
   fprintf(outpt,"\tSET_STRING_ELT(tran, 6,mkChar(\"%sode_solver\"));\n",model_prefix);
   
   fprintf(outpt,"\tsetAttrib(tran, R_NamesSymbol, trann);\n");
+  fprintf(outpt,"\tsetAttrib(mmd5, R_NamesSymbol, mmd5n);\n");
   fprintf(outpt,"\tsetAttrib(lst, R_NamesSymbol, names);\n");
 
-  fprintf(outpt,"\tUNPROTECT(7);\n");
+  fprintf(outpt,"\tUNPROTECT(9);\n");
   
   fprintf(outpt,"\treturn lst;\n");
   fprintf(outpt,"}\n");
@@ -525,8 +540,11 @@ void codegen(FILE *outpt, int show_ode) {
       fprintf(outpt, "\t%s = __zzStateVar__[%d];\n", buf, i);
     }
     fprintf(outpt,"\n");
-
+#ifdef __STANDALONE__
     fpIO = fopen("out2.txt", "r");
+#else
+    fpIO = fopen(out2, "r");
+#endif
     err_msg((intptr_t) fpIO, "Coudln't access out2.txt.\n", -1);
     while(fgets(sLine, MXLEN, fpIO)) {  /* parsed eqns */
       char *s;
@@ -698,7 +716,11 @@ void trans_internal(char* parse_file, char* c_file){
   err_msg((intptr_t) buf, "error: empty buf for FILE_to_parse\n", -2);
   if ((pn=dparse(p, buf, strlen(buf))) && !p->syntax_errors) {
     inits();
+#ifdef __STANDALONE__
     fpIO = fopen( "out2.txt", "w" );
+#else
+    fpIO = fopen( out2, "w" );
+#endif
     err_msg((intptr_t) fpIO, "error opening out2.txt\n", -2);
     wprint_parsetree(parser_tables_gram, pn, 0, wprint_node, NULL);
     fclose(fpIO);
@@ -709,7 +731,9 @@ void trans_internal(char* parse_file, char* c_file){
     codegen(fpIO, 0);
     print_aux_info(fpIO);
     fclose(fpIO);
+#ifdef __STANDALONE__
     remove("out2.txt");
+#endif
   } else {
     Rprintf("\nfailure\n");
   }
@@ -763,7 +787,8 @@ void R_unload_RxODE(DllInfo *info){
   if (model_prefix) free(model_prefix);  
 }
 
-SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix){
+SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_md5,
+	   SEXP parse_model){
   const char *in, *out;
   char buf[512];
   if (!isString(parse_file) || length(parse_file) != 1){
@@ -785,6 +810,7 @@ SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix){
     extra_buf = (char *) malloc(2); 
     sprintf(extra_buf,""); 
   }
+
   if (model_prefix) free(model_prefix);
   if (isString(prefix) && length(prefix) == 1){
     model_prefix = CHAR(STRING_ELT(prefix,0));
@@ -792,9 +818,26 @@ SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix){
     model_prefix = (char *) malloc(2);
     sprintf(model_prefix,"");
   }
+
+  if (md5) free(md5);
+  if (isString(model_md5) && length(model_md5) == 1){
+    md5 = CHAR(STRING_ELT(model_md5,0));
+  } else {
+    md5 = (char *) malloc(2); 
+    sprintf(md5,""); 
+  }
+  
+  if (out2) free(out2);
+  if (isString(parse_model) && length(parse_model) == 1){
+    out2 = CHAR(STRING_ELT(parse_model,0));
+  } else {
+    out2 = (char *) malloc(9); 
+    sprintf(out2,"out2.txt"); 
+  }
+  
   trans_internal(in, out);
-  SEXP tran =PROTECT(allocVector(STRSXP, 7));
-  SEXP trann=PROTECT(allocVector(STRSXP, 7));
+  SEXP tran =PROTECT(allocVector(STRSXP, 8));
+  SEXP trann=PROTECT(allocVector(STRSXP, 8));
   SET_STRING_ELT(trann,0,mkChar("jac"));
   if (found_jac == 1){
     SET_STRING_ELT(tran,0,mkChar("fulluser")); // Full User Matrix
@@ -823,6 +866,9 @@ SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix){
   sprintf(buf,"%sode_solver",model_prefix);
   SET_STRING_ELT(trann,6,mkChar("ode_solver"));
   SET_STRING_ELT(tran, 6,mkChar(buf));
+
+  SET_STRING_ELT(trann,7,mkChar("file_md5"));
+  SET_STRING_ELT(tran, 7,mkChar(md5));
   
   setAttrib(tran, R_NamesSymbol, trann);
   UNPROTECT(2);

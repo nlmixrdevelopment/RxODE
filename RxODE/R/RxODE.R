@@ -5,13 +5,7 @@
 {
     if(!missing(model) && !missing(filename))
         stop("must specify exactly one of 'model' or 'filename'")
-
-    if (!missing(model) & class(extra.c) ==  "character"){
-        if (!file.exists(extra.c)){
-            extra.c <- FALSE;
-        }
-    }
-
+    
    if (missing(modName) && missing(wd) & missing(flat)){
        flat <- TRUE;
        if (!is.null(filename) && missing(model)){
@@ -36,13 +30,13 @@
     cmpMgr <- rx.initCmpMgr(model, modName, wd, flat, extra.c,debug);
                                         # NB: the set of model variables (modelVars) is only available 
    # after parsing, thus it needs to be dynamically computed in cmpMgr
-   get.modelVars <- cmpMgr$get.modelVars
+    get.modelVars <- cmpMgr$get.modelVars
 
     .version <- "0.6"          # object version
    .last.solve.args <- NULL   # to be populated by solve()
 
    solve <- 
-   function(params, events, inits = NULL, stiff = TRUE, transit_abs = FALSE, 
+       function(params, events, inits = NULL, stiff = TRUE, transit_abs = FALSE, 
             atol = 1.0e-8, rtol = 1.0e-6, ...)
    {
       event.table <- events$get.EventTable()
@@ -129,7 +123,7 @@
       return(ret)
    }
 
-   if (is.null(do.compile) & !cmpMgr$isValid()){
+    if (is.null(do.compile) & !cmpMgr$isValid()){
        do.compile <- TRUE
    } else if (is.null(do.compile)) {
        do.compile <- FALSE
@@ -688,10 +682,10 @@ plot.RxODE <- function(x,
    win.path <- function(p) gsub("\\\\", "/", utils::shortPathName(p))
    R_ARCH <- .Platform$r_arch
 
-   # locations for the various libs and header files, plus 
+                                        # locations for the various libs and header files, plus 
    # commands needed to parse, compile, solve ODE-defined models
    .bin  <- system.file(file.path("bin",  R_ARCH), package = "RxODE")
-   .libs <- system.file(file.path("libs", R_ARCH), package = "RxODE")
+   .libs <- 
    .incl <- system.file("include", package = "RxODE")
 
    # model-specific directory under .md (default current dir)
@@ -885,19 +879,216 @@ function(x, ...)
    invisible(x)
 }
 
+rxShortPath <- function(p, # Path
+                        ...){
+    ## rxShortPath returns a short path name under windows
+    return(gsub("\\\\", "/", utils::shortPathName(p)))
+} # end function rxShortPath
+
+rxDvode <- file.path(system.file("common", package = "RxODE"), "call_dvode.c");
+rxInclude <- system.file("include", package = "RxODE");
+rxLibs <- system.file(file.path("libs", .Platform$r_arch), package = "RxODE");
+if (.Platform$OS.type=="windows"){
+    rxDvode <- rxShortPath(rxDvode);
+    rxInclude <- rxShortPath(rxInclude);
+    rxLibs <- rxShortPath(rxLibs);
+}
+
+rxPrefix <- function(model,
+                     ...){
+    ## rxPrefix returns a prefix for a model.
+    if (file.exists(model)){
+        modelPrefix <- sprintf("%s_",gsub("\\W", "_", gsub("[.].*$","",base::basename(model))));
+    } else {
+        modelPrefix <- "RxODE_model_";
+    }
+    return(modelPrefix);
+} # end function rxPrefix
+
+rxMd5 <- function(model,         # Model File
+                  extraC = NULL, # Extra C
+                  ...){
+    ## rxMd5 returns MD5 of model file.
+    ## digest(file=TRUE) includes file times, so it doesn't work for this needs.
+    if (file.exists(model)){
+        ret <- readLines(model);
+        mod <- paste(ret,collapse="\n");
+    } else {
+        stop("Requires model to be a file.");
+    }
+    if (class(extraC) == "character"){
+        if (file.exists(extraC)){
+            ret <- c(ret,gsub(rex::rex(or(any_spaces,any_newlines)),"",readLines(extraC),perl=TRUE));
+        }
+    }
+    return(list(text=mod,
+                digest=digest::digest(ret)));
+} # end function rxMd5
+
 rxTrans <- function(model,
                     cFile       = sprintf("%s.c",gsub("[.][^.]*$","",model)), # C file output
                     extraC      = NULL,                                       # Extra C file(s)
                     modelPrefix = "",                                         # Model Prefix
+                    md5         = "",                                         # Md5 of model
                     ...){
     ## rxTrans returns a list of compiled properties
     if (missing(modelPrefix)){
-        if (file.exists(model)){
-            modelPrefix <- sprintf("%s_",gsub("\\W", "_", model));
-        }
+        modelPrefix <- rxPrefix(model);
     }
-    ret <- .Call(trans, model, cFile, extraC, modelPrefix);
-    ## 
+    if (file.exists(model)){
+        if (missing(md5)){
+            md5 <- rxMd5(model,extraC)$digest;
+        }
+    } else {
+        stop("This only translates a file (currently; Try rxCompile).");
+    }
+    parseModel <- tempfile();
+    ret <- .Call(trans, model, cFile, extraC, modelPrefix,md5,parseModel);
+    ret <- c(ret,parsed_md5 = rxMd5(parseModel,extraC)$digest);
+    on.exit(unlink(parseModel));
     return(ret);
 } # end function rxTrans
 
+rxTransMakevars <- function(rxProps,                                                                              # rxTrans translation properties
+                            compileFlags =c("parsed_md5","ode_solver","model_vars","calc_lhs","calc_jac","dydt"), # List of compile flags
+                            debug        = FALSE,                                                                 # Debug compile?
+                            ...){
+    ## rxTransCompileFlags returns a string for the compiler options
+    neededProps <- c("jac",compileFlags);
+    if (all(neededProps %in% names(rxProps))){
+        if (rxProps["jac"] == "fulluser"){
+            ret <- " -D__JT__=1 -D__MF__=21";
+        } else if (rxProps["jac"] == "fullint"){
+            ret <- " -D__JT__=2 -D__MF__=22";
+        }
+        tmp <- rxProps[compileFlags];
+        tmp["parsed_md5"] <- sprintf("\"\\\"%s\\\"\"",tmp["parsed_md5"]);
+        ret <- paste(c(ret,sprintf("-D__%s__=%s",toupper(compileFlags),tmp)),collapse=" ");
+        if (debug){
+            ret <- sprintf("%s -D__DEBUG__",ret);
+        }
+        ret <- sprintf("PKG_CPPFLAGS=-I%s %s\nPKG_LIBS=-L%s -lodeaux $(BLAS_LIBS) $(FLIBS)",rxInclude,ret,rxLibs);
+        cat(ret);
+        return(ret);
+    } else {
+        stop("Cannot figure out what needs to be specified in the compiler.")
+    }
+} # end function rxTransCompileFlags
+
+
+rxCompile <-  function(model,         # Model
+                       dir,           # Directory
+                       prefix,        # Prefix
+                       extraC = NULL, # Extra C File.
+                       ...){
+    ## rxCompile returns the dll name that was created.
+    dllCopy <- FALSE;
+    if (missing(dir)){
+        dir <- tempfile();
+        dllCopy <-  TRUE;
+        on.exit(unlink(dir, recursive = TRUE))
+    }
+    if (missing(prefix)){
+        prefix <- rxPrefix(model);
+    }
+    if(!file.exists(dir))
+        dir.create(dir, recursive = TRUE)
+    cFile <- file.path(dir,sprintf("%s.c",substr(prefix,0,nchar(prefix)-1)));
+    cDllFile <- file.path(dir,sprintf("%s%s",substr(prefix,0,nchar(prefix)-1), .Platform$dynlib.ext));
+    if (dllCopy){
+        finalDll <- file.path(getwd(),basename(cDllFile));
+    } else {
+        finalDll <-  cDllFile;
+    }
+    if (!file.exists(model)){
+        mFile <- sprintf("%s.rx",substr(cFile,0,nchar(cFile)-2));
+        sink(mFile);
+        cat(model);
+        sink();
+    } else {
+        mFile <- model;
+    }
+    md5 <- rxMd5(mFile,extraC);
+    allModVars <- NULL;
+    needCompile <- TRUE
+    if (file.exists(finalDll)){
+        try(dyn.load(finalDll, local = FALSE), silent=TRUE);
+        modVars <- sprintf("%smodel_vars",prefix);
+        if (is.loaded(modVars)){
+            allModVars <- eval(parse(text=sprintf(".Call(\"%s\")",modVars)),envir=.GlobalEnv)
+            modVars <- allModVars$md5;
+        }
+        if (modVars["file_md5"] == md5$digest){
+            needCompile <- FALSE;
+        }
+    }
+    if (needCompile){
+        dvODE <- file.path(dir,"call_dvode.c");
+        dvODEo <- file.path(dir,"call_dvode.o");
+        file.copy(rxDvode, dvODE);
+        Makevars <- file.path(dir,"Makevars");
+        trans <- rxTrans(mFile,cFile = cFile,md5=md5$digest,extraC=extraC,...,modelPrefix=prefix);
+        if (file.exists(finalDll)){
+            if (modVars["parsed_md5"] == trans["parsed_md5"]){
+                cat("Don't need to recompile, minimal change to model detected.\n");
+                needCompile <- FALSE;
+            }
+        }
+        if (needCompile){
+            ## Setup Makevars
+            sink(Makevars);
+            cat(rxTransMakevars(trans));
+            sink();
+            sh <- "system"   # windows's default shell COMSPEC does not handle UNC paths    
+            ## Change working directory
+            owd <- getwd();
+            on.exit(setwd(owd));
+            setwd(dir);
+            try(dyn.unload(finalDll), silent=TRUE);
+            cmd <- sprintf("%s/bin/R CMD SHLIB %s %s", 
+                           Sys.getenv("R_HOME"), base::basename(cFile),
+                           base::basename(dvODEo));
+            cat(sprintf("%s\n",cmd));
+            rc <- try(do.call(sh, list(cmd)), silent = FALSE)
+            if(inherits(rc, "try-error"))
+                stop(sprintf("error compiling %s", cFile));
+            if (dllCopy){
+                file.copy(cDllFile,finalDll);
+            }
+            try(dyn.load(finalDll, local = FALSE), silent=TRUE);
+            modVars <- sprintf("%smodel_vars",prefix);
+            if (is.loaded(modVars)){
+                allModVars <- eval(parse(text=sprintf(".Call(\"%s\")",modVars)),envir=.GlobalEnv)
+            }
+        }
+    }
+    ret <- list(dll     = finalDll,
+                model   = md5$text,
+                extra   = extraC,
+                modVars = allModVars);
+    class(ret) <- "rxDll";
+    return(ret);
+} # end function rxCompile
+
+rxDllLoaded <- function(x){
+    if (class(x) == "rxDll"){
+        return(is.loaded(x$modVars$trans["ode_solver"]));
+    } else {
+        stop("Not an rxDll object.");
+    }
+}
+
+ 
+print.rxDll <- function(x,...){
+    if (file.exists(x$dll)){
+        cat(sprintf("RxODE dll named \"%s\"",basename(x$dll)));
+        if (rxDllLoaded(x)){
+            cat(" is loaded and ready to use.\n");
+        } else {
+            cat(" is not loaded now.\n");
+        }
+    } else {
+        cat(sprintf("RxODE dll named \"%s\" has been deleted.\n",basename(x$dll)));
+    }
+    invisible(x);
+}

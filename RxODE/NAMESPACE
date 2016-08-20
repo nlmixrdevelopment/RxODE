@@ -3,7 +3,7 @@ import("utils")
 
 # export only these 3 RxODE functions and print methods
 export("RxODE", "rx.initCmpMgr", "eventTable","igraph.RxODE","igraph",
-       "rxTrans")
+       "rxCompile","rxMd5")
 
 S3method("print", "RxODE")
 S3method("summary", "RxODE")
