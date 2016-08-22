@@ -1080,15 +1080,40 @@ rxCompile <-  function(model,           # Model
         }
         .c <- function(...){return(.C(...))};
         .call <- function(...){return(.Call(...))};
+        args <- list(model = model, dir = dir, prefix = prefix,
+                     extraC = extraC, force = force, modName = modName,
+                     ...);
         ret <- list(dll     = finalDll,
                     model   = md5$text,
                     extra   = extraC,
                     modVars = allModVars,
                     .c      = .c,
-                    .call   = .call);
+                    .call   = .call,
+                    args    = args);
         class(ret) <- "rxDll";
         return(ret);
-    } else {
+    } else if (class(model) == "rxDll") {
+        args <- model$args;
+        if (!missing(dir)){
+            args$dir <- dir;
+        }
+        if (!missing(prefix)){
+            args$prefix <- prefix;
+        }
+        if (!missing(extraC)){
+            args$extraC <- extraC;
+        }
+        if (!missing(force)){
+            args$force <- force;
+        }
+        if (!missing(modName)){
+            args$modName <- modName;
+        }
+        ret <- rxCompile(model  = args$model,  dir     = args$dir,
+                         prefix = args$prefix, extraC  = args$extra,
+                         force  = args$force,  modName = args$modName,
+                         ...);
+        return(ret);
     }
 } # end function rxCompile
 

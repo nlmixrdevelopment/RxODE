@@ -500,7 +500,7 @@ void print_aux_info(FILE *outpt){
   
   fprintf(outpt,"\treturn lst;\n");
   fprintf(outpt,"}\n");
-  fprintf(outpt,"SEXP __PARSED_MD5__()\n{\n\treturn %smodel_vars();\n}\n",model_prefix);
+  //fprintf(outpt,"SEXP __PARSED_MD5__()\n{\n\treturn %smodel_vars();\n}\n",model_prefix);
 }
 
 void codegen(FILE *outpt, int show_ode) {

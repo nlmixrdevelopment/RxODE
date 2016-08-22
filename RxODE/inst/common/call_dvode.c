@@ -435,6 +435,5 @@ void __ODE_SOLVER__(
 		__CALC_LHS__(time[i], ret+i*(*neq), lhs+i*(*nlhs));
 
 	if (fp) fclose(fp);
-	free(InfusionRate);
 }
 
