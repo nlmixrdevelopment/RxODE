@@ -29,7 +29,7 @@ void F77_NAME(dvode)(
 
 
 		    long slvr_counter, dadt_counter, jac_counter;
-double *InfusionRate;
+double InfusionRate[99];
 double ATOL;		//absolute error
 double RTOL;		//relative error
 int do_transit_abs=0;
@@ -53,103 +53,114 @@ void jdum_lsoda(int *neq, double *t, double *A,int *ml, int *mu, double *JAC, in
 }
 void call_lsoda(int neq, double *x, int *evid, int nx, double *inits, double *dose, double *ret, int *rc)
 {
-	int ixds=0, i, j;
- 	double xout, xp=x[0], yp[99];
-    int itol = 1;
-    double  rtol = RTOL, atol = ATOL;
-    // Set jt to 1 if full is specified.
-    int itask = 1, istate = 1, iopt = 0, lrw=22+neq*max(16, neq+9), liw=20+neq, jt = __JT__;
-	double *rwork;
-	int *iwork;
-	int wh, cmt;
+  int ixds=0, i, j;
+  double xout, xp=x[0], yp[99];
+  int itol = 1;
+  double  rtol = RTOL, atol = ATOL;
+  // Set jt to 1 if full is specified.
+  int itask = 1, istate = 1, iopt = 0, lrw=22+neq*max(16, neq+9), liw=20+neq, jt = __JT__;
+  double *rwork;
+  int *iwork;
+  int wh, cmt;
 
-	char *err_msg[]=
-		{
-		  "excess work done on this call (perhaps wrong jt).",
-			"excess accuracy requested (tolerances too small).",
-			"illegal input detected (see printed message).",
-			"repeated error test failures (check all inputs).",
-			"repeated convergence failures (perhaps bad jacobian supplied or wrong choice of jt or tolerances).",
-			"error weight became zero during problem. (solution component i vanished, and atol or atol(i) = 0.)",
-			"work space insufficient to finish (see messages)."
-		};
+  char *err_msg[]=
+    {
+      "excess work done on this call (perhaps wrong jt).",
+      "excess accuracy requested (tolerances too small).",
+      "illegal input detected (see printed message).",
+      "repeated error test failures (check all inputs).",
+      "repeated convergence failures (perhaps bad jacobian supplied or wrong choice of jt or tolerances).",
+      "error weight became zero during problem. (solution component i vanished, and atol or atol(i) = 0.)",
+      "work space insufficient to finish (see messages)."
+    };
 #ifdef __DEBUG__
-	Rprintf("JT: %d\n",jt);
+  Rprintf("JT: %d\n",jt);
 #endif
-	rwork = (double*)R_alloc(lrw, sizeof(double));
-	iwork = (int*)R_alloc(liw, sizeof(int));
+  rwork = (double*)R_alloc(lrw, sizeof(double));
+  iwork = (int*)R_alloc(liw, sizeof(int));
 
-	//--- inits the system
-	for(i=0; i<neq; i++) yp[i] = inits[i];
+  //iopt = 0
+  
+  /* rwork[4] = 0; // H0 */
+  /* rwork[5] = 0; // Hmax */
+  /* rwork[6] = 0; // Hmin */
+  /* iwork[4] = 0; // ixpr */
+  /* iwork[5] = 5000; // mxstep */
+  /* iwork[6] = 0; // MXHNIL */
+  /* iwork[7] = 0; // MXORDN */
+  /* iwork[8] = 9; */ // MXORDS
+  
+  //--- inits the system
+  for(i=0; i<neq; i++) yp[i] = inits[i];
 
-	for(i=0; i<nx; i++)
+  for(i=0; i<nx; i++)
+    {
+      wh = evid[i];
+      xout = x[i];
+#ifdef __DEBUG__
+      fprintf(fp, "i=%d xp=%f xout=%f\n", i, xp, xout);
+#endif
+
+      if(xout>xp)
 	{
-		wh = evid[i];
-		xout = x[i];
-#ifdef __DEBUG__
-		fprintf(fp, "i=%d xp=%f xout=%f\n", i, xp, xout);
-#endif
+	  F77_CALL(dlsoda)(dydt_lsoda_dum, &neq, yp, &xp, &xout, &itol, &rtol, &atol, &itask,
+			   &istate, &iopt, rwork, &lrw, iwork, &liw, &jdum_lsoda, &jt);
 
-		if(xout>xp)
-		{
-		  F77_CALL(dlsoda)(dydt_lsoda_dum, &neq, yp, &xp, &xout, &itol, &rtol, &atol, &itask,
-                &istate, &iopt, rwork, &lrw, iwork, &liw, &jdum_lsoda, &jt);
-
-			if (istate<0)
-			{
-				Rprintf("IDID=%d, %s\n", istate, err_msg[-istate-1]);
+	  if (istate<0)
+	    {
+	      Rprintf("IDID=%d, %s\n", istate, err_msg[-istate-1]);
 #ifdef __STANDALONE__
-            exit(1);
+	      exit(1);
 #else
-		      *rc = istate;
-            return;  // exit(1);   // dj: should not abort R
+	      *rc = istate;
+	      return;  // exit(1);   // dj: should not abort R
 #endif
-			}
+	    }
 
-			slvr_counter++;
-			dadt_counter = 0;
-			jac_counter  = 0;
-		}
-		if (wh)
+	  slvr_counter++;
+	  dadt_counter = 0;
+	  jac_counter  = 0;
+	}
+      if (wh)
+	{
+	  cmt = (wh%10000)/100 - 1;
+	  if (wh>10000)
+	    {
+	      InfusionRate[cmt] += dose[ixds];
+	    }
+	  else
+	    {
+	      if (do_transit_abs)
 		{
-			cmt = (wh%10000)/100 - 1;
-			if (wh>10000)
-			{
-				InfusionRate[cmt] += dose[ixds];
-			}
-			else
-			{
-				if (do_transit_abs)
-				{
-					podo = dose[ixds];
-					tlast = xout;
-				}
-				else yp[cmt] += dose[ixds];	//dosing before obs
-			}
-			istate = 1;
-
-			ixds++;
-			xp = xout;
+		  podo = dose[ixds];
+		  tlast = xout;
 		}
-		for(j=0; j<neq; j++) ret[neq*i+j] = yp[j];
-		//Rprintf("wh=%d cmt=%d tm=%g rate=%g\n", wh, cmt, xp, InfusionRate[cmt]);
+	      else yp[cmt] += dose[ixds];	//dosing before obs
+	    }
+	  istate = 1;
+
+	  ixds++;
+	  xp = xout;
+	}
+      for(j=0; j<neq; j++) ret[neq*i+j] = yp[j];
+      //Rprintf("wh=%d cmt=%d tm=%g rate=%g\n", wh, cmt, xp, InfusionRate[cmt]);
 
 #ifdef __DEBUG__
-		Rprintf("ISTATE=%d, ", istate);
-		fprintf(fp, "ISTATE=%d, ", istate);
-		for(j=0; j<neq; j++)
-		{
-			Rprintf("%f ", yp[j]);
-			fprintf(fp, "%f ", yp[j]);
-		}
-		Rprintf("\n");
-		fprintf(fp, "\n");
-#endif
+      Rprintf("ISTATE=%d, ", istate);
+      fprintf(fp, "ISTATE=%d, ", istate);
+      for(j=0; j<neq; j++)
+	{
+	  Rprintf("%f ", yp[j]);
+	  fprintf(fp, "%f ", yp[j]);
 	}
+      Rprintf("\n");
+      fprintf(fp, "\n");
+#endif
+    }
 
 #ifdef __STANDALONE__
-	free(rwork);
-	free(iwork);
+  free(rwork);
+  free(iwork);
 #endif
 
 }
@@ -408,8 +419,7 @@ void __ODE_SOLVER__(
 )
 {
 	int i;
-	InfusionRate = (double *) malloc((*neq)*sizeof(double));
-	for (i=0; i< *neq; i++) InfusionRate[i] = 0.0;
+	for (i=0; i< 99; i++) InfusionRate[i] = 0.0;
 	ATOL = *atol;
 	RTOL = *rtol;
 	do_transit_abs = *transit_abs;

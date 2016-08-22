@@ -175,11 +175,11 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
     }
     for (i = 0; i < nch; i++) {
       
-      if (!strcmp("derivative", name) && i< 2)   continue;
-      if (!strcmp("der_rhs", name)    && i< 2)   continue;
-      if (!strcmp("derivative", name) && i==3)   continue;
+      if (!strcmp("derivative", name) && i< 2) continue;
+      if (!strcmp("der_rhs", name)    && i< 2) continue;
+      if (!strcmp("derivative", name) && i==3) continue;
       if (!strcmp("der_rhs", name)    && i==3) continue;
-      if (!strcmp("derivative", name) && i==4)   continue;
+      if (!strcmp("derivative", name) && i==4) continue;
       
       if (!strcmp("jac", name)     && i< 2)   continue;
       if (!strcmp("jac_rhs", name) && i< 2)   continue;
@@ -272,7 +272,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         char *v = (char*)dup_str(xpn->start_loc.s, xpn->end);
 	sprintf(SBPTR, "__CMT_NUM_%s__]",v);
 	sb.o = strlen(sb.s);
-	if (strcmp("jac",name) == 0){
+	if (strcmp("jac",name) == 0 ||
+	    strcmp("dfdy",name) == 0){
 	  sprintf(SBPTR ," = ");
 	  sb.o += 3;
 	}
@@ -461,7 +462,7 @@ void print_aux_info(FILE *outpt){
   fprintf(outpt,"\tSET_STRING_ELT(mmd5n,0,mkChar(\"file_md5\"));\n");
   fprintf(outpt,"\tSET_STRING_ELT(mmd5,0,mkChar(\"%s\"));\n",md5);
   fprintf(outpt,"\tSET_STRING_ELT(mmd5n,1,mkChar(\"parsed_md5\"));\n");
-  fprintf(outpt,"\tSET_STRING_ELT(mmd5,1,mkChar(__PARSED_MD5__));\n");
+  fprintf(outpt,"\tSET_STRING_ELT(mmd5,1,mkChar(__PARSED_MD5_STR__));\n");
 
   fprintf(outpt,"%s",s);
   free(s);
@@ -499,6 +500,7 @@ void print_aux_info(FILE *outpt){
   
   fprintf(outpt,"\treturn lst;\n");
   fprintf(outpt,"}\n");
+  fprintf(outpt,"SEXP __PARSED_MD5__()\n{\n\treturn %smodel_vars();\n}\n",model_prefix);
 }
 
 void codegen(FILE *outpt, int show_ode) {
@@ -754,39 +756,34 @@ int main(int argc, char *argv[]) {
     fprintf(stderr,"Usage: %s FILE_to_parse c_FILE [extra_c]\n",argv[0]);
     return -1;
   }
-  model_prefix = (char *) malloc(2);
-  sprintf(model_prefix,"");
+  model_prefix = (char *) malloc(1);
+  model_prefix = "\0";
   printf("trans_internal(%s, %s)\n",argv[1],argv[2]);
   if (argc >= 3){ 
     extra_buf = sbuf_read(argv[3]); 
-    if (!((intptr_t) extra_buf)){ 
-      extra_buf = (char *) malloc(2); 
-      sprintf(extra_buf,""); 
+    if (!((intptr_t) extra_buf)){
+      extra_buf = (char *) malloc(1);
+      extra_buf[0] = "\0";
     }
-  } else { 
-    if (!((intptr_t) extra_buf)){ 
-      extra_buf = (char *) malloc(2); 
-      sprintf(extra_buf,""); 
-    } 
-  } 
-     
+  } else {
+    if (!((intptr_t) extra_buf)){
+      extra_buf = (char *) malloc(1);
+      extra_buf[0] = "\0";
+    }
+  }
   trans_internal(argv[1], argv[2]);
   return 0;
 }
-
 #else
-
 void R_init_RxODE(DllInfo *info){
   inits();
 }
-
 void R_unload_RxODE(DllInfo *info){
   if (tb.ss) free(tb.ss);
   if (tb.de) free(tb.de);
   if (extra_buf) free(extra_buf);
   if (model_prefix) free(model_prefix);  
 }
-
 SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_md5,
 	   SEXP parse_model){
   const char *in, *out;
@@ -803,28 +800,28 @@ SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_m
   if (isString(extra_c) && length(extra_c) == 1){
     extra_buf = sbuf_read(CHAR(STRING_ELT(extra_c,0)));
     if (!((intptr_t) extra_buf)){ 
-      extra_buf = (char *) malloc(2); 
-      sprintf(extra_buf,""); 
+      extra_buf = (char *) malloc(1);
+      extra_buf[0]="\0";
     }
   } else {
-    extra_buf = (char *) malloc(2); 
-    sprintf(extra_buf,""); 
+    extra_buf = (char *) malloc(1); 
+    extra_buf[0] = "\0";
   }
 
   if (model_prefix) free(model_prefix);
   if (isString(prefix) && length(prefix) == 1){
     model_prefix = CHAR(STRING_ELT(prefix,0));
   } else {
-    model_prefix = (char *) malloc(2);
-    sprintf(model_prefix,"");
+    model_prefix = (char *) malloc(1);
+    model_prefix[0] = "\0";
   }
 
   if (md5) free(md5);
   if (isString(model_md5) && length(model_md5) == 1){
     md5 = CHAR(STRING_ELT(model_md5,0));
   } else {
-    md5 = (char *) malloc(2); 
-    sprintf(md5,""); 
+    md5 = (char *) malloc(1);
+    md5[0] = "\0";
   }
   
   if (out2) free(out2);

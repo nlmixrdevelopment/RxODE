@@ -23,13 +23,13 @@ printf_statement
   : printf_command '(' string (',' additive_expression )* ')';
 
 printf_command
-  : 'printf' | 'Rprintf' | 'print' |
-    'jac_printf' | 'jac_Rprintf' | 'jac_print' |
-    'ode_printf' | 'ode_Rprintf' | 'ode_print' |
-    'jac0_printf'| 'jac0_Rprintf'| 'jac0_print'|
-    'ode_printf' | 'ode_Rprintf' | 'ode_print' |
-    'ode0_printf'| 'ode0_Rprintf'| 'ode0_print'|
-    'lhs_printf' | 'lhs_Rprintf' | 'lhs_print' ;
+  : 'printf'      | 'Rprintf'      | 'print'      |
+    'jac_printf'  | 'jac_Rprintf'  | 'jac_print'  |
+    'ode_printf'  | 'ode_Rprintf'  | 'ode_print'  |
+    'jac0_printf' | 'jac0_Rprintf' | 'jac0_print' |
+    'ode_printf'  | 'ode_Rprintf'  | 'ode_print'  |
+    'ode0_printf' | 'ode0_Rprintf' | 'ode0_print' |
+    'lhs_printf'  | 'lhs_Rprintf'  | 'lhs_print'  ;
 
 print_command
   : 'print' | 'ode_print' | 'jac_print' | 'lhs_print';
@@ -79,8 +79,7 @@ primary_expression
   | dfdy_rhs
   | constant
   | function
-  | '(' additive_expression ')'
-  ;
+  | '(' additive_expression ')';
 
 function : identifier '(' additive_expression (',' additive_expression)* ')' ;
 
