@@ -18,6 +18,7 @@
 #define MXLEN 1200
 #define MXBUF 2400
 #define SBPTR sb.s+sb.o
+#define SBTPTR sbt.s+sbt.o
 
 char *sbuf_read(char *pathname);  /* defined in util.h */
 char *dup_str(char *s, char *e);  /* dj: defined in dparser's util.h */
@@ -50,6 +51,8 @@ typedef struct sbuf {
 } sbuf;
 sbuf sb;			/* buffer w/ current parsed & translated line */
         			/* to be stored in a temp file */
+sbuf sbt; 
+
 
 char *extra_buf, *model_prefix, *md5;
 #ifndef __STANDALONE__
@@ -57,7 +60,7 @@ char *out2;
 #endif
 
 
-static FILE *fpIO;
+static FILE *fpIO, *fpIO2;
 
 
 /* new symbol? if no, find it's ith */
@@ -94,7 +97,9 @@ int new_de(const char *s){
 
 void wprint_node(int depth, char *name, char *value, void *client_data) {
   sprintf(SBPTR, " %s", value);
+  sprintf(SBTPTR, "%s", value);
   sb.o += strlen(value)+1;
+  sbt.o += strlen(value);
 }
 
 void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_fn_t fn, void *client_data) {
@@ -113,9 +118,16 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
     
   }
 
-  if (!strcmp("(", name)) {sprintf(SBPTR, "("); sb.o++;}
-  if (!strcmp(")", name)) {sprintf(SBPTR, ")"); sb.o++;}
-  if (!strcmp(",", name)) {sprintf(SBPTR, ","); sb.o++;}
+  if (!strcmp("(", name) ||
+      !strcmp(")", name) ||
+      !strcmp(",", name)
+      ) {
+    sprintf(SBPTR, "%s",name);
+    sb.o++;
+    sprintf(SBTPTR,"%s",name);
+    sbt.o++;
+
+  }
   
   if (
       !strcmp("identifier", name) ||
@@ -143,16 +155,22 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
   if (!strcmp("<-",name)){
     sprintf(SBPTR," =");
     sb.o += 2;
+    sprintf(SBTPTR,"=");
+    sbt.o++;
   }
   
   if (!strcmp("|",name)){
     sprintf(SBPTR," ||");
     sb.o += 3;
+    sprintf(SBTPTR,"||");
+    sbt.o += 2;
   }
 
   if (!strcmp("&",name)){
     sprintf(SBPTR," &&");
     sb.o += 3;
+    sprintf(SBTPTR,"&&");
+    sbt.o += 2;
   }
 
   if (!strcmp("<>",name) ||
@@ -161,6 +179,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       ){
     sprintf(SBPTR," !=");
     sb.o += 3;
+    sprintf(SBTPTR,"!=");
+    sbt.o += 2;
   }
   
   free(value);
@@ -210,9 +230,11 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	char *v = (char*)dup_str(xpn->start_loc.s, xpn->end);
 	if  (!strncmp(v,"print",5)){
 	  fprintf(fpIO,"full_print;\n");
+	  fprintf(fpIO2,"print;\n");
 	} else {
 	  fprintf(fpIO, "%s;\n", v);
-	}
+	  fprintf(fpIO2,"%s;\n", v);
+        }
 	/* sprintf(sb.s,"%s",v); */
         /* sb.o = str; */
         free(v);
@@ -223,29 +245,44 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  if (!strncmp(v,"ode0",4)){
 	    sprintf(sb.s,"ODE0_Rprintf(");
             sb.o = 12;
+	    sprintf(sbt.s,"ode0_printf(");
+	    sbt.o = 12;
  	  } else if (!strncmp(v,"jac0",4)) {
 	    sprintf(sb.s,"JAC0_Rprintf(");
 	    sb.o = 12;
+	    sprintf(sbt.s,"jac0_printf(");
+            sbt.o = 12;
           } else if (!strncmp(v,"ode",3)){
 	    sprintf(sb.s,"ODE_Rprintf(");
             sb.o = 11;
+	    sprintf(sbt.s,"ode_printf(");
+            sbt.o = 11;
 	  } else if (!strncmp(v,"jac",3)){
 	    sprintf(sb.s,"JAC_Rprintf(");
             sb.o = 11;
+	    sprintf(sbt.s,"jac_printf(");
+            sbt.o = 11;
 	  } else if (!strncmp(v,"lhs",3)){
 	    sprintf(sb.s,"LHS_Rprintf(");
             sb.o = 11;
+	    sprintf(sbt.s,"lhs_printf(");
+            sbt.o = 11;
 	  } else {
 	    sprintf(sb.s,"Rprintf(");
             sb.o = 7;
+	    sprintf(sbt.s,"printf(");
+            sbt.o = 6;
 	  }
         }
 	if (i == 2){
 	  sprintf(SBPTR,"%s",v);
 	  sb.o = strlen(sb.s);
+	  sprintf(SBTPTR,"%s",v);
+          sbt.o = strlen(sbt.s);
 	}
 	if (i == 4){
-	  fprintf(fpIO, "%s;\n", sb.s);
+	  fprintf(fpIO,  "%s;\n", sb.s);
+	  fprintf(fpIO2, "%s;\n", sbt.s);
   	}
 	free(v);
 	continue;
@@ -258,12 +295,16 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	if (!strcmp("jac_rhs",name) || !strcmp("dfdy_rhs",name)){
 	  // Continuation statement
 	  sprintf(SBPTR,"__PDStateVar__[__CMT_NUM_%s__*(__NROWPD__)+",v);
+	  sprintf(SBTPTR,"df(%s)/dy(",v);
 	} else {
 	  // New statment
 	  sb.o = 0;
+	  sbt.o = 0;
           sprintf(sb.s,"__PDStateVar__[__CMT_NUM_%s__*(__NROWPD__)+",v);
+	  sprintf(sbt.s,"df(%s)/dy(",v);
         }
 	sb.o = strlen(sb.s);
+	sbt.o = strlen(sbt.s);
         free(v);
 	continue;
       }
@@ -272,11 +313,15 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         char *v = (char*)dup_str(xpn->start_loc.s, xpn->end);
 	sprintf(SBPTR, "__CMT_NUM_%s__]",v);
 	sb.o = strlen(sb.s);
+	sprintf(SBTPTR, "%s)",v);
+	sbt.o = strlen(sbt.s);
 	if (strcmp("jac",name) == 0 ||
 	    strcmp("dfdy",name) == 0){
 	  sprintf(SBPTR ," = ");
 	  sb.o += 3;
-	}
+	  sprintf(SBTPTR ,"=");
+          sbt.o += 1;
+        }
         free(v);
 	continue;
       }
@@ -285,22 +330,30 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       if (!strcmp("selection_statement", name) && i==1) {
         sprintf(sb.s, "if (");
         sb.o = strlen(sb.s);
+	sprintf(sbt.s, "if (");
+        sbt.o = strlen(sbt.s);
         continue;
       }
       if (!strcmp("selection_statement", name) && i==3) {
         sprintf(SBPTR, " {");
         sb.o += 2;
-        fprintf(fpIO, "%s\n", sb.s);
+	sprintf(SBTPTR, "{");
+        sbt.o += 1;
+        fprintf(fpIO,  "%s\n", sb.s);
+	fprintf(fpIO2, "%s\n", sbt.s);
         continue;
       }
       if (!strcmp("selection_statement__8", name) && i==0) {
-        fprintf(fpIO, "}\nelse {\n");
+        fprintf(fpIO,  "}\nelse {\n");
+	fprintf(fpIO2, "}\nelse {\n");
         continue;
       }
 
       if (!strcmp("power_expression", name) && i==0) {
         sprintf(SBPTR, ",");
         sb.o++;
+	sprintf(SBTPTR, "^");
+        sbt.o++;
       }
       
 
@@ -311,6 +364,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	if (new_de(v)){
 	  sprintf(sb.s, "__DDtStateVar__[%d] = InfusionRate[%d] + ", tb.nd, tb.nd);
           sb.o = strlen(sb.s);
+	  sprintf(sbt.s, "d/dt(%s)=", v);
+	  sbt.o = strlen(sbt.s);
 	  new_or_ith(v);
           tb.lh[tb.ix] = 9;
           tb.di[tb.nd] = tb.ix;
@@ -324,6 +379,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
           /* printf("de[%d]->%s[%d]\n",tb.id,v,tb.ix); */
           sprintf(sb.s, "__DDtStateVar__[%d] = ", tb.id);
 	  sb.o = strlen(sb.s);
+	  sprintf(sbt.s, "d/dt(%s)=", v);
+          sbt.o = strlen(sbt.s);
 	}
         free(v);
         continue;
@@ -344,6 +401,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	} else {
 	  sprintf(SBPTR, "__DDtStateVar__[%d]", tb.id);
 	  sb.o = strlen(sb.s);
+	  sprintf(SBTPTR, "d/dt(%s)", v);
+          sbt.o = strlen(sbt.s);
 	}
         free(v);
 	continue;
@@ -353,19 +412,24 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         char *v = (char*)dup_str(xpn->start_loc.s, xpn->end);
         sprintf(sb.s, "%s", v);
         sb.o = strlen(v);
+	sprintf(sbt.s, "%s", v);
+        sbt.o = strlen(v);
         new_or_ith(v);
         tb.lh[tb.ix] = 1;
 	free(v);
       }
-
     }
 
-    if (!strcmp("assignment", name) || !strcmp("derivative", name) || !strcmp("jac",name) || !strcmp("dfdy",name))
+    if (!strcmp("assignment", name) || !strcmp("derivative", name) || !strcmp("jac",name) || !strcmp("dfdy",name)){
       fprintf(fpIO, "%s;\n", sb.s);
-
-    if (!strcmp("selection_statement", name))
+      fprintf(fpIO2, "%s;\n", sbt.s);
+    }
+    
+    if (!strcmp("selection_statement", name)){
       fprintf(fpIO, "}\n");
-
+      fprintf(fpIO2, "}\n");
+    }
+    
     if (!strcmp("power_expression", name)) {
       sprintf(SBPTR, ")");
       sb.o++;
@@ -427,6 +491,7 @@ void prnt_vars(int scenario, FILE *outpt, int lhs, const char *pre_str, const ch
 void print_aux_info(FILE *outpt, char *model){
   int i, islhs,pi = 0,li = 0, o=0, statei = 0;
   char *s;
+  char sLine[MXLEN+1];
   char buf[512];
   s = (char *) malloc(64*MXSYM);
   for (i=0; i<tb.nv; i++) {
@@ -455,7 +520,10 @@ void print_aux_info(FILE *outpt, char *model){
   fprintf(outpt,"\tSEXP trann  = PROTECT(allocVector(STRSXP, 7));\n");
   fprintf(outpt,"\tSEXP mmd5   = PROTECT(allocVector(STRSXP, 2));\n");
   fprintf(outpt,"\tSEXP mmd5n  = PROTECT(allocVector(STRSXP, 2));\n");
-  fprintf(outpt,"\tSEXP model  = PROTECT(allocVector(STRSXP, 1));\n");
+  fprintf(outpt,"\tSEXP model  = PROTECT(allocVector(STRSXP, 3));\n");
+  fprintf(outpt,"\tSEXP modeln = PROTECT(allocVector(STRSXP, 3));\n");
+  
+  fprintf(outpt,"\tSET_STRING_ELT(modeln,0,mkChar(\"model\"));\n");
   fprintf(outpt,"\tSET_STRING_ELT(model,0,mkChar(\"");
   for (i = 0; i < strlen(model); i++){
     if (model[i] == '"'){
@@ -469,6 +537,50 @@ void print_aux_info(FILE *outpt, char *model){
     }
   }
   fprintf(outpt,"\"));\n");
+  fprintf(outpt,"\tSET_STRING_ELT(modeln,1,mkChar(\"normModel\"));\n");
+  fpIO2 = fopen("out3.txt", "r");
+  fprintf(outpt,"\tSET_STRING_ELT(model,1,mkChar(\"");
+  err_msg((intptr_t) fpIO2, "Coudln't access out3.txt.\n", -1);
+  while(fgets(sLine, MXLEN, fpIO2)) {  /* Prefered RxODE -- for igraph */
+    for (i = 0; i < strlen(sLine); i++){
+      if (sLine[i] == '"'){
+        fprintf(outpt,"\\\"");
+      } else if (sLine[i] == '\n'){
+        fprintf(outpt,"\\n");
+      } else if (sLine[i] == '\t'){
+        fprintf(outpt,"\\t");
+      } else if (sLine[i] >= 33  && sLine[i] <= 126){ // ASCII only
+        fprintf(outpt,"%c",sLine[i]);
+      }
+    }
+  }
+  fclose(fpIO2);
+  fprintf(outpt,"\"));\n");
+
+#ifdef __STANDALONE__
+  fpIO2 = fopen("out2.txt", "r");
+#else
+  fpIO2 = fopen(out2, "r");
+#endif
+  fprintf(outpt,"\tSET_STRING_ELT(modeln,2,mkChar(\"parseModel\"));\n");
+  fprintf(outpt,"\tSET_STRING_ELT(model,2,mkChar(\"");
+  err_msg((intptr_t) fpIO2, "Coudln't access out2.txt.\n", -1);
+  while(fgets(sLine, MXLEN, fpIO2)) {  /* Prefered RxODE -- for igraph */
+    for (i = 0; i < strlen(sLine); i++){
+      if (sLine[i] == '"'){
+        fprintf(outpt,"\\\"");
+      } else if (sLine[i] == '\n'){
+        fprintf(outpt,"\\n");
+      } else if (sLine[i] == '\t'){
+        fprintf(outpt,"\\t");
+      } else if (sLine[i] >= 32  && sLine[i] <= 126){ // ASCII only
+        fprintf(outpt,"%c",sLine[i]);
+      }
+    }
+  }
+  fclose(fpIO2);
+  fprintf(outpt,"\"));\n");
+
   // Vector Names
   fprintf(outpt,"\tSET_STRING_ELT(names,0,mkChar(\"params\"));\n");
   fprintf(outpt,"\tSET_VECTOR_ELT(lst,0,params);\n");
@@ -519,9 +631,10 @@ void print_aux_info(FILE *outpt, char *model){
   
   fprintf(outpt,"\tsetAttrib(tran, R_NamesSymbol, trann);\n");
   fprintf(outpt,"\tsetAttrib(mmd5, R_NamesSymbol, mmd5n);\n");
+  fprintf(outpt,"\tsetAttrib(model, R_NamesSymbol, modeln);\n");
   fprintf(outpt,"\tsetAttrib(lst, R_NamesSymbol, names);\n");
 
-  fprintf(outpt,"\tUNPROTECT(10);\n");
+  fprintf(outpt,"\tUNPROTECT(11);\n");
   
   fprintf(outpt,"\treturn lst;\n");
   fprintf(outpt,"}\n");
@@ -754,13 +867,16 @@ void trans_internal(char* parse_file, char* c_file){
   if ((pn=dparse(p, buf, strlen(buf))) && !p->syntax_errors) {
     inits();
 #ifdef __STANDALONE__
-    fpIO = fopen( "out2.txt", "w" );
+    fpIO  = fopen( "out2.txt", "w" );
 #else
     fpIO = fopen( out2, "w" );
 #endif
+    fpIO2 = fopen( "out3.txt", "w" );
     err_msg((intptr_t) fpIO, "error opening out2.txt\n", -2);
+    err_msg((intptr_t) fpIO2, "error opening out3.txt\n", -2);
     wprint_parsetree(parser_tables_gram, pn, 0, wprint_node, NULL);
     fclose(fpIO);
+    fclose(fpIO2);
     fpIO = fopen(c_file, "w");
     err_msg((intptr_t) fpIO, "error opening output c file\n", -2);
     codegen(fpIO, 1);
@@ -771,6 +887,7 @@ void trans_internal(char* parse_file, char* c_file){
 #ifdef __STANDALONE__
     remove("out2.txt");
 #endif
+    remove("out3.txt");
   } else {
     Rprintf("\nfailure\n");
   }
