@@ -1117,12 +1117,15 @@ rxCompile <-  function(model,           # Model
     }
 } # end function rxCompile
 
-rxDllLoaded <- function(x){
+rxDllLoaded <- function(x,retry = TRUE){
     m <- rxTrans(x);
     if (any(names(m) == "ode_solver")){
         return(is.loaded(m["ode_solver"]));
+    } else if (retry) {
+        m <- rxCompile(x,force=FALSE);
+        return(rxDllLoaded(m,retry = FALSE))
     } else {
-        stop("Can't figure it out.\n");
+        stop("Can't figure out if the object is loaded or not...");
     }
 }
 
