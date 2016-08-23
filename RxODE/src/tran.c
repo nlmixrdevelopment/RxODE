@@ -197,11 +197,11 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       if (!strcmp("dfdy_rhs", name) && i == 5) continue;
       if (!strcmp("dfdy", name)     && i == 6) continue;
 
-      if (!strcmp("decimalint",name)){
-	// Make implicit double
-	sprintf(SBPTR,".0");
-	sb.o += 2;
-      }
+      /* if (!strcmp("decimalint",name)){ */
+      /* 	// Make implicit double */
+      /* 	sprintf(SBPTR,".0"); */
+      /* 	sb.o += 2; */
+      /* } */
 
       tb.fn = (!strcmp("function", name) && i==0) ? 1 : 0;
       D_ParseNode *xpn = d_get_child(pn,i);
