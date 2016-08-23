@@ -404,18 +404,27 @@ void prnt_vars(int scenario, FILE *outpt, int lhs, const char *pre_str, const ch
   fprintf(outpt, "%s", pre_str);  /* dj: avoid security vulnerability */
   for (i=0, j=0; i<tb.nv; i++) {
     if (lhs && tb.lh[i]>0) continue;
-    j++;
     retieve_var(i, buf);
     switch(scenario) {
-    case 0: fprintf(outpt, i<tb.nv-1 ? "\t%s,\n" : "\t%s;\n", buf); break;
-      case 1: fprintf(outpt, "\t%s = par_ptr[%d];\n", buf, j-1); break;
-      default: break;
+    case 0:
+      fprintf(outpt, i<tb.nv-1 ? "\t%s,\n" : "\t%s;\n", buf);
+      break;
+    case 1:
+      if (!strcmp(buf,"pi")){
+	// Well more digits than is neede or supported by double precision.
+	fprintf(outpt, "\t%s = 3.1415926535897932384626433832795028841971693993751058209749445923078164062;\n", buf, j);
+      } else {
+	fprintf(outpt, "\t%s = par_ptr[%d];\n", buf, j);
+        j++;
+      }
+      break;
+    default: break;
     }
   }
   fprintf(outpt, "%s", post_str);  /* dj: security calls for const format */
 }
 
-void print_aux_info(FILE *outpt){
+void print_aux_info(FILE *outpt, char *model){
   int i, islhs,pi = 0,li = 0, o=0, statei = 0;
   char *s;
   char buf[512];
@@ -424,10 +433,10 @@ void print_aux_info(FILE *outpt){
     islhs = tb.lh[i];
     if (islhs>1) continue;      /* is a state var */
     retieve_var(i, buf);
-    if (islhs == 0){
-      sprintf(s+o, "\tSET_STRING_ELT(params,%d,mkChar(\"%s\"));\n", pi++, buf);
-    } else {
+    if (islhs == 1){
       sprintf(s+o, "\tSET_STRING_ELT(lhs,%d,mkChar(\"%s\"));\n", li++, buf);
+    } else if (strcmp(buf,"pi")){
+      sprintf(s+o, "\tSET_STRING_ELT(params,%d,mkChar(\"%s\"));\n", pi++, buf);
     }
     o = strlen(s);
   }
@@ -437,15 +446,29 @@ void print_aux_info(FILE *outpt){
     o = strlen(s);
   }
   fprintf(outpt,"extern SEXP %smodel_vars(){\n",model_prefix);
-  fprintf(outpt,"\tSEXP lst = PROTECT(allocVector(VECSXP,5));\n");
+  fprintf(outpt,"\tSEXP lst    = PROTECT(allocVector(VECSXP, 6));\n");
+  fprintf(outpt,"\tSEXP names  = PROTECT(allocVector(STRSXP, 6));\n");
   fprintf(outpt,"\tSEXP params = PROTECT(allocVector(STRSXP, %d));\n",pi);
   fprintf(outpt,"\tSEXP lhs    = PROTECT(allocVector(STRSXP, %d));\n",li);
   fprintf(outpt,"\tSEXP state  = PROTECT(allocVector(STRSXP, %d));\n",statei);
-  fprintf(outpt,"\tSEXP names  = PROTECT(allocVector(STRSXP, 5));\n");
   fprintf(outpt,"\tSEXP tran   = PROTECT(allocVector(STRSXP, 7));\n");
   fprintf(outpt,"\tSEXP trann  = PROTECT(allocVector(STRSXP, 7));\n");
   fprintf(outpt,"\tSEXP mmd5   = PROTECT(allocVector(STRSXP, 2));\n");
   fprintf(outpt,"\tSEXP mmd5n  = PROTECT(allocVector(STRSXP, 2));\n");
+  fprintf(outpt,"\tSEXP model  = PROTECT(allocVector(STRSXP, 1));\n");
+  fprintf(outpt,"\tSET_STRING_ELT(model,0,mkChar(\"");
+  for (i = 0; i < strlen(model); i++){
+    if (model[i] == '"'){
+      fprintf(outpt,"\\\"");
+    } else if (model[i] == '\n'){
+      fprintf(outpt,"\\n");
+    } else if (model[i] == '\t'){
+      fprintf(outpt,"\\t");
+    } else if (model[i] >= 32  && model[i] <= 126){ // ASCII only
+      fprintf(outpt,"%c",model[i]);
+    }
+  }
+  fprintf(outpt,"\"));\n");
   // Vector Names
   fprintf(outpt,"\tSET_STRING_ELT(names,0,mkChar(\"params\"));\n");
   fprintf(outpt,"\tSET_VECTOR_ELT(lst,0,params);\n");
@@ -457,7 +480,9 @@ void print_aux_info(FILE *outpt){
   fprintf(outpt,"\tSET_VECTOR_ELT(lst,3,tran);\n");
   fprintf(outpt,"\tSET_STRING_ELT(names,4,mkChar(\"md5\"));\n");
   fprintf(outpt,"\tSET_VECTOR_ELT(lst,  4,mmd5);\n");
-
+  fprintf(outpt,"\tSET_STRING_ELT(names,5,mkChar(\"model\"));\n");
+  fprintf(outpt,"\tSET_VECTOR_ELT(lst,  5,model);\n");
+  
   // md5 values
   fprintf(outpt,"\tSET_STRING_ELT(mmd5n,0,mkChar(\"file_md5\"));\n");
   fprintf(outpt,"\tSET_STRING_ELT(mmd5,0,mkChar(\"%s\"));\n",md5);
@@ -496,7 +521,7 @@ void print_aux_info(FILE *outpt){
   fprintf(outpt,"\tsetAttrib(mmd5, R_NamesSymbol, mmd5n);\n");
   fprintf(outpt,"\tsetAttrib(lst, R_NamesSymbol, names);\n");
 
-  fprintf(outpt,"\tUNPROTECT(9);\n");
+  fprintf(outpt,"\tUNPROTECT(10);\n");
   
   fprintf(outpt,"\treturn lst;\n");
   fprintf(outpt,"}\n");
@@ -523,8 +548,19 @@ void codegen(FILE *outpt, int show_ode) {
         retieve_var(tb.di[i], buf);
         fprintf(outpt, "#define __CMT_NUM_%s__ %d\n", buf, i);
       }
-    } 
-    fprintf(outpt,"\n%s\n",extra_buf);
+    }
+    fprintf(outpt,"\n");
+    for (i = 0; i < strlen(extra_buf); i++){
+      if (extra_buf[i] == '"'){
+        fprintf(outpt,"\"");
+      } else if (extra_buf[i] == '\n'){
+        fprintf(outpt,"\n");
+      } else if (extra_buf[i] == '\t'){
+        fprintf(outpt,"\t");
+      } else if (extra_buf[i] >= 32  && extra_buf[i] <= 126){ // ASCII only
+        fprintf(outpt,"%c",extra_buf[i]);
+      }
+    }
     fprintf(outpt, "%s", hdft[1]);
     fprintf(outpt, "%s", model_prefix);
     fprintf(outpt, "%s", hdft[2]);
@@ -534,9 +570,8 @@ void codegen(FILE *outpt, int show_ode) {
     fprintf(outpt, "// prj-specific derived vars\nvoid %scalc_lhs(double t, double *__zzStateVar__, double *lhs) {\n\tint __print_ode__ = 0, __print_vars__ = 0,__print_parm__ = 0,__print_jac__ = 0;\n",model_prefix);
   }
   if ((show_ode == 2 && found_jac == 1) || show_ode != 2){
-    prnt_vars(0, outpt, 0, "double", "\n");     /* declare all used vars */
+    prnt_vars(0, outpt, 0, "double \n\t", "\n");     /* declare all used vars */
     prnt_vars(1, outpt, 1, "", "\n");                   /* pass system pars */
-
     for (i=0; i<tb.nd; i++) {                   /* name state vars */
       retieve_var(tb.di[i], buf);
       fprintf(outpt, "\t%s = __zzStateVar__[%d];\n", buf, i);
@@ -731,7 +766,7 @@ void trans_internal(char* parse_file, char* c_file){
     codegen(fpIO, 1);
     codegen(fpIO, 2);
     codegen(fpIO, 0);
-    print_aux_info(fpIO);
+    print_aux_info(fpIO,buf);
     fclose(fpIO);
 #ifdef __STANDALONE__
     remove("out2.txt");
@@ -757,18 +792,18 @@ int main(int argc, char *argv[]) {
     return -1;
   }
   model_prefix = (char *) malloc(1);
-  model_prefix = "\0";
+  model_prefix = '\0';
   printf("trans_internal(%s, %s)\n",argv[1],argv[2]);
   if (argc >= 3){ 
     extra_buf = sbuf_read(argv[3]); 
     if (!((intptr_t) extra_buf)){
       extra_buf = (char *) malloc(1);
-      extra_buf[0] = "\0";
+      extra_buf[0] = '\0';
     }
   } else {
     if (!((intptr_t) extra_buf)){
       extra_buf = (char *) malloc(1);
-      extra_buf[0] = "\0";
+      extra_buf[0] = '\0';
     }
   }
   trans_internal(argv[1], argv[2]);
@@ -801,19 +836,19 @@ SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_m
     extra_buf = sbuf_read(CHAR(STRING_ELT(extra_c,0)));
     if (!((intptr_t) extra_buf)){ 
       extra_buf = (char *) malloc(1);
-      extra_buf[0]="\0";
+      extra_buf[0]='\0';
     }
   } else {
     extra_buf = (char *) malloc(1); 
-    extra_buf[0] = "\0";
+    extra_buf[0] = '\0';
   }
-
+  
   if (model_prefix) free(model_prefix);
   if (isString(prefix) && length(prefix) == 1){
     model_prefix = CHAR(STRING_ELT(prefix,0));
   } else {
     model_prefix = (char *) malloc(1);
-    model_prefix[0] = "\0";
+    model_prefix[0] = '\0';
   }
 
   if (md5) free(md5);
@@ -821,7 +856,7 @@ SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_m
     md5 = CHAR(STRING_ELT(model_md5,0));
   } else {
     md5 = (char *) malloc(1);
-    md5[0] = "\0";
+    md5[0] = '\0';
   }
   
   if (out2) free(out2);
