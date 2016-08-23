@@ -237,9 +237,10 @@ igraph <- function(obj,...){
     UseMethod("igraph");
 }
 
-RxODE.nodeInfo <- function(x, # RxODE object
-                           ...){
-    ## RxODE.nodeInfo returns a list containing edgeList, biList and nodes
+nodeInfo <- function(x,       # RxODE normalized model
+                     modVars, # model Vars
+                     ...){
+    ## nodeInfo returns a list containing edgeList, biList and nodes
     
     ##  The nodes object is the compartments in the model that will be
     ##  drawn.  Compartments that should be hidden are prefixed with a
@@ -250,19 +251,11 @@ RxODE.nodeInfo <- function(x, # RxODE object
 
     ## The names of the edgeList is the label applied to the arrow.
     ##
-
-    ## First change the totally parsed  model specifciation to a named R vector.
-    ## Take out any comments.
-    mod0 <- gsub(rex::rex(any_spaces,"#",anything,newline),
-                 "",x$cmpMgr$model,perl=TRUE);
-    ## make sure that spaces before and after newlines are chomped out
-    ## of model.
-    mod0 <- gsub(rex::rex(any_spaces,newline,any_spaces),"\n",mod0,
-                 perl=TRUE);
+    
     ## Move any of the equals logical operators to ~ operators so they
     ## wont be split...
     mod0 <- gsub(rex::rex(capture(one_of(">!<")),"="),
-                 "\\1~",mod0,perl=TRUE);
+                 "\\1~",x,perl=TRUE);
     mod0 <- gsub(rex::rex("=="),"~~",mod0,perl=TRUE);
     ## Make sure there are no spaces around remaining = sign
     mod0 <- gsub(rex::rex(any_spaces,"=",any_spaces),"=",mod0,perl=TRUE)
@@ -372,8 +365,7 @@ RxODE.nodeInfo <- function(x, # RxODE object
         }
     }
     ## Get the variables from the parser
-    modVars <- x$get.modelVars();
-
+    
     ## Subset to the ODE equations.
     de <- c()
     for (v in modVars$state){
@@ -390,7 +382,8 @@ RxODE.nodeInfo <- function(x, # RxODE object
     de <- de[which(regexpr("[(]",de) == -1)];
     parDe <- de;
 
-    sortDe <- function(x=c("centr/V2*CL","centr/V2*Q")){
+    sortDe <- function(x =c("centr/V2*CL","centr/V2*Q")){
+        ## sortDe returns
         ## First protect the / operators.
         x <- unlist(lapply(strsplit(gsub(rex::rex(any_spaces,one_of("/"),any_spaces),
                                   "/zzzzzzz",x[x != ""],perl=TRUE),
@@ -401,7 +394,7 @@ RxODE.nodeInfo <- function(x, # RxODE object
                         return(x)
                     }));
         return(x);
-    }
+    } # end function sortDe
     
     ## Find the negative exressions in the ODEs
     negDe <- gsub(rex::rex(one_of("+"),any_spaces,except_any_of("+-")),"",de,perl=TRUE);
@@ -513,9 +506,9 @@ RxODE.nodeInfo <- function(x, # RxODE object
     return(list(nodes    = nodes,
                 edgeList = edgeList,
                 biList   = biList));
-} # end function RxODE.nodeInfo
+} # end function nodeInfo
 
-igraph.RxODE <- function(x,                                   # RxODE object
+igraph.rxDll <- function(x,                                   # rxDll object
                          shape      = c("square","circle","csquare","rectangle","crectangle","vrectangle","sphere","none"),
                          size       = 30,                     # Size of square
                          colors     = c("accent1"="#0460A9"), # Colors
@@ -528,12 +521,12 @@ igraph.RxODE <- function(x,                                   # RxODE object
                          sizeEnd    = 10,                     # Size of End
                          tk         = FALSE,                  # For tkplot; transparancy not supported.
                          ...){
-    ## igraph.RxODE returns igraph object from RxODE
+    ## igraph.rxDll returns igraph object from rxDll
     if (!requireNamespace("igraph", quietly = TRUE)) {
         stop("Package igraph needed for this function to work. Please install it.",
              call. = FALSE)
     }
-    with(RxODE.nodeInfo(x),{
+    with(nodeInfo(rxModelVars(m)$model["normModel"],rxModelVars(m)),{
         ret <- eval(parse(text=sprintf("igraph::graph_from_literal(%s);",paste(unlist(lapply(edgeList,function(x){sprintf("\"%s\" -+ \"%s\"",x[1],x[2])})),collapse=","))));
         if (length(shape) > 1){
             shape <- shape[1];
@@ -578,9 +571,9 @@ igraph.RxODE <- function(x,                                   # RxODE object
         }
         return(ret);
     });
-} # end function igraph.RxODE
+} # end function igraph.rxDll
 
-plot.RxODE <- function(x,
+plot.rxDll <- function(x,
                        family="sans",
                        interactive = FALSE,
                        ...)
@@ -597,53 +590,8 @@ plot.RxODE <- function(x,
     } else {
         igraph::tkplot(ig,edge.label.family=family, layout = layout, ...)
     }
-    
-    ## plot.RxODE returns nothing, but plots the ode graph diagram
-    ## Sort of works with the Rgraphviz package...
-    ## But Rgraphviz was removed from CRAN, so I wont use it...
-    
-    ## oldGraphPar <- graph.par()
-    ## if (length(engine) > 1){
-    ##     engine <- engine[1];
-    ## }
-    ## if (length(nodeShape) > 1){
-    ##     nodeShape <- nodeShape[1];
-    ## } 
-    ## ret <- new("graphNEL",nodes=nodes,edgemode="directed");
-    ## for (i in 1:length(edgeList)){
-    ##     n2 <- edgeList[[i]][1];
-    ##     n <- edgeList[[i]][2];
-    ##     ret <- addEdge(n2,n,ret,1);
-    ##     labs[sprintf("%s~%s",n2,n)] <- var;
-    ## }
-    ## if (!labels){
-    ##     nl <- names(labs)
-    ##     labs <- rep("",length(nl));
-    ##     names(labs) <- nl;
-    ## }
-    ## attrs <- getDefaultAttrs();
-    ## attrs$node$fillcolor <- colors["accent1"];
-    ## attrs$node$color <- colors["accent1"];
-    ## attrs$node$fontsize <- nodeFontSize;
-    ## attrs$node$fixedsize <- FALSE;
-    ## attrs$node$fontcolor <- "white"
-    ## attrs$node$shape <- nodeShape;
-    ## attrs$node$width <- nodeWidth;
-    ## attrs$node$height <- nodeHeight;
-    ## attrs$edge$color <- colors["accent1"];
-    ## attrs$edge$lwd <- edgeLwd;
-    ## attrs$edge$fontsize <- edgeFontSize;
-    ## attrs$edge$fontcolor <- colors["accent1"];
-    ## ret <- agopen(ret,"RxODE",layoutType=engine,recipEdges="distinct",
-    ##               edgeAttrs=list(label=labs),attrs=attrs);
-    ## for (i in 1:length(AgEdge(ret))){
-    ##     AgEdge(ret)[[i]]@txtLabel@labelJust <- labelJust;
-    ##     str(AgEdge(ret)[[i]])
-    ## }
-    ## plot(ret);
-    ## graph.par(oldGraphPar);
     invisible(NULL)
-} # end function plot.RxODE
+} # end function plot.rxDll
 
 "rx.initCmpMgr" <-
     function(model, modName, wd, flat, extra.c,debug)
@@ -1125,7 +1073,7 @@ rxDllLoaded <- function(x,retry = TRUE){
         m <- rxCompile(x,force=FALSE);
         return(rxDllLoaded(m,retry = FALSE))
     } else {
-        stop("Can't figure out if the object is loaded or not...");
+        stop("Can't figure out if the object...");
     }
 }
 
