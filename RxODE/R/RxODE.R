@@ -508,7 +508,7 @@ nodeInfo <- function(x,       # RxODE normalized model
                 biList   = biList));
 } # end function nodeInfo
 
-igraph.rxDll <- function(x,                                   # rxDll object
+igraph.rxDll <- function(x,                                   #  object
                          shape      = c("square","circle","csquare","rectangle","crectangle","vrectangle","sphere","none"),
                          size       = 30,                     # Size of square
                          colors     = c("accent1"="#0460A9"), # Colors
@@ -851,8 +851,17 @@ rxPrefix <- function(model,          # Model or file name of model
     } else if (file.exists(model)){
         modelPrefix <- sprintf("%s_",gsub("\\W", "_", gsub("[.].*$","",base::basename(model))));
     } else {
-        modelPrefix <- "RxODE_model_";
+        parseModel <- tempfile();
+        cFile <- tempfile();
+        on.exit({unlink(parseModel); unlink(cFile)});
+        sink(parseModel);
+        cat(model);
+        cat("\n");
+        sink();
+        trans <- rxTrans(parseModel,cFile)
+        modelPrefix <- sprintf("rx_%s_",trans["parsed_md5"]);
     }
+    modelPrefix <- sprintf("%s%s_",modelPrefix,.Platform$r_arch);
     return(modelPrefix);
 } # end function rxPrefix
 
@@ -967,6 +976,7 @@ rxCompile <-  function(model,           # Model
             mFile <- sprintf("%s.rx",substr(cFile,0,nchar(cFile)-2));
             sink(mFile);
             cat(model);
+            cat("\n");
             sink();
         } else {
             mFile <- model;
@@ -1081,6 +1091,10 @@ rxDll <- function(obj,...){
     UseMethod("rxDll");
 }
 
+rxDll.character <- function(model,...){
+    return(rxCompile(model,...))
+}
+
 rxDll.rxDll <- function(obj){
     return(obj$dll)
 }
@@ -1156,6 +1170,29 @@ print.rxDll <- function(x,...){
         cat(sprintf("RxODE dll named \"%s\" has been deleted.\n",basename(x$dll)));
     }
     invisible(x);
+}
+
+summary.rxDll <- function(x,...){
+    print(x);
+    cat(sprintf("dll: %s\n",rxDll(x)));
+    cat(sprintf("Jacobian: %s\n",ifelse(rxModelVars(x)$jac == "fulluser","Full User Specified","Full Internally Caluclated")));
+    if (length(rxParams(x)) > 0){
+        cat("\nUser Supplied Parameters:\n");
+        print(rxParams(x));
+    }
+    cat("\nCompartents:\n");
+    tmp <- rxState(x);
+    names(tmp) <- paste0("cmt=",1:length(tmp));
+    print(tmp);
+    if (length(rxLhs(x)) > 0){
+        cat("\nCalculated Variables:\n");
+        print(rxLhs(x));
+    }
+    cat("\nModel:\n")
+    cat(rxModelVars(x)$model["model"]);
+    cat("\n");
+
+    return(invisible(x))
 }
 
 solve.rxDll <- function(rxDllObj,               # rxDll object
