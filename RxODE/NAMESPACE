@@ -2,23 +2,29 @@ importFrom("tools", "md5sum")   # to ensure equality
 import("utils")
 
 # export only these 3 RxODE functions and print methods
-export("RxODE", "rx.initCmpMgr", "eventTable","igraph.RxODE","igraph",
+export("RxODE", "rx.initCmpMgr", "eventTable","igraph.rxDll","igraph",
        "rxModelVars","rxModelVars.rxDll",
        "rxCompile","rxMd5",
        "rxTrans","rxLhs","rxParams","rxState",
-       "rxDll","rxDll.rxDll",
+       "rxDll",
+       "rxDll.rxDll",
+       "rxDll.character",
        "rxLoad","rxUnLoad","rxDelete",
        "solve.rxDll")
 
-S3method("print", "rxDll")
 S3method("print", "RxODE")
 S3method("summary", "RxODE")
 S3method("solve", "RxODE")
-S3method("solve", "rxDll")
 S3method("predict", "RxODE")
 S3method("print", "EventTable")
 S3method("print", "RxCompilationManager")
 S3method("plot", "RxODE")
+
+S3method("plot", "rxDll")
+S3method("print", "rxDll")
+S3method("solve", "rxDll")
+S3method("summary", "rxDll")
+
 
 # the following is very experimental, probably will be 
 # moved to a helper pkg
