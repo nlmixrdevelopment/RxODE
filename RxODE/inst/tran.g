@@ -3,7 +3,8 @@
 statement_list : (statement)+ ;
 
 statement 
-  : assignment end_statement
+  : ini end_statement
+  | assignment end_statement
   | derivative end_statement
   | jac end_statement
   | dfdy end_statement
@@ -33,6 +34,8 @@ printf_command
 
 print_command
   : 'print' | 'ode_print' | 'jac_print' | 'lhs_print';
+
+ini        : identifier ('=' | '<-') constant;
 
 derivative : 'd/dt' '(' identifier_no_output ')' ('=' | '<-') additive_expression;
 der_rhs    : 'd/dt' '(' identifier_no_output ')';

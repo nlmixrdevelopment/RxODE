@@ -173,25 +173,6 @@ solve.RxODE <- function(obj,...){
 
 predict.RxODE <- solve.RxODE;
 
-RxODE.inits <- function(vec,names,default = 0){
-    ret <- vec;
-    nv <- names(vec)
-    if (!is.null(nv)){
-        ret <- ret[nv %in% names];
-        missing <- names[!(names %in%  names(ret))];
-        if (is.na(default) & length(missing) > 0){
-            stop(sprintf("Missing the following parameter(s): %s.",paste(missing,collapse=", ")))
-        }
-        if (length(missing) > 0){
-            ret[missing] <- default;
-            warning(sprintf("Assiged %s to %s.",paste(missing,collapse=", "),default))
-        }
-        ret <- ret[names];
-    }
-    return(ret);
-}
-
-
 "print.RxODE" <-
 function(x, ...)
 {
@@ -1195,15 +1176,80 @@ summary.rxDll <- function(x,...){
     return(invisible(x))
 }
 
-solve.rxDll <- function(rxDllObj,               # rxDll object
-                        params,              # Parmaeter 
-                        events,              # Events
-                        inits       = NULL,  # Initial Events
-                        stiff       = TRUE,  # Is the system stiff
-                        transit_abs = FALSE, # Transit compartment absorption?
+rxInits <- function(rxDllObj,    # rxDll object
+                    vec,         # Supplied parameters
+                    req,         # Required names, and order
+                    default = 0, # Default value; If NA, then throw error if doesn't exist
+                    ...){
+    ## rxInits returns the inits of rxDllObj
+    ##
+    ## - When vec is not specified, returns the model specified
+    ##   initialization values.
+    ##
+    ## - When vec is specified, replace rxDll inis with the values in
+    ##   this named vector, and augment with any new variables.
+    ##
+    ## - When req is specified, make sure that the required variables
+    ##   are included in the output in the order specified.
+    ##
+    ## - The default value specified, anything missing req names is
+    ##   replaced with the default value.  If the default value is NA,
+    ##   then throw an error if the values are not specified in either
+    ##   the vec or the rxDllObj.
+    
+    ini <- rxModelVars(rxDllObj)$ini;
+    if (!missing(vec)){
+        nv <- names(vec)
+        nr <- names(ini)
+        if (is.null(vec)){
+            if (!missing(req) & length(req) == length(vec)){
+                warning(sprintf("Assumed order of inputs: %s",paste(req,collapse=", ")))
+                return(vec)
+            } else {
+                stop("The names of the required vector is missing, and do not match the length of required inputs.")
+            }
+        } else {
+            shared <- vec[nv %in% nr];
+            new <- vec[!(nv %in% nr)];
+            old <- ini[!(nr %in% nv)];
+            vec <- c(shared,old,new);
+        }
+    } else {
+        vec <- ini;
+    }
+    ret <- vec;
+    if (!missing(req)){
+        nv <- names(vec);
+        if (!is.null(nv)){
+            ret <- ret[nv %in% req];
+            missing <- req[!(req %in%  names(ret))];
+            if (is.na(default) & length(missing) > 0){
+                stop(sprintf("Missing the following parameter(s): %s.",paste(missing,collapse=", ")))
+            }
+            if (length(missing) > 0){
+                ret[missing] <- default;
+                warning(sprintf("Assiged %s to %s.",paste(missing,collapse=", "),default))
+            }
+            ret <- ret[req];
+        }
+    }
+    return(ret);
+    
+} # end function rxInits
+
+solve.rxDll <- function(rxDllObj,             # rxDll object
+                        params,               # Parmaeter 
+                        events,               # Events
+                        inits       = NULL,   # Initial Events
+                        stiff       = TRUE,   # Is the system stiff
+                        transit_abs = FALSE,  # Transit compartment absorption?
                         atol        = 1.0e-8, # Absoltue Tolerance for LSODA solver
                         rtol        = 1.0e-6, # Relative Tolerance for LSODA solver
                         ...) {
+    if (missing(events) && class(params) == "EventTable"){
+        events <- params;
+        params <- c();
+    }
     ## solve.rxDll returns a solved object
     event.table <- events$get.EventTable()
     
@@ -1213,15 +1259,8 @@ solve.rxDll <- function(rxDllObj,               # rxDll object
              inits = inits, stiff = stiff, 
              transit_abs = transit_abs, atol = atol, rtol = rtol, ...);
 
-    ## check that starting values for all needed parameters are
-    ## specified in the input "params"
-    if (length(setdiff(rxParams(rxDllObj), names(params)))) {
-        msg <- paste("var(s) not found in input pars.\n", 
-                     paste(setdiff(rxParams(rxDllObj), names(params)), collapse=" "))
-        stop(msg)
-    }
-    inits <- RxODE.inits(inits,rxState(rxDllObj));
-    params <- params[rxParams(rxDllObj)];
+    inits <- rxInits(rxDllObj,inits,rxState(rxDllObj),0);
+    params <- rxInits(rxDllObj,params,rxParams(rxDllObj),NA);
     s <- as.list(match.call(expand.dots = TRUE)) 
     wh <- grep(pattern="S\\d+$", names(s))[1]
     ## HACK: fishing scaling variables "S1 S2 S3 ..." from params call

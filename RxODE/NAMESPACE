@@ -10,6 +10,7 @@ export("RxODE", "rx.initCmpMgr", "eventTable","igraph.rxDll","igraph",
        "rxDll.rxDll",
        "rxDll.character",
        "rxLoad","rxUnLoad","rxDelete",
+       "rxInits",
        "solve.rxDll")
 
 S3method("print", "RxODE")

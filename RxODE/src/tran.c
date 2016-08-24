@@ -34,6 +34,7 @@ typedef struct symtab {
   int deo[MXSYM];        /* offest of des */
   int vo[MXSYM];	/* offset of symbols */
   int lh[MXSYM];	/* lhs symbols? =9 if a state var*/
+  int ini[MXSYM];        /* initial variable assignment =2 if there are two assignments */
   int di[MXDER];	/* ith of state vars */
   int nv;			/* nbr of symbols */
   int ix;                       /* ith of curr symbol */
@@ -193,8 +194,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       sprintf(SBPTR, " pow(");
       sb.o += 5;
     }
-    for (i = 0; i < nch; i++) {
-      
+    for (i = 0; i < nch; i++) {      
       if (!strcmp("derivative", name) && i< 2) continue;
       if (!strcmp("der_rhs", name)    && i< 2) continue;
       if (!strcmp("derivative", name) && i==3) continue;
@@ -226,6 +226,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       tb.fn = (!strcmp("function", name) && i==0) ? 1 : 0;
       D_ParseNode *xpn = d_get_child(pn,i);
       wprint_parsetree(pt, xpn, depth, fn, client_data);
+      
       if (!strcmp("print_command",name)){
 	char *v = (char*)dup_str(xpn->start_loc.s, xpn->end);
 	if  (!strncmp(v,"print",5)){
@@ -408,19 +409,36 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	continue;
       }
 
-      if (!strcmp("assignment", name) && i==0) {
+      if ((!strcmp("assignment", name) || !strcmp("ini", name)) && i==0) {
         char *v = (char*)dup_str(xpn->start_loc.s, xpn->end);
-        sprintf(sb.s, "%s", v);
-        sb.o = strlen(v);
+	if (!strcmp("ini", name)){
+	  sprintf(sb.s, "(__0__)%s", v);
+          sb.o = strlen(v)+7;
+        } else {
+	  sprintf(sb.s, "%s", v);
+          sb.o = strlen(v);
+        }
 	sprintf(sbt.s, "%s", v);
         sbt.o = strlen(v);
         new_or_ith(v);
-        tb.lh[tb.ix] = 1;
-	free(v);
+	if (!strcmp("assignment", name)){
+	  tb.lh[tb.ix] = 1;
+        } else if (!strcmp("ini", name)){
+	  if (tb.ini[tb.ix] == 0){
+	    // If there is only one initialzation call, then assume
+	    // this is a parameter with an initial value.
+	    tb.ini[tb.ix] = 1;
+	  } else {
+	    // There is more than one call to this variable, it is a
+	    // conditional variabile
+	    tb.lh[tb.ix] = 1;
+	  }
+	}
+        free(v);
       }
     }
 
-    if (!strcmp("assignment", name) || !strcmp("derivative", name) || !strcmp("jac",name) || !strcmp("dfdy",name)){
+    if (!strcmp("assignment", name) || !strcmp("ini", name) || !strcmp("derivative", name) || !strcmp("jac",name) || !strcmp("dfdy",name)){
       fprintf(fpIO, "%s;\n", sb.s);
       fprintf(fpIO2, "%s;\n", sbt.s);
     }
@@ -489,8 +507,8 @@ void prnt_vars(int scenario, FILE *outpt, int lhs, const char *pre_str, const ch
 }
 
 void print_aux_info(FILE *outpt, char *model){
-  int i, islhs,pi = 0,li = 0, o=0, statei = 0;
-  char *s;
+  int i, islhs,pi = 0,li = 0, o=0, statei = 0, ini_i = 0;
+  char *s, *s2;
   char sLine[MXLEN+1];
   char buf[512];
   s = (char *) malloc(64*MXSYM);
@@ -511,8 +529,8 @@ void print_aux_info(FILE *outpt, char *model){
     o = strlen(s);
   }
   fprintf(outpt,"extern SEXP %smodel_vars(){\n",model_prefix);
-  fprintf(outpt,"\tSEXP lst    = PROTECT(allocVector(VECSXP, 6));\n");
-  fprintf(outpt,"\tSEXP names  = PROTECT(allocVector(STRSXP, 6));\n");
+  fprintf(outpt,"\tSEXP lst    = PROTECT(allocVector(VECSXP, 7));\n");
+  fprintf(outpt,"\tSEXP names  = PROTECT(allocVector(STRSXP, 7));\n");
   fprintf(outpt,"\tSEXP params = PROTECT(allocVector(STRSXP, %d));\n",pi);
   fprintf(outpt,"\tSEXP lhs    = PROTECT(allocVector(STRSXP, %d));\n",li);
   fprintf(outpt,"\tSEXP state  = PROTECT(allocVector(STRSXP, %d));\n",statei);
@@ -522,6 +540,7 @@ void print_aux_info(FILE *outpt, char *model){
   fprintf(outpt,"\tSEXP mmd5n  = PROTECT(allocVector(STRSXP, 2));\n");
   fprintf(outpt,"\tSEXP model  = PROTECT(allocVector(STRSXP, 3));\n");
   fprintf(outpt,"\tSEXP modeln = PROTECT(allocVector(STRSXP, 3));\n");
+  fprintf(outpt,"%s",s);
   
   fprintf(outpt,"\tSET_STRING_ELT(modeln,0,mkChar(\"model\"));\n");
   fprintf(outpt,"\tSET_STRING_ELT(model,0,mkChar(\"");
@@ -580,7 +599,38 @@ void print_aux_info(FILE *outpt, char *model){
   }
   fclose(fpIO2);
   fprintf(outpt,"\"));\n");
-
+#ifdef __STANDALONE__
+  fpIO2 = fopen("out2.txt", "r");
+#else
+  fpIO2 = fopen(out2, "r");
+#endif
+  s[0] = '\0';
+  o    = 0;
+  while(fgets(sLine, MXLEN, fpIO2)) { 
+    s2 = strstr(sLine,"(__0__)");
+    if (s2){
+      // See if this is a reclaimed initilization variable.
+      for (i=0; i<tb.nv; i++) {
+        if (tb.ini[i] == 1 && tb.lh[i] != 1){
+          //(__0__)V2 =
+          retieve_var(i, buf);
+          s2 = strstr(sLine,buf);
+          if (s2){
+	    sprintf(s+o,"\tSET_STRING_ELT(inin,%d,mkChar(\"%s\"));\n",ini_i, buf);
+	    o = strlen(s);
+            sprintf(s+o,"\tREAL(ini)[%d] = %.*s;\n",ini_i++, strlen(sLine)-strlen(buf)-12,sLine + 10 + strlen(buf));
+	    o = strlen(s);
+            continue;
+          }
+        }
+      }
+      continue;
+    }
+  }
+  fclose(fpIO2);
+  fprintf(outpt,"\tSEXP ini    = PROTECT(allocVector(REALSXP,%d));\n",ini_i);
+  fprintf(outpt,"\tSEXP inin   = PROTECT(allocVector(STRSXP, %d));\n",ini_i);
+  fprintf(outpt,"%s",s);
   // Vector Names
   fprintf(outpt,"\tSET_STRING_ELT(names,0,mkChar(\"params\"));\n");
   fprintf(outpt,"\tSET_VECTOR_ELT(lst,0,params);\n");
@@ -595,15 +645,15 @@ void print_aux_info(FILE *outpt, char *model){
   fprintf(outpt,"\tSET_STRING_ELT(names,5,mkChar(\"model\"));\n");
   fprintf(outpt,"\tSET_VECTOR_ELT(lst,  5,model);\n");
   
+  fprintf(outpt,"\tSET_STRING_ELT(names,6,mkChar(\"ini\"));\n");
+  fprintf(outpt,"\tSET_VECTOR_ELT(lst,  6,ini);\n");
+  
   // md5 values
   fprintf(outpt,"\tSET_STRING_ELT(mmd5n,0,mkChar(\"file_md5\"));\n");
   fprintf(outpt,"\tSET_STRING_ELT(mmd5,0,mkChar(\"%s\"));\n",md5);
   fprintf(outpt,"\tSET_STRING_ELT(mmd5n,1,mkChar(\"parsed_md5\"));\n");
   fprintf(outpt,"\tSET_STRING_ELT(mmd5,1,mkChar(__PARSED_MD5_STR__));\n");
-
-  fprintf(outpt,"%s",s);
-  free(s);
-
+  
   // now trans output
   fprintf(outpt,"\tSET_STRING_ELT(trann,0,mkChar(\"jac\"));\n");
   if (found_jac == 1){
@@ -632,12 +682,14 @@ void print_aux_info(FILE *outpt, char *model){
   fprintf(outpt,"\tsetAttrib(tran, R_NamesSymbol, trann);\n");
   fprintf(outpt,"\tsetAttrib(mmd5, R_NamesSymbol, mmd5n);\n");
   fprintf(outpt,"\tsetAttrib(model, R_NamesSymbol, modeln);\n");
+  fprintf(outpt,"\tsetAttrib(ini, R_NamesSymbol, inin);\n");
   fprintf(outpt,"\tsetAttrib(lst, R_NamesSymbol, names);\n");
 
-  fprintf(outpt,"\tUNPROTECT(11);\n");
+  fprintf(outpt,"\tUNPROTECT(13);\n");
   
   fprintf(outpt,"\treturn lst;\n");
   fprintf(outpt,"}\n");
+  free(s);
   //fprintf(outpt,"SEXP __PARSED_MD5__()\n{\n\treturn %smodel_vars();\n}\n",model_prefix);
 }
 
@@ -698,7 +750,22 @@ void codegen(FILE *outpt, int show_ode) {
     err_msg((intptr_t) fpIO, "Coudln't access out2.txt.\n", -1);
     while(fgets(sLine, MXLEN, fpIO)) {  /* parsed eqns */
       char *s;
-      
+      s = strstr(sLine,"(__0__)");
+      if (s){
+	// See if this is a reclaimed initilization variable.
+	for (i=0; i<tb.nv; i++) {
+	  if (tb.ini[i] == 1 && tb.lh[i] == 1){
+	    //(__0__)V2 =
+	    retieve_var(i, buf);
+	    s = strstr(sLine,buf);
+	    if (s){
+	      fprintf(outpt,"\t%s\n",sLine + 7);
+	      continue;
+	    }
+	  }
+	}
+	continue;
+      }
       s = strstr(sLine,"ode_print;");
       if (show_ode == 1 && !s) s = strstr(sLine,"full_print;");
       if (show_ode != 1 && s) continue;
@@ -833,7 +900,8 @@ void codegen(FILE *outpt, int show_ode) {
 void reset (){
   tb.vo[0]=0;
   tb.deo[0]=0;
-  memset(tb.lh, 0, MXSYM);
+  memset(tb.lh,  0, MXSYM);
+  memset(tb.ini, 0, MXSYM);
   tb.nv=0;
   tb.nd=0;
   tb.fn=0;
