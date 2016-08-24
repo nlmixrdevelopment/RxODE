@@ -492,13 +492,7 @@ void prnt_vars(int scenario, FILE *outpt, int lhs, const char *pre_str, const ch
       fprintf(outpt, i<tb.nv-1 ? "\t%s,\n" : "\t%s;\n", buf);
       break;
     case 1:
-      if (!strcmp(buf,"pi")){
-	// Well more digits than is neede or supported by double precision.
-	fprintf(outpt, "\t%s = 3.1415926535897932384626433832795028841971693993751058209749445923078164062;\n", buf, j);
-      } else {
-	fprintf(outpt, "\t%s = par_ptr[%d];\n", buf, j);
-        j++;
-      }
+      fprintf(outpt, "\t%s = par_ptr[%d];\n", buf, j++);
       break;
     default: break;
     }
@@ -628,6 +622,20 @@ void print_aux_info(FILE *outpt, char *model){
     }
   }
   fclose(fpIO2);
+  // putin constants
+  for (i=0; i<tb.nv; i++) {
+    if (tb.ini[i] == 0 && tb.lh[i] != 1) {
+      retieve_var(i, buf);
+      // Put in constants
+      if  (!strcmp("pi",buf)){
+	sprintf(s+o,"\tSET_STRING_ELT(inin,%d,mkChar(\"pi\"));\n",ini_i);
+	o = strlen(s);
+	// Use well more digits than double supports
+	sprintf(s+o,"\tREAL(ini)[%d] = 3.1415926535897932384626433832795028841971693993751058209749445923078164062;\n",ini_i++);
+	o = strlen(s);
+      }
+    }
+  }
   fprintf(outpt,"\tSEXP ini    = PROTECT(allocVector(REALSXP,%d));\n",ini_i);
   fprintf(outpt,"\tSEXP inin   = PROTECT(allocVector(STRSXP, %d));\n",ini_i);
   fprintf(outpt,"%s",s);
