@@ -9,4 +9,5 @@
 \description{
 This tells if the rxDll is loaded, ready and/or deleted.
 }
+\keyword{internal}
 

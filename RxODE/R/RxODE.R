@@ -1047,6 +1047,8 @@ rx.initCmpMgr <-
    out
 }
 
+#' @rdname print.RxODE
+#' @export
 "print.RxCompilationManager" <-
 function(x, ...)
 {
@@ -1137,7 +1139,41 @@ rxMd5 <- function(model,         # Model File
         rxModelVars(model)$md5;
     }
 } # end function rxMd5
-
+#' Translate the model to C code if needed
+#'
+#' This function translates the model to C code, if needed
+#'
+#' 
+#' @param model This can be either a string specifying a file name for
+#'     the RxODE code, or an RxODE family of objects
+#'
+#' @param cFile The C file where the code should be output
+#'
+#' @param extraC Extra c code to include in the model.  This can be
+#'     useful to specify functions in the model.  These C functions
+#'     should usually take \code{double} precision arguments, and
+#'     return \code{double} precision values.
+#'
+#' @param modelPrefix Prefix of the model functions that will be
+#'     compiled to make sure that multiple RxODE objects can coexist
+#'     in the same R session.
+#'
+#' @param md5 Is the md5 of the model before parsing, and is used to
+#'     embed the md5 into dll, and then provide for functions like
+#'     \code{\link{rxModelVars}}.
+#' 
+#' @param modName is a string specifying the model name.  This string
+#'     is used to generate the model's dll file.  If unspecified, and
+#'     the model does not come from the file, the model dll name is
+#'     based on the parsed md5.
+#'
+#' @param ... Ignored parameters.
+#'
+#' @return a named vector of translated model properties
+#'       including what type of jacobian is specified, the \code{C} function prefixes,
+#'       as well as the \code{C} functions names to be called through the compiled model.
+#' @seealso \code{\link{RxODE}}, \code{\link{rxCompile}}.
+#' @export
 rxTrans <- function(model,
                     cFile       = sprintf("%s.c",gsub("[.][^.]*$","",model)), # C file output
                     extraC      = NULL,                                       # Extra C file(s)
@@ -1193,7 +1229,53 @@ rxTransMakevars <- function(rxProps,                                            
     }
 } # end function rxTransCompileFlags
 
-
+#' Compile a model if needed
+#'
+#' This is the compilation workhorse creating the RxODE model dll
+#' files.
+#'
+#' @param model This can be either a string specifying a file name for
+#'     the RxODE code, a string representing the model specification,
+#'     or an RxODE family of objects to recompile if needed.
+#'
+#' @param dir This is the model directory where the C file will be
+#'     stored for compiling.
+#' 
+#'     If unspecified, the C code is stored in a temporary directory,
+#'     then the model is compiled and moved to the current directory.
+#'     Afterwards the C code is removed.
+#'
+#'     If specified, the C code is stored in the specified directory
+#'     and then compiled in that directory.  The C code is not removed
+#'     after the dll is created in the same directory.  This can be
+#'     useful to debug the c-code outputs.
+#'
+#' @param extraC Extra c code to include in the model.  This can be
+#'     useful to specify functions in the model.  These C functions
+#'     should usually take \code{double} precision arguments, and
+#'     return \code{double} precision values.
+#'
+#' @param force is a boolean stating if the (re)compile should be
+#'     forced if RxODE detects that the models are the same as already
+#'     generated.
+#'
+#' @param modName is a string specifying the model name.  This string
+#'     is used to generate the model's dll file.  If unspecified, and
+#'     the model does not come from the file, the model dll name is
+#'     based on the parsed md5.
+#' @param ... Other arguments sent to the \code{\link{rxTrans}} function.
+#'
+#' @return A rxdll object that has the following slots
+#' 
+#' \item{dll}{dll path}
+#' \item{model}{model specification}
+#' \item{.c}{A function to call C code in the correct context from the dll
+#'          using the \code{\link{.C}} function.}
+#' \item{.call}{A function to call C code in the correct context from the dll
+#'          using the \code{\link{.Call}} function.}
+#' \item{args}{A list of the arguments used to create the rxDll object.}
+#' @seealso \code{\link{RxODE}}
+#' @export
 rxCompile <-  function(model,           # Model
                        dir,             # Directory
                        prefix,          # Prefix
@@ -1259,7 +1341,7 @@ rxCompile <-  function(model,           # Model
             if (force || needCompile){
                 ## Setup Makevars
                 sink(Makevars);
-                cat(rxTransMakevars(trans));
+                cat(rxTransMakevars(trans,...));
                 sink();
                 sh <- "system"   # windows's default shell COMSPEC does not handle UNC paths    
                 ## Change working directory
@@ -1324,6 +1406,16 @@ rxCompile <-  function(model,           # Model
     }
 } # end function rxCompile
 
+#' Determine if the rxDll is loaded or not.
+#'
+#' @param x is a RxODE family of objects
+#'
+#' @param retry is a flag to retry to load if the function can't
+#'     determine if the object is loaded or not...
+#'
+#' @return a boolean stating if the dll is loaded
+#'
+#' @export
 rxDllLoaded <- function(x,retry = TRUE){
     m <- rxTrans(x);
     if (any(names(m) == "ode_solver")){
@@ -1336,19 +1428,46 @@ rxDllLoaded <- function(x,retry = TRUE){
     }
 }
 
+#' Return the dll associated with the RxODE object
+#'
+#' This will return the dynamic load library or shared object used to
+#' run the C code for RxODE.
+#'
+#' @param obj A RxODE family of objects
+#'
+#' @return a path of the library
+#'
+#' @export
 rxDll <- function(obj,...){
     UseMethod("rxDll");
 }
 
+#' @rdname rxDll
+#' @export
 rxDll.character <- function(model,...){
-    return(rxCompile(model,...))
+    return(rxDll(rxCompile(model,...)))
 }
 
+#' @rdname rxDll
+#' @export
 rxDll.rxDll <- function(obj){
     return(obj$dll)
 }
 
+#' @rdname rxDll
+#' @export
+rxDll.RxODE <- function(obj){
+    return(rxDll(obj$cmpMgr$rxDll()))
+}
 
+#' Load the dll for the object
+#'
+#' This loads the dll into the current R session to allow C functions
+#' to be called in R.
+#'
+#' @param obj a RxODE family of objects
+#'
+#' @export
 rxLoad <- function(obj){
     if (!(rxDllLoaded(obj))){
         dll <- rxDll(obj);
@@ -1359,6 +1478,14 @@ rxLoad <- function(obj){
     return(invisible());
 }
 
+#' Unload the dll for the object
+#'
+#' This unloads the dll in the R session so that the dll can be
+#' deleted.  All the c functions will no longer be accessible.
+#'
+#' @param obj a RxODE family of objects
+#'
+#' @export
 rxUnload <- function(obj){
     if ((rxDllLoaded(obj))){
         dll <- rxDll(obj);
@@ -1369,17 +1496,53 @@ rxUnload <- function(obj){
     return(invisible());
 }
 
+#' Delete the dll for the model
+#'
+#' This function deletes the dll, but doesn't delete the model
+#' information in the object.
+#'
+#' @param obj RxODE family of objects
+#'
+#' @return a boolean stating if the operation was successful.
+#' 
+#' @export
 rxDelete <- function(obj){
     dll <- rxDll(obj);
     rxUnload(obj)
     unlink(dll);
+    return(file.exists(dll));
 }
 
-
+#' Parameters specified by the model
+#'
+#' This return the model's parameters that are required to solve the
+#' ODE system.
+#'
+#' @param obj is a RxODE family of objects
+#'
+#' @return a character vector listing the parameters in the model.
+#'
+#' @export
 rxParams <- function(obj,...){
     return(rxModelVars(obj)$params);
 }
 
+#' State variables
+#'
+#' This returns the model's compartments or states.
+#'
+#' @param obj is a RxODE family of objects
+#'
+#' @param state is a string indicating the state or compartment that
+#'     you would like to lookup.
+#'
+#' @return If state is missing, return a character vector of all the states.
+#'
+#' If state is a string, return the compartment number of the named state.
+#'
+#' @seealso \code{\link{RxODE}}
+#' 
+#' @export
 rxState <- function(obj,state,...){
     if (missing(state)){
         return(rxModelVars(obj)$state);
@@ -1394,26 +1557,64 @@ rxState <- function(obj,state,...){
         return(w);
     }
 }
-
+#' Left handed Variables
+#'
+#' This returns the model calculated variables
+#'
+#' @param obj RxODE family of objects
+#'
+#' @return a character vector listing the calculated parameters
+#' @seealso \code{\link{RxODE}}
+#' 
+#' @export
 rxLhs <- function(obj,...){
     return(rxModelVars(obj)$lhs);
 }
 
+#' All model variables for a RxODE object
+#'
+#' Return all the known model variables for a specified rxode object
+#'
+#' These items are only calculated after compilation; they are
+#' built-into the RxODE compiled dll.
+#'
+#' @param obj RxODE family of objects
+#'
+#' @return A list of RxODE model properties including:
+#'
+#' \item{params}{ a character vector of names of the model parameters}
+#' \item{lhs}{ a character vector of the names of the model calculated parameters}
+#' \item{state}{ a character vector of the compartments in RxODE object}
+#' \item{trans}{ a named vector of translated model properties
+#'       including what type of jacobian is specified, the \code{C} function prefixes,
+#'       as well as the \code{C} functions names to be called through the compiled model.}
+#' \item{md5}{a named vector that gives the digest of the model (\code{file_md5}) and the parsed model (\code{parsed_md5})}
+#' \item{model}{ a named vector giving the input model (\code{model}),
+#'    normalized model (no comments and standard syntax for parsing, \code{normModel}),
+#'    and interim code that is used to generate the final C file \code{parseModel}}
+#'
+#' @keywords internal
+#' @export
 rxModelVars <- function(obj,...){
     UseMethod("rxModelVars");
 }
 
+#' @rdname rxModelVars
+#' @export
 rxModelVars.rxDll <- function(obj,...){
     return(obj$modVars)
 }
 
+#' @rdname rxModelVars
+#' @export
 rxModelVars.RxODE <- function(obj,...){
     return(rxModelVars.rxDll(obj$cmpMgr$rxDll()))
 }
 #' Print rxDll object
 #'
 #' This tells if the rxDll is loaded, ready and/or deleted.
-#' 
+#'
+#' @keywords internal
 #' @export print.rxDll
 print.rxDll <- function(x,...){
     if (file.exists(x$dll)){
@@ -1455,6 +1656,25 @@ summary.rxDll <- function(x,...,noprint = FALSE){
     return(invisible(x))
 }
 
+#' Initial Values and State values for a RxODE object
+#'
+#' Returns the initial values of the rxDll object
+#'
+#' @param rxDllObj rxDll, RxODE, or named vector representing default
+#'     initial arguments
+#'
+#' @param vec If supplied, named vector for the model.
+#'
+#' @param req Required names, and the required order for the ODE solver
+#'
+#' @param default a number or NA representing the default value for
+#'     parameters missing in \code{vec}, but required in \code{req}.
+#'
+#' @param noerror is a boolean specifying if an error should be thrown
+#'     for missing parameter values when \code{default} = \code{NA}
+#'
+#' @keywords internal
+#' @export
 rxInits <- function(rxDllObj,        # rxDll object
                     vec,             # Supplied parameters
                     req,             # Required names, and order
