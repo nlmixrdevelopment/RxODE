@@ -9,7 +9,7 @@ export("RxODE", "rx.initCmpMgr", "eventTable","igraph.rxDll","igraph",
        "rxDll",
        "rxDll.rxDll",
        "rxDll.character",
-       "rxLoad","rxUnLoad","rxDelete",
+       "rxLoad","rxUnload","rxDelete",
        "rxInits",
        "solve.rxDll")
 
