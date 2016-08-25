@@ -1,10 +1,282 @@
-"RxODE" <-
+#' Create an ODE-based model specification 
+#'
+#' Create a dynamic ODE-based model object suitably for translation
+#' into fast C code
+#'
+#' @param model a string containing the set of ordinary differential
+#'     equations (ODE) and other expressions defining the changes in
+#'     the dynamic system (see also the \code{filename} argument).For
+#'     details, see the sections \dQuote{Details} and
+#'     \dQuote{\code{RxODE Syntax}} below.
+#'
+#' @param modName a string to be used as the model name. This string
+#'     is used for naming various aspects of the computations,
+#'     including generating C symbol names, dynamic libraries,
+#'     etc. Therefore, it is necessary that \code{modName} consists of
+#'     simple ASCII alphanumeric characters starting with a letter.
+#'
+#' @param wd character string with a working directory where to create
+#'     a subdirectory according to \code{modName} (defaults to the
+#'     current working directory \code{getwd()}. A subdirectoy named
+#'     after the \dQuote{\code{modName.d}} will be created and
+#'     populated with a C file, a dynamic loading library, plus
+#'     various other working files.
+#'
+#' @param filename A file name or connection object where the
+#'     ODE-based model specification resides. Only one of \code{model}
+#'     or \code{filename} may be specified.
+#'
+#' @param do.compile logical specifying whether to carry out the
+#'     parsing of the ODE into C code and its compilation. Default is
+#'     \code{TRUE}
+#'
+#' @param ... any other arguments are passed to the function
+#'     \code{\link{readLines}}, (e.g., encoding).
+#'
+#' The \dQuote{Rx} in the name \code{RxODE} is meant to suggest the
+#' abbreviation \emph{Rx} for a medical prescription, and thus to
+#' suggest the package emphasis on pharmacometrics modeling, including
+#' pharmacokinetics (PK), pharmacodynamics (PD), disease progression,
+#' drug-disease modeling, etc.
+#'
+#' The ODE-based model specification may be coded inside a character
+#' string or in a text file, see Section \emph{RxODE Syntax} below for
+#' coding details.  An internal \code{RxODE} compilation manager
+#' object translates the ODE system into C, compiles it, and
+#' dynamically loads the object code into the current R session.  The
+#' call to \code{RxODE} produces an object of class \code{RxODE} which
+#' consists of a list-like structure (closure) with various member
+#' functions (see Section \emph{Value} below).
+#'
+#' For evaluating \code{RxODE} models, two types of inputs may be
+#' provided: a required set of time points for querying the state of
+#' the ODE system and an optional set of doses (input amounts).  These
+#' inputs are combined into a single \emph{event table} object created
+#' with the function \code{\link{eventTable}}.
+#'
+#' @section RxODE Syntax:
+#'
+#' An \code{RxODE} model specification consists of one or more
+#' statements terminated by semi-colons, \sQuote{\code{;}}, and
+#' optional comments (comments are delimited by \code{#} and an
+#' end-of-line marker).  \strong{NB:} Comments are not allowed inside
+#' statements.
+#' 
+#' A block of statements is a set of statements delimeted by curly
+#' braces, \sQuote{\code{\{ ... \}}}. Statements can be either
+#' assignments or conditional \code{if} statements. Assignment
+#' statements can be: (1) \dQuote{simple} assignmets, where the left
+#' hand is an identifier (i.e., variable), (2) special
+#' \dQuote{time-derivative} assignments, where the left hand specifies
+#' the change of that variable with respect to time e.g.,
+#' \code{d/dt(depot)}, or (3) special \dQuote{jacobian} assignments,
+#' where the left hand specifies the change of of the ODE with respect
+#' to one of the parameters, e.g. \code{df(depot)/dy(kel)}.  The
+#' \dQuote{jacobian} assignments are not required, and are only useful
+#' for very stiff differential systems.  
+#'
+#' Expressions in assignment and \sQuote{\code{if}} statements can be
+#' numeric or logical (no character expressions are currently
+#' supported). Numeric expressions can include the following numeric
+#' operators (\sQuote{\code{+}}, \sQuote{\code{-}}, \sQuote{\code{*}},
+#' \sQuote{\code{/}}, \sQuote{\code{^}}), and those mathematical
+#' functions defined in the C or the R math libraries (e.g.,
+#' \code{fabs}, \code{exp}, \code{log}, \code{sin}).  (Notice that the
+#' modulo operator \sQuote{\code{\%}} is currently not supported.)
+#'
+#' Identifiers in an \code{RxODE} model specification can refer to:
+#' \itemize{
+#'    \item state variables in the dynamic system (e.g., compartments in a
+#'          pharmacokinetics/pharamcodynamics model);
+#'    \item implied input variable, \code{t} (time), 
+#'    \code{podo} (oral dose, for absorption models), and
+#'    \code{tlast} (last time point);
+#'    \item model parameters, (\code{ka} rate of absorption, \code{CL} 
+#'        clearance, etc.);
+#'    \item \code{pi}, for the constant pi. 
+#'    \item others, as created by assignments as part of the model
+#'          specification.
+#' }
+#'
+#' Identifiers consists of case-sensitive alphanumeric characters,
+#' plus the underscore \sQuote{_} character.  \strong{NB:} the dot
+#' \sQuote{.} character is \strong{not} a valid character identifier.
+#'
+#' The values of these variables at pre-specified time points are
+#' saved as part of the fitted/integrated/solved model (see
+#' \code{\link{eventTable}}, in particular its member function
+#' \code{add.sampling} that defines a set of time points at which to
+#' capture a snapshot of the syste via the values of these variables).
+#'
+#' The ODE specification mini-language is parsed with the help of the
+#' open source tool \emph{DParser}, Plevyak (2015).
+#'
+#' 
+#' @return An object (closure) of class \dQuote{\code{RxODE}} (see Chambers and Temple Lang (2001))
+#'      consisting of the following list of strings and functions:
+#' 
+#'     \item{modName}{the name of the model (a copy of the input argument).}
+#'     \item{model}{a character string holding the source model specification.}
+#'     \item{get.modelVars}{a function that returns a list with 3 character 
+#'         vectors, \code{params}, \code{state}, and \code{lhs} of variable names used in the model
+#'         specification. These will be output when the model is computed (i.e., the ODE solved by integration).}
+#' 
+#'       \item{solve}{this function solves (integrates) the ODE. The following
+#'           are its arguments:
+#'       
+#'           \code{params}: a numeric named vector with values for every parameter 
+#'           in the ODE system; the names must correspond to the parameter 
+#'           identifiers used in the ODE specification;
+#'           
+#'           \code{events}: an \code{EventTable} object describing the 
+#'           input (e.g., doses) to the dynamic system and observation 
+#'           sampling time points (see  \code{\link{eventTable}});
+#'       
+#'           \code{inits}: a vector of initial values of the state variables
+#'           (e.g., amounts in each compartment), and the order in this vector
+#'           must be the same as the state variables (e.g., PK/PD compartments);
+#'           
+#'       
+#'           \code{stiff}: a logical (\code{TRUE} by default) indicating whether
+#'           the ODE system is stifff or not.  
+#'       
+#'           For stiff ODE sytems (\code{stiff=TRUE}), \code{RxODE} uses
+#'           the LSODA (Livermore Solver for Ordinary Differential Equations) 
+#'           Fortran package, which implements an automatic method switching 
+#'           for stiff and non-stiff problems along the integration interval, 
+#'           authored by Hindmarsh and Petzold (2003).  
+#'       
+#'           For non-stiff systems (\code{stiff=FALSE}), \code{RxODE} uses DOP853,
+#'           an explicit Runge-Kutta method of order 8(5,3) of Dormand and Prince
+#'           as implemented in C by Hairer and Wanner (1993).
+#'       
+#'           \code{trans_abs}: a logical (\code{FALSE} by default) indicating
+#'           whether to fit a transit absorption term 
+#'           (TODO: need further documentation and example);
+#'       
+#'           \code{atol}: a numeric absolute tolerance (1e-08 by default);
+#'       
+#'           \code{rtol}: a numeric relative tolerance (1e-06 by default).
+#'       
+#'           The output of \dQuote{solve} is a matrix with as many rows as there
+#'           are sampled time points and as many columns as system variables 
+#'           (as defined by the ODEs and additional assigments in the RxODE model 
+#'               code).}
+#'       
+#'       \item{isValid}{a function that (naively) checks for model validity,
+#'           namely that the C object code reflects the latest model 
+#'           specification.}
+#'       \item{version}{a string scaler with the version of the \code{RxODE}
+#'           object (not the package).}
+#'       \item{dynLoad}{a function with one \code{force=FALSE} argument
+#'           that dynamically loads the object code if needed.}
+#'       \item{dynUnload}{a function with no argument that unloads 
+#'           the model object code.}
+#'       \item{cmpMgr}{a \dQuote{compilation manager} object, see 
+#'           \code{\link{rx.initCmpMgr}}.}
+#'       \item{delete}{removes all created model files, including C and DDL files.
+#'           The model object is no longer valid and should be removed, e.g., 
+#'           \code{rm(m1)}.}
+#'       \item{run}{deprecated, use \code{solve}.}
+#'       \item{parse}{deprecated.}
+#'       \item{compile}{deprecated.}
+#'       \item{get.index}{deprecated.}
+#'       \item{getObj}{internal (not user callable) function.}
+#'
+#' @references
+#'
+#' Chamber, J. M. and Temple Lang, D. (2001)
+#' \emph{Object Oriented Programming in R}. 
+#' R News, Vol. 1, No. 3, September 2001.
+#' \url{https://cran.r-project.org/doc/Rnews/Rnews_2001-3.pdf}.
+#'
+#' Hindmarsh, A. C.
+#' \emph{ODEPACK, A Systematized Collection of ODE Solvers}.
+#' Scientific Computing, R. S. Stepleman et al. (Eds.),
+#' North-Holland, Amsterdam, 1983, pp. 55-64.
+#'
+#' Petzold, L. R.
+#' \emph{Automatic Selection of Methods for Solving Stiff and Nonstiff
+#' Systems of Ordinary Differential Equations}.
+#' Siam J. Sci. Stat. Comput. 4 (1983), pp. 136-148.
+#'
+#' Hairer, E., Norsett, S. P., and Wanner, G.
+#' \emph{Solving ordinary differential equations I, nonstiff problems}.
+#' 2nd edition, Springer Series in Computational Mathematics,
+#' Springer-Verlag (1993).
+#'
+#' Plevyek, J.
+#' \emph{Dparser}, \url{http://dparser.sourceforge.net}. Web. 12 Oct. 2015.
+#'
+#' @author Melissa Hallow, Wenping Wang, David James and Matthew Fidler
+#'
+#' @seealso \code{\link{eventTable}}
+#'
+#' @examples
+#' # Step 1 - Create a model specification
+#' ode <- "
+#'    # A 4-compartment model, 3 PK and a PD (effect) compartment
+#'    # (notice state variable names 'depot', 'centr', 'peri', 'eff')
+#' 
+#'    C2 = centr/V2;
+#'    C3 = peri/V3;
+#'    d/dt(depot) =-KA*depot;
+#'    d/dt(centr) = KA*depot - CL*C2 - Q*C2 + Q*C3;
+#'    d/dt(peri)  =                    Q*C2 - Q*C3;
+#'    d/dt(eff)  = Kin - Kout*(1-C2/(EC50+C2))*eff;
+#' "
+#' 
+#' m1 <- RxODE(model = ode, modName = "m1")
+#' print(m1)
+#' 
+#' # Step 2 - Create the model input as an EventTable,
+#' # including dosing and observation (sampling) events
+#' 
+#' # QD (once daily) dosing for 5 days.
+#' 
+#' qd <- eventTable(amount.units="ug", time.units = "hours")
+#' qd$add.dosing(dose=10000, nbr.doses=5, dosing.interval = 24)
+#' 
+#' # Sample the system hourly during the first day, every 8 hours
+#' # then after
+#' 
+#' qd$add.sampling(0:24)
+#' qd$add.sampling(seq(from = 24+8, to = 5*24, by = 8))
+#' 
+#' # Step 3 - set starting parameter estimates and initial
+#' # values of the state
+#' 
+#' theta <- 
+#'     c(KA=.291, CL=18.6, 
+#'       V2=40.2, Q=10.5, V3=297.0,
+#'       Kin=1.0, Kout=1.0, EC50=200.0)
+#' 
+#' # init state variable
+#' inits <- c(0, 0, 0, 1)      
+#' 
+#' # Step 4 - Fit the model to the data
+#' 
+#' qd.cp <- m1$solve(theta, events = qd, inits)
+#' 
+#' head(qd.cp)
+#' 
+#' @keywords models nonlinear
+#' @concept Nonlinear regression
+#' @concept ODE models
+#' @concept Ordinary differential equations
+#' @concept Pharmacokinetics (PK)
+#' @concept Pharmacodynamics (PD)
+#' @useDynLib RxODE trans
+#' @export
+RxODE <-
     function(model, modName = basename(wd), wd = getwd(),
              filename = NULL, do.compile = NULL, extraC=NULL,
              debug = FALSE,...)
 {
     if(!missing(model) && !missing(filename))
         stop("must specify exactly one of 'model' or 'filename'")
+    if (missing(model) && !missing(filename))
+        model <- filename;
     ## RxODE compilation manager (location of parsed code, generated C,  shared libs, etc.)
 
     cmpMgr <- rx.initCmpMgr(model, modName, wd,  extraC, debug, missing(modName));
@@ -30,6 +302,12 @@
     }
     if (do.compile){
         cmpMgr$compile(force);
+        ## Add for backward compatibility.
+        cmpMgr$dllfile <- rxDll(cmpMgr$rxDll());
+        cmpMgr$ode_solver <- rxTrans(cmpMgr$rxDll())["ode_solver"];
+        model <- rxModelVars(cmpMgr$rxDll())$model["model"];
+        names(model) <- NULL;
+        cmpMgr$model <- model
     }
     out <- 
        list(modName = modName, 
@@ -48,7 +326,7 @@
             get.index = cmpMgr$get.index,
             run = solve, 
             getObj = function(obj) get(obj, envir = environment(solve)))
-   class(out) <- "RxODE"
+    class(out) <- "RxODE"
    out
 }
 
@@ -64,32 +342,114 @@ RxODE.quoteVar <- function(var,word=TRUE){
     return(ret);
 }
 
-solve.RxODE <- function(obj,...){
-    obj$solve(...);
+#' Solve an RxODE object
+#'
+#' \code{solve} solves the odinary differential equations specified by
+#'  RxODE object
+#'
+#' @param RxODEobj An rxode object
+#' @param ... Solve arguments sent to \code{RxODEobj$solve}.  See
+#'     \code{\link{RxODE}}.
+#' @export solve.RxODE
+solve.RxODE <- function(RxODEobj,...){
+    RxODEobj$solve(...);
 }
 
-predict.RxODE <- solve.RxODE;
+#' @rdname solve.RxODE
+#' @export predict.RxODE
+predict.RxODE <- function(RxODEobj,...){
+    RxODEobj$solve(...);
+}
 
-"print.RxODE" <-
-    function(x, ...)
+#' Print information about the RxODE object.
+#'
+#' This prints the model name and its status for being able to be solved
+#'
+#' @param RxODEobj An rxode object
+#' @param ... Ignored parameters
+#' @export print.RxODE
+print.RxODE <-
+    function(RxODEobj, ...)
 {
-   valid <- x$cmpMgr$isValid()
-   if(!valid){
-      .msg <- "invalid object, needs to be re-created"
-   } else {
-      .ready <- x$cmpMgr$getObj(".compiled")
-      .msg <- if(.ready) "ready to run" else "needs compilation"
-   }
-   cat(sprintf('RxODE model named "%s" (%s)\n', x$modName, .msg))
-   invisible(x)
+    valid <- RxODEobj$cmpMgr$isValid()
+    if(!valid){
+        .msg <- "invalid object, needs to be re-created"
+    } else {
+        .ready <- RxODEobj$cmpMgr$getObj(".compiled")
+        .msg <- if(.ready) "ready to run" else "needs compilation"
+    }
+    cat(sprintf('RxODE model named "%s" (%s)\n', x$modName, .msg))
+    invisible(x)
 }
 
-"summary.RxODE" <-
+#' Print expanded information about the RxODE object.
+#'
+#' This prints the expanded information about the RxODE object.
+#'
+#' @param RxODEobj RxODE object
+#' @param ... Ignored parameters
+#' @export summary.RxODE
+summary.RxODE <-
 function(x, ...)
 {
     print.RxODE(x);
     summary.rxDll(x$cmpMgr$rxDll(),noprint=TRUE)
     invisible(x)
+}
+
+#' Return the RxODE coefficients
+#'
+#' This returns the parameters , state variables
+#'
+#' @param RxODEobj is an RxODE object
+#' @param ... ignored arguments
+#'
+#' @return a rxCoef object with the following
+#'
+#' \item{params}{ is a list of strings for parameters for the RxODE object}
+#' \item{state}{ is a list of strings for the names of each state in
+#'     the RxODE object.}
+#' \item{ini}{ is the model specified default values for the
+#'     parameters.}
+#' \item{RxODE}{ is the referring RxODE object}
+#' @export coef.RxODE
+coef.RxODE <- function(RxODEobj,
+                       ...){
+    ret <- rxModelVars(RxODEobj)[c("params","state","ini")];
+    ret$RxODE <- RxODEobj;
+    class(ret) <- "rxCoef";
+    return(ret);
+}
+
+#' @rdname coef.RxODE
+#' @export coef.rxDll
+coef.rxDll <- function(...){
+    coef.RxODE(...);
+};
+
+#' Print the rxCoef object
+#'
+#' This prints out the user supplied arguments for rxCoef object
+#'
+#' @keywords intenral
+#' @export print.rxCoef
+print.rxCoef <- function(lst,...){
+    rxDllObj <- lst$RxODE;
+    if (length(rxParams(rxDllObj)) > 0){
+        cat("\nUser Supplied Parameters:\n");
+        print(rxInits(rxDllObj,c(),rxParams(rxDllObj),NA,TRUE))
+        cat("\nUser Initial Conditions:\n");
+        print(rxInits(rxDllObj,c(),rxState(rxDllObj),0,TRUE))
+    }
+    if (length(rxInits(rxDllObj)) > 0){
+        cat("\nDefault parameter values:\n")
+        print(lst$ini);
+    }
+    cat("\nCompartents:\n");
+    tmp <- rxState(rxDllObj);
+    names(tmp) <- paste0("cmt=",1:length(tmp));
+    print(tmp);
+    return(invisible());
 }
 
 igraph <- function(obj,...){
@@ -433,6 +793,64 @@ igraph.rxDll <- function(x,                                   #  object
     });
 } # end function igraph.rxDll
 
+#' Plot a model digram for simple ODE models
+#'
+#' This plots a line diagram for the current system of differential
+#' equations.
+#'
+#' @param RxODEobj RxODE object
+#' @param family Font family to use
+#' @param interactive If true, use Tcl/tk to plot the diagram and
+#'     allow movement of the compartments
+#' @param shape Box shape, by default it is a square
+#' @param size size of square for compartments
+#' @param colors is a named list of colors.  If any of the names match
+#'     the colors specified by this function, it will use the color in
+#'     this list.  For example \code{accent1} would match the default
+#'     color in this list.
+#' @param fillColor Color of the fill
+#' #' @param font Font (1: plain, 2: bold, 3: italic, 4: bold/italic,
+#'     5:symbol)
+#' @param labelColor Color of the label
+#' @param lineColor Color of the line
+#' @param shapeEnd End shape
+#' @param sizeEnd Size of end
+#'
+#' Currently this method supports simple elimination type models and
+#' indirect-effect models.  Michelis Menton models are not yet
+#' supported.
+#'
+#' @export plot.RxODE
+plot.RxODE <- function(RxODEobj,
+                       family="sans",
+                       interactive = FALSE,
+                       shape      = c("square","circle","csquare","rectangle","crectangle","vrectangle","sphere","none"),
+                       size       = 30,                     # Size of square
+                       colors     = c("accent1"="#0460A9"), # Colors
+                       fillColor  = "accent1",              # Color to fill 
+                       font       = 2,                      # Font (1: plain, 2: bold, 3: italic, 4: bold/italic, 5:symbol)
+                       labelColor = "white",                # Label Color
+                       lineColor  = "accent1",              # Line Color
+                       shapeEnd   = c("none","sphere","circle","square","csquare","rectangle","crectangle","vrectangle"),
+                       sizeEnd    = 10,
+                       ...){
+    plot.rxDll(RxODEobj$cmpMgr$rxDll(),
+               family      = family,
+               interactive = interactive,
+               shape       = shape,
+               size        = size,
+               colors      = colors,
+               fillColor   = fillColor,
+               font        = font,
+               labelColor  = labelColor,
+               lineColor   = lineColor,
+               shapeEnd    = shpeEnd,
+               sizeEnd     = sizeEnd,
+               ...);
+}
+
+#' @rdname plot.RxODE
+#' @export plot.rxDll
 plot.rxDll <- function(x,
                        family="sans",
                        interactive = FALSE,
@@ -453,8 +871,79 @@ plot.rxDll <- function(x,
     invisible(NULL)
 } # end function plot.rxDll
 
-"rx.initCmpMgr" <-
-    function(model, modName, wd, extraC,debug,mmod)
+#' A compilation manager for RxODE models
+#'
+#' This function parses, compiles, links, and loads the shared object
+#' that implements an RxODE model.
+#'
+#' The function parses and compiles (if needed) the \code{RxODE}
+#' model specified in the string \code{model} into a dynamic link
+#' library (DLL on Windows) or a shared object (\code{*.so} on
+#' Unix-like systems).
+#' 
+#' It then dynamically loads this code into the current R
+#' session. (Models previously parsed and compiled in previous R
+#' sessions only need to be dynamically loaded into the current R session.)
+#'
+#' @param model a string containing the either the source or the file
+#'     name of the \code{RxODE} model
+#' @param modName a string with a model identifier (this string will
+#'     be used to construct filenames and C symbols, therefore it must
+#'     be suitable for creating those identifiers); Model
+#'     specification or model file
+#' @param wd a string with a file path to a working directory where to
+#'     create various C and object files.
+#' @param extraC a string with a file path to an extra C file to be
+#'     included in the model.  This is useful for adding your own C
+#'     functions.
+#' @param debug a boolean specifying if debugging is used for the
+#'     compiled code by adding -D__DEBUG__ to the compile-time
+#'     options.
+#' @param mmod A boolean telling if the modName from \code{RxODE} was
+#'     missing.  This affects how the model is created and used.
+#' @return  An object (closure) with the following member functions:
+#' \item{parse}{
+#'     this function parses (translates) the ODE-based model 
+#'     specification and generates a C file to implement the model.}
+#' \item{compile}{
+#'     compiles the generated C file for the ODE system
+#'     and dynamically loads the machine code in the shared object.}
+#' \item{dynLoad}{
+#'     if needed, dynamically loads the dynamic library
+#'     produced in the \code{compile()} step.  Note that the shared
+#'     object persists across R sessions, thus the \code{dynLoad} needs
+#'     to be issued as needed.}
+#' \item{dynUnload}{
+#'     this function unloads the previously dynamically loaded
+#'     model object code.  Mainly for internal use.}
+#' \item{ode_solver}{
+#'     a string with the name of the C symbol for this model solver.}
+#' \item{dllfile}{
+#'     a string with the name of the dynamic link (or shared object) file.}
+#' \item{get.modelVars}{
+#'     function that returns a list with 3 character
+#'     vectors, \code{params}, \code{state}, and \code{lhs} of variable 
+#'     names (identifiers) used in the model specification. 
+#'     These will be output when the model is computed (i.e., the ODE solved).}
+#' \item{isValid}{
+#'     a function that (naively) checks for model validity,
+#'     namely that the C object code reflects the latest model 
+#'     specification.}
+#' \item{get.index}{
+#'     helper function to extract the index of one or
+#'     more system variables (state, parameter, or other).}
+#' \item{getObj}{
+#'     internal (not user callable) function.}
+#' @examples
+#' \dontrun{
+#'   cmpMgt <- rx.initCmpMgr(model, "tst1", wd = ".")
+#' }
+#' @keywords internal models ODE
+#' @concept ordinary differential equations
+#' @seealso \code{\link{RxODE}}
+#' @export rx.initCmpMgr
+rx.initCmpMgr <-
+    function(model, modName, wd, extraC = NULL,debug = TRUE,mmod = FALSE)
 {
     ## Initialize the RxODE compilation manager.  This is a stub
     ## function for backward compatability.
@@ -543,10 +1032,10 @@ plot.rxDll <- function(x,
             model         = model,
             dynLoad       = dynLoad,
             dynUnload     = dynUnload,
-            ## trans      = .trans,   # name of C function
+            ode_solver    = "Need to compile",   # name of C function
             modelDir      = .mdir, # model directory
-            ## dllfile    = .dllfile,
-            get.modelVars = function() rxModelVars(.rxDll),
+            dllfile       = "Need to compile",
+            get.modelVars = function() rxModelVars(.rxDll)[c("params","state","lhs")],
             isValid       = isValid,
             delete        = delete,
             get.index     = get.index, 
@@ -604,6 +1093,27 @@ rxPrefix <- function(model,          # Model or file name of model
     return(modelPrefix);
 } # end function rxPrefix
 
+#' Return the md5 of an RxODE object or file
+#'
+#' This md5 is based on the model and possibly the extra c code
+#' supplied for the model
+#' 
+#' @param model either a string representing the path to a model file
+#'     or a RxODE object
+#' 
+#' @param extraC The extra C file used to help create the md5.  If the
+#'     model is an RxODE object, this argument is ignored.
+#'
+#' @param ... ignored arguments
+#'
+#' @return If this is a RxODE object, return a named list:
+#'
+#' \item \code{file_md5} is the model's file's md5
+#' 
+#' \item \code{parsed_md5} is the parsed model's file's md5.
+#'
+#' @keywords internal
+#' @export rxMd5
 rxMd5 <- function(model,         # Model File
                   extraC = NULL, # Extra C
                   ...){
@@ -900,7 +1410,11 @@ rxModelVars.rxDll <- function(obj,...){
 rxModelVars.RxODE <- function(obj,...){
     return(rxModelVars.rxDll(obj$cmpMgr$rxDll()))
 }
-
+#' Print rxDll object
+#'
+#' This tells if the rxDll is loaded, ready and/or deleted.
+#' 
+#' @export print.rxDll
 print.rxDll <- function(x,...){
     if (file.exists(x$dll)){
         cat(sprintf("RxODE dll named \"%s\"",basename(x$dll)));
@@ -915,25 +1429,21 @@ print.rxDll <- function(x,...){
     invisible(x);
 }
 
+#' Summary of rxDll object
+#'
+#' This gives expanded information about the rxDll object
+#'
+#' @param noprint is a logical telling if it should print the rxDll
+#'     object fist.  
+#'
+#' @keywords internal
+#' @export summary.rxDll
 summary.rxDll <- function(x,...,noprint = FALSE){
     if (!noprint)
         print(x);
     cat(sprintf("dll: %s\n",rxDll(x)));
     cat(sprintf("Jacobian: %s\n",ifelse(rxModelVars(x)$jac == "fulluser","Full User Specified","Full Internally Caluclated")));
-    if (length(rxParams(x)) > 0){
-        cat("\nUser Supplied Parameters:\n");
-        print(rxInits(rxDllObj,c(),rxParams(rxDllObj),NA,TRUE))
-        cat("\nUser Initial Conditions:\n");
-        print(rxInits(rxDllObj,c(),rxState(rxDllObj),0,TRUE))
-    }
-    if (length(rxInits(x)) > 0){
-        cat("\nDefault parameter values:\n")
-        print()
-    }
-    cat("\nCompartents:\n");
-    tmp <- rxState(x);
-    names(tmp) <- paste0("cmt=",1:length(tmp));
-    print(tmp);
+    print(coef(x));
     if (length(rxLhs(x)) > 0){
         cat("\nCalculated Variables:\n");
         print(rxLhs(x));
@@ -969,20 +1479,24 @@ rxInits <- function(rxDllObj,        # rxDll object
     
     ini <- rxModelVars(rxDllObj)$ini;
     if (!missing(vec)){
-        nv <- names(vec)
-        nr <- names(ini)
-        if (is.null(nv)){
-            if (!missing(req) & length(req) == length(vec)){
-                warning(sprintf("Assumed order of inputs: %s",paste(req,collapse=", ")))
-                return(vec)
+        if (length(vec) > 0){
+            nv <- names(vec)
+            nr <- names(ini)
+            if (is.null(nv)){
+                if (!missing(req) & length(req) == length(vec)){
+                    warning(sprintf("Assumed order of inputs: %s",paste(req,collapse=", ")))
+                    return(vec)
+                } else {
+                    stop("The names of the required vector is missing, and do not match the length of required inputs.")
+                }
             } else {
-                stop("The names of the required vector is missing, and do not match the length of required inputs.")
+                shared <- vec[nv %in% nr];
+                new <- vec[!(nv %in% nr)];
+                old <- ini[!(nr %in% nv)];
+                vec <- c(shared,old,new);
             }
         } else {
-            shared <- vec[nv %in% nr];
-            new <- vec[!(nv %in% nr)];
-            old <- ini[!(nr %in% nv)];
-            vec <- c(shared,old,new);
+            vec <- ini;
         }
     } else {
         vec <- ini;
@@ -1008,6 +1522,29 @@ rxInits <- function(rxDllObj,        # rxDll object
     
 } # end function rxInits
 
+#' Solves a rxDll object
+#'
+#' This uses a rxDll object to solve a system.
+#'
+#' @param rxDllObj is a rxDll object
+#'
+#' @param params is a named vector of parameter estimates.
+#'
+#' @param events is an eventTable object of events and sampling times
+#'
+#' @param inits is a named vector of the inital states of the system.
+#'
+#' @param stiff is a boolean indicating if  the system stiff
+#'
+#' @param tranit_abs boolean indicating if this is a transit compartment absorption
+#'
+#' @param atol absolute tolerance for LSODA
+#'
+#' @param rtol relative tolerance for LSODA
+#'
+#' @seealso \code{\link{RxODE}}
+#' @keywords internal
+#' @export solve.rxDll
 solve.rxDll <- function(rxDllObj,             # rxDll object
                         params,               # Parmaeter 
                         events,               # Events
