@@ -1097,11 +1097,22 @@ rxShortPath <- function(p, # Path
 rxDvode <- file.path(system.file("common", package = "RxODE"), "call_dvode.c");
 rxInclude <- system.file("include", package = "RxODE");
 rxLibs <- system.file(file.path("libs", .Platform$r_arch), package = "RxODE");
+if (!file.exists(rxInclude)){
+    ## Testing instead of running
+    rxInclude <- file.path(getwd(),"src","ode");
+    if (file.exists(rxInclude)){
+        rxDvode <- file.path(getwd(),"inst","common","call_dvode.c");
+        rxLibs <- rxInclude;
+    } else {
+        stop("Required files not found in the package.")
+    }
+}
 if (.Platform$OS.type=="windows"){
     rxDvode <- rxShortPath(rxDvode);
     rxInclude <- rxShortPath(rxInclude);
     rxLibs <- rxShortPath(rxLibs);
 }
+
 
 rxPrefix <- function(model,          # Model or file name of model
                      modName = NULL, # Model name, overrides calculated model name.
@@ -1768,11 +1779,11 @@ rxInits <- function(rxDllObj,        # rxDll object
             nv <- names(vec)
             nr <- names(ini)
             if (is.null(nv)){
-                if (!missing(req) & length(req) == length(vec)){
+                if (!missing(req) && length(req) == length(vec)){
                     warning(sprintf("Assumed order of inputs: %s",paste(req,collapse=", ")))
                     return(vec)
                 } else {
-                    stop("The names of the required vector is missing, and do not match the length of required inputs.")
+                    stop(sprintf("Length mismatch\nreq: c(%s)\nvec: c(%s)\n%s",paste(req,collapse=", "),paste(vec,collapse=", "),rxModelVars(rxDllObj)))
                 }
             } else {
                 shared <- vec[nv %in% nr];
@@ -1970,3 +1981,29 @@ rxSolve <- function(object,               # RxODE object
         return(ret)
     } 
 } # end function solve.rxDll
+
+#' Cleanup anonymous dlls
+#'
+#' This cleans up any dlls created by text files
+#'
+#' @param wd What directory should be cleand
+#'
+#' This cleans up all files named rx-*.dll and associated files as
+#' well as call_dvode.o and associated files
+#'
+#' @return TRUE if successful
+#' #' 
+#' @export
+#'
+rxClean <- function(wd = getwd()){
+    owd <- getwd();
+    setwd(wd);
+    on.exit(setwd(owd));
+    pat <- "^(Makevars|(rx.*|call_dvode)[.](o|dll|s[ol]|c|rx))$"
+    files <- list.files(pattern=pat);
+    for (f in files){
+        try(dyn.unload(f),silent=TRUE);
+        unlink(f);
+    }
+    return(length(list.files(pattern=pat)) == 0);
+}
