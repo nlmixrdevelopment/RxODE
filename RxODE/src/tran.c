@@ -965,7 +965,7 @@ void trans_internal(char* parse_file, char* c_file){
 #endif
     remove("out3.txt");
   } else {
-    Rprintf("\nfailure\n");
+    Rprintf("\nSyntax Error\n");
   }
 #ifdef __STANDALONE__
   if (tb.ss) free(tb.ss);
