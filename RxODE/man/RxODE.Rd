@@ -35,6 +35,12 @@ or \code{filename} may be specified.}
 parsing of the ODE into C code and its compilation. Default is
 \code{TRUE}}
 
+\item{extraC}{a string indicating the path to a file with extra c
+functions needed for the compiled ODE model.}
+
+\item{debug}{is a boolean indicating if the executable should be
+compiled with verbose debugging information turned on.}
+
 \item{...}{any other arguments are passed to the function
     \code{\link{readLines}}, (e.g., encoding).
 
@@ -69,8 +75,8 @@ An object (closure) of class \dQuote{\code{RxODE}} (see Chambers and Temple Lang
         vectors, \code{params}, \code{state}, and \code{lhs} of variable names used in the model
         specification. These will be output when the model is computed (i.e., the ODE solved by integration).}
 
-      \item{solve}{this function solves (integrates) the ODE. The following
-          are its arguments:
+      \item{solve}{this function solves (integrates) the ODE. This
+          is done by passing the code to \code{\link{rxSolve}}.  This is as if you called \code{rxSolve(RxODEobject,...)}.
       
           \code{params}: a numeric named vector with values for every parameter 
           in the ODE system; the names must correspond to the parameter 
@@ -104,7 +110,7 @@ An object (closure) of class \dQuote{\code{RxODE}} (see Chambers and Temple Lang
       
           \code{atol}: a numeric absolute tolerance (1e-08 by default);
       
-          \code{rtol}: a numeric relative tolerance (1e-06 by default).
+          \code{rtol}: a numeric relative tolerance (1e-06 by default).e
       
           The output of \dQuote{solve} is a matrix with as many rows as there
           are sampled time points and as many columns as system variables 

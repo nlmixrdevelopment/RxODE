@@ -4,11 +4,14 @@
 \alias{summary.rxDll}
 \title{Summary of rxDll object}
 \usage{
-\method{summary}{rxDll}(x, ..., noprint = FALSE)
+\method{summary}{rxDll}(object, ...)
 }
 \arguments{
-\item{noprint}{is a logical telling if it should print the rxDll
-object fist.}
+\item{object}{RxDll object}
+
+\item{...}{Other arguments.  Includes \code{noprint}, which is a
+logical telling if the object should print the rxDll object
+first. By default this is FALSE}
 }
 \description{
 This gives expanded information about the rxDll object

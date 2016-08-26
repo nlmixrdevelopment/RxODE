@@ -18,9 +18,11 @@ model is an RxODE object, this argument is ignored.}
 \value{
 If this is a RxODE object, return a named list:
 
-\item \code{file_md5} is the model's file's md5
+\item{\code{file_md5}}{ is the model's file's md5}
 
-\item \code{parsed_md5} is the parsed model's file's md5.
+\item{\code{parsed_md5}}{ is the parsed model's file's md5.}
+
+Otherwise return the md5 based on the arguments provided
 }
 \description{
 This md5 is based on the model and possibly the extra c code

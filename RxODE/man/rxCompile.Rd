@@ -24,6 +24,10 @@ or an RxODE family of objects to recompile if needed.}
     after the dll is created in the same directory.  This can be
     useful to debug the c-code outputs.}
 
+\item{prefix}{is a string indicating the prefix to use in the C
+based functions.  If missing, it is calculated based on file
+name, or md5 of parsed model.}
+
 \item{extraC}{Extra c code to include in the model.  This can be
 useful to specify functions in the model.  These C functions
 should usually take \code{double} precision arguments, and

@@ -11,6 +11,8 @@ rxState(obj, state, ...)
 
 \item{state}{is a string indicating the state or compartment that
 you would like to lookup.}
+
+\item{...}{Ignored arguments}
 }
 \value{
 If state is missing, return a character vector of all the states.

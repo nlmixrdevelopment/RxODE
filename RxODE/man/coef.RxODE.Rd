@@ -5,12 +5,12 @@
 \alias{coef.rxDll}
 \title{Return the RxODE coefficients}
 \usage{
-\method{coef}{RxODE}(RxODEobj, ...)
+\method{coef}{RxODE}(object, ...)
 
 \method{coef}{rxDll}(...)
 }
 \arguments{
-\item{RxODEobj}{is an RxODE object}
+\item{object}{is an RxODE object}
 
 \item{...}{ignored arguments}
 }

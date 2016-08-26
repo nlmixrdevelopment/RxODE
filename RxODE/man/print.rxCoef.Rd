@@ -4,10 +4,13 @@
 \alias{print.rxCoef}
 \title{Print the rxCoef object}
 \usage{
-\method{print}{rxCoef}(lst, ...)
+\method{print}{rxCoef}(x, ...)
+}
+\arguments{
+\item{x}{rxCoef object}
 }
 \description{
 This prints out the user supplied arguments for rxCoef object
 }
-\keyword{intenral}
+\keyword{internal}
 

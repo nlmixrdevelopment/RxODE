@@ -8,6 +8,8 @@ rxLhs(obj, ...)
 }
 \arguments{
 \item{obj}{RxODE family of objects}
+
+\item{...}{ignored arguments}
 }
 \value{
 a character vector listing the calculated parameters

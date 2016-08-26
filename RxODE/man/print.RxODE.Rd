@@ -5,12 +5,12 @@
 \alias{print.RxODE}
 \title{Print information about the RxODE object.}
 \usage{
-\method{print}{RxODE}(RxODEobj, ...)
+\method{print}{RxODE}(x, ...)
 
 \method{print}{RxCompilationManager}(x, ...)
 }
 \arguments{
-\item{RxODEobj}{An rxode object}
+\item{x}{An rxode object}
 
 \item{...}{Ignored parameters}
 }

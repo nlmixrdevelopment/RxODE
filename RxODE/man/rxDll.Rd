@@ -9,14 +9,16 @@
 \usage{
 rxDll(obj, ...)
 
-\method{rxDll}{character}(model, ...)
+\method{rxDll}{character}(obj, ...)
 
-\method{rxDll}{rxDll}(obj)
+\method{rxDll}{rxDll}(obj, ...)
 
-\method{rxDll}{RxODE}(obj)
+\method{rxDll}{RxODE}(obj, ...)
 }
 \arguments{
-\item{obj}{A RxODE family of objects}
+\item{obj}{A RxODE family of objects or a character string of the
+model specification or location of a file with a model
+specification.}
 }
 \value{
 a path of the library
@@ -25,4 +27,5 @@ a path of the library
 This will return the dynamic load library or shared object used to
 run the C code for RxODE.
 }
+\keyword{internal}
 

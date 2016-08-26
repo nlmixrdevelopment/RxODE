@@ -8,6 +8,8 @@ rxParams(obj, ...)
 }
 \arguments{
 \item{obj}{is a RxODE family of objects}
+
+\item{...}{Ignored arguments}
 }
 \value{
 a character vector listing the parameters in the model.

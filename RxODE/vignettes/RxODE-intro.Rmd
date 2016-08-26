@@ -122,10 +122,10 @@ x <- mod1$solve(theta, ev, inits)
 head(x)
 ```
 
-This can also be solved by the `solve()` method:
+This can also be solved by the `predict()` method:
 
 ```{r}
-x <- solve(mod1,theta, ev, inits)
+x <- predict(mod1,theta, ev, inits)
 head(x)
 ```
 
