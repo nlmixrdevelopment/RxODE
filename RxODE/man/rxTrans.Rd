@@ -5,7 +5,8 @@
 \title{Translate the model to C code if needed}
 \usage{
 rxTrans(model, cFile = sprintf("\%s.c", gsub("[.][^.]*$", "", model)),
-  extraC = NULL, modelPrefix = "", md5 = "", modName = NULL, ...)
+  extraC = NULL, modelPrefix = "", md5 = "", modName = NULL,
+  modVars = FALSE, ...)
 }
 \arguments{
 \item{model}{This can be either a string specifying a file name for
@@ -30,6 +31,9 @@ embed the md5 into dll, and then provide for functions like
 is used to generate the model's dll file.  If unspecified, and
 the model does not come from the file, the model dll name is
 based on the parsed md5.}
+
+\item{modVars}{returns the model variables instead of the named
+vector of translated properties.}
 
 \item{...}{Ignored parameters.}
 }

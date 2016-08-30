@@ -1211,6 +1211,9 @@ rxMd5 <- function(model,         # Model File
 #'     the model does not come from the file, the model dll name is
 #'     based on the parsed md5.
 #'
+#' @param modVars returns the model variables instead of the named
+#'     vector of translated properties.
+#'
 #' @param ... Ignored parameters.
 #'
 #' @return a named vector of translated model properties
@@ -1224,6 +1227,7 @@ rxTrans <- function(model,
                     modelPrefix = "",                                         # Model Prefix
                     md5         = "",                                         # Md5 of model
                     modName     = NULL,                                       # Model name for dll
+                    modVars     = FALSE,                                      # Return modVars
                     ...){
     ## rxTrans returns a list of compiled properties
     if (class(model) == "character"){
@@ -1241,14 +1245,23 @@ rxTrans <- function(model,
         on.exit(unlink(parseModel));
         ret <- .Call(trans, model, cFile, extraC, modelPrefix,md5,parseModel);
         if (file.exists(cFile)){
-            ret <- c(ret,parsed_md5 = rxMd5(parseModel,extraC)$digest);
-            return(ret);
+            ret$md5 <- c(file_md5=md5,parsed_md5 = rxMd5(parseModel,extraC)$digest);
+            if (modVars){
+                return(ret)
+            } else {
+                return(c(ret$trans,ret$md5));
+            }
         } else {
             stop("Syntax Error (see above)");
         }
         
     } else {
-        return(rxModelVars(model)$trans);
+        mv <- rxModelVars(model)
+        if (modVars){
+            return(mv);
+        } else {
+            return(c(mv$trans,mv$md5));
+        }
     }
 } # end function rxTrans
 

@@ -43,6 +43,10 @@ typedef struct symtab {
   int nd;			/* nbr of dydt */
   int pos;
   int pos_de;
+  int ini_i; // #ini
+  int statei; // # states
+  int li; // # lhs
+  int pi; // # param
 } symtab;
 symtab tb;
 
@@ -535,7 +539,10 @@ void print_aux_info(FILE *outpt, char *model){
   fprintf(outpt,"\tSEXP model  = PROTECT(allocVector(STRSXP, 3));\n");
   fprintf(outpt,"\tSEXP modeln = PROTECT(allocVector(STRSXP, 3));\n");
   fprintf(outpt,"%s",s);
-  
+  // Save for outputting in trans
+  tb.pi = pi;
+  tb.li = li;
+  tb.statei = statei;
   fprintf(outpt,"\tSET_STRING_ELT(modeln,0,mkChar(\"model\"));\n");
   fprintf(outpt,"\tSET_STRING_ELT(model,0,mkChar(\"");
   for (i = 0; i < strlen(model); i++){
@@ -636,25 +643,31 @@ void print_aux_info(FILE *outpt, char *model){
       }
     }
   }
+  tb.ini_i = ini_i;
   fprintf(outpt,"\tSEXP ini    = PROTECT(allocVector(REALSXP,%d));\n",ini_i);
   fprintf(outpt,"\tSEXP inin   = PROTECT(allocVector(STRSXP, %d));\n",ini_i);
   fprintf(outpt,"%s",s);
   // Vector Names
   fprintf(outpt,"\tSET_STRING_ELT(names,0,mkChar(\"params\"));\n");
-  fprintf(outpt,"\tSET_VECTOR_ELT(lst,0,params);\n");
+  fprintf(outpt,"\tSET_VECTOR_ELT(lst,  0,params);\n");
+
   fprintf(outpt,"\tSET_STRING_ELT(names,1,mkChar(\"lhs\"));\n");
-  fprintf(outpt,"\tSET_VECTOR_ELT(lst,1,lhs);\n");
+  fprintf(outpt,"\tSET_VECTOR_ELT(lst,  1,lhs);\n");
+  
   fprintf(outpt,"\tSET_STRING_ELT(names,2,mkChar(\"state\"));\n");
-  fprintf(outpt,"\tSET_VECTOR_ELT(lst,2,state);\n");
+  fprintf(outpt,"\tSET_VECTOR_ELT(lst,  2,state);\n");
+  
   fprintf(outpt,"\tSET_STRING_ELT(names,3,mkChar(\"trans\"));\n");
-  fprintf(outpt,"\tSET_VECTOR_ELT(lst,3,tran);\n");
-  fprintf(outpt,"\tSET_STRING_ELT(names,4,mkChar(\"md5\"));\n");
-  fprintf(outpt,"\tSET_VECTOR_ELT(lst,  4,mmd5);\n");
+  fprintf(outpt,"\tSET_VECTOR_ELT(lst,  3,tran);\n");
+  
   fprintf(outpt,"\tSET_STRING_ELT(names,5,mkChar(\"model\"));\n");
   fprintf(outpt,"\tSET_VECTOR_ELT(lst,  5,model);\n");
   
-  fprintf(outpt,"\tSET_STRING_ELT(names,6,mkChar(\"ini\"));\n");
-  fprintf(outpt,"\tSET_VECTOR_ELT(lst,  6,ini);\n");
+  fprintf(outpt,"\tSET_STRING_ELT(names,4,mkChar(\"ini\"));\n");
+  fprintf(outpt,"\tSET_VECTOR_ELT(lst,  4,ini);\n");
+
+  fprintf(outpt,"\tSET_STRING_ELT(names,6,mkChar(\"md5\"));\n");
+  fprintf(outpt,"\tSET_VECTOR_ELT(lst,  6,mmd5);\n");  
   
   // md5 values
   fprintf(outpt,"\tSET_STRING_ELT(mmd5n,0,mkChar(\"file_md5\"));\n");
@@ -962,8 +975,8 @@ void trans_internal(char* parse_file, char* c_file){
     fclose(fpIO);
 #ifdef __STANDALONE__
     remove("out2.txt");
-#endif
     remove("out3.txt");
+#endif
   } else {
     Rprintf("\nSyntax Error\n");
   }
@@ -972,10 +985,7 @@ void trans_internal(char* parse_file, char* c_file){
   if (tb.de) free(tb.de);
   if (extra_buf) free(extra_buf);
   if (model_prefix) free(model_prefix);
-#else
-  reset();
 #endif
-  
 }
 
 #ifdef __STANDALONE__
@@ -1014,8 +1024,13 @@ void R_unload_RxODE(DllInfo *info){
 }
 SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_md5,
 	   SEXP parse_model){
-  const char *in, *out;
+  const char *in, *out, *file, *pfile;
   char buf[512];
+  char snum[512];
+  char *s2;
+  char sLine[MXLEN+1];
+  int i, j, islhs, pi=0, li=0, ini_i = 0;
+  double d;
   if (!isString(parse_file) || length(parse_file) != 1){
     error("parse_file is not a single string");
   }
@@ -1059,10 +1074,57 @@ SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_m
     out2 = (char *) malloc(9); 
     sprintf(out2,"out2.txt"); 
   }
-  
   trans_internal(in, out);
-  SEXP tran =PROTECT(allocVector(STRSXP, 8));
-  SEXP trann=PROTECT(allocVector(STRSXP, 8));
+  SEXP lst   = PROTECT(allocVector(VECSXP, 6));
+  SEXP names = PROTECT(allocVector(STRSXP, 6));
+  
+  SEXP tran  = PROTECT(allocVector(STRSXP, 7));
+  SEXP trann = PROTECT(allocVector(STRSXP, 7));
+  
+  SEXP state = PROTECT(allocVector(STRSXP,tb.nd));
+  
+  SEXP params = PROTECT(allocVector(STRSXP, tb.pi));
+  
+  SEXP lhs    = PROTECT(allocVector(STRSXP, tb.li));
+  
+  SEXP inin   = PROTECT(allocVector(STRSXP, tb.ini_i));
+  SEXP ini    = PROTECT(allocVector(REALSXP, tb.ini_i));
+  
+  SEXP model  = PROTECT(allocVector(STRSXP,3));
+  SEXP modeln = PROTECT(allocVector(STRSXP,3));
+
+  for (i=0; i<tb.nd; i++) {                     /* name state vars */
+    retieve_var(tb.di[i], buf);
+    SET_STRING_ELT(state,i,mkChar(buf));
+  }
+  for (i=0; i<tb.nv; i++) {
+    islhs = tb.lh[i];
+    if (islhs>1) continue;      /* is a state var */
+    retieve_var(i, buf);
+    if (islhs == 1){
+      SET_STRING_ELT(lhs,li++,mkChar(buf));
+    } else if (strcmp(buf,"pi")){
+      SET_STRING_ELT(params,pi++,mkChar(buf));
+    } 
+  }
+  SET_STRING_ELT(names,0,mkChar("params"));
+  SET_VECTOR_ELT(lst,  0,params);
+
+  SET_STRING_ELT(names,1,mkChar("lhs"));
+  SET_VECTOR_ELT(lst,  1,lhs);
+
+  SET_STRING_ELT(names,2,mkChar("state"));
+  SET_VECTOR_ELT(lst,  2,state);
+
+  SET_STRING_ELT(names,3,mkChar("trans"));
+  SET_VECTOR_ELT(lst,  3,tran);
+  
+  SET_STRING_ELT(names,4,mkChar("ini"));
+  SET_VECTOR_ELT(lst,  4,ini);
+
+  SET_STRING_ELT(names,5,mkChar("model"));
+  SET_VECTOR_ELT(lst,  5,model);
+  
   SET_STRING_ELT(trann,0,mkChar("jac"));
   if (found_jac == 1){
     SET_STRING_ELT(tran,0,mkChar("fulluser")); // Full User Matrix
@@ -1074,7 +1136,7 @@ SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_m
 
   sprintf(buf,"%sdydt",model_prefix);
   SET_STRING_ELT(trann,2,mkChar("dydt"));
-  SET_STRING_ELT(tran,2,mkChar(buf));
+  SET_STRING_ELT(tran,2,mkChar(buf)) ;
 
   sprintf(buf,"%scalc_jac",model_prefix);
   SET_STRING_ELT(trann,3,mkChar("calc_jac"));
@@ -1092,12 +1154,103 @@ SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_m
   SET_STRING_ELT(trann,6,mkChar("ode_solver"));
   SET_STRING_ELT(tran, 6,mkChar(buf));
 
-  SET_STRING_ELT(trann,7,mkChar("file_md5"));
-  SET_STRING_ELT(tran, 7,mkChar(md5));
+  fpIO2 = fopen(out2, "r");
+  while(fgets(sLine, MXLEN, fpIO2)) { 
+    s2 = strstr(sLine,"(__0__)");
+    if (s2){
+      // See if this is a reclaimed initilization variable.
+      for (i=0; i<tb.nv; i++) {
+        if (tb.ini[i] == 1 && tb.lh[i] != 1){
+          //(__0__)V2 =
+          retieve_var(i, buf);
+          s2 = strstr(sLine,buf);
+          if (s2){
+	    /* Rprintf("%s[%d]->\n",buf,ini_i++); */
+	    SET_STRING_ELT(inin,ini_i,mkChar(buf));
+	    sprintf(snum,"%.*s",strlen(sLine)-strlen(buf)-12,sLine + 10 + strlen(buf));
+	    sscanf(snum, "%lf", &d);
+	    REAL(ini)[ini_i++] = d;
+            continue;
+          }
+        }
+      }
+      continue;
+    }
+  }
+  fclose(fpIO2);
+  // putin constants
+  for (i=0; i<tb.nv; i++) {
+    if (tb.ini[i] == 0 && tb.lh[i] != 1) {
+      retieve_var(i, buf);
+      // Put in constants
+      if  (!strcmp("pi",buf)){
+	SET_STRING_ELT(inin,ini_i,mkChar("pi"));
+	REAL(ini)[ini_i++] = 3.1415926535897932384626433832795028841971693993751058209749445923078164062;
+      }
+    }
+  }
+  file = sbuf_read(in);
+  pfile = (char *) malloc(strlen(file)+1);
+  j=0;
+  for (i = 0; i < strlen(file); i++){
+    if (file[i] == '"'  ||
+	file[i] == '\n' ||
+	file[i] == '\t' ||
+	(file[i] >= 32 && file[i] <= 126)){
+      sprintf(pfile+(j++),"%c",file[i]);
+    }
+  }
+  SET_STRING_ELT(modeln,0,mkChar("model"));
+  SET_STRING_ELT(model,0,mkChar(pfile));
+  free(pfile);
+  /* free(file); */
+  SET_STRING_ELT(modeln,1,mkChar("normModel"));
+  file = sbuf_read("out3.txt");
+  if (file){
+    pfile = (char *) malloc(strlen(file)+1);
+    j=0;
+    for (i = 0; i < strlen(file); i++){
+      if (file[i] == '"'  ||
+          file[i] == '\n' ||
+          file[i] == '\t' ||
+          (file[i] >= 33 && file[i] <= 126)){
+        sprintf(pfile+(j++),"%c",file[i]);
+      }
+    }
+    SET_STRING_ELT(model,1,mkChar(pfile));
+    free(pfile);
+  } else {
+    SET_STRING_ELT(model,1,mkChar("Syntax Error"));
+  }
+
+  SET_STRING_ELT(modeln,2,mkChar("parseModel"));
+  file = sbuf_read(out2);
+  if (file){
+    pfile = (char *) malloc(strlen(file)+1);
+    j=0;
+    for (i = 0; i < strlen(file); i++){
+      if (file[i] == '"'  ||
+          file[i] == '\n' ||
+          file[i] == '\t' ||
+          (file[i] >= 32 && file[i] <= 126)){
+        sprintf(pfile+(j++),"%c",file[i]);
+      }
+    }
+    SET_STRING_ELT(model,2,mkChar(pfile));
+    free(pfile);
+  } else {
+    SET_STRING_ELT(model,2,mkChar("Syntax Error"));
+  }
   
-  setAttrib(tran, R_NamesSymbol, trann);
-  UNPROTECT(2);
-  return tran;
+  
+  setAttrib(ini,   R_NamesSymbol, inin);
+  setAttrib(tran,  R_NamesSymbol, trann);
+  setAttrib(lst,   R_NamesSymbol, names);
+  setAttrib(model, R_NamesSymbol, modeln);
+  UNPROTECT(11);
+  remove("out3.txt");
+  reset();
+  return lst;
 }
 
 
