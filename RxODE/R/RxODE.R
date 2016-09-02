@@ -1918,6 +1918,30 @@ rxSolve <- function(object,               # RxODE object
     UseMethod("rxSolve");
 }
 
+rxSolve.solveRxDll <- function(object,...){
+    call <- as.list(match.call(expand.dots = TRUE));
+    lst <- attr(object,"solveRxDll");
+    lst <- lst[names(lst) != "matrix"];
+    lst <- lst[names(lst) != "object"];
+    for (n in names(call)[c(-1,-2)]){
+        if (n == "params"){
+            for (n2 in names(eval(call$params))){
+                lst$params[n2] <-  eval(call$params)[n2];
+            }
+        } else if(n == "inits"){
+            for (n2 in names(eval(call$inits))){
+                lst$inits[n2] <- eval(call$inits)[n2]
+            }
+        } else if (n =="events"){
+            lst$inits[[n]] <- eval(call$inits[[n]])$copy();
+        } else {
+            lst[[n]] <- call[[n]];
+        }
+    }
+    lst$object <- object$object;
+    return(do.call(rxSolve.rxDll,lst,envir=.GlobalEnv));
+}
+
 #' @rdname rxSolve
 #' @export
 rxSolve.RxODE <- function(object,params,events,inits = NULL,stiff = TRUE, transit_abs = FALSE,atol = 1.0e-8, rtol = 1.0e-6,...){
@@ -2016,10 +2040,11 @@ rxSolve.rxDll <- function(object,params,events,inits = NULL,stiff = TRUE, transi
     ## Ensure the objects have names
     names(inits) <- rxState(object);
     names(params) <- rxParams(object);
-    lst <- list(inits = inits,
-                params = params,
-                object = object,
-                matrix = ret);
+    lst <- last.solve.args;
+    lst[["inits"]] <- inits;
+    lst[["params"]] <-  params;
+    lst[["object"]] <- object;
+    lst[["matrix"]] <- ret;
     names(ret) <- dimnames(ret)[[2]]; ## For compatability with tidyr::spread
     length(ret) <- length(dimnames(ret)[[2]])
     class(ret) <- c("solveRxDll");
@@ -2102,16 +2127,28 @@ as.tbl.solveRxDll <- function(x,...){
 
 #' Add data-frame like operators to solved objects
 #'
+#' This is a little different from a standard data frame accessor,
+#' because it allows access to other model parameters for the solved object.
+#' 
 #' @export
 "$.solveRxDll" <-  function(obj,arg){
     m <- as.data.frame(obj);
     ret <- m[[arg]];
     if (is.null(ret) & class(arg) == "character"){
-        tmp <- attr(obj,"solveRxDll");
-        w <- which(regexpr(arg,names(tmp)) != -1);
-        if (length(w) == 1){
-            return(tmp[[w]]);
+        if (arg == "t"){
+            return(m[["time"]]);
         } else {
+            tmp <- attr(obj,"solveRxDll");
+            w <- which(regexpr(arg,names(tmp)) != -1);
+            if (length(w) == 1){
+                return(tmp[[w]]);
+            }
+            if (any(names(tmp$param) == arg)){
+                return(tmp$param[arg]);
+            }
+            if (any(names(tmp$init) == arg)){
+                return(tmp$init[arg]);
+            }
             return(NULL);
         }
     } else {
