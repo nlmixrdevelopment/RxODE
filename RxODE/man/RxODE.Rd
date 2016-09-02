@@ -76,7 +76,9 @@ An object (closure) of class \dQuote{\code{RxODE}} (see Chambers and Temple Lang
         specification. These will be output when the model is computed (i.e., the ODE solved by integration).}
 
       \item{solve}{this function solves (integrates) the ODE. This
-          is done by passing the code to \code{\link{rxSolve}}.  This is as if you called \code{rxSolve(RxODEobject,...)}.
+          is done by passing the code to \code{\link{rxSolve}}.
+          This is as if you called \code{rxSolve(RxODEobject,...)},
+          but returns a matrix instead of a rxSolve object.
       
           \code{params}: a numeric named vector with values for every parameter 
           in the ODE system; the names must correspond to the parameter 

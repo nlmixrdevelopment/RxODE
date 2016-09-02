@@ -129,7 +129,9 @@ rex::register_shortcuts("RxODE");
 #'         specification. These will be output when the model is computed (i.e., the ODE solved by integration).}
 #' 
 #'       \item{solve}{this function solves (integrates) the ODE. This
-#'           is done by passing the code to \code{\link{rxSolve}}.  This is as if you called \code{rxSolve(RxODEobject,...)}.
+#'           is done by passing the code to \code{\link{rxSolve}}.
+#'           This is as if you called \code{rxSolve(RxODEobject,...)},
+#'           but returns a matrix instead of a rxSolve object.
 #'       
 #'           \code{params}: a numeric named vector with values for every parameter 
 #'           in the ODE system; the names must correspond to the parameter 
@@ -297,7 +299,7 @@ RxODE <-
     solve <- function(...){
         .last.solve.args <<- as.list(match.call(expand.dots = TRUE));
         rx <- cmpMgr$rxDll();
-        return(rxSolve(rx,...));
+        return(as.matrix(rxSolve(rx,...)));
     }
     force <- FALSE
     if (class(do.compile) == "logical"){
@@ -1991,9 +1993,538 @@ rxSolve <- function(object,               # RxODE object
         }
         
         ret <- cbind(time=event.table$time, x)[events$get.obs.rec(),];
+        lst <- list(inits = inits,
+                    params = params,
+                    object = object,
+                    matrix = ret);
+        names(ret) <- dimnames(ret)[[2]]; ## For compatability with tidyr::spread
+        length(ret) <- length(dimnames(ret)[[2]])
+        class(ret) <- c("solveRxDll");
+        attr(ret,"solveRxDll") <- lst;
         return(ret)
     } 
 } # end function solve.rxDll
+
+#' Print information about solved object
+#'
+#' This prints the data frame and parameters of the model being
+#' solved.
+#'
+#' @param x An solveRxDll object
+#' @param ... Ignored Parameter
+#' @export
+print.solveRxDll <- function(x,...){
+    lst <- attr(x,"solveRxDll")
+    cat("Solved RxODE object\n");
+    cat(sprintf("Dll: %s\n\n",rxDll(lst$object)))
+    cat("Parameters:\n")
+    print(lst$params);
+    cat("\n\nInitial Conditions:\n")
+    print(lst$inits);
+    cat("\n\nFirst part of data:\n")
+    if (!requireNamespace("dplyr", quietly = TRUE)){
+        print(head(as.matrix(x)));
+    } else {
+        print(dplyr::as.tbl(x));
+    }
+}
+
+#' Convert solveRxDll object to matrix
+#'
+#' This is done by extracting the matrix from the solveRxDll object.
+#' 
+#' @export
+as.matrix.solveRxDll <- function(x,...){
+    lst <- attr(x,"solveRxDll")
+    return(lst$matrix);
+}
+
+#' Convert solveRxDll object to data.frame
+#'
+#' Extract the matrix returned by the solver and then convert it to a
+#' data.frame
+#' 
+#' @export
+as.data.frame.solveRxDll <- function(x,row.names = NULL, optional = FALSE, ...,
+                                     stringsAsFactors = default.stringsAsFactors()){
+    return(as.data.frame(as.matrix(x),row.names = row.names, optional = optional,...,
+                         stringAsFactors = stringAsFactors));
+}
+
+#' Return the head of RxODE solved data
+#'
+#' Extract the matrix and return the head of the matrix
+#'
+#' @export
+#' @importFrom utils head 
+head.solveRxDll <- function(x, n = 6L, ...){
+    return(utils::head.matrix(as.matrix(x),n = n, ...));
+}
+
+#' Return the tail of RxODE solved data
+#'
+#' Extract the matrix and return the tail of the matrix
+#'
+#' @export
+#' @importFrom utils tail
+tail.solveRxDll <- function(x, n = 6L, addrownums = TRUE,...){
+    return(utils::tail.matrix(as.matrix(x),n = n, addrownums = addrownums, ...));
+}
+
+#' Compatability functions for solveRxDll with dyplr and tidyr
+#'
+#' @export as.tbl.solveRxDll
+as.tbl.solveRxDll <- function(x,...){
+    return(dplyr::as.tbl(as.data.frame(x)));
+}
+
+#' Add data-frame like operators to solved objects
+#'
+#' @export
+"$.solveRxDll" <-  function(obj,arg){
+    m <- as.data.frame(obj);
+    ret <- m[[arg]];
+    if (is.null(ret) & class(arg) == "character"){
+        tmp <- attr(obj,"solveRxDll");
+        w <- which(regexpr(arg,names(tmp)) != -1);
+        if (length(w) == 1){
+            return(tmp[[w]]);
+        } else {
+            return(NULL);
+        }
+    } else {
+        return(ret);
+    }
+}
+
+#' @rdname "$.solveRxDll"
+#' @export
+"[.solveRxDll" <- function(obj,arg,arg2){
+    df <- as.data.frame(obj);
+    if (missing(arg) && !missing(arg2)){
+        return(df[,arg2]);
+    }
+    if (!missing(arg) && missing(arg2)){
+        return(df[arg,])
+    }
+    if (!missing(arg) && !missing(arg2)){
+        return(df[arg,arg2]);
+    }
+    return(df)
+}
+
+
+#' @rdname "$.solveRxDll"
+#' @export
+"[[.solveRxDll" <- function(obj,arg,internal = FALSE){
+    if (internal){
+        tmp <- attr(obj,"solveRxDll");
+        return(tmp[[arg]])
+    } else {
+        "$.solveRxDll"(obj,arg);
+    }
+}
+
+
+## Data frame assignments
+
+#' @rdname "$.solveRxDll"
+#' @export
+"$<-.solveRxDll" <- function(obj,arg,value){
+    ## Fixme -- update event Table sampling times?
+    lst <- attr(obj,"solveRxDll")
+    df <- as.data.frame(obj);
+    m <- as.matrix("$<-.data.frame"(df,arg,value));
+    lst$matrix <- m;
+    attr(obj,"solveRxDll") <- lst;
+    return(obj);
+}
+
+
+#' @rdname "$.solveRxDll"
+#' @export
+"[[<-.solveRxDll" <- function(obj,arg,value){
+    ## Fixme -- update event Table sampling times?
+    lst <- attr(obj,"solveRxDll")
+    df <- as.data.frame(obj);
+    m <- as.matrix("[[<-.data.frame"(df,arg,value));
+    lst$matrix <- m;
+    attr(obj,"solveRxDll") <- lst;
+    return(obj);
+}
+
+#' @rdname "$.solveRxDll"
+#' @export
+"[<-.solveRxDll" <- function(obj,arg,value){
+    ## Fixme -- update event Table sampling times?
+    lst <- attr(obj,"solveRxDll")
+    df <- as.data.frame(obj);
+    m <- as.matrix("[[<-.data.frame"(df,arg,value));
+    lst$matrix <- m;
+    attr(obj,"solveRxDll") <- lst;
+    return(obj);
+}
+
+#' @rdname "$.solveRxDll"
+#' @export
+"row.names<-.solveRxDll" <- function(x,value){
+    lst <- attr(x,"solveRxDll")
+    df <- as.data.frame(x);
+    m <- as.matrix("row.names<-.data.frame"(df,value));
+    lst$matrix <- m;
+    attr(x,"solveRxDll") <- lst;
+    return(x);
+}
+
+#' @rdname "$.solveRxDll"
+#' @export
+row.names.solveRxDll <- function(x,...){
+    lst <- attr(x,"solveRxDll")
+    df <- as.data.frame(x);
+    return(row.names(df));
+}
+
+#' @rdname "$.solveRxDll"
+#' @export
+by.solveRxDll <- function(data, INDICES, FUN, ..., simplify = TRUE){
+    by(as.data.frame(data),INDICES, FUN, ...,simplify = simplify);
+}
+
+#' @rdname "$.solveRxDll"
+#' @export
+#' @importFrom stats aggregate
+aggregate.solveRxDll <- function(x, by, FUN, ..., simplify = TRUE){
+    aggregate.data.frame(as.data.frame(x), by, FUN, ... , simplify = simplify);
+}
+
+#' @rdname "$.solveRxDll"
+#' @export
+anyDuplicated.solveRxDll <- function(x, incomparables = FALSE,
+                                     fromLast = FALSE, ...){
+    anyDuplicated(as.data.frame(x),incomparables, fromLast, ...);
+}
+
+#' @rdname "$.solveRxDll"
+#' @export
+dim.solveRxDll <- function(x){
+    return(dim(as.matrix(x)));
+}
+
+#' @rdname "$.solveRxDll"
+#' @export
+"dim<-.solveRxDll" <- function(x,value){
+    lst <- attr(x,"solveRxDll")
+    m <- as.matrix(x);
+    dim(m) <- value;
+    lst$matrix <- m;
+    attr(x,"solveRxDll") <- lst;
+    return(x);
+}
+
+#' @rdname "$.solveRxDll"
+#' @export
+dimnames.solveRxDll <- function(x){
+    return(dimnames(as.matrix(x)));
+}
+
+#' @rdname "$.solveRxDll"
+#' @export
+"dimnames<-.solveRxDll" <- function(x,value){
+    lst <- attr(x,"solveRxDll")
+    m <- as.matrix(x);
+    dimnames(m) <- value;
+    lst$matrix <- m;
+    attr(x,"solveRxDll") <- lst;
+    return(x);
+}
+
+#' @rdname "$.solveRxDll"
+#' @export
+droplevels.solveRxDll <- function(x, except, ...){
+    droplevels(as.data.frame(x),except,...);
+}
+
+#' @rdname "$.solveRxDll"
+#' @export
+duplicated.solveRxDll <- function(x, incomparables = FALSE,
+                                  fromLast = FALSE, nmax = NA, ...){
+    duplicated(as.data.frame(x),incomparables, fromLast, nmax,...);
+}
+
+#' @rdname "$.solveRxDll"
+#' @export
+edit.solveRxDll <- function(name, ...){
+    edit(as.data.frame(name),...);
+}
+
+#' @rdname "$.solveRxDll"
+#' @export
+is.na.solveRxDll <- function(x){
+    is.na(as.data.frame(x));
+}
+
+#' @rdname "$.solveRxDll"
+#' @export
+# Should this method be exported???
+Math.solveRxDll <- function(x,...){
+    Math(as.data.frame(x),...);
+}
+
+#' @rdname "$.solveRxDll"
+#' @export
+rowsum.solveRxDll <- function(x, group, reorder = TRUE, na.rm = FALSE, ...){
+    rowsum.data.frame(as.data.frame(x),group, reorder, na.rm,...);
+}
+
+#' @rdname "$.solveRxDll"
+#' @export
+split.solveRxDll <- function(x, f, drop = FALSE, ...){
+    split(as.data.frame(x),f,drop,...);
+}
+
+#' @rdname "$.solveRxDll"
+#' @export
+"split<-.solveRxDll" <- function(x, f, drop = FALSE, ...,value){
+    "split<-"(as.data.frame(x),f,drop,...,value=value);
+}
+
+#' @rdname "$.solveRxDll"
+#' @export
+unsplit.solveRxDll <- function(x, f, drop = FALSE){
+    unsplit(as.data.frame(x),f,drop);
+}
+
+#' @rdname "$.solveRxDll"
+#' @export
+subset.solveRxDll <- function(x, subset, select, drop = FALSE, ...){
+    subset.data.frame(as.data.frame(x),subset,select,drop,...)
+}
+
+#' @rdname "$.solveRxDll"
+#' @export
+#' @importFrom utils stack
+stack.solveRxDll <- function(x, select, ...){
+    stack(as.data.frame(x),select,...)
+}
+
+#' @rdname "$.solveRxDll"
+#' @export
+t.solveRxDll <- function(x){
+    t(as.matrix(x))
+}
+
+#' @rdname "$.solveRxDll"
+#' @export
+#' @importFrom utils unstack
+unstack.solveRxDll <- function(x, form, ...){
+    unstack(as.data.frame(x),form,...)
+}
+
+#' @rdname "$.solveRxDll"
+#' @export
+unique.solveRxDll <- function(x,incomparables = FALSE, fromLast = FALSE,...){
+    unique(as.data.frame(x),incomparables,fromLast,...);
+}
+
+#' @rdname "$.solveRxDll"
+#' @export
+#'
+within.solveRxDll <- function(data,expr,...){
+    within(as.data.frame(data),expr,...)
+}
+
+with.solveRxDll <- function(data,expr,...){
+    with(as.data.frame(data),expr,...)
+}
+
+## FIXME rbind, cbind could be possible...
+#' @rdname "$.solveRxDll"
+#' @export
+rbind.solveRxDll <- function(...){
+    stop("rbind is unsupported.  First convert to a data.frame with as.data.frame(x).")
+}
+
+#' @rdname "$.solveRxDll"
+#' @export
+cbind.solveRxDll <- function(...){
+    stop("cbind is unsupported.  First convert to a data.frame with as.data.frame(x).")
+}
+
+## Might work -- merge
+
+#' @rdname as.tbl.solveRxDll
+#' @export
+filter_.solveRxDll <- function(.data, ... , .dots){
+    if (missing(.dots)){
+        return(filter_(.data=as.data.frame(.data),...))
+    } else {
+        return(filter_(.data=as.data.frame(.data),...,.dots = .dots))
+    }
+}
+
+#' @rdname as.tbl.solveRxDll
+#' @export
+slice_.solveRxDll <- function(.data, ... , .dots){
+    if (missing(.dots)){
+        return(slice_(.data=as.data.frame(.data),...))
+    } else {
+        return(slice_(.data=as.data.frame(.data),...,.dots = .dots))
+    }
+}
+
+#' @rdname as.tbl.solveRxDll
+#' @export
+arrange_.solveRxDll <- function(.data, ... , .dots){
+    if (missing(.dots)){
+        return(arrange_(.data=as.data.frame(.data),...))
+    } else {
+        return(arrange_(.data=as.data.frame(.data),...,.dots = .dots))
+    }
+}
+
+#' @rdname as.tbl.solveRxDll
+#' @export
+select_.solveRxDll <- function(.data, ... , .dots){
+    if (missing(.dots)){
+        return(select_(.data=as.data.frame(.data),...))
+    } else {
+        return(select_(.data=as.data.frame(.data),...,.dots = .dots))
+    }
+}
+
+#' @rdname as.tbl.solveRxDll
+#' @export
+rename_.solveRxDll <- function(.data, ... , .dots){
+    if (missing(.dots)){
+        return(rename_(.data=as.data.frame(.data),...))
+    } else {
+        return(rename_(.data=as.data.frame(.data),...,.dots = .dots))
+    }
+}
+
+#' @rdname as.tbl.solveRxDll
+#' @export
+distinct_.solveRxDll <- function(.data, ... , .dots){
+    if (missing(.dots)){
+        return(distinct_(.data=as.data.frame(.data),...))
+    } else {
+        return(distinct_(.data=as.data.frame(.data),...,.dots = .dots))
+    }
+}
+
+
+#' @rdname as.tbl.solveRxDll
+#' @export
+mutate_.solveRxDll <- function(.data, ... , .dots){
+    if (missing(.dots)){
+        return(mutate_(.data=as.data.frame(.data),...))
+    } else {
+        return(mutate_(.data=as.data.frame(.data),...,.dots = .dots))
+    }
+}
+
+#' @rdname as.tbl.solveRxDll
+#' @export
+transmute_.solveRxDll <- function(.data, ... , .dots){
+    if (missing(.dots)){
+        return(transmute_(.data=as.data.frame(.data),...))
+    } else {
+        return(transmute_(.data=as.data.frame(.data),...,.dots = .dots))
+    }
+}
+
+
+#' @rdname as.tbl.solveRxDll
+#' @export
+summarise_.solveRxDll <- function(.data, ... , .dots){
+    if (missing(.dots)){
+        return(summarise_(.data=as.data.frame(.data),...))
+    } else {
+        return(summarise_(.data=as.data.frame(.data),...,.dots = .dots))
+    }
+}
+
+#' @rdname as.tbl.solveRxDll
+#' @export
+arrange_.solveRxDll <- function(.data, ... , .dots){
+    if (missing(.dots)){
+        return(arrange_(.data=as.data.frame(.data),...))
+    } else {
+        return(arrange_(.data=as.data.frame(.data),...,.dots = .dots))
+    }
+}
+
+#' @rdname as.tbl.solveRxDll
+#' @export
+rename_.solveRxDll <- function(.data, ... , .dots){
+    if (missing(.dots)){
+        return(rename_(.data=as.data.frame(.data),...))
+    } else {
+        return(rename_(.data=as.data.frame(.data),...,.dots = .dots))
+    }
+}
+
+#' @rdname as.tbl.solveRxDll
+#' @export
+group_by_.solveRxDll <- function(.data, ..., .dots, add = FALSE){
+    if (missing(.dots)){
+        return(group_by_(.data=as.data.frame(.data),..., add = add));
+    } else {
+        return(group_by_(.data=as.data.frame(.data),...,.dots = .dots, add = add));
+    }
+}
+
+## I'm not sure  these functions make sense for a solved rxDll object..
+
+#' @rdname as.tbl.solveRxDll
+#' @export
+sample_n.solveRxDll <- function(tbl,size,replace = FALSE, weight = NULL, .env = parent.frame()){
+    if (missing(weight)){
+        return(sample_n(dplyr::as.tbl(tbl),size = size, replace = replace, .env = .env));
+    } else {
+        return(sample_n(dplyr::as.tbl(tbl),size = size, replace = replace, weight = weight, .env = .env));
+    }
+}
+
+#' @rdname as.tbl.solveRxDll
+#' @export
+sample_frac.solveRxDll <- function(tbl, size = 1, replace = FALSE, weight = NULL, .env = parent.frame()){
+    if (!missing(weight)){
+        return(sample_frac(dplyr::as.tbl(tbl),size = size, replace = replace, weight = weight, .env = .env));
+    } else {
+        return(sample_frac(dplyr::as.tbl(tbl),size = size, replace = replace, .env = .env));
+    }
+}
+
+#' @rdname as.tbl.solveRxDll
+#' @export
+gather_.solveRxDll <- function(data, key_col, value_col, gather_cols, na.rm = FALSE, 
+                               convert = FALSE, factor_key = FALSE){
+    return(gather_(dplyr::as.tbl(data),key_col = key_col, value_col = value_col,
+                   gather_cols = gather_cols, na.rm = na.rm, 
+                   convert = convert, factor_key = factor_key));
+}
+
+#' @rdname as.tbl.solveRxDll
+#' @export
+separate_.solveRxDll <- function(data, col, into, sep = "[^[:alnum:]]+", remove = TRUE, 
+                                 convert = FALSE, extra = "warn", fill = "warn", ...){
+    return(separate_(data = dplyr::as.tbl(data), col =col, into = into, sep = sep, remove = remove, 
+                     convert = convert, extra = extra, fill = fill, ...));
+}
+
+#' @rdname as.tbl.solveRxDll
+#' @export
+unite_.solveRxDll <- function(data, col, from, sep = "_", remove = TRUE){
+    return(unite_(data = dplyr::as.tbl(data), col = col, from = from, sep = sep, remove = remove));
+}
+
+#' @rdname as.tbl.solveRxDll
+#' @export
+spread_.solveRxDll <- function(data, key_col, value_col, fill = NA, convert = FALSE, drop = TRUE){
+    return(spread_(data = dplyr::as.tbl(data), key_col = key_col, value_col = value_col,
+                   fill = fill, convert = convert, drop = drop));
+}
 
 #' Cleanup anonymous dlls
 #'
@@ -2020,3 +2551,4 @@ rxClean <- function(wd = getwd()){
     }
     return(length(list.files(pattern=pat)) == 0);
 }
+

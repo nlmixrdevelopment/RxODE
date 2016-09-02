@@ -23,7 +23,9 @@ Suggests:
     shiny,
     igraph,
     tcltk,
-    testthat
+    testthat,
+    dplyr,
+    tidyr
 Imports:
     utils,
     digest,
