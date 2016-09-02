@@ -2,13 +2,31 @@
 % Please edit documentation in R/RxODE.R
 \name{rxSolve}
 \alias{rxSolve}
-\title{Solves a rxDll object}
+\alias{rxSolve.RxCompilationManager}
+\alias{rxSolve.RxODE}
+\alias{rxSolve.character}
+\alias{rxSolve.rxDll}
+\title{Solves a ODE equation}
 \usage{
 rxSolve(object, params, events, inits = NULL, stiff = TRUE,
   transit_abs = FALSE, atol = 1e-08, rtol = 1e-06, ...)
+
+\method{rxSolve}{RxODE}(object, params, events, inits = NULL, stiff = TRUE,
+  transit_abs = FALSE, atol = 1e-08, rtol = 1e-06, ...)
+
+\method{rxSolve}{RxCompilationManager}(object, params, events, inits = NULL,
+  stiff = TRUE, transit_abs = FALSE, atol = 1e-08, rtol = 1e-06, ...)
+
+\method{rxSolve}{character}(object, params, events, inits = NULL,
+  stiff = TRUE, transit_abs = FALSE, atol = 1e-08, rtol = 1e-06, ...)
+
+\method{rxSolve}{rxDll}(object, params, events, inits = NULL, stiff = TRUE,
+  transit_abs = FALSE, atol = 1e-08, rtol = 1e-06, ...)
 }
 \arguments{
-\item{object}{is a RxODE family of objects.}
+\item{object}{is a either a RxODE family of objects, or a file-name
+with a RxODE model specification, or a string with a RxODE
+model specification.}
 
 \item{params}{a numeric named vector with values for every
 parameter in the ODE system; the names must correspond to the
@@ -56,7 +74,8 @@ The output of \dQuote{rxSolve} is a matrix with as many
     assignments in the RxODE model code)
 }
 \description{
-This uses a rxDll object to solve a system.
+This uses RxODE family of objects, file, or model specification to
+solve a ODE system.
 }
 \references{
 Hindmarsh, A. C.

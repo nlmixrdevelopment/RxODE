@@ -1833,11 +1833,14 @@ rxInits <- function(rxDllObj,        # rxDll object
     
 } # end function rxInits
 
-#' Solves a rxDll object
+#' Solves a ODE equation
 #'
-#' This uses a rxDll object to solve a system.
+#' This uses RxODE family of objects, file, or model specification to
+#' solve a ODE system.
 #'
-#' @param object is a RxODE family of objects.
+#' @param object is a either a RxODE family of objects, or a file-name
+#'     with a RxODE model specification, or a string with a RxODE
+#'     model specification.
 #'
 #' @param params a numeric named vector with values for every
 #'     parameter in the ODE system; the names must correspond to the
@@ -1912,101 +1915,117 @@ rxSolve <- function(object,               # RxODE object
                     atol        = 1.0e-8, # Absoltue Tolerance for LSODA solver
                     rtol        = 1.0e-6, # Relative Tolerance for LSODA solver
                     ...) {
-    if (class(object) == "RxODE"){
-        rxSolve(object$cmpMgr$rxDll(),params,events,inits,stiff,transit_abs,atol,rtol,...);
-    } else if (class(object) == "RxCompilationManager") {
-        rxSolve(object$rxDll(),params,events,inits,stiff,transit_abs,atol,rtol,...);
-    } else if (class(object) == "rxDll"){
-        if (missing(events) && class(params) == "EventTable"){
-            events <- params;
-            params <- c();
+    UseMethod("rxSolve");
+}
+
+#' @rdname rxSolve
+#' @export
+rxSolve.RxODE <- function(object,params,events,inits = NULL,stiff = TRUE, transit_abs = FALSE,atol = 1.0e-8, rtol = 1.0e-6,...){
+    rxSolve.rxDll(object$cmpMgr$rxDll(),params,events,inits,stiff, transit_abs,atol,rtol,...)
+}
+#' @rdname rxSolve
+#' @export
+rxSolve.RxCompilationManager <- function(object,params,events,inits = NULL,stiff = TRUE, transit_abs = FALSE,atol = 1.0e-8, rtol = 1.0e-6,...){
+    rxSolve.rxDll(object$rxDll(),params,events,inits,stiff, transit_abs,atol,rtol,...);
+}
+#' @rdname rxSolve
+#' @export
+rxSolve.character <- function(object,params,events,inits = NULL,stiff = TRUE, transit_abs = FALSE,atol = 1.0e-8, rtol = 1.0e-6,...){
+    rxSolve.rxDll(rxCompile(object),params,events,inits,stiff, transit_abs,atol,rtol,...);
+}
+#' @rdname rxSolve
+#' @export
+rxSolve.rxDll <- function(object,params,events,inits = NULL,stiff = TRUE, transit_abs = FALSE,atol = 1.0e-8, rtol = 1.0e-6,...){
+    ## rxSolve.rxDll returns
+    if (missing(events) && class(params) == "EventTable"){
+        events <- params;
+        params <- c();
+    }
+    ## solve.rxDll returns a solved object
+    event.table <- events$get.EventTable()
+    
+    ## preserve input arguments. 
+    last.solve.args <-
+        list(params = params, events = events$copy(),
+             inits = inits, stiff = stiff, 
+             transit_abs = transit_abs, atol = atol, rtol = rtol, ...);
+    inits <- rxInits(object,inits,rxState(object),0);
+    params <- rxInits(object,params,rxParams(object),NA);
+    s <- as.list(match.call(expand.dots = TRUE)) 
+    wh <- grep(pattern="S\\d+$", names(s))[1]
+    ## HACK: fishing scaling variables "S1 S2 S3 ..." from params call
+    ## to solve(). Maybe define a "scale=c(central=7.6, ...)" argument
+    ## similar to "params="?
+    scaler.ix <- 0
+    if (!is.na(wh)) {
+        if (s[[wh]] %in% names(params)) {
+            scaler <- params[s[[wh]]]
+            scaler.ix <- as.numeric(substring(names(s)[wh], 2))
+        } else {
+            warning(paste("scaler variable not found:", s[[wh]]))
         }
-        ## solve.rxDll returns a solved object
-        event.table <- events$get.EventTable()
-        
-        ## preserve input arguments. 
-        last.solve.args <-
-            list(params = params, events = events$copy(),
-                 inits = inits, stiff = stiff, 
-                 transit_abs = transit_abs, atol = atol, rtol = rtol, ...);
-        inits <- rxInits(object,inits,rxState(object),0);
-        params <- rxInits(object,params,rxParams(object),NA);
-        s <- as.list(match.call(expand.dots = TRUE)) 
-        wh <- grep(pattern="S\\d+$", names(s))[1]
-        ## HACK: fishing scaling variables "S1 S2 S3 ..." from params call
-        ## to solve(). Maybe define a "scale=c(central=7.6, ...)" argument
-        ## similar to "params="?
-        scaler.ix <- 0
-        if (!is.na(wh)) {
-            if (s[[wh]] %in% names(params)) {
-                scaler <- params[s[[wh]]]
-                scaler.ix <- as.numeric(substring(names(s)[wh], 2))
-            } else {
-                warning(paste("scaler variable not found:", s[[wh]]))
-            }
-        }
-        state_vars <- rxState(object);
-        neq  <- length(state_vars)
-        lhs_vars <- rxLhs(object);
-        nlhs <- length(lhs_vars)
+    }
+    state_vars <- rxState(object);
+    neq  <- length(state_vars)
+    lhs_vars <- rxLhs(object);
+    nlhs <- length(lhs_vars)
 
-        ntime <- dim(event.table)[1]
-        ret   <- rep(0.0, ntime*neq)
-        lhs   <- rep(0.0, ntime*nlhs)
-        rc <- as.integer(0)  # return code 0 (success) or IDID in call_dvode.c
-        if (is.null(inits))
-            inits <- rep(0.0, neq)
+    ntime <- dim(event.table)[1]
+    ret   <- rep(0.0, ntime*neq)
+    lhs   <- rep(0.0, ntime*nlhs)
+    rc <- as.integer(0)  # return code 0 (success) or IDID in call_dvode.c
+    if (is.null(inits))
+        inits <- rep(0.0, neq)
 
-        ## may need to reload (e.g., when we re-start R and
-        ## re-instantiate the RxODE object from a save.image.
-        ## cmpMgr$dynLoad()
-        rxLoad(object);
-        xx <- object$.c(rxTrans(object)["ode_solver"],
-                        as.integer(neq),
-                        as.double(params),
-                        as.double(event.table$time),
-                        as.integer(event.table$evid),
-                        length(event.table$time),
-                        as.double(inits),
-                        as.double(event.table$amt[event.table$evid>0]),
-                        as.double(ret),
-                        as.double(atol),
-                        as.double(rtol),
-                        as.integer(stiff),
-                        as.integer(transit_abs),
-                        as.integer(nlhs),
-                        as.double(lhs),
-                        rc
-                        );
+    ## may need to reload (e.g., when we re-start R and
+    ## re-instantiate the RxODE object from a save.image.
+    ## cmpMgr$dynLoad()
+    rxLoad(object);
+    xx <- object$.c(rxTrans(object)["ode_solver"],
+                    as.integer(neq),
+                    as.double(params),
+                    as.double(event.table$time),
+                    as.integer(event.table$evid),
+                    length(event.table$time),
+                    as.double(inits),
+                    as.double(event.table$amt[event.table$evid>0]),
+                    as.double(ret),
+                    as.double(atol),
+                    as.double(rtol),
+                    as.integer(stiff),
+                    as.integer(transit_abs),
+                    as.integer(nlhs),
+                    as.double(lhs),
+                    rc
+                    );
 
-        rc <- xx[[length(xx)]]
-        if(rc!=0)
-            stop(sprintf("could not solve ODE, IDID=%d (see further messages)", rc))
-        x <- cbind(
-            matrix(xx[[8]], ncol=neq, byrow=T),
-            if(nlhs) matrix(xx[[14]], ncol=nlhs, byrow=T) else NULL
-        )
-        colnames(x) <- c(state_vars, lhs_vars)
+    rc <- xx[[length(xx)]]
+    if(rc!=0)
+        stop(sprintf("could not solve ODE, IDID=%d (see further messages)", rc))
+    x <- cbind(
+        matrix(xx[[8]], ncol=neq, byrow=T),
+        if(nlhs) matrix(xx[[14]], ncol=nlhs, byrow=T) else NULL
+    )
+    colnames(x) <- c(state_vars, lhs_vars)
 
-        if (scaler.ix) {
-            x[, scaler.ix] <- x[, scaler.ix]/scaler
-        }
-        
-        ret <- cbind(time=event.table$time, x)[events$get.obs.rec(),];
-        ## Ensure the objects have names
-        names(inits) <- rxState(object);
-        names(params) <- rxParams(object);
-        lst <- list(inits = inits,
-                    params = params,
-                    object = object,
-                    matrix = ret);
-        names(ret) <- dimnames(ret)[[2]]; ## For compatability with tidyr::spread
-        length(ret) <- length(dimnames(ret)[[2]])
-        class(ret) <- c("solveRxDll");
-        attr(ret,"solveRxDll") <- lst;
-        return(ret)
-    } 
-} # end function solve.rxDll
+    if (scaler.ix) {
+        x[, scaler.ix] <- x[, scaler.ix]/scaler
+    }
+    
+    ret <- cbind(time=event.table$time, x)[events$get.obs.rec(),];
+    ## Ensure the objects have names
+    names(inits) <- rxState(object);
+    names(params) <- rxParams(object);
+    lst <- list(inits = inits,
+                params = params,
+                object = object,
+                matrix = ret);
+    names(ret) <- dimnames(ret)[[2]]; ## For compatability with tidyr::spread
+    length(ret) <- length(dimnames(ret)[[2]])
+    class(ret) <- c("solveRxDll");
+    attr(ret,"solveRxDll") <- lst;
+    return(ret)
+} # end function rxSolve.rxDll
 
 #' Print information about solved object
 #'
