@@ -1918,7 +1918,7 @@ rxSolve <- function(object,               # RxODE object
     UseMethod("rxSolve");
 }
 
-rxSolve.solveRxDll <- function(object,...){
+rxSolve.solveRxDll <- function(object,params, events, inits, stiff, transit_abs, atol, rtol, ...){
     call <- as.list(match.call(expand.dots = TRUE));
     lst <- attr(object,"solveRxDll");
     lst <- lst[names(lst) != "matrix"];
@@ -2191,11 +2191,33 @@ as.tbl.solveRxDll <- function(x,...){
 #' @export
 "$<-.solveRxDll" <- function(obj,arg,value){
     ## Fixme -- update event Table sampling times?
+    if (arg == "t"){
+        arg <- "time";
+    }
     lst <- attr(obj,"solveRxDll")
-    df <- as.data.frame(obj);
-    m <- as.matrix("$<-.data.frame"(df,arg,value));
-    lst$matrix <- m;
-    attr(obj,"solveRxDll") <- lst;
+    if (any(rxState(obj$object) == arg)){
+        cat("Updating object with new initial conditions.\n");
+        inits <- c(value);
+        names(inits) <- arg;
+        return(rxSolve(obj,inits = inits));
+    } else if (any(rxParams(obj$object) == arg)){
+        cat("Updating object with new paramter values.\n");
+        params <- c(value);
+        names(params) <- arg;
+        return(rxSolve.solveRxDll(obj,params = params));
+    } else if (arg == "params"){
+        cat("Updating object with new paramter values.\n");
+        return(rxSolve.solveRxDll(obj,params = value));
+    } else if (arg == "inits"){
+        cat("Updating object with new initial conditions.\n");
+        return(rxSolve.solveRxDll(obj,inits = value));
+    } else {
+        warning("Changing internal solved data.")
+        df <- as.data.frame(obj);
+        m <- as.matrix("$<-.data.frame"(df,arg,value));
+        lst$matrix <- m;
+        attr(obj,"solveRxDll") <- lst;
+    }
     return(obj);
 }
 

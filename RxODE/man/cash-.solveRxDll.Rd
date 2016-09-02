@@ -7,6 +7,7 @@
 \method{$}{solveRxDll}(obj, arg)
 }
 \description{
-Add data-frame like operators to solved objects
+This is a little different from a standard data frame accessor,
+because it allows access to other model parameters for the solved object.
 }
 
