@@ -1993,6 +1993,9 @@ rxSolve <- function(object,               # RxODE object
         }
         
         ret <- cbind(time=event.table$time, x)[events$get.obs.rec(),];
+        ## Ensure the objects have names
+        names(inits) <- rxState(object);
+        names(params) <- rxParams(object);
         lst <- list(inits = inits,
                     params = params,
                     object = object,
