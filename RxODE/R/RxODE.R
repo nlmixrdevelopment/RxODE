@@ -1918,6 +1918,8 @@ rxSolve <- function(object,               # RxODE object
     UseMethod("rxSolve");
 }
 
+#' @rdname rxSolve
+#' @export
 rxSolve.solveRxDll <- function(object,params, events, inits, stiff, transit_abs, atol, rtol, ...){
     call <- as.list(match.call(expand.dots = TRUE));
     lst <- attr(object,"solveRxDll");
@@ -2051,14 +2053,7 @@ rxSolve.rxDll <- function(object,params,events,inits = NULL,stiff = TRUE, transi
     attr(ret,"solveRxDll") <- lst;
     return(ret)
 } # end function rxSolve.rxDll
-
-#' Print information about solved object
-#'
-#' This prints the data frame and parameters of the model being
-#' solved.
-#'
-#' @param x An solveRxDll object
-#' @param ... Ignored Parameter
+ 
 #' @export
 print.solveRxDll <- function(x,...){
     lst <- attr(x,"solveRxDll")
@@ -2076,21 +2071,14 @@ print.solveRxDll <- function(x,...){
     }
 }
 
-#' Convert solveRxDll object to matrix
-#'
-#' This is done by extracting the matrix from the solveRxDll object.
-#' 
+
 #' @export
 as.matrix.solveRxDll <- function(x,...){
     lst <- attr(x,"solveRxDll")
     return(lst$matrix);
 }
 
-#' Convert solveRxDll object to data.frame
-#'
-#' Extract the matrix returned by the solver and then convert it to a
-#' data.frame
-#' 
+
 #' @export
 as.data.frame.solveRxDll <- function(x,row.names = NULL, optional = FALSE, ...,
                                      stringsAsFactors = default.stringsAsFactors()){
@@ -2098,38 +2086,29 @@ as.data.frame.solveRxDll <- function(x,row.names = NULL, optional = FALSE, ...,
                          stringAsFactors = stringAsFactors));
 }
 
-#' Return the head of RxODE solved data
-#'
-#' Extract the matrix and return the head of the matrix
-#'
+
 #' @export
 #' @importFrom utils head 
 head.solveRxDll <- function(x, n = 6L, ...){
     return(utils::head.matrix(as.matrix(x),n = n, ...));
 }
 
-#' Return the tail of RxODE solved data
-#'
-#' Extract the matrix and return the tail of the matrix
-#'
+
 #' @export
 #' @importFrom utils tail
 tail.solveRxDll <- function(x, n = 6L, addrownums = TRUE,...){
     return(utils::tail.matrix(as.matrix(x),n = n, addrownums = addrownums, ...));
 }
 
-#' Compatability functions for solveRxDll with dyplr and tidyr
-#'
+#' Convert Solved RxODE object to tbl
+#' @param x Solved RxDll object
+#' @param ... other arguments (ignored)
 #' @export as.tbl.solveRxDll
 as.tbl.solveRxDll <- function(x,...){
     return(dplyr::as.tbl(as.data.frame(x)));
 }
 
-#' Add data-frame like operators to solved objects
-#'
-#' This is a little different from a standard data frame accessor,
-#' because it allows access to other model parameters for the solved object.
-#' 
+
 #' @export
 "$.solveRxDll" <-  function(obj,arg){
     m <- as.data.frame(obj);
@@ -2156,7 +2135,7 @@ as.tbl.solveRxDll <- function(x,...){
     }
 }
 
-#' @rdname "$.solveRxDll"
+
 #' @export
 "[.solveRxDll" <- function(obj,arg,arg2){
     df <- as.data.frame(obj);
@@ -2173,7 +2152,7 @@ as.tbl.solveRxDll <- function(x,...){
 }
 
 
-#' @rdname "$.solveRxDll"
+
 #' @export
 "[[.solveRxDll" <- function(obj,arg,internal = FALSE){
     if (internal){
@@ -2184,10 +2163,17 @@ as.tbl.solveRxDll <- function(x,...){
     }
 }
 
-
-## Data frame assignments
-
-#' @rdname "$.solveRxDll"
+#' $ Assign for RxODE solved objects
+#' 
+#' Assign objects by argumnt as obj$arg <- value
+#'
+#' This also works as obj[[arg]] <- value
+#' 
+#' @param obj solveRxDll object
+#' @param arg Dollar sign name
+#' @param value assigned Value.
+#' @seealso \code{\link{rxSolve}}
+#' @keywords internal
 #' @export
 "$<-.solveRxDll" <- function(obj,arg,value){
     ## Fixme -- update event Table sampling times?
@@ -2222,31 +2208,35 @@ as.tbl.solveRxDll <- function(x,...){
 }
 
 
-#' @rdname "$.solveRxDll"
+#' Assign solved objects using the [[]] syntax
+#' @param obj solved object
+#' @param arg element of solved object
+#' @param value value assumed
+#' @seealso \code{\link{rxSolve}}
+#' @keywords internal
 #' @export
 "[[<-.solveRxDll" <- function(obj,arg,value){
-    ## Fixme -- update event Table sampling times?
-    lst <- attr(obj,"solveRxDll")
-    df <- as.data.frame(obj);
-    m <- as.matrix("[[<-.data.frame"(df,arg,value));
-    lst$matrix <- m;
-    attr(obj,"solveRxDll") <- lst;
-    return(obj);
+    return("$<-.solveRxDll"(obj,arg,value=value))
 }
 
-#' @rdname "$.solveRxDll"
-#' @export
-"[<-.solveRxDll" <- function(obj,arg,value){
-    ## Fixme -- update event Table sampling times?
-    lst <- attr(obj,"solveRxDll")
-    df <- as.data.frame(obj);
-    m <- as.matrix("[[<-.data.frame"(df,arg,value));
-    lst$matrix <- m;
-    attr(obj,"solveRxDll") <- lst;
-    return(obj);
-}
+## "[<-.solveRxDll" <- function(obj,arg,value){
+##     ## Fixme -- update event Table sampling times?
+##     lst <- attr(obj,"solveRxDll")
+##     df <- as.data.frame(obj);
+##     m <- as.matrix("[<-.data.frame"(df,arg,value));
+##     lst$matrix <- m;
+##     attr(obj,"solveRxDll") <- lst;
+##     return(obj);
+## }
 
-#' @rdname "$.solveRxDll"
+#' Assign rownames to rxSolve object
+#'
+#' row.names(x) <- value;
+#'
+#' @param x rxode object
+#' @param value value assigned.
+#' 
+#' @keywords internal
 #' @export
 "row.names<-.solveRxDll" <- function(x,value){
     lst <- attr(x,"solveRxDll")
@@ -2257,7 +2247,11 @@ as.tbl.solveRxDll <- function(x,...){
     return(x);
 }
 
-#' @rdname "$.solveRxDll"
+#' Get row names of rxSolve object
+#'
+#' @param x rxSovle object
+#' @param ... ignored arguments
+#' @keywords internal
 #' @export
 row.names.solveRxDll <- function(x,...){
     lst <- attr(x,"solveRxDll")
@@ -2265,33 +2259,43 @@ row.names.solveRxDll <- function(x,...){
     return(row.names(df));
 }
 
-#' @rdname "$.solveRxDll"
+
 #' @export
 by.solveRxDll <- function(data, INDICES, FUN, ..., simplify = TRUE){
     by(as.data.frame(data),INDICES, FUN, ...,simplify = simplify);
 }
 
-#' @rdname "$.solveRxDll"
+
 #' @export
 #' @importFrom stats aggregate
 aggregate.solveRxDll <- function(x, by, FUN, ..., simplify = TRUE){
     aggregate.data.frame(as.data.frame(x), by, FUN, ... , simplify = simplify);
 }
 
-#' @rdname "$.solveRxDll"
+
 #' @export
 anyDuplicated.solveRxDll <- function(x, incomparables = FALSE,
                                      fromLast = FALSE, ...){
     anyDuplicated(as.data.frame(x),incomparables, fromLast, ...);
 }
 
-#' @rdname "$.solveRxDll"
+#' Get dimensions of rxSolve object
+#'
+#' @param x rxSolve object
+#' 
+#' @keywords internal
 #' @export
 dim.solveRxDll <- function(x){
     return(dim(as.matrix(x)));
 }
 
-#' @rdname "$.solveRxDll"
+#' Assign dimensions of rxSolve object
+#' 
+#' dim(x) <- value
+#' 
+#' @param x rxSolve object
+#' @param value dimensions
+#' @keywords internal
 #' @export
 "dim<-.solveRxDll" <- function(x,value){
     lst <- attr(x,"solveRxDll")
@@ -2302,13 +2306,23 @@ dim.solveRxDll <- function(x){
     return(x);
 }
 
-#' @rdname "$.solveRxDll"
+#' Get dimension names for rxSolve object
+#'
+#' @param x rxSolve object
+#'
+#' @keywords internal
 #' @export
 dimnames.solveRxDll <- function(x){
     return(dimnames(as.matrix(x)));
 }
 
-#' @rdname "$.solveRxDll"
+#' Assign dimension names for rxSolve object
+#'
+#' dimnames(x) <- value
+#' 
+#' @param x rxSolve object
+#' @param value dimension names assigned
+#' @keywords internal
 #' @export
 "dimnames<-.solveRxDll" <- function(x,value){
     lst <- attr(x,"solveRxDll")
@@ -2319,95 +2333,92 @@ dimnames.solveRxDll <- function(x){
     return(x);
 }
 
-#' @rdname "$.solveRxDll"
+
 #' @export
 droplevels.solveRxDll <- function(x, except, ...){
     droplevels(as.data.frame(x),except,...);
 }
 
-#' @rdname "$.solveRxDll"
+
 #' @export
 duplicated.solveRxDll <- function(x, incomparables = FALSE,
                                   fromLast = FALSE, nmax = NA, ...){
     duplicated(as.data.frame(x),incomparables, fromLast, nmax,...);
 }
 
-#' @rdname "$.solveRxDll"
+
+#' Edit data frame of rxSolve
+#'
+#' @param name name of the object
+#' @keywords internal
 #' @export
 edit.solveRxDll <- function(name, ...){
     edit(as.data.frame(name),...);
 }
 
-#' @rdname "$.solveRxDll"
+
 #' @export
 is.na.solveRxDll <- function(x){
     is.na(as.data.frame(x));
 }
 
-#' @rdname "$.solveRxDll"
+
 #' @export
 # Should this method be exported???
 Math.solveRxDll <- function(x,...){
     Math(as.data.frame(x),...);
 }
 
-#' @rdname "$.solveRxDll"
+
 #' @export
 rowsum.solveRxDll <- function(x, group, reorder = TRUE, na.rm = FALSE, ...){
     rowsum.data.frame(as.data.frame(x),group, reorder, na.rm,...);
 }
 
-#' @rdname "$.solveRxDll"
+
 #' @export
 split.solveRxDll <- function(x, f, drop = FALSE, ...){
     split(as.data.frame(x),f,drop,...);
 }
 
-#' @rdname "$.solveRxDll"
+
 #' @export
 "split<-.solveRxDll" <- function(x, f, drop = FALSE, ...,value){
     "split<-"(as.data.frame(x),f,drop,...,value=value);
 }
-
-#' @rdname "$.solveRxDll"
-#' @export
-unsplit.solveRxDll <- function(x, f, drop = FALSE){
-    unsplit(as.data.frame(x),f,drop);
-}
-
-#' @rdname "$.solveRxDll"
+ 
 #' @export
 subset.solveRxDll <- function(x, subset, select, drop = FALSE, ...){
     subset.data.frame(as.data.frame(x),subset,select,drop,...)
 }
 
-#' @rdname "$.solveRxDll"
+
 #' @export
 #' @importFrom utils stack
 stack.solveRxDll <- function(x, select, ...){
     stack(as.data.frame(x),select,...)
 }
 
-#' @rdname "$.solveRxDll"
+
 #' @export
 t.solveRxDll <- function(x){
     t(as.matrix(x))
 }
 
-#' @rdname "$.solveRxDll"
+
 #' @export
 #' @importFrom utils unstack
 unstack.solveRxDll <- function(x, form, ...){
     unstack(as.data.frame(x),form,...)
 }
 
-#' @rdname "$.solveRxDll"
+
 #' @export
 unique.solveRxDll <- function(x,incomparables = FALSE, fromLast = FALSE,...){
     unique(as.data.frame(x),incomparables,fromLast,...);
 }
 
-#' @rdname "$.solveRxDll"
+
 #' @export
 #'
 within.solveRxDll <- function(data,expr,...){
@@ -2419,13 +2430,20 @@ with.solveRxDll <- function(data,expr,...){
 }
 
 ## FIXME rbind, cbind could be possible...
-#' @rdname "$.solveRxDll"
+
+#' @rdname cbind.solveRxDll
 #' @export
 rbind.solveRxDll <- function(...){
     stop("rbind is unsupported.  First convert to a data.frame with as.data.frame(x).")
 }
-
-#' @rdname "$.solveRxDll"
+#' cbind/rbind solveRxDll
+#'
+#' Cbind/rbind is disabled for RxOde solved objects.  Use as.data.frame(x)
+#' to use cbind/rbind.
+#'
+#' @param ... ignored parameters
+#' 
+#' @keywords internal
 #' @export
 cbind.solveRxDll <- function(...){
     stop("cbind is unsupported.  First convert to a data.frame with as.data.frame(x).")
@@ -2433,7 +2451,15 @@ cbind.solveRxDll <- function(...){
 
 ## Might work -- merge
 
-#' @rdname as.tbl.solveRxDll
+#' dyplr filter_ support
+#'
+#' @param .data solveRxDll object that filter_ is being applied to.
+#'
+#' @param ... arguments to filter_ method
+#'
+#' @param .dots dplyr .dots argument
+#' 
+#' @keywords internal
 #' @export
 filter_.solveRxDll <- function(.data, ... , .dots){
     if (missing(.dots)){
@@ -2443,7 +2469,16 @@ filter_.solveRxDll <- function(.data, ... , .dots){
     }
 }
 
-#' @rdname as.tbl.solveRxDll
+#' dyplr slice_ support
+#'
+#' @param .data solveRxDll object that slice_ is being applied to.
+#'
+#' @param ... arguments to slice_ method
+#'
+#' @param .dots dplyr .dots argument
+#' 
+#' @keywords internal
+#' @export
 #' @export
 slice_.solveRxDll <- function(.data, ... , .dots){
     if (missing(.dots)){
@@ -2453,7 +2488,15 @@ slice_.solveRxDll <- function(.data, ... , .dots){
     }
 }
 
-#' @rdname as.tbl.solveRxDll
+#' dyplr arrange_ support
+#'
+#' @param .data solveRxDll object that arrange_ is being applied to.
+#'
+#' @param ... arguments to arrange_ method
+#'
+#' @param .dots dplyr .dots argument
+#' 
+#' @keywords internal
 #' @export
 arrange_.solveRxDll <- function(.data, ... , .dots){
     if (missing(.dots)){
@@ -2463,7 +2506,15 @@ arrange_.solveRxDll <- function(.data, ... , .dots){
     }
 }
 
-#' @rdname as.tbl.solveRxDll
+#' dyplr select_ support
+#'
+#' @param .data solveRxDll object that select_ is being applied to.
+#'
+#' @param ... arguments to select_ method
+#'
+#' @param .dots dplyr .dots argument
+#' 
+#' @keywords internal
 #' @export
 select_.solveRxDll <- function(.data, ... , .dots){
     if (missing(.dots)){
@@ -2473,7 +2524,15 @@ select_.solveRxDll <- function(.data, ... , .dots){
     }
 }
 
-#' @rdname as.tbl.solveRxDll
+#' dyplr rename_ support
+#'
+#' @param .data solveRxDll object that rename_ is being applied to.
+#'
+#' @param ... arguments to rename_ method
+#'
+#' @param .dots dplyr .dots argument
+#' 
+#' @keywords internal
 #' @export
 rename_.solveRxDll <- function(.data, ... , .dots){
     if (missing(.dots)){
@@ -2483,7 +2542,15 @@ rename_.solveRxDll <- function(.data, ... , .dots){
     }
 }
 
-#' @rdname as.tbl.solveRxDll
+#' dyplr distinct_ support
+#'
+#' @param .data solveRxDll object that distinct_ is being applied to.
+#'
+#' @param ... arguments to distinct_ method
+#'
+#' @param .dots dplyr .dots argument
+#' 
+#' @keywords internal
 #' @export
 distinct_.solveRxDll <- function(.data, ... , .dots){
     if (missing(.dots)){
@@ -2493,8 +2560,15 @@ distinct_.solveRxDll <- function(.data, ... , .dots){
     }
 }
 
-
-#' @rdname as.tbl.solveRxDll
+#' dyplr mutate_ support
+#'
+#' @param .data solveRxDll object that mutate_ is being applied to.
+#'
+#' @param ... arguments to mutate_ method
+#'
+#' @param .dots dplyr .dots argument
+#' 
+#' @keywords internal
 #' @export
 mutate_.solveRxDll <- function(.data, ... , .dots){
     if (missing(.dots)){
@@ -2504,7 +2578,15 @@ mutate_.solveRxDll <- function(.data, ... , .dots){
     }
 }
 
-#' @rdname as.tbl.solveRxDll
+#' dyplr transmute_ support
+#'
+#' @param .data solveRxDll object that transmute_ is being applied to.
+#'
+#' @param ... arguments to transmute_ method
+#'
+#' @param .dots dplyr .dots argument
+#' 
+#' @keywords internal
 #' @export
 transmute_.solveRxDll <- function(.data, ... , .dots){
     if (missing(.dots)){
@@ -2513,9 +2595,15 @@ transmute_.solveRxDll <- function(.data, ... , .dots){
         return(transmute_(.data=as.data.frame(.data),...,.dots = .dots))
     }
 }
-
-
-#' @rdname as.tbl.solveRxDll
+#' dyplr summarise_ support
+#'
+#' @param .data solveRxDll object that summarise_ is being applied to.
+#'
+#' @param ... arguments to summarise_ method
+#'
+#' @param .dots dplyr .dots argument
+#' 
+#' @keywords internal
 #' @export
 summarise_.solveRxDll <- function(.data, ... , .dots){
     if (missing(.dots)){
@@ -2525,7 +2613,15 @@ summarise_.solveRxDll <- function(.data, ... , .dots){
     }
 }
 
-#' @rdname as.tbl.solveRxDll
+#' dyplr arrange_ support
+#'
+#' @param .data solveRxDll object that arrange_ is being applied to.
+#'
+#' @param ... arguments to arrange_ method
+#'
+#' @param .dots dplyr .dots argument
+#' 
+#' @keywords internal
 #' @export
 arrange_.solveRxDll <- function(.data, ... , .dots){
     if (missing(.dots)){
@@ -2535,7 +2631,15 @@ arrange_.solveRxDll <- function(.data, ... , .dots){
     }
 }
 
-#' @rdname as.tbl.solveRxDll
+#' dyplr rename_ support
+#'
+#' @param .data solveRxDll object that rename_ is being applied to.
+#'
+#' @param ... arguments to rename_ method
+#'
+#' @param .dots dplyr .dots argument
+#' 
+#' @keywords internal
 #' @export
 rename_.solveRxDll <- function(.data, ... , .dots){
     if (missing(.dots)){
@@ -2545,7 +2649,19 @@ rename_.solveRxDll <- function(.data, ... , .dots){
     }
 }
 
-#' @rdname as.tbl.solveRxDll
+#' dyplr group_by_ support
+#'
+#' @param .data solveRxDll object that groupt_by_ is being applied to.
+#'
+#' @param ... arguments to groupt_by_ method
+#'
+#' @param .dots dplyr .dots argument
+#'
+#' @param add dpylr \code{add} argument.  By default, when \code{add =
+#'     FALSE}, \code{group_by} will override existing groups.  To
+#'     instead add to the existing groups, use \code{add = TRUE}.
+#' 
+#' @keywords internal
 #' @export
 group_by_.solveRxDll <- function(.data, ..., .dots, add = FALSE){
     if (missing(.dots)){
@@ -2557,7 +2673,23 @@ group_by_.solveRxDll <- function(.data, ..., .dots, add = FALSE){
 
 ## I'm not sure  these functions make sense for a solved rxDll object..
 
-#' @rdname as.tbl.solveRxDll
+#' dyplr support of sample_n and sample_frac
+#'
+#' sample_n samples n from the solved RxODE solved object.
+#'
+#' sample_frac samples a fraction of the number rows of the solved
+#' RxODE object.
+#'
+#' @param tbl solved RxODE object
+#' @param size size of sampled object
+#' @param replace Sample with or without replacement?
+#' @param weight Sampling weights. This expression is evaluated in the
+#'     context of the data frame. It must return a vector of
+#'     non-negative numbers the same length as the input. Weights are
+#'     automatically standardised to sum to 1.
+#' @param .env Environment in which to look for non-data names used in
+#'     \code{weight}. Non-default settings for experts only.
+#' @keywords internal
 #' @export
 sample_n.solveRxDll <- function(tbl,size,replace = FALSE, weight = NULL, .env = parent.frame()){
     if (missing(weight)){
@@ -2567,7 +2699,7 @@ sample_n.solveRxDll <- function(tbl,size,replace = FALSE, weight = NULL, .env = 
     }
 }
 
-#' @rdname as.tbl.solveRxDll
+#' @rdname sample_n.solveRxDll
 #' @export
 sample_frac.solveRxDll <- function(tbl, size = 1, replace = FALSE, weight = NULL, .env = parent.frame()){
     if (!missing(weight)){
@@ -2577,7 +2709,23 @@ sample_frac.solveRxDll <- function(tbl, size = 1, replace = FALSE, weight = NULL
     }
 }
 
-#' @rdname as.tbl.solveRxDll
+#' tidyr support of gather_ method
+#'
+#' @param data Solved RxODE object
+#' @param key_col,value_col Strings giving names of key and value
+#'     columns to create.
+#' @param gather_cols Character vector giving column names to be
+#'     gathered into pair of key-value columns.
+#' @param na.rm If \code{TRUE}, will remove rows from output where the
+#'     value column in \code{NA}.
+#' @param convert If \code{TRUE} will automatically run
+#'     \code{type.convert} on the key column. This is useful if the
+#'     column names are actually numeric, integer, or logical.
+#' @param factor_key If \code{FALSE}, the default, the key values will
+#'     be stored as a character vector. If \code{TRUE}, will be stored
+#'     as a factor, which preserves the original ordering of the
+#'     columns.
+#' @keywords internal
 #' @export
 gather_.solveRxDll <- function(data, key_col, value_col, gather_cols, na.rm = FALSE, 
                                convert = FALSE, factor_key = FALSE){
@@ -2586,7 +2734,25 @@ gather_.solveRxDll <- function(data, key_col, value_col, gather_cols, na.rm = FA
                    convert = convert, factor_key = factor_key));
 }
 
-#' @rdname as.tbl.solveRxDll
+#' tidyr separate support
+#' 
+#' @param data RxODE solved object
+#' @param col name of column to split, as string
+#' @param into Names of new variables to create as character vector.
+#' @param sep Separator between columns.  See tidyr for more
+#'     information.
+#' @param remove If \code{TRUE}, remove input column from output data
+#'     frame.
+#' @param convert If 'TRUE', will run 'type.convert' with 'as.is =
+#'     TRUE' on new columns.
+#' @param extra If \code{sep} is a character vector, this controls
+#'     what happens when there are too many pieces.  See tidyr
+#'     separate for more details.
+#' @param fill If \code{sep} is a character vector, this controls what
+#'     happens when there are not enough pieces.  See tidyr separate
+#'     for more details.
+#' @param ... Ignored
+#' @keywords internal
 #' @export
 separate_.solveRxDll <- function(data, col, into, sep = "[^[:alnum:]]+", remove = TRUE, 
                                  convert = FALSE, extra = "warn", fill = "warn", ...){
@@ -2594,13 +2760,40 @@ separate_.solveRxDll <- function(data, col, into, sep = "[^[:alnum:]]+", remove 
                      convert = convert, extra = extra, fill = fill, ...));
 }
 
-#' @rdname as.tbl.solveRxDll
+#' tidyr unite support
+#'
+#' @param data solved RxODE object
+#'
+#' @param col Name of new column as string
+#'
+#' @param from Names of existing columns as character vector
+#'
+#' @param sep Separator to use between values
+#'
+#' @param remove If \code{TRUE}, remove input columns from output data
+#'     frame.
+#' 
+#' @keywords internal
 #' @export
 unite_.solveRxDll <- function(data, col, from, sep = "_", remove = TRUE){
     return(unite_(data = dplyr::as.tbl(data), col = col, from = from, sep = sep, remove = remove));
 }
 
-#' @rdname as.tbl.solveRxDll
+#' tidyr's spread_ support
+#'
+#' @param data RxODE solved data.
+#'
+#' @param key_col,value_col Strings giving names of key and value cols.
+#'
+#' @param fill If set, missing values will be replaced with this
+#'     value. See spread for more details.
+#' @param convert If \code{TRUE}, \code{type.convert} with \code{asis
+#'     = TRUE} will be run on each of the new columns.  See spread for
+#'     more details.
+#' @param drop If \code{FALSE}, will keep factor levels that don't
+#'     appear in the data, filling in missing combinations with
+#'     \code{fill}.
+#' @keywords internal
 #' @export
 spread_.solveRxDll <- function(data, key_col, value_col, fill = NA, convert = FALSE, drop = TRUE){
     return(spread_(data = dplyr::as.tbl(data), key_col = key_col, value_col = value_col,

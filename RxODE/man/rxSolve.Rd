@@ -6,10 +6,14 @@
 \alias{rxSolve.RxODE}
 \alias{rxSolve.character}
 \alias{rxSolve.rxDll}
+\alias{rxSolve.solveRxDll}
 \title{Solves a ODE equation}
 \usage{
 rxSolve(object, params, events, inits = NULL, stiff = TRUE,
   transit_abs = FALSE, atol = 1e-08, rtol = 1e-06, ...)
+
+\method{rxSolve}{solveRxDll}(object, params, events, inits, stiff, transit_abs,
+  atol, rtol, ...)
 
 \method{rxSolve}{RxODE}(object, params, events, inits = NULL, stiff = TRUE,
   transit_abs = FALSE, atol = 1e-08, rtol = 1e-06, ...)
