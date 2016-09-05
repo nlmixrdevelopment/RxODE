@@ -72,6 +72,8 @@
 #'     }
 #'
 #'    \item{get.dosing}{returns a data.frame of dosing records.}
+#'
+#'    \item{clear.dosing}{clears or deletes all dosing from event table}
 #'    
 #'    \item{add.sampling}{adds sampling time observation records to the
 #'        event table. Its arguments are
@@ -91,6 +93,8 @@
 #'
 #'    \item{get.sampling}{returns a data.frame of sampled observation
 #'        records.}
+#'
+#'    \item{clear.sampling}{removes all sampling from event table.}
 #'
 #'    \item{get.obs.rec}{returns a logical vector indicating 
 #'        whether each event record represents an observation or not.}
@@ -246,6 +250,19 @@ function(amount.units = NA, time.units = "hours")
       invisible()
    }
 
+   "clear.sampling" <- function(){
+       ## Clears all sampling.
+       .EventTable <<- .EventTable[!.obs.rec, ,drop = TRUE] ;
+       .obs.rec <<- .EventTable$evid==0
+       invisible()
+   }
+
+   "clear.dosing" <- function(){
+       .EventTable <<- .EventTable[.obs.rec, ,drop = TRUE] ;
+       .obs.rec <<- .EventTable$evid==0
+       invisible()
+   }
+
    "import.EventTable" <- 
    function(inp)
    {
@@ -285,8 +302,10 @@ function(amount.units = NA, time.units = "hours")
          get.obs.rec = function() .obs.rec,
          get.nobs = function() sum(.obs.rec),
          add.dosing = add.dosing,
+         clear.dosing = clear.dosing,
          get.dosing = function() .EventTable[!.obs.rec, ,drop = FALSE],
          add.sampling = add.sampling,
+         clear.sampling = clear.sampling,
          get.sampling = function() .EventTable[.obs.rec, ,drop = FALSE],
          get.units = function() c(dosing = .amount.units, time = .time.units),
          import.EventTable = import.EventTable,

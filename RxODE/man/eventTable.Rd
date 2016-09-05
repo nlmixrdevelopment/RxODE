@@ -62,6 +62,8 @@ Its arguments are
     }
 
    \item{get.dosing}{returns a data.frame of dosing records.}
+
+   \item{clear.dosing}{clears or deletes all dosing from event table}
    
    \item{add.sampling}{adds sampling time observation records to the
        event table. Its arguments are
@@ -81,6 +83,8 @@ Its arguments are
 
    \item{get.sampling}{returns a data.frame of sampled observation
        records.}
+
+   \item{clear.sampling}{removes all sampling from event table.}
 
    \item{get.obs.rec}{returns a logical vector indicating 
        whether each event record represents an observation or not.}
