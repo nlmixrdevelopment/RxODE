@@ -72,10 +72,22 @@ compartment.  This includes S#=numeric will scale a compartment
 like NONMEM.}
 }
 \value{
-The output of \dQuote{rxSolve} is a matrix with as many
-    rows as there are sampled time points and as many columns as
-    system variables (as defined by the ODEs and additional
-    assignments in the RxODE model code)
+An \dQuote{rxSolve} solve object that stores the solved
+    value in a matrix with as many rows as there are sampled time
+    points and as many columns as system variables (as defined by
+    the ODEs and additional assignments in the RxODE model code).
+    It also stores information about the call to allow dynmaic
+    updating of the solved object.
+
+    The operations for the object are simialar to a data-frame, but
+    expand the \code{$} and \code{[[""]]} access operators and
+    assignment operators to resolve based on different parameter
+    values, initial conditions, solver parameters, or events (by
+    updaing the \code{time} variable).
+
+    You can call the \code{\link{EventTable}} methods on the solved
+    object to update the event table and resolve the system of
+    equations.  % Should be able to use roxygen templates...
 }
 \description{
 This uses RxODE family of objects, file, or model specification to

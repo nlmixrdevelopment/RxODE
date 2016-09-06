@@ -1881,10 +1881,22 @@ rxInits <- function(rxDllObj,        # rxDll object
 #'     # by a dividing the compartment amount by the scale factor,
 #'     like NONMEM.
 #'
-#' @return The output of \dQuote{rxSolve} is a matrix with as many
-#'     rows as there are sampled time points and as many columns as
-#'     system variables (as defined by the ODEs and additional
-#'     assignments in the RxODE model code)
+#' @return An \dQuote{rxSolve} solve object that stores the solved
+#'     value in a matrix with as many rows as there are sampled time
+#'     points and as many columns as system variables (as defined by
+#'     the ODEs and additional assignments in the RxODE model code).
+#'     It also stores information about the call to allow dynmaic
+#'     updating of the solved object.
+#'
+#'     The operations for the object are simialar to a data-frame, but
+#'     expand the \code{$} and \code{[[""]]} access operators and
+#'     assignment operators to resolve based on different parameter
+#'     values, initial conditions, solver parameters, or events (by
+#'     updaing the \code{time} variable).
+#'
+#'     You can call the \code{\link{EventTable}} methods on the solved
+#'     object to update the event table and resolve the system of
+#'     equations.  % Should be able to use roxygen templates...
 #' 
 #' @references
 #'
@@ -1934,14 +1946,12 @@ rxSolve.solveRxDll <- function(object,params, events, inits, stiff, transit_abs,
             for (n2 in names(eval(call$inits))){
                 lst$inits[n2] <- eval(call$inits)[n2]
             }
-        } else if (n =="events"){
-            lst$inits[[n]] <- eval(call$inits[[n]])$copy();
         } else {
             lst[[n]] <- call[[n]];
         }
     }
     lst$object <- object$object;
-    return(do.call(rxSolve.rxDll,lst,envir=.GlobalEnv));
+    return(do.call(rxSolve.rxDll,lst));
 }
 
 #' @rdname rxSolve
@@ -2108,6 +2118,18 @@ as.tbl.solveRxDll <- function(x,...){
     return(dplyr::as.tbl(as.data.frame(x)));
 }
 
+solveRxDll_updateEventTable <- function(obj,name,...){
+    cat("Update with new event specification.\n");
+    tmp <- attr(obj,"solveRxDll");
+    events <- tmp$events;
+    events[[name]](...)
+    tmp <- rxSolve.solveRxDll(obj,events = eval(events));
+    lst <- attr(tmp,"solveRxDll");
+    lst$events <- events;
+    call <- as.list(match.call(expand.dots = TRUE));
+    eval(parse(text=sprintf("attr(%s,\"solveRxDll\") <<- lst",toString(call$obj))));
+    invisible()
+}
 
 #' @export
 "$.solveRxDll" <-  function(obj,arg){
@@ -2127,6 +2149,14 @@ as.tbl.solveRxDll <- function(x,...){
             }
             if (any(names(tmp$init) == arg)){
                 return(tmp$init[arg]);
+            }
+            if (any(arg == names(tmp$events))){
+                if (substr(arg,0,4) == "get."){
+                    return(tmp$events[[arg]]);
+                } else {
+                    call <- as.list(match.call(expand.dots = TRUE));
+                    return(eval(parse(text=sprintf("function(...){solveRxDll_updateEventTable(%s,\"%s\",...)}",toString(call$obj),toString(call$arg)))))
+                }
             }
             return(NULL);
         }
@@ -2181,7 +2211,19 @@ as.tbl.solveRxDll <- function(x,...){
         arg <- "time";
     }
     lst <- attr(obj,"solveRxDll")
-    if (any(rxState(obj$object) == arg)){
+    if (arg == "time"){
+        if (class(value) == "EventTable"){
+            cat("Update event table and solved object.\n");
+            return(rxSolve(obj,events = eventTable))
+        } else if (class(value) == "data.frame"){
+        } else if (class(value) == "numeric"){
+            cat("Updating sampling times in the event table updating object.\n");
+            eventTable <- lst$events$copy();
+            eventTable$clear.sampling();
+            eventTable$add.sampling(value);
+            return(rxSolve(obj,events = eventTable));
+        }
+    } else if (any(rxState(obj$object) == arg)){
         cat("Updating object with new initial conditions.\n");
         inits <- c(value);
         names(inits) <- arg;

@@ -38,7 +38,7 @@
 #' instance, to indicate time after \dQuote{wash-out}, etc.
 #'
 #' @return A closure with the following list of functions:
-#' 
+#'
 #' \item{get.EventTable}{returns the current event table.}
 #' 
 #' \item{add.dosing}{adds dosing records to the event table.
