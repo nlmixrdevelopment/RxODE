@@ -426,11 +426,12 @@ void __ODE_SOLVER__(
 	par_ptr = theta;
 
 	slvr_counter = 0;
-	if (*stiff==0)
-		call_dop(*neq, time, evid, *ntime, inits, dose, ret, rc);
-	else
-		call_lsoda(*neq, time, evid, *ntime, inits, dose, ret, rc);
-
+	if (*neq) {
+	  if (*stiff==0)
+            call_dop(*neq, time, evid, *ntime, inits, dose, ret, rc);
+          else
+            call_lsoda(*neq, time, evid, *ntime, inits, dose, ret, rc);
+	}
 	if (*nlhs) for (i=0; i<*ntime; i++)
 		__CALC_LHS__(time[i], ret+i*(*neq), lhs+i*(*nlhs));
 
