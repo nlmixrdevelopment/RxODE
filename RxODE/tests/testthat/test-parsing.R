@@ -15,6 +15,14 @@ goodParse <- function(desc,code){
     })
 }
 
+equivSyntax <- function(desc,code1,code2){
+    test_that(desc,{
+        rx1 <- RxODE(code1);
+        rx2 <- RxODE(code2);
+        expect_equal(rxMd5(rx1)["parsed_md5"],rxMd5(rx2)["parsed_md5"])
+    })
+}
+
 badParse('incorrect d/dt operator','d/dt(y = 1);')
 
 ## Statements don't require ; now.
@@ -77,5 +85,8 @@ badParse(desc = 'Assignment with <<- not supported',
 
 goodParse(desc = 'Assignment with <- supported',
           'd/dt(y_1) <- F*y')
+
+equivSyntax(desc = "time and t are equivalent",
+            "d/dt(depot) = time^2","d/dt(depot) = t^2")
 
 rxClean();

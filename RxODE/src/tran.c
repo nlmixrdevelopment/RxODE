@@ -74,6 +74,7 @@ int new_or_ith(const char *s) {
 
   if (tb.fn) return 0;
   if (!strcmp("t", s)) return 0;
+  if (!strcmp("time", s)) return 0;
   if (!strcmp("podo", s)) return 0;
   if (!strcmp("tlast", s)) return 0;
   if (!tb.nv) return 1;
@@ -101,10 +102,18 @@ int new_de(const char *s){
 }
 
 void wprint_node(int depth, char *name, char *value, void *client_data) {
-  sprintf(SBPTR, " %s", value);
-  sprintf(SBTPTR, "%s", value);
-  sb.o += strlen(value)+1;
-  sbt.o += strlen(value);
+  if (!strcmp("time",value)){
+    sprintf(SBPTR, " t");
+    sprintf(SBTPTR, "t");
+    sb.o += 2;
+    sbt.o += 1;
+  } else {
+    sprintf(SBPTR, " %s", value);
+    sprintf(SBTPTR, "%s", value);
+    sb.o += strlen(value)+1;
+    sbt.o += strlen(value);
+
+  }
 }
 
 void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_fn_t fn, void *client_data) {
