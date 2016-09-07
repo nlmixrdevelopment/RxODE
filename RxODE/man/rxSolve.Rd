@@ -9,23 +9,25 @@
 \alias{rxSolve.solveRxDll}
 \title{Solves a ODE equation}
 \usage{
-rxSolve(object, params, events, inits = NULL, stiff = TRUE,
+rxSolve(object, params, events, inits = NULL, covs = NULL, stiff = TRUE,
   transit_abs = FALSE, atol = 1e-08, rtol = 1e-06, ...)
 
-\method{rxSolve}{solveRxDll}(object, params, events, inits, stiff, transit_abs,
-  atol, rtol, ...)
+\method{rxSolve}{solveRxDll}(object, params, events, inits, covs, stiff,
+  transit_abs, atol, rtol, ...)
 
-\method{rxSolve}{RxODE}(object, params, events, inits = NULL, stiff = TRUE,
-  transit_abs = FALSE, atol = 1e-08, rtol = 1e-06, ...)
+\method{rxSolve}{RxODE}(object, params, events, inits = NULL, covs = NULL,
+  stiff = TRUE, transit_abs = FALSE, atol = 1e-08, rtol = 1e-06, ...)
 
 \method{rxSolve}{RxCompilationManager}(object, params, events, inits = NULL,
-  stiff = TRUE, transit_abs = FALSE, atol = 1e-08, rtol = 1e-06, ...)
+  covs = NULL, stiff = TRUE, transit_abs = FALSE, atol = 1e-08,
+  rtol = 1e-06, ...)
 
 \method{rxSolve}{character}(object, params, events, inits = NULL,
-  stiff = TRUE, transit_abs = FALSE, atol = 1e-08, rtol = 1e-06, ...)
+  covs = NULL, stiff = TRUE, transit_abs = FALSE, atol = 1e-08,
+  rtol = 1e-06, ...)
 
-\method{rxSolve}{rxDll}(object, params, events, inits = NULL, stiff = TRUE,
-  transit_abs = FALSE, atol = 1e-08, rtol = 1e-06, ...)
+\method{rxSolve}{rxDll}(object, params, events, inits = NULL, covs = NULL,
+  stiff = TRUE, transit_abs = FALSE, atol = 1e-08, rtol = 1e-06, ...)
 }
 \arguments{
 \item{object}{is a either a RxODE family of objects, or a file-name
@@ -44,6 +46,10 @@ time points (see \code{\link{eventTable}});}
 (e.g., amounts in each compartment), and the order in this
 vector must be the same as the state variables (e.g., PK/PD
 compartments);}
+
+\item{covs}{a matrix or dataframe the same number of rows as the
+sampling points defined in the events \code{EventTable}.  This
+is for time-varying covariates.}
 
 \item{stiff}{a logical (\code{TRUE} by default) indicating whether
     the ODE system is stifff or not.

@@ -1605,6 +1605,10 @@ rxParams <- function(obj,...){
     return(rxModelVars(obj)$params);
 }
 
+#' @rdname rxParams
+#' @export
+rxParam <- rxParams
+
 #' State variables
 #'
 #' This returns the model's compartments or states.
@@ -1833,6 +1837,10 @@ rxInits <- function(rxDllObj,        # rxDll object
     
 } # end function rxInits
 
+#' @rdname rxInits
+#' @export
+rxInit <- rxInits;
+
 #' Solves a ODE equation
 #'
 #' This uses RxODE family of objects, file, or model specification to
@@ -1854,6 +1862,10 @@ rxInits <- function(rxDllObj,        # rxDll object
 #'     (e.g., amounts in each compartment), and the order in this
 #'     vector must be the same as the state variables (e.g., PK/PD
 #'     compartments);
+#'
+#' @param covs a matrix or dataframe the same number of rows as the
+#'     sampling points defined in the events \code{EventTable}.  This
+#'     is for time-varying covariates.
 #'
 #' @param stiff a logical (\code{TRUE} by default) indicating whether
 #'     the ODE system is stifff or not.
@@ -1922,6 +1934,7 @@ rxSolve <- function(object,               # RxODE object
                     params,               # Parameter 
                     events,               # Events
                     inits       = NULL,   # Initial Events
+                    covs        = NULL,   # Covariates
                     stiff       = TRUE,   # Is the system stiff
                     transit_abs = FALSE,  # Transit compartment absorption?
                     atol        = 1.0e-8, # Absoltue Tolerance for LSODA solver
@@ -1932,7 +1945,7 @@ rxSolve <- function(object,               # RxODE object
 
 #' @rdname rxSolve
 #' @export
-rxSolve.solveRxDll <- function(object,params, events, inits, stiff, transit_abs, atol, rtol, ...){
+rxSolve.solveRxDll <- function(object,params, events, inits, covs, stiff, transit_abs, atol, rtol, ...){
     call <- as.list(match.call(expand.dots = TRUE));
     lst <- attr(object,"solveRxDll");
     lst <- lst[names(lst) != "matrix"];
@@ -1956,22 +1969,22 @@ rxSolve.solveRxDll <- function(object,params, events, inits, stiff, transit_abs,
 
 #' @rdname rxSolve
 #' @export
-rxSolve.RxODE <- function(object,params,events,inits = NULL,stiff = TRUE, transit_abs = FALSE,atol = 1.0e-8, rtol = 1.0e-6,...){
-    rxSolve.rxDll(object$cmpMgr$rxDll(),params,events,inits,stiff, transit_abs,atol,rtol,...)
+rxSolve.RxODE <- function(object,params,events,inits = NULL,covs = NULL, stiff = TRUE, transit_abs = FALSE,atol = 1.0e-8, rtol = 1.0e-6,...){
+    rxSolve.rxDll(object$cmpMgr$rxDll(),params,events,inits,covs,stiff, transit_abs,atol,rtol,...)
 }
 #' @rdname rxSolve
 #' @export
-rxSolve.RxCompilationManager <- function(object,params,events,inits = NULL,stiff = TRUE, transit_abs = FALSE,atol = 1.0e-8, rtol = 1.0e-6,...){
-    rxSolve.rxDll(object$rxDll(),params,events,inits,stiff, transit_abs,atol,rtol,...);
+rxSolve.RxCompilationManager <- function(object,params,events,inits = NULL, covs = NULL,stiff = TRUE, transit_abs = FALSE,atol = 1.0e-8, rtol = 1.0e-6,...){
+    rxSolve.rxDll(object$rxDll(),params,events,inits,covs,stiff, transit_abs,atol,rtol,...);
 }
 #' @rdname rxSolve
 #' @export
-rxSolve.character <- function(object,params,events,inits = NULL,stiff = TRUE, transit_abs = FALSE,atol = 1.0e-8, rtol = 1.0e-6,...){
-    rxSolve.rxDll(rxCompile(object),params,events,inits,stiff, transit_abs,atol,rtol,...);
+rxSolve.character <- function(object,params,events,inits = NULL, covs = NULL,stiff = TRUE, transit_abs = FALSE,atol = 1.0e-8, rtol = 1.0e-6,...){
+    rxSolve.rxDll(rxCompile(object),params,events,inits,covs,stiff, transit_abs,atol,rtol,...);
 }
 #' @rdname rxSolve
 #' @export
-rxSolve.rxDll <- function(object,params,events,inits = NULL,stiff = TRUE, transit_abs = FALSE,atol = 1.0e-8, rtol = 1.0e-6,...){
+rxSolve.rxDll <- function(object,params,events,inits = NULL, covs = NULL,stiff = TRUE, transit_abs = FALSE,atol = 1.0e-8, rtol = 1.0e-6,...){
     ## rxSolve.rxDll returns
     if (missing(events) && class(params) == "EventTable"){
         events <- params;
@@ -1986,7 +1999,35 @@ rxSolve.rxDll <- function(object,params,events,inits = NULL,stiff = TRUE, transi
              inits = inits, stiff = stiff, 
              transit_abs = transit_abs, atol = atol, rtol = rtol, ...);
     inits <- rxInits(object,inits,rxState(object),0);
-    params <- rxInits(object,params,rxParams(object),NA);
+    params <- rxInits(object,params,rxParams(object),NA,!is.null(covs));
+    if (!is.null(covs)){
+        cov <- as.matrix(covs);
+        pcov <- sapply(dimnames(cov)[[2]],function(x){
+            w <- which(x == names(params));
+            if (length(w) == 1){
+                return(w)
+            } else {
+                return(0);
+            }
+        })
+        n_cov <- length(pcov);
+        ## Now check if there is any unspecified parameters by either covariate or parameter
+        w <- which(is.na(params));
+        if (!all(names(params)[w] %in% dimnames(cov)[[2]])){
+            stop("Some model specified variables were not specified by either a covariate or parameter");
+        }
+        ## Assign all parameters matching a covariate to zero.
+        for (i in pcov){
+            if (i > 0){
+                params[i] <- 0;
+            }
+        }
+    } else {
+        ## For now zero out the covariates
+        pcov <- c();
+        cov <- c();
+        n_cov <- 0;
+    }
     s <- as.list(match.call(expand.dots = TRUE)) 
     wh <- grep(pattern="S\\d+$", names(s))[1]
     ## HACK: fishing scaling variables "S1 S2 S3 ..." from params call
@@ -2002,17 +2043,17 @@ rxSolve.rxDll <- function(object,params,events,inits = NULL,stiff = TRUE, transi
         }
     }
     state_vars <- rxState(object);
-    neq  <- length(state_vars)
+    neq  <- length(state_vars);
     lhs_vars <- rxLhs(object);
-    nlhs <- length(lhs_vars)
+    nlhs <- length(lhs_vars);
 
-    ntime <- dim(event.table)[1]
-    ret   <- rep(0.0, ntime*neq)
-    lhs   <- rep(0.0, ntime*nlhs)
+    ntime <- dim(event.table)[1];
+    ret   <- rep(0.0, ntime*neq);
+    lhs   <- rep(0.0, ntime*nlhs);
     rc <- as.integer(0)  # return code 0 (success) or IDID in call_dvode.c
     if (is.null(inits))
         inits <- rep(0.0, neq)
-
+    
     ## may need to reload (e.g., when we re-start R and
     ## re-instantiate the RxODE object from a save.image.
     ## cmpMgr$dynLoad()
@@ -2032,6 +2073,11 @@ rxSolve.rxDll <- function(object,params,events,inits = NULL,stiff = TRUE, transi
                     as.integer(transit_abs),
                     as.integer(nlhs),
                     as.double(lhs),
+                    ## parameter covariates
+                    as.integer(pcov),
+                    as.double(cov),
+                    as.integer(n_cov),
+                    ## Return Code
                     rc
                     );
 

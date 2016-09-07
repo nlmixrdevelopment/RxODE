@@ -28,14 +28,19 @@ void F77_NAME(dvode)(
      int *, double *, int *);
 
 
-		    long slvr_counter, dadt_counter, jac_counter;
+long slvr_counter, dadt_counter, jac_counter;
 double InfusionRate[99];
 double ATOL;		//absolute error
 double RTOL;		//relative error
-int do_transit_abs=0;
+int    do_transit_abs=0;
 double tlast=0;
 double podo=0;
 double *par_ptr;
+int    *par_cov;
+double *cov_ptr;
+int    ncov;
+int    n_all_times;
+double *all_times;
 FILE *fp;
 
 
@@ -43,12 +48,33 @@ void __DYDT__(unsigned int neq, double t, double *A, double *DADT);
 void __CALC_LHS__(double t, double *A, double *lhs);
 void __CALC_JAC__(unsigned int neq, double t, double *A, double *JAC, unsigned int __NROWPD__);
 
+void update_par_ptr(double *t){
+  // Update all covariate parameters
+  int i;
+  int j = -1;
+  for (i = 0; i < ncov; i++){
+    if (par_cov[i]){
+      if (j == -1){
+	for (j = 0; j < n_all_times; j++){
+	  if (all_times[j] >= *t){
+	    break;
+	  }
+	}
+      }
+      par_ptr[par_cov[i]-1] = cov_ptr[i*n_all_times+j];
+    }
+  }
+}
+
 //--------------------------------------------------------------------------
 void dydt_lsoda_dum(int *neq, double *t, double *A, double *DADT)
 {
-	__DYDT__(*neq, *t, A, DADT);
+  update_par_ptr(t);
+  __DYDT__(*neq, *t, A, DADT);
 }
 void jdum_lsoda(int *neq, double *t, double *A,int *ml, int *mu, double *JAC, int *nrowpd){
+  // Update all covariate parameters
+  update_par_ptr(t);
   __CALC_JAC__(*neq, *t, A, JAC, *nrowpd);
 }
 void call_lsoda(int neq, double *x, int *evid, int nx, double *inits, double *dose, double *ret, int *rc)
@@ -168,10 +194,12 @@ void call_lsoda(int neq, double *x, int *evid, int nx, double *inits, double *do
 
 void dydt_dvode_dum(int *neq, double *t, double *A, double *DADT, double *RPAR, int *IPAR)
 {
-	__DYDT__(*neq, *t, A, DADT);
+  update_par_ptr(t);
+  __DYDT__(*neq, *t, A, DADT);
 }
 
 void jdum_dvode(int *neq, double *t, double *A,int *ml, int *mu, double *JAC, int *nrowpd, double *RPAR, int *IPAR) {
+  update_par_ptr(t);
   __CALC_JAC__(*neq, *t, A, JAC, *nrowpd);
 }
 
@@ -415,15 +443,24 @@ void __ODE_SOLVER__(
 	int *transit_abs,
 	int *nlhs,
 	double *lhs,
-   int *rc
-)
-{
-	int i;
+	// Covariance terms
+	int *pcov,
+	double *cov,
+	int *n_cov,
+ 	int *rc){
+  
+        int i, j;
 	for (i=0; i< 99; i++) InfusionRate[i] = 0.0;
 	ATOL = *atol;
 	RTOL = *rtol;
 	do_transit_abs = *transit_abs;
 	par_ptr = theta;
+	all_times = time;
+	n_all_times = *ntime;
+	
+	par_cov = pcov;
+	cov_ptr = cov;
+	ncov    = *n_cov;
 
 	slvr_counter = 0;
 	if (*neq) {
@@ -432,9 +469,14 @@ void __ODE_SOLVER__(
           else
             call_lsoda(*neq, time, evid, *ntime, inits, dose, ret, rc);
 	}
-	if (*nlhs) for (i=0; i<*ntime; i++)
-		__CALC_LHS__(time[i], ret+i*(*neq), lhs+i*(*nlhs));
-
+	if (*nlhs) for (i=0; i<*ntime; i++){
+	    // Update covariate parameters
+	    for (j = 0; i < ncov; j++){
+	      if (par_cov[j]){
+		par_ptr[par_cov[j]-1] = cov_ptr[j*n_all_times+i];
+              }
+            }
+	    __CALC_LHS__(time[i], ret+i*(*neq), lhs+i*(*nlhs));
+        }
 	if (fp) fclose(fp);
 }
-
