@@ -1996,7 +1996,7 @@ rxSolve.rxDll <- function(object,params,events,inits = NULL, covs = NULL,stiff =
     ## preserve input arguments. 
     last.solve.args <-
         list(params = params, events = events$copy(),
-             inits = inits, stiff = stiff, 
+             inits = inits, covs = covs, stiff = stiff, 
              transit_abs = transit_abs, atol = atol, rtol = rtol, ...);
     inits <- rxInits(object,inits,rxState(object),0);
     params <- rxInits(object,params,rxParams(object),NA,!is.null(covs));
@@ -2022,11 +2022,13 @@ rxSolve.rxDll <- function(object,params,events,inits = NULL, covs = NULL,stiff =
                 params[i] <- 0;
             }
         }
+        covnames <- dimnames(cov)[[2]]
     } else {
         ## For now zero out the covariates
         pcov <- c();
         cov <- c();
         n_cov <- 0;
+        covnames <- c();
     }
     s <- as.list(match.call(expand.dots = TRUE)) 
     wh <- grep(pattern="S\\d+$", names(s))[1]
@@ -2086,9 +2088,10 @@ rxSolve.rxDll <- function(object,params,events,inits = NULL, covs = NULL,stiff =
         stop(sprintf("could not solve ODE, IDID=%d (see further messages)", rc))
     x <- cbind(
         matrix(xx[[8]], ncol=neq, byrow=T),
-        if(nlhs) matrix(xx[[14]], ncol=nlhs, byrow=T) else NULL
+        if(nlhs) matrix(xx[[14]], ncol=nlhs, byrow=T) else NULL,
+        if(n_cov) matrix(cov,ncol=n_cov,byrow=T) else NULL
     )
-    colnames(x) <- c(state_vars, lhs_vars)
+    colnames(x) <- c(state_vars, lhs_vars, covnames)
 
     if (scaler.ix) {
         x[, scaler.ix] <- x[, scaler.ix]/scaler
@@ -2116,7 +2119,14 @@ print.solveRxDll <- function(x,...){
     cat("Solved RxODE object\n");
     cat(sprintf("Dll: %s\n\n",rxDll(lst$object)))
     cat("Parameters:\n")
-    print(lst$params);
+    w <- which((names(lst$params) %in% names(as.data.frame(x))))
+    if (length(w) > 0){
+        print(lst$params[-w]);
+        cat("\n\nTime Varying Covariates:\n");
+        cat(paste(names(lst$params)[w],collapse=" "),"\n");
+    }  else {
+        print(lst$params);
+    }
     cat("\n\nInitial Conditions:\n")
     print(lst$inits);
     cat("\n\nFirst part of data:\n")
