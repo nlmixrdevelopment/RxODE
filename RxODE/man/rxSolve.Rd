@@ -10,24 +10,27 @@
 \title{Solves a ODE equation}
 \usage{
 rxSolve(object, params, events, inits = NULL, covs = NULL, stiff = TRUE,
-  transit_abs = FALSE, atol = 1e-08, rtol = 1e-06, ...)
+  transit_abs = FALSE, atol = 1e-08, rtol = 1e-06, ...,
+  covs_interpolation = c("Linear", "LOCF"))
 
 \method{rxSolve}{solveRxDll}(object, params, events, inits, covs, stiff,
-  transit_abs, atol, rtol, ...)
+  transit_abs, atol, rtol, ..., covs_interpolation = c("Linear", "LOCF"))
 
 \method{rxSolve}{RxODE}(object, params, events, inits = NULL, covs = NULL,
-  stiff = TRUE, transit_abs = FALSE, atol = 1e-08, rtol = 1e-06, ...)
+  stiff = TRUE, transit_abs = FALSE, atol = 1e-08, rtol = 1e-06, ...,
+  covs_interpolation = c("Linear", "LOCF"))
 
 \method{rxSolve}{RxCompilationManager}(object, params, events, inits = NULL,
   covs = NULL, stiff = TRUE, transit_abs = FALSE, atol = 1e-08,
-  rtol = 1e-06, ...)
+  rtol = 1e-06, ..., covs_interpolation = c("Linear", "LOCF"))
 
 \method{rxSolve}{character}(object, params, events, inits = NULL,
   covs = NULL, stiff = TRUE, transit_abs = FALSE, atol = 1e-08,
-  rtol = 1e-06, ...)
+  rtol = 1e-06, ..., covs_interpolation = c("Linear", "LOCF"))
 
 \method{rxSolve}{rxDll}(object, params, events, inits = NULL, covs = NULL,
-  stiff = TRUE, transit_abs = FALSE, atol = 1e-08, rtol = 1e-06, ...)
+  stiff = TRUE, transit_abs = FALSE, atol = 1e-08, rtol = 1e-06, ...,
+  covs_interpolation = c("Linear", "LOCF"))
 }
 \arguments{
 \item{object}{is a either a RxODE family of objects, or a file-name
@@ -76,6 +79,18 @@ compartment absorption}
 compartment.  This includes S#=numeric will scale a compartment
 # by a dividing the compartment amount by the scale factor,
 like NONMEM.}
+
+\item{covs_interpolation}{specifies the interpolation method for
+time-varying covariates. When solving ODEs it often samples
+times outside the sampling time specified in \code{events}.
+When this happens, the time varying covariates are
+interpolated.  Currently this can be \code{"Linear"}
+interpolation (the default), which interpolates the covariate
+by solving the line between the observed covariates and
+extrapolating the new covariate value. The other possibility is
+\code{"LOCF"}, or Last observation carried forward.  In this
+approach, the last observation of the covariate is considered
+the current value of the covariate.}
 }
 \value{
 An \dQuote{rxSolve} solve object that stores the solved

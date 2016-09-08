@@ -1867,6 +1867,18 @@ rxInit <- rxInits;
 #'     sampling points defined in the events \code{EventTable}.  This
 #'     is for time-varying covariates.
 #'
+#' @param covs_interpolation specifies the interpolation method for
+#'     time-varying covariates. When solving ODEs it often samples
+#'     times outside the sampling time specified in \code{events}.
+#'     When this happens, the time varying covariates are
+#'     interpolated.  Currently this can be \code{"Linear"}
+#'     interpolation (the default), which interpolates the covariate
+#'     by solving the line between the observed covariates and
+#'     extrapolating the new covariate value. The other possibility is
+#'     \code{"LOCF"}, or Last observation carried forward.  In this
+#'     approach, the last observation of the covariate is considered
+#'     the current value of the covariate.
+#'
 #' @param stiff a logical (\code{TRUE} by default) indicating whether
 #'     the ODE system is stifff or not.
 #' 
@@ -1939,13 +1951,16 @@ rxSolve <- function(object,               # RxODE object
                     transit_abs = FALSE,  # Transit compartment absorption?
                     atol        = 1.0e-8, # Absoltue Tolerance for LSODA solver
                     rtol        = 1.0e-6, # Relative Tolerance for LSODA solver
-                    ...) {
+                    ...,
+                    covs_interpolation = c("Linear","LOCF")
+                    ) {
     UseMethod("rxSolve");
 }
 
 #' @rdname rxSolve
 #' @export
-rxSolve.solveRxDll <- function(object,params, events, inits, covs, stiff, transit_abs, atol, rtol, ...){
+rxSolve.solveRxDll <- function(object,params, events, inits, covs, stiff, transit_abs, atol, rtol, ...,
+                               covs_interpolation= c("Linear","LOCF")){
     call <- as.list(match.call(expand.dots = TRUE));
     lst <- attr(object,"solveRxDll");
     lst <- lst[names(lst) != "matrix"];
@@ -1969,22 +1984,26 @@ rxSolve.solveRxDll <- function(object,params, events, inits, covs, stiff, transi
 
 #' @rdname rxSolve
 #' @export
-rxSolve.RxODE <- function(object,params,events,inits = NULL,covs = NULL, stiff = TRUE, transit_abs = FALSE,atol = 1.0e-8, rtol = 1.0e-6,...){
-    rxSolve.rxDll(object$cmpMgr$rxDll(),params,events,inits,covs,stiff, transit_abs,atol,rtol,...)
+rxSolve.RxODE <- function(object,params,events,inits = NULL,covs = NULL, stiff = TRUE, transit_abs = FALSE,atol = 1.0e-8, rtol = 1.0e-6,...,
+                          covs_interpolation = c("Linear","LOCF")){
+    rxSolve.rxDll(object$cmpMgr$rxDll(),params,events,inits,covs,stiff, transit_abs,atol,rtol,..., covs_interpolation = covs_interpolation)
 }
 #' @rdname rxSolve
 #' @export
-rxSolve.RxCompilationManager <- function(object,params,events,inits = NULL, covs = NULL,stiff = TRUE, transit_abs = FALSE,atol = 1.0e-8, rtol = 1.0e-6,...){
-    rxSolve.rxDll(object$rxDll(),params,events,inits,covs,stiff, transit_abs,atol,rtol,...);
+rxSolve.RxCompilationManager <- function(object,params,events,inits = NULL, covs = NULL,stiff = TRUE, transit_abs = FALSE,atol = 1.0e-8, rtol = 1.0e-6,...,
+                                         covs_interpolation = c("Linear","LOCF")){
+    rxSolve.rxDll(object$rxDll(),params,events,inits,covs,stiff, transit_abs,atol,rtol,..., covs_interpolation = covs_interpolation);
 }
 #' @rdname rxSolve
 #' @export
-rxSolve.character <- function(object,params,events,inits = NULL, covs = NULL,stiff = TRUE, transit_abs = FALSE,atol = 1.0e-8, rtol = 1.0e-6,...){
-    rxSolve.rxDll(rxCompile(object),params,events,inits,covs,stiff, transit_abs,atol,rtol,...);
+rxSolve.character <- function(object,params,events,inits = NULL, covs = NULL,stiff = TRUE, transit_abs = FALSE,atol = 1.0e-8, rtol = 1.0e-6,...,
+                              covs_interpolation = c("Linear","LOCF")){
+    rxSolve.rxDll(rxCompile(object),params,events,inits,covs,stiff, transit_abs,atol,rtol,..., covs_interpolation = covs_interpolation);
 }
 #' @rdname rxSolve
 #' @export
-rxSolve.rxDll <- function(object,params,events,inits = NULL, covs = NULL,stiff = TRUE, transit_abs = FALSE,atol = 1.0e-8, rtol = 1.0e-6,...){
+rxSolve.rxDll <- function(object,params,events,inits = NULL, covs = NULL,stiff = TRUE, transit_abs = FALSE,atol = 1.0e-8, rtol = 1.0e-6,...,
+                          covs_interpolation = c("Linear","LOCF")){
     ## rxSolve.rxDll returns
     if (missing(events) && class(params) == "EventTable"){
         events <- params;
@@ -1997,7 +2016,7 @@ rxSolve.rxDll <- function(object,params,events,inits = NULL, covs = NULL,stiff =
     last.solve.args <-
         list(params = params, events = events$copy(),
              inits = inits, covs = covs, stiff = stiff, 
-             transit_abs = transit_abs, atol = atol, rtol = rtol, ...);
+             transit_abs = transit_abs, atol = atol, rtol = rtol, covs_interpolation = covs_interpolation, ...);
     inits <- rxInits(object,inits,rxState(object),0);
     params <- rxInits(object,params,rxParams(object),NA,!is.null(covs));
     if (!is.null(covs)){
@@ -2055,6 +2074,14 @@ rxSolve.rxDll <- function(object,params,events,inits = NULL, covs = NULL,stiff =
     rc <- as.integer(0)  # return code 0 (success) or IDID in call_dvode.c
     if (is.null(inits))
         inits <- rep(0.0, neq)
+
+    if (length(covs_interpolation) > 1){
+        isLocf <- 0;
+    } else if (covs_interpolation == "LOCF"){
+        isLocf <- 1;
+    } else if (covs_interpolation != "Linear"){
+        stop("Unknown covariate interpolation specified.");
+    }
     
     ## may need to reload (e.g., when we re-start R and
     ## re-instantiate the RxODE object from a save.image.
@@ -2079,6 +2106,7 @@ rxSolve.rxDll <- function(object,params,events,inits = NULL, covs = NULL,stiff =
                     as.integer(pcov),
                     as.double(cov),
                     as.integer(n_cov),
+                    as.integer(isLocf),
                     ## Return Code
                     rc
                     );
@@ -2089,7 +2117,7 @@ rxSolve.rxDll <- function(object,params,events,inits = NULL, covs = NULL,stiff =
     x <- cbind(
         matrix(xx[[8]], ncol=neq, byrow=T),
         if(nlhs) matrix(xx[[14]], ncol=nlhs, byrow=T) else NULL,
-        if(n_cov) matrix(cov,ncol=n_cov,byrow=T) else NULL
+        if(n_cov) as.matrix(covs) else NULL
     )
     colnames(x) <- c(state_vars, lhs_vars, covnames)
 
@@ -2110,7 +2138,7 @@ rxSolve.rxDll <- function(object,params,events,inits = NULL, covs = NULL,stiff =
     length(ret) <- length(dimnames(ret)[[2]])
     class(ret) <- c("solveRxDll");
     attr(ret,"solveRxDll") <- lst;
-    return(ret)
+    return(ret);
 } # end function rxSolve.rxDll
  
 #' @export
