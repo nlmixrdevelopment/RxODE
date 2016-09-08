@@ -48,6 +48,12 @@ out <- rxSolve(ode,
                inits = c(X=1, Y=1, Z=1),
                covs = cov)
 
+out3 <- rxSolve(ode,
+               params = c(a=-8/3, b=-10), 
+               events = et,
+               inits = c(X=1, Y=1, Z=1),
+               covs = cov)
+
 test_that("time varying covariates output covariate in data frame",{
     expect_equal(cov$c,out$c);
     expect_equal(cov$a,out$a);
@@ -69,9 +75,14 @@ test_that("Before assinging the time varying to -8/3, out and out2 should be dif
 ## Assign a time-varying to a simple parameter
 out$a <- -8/3
 
-test_that("Before assinging the time varying to -8/3, out and out2 should be different",{
+test_that("The out$a=-8/3 works.",{
     expect_equal(out,out2);
 })
 
+out$a <- out3$a
+
+test_that("the out$a = time varying covariate works.",{
+    expect_equal(out,out3);
+})
 
 rxClean()

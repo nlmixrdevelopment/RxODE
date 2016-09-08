@@ -2317,7 +2317,7 @@ solveRxDll_updateEventTable <- function(obj,name,...){
         if (length(value) == 1){
             covs <- as.data.frame(lst$covs);
             if (any(names(covs) == arg)){
-                cat(sprintf("Changing time varying covariate %s to a simple parameter value %s\n",arg,value));
+                cat(sprintf("Changing time varying covariate \"%s\" to a simple parameter value %s\n",arg,value));
                 ncovs <- names(covs);
                 covs <- as.data.frame(covs[,names(covs) != arg]);
                 names(covs) <- ncovs[ncovs != arg];
@@ -2329,6 +2329,11 @@ solveRxDll_updateEventTable <- function(obj,name,...){
                 names(params) <- arg;
                 return(rxSolve.solveRxDll(obj,params = params));
             }
+        } else if (length(value) == length(lst$events$get.sampling()$time)){
+            cat(sprintf("Changing simple parameter \"%s\" to a time-varying covariate.\n",arg));
+            covs <- as.data.frame(lst$covs);
+            covs[[arg]] <- value;
+            return(rxSolve.solveRxDll(obj,covs = covs));
         }
     } else if (arg == "params"){
         cat("Updating object with new paramter values.\n");
@@ -2337,7 +2342,7 @@ solveRxDll_updateEventTable <- function(obj,name,...){
         cat("Updating object with new initial conditions.\n");
         return(rxSolve.solveRxDll(obj,inits = value));
     } else {
-        warning("Changing internal solved data.")
+        warning("Changing internal solved data; This is not portable, and could be changed if dynamic solved object is updated.")
         df <- as.data.frame(obj);
         m <- as.matrix("$<-.data.frame"(df,arg,value));
         lst$matrix <- m;
