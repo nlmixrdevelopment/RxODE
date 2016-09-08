@@ -10,27 +10,30 @@
 \title{Solves a ODE equation}
 \usage{
 rxSolve(object, params, events, inits = NULL, covs = NULL, stiff = TRUE,
-  transit_abs = FALSE, atol = 1e-08, rtol = 1e-06, ...,
+  transit_abs = FALSE, atol = 1e-08, rtol = 1e-06, mxstep = 500, ...,
   covs_interpolation = c("Linear", "LOCF"))
 
 \method{rxSolve}{solveRxDll}(object, params, events, inits, covs, stiff,
-  transit_abs, atol, rtol, ..., covs_interpolation = c("Linear", "LOCF"))
+  transit_abs, atol, rtol, mxstep, ..., covs_interpolation = c("Linear",
+  "LOCF"))
 
 \method{rxSolve}{RxODE}(object, params, events, inits = NULL, covs = NULL,
-  stiff = TRUE, transit_abs = FALSE, atol = 1e-08, rtol = 1e-06, ...,
-  covs_interpolation = c("Linear", "LOCF"))
+  stiff = TRUE, transit_abs = FALSE, atol = 1e-08, rtol = 1e-06,
+  mxstep = 500, ..., covs_interpolation = c("Linear", "LOCF"))
 
 \method{rxSolve}{RxCompilationManager}(object, params, events, inits = NULL,
   covs = NULL, stiff = TRUE, transit_abs = FALSE, atol = 1e-08,
-  rtol = 1e-06, ..., covs_interpolation = c("Linear", "LOCF"))
+  rtol = 1e-06, mxstep = 500, ..., covs_interpolation = c("Linear",
+  "LOCF"))
 
 \method{rxSolve}{character}(object, params, events, inits = NULL,
   covs = NULL, stiff = TRUE, transit_abs = FALSE, atol = 1e-08,
-  rtol = 1e-06, ..., covs_interpolation = c("Linear", "LOCF"))
+  rtol = 1e-06, mxstep = 500, ..., covs_interpolation = c("Linear",
+  "LOCF"))
 
 \method{rxSolve}{rxDll}(object, params, events, inits = NULL, covs = NULL,
-  stiff = TRUE, transit_abs = FALSE, atol = 1e-08, rtol = 1e-06, ...,
-  covs_interpolation = c("Linear", "LOCF"))
+  stiff = TRUE, transit_abs = FALSE, atol = 1e-08, rtol = 1e-06,
+  mxstep = 500, ..., covs_interpolation = c("Linear", "LOCF"))
 }
 \arguments{
 \item{object}{is a either a RxODE family of objects, or a file-name
@@ -74,6 +77,9 @@ compartment absorption}
 \item{atol}{a numeric absolute tolerance (1e-08 by default);}
 
 \item{rtol}{a numeric relative tolerance (1e-06 by default).}
+
+\item{mxstep}{maximum number of (internally defined) steps allowed
+during one call to the solver. (500 by default)}
 
 \item{...}{Other arguments including scaling factors for each
 compartment.  This includes S#=numeric will scale a compartment

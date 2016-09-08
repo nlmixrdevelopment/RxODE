@@ -41,6 +41,7 @@ double *cov_ptr;
 int    ncov;
 int    is_locf;
 int    n_all_times;
+int    mxstep;
 double *all_times;
 FILE *fp;
 
@@ -125,16 +126,21 @@ void call_lsoda(int neq, double *x, int *evid, int nx, double *inits, double *do
   rwork = (double*)R_alloc(lrw, sizeof(double));
   iwork = (int*)R_alloc(liw, sizeof(int));
 
-  //iopt = 0
+  if (mxstep == 500){
+    iopt = 0;
+  } else {
+    iopt = 1;
+  }
   
-  /* rwork[4] = 0; // H0 */
-  /* rwork[5] = 0; // Hmax */
-  /* rwork[6] = 0; // Hmin */
-  /* iwork[4] = 0; // ixpr */
-  /* iwork[5] = 5000; // mxstep */
-  /* iwork[6] = 0; // MXHNIL */
-  /* iwork[7] = 0; // MXORDN */
-  /* iwork[8] = 9; */ // MXORDS
+  rwork[4] = 0.0; // H0 -- determined by solver
+  rwork[5] = 0.0; // Hmax -- Infinite
+  rwork[6] = 0.0; // Hmin -- 0
+  
+  iwork[4] = 0; // ixpr  -- No extra printing.
+  iwork[5] = mxstep; // mxstep 
+  iwork[6] = 0; // MXHNIL 
+  iwork[7] = 0; // MXORDN 
+  iwork[8] = 0;  // MXORDS
   
   //--- inits the system
   for(i=0; i<neq; i++) yp[i] = inits[i];
@@ -457,6 +463,7 @@ void __ODE_SOLVER__(
 	double *ret,
 	double *atol,
 	double *rtol,
+	int *mx,
 	int *stiff,
 	int *transit_abs,
 	int *nlhs,
@@ -477,6 +484,7 @@ void __ODE_SOLVER__(
 	all_times = time;
 	n_all_times = *ntime;
 	is_locf = *locf;
+	mxstep = *mx;
 	
 	par_cov = pcov;
 	cov_ptr = cov;

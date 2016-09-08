@@ -1900,6 +1900,9 @@ rxInit <- rxInits;
 #'
 #' @param rtol a numeric relative tolerance (1e-06 by default).
 #'
+#' @param mxstep maximum number of (internally defined) steps allowed
+#'     during one call to the solver. (500 by default)
+#'
 #' @param ... Other arguments including scaling factors for each
 #'     compartment.  This includes S#=numeric will scale a compartment
 #'     # by a dividing the compartment amount by the scale factor,
@@ -1942,24 +1945,26 @@ rxInit <- rxInits;
 #' 
 #' @seealso \code{\link{RxODE}}
 #' @export
-rxSolve <- function(object,               # RxODE object
-                    params,               # Parameter 
-                    events,               # Events
-                    inits       = NULL,   # Initial Events
-                    covs        = NULL,   # Covariates
-                    stiff       = TRUE,   # Is the system stiff
-                    transit_abs = FALSE,  # Transit compartment absorption?
-                    atol        = 1.0e-8, # Absoltue Tolerance for LSODA solver
-                    rtol        = 1.0e-6, # Relative Tolerance for LSODA solver
+rxSolve <- function(object,                      # RxODE object
+                    params,                      # Parameter 
+                    events,                      # Events
+                    inits              = NULL,   # Initial Events
+                    covs               = NULL,   # Covariates
+                    stiff              = TRUE,   # Is the system stiff
+                    transit_abs        = FALSE,  # Transit compartment absorption?
+                    atol               = 1.0e-8, # Absoltue Tolerance for LSODA solver
+                    rtol               = 1.0e-6, # Relative Tolerance for LSODA solver
+                    mxstep             = 500,    #  Maximum number of steps
                     ...,
                     covs_interpolation = c("Linear","LOCF")
                     ) {
+    ## rxSolve returns
     UseMethod("rxSolve");
-}
+} # end function rxSolve
 
 #' @rdname rxSolve
 #' @export
-rxSolve.solveRxDll <- function(object,params, events, inits, covs, stiff, transit_abs, atol, rtol, ...,
+rxSolve.solveRxDll <- function(object,params, events, inits, covs, stiff, transit_abs, atol, rtol, mxstep, ...,
                                covs_interpolation= c("Linear","LOCF")){
     call <- as.list(match.call(expand.dots = TRUE));
     lst <- attr(object,"solveRxDll");
@@ -1984,25 +1989,25 @@ rxSolve.solveRxDll <- function(object,params, events, inits, covs, stiff, transi
 
 #' @rdname rxSolve
 #' @export
-rxSolve.RxODE <- function(object,params,events,inits = NULL,covs = NULL, stiff = TRUE, transit_abs = FALSE,atol = 1.0e-8, rtol = 1.0e-6,...,
+rxSolve.RxODE <- function(object,params,events,inits = NULL,covs = NULL, stiff = TRUE, transit_abs = FALSE,atol = 1.0e-8, rtol = 1.0e-6, mxstep=500,...,
                           covs_interpolation = c("Linear","LOCF")){
-    rxSolve.rxDll(object$cmpMgr$rxDll(),params,events,inits,covs,stiff, transit_abs,atol,rtol,..., covs_interpolation = covs_interpolation)
+    rxSolve.rxDll(object$cmpMgr$rxDll(),params,events,inits,covs,stiff, transit_abs,atol,rtol,mxstep,..., covs_interpolation = covs_interpolation)
 }
 #' @rdname rxSolve
 #' @export
-rxSolve.RxCompilationManager <- function(object,params,events,inits = NULL, covs = NULL,stiff = TRUE, transit_abs = FALSE,atol = 1.0e-8, rtol = 1.0e-6,...,
+rxSolve.RxCompilationManager <- function(object,params,events,inits = NULL, covs = NULL,stiff = TRUE, transit_abs = FALSE,atol = 1.0e-8, rtol = 1.0e-6,mxstep=500,...,
                                          covs_interpolation = c("Linear","LOCF")){
-    rxSolve.rxDll(object$rxDll(),params,events,inits,covs,stiff, transit_abs,atol,rtol,..., covs_interpolation = covs_interpolation);
+    rxSolve.rxDll(object$rxDll(),params,events,inits,covs,stiff, transit_abs,atol,rtol,mxstep=500,..., covs_interpolation = covs_interpolation);
 }
 #' @rdname rxSolve
 #' @export
-rxSolve.character <- function(object,params,events,inits = NULL, covs = NULL,stiff = TRUE, transit_abs = FALSE,atol = 1.0e-8, rtol = 1.0e-6,...,
+rxSolve.character <- function(object,params,events,inits = NULL, covs = NULL,stiff = TRUE, transit_abs = FALSE,atol = 1.0e-8, rtol = 1.0e-6,mxstep=500,...,
                               covs_interpolation = c("Linear","LOCF")){
-    rxSolve.rxDll(rxCompile(object),params,events,inits,covs,stiff, transit_abs,atol,rtol,..., covs_interpolation = covs_interpolation);
+    rxSolve.rxDll(rxCompile(object),params,events,inits,covs,stiff, transit_abs,atol,rtol,mxstep=500,..., covs_interpolation = covs_interpolation);
 }
 #' @rdname rxSolve
 #' @export
-rxSolve.rxDll <- function(object,params,events,inits = NULL, covs = NULL,stiff = TRUE, transit_abs = FALSE,atol = 1.0e-8, rtol = 1.0e-6,...,
+rxSolve.rxDll <- function(object,params,events,inits = NULL, covs = NULL,stiff = TRUE, transit_abs = FALSE,atol = 1.0e-8, rtol = 1.0e-6,mxstep=500,...,
                           covs_interpolation = c("Linear","LOCF")){
     ## rxSolve.rxDll returns
     if (missing(events) && class(params) == "EventTable"){
@@ -2098,6 +2103,7 @@ rxSolve.rxDll <- function(object,params,events,inits = NULL, covs = NULL,stiff =
                     as.double(ret),
                     as.double(atol),
                     as.double(rtol),
+                    as.integer(mxstep),
                     as.integer(stiff),
                     as.integer(transit_abs),
                     as.integer(nlhs),
