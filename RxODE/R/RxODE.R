@@ -2314,9 +2314,22 @@ solveRxDll_updateEventTable <- function(obj,name,...){
         return(rxSolve(obj,inits = inits));
     } else if (any(rxParams(obj$object) == arg)){
         cat("Updating object with new paramter values.\n");
-        params <- c(value);
-        names(params) <- arg;
-        return(rxSolve.solveRxDll(obj,params = params));
+        if (length(value) == 1){
+            covs <- as.data.frame(lst$covs);
+            if (any(names(covs) == arg)){
+                cat(sprintf("Changing time varying covariate %s to a simple parameter value %s\n",arg,value));
+                ncovs <- names(covs);
+                covs <- as.data.frame(covs[,names(covs) != arg]);
+                names(covs) <- ncovs[ncovs != arg];
+                params <- c(value);
+                names(params) <- arg;
+                return(rxSolve.solveRxDll(obj,params = params,covs = covs));
+            } else {
+                params <- c(value);
+                names(params) <- arg;
+                return(rxSolve.solveRxDll(obj,params = params));
+            }
+        }
     } else if (arg == "params"){
         cat("Updating object with new paramter values.\n");
         return(rxSolve.solveRxDll(obj,params = value));
