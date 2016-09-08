@@ -2021,7 +2021,8 @@ rxSolve.rxDll <- function(object,params,events,inits = NULL, covs = NULL,stiff =
     last.solve.args <-
         list(params = params, events = events$copy(),
              inits = inits, covs = covs, stiff = stiff, 
-             transit_abs = transit_abs, atol = atol, rtol = rtol, covs_interpolation = covs_interpolation, ...);
+             transit_abs = transit_abs, atol = atol, rtol = rtol, mxstep = mxstep,
+             covs_interpolation = covs_interpolation, ...);
     inits <- rxInits(object,inits,rxState(object),0);
     params <- rxInits(object,params,rxParams(object),NA,!is.null(covs));
     if (!is.null(covs)){
@@ -2122,7 +2123,7 @@ rxSolve.rxDll <- function(object,params,events,inits = NULL, covs = NULL,stiff =
         stop(sprintf("could not solve ODE, IDID=%d (see further messages)", rc))
     x <- cbind(
         matrix(xx[[8]], ncol=neq, byrow=T),
-        if(nlhs) matrix(xx[[14]], ncol=nlhs, byrow=T) else NULL,
+        if(nlhs) matrix(xx[[15]], ncol=nlhs, byrow=T) else NULL,
         if(n_cov) as.matrix(covs) else NULL
     )
     colnames(x) <- c(state_vars, lhs_vars, covnames)
