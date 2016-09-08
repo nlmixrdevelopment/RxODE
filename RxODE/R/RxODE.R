@@ -1695,6 +1695,14 @@ rxModelVars.rxDll <- function(obj,...){
 rxModelVars.RxODE <- function(obj,...){
     return(rxModelVars.rxDll(obj$cmpMgr$rxDll()))
 }
+
+#' @rdname rxModelVars
+#' @export
+rxModelVars.solveRxDll <- function(obj,...){
+    lst <- attr(obj,"solveRxDll");
+    return(rxModelVars.rxDll(lst$object));
+}
+
 #' Print rxDll object
 #'
 #' This tells if the rxDll is loaded, ready and/or deleted.
@@ -2150,26 +2158,76 @@ rxSolve.rxDll <- function(object,params,events,inits = NULL, covs = NULL,stiff =
  
 #' @export
 print.solveRxDll <- function(x,...){
+    args <- as.list(match.call(expand.dots = TRUE));
+    if (any(names(args) == "n")){
+        n <- args$n;
+    } else {
+        n <- 6L;
+    }
+    if (any(names(args) == "width")){
+        width <- args$width;
+    } else {
+        width <- NULL;
+    }
     lst <- attr(x,"solveRxDll")
     cat("Solved RxODE object\n");
     cat(sprintf("Dll: %s\n\n",rxDll(lst$object)))
     cat("Parameters:\n")
+    is.dplyr <- requireNamespace("dplyr", quietly = TRUE);
     w <- which((names(lst$params) %in% names(as.data.frame(x))))
     if (length(w) > 0){
         print(lst$params[-w]);
-        cat("\n\nTime Varying Covariates:\n");
-        cat(paste(names(lst$params)[w],collapse=" "),"\n");
+        cat("\n\nFirst Part of Time Varying Covariates:\n");
+        d <- as.data.frame(lst$covs)[,names(lst$params)[w]];
+        if (length(w) == 1){
+            d <- data.frame(d=d);
+            names(d) <- names(lst$params)[w];
+        }
+        if (!is.dplyr){
+            print(head(d),n=n);
+        } else {
+            print(dplyr::as.tbl(d),n=n,width=width);
+        }
     }  else {
         print(lst$params);
     }
     cat("\n\nInitial Conditions:\n")
     print(lst$inits);
     cat("\n\nFirst part of data:\n")
-    if (!requireNamespace("dplyr", quietly = TRUE)){
-        print(head(as.matrix(x)));
+    if (!is.dplyr){
+        print(head(as.matrix(x)),n=n);
     } else {
-        print(dplyr::as.tbl(x));
+        print(dplyr::as.tbl(x),n=n,width=width);
     }
+}
+
+#' @export
+summary.solveRxDll <- function(object,...){
+    lst <- attr(object,"solveRxDll")
+    cat("Solved RxODE object\n");
+    cat(sprintf("Dll: %s\n\n",rxDll(lst$object)))
+    cat("Model:\n");
+    cat(";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n");
+    cat(rxModelVars(object)$model["model"]);
+    cat(";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n");
+    cat("Parameters:\n")
+    w <- which((names(lst$params) %in% names(as.data.frame(object))))
+    if (length(w) > 0){
+        print(lst$params[-w]);
+        cat("\n\nSummary of Time Varying Covariates:\n");
+        d <- as.data.frame(lst$covs)[,names(lst$params)[w]];
+        if (length(w) == 1){
+            d <- data.frame(d=d);
+            names(d) <- names(lst$params)[w];
+        }
+        print(summary(d));
+    }  else {
+        print(lst$params);
+    }
+    cat("\n\nInitial Conditions:\n")
+    print(lst$inits);
+    cat("\n\nSummary of solved data:\n")
+    print(summary(as.data.frame(object)))
 }
 
 
@@ -2370,15 +2428,26 @@ solveRxDll_updateEventTable <- function(obj,name,...){
     return("$<-.solveRxDll"(obj,arg,value=value))
 }
 
-## "[<-.solveRxDll" <- function(obj,arg,value){
-##     ## Fixme -- update event Table sampling times?
-##     lst <- attr(obj,"solveRxDll")
-##     df <- as.data.frame(obj);
-##     m <- as.matrix("[<-.data.frame"(df,arg,value));
-##     lst$matrix <- m;
-##     attr(obj,"solveRxDll") <- lst;
-##     return(obj);
-## }
+#' Assign solved objects using the [] syntax
+#' @param obj solved object
+#' @param arg1 first argument
+#' @param arg2 second argument
+#' @param value value assumed
+#' @keywords internal
+#' @export
+"[<-.solveRxDll" <- function(obj,arg1,arg2,value){
+    if (any(arg2 == c(1,"t","time")) && missing(arg1) && missing(arg3)){
+        obj$time <- value
+        return(obj);
+    }
+    warning("Changing internal solved data; This is not portable, and could be changed if dynamic solved object is updated.");
+    lst <- attr(obj,"solveRxDll")
+    df <- as.data.frame(obj);
+    df[arg1,arg2] <-  value;
+    lst$matrix <- as.matrix(df);
+    attr(obj,"solveRxDll") <- lst;
+    return(obj);
+}
 
 #' Assign rownames to rxSolve object
 #'

@@ -4,6 +4,7 @@
 \alias{rxModelVars}
 \alias{rxModelVars.RxODE}
 \alias{rxModelVars.rxDll}
+\alias{rxModelVars.solveRxDll}
 \title{All model variables for a RxODE object}
 \usage{
 rxModelVars(obj, ...)
@@ -11,6 +12,8 @@ rxModelVars(obj, ...)
 \method{rxModelVars}{rxDll}(obj, ...)
 
 \method{rxModelVars}{RxODE}(obj, ...)
+
+\method{rxModelVars}{solveRxDll}(obj, ...)
 }
 \arguments{
 \item{obj}{RxODE family of objects}
