@@ -518,7 +518,7 @@ void print_aux_info(FILE *outpt, char *model){
   int i, islhs,pi = 0,li = 0, o=0, statei = 0, ini_i = 0;
   char *s, *s2;
   char sLine[MXLEN+1];
-  char buf[512];
+  char buf[512], buf2[512];
   s = (char *) malloc(64*MXSYM);
   for (i=0; i<tb.nv; i++) {
     islhs = tb.lh[i];
@@ -625,7 +625,8 @@ void print_aux_info(FILE *outpt, char *model){
         if (tb.ini[i] == 1 && tb.lh[i] != 1){
           //(__0__)V2 =
           retieve_var(i, buf);
-          s2 = strstr(sLine,buf);
+	  sprintf(buf2,"(__0__)%s =",buf);
+          s2 = strstr(sLine,buf2);
           if (s2){
 	    sprintf(s+o,"\tSET_STRING_ELT(inin,%d,mkChar(\"%s\"));\n",ini_i, buf);
 	    o = strlen(s);
@@ -1041,7 +1042,7 @@ void R_unload_RxODE(DllInfo *info){
 SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_md5,
 	   SEXP parse_model){
   const char *in, *out, *file, *pfile;
-  char buf[512];
+  char buf[512], buf2[512];
   char snum[512];
   char *s2;
   char sLine[MXLEN+1];
@@ -1179,7 +1180,8 @@ SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_m
         if (tb.ini[i] == 1 && tb.lh[i] != 1){
           //(__0__)V2 =
           retieve_var(i, buf);
-          s2 = strstr(sLine,buf);
+	  sprintf(buf2,"(__0__)%s =",buf);
+          s2 = strstr(sLine,buf2);
           if (s2){
 	    /* Rprintf("%s[%d]->\n",buf,ini_i++); */
 	    SET_STRING_ELT(inin,ini_i,mkChar(buf));

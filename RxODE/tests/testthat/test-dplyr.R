@@ -71,7 +71,8 @@ test_that("sample frac works",{
 })
 
 test_that("top n works",{
-    expect_equal(digest(top_n(o1.first,3,depot),"sha512"),"489db21b97dbccf5847401bee73f862f99bc08da84a2e7d040818a6dbb3cd14c85ac846cbb22421867ec8d3694ccecaf49189583f67054c3f8e002b0e3eca62d")
+    expect_equal(digest(top_n(o1.first,3,depot),"sha512"),
+                 "489db21b97dbccf5847401bee73f862f99bc08da84a2e7d040818a6dbb3cd14c85ac846cbb22421867ec8d3694ccecaf49189583f67054c3f8e002b0e3eca62d")
 })
 
 test_that("select works",{

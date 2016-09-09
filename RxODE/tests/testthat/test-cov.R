@@ -3,7 +3,8 @@ library(RxODE)
 context("Simple test for time-varying covariates.")
 
 ode <- 
-    RxODE('d/dt(X) = a*X + Y*Z;
+    RxODE('b = -1
+d/dt(X) = a*X + Y*Z;
          d/dt(Y) = b*(Y - Z);
          d/dt(Z) = -X*Y + c*Y - Z
 if (t < 0.02 | t > 99.98){

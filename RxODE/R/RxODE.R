@@ -357,12 +357,43 @@ RxODE.quoteVar <- function(var,word=TRUE){
 #'  RxODE object
 #'
 #' @param object An RxODE object
-#' @param ... Solve arguments sent to \code{RxODEobj$solve}.  See
-#'     \code{\link{RxODE}}.
+#' @param ... Solve arguments sent to \code{rxSolve}.  See
+#'     \code{\link{rxSolve}}.
 #' 
 #' @export 
 predict.RxODE <- function(object,...){
-    object$solve(...);
+    rxSolve(object,...);
+}
+
+#' Solve RxODE objects
+#'
+#' @param ... Additional arguments sent to \code{rxSolve}
+#'
+#' @seealso \code{\link{rxSolve}}
+#' @export
+solve.RxODE <- function(...){
+    rxSolve(...)
+}
+#' @rdname solve.RxODE
+#' @export 
+solve.RxCompilationManager <- function(...){
+    rxSolve(...)
+}
+#' @rdname solve.RxODE
+#' @export 
+solve.solveRxDll <- function(...){
+    rxSolve(...)
+}
+#' @rdname solve.RxODE
+#' @export 
+solve.character <- function(...){
+    rxSolve(...)
+}
+
+#' @rdname solve.RxODE
+#' @export
+solve.rxDll <- function(...){
+    rxSolve(...);
 }
 
 #' Print information about the RxODE object.

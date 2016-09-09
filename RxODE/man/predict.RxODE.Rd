@@ -9,8 +9,8 @@
 \arguments{
 \item{object}{An RxODE object}
 
-\item{...}{Solve arguments sent to \code{RxODEobj$solve}.  See
-\code{\link{RxODE}}.}
+\item{...}{Solve arguments sent to \code{rxSolve}.  See
+\code{\link{rxSolve}}.}
 }
 \description{
 \code{predict} solves the odinary differential equations specified by
