@@ -404,16 +404,15 @@ solve.rxDll <- function(...){
 #'
 #' When \code{newObject} is an event table, return a new solved object
 #' with the new event table.
+#' @name rxChain
+
+#' @rdname rxChain
 #' @export
-rxChain <- function(obj1, obj2) {
+'+.solveRxDll' <- function(obj1, obj2) {
     args <- rev(as.list(match.call())[-1]);
     names(args) <- c("obj","solvedObject");
     return(do.call("rxChain2",args,envir = parent.frame(1)));
 }
-
-#' @rdname rxChain
-#' @export
-'+.solveRxDll' <- 'rxChain';
 
 #' @rdname rxChain
 #' @export
@@ -2377,6 +2376,7 @@ solveRxDll_updateEventTable <- function(obj,name,...){
 
 #' @export
 "$.solveRxDll" <-  function(obj,arg){
+    ##cat(sprintf("Arg: %s\n",arg));
     m <- as.data.frame(obj);
     ret <- m[[arg]];
     if (is.null(ret) & class(arg) == "character"){
@@ -2502,11 +2502,13 @@ solveRxDll_updateEventTable <- function(obj,name,...){
         cat("Updating object with new initial conditions.\n");
         return(rxSolve.solveRxDll(obj,inits = value));
     } else {
-        warning("Changing internal solved data; This is not portable, and could be changed if dynamic solved object is updated.")
         df <- as.data.frame(obj);
-        m <- as.matrix("$<-.data.frame"(df,arg,value));
-        lst$matrix <- m;
-        attr(obj,"solveRxDll") <- lst;
+        df <- "$<-.data.frame"(df,arg,value);
+        if (requireNamespace("dplyr", quietly = TRUE)){
+            obj <- dplyr::as.tbl(df)
+        } else {
+            obj <- df;
+        }
     }
     return(obj);
 }
