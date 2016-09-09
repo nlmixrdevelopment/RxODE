@@ -404,16 +404,16 @@ solve.rxDll <- function(...){
 #'
 #' When \code{newObject} is an event table, return a new solved object
 #' with the new event table.
-#' @name rxChain
-NULL 
-
-#' @rdname rxChain
 #' @export
-'+.solveRxDll' <- function(obj1, obj2){
+rxChain <- function(obj1, obj2) {
     args <- rev(as.list(match.call())[-1]);
     names(args) <- c("obj","solvedObject");
     return(do.call("rxChain2",args,envir = parent.frame(1)));
 }
+
+#' @rdname rxChain
+#' @export
+'+.solveRxDll' <- 'rxChain';
 
 #' @rdname rxChain
 #' @export
