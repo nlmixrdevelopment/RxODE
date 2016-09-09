@@ -2376,7 +2376,6 @@ solveRxDll_updateEventTable <- function(obj,name,...){
 
 #' @export
 "$.solveRxDll" <-  function(obj,arg){
-    ##cat(sprintf("Arg: %s\n",arg));
     m <- as.data.frame(obj);
     ret <- m[[arg]];
     if (is.null(ret) & class(arg) == "character"){
@@ -2391,7 +2390,9 @@ solveRxDll_updateEventTable <- function(obj,name,...){
             if (any(names(tmp$param) == arg)){
                 return(tmp$param[arg]);
             }
-            if (any(names(tmp$init) == arg)){
+            reg <- rex::rex(or(group(at_most(one_of("_."),1),"0"),"(0)","[0]","{0}"),end)
+            if (any(names(tmp$init) == gsub(regIni,"",arg))){
+                arg <- gsub(regIni,"",arg);
                 return(tmp$init[arg]);
             }
             if (any(arg == names(tmp$events))){
@@ -2437,6 +2438,8 @@ solveRxDll_updateEventTable <- function(obj,name,...){
     }
 }
 
+regIni <- rex::rex(or(group(one_of("_."),"0"),"0","(0)","[0]","{0}"),end);
+
 #' $ Assign for RxODE solved objects
 #' 
 #' Assign objects by argumnt as obj$arg <- value
@@ -2450,11 +2453,11 @@ solveRxDll_updateEventTable <- function(obj,name,...){
 #' @keywords internal
 #' @export
 "$<-.solveRxDll" <- function(obj,arg,value){
-    ## Fixme -- update event Table sampling times?
     if (arg == "t"){
         arg <- "time";
     }
     lst <- attr(obj,"solveRxDll")
+    
     if (arg == "time"){
         if (class(value) == "EventTable"){
             cat("Update event table and solved object.\n");
@@ -2467,10 +2470,10 @@ solveRxDll_updateEventTable <- function(obj,name,...){
             eventTable$add.sampling(value);
             return(rxSolve(obj,events = eventTable));
         }
-    } else if (any(rxState(obj$object) == arg)){
+    } else if (any(rxState(obj$object) == gsub(regIni,"",arg))){
         cat("Updating object with new initial conditions.\n");
         inits <- c(value);
-        names(inits) <- arg;
+        names(inits) <- gsub(regIni,"",arg);
         return(rxSolve(obj,inits = inits));
     } else if (any(rxParams(obj$object) == arg)){
         cat("Updating object with new paramter values.\n");
