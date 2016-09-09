@@ -509,7 +509,7 @@ summary.RxCompilationManager <- function(object, ...)
 #' \item{ini}{ is the model specified default values for the
 #'     parameters.}
 #' \item{RxODE}{ is the referring RxODE object}
-#' @export coef.RxODE
+#' @export 
 coef.RxODE <- function(object,
                        ...){
     ret <- rxModelVars(object)[c("params","state","ini")];
@@ -519,7 +519,19 @@ coef.RxODE <- function(object,
 }
 
 #' @rdname coef.RxODE
-#' @export coef.rxDll
+#' @export 
+coef.RxCompilationManager <- function(...){
+    coef.RxODE(...);
+}
+
+#' @rdname coef.RxODE
+#' @export 
+coef.solveRxDll <- function(...){
+    coef.RxODE(...);
+}
+
+#' @rdname coef.RxODE
+#' @export 
 coef.rxDll <- function(...){
     coef.RxODE(...);
 };
