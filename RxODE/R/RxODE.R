@@ -396,6 +396,58 @@ solve.rxDll <- function(...){
     rxSolve(...);
 }
 
+#' Add item to solved system of equations
+#'
+#' @param obj1 Solved object
+#'
+#' @param obj2 New object to be added/piped/chained to solved object.
+#'
+#' When \code{newObject} is an event table, return a new solved object
+#' with the new event table.
+#' @name rxChain
+NULL 
+
+#' @rdname rxChain
+#' @export
+'+.solveRxDll' <- function(obj1, obj2){
+    args <- rev(as.list(match.call())[-1]);
+    names(args) <- c("obj","solvedObject");
+    return(do.call("rxChain2",args,envir = parent.frame(1)));
+}
+
+#' @rdname rxChain
+#' @export
+'%>%.solveRxDll' <- '+.solveRxDll';
+
+#' Second command in chaining commands
+#'
+#' This is s3 method is called internally with \code{+} and \code{\%>\%} operators.
+#'
+#' @param obj the object being added/chained/piped to the solved object
+#' @param solvedObject the solved object
+#' @param envir
+#' 
+#' @keywords internal
+#' @export
+rxChain2 <- function(obj,solvedObject){
+    UseMethod("rxChain2")
+}
+
+#' @rdname rxChain2
+#' @export
+rxChain2.default <- function(obj,solvedObject){
+    args <- as.list(match.call());
+    stop(sprintf("Do not know how to add %s to RxODE solved object %s",toString(args[[2]]), toString(args[[3]])))
+}
+
+#' @rdname rxChain2
+#' @export
+rxChain2.EventTable <- function(obj,solvedObject){
+    args <- rev(as.list(match.call())[-1]);
+    names(args) <- c("object","events");
+    return(do.call("rxSolve",args, envir = parent.frame(1)));
+}
+ 
 #' Print information about the RxODE object.
 #'
 #' This prints the model name and its status for being able to be solved
@@ -2023,7 +2075,7 @@ rxSolve.solveRxDll <- function(object,params, events, inits, covs, stiff, transi
         }
     }
     lst$object <- object$object;
-    return(do.call(rxSolve.rxDll,lst));
+    return(do.call(rxSolve.rxDll,lst,envir=parent.frame(1)));
 }
 
 #' @rdname rxSolve
