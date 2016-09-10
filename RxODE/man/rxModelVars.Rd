@@ -2,6 +2,7 @@
 % Please edit documentation in R/RxODE.R
 \name{rxModelVars}
 \alias{rxModelVars}
+\alias{rxModelVars.RxCompilationManager}
 \alias{rxModelVars.RxODE}
 \alias{rxModelVars.rxDll}
 \alias{rxModelVars.solveRxDll}
@@ -10,6 +11,8 @@
 rxModelVars(obj, ...)
 
 \method{rxModelVars}{rxDll}(obj, ...)
+
+\method{rxModelVars}{RxCompilationManager}(obj, ...)
 
 \method{rxModelVars}{RxODE}(obj, ...)
 

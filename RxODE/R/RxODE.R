@@ -1,4 +1,5 @@
 rex::register_shortcuts("RxODE");
+regIni <- rex::rex(or(group(one_of("_."),"0"),"0","(0)","[0]","{0}"),end);
 #' Create an ODE-based model specification 
 #'
 #' Create a dynamic ODE-based model object suitably for translation
@@ -1786,6 +1787,12 @@ rxModelVars.rxDll <- function(obj,...){
 
 #' @rdname rxModelVars
 #' @export
+rxModelVars.RxCompilationManager <- function(obj,...){
+    return(rxModelVars.rxDll(obj$rxDll()))
+}
+
+#' @rdname rxModelVars
+#' @export
 rxModelVars.RxODE <- function(obj,...){
     return(rxModelVars.rxDll(obj$cmpMgr$rxDll()))
 }
@@ -2374,6 +2381,68 @@ solveRxDll_updateEventTable <- function(obj,name,...){
     invisible()
 }
 
+accessComp <- function(obj,arg){
+    lst <- obj;
+    class(lst) <- "list";
+    if (any(names(obj) == arg)){
+        return(lst[[arg]]);
+    } else {
+        if (any(rxState(obj) == gsub(regIni,"",arg))){
+            arg <- gsub(regIni,"",arg);
+            ret <- rxInits(obj)[arg];
+            if (is.na(ret)){
+                ret <- NA;
+                names(ret) <- arg;
+                return(ret)
+            } else {
+                return(ret)
+            }
+        } else if (any(rxParams(obj) == arg)){
+            ret <- rxInits(obj)[arg];
+            if (is.na(ret)){
+                ret <- NA;
+                names(ret) <- arg;
+                return(ret)
+            } else {
+                return(ret)
+            }
+        } else {
+            return(NULL);
+        }
+    }
+}
+
+#' @export
+"[[.RxODE" <- function(obj,arg){
+    accessComp(obj,arg)
+}
+
+#' @export
+"[[.RxCompilationManager" <- function(obj,arg){
+    accessComp(obj,arg)
+}
+
+#' @export
+"[[.rxDll" <- function(obj,arg){
+    accessComp(obj,arg)
+}
+
+
+#'@export
+"$.RxODE" <- function(obj,arg){
+    accessComp(obj,arg)
+}
+
+#' @export
+"$.RxCompilationManager" <- function(obj,arg){
+    accessComp(obj,arg)
+}
+
+#' @export
+"$.rxDll" <- function(obj,arg){
+    accessComp(obj,arg)
+}
+
 #' @export
 "$.solveRxDll" <-  function(obj,arg){
     m <- as.data.frame(obj);
@@ -2437,8 +2506,6 @@ solveRxDll_updateEventTable <- function(obj,name,...){
         "$.solveRxDll"(obj,arg);
     }
 }
-
-regIni <- rex::rex(or(group(one_of("_."),"0"),"0","(0)","[0]","{0}"),end);
 
 #' $ Assign for RxODE solved objects
 #' 

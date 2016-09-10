@@ -6,11 +6,11 @@
 \alias{rxChain2.default}
 \title{Second command in chaining commands}
 \usage{
-rxChain2(obj, solvedObject, envir = .GlobalEnv)
+rxChain2(obj, solvedObject)
 
-\method{rxChain2}{default}(obj, solvedObject, envir = .GlobalEnv)
+\method{rxChain2}{default}(obj, solvedObject)
 
-\method{rxChain2}{EventTable}(obj, solvedObject, envir = .GlobalEnv)
+\method{rxChain2}{EventTable}(obj, solvedObject)
 }
 \arguments{
 \item{obj}{the object being added/chained/piped to the solved object}
