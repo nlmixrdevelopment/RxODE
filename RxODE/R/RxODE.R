@@ -2575,8 +2575,10 @@ accessComp <- function(obj,arg){
         df <- as.data.frame(obj);
         df <- "$<-.data.frame"(df,arg,value);
         if (requireNamespace("dplyr", quietly = TRUE)){
+            cat("Change solved object to dplyr's tbl for assignment\n");
             obj <- dplyr::as.tbl(df)
         } else {
+            cat("Change solved object to data.frame for assignment\n")
             obj <- df;
         }
     }
@@ -2603,17 +2605,28 @@ accessComp <- function(obj,arg){
 #' @keywords internal
 #' @export
 "[<-.solveRxDll" <- function(obj,arg1,arg2,value){
-    if (any(arg2 == c(1,"t","time")) && missing(arg1) && missing(arg3)){
+    if (any(arg2 == c(1,"t","time")) && missing(arg1)){
         obj$time <- value
         return(obj);
     }
-    warning("Changing internal solved data; This is not portable, and could be changed if dynamic solved object is updated.");
     lst <- attr(obj,"solveRxDll")
     df <- as.data.frame(obj);
-    df[arg1,arg2] <-  value;
-    lst$matrix <- as.matrix(df);
-    attr(obj,"solveRxDll") <- lst;
-    return(obj);
+    if (missing(arg1) & missing(arg2)){
+        df[] <- value;
+    } else if (missing(arg1)){
+        df[,arg2] <-  value;
+    } else if (missing(arg2)){
+        df[arg1,] <-  value;
+    } else {
+        d3[arg1,arg2] <- value;
+    }
+    if (requireNamespace("dplyr", quietly = TRUE)){
+        cat("Change solved object to dplyr's tbl for assignment\n");
+        return(dplyr::as.tbl(df))
+    } else {
+        cat("Change solved object to data.frame for assignment\n")
+        return(df)
+    }
 }
 
 #' Assign rownames to rxSolve object
