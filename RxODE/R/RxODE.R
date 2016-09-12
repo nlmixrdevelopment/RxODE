@@ -2459,7 +2459,6 @@ accessComp <- function(obj,arg){
             if (any(names(tmp$param) == arg)){
                 return(tmp$param[arg]);
             }
-            reg <- rex::rex(or(group(at_most(one_of("_."),1),"0"),"(0)","[0]","{0}"),end)
             if (any(names(tmp$init) == gsub(regIni,"",arg))){
                 arg <- gsub(regIni,"",arg);
                 return(tmp$init[arg]);
@@ -2524,7 +2523,7 @@ accessComp <- function(obj,arg){
         arg <- "time";
     }
     lst <- attr(obj,"solveRxDll")
-    
+    iarg <- gsub(regIni,"",arg);
     if (arg == "time"){
         if (class(value) == "EventTable"){
             cat("Update event table and solved object.\n");
@@ -2537,7 +2536,7 @@ accessComp <- function(obj,arg){
             eventTable$add.sampling(value);
             return(rxSolve(obj,events = eventTable));
         }
-    } else if (any(rxState(obj$object) == gsub(regIni,"",arg))){
+    } else if (arg != iarg && any(rxState(obj$object) == iarg) && length(value) == 1){
         cat("Updating object with new initial conditions.\n");
         inits <- c(value);
         names(inits) <- gsub(regIni,"",arg);
@@ -2571,6 +2570,11 @@ accessComp <- function(obj,arg){
     } else if (arg == "inits"){
         cat("Updating object with new initial conditions.\n");
         return(rxSolve.solveRxDll(obj,inits = value));
+    } else if (any(arg==names(lst))){
+        args <- list(obj,value);
+        names(args) <- c("object",arg);
+        cat(sprintf("Updating object with new solving argument %s=%s.\n",arg,value))
+        return(do.call("rxSolve",args, envir = parent.frame(1)))
     } else {
         df <- as.data.frame(obj);
         df <- "$<-.data.frame"(df,arg,value);
