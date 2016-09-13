@@ -2466,16 +2466,31 @@ rxTbl <- function(x,msg){
     }
 }
 
+asTbl <- function(obj){
+    if (getOption("RxODE.prefer.tbl",TRUE) && requireNamespace("dplyr", quietly = TRUE)){
+        return(dplyr::as.tbl(as.data.frame(obj)));
+    } else {
+        return(as.data.frame(obj))
+    }
+}
+
 #' @export
-"$.solveRxDll" <-  function(obj,arg){
+"$.solveRxDll" <-  function(obj,arg, exact = TRUE){
     m <- as.data.frame(obj);
-    ret <- m[[arg]];
+    ret <- m[[arg, exact = exact]];
     if (is.null(ret) & class(arg) == "character"){
         if (arg == "t"){
             return(m[["time"]]);
         } else {
             tmp <- attr(obj,"solveRxDll");
-            w <- which(regexpr(arg,names(tmp)) != -1);
+            if (isTRUE(exact)){
+                w <- which(names(tmp) == arg);
+            } else {
+                w <- which(regexpr(rex::rex(start,arg),names(tmp)) != -1)
+                if (length(w) == 1 && !any(names(tmp) == arg) && is.na(exact)){
+                    warning(sprintf("partial match of '%s' to '%s'",arg,names(tmp)[w]));
+                }
+            }
             if (length(w) == 1){
                 return(tmp[[w]]);
             }
@@ -2526,12 +2541,12 @@ rxTbl <- function(x,msg){
 }
 
 #' @export
-"[[.solveRxDll" <- function(obj,arg,internal = FALSE){
+"[[.solveRxDll" <- function(obj,arg,exact=TRUE,internal = FALSE){
     if (internal){
         tmp <- attr(obj,"solveRxDll");
-        return(tmp[[arg]])
+        return(tmp[[arg,exact=exact]]);
     } else {
-        "$.solveRxDll"(obj,arg);
+        "$.solveRxDll"(obj,arg,exact = exact);
     }
 }
 
@@ -2881,9 +2896,9 @@ cbind.solveRxDll <- function(...){
 #' @export
 filter_.solveRxDll <- function(.data, ... , .dots){
     if (missing(.dots)){
-        return(filter_(.data=as.data.frame(.data),...))
+        return(filter_(.data=asTbl(.data),...))
     } else {
-        return(filter_(.data=as.data.frame(.data),...,.dots = .dots))
+        return(filter_(.data=asTbl(.data),...,.dots = .dots))
     }
 }
 
@@ -2900,9 +2915,9 @@ filter_.solveRxDll <- function(.data, ... , .dots){
 #' @export
 slice_.solveRxDll <- function(.data, ... , .dots){
     if (missing(.dots)){
-        return(slice_(.data=as.data.frame(.data),...))
+        return(slice_(.data=asTbl(.data),...))
     } else {
-        return(slice_(.data=as.data.frame(.data),...,.dots = .dots))
+        return(slice_(.data=asTbl(.data),...,.dots = .dots))
     }
 }
 
@@ -2918,9 +2933,9 @@ slice_.solveRxDll <- function(.data, ... , .dots){
 #' @export
 arrange_.solveRxDll <- function(.data, ... , .dots){
     if (missing(.dots)){
-        return(arrange_(.data=as.data.frame(.data),...))
+        return(arrange_(.data=asTbl(.data),...))
     } else {
-        return(arrange_(.data=as.data.frame(.data),...,.dots = .dots))
+        return(arrange_(.data=asTbl(.data),...,.dots = .dots))
     }
 }
 
@@ -2936,9 +2951,9 @@ arrange_.solveRxDll <- function(.data, ... , .dots){
 #' @export
 select_.solveRxDll <- function(.data, ... , .dots){
     if (missing(.dots)){
-        return(select_(.data=as.data.frame(.data),...))
+        return(select_(.data=asTbl(.data),...))
     } else {
-        return(select_(.data=as.data.frame(.data),...,.dots = .dots))
+        return(select_(.data=asTbl(.data),...,.dots = .dots))
     }
 }
 
@@ -2954,9 +2969,9 @@ select_.solveRxDll <- function(.data, ... , .dots){
 #' @export
 rename_.solveRxDll <- function(.data, ... , .dots){
     if (missing(.dots)){
-        return(rename_(.data=as.data.frame(.data),...))
+        return(rename_(.data=asTbl(.data),...))
     } else {
-        return(rename_(.data=as.data.frame(.data),...,.dots = .dots))
+        return(rename_(.data=asTbl(.data),...,.dots = .dots))
     }
 }
 
@@ -2972,9 +2987,9 @@ rename_.solveRxDll <- function(.data, ... , .dots){
 #' @export
 distinct_.solveRxDll <- function(.data, ... , .dots){
     if (missing(.dots)){
-        return(distinct_(.data=as.data.frame(.data),...))
+        return(distinct_(.data=asTbl(.data),...))
     } else {
-        return(distinct_(.data=as.data.frame(.data),...,.dots = .dots))
+        return(distinct_(.data=asTbl(.data),...,.dots = .dots))
     }
 }
 
@@ -2990,9 +3005,9 @@ distinct_.solveRxDll <- function(.data, ... , .dots){
 #' @export
 mutate_.solveRxDll <- function(.data, ... , .dots){
     if (missing(.dots)){
-        return(mutate_(.data=as.data.frame(.data),...))
+        return(mutate_(.data=asTbl(.data),...))
     } else {
-        return(mutate_(.data=as.data.frame(.data),...,.dots = .dots))
+        return(mutate_(.data=asTbl(.data),...,.dots = .dots))
     }
 }
 
@@ -3008,9 +3023,9 @@ mutate_.solveRxDll <- function(.data, ... , .dots){
 #' @export
 transmute_.solveRxDll <- function(.data, ... , .dots){
     if (missing(.dots)){
-        return(transmute_(.data=as.data.frame(.data),...))
+        return(transmute_(.data=asTbl(.data),...))
     } else {
-        return(transmute_(.data=as.data.frame(.data),...,.dots = .dots))
+        return(transmute_(.data=asTbl(.data),...,.dots = .dots))
     }
 }
 #' dyplr summarise_ support
@@ -3025,9 +3040,9 @@ transmute_.solveRxDll <- function(.data, ... , .dots){
 #' @export
 summarise_.solveRxDll <- function(.data, ... , .dots){
     if (missing(.dots)){
-        return(summarise_(.data=as.data.frame(.data),...))
+        return(summarise_(.data=asTbl(.data),...))
     } else {
-        return(summarise_(.data=as.data.frame(.data),...,.dots = .dots))
+        return(summarise_(.data=asTbl(.data),...,.dots = .dots))
     }
 }
 
@@ -3043,9 +3058,9 @@ summarise_.solveRxDll <- function(.data, ... , .dots){
 #' @export
 arrange_.solveRxDll <- function(.data, ... , .dots){
     if (missing(.dots)){
-        return(arrange_(.data=as.data.frame(.data),...))
+        return(arrange_(.data=asTbl(.data),...))
     } else {
-        return(arrange_(.data=as.data.frame(.data),...,.dots = .dots))
+        return(arrange_(.data=asTbl(.data),...,.dots = .dots))
     }
 }
 
@@ -3061,9 +3076,9 @@ arrange_.solveRxDll <- function(.data, ... , .dots){
 #' @export
 rename_.solveRxDll <- function(.data, ... , .dots){
     if (missing(.dots)){
-        return(rename_(.data=as.data.frame(.data),...))
+        return(rename_(.data=asTbl(.data),...))
     } else {
-        return(rename_(.data=as.data.frame(.data),...,.dots = .dots))
+        return(rename_(.data=asTbl(.data),...,.dots = .dots))
     }
 }
 
@@ -3083,9 +3098,9 @@ rename_.solveRxDll <- function(.data, ... , .dots){
 #' @export
 group_by_.solveRxDll <- function(.data, ..., .dots, add = FALSE){
     if (missing(.dots)){
-        return(group_by_(.data=as.data.frame(.data),..., add = add));
+        return(group_by_(.data=asTbl(.data),..., add = add));
     } else {
-        return(group_by_(.data=as.data.frame(.data),...,.dots = .dots, add = add));
+        return(group_by_(.data=asTbl(.data),...,.dots = .dots, add = add));
     }
 }
 
