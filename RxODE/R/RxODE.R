@@ -1,5 +1,14 @@
 rex::register_shortcuts("RxODE");
 regIni <- rex::rex(or(group(one_of("_."),"0"),"0","(0)","[0]","{0}"),end);
+
+.onLoad <- function(libname,pkgname){
+    ## Setup RxODE.prefer.tbl
+    op <- options();
+    op.rx <- list(RxODE.prefer.tbl = TRUE);
+    w <- !(names(op.rx) %in% names(op))
+    if(any(w)) options(op.rx[w]);
+}
+
 #' Create an ODE-based model specification 
 #'
 #' Create a dynamic ODE-based model object suitably for translation
@@ -2443,6 +2452,20 @@ accessComp <- function(obj,arg){
     accessComp(obj,arg)
 }
 
+rxTbl <- function(x,msg){
+    if (getOption("RxODE.prefer.tbl",TRUE) && class(x) == "data.frame" && requireNamespace("dplyr", quietly = TRUE)){
+        if (!missing(msg)){
+            cat(sprintf("Change solved object to dplyr's tbl for %s\n",msg));
+        }
+        return(dplyr::as.tbl(x))
+    } else {
+        if (!missing(msg)){
+            cat(sprintf("Change solved object to data.frame for %s\n",msg))
+        }
+        return(x)
+    }
+}
+
 #' @export
 "$.solveRxDll" <-  function(obj,arg){
     m <- as.data.frame(obj);
@@ -2474,27 +2497,33 @@ accessComp <- function(obj,arg){
             return(NULL);
         }
     } else {
-        return(ret);
+        return(rxTbl(ret));
     }
 }
 
 
 #' @export
-"[.solveRxDll" <- function(obj,arg,arg2){
-    df <- as.data.frame(obj);
-    if (missing(arg) && !missing(arg2)){
-        return(df[,arg2]);
+"[.solveRxDll" <- function(x,i,j,drop){
+    df <- as.data.frame(x);
+    if (!missing(i) && missing(j) && missing(drop)){
+        df <- df[i,];
+    } else if (missing(i) && !missing(j) && missing(drop)){
+        df <- df[,j];
+    } else if (!missing(i) && !missing(j) && missing(drop)){
+        df <- df[i,j];
+    } else if (missing(i) && missing(j) && missing(drop)){
+        df <- df[];
+    } else if (!missing(i) && missing(j) && !missing(drop)){
+        df <- df[i, drop = drop];
+    } else if (missing(i) && !missing(j) && !missing(drop)){
+        df <- df[,j, drop = drop];
+    } else if (!missing(i) && !missing(j) && !missing(drop)){
+        df <- df[i,j, drop = drop];
+    } else if (missing(i) && missing(j) && !missing(drop)){
+        df <- df[drop = drop];
     }
-    if (!missing(arg) && missing(arg2)){
-        return(df[arg,])
-    }
-    if (!missing(arg) && !missing(arg2)){
-        return(df[arg,arg2]);
-    }
-    return(df)
+    return(rxTbl(df))
 }
-
-
 
 #' @export
 "[[.solveRxDll" <- function(obj,arg,internal = FALSE){
@@ -2578,13 +2607,7 @@ accessComp <- function(obj,arg){
     } else {
         df <- as.data.frame(obj);
         df <- "$<-.data.frame"(df,arg,value);
-        if (requireNamespace("dplyr", quietly = TRUE)){
-            cat("Change solved object to dplyr's tbl for assignment\n");
-            obj <- dplyr::as.tbl(df)
-        } else {
-            cat("Change solved object to data.frame for assignment\n")
-            obj <- df;
-        }
+        obj <- rxTbl(df,"assignment");
     }
     return(obj);
 }
@@ -2624,13 +2647,7 @@ accessComp <- function(obj,arg){
     } else {
         d3[arg1,arg2] <- value;
     }
-    if (requireNamespace("dplyr", quietly = TRUE)){
-        cat("Change solved object to dplyr's tbl for assignment\n");
-        return(dplyr::as.tbl(df))
-    } else {
-        cat("Change solved object to data.frame for assignment\n")
-        return(df)
-    }
+    return(rxTbl(df,"assignment"))
 }
 
 #' Assign rownames to rxSolve object
@@ -2663,19 +2680,16 @@ row.names.solveRxDll <- function(x,...){
     return(row.names(df));
 }
 
-
 #' @export
 by.solveRxDll <- function(data, INDICES, FUN, ..., simplify = TRUE){
     by(as.data.frame(data),INDICES, FUN, ...,simplify = simplify);
 }
-
 
 #' @export
 #' @importFrom stats aggregate
 aggregate.solveRxDll <- function(x, by, FUN, ..., simplify = TRUE){
     aggregate.data.frame(as.data.frame(x), by, FUN, ... , simplify = simplify);
 }
-
 
 #' @export
 anyDuplicated.solveRxDll <- function(x, incomparables = FALSE,
