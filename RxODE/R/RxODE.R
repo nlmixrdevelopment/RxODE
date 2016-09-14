@@ -2211,6 +2211,9 @@ rxSolve.rxDll <- function(object,params,events,inits = NULL, covs = NULL,stiff =
     ## re-instantiate the RxODE object from a save.image.
     ## cmpMgr$dynLoad()
     rxLoad(object);
+    if (event.table$time[1] != 0){
+        warning(sprintf("The initial conditions are at t=%s instead of t=0.",event.table$time[1]))
+    }
     xx <- object$.c(rxTrans(object)["ode_solver"],
                     as.integer(neq),
                     as.double(params),
