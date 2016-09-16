@@ -1,11 +1,11 @@
 library(RxODE)
 library(dplyr)
 library(digest)
-context("rxSolve objects behave as data-frames")
+context("rxSolve right handed differental equations")
 
 
 orhs <- RxODE("
-x       = 1
+x(0)    = 1
 a       = 1.0E4
 d/dt(x) = a*y*z - 0.04*x
 d/dt(z) = 3.0e7*y^2

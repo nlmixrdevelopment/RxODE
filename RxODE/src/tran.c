@@ -35,6 +35,7 @@ typedef struct symtab {
   int vo[MXSYM];	/* offset of symbols */
   int lh[MXSYM];	/* lhs symbols? =9 if a state var*/
   int ini[MXSYM];        /* initial variable assignment =2 if there are two assignments */
+  int ini0[MXSYM];        /* state initial variable assignment =2 if there are two assignments */
   int di[MXDER];	/* ith of state vars */
   int nv;			/* nbr of symbols */
   int ix;                       /* ith of curr symbol */
@@ -229,6 +230,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       if (!strcmp("dfdy", name)     && i == 5) continue;
       if (!strcmp("dfdy_rhs", name) && i == 5) continue;
       if (!strcmp("dfdy", name)     && i == 6) continue;
+      if (!strcmp("ini0", name)     && i == 1) continue;
 
       /* if (!strcmp("decimalint",name)){ */
       /* 	// Make implicit double */
@@ -382,9 +384,12 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  sprintf(sbt.s, "d/dt(%s)=", v);
 	  sbt.o = strlen(sbt.s);
 	  new_or_ith(v);
+	  /* Rprintf("%s; tb.ini = %d; tb.ini0 = %d; tb.lh = %d\n",v,tb.ini[tb.ix],tb.ini0[tb.ix],tb.lh[tb.ix]); */
+          if  ((tb.ini[tb.ix] == 1 && tb.ini0[tb.ix] == 0) || (tb.lh[tb.ix] == 1 & tb.ini[tb.ix] == 0)){
+	    error("Cannot assign state variable %s; For initial condition assigment use '%s(0) = #'.\n",v,v);
+	  }
           tb.lh[tb.ix] = 9;
           tb.di[tb.nd] = tb.ix;
-	  /* Rprintf("de[%d]->%s[%d]\n",tb.nd,v,tb.ix); */
           sprintf(tb.de+tb.pos_de, "%s,", v);
 	  tb.pos_de += strlen(v)+1;
           tb.deo[++tb.nd] = tb.pos_de;
@@ -411,7 +416,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
           exit(-1);
 #else
 	  error("Tried to use d/dt(%s) before it was defined",v);
-	  free(v);
+          free(v);
 #endif
 	} else {
 	  sprintf(SBPTR, "__DDtStateVar__[%d]", tb.id);
@@ -423,36 +428,49 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	continue;
       }
 
-      if ((!strcmp("assignment", name) || !strcmp("ini", name)) && i==0) {
+      if ((!strcmp("assignment", name) || !strcmp("ini", name) || !strcmp("ini0", name)) && i==0) {
         char *v = (char*)dup_str(xpn->start_loc.s, xpn->end);
-	if (!strcmp("ini", name)){
+	if (!strcmp("ini", name) || !strcmp("ini0", name)){
 	  sprintf(sb.s, "(__0__)%s", v);
           sb.o = strlen(v)+7;
+	  if (!strcmp("ini",name) & !new_de(v)){
+	    error("Cannot assign state variable %s; For initial condition assigment use '%s(0) ='.\n",v,v);
+	  }
         } else {
 	  sprintf(sb.s, "%s", v);
           sb.o = strlen(v);
+	  if (!new_de(v)){
+	    error("Cannot assign state variable %s; For initial condition assigment use '%s(0) ='.\n",v,v);
+	  }
         }
 	sprintf(sbt.s, "%s", v);
         sbt.o = strlen(v);
         new_or_ith(v);
 	if (!strcmp("assignment", name)){
 	  tb.lh[tb.ix] = 1;
-        } else if (!strcmp("ini", name)){
+        } else if (!strcmp("ini", name) || !strcmp("ini0",name)){
 	  if (tb.ini[tb.ix] == 0){
 	    // If there is only one initialzation call, then assume
 	    // this is a parameter with an initial value.
 	    tb.ini[tb.ix] = 1;
+	    if (!strcmp("ini0",name)){
+	      tb.ini0[tb.ix] = 1;
+	    }
 	  } else {
 	    // There is more than one call to this variable, it is a
 	    // conditional variabile
 	    tb.lh[tb.ix] = 1;
+	    if (tb.ini0[tb.ix] == 1){
+	      error("Cannot have conditional initial conditions for %s\n.",v);
+	    }
 	  }
 	}
         free(v);
       }
     }
 
-    if (!strcmp("assignment", name) || !strcmp("ini", name) || !strcmp("derivative", name) || !strcmp("jac",name) || !strcmp("dfdy",name)){
+    if (!strcmp("assignment", name) || !strcmp("ini", name) || !strcmp("derivative", name) || !strcmp("jac",name) || !strcmp("dfdy",name) ||
+	!strcmp("ini0",name)){
       fprintf(fpIO, "%s;\n", sb.s);
       fprintf(fpIO2, "%s;\n", sbt.s);
     }
@@ -938,6 +956,7 @@ void reset (){
   tb.deo[0]=0;
   memset(tb.lh,  0, MXSYM);
   memset(tb.ini, 0, MXSYM);
+  memset(tb.ini0, 0, MXSYM);
   tb.nv=0;
   tb.nd=0;
   tb.fn=0;

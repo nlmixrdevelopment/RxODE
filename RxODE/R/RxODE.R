@@ -4,7 +4,7 @@ regIni <- rex::rex(or(group(one_of("_."),"0"),"0","(0)","[0]","{0}"),end);
 .onLoad <- function(libname,pkgname){
     ## Setup RxODE.prefer.tbl
     op <- options();
-    op.rx <- list(RxODE.prefer.tbl = TRUE);
+    op.rx <- list(RxODE.prefer.tbl = FALSE);
     w <- !(names(op.rx) %in% names(op))
     if(any(w)) options(op.rx[w]);
 }

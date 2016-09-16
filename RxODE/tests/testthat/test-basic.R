@@ -14,7 +14,6 @@ test_that("ODE inside a string",{
 
 m2 <- RxODE(filename = fn, modName = "f1", do.compile=FALSE)
 test_that("ODE inside a text file",{
-    
     expect_equal(class(m2),"RxODE");
 })
 

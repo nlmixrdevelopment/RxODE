@@ -3,7 +3,8 @@
 statement_list : (statement)+ ;
 
 statement 
-  : ini end_statement
+  : ini end_statement 
+  | ini0 end_statement
   | assignment end_statement
   | derivative end_statement
   | jac end_statement
@@ -34,6 +35,8 @@ printf_command
 
 print_command
   : 'print' | 'ode_print' | 'jac_print' | 'lhs_print';
+
+ini0       : identifier ('(0)' | '{0}' | '[0]') ('=' | '<-') constant;
 
 ini        : identifier ('=' | '<-') constant;
 

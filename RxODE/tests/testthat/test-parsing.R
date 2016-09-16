@@ -89,4 +89,82 @@ goodParse(desc = 'Assignment with <- supported',
 equivSyntax(desc = "time and t are equivalent",
             "d/dt(depot) = time^2","d/dt(depot) = t^2")
 
+badParse(desc = "Assignment of state varaible #1","
+a       = 1.0E4+0
+x       = 1
+d/dt(x) = a*y*z - 0.04*x
+d/dt(z) = 3.0e7*y^2
+d/dt(y) = -1.0*(d/dt(x)+d/dt(z))
+")
+
+badParse(desc = "Assignment of state varaible #2","
+a       = 1.0E4+0
+x       = 1+2
+d/dt(x) = a*y*z - 0.04*x
+d/dt(z) = 3.0e7*y^2
+d/dt(y) = -1.0*(d/dt(x)+d/dt(z))
+")
+
+badParse(desc = "Assignment of state varaible #3","
+a       = 1.0E4+0
+x(0)    = 1+2
+d/dt(x) = a*y*z - 0.04*x
+d/dt(z) = 3.0e7*y^2
+d/dt(y) = -1.0*(d/dt(x)+d/dt(z))
+")
+
+badParse(desc = "Assignment of state varaible #4","
+a       = 1.0E4+0
+d/dt(x) = a*y*z - 0.04*x
+d/dt(z) = 3.0e7*y^2
+d/dt(y) = -1.0*(d/dt(x)+d/dt(z))
+x       = 1
+")
+
+
+badParse(desc = "Assignment of state varaible #5","
+a       = 1.0E4+0
+d/dt(x) = a*y*z - 0.04*x
+d/dt(z) = 3.0e7*y^2
+d/dt(y) = -1.0*(d/dt(x)+d/dt(z))
+x       = 1+2
+")
+
+goodParse(desc = "Initial Condition Assignment #1","
+a       = 1.0E4+0
+d/dt(x) = a*y*z - 0.04*x
+d/dt(z) = 3.0e7*y^2
+d/dt(y) = -1.0*(d/dt(x)+d/dt(z))
+x(0)     = 1
+")
+
+goodParse(desc = "Initial Condition Assignment #2","
+a       = 1.0E4+0
+x(0)    = 1
+d/dt(x) = a*y*z - 0.04*x
+d/dt(z) = 3.0e7*y^2
+d/dt(y) = -1.0*(d/dt(x)+d/dt(z))
+")
+
+badParse(desc = "Initial conditions based on if/then statements","
+if (a > 1){
+x(0)    = 1
+} else {
+x(0) = 2
+}
+a       = 1.0E4+0
+x(0)    = 1
+d/dt(x) = a*y*z - 0.04*x
+d/dt(z) = 3.0e7*y^2
+d/dt(y) = -1.0*(d/dt(x)+d/dt(z))
+")
+
+
+badParse(desc = "RHS d/dt(x) before defined","
+d/dt
+d/dt(x) = a*y*z - 0.04*x
+d/dt(z) = 3.0e7*y^2
+d/dt(y) = -1.0*(d/dt(x)+d/dt(z))
+")
+
 rxClean();
