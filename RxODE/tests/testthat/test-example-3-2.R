@@ -4,13 +4,10 @@
 library("RxODE")
 library("digest")
 
-ode <- 
-    RxODE(
-        model = '
+ode <- RxODE('
          d/dt(X) = a*X + Y*Z;
          d/dt(Y) = b*(Y - Z);
-         d/dt(Z) = -X*Y + c*Y - Z;',
-        modName = "test_3-2")
+         d/dt(Z) = -X*Y + c*Y - Z;')
 
 et <- eventTable()   # default time units
 et$add.sampling(seq(from=0, to=100, by=0.01))

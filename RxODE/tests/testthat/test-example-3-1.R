@@ -2,9 +2,7 @@ library(digest)
 old <- options(digits = 6)
 
 ode <- 
-    RxODE(
-        model = 'd/dt(y) = r * y * (1.0 - y/K);', 
-        modName = "test_3-1")
+    RxODE(model = 'd/dt(y) = r * y * (1.0 - y/K);')
 
 ## create event table with times at which we observe the system
 et <- eventTable(time.units= NA)

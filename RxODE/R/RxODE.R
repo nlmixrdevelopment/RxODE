@@ -1091,7 +1091,11 @@ rx.initCmpMgr <-
     .parsed <- FALSE;
     .compiled <- FALSE;
     ## model-specific directory under .md (default current dir)
-    .mdir <- file.path(.wd, sprintf("%s.d", .modName));
+    if (mmod){
+        .mdir <- .wd;
+    } else {
+        .mdir <- file.path(.wd, sprintf("%s.d", .modName));
+    }
     .rxDll <- NULL;
     .debug <- debug;
     .extraC <- extraC;
@@ -1120,7 +1124,7 @@ rx.initCmpMgr <-
             setwd(.wd);
         on.exit(setwd(lwd));
         if(.mmod){
-            .rxDll <<- rxCompile(.model, .mdir, extraC = .extraC, debug = .debug);
+            .rxDll <<- rxCompile(.model, extraC = .extraC, debug = .debug);
 
         } else {
             .rxDll <<- rxCompile(.model, .mdir, extraC = .extraC, debug = .debug,
