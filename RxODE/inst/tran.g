@@ -36,9 +36,9 @@ printf_command
 print_command
   : 'print' | 'ode_print' | 'jac_print' | 'lhs_print';
 
-ini0       : identifier ('(0)' | '{0}' | '[0]') ('=' | '<-') constant;
+ini0       : identifier ('(0)' | '{0}' | '[0]') ('=' | '<-') ini_const;
 
-ini        : identifier ('=' | '<-') constant;
+ini        : identifier ('=' | '<-') ini_const;
 
 derivative : 'd/dt' '(' identifier_no_output ')' ('=' | '<-') additive_expression;
 der_rhs    : 'd/dt' '(' identifier_no_output ')';
@@ -88,6 +88,8 @@ primary_expression
   | '(' additive_expression ')';
 
 function : identifier '(' additive_expression (',' additive_expression)* ')' ;
+
+ini_const : '-'? constant;
 
 constant : decimalint | float1 | float2;
 
