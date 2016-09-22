@@ -577,6 +577,232 @@ igraph <- function(obj,...){
     UseMethod("igraph");
 }
 
+rxSub <- function(regexp, # regular expression with named groups
+                  what,   # replacement with \g{named_group} replacement
+                  text,   # Text to replace
+                  ...){
+    ## rxSub returns a replaced character string, like gsub with named groups
+    reg <- regexpr(regexp,text,perl=TRUE);
+    if (reg != -1){
+        n <- apply(rbind(attr(reg,"capture.start"),attr(reg,"capture.length")),2,function(x){
+            return(substr(text,x[1],x[1]+x[2]-1))
+        })
+        ## Support \g{} backreference in replacement
+        names(n) <- paste0("\\g{",attr(reg,"capture.names"),"}");
+        m <- what;
+        for (i in 1:length(n)){
+            m <- gsub(names(n)[i],n[i],m,fixed=TRUE);
+        }
+        text <- paste0(substr(text,0,reg-1),m,
+                      substr(text,reg+attr(reg,"match.length"),
+                             nchar(text)));
+        return(text);
+    } else{
+        return(text);
+    }
+} # end function rxSub
+
+idrInfo <- function(cmt="eff",text="+Kin-Kout*(1-centr/V2/(EC50+centr/V2))*eff"){
+    text <- sigmoidInfo(text);
+    id <- rex::rex(one_of("_","a":"z","A":"Z"),any_of("_","a":"z","A":"Z","0":"9"));
+    resp <- rex::rex("Hill(",capture(except_some_of(",",newline),name="emax"),## Emax
+                     ",",capture(except_some_of(",",newline),name="cp"),## Cp
+                     ",",capture(except_some_of(",",newline),name="e50"),## e50
+                     ",",capture(except_some_of(",",newline),name="gamma"),## gamma
+                     ")")
+    kout <- rex::rex(capture(id,name="kout"),any_spaces);
+    kin <- rex::rex(capture(id,name="kin"),any_spaces);
+    R <- rex::rex(capture(cmt,name="R"),any_spaces);
+    inb <- rex::rex("(",any_spaces,or("1","1.0"),any_spaces,"-",any_spaces,resp,any_spaces,")",any_spaces);
+    stim <- rex::rex("(",any_spaces,or("1","1.0"),any_spaces,"+",any_spaces,resp,any_spaces,")",any_spaces);
+    stim2 <- rex::rex("(",any_spaces,resp,any_spaces,"+",any_spaces,or("1","1.0"),any_spaces,")",any_spaces);
+    regs <- list(
+        ## IDR1 kin*(1-sig)-kout*R
+        c(rex::rex(kin,"*",any_spaces,inb,"-",any_spaces,R,"*",any_spaces,kout),
+          "IDR1"),
+        c(rex::rex(kin,"*",any_spaces,inb,"-",any_spaces,kout,"*",any_spaces,R),
+          "IDR1"),
+        c(rex::rex(inb,"*",any_spaces,kin,"-",any_spaces,R,"*",any_spaces,kout),
+          "IDR1"),
+        c(rex::rex(inb,"*",any_spaces,kin,"-",any_spaces,kout,"*",any_spaces,R),
+          "IDR1"),
+        ## IDR2
+        c(rex::rex(kin,"-",any_spaces,kout,"*",any_spaces,inb,"*",any_spaces,R),
+          "IDR2"),
+        c(rex::rex(kin,"-",any_spaces,kout,"*",any_spaces,R,"*",any_spaces,inb),
+          "IDR2"),
+        c(rex::rex(kin,"-",any_spaces,inb,"*",any_spaces,kout,"*",any_spaces,R),
+          "IDR2"),
+        c(rex::rex(kin,"-",any_spaces,inb,"*",any_spaces,R,"*",any_spaces,kout),
+          "IDR2"),
+        c(rex::rex(kin,"-",any_spaces,R,"*",any_spaces,kout,"*",any_spaces,inb),
+          "IDR2"),
+        c(rex::rex(kin,"-",any_spaces,R,"*",any_spaces,inb,"*",any_spaces,kout),
+          "IDR2"),
+        ## IDR3
+        c(rex::rex(kin,"*",any_spaces,stim,"-",any_spaces,kout,"*",any_spaces,R),
+          "IDR3"),
+        c(rex::rex(stim,"*",any_spaces,kin,"-",any_spaces,kout,"*",any_spaces,R),
+          "IDR3"),
+        c(rex::rex(kin,"*",any_spaces,stim,"-",any_spaces,R,"*",any_spaces,kout),
+          "IDR3"),
+        c(rex::rex(stim,"*",any_spaces,kin,"-",any_spaces,R,"*",any_spaces,kout),
+          "IDR3"),
+        c(rex::rex(kin,"*",any_spaces,stim2,"-",any_spaces,kout,"*",any_spaces,R),
+          "IDR3"),
+        c(rex::rex(stim2,"*",any_spaces,kin,"-",any_spaces,kout,"*",any_spaces,R),
+          "IDR3"),
+        c(rex::rex(kin,"*",any_spaces,stim2,"-",any_spaces,R,"*",any_spaces,kout),
+          "IDR3"),
+        c(rex::rex(stim2,"*",any_spaces,kin,"-",any_spaces,R,"*",any_spaces,kout),
+          "IDR3"),
+        ## IDR4
+        c(rex::rex(kin,"-",any_spaces,kout,"*",any_spaces,stim,"*",any_spaces,R),
+          "IDR4"),
+        c(rex::rex(kin,"-",any_spaces,kout,"*",any_spaces,R,"*",any_spaces,stim),
+          "IDR4"),
+        c(rex::rex(kin,"-",any_spaces,stim,"*",any_spaces,kout,"*",any_spaces,R),
+          "IDR4"),
+        c(rex::rex(kin,"-",any_spaces,stim,"*",any_spaces,R,"*",any_spaces,kout),
+          "IDR4"),
+        c(rex::rex(kin,"-",any_spaces,R,"*",any_spaces,stim,"*",any_spaces,kout),
+          "IDR4"),
+        c(rex::rex(kin,"-",any_spaces,R,"*",any_spaces,kout,"*",any_spaces,stim),
+          "IDR4"),
+        c(rex::rex(kin,"-",any_spaces,kout,"*",any_spaces,stim2,"*",any_spaces,R),
+          "IDR4"),
+        c(rex::rex(kin,"-",any_spaces,kout,"*",any_spaces,R,"*",any_spaces,stim2),
+          "IDR4"),
+        c(rex::rex(kin,"-",any_spaces,stim2,"*",any_spaces,kout,"*",any_spaces,R),
+          "IDR4"),
+        c(rex::rex(kin,"-",any_spaces,stim2,"*",any_spaces,R,"*",any_spaces,kout),
+          "IDR4"),
+        c(rex::rex(kin,"-",any_spaces,R,"*",any_spaces,stim2,"*",any_spaces,kout),
+          "IDR4"),
+        c(rex::rex(kin,"-",any_spaces,R,"*",any_spaces,kout,"*",any_spaces,stim2),
+          "IDR4")
+        );
+    ret <- text
+    for (i in 1:length(regs)){
+        ret <- rxSub(regs[[i]][1],sprintf("%s(\"\\g{kin}\",\"\\g{kout}\",\"\\g{e50}\",\"\\g{R}\",\"\\g{cp}\",edgeList,nodes)",regs[[i]][2]),ret);
+    }
+    ret <- gsub(rex::rex(start,"+"),"",ret);
+    return(ret);
+}
+
+sigmoidInfo <- function(text = "+Kin-Kout*(1-centr/V2/(EC50+centr/V2))*eff"){
+    ## Emax models
+    id <- rex::rex(one_of("_","a":"z","A":"Z"),any_of("_","a":"z","A":"Z","0":"9"));
+
+    cp <- rex::rex(or(id, ## Cp
+                      group(id,any_spaces,"/",any_spaces,id), ## AMT/V
+                      group("(",any_spaces,id,any_spaces,"/",any_spaces,id,any_spaces,")") ## (AMT/V)
+                      ))
+    regs <- list(
+        ## Emax*C/(C+E50)
+        c(rex::rex(capture(id,name="emax"),any_spaces,"*",any_spaces,capture(cp,name="cp"),any_spaces,"/",
+                   any_spaces,"(",any_spaces, capture_group("cp"),any_spaces,"+",any_spaces,capture(id,name="e50"),
+                   any_spaces,")"),"Hill(\\g{emax},\\g{cp},\\g{e50},1)"),
+        ## Emax*C/(E50+C)
+        c(rex::rex(capture(id,name="emax"),any_spaces,"*",any_spaces,capture(cp,name="cp"),any_spaces,"/",
+                   any_spaces,"(",any_spaces, capture(id,name="e50"),any_spaces,"+",any_spaces,capture_group("cp"),
+                   any_spaces,")"),"Hill(\\g{emax},\\g{cp},\\g{e50},1)"),
+
+        ## C*Emax/(C+E50)
+        c(rex::rex(capture(cp,name="cp"),any_spaces,"*",any_spaces,capture(id,name="emax"),any_spaces,"/",
+                   any_spaces,"(",any_spaces, capture_group("cp"),any_spaces,"+",any_spaces,capture(id,name="e50"),
+                   any_spaces,")"),"Hill(\\g{emax},\\g{cp},\\g{e50},1)"),
+        ## C*Emax/(E50+C)
+        c(rex::rex(capture(cp,name="cp"),any_spaces,"*",any_spaces,capture(id,name="emax"),any_spaces,"/",
+                   any_spaces,"(",any_spaces, capture(id,name="e50"),any_spaces,"+",any_spaces,capture_group("cp"),
+                   any_spaces,")"),"Hill(\\g{emax},\\g{cp},\\g{e50},1)"),
+        ## C/(C+E50)*Emax
+        c(rex::rex(capture(cp,name="cp"),any_spaces,"/",
+                   any_spaces,"(",any_spaces, capture_group("cp"),any_spaces,"+",any_spaces,capture(id,name="e50"),
+                   any_spaces,")",any_spaces,"*",any_spaces,capture(id,name="emax")),"Hill(\\g{emax},\\g{cp},\\g{e50},1)"),
+        ## C/(E50+C)*Emax
+        c(rex::rex(capture(cp,name="cp"),any_spaces,"/",
+                   any_spaces,"(",any_spaces, capture(id,name="e50"),any_spaces,"+",any_spaces,capture_group("cp"),
+                   any_spaces,")",any_spaces,"*",any_spaces,capture(id,name="emax")),"Hill(\\g{emax},\\g{cp},\\g{e50},1)"),
+
+        ## (C/(C+E50))*Emax
+        c(rex::rex("(",any_spaces,capture(cp,name="cp"),any_spaces,"/",
+                   any_spaces,"(",any_spaces, capture_group("cp"),any_spaces,"+",any_spaces,capture(id,name="e50"),
+                   any_spaces,")",any_spaces,")",any_spaces,"*",any_spaces,capture(id,name="emax")),"Hill(\\g{emax},\\g{cp},\\g{e50},1)"),
+        
+        ## (C/(E50+C))*Emax
+        c(rex::rex("(",any_spaces,capture(cp,name="cp"),any_spaces,"/",
+                   any_spaces,"(",any_spaces, capture(id,name="e50"),any_spaces,"+",any_spaces,capture_group("cp"),
+                   any_spaces,")",any_spaces,")",any_spaces,"*",any_spaces,capture(id,name="emax")),"Hill(\\g{emax},\\g{cp},\\g{e50},1)"),
+        ## C/(C+E50)
+        c(rex::rex(capture(cp,name="cp"),any_spaces,"/",
+                            any_spaces,"(",any_spaces, capture_group("cp"),any_spaces,"+",any_spaces,capture(id,name="e50"),
+                   any_spaces,")"),"Hill(1,\\g{cp},\\g{e50},1)"),
+        ## C/(E50+C)
+        c(rex::rex(capture(cp,name="cp"),any_spaces,"/",
+                   any_spaces,"(",any_spaces, capture(id,name="e50"),any_spaces,"+",any_spaces,capture_group("cp"),
+                   any_spaces,")"),"Hill(1,\\g{cp},\\g{e50},1)"),
+        ## C*(E50+c)^-1 variants
+        ## Emax*C*(C+E50)
+        c(rex::rex(capture(id,name="emax"),any_spaces,"*",any_spaces,capture(cp,name="cp"),any_spaces,"*",
+                   any_spaces,"(",any_spaces, capture_group("cp"),any_spaces,"+",any_spaces,capture(id,name="e50"),
+                   any_spaces,")",any_spaces,or("**","^"),any_spaces,or("-1","(-1)","-1.0","(-1.0)")),"Hill(\\g{emax},\\g{cp},\\g{e50},1)"),
+        ## Emax*C*(E50+C)
+        c(rex::rex(capture(id,name="emax"),any_spaces,"*",any_spaces,capture(cp,name="cp"),any_spaces,"*",
+                   any_spaces,"(",any_spaces, capture(id,name="e50"),any_spaces,"+",any_spaces,capture_group("cp"),
+                   any_spaces,")",any_spaces,or("**","^"),any_spaces,or("-1","(-1)","-1.0","(-1.0)")),"Hill(\\g{emax},\\g{cp},\\g{e50},1)"),
+
+        ## C*Emax*(C+E50)
+        c(rex::rex(capture(cp,name="cp"),any_spaces,"*",any_spaces,capture(id,name="emax"),any_spaces,"*",
+                   any_spaces,"(",any_spaces, capture_group("cp"),any_spaces,"+",any_spaces,capture(id,name="e50"),
+                   any_spaces,")",any_spaces,or("**","^"),any_spaces,or("-1","(-1)","-1.0","(-1.0)")),"Hill(\\g{emax},\\g{cp},\\g{e50},1)"),
+        ## C*Emax*(E50+C)
+        c(rex::rex(capture(cp,name="cp"),any_spaces,"*",any_spaces,capture(id,name="emax"),any_spaces,"*",
+                   any_spaces,"(",any_spaces, capture(id,name="e50"),any_spaces,"+",any_spaces,capture_group("cp"),
+                   any_spaces,")",any_spaces,or("**","^"),any_spaces,or("-1","(-1)","-1.0","(-1.0)")),"Hill(\\g{emax},\\g{cp},\\g{e50},1)"),
+        ## C*(C+E50)*Emax
+        c(rex::rex(capture(cp,name="cp"),any_spaces,"*",
+                   any_spaces,"(",any_spaces, capture_group("cp"),any_spaces,"+",any_spaces,capture(id,name="e50"),
+                   any_spaces,")",any_spaces,"*",any_spaces,capture(id,name="emax")),"Hill(\\g{emax},\\g{cp},\\g{e50},1)"),
+        ## C*(E50+C)*Emax
+        c(rex::rex(capture(cp,name="cp"),any_spaces,"*",
+                   any_spaces,"(",any_spaces, capture(id,name="e50"),any_spaces,"+",any_spaces,capture_group("cp"),
+                   any_spaces,")",any_spaces,or("**","^"),any_spaces,or("-1","(-1)","-1.0","(-1.0)"),any_spaces,"*",
+                   any_spaces,capture(id,name="emax")),"Hill(\\g{emax},\\g{cp},\\g{e50},1)"),
+
+        ## (C*(C+E50))*Emax
+        c(rex::rex("(",any_spaces,capture(cp,name="cp"),any_spaces,"*",
+                   any_spaces,"(",any_spaces, capture_group("cp"),any_spaces,"+",any_spaces,capture(id,name="e50"),
+                   any_spaces,")",any_spaces,")",any_spaces,or("**","^"),any_spaces,or("-1","(-1)","-1.0","(-1.0)"),
+                   any_spaces,"*",any_spaces,capture(id,name="emax")),"Hill(\\g{emax},\\g{cp},\\g{e50},1)"),
+        
+        ## (C*(E50+C))*Emax
+        c(rex::rex("(",any_spaces,capture(cp,name="cp"),any_spaces,"*",
+                   any_spaces,"(",any_spaces, capture(id,name="e50"),any_spaces,"+",any_spaces,capture_group("cp"),
+                   any_spaces,")",any_spaces,")",any_spaces,or("**","^"),any_spaces,or("-1","(-1)","-1.0","(-1.0)"),
+                   any_spaces,"*",any_spaces,capture(id,name="emax")),"Hill(\\g{emax},\\g{cp},\\g{e50},1)"),
+        ## C*(C+E50)
+        c(rex::rex(capture(cp,name="cp"),any_spaces,"*",
+                   any_spaces,"(",any_spaces, capture_group("cp"),any_spaces,"+",any_spaces,capture(id,name="e50"),
+                   any_spaces,")",any_spaces,or("**","^"),any_spaces,or("-1","(-1)","-1.0","(-1.0)")),"Hill(1,\\g{cp},\\g{e50},1)"),
+        ## C*(E50+C)
+        c(rex::rex(capture(cp,name="cp"),any_spaces,"*",
+                   any_spaces,"(",any_spaces, capture(id,name="e50"),any_spaces,"+",any_spaces,capture_group("cp"),
+                   any_spaces,")",any_spaces,or("**","^"),any_spaces,or("-1","(-1)","-1.0","(-1.0)")),"Hill(1,\\g{cp},\\g{e50},1)")
+        ## FIXME: Emax/(1+EC50/Cp) variants
+        ## FIXME: -- log linerized forms?
+        ## FIXME: Hill Variants
+        ## FIXME: Hodgkin?
+        ## FIXME: Douglas?
+        ## FIXME: Gompertz?
+        );
+    ret <- text
+    for (i in 1:length(regs)){
+        ret <- rxSub(regs[[i]][1],regs[[i]][2],ret);
+    }
+    return(ret);
+}
+
 nodeInfo <- function(x,       # RxODE normalized model
                      modVars, # model Vars
                      ...){
@@ -799,50 +1025,69 @@ nodeInfo <- function(x,       # RxODE normalized model
     }
     names(edgeList) <- gsub(rex::rex(any_spaces,one_of("*"),any_spaces),"",names(edgeList),perl=TRUE)
     ## Now see if we can recognize kin/kout from indirect response models
-    
-    ## FIXME: more robust parsing.  Currently requires kin/kout combination
-    ## Also assigns suppression by the presence of "(1-" in either the kin or kout term.
-    ## w <- which(sapply(fullDe,function(x){
-    ##     lx <- tolower(x)
-    ##     return(regexpr("kin",lx)  != -1 && regexpr("kout",lx) != -1)
-    ## }))
-    ## if (length(w) == 1){
-    ##     idr <- fullDe[w];
-    ##     idrl <- tolower(idr);
-    ##     isKout <- regexpr("^ *kin *[-]",idrl) != -1;
-    ##     isInb <- regexpr("[(] *1 *[-]",idrl) != -1;
-    ##     idr.from <- gsub(sprintf("^.*(%s).*",paste(names(fullDe)[-w],collapse="|")),"\\1",idr)
-    ##     ef <- names(fullDe)[w]
-    ##     ## FIXME: Get the actual IC50
-
-    ##     ## FIXME: Indicate if this is a Hill equation, or any other
-    ##     ## sort of dose-response equations.
-    ##     if (isKout){
-    ##         if (isInb){
-    ##             Kout <- "Kout\n\u25BC IC50"
-    ##             Kin <- "Kin\n";
-    ##             idr <- "Indirect\nEffect (II)"
-    ##         } else {
-    ##             Kout <- "Kout\n\u25B3 EC50";
-    ##             Kin <- "Kin\n";
-    ##             idr <- "Indirect\nEffect (IV)"
-    ##         }
-    ##     } else {
-    ##         if (isInb){
-    ##             Kout <- "Kout"
-    ##             Kin <- "Kin\n\u25BC IC50";
-    ##             idr <- "Indirect\nEffect (I)"
-    ##         } else {
-    ##             Kout <- "Kout\n";
-    ##             Kin <- "Kin\n\u25B3 EC50";
-    ##             idr <- "Indirect\nEffect (III)"
-    ##         }
-    ##     }
-    ##     edgeList[[idr]] <- c(idr.from,ef);
-    ##     edgeList[[Kin]] <- c(".Kin",ef);
-    ##     edgeList[[Kout]] <- c(ef,".Kout");
-    ##     nodes <- c(nodes,ef,".Kin",".Kout");
-    ## }
+    idr <- sapply(1:length(fullDe),function(x){
+        tmp <- idrInfo(names(fullDe)[x],fullDe[x]);
+        if (regexpr(rex::rex(start,"IDR"),tmp) != -1){
+            return(tmp)
+        } else {
+            return("")
+        }
+    })
+    names(idr) <- names(fullDe);
+    idr <- idr[idr != ""];
+    w <- which(names(fullDe) %in% names(idr));        
+    fReg <- sprintf("^.*(%s).*$",paste(names(fullDe)[-w],collapse="|"));
+    IDR1 <- function(kin,kout,e50,ef,cp,edgeList,nodes){
+        kout <- sprintf("%s\n",kout);
+        kin  <- sprintf("%s\n\u25BC %s",kin,e50);
+        idr <- "Indirect\nEffect (I)";
+        idrFrom <- gsub(fReg,"\\1",cp);
+        edgeList[[idr]] <- c(idrFrom,ef);
+        edgeList[[kin]] <- c(".Kin",ef);
+        edgeList[[kout]] <- c(ef,".Kout");
+        nodes <- c(nodes,ef,".Kin",".Kout");
+        return(list(edgeList,nodes))
+    }
+    IDR2 <- function(kin,kout,e50,ef,cp,edgeList,nodes){
+        kout <- sprintf("%s\n\u25BC %s",kout,e50);
+        kin  <- sprintf("%s\n",kin);
+        idr <- "Indirect\nEffect (II)";
+        idrFrom <- gsub(fReg,"\\1",cp);
+        edgeList[[idr]] <- c(idrFrom,ef);
+        edgeList[[kin]] <- c(".Kin",ef);
+        edgeList[[kout]] <- c(ef,".Kout");
+        nodes <- c(nodes,ef,".Kin",".Kout");
+        return(list(edgeList,nodes))
+    }
+    IDR3 <- function(kin,kout,e50,ef,cp,edgeList,nodes){
+        kout <- sprintf("%s\n",kout);
+        kin  <- sprintf("%s\n\u25B3 %s",kin,e50);
+        idr <- "Indirect\nEffect (III)";
+        idrFrom <- gsub(fReg,"\\1",cp);
+        edgeList[[idr]] <- c(idrFrom,ef);
+        edgeList[[kin]] <- c(".Kin",ef);
+        edgeList[[kout]] <- c(ef,".Kout");
+        nodes <- c(nodes,ef,".Kin",".Kout");
+        return(list(edgeList,nodes))
+    }
+    IDR4 <- function(kin,kout,e50,ef,cp,edgeList,nodes){
+        kout <- sprintf("%s\n\u25B3 %s",kout,e50);
+        kin  <- sprintf("%s\n",kin);
+        idr <- "Indirect\nEffect (IV)";
+        idrFrom <- gsub(fReg,"\\1",cp);
+        edgeList[[idr]] <- c(idrFrom,ef);
+        edgeList[[kin]] <- c(".Kin",ef);
+        edgeList[[kout]] <- c(ef,".Kout");
+        nodes <- c(nodes,ef,".Kin",".Kout");
+        return(list(edgeList,nodes))
+    }    
+    if (length(idr) > 0){
+        tmp <- eval(parse(text=idr));
+        edgeList <- tmp[[1]];
+        nodes <- tmp[[2]];
+        print(edgeList);
+        print(nodes);
+    }
     return(list(nodes    = nodes,
                 edgeList = edgeList,
                 biList   = biList));
