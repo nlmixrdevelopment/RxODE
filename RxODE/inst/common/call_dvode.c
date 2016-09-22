@@ -172,8 +172,7 @@ void call_lsoda(int neq, double *x, int *evid, int nx, double *inits, double *do
 	    }
 
 	  slvr_counter++;
-	  dadt_counter = 0;
-	  jac_counter  = 0;
+	  //dadt_counter = 0;
 	}
       if (wh)
 	{
@@ -295,8 +294,7 @@ void call_dvode(int neq, double *x, int *evid, int nx, double *inits, double *do
 			}
 
 			slvr_counter++;
-			dadt_counter = 0;
-			jac_counter  = 0;
+			//dadt_counter = 0;
 		}
 		if (wh)
 		{
@@ -414,8 +412,7 @@ void call_dop(int neq, double *x, int *evid, int nx, double *inits, double *dose
 
 			xp = xRead();
 			slvr_counter++;
-			dadt_counter = 0;
-			jac_counter  = 0;
+			//dadt_counter = 0;
 		}
 		if (wh)
 		{
@@ -482,6 +479,7 @@ void __ODE_SOLVER__(
 	int *mxordn,
 	int *mxords,
 	// Return code
+	int *counts,
  	int *rc){
   
         int i;
@@ -505,7 +503,9 @@ void __ODE_SOLVER__(
 	ncov    = *n_cov;
 
 	slvr_counter = 0;
-	if (*neq) {
+	dadt_counter = 0;
+	jac_counter  = 0;
+        if (*neq) {
 	  if (*stiff==0)
             call_dop(*neq, time, evid, *ntime, inits, dose, ret, rc);
           else
@@ -515,5 +515,8 @@ void __ODE_SOLVER__(
 	    // Update covariate parameters
 	    __CALC_LHS__(time[i], ret+i*(*neq), lhs+i*(*nlhs));
         }
+	counts[0] = slvr_counter;
+	counts[1] = dadt_counter;
+	counts[2] = jac_counter;
 	if (fp) fclose(fp);
 }

@@ -2520,6 +2520,7 @@ rxSolve.rxDll <- function(object,params,events,inits = NULL, covs = NULL,stiff =
     if (event.table$time[1] != 0){
         warning(sprintf("The initial conditions are at t=%s instead of t=0.",event.table$time[1]))
     }
+    counts <- rep(0,3);
     xx <- object$.c(rxTrans(object)["ode_solver"],
                     as.integer(neq),
                     as.double(params),
@@ -2547,10 +2548,12 @@ rxSolve.rxDll <- function(object,params,events,inits = NULL, covs = NULL,stiff =
                     as.double(hmax),
                     as.integer(maxordn),
                     as.integer(maxords),
+                    ## Counts
+                    as.integer(counts),
                     ## Return Code
                     rc
                     );
-
+    counts <- xx[[length(xx)-1]];
     rc <- xx[[length(xx)]]
     if(rc!=0)
         stop(sprintf("could not solve ODE, IDID=%d (see further messages)", rc))
@@ -2574,6 +2577,8 @@ rxSolve.rxDll <- function(object,params,events,inits = NULL, covs = NULL,stiff =
     lst[["params"]] <-  params;
     lst[["object"]] <- object;
     lst[["matrix"]] <- ret;
+    names(counts) <- c("solver","dadt","user_jac");
+    lst[["counts"]] <-  counts;
     names(ret) <- dimnames(ret)[[2]]; ## For compatability with tidyr::spread
     length(ret) <- length(dimnames(ret)[[2]])
     class(ret) <- c("solveRxDll");

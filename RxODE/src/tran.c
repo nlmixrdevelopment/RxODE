@@ -935,10 +935,8 @@ void codegen(FILE *outpt, int show_ode) {
   if (show_ode == 1){
     fprintf(outpt, "%s", hdft[3]);
   } else if (show_ode == 2){
-    if (found_jac == 1){
-      //fprintf(outpt,"\tfree(__ld_DDtStateVar__);\n");
-      fprintf(outpt, "  jac_counter++;\n");
-    }
+    //fprintf(outpt,"\tfree(__ld_DDtStateVar__);\n");
+    fprintf(outpt, "  jac_counter++;\n");
     fprintf(outpt, "}\n");
   } else {
     fprintf(outpt, "\n");
