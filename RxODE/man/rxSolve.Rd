@@ -10,30 +10,35 @@
 \title{Solves a ODE equation}
 \usage{
 rxSolve(object, params, events, inits = NULL, covs = NULL, stiff = TRUE,
-  transit_abs = FALSE, atol = 1e-08, rtol = 1e-06, mxstep = 500, ...,
+  transit_abs = FALSE, atol = 1e-06, rtol = 1e-06, maxsteps = 5000,
+  hmin = 0, hmax = NULL, hini = 0, maxordn = 12, maxords = 5, ...,
   covs_interpolation = c("Linear", "LOCF"))
 
 \method{rxSolve}{solveRxDll}(object, params, events, inits, covs, stiff,
-  transit_abs, atol, rtol, mxstep, ..., covs_interpolation = c("Linear",
-  "LOCF"))
+  transit_abs, atol, rtol, maxsteps, hmin, hmax, hini, maxordn, maxords, ...,
+  covs_interpolation = c("Linear", "LOCF"))
 
 \method{rxSolve}{RxODE}(object, params, events, inits = NULL, covs = NULL,
   stiff = TRUE, transit_abs = FALSE, atol = 1e-08, rtol = 1e-06,
-  mxstep = 500, ..., covs_interpolation = c("Linear", "LOCF"))
+  maxsteps = 5000, hmin = 0, hmax = NULL, hini = 0, maxordn = 12,
+  maxords = 5, ..., covs_interpolation = c("Linear", "LOCF"))
 
 \method{rxSolve}{RxCompilationManager}(object, params, events, inits = NULL,
   covs = NULL, stiff = TRUE, transit_abs = FALSE, atol = 1e-08,
-  rtol = 1e-06, mxstep = 500, ..., covs_interpolation = c("Linear",
+  rtol = 1e-06, maxsteps = 5000, hmin = 0, hmax = NULL, hini = 0,
+  maxordn = 12, maxords = 5, ..., covs_interpolation = c("Linear",
   "LOCF"))
 
 \method{rxSolve}{character}(object, params, events, inits = NULL,
   covs = NULL, stiff = TRUE, transit_abs = FALSE, atol = 1e-08,
-  rtol = 1e-06, mxstep = 500, ..., covs_interpolation = c("Linear",
+  rtol = 1e-06, maxsteps = 5000, hmin = 0, hmax = NULL, hini = 0,
+  maxordn = 12, maxords = 5, ..., covs_interpolation = c("Linear",
   "LOCF"))
 
 \method{rxSolve}{rxDll}(object, params, events, inits = NULL, covs = NULL,
   stiff = TRUE, transit_abs = FALSE, atol = 1e-08, rtol = 1e-06,
-  mxstep = 500, ..., covs_interpolation = c("Linear", "LOCF"))
+  maxsteps = 5000, hmin = 0, hmax = NULL, hini = 0, maxordn = 12,
+  maxords = 5, ..., covs_interpolation = c("Linear", "LOCF"))
 }
 \arguments{
 \item{object}{is a either a RxODE family of objects, or a file-name
@@ -78,8 +83,23 @@ compartment absorption}
 
 \item{rtol}{a numeric relative tolerance (1e-06 by default).}
 
-\item{mxstep}{maximum number of (internally defined) steps allowed
-during one call to the solver. (500 by default)}
+\item{maxsteps}{maximum number of (internally defined) steps allowed
+during one call to the solver. (5000 by default)}
+
+\item{hmin}{The minimum absolute step size allowed. The default
+value is 0.}
+
+\item{hmax}{The maximum absolute step size allowed.  The default
+checks for the maximum difference in times in your sampling and
+events, and uses this value.  The value 0 is equivalent to
+infinite maximum absolute step size.}
+
+\item{maxordn}{The maximum order to be allowed for the nonstiff
+(Adams) method.  The default is 12.  It can be between 1 and
+12.}
+
+\item{maxords}{The maximum order to be allowed for the stiff (BDF)
+method.  The default value is 5.  This can be between 1 and 5.}
 
 \item{...}{Other arguments including scaling factors for each
 compartment.  This includes S#=numeric will scale a compartment

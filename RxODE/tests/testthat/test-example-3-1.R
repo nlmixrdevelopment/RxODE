@@ -1,3 +1,6 @@
+## Example 3.2 from 
+## "Solving Differential Equations in R" by Soetaert et al (2012)
+## https://cran.r-project.org/web/packages/diffEq/vignettes/ODEinR.pdf Example #1
 library(digest)
 old <- options(digits = 6)
 
@@ -26,7 +29,7 @@ df <-round(cbind(out1, out2, out1.ns, out2.ns),6);
 
 test_that("Runs example 3.1 correctly",{
     expect_equal(digest(df,"sha512"),
-                 "9bd5ee859f6ef217cd5e047b4010a5018f1d15202db807edb351d7a5e3be7af46de5db7fb843ced3f10a8980443719eacbbb2b6268a3713f287f138b08f35d5b");
+                 "968de0db2de21958f278749e77987a9a5e976dd1c3eafa51d8cb40dd128e122d9d6dc80bd93e39f44f5339503c1390cbb65ae75b3fbf72d4cbfa0a3b49545cc5");
 })
 
 head(cbind(out1, out2, out1.ns, out2.ns), n = 15)

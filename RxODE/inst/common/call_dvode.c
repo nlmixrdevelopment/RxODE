@@ -32,6 +32,10 @@ long slvr_counter, dadt_counter, jac_counter;
 double InfusionRate[99];
 double ATOL;		//absolute error
 double RTOL;		//relative error
+double HMAX;
+double H0;
+double HMIN;
+
 int    do_transit_abs=0;
 double tlast=0;
 double podo=0;
@@ -42,6 +46,8 @@ int    ncov;
 int    is_locf;
 int    n_all_times;
 int    mxstep;
+int    MXORDN;
+int    MXORDS;
 double *all_times;
 FILE *fp;
 
@@ -126,21 +132,17 @@ void call_lsoda(int neq, double *x, int *evid, int nx, double *inits, double *do
   rwork = (double*)R_alloc(lrw, sizeof(double));
   iwork = (int*)R_alloc(liw, sizeof(int));
 
-  if (mxstep == 500){
-    iopt = 0;
-  } else {
-    iopt = 1;
-  }
+  iopt = 1;
   
-  rwork[4] = 0.0; // H0 -- determined by solver
-  rwork[5] = 0.0; // Hmax -- Infinite
-  rwork[6] = 0.0; // Hmin -- 0
+  rwork[4] = H0; // H0 -- determined by solver
+  rwork[5] = HMAX; // Hmax -- Infinite
+  rwork[6] = HMIN; // Hmin -- 0
   
   iwork[4] = 0; // ixpr  -- No extra printing.
   iwork[5] = mxstep; // mxstep 
   iwork[6] = 0; // MXHNIL 
-  iwork[7] = 0; // MXORDN 
-  iwork[8] = 0;  // MXORDS
+  iwork[7] = MXORDN; // MXORDN 
+  iwork[8] = MXORDS;  // MXORDS
   
   //--- inits the system
   for(i=0; i<neq; i++) yp[i] = inits[i];
@@ -473,12 +475,24 @@ void __ODE_SOLVER__(
 	double *cov,
 	int *n_cov,
 	int *locf,
+	// Solver options
+	double *h0,
+	double *hmin,
+	double *hmax,
+	int *mxordn,
+	int *mxords,
+	// Return code
  	int *rc){
   
         int i;
 	for (i=0; i< 99; i++) InfusionRate[i] = 0.0;
 	ATOL = *atol;
 	RTOL = *rtol;
+	HMIN = *hmin;
+	HMAX = *hmax;
+	H0   = *h0;
+	MXORDN = *mxordn;
+	MXORDS = *mxords;
 	do_transit_abs = *transit_abs;
 	par_ptr = theta;
 	all_times = time;
