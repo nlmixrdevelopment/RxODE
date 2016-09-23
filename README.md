@@ -1,4 +1,4 @@
-
+[![Build Status](https://travis-ci.org/mattfidler/RxODE.svg?branch=master)](https://travis-ci.org/mattfidler/RxODE)
 ##RxODE package for R: a tool for performing simulations with Ordinary Different Equation models in R, with applications for pharmacometrics
 ***  
 

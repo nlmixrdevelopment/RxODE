@@ -14,7 +14,7 @@ Ordinary Differential Equation (ODE) models, with
 applications for pharmacometrics
 ***  
 
-##### Authors: Melissa Hallow, Wenping Wang, David A. James, and Matthew L. Fidler
+##### Authors: Melissa Hallow, Wenping Wang, and Matthew L. Fidler
 
 ***
 
