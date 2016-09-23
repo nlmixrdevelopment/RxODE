@@ -7,8 +7,6 @@ Authors@R: c(
       role = c("aut", "cre"), email = "hallowkm@uga.edu"),
    person("Wenping", "Wang", 
       role = "aut", email = "Wenping.wang@outlook.com"),
-   person("David","James",
-      role = "aut", email = "matthew.fidler@gmail.com"),
    person("Matthew","Fidler",
       role = "aut", email = "matthew.fidler@gmail.com")
    )
