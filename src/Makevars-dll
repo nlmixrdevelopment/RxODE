@@ -1,0 +1,2 @@
+PKG_CPPFLAGS=-I../dparser -L../dparser -ldparse
+PKG_LIBS=-I../dparser -L../dparser -ldparse
