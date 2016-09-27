@@ -227,7 +227,7 @@ regIni <- rex::rex(or(group(one_of("_."),"0"),"0","(0)","[0]","{0}"),end);
 #' Plevyek, J.
 #' \emph{Dparser}, \url{http://dparser.sourceforge.net}. Web. 12 Oct. 2015.
 #'
-#' @author Melissa Hallow, Wenping Wang, David James and Matthew Fidler
+#' @author Melissa Hallow, Wenping Wang and Matthew Fidler
 #'
 #' @seealso \code{\link{eventTable}}
 #'
@@ -603,7 +603,7 @@ rxSub <- function(regexp, # regular expression with named groups
 } # end function rxSub
 
 idrInfo <- function(cmt="eff",text="+Kin-Kout*(1-centr/V2/(EC50+centr/V2))*eff"){
-    text <- sigmoidInfo(text);
+    text <- rxSigmoidInfo(text);
     id <- rex::rex(one_of("_","a":"z","A":"Z"),any_of("_","a":"z","A":"Z","0":"9"));
     resp <- rex::rex("Hill(",capture(except_some_of(",",newline),name="emax"),## Emax
                      ",",capture(except_some_of(",",newline),name="cp"),## Cp
@@ -690,7 +690,13 @@ idrInfo <- function(cmt="eff",text="+Kin-Kout*(1-centr/V2/(EC50+centr/V2))*eff")
     return(ret);
 }
 
-sigmoidInfo <- function(text = "+Kin-Kout*(1-centr/V2/(EC50+centr/V2))*eff"){
+#' Internal function to detect sigmoid functions
+#'
+#' Used in plotting to figure out if there is a sigmoid function
+#' 
+#' @keywords internal
+#' @export
+rxSigmoidInfo <- function(text = "+Kin-Kout*(1-centr/V2/(EC50+centr/V2))*eff"){
     ## Emax models
     id <- rex::rex(one_of("_","a":"z","A":"Z"),any_of("_","a":"z","A":"Z","0":"9"));
 
@@ -698,100 +704,241 @@ sigmoidInfo <- function(text = "+Kin-Kout*(1-centr/V2/(EC50+centr/V2))*eff"){
                       group(id,any_spaces,"/",any_spaces,id), ## AMT/V
                       group("(",any_spaces,id,any_spaces,"/",any_spaces,id,any_spaces,")") ## (AMT/V)
                       ))
+    cpg <- function(first=FALSE,paren=FALSE){
+        id <- rex::rex(one_of("_","a":"z","A":"Z"),any_of("_","a":"z","A":"Z","0":"9"));
+        cp <- rex::rex(or(id, ## Cp
+                          group("(",any_spaces,id,any_spaces,")"),
+                          group(id,any_spaces,"/",any_spaces,id), ## AMT/V
+                          group("(",any_spaces,id,any_spaces,"/",any_spaces,id,any_spaces,")") ## (AMT/V)
+                          ));
+        if (first){
+            g <- rex::rex(capture(id,name="gamma"));
+            cp <- rex::rex(capture(cp,name="cp"));
+        } else {
+            g <- rex::rex(capture_group("gamma"));
+            cp <- rex::rex(capture_group("cp"));
+        }
+        if (paren){
+            return(rex::rex(cp,any_spaces,or("^","**"),any_spaces,"(",any_spaces,g,any_spaces,")"))
+        } else {
+            return(rex::rex(cp,any_spaces,or("^","**"),any_spaces,g))
+        }
+    }
+
     regs <- list(
         ## Emax*C/(C+E50)
         c(rex::rex(capture(id,name="emax"),any_spaces,"*",any_spaces,capture(cp,name="cp"),any_spaces,"/",
                    any_spaces,"(",any_spaces, capture_group("cp"),any_spaces,"+",any_spaces,capture(id,name="e50"),
-                   any_spaces,")"),"Hill(\\g{emax},\\g{cp},\\g{e50},1)"),
+                   any_spaces,")"),"Hill(\"\\g{emax}\",\"\\g{cp}\",\"\\g{e50}\",\"1\")"),
         ## Emax*C/(E50+C)
         c(rex::rex(capture(id,name="emax"),any_spaces,"*",any_spaces,capture(cp,name="cp"),any_spaces,"/",
                    any_spaces,"(",any_spaces, capture(id,name="e50"),any_spaces,"+",any_spaces,capture_group("cp"),
-                   any_spaces,")"),"Hill(\\g{emax},\\g{cp},\\g{e50},1)"),
+                   any_spaces,")"),"Hill(\"\\g{emax}\",\"\\g{cp}\",\"\\g{e50}\",\"1\")"),
 
         ## C*Emax/(C+E50)
         c(rex::rex(capture(cp,name="cp"),any_spaces,"*",any_spaces,capture(id,name="emax"),any_spaces,"/",
                    any_spaces,"(",any_spaces, capture_group("cp"),any_spaces,"+",any_spaces,capture(id,name="e50"),
-                   any_spaces,")"),"Hill(\\g{emax},\\g{cp},\\g{e50},1)"),
+                   any_spaces,")"),"Hill(\"\\g{emax}\",\"\\g{cp}\",\"\\g{e50}\",\"1\")"),
         ## C*Emax/(E50+C)
         c(rex::rex(capture(cp,name="cp"),any_spaces,"*",any_spaces,capture(id,name="emax"),any_spaces,"/",
                    any_spaces,"(",any_spaces, capture(id,name="e50"),any_spaces,"+",any_spaces,capture_group("cp"),
-                   any_spaces,")"),"Hill(\\g{emax},\\g{cp},\\g{e50},1)"),
+                   any_spaces,")"),"Hill(\"\\g{emax}\",\"\\g{cp}\",\"\\g{e50}\",\"1\")"),
         ## C/(C+E50)*Emax
         c(rex::rex(capture(cp,name="cp"),any_spaces,"/",
                    any_spaces,"(",any_spaces, capture_group("cp"),any_spaces,"+",any_spaces,capture(id,name="e50"),
-                   any_spaces,")",any_spaces,"*",any_spaces,capture(id,name="emax")),"Hill(\\g{emax},\\g{cp},\\g{e50},1)"),
+                   any_spaces,")",any_spaces,"*",any_spaces,capture(id,name="emax")),"Hill(\"\\g{emax}\",\"\\g{cp}\",\"\\g{e50}\",\"1\")"),
         ## C/(E50+C)*Emax
         c(rex::rex(capture(cp,name="cp"),any_spaces,"/",
                    any_spaces,"(",any_spaces, capture(id,name="e50"),any_spaces,"+",any_spaces,capture_group("cp"),
-                   any_spaces,")",any_spaces,"*",any_spaces,capture(id,name="emax")),"Hill(\\g{emax},\\g{cp},\\g{e50},1)"),
+                   any_spaces,")",any_spaces,"*",any_spaces,capture(id,name="emax")),"Hill(\"\\g{emax}\",\"\\g{cp}\",\"\\g{e50}\",\"1\")"),
 
         ## (C/(C+E50))*Emax
         c(rex::rex("(",any_spaces,capture(cp,name="cp"),any_spaces,"/",
                    any_spaces,"(",any_spaces, capture_group("cp"),any_spaces,"+",any_spaces,capture(id,name="e50"),
-                   any_spaces,")",any_spaces,")",any_spaces,"*",any_spaces,capture(id,name="emax")),"Hill(\\g{emax},\\g{cp},\\g{e50},1)"),
+                   any_spaces,")",any_spaces,")",any_spaces,"*",any_spaces,capture(id,name="emax")),"Hill(\"\\g{emax}\",\"\\g{cp}\",\"\\g{e50}\",\"1\")"),
         
         ## (C/(E50+C))*Emax
         c(rex::rex("(",any_spaces,capture(cp,name="cp"),any_spaces,"/",
                    any_spaces,"(",any_spaces, capture(id,name="e50"),any_spaces,"+",any_spaces,capture_group("cp"),
-                   any_spaces,")",any_spaces,")",any_spaces,"*",any_spaces,capture(id,name="emax")),"Hill(\\g{emax},\\g{cp},\\g{e50},1)"),
+                   any_spaces,")",any_spaces,")",any_spaces,"*",any_spaces,capture(id,name="emax")),"Hill(\"\\g{emax}\",\"\\g{cp}\",\"\\g{e50}\",\"1\")"),
         ## C/(C+E50)
         c(rex::rex(capture(cp,name="cp"),any_spaces,"/",
                             any_spaces,"(",any_spaces, capture_group("cp"),any_spaces,"+",any_spaces,capture(id,name="e50"),
-                   any_spaces,")"),"Hill(1,\\g{cp},\\g{e50},1)"),
+                   any_spaces,")"),"Hill(1,\"\\g{cp}\",\"\\g{e50}\",\"1\")"),
         ## C/(E50+C)
         c(rex::rex(capture(cp,name="cp"),any_spaces,"/",
                    any_spaces,"(",any_spaces, capture(id,name="e50"),any_spaces,"+",any_spaces,capture_group("cp"),
-                   any_spaces,")"),"Hill(1,\\g{cp},\\g{e50},1)"),
+                   any_spaces,")"),"Hill(1,\"\\g{cp}\",\"\\g{e50}\",\"1\")"),
         ## C*(E50+c)^-1 variants
-        ## Emax*C*(C+E50)
+        ## Emax*C*(C+E50)^-1
         c(rex::rex(capture(id,name="emax"),any_spaces,"*",any_spaces,capture(cp,name="cp"),any_spaces,"*",
                    any_spaces,"(",any_spaces, capture_group("cp"),any_spaces,"+",any_spaces,capture(id,name="e50"),
-                   any_spaces,")",any_spaces,or("**","^"),any_spaces,or("-1","(-1)","-1.0","(-1.0)")),"Hill(\\g{emax},\\g{cp},\\g{e50},1)"),
-        ## Emax*C*(E50+C)
+                   any_spaces,")",any_spaces,or("**","^"),any_spaces,or("-1","(-1)","-1.0","(-1.0)")),"Hill(\"\\g{emax}\",\"\\g{cp}\",\"\\g{e50}\",\"1\")"),
+        ## Emax*C*(E50+C)^-1
         c(rex::rex(capture(id,name="emax"),any_spaces,"*",any_spaces,capture(cp,name="cp"),any_spaces,"*",
                    any_spaces,"(",any_spaces, capture(id,name="e50"),any_spaces,"+",any_spaces,capture_group("cp"),
-                   any_spaces,")",any_spaces,or("**","^"),any_spaces,or("-1","(-1)","-1.0","(-1.0)")),"Hill(\\g{emax},\\g{cp},\\g{e50},1)"),
+                   any_spaces,")",any_spaces,or("**","^"),any_spaces,or("-1","(-1)","-1.0","(-1.0)")),"Hill(\"\\g{emax}\",\"\\g{cp}\",\"\\g{e50}\",\"1\")"),
 
-        ## C*Emax*(C+E50)
+        ## C*Emax*(C+E50)^-1
         c(rex::rex(capture(cp,name="cp"),any_spaces,"*",any_spaces,capture(id,name="emax"),any_spaces,"*",
                    any_spaces,"(",any_spaces, capture_group("cp"),any_spaces,"+",any_spaces,capture(id,name="e50"),
-                   any_spaces,")",any_spaces,or("**","^"),any_spaces,or("-1","(-1)","-1.0","(-1.0)")),"Hill(\\g{emax},\\g{cp},\\g{e50},1)"),
-        ## C*Emax*(E50+C)
+                   any_spaces,")",any_spaces,or("**","^"),any_spaces,or("-1","(-1)","-1.0","(-1.0)")),"Hill(\"\\g{emax}\",\"\\g{cp}\",\"\\g{e50}\",\"1\")"),
+        ## C*Emax*(E50+C)^-1
         c(rex::rex(capture(cp,name="cp"),any_spaces,"*",any_spaces,capture(id,name="emax"),any_spaces,"*",
                    any_spaces,"(",any_spaces, capture(id,name="e50"),any_spaces,"+",any_spaces,capture_group("cp"),
-                   any_spaces,")",any_spaces,or("**","^"),any_spaces,or("-1","(-1)","-1.0","(-1.0)")),"Hill(\\g{emax},\\g{cp},\\g{e50},1)"),
-        ## C*(C+E50)*Emax
+                   any_spaces,")",any_spaces,or("**","^"),any_spaces,or("-1","(-1)","-1.0","(-1.0)")),"Hill(\"\\g{emax}\",\"\\g{cp}\",\"\\g{e50}\",\"1\")"),
+        ## C*(C+E50)^-1*Emax
         c(rex::rex(capture(cp,name="cp"),any_spaces,"*",
                    any_spaces,"(",any_spaces, capture_group("cp"),any_spaces,"+",any_spaces,capture(id,name="e50"),
-                   any_spaces,")",any_spaces,"*",any_spaces,capture(id,name="emax")),"Hill(\\g{emax},\\g{cp},\\g{e50},1)"),
-        ## C*(E50+C)*Emax
+                   any_spaces,")",
+                   any_spaces,or("**","^"),any_spaces,or("-1","(-1)","-1.0","(-1.0)"),
+                   any_spaces,"*",any_spaces,capture(id,name="emax")),"Hill(\"\\g{emax}\",\"\\g{cp}\",\"\\g{e50}\",\"1\")"),
+        ## C*(E50+C)^-1*Emax
         c(rex::rex(capture(cp,name="cp"),any_spaces,"*",
                    any_spaces,"(",any_spaces, capture(id,name="e50"),any_spaces,"+",any_spaces,capture_group("cp"),
-                   any_spaces,")",any_spaces,or("**","^"),any_spaces,or("-1","(-1)","-1.0","(-1.0)"),any_spaces,"*",
-                   any_spaces,capture(id,name="emax")),"Hill(\\g{emax},\\g{cp},\\g{e50},1)"),
+                   any_spaces,")",
+                   any_spaces,or("**","^"),any_spaces,or("-1","(-1)","-1.0","(-1.0)"),any_spaces,"*",
+                   any_spaces,capture(id,name="emax")),"Hill(\"\\g{emax}\",\"\\g{cp}\",\"\\g{e50}\",\"1\")"),
 
         ## (C*(C+E50))*Emax
         c(rex::rex("(",any_spaces,capture(cp,name="cp"),any_spaces,"*",
                    any_spaces,"(",any_spaces, capture_group("cp"),any_spaces,"+",any_spaces,capture(id,name="e50"),
-                   any_spaces,")",any_spaces,")",any_spaces,or("**","^"),any_spaces,or("-1","(-1)","-1.0","(-1.0)"),
-                   any_spaces,"*",any_spaces,capture(id,name="emax")),"Hill(\\g{emax},\\g{cp},\\g{e50},1)"),
+                   any_spaces,")",any_spaces,")",
+                   any_spaces,or("**","^"),any_spaces,or("-1","(-1)","-1.0","(-1.0)"),
+                   any_spaces,"*",any_spaces,capture(id,name="emax")),"Hill(\"\\g{emax}\",\"\\g{cp}\",\"\\g{e50}\",\"1\")"),
         
         ## (C*(E50+C))*Emax
         c(rex::rex("(",any_spaces,capture(cp,name="cp"),any_spaces,"*",
                    any_spaces,"(",any_spaces, capture(id,name="e50"),any_spaces,"+",any_spaces,capture_group("cp"),
                    any_spaces,")",any_spaces,")",any_spaces,or("**","^"),any_spaces,or("-1","(-1)","-1.0","(-1.0)"),
-                   any_spaces,"*",any_spaces,capture(id,name="emax")),"Hill(\\g{emax},\\g{cp},\\g{e50},1)"),
+                   any_spaces,"*",any_spaces,capture(id,name="emax")),"Hill(\"\\g{emax}\",\"\\g{cp}\",\"\\g{e50}\",\"1\")"),
         ## C*(C+E50)
         c(rex::rex(capture(cp,name="cp"),any_spaces,"*",
                    any_spaces,"(",any_spaces, capture_group("cp"),any_spaces,"+",any_spaces,capture(id,name="e50"),
-                   any_spaces,")",any_spaces,or("**","^"),any_spaces,or("-1","(-1)","-1.0","(-1.0)")),"Hill(1,\\g{cp},\\g{e50},1)"),
+                   any_spaces,")",any_spaces,or("**","^"),any_spaces,or("-1","(-1)","-1.0","(-1.0)")),"Hill(1,\"\\g{cp}\",\"\\g{e50}\",\"1\")"),
         ## C*(E50+C)
         c(rex::rex(capture(cp,name="cp"),any_spaces,"*",
                    any_spaces,"(",any_spaces, capture(id,name="e50"),any_spaces,"+",any_spaces,capture_group("cp"),
-                   any_spaces,")",any_spaces,or("**","^"),any_spaces,or("-1","(-1)","-1.0","(-1.0)")),"Hill(1,\\g{cp},\\g{e50},1)")
-        ## FIXME: Emax/(1+EC50/Cp) variants
+                   any_spaces,")",any_spaces,or("**","^"),any_spaces,or("-1","(-1)","-1.0","(-1.0)")),"Hill(1,\"\\g{cp}\",\"\\g{e50}\",\"1\")"),
+        c(rex::rex(capture(cp,name="cp"),any_spaces,"*",
+                   any_spaces,"(",any_spaces, capture(id,name="e50"),any_spaces,"+",any_spaces,capture_group("cp"),
+                   any_spaces,")",any_spaces,or("**","^"),any_spaces,or("-1","(-1)","-1.0","(-1.0)")),"Hill(1,\"\\g{cp}\",\"\\g{e50}\",\"1\")"),
+        
+        ##  Emax/(1+EC50/Cp) variants
+        c(rex::rex(capture(id,name="emax"),any_spaces,"/",any_spaces,
+                   "(",any_spaces,or("1","1.0"),any_spaces,"+",any_spaces,capture(id,name="e50"),any_spaces,"/",any_spaces,
+                   capture(cp,name="cp"),any_spaces,")"),"Hill(\"\\g{emax}\",\"\\g{cp}\",\"\\g{e50}\",\"1\")"),
+        c(rex::rex(capture(id,name="emax"),any_spaces,"/",any_spaces,
+                   "(",any_spaces,or("1","1.0"),any_spaces,"+",any_spaces,"(",any_spaces,capture(id,name="e50"),any_spaces,"/",any_spaces,
+                   capture(cp,name="cp"),any_spaces,")",any_spaces,")"),"Hill(\"\\g{emax}\",\"\\g{cp}\",\"\\g{e50}\",\"1\")"),
+        c(rex::rex(capture(id,name="emax"),any_spaces,"/",any_spaces,
+                   "(",any_spaces,capture(id,name="e50"),any_spaces,"/",any_spaces,
+                   capture(cp,name="cp"),any_spaces,"+",any_spaces,or("1","1.0"),any_spaces,")"),"Hill(\"\\g{emax}\",\"\\g{cp}\",\"\\g{e50}\",\"1\")"),
+        c(rex::rex(capture(id,name="emax"),any_spaces,"/",any_spaces,
+                   "(",any_spaces,"(",any_spaces,capture(id,name="e50"),any_spaces,"/",any_spaces,
+                   capture(cp,name="cp"),any_spaces,")",any_spaces,"+",
+                   any_spaces,or("1","1.0"),any_spaces,")"),"Hill(\"\\g{emax}\",\"\\g{cp}\",\"\\g{e50}\",\"1\")"),
         ## FIXME: -- log linerized forms?
         ## FIXME: Hill Variants
+        ## Emax*C^g/(C^g+E50^g)
+        c(rex::rex(capture(id,name="emax"),any_spaces,"*",any_spaces,cpg(TRUE),any_spaces,"/",
+                   any_spaces,"(",any_spaces, cpg(),any_spaces,"+",any_spaces,capture(id,name="e50"),
+                   any_spaces,or("^","**"),any_spaces,capture_group("gamma"),
+                   any_spaces,")"),"Hill(\"\\g{emax}\",\"\\g{cp}\",\"\\g{e50}\",\"\\g{gamma}\")"),
+        ## Emax*C^g/(E50^g+C^g)
+        c(rex::rex(capture(id,name="emax"),any_spaces,"*",any_spaces,cpg(TRUE),any_spaces,"/",
+                   any_spaces,"(",any_spaces, capture(id,name="e50"),
+                   any_spaces,or("^","**"),any_spaces,capture_group("gamma"),
+                   any_spaces,"+",any_spaces,cpg(),
+                   any_spaces,")"),"Hill(\"\\g{emax}\",\"\\g{cp}\",\"\\g{e50}\",\"\\g{gamma}\")"),
+
+        ## C^g*Emax/(C^g+E50^g)
+        c(rex::rex(cpg(TRUE),any_spaces,"*",any_spaces,capture(id,name="emax"),any_spaces,"/",
+                   any_spaces,"(",any_spaces, cpg(),any_spaces,"+",any_spaces,capture(id,name="e50"),
+                   any_spaces,or("^","**"),any_spaces,capture_group("gamma"),
+                   any_spaces,")"),"Hill(\"\\g{emax}\",\"\\g{cp}\",\"\\g{e50}\",\"\\g{gamma}\")"),
+        ## C^g*Emax/(E50^g+C^g)
+        c(rex::rex(cpg(TRUE),any_spaces,"*",any_spaces,capture(id,name="emax"),any_spaces,"/",
+                   any_spaces,"(",any_spaces, capture(id,name="e50"),
+                   any_spaces,or("^","**"),any_spaces,capture_group("gamma"),
+                   any_spaces,"+",any_spaces,cpg(),
+                   any_spaces,")"),"Hill(\"\\g{emax}\",\"\\g{cp}\",\"\\g{e50}\",\"\\g{gamma}\")"),
+        ## C^g/(C^g+E50^g)*Emax
+        c(rex::rex(cpg(TRUE),any_spaces,"/",
+                   any_spaces,"(",any_spaces, cpg(),any_spaces,"+",any_spaces,capture(id,name="e50"),
+                   any_spaces,or("^","**"),any_spaces,capture_group("gamma"),
+                   any_spaces,")",any_spaces,"*",any_spaces,capture(id,name="emax")),"Hill(\"\\g{emax}\",\"\\g{cp}\",\"\\g{e50}\",\"\\g{gamma}\")"),
+        ## C^g/(E50^g+C^g)*Emax
+        c(rex::rex(cpg(TRUE),any_spaces,"/",
+                   any_spaces,"(",any_spaces, capture(id,name="e50"),
+                   any_spaces,or("^","**"),any_spaces,capture_group("gamma"),
+                   any_spaces,"+",any_spaces,cpg(),
+                   any_spaces,")",any_spaces,"*",any_spaces,capture(id,name="emax")),
+          "Hill(\"\\g{emax}\",\"\\g{cp}\",\"\\g{e50}\",\"\\g{gamma}\")"),
+
+        ## (C^g/(C^g+E50^g))*Emax
+        c(rex::rex("(",any_spaces,cpg(TRUE),any_spaces,"/",
+                   any_spaces,"(",any_spaces, cpg(),any_spaces,"+",any_spaces,capture(id,name="e50"),
+                   any_spaces,or("^","**"),any_spaces,capture_group("gamma"),
+                   any_spaces,")",any_spaces,")",any_spaces,"*",any_spaces,capture(id,name="emax")),
+          "Hill(\"\\g{emax}\",\"\\g{cp}\",\"\\g{e50}\",\"\\g{gamma}\")"),
+        
+        ## (C^g/(E50^g+C^g))*Emax
+        c(rex::rex("(",any_spaces,cpg(TRUE),any_spaces,"/",
+                   any_spaces,"(",any_spaces, capture(id,name="e50"),
+                   any_spaces,"+",any_spaces,cpg(),
+                   any_spaces,or("^","**"),any_spaces,capture_group("gamma"),
+                   any_spaces,")",any_spaces,")",any_spaces,"*",any_spaces,capture(id,name="emax")),"Hill(\"\\g{emax}\",\"\\g{cp}\",\"\\g{e50}\",\"\\g{gamma}\")"),
+        ## C^g/(C^g+E50^g)
+        c(rex::rex(cpg(TRUE),any_spaces,"/",
+                   any_spaces,"(",any_spaces, cpg(),any_spaces,"+",any_spaces,capture(id,name="e50"),
+                   any_spaces,or("^","**"),any_spaces,capture_group("gamma"),
+                   any_spaces,")"),"Hill(1,\"\\g{cp}\",\"\\g{e50}\",\"\\g{gamma}\")"),
+        ## C^g/(E50^g+C^g)
+        c(rex::rex(cpg(TRUE),any_spaces,"/",
+                   any_spaces,"(",any_spaces, capture(id,name="e50"),
+                   any_spaces,or("^","**"),any_spaces,capture_group("gamma"),
+                   any_spaces,"+",any_spaces,cpg(),
+                   any_spaces,")"),"Hill(1,\"\\g{cp}\",\"\\g{e50}\",\"\\g{gamma}\")"),
+        ## Emax*C^g*(C^g+E50^g)^-1
+        c(rex::rex(capture(id,name="emax"),any_spaces,"*",any_spaces,cpg(TRUE),any_spaces,"*",
+                   any_spaces,"(",any_spaces, cpg(),any_spaces,"+",any_spaces,capture(id,name="e50"),
+                   any_spaces,")",any_spaces,or("**","^"),any_spaces,or("-1","(-1)","-1.0","(-1.0)")),"Hill(\"\\g{emax}\",\"\\g{cp}\",\"\\g{e50}\",\"1\")"),
+        
+        ## Emax*C^g*(E50^g+C^g)^-1
+        c(rex::rex(capture(id,name="emax"),any_spaces,"*",any_spaces,cpg(TRUE),any_spaces,"*",
+                   any_spaces,"(",any_spaces, capture(id,name="e50"),any_spaces,or("^","**"),any_spaces,capture_group("gamma"),any_spaces,"+",any_spaces,cpg(),
+                   any_spaces,")",any_spaces,or("**","^"),any_spaces,or("-1","(-1)","-1.0","(-1.0)")),"Hill(\"\\g{emax}\",\"\\g{cp}\",\"\\g{e50}\",\"\\g{gamma}\")"),
+
+        ## C^g*Emax*(C^g+E50^g)^-1
+        c(rex::rex(cpg(TRUE),any_spaces,"*",any_spaces,capture(id,name="emax"),any_spaces,"*",
+                   any_spaces,"(",any_spaces, cpg(),any_spaces,"+",any_spaces,capture(id,name="e50"),any_spaces,or("^","**"),any_spaces,capture_group("gamma"),
+                   any_spaces,")",any_spaces,or("**","^"),any_spaces,or("-1","(-1)","-1.0","(-1.0)")),"Hill(\"\\g{emax}\",\"\\g{cp}\",\"\\g{e50}\",\"\\g{gamma}\")"),
+        ## C^g*Emax*(E50^g+C^g)^-1
+        c(rex::rex(cpg(TRUE),any_spaces,"*",any_spaces,capture(id,name="emax"),any_spaces,"*",
+                   any_spaces,"(",any_spaces, capture(id,name="e50"),any_spaces,or("^","**"),any_spaces,capture_group("gamma"),any_spaces,"+",any_spaces,cpg(),
+                   any_spaces,")",any_spaces,or("**","^"),any_spaces,or("-1","(-1)","-1.0","(-1.0)")),"Hill(\"\\g{emax}\",\"\\g{cp}\",\"\\g{e50}\",\"\\g{gamma}\")"),
+        ## C^g*(C^g+E50^g)^-1*Emax
+        c(rex::rex(cpg(TRUE),any_spaces,"*",
+                   any_spaces,"(",any_spaces, cpg(),any_spaces,"+",any_spaces,capture(id,name="e50"),any_spaces,or("^","**"),any_spaces,capture_group("gamma"),
+                   any_spaces,")",
+                   any_spaces,or("**","^"),any_spaces,or("-1","(-1)","-1.0","(-1.0)"),
+                   any_spaces,"*",any_spaces,capture(id,name="emax")),"Hill(\"\\g{emax}\",\"\\g{cp}\",\"\\g{e50}\",\"\\g{gamma}\")"),
+        ## C^g*(E50^g+C^g)^-1*Emax
+        c(rex::rex(cpg(TRUE),any_spaces,"*",
+                   any_spaces,"(",any_spaces, capture(id,name="e50"),any_spaces,or("^","**"),any_spaces,capture_group("gamma"),any_spaces,"+",any_spaces,cpg(),
+                   any_spaces,")",
+                   any_spaces,or("**","^"),any_spaces,or("-1","(-1)","-1.0","(-1.0)"),any_spaces,"*",
+                   any_spaces,capture(id,name="emax")),"Hill(\"\\g{emax}\",\"\\g{cp}\",\"\\g{e50}\",\"\\g{gamma}\")"),
+
+        ## (C^g*(C^g+E50^g))*Emax
+        c(rex::rex("(",any_spaces,cpg(TRUE),any_spaces,"*",
+                   any_spaces,"(",any_spaces, cpg(),any_spaces,"+",any_spaces,capture(id,name="e50"),any_spaces,or("^","**"),any_spaces,capture_group("gamma"),
+                   any_spaces,")",any_spaces,")",
+                   any_spaces,or("**","^"),any_spaces,or("-1","(-1)","-1.0","(-1.0)"),
+                   any_spaces,"*",any_spaces,capture(id,name="emax")),"Hill(\"\\g{emax}\",\"\\g{cp}\",\"\\g{e50}\",\"\\g{gamma}\")")
+        ##
+        
         ## FIXME: Hodgkin?
         ## FIXME: Douglas?
         ## FIXME: Gompertz?
