@@ -76,17 +76,20 @@ test_that("Before assinging the time varying to -8/3, out and out2 should be dif
     expect_false(isTRUE(all.equal(out,out2)));
 })
 
+context("Test First Assignment.")
 ## Assign a time-varying to a simple parameter
 out$a <- -8/3
 
 test_that("The out$a=-8/3 works.",{
-    expect_equal(out,out2);
+    expect_equal(as.data.frame(out),as.data.frame(out2));
 })
 
+
+context("Test Second Assignment.")
 out$a <- out3$a
 
 test_that("the out$a = time varying covariate works.",{
-    expect_equal(out,out3);
+    expect_equal(as.data.frame(out),as.data.frame(out3));
 })
 
 rxClean()

@@ -11,7 +11,7 @@ test_that("Initial constants are correct",{
 })
 
 test_that("Constants are not included in get.modelVars()",{
-    expect_equal(out$get.modelVars(),c("no_ini"));
+    expect_equal(out$get.modelVars()$params,c("no_ini"));
 })
 
 

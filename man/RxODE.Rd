@@ -241,13 +241,20 @@ theta <-
       Kin=1.0, Kout=1.0, EC50=200.0)
 
 # init state variable
-inits <- c(0, 0, 0, 1)      
+inits <- c(0, 0, 0, 1);
 
 # Step 4 - Fit the model to the data
 
 qd.cp <- m1$solve(theta, events = qd, inits)
 
 head(qd.cp)
+
+# This returns a matrix.  Note that you can also
+# solve using name initial values. For example:
+
+inits <- c(eff = 1);
+
+qd.cp <- solve(m1,theta, events = qd, inits);
 
 }
 \author{

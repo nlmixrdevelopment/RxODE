@@ -32,8 +32,9 @@ et <- eventTable();
 et$add.sampling(seq(0,30,by=0.01))
 
 stiff <- solve(Vtpol,et);
+
 plot(stiff$time,stiff$y,type="l")
-counts <- data.frame(t(stiff$counts),mu=i,digest=digest(round(as.data.frame(stiff),3)));
+counts <- data.frame(t(stiff$counts),mu=1,digest=digest(round(as.data.frame(stiff),3)));
 
 for (i in c(10,100,1000)){
     stiff$mu <- i;
@@ -49,7 +50,7 @@ test_that("No User jacobian are called.",{
 ## Data sets match
 
 test_that("Solving of stiff systems by automatic jacobians is expected",{
-    expect_equal(digest(counts),"826d47341b62284df4bda3aed4bc0ce4")
+    expect_equal(digest(counts),"7274f6fb7d4b09a15d0f9996c2b3ff60")
 })
 
 counts0 <- counts;

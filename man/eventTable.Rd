@@ -4,7 +4,7 @@
 \alias{eventTable}
 \title{Create an event table object}
 \usage{
-eventTable(amount.units = NA, time.units = "hours")
+eventTable(amount.units = NA, time.units = "hours", ...)
 }
 \arguments{
 \item{amount.units}{string denoting the amount dosing units, e.g.,

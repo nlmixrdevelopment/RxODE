@@ -4,7 +4,8 @@ regIni <- rex::rex(or(group(one_of("_."),"0"),"0","(0)","[0]","{0}"),end);
 .onLoad <- function(libname,pkgname){
     ## Setup RxODE.prefer.tbl
     op <- options();
-    op.rx <- list(RxODE.prefer.tbl = FALSE);
+    op.rx <- list(RxODE.prefer.tbl = FALSE,
+                  RxODE.echo.compile = FALSE);
     w <- !(names(op.rx) %in% names(op))
     if(any(w)) options(op.rx[w]);
 }
@@ -251,7 +252,7 @@ regIni <- rex::rex(or(group(one_of("_."),"0"),"0","(0)","[0]","{0}"),end);
 #' # Step 2 - Create the model input as an EventTable,
 #' # including dosing and observation (sampling) events
 #' 
-#' # QD (once daily) dosing for 5 days.
+                                        #' # QD (once daily) dosing for 5 days.
 #' 
 #' qd <- eventTable(amount.units="ug", time.units = "hours")
 #' qd$add.dosing(dose=10000, nbr.doses=5, dosing.interval = 24)
@@ -271,13 +272,20 @@ regIni <- rex::rex(or(group(one_of("_."),"0"),"0","(0)","[0]","{0}"),end);
 #'       Kin=1.0, Kout=1.0, EC50=200.0)
 #' 
 #' # init state variable
-#' inits <- c(0, 0, 0, 1)      
+#' inits <- c(0, 0, 0, 1);
 #' 
 #' # Step 4 - Fit the model to the data
 #' 
 #' qd.cp <- m1$solve(theta, events = qd, inits)
 #' 
 #' head(qd.cp)
+#'
+#' # This returns a matrix.  Note that you can also
+#' # solve using name initial values. For example:
+#'
+#' inits <- c(eff = 1);
+#'
+#' qd.cp <- solve(m1,theta, events = qd, inits);
 #' 
 #' @keywords models nonlinear
 #' @concept Nonlinear regression
@@ -1570,7 +1578,10 @@ rx.initCmpMgr <-
             dllfile       = "Need to compile",
             get.modelVars = function(){
                 mv <- rxModelVars(.rxDll);
-                ret <- rxModelVars(.rxDll)[c("params","state","lhs")]
+                ret <- rxModelVars(.rxDll)[c("params","state","lhs")];
+                init <- rxInit(.rxDll);
+                ret$params <- ret$params[!(ret$params %in% names(init))]
+                return(ret);
             },
             isValid       = isValid,
             delete        = delete,
@@ -1930,8 +1941,13 @@ rxCompile <-  function(model,           # Model
                 cmd <- sprintf("%s/bin/R CMD SHLIB %s %s", 
                                Sys.getenv("R_HOME"), base::basename(cFile),
                                base::basename(dvODEo));
-                cat(sprintf("%s\n",cmd));
-                rc <- try(do.call(sh, list(cmd)), silent = FALSE)
+                if (getOption("RxODE.echo.compile",FALSE)){
+                    cat(sprintf("%s\n",cmd));
+                }
+                compileFile <- tempfile();
+                stdErrFile <- tempfile();
+                rc <- try(do.call(sh, list(cmd,ignore.stdout = !getOption("RxODE.echo.compile",FALSE), ignore.stderr = !getOption("RxODE.echo.compile",FALSE))),
+                          silent = FALSE)
                 if(inherits(rc, "try-error"))
                     stop(sprintf("error compiling %s", cFile));
                 if (dllCopy){
@@ -2001,7 +2017,8 @@ rxDllLoaded <- function(x,retry = TRUE){
         m <- rxCompile(x,force=FALSE);
         return(rxDllLoaded(m,retry = FALSE))
     } else {
-        stop("Can't figure out if the object...");
+        print(m);
+        stop("Can't figure out if the object is loaded...");
     }
 }
 

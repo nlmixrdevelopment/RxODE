@@ -1,4 +1,4 @@
-# event table (dosing + sampling obs from the system)
+                                        # event table (dosing + sampling obs from the system)
 # An EventTable object contains a numeric matrix with
 # a time vector, an event id  describing two types 
 # of timed records, doses (input) and sampling times 
@@ -146,8 +146,7 @@
 #' @concept Pharmacokinetics (PK)
 #' @concept Pharmacodynamics (PD)
 #' @export
-"eventTable" <-
-function(amount.units = NA, time.units = "hours")
+eventTable <- function(amount.units = NA, time.units = "hours")
 {
    .EventTable <- NULL
    .obs.rec <- logical(0)     # flag for observation records
