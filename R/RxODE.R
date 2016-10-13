@@ -1568,7 +1568,10 @@ rx.initCmpMgr <-
             ode_solver    = "Need to compile",   # name of C function
             modelDir      = .mdir, # model directory
             dllfile       = "Need to compile",
-            get.modelVars = function() rxModelVars(.rxDll)[c("params","state","lhs")],
+            get.modelVars = function(){
+                mv <- rxModelVars(.rxDll);
+                ret <- rxModelVars(.rxDll)[c("params","state","lhs")]
+            },
             isValid       = isValid,
             delete        = delete,
             get.index     = get.index, 
@@ -2496,6 +2499,20 @@ rxSolve <- function(object,                      # RxODE object
     UseMethod("rxSolve");
 } # end function rxSolve
 
+#' Update the solved object with any of the new parameters.
+#'
+#' This is a wrapper to the rxSolve method.
+#'
+#' @param object Object to be updated
+#' @param ... Arguments to be updated, and resolved.
+#' 
+#' @export
+update.solveRxDll <- function(object,...){
+    rxSolve(object,...);
+}
+
+## FIXME: getCall perhaps 
+
 #' @rdname rxSolve
 #' @export
 rxSolve.solveRxDll <- function(object,params, events, inits, covs, stiff, transit_abs, atol, rtol, maxsteps, hmin, hmax, hini, maxordn, maxords, ...,
@@ -2784,9 +2801,9 @@ summary.solveRxDll <- function(object,...){
     cat("Solved RxODE object\n");
     cat(sprintf("Dll: %s\n\n",rxDll(lst$object)))
     cat("Model:\n");
-    cat(";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n");
+    cat("################################################################################\n");
     cat(rxModelVars(object)$model["model"]);
-    cat(";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n");
+    cat("################################################################################\n");
     cat("Parameters:\n")
     w <- which((names(lst$params) %in% names(as.data.frame(object))))
     if (length(w) > 0){

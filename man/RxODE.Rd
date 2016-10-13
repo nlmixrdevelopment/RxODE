@@ -251,7 +251,7 @@ head(qd.cp)
 
 }
 \author{
-Melissa Hallow, Wenping Wang, David James and Matthew Fidler
+Melissa Hallow, Wenping Wang and Matthew Fidler
 }
 \references{
 Chamber, J. M. and Temple Lang, D. (2001)

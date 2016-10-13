@@ -12,7 +12,7 @@ libodeaux:
 
 libdparse:
 	echo "make libdparse.a in dparser/ ..."
-	(cd dparser; $(MAKE) -f Makefile.org CC="$(CC)" CFLAGS="$(CFLAGS)" libdparse.a)
+	(cd dparser; $(MAKE) -f Makefile.org CC="$(CC)" CFLAGS="$(CFLAGS) -fPIC" libdparse.a)
 
 libtran:
 	echo "make tran ..."
