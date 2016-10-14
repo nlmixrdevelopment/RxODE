@@ -2,6 +2,7 @@
 ## "Solving Differential Equations in R" by Soetaert et al (2012)
 ## https://cran.r-project.org/web/packages/diffEq/vignettes/ODEinR.pdf Example #3
 library(digest)
+context("Example 3.3");
 rigid <- RxODE("
 y1(0)    = 1
 y2(0)    = 0

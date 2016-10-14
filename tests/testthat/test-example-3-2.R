@@ -5,6 +5,7 @@
 
 library("RxODE")
 library("digest")
+context("Example 3.2")
 
 ode <- RxODE('
          d/dt(X) = a*X + Y*Z;

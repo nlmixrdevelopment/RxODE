@@ -1,7 +1,8 @@
-## Example 3.2 from 
+## Example 3.1 from 
 ## "Solving Differential Equations in R" by Soetaert et al (2012)
 ## https://cran.r-project.org/web/packages/diffEq/vignettes/ODEinR.pdf Example #1
 library(digest)
+context("Example 3-1");
 old <- options(digits = 6)
 
 ode <- 
