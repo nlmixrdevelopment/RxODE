@@ -21,7 +21,7 @@
 #define SBTPTR sbt.s+sbt.o
 
 char *sbuf_read(char *pathname);  /* defined in util.h */
-char *dup_str(char *s, char *e);  /* dj: defined in dparser's util.h */
+char *dup_str(const char *s, const char *e);  /* dj: defined in dparser's util.h */
 
 extern D_ParserTables parser_tables_gram;
 
@@ -71,6 +71,7 @@ char *out2;
 static FILE *fpIO, *fpIO2;
 
 
+
 /* new symbol? if no, find it's ith */
 int new_or_ith(const char *s) {
   int i, len, len_s=strlen(s);
@@ -105,15 +106,16 @@ int new_de(const char *s){
 }
 
 void wprint_node(int depth, char *name, char *value, void *client_data) {
+  // Took out space; changes parsing of statements like = -1 so that they cannot besc
   if (!strcmp("time",value)){
-    sprintf(SBPTR, " t");
+    sprintf(SBPTR, "t");
     sprintf(SBTPTR, "t");
-    sb.o += 2;
+    sb.o += 1;
     sbt.o += 1;
   } else {
-    sprintf(SBPTR, " %s", value);
+    sprintf(SBPTR, "%s", value);
     sprintf(SBTPTR, "%s", value);
-    sb.o += strlen(value)+1;
+    sb.o += strlen(value);
     sbt.o += strlen(value);
 
   }
@@ -123,9 +125,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
   char *name = (char*)pt.symbols[pn->symbol].name;
   int nch = d_get_number_of_children(pn), i;
   char *value = (char*)dup_str(pn->start_loc.s, pn->end);
-  char pexpr[80];
-
-
   if ((!strcmp("identifier", name) || !strcmp("identifier_no_output",name)) &&
       new_or_ith(value)) {
     /* printf("[%d]->%s\n",tb.nv,value); */
@@ -199,12 +198,11 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
     sprintf(SBTPTR,"!=");
     sbt.o += 2;
   }
-  free(value);
+  if (value) free(value);
+  value = NULL;
   
   depth++;
   if (nch != 0) {
-    
-    
     if (!strcmp("power_expression", name)) {
       sprintf(SBPTR, " pow(");
       sb.o += 5;
@@ -255,7 +253,9 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         }
 	/* sprintf(sb.s,"%s",v); */
         /* sb.o = str; */
-        free(v);
+        if (v) free(v);
+	v = NULL;
+
       }
       if (!strcmp("printf_statement",name)){
 	char *v = (char*)dup_str(xpn->start_loc.s, xpn->end);
@@ -302,7 +302,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  fprintf(fpIO,  "%s;\n", sb.s);
 	  fprintf(fpIO2, "%s;\n", sbt.s);
   	}
-	free(v);
+	if (v) free(v);
+	
 	continue;
       } 
 
@@ -323,8 +324,9 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         }
 	sb.o = strlen(sb.s);
 	sbt.o = strlen(sbt.s);
-        free(v);
-	continue;
+        if (v) free(v);
+	v = NULL;
+        continue;
       }
       if ((!strcmp("jac",name)  || !strcmp("jac_rhs",name) ||
 	   !strcmp("dfdy",name) || !strcmp("dfdy_rhs",name)) && i == 4){
@@ -340,8 +342,9 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  sprintf(SBTPTR ,"=");
           sbt.o += 1;
         }
-        free(v);
-	continue;
+        if (v) free(v);
+	v = NULL;
+        continue;
       }
       
       //inits
@@ -386,7 +389,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  sbt.o = strlen(sbt.s);
 	  new_or_ith(v);
 	  /* Rprintf("%s; tb.ini = %d; tb.ini0 = %d; tb.lh = %d\n",v,tb.ini[tb.ix],tb.ini0[tb.ix],tb.lh[tb.ix]); */
-          if  ((tb.ini[tb.ix] == 1 && tb.ini0[tb.ix] == 0) || (tb.lh[tb.ix] == 1 & tb.ini[tb.ix] == 0)){
+          if  ((tb.ini[tb.ix] == 1 && tb.ini0[tb.ix] == 0) || (tb.lh[tb.ix] == 1 && tb.ini[tb.ix] == 0)){
 	    error("Cannot assign state variable %s; For initial condition assigment use '%s(0) = #'.\n",v,v);
 	  }
           tb.lh[tb.ix] = 9;
@@ -403,7 +406,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  sprintf(sbt.s, "d/dt(%s)=", v);
           sbt.o = strlen(sbt.s);
 	}
-        free(v);
+        if (v) free(v);
+	v = NULL;
         continue;
       }
       if (!strcmp("der_rhs", name)) {
@@ -411,13 +415,17 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         if (new_de(v)){
 #ifdef __STANDALONE__
           fprintf(stderr,"Tried to use d/dt(%s) before it was defined",v);
-	  free(v);
+	  if (v) free(v);
+	  v = NULL;
           if (tb.ss) free(tb.ss);
+	  tb.ss = NULL;
           if (tb.de) free(tb.de);
+	  tb.de = NULL;
           exit(-1);
 #else
 	  error("Tried to use d/dt(%s) before it was defined",v);
-          free(v);
+          if (v) free(v);
+	  v = NULL;
 #endif
 	} else {
 	  sprintf(SBPTR, "__DDtStateVar__[%d]", tb.id);
@@ -426,6 +434,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
           sbt.o = strlen(sbt.s);
 	}
         free(v);
+	v = NULL;
 	continue;
       }
 
@@ -460,13 +469,14 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  } else {
 	    // There is more than one call to this variable, it is a
 	    // conditional variabile
-	    tb.lh[tb.ix] = 1;
+            tb.lh[tb.ix] = 1;
 	    if (tb.ini0[tb.ix] == 1){
 	      error("Cannot have conditional initial conditions for %s\n.",v);
 	    }
 	  }
 	}
         free(v);
+	v = NULL;
       }
     }
 
@@ -502,7 +512,9 @@ void err_msg(int chk, const char *msg, int code)
   if(!chk) {
 #ifdef __STANDALONE__
     if (tb.ss) free(tb.ss);
+    tb.ss = NULL;
     if (tb.de) free(tb.de);
+    tb.de = NULL;
     fprintf(stderr, "%s", msg);
     exit(code);
 #else
@@ -643,12 +655,12 @@ void print_aux_info(FILE *outpt, char *model){
         if (tb.ini[i] == 1 && tb.lh[i] != 1){
           //(__0__)V2 =
           retieve_var(i, buf);
-	  sprintf(buf2,"(__0__)%s =",buf);
+	  sprintf(buf2,"(__0__)%s=",buf);
           s2 = strstr(sLine,buf2);
           if (s2){
 	    sprintf(s_aux_info+o,"\tSET_STRING_ELT(inin,%d,mkChar(\"%s\"));\n",ini_i, buf);
 	    o = strlen(s_aux_info);
-            sprintf(s_aux_info+o,"\tREAL(ini)[%d] = %.*s;\n",ini_i++, strlen(sLine)-strlen(buf)-12,sLine + 10 + strlen(buf));
+            sprintf(s_aux_info+o,"\tREAL(ini)[%d] = %.*s;\n",ini_i++, strlen(sLine)-strlen(buf)-10,sLine + 8 + strlen(buf));
 	    o = strlen(s_aux_info);
             continue;
           }
@@ -667,7 +679,7 @@ void print_aux_info(FILE *outpt, char *model){
 	sprintf(s_aux_info+o,"\tSET_STRING_ELT(inin,%d,mkChar(\"pi\"));\n",ini_i);
 	o = strlen(s_aux_info);
 	// Use well more digits than double supports
-	sprintf(s_aux_info+o,"\tREAL(ini)[%d] = 3.1415926535897932384626433832795028841971693993751058209749445923078164062;\n",ini_i++);
+	sprintf(s_aux_info+o,"\tREAL(ini)[%d] = M_PI;\n",ini_i++);
 	o = strlen(s_aux_info);
       }
     }
@@ -809,7 +821,7 @@ void codegen(FILE *outpt, int show_ode) {
 	// See if this is a reclaimed initilization variable.
 	for (i=0; i<tb.nv; i++) {
 	  if (tb.ini[i] == 1 && tb.lh[i] == 1){
-	    //(__0__)V2 =
+	    //(__0__)V2=
 	    retieve_var(i, buf);
 	    s = strstr(sLine,buf);
 	    if (s){
@@ -962,6 +974,7 @@ void reset (){
   tb.id=0;
   tb.pos =0;
   tb.pos_de = 0;
+  tb.ini_i = 0;
   found_print = 0;
   found_jac = 0;
 }
@@ -1016,9 +1029,11 @@ void trans_internal(char* parse_file, char* c_file){
   }
 #ifdef __STANDALONE__
   if (tb.ss) free(tb.ss);
+  tb.ss = NULL;
   if (tb.de) free(tb.de);
+  tb.de = NULL;
   if (extra_buf) free(extra_buf);
-  if (model_prefix) free(model_prefix);
+  extra_buf = NULL;
 #endif
 }
 
@@ -1030,7 +1045,6 @@ int main(int argc, char *argv[]) {
   }
   model_prefix = (char *) malloc(1);
   model_prefix = '\0';
-  printf("trans_internal(%s, %s)\n",argv[1],argv[2]);
   if (argc >= 3){ 
     extra_buf = sbuf_read(argv[3]); 
     if (!((intptr_t) extra_buf)){
@@ -1044,6 +1058,8 @@ int main(int argc, char *argv[]) {
     }
   }
   trans_internal(argv[1], argv[2]);
+  if (model_prefix) free(model_prefix);
+  model_prefix = NULL;
   return 0;
 }
 #else
@@ -1052,13 +1068,15 @@ void R_init_RxODE(DllInfo *info){
 }
 void R_unload_RxODE(DllInfo *info){
   if (tb.ss) free(tb.ss);
+  tb.ss = NULL;
   if (tb.de) free(tb.de);
+  tb.de = NULL;
   if (extra_buf) free(extra_buf);
-  if (model_prefix) free(model_prefix);  
+  extra_buf = NULL;
 }
 SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_md5,
 	   SEXP parse_model){
-  const char *in, *out, *file, *pfile;
+  char *in, *out, *file, *pfile;
   char buf[512], buf2[512];
   char snum[512];
   char *s2;
@@ -1071,11 +1089,12 @@ SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_m
   if (!isString(c_file) || length(c_file) != 1){
     error("c_file is not a single string");
   }
-  in = CHAR(STRING_ELT(parse_file,0));
-  out = CHAR(STRING_ELT(c_file,0));
   if (extra_buf) free(extra_buf);
+  extra_buf = NULL;
   if (isString(extra_c) && length(extra_c) == 1){
-    extra_buf = sbuf_read(CHAR(STRING_ELT(extra_c,0)));
+    in = dup_str(CHAR(STRING_ELT(extra_c,0)),0);
+    extra_buf = sbuf_read(in);
+    if (in) free(in);
     if (!((intptr_t) extra_buf)){ 
       extra_buf = (char *) malloc(1);
       extra_buf[0]='\0';
@@ -1085,25 +1104,29 @@ SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_m
     extra_buf[0] = '\0';
   }
   
-  if (model_prefix) free(model_prefix);
+  in = dup_str(CHAR(STRING_ELT(parse_file,0)),0);
+  out = dup_str(CHAR(STRING_ELT(c_file,0)),0);
+  
+  
   if (isString(prefix) && length(prefix) == 1){
-    model_prefix = CHAR(STRING_ELT(prefix,0));
+    model_prefix = dup_str(CHAR(STRING_ELT(prefix,0)),0);
   } else {
-    model_prefix = (char *) malloc(1);
-    model_prefix[0] = '\0';
+    error("model prefix must be specified");
   }
 
   if (md5) free(md5);
+  md5 = NULL;
   if (isString(model_md5) && length(model_md5) == 1){
-    md5 = CHAR(STRING_ELT(model_md5,0));
+    md5 = dup_str(CHAR(STRING_ELT(model_md5,0)),0);
   } else {
     md5 = (char *) malloc(1);
     md5[0] = '\0';
   }
   
   if (out2) free(out2);
+  out2 = NULL;
   if (isString(parse_model) && length(parse_model) == 1){
-    out2 = CHAR(STRING_ELT(parse_model,0));
+    out2 = dup_str(CHAR(STRING_ELT(parse_model,0)),0);
   } else {
     out2 = (char *) malloc(9); 
     sprintf(out2,"out2.txt"); 
@@ -1120,10 +1143,10 @@ SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_m
   SEXP params = PROTECT(allocVector(STRSXP, tb.pi));
   
   SEXP lhs    = PROTECT(allocVector(STRSXP, tb.li));
-  
+
   SEXP inin   = PROTECT(allocVector(STRSXP, tb.ini_i));
   SEXP ini    = PROTECT(allocVector(REALSXP, tb.ini_i));
-  
+
   SEXP model  = PROTECT(allocVector(STRSXP,3));
   SEXP modeln = PROTECT(allocVector(STRSXP,3));
 
@@ -1139,19 +1162,19 @@ SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_m
       SET_STRING_ELT(lhs,li++,mkChar(buf));
     } else if (strcmp(buf,"pi")){
       SET_STRING_ELT(params,pi++,mkChar(buf));
-    } 
+    }
   }
-  SET_STRING_ELT(names,0,mkChar("params"));
-  SET_VECTOR_ELT(lst,  0,params);
+  SET_STRING_ELT(names,0,mkChar("trans"));
+  SET_VECTOR_ELT(lst,  0,tran);
+  
+  SET_STRING_ELT(names,3,mkChar("params"));
+  SET_VECTOR_ELT(lst,  3,params);
 
   SET_STRING_ELT(names,1,mkChar("lhs"));
   SET_VECTOR_ELT(lst,  1,lhs);
 
   SET_STRING_ELT(names,2,mkChar("state"));
   SET_VECTOR_ELT(lst,  2,state);
-
-  SET_STRING_ELT(names,3,mkChar("trans"));
-  SET_VECTOR_ELT(lst,  3,tran);
   
   SET_STRING_ELT(names,4,mkChar("ini"));
   SET_VECTOR_ELT(lst,  4,ini);
@@ -1166,7 +1189,7 @@ SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_m
     SET_STRING_ELT(tran,0,mkChar("fullint")); // Full Internal Matrix
   }
   SET_STRING_ELT(trann,1,mkChar("prefix"));
-  SET_STRING_ELT(tran,1,mkChar(model_prefix));
+  SET_STRING_ELT(tran,1,mkChar(buf));
 
   sprintf(buf,"%sdydt",model_prefix);
   SET_STRING_ELT(trann,2,mkChar("dydt"));
@@ -1187,24 +1210,24 @@ SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_m
   sprintf(buf,"%sode_solver",model_prefix);
   SET_STRING_ELT(trann,6,mkChar("ode_solver"));
   SET_STRING_ELT(tran, 6,mkChar(buf));
-
+  
   fpIO2 = fopen(out2, "r");
-  while(fgets(sLine, MXLEN, fpIO2)) { 
+  while(fgets(sLine, MXLEN, fpIO2)) {
     s2 = strstr(sLine,"(__0__)");
     if (s2){
       // See if this is a reclaimed initilization variable.
       for (i=0; i<tb.nv; i++) {
         if (tb.ini[i] == 1 && tb.lh[i] != 1){
-          //(__0__)V2 =
+          //(__0__)V2=
           retieve_var(i, buf);
-	  sprintf(buf2,"(__0__)%s =",buf);
+  	  sprintf(buf2,"(__0__)%s=",buf);
           s2 = strstr(sLine,buf2);
           if (s2){
-	    /* Rprintf("%s[%d]->\n",buf,ini_i++); */
-	    SET_STRING_ELT(inin,ini_i,mkChar(buf));
-	    sprintf(snum,"%.*s",strlen(sLine)-strlen(buf)-12,sLine + 10 + strlen(buf));
-	    sscanf(snum, "%lf", &d);
-	    REAL(ini)[ini_i++] = d;
+  	    /* Rprintf("%s[%d]->\n",buf,ini_i++); */
+  	    SET_STRING_ELT(inin,ini_i,mkChar(buf));
+  	    sprintf(snum,"%.*s",strlen(sLine)-strlen(buf) - 10, sLine + 8 + strlen(buf));
+  	    sscanf(snum, "%lf", &d);
+  	    REAL(ini)[ini_i++] = d;
             continue;
           }
         }
@@ -1219,8 +1242,8 @@ SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_m
       retieve_var(i, buf);
       // Put in constants
       if  (!strcmp("pi",buf)){
-	SET_STRING_ELT(inin,ini_i,mkChar("pi"));
-	REAL(ini)[ini_i++] = 3.1415926535897932384626433832795028841971693993751058209749445923078164062;
+  	SET_STRING_ELT(inin,ini_i,mkChar("pi"));
+  	REAL(ini)[ini_i++] = M_PI;
       }
     }
   }
@@ -1229,16 +1252,18 @@ SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_m
   j=0;
   for (i = 0; i < strlen(file); i++){
     if (file[i] == '"'  ||
-	file[i] == '\n' ||
-	file[i] == '\t' ||
-	(file[i] >= 32 && file[i] <= 126)){
+  	file[i] == '\n' ||
+  	file[i] == '\t' ||
+  	(file[i] >= 32 && file[i] <= 126)){
       sprintf(pfile+(j++),"%c",file[i]);
     }
   }
   SET_STRING_ELT(modeln,0,mkChar("model"));
   SET_STRING_ELT(model,0,mkChar(pfile));
   free(pfile);
-  /* free(file); */
+  pfile = NULL;
+  free(file);
+  
   SET_STRING_ELT(modeln,1,mkChar("normModel"));
   file = sbuf_read("out3.txt");
   if (file){
@@ -1254,10 +1279,11 @@ SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_m
     }
     SET_STRING_ELT(model,1,mkChar(pfile));
     free(pfile);
+    pfile = NULL;
   } else {
     SET_STRING_ELT(model,1,mkChar("Syntax Error"));
   }
-
+  /* printf("parseModel\n"); */
   SET_STRING_ELT(modeln,2,mkChar("parseModel"));
   file = sbuf_read(out2);
   if (file){
@@ -1273,10 +1299,10 @@ SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_m
     }
     SET_STRING_ELT(model,2,mkChar(pfile));
     free(pfile);
+    pfile = NULL;
   } else {
     SET_STRING_ELT(model,2,mkChar("Syntax Error"));
   }
-  
   
   setAttrib(ini,   R_NamesSymbol, inin);
   setAttrib(tran,  R_NamesSymbol, trann);
@@ -1285,6 +1311,8 @@ SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_m
   UNPROTECT(11);
   remove("out3.txt");
   reset();
+  if (in) free(in);
+  in = NULL;
   return lst;
 }
 
