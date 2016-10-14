@@ -27,6 +27,8 @@ extern D_ParserTables parser_tables_gram;
 
 unsigned int found_jac = 0, ini = 0, found_print = 0;
 
+char s_aux_info[64*MXSYM];
+
 
 typedef struct symtab {
   char *ss;			/* symbol string: all vars*/
@@ -197,7 +199,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
     sprintf(SBTPTR,"!=");
     sbt.o += 2;
   }
-  
   free(value);
   
   depth++;
@@ -534,25 +535,24 @@ void prnt_vars(int scenario, FILE *outpt, int lhs, const char *pre_str, const ch
 
 void print_aux_info(FILE *outpt, char *model){
   int i, islhs,pi = 0,li = 0, o=0, statei = 0, ini_i = 0;
-  char *s, *s2;
+  char *s2;
   char sLine[MXLEN+1];
   char buf[512], buf2[512];
-  s = (char *) malloc(64*MXSYM);
   for (i=0; i<tb.nv; i++) {
     islhs = tb.lh[i];
     if (islhs>1) continue;      /* is a state var */
     retieve_var(i, buf);
     if (islhs == 1){
-      sprintf(s+o, "\tSET_STRING_ELT(lhs,%d,mkChar(\"%s\"));\n", li++, buf);
+      sprintf(s_aux_info+o, "\tSET_STRING_ELT(lhs,%d,mkChar(\"%s\"));\n", li++, buf);
     } else if (strcmp(buf,"pi")){
-      sprintf(s+o, "\tSET_STRING_ELT(params,%d,mkChar(\"%s\"));\n", pi++, buf);
+      sprintf(s_aux_info+o, "\tSET_STRING_ELT(params,%d,mkChar(\"%s\"));\n", pi++, buf);
     }
-    o = strlen(s);
+    o = strlen(s_aux_info);
   }
   for (i=0; i<tb.nd; i++) {                     /* name state vars */
     retieve_var(tb.di[i], buf);
-    sprintf(s+o, "\tSET_STRING_ELT(state,%d,mkChar(\"%s\"));\n", statei++, buf);
-    o = strlen(s);
+    sprintf(s_aux_info+o, "\tSET_STRING_ELT(state,%d,mkChar(\"%s\"));\n", statei++, buf);
+    o = strlen(s_aux_info);
   }
   fprintf(outpt,"extern SEXP %smodel_vars(){\n",model_prefix);
   fprintf(outpt,"\tSEXP lst    = PROTECT(allocVector(VECSXP, 7));\n");
@@ -566,7 +566,7 @@ void print_aux_info(FILE *outpt, char *model){
   fprintf(outpt,"\tSEXP mmd5n  = PROTECT(allocVector(STRSXP, 2));\n");
   fprintf(outpt,"\tSEXP model  = PROTECT(allocVector(STRSXP, 3));\n");
   fprintf(outpt,"\tSEXP modeln = PROTECT(allocVector(STRSXP, 3));\n");
-  fprintf(outpt,"%s",s);
+  fprintf(outpt,"%s",s_aux_info);
   // Save for outputting in trans
   tb.pi = pi;
   tb.li = li;
@@ -633,7 +633,7 @@ void print_aux_info(FILE *outpt, char *model){
 #else
   fpIO2 = fopen(out2, "r");
 #endif
-  s[0] = '\0';
+  s_aux_info[0] = '\0';
   o    = 0;
   while(fgets(sLine, MXLEN, fpIO2)) { 
     s2 = strstr(sLine,"(__0__)");
@@ -646,10 +646,10 @@ void print_aux_info(FILE *outpt, char *model){
 	  sprintf(buf2,"(__0__)%s =",buf);
           s2 = strstr(sLine,buf2);
           if (s2){
-	    sprintf(s+o,"\tSET_STRING_ELT(inin,%d,mkChar(\"%s\"));\n",ini_i, buf);
-	    o = strlen(s);
-            sprintf(s+o,"\tREAL(ini)[%d] = %.*s;\n",ini_i++, strlen(sLine)-strlen(buf)-12,sLine + 10 + strlen(buf));
-	    o = strlen(s);
+	    sprintf(s_aux_info+o,"\tSET_STRING_ELT(inin,%d,mkChar(\"%s\"));\n",ini_i, buf);
+	    o = strlen(s_aux_info);
+            sprintf(s_aux_info+o,"\tREAL(ini)[%d] = %.*s;\n",ini_i++, strlen(sLine)-strlen(buf)-12,sLine + 10 + strlen(buf));
+	    o = strlen(s_aux_info);
             continue;
           }
         }
@@ -664,18 +664,18 @@ void print_aux_info(FILE *outpt, char *model){
       retieve_var(i, buf);
       // Put in constants
       if  (!strcmp("pi",buf)){
-	sprintf(s+o,"\tSET_STRING_ELT(inin,%d,mkChar(\"pi\"));\n",ini_i);
-	o = strlen(s);
+	sprintf(s_aux_info+o,"\tSET_STRING_ELT(inin,%d,mkChar(\"pi\"));\n",ini_i);
+	o = strlen(s_aux_info);
 	// Use well more digits than double supports
-	sprintf(s+o,"\tREAL(ini)[%d] = 3.1415926535897932384626433832795028841971693993751058209749445923078164062;\n",ini_i++);
-	o = strlen(s);
+	sprintf(s_aux_info+o,"\tREAL(ini)[%d] = 3.1415926535897932384626433832795028841971693993751058209749445923078164062;\n",ini_i++);
+	o = strlen(s_aux_info);
       }
     }
   }
   tb.ini_i = ini_i;
   fprintf(outpt,"\tSEXP ini    = PROTECT(allocVector(REALSXP,%d));\n",ini_i);
   fprintf(outpt,"\tSEXP inin   = PROTECT(allocVector(STRSXP, %d));\n",ini_i);
-  fprintf(outpt,"%s",s);
+  fprintf(outpt,"%s",s_aux_info);
   // Vector Names
   fprintf(outpt,"\tSET_STRING_ELT(names,0,mkChar(\"params\"));\n");
   fprintf(outpt,"\tSET_VECTOR_ELT(lst,  0,params);\n");
@@ -739,7 +739,7 @@ void print_aux_info(FILE *outpt, char *model){
   
   fprintf(outpt,"\treturn lst;\n");
   fprintf(outpt,"}\n");
-  free(s);
+  
   //fprintf(outpt,"SEXP __PARSED_MD5__()\n{\n\treturn %smodel_vars();\n}\n",model_prefix);
 }
 
