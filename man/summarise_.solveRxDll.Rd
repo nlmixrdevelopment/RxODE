@@ -4,7 +4,7 @@
 \alias{summarise_.solveRxDll}
 \title{dyplr summarise_ support}
 \usage{
-summarise_.solveRxDll(.data, ..., .dots)
+\method{summarise_}{solveRxDll}(.data, ..., .dots)
 }
 \arguments{
 \item{.data}{solveRxDll object that summarise_ is being applied to.}

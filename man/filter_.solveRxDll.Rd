@@ -4,7 +4,7 @@
 \alias{filter_.solveRxDll}
 \title{dyplr filter_ support}
 \usage{
-filter_.solveRxDll(.data, ..., .dots)
+\method{filter_}{solveRxDll}(.data, ..., .dots)
 }
 \arguments{
 \item{.data}{solveRxDll object that filter_ is being applied to.}

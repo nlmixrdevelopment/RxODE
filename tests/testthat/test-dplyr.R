@@ -30,6 +30,7 @@ et1$add.sampling(24);
 et1$add.sampling(seq(from = 24+8, to = 5*24, by = 8))
 
 
+
 test_that("RxODE event table 1 was created",{
     expect_equal(class(et1), "EventTable")
     expect_equal(et1$get.nobs(),38);
@@ -102,6 +103,7 @@ test_that("mutate each",{
 test_that("transmute works",{
     expect_equal(names(o1.first %>% transmute(C1=C2+C3,time=time)),c("C1","time"));
 })
+
 
 test_that("rename works",{
     expect_equal(names(o1.first %>% rename(Cdepot=C2)),c("time","depot", "centr", "peri","eff","Cdepot","C3"))
