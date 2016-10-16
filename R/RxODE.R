@@ -249,7 +249,7 @@ regIni <- rex::rex(or(group(one_of("_."),"0"),"0","(0)","[0]","{0}"),end);
 #' m1 <- RxODE(model = ode, modName = "m1")
 #' print(m1)
 #' 
-#' # Step 2 - Create the model input as an eventTable,
+#' # Step 2 - Create the model input as an EventTable,
 #' # including dosing and observation (sampling) events
 #' 
                                         #' # QD (once daily) dosing for 5 days.
@@ -1956,7 +1956,7 @@ rxCompile <-  function(model,           # Model
                 try(dyn.load(finalDll, local = FALSE), silent=TRUE);
                 modVars <- sprintf("%smodel_vars",prefix);
                 if (is.loaded(modVars)){
-                    allModVars <- eval(parse(text=sprintf(".Call(\"%s\")",modVars)),envir=.GlobalEnv);
+                    allModVars <- eval(parse(text=sprintf(".Call(\"%s\")",modVars)),envir=.GlobalEnv)
                 }
             }
         }
@@ -2388,7 +2388,7 @@ rxInit <- rxInits;
 #'     parameter in the ODE system; the names must correspond to the
 #'     parameter identifiers used in the ODE specification;
 #'
-#' @param events an \code{eventTable} object describing the input
+#' @param events an \code{EventTable} object describing the input
 #'     (e.g., doses) to the dynamic system and observation sampling
 #'     time points (see \code{\link{eventTable}});
 #'
@@ -2398,7 +2398,7 @@ rxInit <- rxInits;
 #'     compartments);
 #'
 #' @param covs a matrix or dataframe the same number of rows as the
-#'     sampling points defined in the events \code{eventTable}.  This
+#'     sampling points defined in the events \code{EventTable}.  This
 #'     is for time-varying covariates.
 #'
 #' @param covs_interpolation specifies the interpolation method for
@@ -2470,7 +2470,7 @@ rxInit <- rxInits;
 #'     values, initial conditions, solver parameters, or events (by
 #'     updaing the \code{time} variable).
 #'
-#'     You can call the \code{\link{eventTable}} methods on the solved
+#'     You can call the \code{\link{EventTable}} methods on the solved
 #'     object to update the event table and resolve the system of
 #'     equations.  % Should be able to use roxygen templates...
 #' 
@@ -2878,18 +2878,16 @@ as.tbl.solveRxDll <- function(x,...){
     return(dplyr::as.tbl(as.data.frame(x)));
 }
 
-solveRxDll_updateEventTable <- function(obj,objName,name,...,envir=parent.frame()){
+solveRxDll_updateEventTable <- function(obj,name,...){
     cat("Update with new event specification.\n");
     tmp <- attr(obj,"solveRxDll");
     events <- tmp$events;
-    events[[name]](...);
+    events[[name]](...)
     tmp <- rxSolve.solveRxDll(obj,events = eval(events));
-    envir$...RxODE...temp... <- tmp;
-    eval(parse(text=sprintf("%s <- ...RxODE...temp...;",objName)),envir=envir);
     lst <- attr(tmp,"solveRxDll");
-    envir$...RxODE...temp... <- lst;
-    eval(parse(text=sprintf("attr(%s,\"solveRxDll\") <- ...RxODE...temp...;",objName)),envir=envir);
-    rm("...RxODE...temp...",envir=envir);
+    lst$events <- events;
+    call <- as.list(match.call(expand.dots = TRUE));
+    eval(parse(text=sprintf("attr(%s,\"solveRxDll\") <<- lst",toString(call$obj))));
     invisible()
 }
 
@@ -3009,10 +3007,7 @@ asTbl <- function(obj){
                     return(tmp$events[[arg]]);
                 } else {
                     call <- as.list(match.call(expand.dots = TRUE));
-                    env <- parent.frame();
-                    return(function(...,.obj=obj,.objName=toString(call$obj),.objArg=toString(call$arg),.envir=env){
-                        return(solveRxDll_updateEventTable(.obj,.objName,.objArg,...,envir=.envir));
-                    });
+                    return(eval(parse(text=sprintf("function(...){solveRxDll_updateEventTable(%s,\"%s\",...)}",toString(call$obj),toString(call$arg)))))
                 }
             }
             return(NULL);

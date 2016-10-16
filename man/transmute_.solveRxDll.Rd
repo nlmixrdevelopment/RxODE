@@ -4,7 +4,7 @@
 \alias{transmute_.solveRxDll}
 \title{dyplr transmute_ support}
 \usage{
-\method{transmute_}{solveRxDll}(.data, ..., .dots)
+transmute_.solveRxDll(.data, ..., .dots)
 }
 \arguments{
 \item{.data}{solveRxDll object that transmute_ is being applied to.}

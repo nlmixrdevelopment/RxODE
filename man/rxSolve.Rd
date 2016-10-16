@@ -49,7 +49,7 @@ model specification.}
 parameter in the ODE system; the names must correspond to the
 parameter identifiers used in the ODE specification;}
 
-\item{events}{an \code{eventTable} object describing the input
+\item{events}{an \code{EventTable} object describing the input
 (e.g., doses) to the dynamic system and observation sampling
 time points (see \code{\link{eventTable}});}
 
@@ -59,7 +59,7 @@ vector must be the same as the state variables (e.g., PK/PD
 compartments);}
 
 \item{covs}{a matrix or dataframe the same number of rows as the
-sampling points defined in the events \code{eventTable}.  This
+sampling points defined in the events \code{EventTable}.  This
 is for time-varying covariates.}
 
 \item{stiff}{a logical (\code{TRUE} by default) indicating whether
@@ -132,7 +132,7 @@ An \dQuote{rxSolve} solve object that stores the solved
     values, initial conditions, solver parameters, or events (by
     updaing the \code{time} variable).
 
-    You can call the \code{\link{eventTable}} methods on the solved
+    You can call the \code{\link{EventTable}} methods on the solved
     object to update the event table and resolve the system of
     equations.  % Should be able to use roxygen templates...
 }

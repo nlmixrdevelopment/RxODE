@@ -218,7 +218,7 @@ ode <- "
 m1 <- RxODE(model = ode, modName = "m1")
 print(m1)
 
-# Step 2 - Create the model input as an eventTable,
+# Step 2 - Create the model input as an EventTable,
 # including dosing and observation (sampling) events
 
 # QD (once daily) dosing for 5 days.
