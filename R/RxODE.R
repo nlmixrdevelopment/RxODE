@@ -148,7 +148,7 @@ regIni <- rex::rex(or(group(one_of("_."),"0"),"0","(0)","[0]","{0}"),end);
 #'           in the ODE system; the names must correspond to the parameter 
 #'           identifiers used in the ODE specification;
 #'           
-#'           \code{events}: an \code{EventTable} object describing the 
+#'           \code{events}: an \code{eventTable} object describing the 
 #'           input (e.g., doses) to the dynamic system and observation 
 #'           sampling time points (see  \code{\link{eventTable}});
 #'       
@@ -2388,7 +2388,7 @@ rxInit <- rxInits;
 #'     parameter in the ODE system; the names must correspond to the
 #'     parameter identifiers used in the ODE specification;
 #'
-#' @param events an \code{EventTable} object describing the input
+#' @param events an \code{eventTable} object describing the input
 #'     (e.g., doses) to the dynamic system and observation sampling
 #'     time points (see \code{\link{eventTable}});
 #'
@@ -2398,7 +2398,7 @@ rxInit <- rxInits;
 #'     compartments);
 #'
 #' @param covs a matrix or dataframe the same number of rows as the
-#'     sampling points defined in the events \code{EventTable}.  This
+#'     sampling points defined in the events \code{eventTable}.  This
 #'     is for time-varying covariates.
 #'
 #' @param covs_interpolation specifies the interpolation method for
@@ -2470,7 +2470,7 @@ rxInit <- rxInits;
 #'     values, initial conditions, solver parameters, or events (by
 #'     updaing the \code{time} variable).
 #'
-#'     You can call the \code{\link{EventTable}} methods on the solved
+#'     You can call the \code{\link{eventTable}} methods on the solved
 #'     object to update the event table and resolve the system of
 #'     equations.  % Should be able to use roxygen templates...
 #' 

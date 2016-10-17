@@ -84,7 +84,7 @@ An object (closure) of class \dQuote{\code{RxODE}} (see Chambers and Temple Lang
           in the ODE system; the names must correspond to the parameter 
           identifiers used in the ODE specification;
           
-          \code{events}: an \code{EventTable} object describing the 
+          \code{events}: an \code{eventTable} object describing the 
           input (e.g., doses) to the dynamic system and observation 
           sampling time points (see  \code{\link{eventTable}});
       

@@ -14,7 +14,7 @@ unspecified units.}
 \item{time.units}{string denoting the time units, e.g.,
     \dQuote{hours}, \dQuote{days}. Default to \code{"hours"}.
 
-An \code{EventTable} is an object that consists of a data.frame
+An \code{eventTable} is an object that consists of a data.frame
 storing ordered time-stamped events of an (unspecified) PK/PD
 dynamic system, units (strings) for dosing and time records, plus a
 list of functions to add and extract event records.
