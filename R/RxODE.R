@@ -2445,6 +2445,9 @@ rxInit <- rxInits;
 #'     events, and uses this value.  The value 0 is equivalent to
 #'     infinite maximum absolute step size.
 #'
+#' @param hini The step size to be attempted on the first step. The
+#'     default value is determined by the solver (when hini = 0)
+#'
 #' @param maxordn The maximum order to be allowed for the nonstiff
 #'     (Adams) method.  The default is 12.  It can be between 1 and
 #'     12.
@@ -2878,16 +2881,18 @@ as.tbl.solveRxDll <- function(x,...){
     return(dplyr::as.tbl(as.data.frame(x)));
 }
 
-solveRxDll_updateEventTable <- function(obj,name,...){
+solveRxDll_updateEventTable <- function(obj,objName,name,...,envir=parent.frame()){
     cat("Update with new event specification.\n");
     tmp <- attr(obj,"solveRxDll");
     events <- tmp$events;
-    events[[name]](...)
+    events[[name]](...);
     tmp <- rxSolve.solveRxDll(obj,events = eval(events));
+    envir$...RxODE...temp... <- tmp;
+    eval(parse(text=sprintf("%s <- ...RxODE...temp...;",objName)),envir=envir);
     lst <- attr(tmp,"solveRxDll");
-    lst$events <- events;
-    call <- as.list(match.call(expand.dots = TRUE));
-    eval(parse(text=sprintf("attr(%s,\"solveRxDll\") <<- lst",toString(call$obj))));
+    envir$...RxODE...temp... <- lst;
+    eval(parse(text=sprintf("attr(%s,\"solveRxDll\") <- ...RxODE...temp...;",objName)),envir=envir);
+    rm("...RxODE...temp...",envir=envir);
     invisible()
 }
 
@@ -3007,7 +3012,10 @@ asTbl <- function(obj){
                     return(tmp$events[[arg]]);
                 } else {
                     call <- as.list(match.call(expand.dots = TRUE));
-                    return(eval(parse(text=sprintf("function(...){solveRxDll_updateEventTable(%s,\"%s\",...)}",toString(call$obj),toString(call$arg)))))
+                    env <- parent.frame();
+                    return(function(...,.obj=obj,.objName=toString(call$obj),.objArg=toString(call$arg),.envir=env){
+                        return(solveRxDll_updateEventTable(.obj,.objName,.objArg,...,envir=.envir));
+                    });
                 }
             }
             return(NULL);

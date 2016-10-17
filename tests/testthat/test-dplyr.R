@@ -108,6 +108,6 @@ test_that("rename works",{
 })
 
 test_that("arrange works",{
-    expect_equal(digest(o1.first %>% arrange(C2),"sha512"),
-                 "ce3cbb41991b6cefd97b21fb72e0e09e01efe4238bd80315bd08bf52689a439127ec923a56d46aa6701896841af1845e1e73574f124f2d1c5d82b2510d71d5f2");
+    expect_equal(digest(round(o1.first %>% arrange(C2),4)),
+                 "55648abe00d99753eddd92fca264f7da");
 })

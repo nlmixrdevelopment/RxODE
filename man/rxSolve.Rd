@@ -94,6 +94,9 @@ checks for the maximum difference in times in your sampling and
 events, and uses this value.  The value 0 is equivalent to
 infinite maximum absolute step size.}
 
+\item{hini}{The step size to be attempted on the first step. The
+default value is determined by the solver (when hini = 0)}
+
 \item{maxordn}{The maximum order to be allowed for the nonstiff
 (Adams) method.  The default is 12.  It can be between 1 and
 12.}
