@@ -1,6 +1,8 @@
 ## (Regression) test 3 multiple instances of RxODE objects to ensure
 ## C symbols and operations don't conflict. 
 library(RxODE)
+rxClean();
+
 context("Make sure C operations and symbols don't conflict.")
 
 

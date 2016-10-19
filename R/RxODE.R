@@ -1946,10 +1946,14 @@ rxCompile <-  function(model,           # Model
                 }
                 compileFile <- tempfile();
                 stdErrFile <- tempfile();
-                rc <- try(do.call(sh, list(cmd,ignore.stdout = !getOption("RxODE.echo.compile",FALSE), ignore.stderr = !getOption("RxODE.echo.compile",FALSE))),
-                          silent = FALSE)
-                if(inherits(rc, "try-error"))
+                rc <- tryCatch(do.call(sh, list(cmd,ignore.stdout = !getOption("RxODE.echo.compile",FALSE), ignore.stderr = !getOption("RxODE.echo.compile",FALSE))),
+                               error = function(e) "error",
+                               warning = function(w) "warning");
+                if(any(rc == c("error","warning"))){
+                    try(do.call(sh, list(cmd,ignore.stdout = FALSE, ignore.stderr = FALSE)),
+                        silent = FALSE)
                     stop(sprintf("error compiling %s", cFile));
+                }
                 if (dllCopy){
                     file.copy(cDllFile,finalDll);
                 }
@@ -2587,13 +2591,13 @@ rxSolve.rxDll <- function(object,params,events,inits = NULL, covs = NULL,stiff =
         events <- params;
         params <- c();
     }
-    last.solve.args <-
-        list(params = params, events = events$copy(),
-             inits = inits, covs = covs, stiff = stiff, 
-             transit_abs = transit_abs, atol = atol, rtol = rtol, maxsteps = maxsteps,
-             hmin = hmin, hmax = hmax, hini = hini, maxordn = maxordn, maxords = maxords,
-             covs_interpolation = covs_interpolation, ...)    ;
-
+    ## Params and inits passed
+    extra.args <- list(events = events$copy(),
+                       covs = covs, stiff = stiff, 
+                       transit_abs = transit_abs, atol = atol, rtol = rtol, maxsteps = maxsteps,
+                       hmin = hmin, hmax = hmax, hini = hini, maxordn = maxordn, maxords = maxords,
+                       covs_interpolation = covs_interpolation, ...);
+    extra.args <- extra.args[names(extra.args) != "counts"];
     event.table <- events$get.EventTable()
     if (!is.numeric(maxordn)) 
         stop("`maxordn' must be numeric")
@@ -2633,6 +2637,7 @@ rxSolve.rxDll <- function(object,params,events,inits = NULL, covs = NULL,stiff =
     ## preserve input arguments. 
     inits <- rxInits(object,inits,rxState(object),0);
     params <- rxInits(object,params,rxParams(object),NA,!is.null(covs));
+    
     if (!is.null(covs)){
         cov <- as.matrix(covs);
         pcov <- sapply(dimnames(cov)[[2]],function(x){
@@ -2677,18 +2682,11 @@ rxSolve.rxDll <- function(object,params,events,inits = NULL, covs = NULL,stiff =
             warning(paste("scaler variable not found:", s[[wh]]))
         }
     }
-    state_vars <- rxState(object);
-    neq  <- length(state_vars);
     lhs_vars <- rxLhs(object);
-    nlhs <- length(lhs_vars);
-
-    ntime <- dim(event.table)[1];
-    ret   <- rep(0.0, ntime*neq);
-    lhs   <- rep(0.0, ntime*nlhs);
-    rc <- as.integer(0)  # return code 0 (success) or IDID in call_dvode.c
-    if (is.null(inits))
-        inits <- rep(0.0, neq)
-
+    if (is.null(inits)){
+        inits <- rep(0.0, neq);
+        names(inits) = rxState(object);
+    }
     if (length(covs_interpolation) > 1){
         isLocf <- 0;
     } else if (covs_interpolation == "LOCF"){
@@ -2696,7 +2694,6 @@ rxSolve.rxDll <- function(object,params,events,inits = NULL, covs = NULL,stiff =
     } else if (covs_interpolation != "Linear"){
         stop("Unknown covariate interpolation specified.");
     }
-    
     ## may need to reload (e.g., when we re-start R and
     ## re-instantiate the RxODE object from a save.image.
     ## cmpMgr$dynLoad()
@@ -2704,69 +2701,49 @@ rxSolve.rxDll <- function(object,params,events,inits = NULL, covs = NULL,stiff =
     if (event.table$time[1] != 0){
         warning(sprintf("The initial conditions are at t=%s instead of t=0.",event.table$time[1]))
     }
-    counts <- rep(0,3);
-    xx <- object$.c(rxTrans(object)["ode_solver"],
-                    as.integer(neq),
-                    as.double(params),
-                    as.double(event.table$time),
-                    as.integer(event.table$evid),
-                    length(event.table$time),
-                    as.double(inits),
-                    as.double(event.table$amt[event.table$evid>0]),
-                    as.double(ret),
-                    as.double(atol),
-                    as.double(rtol),
-                    as.integer(maxsteps),
-                    as.integer(stiff),
-                    as.integer(transit_abs),
-                    as.integer(nlhs),
-                    as.double(lhs),
-                    ## parameter covariates
-                    as.integer(pcov),
-                    as.double(cov),
-                    as.integer(n_cov),
-                    as.integer(isLocf),
-                    ## Solver options
-                    as.double(hini), ## Mabye accept H0?
-                    as.double(hmin),
-                    as.double(hmax),
-                    as.integer(maxordn),
-                    as.integer(maxords),
-                    ## Counts
-                    as.integer(counts),
-                    ## Return Code
-                    rc
-                    );
-    counts <- xx[[length(xx)-1]];
-    rc <- xx[[length(xx)]]
-    if(rc!=0)
-        stop(sprintf("could not solve ODE, IDID=%d (see further messages)", rc))
-    x <- cbind(
-        matrix(xx[[8]], ncol=neq, byrow=T),
-        if(nlhs) matrix(xx[[15]], ncol=nlhs, byrow=T) else NULL,
-        if(n_cov) as.matrix(covs) else NULL
-    )
-    colnames(x) <- c(state_vars, lhs_vars, covnames)
-
-    if (scaler.ix) {
-        x[, scaler.ix] <- x[, scaler.ix]/scaler
-    }
-    
-    ret <- cbind(time=event.table$time, x)[events$get.obs.rec(),];
-    ## Ensure the objects have names
+    ## Ensure that inits and params have names.
     names(inits) <- rxState(object);
     names(params) <- rxParams(object);
-    lst <- last.solve.args;
-    lst[["inits"]] <- inits;
-    lst[["params"]] <-  params;
-    lst[["object"]] <- object;
-    lst[["matrix"]] <- ret;
-    names(counts) <- c("solver","dadt","user_jac");
-    lst[["counts"]] <-  counts;
-    names(ret) <- dimnames(ret)[[2]]; ## For compatability with tidyr::spread
-    length(ret) <- length(dimnames(ret)[[2]])
-    class(ret) <- c("solveRxDll");
-    attr(ret,"solveRxDll") <- lst;
+    ret <- object$.call(rxTrans(object)["ode_solver"],
+                 ## Parameters
+                 params,
+                 inits,
+                 lhs_vars,
+                 ## events
+                 event.table$time,
+                 as.integer(event.table$evid),
+                 as.double(event.table$amt[event.table$evid>0]),
+                 ## Covariates 
+                 as.integer(pcov),
+                 as.double(cov),
+                 as.integer(isLocf),
+                 ## Solver options (double)
+                 as.double(atol),
+                 as.double(rtol),
+                 as.double(hmin),
+                 as.double(hmax),
+                 as.double(hini),
+                 ## Solver options ()
+                 as.integer(maxordn),
+                 as.integer(maxords),
+                 as.integer(maxsteps),
+                 as.integer(stiff),
+                 as.integer(transit_abs),
+                 ## Passed to build solver object.
+                 object,
+                 extra.args);
+    rc <- attr(ret,"solveRxDll")$counts["rc"];
+    
+    ## Subset to observations only.
+    attr(ret,"solveRxDll")$matrix <- attr(ret,"solveRxDll")$matrix[events$get.obs.rec(),];
+    
+    if(rc!=0)
+        stop(sprintf("could not solve ODE, IDID=%d (see further messages)", rc))
+    
+    ## if (scaler.ix) {
+    ##     x[, scaler.ix] <- x[, scaler.ix]/scaler
+    ## }
+    
     return(ret);
 } # end function rxSolve.rxDll
  
@@ -3194,7 +3171,7 @@ asTbl <- function(obj){
 
 #' Get row names of rxSolve object
 #'
-#' @param x rxSovle object
+#' @param x rxSole object
 #' @param ... ignored arguments
 #' @keywords internal
 #' @export

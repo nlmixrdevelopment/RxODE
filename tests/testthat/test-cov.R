@@ -1,5 +1,7 @@
 library(RxODE)
 
+rxClean()
+
 context("Simple test for time-varying covariates.")
 
 ode <- 
