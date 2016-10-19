@@ -1,16 +1,13 @@
+#include <sys/stat.h> 
+#include <fcntl.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>   /* dj: import intptr_t */
 #include "dparse_tree.h"
-#ifdef __STANDALONE__
-#define Rprintf printf
-#define R_alloc calloc
-#else
 #include <R.h>
 #include <Rinternals.h>
 #include <R_ext/Rdynload.h>
 #include <Rmath.h>
-#endif
 #include "tran.g.d_parser.c"
 #define max(a,b) (a)>(b) ? (a):(b)
 #define MXSYM 5000
@@ -20,8 +17,56 @@
 #define SBPTR sb.s+sb.o
 #define SBTPTR sbt.s+sbt.o
 
-char *sbuf_read(char *pathname);  /* defined in util.h */
-char *dup_str(const char *s, const char *e);  /* dj: defined in dparser's util.h */
+// Taken from dparser and changed to use R_alloc
+int r_buf_read(const char *pathname, char **buf, int *len) {
+  struct stat sb;
+  int fd;
+
+  *buf = 0;
+  *len = 0;
+  fd = open(pathname, O_RDONLY);
+  if (fd <= 0) 
+    return -1;
+  memset(&sb, 0, sizeof(sb));
+  fstat(fd, &sb);
+  *len = sb.st_size;
+  *buf = (char*)R_alloc(*len + 2,sizeof(char));
+  // MINGW likes to convert cr lf => lf which messes with the size
+  size_t real_size = read(fd, *buf, *len);
+  (*buf)[real_size] = 0;
+  (*buf)[real_size + 1] = 0;
+  *len = real_size;
+  close(fd);
+  return *len;
+}
+
+// Taken from dparser and changed to use R_alloc
+char * r_sbuf_read(const char *pathname) {
+  char *buf;
+  int len;
+  if (r_buf_read(pathname, &buf, &len) < 0)
+    return NULL;
+  return buf;
+}
+
+
+// Taken from dparser and changed to use Calloc
+char * rc_dup_str(const char *s, const char *e) {
+  int l = e ? e-s : strlen(s);
+  char *ss = Calloc(l+1,char);
+  memcpy(ss, s, l);
+  ss[l] = 0;
+  return ss;
+}
+
+// Taken from dparser and changed to use R_alloc
+char * r_dup_str(const char *s, const char *e) {
+  int l = e ? e-s : strlen(s);
+  char *ss = (char*)R_alloc(l+1,sizeof(char));
+  memcpy(ss, s, l);
+  ss[l] = 0;
+  return ss;
+}
 
 extern D_ParserTables parser_tables_gram;
 
@@ -62,10 +107,7 @@ sbuf sb;			/* buffer w/ current parsed & translated line */
 sbuf sbt; 
 
 
-char *extra_buf, *model_prefix, *md5;
-#ifndef __STANDALONE__
-char *out2;
-#endif
+char *extra_buf, *model_prefix, *md5, *out2;
 
 
 static FILE *fpIO, *fpIO2;
@@ -124,7 +166,7 @@ void wprint_node(int depth, char *name, char *value, void *client_data) {
 void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_fn_t fn, void *client_data) {
   char *name = (char*)pt.symbols[pn->symbol].name;
   int nch = d_get_number_of_children(pn), i;
-  char *value = (char*)dup_str(pn->start_loc.s, pn->end);
+  char *value = (char*)rc_dup_str(pn->start_loc.s, pn->end);
   if ((!strcmp("identifier", name) || !strcmp("identifier_no_output",name)) &&
       new_or_ith(value)) {
     /* printf("[%d]->%s\n",tb.nv,value); */
@@ -198,8 +240,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
     sprintf(SBTPTR,"!=");
     sbt.o += 2;
   }
-  if (value) free(value);
-  value = NULL;
+  Free(value);
   
   depth++;
   if (nch != 0) {
@@ -243,7 +284,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       
       if (!strcmp("print_command",name)){
 	found_print = 1;
-	char *v = (char*)dup_str(xpn->start_loc.s, xpn->end);
+	char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
 	if  (!strncmp(v,"print",5)){
 	  fprintf(fpIO,"full_print;\n");
 	  fprintf(fpIO2,"print;\n");
@@ -253,12 +294,10 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         }
 	/* sprintf(sb.s,"%s",v); */
         /* sb.o = str; */
-        if (v) free(v);
-	v = NULL;
-
+        Free(v);
       }
       if (!strcmp("printf_statement",name)){
-	char *v = (char*)dup_str(xpn->start_loc.s, xpn->end);
+	char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
 	if (i == 0){
 	  if (!strncmp(v,"ode0",4)){
 	    sprintf(sb.s,"ODE0_Rprintf(");
@@ -302,15 +341,14 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  fprintf(fpIO,  "%s;\n", sb.s);
 	  fprintf(fpIO2, "%s;\n", sbt.s);
   	}
-	if (v) free(v);
-	
+	Free(v);
 	continue;
       } 
 
       if ( (!strcmp("jac",name) || !strcmp("jac_rhs",name) ||
 	    !strcmp("dfdy",name) || !strcmp("dfdy_rhs",name)) && i == 2){
 	found_jac = 1;
-        char *v = (char*)dup_str(xpn->start_loc.s, xpn->end);
+        char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
 	if (!strcmp("jac_rhs",name) || !strcmp("dfdy_rhs",name)){
 	  // Continuation statement
 	  sprintf(SBPTR,"__PDStateVar__[__CMT_NUM_%s__*(__NROWPD__)+",v);
@@ -324,13 +362,12 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         }
 	sb.o = strlen(sb.s);
 	sbt.o = strlen(sbt.s);
-        if (v) free(v);
-	v = NULL;
+        Free(v);
         continue;
       }
       if ((!strcmp("jac",name)  || !strcmp("jac_rhs",name) ||
 	   !strcmp("dfdy",name) || !strcmp("dfdy_rhs",name)) && i == 4){
-        char *v = (char*)dup_str(xpn->start_loc.s, xpn->end);
+        char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
 	sprintf(SBPTR, "__CMT_NUM_%s__]",v);
 	sb.o = strlen(sb.s);
 	sprintf(SBTPTR, "%s)",v);
@@ -342,8 +379,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  sprintf(SBTPTR ,"=");
           sbt.o += 1;
         }
-        if (v) free(v);
-	v = NULL;
+        Free(v);
         continue;
       }
       
@@ -381,7 +417,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       if (!strcmp("derivative", name) && i==2) {
         /* sprintf(sb.s, "__DDtStateVar__[%d] = InfusionRate[%d] +", tb.nd, tb.nd); */
         /* sb.o = strlen(sb.s); */
-        char *v = (char*)dup_str(xpn->start_loc.s, xpn->end);
+        char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
 	if (new_de(v)){
 	  sprintf(sb.s, "__DDtStateVar__[%d] = InfusionRate[%d] + ", tb.nd, tb.nd);
           sb.o = strlen(sb.s);
@@ -397,7 +433,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
           sprintf(tb.de+tb.pos_de, "%s,", v);
 	  tb.pos_de += strlen(v)+1;
           tb.deo[++tb.nd] = tb.pos_de;
-          /* free(buf); */
         } else {
 	  new_or_ith(v);
           /* printf("de[%d]->%s[%d]\n",tb.id,v,tb.ix); */
@@ -406,40 +441,26 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  sprintf(sbt.s, "d/dt(%s)=", v);
           sbt.o = strlen(sbt.s);
 	}
-        if (v) free(v);
-	v = NULL;
+        Free(v);
         continue;
       }
       if (!strcmp("der_rhs", name)) {
-      	char *v = (char*)dup_str(xpn->start_loc.s, xpn->end);
+      	char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
         if (new_de(v)){
-#ifdef __STANDALONE__
-          fprintf(stderr,"Tried to use d/dt(%s) before it was defined",v);
-	  if (v) free(v);
-	  v = NULL;
-          if (tb.ss) free(tb.ss);
-	  tb.ss = NULL;
-          if (tb.de) free(tb.de);
-	  tb.de = NULL;
-          exit(-1);
-#else
 	  error("Tried to use d/dt(%s) before it was defined",v);
-          if (v) free(v);
-	  v = NULL;
-#endif
+          Free(v);
 	} else {
 	  sprintf(SBPTR, "__DDtStateVar__[%d]", tb.id);
 	  sb.o = strlen(sb.s);
 	  sprintf(SBTPTR, "d/dt(%s)", v);
           sbt.o = strlen(sbt.s);
 	}
-        free(v);
-	v = NULL;
+        Free(v);
 	continue;
       }
 
       if ((!strcmp("assignment", name) || !strcmp("ini", name) || !strcmp("ini0", name)) && i==0) {
-        char *v = (char*)dup_str(xpn->start_loc.s, xpn->end);
+        char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
 	if (!strcmp("ini", name) || !strcmp("ini0", name)){
 	  sprintf(sb.s, "(__0__)%s", v);
           sb.o = strlen(v)+7;
@@ -475,8 +496,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    }
 	  }
 	}
-        free(v);
-	v = NULL;
+        Free(v);
       }
     }
 
@@ -510,16 +530,7 @@ void retieve_var(int i, char *buf) {
 void err_msg(int chk, const char *msg, int code)
 {
   if(!chk) {
-#ifdef __STANDALONE__
-    if (tb.ss) free(tb.ss);
-    tb.ss = NULL;
-    if (tb.de) free(tb.de);
-    tb.de = NULL;
-    fprintf(stderr, "%s", msg);
-    exit(code);
-#else
     error("%s",msg);
-#endif
   }
 }
 
@@ -617,11 +628,7 @@ void print_aux_info(FILE *outpt, char *model){
   fclose(fpIO2);
   fprintf(outpt,"\"));\n");
 
-#ifdef __STANDALONE__
-  fpIO2 = fopen("out2.txt", "r");
-#else
   fpIO2 = fopen(out2, "r");
-#endif
   fprintf(outpt,"\tSET_STRING_ELT(modeln,2,mkChar(\"parseModel\"));\n");
   fprintf(outpt,"\tSET_STRING_ELT(model,2,mkChar(\"");
   err_msg((intptr_t) fpIO2, "Coudln't access out2.txt.\n", -1);
@@ -640,11 +647,7 @@ void print_aux_info(FILE *outpt, char *model){
   }
   fclose(fpIO2);
   fprintf(outpt,"\"));\n");
-#ifdef __STANDALONE__
-  fpIO2 = fopen("out2.txt", "r");
-#else
   fpIO2 = fopen(out2, "r");
-#endif
   s_aux_info[0] = '\0';
   o    = 0;
   while(fgets(sLine, MXLEN, fpIO2)) { 
@@ -808,11 +811,7 @@ void codegen(FILE *outpt, int show_ode) {
       fprintf(outpt, "\t%s = __zzStateVar__[%d];\n", buf, i);
     }
     fprintf(outpt,"\n");
-#ifdef __STANDALONE__
-    fpIO = fopen("out2.txt", "r");
-#else
     fpIO = fopen(out2, "r");
-#endif
     err_msg((intptr_t) fpIO, "Coudln't access out2.txt.\n", -1);
     while(fgets(sLine, MXLEN, fpIO)) {  /* parsed eqns */
       char *s;
@@ -981,10 +980,8 @@ void reset (){
 
 void inits() {
   if (!ini){
-    tb.ss = (char *) malloc(64*MXSYM);
-    err_msg((intptr_t) tb.ss, "error allocating vars", 1);
-    tb.de = (char *) malloc(64*MXSYM);
-    err_msg((intptr_t) tb.de, "error allocating des", 1);
+    tb.ss = Calloc(64*MXSYM,char);
+    tb.de = Calloc(64*MXSYM,char);
     ini = 1;
   }
   reset();
@@ -998,15 +995,11 @@ void trans_internal(char* parse_file, char* c_file){
      below 1024 is used */
   D_Parser *p = new_D_Parser(&parser_tables_gram, 1024);
   p->save_parse_tree = 1;
-  buf = sbuf_read(parse_file);
+  buf = r_sbuf_read(parse_file);
   err_msg((intptr_t) buf, "error: empty buf for FILE_to_parse\n", -2);
   if ((pn=dparse(p, buf, strlen(buf))) && !p->syntax_errors) {
     inits();
-#ifdef __STANDALONE__
-    fpIO  = fopen( "out2.txt", "w" );
-#else
     fpIO = fopen( out2, "w" );
-#endif
     fpIO2 = fopen( "out3.txt", "w" );
     err_msg((intptr_t) fpIO, "error opening out2.txt\n", -2);
     err_msg((intptr_t) fpIO2, "error opening out3.txt\n", -2);
@@ -1020,59 +1013,18 @@ void trans_internal(char* parse_file, char* c_file){
     codegen(fpIO, 0);
     print_aux_info(fpIO,buf);
     fclose(fpIO);
-#ifdef __STANDALONE__
-    remove("out2.txt");
-    remove("out3.txt");
-#endif
   } else {
     Rprintf("\nSyntax Error\n");
   }
-#ifdef __STANDALONE__
-  if (tb.ss) free(tb.ss);
-  tb.ss = NULL;
-  if (tb.de) free(tb.de);
-  tb.de = NULL;
-  if (extra_buf) free(extra_buf);
-  extra_buf = NULL;
-#endif
 }
 
-#ifdef __STANDALONE__
-int main(int argc, char *argv[]) {
-  if (argc<3) {
-    fprintf(stderr,"Usage: %s FILE_to_parse c_FILE [extra_c]\n",argv[0]);
-    return -1;
-  }
-  model_prefix = (char *) malloc(1);
-  model_prefix = '\0';
-  if (argc >= 3){ 
-    extra_buf = sbuf_read(argv[3]); 
-    if (!((intptr_t) extra_buf)){
-      extra_buf = (char *) malloc(1);
-      extra_buf[0] = '\0';
-    }
-  } else {
-    if (!((intptr_t) extra_buf)){
-      extra_buf = (char *) malloc(1);
-      extra_buf[0] = '\0';
-    }
-  }
-  trans_internal(argv[1], argv[2]);
-  if (model_prefix) free(model_prefix);
-  model_prefix = NULL;
-  return 0;
-}
-#else
 void R_init_RxODE(DllInfo *info){
   inits();
 }
 void R_unload_RxODE(DllInfo *info){
-  if (tb.ss) free(tb.ss);
-  tb.ss = NULL;
-  if (tb.de) free(tb.de);
-  tb.de = NULL;
-  if (extra_buf) free(extra_buf);
-  extra_buf = NULL;
+  Free(tb.ss);
+  Free(tb.de);
+  Free(extra_buf);
 }
 SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_md5,
 	   SEXP parse_model){
@@ -1089,46 +1041,39 @@ SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_m
   if (!isString(c_file) || length(c_file) != 1){
     error("c_file is not a single string");
   }
-  if (extra_buf) free(extra_buf);
-  extra_buf = NULL;
   if (isString(extra_c) && length(extra_c) == 1){
-    in = dup_str(CHAR(STRING_ELT(extra_c,0)),0);
-    extra_buf = sbuf_read(in);
-    if (in) free(in);
+    in = r_dup_str(CHAR(STRING_ELT(extra_c,0)),0);
+    extra_buf = r_sbuf_read(in);
     if (!((intptr_t) extra_buf)){ 
-      extra_buf = (char *) malloc(1);
+      extra_buf = (char *) R_alloc(1,sizeof(char));
       extra_buf[0]='\0';
     }
   } else {
-    extra_buf = (char *) malloc(1); 
+    extra_buf = (char *) R_alloc(1,sizeof(char));
     extra_buf[0] = '\0';
   }
   
-  in = dup_str(CHAR(STRING_ELT(parse_file,0)),0);
-  out = dup_str(CHAR(STRING_ELT(c_file,0)),0);
+  in = r_dup_str(CHAR(STRING_ELT(parse_file,0)),0);
+  out = r_dup_str(CHAR(STRING_ELT(c_file,0)),0);
   
   
   if (isString(prefix) && length(prefix) == 1){
-    model_prefix = dup_str(CHAR(STRING_ELT(prefix,0)),0);
+    model_prefix = r_dup_str(CHAR(STRING_ELT(prefix,0)),0);
   } else {
     error("model prefix must be specified");
   }
 
-  if (md5) free(md5);
-  md5 = NULL;
   if (isString(model_md5) && length(model_md5) == 1){
-    md5 = dup_str(CHAR(STRING_ELT(model_md5,0)),0);
+    md5 = r_dup_str(CHAR(STRING_ELT(model_md5,0)),0);
   } else {
-    md5 = (char *) malloc(1);
+    md5 = R_alloc(1,sizeof(char));
     md5[0] = '\0';
   }
   
-  if (out2) free(out2);
-  out2 = NULL;
   if (isString(parse_model) && length(parse_model) == 1){
-    out2 = dup_str(CHAR(STRING_ELT(parse_model,0)),0);
+    out2 = r_dup_str(CHAR(STRING_ELT(parse_model,0)),0);
   } else {
-    out2 = (char *) malloc(9); 
+    out2 = (char *) R_alloc(9,sizeof(char)); 
     sprintf(out2,"out2.txt"); 
   }
   trans_internal(in, out);
@@ -1247,8 +1192,8 @@ SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_m
       }
     }
   }
-  file = sbuf_read(in);
-  pfile = (char *) malloc(strlen(file)+1);
+  file = r_sbuf_read(in);
+  pfile = (char *) R_alloc(strlen(file)+1,sizeof(char));
   j=0;
   for (i = 0; i < strlen(file); i++){
     if (file[i] == '"'  ||
@@ -1260,14 +1205,11 @@ SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_m
   }
   SET_STRING_ELT(modeln,0,mkChar("model"));
   SET_STRING_ELT(model,0,mkChar(pfile));
-  free(pfile);
-  pfile = NULL;
-  free(file);
   
   SET_STRING_ELT(modeln,1,mkChar("normModel"));
-  file = sbuf_read("out3.txt");
+  file = r_sbuf_read("out3.txt");
   if (file){
-    pfile = (char *) malloc(strlen(file)+1);
+    pfile = (char *) R_alloc(strlen(file)+1,sizeof(char));
     j=0;
     for (i = 0; i < strlen(file); i++){
       if (file[i] == '"'  ||
@@ -1278,16 +1220,14 @@ SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_m
       }
     }
     SET_STRING_ELT(model,1,mkChar(pfile));
-    free(pfile);
-    pfile = NULL;
   } else {
     SET_STRING_ELT(model,1,mkChar("Syntax Error"));
   }
   /* printf("parseModel\n"); */
   SET_STRING_ELT(modeln,2,mkChar("parseModel"));
-  file = sbuf_read(out2);
+  file = r_sbuf_read(out2);
   if (file){
-    pfile = (char *) malloc(strlen(file)+1);
+    pfile = (char *) R_alloc(strlen(file)+1,sizeof(char));
     j=0;
     for (i = 0; i < strlen(file); i++){
       if (file[i] == '"'  ||
@@ -1298,8 +1238,6 @@ SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_m
       }
     }
     SET_STRING_ELT(model,2,mkChar(pfile));
-    free(pfile);
-    pfile = NULL;
   } else {
     SET_STRING_ELT(model,2,mkChar("Syntax Error"));
   }
@@ -1311,11 +1249,5 @@ SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_m
   UNPROTECT(11);
   remove("out3.txt");
   reset();
-  if (in) free(in);
-  in = NULL;
   return lst;
 }
-
-
-//FILE_to_parse c_FILE [aux_file_direcory extra_c]\n",argv[0]);
-#endif
