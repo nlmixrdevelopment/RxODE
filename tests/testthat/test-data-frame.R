@@ -1,10 +1,8 @@
 library(RxODE)
 library(dplyr)
 library(digest)
+rxClean();
 context("rxSolve objects behave as data-frames")
-
-test.dir <- tempfile("Rxmult-")
-
 ## RxODE instance 1
 m1 <- 
     RxODE(
@@ -14,10 +12,7 @@ m1 <-
          d/dt(depot) =-KA*depot;
          d/dt(centr) = KA*depot - CL*C2 - Q*C2 + Q*C3;
          d/dt(peri)  =                    Q*C2 - Q*C3;
-         d/dt(eff)  = Kin - Kout*(1-C2/(EC50+C2))*eff;',
-        modName = "inst1",
-        wd = test.dir
-    )
+         d/dt(eff)  = Kin - Kout*(1-C2/(EC50+C2))*eff;')
 
 test_that("RxODE instance 1 is created",{
     expect_equal(class(m1),"RxODE");
@@ -117,3 +112,4 @@ test_that("rownames lookup & assignment makes sense",{
     rownames(o1.first) <- NULL;
     expect_equal(rownames(o1.first),NULL);
 })
+rxClean();

@@ -76,3 +76,4 @@ test_that("Some User jacobian are called.",{
 test_that("Same solutions",{
     expect_true(all(counts0$digest == counts$digest))
 })
+rxClean();

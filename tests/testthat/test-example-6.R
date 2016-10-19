@@ -1,5 +1,6 @@
 require(RxODE);
 context("Test Jacobian specification")
+rxClean();
 require(digest)
 ## https://cran.r-project.org/web/packages/diffEq/vignettes/ODEinR.pdf p11
 

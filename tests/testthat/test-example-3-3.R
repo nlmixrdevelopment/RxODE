@@ -3,6 +3,7 @@
 ## https://cran.r-project.org/web/packages/diffEq/vignettes/ODEinR.pdf Example #3
 library(digest)
 context("Example 3.3");
+rxClean();
 rigid <- RxODE("
 y1(0)    = 1
 y2(0)    = 0
@@ -24,3 +25,4 @@ test_that("Test rigid body example",{
     expect_equal(digest(signif(as.data.frame(out),6),"sha512"),
                  "425700f73c63dad8a51a0b1f78a1e2dcde2cc64106609fd0528c517a52ce8c918f8ff1ed2bc2deabc5cf007adee345371e27490bb46a69953e6c12586e0b5bf6")
 })
+rxClean();

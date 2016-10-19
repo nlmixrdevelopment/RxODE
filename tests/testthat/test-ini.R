@@ -1,5 +1,6 @@
 library(RxODE);
 context("Test Inis");
+rxClean();
 
 out <- RxODE("ini = 1; fun_ini = 2; fun = 4; addit = ini + fun_ini + pi + no_ini")
 
