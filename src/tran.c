@@ -106,13 +106,9 @@ sbuf sb;			/* buffer w/ current parsed & translated line */
         			/* to be stored in a temp file */
 sbuf sbt; 
 
-
 char *extra_buf, *model_prefix, *md5, *out2;
 
-
 static FILE *fpIO, *fpIO2;
-
-
 
 /* new symbol? if no, find it's ith */
 int new_or_ith(const char *s) {
@@ -175,7 +171,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
     tb.vo[++tb.nv] = tb.pos;
     
   }
-
   if (!strcmp("(", name) ||
       !strcmp(")", name) ||
       !strcmp(",", name)
@@ -184,11 +179,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
     sb.o++;
     sprintf(SBTPTR,"%s",name);
     sbt.o++;
-
   }
-  
-  if (
-      !strcmp("identifier", name) ||
+  if (!strcmp("identifier", name) ||
       !strcmp("constant", name) ||
       !strcmp("+", name) ||
       !strcmp("-", name) ||
@@ -961,6 +953,8 @@ void codegen(FILE *outpt, int show_ode) {
   }
 }
 void reset (){
+  tb.ss = (char*)R_alloc(64*MXSYM,sizeof(char));
+  tb.de = (char*)R_alloc(64*MXSYM,sizeof(char));
   tb.vo[0]=0;
   tb.deo[0]=0;
   memset(tb.lh,  0, MXSYM);
@@ -978,13 +972,6 @@ void reset (){
   found_jac = 0;
 }
 
-void inits() {
-  tb.ss = (char*)R_alloc(64*MXSYM,sizeof(char));
-  tb.de = (char*)R_alloc(64*MXSYM,sizeof(char));
-  reset();
-}
-
-
 void trans_internal(char* parse_file, char* c_file){
   char *buf;
   D_ParseNode *pn;
@@ -995,7 +982,7 @@ void trans_internal(char* parse_file, char* c_file){
   buf = r_sbuf_read(parse_file);
   err_msg((intptr_t) buf, "error: empty buf for FILE_to_parse\n", -2);
   if ((pn=dparse(p, buf, strlen(buf))) && !p->syntax_errors) {
-    inits();
+    reset();
     fpIO = fopen( out2, "w" );
     fpIO2 = fopen( "out3.txt", "w" );
     err_msg((intptr_t) fpIO, "error opening out2.txt\n", -2);
@@ -1016,7 +1003,6 @@ void trans_internal(char* parse_file, char* c_file){
 }
 
 void R_init_RxODE(DllInfo *info){
-  inits();
 }
 void R_unload_RxODE(DllInfo *info){
 }
