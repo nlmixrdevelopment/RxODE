@@ -70,7 +70,7 @@ char * r_dup_str(const char *s, const char *e) {
 
 extern D_ParserTables parser_tables_gram;
 
-unsigned int found_jac = 0, ini = 0, found_print = 0;
+unsigned int found_jac = 0, found_print = 0;
 
 char s_aux_info[64*MXSYM];
 
@@ -979,11 +979,8 @@ void reset (){
 }
 
 void inits() {
-  if (!ini){
-    tb.ss = Calloc(64*MXSYM,char);
-    tb.de = Calloc(64*MXSYM,char);
-    ini = 1;
-  }
+  tb.ss = (char*)R_alloc(64*MXSYM,sizeof(char));
+  tb.de = (char*)R_alloc(64*MXSYM,sizeof(char));
   reset();
 }
 
@@ -1022,10 +1019,8 @@ void R_init_RxODE(DllInfo *info){
   inits();
 }
 void R_unload_RxODE(DllInfo *info){
-  Free(tb.ss);
-  Free(tb.de);
-  Free(extra_buf);
 }
+
 SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_md5,
 	   SEXP parse_model){
   char *in, *out, *file, *pfile;

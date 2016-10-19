@@ -7,7 +7,7 @@
 \method{row.names}{solveRxDll}(x, ...)
 }
 \arguments{
-\item{x}{rxSovle object}
+\item{x}{rxSole object}
 
 \item{...}{ignored arguments}
 }

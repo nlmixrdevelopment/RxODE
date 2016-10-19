@@ -52,10 +52,12 @@ int    MXORDS;
 double *all_times;
 FILE *fp;
 
-
 void __DYDT__(unsigned int neq, double t, double *A, double *DADT);
 void __CALC_LHS__(double t, double *A, double *lhs);
 void __CALC_JAC__(unsigned int neq, double t, double *A, double *JAC, unsigned int __NROWPD__);
+
+void (*dydt)(unsigned int neq, double t, double *A, double *DADT);
+void (*calc_jac)(unsigned int neq, double t, double *A, double *JAC, unsigned int __NROWPD__);
 
 void update_par_ptr(double t){
   // Update all covariate parameters
@@ -103,11 +105,11 @@ void update_par_ptr(double t){
 //--------------------------------------------------------------------------
 void dydt_lsoda_dum(int *neq, double *t, double *A, double *DADT)
 {
-  __DYDT__(*neq, *t, A, DADT);
+  dydt(*neq, *t, A, DADT);
 }
 void jdum_lsoda(int *neq, double *t, double *A,int *ml, int *mu, double *JAC, int *nrowpd){
   // Update all covariate parameters
-  __CALC_JAC__(*neq, *t, A, JAC, *nrowpd);
+  calc_jac(*neq, *t, A, JAC, *nrowpd);
 }
 void call_lsoda(int neq, double *x, int *evid, int nx, double *inits, double *dose, double *ret, int *rc)
 {
@@ -134,8 +136,8 @@ void call_lsoda(int neq, double *x, int *evid, int nx, double *inits, double *do
 #ifdef __DEBUG__
   Rprintf("JT: %d\n",jt);
 #endif
-  rwork = (double*)R_alloc(lrw, sizeof(double));
-  iwork = (int*)R_alloc(liw, sizeof(int));
+  rwork = (double*)R_alloc(lrw+1, sizeof(double));
+  iwork = (int*)R_alloc(liw+1, sizeof(int));
 
   iopt = 1;
   
@@ -227,11 +229,11 @@ void call_lsoda(int neq, double *x, int *evid, int nx, double *inits, double *do
 
 void dydt_dvode_dum(int *neq, double *t, double *A, double *DADT, double *RPAR, int *IPAR)
 {
-  __DYDT__(*neq, *t, A, DADT);
+  dydt(*neq, *t, A, DADT);
 }
 
 void jdum_dvode(int *neq, double *t, double *A,int *ml, int *mu, double *JAC, int *nrowpd, double *RPAR, int *IPAR) {
-  __CALC_JAC__(*neq, *t, A, JAC, *nrowpd);
+  calc_jac(*neq, *t, A, JAC, *nrowpd);
 }
 
 void call_dvode(int neq, double *x, int *evid, int nx, double *inits, double *dose, double *ret, int *rc)
@@ -262,8 +264,8 @@ void call_dvode(int neq, double *x, int *evid, int nx, double *inits, double *do
 #ifdef __DEBUG__
         Rprintf("MF: %d\n",mf);
 #endif
-        rwork = (double*)R_alloc(lrw, sizeof(double));
-	iwork = (int*)R_alloc(liw, sizeof(int));
+        rwork = (double*)R_alloc(lrw+1, sizeof(double));
+	iwork = (int*)R_alloc(liw+1, sizeof(int));
 #ifdef __STANDALONE__
 	if (!(rwork && iwork))
 	{
@@ -383,7 +385,7 @@ void call_dop(int neq, double *x, int *evid, int nx, double *inits, double *dose
 		{
 			idid = dop853(
 							  neq,      	/* dimension of the system <= UINT_MAX-1*/
-							  __DYDT__,    	/* function computing the value of f(x,y) */
+							  dydt,    	/* function computing the value of f(x,y) */
 							  xp,           /* initial x-value */
 							  yp,           /* initial values for y */
 							  xout,         /* final x-value (xend-x may be positive or negative) */
@@ -514,7 +516,9 @@ SEXP __ODE_SOLVER__ (// Parameters
   dadt_counter   = 0;
   jac_counter    = 0;
   int i = 0, j = 0;
-  
+  // Update function pointers
+  dydt     = __DYDT__;
+  calc_jac = __CALC_JAC__;
   SEXP sexp_ret     = PROTECT(allocMatrix(REALSXP, n_all_times, ncov+1+neq+nlhs));
   SEXP sexp_counter = PROTECT(allocVector(INTSXP,4));
   int    *counts    = INTEGER(sexp_counter);
