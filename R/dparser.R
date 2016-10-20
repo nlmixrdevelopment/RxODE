@@ -107,18 +107,20 @@ mkdparse <- function(file,outputFile,
                      verbose = TRUE,
                      write_extension="c"
                      ){
+    file <- gsub("\\\\","/",file);
     if (missing(write_header) || write_header == "IfEmpty"){
         write_header <- -1;
     }
     if (ident_from_filename){
         ## Put ident from the filename
-        grammar_ident = gsub("[.][^.]$","",basename(file));
+        grammar_ident = (gsub("[.][^.]$","",basename(file)));
     }
     if (missing(outputFile)){
         outputFile <- file.path(dirname(file),paste0(basename(file),".d_parser.",write_extension));
     } else if (dir.exists(outputFile)){
         outputFile <- file.path(outputFile,paste0(basename(file),".d_parser.",write_extension));
     }
+    outputFile <- gsub("\\\\","/",outputFile);
     if (missing(token_type)){
         token_type <- 0;
     } else if (token_type == "enum"){

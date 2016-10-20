@@ -4,7 +4,7 @@
   Original dparser Available at http://dparser.sf.net
 */
 
-#line 7 "c:\SVN\Wenping\RxODE/src/tran.g.d_parser.c"
+#line 7 "c:/SVN/Wenping/RxODE/src/tran.g.d_parser.c"
 #include "dparse.h"
 
 D_Reduction d_reduction_0_gram = {1, 0, NULL, NULL, 0, 0, 0, 0, -1, 0, NULL};
