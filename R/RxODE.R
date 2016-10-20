@@ -293,7 +293,7 @@ regIni <- rex::rex(or(group(one_of("_."),"0"),"0","(0)","[0]","{0}"),end);
 #' @concept Ordinary differential equations
 #' @concept Pharmacokinetics (PK)
 #' @concept Pharmacodynamics (PD)
-#' @useDynLib RxODE trans
+#' @useDynLib RxODE trans cDparser
 #' @export
 RxODE <-
     function(model, modName = basename(wd), wd = getwd(),

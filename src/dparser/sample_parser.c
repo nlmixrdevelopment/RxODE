@@ -114,13 +114,13 @@ main(int argc, char *argv[]) {
     } else {
       fn = d_dup_pathname_str(p->loc.pathname);
       fprintf(stderr, "fatal error, '%s' line %d\n", fn, p->loc.line);
-      FREE(fn);
+      Free(fn);
     }
     if (buf)
-      FREE(buf);
+      Free(buf);
   }
   free_D_Parser(p);
   free_args(&arg_state);
-  exit(0);
+  /exit(0);
 }
 

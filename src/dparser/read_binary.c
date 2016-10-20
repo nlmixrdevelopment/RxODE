@@ -17,12 +17,12 @@ read_binary_tables_internal(FILE *fp, unsigned char *str,
 {
   BinaryTablesHead tables;
   int i;
-  BinaryTables * binary_tables = MALLOC(sizeof(BinaryTables));
+  BinaryTables * binary_tables = Calloc(1,BinaryTables);
   char *tables_buf, *strings_buf;
 
   read_chk(&tables, sizeof(BinaryTablesHead), 1, fp, &str);
 
-  tables_buf = MALLOC(tables.tables_size + tables.strings_size);
+  tables_buf = Calloc(tables.tables_size + tables.strings_size,char);
   read_chk(tables_buf, sizeof(char), tables.tables_size, fp, &str);
   strings_buf = tables_buf + tables.tables_size;
   read_chk(strings_buf, sizeof(char), tables.strings_size, fp, &str);

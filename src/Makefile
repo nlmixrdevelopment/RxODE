@@ -12,16 +12,11 @@ libodeaux:
 
 libdparse:
 	echo "make libdparse.a in dparser/ ..."
-	(cd dparser; $(MAKE) -f Makefile.org CC="$(CC)" CFLAGS="$(CFLAGS) -fPIC" libdparse.a)
-
-libtran:
-	echo "make tran ..."
-	($(CC) tran.c -Idparser -Ldparser -ldparse -D__STANDALONE__ -o tran.exe)
+	(cd dparser; $(MAKE) -f Makefile.org CC="$(CC)" CFLAGS="$(CFLAGS) -I$(R_HOME)/include -fPIC" libdparse.a)
 
 trandll:
 	echo "make RxODE.so or RxODE.sl ..."
 	(mkdir dll; cp *.c dll; cp Makevars-dll dll/Makevars; cd dll; mv tran.c RxODE.c; "$(R_HOME)/bin/R" CMD SHLIB RxODE.c; mv RxODE.s* ..; cd ..; rm -rf dll)
-
 
 clean:
 	echo "cleaning ..."

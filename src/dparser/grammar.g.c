@@ -21,7 +21,7 @@ int d_final_reduction_code_4_7_dparser_gram(void *_ps, void **_children, int _n_
   char *grammar_pathname = dup_str((*(D_PN(_children[1], _offset))).start_loc.s+1, (*(D_PN(_children[1], _offset))).end-1);
   if (parse_grammar((D_PN(_ps, _offset)->globals), grammar_pathname, 0) < 0)
     d_fail("unable to parse grammar '%s'", grammar_pathname);
-  FREE(grammar_pathname);    
+  Free(grammar_pathname);    
   return 0;}
 
 #line 28 "grammar.g.d_parser.c"

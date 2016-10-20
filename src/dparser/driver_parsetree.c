@@ -30,17 +30,17 @@ int main(int argc, char *argv[]) {
       return -2;
     }
   }
-  printf("file: %s\n", argv[1]);
-  printf("----------\n%s", buf);
-  printf("----------\n");
+  Rprintf("file: %s\n", argv[1]);
+  Rprintf("----------\n%s", buf);
+  Rprintf("----------\n");
 
   if ((pn=dparse(p, buf, strlen(buf))) && !p->syntax_errors) {
-    printf("\nparse tree\n");
-    printf("----------\n");
+    Rprintf("\nparse tree\n");
+    Rprintf("----------\n");
     print_parsetree(parser_tables_gram, pn, NULL, NULL);
-    printf("\n");
+    Rprintf("\n");
   } else {
-    printf("\nfailure\n");
+    Rprintf("\nfailure\n");
   }
   return 0;
 }

@@ -30,30 +30,12 @@
 #include <dirent.h>
 #include <ctype.h>
 #include <string.h>
+#include <R.h>
+#include <Rinternals.h>
 
-#ifdef LEAK_DETECT
-#define GC_DEBUG
-#include "gc.h"
-#define MALLOC(n) GC_MALLOC(n)
-#define CALLOC(m,n) GC_MALLOC((m)*(n))
-#define FREE(p) GC_FREE(p)
-#define REALLOC(p,n) GC_REALLOC((p),(n))
-#define CHECK_LEAKS() GC_gcollect()
-#else
-#ifdef USE_GC
-#include "gc.h"
-#define MALLOC GC_MALLOC
-#define REALLOC GC_REALLOC
-#define FREE(_x)
-#define malloc dont_use_malloc_use_MALLOC_instead
-#define relloc dont_use_realloc_use_REALLOC_instead
-#define free dont_use_free_use_FREE_instead
-#else
-#define MALLOC malloc
-#define REALLOC realloc
-#define FREE free
-#endif
-#endif
+#define D_MAJOR_VERSION 1
+#define D_MINOR_VERSION 30
+#define D_BUILD_VERSION "R-6a201e22e57e77c297d3c43fdb245125ed3b7d64"
 
 // enough already with the signed/unsiged char issues
 #define isspace_(_c) isspace((unsigned char)(_c))

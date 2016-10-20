@@ -31,7 +31,7 @@ typedef struct LexState {
 
 static NFAState *
 new_NFAState(LexState *ls) {
-  NFAState *n = MALLOC(sizeof(NFAState));
+  NFAState *n = R_chk_calloc(1,sizeof(NFAState));
   memset(n, 0, sizeof(NFAState));
   n->index = ls->nfa_index++;
   vec_add(&ls->allnfas, n);
@@ -40,7 +40,7 @@ new_NFAState(LexState *ls) {
 
 static DFAState *
 new_DFAState() {
-  DFAState *n = MALLOC(sizeof(DFAState));
+  DFAState *n = R_chk_calloc(1,sizeof(DFAState));
   memset(n, 0, sizeof(DFAState));
   return n;
 }
@@ -48,7 +48,7 @@ new_DFAState() {
 static void
 free_DFAState(DFAState *y) {
   vec_free(&y->states);
-  FREE(y);
+  Free(y);
 }
 
 static void
@@ -66,7 +66,7 @@ free_NFAState(NFAState *y) {
     vec_free(&y->chars[i]);
   vec_free(&y->epsilon);
   vec_free(&y->accepts);
-  FREE(y);
+  Free(y);
 }
 
 static void
@@ -79,7 +79,7 @@ free_VecNFAState(VecNFAState *nfas) {
 
 static ScanState *
 new_ScanState() {
-  ScanState *n = MALLOC(sizeof(ScanState));
+  ScanState *n = R_chk_calloc(1,sizeof(ScanState));
   memset(n, 0, sizeof(ScanState));
   return n;
 }
@@ -434,7 +434,7 @@ build_transitions(LexState *ls, Scanner *s) {
     ss = states->v[i];
     for (j = 0; j < 256; j++) {
       if (!trans) {
-	trans = MALLOC(sizeof(*trans));
+	trans = R_chk_calloc(1,sizeof(*trans));
 	memset(trans, 0, sizeof(*trans));
       }
       if (ss->chars[j]) {
@@ -452,7 +452,7 @@ build_transitions(LexState *ls, Scanner *s) {
     }
   }
   if (trans)
-    FREE(trans);
+    Free(trans);
   j = 0;
   set_to_vec(&s->transitions);
   for (i = 0; i < s->transitions.n; i++)
@@ -513,7 +513,7 @@ build_state_scanner(Grammar *g, LexState *ls, State *s) {
   for (j = 0; j < s->shift_actions.n; j++) {
     a = s->shift_actions.v[j];
     if (a->kind == ACTION_SHIFT && a->term->kind == TERM_REGEX) {
-      Action *trailing_context = (Action *)MALLOC(sizeof(Action));
+      Action *trailing_context = Calloc(1,Action);
       memcpy(trailing_context, a, sizeof(Action));
       trailing_context->kind = ACTION_SHIFT_TRAILING;
       trailing_context->index = g->action_count++;
@@ -527,7 +527,7 @@ build_state_scanner(Grammar *g, LexState *ls, State *s) {
 	s->trailing_context = 1;
 	vec_add(&g->actions, trailing_context);
       } else
-	FREE(trailing_context);
+	Free(trailing_context);
       vec_add(&nn->accepts, a);
     }
   }
@@ -541,7 +541,7 @@ build_state_scanner(Grammar *g, LexState *ls, State *s) {
 
 static LexState *
 new_LexState() {
-  LexState *ls = MALLOC(sizeof(LexState));
+  LexState *ls = R_chk_calloc(1,sizeof(LexState));
   memset(ls, 0, sizeof(LexState));
   vec_clear(&ls->allnfas);
   return ls;
@@ -587,6 +587,6 @@ build_scanners(Grammar *g) {
   }
   if (d_verbose_level)
     printf("%d scanners %d transitions\n", ls->scanners, ls->transitions);
-  FREE(ls);
+  Free(ls);
 }
 

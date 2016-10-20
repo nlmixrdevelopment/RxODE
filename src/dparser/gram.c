@@ -15,11 +15,11 @@ Production *
 new_production(Grammar *g, char *name) {
   Production *p; 
   if ((p = lookup_production(g, name, strlen(name)))) {
-    FREE(name);
+    Free(name);
     return p;
   }
-  p = MALLOC(sizeof(Production));
-  memset(p, 0, sizeof(Production));
+  p = Calloc(1,Production);
+  //memset(p, 0, sizeof(Production));
   vec_add(&g->productions, p);
   p->name = name;
   p->name_len = strlen(name);
@@ -28,15 +28,15 @@ new_production(Grammar *g, char *name) {
 
 static Elem *
 new_elem() {
-  Elem *e = MALLOC(sizeof(Elem));
-  memset(e, 0, sizeof(Elem));
+  Elem *e = Calloc(1,Elem);
+  //memset(e, 0, sizeof(Elem));
   return e;
 }
 
 Rule *
 new_rule(Grammar *g, Production *p) {
-  Rule *r = MALLOC(sizeof(Rule));
-  memset(r, 0, sizeof(Rule));
+  Rule *r = Calloc(1, Rule);
+  //memset(r, 0, sizeof(Rule));
   r->prod = p;
   r->end = new_elem();
   r->end->kind = ELEM_END;
@@ -47,8 +47,8 @@ new_rule(Grammar *g, Production *p) {
 
 static Term *
 new_term() {
-  Term *term = MALLOC(sizeof(Term));
-  memset(term, 0, sizeof(Term));
+  Term *term = Calloc(1,Term);
+  //memset(term, 0, sizeof(Term));
   return term;
 }
 
@@ -76,7 +76,7 @@ new_term_string(Grammar *g, char *s, char *e, Rule *r) {
   Term *t = new_term();
   Elem *elem;
 
-  t->string = MALLOC(e - s + 1);
+  t->string = Calloc(e - s + 1,char);
   memcpy(t->string, s, e - s);
   t->string[e - s] = 0;
   t->string_len = e - s;
@@ -87,7 +87,7 @@ new_term_string(Grammar *g, char *s, char *e, Rule *r) {
 
 char *
 escape_string_for_regex(const char *s) {
-  char *ss = (char*)MALLOC((strlen(s) + 1) * 2), *sss = ss;
+  char *ss = (char*)Calloc((strlen(s) + 1) * 2,char), *sss = ss;
   for (; *s; s++) {
     switch (*s) {
       case '(':
@@ -270,7 +270,7 @@ new_ident(char *s, char *e, Rule *r) {
 void
 new_token(Grammar *g, char *s, char *e) {
   Term *t = new_term();
-  t->string = MALLOC(e - s + 1);
+  t->string = Calloc(e - s + 1,char);
   memcpy(t->string, s, e - s);
   t->string[e - s] = 0;
   t->string_len = e - s;
@@ -287,7 +287,7 @@ new_code(Grammar *g, char *s, char *e, Rule *r) {
 
 Elem *
 dup_elem(Elem *e, Rule *r) {
-  Elem *ee = MALLOC(sizeof(Elem));
+  Elem *ee = Calloc(1,Elem);
   memcpy(ee, e, sizeof(Elem));
   if (ee->kind == ELEM_UNRESOLVED)
     ee->e.unresolved.string = dup_str(e->e.unresolved.string, 0);
@@ -297,9 +297,9 @@ dup_elem(Elem *e, Rule *r) {
 
 void
 add_global_code(Grammar *g, char *start, char *end, int line) {
-  if (!g->code) g->code = MALLOC(sizeof(Code) * 4);
+  if (!g->code) g->code = Calloc(4,Code);
   else if (!((g->ncode + 1) & 4))
-    g->code = REALLOC(g->code, sizeof(Code) * (g->ncode + 4));
+    g->code = R_chk_realloc(g->code, sizeof(Code) * (g->ncode + 4));
   g->code[g->ncode].code = dup_str(start, end);
   g->code[g->ncode].line = line;
   g->ncode++;
@@ -307,7 +307,7 @@ add_global_code(Grammar *g, char *start, char *end, int line) {
 
 void
 new_declaration(Grammar *g, Elem *e, uint kind) {
-  Declaration *d = MALLOC(sizeof(*d));
+  Declaration *d = R_chk_calloc(1,sizeof(*d));
   d->elem = e;
   d->kind = kind;
   d->index = g->declarations.n;
@@ -354,7 +354,7 @@ add_pass(Grammar *g, char *start, char *end, uint kind, uint line) {
   if (find_pass(g, start, end))
     d_fail("duplicate pass '%s' line %d", dup_str(start, end), line);
   else {
-    D_Pass *p = MALLOC(sizeof(*p));
+    D_Pass *p = R_chk_calloc(1,sizeof(*p));
     p->name = dup_str(start, end);
     p->name_len = end - start;
     p->kind = kind;
@@ -371,7 +371,7 @@ add_pass_code(Grammar *g, Rule *r, char *pass_start, char *pass_end,
   if (!p)
     d_fail("unknown pass '%s' line %d", dup_str(pass_start, pass_end), pass_line);
   while (r->pass_code.n <= p->index) vec_add(&r->pass_code, NULL);
-  r->pass_code.v[p->index] = MALLOC(sizeof(Code));
+  r->pass_code.v[p->index] = R_chk_calloc(1,sizeof(Code));
   r->pass_code.v[p->index]->code = dup_str(code_start, code_end);
   r->pass_code.v[p->index]->line = code_line;
 }
@@ -380,7 +380,7 @@ add_pass_code(Grammar *g, Rule *r, char *pass_start, char *pass_end,
 Production *
 new_internal_production(Grammar *g, Production *p) {
   char *n = p ? p->name : " _synthetic";
-  char *name = MALLOC(strlen(n) + 21);
+  char *name = Calloc(strlen(n) + 21,char);
   Production *pp = NULL, *tp = NULL, *ttp;
   int i, found = 0;
   sprintf(name, "%s__%d", n, g->productions.n);
@@ -495,7 +495,7 @@ rep_EBNF(Grammar *g, int min, int max) {
     vec_add(&pp->rules, rr);
   }
   last_elem(g->r) = new_elem_nterm(pp, g->r);
-  FREE(elem);
+  Free(elem);
 }
 
 void
@@ -618,11 +618,11 @@ resolve_grammar(Grammar *g) {
 	if (e->kind == ELEM_UNRESOLVED) {
 	  l = e->e.unresolved.len;
 	  if ((pp = lookup_production(g, e->e.unresolved.string, l))) {
-	    FREE(e->e.unresolved.string); e->e.unresolved.string = 0;
+	    Free(e->e.unresolved.string); e->e.unresolved.string = 0;
 	    e->kind = ELEM_NTERM;
 	    e->e.nterm = pp;
 	  } else if ((t = lookup_token(g, e->e.unresolved.string, l))) {
-	    FREE(e->e.unresolved.string); e->e.unresolved.string = 0;
+	    Free(e->e.unresolved.string); e->e.unresolved.string = 0;
 	    e->kind = ELEM_TERM;
 	    e->e.term = t;
 	  } else {
@@ -673,22 +673,22 @@ void
 print_term(Term *t) {
   char *s = t->string ? escape_string(t->string) : NULL;
   if (t->term_name)
-    printf("term_name(\"%s\") ", t->term_name);
+    Rprintf("term_name(\"%s\") ", t->term_name);
   else if (t->kind == TERM_STRING) {
     if (!t->string || !*t->string)
-      printf("<EOF> ");
+      Rprintf("<EOF> ");
     else
-      printf("string(\"%s\") ", s);
+      Rprintf("string(\"%s\") ", s);
   } else if (t->kind == TERM_REGEX) {
-    printf("regex(\"%s\") ", s);
+    Rprintf("regex(\"%s\") ", s);
   } else if (t->kind == TERM_CODE)
-    printf("code(\"%s\") ", s);
+    Rprintf("code(\"%s\") ", s);
   else if (t->kind == TERM_TOKEN)
-    printf("token(\"%s\") ", s);
+    Rprintf("token(\"%s\") ", s);
   else
     d_fail("unknown token kind");
   if (s)
-    FREE(s);
+    Free(s);
 }
 
 void
@@ -696,9 +696,9 @@ print_elem(Elem *ee) {
   if (ee->kind == ELEM_TERM)
     print_term(ee->e.term);
   else if (ee->kind == ELEM_UNRESOLVED)
-    printf("%s ", ee->e.unresolved.string);
+    Rprintf("%s ", ee->e.unresolved.string);
   else
-    printf("%s ", ee->e.nterm->name);
+    Rprintf("%s ", ee->e.nterm->name);
 }
 
 struct EnumStr {
@@ -729,13 +729,13 @@ void
 print_rule(Rule *r) {
   int k;
 
-  printf("%s: ", r->prod->name);
+  Rprintf("%s: ", r->prod->name);
   for (k = 0; k < r->elems.n; k++)
     print_elem(r->elems.v[k]);
   if (r->speculative_code.code)
-    printf("SPECULATIVE_CODE\n%s\nEND CODE\n", r->speculative_code.code);
+    Rprintf("SPECULATIVE_CODE\n%s\nEND CODE\n", r->speculative_code.code);
   if (r->final_code.code)
-    printf("FINAL_CODE\n%s\nEND CODE\n", r->final_code.code);
+    Rprintf("FINAL_CODE\n%s\nEND CODE\n", r->final_code.code);
 }
 
 void
@@ -746,108 +746,108 @@ print_grammar(Grammar *g) {
 
   if (!g->productions.n)
     return;
-  printf("PRODUCTIONS\n\n");
+  Rprintf("PRODUCTIONS\n\n");
   for (i = 0; i < g->productions.n; i++) {
     pp = g->productions.v[i];
-    printf("%s (%d)\n", pp->name, i);
+    Rprintf("%s (%d)\n", pp->name, i);
     for (j = 0; j < pp->rules.n; j++) {
       rr = pp->rules.v[j];
       if (!j) 
-	printf("\t: ");
+	Rprintf("\t: ");
       else
-	printf("\t| ");
+	Rprintf("\t| ");
       for (k = 0; k < rr->elems.n; k++)
 	print_elem(rr->elems.v[k]);
       if (rr->op_priority)
-	printf("op %d ", rr->op_priority);
+	Rprintf("op %d ", rr->op_priority);
       if (rr->op_assoc)
-	printf("%s ", assoc_str(rr->op_assoc));
+	Rprintf("%s ", assoc_str(rr->op_assoc));
       if (rr->rule_priority)
-	printf("rule %d ", rr->rule_priority);
+	Rprintf("rule %d ", rr->rule_priority);
       if (rr->rule_assoc)
-	printf("%s ", assoc_str(rr->rule_assoc));
+	Rprintf("%s ", assoc_str(rr->rule_assoc));
       if (rr->speculative_code.code)
-	printf("%s ", rr->speculative_code.code);
+	Rprintf("%s ", rr->speculative_code.code);
       if (rr->final_code.code)
-	printf("%s ", rr->final_code.code);
-      printf("\n");
+	Rprintf("%s ", rr->final_code.code);
+      Rprintf("\n");
     }
-    printf("\t;\n");
-    printf("\n");
+    Rprintf("\t;\n");
+    Rprintf("\n");
   }
-  printf("TERMINALS\n\n");
+  Rprintf("TERMINALS\n\n");
   for (i = 0; i < g->terminals.n; i++) {
-    printf("\t");
+    Rprintf("\t");
     print_term(g->terminals.v[i]);
-    printf("(%d)\n", i + g->productions.n);
+    Rprintf("(%d)\n", i + g->productions.n);
   }
-  printf("\n");
+  Rprintf("\n");
 }
 
 static void
 print_item(Item *i) {
   int j, end = 1;
 
-  printf("\t%s: ", i->rule->prod->name);
+  Rprintf("\t%s: ", i->rule->prod->name);
   for (j = 0; j < i->rule->elems.n; j++) {
     Elem *e = i->rule->elems.v[j];
     if (i == e) {
-      printf(". ");
+      Rprintf(". ");
       end = 0;
     }
     print_elem(e);
   }
   if (end)
-    printf(". ");
-  printf("\n");
+    Rprintf(". ");
+  Rprintf("\n");
 }
 
 static void
 print_conflict(char *kind, int *conflict) {
   if (!*conflict) {
-    printf("  CONFLICT (before precedence and associativity)\n");
+    Rprintf("  CONFLICT (before precedence and associativity)\n");
     *conflict = 1;
   }
-  printf("\t%s conflict ", kind);
-  printf("\n");
+  Rprintf("\t%s conflict ", kind);
+  Rprintf("\n");
 }
 
 static void
 print_state(State *s) {
   int j, conflict = 0;
 
-  printf("STATE %d (%d ITEMS)%s\n", s->index, s->items.n,
+  Rprintf("STATE %d (%d ITEMS)%s\n", s->index, s->items.n,
 	 s->accept ? " ACCEPT" : "");
   for (j = 0; j < s->items.n; j++)
     print_item(s->items.v[j]);
   if (s->gotos.n)
-    printf("  GOTO\n");
+    Rprintf("  GOTO\n");
   for (j = 0; j < s->gotos.n; j++) {
-    printf("\t");
+    Rprintf("\t");
     print_elem(s->gotos.v[j]->elem);
-    printf(" : %d\n", s->gotos.v[j]->state->index);
+    Rprintf(" : %d\n", s->gotos.v[j]->state->index);
   }
-  printf("  ACTION\n");
+  Rprintf("  ACTION\n");
   for (j = 0; j < s->reduce_actions.n; j++) {
     Action *a = s->reduce_actions.v[j];
-    printf("\t%s\t", action_types[a->kind]);
+    Rprintf("\t%s\t", action_types[a->kind]);
     print_rule(a->rule);
-    printf("\n");
+    Rprintf("\n");
   }
   for (j = 0; j < s->shift_actions.n; j++) {
     Action *a = s->shift_actions.v[j];
-    printf("\t%s\t", action_types[a->kind]);
+    Rprintf("\t%s\t", action_types[a->kind]);
     if (a->kind == ACTION_SHIFT) {
       print_term(a->term);
-      printf("%d", a->state->index);
+      Rprintf("%d", a->state->index);
     }
-    printf("\n");
+    Rprintf("\n");
   }
   if (s->reduce_actions.n > 1)
     print_conflict("reduce/reduce", &conflict);
   if (s->reduce_actions.n && s->shift_actions.n)
     print_conflict("shift/reduce", &conflict);
-  printf("\n");
+  Rprintf("\n");
 }
 
 void
@@ -949,7 +949,7 @@ convert_regex_production_one(Grammar *g, Production *p) {
       }
     }
   }
-  b = buf = (char*)MALLOC(buf_len + 1);
+  b = buf = Calloc(buf_len + 1,char);
   t = new_term();
   t->kind = TERM_REGEX;
   t->string = buf;
@@ -980,7 +980,7 @@ convert_regex_production_one(Grammar *g, Production *p) {
 	s = t->string;
       memcpy(b, s, strlen(s)); b += strlen(s);
       if (t->kind == TERM_STRING)
-	FREE(s);
+	Free(s);
       *b++ = ')'; 
       if (l == 2) 
 	*b++ = '*'; 
@@ -1006,7 +1006,7 @@ convert_regex_production_one(Grammar *g, Production *p) {
 	  s = t->string;
 	memcpy(b, s, strlen(s)); b += strlen(s);
         if (t->kind == TERM_STRING)
-	  FREE(s);
+	  Free(s);
       }
       if (r->elems.n > 1)
 	*b++ = ')';
@@ -1068,7 +1068,7 @@ build_eq(Grammar *g) {
   State *s, *ss;
   EqState *eq, *e, *ee;
 
-  eq = (EqState*)MALLOC(sizeof(EqState)*g->states.n);
+  eq = Calloc(g->states.n,EqState);
   memset(eq, 0, sizeof(EqState)*g->states.n);
   while (changed) {
     changed = 0;
@@ -1131,20 +1131,20 @@ build_eq(Grammar *g) {
     e = &eq[s->index];
     if (e->eq) {
       if (d_verbose_level > 2) {
-	printf("eq %d %d ", s->index, e->eq->index); 
+	Rprintf("eq %d %d ", s->index, e->eq->index); 
 	if (e->diff_state)
-	  printf("diff state (%d %d) ", 
+	  Rprintf("diff state (%d %d) ", 
 		 e->diff_state->index,
 		 eq[e->eq->index].diff_state->index);
 	if (e->diff_rule) {
-	  printf("diff rule ");
-	  printf("[ ");
+	  Rprintf("diff rule ");
+	  Rprintf("[ ");
 	  print_rule(e->diff_rule);
-	  printf("][ ");
+	  Rprintf("][ ");
 	  print_rule(eq[e->eq->index].diff_rule);
-	  printf("]");
+	  Rprintf("]");
 	}
-	printf("\n");
+	Rprintf("\n");
       }
     }
   }
@@ -1171,14 +1171,14 @@ build_eq(Grammar *g) {
     s = g->states.v[i];
     if (s->reduces_to)
       if (d_verbose_level)
-	printf("reduces_to %d %d\n", s->index, s->reduces_to->index);
+	Rprintf("reduces_to %d %d\n", s->index, s->reduces_to->index);
   }
-  FREE(eq);
+  Free(eq);
 }
 
 Grammar *
 new_D_Grammar(char *pathname) {
-  Grammar *g = (Grammar *)MALLOC(sizeof(Grammar));
+  Grammar *g = Calloc(1,Grammar);
   memset(g, 0, sizeof(Grammar));
   g->pathname = dup_str(pathname, pathname + strlen(pathname));
   return g;
@@ -1187,18 +1187,18 @@ new_D_Grammar(char *pathname) {
 static void
 free_rule(Rule *r) {
   int i;
-  FREE(r->end);
+  Free(r->end);
   if (r->final_code.code)
-    FREE(r->final_code.code);
+    Free(r->final_code.code);
   if (r->speculative_code.code)
-    FREE(r->speculative_code.code);
+    Free(r->speculative_code.code);
   vec_free(&r->elems);
   for (i = 0; i < r->pass_code.n; i++) {
-    FREE(r->pass_code.v[i]->code);
-    FREE(r->pass_code.v[i]);
+    Free(r->pass_code.v[i]->code);
+    Free(r->pass_code.v[i]);
   }
   vec_free(&r->pass_code);
-  FREE(r);
+  Free(r);
 }
 
 void
@@ -1215,90 +1215,90 @@ free_D_Grammar(Grammar *g) {
 	Elem *e = r->elems.v[k];
 	if (e == p->elem)
 	  p->elem = 0;
-	FREE(e);
+	Free(e);
       }
       if (r->end == p->elem)
 	p->elem = 0;
       free_rule(r);
     }
     vec_free(&p->rules);
-    FREE(p->name);
+    Free(p->name);
     if (p->elem) {
       free_rule(p->elem->rule);
-      FREE(p->elem);
+      Free(p->elem);
     }
-    FREE(p);
+    Free(p);
   }
   vec_free(&g->productions);
   for (i = 0; i < g->terminals.n; i++) {
     Term *t = g->terminals.v[i];
     if (t->string)
-      FREE(t->string);
+      Free(t->string);
     if (t->term_name)
-      FREE(t->term_name);
-    FREE(t);
+      Free(t->term_name);
+    Free(t);
   }
   vec_free(&g->terminals);
   for (i = 0; i < g->actions.n; i++)
     free_Action(g->actions.v[i]);
   vec_free(&g->actions);
   if (g->scanner.code)
-    FREE(g->scanner.code);
+    Free(g->scanner.code);
   for (i = 0; i < g->states.n; i++) {
     State *s = g->states.v[i];
     vec_free(&s->items);
     vec_free(&s->items_hash);
     for (j = 0; j < s->gotos.n; j++) {
-      FREE(s->gotos.v[j]->elem);
-      FREE(s->gotos.v[j]);
+      Free(s->gotos.v[j]->elem);
+      Free(s->gotos.v[j]);
     }
     vec_free(&s->gotos);
     vec_free(&s->shift_actions);
     vec_free(&s->reduce_actions);
     for (j = 0; j < s->right_epsilon_hints.n; j++)
-      FREE(s->right_epsilon_hints.v[j]);
+      Free(s->right_epsilon_hints.v[j]);
     vec_free(&s->right_epsilon_hints);
     for (j = 0; j < s->error_recovery_hints.n; j++)
-      FREE(s->error_recovery_hints.v[j]);
+      Free(s->error_recovery_hints.v[j]);
     vec_free(&s->error_recovery_hints);
     if (!s->same_shifts) {
       for (j = 0; j < s->scanner.states.n; j++) {
 	vec_free(&s->scanner.states.v[j]->accepts);
 	vec_free(&s->scanner.states.v[j]->live);
-	FREE(s->scanner.states.v[j]);
+	Free(s->scanner.states.v[j]);
       }
       vec_free(&s->scanner.states);
       for (j = 0; j < s->scanner.transitions.n; j++)
 	if (s->scanner.transitions.v[j]) {
 	  vec_free(&s->scanner.transitions.v[j]->live_diff);
 	  vec_free(&s->scanner.transitions.v[j]->accepts_diff);
-	  FREE(s->scanner.transitions.v[j]);
+	  Free(s->scanner.transitions.v[j]);
 	}
       vec_free(&s->scanner.transitions);
     }
-    FREE(s->goto_valid);
-    FREE(s);
+    Free(s->goto_valid);
+    Free(s);
   }
   vec_free(&g->states);
   for (i = 0; i < g->ncode; i++)
-    FREE(g->code[i].code);
-  FREE(g->code);
+    Free(g->code[i].code);
+  Free(g->code);
   for (i = 0; i < g->declarations.n; i++) {
-    FREE(g->declarations.v[i]->elem);
-    FREE(g->declarations.v[i]);
+    Free(g->declarations.v[i]->elem);
+    Free(g->declarations.v[i]);
   }
   vec_free(&g->declarations);
   for (i = 0; i < g->passes.n; i++) {
-    FREE(g->passes.v[i]->name);
-    FREE(g->passes.v[i]);
+    Free(g->passes.v[i]->name);
+    Free(g->passes.v[i]);
   }
   vec_free(&g->passes);
   for (i = 0; i < g->all_pathnames.n; i++)
-    FREE(g->all_pathnames.v[i]);
-  FREE(g->pathname);
+    Free(g->all_pathnames.v[i]);
+  Free(g->pathname);
   if (g->default_white_space)
-    FREE(g->default_white_space);
-  FREE(g);
+    Free(g->default_white_space);
+  Free(g);
 }
 
 int
@@ -1322,7 +1322,7 @@ parse_grammar(Grammar *g, char *pathname, char *sarg) {
   } else
     res = -1;
   if (!sarg)
-    FREE(s);
+    Free(s);
   free_D_Parser(p);
   return res;
 }
@@ -1377,7 +1377,7 @@ propogate_declarations(Grammar *g) {
 	p = g->productions.v[0];
       else if (!(p = lookup_production(g, e->e.unresolved.string, e->e.unresolved.len)))
 	d_fail("unresolved declaration '%s'", e->e.unresolved.string);
-      FREE(e->e.unresolved.string); e->e.unresolved.string = 0;
+      Free(e->e.unresolved.string); e->e.unresolved.string = 0;
       e->kind = ELEM_NTERM;
       e->e.nterm = p;
     }
@@ -1509,7 +1509,7 @@ build_grammar(Grammar *g) {
   build_LR_tables(g);
   map_declarations_to_states(g);
   if (d_verbose_level) {
-    printf("%d productions %d terminals %d states %d declarations\n",
+    Rprintf("%d productions %d terminals %d states %d declarations\n",
 	   g->productions.n, g->terminals.n, g->states.n, 
 	   g->declarations.n);
   }
@@ -1530,37 +1530,37 @@ static void
 print_term_escaped(Term *t, int double_escaped) {
   char *s = 0;
   if (t->term_name) {
-    printf("%s ", t->term_name);
+    Rprintf("%s ", t->term_name);
   } else if (t->kind == TERM_STRING) {
     s = t->string ? escape_string_single_quote(t->string) : NULL;
     if (!t->string || !*t->string)
-      printf("<EOF> ");
+      Rprintf("<EOF> ");
     else {
-      printf("'%s' ", double_escaped?escape_string_single_quote(s):s);
+      Rprintf("'%s' ", double_escaped?escape_string_single_quote(s):s);
       if (t->ignore_case)
-	printf("/i ");
+	Rprintf("/i ");
       if (t->term_priority)
-	printf("%sterm %d ", double_escaped?"#":"$", t->term_priority);
+	Rprintf("%sterm %d ", double_escaped?"#":"$", t->term_priority);
     }
   } else if (t->kind == TERM_REGEX) {
     s = t->string ? escape_string(t->string) : NULL;
     //char *s = t->string; // ? escape_string(t->string) : NULL;
     char *quote = double_escaped ? "\\\"" : "\"";
-    printf("%s%s%s ", quote, double_escaped?escape_string(s):s, quote);
+    Rprintf("%s%s%s ", quote, double_escaped?escape_string(s):s, quote);
     if (t->ignore_case)
-      printf("/i ");
+      Rprintf("/i ");
     if (t->term_priority)
-      printf("%sterm %d ", double_escaped?"#":"$", t->term_priority);
+      Rprintf("%sterm %d ", double_escaped?"#":"$", t->term_priority);
   } else if (t->kind == TERM_CODE) {
     s = t->string ? escape_string(t->string) : NULL;
-    printf("code(\"%s\") ", s);
+    Rprintf("code(\"%s\") ", s);
   } else if (t->kind == TERM_TOKEN) {
     s = t->string ? escape_string(t->string) : NULL;
-    printf("%s ", s);
+    Rprintf("%s ", s);
   } else
     d_fail("unknown token kind");
   if (s)
-    FREE(s);
+    Free(s);
 }
 
 /* print_elem changed to call print_term_escaped */
@@ -1569,31 +1569,31 @@ print_element_escaped(Elem *ee, int double_escaped) {
   if (ee->kind == ELEM_TERM)
     print_term_escaped(ee->e.term, double_escaped);
   else if (ee->kind == ELEM_UNRESOLVED)
-    printf("%s ", ee->e.unresolved.string);
+    Rprintf("%s ", ee->e.unresolved.string);
   else
-    printf("%s ", ee->e.nterm->name);
+    Rprintf("%s ", ee->e.nterm->name);
 }
 
 static void
 print_global_code(Grammar *g) {
   int i;
   int print_stdio_h = 1;
-  printf("%%<");
+  Rprintf("%%<");
   for (i = 0; i < g->ncode; i++) {
-    printf("%s", g->code[i].code);
+    Rprintf("%s", g->code[i].code);
     if (strstr(g->code[i].code, "<stdio.h>") != NULL)
       print_stdio_h = 0;
   }
   if (print_stdio_h)
-    printf("\n  #include <stdio.h>\n");
-  printf("%%>\n\n");
+    Rprintf("\n  #include <stdio.h>\n");
+  Rprintf("%%>\n\n");
 }
 
 static void
 print_production(Production *p) {
   uint j, k;
   Rule *r;
-  char *opening[] = { ""        , "\n\t  [ printf(\""    , "\n\t  { printf(\"" };
+  char *opening[] = { ""        , "\n\t  [ Rprintf(\""    , "\n\t  { Rprintf(\"" };
   char *closing[] = { "\n"      , "\\n\"); ]\n"          , "\\n\"); }\n" };
   char *middle[]  = { "\n\t:   ", "  <-  "               , "  <=  " };
   char *assoc[]   = { "$"       , "#"                    , "#" };
@@ -1608,28 +1608,28 @@ print_production(Production *p) {
     r = p->rules.v[j];
     if (!j) {
       //      if (p->regex) {
-      //	printf("%s%s%s", opening[variant], p->name, regex_production);
+      //	Rprintf("%s%s%s", opening[variant], p->name, regex_production);
       //      } else {
-      printf("%s%s%s", opening[variant], p->name, middle[variant]);
+      Rprintf("%s%s%s", opening[variant], p->name, middle[variant]);
       //      }
     } else {
       if (variant==0)
-	printf("%s", next_or_rule);
+	Rprintf("%s", next_or_rule);
       else
-	printf("%s%s%s", opening[variant], p->name, middle[variant]);
+	Rprintf("%s%s%s", opening[variant], p->name, middle[variant]);
     }
 
     for (k = 0; k < r->elems.n; k++)
       print_element_escaped(r->elems.v[k], variant);
 
     if (r->op_assoc)
-      printf(" %s%s ", assoc[variant], assoc_str(r->op_assoc)+1);
+      Rprintf(" %s%s ", assoc[variant], assoc_str(r->op_assoc)+1);
     if (r->op_priority)
-      printf("%d ", r->op_priority);
+      Rprintf("%d ", r->op_priority);
     if (r->rule_assoc)
-      printf(" %s%s ", assoc[variant], assoc_str(r->rule_assoc)+1);
+      Rprintf(" %s%s ", assoc[variant], assoc_str(r->rule_assoc)+1);
     if (r->rule_priority)
-      printf("%d ", r->rule_priority);
+      Rprintf("%d ", r->rule_priority);
 
     if ((d_rdebug_grammar_level == 1 && variant == 0) ||
 	(d_rdebug_grammar_level == 3 && variant == 0)) {
@@ -1639,23 +1639,23 @@ print_production(Production *p) {
     if ((d_rdebug_grammar_level == 2 && variant == 0) ||
 	(d_rdebug_grammar_level == 3 && variant == 1)) {
       if (variant==1)
-	printf("%s", speculative_final_closing);
+	Rprintf("%s", speculative_final_closing);
       variant=2;
       goto Lmore;
     }
 
-    printf("%s", closing[variant]);
+    Rprintf("%s", closing[variant]);
     variant = 0;
   }
-  printf("\t;\n");
-  printf("\n");
+  Rprintf("\t;\n");
+  Rprintf("\n");
 }
 
 static void
 print_productions(Grammar *g, char *pathname) {
   uint i;
   if (!g->productions.n) {
-    printf("/*\n  There were no productions in the grammar %s\n*/\n", pathname);  
+    Rprintf("/*\n  There were no productions in the grammar %s\n*/\n", pathname);  
     return;
   }
   for (i = 1; i < g->productions.n; i++)
@@ -1664,7 +1664,7 @@ print_productions(Grammar *g, char *pathname) {
 
 static void print_declare(char *s, char *n) {
   while (*n && (isspace_(*n) || isdigit_(*n))) n++;
-  printf(s, n);
+  Rprintf(s, n);
 }
 
 static void
@@ -1672,55 +1672,55 @@ print_declarations(Grammar *g) {
   int i;
 
   if (g->tokenizer)
-    printf("${declare tokenize}\n");
+    Rprintf("${declare tokenize}\n");
   for (i = 0; i < g->declarations.n; i++) {
     Declaration *dd = g->declarations.v[i];
     Elem *ee = dd->elem;
     switch (dd->kind) {
     case DECLARE_LONGEST_MATCH:
       if (g->longest_match)
-        printf("${declare longest_match}\n");
+        Rprintf("${declare longest_match}\n");
       else
         print_declare("${declare longest_match %s}\n", ee->e.nterm->name);
       break;
     case DECLARE_ALL_MATCHES:
       if (!g->longest_match)
-        printf("${declare all_matches}\n");
+        Rprintf("${declare all_matches}\n");
       else
         print_declare("${declare all_matches %s}\n", ee->e.nterm->name);
       break;
     default:
-      printf("\n/*\nDeclaration->kind: %d", dd->kind);
-      printf("\nElem->kind:        %d\n*/\n", ee->kind);
+      Rprintf("\n/*\nDeclaration->kind: %d", dd->kind);
+      Rprintf("\nElem->kind:        %d\n*/\n", ee->kind);
     }
   }
   if (g->set_op_priority_from_rule)
-    printf("${declare set_op_priority_from_rule}\n");
+    Rprintf("${declare set_op_priority_from_rule}\n");
   if (g->states_for_all_nterms)
-    printf("${declare all_subparsers}\n");
+    Rprintf("${declare all_subparsers}\n");
   /* todo: DECLARE_STATE_FOR */
   if (g->default_white_space)
-    printf("${declare whitespace %s}\n", g->default_white_space);
+    Rprintf("${declare whitespace %s}\n", g->default_white_space);
   if (g->save_parse_tree)
-    printf("${declare save_parse_tree}\n");
+    Rprintf("${declare save_parse_tree}\n");
   /* todo: DECLARE_NUM */
 
   if (g->scanner.code)
-    printf("${scanner %s}\n", g->scanner.code);
+    Rprintf("${scanner %s}\n", g->scanner.code);
 
   { int token_exists = 0;
     for (i = 0; i < g->terminals.n; i++) {
       Term *t = g->terminals.v[i];
       if (t->kind == TERM_TOKEN) {
-	printf("%s %s", token_exists?"":"${token", t->string);
+	Rprintf("%s %s", token_exists?"":"${token", t->string);
 	token_exists = 1;
       }
     }
     if (token_exists)
-      printf("}\n");
+      Rprintf("}\n");
   }
 
-  printf("\n");
+  Rprintf("\n");
 }
 
 void
@@ -1728,8 +1728,9 @@ print_rdebug_grammar(Grammar *g, char *pathname) {
   char ver[30];
   d_version(ver);
   
-  printf("/*\n  Generated by Make DParser Version %s\n", ver);  
-  printf("  Available at http://dparser.sf.net\n*/\n\n");
+  Rprintf("/*\n  Generated by RxODE\'s mkdparse a port of Make DParser Version %s\n", ver);
+  Rprintf("  RxODE available at https://github.com/hallowkm/RxODE\n");
+  Rprintf("  Original dparser Available at http://dparser.sf.net\n*/\n\n");
   
   print_global_code(g);
   print_declarations(g);

@@ -29,7 +29,7 @@ itemcmp(const void *ai, const void *aj) {
 
 static State *
 new_state() {
-  State *s = MALLOC(sizeof(State));
+  State *s = R_chk_calloc(1,sizeof(State));
   memset(s, 0, sizeof(State));
   return s;
 }
@@ -38,7 +38,7 @@ static void
 free_state(State *s) {
   vec_free(&s->items);
   vec_free(&s->items_hash);
-  FREE(s);
+  Free(s);
 }
 
 static State *
@@ -92,14 +92,14 @@ build_closure(Grammar *g, State *s) {
 
 static Elem *
 clone_elem(Elem *e) {
-  Elem *ee = MALLOC(sizeof(*ee));
+  Elem *ee = R_chk_calloc(1,sizeof(*ee));
   memcpy(ee, e, sizeof(*ee));
   return ee;
 }
 
 static void
 add_goto(State *s, State *ss, Elem *e) {
-  Goto *g = MALLOC(sizeof(Goto));
+  Goto *g = R_chk_calloc(1,sizeof(Goto));
   g->state = ss;
   g->elem = clone_elem(e);
   vec_add(&s->gotos, g);
@@ -193,7 +193,7 @@ build_LR_sets(Grammar *g) {
 
 static Action *
 new_Action(Grammar *g, int akind, Term *aterm, Rule *arule, State *astate) {
-  Action *a = MALLOC(sizeof(Action));
+  Action *a = R_chk_calloc(1,sizeof(Action));
   memset(a, 0, sizeof(Action));
   a->kind = akind;
   a->term = aterm;
@@ -207,8 +207,8 @@ new_Action(Grammar *g, int akind, Term *aterm, Rule *arule, State *astate) {
 void
 free_Action(Action *a) {
   if (a->temp_string)
-    FREE(a->temp_string);
-  FREE(a);
+    Free(a->temp_string);
+  Free(a);
 }
 
 static void
@@ -305,7 +305,7 @@ goto_State(State *s, Elem *e) {
 
 static Hint *
 new_Hint(uint d, State *s, Rule *r) {
-  Hint *h = MALLOC(sizeof(*h));
+  Hint *h = R_chk_calloc(1,sizeof(*h));
   h->depth = d;
   h->state = s;
   h->rule = r;

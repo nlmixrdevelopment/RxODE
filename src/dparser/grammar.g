@@ -14,7 +14,7 @@ include_statement: 'include' regex {
   char *grammar_pathname = dup_str($n1.start_loc.s+1, $n1.end-1);
   if (parse_grammar($g, grammar_pathname, 0) < 0)
     d_fail("unable to parse grammar '%s'", grammar_pathname);
-  FREE(grammar_pathname);    
+  Free(grammar_pathname);    
 };
 
 global_code

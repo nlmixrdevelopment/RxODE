@@ -15,7 +15,7 @@
 
 
 void F77_NAME(dlsoda)(
-		      void (*)(int *, double *, double *, double *),
+     void (*)(int *, double *, double *, double *),
      int *, double *, double *, double *, int *, double *, double *,
      int *, int *, int *, double *,int *,int *, int *,
      void (*)(int *, double *, double *, int *, int *, double *, int *),

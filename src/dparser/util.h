@@ -82,7 +82,7 @@ void set_union_fn(void *v, void *vv, hash_fns_t *fns);
 void set_to_vec(void *av);
 #define vec_clear(_v) do { (_v)->n = 0; (_v)->v = 0; } while(0)
 #define vec_free(_v) do { \
-if ((_v)->v && (_v)->v != (_v)->e) FREE((_v)->v); vec_clear(_v); } while(0)
+if ((_v)->v && (_v)->v != (_v)->e) Free((_v)->v); vec_clear(_v); } while(0)
 
 #define stack_clear(_s) do { \
 (_s)->start = (_s)->cur = (_s)->end = (_s)->initial; \
@@ -90,7 +90,7 @@ if ((_v)->v && (_v)->v != (_v)->e) FREE((_v)->v); vec_clear(_v); } while(0)
 } \
 while(0)
 #define stack_free(_s) do { \
-  if ((_s)->start != (_s)->initial) FREE((_s)->start); \
+  if ((_s)->start != (_s)->initial) Free((_s)->start); \
   stack_clear(_s); \
 } while(0)
 #define stack_head(_s) ((_s)->cur[-1])

@@ -1,5 +1,5 @@
 /*
- Copyright 1994-2004 John Plevyak, All Rights Reserved
+  Copyright 1994-2004 John Plevyak, All Rights Reserved
 */
 #include "d.h"
 
@@ -124,9 +124,9 @@ process_args(ArgumentState *arg_state, char **argv) {
           }
       }
     } else {
-      arg_state->file_argument = (char **)REALLOC(
+      arg_state->file_argument = (char **)Realloc(
         arg_state->file_argument, 
-        sizeof(char**) * (arg_state->nfile_arguments + 2));
+        (arg_state->nfile_arguments + 2), char**);
       arg_state->file_argument[arg_state->nfile_arguments++] = *argv;
       arg_state->file_argument[arg_state->nfile_arguments] = NULL;
     }
@@ -201,5 +201,5 @@ usage(ArgumentState *arg_state, char *arg_unused) {
 void
 free_args(ArgumentState *arg_state) {
   if (arg_state->file_argument)
-    FREE(arg_state->file_argument);
+    Free(arg_state->file_argument);
 }

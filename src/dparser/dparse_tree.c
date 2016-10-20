@@ -5,6 +5,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <R.h>
 
 #include "dparse_tree.h"
 
@@ -46,7 +47,7 @@ print_parsetree(D_ParserTables pt, D_ParseNode *pn, print_node_fn_t fn, void *cl
 
 void 
 print_node_parenthesised(int depth, char *name, char *value, void *client_data) {
-  printf("( %s )", name);
+  Rprintf("( %s )", name);
 }
 
 static char *
@@ -66,6 +67,6 @@ change_newline2space(char *s) {
 
 void 
 print_node_default(int depth, char *name, char *value, void *client_data) {
-  printf("%*s", depth*INDENT_SPACES, "");
-  printf("%s  %s.\n", name, change_newline2space(value));
+  Rprintf("%*s", depth*INDENT_SPACES, "");
+  Rprintf("%s  %s.\n", name, change_newline2space(value));
 }

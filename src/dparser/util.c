@@ -31,7 +31,7 @@ d_dup_pathname_str(const char *s) {
 char *
 dup_str(const char *s, const char *e) {
   int l = e ? e-s : strlen(s);
-  char *ss = (char*)MALLOC(l+1);
+  char *ss = (char*)Calloc(l+1,char);
   memcpy(ss, s, l);
   ss[l] = 0;
   return ss;
@@ -63,7 +63,7 @@ buf_read(const char *pathname, char **buf, int *len) {
   memset(&sb, 0, sizeof(sb));
   fstat(fd, &sb);
   *len = sb.st_size;
-  *buf = (char*)MALLOC(*len + 2);
+  *buf = (char*)Calloc(*len + 2,char);
   // MINGW likes to convert cr lf => lf which messes with the size
   size_t real_size = read(fd, *buf, *len);
   (*buf)[real_size] = 0;
@@ -86,22 +86,25 @@ sbuf_read(const char *pathname) {
 void
 d_fail(const char *str, ...) {
   char nstr[256];
+  char outstr[256*2];
   va_list ap;
   va_start(ap, str);
-  snprintf(nstr, 255, "fail: %s\n", str);
-  vfprintf(stderr, nstr, ap);
+  snprintf(nstr, 255, "Parser Fail: %s\n", str);
+  vsprintf(outstr, nstr, ap);
   va_end(ap);
-  exit(1);
+  error(outstr);
 }
 
 void
 d_warn(const char *str, ...) {
   char nstr[256];
+  char outstr[256*2];
   va_list ap;
   va_start(ap, str);
   snprintf(nstr, 255, "warning: %s\n", str);
-  vfprintf(stderr, nstr, ap);
+  vsprintf(outstr, nstr, ap);
   va_end(ap);
+  warning(outstr);
 }
 
 void
@@ -110,7 +113,7 @@ vec_add_internal(void *v, void *elem) {
   if (!av->n) {
     av->v = av->e;
   } else if (av->v == av->e) {
-    av->v = (void**)MALLOC(INITIAL_VEC_SIZE * sizeof(void *));
+    av->v = (void**)Calloc(INITIAL_VEC_SIZE, void *);
     memcpy(av->v, av->e, av->n * sizeof(void *));
   } else {
     if ((av->n & (INITIAL_VEC_SIZE - 1)) == 0) {
@@ -120,7 +123,7 @@ vec_add_internal(void *v, void *elem) {
       l = l >> 1;
       if (!av->n || !l) {
 	nl = 1 << nl;
-	av->v = (void**)REALLOC(av->v, nl * sizeof(void *));
+	av->v = (void**)R_chk_realloc((void*)(av->v), (size_t)(nl * sizeof(void *)));
       }
     }
   }
@@ -146,10 +149,10 @@ void *
 stack_push_internal(AbstractStack *s, void *elem) {
   int n = s->cur - s->start;
   if (s->start == s->initial) {
-    s->cur = (void**)MALLOC(n * 2 * sizeof(void*));
+    s->cur = (void**)Calloc(n * 2, void*);
     memcpy(s->cur, s->start, n * sizeof(void*));
   } else
-    s->cur = (void**)REALLOC(s->start, n * 2 * sizeof(void*));
+    s->cur = (void**)R_chk_realloc((void *)(s->start), (size_t)(n * 2 * sizeof(void*)));
   s->end = s->start = s->cur;
   s->cur += n;
   s->end += n * 2;
@@ -206,11 +209,11 @@ set_add(void *av, void *t) {
     v->i = v->i + 1;
   }
   v->n = d_prime2[v->i];
-  v->v = (void**)MALLOC(v->n * sizeof(void *));
+  v->v = (void**)Calloc(v->n, void *);
   memset(v->v, 0, v->n * sizeof(void *));
   if (vv.v) {
     set_union(av, &vv);
-    FREE(vv.v);
+    Free(vv.v);
   }
   return set_add(v, t);
 }
@@ -245,11 +248,11 @@ set_add_fn(void *av, void *t, hash_fns_t *fns) {
     v->i = v->i + 1;
   }
   v->n = d_prime2[v->i];
-  v->v = (void**)MALLOC(v->n * sizeof(void *));
+  v->v = (void**)Calloc(v->n, void *);
   memset(v->v, 0, v->n * sizeof(void *));
   if (vv.v) {
     set_union_fn(av, &vv, fns);
-    FREE(vv.v);
+    Free(vv.v);
   }
   return set_add_fn(v, t, fns);
 }
@@ -291,7 +294,7 @@ set_to_vec(void *av) {
   for (i = 0; i < vv.n; i++)
     if (vv.v[i])
       vec_add_internal(v, vv.v[i]);
-  FREE(vv.v);
+  Free(vv.v);
 }
 
 void
@@ -357,7 +360,7 @@ int *
 int_list_dup(int *aa) {
   int *a = aa, *b, *bb;
   while (*a != -1) { a++; }
-  bb = b = (int*)MALLOC((a - aa + 1) * sizeof(int));
+  bb = b = (int*)Calloc((a - aa + 1), int);
   a = aa;
   while (*a != -1) { *b++ = *a++; }
   *b++ = -1;
@@ -368,7 +371,7 @@ int_list_dup(int *aa) {
 
 static char *
 escape_string_internal(char *s, int single_quote) {
-  char *ss = (char*)MALLOC((strlen(s) + 1) * 4), *sss = ss;
+  char *ss = (char*)Calloc((strlen(s) + 1) * 4,char), *sss = ss;
   for (; *s; s++) {
     switch (*s) {
       case '\b': ESC('b');
@@ -406,4 +409,4 @@ escape_string_internal(char *s, int single_quote) {
 char *escape_string(char *s) { return escape_string_internal(s, 0); }
 char *escape_string_single_quote(char *s) { return escape_string_internal(s, 1); }
 
-void d_free(void *x) { FREE(x); }
+void d_free(void *x) { Free(x); }
