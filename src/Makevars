@@ -11,9 +11,4 @@ $(SHLIB): $(OBJECTS)
 
 libdparse:
 	echo "make libdparse.a ..."
-	(cd dparser; $(MAKE) CC="$(CC)" CFLAGS="$(CFLAGS) -fPIC" libdparse.a)
-
-libodeaux:
-	echo "make libdparse.a ..."
-	(cd ode; $(MAKE) CC="$(CC)" FC="$(FC)" CFLAGS="$(CFLAGS) -fPIC" FFLAGS="$(FFLAGS) -fPIC" libodeaux.a)
-
+	(cd dparser; $(MAKE) -f Makefile.org CC="$(CC)" CFLAGS="$(CFLAGS) -fPIC" libdparse.a)
