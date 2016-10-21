@@ -42,6 +42,6 @@ Description: Facilities for running simulations from ordinary
 NeedsCompilation: yes
 VignetteBuilder: knitr
 SystemRequirements: GNU make
-License: GPL (>= 2)
+License: GPL (>= 2) + dparser BSD
 URL: https://www.r-project.org, https://github.com/hallowkm/RxODE
 RoxygenNote: 5.0.1

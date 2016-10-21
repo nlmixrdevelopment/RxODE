@@ -749,7 +749,34 @@ void print_aux_info(FILE *outpt, char *model){
   
   fprintf(outpt,"\treturn lst;\n");
   fprintf(outpt,"}\n");
-  
+  fprintf(outpt,"extern SEXP __ODE_SOLVER__ (// Parameters\n");
+  fprintf(outpt," SEXP sexp_theta,\n");
+  fprintf(outpt," SEXP sexp_inits,\n");
+  fprintf(outpt," SEXP sexp_lhs,\n");
+  fprintf(outpt," // Events\n");
+  fprintf(outpt," SEXP sexp_time,\n");
+  fprintf(outpt," SEXP sexp_evid,\n");
+  fprintf(outpt," SEXP sexp_dose,\n");
+  fprintf(outpt," // Covariates\n");
+  fprintf(outpt," SEXP sexp_pcov,\n");
+  fprintf(outpt," SEXP sexp_cov,\n");
+  fprintf(outpt," SEXP sexp_locf,\n");
+  fprintf(outpt," // Solver Options\n");
+  fprintf(outpt," SEXP sexp_atol,\n");
+  fprintf(outpt," SEXP sexp_rtol,\n");
+  fprintf(outpt," SEXP sexp_hmin,\n");
+  fprintf(outpt," SEXP sexp_hmax,\n");
+  fprintf(outpt," SEXP sexp_h0,\n");
+  fprintf(outpt," SEXP sexp_mxordn,\n");
+  fprintf(outpt," SEXP sexp_mxords,\n");
+  fprintf(outpt," SEXP sexp_mx,\n");
+  fprintf(outpt," SEXP sexp_stiff,\n");
+  fprintf(outpt," SEXP sexp_transit_abs,\n");
+  fprintf(outpt," // Object Creation\n");
+  fprintf(outpt," SEXP sexp_object,\n");
+  fprintf(outpt," SEXP sexp_extra_args){\n");
+  fprintf(outpt,"ode_solver(sexp_theta,sexp_inits,sexp_lhs,sexp_time,sexp_evid,sexp_dose,sexp_pcov,sexp_cov,sexp_locf,sexp_atol,sexp_rtol,sexp_hmin,sexp_hmax,sexp_h0,sexp_mxordn,sexp_mxords,sexp_mx,sexp_stiff,sexp_transit_abs,sexp_object,sexp_extra_args, __DYDT__ , __CALC_LHS__ , __CALC_JAC__, __JT__ , __MF__,\n#ifdef __DEBUG__\n1\n#else\n0\n#endif\n);");
+  fprintf(outpt,"}\n");
   //fprintf(outpt,"SEXP __PARSED_MD5__()\n{\n\treturn %smodel_vars();\n}\n",model_prefix);
 }
 
@@ -761,8 +788,8 @@ void codegen(FILE *outpt, int show_ode) {
 
   char *hdft[]=
     {
-      "#include <math.h>\n#ifdef __STANDALONE__\n#define Rprintf printf\n#define JAC_Rprintf printf\n#define JAC0_Rprintf if (jac_counter == 0) printf\n#define ODE_Rprintf printf\n#define ODE0_Rprintf if (dadt_counter == 0) printf\n#define LHS_Rprintf printf\n#define R_alloc calloc\n#else\n#include <R.h>\n#include <Rinternals.h>\n#include <Rmath.h>\n#define JAC_Rprintf Rprintf\n#define JAC0_Rprintf if (jac_counter == 0) Rprintf\n#define ODE_Rprintf Rprintf\n#define ODE0_Rprintf if (dadt_counter == 0) Rprintf\n#define LHS_Rprintf Rprintf\n#endif\n#define max(a,b) (((a)>(b))?(a):(b))\n#define min(a,b) (((a)<(b))?(a):(b))\nvoid update_par_ptr(double t);\n",
-      "extern long dadt_counter;\nextern long jac_counter;\nextern double InfusionRate[99];\nextern double *par_ptr;\nextern double podo;\nextern double tlast;\n\n// prj-specific differential eqns\nvoid ",
+      "#include <math.h>\n#ifdef __STANDALONE__\n#define Rprintf printf\n#define JAC_Rprintf printf\n#define JAC0_Rprintf if (jac_counter == 0) printf\n#define ODE_Rprintf printf\n#define ODE0_Rprintf if (dadt_counter == 0) printf\n#define LHS_Rprintf printf\n#define R_alloc calloc\n#else\n#include <R.h>\n#include <Rinternals.h>\n#include <Rmath.h>\n#define JAC_Rprintf Rprintf\n#define JAC0_Rprintf if (jac_counter == 0) Rprintf\n#define ODE_Rprintf Rprintf\n#define ODE0_Rprintf if (dadt_counter == 0) Rprintf\n#define LHS_Rprintf Rprintf\n#endif\n#define max(a,b) (((a)>(b))?(a):(b))\n#define min(a,b) (((a)<(b))?(a):(b))\nextern void update_par_ptr(double t);\n",
+      "extern SEXP ode_solver(SEXP sexp_theta,SEXP sexp_inits,SEXP sexp_lhs,SEXP sexp_time,SEXP sexp_evid,SEXP sexp_dose,SEXP sexp_pcov,SEXP sexp_cov,SEXP sexp_locf, SEXP sexp_atol,SEXP sexp_rtol,SEXP sexp_hmin,SEXP sexp_hmax,SEXP sexp_h0,SEXP sexp_mxordn,SEXP sexp_mxords,SEXP sexp_mx,SEXP sexp_stiff,SEXP sexp_transit_abs,SEXP sexp_object,SEXP sexp_extra_args,void (*fun_dydt)(unsigned int, double, double *, double *),void (*fun_calc_lhs)(double, double *, double *),void (*fun_calc_jac)(unsigned int, double, double *, double *, unsigned int),int fun_jt,int fun_mf,int fun_debug);\nextern long dadt_counter;\nextern long jac_counter;\nextern double InfusionRate[99];\nextern double *par_ptr;\nextern double podo;\nextern double tlast;\n\n// prj-specific differential eqns\nvoid ",
       "dydt(unsigned int neq, double t, double *__zzStateVar__, double *__DDtStateVar__)\n{\n",
       "    dadt_counter++;\n}\n\n"
     };
