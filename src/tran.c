@@ -3,10 +3,10 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>   /* dj: import intptr_t */
-#include "dparse_tree.h"
 #include <gramgram.h>
 #include <d.h>
 #include <mkdparse.h>
+#include <dparse_tree.h>
 #include <R.h>
 #include <Rinternals.h>
 #include <R_ext/Rdynload.h>
