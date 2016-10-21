@@ -414,37 +414,45 @@ solve.rxDll <- function(...){
     rxSolve(...);
 }
 
-#' Add item to solved system of equations
-#'
-#' @param obj1 Solved object
-#'
-#' @param obj2 New object to be added/piped/chained to solved object.
-#'
-#' When \code{newObject} is an event table, return a new solved object
-#' with the new event table.
-#' @name rxChain
-
-#' @rdname rxChain
-#' @export
-'+.solveRxDll' <- function(obj1, obj2) {
+##' Add item to solved system of equations
+##' 
+##' @title rxChain  Chain or add item to sovled system of equations
+##'
+##' @param obj1 Solved object
+##' 
+##' @param obj2 New object to be added/piped/chained to solved object
+##'
+##' @return When \code{newObject} is an event table, return a new
+##'     solved object with the new event table.
+##' 
+##' @author Matthew L. Fidler
+##' 
+##' @export 
+rxChain <- function(obj1, obj2) {
     args <- rev(as.list(match.call())[-1]);
     names(args) <- c("obj","solvedObject");
     return(do.call("rxChain2",args,envir = parent.frame(1)));
 }
+ 
+#' @rdname rxChain
+#' @export
+'+.solveRxDll' <- function(obj1, obj2){
+    return(rxChain(obj1,obj2))
+}
 
 #' @rdname rxChain
 #' @export
-'%>%.solveRxDll' <- '+.solveRxDll';
+'%>%.solveRxDll' <- function(obj1, obj2){
+    return(rxChain(obj1,obj2));
+}
 
-#' Second command in chaining commands
-#'
-#' This is s3 method is called internally with \code{+} and \code{\%>\%} operators.
-#'
-#' @param obj the object being added/chained/piped to the solved object
-#' @param solvedObject the solved object
-#' @param envir
-#' 
-#' @keywords internal
+##' Second command in chaining commands
+##'
+##' This is s3 method is called internally with \code{+} and \code{\%>\%} operators.
+##'
+##' @param obj the object being added/chained/piped to the solved object
+##' @param solvedObject the solved object
+##' @keywords internal
 #' @export
 rxChain2 <- function(obj,solvedObject){
     UseMethod("rxChain2")
