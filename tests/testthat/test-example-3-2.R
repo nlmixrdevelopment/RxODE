@@ -27,8 +27,8 @@ out <- round(out,6)
 
 
 test_that("Runs example 3.2 correctly",{
-    expect_equal(digest(out,"sha512"),
-                 "3365655136f0563f22565dd9ead11e62a817f5eaf49d900311bf36cbf8e98eef684baf5173bfd5af740ec3b10e8970e061937a883c020fdfd3f80c846a7b617f");
+    expect_equal(digest(round(out,3)),
+                 "132587c1a616f28a1ec26c19ce074b73");
 })
 
 

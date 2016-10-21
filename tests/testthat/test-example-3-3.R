@@ -22,7 +22,7 @@ et$add.sampling(seq(0,20,by=0.01))
 out <- solve(rigid,et)
 
 test_that("Test rigid body example",{
-    expect_equal(digest(signif(as.data.frame(out),6),"sha512"),
-                 "425700f73c63dad8a51a0b1f78a1e2dcde2cc64106609fd0528c517a52ce8c918f8ff1ed2bc2deabc5cf007adee345371e27490bb46a69953e6c12586e0b5bf6")
+    expect_equal(digest(round(as.data.frame(out),3)),
+                 "a3f42a57944330af983e9b78c3a69a30")
 })
 rxClean();
