@@ -461,7 +461,7 @@ extern SEXP ode_solver (// Parameters
   // Assign functions pointers
   dydt     = fun_dydt;
   calc_jac = fun_calc_jac;
-  calc_lhs = fun_calc_jac;
+  calc_lhs = fun_calc_lhs;
   // Assign solver options
   global_jt	= fun_jt;
   global_mf	= fun_mf;
@@ -512,7 +512,6 @@ extern SEXP ode_solver (// Parameters
 
   for (i=0; i< 99; i++) InfusionRate[i] = 0.0;
 
-  
   if (neq) {
     if (stiff==0){
       call_dop(neq, all_times, evid, n_all_times, inits, dose, solve, rc);
