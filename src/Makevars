@@ -1,0 +1,19 @@
+PKG_LIBS = dparser/libdparse.a $(BLAS_LIBS) $(FLIBS)
+PKG_CPPFLAGS = -Idparser 
+
+SOURCES_C = call_dvode.c dop853.c tran.c
+SOURCES_FORTAN =  dlsoda.f opkda1_abbr.f opkda2.f vode.f
+
+OBJECTS = $(SOURCES_C:.c=.o) $(SOURCES_FORTAN:.f=.o)
+
+all: libdparse $(SHLIB)
+$(SHLIB): $(OBJECTS)
+
+libdparse:
+	echo "make libdparse.a ..."
+	(cd dparser; $(MAKE) CC="$(CC)" CFLAGS="$(CFLAGS) -fPIC" libdparse.a)
+
+libodeaux:
+	echo "make libdparse.a ..."
+	(cd ode; $(MAKE) CC="$(CC)" FC="$(FC)" CFLAGS="$(CFLAGS) -fPIC" FFLAGS="$(FFLAGS) -fPIC" libodeaux.a)
+
