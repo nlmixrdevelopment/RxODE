@@ -3,3 +3,4 @@
 ^.git.*$
 ^\.gitignore$
 ^vignettes/figure/.*$
+^appveyor\.yml$
