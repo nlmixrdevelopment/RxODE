@@ -1,5 +1,6 @@
 [![Build Status](https://travis-ci.org/mattfidler/RxODE.svg?branch=master)](https://travis-ci.org/mattfidler/RxODE)
 [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/mattfidler/RxODE?branch=master&svg=true)](https://ci.appveyor.com/project/mattfidler/RxODE)
+[![codecov.io](https://codecov.io/github/mattfidler/RxODE/coverage.svg?branch=master)](https://codecov.io/github/mattfidler/RxODE?branch=master)
 ##RxODE package for R: a tool for performing simulations with Ordinary Different Equation models in R, with applications for pharmacometrics
 ***  
 
