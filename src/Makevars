@@ -1,14 +1,11 @@
 PKG_LIBS = dparser/libdparse.a $(BLAS_LIBS) $(FLIBS)
 PKG_CPPFLAGS = -Idparser
 
-SOURCES_C = call_dvode.c dop853.c tran.c
+SOURCES_C = call_dvode.c dop853.c tran.c parse.c scan.c symtab.c util.c dparse_tree.c mkdparse.c write_tables.c grammar.g.c gram.c lex.c lr.c version.c
 SOURCES_FORTAN =  dlsoda.f opkda1_abbr.f opkda2.f vode.f
 
 OBJECTS = $(SOURCES_C:.c=.o) $(SOURCES_FORTAN:.f=.o)
 
-all: libdparse $(SHLIB)
+all:  $(SHLIB)
 $(SHLIB): $(OBJECTS)
 
-libdparse:
-	echo "make libdparse.a ..."
-	(cd dparser; $(MAKE) -f Makefile.org CC="$(CC)" CFLAGS="$(CFLAGS) -I$(R_HOME)/include -fPIC" libdparse.a)

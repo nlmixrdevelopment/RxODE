@@ -1007,7 +1007,7 @@ make_PNode(Parser *p, uint hash, int symbol, d_loc_t *start_loc, char *e, PNode 
   int i, l = sizeof(PNode) - sizeof(d_voidp) + p->user.sizeof_user_parse_node;
   PNode *new_pn = p->free_pnodes;
   if (!new_pn)
-    new_pn = R_chk_calloc(l,sizeof(PNode*));
+    new_pn = R_chk_calloc((size_t)(l),sizeof(PNode*));
   else
     p->free_pnodes = new_pn->all_next;
   p->pnodes++;
@@ -1901,7 +1901,7 @@ error_recovery(Parser *p) {
   p->user.loc = p->snode_hash.last_all->loc;
   if (!p->user.error_recovery)
     return res;
-  q = Calloc(ERROR_RECOVERY_QUEUE_SIZE, SNode*);
+  q = R_chk_calloc(ERROR_RECOVERY_QUEUE_SIZE, sizeof(SNode*));
   if (p->user.loc.line > p->last_syntax_error_line) {
     p->last_syntax_error_line = p->user.loc.line;
     p->user.syntax_errors++;
@@ -2206,7 +2206,7 @@ void null_white_space(D_Parser *p, d_loc_t *loc, void **p_globals) { }
 
 D_Parser *
 new_D_Parser(D_ParserTables *t, int sizeof_ParseNode_User) {
-  Parser *p = Calloc(1,Parser);
+  Parser *p = R_chk_calloc((size_t)(1),sizeof(Parser));
   /* memset(p, 0, sizeof(Parser)); */
   p->t = t;
   p->user.loc.line = 1;
