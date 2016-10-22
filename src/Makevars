@@ -4,7 +4,3 @@ SOURCES_C = call_dvode.c dop853.c tran.c parse.c scan.c symtab.c util.c dparse_t
 SOURCES_FORTAN =  dlsoda.f opkda1_abbr.f opkda2.f vode.f
 
 OBJECTS = $(SOURCES_C:.c=.o) $(SOURCES_FORTAN:.f=.o)
-
-all:  $(SHLIB)
-$(SHLIB): $(OBJECTS)
-
