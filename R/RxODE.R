@@ -7,7 +7,7 @@ loadDir <- NULL;
     loadDir <<- dirname((getLoadedDLLs()$RxODE)[["path"]])
     op <- options();
     op.rx <- list(RxODE.prefer.tbl = FALSE,
-                  RxODE.echo.compile = FALSE);
+                  RxODE.echo.compile = TRUE);
     w <- !(names(op.rx) %in% names(op))
     if(any(w)) options(op.rx[w]);
 }
@@ -1804,7 +1804,7 @@ rxTransMakevars <- function(rxProps,                                            
         if (debug){
             ret <- sprintf("%s -D__DEBUG__",ret);
         }
-        ret <- sprintf("PKG_CPPFLAGS=%s\nPKG_LIBS=-L%s -lRxODE",ret,loadDir);
+        ret <- sprintf("PKG_CPPFLAGS=%s\nPKG_LIBS=-L%s -l:RxODE%s",ret,loadDir,.Platform$dynlib.ext);
         cat(ret);
         return(ret);
     } else {
@@ -1925,16 +1925,25 @@ rxCompile <-  function(model,           # Model
             }
             if (force || needCompile){
                 ## Setup Makevars
+                on.exit({if(file.exists(Makevars)){
+                             unlink(Makevars);
+                         }
+                             if (file.exists(sprintf("libRxODE%s",.Platform$dynlib.ext))){
+                                 unlink(sprintf("libRxODE%s",.Platform$dynlib.ext));
+                             }
+                             setwd(owd);});
                 if (file.exists(Makevars)){
                     unlink(Makevars);
                 }
                 sink(Makevars);
                 cat(rxTransMakevars(trans,...));
                 sink();
+                if (!file.exists("./libRxODE%s",.Platform$dynlib.ext)){
+                    try({file.symlink(file.path(loadDir,sprintf("RxODE%s",.Platform$dynlib.ext)),sprintf("./libRxODE%s",.Platform$dynlib.ext))})
+                }
                 sh <- "system"   # windows's default shell COMSPEC does not handle UNC paths    
                 ## Change working directory
                 owd <- getwd();
-                on.exit(setwd(owd));
                 setwd(dir);
                 try(dyn.unload(finalDll), silent=TRUE);
                 try(unlink(finalDll));
