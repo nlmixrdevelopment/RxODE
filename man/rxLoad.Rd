@@ -13,4 +13,7 @@ rxLoad(obj)
 This loads the dll into the current R session to allow C functions
 to be called in R.
 }
+\author{
+Matthew L.Fidler
+}
 

@@ -33,5 +33,10 @@ sample_n samples n from the solved RxODE solved object.
 sample_frac samples a fraction of the number rows of the solved
 RxODE object.
 }
+\author{
+Matthew L.Fidler
+
+Matthew L.Fidler
+}
 \keyword{internal}
 

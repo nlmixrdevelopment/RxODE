@@ -36,5 +36,8 @@ for more details.}
 \description{
 tidyr separate support
 }
+\author{
+Matthew L.Fidler
+}
 \keyword{internal}
 

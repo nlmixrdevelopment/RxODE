@@ -19,6 +19,9 @@ Assign objects by argumnt as obj$arg <- value
 \details{
 This also works as obj[[arg]] <- value
 }
+\author{
+Matthew L.Fidler
+}
 \seealso{
 \code{\link{rxSolve}}
 }

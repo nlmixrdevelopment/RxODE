@@ -16,6 +16,9 @@
 \description{
 Assign solved objects using the [[]] syntax
 }
+\author{
+Matthew L.Fidler
+}
 \seealso{
 \code{\link{rxSolve}}
 }

@@ -23,6 +23,9 @@ This function is an alias for the \code{\link{rxPlot}} function.}
 This plots a line diagram for the current system of differential
 equations.
 }
+\author{
+Matthew L.Fidler
+}
 \seealso{
 \code{\link{rxPlot}},\code{\link{RxODE}}.
 }

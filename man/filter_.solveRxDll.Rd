@@ -16,5 +16,8 @@ filter_.solveRxDll(.data, ..., .dots)
 \description{
 dyplr filter_ support
 }
+\author{
+Matthew L.Fidler
+}
 \keyword{internal}
 

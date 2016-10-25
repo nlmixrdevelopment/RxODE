@@ -13,4 +13,7 @@ rxUnload(obj)
 This unloads the dll in the R session so that the dll can be
 deleted.  All the c functions will no longer be accessible.
 }
+\author{
+Matthew L.Fidler
+}
 

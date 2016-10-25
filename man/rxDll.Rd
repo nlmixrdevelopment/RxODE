@@ -27,5 +27,8 @@ a path of the library
 This will return the dynamic load library or shared object used to
 run the C code for RxODE.
 }
+\author{
+Matthew L.Fidler
+}
 \keyword{internal}
 

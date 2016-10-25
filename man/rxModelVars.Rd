@@ -42,5 +42,8 @@ Return all the known model variables for a specified rxode object
 These items are only calculated after compilation; they are
 built-into the RxODE compiled dll.
 }
+\author{
+Matthew L.Fidler
+}
 \keyword{internal}
 

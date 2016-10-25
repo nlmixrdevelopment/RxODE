@@ -12,5 +12,8 @@
 \description{
 This prints out the user supplied arguments for rxCoef object
 }
+\author{
+Matthew L.Fidler
+}
 \keyword{internal}
 

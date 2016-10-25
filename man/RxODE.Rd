@@ -221,7 +221,6 @@ print(m1)
 # Step 2 - Create the model input as an EventTable,
 # including dosing and observation (sampling) events
 
-# QD (once daily) dosing for 5 days.
 
 qd <- eventTable(amount.units="ug", time.units = "hours")
 qd$add.dosing(dose=10000, nbr.doses=5, dosing.interval = 24)

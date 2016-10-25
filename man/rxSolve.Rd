@@ -143,6 +143,9 @@ An \dQuote{rxSolve} solve object that stores the solved
 This uses RxODE family of objects, file, or model specification to
 solve a ODE system.
 }
+\author{
+Melissa Hallow, Wenping Wang and Matthew Fidler
+}
 \references{
 Hindmarsh, A. C.
 \emph{ODEPACK, A Systematized Collection of ODE Solvers}.

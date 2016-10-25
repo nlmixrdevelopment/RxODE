@@ -963,7 +963,7 @@ double contd8 (unsigned int ii, double x)
 
   if (i == UINT_MAX)
   {
-    printf ("No dense output available for %uth component", ii);
+    Rprintf ("No dense output available for %uth component", ii);
     return 0.0;
   }
 

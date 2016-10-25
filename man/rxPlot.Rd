@@ -51,4 +51,7 @@ supported.}
 This plots a line diagram for the current system of differential
 equations.
 }
+\author{
+Matthew L.Fidler
+}
 

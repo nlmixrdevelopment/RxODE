@@ -14,5 +14,8 @@
 \description{
 dim(x) <- value
 }
+\author{
+Matthew L.Fidler
+}
 \keyword{internal}
 

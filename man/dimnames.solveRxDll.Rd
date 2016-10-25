@@ -12,5 +12,8 @@
 \description{
 Get dimension names for rxSolve object
 }
+\author{
+Matthew L.Fidler
+}
 \keyword{internal}
 

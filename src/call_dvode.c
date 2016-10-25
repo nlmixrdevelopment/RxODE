@@ -260,7 +260,7 @@ void call_dvode(int neq, double *x, int *evid, int nx, double *inits, double *do
 		wh = evid[i];
 		xout = x[i];
 		if (global_debug){
-		  printf("i=%d xp=%f xout=%f\n", i, xp, xout);
+		  Rprintf("i=%d xp=%f xout=%f\n", i, xp, xout);
 		  fprintf(fp, "i=%d xp=%f xout=%f\n", i, xp, xout);
 		}
 		

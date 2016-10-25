@@ -9,5 +9,8 @@
 \description{
 This tells if the rxDll is loaded, ready and/or deleted.
 }
+\author{
+Matthew L.Fidler
+}
 \keyword{internal}
 

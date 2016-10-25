@@ -14,4 +14,7 @@ as.tbl.solveRxDll(x, ...)
 \description{
 Convert Solved RxODE object to tbl
 }
+\author{
+Matthew L.Fidler
+}
 

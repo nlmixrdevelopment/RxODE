@@ -21,5 +21,8 @@ frame.}
 \description{
 tidyr unite support
 }
+\author{
+Matthew L.Fidler
+}
 \keyword{internal}
 

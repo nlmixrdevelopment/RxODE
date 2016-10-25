@@ -16,4 +16,7 @@ a boolean stating if the operation was successful.
 This function deletes the dll, but doesn't delete the model
 information in the object.
 }
+\author{
+Matthew L.Fidler
+}
 

@@ -14,5 +14,8 @@
 \description{
 dimnames(x) <- value
 }
+\author{
+Matthew L.Fidler
+}
 \keyword{internal}
 

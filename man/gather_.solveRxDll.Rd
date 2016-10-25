@@ -31,5 +31,8 @@ columns.}
 \description{
 tidyr support of gather_ method
 }
+\author{
+Matthew L.Fidler
+}
 \keyword{internal}
 

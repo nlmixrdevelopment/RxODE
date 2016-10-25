@@ -4,3 +4,5 @@
 ^\.gitignore$
 ^vignettes/figure/.*$
 ^appveyor\.yml$
+rx_.*\.(so|dll)$
+.*\.(o|a)$

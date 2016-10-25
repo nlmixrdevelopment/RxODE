@@ -16,4 +16,7 @@
 \code{predict} solves the odinary differential equations specified by
  RxODE object
 }
+\author{
+Matthew L.Fidler
+}
 

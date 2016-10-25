@@ -28,5 +28,8 @@ Otherwise return the md5 based on the arguments provided
 This md5 is based on the model and possibly the extra c code
 supplied for the model
 }
+\author{
+Matthew L.Fidler
+}
 \keyword{internal}
 

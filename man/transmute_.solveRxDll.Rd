@@ -16,5 +16,8 @@ transmute_.solveRxDll(.data, ..., .dots)
 \description{
 dyplr transmute_ support
 }
+\author{
+Matthew L.Fidler
+}
 \keyword{internal}
 

@@ -12,5 +12,8 @@
 \description{
 Get dimensions of rxSolve object
 }
+\author{
+Matthew L.Fidler
+}
 \keyword{internal}
 

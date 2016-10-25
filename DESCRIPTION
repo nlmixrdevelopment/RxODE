@@ -38,10 +38,12 @@ Description: Facilities for running simulations from ordinary
     schedules.  NB: The use of this package requires both C and
     Fortran compilers, for details on their use with R please see
     Section 6.3, Appendix A, and Appendix D in the "R Administration and
-    Installation" manual.
+    Installation" manual. Also the code is mostly released under GPL.  The
+    VODE and LSODA are in the public domain and the dparser is licensed under
+    the BSD license.  The information is available in the inst/COPYRIGHTS.
 NeedsCompilation: yes
 VignetteBuilder: knitr
 SystemRequirements: GNU make
-License: GPL (>= 2) + dparser BSD
+License: GPL (>= 2) 
 URL: https://www.r-project.org, https://github.com/hallowkm/RxODE
 RoxygenNote: 5.0.1

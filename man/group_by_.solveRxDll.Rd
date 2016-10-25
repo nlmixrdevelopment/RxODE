@@ -20,5 +20,8 @@ instead add to the existing groups, use \code{add = TRUE}.}
 \description{
 dyplr group_by_ support
 }
+\author{
+Matthew L.Fidler
+}
 \keyword{internal}
 

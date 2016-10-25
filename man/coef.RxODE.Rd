@@ -33,4 +33,7 @@ a rxCoef object with the following
 \description{
 This returns the parameters , state variables
 }
+\author{
+Matthew L.Fidler
+}
 

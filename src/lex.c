@@ -586,7 +586,7 @@ build_scanners(Grammar *g) {
     }
   }
   if (d_verbose_level)
-    printf("%d scanners %d transitions\n", ls->scanners, ls->transitions);
+    Rprintf("%d scanners %d transitions\n", ls->scanners, ls->transitions);
   Free(ls);
 }
 

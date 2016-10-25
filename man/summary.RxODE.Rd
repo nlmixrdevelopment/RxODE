@@ -17,4 +17,7 @@
 \description{
 This prints the expanded information about the RxODE object.
 }
+\author{
+Matthew L.Fidler
+}
 

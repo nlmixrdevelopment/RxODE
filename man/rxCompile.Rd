@@ -59,6 +59,9 @@ A rxdll object that has the following slots
 This is the compilation workhorse creating the RxODE model dll
 files.
 }
+\author{
+Matthew L.Fidler
+}
 \seealso{
 \code{\link{RxODE}}
 }

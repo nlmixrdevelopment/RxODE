@@ -26,5 +26,10 @@ appear in the data, filling in missing combinations with
 \description{
 tidyr's spread_ support
 }
+\author{
+Matthew L. Fidler
+
+Matthew L.Fidler
+}
 \keyword{internal}
 

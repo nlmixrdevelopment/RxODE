@@ -21,4 +21,7 @@ a character vector listing the parameters in the model.
 This return the model's parameters that are required to solve the
 ODE system.
 }
+\author{
+Matthew L.Fidler
+}
 

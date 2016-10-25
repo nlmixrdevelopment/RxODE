@@ -20,5 +20,8 @@ rxChain2(obj, solvedObject)
 \description{
 This is s3 method is called internally with \code{+} and \code{\%>\%} operators.
 }
+\author{
+Matthew L.Fidler
+}
 \keyword{internal}
 

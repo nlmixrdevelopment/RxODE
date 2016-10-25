@@ -16,5 +16,8 @@ distinct_.solveRxDll(.data, ..., .dots)
 \description{
 dyplr distinct_ support
 }
+\author{
+Matthew L.Fidler
+}
 \keyword{internal}
 

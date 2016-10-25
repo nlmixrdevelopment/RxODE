@@ -14,5 +14,8 @@
 \description{
 row.names(x) <- value;
 }
+\author{
+Matthew L.Fidler
+}
 \keyword{internal}
 

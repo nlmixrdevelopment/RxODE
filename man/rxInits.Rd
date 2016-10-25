@@ -26,5 +26,8 @@ for missing parameter values when \code{default} = \code{NA}}
 \description{
 Returns the initial values of the rxDll object
 }
+\author{
+Matthew L.Fidler
+}
 \keyword{internal}
 

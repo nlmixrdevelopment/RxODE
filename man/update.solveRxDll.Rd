@@ -14,4 +14,7 @@
 \description{
 This is a wrapper to the rxSolve method.
 }
+\author{
+Matthew L.Fidler
+}
 

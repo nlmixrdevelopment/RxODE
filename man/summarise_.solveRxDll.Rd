@@ -16,5 +16,8 @@ summarise_.solveRxDll(.data, ..., .dots)
 \description{
 dyplr summarise_ support
 }
+\author{
+Matthew L.Fidler
+}
 \keyword{internal}
 

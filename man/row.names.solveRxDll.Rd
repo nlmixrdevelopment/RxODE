@@ -14,5 +14,8 @@
 \description{
 Get row names of rxSolve object
 }
+\author{
+Matthew L.Fidler
+}
 \keyword{internal}
 

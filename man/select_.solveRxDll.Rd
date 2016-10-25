@@ -16,5 +16,8 @@ select_.solveRxDll(.data, ..., .dots)
 \description{
 dyplr select_ support
 }
+\author{
+Matthew L.Fidler
+}
 \keyword{internal}
 

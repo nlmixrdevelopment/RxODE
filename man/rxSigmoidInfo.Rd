@@ -9,5 +9,8 @@ rxSigmoidInfo(text = "+Kin-Kout*(1-centr/V2/(EC50+centr/V2))*eff")
 \description{
 Used in plotting to figure out if there is a sigmoid function
 }
+\author{
+Matthew L.Fidler
+}
 \keyword{internal}
 

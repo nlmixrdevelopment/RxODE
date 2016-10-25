@@ -16,5 +16,10 @@ slice_.solveRxDll(.data, ..., .dots)
 \description{
 dyplr slice_ support
 }
+\author{
+Matthew L.Fidler
+
+Matthew L.Fidler
+}
 \keyword{internal}
 

@@ -84,6 +84,9 @@ sessions only need to be dynamically loaded into the current R session.)
   cmpMgt <- rx.initCmpMgr(model, "tst1", wd = ".")
 }
 }
+\author{
+Matthew L.Fidler
+}
 \seealso{
 \code{\link{RxODE}}
 }

@@ -18,5 +18,8 @@
 \description{
 Assign solved objects using the [] syntax
 }
+\author{
+Matthew L.Fidler
+}
 \keyword{internal}
 

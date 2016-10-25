@@ -26,5 +26,10 @@ dyplr rename_ support
 
 dyplr rename_ support
 }
+\author{
+Matthew L.Fidler
+
+Matthew L.Fidler
+}
 \keyword{internal}
 

@@ -26,5 +26,10 @@ dyplr arrange_ support
 
 dyplr arrange_ support
 }
+\author{
+Matthew L.Fidler
+
+Matthew L.Fidler
+}
 \keyword{internal}
 

@@ -14,9 +14,11 @@ well as call_dvode.o and associated files}
 }
 \value{
 TRUE if successful
-#'
 }
 \description{
 This cleans up any dlls created by text files
+}
+\author{
+Matthew L. Fidler
 }
 

@@ -22,6 +22,9 @@ If state is a string, return the compartment number of the named state.
 \description{
 This returns the model's compartments or states.
 }
+\author{
+Matthew L.Fidler
+}
 \seealso{
 \code{\link{RxODE}}
 }

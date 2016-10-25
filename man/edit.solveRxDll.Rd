@@ -12,5 +12,8 @@
 \description{
 Edit data frame of rxSolve
 }
+\author{
+Matthew L.Fidler
+}
 \keyword{internal}
 

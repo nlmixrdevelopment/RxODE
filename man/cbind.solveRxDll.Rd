@@ -16,5 +16,10 @@ cbind.solveRxDll(...)
 Cbind/rbind is disabled for RxOde solved objects.  Use as.data.frame(x)
 to use cbind/rbind.
 }
+\author{
+Matthew L.Fidler
+
+Matthew L.Fidler
+}
 \keyword{internal}
 

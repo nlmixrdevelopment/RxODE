@@ -16,5 +16,8 @@ mutate_.solveRxDll(.data, ..., .dots)
 \description{
 dyplr mutate_ support
 }
+\author{
+Matthew L.Fidler
+}
 \keyword{internal}
 

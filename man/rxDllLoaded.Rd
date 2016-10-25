@@ -18,4 +18,7 @@ a boolean stating if the dll is loaded
 \description{
 Determine if the rxDll is loaded or not.
 }
+\author{
+Matthew L.Fidler
+}
 

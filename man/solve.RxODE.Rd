@@ -24,6 +24,9 @@
 \description{
 Solve RxODE objects
 }
+\author{
+Matthew L.Fidler
+}
 \seealso{
 \code{\link{rxSolve}}
 }

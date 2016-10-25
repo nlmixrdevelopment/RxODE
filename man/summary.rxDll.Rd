@@ -16,5 +16,8 @@ first. By default this is FALSE}
 \description{
 This gives expanded information about the rxDll object
 }
+\author{
+Matthew L.Fidler
+}
 \keyword{internal}
 
