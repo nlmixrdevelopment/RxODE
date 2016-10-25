@@ -6,7 +6,7 @@
 #include "gramgram.h"
 #include "d.h"
 #include "mkdparse.h"
-#include "dparse_tree.h"
+#include "dparse.h"
 #include <R.h>
 #include <Rinternals.h>
 #include <R_ext/Rdynload.h>
@@ -19,6 +19,9 @@
 #define MXBUF 2400
 #define SBPTR sb.s+sb.o
 #define SBTPTR sbt.s+sbt.o
+
+// from mkdparse_tree.h
+typedef void (print_node_fn_t)(int depth, char *token_name, char *token_value, void *client_data);
 
 // Taken from dparser and changed to use R_alloc
 int r_buf_read(const char *pathname, char **buf, int *len) {
