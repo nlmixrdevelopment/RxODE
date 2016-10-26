@@ -7,7 +7,7 @@ loadDir <- NULL;
     loadDir <<- dirname((getLoadedDLLs()$RxODE)[["path"]])
     op <- options();
     op.rx <- list(RxODE.prefer.tbl = FALSE,
-                  RxODE.echo.compile = TRUE);
+                  RxODE.echo.compile = FALSE);
     w <- !(names(op.rx) %in% names(op))
     if(any(w)) options(op.rx[w]);
 }
@@ -1938,9 +1938,6 @@ rxCompile <-  function(model,           # Model
                 sink(Makevars);
                 cat(rxTransMakevars(trans,...));
                 sink();
-                if (!file.exists("./libRxODE%s",.Platform$dynlib.ext)){
-                    try({file.symlink(file.path(loadDir,sprintf("RxODE%s",.Platform$dynlib.ext)),sprintf("./libRxODE%s",.Platform$dynlib.ext))})
-                }
                 sh <- "system"   # windows's default shell COMSPEC does not handle UNC paths    
                 ## Change working directory
                 owd <- getwd();
@@ -3830,4 +3827,15 @@ rxClean <- function(wd = getwd()){
     }
     return(length(list.files(pattern=pat)) == 0);
 }
-
+##' RxODE load directory
+##'
+##' @title RxODE load directory
+##' @param ... File name under load directory, or nothing for load
+##'     directory alone.
+##' @return RxODE load Directory
+##' @author Matthew L. Fidler
+##' @keywords internal
+##' @export
+rxLoadDir <- function(...){
+    return(file.path(loadDir,...))
+}

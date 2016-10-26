@@ -60,7 +60,7 @@ buf_read(const char *pathname, char **buf, int *len) {
   fd = open(pathname, O_RDONLY);
   if (fd <= 0) 
     return -1;
-  memset(&sb, 0, sizeof(sb));
+  /*memset(&sb, 0, sizeof(sb));*/
   fstat(fd, &sb);
   *len = sb.st_size;
   *buf = (char*)Calloc(*len + 2,char);
@@ -210,7 +210,7 @@ set_add(void *av, void *t) {
   }
   v->n = d_prime2[v->i];
   v->v = (void**)Calloc(v->n, void *);
-  memset(v->v, 0, v->n * sizeof(void *));
+  /*memset(v->v, 0, v->n * sizeof(void *));*/
   if (vv.v) {
     set_union(av, &vv);
     Free(vv.v);
@@ -249,7 +249,7 @@ set_add_fn(void *av, void *t, hash_fns_t *fns) {
   }
   v->n = d_prime2[v->i];
   v->v = (void**)Calloc(v->n, void *);
-  memset(v->v, 0, v->n * sizeof(void *));
+  /*memset(v->v, 0, v->n * sizeof(void *));*/
   if (vv.v) {
     set_union_fn(av, &vv, fns);
     Free(vv.v);

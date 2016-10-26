@@ -75,6 +75,7 @@ char * r_dup_str(const char *s, const char *e) {
 }
 
 extern D_ParserTables parser_tables_RxODE;
+extern d_use_r_headers;
 
 unsigned int found_jac = 0, found_print = 0;
 
@@ -1010,7 +1011,7 @@ void trans_internal(char* parse_file, char* c_file){
   D_ParseNode *pn;
   /* any number greater than sizeof(D_ParseNode_User) will do;
      below 1024 is used */
-  D_Parser *p = new_D_Parser(&parser_tables_gram, 1024);
+  D_Parser *p = new_D_Parser(&parser_tables_RxODE, 1024);
   p->save_parse_tree = 1;
   buf = r_sbuf_read(parse_file);
   err_msg((intptr_t) buf, "error: empty buf for FILE_to_parse\n", -2);
@@ -1020,7 +1021,7 @@ void trans_internal(char* parse_file, char* c_file){
     fpIO2 = fopen( "out3.txt", "w" );
     err_msg((intptr_t) fpIO, "error opening out2.txt\n", -2);
     err_msg((intptr_t) fpIO2, "error opening out3.txt\n", -2);
-    wprint_parsetree(parser_tables_gram, pn, 0, wprint_node, NULL);
+    wprint_parsetree(parser_tables_RxODE, pn, 0, wprint_node, NULL);
     fclose(fpIO);
     fclose(fpIO2);
     fpIO = fopen(c_file, "w");
@@ -1033,7 +1034,9 @@ void trans_internal(char* parse_file, char* c_file){
   } else {
     Rprintf("\nSyntax Error\n");
   }
+  free_D_Parser(p);
 }
+
 
 void R_init_RxODE(DllInfo *info){
 }
@@ -1285,7 +1288,8 @@ SEXP cDparser(SEXP fileName,
 	      SEXP verbose,
 	      SEXP sexp_write_extension,
 	      SEXP write_header,
-	      SEXP token_type){
+	      SEXP token_type,
+	      SEXP use_r_header){
   char *grammar_pathname, *grammar_ident, *write_extension, *output_file;
   Grammar *g;
   int d_rdebug_grammar_level, d_verbose_level;
@@ -1313,6 +1317,7 @@ SEXP cDparser(SEXP fileName,
   strcpy(g->write_extension, write_extension);
   g->write_pathname = output_file;
 
+  d_use_r_headers = INTEGER(use_r_header)[0];
   /* don't print anything to stdout, when the grammar is printed there */
   if (d_rdebug_grammar_level > 0)
     d_verbose_level = 0;
@@ -1327,5 +1332,6 @@ SEXP cDparser(SEXP fileName,
 
   free_D_Grammar(g);
   g = 0;
+  d_use_r_headers = 0;
   return R_NilValue;
 }

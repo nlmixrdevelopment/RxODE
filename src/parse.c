@@ -40,6 +40,13 @@ typedef Stack(int) StackInt;
 static int exhaustive_parse(Parser *p, int state);
 static void free_PNode(Parser *p, PNode *pn);
 
+extern int d_exit_on_error = 1;
+
+char * r_dup_str(const char *s, const char *e);
+
+char * d_file_name;
+int  d_use_file_name = 0;
+
 void
 print_paren(Parser *pp, PNode *p) {
   int i;
@@ -164,7 +171,7 @@ insert_SNode_internal(Parser *p, SNode *sn) {
     ph->i++;
     ph->m = d_prime2[ph->i];
     ph->v = (SNode**) R_chk_calloc((size_t) (ph->m), sizeof(*ph->v));
-    /* memset(ph->v, 0, ph->m * sizeof(*ph->v)); */
+    memset(ph->v, 0, ph->m * sizeof(*ph->v));
     for (i = 0; i < m; i++)
       while ((t = v[i])) {
         v[i] = v[i]->bucket_next;
@@ -338,7 +345,7 @@ insert_PNode_internal(Parser *p, PNode *pn) {
     ph->i++;
     ph->m = d_prime2[ph->i];
     ph->v = (PNode**)R_chk_calloc( (size_t)(ph->m), sizeof(*ph->v));
-    /* memset(ph->v, 0, ph->m * sizeof(*ph->v)); */
+    memset(ph->v, 0, ph->m * sizeof(*ph->v));
     for (i = 0; i < m; i++)
       while ((t = v[i])) {
         v[i] = v[i]->bucket_next;
@@ -407,12 +414,12 @@ alloc_parser_working_data(Parser *p) {
   p->pnode_hash.m = d_prime2[p->pnode_hash.i];
   p->pnode_hash.v =
     (PNode**)R_chk_calloc((size_t)(p->pnode_hash.m), sizeof(*p->pnode_hash.v));
-  //memset(p->pnode_hash.v, 0, p->pnode_hash.m * sizeof(*p->pnode_hash.v));
+  memset(p->pnode_hash.v, 0, p->pnode_hash.m * sizeof(*p->pnode_hash.v));
   p->snode_hash.i = SNODE_HASH_INITIAL_SIZE_INDEX;
   p->snode_hash.m = d_prime2[p->snode_hash.i];
   p->snode_hash.v =
     (SNode**)R_chk_calloc((size_t)(p->snode_hash.m), sizeof(*p->snode_hash.v));
-  //memset(p->snode_hash.v, 0, p->snode_hash.m * sizeof(*p->snode_hash.v));
+  memset(p->snode_hash.v, 0, p->snode_hash.m * sizeof(*p->snode_hash.v));
   p->nshift_results = 0;
   p->ncode_shifts = 0;
 }
@@ -1219,7 +1226,7 @@ set_add_znode_hash(VecZNode *v, ZNode *z) {
   }
   v->n = d_prime2[v->i];
   v->v = R_chk_calloc((size_t)(v->n), sizeof(void *));
-  /* memset(v->v, 0, v->n * sizeof(void *)); */
+  memset(v->v, 0, v->n * sizeof(void *));
   if (vv.v) {
     set_union_znode(v, &vv);
     Free(vv.v);
@@ -1869,17 +1876,24 @@ syntax_error_report_fn(struct D_Parser *ap) {
   char *fn = d_dup_pathname_str(p->user.loc.pathname);
   char *after = 0;
   ZNode *z = p->snode_hash.last_all ? p->snode_hash.last_all->zns.v[0] : 0;
+  if (d_use_file_name){
+    fn = d_dup_pathname_str(d_file_name);
+  }
   while (z && z->pn->parse_node.start_loc.s == z->pn->parse_node.end)
     z = (z->sns.v && z->sns.v[0]->zns.v) ? z->sns.v[0]->zns.v[0] : 0;
   if (z && z->pn->parse_node.start_loc.s != z->pn->parse_node.end)
-    after = dup_str(z->pn->parse_node.start_loc.s, z->pn->parse_node.end);
-  if (after)
-    error("%s:%d: syntax error after '%s'\n", fn, p->user.loc.line, after);
-  else
-    error("%s:%d: syntax error\n", fn, p->user.loc.line);
-  if (after)
-    Free(after);
-  Free(fn);
+    after = r_dup_str(z->pn->parse_node.start_loc.s, z->pn->parse_node.end);
+  if (d_exit_on_error){
+    if (after)
+      error("%s:%d: syntax error after '%s'\n", fn, p->user.loc.line, after);
+    else
+      error("%s:%d: syntax error\n", fn, p->user.loc.line);
+  } else {
+    if (after)
+      Rprintf("%s:%d: syntax error after '%s'\n", fn, p->user.loc.line, after);
+    else
+      Rprintf("%s:%d: syntax error\n", fn, p->user.loc.line);
+  }
 }
 
 static void
@@ -2047,13 +2061,12 @@ exhaustive_parse(Parser *p, int state) {
   ZNode *z;
   int progress = 0, ready = 0;
   d_loc_t loc;
-
   pos = p->user.loc.ws = p->user.loc.s = p->start;
   loc = p->user.loc;
   p->user.initial_white_space_fn((D_Parser*)p, &loc, &p->user.initial_globals);
   /* initial state */
   sn = add_SNode(p, &p->t->state[state], &loc, p->top_scope, p->user.initial_globals);
-  memset(&tpn, 0, sizeof(tpn));
+  memset(&tpn, 0, sizeof(tpn)); 
   tpn.parse_node.white_space = p->user.initial_white_space_fn;
   tpn.parse_node.globals = p->user.initial_globals;
   tpn.initial_scope = tpn.parse_node.scope = p->top_scope;
@@ -2126,7 +2139,6 @@ static void
 white_space(D_Parser *p, d_loc_t *loc, void **p_user_globals) {
   int rec = 0;
   char *s = loc->s, *scol = 0;
-
   if (*s == '#' && loc->col == 0) {
   Ldirective:
     {
@@ -2207,7 +2219,7 @@ void null_white_space(D_Parser *p, d_loc_t *loc, void **p_globals) { }
 D_Parser *
 new_D_Parser(D_ParserTables *t, int sizeof_ParseNode_User) {
   Parser *p = R_chk_calloc((size_t)(1),sizeof(Parser));
-  /* memset(p, 0, sizeof(Parser)); */
+  memset(p, 0, sizeof(Parser));
   p->t = t;
   p->user.loc.line = 1;
   p->user.sizeof_user_parse_node = sizeof_ParseNode_User;
@@ -2319,11 +2331,10 @@ dparse(D_Parser *ap, char *buf, int buf_len) {
   SNode *sn;
   PNode *pn;
   D_ParseNode *res = NULL;
-
+  /* Rprintf("Start dparser %d\n",d_verbose_level); */
   p->states = p->scans = p->shifts = p->reductions = p->compares = 0;
   p->start = buf;
   p->end = buf + buf_len;
-
   initialize_whitespace_parser(p);
   alloc_parser_working_data(p);
   if (p->user.initial_scope)

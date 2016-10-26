@@ -82,6 +82,9 @@
 ##'     file.  For C++ programs (for example) the extension can be set
 ##'     to .cpp with the option \code{write_extension="cpp"}.
 ##'     (\code{write_extension="c"} by default)
+##'
+##' @param use_r_header when TRUE, add R headers and swap printf for
+##'     Rprintf. By default this is FALSE.
 ##' 
 ##' @return Nothing. Outputs files instead.
 ##' 
@@ -105,7 +108,8 @@ mkdparse <- function(file,outputFile,
                      write_header = c("IfEmpty",TRUE,FALSE),
                      rdebug = FALSE,
                      verbose = TRUE,
-                     write_extension="c"
+                     write_extension="c",
+                     use_r_header = FALSE
                      ){
     file <- gsub("\\\\","/",file);
     if (missing(write_header) || write_header == "IfEmpty"){
@@ -144,7 +148,8 @@ mkdparse <- function(file,outputFile,
           as.integer(verbose),
           write_extension,
           as.integer(write_header),
-          as.integer(token_type));
+          as.integer(token_type),
+          as.integer(use_r_header));
     return(invisible());
 }
 

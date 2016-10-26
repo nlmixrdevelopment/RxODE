@@ -19,7 +19,7 @@ new_production(Grammar *g, char *name) {
     return p;
   }
   p = Calloc(1,Production);
-  //memset(p, 0, sizeof(Production));
+  memset(p, 0, sizeof(Production));
   vec_add(&g->productions, p);
   p->name = name;
   p->name_len = strlen(name);
@@ -29,14 +29,14 @@ new_production(Grammar *g, char *name) {
 static Elem *
 new_elem() {
   Elem *e = Calloc(1,Elem);
-  //memset(e, 0, sizeof(Elem));
+  memset(e, 0, sizeof(Elem));
   return e;
 }
 
 Rule *
 new_rule(Grammar *g, Production *p) {
   Rule *r = Calloc(1, Rule);
-  //memset(r, 0, sizeof(Rule));
+  memset(r, 0, sizeof(Rule));
   r->prod = p;
   r->end = new_elem();
   r->end->kind = ELEM_END;
@@ -48,7 +48,7 @@ new_rule(Grammar *g, Production *p) {
 static Term *
 new_term() {
   Term *term = Calloc(1,Term);
-  //memset(term, 0, sizeof(Term));
+  memset(term, 0, sizeof(Term));
   return term;
 }
 

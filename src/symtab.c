@@ -81,7 +81,7 @@ symhash_add(D_SymHash *sh, D_Sym *s) {
 static D_SymHash * 
 new_D_SymHash() {
   D_SymHash *sh = Calloc(1,D_SymHash);
-  /* memset(sh, 0, sizeof(D_SymHash)); */
+  memset(sh, 0, sizeof(D_SymHash));
   sh->grow = INITIAL_SYMHASH_SIZE * 2 + 1;
   sh->syms.n = INITIAL_SYMHASH_SIZE;
   sh->syms.v = R_chk_calloc((size_t)(sh->syms.n), sizeof(void *));
@@ -105,7 +105,7 @@ free_D_SymHash(D_SymHash *sh) {
 D_Scope *
 new_D_Scope(D_Scope *parent) {
   D_Scope *st = Calloc(1,D_Scope);
-  /* memset(st, 0, sizeof(D_Scope)); */
+  memset(st, 0, sizeof(D_Scope));
   if (parent) {
     st->depth = parent->depth + 1;
     st->kind = parent->kind;
@@ -177,7 +177,7 @@ equiv_D_Scope(D_Scope *current) {
 D_Scope *
 enter_D_Scope(D_Scope *current, D_Scope *scope) {
   D_Scope *st = Calloc(1,D_Scope), *parent = scope->up;
-  /* memset(st, 0, sizeof(D_Scope)); */
+  memset(st, 0, sizeof(D_Scope));
   st->depth = scope->depth;
   st->up = parent;
   st->kind = scope->kind;
@@ -216,7 +216,7 @@ global_D_Scope(D_Scope *current) {
 D_Scope *
 scope_D_Scope(D_Scope *current, D_Scope *scope) {
   D_Scope *st = Calloc(1,D_Scope), *parent = current->up;
-  /* memset(st, 0, sizeof(D_Scope)); */
+  memset(st, 0, sizeof(D_Scope));
   st->depth = current->depth;
   st->up = parent;
   st->kind = current->kind;
@@ -291,7 +291,7 @@ D_Sym *
 new_D_Sym(D_Scope *st, char *name, char *end, int sizeof_D_Sym) {
   int len = end ? end - name : name ? strlen(name) : 0;
   D_Sym *s = R_chk_calloc(sizeof_D_Sym,sizeof(D_Sym));
-  /* memset(s, 0, sizeof_D_Sym); */
+  memset(s, 0, sizeof_D_Sym);
   s->name = name;
   s->len = len;
   s->hash = strhashl(name, len);
