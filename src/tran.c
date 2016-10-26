@@ -74,7 +74,7 @@ char * r_dup_str(const char *s, const char *e) {
   return ss;
 }
 
-extern D_ParserTables parser_tables_gram;
+extern D_ParserTables parser_tables_RxODE;
 
 unsigned int found_jac = 0, found_print = 0;
 
@@ -1267,7 +1267,9 @@ SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_m
 }
 
 extern D_ParserTables parser_tables_dparser_gram;
+
 static int scanner_block_size;
+
 SEXP cDparser(SEXP fileName,
 	      SEXP sexp_output_file,
 	      SEXP set_op_priority_from_rule ,

@@ -150,5 +150,6 @@ mkdparse <- function(file,outputFile,
 
 updateParser <- function(){
     mkdparse(devtools::package_file("inst/tran.g"),
-             devtools::package_file("src/"));
+             devtools::package_file("src/"),
+             grammar_ident="RxODE");
 }
