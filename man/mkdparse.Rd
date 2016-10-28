@@ -10,7 +10,8 @@ mkdparse(file, outputFile, set_op_priority_from_rule = FALSE,
   token_type = c("#define", "enum"), longest_match = FALSE,
   grammar_ident = "gram", ident_from_filename = FALSE, scanner_blocks = 4,
   write_line_directives = TRUE, write_header = c("IfEmpty", TRUE, FALSE),
-  rdebug = FALSE, verbose = TRUE, write_extension = "c")
+  rdebug = FALSE, verbose = TRUE, write_extension = "c",
+  use_r_header = FALSE)
 }
 \arguments{
 \item{file}{File name of grammer to parse.}
@@ -84,6 +85,9 @@ prototyping new, experimental grammars.}
 file.  For C++ programs (for example) the extension can be set
 to .cpp with the option \code{write_extension="cpp"}.
 (\code{write_extension="c"} by default)}
+
+\item{use_r_header}{when TRUE, add R headers and swap printf for
+Rprintf. By default this is FALSE.}
 }
 \value{
 Nothing. Outputs files instead.
