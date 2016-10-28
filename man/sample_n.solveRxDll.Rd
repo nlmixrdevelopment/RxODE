@@ -5,11 +5,11 @@
 \alias{sample_n.solveRxDll}
 \title{dyplr support of sample_n and sample_frac}
 \usage{
-\method{sample_n}{solveRxDll}(tbl, size, replace = FALSE, weight = NULL,
+sample_n.solveRxDll(tbl, size, replace = FALSE, weight = NULL,
   .env = parent.frame())
 
-\method{sample_frac}{solveRxDll}(tbl, size = 1, replace = FALSE,
-  weight = NULL, .env = parent.frame())
+sample_frac.solveRxDll(tbl, size = 1, replace = FALSE, weight = NULL,
+  .env = parent.frame())
 }
 \arguments{
 \item{tbl}{solved RxODE object}

@@ -4,7 +4,7 @@
 \alias{slice_.solveRxDll}
 \title{dyplr slice_ support}
 \usage{
-\method{slice_}{solveRxDll}(.data, ..., .dots)
+slice_.solveRxDll(.data, ..., .dots)
 }
 \arguments{
 \item{.data}{solveRxDll object that slice_ is being applied to.}

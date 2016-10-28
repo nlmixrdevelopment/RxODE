@@ -4,9 +4,9 @@
 \alias{rename_.solveRxDll}
 \title{dyplr rename_ support}
 \usage{
-\method{rename_}{solveRxDll}(.data, ..., .dots)
+rename_.solveRxDll(.data, ..., .dots)
 
-\method{rename_}{solveRxDll}(.data, ..., .dots)
+rename_.solveRxDll(.data, ..., .dots)
 }
 \arguments{
 \item{.data}{solveRxDll object that rename_ is being applied to.}

@@ -4,7 +4,10 @@ regIni <- rex::rex(or(group(one_of("_."),"0"),"0","(0)","[0]","{0}"),end);
 loadDir <- NULL;
 .onLoad <- function(libname,pkgname){
     ## Setup RxODE.prefer.tbl
-    loadDir <<- dirname((getLoadedDLLs()$RxODE)[["path"]])
+    loadDir <<- tryCatch(dirname((getLoadedDLLs()$RxODE)[["path"]]),
+                         error = function(e){
+                             return(system.file(package="RxODE"));
+                         })
     op <- options();
     op.rx <- list(RxODE.prefer.tbl = FALSE,
                   RxODE.echo.compile = FALSE);

@@ -4,7 +4,7 @@
 \alias{mutate_.solveRxDll}
 \title{dyplr mutate_ support}
 \usage{
-\method{mutate_}{solveRxDll}(.data, ..., .dots)
+mutate_.solveRxDll(.data, ..., .dots)
 }
 \arguments{
 \item{.data}{solveRxDll object that mutate_ is being applied to.}

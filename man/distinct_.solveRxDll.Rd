@@ -4,7 +4,7 @@
 \alias{distinct_.solveRxDll}
 \title{dyplr distinct_ support}
 \usage{
-\method{distinct_}{solveRxDll}(.data, ..., .dots)
+distinct_.solveRxDll(.data, ..., .dots)
 }
 \arguments{
 \item{.data}{solveRxDll object that distinct_ is being applied to.}
