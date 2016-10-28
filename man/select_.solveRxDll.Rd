@@ -4,7 +4,7 @@
 \alias{select_.solveRxDll}
 \title{dyplr select_ support}
 \usage{
-select_.solveRxDll(.data, ..., .dots)
+\method{select_}{solveRxDll}(.data, ..., .dots)
 }
 \arguments{
 \item{.data}{solveRxDll object that select_ is being applied to.}

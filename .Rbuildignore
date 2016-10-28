@@ -6,3 +6,4 @@
 ^appveyor\.yml$
 rx_.*\.(so|dll)$
 .*\.(o|a)$
+testthat/.*\.(so|dll)$

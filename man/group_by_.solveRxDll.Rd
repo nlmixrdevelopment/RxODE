@@ -4,7 +4,7 @@
 \alias{group_by_.solveRxDll}
 \title{dyplr group_by_ support}
 \usage{
-group_by_.solveRxDll(.data, ..., .dots, add = FALSE)
+\method{group_by_}{solveRxDll}(.data, ..., .dots, add = FALSE)
 }
 \arguments{
 \item{.data}{solveRxDll object that groupt_by_ is being applied to.}

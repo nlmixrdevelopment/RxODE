@@ -4,9 +4,9 @@
 \alias{arrange_.solveRxDll}
 \title{dyplr arrange_ support}
 \usage{
-arrange_.solveRxDll(.data, ..., .dots)
+\method{arrange_}{solveRxDll}(.data, ..., .dots)
 
-arrange_.solveRxDll(.data, ..., .dots)
+\method{arrange_}{solveRxDll}(.data, ..., .dots)
 }
 \arguments{
 \item{.data}{solveRxDll object that arrange_ is being applied to.}

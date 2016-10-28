@@ -2,8 +2,8 @@ library(digest);
 context("Checking output of grammars.")
 
 files <- list.files(pattern=".*\\.test\\.g$")
-
 for (file in files){
+    library(RxODE)
     flags <- sprintf("%s.flags",file);
     if (file.exists(flags)){
         flags <- readLines(flags);
@@ -18,14 +18,14 @@ for (file in files){
     flags$use_r_header <- TRUE;
     do.call("mkdparse",flags);
     sink("Makevars");
-    cat(sprintf("PKG_CPPFLAGS=-I../../src\nPKG_LIBS=-L%s -l:RxODE%s\n",rxLoadDir(),.Platform$dynlib.ext))
+    cat(sprintf("PKG_CPPFLAGS=-I\"%s\"\nPKG_LIBS=-L%s -l:RxODE%s\n",rxIncludeDir(),rxLoadDir(),.Platform$dynlib.ext))
     sink();
     parser <- sprintf("sample_parser%s",.Platform$dynlib.ext);
     unlink(parser)
     cmd <- sprintf("%s/bin/R CMD SHLIB sample_parser.c %s ", 
                    Sys.getenv("R_HOME"), base::basename(out));
     sh <- "system";
-    do.call(sh,list(cmd,ignore.stdout=FALSE,ignore.stderr=FALSE));
+    do.call(sh,list(cmd,ignore.stdout=TRUE,ignore.stderr=TRUE));
     unlink("Makevars");
     unlink(out);
     unlink(gsub("\\.c$",".h",out));
@@ -86,4 +86,5 @@ for (file in files){
     }
     dyn.unload(parser);
     unlink(parser);
+    detach("package:RxODE",unload=TRUE);
 }

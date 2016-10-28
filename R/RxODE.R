@@ -3839,3 +3839,27 @@ rxClean <- function(wd = getwd()){
 rxLoadDir <- function(...){
     return(file.path(loadDir,...))
 }
+
+##' Return the include directory
+##'
+##' The include directory has the headers that may be needed to build
+##' functions against the RxODE library.
+##' 
+##' @title RxODE C headers include directory
+##' @param ... Additional parameters sent to file.path
+##' @return RxODE include directory
+##' @author Matthew L. Fidler
+##' @export
+rxIncludeDir <- function(...){
+    incl <- system.file("include",package="RxODE");
+    if (file.exists(file.path(incl,"d.h"))){
+        return(file.path(incl,...));
+    } else {
+        incl <- system.file("src",package="RxODE");
+        if (file.exists(file.path(incl,"d.h"))){
+            return(file.path(incl,...));
+        } else {
+            stop("Cannot find d.h in a include directory.  RxODE installation may be corrupt.")
+        }
+    }
+}

@@ -2331,7 +2331,6 @@ dparse(D_Parser *ap, char *buf, int buf_len) {
   SNode *sn;
   PNode *pn;
   D_ParseNode *res = NULL;
-  /* Rprintf("Start dparser %d\n",d_verbose_level); */
   p->states = p->scans = p->shifts = p->reductions = p->compares = 0;
   p->start = buf;
   p->end = buf + buf_len;
