@@ -490,7 +490,7 @@ rxChain2.EventTable <- function(obj,solvedObject){
 ##' @param x An rxode object
 ##' @param ... Ignored parameters
 ##' @author Matthew L.Fidler
-##' @export print.RxODE
+##' @export 
 print.RxODE <-
     function(x, ...)
 {
@@ -512,7 +512,7 @@ print.RxODE <-
 ##' @param object RxODE object
 ##' @param ... Ignored parameters
 ##' @author Matthew L.Fidler
-##' @export summary.RxODE
+##' @export 
 summary.RxODE <- function(object, ...)
 {
     print.RxODE(object);
@@ -582,7 +582,7 @@ coef.rxDll <- function(...){
 ##' 
 ##' @keywords internal
 ##' @author Matthew L.Fidler
-##' @export print.rxCoef
+##' @export 
 print.rxCoef <- function(x,...){
     rxDllObj <- x$RxODE;
     if (length(rxParams(rxDllObj)) > 0){
@@ -2256,7 +2256,7 @@ rxModelVars.solveRxDll <- function(obj,...){
 ##'
 ##' @keywords internal
 ##' @author Matthew L.Fidler
-##' @export print.rxDll
+##' @export 
 print.rxDll <- function(x,...){
     if (file.exists(x$dll)){
         cat(sprintf("RxODE dll named \"%s\"",basename(x$dll)));
