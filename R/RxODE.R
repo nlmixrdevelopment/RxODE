@@ -547,7 +547,8 @@ summary.RxCompilationManager <- function(object, ...)
 ##'     parameters.}
 ##' \item{RxODE}{ is the referring RxODE object}
 ##' @author Matthew L.Fidler
-##' @export 
+##' @importFrom stats coef
+##' @export
 coef.RxODE <- function(object,
                        ...){
     ret <- rxModelVars(object)[c("params","state","ini")];
@@ -1418,6 +1419,7 @@ rxPlot <- function(RxODEobj,
 ##'
 ##' @seealso \code{\link{rxPlot}},\code{\link{RxODE}}.
 ##' @author Matthew L.Fidler
+##' @importFrom graphics plot
 ##' @export
 plot.RxODE <- function(x,...){
     rxPlot(x$cmpMgr$rxDll(),...);
@@ -2284,7 +2286,7 @@ print.rxDll <- function(x,...){
 ##' 
 ##' @keywords internal
 ##' @author Matthew L.Fidler
-##' @export summary.rxDll
+##' @export 
 summary.rxDll <- function(object,...){
     args <- as.list(match.call(expand.dots = TRUE));
     if (any(names(args) == "noprint")){
@@ -2706,8 +2708,9 @@ rxSolve.rxDll <- function(object,params,events,inits = NULL, covs = NULL,stiff =
     }
     lhs_vars <- rxLhs(object);
     if (is.null(inits)){
-        inits <- rep(0.0, neq);
-        names(inits) = rxState(object);
+        n <- rxState(object)
+        inits <- rep(0.0, length(n));
+        names(inits) <- n;
     }
     if (length(covs_interpolation) > 1){
         isLocf <- 0;
@@ -2859,21 +2862,21 @@ as.matrix.solveRxDll <- function(x,...){
 as.data.frame.solveRxDll <- function(x,row.names = NULL, optional = FALSE, ...,
                                      stringsAsFactors = default.stringsAsFactors()){
     return(as.data.frame(as.matrix(x),row.names = row.names, optional = optional,...,
-                         stringAsFactors = stringAsFactors));
+                         stringsAsFactors = stringsAsFactors));
 }
 
 
 ##' @author Matthew L.Fidler
-##' @export
 ##' @importFrom utils head 
+##' @export
 head.solveRxDll <- function(x, n = 6L, ...){
     return(utils::head.matrix(as.matrix(x),n = n, ...));
 }
 
 
 ##' @author Matthew L.Fidler
-##' @export
 ##' @importFrom utils tail
+##' @export
 tail.solveRxDll <- function(x, n = 6L, addrownums = TRUE,...){
     return(utils::tail.matrix(as.matrix(x),n = n, addrownums = addrownums, ...));
 }
@@ -3230,8 +3233,8 @@ by.solveRxDll <- function(data, INDICES, FUN, ..., simplify = TRUE){
 }
 
 ##' @author Matthew L.Fidler
+##' @importFrom stats aggregate aggregate.data.frame
 ##' @export
-##' @importFrom stats aggregate
 aggregate.solveRxDll <- function(x, by, FUN, ..., simplify = TRUE){
     aggregate.data.frame(as.data.frame(x), by, FUN, ... , simplify = simplify);
 }
@@ -3316,12 +3319,12 @@ duplicated.solveRxDll <- function(x, incomparables = FALSE,
     duplicated(as.data.frame(x),incomparables, fromLast, nmax,...);
 }
 
-
 ##' Edit data frame of rxSolve
 ##'
 ##' @param name name of the object
 ##' @keywords internal
 ##' @author Matthew L.Fidler
+##' @importFrom utils edit
 ##' @export
 edit.solveRxDll <- function(name, ...){
     edit(as.data.frame(name),...);
@@ -3334,7 +3337,7 @@ is.na.solveRxDll <- function(x){
     is.na(as.data.frame(x));
 }
 
-
+##' @importFrom methods Math
 ##' @author Matthew L.Fidler
 ##' @export
 # Should this method be exported???
@@ -3371,8 +3374,8 @@ subset.solveRxDll <- function(x, subset, select, drop = FALSE, ...){
 
 
 ##' @author Matthew L.Fidler
-##' @export
 ##' @importFrom utils stack
+##' @export
 stack.solveRxDll <- function(x, select, ...){
     stack(as.data.frame(x),select,...)
 }
@@ -3445,6 +3448,7 @@ cbind.solveRxDll <- function(...){
 ##' 
 ##' @keywords internal
 ##' @author Matthew L.Fidler
+##' @importFrom dplyr filter_
 ##' @export
 filter_.solveRxDll <- function(.data, ... , .dots){
     if (missing(.dots)){
@@ -3464,9 +3468,8 @@ filter_.solveRxDll <- function(.data, ... , .dots){
 ##' 
 ##' @keywords internal
 ##' @author Matthew L.Fidler
-##' @export
-##' @author Matthew L.Fidler
-##' @export
+##' @importFrom dplyr slice_
+##' @export 
 slice_.solveRxDll <- function(.data, ... , .dots){
     if (missing(.dots)){
         return(slice_(.data=asTbl(.data),...))
@@ -3485,7 +3488,8 @@ slice_.solveRxDll <- function(.data, ... , .dots){
 ##' 
 ##' @keywords internal
 ##' @author Matthew L.Fidler
-##' @export
+##' @importFrom dplyr arrange_
+##' @export 
 arrange_.solveRxDll <- function(.data, ... , .dots){
     if (missing(.dots)){
         return(arrange_(.data=asTbl(.data),...))
@@ -3504,6 +3508,7 @@ arrange_.solveRxDll <- function(.data, ... , .dots){
 ##' 
 ##' @keywords internal
 ##' @author Matthew L.Fidler
+##' @importFrom dplyr select_
 ##' @export
 select_.solveRxDll <- function(.data, ... , .dots){
     if (missing(.dots)){
@@ -3523,6 +3528,7 @@ select_.solveRxDll <- function(.data, ... , .dots){
 ##' 
 ##' @keywords internal
 ##' @author Matthew L.Fidler
+##' @importFrom dplyr rename_
 ##' @export
 rename_.solveRxDll <- function(.data, ... , .dots){
     if (missing(.dots)){
@@ -3542,6 +3548,7 @@ rename_.solveRxDll <- function(.data, ... , .dots){
 ##' 
 ##' @keywords internal
 ##' @author Matthew L.Fidler
+##' @importFrom dplyr distinct_
 ##' @export
 distinct_.solveRxDll <- function(.data, ... , .dots){
     if (missing(.dots)){
@@ -3561,6 +3568,7 @@ distinct_.solveRxDll <- function(.data, ... , .dots){
 ##' 
 ##' @keywords internal
 ##' @author Matthew L.Fidler
+##' @importFrom dplyr mutate_
 ##' @export
 mutate_.solveRxDll <- function(.data, ... , .dots){
     if (missing(.dots)){
@@ -3580,6 +3588,7 @@ mutate_.solveRxDll <- function(.data, ... , .dots){
 ##' 
 ##' @keywords internal
 ##' @author Matthew L.Fidler
+##' @importFrom dplyr transmute_
 ##' @export
 transmute_.solveRxDll <- function(.data, ... , .dots){
     if (missing(.dots)){
@@ -3598,6 +3607,7 @@ transmute_.solveRxDll <- function(.data, ... , .dots){
 ##' 
 ##' @keywords internal
 ##' @author Matthew L.Fidler
+##' @importFrom dplyr summarise_
 ##' @export
 summarise_.solveRxDll <- function(.data, ... , .dots){
     if (missing(.dots)){
@@ -3617,6 +3627,7 @@ summarise_.solveRxDll <- function(.data, ... , .dots){
 ##' 
 ##' @keywords internal
 ##' @author Matthew L.Fidler
+##' @importFrom dplyr arrange_
 ##' @export
 arrange_.solveRxDll <- function(.data, ... , .dots){
     if (missing(.dots)){
@@ -3636,6 +3647,7 @@ arrange_.solveRxDll <- function(.data, ... , .dots){
 ##' 
 ##' @keywords internal
 ##' @author Matthew L.Fidler
+##' @importFrom dplyr rename_
 ##' @export
 rename_.solveRxDll <- function(.data, ... , .dots){
     if (missing(.dots)){
@@ -3659,6 +3671,7 @@ rename_.solveRxDll <- function(.data, ... , .dots){
 ##' 
 ##' @keywords internal
 ##' @author Matthew L.Fidler
+##' @importFrom dplyr group_by_
 ##' @export
 group_by_.solveRxDll <- function(.data, ..., .dots, add = FALSE){
     if (missing(.dots)){
@@ -3688,6 +3701,7 @@ group_by_.solveRxDll <- function(.data, ..., .dots, add = FALSE){
 ##'     \code{weight}. Non-default settings for experts only.
 ##' @keywords internal
 ##' @author Matthew L.Fidler
+##' @importFrom dplyr sample_n
 ##' @export
 sample_n.solveRxDll <- function(tbl,size,replace = FALSE, weight = NULL, .env = parent.frame()){
     if (missing(weight)){
@@ -3699,6 +3713,7 @@ sample_n.solveRxDll <- function(tbl,size,replace = FALSE, weight = NULL, .env = 
 
 ##' @rdname sample_n.solveRxDll
 ##' @author Matthew L.Fidler
+##' @importFrom dplyr sample_frac
 ##' @export
 sample_frac.solveRxDll <- function(tbl, size = 1, replace = FALSE, weight = NULL, .env = parent.frame()){
     if (!missing(weight)){
@@ -3726,6 +3741,7 @@ sample_frac.solveRxDll <- function(tbl, size = 1, replace = FALSE, weight = NULL
 ##'     columns.
 ##' @keywords internal
 ##' @author Matthew L.Fidler
+##' @importFrom tidyr gather_
 ##' @export
 gather_.solveRxDll <- function(data, key_col, value_col, gather_cols, na.rm = FALSE, 
                                convert = FALSE, factor_key = FALSE){
@@ -3754,6 +3770,7 @@ gather_.solveRxDll <- function(data, key_col, value_col, gather_cols, na.rm = FA
 ##' @param ... Ignored
 ##' @keywords internal
 ##' @author Matthew L.Fidler
+##' @importFrom tidyr separate_
 ##' @export
 separate_.solveRxDll <- function(data, col, into, sep = "[^[:alnum:]]+", remove = TRUE, 
                                  convert = FALSE, extra = "warn", fill = "warn", ...){
@@ -3776,6 +3793,7 @@ separate_.solveRxDll <- function(data, col, into, sep = "[^[:alnum:]]+", remove 
 ##' 
 ##' @keywords internal
 ##' @author Matthew L.Fidler
+##' @importFrom tidyr unite_
 ##' @export
 unite_.solveRxDll <- function(data, col, from, sep = "_", remove = TRUE){
     return(unite_(data = dplyr::as.tbl(data), col = col, from = from, sep = sep, remove = remove));
@@ -3799,6 +3817,7 @@ unite_.solveRxDll <- function(data, col, from, sep = "_", remove = TRUE){
 ##' @keywords internal
 ##' @author Matthew L. Fidler
 ##' @author Matthew L.Fidler
+##' @importFrom tidyr spread_
 ##' @export
 spread_.solveRxDll <- function(data, key_col, value_col, fill = NA, convert = FALSE, drop = TRUE){
     return(spread_(data = dplyr::as.tbl(data), key_col = key_col, value_col = value_col,

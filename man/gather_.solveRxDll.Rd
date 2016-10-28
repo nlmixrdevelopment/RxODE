@@ -4,8 +4,8 @@
 \alias{gather_.solveRxDll}
 \title{tidyr support of gather_ method}
 \usage{
-gather_.solveRxDll(data, key_col, value_col, gather_cols, na.rm = FALSE,
-  convert = FALSE, factor_key = FALSE)
+\method{gather_}{solveRxDll}(data, key_col, value_col, gather_cols,
+  na.rm = FALSE, convert = FALSE, factor_key = FALSE)
 }
 \arguments{
 \item{data}{Solved RxODE object}

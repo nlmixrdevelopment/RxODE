@@ -4,7 +4,7 @@
 \alias{unite_.solveRxDll}
 \title{tidyr unite support}
 \usage{
-unite_.solveRxDll(data, col, from, sep = "_", remove = TRUE)
+\method{unite_}{solveRxDll}(data, col, from, sep = "_", remove = TRUE)
 }
 \arguments{
 \item{data}{solved RxODE object}

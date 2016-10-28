@@ -22,12 +22,13 @@ Suggests:
     igraph,
     tcltk,
     testthat,
-    dplyr,
-    tidyr,
     devtools
 Imports:
     utils,
+    methods,
     digest,
+    dplyr,
+    tidyr,    
     rex
 Description: Facilities for running simulations from ordinary
     differential equation (ODE) models, such as pharmacometrics and other

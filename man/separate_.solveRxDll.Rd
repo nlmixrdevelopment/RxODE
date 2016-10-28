@@ -4,8 +4,8 @@
 \alias{separate_.solveRxDll}
 \title{tidyr separate support}
 \usage{
-separate_.solveRxDll(data, col, into, sep = "[^[:alnum:]]+", remove = TRUE,
-  convert = FALSE, extra = "warn", fill = "warn", ...)
+\method{separate_}{solveRxDll}(data, col, into, sep = "[^[:alnum:]]+",
+  remove = TRUE, convert = FALSE, extra = "warn", fill = "warn", ...)
 }
 \arguments{
 \item{data}{RxODE solved object}

@@ -4,7 +4,7 @@
 \alias{slice_.solveRxDll}
 \title{dyplr slice_ support}
 \usage{
-slice_.solveRxDll(.data, ..., .dots)
+\method{slice_}{solveRxDll}(.data, ..., .dots)
 }
 \arguments{
 \item{.data}{solveRxDll object that slice_ is being applied to.}
@@ -17,8 +17,6 @@ slice_.solveRxDll(.data, ..., .dots)
 dyplr slice_ support
 }
 \author{
-Matthew L.Fidler
-
 Matthew L.Fidler
 }
 \keyword{internal}

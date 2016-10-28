@@ -4,8 +4,8 @@
 \alias{spread_.solveRxDll}
 \title{tidyr's spread_ support}
 \usage{
-spread_.solveRxDll(data, key_col, value_col, fill = NA, convert = FALSE,
-  drop = TRUE)
+\method{spread_}{solveRxDll}(data, key_col, value_col, fill = NA,
+  convert = FALSE, drop = TRUE)
 }
 \arguments{
 \item{data}{RxODE solved data.}
