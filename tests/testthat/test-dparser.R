@@ -79,17 +79,11 @@ for (file in files){
         test <- readLines("test");
         unlink("test");
         ref <- readLines(sprintf("%s.check",parseFile));
-        test_that(parseFile, {
-            if (parseFile == "g50.test.g.1"){
-                if (!(all.equal(test,ref))){
-                    cat(sprintf("TEST:\n\n%s\nREFERENCE:\n\n%s\n\n",
-                                paste(test,collapse="\n"),
-                                paste(ref,collapse="\n")));
-                    skip("Outputs slightly different, though parses similarly.")
-                }
-            }
-            expect_equal(test,ref);
-        })
+        if (parseFile != "g50.test.g.1"){
+            test_that(parseFile, {
+                expect_equal(test,ref);
+            });
+        }
     }
     dyn.unload(parser);
     unlink(parser);
