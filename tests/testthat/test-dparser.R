@@ -89,11 +89,10 @@ for (file in files){
     unlink(parser);
 }
 
-library(digest)
 context("Check that grammar and C code are in sync.");
 test_that("C/grammar in sync.",{
-    d1 <- digest(readLines(devtools::package_file("src/tran.g.d_parser.c")));
+    d1 <- readLines(devtools::package_file("src/tran.g.d_parser.c"));
     RxODE:::updateParser();
-    d2 <- digest(readLines(devtools::package_file("src/tran.g.d_parser.c")));
+    d2 <- readLines(devtools::package_file("src/tran.g.d_parser.c"));
     expect_equal(d1,d2);
 })
