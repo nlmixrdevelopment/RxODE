@@ -81,7 +81,7 @@ for (file in files){
         ref <- readLines(sprintf("%s.check",parseFile));
         test_that(parseFile, {
             if (parseFile == "g50.test.g.1"){
-                if (!(equal(test,ref))){
+                if (!(all.equal(test,ref))){
                     cat(sprintf("TEST:\n\n%s\nREFERENCE:\n\n%s\n\n",
                                 paste(test,collapse="\n"),
                                 paste(ref,collapse="\n")));
