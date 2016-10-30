@@ -157,7 +157,7 @@ updateParser <- function(){
     mkdparse(devtools::package_file("inst/tran.g"),
              devtools::package_file("src/"),
              grammar_ident="RxODE");
-    file <- gsub("^([#]line [0-9]+ )\".*(src/.*)\"","\\1\"\\2\"",
+    file <- gsub("^([#]line [0-9]+ )\".*(src)/+(.*)\"","\\1\"\\2/\\3\"",
                  readLines(devtools::package_file("src/tran.g.d_parser.c")))
     sink(devtools::package_file("src/tran.g.d_parser.c"))
     cat(paste(file,collapse="\n"));
