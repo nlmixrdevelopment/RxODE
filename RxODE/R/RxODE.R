@@ -278,7 +278,7 @@ function(model, modName, wd)
       #on.exit(unlink("Makevars"))
       cat(sprintf("PKG_CPPFLAGS=-I%s\n",.incl), file="Makevars")
       cat(
-         sprintf("PKG_LIBS=-L%s -lodeaux $(BLAS_LIBS) $(FLIBS)", .libs),
+         sprintf("PKG_LIBS=-L%s -lodeaux $(BLAS_LIBS) $(LAPACK_LIBS) $(FLIBS)", .libs),
          file="Makevars", append=TRUE
       )
 
