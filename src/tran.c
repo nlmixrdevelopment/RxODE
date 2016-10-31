@@ -75,7 +75,9 @@ char * r_dup_str(const char *s, const char *e) {
 }
 
 extern D_ParserTables parser_tables_RxODE;
-extern d_use_r_headers;
+extern int d_use_r_headers;
+extern int d_rdebug_grammar_level;
+extern int d_verbose_level;
 
 unsigned int found_jac = 0, found_print = 0;
 
@@ -1292,7 +1294,6 @@ SEXP cDparser(SEXP fileName,
 	      SEXP use_r_header){
   char *grammar_pathname, *grammar_ident, *write_extension, *output_file;
   Grammar *g;
-  int d_rdebug_grammar_level, d_verbose_level;
   d_rdebug_grammar_level = INTEGER(rdebug)[0];
   d_verbose_level        = INTEGER(verbose)[0];
   grammar_pathname = r_dup_str(CHAR(STRING_ELT(fileName,0)),0);
