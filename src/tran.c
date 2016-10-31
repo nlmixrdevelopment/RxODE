@@ -1054,6 +1054,9 @@ SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_m
   char sLine[MXLEN+1];
   int i, j, islhs, pi=0, li=0, ini_i = 0;
   double d;
+  d_use_r_headers = 0;
+  d_rdebug_grammar_level = 0;
+  d_verbose_level = 0;  
   if (!isString(parse_file) || length(parse_file) != 1){
     error("parse_file is not a single string");
   }
