@@ -55,6 +55,16 @@ char * r_sbuf_read(const char *pathname) {
   return buf;
 }
 
+
+// Taken from dparser and changed to use Calloc
+char * rc_dup_str(const char *s, const char *e) {
+  int l = e ? e-s : strlen(s);
+  char *ss = Calloc(l+1,char);
+  memcpy(ss, s, l);
+  ss[l] = 0;
+  return ss;
+}
+
 // Taken from dparser and changed to use R_alloc
 char * r_dup_str(const char *s, const char *e) {
   int l = e ? e-s : strlen(s);
