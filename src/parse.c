@@ -40,7 +40,7 @@ typedef Stack(int) StackInt;
 static int exhaustive_parse(Parser *p, int state);
 static void free_PNode(Parser *p, PNode *pn);
 
-extern int d_exit_on_error = 1;
+int d_exit_on_error = 1;
 
 char * r_dup_str(const char *s, const char *e);
 
