@@ -22,7 +22,8 @@ Suggests:
     igraph,
     tcltk,
     testthat,
-    devtools
+    devtools,
+    covr
 Imports:
     utils,
     methods,
