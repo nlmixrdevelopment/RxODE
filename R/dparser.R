@@ -153,7 +153,7 @@ mkdparse <- function(file,outputFile,
     return(invisible());
 }
 
-updateParser <- function(){
+updateParser <- function(){ # nocov start
     mkdparse(devtools::package_file("inst/tran.g"),
              devtools::package_file("src/"),
              grammar_ident="RxODE");
@@ -162,4 +162,4 @@ updateParser <- function(){
     sink(devtools::package_file("src/tran.g.d_parser.c"))
     cat(paste(file,collapse="\n"));
     sink();
-}
+} # nocov start

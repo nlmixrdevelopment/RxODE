@@ -2,7 +2,7 @@ rex::register_shortcuts("RxODE");
 regIni <- rex::rex(or(group(one_of("_."),"0"),"0","(0)","[0]","{0}"),end);
 
 loadDir <- NULL;
-.onLoad <- function(libname,pkgname){
+.onLoad <- function(libname,pkgname){ # nocov start
     ## Setup RxODE.prefer.tbl
     loadDir <<- tryCatch(dirname((getLoadedDLLs()$RxODE)[["path"]]),
                          error = function(e){
@@ -13,7 +13,7 @@ loadDir <- NULL;
                   RxODE.echo.compile = FALSE);
     w <- !(names(op.rx) %in% names(op))
     if(any(w)) options(op.rx[w]);
-}
+} # nocov end
 
 ##' Create an ODE-based model specification 
 ##'
@@ -3876,12 +3876,12 @@ rxIncludeDir <- function(...){
     incl <- system.file("include",package="RxODE");
     if (file.exists(file.path(incl,"d.h"))){
         return(file.path(incl,...));
-    } else {
+    } else { # nocov start
         incl <- system.file("src",package="RxODE");
         if (file.exists(file.path(incl,"d.h"))){
             return(file.path(incl,...));
         } else {
             stop("Cannot find d.h in a include directory.  RxODE installation may be corrupt.")
         }
-    }
+    } # nocov end
 }
