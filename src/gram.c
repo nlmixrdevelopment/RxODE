@@ -10,6 +10,7 @@ extern D_ParserTables parser_tables_dparser_gram;
 static char *action_types[] = { "ACCEPT", "SHIFT", "REDUCE" };
 
 static void print_state(State *s);
+char * r_sbuf_read(const char *pathname);
 
 Production *
 new_production(Grammar *g, char *name) {
@@ -1309,7 +1310,7 @@ parse_grammar(Grammar *g, char *pathname, char *sarg) {
   
   vec_add(&g->all_pathnames, dup_str(pathname, 0));
   if (!s) 
-    if (!(s = sbuf_read(pathname)))
+    if (!(s = r_sbuf_read(pathname)))
       return -1;
   if (!g->productions.n)
     initialize_productions(g);
@@ -1321,8 +1322,8 @@ parse_grammar(Grammar *g, char *pathname, char *sarg) {
       finish_productions(g);
   } else
     res = -1;
-  if (!sarg)
-    Free(s);
+  /* if (!sarg) */
+  /*   Free(s); */
   free_D_Parser(p);
   return res;
 }
