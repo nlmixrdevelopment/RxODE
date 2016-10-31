@@ -7,7 +7,7 @@ ode <- "
    d/dt(eff)  = Kin - Kout*(1-C2/(EC50+C2))*eff;
 "
 
-m1 <- RxODE(model = ode, modName = "m1")
+m1 <- RxODE(model = ode)
 
 # create dosing and observation (sampling) events
 # QD (once daily) dosing, 5 days
@@ -56,3 +56,4 @@ function(cp, xlab = "Time (days)", ...)
 cp.plot(qd.cp, main = "QD dosing, 5 days")
 
 cp.plot(bid.cp, main = "BID dosing, 5 days")
+rxClean() # Remove dlls and extra files created by RxODE
