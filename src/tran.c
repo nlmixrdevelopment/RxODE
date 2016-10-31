@@ -1334,5 +1334,7 @@ SEXP cDparser(SEXP fileName,
   free_D_Grammar(g);
   g = 0;
   d_use_r_headers = 0;
+  d_rdebug_grammar_level = 0;
+  d_verbose_level = 0;
   return R_NilValue;
 }
