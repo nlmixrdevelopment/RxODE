@@ -6,10 +6,10 @@ Authors@R: c(
    person("Melissa", "Hallow", 
       role = c("aut", "cre"), email = "hallowkm@uga.edu"),
    person("Wenping", "Wang", 
-      role = "aut", email = "Wenping.wang@outlook.com")
+      role = "aut", email = "wwang8198@gmail.com")
    )
 Author: Melissa Hallow [aut, cre], Wenping Wang [aut]
-Maintainer: Melissa Hallow <hallowkm@uga.edu>
+Maintainer: Wenping Wang <wwang8198@gmail.com>
 Depends: R (>= 3.0.0)
 Suggests: knitr, nlme, shiny
 Imports: utils
