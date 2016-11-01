@@ -1,6 +1,6 @@
 Package: RxODE
 Version: 0.6-0
-Date: 2016-05-18
+Date: 2016-11-01
 Title: Facilities for Simulating from ODE-Based Models
 Authors@R: c(
    person("Melissa", "Hallow", 
@@ -12,7 +12,7 @@ Authors@R: c(
    )
 Author: Melissa Hallow [aut, cre], Wenping Wang [aut], David A James [aut],
     Matthew L. Fidler [aut]
-Maintainer: Melissa Hallow <hallowkm@uga.edu>
+Maintainer: Wenping Wang <wwang8198@gmail.com>
 Depends:
     R (>= 3.2.0)
 Suggests:
