@@ -219,6 +219,7 @@ search_for_offset(File *fp, char *name) {
 
 static OffsetEntry *
 get_offset(File *fp, char* name, ...) {
+  int n;
   char buf[256];
   va_list ap;
   va_start(ap, name);
