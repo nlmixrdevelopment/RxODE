@@ -162,4 +162,4 @@ updateParser <- function(){ # nocov start
     sink(devtools::package_file("src/tran.g.d_parser.c"))
     cat(paste(file,collapse="\n"));
     sink();
-} # nocov start
+} # nocov end
