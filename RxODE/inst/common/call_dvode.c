@@ -81,7 +81,7 @@ void call_lsoda(int neq, double *x, int *evid, int nx, double *inits, double *do
 		fprintf(fp, "i=%d xp=%f xout=%f\n", i, xp, xout);
 #endif
 
-		if(xout>xp)
+		if(xout-xp > DBL_EPSILON*max(fabs(xout), fabs(xp)))
 		{
 	        F77_CALL(dlsoda)(dydt_lsoda_dum, &neq, yp, &xp, &xout, &itol, &rtol, &atol, &itask,
                 &istate, &iopt, rwork, &lrw, iwork, &liw, &jdum_lsoda, &jt);
@@ -199,7 +199,7 @@ void call_dvode(int neq, double *x, int *evid, int nx, double *inits, double *do
 		fprintf(fp, "i=%d xp=%f xout=%f\n", i, xp, xout);
 #endif
 
-		if(xout>xp)
+		if(xout-xp > DBL_EPSILON*max(fabs(xout), fabs(xp)))
 		{
 	        F77_CALL(dvode)(dydt_dvode_dum, &neq, yp, &xp, &xout, &itol, &rtol, &atol, &itask,
 				&istate, &iopt, rwork, &lrw, iwork, &liw, &jdum_dvode, &mf, rpar, ipar);
@@ -293,7 +293,7 @@ void call_dop(int neq, double *x, int *evid, int nx, double *inits, double *dose
 		fprintf(fp, "i=%d xp=%f xout=%f\n", i, xp, xout);
 #endif
 
-		if(xout>xp+DBL_EPSILON)
+		if(xout-xp > DBL_EPSILON*max(fabs(xout), fabs(xp)))
 		{
 			idid = dop853(
 							  neq,      	/* dimension of the system <= UINT_MAX-1*/
