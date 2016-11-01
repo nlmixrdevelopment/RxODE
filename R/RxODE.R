@@ -10,6 +10,7 @@ loadDir <- NULL;
                          })
     op <- options();
     op.rx <- list(RxODE.prefer.tbl = FALSE,
+                  RxODE.display.tbl = TRUE,
                   RxODE.echo.compile = FALSE);
     w <- !(names(op.rx) %in% names(op))
     if(any(w)) options(op.rx[w]);
@@ -2790,7 +2791,7 @@ print.solveRxDll <- function(x,...){
     cat("Solved RxODE object\n");
     cat(sprintf("Dll: %s\n\n",rxDll(lst$object)))
     cat("Parameters:\n")
-    is.dplyr <- requireNamespace("dplyr", quietly = TRUE);
+    is.dplyr <- requireNamespace("dplyr", quietly = TRUE) && getOption("RxODE.display.tbl",TRUE);
     w <- which((names(lst$params) %in% names(as.data.frame(x))))
     if (length(w) > 0){
         print(lst$params[-w]);
@@ -2812,7 +2813,7 @@ print.solveRxDll <- function(x,...){
     print(lst$inits);
     cat("\n\nFirst part of data:\n")
     if (!is.dplyr){
-        print(head(as.matrix(x)),n=n);
+        print(head(as.matrix(x),n=n));
     } else {
         print(dplyr::as.tbl(x),n=n,width=width);
     }
