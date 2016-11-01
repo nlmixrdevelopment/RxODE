@@ -159,7 +159,7 @@ void call_lsoda(int neq, double *x, int *evid, int nx, double *inits, double *do
 	Rprintf("i=%d xp=%f xout=%f\n", i, xp, xout);
         fprintf(fp, "i=%d xp=%f xout=%f\n", i, xp, xout);
       }
-      if(xout>xp)
+      if(xout-xp> DBL_EPSILON*max(fabs(xout),fabs(xp)))
 	{
 	  F77_CALL(dlsoda)(dydt_lsoda_dum, &neq, yp, &xp, &xout, &itol, &rtol, &atol, &itask,
 			   &istate, &iopt, rwork, &lrw, iwork, &liw, &jdum_lsoda, &jt);
@@ -264,9 +264,9 @@ void call_dvode(int neq, double *x, int *evid, int nx, double *inits, double *do
 		  fprintf(fp, "i=%d xp=%f xout=%f\n", i, xp, xout);
 		}
 		
-		if(xout>xp)
+		if(xout-xp> DBL_EPSILON*max(fabs(xout), fabs(xp)))
 		{
-	        F77_CALL(dvode)(dydt_dvode_dum, &neq, yp, &xp, &xout, &itol, &rtol, &atol, &itask,
+		  F77_CALL(dvode)(dydt_dvode_dum, &neq, yp, &xp, &xout, &itol, &rtol, &atol, &itask,
 				&istate, &iopt, rwork, &lrw, iwork, &liw, &jdum_dvode, &mf, rpar, ipar);
 
 			if (istate<0)
@@ -350,7 +350,7 @@ void call_dop(int neq, double *x, int *evid, int nx, double *inits, double *dose
                   fprintf(fp, "i=%d xp=%f xout=%f\n", i, xp, xout);
                 }
 		
-		if(xout>xp+DBL_EPSILON)
+		if(xout-xp>DBL_EPSILON*max(fabs(xout),fabs(xp)))
 		{
 			idid = dop853(
 							  neq,      	/* dimension of the system <= UINT_MAX-1*/
@@ -458,6 +458,10 @@ extern SEXP ode_solver (// Parameters
 		  int fun_jt,
 		  int fun_mf,
  		  int fun_debug){
+  // TODO: Absorption lag?
+  // TODO: Annotation?
+  // TODO: Units
+  // TODO: Bioavailiability
   // Assign functions pointers
   dydt     = fun_dydt;
   calc_jac = fun_calc_jac;
