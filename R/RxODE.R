@@ -9,9 +9,10 @@ loadDir <- NULL;
                              return(system.file(package="RxODE"));
                          })
     op <- options();
-    op.rx <- list(RxODE.prefer.tbl = FALSE,
-                  RxODE.display.tbl = TRUE,
-                  RxODE.echo.compile = FALSE);
+    op.rx <- list(RxODE.prefer.tbl     = FALSE,
+                  RxODE.display.tbl    = TRUE,
+                  RxODE.echo.compile   = FALSE,
+                  RxODE.warn.on.assign = FALSE);
     w <- !(names(op.rx) %in% names(op))
     if(any(w)) options(op.rx[w]);
 } # nocov end
@@ -2397,8 +2398,10 @@ rxInits <- function(rxDllObj,        # rxDll object
             }
             if (length(missing) > 0){
                 ret[missing] <- default;
-                if (!noerror)
-                    warning(sprintf("Assiged %s to %s.",paste(missing,collapse=", "),default))
+                if (!noerror){
+                    if (getOption("RxODE.warn.on.assign",TRUE))
+                        warning(sprintf("Assiged %s to %s.",paste(missing,collapse=", "),default))
+                }
             }
             ret <- ret[req];
         }

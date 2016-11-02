@@ -50,14 +50,14 @@ mod1 <- RxODE(model = ode, modName = "mod1", wd = work)
 A typical pharmacokinetics-pharmacodynamics (PKPD) model can be
 plotted in `RxODE`. This model, as shown in the figure below:
 
-```{r}
+```{r, fig.width=7.5}
 plot(mod1);
 ```
 
 Sometimes the size of the boxes may need to be adjusted, you can do
 this by adjusting the `size` argument:
 
-```{r}
+```{r, fig.width=7.5}
 plot(mod1,size=40);
 ```
 
@@ -159,6 +159,7 @@ of parameter values for use in the simulation. In the example below,
 40% variability in clearance is simulated. 
 
 ```{r}
+options(RxODE.warn.on.assign = FALSE); ## Turn of warning on assignment of initial conditions
 nsub <- 100						  #number of subproblems
 CL <- 1.86E+01*exp(rnorm(nsub,0,.4^2))
 theta.all <- 
