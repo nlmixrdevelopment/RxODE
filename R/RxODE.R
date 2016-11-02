@@ -1,7 +1,6 @@
 rex::register_shortcuts("RxODE");
 regIni <- rex::rex(or(group(one_of("_."),"0"),"0","(0)","[0]","{0}"),end);
 
-loadDir <- NULL;
 .onLoad <- function(libname,pkgname){ # nocov start
     ## Setup RxODE.prefer.tbl
     op <- options();
@@ -3906,11 +3905,8 @@ rxClean <- function(wd = getwd()){
 ##' @keywords internal
 ##' @export
 rxLoadDir <- function(...){
-    if (is.null(loadDir)){
-        tmp <- getLoadedDLLs()$RxODE;
-        class(tmp) <-  "list";
-        loadDir <<- dirname(tmp$path);
-    }
+    tmp <- getLoadedDLLs()$RxODE;
+    loadDir <- dirname(tmp$path);
     return(file.path(loadDir,...))
 }
 
