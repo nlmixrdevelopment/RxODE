@@ -18,7 +18,7 @@ RxODE is an R package that facilitates simulation with ODE models in R. It is de
 
 ***
 ####Description of RxODE illustrated through an example
-The model equations are specified through a text string in R. Both differential and algebraic equations are permitted. Differential equations are specified by ‚Äúd/dt(var_name) = ‚Ä¶.‚Äù. Each equation is separated by a semicolon.
+The model equations are specified through a text string in R. Both differential and algebraic equations are permitted. Differential equations are specified by ìd/dt(var_name) = Ö.î. Each equation is separated by a semicolon.
 
 ```{r}
 ode <- "
@@ -140,3 +140,8 @@ runApp("myapp")
 ```
 
 ###[Click here to go to the Shiny App](http://qsp.engr.uga.edu:3838/RxODE/RegimenSimulator)
+
+
+### Other PK/PD specific solvers: 
+- https://github.com/metrumresearchgroup/mrgsolve
+- https://github.com/ronkeizer/PKPDsim

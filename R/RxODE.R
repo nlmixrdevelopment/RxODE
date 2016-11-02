@@ -1408,10 +1408,10 @@ rxPlot <- function(RxODEobj,
     layout <- -igraph::layout.grid(ig);
     
     if (!interactive){
-        op <- par()
-        par(mar=rep(0,4));
+        op <- graphics::par()
+        graphics::par(mar=rep(0,4));
         plot(ig,edge.label.family=family, layout = layout, ...);
-        suppressWarnings({par(op)});
+        suppressWarnings({graphics::par(op)});
     } else {
         igraph::tkplot(ig,edge.label.family=family, layout = layout, ...);
     }
