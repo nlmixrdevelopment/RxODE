@@ -1,0 +1,27 @@
+[![Build Status](https://travis-ci.org/mattfidler/RxODE.svg?branch=master)](https://travis-ci.org/mattfidler/RxODE)
+[![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/mattfidler/RxODE?branch=master&svg=true)](https://ci.appveyor.com/project/mattfidler/RxODE)
+[![codecov.io](https://codecov.io/github/mattfidler/RxODE/coverage.svg?branch=master)](https://codecov.io/github/mattfidler/RxODE?branch=master)
+[![CRAN version](http://www.r-pkg.org/badges/version/RxODE)](https://cran.r-project.org/package=RxODE)
+
+```{r compileVignette, results="hide",echo=FALSE,message=FALSE}
+## Adapted from https://github.com/thibautjombart/apex/blob/f5bbd8edd745cfe4b149772eb1338927ce76a60d/README.Rmd
+
+## recompile vignette
+setwd("vignettes")
+knit("RxODE-intro.Rmd")
+setwd("../")
+```
+
+```{r include, results="asis", echo=FALSE, warning=FALSE}
+## read md of the vignette
+mdInput <- readLines("vignettes/RxODE-intro.md")
+
+## remove vignette-specific headers
+toRemove <- 1:10
+mdInput <- mdInput[-toRemove]
+
+## restore right path for figures
+mdInput <- gsub("figs/","vignettes/figs/",mdInput)
+cat(paste(mdInput,collapse="\n"))
+```
+

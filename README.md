@@ -3,24 +3,28 @@
 [![codecov.io](https://codecov.io/github/mattfidler/RxODE/coverage.svg?branch=master)](https://codecov.io/github/mattfidler/RxODE?branch=master)
 [![CRAN version](http://www.r-pkg.org/badges/version/RxODE)](https://cran.r-project.org/package=RxODE)
 
-##RxODE package for R: a tool for performing simulations with Ordinary Different Equation models in R, with applications for pharmacometrics
+## RxODE: A tool for performing simulations from 
+Ordinary Differential Equation (ODE) models, with 
+applications for pharmacometrics
 ***  
 
-#####Authors: Wenping Wang and K. Melissa Hallow
+##### Authors: Melissa Hallow, Wenping Wang, and Matthew L. Fidler
 
 ***
 
-####Introduction
-RxODE is an R package that facilitates simulation with ODE models in R. It is designed with pharmacometric models in mind, but can be applied more generally to any ODE model. Here, a typical pharmacokinetic-pharmacodynamic (PKPD) model is used to illustrate the application of RxODE. This model is illustrated in Figure 1. It is assumed that all model parameters have been estimated previously.
-
-![Figure 1. A two compartment pharmacokinetic model with an effect compartment](Model_schematic_w500.png)  
-**Figure 1. A two compartment pharmacokinetic model with an effect compartment**  
+#### Introduction
+`RxODE` is an R package that facilitates simulation with ODE models in
+R. It is designed with pharmacometrics models in mind, but can be
+applied more generally to any ODE model.
 
 ***
-####Description of RxODE illustrated through an example
-The model equations are specified through a text string in R. Both differential and algebraic equations are permitted. Differential equations are specified by “d/dt(var_name) = ….”. Each equation is separated by a semicolon.
+#### Description of RxODE illustrated through an example
+The model equations are specified through a text string in R. Both
+differential and algebraic equations are permitted. Differential
+equations are specified by `d/dt(var_name) = `. Each
+equation is separated by a semicolon.
 
-```{r}
+```r
 ode <- "
    C2 = centr/V2;
    C3 = peri/V3;
@@ -30,118 +34,250 @@ ode <- "
    d/dt(eff)  = Kin - Kout*(1-C2/(EC50+C2))*eff;
 "
 ```
+To load `RxODE` package and compile the model: 
 
-To load RxODE package and compile the model: 
-```{r}
-library(RxODE2)
-mod1 <- RxODE(model = ode, modName = "mod1")   
+```r
+library(RxODE)
+work <- tempfile("Rx_intro-")
+mod1 <- RxODE(model = ode, modName = "mod1", wd = work)
 ```
 
-Model parameters are defined in named vectors. Names of parameters in the vector must be a superset of parameters in the ODE model, and the order of parameters within the vector is not important. 
-```{r}
+A typical pharmacokinetics-pharmacodynamics (PKPD) model can be
+plotted in `RxODE`. This model, as shown in the figure below:
+
+```r
+plot(mod1);
+```
+
+![plot of chunk unnamed-chunk-3](figure/unnamed-chunk-3-1.png)
+
+Sometimes the size of the boxes may need to be adjusted, you can do
+this by adjusting the `size` argument:
+
+```r
+plot(mod1,size=40);
+```
+
+![plot of chunk unnamed-chunk-4](figure/unnamed-chunk-4-1.png)
+
+Model parameters can be defined as named vectors. Names of parameters in
+the vector must be a superset of parameters in the ODE model, and the
+order of parameters within the vector is not important. 
+
+```r
 theta <- 
-   c(KA=2.94E-01, CL=1.86E+01,             # central 
-     V2=4.02E+01, Q=1.05E+01, V3=2.97E+02, # peripheral
-     Kin=1, Kout=1, EC50=200)              # effects  
+   c(KA=2.94E-01, CL=1.86E+01, V2=4.02E+01, # central 
+     Q=1.05E+01,  V3=2.97E+02,              # peripheral
+     Kin=1, Kout=1, EC50=200)               # effects  
 ```
 
-Initial conditions (ICs) are defined through a vector as well. The number of ICs must equal exactly the number of ODEs in the model, and the order must be the same as the order in which the ODEs are listed in the model. Elements may be names if desired: 
+Initial conditions (ICs) are defined through a vector as well. If the
+vector is not named, the number of ICs must equal exactly the number of
+ODEs in the model, and the order must be the same as the order in
+which the ODEs are listed in the model. 
 
-```{r}
-inits <- c(depot=0, centr=0, peri=0, eff=1)    
+```r
+inits <- c(0, 0, 0, 1)    
 ```
 
-RxODE provides an simple and very flexible way to specify dosing and sampling through functions that generate an event table. First, an empty event table is generated through the "eventTable()" function:  
-Next, the add.dosing() and add.sampling() functions of the event class are used to specify how to dose and sample. A description of inputs to add.dosing() and add.sampling() are given in Table 1.
-These functions can be called multiple times to specify more complex dosing or sampling regiments.
-Here, these functions are used to specify 10mg BID dosing for 5 days, followed by 20mg QD dosing for 5 days. 
+When elements are named, missing elements are added and set to
+zero. Also when named, the order of initilizations does not matter.
+Therefore the following code is an equvalent initialization as the
+code above.
 
-```{r}
-ev <- eventTable()
+```r
+inits <- c(eff=1);
+```
+
+
+`RxODE` provides a simple and very flexible way to specify dosing and
+sampling through functions that generate an event table. First, an
+empty event table is generated through the "eventTable()" function:
+
+```r
+ev <- eventTable(amount.units='mg', time.units='hours')
+```
+
+Next, use the `add.dosing()` and `add.sampling()` functions of the
+`EventTable` object to specify the dosing (amounts, frequency and/or
+times, etc.) and observation times at which to sample the state of the
+system.  These functions can be called multiple times to specify more
+complex dosing or sampling regiments.  Here, these functions are used
+to specify 10mg BID dosing for 5 days, followed by 20mg QD dosing for
+5 days:
+
+```r
 ev$add.dosing(dose=10000, nbr.doses=10, dosing.interval=12)
-ev$add.dosing(dose=20000, nbr.doses=5, start.time=120)
+ev$add.dosing(dose=20000, nbr.doses=5, start.time=120, dosing.interval=24)
 ev$add.sampling(0:240)
 ```
 
-The get.dosing() and get.sampling() functions can be used later to retrieve information from the event table.  
+The functions `get.dosing()` and `get.sampling()` can be used to
+retrieve information from the event table.  
 
-```{r}
-ev$get.dosing()
+```r
+head(ev$get.dosing())
 ```
 
-```{r}
+```
+##   time evid   amt
+## 1    0  101 10000
+## 2   12  101 10000
+## 3   24  101 10000
+## 4   36  101 10000
+## 5   48  101 10000
+## 6   60  101 10000
+```
+
+```r
 head(ev$get.sampling())
 ```
 
-The simulation can now be run by calling the model object's run function. Simulation results for all variables in the model are stored in the output matrix x. 
+```
+##    time evid amt
+## 16    0    0  NA
+## 17    1    0  NA
+## 18    2    0  NA
+## 19    3    0  NA
+## 20    4    0  NA
+## 21    5    0  NA
+```
 
-```{r}
-x <- mod1$run(theta, ev, inits)
+The simulation can now be run by calling the model object's run
+function. Simulation results for all variables in the model are stored
+in the output matrix x. 
+
+```r
+x <- mod1$solve(theta, ev, inits)
 head(x)
 ```
 
-```{r fig.width=10}
+```
+##      time     depot    centr      peri      eff       C2        C3
+## [1,]    0 10000.000    0.000    0.0000 1.000000  0.00000 0.0000000
+## [2,]    1  7452.765 1783.897  273.1895 1.084664 44.37555 0.9198298
+## [3,]    2  5554.370 2206.295  793.8758 1.180825 54.88296 2.6729825
+## [4,]    3  4139.542 2086.518 1323.5783 1.228914 51.90343 4.4564927
+## [5,]    4  3085.103 1788.795 1776.2702 1.234610 44.49738 5.9807076
+## [6,]    5  2299.255 1466.670 2131.7169 1.214742 36.48434 7.1774981
+```
+
+This can also be solved by the `predict()` or `solve()` methods:
+
+```r
+x <- predict(mod1,theta, ev, inits)
+head(x)
+```
+
+```
+##      time     depot    centr      peri      eff       C2        C3
+## [1,]    0 10000.000    0.000    0.0000 1.000000  0.00000 0.0000000
+## [2,]    1  7452.765 1783.897  273.1895 1.084664 44.37555 0.9198298
+## [3,]    2  5554.370 2206.295  793.8758 1.180825 54.88296 2.6729825
+## [4,]    3  4139.542 2086.518 1323.5783 1.228914 51.90343 4.4564927
+## [5,]    4  3085.103 1788.795 1776.2702 1.234610 44.49738 5.9807076
+## [6,]    5  2299.255 1466.670 2131.7169 1.214742 36.48434 7.1774981
+```
+or
+
+```r
+x <- solve(mod1,theta, ev, inits)
+head(x)
+```
+
+```
+##      time     depot    centr      peri      eff       C2        C3
+## [1,]    0 10000.000    0.000    0.0000 1.000000  0.00000 0.0000000
+## [2,]    1  7452.765 1783.897  273.1895 1.084664 44.37555 0.9198298
+## [3,]    2  5554.370 2206.295  793.8758 1.180825 54.88296 2.6729825
+## [4,]    3  4139.542 2086.518 1323.5783 1.228914 51.90343 4.4564927
+## [5,]    4  3085.103 1788.795 1776.2702 1.234610 44.49738 5.9807076
+## [6,]    5  2299.255 1466.670 2131.7169 1.214742 36.48434 7.1774981
+```
+
+```r
 par(mfrow=c(1,2))
 matplot(x[,"C2"], type="l", ylab="Central Concentration")
 matplot(x[,"eff"], type="l", ylab = "Effect")
 ```
 
-#### Simulation of Variability with RxODE
-Variability in model parameters can be simulated by creating a matrix of parameter values for use in the simulation. In the example below, 40% variability in clearance is simulated. 
+![plot of chunk unnamed-chunk-15](figure/unnamed-chunk-15-1.png)
 
-``` {r}
-nsub=100						  #number of subproblems
-CL=1.86E+01*exp(rnorm(nsub,0,.4^2))
+#### Simulation of Variability with RxODE
+Variability in model parameters can be simulated by creating a matrix
+of parameter values for use in the simulation. In the example below,
+40% variability in clearance is simulated. 
+
+```r
+options(RxODE.warn.on.assign = FALSE); ## Turn of warning on assignment of initial conditions
+nsub <- 100						  #number of subproblems
+CL <- 1.86E+01*exp(rnorm(nsub,0,.4^2))
 theta.all <- 
-	cbind(KA=2.94E-01, CL=CL,             # central 
-	V2=4.02E+01, Q=1.05E+01, V3=2.97E+02, # peripheral
-	Kin=1, Kout=1, EC50=200)              # effects  
+	cbind(KA=2.94E-01, CL=CL, V2=4.02E+01,  # central 
+	Q=1.05E+01, V3=2.97E+02,                # peripheral
+	Kin=1, Kout=1, EC50=200)                # effects  
 head(theta.all)
 ```
 
-Each subproblem can be simulated by using a loop to run the simulation for each set of parameters of in the parameter matrix. 
+```
+##         KA       CL   V2    Q  V3 Kin Kout EC50
+## [1,] 0.294 12.97691 40.2 10.5 297   1    1  200
+## [2,] 0.294 21.44136 40.2 10.5 297   1    1  200
+## [3,] 0.294 19.41908 40.2 10.5 297   1    1  200
+## [4,] 0.294 13.33194 40.2 10.5 297   1    1  200
+## [5,] 0.294 16.31015 40.2 10.5 297   1    1  200
+## [6,] 0.294 18.50850 40.2 10.5 297   1    1  200
+```
 
-```{r}
-obs.rec = ev$get.obs.rec()
-nobs = sum(obs.rec)
-cp.all = matrix(NA, nobs, nsub)
+Each subproblem can be simulated by using an explicit loop (or the `apply()`
+function) to run the simulation for each set of parameters of in the parameter
+matrix. 
+
+```r
+nobs <- ev$get.nobs()
+cp.all <- matrix(NA, nobs, nsub)
 for (i in 1:nsub)
 {
-	theta = theta.all[i,]
-	x <- mod1$run(theta, ev, inits=inits)
-	cp.all[, i] = x[obs.rec, "C2"]
+	theta <- theta.all[i,]
+	x <- mod1$solve(theta, ev, inits=inits)
+	cp.all[, i] <- x[, "C2"]
 }
+
 matplot(cp.all, type="l", ylab="Central Concentration")
+```
+
+![plot of chunk unnamed-chunk-17](figure/unnamed-chunk-17-1.png)
+
+It is now straightforward to perform calculations and generate plots
+with the simulated data. Below,  the 5th, 50th, and 95th percentiles
+of the simulated data are plotted. 
+
+```r
+cp.q <- apply(cp.all, 1, quantile, prob = c(0.05, 0.50, 0.95))
+matplot(t(cp.q), type="l", lty=c(2,1,2), col=c(2,1,2), ylab="Central Concentration")
+```
+
+![plot of chunk unnamed-chunk-18](figure/unnamed-chunk-18-1.png)
+
+#### Facilities for generating R shiny applications
+
+An example of creating an R [shiny application](http://shiny.rstudio.com) to
+interactively explore responses of various complex dosing regimens is available
+at http://qsp.engr.uga.edu:3838/RxODE/RegimenSimulator.  Shiny applications
+like this one may be programmatically created with the experimental function
+`genShinyApp.template()`.
+
+The above application includes widgets for varying the dose, dosing
+regimen, dose cycle, and number of cycles.  
 
 ```
 
-It is now straightforward to perform calculations and generate plots with the simulated data. Below,  the 5th, 50th, and 95th percentiles of the simulated data are plotted. 
+genShinyApp.template(appDir = "shinyExample", verbose=TRUE)
 
-```{r}
-cp.q = matrix(NA, nobs, 3)
-for (i in 1:nrow(cp.all))
-{
-	cp.q[i, ] = quantile(cp.all[i,], prob=c(.05, .5, .95))
-}
-matplot(cp.q, type="l", lty=c(2,1,2), col=c(2,1,2), ylab="Central Concentration")
+library(shiny)
+runApp("shinyExample")
 
 ```
 
-####RxODE facilatates efficient generation of interactive model interfaces through Rshiny
+### [Click here to go to the Shiny App](http://qsp.engr.uga.edu:3838/RxODE/RegimenSimulator)
 
-The RxODE package includes a function genShinyApp() that automatically generates an interactive shiny application for running and interacting with the model. This function creates four key files: a platform-specific compiled C model file, a script that can call and run the compiled model within the shiny app, and the ui.R and server.R files make up the shiny app.  The default app includes 
-widgets for varying the dose, dosing regimen, dose cycle, and number of cycles. The default output is a table of state variables and plot of one state variable, as shown below. The user is then free to adapt the shiny app to their needs by editing the ui.R and server.R files. 
-
-```
-genShinyApp.template("myapp")
-
-library("shiny")
-runApp("myapp")
-```
-
-###[Click here to go to the Shiny App](http://qsp.engr.uga.edu:3838/RxODE/RegimenSimulator)
-
-
-### Other PK/PD specific solvers: 
-- https://github.com/metrumresearchgroup/mrgsolve
-- https://github.com/ronkeizer/PKPDsim

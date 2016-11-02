@@ -1440,10 +1440,10 @@ rxPlot <- function(RxODEobj,
     layout <- -igraph::layout.grid(ig);
     
     if (!interactive){
-        op <- graphics::par()
+        op <- graphics::par()$mar
         graphics::par(mar=rep(0,4));
         plot(ig,edge.label.family=family, layout = layout, ...);
-        suppressWarnings({graphics::par(op)});
+        suppressWarnings({graphics::par(mar=op)});
     } else {
         igraph::tkplot(ig,edge.label.family=family, layout = layout, ...);
     }
@@ -2653,7 +2653,8 @@ rxSolve.character <- function(object,params,events,inits = NULL, covs = NULL,sti
 }
 ##' @rdname rxSolve
 ##' @export
-rxSolve.rxDll <- function(object,params,events,inits = NULL, covs = NULL,stiff = TRUE, transit_abs = FALSE,atol = 1.0e-8, rtol = 1.0e-6,maxsteps=5000,hmin=0,hmax=NULL,hini=0, maxordn=12, maxords=5,...,
+rxSolve.rxDll <- function(object,params,events,inits = NULL, covs = NULL,stiff = TRUE, transit_abs = FALSE,atol = 1.0e-8,
+                          rtol = 1.0e-6,maxsteps=5000,hmin=0,hmax=NULL,hini=0, maxordn=12, maxords=5,...,
                           covs_interpolation = c("Linear","LOCF")){
     ## rxSolve.rxDll returns a solved object
     if (missing(events) && class(params) == "EventTable"){

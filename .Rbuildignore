@@ -9,3 +9,4 @@ rx_.*\.(so|dll)$
 testthat/.*\.(so|dll)$
 BinaryFiles$
 RxODE.*\.(zip|pdf)$
+/vignettes/RxODE-intro.md
