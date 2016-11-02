@@ -153,7 +153,10 @@ mkdparse <- function(file,outputFile,
     return(invisible());
 }
 
-updateParser <- function(){ # nocov start
+updatePkg <- function(){ # nocov start
+    cat("Update README\n");
+    knitr::knit(devtools::package_file("README.Rmd"))
+    cat("Update Parser c file\n");
     mkdparse(devtools::package_file("inst/tran.g"),
              devtools::package_file("src/"),
              grammar_ident="RxODE");

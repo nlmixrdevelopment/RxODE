@@ -10,18 +10,25 @@
 setwd("vignettes")
 knit("RxODE-intro.Rmd")
 setwd("../")
+setwd("inst")
+knit("Install-windows.Rmd");
+setwd("../")
 ```
 
 ```{r include, results="asis", echo=FALSE, warning=FALSE}
 ## read md of the vignette
 mdInput <- readLines("vignettes/RxODE-intro.md")
+install <- readLines("inst/Install-windows.md")
 
 ## remove vignette-specific headers
 toRemove <- 1:10
 mdInput <- mdInput[-toRemove]
 
+intro <- seq(1,which(regexpr("Introduction",mdInput) != -1)[1]-1);
+
 ## restore right path for figures
 mdInput <- gsub("figure/","vignettes/figure/",mdInput)
+mdInput <- c(mdInput[intro],install,mdInput[-intro])
 cat(paste(mdInput,collapse="\n"))
 ```
 

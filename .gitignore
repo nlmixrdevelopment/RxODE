@@ -8,3 +8,7 @@
 /src/RxODE.dll
 inst/doc
 /vignettes/RxODE-intro.md
+/inst/Install-windows.md
+/.Rhistory
+/R/.Rhistory
+/src/.Rhistory
