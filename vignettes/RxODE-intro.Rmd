@@ -51,14 +51,14 @@ A typical pharmacokinetics-pharmacodynamics (PKPD) model can be
 plotted in `RxODE`. This model, as shown in the figure below:
 
 ```{r, fig.width=7.5}
-plot(mod1);
+## plot(mod1);
 ```
 
 Sometimes the size of the boxes may need to be adjusted, you can do
 this by adjusting the `size` argument:
 
 ```{r, fig.width=7.5}
-plot(mod1,size=40);
+## plot(mod1,size=40);
 ```
 
 Model parameters can be defined as named vectors. Names of parameters in
