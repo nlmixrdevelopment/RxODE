@@ -71,7 +71,10 @@ test_that("Print for m1 works correctly",{
     p1 <- readLines("test");
     unlink("test");
     expect_equal(p1,cf)
-    cf <- c("","User Supplied Parameters ($params):",
+    sink("test");
+    print(coef(pred));
+    sink();
+    cfp <- c("","User Supplied Parameters ($params):",
             "     V2      V3      KA      CL       Q     Kin    Kout    EC50 ",
             " 40.200 297.000   0.291  18.600  10.500   1.000   1.000 200.000 ",
             "",
@@ -82,12 +85,9 @@ test_that("Print for m1 works correctly",{
             "Compartents:",
             "  cmt=1   cmt=2   cmt=3   cmt=4 ",
             "\"depot\" \"centr\"  \"peri\"   \"eff\" ");
-    sink("test");
-    print(coef(pred));
-    sink();
     p1 <- readLines("test");
     unlink("test");
-    expect_equal(p1,cf)
+    expect_equal(p1,cfp);
     ##
     sink("test");
     summary(m1);
