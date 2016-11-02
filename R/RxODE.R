@@ -6,7 +6,7 @@ regIni <- rex::rex(or(group(one_of("_."),"0"),"0","(0)","[0]","{0}"),end);
     op <- options();
     op.rx <- list(RxODE.prefer.tbl     = FALSE,
                   RxODE.display.tbl    = TRUE,
-                  RxODE.echo.compile   = TRUE,
+                  RxODE.echo.compile   = FALSE,
                   RxODE.warn.on.assign = FALSE);
     w <- !(names(op.rx) %in% names(op))
     if(any(w)) options(op.rx[w]);
@@ -609,8 +609,7 @@ print.rxCoef <- function(x,...){
 ##' Print the rxCoefSolve object
 ##'
 ##' This prints out the user supplied arguments for the rxCoef object
-##'
-##' @title 
+##' 
 ##' @param x rxCoefSolve object
 ##' @param ... Other (ignored) parameters.
 ##' @keywords Internal
@@ -3906,6 +3905,7 @@ rxClean <- function(wd = getwd()){
 ##' @export
 rxLoadDir <- function(...){
     tmp <- getLoadedDLLs()$RxODE;
+    class(tmp) <- "list"
     loadDir <- dirname(tmp$path);
     return(file.path(loadDir,...))
 }

@@ -11,7 +11,7 @@
 
 \method{coef}{RxCompilationManager}(...)
 
-\method{coef}{solveRxDll}(...)
+\method{coef}{solveRxDll}(object, ...)
 
 \method{coef}{rxDll}(...)
 }

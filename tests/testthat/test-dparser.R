@@ -1,6 +1,5 @@
 library(digest);
 context("Checking output of grammars.")
-
 files <- list.files(pattern=".*\\.test\\.g$")
 for (file in files){
     flags <- sprintf("%s.flags",file);
@@ -88,11 +87,3 @@ for (file in files){
     dyn.unload(parser);
     unlink(parser);
 }
-
-context("Check that grammar and C code are in sync.");
-test_that("C/grammar in sync.",{
-    d1 <- readLines(devtools::package_file("src/tran.g.d_parser.c"));
-    updateParser();
-    d2 <- readLines(devtools::package_file("src/tran.g.d_parser.c"));
-    expect_equal(d1,d2);
-})

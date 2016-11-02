@@ -4,7 +4,7 @@
 \alias{as.tbl.solveRxDll}
 \title{Convert Solved RxODE object to tbl}
 \usage{
-\method{as.tbl}{solveRxDll}(x, ...)
+as.tbl.solveRxDll(x, ...)
 }
 \arguments{
 \item{x}{Solved RxDll object}
