@@ -11,8 +11,8 @@ LIB_OBJS = $(LIB_SRCS:%.f=%.o) dop853.o
 all: $(LIBODEAUX)
 
 $(LIBODEAUX): $(LIB_OBJS)
-	ar cruv $@ $^
-	ranlib $@
+	$(AR) cruv $@ $^
+	$(RANLIB) $@
 
 dop853.o: dop853.c
 
