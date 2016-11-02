@@ -118,7 +118,7 @@ First part of data:
 5     4  3122.347 1783.880 1765.1486 1.233503 44.37513 5.9432612
 6     5  2334.004 1465.845 2120.2772 1.214084 36.46382 7.1389804
 # ... with 32 more rows", getwd(),.Platform$r_arch,.Platform$dynlib.ext),"\n")[[1]];
-expect_equal(p1,t1);
+expect_equal(gsub("(# A tibble: [0-9]+ ).*( [0-9]+)","\\1x\\2",p1),t1);
 options(RxODE.display.tbl = FALSE)
 sink("test");
 print(pred);
@@ -146,7 +146,7 @@ First part of data:
 [4,]    3  4176.966 2076.396 1314.0348 1.227523 51.65163 4.4243597
 [5,]    4  3122.347 1783.880 1765.1486 1.233503 44.37513 5.9432612
 [6,]    5  2334.004 1465.845 2120.2772 1.214084 36.46382 7.1389804",getwd(),.Platform$r_arch,.Platform$dynlib.ext),"\n")[[1]]
-expect_equal(gsub("(# A tibble: [0-9]+ ).*( [0-9]+)","\\1x\\2",p1),t1);
+expect_equal(p1,t1);
     ################################################################################
     ## Delete dll, see what happens.
     rxDelete(m1);
