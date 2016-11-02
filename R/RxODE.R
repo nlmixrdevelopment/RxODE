@@ -634,6 +634,14 @@ rxSub <- function(regexp, # regular expression with named groups
     }
 } # end function rxSub
 
+##' IDR information parsing routine
+##' @title IDR information
+##' @param cmt Compartment that idr information is being assesed on.
+##' @param text Text that is parsed for indirect response information.
+##' @return IDR information (if any)
+##' @author Matthew L. Fidler
+##' @keywords internal
+##' @export
 idrInfo <- function(cmt="eff",text="+Kin-Kout*(1-centr/V2/(EC50+centr/V2))*eff"){
     text <- rxSigmoidInfo(text);
     id <- rex::rex(one_of("_","a":"z","A":"Z"),any_of("_","a":"z","A":"Z","0":"9"));
@@ -716,7 +724,7 @@ idrInfo <- function(cmt="eff",text="+Kin-Kout*(1-centr/V2/(EC50+centr/V2))*eff")
         );
     ret <- text
     for (i in 1:length(regs)){
-        ret <- rxSub(regs[[i]][1],sprintf("%s(\"\\g{kin}\",\"\\g{kout}\",\"\\g{e50}\",\"\\g{R}\",\"\\g{cp}\",edgeList,nodes)",regs[[i]][2]),ret);
+        ret <- rxSub(regs[[i]][1],sprintf("%s(\"\\g{kin}\",\"\\g{kout}\",\\g{e50},\"\\g{R}\",\\g{cp},edgeList,nodes)",regs[[i]][2]),ret);
     }
     ret <- gsub(rex::rex(start,"+"),"",ret);
     return(ret);
@@ -1265,8 +1273,6 @@ nodeInfo <- function(x,       # RxODE normalized model
         tmp <- eval(parse(text=idr));
         edgeList <- tmp[[1]];
         nodes <- tmp[[2]];
-        print(edgeList);
-        print(nodes);
     }
     return(list(nodes    = nodes,
                 edgeList = edgeList,
@@ -1401,7 +1407,10 @@ rxPlot <- function(RxODEobj,
     layout <- -igraph::layout.grid(ig);
     
     if (!interactive){
+        op <- par()
+        par(mar=rep(0,4));
         plot(ig,edge.label.family=family, layout = layout, ...);
+        suppressWarnings({par(op)});
     } else {
         igraph::tkplot(ig,edge.label.family=family, layout = layout, ...);
     }

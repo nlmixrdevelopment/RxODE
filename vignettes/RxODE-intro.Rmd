@@ -1,13 +1,13 @@
-<!--
-%\VignetteEngine{knitr::knitr}
-%\VignetteIndexEntry{Introduction to RxODE}
-%\VignetteKeyword{ordinary differential equations}
-%\VignetteKeyword{PK/PD}
-%\VignetteKeyword{simulations}
--->
-```{r setup, include = FALSE}
-library(knitr)
-```
+---
+title: "Introduction to RxODE"
+author: "Melissa Hallow, Wenping Wang, and Matthew L. Fidler"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Introduction to RxODE}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
 
 ## RxODE: A tool for performing simulations from 
 Ordinary Differential Equation (ODE) models, with 
@@ -21,13 +21,7 @@ applications for pharmacometrics
 #### Introduction
 `RxODE` is an R package that facilitates simulation with ODE models in
 R. It is designed with pharmacometrics models in mind, but can be
-applied more generally to any ODE model. Here, a typical
-pharmacokinetics-pharmacodynamics (PKPD) model is used to illustrate
-the application of `RxODE`. This model is illustrated in Figure 1. It is
-assumed that all model parameters have been estimated previously.
-
-![Figure 1. A two compartment pharmacokinetics model with an effect compartment](Model_schematic_w500.png)  
-**Figure 1. A two compartment pharmacokinetics model with an effect compartment**  
+applied more generally to any ODE model.
 
 ***
 #### Description of RxODE illustrated through an example
@@ -51,6 +45,20 @@ To load `RxODE` package and compile the model:
 library(RxODE)
 work <- tempfile("Rx_intro-")
 mod1 <- RxODE(model = ode, modName = "mod1", wd = work)
+```
+
+A typical pharmacokinetics-pharmacodynamics (PKPD) model can be
+plotted in `RxODE`. This model, as shown in the figure below:
+
+```{r}
+plot(mod1);
+```
+
+Sometimes the size of the boxes may need to be adjusted, you can do
+this by adjusting the `size` argument:
+
+```{r}
+plot(mod1,size=40);
 ```
 
 Model parameters can be defined as named vectors. Names of parameters in
@@ -86,16 +94,19 @@ inits <- c(eff=1);
 `RxODE` provides a simple and very flexible way to specify dosing and
 sampling through functions that generate an event table. First, an
 empty event table is generated through the "eventTable()" function:
+
 ```{r}
 ev <- eventTable(amount.units='mg', time.units='hours')
 ```
+
 Next, use the `add.dosing()` and `add.sampling()` functions of the
 `EventTable` object to specify the dosing (amounts, frequency and/or
 times, etc.) and observation times at which to sample the state of the
 system.  These functions can be called multiple times to specify more
 complex dosing or sampling regiments.  Here, these functions are used
 to specify 10mg BID dosing for 5 days, followed by 20mg QD dosing for
-5 days: 
+5 days:
+
 ```{r}
 ev$add.dosing(dose=10000, nbr.doses=10, dosing.interval=12)
 ev$add.dosing(dose=20000, nbr.doses=5, start.time=120, dosing.interval=24)
@@ -122,10 +133,16 @@ x <- mod1$solve(theta, ev, inits)
 head(x)
 ```
 
-This can also be solved by the `predict()` method:
+This can also be solved by the `predict()` or `solve()` methods:
 
 ```{r}
 x <- predict(mod1,theta, ev, inits)
+head(x)
+```
+or
+
+```{r}
+x <- solve(mod1,theta, ev, inits)
 head(x)
 ```
 

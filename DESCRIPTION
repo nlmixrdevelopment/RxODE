@@ -23,7 +23,9 @@ Suggests:
     tcltk,
     testthat,
     devtools,
-    covr
+    covr,
+    rmarkdown,
+    VignetteBuilder
 Imports:
     utils,
     methods,
