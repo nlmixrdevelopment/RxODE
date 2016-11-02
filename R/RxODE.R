@@ -4,10 +4,6 @@ regIni <- rex::rex(or(group(one_of("_."),"0"),"0","(0)","[0]","{0}"),end);
 loadDir <- NULL;
 .onLoad <- function(libname,pkgname){ # nocov start
     ## Setup RxODE.prefer.tbl
-    loadDir <<- tryCatch(dirname((getLoadedDLLs()$RxODE)[["path"]]),
-                         error = function(e){
-                             return(system.file(package="RxODE"));
-                         })
     op <- options();
     op.rx <- list(RxODE.prefer.tbl     = FALSE,
                   RxODE.display.tbl    = TRUE,
@@ -1858,7 +1854,7 @@ rxTransMakevars <- function(rxProps,                                            
         if (debug){
             ret <- sprintf("%s -D__DEBUG__",ret);
         }
-        ret <- sprintf("PKG_CPPFLAGS=%s\nPKG_LIBS=-L%s -l:RxODE%s $(BLAS_LIBS) $(LAPACK_LIBS) $(FLIBS)",ret,loadDir,.Platform$dynlib.ext);
+        ret <- sprintf("PKG_CPPFLAGS=%s\nPKG_LIBS=-L%s -l:RxODE%s $(BLAS_LIBS) $(LAPACK_LIBS) $(FLIBS)",ret,rxLoadDir(),.Platform$dynlib.ext);
         cat(ret);
         return(ret);
     } else {
@@ -3910,6 +3906,11 @@ rxClean <- function(wd = getwd()){
 ##' @keywords internal
 ##' @export
 rxLoadDir <- function(...){
+    if (is.null(loadDir)){
+        tmp <- getLoadedDLLs()$RxODE;
+        class(tmp) <-  "list";
+        loadDir <<- dirname(tmp$path);
+    }
     return(file.path(loadDir,...))
 }
 
