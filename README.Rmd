@@ -21,7 +21,7 @@ toRemove <- 1:10
 mdInput <- mdInput[-toRemove]
 
 ## restore right path for figures
-mdInput <- gsub("figs/","vignettes/figs/",mdInput)
+mdInput <- gsub("figure/","vignettes/figure/",mdInput)
 cat(paste(mdInput,collapse="\n"))
 ```
 

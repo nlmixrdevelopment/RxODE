@@ -3,9 +3,10 @@
 [![codecov.io](https://codecov.io/github/mattfidler/RxODE/coverage.svg?branch=master)](https://codecov.io/github/mattfidler/RxODE?branch=master)
 [![CRAN version](http://www.r-pkg.org/badges/version/RxODE)](https://cran.r-project.org/package=RxODE)
 
-## RxODE: A tool for performing simulations from 
-Ordinary Differential Equation (ODE) models, with 
-applications for pharmacometrics
+
+
+
+## RxODE: A tool for performing simulations from Ordinary Differential Equation (ODE) models, with applications for pharmacometrics
 ***  
 
 ##### Authors: Melissa Hallow, Wenping Wang, and Matthew L. Fidler
@@ -49,7 +50,7 @@ plotted in `RxODE`. This model, as shown in the figure below:
 plot(mod1);
 ```
 
-![plot of chunk unnamed-chunk-3](figure/unnamed-chunk-3-1.png)
+![plot of chunk unnamed-chunk-3](vignettes/figure/unnamed-chunk-3-1.png)
 
 Sometimes the size of the boxes may need to be adjusted, you can do
 this by adjusting the `size` argument:
@@ -58,7 +59,7 @@ this by adjusting the `size` argument:
 plot(mod1,size=40);
 ```
 
-![plot of chunk unnamed-chunk-4](figure/unnamed-chunk-4-1.png)
+![plot of chunk unnamed-chunk-4](vignettes/figure/unnamed-chunk-4-1.png)
 
 Model parameters can be defined as named vectors. Names of parameters in
 the vector must be a superset of parameters in the ODE model, and the
@@ -201,7 +202,7 @@ matplot(x[,"C2"], type="l", ylab="Central Concentration")
 matplot(x[,"eff"], type="l", ylab = "Effect")
 ```
 
-![plot of chunk unnamed-chunk-15](figure/unnamed-chunk-15-1.png)
+![plot of chunk unnamed-chunk-15](vignettes/figure/unnamed-chunk-15-1.png)
 
 #### Simulation of Variability with RxODE
 Variability in model parameters can be simulated by creating a matrix
@@ -221,12 +222,12 @@ head(theta.all)
 
 ```
 ##         KA       CL   V2    Q  V3 Kin Kout EC50
-## [1,] 0.294 12.97691 40.2 10.5 297   1    1  200
-## [2,] 0.294 21.44136 40.2 10.5 297   1    1  200
-## [3,] 0.294 19.41908 40.2 10.5 297   1    1  200
-## [4,] 0.294 13.33194 40.2 10.5 297   1    1  200
-## [5,] 0.294 16.31015 40.2 10.5 297   1    1  200
-## [6,] 0.294 18.50850 40.2 10.5 297   1    1  200
+## [1,] 0.294 14.94092 40.2 10.5 297   1    1  200
+## [2,] 0.294 21.23740 40.2 10.5 297   1    1  200
+## [3,] 0.294 22.83447 40.2 10.5 297   1    1  200
+## [4,] 0.294 17.67582 40.2 10.5 297   1    1  200
+## [5,] 0.294 26.37328 40.2 10.5 297   1    1  200
+## [6,] 0.294 17.19103 40.2 10.5 297   1    1  200
 ```
 
 Each subproblem can be simulated by using an explicit loop (or the `apply()`
@@ -246,7 +247,7 @@ for (i in 1:nsub)
 matplot(cp.all, type="l", ylab="Central Concentration")
 ```
 
-![plot of chunk unnamed-chunk-17](figure/unnamed-chunk-17-1.png)
+![plot of chunk unnamed-chunk-17](vignettes/figure/unnamed-chunk-17-1.png)
 
 It is now straightforward to perform calculations and generate plots
 with the simulated data. Below,  the 5th, 50th, and 95th percentiles
@@ -257,7 +258,7 @@ cp.q <- apply(cp.all, 1, quantile, prob = c(0.05, 0.50, 0.95))
 matplot(t(cp.q), type="l", lty=c(2,1,2), col=c(2,1,2), ylab="Central Concentration")
 ```
 
-![plot of chunk unnamed-chunk-18](figure/unnamed-chunk-18-1.png)
+![plot of chunk unnamed-chunk-18](vignettes/figure/unnamed-chunk-18-1.png)
 
 #### Facilities for generating R shiny applications
 
