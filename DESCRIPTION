@@ -24,8 +24,7 @@ Suggests:
     testthat,
     devtools,
     covr,
-    rmarkdown,
-    VignetteBuilder
+    rmarkdown
 Imports:
     utils,
     methods,
