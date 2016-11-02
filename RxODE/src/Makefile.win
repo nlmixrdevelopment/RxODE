@@ -8,11 +8,11 @@ all: libodeaux libdparse libtran
 
 libodeaux:
 	echo "make libodeaux.a in ode/ ..."
-	(cd ode; $(MAKE) CC="$(CC)" FC="$(FC)" CFLAGS="$(CFLAGS)" FFLAGS="$(FFLAGS)" libodeaux.a)
+	(cd ode; $(MAKE) CC="$(CC)" FC="$(FC)" CFLAGS="$(CFLAGS)" FFLAGS="$(FFLAGS)" AR="$(AR)" RANLIB="$(RANLIB)" libodeaux.a)
 
 libdparse:
 	echo "make libodeaux.a ..."
-	(cd dparser; $(MAKE) -f Makefile.org CC="$(CC)" CFLAGS="$(CFLAGS)" libdparse.a)
+	(cd dparser; $(MAKE) -f Makefile.org CC="$(CC)" CFLAGS="$(CFLAGS)" AR="$(AR)" RANLIB="$(RANLIB)" libdparse.a)
 
 libtran:
 	echo "make tran ..."
