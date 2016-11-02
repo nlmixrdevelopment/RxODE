@@ -567,8 +567,14 @@ coef.RxCompilationManager <- function(...){
 
 ##' @rdname coef.RxODE
 ##' @export 
-coef.solveRxDll <- function(...){
-    coef.RxODE(...);
+coef.solveRxDll <- function(object,...){
+    lst <- attr(object,"solveRxDll");
+    ret <- list();
+    ret$params <- lst$params;
+    ret$state <- lst$inits;
+    ret$RxODE <- lst$object;
+    class(ret) <- "rxCoefSolve";
+    return(ret);
 }
 
 ##' @rdname coef.RxODE
@@ -594,6 +600,33 @@ print.rxCoef <- function(x,...){
         cat("\nUser Initial Conditions:\n");
         print(rxInits(rxDllObj,c(),rxState(rxDllObj),0,TRUE))
     }
+    if (length(rxInits(rxDllObj)) > 0){
+        cat("\nDefault parameter values:\n")
+        print(x$ini);
+    }
+    cat("\nCompartents:\n");
+    tmp <- rxState(rxDllObj);
+    names(tmp) <- paste0("cmt=",1:length(tmp));
+    print(tmp);
+    return(invisible());
+}
+
+##' Print the rxCoefSolve object
+##'
+##' This prints out the user supplied arguments for the rxCoef object
+##'
+##' @title 
+##' @param x rxCoefSolve object
+##' @param ... Other (ignored) parameters.
+##' @keywords Internal
+##' @author Matthew L.Fidler
+##' @export
+print.rxCoefSolve <- function(x,...){
+    cat("\nUser Supplied Parameters ($params):\n");
+    print(x$params);
+    cat("\nUser Initial Conditions ($state):\n");
+    print(x$state);
+    rxDllObj <- x$RxODE;
     if (length(rxInits(rxDllObj)) > 0){
         cat("\nDefault parameter values:\n")
         print(x$ini);
