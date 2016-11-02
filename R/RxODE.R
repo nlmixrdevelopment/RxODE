@@ -11,7 +11,7 @@ loadDir <- NULL;
     op <- options();
     op.rx <- list(RxODE.prefer.tbl     = FALSE,
                   RxODE.display.tbl    = TRUE,
-                  RxODE.echo.compile   = FALSE,
+                  RxODE.echo.compile   = TRUE,
                   RxODE.warn.on.assign = FALSE);
     w <- !(names(op.rx) %in% names(op))
     if(any(w)) options(op.rx[w]);
@@ -1294,10 +1294,10 @@ igraph.rxDll <- function(x,                                   #  object
                          tk         = FALSE,                  # For tkplot; transparancy not supported.
                          ...){
     ## igraph.rxDll returns igraph object from rxDll
-    if (!requireNamespace("igraph", quietly = TRUE)) {
+    if (!requireNamespace("igraph", quietly = TRUE)) {  # nocov start
         stop("Package igraph needed for this function to work. Please install it.",
              call. = FALSE)
-    }
+    }  # nocov end
     with(nodeInfo(rxModelVars(x)$model["normModel"],rxModelVars(x)),{
         ret <- eval(parse(text=sprintf("igraph::graph_from_literal(%s);",paste(unlist(lapply(edgeList,function(x){sprintf("\"%s\" -+ \"%s\"",x[1],x[2])})),collapse=","))));
         if (length(shape) > 1){
@@ -1396,11 +1396,16 @@ rxPlot <- function(RxODEobj,
     } else if (class(RxODEobj) == "rxDll"){
         x <- RxODEobj;
     } else {
-        stop("The RxODEobj is not a supported RxODE object")
+        cat("The RxODEobj is not a supported RxODE object\n");
+        return(invisible())
     }
-    if (!requireNamespace("igraph", quietly = TRUE)) {
-        stop("Package igraph needed for this function to work. Please install it.",
-             call. = FALSE)
+    if (!requireNamespace("igraph", quietly = TRUE)) { # nocov start
+        cat("Package igraph needed for this function to work. Please install it.\n")
+        return(invisible());
+    } # nocov end
+    if (!rxDllLoaded(x)){
+        cat("The shared RxODE library is not loaded, please load it by obj$dynLoad() or rxLoad(obj).\n");
+        return(invisible());
     }
     ig <- igraph(x,family=family,tk=interactive,
                  shape = shape, size = size, colors = colors, fillColor = fillColor, font = font,
