@@ -2076,7 +2076,7 @@ rxDllLoaded <- function(x,retry = TRUE){
         return(rxDllLoaded(m,retry = FALSE))
     } else {
         print(m);
-        option(RxODE.echo.compile = TRUE);
+        options(RxODE.echo.compile = TRUE);
         m <- rxCompile(x,force=FALSE);
         stop(sprintf("Can't figure out if the object is loaded (%s)... %s",.Platform$dynlib.ext,paste(list.files(rxLoadDir(),"RxODE\\..*"),collapse=", ")));
     }
