@@ -1852,7 +1852,7 @@ rxTransMakevars <- function(rxProps,                                            
         if (debug){
             ret <- sprintf("%s -D__DEBUG__",ret);
         }
-        ret <- sprintf("PKG_CPPFLAGS=%s\nPKG_LIBS=-L%s -lRxODE $(BLAS_LIBS) $(LAPACK_LIBS) $(FLIBS)",ret,rxLoadDir());
+        ret <- sprintf("PKG_CPPFLAGS=%s\nPKG_LIBS=-L%s -l:RxODE%s $(BLAS_LIBS) $(LAPACK_LIBS) $(FLIBS)",ret,rxLoadDir(),.Platform$dynlib.ext);
         cat(ret);
         return(ret);
     } else {

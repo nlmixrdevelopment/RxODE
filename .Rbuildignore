@@ -1,5 +1,5 @@
 ^\.travis.yml$
-^README.md\.Rmd$
+^README(\.md|\.Rmd)$
 ^.git.*$
 ^\.gitignore$
 ^vignettes/figure/.*$
@@ -15,3 +15,4 @@ RxODE.*\.(zip|pdf)$
 /.Rhistory
 /R/.Rhistory
 /src/.Rhistory
+
