@@ -7,6 +7,7 @@
 #include <R.h>
 #include <Rinternals.h>
 #include <Rmath.h>
+#include <R_ext/Rdynload.h>
 
 
 void F77_NAME(dlsoda)(
@@ -426,38 +427,38 @@ void call_dop(int neq, double *x, int *evid, int nx, double *inits, double *dose
 	}
 }
 
-extern SEXP ode_solver (// Parameters
-		  SEXP sexp_theta,
-		  SEXP sexp_inits,
-		  SEXP sexp_lhs,
-		  // Events
-		  SEXP sexp_time,
-		  SEXP sexp_evid,
-		  SEXP sexp_dose,
-		  // Covariates
-		  SEXP sexp_pcov,
-		  SEXP sexp_cov,
-		  SEXP sexp_locf,
-		  // Solver Options
-		  SEXP sexp_atol,
-		  SEXP sexp_rtol,
-		  SEXP sexp_hmin,
-		  SEXP sexp_hmax,
-		  SEXP sexp_h0,
-		  SEXP sexp_mxordn,
-		  SEXP sexp_mxords,
-		  SEXP sexp_mx,
-		  SEXP sexp_stiff,
-		  SEXP sexp_transit_abs,
-		  // Object Creation
-		  SEXP sexp_object,
-		  SEXP sexp_extra_args,
-		  void (*fun_dydt)(unsigned int, double, double *, double *),
-		  void (*fun_calc_lhs)(double, double *, double *),
-		  void (*fun_calc_jac)(unsigned int, double, double *, double *, unsigned int),
-		  int fun_jt,
-		  int fun_mf,
- 		  int fun_debug){
+SEXP RxODE_ode_solver (// Parameters
+		       SEXP sexp_theta,
+		       SEXP sexp_inits,
+		       SEXP sexp_lhs,
+		       // Events
+		       SEXP sexp_time,
+		       SEXP sexp_evid,
+		       SEXP sexp_dose,
+		       // Covariates
+		       SEXP sexp_pcov,
+		       SEXP sexp_cov,
+		       SEXP sexp_locf,
+		       // Solver Options
+		       SEXP sexp_atol,
+		       SEXP sexp_rtol,
+		       SEXP sexp_hmin,
+		       SEXP sexp_hmax,
+		       SEXP sexp_h0,
+		       SEXP sexp_mxordn,
+		       SEXP sexp_mxords,
+		       SEXP sexp_mx,
+		       SEXP sexp_stiff,
+		       SEXP sexp_transit_abs,
+		       // Object Creation
+		       SEXP sexp_object,
+		       SEXP sexp_extra_args,
+		       void (*fun_dydt)(unsigned int, double, double *, double *),
+		       void (*fun_calc_lhs)(double, double *, double *),
+		       void (*fun_calc_jac)(unsigned int, double, double *, double *, unsigned int),
+		       int fun_jt,
+		       int fun_mf,
+		       int fun_debug){
   // TODO: Absorption lag?
   // TODO: Annotation?
   // TODO: Units
@@ -615,4 +616,54 @@ extern SEXP ode_solver (// Parameters
   UNPROTECT(9);
   if (fp) fclose(fp);
   return sexp_solve;
+}
+
+double RxODE_InfusionRate(int val){
+  return InfusionRate[val];
+}
+
+double RxODE_par_ptr(int val){
+  return par_ptr[val];
+}
+
+long RxODE_jac_counter_val(){
+  return jac_counter;
+}
+
+long RxODE_dadt_counter_val(){
+  return dadt_counter;
+}
+
+void RxODE_jac_counter_inc(){
+  jac_counter++;
+}
+
+void RxODE_dadt_counter_inc(){
+  dadt_counter++;
+}
+
+double RxODE_podo(){
+  return podo;
+}
+
+double RxODE_tlast(){
+  return tlast;
+}
+
+void R_init_RxODE(DllInfo *info){
+  //Function
+  R_RegisterCCallable("RxODE","RxODE_ode_solver",       (DL_FUNC) RxODE_ode_solver);
+  //Infusion
+  R_RegisterCCallable("RxODE","RxODE_InfusionRate",     (DL_FUNC) RxODE_InfusionRate);
+  // Parameters
+  R_RegisterCCallable("RxODE","RxODE_par_ptr",          (DL_FUNC) RxODE_par_ptr);
+  R_RegisterCCallable("RxODE","RxODE_update_par_ptr",   (DL_FUNC) update_par_ptr);
+  // Counters
+  R_RegisterCCallable("RxODE","RxODE_dadt_counter_val", (DL_FUNC) RxODE_dadt_counter_val);
+  R_RegisterCCallable("RxODE","RxODE_jac_counter_val",  (DL_FUNC) RxODE_jac_counter_val);
+  R_RegisterCCallable("RxODE","RxODE_dadt_counter_inc", (DL_FUNC) RxODE_dadt_counter_inc);
+  R_RegisterCCallable("RxODE","RxODE_jac_counter_inc",  (DL_FUNC) RxODE_jac_counter_inc);
+  // podo or tlast
+  R_RegisterCCallable("RxODE","RxODE_podo",             (DL_FUNC) RxODE_podo);
+  R_RegisterCCallable("RxODE","RxODE_tlast",            (DL_FUNC) RxODE_tlast);
 }

@@ -159,6 +159,16 @@ void wprint_node(int depth, char *name, char *value, void *client_data) {
     sprintf(SBTPTR, "t");
     sb.o += 1;
     sbt.o += 1;
+  } else if (!strcmp("podo",value)){
+    sprintf(SBPTR, "podo()");
+    sprintf(SBTPTR, "podo");
+    sb.o  += 6;
+    sbt.o += 4;
+  } else if (!strcmp("tlast",value)){
+    sprintf(SBPTR, "tlast()");
+    sprintf(SBTPTR, "tlast");
+    sb.o  += 7;
+    sbt.o += 5;
   } else {
     sprintf(SBPTR, "%s", value);
     sprintf(SBTPTR, "%s", value);
@@ -416,11 +426,11 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       
 
       if (!strcmp("derivative", name) && i==2) {
-        /* sprintf(sb.s, "__DDtStateVar__[%d] = InfusionRate[%d] +", tb.nd, tb.nd); */
+        /* sprintf(sb.s, "__DDtStateVar__[%d] = InfusionRate(%d) +", tb.nd, tb.nd); */
         /* sb.o = strlen(sb.s); */
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
 	if (new_de(v)){
-	  sprintf(sb.s, "__DDtStateVar__[%d] = InfusionRate[%d] + ", tb.nd, tb.nd);
+	  sprintf(sb.s, "__DDtStateVar__[%d] = InfusionRate(%d) + ", tb.nd, tb.nd);
           sb.o = strlen(sb.s);
 	  sprintf(sbt.s, "d/dt(%s)=", v);
 	  sbt.o = strlen(sbt.s);
@@ -549,7 +559,7 @@ void prnt_vars(int scenario, FILE *outpt, int lhs, const char *pre_str, const ch
       fprintf(outpt, i<tb.nv-1 ? "\t%s,\n" : "\t%s;\n", buf);
       break;
     case 1:
-      fprintf(outpt, "\t%s = par_ptr[%d];\n", buf, j++);
+      fprintf(outpt, "\t%s = par_ptr(%d);\n", buf, j++);
       break;
     default: break;
     }
@@ -781,6 +791,8 @@ void print_aux_info(FILE *outpt, char *model){
   fprintf(outpt," // Object Creation\n");
   fprintf(outpt," SEXP sexp_object,\n");
   fprintf(outpt," SEXP sexp_extra_args){\n");
+  fprintf(outpt," typedef SEXP (*RxODE_ode_solver) (SEXP sexp_theta, SEXP sexp_inits, SEXP sexp_lhs, SEXP sexp_time, SEXP sexp_evid, SEXP sexp_dose, SEXP sexp_pcov, SEXP sexp_cov, SEXP sexp_locf, SEXP sexp_atol, SEXP sexp_rtol, SEXP sexp_hmin, SEXP sexp_hmax, SEXP sexp_h0, SEXP sexp_mxordn, SEXP sexp_mxords, SEXP sexp_mx, SEXP sexp_stiff, SEXP sexp_transit_abs, SEXP sexp_object, SEXP sexp_extra_args, void (*fun_dydt)(unsigned int, double, double *, double *), void (*fun_calc_lhs)(double, double *, double *), void (*fun_calc_jac)(unsigned int, double, double *, double *, unsigned int), int fun_jt, int fun_mf, int fun_debug);\n");
+  fprintf(outpt,"RxODE_ode_solver ode_solver=(RxODE_ode_solver)R_GetCCallable(\"RxODE\",\"RxODE_ode_solver\");\n");
   fprintf(outpt,"ode_solver(sexp_theta,sexp_inits,sexp_lhs,sexp_time,sexp_evid,sexp_dose,sexp_pcov,sexp_cov,sexp_locf,sexp_atol,sexp_rtol,sexp_hmin,sexp_hmax,sexp_h0,sexp_mxordn,sexp_mxords,sexp_mx,sexp_stiff,sexp_transit_abs,sexp_object,sexp_extra_args, __DYDT__ , __CALC_LHS__ , __CALC_JAC__, __JT__ , __MF__,\n#ifdef __DEBUG__\n1\n#else\n0\n#endif\n);");
   fprintf(outpt,"}\n");
   //fprintf(outpt,"SEXP __PARSED_MD5__()\n{\n\treturn %smodel_vars();\n}\n",model_prefix);
@@ -794,10 +806,10 @@ void codegen(FILE *outpt, int show_ode) {
 
   char *hdft[]=
     {
-      "#include <math.h>\n#ifdef __STANDALONE__\n#define Rprintf printf\n#define JAC_Rprintf printf\n#define JAC0_Rprintf if (jac_counter == 0) printf\n#define ODE_Rprintf printf\n#define ODE0_Rprintf if (dadt_counter == 0) printf\n#define LHS_Rprintf printf\n#define R_alloc calloc\n#else\n#include <R.h>\n#include <Rinternals.h>\n#include <Rmath.h>\n#define JAC_Rprintf Rprintf\n#define JAC0_Rprintf if (jac_counter == 0) Rprintf\n#define ODE_Rprintf Rprintf\n#define ODE0_Rprintf if (dadt_counter == 0) Rprintf\n#define LHS_Rprintf Rprintf\n#endif\n#define max(a,b) (((a)>(b))?(a):(b))\n#define min(a,b) (((a)<(b))?(a):(b))\nextern void update_par_ptr(double t);\n",
-      "extern SEXP ode_solver(SEXP sexp_theta,SEXP sexp_inits,SEXP sexp_lhs,SEXP sexp_time,SEXP sexp_evid,SEXP sexp_dose,SEXP sexp_pcov,SEXP sexp_cov,SEXP sexp_locf, SEXP sexp_atol,SEXP sexp_rtol,SEXP sexp_hmin,SEXP sexp_hmax,SEXP sexp_h0,SEXP sexp_mxordn,SEXP sexp_mxords,SEXP sexp_mx,SEXP sexp_stiff,SEXP sexp_transit_abs,SEXP sexp_object,SEXP sexp_extra_args,void (*fun_dydt)(unsigned int, double, double *, double *),void (*fun_calc_lhs)(double, double *, double *),void (*fun_calc_jac)(unsigned int, double, double *, double *, unsigned int),int fun_jt,int fun_mf,int fun_debug);\nextern long dadt_counter;\nextern long jac_counter;\nextern double InfusionRate[99];\nextern double *par_ptr;\nextern double podo;\nextern double tlast;\n\n// prj-specific differential eqns\nvoid ",
+      "#include <math.h>\n#ifdef __STANDALONE__\n#define Rprintf printf\n#define JAC_Rprintf printf\n#define JAC0_Rprintf if (jac_counter_val() == 0) printf\n#define ODE_Rprintf printf\n#define ODE0_Rprintf if (dadt_counter_val() == 0) printf\n#define LHS_Rprintf printf\n#define R_alloc calloc\n#else\n#include <R.h>\n#include <Rinternals.h>\n#include <Rmath.h>\n#include <R_ext/Rdynload.h>\n#define JAC_Rprintf Rprintf\n#define JAC0_Rprintf if (jac_counter_val() == 0) Rprintf\n#define ODE_Rprintf Rprintf\n#define ODE0_Rprintf if (dadt_counter_val() == 0) Rprintf\n#define LHS_Rprintf Rprintf\n#endif\n#define max(a,b) (((a)>(b))?(a):(b))\n#define min(a,b) (((a)<(b))?(a):(b))\ntypedef void (*RxODE_update_par_ptr)(double t);\ntypedef double (*RxODE_vec) (int val);\ntypedef long (*RxODE_cnt) ();\ntypedef void (*RxODE_inc) ();\ntypedef double (*RxODE_val) ();\n RxODE_vec par_ptr, InfusionRate;\n RxODE_update_par_ptr update_par_ptr;\n RxODE_cnt dadt_counter_val, jac_counter_val;\n RxODE_inc dadt_counter_inc, jac_counter_inc;\n RxODE_val podo, tlast;\nvoid __R_INIT__ (DllInfo *info){\n InfusionRate   = (RxODE_vec) R_GetCCallable(\"RxODE\",\"RxODE_InfusionRate\");\n update_par_ptr = (RxODE_update_par_ptr) R_GetCCallable(\"RxODE\",\"RxODE_update_par_ptr\");\n par_ptr        = (RxODE_vec) R_GetCCallable(\"RxODE\",\"RxODE_par_ptr\");\n dadt_counter_val = (RxODE_cnt) R_GetCCallable(\"RxODE\",\"RxODE_dadt_counter_val\");\n jac_counter_val  = (RxODE_cnt) R_GetCCallable(\"RxODE\",\"RxODE_jac_counter_val\");\n dadt_counter_inc = (RxODE_inc) R_GetCCallable(\"RxODE\",\"RxODE_dadt_counter_inc\");\n jac_counter_inc  = (RxODE_inc) R_GetCCallable(\"RxODE\",\"RxODE_jac_counter_inc\");\n podo  = (RxODE_val) R_GetCCallable(\"RxODE\",\"RxODE_podo\");\n tlast = (RxODE_val) R_GetCCallable(\"RxODE\",\"RxODE_tlast\");\n}\n",
+      "\n// prj-specific differential eqns\nvoid ",
       "dydt(unsigned int neq, double t, double *__zzStateVar__, double *__DDtStateVar__)\n{\n",
-      "    dadt_counter++;\n}\n\n"
+      "    dadt_counter_inc();\n}\n\n"
     };
   if (show_ode == 1){
     fprintf(outpt, "%s", hdft[0]);
@@ -864,7 +876,7 @@ void codegen(FILE *outpt, int show_ode) {
       if (show_ode != 1 && s) continue;
       else if (s) {
 	fprintf(outpt,"\tRprintf(\"================================================================================\\n\");\n");
-	fprintf(outpt,"\tRprintf(\"ODE Count: %%d\\tTime (t): %%f\\n\",dadt_counter,t);\n");
+	fprintf(outpt,"\tRprintf(\"ODE Count: %%d\\tTime (t): %%f\\n\",dadt_counter_val(),t);\n");
 	fprintf(outpt,"\tRprintf(\"================================================================================\\n\");\n");
 	fprintf(outpt,"\t__print_ode__ = 1;\n");
 	fprintf(outpt,"\t__print_vars__ = 1;\n");
@@ -963,7 +975,7 @@ void codegen(FILE *outpt, int show_ode) {
       if (tb.lh[i]>0) continue;
       j++;
       retieve_var(i, buf);
-      fprintf(outpt, "\t\tRprintf(\"%s=%%f\\tpar_ptr[%d]=%%f\\n\",%s,par_ptr[%d]);\n", buf, j-1, buf,j-1);
+      fprintf(outpt, "\t\tRprintf(\"%s=%%f\\tpar_ptr(%d)=%%f\\n\",%s,par_ptr(%d));\n", buf, j-1, buf,j-1);
     }
     fprintf(outpt,"\t}\n");
   }
@@ -975,7 +987,7 @@ void codegen(FILE *outpt, int show_ode) {
     fprintf(outpt, "%s", hdft[3]);
   } else if (show_ode == 2){
     //fprintf(outpt,"\tfree(__ld_DDtStateVar__);\n");
-    fprintf(outpt, "  jac_counter++;\n");
+    fprintf(outpt, "  jac_counter_inc();\n");
     fprintf(outpt, "}\n");
   } else {
     fprintf(outpt, "\n");
@@ -1037,12 +1049,6 @@ void trans_internal(char* parse_file, char* c_file){
     Rprintf("\nSyntax Error\n");
   }
   free_D_Parser(p);
-}
-
-
-void R_init_RxODE(DllInfo *info){
-}
-void R_unload_RxODE(DllInfo *info){
 }
 
 SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_md5,

@@ -1801,7 +1801,7 @@ rxTrans <- function(model,
     ## rxTrans returns a list of compiled properties
     if (class(model) == "character"){
         if (missing(modelPrefix)){
-            modelPrefix <- rxPrefix(model,modName);
+            modelPrefix <- rxPrefix(model,modName,...);
         }
         if (file.exists(model)){
             if (missing(md5)){
@@ -1835,6 +1835,7 @@ rxTrans <- function(model,
 } # end function rxTrans
 
 rxTransMakevars <- function(rxProps,                                                                              # rxTrans translation properties
+                            rxDll, # Dll of file
                             compileFlags =c("parsed_md5","ode_solver","model_vars","calc_lhs","calc_jac","dydt"), # List of compile flags
                             debug        = FALSE,                                                                 # Debug compile?
                             ...){
@@ -1848,11 +1849,13 @@ rxTransMakevars <- function(rxProps,                                            
         }
         tmp <- rxProps[compileFlags];
         tmp["parsed_md5_str"] <- sprintf("\"\\\"%s\\\"\"",tmp["parsed_md5"]);
-        ret <- paste(c(ret,sprintf("-D__%s__=%s",toupper(names(tmp)),tmp)),collapse=" ");
+        ret <- paste(c(ret,sprintf("-D__%s__=%s",toupper(names(tmp)),tmp),
+                       sprintf("-D__R_INIT__=%s",sprintf("R_init_%s",gsub(.Platform$dynlib.ext,"",basename(rxDll))))),
+                     collapse=" ");
         if (debug){
             ret <- sprintf("%s -D__DEBUG__",ret);
         }
-        ret <- sprintf("PKG_CPPFLAGS=%s\nPKG_LIBS=-L%s -l:RxODE%s $(BLAS_LIBS) $(LAPACK_LIBS) $(FLIBS)",ret,rxLoadDir(),.Platform$dynlib.ext);
+        ret <- sprintf("PKG_CPPFLAGS=%s\nPKG_LIBS=$(BLAS_LIBS) $(LAPACK_LIBS) $(FLIBS)",ret);
         cat(ret);
         return(ret);
     } else {
@@ -1984,7 +1987,7 @@ rxCompile <-  function(model,           # Model
                     unlink(Makevars);
                 }
                 sink(Makevars);
-                cat(rxTransMakevars(trans,...));
+                cat(rxTransMakevars(trans,finalDll,...));
                 sink();
                 sh <- "system"   # windows's default shell COMSPEC does not handle UNC paths    
                 ## Change working directory
