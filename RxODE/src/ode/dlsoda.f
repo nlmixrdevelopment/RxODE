@@ -1001,7 +1001,7 @@ C-----------------------------------------------------------------------
      1   TCRIT, TDIST, TNEXT, TOL, TOLSF, TP, SIZE, SUM, W0
       DIMENSION MORD(2)
       LOGICAL IHIT
-      CHARACTER*60 MSG
+      CHARACTER (LEN=60) MSG
       SAVE MORD, MXSTP0, MXHNL0
 C-----------------------------------------------------------------------
 C The following two internal Common blocks contain
@@ -1180,7 +1180,9 @@ C NEQ was reduced.  Zero part of YH to avoid undefined references. -----
       I2 = LYH + (MAXORD + 1)*NYH - 1
       IF (I1 .GT. I2) GO TO 200
       DO 95 I = I1,I2
- 95     RWORK(I) = 0.0D0
+C95     RWORK(I) = 0.0D0
+        RWORK(I) = 0.0D0
+ 95     CONTINUE
       GO TO 200
 C-----------------------------------------------------------------------
 C Block C.
@@ -1217,14 +1219,18 @@ C Initial call to F.  (LF0 points to YH(*,2).) -------------------------
       NFE = 1
 C Load the initial value vector in YH. ---------------------------------
       DO 115 I = 1,N
- 115    RWORK(I+LYH-1) = Y(I)
+C115    RWORK(I+LYH-1) = Y(I)
+        RWORK(I+LYH-1) = Y(I)
+ 115    CONTINUE
 C Load and invert the EWT array.  (H is temporarily set to 1.0.) -------
       NQ = 1
       H = 1.0D0
       CALL DEWSET (N, ITOL, RTOL, ATOL, RWORK(LYH), RWORK(LEWT))
       DO 120 I = 1,N
         IF (RWORK(I+LEWT-1) .LE. 0.0D0) GO TO 621
- 120    RWORK(I+LEWT-1) = 1.0D0/RWORK(I+LEWT-1)
+C120    RWORK(I+LEWT-1) = 1.0D0/RWORK(I+LEWT-1)
+        RWORK(I+LEWT-1) = 1.0D0/RWORK(I+LEWT-1)
+ 120    CONTINUE
 C-----------------------------------------------------------------------
 C The coding below computes the step size, H0, to be attempted on the
 C first step, unless the user has supplied a value for this.
@@ -1251,7 +1257,9 @@ C-----------------------------------------------------------------------
       TOL = RTOL(1)
       IF (ITOL .LE. 2) GO TO 140
       DO 130 I = 1,N
- 130    TOL = MAX(TOL,RTOL(I))
+C130    TOL = MAX(TOL,RTOL(I))
+        TOL = MAX(TOL,RTOL(I))
+ 130    CONTINUE
  140  IF (TOL .GT. 0.0D0) GO TO 160
       ATOLI = ATOL(1)
       DO 150 I = 1,N
@@ -1272,7 +1280,9 @@ C Adjust H0 if necessary to meet HMAX bound. ---------------------------
 C Load H with H0 and scale YH(*,2) by H0. ------------------------------
       H = H0
       DO 190 I = 1,N
- 190    RWORK(I+LF0-1) = H0*RWORK(I+LF0-1)
+C190    RWORK(I+LF0-1) = H0*RWORK(I+LF0-1)
+        RWORK(I+LF0-1) = H0*RWORK(I+LF0-1)
+ 190    CONTINUE
       GO TO 270
 C-----------------------------------------------------------------------
 C Block D.
@@ -1280,7 +1290,13 @@ C The next code block is for continuation calls only (ISTATE = 2 or 3)
 C and is to check stop conditions before taking a step.
 C-----------------------------------------------------------------------
  200  NSLAST = NST
-      GO TO (210, 250, 220, 230, 240), ITASK
+C     GO TO (210, 250, 220, 230, 240), ITASK
+      IF (ITASK .EQ. 1) GO TO 210
+      IF (ITASK .EQ. 2) GO TO 250
+      IF (ITASK .EQ. 3) GO TO 220
+      IF (ITASK .EQ. 4) GO TO 230
+      IF (ITASK .EQ. 5) GO TO 240
+      
  210  IF ((TN - TOUT)*H .LT. 0.0D0) GO TO 250
       CALL DINTDY (TOUT, 0, RWORK(LYH), NYH, Y, IFLAG)
       IF (IFLAG .NE. 0) GO TO 627
@@ -1328,7 +1344,9 @@ C-----------------------------------------------------------------------
       CALL DEWSET (N, ITOL, RTOL, ATOL, RWORK(LYH), RWORK(LEWT))
       DO 260 I = 1,N
         IF (RWORK(I+LEWT-1) .LE. 0.0D0) GO TO 510
- 260    RWORK(I+LEWT-1) = 1.0D0/RWORK(I+LEWT-1)
+C260    RWORK(I+LEWT-1) = 1.0D0/RWORK(I+LEWT-1)
+        RWORK(I+LEWT-1) = 1.0D0/RWORK(I+LEWT-1)
+ 260    CONTINUE
  270  TOLSF = UROUND*DMNORM (N, RWORK(LYH), RWORK(LEWT))
       IF (TOLSF .LE. 1.0D0) GO TO 280
       TOLSF = TOLSF*2.0D0
@@ -1356,7 +1374,11 @@ C-----------------------------------------------------------------------
      1   RWORK(LSAVF), RWORK(LACOR), RWORK(LWM), IWORK(LIWM),
      2   F, JAC, DPRJA, DSOLSY)
       KGO = 1 - KFLAG
-      GO TO (300, 530, 540), KGO
+C     GO TO (300, 530, 540), KGO
+      IF (KGO .EQ. 1) GO TO 300
+      IF (KGO .EQ. 2) GO TO 530
+      IF (KGO .EQ. 3) GO TO 540
+
 C-----------------------------------------------------------------------
 C Block F.
 C The following block handles the case of a successful return from the
@@ -1386,7 +1408,13 @@ C-----------------------------------------------------------------------
       ENDIF
       MSG='     at T = R1,  tentative step size H = R2,  step NST = I1 '
       CALL XERRWD (MSG, 60, 107, 0, 1, NST, 0, 2, TN, H)
- 310  GO TO (320, 400, 330, 340, 350), ITASK
+C310  GO TO (320, 400, 330, 340, 350), ITASK
+ 310  IF (ITASK .EQ. 1) GO TO 320
+      IF (ITASK .EQ. 2) GO TO 400
+      IF (ITASK .EQ. 3) GO TO 330
+      IF (ITASK .EQ. 4) GO TO 340
+      IF (ITASK .EQ. 5) GO TO 350
+      
 C ITASK = 1.  If TOUT has been reached, interpolate. -------------------
  320  IF ((TN - TOUT)*H .LT. 0.0D0) GO TO 250
       CALL DINTDY (TOUT, 0, RWORK(LYH), NYH, Y, IFLAG)
@@ -1419,7 +1447,9 @@ C ISTATE is set to 2, and the optional outputs are loaded into the
 C work arrays before returning.
 C-----------------------------------------------------------------------
  400  DO 410 I = 1,N
- 410    Y(I) = RWORK(I+LYH-1)
+C410    Y(I) = RWORK(I+LYH-1)
+        Y(I) = RWORK(I+LYH-1)
+ 410    CONTINUE
       T = TN
       IF (ITASK .NE. 4 .AND. ITASK .NE. 5) GO TO 420
       IF (IHIT) T = TCRIT
@@ -1507,7 +1537,9 @@ C Compute IMXER if relevant. -------------------------------------------
       IWORK(16) = IMXER
 C Set Y vector, T, and optional outputs. -------------------------------
  580  DO 590 I = 1,N
- 590    Y(I) = RWORK(I+LYH-1)
+C590    Y(I) = RWORK(I+LYH-1)
+        Y(I) = RWORK(I+LYH-1)
+ 590    CONTINUE
       T = TN
       RWORK(11) = HU
       RWORK(12) = H
