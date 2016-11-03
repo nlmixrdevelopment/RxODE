@@ -6,7 +6,17 @@ r:
   
 os:
   - linux
-  - osx  
+  - osx
+
+matrix:
+  exclude:
+    - r: 3.3
+      os: osx
+    - r: devel
+      os: osx
+   allow_failures:
+     - r: devel
+       os: linux
 
 r_github_packages:
   - jimhester/covr
