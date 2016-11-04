@@ -1046,7 +1046,7 @@ C
       INTEGER I, IER, IFLAG, IMXER, JCO, KGO, LENIW, LENJ, LENP, LENRW,
      1   LENWM, LF0, MBAND, MFA, ML, MORD, MU, MXHNL0, MXSTP0, NITER, 
      2   NSLAST
-      CHARACTER*80 MSG
+      CHARACTER(LEN=80) MSG
 C
 C Type declaration for function subroutines called ---------------------
 C
@@ -1331,7 +1331,9 @@ C Load and invert the EWT array.  (H is temporarily set to 1.0.) -------
       CALL DEWSET (N, ITOL, RTOL, ATOL, RWORK(LYH), RWORK(LEWT))
       DO 120 I = 1,N
         IF (RWORK(I+LEWT-1) .LE. ZERO) GO TO 621
- 120    RWORK(I+LEWT-1) = ONE/RWORK(I+LEWT-1)
+C120    RWORK(I+LEWT-1) = ONE/RWORK(I+LEWT-1)
+        RWORK(I+LEWT-1) = ONE/RWORK(I+LEWT-1)
+ 120    CONTINUE
       IF (H0 .NE. ZERO) GO TO 180
 C Call DVHIN to set initial step size H0 to be attempted. --------------
       CALL DVHIN (N, T, RWORK(LYH), RWORK(LF0), F, RPAR, IPAR, TOUT,
@@ -1353,7 +1355,12 @@ C and is to check stop conditions before taking a step.
 C-----------------------------------------------------------------------
  200  NSLAST = NST
       KUTH = 0
-      GO TO (210, 250, 220, 230, 240), ITASK
+C     GO TO (210, 250, 220, 230, 240), ITASK
+      IF (ITASK .EQ. 1) GO TO 210
+      IF (ITASK .EQ. 2) GO TO 250
+      IF (ITASK .EQ. 3) GO TO 220
+      IF (ITASK .EQ. 4) GO TO 230
+      IF (ITASK .EQ. 5) GO TO 240
  210  IF ((TN - TOUT)*H .LT. ZERO) GO TO 250
       CALL DVINDY (TOUT, 0, RWORK(LYH), NYH, Y, IFLAG)
       IF (IFLAG .NE. 0) GO TO 627
@@ -1396,7 +1403,9 @@ C-----------------------------------------------------------------------
       CALL DEWSET (N, ITOL, RTOL, ATOL, RWORK(LYH), RWORK(LEWT))
       DO 260 I = 1,N
         IF (RWORK(I+LEWT-1) .LE. ZERO) GO TO 510
- 260    RWORK(I+LEWT-1) = ONE/RWORK(I+LEWT-1)
+C260    RWORK(I+LEWT-1) = ONE/RWORK(I+LEWT-1)
+        RWORK(I+LEWT-1) = ONE/RWORK(I+LEWT-1)
+ 260    CONTINUE
  270  TOLSF = UROUND*DVNORM (N, RWORK(LYH), RWORK(LEWT))
       IF (TOLSF .LE. ONE) GO TO 280
       TOLSF = TOLSF*TWO
@@ -1427,7 +1436,10 @@ C-----------------------------------------------------------------------
       KGO = 1 - KFLAG
 C Branch on KFLAG.  Note: In this version, KFLAG can not be set to -3.
 C  KFLAG .eq. 0,   -1,  -2
-      GO TO (300, 530, 540), KGO
+C     GO TO (300, 530, 540), KGO
+      IF (KGO .EQ. 1) GO TO 300
+      IF (KGO .EQ. 2) GO TO 530
+      IF (KGO .EQ. 3) GO TO 540
 C-----------------------------------------------------------------------
 C Block F.
 C The following block handles the case of a successful return from the
@@ -1435,7 +1447,12 @@ C core integrator (KFLAG = 0).  Test for stop conditions.
 C-----------------------------------------------------------------------
  300  INIT = 1
       KUTH = 0
-      GO TO (310, 400, 330, 340, 350), ITASK
+C     GO TO (310, 400, 330, 340, 350), ITASK
+      IF (ITASK .EQ. 1) GO TO 310
+      IF (ITASK .EQ. 2) GO TO 400
+      IF (ITASK .EQ. 3) GO TO 330
+      IF (ITASK .EQ. 4) GO TO 340
+      IF (ITASK .EQ. 5) GO TO 350
 C ITASK = 1.  If TOUT has been reached, interpolate. -------------------
  310  IF ((TN - TOUT)*H .LT. ZERO) GO TO 250
       CALL DVINDY (TOUT, 0, RWORK(LYH), NYH, Y, IFLAG)
@@ -1763,10 +1780,14 @@ C Estimate the second derivative as a difference quotient in f. --------
       H = SIGN (HG, TOUT - T0)
       T1 = T0 + H
       DO 60 I = 1, N
- 60     Y(I) = Y0(I) + H*YDOT(I)
+C60     Y(I) = Y0(I) + H*YDOT(I)
+        Y(I) = Y0(I) + H*YDOT(I)
+ 60     CONTINUE
       CALL F (N, T1, Y, TEMP, RPAR, IPAR)
       DO 70 I = 1, N
- 70     TEMP(I) = (TEMP(I) - YDOT(I))/H
+C70     TEMP(I) = (TEMP(I) - YDOT(I))/H
+        TEMP(I) = (TEMP(I) - YDOT(I))/H
+ 70     CONTINUE
       YDDNRM = DVNORM (N, TEMP, EWT)
 C Get the corresponding new value of h. --------------------------------
       IF (YDDNRM*HUB*HUB .GT. TWO) THEN
@@ -1862,7 +1883,7 @@ C Type declarations for local variables --------------------------------
 C
       DOUBLE PRECISION C, HUN, R, S, TFUZZ, TN1, TP, ZERO
       INTEGER I, IC, J, JB, JB2, JJ, JJ1, JP1
-      CHARACTER*80 MSG
+      CHARACTER (LEN=80) MSG
 C-----------------------------------------------------------------------
 C The following Fortran-77 declaration is to cause the values of the
 C listed (local) variables to be saved between calls to this integrator.
@@ -1893,10 +1914,16 @@ C
       IF (K .EQ. 0) GO TO 15
       JJ1 = L - K
       DO 10 JJ = JJ1, NQ
- 10     IC = IC*JJ
- 15   C = REAL(IC)
+C10     IC = IC*JJ
+        IC = IC*JJ
+ 10     CONTINUE
+C15   C = REAL(IC)
+      C = REAL(IC)
+ 15   CONTINUE
       DO 20 I = 1, N
- 20     DKY(I) = C*YH(I,L)
+C20     DKY(I) = C*YH(I,L)
+        DKY(I) = C*YH(I,L)
+ 20     CONTINUE
       IF (K .EQ. NQ) GO TO 55
       JB2 = NQ - K
       DO 50 JB = 1, JB2
@@ -1906,10 +1933,14 @@ C
         IF (K .EQ. 0) GO TO 35
         JJ1 = JP1 - K
         DO 30 JJ = JJ1, J
- 30       IC = IC*JJ
+C30       IC = IC*JJ
+          IC = IC*JJ
+ 30       CONTINUE
  35     C = REAL(IC)
         DO 40 I = 1, N
- 40       DKY(I) = C*YH(I,JP1) + S*DKY(I)
+C40       DKY(I) = C*YH(I,JP1) + S*DKY(I)
+          DKY(I) = C*YH(I,JP1) + S*DKY(I)
+ 40       CONTINUE
  50     CONTINUE
       IF (K .EQ. 0) RETURN
  55   R = H**(-K)
@@ -2121,7 +2152,9 @@ C-----------------------------------------------------------------------
       I2 = (MAXORD + 1)*LDYH
       IF (I1 .GT. I2) GO TO 120
       DO 110 I = I1, I2
- 110    YH1(I) = ZERO
+C110    YH1(I) = ZERO
+        YH1(I) = ZERO
+ 110    CONTINUE
  120  IF (NEWQ .LE. MAXORD) GO TO 140
       FLOTL = REAL(LMAX)
       IF (MAXORD .LT. NQ-1) THEN
@@ -2168,7 +2201,9 @@ C-----------------------------------------------------------------------
       DO 220 JB = 1, NQ
         I1 = I1 - LDYH
         DO 210 I = I1, NQNYH
- 210      YH1(I) = YH1(I) + YH1(I+LDYH)
+C210      YH1(I) = YH1(I) + YH1(I+LDYH)
+          YH1(I) = YH1(I) + YH1(I+LDYH)
+ 210      CONTINUE
  220  CONTINUE
       CALL DVSET
       RL1 = ONE/EL(2)
@@ -2195,7 +2230,9 @@ C-----------------------------------------------------------------------
         DO 430 JB = 1, NQ
           I1 = I1 - LDYH
           DO 420 I = I1, NQNYH
- 420        YH1(I) = YH1(I) - YH1(I+LDYH)
+C420        YH1(I) = YH1(I) - YH1(I+LDYH)
+            YH1(I) = YH1(I) - YH1(I+LDYH)
+ 420        CONTINUE
  430      CONTINUE
         IF (NFLAG .LT. -1) GO TO 680
         IF (ABS(H) .LE. HMIN*ONEPSM) GO TO 670
@@ -2223,7 +2260,9 @@ C-----------------------------------------------------------------------
       NQU = NQ
       DO 470 IBACK = 1, NQ
         I = L - IBACK
- 470    TAU(I+1) = TAU(I)
+C470    TAU(I+1) = TAU(I)
+        TAU(I+1) = TAU(I)
+ 470    CONTINUE
       TAU(1) = H
       DO 480 J = 1, L
         CALL DAXPY (N, EL(J), ACOR, 1, YH(1,J), 1 )
@@ -2254,7 +2293,9 @@ C-----------------------------------------------------------------------
       DO 520 JB = 1, NQ
         I1 = I1 - LDYH
         DO 510 I = I1, NQNYH
- 510      YH1(I) = YH1(I) - YH1(I+LDYH)
+C510      YH1(I) = YH1(I) - YH1(I+LDYH)
+          YH1(I) = YH1(I) - YH1(I+LDYH)
+ 510      CONTINUE
  520  CONTINUE
       IF (ABS(H) .LE. HMIN*ONEPSM) GO TO 660
       ETAMAX = ONE
@@ -2288,7 +2329,9 @@ C-----------------------------------------------------------------------
       CALL F (N, TN, Y, SAVF, RPAR, IPAR)
       NFE = NFE + 1
       DO 550 I = 1, N
- 550    YH(I,2) = H*SAVF(I)
+C550    YH(I,2) = H*SAVF(I)
+        YH(I,2) = H*SAVF(I)
+ 550    CONTINUE
       NQWAIT = 10
       GO TO 200
 C-----------------------------------------------------------------------
@@ -2316,7 +2359,9 @@ C Compute ratio of new H to current H at the current order less one. ---
 C Compute ratio of new H to current H at current order plus one. -------
       CNQUOT = (TQ(5)/CONP)*(H/TAU(2))**L
       DO 575 I = 1, N
- 575    SAVF(I) = ACOR(I) - CNQUOT*YH(I,LMAX)
+C575    SAVF(I) = ACOR(I) - CNQUOT*YH(I,LMAX)
+        SAVF(I) = ACOR(I) - CNQUOT*YH(I,LMAX)
+ 575    CONTINUE
       DUP = DVNORM (N, SAVF, EWT)/TQ(3)
       ETAQP1 = ONE/((BIAS3*DUP)**(ONE/(FLOTL + ONE)) + ADDON)
  580  IF (ETAQ .GE. ETAQP1) GO TO 590
@@ -2451,7 +2496,9 @@ C
       FLOTL = REAL(L)
       NQM1 = NQ - 1
       NQM2 = NQ - 2
-      GO TO (100, 200), METH
+C     GO TO (100, 200), METH
+      IF (METH .EQ. 1) GO TO 100
+      IF (METH .EQ. 2) GO TO 200
 C
 C Set coefficients for Adams methods. ----------------------------------
  100  IF (NQ .NE. 1) GO TO 110
@@ -2466,19 +2513,25 @@ C Set coefficients for Adams methods. ----------------------------------
       EM(1) = ONE
       FLOTNQ = FLOTL - ONE
       DO 115 I = 2, L
- 115    EM(I) = ZERO
+C115    EM(I) = ZERO
+        EM(I) = ZERO
+ 115    CONTINUE
       DO 150 J = 1, NQM1
         IF ((J .NE. NQM1) .OR. (NQWAIT .NE. 1)) GO TO 130
         S = ONE
         CSUM = ZERO
         DO 120 I = 1, NQM1
           CSUM = CSUM + S*EM(I)/REAL(I+1)
- 120      S = -S
+C120      S = -S
+          S = -S
+ 120      CONTINUE
         TQ(1) = EM(NQM1)/(FLOTNQ*CSUM)
  130    RXI = H/HSUM
         DO 140 IBACK = 1, J
           I = (J + 2) - IBACK
- 140      EM(I) = EM(I) + EM(I-1)*RXI
+C140      EM(I) = EM(I) + EM(I-1)*RXI
+          EM(I) = EM(I) + EM(I-1)*RXI
+ 140      CONTINUE
         HSUM = HSUM + TAU(J)
  150    CONTINUE
 C Compute integral from -1 to 0 of polynomial and of x times it. -------
@@ -2489,12 +2542,16 @@ C Compute integral from -1 to 0 of polynomial and of x times it. -------
         FLOTI = REAL(I)
         EM0 = EM0 + S*EM(I)/FLOTI
         CSUM = CSUM + S*EM(I)/(FLOTI+ONE)
- 160    S = -S
+C160    S = -S
+        S = -S
+ 160    CONTINUE
 C In EL, form coefficients of normalized integrated polynomial. --------
       S = ONE/EM0
       EL(1) = ONE
       DO 170 I = 1, NQ
- 170    EL(I+1) = S*EM(I)/REAL(I)
+C170    EL(I+1) = S*EM(I)/REAL(I)
+        EL(I+1) = S*EM(I)/REAL(I)
+ 170    CONTINUE
       XI = HSUM/H
       TQ(2) = XI*EM0/CSUM
       TQ(5) = XI/EL(L)
@@ -2503,19 +2560,25 @@ C For higher order control constant, multiply polynomial by 1+x/xi(q). -
       RXI = ONE/XI
       DO 180 IBACK = 1, NQ
         I = (L + 1) - IBACK
- 180    EM(I) = EM(I) + EM(I-1)*RXI
+C180    EM(I) = EM(I) + EM(I-1)*RXI
+        EM(I) = EM(I) + EM(I-1)*RXI
+ 180    CONTINUE
 C Compute integral of polynomial. --------------------------------------
       S = ONE
       CSUM = ZERO
       DO 190 I = 1, L
         CSUM = CSUM + S*EM(I)/REAL(I+1)
- 190    S = -S
+C190    S = -S
+        S = -S
+ 190    CONTINUE
       TQ(3) = FLOTL*EM0/CSUM
       GO TO 300
 C
 C Set coefficients for BDF methods. ------------------------------------
  200  DO 210 I = 3, L
- 210    EL(I) = ZERO
+C210    EL(I) = ZERO
+        EL(I) = ZERO
+ 210    CONTINUE
       EL(1) = ONE
       EL(2) = ONE
       ALPH0 = -ONE
@@ -2532,7 +2595,9 @@ C In EL, construct coefficients of (1+x/xi(1))*...*(1+x/xi(j+1)). ------
         ALPH0 = ALPH0 - ONE/REAL(JP1)
         DO 220 IBACK = 1, JP1
           I = (J + 3) - IBACK
- 220      EL(I) = EL(I) + EL(I-1)*RXI
+C220      EL(I) = EL(I) + EL(I-1)*RXI
+          EL(I) = EL(I) + EL(I-1)*RXI
+ 220      CONTINUE
  230    CONTINUE
       ALPH0 = ALPH0 - ONE/REAL(NQ)
       RXIS = -EL(2) - ALPH0
@@ -2541,7 +2606,9 @@ C In EL, construct coefficients of (1+x/xi(1))*...*(1+x/xi(j+1)). ------
       AHATN0 = -EL(2) - RXI
       DO 235 IBACK = 1, NQ
         I = (NQ + 2) - IBACK
- 235    EL(I) = EL(I) + EL(I-1)*RXIS
+C235    EL(I) = EL(I) + EL(I-1)*RXIS
+        EL(I) = EL(I) + EL(I-1)*RXIS
+ 235    CONTINUE
  240  T1 = ONE - AHATN0 + ALPH0
       T2 = ONE + REAL(NQ)*T1
       TQ(2) = ABS(ALPH0*T2/T1)
@@ -2622,7 +2689,9 @@ C
       IF ((NQ .EQ. 2) .AND. (IORD .NE. 1)) RETURN
       NQM1 = NQ - 1
       NQM2 = NQ - 2
-      GO TO (100, 200), METH
+C     GO TO (100, 200), METH
+      IF (METH .EQ. 1) GO TO 100
+      IF (METH .EQ. 2) GO TO 200
 C-----------------------------------------------------------------------
 C Nonstiff option...
 C Check to see if the order is being increased or decreased.
@@ -2631,7 +2700,9 @@ C-----------------------------------------------------------------------
       IF (IORD .EQ. 1) GO TO 180
 C Order decrease. ------------------------------------------------------
       DO 110 J = 1, LMAX
- 110    EL(J) = ZERO
+C110    EL(J) = ZERO
+        EL(J) = ZERO
+ 110    CONTINUE
       EL(2) = ONE
       HSUM = ZERO
       DO 130 J = 1, NQM2
@@ -2641,15 +2712,21 @@ C Construct coefficients of x*(x+xi(1))*...*(x+xi(j)). -----------------
         JP1 = J + 1
         DO 120 IBACK = 1, JP1
           I = (J + 3) - IBACK
- 120      EL(I) = EL(I)*XI + EL(I-1)
+C120      EL(I) = EL(I)*XI + EL(I-1)
+          EL(I) = EL(I)*XI + EL(I-1)
+ 120      CONTINUE
  130    CONTINUE
 C Construct coefficients of integrated polynomial. ---------------------
       DO 140 J = 2, NQM1
- 140    EL(J+1) = REAL(NQ)*EL(J)/REAL(J)
+C140    EL(J+1) = REAL(NQ)*EL(J)/REAL(J)
+        EL(J+1) = REAL(NQ)*EL(J)/REAL(J)
+ 140    CONTINUE
 C Subtract correction terms from YH array. -----------------------------
       DO 170 J = 3, NQ
         DO 160 I = 1, N
- 160      YH(I,J) = YH(I,J) - YH(I,L)*EL(J)
+C160      YH(I,J) = YH(I,J) - YH(I,L)*EL(J)
+          YH(I,J) = YH(I,J) - YH(I,L)*EL(J)
+ 160      CONTINUE
  170    CONTINUE
       RETURN
 C Order increase. ------------------------------------------------------
@@ -2657,7 +2734,9 @@ C Zero out next column in YH array. ------------------------------------
  180  CONTINUE
       LP1 = L + 1
       DO 190 I = 1, N
- 190    YH(I,LP1) = ZERO
+C190    YH(I,LP1) = ZERO
+        YH(I,LP1) = ZERO
+ 190    CONTINUE
       RETURN
 C-----------------------------------------------------------------------
 C Stiff option...
@@ -2667,7 +2746,9 @@ C-----------------------------------------------------------------------
       IF (IORD .EQ. 1) GO TO 300
 C Order decrease. ------------------------------------------------------
       DO 210 J = 1, LMAX
- 210    EL(J) = ZERO
+C210    EL(J) = ZERO
+        EL(J) = ZERO
+ 210    CONTINUE
       EL(3) = ONE
       HSUM = ZERO
       DO 230 J = 1,NQM2
@@ -2677,17 +2758,23 @@ C Construct coefficients of x*x*(x+xi(1))*...*(x+xi(j)). ---------------
         JP1 = J + 1
         DO 220 IBACK = 1, JP1
           I = (J + 4) - IBACK
- 220      EL(I) = EL(I)*XI + EL(I-1)
+C220      EL(I) = EL(I)*XI + EL(I-1)
+          EL(I) = EL(I)*XI + EL(I-1)
+ 220      CONTINUE
  230    CONTINUE
 C Subtract correction terms from YH array. -----------------------------
       DO 250 J = 3,NQ
         DO 240 I = 1, N
- 240      YH(I,J) = YH(I,J) - YH(I,L)*EL(J)
+C240      YH(I,J) = YH(I,J) - YH(I,L)*EL(J)
+          YH(I,J) = YH(I,J) - YH(I,L)*EL(J)
+ 240      CONTINUE
  250    CONTINUE
       RETURN
 C Order increase. ------------------------------------------------------
  300  DO 310 J = 1, LMAX
- 310    EL(J) = ZERO
+C310    EL(J) = ZERO
+        EL(J) = ZERO
+ 310    CONTINUE
       EL(3) = ONE
       ALPH0 = -ONE
       ALPH1 = ONE
@@ -2705,7 +2792,9 @@ C Construct coefficients of x*x*(x+xi(1))*...*(x+xi(j)). ---------------
         ALPH1 = ALPH1 + ONE/XI
         DO 320 IBACK = 1, JP1
           I = (J + 4) - IBACK
- 320      EL(I) = EL(I)*XIOLD + EL(I-1)
+C320      EL(I) = EL(I)*XIOLD + EL(I-1)
+          EL(I) = EL(I)*XIOLD + EL(I-1)
+ 320      CONTINUE
         XIOLD = XI
  330    CONTINUE
  340  CONTINUE
@@ -2713,7 +2802,9 @@ C Construct coefficients of x*x*(x+xi(1))*...*(x+xi(j)). ---------------
 C Load column L + 1 in YH array. ---------------------------------------
       LP1 = L + 1
       DO 350 I = 1, N
- 350    YH(I,LP1) = T1*YH(I,LMAX)
+C350    YH(I,LP1) = T1*YH(I,LMAX)
+        YH(I,LP1) = T1*YH(I,LMAX)
+ 350    CONTINUE
 C Add correction terms to YH array. ------------------------------------
       NQP1 = NQ + 1
       DO 370 J = 3, NQP1
@@ -2881,7 +2972,9 @@ C-----------------------------------------------------------------------
 C If matrix is singular, take error return to force cut in step size. --
       IF (IERPJ .NE. 0) GO TO 430
  250  DO 260 I = 1,N
- 260    ACOR(I) = ZERO
+C260    ACOR(I) = ZERO
+        ACOR(I) = ZERO
+ 260    CONTINUE
 C This is a looping point for the corrector iteration. -----------------
  270  IF (MITER .NE. 0) GO TO 350
 C-----------------------------------------------------------------------
@@ -2889,12 +2982,18 @@ C In the case of functional iteration, update Y directly from
 C the result of the last function evaluation.
 C-----------------------------------------------------------------------
       DO 280 I = 1,N
- 280    SAVF(I) = RL1*(H*SAVF(I) - YH(I,2))
+C280    SAVF(I) = RL1*(H*SAVF(I) - YH(I,2))
+        SAVF(I) = RL1*(H*SAVF(I) - YH(I,2))
+ 280    CONTINUE
       DO 290 I = 1,N
- 290    Y(I) = SAVF(I) - ACOR(I)
+C290    Y(I) = SAVF(I) - ACOR(I)
+        Y(I) = SAVF(I) - ACOR(I)
+ 290    CONTINUE
       DEL = DVNORM (N, Y, EWT)
       DO 300 I = 1,N
- 300    Y(I) = YH(I,1) + SAVF(I)
+C300    Y(I) = YH(I,1) + SAVF(I)
+        Y(I) = YH(I,1) + SAVF(I)
+ 300    CONTINUE
       CALL DCOPY (N, SAVF, 1, ACOR, 1)
       GO TO 400
 C-----------------------------------------------------------------------
@@ -2904,7 +3003,9 @@ C P as coefficient matrix.  The correction is scaled by the factor
 C 2/(1+RC) to account for changes in h*rl1 since the last DVJAC call.
 C-----------------------------------------------------------------------
  350  DO 360 I = 1,N
- 360    Y(I) = (RL1*H)*SAVF(I) - (RL1*YH(I,2) + ACOR(I))
+C360    Y(I) = (RL1*H)*SAVF(I) - (RL1*YH(I,2) + ACOR(I))
+        Y(I) = (RL1*H)*SAVF(I) - (RL1*YH(I,2) + ACOR(I))
+ 360    CONTINUE
       CALL DVSOL (WM, IWM, Y, IERSL)
       NNI = NNI + 1
       IF (IERSL .GT. 0) GO TO 410
@@ -2915,7 +3016,9 @@ C-----------------------------------------------------------------------
       DEL = DVNORM (N, Y, EWT)
       CALL DAXPY (N, ONE, Y, 1, ACOR, 1)
       DO 380 I = 1,N
- 380    Y(I) = YH(I,1) + ACOR(I)
+C380    Y(I) = YH(I,1) + ACOR(I)
+        Y(I) = YH(I,1) + ACOR(I)
+ 380    CONTINUE
 C-----------------------------------------------------------------------
 C Test for convergence.  If M .gt. 0, an estimate of the convergence
 C rate constant is stored in CRATE, and this is used in the test.
@@ -3078,7 +3181,9 @@ C If JOK = -1 and MITER = 1, call JAC to evaluate Jacobian. ------------
       JCUR = 1
       LENP = N*N
       DO 110 I = 1,LENP
- 110    WM(I+2) = ZERO
+C110    WM(I+2) = ZERO
+        WM(I+2) = ZERO
+ 110    CONTINUE
       CALL JAC (N, TN, Y, 0, 0, WM(3), N, RPAR, IPAR)
       IF (JSV .EQ. 1) CALL DCOPY (LENP, WM(3), 1, WM(LOCJS), 1)
       ENDIF
@@ -3100,7 +3205,9 @@ C If MITER = 2, make N calls to F to approximate the Jacobian. ---------
         FAC = ONE/R
         CALL F (N, TN, Y, FTEM, RPAR, IPAR)
         DO 220 I = 1,N
- 220      WM(I+J1) = (FTEM(I) - SAVF(I))*FAC
+C220      WM(I+J1) = (FTEM(I) - SAVF(I))*FAC
+          WM(I+J1) = (FTEM(I) - SAVF(I))*FAC
+ 220      CONTINUE
         Y(J) = YJ
         J1 = J1 + N
  230    CONTINUE
@@ -3123,7 +3230,9 @@ C Multiply Jacobian by scalar, add identity, and do LU decomposition. --
       NP1 = N + 1
       DO 250 I = 1,N
         WM(J) = WM(J) + ONE
- 250    J = J + NP1
+C250    J = J + NP1
+        J = J + NP1
+ 250    CONTINUE
       NLU = NLU + 1
       CALL DGEFA (WM(3), N, N, IWM(31), IER)
       IF (IER .NE. 0) IERPJ = 1
@@ -3138,7 +3247,9 @@ C If MITER = 3, construct a diagonal approximation to J and P. ---------
       WM(2) = HRL1
       R = RL1*PT1
       DO 310 I = 1,N
- 310    Y(I) = Y(I) + R*(H*SAVF(I) - YH(I,2))
+C310    Y(I) = Y(I) + R*(H*SAVF(I) - YH(I,2))
+        Y(I) = Y(I) + R*(H*SAVF(I) - YH(I,2))
+ 310    CONTINUE
       CALL F (N, TN, Y, WM(3), RPAR, IPAR)
       NFE = NFE + 1
       DO 320 I = 1,N
@@ -3169,7 +3280,9 @@ C If JOK = -1 and MITER = 4, call JAC to evaluate Jacobian. ------------
       NSLJ = NST
       JCUR = 1
       DO 410 I = 1,LENP
- 410    WM(I+2) = ZERO
+C410    WM(I+2) = ZERO
+        WM(I+2) = ZERO
+ 410    CONTINUE
       CALL JAC (N, TN, Y, ML, MU, WM(ML3), MEBAND, RPAR, IPAR)
       IF (JSV .EQ. 1)
      1   CALL DACOPY (MBAND, N, WM(ML3), MEBAND, WM(LOCJS), MBAND)
@@ -3190,7 +3303,9 @@ C If MITER = 5, make ML+MU+1 calls to F to approximate the Jacobian. ---
         DO 530 I = J,N,MBAND
           YI = Y(I)
           R = MAX(SRUR*ABS(YI),R0/EWT(I))
- 530      Y(I) = Y(I) + R
+C530      Y(I) = Y(I) + R
+          Y(I) = Y(I) + R
+ 530      CONTINUE
         CALL F (N, TN, Y, FTEM, RPAR, IPAR)
         DO 550 JJ = J,N,MBAND
           Y(JJ) = YH(JJ,1)
@@ -3201,7 +3316,9 @@ C If MITER = 5, make ML+MU+1 calls to F to approximate the Jacobian. ---
           I2 = MIN(JJ+ML,N)
           II = JJ*MEB1 - ML + 2
           DO 540 I = I1,I2
- 540        WM(II+I) = (FTEM(I) - SAVF(I))*FAC
+C540        WM(II+I) = (FTEM(I) - SAVF(I))*FAC
+            WM(II+I) = (FTEM(I) - SAVF(I))*FAC
+ 540        CONTINUE
  550      CONTINUE
  560    CONTINUE
       NFE = NFE + MBA
@@ -3220,7 +3337,9 @@ C Multiply Jacobian by scalar, add identity, and do LU decomposition.
       II = MBAND + 2
       DO 580 I = 1,N
         WM(II) = WM(II) + ONE
- 580    II = II + MEBAND
+C580    II = II + MEBAND
+        II = II + MEBAND
+ 580    CONTINUE
       NLU = NLU + 1
       CALL DGBFA (WM(3), MEBAND, N, ML, MU, IWM(31), IER)
       IF (IER .NE. 0) IERPJ = 1
@@ -3324,7 +3443,12 @@ C
       DATA ONE /1.0D0/, ZERO /0.0D0/
 C
       IERSL = 0
-      GO TO (100, 100, 300, 400, 400), MITER
+C     GO TO (100, 100, 300, 400, 400), MITER
+      IF (MITER .EQ. 1) GO TO 100
+      IF (MITER .EQ. 2) GO TO 100
+      IF (MITER .EQ. 3) GO TO 300
+      IF (MITER .EQ. 4) GO TO 400
+      IF (MITER .EQ. 5) GO TO 400
  100  CALL DGESL (WM(3), N, N, IWM(31), X, 0)
       RETURN
 C
@@ -3336,10 +3460,14 @@ C
       DO 320 I = 1,N
         DI = ONE - R*(ONE - ONE/WM(I+2))
         IF (ABS(DI) .EQ. ZERO) GO TO 390
- 320    WM(I+2) = ONE/DI
+C320    WM(I+2) = ONE/DI
+        WM(I+2) = ONE/DI
+ 320    CONTINUE
 C
  330  DO 340 I = 1,N
- 340    X(I) = WM(I+2)*X(I)
+C340    X(I) = WM(I+2)*X(I)
+        X(I) = WM(I+2)*X(I)
+ 340    CONTINUE
       RETURN
  390  IERSL = 1
       RETURN
@@ -3388,27 +3516,43 @@ C
 C
       IF (JOB .EQ. 2) GO TO 100
       DO 10 I = 1,LENRV1
- 10     RSAV(I) = RVOD1(I)
+C10     RSAV(I) = RVOD1(I)
+        RSAV(I) = RVOD1(I)
+ 10     CONTINUE
       DO 15 I = 1,LENRV2
- 15     RSAV(LENRV1+I) = RVOD2(I)
+C15     RSAV(LENRV1+I) = RVOD2(I)
+        RSAV(LENRV1+I) = RVOD2(I)
+ 15     CONTINUE
 C
       DO 20 I = 1,LENIV1
- 20     ISAV(I) = IVOD1(I)
+C20     ISAV(I) = IVOD1(I)
+        ISAV(I) = IVOD1(I)
+ 20     CONTINUE
       DO 25 I = 1,LENIV2
- 25     ISAV(LENIV1+I) = IVOD2(I)
+C25     ISAV(LENIV1+I) = IVOD2(I)
+        ISAV(LENIV1+I) = IVOD2(I)
+ 25     CONTINUE
 C
       RETURN
 C
  100  CONTINUE
       DO 110 I = 1,LENRV1
- 110     RVOD1(I) = RSAV(I)
+C110     RVOD1(I) = RSAV(I)
+         RVOD1(I) = RSAV(I)
+ 110     CONTINUE
       DO 115 I = 1,LENRV2
- 115     RVOD2(I) = RSAV(LENRV1+I)
+C115     RVOD2(I) = RSAV(LENRV1+I)
+         RVOD2(I) = RSAV(LENRV1+I)
+ 115     CONTINUE
 C
       DO 120 I = 1,LENIV1
- 120     IVOD1(I) = ISAV(I)
+C120     IVOD1(I) = ISAV(I)
+         IVOD1(I) = ISAV(I)
+ 120     CONTINUE
       DO 125 I = 1,LENIV2
- 125     IVOD2(I) = ISAV(LENIV1+I)
+C125     IVOD2(I) = ISAV(LENIV1+I)
+         IVOD2(I) = ISAV(LENIV1+I)
+ 125     CONTINUE
 C
       RETURN
 C----------------------- End of Subroutine DVSRCO ----------------------
@@ -3443,7 +3587,9 @@ C
 C***FIRST EXECUTABLE STATEMENT  DVNORM
       SUM = 0.0D0
       DO 10 I = 1,N
- 10     SUM = SUM + (V(I)*W(I))**2
+C10     SUM = SUM + (V(I)*W(I))**2
+        SUM = SUM + (V(I)*W(I))**2
+ 10     CONTINUE
       DVNORM = SQRT(SUM/N)
       RETURN
 C----------------------- END OF FUNCTION DVNORM ------------------------
