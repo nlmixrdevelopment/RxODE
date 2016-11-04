@@ -674,7 +674,7 @@ void print_aux_info(FILE *outpt, char *model){
           if (s2){
 	    sprintf(s_aux_info+o,"\tSET_STRING_ELT(inin,%d,mkChar(\"%s\"));\n",ini_i, buf);
 	    o = strlen(s_aux_info);
-            sprintf(s_aux_info+o,"\tREAL(ini)[%d] = %.*s;\n",ini_i++, strlen(sLine)-strlen(buf)-10,sLine + 8 + strlen(buf));
+            sprintf(s_aux_info+o,"\tREAL(ini)[%d] = %.*s;\n",(int)(ini_i++), strlen(sLine)-strlen(buf)-10,sLine + 8 + strlen(buf));
 	    o = strlen(s_aux_info);
             continue;
           }
@@ -1198,7 +1198,7 @@ SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_m
           if (s2){
   	    /* Rprintf("%s[%d]->\n",buf,ini_i++); */
   	    SET_STRING_ELT(inin,ini_i,mkChar(buf));
-  	    sprintf(snum,"%.*s",strlen(sLine)-strlen(buf) - 10, sLine + 8 + strlen(buf));
+  	    sprintf(snum,"%.*s",(int)(strlen(sLine)-strlen(buf) - 10), sLine + 8 + strlen(buf));
   	    sscanf(snum, "%lf", &d);
   	    REAL(ini)[ini_i++] = d;
             continue;
