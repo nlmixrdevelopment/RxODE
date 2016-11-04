@@ -29,7 +29,10 @@ for (file in files){
     unlink(gsub("\\.c$",".h",out));
     unlink(gsub("\\.c$",".o",out));
     unlink("sample_parser.o");
-    dyn.load(parser);
+    ret <- tryCatch(dyn.load(parser),error=function(e){return(FALSE)});
+    if (!(class(ret) == "DLLInfo")){
+        skip("Dll cannot be loaded");
+    }
     for (parseFile in list.files(pattern=sprintf("%s.[0-9]+$",file))){
         parseFlags <- sprintf("%s.flags",parseFile);
         args <- list(fileName=parseFile,
