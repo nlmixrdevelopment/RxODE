@@ -2,9 +2,7 @@ CC = `"$(R_HOME)/bin/R" CMD config CC`
 FC = `"$(R_HOME)/bin/R" CMD config FC`
 CFLAGS = `"$(R_HOME)/bin/R" CMD config CFLAGS`
 FFLAGS = `"$(R_HOME)/bin/R" CMD config FFLAGS`
-# R-3.3.x CMD config (on Windows) has a bug: "$(AR)" is fine, "$(RANLIB)" is not!
-RANLIB = $(BINPREF)ranlib
-
+include $(R_HOME)/etc/$(R_ARCH)/Makeconf
 
 # Run make in subdirs
 all: libodeaux libdparse libtran
