@@ -45,7 +45,7 @@ test_that("Print for m1 works correctly",{
     sink();
     p1 <- readLines("test");
     unlink("test");
-    expect_equal(p1,sprintf("RxODE dll named \"rx_221240dae5b873407077c022f725d6ce_%s%s\" is loaded and ready to use.",.Platform$r_arch,.Platform$dynlib.ext));
+    expect_equal(p1,sprintf("RxODE dll named \"%s\" is loaded and ready to use.",basename(rxDll(m1))));
     ##
     cf <- c("","User Supplied Parameters:",
             "  V2   V3   KA   CL    Q  Kin Kout EC50 ",
@@ -95,7 +95,7 @@ test_that("Print for m1 works correctly",{
     p1 <- readLines("test");
     unlink("test");
     expect_equal(p1,c(sprintf("RxODE model named \"%s\" (ready to run)",basename(getwd())),
-                   sprintf("dll: %s/rx_221240dae5b873407077c022f725d6ce_%s%s",getwd(),.Platform$r_arch,.Platform$dynlib.ext),
+                   sprintf("dll: %s",rxDll(m1)),
                    cf,
                    "",
                    "Calculated Variables:",
@@ -119,7 +119,7 @@ test_that("Print for m1 works correctly",{
     p1 <- readLines("test");
     unlink("test");
     t1 <- strsplit(sprintf("Solved RxODE object
-Dll: %s/rx_221240dae5b873407077c022f725d6ce_%s%s
+Dll: %s
 
 Parameters:
      V2      V3      KA      CL       Q     Kin    Kout    EC50 
@@ -141,7 +141,7 @@ First part of data:
 4     3  4176.966 2076.396 1314.0348 1.227523 51.65163 4.4243597
 5     4  3122.347 1783.880 1765.1486 1.233503 44.37513 5.9432612
 6     5  2334.004 1465.845 2120.2772 1.214084 36.46382 7.1389804
-# ... with 32 more rows", getwd(),.Platform$r_arch,.Platform$dynlib.ext),"\n")[[1]];
+# ... with 32 more rows", rxDll(m1)),"\n")[[1]];
 expect_equal(gsub("(# A tibble: [0-9]+ ).*( [0-9]+)","\\1x\\2",p1),t1);
 options(RxODE.display.tbl = FALSE)
 sink("test");
@@ -150,7 +150,7 @@ sink();
 p1 <- readLines("test");
 unlink("test");
 t1 <- strsplit(sprintf("Solved RxODE object
-Dll: %s/rx_221240dae5b873407077c022f725d6ce_%s%s
+Dll: %s
 
 Parameters:
      V2      V3      KA      CL       Q     Kin    Kout    EC50 
@@ -169,7 +169,7 @@ First part of data:
 [3,]    2  5587.797 2191.248  787.3677 1.179529 54.50866 2.6510696
 [4,]    3  4176.966 2076.396 1314.0348 1.227523 51.65163 4.4243597
 [5,]    4  3122.347 1783.880 1765.1486 1.233503 44.37513 5.9432612
-[6,]    5  2334.004 1465.845 2120.2772 1.214084 36.46382 7.1389804",getwd(),.Platform$r_arch,.Platform$dynlib.ext),"\n")[[1]]
+[6,]    5  2334.004 1465.845 2120.2772 1.214084 36.46382 7.1389804",rxDll(m1)),"\n")[[1]]
 expect_equal(p1,t1);
     ################################################################################
     ## Delete dll, see what happens.
