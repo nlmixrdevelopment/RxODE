@@ -595,10 +595,6 @@ print.rxCoef <- function(x,...){
         cat("\nUser Initial Conditions:\n");
         print(rxInits(rxDllObj,c(),rxState(rxDllObj),0,TRUE))
     }
-    if (length(rxInits(rxDllObj)) > 0){
-        cat("\nDefault parameter values:\n")
-        print(x$ini);
-    }
     cat("\nCompartents:\n");
     tmp <- rxState(rxDllObj);
     names(tmp) <- paste0("cmt=",1:length(tmp));
@@ -623,7 +619,7 @@ print.rxCoefSolve <- function(x,...){
     rxDllObj <- x$RxODE;
     if (length(rxInits(rxDllObj)) > 0){
         cat("\nDefault parameter values:\n")
-        print(x$ini);
+        print(rxInits(rxDllObj));
     }
     cat("\nCompartents:\n");
     tmp <- rxState(rxDllObj);
