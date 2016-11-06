@@ -4,7 +4,7 @@
 library(digest)
 context("Example 3.3");
 rxClean();
-rigid <- RxODE("
+rigid.txt <- "
 y1(0)    = 1
 y2(0)    = 0
 y3(0)    = 0.9
@@ -14,7 +14,8 @@ a3       = -0.5
 d/dt(y1) = a1*y2*y3
 d/dt(y2) = a2*y1*y3
 d/dt(y3) = a3*y1*y2
-")
+";
+rigid <- RxODE(rigid.txt)
 
 et <- eventTable();
 et$add.sampling(seq(0,20,by=0.01))
@@ -25,4 +26,14 @@ test_that("Test rigid body example",{
     expect_equal(digest(round(as.data.frame(out),3)),
                  "a3f42a57944330af983e9b78c3a69a30")
 })
+
+test_that("Different solves give same results",{
+    out2 <- solve(rigid$cmpMgr,et);
+    expect_equal(out,out2)
+    out2 <- solve(rigid$cmpMgr$rxDll(),et);
+    expect_equal(out,out2)
+    out2 <- solve(rigid.txt,et);
+    expect_equal(as.data.frame(out),as.data.frame(out2));
+})
+
 rxClean();
