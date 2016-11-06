@@ -1410,7 +1410,7 @@ rxPlot <- function(RxODEobj,
                    lineColor   = "accent1",              # Line Color
                    shapeEnd    = c("none","sphere","circle","square","csquare","rectangle","crectangle","vrectangle"),
                    sizeEnd     = 10,
-                   ...){
+                   ...){ # nocov start
     ## rxPlot returns nothing, but plots a diagram
     if (class(RxODEobj) == "RxODE"){
         x <- RxODEobj$cmpMgr$rxDll()
@@ -1422,10 +1422,10 @@ rxPlot <- function(RxODEobj,
         cat("The RxODEobj is not a supported RxODE object\n");
         return(invisible())
     }
-    if (!requireNamespace("igraph", quietly = TRUE)) { # nocov start
+    if (!requireNamespace("igraph", quietly = TRUE)) { 
         cat("Package igraph needed for this function to work. Please install it.\n")
         return(invisible());
-    } # nocov end
+    } 
     if (!rxDllLoaded(x)){
         cat("The shared RxODE library is not loaded, please load it by obj$dynLoad() or rxLoad(obj).\n");
         return(invisible());
@@ -1444,7 +1444,8 @@ rxPlot <- function(RxODEobj,
         igraph::tkplot(ig,edge.label.family=family, layout = layout, ...);
     }
     invisible(NULL)
-} # end function rxPlot
+}# nocov end
+## end function rxPlot
 
 ##' Plot a model digram for simple ODE models
 ##'
@@ -1465,14 +1466,14 @@ plot.RxODE <- function(x,...){
 }
 ##' @rdname plot.RxODE
 ##' @export
-plot.rxDll <- function(x,...){
+plot.rxDll <- function(x,...){ #nocov start
     rxPlot(x,...);
-}
+} #nocov end
 ##' @rdname plot.RxODE
 ##' @export
-plot.RxCompilationManager <- function(x,...){
+plot.RxCompilationManager <- function(x,...){ #nocov start
     rxPlot(x,...);
-}
+} #nocov end
 
 ##' A compilation manager for RxODE models
 ##'
@@ -1670,12 +1671,6 @@ function(x, ...)
     cat(sprintf("RxCompilationManager for RxODE model '%s'\n", modName))
    invisible(x)
 }
-
-rxShortPath <- function(p, # Path
-                        ...){
-    ## rxShortPath returns a short path name under windows
-    return(gsub("\\\\", "/", utils::shortPathName(p)))
-} # end function rxShortPath
 
 rxPrefix <- function(model,          # Model or file name of model
                      modName = NULL, # Model name, overrides calculated model name.
