@@ -21,12 +21,6 @@ pred <- predict(m1, params = c(KA=.291, CL=18.6, V2=40.2, Q=10.5, V3=297.0,
                 events = et1, 
                 inits = c(0, 0, 0, 1));
 
-
-pred2 <- predict(m2, params = c(KA=.3, CL=18.6, V2=40.2, Q=10.5, V3=297.0,
-                               Kin=1.0, Kout=1.0, EC50=200.0),
-                events = et1, 
-                inits = c(0, 0, 0, 1));
-
 ode2 <- "
    KA = .291
    CL = 18.6
@@ -45,6 +39,11 @@ ode2 <- "
    d/dt(eff)  = Kin - Kout*(1-C2/(EC50+C2))*eff;
 "
 m2 <- RxODE(model = ode2)
+pred2 <- predict(m2, params = c(KA=.3, CL=18.6, V2=40.2, Q=10.5, V3=297.0,
+                                Kin=1.0, Kout=1.0, EC50=200.0),
+                 events = et1, 
+                 inits = c(0, 0, 0, 1));
+
 oldOpt <- options()
 
 
