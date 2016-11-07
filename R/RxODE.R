@@ -1348,9 +1348,9 @@ igraph.rxDll <- function(x,                                   #  object
                     ret <- igraph::set_vertex_attr(ret,"label.color",igraph::V(ret)[n],value="transparent");
                     ret <- igraph::set_vertex_attr(ret,"shape",igraph::V(ret)[n],value=shapeEnd);
                     ret <- igraph::set_vertex_attr(ret,"size",igraph::V(ret)[n],value=sizeEnd);
-                } else{
+                } else { # nocov start
                     ret <- igraph::set_vertex_attr(ret,"size",igraph::V(ret)[n],value=sizeEnd);
-                }
+                } # nocov end
             }
         }
         ret <- igraph::set_edge_attr(ret,"color",value=getColor(lineColor))
@@ -1461,9 +1461,9 @@ rxPlot <- function(RxODEobj,
 ##' @author Matthew L.Fidler
 ##' @importFrom graphics plot
 ##' @export
-plot.RxODE <- function(x,...){
+plot.RxODE <- function(x,...){ # nocov start
     rxPlot(x$cmpMgr$rxDll(),...);
-}
+} # nocov end
 ##' @rdname plot.RxODE
 ##' @export
 plot.rxDll <- function(x,...){ #nocov start
