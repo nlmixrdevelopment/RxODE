@@ -600,7 +600,7 @@ print.rxCoef <- function(x, ...){
     }
     cat("\nCompartents:\n");
     tmp <- rxState(rxDllObj);
-    names(tmp) <- paste0("cmt = ", 1:length(tmp));
+    names(tmp) <- paste0("cmt=", 1:length(tmp));
     print(tmp);
     return(invisible());
 }
@@ -626,7 +626,7 @@ print.rxCoefSolve <- function(x, ...){
     }
     cat("\nCompartents:\n");
     tmp <- rxState(rxDllObj);
-    names(tmp) <- paste0("cmt = ", 1:length(tmp));
+    names(tmp) <- paste0("cmt=", 1:length(tmp));
     print(tmp);
     return(invisible());
 }

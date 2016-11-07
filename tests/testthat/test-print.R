@@ -18,7 +18,7 @@ et1$add.sampling(seq(from = 24+8, to = 5*24, by = 8))
 
 pred <- predict(m1, params = c(KA=.291, CL=18.6, V2=40.2, Q=10.5, V3=297.0,
                                Kin=1.0, Kout=1.0, EC50=200.0),
-                events = et1, 
+                events = et1,
                 inits = c(0, 0, 0, 1));
 
 ode2 <- "
@@ -41,7 +41,7 @@ ode2 <- "
 m2 <- RxODE(model = ode2)
 pred2 <- predict(m2, params = c(KA=.3, CL=18.6, V2=40.2, Q=10.5, V3=297.0,
                                 Kin=1.0, Kout=1.0, EC50=200.0),
-                 events = et1, 
+                 events = et1,
                  inits = c(0, 0, 0, 1));
 
 oldOpt <- options()
@@ -81,7 +81,7 @@ test_that("Print for m1 works correctly",{
             "Compartents:",
             "  cmt=1   cmt=2   cmt=3   cmt=4 ",
             "\"depot\" \"centr\"  \"peri\"   \"eff\" ");
-            
+
     sink("test");
     print(coef(m1));
     sink();
@@ -151,7 +151,7 @@ test_that("Print for m1 works correctly",{
     expect_equal(p1,cfp2)
     sink("test");
     print(coef(pred));
-    sink();          
+    sink();
     ##
     s.base <- c(sprintf("dll: %s",rxDll(m1)),
                 cf,
@@ -194,13 +194,13 @@ test_that("Print for m1 works correctly",{
 Dll: %s
 
 Parameters:
-     V2      V3      KA      CL       Q     Kin    Kout    EC50 
- 40.200 297.000   0.291  18.600  10.500   1.000   1.000 200.000 
+     V2      V3      KA      CL       Q     Kin    Kout    EC50
+ 40.200 297.000   0.291  18.600  10.500   1.000   1.000 200.000
 
 
 Initial Conditions:
-depot centr  peri   eff 
-    0     0     0     1 
+depot centr  peri   eff
+    0     0     0     1
 
 
 First part of data:
@@ -214,6 +214,8 @@ First part of data:
 5     4  3122.347 1783.880 1765.1486 1.233503 44.37513 5.9432612
 6     5  2334.004 1465.845 2120.2772 1.214084 36.46382 7.1389804
 # ... with 32 more rows", rxDll(m1)),"\n")[[1]];
+    t1 <- gsub("(EC50|200.000|eff|1) *$", "\\1", t1);
+    p1 <- gsub("(EC50|200.000|eff|1) *$", "\\1", p1);
 expect_equal(gsub("(# A tibble: [0-9]+ ).*( [0-9]+)","\\1x\\2",p1),t1);
 options(RxODE.display.tbl = FALSE)
 sink("test");
@@ -225,13 +227,13 @@ t1 <- strsplit(sprintf("Solved RxODE object
 Dll: %s
 
 Parameters:
-     V2      V3      KA      CL       Q     Kin    Kout    EC50 
- 40.200 297.000   0.291  18.600  10.500   1.000   1.000 200.000 
+     V2      V3      KA      CL       Q     Kin    Kout    EC50
+ 40.200 297.000   0.291  18.600  10.500   1.000   1.000 200.000
 
 
 Initial Conditions:
-depot centr  peri   eff 
-    0     0     0     1 
+depot centr  peri   eff
+    0     0     0     1
 
 
 First part of data:
@@ -242,6 +244,8 @@ First part of data:
 [4,]    3  4176.966 2076.396 1314.0348 1.227523 51.65163 4.4243597
 [5,]    4  3122.347 1783.880 1765.1486 1.233503 44.37513 5.9432612
 [6,]    5  2334.004 1465.845 2120.2772 1.214084 36.46382 7.1389804",rxDll(m1)),"\n")[[1]]
+    t1 <- gsub("(EC50|200.000|eff|1) *$", "\\1", t1);
+    p1 <- gsub("(EC50|200.000|eff|1) *$", "\\1", p1);
 expect_equal(p1,t1);
     ################################################################################
     ## Delete dll, see what happens.
