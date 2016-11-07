@@ -22,4 +22,4 @@ r_github_packages:
   - jimhester/covr
 
 after_success:
-  - Rscript -e 'covr::codecov()'
+  - Rscript -e 'covr::codecov(line_exclusions=c("R/genShinyApp.template.R","src/errmsg.f","src/rprintf.c","src/vode.f"))'
