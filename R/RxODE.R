@@ -9,7 +9,8 @@ regIni <- rex::rex(or(group(one_of("_."), "0"), "0", "(0)", "[0]", "{0}"), end);
                   RxODE.display.tbl    = TRUE,
                   RxODE.echo.compile   = FALSE,
                   RxODE.warn.on.assign = FALSE,
-                  RxODE.compile.on.load = TRUE);
+                  RxODE.compile.on.load = TRUE,
+                  RxODE.verbose=TRUE);
     w <- !(names(op.rx) %in% names(op))
     if (any(w)) options(op.rx[w]);
     ## nocov end
@@ -2004,7 +2005,9 @@ rxCompile.character <-  function(model,           # Model
         trans <- rxTrans(mFile, cFile = cFile, md5 = md5$digest, extraC = extraC, ..., modelPrefix = prefix);
         if (file.exists(finalDll)){
             if (modVars["parsed_md5"] == trans["parsed_md5"]){
-                cat("Don't need to recompile, minimal change to model detected.\n");
+                if (getOption("RxODE.verbose", TRUE)){ ## nocov start
+                    cat("Don't need to recompile, minimal change to model detected.\n");
+                } ## nocov end
                 needCompile <- FALSE;
             }
         }
@@ -2977,7 +2980,9 @@ as.tbl.solveRxDll <- function(x, ...){
 }
 
 solveRxDll_updateEventTable <- function(obj, objName, name, ..., envir = parent.frame()){
-    cat("Update with new event specification.\n");
+    if (getOption("RxODE.verbose", TRUE)){ ## nocov start
+        cat("Update with new event specification.\n");
+    } ## nocov end
     tmp <- attr(obj, "solveRxDll");
     events <- tmp$events;
     events[[name]](...);
@@ -3061,12 +3066,16 @@ accessComp <- function(obj, arg){
 rxTbl <- function(x, msg){
     if (getOption("RxODE.prefer.tbl", TRUE) && class(x) == "data.frame" && requireNamespace("dplyr", quietly = TRUE)){
         if (!missing(msg)){
-            cat(sprintf("Change solved object to dplyr's tbl for %s\n", msg));
+            if (getOption("RxODE.verbose", TRUE)){ ## nocov start
+                cat(sprintf("Change solved object to dplyr's tbl for %s\n", msg));
+            } ## nocov end
         }
         return(dplyr::as.tbl(x))
     } else {
         if (!missing(msg)){
-            cat(sprintf("Change solved object to data.frame for %s\n", msg))
+            if (getOption("RxODE.verbose", TRUE)){ ## nocov start
+                cat(sprintf("Change solved object to data.frame for %s\n", msg))
+            } ## nocov end
         }
         return(x)
     }
@@ -3187,19 +3196,25 @@ asTbl <- function(obj){
             return(rxSolve(obj, events = eventTable))
         } else if (class(value) == "data.frame"){
         } else if (class(value) == "numeric"){
-            cat("Updating sampling times in the event table updating object.\n");
+            if (getOption("RxODE.verbose", TRUE)){ ## nocov start
+                cat("Updating sampling times in the event table updating object.\n");
+            } ## nocov end
             eventTable <- lst$events$copy();
             eventTable$clear.sampling();
             eventTable$add.sampling(value);
             return(rxSolve(obj, events = eventTable));
         }
     } else if (arg != iarg && any(rxState(obj$object) == iarg) && length(value) == 1){
-        cat("Updating object with new initial conditions.\n");
+        if (getOption("RxODE.verbose", TRUE)){ ## nocov start
+            cat("Updating object with new initial conditions.\n");
+        } ## nocov end
         inits <- c(value);
         names(inits) <- gsub(regIni, "", arg);
         return(rxSolve(obj, inits = inits));
     } else if (any(rxParams(obj$object) == arg)){
-        cat("Updating object with new paramter values.\n");
+        if (getOption("RxODE.verbose", TRUE)){ ## nocov start
+            cat("Updating object with new paramter values.\n");
+        } ## nocov end
         if (length(value) == 1){
             covs <- as.data.frame(lst$covs);
             if (any(names(covs) == arg)){
@@ -3222,15 +3237,21 @@ asTbl <- function(obj){
             return(rxSolve.solveRxDll(obj, covs = covs));
         }
     } else if (arg == "params"){
-        cat("Updating object with new paramter values.\n");
+        if (getOption("RxODE.verbose", TRUE)){ ## nocov start
+            cat("Updating object with new paramter values.\n");
+        } ## nocov end
         return(rxSolve.solveRxDll(obj, params = value));
     } else if (arg == "inits"){
-        cat("Updating object with new initial conditions.\n");
+        if (getOption("RxODE.verbose", TRUE)){ ## nocov start
+            cat("Updating object with new initial conditions.\n");
+        } ## nocov end
         return(rxSolve.solveRxDll(obj, inits = value));
     } else if (any(arg == names(lst))){
         args <- list(obj, value);
         names(args) <- c("object", arg);
-        cat(sprintf("Updating object with new solving argument %s = %s.\n", arg, value))
+        if (getOption("RxODE.verbose", TRUE)){ ## nocov start
+            cat(sprintf("Updating object with new solving argument %s = %s.\n", arg, value))
+        } ## nocov end
         return(do.call("rxSolve", args, envir = parent.frame(1)))
     } else {
         df <- as.data.frame(obj);

@@ -4,7 +4,7 @@ rxClean()
 
 context("Simple test for time-varying covariates.")
 
-ode <- 
+ode <-
     RxODE('
 b       = -1
 d/dt(X) = a*X + Y*Z;
@@ -20,11 +20,14 @@ et$add.sampling(seq(from=0, to=100, by=0.01))
 
 cov <- data.frame(c=et$get.sampling()$time+1);
 
+sink("temp");
 out <- rxSolve(ode,
-               params = c(a=-8/3, b=-10), 
+               params = c(a=-8/3, b=-10),
                events = et,
                inits = c(X=1, Y=1, Z=1),
                covs = cov);
+sink();
+unlink("temp");
 
 test_that("time varying covariates output covariate in data frame",{
     expect_equal(cov$c,out$c);
@@ -33,11 +36,14 @@ test_that("time varying covariates output covariate in data frame",{
 out <- as.data.frame(out);
 out <- out[,names(out) != "c"];
 
-out1 <- 
+sink("temp");
+out1 <-
     rxSolve(ode,
-            params = c(a=-8/3, b=-10, c = 0), 
+            params = c(a=-8/3, b=-10, c = 0),
             events = et,
             inits = c(X=1, Y=1, Z=1))
+sink();
+unlink("temp");
 
 out1 <- as.data.frame(out1);
 
@@ -48,17 +54,20 @@ test_that("time varying covariates produce different outputs",{
 
 cov <- data.frame(c=et$get.sampling()$time+1,a=-et$get.sampling()$time/100);
 
+sink("temp")
 out <- rxSolve(ode,
-               params = c(a=-8/3, b=-10), 
+               params = c(a=-8/3, b=-10),
                events = et,
                inits = c(X=1, Y=1, Z=1),
                covs = cov)
 
 out3 <- rxSolve(ode,
-               params = c(a=-8/3, b=-10), 
+               params = c(a=-8/3, b=-10),
                events = et,
                inits = c(X=1, Y=1, Z=1),
                covs = cov)
+sink();
+unlink("temp");
 
 test_that("time varying covariates output covariate in data frame",{
     expect_equal(cov$c,out$c);
@@ -68,11 +77,14 @@ test_that("time varying covariates output covariate in data frame",{
 
 cov <- data.frame(c=et$get.sampling()$time+1);
 
+sink("temp");
 out2 <- rxSolve(ode,
-               params = c(a=-8/3, b=-10), 
+               params = c(a=-8/3, b=-10),
                events = et,
                inits = c(X=1, Y=1, Z=1),
                covs = cov)
+sink();
+unlink("temp");
 
 test_that("Before assinging the time varying to -8/3, out and out2 should be different",{
     expect_false(isTRUE(all.equal(out,out2)));
@@ -80,7 +92,10 @@ test_that("Before assinging the time varying to -8/3, out and out2 should be dif
 
 context("Test First Assignment.")
 ## Assign a time-varying to a simple parameter
+sink("temp");
 out$a <- -8/3
+sink();
+unlink("temp");
 
 test_that("The out$a=-8/3 works.",{
     expect_equal(as.data.frame(out),as.data.frame(out2));
@@ -88,7 +103,10 @@ test_that("The out$a=-8/3 works.",{
 
 
 context("Test Second Assignment.")
+sink("temp")
 out$a <- out3$a
+sink();
+unlink("temp");
 
 test_that("the out$a = time varying covariate works.",{
     expect_equal(as.data.frame(out),as.data.frame(out3));

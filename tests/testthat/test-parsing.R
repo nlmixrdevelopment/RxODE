@@ -1,5 +1,6 @@
 ## test ODE parsing for syntax errors
 library("RxODE")
+options(RxODE.verbose=FALSE);
 context("Test Parsing of models")
 
 badParse <- function(desc,code){
@@ -54,7 +55,7 @@ badParse(desc = 'incorrect "if" statement',
          code = paste(sep = "\n",
                       'if(comed==0){',
                       '   F = 1.0;',
-                      'else {',         # missing "}"' 
+                      'else {',         # missing "}"'
                       '   F = 0.75;',
                       '};',
                       'd/dt(y) = F * y;')

@@ -1,6 +1,7 @@
 library(RxODE)
 library(dplyr)
 library(digest)
+options(RxODE.verbose=FALSE);
 context("rxSolve right handed differental equations")
 
 
@@ -18,7 +19,7 @@ et$add.sampling(c(4*10^seq(-1,10)))
 
 o1 <- rxSolve(orhs,et);
 
-print(o1);
+## print(o1);
 test_that("rxSolve produces the correct results for rhs",{
     expect_warning(rxSolve(orhs,et),"The initial conditions are at t = 0.4 instead of t = 0.")
     expect_equal(digest(round(as.data.frame(o1),4)),
@@ -26,7 +27,7 @@ test_that("rxSolve produces the correct results for rhs",{
 })
 
 o1$add.sampling(0);
-print(o1);
+## print(o1);
 test_that("rxSolve produces the correct results for rhs",{
     expect_equal(digest(round(as.data.frame(o1),4)),
                  "f8594b891db1162357d2ccd93c687ed2")

@@ -1,4 +1,4 @@
-## Example 3.2 from 
+## Example 3.2 from
 ## "Solving Differential Equations in R" by Soetaert et al (2012)
 ## https://cran.r-project.org/web/packages/diffEq/vignettes/ODEinR.pdf Example #2
 ## Lorenz model in Vingette.
@@ -16,9 +16,9 @@ ode <- RxODE('
 et <- eventTable()   # default time units
 et$add.sampling(seq(from=0, to=100, by=0.01))
 
-out <- 
+out <-
     ode$solve(
-        params = c(a=-8/3, b=-10, c=28), 
+        params = c(a=-8/3, b=-10, c=28),
         events = et,
         inits = c(X=1, Y=1, Z=1)
     )
@@ -32,7 +32,7 @@ test_that("Runs example 3.2 correctly",{
 })
 
 
-print(head(out, n = 15), digits = 6)
+## print(head(out, n = 15), digits = 6)
 
 ## old <- par(mfrow=c(2,2))
 

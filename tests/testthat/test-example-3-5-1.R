@@ -71,7 +71,7 @@ for (i in 10^(1:7)){
     counts <- rbind(counts,data.frame(t(stiff$counts),mu=i,digest=digest(round(as.data.frame(stiff),3))));
 }
 
-print(counts)
+## print(counts)
 
 ## changes based on platform.
 

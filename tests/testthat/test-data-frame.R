@@ -1,10 +1,11 @@
 library(RxODE)
 library(dplyr)
 library(digest)
+options(RxODE.verbose=FALSE);
 rxClean();
 context("rxSolve objects behave as data-frames")
 ## RxODE instance 1
-m1 <- 
+m1 <-
     RxODE(
         model = '
          C2 = centr/V2;
@@ -33,7 +34,7 @@ test_that("RxODE event table 1 was created",{
 
 o1.first <- rxSolve(m1, params = c(KA=.291, CL=18.6, V2=40.2, Q=10.5, V3=297.0,
                                    Kin=1.0, Kout=1.0, EC50=200.0),
-                    events = et1, 
+                    events = et1,
                     inits = c(0, 0, 0, 1))
 
 o1.df <- as.data.frame(o1.first);

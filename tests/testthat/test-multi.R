@@ -1,5 +1,5 @@
 ## (Regression) test 3 multiple instances of RxODE objects to ensure
-## C symbols and operations don't conflict. 
+## C symbols and operations don't conflict.
 library(RxODE)
 context("Make sure C operations and symbols don't conflict.")
 
@@ -7,7 +7,7 @@ context("Make sure C operations and symbols don't conflict.")
 test.dir <- tempfile("Rxmult-")
 
 ## RxODE instance 1
-m1 <- 
+m1 <-
     RxODE(
         model = '
          C2 = centr/V2;
@@ -36,12 +36,12 @@ test_that("RxODE event table 1 was created",{
     expect_equal(length(et1$get.dosing()[,1]), 5);
 })
 
-o1.first <- 
+o1.first <-
     m1$solve(
         params = c(KA=.291, CL=18.6, V2=40.2, Q=10.5, V3=297.0,
                    Kin=1.0, Kout=1.0, EC50=200.0),
-        events = et1, 
-        inits = c(0, 0, 0, 1)      
+        events = et1,
+        inits = c(0, 0, 0, 1)
     )
 
 test_that("RxODE event 1 solved.",{
@@ -49,9 +49,9 @@ test_that("RxODE event 1 solved.",{
 })
 
 ## RxODE instance 2 (complete example)
-m2 <- 
+m2 <-
     RxODE(
-        model = 'd/dt(y) = r * y * (1.0 - y/K);', 
+        model = 'd/dt(y) = r * y * (1.0 - y/K);',
         modName = "inst2",
         wd = test.dir
     )
@@ -69,7 +69,7 @@ test_that("RxODE event table 2 was created",{
     expect_equal(length(et2$get.dosing()[,1]), 0);
 })
 
-o2.s <- 
+o2.s <-
     m2$solve(params=c(r=1, K=10), events=et2, inits=c(y=2), stiff = TRUE)
 
 test_that("RxODE instance 2 was solved",{
@@ -77,7 +77,7 @@ test_that("RxODE instance 2 was solved",{
 })
 
 ## RxODE instance 3 (complete example)
-m3 <- 
+m3 <-
     RxODE(
         model = '
          d/dt(X) = a*X + Y*Z;
@@ -99,8 +99,8 @@ test_that("RxODE instance 3 event table is created",{
     expect_equal(et3$get.nobs(),10001);
 })
 
-o3 <- 
-    m3$solve( params = c(a=-8/3, b=-10, c=28), 
+o3 <-
+    m3$solve( params = c(a=-8/3, b=-10, c=28),
              events = et3,
              inits = c(X=1, Y=1, Z=1)
              )
@@ -110,12 +110,12 @@ test_that("RxODE instance 3 was solved",{
 })
 
 ## Now go back to model 1 for (same) integration
-o1.second <- 
+o1.second <-
     m1$solve(
         params = c(KA=.291, CL=18.6, V2=40.2, Q=10.5, V3=297.0,
                    Kin=1.0, Kout=1.0, EC50=200.0),
-        events = et1, 
-        inits = c(0, 0, 0, 1)      
+        events = et1,
+        inits = c(0, 0, 0, 1)
     )
 
 test_that("Second solve of model 1 gives the same results",{
@@ -132,13 +132,13 @@ test_that("Differnt solve of Model 1 still works",{
 
 
 ## Inspect the internal compilation manager in each of the RxODE objects
-prt <- 
+prt <-
     function(obj,expect)
 {
-    cat(
-        sprintf('Model name: %s\nDyn lib: %s\node_solver symbol: %s\n', 
-                obj$modName, obj$cmpMgr$dllfile, obj$cmpMgr$ode_solver
-                ))
+    ## cat(
+    ##     sprintf('Model name: %s\nDyn lib: %s\node_solver symbol: %s\n',
+    ##             obj$modName, obj$cmpMgr$dllfile, obj$cmpMgr$ode_solver
+    ##             ))
     expect_equal(obj$modName,expect);
     expect_match(obj$cmpMgr$dllfile,expect);
     expect_match(obj$cmpMgr$ode_solver,expect);
@@ -148,12 +148,12 @@ prt <-
 test_that("Comilation managere elements make sense.",{
     prt(m1,"inst1")
     prt(m2,"inst2")
-    prt(m3,"inst3")    
+    prt(m3,"inst3")
 })
 
 
 
-## Unload object code (this is platform-dependent, as documented in the 
+## Unload object code (this is platform-dependent, as documented in the
 ## "Note" section of help("dyn.load"). Remove test.dir.
 test_that("Unloading will allow removal of directory",{
     m1$dynUnload()
