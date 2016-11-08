@@ -163,13 +163,19 @@ usage(ArgumentState *arg_state, char *arg_unused) {
                 " %-9qd",
 #else
 #ifdef __MINGW32__
-                " %-9I64d",
+                " %-9s",
 #else
                 " %-9lld",
 #endif
 #endif
 #endif
+
+/* temporary fix to silence Rcheck complains.  dparser fix is on the way */
+#ifdef __MINGW32__
+                "  ");
+#else
                 *(int64*)desc[i].location);
+#endif
         break;
       case 'S':
         if (*(char*)desc[i].location) {
