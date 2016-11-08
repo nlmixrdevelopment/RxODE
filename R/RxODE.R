@@ -1371,6 +1371,7 @@ igraph.rxDll <- function(x,                                   #  object
     });
 } # end function igraph.rxDll
 
+
 ##' Plot a model digram for simple ODE models
 ##'
 ##' This plots a line diagram for the current system of differential
@@ -1404,14 +1405,14 @@ igraph.rxDll <- function(x,                                   #  object
 rxPlot <- function(RxODEobj,
                    family      ="sans",
                    interactive = FALSE,
-                   shape       = c("square", "circle", "csquare", "rectangle", "crectangle", "vrectangle", "sphere", "none"),
+                   shape       = c("square","circle","csquare","rectangle","crectangle","vrectangle","sphere","none"),
                    size        = 30,                     # Size of square
-                   colors      = c("accent1" = "#0460A9"), # Colors
+                   colors      = c("accent1"="#0460A9"), # Colors
                    fillColor   = "accent1",              # Color to fill
                    font        = 2,                      # Font (1: plain, 2: bold, 3: italic, 4: bold/italic, 5:symbol)
                    labelColor  = "white",                # Label Color
                    lineColor   = "accent1",              # Line Color
-                   shapeEnd    = c("none", "sphere", "circle", "square", "csquare", "rectangle", "crectangle", "vrectangle"),
+                   shapeEnd    = c("none","sphere","circle","square","csquare","rectangle","crectangle","vrectangle"),
                    sizeEnd     = 10,
                    ...){ # nocov start
     ## rxPlot returns nothing, but plots a diagram
@@ -1433,45 +1434,45 @@ rxPlot <- function(RxODEobj,
         cat("The shared RxODE library is not loaded, please load it by obj$dynLoad() or rxLoad(obj).\n");
         return(invisible());
     }
-    ig <- igraph(x, family = family, tk = interactive,
+    ig <- igraph(x,family=family,tk=interactive,
                  shape = shape, size = size, colors = colors, fillColor = fillColor, font = font,
                  labelColor = labelColor, lineColor = lineColor, shapeEnd = shapeEnd, sizeEnd = sizeEnd);
     layout <- -igraph::layout.grid(ig);
 
     if (!interactive){
         op <- graphics::par()$mar
-        graphics::par(mar = rep(0, 4));
-        plot(ig, edge.label.family = family, layout = layout, ...);
-        suppressWarnings({graphics::par(mar = op)});
+        graphics::par(mar=rep(0,4));
+        plot(ig,edge.label.family=family, layout = layout, ...);
+        suppressWarnings({graphics::par(mar=op)});
     } else {
-        igraph::tkplot(ig, edge.label.family = family, layout = layout, ...);
+        igraph::tkplot(ig,edge.label.family=family, layout = layout, ...);
     }
     invisible(NULL)
 }# nocov end
 ## end function rxPlot
 
+
 ##' Plot a model digram for simple ODE models
 ##'
-##' This plots a line diagram for the current system of differential
-##' equations.
+##' @param x is an RxODE object.
 ##'
-##' @param x is an RxODE object
-##' @param ... are other arguments
+##' @param ... other arguments, see \code{\link{rxPlot}} for full
+##'     description.
 ##'
-##' This function is an alias for the \code{\link{rxPlot}} function.
+##' @seealso \code{\link{rxPlot}},\code{\link{RxODE}}.
 ##'
-##' @seealso \code{\link{rxPlot}}, \code{\link{RxODE}}.
-##' @author Matthew L.Fidler
-##' @importFrom graphics plot
 ##' @export
-plot.RxODE <- function(x, ...){ # nocov start
-    rxPlot(x$cmpMgr$rxDll(), ...);
+##' @importFrom graphics plot
+plot.RxODE <- function(x,...){ # nocov start
+    rxPlot(x$cmpMgr$rxDll(),...);
 } # nocov end
+
 ##' @rdname plot.RxODE
 ##' @export
 plot.rxDll <- function(x, ...){ #nocov start
     rxPlot(x, ...);
 } #nocov end
+
 ##' @rdname plot.RxODE
 ##' @export
 plot.RxCompilationManager <- function(x, ...){ #nocov start

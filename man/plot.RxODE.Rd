@@ -13,18 +13,13 @@
 \method{plot}{RxCompilationManager}(x, ...)
 }
 \arguments{
-\item{x}{is an RxODE object}
+\item{x}{is an RxODE object.}
 
-\item{...}{are other arguments
-
-This function is an alias for the \code{\link{rxPlot}} function.}
+\item{...}{other arguments, see \code{\link{rxPlot}} for full
+description.}
 }
 \description{
-This plots a line diagram for the current system of differential
-equations.
-}
-\author{
-Matthew L.Fidler
+Plot a model digram for simple ODE models
 }
 \seealso{
 \code{\link{rxPlot}},\code{\link{RxODE}}.

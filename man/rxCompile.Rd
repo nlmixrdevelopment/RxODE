@@ -2,10 +2,20 @@
 % Please edit documentation in R/RxODE.R
 \name{rxCompile}
 \alias{rxCompile}
+\alias{rxCompile.RxODE}
+\alias{rxCompile.character}
+\alias{rxCompile.rxDll}
 \title{Compile a model if needed}
 \usage{
 rxCompile(model, dir, prefix, extraC = NULL, force = FALSE,
   modName = NULL, ...)
+
+\method{rxCompile}{character}(model, dir, prefix, extraC = NULL,
+  force = FALSE, modName = NULL, ...)
+
+\method{rxCompile}{rxDll}(model, ...)
+
+\method{rxCompile}{RxODE}(model, ...)
 }
 \arguments{
 \item{model}{This can be either a string specifying a file name for

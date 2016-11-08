@@ -65,14 +65,14 @@ is for time-varying covariates.}
 \item{stiff}{a logical (\code{TRUE} by default) indicating whether
     the ODE system is stifff or not.
 
-    For stiff ODE sytems (\code{stiff=TRUE}), \code{RxODE} uses the
+    For stiff ODE sytems (\code{stiff = TRUE}), \code{RxODE} uses the
     LSODA (Livermore Solver for Ordinary Differential Equations)
     Fortran package, which implements an automatic method switching
     for stiff and non-stiff problems along the integration
     interval, authored by Hindmarsh and Petzold (2003).
-      
-    For non-stiff systems (\code{stiff=FALSE}), \code{RxODE} uses
-    DOP853, an explicit Runge-Kutta method of order 8(5,3) of
+
+    For non-stiff systems (\code{stiff = FALSE}), \code{RxODE} uses
+    DOP853, an explicit Runge-Kutta method of order 8(5, 3) of
     Dormand and Prince as implemented in C by Hairer and Wanner
     (1993).}
 
@@ -105,7 +105,7 @@ default value is determined by the solver (when hini = 0)}
 method.  The default value is 5.  This can be between 1 and 5.}
 
 \item{...}{Other arguments including scaling factors for each
-compartment.  This includes S#=numeric will scale a compartment
+compartment.  This includes S# = numeric will scale a compartment
 # by a dividing the compartment amount by the scale factor,
 like NONMEM.}
 

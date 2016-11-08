@@ -71,67 +71,67 @@ An object (closure) of class \dQuote{\code{RxODE}} (see Chambers and Temple Lang
 
     \item{modName}{the name of the model (a copy of the input argument).}
     \item{model}{a character string holding the source model specification.}
-    \item{get.modelVars}{a function that returns a list with 3 character 
+    \item{get.modelVars}{a function that returns a list with 3 character
         vectors, \code{params}, \code{state}, and \code{lhs} of variable names used in the model
         specification. These will be output when the model is computed (i.e., the ODE solved by integration).}
 
       \item{solve}{this function solves (integrates) the ODE. This
           is done by passing the code to \code{\link{rxSolve}}.
-          This is as if you called \code{rxSolve(RxODEobject,...)},
+          This is as if you called \code{rxSolve(RxODEobject, ...)},
           but returns a matrix instead of a rxSolve object.
-      
-          \code{params}: a numeric named vector with values for every parameter 
-          in the ODE system; the names must correspond to the parameter 
+
+          \code{params}: a numeric named vector with values for every parameter
+          in the ODE system; the names must correspond to the parameter
           identifiers used in the ODE specification;
-          
-          \code{events}: an \code{eventTable} object describing the 
-          input (e.g., doses) to the dynamic system and observation 
+
+          \code{events}: an \code{eventTable} object describing the
+          input (e.g., doses) to the dynamic system and observation
           sampling time points (see  \code{\link{eventTable}});
-      
+
           \code{inits}: a vector of initial values of the state variables
           (e.g., amounts in each compartment), and the order in this vector
           must be the same as the state variables (e.g., PK/PD compartments);
-          
-      
+
+
           \code{stiff}: a logical (\code{TRUE} by default) indicating whether
-          the ODE system is stifff or not.  
-      
-          For stiff ODE sytems (\code{stiff=TRUE}), \code{RxODE} uses
-          the LSODA (Livermore Solver for Ordinary Differential Equations) 
-          Fortran package, which implements an automatic method switching 
-          for stiff and non-stiff problems along the integration interval, 
-          authored by Hindmarsh and Petzold (2003).  
-      
-          For non-stiff systems (\code{stiff=FALSE}), \code{RxODE} uses DOP853,
-          an explicit Runge-Kutta method of order 8(5,3) of Dormand and Prince
+          the ODE system is stifff or not.
+
+          For stiff ODE sytems (\code{stiff = TRUE}), \code{RxODE} uses
+          the LSODA (Livermore Solver for Ordinary Differential Equations)
+          Fortran package, which implements an automatic method switching
+          for stiff and non-stiff problems along the integration interval,
+          authored by Hindmarsh and Petzold (2003).
+
+          For non-stiff systems (\code{stiff = FALSE}), \code{RxODE} uses DOP853,
+          an explicit Runge-Kutta method of order 8(5, 3) of Dormand and Prince
           as implemented in C by Hairer and Wanner (1993).
-      
+
           \code{trans_abs}: a logical (\code{FALSE} by default) indicating
-          whether to fit a transit absorption term 
+          whether to fit a transit absorption term
           (TODO: need further documentation and example);
-      
+
           \code{atol}: a numeric absolute tolerance (1e-08 by default);
-      
+
           \code{rtol}: a numeric relative tolerance (1e-06 by default).e
-      
+
           The output of \dQuote{solve} is a matrix with as many rows as there
-          are sampled time points and as many columns as system variables 
-          (as defined by the ODEs and additional assigments in the RxODE model 
+          are sampled time points and as many columns as system variables
+          (as defined by the ODEs and additional assigments in the RxODE model
               code).}
-      
+
       \item{isValid}{a function that (naively) checks for model validity,
-          namely that the C object code reflects the latest model 
+          namely that the C object code reflects the latest model
           specification.}
       \item{version}{a string scaler with the version of the \code{RxODE}
           object (not the package).}
-      \item{dynLoad}{a function with one \code{force=FALSE} argument
+      \item{dynLoad}{a function with one \code{force = FALSE} argument
           that dynamically loads the object code if needed.}
-      \item{dynUnload}{a function with no argument that unloads 
+      \item{dynUnload}{a function with no argument that unloads
           the model object code.}
-      \item{cmpMgr}{a \dQuote{compilation manager} object, see 
+      \item{cmpMgr}{a \dQuote{compilation manager} object, see
           \code{\link{rx.initCmpMgr}}.}
       \item{delete}{removes all created model files, including C and DDL files.
-          The model object is no longer valid and should be removed, e.g., 
+          The model object is no longer valid and should be removed, e.g.,
           \code{rm(m1)}.}
       \item{run}{deprecated, use \code{solve}.}
       \item{parse}{deprecated.}
@@ -163,7 +163,7 @@ the change of that variable with respect to time e.g.,
 where the left hand specifies the change of of the ODE with respect
 to one of the parameters, e.g. \code{df(depot)/dy(kel)}.  The
 \dQuote{jacobian} assignments are not required, and are only useful
-for very stiff differential systems.  
+for very stiff differential systems.
 
 Expressions in assignment and \sQuote{\code{if}} statements can be
 numeric or logical (no character expressions are currently
@@ -178,12 +178,12 @@ Identifiers in an \code{RxODE} model specification can refer to:
 \itemize{
    \item state variables in the dynamic system (e.g., compartments in a
          pharmacokinetics/pharamcodynamics model);
-   \item implied input variable, \code{t} (time), 
+   \item implied input variable, \code{t} (time),
    \code{podo} (oral dose, for absorption models), and
    \code{tlast} (last time point);
-   \item model parameters, (\code{ka} rate of absorption, \code{CL} 
+   \item model parameters, (\code{ka} rate of absorption, \code{CL}
        clearance, etc.);
-   \item \code{pi}, for the constant pi. 
+   \item \code{pi}, for the constant pi.
    \item others, as created by assignments as part of the model
          specification.
 }
@@ -222,8 +222,8 @@ print(m1)
 # including dosing and observation (sampling) events
 
 
-qd <- eventTable(amount.units="ug", time.units = "hours")
-qd$add.dosing(dose=10000, nbr.doses=5, dosing.interval = 24)
+qd <- eventTable(amount.units = "ug", time.units = "hours")
+qd$add.dosing(dose = 10000, nbr.doses = 5, dosing.interval = 24)
 
 # Sample the system hourly during the first day, every 8 hours
 # then after
@@ -234,10 +234,10 @@ qd$add.sampling(seq(from = 24+8, to = 5*24, by = 8))
 # Step 3 - set starting parameter estimates and initial
 # values of the state
 
-theta <- 
-    c(KA=.291, CL=18.6, 
-      V2=40.2, Q=10.5, V3=297.0,
-      Kin=1.0, Kout=1.0, EC50=200.0)
+theta <-
+    c(KA = .291, CL = 18.6,
+      V2 = 40.2, Q = 10.5, V3 = 297.0,
+      Kin = 1.0, Kout = 1.0, EC50 = 200.0)
 
 # init state variable
 inits <- c(0, 0, 0, 1);
@@ -253,7 +253,7 @@ head(qd.cp)
 
 inits <- c(eff = 1);
 
-qd.cp <- solve(m1,theta, events = qd, inits);
+qd.cp <- solve(m1, theta, events = qd, inits);
 
 }
 \author{
@@ -261,7 +261,7 @@ Melissa Hallow, Wenping Wang and Matthew Fidler
 }
 \references{
 Chamber, J. M. and Temple Lang, D. (2001)
-\emph{Object Oriented Programming in R}. 
+\emph{Object Oriented Programming in R}.
 R News, Vol. 1, No. 3, September 2001.
 \url{https://cran.r-project.org/doc/Rnews/Rnews_2001-3.pdf}.
 

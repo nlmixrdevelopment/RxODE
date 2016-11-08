@@ -10,7 +10,7 @@
 \arguments{
 \item{data}{Solved RxODE object}
 
-\item{key_col, value_col}{Strings giving names of key and value
+\item{key_col, }{value_col Strings giving names of key and value
 columns to create.}
 
 \item{gather_cols}{Character vector giving column names to be

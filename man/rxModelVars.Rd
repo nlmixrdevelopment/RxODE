@@ -30,7 +30,8 @@ A list of RxODE model properties including:
 \item{trans}{ a named vector of translated model properties
       including what type of jacobian is specified, the \code{C} function prefixes,
       as well as the \code{C} functions names to be called through the compiled model.}
-\item{md5}{a named vector that gives the digest of the model (\code{file_md5}) and the parsed model (\code{parsed_md5})}
+\item{md5}{a named vector that gives the digest of the model (\code{file_md5}) and the parsed model
+     (\code{parsed_md5})}
 \item{model}{ a named vector giving the input model (\code{model}),
    normalized model (no comments and standard syntax for parsing, \code{normModel}),
    and interim code that is used to generate the final C file \code{parseModel}}

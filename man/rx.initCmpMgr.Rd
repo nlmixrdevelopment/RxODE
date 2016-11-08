@@ -33,7 +33,7 @@ missing.  This affects how the model is created and used.}
 \value{
 An object (closure) with the following member functions:
 \item{parse}{
-    this function parses (translates) the ODE-based model 
+    this function parses (translates) the ODE-based model
     specification and generates a C file to implement the model.}
 \item{compile}{
     compiles the generated C file for the ODE system
@@ -52,12 +52,12 @@ An object (closure) with the following member functions:
     a string with the name of the dynamic link (or shared object) file.}
 \item{get.modelVars}{
     function that returns a list with 3 character
-    vectors, \code{params}, \code{state}, and \code{lhs} of variable 
-    names (identifiers) used in the model specification. 
+    vectors, \code{params}, \code{state}, and \code{lhs} of variable
+    names (identifiers) used in the model specification.
     These will be output when the model is computed (i.e., the ODE solved).}
 \item{isValid}{
     a function that (naively) checks for model validity,
-    namely that the C object code reflects the latest model 
+    namely that the C object code reflects the latest model
     specification.}
 \item{get.index}{
     helper function to extract the index of one or

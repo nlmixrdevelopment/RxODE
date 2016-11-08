@@ -10,7 +10,7 @@
 \arguments{
 \item{data}{RxODE solved data.}
 
-\item{key_col, value_col}{Strings giving names of key and value cols.}
+\item{key_col, }{value_col Strings giving names of key and value cols.}
 
 \item{fill}{If set, missing values will be replaced with this
 value. See spread for more details.}
