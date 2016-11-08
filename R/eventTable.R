@@ -1,12 +1,12 @@
 # event table (dosing + sampling obs from the system)
-# An eventTable object contains a numeric matrix with
-# a time vector, an event id  describing two types 
-# of timed records, doses (input) and sampling times 
+                                        # An eventTable object contains a numeric matrix with
+# a time vector, an event id  describing two types
+# of timed records, doses (input) and sampling times
 # (state variables); in the future there could be
-# other events (e.g., re-setting after "washoout" 
+# other events (e.g., re-setting after "washoout"
 # periods, resetting of compartments (e.g., urine),
 # etc.
-# TODO: 
+# TODO:
 #   (1) Other events (steady state, resetting compartments, etc.)
 #   (2) Covariates (age, sex, weight, biomarkers, etc.)
 #   (3) A more comprehensive handling of units for time, amounts,
@@ -14,7 +14,7 @@
 
 
 #' Create an event table object
-#' 
+#'
 #' Initializes an object of class \sQuote{EventTable} with methods for
 #' adding and querying dosing and observation records
 #'
@@ -40,7 +40,7 @@
 #' @return A closure with the following list of functions:
 #'
 #' \item{get.EventTable}{returns the current event table.}
-#' 
+#'
 #' \item{add.dosing}{adds dosing records to the event table.
 #'
 #' Its arguments are
@@ -52,18 +52,18 @@
 #'   \code{dosing.interval}: required numeric scalar, time between doses
 #'      in \code{time.units}, defaults to 24 of \code{time.units="hours"};
 #'
-#'        \code{dosing.to}: integer, compartment the dose goes into 
+#'        \code{dosing.to}: integer, compartment the dose goes into
 #'        (first compartment by default);
 #'
-#'        \code{rate}: for infusions, the rate of infusion (default 
+#'        \code{rate}: for infusions, the rate of infusion (default
 #'            is \code{NULL}, for bolus dosing;
-#'                                                          
+#'
 #'        \code{start.time}: required dosing start time;
 #'
 #'        \code{do.sampling}: logical, should observation sampling records
 #'            be added at the dosing times? Defaults to \code{FALSE}.
 #'
-#'        \code{amount.units}: optional string indicating the dosing units. 
+#'        \code{amount.units}: optional string indicating the dosing units.
 #'           Defaults to \code{NA} to indicate as per the original \code{EventTable}
 #'           definition.
 #'
@@ -74,13 +74,13 @@
 #'    \item{get.dosing}{returns a data.frame of dosing records.}
 #'
 #'    \item{clear.dosing}{clears or deletes all dosing from event table}
-#'    
+#'
 #'    \item{add.sampling}{adds sampling time observation records to the
 #'        event table. Its arguments are
 #'
 #'        \code{time} a vector of time values (in \code{time.units}).
-#'        
-#'        \code{time.units} an optional string specifying the time 
+#'
+#'        \code{time.units} an optional string specifying the time
 #'        units. Defaults to the units specified when the \code{EventTable}
 #'        was initialized.
 #'
@@ -96,7 +96,7 @@
 #'
 #'    \item{clear.sampling}{removes all sampling from event table.}
 #'
-#'    \item{get.obs.rec}{returns a logical vector indicating 
+#'    \item{get.obs.rec}{returns a logical vector indicating
 #'        whether each event record represents an observation or not.}
 #'
 #'    \item{get.nobs}{returns the number of observation (not dosing) records.}
@@ -114,25 +114,25 @@
 #' @examples
 #' # create dosing and observation (sampling) events
 #' # QD 50mg dosing, 5 days followed by 25mg 5 days
-#' 
+#'
 #' qd <- eventTable(amount.units = "mg", time.units = "days")
-#' 
+#'
 #' qd$add.dosing(dose=50, nbr.doses=5, dosing.interval = 1, do.sampling=FALSE)
-#' 
+#'
 #' # sample the system's drug amounts hourly the first day, then every 12 hours
 #' # for the next 4 days
 #' qd$add.sampling(seq(from = 0, to = 1, by = 1/24))
 #' qd$add.sampling(seq(from = 1, to = 5, by = 12/24))
-#' 
+#'
 #' #print(qd$get.dosing())     # table of dosing records
 #' print(qd$get.nobs())   # number of observation (not dosing) records
-#' 
+#'
 #'                                         # BID dosing, 5 days
-#' 
+#'
 #' bid <- eventTable("mg", "days")  # only dosing
-#' bid$add.dosing(dose=10000, nbr.doses=2*5, 
+#' bid$add.dosing(dose=10000, nbr.doses=2*5,
 #'                dosing.interval = 12, do.sampling=FALSE)
-#' 
+#'
 #' # Use the copy() method to create a copy (clone) of an existing
 #' # event table (simple assignments just create a new reference to
 #' # the same event table object (closure)).
@@ -154,19 +154,19 @@ eventTable <- function(amount.units = NA, time.units = "hours")
    .amount.units <- amount.units  # preferred units
    .time.units <- time.units
 
-   "add.dosing" <- 
+   "add.dosing" <-
    function(dose,      # amount per dose,
       nbr.doses = 1,      # single dose default
       dosing.interval = 24,
       dosing.to=1,         #to which cmt dosing is admin'ed
       rate=NULL,            #infusion rate if infusion
-      amount.units = NA, 
-      start.time, 
-      do.sampling=FALSE, 
+      amount.units = NA,
+      start.time,
+      do.sampling=FALSE,
       time.units = NA, ...)
    {
       if(!is.na(amount.units)){
-         if(is.na(.amount.units)) 
+         if(is.na(.amount.units))
             .amount.units <<- amount.units   # initialize
          else if(tolower(.amount.units)!=tolower(amount.units)){
             stop("dosing units differ from EventTable's")
@@ -174,7 +174,7 @@ eventTable <- function(amount.units = NA, time.units = "hours")
       } # else assume amount.units as per eventTable() definition
 
       if(!is.na(time.units)){
-         if(is.na(.time.units)) 
+         if(is.na(.time.units))
             .time.units <<- time.units   # initialize
          else if(tolower(.time.units)!=tolower(time.units)){
             stop("time units differ from EventTable's")
@@ -187,17 +187,17 @@ eventTable <- function(amount.units = NA, time.units = "hours")
       if(missing(start.time)){
          if(is.null(.EventTable) || all(.obs.rec))
             start.time <- 0
-         else { 
+         else {
             warning("imputing start.time", immediate = TRUE)
             start.time <- max(.EventTable$time) + dosing.interval
-        } 
+        }
       }
       time <- start.time+(1:nbr.doses-1)*dosing.interval
-      
+
       # TODO: should we code individual flags (infusion vs bolus, etc)
       # in the table and convert to a mask integer just prior to
       # invoking the C code?
-      # TODO: Handle units. Check that add.dosing() units don't conflict 
+      # TODO: Handle units. Check that add.dosing() units don't conflict
       # with the eventTable definition (preferred units)
       if (is.null(rate)) {#-- bolus
          wh <- 100*dosing.to+1
@@ -214,27 +214,27 @@ eventTable <- function(amount.units = NA, time.units = "hours")
             )
          }
       }
-      
+
       inp <- rbind(.EventTable, inp)
       inp <- inp[order(inp$time, -inp$evid), ]
       .EventTable <<- inp
       .obs.rec <<- inp$evid==0
 
       s <- as.list(match.call(expand.dots = TRUE))
-      if ("sampling.interval" %in% names(s)) 
+      if ("sampling.interval" %in% names(s))
          sampling.interval <- s$sampling.interval
       else sampling.interval <- 1
 
-      if (do.sampling) 
+      if (do.sampling)
          add.sampling(0:(nbr.doses*dosing.interval), time.units = time.units)
       invisible()
    }
 
-   "add.sampling" <- 
+   "add.sampling" <-
    function(time, time.units = NA)
    {
       if(!is.na(time.units)){
-         if(is.na(.time.units)) 
+         if(is.na(.time.units))
             .time.units <<- time.units   # initialize
          else if(tolower(.time.units)!=tolower(time.units)){
             stop("time units differ from EventTable's")
@@ -252,24 +252,30 @@ eventTable <- function(amount.units = NA, time.units = "hours")
    "clear.sampling" <- function(){
        ## Clears all sampling.
        .EventTable <<- .EventTable[!.obs.rec, ,drop = TRUE] ;
-       .obs.rec <<- .EventTable$evid==0
+       if (class(.EventTable) == "list"){
+           .EventTable <<- as.data.frame(.EventTable);
+       }
+       .obs.rec <<- .EventTable$evid == 0
        invisible()
    }
 
    "clear.dosing" <- function(){
        .EventTable <<- .EventTable[.obs.rec, ,drop = TRUE] ;
+       if (class(.EventTable) == "list"){
+           .EventTable <<- as.data.frame(.EventTable);
+       }
        .obs.rec <<- .EventTable$evid==0
        invisible()
    }
 
-   "import.EventTable" <- 
+   "import.EventTable" <-
    function(inp)
    {
       if (!is.data.frame(inp))
          stop("input table is not a data.frame")
       vars <- setdiff(c("time", "evid", "amt"), names(inp))
       if (length(vars)) {
-         msg <- paste("var(s) not found in input table.\n", 
+         msg <- paste("var(s) not found in input table.\n",
                   paste(vars, collapse=" "))
          stop(msg)
       }
@@ -281,11 +287,11 @@ eventTable <- function(amount.units = NA, time.units = "hours")
    }
 
    "copy" <-
-   function() 
+   function()
    {
       # Make a copy (clone) of the current event table.
       # Can test the output with identical(old, new, ignore.closure=TRUE).
-      self <- environment(add.dosing)     # current environment 
+      self <- environment(add.dosing)     # current environment
       nms <- objects(all.names = TRUE, envir = self)
 
       out <- eventTable()                 # new, pristine eventTable
@@ -323,7 +329,7 @@ function(x, ...)
    nr <- nrow(x$get.EventTable())
    nr <- if(is.null(nr)) 0 else nr
    unts <- x$get.units()
-   cat( 
+   cat(
       sprintf("EventTable with %d records:\n", nr),
       sprintf("  %d dosing (in %s) records\n", dr, unts[1]),
       sprintf("  %d observation time (in %s) records\n", nobs, unts[2])
