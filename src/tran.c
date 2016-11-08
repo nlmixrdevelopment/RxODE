@@ -23,6 +23,23 @@
 // from mkdparse_tree.h
 typedef void (print_node_fn_t)(int depth, char *token_name, char *token_value, void *client_data);
 
+int R_get_option(const char *option, int def){
+  SEXP s, t;
+  int ret;
+  PROTECT(t = s = allocList(3));
+  SET_TYPEOF(s, LANGSXP);
+  SETCAR(t, install("getOption")); t = CDR(t);
+  SETCAR(t, mkString(option)); t = CDR(t);
+  if (def){
+    SETCAR(t, ScalarLogical(1));
+  } else {
+    SETCAR(t, ScalarLogical(0));
+  }
+  ret = INTEGER(eval(s,R_GlobalEnv))[0];
+  UNPROTECT(1);
+  return ret;
+}
+
 // Taken from dparser and changed to use R_alloc
 int r_buf_read(const char *pathname, char **buf, int *len) {
   struct stat sb;
@@ -80,6 +97,7 @@ extern int d_rdebug_grammar_level;
 extern int d_verbose_level;
 
 unsigned int found_jac = 0, found_print = 0;
+int rx_syntax_assign = 0;
 
 char s_aux_info[64*MXSYM];
 
@@ -259,7 +277,21 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       sprintf(SBPTR, " pow(");
       sb.o += 5;
     }
-    for (i = 0; i < nch; i++) {      
+    for (i = 0; i < nch; i++) {
+      if (!rx_syntax_assign  &&
+	  ((!strcmp("derivative", name) && i == 4) ||
+	   (!strcmp("jac", name) && i == 6) ||
+	   (!strcmp("dfdy", name) && i == 6))) {
+	D_ParseNode *xpn = d_get_child(pn,i);
+	char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+	if (!strcmp("<-",v)){
+	  error("'<-' not supported, use '=' instead or set 'options(RxODE.syntax.assign = TRUE)'.");
+	  Free(v);
+	} else {
+	  Free(v);
+	}
+	continue;
+      }
       if (!strcmp("derivative", name) && i< 2) continue;
       if (!strcmp("der_rhs", name)    && i< 2) continue;
       if (!strcmp("derivative", name) && i==3) continue;
@@ -282,7 +314,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       if (!strcmp("dfdy_rhs", name) && i == 5) continue;
       if (!strcmp("dfdy", name)     && i == 6) continue;
       if (!strcmp("ini0", name)     && i == 1) continue;
-
+      
       /* if (!strcmp("decimalint",name)){ */
       /* 	// Make implicit double */
       /* 	sprintf(SBPTR,".0"); */
@@ -476,12 +508,14 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  sprintf(sb.s, "(__0__)%s", v);
           sb.o = strlen(v)+7;
 	  if (!strcmp("ini",name) & !new_de(v)){
+	    Free(v);
 	    error("Cannot assign state variable %s; For initial condition assigment use '%s(0) ='.\n",v,v);
 	  }
         } else {
 	  sprintf(sb.s, "%s", v);
           sb.o = strlen(v);
 	  if (!new_de(v)){
+	    Free(v);
 	    error("Cannot assign state variable %s; For initial condition assigment use '%s(0) ='.\n",v,v);
 	  }
         }
@@ -515,6 +549,22 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	!strcmp("ini0",name)){
       fprintf(fpIO, "%s;\n", sb.s);
       fprintf(fpIO2, "%s;\n", sbt.s);
+    }
+
+    if (!rx_syntax_assign && (!strcmp("assignment", name) || !strcmp("ini", name) || !strcmp("ini0",name))){
+      if (!strcmp("ini0",name)){
+	i = 2;
+      } else {
+	i = 1;
+      }
+      D_ParseNode *xpn = d_get_child(pn,i);
+      char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+      if (!strcmp("<-",v)){
+        error("'<-' not supported, use '=' instead or set 'options(RxODE.syntax.assign = TRUE)'.");
+        Free(v);
+      } else {
+        Free(v);
+      }
     }
     
     if (!strcmp("selection_statement", name)){
@@ -1060,9 +1110,10 @@ SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_m
   char sLine[MXLEN+1];
   int i, j, islhs, pi=0, li=0, ini_i = 0;
   double d;
+  rx_syntax_assign = R_get_option("RxODE.syntax.assign",1);  
   d_use_r_headers = 0;
   d_rdebug_grammar_level = 0;
-  d_verbose_level = 0;  
+  d_verbose_level = 0;
   if (!isString(parse_file) || length(parse_file) != 1){
     error("parse_file is not a single string");
   }
@@ -1083,7 +1134,6 @@ SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_m
   
   in = r_dup_str(CHAR(STRING_ELT(parse_file,0)),0);
   out = r_dup_str(CHAR(STRING_ELT(c_file,0)),0);
-  
   
   if (isString(prefix) && length(prefix) == 1){
     model_prefix = r_dup_str(CHAR(STRING_ELT(prefix,0)),0);

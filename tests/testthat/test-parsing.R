@@ -13,6 +13,7 @@ goodParse <- function(desc,code){
     test_that(desc,{
         rx <- RxODE(code);
         expect_equal(class(rx),"RxODE");
+        rxDelete(rx);
     })
 }
 
@@ -21,6 +22,8 @@ equivSyntax <- function(desc,code1,code2){
         rx1 <- RxODE(code1);
         rx2 <- RxODE(code2);
         expect_equal(rxMd5(rx1)["parsed_md5"],rxMd5(rx2)["parsed_md5"])
+        rxDelete(rx1);
+        rxDelete(rx2);
     })
 }
 
@@ -84,9 +87,49 @@ badParse(desc = 'illegal variable name in d/dt()',
 badParse(desc = 'Assignment with <<- not supported',
          'd/dt(y_1) <<- F*y')
 
-goodParse(desc = 'Assignment with <- supported',
+options(RxODE.syntax.assign=TRUE)
+goodParse(desc = 'Assignment with <- supported #1',
           'd/dt(y_1) <- F*y')
 
+goodParse(desc = 'Assignment with <- supported #2',
+          'y_1(0) <- 1;d/dt(y_1) = F*y_1')
+
+goodParse(desc = 'Assignment with <- supported #3',
+          'y_2 <- 1;d/dt(y_1) = F*y')
+
+goodParse(desc = 'Assignment with <- supported #4',
+          'y_2 <- 1+7;d/dt(y_1) = F*y')
+
+goodParse(desc = 'Assignment with <- supported #5',
+          'd/dt(y_1) = F*y; jac(y_1,y_1)<-0')
+
+goodParse(desc = 'Assignment with <- supported #6',
+          'd/dt(y_1) = F*y; df/dy(y_1,y_1)<-0')
+
+goodParse(desc = 'Assignment with <- supported #7',
+          'd/dt(y_1) = F*y; df(y_1)/dy(y_1) <- 0')
+
+options(RxODE.syntax.assign=FALSE)
+badParse(desc = 'Assignment with <- not supported #1',
+         'd/dt(y_1) <- F*y')
+
+badParse(desc = 'Assignment with <- not supported #2',
+          'y_1(0) <- 1;d/dt(y_1) = F*y')
+
+badParse(desc = 'Assignment with <- not supported #3',
+          'y_2 <- 1;d/dt(y_1) = F*y')
+
+badParse(desc = 'Assignment with <- not supported #4',
+          'y_2 <- 1+7;d/dt(y_1) = F*y')
+
+badParse(desc = 'Assignment with <- not supported #5',
+          'd/dt(y_1) = F*y; jac(y_1,y_1)<-y')
+
+badParse(desc = 'Assignment with <- not supported #6',
+          'd/dt(y_1) = F*y; df/dy(y_1,y_1)<-y')
+
+badParse(desc = 'Assignment with <- not supported #7',
+          'd/dt(y_1) = F*y; df(y_1)/dy(F) <- y')
 equivSyntax(desc = "time and t are equivalent",
             "d/dt(depot) = time^2","d/dt(depot) = t^2")
 
