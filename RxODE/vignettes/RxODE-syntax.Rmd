@@ -1,7 +1,13 @@
-<!--
-%\VignetteEngine{knitr::knitr}
-%\VignetteIndexEntry{RxODE Modeling Syntax}
--->
+---
+title: "RxODE Modeling Syntax"
+author: "Melissa Hallow and Wenping Wang"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_document
+vignette: >
+  %\VignetteIndexEntry{RxODE Modeling Syntax}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
 ```{r setup, include = FALSE}
 library(knitr)
 ```
