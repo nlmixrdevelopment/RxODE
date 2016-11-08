@@ -16,11 +16,6 @@ library(knitr)
 ## RxODE: A tool for performing simulations from 
 Ordinary Differential Equation (ODE) models, with 
 applications for pharmacometrics
-***  
-
-##### Authors: Melissa Hallow and Wenping Wang
-
-***
 
 #### Introduction
 `RxODE` is an R package that facilitates simulation with ODE models in
