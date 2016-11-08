@@ -1,10 +1,14 @@
-<!--
-%\VignetteEngine{knitr::knitr}
-%\VignetteIndexEntry{Introduction to RxODE}
-%\VignetteKeyword{ordinary differential equations}
-%\VignetteKeyword{PK/PD}
-%\VignetteKeyword{simulations}
--->
+---
+title: "Introduction to RxODE"
+author: "Melissa Hallow and Wenping Wang"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_document
+vignette: >
+  %\VignetteIndexEntry{Introduction to RxODE}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
 ```{r setup, include = FALSE}
 library(knitr)
 ```
