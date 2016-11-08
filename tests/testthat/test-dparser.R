@@ -1,7 +1,7 @@
 library(digest);
-if (FALSE){
-    context("Checking output of grammars.")
-    files <- list.files(pattern=".*\\.test\\.g$")
+context("Checking output of grammars.")
+files <- list.files(pattern=".*\\.test\\.g$")
+if (as.numeric(R.Version()$minor) > 3){
     for (file in files){
         flags <- sprintf("%s.flags",file);
         if (file.exists(flags)){
