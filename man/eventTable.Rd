@@ -42,18 +42,18 @@ Its arguments are
   \code{dosing.interval}: required numeric scalar, time between doses
      in \code{time.units}, defaults to 24 of \code{time.units="hours"};
 
-       \code{dosing.to}: integer, compartment the dose goes into 
+       \code{dosing.to}: integer, compartment the dose goes into
        (first compartment by default);
 
-       \code{rate}: for infusions, the rate of infusion (default 
+       \code{rate}: for infusions, the rate of infusion (default
            is \code{NULL}, for bolus dosing;
-                                                         
+
        \code{start.time}: required dosing start time;
 
        \code{do.sampling}: logical, should observation sampling records
            be added at the dosing times? Defaults to \code{FALSE}.
 
-       \code{amount.units}: optional string indicating the dosing units. 
+       \code{amount.units}: optional string indicating the dosing units.
           Defaults to \code{NA} to indicate as per the original \code{EventTable}
           definition.
 
@@ -64,13 +64,13 @@ Its arguments are
    \item{get.dosing}{returns a data.frame of dosing records.}
 
    \item{clear.dosing}{clears or deletes all dosing from event table}
-   
+
    \item{add.sampling}{adds sampling time observation records to the
        event table. Its arguments are
 
        \code{time} a vector of time values (in \code{time.units}).
-       
-       \code{time.units} an optional string specifying the time 
+
+       \code{time.units} an optional string specifying the time
        units. Defaults to the units specified when the \code{EventTable}
        was initialized.
 
@@ -86,7 +86,7 @@ Its arguments are
 
    \item{clear.sampling}{removes all sampling from event table.}
 
-   \item{get.obs.rec}{returns a logical vector indicating 
+   \item{get.obs.rec}{returns a logical vector indicating
        whether each event record represents an observation or not.}
 
    \item{get.nobs}{returns the number of observation (not dosing) records.}
@@ -120,7 +120,7 @@ print(qd$get.nobs())   # number of observation (not dosing) records
                                         # BID dosing, 5 days
 
 bid <- eventTable("mg", "days")  # only dosing
-bid$add.dosing(dose=10000, nbr.doses=2*5, 
+bid$add.dosing(dose=10000, nbr.doses=2*5,
                dosing.interval = 12, do.sampling=FALSE)
 
 # Use the copy() method to create a copy (clone) of an existing

@@ -10,7 +10,7 @@
 \title{Solves a ODE equation}
 \usage{
 rxSolve(object, params, events, inits = NULL, covs = NULL, stiff = TRUE,
-  transit_abs = FALSE, atol = 1e-06, rtol = 1e-06, maxsteps = 5000,
+  transit_abs = NULL, atol = 1e-06, rtol = 1e-06, maxsteps = 5000,
   hmin = 0, hmax = NULL, hini = 0, maxordn = 12, maxords = 5, ...,
   covs_interpolation = c("Linear", "LOCF"))
 
@@ -19,24 +19,24 @@ rxSolve(object, params, events, inits = NULL, covs = NULL, stiff = TRUE,
   covs_interpolation = c("Linear", "LOCF"))
 
 \method{rxSolve}{RxODE}(object, params, events, inits = NULL, covs = NULL,
-  stiff = TRUE, transit_abs = FALSE, atol = 1e-08, rtol = 1e-06,
+  stiff = TRUE, transit_abs = NULL, atol = 1e-08, rtol = 1e-06,
   maxsteps = 5000, hmin = 0, hmax = NULL, hini = 0, maxordn = 12,
   maxords = 5, ..., covs_interpolation = c("Linear", "LOCF"))
 
 \method{rxSolve}{RxCompilationManager}(object, params, events, inits = NULL,
-  covs = NULL, stiff = TRUE, transit_abs = FALSE, atol = 1e-08,
+  covs = NULL, stiff = TRUE, transit_abs = NULL, atol = 1e-08,
   rtol = 1e-06, maxsteps = 5000, hmin = 0, hmax = NULL, hini = 0,
   maxordn = 12, maxords = 5, ..., covs_interpolation = c("Linear",
   "LOCF"))
 
 \method{rxSolve}{character}(object, params, events, inits = NULL,
-  covs = NULL, stiff = TRUE, transit_abs = FALSE, atol = 1e-08,
+  covs = NULL, stiff = TRUE, transit_abs = NULL, atol = 1e-08,
   rtol = 1e-06, maxsteps = 5000, hmin = 0, hmax = NULL, hini = 0,
   maxordn = 12, maxords = 5, ..., covs_interpolation = c("Linear",
   "LOCF"))
 
 \method{rxSolve}{rxDll}(object, params, events, inits = NULL, covs = NULL,
-  stiff = TRUE, transit_abs = FALSE, atol = 1e-08, rtol = 1e-06,
+  stiff = TRUE, transit_abs = NULL, atol = 1e-08, rtol = 1e-06,
   maxsteps = 5000, hmin = 0, hmax = NULL, hini = 0, maxordn = 12,
   maxords = 5, ..., covs_interpolation = c("Linear", "LOCF"))
 }

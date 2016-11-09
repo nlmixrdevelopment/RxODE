@@ -2721,7 +2721,7 @@ rxSolve.rxDll <- function(object, params, events, inits = NULL, covs = NULL, sti
         params <- c();
     }
     if (is.null(transit_abs)){
-        transit_abs <- rxModelVars(transit)$podo;
+        transit_abs <- rxModelVars(object)$podo;
         if (transit_abs){
             warning("Assumed transit compartment model since 'podo' is in the model.")
         }
