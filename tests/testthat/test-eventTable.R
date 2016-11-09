@@ -94,3 +94,23 @@ test_that("Clear dosing works!", {
     expect_equal(length(et$get.dosing()$time), 0);
     expect_equal(et$get.sampling()[, 1:2], data.frame(time=1, evid=0));
 })
+
+et$add.dosing(30, amount.units="mg")
+et$add.sampling(2:24);
+
+et2 <- eventTable();
+et2$import.EventTable(et$get.EventTable());
+
+test_that("Importing event table works", {
+    expect_equal(et$get.EventTable(), et2$get.EventTable())
+    et$add.sampling(0.5);
+    expect_false(isTRUE(all.equal(et$get.EventTable(), et2$get.EventTable())));
+})
+
+test_that("Can't add dosing of incompatible time units", {
+    expect_error(et$add.dosing(20, time.units="sec"));
+})
+
+test_that("Cannot import data with missing columns", {
+    expect_error(et$import.EventTable(et$get.EventTable()[, 1:2]))
+})
