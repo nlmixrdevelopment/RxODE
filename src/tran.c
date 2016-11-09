@@ -97,7 +97,7 @@ extern int d_rdebug_grammar_level;
 extern int d_verbose_level;
 
 unsigned int found_jac = 0, found_print = 0;
-int rx_syntax_assign = 0;
+int rx_syntax_assign = 0, rx_syntax_star_pow = 0;
 
 char s_aux_info[64*MXSYM];
 
@@ -455,8 +455,15 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	sprintf(SBTPTR, "^");
         sbt.o++;
       }
-      
-
+      if (!rx_syntax_star_pow && i == 1 &&!strcmp("power_expression", name)){
+	char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+	if (!strcmp("**",v)){
+	  Free(v);
+	  error("'**' not supported, use '^' instead or set 'options(RxODE.syntax.star.pow = TRUE)'.");
+	} else {
+	  Free(v);
+	}
+      }
       if (!strcmp("derivative", name) && i==2) {
         /* sprintf(sb.s, "__DDtStateVar__[%d] = InfusionRate(%d) +", tb.nd, tb.nd); */
         /* sb.o = strlen(sb.s); */
@@ -1110,7 +1117,8 @@ SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_m
   char sLine[MXLEN+1];
   int i, j, islhs, pi=0, li=0, ini_i = 0;
   double d;
-  rx_syntax_assign = R_get_option("RxODE.syntax.assign",1);  
+  rx_syntax_assign = R_get_option("RxODE.syntax.assign",1);
+  rx_syntax_star_pow = R_get_option("RxODE.syntax.star.pow",1);
   d_use_r_headers = 0;
   d_rdebug_grammar_level = 0;
   d_verbose_level = 0;

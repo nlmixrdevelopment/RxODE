@@ -11,7 +11,8 @@ regIni <- rex::rex(or(group(one_of("_."), "0"), "0", "(0)", "[0]", "{0}"), end);
                   RxODE.warn.on.assign = FALSE,
                   RxODE.compile.on.load = TRUE,
                   RxODE.verbose=TRUE,
-                  RxODE.syntax.assign=TRUE);
+                  RxODE.syntax.assign=TRUE,
+                  RxODE.syntax.star.pow=TRUE);
     w <- !(names(op.rx) %in% names(op))
     if (any(w)) options(op.rx[w]);
     ## nocov end

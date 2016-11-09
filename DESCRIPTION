@@ -4,14 +4,13 @@ Date: 2016-11-01
 Title: Facilities for Simulating from ODE-Based Models
 Authors@R: c(
    person("Melissa", "Hallow", 
-      role = c("aut", "cre"), email = "hallowkm@uga.edu"),
+      role = "aut", email = "hallowkm@uga.edu"),
    person("Wenping", "Wang", 
-      role = "aut", email = "Wenping.wang@outlook.com"),
+      role = c("aut", "cre"), email = "Wenping.wang@outlook.com"),
    person("Matthew","Fidler",
       role = "aut", email = "matthew.fidler@gmail.com")
    )
-Author: Melissa Hallow [aut, cre], Wenping Wang [aut], David A James [aut],
-    Matthew L. Fidler [aut]
+Author: Melissa Hallow [aut], Wenping Wang [aut, cre], Matthew L. Fidler [aut]
 Maintainer: Wenping Wang <wwang8198@gmail.com>
 Depends:
     R (>= 3.2.0)
