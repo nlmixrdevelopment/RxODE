@@ -2,7 +2,7 @@
 library("RxODE")
 options(RxODE.verbose=FALSE);
 context("Test Parsing of models")
-
+options(RxODE.suppress.syntax.info=TRUE);
 badParse <- function(desc,code){
     test_that(desc,{
         expect_error(RxODE(code));

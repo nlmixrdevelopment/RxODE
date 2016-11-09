@@ -40,12 +40,11 @@ typedef Stack(int) StackInt;
 static int exhaustive_parse(Parser *p, int state);
 static void free_PNode(Parser *p, PNode *pn);
 
-int d_exit_on_error = 1;
-
 char * r_dup_str(const char *s, const char *e);
 
 char * d_file_name;
 int  d_use_file_name = 0;
+extern int rx_suppress_syntax_info;
 
 void
 print_paren(Parser *pp, PNode *p) {
@@ -1883,12 +1882,7 @@ syntax_error_report_fn(struct D_Parser *ap) {
     z = (z->sns.v && z->sns.v[0]->zns.v) ? z->sns.v[0]->zns.v[0] : 0;
   if (z && z->pn->parse_node.start_loc.s != z->pn->parse_node.end)
     after = r_dup_str(z->pn->parse_node.start_loc.s, z->pn->parse_node.end);
-  if (d_exit_on_error){
-    if (after)
-      error("%s:%d: syntax error after '%s'\n", fn, p->user.loc.line, after);
-    else
-      error("%s:%d: syntax error\n", fn, p->user.loc.line);
-  } else {
+  if (!rx_suppress_syntax_info){
     if (after)
       Rprintf("%s:%d: syntax error after '%s'\n", fn, p->user.loc.line, after);
     else

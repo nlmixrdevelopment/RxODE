@@ -28,6 +28,10 @@
 // from mkdparse_tree.h
 typedef void (print_node_fn_t)(int depth, char *token_name, char *token_value, void *client_data);
 
+extern int d_use_file_name;
+extern char *d_file_name;
+
+
 int R_get_option(const char *option, int def){
   SEXP s, t;
   int ret;
@@ -96,6 +100,29 @@ char * r_dup_str(const char *s, const char *e) {
   return ss;
 }
 
+int rx_syntax_error = 0, rx_suppress_syntax_info=0;
+static void trans_syntax_error_report_fn(struct D_Parser *ap, char *err) {
+  Parser *p = (Parser *)ap;
+  char *fn = d_dup_pathname_str(p->user.loc.pathname);
+  char *after = 0;
+  ZNode *z = p->snode_hash.last_all ? p->snode_hash.last_all->zns.v[0] : 0;
+  if (d_use_file_name){
+    fn = d_dup_pathname_str(d_file_name);
+  }
+  while (z && z->pn->parse_node.start_loc.s == z->pn->parse_node.end)
+    z = (z->sns.v && z->sns.v[0]->zns.v) ? z->sns.v[0]->zns.v[0] : 0;
+  if (z && z->pn->parse_node.start_loc.s != z->pn->parse_node.end)
+    after = r_dup_str(z->pn->parse_node.start_loc.s, z->pn->parse_node.end);
+  if (!rx_suppress_syntax_info){
+    if (after)
+      Rprintf("%s:%d: syntax error after '%s':\n\t%s\n", fn, p->user.loc.line, after,err);
+    else
+      Rprintf("%s:%d: syntax error\n\t%s\n", fn, p->user.loc.line,err);
+  }
+  rx_syntax_error = 1;
+}
+
+
 extern D_ParserTables parser_tables_RxODE;
 extern int d_use_r_headers;
 extern int d_rdebug_grammar_level;
@@ -142,6 +169,8 @@ sbuf sbt;
 char *extra_buf, *model_prefix, *md5, *out2;
 
 static FILE *fpIO, *fpIO2;
+
+D_Parser *dparser;
 
 /* new symbol? if no, find it's ith */
 int new_or_ith(const char *s) {
@@ -200,6 +229,9 @@ void wprint_node(int depth, char *name, char *value, void *client_data) {
       if (value[i] == '.' && !strcmp("identifier_r",name)){
 	sprintf(SBPTR, "_DoT_");
 	sprintf(SBTPTR, ".");
+	if (!rx_syntax_allow_dots){
+	  trans_syntax_error_report_fn(dparser,NODOT);
+        }
 	sb.o += 5;
 	sbt.o++;
       } else {
@@ -216,6 +248,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
   char *name = (char*)pt.symbols[pn->symbol].name;
   int nch = d_get_number_of_children(pn), i, k;
   char *value = (char*)rc_dup_str(pn->start_loc.s, pn->end);
+  char buf[512];
   if ((!strcmp("identifier", name) || !strcmp("identifier_r", name) ||
        !strcmp("identifier_r_no_output",name)) &&
       new_or_ith(value)) {
@@ -302,10 +335,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	D_ParseNode *xpn = d_get_child(pn,i);
 	char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
 	if (!strcmp("<-",v)){
-	  error(NOASSIGN);
-	  Free(v);
-	} else {
-	  Free(v);
+	  trans_syntax_error_report_fn(dparser,NOASSIGN);
 	}
 	continue;
       }
@@ -343,7 +373,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       wprint_parsetree(pt, xpn, depth, fn, client_data);
       if (rx_syntax_require_semicolon && !strcmp("end_statement",name) && i == 0){
 	if (xpn->start_loc.s ==  xpn->end){
-	  error(NEEDSEMI);
+	  trans_syntax_error_report_fn(dparser,NEEDSEMI);
 	} 
       }
       if (!strcmp("print_command",name)){
@@ -479,10 +509,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       if (!rx_syntax_star_pow && i == 1 &&!strcmp("power_expression", name)){
 	char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
 	if (!strcmp("**",v)){
-	  Free(v);
-	  error(NEEDPOW);
-	} else {
-	  Free(v);
+	  trans_syntax_error_report_fn(dparser,NEEDPOW);
 	}
       }
       if (!strcmp("derivative", name) && i==2) {
@@ -497,7 +524,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  new_or_ith(v);
 	  /* Rprintf("%s; tb.ini = %d; tb.ini0 = %d; tb.lh = %d\n",v,tb.ini[tb.ix],tb.ini0[tb.ix],tb.lh[tb.ix]); */
           if  ((tb.ini[tb.ix] == 1 && tb.ini0[tb.ix] == 0) || (tb.lh[tb.ix] == 1 && tb.ini[tb.ix] == 0)){
-	    error("Cannot assign state variable %s; For initial condition assigment use '%s(0) = #'.\n",v,v);
+	    sprintf(buf,"Cannot assign state variable %s; For initial condition assigment use '%s(0) = #'.\n",v,v);
+	    trans_syntax_error_report_fn(dparser,buf);
 	  }
           tb.lh[tb.ix] = 9;
           tb.di[tb.nd] = tb.ix;
@@ -518,9 +546,9 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       if (!strcmp("der_rhs", name)) {
       	char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
         if (new_de(v)){
-	  error("Tried to use d/dt(%s) before it was defined",v);
-          Free(v);
-	} else {
+	  sprintf(buf,"Tried to use d/dt(%s) before it was defined",v);
+          trans_syntax_error_report_fn(dparser,buf);
+        } else {
 	  sprintf(SBPTR, "__DDtStateVar__[%d]", tb.id);
 	  sb.o = strlen(sb.s);
 	  sprintf(SBTPTR, "d/dt(%s)", v);
@@ -541,17 +569,16 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 		sprintf(SBPTR,"_DoT_");
                 sb.o +=5;
               } else {
-		Free(v);
-		error(NODOT);
-	      }
+		trans_syntax_error_report_fn(dparser,NODOT);
+              }
             } else {
               sprintf(SBPTR,"%c",v[k]);
 	      sb.o++;
 	    }
 	  }
 	  if (!strcmp("ini",name) & !new_de(v)){
-	    Free(v);
-	    error("Cannot assign state variable %s; For initial condition assigment use '%s(0) ='.\n",v,v);
+	    sprintf(buf,"Cannot assign state variable %s; For initial condition assigment use '%s(0) ='.\n",v,v);
+	    trans_syntax_error_report_fn(dparser,buf);
 	  }
         } else {
 	  sb.o = 0;
@@ -561,8 +588,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 		sprintf(SBPTR,"_DoT_");
 		sb.o +=5;
 	      } else {
-		free(v);
-		error(NODOT);
+		trans_syntax_error_report_fn(dparser,NODOT);
 	      }
             } else {
               sprintf(SBPTR,"%c",v[k]);
@@ -570,9 +596,9 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    }
           }
 	  if (!new_de(v)){
-	    Free(v);
-	    error("Cannot assign state variable %s; For initial condition assigment use '%s(0) ='.\n",v,v);
-	  }
+	    sprintf(buf,"Cannot assign state variable %s; For initial condition assigment use '%s(0) ='.\n",v,v);
+            trans_syntax_error_report_fn(dparser,buf);
+          }
         }
 	sprintf(sbt.s, "%s", v);
         sbt.o = strlen(v);
@@ -592,9 +618,10 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    // conditional variabile
             tb.lh[tb.ix] = 1;
 	    if (tb.ini0[tb.ix] == 1){
-	      error("Cannot have conditional initial conditions for %s\n.",v);
-	    }
-	  }
+	      sprintf(buf,"Cannot have conditional initial conditions for %s",v);
+	      trans_syntax_error_report_fn(dparser,buf);
+            }
+          }
 	}
         Free(v);
       }
@@ -615,11 +642,9 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       D_ParseNode *xpn = d_get_child(pn,i);
       char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
       if (!strcmp("<-",v)){
-        error(NOASSIGN);
-        Free(v);
-      } else {
-        Free(v);
+	trans_syntax_error_report_fn(dparser,NOASSIGN);
       }
+      Free(v);
     }
     
     if (!strcmp("selection_statement", name)){
@@ -664,12 +689,11 @@ void prnt_vars(int scenario, FILE *outpt, int lhs, const char *pre_str, const ch
       fprintf(outpt,"\t");
       for (k = 0; k < strlen(buf); k++){
 	if (buf[k] == '.'){
-	  if (rx_syntax_allow_dots){
-	    fprintf(outpt,"_DoT_");
-          } else {
-	    error(NODOT);
-	  }
-	} else {
+	  fprintf(outpt,"_DoT_");
+	  if (!rx_syntax_allow_dots){
+            trans_syntax_error_report_fn(dparser,NODOT);
+          }
+        } else {
 	  fprintf(outpt,"%c",buf[k]);
 	}
       }
@@ -682,11 +706,10 @@ void prnt_vars(int scenario, FILE *outpt, int lhs, const char *pre_str, const ch
       fprintf(outpt,"\t");
       for (k = 0; k < strlen(buf); k++){
         if (buf[k] == '.'){
-	  if (rx_syntax_allow_dots){
-	    fprintf(outpt,"_DoT_");
-          } else {
-	    error(NODOT);
-	  }
+	  fprintf(outpt,"_DoT_");
+	  if (!rx_syntax_allow_dots){
+            trans_syntax_error_report_fn(dparser,NODOT);
+          }
         } else {
           fprintf(outpt,"%c",buf[k]);
         }
@@ -806,7 +829,10 @@ void print_aux_info(FILE *outpt, char *model){
 	  for (k = 0; k < strlen(buf); k++){
 	    if (buf[k] == '.'){
 	      sprintf(buf2+o2,"_DoT_");
-	      o2+=5;
+	      if (!rx_syntax_allow_dots){
+                trans_syntax_error_report_fn(dparser,NODOT);
+              }
+              o2+=5;
 	    } else {
 	      sprintf(buf2+o2,"%c",buf[k]);
               o2++;
@@ -994,11 +1020,10 @@ void codegen(FILE *outpt, int show_ode) {
       fprintf(outpt,"\t");
       for (k = 0; k < strlen(buf); k++){
         if (buf[k] == '.'){
-	  if (rx_syntax_allow_dots){
-	    fprintf(outpt,"_DoT_");
-          } else {
-	    error(NODOT);
-	  }
+	  fprintf(outpt,"_DoT_");
+	  if (!rx_syntax_allow_dots){
+            trans_syntax_error_report_fn(dparser,NODOT);
+          }
         } else {
           fprintf(outpt,"%c",buf[k]);
         }
@@ -1153,6 +1178,9 @@ void codegen(FILE *outpt, int show_ode) {
       for (k = 0; k < strlen(buf); k++){
         if (buf[k] == '.'){
           fprintf(outpt,"_DoT_");
+	  if (!rx_syntax_allow_dots){
+            trans_syntax_error_report_fn(dparser,NODOT);
+          }
         } else {
           fprintf(outpt,"%c",buf[k]);
         }
@@ -1188,11 +1216,11 @@ void trans_internal(char* parse_file, char* c_file){
   D_ParseNode *pn;
   /* any number greater than sizeof(D_ParseNode_User) will do;
      below 1024 is used */
-  D_Parser *p = new_D_Parser(&parser_tables_RxODE, 1024);
-  p->save_parse_tree = 1;
+  dparser = new_D_Parser(&parser_tables_RxODE, 1024);
+  dparser->save_parse_tree = 1;
   buf = r_sbuf_read(parse_file);
   err_msg((intptr_t) buf, "error: empty buf for FILE_to_parse\n", -2);
-  if ((pn=dparse(p, buf, strlen(buf))) && !p->syntax_errors) {
+  if ((pn=dparse(dparser, buf, strlen(buf))) && !dparser->syntax_errors) {
     reset();
     fpIO = fopen( out2, "w" );
     fpIO2 = fopen( "out3.txt", "w" );
@@ -1209,9 +1237,9 @@ void trans_internal(char* parse_file, char* c_file){
     print_aux_info(fpIO,buf);
     fclose(fpIO);
   } else {
-    Rprintf("\nSyntax Error\n");
+    rx_syntax_error = 1;
   }
-  free_D_Parser(p);
+  free_D_Parser(dparser);
 }
 
 SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_md5,
@@ -1227,6 +1255,8 @@ SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_m
   rx_syntax_star_pow = R_get_option("RxODE.syntax.star.pow",1);
   rx_syntax_require_semicolon = R_get_option("RxODE.syntax.require.semicolon",0);
   rx_syntax_allow_dots = R_get_option("RxODE.syntax.allow.dots",1);
+  rx_suppress_syntax_info = R_get_option("RxODE.suppress.syntax.info",0);
+  rx_syntax_error = 0;
   d_use_r_headers = 0;
   d_rdebug_grammar_level = 0;
   d_verbose_level = 0;
@@ -1364,6 +1394,9 @@ SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_m
           for (k = 0; k < strlen(buf); k++){
             if (buf[k] == '.'){
               sprintf(buf2+o2,"_DoT_");
+	      if (!rx_syntax_allow_dots){
+                trans_syntax_error_report_fn(dparser,NODOT);
+              }
               o2+=5;
             } else {
               sprintf(buf2+o2,"%c",buf[k]);
@@ -1454,6 +1487,9 @@ SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_m
   UNPROTECT(11);
   remove("out3.txt");
   reset();
+  if (rx_syntax_error){
+    error("Syntax Errors (see above)");
+  }
   return lst;
 }
 
