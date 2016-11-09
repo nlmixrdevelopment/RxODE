@@ -42,10 +42,17 @@ badParse('arithmetic syntax error',
                'd/dt(y) = -ka;',
                'C1 = /y;'))
 ## added ** operator
+options(RxODE.syntax.star.pow=TRUE);
 goodParse('existing operator **',
           code = paste(sep = "\n",
                        'd/dt(y) = -ka;',
                        'C1 = ka *  y**2;'))
+options(RxODE.syntax.star.pow=FALSE);
+badParse('existing operator **',
+          code = paste(sep = "\n",
+                       'd/dt(y) = -ka;',
+                       'C1 = ka *  y**2;'))
+
 
 badParse('unexistent operator %',
          code = paste(sep = "\n",
