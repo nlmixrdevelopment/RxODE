@@ -1747,14 +1747,17 @@ rxMd5 <- function(model,         # Model File
                 ret <- c(ret, gsub(rex::rex(or(any_spaces, any_newlines)), "", readLines(extraC), perl = TRUE));
             }
         }
-        ## tmp <- names(options());
-        ## tmp <- tmp[regexpr("RxODE.syntax", tmp) != -1];
-        ## ret <- c(ret, sapply(tmp, getOption));
-        ## tmp <- getLoadedDLLs()$RxODE;
-        ## class(tmp) <- "list";
+        tmp <- names(options());
+        tmp <- tmp[regexpr("RxODE.syntax", tmp) != -1];
+        ret <- c(ret, sapply(tmp, function(x){if (any(x == c("RxODE.syntax.require.semicolon"))){
+                                                  return(as.integer(getOption(x, FALSE)));
+                                              } else {
+                                                  return(as.integer(getOption(x, FALSE)));
+                                              }}));
+        tmp <- getLoadedDLLs()$RxODE;
+        class(tmp) <- "list";
         ## new RxODE dlls gives different digests.
-        ## ret <- c(tmp, digest::digest(tmp$path,file=TRUE));
-        ## ret <- paste(ret, collapse="\n");
+        ret <- c(ret, digest::digest(tmp$path,file=TRUE));
         return(list(text = mod,
                     digest = digest::digest(ret)));
     } else {

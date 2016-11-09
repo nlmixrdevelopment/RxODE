@@ -1,5 +1,5 @@
 library(digest);
-context("Checking output of grammars.")
+context("Checking output of grammars")
 files <- list.files(pattern=".*\\.test\\.g$")
 if (as.numeric(R.Version()$minor) > 3){
     for (file in files){
