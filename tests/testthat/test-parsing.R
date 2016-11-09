@@ -30,11 +30,21 @@ equivSyntax <- function(desc,code1,code2){
 badParse('incorrect d/dt operator','d/dt(y = 1);')
 
 ## Statements don't require ; now.
+options(RxODE.syntax.require.semicolon=FALSE);
 goodParse('comments must be outside statements','d/dt(y) = 1   # bad comment;')
 goodParse('missing end of statement ";" dosen\'t cause errors',
           paste(sep = "\n",
                 'd/dt(depot) = -ka * depot',
                 'd/dt(centr) =  ka * depot - kout * centr;'))
+
+options(RxODE.syntax.require.semicolon=TRUE);
+badParse('comments must be outside statements','d/dt(y) = 1   # bad comment;')
+badParse('missing end of statement ";"',
+          paste(sep = "\n",
+                'd/dt(depot) = -ka * depot',
+                'd/dt(centr) =  ka * depot - kout * centr;'))
+
+options(RxODE.syntax.require.semicolon=FALSE);
 
 badParse('arithmetic syntax error',
          paste(sep = "\n",

@@ -97,7 +97,8 @@ extern int d_rdebug_grammar_level;
 extern int d_verbose_level;
 
 unsigned int found_jac = 0, found_print = 0;
-int rx_syntax_assign = 0, rx_syntax_star_pow = 0;
+int rx_syntax_assign = 0, rx_syntax_star_pow = 0,
+  rx_syntax_require_semicolon = 0;
 
 char s_aux_info[64*MXSYM];
 
@@ -324,7 +325,11 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       tb.fn = (!strcmp("function", name) && i==0) ? 1 : 0;
       D_ParseNode *xpn = d_get_child(pn,i);
       wprint_parsetree(pt, xpn, depth, fn, client_data);
-      
+      if (rx_syntax_require_semicolon && !strcmp("end_statement",name) && i == 0){
+	if (xpn->start_loc.s ==  xpn->end){
+	  error("Lines need to end with ';' or to match R's handling of line endings set 'options(RxODE.syntax.require.semicolon = FALSE)'.");
+	} 
+      }
       if (!strcmp("print_command",name)){
 	found_print = 1;
 	char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
@@ -1119,6 +1124,7 @@ SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_m
   double d;
   rx_syntax_assign = R_get_option("RxODE.syntax.assign",1);
   rx_syntax_star_pow = R_get_option("RxODE.syntax.star.pow",1);
+  rx_syntax_require_semicolon = R_get_option("RxODE.syntax.require.semicolon",0);
   d_use_r_headers = 0;
   d_rdebug_grammar_level = 0;
   d_verbose_level = 0;
