@@ -102,7 +102,8 @@ char * r_dup_str(const char *s, const char *e) {
 
 int rx_syntax_error = 0, rx_suppress_syntax_info=0, rx_podo = 0;
 static void trans_syntax_error_report_fn(char *err) {
-  Rprintf(err);
+  if (!rx_suppress_syntax_info)
+    Rprintf("%s\n",err);
   rx_syntax_error = 1;
 }
 
