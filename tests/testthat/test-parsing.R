@@ -88,18 +88,88 @@ badParse(desc = 'illegal variable name (starting w. a digit)',
                       'd/dt(y) = F * y;')
          )
 
-badParse(desc = 'illegal variable name (illegal ".")',
+options(RxODE.syntax.allow.dots=TRUE)
+
+goodParse(desc = 'dot in variable name (ini0)',
          code = paste(sep = "\n",
                       'F = 0.75;',
                       'foo.bar = 1.0/2.0;',
                       'd/dt(y) = F * y;')
          )
 
-badParse(desc = 'illegal variable name in d/dt()',
+goodParse(desc = 'dot in variable name in d/dt()',
          code = paste(sep = "\n",
                       'd/dt(y_1) = F * y;',   # okay
                       'd/dt(y.1) = F * y;')   # not okay
          )
+
+goodParse(desc = 'leading dot in variable name',
+          code = paste(sep = "\n",
+                       'F = 0.75;',
+                       '.foo.bar = 0.5;',
+                       'd/dt(y) = F * y;')
+          )
+
+goodParse(desc = 'leading dot in variable name (ini0)',
+          code = paste(sep = "\n",
+                       'F = 0.75;',
+                       '.foo.bar = 1.0/2.0;',
+                       'd/dt(y) = F * y;')
+          )
+
+goodParse(desc = 'leading dot in variable name in d/dt()',
+          code = paste(sep = "\n",
+                       'd/dt(y_1) = F * y;',   # okay
+                       'd/dt(.y.1) = F * y;')   # not okay
+          )
+
+goodParse(desc = 'leading dot in variable name',
+          code = paste(sep = "\n",
+                       'F = 0.75;',
+                       '.foo.bar = 0.5;',
+                       'd/dt(y) = F * y;')
+          )
+
+options(RxODE.syntax.allow.dots=FALSE)
+badParse(desc = 'dot in variable name (ini0)',
+          code = paste(sep = "\n",
+                       'F = 0.75;',
+                       'foo.bar = 1.0/2.0;',
+                       'd/dt(y) = F * y;')
+          )
+
+badParse(desc = 'dot in variable name in d/dt()',
+          code = paste(sep = "\n",
+                       'd/dt(y_1) = F * y;',   # okay
+                       'd/dt(y.1) = F * y;')   # not okay
+          )
+
+badParse(desc = 'leading dot in variable name',
+          code = paste(sep = "\n",
+                       'F = 0.75;',
+                       '.foo.bar = 0.5;',
+                       'd/dt(y) = F * y;')
+          )
+
+badParse(desc = 'leading dot in variable name (ini0)',
+          code = paste(sep = "\n",
+                       'F = 0.75;',
+                       '.foo.bar = 1.0/2.0;',
+                       'd/dt(y) = F * y;')
+          )
+
+badParse(desc = 'leading dot in variable name in d/dt()',
+          code = paste(sep = "\n",
+                       'd/dt(y_1) = F * y;',   # okay
+                       'd/dt(.y.1) = F * y;')   # not okay
+          )
+
+badParse(desc = 'leading dot in variable name',
+          code = paste(sep = "\n",
+                       'F = 0.75;',
+                       '.foo.bar = 0.5;',
+                       'd/dt(y) = F * y;')
+          )
 
 badParse(desc = 'Assignment with <<- not supported',
          'd/dt(y_1) <<- F*y')

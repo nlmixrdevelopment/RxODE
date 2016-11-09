@@ -1,4 +1,4 @@
-##' Make a dparser c file based on a grammer 
+##' Make a dparser c file based on a grammer
 ##'
 ##' Uses a grammer file to create a c file for parsing.
 ##'
@@ -8,76 +8,76 @@
 ##'  Tomita algorithm. It is self-hosted and very easy to
 ##'  use. Grammars are written in a natural style of EBNF and regular
 ##'  expressions and support both speculative and final actions.
-##' 
+##'
 ##' @title mkdparse dparser grammer c
-##' 
+##'
 ##' @param file File name of grammer to parse.
-##' 
+##'
 ##' @param outputFile Output file name.  Can be a directory.  If so,
 ##'     the file name is determined by the input file.
-##' 
+##'
 ##' @param set_op_priority_from_rule Toggle setting of operator
 ##'     priority from rules.  Setting of operator priorities on
 ##'     operator tokens can increase the size of the tables but can
 ##'     permit unnecessary parse stacks to be pruned earlier. (FALSE
 ##'     by default)
-##' 
+##'
 ##' @param right_recursive_BNF Toggle use of right recursion for EBNF
 ##'     productions.  Do not change this unless you really know what
 ##'     you are doing. (FALSE by default)
-##' 
+##'
 ##' @param states_for_whitespace Toggle computing whitespace states.
 ##'     If 'whitespace' is defined in the grammar, then use it as a
 ##'     subparser to consume whitespace. (TRUE by default)
-##' 
+##'
 ##' @param states_for_all_nterms Toggle computing states for all
 ##'     non-terminals.  Ensures that there is a unique state for each
 ##'     non-terminal so that a subparsers can be invoked for that
 ##'     non-terminal. (FALSE by default)
-##' 
+##'
 ##' @param tokenizer Toggle building of a tokenizer for START.  When
 ##'     TRUE, instead of generating a unique scanner for each state
 ##'     (i.e. a 'scannerless' parser), generate a single scanner
 ##'     (tokenizer) for the entire grammar.  This provides an easy way
 ##'     to build grammars for languages which assume a tokenizer
 ##'     (e.g. ANSI C). (FALSE by default)
-##' 
+##'
 ##' @param token_type Token type "#define" or "enum"
-##' 
+##'
 ##' @param longest_match Toggle longest match lexical ambiguity
 ##'     resolution.  When TRUE the scanner only recognizing the
 ##'     longest matching tokens in a given state. This provides an
 ##'     easy way to build grammars for languages which use longest
 ##'     match lexical ambiguity resolution (e.g. ANSI-C, C++). (FALSE
 ##'     by default)
-##' 
+##'
 ##' @param grammar_ident Tag for grammar data structures so that
 ##'     multiple sets of tables can be included in one
 ##'     file/application. (defaults to 'gram')
-##' 
+##'
 ##' @param ident_from_filename Build the grammer tag from the
 ##'     file-name.
-##' 
+##'
 ##' @param scanner_blocks Number of blocks to which scanner tables are
 ##'     broken up into. Larger numbers permit more sharing with more
 ##'     overhead.  4 seems to be optimal for most grammars. (defaults
 ##'     to 4) files.
-##' 
+##'
 ##' @param write_line_directives Toggle writing of line numbers.  Used
 ##'     to debug the parsing table generator itself. (TRUE by default)
-##' 
+##'
 ##' @param write_header Write header, FALSE : no, TRUE : yes,
 ##'     "IfEmpty" : only if not empty.
-##' 
+##'
 ##' @param rdebug Replace all actions in the grammar with actions
 ##'     printing productions, 1 : during the speculative parsing
 ##'     process (<-), 2 : when reduction is part of any legal final
 ##'     parse (<=), 3 : both, 4 : remove all actions from the grammar.
 ##'     Print the changed grammar to console.  Useful for debugging or
 ##'     prototyping new, experimental grammars.
-##' 
+##'
 ##' @param verbose Increase verbosity.
-##' 
+##'
 ##' @param write_extension Set the extension of the generated code
 ##'     file.  For C++ programs (for example) the extension can be set
 ##'     to .cpp with the option \code{write_extension="cpp"}.
@@ -85,12 +85,12 @@
 ##'
 ##' @param use_r_header when TRUE, add R headers and swap printf for
 ##'     Rprintf. By default this is FALSE.
-##' 
+##'
 ##' @return Nothing. Outputs files instead.
-##' 
+##'
 ##' @author Matthew L. Fidler for R interface, John Plevyak for
 ##'     dparser
-##' 
+##'
 ##' @keywords internal
 ##' @export
 mkdparse <- function(file,outputFile,
@@ -165,4 +165,8 @@ updatePkg <- function(){ # nocov start
     sink(devtools::package_file("src/tran.g.d_parser.c"))
     cat(paste(file,collapse="\n"));
     sink();
+    for (f in list.files(devtools::package_file("src/"), pattern=sprintf("(\\.o|\\%s)$",.Platform$dynlib.ext),full.names=TRUE)){
+        unlink(f);
+    }
+    devtools::load_all();
 } # nocov end

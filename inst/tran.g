@@ -36,23 +36,23 @@ printf_command
 print_command
   : 'print' | 'ode_print' | 'jac_print' | 'lhs_print';
 
-ini0       : identifier ('(0)' | '{0}' | '[0]') ('=' | '<-') ini_const;
+ini0       : identifier_r ('(0)' | '{0}' | '[0]') ('=' | '<-') ini_const;
 
-ini        : identifier ('=' | '<-') ini_const;
+ini        : identifier_r ('=' | '<-') ini_const;
 
-derivative : 'd/dt' '(' identifier_no_output ')' ('=' | '<-') additive_expression;
-der_rhs    : 'd/dt' '(' identifier_no_output ')';
-jac        : jac_command '(' identifier_no_output ',' identifier_no_output ')' ('=' | '<-') additive_expression;
-jac_rhs    : jac_command '(' identifier_no_output ',' identifier_no_output ')';
+derivative : 'd/dt' '(' identifier_r_no_output ')' ('=' | '<-') additive_expression;
+der_rhs    : 'd/dt' '(' identifier_r_no_output ')';
+jac        : jac_command '(' identifier_r_no_output ',' identifier_r_no_output ')' ('=' | '<-') additive_expression;
+jac_rhs    : jac_command '(' identifier_r_no_output ',' identifier_r_no_output ')';
 
-dfdy        : 'df' '(' identifier_no_output ')/dy(' identifier_no_output ')' ('=' | '<-') additive_expression;
-dfdy_rhs    : 'df' '(' identifier_no_output ')/dy(' identifier_no_output ')';
+dfdy        : 'df' '(' identifier_r_no_output ')/dy(' identifier_r_no_output ')' ('=' | '<-') additive_expression;
+dfdy_rhs    : 'df' '(' identifier_r_no_output ')/dy(' identifier_r_no_output ')';
 
 jac_command : 'jac' | 'df/dy';
 
 end_statement : (';')* ;
 
-assignment : identifier ('=' | '<-') additive_expression;
+assignment : identifier_r ('=' | '<-') additive_expression;
 
 logical_or_expression :	logical_and_expression 
     (('||' | '|')  logical_and_expression)* ;
@@ -79,11 +79,11 @@ power_expression : primary_expression power_operator primary_expression ;
 power_operator   : ('^' | '**');
 
 primary_expression 
-  : identifier
+  : constant
+  | identifier_r
   | der_rhs
   | jac_rhs
   | dfdy_rhs
-  | constant
   | function
   | '(' additive_expression ')';
 
@@ -93,12 +93,18 @@ ini_const : '-'? constant;
 
 constant : decimalint | float1 | float2;
 
+identifier_r: identifier_r_1 | identifier_r_2;
+
+identifier_r_no_output: identifier_r_no_output_1 | identifier_r_no_output_2;
 
 decimalint: "0|([1-9][0-9]*)" $term -1;
 string: "\"([^\"\\]|\\[^])*\"";
 float1: "([0-9]+.[0-9]*|[0-9]*.[0-9]+)([eE][\-\+]?[0-9]+)?" $term -2;
 float2: "[0-9]+[eE][\-\+]?[0-9]+" $term -3;
+identifier_r_1: "[a-zA-Z_][a-zA-Z0-9_.]*" $term -4;
+identifier_r_no_output_1: "[a-zA-Z_][a-zA-Z0-9_.]*" $term -4;
+identifier_r_2: "[.]+[a-zA-Z_][a-zA-Z0-9_.]*" $term -4;
+identifier_r_no_output_2: "[.]+[a-zA-Z_][a-zA-Z0-9_.]*" $term -4;
 identifier: "[a-zA-Z_][a-zA-Z0-9_]*" $term -4;
-identifier_no_output: "[a-zA-Z_][a-zA-Z0-9_]*" $term -4;
 whitespace: ( "[ \t\r\n]+" | singleLineComment )*;
 singleLineComment: '#' "[^\n]*" '\n';

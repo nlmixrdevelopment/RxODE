@@ -20,6 +20,11 @@
 #define SBPTR sb.s+sb.o
 #define SBTPTR sbt.s+sbt.o
 
+#define NOASSIGN "'<-' not supported, use '=' instead or set 'options(RxODE.syntax.assign = TRUE)'."
+#define NEEDSEMI "Lines need to end with ';' or to match R's handling of line endings set 'options(RxODE.syntax.require.semicolon = FALSE)'."
+#define NEEDPOW "'**' not supported, use '^' instead or set 'options(RxODE.syntax.star.pow = TRUE)'."
+#define NODOT "'.' in variables and states not supported, use '_' instead or set 'options(RxODE.syntax.allow.dots = TRUE)'."
+
 // from mkdparse_tree.h
 typedef void (print_node_fn_t)(int depth, char *token_name, char *token_value, void *client_data);
 
@@ -98,7 +103,7 @@ extern int d_verbose_level;
 
 unsigned int found_jac = 0, found_print = 0;
 int rx_syntax_assign = 0, rx_syntax_star_pow = 0,
-  rx_syntax_require_semicolon = 0;
+  rx_syntax_require_semicolon = 0, rx_syntax_allow_dots = 0;
 
 char s_aux_info[64*MXSYM];
 
@@ -173,6 +178,7 @@ int new_de(const char *s){
 
 void wprint_node(int depth, char *name, char *value, void *client_data) {
   // Took out space; changes parsing of statements like = -1 so that they cannot besc
+  int i;
   if (!strcmp("time",value)){
     sprintf(SBPTR, "t");
     sprintf(SBTPTR, "t");
@@ -189,25 +195,34 @@ void wprint_node(int depth, char *name, char *value, void *client_data) {
     sb.o  += 7;
     sbt.o += 5;
   } else {
-    sprintf(SBPTR, "%s", value);
-    sprintf(SBTPTR, "%s", value);
-    sb.o += strlen(value);
-    sbt.o += strlen(value);
-
+    // Apply fix for dot.syntax
+    for (i = 0; i < strlen(value); i++){
+      if (value[i] == '.' && !strcmp("identifier_r",name)){
+	sprintf(SBPTR, "_DoT_");
+	sprintf(SBTPTR, ".");
+	sb.o += 5;
+	sbt.o++;
+      } else {
+	sprintf(SBPTR, "%c", value[i]);
+        sprintf(SBTPTR, "%c", value[i]);
+	sb.o++;
+        sbt.o++;
+      }
+    }
   }
 }
 
 void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_fn_t fn, void *client_data) {
   char *name = (char*)pt.symbols[pn->symbol].name;
-  int nch = d_get_number_of_children(pn), i;
+  int nch = d_get_number_of_children(pn), i, k;
   char *value = (char*)rc_dup_str(pn->start_loc.s, pn->end);
-  if ((!strcmp("identifier", name) || !strcmp("identifier_no_output",name)) &&
+  if ((!strcmp("identifier", name) || !strcmp("identifier_r", name) ||
+       !strcmp("identifier_r_no_output",name)) &&
       new_or_ith(value)) {
     /* printf("[%d]->%s\n",tb.nv,value); */
     sprintf(tb.ss+tb.pos, "%s,", value);
     tb.pos += strlen(value)+1;
     tb.vo[++tb.nv] = tb.pos;
-    
   }
   if (!strcmp("(", name) ||
       !strcmp(")", name) ||
@@ -219,6 +234,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
     sbt.o++;
   }
   if (!strcmp("identifier", name) ||
+      !strcmp("identifier_r", name) ||
       !strcmp("constant", name) ||
       !strcmp("+", name) ||
       !strcmp("-", name) ||
@@ -286,7 +302,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	D_ParseNode *xpn = d_get_child(pn,i);
 	char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
 	if (!strcmp("<-",v)){
-	  error("'<-' not supported, use '=' instead or set 'options(RxODE.syntax.assign = TRUE)'.");
+	  error(NOASSIGN);
 	  Free(v);
 	} else {
 	  Free(v);
@@ -327,7 +343,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       wprint_parsetree(pt, xpn, depth, fn, client_data);
       if (rx_syntax_require_semicolon && !strcmp("end_statement",name) && i == 0){
 	if (xpn->start_loc.s ==  xpn->end){
-	  error("Lines need to end with ';' or to match R's handling of line endings set 'options(RxODE.syntax.require.semicolon = FALSE)'.");
+	  error(NEEDSEMI);
 	} 
       }
       if (!strcmp("print_command",name)){
@@ -464,7 +480,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
 	if (!strcmp("**",v)){
 	  Free(v);
-	  error("'**' not supported, use '^' instead or set 'options(RxODE.syntax.star.pow = TRUE)'.");
+	  error(NEEDPOW);
 	} else {
 	  Free(v);
 	}
@@ -517,15 +533,42 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       if ((!strcmp("assignment", name) || !strcmp("ini", name) || !strcmp("ini0", name)) && i==0) {
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
 	if (!strcmp("ini", name) || !strcmp("ini0", name)){
-	  sprintf(sb.s, "(__0__)%s", v);
-          sb.o = strlen(v)+7;
+	  sprintf(sb.s,"(__0__)");
+	  sb.o = 7;
+	  for (k = 0; k < strlen(v); k++){
+            if (v[k] == '.'){
+	      if (rx_syntax_allow_dots){
+		sprintf(SBPTR,"_DoT_");
+                sb.o +=5;
+              } else {
+		Free(v);
+		error(NODOT);
+	      }
+            } else {
+              sprintf(SBPTR,"%c",v[k]);
+	      sb.o++;
+	    }
+	  }
 	  if (!strcmp("ini",name) & !new_de(v)){
 	    Free(v);
 	    error("Cannot assign state variable %s; For initial condition assigment use '%s(0) ='.\n",v,v);
 	  }
         } else {
-	  sprintf(sb.s, "%s", v);
-          sb.o = strlen(v);
+	  sb.o = 0;
+	  for (k = 0; k < strlen(v); k++){
+            if (v[k] == '.'){
+	      if (rx_syntax_allow_dots){	      
+		sprintf(SBPTR,"_DoT_");
+		sb.o +=5;
+	      } else {
+		free(v);
+		error(NODOT);
+	      }
+            } else {
+              sprintf(SBPTR,"%c",v[k]);
+              sb.o++;
+	    }
+          }
 	  if (!new_de(v)){
 	    Free(v);
 	    error("Cannot assign state variable %s; For initial condition assigment use '%s(0) ='.\n",v,v);
@@ -572,7 +615,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       D_ParseNode *xpn = d_get_child(pn,i);
       char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
       if (!strcmp("<-",v)){
-        error("'<-' not supported, use '=' instead or set 'options(RxODE.syntax.assign = TRUE)'.");
+        error(NOASSIGN);
         Free(v);
       } else {
         Free(v);
@@ -609,7 +652,7 @@ void err_msg(int chk, const char *msg, int code)
 
 /* when prnt_vars() is called, user defines the behavior in "case" */
 void prnt_vars(int scenario, FILE *outpt, int lhs, const char *pre_str, const char *post_str) {
-  int i, j;
+  int i, j, k;
   char buf[64];
 
   fprintf(outpt, "%s", pre_str);  /* dj: avoid security vulnerability */
@@ -618,10 +661,37 @@ void prnt_vars(int scenario, FILE *outpt, int lhs, const char *pre_str, const ch
     retieve_var(i, buf);
     switch(scenario) {
     case 0:
-      fprintf(outpt, i<tb.nv-1 ? "\t%s,\n" : "\t%s;\n", buf);
+      fprintf(outpt,"\t");
+      for (k = 0; k < strlen(buf); k++){
+	if (buf[k] == '.'){
+	  if (rx_syntax_allow_dots){
+	    fprintf(outpt,"_DoT_");
+          } else {
+	    error(NODOT);
+	  }
+	} else {
+	  fprintf(outpt,"%c",buf[k]);
+	}
+      }
+      if (i <tb.nv-1)
+	fprintf(outpt, ",\n");
+      else
+	fprintf(outpt, ";\n");
       break;
     case 1:
-      fprintf(outpt, "\t%s = par_ptr(%d);\n", buf, j++);
+      fprintf(outpt,"\t");
+      for (k = 0; k < strlen(buf); k++){
+        if (buf[k] == '.'){
+	  if (rx_syntax_allow_dots){
+	    fprintf(outpt,"_DoT_");
+          } else {
+	    error(NODOT);
+	  }
+        } else {
+          fprintf(outpt,"%c",buf[k]);
+        }
+      }
+      fprintf(outpt, " = par_ptr(%d);\n", j++);
       break;
     default: break;
     }
@@ -630,7 +700,7 @@ void prnt_vars(int scenario, FILE *outpt, int lhs, const char *pre_str, const ch
 }
 
 void print_aux_info(FILE *outpt, char *model){
-  int i, islhs,pi = 0,li = 0, o=0, statei = 0, ini_i = 0;
+  int i, k, islhs,pi = 0,li = 0, o=0, o2=0, statei = 0, ini_i = 0;
   char *s2;
   char sLine[MXLEN+1];
   char buf[512], buf2[512];
@@ -731,12 +801,23 @@ void print_aux_info(FILE *outpt, char *model){
         if (tb.ini[i] == 1 && tb.lh[i] != 1){
           //(__0__)V2 =
           retieve_var(i, buf);
-	  sprintf(buf2,"(__0__)%s=",buf);
+	  sprintf(buf2,"(__0__)");
+	  o2 = 7;
+	  for (k = 0; k < strlen(buf); k++){
+	    if (buf[k] == '.'){
+	      sprintf(buf2+o2,"_DoT_");
+	      o2+=5;
+	    } else {
+	      sprintf(buf2+o2,"%c",buf[k]);
+              o2++;
+	    }
+	  }
+          sprintf(buf2+o2,"=");
           s2 = strstr(sLine,buf2);
           if (s2){
 	    sprintf(s_aux_info+o,"\tSET_STRING_ELT(inin,%d,mkChar(\"%s\"));\n",ini_i, buf);
 	    o = strlen(s_aux_info);
-            sprintf(s_aux_info+o,"\tREAL(ini)[%d] = %.*s;\n",(int)(ini_i++), strlen(sLine)-strlen(buf)-10,sLine + 8 + strlen(buf));
+            sprintf(s_aux_info+o,"\tREAL(ini)[%d] = %.*s;\n",(int)(ini_i++), strlen(sLine)-strlen(buf2)-2,sLine + strlen(buf2));
 	    o = strlen(s_aux_info);
             continue;
           }
@@ -861,7 +942,7 @@ void print_aux_info(FILE *outpt, char *model){
 }
 
 void codegen(FILE *outpt, int show_ode) {
-  int i, j,print_ode=0, print_vars = 0, print_parm = 0, print_jac=0;
+  int i, j, k, print_ode=0, print_vars = 0, print_parm = 0, print_jac=0;
   char sLine[MXLEN+1];
   char buf[64];
   FILE *fpIO;
@@ -910,7 +991,19 @@ void codegen(FILE *outpt, int show_ode) {
     prnt_vars(1, outpt, 1, "", "\n");                   /* pass system pars */
     for (i=0; i<tb.nd; i++) {                   /* name state vars */
       retieve_var(tb.di[i], buf);
-      fprintf(outpt, "\t%s = __zzStateVar__[%d];\n", buf, i);
+      fprintf(outpt,"\t");
+      for (k = 0; k < strlen(buf); k++){
+        if (buf[k] == '.'){
+	  if (rx_syntax_allow_dots){
+	    fprintf(outpt,"_DoT_");
+          } else {
+	    error(NODOT);
+	  }
+        } else {
+          fprintf(outpt,"%c",buf[k]);
+        }
+      }
+      fprintf(outpt," = __zzStateVar__[%d];\n", i);
     }
     fprintf(outpt,"\n");
     fpIO = fopen(out2, "r");
@@ -1056,7 +1149,15 @@ void codegen(FILE *outpt, int show_ode) {
     for (i=0, j=0; i<tb.nv; i++) {
       if (tb.lh[i] != 1) continue;
       retieve_var(i, buf);
-      fprintf(outpt, "\tlhs[%d]=%s;\n", j, buf);
+      fprintf(outpt, "\tlhs[%d]=", j);
+      for (k = 0; k < strlen(buf); k++){
+        if (buf[k] == '.'){
+          fprintf(outpt,"_DoT_");
+        } else {
+          fprintf(outpt,"%c",buf[k]);
+        }
+      }
+      fprintf(outpt, ";\n");
       j++;
     }
     fprintf(outpt, "}\n");
@@ -1120,11 +1221,12 @@ SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_m
   char snum[512];
   char *s2;
   char sLine[MXLEN+1];
-  int i, j, islhs, pi=0, li=0, ini_i = 0;
+  int i, j, islhs, pi=0, li=0, ini_i = 0,o2=0,k=0;
   double d;
   rx_syntax_assign = R_get_option("RxODE.syntax.assign",1);
   rx_syntax_star_pow = R_get_option("RxODE.syntax.star.pow",1);
   rx_syntax_require_semicolon = R_get_option("RxODE.syntax.require.semicolon",0);
+  rx_syntax_allow_dots = R_get_option("RxODE.syntax.allow.dots",1);
   d_use_r_headers = 0;
   d_rdebug_grammar_level = 0;
   d_verbose_level = 0;
@@ -1257,12 +1359,23 @@ SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_m
         if (tb.ini[i] == 1 && tb.lh[i] != 1){
           //(__0__)V2=
           retieve_var(i, buf);
-  	  sprintf(buf2,"(__0__)%s=",buf);
+	  sprintf(buf2,"(__0__)");
+          o2 = 7;
+          for (k = 0; k < strlen(buf); k++){
+            if (buf[k] == '.'){
+              sprintf(buf2+o2,"_DoT_");
+              o2+=5;
+            } else {
+              sprintf(buf2+o2,"%c",buf[k]);
+              o2++;
+            }
+          }
+          sprintf(buf2+o2,"=");
           s2 = strstr(sLine,buf2);
           if (s2){
   	    /* Rprintf("%s[%d]->\n",buf,ini_i++); */
   	    SET_STRING_ELT(inin,ini_i,mkChar(buf));
-  	    sprintf(snum,"%.*s",(int)(strlen(sLine)-strlen(buf) - 10), sLine + 8 + strlen(buf));
+  	    sprintf(snum,"%.*s",(int)(strlen(sLine)-strlen(buf2) - 2), sLine + strlen(buf2));
   	    sscanf(snum, "%lf", &d);
   	    REAL(ini)[ini_i++] = d;
             continue;
