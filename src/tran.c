@@ -100,7 +100,7 @@ char * r_dup_str(const char *s, const char *e) {
   return ss;
 }
 
-int rx_syntax_error = 0, rx_suppress_syntax_info=0;
+int rx_syntax_error = 0, rx_suppress_syntax_info=0, rx_podo = 0;
 static void trans_syntax_error_report_fn(struct D_Parser *ap, char *err) {
   Parser *p = (Parser *)ap;
   char *fn = d_dup_pathname_str(p->user.loc.pathname);
@@ -218,6 +218,7 @@ void wprint_node(int depth, char *name, char *value, void *client_data) {
     sprintf(SBTPTR, "podo");
     sb.o  += 6;
     sbt.o += 4;
+    rx_podo = 1;
   } else if (!strcmp("tlast",value)){
     sprintf(SBPTR, "tlast()");
     sprintf(SBTPTR, "tlast");
@@ -744,8 +745,8 @@ void print_aux_info(FILE *outpt, char *model){
     o = strlen(s_aux_info);
   }
   fprintf(outpt,"extern SEXP %smodel_vars(){\n",model_prefix);
-  fprintf(outpt,"\tSEXP lst    = PROTECT(allocVector(VECSXP, 7));\n");
-  fprintf(outpt,"\tSEXP names  = PROTECT(allocVector(STRSXP, 7));\n");
+  fprintf(outpt,"\tSEXP lst    = PROTECT(allocVector(VECSXP, 8));\n");
+  fprintf(outpt,"\tSEXP names  = PROTECT(allocVector(STRSXP, 8));\n");
   fprintf(outpt,"\tSEXP params = PROTECT(allocVector(STRSXP, %d));\n",pi);
   fprintf(outpt,"\tSEXP lhs    = PROTECT(allocVector(STRSXP, %d));\n",li);
   fprintf(outpt,"\tSEXP state  = PROTECT(allocVector(STRSXP, %d));\n",statei);
@@ -891,7 +892,10 @@ void print_aux_info(FILE *outpt, char *model){
   fprintf(outpt,"\tSET_VECTOR_ELT(lst,  4,ini);\n");
 
   fprintf(outpt,"\tSET_STRING_ELT(names,6,mkChar(\"md5\"));\n");
-  fprintf(outpt,"\tSET_VECTOR_ELT(lst,  6,mmd5);\n");  
+  fprintf(outpt,"\tSET_VECTOR_ELT(lst,  6,mmd5);\n");
+
+  fprintf(outpt,"\tSET_STRING_ELT(names,7,mkChar(\"podo\"));\n");
+  fprintf(outpt,"\tSET_VECTOR_ELT(lst,  7,ScalarLogical(%d));\n",rx_podo);
   
   // md5 values
   fprintf(outpt,"\tSET_STRING_ELT(mmd5n,0,mkChar(\"file_md5\"));\n");
@@ -1260,6 +1264,7 @@ SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_m
   d_use_r_headers = 0;
   d_rdebug_grammar_level = 0;
   d_verbose_level = 0;
+  rx_podo = 0;
   if (!isString(parse_file) || length(parse_file) != 1){
     error("parse_file is not a single string");
   }
@@ -1301,8 +1306,8 @@ SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_m
     sprintf(out2,"out2.txt"); 
   }
   trans_internal(in, out);
-  SEXP lst   = PROTECT(allocVector(VECSXP, 6));
-  SEXP names = PROTECT(allocVector(STRSXP, 6));
+  SEXP lst   = PROTECT(allocVector(VECSXP, 7));
+  SEXP names = PROTECT(allocVector(STRSXP, 7));
   
   SEXP tran  = PROTECT(allocVector(STRSXP, 7));
   SEXP trann = PROTECT(allocVector(STRSXP, 7));
@@ -1350,6 +1355,9 @@ SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_m
 
   SET_STRING_ELT(names,5,mkChar("model"));
   SET_VECTOR_ELT(lst,  5,model);
+
+  SET_STRING_ELT(names,6,mkChar("podo"));
+  SET_VECTOR_ELT(lst,  6,ScalarLogical(rx_podo));
   
   SET_STRING_ELT(trann,0,mkChar("jac"));
   if (found_jac == 1){

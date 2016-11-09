@@ -124,6 +124,11 @@ member function `add.sampling` function to define a set of time points when
 to capture the values of these variables) and returned as 
 part of the modeling output.
 
+You may also access the R's
+core
+[C routines](https://cran.r-project.org/doc/manuals/r-release/R-exts.html#Numerical-analysis-subroutines),
+like `lgammafn` for the log gamma function
+
 ## Bugs and/or deficiencies
 
 The modulo operator `%` is currently unsupported. 

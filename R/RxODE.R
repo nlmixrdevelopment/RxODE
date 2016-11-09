@@ -261,7 +261,7 @@ regIni <- rex::rex(or(group(one_of("_."), "0"), "0", "(0)", "[0]", "{0}"), end);
 ##' print(m1)
 ##'
 ##' # Step 2 - Create the model input as an EventTable,
-##' # including dosing and observation (sampling) events
+                                        ##' # including dosing and observation (sampling) events
 ##'
 #                                        #' # QD (once daily) dosing for 5 days.
 ##'
@@ -2628,7 +2628,7 @@ rxSolve <- function(object,                      # RxODE object
                     inits              = NULL,   # Initial Events
                     covs               = NULL,   # Covariates
                     stiff              = TRUE,   # Is the system stiff
-                    transit_abs        = FALSE,  # Transit compartment absorption?
+                    transit_abs        = NULL,  # Transit compartment absorption?
                     atol               = 1.0e-6, # Absoltue Tolerance for LSODA solver
                     rtol               = 1.0e-6, # Relative Tolerance for LSODA solver
                     maxsteps           = 5000,   # Maximum number of steps
@@ -2686,7 +2686,7 @@ rxSolve.solveRxDll <- function(object, params, events, inits, covs, stiff, trans
 
 ##' @rdname rxSolve
 ##' @export
-rxSolve.RxODE <- function(object, params, events, inits = NULL, covs = NULL, stiff = TRUE, transit_abs = FALSE,
+rxSolve.RxODE <- function(object, params, events, inits = NULL, covs = NULL, stiff = TRUE, transit_abs = NULL,
                           atol = 1.0e-8, rtol = 1.0e-6, maxsteps = 5000, hmin = 0, hmax = NULL, hini = 0, maxordn = 12,
                           maxords = 5, ..., covs_interpolation = c("Linear", "LOCF")){
     rxSolve.rxDll(object$cmpMgr$rxDll(), params, events, inits, covs, stiff, transit_abs, atol, rtol, maxsteps, hmin,
@@ -2695,7 +2695,7 @@ rxSolve.RxODE <- function(object, params, events, inits = NULL, covs = NULL, sti
 ##' @rdname rxSolve
 ##' @export
 rxSolve.RxCompilationManager <- function(object, params, events, inits = NULL, covs = NULL, stiff = TRUE,
-                                         transit_abs = FALSE, atol = 1.0e-8, rtol = 1.0e-6, maxsteps = 5000, hmin = 0,
+                                         transit_abs = NULL, atol = 1.0e-8, rtol = 1.0e-6, maxsteps = 5000, hmin = 0,
                                          hmax = NULL, hini = 0, maxordn = 12, maxords = 5, ...,
                                          covs_interpolation = c("Linear", "LOCF")){
     rxSolve.rxDll(object$rxDll(), params, events, inits, covs, stiff, transit_abs, atol, rtol, maxsteps, hmin, hmax,
@@ -2704,7 +2704,7 @@ rxSolve.RxCompilationManager <- function(object, params, events, inits = NULL, c
 }
 ##' @rdname rxSolve
 ##' @export
-rxSolve.character <- function(object, params, events, inits = NULL, covs = NULL, stiff = TRUE, transit_abs = FALSE,
+rxSolve.character <- function(object, params, events, inits = NULL, covs = NULL, stiff = TRUE, transit_abs = NULL,
                               atol = 1.0e-8, rtol = 1.0e-6, maxsteps = 5000, hmin = 0, hmax = NULL, hini = 0, maxordn = 12,
                               maxords = 5, ..., covs_interpolation = c("Linear", "LOCF")){
     rxSolve.rxDll(rxCompile(object), params, events, inits, covs, stiff, transit_abs, atol, rtol, maxsteps, hmin, hmax,
@@ -2712,13 +2712,19 @@ rxSolve.character <- function(object, params, events, inits = NULL, covs = NULL,
 }
 ##' @rdname rxSolve
 ##' @export
-rxSolve.rxDll <- function(object, params, events, inits = NULL, covs = NULL, stiff = TRUE, transit_abs = FALSE,
+rxSolve.rxDll <- function(object, params, events, inits = NULL, covs = NULL, stiff = TRUE, transit_abs = NULL,
                           atol = 1.0e-8, rtol = 1.0e-6, maxsteps = 5000, hmin = 0, hmax = NULL, hini = 0, maxordn = 12,
                           maxords = 5, ..., covs_interpolation = c("Linear", "LOCF")){
     ## rxSolve.rxDll returns a solved object
     if (missing(events) && class(params) == "EventTable"){
         events <- params;
         params <- c();
+    }
+    if (is.null(transit_abs)){
+        transit_abs <- rxModelVars(transit)$podo;
+        if (transit_abs){
+            warning("Assumed transit compartment model since 'podo' is in the model.")
+        }
     }
     ## Params and inits passed
     extra.args <- list(events = events$copy(),
