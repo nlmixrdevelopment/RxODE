@@ -1,7 +1,7 @@
 ## (Regression) test 3 multiple instances of RxODE objects to ensure
 ## C symbols and operations don't conflict.
 library(RxODE)
-context("Make sure C operations and symbols don't conflict.")
+context("Make sure C operations and symbols don't conflict")
 
 
 test.dir <- tempfile("Rxmult-")

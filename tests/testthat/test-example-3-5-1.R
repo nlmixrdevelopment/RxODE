@@ -35,12 +35,12 @@ et$add.sampling(seq(0,30,by=0.01))
 
 stiff <- solve(Vtpol,et);
 
-plot(stiff$time,stiff$y,type="l")
+## plot(stiff$time,stiff$y,type="l")
 counts <- data.frame(t(stiff$counts),mu=1,digest=digest(round(as.data.frame(stiff),3)));
 
 for (i in 10^(1:7)){
     stiff$mu <- i;
-    plot(stiff$time,stiff$y,type="l");
+    ## plot(stiff$time,stiff$y,type="l");
     title(sprintf("mu=%s",i));
     counts <- rbind(counts,data.frame(t(as.matrix(stiff$counts)),mu=i,digest=digest(round(as.data.frame(stiff),3))));
 }
@@ -61,12 +61,12 @@ counts0 <- counts;
 
 
 stiff <- solve(Vtpol2,et);
-plot(stiff$time,stiff$y,type="l")
+## plot(stiff$time,stiff$y,type="l")
 counts <- data.frame(t(stiff$counts),mu=1,digest=digest(round(as.data.frame(stiff),3)));
 
 for (i in 10^(1:7)){
     stiff$mu <- i;
-    plot(stiff$time,stiff$y,type="l");
+    ## plot(stiff$time,stiff$y,type="l");
     title(sprintf("mu=%s",i));
     counts <- rbind(counts,data.frame(t(stiff$counts),mu=i,digest=digest(round(as.data.frame(stiff),3))));
 }

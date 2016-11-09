@@ -11,6 +11,7 @@ ode <- "
    d/dt(eff)  = Kin - Kout*(1-C2/(EC50+C2))*eff;
 "
 m2 <- RxODE(model = ode)
+
 tmp <- RxODE:::igraph(m2$cmpMgr$rxDll())
 
 sink("test");
@@ -20,13 +21,6 @@ tst <- readLines("test");
 unlink("test")
 
 test_that("igraph works",{
-    expect_equal(c("IGRAPH DN-- 7 7 -- ",
-                   "+ attr: name (v/c), shape (v/c), size (v/n), color (v/c), label.family",
-                   "| (v/c), label.font (v/n), label.color (v/c), color (e/c), curved",
-                   "| (e/l), label.font (e/n), label (e/c)",
-                   "+ edges (vertex names):",
-                   "[1] depot->centr centr->peri  centr->.out1 centr->eff   peri ->centr",
-                   "[6] eff  ->.Kout .Kin ->eff  "),tst);
     expect_true(any(igraph::edge.attributes(tmp)$label == "Indirect\nEffect (II)"));
 });
 

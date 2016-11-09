@@ -1,5 +1,5 @@
 require(RxODE)
-context("Test loading, and unloading of models.")
+context("Test loading, and unloading of models")
 
 rxClean();
 rigid.txt <- "

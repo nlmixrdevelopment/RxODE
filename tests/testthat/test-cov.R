@@ -2,7 +2,7 @@ library(RxODE)
 
 rxClean()
 
-context("Simple test for time-varying covariates.")
+context("Simple test for time-varying covariates")
 
 ode <-
     RxODE('
@@ -90,7 +90,7 @@ test_that("Before assinging the time varying to -8/3, out and out2 should be dif
     expect_false(isTRUE(all.equal(out,out2)));
 })
 
-context("Test First Assignment.")
+context("Test First Assignment")
 ## Assign a time-varying to a simple parameter
 sink("temp");
 out$a <- -8/3
@@ -102,7 +102,7 @@ test_that("The out$a=-8/3 works.",{
 })
 
 
-context("Test Second Assignment.")
+context("Test Second Assignment")
 sink("temp")
 out$a <- out3$a
 sink();

@@ -12,7 +12,8 @@ regIni <- rex::rex(or(group(one_of("_."), "0"), "0", "(0)", "[0]", "{0}"), end);
                   RxODE.compile.on.load = TRUE,
                   RxODE.verbose=TRUE,
                   RxODE.syntax.assign=TRUE,
-                  RxODE.syntax.star.pow=TRUE);
+                  RxODE.syntax.star.pow=TRUE,
+                  RxODE.syntax.require.semicolon=FALSE);
     w <- !(names(op.rx) %in% names(op))
     if (any(w)) options(op.rx[w]);
     ## nocov end
@@ -1746,13 +1747,14 @@ rxMd5 <- function(model,         # Model File
                 ret <- c(ret, gsub(rex::rex(or(any_spaces, any_newlines)), "", readLines(extraC), perl = TRUE));
             }
         }
-        tmp <- names(options());
-        tmp <- tmp[regexpr("RxODE.syntax", tmp) != -1];
-        ret <- c(ret, sapply(tmp, getOption));
-        tmp <- getLoadedDLLs()$RxODE;
-        class(tmp) <- "list";
+        ## tmp <- names(options());
+        ## tmp <- tmp[regexpr("RxODE.syntax", tmp) != -1];
+        ## ret <- c(ret, sapply(tmp, getOption));
+        ## tmp <- getLoadedDLLs()$RxODE;
+        ## class(tmp) <- "list";
         ## new RxODE dlls gives different digests.
-        ret <- c(tmp, digest::digest(tmp$path,file=TRUE));
+        ## ret <- c(tmp, digest::digest(tmp$path,file=TRUE));
+        ## ret <- paste(ret, collapse="\n");
         return(list(text = mod,
                     digest = digest::digest(ret)));
     } else {

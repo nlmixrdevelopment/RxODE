@@ -1,8 +1,0 @@
-PKG_LIBS = $(BLAS_LIBS) $(FLIBS)
-PKG_FFLAGS=$(FPICFLAGS) 
-PKG_FCFLAGS=$(FPICFLAGS)
-
-SOURCES_C = call_dvode.c dop853.c tran.c parse.c scan.c symtab.c util.c mkdparse.c write_tables.c grammar.g.c gram.c lex.c lr.c version.c rprintf.c
-SOURCES_FORTAN = dlsoda.f opkda1_abbr.f opkda2.f vode.f errmsg.f
-
-OBJECTS = $(SOURCES_C:.c=.o) $(SOURCES_FORTAN:.f=.o)
