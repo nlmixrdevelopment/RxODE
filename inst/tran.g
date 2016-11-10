@@ -78,12 +78,7 @@ additive_expression : multiplicative_expression
 multiplicative_expression : unary_expression 
   (('*' | '/') unary_expression)* ;
 
-unary_expression : ('+' | '-')? (primary_expression |
-      power_expression |
-      factorial |
-      factorial_exp |
-      lfactorial |
-      lfactorial_exp);
+unary_expression : ('+' | '-')? (primary_expression | power_expression );
 
 power_expression : primary_expression power_operator primary_expression ;
 
@@ -98,6 +93,10 @@ primary_expression
   | transit2
   | transit3
   | function
+  |  factorial 
+  |  factorial_exp 
+  |  lfactorial 
+  |  lfactorial_exp
   | '(' additive_expression ')'
   ;
 
