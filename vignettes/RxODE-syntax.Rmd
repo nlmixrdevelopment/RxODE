@@ -69,8 +69,9 @@ however, no character nor integer expressions are currently supported.
 Numeric expressions can include the following numeric operators `+, -,
 *, /, ^` and those mathematical functions defined in the C or the R
 math libraries (e.g., `fabs`, `exp`, `log`, `sin`).  In addition, the
-factorial operator (`!`) can be used. Notice that the modulo operator
-`%` is currently unsupported.
+factorial operator and function (either `!` or `factorial` as in R)
+can be used. Notice that the modulo operator `%` is currently
+unsupported.
 
 You may also access the R's functions in the [R math libraries](https://cran.r-project.org/doc/manuals/r-release/R-exts.html#Numerical-analysis-subroutines),
 like `lgammafn` for the log gamma function

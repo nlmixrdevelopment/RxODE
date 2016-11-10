@@ -1,12 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
 #include "dop853.h"
 #define max(a, b) ((a) > (b) ? (a) : (b))
 #define RLEN (neq+nlhs+ncov+1)
 #include <R.h>
 #include <Rinternals.h>
-#include <Rmath.h>
+#include <Rmath.h> //Rmath includes math.
 #include <R_ext/Rdynload.h>
 
 
@@ -659,6 +658,10 @@ double RxODE_transit4(double t, double n, double mtt, double bio){
 double RxODE_transit3(double t, double n, double mtt){
   return RxODE_transit4(t, n,mtt, 1.0);
 }
+
+double RxODE_factorial(double x){
+  return exp(lgamma1p(x));
+}
 void R_init_RxODE(DllInfo *info){
   //Function
   R_RegisterCCallable("RxODE","RxODE_ode_solver",       (DL_FUNC) RxODE_ode_solver);
@@ -678,4 +681,5 @@ void R_init_RxODE(DllInfo *info){
   // tranit compartment models
   R_RegisterCCallable("RxODE","RxODE_transit4",         (DL_FUNC) RxODE_transit4);
   R_RegisterCCallable("RxODE","RxODE_transit3",         (DL_FUNC) RxODE_transit3);
+  R_RegisterCCallable("RxODE","RxODE_factorial",        (DL_FUNC) RxODE_factorial);
 }

@@ -157,6 +157,7 @@ of parameter values for use in the simulation. In the example below,
 40% variability in clearance is simulated. 
 
 ```{r}
+
 options(RxODE.warn.on.assign = FALSE); ## Turn of warning on assignment of initial conditions
 nsub <- 100						  #number of subproblems
 CL <- 1.86E+01*exp(rnorm(nsub,0,.4^2))
@@ -173,6 +174,7 @@ matrix.
 
 ```{r fig.width=10}
 nobs <- ev$get.nobs()
+set.seed(1)
 cp.all <- matrix(NA, nobs, nsub)
 for (i in 1:nsub)
 {

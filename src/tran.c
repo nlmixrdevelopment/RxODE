@@ -207,6 +207,17 @@ void wprint_node(int depth, char *name, char *value, void *client_data) {
     sprintf(SBTPTR, "tlast");
     sb.o  += 7;
     sbt.o += 5;
+    
+  } else if (!strcmp("identifier",name) && !strcmp("gamma",value)){
+    sprintf(SBPTR, "lgammafn");
+    sb.o += 8;
+    sprintf(SBTPTR, "lgammafn");
+    sbt.o += 8;
+  } else if (!strcmp("identifier",name) && !strcmp("lfactorial",value)){
+    sprintf(SBPTR, "lgamma1p");
+    sb.o += 8;
+    sprintf(SBTPTR, "lgamma1p");
+    sbt.o += 8;
   } else {
     // Apply fix for dot.syntax
     for (i = 0; i < strlen(value); i++){
@@ -308,8 +319,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
   depth++;
   if (nch != 0) {
     if (!strcmp("power_expression", name)) {
-      sprintf(SBPTR, " R_pow(");
-      sb.o += 7;
+      sprintf(SBPTR, " pow(");
+      sb.o += 5;
     }
     for (i = 0; i < nch; i++) {
       if (!rx_syntax_assign  &&
@@ -1036,7 +1047,7 @@ void codegen(FILE *outpt, int show_ode) {
 
   char *hdft[]=
     {
-      "#include <math.h>\n#ifdef __STANDALONE__\n#define Rprintf printf\n#define JAC_Rprintf printf\n#define JAC0_Rprintf if (jac_counter_val() == 0) printf\n#define ODE_Rprintf printf\n#define ODE0_Rprintf if (dadt_counter_val() == 0) printf\n#define LHS_Rprintf printf\n#define R_alloc calloc\n#else\n#include <R.h>\n#include <Rinternals.h>\n#include <Rmath.h>\n#include <R_ext/Rdynload.h>\n#define JAC_Rprintf Rprintf\n#define JAC0_Rprintf if (jac_counter_val() == 0) Rprintf\n#define ODE_Rprintf Rprintf\n#define ODE0_Rprintf if (dadt_counter_val() == 0) Rprintf\n#define LHS_Rprintf Rprintf\n#endif\n#define max(a,b) (((a)>(b))?(a):(b))\n#define min(a,b) (((a)<(b))?(a):(b))\ntypedef void (*RxODE_update_par_ptr)(double t);\ntypedef double (*RxODE_transit3)(double t, double n, double mtt);\ntypedef double (*RxODE_transit4)(double t, double n, double mtt, double bio);\ntypedef double (*RxODE_vec) (int val);\ntypedef long (*RxODE_cnt) ();\ntypedef void (*RxODE_inc) ();\ntypedef double (*RxODE_val) ();\n RxODE_vec par_ptr, InfusionRate;\n RxODE_update_par_ptr update_par_ptr;\n RxODE_cnt dadt_counter_val, jac_counter_val;\n RxODE_inc dadt_counter_inc, jac_counter_inc;\n RxODE_val podo, tlast;\nRxODE_transit4 transit4;\nRxODE_transit3 transit3;\nvoid __R_INIT__ (DllInfo *info){\n InfusionRate   = (RxODE_vec) R_GetCCallable(\"RxODE\",\"RxODE_InfusionRate\");\n update_par_ptr = (RxODE_update_par_ptr) R_GetCCallable(\"RxODE\",\"RxODE_update_par_ptr\");\n par_ptr = (RxODE_vec) R_GetCCallable(\"RxODE\",\"RxODE_par_ptr\");\n dadt_counter_val = (RxODE_cnt) R_GetCCallable(\"RxODE\",\"RxODE_dadt_counter_val\");\n jac_counter_val  = (RxODE_cnt) R_GetCCallable(\"RxODE\",\"RxODE_jac_counter_val\");\n dadt_counter_inc = (RxODE_inc) R_GetCCallable(\"RxODE\",\"RxODE_dadt_counter_inc\");\n jac_counter_inc  = (RxODE_inc) R_GetCCallable(\"RxODE\",\"RxODE_jac_counter_inc\");\n podo  = (RxODE_val) R_GetCCallable(\"RxODE\",\"RxODE_podo\");\n tlast = (RxODE_val) R_GetCCallable(\"RxODE\",\"RxODE_tlast\");\ntransit3 = (RxODE_transit3) R_GetCCallable(\"RxODE\",\"RxODE_transit3\");\ntransit4 = (RxODE_transit4) R_GetCCallable(\"RxODE\",\"RxODE_transit4\");\n}\n",
+      "#include <Rmath.h>\n#ifdef __STANDALONE__\n#define Rprintf printf\n#define JAC_Rprintf printf\n#define JAC0_Rprintf if (jac_counter_val() == 0) printf\n#define ODE_Rprintf printf\n#define ODE0_Rprintf if (dadt_counter_val() == 0) printf\n#define LHS_Rprintf printf\n#define R_alloc calloc\n#else\n#include <R.h>\n#include <Rinternals.h>\n#include <Rmath.h>\n#include <R_ext/Rdynload.h>\n#define JAC_Rprintf Rprintf\n#define JAC0_Rprintf if (jac_counter_val() == 0) Rprintf\n#define ODE_Rprintf Rprintf\n#define ODE0_Rprintf if (dadt_counter_val() == 0) Rprintf\n#define LHS_Rprintf Rprintf\n#endif\n#define max(a,b) (((a)>(b))?(a):(b))\n#define min(a,b) (((a)<(b))?(a):(b))\ntypedef void (*RxODE_update_par_ptr)(double t);\ntypedef double (*RxODE_transit3)(double t, double n, double mtt);\ntypedef double (*RxODE_fn) (double x);\ntypedef double (*RxODE_transit4)(double t, double n, double mtt, double bio);\ntypedef double (*RxODE_vec) (int val);\ntypedef long (*RxODE_cnt) ();\ntypedef void (*RxODE_inc) ();\ntypedef double (*RxODE_val) ();\n RxODE_vec par_ptr, InfusionRate;\n RxODE_update_par_ptr update_par_ptr;\n RxODE_cnt dadt_counter_val, jac_counter_val;\n RxODE_inc dadt_counter_inc, jac_counter_inc;\n RxODE_val podo, tlast;\nRxODE_transit4 transit4;\nRxODE_transit3 transit3;\nRxODE_fn factorial;\nvoid __R_INIT__ (DllInfo *info){\n InfusionRate   = (RxODE_vec) R_GetCCallable(\"RxODE\",\"RxODE_InfusionRate\");\n update_par_ptr = (RxODE_update_par_ptr) R_GetCCallable(\"RxODE\",\"RxODE_update_par_ptr\");\n par_ptr = (RxODE_vec) R_GetCCallable(\"RxODE\",\"RxODE_par_ptr\");\n dadt_counter_val = (RxODE_cnt) R_GetCCallable(\"RxODE\",\"RxODE_dadt_counter_val\");\n jac_counter_val  = (RxODE_cnt) R_GetCCallable(\"RxODE\",\"RxODE_jac_counter_val\");\n dadt_counter_inc = (RxODE_inc) R_GetCCallable(\"RxODE\",\"RxODE_dadt_counter_inc\");\n jac_counter_inc  = (RxODE_inc) R_GetCCallable(\"RxODE\",\"RxODE_jac_counter_inc\");\n podo  = (RxODE_val) R_GetCCallable(\"RxODE\",\"RxODE_podo\");\n tlast = (RxODE_val) R_GetCCallable(\"RxODE\",\"RxODE_tlast\");\ntransit3 = (RxODE_transit3) R_GetCCallable(\"RxODE\",\"RxODE_transit3\");\ntransit4 = (RxODE_transit4) R_GetCCallable(\"RxODE\",\"RxODE_transit4\");\nfactorial=(RxODE_fn) R_GetCCallable(\"RxODE\",\"RxODE_factorial\");}\n",
       "\n// prj-specific differential eqns\nvoid ",
       "dydt(unsigned int neq, double t, double *__zzStateVar__, double *__DDtStateVar__)\n{\n",
       "    dadt_counter_inc();\n}\n\n"
