@@ -45,6 +45,12 @@ der_rhs    : 'd/dt' '(' identifier_r_no_output ')';
 jac        : jac_command '(' identifier_r_no_output ',' identifier_r_no_output ')' ('=' | '<-') additive_expression;
 jac_rhs    : jac_command '(' identifier_r_no_output ',' identifier_r_no_output ')';
 
+// transit(n,mtt) -> transit3(t,n,mtt)
+transit2   : 'transit' '(' trans_const ',' trans_const ')';
+
+// transit(n,mtt, bio) -> transit4(t,n,mtt,bio)
+transit3   : 'transit' '(' trans_const ',' trans_const ',' trans_const ')';
+
 dfdy        : 'df' '(' identifier_r_no_output ')/dy(' identifier_r_no_output ')' ('=' | '<-') additive_expression;
 dfdy_rhs    : 'df' '(' identifier_r_no_output ')/dy(' identifier_r_no_output ')';
 
@@ -84,12 +90,15 @@ primary_expression
   | der_rhs
   | jac_rhs
   | dfdy_rhs
+  | transit2
+  | transit3
   | function
   | '(' additive_expression ')';
 
 function : identifier '(' additive_expression (',' additive_expression)* ')' ;
 
 ini_const : '-'? constant;
+trans_const: identifier_r | '-'? constant;
 
 constant : decimalint | float1 | float2;
 

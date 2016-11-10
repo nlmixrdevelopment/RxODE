@@ -1,8 +1,7 @@
 rex::register_shortcuts("RxODE");
 regIni <- rex::rex(or(group(one_of("_."), "0"), "0", "(0)", "[0]", "{0}"), end);
 
-.onLoad <- function(libname, pkgname){
-    ## nocov start
+.onLoad <- function(libname, pkgname){ ## nocov start
     ## Setup RxODE.prefer.tbl
     op <- options();
     op.rx <- list(RxODE.prefer.tbl     = FALSE,
@@ -18,8 +17,7 @@ regIni <- rex::rex(or(group(one_of("_."), "0"), "0", "(0)", "[0]", "{0}"), end);
                   RxODE.suppress.syntax.info=FALSE);
     w <- !(names(op.rx) %in% names(op))
     if (any(w)) options(op.rx[w]);
-    ## nocov end
-}
+} ## nocov end
 
 ##' Create an ODE-based model specification
 ##'

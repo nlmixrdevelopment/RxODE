@@ -650,6 +650,15 @@ double RxODE_tlast(){
   return tlast;
 }
 
+double RxODE_transit4(double t, double n, double mtt, double bio){
+  double ktr = (n+1)/mtt;
+  double lktr = log(n+1)-log(mtt);
+  return exp(log(bio*podo)+lktr+n*(lktr+log(t))-ktr*t-lgammafn(n+1));
+}
+
+double RxODE_transit3(double t, double n, double mtt){
+  return RxODE_transit4(t, n,mtt, 1.0);
+}
 void R_init_RxODE(DllInfo *info){
   //Function
   R_RegisterCCallable("RxODE","RxODE_ode_solver",       (DL_FUNC) RxODE_ode_solver);
@@ -666,4 +675,7 @@ void R_init_RxODE(DllInfo *info){
   // podo or tlast
   R_RegisterCCallable("RxODE","RxODE_podo",             (DL_FUNC) RxODE_podo);
   R_RegisterCCallable("RxODE","RxODE_tlast",            (DL_FUNC) RxODE_tlast);
+  // tranit compartment models
+  R_RegisterCCallable("RxODE","RxODE_transit4",         (DL_FUNC) RxODE_transit4);
+  R_RegisterCCallable("RxODE","RxODE_transit3",         (DL_FUNC) RxODE_transit3);
 }

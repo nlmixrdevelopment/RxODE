@@ -36,10 +36,72 @@ test_that("Transit absorption is not specified, but still works.", {
     expect_warning(rxSolve(mod, et));
 })
 
-transit <- rxSolve(mod, et, transit_abs=FALSE);
+no_transit <- rxSolve(mod, et, transit_abs=FALSE);
 
 test_that("Transit absorption is turned off, and gives other results", {
-    expect_equal(digest(round(as.data.frame(transit), 4)),
+    expect_equal(digest(round(as.data.frame(no_transit), 4)),
                  "89b3c21d4367dd82da08063b5fe5883b");
-    expect_warning(rxSolve(mod, et));
+})
+
+
+mod <- RxODE("
+## Table 3 from Savic 2007
+cl = 17.2 # (L/hr)
+vc = 45.1 # L
+ka = 0.38 # 1/hr
+mtt = 0.37 # hr
+n = 20.1
+k = cl/vc
+## note that lgammafn is the same as lgamma in R.
+d/dt(abs) = transit(n, mtt)-ka*abs
+d/dt(cen) = ka*abs-k*cen
+")
+
+transit2 <- rxSolve(mod, et);
+
+test_that("Transit absorption is function that can take 2 arguments", {
+    expect_equal(round(as.data.frame(transit)[,names(transit) != "ktr"], 4),
+                 round(as.data.frame(transit2), 4));
+})
+
+mod <- RxODE("
+## Table 3 from Savic 2007
+cl = 17.2 # (L/hr)
+vc = 45.1 # L
+ka = 0.38 # 1/hr
+mtt = 0.37 # hr
+bio=1
+n = 20.1
+k = cl/vc
+## note that lgammafn is the same as lgamma in R.
+d/dt(abs) = transit(n, mtt, bio)-ka*abs
+d/dt(cen) = ka*abs-k*cen
+")
+
+transit2 <- rxSolve(mod, et);
+
+test_that("Transit absorption is function that can take 3 arguments", {
+    expect_equal(round(as.data.frame(transit)[,names(transit) != "ktr"], 4),
+                 round(as.data.frame(transit2), 4));
+})
+
+mod <- RxODE("
+## Table 3 from Savic 2007
+cl = 17.2 # (L/hr)
+vc = 45.1 # L
+ka = 0.38 # 1/hr
+mtt = 0.37 # hr
+bio=1
+n = 20.1
+k = cl/vc
+## note that lgammafn is the same as lgamma in R.
+d/dt(abs) = transit(n, mtt, 1)-ka*abs
+d/dt(cen) = ka*abs-k*cen
+")
+
+transit2 <- rxSolve(mod, et);
+
+test_that("Transit absorption can take numeric arguments", {
+    expect_equal(round(as.data.frame(transit)[,names(transit) != "ktr"], 4),
+                 round(as.data.frame(transit2), 4));
 })
