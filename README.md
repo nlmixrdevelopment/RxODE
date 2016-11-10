@@ -4,6 +4,13 @@
 [![CRAN version](http://www.r-pkg.org/badges/version/RxODE)](https://cran.r-project.org/package=RxODE)
 
 
+```
+## Error in eval(expr, envir, enclos): could not find function "knit"
+```
+
+```
+## Error in eval(expr, envir, enclos): could not find function "knit"
+```
 
 
 ## RxODE: A tool for performing simulations from Ordinary Differential Equation (ODE) models, with applications for pharmacometrics
@@ -305,12 +312,12 @@ head(theta.all)
 
 ```
 ##         KA       CL   V2    Q  V3 Kin Kout EC50
-## [1,] 0.294 18.59835 40.2 10.5 297   1    1  200
-## [2,] 0.294 24.05499 40.2 10.5 297   1    1  200
-## [3,] 0.294 20.10939 40.2 10.5 297   1    1  200
-## [4,] 0.294 13.41064 40.2 10.5 297   1    1  200
-## [5,] 0.294 23.98640 40.2 10.5 297   1    1  200
-## [6,] 0.294 16.39019 40.2 10.5 297   1    1  200
+## [1,] 0.294 22.91888 40.2 10.5 297   1    1  200
+## [2,] 0.294 15.73100 40.2 10.5 297   1    1  200
+## [3,] 0.294 21.09294 40.2 10.5 297   1    1  200
+## [4,] 0.294 13.20357 40.2 10.5 297   1    1  200
+## [5,] 0.294 22.76673 40.2 10.5 297   1    1  200
+## [6,] 0.294 14.99574 40.2 10.5 297   1    1  200
 ```
 
 Each subproblem can be simulated by using an explicit loop (or the `apply()`

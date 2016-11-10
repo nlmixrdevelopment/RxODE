@@ -349,6 +349,10 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 
       if (!strcmp("transit2", name) && i == 1) continue;
       if (!strcmp("transit3", name) && i == 1) continue;
+
+      if (!strcmp("lfactorial",name) && i != 1) continue;
+      if (!strcmp("factorial",name) && i != 0) continue;
+
       
       /* if (!strcmp("decimalint",name)){ */
       /* 	// Make implicit double */
@@ -444,6 +448,56 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         }
 	sb.o = strlen(sb.s);
 	sbt.o = strlen(sbt.s);
+        Free(v);
+        continue;
+      }
+      if (!strcmp("factorial_exp",name) && i == 0){
+	sb.o--;
+	sprintf(SBPTR, "exp(lgamma1p(");
+        sb.o += 13;
+        continue;
+      }
+      if (!strcmp("lfactorial_exp",name) && i == 0){
+        sprintf(SBPTR, "lgamma1p(");
+        sb.o += 9;
+	sprintf(SBTPTR, "log((");
+        sbt.o += 5;
+        continue;
+      }
+      if (!strcmp("lfactorial_exp",name) && i == 2){
+        sprintf(SBPTR, ")");
+        sb.o++;
+        sprintf(SBTPTR, ")!)");
+        sbt.o += 3;
+        continue;
+      }
+      if (!strcmp("lfactorial_exp",name) && (i == 2 || i == 4 || i == 5)){
+	// Take out unneeded expression.
+	sb.o--;
+      }
+      if (!strcmp("factorial_exp",name) && i == 3) {
+	sb.o--;
+	sprintf(SBPTR, ")");
+        sb.o++;
+	sprintf(SBTPTR, "!");
+	sbt.o++;
+	continue;
+      }      
+      if (!strcmp("factorial",name)){
+	char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+        sprintf(SBPTR, "exp(lgamma1p(%s))",v);
+	sprintf(SBTPTR, "%s!",v);
+	sb.o = strlen(sb.s);
+        sbt.o = strlen(sbt.s);
+	Free(v);
+	continue;
+      }
+      if (!strcmp("lfactorial",name)){
+        char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+        sprintf(SBPTR, "lgamma1p(%s)",v);
+        sprintf(SBTPTR, "log(%s!)",v);
+        sb.o = strlen(sb.s);
+        sbt.o = strlen(sbt.s);
         Free(v);
         continue;
       }

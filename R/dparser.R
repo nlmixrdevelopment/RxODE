@@ -165,8 +165,9 @@ updatePkg <- function(){ # nocov start
     sink(devtools::package_file("src/tran.g.d_parser.c"))
     cat(paste(file,collapse="\n"));
     sink();
-    for (f in list.files(devtools::package_file("src/"), pattern=sprintf("(\\.o|\\%s)$",.Platform$dynlib.ext),full.names=TRUE)){
-        unlink(f);
-    }
+    unlink(devtools::package_file("src/tran.o"))
+    ## for (f in list.files(devtools::package_file("src/"), pattern=sprintf("(\\.o|\\%s)$",.Platform$dynlib.ext),full.names=TRUE)){
+    ##     unlink(f);
+    ## }
     devtools::load_all();
 } # nocov end

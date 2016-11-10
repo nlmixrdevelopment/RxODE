@@ -653,7 +653,7 @@ double RxODE_tlast(){
 double RxODE_transit4(double t, double n, double mtt, double bio){
   double ktr = (n+1)/mtt;
   double lktr = log(n+1)-log(mtt);
-  return exp(log(bio*podo)+lktr+n*(lktr+log(t))-ktr*t-lgammafn(n+1));
+  return exp(log(bio*podo)+lktr+n*(lktr+log(t))-ktr*t-lgamma1p(n));
 }
 
 double RxODE_transit3(double t, double n, double mtt){

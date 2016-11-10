@@ -78,7 +78,12 @@ additive_expression : multiplicative_expression
 multiplicative_expression : unary_expression 
   (('*' | '/') unary_expression)* ;
 
-unary_expression : ('+' | '-')? (primary_expression | power_expression);
+unary_expression : ('+' | '-')? (primary_expression |
+      power_expression |
+      factorial |
+      factorial_exp |
+      lfactorial |
+      lfactorial_exp);
 
 power_expression : primary_expression power_operator primary_expression ;
 
@@ -93,11 +98,18 @@ primary_expression
   | transit2
   | transit3
   | function
-  | '(' additive_expression ')';
+  | '(' additive_expression ')'
+  ;
+
+factorial_exp: '(' additive_expression ')' '!';
+factorial: fact_const '!';
+lfactorial: "log *[(]" fact_const "! *[)]";
+lfactorial_exp: "log *[(] *[(] *" additive_expression "[)] *! *[)]";
 
 function : identifier '(' additive_expression (',' additive_expression)* ')' ;
 
 ini_const : '-'? constant;
+fact_const: identifier_r_no_output | '-'? (decimalint | float1 | float2) ;
 trans_const: identifier_r | '-'? constant;
 
 constant : decimalint | float1 | float2;

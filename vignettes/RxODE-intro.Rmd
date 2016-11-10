@@ -204,7 +204,7 @@ like this one may be programmatically created with the experimental function
 `genShinyApp.template()`.
 
 The above application includes widgets for varying the dose, dosing
-regimen, dose cycle, and number of cycles.  
+regimen, dose cycle, and number of cycles.
 
 ```
 
