@@ -1709,7 +1709,9 @@ rxPrefix <- function(model,          # Model or file name of model
 ##' Return the md5 of an RxODE object or file
 ##'
 ##' This md5 is based on the model and possibly the extra c code
-##' supplied for the model
+##' supplied for the model.  In addition the md5 is based on syntax
+##' options, compiled RxODE library md5, and the RxODE
+##' version/repository.
 ##'
 ##' @param model either a string representing the path to a model file
 ##'     or a RxODE object
@@ -1758,6 +1760,8 @@ rxMd5 <- function(model,         # Model File
         class(tmp) <- "list";
         ## new RxODE dlls gives different digests.
         ret <- c(ret, digest::digest(tmp$path,file=TRUE));
+        ## Add version and github repository information
+        ret <- c(ret, rxVersion());
         return(list(text = mod,
                     digest = digest::digest(ret)));
     } else {
