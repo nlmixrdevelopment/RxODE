@@ -841,7 +841,7 @@ void print_aux_info(FILE *outpt, char *model){
   fprintf(outpt,"\tSET_STRING_ELT(modeln,1,mkChar(\"normModel\"));\n");
   fpIO2 = fopen("out3.txt", "r");
   fprintf(outpt,"\tSET_STRING_ELT(model,1,mkChar(\"");
-  err_msg((intptr_t) fpIO2, "Coudln't access out3.txt.\n", -1);
+  err_msg((intptr_t) fpIO2, "Error parsing. (Couldn't access out3.txt).\n", -1);
   while(fgets(sLine, MXLEN, fpIO2)) {  /* Prefered RxODE -- for igraph */
     for (i = 0; i < strlen(sLine); i++){
       if (sLine[i] == '"'){
@@ -861,7 +861,7 @@ void print_aux_info(FILE *outpt, char *model){
   fpIO2 = fopen(out2, "r");
   fprintf(outpt,"\tSET_STRING_ELT(modeln,2,mkChar(\"parseModel\"));\n");
   fprintf(outpt,"\tSET_STRING_ELT(model,2,mkChar(\"");
-  err_msg((intptr_t) fpIO2, "Coudln't access out2.txt.\n", -1);
+  err_msg((intptr_t) fpIO2, "Error parsing. (Couldn't access out2.txt).\n", -1);
   while(fgets(sLine, MXLEN, fpIO2)) {  /* Prefered RxODE -- for igraph */
     for (i = 0; i < strlen(sLine); i++){
       if (sLine[i] == '"'){
@@ -880,7 +880,7 @@ void print_aux_info(FILE *outpt, char *model){
   fpIO2 = fopen(out2, "r");
   s_aux_info[0] = '\0';
   o    = 0;
-  err_msg((intptr_t) fpIO2, "Coudln't access out2.txt.\n", -1);
+  err_msg((intptr_t) fpIO2, "Error parsing. (Couldn't access out2.txt).\n", -1);
   while(fgets(sLine, MXLEN, fpIO2)) { 
     s2 = strstr(sLine,"(__0__)");
     if (s2){
@@ -1100,7 +1100,7 @@ void codegen(FILE *outpt, int show_ode) {
     }
     fprintf(outpt,"\n");
     fpIO = fopen(out2, "r");
-    err_msg((intptr_t) fpIO, "Coudln't access out2.txt.\n", -1);
+    err_msg((intptr_t) fpIO, "Error parsing. (Couldn't access out2.txt).\n", -1);
     while(fgets(sLine, MXLEN, fpIO)) {  /* parsed eqns */
       char *s;
       s = strstr(sLine,"(__0__)");
@@ -1453,7 +1453,7 @@ SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_m
   SET_STRING_ELT(tran, 6,mkChar(buf));
   
   fpIO2 = fopen(out2, "r");
-  err_msg((intptr_t) fpIO2, "Coudln't access out2.txt.\n", -1);
+  err_msg((intptr_t) fpIO2, "Error parsing. (Couldn't access out2.txt).\n", -1);
   while(fgets(sLine, MXLEN, fpIO2)) {
     s2 = strstr(sLine,"(__0__)");
     if (s2){

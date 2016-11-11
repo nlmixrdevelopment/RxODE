@@ -63,8 +63,12 @@ assignment : identifier_r ('=' | '<-') additive_expression;
 logical_or_expression :	logical_and_expression 
     (('||' | '|')  logical_and_expression)* ;
 
-logical_and_expression : equality_expression 
-    (('&&' | '&') equality_expression)* ;
+logical_and_expression : equality_expression0 
+    (('&&' | '&') equality_expression0)* ;
+
+equality_expression0 : equality_expression |
+    '(' equality_expression ')' |
+    '!' '(' equality_expression ')';
 
 equality_expression : relational_expression 
   (('!=' | '~=' | '<>' | '/=' | '==') relational_expression)* ;
