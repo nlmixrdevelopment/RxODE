@@ -21,5 +21,4 @@ rxPermissive({
         expect_true(rxDll(out) != rxDll(out2));
         expect_equal(out2$get.modelVars()$params,c("no_ini"));
     })
-
 }, silent=TRUE)
