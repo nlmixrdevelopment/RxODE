@@ -170,5 +170,20 @@ updatePkg <- function(){ # nocov start
     cat(paste(file,collapse="\n"));
     sink();
     unlink(devtools::package_file("src/tran.o"))
-    devtools::load_all();
+    sink(devtools::package_file("R/version.R"))
+    cat("##\' Version and repository for this RxODE package.
+##\'
+##\' @return A character vector with the version and repository.
+##\' @author Matthew L. Fidler
+##\' @keywords internal
+##\' @export
+rxVersion <- function(){return(c(version=\"");
+    cat(gsub("Version: +", "", readLines(devtools::package_file("DESCRIPTION"), 2)[2]))
+    cat("\",repo=\"");
+    cat("https://github.com/")
+    tmp <- readLines(devtools::package_file(".git/config"))
+    cat(gsub("\\.git$", "", gsub(".*git@github.com:", "", tmp[which(tmp == '[remote "origin"]')[1]+1])))
+    cat("\"))}\n");
+    sink();
+    load_all();
 } # nocov end

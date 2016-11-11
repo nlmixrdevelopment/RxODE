@@ -4,13 +4,6 @@
 [![CRAN version](http://www.r-pkg.org/badges/version/RxODE)](https://cran.r-project.org/package=RxODE)
 
 
-```
-## Error in eval(expr, envir, enclos): could not find function "knit"
-```
-
-```
-## Error in eval(expr, envir, enclos): could not find function "knit"
-```
 
 
 ## RxODE: A tool for performing simulations from Ordinary Differential Equation (ODE) models, with applications for pharmacometrics
@@ -240,6 +233,14 @@ in the output matrix x.
 
 ```r
 x <- mod1$solve(theta, ev, inits)
+```
+
+```
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+```
+
+```r
 head(x)
 ```
 
@@ -257,6 +258,14 @@ This can also be solved by the `predict()` or `solve()` methods:
 
 ```r
 x <- predict(mod1,theta, ev, inits)
+```
+
+```
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+```
+
+```r
 head(x)
 ```
 
@@ -273,6 +282,14 @@ or
 
 ```r
 x <- solve(mod1,theta, ev, inits)
+```
+
+```
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+```
+
+```r
 head(x)
 ```
 
@@ -312,12 +329,12 @@ head(theta.all)
 
 ```
 ##         KA       CL   V2    Q  V3 Kin Kout EC50
-## [1,] 0.294 22.91888 40.2 10.5 297   1    1  200
-## [2,] 0.294 15.73100 40.2 10.5 297   1    1  200
-## [3,] 0.294 21.09294 40.2 10.5 297   1    1  200
-## [4,] 0.294 13.20357 40.2 10.5 297   1    1  200
-## [5,] 0.294 22.76673 40.2 10.5 297   1    1  200
-## [6,] 0.294 14.99574 40.2 10.5 297   1    1  200
+## [1,] 0.294 16.82606 40.2 10.5 297   1    1  200
+## [2,] 0.294 19.15463 40.2 10.5 297   1    1  200
+## [3,] 0.294 16.27225 40.2 10.5 297   1    1  200
+## [4,] 0.294 24.00847 40.2 10.5 297   1    1  200
+## [5,] 0.294 19.60693 40.2 10.5 297   1    1  200
+## [6,] 0.294 16.31177 40.2 10.5 297   1    1  200
 ```
 
 Each subproblem can be simulated by using an explicit loop (or the `apply()`
@@ -326,6 +343,7 @@ matrix.
 
 ```r
 nobs <- ev$get.nobs()
+set.seed(1)
 cp.all <- matrix(NA, nobs, nsub)
 for (i in 1:nsub)
 {
@@ -333,7 +351,311 @@ for (i in 1:nsub)
 	x <- mod1$solve(theta, ev, inits=inits)
 	cp.all[, i] <- x[, "C2"]
 }
+```
 
+```
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+```
+
+```r
 matplot(cp.all, type="l", ylab="Central Concentration")
 ```
 
@@ -359,7 +681,7 @@ like this one may be programmatically created with the experimental function
 `genShinyApp.template()`.
 
 The above application includes widgets for varying the dose, dosing
-regimen, dose cycle, and number of cycles.  
+regimen, dose cycle, and number of cycles.
 
 ```
 
