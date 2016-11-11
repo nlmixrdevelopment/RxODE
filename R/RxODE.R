@@ -30,7 +30,8 @@ rxStrict <- function(..., silent=FALSE){
                     RxODE.syntax.assign=FALSE,
                     RxODE.syntax.star.pow=FALSE,
                     RxODE.syntax.require.semicolon=TRUE,
-                    RxODE.syntax.allow.dots=FALSE);
+                    RxODE.syntax.allow.dots=FALSE,
+                    RxODE.suppress.allow.ini0=FALSE);
     do.call("rxOptions", args, envir=parent.frame(1));
 }
 
@@ -57,7 +58,8 @@ rxPermissive <- function(..., silent=FALSE) {
                        RxODE.syntax.assign=TRUE,
                        RxODE.syntax.star.pow=TRUE,
                        RxODE.syntax.require.semicolon=FALSE,
-                       RxODE.syntax.allow.dots=TRUE);
+                       RxODE.syntax.allow.dots=TRUE,
+                       RxODE.suppress.allow.ini0=TRUE);
     do.call("rxOptions", args, envir=parent.frame(1));
 }
 rxOptions <- function(..., op.rx=NULL, silent=FALSE, respect=FALSE,

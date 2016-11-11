@@ -296,5 +296,9 @@ d/dt(x) = a*y*z - 0.04*x
 d/dt(z) = 3.0e7*y^2
 d/dt(y) = -1.0*(d/dt(x)+d/dt(z))
 ")
+    options(RxODE.suppress.allow.ini0=FALSE)
+    badParse(desc = 'y_1(0) unsupported when RxODE.suppress.allow.ini0=FALSE',
+              'y_1(0) = 1;d/dt(y_1) = F*y_1')
+    options(RxODE.suppress.allow.ini0=TRUE)
 
 }, silent=TRUE);

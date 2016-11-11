@@ -24,6 +24,7 @@
 #define NEEDSEMI "Lines need to end with ';' or to match R's handling of line endings set 'options(RxODE.syntax.require.semicolon = FALSE)'."
 #define NEEDPOW "'**' not supported, use '^' instead or set 'options(RxODE.syntax.star.pow = TRUE)'."
 #define NODOT "'.' in variables and states not supported, use '_' instead or set 'options(RxODE.syntax.allow.dots = TRUE)'."
+#define NOINI0 "'%s(0)' for initilization not allowed.  To allow set 'options(RxODE.suppress.allow.ini0 = TRUE)'."
 
 // from mkdparse_tree.h
 typedef void (print_node_fn_t)(int depth, char *token_name, char *token_value, void *client_data);
@@ -115,7 +116,8 @@ extern int d_verbose_level;
 
 unsigned int found_jac = 0, found_print = 0;
 int rx_syntax_assign = 0, rx_syntax_star_pow = 0,
-  rx_syntax_require_semicolon = 0, rx_syntax_allow_dots = 0;
+  rx_syntax_require_semicolon = 0, rx_syntax_allow_dots = 0,
+  rx_syntax_allow_ini0 = 1;
 
 char s_aux_info[64*MXSYM];
 
@@ -640,10 +642,14 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	      sb.o++;
 	    }
 	  }
-	  if (!strcmp("ini",name) & !new_de(v)){
+	  if (!strcmp("ini",name) && !new_de(v)){
 	    sprintf(buf,"Cannot assign state variable %s; For initial condition assigment use '%s(0) ='.\n",v,v);
 	    trans_syntax_error_report_fn(buf);
 	  }
+	  if (!rx_syntax_allow_ini0 && !strcmp("ini0",name)){
+	    sprintf(buf,NOINI0,v);
+	    trans_syntax_error_report_fn(buf);
+          }
         } else {
 	  sb.o = 0;
 	  for (k = 0; k < strlen(v); k++){
@@ -1324,6 +1330,7 @@ SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_m
   rx_syntax_require_semicolon = R_get_option("RxODE.syntax.require.semicolon",0);
   rx_syntax_allow_dots = R_get_option("RxODE.syntax.allow.dots",1);
   rx_suppress_syntax_info = R_get_option("RxODE.suppress.syntax.info",0);
+  rx_syntax_allow_ini0 = R_get_option("RxODE.suppress.allow.ini0",1);
   rx_syntax_error = 0;
   d_use_r_headers = 0;
   d_rdebug_grammar_level = 0;
