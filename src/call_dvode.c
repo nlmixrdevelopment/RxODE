@@ -16,14 +16,6 @@ void F77_NAME(dlsoda)(
 		      void (*)(int *, double *, double *, int *, int *, double *, int *),
 		      int *);
 
-void F77_NAME(dvode)(
-		     void (*)(int *, double *, double *, double *, double *,int *),
-		     int *, double *, double *, double *, int *, double *, double *,
-		     int *, int *, int *, double *,int *,int *, int *,
-		     void (*)(int *, double *, double *, int *, int *, double *, int *, double *, int *),
-		     int *, double *, int *);
-
-
 long slvr_counter, dadt_counter, jac_counter;
 double InfusionRate[99];
 double ATOL;		//absolute error
@@ -171,111 +163,6 @@ void call_lsoda(int neq, double *x, int *evid, int nx, double *inits, double *do
 	      error("Error solving using LSODA");
 	      return;
 	    }
-	  slvr_counter++;
-	  //dadt_counter = 0;
-	}
-      if (wh)
-	{
-	  cmt = (wh%10000)/100 - 1;
-	  if (wh>10000)
-	    {
-	      InfusionRate[cmt] += dose[ixds];
-	    }
-	  else
-	    {
-	      if (do_transit_abs)
-		{
-		  podo = dose[ixds];
-		  tlast = xout;
-		}
-	      else yp[cmt] += dose[ixds];	//dosing before obs
-	    }
-	  istate = 1;
-
-	  ixds++;
-	  xp = xout;
-	}
-      for(j=0; j<neq; j++) ret[neq*i+j] = yp[j];
-      //Rprintf("wh=%d cmt=%d tm=%g rate=%g\n", wh, cmt, xp, InfusionRate[cmt]);
-
-      if (global_debug){
-	Rprintf("ISTATE=%d, ", istate);
-	fprintf(fp, "ISTATE=%d, ", istate);
-	for(j=0; j<neq; j++)
-	  {
-	    Rprintf("%f ", yp[j]);
-	    fprintf(fp, "%f ", yp[j]);
-	  }
-	Rprintf("\n");
-	fprintf(fp, "\n");
-      }
-    }
-}
-
-
-void dydt_dvode_dum(int *neq, double *t, double *A, double *DADT, double *RPAR, int *IPAR)
-{
-  dydt(*neq, *t, A, DADT);
-}
-
-void jdum_dvode(int *neq, double *t, double *A,int *ml, int *mu, double *JAC, int *nrowpd, double *RPAR, int *IPAR) {
-  calc_jac(*neq, *t, A, JAC, *nrowpd);
-}
-
-void call_dvode(int neq, double *x, int *evid, int nx, double *inits, double *dose, double *ret, int *rc)
-{
-  int ixds=0, i, j;
-  //DE solver config vars
-  double xout, xp=x[0], yp[99];
-  int itol = 1;
-  double  rtol = RTOL, atol = ATOL;
-  int itask = 1, istate = 1, iopt = 0, mf=global_mf;
-  int lrw = 22+9*neq+2*neq*neq, liw = 30+neq;
-  double *rwork;
-  int *iwork;
-  double *rpar=x;
-  int *ipar=&neq;
-  int wh, cmt;
-
-
-  char *err_msg[]=
-    {
-      "excess work done on this call",
-      "excess accuracy requested",
-      "illegal input detected",
-      "repeated error test failures",
-      "repeated convergence failures",
-      "error weight became zero during problem"
-    };
-  if (global_debug)
-    Rprintf("MF: %d\n",mf);
-  rwork = (double*)R_alloc(lrw+1, sizeof(double));
-  iwork = (int*)R_alloc(liw+1, sizeof(int));
-	
-  //--- inits the system
-  for(i=0; i<neq; i++) yp[i] = inits[i];
-
-  for(i=0; i<nx; i++)
-    {
-      wh = evid[i];
-      xout = x[i];
-      if (global_debug){
-	Rprintf("i=%d xp=%f xout=%f\n", i, xp, xout);
-	fprintf(fp, "i=%d xp=%f xout=%f\n", i, xp, xout);
-      }
-		
-      if(xout-xp> DBL_EPSILON*max(fabs(xout), fabs(xp)))
-	{
-	  F77_CALL(dvode)(dydt_dvode_dum, &neq, yp, &xp, &xout, &itol, &rtol, &atol, &itask,
-			  &istate, &iopt, rwork, &lrw, iwork, &liw, &jdum_dvode, &mf, rpar, ipar);
-
-	  if (istate<0)
-	    {
-	      Rprintf("IDID=%d, %s\n", istate, err_msg[-istate-1]);
-	      error("Error solving using DVODE.");
-	      return;
-	    }
-
 	  slvr_counter++;
 	  //dadt_counter = 0;
 	}
