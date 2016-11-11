@@ -154,7 +154,6 @@ mkdparse <- function(file,outputFile,
 }
 
 updatePkg <- function(){ # nocov start
-    library(knitr)
     cat("Update README\n");
     owd <- getwd();
     on.exit({setwd(owd)});
@@ -185,5 +184,5 @@ rxVersion <- function(){return(c(version=\"");
     cat(gsub("\\.git$", "", gsub(".*git@github.com:", "", tmp[which(tmp == '[remote "origin"]')[1]+1])))
     cat("\"))}\n");
     sink();
-    load_all();
+    devtools::load_all();
 } # nocov end
