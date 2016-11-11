@@ -1,7 +1,6 @@
 context("Logical expressons test")
-options(RxODE.verbose=FALSE);
-
-rxClean()
+rxPermissive({
+    rxClean()
 
 transTo <- function(model, syntax, match=TRUE){
     mod <- RxODE(model);
@@ -23,3 +22,4 @@ transTo("x=1;if ((t == 0) & !(t == 1)){x=0}","&&")
 transTo("x=1;if ((t == 0) & !(t == 1)){x=0}","!(")
 
 rxClean()
+}, silent=TRUE);

@@ -1,19 +1,20 @@
 library(RxODE);
 context("Test Inis");
-rxClean();
+rxPermissive({
+    rxClean();
 
-out <- RxODE("ini = 1; fun_ini = 2; fun = 4; addit = ini + fun_ini + pi + no_ini")
+    out <- RxODE("ini = 1; fun_ini = 2; fun = 4; addit = ini + fun_ini + pi + no_ini")
 
-test_that("Initial constants are correct",{
-    expect_equal(rxInits(out)["pi"],c(pi=pi));
-    expect_equal(rxInits(out)["ini"],c(ini=1));
-    expect_equal(rxInits(out)["fun_ini"],c(fun_ini=2));
-    expect_equal(rxInits(out)["fun"],c(fun=4));
-})
+    test_that("Initial constants are correct",{
+        expect_equal(rxInits(out)["pi"],c(pi=pi));
+        expect_equal(rxInits(out)["ini"],c(ini=1));
+        expect_equal(rxInits(out)["fun_ini"],c(fun_ini=2));
+        expect_equal(rxInits(out)["fun"],c(fun=4));
+    })
 
-test_that("Constants are not included in get.modelVars()",{
-    expect_equal(out$get.modelVars()$params,c("no_ini"));
-})
+    test_that("Constants are not included in get.modelVars()",{
+        expect_equal(out$get.modelVars()$params,c("no_ini"));
+    })
 
-
-rxClean();
+    rxClean();
+}, silent=TRUE)

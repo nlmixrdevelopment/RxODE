@@ -1,8 +1,8 @@
 require(RxODE)
 context("Get Index");
-
-rxClean();
-rigid.txt <- "
+rxPermissive({
+    rxClean();
+    rigid.txt <- "
 y1(0)    = 1
 y2(0)    = 0
 y3(0)    = 0.9
@@ -13,17 +13,18 @@ d/dt(y1) = a1*y2*y3
 d/dt(y2) = a2*y1*y3
 d/dt(y3) = a3*y1*y2
 ";
-rigid <- RxODE(rigid.txt)
+    rigid <- RxODE(rigid.txt)
 
-test_that("Index access the right compartment",{
-    expect_equal(rxState(rigid,"y1"), 1);
-    expect_equal(rxState(rigid,"y2"), 2);
-    expect_equal(rxState(rigid,"y3"), 3);
-    expect_error(rxState(rigid, "matt"), "Cannot locate compartment");
-    expect_equal(rigid$get.index("y1"), 1);
-    expect_equal(rigid$get.index("y2"), 2);
-    expect_equal(rigid$get.index("y3"), 3);
-    expect_error(rigid$get.index("matt"), "Cannot locate compartment");
-})
+    test_that("Index access the right compartment",{
+        expect_equal(rxState(rigid,"y1"), 1);
+        expect_equal(rxState(rigid,"y2"), 2);
+        expect_equal(rxState(rigid,"y3"), 3);
+        expect_error(rxState(rigid, "matt"), "Cannot locate compartment");
+        expect_equal(rigid$get.index("y1"), 1);
+        expect_equal(rigid$get.index("y2"), 2);
+        expect_equal(rigid$get.index("y3"), 3);
+        expect_error(rigid$get.index("matt"), "Cannot locate compartment");
+    })
 
-rxClean();
+    rxClean();
+}, silent=TRUE)

@@ -3,21 +3,85 @@ regIni <- rex::rex(or(group(one_of("_."), "0"), "0", "(0)", "[0]", "{0}"), end);
 
 .onLoad <- function(libname, pkgname){ ## nocov start
     ## Setup RxODE.prefer.tbl
-    op <- options();
-    op.rx <- list(RxODE.prefer.tbl     = FALSE,
-                  RxODE.display.tbl    = TRUE,
-                  RxODE.echo.compile   = FALSE,
-                  RxODE.warn.on.assign = FALSE,
-                  RxODE.compile.on.load = TRUE,
-                  RxODE.verbose=TRUE,
-                  RxODE.syntax.assign=TRUE,
-                  RxODE.syntax.star.pow=TRUE,
-                  RxODE.syntax.require.semicolon=FALSE,
-                  RxODE.syntax.allow.dots=TRUE,
-                  RxODE.suppress.syntax.info=FALSE);
-    w <- !(names(op.rx) %in% names(op))
-    if (any(w)) options(op.rx[w]);
+    rxPermissive(respect=TRUE); ## need to call respect on the first time
 } ## nocov end
+
+##' Strict RxODE sytax options
+##'
+##' This sets the RxODE syntax to be strict for backward compatability.
+##'
+##' @param ... other arguments.  If the first argument is an
+##'     expression, then evaluate this expression under rxStrict and
+##'     then restore the user's options.  If the first argument is
+##'     logical, assume it is the silent argument.
+##'
+##' @param silent when true, also silence the syntax errors and
+##'     interactive output (useful in testing).
+##'
+##' @author Matthew L. Fidler
+##' @export
+rxStrict <- function(..., silent=FALSE){
+    args <- as.list(match.call(expand.dots=TRUE))[-1];
+    args$op.rx=list(RxODE.prefer.tbl     = FALSE,
+                    RxODE.display.tbl    = TRUE,
+                    RxODE.echo.compile   = FALSE,
+                    RxODE.warn.on.assign = TRUE,
+                    RxODE.compile.on.load = TRUE,
+                    RxODE.syntax.assign=FALSE,
+                    RxODE.syntax.star.pow=FALSE,
+                    RxODE.syntax.require.semicolon=TRUE,
+                    RxODE.syntax.allow.dots=FALSE);
+    do.call("rxOptions", args, envir=parent.frame(1));
+}
+
+##' Permissive RxODE sytax options
+##'
+##' This sets the RxODE syntax to be permissive
+##'
+##' @param ... other arguments.  If the first argument is an
+##'     expression, then evaluate this expression under rxPermissive and
+##'     then restore the user's options.  If the first argument is
+##'     logical, assume it is the silent argument.
+##' @param silent when true, also silence the syntax errors and
+##'     interactive output (useful in testing).
+##'
+##' @author Matthew L. Fidler
+##' @export
+rxPermissive <- function(..., silent=FALSE) {
+    args <- as.list(match.call(expand.dots=TRUE))[-1];
+    args$op.rx <- list(RxODE.prefer.tbl     = FALSE,
+                       RxODE.display.tbl    = TRUE,
+                       RxODE.echo.compile   = FALSE,
+                       RxODE.warn.on.assign = TRUE,
+                       RxODE.compile.on.load = TRUE,
+                       RxODE.syntax.assign=TRUE,
+                       RxODE.syntax.star.pow=TRUE,
+                       RxODE.syntax.require.semicolon=FALSE,
+                       RxODE.syntax.allow.dots=TRUE);
+    do.call("rxOptions", args, envir=parent.frame(1));
+}
+rxOptions <- function(..., op.rx=NULL, silent=FALSE, respect=FALSE){
+    args <- as.list(match.call(expand.dots = TRUE));
+    if (class(args[[2]]) == "{"){
+        op <- options();
+        on.exit({options(op)});
+        rxOptions(op.rx=op.rx, silent=silent, respect=respect);
+        eval(args[[2]]);
+    } else if (class(args[[2]]) == "logical" && missing(silent)){
+        silent <- args[[2]];
+        rxOptions(op.rx=op.rx, silent=silent, respect=respect);
+    } else {
+        op.rx$RxODE.verbose=!silent;
+        op.rx$RxODE.suppress.syntax.info=silent;
+        if (respect){
+            op <- options();
+            w <- !(names(op.rx) %in% names(op))
+            if (any(w)) options(op.rx[w]);
+        } else {
+            options(op.rx)
+        }
+    }
+}
 
 ##' Create an ODE-based model specification
 ##'

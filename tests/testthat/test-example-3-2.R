@@ -6,42 +6,44 @@
 library("RxODE")
 library("digest")
 context("Example 3.2")
-rxClean();
+rxPermissive({
+    rxClean();
 
-ode <- RxODE('
+    ode <- RxODE('
          d/dt(X) = a*X + Y*Z;
          d/dt(Y) = b*(Y - Z);
          d/dt(Z) = -X*Y + c*Y - Z;')
 
-et <- eventTable()   # default time units
-et$add.sampling(seq(from=0, to=100, by=0.01))
+    et <- eventTable()   # default time units
+    et$add.sampling(seq(from=0, to=100, by=0.01))
 
-out <-
-    ode$solve(
-        params = c(a=-8/3, b=-10, c=28),
-        events = et,
-        inits = c(X=1, Y=1, Z=1)
-    )
+    out <-
+        ode$solve(
+                params = c(a=-8/3, b=-10, c=28),
+                events = et,
+                inits = c(X=1, Y=1, Z=1)
+            )
 
-out <- round(out,6)
-
-
-test_that("Runs example 3.2 correctly",{
-    expect_equal(digest(round(out[1:15,],3)),
-                 "a23116bedb08e4ae4e910611385b5360");
-})
+    out <- round(out,6)
 
 
-## print(head(out, n = 15), digits = 6)
-
-## old <- par(mfrow=c(2,2))
-
-## plot(out[,"time"], out[,"X"], xlab="time", ylab="X", type="l")
-## plot(out[,"time"], out[,"Y"], xlab="time", ylab="Y", type="l")
-## plot(out[,"time"], out[,"Z"], xlab="time", ylab="Z", type="l")
-## plot(out[,"X"], out[,"Y"], xlab="X", ylab="Y", type="l")
-
-## par(old)
+    test_that("Runs example 3.2 correctly",{
+        expect_equal(digest(round(out[1:15,],3)),
+                     "a23116bedb08e4ae4e910611385b5360");
+    })
 
 
-rxClean()
+    ## print(head(out, n = 15), digits = 6)
+
+    ## old <- par(mfrow=c(2,2))
+
+    ## plot(out[,"time"], out[,"X"], xlab="time", ylab="X", type="l")
+    ## plot(out[,"time"], out[,"Y"], xlab="time", ylab="Y", type="l")
+    ## plot(out[,"time"], out[,"Z"], xlab="time", ylab="Z", type="l")
+    ## plot(out[,"X"], out[,"Y"], xlab="X", ylab="Y", type="l")
+
+    ## par(old)
+
+
+    rxClean()
+}, silent=TRUE)
