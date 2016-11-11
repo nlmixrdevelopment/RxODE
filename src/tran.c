@@ -482,10 +482,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         sbt.o += 3;
         continue;
       }
-      if (!strcmp("lfactorial_exp",name) && (i == 2 || i == 4 || i == 5)){
-	// Take out unneeded expression.
-	sb.o--;
-      }
       if (!strcmp("factorial_exp",name) && i == 3) {
 	sb.o--;
 	sprintf(SBPTR, ")");
