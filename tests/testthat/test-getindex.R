@@ -1,7 +1,7 @@
 require(RxODE)
 context("Get Index");
 rxPermissive({
-    rxClean();
+
     rigid.txt <- "
 y1(0)    = 1
 y2(0)    = 0
@@ -26,5 +26,4 @@ d/dt(y3) = a3*y1*y2
         expect_error(rigid$get.index("matt"), "Cannot locate compartment");
     })
 
-    rxClean();
 }, silent=TRUE)

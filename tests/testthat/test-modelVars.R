@@ -1,6 +1,5 @@
 context("Test modelvars");
 rxPermissive({
-    rxClean();
     rigid.txt <- "
 y1(0)    = 1
 y2(0)    = 0

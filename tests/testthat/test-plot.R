@@ -77,6 +77,4 @@ rxPermissive({
         expect_true(any(igraph::edge.attributes(tmp)$label == "Indirect\nEffect (IV)"));
     })
 
-
-    rxClean();
 }, silent=TRUE);

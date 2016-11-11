@@ -1,7 +1,6 @@
 context("Test Transit compartment model");
 library(digest);
 rxPermissive({
-    rxClean();
     mod <- RxODE("
 ## Table 3 from Savic 2007
 cl = 17.2 # (L/hr)

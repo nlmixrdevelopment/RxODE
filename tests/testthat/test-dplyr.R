@@ -3,7 +3,7 @@ library(dplyr)
 library(digest)
 rxPermissive({
     context("Make sure solved rxSolve work with dplyr objects")
-    rxClean();
+
     ## RxODE instance 1
     m1 <-
         RxODE(
@@ -108,5 +108,5 @@ rxPermissive({
                      "55648abe00d99753eddd92fca264f7da");
     })
 
-    rxClean();
+
 }, silent=TRUE);

@@ -5,7 +5,7 @@ library(digest)
 rxPermissive({
     context("Example 3-1");
     old <- options(digits = 6)
-    rxClean();
+
 
     ode <-
         RxODE(model = 'd/dt(y) = r * y * (1.0 - y/K);')

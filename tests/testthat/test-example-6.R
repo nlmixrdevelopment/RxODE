@@ -3,8 +3,6 @@ context("Example 6")
 require(digest)
 rxPermissive({
     ## https://cran.r-project.org/web/packages/diffEq/vignettes/ODEinR.pdf p11
-    rxClean();
-
 
     ## 6.1
 

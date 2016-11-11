@@ -4,7 +4,7 @@
 library(digest)
 context("Example 3.3");
 rxPermissive({
-    rxClean();
+
     rigid.txt <- "
 y1(0)    = 1
 y2(0)    = 0
@@ -37,5 +37,5 @@ d/dt(y3) = a3*y1*y2
         expect_equal(as.data.frame(out),as.data.frame(out2));
     })
 
-    rxClean();
+
 }, silent=TRUE);

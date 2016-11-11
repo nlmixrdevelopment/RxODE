@@ -297,5 +297,4 @@ d/dt(z) = 3.0e7*y^2
 d/dt(y) = -1.0*(d/dt(x)+d/dt(z))
 ")
 
-    rxClean();
 }, silent=TRUE);

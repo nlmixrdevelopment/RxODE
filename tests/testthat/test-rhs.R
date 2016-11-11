@@ -4,7 +4,6 @@ library(digest)
 rxPermissive({
     context("rxSolve right handed differental equations")
 
-
     orhs <- RxODE("
 x(0)    = 1
 a       = 1.0E4
@@ -33,5 +32,4 @@ d/dt(y) = -1.0*(d/dt(x)+d/dt(z))
                      "f8594b891db1162357d2ccd93c687ed2")
     })
 
-    rxClean();
 }, silent=TRUE)

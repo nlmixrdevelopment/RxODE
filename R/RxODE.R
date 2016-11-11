@@ -60,11 +60,15 @@ rxPermissive <- function(..., silent=FALSE) {
                        RxODE.syntax.allow.dots=TRUE);
     do.call("rxOptions", args, envir=parent.frame(1));
 }
-rxOptions <- function(..., op.rx=NULL, silent=FALSE, respect=FALSE){
+rxOptions <- function(..., op.rx=NULL, silent=FALSE, respect=FALSE,
+                      rxclean=(regexpr("/tests/testthat/", getwd(), fixed=TRUE))){
     args <- as.list(match.call(expand.dots = TRUE));
     if (class(args[[2]]) == "{"){
+        if (rxclean){
+            rxClean();
+        }
         op <- options();
-        on.exit({options(op)});
+        on.exit({options(op); if (rxclean){rxClean();}});
         rxOptions(op.rx=op.rx, silent=silent, respect=respect);
         eval(args[[2]]);
     } else if (class(args[[2]]) == "logical" && missing(silent)){

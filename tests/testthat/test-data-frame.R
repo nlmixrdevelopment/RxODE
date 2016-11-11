@@ -2,7 +2,7 @@ library(RxODE)
 library(dplyr)
 library(digest)
 rxPermissive({
-    rxClean();
+
     context("rxSolve objects behave as data-frames")
     ## RxODE instance 1
     m1 <-
@@ -113,5 +113,5 @@ rxPermissive({
         rownames(o1.first) <- NULL;
         expect_equal(rownames(o1.first),NULL);
     })
-    rxClean();
+
 }, silent=TRUE)

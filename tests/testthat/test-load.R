@@ -2,7 +2,6 @@ require(RxODE)
 context("Test loading, and unloading of models")
 rxPermissive({
 
-    rxClean();
     rigid.txt <- "
 y1(0)    = 1
 y2(0)    = 0
