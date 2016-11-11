@@ -117,7 +117,7 @@ extern int d_verbose_level;
 unsigned int found_jac = 0, found_print = 0;
 int rx_syntax_assign = 0, rx_syntax_star_pow = 0,
   rx_syntax_require_semicolon = 0, rx_syntax_allow_dots = 0,
-  rx_syntax_allow_ini0 = 1;
+  rx_syntax_allow_ini0 = 1, rx_syntax_allow_ini = 1;
 
 char s_aux_info[64*MXSYM];
 
@@ -626,7 +626,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 
       if ((!strcmp("assignment", name) || !strcmp("ini", name) || !strcmp("ini0", name)) && i==0) {
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-	if (!strcmp("ini", name) || !strcmp("ini0", name)){
+	if ((rx_syntax_allow_ini && !strcmp("ini", name)) || !strcmp("ini0", name)){
 	  sprintf(sb.s,"(__0__)");
 	  sb.o = 7;
 	  for (k = 0; k < strlen(v); k++){
@@ -673,7 +673,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	sprintf(sbt.s, "%s", v);
         sbt.o = strlen(v);
         new_or_ith(v);
-	if (!strcmp("assignment", name)){
+	if (!strcmp("assignment", name) || (!rx_syntax_allow_ini && !strcmp("ini", name))){
 	  tb.lh[tb.ix] = 1;
         } else if (!strcmp("ini", name) || !strcmp("ini0",name)){
 	  if (tb.ini[tb.ix] == 0){
@@ -1331,6 +1331,7 @@ SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_m
   rx_syntax_allow_dots = R_get_option("RxODE.syntax.allow.dots",1);
   rx_suppress_syntax_info = R_get_option("RxODE.suppress.syntax.info",0);
   rx_syntax_allow_ini0 = R_get_option("RxODE.suppress.allow.ini0",1);
+  rx_syntax_allow_ini  = R_get_option("RxODE.suppress.allow.ini",1);
   rx_syntax_error = 0;
   d_use_r_headers = 0;
   d_rdebug_grammar_level = 0;
