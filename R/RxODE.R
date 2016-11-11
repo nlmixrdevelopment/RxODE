@@ -320,7 +320,7 @@ RxODE <-
     ## after parsing, thus it needs to be dynamically computed in cmpMgr
     get.modelVars <- cmpMgr$get.modelVars
 
-    .version <- "0.6"          # object version
+    .version <- rxVersion()["version"]; # object version
     .last.solve.args <- NULL   # to be populated by solve()
 
     solve <- function(...){
@@ -1130,7 +1130,6 @@ nodeInfo <- function(x,       # RxODE normalized model
             p <- gsub(rex::rex(n_times(one_of("~"), 4)), sprintf("%s%s*", ifelse(negVar, "+", "-"), v), p, perl = TRUE)
             ## replace in original
             var <- gsub(RxODE.quoteVar(totalExpr, FALSE), p, var, perl = TRUE);
-            print(var);
         }
         ## Replace initial +
         var <- gsub(rex::rex(start, any_spaces, one_of("+"), any_spaces), "", var);
@@ -1140,6 +1139,7 @@ nodeInfo <- function(x,       # RxODE normalized model
     for (i in 1:length(mod)){
         mod[i] <- expandFactor(mod[i]);
     }
+    print(mod);
     ## now replace defined variables in overall expressions.
     for (i in 1:length(mod)){
         if (i > 1){
