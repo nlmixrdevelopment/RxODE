@@ -3968,11 +3968,15 @@ rxClean <- function(wd = getwd()){
     owd <- getwd();
     setwd(wd);
     on.exit(setwd(owd));
-    pat <- "^(Makevars|(rx.*|call_dvode)[.](o|dll|s[ol]|c|rx))$"
+    pat <- "^(Makevars|(rx.*)[.](o|dll|s[ol]|c|rx))$"
     files <- list.files(pattern = pat);
     for (f in files){
-        try(dyn.unload(f), silent = TRUE);
-        unlink(f);
+        if (f == "Makevars" && file.exists("tran.c")){
+            warning("Ignoring Makevars since 'tran.c' is in the same directory.")
+        } else {
+            try(dyn.unload(f), silent = TRUE);
+            unlink(f);
+        }
     }
     return(length(list.files(pattern = pat)) == 0);
 }
