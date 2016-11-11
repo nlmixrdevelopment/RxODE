@@ -154,7 +154,11 @@ mkdparse <- function(file,outputFile,
 }
 
 updatePkg <- function(){ # nocov start
+    library(knitr)
     cat("Update README\n");
+    owd <- getwd();
+    on.exit({setwd(owd)});
+    setwd(devtools::package_file());
     knitr::knit(devtools::package_file("README.Rmd"))
     cat("Update Parser c file\n");
     mkdparse(devtools::package_file("inst/tran.g"),
@@ -166,8 +170,5 @@ updatePkg <- function(){ # nocov start
     cat(paste(file,collapse="\n"));
     sink();
     unlink(devtools::package_file("src/tran.o"))
-    ## for (f in list.files(devtools::package_file("src/"), pattern=sprintf("(\\.o|\\%s)$",.Platform$dynlib.ext),full.names=TRUE)){
-    ##     unlink(f);
-    ## }
     devtools::load_all();
 } # nocov end
