@@ -22,4 +22,4 @@ r_github_packages:
   - jimhester/covr
 
 after_success:
-  - Rscript -e 'covr::codecov(line_exclusions=c("R/genShinyApp.template.R","src/errmsg.f","src/rprintf.c","src/vode.f", "src/dlsoda.f", "src/dop853.c", "src/gram.c", "src/lex.c", "src/lr.c", "src/mkdparse.c", "src/opkda1_abbr.f", "src/opkda2.f", "src/scan.c", "src/symtab.c", "src/util.c", "src/version.c", "src/write_tables.c", "src/parse.c"))'
+  - Rscript -e 'covr::codecov(line_exclusions=c("R/genShinyApp.template.R","src/errmsg.f","src/rprintf.c","src/vode.f", "src/dlsoda.f", "src/dop853.c", "src/gram.c", "src/lex.c", "src/lr.c", "src/mkdparse.c", "src/opkda1_abbr.f", "src/opkda2.f", "src/scan.c", "src/symtab.c", "src/util.c", "src/version.c", "src/write_tables.c", "src/parse.c" "R/dparser.R"))'
