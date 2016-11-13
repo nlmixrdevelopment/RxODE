@@ -86,22 +86,25 @@ sbuf_read(const char *pathname) {
 void
 d_fail(const char *str, ...) {
   char nstr[256];
+  char outstr[256*2];
   va_list ap;
   va_start(ap, str);
-  snprintf(nstr, 255, "fail: %s\n", str);
-  vfprintf(stderr, nstr, ap);
+  snprintf(nstr, 255, "Parser Fail: %s", str);
+  vsprintf(outstr, nstr, ap);
   va_end(ap);
-  exit(1);
+  error(outstr);
 }
 
 void
 d_warn(const char *str, ...) {
   char nstr[256];
+  char outstr[256*2];
   va_list ap;
   va_start(ap, str);
-  snprintf(nstr, 255, "warning: %s\n", str);
-  vfprintf(stderr, nstr, ap);
+  snprintf(nstr, 255, "%s", str);
+  vsprintf(outstr, nstr, ap);
   va_end(ap);
+  warning(outstr);
 }
 
 void

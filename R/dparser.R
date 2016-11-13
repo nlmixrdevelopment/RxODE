@@ -206,6 +206,43 @@ updateDparser <- function(){ # nocov start
                     d <- d[-(i - 1)];
                 }
             }
+            if (f == "util.c"){
+                w <- which(regexpr("^ *d_warn *[(]", d) != -1);
+                w2 <- w + 1;
+                while (regexpr("}", d[w2]) == -1){
+                    w2 <- w2 + 1;
+                }
+                d  <- c(d[seq(1, w - 1)],
+                        'd_warn(const char *str, ...) {
+  char nstr[256];
+  char outstr[256*2];
+  va_list ap;
+  va_start(ap, str);
+  snprintf(nstr, 255, "%s", str);
+  vsprintf(outstr, nstr, ap);
+  va_end(ap);
+  warning(outstr);
+}',
+d[seq(w2 + 1, length(d))]);
+                w <- which(regexpr("^ *d_fail *[(] *const +char", d) != -1);
+                w2 <- w + 1;
+                while (regexpr("}", d[w2]) == -1){
+                    w2 <- w2 + 1;
+                }
+                d  <- c(d[seq(1, w - 1)],
+                        'd_fail(const char *str, ...) {
+  char nstr[256];
+  char outstr[256*2];
+  va_list ap;
+  va_start(ap, str);
+  snprintf(nstr, 255, "Parser Fail: %s", str);
+  vsprintf(outstr, nstr, ap);
+  va_end(ap);
+  error(outstr);
+}',
+d[seq(w2 + 1, length(d))]);
+            }
+
             sink(devtools::package_file("src/", f));
             cat(paste(d, collapse="\n"));
             sink()
