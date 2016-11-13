@@ -190,7 +190,7 @@ updateDparser <- function(){ # nocov start
             d <- gsub("MALLOC[(]", "R_chk_calloc(1,", d);
             d <- gsub("CALLOC[(]", "R_chk_calloc(1,", d);
             d <- gsub("FREE", "Free", d);
-            d <- gsub(" printf[(]", " Rprintf(", d);
+            d <- gsub("([ \t])printf[(]", "\\1Rprintf(", d);
             if (f == "write_tables.c"){
                 w  <- which(regexpr('#include "dparse_tables.h"', d, fixed=TRUE) != -1);
                 d <- c(d[1:w], "int d_use_r_headers = 0;", d[seq(w + 1, length(d))]);

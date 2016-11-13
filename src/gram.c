@@ -753,23 +753,23 @@ print_grammar(Grammar *g) {
     for (j = 0; j < pp->rules.n; j++) {
       rr = pp->rules.v[j];
       if (!j) 
-	printf("\t: ");
+	Rprintf("\t: ");
       else
-	printf("\t| ");
+	Rprintf("\t| ");
       for (k = 0; k < rr->elems.n; k++)
 	print_elem(rr->elems.v[k]);
       if (rr->op_priority)
-	printf("op %d ", rr->op_priority);
+	Rprintf("op %d ", rr->op_priority);
       if (rr->op_assoc)
-	printf("%s ", assoc_str(rr->op_assoc));
+	Rprintf("%s ", assoc_str(rr->op_assoc));
       if (rr->rule_priority)
-	printf("rule %d ", rr->rule_priority);
+	Rprintf("rule %d ", rr->rule_priority);
       if (rr->rule_assoc)
-	printf("%s ", assoc_str(rr->rule_assoc));
+	Rprintf("%s ", assoc_str(rr->rule_assoc));
       if (rr->speculative_code.code)
-	printf("%s ", rr->speculative_code.code);
+	Rprintf("%s ", rr->speculative_code.code);
       if (rr->final_code.code)
-	printf("%s ", rr->final_code.code);
+	Rprintf("%s ", rr->final_code.code);
       Rprintf("\n");
     }
     Rprintf("\t;\n");
@@ -1131,7 +1131,7 @@ build_eq(Grammar *g) {
     e = &eq[s->index];
     if (e->eq) {
       if (d_verbose_level > 2) {
-	printf("eq %d %d ", s->index, e->eq->index); 
+	Rprintf("eq %d %d ", s->index, e->eq->index); 
 	if (e->diff_state)
 	  Rprintf("diff state (%d %d) ", 
 		 e->diff_state->index,
@@ -1144,7 +1144,7 @@ build_eq(Grammar *g) {
 	  print_rule(eq[e->eq->index].diff_rule);
 	  Rprintf("]");
 	}
-	printf("\n");
+	Rprintf("\n");
       }
     }
   }
@@ -1171,7 +1171,7 @@ build_eq(Grammar *g) {
     s = g->states.v[i];
     if (s->reduces_to)
       if (d_verbose_level)
-	printf("reduces_to %d %d\n", s->index, s->reduces_to->index);
+	Rprintf("reduces_to %d %d\n", s->index, s->reduces_to->index);
   }
   Free(eq);
 }
@@ -1538,9 +1538,9 @@ print_term_escaped(Term *t, int double_escaped) {
     else {
       Rprintf("'%s' ", double_escaped?escape_string_single_quote(s):s);
       if (t->ignore_case)
-	printf("/i ");
+	Rprintf("/i ");
       if (t->term_priority)
-	printf("%sterm %d ", double_escaped?"#":"$", t->term_priority);
+	Rprintf("%sterm %d ", double_escaped?"#":"$", t->term_priority);
     }
   } else if (t->kind == TERM_REGEX) {
     s = t->string ? escape_string(t->string) : NULL;
@@ -1608,15 +1608,15 @@ print_production(Production *p) {
     r = p->rules.v[j];
     if (!j) {
       //      if (p->regex) {
-      //	printf("%s%s%s", opening[variant], p->name, regex_production);
+      //	Rprintf("%s%s%s", opening[variant], p->name, regex_production);
       //      } else {
       Rprintf("%s%s%s", opening[variant], p->name, middle[variant]);
       //      }
     } else {
       if (variant==0)
-	printf("%s", next_or_rule);
+	Rprintf("%s", next_or_rule);
       else
-	printf("%s%s%s", opening[variant], p->name, middle[variant]);
+	Rprintf("%s%s%s", opening[variant], p->name, middle[variant]);
     }
 
     for (k = 0; k < r->elems.n; k++)
@@ -1639,7 +1639,7 @@ print_production(Production *p) {
     if ((d_rdebug_grammar_level == 2 && variant == 0) ||
 	(d_rdebug_grammar_level == 3 && variant == 1)) {
       if (variant==1)
-	printf("%s", speculative_final_closing);
+	Rprintf("%s", speculative_final_closing);
       variant=2;
       goto Lmore;
     }
@@ -1712,7 +1712,7 @@ print_declarations(Grammar *g) {
     for (i = 0; i < g->terminals.n; i++) {
       Term *t = g->terminals.v[i];
       if (t->kind == TERM_TOKEN) {
-	printf("%s %s", token_exists?"":"${token", t->string);
+	Rprintf("%s %s", token_exists?"":"${token", t->string);
 	token_exists = 1;
       }
     }
