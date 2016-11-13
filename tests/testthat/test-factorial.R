@@ -31,5 +31,5 @@ rxPermissive({
     transTo("d/dt(cmt)= lfactorial(1+fac)-cmt*ka", "lgamma1p(1+fac)")
 
 
-    rxClean();
+
 }, silent=TRUE)
