@@ -4,6 +4,7 @@
 #ifndef _d_H_
 #define _d_H_
 
+#define __USE_MINGW_ANSI_STDIO 1
 #ifdef MEMWATCH
 #define MEMWATCH_STDIO 1
 #include "../../src/memwatch-2.67/memwatch.h"
@@ -32,10 +33,23 @@
 #include <string.h>
 #include <R.h>
 #include <Rinternals.h>
-
 #define D_MAJOR_VERSION 1
 #define D_MINOR_VERSION 30
-#define D_BUILD_VERSION "R-6a201e22e57e77c297d3c43fdb245125ed3b7d64"
+#define D_BUILD_VERSION "R-62630b2ba313e6d2f0ae08f452efc8a1e702f731"
+
+#ifdef LEAK_DETECT
+#define GC_DEBUG
+#include "gc.h"
+#define CHECK_LEAKS() GC_gcollect()
+#else
+#ifdef USE_GC
+#include "gc.h"
+#define malloc dont_use_malloc_use_MALLOC_instead
+#define relloc dont_use_realloc_use_R_chk_realloc_instead
+#define free dont_use_free_use_Free_instead
+#else
+#endif
+#endif
 
 // enough already with the signed/unsiged char issues
 #define isspace_(_c) isspace((unsigned char)(_c))
@@ -57,19 +71,15 @@ D_BUILD_VERSION)
 ((((_x)>>4) > 9) ? (((_x)>>4) - 10 + 'A') : (((_x)>>4) + '0'))
 #define numberof(_x) ((sizeof(_x))/(sizeof((_x)[0])))
 
-typedef char int8;
-typedef unsigned char uint8;
-typedef int int32;
-typedef unsigned int uint32;
-typedef long long int64;
-typedef unsigned long long uint64;
-typedef short int16;
-typedef unsigned short uint16;
-#ifdef __MINGW32__
-/* already part of most systems */
-typedef unsigned long ulong;
-typedef uint32 uint; 
-#endif
+typedef int8_t int8;
+typedef uint8_t uint8;
+typedef int32_t int32;
+typedef uint32_t uint32;
+typedef int64_t int64;
+typedef uint64_t  uint64;
+typedef int16_t int16;
+typedef uint16_t uint16;
+typedef unsigned int uint;
 
 #include "dparse.h"
 #include "util.h"

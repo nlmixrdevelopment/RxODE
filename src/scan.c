@@ -152,4 +152,3 @@ scan_buffer(d_loc_t *aloc, D_State *parse_state, ShiftResult *results) {
   }
   return nresults;
 }
-

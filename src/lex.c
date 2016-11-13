@@ -513,7 +513,7 @@ build_state_scanner(Grammar *g, LexState *ls, State *s) {
   for (j = 0; j < s->shift_actions.n; j++) {
     a = s->shift_actions.v[j];
     if (a->kind == ACTION_SHIFT && a->term->kind == TERM_REGEX) {
-      Action *trailing_context = Calloc(1,Action);
+      Action *trailing_context = (Action *)R_chk_calloc(1,sizeof(Action));
       memcpy(trailing_context, a, sizeof(Action));
       trailing_context->kind = ACTION_SHIFT_TRAILING;
       trailing_context->index = g->action_count++;
@@ -589,4 +589,3 @@ build_scanners(Grammar *g) {
     Rprintf("%d scanners %d transitions\n", ls->scanners, ls->transitions);
   Free(ls);
 }
-

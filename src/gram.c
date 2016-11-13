@@ -10,7 +10,6 @@ extern D_ParserTables parser_tables_dparser_gram;
 static char *action_types[] = { "ACCEPT", "SHIFT", "REDUCE" };
 
 static void print_state(State *s);
-char * r_sbuf_read(const char *pathname);
 
 Production *
 new_production(Grammar *g, char *name) {
@@ -19,7 +18,7 @@ new_production(Grammar *g, char *name) {
     Free(name);
     return p;
   }
-  p = Calloc(1,Production);
+  p = R_chk_calloc(1,sizeof(Production));
   memset(p, 0, sizeof(Production));
   vec_add(&g->productions, p);
   p->name = name;
@@ -29,14 +28,14 @@ new_production(Grammar *g, char *name) {
 
 static Elem *
 new_elem() {
-  Elem *e = Calloc(1,Elem);
+  Elem *e = R_chk_calloc(1,sizeof(Elem));
   memset(e, 0, sizeof(Elem));
   return e;
 }
 
 Rule *
 new_rule(Grammar *g, Production *p) {
-  Rule *r = Calloc(1, Rule);
+  Rule *r = R_chk_calloc(1,sizeof(Rule));
   memset(r, 0, sizeof(Rule));
   r->prod = p;
   r->end = new_elem();
@@ -48,7 +47,7 @@ new_rule(Grammar *g, Production *p) {
 
 static Term *
 new_term() {
-  Term *term = Calloc(1,Term);
+  Term *term = R_chk_calloc(1,sizeof(Term));
   memset(term, 0, sizeof(Term));
   return term;
 }
@@ -77,7 +76,7 @@ new_term_string(Grammar *g, char *s, char *e, Rule *r) {
   Term *t = new_term();
   Elem *elem;
 
-  t->string = Calloc(e - s + 1,char);
+  t->string = R_chk_calloc(1,e - s + 1);
   memcpy(t->string, s, e - s);
   t->string[e - s] = 0;
   t->string_len = e - s;
@@ -88,7 +87,7 @@ new_term_string(Grammar *g, char *s, char *e, Rule *r) {
 
 char *
 escape_string_for_regex(const char *s) {
-  char *ss = (char*)Calloc((strlen(s) + 1) * 2,char), *sss = ss;
+  char *ss = (char*)R_chk_calloc(1,(strlen(s) + 1) * 2), *sss = ss;
   for (; *s; s++) {
     switch (*s) {
       case '(':
@@ -271,7 +270,7 @@ new_ident(char *s, char *e, Rule *r) {
 void
 new_token(Grammar *g, char *s, char *e) {
   Term *t = new_term();
-  t->string = Calloc(e - s + 1,char);
+  t->string = R_chk_calloc(1,e - s + 1);
   memcpy(t->string, s, e - s);
   t->string[e - s] = 0;
   t->string_len = e - s;
@@ -288,7 +287,7 @@ new_code(Grammar *g, char *s, char *e, Rule *r) {
 
 Elem *
 dup_elem(Elem *e, Rule *r) {
-  Elem *ee = Calloc(1,Elem);
+  Elem *ee = R_chk_calloc(1,sizeof(Elem));
   memcpy(ee, e, sizeof(Elem));
   if (ee->kind == ELEM_UNRESOLVED)
     ee->e.unresolved.string = dup_str(e->e.unresolved.string, 0);
@@ -298,7 +297,7 @@ dup_elem(Elem *e, Rule *r) {
 
 void
 add_global_code(Grammar *g, char *start, char *end, int line) {
-  if (!g->code) g->code = Calloc(4,Code);
+  if (!g->code) g->code = R_chk_calloc(1,sizeof(Code) * 4);
   else if (!((g->ncode + 1) & 4))
     g->code = R_chk_realloc(g->code, sizeof(Code) * (g->ncode + 4));
   g->code[g->ncode].code = dup_str(start, end);
@@ -381,7 +380,7 @@ add_pass_code(Grammar *g, Rule *r, char *pass_start, char *pass_end,
 Production *
 new_internal_production(Grammar *g, Production *p) {
   char *n = p ? p->name : " _synthetic";
-  char *name = Calloc(strlen(n) + 21,char);
+  char *name = R_chk_calloc(1,strlen(n) + 21);
   Production *pp = NULL, *tp = NULL, *ttp;
   int i, found = 0;
   sprintf(name, "%s__%d", n, g->productions.n);
@@ -754,23 +753,23 @@ print_grammar(Grammar *g) {
     for (j = 0; j < pp->rules.n; j++) {
       rr = pp->rules.v[j];
       if (!j) 
-	Rprintf("\t: ");
+	printf("\t: ");
       else
-	Rprintf("\t| ");
+	printf("\t| ");
       for (k = 0; k < rr->elems.n; k++)
 	print_elem(rr->elems.v[k]);
       if (rr->op_priority)
-	Rprintf("op %d ", rr->op_priority);
+	printf("op %d ", rr->op_priority);
       if (rr->op_assoc)
-	Rprintf("%s ", assoc_str(rr->op_assoc));
+	printf("%s ", assoc_str(rr->op_assoc));
       if (rr->rule_priority)
-	Rprintf("rule %d ", rr->rule_priority);
+	printf("rule %d ", rr->rule_priority);
       if (rr->rule_assoc)
-	Rprintf("%s ", assoc_str(rr->rule_assoc));
+	printf("%s ", assoc_str(rr->rule_assoc));
       if (rr->speculative_code.code)
-	Rprintf("%s ", rr->speculative_code.code);
+	printf("%s ", rr->speculative_code.code);
       if (rr->final_code.code)
-	Rprintf("%s ", rr->final_code.code);
+	printf("%s ", rr->final_code.code);
       Rprintf("\n");
     }
     Rprintf("\t;\n");
@@ -950,7 +949,7 @@ convert_regex_production_one(Grammar *g, Production *p) {
       }
     }
   }
-  b = buf = Calloc(buf_len + 1,char);
+  b = buf = (char*)R_chk_calloc(1,buf_len + 1);
   t = new_term();
   t->kind = TERM_REGEX;
   t->string = buf;
@@ -1069,7 +1068,7 @@ build_eq(Grammar *g) {
   State *s, *ss;
   EqState *eq, *e, *ee;
 
-  eq = Calloc(g->states.n,EqState);
+  eq = (EqState*)R_chk_calloc(1,sizeof(EqState)*g->states.n);
   memset(eq, 0, sizeof(EqState)*g->states.n);
   while (changed) {
     changed = 0;
@@ -1132,7 +1131,7 @@ build_eq(Grammar *g) {
     e = &eq[s->index];
     if (e->eq) {
       if (d_verbose_level > 2) {
-	Rprintf("eq %d %d ", s->index, e->eq->index); 
+	printf("eq %d %d ", s->index, e->eq->index); 
 	if (e->diff_state)
 	  Rprintf("diff state (%d %d) ", 
 		 e->diff_state->index,
@@ -1145,7 +1144,7 @@ build_eq(Grammar *g) {
 	  print_rule(eq[e->eq->index].diff_rule);
 	  Rprintf("]");
 	}
-	Rprintf("\n");
+	printf("\n");
       }
     }
   }
@@ -1172,14 +1171,14 @@ build_eq(Grammar *g) {
     s = g->states.v[i];
     if (s->reduces_to)
       if (d_verbose_level)
-	Rprintf("reduces_to %d %d\n", s->index, s->reduces_to->index);
+	printf("reduces_to %d %d\n", s->index, s->reduces_to->index);
   }
   Free(eq);
 }
 
 Grammar *
 new_D_Grammar(char *pathname) {
-  Grammar *g = Calloc(1,Grammar);
+  Grammar *g = (Grammar *)R_chk_calloc(1,sizeof(Grammar));
   memset(g, 0, sizeof(Grammar));
   g->pathname = dup_str(pathname, pathname + strlen(pathname));
   return g;
@@ -1310,7 +1309,7 @@ parse_grammar(Grammar *g, char *pathname, char *sarg) {
   
   vec_add(&g->all_pathnames, dup_str(pathname, 0));
   if (!s) 
-    if (!(s = r_sbuf_read(pathname)))
+    if (!(s = sbuf_read(pathname)))
       return -1;
   if (!g->productions.n)
     initialize_productions(g);
@@ -1322,8 +1321,8 @@ parse_grammar(Grammar *g, char *pathname, char *sarg) {
       finish_productions(g);
   } else
     res = -1;
-  /* if (!sarg) */
-  /*   Free(s); */
+  if (!sarg)
+    Free(s);
   free_D_Parser(p);
   return res;
 }
@@ -1539,9 +1538,9 @@ print_term_escaped(Term *t, int double_escaped) {
     else {
       Rprintf("'%s' ", double_escaped?escape_string_single_quote(s):s);
       if (t->ignore_case)
-	Rprintf("/i ");
+	printf("/i ");
       if (t->term_priority)
-	Rprintf("%sterm %d ", double_escaped?"#":"$", t->term_priority);
+	printf("%sterm %d ", double_escaped?"#":"$", t->term_priority);
     }
   } else if (t->kind == TERM_REGEX) {
     s = t->string ? escape_string(t->string) : NULL;
@@ -1609,15 +1608,15 @@ print_production(Production *p) {
     r = p->rules.v[j];
     if (!j) {
       //      if (p->regex) {
-      //	Rprintf("%s%s%s", opening[variant], p->name, regex_production);
+      //	printf("%s%s%s", opening[variant], p->name, regex_production);
       //      } else {
       Rprintf("%s%s%s", opening[variant], p->name, middle[variant]);
       //      }
     } else {
       if (variant==0)
-	Rprintf("%s", next_or_rule);
+	printf("%s", next_or_rule);
       else
-	Rprintf("%s%s%s", opening[variant], p->name, middle[variant]);
+	printf("%s%s%s", opening[variant], p->name, middle[variant]);
     }
 
     for (k = 0; k < r->elems.n; k++)
@@ -1640,7 +1639,7 @@ print_production(Production *p) {
     if ((d_rdebug_grammar_level == 2 && variant == 0) ||
 	(d_rdebug_grammar_level == 3 && variant == 1)) {
       if (variant==1)
-	Rprintf("%s", speculative_final_closing);
+	printf("%s", speculative_final_closing);
       variant=2;
       goto Lmore;
     }
@@ -1713,7 +1712,7 @@ print_declarations(Grammar *g) {
     for (i = 0; i < g->terminals.n; i++) {
       Term *t = g->terminals.v[i];
       if (t->kind == TERM_TOKEN) {
-	Rprintf("%s %s", token_exists?"":"${token", t->string);
+	printf("%s %s", token_exists?"":"${token", t->string);
 	token_exists = 1;
       }
     }
@@ -1729,9 +1728,8 @@ print_rdebug_grammar(Grammar *g, char *pathname) {
   char ver[30];
   d_version(ver);
   
-  Rprintf("/*\n  Generated by RxODE\'s mkdparse a port of Make DParser Version %s\n", ver);
-  Rprintf("  RxODE available at https://github.com/hallowkm/RxODE\n");
-  Rprintf("  Original dparser Available at http://dparser.sf.net\n*/\n\n");
+  Rprintf("/*\n  Generated by Make DParser Version %s\n", ver);  
+  Rprintf("  Available at http://dparser.sf.net\n*/\n\n");
   
   print_global_code(g);
   print_declarations(g);

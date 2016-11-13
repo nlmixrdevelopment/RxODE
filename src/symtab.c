@@ -55,7 +55,7 @@ symhash_add(D_SymHash *sh, D_Sym *s) {
     vv.n = sh->syms.n;
     sh->syms.n = sh->grow;
     sh->grow = sh->grow * 2 + 1;
-    sh->syms.v = R_chk_calloc((size_t) (sh->syms.n), sizeof(void *));
+    sh->syms.v = R_chk_calloc(1,sh->syms.n * sizeof(void *));
     memset(sh->syms.v, 0, sh->syms.n * sizeof(void *));
     v = sh->syms.v;
     n = sh->syms.n;
@@ -63,28 +63,28 @@ symhash_add(D_SymHash *sh, D_Sym *s) {
     for (i = 0; i < vv.n; i++)
       /* use temporary to preserve order */
       while (vv.v[i]) {
-	x = vv.v[i];
-	vv.v[i] = x->next;
-	vec_add(&tv, x);
+        x = vv.v[i];
+        vv.v[i] = x->next;
+        vec_add(&tv, x);
       }
-      while (tv.v[i]) {
-	x = tv.v[i];
-	tv.v[i] = x->next;
-	h = x->hash % n;
-	x->next = v[h];
-	v[h] = x;
-      }
-      Free(vv.v);
+    while (tv.v[i]) {
+      x = tv.v[i];
+      tv.v[i] = x->next;
+      h = x->hash % n;
+      x->next = v[h];
+      v[h] = x;
+    }
+    Free(vv.v);
   }
 }
 
 static D_SymHash * 
 new_D_SymHash() {
-  D_SymHash *sh = Calloc(1,D_SymHash);
+  D_SymHash *sh = R_chk_calloc(1,sizeof(D_SymHash));
   memset(sh, 0, sizeof(D_SymHash));
   sh->grow = INITIAL_SYMHASH_SIZE * 2 + 1;
   sh->syms.n = INITIAL_SYMHASH_SIZE;
-  sh->syms.v = R_chk_calloc((size_t)(sh->syms.n), sizeof(void *));
+  sh->syms.v = R_chk_calloc(1,sh->syms.n * sizeof(void *));
   memset(sh->syms.v, 0, sh->syms.n * sizeof(void *));
   return sh;
 }
@@ -104,7 +104,7 @@ free_D_SymHash(D_SymHash *sh) {
 
 D_Scope *
 new_D_Scope(D_Scope *parent) {
-  D_Scope *st = Calloc(1,D_Scope);
+  D_Scope *st = R_chk_calloc(1,sizeof(D_Scope));
   memset(st, 0, sizeof(D_Scope));
   if (parent) {
     st->depth = parent->depth + 1;
@@ -128,9 +128,9 @@ equiv_D_Scope(D_Scope *current) {
   while (s->depth >= current->depth) {
     if (s->depth == last->depth) {
       if (current->up == s->up)
-	last = s;
+        last = s;
       else
-	break;
+        break;
     }
     if (s->ll || s->hash)
       break;
@@ -139,7 +139,7 @@ equiv_D_Scope(D_Scope *current) {
     sy = s->updates;
     while (sy) {
       if (sy->scope->depth <= current->depth)
-	break;
+        break;
       sy = sy->next;
     }
     if (sy)
@@ -176,7 +176,7 @@ equiv_D_Scope(D_Scope *current) {
 
 D_Scope *
 enter_D_Scope(D_Scope *current, D_Scope *scope) {
-  D_Scope *st = Calloc(1,D_Scope), *parent = scope->up;
+  D_Scope *st = R_chk_calloc(1,sizeof(D_Scope)), *parent = scope->up;
   memset(st, 0, sizeof(D_Scope));
   st->depth = scope->depth;
   st->up = parent;
@@ -189,13 +189,13 @@ enter_D_Scope(D_Scope *current, D_Scope *scope) {
     while (update_scope) {
       D_Sym *sy = update_scope->updates;
       while (sy) {
-	if (sy->scope->depth <= current->depth)
-	  goto Lfound;
-	sy = sy->next;
+        if (sy->scope->depth <= current->depth)
+          goto Lfound;
+        sy = sy->next;
       }
       update_scope = update_scope->up_updates;
     }
-  Lfound:
+Lfound:
     st->up_updates = update_scope;
   }
 #else
@@ -215,7 +215,7 @@ global_D_Scope(D_Scope *current) {
 
 D_Scope *
 scope_D_Scope(D_Scope *current, D_Scope *scope) {
-  D_Scope *st = Calloc(1,D_Scope), *parent = current->up;
+  D_Scope *st = R_chk_calloc(1,sizeof(D_Scope)), *parent = current->up;
   memset(st, 0, sizeof(D_Scope));
   st->depth = current->depth;
   st->up = parent;
@@ -290,7 +290,7 @@ commit_D_Scope(D_Scope *st) {
 D_Sym *
 new_D_Sym(D_Scope *st, char *name, char *end, int sizeof_D_Sym) {
   int len = end ? end - name : name ? strlen(name) : 0;
-  D_Sym *s = R_chk_calloc(sizeof_D_Sym,sizeof(D_Sym));
+  D_Sym *s = R_chk_calloc(1,sizeof_D_Sym);
   memset(s, 0, sizeof_D_Sym);
   s->name = name;
   s->len = len;
@@ -322,7 +322,7 @@ current_D_Sym(D_Scope *st, D_Sym *sym) {
   for (sc = st; sc; sc = sc->up_updates) {
     for (uu = sc->updates; uu; uu = uu->next)
       if (uu->update_of == sym)
-	return uu;
+        return uu;
   }
   return sym;
 }
@@ -337,12 +337,12 @@ find_D_Sym_in_Scope_internal(D_Scope *st, char *name, int len, uint h) {
       ll = st->ll;
     while (ll) {
       if (ll->hash == h && ll->len == len && !strncmp(ll->name, name, len))
-	return ll;
+        return ll;
       ll = ll->next;
     }
     if (st->dynamic)
       if ((ll = find_D_Sym_in_Scope_internal(st->dynamic, name, len, h)))
-	return ll;
+        return ll;
     if (!st->search || st->search->up != st->up)
       break;
   }
@@ -366,7 +366,7 @@ find_D_Sym_internal(D_Scope *cur, char *name, int len, uint h) {
   if (!ll) { 
     if (cur->dynamic)
       if ((ll = find_D_Sym_in_Scope_internal(cur->dynamic, name, len, h)))
-	return ll;
+        return ll;
     if (cur->search)
       return find_D_Sym_internal(cur->search, name, len, h);
     return ll;
@@ -441,8 +441,9 @@ next_D_Sym_in_Scope(D_Scope **scope, D_Sym **sym) {
 D_Sym *
 update_additional_D_Sym(D_Scope *st, D_Sym *sym, int sizeof_D_Sym) {
   D_Sym *s;
+
   sym = current_D_Sym(st, sym);
-  s = R_chk_calloc((size_t)(sizeof_D_Sym),sizeof(D_Sym));
+  s = R_chk_calloc(1,sizeof_D_Sym);
   memcpy(s, sym, sizeof(D_Sym));
   if (sym->update_of) sym = sym->update_of;
   s->update_of = sym;
@@ -459,7 +460,7 @@ update_D_Sym(D_Sym *sym, D_Scope **pst, int sizeof_D_Sym) {
 
 void
 print_sym(D_Sym *s) {
-  char *c = (char*)R_chk_calloc((size_t)(s->len + 1),sizeof(char));
+  char *c = (char*)R_chk_calloc(1,s->len + 1);
   if (s->len)
     memcpy(c, s->name, s->len);
   c[s->len] = 0;
@@ -469,7 +470,7 @@ print_sym(D_Sym *s) {
 
 void
 print_scope(D_Scope *st) {
-  Rprintf("SCOPE %p: ", st);
+  Rprintf("SCOPE %p: ", (void*)st);
   Rprintf("  owned: %d, kind: %d, ", st->owned_by_user, st->kind);
   if (st->ll) Rprintf("  LL\n");
   if (st->hash) Rprintf("  HASH\n");
@@ -477,7 +478,7 @@ print_scope(D_Scope *st) {
     int i;
     for (i = 0; i < st->hash->syms.n; i++)
       if (st->hash->syms.v[i])
-	print_sym(st->hash->syms.v[i]);
+        print_sym(st->hash->syms.v[i]);
   } else {
     D_Sym *ll = st->ll;
     while (ll) {

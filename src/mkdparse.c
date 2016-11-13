@@ -27,4 +27,3 @@ void
 mkdparse_from_string(Grammar *g, char *str) {
   mkdparse_internal(g, 0, str);
 }
-

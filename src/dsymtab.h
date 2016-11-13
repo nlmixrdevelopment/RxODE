@@ -37,7 +37,7 @@ typedef struct D_Scope {
   struct D_Scope *dynamic;      /* dynamic scope (e.g. methods) */
   struct D_Scope *up;		/* enclosing scope */
   struct D_Scope *up_updates;	/* prior scope in speculative parse */
-  struct D_Scope *down;		/* enclosed scopes (for FREE) */
+  struct D_Scope *down;		/* enclosed scopes (for Free) */
   struct D_Scope *down_next;	/* next enclosed scope */
 } D_Scope;
 
