@@ -50,9 +50,6 @@ rxStrict <- function(expr, silent=FALSE, respect=FALSE, rxclean=(regexpr("/tests
 }
 rxOptions <- function(expr, op.rx=NULL, silent=FALSE, respect=FALSE,
                       rxclean=(regexpr("/tests/testthat/", getwd(), fixed=TRUE))){
-    if (rxclean){
-        rxClean();
-    }
     if (class(op.rx) == "character"){
         if (op.rx == "strict"){
             op.rx  <- 1;
@@ -72,6 +69,9 @@ rxOptions <- function(expr, op.rx=NULL, silent=FALSE, respect=FALSE,
     op.rx$RxODE.verbose=!silent;
     op.rx$RxODE.suppress.syntax.info=silent;
     if (!missing(expr)){
+        if (rxclean){
+            rxClean();
+        }
         opOld <- options();
         on.exit({options(opOld); if (rxclean){rxClean();}});
     }
@@ -83,7 +83,7 @@ rxOptions <- function(expr, op.rx=NULL, silent=FALSE, respect=FALSE,
         options(op.rx);
     }
     if (class(substitute(expr)) == "{"){
-        return(eval(substitute(expr)));
+        return(eval(substitute(expr), .GlobalEnv));
     }
 }
 
