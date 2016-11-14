@@ -2,21 +2,32 @@
 % Please edit documentation in R/RxODE.R
 \name{rxPermissive}
 \alias{rxPermissive}
-\title{Permissive RxODE sytax options}
+\alias{rxStrict}
+\title{Permissive or Strict RxODE sytax options}
 \usage{
-rxPermissive(..., silent = FALSE)
+rxPermissive(expr, silent = FALSE, respect = FALSE,
+  rxclean = (regexpr("/tests/testthat/", getwd(), fixed = TRUE) != -1))
+
+rxStrict(expr, silent = FALSE, respect = FALSE,
+  rxclean = (regexpr("/tests/testthat/", getwd(), fixed = TRUE) != -1))
 }
 \arguments{
-\item{...}{other arguments.  If the first argument is an
-expression, then evaluate this expression under rxPermissive and
-then restore the user's options.  If the first argument is
-logical, assume it is the silent argument.}
+\item{expr}{Expression to evaluate in the permissive/strict
+environment.  If unspecified, set the options for the current
+environment.}
 
 \item{silent}{when true, also silence the syntax errors and
 interactive output (useful in testing).}
+
+\item{respect}{when TRUE, respect any options that are specified.
+This is called at startup, but really should not be called
+elsewhere, otherwise the options are not changed.}
+
+\item{rxclean}{when TRUE, call rxClean before and after the expr
+is called.}
 }
 \description{
-This sets the RxODE syntax to be permissive
+This sets the RxODE syntax to be permissive or strict
 }
 \author{
 Matthew L. Fidler
