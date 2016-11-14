@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>   /* dj: import intptr_t */
+#include "ode.h"
 #include "gramgram.h"
 #include "d.h"
 #include "mkdparse.h"
@@ -191,7 +192,6 @@ int new_de(const char *s){
 }
 
 void wprint_node(int depth, char *name, char *value, void *client_data) {
-  // Took out space; changes parsing of statements like = -1 so that they cannot besc
   int i;
   if (!strcmp("time",value)){
     sprintf(SBPTR, "t");
@@ -749,7 +749,6 @@ void err_msg(int chk, const char *msg, int code)
 void prnt_vars(int scenario, FILE *outpt, int lhs, const char *pre_str, const char *post_str) {
   int i, j, k;
   char buf[64];
-
   fprintf(outpt, "%s", pre_str);  /* dj: avoid security vulnerability */
   for (i=0, j=0; i<tb.nv; i++) {
     if (lhs && tb.lh[i]>0) continue;
@@ -1008,37 +1007,7 @@ void print_aux_info(FILE *outpt, char *model){
   
   fprintf(outpt,"\treturn lst;\n");
   fprintf(outpt,"}\n");
-  fprintf(outpt,"extern SEXP __ODE_SOLVER__ (// Parameters\n");
-  fprintf(outpt," SEXP sexp_theta,\n");
-  fprintf(outpt," SEXP sexp_inits,\n");
-  fprintf(outpt," SEXP sexp_lhs,\n");
-  fprintf(outpt," // Events\n");
-  fprintf(outpt," SEXP sexp_time,\n");
-  fprintf(outpt," SEXP sexp_evid,\n");
-  fprintf(outpt," SEXP sexp_dose,\n");
-  fprintf(outpt," // Covariates\n");
-  fprintf(outpt," SEXP sexp_pcov,\n");
-  fprintf(outpt," SEXP sexp_cov,\n");
-  fprintf(outpt," SEXP sexp_locf,\n");
-  fprintf(outpt," // Solver Options\n");
-  fprintf(outpt," SEXP sexp_atol,\n");
-  fprintf(outpt," SEXP sexp_rtol,\n");
-  fprintf(outpt," SEXP sexp_hmin,\n");
-  fprintf(outpt," SEXP sexp_hmax,\n");
-  fprintf(outpt," SEXP sexp_h0,\n");
-  fprintf(outpt," SEXP sexp_mxordn,\n");
-  fprintf(outpt," SEXP sexp_mxords,\n");
-  fprintf(outpt," SEXP sexp_mx,\n");
-  fprintf(outpt," SEXP sexp_stiff,\n");
-  fprintf(outpt," SEXP sexp_transit_abs,\n");
-  fprintf(outpt," // Object Creation\n");
-  fprintf(outpt," SEXP sexp_object,\n");
-  fprintf(outpt," SEXP sexp_extra_args){\n");
-  fprintf(outpt," typedef SEXP (*RxODE_ode_solver) (SEXP sexp_theta, SEXP sexp_inits, SEXP sexp_lhs, SEXP sexp_time, SEXP sexp_evid, SEXP sexp_dose, SEXP sexp_pcov, SEXP sexp_cov, SEXP sexp_locf, SEXP sexp_atol, SEXP sexp_rtol, SEXP sexp_hmin, SEXP sexp_hmax, SEXP sexp_h0, SEXP sexp_mxordn, SEXP sexp_mxords, SEXP sexp_mx, SEXP sexp_stiff, SEXP sexp_transit_abs, SEXP sexp_object, SEXP sexp_extra_args, void (*fun_dydt)(unsigned int, double, double *, double *), void (*fun_calc_lhs)(double, double *, double *), void (*fun_calc_jac)(unsigned int, double, double *, double *, unsigned int), int fun_jt, int fun_mf, int fun_debug);\n");
-  fprintf(outpt,"RxODE_ode_solver ode_solver=(RxODE_ode_solver)R_GetCCallable(\"RxODE\",\"RxODE_ode_solver\");\n");
-  fprintf(outpt,"ode_solver(sexp_theta,sexp_inits,sexp_lhs,sexp_time,sexp_evid,sexp_dose,sexp_pcov,sexp_cov,sexp_locf,sexp_atol,sexp_rtol,sexp_hmin,sexp_hmax,sexp_h0,sexp_mxordn,sexp_mxords,sexp_mx,sexp_stiff,sexp_transit_abs,sexp_object,sexp_extra_args, __DYDT__ , __CALC_LHS__ , __CALC_JAC__, __JT__ , __MF__,\n#ifdef __DEBUG__\n1\n#else\n0\n#endif\n);");
-  fprintf(outpt,"}\n");
-  //fprintf(outpt,"SEXP __PARSED_MD5__()\n{\n\treturn %smodel_vars();\n}\n",model_prefix);
+  fprintf(outpt, __HD_SOLVE__);
 }
 
 void codegen(FILE *outpt, int show_ode) {
@@ -1049,13 +1018,12 @@ void codegen(FILE *outpt, int show_ode) {
 
   char *hdft[]=
     {
-      "#include <Rmath.h>\n#ifdef __STANDALONE__\n#define Rprintf printf\n#define JAC_Rprintf printf\n#define JAC0_Rprintf if (jac_counter_val() == 0) printf\n#define ODE_Rprintf printf\n#define ODE0_Rprintf if (dadt_counter_val() == 0) printf\n#define LHS_Rprintf printf\n#define R_alloc calloc\n#else\n#include <R.h>\n#include <Rinternals.h>\n#include <Rmath.h>\n#include <R_ext/Rdynload.h>\n#define JAC_Rprintf Rprintf\n#define JAC0_Rprintf if (jac_counter_val() == 0) Rprintf\n#define ODE_Rprintf Rprintf\n#define ODE0_Rprintf if (dadt_counter_val() == 0) Rprintf\n#define LHS_Rprintf Rprintf\n#endif\n#define max(a,b) (((a)>(b))?(a):(b))\n#define min(a,b) (((a)<(b))?(a):(b))\ntypedef void (*RxODE_update_par_ptr)(double t);\ntypedef double (*RxODE_transit3)(double t, double n, double mtt);\ntypedef double (*RxODE_fn) (double x);\ntypedef double (*RxODE_transit4)(double t, double n, double mtt, double bio);\ntypedef double (*RxODE_vec) (int val);\ntypedef long (*RxODE_cnt) ();\ntypedef void (*RxODE_inc) ();\ntypedef double (*RxODE_val) ();\n RxODE_vec par_ptr, InfusionRate;\n RxODE_update_par_ptr update_par_ptr;\n RxODE_cnt dadt_counter_val, jac_counter_val;\n RxODE_inc dadt_counter_inc, jac_counter_inc;\n RxODE_val podo, tlast;\nRxODE_transit4 transit4;\nRxODE_transit3 transit3;\nRxODE_fn factorial;\nvoid __R_INIT__ (DllInfo *info){\n InfusionRate   = (RxODE_vec) R_GetCCallable(\"RxODE\",\"RxODE_InfusionRate\");\n update_par_ptr = (RxODE_update_par_ptr) R_GetCCallable(\"RxODE\",\"RxODE_update_par_ptr\");\n par_ptr = (RxODE_vec) R_GetCCallable(\"RxODE\",\"RxODE_par_ptr\");\n dadt_counter_val = (RxODE_cnt) R_GetCCallable(\"RxODE\",\"RxODE_dadt_counter_val\");\n jac_counter_val  = (RxODE_cnt) R_GetCCallable(\"RxODE\",\"RxODE_jac_counter_val\");\n dadt_counter_inc = (RxODE_inc) R_GetCCallable(\"RxODE\",\"RxODE_dadt_counter_inc\");\n jac_counter_inc  = (RxODE_inc) R_GetCCallable(\"RxODE\",\"RxODE_jac_counter_inc\");\n podo  = (RxODE_val) R_GetCCallable(\"RxODE\",\"RxODE_podo\");\n tlast = (RxODE_val) R_GetCCallable(\"RxODE\",\"RxODE_tlast\");\ntransit3 = (RxODE_transit3) R_GetCCallable(\"RxODE\",\"RxODE_transit3\");\ntransit4 = (RxODE_transit4) R_GetCCallable(\"RxODE\",\"RxODE_transit4\");\nfactorial=(RxODE_fn) R_GetCCallable(\"RxODE\",\"RxODE_factorial\");}\n",
       "\n// prj-specific differential eqns\nvoid ",
       "dydt(unsigned int neq, double t, double *__zzStateVar__, double *__DDtStateVar__)\n{\n",
       "    dadt_counter_inc();\n}\n\n"
     };
   if (show_ode == 1){
-    fprintf(outpt, "%s", hdft[0]);
+    fprintf(outpt, __HD_ODE__);
     if (found_jac == 1){
       for (i=0; i<tb.nd; i++) {                   /* name state vars */
         retieve_var(tb.di[i], buf);
@@ -1074,9 +1042,9 @@ void codegen(FILE *outpt, int show_ode) {
         fprintf(outpt,"%c",extra_buf[i]);
       }
     }
-    fprintf(outpt, "%s", hdft[1]);
+    fprintf(outpt, "%s", hdft[0]);
     fprintf(outpt, "%s", model_prefix);
-    fprintf(outpt, "%s", hdft[2]);
+    fprintf(outpt, "%s", hdft[1]);
   } else if (show_ode == 2){
     fprintf(outpt, "// Jacobian derived vars\nvoid %scalc_jac(unsigned int neq, double t, double *__zzStateVar__, double *__PDStateVar__, unsigned int __NROWPD__) {\n\tdouble __DDtStateVar__[%d];\n",model_prefix,tb.nd+1);
   } else {
@@ -1238,7 +1206,7 @@ void codegen(FILE *outpt, int show_ode) {
     fprintf(outpt,"\t\tRprintf(\"================================================================================\\n\\n\\n\");\n\t}\n");
   }
   if (show_ode == 1){
-    fprintf(outpt, "%s", hdft[3]);
+    fprintf(outpt, "%s", hdft[2]);
   } else if (show_ode == 2){
     //fprintf(outpt,"\tfree(__ld_DDtStateVar__);\n");
     fprintf(outpt, "  jac_counter_inc();\n");

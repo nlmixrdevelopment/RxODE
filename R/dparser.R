@@ -254,7 +254,18 @@ d[seq(w2 + 1, length(d))]);
     }
 } # nocov end
 
-updatePkg <- function(){ # nocov start
+update <- function(){ # nocov start
+    cat("Generate header string.\n");
+    odec <- readLines(devtools::package_file("inst/ode.c"));
+    w <- which(regexpr("__ODE_SOLVER__", odec) != -1)[1];
+    ode <- odec[seq(1, w - 1)];
+    solve <- odec[seq(w, length(odec))];
+    hd <- sprintf("#define __HD_ODE__ \"%s\\n\"\n#define __HD_SOLVE__ \"%s\\n\"\n",
+                  paste(gsub("%", "%%", gsub("\"", "\\\\\"", ode)), collapse="\\n"),
+                  paste(gsub("%", "%%", gsub("\"", "\\\\\"", solve)), collapse="\\n"));
+    sink(devtools::package_file("src/ode.h"))
+    cat(hd);
+    sink();
     cat("Update README\n");
     owd <- getwd();
     on.exit({setwd(owd)});
