@@ -157,7 +157,8 @@ updateDparser <- function(){ # nocov start
     if (!file.exists(devtools::package_file("src/dparser"))){
         owd <- getwd();
         setwd(devtools::package_file("src"));
-        system("git clone --depth 1 https://github.com/jplevyak/dparser")
+        system("git clone https://github.com/jplevyak/dparser")
+        system("git checkout tags/v1.27")
         setwd(owd);
     }
     if (file.exists(devtools::package_file("src/dparser"))){
@@ -180,9 +181,12 @@ updateDparser <- function(){ # nocov start
                 w <- which(regexpr('#include "arg.h"', d) != -1);
                 d <- d[-w];
                 w <- which(regexpr('#include <string.h>', d) != -1)
+                ver  <- readLines(devtools::package_file("src/dparser/Makefile"));
+                major <- gsub("^ *MAJOR *= *", "", ver[which(regexpr("^ *MAJOR *=", ver) != -1)]);
+                minor <- gsub("^ *MINOR *= *", "", ver[which(regexpr("^ *MINOR *=", ver) != -1)]);
                 d <- c(d[1:w], "#include <R.h>", "#include <Rinternals.h>",
-                       "#define D_MAJOR_VERSION 1",
-                       "#define D_MINOR_VERSION 30",
+                       sprintf("#define D_MAJOR_VERSION %s", major),
+                       sprintf("#define D_MINOR_VERSION %s", minor),
                        sprintf('#define D_BUILD_VERSION "R-%s"', build),
                        d[seq(1 + w, length(d))]);
             }

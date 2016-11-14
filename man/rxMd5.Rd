@@ -26,7 +26,9 @@ Otherwise return the md5 based on the arguments provided
 }
 \description{
 This md5 is based on the model and possibly the extra c code
-supplied for the model
+supplied for the model.  In addition the md5 is based on syntax
+options, compiled RxODE library md5, and the RxODE
+version/repository.
 }
 \author{
 Matthew L.Fidler
