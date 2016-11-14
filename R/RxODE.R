@@ -377,6 +377,10 @@ RxODE <-
              filename = NULL, do.compile = NULL, extraC = NULL,
              debug = FALSE, ...)
 {
+    if (class(substitute(model)) == "{"){
+        model <- deparse(substitute(model))[-1];
+        model <- paste(model[-length(model)], collapse="\n");
+    }
     if (!missing(model) && !missing(filename))
         stop("must specify exactly one of 'model' or 'filename'")
     if (missing(model) && !missing(filename))
