@@ -1,20 +1,18 @@
 context("Test that model specification can take string, file name or rxode expressions")
 rxPermissive({
-    ode <- RxODE(model = 'd/dt(y) = r * y * (1.0 - y/K);');
+
+    ode <- RxODE(model = 'd/dt(y) = r * y * (1 - y/K);');
 
     ode2 <- RxODE({
-        d/dt(y) = r * y * (1.0 - y/K);
-    }, modName="expr");
-
-    print(summary(ode));
-    print(summary(ode2));
+        d/dt(y) = r * y * (1 - y/K);
+    });
 
     test_that("string and expression returns the same result", {
         expect_equal(rxModelVars(ode)$md5["parsed_md5"], rxModelVars(ode2)$md5["parsed_md5"])
     })
 
     sink("temp.rx")
-    cat('d/dt(y) = r * y * (1.0 - y/K);\n');
+    cat('d/dt(y) = r * y * (1 - y/K);\n');
     sink()
     ode3 <- RxODE('temp.rx');
     unlink("temp.rx");

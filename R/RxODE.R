@@ -83,7 +83,7 @@ rxOptions <- function(expr, op.rx=NULL, silent=FALSE, respect=FALSE,
         options(op.rx);
     }
     if (class(substitute(expr)) == "{"){
-        return(eval(substitute(expr), envir=parent.frame(1)));
+        return(eval(substitute(expr)));
     }
 }
 
