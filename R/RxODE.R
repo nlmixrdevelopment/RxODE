@@ -66,8 +66,10 @@ rxOptions <- function(expr, op.rx=NULL, silent=FALSE, respect=FALSE,
             }
         }
     }
-    op.rx$RxODE.verbose=!silent;
-    op.rx$RxODE.suppress.syntax.info=silent;
+    if (!missing(silent)){
+        op.rx$RxODE.verbose=!silent;
+        op.rx$RxODE.suppress.syntax.info=silent;
+    }
     if (!missing(expr)){
         if (rxclean){
             rxClean();
@@ -83,7 +85,7 @@ rxOptions <- function(expr, op.rx=NULL, silent=FALSE, respect=FALSE,
         options(op.rx);
     }
     if (class(substitute(expr)) == "{"){
-        return(eval(substitute(expr), .GlobalEnv));
+        return(eval(substitute(expr), envir=parent.frame(1)));
     }
 }
 
@@ -1382,6 +1384,12 @@ nodeInfo <- function(x,       # RxODE normalized model
                 biList   = biList));
 } # end function nodeInfo
 
+
+rxReq <- function(pkg){
+    if (!requireNamespace(pkg, quietly = TRUE)) {  # nocov start
+        stop(sprintf("Package \"%s\" needed for this function to work. Please install it.", pkg), call. = FALSE);
+    }}  # nocov end
+
 igraph.rxDll <- function(x,                                   #  object
                          shape      = c("square", "circle", "csquare", "rectangle", "crectangle", "vrectangle", "sphere", "none"),
                          size       = 30,                     # Size of square
@@ -1811,7 +1819,7 @@ rxMd5 <- function(model,         # Model File
     ## digest(file = TRUE) includes file times, so it doesn't work for this needs.
     if (class(model) == "character"){
         if (file.exists(model)){
-            ret <- readLines(model);
+            ret <- suppressWarnings({readLines(model)});
             mod <- paste(ret, collapse = "\n");
         } else {
             stop("Requires model to be a file.");
@@ -1843,7 +1851,6 @@ rxMd5 <- function(model,         # Model File
 ##' Translate the model to C code if needed
 ##'
 ##' This function translates the model to C code, if needed
-##'
 ##'
 ##' @param model This can be either a string specifying a file name for
 ##'     the RxODE code, or an RxODE family of objects
