@@ -651,7 +651,7 @@ double RxODE_transit3(double t, double n, double mtt){
 double RxODE_factorial(double x){
   return exp(lgamma1p(x));
 }
-void R_init_RxODE(DllInfo *info){
+void R_ini_RxODE(DllInfo *info){
   //Functions
   R_RegisterCCallable("RxODE","RxODE_ode_solver",       (DL_FUNC) RxODE_ode_solver);
   R_RegisterCCallable("RxODE","RxODE_assign_fn_pointers", (DL_FUNC) RxODE_assign_fn_pointers);

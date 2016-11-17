@@ -1,24 +1,20 @@
 /*
   Copyright 2002-2004 John Plevyak, All Rights Reserved
 
-  Modified to work in R for testing by Matthew L. Fidler
+  Modified to work in R for testing by Matthew L. Fidler (2016)
 */
 
-#include <d.h>
 #include <R.h>
 #include <Rinternals.h>
 #include <R_ext/Rdynload.h>
 #include <Rmath.h>
+#include <RxODE.h>
 
 #define SIZEOF_MY_PARSE_NODE	100	/* permit test cases up to this size */
 
 char * r_dup_str(const char *s, const char *e);
 
 extern D_ParserTables parser_tables_gram;
-extern int d_verbose_level;
-extern int d_exit_on_error;
-extern int d_use_file_name;
-extern char * d_file_name;
 
 int save_parse_tree = 1;
 int partial_parses = 0;
@@ -71,11 +67,10 @@ SEXP sample_parser(SEXP sexp_fileName,
   p->start_state = INTEGER(sexp_start_state)[0];
   p->dont_use_greediness_for_disambiguation = INTEGER(sexp_nogreedy)[0];
   p->dont_use_height_for_disambiguation = INTEGER(sexp_noheight)[0];
-  d_file_name = r_dup_str(CHAR(STRING_ELT(sexp_fileName,0)),0);
+  set_d_file_name(CHAR(STRING_ELT(sexp_fileName,0)));
   buf = r_sbuf_read(d_file_name);
-  d_exit_on_error = 0;
-  d_verbose_level = 1;
-  d_use_file_name = INTEGER(sexp_use_filename)[0];
+  set_d_verbose_level(1);
+  set_d_use_file_name(INTEGER(sexp_use_filename)[0]);
   pn = dparse(p, buf, strlen(buf));
   if (!pn) {
     if (d_use_file_name)
@@ -83,9 +78,8 @@ SEXP sample_parser(SEXP sexp_fileName,
     else
       Rprintf("fatal error, '' line %d\n", p->loc.line);
   }
-  d_exit_on_error =1;
-  d_verbose_level = 0;
-  d_use_file_name = 0;  
+  set_d_verbose_level(0);
+  set_d_use_file_name(0);  
   return R_NilValue;
   //exit(0);
 }

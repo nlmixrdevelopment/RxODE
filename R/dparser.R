@@ -161,8 +161,16 @@ updateDparser <- function(){ # nocov start
         system("git checkout tags/v1.27")
         setwd(owd);
     }
+    missingFns <- c("finalize_productions",
+                    "d_warn",
+                    "d_fail");
+    globalIntVars <- c("d_use_r_headers",
+                       "d_rdebug_grammar_level",
+                       "d_use_file_name",
+                       "d_verbose_level",
+                       "d_debug_level");
+    globalCharVars <- c("d_file_name");
     if (file.exists(devtools::package_file("src/dparser"))){
-
         owd <- getwd();
         setwd(devtools::package_file("src/dparser"));
         build <- gsub("([^ ]*) .*","\\1",system("git show-ref heads/master",intern=TRUE));
@@ -171,7 +179,7 @@ updateDparser <- function(){ # nocov start
         for (f in c("dparse.h", "dparse_tables.h", "dsymtab.h", "gram.h", "gramgram.h", "lex.h",
                     "lr.h", "mkdparse.h", "parse.h", "read_binary.h", "scan.h", "util.h", "write_tables.h",
                     "gram.c", "grammar.g.c", "lex.c", "lex.h", "lr.c", "mkdparse.c", "scan.c", "symtab.c",
-                    "util.c", "write_tables.c", "d.h")){
+                    "util.c", "write_tables.c", "d.h", "read_binary.c")){
             cat(sprintf("\tf: %s\n", f));
             unlink(devtools::package_file("src/", f));
             d <- readLines(devtools::package_file("src/dparser/", f));
@@ -252,6 +260,111 @@ d[seq(w2 + 1, length(d))]);
             sink()
         }
     }
+    id <- rex::rex(one_of("_", "a":"z", "A":"Z"), any_of("_", "a":"z", "A":"Z", "0":"9"));
+    fnRex <- rex::rex(start, any_spaces, capture(id), spaces,
+                      capture(any_of("*")), any_spaces, capture(id), any_spaces,
+                      one_of("("), capture(except_some_of(")")), one_of(")"), any_spaces, one_of(";"));
+    commentRex <- rex::rex(or(group("/*", anything, "*/"), group("//", anything, end)));
+    comSep <- rex::rex(any_spaces, ",", any_spaces);
+    argRex <- rex::rex(start, any_spaces, capture(except_some_of("*")), spaces, capture(any_of("*")),
+                       any_spaces, capture(id));
+    fns <- c();
+    calls <- c();
+    headers <- c("dparse.h", "dparse_tables.h", "dsymtab.h", "gram.h", "gramgram.h", "lex.h",
+                 "lr.h", "mkdparse.h", "parse.h", "read_binary.h", "scan.h", "util.h", "write_tables.h");
+    defs <- c();
+    for (f in c("dparse.h", "dparse_tables.h", "dsymtab.h", "gram.h", "gramgram.h", "lex.h",
+                "lr.h", "mkdparse.h", "parse.h", "read_binary.h", "scan.h", "util.h", "write_tables.h", "")){
+        if (f == ""){
+            txt <- c(sprintf("void set_%s(int x);", globalIntVars),
+                     sprintf("void set_%s(char *x);", globalCharVars));
+        } else {
+            txt <- suppressWarnings({readLines(devtools::package_file(sprintf("src/%s", f)))});
+        }
+        ## print(txt);
+        txt <- gsub(commentRex, "", txt[regexpr(fnRex, txt, perl=TRUE) != -1]);
+        for (txti in txt){
+            fnType <- gsub(fnRex, "\\1", txti, perl=TRUE);
+            stars <- gsub(fnRex, "\\2", txti, perl=TRUE);
+            fnName <- gsub(fnRex, "\\3", txti, perl=TRUE);
+            fnArg <- gsub(fnRex, "\\4", txti, perl=TRUE);
+            if (!any(fnName == missingFns)){
+                defs <- c(defs, txti);
+                argsTot <- strsplit(fnArg, comSep)[[1]];
+                args <- gsub(argRex, "\\1\\2", argsTot, perl=TRUE);
+                arge <- gsub(argRex, "\\3", argsTot, perl=TRUE);
+                fn <- sprintf("%s %s%s(%s){\n  static %s %s(*fun)(%s)=NULL;\n  if (fun == NULL) fun = (%s(*) %s(%s)) R_GetCCallable(\"RxODE\",\"%s\");\n  return fun(%s);\n}\n",
+                              fnType, stars, fnName, fnArg,
+                              fnType, stars, paste(args, collapse=", "),
+                              fnType, stars, paste(args, collapse=", "),
+                              fnName, paste(arge, collapse=", "));
+                fns <- c(fns, fn);
+                call <- sprintf("  R_RegisterCCallable(\"RxODE\",\"%s\",(DL_FUNC) %s);\n", fnName, fnName);
+                calls <- c(call, calls);
+            }
+        }
+    }
+    fns <- sprintf("/*
+Header file for using internal C-level dparser functions in RxODE (generated).
+*/
+#ifndef __RxODE_H__
+#define __RxODE_H__
+
+#include <R.h>
+#include <Rinternals.h>
+#include <Rdefines.h>
+#include <Rconfig.h>
+#include <R_ext/Rdynload.h>
+
+#if defined(__cplusplus)
+extern \"C\" {
+#endif
+
+%s
+
+#if defined(__cplusplus)
+}
+#endif
+
+#endif\n", paste(fns, collapse="\n"));
+    sink(devtools::package_file("src/RxODE.h"));
+    cat(fns);
+    sink();
+    cat(sprintf("\tf: RxODE.h\n"));
+    sink(devtools::package_file("src/RxODE.c"));
+    cat(sprintf("/*
+Register C callables to R.
+*/
+
+#include <R.h>
+#include <Rinternals.h>
+#include <Rdefines.h>
+#include <Rconfig.h>
+#include <R_ext/Rdynload.h>
+#include \"gramgram.h\"
+#include \"d.h\"
+#include \"mkdparse.h\"
+#include \"dparse.h\"
+
+%s
+
+%s
+
+void R_ini_RxODE(DllInfo *info);
+
+%s
+
+void R_init_RxODE(DllInfo *info){
+  R_ini_RxODE(info);
+%s
+}
+
+", paste(sprintf("extern int %s;\nvoid set_%s(int x){\n  %s = x;\n}\n", globalIntVars, globalIntVars, globalIntVars), collapse="\n"),
+paste(sprintf("extern char * %s;\nvoid set_%s(char *x){\n  %s=x;\n}\n", globalCharVars, globalCharVars, globalCharVars), collapse="\n"),
+paste(defs, collapse="\n"),paste(calls, collapse=""),
+paste(sprintf("  R_RegisterCCallable(\"RxODE\",\"set_%s\",(DL_FUNC) set_%s);", c(globalIntVars, globalCharVars), c(globalIntVars, globalCharVars)), collapse="\n")))
+    sink();
+    cat(sprintf("\tf: RxODE.c\n"))
 } # nocov end
 
 refresh <- function(){ # nocov start
