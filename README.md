@@ -4,6 +4,13 @@
 [![CRAN version](http://www.r-pkg.org/badges/version/RxODE)](https://cran.r-project.org/package=RxODE)
 
 
+```
+## Error in eval(expr, envir, enclos): could not find function "knit"
+```
+
+```
+## Error in eval(expr, envir, enclos): could not find function "knit"
+```
 
 
 ## RxODE: A tool for performing simulations from Ordinary Differential Equation (ODE) models, with applications for pharmacometrics

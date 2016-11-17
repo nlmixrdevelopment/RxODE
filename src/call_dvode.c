@@ -313,6 +313,127 @@ void call_dop(int neq, double *x, int *evid, int nx, double *inits, double *dose
     }
 }
 
+void RxODE_ode_solver_c(int neq, int stiff, int *evid, double *inits, double *dose, double *solve, int *rc){
+  if (neq) {
+    if (stiff==0){
+      call_dop(neq, all_times, evid, n_all_times, inits, dose, solve, rc);
+    } else{
+      call_lsoda(neq, all_times, evid, n_all_times, inits, dose, solve, rc);
+    }
+  }
+}
+
+void RxODE_ode_solver_old_c(int *neq,
+                            double *theta,  //order:
+                            double *time,
+                            int *evid,
+                            int *ntime,
+                            double *inits,
+                            double *dose,
+                            double *ret,
+                            double *atol,
+                            double *rtol,
+                            int *stiff,
+                            int *transit_abs,
+                            int *nlhs,
+                            double *lhs,
+                            int *rc){
+  int i;
+  for (i=0; i<99; i++) InfusionRate[i] = 0.0;
+  ATOL = *atol;
+  RTOL = *rtol;
+  do_transit_abs = *transit_abs;
+  par_ptr = theta;
+  // Assign to default LSODA behvior, or 0
+  HMIN           = 0;
+  HMAX           = 0;
+  H0             = 0;
+  MXORDN         = 0;
+  MXORDS         = 0;
+  mxstep         = 0;
+  slvr_counter   = 0;
+  dadt_counter   = 0;
+  jac_counter    = 0;
+  // Assign global time information
+  all_times     = time; 
+  n_all_times   = *ntime;
+  // Call solver
+  RxODE_ode_solver_c(*neq, *stiff, evid, inits, dose, ret, rc);
+  // Update LHS
+  if (*nlhs) {
+    for (i=0; i<*ntime; i++){
+      calc_lhs(time[i], ret+i*(*neq), lhs+i*(*nlhs));
+    }
+  }
+}
+
+void RxODE_ode_solver_0_6_c(int *neq,
+                            double *theta,  //order:
+                            double *time,
+                            int *evid,
+                            int *ntime,
+                            double *inits,
+                            double *dose,
+                            double *ret,
+                            double *atol,
+                            double *rtol,
+                            int *stiff,
+                            int *transit_abs,
+                            int *nlhs,
+                            double *lhs,
+                            int *rc,
+			    double hmin,
+			    double hmax,
+			    double h0,
+			    int mxordn,
+			    int mxords,
+			    int mxstep){
+  int i;
+  for (i=0; i<99; i++) InfusionRate[i] = 0.0;
+  ATOL = *atol;
+  RTOL = *rtol;
+  do_transit_abs = *transit_abs;
+  par_ptr = theta;
+  HMIN           = hmin;
+  HMAX           = hmax;
+  H0             = h0;
+  MXORDN         = mxordn;
+  MXORDS         = mxords;
+  mxstep         = mxstep;
+  // Counters
+  slvr_counter   = 0;
+  dadt_counter   = 0;
+  jac_counter    = 0;
+  // Assign global time information
+  all_times     = time; 
+  n_all_times   = *ntime;
+  // Call solver
+  RxODE_ode_solver_c(*neq, *stiff, evid, inits, dose, ret, rc);
+  if (*nlhs) {
+    for (i=0; i<*ntime; i++){
+      calc_lhs(time[i], ret+i*(*neq), lhs+i*(*nlhs));
+    }
+  }
+}
+
+void RxODE_assign_fn_pointers(void (*fun_dydt)(unsigned int, double, double *, double *),
+                              void (*fun_calc_lhs)(double, double *, double *),
+                              void (*fun_calc_jac)(unsigned int, double, double *, double *, unsigned int),
+                              int fun_jt,
+                              int fun_mf,
+                              int fun_debug){
+  // Assign functions pointers
+  dydt     = fun_dydt;
+  calc_jac = fun_calc_jac;
+  calc_lhs = fun_calc_lhs;
+  // Assign solver options
+  global_jt     = fun_jt;
+  global_mf     = fun_mf;
+  global_debug  = fun_debug;
+
+}
+
+
 SEXP RxODE_ode_solver (// Parameters
 		       SEXP sexp_theta,
 		       SEXP sexp_inits,
@@ -338,25 +459,11 @@ SEXP RxODE_ode_solver (// Parameters
 		       SEXP sexp_transit_abs,
 		       // Object Creation
 		       SEXP sexp_object,
-		       SEXP sexp_extra_args,
-		       void (*fun_dydt)(unsigned int, double, double *, double *),
-		       void (*fun_calc_lhs)(double, double *, double *),
-		       void (*fun_calc_jac)(unsigned int, double, double *, double *, unsigned int),
-		       int fun_jt,
-		       int fun_mf,
-		       int fun_debug){
+		       SEXP sexp_extra_args){
   // TODO: Absorption lag?
   // TODO: Annotation?
   // TODO: Units
   // TODO: Bioavailiability
-  // Assign functions pointers
-  dydt     = fun_dydt;
-  calc_jac = fun_calc_jac;
-  calc_lhs = fun_calc_lhs;
-  // Assign solver options
-  global_jt	= fun_jt;
-  global_mf	= fun_mf;
-  global_debug	= fun_debug;
   // Parameters
   par_ptr       = REAL(sexp_theta);
   double *inits = REAL(sexp_inits);
@@ -400,16 +507,11 @@ SEXP RxODE_ode_solver (// Parameters
   
   solve         = (double *) R_alloc(neq*n_all_times+1,sizeof(double));
   lhs           = (double *) R_alloc(nlhs,sizeof(double));
-
+  
   for (i=0; i< 99; i++) InfusionRate[i] = 0.0;
 
-  if (neq) {
-    if (stiff==0){
-      call_dop(neq, all_times, evid, n_all_times, inits, dose, solve, rc);
-    } else{
-      call_lsoda(neq, all_times, evid, n_all_times, inits, dose, solve, rc);
-    }
-  }
+  RxODE_ode_solver_c(neq, stiff, evid, inits, dose, solve, rc);
+
   // Now create the matrix.
   for (i = 0; i < n_all_times; i++){
     // Time
@@ -550,8 +652,12 @@ double RxODE_factorial(double x){
   return exp(lgamma1p(x));
 }
 void R_init_RxODE(DllInfo *info){
-  //Function
+  //Functions
   R_RegisterCCallable("RxODE","RxODE_ode_solver",       (DL_FUNC) RxODE_ode_solver);
+  R_RegisterCCallable("RxODE","RxODE_assign_fn_pointers", (DL_FUNC) RxODE_assign_fn_pointers);
+  R_RegisterCCallable("RxODE","RxODE_ode_solver_old_c", (DL_FUNC) RxODE_ode_solver_old_c);
+  R_RegisterCCallable("RxODE","RxODE_ode_solver_0_6_c", (DL_FUNC) RxODE_ode_solver_0_6_c);
+  
   //Infusion
   R_RegisterCCallable("RxODE","RxODE_InfusionRate",     (DL_FUNC) RxODE_InfusionRate);
   // Parameters

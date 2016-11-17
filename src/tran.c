@@ -818,8 +818,8 @@ void print_aux_info(FILE *outpt, char *model){
   fprintf(outpt,"\tSEXP params = PROTECT(allocVector(STRSXP, %d));\n",pi);
   fprintf(outpt,"\tSEXP lhs    = PROTECT(allocVector(STRSXP, %d));\n",li);
   fprintf(outpt,"\tSEXP state  = PROTECT(allocVector(STRSXP, %d));\n",statei);
-  fprintf(outpt,"\tSEXP tran   = PROTECT(allocVector(STRSXP, 7));\n");
-  fprintf(outpt,"\tSEXP trann  = PROTECT(allocVector(STRSXP, 7));\n");
+  fprintf(outpt,"\tSEXP tran   = PROTECT(allocVector(STRSXP, 9));\n");
+  fprintf(outpt,"\tSEXP trann  = PROTECT(allocVector(STRSXP, 9));\n");
   fprintf(outpt,"\tSEXP mmd5   = PROTECT(allocVector(STRSXP, 2));\n");
   fprintf(outpt,"\tSEXP mmd5n  = PROTECT(allocVector(STRSXP, 2));\n");
   fprintf(outpt,"\tSEXP model  = PROTECT(allocVector(STRSXP, 3));\n");
@@ -996,6 +996,12 @@ void print_aux_info(FILE *outpt, char *model){
   
   fprintf(outpt,"\tSET_STRING_ELT(trann,6,mkChar(\"ode_solver\"));\n");
   fprintf(outpt,"\tSET_STRING_ELT(tran, 6,mkChar(\"%sode_solver\"));\n",model_prefix);
+  
+  fprintf(outpt,"\tSET_STRING_ELT(trann,7,mkChar(\"ode_solver_sexp\"));\n");
+  fprintf(outpt,"\tSET_STRING_ELT(tran, 7,mkChar(\"%sode_solver_sexp\"));\n",model_prefix);
+
+  fprintf(outpt,"\tSET_STRING_ELT(trann,8,mkChar(\"ode_solver_0_6\"));\n");
+  fprintf(outpt,"\tSET_STRING_ELT(tran, 8,mkChar(\"%sode_solver_0_6\"));\n",model_prefix);
   
   fprintf(outpt,"\tsetAttrib(tran, R_NamesSymbol, trann);\n");
   fprintf(outpt,"\tsetAttrib(mmd5, R_NamesSymbol, mmd5n);\n");
@@ -1349,8 +1355,8 @@ SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_m
   SEXP lst   = PROTECT(allocVector(VECSXP, 7));
   SEXP names = PROTECT(allocVector(STRSXP, 7));
   
-  SEXP tran  = PROTECT(allocVector(STRSXP, 7));
-  SEXP trann = PROTECT(allocVector(STRSXP, 7));
+  SEXP tran  = PROTECT(allocVector(STRSXP, 9));
+  SEXP trann = PROTECT(allocVector(STRSXP, 9));
   
   SEXP state = PROTECT(allocVector(STRSXP,tb.nd));
   
@@ -1427,6 +1433,14 @@ SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_m
   sprintf(buf,"%sode_solver",model_prefix);
   SET_STRING_ELT(trann,6,mkChar("ode_solver"));
   SET_STRING_ELT(tran, 6,mkChar(buf));
+
+  sprintf(buf,"%sode_solver_sexp",model_prefix);
+  SET_STRING_ELT(trann,7,mkChar("ode_solver_sexp"));
+  SET_STRING_ELT(tran, 7,mkChar(buf));
+
+  sprintf(buf,"%sode_solver_0_6",model_prefix);
+  SET_STRING_ELT(trann,8,mkChar("ode_solver_0_6"));
+  SET_STRING_ELT(tran, 8,mkChar(buf));
   
   fpIO2 = fopen(out2, "r");
   err_msg((intptr_t) fpIO2, "Error parsing. (Couldn't access out2.txt).\n", -1);

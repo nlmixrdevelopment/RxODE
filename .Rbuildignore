@@ -15,4 +15,5 @@ RxODE.*\.(zip|pdf)$
 /.Rhistory
 /R/.Rhistory
 /src/.Rhistory
+/src/dparser/.*$
 

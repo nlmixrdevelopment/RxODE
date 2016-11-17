@@ -1932,7 +1932,8 @@ rxTrans <- function(model,
 
 rxTransMakevars <- function(rxProps,                                                                              # rxTrans translation properties
                             rxDll, # Dll of file
-                            compileFlags =c("parsed_md5", "ode_solver", "model_vars", "calc_lhs", "calc_jac", "dydt"), # List of compile flags
+                            compileFlags =c("parsed_md5", "ode_solver", "ode_solver_sexp", "ode_solver_0_6",
+                                            "model_vars", "calc_lhs", "calc_jac", "dydt"), # List of compile flags
                             debug        = FALSE,                                                                 # Debug compile?
                             ...){
     ## rxTransCompileFlags returns a string for the compiler options
@@ -1944,7 +1945,10 @@ rxTransMakevars <- function(rxProps,                                            
             ret <- " -D__JT__=2 -D__MF__=22";
         }
         tmp <- rxProps[compileFlags];
-        tmp["parsed_md5_str"] <- sprintf("\"\\\"%s\\\"\"", tmp["parsed_md5"]);
+        for (x in c("parsed_md5", "ode_solver", "ode_solver_sexp", "ode_solver_0_6")){
+            tmp[sprintf("%s_str", x)] <- sprintf("\"\\\"%s\\\"\"", tmp[x]);
+        }
+        tmp["lib_str"] <- sprintf("\"\\\"%s\\\"\"", gsub(.Platform$dynlib.ext, "", basename(rxDll)));
         ret <- paste(c(ret, sprintf("-D__%s__=%s", toupper(names(tmp)), tmp),
                        sprintf("-D__R_INIT__=%s", sprintf("R_init_%s", gsub(.Platform$dynlib.ext, "", basename(rxDll))))),
                      collapse = " ");
@@ -2921,7 +2925,7 @@ rxSolve.rxDll <- function(object, params, events, inits = NULL, covs = NULL, sti
     ## Ensure that inits and params have names.
     names(inits) <- rxState(object);
     names(params) <- rxParams(object);
-    ret <- object$.call(rxTrans(object)["ode_solver"],
+    ret <- object$.call(rxTrans(object)["ode_solver_sexp"],
                  ## Parameters
                  params,
                  inits,

@@ -254,7 +254,7 @@ d[seq(w2 + 1, length(d))]);
     }
 } # nocov end
 
-update <- function(){ # nocov start
+refresh <- function(){ # nocov start
     cat("Generate header string.\n");
     odec <- readLines(devtools::package_file("inst/ode.c"));
     w <- which(regexpr("__ODE_SOLVER__", odec) != -1)[1];
