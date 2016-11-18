@@ -1,6 +1,8 @@
 library(digest);
 rxPermissive({
     files <- list.files(pattern=".*\\.test\\.g$")
+    skipTests <- c("ansic.test.g: ansic.test.g.1",
+                   "g50.test.g: g50.test.g.1");
     for (file in files){
         flags <- sprintf("%s.flags",file);
         if (file.exists(flags)){
@@ -83,12 +85,26 @@ rxPermissive({
                 test <- readLines("test-dparser");
                 unlink("test-dparser");
                 ref <- readLines(sprintf("%s.check",parseFile));
-                test_that(test.name, {
-                    if (test.name == "g50.test.g: g50.test.g.1"){
-                        skip("Doesn't seem to work under R");
+                if (!any(skipTests == test.name)){
+                    test_that(test.name, {
+                        expect_equal(test,ref);
+                    });
+                } else {
+                    if (all(test == ref)){
+                        test_that(test.name, {
+                            expect_equal(test,ref);
+                        });
+                    } else {
+                        cat("\n################################################################################\n");
+                        cat("Expected:\n");
+                        cat(paste(ref, collapse="\n"));
+                        cat("\n################################################################################\n");
+                        cat("Out:\n");
+                        cat(paste(test, collapse="\n"));
+                        cat("\n################################################################################\n");
                     }
-                    expect_equal(test,ref);
-                });
+                }
+
             }
             dyn.unload(parser);
             unlink(parser);
