@@ -51,11 +51,9 @@ SEXP sample_parser(SEXP sexp_fileName,
 		   SEXP sexp_nogreedy,
 		   SEXP sexp_noheight,
 		   SEXP sexp_use_filename){
-  int len = 0;
   char *buf = NULL;
   D_Parser *p;
   D_ParseNode *pn = NULL;
-  char *grammar_pathname;
   p = new_D_Parser(&parser_tables_gram, SIZEOF_MY_PARSE_NODE);
   p->save_parse_tree = INTEGER(sexp_save_parse_tree)[0];
   p->ambiguity_fn = ambiguity_count_fn;
@@ -67,14 +65,14 @@ SEXP sample_parser(SEXP sexp_fileName,
   p->start_state = INTEGER(sexp_start_state)[0];
   p->dont_use_greediness_for_disambiguation = INTEGER(sexp_nogreedy)[0];
   p->dont_use_height_for_disambiguation = INTEGER(sexp_noheight)[0];
-  set_d_file_name(CHAR(STRING_ELT(sexp_fileName,0)));
-  buf = r_sbuf_read(d_file_name);
+  set_d_file_name((char*)CHAR(STRING_ELT(sexp_fileName,0)));
+  buf = sbuf_read(CHAR(STRING_ELT(sexp_fileName,0)));
   set_d_verbose_level(1);
   set_d_use_file_name(INTEGER(sexp_use_filename)[0]);
   pn = dparse(p, buf, strlen(buf));
   if (!pn) {
-    if (d_use_file_name)
-      Rprintf("fatal error, '%s' line %d\n", d_file_name, p->loc.line);
+    if (get_d_use_file_name())
+      Rprintf("fatal error, '%s' line %d\n", CHAR(STRING_ELT(sexp_fileName,0)), p->loc.line);
     else
       Rprintf("fatal error, '' line %d\n", p->loc.line);
   }

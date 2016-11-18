@@ -1,7 +1,6 @@
 /*
 Register C callables to R.
 */
-
 #include <R.h>
 #include <Rinternals.h>
 #include <Rdefines.h>
@@ -11,41 +10,52 @@ Register C callables to R.
 #include "d.h"
 #include "mkdparse.h"
 #include "dparse.h"
-
 extern int d_use_r_headers;
 void set_d_use_r_headers(int x){
   d_use_r_headers = x;
+}
+int get_d_use_r_headers(){
+ return d_use_r_headers;
 }
 
 extern int d_rdebug_grammar_level;
 void set_d_rdebug_grammar_level(int x){
   d_rdebug_grammar_level = x;
 }
+int get_d_rdebug_grammar_level(){
+ return d_rdebug_grammar_level;
+}
 
 extern int d_use_file_name;
 void set_d_use_file_name(int x){
   d_use_file_name = x;
+}
+int get_d_use_file_name(){
+ return d_use_file_name;
 }
 
 extern int d_verbose_level;
 void set_d_verbose_level(int x){
   d_verbose_level = x;
 }
+int get_d_verbose_level(){
+ return d_verbose_level;
+}
 
 extern int d_debug_level;
 void set_d_debug_level(int x){
   d_debug_level = x;
 }
-
+int get_d_debug_level(){
+ return d_debug_level;
+}
 
 extern char * d_file_name;
 void set_d_file_name(char *x){
   d_file_name=x;
 }
 
-
 void R_ini_RxODE(DllInfo *info);
-
 D_Parser *new_D_Parser(struct D_ParserTables *t, int sizeof_ParseNode_User);
 void free_D_Parser(D_Parser *p); 
 D_ParseNode *dparse(D_Parser *p, char *buf, int buf_len);
@@ -130,7 +140,6 @@ int set_union(void *v, void *vv);
 void *set_add_fn(void *v, void *t, hash_fns_t *fns);
 void set_union_fn(void *v, void *vv, hash_fns_t *fns);
 void set_to_vec(void *av);
-void * stack_push_internal(AbstractStack*, void*);
 int buf_read(const char *pathname, char **buf, int *len);
 char *sbuf_read(const char *pathname);
 char *dup_str(const char *str, const char *end);
@@ -144,16 +153,14 @@ char *escape_string_single_quote(char *s);
 int write_c_tables(Grammar *g);
 int write_binary_tables(Grammar *g);
 int write_binary_tables_to_file(Grammar *g, FILE *fp);
-void set_d_use_r_headers(int x);
-void set_d_rdebug_grammar_level(int x);
-void set_d_use_file_name(int x);
-void set_d_verbose_level(int x);
-void set_d_debug_level(int x);
-void set_d_file_name(char *x);
-
 void R_init_RxODE(DllInfo *info){
   R_ini_RxODE(info);
   R_RegisterCCallable("RxODE","set_d_file_name",(DL_FUNC) set_d_file_name);
+  R_RegisterCCallable("RxODE","get_d_debug_level",(DL_FUNC) get_d_debug_level);
+  R_RegisterCCallable("RxODE","get_d_verbose_level",(DL_FUNC) get_d_verbose_level);
+  R_RegisterCCallable("RxODE","get_d_use_file_name",(DL_FUNC) get_d_use_file_name);
+  R_RegisterCCallable("RxODE","get_d_rdebug_grammar_level",(DL_FUNC) get_d_rdebug_grammar_level);
+  R_RegisterCCallable("RxODE","get_d_use_r_headers",(DL_FUNC) get_d_use_r_headers);
   R_RegisterCCallable("RxODE","set_d_debug_level",(DL_FUNC) set_d_debug_level);
   R_RegisterCCallable("RxODE","set_d_verbose_level",(DL_FUNC) set_d_verbose_level);
   R_RegisterCCallable("RxODE","set_d_use_file_name",(DL_FUNC) set_d_use_file_name);
@@ -172,7 +179,6 @@ void R_init_RxODE(DllInfo *info){
   R_RegisterCCallable("RxODE","dup_str",(DL_FUNC) dup_str);
   R_RegisterCCallable("RxODE","sbuf_read",(DL_FUNC) sbuf_read);
   R_RegisterCCallable("RxODE","buf_read",(DL_FUNC) buf_read);
-  R_RegisterCCallable("RxODE","stack_push_internal",(DL_FUNC) stack_push_internal);
   R_RegisterCCallable("RxODE","set_to_vec",(DL_FUNC) set_to_vec);
   R_RegisterCCallable("RxODE","set_union_fn",(DL_FUNC) set_union_fn);
   R_RegisterCCallable("RxODE","set_add_fn",(DL_FUNC) set_add_fn);
@@ -257,6 +263,4 @@ void R_init_RxODE(DllInfo *info){
   R_RegisterCCallable("RxODE","dparse",(DL_FUNC) dparse);
   R_RegisterCCallable("RxODE","free_D_Parser ",(DL_FUNC) free_D_Parser );
   R_RegisterCCallable("RxODE","new_D_Parser",(DL_FUNC) new_D_Parser);
-
 }
-
