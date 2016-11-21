@@ -114,4 +114,26 @@ rxPermissive({
     test_that("Cannot import data with missing columns", {
         expect_error(et$import.EventTable(et$get.EventTable()[, 1:2]))
     })
+
+    ode <-
+        RxODE({
+            b       = -1
+            d/dt(X) = a*X + Y*Z;
+            d/dt(Y) = b*(Y - Z);
+            d/dt(Z) = -X*Y + c*Y - Z
+        })
+
+    et <- eventTable()   # default time units
+    et$add.sampling(seq(from=0, to=100, by=0.01))
+
+    cov <- data.frame(c=et$get.sampling()$time+1);
+
+    out <- solve(ode,
+                   params = c(a=-8/3, b=-10),
+                   events = et,
+                   inits = c(X=1, Y=1, Z=1),
+                 covs = cov);
+    test_that("event tables are equal for presolved and post-solved objects.", {
+        expect_equal(et, eventTable(out));
+    })
 }, silent=TRUE);
