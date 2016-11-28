@@ -23,7 +23,8 @@ Suggests:
     testthat,
     devtools,
     covr,
-    rmarkdown
+    rmarkdown,
+    tibble
 Imports:
     utils,
     methods,

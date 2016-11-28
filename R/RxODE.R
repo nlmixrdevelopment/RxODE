@@ -3061,6 +3061,15 @@ as.data.frame.solveRxDll <- function(x, row.names = NULL, optional = FALSE, ...,
                          stringsAsFactors = stringsAsFactors));
 }
 
+##' Use the as_data_frame method for solved object x
+##'
+##' @param x Solved RxODE object
+##' @return data frame of solved object.
+##' @author Matthew L. Fidler
+as_data_frame.solveRxDll <- function(x){
+    return(tibble::as_data_frame(as.matrix(x)));
+}
+
 
 ##' @author Matthew L.Fidler
 ##' @importFrom utils head

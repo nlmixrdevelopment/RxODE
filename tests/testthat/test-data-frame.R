@@ -38,6 +38,7 @@ rxPermissive({
                         inits = c(0, 0, 0, 1))
 
     o1.df <- as.data.frame(o1.first);
+    o1.df2 <- as_data_frame(o1.first);
 
 
 
@@ -50,6 +51,10 @@ rxPermissive({
         expect_equal(o1.first[c(1,3),],o1.df[c(1,3),]);
         expect_equal(o1.first[1,3],o1.df[1,3]);
         expect_equal(o1.first[c(1,3),c(1,3)],o1.df[c(1,3),c(1,3)]);
+    })
+
+    test_that("as_data_frame produces reasonable results.", {
+        expect_equal(as.tbl(o1.df), o1.df2);
     })
 
     test_that("Character data frame lookup operators [] make sense",{
