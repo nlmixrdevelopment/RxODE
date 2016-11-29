@@ -124,25 +124,41 @@ char s_aux_info[64*MXSYM];
 
 
 typedef struct symtab {
-  char *ss;			/* symbol string: all vars*/
-  char *de;             /* symbol string: all Des*/
-  int deo[MXSYM];        /* offest of des */
-  int vo[MXSYM];	/* offset of symbols */
-  int lh[MXSYM];	/* lhs symbols? =9 if a state var*/
-  int ini[MXSYM];        /* initial variable assignment =2 if there are two assignments */
-  int ini0[MXSYM];        /* state initial variable assignment =2 if there are two assignments */
-  int di[MXDER];	/* ith of state vars */
-  int nv;			/* nbr of symbols */
-  int ix;                       /* ith of curr symbol */
-  int id;                       /* ith of curr symbol */
-  int fn;			/* curr symbol a fn?*/
-  int nd;			/* nbr of dydt */
+  char *ss;        /* symbol string: all vars*/
+  char *de;        /* symbol string: all Des*/
+  char *conc;      /* symbol string: all concs */
+  char *vols;      /* symbol string: all volumes */
+  char *conc_de;   /* symbol string: possible diff eqs */
+  int deo[MXSYM];  /* offest of des */
+  int conco[MXSYM];/* offest of conc */
+  int volso[MXSYM];/* offest of vols */
+  int conc_deo[MXSYM];/* offest of conc_de */
+  int vo[MXSYM];   /* offset of symbols */
+  int lh[MXSYM];   /* lhs symbols? =9 if a state var*/
+  int ini[MXSYM];  /* initial variable assignment =2 if there are two assignments */
+  int ini0[MXSYM]; /* state initial variable assignment =2 if there are two assignments */
+  int conc_ok[MXSYM]; /* concentration valid*/
+  int di[MXDER];   /* ith of state vars */
+  int conci[MXDER];   /* ith of concentration variables */
+  int volsi[MXDER];   /* ith of concentration variables */
+  int conc_di[MXDER];   /* ith of concentration variables */
+  int nv;           /* nbr of symbols */
+  int ix;           /* ith of curr symbol */
+  int id;           /* ith of curr dydt */
+  int iconc;        /* ith of curr conc */
+  int fn;           /* curr symbol a fn?*/
+  int nd;           /* nbr of dydt */
+  int nconc;        /* nbr of conc */
   int pos;
   int pos_de;
+  int pos_conc;
+  int pos_volume;
+  int pos_conc_de;
   int ini_i; // #ini
   int statei; // # states
   int li; // # lhs
   int pi; // # param
+  int cp_i;
 } symtab;
 symtab tb;
 
@@ -185,6 +201,18 @@ int new_de(const char *s){
     len = tb.deo[i+1] - tb.deo[i] - 1;
     if (!strncmp(tb.de+tb.deo[i], s, max(len, len_s))) { /* note we need take the max in order not to match a sub-string */
       tb.id = i;
+      return 0;
+    }
+  }
+  return 1;
+}
+
+int new_conc(const char *s){
+  int i, len, len_s=strlen(s);
+  for (i=0; i<tb.nconc; i++) {
+    len = tb.conco[i+1] - tb.conco[i] - 1;
+    if (!strncmp(tb.conc+tb.conco[i], s, max(len, len_s))) { /* note we need take the max in order not to match a sub-string */
+      tb.iconc = i;
       return 0;
     }
   }
@@ -624,8 +652,49 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	continue;
       }
 
-      if ((!strcmp("assignment", name) || !strcmp("ini", name) || !strcmp("ini0", name)) && i==0) {
+      if (!strcmp("conc",name) && i == 2 && tb.cp_i == 2){
+	// Add possible state term.
+	char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+	new_or_ith(v);
+        sprintf(tb.conc_de+tb.pos_conc_de, "%s,", v);
+        tb.pos_conc_de += strlen(v)+1;
+        tb.conc_deo[tb.nconc] = tb.pos_conc_de;
+	tb.cp_i = 4;
+	tb.conc_di[tb.nconc] = tb.ix;
+        Free(v);
+      }
+
+      if (!strcmp("conc",name) && i == 4 && tb.cp_i == 4){
+	// Add possible volume term
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+        new_or_ith(v);
+        sprintf(tb.vols+tb.pos_volume, "%s,", v);
+        tb.pos_volume += strlen(v)+1;
+        tb.volso[tb.nconc] = tb.pos_volume;
+        tb.cp_i = 0;
+	tb.volsi[tb.nconc] = tb.ix;
+	tb.nconc++;
+        Free(v);
+      }
+
+      if ((!strcmp("assignment", name) || !strcmp("conc", name) || !strcmp("ini", name) || !strcmp("ini0", name)) && i==0) {
+        char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+	if ((!strcmp("conc",name) || !strcmp("assignment",name)) && !new_de(v)){
+	  sprintf(buf,"Cannot assign state variable %s.\n",v);
+          trans_syntax_error_report_fn(buf);
+        }
+	if (!strcmp("conc",name) && new_conc(v)){
+          new_or_ith(v);
+          sprintf(tb.conc+tb.pos_conc, "%s,", v);
+          tb.pos_conc += strlen(v)+1;
+          tb.conco[tb.nconc] = tb.pos_conc;
+	  tb.cp_i = 2;
+	  tb.conc_ok[tb.nconc] = 1;
+	  tb.conci[tb.nconc] = tb.ix;
+	} else {
+	  // doubly defined concentrations don't work.
+          tb.conc_ok[tb.iconc] = 0;
+	}
 	if ((rx_syntax_allow_ini && !strcmp("ini", name)) || !strcmp("ini0", name)){
 	  sprintf(sb.s,"(__0__)");
 	  sb.o = 7;
@@ -673,7 +742,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	sprintf(sbt.s, "%s", v);
         sbt.o = strlen(v);
         new_or_ith(v);
-	if (!strcmp("assignment", name) || (!rx_syntax_allow_ini && !strcmp("ini", name))){
+	if (!strcmp("assignment", name) || !strcmp("conc", name) || (!rx_syntax_allow_ini && !strcmp("ini", name))){
 	  tb.lh[tb.ix] = 1;
         } else if (!strcmp("ini", name) || !strcmp("ini0",name)){
 	  if (tb.ini[tb.ix] == 0){
@@ -697,13 +766,13 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       }
     }
 
-    if (!strcmp("assignment", name) || !strcmp("ini", name) || !strcmp("derivative", name) || !strcmp("jac",name) || !strcmp("dfdy",name) ||
+    if (!strcmp("assignment", name) || !strcmp("conc", name) || !strcmp("ini", name) || !strcmp("derivative", name) || !strcmp("jac",name) || !strcmp("dfdy",name) ||
 	!strcmp("ini0",name)){
       fprintf(fpIO, "%s;\n", sb.s);
       fprintf(fpIO2, "%s;\n", sbt.s);
     }
 
-    if (!rx_syntax_assign && (!strcmp("assignment", name) || !strcmp("ini", name) || !strcmp("ini0",name))){
+    if (!rx_syntax_assign && (!strcmp("assignment", name) || !strcmp("conc", name) || !strcmp("ini", name) || !strcmp("ini0",name))){
       if (!strcmp("ini0",name)){
 	i = 2;
       } else {
@@ -792,10 +861,21 @@ void prnt_vars(int scenario, FILE *outpt, int lhs, const char *pre_str, const ch
 }
 
 void print_aux_info(FILE *outpt, char *model){
-  int i, k, islhs,pi = 0,li = 0, o=0, o2=0, statei = 0, ini_i = 0;
+  int i, k, islhs,pi = 0,li = 0, o=0, o2=0, statei = 0, ini_i = 0, conc_i=0;
   char *s2;
   char sLine[MXLEN+1];
   char buf[512], buf2[512];
+  // Correct the concentrations
+  for (i = 0; i < tb.nconc; i++){
+    // They need to be associated with a conc = state / volume term.
+    retieve_var(tb.conc_di[i], buf);
+    if (new_de(buf)){
+      // Not OK, not associated with state / volume term.
+      tb.conc_ok[i] = 0;
+    } else if (tb.conc_ok[i]){
+      conc_i++;
+    }
+  }
   for (i=0; i<tb.nv; i++) {
     islhs = tb.lh[i];
     if (islhs>1) continue;      /* is a state var */
@@ -813,8 +893,8 @@ void print_aux_info(FILE *outpt, char *model){
     o = strlen(s_aux_info);
   }
   fprintf(outpt,"extern SEXP %smodel_vars(){\n",model_prefix);
-  fprintf(outpt,"\tSEXP lst    = PROTECT(allocVector(VECSXP, 8));\n");
-  fprintf(outpt,"\tSEXP names  = PROTECT(allocVector(STRSXP, 8));\n");
+  fprintf(outpt,"\tSEXP lst    = PROTECT(allocVector(VECSXP, 10));\n");
+  fprintf(outpt,"\tSEXP names  = PROTECT(allocVector(STRSXP, 10));\n");
   fprintf(outpt,"\tSEXP params = PROTECT(allocVector(STRSXP, %d));\n",pi);
   fprintf(outpt,"\tSEXP lhs    = PROTECT(allocVector(STRSXP, %d));\n",li);
   fprintf(outpt,"\tSEXP state  = PROTECT(allocVector(STRSXP, %d));\n",statei);
@@ -824,7 +904,24 @@ void print_aux_info(FILE *outpt, char *model){
   fprintf(outpt,"\tSEXP mmd5n  = PROTECT(allocVector(STRSXP, 2));\n");
   fprintf(outpt,"\tSEXP model  = PROTECT(allocVector(STRSXP, 3));\n");
   fprintf(outpt,"\tSEXP modeln = PROTECT(allocVector(STRSXP, 3));\n");
+  fprintf(outpt,"\tSEXP conc_s = PROTECT(allocVector(STRSXP, %d));\n",conc_i);
+  fprintf(outpt,"\tSEXP conc_c = PROTECT(allocVector(STRSXP, %d));\n",conc_i);
+  fprintf(outpt,"\tSEXP conc_v = PROTECT(allocVector(STRSXP, %d));\n",conc_i);
   fprintf(outpt,"%s",s_aux_info);
+  conc_i = 0;
+  for (i = 0; i < tb.nconc; i++){
+    // They need to be associated with a conc = state / volume term.
+    if (tb.conc_ok[i]){
+      retieve_var(tb.conc_di[i], buf);
+      fprintf(outpt,"\tSET_STRING_ELT(conc_s,%d,mkChar(\"%s\"));\n",conc_i,buf);
+      retieve_var(tb.conci[i], buf);
+      fprintf(outpt,"\tSET_STRING_ELT(conc_c,%d,mkChar(\"%s\"));\n",conc_i,buf);
+      retieve_var(tb.volsi[i], buf);
+      fprintf(outpt,"\tSET_STRING_ELT(conc_v,%d,mkChar(\"%s\"));\n",conc_i,buf);
+      conc_i++;
+    } 
+    
+  }
   // Save for outputting in trans
   tb.pi = pi;
   tb.li = li;
@@ -965,6 +1062,15 @@ void print_aux_info(FILE *outpt, char *model){
 
   fprintf(outpt,"\tSET_STRING_ELT(names,7,mkChar(\"podo\"));\n");
   fprintf(outpt,"\tSET_VECTOR_ELT(lst,  7,ScalarLogical(%d));\n",rx_podo);
+
+  fprintf(outpt,"\tsetAttrib(conc_c, R_NamesSymbol, conc_s);\n");
+  fprintf(outpt,"\tsetAttrib(conc_v, R_NamesSymbol, conc_s);\n");
+  
+  fprintf(outpt,"\tSET_STRING_ELT(names,8,mkChar(\"conc\"));\n");
+  fprintf(outpt,"\tSET_VECTOR_ELT(lst,  8,conc_c);\n");
+
+  fprintf(outpt,"\tSET_STRING_ELT(names,9,mkChar(\"vol\"));\n");
+  fprintf(outpt,"\tSET_VECTOR_ELT(lst,  9,conc_v);\n");
   
   // md5 values
   fprintf(outpt,"\tSET_STRING_ELT(mmd5n,0,mkChar(\"file_md5\"));\n");
@@ -1009,7 +1115,7 @@ void print_aux_info(FILE *outpt, char *model){
   fprintf(outpt,"\tsetAttrib(ini, R_NamesSymbol, inin);\n");
   fprintf(outpt,"\tsetAttrib(lst, R_NamesSymbol, names);\n");
 
-  fprintf(outpt,"\tUNPROTECT(13);\n");
+  fprintf(outpt,"\tUNPROTECT(16);\n");
   
   fprintf(outpt,"\treturn lst;\n");
   fprintf(outpt,"}\n");
@@ -1242,21 +1348,29 @@ void codegen(FILE *outpt, int show_ode) {
 void reset (){
   tb.ss = (char*)R_alloc(64*MXSYM,sizeof(char));
   tb.de = (char*)R_alloc(64*MXSYM,sizeof(char));
+  tb.conc = (char*)R_alloc(64*MXSYM,sizeof(char));
+  tb.vols = (char*)R_alloc(64*MXSYM,sizeof(char));
+  tb.conc_de = (char*)R_alloc(64*MXSYM,sizeof(char));
   tb.vo[0]=0;
   tb.deo[0]=0;
   memset(tb.lh,  0, MXSYM);
   memset(tb.ini, 0, MXSYM);
   memset(tb.ini0, 0, MXSYM);
+  memset(tb.conc_ok, 0, MXSYM);
   tb.nv=0;
   tb.nd=0;
+  tb.nconc=0;
   tb.fn=0;
   tb.ix=0;
   tb.id=0;
-  tb.pos =0;
-  tb.pos_de = 0;
-  tb.ini_i = 0;
-  found_print = 0;
-  found_jac = 0;
+  tb.pos         = 0;
+  tb.pos_de      = 0;
+  tb.pos_conc    = 0;
+  tb.pos_volume  = 0;
+  tb.pos_conc_de = 0;
+  tb.ini_i       = 0;
+  found_print    = 0;
+  found_jac      = 0;
 }
 
 void trans_internal(char* parse_file, char* c_file){

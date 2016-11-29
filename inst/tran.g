@@ -3,7 +3,8 @@
 statement_list : (statement)+ ;
 
 statement 
-  : ini end_statement 
+  : conc end_statement
+  | ini end_statement 
   | ini0 end_statement
   | assignment end_statement
   | derivative end_statement
@@ -40,7 +41,9 @@ ini0       : identifier_r ('(0)' | '{0}' | '[0]') ('=' | '<-') ini_const;
 
 ini        : identifier_r ('=' | '<-') ini_const;
 
-derivative : 'd/dt' '(' identifier_r_no_output ')' ('=' | '<-') additive_expression;
+conc       : identifier_r ('=' | '<-') identifier_r '/' identifier_r;
+
+    derivative : 'd/dt' '(' identifier_r_no_output ')' ('=' | '<-') additive_expression;
 der_rhs    : 'd/dt' '(' identifier_r_no_output ')';
 jac        : jac_command '(' identifier_r_no_output ',' identifier_r_no_output ')' ('=' | '<-') additive_expression;
 jac_rhs    : jac_command '(' identifier_r_no_output ',' identifier_r_no_output ')';
@@ -97,10 +100,10 @@ primary_expression
   | transit2
   | transit3
   | function
-  |  factorial 
-  |  factorial_exp 
-  |  lfactorial 
-  |  lfactorial_exp
+  | factorial 
+  | factorial_exp 
+  | lfactorial 
+  | lfactorial_exp
   | '(' additive_expression ')'
   ;
 
