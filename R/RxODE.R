@@ -2129,6 +2129,7 @@ rxCompile.character <-  function(model,           # Model
         }
         if (force || needCompile){
             ## Setup Makevars
+            owd <- getwd();
             on.exit({if (file.exists(Makevars)){
                          unlink(Makevars);
                      }
@@ -2144,7 +2145,6 @@ rxCompile.character <-  function(model,           # Model
             sink();
             sh <- "system"   # windows's default shell COMSPEC does not handle UNC paths
             ## Change working directory
-            owd <- getwd();
             setwd(dir);
             try(dyn.unload(finalDll), silent = TRUE);
             try(unlink(finalDll));
