@@ -893,8 +893,13 @@ void print_aux_info(FILE *outpt, char *model){
     o = strlen(s_aux_info);
   }
   fprintf(outpt,"extern SEXP %smodel_vars(){\n",model_prefix);
-  fprintf(outpt,"\tSEXP lst    = PROTECT(allocVector(VECSXP, 10));\n");
-  fprintf(outpt,"\tSEXP names  = PROTECT(allocVector(STRSXP, 10));\n");
+  if (conc_i > 0){
+    fprintf(outpt,"\tSEXP lst    = PROTECT(allocVector(VECSXP, 10));\n");
+    fprintf(outpt,"\tSEXP names  = PROTECT(allocVector(STRSXP, 10));\n");
+  } else {
+    fprintf(outpt,"\tSEXP lst    = PROTECT(allocVector(VECSXP, 8));\n");
+    fprintf(outpt,"\tSEXP names  = PROTECT(allocVector(STRSXP, 8));\n");
+  }
   fprintf(outpt,"\tSEXP params = PROTECT(allocVector(STRSXP, %d));\n",pi);
   fprintf(outpt,"\tSEXP lhs    = PROTECT(allocVector(STRSXP, %d));\n",li);
   fprintf(outpt,"\tSEXP state  = PROTECT(allocVector(STRSXP, %d));\n",statei);
@@ -904,24 +909,36 @@ void print_aux_info(FILE *outpt, char *model){
   fprintf(outpt,"\tSEXP mmd5n  = PROTECT(allocVector(STRSXP, 2));\n");
   fprintf(outpt,"\tSEXP model  = PROTECT(allocVector(STRSXP, 3));\n");
   fprintf(outpt,"\tSEXP modeln = PROTECT(allocVector(STRSXP, 3));\n");
-  fprintf(outpt,"\tSEXP conc_s = PROTECT(allocVector(STRSXP, %d));\n",conc_i);
-  fprintf(outpt,"\tSEXP conc_c = PROTECT(allocVector(STRSXP, %d));\n",conc_i);
-  fprintf(outpt,"\tSEXP conc_v = PROTECT(allocVector(STRSXP, %d));\n",conc_i);
-  fprintf(outpt,"%s",s_aux_info);
-  conc_i = 0;
-  for (i = 0; i < tb.nconc; i++){
-    // They need to be associated with a conc = state / volume term.
-    if (tb.conc_ok[i]){
-      retieve_var(tb.conc_di[i], buf);
-      fprintf(outpt,"\tSET_STRING_ELT(conc_s,%d,mkChar(\"%s\"));\n",conc_i,buf);
-      retieve_var(tb.conci[i], buf);
-      fprintf(outpt,"\tSET_STRING_ELT(conc_c,%d,mkChar(\"%s\"));\n",conc_i,buf);
-      retieve_var(tb.volsi[i], buf);
-      fprintf(outpt,"\tSET_STRING_ELT(conc_v,%d,mkChar(\"%s\"));\n",conc_i,buf);
-      conc_i++;
-    } 
-    
+  if (conc_i > 0){
+    fprintf(outpt,"\tSEXP conc_s = PROTECT(allocVector(STRSXP, %d));\n",conc_i);
+    fprintf(outpt,"\tSEXP conc_c = PROTECT(allocVector(STRSXP, %d));\n",conc_i);
+    fprintf(outpt,"\tSEXP conc_v = PROTECT(allocVector(STRSXP, %d));\n",conc_i);
   }
+  fprintf(outpt,"%s",s_aux_info);
+  if (conc_i > 0){
+    conc_i = 0;
+    for (i = 0; i < tb.nconc; i++){
+      // They need to be associated with a conc = state / volume term.
+      if (tb.conc_ok[i]){
+        retieve_var(tb.conc_di[i], buf);
+        fprintf(outpt,"\tSET_STRING_ELT(conc_s,%d,mkChar(\"%s\"));\n",conc_i,buf);
+        retieve_var(tb.conci[i], buf);
+        fprintf(outpt,"\tSET_STRING_ELT(conc_c,%d,mkChar(\"%s\"));\n",conc_i,buf);
+        retieve_var(tb.volsi[i], buf);
+        fprintf(outpt,"\tSET_STRING_ELT(conc_v,%d,mkChar(\"%s\"));\n",conc_i,buf);
+        conc_i++;
+      } 
+    }
+    fprintf(outpt,"\tsetAttrib(conc_c, R_NamesSymbol, conc_s);\n");
+    fprintf(outpt,"\tsetAttrib(conc_v, R_NamesSymbol, conc_s);\n");
+
+    fprintf(outpt,"\tSET_STRING_ELT(names,8,mkChar(\"conc\"));\n");
+    fprintf(outpt,"\tSET_VECTOR_ELT(lst,  8,conc_c);\n");
+
+    fprintf(outpt,"\tSET_STRING_ELT(names,9,mkChar(\"vol\"));\n");
+    fprintf(outpt,"\tSET_VECTOR_ELT(lst,  9,conc_v);\n");
+  }
+  
   // Save for outputting in trans
   tb.pi = pi;
   tb.li = li;
@@ -1062,15 +1079,6 @@ void print_aux_info(FILE *outpt, char *model){
 
   fprintf(outpt,"\tSET_STRING_ELT(names,7,mkChar(\"podo\"));\n");
   fprintf(outpt,"\tSET_VECTOR_ELT(lst,  7,ScalarLogical(%d));\n",rx_podo);
-
-  fprintf(outpt,"\tsetAttrib(conc_c, R_NamesSymbol, conc_s);\n");
-  fprintf(outpt,"\tsetAttrib(conc_v, R_NamesSymbol, conc_s);\n");
-  
-  fprintf(outpt,"\tSET_STRING_ELT(names,8,mkChar(\"conc\"));\n");
-  fprintf(outpt,"\tSET_VECTOR_ELT(lst,  8,conc_c);\n");
-
-  fprintf(outpt,"\tSET_STRING_ELT(names,9,mkChar(\"vol\"));\n");
-  fprintf(outpt,"\tSET_VECTOR_ELT(lst,  9,conc_v);\n");
   
   // md5 values
   fprintf(outpt,"\tSET_STRING_ELT(mmd5n,0,mkChar(\"file_md5\"));\n");
@@ -1115,7 +1123,11 @@ void print_aux_info(FILE *outpt, char *model){
   fprintf(outpt,"\tsetAttrib(ini, R_NamesSymbol, inin);\n");
   fprintf(outpt,"\tsetAttrib(lst, R_NamesSymbol, names);\n");
 
-  fprintf(outpt,"\tUNPROTECT(16);\n");
+  if (conc_i > 0){
+    fprintf(outpt,"\tUNPROTECT(16);\n");
+  } else {
+    fprintf(outpt,"\tUNPROTECT(13);\n");
+  }
   
   fprintf(outpt,"\treturn lst;\n");
   fprintf(outpt,"}\n");
