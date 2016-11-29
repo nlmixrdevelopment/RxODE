@@ -158,7 +158,6 @@ updateDparser <- function(){ # nocov start
         owd <- getwd();
         setwd(devtools::package_file("src"));
         system("git clone https://github.com/jplevyak/dparser")
-        system("git checkout tags/v1.27")
         setwd(owd);
     }
     missingFns <- c("finalize_productions", # acutally missing

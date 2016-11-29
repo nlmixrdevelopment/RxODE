@@ -470,7 +470,7 @@ print_sym(D_Sym *s) {
 
 void
 print_scope(D_Scope *st) {
-  Rprintf("SCOPE %p: ", st);
+  Rprintf("SCOPE %p: ", (void*)st);
   Rprintf("  owned: %d, kind: %d, ", st->owned_by_user, st->kind);
   if (st->ll) Rprintf("  LL\n");
   if (st->hash) Rprintf("  HASH\n");
