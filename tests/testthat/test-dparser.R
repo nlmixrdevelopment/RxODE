@@ -109,5 +109,8 @@ rxPermissive({
             dyn.unload(parser);
             unlink(parser);
         }
+        while(sink.number() != 0){
+            sink();
+        }
     }
 }, silent=TRUE)
