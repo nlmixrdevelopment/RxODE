@@ -2,7 +2,7 @@
 ##RxODE package for R: a tool for performing simulations with Ordinary Different Equation models in R, with applications for pharmacometrics
 ***  
 
-#####Authors: Wenping Wang and K. Melissa Hallow
+#####Authors: K. Melissa Hallow, Matthew L. Fidler, and Wenping Wang
 
 ***
 
