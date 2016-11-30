@@ -658,7 +658,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	new_or_ith(v);
         sprintf(tb.conc_de+tb.pos_conc_de, "%s,", v);
         tb.pos_conc_de += strlen(v)+1;
-        tb.conc_deo[tb.nconc] = tb.pos_conc_de;
+        tb.conc_deo[tb.nconc+1] = tb.pos_conc_de;
 	tb.cp_i = 4;
 	tb.conc_di[tb.nconc] = tb.ix;
         Free(v);
@@ -670,7 +670,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         new_or_ith(v);
         sprintf(tb.vols+tb.pos_volume, "%s,", v);
         tb.pos_volume += strlen(v)+1;
-        tb.volso[tb.nconc] = tb.pos_volume;
+        tb.volso[tb.nconc+1] = tb.pos_volume;
         tb.cp_i = 0;
 	tb.volsi[tb.nconc] = tb.ix;
 	tb.nconc++;
@@ -687,7 +687,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
           new_or_ith(v);
           sprintf(tb.conc+tb.pos_conc, "%s,", v);
           tb.pos_conc += strlen(v)+1;
-          tb.conco[tb.nconc] = tb.pos_conc;
+          tb.conco[tb.nconc+1] = tb.pos_conc;
 	  tb.cp_i = 2;
 	  tb.conc_ok[tb.nconc] = 1;
 	  tb.conci[tb.nconc] = tb.ix;
