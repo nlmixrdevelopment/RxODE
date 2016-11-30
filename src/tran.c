@@ -1365,6 +1365,9 @@ void reset (){
   tb.conc_de = (char*)R_alloc(64*MXSYM,sizeof(char));
   tb.vo[0]=0;
   tb.deo[0]=0;
+  tb.conco[0]=0;
+  tb.volso[0]=0;
+  tb.conc_deo[0]=0;
   memset(tb.lh,  0, MXSYM);
   memset(tb.ini, 0, MXSYM);
   memset(tb.ini0, 0, MXSYM);

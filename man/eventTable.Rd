@@ -9,7 +9,9 @@ eventTable(amount.units = NA, time.units = "hours")
 \arguments{
 \item{amount.units}{string denoting the amount dosing units, e.g.,
 \dQuote{mg}, \dQuote{ug}. Default to \code{NA} to denote
-unspecified units.}
+unspecified units.  It could also be a solved RxODE object.  In
+that case, eventTable(obj) returns the eventTable that was used
+to solve the RxODE object.}
 
 \item{time.units}{string denoting the time units, e.g.,
     \dQuote{hours}, \dQuote{days}. Default to \code{"hours"}.
