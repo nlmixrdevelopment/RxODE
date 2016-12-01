@@ -3,9 +3,8 @@
 *.exe
 *.zip
 /zia06896
-/RxODE/src/RxODE.dll
-/RxODE.Rcheck/
-/src/RxODE.dll
+/src/*.dll
+/src/*.o
 inst/doc
 /vignettes/RxODE-intro.md
 /inst/Install-windows.md

@@ -179,7 +179,7 @@ updateDparser <- function(){ # nocov start
         for (f in c("dparse.h", "dparse_tables.h", "dsymtab.h", "gram.h", "gramgram.h", "lex.h",
                     "lr.h", "mkdparse.h", "parse.h", "read_binary.h", "scan.h", "util.h", "write_tables.h",
                     "gram.c", "grammar.g.c", "lex.c", "lex.h", "lr.c", "mkdparse.c", "scan.c", "symtab.c",
-                    "util.c", "write_tables.c", "d.h", "read_binary.c")){
+                    "util.c", "write_tables.c", "d.h", "read_binary.c", "parse.c", "version.c")){
             cat(sprintf("\tf: %s\n", f));
             unlink(devtools::package_file("src/", f));
             d <- readLines(devtools::package_file("src/dparser/", f));
@@ -203,6 +203,19 @@ updateDparser <- function(){ # nocov start
             d <- gsub("CALLOC[(]", "R_chk_calloc(1,", d);
             d <- gsub("FREE", "Free", d);
             d <- gsub("([ \t])printf[(]", "\\1Rprintf(", d);
+            if (f == "parse.c"){
+                w <- which(regexpr("^ *syntax_error_report_fn", d) != -1);
+                if (regexpr("^[ \t]*$", d[w - 2]) != -1){
+                    d[w - 2] <- "\nchar * d_file_name;\n int  d_use_file_name = 0;\n"
+                    while(regexpr("^[ \t]*ZNode [*]z", d[w]) == -1){
+                        w <- w + 1;
+                    }
+                    d[w] <- sprintf("%s\n  if (d_use_file_name){\n    fn = d_dup_pathname_str(d_file_name);\n }\n", d[w]);
+                } else {
+                    stop("something is wrong.")
+                }
+                d <- gsub("fprintf[(]stderr[ \t]*,", "Rprintf(", d);
+            }
             if (f == "write_tables.c"){
                 w  <- which(regexpr('#include "dparse_tables.h"', d, fixed=TRUE) != -1);
                 d <- c(d[1:w], "int d_use_r_headers = 0;", d[seq(w + 1, length(d))]);
@@ -363,6 +376,12 @@ paste(sprintf("extern char * %s;\nvoid set_%s(char *x){\n  %s=x;\n}\n", globalCh
 paste(defs, collapse="\n"),paste(calls, collapse="")));
     sink();
     cat(sprintf("\tf: RxODE.c\n"))
+    dtest <- devtools::package_file("src/dparser/tests");
+    ttest <- devtools::package_file("tests/testthat");
+    for (f in list.files(dtest,"[.]g", full.names=TRUE)){
+        cat(sprintf("\tf: %s\n", f));
+        file.copy(f, ttest, TRUE);
+    }
 } # nocov end
 
 refresh <- function(){ # nocov start
@@ -393,7 +412,7 @@ refresh <- function(){ # nocov start
     sink();
     unlink(devtools::package_file("src/tran.o"))
     sink(devtools::package_file("R/version.R"))
-    cat("##\' Version and repository for this RxODE package.
+    cat("##\' Version and repository for this dparser package.
 ##\'
 ##\' @return A character vector with the version and repository.
 ##\' @author Matthew L. Fidler
@@ -407,5 +426,6 @@ rxVersion <- function(){return(c(version=\"");
     cat(gsub("\\.git$", "", gsub(".*git@github.com:", "", tmp[which(tmp == '[remote "origin"]')[1]+1])))
     cat("\"))}\n");
     sink();
+    updateDparser();
     devtools::load_all();
 } # nocov end

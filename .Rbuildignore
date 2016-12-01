@@ -5,7 +5,7 @@
 ^vignettes/figure/.*$
 ^appveyor\.yml$
 rx_.*\.(so|dll)$
-.*\.(o|a)$
+.*\.(o|a|dll)$
 testthat/.*\.(so|dll)$
 BinaryFiles$
 RxODE.*\.(zip|pdf)$

@@ -1,10 +1,11 @@
 rex::register_shortcuts("RxODE");
 regIni <- rex::rex(or(group(one_of("_."), "0"), "0", "(0)", "[0]", "{0}"), end);
 
+RxODE.trans <- NULL;
 .onLoad <- function(libname, pkgname){ ## nocov start
     ## Setup RxODE.prefer.tbl
     rxPermissive(respect=TRUE); ## need to call respect on the first time
-    options(RxODE.trans=getNativeSymbolInfo('trans', PACKAGE='RxODE'));
+    RxODE.trans <<- getNativeSymbolInfo('trans', PACKAGE='RxODE');
 } ## nocov end
 
 ## strict/permissive

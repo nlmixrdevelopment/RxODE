@@ -9,4 +9,3 @@ d_version(char *v) {
   if (strcmp("",D_BUILD_VERSION))
     v += sprintf(v, ".%s", D_BUILD_VERSION);
 }
-

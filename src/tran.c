@@ -124,31 +124,31 @@ char s_aux_info[64*MXSYM];
 
 
 typedef struct symtab {
-  char *ss;        /* symbol string: all vars*/
-  char *de;        /* symbol string: all Des*/
-  char *conc;      /* symbol string: all concs */
-  char *vols;      /* symbol string: all volumes */
-  char *conc_de;   /* symbol string: possible diff eqs */
-  int deo[MXSYM];  /* offest of des */
-  int conco[MXSYM];/* offest of conc */
-  int volso[MXSYM];/* offest of vols */
+  char *ss;           /* symbol string: all vars */
+  char *de;           /* symbol string: all Des */
+  char *conc;         /* symbol string: all concs */
+  char *vols;         /* symbol string: all volumes */
+  char *conc_de;      /* symbol string: possible diff eqs */
+  int deo[MXSYM];     /* offest of des */
+  int conco[MXSYM];   /* offest of conc */
+  int volso[MXSYM];   /* offest of vols */
   int conc_deo[MXSYM];/* offest of conc_de */
-  int vo[MXSYM];   /* offset of symbols */
-  int lh[MXSYM];   /* lhs symbols? =9 if a state var*/
-  int ini[MXSYM];  /* initial variable assignment =2 if there are two assignments */
-  int ini0[MXSYM]; /* state initial variable assignment =2 if there are two assignments */
+  int vo[MXSYM];      /* offset of symbols */
+  int lh[MXSYM];      /* lhs symbols? =9 if a state var*/
+  int ini[MXSYM];     /* initial variable assignment =2 if there are two assignments */
+  int ini0[MXSYM];    /* state initial variable assignment =2 if there are two assignments */
   int conc_ok[MXSYM]; /* concentration valid*/
-  int di[MXDER];   /* ith of state vars */
+  int di[MXDER];      /* ith of state vars */
   int conci[MXDER];   /* ith of concentration variables */
   int volsi[MXDER];   /* ith of concentration variables */
-  int conc_di[MXDER];   /* ith of concentration variables */
-  int nv;           /* nbr of symbols */
-  int ix;           /* ith of curr symbol */
-  int id;           /* ith of curr dydt */
-  int iconc;        /* ith of curr conc */
-  int fn;           /* curr symbol a fn?*/
-  int nd;           /* nbr of dydt */
-  int nconc;        /* nbr of conc */
+  int conc_di[MXDER]; /* ith of concentration variables */
+  int nv;             /* nbr of symbols */
+  int ix;             /* ith of curr symbol */
+  int id;             /* ith of curr dydt */
+  int iconc;          /* ith of curr conc */
+  int fn;             /* curr symbol a fn?*/
+  int nd;             /* nbr of dydt */
+  int nconc;          /* nbr of conc */
   int pos;
   int pos_de;
   int pos_conc;

@@ -1,4 +1,4 @@
-##' Version and repository for this RxODE package.
+##' Version and repository for this dparser package.
 ##'
 ##' @return A character vector with the version and repository.
 ##' @author Matthew L. Fidler
