@@ -5,10 +5,10 @@ Title: Facilities for Simulating from ODE-Based Models
 Authors@R: c(
    person("Melissa", "Hallow", 
       role = "aut", email = "hallowkm@uga.edu"),
-   person("Wenping", "Wang", 
-      role = c("aut", "cre"), email = "Wenping.wang@outlook.com"),
    person("Matthew","Fidler",
-      role = "aut", email = "matthew.fidler@gmail.com")
+      role = "aut", email = "matthew.fidler@gmail.com"),
+   person("Wenping", "Wang", 
+      role = c("aut", "cre"), email = "Wenping.wang@outlook.com")
    )
 Author: Melissa Hallow [aut], Wenping Wang [aut, cre], Matthew L. Fidler [aut]
 Maintainer: Wenping Wang <wwang8198@gmail.com>
