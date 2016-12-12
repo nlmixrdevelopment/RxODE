@@ -3,8 +3,7 @@
 statement_list : (statement)+ ;
 
 statement 
-  : conc end_statement
-  | ini end_statement 
+  : ini end_statement 
   | ini0 end_statement
   | assignment end_statement
   | derivative end_statement
@@ -41,9 +40,7 @@ ini0       : identifier_r ('(0)' | '{0}' | '[0]') ('=' | '<-') ini_const;
 
 ini        : identifier_r ('=' | '<-') ini_const;
 
-conc       : identifier_r ('=' | '<-') identifier_r '/' identifier_r;
-
-    derivative : 'd/dt' '(' identifier_r_no_output ')' ('=' | '<-') additive_expression;
+derivative : 'd/dt' '(' identifier_r_no_output ')' ('=' | '<-') additive_expression;
 der_rhs    : 'd/dt' '(' identifier_r_no_output ')';
 jac        : jac_command '(' identifier_r_no_output ',' identifier_r_no_output ')' ('=' | '<-') additive_expression;
 jac_rhs    : jac_command '(' identifier_r_no_output ',' identifier_r_no_output ')';
@@ -63,7 +60,7 @@ end_statement : (';')* ;
 
 assignment : identifier_r ('=' | '<-') additive_expression;
 
-logical_or_expression :	logical_and_expression 
+logical_or_expression : logical_and_expression 
     (('||' | '|')  logical_and_expression)* ;
 
 logical_and_expression : equality_expression0 
@@ -74,16 +71,16 @@ equality_expression0 : equality_expression |
     '!' '(' equality_expression ')';
 
 equality_expression : relational_expression 
-  (('!=' | '~=' | '<>' | '/=' | '==') relational_expression)* ;
+    (('!=' | '~=' | '<>' | '/=' | '==') relational_expression)* ;
 
 relational_expression : additive_expression
- (('<' | '>' | '<=' | '>=') additive_expression)* ;
+    (('<' | '>' | '<=' | '>=') additive_expression)* ;
 
 additive_expression : multiplicative_expression
-  (('+' | '-') multiplicative_expression)* ;
+    (('+' | '-') multiplicative_expression)* ;
 
 multiplicative_expression : unary_expression 
-  (('*' | '/') unary_expression)* ;
+    (('*' | '/') unary_expression)* ;
 
 unary_expression : ('+' | '-')? (primary_expression | power_expression );
 
@@ -100,10 +97,10 @@ primary_expression
   | transit2
   | transit3
   | function
-  | factorial 
-  | factorial_exp 
-  | lfactorial 
-  | lfactorial_exp
+  |  factorial 
+  |  factorial_exp 
+  |  lfactorial 
+  |  lfactorial_exp
   | '(' additive_expression ')'
   ;
 
@@ -135,3 +132,4 @@ identifier_r_no_output_2: "[.]+[a-zA-Z_][a-zA-Z0-9_.]*" $term -4;
 identifier: "[a-zA-Z_][a-zA-Z0-9_]*" $term -4;
 whitespace: ( "[ \t\r\n]+" | singleLineComment )*;
 singleLineComment: '#' "[^\n]*" '\n';
+

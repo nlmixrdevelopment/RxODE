@@ -503,18 +503,6 @@ solve.rxDll <- function(...){
     rxSolve(...);
 }
 
-plot.solveRxDll <- function(object){
-    events <- eventTable(object);
-    units <- events$get.units();
-    if (is.na(units)){
-        time.units <- "";
-    } else {
-        time.units <- units["time"];
-    }
-    xlab <- sprintf("Time (%s)", time.units);
-    print(xlab);
-}
-
 ##' Add item to solved system of equations
 ##'
 ##' @title rxChain  Chain or add item to sovled system of equations
