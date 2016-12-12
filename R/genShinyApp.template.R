@@ -60,7 +60,7 @@ function(appDir = "shinyExample", verbose = TRUE,
          ODE.config = list(ode="model", params=c(KA=0.294), inits=c(eff=1), stiff=TRUE, atol=1e-8, rtol=1e-6)
 )
     {
-        if (missing()){
+        if (missing(ODE.config)){
             ODE.config = list(ode = "
    C2 = centr/V2;
    C3 = peri/V3;
