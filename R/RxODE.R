@@ -5,7 +5,7 @@ RxODE.trans <- NULL;
 .onLoad <- function(libname, pkgname){ ## nocov start
     ## Setup RxODE.prefer.tbl
     rxPermissive(respect=TRUE); ## need to call respect on the first time
-    RxODE.trans <<- getNativeSymbolInfo('trans', PACKAGE='RxODE');
+    RxODE.trans <<- getNativeSymbolInfo('trans', PACKAGE='RxODE')$address;
 } ## nocov end
 
 ## strict/permissive
