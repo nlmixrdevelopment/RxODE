@@ -2,7 +2,7 @@
 % Please edit documentation in R/version.R
 \name{rxVersion}
 \alias{rxVersion}
-\title{Version and repository for this RxODE package.}
+\title{Version and repository for this dparser package.}
 \usage{
 rxVersion()
 }
@@ -10,7 +10,7 @@ rxVersion()
 A character vector with the version and repository.
 }
 \description{
-Version and repository for this RxODE package.
+Version and repository for this dparser package.
 }
 \author{
 Matthew L. Fidler

@@ -6,13 +6,13 @@
 \alias{write.template.ui}
 \title{Generate an example (template) of a dosing regimen shiny app}
 \usage{
-genShinyApp.template(appDir = "shinyExample", verbose = TRUE)
-write.template.server(appDir)
-write.template.ui(appDir)
+genShinyApp.template(appDir = "shinyExample", verbose = TRUE,
+  ODE.config = list(ode = "model", params = c(KA = 0.294), inits = c(eff = 1),
+  stiff = TRUE, atol = 1e-08, rtol = 1e-06))
 
 write.template.server(appDir)
 
-write.template.ui(appDir)
+write.template.ui(appDir, statevars)
 }
 \arguments{
 \item{appDir}{a string with a directory where to store the shiny
@@ -20,7 +20,11 @@ app, by default is \code{"shinyExample"}. The directory
 \code{appDir} will be created if it does not exist.}
 
 \item{verbose}{logical specifying whether to write messages as the
-    shiny app is generated. Defaults to \code{TRUE}.
+shiny app is generated. Defaults to \code{TRUE}.}
+
+\item{ODE.config}{model name compiled and list of parameters sent to \code{\link{rxSolve}}.}
+
+\item{statevars}{List of statevars passed to to the \code{\link{write.template.ui}} function.  This usually isn't called directly.
 
 A PK/PD model is defined using \code{\link{RxODE}}, and
 a set of parameters and initial values are defined.  Then
@@ -28,15 +32,17 @@ the appropriate R scripts for the shiny's user interface \code{ui.R}
 and the server logic \code{server.R} are created in the
 directory \code{appDir}.
 
-The function evaluates the following PK/PD model:
+The function evaluates the following PK/PD model by default:
 \preformatted{
     C2 = centr/V2;
     C3 = peri/V3;
     d/dt(depot) =-KA*depot;
     d/dt(centr) = KA*depot - CL*C2 - Q*C2 + Q*C3;
     d/dt(peri)  =                    Q*C2 - Q*C3;
-    d/dt(eff)  = Kin - Kout*(1-C2/(EC50+C2))*eff; 
+    d/dt(eff)  = Kin - Kout*(1-C2/(EC50+C2))*eff;
 }
+
+This can be changed by the \code{ODE.config} parameter.
 
 To launch the shiny app, simply issue the \code{runApp(appDir)}
 R command.}
@@ -63,8 +69,7 @@ runApp("myapp")
 }
 }
 \seealso{
-\code{\link{RxODE}}
-\code{\link{eventTable}}, and the package \pkg{shiny} (\url{shiny.rstudio.com}).
+\code{\link{RxODE}},\code{\link{eventTable}}, and the package \pkg{shiny} (\url{shiny.rstudio.com}).
 }
 \concept{
 PK/PD

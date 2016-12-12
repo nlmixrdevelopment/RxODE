@@ -1,84 +1,85 @@
-#' Generate an example (template) of a dosing regimen shiny app
-#'
-#' Create a complete shiny application for exploring dosing regimens
-#' given a (hardcoded) PK/PD model.
-#'
-#' @usage
-#'
-#' genShinyApp.template(appDir = "shinyExample", verbose = TRUE)
-#' write.template.server(appDir)
-#' write.template.ui(appDir)
-#'
-#' @param appDir a string with a directory where to store the shiny
-#'     app, by default is \code{"shinyExample"}. The directory
-#'     \code{appDir} will be created if it does not exist.
-#'
-#' @param verbose logical specifying whether to write messages as the
-#'     shiny app is generated. Defaults to \code{TRUE}.
-#'
-#' A PK/PD model is defined using \code{\link{RxODE}}, and
-#' a set of parameters and initial values are defined.  Then
-#' the appropriate R scripts for the shiny's user interface \code{ui.R}
-#' and the server logic \code{server.R} are created in the
-#' directory \code{appDir}.
-#'
-#' The function evaluates the following PK/PD model:
-#' \preformatted{
-#'     C2 = centr/V2;
-#'     C3 = peri/V3;
-#'     d/dt(depot) =-KA*depot;
-#'     d/dt(centr) = KA*depot - CL*C2 - Q*C2 + Q*C3;
-#'     d/dt(peri)  =                    Q*C2 - Q*C3;
-#'     d/dt(eff)  = Kin - Kout*(1-C2/(EC50+C2))*eff; 
-#' }
-#' 
-#' To launch the shiny app, simply issue the \code{runApp(appDir)}
-#' R command.
-#'
-#' @return    None, these functions are used for their side effects.
-#'
-#' @note These functions create a simple, but working example of a
-#'     dosing regimen simulation web application. Users may want to
-#'     modify the code to experiment creating shiny applications for
-#'     their specific \code{RxODE} models.
-#' @seealso
-#' \code{\link{RxODE}}
-#' \code{\link{eventTable}}, and the package \pkg{shiny} (\url{shiny.rstudio.com}).
-#'
-#' @examples
-#' \dontrun{
-#' # create the shiny app example (template)
-#' genShinyApp.template(appDir = "myapp")
-#' # run the shiny app
-#' runApp("myapp")
-#' }
-#' @keywords simulation nonlinear
-#' @concept PK/PD
-#' @concept pharmacometrics
-#' @export genShinyApp.template
+##' Generate an example (template) of a dosing regimen shiny app
+##'
+##' Create a complete shiny application for exploring dosing regimens
+##' given a (hardcoded) PK/PD model.
+##'
+##' @param appDir a string with a directory where to store the shiny
+##'     app, by default is \code{"shinyExample"}. The directory
+##'     \code{appDir} will be created if it does not exist.
+##'
+##'
+##' @param verbose logical specifying whether to write messages as the
+##'     shiny app is generated. Defaults to \code{TRUE}.
+##'
+##' @param statevars List of statevars passed to to the \code{\link{write.template.ui}} function.  This usually isn't called directly.
+##'
+##' A PK/PD model is defined using \code{\link{RxODE}}, and
+##' a set of parameters and initial values are defined.  Then
+##' the appropriate R scripts for the shiny's user interface \code{ui.R}
+##' and the server logic \code{server.R} are created in the
+##' directory \code{appDir}.
+##'
+##' The function evaluates the following PK/PD model by default:
+##' \preformatted{
+##'     C2 = centr/V2;
+##'     C3 = peri/V3;
+##'     d/dt(depot) =-KA*depot;
+##'     d/dt(centr) = KA*depot - CL*C2 - Q*C2 + Q*C3;
+##'     d/dt(peri)  =                    Q*C2 - Q*C3;
+##'     d/dt(eff)  = Kin - Kout*(1-C2/(EC50+C2))*eff;
+##' }
+##'
+##' This can be changed by the \code{ODE.config} parameter.
+##'
+##' To launch the shiny app, simply issue the \code{runApp(appDir)}
+##' R command.
+##'
+##' @param ODE.config model name compiled and list of parameters sent to \code{\link{rxSolve}}.
+##'
+##' @return None, these functions are used for their side effects.
+##'
+##' @note These functions create a simple, but working example of a
+##'     dosing regimen simulation web application. Users may want to
+##'     modify the code to experiment creating shiny applications for
+##'     their specific \code{RxODE} models.
+##' @seealso \code{\link{RxODE}},\code{\link{eventTable}}, and the package \pkg{shiny} (\url{shiny.rstudio.com}).
+##'
+##' @examples
+##' \dontrun{
+##' # create the shiny app example (template)
+##' genShinyApp.template(appDir = "myapp")
+##' # run the shiny app
+##' runApp("myapp")
+##' }
+##' @keywords simulation nonlinear
+##' @concept PK/PD
+##' @concept pharmacometrics
+##' @export genShinyApp.template
 genShinyApp.template <-
 function(appDir = "shinyExample", verbose = TRUE,
-ODE.config = list(
-   ode = "
+         ODE.config = list(ode="model", params=c(KA=0.294), inits=c(eff=1), stiff=TRUE, atol=1e-8, rtol=1e-6)
+)
+    {
+        if (missing()){
+            ODE.config = list(ode = "
    C2 = centr/V2;
    C3 = peri/V3;
    d/dt(depot) =-KA*depot;
    d/dt(centr) = KA*depot - CL*C2 - Q*C2 + Q*C3;
    d/dt(peri)  =                    Q*C2 - Q*C3;
-   d/dt(eff)  = Kin - Kout*(1-C2/(EC50+C2))*eff; 
+   d/dt(eff)  = Kin - Kout*(1-C2/(EC50+C2))*eff;
    ",
-   
-   params = 
-      c(KA=.294, CL=18.6, V2=40.2, Q=10.5, V3=297.0,
-        Kin=1.0, Kout=1.0, EC50=200.0),
-        
+
+   params =
+       c(KA=.294, CL=18.6, V2=40.2, Q=10.5, V3=297.0,
+         Kin=1.0, Kout=1.0, EC50=200.0),
+
    inits = c(depot=0, centr=0, pari=0, eff=1),
    stiff = TRUE,
    atol  = 1e-08,
    rtol  = 1e-06
-  )
-)
-{
+   )
+        }
    if(!file.exists(appDir))
          dir.create(appDir, recursive = TRUE)
    #if(.Platform$OS.type=="windows") appDir <- gsub("\\\\", "/", utils::shortPathName(normalizePath(appDir)))  # safe pathname
@@ -114,11 +115,11 @@ ODE.config = list(
 
    fn <- file.path(appDir, "rx_shiny_data.rda")
    stiff = ODE.config$stiff
-   atol  = ODE.config$atol 
-   rtol  = ODE.config$rtol 
+   atol  = ODE.config$atol
+   rtol  = ODE.config$rtol
    save(mod1, params, inits, stiff, atol, rtol, file = fn)
 
-   # write the shiny server.R and ui.R files 
+   # write the shiny server.R and ui.R files
    write.template.server(appDir)
    write.template.ui(appDir, statevars=c(stateVarStr, stateVars[1]))
 
@@ -139,7 +140,7 @@ function(appDir)
 
    server <- file.path(appDir, "server.R")
 
-   server.code <- 
+   server.code <-
       sprintf(appDir, fmt = '
       #
       # Dosing regimen template generated by RxODE::genShinyApp.template()
@@ -160,26 +161,26 @@ function(appDir)
 
       load(file.path("%s", "rx_shiny_data.rda"))
 
-      # Define server logic 
+      # Define server logic
       shinyServer(function(input, output) {
 
-        get.cp <- reactive({    
-          ds <- input$Dose 
-          reg <- switch(input$regimen, "QD"=1, "BID"=2) 
-          cyc <- switch(input$cycle, 
-              "continous"=c(7,0), 
+        get.cp <- reactive({
+          ds <- input$Dose
+          reg <- switch(input$regimen, "QD"=1, "BID"=2)
+          cyc <- switch(input$cycle,
+              "continous"=c(7,0),
               "1wkon 1wkoff"=c(7,7),
               "2wkon 1wkoff"=c(14,7),
               "3wkon 1wkoff"=c(21,7)
-          ) 
-          cyc <- rep(1:0, cyc) 
+          )
+          cyc <- rep(1:0, cyc)
           ncyc <- input$ncyc
           lcyc <- length(cyc)
-          
+
           ev <- eventTable()
           for (i in 1:ncyc) ev$add.dosing(
-              dose=ds, 
-              nbr.doses=sum(cyc)*reg, 
+              dose=ds,
+              nbr.doses=sum(cyc)*reg,
               dosing.interval=24/reg,
               start.time=(i-1)*lcyc*24
           )
@@ -195,11 +196,11 @@ function(appDir)
           print(x[1:4,])
           if (debug) print(getwd())
         })
-        
+
         output$CpPlot <- renderPlot({
           x <- get.cp()
           cmp <- input$compartment
-          plot(x[,c("time", cmp)], xlab = "Time", ylab = "Drug amount", 
+          plot(x[,c("time", cmp)], xlab = "Time", ylab = "Drug amount",
                main = cmp, type = "l")
         })
       })
@@ -208,17 +209,17 @@ function(appDir)
 }
 #' @rdname genShinyApp.template
 #' @export write.template.ui
-write.template.ui <- 
+write.template.ui <-
 function(appDir, statevars)
 {
    # create a shiny user interface ui.R script in the appDir
 
    ui <- file.path(appDir, "ui.R")
 
-   ui.code <- 
+   ui.code <-
       sprintf(fmt = '
       #
-      # Dosing regimen template automatically generated by 
+      # Dosing regimen template automatically generated by
       # RxODE::genShinyApp.template()
       #
 
@@ -227,41 +228,41 @@ function(appDir, statevars)
 
       # Define UI for dataset viewer application
       shinyUI(pageWithSidebar(
-        
+
         # Application title.
         headerPanel("Regimen simulator"),
-        
+
         # Sidebar with controls to select a dataset and specify the number
-        # of observations to view. The helpText function is also used to 
-        # include clarifying text. Most notably, the inclusion of a 
-        # submitButton defers the rendering of output until the user 
+        # of observations to view. The helpText function is also used to
+        # include clarifying text. Most notably, the inclusion of a
+        # submitButton defers the rendering of output until the user
         # explicitly clicks the button (rather than doing it immediately
         # when inputs change). This is useful if the computations required
         # to render output are inordinately time-consuming.
         sidebarPanel(
-          sliderInput("Dose", "Dose:", 
+          sliderInput("Dose", "Dose:",
                         min=100, max=1000, value=400, step=50),
-                        
-          selectInput("regimen", "Regimen:", 
+
+          selectInput("regimen", "Regimen:",
                       choices = c("QD", "BID"),
                       selected="QD"),
 
-          selectInput("cycle", "Cycle:", 
+          selectInput("cycle", "Cycle:",
                       choices = c(
-                              "continous", 
-                              "1wkon 1wkoff", 
-                              "2wkon 1wkoff", 
+                              "continous",
+                              "1wkon 1wkoff",
+                              "2wkon 1wkoff",
                               "3wkon 1wkoff"),
                       selected="2wkon 1wkoff"),
 
-          sliderInput("ncyc", "# cycles:", 
+          sliderInput("ncyc", "# cycles:",
                         min=1, max=5, value=3, step=1),
 
-          radioButtons("compartment", "Select PK compartment for plotting:", 
+          radioButtons("compartment", "Select PK compartment for plotting:",
                        choices=c(%s),
                        selected = "%s")
         ),
-        
+
         # Show a summary of the dataset and an HTML table with the requested
         # number of observations. Note the use of the h4 function to provide
         # an additional header above each output section.
@@ -274,5 +275,5 @@ function(appDir, statevars)
       ))
    ', statevars[1], statevars[2])
 
-   writeLines(ui.code, con = ui)
+    writeLines(ui.code, con = ui)
 }
