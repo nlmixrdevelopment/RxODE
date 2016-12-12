@@ -1,11 +1,9 @@
 rex::register_shortcuts("RxODE");
 regIni <- rex::rex(or(group(one_of("_."), "0"), "0", "(0)", "[0]", "{0}"), end);
 
-RxODE.trans <- NULL;
 .onLoad <- function(libname, pkgname){ ## nocov start
     ## Setup RxODE.prefer.tbl
     rxPermissive(respect=TRUE); ## need to call respect on the first time
-    RxODE.trans <<- getNativeSymbolInfo('trans', PACKAGE='RxODE')$address;
 } ## nocov end
 
 ## strict/permissive
@@ -1910,7 +1908,7 @@ rxTrans <- function(model,
         }
         parseModel <- tempfile();
         on.exit(unlink(parseModel));
-        ret <- .Call(getOption("RxODE.trans", "trans"), model, cFile, extraC, modelPrefix, md5, parseModel, PACKAGE="RxODE");
+        ret <- .Call(trans, model, cFile, extraC, modelPrefix, md5, parseModel, PACKAGE="RxODE");
         if (file.exists(cFile)){
             ret$md5 <- c(file_md5 = md5, parsed_md5 = rxMd5(parseModel, extraC)$digest);
             if (modVars){
