@@ -3,6 +3,7 @@ regIni <- rex::rex(or(group(one_of("_."), "0"), "0", "(0)", "[0]", "{0}"), end);
 
 .onLoad <- function(libname, pkgname){ ## nocov start
     ## Setup RxODE.prefer.tbl
+    requireNamespace("dparser", quietly = TRUE)
     rxPermissive(respect=TRUE); ## need to call respect on the first time
 } ## nocov end
 
@@ -4147,4 +4148,12 @@ rxIncludeDir <- function(...){
         }
         ## nocov end
     }
+}
+
+refresh <- function(){
+    ## nocov start
+    cat("Using dparser version:\n");
+    print(dparser::dpVersion());
+    source(devtools::package_file("build/refresh.R"))
+    ## nocov end
 }

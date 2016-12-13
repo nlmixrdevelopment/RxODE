@@ -8,11 +8,19 @@ RxODE(model, modName = basename(wd), wd = getwd(), filename = NULL,
   do.compile = NULL, extraC = NULL, debug = FALSE, ...)
 }
 \arguments{
-\item{model}{a string containing the set of ordinary differential
-equations (ODE) and other expressions defining the changes in
-the dynamic system (see also the \code{filename} argument).For
-details, see the sections \dQuote{Details} and
-\dQuote{\code{RxODE Syntax}} below.}
+\item{model}{This is the ODE model specification.  It can be:
+\itemize{
+
+ \item a string containing the set of ordinary differential
+    equations (ODE) and other expressions defining the changes in
+    the dynamic system.
+ \item a file name where the ODE system equation is contained
+ \item An ODE expression enclosed in \code{\{\}}
+}
+
+(see also the \code{filename} argument). For
+    details, see the sections \dQuote{Details} and
+    \dQuote{\code{RxODE Syntax}} below.}
 
 \item{modName}{a string to be used as the model name. This string
 is used for naming various aspects of the computations,
@@ -20,12 +28,15 @@ including generating C symbol names, dynamic libraries,
 etc. Therefore, it is necessary that \code{modName} consists of
 simple ASCII alphanumeric characters starting with a letter.}
 
-\item{wd}{character string with a working directory where to create
-a subdirectory according to \code{modName} (defaults to the
-current working directory \code{getwd()}. A subdirectoy named
-after the \dQuote{\code{modName.d}} will be created and
-populated with a C file, a dynamic loading library, plus
-various other working files.}
+\item{wd}{character string with a working directory where to
+create a subdirectory according to \code{modName}. When
+specified, a subdirectoy named after the
+\dQuote{\code{modName.d}} will be created and populated with a
+C file, a dynamic loading library, plus various other working
+files. If missing, the files are created (and removed) in the
+temporary directory, and the RxODE dll for the model is
+created in the current directory named \code{rx_????_platform}, for
+example \code{rx_129f8f97fb94a87ca49ca8dafe691e1e_i386.dll}}
 
 \item{filename}{A file name or connection object where the
 ODE-based model specification resides. Only one of \code{model}

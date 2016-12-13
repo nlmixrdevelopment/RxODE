@@ -4,10 +4,7 @@
 #include <string.h>
 #include <stdint.h>   /* dj: import intptr_t */
 #include "ode.h"
-#include "gramgram.h"
-#include "d.h"
-#include "mkdparse.h"
-#include "dparse.h"
+#include <dparser.h>
 #include <R.h>
 #include <Rinternals.h>
 #include <R_ext/Rdynload.h>
@@ -29,10 +26,6 @@
 
 // from mkdparse_tree.h
 typedef void (print_node_fn_t)(int depth, char *token_name, char *token_value, void *client_data);
-
-extern int d_use_file_name;
-extern char *d_file_name;
-
 
 int R_get_option(const char *option, int def){
   SEXP s, t;
@@ -111,9 +104,6 @@ static void trans_syntax_error_report_fn(char *err) {
 
 
 extern D_ParserTables parser_tables_RxODE;
-extern int d_use_r_headers;
-extern int d_rdebug_grammar_level;
-extern int d_verbose_level;
 
 unsigned int found_jac = 0, found_print = 0;
 int rx_syntax_assign = 0, rx_syntax_star_pow = 0,
@@ -1307,9 +1297,9 @@ SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_m
   rx_syntax_allow_ini0 = R_get_option("RxODE.suppress.allow.ini0",1);
   rx_syntax_allow_ini  = R_get_option("RxODE.suppress.allow.ini",1);
   rx_syntax_error = 0;
-  d_use_r_headers = 0;
-  d_rdebug_grammar_level = 0;
-  d_verbose_level = 0;
+  set_d_use_r_headers(0);
+  set_d_rdebug_grammar_level(0);
+  set_d_verbose_level(0);
   rx_podo = 0;
   if (!isString(parse_file) || length(parse_file) != 1){
     error("parse_file is not a single string");
@@ -1579,8 +1569,8 @@ SEXP cDparser(SEXP fileName,
               SEXP use_r_header){
   char *grammar_pathname, *grammar_ident, *write_extension, *output_file;
   Grammar *g;
-  d_rdebug_grammar_level = INTEGER(rdebug)[0];
-  d_verbose_level        = INTEGER(verbose)[0];
+  set_d_rdebug_grammar_level(INTEGER(rdebug)[0]);
+  set_d_verbose_level(INTEGER(verbose)[0]);
   grammar_pathname = r_dup_str(CHAR(STRING_ELT(fileName,0)),0);
   grammar_ident    = r_dup_str(CHAR(STRING_ELT(sexp_grammar_ident,0)),0);
   write_extension  = r_dup_str(CHAR(STRING_ELT(sexp_write_extension,0)),0);
@@ -1603,14 +1593,14 @@ SEXP cDparser(SEXP fileName,
   strcpy(g->write_extension, write_extension);
   g->write_pathname = output_file;
 
-  d_use_r_headers = INTEGER(use_r_header)[0];
+  set_d_use_r_headers(INTEGER(use_r_header)[0]);
   /* don't print anything to stdout, when the grammar is printed there */
-  if (d_rdebug_grammar_level > 0)
-    d_verbose_level = 0;
+  if (get_d_rdebug_grammar_level() > 0)
+    set_d_verbose_level(0);
 
   mkdparse(g, grammar_pathname);
 
-  if (d_rdebug_grammar_level == 0) {
+  if (get_d_rdebug_grammar_level() == 0) {
     if (write_c_tables(g) < 0)
       d_fail("unable to write C tables '%s'", grammar_pathname);
   } else
@@ -1618,9 +1608,9 @@ SEXP cDparser(SEXP fileName,
 
   free_D_Grammar(g);
   g = 0;
-  d_use_r_headers = 0;
-  d_rdebug_grammar_level = 0;
-  d_verbose_level = 0;
+  set_d_use_r_headers(0);
+  set_d_rdebug_grammar_level(0);
+  set_d_verbose_level(0);
   return R_NilValue;
 }
 

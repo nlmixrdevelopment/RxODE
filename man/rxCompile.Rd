@@ -55,7 +55,7 @@ based on the parsed md5.}
 \item{...}{Other arguments sent to the \code{\link{rxTrans}} function.}
 }
 \value{
-A rxdll object that has the following slots
+A rxdll object that has the following components
 
 \item{dll}{dll path}
 \item{model}{model specification}

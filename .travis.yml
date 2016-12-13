@@ -20,6 +20,7 @@ matrix:
 
 r_github_packages:
   - jimhester/covr
+  - mattfidler/dparser-R
 
 after_success:
   - Rscript -e 'covr::codecov()'
