@@ -4,13 +4,6 @@
 [![CRAN version](http://www.r-pkg.org/badges/version/RxODE)](https://cran.r-project.org/package=RxODE)
 
 
-```
-## Error in eval(expr, envir, enclos): could not find function "knit"
-```
-
-```
-## Error in eval(expr, envir, enclos): could not find function "knit"
-```
 
 
 ## RxODE: A tool for performing simulations from Ordinary Differential Equation (ODE) models, with applications for pharmacometrics
@@ -140,6 +133,15 @@ plotted in `RxODE`. This model, as shown in the figure below:
 plot(mod1);
 ```
 
+```
+##                              C2                              C3 
+##                      "centr/V2"                       "peri/V3" 
+##                     d/dt(depot)                     d/dt(centr) 
+##                     "-KA*depot"      "KA*depot-CL*C2-Q*C2+Q*C3" 
+##                      d/dt(peri)                       d/dt(eff) 
+##                     "Q*C2-Q*C3" "Kin-Kout*(1-C2/(EC50+C2))*eff"
+```
+
 ![plot of chunk unnamed-chunk-3](vignettes/figure/unnamed-chunk-3-1.png)
 
 Sometimes the size of the boxes may need to be adjusted, you can do
@@ -147,6 +149,15 @@ this by adjusting the `size` argument:
 
 ```r
 plot(mod1,size=40);
+```
+
+```
+##                              C2                              C3 
+##                      "centr/V2"                       "peri/V3" 
+##                     d/dt(depot)                     d/dt(centr) 
+##                     "-KA*depot"      "KA*depot-CL*C2-Q*C2+Q*C3" 
+##                      d/dt(peri)                       d/dt(eff) 
+##                     "Q*C2-Q*C3" "Kin-Kout*(1-C2/(EC50+C2))*eff"
 ```
 
 ![plot of chunk unnamed-chunk-4](vignettes/figure/unnamed-chunk-4-1.png)
