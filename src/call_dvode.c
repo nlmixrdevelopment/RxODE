@@ -17,7 +17,7 @@ void F77_NAME(dlsoda)(
 		      int *);
 
 long slvr_counter, dadt_counter, jac_counter;
-double InfusionRate[99];
+double *InfusionRate;
 double ATOL;		//absolute error
 double RTOL;		//relative error
 double HMAX;
@@ -339,7 +339,8 @@ void RxODE_ode_solver_old_c(int *neq,
                             double *lhs,
                             int *rc){
   int i;
-  for (i=0; i<99; i++) InfusionRate[i] = 0.0;
+  InfusionRate = (double *) R_alloc(*neq+2,sizeof(double));
+  for (i=0; i< *neq; i++) InfusionRate[i] = 0.0;
   ATOL = *atol;
   RTOL = *rtol;
   do_transit_abs = *transit_abs;
@@ -389,7 +390,8 @@ void RxODE_ode_solver_0_6_c(int *neq,
 			    int mxords,
 			    int mxstep){
   int i;
-  for (i=0; i<99; i++) InfusionRate[i] = 0.0;
+  InfusionRate = (double *) R_alloc(*neq+2,sizeof(double));
+  for (i=0; i<*neq; i++) InfusionRate[i] = 0.0;
   ATOL = *atol;
   RTOL = *rtol;
   do_transit_abs = *transit_abs;
@@ -507,9 +509,10 @@ SEXP RxODE_ode_solver (// Parameters
   
   solve         = (double *) R_alloc(neq*n_all_times+1,sizeof(double));
   lhs           = (double *) R_alloc(nlhs,sizeof(double));
-  
-  for (i=0; i< 99; i++) InfusionRate[i] = 0.0;
 
+  InfusionRate = (double *) R_alloc(neq+2,sizeof(double));
+  for (i=0; i<neq; i++) InfusionRate[i] = 0.0;
+  
   RxODE_ode_solver_c(neq, stiff, evid, inits, dose, solve, rc);
 
   // Now create the matrix.
