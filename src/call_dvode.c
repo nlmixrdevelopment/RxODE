@@ -339,8 +339,8 @@ void RxODE_ode_solver_old_c(int *neq,
                             double *lhs,
                             int *rc){
   int i;
-  InfusionRate = (double *) R_alloc(*neq+2,sizeof(double));
-  for (i=0; i< *neq; i++) InfusionRate[i] = 0.0;
+  InfusionRate = Calloc(*neq+2,double);
+  /* for (i=0; i< *neq; i++) InfusionRate[i] = 0.0; */
   ATOL = *atol;
   RTOL = *rtol;
   do_transit_abs = *transit_abs;
@@ -366,6 +366,7 @@ void RxODE_ode_solver_old_c(int *neq,
       calc_lhs(time[i], ret+i*(*neq), lhs+i*(*nlhs));
     }
   }
+  Free(InfusionRate);
 }
 
 void RxODE_ode_solver_0_6_c(int *neq,
@@ -390,8 +391,8 @@ void RxODE_ode_solver_0_6_c(int *neq,
 			    int mxords,
 			    int mxstep){
   int i;
-  InfusionRate = (double *) R_alloc(*neq+2,sizeof(double));
-  for (i=0; i<*neq; i++) InfusionRate[i] = 0.0;
+  InfusionRate = Calloc(*neq+2,double);
+  /* for (i=0; i<*neq; i++) InfusionRate[i] = 0.0; */
   ATOL = *atol;
   RTOL = *rtol;
   do_transit_abs = *transit_abs;
@@ -416,6 +417,7 @@ void RxODE_ode_solver_0_6_c(int *neq,
       calc_lhs(time[i], ret+i*(*neq), lhs+i*(*nlhs));
     }
   }
+  Free(InfusionRate);
 }
 
 void RxODE_assign_fn_pointers(void (*fun_dydt)(unsigned int, double, double *, double *),
@@ -510,8 +512,8 @@ SEXP RxODE_ode_solver (// Parameters
   solve         = (double *) R_alloc(neq*n_all_times+1,sizeof(double));
   lhs           = (double *) R_alloc(nlhs,sizeof(double));
 
-  InfusionRate = (double *) R_alloc(neq+2,sizeof(double));
-  for (i=0; i<neq; i++) InfusionRate[i] = 0.0;
+  InfusionRate = Calloc(neq+2,double);
+  /* for (i=0; i<neq; i++) InfusionRate[i] = 0.0; */
   
   RxODE_ode_solver_c(neq, stiff, evid, inits, dose, solve, rc);
 
@@ -606,6 +608,7 @@ SEXP RxODE_ode_solver (// Parameters
 
   UNPROTECT(9);
   if (fp) fclose(fp);
+  Free(InfusionRate);
   return sexp_solve;
 }
 
