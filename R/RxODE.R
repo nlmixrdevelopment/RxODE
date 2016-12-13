@@ -94,9 +94,17 @@ rxOptions <- function(expr, op.rx=NULL, silent=FALSE, respect=FALSE,
 ##' Create a dynamic ODE-based model object suitably for translation
 ##' into fast C code
 ##'
-##' @param model a string containing the set of ordinary differential
+##' @param model This is the ODE model specification.  It can be:
+##' \itemize{
+##'
+##'  \item a string containing the set of ordinary differential
 ##'     equations (ODE) and other expressions defining the changes in
-##'     the dynamic system (see also the \code{filename} argument).For
+##'     the dynamic system.
+##'  \item a file name where the ODE system equation is contained
+##'  \item An ODE expression enclosed in \code{\{\}}
+##' }
+##'
+##' (see also the \code{filename} argument). For
 ##'     details, see the sections \dQuote{Details} and
 ##'     \dQuote{\code{RxODE Syntax}} below.
 ##'
@@ -106,12 +114,15 @@ rxOptions <- function(expr, op.rx=NULL, silent=FALSE, respect=FALSE,
 ##'     etc. Therefore, it is necessary that \code{modName} consists of
 ##'     simple ASCII alphanumeric characters starting with a letter.
 ##'
-##' @param wd character string with a working directory where to create
-##'     a subdirectory according to \code{modName} (defaults to the
-##'     current working directory \code{getwd()}. A subdirectoy named
-##'     after the \dQuote{\code{modName.d}} will be created and
-##'     populated with a C file, a dynamic loading library, plus
-##'     various other working files.
+##' @param wd character string with a working directory where to
+##'     create a subdirectory according to \code{modName}. When
+##'     specified, a subdirectoy named after the
+##'     \dQuote{\code{modName.d}} will be created and populated with a
+##'     C file, a dynamic loading library, plus various other working
+##'     files. If missing, the files are created (and removed) in the
+##'     temporary directory, and the RxODE dll for the model is
+##'     created in the current directory named \code{rx_????_platform}, for
+##'     example \code{rx_129f8f97fb94a87ca49ca8dafe691e1e_i386.dll}
 ##'
 ##' @param filename A file name or connection object where the
 ##'     ODE-based model specification resides. Only one of \code{model}
@@ -2032,7 +2043,7 @@ rxDllLoaded <- function(x, retry = TRUE){
 ##'     based on the parsed md5.
 ##' @param ... Other arguments sent to the \code{\link{rxTrans}} function.
 ##'
-##' @return A rxdll object that has the following slots
+##' @return A rxdll object that has the following components
 ##'
 ##' \item{dll}{dll path}
 ##' \item{model}{model specification}
