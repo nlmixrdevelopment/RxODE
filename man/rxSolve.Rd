@@ -9,36 +9,38 @@
 \alias{rxSolve.solveRxDll}
 \title{Solves a ODE equation}
 \usage{
-rxSolve(object, params, events, inits = NULL, covs = NULL, stiff = TRUE,
-  transit_abs = NULL, atol = 1e-06, rtol = 1e-06, maxsteps = 5000,
-  hmin = 0, hmax = NULL, hini = 0, maxordn = 12, maxords = 5, ...,
-  covs_interpolation = c("Linear", "LOCF"))
+rxSolve(object, params, events, inits = NULL, scale = c(), covs = NULL,
+  stiff = TRUE, transit_abs = NULL, atol = 1e-06, rtol = 1e-06,
+  maxsteps = 5000, hmin = 0, hmax = NULL, hini = 0, maxordn = 12,
+  maxords = 5, ..., covs_interpolation = c("Linear", "LOCF"))
 
-\method{rxSolve}{solveRxDll}(object, params, events, inits, covs, stiff,
+\method{rxSolve}{solveRxDll}(object, params, events, inits, scale, covs, stiff,
   transit_abs, atol, rtol, maxsteps, hmin, hmax, hini, maxordn, maxords, ...,
   covs_interpolation = c("Linear", "LOCF"))
 
-\method{rxSolve}{RxODE}(object, params, events, inits = NULL, covs = NULL,
-  stiff = TRUE, transit_abs = NULL, atol = 1e-08, rtol = 1e-06,
-  maxsteps = 5000, hmin = 0, hmax = NULL, hini = 0, maxordn = 12,
-  maxords = 5, ..., covs_interpolation = c("Linear", "LOCF"))
+\method{rxSolve}{RxODE}(object, params, events, inits = NULL, scale = c(),
+  covs = NULL, stiff = TRUE, transit_abs = NULL, atol = 1e-08,
+  rtol = 1e-06, maxsteps = 5000, hmin = 0, hmax = NULL, hini = 0,
+  maxordn = 12, maxords = 5, ..., covs_interpolation = c("Linear",
+  "LOCF"))
 
 \method{rxSolve}{RxCompilationManager}(object, params, events, inits = NULL,
-  covs = NULL, stiff = TRUE, transit_abs = NULL, atol = 1e-08,
-  rtol = 1e-06, maxsteps = 5000, hmin = 0, hmax = NULL, hini = 0,
-  maxordn = 12, maxords = 5, ..., covs_interpolation = c("Linear",
-  "LOCF"))
+  scale = c(), covs = NULL, stiff = TRUE, transit_abs = NULL,
+  atol = 1e-08, rtol = 1e-06, maxsteps = 5000, hmin = 0, hmax = NULL,
+  hini = 0, maxordn = 12, maxords = 5, ...,
+  covs_interpolation = c("Linear", "LOCF"))
 
 \method{rxSolve}{character}(object, params, events, inits = NULL,
+  scale = c(), covs = NULL, stiff = TRUE, transit_abs = NULL,
+  atol = 1e-08, rtol = 1e-06, maxsteps = 5000, hmin = 0, hmax = NULL,
+  hini = 0, maxordn = 12, maxords = 5, ...,
+  covs_interpolation = c("Linear", "LOCF"))
+
+\method{rxSolve}{rxDll}(object, params, events, inits = NULL, scale = c(),
   covs = NULL, stiff = TRUE, transit_abs = NULL, atol = 1e-08,
   rtol = 1e-06, maxsteps = 5000, hmin = 0, hmax = NULL, hini = 0,
   maxordn = 12, maxords = 5, ..., covs_interpolation = c("Linear",
   "LOCF"))
-
-\method{rxSolve}{rxDll}(object, params, events, inits = NULL, covs = NULL,
-  stiff = TRUE, transit_abs = NULL, atol = 1e-08, rtol = 1e-06,
-  maxsteps = 5000, hmin = 0, hmax = NULL, hini = 0, maxordn = 12,
-  maxords = 5, ..., covs_interpolation = c("Linear", "LOCF"))
 }
 \arguments{
 \item{object}{is a either a RxODE family of objects, or a file-name
@@ -57,6 +59,13 @@ time points (see \code{\link{eventTable}});}
 (e.g., amounts in each compartment), and the order in this
 vector must be the same as the state variables (e.g., PK/PD
 compartments);}
+
+\item{scale}{a numeric named vector with scaling for ode
+parameters of the system.  The names must correstond to the
+parameter identifiers in the ODE specification. Each of the
+ODE variables will be divided by the scaling factor.  For
+example \code{scale=(center=2)} will divide the center ODE
+variable by 2.}
 
 \item{covs}{a matrix or dataframe the same number of rows as the
 sampling points defined in the events \code{eventTable}.  This

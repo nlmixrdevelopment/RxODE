@@ -122,7 +122,7 @@ An object (closure) of class \dQuote{\code{RxODE}} (see Chambers and Temple Lang
       \item{isValid}{a function that (naively) checks for model validity,
           namely that the C object code reflects the latest model
           specification.}
-      \item{version}{a string scaler with the version of the \code{RxODE}
+      \item{version}{a string with the version of the \code{RxODE}
           object (not the package).}
       \item{dynLoad}{a function with one \code{force = FALSE} argument
           that dynamically loads the object code if needed.}

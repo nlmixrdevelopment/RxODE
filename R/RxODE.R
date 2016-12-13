@@ -265,7 +265,7 @@ rxOptions <- function(expr, op.rx=NULL, silent=FALSE, respect=FALSE,
 ##'       \item{isValid}{a function that (naively) checks for model validity,
 ##'           namely that the C object code reflects the latest model
 ##'           specification.}
-##'       \item{version}{a string scaler with the version of the \code{RxODE}
+##'       \item{version}{a string with the version of the \code{RxODE}
 ##'           object (not the package).}
 ##'       \item{dynLoad}{a function with one \code{force = FALSE} argument
 ##'           that dynamically loads the object code if needed.}
@@ -2607,6 +2607,13 @@ rxInit <- rxInits;
 ##'     vector must be the same as the state variables (e.g., PK/PD
 ##'     compartments);
 ##'
+##' @param scale a numeric named vector with scaling for ode
+##'     parameters of the system.  The names must correstond to the
+##'     parameter identifiers in the ODE specification. Each of the
+##'     ODE variables will be divided by the scaling factor.  For
+##'     example \code{scale=(center=2)} will divide the center ODE
+##'     variable by 2.
+##'
 ##' @param covs a matrix or dataframe the same number of rows as the
 ##'     sampling points defined in the events \code{eventTable}.  This
 ##'     is for time-varying covariates.
@@ -2712,6 +2719,7 @@ rxSolve <- function(object,                      # RxODE object
                     params,                      # Parameter
                     events,                      # Events
                     inits              = NULL,   # Initial Events
+                    scale              = c(), #scale
                     covs               = NULL,   # Covariates
                     stiff              = TRUE,   # Is the system stiff
                     transit_abs        = NULL,  # Transit compartment absorption?
@@ -2747,7 +2755,7 @@ update.solveRxDll <- function(object, ...){
 
 ##' @rdname rxSolve
 ##' @export
-rxSolve.solveRxDll <- function(object, params, events, inits, covs, stiff, transit_abs, atol, rtol, maxsteps, hmin,
+rxSolve.solveRxDll <- function(object, params, events, inits, scale , covs, stiff, transit_abs, atol, rtol, maxsteps, hmin,
                                hmax, hini, maxordn, maxords, ..., covs_interpolation= c("Linear", "LOCF")){
     call <- as.list(match.call(expand.dots = TRUE));
     lst <- attr(object, "solveRxDll");
@@ -2772,33 +2780,34 @@ rxSolve.solveRxDll <- function(object, params, events, inits, covs, stiff, trans
 
 ##' @rdname rxSolve
 ##' @export
-rxSolve.RxODE <- function(object, params, events, inits = NULL, covs = NULL, stiff = TRUE, transit_abs = NULL,
+rxSolve.RxODE <- function(object, params, events, inits = NULL, scale=c(), covs = NULL, stiff = TRUE, transit_abs = NULL,
                           atol = 1.0e-8, rtol = 1.0e-6, maxsteps = 5000, hmin = 0, hmax = NULL, hini = 0, maxordn = 12,
                           maxords = 5, ..., covs_interpolation = c("Linear", "LOCF")){
-    rxSolve.rxDll(object$cmpMgr$rxDll(), params, events, inits, covs, stiff, transit_abs, atol, rtol, maxsteps, hmin,
+    rxSolve.rxDll(object$cmpMgr$rxDll(), params, events, inits, scale, covs, stiff, transit_abs, atol, rtol, maxsteps, hmin,
                   hmax, hini, maxordn, maxords, ..., covs_interpolation = covs_interpolation);
 }
 ##' @rdname rxSolve
 ##' @export
-rxSolve.RxCompilationManager <- function(object, params, events, inits = NULL, covs = NULL, stiff = TRUE,
+rxSolve.RxCompilationManager <- function(object, params, events, inits = NULL, scale=c(), covs = NULL, stiff = TRUE,
                                          transit_abs = NULL, atol = 1.0e-8, rtol = 1.0e-6, maxsteps = 5000, hmin = 0,
                                          hmax = NULL, hini = 0, maxordn = 12, maxords = 5, ...,
                                          covs_interpolation = c("Linear", "LOCF")){
-    rxSolve.rxDll(object$rxDll(), params, events, inits, covs, stiff, transit_abs, atol, rtol, maxsteps, hmin, hmax,
+    rxSolve.rxDll(object$rxDll(), params, events, inits, scale, covs, stiff, transit_abs, atol, rtol, maxsteps, hmin, hmax,
                   hini, maxordn, maxords, ...,
                   covs_interpolation = covs_interpolation);
 }
 ##' @rdname rxSolve
 ##' @export
-rxSolve.character <- function(object, params, events, inits = NULL, covs = NULL, stiff = TRUE, transit_abs = NULL,
+rxSolve.character <- function(object, params, events, inits = NULL, scale=c(), covs = NULL, stiff = TRUE, transit_abs = NULL,
                               atol = 1.0e-8, rtol = 1.0e-6, maxsteps = 5000, hmin = 0, hmax = NULL, hini = 0, maxordn = 12,
                               maxords = 5, ..., covs_interpolation = c("Linear", "LOCF")){
-    rxSolve.rxDll(rxCompile(object), params, events, inits, covs, stiff, transit_abs, atol, rtol, maxsteps, hmin, hmax,
+    rxSolve.rxDll(rxCompile(object), params, events, inits, scale, covs, stiff, transit_abs, atol, rtol, maxsteps, hmin, hmax,
                   hini, maxordn, maxords, ..., covs_interpolation = covs_interpolation);
 }
 ##' @rdname rxSolve
 ##' @export
-rxSolve.rxDll <- function(object, params, events, inits = NULL, covs = NULL, stiff = TRUE, transit_abs = NULL,
+rxSolve.rxDll <- function(object, params, events, inits = NULL, scale = c(),
+covs = NULL, stiff = TRUE, transit_abs = NULL,
                           atol = 1.0e-8, rtol = 1.0e-6, maxsteps = 5000, hmin = 0, hmax = NULL, hini = 0, maxordn = 12,
                           maxords = 5, ..., covs_interpolation = c("Linear", "LOCF")){
     ## rxSolve.rxDll returns a solved object
@@ -2889,26 +2898,36 @@ rxSolve.rxDll <- function(object, params, events, inits = NULL, covs = NULL, sti
         n_cov <- 0;
         covnames <- c();
     }
-    s <- as.list(match.call(expand.dots = TRUE))
-    wh <- grep(pattern = "S\\d+$", names(s))[1]
-    ## HACK: fishing scaling variables "S1 S2 S3 ..." from params call
-    ## to solve(). Maybe define a "scale = c(central = 7.6, ...)" argument
-    ## similar to "params = "?
-    scaler.ix <- 0
-    if (!is.na(wh)) {
-        if (s[[wh]] %in% names(params)) {
-            scaler <- params[s[[wh]]]
-            scaler.ix <- as.numeric(substring(names(s)[wh], 2))
-        } else {
-            warning(paste("scaler variable not found:", s[[wh]]))
-        }
-    }
     lhs_vars <- rxLhs(object);
     if (is.null(inits)){
         n <- rxState(object)
         inits <- rep(0.0, length(n));
         names(inits) <- n;
     }
+    s <- as.list(match.call(expand.dots = TRUE))
+    wh <- grep(pattern = "[Ss]\\d+$", names(s))
+    if (length(scale) > 0 && length(wh) > 0){
+        stop("Cannot specify both 'scale=c(...)' and S#=, please pick one for to scale the ODE compartments.")
+    }
+    ## HACK: fishing scaling variables "S1 S2 S3 ..." from params call
+    ## to solve(). Maybe define a "scale = c(central = 7.6, ...)" argument
+    ## similar to "params = "?
+    scaler.ix <- c()
+    if (length(wh) > 0) {
+        scaler.ix <- as.numeric(substring(names(s)[wh], 2))
+        if (any(duplicated(scaler.ix))){
+            stop("Duplicate scaling factors found.");
+        }
+        scale <- unlist(s[wh]);
+        if (any(length(inits) < scaler.ix)){
+            warning(sprintf("scaler variable(s) above the number of compartments: %s.",
+                    paste(paste0("S", scaler.ix[scaler.ix > length(inits)]), collapse=", ")))
+            scale <- scale[scaler.ix < length(inits)]
+            scaler.ix <- scaler.ix[scaler.ix < length(inits)];
+        }
+        names(scale) <- rxState(object)[scaler.ix];
+    }
+    scale <- c(scale);
     if (length(covs_interpolation) > 1){
         isLocf <- 0;
     } else if (covs_interpolation == "LOCF"){
@@ -2962,9 +2981,9 @@ rxSolve.rxDll <- function(object, params, events, inits = NULL, covs = NULL, sti
     if (rc != 0)
         stop(sprintf("could not solve ODE, IDID = %d (see further messages)", rc))
 
-    ## if (scaler.ix) {
-    ##     x[, scaler.ix] <- x[, scaler.ix]/scaler
-    ## }
+    for (d in names(scale)){
+        attr(ret, "solveRxDll")$matrix[, d] <- attr(ret, "solveRxDll")$matrix[, d] / scale[d];
+    }
 
     return(ret);
 } # end function rxSolve.rxDll

@@ -1,4 +1,5 @@
 library(RxODE)
+context("Basic Tests")
 rxPermissive({
     test.dir <- tempfile("Rx_base-")
     dir.create(test.dir)
