@@ -1,4 +1,5 @@
 Sys.setenv("R_TESTS" = "")
 library(testthat)
+library(dparser)
 library(RxODE)
 test_check("RxODE")
