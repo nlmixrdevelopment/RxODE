@@ -3,7 +3,6 @@ regIni <- rex::rex(or(group(one_of("_."), "0"), "0", "(0)", "[0]", "{0}"), end);
 
 .onLoad <- function(libname, pkgname){ ## nocov start
     ## Setup RxODE.prefer.tbl
-    requireNamespace("dparser", quietly = TRUE);
     rxPermissive(respect=TRUE); ## need to call respect on the first time
 } ## nocov end
 
@@ -384,7 +383,8 @@ rxOptions <- function(expr, op.rx=NULL, silent=FALSE, respect=FALSE,
 ##' @concept Ordinary differential equations
 ##' @concept Pharmacokinetics (PK)
 ##' @concept Pharmacodynamics (PD)
-##' @useDynLib RxODE trans cDparser
+##' @useDynLib RxODE trans
+##' @importFrom dparser dparse
 ##' @export
 RxODE <-
     function(model, modName = basename(wd), wd = getwd(),
@@ -4152,8 +4152,6 @@ rxIncludeDir <- function(...){
 
 refresh <- function(){
     ## nocov start
-    cat("Using dparser version:\n");
-    print(dparser::dpVersion());
     source(devtools::package_file("build/refresh.R"))
     ## nocov end
 }
