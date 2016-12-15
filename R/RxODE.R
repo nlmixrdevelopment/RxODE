@@ -299,7 +299,6 @@ RxODE <-
              filename = NULL, do.compile = NULL, extraC = NULL,
              debug = FALSE, ...)
 {
-    rxReq("dparser");
     if (class(substitute(model)) == "{"){
         model <- deparse(substitute(model))[-1];
         model <- paste(model[-length(model)], collapse="\n");
@@ -991,6 +990,7 @@ rxTrans <- function(model,
         }
         parseModel <- tempfile();
         on.exit(unlink(parseModel));
+        rxReq("dparser");
         ret <- .Call("trans", model, cFile, extraC, modelPrefix, md5, parseModel, PACKAGE="RxODE");
         if (file.exists(cFile)){
             ret$md5 <- c(file_md5 = md5, parsed_md5 = rxMd5(parseModel, extraC)$digest);
