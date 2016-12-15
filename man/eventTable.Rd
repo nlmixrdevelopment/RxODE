@@ -133,11 +133,11 @@ bid.ext <- bid$copy()      # three-day extension for a 2nd cohort
 bid.ext$add.dosing(dose = 5000, nbr.doses = 2*3,
                    start.time = 120, dosing.interval = 12, do.sampling = FALSE)
 }
-\author{
-Melissa Hallow and Wenping Wang
-}
 \seealso{
 \code{\link{RxODE}}
+}
+\author{
+Melissa Hallow and Wenping Wang
 }
 \concept{
 ordinary differential equations
@@ -150,4 +150,3 @@ Pharmacodynamics (PD)
 }
 \keyword{data}
 \keyword{models}
-

@@ -19,4 +19,3 @@ information in the object.
 \author{
 Matthew L.Fidler
 }
-

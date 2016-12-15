@@ -4,25 +4,37 @@ context("Test Parsing of models")
 rxPermissive({
     badParse <- function(desc,code){
         test_that(desc,{
+            tmp <- tempfile();
+            sink(tmp)
             expect_error(RxODE(code));
+            sink();
+            unlink(tmp);
         })
     }
 
     goodParse <- function(desc,code){
         test_that(desc,{
+            tmp <- tempfile();
+            sink(tmp)
             rx <- RxODE(code);
             expect_equal(class(rx),"RxODE");
             rxDelete(rx);
+            sink()
+            unlink(tmp)
         })
     }
 
     equivSyntax <- function(desc,code1,code2){
         test_that(desc,{
+            tmp <- tempfile();
+            sink(tmp);
             rx1 <- RxODE(code1);
             rx2 <- RxODE(code2);
             expect_equal(rxMd5(rx1)["parsed_md5"],rxMd5(rx2)["parsed_md5"])
             rxDelete(rx1);
             rxDelete(rx2);
+            sink();
+            unlink(tmp);
         })
     }
 

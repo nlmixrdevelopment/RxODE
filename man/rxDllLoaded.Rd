@@ -21,4 +21,3 @@ Determine if the rxDll is loaded or not.
 \author{
 Matthew L.Fidler
 }
-

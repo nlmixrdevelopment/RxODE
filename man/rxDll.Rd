@@ -2,9 +2,9 @@
 % Please edit documentation in R/RxODE.R
 \name{rxDll}
 \alias{rxDll}
-\alias{rxDll.RxODE}
 \alias{rxDll.character}
 \alias{rxDll.rxDll}
+\alias{rxDll.RxODE}
 \title{Return the dll associated with the RxODE object}
 \usage{
 rxDll(obj, ...)
@@ -31,4 +31,3 @@ run the C code for RxODE.
 Matthew L.Fidler
 }
 \keyword{internal}
-

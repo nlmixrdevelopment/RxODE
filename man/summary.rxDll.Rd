@@ -20,4 +20,3 @@ This gives expanded information about the rxDll object
 Matthew L.Fidler
 }
 \keyword{internal}
-

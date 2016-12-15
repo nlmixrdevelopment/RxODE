@@ -84,11 +84,11 @@ sessions only need to be dynamically loaded into the current R session.)
   cmpMgt <- rx.initCmpMgr(model, "tst1", wd = ".")
 }
 }
-\author{
-Matthew L.Fidler
-}
 \seealso{
 \code{\link{RxODE}}
+}
+\author{
+Matthew L.Fidler
 }
 \concept{
 ordinary differential equations
@@ -96,4 +96,3 @@ ordinary differential equations
 \keyword{ODE}
 \keyword{internal}
 \keyword{models}
-

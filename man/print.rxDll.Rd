@@ -13,4 +13,3 @@ This tells if the rxDll is loaded, ready and/or deleted.
 Matthew L.Fidler
 }
 \keyword{internal}
-

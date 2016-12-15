@@ -18,4 +18,3 @@ This prints out the user supplied arguments for the rxCoef object
 Matthew L.Fidler
 }
 \keyword{Internal}
-

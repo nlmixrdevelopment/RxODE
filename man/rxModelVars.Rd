@@ -2,9 +2,9 @@
 % Please edit documentation in R/RxODE.R
 \name{rxModelVars}
 \alias{rxModelVars}
+\alias{rxModelVars.rxDll}
 \alias{rxModelVars.RxCompilationManager}
 \alias{rxModelVars.RxODE}
-\alias{rxModelVars.rxDll}
 \alias{rxModelVars.solveRxDll}
 \title{All model variables for a RxODE object}
 \usage{
@@ -47,4 +47,3 @@ built-into the RxODE compiled dll.
 Matthew L.Fidler
 }
 \keyword{internal}
-

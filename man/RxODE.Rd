@@ -212,6 +212,7 @@ capture a snapshot of the syste via the values of these variables).
 The ODE specification mini-language is parsed with the help of the
 open source tool \emph{DParser}, Plevyak (2015).
 }
+
 \examples{
 # Step 1 - Create a model specification
 ode <- "
@@ -267,9 +268,6 @@ inits <- c(eff = 1);
 qd.cp <- solve(m1, theta, events = qd, inits);
 
 }
-\author{
-Melissa Hallow, Wenping Wang and Matthew Fidler
-}
 \references{
 Chamber, J. M. and Temple Lang, D. (2001)
 \emph{Object Oriented Programming in R}.
@@ -297,6 +295,9 @@ Plevyek, J.
 \seealso{
 \code{\link{eventTable}}
 }
+\author{
+Melissa Hallow, Wenping Wang and Matthew Fidler
+}
 \concept{
 Nonlinear regression
 
@@ -310,4 +311,3 @@ Pharmacodynamics (PD)
 }
 \keyword{models}
 \keyword{nonlinear}
-

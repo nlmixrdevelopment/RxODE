@@ -10,7 +10,7 @@ library(knitr)
 
 ## Introduction
 
-This vignette briefly describes the syntax used to define models 
+This briefly describes the syntax used to define models 
 that `RxODE` will translate into R-callable compiled code. It also
 describes the communication of variables between `R` and the
 `RxODE` modeling specification.
@@ -53,8 +53,8 @@ statements. Assignment statements can be either **simple**
 assignments, where the left hand is an identifier (i.e., variable), or 
 special **time-derivative** assignments, where the left hand
 specifies the change of the amount in the corresponding state
-variable (compartment) with respect to time  
-e.g., `d/dt(depot)`:
+variable (compartment) with respect to time e.g., `d/dt(depot)`:
+
 ```
    # simple assignment
    C2 = centr/V2;  
@@ -73,7 +73,9 @@ factorial operator and function (either `!` or `factorial` as in R)
 can be used. Notice that the modulo operator `%` is currently
 unsupported.
 
-You may also access the R's functions in the [R math libraries](https://cran.r-project.org/doc/manuals/r-release/R-exts.html#Numerical-analysis-subroutines),
+You may also access the R's functions in
+the
+[R math libraries](https://cran.r-project.org/doc/manuals/r-release/R-exts.html#Numerical-analysis-subroutines),
 like `lgammafn` for the log gamma function
 
 
@@ -116,7 +118,7 @@ theta <-
 
 # state variables and their amounts at time 0 (the use of names is
 # encouraged, but not required)
-inits <- c(depot=0, centr=0, peri=0, eff=1)    
+inits <- c(depot=0, centr=0, peri=0, eff=1)
 
 # qd1 is an eventTable specification with a set of dosing and sampling 
 # records (code not shown here)
@@ -129,6 +131,9 @@ fitted values (see the function `eventTable`, in particular its
 member function `add.sampling` function to define a set of time points when
 to capture the values of these variables) and returned as 
 part of the modeling output.
+
+The ODE specification mini-language is parsed with the help of the
+open source tool *DParser*, Plevyak (2015).
 
 ## Bugs and/or deficiencies
 

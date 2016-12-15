@@ -2,9 +2,9 @@
 % Please edit documentation in R/RxODE.R
 \name{rxCompile}
 \alias{rxCompile}
-\alias{rxCompile.RxODE}
 \alias{rxCompile.character}
 \alias{rxCompile.rxDll}
+\alias{rxCompile.RxODE}
 \title{Compile a model if needed}
 \usage{
 rxCompile(model, dir, prefix, extraC = NULL, force = FALSE,
@@ -69,10 +69,9 @@ A rxdll object that has the following components
 This is the compilation workhorse creating the RxODE model dll
 files.
 }
-\author{
-Matthew L.Fidler
-}
 \seealso{
 \code{\link{RxODE}}
 }
-
+\author{
+Matthew L.Fidler
+}

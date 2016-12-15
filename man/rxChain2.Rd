@@ -2,8 +2,8 @@
 % Please edit documentation in R/RxODE.R
 \name{rxChain2}
 \alias{rxChain2}
-\alias{rxChain2.EventTable}
 \alias{rxChain2.default}
+\alias{rxChain2.EventTable}
 \title{Second command in chaining commands}
 \usage{
 rxChain2(obj, solvedObject)
@@ -24,4 +24,3 @@ This is s3 method is called internally with \code{+} and \code{\%>\%} operators.
 Matthew L.Fidler
 }
 \keyword{internal}
-

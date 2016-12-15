@@ -16,4 +16,3 @@ to be called in R.
 \author{
 Matthew L.Fidler
 }
-

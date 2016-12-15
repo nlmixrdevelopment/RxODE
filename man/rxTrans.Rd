@@ -45,10 +45,9 @@ a named vector of translated model properties
 \description{
 This function translates the model to C code, if needed
 }
-\author{
-Matthew L.Fidler
-}
 \seealso{
 \code{\link{RxODE}}, \code{\link{rxCompile}}.
 }
-
+\author{
+Matthew L.Fidler
+}

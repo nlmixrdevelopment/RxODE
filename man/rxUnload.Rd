@@ -16,4 +16,3 @@ deleted.  All the c functions will no longer be accessible.
 \author{
 Matthew L.Fidler
 }
-

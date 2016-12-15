@@ -17,10 +17,9 @@ a character vector listing the calculated parameters
 \description{
 This returns the model calculated variables
 }
-\author{
-Matthew L.Fidler
-}
 \seealso{
 \code{\link{RxODE}}
 }
-
+\author{
+Matthew L.Fidler
+}
