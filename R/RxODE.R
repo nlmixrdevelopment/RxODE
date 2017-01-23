@@ -1413,6 +1413,20 @@ rxParams <- function(obj, ...){
 ##' @export
 rxParam <- rxParams
 
+
+##' Jacobain and parameter derivates
+##'
+##' Return Jacobain and parameter derivates
+##'
+##' @param obj  is a RxODE family of objects
+##' @param ...  Ignored arguments
+##' @return
+##' @author Matthew L. Fidler
+##' @export
+rxDfdy <- function(obj,  ...){
+    return(rxModelVars(obj)$dfdy);
+}
+
 ##' State variables
 ##'
 ##' This returns the model's compartments or states.

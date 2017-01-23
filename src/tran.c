@@ -133,6 +133,10 @@ typedef struct symtab {
   int statei; // # states
   int li; // # lhs
   int pi; // # param
+  // Save Jacobian information
+  int df[MXSYM];
+  int dy[MXSYM];
+  int ndfdy;
 } symtab;
 symtab tb;
 
@@ -448,6 +452,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
           sbt.o = 0;
           sprintf(sb.s,"__PDStateVar__[__CMT_NUM_%s__*(__NROWPD__)+",v);
           sprintf(sbt.s,"df(%s)/dy(",v);
+	  new_or_ith(v);
+	  tb.df[tb.ndfdy] = tb.ix;
         }
         sb.o = strlen(sb.s);
         sbt.o = strlen(sbt.s);
@@ -513,6 +519,9 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
           sb.o += 3;
           sprintf(SBTPTR ,"=");
           sbt.o += 1;
+	  new_or_ith(v);
+	  tb.dy[tb.ndfdy] = tb.ix;
+	  tb.ndfdy++;
         }
         Free(v);
         continue;
@@ -802,12 +811,19 @@ void print_aux_info(FILE *outpt, char *model){
     sprintf(s_aux_info+o, "\tSET_STRING_ELT(state,%d,mkChar(\"%s\"));\n", statei++, buf);
     o = strlen(s_aux_info);
   }
+  for (i=0; i<tb.ndfdy; i++) {                     /* name state vars */
+    retieve_var(tb.df[i], buf);
+    retieve_var(tb.dy[i], buf2);
+    sprintf(s_aux_info+o, "\tSET_STRING_ELT(dfdy,%d,mkChar(\"df(%s)/dy(%s)\"));\n", i, buf,buf2);
+    o = strlen(s_aux_info);
+  }
   fprintf(outpt,"extern SEXP %smodel_vars(){\n",model_prefix);
-  fprintf(outpt,"\tSEXP lst    = PROTECT(allocVector(VECSXP, 8));\n");
-  fprintf(outpt,"\tSEXP names  = PROTECT(allocVector(STRSXP, 8));\n");
+  fprintf(outpt,"\tSEXP lst    = PROTECT(allocVector(VECSXP, 9));\n");
+  fprintf(outpt,"\tSEXP names  = PROTECT(allocVector(STRSXP, 9));\n");
   fprintf(outpt,"\tSEXP params = PROTECT(allocVector(STRSXP, %d));\n",pi);
   fprintf(outpt,"\tSEXP lhs    = PROTECT(allocVector(STRSXP, %d));\n",li);
   fprintf(outpt,"\tSEXP state  = PROTECT(allocVector(STRSXP, %d));\n",statei);
+  fprintf(outpt,"\tSEXP dfdy   = PROTECT(allocVector(STRSXP, %d));\n",tb.ndfdy);
   fprintf(outpt,"\tSEXP tran   = PROTECT(allocVector(STRSXP, 9));\n");
   fprintf(outpt,"\tSEXP trann  = PROTECT(allocVector(STRSXP, 9));\n");
   fprintf(outpt,"\tSEXP mmd5   = PROTECT(allocVector(STRSXP, 2));\n");
@@ -955,6 +971,9 @@ void print_aux_info(FILE *outpt, char *model){
 
   fprintf(outpt,"\tSET_STRING_ELT(names,7,mkChar(\"podo\"));\n");
   fprintf(outpt,"\tSET_VECTOR_ELT(lst,  7,ScalarLogical(%d));\n",rx_podo);
+
+  fprintf(outpt,"\tSET_STRING_ELT(names,8,mkChar(\"dfdy\"));\n");
+  fprintf(outpt,"\tSET_VECTOR_ELT(lst,  8,dfdy);\n");
   
   // md5 values
   fprintf(outpt,"\tSET_STRING_ELT(mmd5n,0,mkChar(\"file_md5\"));\n");
@@ -999,7 +1018,7 @@ void print_aux_info(FILE *outpt, char *model){
   fprintf(outpt,"\tsetAttrib(ini, R_NamesSymbol, inin);\n");
   fprintf(outpt,"\tsetAttrib(lst, R_NamesSymbol, names);\n");
 
-  fprintf(outpt,"\tUNPROTECT(13);\n");
+  fprintf(outpt,"\tUNPROTECT(14);\n");
   
   fprintf(outpt,"\treturn lst;\n");
   fprintf(outpt,"}\n");
@@ -1237,6 +1256,8 @@ void reset (){
   memset(tb.lh,  0, MXSYM);
   memset(tb.ini, 0, MXSYM);
   memset(tb.ini0, 0, MXSYM);
+  memset(tb.df, 0, MXSYM);
+  memset(tb.dy, 0, MXSYM);
   tb.nv=0;
   tb.nd=0;
   tb.fn=0;
@@ -1247,6 +1268,7 @@ void reset (){
   tb.ini_i = 0;
   found_print = 0;
   found_jac = 0;
+  tb.ndfdy = 0;
 }
 
 void trans_internal(char* parse_file, char* c_file){
@@ -1342,13 +1364,15 @@ SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_m
     sprintf(out2,"out2.txt"); 
   }
   trans_internal(in, out);
-  SEXP lst   = PROTECT(allocVector(VECSXP, 7));
-  SEXP names = PROTECT(allocVector(STRSXP, 7));
+  SEXP lst   = PROTECT(allocVector(VECSXP, 8));
+  SEXP names = PROTECT(allocVector(STRSXP, 8));
   
   SEXP tran  = PROTECT(allocVector(STRSXP, 9));
   SEXP trann = PROTECT(allocVector(STRSXP, 9));
   
   SEXP state = PROTECT(allocVector(STRSXP,tb.nd));
+  
+  SEXP dfdy = PROTECT(allocVector(STRSXP,tb.ndfdy));
   
   SEXP params = PROTECT(allocVector(STRSXP, tb.pi));
   
@@ -1363,6 +1387,12 @@ SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_m
   for (i=0; i<tb.nd; i++) {                     /* name state vars */
     retieve_var(tb.di[i], buf);
     SET_STRING_ELT(state,i,mkChar(buf));
+  }
+  for (i=0; i<tb.ndfdy; i++) {                     /* name state vars */
+    retieve_var(tb.df[i], buf);
+    retieve_var(tb.dy[i], buf2);
+    sprintf(buf,"df(%s)/dy(%s)",buf,buf2);
+    SET_STRING_ELT(dfdy,i,mkChar(buf));
   }
   for (i=0; i<tb.nv; i++) {
     islhs = tb.lh[i];
@@ -1394,6 +1424,9 @@ SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_m
 
   SET_STRING_ELT(names,6,mkChar("podo"));
   SET_VECTOR_ELT(lst,  6,ScalarLogical(rx_podo));
+
+  SET_STRING_ELT(names,7,mkChar("dfdy"));
+  SET_VECTOR_ELT(lst,  7,dfdy);
   
   SET_STRING_ELT(trann,0,mkChar("jac"));
   if (found_jac == 1){
@@ -1537,7 +1570,7 @@ SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_m
   setAttrib(tran,  R_NamesSymbol, trann);
   setAttrib(lst,   R_NamesSymbol, names);
   setAttrib(model, R_NamesSymbol, modeln);
-  UNPROTECT(11);
+  UNPROTECT(12);
   remove("out3.txt");
   reset();
   if (rx_syntax_error){
