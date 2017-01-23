@@ -23,6 +23,99 @@
 #define NEEDPOW "'**' not supported, use '^' instead or set 'options(RxODE.syntax.star.pow = TRUE)'."
 #define NODOT "'.' in variables and states not supported, use '_' instead or set 'options(RxODE.syntax.allow.dots = TRUE)'."
 #define NOINI0 "'%s(0)' for initilization not allowed.  To allow set 'options(RxODE.suppress.allow.ini0 = TRUE)'."
+#define NOSTATE "Defined 'df(%s)/dy(%s)', but '%s' is not a state!"
+#define NOSTATEVAR "Defined 'df(%s)/dy(%s)', but '%s' is not a state or variable!"
+
+#include <string.h>
+#include <stdlib.h>
+#include <stddef.h>
+
+#if (__STDC_VERSION__ >= 199901L)
+#include <stdint.h>
+#endif
+
+char *repl_str(const char *str, const char *from, const char *to) {
+  // From http://creativeandcritical.net/str-replace-c by Laird Shaw
+  /* Adjust each of the below values to suit your needs. */
+
+  /* Increment positions cache size initially by this number. */
+  size_t cache_sz_inc = 16;
+  /* Thereafter, each time capacity needs to be increased,
+   * multiply the increment by this factor. */
+  const size_t cache_sz_inc_factor = 3;
+  /* But never increment capacity by more than this number. */
+  const size_t cache_sz_inc_max = 1048576;
+
+  char *pret, *ret = NULL;
+  const char *pstr2, *pstr = str;
+  size_t i, count = 0;
+#if (__STDC_VERSION__ >= 199901L)
+  uintptr_t *pos_cache_tmp, *pos_cache = NULL;
+#else
+  ptrdiff_t *pos_cache_tmp, *pos_cache = NULL;
+#endif
+  size_t cache_sz = 0;
+  size_t cpylen, orglen, retlen, tolen, fromlen = strlen(from);
+
+  /* Find all matches and cache their positions. */
+  while ((pstr2 = strstr(pstr, from)) != NULL) {
+    count++;
+
+    /* Increase the cache size when necessary. */
+    if (cache_sz < count) {
+      cache_sz += cache_sz_inc;
+      pos_cache_tmp = realloc(pos_cache, sizeof(*pos_cache) * cache_sz);
+      if (pos_cache_tmp == NULL) {
+        goto end_repl_str;
+      } else pos_cache = pos_cache_tmp;
+      cache_sz_inc *= cache_sz_inc_factor;
+      if (cache_sz_inc > cache_sz_inc_max) {
+        cache_sz_inc = cache_sz_inc_max;
+      }
+    }
+
+    pos_cache[count-1] = pstr2 - str;
+    pstr = pstr2 + fromlen;
+  }
+
+  orglen = pstr - str + strlen(pstr);
+
+  /* Allocate memory for the post-replacement string. */
+  if (count > 0) {
+    tolen = strlen(to);
+    retlen = orglen + (tolen - fromlen) * count;
+  } else        retlen = orglen;
+  ret = malloc(retlen + 1);
+  if (ret == NULL) {
+    goto end_repl_str;
+  }
+
+  if (count == 0) {
+    /* If no matches, then just duplicate the string. */
+    strcpy(ret, str);
+  } else {
+    /* Otherwise, duplicate the string whilst performing
+     * the replacements using the position cache. */
+    pret = ret;
+    memcpy(pret, str, pos_cache[0]);
+    pret += pos_cache[0];
+    for (i = 0; i < count; i++) {
+      memcpy(pret, to, tolen);
+      pret += tolen;
+      pstr = str + pos_cache[i] + fromlen;
+      cpylen = (i == count-1 ? orglen : pos_cache[i+1]) - pos_cache[i] - fromlen;
+      memcpy(pret, pstr, cpylen);
+      pret += cpylen;
+    }
+    ret[retlen] = '\0';
+  }
+
+ end_repl_str:
+  /* Free the cache and return the post-replacement string,
+   * which will be NULL in the event of an error. */
+  free(pos_cache);
+  return ret;
+}
 
 // from mkdparse_tree.h
 typedef void (print_node_fn_t)(int depth, char *token_name, char *token_value, void *client_data);
@@ -136,6 +229,7 @@ typedef struct symtab {
   // Save Jacobian information
   int df[MXSYM];
   int dy[MXSYM];
+  int sdfdy[MXSYM];
   int ndfdy;
 } symtab;
 symtab tb;
@@ -150,7 +244,7 @@ sbuf sbt;
 
 char *extra_buf, *model_prefix, *md5, *out2;
 
-static FILE *fpIO, *fpIO2;
+static FILE *fpIO, *fpIO2, *fpIO3;
 
 /* new symbol? if no, find it's ith */
 int new_or_ith(const char *s) {
@@ -444,13 +538,13 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
         if (!strcmp("jac_rhs",name) || !strcmp("dfdy_rhs",name)){
           // Continuation statement
-          sprintf(SBPTR,"__PDStateVar__[__CMT_NUM_%s__*(__NROWPD__)+",v);
+          sprintf(SBPTR,"__PDStateVar__[[%s,",v);
           sprintf(SBTPTR,"df(%s)/dy(",v);
         } else {
           // New statment
           sb.o = 0;
           sbt.o = 0;
-          sprintf(sb.s,"__PDStateVar__[__CMT_NUM_%s__*(__NROWPD__)+",v);
+          sprintf(sb.s,"__PDStateVar__[[%s,",v);
           sprintf(sbt.s,"df(%s)/dy(",v);
 	  new_or_ith(v);
 	  tb.df[tb.ndfdy] = tb.ix;
@@ -509,7 +603,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       if ((!strcmp("jac",name)  || !strcmp("jac_rhs",name) ||
            !strcmp("dfdy",name) || !strcmp("dfdy_rhs",name)) && i == 4){
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-        sprintf(SBPTR, "__CMT_NUM_%s__]",v);
+        sprintf(SBPTR, "%s]]",v);
         sb.o = strlen(sb.s);
         sprintf(SBTPTR, "%s)",v);
         sbt.o = strlen(sbt.s);
@@ -745,15 +839,35 @@ void err_msg(int chk, const char *msg, int code)
 }
 
 /* when prnt_vars() is called, user defines the behavior in "case" */
-void prnt_vars(int scenario, FILE *outpt, int lhs, const char *pre_str, const char *post_str) {
+void prnt_vars(int scenario, FILE *outpt, int lhs, const char *pre_str, const char *post_str, int show_ode) {
   int i, j, k;
-  char buf[64];
+  char buf[64], buf1[64],buf2[64];
   fprintf(outpt, "%s", pre_str);  /* dj: avoid security vulnerability */
+  if (scenario == 0){
+    // show_ode = 1 dydt
+    // show_ode = 2 Jacobian
+    // show_ode = 0 LHS
+    if (show_ode == 2 || show_ode == 0){
+      //__DDtStateVar_#__
+      for (i = 0; i < tb.nd; i++){
+	fprintf(outpt,"\t__DDtStateVar_%d__,\n",i);
+      }
+    }
+    // Now get Jacobain information  __PDStateVar_df_dy__ if needed
+    for (i = 0; i < tb.ndfdy; i++){
+      retieve_var(tb.df[i], buf1);
+      retieve_var(tb.dy[i], buf2);
+      // This is for dydt/ LHS/ or jacobian for df(state)/dy(parameter)
+      if (show_ode == 1 || show_ode == 0 || tb.sdfdy[i] == 1){
+	fprintf(outpt,"\t__PDStateVar_%s_%s__,\n",buf1,buf2);
+      }
+    }
+  }
   for (i=0, j=0; i<tb.nv; i++) {
     if (lhs && tb.lh[i]>0) continue;
     retieve_var(i, buf);
     switch(scenario) {
-    case 0:
+    case 0:   // Case 0 is for declaring the variables
       fprintf(outpt,"\t");
       for (k = 0; k < strlen(buf); k++){
         if (buf[k] == '.'){
@@ -771,6 +885,7 @@ void prnt_vars(int scenario, FILE *outpt, int lhs, const char *pre_str, const ch
         fprintf(outpt, ";\n");
       break;
     case 1:
+      // Case 1 is for declaring the par_ptr.
       fprintf(outpt,"\t");
       for (k = 0; k < strlen(buf); k++){
         if (buf[k] == '.'){
@@ -1026,11 +1141,12 @@ void print_aux_info(FILE *outpt, char *model){
 }
 
 void codegen(FILE *outpt, int show_ode) {
-  int i, j, k, print_ode=0, print_vars = 0, print_parm = 0, print_jac=0;
+  int i, j, k, print_ode=0, print_vars = 0, print_parm = 0, print_jac=0, o;
   char sLine[MXLEN+1];
   char buf[64];
+  char from[512], to[512], df[512], dy[512], state[512];
+  char *s2;
   FILE *fpIO;
-
   char *hdft[]=
     {
       "\n// prj-specific differential eqns\nvoid ",
@@ -1039,12 +1155,12 @@ void codegen(FILE *outpt, int show_ode) {
     };
   if (show_ode == 1){
     fprintf(outpt, __HD_ODE__);
-    if (found_jac == 1){
-      for (i=0; i<tb.nd; i++) {                   /* name state vars */
-        retieve_var(tb.di[i], buf);
-        fprintf(outpt, "#define __CMT_NUM_%s__ %d\n", buf, i);
-      }
-    }
+    /* if (found_jac == 1){ */
+    /*   for (i=0; i<tb.nd; i++) {                   /\* name state vars *\/ */
+    /*     retieve_var(tb.di[i], buf); */
+    /*     fprintf(outpt, "#define __CMT_NUM_%s__ %d\n", buf, i); */
+    /*   } */
+    /* } */
     fprintf(outpt,"\n");
     for (i = 0; i < strlen(extra_buf); i++){
       if (extra_buf[i] == '"'){
@@ -1061,17 +1177,17 @@ void codegen(FILE *outpt, int show_ode) {
     fprintf(outpt, "%s", model_prefix);
     fprintf(outpt, "%s", hdft[1]);
   } else if (show_ode == 2){
-    fprintf(outpt, "// Jacobian derived vars\nvoid %scalc_jac(unsigned int neq, double t, double *__zzStateVar__, double *__PDStateVar__, unsigned int __NROWPD__) {\n\tdouble __DDtStateVar__[%d];\n",model_prefix,tb.nd+1);
+    fprintf(outpt, "// Jacobian derived vars\nvoid %scalc_jac(unsigned int neq, double t, double *__zzStateVar__, double *__PDStateVar__, unsigned int __NROWPD__) {\n",model_prefix);
   } else {
-    fprintf(outpt, "// prj-specific derived vars\nvoid %scalc_lhs(double t, double *__zzStateVar__, double *lhs) {",model_prefix);
+    fprintf(outpt, "// prj-specific derived vars\nvoid %scalc_lhs(double t, double *__zzStateVar__, double *lhs) {\n",model_prefix);
   }
   if (found_print){
     fprintf(outpt,"\n\tint __print_ode__ = 0, __print_vars__ = 0,__print_parm__ = 0,__print_jac__ = 0;\n");
   }
   if ((show_ode == 2 && found_jac == 1) || show_ode != 2){
-    prnt_vars(0, outpt, 0, "double \n\t", "\n");     /* declare all used vars */
+    prnt_vars(0, outpt, 0, "double \n\t", "\n",show_ode);     /* declare all used vars */
     fprintf(outpt,"\tupdate_par_ptr(t);\n");
-    prnt_vars(1, outpt, 1, "", "\n");                   /* pass system pars */
+    prnt_vars(1, outpt, 1, "", "\n",show_ode);                   /* pass system pars */
     for (i=0; i<tb.nd; i++) {                   /* name state vars */
       retieve_var(tb.di[i], buf);
       fprintf(outpt,"\t");
@@ -1130,7 +1246,19 @@ void codegen(FILE *outpt, int show_ode) {
       if ((show_ode != 1) && s) continue;
       
       s = strstr(sLine, "__DDtStateVar__");
-      if ((show_ode == 0) && s) continue;
+      if (s){
+	if (show_ode!= 1){
+	  for (i = 0; i < tb.nd; i++){
+	    // Replace __DDtStateVar__[#] -> __DDtStateVar_#__
+	    sprintf(to,"__DDtStateVar_%d__",i);
+	    sprintf(from,"__DDtStateVar__[%d]",i);
+	    s2 = repl_str(sLine,from,to);
+	    strcpy(sLine, s2);
+	    free(s2);
+	    s2=NULL;
+	  }
+	}
+      }
       
       s = strstr(sLine,"JAC_Rprintf");
       if ((show_ode != 2) && s) continue;
@@ -1176,7 +1304,41 @@ void codegen(FILE *outpt, int show_ode) {
       }
       
       s = strstr(sLine,"__PDStateVar__");
-      if ((show_ode != 2) && s) continue;
+      if (s){
+	for (i = 0; i < tb.ndfdy; i++){
+          retieve_var(tb.df[i], df);
+          retieve_var(tb.dy[i], dy);
+	  sprintf(from,"__PDStateVar__[[%s,%s]]",df,dy);
+	  if (show_ode == 2 && tb.sdfdy[i] == 0){
+	    // __PDStateVar__[__CMT_NUM_y__*(__NROWPD__)+__CMT_NUM_dy__]
+	    sprintf(to,"__PDStateVar__[");
+	    o = strlen(to);
+	    for (j=0; j<tb.nd; j++) {                     /* name state vars */
+              retieve_var(tb.di[j], state);
+	      if (!strcmp(state, df)){
+		sprintf(to+o,"%d*(__NROWPD__)+",j);
+		o = strlen(to);
+		break;
+	      }
+	    }
+	    for (j=0; j<tb.nd; j++){
+	      retieve_var(tb.di[j], state);
+              if (!strcmp(state, dy)){
+                sprintf(to+o,"%d]",j);
+                o = strlen(to);
+                break;
+              }
+	    }
+	  } else {
+	    sprintf(to,"__PDStateVar_%s_%s__",df,dy);
+	  }
+	  s2 = repl_str(sLine,from,to);
+          strcpy(sLine, s2);
+          free(s2);
+          s2=NULL;
+        }
+        
+      }
       
       fprintf(outpt, "\t%s", sLine);
     }
@@ -1258,6 +1420,7 @@ void reset (){
   memset(tb.ini0, 0, MXSYM);
   memset(tb.df, 0, MXSYM);
   memset(tb.dy, 0, MXSYM);
+  memset(tb.sdfdy, 0, MXSYM);
   tb.nv=0;
   tb.nd=0;
   tb.fn=0;
@@ -1273,6 +1436,8 @@ void reset (){
 
 void trans_internal(char* parse_file, char* c_file){
   char *buf;
+  char buf1[512], buf2[512], bufe[512];
+  int i,j,found,islhs;
   D_ParseNode *pn;
   /* any number greater than sizeof(D_ParseNode_User) will do;
      below 1024 is used */
@@ -1289,6 +1454,53 @@ void trans_internal(char* parse_file, char* c_file){
     wprint_parsetree(parser_tables_RxODE, pn, 0, wprint_node, NULL);
     fclose(fpIO);
     fclose(fpIO2);
+    // Determine Jacobian vs df/dvar
+    for (i=0; i<tb.ndfdy; i++) {                     /* name state vars */
+      retieve_var(tb.df[i], buf1);
+      found=0;
+      for (j=0; j<tb.nd; j++) {                     /* name state vars */
+        retieve_var(tb.di[j], buf2);
+	if (!strcmp(buf1, buf2)){
+	  found=1;
+          break;
+	}
+      }
+      if (!found){
+	retieve_var(tb.dy[i], buf2);
+	sprintf(bufe,NOSTATE,buf1,buf2,buf1);
+	trans_syntax_error_report_fn(bufe);
+      }
+      // Now the dy()
+      retieve_var(tb.dy[i], buf1);
+      found=0;
+      for (j=0; j<tb.nd; j++) {                     /* name state vars */
+        retieve_var(tb.di[j], buf2);
+        if (!strcmp(buf1, buf2)){
+          found=1;
+          break;
+        }
+      }
+      if (!found){
+	for (j=0; j<tb.nv; j++) {
+          islhs = tb.lh[j];
+	  retieve_var(j, buf2);
+          if (islhs>1) continue; /* is a state var */
+          retieve_var(j, buf2);
+          if ((islhs != 1 || tb.ini[j] == 1) &&!strcmp(buf1, buf2)){
+	    found=1;
+	    // This is a df(State)/dy(Parameter)
+	    tb.sdfdy[i] = 1;
+	    break;
+	  }
+        }
+      }
+      if (!found){
+        retieve_var(tb.df[i], buf1);
+      	retieve_var(tb.dy[i], buf2);
+      	sprintf(bufe,NOSTATEVAR,buf1,buf2,buf2);
+        trans_syntax_error_report_fn(bufe);
+      }
+    }
     fpIO = fopen(c_file, "w");
     err_msg((intptr_t) fpIO, "error opening output c file\n", -2);
     codegen(fpIO, 1);

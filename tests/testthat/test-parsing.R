@@ -313,4 +313,83 @@ d/dt(y) = -1.0*(d/dt(x)+d/dt(z))
               'y_1(0) = 1;d/dt(y_1) = F*y_1')
     options(RxODE.suppress.allow.ini0=TRUE)
 
+    badParse(desc="Defining df(var1)/dy(var2) where var1 is not a state variable.",
+             "
+d/dt(y)  = dy
+d/dt(dy) = mu*(1-y^2)*dy - y
+## Jacobian
+df(y)/dy(dy)  = 1
+df(dy)/dy(y)  = -2*dy*mu*y - 1
+df(dy)/dy(dy) = mu*(1-y^2)
+df(mu)/dy(y)=0;
+## Initial conditions
+y(0) = 2
+dy(0) = 0
+## mu
+mu = 1 ## nonstiff; 10 moderately stiff; 1000 stiff
+")
+
+    badParse(desc="Defining df(var1)/dy(var2) where var1 is not a state variable.",
+             "
+d/dt(y)  = dy
+d/dt(dy) = mu*(1-y^2)*dy - y
+## Jacobian
+df(y)/dy(dy)  = 1
+df(dy)/dy(y)  = -2*dy*mu*y - 1
+df(dy)/dy(dy) = mu*(1-y^2)
+jac(mu,y)=0;
+## Initial conditions
+y(0) = 2
+dy(0) = 0
+## mu
+mu = 1 ## nonstiff; 10 moderately stiff; 1000 stiff
+")
+
+    goodParse(desc="Defining df(var1)/dy(var2) where var1 is a state variable.",
+          "
+d/dt(y)  = dy
+d/dt(dy) = mu*(1-y^2)*dy - y
+## Jacobian
+df(y)/dy(dy)  = 1
+df(dy)/dy(y)  = -2*dy*mu*y - 1
+df(dy)/dy(dy) = mu*(1-y^2)
+## Initial conditions
+y(0) = 2
+dy(0) = 0
+## mu
+mu = 1 ## nonstiff; 10 moderately stiff; 1000 stiff
+")
+
+    goodParse(desc="Defining df(var1)/dy(var2) where var2 is a variable.",
+              "
+d/dt(y)  = dy
+d/dt(dy) = mu*(1-y^2)*dy - y
+## Jacobian
+df(y)/dy(dy)  = 1
+df(dy)/dy(y)  = -2*dy*mu*y - 1
+df(dy)/dy(dy) = mu*(1-y^2)
+df(dy)/dy(mu) = (1-y^2)*dy
+## Initial conditions
+y(0) = 2
+dy(0) = 0
+## mu
+mu = 1 ## nonstiff; 10 moderately stiff; 1000 stiff
+")
+
+    badParse(desc="Defining df(var1)/dy(var2) where var2 is a calculated value.",
+              "
+d/dt(y)  = dy
+d/dt(dy) = mu*(1-y^2)*dy - y
+## Jacobian
+df(y)/dy(dy)  = 1
+df(dy)/dy(y)  = -2*dy*mu*y - 1
+df(dy)/dy(dy) = mu*(1-y^2)
+df(dy)/dy(mu) = (1-y^2)*dy
+## Initial conditions
+y(0) = 2
+dy(0) = 0
+## mu
+mu = 1+bad ## nonstiff; 10 moderately stiff; 1000 stiff
+")
+
 }, silent=TRUE);
