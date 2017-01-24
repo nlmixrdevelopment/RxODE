@@ -390,6 +390,10 @@ rxSolve.rxDll <- function(object, params, events, inits = NULL, scale = c(),
 
     ## Subset to observations only.
     attr(ret, "solveRxDll")$matrix <- attr(ret, "solveRxDll")$matrix[events$get.obs.rec(), ];
+    ## Change sensitivities to be d/dt(dA/dB) form.
+    dim <- dimnames(attr(ret, "solveRxDll")$matrix);
+    dim[[2]] <- gsub(regSens,"d/dt(d\\1/d\\2)",dim[[2]]);
+    dimnames(attr(ret, "solveRxDll")$matrix) <- dim;
 
     if (rc != 0)
         stop(sprintf("could not solve ODE, IDID = %d (see further messages)", rc))
@@ -438,7 +442,8 @@ print.solveRxDll <- function(x, ...){
         print(lst$params);
     }
     cat("\n\nInitial Conditions:\n")
-    print(lst$inits);
+    inits <- lst$inits[regexpr(regSens, names(lst$inits)) == -1];
+    print(inits);
     cat("\n\nFirst part of data:\n")
     if (!is.dplyr){
         print(head(as.matrix(x), n = n));

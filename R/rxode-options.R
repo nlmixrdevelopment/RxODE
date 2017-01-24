@@ -13,8 +13,11 @@ rxOpt <- list(RxODE.prefer.tbl               =c(FALSE, FALSE),
               RxODE.syntax.star.pow          =c(FALSE, TRUE),
               RxODE.syntax.require.semicolon =c(TRUE, FALSE),
               RxODE.syntax.allow.dots        =c(FALSE, TRUE),
-              RxODE.suppress.allow.ini0      =c(FALSE, TRUE),
-              RxODE.suppress.allow.ini       =c(FALSE, TRUE));
+              RxODE.syntax.allow.ini0        =c(FALSE, TRUE),
+              RxODE.syntax.allow.ini         =c(FALSE, TRUE),
+              RxODE.calculate.jacobian       =c(FALSE, FALSE),
+              RxODE.calculate.sensitivity    =c(FALSE, FALSE)
+              );
 
 ##' Permissive or Strict RxODE sytax options
 ##'
