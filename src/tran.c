@@ -230,6 +230,7 @@ typedef struct symtab {
   int df[MXSYM];
   int dy[MXSYM];
   int sdfdy[MXSYM];
+  int cdf;
   int ndfdy;
 } symtab;
 symtab tb;
@@ -244,7 +245,7 @@ sbuf sbt;
 
 char *extra_buf, *model_prefix, *md5, *out2;
 
-static FILE *fpIO, *fpIO2, *fpIO3;
+static FILE *fpIO, *fpIO2;
 
 /* new symbol? if no, find it's ith */
 int new_or_ith(const char *s) {
@@ -331,7 +332,7 @@ void wprint_node(int depth, char *name, char *value, void *client_data) {
 
 void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_fn_t fn, void *client_data) {
   char *name = (char*)pt.symbols[pn->symbol].name;
-  int nch = d_get_number_of_children(pn), i, k;
+  int nch = d_get_number_of_children(pn), i, k, ii, found;
   char *value = (char*)rc_dup_str(pn->start_loc.s, pn->end);
   char buf[512];
   if ((!strcmp("identifier", name) || !strcmp("identifier_r", name) ||
@@ -547,7 +548,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
           sprintf(sb.s,"__PDStateVar__[[%s,",v);
           sprintf(sbt.s,"df(%s)/dy(",v);
 	  new_or_ith(v);
-	  tb.df[tb.ndfdy] = tb.ix;
+	  tb.cdf = tb.ix;
         }
         sb.o = strlen(sb.s);
         sbt.o = strlen(sbt.s);
@@ -614,8 +615,19 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
           sprintf(SBTPTR ,"=");
           sbt.o += 1;
 	  new_or_ith(v);
-	  tb.dy[tb.ndfdy] = tb.ix;
-	  tb.ndfdy++;
+	  found = -1;
+	  for (ii = 0; ii < tb.ndfdy; ii++){
+            if (tb.df[ii] == tb.cdf && tb.dy[ii] == tb.ix){
+	      found = ii;
+	      break;
+	    }
+	  }
+	  if (found < 0){
+            tb.df[tb.ndfdy] = tb.cdf;
+	    tb.dy[tb.ndfdy] = tb.ix;
+	    tb.ndfdy = tb.ndfdy+1;
+	    tb.cdf = -1;
+          }
         }
         Free(v);
         continue;
@@ -764,7 +776,11 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
           }
         }
         sprintf(sbt.s, "%s", v);
-        sbt.o = strlen(v);
+	if (!strcmp("ini0",name)){
+	  sprintf(sbt.s,"%s(0)",v);
+	}
+	sbt.o = strlen(sbt.s);
+	
         new_or_ith(v);
         if (!strcmp("assignment", name) || (!rx_syntax_allow_ini && !strcmp("ini", name))){
           tb.lh[tb.ix] = 1;
@@ -859,7 +875,7 @@ void prnt_vars(int scenario, FILE *outpt, int lhs, const char *pre_str, const ch
       retieve_var(tb.dy[i], buf2);
       // This is for dydt/ LHS/ or jacobian for df(state)/dy(parameter)
       if (show_ode == 1 || show_ode == 0 || tb.sdfdy[i] == 1){
-	fprintf(outpt,"\t__PDStateVar_%s_%s__,\n",buf1,buf2);
+	fprintf(outpt,"\t__PDStateVar_%s_SeP_%s__,\n",buf1,buf2);
       }
     }
   }
@@ -1330,7 +1346,7 @@ void codegen(FILE *outpt, int show_ode) {
               }
 	    }
 	  } else {
-	    sprintf(to,"__PDStateVar_%s_%s__",df,dy);
+	    sprintf(to,"__PDStateVar_%s_SeP_%s__",df,dy);
 	  }
 	  s2 = repl_str(sLine,from,to);
           strcpy(sLine, s2);
