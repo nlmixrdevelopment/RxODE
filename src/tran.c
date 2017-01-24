@@ -921,7 +921,7 @@ void prnt_vars(int scenario, FILE *outpt, int lhs, const char *pre_str, const ch
   fprintf(outpt, "%s", post_str);  /* dj: security calls for const format */
 }
 
-void print_aux_info(FILE *outpt, char *model){
+void print_aux_info(FILE *outpt, char *model, char *orig_model){
   int i, k, islhs,pi = 0,li = 0, o=0, o2=0, statei = 0, ini_i = 0;
   char *s2;
   char sLine[MXLEN+1];
@@ -959,8 +959,8 @@ void print_aux_info(FILE *outpt, char *model){
   fprintf(outpt,"\tSEXP trann  = PROTECT(allocVector(STRSXP, 9));\n");
   fprintf(outpt,"\tSEXP mmd5   = PROTECT(allocVector(STRSXP, 2));\n");
   fprintf(outpt,"\tSEXP mmd5n  = PROTECT(allocVector(STRSXP, 2));\n");
-  fprintf(outpt,"\tSEXP model  = PROTECT(allocVector(STRSXP, 3));\n");
-  fprintf(outpt,"\tSEXP modeln = PROTECT(allocVector(STRSXP, 3));\n");
+  fprintf(outpt,"\tSEXP model  = PROTECT(allocVector(STRSXP, 4));\n");
+  fprintf(outpt,"\tSEXP modeln = PROTECT(allocVector(STRSXP, 4));\n");
   fprintf(outpt,"%s",s_aux_info);
   // Save for outputting in trans
   tb.pi = pi;
@@ -968,15 +968,15 @@ void print_aux_info(FILE *outpt, char *model){
   tb.statei = statei;
   fprintf(outpt,"\tSET_STRING_ELT(modeln,0,mkChar(\"model\"));\n");
   fprintf(outpt,"\tSET_STRING_ELT(model,0,mkChar(\"");
-  for (i = 0; i < strlen(model); i++){
-    if (model[i] == '"'){
+  for (i = 0; i < strlen(orig_model); i++){
+    if (orig_model[i] == '"'){
       fprintf(outpt,"\\\"");
-    } else if (model[i] == '\n'){
+    } else if (orig_model[i] == '\n'){
       fprintf(outpt,"\\n");
-    } else if (model[i] == '\t'){
+    } else if (orig_model[i] == '\t'){
       fprintf(outpt,"\\t");
-    } else if (model[i] >= 32  && model[i] <= 126){ // ASCII only
-      fprintf(outpt,"%c",model[i]);
+    } else if (orig_model[i] >= 32  && orig_model[i] <= 126){ // ASCII only
+      fprintf(outpt,"%c",orig_model[i]);
     }
   }
   fprintf(outpt,"\"));\n");
@@ -1018,6 +1018,20 @@ void print_aux_info(FILE *outpt, char *model){
     }
   }
   fclose(fpIO2);
+  fprintf(outpt,"\"));\n");
+  fprintf(outpt,"\tSET_STRING_ELT(modeln,3,mkChar(\"expandModel\"));\n");
+  fprintf(outpt,"\tSET_STRING_ELT(model,3,mkChar(\"");
+  for (i = 0; i < strlen(model); i++){
+    if (model[i] == '"'){
+      fprintf(outpt,"\\\"");
+    } else if (model[i] == '\n'){
+      fprintf(outpt,"\\n");
+    } else if (model[i] == '\t'){
+      fprintf(outpt,"\\t");
+    } else if (model[i] >= 32  && model[i] <= 126){ // ASCII only
+      fprintf(outpt,"%c",model[i]);
+    }
+  }
   fprintf(outpt,"\"));\n");
   fpIO2 = fopen(out2, "r");
   s_aux_info[0] = '\0';
@@ -1450,8 +1464,8 @@ void reset (){
   tb.ndfdy = 0;
 }
 
-void trans_internal(char* parse_file, char* c_file){
-  char *buf;
+void trans_internal(char *orig_file, char* parse_file, char* c_file){
+  char *buf, *infile;
   char buf1[512], buf2[512], bufe[512];
   int i,j,found,islhs;
   D_ParseNode *pn;
@@ -1460,6 +1474,7 @@ void trans_internal(char* parse_file, char* c_file){
   D_Parser *p = new_D_Parser(&parser_tables_RxODE, 1024);
   p->save_parse_tree = 1;
   buf = r_sbuf_read(parse_file);
+  infile = r_sbuf_read(orig_file);
   err_msg((intptr_t) buf, "error: empty buf for FILE_to_parse\n", -2);
   if ((pn=dparse(p, buf, strlen(buf))) && !p->syntax_errors) {
     reset();
@@ -1522,7 +1537,7 @@ void trans_internal(char* parse_file, char* c_file){
     codegen(fpIO, 1);
     codegen(fpIO, 2);
     codegen(fpIO, 0);
-    print_aux_info(fpIO,buf);
+    print_aux_info(fpIO,buf, infile);
     fclose(fpIO);
   } else {
     rx_syntax_error = 1;
@@ -1530,10 +1545,10 @@ void trans_internal(char* parse_file, char* c_file){
   free_D_Parser(p);
 }
 
-SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_md5,
+SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_md5,
            SEXP parse_model){
-  char *in, *out, *file, *pfile;
-  char buf[512], buf2[512];
+  char *in, *orig, *out, *file, *pfile;
+  char buf[512], buf2[512], df[512], dy[512];
   char snum[512];
   char *s2;
   char sLine[MXLEN+1];
@@ -1554,6 +1569,9 @@ SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_m
   if (!isString(parse_file) || length(parse_file) != 1){
     error("parse_file is not a single string");
   }
+  if (!isString(orig_file) || length(orig_file) != 1){
+    error("orig_file is not a single string");
+  }
   if (!isString(c_file) || length(c_file) != 1){
     error("c_file is not a single string");
   }
@@ -1568,7 +1586,8 @@ SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_m
     extra_buf = (char *) R_alloc(1,sizeof(char));
     extra_buf[0] = '\0';
   }
-  
+
+  orig = r_dup_str(CHAR(STRING_ELT(orig_file,0)),0);
   in = r_dup_str(CHAR(STRING_ELT(parse_file,0)),0);
   out = r_dup_str(CHAR(STRING_ELT(c_file,0)),0);
   
@@ -1591,7 +1610,7 @@ SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_m
     out2 = (char *) R_alloc(9,sizeof(char)); 
     sprintf(out2,"out2.txt"); 
   }
-  trans_internal(in, out);
+  trans_internal(orig, in, out);
   SEXP lst   = PROTECT(allocVector(VECSXP, 8));
   SEXP names = PROTECT(allocVector(STRSXP, 8));
   
@@ -1609,17 +1628,17 @@ SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_m
   SEXP inin   = PROTECT(allocVector(STRSXP, tb.ini_i));
   SEXP ini    = PROTECT(allocVector(REALSXP, tb.ini_i));
 
-  SEXP model  = PROTECT(allocVector(STRSXP,3));
-  SEXP modeln = PROTECT(allocVector(STRSXP,3));
+  SEXP model  = PROTECT(allocVector(STRSXP,4));
+  SEXP modeln = PROTECT(allocVector(STRSXP,4));
 
   for (i=0; i<tb.nd; i++) {                     /* name state vars */
     retieve_var(tb.di[i], buf);
     SET_STRING_ELT(state,i,mkChar(buf));
   }
   for (i=0; i<tb.ndfdy; i++) {                     /* name state vars */
-    retieve_var(tb.df[i], buf);
-    retieve_var(tb.dy[i], buf2);
-    sprintf(buf,"df(%s)/dy(%s)",buf,buf2);
+    retieve_var(tb.df[i], df);
+    retieve_var(tb.dy[i], dy);
+    sprintf(buf,"df(%s)/dy(%s)",df,dy);
     SET_STRING_ELT(dfdy,i,mkChar(buf));
   }
   for (i=0; i<tb.nv; i++) {
@@ -1744,7 +1763,7 @@ SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_m
       }
     }
   }
-  file = r_sbuf_read(in);
+  file = r_sbuf_read(orig);
   pfile = (char *) R_alloc(strlen(file)+1,sizeof(char));
   j=0;
   for (i = 0; i < strlen(file); i++){
@@ -1793,6 +1812,20 @@ SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_m
   } else {
     SET_STRING_ELT(model,2,mkChar("Syntax Error"));
   }
+
+  file = r_sbuf_read(in);
+  pfile = (char *) R_alloc(strlen(file)+1,sizeof(char));
+  j=0;
+  for (i = 0; i < strlen(file); i++){
+    if (file[i] == '"'  ||
+        file[i] == '\n' ||
+        file[i] == '\t' ||
+        (file[i] >= 32 && file[i] <= 126)){
+      sprintf(pfile+(j++),"%c",file[i]);
+    }
+  }
+  SET_STRING_ELT(modeln,3,mkChar("expandModel"));
+  SET_STRING_ELT(model,3,mkChar(pfile));
   
   setAttrib(ini,   R_NamesSymbol, inin);
   setAttrib(tran,  R_NamesSymbol, trann);

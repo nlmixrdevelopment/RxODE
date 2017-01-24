@@ -334,7 +334,7 @@ RxODE <-
         cmpMgr$compile(force);
         ## Add for backward compatibility.
         cmpMgr$dllfile <- rxDll(cmpMgr$rxDll());
-        cmpMgr$ode_solver <- rxTrans(cmpMgr$rxDll())["ode_solver"];
+        cmpMgr$ode_solver <- rxTrans(cmpMgr$rxDll(), calcSens=FALSE, calcJac=FALSE)["ode_solver"];
         model <- rxModelVars(cmpMgr$rxDll())$model["model"];
         names(model) <- NULL;
         cmpMgr$model <- model
@@ -861,7 +861,7 @@ rxPrefix <- function(model,          # Model or file name of model
         cat(model);
         cat("\n");
         sink();
-        trans <- rxTrans(parseModel, cFile)
+        trans <- rxTrans(parseModel, cFile, calcSens=FALSE, calcJac=FALSE)
         modelPrefix <- sprintf("rx_%s_", trans["parsed_md5"]);
     }
     modelPrefix <- sprintf("%s%s_", modelPrefix, .Platform$r_arch);
@@ -975,6 +975,8 @@ rxTrans <- function(model,
                     md5         = "",                                         # Md5 of model
                     modName     = NULL,                                       # Model name for dll
                     modVars     = FALSE,                                      # Return modVars
+                    calcSens=FALSE,
+                    calcJac=TRUE,
                     ...){
     ## rxTrans returns a list of compiled properties
     if (class(model) == "character"){
@@ -991,9 +993,31 @@ rxTrans <- function(model,
         parseModel <- tempfile();
         on.exit(unlink(parseModel));
         rxReq("dparser");
-        ret <- .Call("trans", model, cFile, extraC, modelPrefix, md5, parseModel, PACKAGE="RxODE");
+        ret <- .Call("trans", model, model, cFile, extraC, modelPrefix, md5, parseModel, PACKAGE="RxODE");
         if (file.exists(cFile)){
-            ret$md5 <- c(file_md5 = md5, parsed_md5 = rxMd5(parseModel, extraC)$digest);
+            md5 <- c(file_md5 = md5, parsed_md5 = rxMd5(parseModel, extraC)$digest);
+            ret$md5 <- md5
+            if (calcSens){
+                new <- rxSymPySensitivity(ret);
+                expandModel <- tempfile();
+                sink(expandModel);
+                cat(new);
+                cat("\n");
+                sink()
+                ret <- .Call("trans", model, expandModel, cFile, extraC, modelPrefix, md5, parseModel, PACKAGE="RxODE");
+                unlink(expandModel);
+                ret$md5 <- md5;
+            } else if (calcJac){
+                new <- rxSymPyJacobian(ret);
+                expandModel <- tempfile();
+                sink(expandModel);
+                cat(new);
+                cat("\n");
+                sink()
+                ret <- .Call("trans", model, expandModel, cFile, extraC, modelPrefix, md5, parseModel, PACKAGE="RxODE");
+                unlink(expandModel);
+                ret$md5 <- md5;
+            }
             if (modVars){
                 return(ret)
             } else {
@@ -1504,6 +1528,16 @@ rxLhs <- function(obj, ...){
 ##' @export
 rxModelVars <- function(obj, ...){
     UseMethod("rxModelVars");
+}
+
+##' @rdname rxModelVars
+##' @export
+rxModelVars.list <- function(obj, ...){
+    if (all(c("params", "lhs", "state", "trans", "ini", "model", "md5", "podo", "dfdy") %in% names(obj))){
+        return(obj);
+    } else {
+        stop("Cannot figure out the model variables.")
+    }
 }
 
 ##' @rdname rxModelVars
