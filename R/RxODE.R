@@ -1032,6 +1032,42 @@ rxTrans <- function(model,
                     calcSens=NULL,
                     calcJac=NULL,
                     ...){
+    UseMethod("rxTrans");
+} # end function rxTrans
+
+
+##' @rdname rxTrans
+##' @export
+rxTrans.default <- function(model,
+                            cFile       = sprintf("%s.c", gsub("[.][^.]*$", "", model)), # C file output
+                            extraC      = NULL,                                       # Extra C file(s)
+                            modelPrefix = "",                                         # Model Prefix
+                            md5         = "",                                         # Md5 of model
+                            modName     = NULL,                                       # Model name for dll
+                            modVars     = FALSE,                                      # Return modVars
+                            calcSens=NULL,
+                            calcJac=NULL,
+                            ...){
+    mv <- rxModelVars(model)
+    if (modVars){
+        return(mv);
+    } else {
+        return(c(mv$trans, mv$md5));
+    }
+}
+
+##' @rdname rxTrans
+##' @export
+rxTrans.character <- function(model,
+                              cFile       = sprintf("%s.c", gsub("[.][^.]*$", "", model)), # C file output
+                              extraC      = NULL,                                       # Extra C file(s)
+                              modelPrefix = "",                                         # Model Prefix
+                              md5         = "",                                         # Md5 of model
+                              modName     = NULL,                                       # Model name for dll
+                              modVars     = FALSE,                                      # Return modVars
+                              calcSens=NULL,
+                              calcJac=NULL,
+                              ...){
     ## rxTrans returns a list of compiled properties
     if (is.null(calcSens)){
         calcSens <- getOption("RxODE.calculate.sensitivity", FALSE);
@@ -1039,65 +1075,60 @@ rxTrans <- function(model,
     if (is.null(calcJac)){
         calcJac <- getOption("RxODE.calculate.jacobian", FALSE);
     }
-    if (class(model) == "character"){
-        if (missing(modelPrefix)){
-            modelPrefix <- rxPrefix(model, modName, calcSens, calcJac);
-        }
-        if (file.exists(model)){
-            if (missing(md5)){
-                md5 <- rxMd5(model, extraC, calcJac, calcSens)$digest;
-            }
-        } else {
-            stop("This only translates a file (currently; Try rxCompile).");
-        }
-        parseModel <- tempfile();
-        on.exit(unlink(parseModel));
-        rxReq("dparser");
-        ret <- .Call("trans", model, model, cFile, extraC, modelPrefix, md5, parseModel, PACKAGE="RxODE");
-        if (file.exists(cFile)){
-            md5 <- c(file_md5 = md5, parsed_md5 = rxMd5(parseModel, extraC, calcJac, calcSens)$digest);
-            ret$md5 <- md5
-            if (calcSens){
-                new <- rxSymPySensitivity(ret);
-                expandModel <- tempfile();
-                sink(expandModel);
-                cat(new);
-                cat("\n");
-                sink()
-                ## cat(new)
-                ret <- .Call("trans", model, expandModel, cFile, extraC, modelPrefix, md5, parseModel, PACKAGE="RxODE");
-                unlink(expandModel);
-                ret$md5 <- md5;
-            } else if (calcJac){
-                new <- rxSymPyJacobian(ret);
-                expandModel <- tempfile();
-                sink(expandModel);
-                cat(new);
-                cat("\n");
-                sink()
-                ret <- .Call("trans", model, expandModel, cFile, extraC, modelPrefix, md5, parseModel, PACKAGE="RxODE");
-                unlink(expandModel);
-                ret$md5 <- md5;
-            }
-            if (modVars){
-                return(ret)
-            } else {
-                return(c(ret$trans, ret$md5));
-            }
-        } else {
-            stop("Syntax Error (see above)");
-        }
-
-    } else {
-        mv <- rxModelVars(model)
-        if (modVars){
-            return(mv);
-        } else {
-            return(c(mv$trans, mv$md5));
-        }
+    if (missing(modelPrefix)){
+        modelPrefix <- rxPrefix(model, modName, calcSens, calcJac);
     }
-} # end function rxTrans
+    if (file.exists(model)){
+        if (missing(md5)){
+            md5 <- rxMd5(model, extraC, calcJac, calcSens)$digest;
+        }
+    } else {
+        stop("This only translates a file (currently; Try rxCompile).");
+    }
+    parseModel <- tempfile();
+    on.exit(unlink(parseModel));
+    rxReq("dparser");
+    ret <- .Call("trans", model, model, cFile, extraC, modelPrefix, md5, parseModel, PACKAGE="RxODE");
+    if (file.exists(cFile)){
+        md5 <- c(file_md5 = md5, parsed_md5 = rxMd5(parseModel, extraC, calcJac, calcSens)$digest);
+        ret$md5 <- md5
+        if (class(calcSens) == "logical"){
+            if (!calcSens){
+                calcSens <- NULL;
+            }
+        }
+        if (!is.null(calcSens)){
+            new <- rxSymPySensitivity(ret, calcSens=calcSens, calcJac=calcJac);
+            expandModel <- tempfile();
+            sink(expandModel);
+            cat(new);
+            cat("\n");
+            sink()
+            ## cat(new)
+            ret <- .Call("trans", model, expandModel, cFile, extraC, modelPrefix, md5, parseModel, PACKAGE="RxODE");
+            unlink(expandModel);
+            ret$md5 <- md5;
+        } else if (calcJac){
+            new <- rxSymPyJacobian(ret);
+            expandModel <- tempfile();
+            sink(expandModel);
+            cat(new);
+            cat("\n");
+            sink()
+            ret <- .Call("trans", model, expandModel, cFile, extraC, modelPrefix, md5, parseModel, PACKAGE="RxODE");
+            unlink(expandModel);
+            ret$md5 <- md5;
+        }
+        if (modVars){
+            return(ret)
+        } else {
+            return(c(ret$trans, ret$md5));
+        }
+    } else {
+        stop("Syntax Error (see above)");
+    }
 
+}
 rxTransMakevars <- function(rxProps,                                                                              # rxTrans translation properties
                             rxDll, # Dll of file
                             compileFlags =c("parsed_md5", "ode_solver", "ode_solver_sexp", "ode_solver_0_6",
@@ -1350,6 +1381,12 @@ rxCompile.character <-  function(model,           # Model
                 .call   = .call,
                 args    = args);
     class(ret) <- "rxDll";
+    ## Remove caching
+    assignInMyNamespace("rxSymPy.model", NULL);
+    assignInMyNamespace("rxSymPy.jac", NULL);
+    assignInMyNamespace("rxSymPy.calcSens", NULL);
+    assignInMyNamespace("rxSymPy.sens", NULL);
+    assignInMyNamespace("rxSymPy.jac2", NULL);
     return(ret);
 }
 
