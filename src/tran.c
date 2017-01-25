@@ -64,7 +64,7 @@ char *repl_str(const char *str, const char *from, const char *to) {
     /* Increase the cache size when necessary. */
     if (cache_sz < count) {
       cache_sz += cache_sz_inc;
-      pos_cache_tmp = realloc(pos_cache, sizeof(*pos_cache) * cache_sz);
+      pos_cache_tmp = R_chk_realloc(pos_cache, sizeof(*pos_cache) * cache_sz);
       if (pos_cache_tmp == NULL) {
         goto end_repl_str;
       } else pos_cache = pos_cache_tmp;
@@ -85,7 +85,7 @@ char *repl_str(const char *str, const char *from, const char *to) {
     tolen = strlen(to);
     retlen = orglen + (tolen - fromlen) * count;
   } else        retlen = orglen;
-  ret = malloc(retlen + 1);
+  ret = R_chk_calloc(1,retlen + 1);
   if (ret == NULL) {
     goto end_repl_str;
   }
@@ -113,7 +113,7 @@ char *repl_str(const char *str, const char *from, const char *to) {
  end_repl_str:
   /* Free the cache and return the post-replacement string,
    * which will be NULL in the event of an error. */
-  free(pos_cache);
+  Free(pos_cache);
   return ret;
 }
 
@@ -1296,7 +1296,7 @@ void codegen(FILE *outpt, int show_ode) {
 	    sprintf(from,"__DDtStateVar__[%d]",i);
 	    s2 = repl_str(sLine,from,to);
 	    strcpy(sLine, s2);
-	    free(s2);
+	    Free(s2);
 	    s2=NULL;
 	  }
 	}
@@ -1376,7 +1376,7 @@ void codegen(FILE *outpt, int show_ode) {
 	  }
 	  s2 = repl_str(sLine,from,to);
           strcpy(sLine, s2);
-          free(s2);
+          Free(s2);
           s2=NULL;
         }
         
