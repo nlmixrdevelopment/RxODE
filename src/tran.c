@@ -1693,6 +1693,9 @@ SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP pref
 
   SET_STRING_ELT(names,7,mkChar("dfdy"));
   SET_VECTOR_ELT(lst,  7,dfdy);
+
+  SET_STRING_ELT(names,8,mkChar("sens"));
+  SET_VECTOR_ELT(lst,  8,sens);
   
   SET_STRING_ELT(trann,0,mkChar("jac"));
   if (found_jac == 1){
