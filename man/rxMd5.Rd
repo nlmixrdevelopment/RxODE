@@ -4,7 +4,7 @@
 \alias{rxMd5}
 \title{Return the md5 of an RxODE object or file}
 \usage{
-rxMd5(model, extraC = NULL, ...)
+rxMd5(model, extraC = NULL, calcJac = NULL, calcSens = NULL, ...)
 }
 \arguments{
 \item{model}{either a string representing the path to a model file

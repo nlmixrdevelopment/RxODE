@@ -47,6 +47,12 @@
 ##' @param debug is a boolean indicating if the executable should be
 ##'     compiled with verbose debugging information turned on.
 ##'
+##' @param calcSens boolean indicating if RxODE will calculate the
+##'     sennsitivities according to the specified ODEs.
+##'
+##' @param calcJac boolean indicating if RxODE will calculate the
+##'     Jacobain according to the specified ODEs.
+##'
 ##' @param ... any other arguments are passed to the function
 ##'     \code{\link{readLines}}, (e.g., encoding).
 ##'
@@ -300,17 +306,26 @@ RxODE <-
              debug = FALSE,
              calcJac=NULL, calcSens=NULL, ...)
 {
-    if (class(substitute(model)) == "{"){
-        model <- deparse(substitute(model))[-1];
-        model <- paste(model[-length(model)], collapse="\n");
-    } ## else if ((class(model) == "function" || class(model) == "call")){
-    ##     model <- deparse(body(model))[-1];
-    ##     model <- paste(model[-length(model)], collapse="\n");
-    ## }
     if (!missing(model) && !missing(filename))
         stop("must specify exactly one of 'model' or 'filename'")
-    if (missing(model) && !missing(filename))
+    if (missing(model) && !missing(filename)){
         model <- filename;
+    }
+    if (!missing(model) && missing(filename)){
+        if (class(substitute(model)) == "{"){
+            model <- deparse(substitute(model))[-1];
+            model <- paste(model[-length(model)], collapse="\n");
+        } else if (class(model) == "RxODE"){
+            model <- rxModelVars(model)$model["model"];
+            if (!is.null(calcJac) && is.null(calcSens)){
+                calcSens <- FALSE;
+            }
+        }
+        ## else if ((class(model) == "function" || class(model) == "call")){
+        ##     model <- deparse(body(model))[-1];
+        ##     model <- paste(model[-length(model)], collapse="\n");
+        ## }
+    }
     ## RxODE compilation manager (location of parsed code, generated C,  shared libs, etc.)
 
     cmpMgr <- rx.initCmpMgr(model, modName, wd,  extraC, debug, missing(modName),
@@ -793,7 +808,6 @@ rx.initCmpMgr <-
         on.exit(setwd(lwd));
         if (.mmod){
             .rxDll <<- rxCompile(.model, extraC = .extraC, debug = .debug, calcJac=.calcJac, calcSens=.calcSens);
-
         } else {
             .rxDll <<- rxCompile(.model, .mdir, extraC = .extraC, debug = .debug, modName = .modName,  calcJac=.calcJac, calcSens=.calcSens);
         }
@@ -876,6 +890,8 @@ function(x, ...)
 
 rxPrefix <- function(model,          # Model or file name of model
                      modName = NULL, # Model name, overrides calculated model name.
+                     calcJac=NULL,
+                     calcSens=NULL,
                      ...){
     ## rxPrefix returns a prefix for a model.
     if (!is.null(modName)){
@@ -890,7 +906,7 @@ rxPrefix <- function(model,          # Model or file name of model
         cat(model);
         cat("\n");
         sink();
-        trans <- rxTrans(parseModel, cFile, calcSens=FALSE, calcJac=FALSE)
+        trans <- rxTrans(parseModel, cFile, calcSens=calcSens, calcJac=calcJac)
         modelPrefix <- sprintf("rx_%s_", trans["parsed_md5"]);
     }
     modelPrefix <- sprintf("%s%s_", modelPrefix, .Platform$r_arch);
@@ -924,7 +940,9 @@ rxPrefix <- function(model,          # Model or file name of model
 ##' @author Matthew L.Fidler
 ##' @export rxMd5
 rxMd5 <- function(model,         # Model File
-                  extraC = NULL, # Extra C
+                  extraC  = NULL, # Extra C
+                  calcJac =NULL,
+                  calcSens=NULL,
                   ...){
     ## rxMd5 returns MD5 of model file.
     ## digest(file = TRUE) includes file times, so it doesn't work for this needs.
@@ -946,12 +964,8 @@ rxMd5 <- function(model,         # Model File
             }
         }
         tmp <- names(options());
-        tmp <- tmp[regexpr("RxODE.syntax", tmp) != -1];
-        ret <- c(ret, sapply(tmp, function(x){if (any(x == c("RxODE.syntax.require.semicolon"))){
-                                                  return(as.integer(getOption(x, FALSE)));
-                                              } else {
-                                                  return(as.integer(getOption(x, FALSE)));
-                                              }}));
+        tmp <- c(tmp[regexpr(rex::rex("RxODE.", or("syntax", "calculate")), tmp) != -1], calcJac, calcSens);
+        ret <- c(ret, sapply(tmp, function(x){return(as.integer(getOption(x, FALSE)))}));
         tmp <- getLoadedDLLs()$RxODE;
         class(tmp) <- "list";
         ## new RxODE dlls gives different digests.
@@ -973,11 +987,6 @@ rxMd5 <- function(model,         # Model File
 ##'
 ##' @param cFile The C file where the code should be output
 ##'
-##' @param extraC Extra c code to include in the model.  This can be
-##'     useful to specify functions in the model.  These C functions
-##'     should usually take \code{double} precision arguments, and
-##'     return \code{double} precision values.
-##'
 ##' @param modelPrefix Prefix of the model functions that will be
 ##'     compiled to make sure that multiple RxODE objects can coexist
 ##'     in the same R session.
@@ -986,6 +995,11 @@ rxMd5 <- function(model,         # Model File
 ##'     embed the md5 into dll, and then provide for functions like
 ##'     \code{\link{rxModelVars}}.
 ##'
+##' @param extraC Extra c code to include in the model.  This can be
+##'     useful to specify functions in the model.  These C functions
+##'     should usually take \code{double} precision arguments, and
+##'     return \code{double} precision values.
+##'
 ##' @param modName is a string specifying the model name.  This string
 ##'     is used to generate the model's dll file.  If unspecified, and
 ##'     the model does not come from the file, the model dll name is
@@ -993,6 +1007,12 @@ rxMd5 <- function(model,         # Model File
 ##'
 ##' @param modVars returns the model variables instead of the named
 ##'     vector of translated properties.
+##'
+##' @param calcSens boolean indicating if RxODE will calculate the
+##'     sennsitivities according to the specified ODEs.
+##'
+##' @param calcJac boolean indicating if RxODE will calculate the
+##'     Jacobain according to the specified ODEs.
 ##'
 ##' @param ... Ignored parameters.
 ##'
@@ -1021,11 +1041,11 @@ rxTrans <- function(model,
     }
     if (class(model) == "character"){
         if (missing(modelPrefix)){
-            modelPrefix <- rxPrefix(model, modName, ...);
+            modelPrefix <- rxPrefix(model, modName, calcSens, calcJac);
         }
         if (file.exists(model)){
             if (missing(md5)){
-                md5 <- rxMd5(model, extraC)$digest;
+                md5 <- rxMd5(model, extraC, calcJac, calcSens)$digest;
             }
         } else {
             stop("This only translates a file (currently; Try rxCompile).");
@@ -1035,7 +1055,7 @@ rxTrans <- function(model,
         rxReq("dparser");
         ret <- .Call("trans", model, model, cFile, extraC, modelPrefix, md5, parseModel, PACKAGE="RxODE");
         if (file.exists(cFile)){
-            md5 <- c(file_md5 = md5, parsed_md5 = rxMd5(parseModel, extraC)$digest);
+            md5 <- c(file_md5 = md5, parsed_md5 = rxMd5(parseModel, extraC, calcJac, calcSens)$digest);
             ret$md5 <- md5
             if (calcSens){
                 new <- rxSymPySensitivity(ret);
@@ -1244,7 +1264,7 @@ rxCompile.character <-  function(model,           # Model
     } else {
         mFile <- model;
     }
-    md5 <- rxMd5(mFile, extraC);
+    md5 <- rxMd5(mFile, extraC, calcJac, calcSens);
     allModVars <- NULL;
     needCompile <- TRUE
     if (file.exists(finalDll)){
@@ -1495,9 +1515,10 @@ rxParam <- rxParams
 ##'
 ##' Return Jacobain and parameter derivates
 ##'
-##' @param obj  is a RxODE family of objects
+##' @param obj is a RxODE family of objects
 ##' @param ...  Ignored arguments
-##' @return
+##' @return A list of the jacobian parameters defined in this RxODE
+##'     object.
 ##' @author Matthew L. Fidler
 ##' @export
 rxDfdy <- function(obj,  ...){
@@ -1776,7 +1797,11 @@ accessComp <- function(obj, arg){
     if (any(names(obj) == arg)){
         return(lst[[arg]]);
     } else {
-        if (any(rxState(obj) == gsub(regIni, "", arg))){
+        if (arg == "calcJac"){
+            return(length(rxModelVars(obj)$dfdy) > 0)
+        } else if (arg == "calcSens"){
+            return(length(rxModelVars(obj)$sens) > 0)
+        } else if (any(rxState(obj) == gsub(regIni, "", arg))){
             arg <- gsub(regIni, "", arg);
             ret <- rxInits(obj)[arg];
             if (is.na(ret)){

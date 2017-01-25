@@ -5,25 +5,37 @@ regSens <- rex::rex("__sens_", capture(regIdentifier), "_",  capture(regIdentifi
 regToSens1 <- rex::rex( capture(regIdentifier), or("_", ".", ":"),  capture(regIdentifier));
 regToSens2 <- rex::rex( "d/dt(d", capture(regIdentifier), "/d",  capture(regIdentifier), ")");
 regJac <- rex::rex( "df(", capture(regIdentifier), ")/dy(",  capture(regIdentifier), ")");
+regFloat1 <- rex::rex(or(group(some_of("0":"9"), ".", any_of("0":"9")),
+                         group(any_of("0":"9"), ".", some_of("0":"9"))),
+                      at_most(group(or("E", "e"), at_most(or("+", "-"), 1), some_of("0":"9")), 1));
+regFloat2 <- rex::rex(some_of("0":"9"), or("E", "e"), at_most(or("-", "+"), 1), some_of("0":"9"));
+regDecimalint <- rex::rex(or("0", group("1":"9", any_of("0":"9"))))
+regNum <- sprintf("-?(?:%s|%s|%s)", regDecimalint, regFloat1, regFloat2)
 
 ##' Converts model specification into a SymPy model lines
 ##'
 ##' @param model RxODE family of objects
 ##' @return Lines for sympy
 ##' @author Matthew L. Fidler
+##' @keywords internal
+##' @export
 rxToSymPy <- function(model){
     if (class(model) == "character"){
         line <- model
+        is.char <- TRUE;
     } else {
         line <- strsplit(rxModelVars(model)$model["normModel"],"\n")[[1]]
+        is.char <- FALSE;
     }
     ret <- gsub(rex::rex(";", any_spaces, end), "", line);
     ret <- gsub(rex::rex("^"), "**", ret);
     id <- regIdentifier;
     ret <- gsub(rex::rex("d/dt(", any_spaces, capture(id), any_spaces, ")"), "__d_dt_\\1__", ret);
     ret <- gsub(rex::rex("df(",any_spaces, capture(id), any_spaces, ")/dy(", any_spaces, capture(id), any_spaces, ")"), "__d_df_\\1_dy_\\2__", ret);
-    ret <- ret[regexpr(rex::rex(start,any_spaces,or(names(rxInits(ode))),any_spaces,"="), ret) == -1];
-    ret <- ret[regexpr(rex::rex(start,any_spaces,or(names(rxInits(ode))),"(0)", any_spaces,"="), ret) == -1];
+    if (!is.char){
+        ret <- ret[regexpr(rex::rex(start,any_spaces,or(names(rxInits(model))),any_spaces,"="), ret) == -1];
+        ret <- ret[regexpr(rex::rex(start,any_spaces,or(names(rxInits(model))),"(0)", any_spaces,"="), ret) == -1];
+    }
     return(ret);
 }
 ##' Convert SymPy syntax to RxODE syntax
@@ -44,6 +56,8 @@ rxFromSymPy <- function(text){
 ##' @param model RxODE family of objects
 ##' @return NULL
 ##' @author Matthew L. Fidler
+##' @keywords internal
+##' @export
 rxSymPyVars <- function(model){
     if (!class(model) == "character"){
         vars <- c(rxParams(model), rxState(model));
@@ -59,6 +73,7 @@ rxSymPyVars <- function(model){
 ##' @param model RxODE family of objects
 ##' @return NULL
 ##' @author Matthew L. Fidler
+##' @keywords internal
 ##' @export
 rxSymPySetup <- function(model){
     rxSymPyVars(model);
@@ -68,14 +83,20 @@ rxSymPySetup <- function(model){
     return(invisible());
 }
 
-##' Calculate df/dy derivative
+##' Calculate df/dy derivatives
 ##'
-##' @param model RxODE model
-##' @param df state in the df(.)/dy(.)
-##' @param dy state or varaible in the df(.)/dy(.)
-##' @return RxODE line for the deriv
+##' @param model RxODE models
+##' @param df is a string for the state in the df(.)/dy(.).  If
+##'     missing and dy is missing, all the df(.)/dy(.) components are
+##'     calulated according to the \code{vars} parameter below.
+##' @param dy is a string for the state or varaible in the df(.)/dy(.).
+##' @param vars is a boolean indicating if parameters will be included
+##'     for the dy component in the df(.)/dy(.), instead of just state
+##'     variables (required for sensitivity equations).
+##' @return RxODE syntax lines for the df(.)/dy(.)
 ##' @author Matthew L. Fidler
 ##' @export
+##' @keywords internal
 rxSymPyDfDy <- function(model, df, dy, vars=FALSE){
     if (missing(df) && missing(dy)){
         if (class(vars) == "logical"){
@@ -171,7 +192,7 @@ rxSymPySensitivity <- function(model){
         ##     cat("\n");
         ## }
     }
-    cat("done!\n");
+    ## cat("done!\n");
     extraLines <- extraLines[regexpr(rex::rex("=", any_spaces, "0", any_spaces, ";"), extraLines) == -1];
     model <- sprintf("%s\n%s", rxModelVars(model)$model["normModel"], paste(extraLines, collapse="\n"));
     return(model);

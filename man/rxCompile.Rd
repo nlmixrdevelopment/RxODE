@@ -8,10 +8,10 @@
 \title{Compile a model if needed}
 \usage{
 rxCompile(model, dir, prefix, extraC = NULL, force = FALSE,
-  modName = NULL, ...)
+  modName = NULL, calcJac = NULL, calcSens = NULL, ...)
 
-\method{rxCompile}{character}(model, dir, prefix, extraC = NULL,
-  force = FALSE, modName = NULL, ...)
+\method{rxCompile}{character}(model, dir, prefix = NULL, extraC = NULL,
+  force = FALSE, modName = NULL, calcJac = NULL, calcSens = NULL, ...)
 
 \method{rxCompile}{rxDll}(model, ...)
 
@@ -52,7 +52,14 @@ is used to generate the model's dll file.  If unspecified, and
 the model does not come from the file, the model dll name is
 based on the parsed md5.}
 
-\item{...}{Other arguments sent to the \code{\link{rxTrans}} function.}
+\item{calcJac}{is a boolean string stating if the full jacobain
+should be calculated.}
+
+\item{calcSens}{is a boolean string stating if the sensitivity
+equations are calculated.}
+
+\item{...}{Other arguments sent to the \code{\link{rxTrans}}
+function.}
 }
 \value{
 A rxdll object that has the following components

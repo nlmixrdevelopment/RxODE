@@ -5,7 +5,7 @@
 \title{A compilation manager for RxODE models}
 \usage{
 rx.initCmpMgr(model, modName, wd, extraC = NULL, debug = TRUE,
-  mmod = FALSE)
+  mmod = FALSE, calcJac = NULL, calcSens = NULL)
 }
 \arguments{
 \item{model}{a string containing the either the source or the file

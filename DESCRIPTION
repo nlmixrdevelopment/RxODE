@@ -24,7 +24,8 @@ Suggests:
     devtools,
     covr,
     rmarkdown,
-    tibble
+    tibble,
+    rSymPy
 Imports:
     utils,
     methods,

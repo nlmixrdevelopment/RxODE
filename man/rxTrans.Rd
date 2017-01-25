@@ -6,7 +6,7 @@
 \usage{
 rxTrans(model, cFile = sprintf("\%s.c", gsub("[.][^.]*$", "", model)),
   extraC = NULL, modelPrefix = "", md5 = "", modName = NULL,
-  modVars = FALSE, ...)
+  modVars = FALSE, calcSens = NULL, calcJac = NULL, ...)
 }
 \arguments{
 \item{model}{This can be either a string specifying a file name for
@@ -34,6 +34,12 @@ based on the parsed md5.}
 
 \item{modVars}{returns the model variables instead of the named
 vector of translated properties.}
+
+\item{calcSens}{boolean indicating if RxODE will calculate the
+sennsitivities according to the specified ODEs.}
+
+\item{calcJac}{boolean indicating if RxODE will calculate the
+Jacobain according to the specified ODEs.}
 
 \item{...}{Ignored parameters.}
 }

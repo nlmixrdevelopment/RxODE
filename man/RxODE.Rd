@@ -5,7 +5,8 @@
 \title{Create an ODE-based model specification}
 \usage{
 RxODE(model, modName = basename(wd), wd = getwd(), filename = NULL,
-  do.compile = NULL, extraC = NULL, debug = FALSE, ...)
+  do.compile = NULL, extraC = NULL, debug = FALSE, calcJac = NULL,
+  calcSens = NULL, ...)
 }
 \arguments{
 \item{model}{This is the ODE model specification.  It can be:
@@ -51,6 +52,12 @@ functions needed for the compiled ODE model.}
 
 \item{debug}{is a boolean indicating if the executable should be
 compiled with verbose debugging information turned on.}
+
+\item{calcJac}{boolean indicating if RxODE will calculate the
+Jacobain according to the specified ODEs.}
+
+\item{calcSens}{boolean indicating if RxODE will calculate the
+sennsitivities according to the specified ODEs.}
 
 \item{...}{any other arguments are passed to the function
     \code{\link{readLines}}, (e.g., encoding).

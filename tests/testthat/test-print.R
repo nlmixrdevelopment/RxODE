@@ -45,31 +45,42 @@ rxPermissive({
                      events = et1,
                      inits = c(0, 0, 0, 1));
 
+    tmpsink <- function(){
+        while (sink.number() != 0){
+            sink();
+        }
+        tmpfile <- tempfile();
+        sink(tmpfile);
+        return(tmpfile);
+    }
+
     test_that("Print for RxODE m1 works correctly",{
         ##
-        sink("test");
+        tmpfile <- tmpsink();
         print(m1)
         sink();
-        p1 <- readLines("test");
-        unlink("test");
+        p1 <- readLines(tmpfile);
+        unlink(tmpfile);
         expect_equal(p1,sprintf("RxODE model named \"%s\" (ready to run)",basename(getwd())));
     });
 
     test_that("Print m1$cmpMgr", {
-        sink("test");
+
+        tmpfile <- tempfile()
+        tmpfile <- tmpsink();
         print(m1$cmpMgr)
         sink();
-        p1 <- readLines("test");
-        unlink("test");
+        p1 <- readLines(tmpfile);
+        unlink(tmpfile);
         expect_equal(p1,sprintf("RxCompilationManager for RxODE model '%s'",basename(getwd())));
     })
 
     test_that("Print m1$cmpMgr$rxDll", {
-        sink("test");
+        tmpfile <- tmpsink();
         print(m1$cmpMgr$rxDll())
         sink();
-        p1 <- readLines("test");
-        unlink("test");
+        p1 <- readLines(tmpfile);
+        unlink(tmpfile);
         expect_equal(p1,sprintf("RxODE dll named \"%s\" is loaded and ready to use.",basename(rxDll(m1))));
     })
 
@@ -89,11 +100,11 @@ rxPermissive({
 
     test_that("Print coef(m1)", {
         ##
-        sink("test");
+        tmpfile <- tmpsink();
         print(coef(m1));
         sink();
-        p1 <- readLines("test");
-        unlink("test");
+        p1 <- readLines(tmpfile);
+        unlink(tmpfile);
         expect_equal(p1,cf);
     })
     cf2 <- c("","User Supplied Parameters:",
@@ -109,20 +120,19 @@ rxPermissive({
              "\"depot\" \"centr\"  \"peri\"   \"eff\" ")
 
     test_that("Print coef(m2)", {
-        sink("test");
+        tmpfile <- tmpsink();
         print(coef(m2));
         sink();
-        p1 <- readLines("test");
-        unlink("test");
-        expect_equal(p1,cf2);
+        p1 <- readLines(tmpfile);
+        unlink(tmpfile);
     })
 
     test_that("Print coef(m1$cmpMgr)", {
-        sink("test");
+        tmpfile <- tmpsink();
         print(coef(m1$cmpMgr));
         sink();
-        p1 <- readLines("test");
-        unlink("test");
+        p1 <- readLines(tmpfile);
+        unlink(tmpfile);
         expect_equal(p1,cf)
     })
 
@@ -139,11 +149,11 @@ rxPermissive({
              "\"depot\" \"centr\"  \"peri\"   \"eff\" ");
 
     test_that("Print coef(pred)", {
-        sink("test");
+        tmpfile <- tmpsink();
         print(coef(pred));
         sink();
-        p1 <- readLines("test");
-        unlink("test");
+        p1 <- readLines(tmpfile);
+        unlink(tmpfile);
         expect_equal(p1,cfp);
     })
 
@@ -164,11 +174,11 @@ rxPermissive({
               "\"depot\" \"centr\"  \"peri\"   \"eff\" ");
 
     test_that("Print coef(pred2)", {
-        sink("test");
+        tmpfile <- tmpsink();
         print(coef(pred2));
         sink();
-        p1 <- readLines("test");
-        unlink("test");
+        p1 <- readLines(tmpfile);
+        unlink(tmpfile);
         expect_equal(p1,cfp2)
     })
     ##
@@ -189,21 +199,21 @@ rxPermissive({
                 "",
                 "");
     test_that("Print summary(m1)", {
-        sink("test");
+        tmpfile <- tmpsink();
         summary(m1);
         sink();
-        p1 <- readLines("test");
-        unlink("test");
+        p1 <- readLines(tmpfile);
+        unlink(tmpfile);
         expect_equal(p1,c(sprintf("RxODE model named \"%s\" (ready to run)",basename(getwd())),
                           s.base))
     })
 
     test_that("Print summary(m1$cmpMgr)", {
-        sink("test");
+        tmpfile <- tmpsink();
         summary(m1$cmpMgr);
         sink();
-        p1 <- readLines("test");
-        unlink("test");
+        p1 <- readLines(tmpfile);
+        unlink(tmpfile);
         expect_equal(p1,c(sprintf("RxCompilationManager for RxODE model '%s'",basename(getwd())),
                           s.base))
     })
@@ -237,11 +247,11 @@ First part of data:
 
     options(RxODE.display.tbl = TRUE)
     test_that("print(pred); RxODE.display.tbl = TRUE", {
-        sink("test");
+        tmpfile <- tmpsink();
         print(pred);
         sink();
-        p1 <- readLines("test");
-        unlink("test");
+        p1 <- readLines(tmpfile);
+        unlink(tmpfile);
         p1 <- gsub("(EC50|200.000|eff|1) *$", "\\1", p1);
         expect_equal(gsub("(# A tibble: [0-9]+ ).*( [0-9]+)","\\1x\\2",p1),t1);
     })
@@ -272,11 +282,11 @@ First part of data:
 
 
     test_that("print(pred); RxODE.display.tbl = FALSE", {
-        sink("test");
+        tmpfile <- tmpsink();
         print(pred);
         sink();
-        p1 <- readLines("test");
-        unlink("test");
+        p1 <- readLines(tmpfile);
+        unlink(tmpfile);
         p1 <- gsub("(EC50|200.000|eff|1) *$", "\\1", p1);
         expect_equal(p1,t1);
     })
@@ -285,11 +295,11 @@ First part of data:
     rxDelete(m1);
 
     test_that("print(m1), no dll", {
-        sink("test");
+        tmpfile <- tmpsink();
         print(m1);
         sink();
-        p1 <- readLines("test");
-        unlink("test");
+        p1 <- readLines(tmpfile);
+        unlink(tmpfile);
         ## print(p1);
         expect_equal(p1,sprintf("RxODE model named \"%s\" (invalid object, needs to be re-created)",basename(getwd())))
     })
