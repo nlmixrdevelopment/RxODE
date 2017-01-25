@@ -16,6 +16,7 @@ dy(0) = 0
 ## mu
 mu = 1 ## nonstiff; 10 moderately stiff; 1000 stiff
 ");
+
     test_that("Specified jacobian is captured", {
         expect_true(any(rxDfdy(Vtpol2) == "df(y)/dy(dy)"))
         expect_true(any(rxDfdy(Vtpol2) == "df(dy)/dy(y)"))
@@ -142,6 +143,8 @@ mu = 1 ## nonstiff; 10 moderately stiff; 1000 stiff
         expect_true(sens$calcSens);
     })
 
-
+    test_that("Unsupported derivatives will thow an error.", {
+        expect_error(rxFromSymPy("E1(4)"))
+    })
 })
 
