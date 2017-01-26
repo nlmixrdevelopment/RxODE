@@ -1,4 +1,4 @@
-regIdentifier1 <- rex::rex(one_of("_", "a":"z", "A":"Z"), any_of("_", "a":"z", "A":"Z", "0":"9", "."))
+regIdentifier1 <- rex::rex(one_of("a":"z", "A":"Z"), any_of("_", "a":"z", "A":"Z", "0":"9", "."))
 regIdentifier2 <- rex::rex(at_least(".",1), one_of("_", "a":"z", "A":"Z"), any_of("_", "a":"z", "A":"Z", "0":"9", "."));
 regIdentifier <- rex::rex(or(regIdentifier1, regIdentifier2));
 regSens <- rex::rex("rx__sens_", capture(regIdentifier), "_",  capture(regIdentifier), "__");

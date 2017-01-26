@@ -9,6 +9,9 @@ rxSymPySetup(model)
 \arguments{
 \item{model}{RxODE family of objects}
 }
+\value{
+a boolean indicating if the environment is cached.
+}
 \description{
 Setup a sympy environment that sets up the specified RxODE model.
 }

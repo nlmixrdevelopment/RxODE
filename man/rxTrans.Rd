@@ -2,11 +2,21 @@
 % Please edit documentation in R/RxODE.R
 \name{rxTrans}
 \alias{rxTrans}
+\alias{rxTrans.default}
+\alias{rxTrans.character}
 \title{Translate the model to C code if needed}
 \usage{
 rxTrans(model, cFile = sprintf("\%s.c", gsub("[.][^.]*$", "", model)),
   extraC = NULL, modelPrefix = "", md5 = "", modName = NULL,
   modVars = FALSE, calcSens = NULL, calcJac = NULL, ...)
+
+\method{rxTrans}{default}(model, cFile = sprintf("\%s.c", gsub("[.][^.]*$",
+  "", model)), extraC = NULL, modelPrefix = "", md5 = "",
+  modName = NULL, modVars = FALSE, calcSens = NULL, calcJac = NULL, ...)
+
+\method{rxTrans}{character}(model, cFile = sprintf("\%s.c", gsub("[.][^.]*$",
+  "", model)), extraC = NULL, modelPrefix = "", md5 = "",
+  modName = NULL, modVars = FALSE, calcSens = NULL, calcJac = NULL, ...)
 }
 \arguments{
 \item{model}{This can be either a string specifying a file name for

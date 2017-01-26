@@ -2,18 +2,23 @@
 % Please edit documentation in R/rxsympy.R
 \name{rxToSymPy}
 \alias{rxToSymPy}
-\title{Converts model specification into a SymPy model lines}
+\alias{rxFromSymPy}
+\title{Converts model specification to/from a SymPy language}
 \usage{
-rxToSymPy(model)
+rxToSymPy(x, envir = parent.frame(1))
+
+rxFromSymPy(x, envir = parent.frame(1))
 }
 \arguments{
-\item{model}{RxODE family of objects}
+\item{x}{is either RxODE family of objects, character of RxODE
+expression or unquoted RxODE expression.}
 }
 \value{
-Lines for sympy
+Code Lines for sympy/RxODE that are named by what
+    variables are defined.
 }
 \description{
-Converts model specification into a SymPy model lines
+Converts model specification to/from a SymPy language
 }
 \author{
 Matthew L. Fidler

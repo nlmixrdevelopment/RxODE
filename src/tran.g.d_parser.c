@@ -339,7 +339,7 @@ unsigned char d_accepts_diff_0_0_0_RxODE[SCANNER_BLOCK_SIZE] = {
 
 unsigned char d_scanner_0_0_1_RxODE[SCANNER_BLOCK_SIZE] = {
 0, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 
-3, 3, 4, 3, 3, 3, 3, 3, 3, 3, 3, 0, 0, 0, 0, 3, 
+3, 3, 4, 3, 3, 3, 3, 3, 3, 3, 3, 0, 0, 0, 0, 0, 
 0, 3, 3, 3, 5, 3, 3, 3, 3, 6, 7, 3, 8, 3, 3, 9, 
 10, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 11, 0, 0, 0, 0, 
 };
@@ -1542,6 +1542,13 @@ D_Shift ** d_accepts_diff_54_RxODE[] = {
 d_accepts_diff_54_0_RxODE
 };
 
+unsigned char d_scanner_54_0_1_RxODE[SCANNER_BLOCK_SIZE] = {
+0, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 
+3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 0, 0, 0, 0, 0, 
+0, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 
+3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 0, 0, 0, 0, 0, 
+};
+
 unsigned char d_scanner_54_1_1_RxODE[SCANNER_BLOCK_SIZE] = {
 0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 
 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0, 0, 0, 0, 4, 
@@ -1711,7 +1718,7 @@ unsigned char d_scanner_94_0_0_RxODE[SCANNER_BLOCK_SIZE] = {
 
 unsigned char d_scanner_94_0_1_RxODE[SCANNER_BLOCK_SIZE] = {
 0, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 
-7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 0, 0, 0, 0, 7, 
+7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 0, 0, 0, 0, 0, 
 0, 7, 7, 7, 8, 7, 7, 7, 7, 7, 9, 7, 10, 7, 7, 7, 
 7, 7, 7, 7, 11, 7, 7, 7, 7, 7, 7, 0, 0, 0, 0, 0, 
 };
@@ -2452,6 +2459,13 @@ unsigned char d_scanner_127_0_0_RxODE[SCANNER_BLOCK_SIZE] = {
 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
 };
 
+unsigned char d_scanner_127_0_1_RxODE[SCANNER_BLOCK_SIZE] = {
+0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 
+4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0, 0, 0, 0, 0, 
+0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 
+4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0, 0, 0, 0, 0, 
+};
+
 unsigned char d_scanner_127_2_0_RxODE[SCANNER_BLOCK_SIZE] = {
 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
@@ -3184,7 +3198,7 @@ SB_trans_uint8 d_transition_53_RxODE[5] = {
 };
 
 SB_uint8 d_scanner_54_RxODE[4] = {
-{NULL, {d_scanner_0_0_0_RxODE, d_scanner_0_2_1_RxODE
+{NULL, {d_scanner_0_0_0_RxODE, d_scanner_54_0_1_RxODE
  , d_scanner_0_0_2_RxODE, d_scanner_0_0_2_RxODE}},
 {NULL, {d_scanner_0_0_0_RxODE, d_scanner_54_1_1_RxODE
  , d_scanner_0_0_2_RxODE, d_scanner_0_0_2_RxODE}},
@@ -3754,7 +3768,7 @@ SB_trans_uint8 d_transition_121_RxODE[3] = {
 };
 
 SB_uint8 d_scanner_127_RxODE[5] = {
-{NULL, {d_scanner_127_0_0_RxODE, d_scanner_54_1_1_RxODE
+{NULL, {d_scanner_127_0_0_RxODE, d_scanner_127_0_1_RxODE
  , d_scanner_0_0_2_RxODE, d_scanner_0_0_2_RxODE}},
 {d_shift_53_4_RxODE, {d_scanner_0_0_2_RxODE, d_scanner_0_0_2_RxODE
  , d_scanner_0_0_2_RxODE, d_scanner_0_0_2_RxODE}},
@@ -5009,11 +5023,11 @@ D_Symbol d_symbols_RxODE[] = {
 {D_SYMBOL_REGEX, "\\\"([^\\\"\\\\\\\\]|\\\\\\\\[^])*\\\"", 38},
 {D_SYMBOL_REGEX, "([0-9]+.[0-9]*|[0-9]*.[0-9]+)([eE][\\\\-\\\\+]?[0-9]+)?", 55},
 {D_SYMBOL_REGEX, "[0-9]+[eE][\\\\-\\\\+]?[0-9]+", 29},
-{D_SYMBOL_REGEX, "[a-zA-Z_][a-zA-Z0-9_.]*", 23},
-{D_SYMBOL_REGEX, "[a-zA-Z_][a-zA-Z0-9_.]*", 23},
+{D_SYMBOL_REGEX, "[a-zA-Z][a-zA-Z0-9_.]*", 22},
+{D_SYMBOL_REGEX, "[a-zA-Z][a-zA-Z0-9_.]*", 22},
 {D_SYMBOL_REGEX, "[.]+[a-zA-Z_][a-zA-Z0-9_.]*", 27},
 {D_SYMBOL_REGEX, "[.]+[a-zA-Z_][a-zA-Z0-9_.]*", 27},
-{D_SYMBOL_REGEX, "[a-zA-Z_][a-zA-Z0-9_]*", 22},
+{D_SYMBOL_REGEX, "[a-zA-Z][a-zA-Z0-9_]*", 21},
 {D_SYMBOL_REGEX, "[ \\t\\r\\n]+", 13},
 {D_SYMBOL_STRING, "#", 1},
 {D_SYMBOL_REGEX, "[^\\n]*", 7},

@@ -4,7 +4,7 @@
 \alias{rxSymPySensitivity}
 \title{Calculate the sensitivity equations for a model}
 \usage{
-rxSymPySensitivity(model)
+rxSymPySensitivity(model, calcSens, calcJac = FALSE)
 }
 \arguments{
 \item{model}{RxODE family of objects}

@@ -125,11 +125,11 @@ decimalint: "0|([1-9][0-9]*)" $term -1;
 string: "\"([^\"\\]|\\[^])*\"";
 float1: "([0-9]+.[0-9]*|[0-9]*.[0-9]+)([eE][\-\+]?[0-9]+)?" $term -2;
 float2: "[0-9]+[eE][\-\+]?[0-9]+" $term -3;
-identifier_r_1: "[a-zA-Z_][a-zA-Z0-9_.]*" $term -4;
-identifier_r_no_output_1: "[a-zA-Z_][a-zA-Z0-9_.]*" $term -4;
+identifier_r_1: "[a-zA-Z][a-zA-Z0-9_.]*" $term -4;
+identifier_r_no_output_1: "[a-zA-Z][a-zA-Z0-9_.]*" $term -4;
 identifier_r_2: "[.]+[a-zA-Z_][a-zA-Z0-9_.]*" $term -4;
 identifier_r_no_output_2: "[.]+[a-zA-Z_][a-zA-Z0-9_.]*" $term -4;
-identifier: "[a-zA-Z_][a-zA-Z0-9_]*" $term -4;
+identifier: "[a-zA-Z][a-zA-Z0-9_]*" $term -4;
 whitespace: ( "[ \t\r\n]+" | singleLineComment )*;
 singleLineComment: '#' "[^\n]*" '\n';
 
