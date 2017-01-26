@@ -12,8 +12,8 @@ n = 20.1
 k = cl/vc
 ktr = (n+1)/mtt
 ## note that lgammafn is the same as lgamma in R.
-d/dt(abs) = exp(log(bio*podo)+log(ktr)+n*log(ktr*t)-ktr*t-lgammafn(n+1))-ka*abs
-d/dt(cen) = ka*abs-k*cen
+d/dt(depot) = exp(log(bio*podo)+log(ktr)+n*log(ktr*t)-ktr*t-lgammafn(n+1))-ka*depot
+d/dt(cen) = ka*depot-k*cen
 ")
 
     et <- eventTable();
@@ -53,8 +53,8 @@ n = 20.1
 k = cl/vc
 ktr = (n+1)/mtt
 ## note that lgamma1p is the same as lgamma(1+p) in R.
-d/dt(abs) = exp(log(bio*podo)+log(ktr)+n*log(ktr*t)-ktr*t-lgamma1p(n))-ka*abs
-d/dt(cen) = ka*abs-k*cen
+d/dt(depot) = exp(log(bio*podo)+log(ktr)+n*log(ktr*t)-ktr*t-lgamma1p(n))-ka*depot
+d/dt(cen) = ka*depot-k*cen
 ")
 
     transit <- rxSolve(mod, et);
@@ -75,8 +75,8 @@ bio=1
 n = 20.1
 k = cl/vc
 ktr = (n+1)/mtt
-d/dt(abs) = exp(log(bio*podo)+log(ktr)+n*log(ktr*t)-ktr*t-log(n!))-ka*abs
-d/dt(cen) = ka*abs-k*cen
+d/dt(depot) = exp(log(bio*podo)+log(ktr)+n*log(ktr*t)-ktr*t-log(n!))-ka*depot
+d/dt(cen) = ka*depot-k*cen
 ")
 
     transit <- rxSolve(mod, et);
@@ -97,8 +97,8 @@ bio=1
 n = 20.1
 k = cl/vc
 ktr = (n+1)/mtt
-d/dt(abs) = exp(log(bio*podo)+log(ktr)+n*log(ktr*t)-ktr*t-lgamma(n+1))-ka*abs
-d/dt(cen) = ka*abs-k*cen
+d/dt(depot) = exp(log(bio*podo)+log(ktr)+n*log(ktr*t)-ktr*t-lgamma(n+1))-ka*depot
+d/dt(cen) = ka*depot-k*cen
 ")
 
     transit <- rxSolve(mod, et);
@@ -119,8 +119,8 @@ bio=1
 n = 20.1
 k = cl/vc
 ktr = (n+1)/mtt
-d/dt(abs) = exp(log(bio*podo)+log(ktr)+n*log(ktr*t)-ktr*t-lfactorial(n))-ka*abs
-d/dt(cen) = ka*abs-k*cen
+d/dt(depot) = exp(log(bio*podo)+log(ktr)+n*log(ktr*t)-ktr*t-lfactorial(n))-ka*depot
+d/dt(cen) = ka*depot-k*cen
 ")
 
     transit <- rxSolve(mod, et);
@@ -141,8 +141,8 @@ bio=1
 n = 20.1
 k = cl/vc
 ktr = (n+1)/mtt
-d/dt(abs) = exp(log(bio*podo)+log(ktr)+n*log(ktr*t)-ktr*t-log(factorial(n)))-ka*abs
-d/dt(cen) = ka*abs-k*cen
+d/dt(depot) = exp(log(bio*podo)+log(ktr)+n*log(ktr*t)-ktr*t-log(factorial(n)))-ka*depot
+d/dt(cen) = ka*depot-k*cen
 ")
 
     transit <- rxSolve(mod, et);
@@ -162,8 +162,8 @@ mtt = 0.37 # hr
 n = 20.1
 k = cl/vc
 ## note that lgammafn is the same as lgamma in R.
-d/dt(abs) = transit(n, mtt)-ka*abs
-d/dt(cen) = ka*abs-k*cen
+d/dt(depot) = transit(n, mtt)-ka*depot
+d/dt(cen) = ka*depot-k*cen
 ")
 
     transit2 <- rxSolve(mod, et);
@@ -182,8 +182,8 @@ mtt = 0.37 # hr
 bio=1
 n = 20.1
 k = cl/vc
-d/dt(abs) = transit(n, mtt, bio)-ka*abs
-d/dt(cen) = ka*abs-k*cen
+d/dt(depot) = transit(n, mtt, bio)-ka*depot
+d/dt(cen) = ka*depot-k*cen
 ")
 
     transit2 <- rxSolve(mod, et);
@@ -202,8 +202,8 @@ mtt = 0.37 # hr
 bio=1
 n = 20.1
 k = cl/vc
-d/dt(abs) = transit(n, mtt, 1)-ka*abs
-d/dt(cen) = ka*abs-k*cen
+d/dt(depot) = transit(n, mtt, 1)-ka*depot
+d/dt(cen) = ka*depot-k*cen
 ")
 
     transit2 <- rxSolve(mod, et);

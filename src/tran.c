@@ -940,7 +940,7 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
   }
   for (i=0; i<tb.nd; i++) {                     /* name state vars */
     retieve_var(tb.di[i], buf);
-    if (strstr(buf, "__sens_")){
+    if (strstr(buf, "rx__sens_")){
       sprintf(s_aux_info+o, "\tSET_STRING_ELT(sens,%d,mkChar(\"%s\"));\n", sensi++, buf);
       o = strlen(s_aux_info);
       sprintf(s_aux_info+o, "\tSET_STRING_ELT(state,%d,mkChar(\"%s\"));\n", statei++, buf);
@@ -1647,7 +1647,7 @@ SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP pref
   k=0;j=0;
   for (i=0; i<tb.nd; i++) {                     /* name state vars */
     retieve_var(tb.di[i], buf);
-    if (strstr(buf,"__sens_")){
+    if (strstr(buf,"rx__sens_")){
       SET_STRING_ELT(sens,j++,mkChar(buf));
       SET_STRING_ELT(state,k++,mkChar(buf));
     } else {
