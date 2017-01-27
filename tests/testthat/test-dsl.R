@@ -32,12 +32,12 @@ test_that("logspace add/subtract", {
 
 test_that("R math functions translations", {
     expect_equal(rxToSymPy(gammafn(a)), "gamma(a)")
-    expect_equal(rxToSymPy(lgammafn(a)), "lgamma(a)")
-    expect_equal(rxToSymPy(lgammafn(a)), "lgamma(a)")
+    expect_equal(rxToSymPy(lgammafn(a)), "log(gamma(a))")
+    expect_equal(rxToSymPy(lgammafn(a)), "log(gamma(a))")
     expect_equal(rxToSymPy(tetragamma(a)), "psigamma(a, 2)")
     expect_equal(rxToSymPy(pentagamma(a)), "psigamma(a, 3)")
     expect_equal(rxToSymPy(lbeta(a)), "log(beta(a))")
-    expect_equal(rxToSymPy(lgamma1p(a)), "lgamma((a)+1)")
+    expect_equal(rxToSymPy(lgamma1p(a)), "log(gamma((a)+1))")
     expect_equal(rxToSymPy(cospi(a)), "cos(pi * (a))")
     expect_equal(rxToSymPy(sinpi(a)), "sin(pi * (a))")
     expect_equal(rxToSymPy(tanpi(a)), "tan(pi * (a))")
@@ -47,9 +47,9 @@ test_that("R math functions translations", {
     expect_equal(rxToSymPy(log1p(a)), "log(1 + (a))")
     expect_equal(rxToSymPy(log1pmx(a)), "(log(1 + (a))-(a))")
     expect_equal(rxToSymPy(expm1(a)), "(exp(a)-1)")
-    expect_equal(rxToSymPy(pigamma(z, n)), "polygamma(n, z)")
+    expect_equal(rxToSymPy(psigamma(z, n)), "polygamma(n, z)")
     expect_equal(rxToSymPy(choose(n, k)), "(factorial(n)/(factorial(k)*factorial((n)-(k))))")
-    expect_equal(rxToSymPy(lchoose(n, k)), "(lgamma((n)+1)-lgamma((k)+1)-lgamma((n)-(k)+1))")
+    expect_equal(rxToSymPy(lchoose(n, k)), "(log(gamma((n)+1))-log(gamma((k)+1))-log(gamma((n)-(k)+1)))")
 })
 
 for (fn in RxODE::sympy.equiv.f){
@@ -109,7 +109,7 @@ test_that("bessel functions & polygamma", {
     expect_equal(rxFromSymPy(besselj(x, nu)), "bessel_j(nu, x)")
     expect_equal(rxFromSymPy(besselk(x, nu)), "bessel_k(nu, x, 1.0)")
     expect_equal(rxFromSymPy(bessely(x, nu)), "bessel_y(nu, x)")
-    expect_equal(rxFromSymPy(polygamma(n, z)), "pigamma(z, n)")
+    expect_equal(rxFromSymPy(polygamma(n, z)), "psigamma(z, n)")
 })
 
 test_that("unknown function raises an error.", {
