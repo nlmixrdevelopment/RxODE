@@ -259,6 +259,7 @@ rxSympyFEnv$sinpi <- functionOp2("sin(pi * (", "))")
 rxSympyFEnv$tanpi <- functionOp2("tan(pi * (", "))")
 rxSympyFEnv$logspace_add <- binaryOp2(" + ");
 rxSympyFEnv$logspace_sub <- binaryOp2(" - ");
+sympyRxFEnv$loggamma <- functionOp("lgamma");
 ## Following R functions are not translated
 ## ftrunc, fround, fprec, fsign, sign, fmin2, fmax2, imin2, imax2, logspace_sum
 ## choose lchoose
@@ -351,7 +352,10 @@ evalPrints <- function(x, envir=parent.frame()){
     } else if (is.call(x)) { # Call recurse_call recursively
         if (identical(x[[1]], quote(sprintf)) ||
             identical(x[[1]], quote(paste)) ||
-            identical(x[[1]], quote(paste0))){
+            identical(x[[1]], quote(paste0)) ||
+            identical(x[[1]], quote(sympy)) ||
+            identical(x[[1]], quote(rxToSymPy)) ||
+            identical(x[[1]], quote(rxFromSymPy))){
             txt <- sprintf("quote(%s)", eval(x, envir));
             txt <- eval(parse(text=txt))
             return(txt)
@@ -601,14 +605,17 @@ rxSymPyDfDy <- function(model, df, dy, vars=FALSE){
     if (missing(df) && missing(dy)){
         if (class(vars) == "logical"){
             if (vars){
-                jac <- expand.grid(s1=rxState(model), s2=c(rxState(model), rxParams(model)));
+                jac <- expand.grid(s1=rxState(model), s2=c(rxState(model), rxParams(model)),
+                                   stringsAsFactors=FALSE);
             } else  {
-                jac <- expand.grid(s1=rxState(model), s2=rxState(model));
+                jac <- expand.grid(s1=rxState(model), s2=rxState(model),
+                                   stringsAsFactors=FALSE);
             }
         }
         jac <- with(jac, data.frame(jac,
                           rx=sprintf("df(%s)/dy(%s)", s1, s2),
-                          sym=sprintf("__d_df_%s_dy_%s__", s1, s2)))
+                          sym=sprintf("__d_df_%s_dy_%s__", s1, s2),
+                          stringsAsFactors=FALSE))
         cache <- rxSymPySetup(model);
         cache <- cache && !is.null(rxSymPy.jac);
         if (!cache){
@@ -632,14 +639,10 @@ rxSymPyDfDy <- function(model, df, dy, vars=FALSE){
         }
         var1 <- rxToSymPy(sprintf("d/dt(%s)", df));
         var <- rxToSymPy(sprintf("df(%s)/dy(%s)", df, dy));
-        if (grepl(rex::rex(dy), rSymPy::sympy(var1))){
-            line <- rSymPy::sympy(sprintf("diff(%s,%s)", var1, dy));
-            .Jython$exec(sprintf("%s=%s", var, line));
-            ret <- sprintf("df(%s)/dy(%s) = %s", df, dy, rxFromSymPy(line));
-        } else {
-            .Jython$exec(sprintf("%s=0", var));
-            ret <- sprintf("df(%s)/dy(%s) = 0;", df, dy);
-        }
+        line <- sprintf("diff(%s,%s)", var1, dy);
+        line <- rSymPy::sympy(line);
+        .Jython$exec(sprintf("%s=%s", var, line));
+        ret <- sprintf("df(%s)/dy(%s) = %s", df, dy, rxFromSymPy(line));
         return(ret);
     }
 }
@@ -653,7 +656,7 @@ rxSymPyDfDy <- function(model, df, dy, vars=FALSE){
 ##' @author Matthew L. Fidler
 rxSymPyJacobian <- function(model){
     extraLines <- rxSymPyDfDy(model, vars=FALSE);
-    extraLines <- extraLines[regexpr(rex::rex("=", any_spaces, "0", any_spaces, ";"), extraLines) == -1];
+    extraLines <- extraLines[regexpr(rex::rex("=", any_spaces, "0", any_spaces, at_most(";",1)), extraLines) == -1];
     model <- sprintf("%s\n%s", rxModelVars(model)$model["normModel"], paste(extraLines, collapse="\n"));
     rxSymPyClean()
     return(model);
@@ -716,7 +719,8 @@ rxSymPySensitivity <- function(model, calcSens, calcJac=FALSE){
         cache <- cache && !is.null(rxSymPy.jac2);
         if (!cache){
             cat("Expanding Jacobian for sensitivities.")
-            jac2 <- expand.grid(s1=unique(all.sens), s2=unique(c(all.sens, rxState(model))))
+            jac2 <- expand.grid(s1=unique(all.sens), s2=unique(c(all.sens, rxState(model))),
+                                stringsAsFactors=FALSE)
             for (i in 1:length(jac2$s1)){
                 extraLines[length(extraLines) + 1] <- rxSymPyDfDy(NULL, jac2$s1[i], jac2$s2[i]);
                 cat(".");
@@ -728,7 +732,7 @@ rxSymPySensitivity <- function(model, calcSens, calcJac=FALSE){
                 }
             }
             cat("\ndone!\n");
-            extraLines <- extraLines[regexpr(rex::rex("=", any_spaces, "0", any_spaces, ";"), extraLines) == -1];
+            extraLines <- extraLines[regexpr(rex::rex("=", any_spaces, "0", end), extraLines) == -1];
             assignInMyNamespace("rxSymPy.jac2", extraLines);
         } else {
             extraLines <- rxSymPy.jac2
@@ -736,7 +740,7 @@ rxSymPySensitivity <- function(model, calcSens, calcJac=FALSE){
     } else {
         extraLines <- extraLines[regexpr(rex::rex(regJac, any_spaces, "="), extraLines) == -1];
     }
-    extraLines <- extraLines[regexpr(rex::rex("=", any_spaces, "0", any_spaces, ";"), extraLines) == -1];
+    extraLines <- extraLines[regexpr(rex::rex("=", any_spaces, "0", any_spaces, at_most(";",1), any_spaces), extraLines) == -1];
     ret <- sprintf("%s\n%s", rxModelVars(model)$model["normModel"], paste(extraLines, collapse="\n"));
     rxSymPyClean()
     return(ret);

@@ -300,12 +300,11 @@
 ##' @concept Pharmacodynamics (PD)
 ##' @useDynLib RxODE trans
 ##' @export
-RxODE <-
-    function(model, modName = basename(wd), wd = getwd(),
-             filename = NULL, do.compile = NULL, extraC = NULL,
-             debug = FALSE,
-             calcJac=NULL, calcSens=NULL, ...)
-{
+RxODE <- function(model, modName = basename(wd), wd = getwd(),
+                  filename = NULL, do.compile = NULL, extraC = NULL,
+                  debug = FALSE,
+                  calcJac=NULL, calcSens=NULL, ...) {
+    rxSymPyClearCache()
     if (!missing(model) && !missing(filename))
         stop("must specify exactly one of 'model' or 'filename'")
     if (missing(model) && !missing(filename)){
@@ -1382,11 +1381,7 @@ rxCompile.character <-  function(model,           # Model
                 args    = args);
     class(ret) <- "rxDll";
     ## Remove caching
-    assignInMyNamespace("rxSymPy.model", NULL);
-    assignInMyNamespace("rxSymPy.jac", NULL);
-    assignInMyNamespace("rxSymPy.calcSens", NULL);
-    assignInMyNamespace("rxSymPy.sens", NULL);
-    assignInMyNamespace("rxSymPy.jac2", NULL);
+    rxSymPyClearCache()
     return(ret);
 }
 
