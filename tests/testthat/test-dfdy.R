@@ -83,8 +83,8 @@ dy(0) = 0
 mu = 1 ## nonstiff; 10 moderately stiff; 1000 stiff
 ", calcSens=TRUE)
 
-    test_that("Jacobian and sensitivity specified.", {
-        expect_true(sens$calcJac);
+    test_that("Sensitivity specified.", {
+        expect_false(sens$calcJac);
         expect_true(sens$calcSens);
     })
 
@@ -110,14 +110,22 @@ mu = 1 ## nonstiff; 10 moderately stiff; 1000 stiff
 
     sens <- RxODE(jac, calcSens=TRUE);
 
-    test_that("Jacobian and sensitivity specified.", {
-        expect_true(sens$calcJac);
+    test_that("Only sensitivity specified.", {
+        expect_false(sens$calcJac);
+        expect_true(sens$calcSens);
+    })
+
+    full <- RxODE(jac, calcSens=TRUE, calcJac=TRUE);
+
+    test_that("Sensitivity specified.", {
+        expect_false(sens$calcJac);
         expect_true(sens$calcSens);
     })
 
     rxDelete(jac);
     rxDelete(sens);
     rxDelete(norm);
+    rxDelete(full);
 
     sens <- RxODE("
 d/dt(y)  = dy
@@ -136,15 +144,10 @@ mu = 1 ## nonstiff; 10 moderately stiff; 1000 stiff
     test_that("Jacobian and sensitivity specified.", {
         expect_false(norm$calcJac);
         expect_false(norm$calcSens);
-        expect_true(sens$calcJac);
         expect_true(jac$calcJac);
         expect_false(jac$calcSens);
-        expect_true(sens$calcJac);
+        expect_false(sens$calcJac);
         expect_true(sens$calcSens);
-    })
-
-    test_that("Unsupported derivatives will thow an error.", {
-        expect_error(rxFromSymPy("E1(4)"))
     })
 })
 

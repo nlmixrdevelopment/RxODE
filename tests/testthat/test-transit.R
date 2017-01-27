@@ -1,6 +1,7 @@
 context("Test Transit compartment model");
 library(digest);
 rxPermissive({
+
     mod <- RxODE("
 ## Table 3 from Savic 2007
 cl = 17.2 # (L/hr)
@@ -24,14 +25,14 @@ d/dt(cen) = ka*depot-k*cen
 
     test_that("Transit absorption works", {
         expect_equal(digest(round(as.data.frame(transit), 4)),
-                     "07ba829ef75129d50b02578f76dc123b");
+                     "19470df8fd8bcac4f87fd2ee6431791a");
     })
 
     transit <- rxSolve(mod, et)
 
     test_that("Transit absorption is not specified, but still works.", {
         expect_equal(digest(round(as.data.frame(transit), 4)),
-                     "07ba829ef75129d50b02578f76dc123b");
+                     "19470df8fd8bcac4f87fd2ee6431791a");
         expect_warning(rxSolve(mod, et));
     })
 
@@ -39,7 +40,7 @@ d/dt(cen) = ka*depot-k*cen
 
     test_that("Transit absorption is turned off, and gives other results", {
         expect_equal(digest(round(as.data.frame(no_transit), 4)),
-                     "89b3c21d4367dd82da08063b5fe5883b");
+                     "0c8ba19d3e8fa307a1f7256afd556f40");
     })
 
     mod <- RxODE("
@@ -61,7 +62,7 @@ d/dt(cen) = ka*depot-k*cen
 
     test_that("Transit absorption using lagmma1p works.", {
         expect_equal(digest(round(as.data.frame(transit), 4)),
-                     "07ba829ef75129d50b02578f76dc123b");
+                     "19470df8fd8bcac4f87fd2ee6431791a");
         expect_warning(rxSolve(mod, et));
     })
 
@@ -83,7 +84,7 @@ d/dt(cen) = ka*depot-k*cen
 
     test_that("Transit absorption using !.", {
         expect_equal(digest(round(as.data.frame(transit), 4)),
-                     "07ba829ef75129d50b02578f76dc123b");
+                     "19470df8fd8bcac4f87fd2ee6431791a");
         expect_warning(rxSolve(mod, et));
     })
 
@@ -105,7 +106,7 @@ d/dt(cen) = ka*depot-k*cen
 
     test_that("Transit absorption using C's lgamma function.", {
         expect_equal(digest(round(as.data.frame(transit), 4)),
-                     "07ba829ef75129d50b02578f76dc123b");
+                     "19470df8fd8bcac4f87fd2ee6431791a");
         expect_warning(rxSolve(mod, et));
     })
 
@@ -127,7 +128,7 @@ d/dt(cen) = ka*depot-k*cen
 
     test_that("Transit absorption using lfactorial", {
         expect_equal(digest(round(as.data.frame(transit), 4)),
-                     "07ba829ef75129d50b02578f76dc123b");
+                     "19470df8fd8bcac4f87fd2ee6431791a");
         expect_warning(rxSolve(mod, et));
     })
 
@@ -149,7 +150,7 @@ d/dt(cen) = ka*depot-k*cen
 
     test_that("Transit absorption using log(factorial)", {
         expect_equal(digest(round(as.data.frame(transit), 4)),
-                     "07ba829ef75129d50b02578f76dc123b");
+                     "19470df8fd8bcac4f87fd2ee6431791a");
         expect_warning(rxSolve(mod, et));
     })
 
