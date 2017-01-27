@@ -16,7 +16,8 @@ rxOpt <- list(RxODE.prefer.tbl               =c(FALSE, FALSE),
               RxODE.syntax.allow.ini0        =c(FALSE, TRUE),
               RxODE.syntax.allow.ini         =c(FALSE, TRUE),
               RxODE.calculate.jacobian       =c(FALSE, FALSE),
-              RxODE.calculate.sensitivity    =c(FALSE, FALSE)
+              RxODE.calculate.sensitivity    =c(FALSE, FALSE),
+              RxODE.verbose                  =c(TRUE, TRUE)
               );
 
 ##' Permissive or Strict RxODE sytax options

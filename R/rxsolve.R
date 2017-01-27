@@ -534,9 +534,7 @@ as.tbl.solveRxDll <- function(x, ...){
 }
 
 solveRxDll_updateEventTable <- function(obj, objName, name, ..., envir = parent.frame()){
-    if (getOption("RxODE.verbose", TRUE)){ ## nocov start
-        cat("Update with new event specification.\n");
-    } ## nocov end
+    rxCat("Update with new event specification.\n")
     tmp <- attr(obj, "solveRxDll");
     events <- tmp$events;
     events[[name]](...);
@@ -575,25 +573,19 @@ solveRxDll_updateEventTable <- function(obj, objName, name, ..., envir = parent.
             return(rxSolve(obj, events = eventTable))
         } else if (class(value) == "data.frame"){
         } else if (class(value) == "numeric"){
-            if (getOption("RxODE.verbose", TRUE)){ ## nocov start
-                cat("Updating sampling times in the event table updating object.\n");
-            } ## nocov end
+            rxCat("Updating sampling times in the event table updating object.\n");
             eventTable <- lst$events$copy();
             eventTable$clear.sampling();
             eventTable$add.sampling(value);
             return(rxSolve(obj, events = eventTable));
         }
     } else if (arg != iarg && any(rxState(obj$object) == iarg) && length(value) == 1){
-        if (getOption("RxODE.verbose", TRUE)){ ## nocov start
-            cat("Updating object with new initial conditions.\n");
-        } ## nocov end
+        rxCat("Updating object with new initial conditions.\n")
         inits <- c(value);
         names(inits) <- gsub(regIni, "", arg);
         return(rxSolve(obj, inits = inits));
     } else if (any(rxParams(obj$object) == arg)){
-        if (getOption("RxODE.verbose", TRUE)){ ## nocov start
-            cat("Updating object with new paramter values.\n");
-        } ## nocov end
+        rxCat("Updating object with new paramter values.\n")
         if (length(value) == 1){
             covs <- as.data.frame(lst$covs);
             if (any(names(covs) == arg)){
@@ -616,21 +608,15 @@ solveRxDll_updateEventTable <- function(obj, objName, name, ..., envir = parent.
             return(rxSolve.solveRxDll(obj, covs = covs));
         }
     } else if (arg == "params"){
-        if (getOption("RxODE.verbose", TRUE)){ ## nocov start
-            cat("Updating object with new paramter values.\n");
-        } ## nocov end
+        rxCat("Updating object with new paramter values.\n");
         return(rxSolve.solveRxDll(obj, params = value));
     } else if (arg == "inits"){
-        if (getOption("RxODE.verbose", TRUE)){ ## nocov start
-            cat("Updating object with new initial conditions.\n");
-        } ## nocov end
+        rxCat("Updating object with new initial conditions.\n")
         return(rxSolve.solveRxDll(obj, inits = value));
     } else if (any(arg == names(lst))){
         args <- list(obj, value);
         names(args) <- c("object", arg);
-        if (getOption("RxODE.verbose", TRUE)){ ## nocov start
-            cat(sprintf("Updating object with new solving argument %s = %s.\n", arg, value))
-        } ## nocov end
+        rxCat(sprintf("Updating object with new solving argument %s = %s.\n", arg, value))
         return(do.call("rxSolve", args, envir = parent.frame(1)))
     } else {
         df <- as.data.frame(obj);

@@ -16,19 +16,28 @@ asTbl <- function(obj){
 rxTbl <- function(x, msg){
     if (getOption("RxODE.prefer.tbl", TRUE) && class(x) == "data.frame" && requireNamespace("dplyr", quietly = TRUE)){
         if (!missing(msg)){
-            if (getOption("RxODE.verbose", TRUE)){ ## nocov start
-                cat(sprintf("Change solved object to dplyr's tbl for %s\n", msg));
-            } ## nocov end
+            rxCat(sprintf("Change solved object to dplyr's tbl for %s\n", msg));
         }
         return(dplyr::as.tbl(x))
     } else {
         if (!missing(msg)){
-            if (getOption("RxODE.verbose", TRUE)){ ## nocov start
-                cat(sprintf("Change solved object to data.frame for %s\n", msg))
-            } ## nocov end
+            rxCat(sprintf("Change solved object to data.frame for %s\n", msg))
         }
         return(x)
     }
+}
+##' Use cat when RxODE.verbose is TRUE
+##'
+##' @param ... Parameters sent to cat
+##' @author Matthew L. Fidler
+##' @keywords internal
+##' @export
+rxCat <- function(...){
+    ## nocov start
+    if (getOption("RxODE.verbose", TRUE)){
+        cat(...);
+    }
+    ## nocov end
 }
 ##' Cleanup anonymous dlls
 ##'

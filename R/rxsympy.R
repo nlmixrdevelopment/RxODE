@@ -620,14 +620,14 @@ rxSymPyDfDy <- function(model, df, dy, vars=FALSE){
         cache <- cache && !is.null(rxSymPy.jac);
         if (!cache){
             extraLines <- c();
-            cat("Calculate Jacobian.");
+            rxCat("Calculate Jacobian.");
             for (dfdy in jac$rx){
                 if (!any(dfdy == rxDfdy(model))){
                     extraLines[length(extraLines) + 1] <- with(jac[jac$rx == dfdy, ], rxSymPyDfDy(NULL, s1, s2));
-                    cat(".")
+                    rxCat(".")
                 }
             }
-            cat("done!\n");
+            rxCat("done!\n");
             assignInMyNamespace("rxSymPy.jac", extraLines);
         } else {
             extraLines <- rxSymPy.jac;
@@ -687,7 +687,7 @@ rxSymPySensitivity <- function(model, calcSens, calcJac=FALSE){
     all.sens <- c();
     cache <- cache && identical(calcSens, rxSymPy.calcSens) && !is.null(rxSymPy.sens);
     if (!cache){
-        cat("Calculate Sensitivities.");
+        rxCat("Calculate Sensitivities.");
         for (s1 in state){
             for (sns in calcSens){
                 tmp <- c()
@@ -706,10 +706,10 @@ rxSymPySensitivity <- function(model, calcSens, calcJac=FALSE){
                 .Jython$exec(sprintf("%s=%s", var, line));
                 assignInMyNamespace("rxSymPy.vars", c(rxSymPy.vars, var));
                 extraLines[length(extraLines) + 1] <- sprintf("%s=%s", var.rx, rxFromSymPy(line));
-                cat(".")
+                rxCat(".")
             }
         }
-        cat("\ndone!\n");
+        rxCat("\ndone!\n");
         assignInMyNamespace("rxSymPy.calcSens", calcSens);
         assignInMyNamespace("rxSymPy.sens", extraLines);
     } else {
@@ -718,20 +718,20 @@ rxSymPySensitivity <- function(model, calcSens, calcJac=FALSE){
     if (calcJac){
         cache <- cache && !is.null(rxSymPy.jac2);
         if (!cache){
-            cat("Expanding Jacobian for sensitivities.")
+            rxCat("Expanding Jacobian for sensitivities.")
             jac2 <- expand.grid(s1=unique(all.sens), s2=unique(c(all.sens, rxState(model))),
                                 stringsAsFactors=FALSE)
             for (i in 1:length(jac2$s1)){
                 extraLines[length(extraLines) + 1] <- rxSymPyDfDy(NULL, jac2$s1[i], jac2$s2[i]);
-                cat(".");
+                rxCat(".");
                 if (i %% 5 == 0){
-                    cat(i);
+                    rxCat(i);
                 }
                 if (i %% 50 == 0){
-                    cat("\n");
+                    rxCat("\n");
                 }
             }
-            cat("\ndone!\n");
+            rxCat("\ndone!\n");
             extraLines <- extraLines[regexpr(rex::rex("=", any_spaces, "0", end), extraLines) == -1];
             assignInMyNamespace("rxSymPy.jac2", extraLines);
         } else {

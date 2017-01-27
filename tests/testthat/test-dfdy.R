@@ -149,5 +149,5 @@ mu = 1 ## nonstiff; 10 moderately stiff; 1000 stiff
         expect_false(sens$calcJac);
         expect_true(sens$calcSens);
     })
-})
+}, silent=TRUE)
 
