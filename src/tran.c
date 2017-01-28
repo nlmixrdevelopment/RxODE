@@ -22,7 +22,7 @@
 #define NEEDSEMI "Lines need to end with ';' or to match R's handling of line endings set 'options(RxODE.syntax.require.semicolon = FALSE)'."
 #define NEEDPOW "'**' not supported, use '^' instead or set 'options(RxODE.syntax.star.pow = TRUE)'."
 #define NODOT "'.' in variables and states not supported, use '_' instead or set 'options(RxODE.syntax.allow.dots = TRUE)'."
-#define NOINI0 "'%s(0)' for initilization not allowed.  To allow set 'options(RxODE.suppress.allow.ini0 = TRUE)'."
+#define NOINI0 "'%s(0)' for initilization not allowed.  To allow set 'options(RxODE.syntax.allow.ini0 = TRUE)'."
 #define NOSTATE "Defined 'df(%s)/dy(%s)', but '%s' is not a state!"
 #define NOSTATEVAR "Defined 'df(%s)/dy(%s)', but '%s' is not a state or variable!"
 
@@ -1453,27 +1453,48 @@ void codegen(FILE *outpt, int show_ode) {
   }
 }
 void reset (){
-  tb.vo[0]=0;
-  tb.deo[0]=0;
-  memset(tb.ss,0,64*MXSYM);
-  memset(tb.de,0,64*MXSYM);
-  memset(tb.lh,  0, MXSYM);
-  memset(tb.ini, 0, MXSYM);
-  memset(tb.ini0, 0, MXSYM);
-  memset(tb.df, 0, MXSYM);
-  memset(tb.dy, 0, MXSYM);
-  memset(tb.sdfdy, 0, MXSYM);
-  tb.nv=0;
-  tb.nd=0;
-  tb.fn=0;
-  tb.ix=0;
-  tb.id=0;
-  tb.pos =0;
-  tb.pos_de = 0;
-  tb.ini_i = 0;
+  // Reset Arrays
+  memset(tb.ss,		0, 64*MXSYM);
+  memset(tb.de,		0, 64*MXSYM);
+  memset(tb.deo,	0, MXSYM);
+  memset(tb.vo,		0, MXSYM);
+  memset(tb.lh,		0, MXSYM);
+  memset(tb.ini,	0, MXSYM);
+  memset(tb.di,		0, MXDER);
+  memset(tb.dy,		0, MXSYM);
+  memset(tb.sdfdy,	0, MXSYM);
+  // Reset integers
+  tb.nv		= 0;
+  tb.ix		= 0;
+  tb.id		= 0;
+  tb.fn		= 0;
+  tb.nd		= 0;
+  tb.pos	= 0;
+  tb.pos_de	= 0;
+  tb.ini_i	= 0;
+  tb.statei	= 0;
+  tb.sensi	= 0;
+  tb.li		= 0;
+  tb.pi		= 0;
+  tb.cdf	= 0;
+  tb.ndfdy	= 0;
+  // reset globals
   found_print = 0;
   found_jac = 0;
-  tb.ndfdy = 0;
+  rx_syntax_error = 0;
+  rx_suppress_syntax_info=0;
+  rx_podo = 0;
+  memset(s_aux_info,         0, 64*MXSYM);
+  rx_syntax_assign = 0;
+  rx_syntax_star_pow = 0;
+  rx_syntax_require_semicolon = 0;
+  rx_syntax_allow_dots = 0;
+  rx_syntax_allow_ini0 = 1;
+  rx_syntax_allow_ini = 1;
+  memset(sb.s,         0, MXBUF);
+  memset(sbt.s,        0, MXBUF);
+  sb.o = 0;
+  sbt.o = 0;
 }
 
 void trans_internal(char *orig_file, char* parse_file, char* c_file){
@@ -1487,9 +1508,9 @@ void trans_internal(char *orig_file, char* parse_file, char* c_file){
   p->save_parse_tree = 1;
   buf = r_sbuf_read(parse_file);
   infile = r_sbuf_read(orig_file);
+
   err_msg((intptr_t) buf, "error: empty buf for FILE_to_parse\n", -2);
   if ((pn=dparse(p, buf, strlen(buf))) && !p->syntax_errors) {
-    reset();
     fpIO = fopen( out2, "w" );
     fpIO2 = fopen( "out3.txt", "w" );
     err_msg((intptr_t) fpIO, "error opening out2.txt\n", -2);
@@ -1566,13 +1587,14 @@ SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP pref
   char sLine[MXLEN+1];
   int i, j, islhs, pi=0, li=0, ini_i = 0,o2=0,k=0;
   double d;
+  reset(); 
   rx_syntax_assign = R_get_option("RxODE.syntax.assign",1);
   rx_syntax_star_pow = R_get_option("RxODE.syntax.star.pow",1);
   rx_syntax_require_semicolon = R_get_option("RxODE.syntax.require.semicolon",0);
   rx_syntax_allow_dots = R_get_option("RxODE.syntax.allow.dots",1);
   rx_suppress_syntax_info = R_get_option("RxODE.suppress.syntax.info",0);
-  rx_syntax_allow_ini0 = R_get_option("RxODE.suppress.allow.ini0",1);
-  rx_syntax_allow_ini  = R_get_option("RxODE.suppress.allow.ini",1);
+  rx_syntax_allow_ini0 = R_get_option("RxODE.syntax.allow.ini0",1);
+  rx_syntax_allow_ini  = R_get_option("RxODE.syntax.allow.ini",1);
   rx_syntax_error = 0;
   set_d_use_r_headers(0);
   set_d_rdebug_grammar_level(0);
@@ -1855,78 +1877,9 @@ SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP pref
   setAttrib(model, R_NamesSymbol, modeln);
   UNPROTECT(13);
   remove("out3.txt");
-  reset();
   if (rx_syntax_error){
     error("Syntax Errors (see above)");
   }
   return lst;
-}
-
-extern D_ParserTables parser_tables_dparser_gram;
-
-static int scanner_block_size;
-
-SEXP cDparser(SEXP fileName,
-              SEXP sexp_output_file,
-              SEXP set_op_priority_from_rule ,
-              SEXP right_recursive_BNF ,
-              SEXP states_for_whitespace ,
-              SEXP states_for_all_nterms ,
-              SEXP tokenizer ,
-              SEXP longest_match ,
-              SEXP sexp_grammar_ident ,
-              SEXP scanner_blocks ,
-              SEXP write_line_directives ,
-              SEXP rdebug,
-              SEXP verbose,
-              SEXP sexp_write_extension,
-              SEXP write_header,
-              SEXP token_type,
-              SEXP use_r_header){
-  char *grammar_pathname, *grammar_ident, *write_extension, *output_file;
-  Grammar *g;
-  set_d_rdebug_grammar_level(INTEGER(rdebug)[0]);
-  set_d_verbose_level(INTEGER(verbose)[0]);
-  grammar_pathname = r_dup_str(CHAR(STRING_ELT(fileName,0)),0);
-  grammar_ident    = r_dup_str(CHAR(STRING_ELT(sexp_grammar_ident,0)),0);
-  write_extension  = r_dup_str(CHAR(STRING_ELT(sexp_write_extension,0)),0);
-  output_file      = r_dup_str(CHAR(STRING_ELT(sexp_output_file,0)),0);
-  g = new_D_Grammar(grammar_pathname);
-  /* grammar construction options */
-  g->set_op_priority_from_rule = INTEGER(set_op_priority_from_rule)[0];
-  g->right_recursive_BNF = INTEGER(right_recursive_BNF)[0];
-  g->states_for_whitespace = INTEGER(states_for_whitespace)[0];
-  g->states_for_all_nterms = INTEGER(states_for_all_nterms)[0];
-  g->tokenizer = INTEGER(tokenizer)[0];
-  g->longest_match = INTEGER(longest_match)[0];
-  /* grammar writing options */
-  strcpy(g->grammar_ident, grammar_ident);
-  g->scanner_blocks = INTEGER(scanner_blocks)[0];
-  g->scanner_block_size = scanner_block_size;
-  g->write_line_directives = INTEGER(write_line_directives)[0];
-  g->write_header = INTEGER(write_header)[0];
-  g->token_type = INTEGER(token_type)[0];
-  strcpy(g->write_extension, write_extension);
-  g->write_pathname = output_file;
-
-  set_d_use_r_headers(INTEGER(use_r_header)[0]);
-  /* don't print anything to stdout, when the grammar is printed there */
-  if (get_d_rdebug_grammar_level() > 0)
-    set_d_verbose_level(0);
-
-  mkdparse(g, grammar_pathname);
-
-  if (get_d_rdebug_grammar_level() == 0) {
-    if (write_c_tables(g) < 0)
-      d_fail("unable to write C tables '%s'", grammar_pathname);
-  } else
-    print_rdebug_grammar(g, grammar_pathname);
-
-  free_D_Grammar(g);
-  g = 0;
-  set_d_use_r_headers(0);
-  set_d_rdebug_grammar_level(0);
-  set_d_verbose_level(0);
-  return R_NilValue;
 }
 

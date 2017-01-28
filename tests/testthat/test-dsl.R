@@ -52,7 +52,7 @@ test_that("R math functions translations", {
     expect_equal(rxToSymPy(lchoose(n, k)), "(log(gamma((n)+1))-log(gamma((k)+1))-log(gamma((n)-(k)+1)))")
 })
 
-for (fn in RxODE::sympy.equiv.f){
+for (fn in RxODE:::sympy.equiv.f){
     test_that(sprintf("Equiv syntax '%s'", fn), {
         eval(parse(text=sprintf("expect_equal(rxToSymPy(%s(a)),\"%s(a)\")", fn, fn)))
     })
@@ -88,7 +88,7 @@ test_that("time prefers t notation", {
 
 context("Test DSL rxFromSymPy")
 
-for (fn in RxODE::sympy.equiv.f){
+for (fn in RxODE:::sympy.equiv.f){
     test_that(sprintf("Equiv syntax '%s'", fn), {
         eval(parse(text=sprintf("expect_equal(rxFromSymPy(%s(a)),\"%s(a)\")", fn, fn)))
     })

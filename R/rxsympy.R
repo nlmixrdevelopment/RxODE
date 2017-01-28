@@ -1,3 +1,5 @@
+utils::globalVariables(c(".Jython"))
+
 regIdentifier1 <- rex::rex(one_of("a":"z", "A":"Z"), any_of("_", "a":"z", "A":"Z", "0":"9", "."))
 regIdentifier2 <- rex::rex(at_least(".",1), one_of("_", "a":"z", "A":"Z"), any_of("_", "a":"z", "A":"Z", "0":"9", "."));
 regIdentifier <- rex::rex(or(regIdentifier1, regIdentifier2));
@@ -284,11 +286,11 @@ rxPrintOp <- function(op){
 ## rxSympyFEnv$paste <- rxPrintOp("paste")
 ## rxSympyFEnv$paste0 <- rxPrintOp("paste0")
 
+## equivalent functions
 sympy.equiv.f <- c("abs", "acos", "acosh", "asin", "atan", "atan2", "atanh", "beta",
                    "cos", "cosh", "digamma", "erf", "erfc", "exp", "factorial",
                    "gamma", "log", "log10", "sin", "sinh", "sqrt", "tan",
-                   "tanh", "trigamma");
-
+                   "tanh", "trigamma")
 for (f in sympy.equiv.f){
     rxSympyFEnv[[f]] <- functionOp(f);
     sympyRxFEnv[[f]] <- functionOp(f);
@@ -641,6 +643,7 @@ rxSymPyDfDy <- function(model, df, dy, vars=FALSE){
         var <- rxToSymPy(sprintf("df(%s)/dy(%s)", df, dy));
         line <- sprintf("diff(%s,%s)", var1, dy);
         line <- rSymPy::sympy(line);
+        line <- rSymPy::sympy(sprintf("simplify(%s)", line));
         .Jython$exec(sprintf("%s=%s", var, line));
         ret <- sprintf("df(%s)/dy(%s) = %s", df, dy, rxFromSymPy(line));
         return(ret);
@@ -667,6 +670,11 @@ rxSymPyJacobian <- function(model){
 ##' rSymPy.
 ##'
 ##' @param model RxODE family of objects
+##' @param calcSens Either a logical or list of sensitivity parameters
+##'     to calculate. When \code{TRUE}, calculate the sensitivities of
+##'     all the known parameters.  When \code{FALSE} raise an error.
+##' @param calcJac A boolean that determines if the jacobian should be
+##'     calculated.
 ##' @return Model syntax that includes the sensitivity parameters.
 ##' @author Matthew L. Fidler
 ##' @export

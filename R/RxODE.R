@@ -1088,6 +1088,8 @@ rxTrans.character <- function(model,
     on.exit(unlink(parseModel));
     rxReq("dparser");
     ret <- .Call("trans", model, model, cFile, extraC, modelPrefix, md5, parseModel, PACKAGE="RxODE");
+    ## dparser::dpReload();
+    rxReload()
     if (file.exists(cFile)){
         md5 <- c(file_md5 = md5, parsed_md5 = rxMd5(parseModel, extraC, calcJac, calcSens)$digest);
         ret$md5 <- md5
@@ -1105,6 +1107,8 @@ rxTrans.character <- function(model,
             sink()
             ## cat(new)
             ret <- .Call("trans", model, expandModel, cFile, extraC, modelPrefix, md5, parseModel, PACKAGE="RxODE");
+            ## dparser::dpReload();
+            rxReload();
             unlink(expandModel);
             ret$md5 <- md5;
         } else if (calcJac){
@@ -1115,6 +1119,8 @@ rxTrans.character <- function(model,
             cat("\n");
             sink()
             ret <- .Call("trans", model, expandModel, cFile, extraC, modelPrefix, md5, parseModel, PACKAGE="RxODE");
+            ## dparser::dpReload();
+            rxReload();
             unlink(expandModel);
             ret$md5 <- md5;
         }
@@ -1317,9 +1323,7 @@ rxCompile.character <-  function(model,           # Model
         trans <- rxTrans(mFile, cFile = cFile, md5 = md5$digest, extraC = extraC, ..., modelPrefix = prefix, calcJac=FALSE, calcSens=FALSE);
         if (file.exists(finalDll)){
             if (modVars["parsed_md5"] == trans["parsed_md5"]){
-                if (getOption("RxODE.verbose", TRUE)){ ## nocov start
-                    cat("Don't need to recompile, minimal change to model detected.\n");
-                } ## nocov end
+                rxCat("Don't need to recompile, minimal change to model detected.\n");
                 needCompile <- FALSE;
             }
         }
@@ -1980,4 +1984,20 @@ accessComp <- function(obj, arg){
     } else {
         "$.solveRxDll"(obj, arg, exact = exact);
     }
+}
+##' Reload RxODE dll
+##'
+##' Can be useful for debuggind
+##'
+##' @author Matthew L. Fidler
+##' @keywords internal
+##' @export
+rxReload <- function(){
+    tmp <- getLoadedDLLs()$RxODE
+    class(tmp) <- "list";
+    dyn.unload(tmp$path);
+    ret <- is.null(getLoadedDLLs()$RxODE)
+    dyn.load(tmp$path);
+    ret <- ret && !is.null(getLoadedDLLs()$RxODE)
+    return(ret)
 }

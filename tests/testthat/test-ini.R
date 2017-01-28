@@ -13,7 +13,7 @@ rxPermissive({
     test_that("Constants are not included in get.modelVars()",{
         expect_equal(out$get.modelVars()$params,c("no_ini"));
     })
-    options(RxODE.suppress.allow.ini=FALSE);
+    options(RxODE.syntax.allow.ini=FALSE);
     out2 <- RxODE("ini = 1; fun_ini = 2; fun = 4; addit = ini + fun_ini + pi + no_ini")
 
     test_that("Initial constants only include pi.", {

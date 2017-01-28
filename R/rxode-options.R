@@ -17,7 +17,8 @@ rxOpt <- list(RxODE.prefer.tbl               =c(FALSE, FALSE),
               RxODE.syntax.allow.ini         =c(FALSE, TRUE),
               RxODE.calculate.jacobian       =c(FALSE, FALSE),
               RxODE.calculate.sensitivity    =c(FALSE, FALSE),
-              RxODE.verbose                  =c(TRUE, TRUE)
+              RxODE.verbose                  =c(TRUE, TRUE),
+              RxODE.suppress.syntax.info     =c(FALSE, FALSE)
               );
 
 ##' Permissive or Strict RxODE sytax options
@@ -49,43 +50,64 @@ rxStrict <- function(expr, silent=FALSE, respect=FALSE, rxclean=(regexpr("/tests
     args$op.rx <- 1;
     do.call("rxOptions", args, envir=parent.frame(1));
 }
+##' Options for RxODE
+##'
+##' This is a backend for \code{rxPermissive} (with
+##' \code{op.rx} = \code{2}) and \code{rxStrict} (with
+##' \code{op.rx} =\code{1})
+##'
+##' When \code{expr} is missing and \code{op.rx} is NULL, this
+##' desplays the current RxODE options.
+##'
+##' @inheritParams rxPermissive
+##' @param op.rx A numeric for strict (1) or permissive (2) syntax.
+##' @author Matthew L. Fidler
+##' @export
 rxOptions <- function(expr, op.rx=NULL, silent=FALSE, respect=FALSE,
                       rxclean=(regexpr("/tests/testthat/", getwd(), fixed=TRUE))){
-    if (class(op.rx) == "character"){
-        if (op.rx == "strict"){
-            op.rx  <- 1;
-        } else {
-            op.rx <- 2;
-        }
-    }
-    if (class(op.rx) == "numeric"){
-        if (op.rx <= 2){
-            x  <- op.rx;
-            op.rx  <- list()
-            for (v in names(rxOpt)){
-                op.rx[[v]] <- rxOpt[[v]][x];
+    if (missing(expr) && is.null(op.rx)){
+        op <- options()
+        op <- op[regexpr(rex::rex("RxODE."), names(op)) != -1];
+        op <- op[order(names(op))];
+        sapply(names(op), function(n){rxCat(sprintf("%s: %s\n", n, op[[n]]))});
+        return(invisible(op));
+    } else {
+        if (class(op.rx) == "character"){
+            if (op.rx == "strict"){
+                op.rx  <- 1;
+            } else {
+                op.rx <- 2;
             }
         }
-    }
-    if (!missing(silent)){
-        op.rx$RxODE.verbose=!silent;
-        op.rx$RxODE.suppress.syntax.info=silent;
-    }
-    if (!missing(expr)){
-        if (rxclean){
-            rxClean();
+        if (class(op.rx) == "numeric"){
+            if (op.rx <= 2){
+                x  <- op.rx;
+                op.rx  <- list()
+                for (v in names(rxOpt)){
+                    op.rx[[v]] <- rxOpt[[v]][x];
+                }
+            }
         }
-        opOld <- options();
-        on.exit({options(opOld); if (rxclean){rxClean();}});
-    }
-    if (respect){
-        op <- options();
-        w <- !(names(op.rx) %in% names(op))
-        if (any(w)) options(op.rx[w]);
-    } else {
-        options(op.rx);
-    }
-    if (class(substitute(expr)) == "{"){
-        return(eval(substitute(expr), envir=parent.frame(1)));
+        if (!missing(silent)){
+            op.rx$RxODE.verbose=!silent;
+            op.rx$RxODE.suppress.syntax.info=silent;
+        }
+        if (!missing(expr)){
+            if (rxclean){
+                rxClean();
+            }
+            opOld <- options();
+            on.exit({options(opOld); if (rxclean){rxClean();}});
+        }
+        if (respect){
+            op <- options();
+            w <- !(names(op.rx) %in% names(op))
+            if (any(w)) options(op.rx[w]);
+        } else {
+            options(op.rx);
+        }
+        if (class(substitute(expr)) == "{"){
+            return(eval(substitute(expr), envir=parent.frame(1)));
+        }
     }
 }

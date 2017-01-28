@@ -105,7 +105,10 @@ cat("##\' Version and repository for this dparser package.
 ##\' @keywords internal
 ##\' @export
 rxVersion <- function(){return(c(version=\"");
-cat(gsub("Version: +", "", readLines(devtools::package_file("DESCRIPTION"), 2)[2]))
+ver <- readLines(devtools::package_file("DESCRIPTION"));
+ver <- ver[regexpr("^Version:", ver) != -1]
+ver <- ver[1];
+cat(gsub("Version: +", "", ver))
 cat("\",repo=\"");
 cat("https://github.com/")
 tmp <- readLines(devtools::package_file(".git/config"))

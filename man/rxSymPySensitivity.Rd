@@ -8,6 +8,13 @@ rxSymPySensitivity(model, calcSens, calcJac = FALSE)
 }
 \arguments{
 \item{model}{RxODE family of objects}
+
+\item{calcSens}{Either a logical or list of sensitivity parameters
+to calculate. When \code{TRUE}, calculate the sensitivities of
+all the known parameters.  When \code{FALSE} raise an error.}
+
+\item{calcJac}{A boolean that determines if the jacobian should be
+calculated.}
 }
 \value{
 Model syntax that includes the sensitivity parameters.
