@@ -695,7 +695,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
           sbt.o = strlen(sbt.s);
 	  new_or_ith(v);
           /* Rprintf("%s; tb.ini = %d; tb.ini0 = %d; tb.lh = %d\n",v,tb.ini[tb.ix],tb.ini0[tb.ix],tb.lh[tb.ix]); */
-          if  ((tb.ini[tb.ix] == 1 && tb.ini0[tb.ix] == 0) || (tb.lh[tb.ix] == 1 && tb.ini[tb.ix] == 0)){
+          if  ((tb.ini[tb.ix] == 1 && tb.ini0[tb.ix] == 0) || tb.lh[tb.ix] == 1){
             sprintf(buf,"Cannot assign state variable %s; For initial condition assigment use '%s(0) = #'.\n",v,v);
             trans_syntax_error_report_fn(buf);
           }
@@ -792,15 +792,18 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
             tb.ini[tb.ix] = 1;
             if (!strcmp("ini0",name)){
               tb.ini0[tb.ix] = 1;
-            }
+            } else {
+	      tb.ini0[tb.ix] = 0;
+	    }
           } else {
             // There is more than one call to this variable, it is a
             // conditional variabile
             tb.lh[tb.ix] = 1;
-            if (tb.ini0[tb.ix] == 1){
+            if (!strcmp("ini0", name) && tb.ini0[tb.ix] == 1){
               sprintf(buf,"Cannot have conditional initial conditions for %s",v);
               trans_syntax_error_report_fn(buf);
             }
+	    tb.ini0[tb.ix] = 0;
           }
         }
         Free(v);
