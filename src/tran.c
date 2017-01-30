@@ -652,8 +652,9 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         continue;
       }
       if (!strcmp("selection_statement__8", name) && i==0) {
-        fprintf(fpIO,  "}\nelse {\n");
-        fprintf(fpIO2, "}\nelse {\n");
+	// Changed to one line to ease conditional pasing for sympy
+        fprintf(fpIO,  "} else {\n"); 
+        fprintf(fpIO2, "} else {\n");
         continue;
       }
 
