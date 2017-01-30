@@ -7,7 +7,7 @@
 rxReload()
 }
 \description{
-Can be useful for debuggind
+Can be useful for debugging
 }
 \author{
 Matthew L. Fidler

@@ -763,7 +763,7 @@ rxSymPyClean <- function(){
     for (v in unique(rxSymPy.vars)){
         try({.Jython$exec(sprintf("del %s", v))}, silent = TRUE);
     }
-    assignInMyNamespace("rxSymPy.vars", c(rxSymPy.vars, var));
+    assignInMyNamespace("rxSymPy.vars", c());
 }
 
 ## Supported Sympy special functions

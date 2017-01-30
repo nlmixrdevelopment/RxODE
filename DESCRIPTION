@@ -23,8 +23,7 @@ Suggests:
     testthat,
     devtools,
     covr,
-    rmarkdown,
-    tibble
+    rmarkdown
 Imports:
     utils,
     methods,
@@ -34,7 +33,8 @@ Imports:
     rex,
     dparser,
     rSymPy,
-    brew
+    brew,
+    tibble
 Description: Facilities for running simulations from ordinary
     differential equation (ODE) models, such as pharmacometrics and other
     compartmental models.  A compilation manager translates the ODE model
