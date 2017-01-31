@@ -80,7 +80,9 @@ additive_expression : multiplicative_expression
     (('+' | '-') multiplicative_expression)* ;
 
 multiplicative_expression : unary_expression 
-    (('*' | '/') unary_expression)* ;
+    (mult_part)* ;
+
+mult_part : ('*' | '/') unary_expression ;
 
 unary_expression : ('+' | '-')? (primary_expression | power_expression );
 

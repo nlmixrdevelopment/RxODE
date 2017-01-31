@@ -338,7 +338,7 @@ void wprint_node(int depth, char *name, char *value, void *client_data) {
 
 void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_fn_t fn, void *client_data) {
   char *name = (char*)pt.symbols[pn->symbol].name;
-  int nch = d_get_number_of_children(pn), i, k, ii, found;
+  int nch = d_get_number_of_children(pn), i, k, ii, found, safe_zero = 0;
   char *value = (char*)rc_dup_str(pn->start_loc.s, pn->end);
   char buf[512];
   if ((!strcmp("identifier", name) || !strcmp("identifier_r", name) ||
@@ -475,6 +475,27 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         if (xpn->start_loc.s ==  xpn->end){
           trans_syntax_error_report_fn(NEEDSEMI);
         } 
+      }
+
+      if (!strcmp("mult_part",name)){
+	char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+	if (i == 0){
+	  if (!strcmp("/",v)){
+	    sprintf(SBPTR,"safe_zero(");
+            sb.o += 10;
+            safe_zero = 1;
+	  } else {
+	    safe_zero = 0;
+	  }
+	}
+	if (i == 1){
+	  if (safe_zero){
+	    sprintf(SBPTR,")");
+	    sb.o++;
+	  }
+	  safe_zero = 0;
+	}
+	Free(v);
       }
       if (!strcmp("print_command",name)){
         found_print = 1;

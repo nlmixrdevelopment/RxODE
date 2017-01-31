@@ -34,6 +34,7 @@ RxODE_transit4 transit4;
 RxODE_transit3 transit3;
 RxODE_fn factorial;
 RxODE_fn safe_log;
+RxODE_fn safe_zero;
 RxODE_assign_fn_pointers assign_fn_pointers;
 RxODE_ode_solver_old_c old_c;
 RxODE_ode_solver_0_6_c c_0_6;
@@ -155,6 +156,7 @@ void __R_INIT__ (DllInfo *info){
   transit4 = (RxODE_transit4) R_GetCCallable("RxODE","RxODE_transit4");
   factorial=(RxODE_fn) R_GetCCallable("RxODE","RxODE_factorial");
   safe_log =(RxODE_fn) R_GetCCallable("RxODE","RxODE_safe_log");
+  safe_zero =(RxODE_fn) R_GetCCallable("RxODE","RxODE_safe_zero");
   assign_fn_pointers=(RxODE_assign_fn_pointers) R_GetCCallable("RxODE","RxODE_assign_fn_pointers");
   old_c = (RxODE_ode_solver_old_c) R_GetCCallable("RxODE","RxODE_ode_solver_old_c");
   c_0_6 = (RxODE_ode_solver_0_6_c)R_GetCCallable("RxODE","RxODE_ode_solver_0_6_c");
