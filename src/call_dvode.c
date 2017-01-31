@@ -666,14 +666,6 @@ double RxODE_safe_log(double x){
   }
 }
 
-double RxODE_safe_div(double x, double y){
-  if (y == 0.0){
-    return (x/sqrt(DOUBLE_EPS));
-  } else {
-    return (x/y);
-  }
-}
-
 void R_init_RxODE(DllInfo *info){
   //Functions
   R_RegisterCCallable("RxODE","RxODE_ode_solver",       (DL_FUNC) RxODE_ode_solver);
@@ -699,6 +691,4 @@ void R_init_RxODE(DllInfo *info){
   R_RegisterCCallable("RxODE","RxODE_transit3",         (DL_FUNC) RxODE_transit3);
   R_RegisterCCallable("RxODE","RxODE_factorial",        (DL_FUNC) RxODE_factorial);
   R_RegisterCCallable("RxODE","RxODE_safe_log",         (DL_FUNC) RxODE_safe_log);
-  R_RegisterCCallable("RxODE","RxODE_safe_div",         (DL_FUNC) RxODE_safe_div);
-
 }

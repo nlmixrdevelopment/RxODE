@@ -793,6 +793,7 @@ rxSymPySensitivity <- function(model, calcSens, calcJac=FALSE){
         extraLines <- extraLines[regexpr(rex::rex(regJac, any_spaces, "="), extraLines) == -1];
     }
     extraLines <- extraLines[regexpr(rex::rex("=", any_spaces, "0", any_spaces, at_most(";",1), any_spaces), extraLines) == -1];
+    ## cat(paste(extraLines, collapse="\n"), "\n");
     ret <- sprintf("%s\n%s", rxModelVars(model)$model["normModel"], paste(extraLines, collapse="\n"));
     rxSymPyClean()
     return(ret);

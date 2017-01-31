@@ -389,5 +389,11 @@ dy(0) = 0
 mu = 1+bad ## nonstiff; 10 moderately stiff; 1000 stiff
 ")
 
+    goodParse(desc="a*b/c^2",
+              "d/dt(x)=a*b/c^2*x")
+
+    goodParse(desc="a*b/c^2/d",
+              "d/dt(x)=a*b/c^2/d*x")
+
 
 }, silent=TRUE);
