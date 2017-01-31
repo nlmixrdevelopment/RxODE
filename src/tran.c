@@ -652,9 +652,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         continue;
       }
       if (!strcmp("selection_statement__8", name) && i==0) {
-	// Changed to one line to ease conditional pasing for sympy
-        fprintf(fpIO,  "} else {\n"); 
-        fprintf(fpIO2, "} else {\n");
+        fprintf(fpIO,  "}\nelse {\n");
+        fprintf(fpIO2, "}\nelse {\n");
         continue;
       }
 
@@ -927,7 +926,8 @@ void prnt_vars(int scenario, FILE *outpt, int lhs, const char *pre_str, const ch
 }
 
 void print_aux_info(FILE *outpt, char *model, char *orig_model){
-  int i, k, islhs,pi = 0,li = 0, o=0, o2=0, statei = 0, ini_i = 0, sensi=0;
+  int i, k, islhs,pi = 0,li = 0, o=0, o2=0, statei = 0, ini_i = 0, sensi=0,
+    in_str=0;
   char *s2;
   char sLine[MXLEN+1];
   char buf[512], buf2[512];
@@ -984,10 +984,14 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
   for (i = 0; i < strlen(orig_model); i++){
     if (orig_model[i] == '"'){
       fprintf(outpt,"\\\"");
+    } else if (orig_model[i] == ' '){
+      fprintf(outpt," ");
     } else if (orig_model[i] == '\n'){
       fprintf(outpt,"\\n");
     } else if (orig_model[i] == '\t'){
       fprintf(outpt,"\\t");
+    } else if (orig_model[i] == '\\'){
+      fprintf(outpt,"\\\\");
     } else if (orig_model[i] >= 32  && orig_model[i] <= 126){ // ASCII only
       fprintf(outpt,"%c",orig_model[i]);
     }
@@ -997,14 +1001,33 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
   fpIO2 = fopen("out3.txt", "r");
   fprintf(outpt,"\tSET_STRING_ELT(model,1,mkChar(\"");
   err_msg((intptr_t) fpIO2, "Error parsing. (Couldn't access out3.txt).\n", -1);
+  in_str=0;
   while(fgets(sLine, MXLEN, fpIO2)) {  /* Prefered RxODE -- for igraph */
     for (i = 0; i < strlen(sLine); i++){
       if (sLine[i] == '"'){
+	if (in_str==1){
+          in_str=0;
+        } else {
+          in_str=1;
+        }
         fprintf(outpt,"\\\"");
+      } else if (sLine[i] == '\''){
+	if (in_str==1){
+          in_str=0;
+        } else {
+          in_str=1;
+        }
+        fprintf(outpt,"'");
+      } else if (sLine[i] == ' '){
+	if (in_str==1){
+	  fprintf(outpt," ");
+	}
       } else if (sLine[i] == '\n'){
         fprintf(outpt,"\\n");
       } else if (sLine[i] == '\t'){
         fprintf(outpt,"\\t");
+      } else if (sLine[i] == '\\'){
+	fprintf(outpt,"\\\\");
       } else if (sLine[i] >= 33  && sLine[i] <= 126){ // ASCII only
         fprintf(outpt,"%c",sLine[i]);
       }
@@ -1025,6 +1048,8 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
         fprintf(outpt,"\\n");
       } else if (sLine[i] == '\t'){
         fprintf(outpt,"\\t");
+      } else if (sLine[i] == '\\'){
+        fprintf(outpt,"\\\\");
       } else if (sLine[i] >= 32  && sLine[i] <= 126){ // ASCII only
         fprintf(outpt,"%c",sLine[i]);
       }
@@ -1041,6 +1066,8 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
       fprintf(outpt,"\\n");
     } else if (model[i] == '\t'){
       fprintf(outpt,"\\t");
+    } else if (model[i] == '\\'){
+      fprintf(outpt,"\\\\");
     } else if (model[i] >= 32  && model[i] <= 126){ // ASCII only
       fprintf(outpt,"%c",model[i]);
     }

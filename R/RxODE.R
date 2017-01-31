@@ -1531,8 +1531,7 @@ rxDelete <- function(obj){
 ##' This return the model's parameters that are required to solve the
 ##' ODE system.
 ##'
-##' @param obj is a RxODE family of objects
-##' @param ... Ignored arguments
+##' @inheritParams rxModelVars
 ##'
 ##' @return a character vector listing the parameters in the model.
 ##'
@@ -1551,8 +1550,8 @@ rxParam <- rxParams
 ##'
 ##' Return Jacobain and parameter derivates
 ##'
-##' @param obj is a RxODE family of objects
-##' @param ...  Ignored arguments
+##' @inheritParams rxModelVars
+##'
 ##' @return A list of the jacobian parameters defined in this RxODE
 ##'     object.
 ##' @author Matthew L. Fidler
@@ -1565,13 +1564,12 @@ rxDfdy <- function(obj,  ...){
 ##'
 ##' This returns the model's compartments or states.
 ##'
-##' @param obj is a RxODE family of objects
+##' @inheritParams rxModelVars
 ##'
 ##' @param state is a string indicating the state or compartment that
 ##'     you would like to lookup.
 ##'
-##' @param ... Ignored arguments
-##'
+##' '
 ##' @return If state is missing, return a character vector of all the states.
 ##'
 ##' If state is a string, return the compartment number of the named state.
@@ -1598,8 +1596,7 @@ rxState <- function(obj, state, ...){
 ##'
 ##' This returns the model calculated variables
 ##'
-##' @param obj RxODE family of objects
-##' @param ... ignored arguments
+##' @inheritParams rxModelVars
 ##'
 ##' @return a character vector listing the calculated parameters
 ##' @seealso \code{\link{RxODE}}
@@ -1608,6 +1605,20 @@ rxState <- function(obj, state, ...){
 ##' @export
 rxLhs <- function(obj, ...){
     return(rxModelVars(obj)$lhs);
+}
+##' Get the normalized model
+##'
+##'
+##' This get the syntax prefered model for processing
+##'
+##' @inheritParams rxModelVars
+##' @return Normalized Normal syntax (no comments)
+##' @author Matthew L. Fidler
+##' @export
+rxNorm <- function(obj, ...){
+    tmp <- rxModelVars(obj)$model["normModel"]
+    names(tmp) <- NULL;
+    return(tmp)
 }
 
 ##' All model variables for a RxODE object

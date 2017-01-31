@@ -16,80 +16,108 @@ regNum <- rex::rex(at_most("-", 1), or(regDecimalint, regFloat1, regFloat2))
 regDDt <- rex::rex(start, "rx__d_dt_", capture(anything), "__", end);
 regDfDy <- rex::rex(start, "rx__df_", capture(anything), "_dy_", capture(anything), "__", end);
 
-## Currently unsupported sympy functions
-sympy.bad <- c(
-    "Chi",
-    "Ci",
-    "DiracDelta",
-    "E1",
-    "Eijk",
-    "Heaviside",
-    "KroneckerDelta",
-    "LeviCivita",
-    "Li",
-    "Shi",
-    "Si",
-    "Ynm",
-    "Ynm_c",
-    "Znm",
-    "airyai",
-    "airyaiprime",
-    "airybi",
-    "airybiprime",
-    "assoc_laguerre",
-    "assoc_legendre",
-    "bspline_basis",
-    "bspline_basis_set",
-    "chebyshevt",
-    "chebyshevt_poly",
-    "chebyshevt_root",
-    "chebyshevu",
-    "chebyshevu_poly",
-    "chebyshevu_root",
-    "dirichlet_eta",
-    "ei",
-    "elliptic_k",
-    "erf2",
-    "erf2inv",
-    "erfcinv",
-    "erfi",
-    "erfinv",
-    "expint",
-    "fresnelc",
-    "fresnels",
-    "gegenbauer",
-    "gegenbauer",
-    "gegenbauer",
-    "gegenbauer_poly",
-    "hankel1",
-    "hankel2",
-    "hermite",
-    "hermite_poly",
-    "hyper",
-    "jacobi",
-    "jacobi_normalized",
-    "jacobi_poly",
-    "jn",
-    "jn_zeros",
-    "laguerre",
-    "laguerre_poly",
-    "legendre",
-    "legendre_poly",
-    "lerchphi",
-    "li",
-    "loggamma",
-    "lowergamma",
-    "mathieuc",
-    "mathieucprime",
-    "mathieus",
-    "mathieusprime",
-    "meijerg",
-    "polylog",
-    "uppergamma",
-    "yn",
-    "zeta")
+## Based on normalized grammar output by parser which has
+## if (expr) {
+## }
+## else {
+## }
+## for the parsing of if/else statements
+regIf <- rex::rex(start, any_spaces, "if", any_spaces, "(", capture(anything), ")", any_spaces, "{", any_spaces, end);
+regElse <- rex::rex(start, any_spaces, "else", any_spaces, "{", any_spaces, end);
+regEnd <- rex::rex(start, any_spaces, "}", any_spaces, end);
+regIfOrElse <- rex::rex(or(regIf, regElse))
 
-regBadSymPy <- rex::rex(capture(or(sympy.bad)), "(")
+##' Expand if/else clauses into mutiple different types of lines.
+##'
+##'
+##' @param model Model can be a character, or a RxODE model.  It needs
+##'     to have normalized syntax, that is \code{if (...)\{} has to be
+##'     on the same line.  The \code{else} statement must be on its
+##'     own line with the closing bracket of the \code{if} statement
+##'     on the previous line.  This \code{else} statment must also
+##'     contain the opening bracket, like the code \code{else \{}
+##' @param removeInis When the model is an RxODE model, remove the
+##'     initialziation parameters from the model when \code{TRUE}, or
+##'     leave then when \code{FALSE}.
+##' @return A named character vector. The names of the vector are the
+##'     logical conditions, the values are the lines that satisfy the
+##'     logical conditions.
+##' @author Matthew L. Fidler
+##' @keywords internal
+##' @export
+rxExpandIfElse <- function(model, removeInis=TRUE){
+    ## expand if/else blocks into a list with lines for conditions that are true
+    if (!(class(model) == "character" && length(model) == 1)){
+        x <- strsplit(rxNorm(model), "\n")[[1]];
+        if (removeInis){
+            x <- x[regexpr(rex::rex(start,any_spaces,or(names(rxInits(model))),any_spaces,"="), x) == -1];
+            x <- x[regexpr(rex::rex(start,any_spaces,or(names(rxInits(model))),"(0)", any_spaces,"="), x) == -1];
+        }
+        model <- x;
+    } else {
+        model <- strsplit(model, "\n")[[1]];
+    }
+    w1 <- which(regexpr(regIfOrElse, model) != -1);
+    w2 <- which(regexpr(regEnd, model) != -1);
+    if (length(w1) > 0){
+        curr.expr <- c("");
+        lst <- list();
+        last <- "";
+        known <- list();
+        for (i in 1:length(model)){
+            if (any(i == w1)){
+                if (regexpr(regElse, model[i]) != -1){
+                    curr.expr[length(curr.expr) + 1] <- sprintf("!(%s)", last);
+                } else {
+                    curr.expr[length(curr.expr) + 1] <- gsub(regIf, "!(\\1)", model[i]);
+                    known[[length(known) + 1]] <- c(paste(paste0("(", curr.expr[-1], ")"), collapse=" && "), curr.expr[-1]);
+                    curr.expr[length(curr.expr)] <- gsub(regIf, "\\1", model[i]);
+                    known[[length(known) + 1]] <- c(paste(paste0("(", curr.expr[-1], ")"), collapse=" && "), curr.expr[-1]);
+                }
+                lst[[i]] <- "control";
+            } else if (any(i == w2)){
+                last <- curr.expr[length(curr.expr)];
+                curr.expr <- curr.expr[seq(1, length(curr.expr) - 1)];
+                lst[[i]] <- "control";
+            } else {
+                lst[[i]] <- curr.expr;
+            }
+        }
+        ret <- list();
+        rm <- c();
+        for (i in 1:length(known)){
+            mod <- c();
+            for (j in 1:length(model)){
+                if (identical(lst[[j]], c(""))){
+                    mod[length(mod) + 1] <- model[j];
+                } else {
+                    i1 <- lst[[j]][-1];
+                    i2 <- known[[i]][-1];
+                    i3 <- i2[1:min(length(i1), length(i2))];
+                    if (!identical(i2, i3)){
+                        ## Find the expression to remove
+                        for (k in 1:length(known)){
+                            i4 <- known[[k]][-1];
+                            if (identical(i4, i3)){
+                                rm <- c(rm, known[[k]][1]);
+                            }
+                        }
+                    }
+                    if (identical(i1, i3)){
+                        mod[length(mod) + 1] <- model[j];
+                    }
+                }
+            }
+            ret[[known[[i]][1]]] <- paste(mod, collapse="\n");
+        }
+        ret <- unlist(ret);
+        ret <- ret[!(names(ret) %in% rm)];
+        return(ret);
+    } else {
+        return(paste(model, collapse="\n"));
+    }
+
+}
 
 ## Start DSL based on http://adv-r.had.co.nz/dsl.html
 unaryOp <- function(left, right) {
