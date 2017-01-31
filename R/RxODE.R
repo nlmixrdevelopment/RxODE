@@ -1537,7 +1537,7 @@ rxDelete <- function(obj){
 ##'
 ##' @author Matthew L.Fidler
 ##' @export
-rxParams <- function(obj, ...){
+rxParams <- function(obj){
     return(rxModelVars(obj)$params);
 }
 
@@ -1556,7 +1556,7 @@ rxParam <- rxParams
 ##'     object.
 ##' @author Matthew L. Fidler
 ##' @export
-rxDfdy <- function(obj,  ...){
+rxDfdy <- function(obj){
     return(rxModelVars(obj)$dfdy);
 }
 
@@ -1578,7 +1578,7 @@ rxDfdy <- function(obj,  ...){
 ##'
 ##' @author Matthew L.Fidler
 ##' @export
-rxState <- function(obj, state, ...){
+rxState <- function(obj, state){
     if (missing(state)){
         return(rxModelVars(obj)$state);
     } else {
@@ -1603,7 +1603,7 @@ rxState <- function(obj, state, ...){
 ##'
 ##' @author Matthew L.Fidler
 ##' @export
-rxLhs <- function(obj, ...){
+rxLhs <- function(obj){
     return(rxModelVars(obj)$lhs);
 }
 ##' Get the normalized model
@@ -1615,7 +1615,7 @@ rxLhs <- function(obj, ...){
 ##' @return Normalized Normal syntax (no comments)
 ##' @author Matthew L. Fidler
 ##' @export
-rxNorm <- function(obj, ...){
+rxNorm <- function(obj){
     tmp <- rxModelVars(obj)$model["normModel"]
     names(tmp) <- NULL;
     return(tmp)

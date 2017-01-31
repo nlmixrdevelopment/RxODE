@@ -82,9 +82,11 @@ additive_expression : multiplicative_expression
 multiplicative_expression : unary_expression 
     (('*' | '/') unary_expression)* ;
 
-unary_expression : ('+' | '-')? (primary_expression | power_expression );
+unary_expression : ('+' | '-')? (primary_expression | power_expression | div_expression);
 
 power_expression : primary_expression power_operator primary_expression ;
+
+div_expression : primary_expression '/' primary_expression ;
 
 power_operator   : ('^' | '**');
 

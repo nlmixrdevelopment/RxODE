@@ -5,14 +5,12 @@
 \alias{rxParam}
 \title{Parameters specified by the model}
 \usage{
-rxParams(obj, ...)
+rxParams(obj)
 
-rxParam(obj, ...)
+rxParam(obj)
 }
 \arguments{
-\item{obj}{is a RxODE family of objects}
-
-\item{...}{Ignored arguments}
+\item{obj}{RxODE family of objects}
 }
 \value{
 a character vector listing the parameters in the model.

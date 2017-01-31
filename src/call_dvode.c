@@ -658,27 +658,20 @@ double RxODE_factorial(double x){
   return exp(lgamma1p(x));
 }
 
-double RxODE_polygamma(double deriv, double x){
-  // sympy uses polygamma(deriv, x)
-  // R's C interface uses:
-  return psigamma(x, deriv);
+double RxODE_safe_log(double x){
+  if (x == 0.0){
+    return log(sqrt(DOUBLE_EPS));
+  } else {
+    return log(x);
+  }
 }
 
-// sympy compatability functions
-double RxODE_besseli(double nu, double z){
-  return bessel_i(z, nu, 1.0);
-}
-
-double RxODE_besselj(double nu, double z){
-  return bessel_j(z, nu);
-}
-
-double RxODE_besselk(double nu, double z){
-  return bessel_k(z, nu, 1.0);
-}
-
-double RxODE_bessely(double nu, double z){
-  return bessel_y(z, nu);
+double RxODE_safe_div(double x, double y){
+  if (y == 0.0){
+    return (x/sqrt(DOUBLE_EPS));
+  } else {
+    return (x/y);
+  }
 }
 
 void R_init_RxODE(DllInfo *info){
@@ -705,9 +698,7 @@ void R_init_RxODE(DllInfo *info){
   R_RegisterCCallable("RxODE","RxODE_transit4",         (DL_FUNC) RxODE_transit4);
   R_RegisterCCallable("RxODE","RxODE_transit3",         (DL_FUNC) RxODE_transit3);
   R_RegisterCCallable("RxODE","RxODE_factorial",        (DL_FUNC) RxODE_factorial);
-  R_RegisterCCallable("RxODE","RxODE_polygamma",        (DL_FUNC) RxODE_polygamma);
-  R_RegisterCCallable("RxODE","RxODE_besseli",          (DL_FUNC) RxODE_besseli);
-  R_RegisterCCallable("RxODE","RxODE_besselj",          (DL_FUNC) RxODE_besselj);
-  R_RegisterCCallable("RxODE","RxODE_besselk",          (DL_FUNC) RxODE_besselk);
-  R_RegisterCCallable("RxODE","RxODE_bessely",          (DL_FUNC) RxODE_bessely);
+  R_RegisterCCallable("RxODE","RxODE_safe_log",         (DL_FUNC) RxODE_safe_log);
+  R_RegisterCCallable("RxODE","RxODE_safe_div",         (DL_FUNC) RxODE_safe_div);
+
 }

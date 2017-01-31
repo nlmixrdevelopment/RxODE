@@ -688,7 +688,6 @@ rxSymPyDfDy <- function(model, df, dy, vars=FALSE){
         var <- rxToSymPy(sprintf("df(%s)/dy(%s)", df, dy));
         line <- sprintf("diff(%s,%s)", var1, dy);
         line <- rSymPy::sympy(line);
-        line <- rSymPy::sympy(sprintf("simplify(%s)", line));
         .Jython$exec(sprintf("%s=%s", var, line));
         ret <- sprintf("df(%s)/dy(%s) = %s", df, dy, rxFromSymPy(line));
         return(ret);

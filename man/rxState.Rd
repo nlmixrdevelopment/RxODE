@@ -4,15 +4,15 @@
 \alias{rxState}
 \title{State variables}
 \usage{
-rxState(obj, state, ...)
+rxState(obj, state)
 }
 \arguments{
-\item{obj}{is a RxODE family of objects}
+\item{obj}{RxODE family of objects}
 
 \item{state}{is a string indicating the state or compartment that
-you would like to lookup.}
+    you would like to lookup.
 
-\item{...}{Ignored arguments}
+'}
 }
 \value{
 If state is missing, return a character vector of all the states.

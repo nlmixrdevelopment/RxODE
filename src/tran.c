@@ -310,6 +310,11 @@ void wprint_node(int depth, char *name, char *value, void *client_data) {
     sb.o += 8;
     sprintf(SBTPTR, "lgamma1p");
     sbt.o += 8;
+  } else if (!strcmp("identifier",name) && !strcmp("log",value)){
+    sprintf(SBPTR, "safe_log");
+    sb.o += 8;
+    sprintf(SBTPTR, "log");
+    sbt.o += 3;
   } else {
     // Apply fix for dot.syntax
     for (i = 0; i < strlen(value); i++){
@@ -359,7 +364,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       !strcmp("+", name) ||
       !strcmp("-", name) ||
       !strcmp("*", name) ||
-      !strcmp("/", name) ||
+      /* !strcmp("/", name) || */
 
       !strcmp("&&", name) ||
       !strcmp("||", name) ||
@@ -413,6 +418,10 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
     if (!strcmp("power_expression", name)) {
       sprintf(SBPTR, " pow(");
       sb.o += 5;
+    }
+    if (!strcmp("div_expression", name)) {
+      sprintf(SBPTR, " safe_div(");
+      sb.o += 10;
     }
     for (i = 0; i < nch; i++) {
       if (!rx_syntax_assign  &&
@@ -663,6 +672,12 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         sprintf(SBTPTR, "^");
         sbt.o++;
       }
+      if (!strcmp("div_expression", name) && i==0) {
+        sprintf(SBPTR, ",");
+        sb.o++;
+        sprintf(SBTPTR, "/");
+        sbt.o++;
+      }
       if (!rx_syntax_star_pow && i == 1 &&!strcmp("power_expression", name)){
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
         if (!strcmp("**",v)){
@@ -835,10 +850,11 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       fprintf(fpIO2, "}\n");
     }
     
-    if (!strcmp("power_expression", name)) {
+    if (!strcmp("power_expression", name) || !strcmp("div_expression", name)) {
       sprintf(SBPTR, ")");
       sb.o++;
     }
+
   }
 
 }
@@ -1412,7 +1428,6 @@ void codegen(FILE *outpt, int show_ode) {
         }
         
       }
-      
       fprintf(outpt, "\t%s", sLine);
     }
     fclose(fpIO);
