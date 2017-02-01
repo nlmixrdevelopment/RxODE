@@ -373,8 +373,7 @@ RxODE <- function(model, modName = basename(wd), wd = getwd(),
             compile = cmpMgr$compile,
             get.index = cmpMgr$get.index,
             run = solve,
-            getObj = function(obj) get(obj, envir = environment(solve)),
-            condition=NULL)
+            getObj = function(obj) get(obj, envir = environment(solve)))
     class(out) <- "RxODE"
    out
 }
@@ -968,11 +967,11 @@ rxMd5 <- function(model,         # Model File
         tmp <- getLoadedDLLs()$RxODE;
         class(tmp) <- "list";
         ## new RxODE dlls gives different digests.
-        ret <- c(ret, digest::digest(tmp$path,file=TRUE, algo="xxhash32"));
+        ret <- c(ret, digest::digest(tmp$path,file=TRUE, algo="xxhash64"));
         ## Add version and github repository information
         ret <- c(ret, rxVersion());
         return(list(text = mod,
-                    digest = digest::digest(ret, algo="xxhash32")));
+                    digest = digest::digest(ret, algo="xxhash64")));
     } else {
         rxModelVars(model)$md5;
     }
@@ -1106,7 +1105,6 @@ rxTrans.character <- function(model,
             cat(new);
             cat("\n");
             sink()
-            ## cat(new)
             ret <- .Call("trans", model, expandModel, cFile, extraC, modelPrefix, md5, parseModel, out3, PACKAGE="RxODE");
             ## dparser::dpReload();
             ## rxReload();
@@ -1606,6 +1604,7 @@ rxLhs <- function(obj){
     return(rxModelVars(obj)$lhs);
 }
 
+rxConditionLst <- list();
 ##' Current Condition for RxODE object
 ##'
 ##' @param obj RxODE object
@@ -1619,19 +1618,22 @@ rxLhs <- function(obj){
 ##' @keywords internal
 ##' @export
 rxCondition <- function(obj, condition=NULL){
-    if (class(obj) == "RxODE"){
-        env <- environment(obj$solve);
-        if (is.null(condition)){
-            return(env$condition);
-        } else if (any(condition == rxNorm(obj,TRUE))){
-            assign("condition", condition, envir=env);
-            return(env$condition);
-        } else {
-            assign("condition", NULL, envir=env);
-            return(env$condition);
-        }
+    key <- digest::digest(rxNorm(obj,FALSE),algo="xxhash64");
+    if (!missing(condition) && is.null(condition)){
+        condition <- FALSE;
+    }
+    if (is.null(condition)){
+        return(rxConditionLst[[key]]);
+    } else if (any(condition == rxNorm(obj,TRUE))){
+        lst <- rxConditionLst;
+        lst[[key]] <- condition;
+        assignInMyNamespace("rxConditionLst", lst);
+        return(rxConditionLst[[key]]);
     } else {
-        stop("You can only set the condition with an RxODE object.");
+        lst <- rxConditionLst;
+        lst[[key]] <- NULL;
+        assignInMyNamespace("rxConditionLst", lst);
+        return(rxConditionLst[[key]]);
     }
 }
 
@@ -1679,7 +1681,7 @@ rxNorm <- function(obj, condition=NULL, removeInis, removeJac, removeSens){
                 tmp <- rxExpandIfElse(obj)
                 return(names(tmp))
             }
-        } else if (is.null(condition) && class(condition) == "RxODE"){
+        } else if (is.null(condition)){
             condition <- rxCondition(obj);
         }
         if (is.null(condition)){

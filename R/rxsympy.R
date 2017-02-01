@@ -548,8 +548,7 @@ rxToSymPy <- function(x, envir=parent.frame(1)) {
         cls <- tryCatch({class(x)}, error=function(e){return("error")});
         if (any(cls == c("list", "rxDll", "RxCompilationManager", "RxODE", "solveRxDll"))){
             ret <- strsplit(rxNorm(x),"\n")[[1]];
-            ret <- ret[regexpr(rex::rex(start,any_spaces,or(names(rxInits(x))),any_spaces,"="), ret) == -1];
-            ret <- ret[regexpr(rex::rex(start,any_spaces,or(names(rxInits(x))),"(0)", any_spaces,"="), ret) == -1];
+            ret <- rxRmIni(ret);
             ret <- eval(parse(text=sprintf("rxToSymPy(%s,envir=envir)", deparse(paste0(ret, collapse="\n")))), envir=envir);
             return(ret);
         } else if (cls == "character" && length(cls) == 1){
@@ -640,7 +639,7 @@ rxSymPyVars <- function(model){
 ##' @keywords internal
 ##' @export
 rxSymPySetup <- function(model){
-    setup <- rxToSymPy(model)
+    setup <- rxToSymPy(model);
     rxSymPyVars(model)
     assignInMyNamespace("rxSymPy.vars", c(rxSymPy.vars, names(setup)))
     for (line in setup){
@@ -667,7 +666,7 @@ rxSymPySetup <- function(model){
 ##' @keywords internal
 rxSymPyDfDy <- function(model, df, dy, vars=FALSE){
     if (missing(df) && missing(dy)){
-        return(rxSymPyDfDyFull(model, vars));
+        return(rxSymPyDfDyFull(model, vars, rxCondition(model)));
     } else {
         if (!is.null(model)){
             rxSymPySetup(model);
@@ -682,8 +681,7 @@ rxSymPyDfDy <- function(model, df, dy, vars=FALSE){
     }
 }
 
-
-rxSymPyDfDyFull.slow <- function(model, vars){
+rxSymPyDfDyFull.slow <- function(model, vars, cond){
     if (class(vars) == "logical"){
         if (vars){
             jac <- expand.grid(s1=rxState(model), s2=c(rxState(model), rxParams(model)),
@@ -709,14 +707,30 @@ rxSymPyDfDyFull.slow <- function(model, vars){
     rxCat("done!\n");
     return(extraLines);
 }
-
-rxSymPyDfDyFull <- memoise::memoise(rxSymPyDfDyFull.slow)
+rxSymPyDfDyFull <- memoise::memoise(rxSymPyDfDyFull.slow);
 
 rxSymPyJacobian.slow <- function(model){
-    extraLines <- rxSymPyDfDy(model, vars=FALSE);
+    cnd <- rxNorm(model, TRUE); ## Get the conditional statements
+    extraLines <- c();
+    if (is.null(cnd)){
+        extraLines <- rxSymPyDfDy(model, vars=FALSE);
+    } else {
+        extraLines <- c();
+        for (i in cnd){
+            cat(sprintf("Calculate for %s\n", i));
+            cat("################################################################################\n");
+            rxCondition(model, i);
+            extraLines <- c(extraLines,
+                            sprintf("if %s {", i),
+                            rxSymPyDfDy(model, vars=FALSE),
+                            "}")
+        }
+        rxCondition(model, FALSE);
+    }
     extraLines <- extraLines[regexpr(rex::rex("=", any_spaces, "0", any_spaces, at_most(";",1)), extraLines) == -1];
     model <- sprintf("%s\n%s", rxNorm(model), paste(extraLines, collapse="\n"));
     rxSymPyClean()
+    cat(model)
     return(model);
 }
 
@@ -730,18 +744,28 @@ rxSymPyJacobian.slow <- function(model){
 ##' @author Matthew L. Fidler
 rxSymPyJacobian <- memoise::memoise(rxSymPyJacobian.slow);
 
-rxSymPySensitivity.slow <- function(model, calcSens, calcJac=FALSE){
+##' Does the varaible exists in the sympy python environment
+##'
+##' @param var Variable to test if it exists.
+##' @return boolean
+##' @author Matthew L. Fidler
+##' @keywords internal
+##' @export
+rxSymPyExists <- function(var){
+    return(regexpr(rex::rex("'", var, "'"), rSymPy::sympy("dir()")) != -1)
+}
+##' Delete variable if exists.
+##'
+##' @param var Variable to delete.
+##' @author Matthew L. Fidler
+##' @keywords internal
+rxSymPyClear <- function(var){
+    if (rxSymPyExists(var)){
+        .Jython$exec(sprintf("del %s", var));
+    }
+}
+rxSymPySensitivity.single <- function(model, calcSens, calcJac){
     rxSymPySetup(model);
-    if (missing(calcSens)){
-        calcSens <- rxParams(model);
-    }
-    if (class(calcSens) == "logical"){
-        if (calcSens){
-            calcSens <- rxParams(model);
-        } else {
-            stop("It is pointless to request a sensitivity calculation when calcSens=FALSE.")
-        }
-    }
     state <- rxState(model)
     extraLines <- rxSymPyDfDy(model, vars=TRUE);
     all.sens <- c();
@@ -790,8 +814,39 @@ rxSymPySensitivity.slow <- function(model, calcSens, calcJac=FALSE){
     }
     extraLines <- extraLines[regexpr(rex::rex("=", any_spaces, "0", any_spaces, at_most(";",1), any_spaces), extraLines) == -1];
     ## cat(paste(extraLines, collapese="\n"), "\n")
-    ret <- sprintf("%s\n%s", rxNorm(model), paste(extraLines, collapse="\n"));
     rxSymPyClean()
+    return(extraLines);
+}
+
+rxSymPySensitivity.slow <- function(model, calcSens, calcJac=FALSE){
+    if (missing(calcSens)){
+        calcSens <- rxParams(model);
+    }
+    if (class(calcSens) == "logical"){
+        if (calcSens){
+            calcSens <- rxParams(model);
+        } else {
+            stop("It is pointless to request a sensitivity calculation when calcSens=FALSE.")
+        }
+    }
+    cnd <- rxNorm(model, TRUE); ## Get the conditional statements
+    extraLines <- c();
+    if (is.null(cnd)){
+        extraLines <- rxSymPySensitivity.single(model, calcSens, calcJac);
+    } else {
+        extraLines <- c();
+        for (i in cnd){
+            cat(sprintf("Calculate for %s\n", i));
+            cat("################################################################################\n");
+            rxCondition(model, i);
+            extraLines <- c(extraLines,
+                            sprintf("if %s {", i),
+                            rxSymPySensitivity.single(model, calcSens, calcJac),
+                            "}")
+        }
+        rxCondition(model, FALSE);
+    }
+    ret <- sprintf("%s\n%s", rxNorm(model), paste(extraLines, collapse="\n"));
     return(ret);
 }
 ##' Calculate the sensitivity equations for a model
@@ -817,7 +872,7 @@ rxSymPySensitivity <- memoise::memoise(rxSymPySensitivity.slow);
 ##' @export
 rxSymPyClean <- function(){
     for (v in unique(rxSymPy.vars)){
-        try({.Jython$exec(sprintf("del %s", v))}, silent = TRUE);
+        rxSymPyClear(v);
     }
     assignInMyNamespace("rxSymPy.vars", c());
 }
