@@ -968,11 +968,11 @@ rxMd5 <- function(model,         # Model File
         tmp <- getLoadedDLLs()$RxODE;
         class(tmp) <- "list";
         ## new RxODE dlls gives different digests.
-        ret <- c(ret, digest::digest(tmp$path,file=TRUE));
+        ret <- c(ret, digest::digest(tmp$path,file=TRUE, algo="xxhash32"));
         ## Add version and github repository information
         ret <- c(ret, rxVersion());
         return(list(text = mod,
-                    digest = digest::digest(ret)));
+                    digest = digest::digest(ret, algo="xxhash32")));
     } else {
         rxModelVars(model)$md5;
     }
