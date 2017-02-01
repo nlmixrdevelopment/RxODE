@@ -48,7 +48,7 @@ regIfOrElse <- rex::rex(or(regIf, regElse))
 rxExpandIfElse <- function(model, removeInis=TRUE){
     ## expand if/else blocks into a list with lines for conditions that are true
     if (!(class(model) == "character" && length(model) == 1)){
-        x <- strsplit(rxNorm(model), "\n")[[1]];
+        x <- strsplit(rxNorm(model, FALSE), "\n")[[1]];
         if (removeInis){
             x <- x[regexpr(rex::rex(start,any_spaces,or(names(rxInits(model))),any_spaces,"="), x) == -1];
             x <- x[regexpr(rex::rex(start,any_spaces,or(names(rxInits(model))),"(0)", any_spaces,"="), x) == -1];
@@ -116,9 +116,7 @@ rxExpandIfElse <- function(model, removeInis=TRUE){
     } else {
         return(paste(model, collapse="\n"));
     }
-
 }
-
 ## Start DSL based on http://adv-r.had.co.nz/dsl.html
 unaryOp <- function(left, right) {
     force(left)
@@ -403,7 +401,12 @@ evalPrints <- function(x, envir=parent.frame()){
             identical(x[[1]], quote(sympy)) ||
             identical(x[[1]], quote(rxToSymPy)) ||
             identical(x[[1]], quote(rxFromSymPy))){
-            txt <- sprintf("quote(%s)", eval(x, envir));
+            txt <- sprintf("%s", eval(x, envir));
+            if (regexpr("=", txt) != -1){
+                txt <- deparse(txt);
+            } else {
+                txt <- paste0("quote(", txt, ")")
+            }
             txt <- eval(parse(text=txt))
             return(txt)
         } else {
@@ -447,6 +450,8 @@ sympyEnv <- function(expr){
     n1 <- names;
     n2 <- names;
     n2[n2 == "time"] <- "t";
+    ## Replace print functions with nothing.
+    n2[n2 %in% c('print', 'jac_print', 'ode_print', 'jac0_print', 'ode_print', 'ode0_print', 'lhs_print')] <- "";
     symbol.list <- setNames(as.list(n2), n1);
     symbol.env <- list2env(symbol.list, parent=rxSympyFEnv);
 }
@@ -498,6 +503,7 @@ rxToSymPy <- function(x, envir=parent.frame(1)) {
                     return(var);
                 }
             }));
+            ## txt <- txt[txt != ""];
             if (addNames){
                 names(txt) <- vars;
             }
@@ -508,7 +514,7 @@ rxToSymPy <- function(x, envir=parent.frame(1)) {
     } else if (class(substitute(x)) == "name"){
         cls <- tryCatch({class(x)}, error=function(e){return("error")});
         if (any(cls == c("list", "rxDll", "RxCompilationManager", "RxODE", "solveRxDll"))){
-            ret <- strsplit(rxModelVars(x)$model["normModel"],"\n")[[1]];
+            ret <- strsplit(rxNorm(x),"\n")[[1]];
             ret <- ret[regexpr(rex::rex(start,any_spaces,or(names(rxInits(x))),any_spaces,"="), ret) == -1];
             ret <- ret[regexpr(rex::rex(start,any_spaces,or(names(rxInits(x))),"(0)", any_spaces,"="), ret) == -1];
             ret <- eval(parse(text=sprintf("rxToSymPy(%s,envir=envir)", deparse(paste0(ret, collapse="\n")))), envir=envir);
@@ -704,7 +710,7 @@ rxSymPyDfDy <- function(model, df, dy, vars=FALSE){
 rxSymPyJacobian <- function(model){
     extraLines <- rxSymPyDfDy(model, vars=FALSE);
     extraLines <- extraLines[regexpr(rex::rex("=", any_spaces, "0", any_spaces, at_most(";",1)), extraLines) == -1];
-    model <- sprintf("%s\n%s", rxModelVars(model)$model["normModel"], paste(extraLines, collapse="\n"));
+    model <- sprintf("%s\n%s", rxNorm(model), paste(extraLines, collapse="\n"));
     rxSymPyClean()
     return(model);
 }
@@ -793,8 +799,8 @@ rxSymPySensitivity <- function(model, calcSens, calcJac=FALSE){
         extraLines <- extraLines[regexpr(rex::rex(regJac, any_spaces, "="), extraLines) == -1];
     }
     extraLines <- extraLines[regexpr(rex::rex("=", any_spaces, "0", any_spaces, at_most(";",1), any_spaces), extraLines) == -1];
-    ## cat(paste(extraLines, collapse="\n"), "\n");
-    ret <- sprintf("%s\n%s", rxModelVars(model)$model["normModel"], paste(extraLines, collapse="\n"));
+    ## cat(paste(extraLines, collapese="\n"), "\n")
+    ret <- sprintf("%s\n%s", rxNorm(model), paste(extraLines, collapse="\n"));
     rxSymPyClean()
     return(ret);
 }

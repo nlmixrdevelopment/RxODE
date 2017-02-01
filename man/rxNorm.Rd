@@ -4,10 +4,16 @@
 \alias{rxNorm}
 \title{Get the normalized model}
 \usage{
-rxNorm(obj)
+rxNorm(obj, condition = NULL)
 }
 \arguments{
 \item{obj}{RxODE family of objects}
+
+\item{condition}{Character string of a logical condition to use
+for subsetting the normalized model.  When missing, and a
+condition is not set via \code{rxCondition}, return the whole
+code with all the conditional settings intact.  When a
+condition is set with \code{rxCondition}, use that condition.}
 }
 \value{
 Normalized Normal syntax (no comments)

@@ -374,7 +374,8 @@ RxODE <- function(model, modName = basename(wd), wd = getwd(),
             compile = cmpMgr$compile,
             get.index = cmpMgr$get.index,
             run = solve,
-            getObj = function(obj) get(obj, envir = environment(solve)))
+            getObj = function(obj) get(obj, envir = environment(solve)),
+            condition=NULL)
     class(out) <- "RxODE"
    out
 }
@@ -1606,19 +1607,74 @@ rxState <- function(obj, state){
 rxLhs <- function(obj){
     return(rxModelVars(obj)$lhs);
 }
+
+##' Current Condition for RxODE object
+##'
+##' @param obj RxODE object
+##' @param condition If specified and is one of the conditions in the
+##'     RxODE object (as determined by \link{\code{rxExpandIfElse}}),
+##'     assign the RxODE current condition to this parameter.  If the
+##'     condition is not one of the known condition, the condition is
+##'     set to \code{NULL}, implying no conditioning currently used.
+##' @return Current condition for RxODE object
+##' @author Matthew L. Fidler
+##' @keywords internal
+##' @export
+rxCondition <- function(obj, condition=NULL){
+    if (class(obj) == "RxODE"){
+        env <- environment(obj$solve);
+        if (is.null(condition)){
+            return(env$condition);
+        } else if (any(condition == rxNorm(obj,TRUE))){
+            assign("condition", condition, envir=env);
+            return(env$condition);
+        } else {
+            assign("condition", NULL, envir=env);
+            return(env$condition);
+        }
+    } else {
+        stop("You can only set the condition with an RxODE object.");
+    }
+}
+
 ##' Get the normalized model
 ##'
 ##'
 ##' This get the syntax prefered model for processing
 ##'
 ##' @inheritParams rxModelVars
+##' @param condition Character string of a logical condition to use
+##'     for subsetting the normalized model.  When missing, and a
+##'     condition is not set via \code{rxCondition}, return the whole
+##'     code with all the conditional settings intact.  When a
+##'     condition is set with \code{rxCondition}, use that condition.
 ##' @return Normalized Normal syntax (no comments)
 ##' @author Matthew L. Fidler
 ##' @export
-rxNorm <- function(obj){
-    tmp <- rxModelVars(obj)$model["normModel"]
-    names(tmp) <- NULL;
-    return(tmp)
+rxNorm <- function(obj, condition=NULL){
+    if (class(condition) == "logical"){
+        if (!condition){
+            condition <- NULL;
+        } else {
+            tmp <- rxExpandIfElse(obj)
+            return(names(tmp))
+        }
+    } else if (is.null(condition) && class(condition) == "RxODE"){
+        condition <- rxCondition(obj);
+    }
+    if (is.null(condition)){
+        tmp <- rxModelVars(obj)$model["normModel"]
+        names(tmp) <- NULL;
+        return(tmp)
+    } else {
+        if (class(condition) == "character"){
+            tmp <- rxExpandIfElse(obj)[condition];
+            names(tmp) <- NULL;
+            return(tmp)
+        } else {
+            return(rxNorm(obj, FALSE));
+        }
+    }
 }
 
 ##' All model variables for a RxODE object
