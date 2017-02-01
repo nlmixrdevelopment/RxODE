@@ -149,5 +149,25 @@ mu = 1 ## nonstiff; 10 moderately stiff; 1000 stiff
         expect_false(sens$calcJac);
         expect_true(sens$calcSens);
     })
+
+    transit.if <- RxODE({
+        ## Table 3 from Savic 2007
+        cl = 17.2 # (L/hr)
+        vc = 45.1 # L
+        ka1 = 0.38 # 1/hr
+        ka2 = 0.2 # 1/hr
+        mtt = 0.37 # hr
+        bio=1
+        n = 20.1
+        k = cl/vc
+        if (pop1 == 1){
+            ka = ka1
+        } else {
+            ka = ka2
+        }
+        d/dt(depot) = transit(n, mtt, bio)-ka*depot
+        d/dt(cen) = ka*depot-k*cen
+    })
+
 }, silent=TRUE)
 

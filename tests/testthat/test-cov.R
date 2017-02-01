@@ -4,8 +4,7 @@ rxPermissive({
 
     context("Simple test for time-varying covariates")
 
-    ode <-
-        RxODE('
+    ode <- RxODE('
 b       = -1
 d/dt(X) = a*X + Y*Z;
 d/dt(Y) = b*(Y - Z);

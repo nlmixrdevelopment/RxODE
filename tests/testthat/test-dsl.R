@@ -115,3 +115,13 @@ test_that("bessel functions & polygamma", {
 test_that("unknown function raises an error.", {
     expect_error(rxFromSymPy(matt(3)))
 })
+
+
+
+
+test_that("Named component parsing", {
+    tmp <- c("name"="d/dt(matt)");
+    expect_equal(rxToSymPy(tmp), "rx__d_dt_matt__");
+    tmp <- c("name"="rx__d_dt_matt__");
+    expect_equal(rxFromSymPy(tmp), "d/dt(matt)");
+})

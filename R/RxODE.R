@@ -304,7 +304,6 @@ RxODE <- function(model, modName = basename(wd), wd = getwd(),
                   filename = NULL, do.compile = NULL, extraC = NULL,
                   debug = FALSE,
                   calcJac=NULL, calcSens=NULL, ...) {
-    rxSymPyClearCache()
     if (!missing(model) && !missing(filename))
         stop("must specify exactly one of 'model' or 'filename'")
     if (missing(model) && !missing(filename)){
@@ -1101,7 +1100,7 @@ rxTrans.character <- function(model,
             }
         }
         if (!is.null(calcSens)){
-            new <- rxSymPySensitivity(ret, calcSens=calcSens, calcJac=calcJac);
+            new <- rxSymPySensitivity(rxModelVars(rxNorm(ret)), calcSens=calcSens, calcJac=calcJac);
             expandModel <- tempfile();
             sink(expandModel);
             cat(new);
@@ -1114,7 +1113,7 @@ rxTrans.character <- function(model,
             unlink(expandModel);
             ret$md5 <- md5;
         } else if (calcJac){
-            new <- rxSymPyJacobian(ret);
+            new <- rxSymPyJacobian(rxModelVars(rxNorm(ret)));
             expandModel <- tempfile();
             sink(expandModel);
             cat(new);
@@ -1386,8 +1385,6 @@ rxCompile.character <-  function(model,           # Model
                 .call   = .call,
                 args    = args);
     class(ret) <- "rxDll";
-    ## Remove caching
-    rxSymPyClearCache()
     return(ret);
 }
 
@@ -1652,28 +1649,51 @@ rxCondition <- function(obj, condition=NULL){
 ##' @return Normalized Normal syntax (no comments)
 ##' @author Matthew L. Fidler
 ##' @export
-rxNorm <- function(obj, condition=NULL){
-    if (class(condition) == "logical"){
-        if (!condition){
-            condition <- NULL;
-        } else {
-            tmp <- rxExpandIfElse(obj)
-            return(names(tmp))
+rxNorm <- function(obj, condition=NULL, removeInis, removeJac, removeSens){
+    if (!missing(removeInis) || !missing(removeJac) || !missing(removeSens)){
+        ret <- strsplit(rxNorm(obj, condition), "\n")[[1]];
+        if (missing(removeInis)){
+            removeInis <- FALSE
         }
-    } else if (is.null(condition) && class(condition) == "RxODE"){
-        condition <- rxCondition(obj);
-    }
-    if (is.null(condition)){
-        tmp <- rxModelVars(obj)$model["normModel"]
-        names(tmp) <- NULL;
-        return(tmp)
+        if (missing(removeJac)){
+            removeJac <- FALSE
+        }
+        if (missing(removeSens)){
+            removeSens <- FALSE
+        }
+        if (removeInis){
+            ret <- rxRmIni(ret)
+        }
+        if (removeJac){
+            ret <- rxRmJac(ret)
+        }
+        if (removeSens){
+            ret <- rxRmSens(ret)
+        }
+        return(paste(ret, collapse="\n"))
     } else {
-        if (class(condition) == "character"){
-            tmp <- rxExpandIfElse(obj)[condition];
+        if (class(condition) == "logical"){
+            if (!condition){
+                condition <- NULL;
+            } else {
+                tmp <- rxExpandIfElse(obj)
+                return(names(tmp))
+            }
+        } else if (is.null(condition) && class(condition) == "RxODE"){
+            condition <- rxCondition(obj);
+        }
+        if (is.null(condition)){
+            tmp <- rxModelVars(obj)$model["normModel"]
             names(tmp) <- NULL;
             return(tmp)
         } else {
-            return(rxNorm(obj, FALSE));
+            if (class(condition) == "character"){
+                tmp <- rxExpandIfElse(obj)[condition];
+                names(tmp) <- NULL;
+                return(tmp)
+            } else {
+                return(rxNorm(obj, FALSE));
+            }
         }
     }
 }
@@ -1742,6 +1762,30 @@ rxModelVars.solveRxDll <- function(obj, ...){
     lst <- attr(obj, "solveRxDll");
     return(rxModelVars.rxDll(lst$object));
 }
+
+rxModelVars.character.slow <- function(obj, ...){
+    if (length(obj) == 1){
+        cFile <- tempfile();
+        if (file.exists(obj)){
+            parsModel <- obj;
+            on.exit({unlink(cFile)});
+        } else {
+            parseModel <- tempfile();
+            sink(parseModel);
+            cat(paste(obj, collapse="\n"));
+            sink()
+            on.exit({unlink(parseModel); unlink(cFile)});
+        }
+        ret <- rxTrans(parseModel, cFile, modVars=TRUE);
+        return(ret);
+    } else {
+        rxModelVars.character.slow(paste(obj, collapse="\n"));
+    }
+}
+
+##' @rdname rxModelVars
+##' @export
+rxModelVars.character <- memoise::memoise(rxModelVars.character.slow);
 
 ##' Print rxDll object
 ##'
