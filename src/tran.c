@@ -244,7 +244,7 @@ sbuf sb;                        /* buffer w/ current parsed & translated line */
                                 /* to be stored in a temp file */
 sbuf sbt; 
 
-char *extra_buf, *model_prefix, *md5, *out2;
+char *extra_buf, *model_prefix, *md5, *out2, *out3;
 
 static FILE *fpIO, *fpIO2;
 
@@ -1025,7 +1025,7 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
   }
   fprintf(outpt,"\"));\n");
   fprintf(outpt,"\tSET_STRING_ELT(modeln,1,mkChar(\"normModel\"));\n");
-  fpIO2 = fopen("out3.txt", "r");
+  fpIO2 = fopen(out3 , "r");
   fprintf(outpt,"\tSET_STRING_ELT(model,1,mkChar(\"");
   err_msg((intptr_t) fpIO2, "Error parsing. (Couldn't access out3.txt).\n", -1);
   in_str=0;
@@ -1569,7 +1569,7 @@ void trans_internal(char *orig_file, char* parse_file, char* c_file){
   err_msg((intptr_t) buf, "error: empty buf for FILE_to_parse\n", -2);
   if ((pn=dparse(p, buf, strlen(buf))) && !p->syntax_errors) {
     fpIO = fopen( out2, "w" );
-    fpIO2 = fopen( "out3.txt", "w" );
+    fpIO2 = fopen( out3, "w" );
     err_msg((intptr_t) fpIO, "error opening out2.txt\n", -2);
     err_msg((intptr_t) fpIO2, "error opening out3.txt\n", -2);
     wprint_parsetree(parser_tables_RxODE, pn, 0, wprint_node, NULL);
@@ -1636,7 +1636,7 @@ void trans_internal(char *orig_file, char* parse_file, char* c_file){
 }
 
 SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_md5,
-           SEXP parse_model){
+           SEXP parse_model,SEXP parse_model3){
   char *in, *orig, *out, *file, *pfile;
   char buf[512], buf2[512], df[512], dy[512];
   char snum[512];
@@ -1698,8 +1698,14 @@ SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP pref
   if (isString(parse_model) && length(parse_model) == 1){
     out2 = r_dup_str(CHAR(STRING_ELT(parse_model,0)),0);
   } else {
-    out2 = (char *) R_alloc(9,sizeof(char)); 
-    sprintf(out2,"out2.txt"); 
+    error("Parse model must be specified.");
+  }
+
+
+  if (isString(parse_model3) && length(parse_model3) == 1){
+    out3 = r_dup_str(CHAR(STRING_ELT(parse_model3,0)),0);
+  } else {
+    error("Parse model 3 must be specified.");
   }
   trans_internal(orig, in, out);
   SEXP lst   = PROTECT(allocVector(VECSXP, 9));
@@ -1879,7 +1885,7 @@ SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP pref
   SET_STRING_ELT(model,0,mkChar(pfile));
   
   SET_STRING_ELT(modeln,1,mkChar("normModel"));
-  file = r_sbuf_read("out3.txt");
+  file = r_sbuf_read(out3);
   if (file){
     pfile = (char *) R_alloc(strlen(file)+1,sizeof(char));
     j=0;
@@ -1933,7 +1939,7 @@ SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP pref
   setAttrib(lst,   R_NamesSymbol, names);
   setAttrib(model, R_NamesSymbol, modeln);
   UNPROTECT(13);
-  remove("out3.txt");
+  remove(out3);
   if (rx_syntax_error){
     error("Syntax Errors (see above)");
   }

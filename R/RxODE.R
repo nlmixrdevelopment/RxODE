@@ -1086,9 +1086,10 @@ rxTrans.character <- function(model,
         stop("This only translates a file (currently; Try rxCompile).");
     }
     parseModel <- tempfile();
+    out3 <- tempfile();
     on.exit(unlink(parseModel));
     rxReq("dparser");
-    ret <- .Call("trans", model, model, cFile, extraC, modelPrefix, md5, parseModel, PACKAGE="RxODE");
+    ret <- .Call("trans", model, model, cFile, extraC, modelPrefix, md5, parseModel, out3, PACKAGE="RxODE");
     ## dparser::dpReload();
     ## rxReload()
     if (file.exists(cFile)){
@@ -1107,7 +1108,7 @@ rxTrans.character <- function(model,
             cat("\n");
             sink()
             ## cat(new)
-            ret <- .Call("trans", model, expandModel, cFile, extraC, modelPrefix, md5, parseModel, PACKAGE="RxODE");
+            ret <- .Call("trans", model, expandModel, cFile, extraC, modelPrefix, md5, parseModel, out3, PACKAGE="RxODE");
             ## dparser::dpReload();
             ## rxReload();
             unlink(expandModel);
@@ -1119,7 +1120,7 @@ rxTrans.character <- function(model,
             cat(new);
             cat("\n");
             sink()
-            ret <- .Call("trans", model, expandModel, cFile, extraC, modelPrefix, md5, parseModel, PACKAGE="RxODE");
+            ret <- .Call("trans", model, expandModel, cFile, extraC, modelPrefix, md5, parseModel, out3, PACKAGE="RxODE");
             ## dparser::dpReload();
             ## rxReload();
             unlink(expandModel);
