@@ -13,12 +13,12 @@ rxPermissive({
         }});
 
     test_that("Simple if/else expansion works on model", {
-        expect_equal(rxExpandIfElse(rx1), c("(!(t<0.02||t>99.98))"="d/dt(X)=a*X+Y*Z;\nd/dt(Y)=b*(Y-Z);\nd/dt(Z)=-X*Y+c*Y-Z;\njac_print;",
+        expect_equal(rxExpandIfElse(rx1, TRUE, FALSE), c("(!(t<0.02||t>99.98))"="d/dt(X)=a*X+Y*Z;\nd/dt(Y)=b*(Y-Z);\nd/dt(Z)=-X*Y+c*Y-Z;\njac_print;",
                                             "(t<0.02||t>99.98)"="d/dt(X)=a*X+Y*Z;\nd/dt(Y)=b*(Y-Z);\nd/dt(Z)=-X*Y+c*Y-Z;\nprint;"))
     });
 
     test_that("Keep initilizations if needed.", {
-        expect_equal(rxExpandIfElse(rx1, FALSE), c("(!(t<0.02||t>99.98))"="b=-1;\nd/dt(X)=a*X+Y*Z;\nd/dt(Y)=b*(Y-Z);\nd/dt(Z)=-X*Y+c*Y-Z;\njac_print;",
+        expect_equal(rxExpandIfElse(rx1, FALSE, FALSE), c("(!(t<0.02||t>99.98))"="b=-1;\nd/dt(X)=a*X+Y*Z;\nd/dt(Y)=b*(Y-Z);\nd/dt(Z)=-X*Y+c*Y-Z;\njac_print;",
                                                    "(t<0.02||t>99.98)"="b=-1;\nd/dt(X)=a*X+Y*Z;\nd/dt(Y)=b*(Y-Z);\nd/dt(Z)=-X*Y+c*Y-Z;\nprint;"))
     })
 
@@ -32,12 +32,12 @@ rxPermissive({
         }})
 
     test_that("Simple if expansion works on model", {
-        expect_equal(rxExpandIfElse(rx2), c("(!(t<0.02||t>99.98))"="d/dt(X)=a*X+Y*Z;\nd/dt(Y)=b*(Y-Z);\nd/dt(Z)=-X*Y+c*Y-Z;",
+        expect_equal(rxExpandIfElse(rx2, TRUE, FALSE), c("(!(t<0.02||t>99.98))"="d/dt(X)=a*X+Y*Z;\nd/dt(Y)=b*(Y-Z);\nd/dt(Z)=-X*Y+c*Y-Z;",
                                             "(t<0.02||t>99.98)"="d/dt(X)=a*X+Y*Z;\nd/dt(Y)=b*(Y-Z);\nd/dt(Z)=-X*Y+c*Y-Z;\nprint;"))
     });
 
     test_that("Keep initilizations if needed.", {
-        expect_equal(rxExpandIfElse(rx2, FALSE), c("(!(t<0.02||t>99.98))"="b=-1;\nd/dt(X)=a*X+Y*Z;\nd/dt(Y)=b*(Y-Z);\nd/dt(Z)=-X*Y+c*Y-Z;",
+        expect_equal(rxExpandIfElse(rx2, FALSE, FALSE), c("(!(t<0.02||t>99.98))"="b=-1;\nd/dt(X)=a*X+Y*Z;\nd/dt(Y)=b*(Y-Z);\nd/dt(Z)=-X*Y+c*Y-Z;",
                                                    "(t<0.02||t>99.98)"="b=-1;\nd/dt(X)=a*X+Y*Z;\nd/dt(Y)=b*(Y-Z);\nd/dt(Z)=-X*Y+c*Y-Z;\nprint;"))
     });
 
@@ -58,13 +58,13 @@ rxPermissive({
         }});
 
     test_that("nested if/then", {
-        expect_equal(rxExpandIfElse(rx3), c("(!(t<0.02||t>99.98))"="d/dt(X)=a*X+Y*Z;\nd/dt(Y)=b*(Y-Z);\nd/dt(Z)=-X*Y+c*Y-Z;",
+        expect_equal(rxExpandIfElse(rx3, TRUE, FALSE), c("(!(t<0.02||t>99.98))"="d/dt(X)=a*X+Y*Z;\nd/dt(Y)=b*(Y-Z);\nd/dt(Z)=-X*Y+c*Y-Z;",
                                             "(t<0.02||t>99.98) && (!(t>100))"="d/dt(X)=a*X+Y*Z;\nd/dt(Y)=b*(Y-Z);\nd/dt(Z)=-X*Y+c*Y-Z;\nprint;\node_print;",
                                             "(t<0.02||t>99.98) && (t>100)"="d/dt(X)=a*X+Y*Z;\nd/dt(Y)=b*(Y-Z);\nd/dt(Z)=-X*Y+c*Y-Z;\nprint;\njac_print;"))
     });
 
     test_that("Keep initilizations", {
-        expect_equal(rxExpandIfElse(rx3, FALSE), c("(!(t<0.02||t>99.98))"="b=-1;\nd/dt(X)=a*X+Y*Z;\nd/dt(Y)=b*(Y-Z);\nd/dt(Z)=-X*Y+c*Y-Z;",
+        expect_equal(rxExpandIfElse(rx3, FALSE, FALSE), c("(!(t<0.02||t>99.98))"="b=-1;\nd/dt(X)=a*X+Y*Z;\nd/dt(Y)=b*(Y-Z);\nd/dt(Z)=-X*Y+c*Y-Z;",
                                                    "(t<0.02||t>99.98) && (!(t>100))"="b=-1;\nd/dt(X)=a*X+Y*Z;\nd/dt(Y)=b*(Y-Z);\nd/dt(Z)=-X*Y+c*Y-Z;\nprint;\node_print;",
                                                    "(t<0.02||t>99.98) && (t>100)"="b=-1;\nd/dt(X)=a*X+Y*Z;\nd/dt(Y)=b*(Y-Z);\nd/dt(Z)=-X*Y+c*Y-Z;\nprint;\njac_print;"))
     });
@@ -82,13 +82,13 @@ rxPermissive({
         }})
 
     test_that("nested if/then #2", {
-        expect_equal(rxExpandIfElse(rx4), c("(!(t<0.02||t>99.98))"="d/dt(X)=a*X+Y*Z;\nd/dt(Y)=b*(Y-Z);\nd/dt(Z)=-X*Y+c*Y-Z;",
+        expect_equal(rxExpandIfElse(rx4, TRUE, FALSE), c("(!(t<0.02||t>99.98))"="d/dt(X)=a*X+Y*Z;\nd/dt(Y)=b*(Y-Z);\nd/dt(Z)=-X*Y+c*Y-Z;",
                                             "(t<0.02||t>99.98) && (!(t>100))"="d/dt(X)=a*X+Y*Z;\nd/dt(Y)=b*(Y-Z);\nd/dt(Z)=-X*Y+c*Y-Z;\nprint;",
                                             "(t<0.02||t>99.98) && (t>100)"="d/dt(X)=a*X+Y*Z;\nd/dt(Y)=b*(Y-Z);\nd/dt(Z)=-X*Y+c*Y-Z;\nprint;\njac_print;"))
     })
 
     test_that("nested if/then #2 w/ini", {
-        expect_equal(rxExpandIfElse(rx4, FALSE), c("(!(t<0.02||t>99.98))"="b=-1;\nd/dt(X)=a*X+Y*Z;\nd/dt(Y)=b*(Y-Z);\nd/dt(Z)=-X*Y+c*Y-Z;",
+        expect_equal(rxExpandIfElse(rx4, FALSE, FALSE), c("(!(t<0.02||t>99.98))"="b=-1;\nd/dt(X)=a*X+Y*Z;\nd/dt(Y)=b*(Y-Z);\nd/dt(Z)=-X*Y+c*Y-Z;",
                                                    "(t<0.02||t>99.98) && (!(t>100))"="b=-1;\nd/dt(X)=a*X+Y*Z;\nd/dt(Y)=b*(Y-Z);\nd/dt(Z)=-X*Y+c*Y-Z;\nprint;",
                                                    "(t<0.02||t>99.98) && (t>100)"="b=-1;\nd/dt(X)=a*X+Y*Z;\nd/dt(Y)=b*(Y-Z);\nd/dt(Z)=-X*Y+c*Y-Z;\nprint;\njac_print;"))
     })
@@ -115,7 +115,7 @@ rxPermissive({
     })
 
     test_that("nested if/then #3", {
-        expect_equal(rxExpandIfElse(rx5),
+        expect_equal(rxExpandIfElse(rx5, TRUE, FALSE),
                      c("(!(t<0.02||t>99.98))"="d/dt(X)=a*X+Y*Z;\nd/dt(Y)=b*(Y-Z);\nd/dt(Z)=-X*Y+c*Y-Z;",
                        "(t<0.02||t>99.98) && (t>100)"="d/dt(X)=a*X+Y*Z;\nd/dt(Y)=b*(Y-Z);\nd/dt(Z)=-X*Y+c*Y-Z;\nprint;\njac_print;",
                        "(t<0.02||t>99.98) && (!(t>100)) && (!(t<0.01))"="d/dt(X)=a*X+Y*Z;\nd/dt(Y)=b*(Y-Z);\nd/dt(Z)=-X*Y+c*Y-Z;\nprint;\node_print;\nprintf(\"Between 0.01 and 0.02.\\n\");",
@@ -123,7 +123,7 @@ rxPermissive({
     })
 
     test_that("nested if/then #3 w/ini", {
-        expect_equal(rxExpandIfElse(rx5, FALSE),
+        expect_equal(rxExpandIfElse(rx5, FALSE, FALSE),
                      c("(!(t<0.02||t>99.98))"="b=-1;\nd/dt(X)=a*X+Y*Z;\nd/dt(Y)=b*(Y-Z);\nd/dt(Z)=-X*Y+c*Y-Z;",
                        "(t<0.02||t>99.98) && (t>100)"="b=-1;\nd/dt(X)=a*X+Y*Z;\nd/dt(Y)=b*(Y-Z);\nd/dt(Z)=-X*Y+c*Y-Z;\nprint;\njac_print;",
                        "(t<0.02||t>99.98) && (!(t>100)) && (!(t<0.01))"="b=-1;\nd/dt(X)=a*X+Y*Z;\nd/dt(Y)=b*(Y-Z);\nd/dt(Z)=-X*Y+c*Y-Z;\nprint;\node_print;\nprintf(\"Between 0.01 and 0.02.\\n\");",
@@ -151,7 +151,7 @@ rxPermissive({
     })
 
     test_that("nested if/then #4", {
-        expect_equal(rxExpandIfElse(rx6),
+        expect_equal(rxExpandIfElse(rx6, TRUE, FALSE),
                      c( "(!(t<0.02||t>99.98))"="d/dt(X)=a*X+Y*Z;\nd/dt(Y)=b*(Y-Z);\nd/dt(Z)=-X*Y+c*Y-Z;",
                        "(t<0.02||t>99.98) && (!(t>100))"="d/dt(X)=a*X+Y*Z;\nd/dt(Y)=b*(Y-Z);\nd/dt(Z)=-X*Y+c*Y-Z;\nprint;\node_print;",
                        "(t<0.02||t>99.98) && (t>100) && (!(t<150))"="d/dt(X)=a*X+Y*Z;\nd/dt(Y)=b*(Y-Z);\nd/dt(Z)=-X*Y+c*Y-Z;\nprint;\njac_print;\nprintf(\">= 150\\n\");",
@@ -160,7 +160,7 @@ rxPermissive({
     })
 
     test_that("nested if/then #4 w/ini", {
-        expect_equal(rxExpandIfElse(rx6, FALSE),
+        expect_equal(rxExpandIfElse(rx6, FALSE, FALSE),
                      c( "(!(t<0.02||t>99.98))"="b=-1;\nd/dt(X)=a*X+Y*Z;\nd/dt(Y)=b*(Y-Z);\nd/dt(Z)=-X*Y+c*Y-Z;",
                        "(t<0.02||t>99.98) && (!(t>100))"="b=-1;\nd/dt(X)=a*X+Y*Z;\nd/dt(Y)=b*(Y-Z);\nd/dt(Z)=-X*Y+c*Y-Z;\nprint;\node_print;",
                        "(t<0.02||t>99.98) && (t>100) && (!(t<150))"="b=-1;\nd/dt(X)=a*X+Y*Z;\nd/dt(Y)=b*(Y-Z);\nd/dt(Z)=-X*Y+c*Y-Z;\nprint;\njac_print;\nprintf(\">= 150\\n\");",
