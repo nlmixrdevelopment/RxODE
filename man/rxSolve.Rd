@@ -12,35 +12,35 @@
 rxSolve(object, params, events, inits = NULL, scale = c(), covs = NULL,
   stiff = TRUE, transit_abs = NULL, atol = 1e-06, rtol = 1e-06,
   maxsteps = 5000, hmin = 0, hmax = NULL, hini = 0, maxordn = 12,
-  maxords = 5, ..., covs_interpolation = c("Linear", "LOCF"))
+  maxords = 5, ..., covs_interpolation = c("linear", "constant"))
 
 \method{rxSolve}{solveRxDll}(object, params, events, inits, scale, covs, stiff,
   transit_abs, atol, rtol, maxsteps, hmin, hmax, hini, maxordn, maxords, ...,
-  covs_interpolation = c("Linear", "LOCF"))
+  covs_interpolation = c("linear", "constant"))
 
 \method{rxSolve}{RxODE}(object, params, events, inits = NULL, scale = c(),
   covs = NULL, stiff = TRUE, transit_abs = NULL, atol = 1e-08,
   rtol = 1e-06, maxsteps = 5000, hmin = 0, hmax = NULL, hini = 0,
-  maxordn = 12, maxords = 5, ..., covs_interpolation = c("Linear",
-  "LOCF"))
+  maxordn = 12, maxords = 5, ..., covs_interpolation = c("linear",
+  "constant"))
 
 \method{rxSolve}{RxCompilationManager}(object, params, events, inits = NULL,
   scale = c(), covs = NULL, stiff = TRUE, transit_abs = NULL,
   atol = 1e-08, rtol = 1e-06, maxsteps = 5000, hmin = 0, hmax = NULL,
   hini = 0, maxordn = 12, maxords = 5, ...,
-  covs_interpolation = c("Linear", "LOCF"))
+  covs_interpolation = c("linear", "constant"))
 
 \method{rxSolve}{character}(object, params, events, inits = NULL,
   scale = c(), covs = NULL, stiff = TRUE, transit_abs = NULL,
   atol = 1e-08, rtol = 1e-06, maxsteps = 5000, hmin = 0, hmax = NULL,
   hini = 0, maxordn = 12, maxords = 5, ...,
-  covs_interpolation = c("Linear", "LOCF"))
+  covs_interpolation = c("linear", "constant"))
 
 \method{rxSolve}{rxDll}(object, params, events, inits = NULL, scale = c(),
   covs = NULL, stiff = TRUE, transit_abs = NULL, atol = 1e-08,
   rtol = 1e-06, maxsteps = 5000, hmin = 0, hmax = NULL, hini = 0,
-  maxordn = 12, maxords = 5, ..., covs_interpolation = c("Linear",
-  "LOCF"))
+  maxordn = 12, maxords = 5, ..., covs_interpolation = c("linear",
+  "constant"))
 }
 \arguments{
 \item{object}{is a either a RxODE family of objects, or a file-name
@@ -122,11 +122,11 @@ like NONMEM.}
 time-varying covariates. When solving ODEs it often samples
 times outside the sampling time specified in \code{events}.
 When this happens, the time varying covariates are
-interpolated.  Currently this can be \code{"Linear"}
+interpolated.  Currently this can be \code{"linear"}
 interpolation (the default), which interpolates the covariate
 by solving the line between the observed covariates and
 extrapolating the new covariate value. The other possibility is
-\code{"LOCF"}, or Last observation carried forward.  In this
+\code{"constant"}, or Last observation carried forward.  In this
 approach, the last observation of the covariate is considered
 the current value of the covariate.}
 }

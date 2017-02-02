@@ -49,47 +49,71 @@ void (*calc_jac)(unsigned int neq, double t, double *A, double *JAC, unsigned in
 void (*calc_lhs)(double t, double *A, double *lhs);
 
 
+/* Taken directly from https://github.com/wch/r-source/blob/922777f2a0363fd6fe07e926971547dd8315fc24/src/library/stats/src/approx.c*/
+
+typedef struct {
+  double ylow;
+  double yhigh;
+  double f1;
+  double f2;
+  int kind;
+} rx_appr_meth;
+
+rx_appr_meth rx_aprox_M = {0.0, 0.0, 0.0, 0.0, 0};
+
+static double rx_approx1(double v, double *x, double *y, int n,
+			 rx_appr_meth *Meth)
+{
+  /* Approximate  y(v),  given (x,y)[i], i = 0,..,n-1 */
+  int i, j, ij;
+
+  if(!n) return R_NaN;
+
+  i = 0;
+  j = n - 1;
+
+  /* handle out-of-domain points */
+  if(v < x[i]) return Meth->ylow;
+  if(v > x[j]) return Meth->yhigh;
+
+  /* find the correct interval by bisection */
+  while(i < j - 1) { /* x[i] <= v <= x[j] */
+    ij = (i + j)/2; /* i+1 <= ij <= j-1 */
+    if(v < x[ij]) j = ij; else i = ij;
+    /* still i < j */
+  }
+  /* provably have i == j-1 */
+
+  /* interpolation */
+
+  if(v == x[j]) return y[j];
+  if(v == x[i]) return y[i];
+  /* impossible: if(x[j] == x[i]) return y[i]; */
+
+  if(Meth->kind == 1) /* linear */
+    return y[i] + (y[j] - y[i]) * ((v - x[i])/(x[j] - x[i]));
+  else /* 2 : constant */
+    return (Meth->f1 != 0.0 ? y[i] * Meth->f1 : 0.0)
+      + (Meth->f2 != 0.0 ? y[j] * Meth->f2 : 0.0);
+}/* approx1() */
+
+/* End approx from R */
+
 void update_par_ptr(double t){
   // Update all covariate parameters
-  int i;
-  int j = -1;
-  int k = -1;
-  for (i = 0; i < ncov; i++){
-    if (par_cov[i]){
-      if (j == -1){
-	if (t <= all_times[0]){
-	  j = 0;
-	} else if (t >= all_times[n_all_times-1]){
-	  j = n_all_times-1;
-	} else {
-	  for (j = 0; j < n_all_times; j++){
-	    if (all_times[j] > t){
-              k = j-1;
-              break;
-	    } else if (all_times[j] == t){
-	      break;
-	    }
-	  }
-	}
-      }
-      if (k == -1){
-	par_ptr[par_cov[i]-1] = cov_ptr[i*n_all_times+j];
-      } else {
-	if (!is_locf){
-	  // Linear Interpolation
-	  par_ptr[par_cov[i]-1] = (cov_ptr[i*n_all_times + k] - cov_ptr[i*n_all_times + j])/(all_times[k] - all_times[j])*(t-all_times[j])+cov_ptr[i*n_all_times+j];
-	} else {
-	  // LOCF
-          par_ptr[par_cov[i]-1] = cov_ptr[i*n_all_times + k];
-	}	
-	// Spline?  I don't think it has much return on investment
-      }
-      if (global_debug){
-	Rprintf("par_ptr[%d] (cov %d/%d) = %f\n",par_cov[i]-1, i,ncov,cov_ptr[par_cov[i]-1]);
-      }
+  int k;
+  for (k = 0; k < ncov; k++){
+    if (par_cov[k]){
+      // Use the same methodology as approxfun.
+      // There is some rumor the C function may go away...
+      rx_aprox_M.ylow = cov_ptr[n_all_times*k];
+      rx_aprox_M.yhigh = cov_ptr[n_all_times*k+n_all_times-1];
+      par_ptr[par_cov[k]-1] = rx_approx1(t, all_times, cov_ptr+n_all_times*k, n_all_times, &rx_aprox_M);
+    }
+    if (global_debug){
+      Rprintf("par_ptr[%d] (cov %d/%d) = %f\n",par_cov[k]-1, k,ncov,cov_ptr[par_cov[k]-1]);
     }
   }
-
 }
 
 //--------------------------------------------------------------------------
@@ -505,7 +529,11 @@ SEXP RxODE_ode_solver (// Parameters
   double *solve, *lhs;
   double *ret   = REAL(sexp_ret);
   int *rc;
-  
+
+  rx_aprox_M.f2 = 0.0; //= f=0 
+  rx_aprox_M.f1 = 1.0; // = 1-f = 1;
+  rx_aprox_M.kind = !is_locf;
+    
   rc = (int *) R_alloc(1,sizeof(int));
   rc[0] = 0;
   

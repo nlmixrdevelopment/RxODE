@@ -35,11 +35,11 @@
 ##'     time-varying covariates. When solving ODEs it often samples
 ##'     times outside the sampling time specified in \code{events}.
 ##'     When this happens, the time varying covariates are
-##'     interpolated.  Currently this can be \code{"Linear"}
+##'     interpolated.  Currently this can be \code{"linear"}
 ##'     interpolation (the default), which interpolates the covariate
 ##'     by solving the line between the observed covariates and
 ##'     extrapolating the new covariate value. The other possibility is
-##'     \code{"LOCF"}, or Last observation carried forward.  In this
+##'     \code{"constant"}, or Last observation carried forward.  In this
 ##'     approach, the last observation of the covariate is considered
 ##'     the current value of the covariate.
 ##'
@@ -145,7 +145,7 @@ rxSolve <- function(object,                      # RxODE object
                     maxordn            = 12,     # maxordn
                     maxords            = 5,      # maxords
                     ...,
-                    covs_interpolation = c("Linear", "LOCF")
+                    covs_interpolation = c("linear", "constant")
                     ) {
     ## rxSolve returns
     UseMethod("rxSolve");
@@ -169,7 +169,7 @@ update.solveRxDll <- function(object, ...){
 ##' @rdname rxSolve
 ##' @export
 rxSolve.solveRxDll <- function(object, params, events, inits, scale , covs, stiff, transit_abs, atol, rtol, maxsteps, hmin,
-                               hmax, hini, maxordn, maxords, ..., covs_interpolation= c("Linear", "LOCF")){
+                               hmax, hini, maxordn, maxords, ..., covs_interpolation= c("linear", "constant")){
     call <- as.list(match.call(expand.dots = TRUE));
     lst <- attr(object, "solveRxDll");
     lst <- lst[names(lst) != "matrix"];
@@ -195,7 +195,7 @@ rxSolve.solveRxDll <- function(object, params, events, inits, scale , covs, stif
 ##' @export
 rxSolve.RxODE <- function(object, params, events, inits = NULL, scale=c(), covs = NULL, stiff = TRUE, transit_abs = NULL,
                           atol = 1.0e-8, rtol = 1.0e-6, maxsteps = 5000, hmin = 0, hmax = NULL, hini = 0, maxordn = 12,
-                          maxords = 5, ..., covs_interpolation = c("Linear", "LOCF")){
+                          maxords = 5, ..., covs_interpolation = c("linear", "constant")){
     rxSolve.rxDll(object$cmpMgr$rxDll(), params, events, inits, scale, covs, stiff, transit_abs, atol, rtol, maxsteps, hmin,
                   hmax, hini, maxordn, maxords, ..., covs_interpolation = covs_interpolation);
 }
@@ -204,7 +204,7 @@ rxSolve.RxODE <- function(object, params, events, inits = NULL, scale=c(), covs 
 rxSolve.RxCompilationManager <- function(object, params, events, inits = NULL, scale=c(), covs = NULL, stiff = TRUE,
                                          transit_abs = NULL, atol = 1.0e-8, rtol = 1.0e-6, maxsteps = 5000, hmin = 0,
                                          hmax = NULL, hini = 0, maxordn = 12, maxords = 5, ...,
-                                         covs_interpolation = c("Linear", "LOCF")){
+                                         covs_interpolation = c("linear", "constant")){
     rxSolve.rxDll(object$rxDll(), params, events, inits, scale, covs, stiff, transit_abs, atol, rtol, maxsteps, hmin, hmax,
                   hini, maxordn, maxords, ...,
                   covs_interpolation = covs_interpolation);
@@ -213,7 +213,7 @@ rxSolve.RxCompilationManager <- function(object, params, events, inits = NULL, s
 ##' @export
 rxSolve.character <- function(object, params, events, inits = NULL, scale=c(), covs = NULL, stiff = TRUE, transit_abs = NULL,
                               atol = 1.0e-8, rtol = 1.0e-6, maxsteps = 5000, hmin = 0, hmax = NULL, hini = 0, maxordn = 12,
-                              maxords = 5, ..., covs_interpolation = c("Linear", "LOCF")){
+                              maxords = 5, ..., covs_interpolation = c("linear", "constant")){
     rxSolve.rxDll(rxCompile(object), params, events, inits, scale, covs, stiff, transit_abs, atol, rtol, maxsteps, hmin, hmax,
                   hini, maxordn, maxords, ..., covs_interpolation = covs_interpolation);
 }
@@ -222,7 +222,7 @@ rxSolve.character <- function(object, params, events, inits = NULL, scale=c(), c
 rxSolve.rxDll <- function(object, params, events, inits = NULL, scale = c(),
                           covs = NULL, stiff = TRUE, transit_abs = NULL,
                           atol = 1.0e-8, rtol = 1.0e-6, maxsteps = 5000, hmin = 0, hmax = NULL, hini = 0, maxordn = 12,
-                          maxords = 5, ..., covs_interpolation = c("Linear", "LOCF")){
+                          maxords = 5, ..., covs_interpolation = c("linear", "constant")){
     ## rxSolve.rxDll returns a solved object
     if (missing(events) && class(params) == "EventTable"){
         events <- params;
@@ -341,11 +341,12 @@ rxSolve.rxDll <- function(object, params, events, inits = NULL, scale = c(),
         names(scale) <- rxState(object)[scaler.ix];
     }
     scale <- c(scale);
+    isLocf <- 0;
     if (length(covs_interpolation) > 1){
         isLocf <- 0;
-    } else if (covs_interpolation == "LOCF"){
+    } else if (covs_interpolation == "constant"){
         isLocf <- 1;
-    } else if (covs_interpolation != "Linear"){
+    } else if (covs_interpolation != "linear"){
         stop("Unknown covariate interpolation specified.");
     }
     ## may need to reload (e.g., when we re-start R and

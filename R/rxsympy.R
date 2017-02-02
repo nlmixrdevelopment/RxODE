@@ -16,6 +16,18 @@ regNum <- rex::rex(at_most("-", 1), or(regDecimalint, regFloat1, regFloat2))
 regDDt <- rex::rex(start, "rx__d_dt_", capture(anything), "__", end);
 regDfDy <- rex::rex(start, "rx__df_", capture(anything), "_dy_", capture(anything), "__", end);
 
+known.print <- c('printf', 'Rprintf', 'print',
+                 'jac_printf', 'jac_Rprintf', 'jac_print',
+                 'ode_printf', 'ode_Rprintf', 'ode_print',
+                 'jac0_printf', 'jac0_Rprintf', 'jac0_print',
+                 'ode_printf', 'ode_Rprintf', 'ode_print',
+                 'ode0_printf', 'ode0_Rprintf', 'ode0_print',
+                 'lhs_printf', 'lhs_Rprintf', 'lhs_print')
+
+regPrint <- rex::rex(start, or(known.print), or(group("(", anything, ")", any_spaces, at_most(";", 1), any_spaces),
+                                                group(any_spaces, at_most(";", 1), any_spaces)),
+                     end)
+
 ## Based on normalized grammar output by parser which has
 ## if (expr) {
 ## }
@@ -52,12 +64,22 @@ rxRmJac <- function(x){
 rxRmSens <- function(x){
     return(x[regexpr(rex::rex(start, any_spaces, "d/dt(", any_spaces, regSens, any_spaces, ")", any_spaces, "="), x) == -1]);
 }
+##' Remove print statements
+##' @param x RxODE lines to remove
+##' @return RxODE with print lines removed.
+##' @author Matthew L. Fidler
+rxRmPrint <- function(x){
+    return(x[regexpr(regPrint, x) == -1]);
+}
 
-rxExpandIfElse.slow <- function(model, removeInis=TRUE){
+rxExpandIfElse.slow <- function(model, removeInis=TRUE, removePrint=TRUE){
     ## expand if/else blocks into a list with lines for conditions that are true
     x <- strsplit(rxNorm(model, FALSE), "\n")[[1]];
     if (removeInis){
         x <- rxRmIni(x);
+    }
+    if (removePrint){
+        x <- rxRmPrint(x);
     }
     model <- x;
     w1 <- which(regexpr(regIfOrElse, model) != -1);
@@ -129,9 +151,10 @@ rxExpandIfElse.slow <- function(model, removeInis=TRUE){
 ##'     own line with the closing bracket of the \code{if} statement
 ##'     on the previous line.  This \code{else} statment must also
 ##'     contain the opening bracket, like the code \code{else \{}
-##' @param removeInis When the model is an RxODE model, remove the
-##'     initialziation parameters from the model when \code{TRUE}, or
-##'     leave then when \code{FALSE}.
+##' @param removeInis A boolean indicating if parameter
+##'     initializations should be removed from the model.
+##' @param removePrint A boolean indicating if printing statements
+##'     should be removed from the model.
 ##' @return A named character vector. The names of the vector are the
 ##'     logical conditions, the values are the lines that satisfy the
 ##'     logical conditions.
@@ -271,13 +294,7 @@ functionIgnore <- function(){
     }
 }
 
-for (p in c('printf', 'Rprintf', 'print',
-            'jac_printf', 'jac_Rprintf', 'jac_print',
-            'ode_printf', 'ode_Rprintf', 'ode_print',
-            'jac0_printf', 'jac0_Rprintf', 'jac0_print',
-            'ode_printf', 'ode_Rprintf', 'ode_print',
-            'ode0_printf', 'ode0_Rprintf', 'ode0_print',
-            'lhs_printf', 'lhs_Rprintf', 'lhs_print')){
+for (p in known.print){
     rxSympyFEnv[[p]] <- functionIgnore();
 }
 

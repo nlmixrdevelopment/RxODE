@@ -4,7 +4,7 @@
 \alias{rxExpandIfElse}
 \title{Expand if/else clauses into mutiple different types of lines.}
 \usage{
-rxExpandIfElse(model, removeInis = TRUE)
+rxExpandIfElse(model, removeInis = TRUE, removePrint = TRUE)
 }
 \arguments{
 \item{model}{Model can be a character, or a RxODE model.  It needs
@@ -14,9 +14,11 @@ own line with the closing bracket of the \code{if} statement
 on the previous line.  This \code{else} statment must also
 contain the opening bracket, like the code \code{else \{}}
 
-\item{removeInis}{When the model is an RxODE model, remove the
-initialziation parameters from the model when \code{TRUE}, or
-leave then when \code{FALSE}.}
+\item{removeInis}{A boolean indicating if parameter
+initializations should be removed from the model.}
+
+\item{removePrint}{A boolean indicating if printing statements
+should be removed from the model.}
 }
 \value{
 A named character vector. The names of the vector are the
