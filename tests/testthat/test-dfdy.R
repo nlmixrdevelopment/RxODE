@@ -1,6 +1,14 @@
 require(RxODE);
 context("Test Jacobian (df/dy) parsing")
 
+rJava <- tryCatch({require(rJava); TRUE},error=function(e){return(FALSE)})
+
+skip.java <- function(){
+    if (!rJava){
+        skip("rJava not setup appropriately.")
+    }
+}
+
 rxPermissive({
 
     Vtpol2 <- RxODE("
@@ -43,7 +51,8 @@ mu = 1 ## nonstiff; 10 moderately stiff; 1000 stiff
         expect_equal(class(tmp), "RxODE");
     })
 
-    norm <- RxODE("
+    test_that("Jacobian and sensitivity not specified.", {
+        norm <- RxODE("
 d/dt(y)  = dy
 d/dt(dy) = mu*(1-y^2)*dy - y
 ## Initial conditions
@@ -52,13 +61,14 @@ dy(0) = 0
 ## mu
 mu = 1 ## nonstiff; 10 moderately stiff; 1000 stiff
 ");
-
-    test_that("Jacobian and sensitivity not specified.", {
         expect_false(norm$calcJac);
         expect_false(norm$calcSens);
+        rxDelete(norm)
     })
 
-    jac <- RxODE("
+    test_that("Jacobian specified but sensitivity not specified.", {
+        skip.java();
+        jac <- RxODE("
 d/dt(y)  = dy
 d/dt(dy) = mu*(1-y^2)*dy - y
 ## Initial conditions
@@ -67,13 +77,14 @@ dy(0) = 0
 ## mu
 mu = 1 ## nonstiff; 10 moderately stiff; 1000 stiff
 ", calcJac=TRUE)
-
-    test_that("Jacobian specified but sensitivity not specified.", {
         expect_true(jac$calcJac);
         expect_false(jac$calcSens);
+        rxDelete(jac);
     })
 
-    sens <- RxODE("
+    test_that("Sensitivity specified.", {
+        skip.java();
+        sens <- RxODE("
 d/dt(y)  = dy
 d/dt(dy) = mu*(1-y^2)*dy - y
 ## Initial conditions
@@ -82,17 +93,14 @@ dy(0) = 0
 ## mu
 mu = 1 ## nonstiff; 10 moderately stiff; 1000 stiff
 ", calcSens=TRUE)
-
-    test_that("Sensitivity specified.", {
         expect_false(sens$calcJac);
         expect_true(sens$calcSens);
+        rxDelete(sens);
     })
 
-    rxDelete(norm);
-    rxDelete(jac)
-    rxDelete(sens);
-
-    norm <- RxODE("
+    test_that("Jac/Sens can be caluclated from \"normal\" model", {
+        skip.java();
+        norm <- RxODE("
 d/dt(y)  = dy
 d/dt(dy) = mu*(1-y^2)*dy - y
 ## Initial conditions
@@ -101,33 +109,25 @@ dy(0) = 0
 ## mu
 mu = 1 ## nonstiff; 10 moderately stiff; 1000 stiff
 ");
-    jac <- RxODE(jac, calcJac=TRUE);
-
-    test_that("Jacobian specified but sensitivity not specified.", {
+        jac <- norm;
+        jac <- RxODE(jac, calcJac=TRUE);
         expect_true(jac$calcJac);
         expect_false(jac$calcSens);
-    })
-
-    sens <- RxODE(jac, calcSens=TRUE);
-
-    test_that("Only sensitivity specified.", {
+        sens <- RxODE(jac, calcSens=TRUE);
         expect_false(sens$calcJac);
         expect_true(sens$calcSens);
-    })
-
-    full <- RxODE(jac, calcSens=TRUE, calcJac=TRUE);
-
-    test_that("Sensitivity specified.", {
+        full <- RxODE(jac, calcSens=TRUE, calcJac=TRUE);
         expect_false(sens$calcJac);
         expect_true(sens$calcSens);
+        rxDelete(jac);
+        rxDelete(sens);
+        rxDelete(norm);
+        rxDelete(full);
     })
 
-    rxDelete(jac);
-    rxDelete(sens);
-    rxDelete(norm);
-    rxDelete(full);
-
-    sens <- RxODE("
+    test_that("Jacobian and sensitivity specified.", {
+        skip.java();
+        sens <- RxODE("
 d/dt(y)  = dy
 d/dt(dy) = mu*(1-y^2)*dy - y
 ## Initial conditions
@@ -137,36 +137,37 @@ dy(0) = 0
 mu = 1 ## nonstiff; 10 moderately stiff; 1000 stiff
 ", calcSens=TRUE)
 
-    norm <- RxODE(sens, calcSens=FALSE)
+        norm <- RxODE(sens, calcSens=FALSE)
 
-    jac <- RxODE(sens, calcJac=TRUE)
-
-    test_that("Jacobian and sensitivity specified.", {
+        jac <- RxODE(sens, calcJac=TRUE)
         expect_false(norm$calcJac);
         expect_false(norm$calcSens);
         expect_true(jac$calcJac);
         expect_false(jac$calcSens);
         expect_false(sens$calcJac);
         expect_true(sens$calcSens);
-    })
+})
 
-    transit.if <- RxODE({
-        ## Table 3 from Savic 2007
-        cl = 17.2 # (L/hr)
-        vc = 45.1 # L
-        ka1 = 0.38 # 1/hr
-        ka2 = 0.2 # 1/hr
-        mtt = 0.37 # hr
-        bio=1
-        n = 20.1
-        k = cl/vc
-        if (pop1 == 1){
-            ka = ka1
-        } else {
-            ka = ka2
-        }
-        d/dt(depot) = transit(n, mtt, bio)-ka*depot
-        d/dt(cen) = ka*depot-k*cen
+    test_that("Conditional Sensitivites",{
+        skip.java();
+        transit.if <- RxODE({
+            ## Table 3 from Savic 2007
+            cl = 17.2 # (L/hr)
+            vc = 45.1 # L
+            ka1 = 0.38 # 1/hr
+            ka2 = 0.2 # 1/hr
+            mtt = 0.37 # hr
+            bio=1
+            n = 20.1
+            k = cl/vc
+            if (pop1 == 1){
+                ka = ka1
+            } else {
+                ka = ka2
+            }
+            d/dt(depot) = transit(n, mtt, bio)-ka*depot
+            d/dt(cen) = ka*depot-k*cen
+        })
     })
 }, silent=TRUE)
 
