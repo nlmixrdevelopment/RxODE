@@ -2,7 +2,7 @@
 ========================================
 
 These notes briefly describe steps to properly install `RxODE` and to
-ensure `Rtools` (http://cran-r.project.org/bin/windows/Rtoos) are properly 
+ensure `Rtools` (https://cran.r-project.org/bin/windows/Rtools/) are properly 
 configured to avoid compilation issues during the use of `RxODE`. 
 
 In a nutshell, installing `RxODE` is very straight forwad, but installing
@@ -16,7 +16,7 @@ Steps:
 
 1. Install the appropriate `Rtools` for your R for Windows version,
    e.g., `Rtools` 3.2 for R versions 3.1.x through 3.2.x (for full details
-   see http://cran.r-project.org/bin/windows/Rtools). A couple of 
+   see http://cran.r-project.org/bin/windows/Rtools/). A couple of 
    important details:
 
    * When installing `Rtools`, in the "Select Components" dialog box, 
