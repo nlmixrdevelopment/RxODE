@@ -7,19 +7,22 @@
 \alias{rxModelVars.RxCompilationManager}
 \alias{rxModelVars.RxODE}
 \alias{rxModelVars.solveRxDll}
+\alias{rxModelVars.character}
 \title{All model variables for a RxODE object}
 \usage{
-rxModelVars(obj, ...)
+rxModelVars(obj)
 
-\method{rxModelVars}{list}(obj, ...)
+\method{rxModelVars}{list}(obj)
 
-\method{rxModelVars}{rxDll}(obj, ...)
+\method{rxModelVars}{rxDll}(obj)
 
-\method{rxModelVars}{RxCompilationManager}(obj, ...)
+\method{rxModelVars}{RxCompilationManager}(obj)
 
-\method{rxModelVars}{RxODE}(obj, ...)
+\method{rxModelVars}{RxODE}(obj)
 
-\method{rxModelVars}{solveRxDll}(obj, ...)
+\method{rxModelVars}{solveRxDll}(obj)
+
+\method{rxModelVars}{character}(obj)
 }
 \arguments{
 \item{obj}{RxODE family of objects}

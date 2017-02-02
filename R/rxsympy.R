@@ -138,7 +138,7 @@ rxExpandIfElse.slow <- function(model, removeInis=TRUE){
 ##' @author Matthew L. Fidler
 ##' @keywords internal
 ##' @export
-rxExpandIfElse <- memoise::memoise(rxExpandIfElse.slow)
+rxExpandIfElse <- rxExpandIfElse.slow;
 
 
 ## Start DSL based on http://adv-r.had.co.nz/dsl.html
@@ -707,7 +707,7 @@ rxSymPyDfDyFull.slow <- function(model, vars, cond){
     rxCat("done!\n");
     return(extraLines);
 }
-rxSymPyDfDyFull <- memoise::memoise(rxSymPyDfDyFull.slow);
+rxSymPyDfDyFull <- rxSymPyDfDyFull.slow;
 
 rxSymPyJacobian.slow <- function(model){
     cnd <- rxNorm(model, TRUE); ## Get the conditional statements
@@ -717,8 +717,8 @@ rxSymPyJacobian.slow <- function(model){
     } else {
         extraLines <- c();
         for (i in cnd){
-            cat(sprintf("Calculate for %s\n", i));
-            cat("################################################################################\n");
+            rxCat(sprintf("Calculate for %s\n", i));
+            rxCat("################################################################################\n");
             rxCondition(model, i);
             extraLines <- c(extraLines,
                             sprintf("if %s {", i),
@@ -730,7 +730,6 @@ rxSymPyJacobian.slow <- function(model){
     extraLines <- extraLines[regexpr(rex::rex("=", any_spaces, "0", any_spaces, at_most(";",1)), extraLines) == -1];
     model <- sprintf("%s\n%s", rxNorm(model), paste(extraLines, collapse="\n"));
     rxSymPyClean()
-    cat(model)
     return(model);
 }
 
@@ -742,7 +741,7 @@ rxSymPyJacobian.slow <- function(model){
 ##' @param model RxODE family of objects
 ##' @return RxODE syntax for model with jacobian specified.
 ##' @author Matthew L. Fidler
-rxSymPyJacobian <- memoise::memoise(rxSymPyJacobian.slow);
+rxSymPyJacobian <- rxSymPyJacobian.slow;
 
 ##' Does the varaible exists in the sympy python environment
 ##'
@@ -863,7 +862,7 @@ rxSymPySensitivity.slow <- function(model, calcSens, calcJac=FALSE){
 ##' @return Model syntax that includes the sensitivity parameters.
 ##' @author Matthew L. Fidler
 ##' @export
-rxSymPySensitivity <- memoise::memoise(rxSymPySensitivity.slow);
+rxSymPySensitivity <- rxSymPySensitivity.slow;
 
 ##' Remove variables created by RxODE from the sympy environment.
 ##'

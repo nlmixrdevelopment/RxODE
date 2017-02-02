@@ -967,11 +967,11 @@ rxMd5 <- function(model,         # Model File
         tmp <- getLoadedDLLs()$RxODE;
         class(tmp) <- "list";
         ## new RxODE dlls gives different digests.
-        ret <- c(ret, digest::digest(tmp$path,file=TRUE, algo="xxhash64"));
+        ret <- c(ret, digest::digest(tmp$path,file=TRUE, algo="md5"));
         ## Add version and github repository information
         ret <- c(ret, rxVersion());
         return(list(text = mod,
-                    digest = digest::digest(ret, algo="xxhash64")));
+                    digest = digest::digest(ret, algo="md5")));
     } else {
         rxModelVars(model)$md5;
     }
@@ -1182,7 +1182,7 @@ rxDllLoaded <- function(x, retry = TRUE){
     if (is.null(x)){
         return(FALSE);
     }
-    m <- rxTrans(x, calcJac=FALSE, calcSens=FALSE);
+    m <- rxModelVars(x)$trans;
     if (any(names(m) == "ode_solver")){
         return(is.loaded(m["ode_solver"]));
     } else if (retry) {
@@ -1609,7 +1609,7 @@ rxConditionLst <- list();
 ##'
 ##' @param obj RxODE object
 ##' @param condition If specified and is one of the conditions in the
-##'     RxODE object (as determined by \link{\code{rxExpandIfElse}}),
+##'     RxODE object (as determined by \code{\link{rxExpandIfElse}}),
 ##'     assign the RxODE current condition to this parameter.  If the
 ##'     condition is not one of the known condition, the condition is
 ##'     set to \code{NULL}, implying no conditioning currently used.
@@ -1618,7 +1618,7 @@ rxConditionLst <- list();
 ##' @keywords internal
 ##' @export
 rxCondition <- function(obj, condition=NULL){
-    key <- digest::digest(rxNorm(obj,FALSE),algo="xxhash64");
+    key <- digest::digest(rxNorm(obj,FALSE),algo="md5");
     if (!missing(condition) && is.null(condition)){
         condition <- FALSE;
     }
@@ -1648,6 +1648,9 @@ rxCondition <- function(obj, condition=NULL){
 ##'     condition is not set via \code{rxCondition}, return the whole
 ##'     code with all the conditional settings intact.  When a
 ##'     condition is set with \code{rxCondition}, use that condition.
+##' @param removeInis A boolean indicating if paramter initilizations will be removed from the model
+##' @param removeJac A boolean indicating if the Jacobians will be removed.
+##' @param removeSens A boolean indicating if the sensitivities will be removed.
 ##' @return Normalized Normal syntax (no comments)
 ##' @author Matthew L. Fidler
 ##' @export
@@ -1726,13 +1729,13 @@ rxNorm <- function(obj, condition=NULL, removeInis, removeJac, removeSens){
 ##' @keywords internal
 ##' @author Matthew L.Fidler
 ##' @export
-rxModelVars <- function(obj, ...){
+rxModelVars <- function(obj){
     UseMethod("rxModelVars");
 }
 
 ##' @rdname rxModelVars
 ##' @export
-rxModelVars.list <- function(obj, ...){
+rxModelVars.list <- function(obj){
     if (all(c("params", "lhs", "state", "trans", "ini", "model", "md5", "podo", "dfdy") %in% names(obj))){
         return(obj);
     } else {
@@ -1742,30 +1745,30 @@ rxModelVars.list <- function(obj, ...){
 
 ##' @rdname rxModelVars
 ##' @export
-rxModelVars.rxDll <- function(obj, ...){
+rxModelVars.rxDll <- function(obj){
     return(obj$modVars)
 }
 
 ##' @rdname rxModelVars
 ##' @export
-rxModelVars.RxCompilationManager <- function(obj, ...){
+rxModelVars.RxCompilationManager <- function(obj){
     return(rxModelVars.rxDll(obj$rxDll()))
 }
 
 ##' @rdname rxModelVars
 ##' @export
-rxModelVars.RxODE <- function(obj, ...){
+rxModelVars.RxODE <- function(obj){
     return(rxModelVars.rxDll(obj$cmpMgr$rxDll()))
 }
 
 ##' @rdname rxModelVars
 ##' @export
-rxModelVars.solveRxDll <- function(obj, ...){
+rxModelVars.solveRxDll <- function(obj){
     lst <- attr(obj, "solveRxDll");
     return(rxModelVars.rxDll(lst$object));
 }
 
-rxModelVars.character.slow <- function(obj, ...){
+rxModelVars.character.slow <- function(obj){
     if (length(obj) == 1){
         cFile <- tempfile();
         if (file.exists(obj)){
@@ -1787,7 +1790,7 @@ rxModelVars.character.slow <- function(obj, ...){
 
 ##' @rdname rxModelVars
 ##' @export
-rxModelVars.character <- memoise::memoise(rxModelVars.character.slow);
+rxModelVars.character <- rxModelVars.character.slow;
 
 ##' Print rxDll object
 ##'

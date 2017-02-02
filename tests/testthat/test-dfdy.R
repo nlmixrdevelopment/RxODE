@@ -168,6 +168,5 @@ mu = 1 ## nonstiff; 10 moderately stiff; 1000 stiff
         d/dt(depot) = transit(n, mtt, bio)-ka*depot
         d/dt(cen) = ka*depot-k*cen
     })
-
 }, silent=TRUE)
 

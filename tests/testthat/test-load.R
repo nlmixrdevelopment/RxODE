@@ -58,4 +58,5 @@ d/dt(y3) = a3*y1*y2
         expect_false(rxDllLoaded(rigid));
         expect_true(file.exists(dll));
     })
+
 }, silent=TRUE);

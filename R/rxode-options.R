@@ -1,6 +1,14 @@
 .onLoad <- function(libname, pkgname){ ## nocov start
     ## Setup RxODE.prefer.tbl
     rxPermissive(respect=TRUE); ## need to call respect on the first time
+    ## memoise needs to be called at load to use the right package.
+    ## See https://github.com/hadley/r-pkgs/issues/203
+    ## They suggest an environment, but I used the current namespace.
+    utils::assignInMyNamespace("rxModelVars.character", memoise::memoise(rxModelVars.character.slow));
+    utils::assignInMyNamespace("rxExpandIfElse", memoise::memoise(rxExpandIfElse.slow));
+    utils::assignInMyNamespace("rxSymPyDfDyFull", memoise::memoise(rxSymPyDfDyFull.slow));
+    utils::assignInMyNamespace("rxSymPyJacobian", memoise::memoise(rxSymPyJacobian.slow));
+    utils::assignInMyNamespace("rxSymPySensitivity", memoise::memoise(rxSymPySensitivity.slow));
 } ## nocov end
 
 ## strict/permissive

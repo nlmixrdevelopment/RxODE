@@ -126,58 +126,6 @@ work <- tempfile("Rx_intro-")
 mod1 <- RxODE(model = ode, modName = "mod1", wd = work)
 ```
 
-```
-## name[0]: mult_part; value: /; C2=centr/safe_zero(
-## name[1]: mult_part; value: V2; C2=centr/safe_zero(V2)
-## name[0]: mult_part; value: /; C3=peri/safe_zero(
-## name[1]: mult_part; value: V3; C3=peri/safe_zero(V3)
-## name[0]: mult_part; value: *; __DDtStateVar__[0] = InfusionRate(0) + -KA*
-## name[1]: mult_part; value: depot; __DDtStateVar__[0] = InfusionRate(0) + -KA*depot
-## name[0]: mult_part; value: *; __DDtStateVar__[1] = InfusionRate(1) + KA*
-## name[1]: mult_part; value: depot; __DDtStateVar__[1] = InfusionRate(1) + KA*depot
-## name[0]: mult_part; value: *; __DDtStateVar__[1] = InfusionRate(1) + KA*depot-CL*
-## name[1]: mult_part; value: C2; __DDtStateVar__[1] = InfusionRate(1) + KA*depot-CL*C2
-## name[0]: mult_part; value: *; __DDtStateVar__[1] = InfusionRate(1) + KA*depot-CL*C2-Q*
-## name[1]: mult_part; value: C2; __DDtStateVar__[1] = InfusionRate(1) + KA*depot-CL*C2-Q*C2
-## name[0]: mult_part; value: *; __DDtStateVar__[1] = InfusionRate(1) + KA*depot-CL*C2-Q*C2+Q*
-## name[1]: mult_part; value: C3; __DDtStateVar__[1] = InfusionRate(1) + KA*depot-CL*C2-Q*C2+Q*C3
-## name[0]: mult_part; value: *; __DDtStateVar__[2] = InfusionRate(2) + Q*
-## name[1]: mult_part; value: C2; __DDtStateVar__[2] = InfusionRate(2) + Q*C2
-## name[0]: mult_part; value: *; __DDtStateVar__[2] = InfusionRate(2) + Q*C2-Q*
-## name[1]: mult_part; value: C3; __DDtStateVar__[2] = InfusionRate(2) + Q*C2-Q*C3
-## name[0]: mult_part; value: *; __DDtStateVar__[3] = InfusionRate(3) + Kin-Kout*
-## name[0]: mult_part; value: /; __DDtStateVar__[3] = InfusionRate(3) + Kin-Kout*(1-C2/safe_zero(
-## name[1]: mult_part; value: (EC50+C2); __DDtStateVar__[3] = InfusionRate(3) + Kin-Kout*(1-C2/safe_zero((EC50+C2))
-## name[1]: mult_part; value: (1-C2/(EC50+C2)); __DDtStateVar__[3] = InfusionRate(3) + Kin-Kout*(1-C2/safe_zero((EC50+C2)))
-## name[0]: mult_part; value: *; __DDtStateVar__[3] = InfusionRate(3) + Kin-Kout*(1-C2/safe_zero((EC50+C2)))*
-## name[1]: mult_part; value: eff; __DDtStateVar__[3] = InfusionRate(3) + Kin-Kout*(1-C2/safe_zero((EC50+C2)))*eff
-## name[0]: mult_part; value: /; C2=centr/safe_zero(
-## name[1]: mult_part; value: V2; C2=centr/safe_zero(V2)
-## name[0]: mult_part; value: /; C3=peri/safe_zero(
-## name[1]: mult_part; value: V3; C3=peri/safe_zero(V3)
-## name[0]: mult_part; value: *; __DDtStateVar__[0] = InfusionRate(0) + -KA*
-## name[1]: mult_part; value: depot; __DDtStateVar__[0] = InfusionRate(0) + -KA*depot
-## name[0]: mult_part; value: *; __DDtStateVar__[1] = InfusionRate(1) + KA*
-## name[1]: mult_part; value: depot; __DDtStateVar__[1] = InfusionRate(1) + KA*depot
-## name[0]: mult_part; value: *; __DDtStateVar__[1] = InfusionRate(1) + KA*depot-CL*
-## name[1]: mult_part; value: C2; __DDtStateVar__[1] = InfusionRate(1) + KA*depot-CL*C2
-## name[0]: mult_part; value: *; __DDtStateVar__[1] = InfusionRate(1) + KA*depot-CL*C2-Q*
-## name[1]: mult_part; value: C2; __DDtStateVar__[1] = InfusionRate(1) + KA*depot-CL*C2-Q*C2
-## name[0]: mult_part; value: *; __DDtStateVar__[1] = InfusionRate(1) + KA*depot-CL*C2-Q*C2+Q*
-## name[1]: mult_part; value: C3; __DDtStateVar__[1] = InfusionRate(1) + KA*depot-CL*C2-Q*C2+Q*C3
-## name[0]: mult_part; value: *; __DDtStateVar__[2] = InfusionRate(2) + Q*
-## name[1]: mult_part; value: C2; __DDtStateVar__[2] = InfusionRate(2) + Q*C2
-## name[0]: mult_part; value: *; __DDtStateVar__[2] = InfusionRate(2) + Q*C2-Q*
-## name[1]: mult_part; value: C3; __DDtStateVar__[2] = InfusionRate(2) + Q*C2-Q*C3
-## name[0]: mult_part; value: *; __DDtStateVar__[3] = InfusionRate(3) + Kin-Kout*
-## name[0]: mult_part; value: /; __DDtStateVar__[3] = InfusionRate(3) + Kin-Kout*(1-C2/safe_zero(
-## name[1]: mult_part; value: (EC50+C2); __DDtStateVar__[3] = InfusionRate(3) + Kin-Kout*(1-C2/safe_zero((EC50+C2))
-## name[1]: mult_part; value: (1-C2/(EC50+C2)); __DDtStateVar__[3] = InfusionRate(3) + Kin-Kout*(1-C2/safe_zero((EC50+C2)))
-## name[0]: mult_part; value: *; __DDtStateVar__[3] = InfusionRate(3) + Kin-Kout*(1-C2/safe_zero((EC50+C2)))*
-## name[1]: mult_part; value: eff; __DDtStateVar__[3] = InfusionRate(3) + Kin-Kout*(1-C2/safe_zero((EC50+C2)))*eff
-## c:/R/R-32~1.3/bin/R CMD SHLIB mod1_i386.c
-```
-
 A typical pharmacokinetics-pharmacodynamics (PKPD) model can be
 plotted in `RxODE`. This model, as shown in the figure below:
 
