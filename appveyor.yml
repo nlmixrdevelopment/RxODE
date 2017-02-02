@@ -16,6 +16,8 @@ environment:
    USE_RTOOLS: true
    
   matrix:
+    allowed_failures:
+	- R_VERSION: devel
   - R_VERSION: devel
     GCC_PATH: mingw_32
 
@@ -31,9 +33,6 @@ environment:
   - R_VERSION: oldrel
     RTOOLS_VERSION: 32
     CRAN: http://cran.rstudio.com
-    
-  allowed_failures:
-	- R_VERSION: devel
 
 build_script:
   - travis-tool.sh install_deps
