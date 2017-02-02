@@ -717,7 +717,8 @@ rxSymPyJacobian.slow <- function(model){
     } else {
         extraLines <- c();
         for (i in cnd){
-            rxCat(sprintf("Calculate for %s\n", i));
+            rxCat("################################################################################\n");
+            rxCat(sprintf("## Calculate for %s\n", i));
             rxCat("################################################################################\n");
             rxCondition(model, i);
             extraLines <- c(extraLines,
@@ -763,6 +764,7 @@ rxSymPyClear <- function(var){
         .Jython$exec(sprintf("del %s", var));
     }
 }
+
 rxSymPySensitivity.single <- function(model, calcSens, calcJac){
     rxSymPySetup(model);
     state <- rxState(model)
@@ -835,8 +837,9 @@ rxSymPySensitivity.slow <- function(model, calcSens, calcJac=FALSE){
     } else {
         extraLines <- c();
         for (i in cnd){
-            cat(sprintf("Calculate for %s\n", i));
-            cat("################################################################################\n");
+            rxCat("################################################################################\n");
+            rxCat(sprintf("## Calculate for %s\n", i));
+            rxCat("################################################################################\n");
             rxCondition(model, i);
             extraLines <- c(extraLines,
                             sprintf("if %s {", i),
