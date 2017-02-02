@@ -16,8 +16,6 @@ environment:
    USE_RTOOLS: true
    
   matrix:
-    allowed_failures:
-	- R_VERSION: devel
   - R_VERSION: devel
     GCC_PATH: mingw_32
 
