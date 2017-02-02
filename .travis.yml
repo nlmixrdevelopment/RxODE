@@ -13,12 +13,8 @@ matrix:
   allow_failures:
   - r: devel
     os: linux
-  - r: 3.3
-    os: osx
   - r: devel
     os: osx
-  - r: 3.2
-    os: linux
 
 
 r_github_packages:
