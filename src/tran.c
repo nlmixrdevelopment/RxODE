@@ -416,8 +416,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
   depth++;
   if (nch != 0) {
     if (!strcmp("power_expression", name)) {
-      sprintf(SBPTR, " pow(");
-      sb.o += 5;
+      sprintf(SBPTR, " R_pow(");
+      sb.o += 7;
     }
     for (i = 0; i < nch; i++) {
       if (!rx_syntax_assign  &&
