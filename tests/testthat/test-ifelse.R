@@ -58,15 +58,17 @@ rxPermissive({
         }});
 
     test_that("nested if/then", {
-        expect_equal(rxExpandIfElse(rx3, TRUE, FALSE), c("(!(t<0.02||t>99.98))"="d/dt(X)=a*X+Y*Z;\nd/dt(Y)=b*(Y-Z);\nd/dt(Z)=-X*Y+c*Y-Z;",
-                                            "(t<0.02||t>99.98) && (!(t>100))"="d/dt(X)=a*X+Y*Z;\nd/dt(Y)=b*(Y-Z);\nd/dt(Z)=-X*Y+c*Y-Z;\nprint;\node_print;",
-                                            "(t<0.02||t>99.98) && (t>100)"="d/dt(X)=a*X+Y*Z;\nd/dt(Y)=b*(Y-Z);\nd/dt(Z)=-X*Y+c*Y-Z;\nprint;\njac_print;"))
+        expect_equal(rxExpandIfElse(rx3, TRUE, FALSE),
+                     c("(!(t<0.02||t>99.98))"="d/dt(X)=a*X+Y*Z;\nd/dt(Y)=b*(Y-Z);\nd/dt(Z)=-X*Y+c*Y-Z;",
+                       "(t<0.02||t>99.98) && (!(t>100))"="d/dt(X)=a*X+Y*Z;\nd/dt(Y)=b*(Y-Z);\nd/dt(Z)=-X*Y+c*Y-Z;\nprint;\node_print;",
+                       "(t<0.02||t>99.98) && (t>100)"="d/dt(X)=a*X+Y*Z;\nd/dt(Y)=b*(Y-Z);\nd/dt(Z)=-X*Y+c*Y-Z;\nprint;\njac_print;"))
     });
 
     test_that("Keep initilizations", {
-        expect_equal(rxExpandIfElse(rx3, FALSE, FALSE), c("(!(t<0.02||t>99.98))"="b=-1;\nd/dt(X)=a*X+Y*Z;\nd/dt(Y)=b*(Y-Z);\nd/dt(Z)=-X*Y+c*Y-Z;",
-                                                   "(t<0.02||t>99.98) && (!(t>100))"="b=-1;\nd/dt(X)=a*X+Y*Z;\nd/dt(Y)=b*(Y-Z);\nd/dt(Z)=-X*Y+c*Y-Z;\nprint;\node_print;",
-                                                   "(t<0.02||t>99.98) && (t>100)"="b=-1;\nd/dt(X)=a*X+Y*Z;\nd/dt(Y)=b*(Y-Z);\nd/dt(Z)=-X*Y+c*Y-Z;\nprint;\njac_print;"))
+        expect_equal(rxExpandIfElse(rx3, FALSE, FALSE),
+                     c("(!(t<0.02||t>99.98))"="b=-1;\nd/dt(X)=a*X+Y*Z;\nd/dt(Y)=b*(Y-Z);\nd/dt(Z)=-X*Y+c*Y-Z;",
+                       "(t<0.02||t>99.98) && (!(t>100))"="b=-1;\nd/dt(X)=a*X+Y*Z;\nd/dt(Y)=b*(Y-Z);\nd/dt(Z)=-X*Y+c*Y-Z;\nprint;\node_print;",
+                       "(t<0.02||t>99.98) && (t>100)"="b=-1;\nd/dt(X)=a*X+Y*Z;\nd/dt(Y)=b*(Y-Z);\nd/dt(Z)=-X*Y+c*Y-Z;\nprint;\njac_print;"))
     });
 
     rx4 <- RxODE({
