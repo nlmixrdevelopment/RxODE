@@ -60,7 +60,9 @@ rxClean <- function(wd = getwd()){
     files <- list.files(pattern = pat);
     for (f in files){
         if (f == "Makevars" && file.exists("tran.c")){
+            ## nocov start
             warning("Ignoring Makevars since 'tran.c' is in the same directory.")
+            ## nocov end
         } else {
             try(dyn.unload(f), silent = TRUE);
             unlink(f);

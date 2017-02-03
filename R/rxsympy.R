@@ -165,6 +165,8 @@ rxExpandIfElse <- rxExpandIfElse.slow;
 
 
 ## Start DSL based on http://adv-r.had.co.nz/dsl.html
+## These operators are called to create the language and are not called in tests.
+## nocov start
 unaryOp <- function(left, right) {
     force(left)
     force(right)
@@ -394,6 +396,8 @@ rxSympyFEnv$psigamma <- function(z, n){
 sympyRxFEnv$polygamma <- function(n, z){
     paste0("psigamma(", z, ", ", n, ")");
 }
+
+## nocov end
 
 sympyTransit4 <- function(t, n, mtt, bio, podo="podo"){
     ktr <- paste0("((", n, " + 1) / (", mtt, "))");
