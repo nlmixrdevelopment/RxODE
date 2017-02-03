@@ -181,5 +181,35 @@ mu = 1 ## nonstiff; 10 moderately stiff; 1000 stiff
         expect_true(full$calcJac);
         expect_true(full$calcSens);
     })
+
+    test_that("Transit Sensitivities",{
+        skip.java();
+
+        mod <- RxODE("
+## Table 3 from Savic 2007
+cl = 17.2 # (L/hr)
+vc = 45.1 # L
+ka = 0.38 # 1/hr
+mtt = 0.37 # hr
+bio=1
+n = 20.1
+k = cl/vc
+ktr = (n+1)/mtt
+## note that lgammafn is the same as lgamma in R.
+d/dt(depot) = exp(log(bio*podo)+log(ktr)+n*log(ktr*t)-ktr*t-lgammafn(n+1))-ka*depot
+d/dt(cen) = ka*depot-k*cen
+")
+        mod <- RxODE(mod, calcSens=TRUE)
+
+        et <- eventTable();
+        et$add.sampling(seq(0, 10, length.out=200));
+        et$add.dosing(20, start.time=0);
+
+        transit <- suppressWarnings({rxSolve(mod, et, transit_abs=TRUE)})
+
+        expect_equal(digest::digest(round(as.data.frame(transit), 4)),
+                     "84465ff5a1af32d84807b55fff264892");
+});
+
 }, silent=TRUE)
 
