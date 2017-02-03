@@ -3,7 +3,7 @@
 ##' @importFrom tidyr spread_
 ##' @export
 spread_.solveRxDll <- function (data, key_col, value_col, fill = NA, convert = FALSE, 
-    drop = TRUE, sep = NULL) {
+    drop = TRUE) {
   call <- as.list(match.call(expand.dots=TRUE))[-1];
   call$data <- dplyr::as.tbl(data)
   return(do.call("spread_", call, envir = parent.frame(1)));
