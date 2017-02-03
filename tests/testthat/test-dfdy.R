@@ -206,9 +206,13 @@ d/dt(cen) = ka*depot-k*cen
         et$add.dosing(20, start.time=0);
 
         transit <- suppressWarnings({rxSolve(mod, et, transit_abs=TRUE)})
-
-        expect_equal(digest::digest(round(as.data.frame(transit), 4)),
-                     "84465ff5a1af32d84807b55fff264892");
+        ## Used the log(0) protection since the depot_mtt sensitivity
+        ## includes log(t*...) and t=0
+        ##
+        ## These results are now system dependent since it uses
+        ## log(sqrt(DOUBLE_EPS)) and DOUBLE_EPS varies by platform, so
+        ## just make sure the results are not NA.
+        expect_true(all(!is.na(transit$depot_mtt)));
 });
 
 }, silent=TRUE)

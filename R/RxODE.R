@@ -1192,7 +1192,7 @@ rxDllLoaded <- function(x, retry = TRUE){
         print(m);
         options(RxODE.echo.compile = TRUE);
         m <- rxCompile(x, force = FALSE);
-        stop(sprintf("Can't figure out if the object is loaded (%s)... %s", .Platform$dynlib.ext, paste(list.files(rxLoadDir(), "RxODE\\..*"), collapse = ", ")));
+        stop(sprintf("Can't figure out if the object is loaded (%s)...", .Platform$dynlib.ext));
     }
 }
 ##' Compile a model if needed
