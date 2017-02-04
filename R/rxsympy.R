@@ -674,6 +674,23 @@ rxSymPySetup <- function(model){
     return(invisible());
 }
 
+##' Setup sympy envirnoment if needed
+##'
+##' @param model RxODE lines to setup
+##' @author Matthew L. Fidler
+##' @keywords internal
+##' @return model lines
+##' @export
+rxSymPySetupIf <- function(model){
+    lastLine <- sub(rex::rex(start, any_spaces, capture(anything), any_spaces, end),
+                    "\\1", strsplit(model[length(model)], "=")[[1]][1])
+    if (!rxSymPyExists(rxToSymPy(lastLine))){
+        model.setup <- paste(model, collapse="\n");
+        rxSymPySetup(model.setup)
+    }
+    return(model)
+}
+
 ##' Calculate df/dy derivatives
 ##'
 ##' @param model RxODE models
@@ -690,7 +707,7 @@ rxSymPySetup <- function(model){
 ##' @keywords internal
 rxSymPyDfDy <- function(model, df, dy, vars=FALSE){
     if (missing(df) && missing(dy)){
-        return(rxSymPyDfDyFull(model, vars, rxCondition(model)));
+        return(rxSymPySetupIf(rxSymPyDfDyFull(model, vars, rxCondition(model))));
     } else {
         if (!is.null(model)){
             rxSymPySetup(model);
@@ -790,12 +807,9 @@ rxSymPyClear <- function(var){
     }
 }
 
-rxSymPySensitivity.single <- function(model, calcSens, calcJac){
-    rxSymPySetup(model);
-    state <- rxState(model)
-    extraLines <- rxSymPyDfDy(model, vars=TRUE);
-    all.sens <- c();
+rxSymPySensitivityFull <- function(state, calcSens, model, cond){
     rxCat("Calculate Sensitivities.");
+    all.sens <- extraLines <- c();
     for (s1 in state){
         for (sns in calcSens){
             tmp <- c()
@@ -819,6 +833,18 @@ rxSymPySensitivity.single <- function(model, calcSens, calcJac){
         }
     }
     rxCat("\ndone!\n");
+    return(list(all.sens=all.sens, extraLines=extraLines))
+}
+
+rxSymPySensitivityFull.slow <- NULL;
+
+rxSymPySensitivity.single <- function(model, calcSens, calcJac){
+    rxSymPySetup(model);
+    state <- rxState(model)
+    extraLines <- rxSymPyDfDy(model, vars=TRUE);
+    tmp <- rxSymPySensitivityFull(state, calcSens, model, rxCondition(model))
+    extraLines <- c(extraLines, rxSymPySetupIf(tmp$extraLines));
+    all.sens <- tmp$all.sens;
     if (calcJac){
         rxCat("Expanding Jacobian for sensitivities.")
         jac2 <- expand.grid(s1=unique(all.sens), s2=unique(c(all.sens, rxState(model))),
