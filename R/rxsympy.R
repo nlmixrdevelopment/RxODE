@@ -75,7 +75,26 @@ rxRmPrint <- function(x){
     return(x[regexpr(regPrint, x) == -1]);
 }
 
-rxExpandIfElse.slow <- function(model, removeInis=TRUE, removePrint=TRUE){
+##' Expand if/else clauses into mutiple different types of lines.
+##'
+##'
+##' @param model Model can be a character, or a RxODE model.  It needs
+##'     to have normalized syntax, that is \code{if (...)\{} has to be
+##'     on the same line.  The \code{else} statement must be on its
+##'     own line with the closing bracket of the \code{if} statement
+##'     on the previous line.  This \code{else} statment must also
+##'     contain the opening bracket, like the code \code{else \{}
+##' @param removeInis A boolean indicating if parameter
+##'     initializations should be removed from the model.
+##' @param removePrint A boolean indicating if printing statements
+##'     should be removed from the model.
+##' @return A named character vector. The names of the vector are the
+##'     logical conditions, the values are the lines that satisfy the
+##'     logical conditions.
+##' @author Matthew L. Fidler
+##' @keywords internal
+##' @export
+rxExpandIfElse <- function(model, removeInis=TRUE, removePrint=TRUE){
     ## expand if/else blocks into a list with lines for conditions that are true
     x <- strsplit(rxNorm(model, FALSE), "\n")[[1]];
     if (removeInis){
@@ -145,26 +164,7 @@ rxExpandIfElse.slow <- function(model, removeInis=TRUE, removePrint=TRUE){
         return(paste(model, collapse="\n"));
     }
 }
-##' Expand if/else clauses into mutiple different types of lines.
-##'
-##'
-##' @param model Model can be a character, or a RxODE model.  It needs
-##'     to have normalized syntax, that is \code{if (...)\{} has to be
-##'     on the same line.  The \code{else} statement must be on its
-##'     own line with the closing bracket of the \code{if} statement
-##'     on the previous line.  This \code{else} statment must also
-##'     contain the opening bracket, like the code \code{else \{}
-##' @param removeInis A boolean indicating if parameter
-##'     initializations should be removed from the model.
-##' @param removePrint A boolean indicating if printing statements
-##'     should be removed from the model.
-##' @return A named character vector. The names of the vector are the
-##'     logical conditions, the values are the lines that satisfy the
-##'     logical conditions.
-##' @author Matthew L. Fidler
-##' @keywords internal
-##' @export
-rxExpandIfElse <- rxExpandIfElse.slow;
+rxExpandIfElse.slow <- NULL
 
 
 ## Start DSL based on http://adv-r.had.co.nz/dsl.html
@@ -705,7 +705,7 @@ rxSymPyDfDy <- function(model, df, dy, vars=FALSE){
     }
 }
 
-rxSymPyDfDyFull.slow <- function(model, vars, cond){
+rxSymPyDfDyFull <- function(model, vars, cond){
     if (class(vars) == "logical"){
         if (vars){
             jac <- expand.grid(s1=rxState(model), s2=c(rxState(model), rxParams(model)),
@@ -731,9 +731,18 @@ rxSymPyDfDyFull.slow <- function(model, vars, cond){
     rxCat("done!\n");
     return(extraLines);
 }
-rxSymPyDfDyFull <- rxSymPyDfDyFull.slow;
 
-rxSymPyJacobian.slow <- function(model){
+rxSymPyDfDyFull.slow <- NULL;
+
+##' Calculate the full jacobain for a model
+##'
+##' This expand the model to caluclate the jacobian.  This requires
+##' rSymPy.
+##'
+##' @param model RxODE family of objects
+##' @return RxODE syntax for model with jacobian specified.
+##' @author Matthew L. Fidler
+rxSymPyJacobian <- function(model){
     cnd <- rxNorm(model, TRUE); ## Get the conditional statements
     extraLines <- c();
     if (is.null(cnd)){
@@ -758,15 +767,7 @@ rxSymPyJacobian.slow <- function(model){
     return(model);
 }
 
-##' Calculate the full jacobain for a model
-##'
-##' This expand the model to caluclate the jacobian.  This requires
-##' rSymPy.
-##'
-##' @param model RxODE family of objects
-##' @return RxODE syntax for model with jacobian specified.
-##' @author Matthew L. Fidler
-rxSymPyJacobian <- rxSymPyJacobian.slow;
+rxSymPyJacobian.slow <- NULL
 
 ##' Does the varaible exists in the sympy python environment
 ##'
@@ -843,7 +844,21 @@ rxSymPySensitivity.single <- function(model, calcSens, calcJac){
     return(extraLines);
 }
 
-rxSymPySensitivity.slow <- function(model, calcSens, calcJac=FALSE){
+##' Calculate the sensitivity equations for a model
+##'
+##' This expands the model to calculate sensitivities.  This requires
+##' rSymPy.
+##'
+##' @param model RxODE family of objects
+##' @param calcSens Either a logical or list of sensitivity parameters
+##'     to calculate. When \code{TRUE}, calculate the sensitivities of
+##'     all the known parameters.  When \code{FALSE} raise an error.
+##' @param calcJac A boolean that determines if the jacobian should be
+##'     calculated.
+##' @return Model syntax that includes the sensitivity parameters.
+##' @author Matthew L. Fidler
+##' @export
+rxSymPySensitivity <- function(model, calcSens, calcJac=FALSE){
     if (missing(calcSens)){
         calcSens <- rxParams(model);
     }
@@ -875,21 +890,8 @@ rxSymPySensitivity.slow <- function(model, calcSens, calcJac=FALSE){
     ret <- sprintf("%s\n%s", rxNorm(model), paste(extraLines, collapse="\n"));
     return(ret);
 }
-##' Calculate the sensitivity equations for a model
-##'
-##' This expands the model to calculate sensitivities.  This requires
-##' rSymPy.
-##'
-##' @param model RxODE family of objects
-##' @param calcSens Either a logical or list of sensitivity parameters
-##'     to calculate. When \code{TRUE}, calculate the sensitivities of
-##'     all the known parameters.  When \code{FALSE} raise an error.
-##' @param calcJac A boolean that determines if the jacobian should be
-##'     calculated.
-##' @return Model syntax that includes the sensitivity parameters.
-##' @author Matthew L. Fidler
-##' @export
-rxSymPySensitivity <- rxSymPySensitivity.slow;
+
+rxSymPySensitivity.slow <- NULL;
 
 ##' Remove variables created by RxODE from the sympy environment.
 ##'

@@ -4,12 +4,34 @@
     ## memoise needs to be called at load to use the right package.
     ## See https://github.com/hadley/r-pkgs/issues/203
     ## They suggest an environment, but I used the current namespace.
-    utils::assignInMyNamespace("rxModelVars.character", memoise::memoise(rxModelVars.character.slow));
-    utils::assignInMyNamespace("rxExpandIfElse", memoise::memoise(rxExpandIfElse.slow));
-    utils::assignInMyNamespace("rxSymPyDfDyFull", memoise::memoise(rxSymPyDfDyFull.slow));
-    utils::assignInMyNamespace("rxSymPyJacobian", memoise::memoise(rxSymPyJacobian.slow));
-    utils::assignInMyNamespace("rxSymPySensitivity", memoise::memoise(rxSymPySensitivity.slow));
+    rxSetupMemoize()
 } ## nocov end
+
+##' This setups the memoized functions.
+##'
+##' To easily create a memozied function by adding a \code{.slow <- NULL}
+##' to the end of a function.
+##'
+##' For example, to memozie the function in the namespace
+##' \code{rxModelVars.character} you would add a line:
+##' \code{rxModelVars.character.slow <- NULL}
+##'
+##' @author Matthew L. Fidler
+rxSetupMemoize <- function(){
+
+    reSlow <- rex::rex(".slow",end)
+    f <- sys.function(-1)
+    ns <- environment(f)
+    .slow <- ls(pattern=reSlow,envir=ns);
+    for (slow in .slow){
+        fast <- sub(reSlow, "", slow);
+        if (!memoise::is.memoised(get(fast, envir=ns)) && is.null(get(slow, envir=ns))){
+            utils::assignInMyNamespace(slow, get(fast, envir=ns))
+            utils::assignInMyNamespace(fast, memoise::memoise(get(slow, envir=ns)))
+        }
+
+    }
+}
 
 ## strict/permissive
 rxOpt <- list(RxODE.prefer.tbl               =c(FALSE, FALSE),

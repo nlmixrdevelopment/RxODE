@@ -1768,7 +1768,9 @@ rxModelVars.solveRxDll <- function(obj){
     return(rxModelVars.rxDll(lst$object));
 }
 
-rxModelVars.character.slow <- function(obj){
+##' @rdname rxModelVars
+##' @export
+rxModelVars.character <- function(obj){
     if (length(obj) == 1){
         cFile <- tempfile();
         if (file.exists(obj)){
@@ -1784,13 +1786,11 @@ rxModelVars.character.slow <- function(obj){
         ret <- rxTrans(parseModel, cFile, modVars=TRUE);
         return(ret);
     } else {
-        rxModelVars.character.slow(paste(obj, collapse="\n"));
+        rxModelVars.character(paste(obj, collapse="\n"));
     }
 }
 
-##' @rdname rxModelVars
-##' @export
-rxModelVars.character <- rxModelVars.character.slow;
+rxModelVars.character.slow <- NULL;
 
 ##' Print rxDll object
 ##'
