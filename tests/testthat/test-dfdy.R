@@ -213,6 +213,27 @@ d/dt(cen) = ka*depot-k*cen
         ## log(sqrt(DOUBLE_EPS)) and DOUBLE_EPS varies by platform, so
         ## just make sure the results are not NA.
         expect_true(all(!is.na(transit$depot_mtt)));
+
+        mod <- RxODE({
+            ## Table 3 from Savic 2007
+            cl = 17.2 # (L/hr)
+            vc = 45.1 # L
+            tvka = 0.38 # 1/hr
+            tvmtt = 0.37 # hr
+            ka = tvka * exp(eta_ka);
+            mtt = tvmtt * exp(eta_mtt);
+            bio=1
+            n = 20.1
+            k = cl/vc
+            ktr = (n+1)/mtt
+            ## note that lgammafn is the same as lgamma in R.
+            d/dt(depot) = exp(log(bio*podo)+log(ktr)+n*log(ktr*t)-ktr*t-lgammafn(n+1))-ka*depot
+            d/dt(cen) = ka*depot-k*cen
+        });
+
+        tmp <- RxODE(mod, calcSens=c("eta_ka", "eta_mtt"));
+        expect_true(all(!is.na(transit$depot_mtt)));
+
 });
 
 }, silent=TRUE)

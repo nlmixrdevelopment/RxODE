@@ -3,9 +3,12 @@ utils::globalVariables(c(".Jython"))
 regIdentifier1 <- rex::rex(one_of("a":"z", "A":"Z"), any_of("_", "a":"z", "A":"Z", "0":"9", "."))
 regIdentifier2 <- rex::rex(at_least(".",1), one_of("_", "a":"z", "A":"Z"), any_of("_", "a":"z", "A":"Z", "0":"9", "."));
 regIdentifier <- rex::rex(or(regIdentifier1, regIdentifier2));
-regSens <- rex::rex("rx__sens_", capture(regIdentifier), "_",  capture(regIdentifier), "__");
+regSens <- rex::rex("rx__sens_", capture(regIdentifier), "_BY_",  capture(regIdentifier), "__");
+regSens2 <- rex::rex("rx__sens_", capture(regIdentifier), "_BY_",  capture(regIdentifier), "_2__");
+regSensEtaTheta <- rex::rex("rx__sens_", capture(regIdentifier), "_BY_ETA_",  capture(regIdentifier),
+                            "_BY_THETA_",capture(regIdentifier), "__");
 regToSens1 <- rex::rex( capture(regIdentifier), or("_", ".", ":"),  capture(regIdentifier));
-regToSens2 <- rex::rex( "d/dt(d", capture(regIdentifier), "/d",  capture(regIdentifier), ")");
+regToSens2 <- rex::rex( "d/dt(d(", capture(regIdentifier), ")/d(",  capture(regIdentifier), "))");
 regJac <- rex::rex( "df(", capture(regIdentifier), ")/dy(",  capture(regIdentifier), ")");
 regFloat1 <- rex::rex(or(group(some_of("0":"9"), ".", any_of("0":"9")),
                          group(any_of("0":"9"), ".", some_of("0":"9"))),
@@ -797,8 +800,8 @@ rxSymPySensitivity.single <- function(model, calcSens, calcJac){
             tmp <- c()
             vars <- c();
             for (s2 in state){
-                vars <- c(vars, sprintf("rx__sens_%s_%s__", s2, sns));
-                extra <- sprintf("df(%s)/dy(%s)*rx__sens_%s_%s__", s1, s2, s2, sns)
+                vars <- c(vars, sprintf("rx__sens_%s_BY_%s__", s2, sns));
+                extra <- sprintf("df(%s)/dy(%s)*rx__sens_%s_BY_%s__", s1, s2, s2, sns)
                 tmp <- c(tmp, extra);
             }
             tmp <- c(tmp, sprintf("df(%s)/dy(%s)", s1, sns));
@@ -806,7 +809,7 @@ rxSymPySensitivity.single <- function(model, calcSens, calcJac){
             all.sens <- c(all.sens, vars);
             line <- rxToSymPy(paste(tmp, collapse=" + "))
             line <- rSymPy::sympy(line);
-            var.rx <- sprintf("d/dt(rx__sens_%s_%s__)", s1, sns)
+            var.rx <- sprintf("d/dt(rx__sens_%s_BY_%s__)", s1, sns)
             var <- rxToSymPy(var.rx)
             .Jython$exec(sprintf("%s=%s", var, line));
             assignInMyNamespace("rxSymPy.vars", c(rxSymPy.vars, var));

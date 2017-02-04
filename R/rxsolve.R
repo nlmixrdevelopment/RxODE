@@ -391,9 +391,9 @@ rxSolve.rxDll <- function(object, params, events, inits = NULL, scale = c(),
 
     ## Subset to observations only.
     attr(ret, "solveRxDll")$matrix <- attr(ret, "solveRxDll")$matrix[events$get.obs.rec(), ];
-    ## Change sensitivities to be d/dt(dA/dB) form.
+    ## Change sensitivities to be d/dt(d(A)/d(B)) form.
     dim <- dimnames(attr(ret, "solveRxDll")$matrix);
-    dim[[2]] <- gsub(regSens,"d/dt(d\\1/d\\2)",dim[[2]]);
+    dim[[2]] <- gsub(regSens,"d/dt(d(\\1)/d(\\2))",dim[[2]]);
     dimnames(attr(ret, "solveRxDll")$matrix) <- dim;
 
     if (rc != 0)

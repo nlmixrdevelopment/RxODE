@@ -615,7 +615,7 @@ print.rxCoef <- function(x, ...){
         tmp1 <- tmp[regexpr(regSens, tmp) == -1];
         print(tmp1);
         cat("\nSensitivites:\n");
-        tmp2 <- gsub(regSens, "d/dt(d\\1/d\\2)", tmp[regexpr(regSens, tmp) != -1]);
+        tmp2 <- gsub(regSens, "d/dt(d(\\1)/d(\\2))", tmp[regexpr(regSens, tmp) != -1]);
         print(tmp2);
     } else {
         print(tmp);
@@ -651,7 +651,7 @@ print.rxCoefSolve <- function(x, ...){
     }
     print(tmp);
     if (length(sens) > 0){
-        sens <- gsub(regSens, "d/dt(d\\1/d\\2)", sens);
+        sens <- gsub(regSens, "d/dt(d(\\1)/d(\\2))", sens);
         cat("\nSensitivites:\n");
         print(sens)
     }
@@ -2026,7 +2026,7 @@ accessComp <- function(obj, arg){
         } else {
             tmp <- attr(obj, "solveRxDll");
             if (regexpr(regToSens1, arg) != -1){
-                ret <- m[[gsub(regToSens1, "d/dt(d\\1/d\\2)", arg)]];
+                ret <- m[[gsub(regToSens1, "d/dt(d(\\1)/d(\\2))", arg)]];
                 if (!is.null(ret)){
                     return(ret)
                 }
