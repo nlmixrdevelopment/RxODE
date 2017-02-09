@@ -3,14 +3,11 @@
 \name{rxChain}
 \alias{rxChain}
 \alias{+.solveRxDll}
-\alias{\%>\%.solveRxDll}
 \title{rxChain  Chain or add item to sovled system of equations}
 \usage{
 rxChain(obj1, obj2)
 
 \method{+}{solveRxDll}(obj1, obj2)
-
-"\%>\%.solveRxDll"(obj1, obj2)
 }
 \arguments{
 \item{obj1}{Solved object}

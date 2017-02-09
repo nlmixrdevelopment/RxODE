@@ -136,4 +136,17 @@ rxPermissive({
     test_that("event tables are equal for presolved and post-solved objects.", {
         expect_equal(et, eventTable(out));
     })
+
+    et <- eventTable() %>%
+        add.sampling(seq(from=0, to=100, by=0.01)) %>%
+        add.dosing(30, amount.units="mg");
+
+    et2 <- eventTable();
+    et2$add.sampling(seq(from=0, to=100, by=0.01))
+    et2$add.dosing(30, amount.units="mg")
+
+    test_that("%>% and $ syntax are equivalent.", {
+        expect_equal(et$get.EventTable(), et2$get.EventTable());
+    })
+
 }, silent=TRUE);

@@ -1,5 +1,5 @@
 # event table (dosing + sampling obs from the system)
-                                        # An eventTable object contains a numeric matrix with
+# An eventTable object contains a numeric matrix with
 # a time vector, an event id  describing two types
 # of timed records, doses (input) and sampling times
 # (state variables); in the future there could be
@@ -116,32 +116,46 @@
 #' @examples
 #' # create dosing and observation (sampling) events
 #' # QD 50mg dosing, 5 days followed by 25mg 5 days
-#'
+#' #
 #' qd <- eventTable(amount.units = "mg", time.units = "days")
-#'
+#' #
 #' qd$add.dosing(dose=50, nbr.doses=5, dosing.interval = 1, do.sampling=FALSE)
-#'
+#' #
 #' # sample the system's drug amounts hourly the first day, then every 12 hours
 #' # for the next 4 days
 #' qd$add.sampling(seq(from = 0, to = 1, by = 1/24))
 #' qd$add.sampling(seq(from = 1, to = 5, by = 12/24))
-#'
+#' #
 #' #print(qd$get.dosing())     # table of dosing records
 #' print(qd$get.nobs())   # number of observation (not dosing) records
-#'
-#'                                         # BID dosing, 5 days
-#'
+#' #
+#' # BID dosing, 5 days
 #' bid <- eventTable("mg", "days")  # only dosing
 #' bid$add.dosing(dose=10000, nbr.doses=2*5,
 #'                dosing.interval = 12, do.sampling=FALSE)
-#'
+#' #
 #' # Use the copy() method to create a copy (clone) of an existing
 #' # event table (simple assignments just create a new reference to
 #' # the same event table object (closure)).
-#'
+#' #
 #' bid.ext <- bid$copy()      # three-day extension for a 2nd cohort
 #' bid.ext$add.dosing(dose = 5000, nbr.doses = 2*3,
 #'                    start.time = 120, dosing.interval = 12, do.sampling = FALSE)
+#'
+#' # You can also use the Piping operator to create a table
+#'
+#' qd2 <- eventTable(amount.units="mg", time.units="days") %>%
+#'     add.dosing(dose=50, nbr.doses=5, dosing.interval=1, do.sampling=FALSE) %>%
+#'     add.sampling(seq(from=0, to=1, by=1 / 24)) %>%
+#'     add.sampling(seq(from=1, to=5, by=12 / 24))
+#' #print(qd2$get.dosing())     # table of dosing records
+#' print(qd2$get.nobs())   # number of observation (not dosing) records
+#'
+#' # Note that piping with %>% will update the original table.
+#'
+#' qd3 <- qd2 %>% add.sampling(seq(from=5, to=10, by=6 / 24))
+#' print(qd2$get.nobs())
+#' print(qd3$get.nobs())
 #' @keywords models data
 #' @concept ordinary differential equations
 #' @concept Nonlinear regression
@@ -345,3 +359,70 @@ function(x, ...)
    )
    invisible(x)
 }
+
+##' Add dosing to eventTable
+##'
+##' This adds a dosing event to the event table.  This is provided for
+##' piping syntax through magrittr
+##'
+##' @param eventTable eventTable object
+##' @param dose numeric scalar, dose amount in \code{amount.units}
+##' @param nbr.doses integer, number of doses;
+##' @param dosing.interval required numeric scalar, time between doses
+##'      in \code{time.units}, defaults to 24 of \code{time.units="hours"};
+##' @param dosing.to  integer, compartment the dose goes into
+##'        (first compartment by default);
+##' @param rate \code{rate}: for infusions, the rate of infusion (default
+##'            is \code{NULL}, for bolus dosing;
+##' @param amount.units optional string indicating the dosing units.
+##'           Defaults to \code{NA} to indicate as per the original \code{EventTable}
+##'           definition.
+##' @param start.time required dosing start time;
+##' @param do.sampling logical, should observation sampling records
+##'            be added at the dosing times? Defaults to \code{FALSE}.
+##' @param time.units  optional string indicating the time units.
+##'           Defaults to \code{"hours"} to indicate as per the original \code{EventTable} definition.
+##' @param ... ignored arguments
+##' @return eventTable with updated dosing (note the event table will be updated anyway)
+##' @author Matthew L. Fidler
+##' @seealso \code{\link{eventTable}}, \code{\link{RxODE}}
+##' @export
+add.dosing <- function(eventTable,
+                       dose,
+                       nbr.doses = 1,
+                       dosing.interval = 24,
+                       dosing.to=1,
+                       rate=NULL,
+                       amount.units = NA,
+                       start.time,
+                       do.sampling=FALSE,
+                       time.units = NA, ...) {
+    eventTable$add.dosing(dose=dose, nbr.doses=nbr.doses, dosing.interval=dosing.interval,
+                          dosing.to=dosing.to, rate=rate, amount.untits=amount.units,
+                          time.untis=time.units)
+    return(eventTable)
+}
+##' Add sampling to eventTable
+##'
+##' This adds a dosing event to the event table.  This is provided for
+##' piping syntax through magrittr
+##'
+##' @param eventTable An eventTable object
+##' @param time a vector of time values (in \code{time.units}).
+##' @param time.units an optional string specifying the time
+##'     units. Defaults to the units specified when the
+##'     \code{EventTable} was initialized.
+##' @return eventTable with updated sampling.  (Note the event table
+##'     will be updated even if you don't reassign the eventTable)
+##' @author Matthew L. Fidler
+##' @seealso \code{\link{eventTable}}, \code{\link{RxODE}}
+##' @export
+add.sampling <- function(eventTable, time, time.units = NA){
+    eventTable$add.sampling(time=time, time.units=time.units)
+    return(eventTable)
+}
+
+
+##' @importFrom magrittr %>%
+##' @export
+magrittr::`%>%`
