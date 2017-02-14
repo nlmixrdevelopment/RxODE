@@ -3,9 +3,9 @@
 #include <Rmath.h>
 #include <R_ext/Rdynload.h>
 #define JAC_Rprintf Rprintf
-#define JAC0_Rprintf if (jac_counter_val() == 0) Rprintf
+#define JAC0_Rprintf if (_jac_counter_val() == 0) Rprintf
 #define ODE_Rprintf Rprintf
-#define ODE0_Rprintf if (dadt_counter_val() == 0) Rprintf
+#define ODE0_Rprintf if (_dadt_counter_val() == 0) Rprintf
 #define LHS_Rprintf Rprintf
 #define max(a,b) (((a)>(b))?(a):(b))
 #define min(a,b) (((a)<(b))?(a):(b))
@@ -25,19 +25,17 @@ typedef void (*RxODE_assign_fn_pointers)(void (*fun_dydt)(unsigned int, double, 
 typedef void (*RxODE_ode_solver_old_c)(int *neq,double *theta,double *time,int *evid,int *ntime,double *inits,double *dose,double *ret,double *atol,double *rtol,int *stiff,int *transit_abs,int *nlhs,double *lhs,int *rc);
 typedef void (*RxODE_ode_solver_0_6_c)(int *neq,double *theta,double *time,int *evid,int *ntime,double *inits,double *dose,double *ret,double *atol,double *rtol,int *stiff,int *transit_abs,int *nlhs,double *lhs,int *rc,double hmin, double hmax,double h0,int mxordn,int mxords,int mxstep);
 // Give par pointers
-RxODE_vec par_ptr, InfusionRate;
-RxODE_update_par_ptr update_par_ptr;
-RxODE_cnt dadt_counter_val, jac_counter_val;
-RxODE_inc dadt_counter_inc, jac_counter_inc;
+RxODE_vec _par_ptr, _InfusionRate;
+RxODE_update_par_ptr _update_par_ptr;
+RxODE_cnt _dadt_counter_val, _jac_counter_val;
+RxODE_inc _dadt_counter_inc, _jac_counter_inc;
 RxODE_val podo, tlast;
-RxODE_transit4 transit4;
-RxODE_transit3 transit3;
-RxODE_fn factorial;
-RxODE_fn safe_log;
-RxODE_fn safe_zero;
-RxODE_assign_fn_pointers assign_fn_pointers;
-RxODE_ode_solver_old_c old_c;
-RxODE_ode_solver_0_6_c c_0_6;
+RxODE_transit4 _transit4;
+RxODE_transit3 _transit3;
+RxODE_fn _safe_log, _safe_zero;
+RxODE_assign_fn_pointers _assign_fn_pointers;
+RxODE_ode_solver_old_c _old_c;
+RxODE_ode_solver_0_6_c _c_0_6;
 
 
 void __ODE_SOLVER__(
@@ -58,14 +56,14 @@ void __ODE_SOLVER__(
                     int *rc
                     ){
   // Backward compatible ode solver for 0.5* C interface
-  assign_fn_pointers(__DYDT__ , __CALC_LHS__ , __CALC_JAC__, __JT__ , __MF__,
+  _assign_fn_pointers(__DYDT__ , __CALC_LHS__ , __CALC_JAC__, __JT__ , __MF__,
 #ifdef __DEBUG__
                      1
 #else
                      0
 #endif
                      );
-  old_c(neq, theta, time, evid, ntime, inits, dose, ret, atol, rtol, stiff, transit_abs, nlhs, lhs, rc);
+  _old_c(neq, theta, time, evid, ntime, inits, dose, ret, atol, rtol, stiff, transit_abs, nlhs, lhs, rc);
 }
 
 void __ODE_SOLVER_0_6__(int *neq,
@@ -90,14 +88,14 @@ void __ODE_SOLVER_0_6__(int *neq,
                         int mxords,
                         int mxstep) {
   // Backward compatible ode solver for 0.5* C interface
-  assign_fn_pointers(__DYDT__ , __CALC_LHS__ , __CALC_JAC__, __JT__ , __MF__,
+  _assign_fn_pointers(__DYDT__ , __CALC_LHS__ , __CALC_JAC__, __JT__ , __MF__,
 #ifdef __DEBUG__
                      1
 #else
                      0
 #endif
                      );
-  c_0_6(neq, theta, time, evid, ntime, inits, dose, ret, atol, rtol, stiff, transit_abs, nlhs, lhs, rc,
+  _c_0_6(neq, theta, time, evid, ntime, inits, dose, ret, atol, rtol, stiff, transit_abs, nlhs, lhs, rc,
 	hmin, hmax, h0, mxordn, mxords, mxstep);
 }
 
@@ -128,7 +126,7 @@ extern SEXP __ODE_SOLVER_SEXP__ (// Parameters
 				 SEXP sexp_object,
 				 SEXP sexp_extra_args){
   RxODE_ode_solver ode_solver=(RxODE_ode_solver) R_GetCCallable("RxODE","RxODE_ode_solver");
-  assign_fn_pointers(__DYDT__ , __CALC_LHS__ , __CALC_JAC__, __JT__ , __MF__,
+  _assign_fn_pointers(__DYDT__ , __CALC_LHS__ , __CALC_JAC__, __JT__ , __MF__,
 #ifdef __DEBUG__
                      1
 #else
@@ -143,30 +141,29 @@ extern SEXP __ODE_SOLVER_SEXP__ (// Parameters
 //Initilize the dll to match RxODE's calls
 void __R_INIT__ (DllInfo *info){
   // Get the RxODE calling interfaces
-  InfusionRate   = (RxODE_vec) R_GetCCallable("RxODE","RxODE_InfusionRate");
-  update_par_ptr = (RxODE_update_par_ptr) R_GetCCallable("RxODE","RxODE_update_par_ptr");
-  par_ptr = (RxODE_vec) R_GetCCallable("RxODE","RxODE_par_ptr");
-  dadt_counter_val = (RxODE_cnt) R_GetCCallable("RxODE","RxODE_dadt_counter_val");
-  jac_counter_val  = (RxODE_cnt) R_GetCCallable("RxODE","RxODE_jac_counter_val");
-  dadt_counter_inc = (RxODE_inc) R_GetCCallable("RxODE","RxODE_dadt_counter_inc");
-  jac_counter_inc  = (RxODE_inc) R_GetCCallable("RxODE","RxODE_jac_counter_inc");
+  _InfusionRate   = (RxODE_vec) R_GetCCallable("RxODE","RxODE_InfusionRate");
+  _update_par_ptr = (RxODE_update_par_ptr) R_GetCCallable("RxODE","RxODE_update_par_ptr");
+  _par_ptr = (RxODE_vec) R_GetCCallable("RxODE","RxODE_par_ptr");
+  _dadt_counter_val = (RxODE_cnt) R_GetCCallable("RxODE","RxODE_dadt_counter_val");
+  _jac_counter_val  = (RxODE_cnt) R_GetCCallable("RxODE","RxODE_jac_counter_val");
+  _dadt_counter_inc = (RxODE_inc) R_GetCCallable("RxODE","RxODE_dadt_counter_inc");
+  _jac_counter_inc  = (RxODE_inc) R_GetCCallable("RxODE","RxODE_jac_counter_inc");
   podo  = (RxODE_val) R_GetCCallable("RxODE","RxODE_podo");
   tlast = (RxODE_val) R_GetCCallable("RxODE","RxODE_tlast");
-  transit3 = (RxODE_transit3) R_GetCCallable("RxODE","RxODE_transit3");
-  transit4 = (RxODE_transit4) R_GetCCallable("RxODE","RxODE_transit4");
-  factorial=(RxODE_fn) R_GetCCallable("RxODE","RxODE_factorial");
-  safe_log =(RxODE_fn) R_GetCCallable("RxODE","RxODE_safe_log");
-  safe_zero =(RxODE_fn) R_GetCCallable("RxODE","RxODE_safe_zero");
-  assign_fn_pointers=(RxODE_assign_fn_pointers) R_GetCCallable("RxODE","RxODE_assign_fn_pointers");
-  old_c = (RxODE_ode_solver_old_c) R_GetCCallable("RxODE","RxODE_ode_solver_old_c");
-  c_0_6 = (RxODE_ode_solver_0_6_c)R_GetCCallable("RxODE","RxODE_ode_solver_0_6_c");
+  _transit3 = (RxODE_transit3) R_GetCCallable("RxODE","RxODE_transit3");
+  _transit4 = (RxODE_transit4) R_GetCCallable("RxODE","RxODE_transit4");
+  _safe_log =(RxODE_fn) R_GetCCallable("RxODE","RxODE_safe_log");
+  _safe_zero =(RxODE_fn) R_GetCCallable("RxODE","RxODE_safe_zero");
+  _assign_fn_pointers=(RxODE_assign_fn_pointers) R_GetCCallable("RxODE","RxODE_assign_fn_pointers");
+  _old_c = (RxODE_ode_solver_old_c) R_GetCCallable("RxODE","RxODE_ode_solver_old_c");
+  _c_0_6 = (RxODE_ode_solver_0_6_c)R_GetCCallable("RxODE","RxODE_ode_solver_0_6_c");
   // Register the outside functions
   R_RegisterCCallable(__LIB_STR__,__ODE_SOLVER_STR__,       (DL_FUNC) __ODE_SOLVER__);
   R_RegisterCCallable(__LIB_STR__,__ODE_SOLVER_SEXP_STR__,  (DL_FUNC) __ODE_SOLVER_SEXP__);
   R_RegisterCCallable(__LIB_STR__,__ODE_SOLVER_0_6_STR__,   (DL_FUNC) __ODE_SOLVER_0_6__);
   // Register the function pointers so if someone directly calls the
   // ode solvers directly, they use the last loaded RxODE model.
-  assign_fn_pointers(__DYDT__ , __CALC_LHS__ , __CALC_JAC__, __JT__ , __MF__,
+  _assign_fn_pointers(__DYDT__ , __CALC_LHS__ , __CALC_JAC__, __JT__ , __MF__,
 #ifdef __DEBUG__
 				       1
 #else

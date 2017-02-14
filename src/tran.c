@@ -311,8 +311,8 @@ void wprint_node(int depth, char *name, char *value, void *client_data) {
     sprintf(SBTPTR, "lgamma1p");
     sbt.o += 8;
   } else if (!strcmp("identifier",name) && !strcmp("log",value)){
-    sprintf(SBPTR, "safe_log");
-    sb.o += 8;
+    sprintf(SBPTR, "_safe_log");
+    sb.o += 9;
     sprintf(SBTPTR, "log");
     sbt.o += 3;
   } else {
@@ -481,8 +481,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
 	if (i == 0){
 	  if (!strcmp("/",v)){
-	    sprintf(SBPTR,"safe_zero(");
-            sb.o += 10;
+	    sprintf(SBPTR,"_safe_zero(");
+            sb.o += 11;
             safe_zero = 1;
 	  } else {
 	    safe_zero = 0;
@@ -697,15 +697,15 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         Free(v);
       }
       if (!strcmp("transit2", name) && i == 0){
-        sprintf(SBPTR, "transit3(t,");
-        sb.o += 11;
+        sprintf(SBPTR, "_transit3(t,");
+        sb.o += 12;
         sprintf(SBTPTR,"transit(");
         sbt.o += 8;
         rx_podo = 1;
       }
       if (!strcmp("transit3", name) && i == 0){
-        sprintf(SBPTR, "transit4(t,");
-        sb.o += 11;
+        sprintf(SBPTR, "_transit4(t,");
+        sb.o += 12;
         sprintf(SBTPTR,"transit(");
         sbt.o += 8;
         rx_podo = 1;
@@ -715,7 +715,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         /* sb.o = strlen(sb.s); */
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
         if (new_de(v)){
-          sprintf(sb.s, "__DDtStateVar__[%d] = InfusionRate(%d) + ", tb.nd, tb.nd);
+          sprintf(sb.s, "__DDtStateVar__[%d] = _InfusionRate(%d) + ", tb.nd, tb.nd);
           sb.o = strlen(sb.s);
           sprintf(sbt.s, "d/dt(%s)=", v);
           sbt.o = strlen(sbt.s);
@@ -944,7 +944,7 @@ void prnt_vars(int scenario, FILE *outpt, int lhs, const char *pre_str, const ch
           fprintf(outpt,"%c",buf[k]);
         }
       }
-      fprintf(outpt, " = par_ptr(%d);\n", j++);
+      fprintf(outpt, " = _par_ptr(%d);\n", j++);
       break;
     default: break;
     }
@@ -1250,8 +1250,8 @@ void codegen(FILE *outpt, int show_ode) {
   char *hdft[]=
     {
       "\n// prj-specific differential eqns\nvoid ",
-      "dydt(unsigned int neq, double t, double *__zzStateVar__, double *__DDtStateVar__)\n{\n",
-      "    dadt_counter_inc();\n}\n\n"
+      "dydt(unsigned int _neq, double t, double *__zzStateVar__, double *__DDtStateVar__)\n{\n",
+      "    _dadt_counter_inc();\n}\n\n"
     };
   if (show_ode == 1){
     fprintf(outpt, __HD_ODE__);
@@ -1277,16 +1277,16 @@ void codegen(FILE *outpt, int show_ode) {
     fprintf(outpt, "%s", model_prefix);
     fprintf(outpt, "%s", hdft[1]);
   } else if (show_ode == 2){
-    fprintf(outpt, "// Jacobian derived vars\nvoid %scalc_jac(unsigned int neq, double t, double *__zzStateVar__, double *__PDStateVar__, unsigned int __NROWPD__) {\n",model_prefix);
+    fprintf(outpt, "// Jacobian derived vars\nvoid %scalc_jac(unsigned int _neq, double t, double *__zzStateVar__, double *__PDStateVar__, unsigned int __NROWPD__) {\n",model_prefix);
   } else {
-    fprintf(outpt, "// prj-specific derived vars\nvoid %scalc_lhs(double t, double *__zzStateVar__, double *lhs) {\n",model_prefix);
+    fprintf(outpt, "// prj-specific derived vars\nvoid %scalc_lhs(double t, double *__zzStateVar__, double *_lhs) {\n",model_prefix);
   }
   if (found_print){
     fprintf(outpt,"\n\tint __print_ode__ = 0, __print_vars__ = 0,__print_parm__ = 0,__print_jac__ = 0;\n");
   }
   if ((show_ode == 2 && found_jac == 1) || show_ode != 2){
     prnt_vars(0, outpt, 0, "double \n\t", "\n",show_ode);     /* declare all used vars */
-    fprintf(outpt,"\tupdate_par_ptr(t);\n");
+    fprintf(outpt,"\t_update_par_ptr(t);\n");
     prnt_vars(1, outpt, 1, "", "\n",show_ode);                   /* pass system pars */
     for (i=0; i<tb.nd; i++) {                   /* name state vars */
       retieve_var(tb.di[i], buf);
@@ -1329,7 +1329,7 @@ void codegen(FILE *outpt, int show_ode) {
       if (show_ode != 1 && s) continue;
       else if (s) {
         fprintf(outpt,"\tRprintf(\"================================================================================\\n\");\n");
-        fprintf(outpt,"\tRprintf(\"ODE Count: %%d\\tTime (t): %%f\\n\",dadt_counter_val(),t);\n");
+        fprintf(outpt,"\tRprintf(\"ODE Count: %%d\\tTime (t): %%f\\n\",_dadt_counter_val(),t);\n");
         fprintf(outpt,"\tRprintf(\"================================================================================\\n\");\n");
         fprintf(outpt,"\t__print_ode__ = 1;\n");
         fprintf(outpt,"\t__print_vars__ = 1;\n");
@@ -1368,7 +1368,7 @@ void codegen(FILE *outpt, int show_ode) {
       if (show_ode != 2 && s) continue;
       else if (s) {
         fprintf(outpt,"\tRprintf(\"================================================================================\\n\");\n");
-        fprintf(outpt,"\tRprintf(\"JAC Count: %%d\\tTime (t): %%f\\n\",jac_counter,t);\n");
+        fprintf(outpt,"\tRprintf(\"JAC Count: %%d\\tTime (t): %%f\\n\",_jac_counter_val(),t);\n");
         fprintf(outpt,"\tRprintf(\"================================================================================\\n\");\n");
         fprintf(outpt,"\t__print_ode__ = 1;\n");
         fprintf(outpt,"\t__print_jac__ = 1;\n");
@@ -1473,7 +1473,7 @@ void codegen(FILE *outpt, int show_ode) {
       if (tb.lh[i]>0) continue;
       j++;
       retieve_var(i, buf);
-      fprintf(outpt, "\t\tRprintf(\"%s=%%f\\tpar_ptr(%d)=%%f\\n\",%s,par_ptr(%d));\n", buf, j-1, buf,j-1);
+      fprintf(outpt, "\t\tRprintf(\"%s=%%f\\t_par_ptr(%d)=%%f\\n\",%s,_par_ptr(%d));\n", buf, j-1, buf,j-1);
     }
     fprintf(outpt,"\t}\n");
   }
@@ -1485,14 +1485,14 @@ void codegen(FILE *outpt, int show_ode) {
     fprintf(outpt, "%s", hdft[2]);
   } else if (show_ode == 2){
     //fprintf(outpt,"\tfree(__ld_DDtStateVar__);\n");
-    fprintf(outpt, "  jac_counter_inc();\n");
+    fprintf(outpt, "  _jac_counter_inc();\n");
     fprintf(outpt, "}\n");
   } else {
     fprintf(outpt, "\n");
     for (i=0, j=0; i<tb.nv; i++) {
       if (tb.lh[i] != 1) continue;
       retieve_var(i, buf);
-      fprintf(outpt, "\tlhs[%d]=", j);
+      fprintf(outpt, "\t_lhs[%d]=", j);
       for (k = 0; k < strlen(buf); k++){
         if (buf[k] == '.'){
           fprintf(outpt,"_DoT_");

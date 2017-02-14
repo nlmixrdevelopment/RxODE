@@ -682,10 +682,6 @@ double RxODE_transit3(double t, double n, double mtt){
   return RxODE_transit4(t, n,mtt, 1.0);
 }
 
-double RxODE_factorial(double x){
-  return exp(lgamma1p(x));
-}
-
 double RxODE_safe_log(double x){
   if (x == 0.0){
     return log(sqrt(DOUBLE_EPS));
@@ -725,7 +721,6 @@ void R_init_RxODE(DllInfo *info){
   // tranit compartment models
   R_RegisterCCallable("RxODE","RxODE_transit4",         (DL_FUNC) RxODE_transit4);
   R_RegisterCCallable("RxODE","RxODE_transit3",         (DL_FUNC) RxODE_transit3);
-  R_RegisterCCallable("RxODE","RxODE_factorial",        (DL_FUNC) RxODE_factorial);
   R_RegisterCCallable("RxODE","RxODE_safe_log",         (DL_FUNC) RxODE_safe_log);
   R_RegisterCCallable("RxODE","RxODE_safe_zero",         (DL_FUNC) RxODE_safe_zero);
 }
