@@ -2,17 +2,6 @@ cat("Generate dplyr and tidyr compatability functions.\n")
 library(devtools)
 library(tidyr)
 library(dplyr)
-cat("Generate header string.\n");
-odec <- readLines(devtools::package_file("inst/ode.c"));
-w <- which(regexpr("__ODE_SOLVER__", odec) != -1)[1];
-ode <- odec[seq(1, w - 1)];
-solve <- odec[seq(w, length(odec))];
-hd <- sprintf("#define __HD_ODE__ \"%s\\n\"\n#define __HD_SOLVE__ \"%s\\n\"\n",
-              paste(gsub("%", "%%", gsub("\"", "\\\\\"", ode)), collapse="\\n"),
-              paste(gsub("%", "%%", gsub("\"", "\\\\\"", solve)), collapse="\\n"));
-sink(devtools::package_file("src/ode.h"))
-cat(hd);
-sink();
 sink(package_file("R/rxsolve-gen.R"))
 cat("## Generated code from build/refresh.R\n\n");
 for (f in c("spread_", "unite_", "separate_", "gather_")){
@@ -82,6 +71,17 @@ sink();
 
 document();
 
+cat("Generate header string.\n");
+odec <- readLines(devtools::package_file("inst/ode.c"));
+w <- which(regexpr("__ODE_SOLVER__", odec) != -1)[1];
+ode <- odec[seq(1, w - 1)];
+solve <- odec[seq(w, length(odec))];
+hd <- sprintf("#define __HD_ODE__ \"%s\\n\"\n#define __HD_SOLVE__ \"%s\\n\"\n",
+              paste(gsub("%", "%%", gsub("\"", "\\\\\"", ode)), collapse="\\n"),
+              paste(gsub("%", "%%", gsub("\"", "\\\\\"", solve)), collapse="\\n"));
+sink(devtools::package_file("src/ode.h"))
+cat(hd);
+sink();
 cat("Update README\n");
 owd <- getwd();
 on.exit({setwd(owd)});
