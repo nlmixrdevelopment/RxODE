@@ -496,8 +496,10 @@ as.matrix.solveRxDll <- function(x, ...){
 ##' @export
 as.data.frame.solveRxDll <- function(x, row.names = NULL, optional = FALSE, ...,
                                      stringsAsFactors = default.stringsAsFactors()){
-    return(as.data.frame(as.matrix(x), row.names = row.names, optional = optional, ...,
-                         stringsAsFactors = stringsAsFactors));
+    ret <- as.data.frame(as.matrix(x), row.names = row.names, optional = optional, ...,
+                         stringsAsFactors = stringsAsFactors);
+    names(ret) <- gsub(regToSens2, "_sens_\\1_\\2", names(ret));
+    return(ret);
 }
 
 ##' Use the as_data_frame method for solved object x
@@ -752,3 +754,4 @@ rbind.solveRxDll <- function(...){
 cbind.solveRxDll <- function(...){
     stop("cbind is unsupported.  First convert to a data.frame with as.data.frame(x).")
 }
+

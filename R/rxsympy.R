@@ -4,9 +4,8 @@ regIdentifier1 <- rex::rex(one_of("a":"z", "A":"Z"), any_of("_", "a":"z", "A":"Z
 regIdentifier2 <- rex::rex(at_least(".",1), one_of("_", "a":"z", "A":"Z"), any_of("_", "a":"z", "A":"Z", "0":"9", "."));
 regIdentifier <- rex::rex(or(regIdentifier1, regIdentifier2));
 regSens <- rex::rex("rx__sens_", capture(regIdentifier), "_BY_",  capture(regIdentifier), "__");
-regSens2 <- rex::rex("rx__sens_", capture(regIdentifier), "_BY_",  capture(regIdentifier), "_2__");
-regSensEtaTheta <- rex::rex("rx__sens_", capture(regIdentifier), "_BY_ETA_",  capture(regIdentifier),
-                            "_BY_THETA_",capture(regIdentifier), "__");
+regSensEtaTheta <- rex::rex("rx__sens_", capture(regIdentifier), "_BY_",  capture(regIdentifier),
+                            "_BY_",capture(regIdentifier), "__");
 regToSens1 <- rex::rex( capture(regIdentifier), or("_", ".", ":"),  capture(regIdentifier));
 regToSens2 <- rex::rex( "d/dt(d(", capture(regIdentifier), ")/d(",  capture(regIdentifier), "))");
 regJac <- rex::rex( "df(", capture(regIdentifier), ")/dy(",  capture(regIdentifier), ")");
@@ -393,6 +392,15 @@ sympyRxFEnv$structure <- function(one, ..., .Names){
     eval(parse(text=sprintf("rxFromSymPy(%s)", deparse(sprintf("%s", one)))));
 }
 
+rxSympyAllowDiff <- FALSE;
+rxSympyFEnv$diff <- function(fn, x){
+    if (rxSympyAllowDiff){
+        sprintf("diff(%s,%s)", fn, x);
+    } else {
+        stop("diff is not suported in RxODE.");
+    }
+}
+
 rxSympyFEnv$psigamma <- function(z, n){
     paste0("polygamma(", n, ", ", z, ")");
 }
@@ -682,13 +690,17 @@ rxSymPySetup <- function(model){
 ##' @return model lines
 ##' @export
 rxSymPySetupIf <- function(model){
-    lastLine <- sub(rex::rex(start, any_spaces, capture(anything), any_spaces, end),
-                    "\\1", strsplit(model[length(model)], "=")[[1]][1])
-    if (!rxSymPyExists(rxToSymPy(lastLine))){
-        model.setup <- paste(model, collapse="\n");
-        rxSymPySetup(model.setup)
+    if (class(model) != "character"){
+        return(rxSymPySetup(model));
+    } else {
+        lastLine <- sub(rex::rex(start, any_spaces, capture(anything), any_spaces, end),
+                        "\\1", strsplit(model[length(model)], "=")[[1]][1])
+        if (!rxSymPyExists(rxToSymPy(lastLine))){
+            model.setup <- paste(model, collapse="\n");
+            rxSymPySetup(model.setup)
+        }
+        return(model)
     }
-    return(model)
 }
 
 ##' Calculate df/dy derivatives
@@ -778,9 +790,9 @@ rxSymPyJacobian <- function(model){
         }
         rxCondition(model, FALSE);
     }
-    extraLines <- extraLines[regexpr(rex::rex("=", any_spaces, "0", any_spaces, at_most(";",1)), extraLines) == -1];
+    ## extraLines <- extraLines[regexpr(rex::rex("=", any_spaces, "0", any_spaces, or(";","")), extraLines) == -1];
     model <- sprintf("%s\n%s", rxNorm(model), paste(extraLines, collapse="\n"));
-    rxSymPyClean()
+    rxSymPyClean();
     return(model);
 }
 
@@ -807,8 +819,12 @@ rxSymPyClear <- function(var){
     }
 }
 
+rxSymPySensitivityFull.text <- "Calculate Sensitivities."
+
+## Note the model and cond are not used in the function BUT are used
+## to memoise the correct call. Please don't remove them :)
 rxSymPySensitivityFull <- function(state, calcSens, model, cond){
-    rxCat("Calculate Sensitivities.");
+    rxCat(rxSymPySensitivityFull.text);
     all.sens <- extraLines <- c();
     for (s1 in state){
         for (sns in calcSens){
@@ -838,13 +854,87 @@ rxSymPySensitivityFull <- function(state, calcSens, model, cond){
 
 rxSymPySensitivityFull.slow <- NULL;
 
+
+rxSymPySensitivity2Full_ <- function(state, s1, eta, sns, all.sens){
+    v1 <- rxToSymPy(sprintf("d/dt(rx__sens_%s_BY_%s__)", s1, sns));
+    tmp <- c(sprintf("diff(%s,%s)",v1, eta));
+    vars <- c();
+    for (s2 in state){
+        extra <- sprintf("diff(%s,%s)*rx__sens_%s_BY_%s__", v1, s2, s2, eta)
+        v2 <- sprintf("rx__sens_%s_BY_%s_BY_%s__", s2, eta, sns);
+        vars <- c(vars, v2);
+        tmp <- rxToSymPy(sprintf("df(%s)/dy(%s)", s1, s2))
+        extra2 <- sprintf("%s*%s", tmp, v2)
+        tmp <- c(tmp, extra, extra2);
+    }
+    rxSymPyVars(vars);
+    all.sens <- c(all.sens, vars);
+    line <- paste(tmp, collapse=" + ");
+    line <- rSymPy::sympy(line);
+    var.rx <- sprintf("d/dt(rx__sens_%s_BY_%s_BY_%s__)", s1, eta, sns)
+    var <- rxToSymPy(var.rx)
+    .Jython$exec(sprintf("%s=%s", var, line));
+    assignInMyNamespace("rxSymPy.vars", c(rxSymPy.vars, var));
+    rxCat(".");
+    return(list(all.sens=all.sens, line=sprintf("%s=%s", var.rx, rxFromSymPy(line))));
+}
+
+## Note the model and cond are not used in the function BUT are used
+## to memoise the correct call. Please don't remove them :)
+rxSymPySensitivity2Full <- function(state, etas, thetas, model, cond){
+    all.sens <- extraLines <- c();
+    rxCat(rxSymPySensitivityFull.text);
+    for (s1 in state){
+        for (eta in etas){
+            if (identical(etas, thetas)){
+                tmp <- rxSymPySensitivity2Full_(state, s1, eta, eta, all.sens);
+            } else {
+                for (sns in thetas){
+                    tmp <- rxSymPySensitivity2Full_(state, s1, eta, sns, all.sens);
+                }
+            }
+            extraLines[length(extraLines) + 1] <- tmp$line;
+            all.sens <- tmp$all.sens;
+        }
+    }
+    cat("\ndone!\n");
+    return(list(all.sens=all.sens, extraLines=extraLines))
+}
+rxSymPySensitivity2Full.slow <- NULL;
+
 rxSymPySensitivity.single <- function(model, calcSens, calcJac){
-    rxSymPySetup(model);
-    state <- rxState(model)
+    rxSymPySetupIf(model);
+    state <- rxState(model);
     extraLines <- rxSymPyDfDy(model, vars=TRUE);
-    tmp <- rxSymPySensitivityFull(state, calcSens, model, rxCondition(model))
-    extraLines <- c(extraLines, rxSymPySetupIf(tmp$extraLines));
-    all.sens <- tmp$all.sens;
+    if (class(calcSens) == "list" && all(c("eta","theta") %in% names(calcSens))){
+        eta <- calcSens$eta;
+        theta <- calcSens$theta;
+        assignInMyNamespace("rxSymPySensitivityFull.text", "Calculate d/dt(d(state)/d(eta)) .");
+        on.exit({assignInMyNamespace("rxSymPySensitivityFull.text", "Calculate Sensitivites.")})
+        ## Calculate dx/dn
+        tmp <- rxSymPySensitivityFull(state, eta, model, rxCondition(model));
+        all.sens <- tmp$all.sens;
+        extraLines <- c(extraLines, rxSymPySetupIf(tmp$extraLines));
+        ## Calculate dx/dT
+        assignInMyNamespace("rxSymPySensitivityFull.text", "Calculate d/dt(d(state)/d(theta)) .");
+        tmp <- rxSymPySensitivityFull(state, theta, model, rxCondition(model));
+        all.sens <- c(all.sens, tmp$all.sens);
+        extraLines <- c(extraLines, tmp$extraLines);
+        ## Calculate d^2x/dx^2
+        assignInMyNamespace("rxSymPySensitivityFull.text", "Calculate d/dt(d^2(state)/d(eta)^2) .");
+        tmp <- rxSymPySensitivity2Full(state, eta, eta, model, rxCondition(model));
+        all.sens <- c(all.sens, tmp$all.sens);
+        extraLines <- c(extraLines, tmp$extraLines);
+        ## Calculate d^2x/(dn dT)
+        assignInMyNamespace("rxSymPySensitivityFull.text", "Calculate d/dt(d^2(state)/d(eta)d(theta)) .");
+        tmp <- rxSymPySensitivity2Full(state, eta, theta, model, rxCondition(model));
+        all.sens <- c(all.sens, tmp$all.sens);
+        extraLines <- c(extraLines, tmp$extraLines);
+    } else {
+        tmp <- rxSymPySensitivityFull(state, calcSens, model, rxCondition(model))
+        extraLines <- c(extraLines, rxSymPySetupIf(tmp$extraLines));
+        all.sens <- tmp$all.sens;
+    }
     if (calcJac){
         rxCat("Expanding Jacobian for sensitivities.")
         jac2 <- expand.grid(s1=unique(all.sens), s2=unique(c(all.sens, rxState(model))),
@@ -860,13 +950,13 @@ rxSymPySensitivity.single <- function(model, calcSens, calcJac){
             }
         }
         rxCat("\ndone!\n");
-        extraLines <- extraLines[regexpr(rex::rex("=", any_spaces, "0", end), extraLines) == -1];
+        ## extraLines <- extraLines[regexpr(rex::rex("=", any_spaces, "0", end), extraLines) == -1];
     } else {
         extraLines <- rxRmJac(extraLines);
     }
-    extraLines <- extraLines[regexpr(rex::rex("=", any_spaces, "0", any_spaces, at_most(";",1), any_spaces), extraLines) == -1];
+    extraLines <- extraLines[regexpr(rex::rex(any_spaces, regJac, any_spaces, "=", any_spaces,
+                                              "0", any_spaces, or(";", ""), any_spaces), extraLines) == -1];
     ## cat(paste(extraLines, collapese="\n"), "\n")
-    rxSymPyClean()
     return(extraLines);
 }
 
@@ -881,10 +971,11 @@ rxSymPySensitivity.single <- function(model, calcSens, calcJac){
 ##'     all the known parameters.  When \code{FALSE} raise an error.
 ##' @param calcJac A boolean that determines if the jacobian should be
 ##'     calculated.
+##' @param keepState State parameters to keep the sensitivites for.
 ##' @return Model syntax that includes the sensitivity parameters.
 ##' @author Matthew L. Fidler
 ##' @export
-rxSymPySensitivity <- function(model, calcSens, calcJac=FALSE){
+rxSymPySensitivity <- function(model, calcSens, calcJac=FALSE, keepState=NULL){
     if (missing(calcSens)){
         calcSens <- rxParams(model);
     }
@@ -913,6 +1004,15 @@ rxSymPySensitivity <- function(model, calcSens, calcJac=FALSE){
         }
         rxCondition(model, FALSE);
     }
+    if (!is.null(keepState)){
+        w1 <- which(regexpr(rex::rex("d/dt(", regSens), extraLines) != -1);
+        if (length(w1) > 0){
+            w2 <- which(regexpr(rex::rex("d/dt(rx__sens_", or(keepState)), extraLines[w1]) == -1);
+            if (length(w2) > 0){
+                extraLines <- extraLines[-w1[w2]];
+            }
+        }
+    }
     ret <- sprintf("%s\n%s", rxNorm(model), paste(extraLines, collapse="\n"));
     return(ret);
 }
@@ -929,6 +1029,46 @@ rxSymPyClean <- function(){
         rxSymPyClear(v);
     }
     assignInMyNamespace("rxSymPy.vars", c());
+}
+
+##' Setup Pred function based on RxODE object
+##'
+##' @param obj RxODE object
+##' @param predfn Prediction function
+##' @return RxODE object expanded with predfn and with calculated sensitivities.
+##' @author Matthew L. Fidler
+##' @keywords internal
+##' @export
+rxSymPySetupPred <- function(obj, predfn){
+    rxSymPyVars(obj);
+    on.exit({rxSymPyClean()});
+    txt <- deparse(body(predfn));
+    if (txt[1] == "{"){
+        txt <- txt[-c(1, length(txt))];
+    }
+    if (regexpr(rex::rex(or(boundary, start), "return(", anything, ")"), txt[length(txt)], perl=TRUE) == -1){
+        ## Add return statement
+        txt[length(txt)] <- gsub(rex::rex(start, any_spaces, capture(anything), or(";", ""), any_spaces, end), "return(\\1);", txt);
+    }
+    ## change return(x) to rx_pred = X
+    txt <- paste(gsub(rex::rex(or(boundary, start), "return(", capture(anything), ")"), "rx_pred_ = \\1", txt), collapse="\n");
+    newmod <- rxGetModel(paste0(rxNorm(obj), "\n", txt), calcSens=TRUE);
+    rxSymPySetupIf(newmod);
+    rxSymPySetup(txt);
+    extraLines <- c();
+    for (state in rxState(newmod)){
+        newLine <- rSymPy::sympy(sprintf("diff(rx_pred_,%s)", state));
+        if (newLine != "0"){
+            for (var in rxParams(obj)){
+                ## Chain rule dpred/dstate * dstate/dx = dpred/dx
+                extraLines[length(extraLines) + 1] <- sprintf("rx__sens_rx_pred__BY_%s__ = (%s)*rx__sens_%s_BY_%s__", var, newLine, state, var);
+            }
+        }
+    }
+    extraLines <- c(extraLines);
+    newmod <- RxODE(paste(c(rxNorm(newmod), extraLines), collapse="\n"))
+    ## txt <- paste0(rxNorm(obj), "\n", txt);
+    return(newmod);
 }
 
 ## Supported Sympy special functions

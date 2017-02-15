@@ -4,7 +4,7 @@
 \alias{rxSymPySensitivity}
 \title{Calculate the sensitivity equations for a model}
 \usage{
-rxSymPySensitivity(model, calcSens, calcJac = FALSE)
+rxSymPySensitivity(model, calcSens, calcJac = FALSE, keepState = NULL)
 }
 \arguments{
 \item{model}{RxODE family of objects}
@@ -15,6 +15,8 @@ all the known parameters.  When \code{FALSE} raise an error.}
 
 \item{calcJac}{A boolean that determines if the jacobian should be
 calculated.}
+
+\item{keepState}{State parameters to keep the sensitivites for.}
 }
 \value{
 Model syntax that includes the sensitivity parameters.

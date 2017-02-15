@@ -311,8 +311,12 @@ RxODE <- function(model, modName = basename(wd), wd = getwd(),
     }
     if (!missing(model) && missing(filename)){
         if (class(substitute(model)) == "{"){
-            model <- deparse(substitute(model))[-1];
-            model <- paste(model[-length(model)], collapse="\n");
+            model <- deparse(substitute(model));
+            if (model[1] == "{"){
+                model <- model[-1];
+                model <- model[-length(model)];
+            }
+            model <- paste(model, collapse="\n");
         } else if (class(model) == "RxODE"){
             model <- rxModelVars(model)$model["model"];
             if (!is.null(calcJac) && is.null(calcSens)){
@@ -352,7 +356,7 @@ RxODE <- function(model, modName = basename(wd), wd = getwd(),
         cmpMgr$compile(force);
         ## Add for backward compatibility.
         cmpMgr$dllfile <- rxDll(cmpMgr$rxDll());
-        cmpMgr$ode_solver <- rxTrans(cmpMgr$rxDll(), calcJac=FALSE, calcSens=FALSE)["ode_solver"];
+        cmpMgr$ode_solver <- rxTrans(cmpMgr$rxDll(), calcJac=calcJac, calcSens=calcSens)["ode_solver"];
         model <- rxModelVars(cmpMgr$rxDll())$model["model"];
         names(model) <- NULL;
         cmpMgr$model <- model
@@ -376,6 +380,67 @@ RxODE <- function(model, modName = basename(wd), wd = getwd(),
             getObj = function(obj) get(obj, envir = environment(solve)))
     class(out) <- "RxODE"
    out
+}
+##' Get model properties without compiling it.
+##'
+##' @param model RxODE specification
+##' @param calcSens Calculate sensitivity vector/boolean
+##' @param calcJac Calculate jacobian
+##' @return RxODE trans list
+##' @author Matthew L. Fidler
+##' @keywords internal
+rxGetModel <- function(model, calcSens=FALSE, calcJac=FALSE){
+    if (class(substitute(model)) == "call"){
+        model <- model;
+    }
+    if (class(substitute(model)) == "{"){
+        model <- deparse(substitute(model))
+        if (model[1] == "{"){
+            model <- model[-1];
+            model <- model[-length(model)];
+        }
+        model <- paste(model, collapse="\n");
+    } else if (class(model) == "function" || class(model) == "call"){
+        model <- deparse(body(model));
+        if (model[1] == "{"){
+            model <- model[-1];
+            model <- model[-length(model)];
+        }
+        model <- paste(model, collapse="\n");
+    } else if (class(model) == "character"){
+        if (file.exists(model)){
+            ret$use_model_name <- TRUE;
+        }
+    } else if (class(model) == "name"){
+        model <- eval(model, envir=envir);
+    } else {
+        stop(sprintf("Cant figure out how to handle the model argument (%s).", class(model)));
+    }
+    parseModel <- tempfile();
+    cFile <- tempfile();
+    on.exit({unlink(parseModel); unlink(cFile)});
+    sink(parseModel);
+    cat(model);
+    cat("\n");
+    sink();
+    return(rxTrans(parseModel, cFile, calcSens=calcSens, calcJac=calcJac, modVars=TRUE));
+}
+
+rxGetModel.slow <- NULL;
+
+rxAdd <- function(rx, pre, post, ...){
+    base <- rxNorm(rx);
+    if (!missing(pre)){
+        pre <- rxNorm(rxGetModel(pre))
+    } else {
+        pre <- NULL;
+    }
+    if (!missing(post)){
+        post <- rxNorm(rxGetModel(post))
+    } else {
+        post <- NULL;
+    }
+    return(RxODE(paste(c(pre, base, post), collapse="\n"),...));
 }
 
 ##' Predict an RxODE object
@@ -451,12 +516,6 @@ rxChain <- function(obj1, obj2) {
 ##' @export
 '+.solveRxDll' <- function(obj1, obj2){
     return(rxChain(obj1, obj2))
-}
-
-##' @rdname rxChain
-##' @export
-'%>%.solveRxDll' <- function(obj1, obj2){
-    return(rxChain(obj1, obj2));
 }
 
 ##' Second command in chaining commands
@@ -1319,7 +1378,7 @@ rxCompile.character <-  function(model,           # Model
     }
     if (force || needCompile){
         Makevars <- file.path(dir, "Makevars");
-        trans <- rxTrans(mFile, cFile = cFile, md5 = md5$digest, extraC = extraC, ..., modelPrefix = prefix, calcJac=FALSE, calcSens=FALSE);
+        trans <- rxTrans(mFile, cFile = cFile, md5 = md5$digest, extraC = extraC, ..., modelPrefix = prefix, calcJac=calcJac, calcSens=calcSens);
         if (file.exists(finalDll)){
             if (modVars["parsed_md5"] == trans["parsed_md5"]){
                 rxCat("Don't need to recompile, minimal change to model detected.\n");
