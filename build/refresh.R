@@ -80,13 +80,6 @@ for (f in c("dim", "dimnames", "t")){
 }
 sink();
 
-document();
-
-cat("Update README\n");
-owd <- getwd();
-on.exit({setwd(owd)});
-setwd(devtools::package_file());
-knitr::knit(devtools::package_file("README.Rmd"))
 cat("Update Parser c file\n");
 dparser::mkdparse(devtools::package_file("inst/tran.g"),
          devtools::package_file("src/"),
@@ -116,3 +109,11 @@ cat(gsub("\\.git$", "", gsub(".*git@github.com:", "", tmp[which(tmp == '[remote 
 cat("\"))}\n");
 sink();
 devtools::load_all();
+
+document();
+
+cat("Update README\n");
+owd <- getwd();
+on.exit({setwd(owd)});
+setwd(devtools::package_file());
+knitr::knit(devtools::package_file("README.Rmd"))

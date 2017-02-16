@@ -1908,6 +1908,34 @@ summary.rxDll <- function(object, ...){
 
     return(invisible(object))
 }
+##' Format theta and eta for parameter estimate values in RxODE
+##'
+##' @param theta A vector of theta estimates
+##' @param eta A vector of eta estimates
+##' @return A named vector for initial values.
+##' @author Matthew L. Fidler
+##' @keywords internal
+##' @export
+rxThetaEta <- function(theta=NULL, eta=NULL){
+    ret <- c(theta, eta)
+    ltheta <- length(theta);
+    leta <- length(eta)
+    if (ltheta > 0){
+        ntheta <- paste0("THETA[",1:length(theta),"]")
+    } else  {
+        ntheta <- character()
+        theta <- numeric()
+    }
+    if (leta > 0){
+        neta <- paste0("ETA[", 1:length(eta), "]");
+    } else {
+        neta <- character();
+        eta <- numeric();
+    }
+    ret <- c(theta, eta);
+    names(ret) <- c(ntheta, neta)
+    return(ret)
+}
 
 ##' Initial Values and State values for a RxODE object
 ##'
@@ -1982,6 +2010,7 @@ rxInits <- function(rxDllObj,        # rxDll object
             ret <- ret[nv %in% req];
             missing <- req[!(req %in%  names(ret))];
             if (is.na(default) && length(missing) > 0 && !noerror){
+                print(nv);
                 stop(sprintf("Missing the following parameter(s): %s.", paste(missing, collapse = ", ")))
             }
             if (length(missing) > 0){

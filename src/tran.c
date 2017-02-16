@@ -233,6 +233,8 @@ typedef struct symtab {
   int sdfdy[MXSYM];
   int cdf;
   int ndfdy;
+  int maxtheta;
+  int maxeta;
 } symtab;
 symtab tb;
 
@@ -461,15 +463,51 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       if (!strcmp("lfactorial",name) && i != 1) continue;
       if (!strcmp("factorial",name) && i != 0) continue;
 
+      if ((!strcmp("theta",name) || !strcmp("eta",name)) && i != 2) continue;
       
-      /* if (!strcmp("decimalint",name)){ */
-      /*        // Make implicit double */
-      /*        sprintf(SBPTR,".0"); */
-      /*        sb.o += 2; */
-      /* } */
-
       tb.fn = (!strcmp("function", name) && i==0) ? 1 : 0;
       D_ParseNode *xpn = d_get_child(pn,i);
+
+      if (!strcmp("theta",name)){
+        char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+        sprintf(buf,"_THETA_%s_",v);
+	ii = strtoimax(v,NULL,10);
+	if (ii > tb.maxtheta){
+	  tb.maxtheta =ii;
+	}
+	if (new_or_ith(buf)){
+          sprintf(tb.ss+tb.pos, "%s,", buf);
+          tb.pos += strlen(buf)+1;
+          tb.vo[++tb.nv] = tb.pos;
+        }
+        sprintf(SBPTR,"_THETA_%s_",v);
+        sprintf(SBTPTR,"THETA[%s]",v);
+        sb.o = strlen(sb.s);
+        sbt.o = strlen(sbt.s);
+        Free(v);
+        continue;
+      }
+
+      if (!strcmp("eta",name)){
+        char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+	ii = strtoimax(v,NULL,10);
+        if (ii > tb.maxeta){
+          tb.maxeta =ii;
+        }
+        sprintf(buf,"_ETA_%s_",v);
+        if (new_or_ith(buf)){
+	  sprintf(tb.ss+tb.pos, "%s,", buf);
+          tb.pos += strlen(buf)+1;
+          tb.vo[++tb.nv] = tb.pos;
+        }
+        sprintf(SBPTR,"_ETA_%s_",v);
+        sprintf(SBTPTR,"ETA[%s]",v);
+        sb.o = strlen(sb.s);
+        sbt.o = strlen(sbt.s);
+        Free(v);
+        continue;
+      }
+      
       wprint_parsetree(pt, xpn, depth, fn, client_data);
       if (rx_syntax_require_semicolon && !strcmp("end_statement",name) && i == 0){
         if (xpn->start_loc.s ==  xpn->end){
@@ -953,7 +991,7 @@ void prnt_vars(int scenario, FILE *outpt, int lhs, const char *pre_str, const ch
 }
 
 void print_aux_info(FILE *outpt, char *model, char *orig_model){
-  int i, k, islhs,pi = 0,li = 0, o=0, o2=0, statei = 0, ini_i = 0, sensi=0,
+  int i, j, k, islhs,pi = 0,li = 0, o=0, o2=0, statei = 0, ini_i = 0, sensi=0,
     in_str=0;
   char *s2;
   char sLine[MXLEN+1];
@@ -965,6 +1003,18 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
     if (islhs == 1){
       sprintf(s_aux_info+o, "\tSET_STRING_ELT(lhs,%d,mkChar(\"%s\"));\n", li++, buf);
     } else if (strcmp(buf,"pi")){
+      for (j = 1; j <= tb.maxtheta;j++){
+        sprintf(buf2,"_THETA_%d_",j);
+        if (!strcmp(buf,buf2)){
+          sprintf(buf,"THETA[%d]",j);
+        }
+      }
+      for (j = 1; j <= tb.maxeta;j++){
+        sprintf(buf2,"_ETA_%d_",j);
+        if (!strcmp(buf,buf2)){
+          sprintf(buf,"ETA[%d]",j);
+        }
+      }
       sprintf(s_aux_info+o, "\tSET_STRING_ELT(params,%d,mkChar(\"%s\"));\n", pi++, buf);
     }
     o = strlen(s_aux_info);
@@ -1535,6 +1585,8 @@ void reset (){
   tb.pi		= 0;
   tb.cdf	= 0;
   tb.ndfdy	= 0;
+  tb.maxtheta   = 0;
+  tb.maxeta     = 0;
   // reset globals
   found_print = 0;
   found_jac = 0;
@@ -1752,6 +1804,18 @@ SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP pref
     if (islhs == 1){
       SET_STRING_ELT(lhs,li++,mkChar(buf));
     } else if (strcmp(buf,"pi")){
+      for (j = 1; j <= tb.maxtheta;j++){
+	sprintf(buf2,"_THETA_%d_",j);
+	if (!strcmp(buf, buf2)){
+	  sprintf(buf,"THETA[%d]",j);
+	}
+      }
+      for (j = 1; j <= tb.maxeta;j++){
+        sprintf(buf2,"_ETA_%d_",j);
+        if (!strcmp(buf, buf2)){
+          sprintf(buf,"ETA[%d]",j);
+        }
+      }
       SET_STRING_ELT(params,pi++,mkChar(buf));
     }
   }

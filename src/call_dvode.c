@@ -458,9 +458,7 @@ void RxODE_assign_fn_pointers(void (*fun_dydt)(unsigned int, double, double *, d
   global_jt     = fun_jt;
   global_mf     = fun_mf;
   global_debug  = fun_debug;
-
 }
-
 
 SEXP RxODE_ode_solver (// Parameters
 		       SEXP sexp_theta,

@@ -84,7 +84,7 @@ multiplicative_expression : unary_expression
 
 mult_part : ('*' | '/') unary_expression ;
 
-unary_expression : ('+' | '-')? (primary_expression | power_expression );
+unary_expression : ('+' | '-')? (theta | eta | primary_expression | power_expression );
 
 power_expression : primary_expression power_operator primary_expression ;
 
@@ -93,6 +93,8 @@ power_operator   : ('^' | '**');
 primary_expression 
   : constant
   | identifier_r
+  | theta
+  | eta
   | der_rhs
   | jac_rhs
   | dfdy_rhs
@@ -122,6 +124,9 @@ constant : decimalint | float1 | float2;
 identifier_r: identifier_r_1 | identifier_r_2;
 
 identifier_r_no_output: identifier_r_no_output_1 | identifier_r_no_output_2;
+
+theta: ('THETA' | 'theta') '[' decimalint ']';
+eta: ('ETA' | 'eta') '[' decimalint ']';
 
 decimalint: "0|([1-9][0-9]*)" $term -1;
 string: "\"([^\"\\]|\\[^])*\"";
