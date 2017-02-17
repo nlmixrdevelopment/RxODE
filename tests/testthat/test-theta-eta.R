@@ -24,9 +24,60 @@ rxPermissive({
     })
 
     out <- solve(rigid,et, theta=c(-2, 1.25, -0.5), eta=c(1))
-    test_that("Test rigid body example with eta",{
+
+    test_that("Test rigid body example",{
         expect_equal(digest(round(as.data.frame(out),3)),
                      "c7cffaa650a47e2b28e4cba99c603dde")
     })
+
+    m1 <- RxODE({
+        KA = exp(THETA[1])
+        CL = exp(THETA[2] + ETA[1])
+        V = exp(THETA[3] + ETA[2])
+        d/dt(depot) = -KA*depot;
+        d/dt(centr) = KA*depot - CL / V*centr;
+    });
+
+    et <- eventTable() %>% add.dosing(dose=30000) %>%
+        add.sampling(c(0.25, 0.5, 0.75, 1, 1.5, 2, 2.5, 3, 4, 6, 8, 12, 16, 20, 24, 36, 48, 60, 71.99))
+
+    pk <- function(){
+        KA = exp(THETA[1])
+        CL = exp(THETA[2] + ETA[1])
+        V = exp(THETA[3] + ETA[2])
+    }
+
+    pred <- function(){
+        return(cntr);
+    }
+
+    m2 <- RxODE({
+        d/dt(depot) = -KA*depot;
+        d/dt(centr) = KA*depot - CL / V*centr;
+    })
+
+    test_that("Error when pred dosen't depend on state varaibles", {
+        expect_error(rxSymPySetupPred(m2, pred, pk));
+    })
+
+    pred <- function(){
+        return(centr);
+    }
+
+    err <- function(f){
+        ## y = observation
+        ## f = prediction
+        ## eps = error
+        y = f + f*eps[1];
+    }
+
+    m2a <- rxSymPySetupPred(m2, pred, pk)
+
+    test_that("theta/eta solve works", {
+        expect_equal(suppressWarnings(digest(m2a %>% solve(et, theta=c(2, 1.6, 4.5), eta=c(0.01, -0.01)) %>% as.data.frame %>% round(3))),
+                     "4519cf5fc35ef7c73c10f60908205c1e");
+    })
+
+    ## m2a %>% solve(et, theta=c(2, 1.6, 4.5), eta=c(0.01, -0.01))
 
 }, silent=TRUE)

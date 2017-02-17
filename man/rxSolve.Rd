@@ -13,38 +13,38 @@ rxSolve(object, params, events, inits = NULL, scale = c(), covs = NULL,
   stiff = TRUE, transit_abs = NULL, atol = 1e-06, rtol = 1e-06,
   maxsteps = 5000, hmin = 0, hmax = NULL, hini = 0, maxordn = 12,
   maxords = 5, ..., covs_interpolation = c("linear", "constant"),
-  theta = numeric(), eta = numeric())
+  theta = numeric(), eta = numeric(), type = "normal")
 
 \method{rxSolve}{solveRxDll}(object, params, events, inits, scale, covs, stiff,
   transit_abs, atol, rtol, maxsteps, hmin, hmax, hini, maxordn, maxords, ...,
   covs_interpolation = c("linear", "constant"), theta = numeric(),
-  eta = numeric())
+  eta = numeric(), type = "normal")
 
 \method{rxSolve}{RxODE}(object, params, events, inits = NULL, scale = c(),
   covs = NULL, stiff = TRUE, transit_abs = NULL, atol = 1e-08,
   rtol = 1e-06, maxsteps = 5000, hmin = 0, hmax = NULL, hini = 0,
   maxordn = 12, maxords = 5, ..., covs_interpolation = c("linear",
-  "constant"), theta = numeric(), eta = numeric())
+  "constant"), theta = numeric(), eta = numeric(), type = "normal")
 
 \method{rxSolve}{RxCompilationManager}(object, params, events, inits = NULL,
   scale = c(), covs = NULL, stiff = TRUE, transit_abs = NULL,
   atol = 1e-08, rtol = 1e-06, maxsteps = 5000, hmin = 0, hmax = NULL,
   hini = 0, maxordn = 12, maxords = 5, ...,
   covs_interpolation = c("linear", "constant"), theta = numeric(),
-  eta = numeric())
+  eta = numeric(), type = "normal")
 
 \method{rxSolve}{character}(object, params, events, inits = NULL,
   scale = c(), covs = NULL, stiff = TRUE, transit_abs = NULL,
   atol = 1e-08, rtol = 1e-06, maxsteps = 5000, hmin = 0, hmax = NULL,
   hini = 0, maxordn = 12, maxords = 5, ...,
   covs_interpolation = c("linear", "constant"), theta = numeric(),
-  eta = numeric())
+  eta = numeric(), type = "normal")
 
 \method{rxSolve}{rxDll}(object, params, events, inits = NULL, scale = c(),
   covs = NULL, stiff = TRUE, transit_abs = NULL, atol = 1e-08,
   rtol = 1e-06, maxsteps = 5000, hmin = 0, hmax = NULL, hini = 0,
   maxordn = 12, maxords = 5, ..., covs_interpolation = c("linear",
-  "constant"), theta = numeric(), eta = numeric())
+  "constant"), theta = numeric(), eta = numeric(), type = "normal")
 }
 \arguments{
 \item{object}{is a either a RxODE family of objects, or a file-name
@@ -139,6 +139,8 @@ added to inits}
 
 \item{eta}{A vector of parameters that will be named ETA[#] and
 added to inits}
+
+\item{type}{Solving type.  Default is "normal"}
 }
 \value{
 An \dQuote{rxSolve} solve object that stores the solved

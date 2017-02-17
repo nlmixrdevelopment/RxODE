@@ -138,6 +138,45 @@ extern SEXP __ODE_SOLVER_SEXP__ (// Parameters
 	     sexp_object,sexp_extra_args);
 }
 
+extern SEXP __ODE_SOLVER_NLMIXR__ (// Parameters
+                                 SEXP sexp_theta,
+                                 SEXP sexp_inits,
+                                 SEXP sexp_lhs,
+                                 // Events
+                                 SEXP sexp_time,
+                                 SEXP sexp_evid,
+                                 SEXP sexp_dose,
+                                 // Covariates
+                                 SEXP sexp_pcov,
+                                 SEXP sexp_cov,
+                                 SEXP sexp_locf,
+                                 // Solver Options
+                                 SEXP sexp_atol,
+                                 SEXP sexp_rtol,
+                                 SEXP sexp_hmin,
+                                 SEXP sexp_hmax,
+                                 SEXP sexp_h0,
+                                 SEXP sexp_mxordn,
+                                 SEXP sexp_mxords,
+                                 SEXP sexp_mx,
+                                 SEXP sexp_stiff,
+                                 SEXP sexp_transit_abs,
+                                 // Object Creation
+                                 SEXP sexp_object,
+                                 SEXP sexp_extra_args){
+  RxODE_ode_solver ode_solver=(RxODE_ode_solver) R_GetCCallable("RxODE","RxODE_ode_solver_nlmixr");
+  _assign_fn_pointers(__DYDT__ , __CALC_LHS__ , __CALC_JAC__, __JT__ , __MF__,
+#ifdef __DEBUG__
+                      1
+#else
+                      0
+#endif
+                      );
+  ode_solver(sexp_theta,sexp_inits,sexp_lhs,sexp_time,sexp_evid,sexp_dose,sexp_pcov,sexp_cov,sexp_locf,sexp_atol,
+             sexp_rtol,sexp_hmin,sexp_hmax,sexp_h0,sexp_mxordn,sexp_mxords,sexp_mx,sexp_stiff,sexp_transit_abs,
+             sexp_object,sexp_extra_args);
+}
+
 //Initilize the dll to match RxODE's calls
 void __R_INIT__ (DllInfo *info){
   // Get the RxODE calling interfaces

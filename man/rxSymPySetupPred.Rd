@@ -4,7 +4,7 @@
 \alias{rxSymPySetupPred}
 \title{Setup Pred function based on RxODE object}
 \usage{
-rxSymPySetupPred(obj, predfn)
+rxSymPySetupPred(obj, predfn, pkpars)
 }
 \arguments{
 \item{obj}{RxODE object}

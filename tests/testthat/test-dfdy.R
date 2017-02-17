@@ -234,6 +234,7 @@ d/dt(cen) = ka*depot-k*cen
         tmp <- RxODE(mod, calcSens=c("eta_ka", "eta_mtt"));
         expect_true(all(!is.na(transit$depot_mtt)));
 
+        ## tmp <- RxODE(mod, calcSens=list(eta=c("eta_ka", "eta_mtt"), theta=c("cl", "vc")));
 });
 
 }, silent=TRUE)
