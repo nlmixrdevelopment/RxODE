@@ -140,4 +140,5 @@ test_that("Theta/eta conversion", {
     expect_equal(rxFromSymPy(rx__df_matt_dy_ETA_1___), "df(matt)/dy(ETA[1])")
     expect_equal(rxFromSymPy(ETA_1_), "ETA[1]")
     expect_equal(rxFromSymPy(THETA_1_), "THETA[1]")
+    expect_equal(rxFromSymPy(BY_THETA_1_), "BY_THETA_1_")
 })

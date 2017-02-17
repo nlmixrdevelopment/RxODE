@@ -20,7 +20,6 @@ regDfDy <- rex::rex(start, "rx__df_", capture(anything), "_dy_", capture(anythin
 regThEt <- rex::rex(capture(or("TH", ""), "ETA"), "_",
                     capture("1":"9", any_of("0":"9")), "_")
 regDfDyTh <- rex::rex(start, "rx__df_", capture(anything), "_dy_", regThEt, "__", end);
-
 known.print <- c('printf', 'Rprintf', 'print',
                  'jac_printf', 'jac_Rprintf', 'jac_print',
                  'ode_printf', 'ode_Rprintf', 'ode_print',
@@ -288,6 +287,9 @@ for (op in c("+", "-", "*")){
     rxSympyFEnv[[op]] <- binaryOp(paste0(" ", op, " "));
     sympyRxFEnv[[op]] <- binaryOp(paste0(" ", op, " "));
 }
+rxSympyFEnv$c <- function(...){
+    eval(parse(text=sprintf("c(%s)",paste(paste0("rxToSymPy(",c(...),")"),collapse=","))))
+}
 rxSympyFEnv$"/" <- divOp();
 rxSympyFEnv$"[" <- function(name, val){
     n <- toupper(name)
@@ -549,7 +551,7 @@ rxEnv <- function(expr){
     n2 <- gsub(regDfDy, "df(\\1)/dy(\\2)",
                gsub(regDfDyTh, "df(\\1)/dy(\\2[\\3])",
                     gsub(regDDt, "d/dt(\\1)",
-                         gsub(regThEt, "\\1[\\2]", names))));
+                         gsub(rex::rex(start, regThEt, end), "\\1[\\2]", names))));
     n2[n2 == "time"] <- "t";
     symbol.list <- setNames(as.list(n2), n1);
     symbol.env <- list2env(symbol.list, parent=rxSympyFEnv);
@@ -677,6 +679,7 @@ rxSymPyVars <- function(model){
         vars <- c(rxParams(model), rxState(model),
                   "podo", "t", "time", "tlast");
     }
+    vars <- sapply(vars, function(x){return(rxToSymPy(x))});
     known <- c(rxSymPy.vars, vars);
     assignInMyNamespace("rxSymPy.vars", known);
     .Jython$exec(sprintf("%s = symbols('%s')", paste(vars, collapse=", "), paste(vars, collapse=" ")));
@@ -746,7 +749,7 @@ rxSymPyDfDy <- function(model, df, dy, vars=FALSE){
         }
         var1 <- rxToSymPy(sprintf("d/dt(%s)", df));
         var <- rxToSymPy(sprintf("df(%s)/dy(%s)", df, dy));
-        line <- sprintf("diff(%s,%s)", var1, dy);
+        line <- sprintf("diff(%s,%s)", var1, rxToSymPy(dy));
         line <- rSymPy::sympy(line);
         .Jython$exec(sprintf("%s=%s", var, line));
         ret <- sprintf("df(%s)/dy(%s) = %s", df, dy, rxFromSymPy(line));
@@ -851,16 +854,16 @@ rxSymPySensitivityFull <- function(state, calcSens, model, cond){
             tmp <- c()
             vars <- c();
             for (s2 in state){
-                vars <- c(vars, sprintf("rx__sens_%s_BY_%s__", s2, sns));
-                extra <- sprintf("df(%s)/dy(%s)*rx__sens_%s_BY_%s__", s1, s2, s2, sns)
+                vars <- c(vars, sprintf("rx__sens_%s_BY_%s__", s2, rxToSymPy(sns)));
+                extra <- sprintf("df(%s)/dy(%s)*rx__sens_%s_BY_%s__", s1, rxToSymPy(s2), s2, rxToSymPy(sns))
                 tmp <- c(tmp, extra);
             }
-            tmp <- c(tmp, sprintf("df(%s)/dy(%s)", s1, sns));
+            tmp <- c(tmp, sprintf("df(%s)/dy(%s)", s1, rxToSymPy(sns)));
             rxSymPyVars(vars);
             all.sens <- c(all.sens, vars);
             line <- rxToSymPy(paste(tmp, collapse=" + "))
             line <- rSymPy::sympy(line);
-            var.rx <- sprintf("d/dt(rx__sens_%s_BY_%s__)", s1, sns)
+            var.rx <- sprintf("d/dt(rx__sens_%s_BY_%s__)", s1, rxToSymPy(sns))
             var <- rxToSymPy(var.rx)
             .Jython$exec(sprintf("%s=%s", var, line));
             assignInMyNamespace("rxSymPy.vars", c(rxSymPy.vars, var));
@@ -876,14 +879,14 @@ rxSymPySensitivityFull.slow <- NULL;
 
 
 rxSymPySensitivity2Full_ <- function(state, s1, eta, sns, all.sens){
-    v1 <- rxToSymPy(sprintf("d/dt(rx__sens_%s_BY_%s__)", s1, sns));
-    tmp <- c(sprintf("diff(%s,%s)",v1, eta));
+    v1 <- rxToSymPy(sprintf("d/dt(rx__sens_%s_BY_%s__)", s1, rxToSymPy(sns)));
+    tmp <- c(sprintf("diff(%s,%s)",v1, rxToSymPy(eta)));
     vars <- c();
     for (s2 in state){
-        extra <- sprintf("diff(%s,%s)*rx__sens_%s_BY_%s__", v1, s2, s2, eta)
-        v2 <- sprintf("rx__sens_%s_BY_%s_BY_%s__", s2, eta, sns);
+        extra <- sprintf("diff(%s,%s)*rx__sens_%s_BY_%s__", v1, rxToSymPy(s2), s2, rxToSymPy(eta))
+        v2 <- sprintf("rx__sens_%s_BY_%s_BY_%s__", s2, rxToSymPy(eta), rxToSymPy(sns));
         vars <- c(vars, v2);
-        tmp <- rxToSymPy(sprintf("df(%s)/dy(%s)", s1, s2))
+        tmp <- rxToSymPy(sprintf("df(%s)/dy(%s)", s1, rxToSymPy(s2)))
         extra2 <- sprintf("%s*%s", tmp, v2)
         tmp <- c(tmp, extra, extra2);
     }
@@ -891,7 +894,7 @@ rxSymPySensitivity2Full_ <- function(state, s1, eta, sns, all.sens){
     all.sens <- c(all.sens, vars);
     line <- paste(tmp, collapse=" + ");
     line <- rSymPy::sympy(line);
-    var.rx <- sprintf("d/dt(rx__sens_%s_BY_%s_BY_%s__)", s1, eta, sns)
+    var.rx <- sprintf("d/dt(rx__sens_%s_BY_%s_BY_%s__)", s1, rxToSymPy(eta), rxToSymPy(sns))
     var <- rxToSymPy(var.rx)
     .Jython$exec(sprintf("%s=%s", var, line));
     assignInMyNamespace("rxSymPy.vars", c(rxSymPy.vars, var));
