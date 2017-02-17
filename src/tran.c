@@ -669,17 +669,38 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       if ((!strcmp("jac",name)  || !strcmp("jac_rhs",name) ||
            !strcmp("dfdy",name) || !strcmp("dfdy_rhs",name)) && i == 4){
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-        sprintf(SBPTR, "%s]]",v);
-        sb.o = strlen(sb.s);
-        sprintf(SBTPTR, "%s)",v);
-        sbt.o = strlen(sbt.s);
-        if (strcmp("jac",name) == 0 ||
+	ii = 0;
+	if (strstr(v,"THETA[") != NULL){
+	  sprintf(buf,"_THETA_%.*s_",strlen(v)-7,v+6);
+	  sprintf(SBTPTR, "%s)",v);
+          sbt.o = strlen(sbt.s);
+	  sprintf(SBPTR, "%s]]",buf);
+          sb.o = strlen(sb.s);
+	  ii = 1;
+	} else if (strstr(v,"ETA[") != NULL) {
+	  sprintf(buf,"_ETA_%.*s_",strlen(v)-5,v+4);
+          sprintf(SBTPTR, "%s)",v);
+          sbt.o = strlen(sbt.s);
+          sprintf(SBPTR, "%s]]",buf);
+          sb.o = strlen(sb.s);
+          ii = 1;
+        } else {
+	  sprintf(SBPTR, "%s]]",v);
+          sb.o = strlen(sb.s);
+          sprintf(SBTPTR, "%s)",v);
+          sbt.o = strlen(sbt.s);
+        }
+        if (!strcmp("jac",name) ||
             strcmp("dfdy",name) == 0){
           sprintf(SBPTR ," = ");
           sb.o += 3;
           sprintf(SBTPTR ,"=");
           sbt.o += 1;
-	  new_or_ith(v);
+	  if (ii == 1){
+	    new_or_ith(buf);
+          } else {
+	    new_or_ith(v);
+          }
 	  found = -1;
 	  for (ii = 0; ii < tb.ndfdy; ii++){
             if (tb.df[ii] == tb.cdf && tb.dy[ii] == tb.ix){
@@ -1032,8 +1053,22 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
   }
   for (i=0; i<tb.ndfdy; i++) {                     /* name state vars */
     retieve_var(tb.df[i], buf);
-    retieve_var(tb.dy[i], buf2);
-    sprintf(s_aux_info+o, "\tSET_STRING_ELT(dfdy,%d,mkChar(\"df(%s)/dy(%s)\"));\n", i, buf,buf2);
+    sprintf(s_aux_info+o, "\tSET_STRING_ELT(dfdy,%d,mkChar(\"df(%s)/dy(", i, buf);
+    o = strlen(s_aux_info);
+    retieve_var(tb.dy[i], buf);
+    for (j = 1; j <= tb.maxtheta;j++){
+      sprintf(buf2,"_THETA_%d_",j);
+      if (!strcmp(buf,buf2)){
+        sprintf(buf,"THETA[%d]",j);
+      }
+    }
+    for (j = 1; j <= tb.maxeta;j++){
+      sprintf(buf2,"_ETA_%d_",j);
+      if (!strcmp(buf,buf2)){
+        sprintf(buf,"ETA[%d]",j);
+      }
+    }
+    sprintf(s_aux_info+o, "%s)\"));\n",buf);
     o = strlen(s_aux_info);
   }
   fprintf(outpt,"extern SEXP %smodel_vars(){\n",model_prefix);
@@ -1458,7 +1493,17 @@ void codegen(FILE *outpt, int show_ode) {
 	for (i = 0; i < tb.ndfdy; i++){
           retieve_var(tb.df[i], df);
           retieve_var(tb.dy[i], dy);
-	  sprintf(from,"__PDStateVar__[[%s,%s]]",df,dy);
+	  /* for (j = 1; j <= tb.maxtheta;j++){ */
+          /*   sprintf(to,"THETA[%d]",j); */
+	  /*   sprintf(from,"_THETA_%d_",j); */
+	  /*   s2 = repl_str(dy,from,to); */
+          /*   strcpy(sLine, s2); */
+          /*   Free(s2); */
+          /*   if (!strcmp(buf,buf2)){ */
+          /*     sprintf(buf,"THETA[%d]",j); */
+          /*   } */
+          /* } */
+          sprintf(from,"__PDStateVar__[[%s,%s]]",df,dy);
 	  if (show_ode == 2 && tb.sdfdy[i] == 0){
 	    // __PDStateVar__[__CMT_NUM_y__*(__NROWPD__)+__CMT_NUM_dy__]
 	    sprintf(to,"__PDStateVar__[");
@@ -1794,6 +1839,18 @@ SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP pref
   for (i=0; i<tb.ndfdy; i++) {                     /* name state vars */
     retieve_var(tb.df[i], df);
     retieve_var(tb.dy[i], dy);
+    for (j = 1; j <= tb.maxtheta;j++){
+      sprintf(buf,"_THETA_%d_",j);
+      if (!strcmp(dy,buf2)){
+        sprintf(dy,"THETA[%d]",j);
+      }
+    }
+    for (j = 1; j <= tb.maxeta;j++){
+      sprintf(buf,"_ETA_%d_",j);
+      if (!strcmp(dy,buf)){
+        sprintf(dy,"ETA[%d]",j);
+      }
+    }
     sprintf(buf,"df(%s)/dy(%s)",df,dy);
     SET_STRING_ELT(dfdy,i,mkChar(buf));
   }

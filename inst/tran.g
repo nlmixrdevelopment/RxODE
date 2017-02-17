@@ -42,8 +42,8 @@ ini        : identifier_r ('=' | '<-') ini_const;
 
 derivative : 'd/dt' '(' identifier_r_no_output ')' ('=' | '<-') additive_expression;
 der_rhs    : 'd/dt' '(' identifier_r_no_output ')';
-jac        : jac_command '(' identifier_r_no_output ',' identifier_r_no_output ')' ('=' | '<-') additive_expression;
-jac_rhs    : jac_command '(' identifier_r_no_output ',' identifier_r_no_output ')';
+jac        : jac_command '(' identifier_r_no_output ',' (theta_noout | eta_noout | identifier_r_no_output) ')' ('=' | '<-') additive_expression;
+jac_rhs    : jac_command '(' identifier_r_no_output ',' (theta_noout | eta_noout | identifier_r_no_output) ')';
 
 // transit(n,mtt) -> transit3(t,n,mtt)
 transit2   : 'transit' '(' trans_const ',' trans_const ')';
@@ -51,8 +51,8 @@ transit2   : 'transit' '(' trans_const ',' trans_const ')';
 // transit(n,mtt, bio) -> transit4(t,n,mtt,bio)
 transit3   : 'transit' '(' trans_const ',' trans_const ',' trans_const ')';
 
-dfdy        : 'df' '(' identifier_r_no_output ')/dy(' identifier_r_no_output ')' ('=' | '<-') additive_expression;
-dfdy_rhs    : 'df' '(' identifier_r_no_output ')/dy(' identifier_r_no_output ')';
+dfdy        : 'df' '(' identifier_r_no_output ')/dy(' (theta_noout | eta_noout | identifier_r_no_output) ')' ('=' | '<-') additive_expression;
+dfdy_rhs    : 'df' '(' identifier_r_no_output ')/dy(' (theta_noout | eta_noout | identifier_r_no_output) ')';
 
 jac_command : 'jac' | 'df/dy';
 
@@ -94,7 +94,6 @@ primary_expression
   : constant
   | identifier_r
   | theta
-  | eta
   | der_rhs
   | jac_rhs
   | dfdy_rhs
@@ -127,6 +126,10 @@ identifier_r_no_output: identifier_r_no_output_1 | identifier_r_no_output_2;
 
 theta: ('THETA' | 'theta') '[' decimalint ']';
 eta: ('ETA' | 'eta') '[' decimalint ']';
+
+theta_noout: ('THETA' | 'theta') '[' decimalint ']';
+eta_noout: ('ETA' | 'eta') '[' decimalint ']';
+
 
 decimalint: "0|([1-9][0-9]*)" $term -1;
 string: "\"([^\"\\]|\\[^])*\"";
