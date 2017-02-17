@@ -116,12 +116,28 @@ test_that("unknown function raises an error.", {
     expect_error(rxFromSymPy(matt(3)))
 })
 
-
-
-
 test_that("Named component parsing", {
     tmp <- c("name"="d/dt(matt)");
     expect_equal(rxToSymPy(tmp), "rx__d_dt_matt__");
     tmp <- c("name"="rx__d_dt_matt__");
     expect_equal(rxFromSymPy(tmp), "d/dt(matt)");
+})
+context("Test DSL THETA/ETA")
+test_that("Theta/eta conversion", {
+    expect_equal(rxToSymPy(THETA[1]), "THETA_1_")
+    expect_equal(rxToSymPy(ETA[1]), "ETA_1_")
+    expect_equal(rxToSymPy(df(matt) / dy(THETA[1])), "rx__df_matt_dy_THETA_1___")
+    expect_equal(rxToSymPy(df(matt) / dy(ETA[1])), "rx__df_matt_dy_ETA_1___")
+    expect_error(rxToSymPy(THETA[0]))
+    expect_error(rxToSymPy(ETA[0]))
+    expect_error(rxToSymPy(THETA[0.5]))
+    expect_error(rxToSymPy(ETA[0.5]))
+    expect_error(rxToSymPy(THETA[a]))
+    expect_error(rxToSymPy(ETA[a]))
+    expect_error(rxToSymPy(THETA["b"]))
+    expect_error(rxToSymPy(ETA["b"]))
+    expect_equal(rxFromSymPy(rx__df_matt_dy_THETA_1___), "df(matt)/dy(THETA[1])")
+    expect_equal(rxFromSymPy(rx__df_matt_dy_ETA_1___), "df(matt)/dy(ETA[1])")
+    expect_equal(rxFromSymPy(ETA_1_), "ETA[1]")
+    expect_equal(rxFromSymPy(THETA_1_), "THETA[1]")
 })

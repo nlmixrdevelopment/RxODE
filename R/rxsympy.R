@@ -17,6 +17,9 @@ regDecimalint <- rex::rex(or("0", group("1":"9", any_of("0":"9"))))
 regNum <- rex::rex(at_most("-", 1), or(regDecimalint, regFloat1, regFloat2))
 regDDt <- rex::rex(start, "rx__d_dt_", capture(anything), "__", end);
 regDfDy <- rex::rex(start, "rx__df_", capture(anything), "_dy_", capture(anything), "__", end);
+regThEt <- rex::rex(capture(or("TH", ""), "ETA"), "_",
+                    capture("1":"9", any_of("0":"9")), "_")
+regDfDyTh <- rex::rex(start, "rx__df_", capture(anything), "_dy_", regThEt, "__", end);
 
 known.print <- c('printf', 'Rprintf', 'print',
                  'jac_printf', 'jac_Rprintf', 'jac_print',
@@ -286,6 +289,20 @@ for (op in c("+", "-", "*")){
     sympyRxFEnv[[op]] <- binaryOp(paste0(" ", op, " "));
 }
 rxSympyFEnv$"/" <- divOp();
+rxSympyFEnv$"[" <- function(name, val){
+    n <- toupper(name)
+    err <- "RxODE only supports THETA[#] and ETA[#] numbers."
+    if (any(n == c("THETA", "ETA")) && is.numeric(val)){
+        if (round(val) == val && val > 0){
+            return(sprintf("%s_%s_", n, val));
+        } else {
+            stop(err);
+        }
+    } else {
+        stop(err)
+    }
+};
+
 sympyRxFEnv$"/" <- binaryOp(" / ");
 rxSympyFEnv$"^" <- binaryOp("**")
 rxSympyFEnv$"**" <- binaryOp("**")
@@ -529,7 +546,10 @@ rxEnv <- function(expr){
     names <- allNames(expr)
     ## Replace time with t.
     n1 <- names;
-    n2 <- gsub(regDfDy, "df(\\1)/dy(\\2)", gsub(regDDt, "d/dt(\\1)", names));
+    n2 <- gsub(regDfDy, "df(\\1)/dy(\\2)",
+               gsub(regDfDyTh, "df(\\1)/dy(\\2[\\3])",
+                    gsub(regDDt, "d/dt(\\1)",
+                         gsub(regThEt, "\\1[\\2]", names))));
     n2[n2 == "time"] <- "t";
     symbol.list <- setNames(as.list(n2), n1);
     symbol.env <- list2env(symbol.list, parent=rxSympyFEnv);
@@ -1056,6 +1076,7 @@ rxSymPySetupPred <- function(obj, predfn){
     rxSymPySetupIf(newmod);
     rxSymPySetup(txt);
     extraLines <- c();
+    ## FIXME conditional predfn
     for (state in rxState(newmod)){
         newLine <- rSymPy::sympy(sprintf("diff(rx_pred_,%s)", state));
         if (newLine != "0"){
