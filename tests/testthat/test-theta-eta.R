@@ -75,7 +75,7 @@ rxPermissive({
 
     test_that("theta/eta solve works", {
         expect_equal(suppressWarnings(digest(m2a %>% solve(et, theta=c(2, 1.6, 4.5), eta=c(0.01, -0.01)) %>% as.data.frame %>% round(3))),
-                     "4519cf5fc35ef7c73c10f60908205c1e");
+                     "13baa6cabb14367e1328149d3c14ebf7");
     })
 
     ## m2a %>% solve(et, theta=c(2, 1.6, 4.5), eta=c(0.01, -0.01))
