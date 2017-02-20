@@ -94,16 +94,17 @@ primary_expression
   : constant
   | identifier_r
   | theta
+  | eta
   | der_rhs
   | jac_rhs
   | dfdy_rhs
   | transit2
   | transit3
   | function
-  |  factorial 
-  |  factorial_exp 
-  |  lfactorial 
-  |  lfactorial_exp
+  | factorial 
+  | factorial_exp 
+  | lfactorial 
+  | lfactorial_exp
   | '(' additive_expression ')'
   ;
 

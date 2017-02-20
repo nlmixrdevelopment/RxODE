@@ -91,8 +91,6 @@
 ##' @param maxords The maximum order to be allowed for the stiff (BDF)
 ##'     method.  The default value is 5.  This can be between 1 and 5.
 ##'
-##' @param type Solving type.  Default is "normal"
-##'
 ##' @param ... Other arguments including scaling factors for each
 ##'     compartment.  This includes S# = numeric will scale a compartment
 ##'     # by a dividing the compartment amount by the scale factor,
@@ -154,9 +152,7 @@ rxSolve <- function(object,                      # RxODE object
                     maxords            = 5,      # maxords
                     ...,
                     covs_interpolation = c("linear", "constant"),
-                    theta=numeric(), eta=numeric(),
-                    type="normal"
-                    ) {
+                    theta=numeric(), eta=numeric()) {
     ## rxSolve returns
     UseMethod("rxSolve");
 } # end function rxSolve
@@ -180,7 +176,7 @@ update.solveRxDll <- function(object, ...){
 ##' @export
 rxSolve.solveRxDll <- function(object, params, events, inits, scale , covs, stiff, transit_abs, atol, rtol, maxsteps, hmin,
                                hmax, hini, maxordn, maxords, ..., covs_interpolation= c("linear", "constant"),
-                               theta=numeric(), eta=numeric(), type="normal"){
+                               theta=numeric(), eta=numeric()){
     call <- as.list(match.call(expand.dots = TRUE));
     lst <- attr(object, "solveRxDll");
     lst <- lst[names(lst) != "matrix"];
@@ -207,10 +203,9 @@ rxSolve.solveRxDll <- function(object, params, events, inits, scale , covs, stif
 rxSolve.RxODE <- function(object, params, events, inits = NULL, scale=c(), covs = NULL, stiff = TRUE, transit_abs = NULL,
                           atol = 1.0e-8, rtol = 1.0e-6, maxsteps = 5000, hmin = 0, hmax = NULL, hini = 0, maxordn = 12,
                           maxords = 5, ..., covs_interpolation = c("linear", "constant"),
-                          theta=numeric(), eta=numeric(), type="normal"){
+                          theta=numeric(), eta=numeric()){
     rxSolve.rxDll(object$cmpMgr$rxDll(), params, events, inits, scale, covs, stiff, transit_abs, atol, rtol, maxsteps, hmin,
-                  hmax, hini, maxordn, maxords, ..., covs_interpolation = covs_interpolation, theta=theta, eta=eta,
-                  type=type);
+                  hmax, hini, maxordn, maxords, ..., covs_interpolation = covs_interpolation, theta=theta, eta=eta);
 }
 ##' @rdname rxSolve
 ##' @export
@@ -218,19 +213,18 @@ rxSolve.RxCompilationManager <- function(object, params, events, inits = NULL, s
                                          transit_abs = NULL, atol = 1.0e-8, rtol = 1.0e-6, maxsteps = 5000, hmin = 0,
                                          hmax = NULL, hini = 0, maxordn = 12, maxords = 5, ...,
                                          covs_interpolation = c("linear", "constant"),
-                                         theta=numeric(), eta=numeric(), type="normal"){
+                                         theta=numeric(), eta=numeric()){
     rxSolve.rxDll(object$rxDll(), params, events, inits, scale, covs, stiff, transit_abs, atol, rtol, maxsteps, hmin, hmax,
                   hini, maxordn, maxords, ...,
-                  covs_interpolation = covs_interpolation, theta=theta, eta=eta, type=type);
+                  covs_interpolation = covs_interpolation, theta=theta, eta=eta);
 }
 ##' @rdname rxSolve
 ##' @export
 rxSolve.character <- function(object, params, events, inits = NULL, scale=c(), covs = NULL, stiff = TRUE, transit_abs = NULL,
                               atol = 1.0e-8, rtol = 1.0e-6, maxsteps = 5000, hmin = 0, hmax = NULL, hini = 0, maxordn = 12,
-                              maxords = 5, ..., covs_interpolation = c("linear", "constant"), theta=numeric(), eta=numeric(),
-                              type="normal"){
+                              maxords = 5, ..., covs_interpolation = c("linear", "constant"), theta=numeric(), eta=numeric()){
     rxSolve.rxDll(rxCompile(object), params, events, inits, scale, covs, stiff, transit_abs, atol, rtol, maxsteps, hmin, hmax,
-                  hini, maxordn, maxords, ..., covs_interpolation = covs_interpolation, theta=theta, eta=eta, type=type);
+                  hini, maxordn, maxords, ..., covs_interpolation = covs_interpolation, theta=theta, eta=eta);
 }
 ##' @rdname rxSolve
 ##' @export
@@ -238,7 +232,7 @@ rxSolve.rxDll <- function(object, params, events, inits = NULL, scale = c(),
                           covs = NULL, stiff = TRUE, transit_abs = NULL,
                           atol = 1.0e-8, rtol = 1.0e-6, maxsteps = 5000, hmin = 0, hmax = NULL, hini = 0, maxordn = 12,
                           maxords = 5, ..., covs_interpolation = c("linear", "constant"),
-                          theta=numeric(), eta=numeric(), type="normal"){
+                          theta=numeric(), eta=numeric()){
     ## rxSolve.rxDll returns a solved object
     if (!missing(params)){
         if (missing(events) && class(params) == "EventTable"){
@@ -378,14 +372,7 @@ rxSolve.rxDll <- function(object, params, events, inits = NULL, scale = c(),
     ## Ensure that inits and params have names.
     names(inits) <- rxState(object);
     names(params) <- rxParams(object);
-    if (type == "normal"){
-        solver <- rxTrans(object)["ode_solver_sexp"]
-    } else if (type == "focei"){
-        solver <- rxTrans(object)["ode_solver_nlmixr"]
-    } else {
-        stop(sprintf("Unknown solve type: '%s'", solver));
-    }
-    ret <- object$.call(solver,
+    ret <- object$.call(rxTrans(object)["ode_solver_sexp"],
                         ## Parameters
                         params,
                         inits,
@@ -413,22 +400,20 @@ rxSolve.rxDll <- function(object, params, events, inits = NULL, scale = c(),
                         ## Passed to build solver object.
                         object,
                         extra.args);
-    if (type == "normal"){
-        rc <- attr(ret, "solveRxDll")$counts["rc"];
+    rc <- attr(ret, "solveRxDll")$counts["rc"];
 
-        ## Subset to observations only.
-        attr(ret, "solveRxDll")$matrix <- attr(ret, "solveRxDll")$matrix[events$get.obs.rec(), ];
-        ## Change sensitivities to be d/dt(d(A)/d(B)) form.
-        dim <- dimnames(attr(ret, "solveRxDll")$matrix);
-        dim[[2]] <- gsub(regSens,"d/dt(d(\\1)/d(\\2))",dim[[2]]);
-        dimnames(attr(ret, "solveRxDll")$matrix) <- dim;
+    ## Subset to observations only.
+    attr(ret, "solveRxDll")$matrix <- attr(ret, "solveRxDll")$matrix[events$get.obs.rec(), ];
+    ## Change sensitivities to be d/dt(d(A)/d(B)) form.
+    dim <- dimnames(attr(ret, "solveRxDll")$matrix);
+    dim[[2]] <- gsub(regSens,"d/dt(d(\\1)/d(\\2))",dim[[2]]);
+    dimnames(attr(ret, "solveRxDll")$matrix) <- dim;
 
-        if (rc != 0)
-            stop(sprintf("could not solve ODE, IDID = %d (see further messages)", rc))
+    if (rc != 0)
+        stop(sprintf("could not solve ODE, IDID = %d (see further messages)", rc))
 
-        for (d in names(scale)){
-            attr(ret, "solveRxDll")$matrix[, d] <- attr(ret, "solveRxDll")$matrix[, d] / scale[d];
-        }
+    for (d in names(scale)){
+        attr(ret, "solveRxDll")$matrix[, d] <- attr(ret, "solveRxDll")$matrix[, d] / scale[d];
     }
     return(ret);
 } # end function rxSolve.rxDll

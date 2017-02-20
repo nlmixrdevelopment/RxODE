@@ -1312,8 +1312,8 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
   fprintf(outpt,"\tSET_STRING_ELT(trann,8,mkChar(\"ode_solver_0_6\"));\n");
   fprintf(outpt,"\tSET_STRING_ELT(tran, 8,mkChar(\"%sode_solver_0_6\"));\n",model_prefix);
 
-  fprintf(outpt,"\tSET_STRING_ELT(trann,9,mkChar(\"ode_solver_nlmixr\"));\n");
-  fprintf(outpt,"\tSET_STRING_ELT(tran, 9,mkChar(\"%sode_solver_nlmixr\"));\n",model_prefix);
+  fprintf(outpt,"\tSET_STRING_ELT(trann,9,mkChar(\"ode_solver_focei_eta\"));\n");
+  fprintf(outpt,"\tSET_STRING_ELT(tran, 9,mkChar(\"%sode_solver_focei_eta\"));\n",model_prefix);
   
   fprintf(outpt,"\tsetAttrib(tran, R_NamesSymbol, trann);\n");
   fprintf(outpt,"\tsetAttrib(mmd5, R_NamesSymbol, mmd5n);\n");
@@ -1943,8 +1943,8 @@ SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP pref
   SET_STRING_ELT(trann,8,mkChar("ode_solver_0_6"));
   SET_STRING_ELT(tran, 8,mkChar(buf));
 
-  sprintf(buf,"%sode_solver_nlmixr",model_prefix);
-  SET_STRING_ELT(trann,9,mkChar("ode_solver_nlmixr"));
+  sprintf(buf,"%sode_solver_focei_eta",model_prefix);
+  SET_STRING_ELT(trann,9,mkChar("ode_solver_focei_eta"));
   SET_STRING_ELT(tran, 9,mkChar(buf));
   
   fpIO2 = fopen(out2, "r");

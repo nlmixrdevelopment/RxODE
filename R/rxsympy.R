@@ -533,10 +533,13 @@ sympyEnv <- function(expr){
     n1 <- names;
     n2 <- names;
     n2[n2 == "time"] <- "t";
+    ## Replace f with rx_pred_
+    n2[n2 == "f"] <- "rx_pred_"
     ## Replace print functions with nothing.
     n2[n2 %in% c('print', 'jac_print', 'ode_print', 'jac0_print', 'ode_print', 'ode0_print', 'lhs_print')] <- "";
     symbol.list <- setNames(as.list(n2), n1);
     symbol.env <- list2env(symbol.list, parent=rxSympyFEnv);
+    return(symbol.env)
 }
 
 rxEnv <- function(expr){
@@ -1062,7 +1065,7 @@ rxSymPyClean <- function(){
 ##' @author Matthew L. Fidler
 ##' @keywords internal
 ##' @export
-rxSymPySetupPred <- function(obj, predfn, pkpars){
+rxSymPySetupPred <- function(obj, predfn, pkpars, errfn){
     rxSymPyVars(obj);
     on.exit({rxSymPyClean()});
     if (!missing(pkpars)){
@@ -1121,12 +1124,50 @@ rxSymPySetupPred <- function(obj, predfn, pkpars){
             }
         }
     }
+    newmod <- rxGetModel(paste(c(rxNorm(newmod), extraLines), collapse="\n"))
     if (length(extraLines) == 0){
         stop("Your prediction function does not depend on any of the state variables.")
     }
-    newmod <- RxODE(paste(c(rxNorm(newmod), extraLines), collapse="\n"))
+    if (!missing(errfn)){
+        txt <- deparse(body(errfn));
+        if (txt[1] == "{"){
+            txt <- txt[-c(1, length(txt))];
+        }
+        if (regexpr(rex::rex(or(boundary, start), "return(", anything, ")"), txt[length(txt)], perl=TRUE) == -1){
+            ## Add return statement
+            txt[length(txt)] <- gsub(rex::rex(start, any_spaces, capture(anything), or(";", ""), any_spaces, end), "return(\\1);", txt);
+        }
+        ## change return(x) to rx_r_ = X
+        txt <- paste(gsub(rex::rex(or(boundary, start), "return(", capture(anything), ")"), "rx_r_ = (\\1)^2", txt), collapse="\n");
+        txt <- rxToSymPy(txt);
+        txt <- rxFromSymPy(txt);
+        newmod <- rxGetModel(paste0(rxNorm(newmod), "\n", txt));
+        rxSymPySetupIf(newmod);
+        ## FIXME conditional errfn
+        for (state in rxState(newmod)){
+            newLine <- rSymPy::sympy(sprintf("diff(rx_r_,%s)", state));
+            newLine <- rxFromSymPy(newLine);
+            if (newLine != "0"){
+                for (var in calcSens){
+                    newLine2 <- rSymPy::sympy(sprintf("diff(rx_r_,%s)", rxToSymPy(var)));
+                    newLine2 <- rxFromSymPy(newLine2);
+                    ## (-d(eps)/d(eta)) simialr to Equation 19 in Almquist 2015
+                    line <- rSymPy::sympy(sprintf("simplify(%s)", rxToSymPy(sprintf("(%s)*rx__sens_%s_BY_%s__+(%s)",
+                                                                                       newLine, state, rxToSymPy(var),
+                                                                                       newLine2))));
+                    line <- rxFromSymPy(line);
+                    ## Chain rule dpred/dstate * dstate/dx = dpred/dx
+                    extraLines[length(extraLines) + 1] <- sprintf("rx__sens_rx_r__BY_%s__ = %s", rxToSymPy(var), line);
+                }
+            }
+        }
+        newmod <- rxGetModel(paste(c(rxNorm(newmod), extraLines), collapse="\n"))
+        if (length(extraLines) == 0){
+            stop("Your error function does not depend on any of the state variables.")
+        }
+    }
     ## txt <- paste0(rxNorm(obj), "\n", txt);
-    return(newmod);
+    return(RxODE(rxNorm(newmod)));
 }
 
 ## Supported Sympy special functions

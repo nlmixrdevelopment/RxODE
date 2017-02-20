@@ -27,10 +27,10 @@ double HMIN;
 int    do_transit_abs=0;
 double tlast=0;
 double podo=0;
-double *par_ptr;
-int    *par_cov;
+double *par_ptr, *inits, *dose, *solve, *lhs;
+int    *par_cov, *evid;
 double *cov_ptr;
-int    ncov;
+int    ncov, nlhs, neq, stiff;
 int    is_locf;
 int    n_all_times;
 int    mxstep;
@@ -392,6 +392,8 @@ void RxODE_ode_solver_old_c(int *neq,
     }
   }
   Free(InfusionRate);
+  Free(solve);
+  Free(lhs);
 }
 
 void RxODE_ode_solver_0_6_c(int *neq,
@@ -443,6 +445,8 @@ void RxODE_ode_solver_0_6_c(int *neq,
     }
   }
   Free(InfusionRate);
+  Free(solve);
+  Free(lhs);
 }
 
 void RxODE_assign_fn_pointers(void (*fun_dydt)(unsigned int, double, double *, double *),
@@ -461,41 +465,32 @@ void RxODE_assign_fn_pointers(void (*fun_dydt)(unsigned int, double, double *, d
   global_debug  = fun_debug;
 }
 
-SEXP RxODE_ode_solver_nlmixr (// Parameters
-			      SEXP sexp_theta,
-			      SEXP sexp_inits,
-			      SEXP sexp_lhs,
-			      // Events
-			      SEXP sexp_time,
-			      SEXP sexp_evid,
-			      SEXP sexp_dose,
-			      // Covariates
-			      SEXP sexp_pcov,
-			      SEXP sexp_cov,
-			      SEXP sexp_locf,
-			      // Solver Options
-			      SEXP sexp_atol,
-			      SEXP sexp_rtol,
-			      SEXP sexp_hmin,
-			      SEXP sexp_hmax,
-			      SEXP sexp_h0,
-			      SEXP sexp_mxordn,
-			      SEXP sexp_mxords,
-			      SEXP sexp_mx,
-			      SEXP sexp_stiff,
-			      SEXP sexp_transit_abs,
-			      // Object Creation
-			      SEXP sexp_object,
-			      SEXP sexp_extra_args){
-  par_ptr       = REAL(sexp_theta);
-  double *inits = REAL(sexp_inits);
-  int nlhs      = length(sexp_lhs);
+void RxODE_ode_setup(SEXP sexp_inits,
+                     SEXP sexp_lhs,
+        	     // Events
+                     SEXP sexp_time,
+                     SEXP sexp_evid,
+                     SEXP sexp_dose,
+                     // Covariates
+                     SEXP sexp_pcov,
+                     SEXP sexp_cov,
+                     SEXP sexp_locf,
+                     // Solver Options
+                     SEXP sexp_atol,
+                     SEXP sexp_rtol,
+                     SEXP sexp_hmin,
+                     SEXP sexp_hmax,
+                     SEXP sexp_h0,
+                     SEXP sexp_mxordn,
+                     SEXP sexp_mxords,
+                     SEXP sexp_mx,
+                     SEXP sexp_stiff,
+                     SEXP sexp_transit_abs){
   // Events
   all_times     = REAL(sexp_time); 
   n_all_times   = length(sexp_time);
-  int    *evid  = INTEGER(sexp_evid);
-  double *dose  = REAL(sexp_dose);
-  int    neq    = length(sexp_inits);
+  evid          = INTEGER(sexp_evid);
+  dose          = REAL(sexp_dose);
   // Covariates
   par_cov       = INTEGER(sexp_pcov);
   cov_ptr       = REAL(sexp_cov);
@@ -511,58 +506,100 @@ SEXP RxODE_ode_solver_nlmixr (// Parameters
   MXORDS         = INTEGER(sexp_mxords)[0];
   mxstep         = INTEGER(sexp_mx)[0];
   do_transit_abs = INTEGER(sexp_transit_abs)[0];
-  int stiff      = INTEGER(sexp_stiff)[0];
+  stiff          = INTEGER(sexp_stiff)[0];
   slvr_counter   = 0;
   dadt_counter   = 0;
   jac_counter    = 0;
-  int i = 0, j = 0,k=0;
-  
-  double *solve, *lhs;
-  int *rc;
-
   rx_aprox_M.f2 = 0.0; //= f=0 
   rx_aprox_M.f1 = 1.0; // = 1-f = 1;
   rx_aprox_M.kind = !is_locf;
-    
+  nlhs          = length(sexp_lhs);
+  neq           = length(sexp_inits);
+  solve         = (double *) Calloc(neq*n_all_times+1,double);
+  lhs           = (double *) Calloc(nlhs,double);
+}
+
+SEXP RxODE_ode_solver_focei_eta (// Parameters
+				 SEXP DV, 
+				 SEXP sexp_theta,
+				 SEXP sexp_inits){
+  par_ptr       = REAL(sexp_theta);
+  inits = REAL(sexp_inits);
+  /* RxODE_ode_setup(sexp_time, sexp_evid, sexp_dose, sexp_pcov, sexp_cov, sexp_locf, sexp_atol, sexp_rtol, sexp_hmin, sexp_hmax, sexp_h0, sexp_mxordn, sexp_mxords, sexp_mx, sexp_stiff, sexp_transit_abs); */
+  int i = 0, j = 0,k=0;
+  
+  int *rc;
+  
+  InfusionRate = Calloc(neq+2,double);
   rc = (int *) R_alloc(1,sizeof(int));
   rc[0] = 0;
-  
-  solve         = (double *) R_alloc(neq*n_all_times+1,sizeof(double));
-  lhs           = (double *) R_alloc(nlhs,sizeof(double));
-  InfusionRate = Calloc(neq+2,double);
   /* for (i=0; i<neq; i++) InfusionRate[i] = 0.0; */
   
   RxODE_ode_solver_c(neq, stiff, evid, inits, dose, solve, rc);
   /* Rprintf("ixds: %d\n",ixds); */
 
-  SEXP sexp_fp     = PROTECT(allocMatrix(REALSXP, n_all_times-ixds, nlhs-1));
-  SEXP sexp_f      = PROTECT(allocVector(REALSXP, n_all_times-ixds));
-  double *fpm   = REAL(sexp_fp);
-  double *f   = REAL(sexp_f);
-
+  SEXP sexp_fp     = PROTECT(allocMatrix(REALSXP, n_all_times-ixds, (nlhs-1)/2));
+  SEXP sexp_rp     = PROTECT(allocMatrix(REALSXP, n_all_times-ixds, (nlhs-1)/2));
+  SEXP sexp_f      = PROTECT(allocMatrix(REALSXP, n_all_times-ixds, 1));
+  SEXP sexp_r      = PROTECT(allocMatrix(REALSXP, n_all_times-ixds, 1));
+  SEXP sexp_Rinv   = PROTECT(allocMatrix(REALSXP, n_all_times-ixds, 1));
+  SEXP sexp_logR   = PROTECT(allocMatrix(REALSXP, n_all_times-ixds, 1));
+  SEXP sexp_B      = PROTECT(allocMatrix(REALSXP, n_all_times-ixds, 1));
+  SEXP sexp_c      = PROTECT(allocMatrix(REALSXP, n_all_times-ixds, (nlhs-1)/2));
+  double *fpm  = REAL(sexp_fp);
+  double *f    = REAL(sexp_f);
+  double *rp   = REAL(sexp_rp);
+  double *r    = REAL(sexp_r);
+  double *logR = REAL(sexp_logR);
+  double *Rinv = REAL(sexp_Rinv);
+  double *B    = REAL(sexp_B);
+  double *c    = REAL(sexp_c);
+  
   // Now create the pred vector and d(pred)/d(eta) matrix.
   // Assuming lhs[0] = pred and lhs[1:n] = d(pred)/d(eta#)
   for (i = 0; i < n_all_times; i++){
     if (!evid[i]){
       calc_lhs(all_times[i], solve+i*neq, lhs);
       f[k] = lhs[0]; // Pred
-      for (j = 1; j < nlhs; j++){
+      for (j = 1; j <= (nlhs-1)/2; j++){
         fpm[(n_all_times-ixds)*(j-1)+k] = lhs[j];
+      }
+      r[k]=lhs[j];
+      logR[k]=log(lhs[j]);
+      Rinv[k]=1/lhs[j];
+      B[k]=2/lhs[j];
+      for (j=j+0; j < nlhs; j++){
+        rp[(n_all_times-ixds)*(j-1-(nlhs-1)/2)+k] = lhs[j+1];
+	c[(n_all_times-ixds)*(j-1-(nlhs-1)/2)+k]  = lhs[j+1]/r[k];
       }
       k++;
     }
   }
   
-  SEXP lst   = PROTECT(allocVector(VECSXP, 2));
-  SEXP names = PROTECT(allocVector(STRSXP, 2));
+  SEXP lst   = PROTECT(allocVector(VECSXP, 7));
+  SEXP names = PROTECT(allocVector(STRSXP, 7));
   SET_STRING_ELT(names,0,mkChar("h"));
   SET_VECTOR_ELT(lst,0,sexp_f);
-  SET_STRING_ELT(names,1,mkChar("d(eps)/d(eta)"));
+  SET_STRING_ELT(names,1,mkChar("deps")); // d(eps)/d(eta)
   SET_VECTOR_ELT(lst,1,sexp_fp);
+  SET_STRING_ELT(names,2,mkChar("R"));
+  SET_VECTOR_ELT(lst,2,sexp_r);
+  SET_STRING_ELT(names,3,mkChar("dR")); // dR/deta
+  SET_VECTOR_ELT(lst,3,sexp_rp);
+  SET_STRING_ELT(names,3,mkChar("B"));
+  SET_VECTOR_ELT(lst,3,sexp_B);
+  SET_STRING_ELT(names,4,mkChar("c"));
+  SET_VECTOR_ELT(lst,4,sexp_c);
+  SET_STRING_ELT(names,5,mkChar("Rinv"));
+  SET_VECTOR_ELT(lst,5,sexp_Rinv);
+  SET_STRING_ELT(names,6,mkChar("logR"));
+  SET_VECTOR_ELT(lst,6,sexp_logR);
   setAttrib(lst, R_NamesSymbol, names);
-  UNPROTECT(4);
+  UNPROTECT(9);
   if (fp) fclose(fp);
   Free(InfusionRate);
+  Free(solve);
+  Free(lhs);
   return lst;
 }
 
@@ -598,52 +635,23 @@ SEXP RxODE_ode_solver (// Parameters
   // TODO: Bioavailiability
   // Parameters
   par_ptr       = REAL(sexp_theta);
-  double *inits = REAL(sexp_inits);
-  int nlhs      = length(sexp_lhs);
+  inits         = REAL(sexp_inits);
   // Events
-  all_times     = REAL(sexp_time); 
-  n_all_times   = length(sexp_time);
-  int    *evid  = INTEGER(sexp_evid);
-  double *dose  = REAL(sexp_dose);
-  int    neq    = length(sexp_inits);
-  // Covariates
-  par_cov       = INTEGER(sexp_pcov);
-  cov_ptr       = REAL(sexp_cov);
-  ncov          = length(sexp_pcov);
-  is_locf       = INTEGER(sexp_locf)[0];
-  // Solver options
-  ATOL           = REAL(sexp_atol)[0];
-  RTOL           = REAL(sexp_rtol)[0];
-  HMIN           = REAL(sexp_hmin)[0];
-  HMAX           = REAL(sexp_hmax)[0];
-  H0             = REAL(sexp_h0)[0];
-  MXORDN         = INTEGER(sexp_mxordn)[0];
-  MXORDS         = INTEGER(sexp_mxords)[0];
-  mxstep         = INTEGER(sexp_mx)[0];
-  do_transit_abs = INTEGER(sexp_transit_abs)[0];
-  int stiff      = INTEGER(sexp_stiff)[0];
-  slvr_counter   = 0;
-  dadt_counter   = 0;
-  jac_counter    = 0;
+  RxODE_ode_setup(sexp_inits, sexp_lhs, sexp_time, sexp_evid, sexp_dose, sexp_pcov, sexp_cov, sexp_locf, sexp_atol, sexp_rtol, sexp_hmin, sexp_hmax, sexp_h0, sexp_mxordn, sexp_mxords, sexp_mx, sexp_stiff, sexp_transit_abs);
+  
   int i = 0, j = 0;
   SEXP sexp_ret     = PROTECT(allocMatrix(REALSXP, n_all_times, ncov+1+neq+nlhs));
   SEXP sexp_counter = PROTECT(allocVector(INTSXP,4));
   int    *counts    = INTEGER(sexp_counter);
-
-  double *solve, *lhs;
+  
   double *ret   = REAL(sexp_ret);
   int *rc;
 
-  rx_aprox_M.f2 = 0.0; //= f=0 
-  rx_aprox_M.f1 = 1.0; // = 1-f = 1;
-  rx_aprox_M.kind = !is_locf;
     
   rc = (int *) R_alloc(1,sizeof(int));
   rc[0] = 0;
   
-  solve         = (double *) R_alloc(neq*n_all_times+1,sizeof(double));
-  lhs           = (double *) R_alloc(nlhs,sizeof(double));
-
+  
   InfusionRate = Calloc(neq+2,double);
   /* for (i=0; i<neq; i++) InfusionRate[i] = 0.0; */
   
@@ -741,6 +749,8 @@ SEXP RxODE_ode_solver (// Parameters
   UNPROTECT(9);
   if (fp) fclose(fp);
   Free(InfusionRate);
+  Free(solve);
+  Free(lhs);
   return sexp_solve;
 }
 
@@ -812,7 +822,8 @@ void R_init_RxODE(DllInfo *info){
   R_RegisterCCallable("RxODE","RxODE_assign_fn_pointers", (DL_FUNC) RxODE_assign_fn_pointers);
   R_RegisterCCallable("RxODE","RxODE_ode_solver_old_c", (DL_FUNC) RxODE_ode_solver_old_c);
   R_RegisterCCallable("RxODE","RxODE_ode_solver_0_6_c", (DL_FUNC) RxODE_ode_solver_0_6_c);
-  R_RegisterCCallable("RxODE","RxODE_ode_solver_nlmixr", (DL_FUNC) RxODE_ode_solver_nlmixr);
+  R_RegisterCCallable("RxODE","RxODE_ode_solver_focei_eta", (DL_FUNC) RxODE_ode_solver_focei_eta);
+  R_RegisterCCallable("RxODE","RxODE_ode_setup",         (DL_FUNC) RxODE_ode_setup);
   
   //Infusion
   R_RegisterCCallable("RxODE","RxODE_InfusionRate",     (DL_FUNC) RxODE_InfusionRate);

@@ -1194,7 +1194,7 @@ rxTrans.character <- function(model,
 }
 rxTransMakevars <- function(rxProps,                                                                              # rxTrans translation properties
                             rxDll, # Dll of file
-                            compileFlags =c("parsed_md5", "ode_solver", "ode_solver_sexp", "ode_solver_0_6","ode_solver_nlmixr",
+                            compileFlags =c("parsed_md5", "ode_solver", "ode_solver_sexp", "ode_solver_0_6","ode_solver_focei_eta",
                                             "model_vars", "calc_lhs", "calc_jac", "dydt"), # List of compile flags
                             debug        = FALSE,                                                                 # Debug compile?
                             ...){

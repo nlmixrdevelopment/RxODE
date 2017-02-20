@@ -3,7 +3,7 @@
 [![codecov.io](https://codecov.io/github/mattfidler/RxODE/coverage.svg?branch=master)](https://codecov.io/github/mattfidler/RxODE?branch=master)
 [![CRAN version](http://www.r-pkg.org/badges/version/RxODE)](https://cran.r-project.org/package=RxODE)
 
-
+![plot of chunk compileVignette](figure/compileVignette-1.png)
 
 
 ## RxODE: A tool for performing simulations from Ordinary Differential Equation (ODE) models, with applications for pharmacometrics
@@ -347,12 +347,12 @@ head(theta.all)
 
 ```
 ##         KA       CL   V2    Q  V3 Kin Kout EC50
-## [1,] 0.294 16.21200 40.2 10.5 297   1    1  200
-## [2,] 0.294 19.83936 40.2 10.5 297   1    1  200
-## [3,] 0.294 25.76873 40.2 10.5 297   1    1  200
-## [4,] 0.294 16.99330 40.2 10.5 297   1    1  200
-## [5,] 0.294 23.82081 40.2 10.5 297   1    1  200
-## [6,] 0.294 21.56479 40.2 10.5 297   1    1  200
+## [1,] 0.294 18.27105 40.2 10.5 297   1    1  200
+## [2,] 0.294 20.18364 40.2 10.5 297   1    1  200
+## [3,] 0.294 15.20958 40.2 10.5 297   1    1  200
+## [4,] 0.294 18.89136 40.2 10.5 297   1    1  200
+## [5,] 0.294 15.56600 40.2 10.5 297   1    1  200
+## [6,] 0.294 19.08484 40.2 10.5 297   1    1  200
 ```
 
 Each subproblem can be simulated by using an explicit loop (or the `apply()`
