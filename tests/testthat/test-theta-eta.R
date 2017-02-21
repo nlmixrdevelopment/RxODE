@@ -1,4 +1,5 @@
 context("Test RxODE THETA/ETA support")
+library(digest)
 rxPermissive({
 
     rigid <- RxODE({
@@ -38,6 +39,12 @@ rxPermissive({
         d/dt(centr) = KA*depot - CL / V*centr;
     });
 
+
+    m2 <- RxODE({
+        d/dt(depot) = -KA*depot;
+        d/dt(centr) = KA*depot - CL / V*centr;
+    })
+
     et <- eventTable() %>% add.dosing(dose=30000) %>%
         add.sampling(c(0.25, 0.5, 0.75, 1, 1.5, 2, 2.5, 3, 4, 6, 8, 12, 16, 20, 24, 36, 48, 60, 71.99))
 
@@ -51,10 +58,6 @@ rxPermissive({
         return(cntr);
     }
 
-    m2 <- RxODE({
-        d/dt(depot) = -KA*depot;
-        d/dt(centr) = KA*depot - CL / V*centr;
-    })
 
     test_that("Error when pred dosen't depend on state varaibles", {
         expect_error(rxSymPySetupPred(m2, pred, pk));
@@ -70,6 +73,12 @@ rxPermissive({
 
     m2a <- rxSymPySetupPred(m2, pred, pk, err)
 
+    dv <- c(1126.1, 869.9, 883.6, 1244, 995.2, 946.4, 589.2, 754.4, 1060.8, 433, 609.5, 630.1, 342.1, 322.9, 196.3, 89.8, 42.8, 16.6, 8.4)
+
+    omega <- matrix(c(0.1, 0, 0, 0.1), nrow=2)
+
+    omegaInv <- solve(omega)
+
     ## test_that("theta/eta solve works", {
     ##     expect_equal(suppressWarnings(digest(m2a %>% solve(et, theta=c(2, 1.6, 4.5, 0.1), eta=c(0.01, -0.01)) %>% as.data.frame %>% round(3))),
     ##                  "13baa6cabb14367e1328149d3c14ebf7");
@@ -77,6 +86,51 @@ rxPermissive({
 
     ## m2a <- rxSymPySetupPred(m2, pred, pk, err)
 
-    ## m2a %>% solve(et, theta=c(2, 1.6, 4.5,0.01), eta=c(0.01, -0.01))
+    tmp1 <- m2a %>% solve(et, theta=c(2, 1.6, 4.5,0.01), eta=c(0.01, -0.01))
+    tmp2 <- m2a %>% rxFoceiEta(et, theta=c(2, 1.6, 4.5,0.01), eta=c(0.01, -0.01),dv=dv, omegaInv=omegaInv)
+
+    test_that("rxFoceiEta makes sense", {
+        expect_equal(matrix(tmp1$rx_pred_, ncol=1), tmp2$f); ## F
+        err <- matrix(dv - tmp1$rx_pred_, ncol=1)
+        expect_equal(err, tmp2$err) ## Err
+        R <- matrix(tmp1$rx_r_, ncol=1)
+        expect_equal(R, tmp2$R) ## R (Varinace)
+        m <- as.matrix(tmp1[,c("_sens_rx_pred__ETA_1_", "_sens_rx_pred__ETA_2_")])
+        dimnames(m) <- list(NULL, NULL)
+        m2 <- tmp2$dErr
+        dimnames(m2) <- list(NULL, NULL)
+        expect_equal(m, m2) ## Check dErr
+        m <- as.matrix(tmp1[, c("_sens_rx_r__ETA_1_", "_sens_rx_r__ETA_2_")]);
+        dimnames(m) <- list(NULL, NULL);
+        m2 <- tmp2$dR
+        dimnames(m2) <- list(NULL, NULL)
+        expect_equal(m, m2) ## Check dR
+        c <- list(matrix(tmp1[["_sens_rx_r__ETA_1_"]] / tmp1[["rx_r_"]],ncol=1),matrix(tmp1[["_sens_rx_r__ETA_2_"]] / tmp1[["rx_r_"]],ncol=1))
+        expect_equal(c, tmp2$c) ## c
+        B <- matrix(2 / tmp1[["rx_r_"]],ncol=1)
+        expect_equal(B, tmp2$B)
+        a <- list(t(matrix(tmp1[["_sens_rx_pred__ETA_1_"]],ncol=1)) - t(err/R*matrix(tmp1[["_sens_rx_r__ETA_1_"]],ncol=1)),
+                  t(matrix(tmp1[["_sens_rx_pred__ETA_2_"]],ncol=1)) - t(err/R*matrix(tmp1[["_sens_rx_r__ETA_2_"]],ncol=1)))
+        expect_equal(a, tmp2$a);
+
+        ## Does not include the matrix multilpaction part (done with RcppArmadillo)
+        lp <- matrix(c(NA, NA), ncol=1)
+        c <- matrix(tmp1[["_sens_rx_r__ETA_1_"]] / tmp1[["rx_r_"]],ncol=1)
+        fp <- as.matrix(tmp1[,c("_sens_rx_pred__ETA_1_" )])
+        lp[1, 1] <- .5*apply(err*fp*B + .5*err^2*B*c - c, 2, sum)
+        c <- matrix(tmp1[["_sens_rx_r__ETA_2_"]] / tmp1[["rx_r_"]],ncol=1)
+        fp <- as.matrix(tmp1[,c("_sens_rx_pred__ETA_2_" )])
+        lp[2, 1] <- .5*apply(err*fp*B + .5*err^2*B*c - c, 2, sum)
+        expect_equal(lp, tmp2$lp)
+
+        llik <- -0.5 * sum(err ^ 2 / R + log(R));
+
+        expect_equal(llik, tmp2$llik);
+        ## Test the llik and lp parameters
+        ## c = 2*fp/f
+        ## tmp1$_sens_rx_r__ETA_1_ / tmp1$_sens_rx_r_
+        ## B = 2/(f^2*sig2)
+    })
+
 
 }, silent=TRUE)

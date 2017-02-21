@@ -11,6 +11,9 @@ rxPermissive({
         expect_equal(rxModelVars(ode)$md5["parsed_md5"], rxModelVars(ode2)$md5["parsed_md5"])
     })
 
+    if (file.exists("temp.rx"))
+        unlink("temp.rx");
+
     sink("temp.rx")
     cat('d/dt(y) = r * y * (1 - y/K);\n');
     sink()
@@ -19,6 +22,7 @@ rxPermissive({
 
     test_that("file and string returns the same result", {
         expect_equal(rxModelVars(ode)$md5["parsed_md5"], rxModelVars(ode3)$md5["parsed_md5"])
+        expect_equal(rxNorm(ode), rxNorm(ode3))
     })
 
 

@@ -20,6 +20,7 @@ regDfDy <- rex::rex(start, "rx__df_", capture(anything), "_dy_", capture(anythin
 regThEt <- rex::rex(capture(or("TH", ""), "ETA"), "_",
                     capture("1":"9", any_of("0":"9")), "_")
 regDfDyTh <- rex::rex(start, "rx__df_", capture(anything), "_dy_", regThEt, "__", end);
+regEta <- rex::rex(start, "ETA[", capture("1":"9", any_of("0":"9")), "]")
 known.print <- c('printf', 'Rprintf', 'print',
                  'jac_printf', 'jac_Rprintf', 'jac_print',
                  'ode_printf', 'ode_Rprintf', 'ode_print',
@@ -1083,7 +1084,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars, errfn){
         }
         obj <- rxGetModel(paste(collapseModel, collapse="\n"));
         etas <- rxParams(obj)
-        etas <- etas[regexpr(rex::rex(start, "ETA[", "1":"9", any_of("0":"9"), "]"), etas) != -1];
+        etas <- etas[regexpr(regEta, etas) != -1];
         if (length(etas) > 0){
             calcSens = etas;
         } else {
@@ -1143,6 +1144,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars, errfn){
         txt <- rxFromSymPy(txt);
         newmod <- rxGetModel(paste0(rxNorm(newmod), "\n", txt));
         rxSymPySetupIf(newmod);
+        extraLines <- c();
         ## FIXME conditional errfn
         for (state in rxState(newmod)){
             newLine <- rSymPy::sympy(sprintf("diff(rx_r_,%s)", state));

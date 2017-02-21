@@ -298,7 +298,7 @@
 ##' @concept Ordinary differential equations
 ##' @concept Pharmacokinetics (PK)
 ##' @concept Pharmacodynamics (PD)
-##' @useDynLib RxODE trans
+##' @useDynLib RxODE trans RxODE_ode_free RxODE_ode_setup
 ##' @export
 RxODE <- function(model, modName = basename(wd), wd = getwd(),
                   filename = NULL, do.compile = NULL, extraC = NULL,
@@ -1207,7 +1207,7 @@ rxTransMakevars <- function(rxProps,                                            
             ret <- " -D__JT__=2 -D__MF__=22";
         }
         tmp <- rxProps[compileFlags];
-        for (x in c("parsed_md5", "ode_solver", "ode_solver_sexp", "ode_solver_0_6")){
+        for (x in c("parsed_md5", "ode_solver", "ode_solver_sexp", "ode_solver_0_6", "ode_solver_focei_eta")){
             tmp[sprintf("%s_str", x)] <- sprintf("\"\\\"%s\\\"\"", tmp[x]);
         }
         tmp["lib_str"] <- sprintf("\"\\\"%s\\\"\"", gsub(.Platform$dynlib.ext, "", basename(rxDll)));
