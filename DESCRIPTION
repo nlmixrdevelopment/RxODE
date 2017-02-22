@@ -36,7 +36,8 @@ Imports:
     brew,
     tibble,
     memoise,
-    magrittr
+    magrittr,
+    lbfgs
 Description: Facilities for running simulations from ordinary
     differential equation (ODE) models, such as pharmacometrics and other
     compartmental models.  A compilation manager translates the ODE model
@@ -55,4 +56,4 @@ SystemRequirements: GNU make
 License: GPL (>= 2) 
 URL: https://www.r-project.org, https://github.com/hallowkm/RxODE
 RoxygenNote: 5.0.1.9000
-LinkingTo: dparser
+LinkingTo: dparser, Rcpp, RcppArmadillo

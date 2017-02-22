@@ -298,7 +298,8 @@
 ##' @concept Ordinary differential equations
 ##' @concept Pharmacokinetics (PK)
 ##' @concept Pharmacodynamics (PD)
-##' @useDynLib RxODE trans RxODE_ode_free RxODE_ode_setup
+##' @useDynLib RxODE trans
+##' @importFrom Rcpp evalCpp
 ##' @export
 RxODE <- function(model, modName = basename(wd), wd = getwd(),
                   filename = NULL, do.compile = NULL, extraC = NULL,

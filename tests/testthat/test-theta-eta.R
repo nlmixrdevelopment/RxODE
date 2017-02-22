@@ -88,6 +88,10 @@ rxPermissive({
 
     tmp1 <- m2a %>% solve(et, theta=c(2, 1.6, 4.5,0.01), eta=c(0.01, -0.01))
     tmp2 <- m2a %>% rxFoceiEta(et, theta=c(2, 1.6, 4.5,0.01), eta=c(0.01, -0.01),dv=dv, omegaInv=omegaInv)
+    tmp3 <- m2a %>% rxFoceiLik(et, theta=c(2, 1.6, 4.5,0.01), eta=c(0.01, -0.01),dv=dv, omegaInv=omegaInv)
+    tmp4 <- m2a %>% rxFoceiLp(et, theta=c(2, 1.6, 4.5,0.01), eta=c(0.01, -0.01),dv=dv, omegaInv=omegaInv)
+
+    tmp5 <- m2a %>%rxFoceiInner(et, theta=c(2, 1.6, 4.5,0.01), eta=c(0.01, -0.01),dv=dv, omegaInv=omegaInv)
 
     test_that("rxFoceiEta makes sense", {
         expect_equal(matrix(tmp1$rx_pred_, ncol=1), tmp2$f); ## F
@@ -126,10 +130,17 @@ rxPermissive({
         llik <- -0.5 * sum(err ^ 2 / R + log(R));
 
         expect_equal(llik, tmp2$llik);
-        ## Test the llik and lp parameters
-        ## c = 2*fp/f
-        ## tmp1$_sens_rx_r__ETA_1_ / tmp1$_sens_rx_r_
-        ## B = 2/(f^2*sig2)
+
+        eta <- c(0.01, -0.01)
+        llik <- -0.5 * sum(err ^ 2 / R + log(R)) - 0.5 * t(matrix(eta,ncol=1)) %*% omegaInv %*% matrix(eta,ncol=1);
+        llik <- -llik;
+
+        expect_equal(llik, tmp3);
+
+        lp2 <- lp - omegaInv %*% matrix(eta, ncol=1)
+
+        expect_equal(-lp2, tmp4);
+
     })
 
 
