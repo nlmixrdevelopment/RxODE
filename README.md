@@ -251,6 +251,14 @@ in the output matrix x.
 
 ```r
 x <- mod1$solve(theta, ev, inits)
+```
+
+```
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+```
+
+```r
 head(x)
 ```
 
@@ -268,6 +276,14 @@ This can also be solved by the `predict()` or `solve()` methods:
 
 ```r
 x <- predict(mod1,theta, ev, inits)
+```
+
+```
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+```
+
+```r
 head(x)
 ```
 
@@ -284,6 +300,14 @@ or
 
 ```r
 x <- solve(mod1,theta, ev, inits)
+```
+
+```
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+```
+
+```r
 head(x)
 ```
 
@@ -323,12 +347,12 @@ head(theta.all)
 
 ```
 ##         KA       CL   V2    Q  V3 Kin Kout EC50
-## [1,] 0.294 16.82606 40.2 10.5 297   1    1  200
-## [2,] 0.294 19.15463 40.2 10.5 297   1    1  200
-## [3,] 0.294 16.27225 40.2 10.5 297   1    1  200
-## [4,] 0.294 24.00847 40.2 10.5 297   1    1  200
-## [5,] 0.294 19.60693 40.2 10.5 297   1    1  200
-## [6,] 0.294 16.31177 40.2 10.5 297   1    1  200
+## [1,] 0.294 20.30303 40.2 10.5 297   1    1  200
+## [2,] 0.294 23.43885 40.2 10.5 297   1    1  200
+## [3,] 0.294 22.28216 40.2 10.5 297   1    1  200
+## [4,] 0.294 20.36858 40.2 10.5 297   1    1  200
+## [5,] 0.294 14.41364 40.2 10.5 297   1    1  200
+## [6,] 0.294 14.34444 40.2 10.5 297   1    1  200
 ```
 
 Each subproblem can be simulated by using an explicit loop (or the `apply()`

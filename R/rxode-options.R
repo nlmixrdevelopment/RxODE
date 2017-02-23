@@ -70,14 +70,14 @@ rxOpt <- list(RxODE.prefer.tbl               =c(FALSE, FALSE),
 rxPermissive <- function(expr, silent=FALSE, respect=FALSE, rxclean=(regexpr("/tests/testthat/", getwd(), fixed=TRUE) != -1)){
     args  <- as.list(match.call())[-1];
     args$op.rx <- 2;
-    do.call("rxOptions", args, envir=parent.frame(1));
+    do.call(getFromNamespace("rxOptions", "RxODE"), args, envir=parent.frame(1));
 }
 ##' @rdname rxPermissive
 ##' @export
 rxStrict <- function(expr, silent=FALSE, respect=FALSE, rxclean=(regexpr("/tests/testthat/", getwd(), fixed=TRUE) != -1)){
     args  <- as.list(match.call())[-1];
     args$op.rx <- 1;
-    do.call("rxOptions", args, envir=parent.frame(1));
+    do.call(getFromNamespace("rxOptions", "RxODE"), args, envir=parent.frame(1));
 }
 ##' Options for RxODE
 ##'

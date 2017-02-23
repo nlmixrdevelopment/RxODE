@@ -58,13 +58,7 @@ void __ODE_SOLVER__(
                     int *rc
                     ){
   // Backward compatible ode solver for 0.5* C interface
-  _assign_fn_pointers(__DYDT__ , __CALC_LHS__ , __CALC_JAC__, __JT__ , __MF__,
-#ifdef __DEBUG__
-                     1
-#else
-                     0
-#endif
-                     );
+  __ODE_SOLVER_PTR__();
   _old_c(neq, theta, time, evid, ntime, inits, dose, ret, atol, rtol, stiff, transit_abs, nlhs, lhs, rc);
 }
 
@@ -90,15 +84,19 @@ void __ODE_SOLVER_0_6__(int *neq,
                         int mxords,
                         int mxstep) {
   // Backward compatible ode solver for 0.5* C interface
-  _assign_fn_pointers(__DYDT__ , __CALC_LHS__ , __CALC_JAC__, __JT__ , __MF__,
-#ifdef __DEBUG__
-                     1
-#else
-                     0
-#endif
-                     );
+  __ODE_SOLVER_PTR__();
   _c_0_6(neq, theta, time, evid, ntime, inits, dose, ret, atol, rtol, stiff, transit_abs, nlhs, lhs, rc,
 	hmin, hmax, h0, mxordn, mxords, mxstep);
+}
+
+extern void __ODE_SOLVER_PTR__  (){
+  _assign_fn_pointers(__DYDT__ , __CALC_LHS__ , __CALC_JAC__, __JT__ , __MF__,
+#ifdef __DEBUG__
+                      1
+#else
+                      0
+#endif
+                      );
 }
 
 extern SEXP __ODE_SOLVER_SEXP__ (// Parameters
@@ -128,26 +126,14 @@ extern SEXP __ODE_SOLVER_SEXP__ (// Parameters
 				 SEXP sexp_object,
 				 SEXP sexp_extra_args){
   RxODE_ode_solver ode_solver=(RxODE_ode_solver) R_GetCCallable("RxODE","RxODE_ode_solver");
-  _assign_fn_pointers(__DYDT__ , __CALC_LHS__ , __CALC_JAC__, __JT__ , __MF__,
-#ifdef __DEBUG__
-                     1
-#else
-                     0
-#endif
-		     );
+  __ODE_SOLVER_PTR__();
   ode_solver(sexp_theta,sexp_inits,sexp_lhs,sexp_time,sexp_evid,sexp_dose,sexp_pcov,sexp_cov,sexp_locf,sexp_atol,
 	     sexp_rtol,sexp_hmin,sexp_hmax,sexp_h0,sexp_mxordn,sexp_mxords,sexp_mx,sexp_stiff,sexp_transit_abs,
 	     sexp_object,sexp_extra_args);
 }
 
 extern SEXP __ODE_SOLVER_FOCEI_ETA__ (SEXP sexp_eta, SEXP sexp_rho){
-  _assign_fn_pointers(__DYDT__ , __CALC_LHS__ , __CALC_JAC__, __JT__ , __MF__,
-#ifdef __DEBUG__
-                      1
-#else
-                      0
-#endif
-                      );
+  __ODE_SOLVER_PTR__();
   return _focei_eta(sexp_eta, sexp_rho);
 }
 
@@ -177,14 +163,8 @@ void __R_INIT__ (DllInfo *info){
   R_RegisterCCallable(__LIB_STR__,__ODE_SOLVER_SEXP_STR__,  (DL_FUNC) __ODE_SOLVER_SEXP__);
   R_RegisterCCallable(__LIB_STR__,__ODE_SOLVER_0_6_STR__,   (DL_FUNC) __ODE_SOLVER_0_6__);
   R_RegisterCCallable(__LIB_STR__,__ODE_SOLVER_FOCEI_ETA_STR__,   (DL_FUNC) __ODE_SOLVER_FOCEI_ETA__);
+  R_RegisterCCallable(__LIB_STR__,__ODE_SOLVER_PTR_STR__,   (DL_FUNC) __ODE_SOLVER_PTR__);
   // Register the function pointers so if someone directly calls the
   // ode solvers directly, they use the last loaded RxODE model.
-  _assign_fn_pointers(__DYDT__ , __CALC_LHS__ , __CALC_JAC__, __JT__ , __MF__,
-#ifdef __DEBUG__
-				       1
-#else
-				       0
-#endif
-				       );
-  
+  __ODE_SOLVER_PTR__();
 }

@@ -37,7 +37,8 @@ Imports:
     tibble,
     memoise,
     magrittr,
-    lbfgs
+    lbfgs,
+    Rcpp
 Description: Facilities for running simulations from ordinary
     differential equation (ODE) models, such as pharmacometrics and other
     compartmental models.  A compilation manager translates the ODE model

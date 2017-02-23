@@ -13,3 +13,7 @@ RxODE_focei_eta <- function(fstr) {
     .Call('RxODE_RxODE_focei_eta', PACKAGE = 'RxODE', fstr)
 }
 
+RxODE_focei_finalize_llik <- function(rho) {
+    .Call('RxODE_RxODE_focei_finalize_llik', PACKAGE = 'RxODE', rho)
+}
+

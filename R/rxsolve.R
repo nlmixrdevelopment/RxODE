@@ -195,7 +195,7 @@ rxSolve.solveRxDll <- function(object, params, events, inits, scale , covs, stif
         }
     }
     lst$object <- object$object;
-    return(do.call(rxSolve.rxDll, lst, envir = parent.frame(1)));
+    return(do.call(getFromNamespace("rxSolve.rxDll", "RxODE"), lst, envir = parent.frame(1)));
 }
 
 ##' @rdname rxSolve
@@ -427,7 +427,7 @@ rxSolve.rxDll <- function(object, params=NULL, events=NULL, inits = NULL, scale 
     ## cmpMgr$dynLoad()
     rxLoad(object);
     call <- as.list(match.call(expand.dots = TRUE))[-1];
-    setup <- do.call("rxSolveSetup", call, envir = parent.frame(1));
+    setup <- do.call(getFromNamespace("rxSolveSetup", "RxODE"), call, envir = parent.frame(1));
     ret <- with(setup,{
         ret <- object$.call(rxTrans(object)["ode_solver_sexp"],
                      ## Parameters
@@ -692,7 +692,7 @@ solveRxDll_updateEventTable <- function(obj, objName, name, ..., envir = parent.
         args <- list(obj, value);
         names(args) <- c("object", arg);
         rxCat(sprintf("Updating object with new solving argument %s = %s.\n", arg, value))
-        return(do.call("rxSolve", args, envir = parent.frame(1)))
+        return(do.call(getFromNamespace("rxSolve", "RxODE"), args, envir = parent.frame(1)))
     } else {
         df <- as.data.frame(obj);
         df <- "$<-.data.frame"(df, arg, value);

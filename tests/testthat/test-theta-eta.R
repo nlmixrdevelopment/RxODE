@@ -58,7 +58,6 @@ rxPermissive({
         return(cntr);
     }
 
-
     test_that("Error when pred dosen't depend on state varaibles", {
         expect_error(rxSymPySetupPred(m2, pred, pk));
     })
@@ -66,6 +65,7 @@ rxPermissive({
     pred <- function(){
         return(centr);
     }
+    ## err ~ prop(.1) + add(.2)
 
     err <- function(f){
         return(f * theta[4]); ## Theta 4 is residual sd for proportional error.
@@ -88,13 +88,14 @@ rxPermissive({
 
     tmp1 <- m2a %>% solve(et, theta=c(2, 1.6, 4.5,0.01), eta=c(0.01, -0.01))
     tmp2 <- m2a %>% rxFoceiEta(et, theta=c(2, 1.6, 4.5,0.01), eta=c(0.01, -0.01),dv=dv, omegaInv=omegaInv)
+
     tmp3 <- m2a %>% rxFoceiLik(et, theta=c(2, 1.6, 4.5,0.01), eta=c(0.01, -0.01),dv=dv, omegaInv=omegaInv)
     tmp4 <- m2a %>% rxFoceiLp(et, theta=c(2, 1.6, 4.5,0.01), eta=c(0.01, -0.01),dv=dv, omegaInv=omegaInv)
 
-    tmp5 <- m2a %>%rxFoceiInner(et, theta=c(2, 1.6, 4.5,0.01), eta=c(0.01, -0.01),dv=dv, omegaInv=omegaInv)
+    tmp5 <- m2a %>%rxFoceiInner(et, theta=c(2, 1.6, 4.5,0.01), eta=c(10, 10),dv=dv, omegaInv=omegaInv, invisible=1)
 
     test_that("rxFoceiEta makes sense", {
-        expect_equal(matrix(tmp1$rx_pred_, ncol=1), tmp2$f); ## F
+        expect_equal(tmp1$rx_pred_, tmp2$f); ## F
         err <- matrix(dv - tmp1$rx_pred_, ncol=1)
         expect_equal(err, tmp2$err) ## Err
         R <- matrix(tmp1$rx_r_, ncol=1)
@@ -113,8 +114,8 @@ rxPermissive({
         expect_equal(c, tmp2$c) ## c
         B <- matrix(2 / tmp1[["rx_r_"]],ncol=1)
         expect_equal(B, tmp2$B)
-        a <- list(t(matrix(tmp1[["_sens_rx_pred__ETA_1_"]],ncol=1)) - t(err/R*matrix(tmp1[["_sens_rx_r__ETA_1_"]],ncol=1)),
-                  t(matrix(tmp1[["_sens_rx_pred__ETA_2_"]],ncol=1)) - t(err/R*matrix(tmp1[["_sens_rx_r__ETA_2_"]],ncol=1)))
+        a <- list(matrix(tmp1[["_sens_rx_pred__ETA_1_"]],ncol=1) - err/R*matrix(tmp1[["_sens_rx_r__ETA_1_"]]),
+                  matrix(tmp1[["_sens_rx_pred__ETA_2_"]],ncol=1)- err/R*matrix(tmp1[["_sens_rx_r__ETA_2_"]]));
         expect_equal(a, tmp2$a);
 
         ## Does not include the matrix multilpaction part (done with RcppArmadillo)

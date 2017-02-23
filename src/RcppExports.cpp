@@ -42,3 +42,14 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// RxODE_focei_finalize_llik
+NumericVector RxODE_focei_finalize_llik(SEXP rho);
+RcppExport SEXP RxODE_RxODE_focei_finalize_llik(SEXP rhoSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type rho(rhoSEXP);
+    rcpp_result_gen = Rcpp::wrap(RxODE_focei_finalize_llik(rho));
+    return rcpp_result_gen;
+END_RCPP
+}

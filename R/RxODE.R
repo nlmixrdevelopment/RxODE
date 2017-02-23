@@ -413,7 +413,7 @@ rxGetModel <- function(model, calcSens=FALSE, calcJac=FALSE){
             ret$use_model_name <- TRUE;
         }
     } else if (class(model) == "name"){
-        model <- eval(model, envir=envir);
+        model <- eval(model);
     } else {
         stop(sprintf("Cant figure out how to handle the model argument (%s).", class(model)));
     }
@@ -427,7 +427,7 @@ rxGetModel <- function(model, calcSens=FALSE, calcJac=FALSE){
     return(rxTrans(parseModel, cFile, calcSens=calcSens, calcJac=calcJac, modVars=TRUE));
 }
 
-rxGetModel.slow <- NULL;
+rxGetModel.slow <- NULL
 
 rxAdd <- function(rx, pre, post, ...){
     base <- rxNorm(rx);
@@ -1196,6 +1196,7 @@ rxTrans.character <- function(model,
 rxTransMakevars <- function(rxProps,                                                                              # rxTrans translation properties
                             rxDll, # Dll of file
                             compileFlags =c("parsed_md5", "ode_solver", "ode_solver_sexp", "ode_solver_0_6","ode_solver_focei_eta",
+                                            "ode_solver_ptr",
                                             "model_vars", "calc_lhs", "calc_jac", "dydt"), # List of compile flags
                             debug        = FALSE,                                                                 # Debug compile?
                             ...){
@@ -1208,7 +1209,7 @@ rxTransMakevars <- function(rxProps,                                            
             ret <- " -D__JT__=2 -D__MF__=22";
         }
         tmp <- rxProps[compileFlags];
-        for (x in c("parsed_md5", "ode_solver", "ode_solver_sexp", "ode_solver_0_6", "ode_solver_focei_eta")){
+        for (x in c("parsed_md5", "ode_solver", "ode_solver_sexp", "ode_solver_0_6", "ode_solver_focei_eta", "ode_solver_ptr")){
             tmp[sprintf("%s_str", x)] <- sprintf("\"\\\"%s\\\"\"", tmp[x]);
         }
         tmp["lib_str"] <- sprintf("\"\\\"%s\\\"\"", gsub(.Platform$dynlib.ext, "", basename(rxDll)));
@@ -1467,7 +1468,7 @@ rxCompile.rxDll <- function(model, ...){
         args$modName <- rxDllArgs$modName;
     }
     args$model = rxDllArgs$model;
-    return(do.call("rxCompile", args, envir = parent.frame(1)));
+    return(do.call(getFromNamespace("rxCompile", "RxODE"), args, envir = parent.frame(1)));
 }
 
 ##' @rdname rxCompile
