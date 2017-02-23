@@ -1106,28 +1106,30 @@ rxSymPySetupPred <- function(obj, predfn, pkpars, errfn){
     newmod <- rxGetModel(paste0(rxNorm(obj), "\n", txt), calcSens=calcSens);
     rxSymPySetupIf(newmod);
     ## rxSymPySetup(txt);
-    extraLines <- c();
-    ## FIXME conditional predfn
-    for (state in rxState(newmod)){
-        newLine <- rSymPy::sympy(sprintf("diff(rx_pred_,%s)", state));
-        newLine <- rxFromSymPy(newLine);
-        if (newLine != "0"){
-            for (var in calcSens){
-                newLine2 <- rSymPy::sympy(sprintf("diff(rx_pred_,%s)", rxToSymPy(var)));
-                newLine2 <- rxFromSymPy(newLine2);
-                ## (-d(eps)/d(eta)) simialr to Equation 19 in Almquist 2015
-                line <- rSymPy::sympy(sprintf("simplify(-(%s))", rxToSymPy(sprintf("(%s)*rx__sens_%s_BY_%s__+(%s)",
-                                                                                newLine, state, rxToSymPy(var),
-                                                                                newLine2))));
-                line <- rxFromSymPy(line);
-                ## Chain rule dpred/dstate * dstate/dx = dpred/dx
-                extraLines[length(extraLines) + 1] <- sprintf("rx__sens_rx_pred__BY_%s__ = %s", rxToSymPy(var), line);
+    if (!missing(pkpars)){
+        extraLines <- c();
+        ## FIXME conditional predfn
+        for (state in rxState(newmod)){
+            newLine <- rSymPy::sympy(sprintf("diff(rx_pred_,%s)", state));
+            newLine <- rxFromSymPy(newLine);
+            if (newLine != "0"){
+                for (var in calcSens){
+                    newLine2 <- rSymPy::sympy(sprintf("diff(rx_pred_,%s)", rxToSymPy(var)));
+                    newLine2 <- rxFromSymPy(newLine2);
+                    ## (-d(eps)/d(eta)) simialr to Equation 19 in Almquist 2015
+                    line <- rSymPy::sympy(sprintf("simplify(-(%s))", rxToSymPy(sprintf("(%s)*rx__sens_%s_BY_%s__+(%s)",
+                                                                                       newLine, state, rxToSymPy(var),
+                                                                                       newLine2))));
+                    line <- rxFromSymPy(line);
+                    ## Chain rule dpred/dstate * dstate/dx = dpred/dx
+                    extraLines[length(extraLines) + 1] <- sprintf("rx__sens_rx_pred__BY_%s__ = %s", rxToSymPy(var), line);
+                }
             }
         }
-    }
-    newmod <- rxGetModel(paste(c(rxNorm(newmod), extraLines), collapse="\n"))
-    if (length(extraLines) == 0){
-        stop("Your prediction function does not depend on any of the state variables.")
+        newmod <- rxGetModel(paste(c(rxNorm(newmod), extraLines), collapse="\n"))
+        if (length(extraLines) == 0){
+            stop("Your prediction function does not depend on any of the state variables.")
+        }
     }
     if (!missing(errfn)){
         txt <- deparse(body(errfn));
