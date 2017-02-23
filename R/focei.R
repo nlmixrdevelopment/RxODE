@@ -19,7 +19,7 @@ rxFoceiEtaSetup <- function(object, ..., dv, eta, omegaInv, nonmem=FALSE, log.de
         setup$eta.trans <- as.integer(eta.trans);
         setup$object <- object;
         setup$eta.mat <- matrix(eta, ncol=1);
-        setup$log.det.OMGAinv.5 <- 0;
+        setup$log.det.OMGAinv.5 <- log.det.OMGAinv.5;
         return(list2env(setup));
     }))
 }

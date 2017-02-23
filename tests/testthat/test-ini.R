@@ -21,4 +21,15 @@ rxPermissive({
         expect_true(rxDll(out) != rxDll(out2));
         expect_equal(out2$get.modelVars()$params,c("no_ini"));
     })
+    options(RxODE.syntax.allow.ini=TRUE);
+
+    ## out <- RxODE({
+    ##     theta[1] = 3
+    ##     eta[1] = 2
+    ##     k = exp(theta[1] + eta[1])
+    ##     d / dt(central) = -theta[1] * central
+    ## })
+
+    ## test_that("Allow THETA[#] and ETA[#]s.", {
+    ## })
 }, silent=TRUE)

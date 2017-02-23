@@ -1,7 +1,7 @@
 // [[Rcpp::depends(RcppArmadillo)]]
 #include <RcppArmadillo.h>
 #include <R.h>
-#include "RxODE_types.hpp"
+#include "RxODE_types.h"
 
 using namespace Rcpp;
 using namespace R;
@@ -53,7 +53,7 @@ NumericVector RxODE_focei_finalize_llik(SEXP rho){
   vec diag = c.diag();
   vec ldiag = log(diag);
   // I don't understand the log.det.OMGAinv.5 piece, but we can add it in later?
-  NumericVector ret = as<NumericVector>(e["llik2"]);
+  NumericVector ret = -as<NumericVector>(e["llik2"]);
   ret += as<NumericVector>(e["log.det.OMGAinv.5"]);
   ret += -as<NumericVector>(wrap(sum(ldiag)));
   ret.attr("fitted") = as<NumericVector>(e["f"]);

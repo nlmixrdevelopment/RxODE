@@ -541,12 +541,14 @@ SEXP RxODE_ode_solver_focei_hessian(SEXP sexp_rho){
   SEXP sexp_f      = findVar(installChar(mkChar("f")),sexp_rho);
   int nobs = length(sexp_f);
   for (k = 0; k < neta; k++){
-    for (l = 0; l < neta; l++){
+    for (l = 0; l <= k; l++){
       H[k*neta+l]= - omegaInv[k*neta+l];
       for (i =0; i < nobs; i++){
 	H[k*neta+l] += -0.5*(REAL(VECTOR_ELT(sexp_a, l))[i] * B[i] *REAL(VECTOR_ELT(sexp_a, k))[i] +
 			     ((do_nonmem ? 1 : -1))*(REAL(VECTOR_ELT(sexp_c, l))[i] *REAL(VECTOR_ELT(sexp_c, k))[i]));
       }
+      // Fill out the mirror compenent.
+      H[l*neta+k]= H[k*neta+l];
     }
   }
   UNPROTECT(pro);

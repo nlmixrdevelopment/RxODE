@@ -1,7 +1,12 @@
-cat("Generate dplyr and tidyr compatability functions.\n")
 library(devtools)
 library(tidyr)
 library(dplyr)
+cat("Copy header to inst directory")
+
+file.copy(devtools::package_file("src/RxODE_types.h"),
+          devtools::package_file("inst/include/RxODE_types.h"),
+          overwrite=TRUE);
+
 cat("Generate header string.\n");
 odec <- readLines(devtools::package_file("inst/ode.c"));
 w <- which(regexpr("__ODE_SOLVER__", odec) != -1)[1];
@@ -13,6 +18,7 @@ hd <- sprintf("#define __HD_ODE__ \"%s\\n\"\n#define __HD_SOLVE__ \"%s\\n\"\n",
 sink(devtools::package_file("src/ode.h"))
 cat(hd);
 sink();
+cat("Generate dplyr and tidyr compatability functions.\n")
 sink(package_file("R/rxsolve-gen.R"))
 cat("## Generated code from build/refresh.R\n\n");
 for (f in c("spread_", "unite_", "separate_", "gather_")){
@@ -24,7 +30,7 @@ for (f in c("spread_", "unite_", "separate_", "gather_")){
 %s.solveRxDll <- %s{
   call <- as.list(match.call(expand.dots=TRUE))[-1];
   call$%s <- dplyr::as.tbl(%s)
-  return(do.call(\"%s\", call, envir = parent.frame(1)));
+  return(do.call(getFromNamespace(\"%s\",\"dplyr\"), call, envir = parent.frame(1)));
 }\n\n",f, f, fn, one, one, f));
 }
 
@@ -40,7 +46,7 @@ for (f in c("sample_frac", "sample_n", "group_by_", "rename_", "arrange_",
 %s.solveRxDll <- %s{
   call <- as.list(match.call())[-1];
   call$%s <- %s(%s);
-  return(do.call(\"%s\", call, envir = parent.frame(1)));
+  return(do.call(getFromNamespace(\"%s\",\"dplyr\"), call, envir = parent.frame(1)));
 }\n\n",f, f, fn, one, ifelse(one == "tbl", "dplyr::as.tbl", "asTbl"), one, f));
 }
 

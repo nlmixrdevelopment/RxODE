@@ -1,5 +1,20 @@
 context("Test RxODE THETA/ETA support")
 library(digest)
+
+mat.indices <- function(nETA){
+    idx = do.call("rbind",
+                  lapply(1:nETA, function(k) cbind(k:nETA, k)))
+    H = matrix(1:(nETA^2), nETA, nETA)
+    Hlo.idx = row(H)>=col(H)
+    lo.idx = H[row(H)>col(H)]
+    hi.idx = t(H)[row(H)>col(H)]
+
+    list(idx=idx,                       # (r, c) of lo-half
+         Hlo.idx=Hlo.idx,       # index of lo-half
+         lo.idx=lo.idx,         # index of strict lo-half
+         hi.idx=hi.idx)		# index of strict hi-half
+}
+
 rxPermissive({
 
     rigid <- RxODE({
@@ -30,15 +45,7 @@ rxPermissive({
         expect_equal(digest(round(as.data.frame(out),3)),
                      "c7cffaa650a47e2b28e4cba99c603dde")
     })
-
-    m1 <- RxODE({
-        KA = exp(THETA[1])
-        CL = exp(THETA[2] + ETA[1])
-        V = exp(THETA[3] + ETA[2])
-        d/dt(depot) = -KA*depot;
-        d/dt(centr) = KA*depot - CL / V*centr;
-    });
-
+    context("Test FOCEI expansion")
 
     m2 <- RxODE({
         d/dt(depot) = -KA*depot;
@@ -71,7 +78,18 @@ rxPermissive({
         return(f * theta[4]); ## Theta 4 is residual sd for proportional error.
     }
 
+    m2a1 <- rxSymPySetupPred(m2, pred, pk)
+
+    m2a2 <- rxSymPySetupPred(m2, pred)
+
     m2a <- rxSymPySetupPred(m2, pred, pk, err)
+
+    test_that("1, 2 and 3 parameter Pred Setup works", {
+        expect_equal(class(m2a1), "RxODE")
+        expect_equal(class(m2a2), "RxODE")
+        expect_equal(class(m2a), "RxODE")
+    })
+
 
     dv <- c(1126.1, 869.9, 883.6, 1244, 995.2, 946.4, 589.2, 754.4, 1060.8, 433, 609.5, 630.1, 342.1, 322.9, 196.3, 89.8, 42.8, 16.6, 8.4)
 
@@ -86,13 +104,16 @@ rxPermissive({
 
     ## m2a <- rxSymPySetupPred(m2, pred, pk, err)
 
-    tmp1 <- m2a %>% solve(et, theta=c(2, 1.6, 4.5,0.01), eta=c(0.01, -0.01))
-    tmp2 <- m2a %>% rxFoceiEta(et, theta=c(2, 1.6, 4.5,0.01), eta=c(0.01, -0.01),dv=dv, omegaInv=omegaInv)
+    log.det.OMGAinv.5 <- 0.5756463
 
-    tmp3 <- m2a %>% rxFoceiLik(et, theta=c(2, 1.6, 4.5,0.01), eta=c(0.01, -0.01),dv=dv, omegaInv=omegaInv)
-    tmp4 <- m2a %>% rxFoceiLp(et, theta=c(2, 1.6, 4.5,0.01), eta=c(0.01, -0.01),dv=dv, omegaInv=omegaInv)
+    tmp1 <- m2a %>% solve(et, theta=c(2, 1.6, 4.5,0.01), eta=c(0.01, -0.01), log.det.OMGAinv.5=log.det.OMGAinv.5)
+    tmp2 <- m2a %>% rxFoceiEta(et, theta=c(2, 1.6, 4.5,0.01), eta=c(0.01, -0.01),dv=dv, omegaInv=omegaInv, log.det.OMGAinv.5=log.det.OMGAinv.5)
+    tmp2.nm <- m2a %>% rxFoceiEta(et, theta=c(2, 1.6, 4.5,0.01), eta=c(0.01, -0.01),dv=dv, omegaInv=omegaInv, nonmem=TRUE, log.det.OMGAinv.5=log.det.OMGAinv.5)
 
-    tmp5 <- m2a %>%rxFoceiInner(et, theta=c(2, 1.6, 4.5,0.01), eta=c(10, 10),dv=dv, omegaInv=omegaInv, invisible=1)
+    tmp3 <- m2a %>% rxFoceiLik(et, theta=c(2, 1.6, 4.5,0.01), eta=c(0.01, -0.01),dv=dv, omegaInv=omegaInv, log.det.OMGAinv.5=log.det.OMGAinv.5)
+    tmp4 <- m2a %>% rxFoceiLp(et, theta=c(2, 1.6, 4.5,0.01), eta=c(0.01, -0.01),dv=dv, omegaInv=omegaInv, log.det.OMGAinv.5=log.det.OMGAinv.5)
+
+    tmp5 <- m2a %>%rxFoceiInner(et, theta=c(2, 1.6, 4.5,0.01), eta=c(10, 10),dv=dv, omegaInv=omegaInv, invisible=1, log.det.OMGAinv.5=log.det.OMGAinv.5)
 
     test_that("rxFoceiEta makes sense", {
         expect_equal(tmp1$rx_pred_, tmp2$f); ## F
@@ -118,6 +139,10 @@ rxPermissive({
                   matrix(tmp1[["_sens_rx_pred__ETA_2_"]],ncol=1)- err/R*matrix(tmp1[["_sens_rx_r__ETA_2_"]]));
         expect_equal(a, tmp2$a);
 
+        a <- list(matrix(tmp2.nm$dErr[, 1], ncol=1),
+                  matrix(tmp2.nm$dErr[, 2], ncol=1))
+        expect_equal(tmp2.nm$a, a)
+
         ## Does not include the matrix multilpaction part (done with RcppArmadillo)
         lp <- matrix(c(NA, NA), ncol=1)
         c <- matrix(tmp1[["_sens_rx_r__ETA_1_"]] / tmp1[["rx_r_"]],ncol=1)
@@ -141,6 +166,86 @@ rxPermissive({
         lp2 <- lp - omegaInv %*% matrix(eta, ncol=1)
 
         expect_equal(-lp2, tmp4);
+
+        ## Now Test the Hessian calculation
+        Hidx <- mat.indices(2);
+        H <- matrix(1:(2^2), 2, 2)
+        k = Hidx$idx[,1];
+        l = Hidx$idx[,2];
+        a = cbind(tmp2$a[[1]], tmp2$a[[2]])
+        B = as.vector(tmp2$B);
+        c = cbind(tmp2$c[[1]], tmp2$c[[2]])
+        NONMEM <- 0;
+        H[Hidx$Hlo.idx] = apply(a[, k]*B*a[, l] + c(-1, 1)[NONMEM+1] *c[,k]*c[,l], 2, sum)
+        H[Hidx$hi.idx] = H[Hidx$lo.idx]
+        H = -.5*H - omegaInv;
+
+        .Call("RxODE_ode_solver_focei_hessian", tmp2);
+        expect_equal(tmp2$H, H);
+
+        H.neg.5 = tryCatch({
+            chol(-H)
+        }, error = function(e) {
+            cat("Warning: Hessian not positive definite\n")
+            print(-H)
+            .m <- -H
+            .md = matrix(0, nETA, nETA)
+            diag(.md) = abs(diag(.m)) * 1.1 + .001
+            chol(.md)
+        })
+                                        #H.neg.5 = chol(-H)
+        log.det.H.neg.5 = sum(log(diag(H.neg.5)))
+
+        RxODE_focei_eta_lik(tmp2$eta, tmp2)
+
+        llik = -tmp2$llik2 + log.det.OMGAinv.5             #note no -1/2 with OMGAinv.5
+        llik.lapl =llik - log.det.H.neg.5               #note no 1/2
+        llik.lapl = as.vector(llik.lapl);
+        attr(llik.lapl, "fitted") <- tmp2$f;
+        attr(llik.lapl, "posthoc") <- tmp2$eta;
+
+        lik2 <- RxODE_focei_finalize_llik(tmp2);
+
+        expect_equal(lik2, llik.lapl);
+
+        ## Now test NONMEM approximation.
+        NONMEM <- 1;
+        Hidx <- mat.indices(2);
+        H <- matrix(1:(2^2), 2, 2)
+        a = cbind(tmp2.nm$a[[1]], tmp2.nm$a[[2]])
+        B = as.vector(tmp2.nm$B);
+        c = cbind(tmp2.nm$c[[1]], tmp2.nm$c[[2]])
+        H[Hidx$Hlo.idx] = apply(a[, k]*B*a[, l] + c(-1, 1)[NONMEM+1] *c[,k]*c[,l], 2, sum)
+        H[Hidx$hi.idx] = H[Hidx$lo.idx]
+        H = -.5*H - omegaInv;
+
+        .Call("RxODE_ode_solver_focei_hessian", tmp2.nm);
+        expect_equal(tmp2.nm$H, H);
+
+        H.neg.5 = tryCatch({
+            chol(-H)
+        }, error = function(e) {
+            cat("Warning: Hessian not positive definite\n")
+            print(-H)
+            .m <- -H
+            .md = matrix(0, nETA, nETA)
+            diag(.md) = abs(diag(.m)) * 1.1 + .001
+            chol(.md)
+        })
+                                        #H.neg.5 = chol(-H)
+        log.det.H.neg.5 = sum(log(diag(H.neg.5)))
+
+        RxODE_focei_eta_lik(tmp2.nm$eta, tmp2.nm)
+
+        llik = -tmp2.nm$llik2 + log.det.OMGAinv.5             #note no -1/2 with OMGAinv.5
+        llik.lapl =llik - log.det.H.neg.5               #note no 1/2
+        llik.lapl = as.vector(llik.lapl);
+        attr(llik.lapl, "fitted") <- tmp2.nm$f;
+        attr(llik.lapl, "posthoc") <- tmp2.nm$eta;
+
+        lik2 <- RxODE_focei_finalize_llik(tmp2.nm);
+
+        expect_equal(lik2, llik.lapl);
 
     })
 
