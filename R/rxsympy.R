@@ -428,6 +428,56 @@ sympyRxFEnv$polygamma <- function(n, z){
     paste0("psigamma(", z, ", ", n, ")");
 }
 
+## Add sympy->C mini DSL for omega parsing
+
+rxSympyC <- new.env(parent = emptyenv())
+rxSympyC$"**" <- function(a, b){
+    sprintf("pow(%s, %s)", a, b);
+}
+rxSympyC$"^" <- function(a, b){
+    sprintf("pow(%s, %s)", a, b);
+}
+rxSympyC$exp <- functionOp("exp");
+rxSympyC$exp <- functionOp("log");
+rxSympyC$"(" <- unaryOp("(", ")")
+for (op in c("+", "-", "*", "/")){
+    rxSympyC[[op]] <- binaryOp(paste0(" ", op, " "));
+}
+
+unknownCSympy <- function(op){
+    force(op)
+    function(...){
+        stop(sprintf("RxODE doesn't support '%s' translation for Omega translation.", op));
+    }
+}
+
+sympyCEnv <- function(expr){
+    ## Known functions
+    calls <- allCalls(expr)
+    callList <- setNames(lapply(calls, unknownCSympy), calls)
+    callEnv <- list2env(callList);
+    rxSympyFEnv <- cloneEnv(rxSympyC, callEnv);
+    names <- allNames(expr)
+    ## Replace time with t.
+    n1 <- names;
+    n2 <- names;
+    n2 <- gsub(rex::rex("t", capture(numbers)), "REAL(theta)[\\1]", n2)
+    symbol.list <- setNames(as.list(n2), n1);
+    symbol.env <- list2env(symbol.list, parent=rxSympyC);
+    return(symbol.env)
+}
+
+sympyC <- function(x){
+    if (class(substitute(x)) == "character"){
+        return(eval(parse(text=sprintf("RxODE:::sympyC(quote(%s))", x))))
+    } else if (class(substitute(x)) == "name"){
+        return(eval(parse(text=sprintf("RxODE:::sympyC(%s)", deparse(x)))));
+    } else {
+        return(eval(x, sympyCEnv(x)))
+    }
+}
+
+
 ## nocov end
 
 sympyTransit4 <- function(t, n, mtt, bio, podo="podo"){
@@ -584,10 +634,10 @@ rxToSymPy <- function(x, envir=parent.frame(1)) {
             vars <- c();
             addNames <- TRUE;
             txt <- unlist(lapply(txt, function(x){
-                var <- eval(parse(text=sprintf("rxToSymPy(%s)", x[1])));
+                var <- eval(parse(text=sprintf("RxODE::rxToSymPy(%s)", x[1])));
                 if (length(x) == 2){
                     vars <<- c(vars, var);
-                    eq <- eval(parse(text=sprintf("rxToSymPy(%s)", x[2])));
+                    eq <- eval(parse(text=sprintf("RxODE::rxToSymPy(%s)", x[2])));
                     return(sprintf("%s = %s", var, eq));
                 } else {
                     addNames <<- FALSE
@@ -600,17 +650,17 @@ rxToSymPy <- function(x, envir=parent.frame(1)) {
             }
             return(txt);
         } else {
-            return(eval(parse(text=sprintf("rxToSymPy(%s)", deparse(paste(x, collapse="\n"))))));
+            return(eval(parse(text=sprintf("RxODE::rxToSymPy(%s)", deparse(paste(x, collapse="\n"))))));
         }
     } else if (class(substitute(x)) == "name"){
         cls <- tryCatch({class(x)}, error=function(e){return("error")});
         if (any(cls == c("list", "rxDll", "RxCompilationManager", "RxODE", "solveRxDll"))){
             ret <- strsplit(rxNorm(x),"\n")[[1]];
             ret <- rxRmIni(ret);
-            ret <- eval(parse(text=sprintf("rxToSymPy(%s,envir=envir)", deparse(paste0(ret, collapse="\n")))), envir=envir);
+            ret <- eval(parse(text=sprintf("RxODE::rxToSymPy(%s,envir=envir)", deparse(paste0(ret, collapse="\n")))), envir=envir);
             return(ret);
         } else if (cls == "character" && length(cls) == 1){
-            return(eval(parse(text=sprintf("rxToSymPy(%s)", deparse(x)))));
+            return(eval(parse(text=sprintf("RxODE::rxToSymPy(%s)", deparse(x)))));
         } else {
             expr <- evalPrints(substitute(x), envir=envir)
             return(eval(expr, sympyEnv(expr)))
@@ -631,10 +681,10 @@ rxFromSymPy <- function(x, envir=parent.frame(1)) {
             vars <- c();
             addNames <- TRUE;
             txt <- unlist(lapply(txt, function(x){
-                var <- eval(parse(text=sprintf("rxFromSymPy(%s)", x[1])));
+                var <- eval(parse(text=sprintf("RxODE::rxFromSymPy(%s)", x[1])));
                 if (length(x) == 2){
                     vars <<- c(vars, var);
-                    eq <- eval(parse(text=sprintf("rxFromSymPy(%s)", x[2])));
+                    eq <- eval(parse(text=sprintf("RxODE::rxFromSymPy(%s)", x[2])));
                     return(sprintf("%s = %s", var, eq));
                 } else {
                     addNames <<- FALSE
@@ -646,12 +696,12 @@ rxFromSymPy <- function(x, envir=parent.frame(1)) {
             }
             return(txt);
         } else {
-            return(eval(parse(text=sprintf("rxFromSymPy(%s)", deparse(paste(x, collapse="\n"))))));
+            return(eval(parse(text=sprintf("RxODE::rxFromSymPy(%s)", deparse(paste(x, collapse="\n"))))));
         }
     } else if (class(substitute(x)) == "name"){
         cls <- tryCatch({class(x)}, error=function(e){return("error")});
         if (cls == "character" && length(cls) == 1){
-            return(eval(parse(text=sprintf("rxFromSymPy(%s)", deparse(x)))));
+            return(eval(parse(text=sprintf("RxODE::rxFromSymPy(%s)", deparse(x)))));
         } else {
             expr <- evalPrints(substitute(x), envir=envir)
             return(eval(expr, rxEnv(expr)))
@@ -686,7 +736,11 @@ rxSymPyVars <- function(model){
     vars <- sapply(vars, function(x){return(rxToSymPy(x))});
     known <- c(rxSymPy.vars, vars);
     assignInMyNamespace("rxSymPy.vars", known);
-    .Jython$exec(sprintf("%s = symbols('%s')", paste(vars, collapse=", "), paste(vars, collapse=" ")));
+    if (length(vars) == 1){
+        Jython$exec(sprintf("%s = Symbol('%s')", vars, vars));
+    } else {
+        .Jython$exec(sprintf("%s = symbols('%s')", paste(vars, collapse=", "), paste(vars, collapse=" ")));
+    }
     return(invisible());
 }
 

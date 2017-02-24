@@ -246,7 +246,6 @@ rxPermissive({
         lik2 <- RxODE_focei_finalize_llik(tmp2.nm);
 
         expect_equal(lik2, llik.lapl);
-
     })
 
 
