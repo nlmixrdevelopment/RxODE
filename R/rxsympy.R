@@ -737,7 +737,7 @@ rxSymPyVars <- function(model){
     known <- c(rxSymPy.vars, vars);
     assignInMyNamespace("rxSymPy.vars", known);
     if (length(vars) == 1){
-        Jython$exec(sprintf("%s = Symbol('%s')", vars, vars));
+        .Jython$exec(sprintf("%s = Symbol('%s')", vars, vars));
     } else {
         .Jython$exec(sprintf("%s = symbols('%s')", paste(vars, collapse=", "), paste(vars, collapse=" ")));
     }
@@ -1111,11 +1111,14 @@ rxSymPyClean <- function(){
     }
     assignInMyNamespace("rxSymPy.vars", c());
 }
-
-##' Setup Pred function based on RxODE object
+##' Setup Pred function based on RxODE object.
+##'
+##' This is for the so-called inner problem.
 ##'
 ##' @param obj RxODE object
 ##' @param predfn Prediction function
+##' @param pkpars Pk Pars function
+##' @param errfn Error function
 ##' @return RxODE object expanded with predfn and with calculated sensitivities.
 ##' @author Matthew L. Fidler
 ##' @keywords internal

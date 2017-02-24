@@ -300,6 +300,7 @@
 ##' @concept Pharmacodynamics (PD)
 ##' @useDynLib RxODE trans
 ##' @importFrom Rcpp evalCpp
+##' @importFrom utils getFromNamespace
 ##' @export
 RxODE <- function(model, modName = basename(wd), wd = getwd(),
                   filename = NULL, do.compile = NULL, extraC = NULL,

@@ -162,7 +162,7 @@ rxSymInvCreate <- function(mat,
 }
 
 ##' @export
-print.rxSymInv <- function(x){
+print.rxSymInv <- function(x, ...){
     d <- dim(x$fmat)[1]
     cat(sprintf("Object to create Omega and Omega^-1 & derivitaves for a %sx%s matrix:\n", d, d))
     print(x$fmat);

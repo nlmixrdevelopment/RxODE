@@ -2,7 +2,7 @@
 % Please edit documentation in R/rxsympy.R
 \name{rxSymPySetupPred}
 \alias{rxSymPySetupPred}
-\title{Setup Pred function based on RxODE object}
+\title{Setup Pred function based on RxODE object.}
 \usage{
 rxSymPySetupPred(obj, predfn, pkpars, errfn)
 }
@@ -10,12 +10,16 @@ rxSymPySetupPred(obj, predfn, pkpars, errfn)
 \item{obj}{RxODE object}
 
 \item{predfn}{Prediction function}
+
+\item{pkpars}{Pk Pars function}
+
+\item{errfn}{Error function}
 }
 \value{
 RxODE object expanded with predfn and with calculated sensitivities.
 }
 \description{
-Setup Pred function based on RxODE object
+This is for the so-called inner problem.
 }
 \author{
 Matthew L. Fidler
