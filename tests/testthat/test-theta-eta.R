@@ -84,10 +84,24 @@ rxPermissive({
 
     m2a <- rxSymPySetupPred(m2, pred, pk, err)
 
+    err2 <- function(f){
+        return(prop(0.1));
+    }
+
+    m2b <- rxSymPySetupPred(m2, pred, pk, err2)
+
+    err3 <- function(f){
+        return(add(0.05) + prop(0.1));
+    }
+
+    m2c <- rxSymPySetupPred(m2, pred, pk, err3)
+
     test_that("1, 2 and 3 parameter Pred Setup works", {
         expect_equal(class(m2a1), "RxODE")
         expect_equal(class(m2a2), "RxODE")
         expect_equal(class(m2a), "RxODE")
+        expect_equal(class(m2b), "RxODE")
+        expect_equal(class(m2c), "RxODE")
     })
 
 
@@ -232,7 +246,7 @@ rxPermissive({
             diag(.md) = abs(diag(.m)) * 1.1 + .001
             chol(.md)
         })
-                                        #H.neg.5 = chol(-H)
+        ##H.neg.5 = chol(-H)
         log.det.H.neg.5 = sum(log(diag(H.neg.5)))
 
         RxODE_focei_eta_lik(tmp2.nm$eta, tmp2.nm)

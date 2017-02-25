@@ -1,6 +1,6 @@
 rxFoceiEtaSetup <- function(object, ..., dv, eta, omegaInv, nonmem=FALSE, log.det.OMGAinv.5=0){
     args <- list(object=object, ..., eta=eta);
-    setup <- do.call(utils::getFromNamespace("rxSolveSetup", "RxODE"), args, envir = parent.frame(1));
+    setup <- do.call(getFromNamespace("rxSolveSetup", "RxODE"), args, envir = parent.frame(1));
     return(with(setup, {
         tmp <- environment(object$.call);
         if (any(names(tmp) == "eta.trans")){
@@ -45,13 +45,13 @@ rxFoceiEta <- function(object, ..., dv, eta, omegaInv, env, nonmem=FALSE){
 rxFoceiEta.RxODE <- function(object, ..., dv, eta, omegaInv, env, nonmem){
     args <- as.list(match.call(expand.dots=TRUE))[-1];
     args$object <- object$cmpMgr$rxDll();
-    return(do.call(utils::getFromNamespace("rxFoceiEta.rxDll", "RxODE"), args, envir=parent.frame(1)));
+    return(do.call(getFromNamespace("rxFoceiEta.rxDll", "RxODE"), args, envir=parent.frame(1)));
 }
 ##' @rdname rxFoceiEta
 rxFoceiEta.rxDll <- function(object, ..., dv, eta, omegaInv, env, nonmem){
     if (missing(env)){
         args <- as.list(match.call(expand.dots=TRUE))[-1];
-        env <- do.call(utils::getFromNamespace("rxFoceiEtaSetup", "RxODE"), args, envir = parent.frame(1));
+        env <- do.call(getFromNamespace("rxFoceiEtaSetup", "RxODE"), args, envir = parent.frame(1));
     }
     return(object$.call(rxTrans(object)["ode_solver_focei_eta"], eta, env));
 }
@@ -75,7 +75,7 @@ rxFoceiLik.RxODE <- function(object, ..., dv, eta, omegaInv){
 rxFoceiLik.rxDll <- function(object, ..., dv, eta, omegaInv){
     object$.call(rxTrans(object)["ode_solver_ptr"]); ## Assign the ODE pointers (and Jacobian Type)
     args <- as.list(match.call(expand.dots=TRUE))[-1];
-    env <- do.call(utils::getFromNamespace("rxFoceiEtaSetup", "RxODE"), args, envir = parent.frame(1));
+    env <- do.call(getFromNamespace("rxFoceiEtaSetup", "RxODE"), args, envir = parent.frame(1));
     return(RxODE_focei_eta_lik(eta, env))
 }
 
@@ -97,7 +97,7 @@ rxFoceiLp.RxODE <- function(object, ..., dv, eta, omegaInv){
 rxFoceiLp.rxDll <- function(object, ..., dv, eta, omegaInv){
     object$.call(rxTrans(object)["ode_solver_ptr"]); ## Assign the ODE pointers (and Jacobian Type)
     args <- as.list(match.call(expand.dots=TRUE))[-1];
-    env <- do.call(utils::getFromNamespace("rxFoceiEtaSetup", "RxODE"), args, envir = parent.frame(1));
+    env <- do.call(getFromNamespace("rxFoceiEtaSetup", "RxODE"), args, envir = parent.frame(1));
     return(RxODE_focei_eta_lp(eta, env))
 }
 ##' Solve the FOCEI inner problem
@@ -145,7 +145,7 @@ rxFoceiInner.RxODE <- function(object, ..., dv, eta, omegaInv,
                                orthantwise_start = 0, orthantwise_end = length(eta)){
     args <- as.list(match.call(expand.dots=TRUE))[-1];
     args$object <- object$cmpMgr$rxDll();
-    return(do.call(utils::getFromNamespace("rxFoceiInner.rxDll", "RxODE"), args, envir=parent.frame(1)));
+    return(do.call(getFromNamespace("rxFoceiInner.rxDll", "RxODE"), args, envir=parent.frame(1)));
 }
 ##' @rdname rxFoceiInner
 ##' @export
@@ -157,7 +157,7 @@ rxFoceiInner.rxDll <- function(object, ..., dv, eta, omegaInv,
                                orthantwise_start = 0, orthantwise_end = length(eta)){
     object$.call(rxTrans(object)["ode_solver_ptr"]); ## Assign the ODE pointers (and Jacobian Type)
     args <- as.list(match.call(expand.dots=TRUE))[-1];
-    env <- do.call(utils::getFromNamespace("rxFoceiEtaSetup", "RxODE"), args, envir = parent.frame(1));
+    env <- do.call(getFromNamespace("rxFoceiEtaSetup", "RxODE"), args, envir = parent.frame(1));
     lik <- RxODE_focei_eta("lik");
     lp <- RxODE_focei_eta("lp")
     output <- lbfgs::lbfgs(lik, lp, eta, environment=env,
