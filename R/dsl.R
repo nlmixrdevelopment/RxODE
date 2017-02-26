@@ -589,11 +589,24 @@ for (op in c("+", "-", "*", "/", "^", "**",
 for (op in c("=", "~", "<-")){
     rxErrEnvF[[op]] <- binaryOp(paste0(" = "));
 }
-rxErrEnvF$"{" <- unaryOp("{", "}");
+rxErrEnvF$"{" <- function(...){
+    return(sprintf("{\n%s;\n}", paste(unlist(list(...)), collapse=";\n")))
+}
 rxErrEnvF$"(" <- unaryOp("(", ")");
 rxErrEnvF$"[" <- function(name, val){
-    return(sprintf("%s[%s]", name, val))
+    n <- toupper(name)
+    err <- "RxODE only supports THETA[#] and ETA[#] numbers."
+    if (any(n == c("THETA", "ETA")) && is.numeric(val)){
+        if (round(val) == val && val > 0){
+            return(sprintf("%s[%s]", n, val));
+        } else {
+            stop(err);
+        }
+    } else {
+        stop(err)
+    }
 }
+
 rxErrEnvF$"if" <- function(lg, tr, fl){
     if (missing(fl)){
         return(sprintf("if (%s) %s", lg, tr))
@@ -679,13 +692,16 @@ rxParseErr <- function(x, base.theta, diag.xform=c("sqrt", "log", "identity"),
         assignInMyNamespace("rxErrEnv.ret", ret);
     }
     if (class(substitute(x)) == "character"){
-        return(eval(parse(text=sprintf("RxODE:::rxParseErr(quote(%s))", x))))
+        ret <- eval(parse(text=sprintf("RxODE:::rxParseErr(quote({%s}))", x)));
+        ret <- substring(ret, 3, nchar(ret) - 2)
+        return(ret)
     } else if (class(substitute(x)) == "name"){
         return(eval(parse(text=sprintf("RxODE:::rxParseErr(%s)", deparse(x)))));
     } else {
         ret <- c();
         if (class(x) == "character"){
-            ret <- eval(parse(text=sprintf("RxODE:::rxParseErr(quote(%s))", paste(x, collapse="\n"))));
+            ret <- eval(parse(text=sprintf("RxODE:::rxParseErr(quote({%s}))", paste(x, collapse="\n"))));
+            ret <- substring(ret, 3, nchar(ret) - 2);
         } else {
             ret <- eval(x, rxErrEnv(x));
         }
