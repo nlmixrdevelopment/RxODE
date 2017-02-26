@@ -96,6 +96,16 @@ rxPermissive({
 
     m2c <- rxSymPySetupPred(m2, pred, pk, err3)
 
+    pred2 <- function(){
+        if (cmt == 2){
+            return(cntr);
+        } else {
+            return(depot)
+        }
+    }
+
+    ## m2d <- rxSymPySetupPred(m2, pred2, pk, err3)
+
     test_that("1, 2 and 3 parameter Pred Setup works", {
         expect_equal(class(m2a1), "RxODE")
         expect_equal(class(m2a2), "RxODE")

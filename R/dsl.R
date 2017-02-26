@@ -559,12 +559,12 @@ rxFromSymPy <- function(x, envir=parent.frame(1)) {
             }
             return(txt);
         } else {
-            return(eval(parse(text=sprintf("RxODE::rxFromSymPy(%s)", deparse(paste(as.vector(x), collapse="\n"))))));
+            return(eval(parse(text=sprintf("RxODE::rxFromSymPy(%s)", deparse(paste(x, collapse="\n"))))));
         }
     } else if (class(substitute(x)) == "name"){
         cls <- tryCatch({class(x)}, error=function(e){return("error")});
         if (cls == "character" && length(cls) == 1){
-            return(eval(parse(text=sprintf("RxODE::rxFromSymPy(%s)", deparse(as.vector(x))))));
+            return(eval(parse(text=sprintf("RxODE::rxFromSymPy(%s)", deparse(x)))));
         } else {
             expr <- evalPrints(substitute(x), envir=envir)
             return(eval(expr, rxEnv(expr)))
@@ -578,7 +578,8 @@ rxFromSymPy <- function(x, envir=parent.frame(1)) {
 ## Start error function DSL
 
 rxErrEnvF <- new.env(parent = emptyenv())
-for (op in c("+", "-", "*", "/", "^", "**")){
+for (op in c("+", "-", "*", "/", "^", "**",
+             "!=", "==", "&", "&&", "|", "||")){
     op2 <- op
     if (op == "**"){
         op2 <- "^";
@@ -588,9 +589,17 @@ for (op in c("+", "-", "*", "/", "^", "**")){
 for (op in c("=", "~", "<-")){
     rxErrEnvF[[op]] <- binaryOp(paste0(" = "));
 }
-rxErrEnvF$"(" <- unaryOp("(", ")")
+rxErrEnvF$"{" <- unaryOp("{", "}");
+rxErrEnvF$"(" <- unaryOp("(", ")");
 rxErrEnvF$"[" <- function(name, val){
     return(sprintf("%s[%s]", name, val))
+}
+rxErrEnvF$"if" <- function(lg, tr, fl){
+    if (missing(fl)){
+        return(sprintf("if (%s) %s", lg, tr))
+    } else {
+        return(sprintf("if (%s) %s else %s", lg, tr, fl))
+    }
 }
 rxErrEnv.theta <- 1;
 rxErrEnv.diag.xform <- "sqrt";
@@ -615,6 +624,11 @@ rxErrEnvF$return <- function(est){
     return(sprintf("%s = %s", rxErrEnv.ret, est));
 }
 
+## rxErrEnvF$c <- function(...){
+##     print(sprintf("c(%s)",paste(paste0("rxParseErr(",c(...),")"),collapse=",")))
+##     eval(parse(text=sprintf("c(%s)",paste(paste0("rxParseErr(",c(...),")"),collapse=","))))
+## }
+
 rxErrEnvF$prop <- function(est){
     ret <- ""
     if (rxErrEnv.diag.xform == "sqrt"){
@@ -632,11 +646,14 @@ rxErrEnvF$prop <- function(est){
 }
 
 rxErrEnv <- function(expr){
-    ## Known functions
     calls <- allCalls(expr)
     callList <- setNames(lapply(calls, functionOp), calls)
     callEnv <- list2env(callList);
+
+    ## Known functions
     rxErrFEnv <- cloneEnv(rxErrEnvF, callEnv);
+
+    ## Symbols
     names <- allNames(expr)
     n1 <- names;
     n2 <- names;
@@ -645,7 +662,7 @@ rxErrEnv <- function(expr){
     n2[n2 == "error"] <- "rx_r_";
     n2[n2 == "f"] <- "rx_pred_";
     symbol.list <- setNames(as.list(n2), n1);
-    symbol.env <- list2env(symbol.list, parent=rxErrEnvF);
+    symbol.env <- list2env(symbol.list, parent=rxErrFEnv);
     return(symbol.env)
 }
 
@@ -666,7 +683,12 @@ rxParseErr <- function(x, base.theta, diag.xform=c("sqrt", "log", "identity"),
     } else if (class(substitute(x)) == "name"){
         return(eval(parse(text=sprintf("RxODE:::rxParseErr(%s)", deparse(x)))));
     } else {
-        ret <- eval(x, rxErrEnv(x));
+        ret <- c();
+        if (class(x) == "character"){
+            ret <- eval(parse(text=sprintf("RxODE:::rxParseErr(quote(%s))", paste(x, collapse="\n"))));
+        } else {
+            ret <- eval(x, rxErrEnv(x));
+        }
         attr(ret, "ini") = rxErrEnv.diag.est;
         assignInMyNamespace("rxErrEnv.diag.est", c());
         assignInMyNamespace("rxErrEnv.diag.xform", "sqrt");
