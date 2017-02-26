@@ -620,6 +620,9 @@ rxErrEnv.diag.est <- c();
 rxErrEnv.ret <- "rx_r_";
 
 rxErrEnvF$add <- function(est){
+    if (rxErrEnv.ret != "rx_r_"){
+        stop("The add(.) can only be in an error function.")
+    }
     if (rxErrEnv.diag.xform == "sqrt"){
         ret <- (sprintf("(THETA[%s])^2", rxErrEnv.theta))
     } else if (rxErrEnv.diag.xform == "log"){
@@ -633,7 +636,11 @@ rxErrEnvF$add <- function(est){
     assignInMyNamespace("rxErrEnv.theta", rxErrEnv.theta + 1);
     return(ret);
 }
-rxErrEnvF$return <- function(est){
+rxErrEnvF$"for" <- function(...){stop("for not supported (yet)")}
+rxErrEnvF$"return" <- function(est){
+    if (rxErrEnv.ret == ""){
+        stop("The PK function should not return anything.")
+    }
     return(sprintf("%s = %s", rxErrEnv.ret, est));
 }
 
@@ -643,6 +650,9 @@ rxErrEnvF$return <- function(est){
 ## }
 
 rxErrEnvF$prop <- function(est){
+    if (rxErrEnv.ret != "rx_r_"){
+        stop("The prop(.) can only be in an error function.")
+    }
     ret <- ""
     if (rxErrEnv.diag.xform == "sqrt"){
         ret <- (sprintf("rx_pred_ * (THETA[%s])^2", rxErrEnv.theta))
@@ -679,6 +689,36 @@ rxErrEnv <- function(expr){
     return(symbol.env)
 }
 
+##' Parse PK function for inclusion in RxODE
+##'
+##' @param x PK function
+##' @return RxODE transformed text.
+##' @author Matthew L. Fidler
+##' @keywords internal
+##' @export
+rxParsePk <- function(x){
+    return(rxParseErr(x, ret=""));
+}
+##' Prepare Pred function for inclusion in RxODE
+##'
+##' @param x pred function
+##' @return RxODE transformed text.
+##' @author Matthew L. Fidler
+##' @keywords internal
+##' @export
+rxParsePred <- function(x){
+    return(rxParseErr(x, ret="rx_pred_"));
+}
+##' Prepare Error function for inclusion in RxODE
+##'
+##' @param x error function
+##' @param base.theta Base theta to start numbering add(.) and prop(.) from.
+##' @param diag.xform Diagonal form of variance parameters
+##' @param ret Intenral return type.  Should not be changed by the user...
+##' @return RxODE transformed text
+##' @keywords internal
+##' @author Matthew L. Fidler
+##' @export
 rxParseErr <- function(x, base.theta, diag.xform=c("sqrt", "log", "identity"),
                        ret="rx_r_"){
     if (!missing(diag.xform)){
@@ -691,12 +731,30 @@ rxParseErr <- function(x, base.theta, diag.xform=c("sqrt", "log", "identity"),
     if (!missing(ret)){
         assignInMyNamespace("rxErrEnv.ret", ret);
     }
+    if (class(x) == "function"){
+        x <- rxAddReturn(x, ret != "");
+    }
     if (class(substitute(x)) == "character"){
         ret <- eval(parse(text=sprintf("RxODE:::rxParseErr(quote({%s}))", x)));
         ret <- substring(ret, 3, nchar(ret) - 2)
+        if (regexpr("else if", ret) != -1){
+            stop("else if expressions not supported (yet).");
+        }
+        assignInMyNamespace("rxErrEnv.diag.est", c());
+        assignInMyNamespace("rxErrEnv.diag.xform", "sqrt");
+        assignInMyNamespace("rxErrEnv.theta", 1)
+        assignInMyNamespace("rxErrEnv.ret", "rx_r_");
         return(ret)
     } else if (class(substitute(x)) == "name"){
-        return(eval(parse(text=sprintf("RxODE:::rxParseErr(%s)", deparse(x)))));
+        ret <- eval(parse(text=sprintf("RxODE:::rxParseErr(%s)", deparse(x))))
+        if (regexpr("else if", ret) != -1){
+            stop("else if expressions not supported (yet).");
+        }
+        assignInMyNamespace("rxErrEnv.diag.est", c());
+        assignInMyNamespace("rxErrEnv.diag.xform", "sqrt");
+        assignInMyNamespace("rxErrEnv.theta", 1)
+        assignInMyNamespace("rxErrEnv.ret", "rx_r_");
+        return(ret);
     } else {
         ret <- c();
         if (class(x) == "character"){
@@ -710,8 +768,12 @@ rxParseErr <- function(x, base.theta, diag.xform=c("sqrt", "log", "identity"),
         assignInMyNamespace("rxErrEnv.diag.xform", "sqrt");
         assignInMyNamespace("rxErrEnv.theta", 1)
         assignInMyNamespace("rxErrEnv.ret", "rx_r_");
+        if (regexpr("else if", ret) != -1){
+            stop("else if expressions not supported (yet).");
+        }
         return(ret);
     }
 }
 
 ## Stop DSL
+

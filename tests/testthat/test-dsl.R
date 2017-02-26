@@ -142,3 +142,41 @@ test_that("Theta/eta conversion", {
     expect_equal(rxFromSymPy(THETA_1_), "THETA[1]")
     expect_equal(rxFromSymPy(BY_THETA_1_), "BY_THETA_1_")
 })
+
+context("Test Error DSLs")
+
+pk <- function(){
+    KA = exp(THETA[1])
+    CL = exp(THETA[2] + ETA[1])
+    V = exp(THETA[3] + ETA[2])
+    return(1)
+}
+
+pred <- function(){
+    if (cmt == 1){
+        return(centr);
+    } else if (cmt == 2){
+        return(depot);
+    } else {
+        return(perip);
+    }
+}
+
+
+pred.for <- function(){
+    for (i in 1:10){
+        pred = 1;
+    }
+}
+
+err <- function(){
+    add(0.2) + prop(0.3)
+}
+
+test_that("PK/Pred/Error function parsing.", {
+    expect_error(rxParsePk(pk));
+    expect_error(rxParsePred(pred));
+    expect_error(rxParsePred(pred.for))
+    expect_error(rxParsePK(err));
+    expect_error(rxParsePred(err));
+})
