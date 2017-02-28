@@ -4,7 +4,7 @@
 \alias{rxCat}
 \title{Use cat when RxODE.verbose is TRUE}
 \usage{
-rxCat(...)
+rxCat(a, ...)
 }
 \arguments{
 \item{...}{Parameters sent to cat}

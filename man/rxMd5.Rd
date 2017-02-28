@@ -4,14 +4,37 @@
 \alias{rxMd5}
 \title{Return the md5 of an RxODE object or file}
 \usage{
-rxMd5(model, extraC = NULL, calcJac = NULL, calcSens = NULL, ...)
+rxMd5(model, extraC = NULL, calcJac = NULL, calcSens = NULL,
+  collapseModel = FALSE, ...)
 }
 \arguments{
-\item{model}{either a string representing the path to a model file
-or a RxODE object}
+\item{model}{This is the ODE model specification.  It can be:
+\itemize{
 
-\item{extraC}{The extra C file used to help create the md5.  If the
-model is an RxODE object, this argument is ignored.}
+ \item a string containing the set of ordinary differential
+    equations (ODE) and other expressions defining the changes in
+    the dynamic system.
+ \item a file name where the ODE system equation is contained
+ \item An ODE expression enclosed in \code{\{\}}
+}
+
+(see also the \code{filename} argument). For
+    details, see the sections \dQuote{Details} and
+    \dQuote{\code{RxODE Syntax}} below.}
+
+\item{extraC}{Extra c code to include in the model.  This can be
+useful to specify functions in the model.  These C functions
+should usually take \code{double} precision arguments, and
+return \code{double} precision values.}
+
+\item{calcJac}{boolean indicating if RxODE will calculate the
+Jacobain according to the specified ODEs.}
+
+\item{calcSens}{boolean indicating if RxODE will calculate the
+sennsitivities according to the specified ODEs.}
+
+\item{collapseModel}{boolean indicating if RxODE will remove all
+LHS variables when calculating sensitivites.}
 
 \item{...}{ignored arguments}
 }

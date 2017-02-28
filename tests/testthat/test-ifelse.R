@@ -170,6 +170,85 @@ rxPermissive({
                      )
     })
 
-})
+    ode <- "
+   C2 = centr/V2;
+   C3 = peri/V3;
+   d/dt(depot) =-KA*depot;
+   d/dt(centr) = KA*depot - CL*C2 - Q*C2 + Q*C3;
+   d/dt(peri)  =                    Q*C2 - Q*C3;
+   d/dt(eff)  = Kin - Kout*(1-C2/(EC50+C2))*eff;
+"
+
+
+    ode1 <- RxODE(ode);
+
+    ode2 <- RxODE(ode, calcSens=TRUE, collapseModel=TRUE);
+
+    test_that("LHS variables can be removed", {
+        expect_true(length(rxLhs(ode1)) > 1);
+        expect_true(length(rxLhs(ode2)) == 0);
+    })
+
+    ode3 <- RxODE({
+        if (route == 1){
+            C2 = centr/V2 * F;
+        } else {
+            C2 = centr/V2;
+        }
+        C3 = peri/V3;
+        d/dt(depot) =-KA*depot;
+        d/dt(centr) = KA*depot - CL*C2 - Q*C2 + Q*C3;
+        d/dt(peri)  =                    Q*C2 - Q*C3;
+        d/dt(eff)  = Kin - Kout*(1-C2/(EC50+C2))*eff;
+    })
+
+    ode4 <- RxODE(ode3, calcSens=TRUE, collapseModel=TRUE);
+
+    ode5 <- RxODE(ode3, calcSens=TRUE)
+
+    test_that("LHS variables can be removed", {
+        expect_true(length(rxLhs(ode3)) > 1);
+        expect_true(length(rxLhs(ode4)) == 0);
+        expect_equal(rxLhs(ode3), rxLhs(ode5))
+    })
+
+    pred <- function(){
+        if (cmt == 1){
+            return(cntr);
+        } else {
+            return(eff);
+        }
+    }
+
+    err <- function(){
+        if (cmt == 1){
+            return(add(0.1) + prop(0.1))
+        } else {
+            return(add(0.1))
+        }
+    }
+
+    pk <- function(){
+        KA <- theta[1];
+        CL <- exp(theta[2] + eta[1]);
+        V2 <- exp(theta[3] + eta[2]);
+    }
+
+    test_that("Can throw the warning", {
+        expect_warning(rxSymPySetupPred(ode3, pred, pk, err));
+    })
+
+    pred <- function(){
+        if (cmt == 1){
+            return(centr);
+        } else {
+            return(eff);
+        }
+    }
+
+    rxSymPySetupPred(ode3, pred, pk, err)
+
+
+}, silent=TRUE)
 
 

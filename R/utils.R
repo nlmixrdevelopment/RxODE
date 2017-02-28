@@ -32,10 +32,14 @@ rxTbl <- function(x, msg){
 ##' @author Matthew L. Fidler
 ##' @keywords internal
 ##' @export
-rxCat <- function(...){
+rxCat <- function(a, ...){
     ## nocov start
     if (getOption("RxODE.verbose", TRUE)){
-        cat(...);
+        if (class(a) == "RxODE"){
+            cat(rxNorm(a));
+        } else {
+            cat(a, ...);
+        }
     }
     ## nocov end
 }

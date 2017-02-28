@@ -41,8 +41,10 @@
 ##'     parsing of the ODE into C code and its compilation. Default is
 ##'     \code{TRUE}
 ##'
-##' @param extraC a string indicating the path to a file with extra c
-##'     functions needed for the compiled ODE model.
+##' @param extraC  Extra c code to include in the model.  This can be
+##'     useful to specify functions in the model.  These C functions
+##'     should usually take \code{double} precision arguments, and
+##'     return \code{double} precision values.
 ##'
 ##' @param debug is a boolean indicating if the executable should be
 ##'     compiled with verbose debugging information turned on.
@@ -52,6 +54,9 @@
 ##'
 ##' @param calcJac boolean indicating if RxODE will calculate the
 ##'     Jacobain according to the specified ODEs.
+##'
+##' @param collapseModel boolean indicating if RxODE will remove all
+##'     LHS variables when calculating sensitivites.
 ##'
 ##' @param ... any other arguments are passed to the function
 ##'     \code{\link{readLines}}, (e.g., encoding).
@@ -305,7 +310,8 @@
 RxODE <- function(model, modName = basename(wd), wd = getwd(),
                   filename = NULL, do.compile = NULL, extraC = NULL,
                   debug = FALSE,
-                  calcJac=NULL, calcSens=NULL, ...) {
+                  calcJac=NULL, calcSens=NULL,
+                  collapseModel=FALSE, ...) {
     if (!missing(model) && !missing(filename))
         stop("must specify exactly one of 'model' or 'filename'")
     if (missing(model) && !missing(filename)){
@@ -333,7 +339,7 @@ RxODE <- function(model, modName = basename(wd), wd = getwd(),
     ## RxODE compilation manager (location of parsed code, generated C,  shared libs, etc.)
 
     cmpMgr <- rx.initCmpMgr(model, modName, wd,  extraC, debug, missing(modName),
-                            calcJac=calcJac, calcSens=calcSens);
+                            calcJac=calcJac, calcSens=calcSens, collapseModel=collapseModel);
     ## NB: the set of model variables (modelVars) is only available
     ## after parsing, thus it needs to be dynamically computed in cmpMgr
     get.modelVars <- cmpMgr$get.modelVars
@@ -358,7 +364,7 @@ RxODE <- function(model, modName = basename(wd), wd = getwd(),
         cmpMgr$compile(force);
         ## Add for backward compatibility.
         cmpMgr$dllfile <- rxDll(cmpMgr$rxDll());
-        cmpMgr$ode_solver <- rxTrans(cmpMgr$rxDll(), calcJac=calcJac, calcSens=calcSens)["ode_solver"];
+        cmpMgr$ode_solver <- rxTrans(cmpMgr$rxDll(), calcJac=calcJac, calcSens=calcSens, collapseModel=collapseModel)["ode_solver"];
         model <- rxModelVars(cmpMgr$rxDll())$model["model"];
         names(model) <- NULL;
         cmpMgr$model <- model
@@ -386,12 +392,11 @@ RxODE <- function(model, modName = basename(wd), wd = getwd(),
 ##' Get model properties without compiling it.
 ##'
 ##' @param model RxODE specification
-##' @param calcSens Calculate sensitivity vector/boolean
-##' @param calcJac Calculate jacobian
+##' @inheritParams RxODE
 ##' @return RxODE trans list
 ##' @author Matthew L. Fidler
 ##' @keywords internal
-rxGetModel <- function(model, calcSens=FALSE, calcJac=FALSE){
+rxGetModel <- function(model, calcSens=FALSE, calcJac=FALSE, collapseModel=FALSE){
     if (class(substitute(model)) == "call"){
         model <- model;
     }
@@ -425,7 +430,7 @@ rxGetModel <- function(model, calcSens=FALSE, calcJac=FALSE){
     cat(model);
     cat("\n");
     sink();
-    return(rxTrans(parseModel, cFile, calcSens=calcSens, calcJac=calcJac, modVars=TRUE));
+    return(rxTrans(parseModel, cFile, calcSens=calcSens, calcJac=calcJac, collapseModel=collapseModel, modVars=TRUE));
 }
 
 rxGetModel.slow <- NULL
@@ -761,20 +766,8 @@ plot.RxCompilationManager <- function(x, ...){ #nocov start
 ##' session. (Models previously parsed and compiled in previous R
 ##' sessions only need to be dynamically loaded into the current R session.)
 ##'
-##' @param model a string containing the either the source or the file
-##'     name of the \code{RxODE} model
-##' @param modName a string with a model identifier (this string will
-##'     be used to construct filenames and C symbols, therefore it must
-##'     be suitable for creating those identifiers); Model
-##'     specification or model file
-##' @param wd a string with a file path to a working directory where to
-##'     create various C and object files.
-##' @param extraC a string with a file path to an extra C file to be
-##'     included in the model.  This is useful for adding your own C
-##'     functions.
-##' @param debug a boolean specifying if debugging is used for the
-##'     compiled code by adding -D__DEBUG__ to the compile-time
-##'     options.
+##' @inheritParams RxODE
+##'
 ##' @param mmod A boolean telling if the modName from \code{RxODE} was
 ##'     missing.  This affects how the model is created and used.
 ##' @return  An object (closure) with the following member functions:
@@ -820,7 +813,7 @@ plot.RxCompilationManager <- function(x, ...){ #nocov start
 ##' @author Matthew L.Fidler
 ##' @export rx.initCmpMgr
 rx.initCmpMgr <-
-    function(model, modName, wd, extraC = NULL, debug = TRUE, mmod = FALSE, calcJac=NULL, calcSens=NULL)
+    function(model, modName, wd, extraC = NULL, debug = TRUE, mmod = FALSE, calcJac=NULL, calcSens=NULL, collapseModel=FALSE)
 {
     ## Initialize the RxODE compilation manager.  This is a stub
     ## function for backward compatability.
@@ -832,6 +825,7 @@ rx.initCmpMgr <-
     .compiled <- FALSE;
     .calcJac <- calcJac;
     .calcSens <- calcSens;
+    .collapseModel <- collapseModel
     ## model-specific directory under .md (default current dir)
     if (mmod){
         .mdir <- .wd;
@@ -866,9 +860,9 @@ rx.initCmpMgr <-
             setwd(.wd);
         on.exit(setwd(lwd));
         if (.mmod){
-            .rxDll <<- rxCompile(.model, extraC = .extraC, debug = .debug, calcJac=.calcJac, calcSens=.calcSens);
+            .rxDll <<- rxCompile(.model, extraC = .extraC, debug = .debug, calcJac=.calcJac, calcSens=.calcSens, collapseModel=.collapseModel);
         } else {
-            .rxDll <<- rxCompile(.model, .mdir, extraC = .extraC, debug = .debug, modName = .modName,  calcJac=.calcJac, calcSens=.calcSens);
+            .rxDll <<- rxCompile(.model, .mdir, extraC = .extraC, debug = .debug, modName = .modName,  calcJac=.calcJac, calcSens=.calcSens, collapseModel=.collapseModel);
         }
         if (class(.rxDll) == "rxDll"){
             .compiled <<- TRUE;
@@ -951,6 +945,7 @@ rxPrefix <- function(model,          # Model or file name of model
                      modName = NULL, # Model name, overrides calculated model name.
                      calcJac=NULL,
                      calcSens=NULL,
+                     collapseModel=FALSE,
                      ...){
     ## rxPrefix returns a prefix for a model.
     if (!is.null(modName)){
@@ -965,7 +960,7 @@ rxPrefix <- function(model,          # Model or file name of model
         cat(model);
         cat("\n");
         sink();
-        trans <- rxTrans(parseModel, cFile, calcSens=calcSens, calcJac=calcJac)
+        trans <- rxTrans(parseModel, cFile, calcSens=calcSens, calcJac=calcJac, collapseModel=collapseModel)
         modelPrefix <- sprintf("rx_%s_", trans["parsed_md5"]);
     }
     modelPrefix <- sprintf("%s%s_", modelPrefix, .Platform$r_arch);
@@ -979,11 +974,8 @@ rxPrefix <- function(model,          # Model or file name of model
 ##' options, compiled RxODE library md5, and the RxODE
 ##' version/repository.
 ##'
-##' @param model either a string representing the path to a model file
-##'     or a RxODE object
+##' @inheritParams RxODE
 ##'
-##' @param extraC The extra C file used to help create the md5.  If the
-##'     model is an RxODE object, this argument is ignored.
 ##'
 ##' @param ... ignored arguments
 ##'
@@ -1002,6 +994,7 @@ rxMd5 <- function(model,         # Model File
                   extraC  = NULL, # Extra C
                   calcJac =NULL,
                   calcSens=NULL,
+                  collapseModel=FALSE,
                   ...){
     ## rxMd5 returns MD5 of model file.
     ## digest(file = TRUE) includes file times, so it doesn't work for this needs.
@@ -1023,7 +1016,7 @@ rxMd5 <- function(model,         # Model File
             }
         }
         tmp <- names(options());
-        tmp <- c(tmp[regexpr(rex::rex("RxODE.", or("syntax", "calculate")), tmp) != -1], calcJac, calcSens);
+        tmp <- c(tmp[regexpr(rex::rex("RxODE.", or("syntax", "calculate")), tmp) != -1], calcJac, calcSens, collapseModel);
         ret <- c(ret, sapply(tmp, function(x){return(as.integer(getOption(x, FALSE)))}));
         tmp <- getLoadedDLLs()$RxODE;
         class(tmp) <- "list";
@@ -1041,8 +1034,9 @@ rxMd5 <- function(model,         # Model File
 ##'
 ##' This function translates the model to C code, if needed
 ##'
-##' @param model This can be either a string specifying a file name for
-##'     the RxODE code, or an RxODE family of objects
+##'
+##' @inheritParams RxODE
+##'
 ##'
 ##' @param cFile The C file where the code should be output
 ##'
@@ -1054,26 +1048,13 @@ rxMd5 <- function(model,         # Model File
 ##'     embed the md5 into dll, and then provide for functions like
 ##'     \code{\link{rxModelVars}}.
 ##'
-##' @param extraC Extra c code to include in the model.  This can be
-##'     useful to specify functions in the model.  These C functions
-##'     should usually take \code{double} precision arguments, and
-##'     return \code{double} precision values.
+##' @param ... Ignored parameters.
 ##'
-##' @param modName is a string specifying the model name.  This string
-##'     is used to generate the model's dll file.  If unspecified, and
-##'     the model does not come from the file, the model dll name is
-##'     based on the parsed md5.
 ##'
 ##' @param modVars returns the model variables instead of the named
 ##'     vector of translated properties.
 ##'
-##' @param calcSens boolean indicating if RxODE will calculate the
-##'     sennsitivities according to the specified ODEs.
 ##'
-##' @param calcJac boolean indicating if RxODE will calculate the
-##'     Jacobain according to the specified ODEs.
-##'
-##' @param ... Ignored parameters.
 ##'
 ##' @return a named vector of translated model properties
 ##'       including what type of jacobian is specified, the \code{C} function prefixes,
@@ -1090,6 +1071,7 @@ rxTrans <- function(model,
                     modVars     = FALSE,                                      # Return modVars
                     calcSens=NULL,
                     calcJac=NULL,
+                    collapseModel=FALSE,
                     ...){
     UseMethod("rxTrans");
 } # end function rxTrans
@@ -1106,6 +1088,7 @@ rxTrans.default <- function(model,
                             modVars     = FALSE,                                      # Return modVars
                             calcSens=NULL,
                             calcJac=NULL,
+                            collapseModel=FALSE,
                             ...){
     mv <- rxModelVars(model)
     if (modVars){
@@ -1126,6 +1109,7 @@ rxTrans.character <- function(model,
                               modVars     = FALSE,                                      # Return modVars
                               calcSens=NULL,
                               calcJac=NULL,
+                              collapseModel=FALSE,
                               ...){
     ## rxTrans returns a list of compiled properties
     if (is.null(calcSens)){
@@ -1135,11 +1119,11 @@ rxTrans.character <- function(model,
         calcJac <- getOption("RxODE.calculate.jacobian", FALSE);
     }
     if (missing(modelPrefix)){
-        modelPrefix <- rxPrefix(model, modName, calcSens, calcJac);
+        modelPrefix <- rxPrefix(model, modName, calcSens, calcJac, collapseModel);
     }
     if (file.exists(model)){
         if (missing(md5)){
-            md5 <- rxMd5(model, extraC, calcJac, calcSens)$digest;
+            md5 <- rxMd5(model, extraC, calcJac, calcSens, collapseModel)$digest;
         }
     } else {
         stop("This only translates a file (currently; Try rxCompile).");
@@ -1152,7 +1136,7 @@ rxTrans.character <- function(model,
     ## dparser::dpReload();
     ## rxReload()
     if (file.exists(cFile)){
-        md5 <- c(file_md5 = md5, parsed_md5 = rxMd5(parseModel, extraC, calcJac, calcSens)$digest);
+        md5 <- c(file_md5 = md5, parsed_md5 = rxMd5(parseModel, extraC, calcJac, calcSens, collapseModel)$digest);
         ret$md5 <- md5
         if (class(calcSens) == "logical"){
             if (!calcSens){
@@ -1160,7 +1144,8 @@ rxTrans.character <- function(model,
             }
         }
         if (!is.null(calcSens)){
-            new <- rxSymPySensitivity(rxModelVars(rxNorm(ret)), calcSens=calcSens, calcJac=calcJac);
+            new <- rxSymPySensitivity(rxModelVars(rxNorm(ret)), calcSens=calcSens, calcJac=calcJac,
+                                      collapseModel=collapseModel);
             expandModel <- tempfile();
             sink(expandModel);
             cat(new);
@@ -1262,9 +1247,7 @@ rxDllLoaded <- function(x, retry = TRUE){
 ##' This is the compilation workhorse creating the RxODE model dll
 ##' files.
 ##'
-##' @param model This can be either a string specifying a file name for
-##'     the RxODE code, a string representing the model specification,
-##'     or an RxODE family of objects to recompile if needed.
+##' @inheritParams RxODE
 ##'
 ##' @param dir This is the model directory where the C file will be
 ##'     stored for compiling.
@@ -1282,25 +1265,10 @@ rxDllLoaded <- function(x, retry = TRUE){
 ##'     based functions.  If missing, it is calculated based on file
 ##'     name, or md5 of parsed model.
 ##'
-##' @param extraC Extra c code to include in the model.  This can be
-##'     useful to specify functions in the model.  These C functions
-##'     should usually take \code{double} precision arguments, and
-##'     return \code{double} precision values.
 ##'
 ##' @param force is a boolean stating if the (re)compile should be
 ##'     forced if RxODE detects that the models are the same as already
 ##'     generated.
-##'
-##' @param modName is a string specifying the model name.  This string
-##'     is used to generate the model's dll file.  If unspecified, and
-##'     the model does not come from the file, the model dll name is
-##'     based on the parsed md5.
-##'
-##' @param calcJac is a boolean string stating if the full jacobain
-##'     should be calculated.
-##'
-##' @param calcSens is a boolean string stating if the sensitivity
-##'     equations are calculated.
 ##'
 ##' @param ... Other arguments sent to the \code{\link{rxTrans}}
 ##'     function.
@@ -1318,7 +1286,7 @@ rxDllLoaded <- function(x, retry = TRUE){
 ##' @author Matthew L.Fidler
 ##' @export
 rxCompile <- function(model, dir, prefix, extraC = NULL, force = FALSE, modName = NULL,
-                      calcJac=NULL, calcSens=NULL,
+                      calcJac=NULL, calcSens=NULL, collapseModel=FALSE,
                       ...){
     UseMethod("rxCompile")
 }
@@ -1332,6 +1300,7 @@ rxCompile.character <-  function(model,           # Model
                                  modName = NULL,  # Model Name
                                  calcJac=NULL, # Calculate Jacobian
                                  calcSens=NULL, # Calculate Sensitivity
+                                 collapseModel=FALSE,
                                  ...){
     ## rxCompile returns the dll name that was created.
     dllCopy <- FALSE;
@@ -1341,7 +1310,7 @@ rxCompile.character <-  function(model,           # Model
         on.exit(unlink(dir, recursive = TRUE))
     }
     if (missing(prefix)){
-        prefix <- rxPrefix(model, modName, calcJac=calcJac, calcSens=calcSens);
+        prefix <- rxPrefix(model, modName, calcJac=calcJac, calcSens=calcSens, collapseModel=collapseModel);
     }
     if (!file.exists(dir))
         dir.create(dir, recursive = TRUE)
@@ -1361,7 +1330,7 @@ rxCompile.character <-  function(model,           # Model
     } else {
         mFile <- model;
     }
-    md5 <- rxMd5(mFile, extraC, calcJac, calcSens);
+    md5 <- rxMd5(mFile, extraC, calcJac, calcSens, collapseModel);
     allModVars <- NULL;
     needCompile <- TRUE
     if (file.exists(finalDll)){
@@ -1381,7 +1350,7 @@ rxCompile.character <-  function(model,           # Model
     }
     if (force || needCompile){
         Makevars <- file.path(dir, "Makevars");
-        trans <- rxTrans(mFile, cFile = cFile, md5 = md5$digest, extraC = extraC, ..., modelPrefix = prefix, calcJac=calcJac, calcSens=calcSens);
+        trans <- rxTrans(mFile, cFile = cFile, md5 = md5$digest, extraC = extraC, ..., modelPrefix = prefix, calcJac=calcJac, calcSens=calcSens, collapseModel=collapseModel);
         if (file.exists(finalDll)){
             if (modVars["parsed_md5"] == trans["parsed_md5"]){
                 rxCat("Don't need to recompile, minimal change to model detected.\n");
@@ -1403,7 +1372,7 @@ rxCompile.character <-  function(model,           # Model
             cat(rxTransMakevars(trans, finalDll, ...));
             sink();
             ## Now create C file
-            rxTrans(mFile, cFile = cFile, md5 = md5$digest, extraC = extraC, ..., modelPrefix = prefix, calcJac=calcJac, calcSens=calcSens)
+            rxTrans(mFile, cFile = cFile, md5 = md5$digest, extraC = extraC, ..., modelPrefix = prefix, calcJac=calcJac, calcSens=calcSens, collapseModel=collapseModel)
             sh <- "system"   # windows's default shell COMSPEC does not handle UNC paths
             ## Change working directory
             setwd(dir);

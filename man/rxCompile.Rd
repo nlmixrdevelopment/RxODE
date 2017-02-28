@@ -8,19 +8,31 @@
 \title{Compile a model if needed}
 \usage{
 rxCompile(model, dir, prefix, extraC = NULL, force = FALSE,
-  modName = NULL, calcJac = NULL, calcSens = NULL, ...)
+  modName = NULL, calcJac = NULL, calcSens = NULL,
+  collapseModel = FALSE, ...)
 
 \method{rxCompile}{character}(model, dir, prefix = NULL, extraC = NULL,
-  force = FALSE, modName = NULL, calcJac = NULL, calcSens = NULL, ...)
+  force = FALSE, modName = NULL, calcJac = NULL, calcSens = NULL,
+  collapseModel = FALSE, ...)
 
 \method{rxCompile}{rxDll}(model, ...)
 
 \method{rxCompile}{RxODE}(model, ...)
 }
 \arguments{
-\item{model}{This can be either a string specifying a file name for
-the RxODE code, a string representing the model specification,
-or an RxODE family of objects to recompile if needed.}
+\item{model}{This is the ODE model specification.  It can be:
+\itemize{
+
+ \item a string containing the set of ordinary differential
+    equations (ODE) and other expressions defining the changes in
+    the dynamic system.
+ \item a file name where the ODE system equation is contained
+ \item An ODE expression enclosed in \code{\{\}}
+}
+
+(see also the \code{filename} argument). For
+    details, see the sections \dQuote{Details} and
+    \dQuote{\code{RxODE Syntax}} below.}
 
 \item{dir}{This is the model directory where the C file will be
     stored for compiling.
@@ -47,16 +59,20 @@ return \code{double} precision values.}
 forced if RxODE detects that the models are the same as already
 generated.}
 
-\item{modName}{is a string specifying the model name.  This string
-is used to generate the model's dll file.  If unspecified, and
-the model does not come from the file, the model dll name is
-based on the parsed md5.}
+\item{modName}{a string to be used as the model name. This string
+is used for naming various aspects of the computations,
+including generating C symbol names, dynamic libraries,
+etc. Therefore, it is necessary that \code{modName} consists of
+simple ASCII alphanumeric characters starting with a letter.}
 
-\item{calcJac}{is a boolean string stating if the full jacobain
-should be calculated.}
+\item{calcJac}{boolean indicating if RxODE will calculate the
+Jacobain according to the specified ODEs.}
 
-\item{calcSens}{is a boolean string stating if the sensitivity
-equations are calculated.}
+\item{calcSens}{boolean indicating if RxODE will calculate the
+sennsitivities according to the specified ODEs.}
+
+\item{collapseModel}{boolean indicating if RxODE will remove all
+LHS variables when calculating sensitivites.}
 
 \item{...}{Other arguments sent to the \code{\link{rxTrans}}
 function.}

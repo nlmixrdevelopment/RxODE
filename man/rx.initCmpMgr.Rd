@@ -5,30 +5,58 @@
 \title{A compilation manager for RxODE models}
 \usage{
 rx.initCmpMgr(model, modName, wd, extraC = NULL, debug = TRUE,
-  mmod = FALSE, calcJac = NULL, calcSens = NULL)
+  mmod = FALSE, calcJac = NULL, calcSens = NULL, collapseModel = FALSE)
 }
 \arguments{
-\item{model}{a string containing the either the source or the file
-name of the \code{RxODE} model}
+\item{model}{This is the ODE model specification.  It can be:
+\itemize{
 
-\item{modName}{a string with a model identifier (this string will
-be used to construct filenames and C symbols, therefore it must
-be suitable for creating those identifiers); Model
-specification or model file}
+ \item a string containing the set of ordinary differential
+    equations (ODE) and other expressions defining the changes in
+    the dynamic system.
+ \item a file name where the ODE system equation is contained
+ \item An ODE expression enclosed in \code{\{\}}
+}
 
-\item{wd}{a string with a file path to a working directory where to
-create various C and object files.}
+(see also the \code{filename} argument). For
+    details, see the sections \dQuote{Details} and
+    \dQuote{\code{RxODE Syntax}} below.}
 
-\item{extraC}{a string with a file path to an extra C file to be
-included in the model.  This is useful for adding your own C
-functions.}
+\item{modName}{a string to be used as the model name. This string
+is used for naming various aspects of the computations,
+including generating C symbol names, dynamic libraries,
+etc. Therefore, it is necessary that \code{modName} consists of
+simple ASCII alphanumeric characters starting with a letter.}
 
-\item{debug}{a boolean specifying if debugging is used for the
-compiled code by adding -D__DEBUG__ to the compile-time
-options.}
+\item{wd}{character string with a working directory where to
+create a subdirectory according to \code{modName}. When
+specified, a subdirectoy named after the
+\dQuote{\code{modName.d}} will be created and populated with a
+C file, a dynamic loading library, plus various other working
+files. If missing, the files are created (and removed) in the
+temporary directory, and the RxODE dll for the model is
+created in the current directory named \code{rx_????_platform}, for
+example \code{rx_129f8f97fb94a87ca49ca8dafe691e1e_i386.dll}}
+
+\item{extraC}{Extra c code to include in the model.  This can be
+useful to specify functions in the model.  These C functions
+should usually take \code{double} precision arguments, and
+return \code{double} precision values.}
+
+\item{debug}{is a boolean indicating if the executable should be
+compiled with verbose debugging information turned on.}
 
 \item{mmod}{A boolean telling if the modName from \code{RxODE} was
 missing.  This affects how the model is created and used.}
+
+\item{calcJac}{boolean indicating if RxODE will calculate the
+Jacobain according to the specified ODEs.}
+
+\item{calcSens}{boolean indicating if RxODE will calculate the
+sennsitivities according to the specified ODEs.}
+
+\item{collapseModel}{boolean indicating if RxODE will remove all
+LHS variables when calculating sensitivites.}
 }
 \value{
 An object (closure) with the following member functions:

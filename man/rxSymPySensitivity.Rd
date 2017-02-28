@@ -4,7 +4,8 @@
 \alias{rxSymPySensitivity}
 \title{Calculate the sensitivity equations for a model}
 \usage{
-rxSymPySensitivity(model, calcSens, calcJac = FALSE, keepState = NULL)
+rxSymPySensitivity(model, calcSens, calcJac = FALSE, keepState = NULL,
+  collapseModel = FALSE)
 }
 \arguments{
 \item{model}{RxODE family of objects}
@@ -17,6 +18,9 @@ all the known parameters.  When \code{FALSE} raise an error.}
 calculated.}
 
 \item{keepState}{State parameters to keep the sensitivites for.}
+
+\item{collapseModel}{A boolean to collapse the model to not
+include any left handed quantities.}
 }
 \value{
 Model syntax that includes the sensitivity parameters.

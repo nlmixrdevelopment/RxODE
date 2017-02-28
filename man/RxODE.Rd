@@ -6,7 +6,7 @@
 \usage{
 RxODE(model, modName = basename(wd), wd = getwd(), filename = NULL,
   do.compile = NULL, extraC = NULL, debug = FALSE, calcJac = NULL,
-  calcSens = NULL, ...)
+  calcSens = NULL, collapseModel = FALSE, ...)
 }
 \arguments{
 \item{model}{This is the ODE model specification.  It can be:
@@ -47,8 +47,10 @@ or \code{filename} may be specified.}
 parsing of the ODE into C code and its compilation. Default is
 \code{TRUE}}
 
-\item{extraC}{a string indicating the path to a file with extra c
-functions needed for the compiled ODE model.}
+\item{extraC}{Extra c code to include in the model.  This can be
+useful to specify functions in the model.  These C functions
+should usually take \code{double} precision arguments, and
+return \code{double} precision values.}
 
 \item{debug}{is a boolean indicating if the executable should be
 compiled with verbose debugging information turned on.}
@@ -58,6 +60,9 @@ Jacobain according to the specified ODEs.}
 
 \item{calcSens}{boolean indicating if RxODE will calculate the
 sennsitivities according to the specified ODEs.}
+
+\item{collapseModel}{boolean indicating if RxODE will remove all
+LHS variables when calculating sensitivites.}
 
 \item{...}{any other arguments are passed to the function
     \code{\link{readLines}}, (e.g., encoding).

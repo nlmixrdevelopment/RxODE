@@ -402,7 +402,7 @@ rxSymPySensitivity2Full <- function(state, etas, thetas, model, cond){
             all.sens <- tmp$all.sens;
         }
     }
-    cat("\ndone!\n");
+    rxCat("\ndone!\n");
     return(list(all.sens=all.sens, extraLines=extraLines))
 }
 rxSymPySensitivity2Full.slow <- NULL;
@@ -477,10 +477,14 @@ rxSymPySensitivity.single <- function(model, calcSens, calcJac){
 ##' @param calcJac A boolean that determines if the jacobian should be
 ##'     calculated.
 ##' @param keepState State parameters to keep the sensitivites for.
+##'
+##' @param collapseModel A boolean to collapse the model to not
+##'     include any left handed quantities.
 ##' @return Model syntax that includes the sensitivity parameters.
 ##' @author Matthew L. Fidler
 ##' @export
-rxSymPySensitivity <- function(model, calcSens, calcJac=FALSE, keepState=NULL){
+rxSymPySensitivity <- function(model, calcSens, calcJac=FALSE, keepState=NULL,
+                               collapseModel=FALSE){
     if (missing(calcSens)){
         calcSens <- rxParams(model);
     }
@@ -494,7 +498,15 @@ rxSymPySensitivity <- function(model, calcSens, calcJac=FALSE, keepState=NULL){
     cnd <- rxNorm(model, TRUE); ## Get the conditional statements
     extraLines <- c();
     if (is.null(cnd)){
-        extraLines <- rxSymPySensitivity.single(model, calcSens, calcJac);
+        rxSymPySetupIf(model);
+        if (collapseModel){
+            for (v in rxState(model)){
+                tmp <- rSymPy::sympy(rxToSymPy(sprintf("d/dt(%s)", v)));
+                tmp <- rxFromSymPy(tmp);
+                extraLines[length(extraLines) + 1] <- sprintf("d/dt(%s)=%s", v, tmp);
+            }
+        }
+        extraLines <- c(extraLines, rxSymPySensitivity.single(model, calcSens, calcJac));
     } else {
         extraLines <- c();
         for (i in cnd){
@@ -502,8 +514,18 @@ rxSymPySensitivity <- function(model, calcSens, calcJac=FALSE, keepState=NULL){
             rxCat(sprintf("## Calculate for %s\n", i));
             rxCat("################################################################################\n");
             rxCondition(model, i);
+            rxSymPySetupIf(model);
+            tmpl <- c();
+            if (collapseModel){
+                for (v in rxState(model)){
+                    tmp <- rSymPy::sympy(rxToSymPy(sprintf("d/dt(%s)", v)));
+                    tmp <- rxFromSymPy(tmp);
+                    tmpl[length(tmpl) + 1] <- sprintf("d/dt(%s)=%s", v, tmp);
+                }
+            }
             extraLines <- c(extraLines,
                             sprintf("if %s {", i),
+                            tmpl,
                             rxSymPySensitivity.single(model, calcSens, calcJac),
                             "}")
         }
@@ -518,7 +540,11 @@ rxSymPySensitivity <- function(model, calcSens, calcJac=FALSE, keepState=NULL){
             }
         }
     }
-    ret <- sprintf("%s\n%s", rxNorm(model), paste(extraLines, collapse="\n"));
+    if (collapseModel){
+        ret <- paste(extraLines, collapse="\n");
+    } else {
+        ret <- sprintf("%s\n%s", rxNorm(model), paste(extraLines, collapse="\n"));
+    }
     return(ret);
 }
 
@@ -559,15 +585,14 @@ rxAddReturn <- function(fn, ret=TRUE){
     return(paste(txt, collapse="\n"))
 }
 
-rxSymPySetupDPred <- function(newmod, calcSens){
-    ## FIXME conditional predfn
+rxSymPySetupDPred <- function(newmod, calcSens, prd="rx_pred_"){
     extraLines <- c();
     for (state in rxState(newmod)){
-        newLine <- rSymPy::sympy(sprintf("diff(rx_pred_,%s)", state));
+        newLine <- rSymPy::sympy(sprintf("diff(%s,%s)",prd, state));
         newLine <- rxFromSymPy(newLine);
         if (newLine != "0"){
             for (var in calcSens){
-                newLine2 <- rSymPy::sympy(sprintf("diff(rx_pred_,%s)", rxToSymPy(var)));
+                newLine2 <- rSymPy::sympy(sprintf("diff(%s,%s)", prd, rxToSymPy(var)));
                 newLine2 <- rxFromSymPy(newLine2);
                 ## (-d(eps)/d(eta)) simialr to Equation 19 in Almquist 2015
                 line <- rSymPy::sympy(sprintf("simplify(-(%s))", rxToSymPy(sprintf("(%s)*rx__sens_%s_BY_%s__+(%s)",
@@ -575,11 +600,31 @@ rxSymPySetupDPred <- function(newmod, calcSens){
                                                                                    newLine2))));
                 line <- rxFromSymPy(line);
                 ## Chain rule dpred/dstate * dstate/dx = dpred/dx
-                extraLines[length(extraLines) + 1] <- sprintf("rx__sens_rx_pred__BY_%s__ = %s", rxToSymPy(var), line);
+                extraLines[length(extraLines) + 1] <- sprintf("rx__sens_%s_BY_%s__ = %s", prd, rxToSymPy(var), line);
             }
         }
     }
+    if (length(extraLines) == 0){
+        for (var in calcSens){
+            extraLines[length(extraLines) + 1] <- sprintf("rx__sens_%s_BY_%s__ = 0", prd, rxToSymPy(var));
+        }
+        attr(extraLines, "zeoSens") <- TRUE
+    } else {
+        attr(extraLines, "zeoSens") <- FALSE
+    }
     return(extraLines);
+}
+
+rxIf__ <- function(x){
+    x <- unique(x);
+    if (length(x) == 1){
+        return(sprintf("if %s {", x));
+    } else {
+        x <- sapply(x, function(x){
+            return(substring(x, 2, nchar(x) - 1));
+        });
+        return(sprintf("if (%s) {", paste(x, collapse=" && ")));
+    }
 }
 ##' Setup Pred function based on RxODE object.
 ##'
@@ -599,14 +644,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars, errfn){
     if (!missing(pkpars)){
         txt <- rxAddReturn(pkpars, FALSE);
         newmod <- rxGetModel(paste0(paste(txt, collapse="\n"), "\n", rxNorm(obj)));
-        rxSymPySetupIf(newmod);
-        collapseModel <- c()
-        for (v in rxState(newmod)){
-            tmp <- rSymPy::sympy(rxToSymPy(sprintf("d/dt(%s)", v)));
-            tmp <- rxFromSymPy(tmp);
-            collapseModel[length(collapseModel) + 1] <- sprintf("d/dt(%s)=%s", v, tmp);
-        }
-        obj <- rxGetModel(paste(collapseModel, collapse="\n"));
+        obj <- newmod;
         etas <- rxParams(obj)
         etas <- etas[regexpr(regEta, etas) != -1];
         if (length(etas) > 0){
@@ -615,34 +653,83 @@ rxSymPySetupPred <- function(obj, predfn, pkpars, errfn){
             calcSens <- rxParams(obj);
         }
     } else {
-        calcSens <- rxParams(obj);
+        calcSens <- rxParams(obj)
     }
+    obj <- rxGetModel(rxNorm(obj), calcSens=calcSens, collapseModel=TRUE);
+    base <- rxNorm(obj);
     txt <- rxAddReturn(predfn)
     txt <- rxParseErr(txt,ret="rx_pred_")
-    newmod <- rxGetModel(paste0(rxNorm(obj), "\n", txt), calcSens=calcSens);
-    rxSymPySetupIf(newmod);
-    ## rxSymPySetup(txt);
-    cnd <- rxNorm(newmod, TRUE); ## Get the conditional statements
-    extraLines <- c();
-    if (is.null(cnd)){
-        extraLines <- c(extraLines, rxSymPySetupDPred(newmod, calcSens));
-    } else {
-        for (i in cnd){
-            rxCat("################################################################################\n");
-            rxCat(sprintf("## Calculate d(f)/d(eta) for %s\n", i));
-            rxCat("################################################################################\n");
-            rxCondition(newmod, i);
-            extraLines <- c(extraLines,
-                            sprintf("if %s {", i),
-                            rxSymPySetupDPred(newmod, calcSens),
-                            "}");
+    cnd.base <- rxNorm(newmod, TRUE); ## Get the conditional statements
+    if (is.null(cnd.base)) cnd.base <- "";
+    pred.mod <- rxGetModel(txt);
+    cnd.pred <- rxNorm(pred.mod, TRUE);
+    if (is.null(cnd.pred)) cnd.pred <- "";
+    one.pred <- FALSE;
+    some.pred <- FALSE;
+    grd <- expand.grid(cnd.base, cnd.pred)
+    grd <- grd[!(paste0("(!",grd$Var1,")") == grd$Var2), ]
+    grd <- grd[!(paste0("(!",grd$Var2,")") == grd$Var1), ]
+    pred <- paste(apply(grd, 1, function(x){
+        curr.base <- x[1];
+        curr.pred <- x[2];
+        lines <- c();
+        lgl <- TRUE
+        if (curr.base == "" && curr.pred == ""){
+            rxSymPyVars(obj);
+            rxSymPySetupIf(obj);
+            rxSymPyVars(pred.mod);
+            rxSymPySetupIf(pred.mod)
+            lgl <- FALSE;
+        } else if (curr.base == "" && curr.pred != ""){
+            rxSymPyVars(obj);
+            rxSymPySetupIf(obj);
+            rxCondition(pred.mod, curr.pred);
+            rxSymPyVars(pred.mod);
+            rxSymPySetupIf(pred.mod)
+            lines <- sprintf("if %s {", curr.pred);
+        } else if (curr.base != "" && curr.pred == ""){
+            rxCondition(obj, curr.base);
+            rxSymPyVars(obj);
+            rxSymPySetupIf(obj);
+            rxSymPyVars(pred.mod);
+            rxSymPySetupIf(pred.mod)
+            lines <- sprintf("if %s {", curr.base);
+        } else if (curr.base != "" && curr.pred != ""){
+            rxCondition(obj, curr.base);
+            rxSymPyVars(obj);
+            rxSymPySetupIf(obj);
+            rxCondition(pred.mod, curr.pred);
+            rxSymPyVars(pred.mod)
+            rxSymPySetupIf(pred.mod)
+            lines <- rxIf__(c(curr.base, curr.pred));
         }
+        rxCat(sprintf("## Calculate d(f)/d(eta) %s\n", lines));
+        newmod <- rxGetModel(paste0(rxNorm(obj), "\n", rxNorm(pred.mod)));
+        newlines <- rxSymPySetupDPred(newmod, calcSens)
+        if(attr(newlines, "zeoSens")){
+            some.pred <<- TRUE;
+        } else {
+            one.pred <<- TRUE;
+        }
+        if (length(newlines) == 0){
+            rxSymPyClean()
+            stop();
+        }
+        lines <- c(lines, rxNorm(pred.mod), newlines);
+        newmod <- rxGetModel(paste0(rxNorm(pred.mod), "\n",
+                                    rxNorm(pred.mod)));
+        if (lgl){
+            lines <- c(lines, "}")
+        }
+        rxSymPyClean()
+        rxCat(sprintf("## %sdone\n", ifelse(lgl, "}", "")));
+        return(paste(lines, collapse="\n"));
+    }), collapse="\n");
+    if (!one.pred){
+        stop("At least some part of your prediction function needs to depend on the state variables.")
     }
-    ##
-
-    newmod <- rxGetModel(paste(c(rxNorm(newmod), extraLines), collapse="\n"))
-    if (length(extraLines) == 0){
-        stop("Your prediction function does not depend on any of the state variables.")
+    if (some.pred){
+        warning("Some of your prediction function does not depend on the state varibles.");
     }
     if (!missing(errfn)){
         pars <- rxParams(newmod);
@@ -654,36 +741,117 @@ rxSymPySetupPred <- function(obj, predfn, pkpars, errfn){
         txt <- rxAddReturn(errfn);
         txt <- rxParseErr(txt, base.theta=mtheta + 1);
         extra.pars <- attr(txt, "ini");
-        txt <- rxToSymPy(txt);
-        txt <- rxFromSymPy(txt);
-        newmod <- rxGetModel(paste0(rxNorm(newmod), "\n", txt));
-        rxSymPySetupIf(newmod);
-        extraLines <- c();
-        ## FIXME conditional errfn
-        for (state in rxState(newmod)){
-            newLine <- rSymPy::sympy(sprintf("diff(rx_r_,%s)", state));
-            newLine <- rxFromSymPy(newLine);
-            if (newLine != "0"){
-                for (var in calcSens){
-                    newLine2 <- rSymPy::sympy(sprintf("diff(rx_r_,%s)", rxToSymPy(var)));
-                    newLine2 <- rxFromSymPy(newLine2);
-                    ## (-d(eps)/d(eta)) simialr to Equation 19 in Almquist 2015
-                    line <- rSymPy::sympy(sprintf("simplify(%s)", rxToSymPy(sprintf("(%s)*rx__sens_%s_BY_%s__+(%s)",
-                                                                                       newLine, state, rxToSymPy(var),
-                                                                                       newLine2))));
-                    line <- rxFromSymPy(line);
-                    ## Chain rule dpred/dstate * dstate/dx = dpred/dx
-                    extraLines[length(extraLines) + 1] <- sprintf("rx__sens_rx_r__BY_%s__ = %s", rxToSymPy(var), line);
-                }
+        err.mod <- rxGetModel(txt);
+        cnd.err <- rxNorm(err.mod, TRUE);
+        grd <- expand.grid(cnd.base, cnd.err, cnd.pred)
+        grd <- grd[!(paste0("(!",grd$Var1,")") == grd$Var2), ]
+        grd <- grd[!(paste0("(!",grd$Var1,")") == grd$Var3), ]
+        grd <- grd[!(paste0("(!",grd$Var2,")") == grd$Var1), ]
+        grd <- grd[!(paste0("(!",grd$Var2,")") == grd$Var3), ]
+        grd <- grd[!(paste0("(!",grd$Var3,")") == grd$Var1), ]
+        grd <- grd[!(paste0("(!",grd$Var3,")") == grd$Var2), ]
+        err <- paste(apply(grd, 1, function(x){
+            curr.base <- x[1];
+            curr.err <- x[2];
+            curr.pred <- x[3];
+            lines <- c();
+            lgl <- TRUE
+            if (curr.base == "" && curr.err == "" && curr.pred == ""){
+                rxSymPyVars(obj);
+                rxSymPySetupIf(obj);
+                rxSymPyVars(pred.mod);
+                rxSymPySetupIf(pred.mod);
+                rxSymPyVars(err.mod);
+                rxSymPySetupIf(err.mod)
+                lgl <- FALSE;
+            } else if (curr.base == "" && curr.err == "" && curr.pred != ""){
+                rxSymPyVars(obj);
+                rxSymPySetupIf(obj);
+                rxCondition(pred.mod, curr.pred);
+                rxSymPyVars(pred.mod);
+                rxSymPySetupIf(pred.mod);
+                rxSymPyVars(err.mod);
+                rxSymPySetupIf(err.mod)
+                lines <- sprintf("if %s {", curr.pred);
+            } else if (curr.base == "" && curr.err != "" && curr.pred == ""){
+                rxSymPyVars(obj);
+                rxSymPySetupIf(obj);
+                rxCondition(pred.mod, curr.pred);
+                rxSymPyVars(pred.mod);
+                rxSymPySetupIf(pred.mod);
+                rxCondition(err.mod, curr.err);
+                rxSymPyVars(err.mod);
+                rxSymPySetupIf(err.mod)
+                lines <- sprintf("if %s {", curr.err);
+            } else if (curr.base == "" && curr.err != "" && curr.pred != ""){
+                rxSymPyVars(obj);
+                rxSymPySetupIf(obj);
+                rxCondition(pred.mod, curr.pred);
+                rxSymPyVars(pred.mod);
+                rxSymPySetupIf(pred.mod);
+                rxCondition(err.mod, curr.err);
+                rxSymPyVars(err.mod);
+                rxSymPySetupIf(err.mod)
+                lines <- rxIf__(c(curr.err, curr.pred));
+            } else if (curr.base != "" && curr.err == "" && curr.pred == ""){
+                rxCondition(obj, curr.base);
+                rxSymPyVars(obj);
+                rxSymPySetupIf(obj);
+                rxSymPyVars(pred.mod);
+                rxSymPySetupIf(pred.mod);
+                rxSymPyVars(err.mod);
+                rxSymPySetupIf(err.mod)
+                lines <- sprintf("if %s {", curr.base);
+            } else if (curr.base != "" && curr.err == "" && curr.pred != ""){
+                rxCondition(obj, curr.base);
+                rxSymPyVars(obj);
+                rxSymPySetupIf(obj);
+                rxCondition(pred.mod, curr.pred);
+                rxSymPyVars(pred.mod);
+                rxSymPySetupIf(pred.mod);
+                rxSymPyVars(err.mod);
+                rxSymPySetupIf(err.mod)
+                lines <- rxIf__(c(curr.base, curr.pred));
+            } else if (curr.base != "" && curr.err != "" && curr.pred == ""){
+                rxCondition(obj, curr.base);
+                rxSymPyVars(obj);
+                rxSymPySetupIf(obj);
+                rxSymPyVars(pred.mod);
+                rxSymPySetupIf(pred.mod);
+                rxCondition(err.mod, curr.err);
+                rxSymPyVars(err.mod)
+                rxSymPySetupIf(err.mod)
+                lines <- rxIf__(c(curr.base, curr.err));
+            } else if (curr.base != "" && curr.err != ""){
+                rxCondition(obj, curr.base);
+                rxSymPyVars(obj);
+                rxSymPySetupIf(obj);
+                rxCondition(pred.mod, curr.pred);
+                rxSymPyVars(pred.mod);
+                rxSymPySetupIf(pred.mod);
+                rxCondition(err.mod, curr.err);
+                rxSymPyVars(err.mod)
+                rxSymPySetupIf(err.mod)
+                lines <- rxIf__(c(curr.base, curr.err, curr.pred));
             }
-        }
-        newmod <- rxGetModel(paste(c(rxNorm(newmod), extraLines), collapse="\n"))
-        if (length(extraLines) == 0){
-            stop("Your error function does not depend on any of the state variables.")
-        }
+            rxCat(sprintf("## Calculate d(err)/d(eta) %s\n", lines));
+            newmod <- rxGetModel(paste0(rxNorm(obj), "\n", rxNorm(err.mod)));
+            newlines <- rxSymPySetupDPred(newmod, calcSens, prd="rx_r_")
+            lines <- c(lines, rxNorm(err.mod), newlines);
+            newmod <- rxGetModel(paste0(rxNorm(err.mod), "\n",
+                                        rxNorm(err.mod)));
+            if (lgl){
+                lines <- c(lines, "}")
+            }
+            rxSymPyClean()
+            rxCat(sprintf("## %sdone\n", ifelse(lgl, "}", "")));
+            return(paste(lines, collapse="\n"));
+        }), collapse="\n")
+    } else {
+        err <- ""
     }
     ## txt <- paste0(rxNorm(obj), "\n", txt);
-    return(RxODE(rxNorm(newmod)));
+    return(RxODE(paste0(base, "\n", pred, "\n", err)));
 }
 
 ## Supported Sympy special functions

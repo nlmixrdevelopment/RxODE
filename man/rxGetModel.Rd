@@ -4,14 +4,20 @@
 \alias{rxGetModel}
 \title{Get model properties without compiling it.}
 \usage{
-rxGetModel(model, calcSens = FALSE, calcJac = FALSE)
+rxGetModel(model, calcSens = FALSE, calcJac = FALSE,
+  collapseModel = FALSE)
 }
 \arguments{
 \item{model}{RxODE specification}
 
-\item{calcSens}{Calculate sensitivity vector/boolean}
+\item{calcSens}{boolean indicating if RxODE will calculate the
+sennsitivities according to the specified ODEs.}
 
-\item{calcJac}{Calculate jacobian}
+\item{calcJac}{boolean indicating if RxODE will calculate the
+Jacobain according to the specified ODEs.}
+
+\item{collapseModel}{boolean indicating if RxODE will remove all
+LHS variables when calculating sensitivites.}
 }
 \value{
 RxODE trans list
