@@ -394,20 +394,20 @@ void RxODE_ode_solver_old_c(int *neq,
 
 void RxODE_ode_free(){
   Free(InfusionRate);
-  /* Free(solve); */
-  /* Free(lhs); */
-  /* Free(rc); */
+  Free(solve);
+  Free(lhs);
+  Free(rc);
 }
 
 void RxODE_ode_alloc(){
-  /* solve         = (double *) Calloc(neq*n_all_times+1,double); */
-  solve = (double*) R_alloc(neq*n_all_times+1, sizeof(double));
-  /* lhs           = (double *) Calloc(nlhs,double); */
-  lhs = (double *) R_alloc(nlhs,sizeof(double));
-  InfusionRate  = (double *) Calloc(neq+2,double);
+  /* solve = (double*) R_alloc(neq*n_all_times+1, sizeof(double)); */
+  /* lhs = (double *) R_alloc(nlhs,sizeof(double)); */
   /* InfusionRate = (double *)R_alloc(neq+2,sizeof(double)); */
-  /* rc = (int *) Calloc(1,int); */
-  rc = (int *) R_alloc(1,sizeof(int));
+  /* rc = (int *) R_alloc(1,sizeof(int)); */
+  solve         = (double *) Calloc(neq*n_all_times+1,double);
+  lhs           = (double *) Calloc(nlhs,double);
+  InfusionRate  = (double *) Calloc(neq+2,double);
+  rc = (int *) Calloc(1,int);
   rc[0] = 0;
 }
 

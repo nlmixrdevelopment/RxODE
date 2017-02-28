@@ -876,7 +876,12 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
             // this is a parameter with an initial value.
             tb.ini[tb.ix] = 1;
             if (!strcmp("ini0",name)){
-              tb.ini0[tb.ix] = 1;
+	      if (strstr(v,"rx_")){
+		// These are not initilizations but constants
+	        tb.ini0[tb.ix] = 0;
+              } else {
+		tb.ini0[tb.ix] = 1;
+              }
             } else {
 	      tb.ini0[tb.ix] = 0;
 	    }
