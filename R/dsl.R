@@ -680,11 +680,11 @@ rxErrEnvF$prop <- function(est){
         theta.est <- paste0("(", (est / rxErrEnv.scale.to), "*", theta, ")")
     }
     if (rxErrEnv.diag.xform == "sqrt"){
-        ret <- (sprintf("rx_pred_ * (%s)^2", theta.est))
+        ret <- (sprintf("rx_pred_^2 * (%s)^2", theta.est))
     } else if (rxErrEnv.diag.xform == "log"){
-        ret <- (sprintf("rx_pred_ * exp(%s)", theta.est))
+        ret <- (sprintf("rx_pred_^2 * exp(%s)", theta.est))
     } else {
-        ret <- (sprintf("rx_pred_ * %s", theta.est))
+        ret <- (sprintf("rx_pred_^2 * %s", theta.est))
     }
     tmp <- rxErrEnv.diag.est;
     tmp[sprintf("THETA[%s]", rxErrEnv.theta)] <- as.numeric(est);
