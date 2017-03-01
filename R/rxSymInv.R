@@ -1,5 +1,5 @@
 rxSymInvC.slow <- NULL;  ## Memoize
-rxSymInvC <- function(mat1, diag.xform=c("sqrt", "log", "identity")){
+rxSymInvC <- function(mat1, mat, diag.xform=c("sqrt", "log", "identity"), scale.to=NULL){
     if (!exists(".Jython", .GlobalEnv)){
         rSymPy::sympyStart()
     }
@@ -25,6 +25,14 @@ rxSymInvC <- function(mat1, diag.xform=c("sqrt", "log", "identity")){
     d <- dim(mat1)[1];
     mat1 <- paste0("t", mat1);
     mat1[mat1 == "t-1"] <- "0";
+    if (!is.null(scale.to)){
+        mat0 <- as.vector(mat) / scale.to;
+        for (ii in 1:length(mat0)){
+            if (mat0[ii] != 0){
+                mat1[ii] <- sprintf("(%s*%s)", mat0[ii], mat1[ii]);
+            }
+        }
+    }
     mat1 <- matrix(mat1, d);
     diag.xform <- match.arg(diag.xform)
     if (diag.xform == "sqrt"){
@@ -152,9 +160,15 @@ rxSymInvC <- function(mat1, diag.xform=c("sqrt", "log", "identity")){
 ##' @keywords internal
 ##' @export
 rxSymInvCreate <- function(mat,
-                     diag.xform=c("sqrt", "log", "identity")){
+                           diag.xform=c("sqrt", "log", "identity"),
+                           scale.to=NULL){
     diag.xform <- match.arg(diag.xform);
-    ret <-rxSymInvC((mat>0)*1, diag.xform);
+    mat2 <- mat;
+    if (is.null(scale.to)){
+        mat2 <- NULL;
+    }
+    ret <-rxSymInvC(mat1=(mat>0)*1, mat=mat2,
+                    diag.xform=diag.xform, scale.to=scale.to);
     ret <- list(fmat=ret[[2]],
                 fn=inline::cfunction(signature(theta="numeric", oi="integer", tn="integer"), ret[[1]]));
     class(ret) <- "rxSymInv";
