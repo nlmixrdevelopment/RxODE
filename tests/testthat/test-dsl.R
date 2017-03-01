@@ -177,6 +177,13 @@ test_that("PK/Pred/Error function parsing.", {
     expect_error(rxParsePk(pk));
     expect_error(rxParsePred(pred));
     expect_error(rxParsePred(pred.for))
-    expect_error(rxParsePK(err));
+    expect_error(rxParsePk(err));
     expect_error(rxParsePred(err));
 })
+
+
+pk2 <- function(){
+    KA = exp(THETA[1])
+    CL = exp(THETA[2] + ETA[1])
+    V = exp(THETA[3] + ETA[2])
+}
