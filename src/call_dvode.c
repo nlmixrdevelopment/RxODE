@@ -49,6 +49,23 @@ void (*calc_jac)(unsigned int neq, double t, double *A, double *JAC, unsigned in
 void (*calc_lhs)(double t, double *A, double *lhs);
 
 
+double RxODE_safe_log(double x){
+  if (x == 0.0){
+    return log(sqrt(DOUBLE_EPS));
+  } else {
+    return log(x);
+  }
+}
+
+double RxODE_safe_zero(double x){
+  if (x == 0){
+    return sqrt(DOUBLE_EPS);
+  } else {
+    return(x);
+  }
+}
+
+
 /* Taken directly from https://github.com/wch/r-source/blob/922777f2a0363fd6fe07e926971547dd8315fc24/src/library/stats/src/approx.c*/
 
 typedef struct {
@@ -678,17 +695,17 @@ SEXP RxODE_ode_solver_focei_eta (SEXP sexp_eta, SEXP sexp_rho){
 	  if (do_nonmem){
 	    REAL(VECTOR_ELT(sexp_a, j-1))[k] = lhs[j];
 	  } else {
-	    REAL(VECTOR_ELT(sexp_a, j-1))[k] = lhs[j]-err[k]/lhs[neta+1]*lhs[j+neta+1];
+	    REAL(VECTOR_ELT(sexp_a, j-1))[k] = lhs[j]-err[k]/RxODE_safe_zero(lhs[neta+1])*lhs[j+neta+1];
           }
         }
-        r[k]=lhs[j];
+        r[k]=abs(lhs[j]); // R alwyas has to be positive.
         /* logR[k]=log(lhs[j]); */
         /* Rinv[k]=1/lhs[j]; */
         B[k]=2/lhs[j];
         for (j=neta+2; j < nlhs; j++){
           /* Rprintf("j: %d; Adj: %d; k: %d\n",j, j-neta-2,k); */
           rp[(n_all_times-ixds)*(j-neta-2)+k] = lhs[j];
-          REAL(VECTOR_ELT(sexp_c, j-neta-2))[k] = lhs[j]/r[k];
+          REAL(VECTOR_ELT(sexp_c, j-neta-2))[k] = lhs[j]/RxODE_safe_zero(r[k]);
           /* Rprintf("Found %d\n",REAL(VECTOR_ELT(sexp_c, j-1-(nlhs-1)/2))[0]); */
           /* c[(n_all_times-ixds)*(j-1-(nlhs-1)/2)+k]  = lhs[j+1]/r[k]; */
         }
@@ -698,7 +715,7 @@ SEXP RxODE_ode_solver_focei_eta (SEXP sexp_eta, SEXP sexp_rho){
             0.25 * err[k] * err[k] * B[k] * REAL(VECTOR_ELT(sexp_c, j))[k] -
             0.5 * REAL(VECTOR_ELT(sexp_c, j))[k];
         }
-        llik[0] += -0.5*(err[k]*err[k]/r[k]+log(r[k]));
+        llik[0] += -0.5*(err[k]*err[k]/RxODE_safe_zero(r[k])+RxODE_safe_log(r[k]));
         k++;
       }
     }
@@ -909,22 +926,6 @@ double RxODE_transit3(double t, double n, double mtt){
 
 double RxODE_factorial(double x){
   return exp(lgamma1p(x));
-}
-
-double RxODE_safe_log(double x){
-  if (x == 0.0){
-    return log(sqrt(DOUBLE_EPS));
-  } else {
-    return log(x);
-  }
-}
-
-double RxODE_safe_zero(double x){
-  if (x == 0){
-    return sqrt(DOUBLE_EPS);
-  } else {
-    return(x);
-  }
 }
 
 void R_init_RxODE(DllInfo *info){

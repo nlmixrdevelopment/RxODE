@@ -166,5 +166,22 @@ rxFoceiInner.rxDll <- function(object, ..., dv, eta, omegaInv,
                            max_linesearch=max_linesearch, min_step=min_step, max_step=max_step,
                            ftol=ftol, wolfe=wolfe, gtol=gtol, orthantwise_c=orthantwise_c,
                            orthantwise_start=orthantwise_start, orthantwise_end = orthantwise_end);
-    return(RxODE_focei_finalize_llik(env));
+    return(tryCatch({RxODE_focei_finalize_llik(env)},
+                    error=function(e){
+        if (any(is.nan(as.vector(env$H)))){
+            cat("Warning: Underflow/overflow; resetting ETAs to 0.\n");
+            eta <- rep(0, length(env$eta));
+            print(env$params);
+            RxODE_focei_eta_lik(eta, env);
+            RxODE_focei_eta_lp(eta, env);
+            print(as.list(env));
+            RxODE_focei_finalize_llik(env);
+        } else {
+            cat("Warning: Hessian not positive definite (correcting with nearPD)\n");
+            assign("err.env", env, envir=globalenv());
+            print(env$H);
+            env$H <- -as.matrix(Matrix::nearPD(-env$H)$mat);
+            RxODE_focei_finalize_llik(env)
+        }
+    }))
 }

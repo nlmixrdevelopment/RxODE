@@ -1,5 +1,6 @@
 context("Focei checks");
 rxPermissive({
+
     mat.indices <- function(nETA){
         idx = do.call("rbind",
                       lapply(1:nETA, function(k) cbind(k:nETA, k)))

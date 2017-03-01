@@ -49,6 +49,7 @@ NumericVector RxODE_focei_finalize_llik(SEXP rho){
   RxODE_ode_solver_focei_hessian(rho);
   Environment e = as<Environment>(rho);
   // I'm not sure why/if this is more efficient, it is equavialent to -1/2 log(det(-H)).
+  // the det(-H) is larger, perhaps protects from overflow.
   mat c = chol(-as<mat>(e["H"]));
   vec diag = c.diag();
   vec ldiag = log(diag);
