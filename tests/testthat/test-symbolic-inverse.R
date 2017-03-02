@@ -10,9 +10,10 @@ rxPermissive({
 
     mat2 <- matrix(c(1, 0.5, 0.5, 1), 2);
     symo <- rxSymInvCreate(mat2);
+
     test_that("Creates the correct matricies,", {
         expect_equal(digest::digest(as.list(symo %>% rxSymInv(1:3))),
-                     "cbc5bf9bc22a8fd6f7b7801d23e08293");
+                     "8bdf60e2cb4048314b95158f77727885");
         expect_equal(symo %>% rxSymInv(1:3, pow=1), structure(c(1, 2, 2, 9), .Dim = c(2L, 2L)));
         expect_equal(symo %>% rxSymInv(1:3, pow=1, 1), structure(c(2, 0, 0, 0), .Dim = c(2L, 2L)));
         expect_equal(symo %>% rxSymInv(1:3, pow=1, 2), structure(c(0, 1, 1, 0), .Dim = c(2L, 2L)));
@@ -24,6 +25,7 @@ rxPermissive({
         expect_error(symo %>% rxSymInv(1:2))
         expect_error(symo %>% rxSymInv(1:4))
         expect_equal(symo %>% rxSymInv(1:3, pow= -1), structure(c(1.8, -0.4, -0.4, 0.2), .Dim = c(2L, 2L)));
+        expect_equal(symo %>% rxSymInv(c(1, 0.5, 2), -1, 0.5), 0.5 * log(det(symo %>% rxSymInv(c(1, 0.5, 2), -1))))
         f <- tempfile();
         sink(f)
         print(symo)

@@ -53,11 +53,16 @@ rxSymInvC <- function(mat1, mat, diag.xform=c("sqrt", "log", "identity"), scale.
     }
     rxCat("Calculate symbolic inverse...");
     sympy.inv <- rSymPy::sympy(sprintf("(%s).inv()", sympy.mat));
-    rxCat("done\n");
+    sympy.inv.det <- sprintf("(Matrix([%s])).det()", gsub("[\n]", ", ", sympy.inv));
     sympy.inv <- gsub(rex::rex(start, any_spaces, "[", any_spaces,
                                capture(anything), any_spaces, "]", any_spaces, end),
                       "\\1", strsplit(sympy.inv, "\n")[[1]]);
     sympy.inv <- matrix(unlist(strsplit(sympy.inv, rex::rex(",", any_spaces))), d, byrow=TRUE);
+    rxCat("done\n");
+    rxCat("Calculate symbolic determinant of inverse...");
+    sympy.inv.det <- rSymPy::sympy(sympy.inv.det);
+    sympy.inv.det <- sympyC(sympy.inv.det);
+    rxCat("done\n");
     v <- vars[1]
     rxCat("Calculate d(Omega)/d(Est) and d(Omega^-1)/d(Est)...\n");
     cnt.i <- 0;
@@ -128,6 +133,13 @@ rxSymInvC <- function(mat1, mat, diag.xform=c("sqrt", "log", "identity"), scale.
                    "SEXP ret = PROTECT(allocVector(REALSXP,1));",
                    "if (theta_n == 0){",
                    sprintf("REAL(ret)[0] = %d;", d),
+                   "} else if (theta_n == -1){",
+                   sprintf("REAL(ret)[0] = %s;", sympy.inv.det),
+                   "if (REAL(ret)[0] > 0){",
+                   "REAL(ret)[0] = 0.5*log(REAL(ret)[0]);",
+                   "} else {",
+                   "error(\"Omega^-1 not positive definite\");",
+                   "}",
                    "} else {",
                    sprintf("REAL(ret)[0] = %d;", length(vars)),
                    "}",
@@ -188,10 +200,11 @@ print.rxSymInv <- function(x, ...){
 ##' @param theta Thetas to be used for calculation
 ##' @param pow Power of Omega, either 1 or -1 for inverse.  If 0,
 ##'     return an environment with all possible deriatives and Omegas
-##'     caluclated.
+##'     caluclated
 ##' @param dTheta the theta number to take the derivative.  That is
 ##'     d(Omega)/dTheta.  When dTheta = 0, just return the Omega or
-##'     Omega^-1 matrix
+##'     Omega^-1 matrix.  Also can be 0.5.  When 0.5 and pow is -1,
+##'     return -1/2*log(det(omegaInv)).
 ##' @return Matrix based on parameters or environment with all the
 ##'     matrixes calculated in variables omega, omegaInv, dOmega,
 ##'     dOmegaInv.
@@ -204,7 +217,10 @@ rxSymInv <- function(invobj, theta, pow=0, dTheta=0){
         if (!any(pow == c(1, 0, -1))){
             stop("The power can only be 1, 0, or -1");
         }
-        ntheta <- invobj$fn(as.double(0), as.integer(0), as.integer(1));
+        if (pow == -1 && dTheta == 0.5){
+            return(invobj$fn(theta, 0L, -1L))
+        }
+        ntheta <- invobj$fn(0, 0L, 1L);
         if (dTheta < 0 || round(dTheta) != dTheta || dTheta > ntheta) {
             stop(sprintf("dTheta can be any integer from 0 to %s", ntheta));
         }
@@ -214,14 +230,22 @@ rxSymInv <- function(invobj, theta, pow=0, dTheta=0){
         if (pow == 0){
             ret <- new.env(parent=emptyenv());
             theta <- as.double(theta);
-            ret$omega <- invobj$fn(theta, as.integer(1), as.integer(0));
-            ret$omegaInv <- invobj$fn(theta, as.integer(-1), as.integer(0));
+            ret$omega <- invobj$fn(theta, 1L, 0L);
+            ret$omegaInv <- invobj$fn(theta, -1L, 0L);
             ret$dOmega <- list();
             ret$dOmegaInv <- list();
             for (i in seq(1, ntheta)){
-                ret$dOmega[[i]] <- invobj$fn(theta, as.integer(1), as.integer(i));
-                ret$dOmegaInv[[i]] <- invobj$fn(theta, as.integer(-1), as.integer(i));
+                ret$dOmega[[i]] <- invobj$fn(theta, 1L, as.integer(i));
+                ret$dOmegaInv[[i]] <- invobj$fn(theta, -1L, as.integer(i));
             }
+            tryCatch({ret$log.det.OMGAinv.5 <- invobj$fn(theta,0L, -1L)},
+                     error=function(e){
+                cat("Warning: Omega^-1 not positive definite (correcting with nearPD)\n");
+                old <- ret$omegaInv
+                ret$omegaInv <- as.matrix(Matrix::nearPD(ret$omegaInv)$mat);
+                RxODE_finalize_log_det_OMGAinv_5(ret);
+                ret$omegaInv <- old;
+            })
             return(ret)
         } else {
             return(invobj$fn(as.double(theta), as.integer(pow), as.integer(dTheta)));

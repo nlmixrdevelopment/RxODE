@@ -13,11 +13,12 @@ rxSymInv(invobj, theta, pow = 0, dTheta = 0)
 
 \item{pow}{Power of Omega, either 1 or -1 for inverse.  If 0,
 return an environment with all possible deriatives and Omegas
-caluclated.}
+caluclated}
 
 \item{dTheta}{the theta number to take the derivative.  That is
 d(Omega)/dTheta.  When dTheta = 0, just return the Omega or
-Omega^-1 matrix}
+Omega^-1 matrix.  Also can be 0.5.  When 0.5 and pow is -1,
+return -1/2*log(det(omegaInv)).}
 }
 \value{
 Matrix based on parameters or environment with all the
