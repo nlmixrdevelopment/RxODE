@@ -2,11 +2,15 @@
 % Please edit documentation in R/focei.R
 \name{rxFoceiEta}
 \alias{rxFoceiEta}
+\alias{rxFoceiEta.rxFocei}
 \alias{rxFoceiEta.RxODE}
 \alias{rxFoceiEta.rxDll}
 \title{FOCEI ETA setup,}
 \usage{
 rxFoceiEta(object, ..., dv, eta, omegaInv, env, nonmem = FALSE)
+
+\method{rxFoceiEta}{rxFocei}(object, ..., dv, eta, omegaInv, env,
+  nonmem = FALSE)
 
 \method{rxFoceiEta}{RxODE}(object, ..., dv, eta, omegaInv, env, nonmem)
 

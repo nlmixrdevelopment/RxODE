@@ -583,7 +583,7 @@ rxAddReturn <- function(fn, ret=TRUE){
     if (ret){
         if (regexpr(rex::rex(or(boundary, start), "return(", anything, ")"), txt[length(txt)], perl=TRUE) == -1){
             ## Add return statement
-            if (regexpr(rex::rex("}"), txt[length(txt)]) == -1){
+            if (regexpr(rex::rex(or("=", "~", "<-", "}")), txt[length(txt)]) == -1){
                 txt[length(txt)] <- gsub(rex::rex(start, any_spaces, capture(anything), or(";", ""), any_spaces, end), "return(\\1);", txt[length(txt)]);
             }
         }
@@ -779,6 +779,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars, errfn, init=NULL, grad=FALSE){
     if (some.pred){
         warning("Some of your prediction function does not depend on the state varibles.");
     }
+    extra.pars <- c();
     if (!missing(errfn)){
         pars <- rxParams(newmod);
         w <- which(sapply(pars, function(x){
@@ -831,8 +832,15 @@ rxSymPySetupPred <- function(obj, predfn, pkpars, errfn, init=NULL, grad=FALSE){
     } else {
         err <- ""
     }
-    ## txt <- paste0(rxNorm(obj), "\n", txt);
-    return(RxODE(paste0(base, "\n", pred, "\n", err)));
+    if (!grad){
+        ret <- list(obj=obj,
+                    inner=RxODE(paste0(base, "\n", pred, "\n", err)),
+                    extra.pars=extra.pars);
+        class(ret) <- "rxFocei";
+        return(ret);
+    } else {
+        return(RxODE(paste0(base, "\n", pred, "\n", err)));
+    }
 }
 
 ## Supported Sympy special functions

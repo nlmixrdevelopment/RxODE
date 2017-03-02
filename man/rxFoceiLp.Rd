@@ -2,11 +2,14 @@
 % Please edit documentation in R/focei.R
 \name{rxFoceiLp}
 \alias{rxFoceiLp}
+\alias{rxFoceiLp.rxFocei}
 \alias{rxFoceiLp.RxODE}
 \alias{rxFoceiLp.rxDll}
 \title{Get -Grad for individual}
 \usage{
 rxFoceiLp(object, ..., dv, eta, omegaInv)
+
+\method{rxFoceiLp}{rxFocei}(object, ..., dv, eta, omegaInv)
 
 \method{rxFoceiLp}{RxODE}(object, ..., dv, eta, omegaInv)
 

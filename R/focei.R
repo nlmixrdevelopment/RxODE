@@ -41,6 +41,14 @@ rxFoceiEtaSetup <- function(object, ..., dv, eta, omegaInv, nonmem=FALSE, log.de
 rxFoceiEta <- function(object, ..., dv, eta, omegaInv, env, nonmem=FALSE){
     UseMethod("rxFoceiEta");
 }
+
+##' @rdname rxFoceiEta
+rxFoceiEta.rxFocei <- function(object, ..., dv, eta, omegaInv, env, nonmem=FALSE){
+    args <- as.list(match.call(expand.dots=TRUE))[-1];
+    args$object <- object$inner$cmpMgr$rxDll();
+    return(do.call(getFromNamespace("rxFoceiEta.rxDll", "RxODE"), args, envir=parent.frame(1)));
+}
+
 ##' @rdname rxFoceiEta
 rxFoceiEta.RxODE <- function(object, ..., dv, eta, omegaInv, env, nonmem){
     args <- as.list(match.call(expand.dots=TRUE))[-1];
@@ -68,8 +76,16 @@ rxFoceiLik <- function(object, ..., dv, eta, omegaInv){
     UseMethod("rxFoceiLik");
 }
 ##' @rdname rxFoceiLik
+rxFoceiLik.rxFocei <- function(object, ..., dv, eta, omegaInv){
+    args <- as.list(match.call(expand.dots=TRUE))[-1];
+    args$object <- object$inner$cmpMgr$rxDll();
+    return(do.call(getFromNamespace("rxFoceiLik.rxDll", "RxODE"), args, envir=parent.frame(1)));
+}
+##' @rdname rxFoceiLik
 rxFoceiLik.RxODE <- function(object, ..., dv, eta, omegaInv){
-    return(rxFoceiLik.rxDll(object=object$cmpMgr$rxDll(), ..., dv=dv, eta=eta, omegaInv=omegaInv));
+    args <- as.list(match.call(expand.dots=TRUE))[-1];
+    args$object <- object$cmpMgr$rxDll();
+    return(do.call(getFromNamespace("rxFoceiLik.rxDll", "RxODE"), args, envir=parent.frame(1)));
 }
 ##' @rdname rxFoceiLik
 rxFoceiLik.rxDll <- function(object, ..., dv, eta, omegaInv){
@@ -90,8 +106,16 @@ rxFoceiLp <- function(object, ..., dv, eta, omegaInv){
     UseMethod("rxFoceiLp");
 }
 ##' @rdname rxFoceiLp
+rxFoceiLp.rxFocei <- function(object, ..., dv, eta, omegaInv){
+    args <- as.list(match.call(expand.dots=TRUE))[-1];
+    args$object <- object$inner$cmpMgr$rxDll();
+    return(do.call(getFromNamespace("rxFoceiLp.rxDll", "RxODE"), args, envir=parent.frame(1)));
+}
+##' @rdname rxFoceiLp
 rxFoceiLp.RxODE <- function(object, ..., dv, eta, omegaInv){
-    return(rxFoceiLp.rxDll(object=object$cmpMgr$rxDll(), ..., dv=dv, eta=eta, omegaInv=omegaInv));
+    args <- as.list(match.call(expand.dots=TRUE))[-1];
+    args$object <- object$cmpMgr$rxDll();
+    return(do.call(getFromNamespace("rxFoceiLp.rxDll", "RxODE"), args, envir=parent.frame(1)));
 }
 ##' @rdname rxFoceiLp
 rxFoceiLp.rxDll <- function(object, ..., dv, eta, omegaInv){
@@ -137,6 +161,18 @@ rxFoceiInner <- function(object, ..., dv, eta, omegaInv,
 }
 ##' @rdname rxFoceiInner
 ##' @export
+rxFoceiInner.rxFocei <- function(object, ..., dv, eta, omegaInv,
+                               invisible = 0, m = 6, epsilon = 1e-05, past = 0, delta = 0,
+                               max_iterations = 0, linesearch_algorithm = "LBFGS_LINESEARCH_DEFAULT",
+                               max_linesearch = 20, min_step = 1e-20, max_step = 1e+20,
+                               ftol = 1e-04, wolfe = 0.9, gtol = 0.9, orthantwise_c = 0,
+                               orthantwise_start = 0, orthantwise_end = length(eta)){
+    args <- as.list(match.call(expand.dots=TRUE))[-1];
+    args$object <- object$inner$cmpMgr$rxDll();
+    return(do.call(getFromNamespace("rxFoceiInner.rxDll", "RxODE"), args, envir=parent.frame(1)));
+}
+##' @rdname rxFoceiInner
+##' @export
 rxFoceiInner.RxODE <- function(object, ..., dv, eta, omegaInv,
                                invisible = 0, m = 6, epsilon = 1e-05, past = 0, delta = 0,
                                max_iterations = 0, linesearch_algorithm = "LBFGS_LINESEARCH_DEFAULT",
@@ -171,15 +207,11 @@ rxFoceiInner.rxDll <- function(object, ..., dv, eta, omegaInv,
         if (any(is.nan(as.vector(env$H)))){
             cat("Warning: Underflow/overflow; resetting ETAs to 0.\n");
             eta <- rep(0, length(env$eta));
-            print(env$params);
             RxODE_focei_eta_lik(eta, env);
             RxODE_focei_eta_lp(eta, env);
-            print(as.list(env));
             RxODE_focei_finalize_llik(env);
         } else {
             cat("Warning: Hessian not positive definite (correcting with nearPD)\n");
-            assign("err.env", env, envir=globalenv());
-            print(env$H);
             env$H <- -as.matrix(Matrix::nearPD(-env$H)$mat);
             RxODE_focei_finalize_llik(env)
         }

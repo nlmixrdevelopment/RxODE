@@ -48,16 +48,27 @@ XPtr<rxFn2> RxODE_focei_eta(std::string fstr){
 NumericVector RxODE_focei_finalize_llik(SEXP rho){
   RxODE_ode_solver_focei_hessian(rho);
   Environment e = as<Environment>(rho);
-  // I'm not sure why/if this is more efficient, it is equavialent to -1/2 log(det(-H)).
-  // the det(-H) is larger, perhaps protects from overflow.
+  // Calculate -1/2 log(det(-H)) by chol.
   mat c = chol(-as<mat>(e["H"]));
   vec diag = c.diag();
   vec ldiag = log(diag);
-  // I don't understand the log.det.OMGAinv.5 piece, but we can add it in later?
   NumericVector ret = -as<NumericVector>(e["llik2"]);
+  // log(det(omegaInv^1/2)) = 1/2*log(det(omegaInv))
   ret += as<NumericVector>(e["log.det.OMGAinv.5"]);
   ret += -as<NumericVector>(wrap(sum(ldiag)));
   ret.attr("fitted") = as<NumericVector>(e["f"]);
   ret.attr("posthoc") = as<NumericVector>(e["eta"]);
+  return ret;
+}
+
+// [[Rcpp::export]]
+NumericVector RxODE_finalize_log_det_OMGAinv_5(SEXP rho){
+  // log(det(omegaInv^1/2)) = 1/2*log(det(omegaInv))
+  Environment e = as<Environment>(rho);
+  mat c = chol(as<mat>(e["omegaInv"]));
+  vec diag = c.diag();
+  vec ldiag = log(diag);
+  NumericVector ret = as<NumericVector>(wrap(sum(ldiag)));
+  e["log.det.OMGAinv.5"] = ret;
   return ret;
 }

@@ -698,7 +698,11 @@ SEXP RxODE_ode_solver_focei_eta (SEXP sexp_eta, SEXP sexp_rho){
 	    REAL(VECTOR_ELT(sexp_a, j-1))[k] = lhs[j]-err[k]/RxODE_safe_zero(lhs[neta+1])*lhs[j+neta+1];
           }
         }
-        r[k]=abs(lhs[j]); // R alwyas has to be positive.
+	if (lhs[j] <= 0){
+	  RxODE_ode_free();
+	  error("A covariance term is zero or negative and should remain positive.");
+	}
+        r[k]=lhs[j]; // R always has to be positive.
         /* logR[k]=log(lhs[j]); */
         /* Rinv[k]=1/lhs[j]; */
         B[k]=2/lhs[j];

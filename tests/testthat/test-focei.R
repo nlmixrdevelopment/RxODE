@@ -43,7 +43,7 @@ rxPermissive({
     ## err ~ prop(.1) + add(.2)
 
     err <- function(f){
-        return(f * theta[4]); ## Theta 4 is residual sd for proportional error.
+        return(f ^ 2* theta[4] ^ 2); ## Theta 4 is residual sd for proportional error.
     }
 
     err2 <- function(f){
@@ -115,15 +115,15 @@ rxPermissive({
     m2f <- rxSymPySetupPred(m2, pred2, pk, err5)
 
     test_that("1, 2 and 3 parameter Pred Setup works", {
-        expect_equal(class(m2a1), "RxODE")
-        expect_equal(class(m2a2), "RxODE")
-        expect_equal(class(m2a), "RxODE")
-        expect_equal(class(m2b), "RxODE")
-        expect_equal(class(m2c), "RxODE")
-        expect_equal(class(m2d), "RxODE")
-        expect_equal(class(m2e), "RxODE")
-        expect_equal(class(m2f), "RxODE")
-        expect_true(length(rxInit(m2f)) == 0)
+        expect_equal(class(m2a1), "rxFocei")
+        expect_equal(class(m2a2), "rxFocei")
+        expect_equal(class(m2a), "rxFocei")
+        expect_equal(class(m2b), "rxFocei")
+        expect_equal(class(m2c), "rxFocei")
+        expect_equal(class(m2d), "rxFocei")
+        expect_equal(class(m2e), "rxFocei")
+        expect_equal(class(m2f), "rxFocei")
+        expect_true(length(rxInit(m2f$inner)) == 0)
     })
 
 
@@ -142,11 +142,14 @@ rxPermissive({
 
     log.det.OMGAinv.5 <- 0.5756463
 
-    tmp1 <- m2a %>% solve(et, theta=c(2, 1.6, 4.5,0.01), eta=c(0.01, -0.01), log.det.OMGAinv.5=log.det.OMGAinv.5)
+    tmp1 <- m2a$inner %>% solve(et, theta=c(2, 1.6, 4.5,0.01), eta=c(0.01, -0.01), log.det.OMGAinv.5=log.det.OMGAinv.5)
+
     tmp2 <- m2a %>% rxFoceiEta(et, theta=c(2, 1.6, 4.5,0.01), eta=c(0.01, -0.01),dv=dv, omegaInv=omegaInv, log.det.OMGAinv.5=log.det.OMGAinv.5)
+
     tmp2.nm <- m2a %>% rxFoceiEta(et, theta=c(2, 1.6, 4.5,0.01), eta=c(0.01, -0.01),dv=dv, omegaInv=omegaInv, nonmem=TRUE, log.det.OMGAinv.5=log.det.OMGAinv.5)
 
     tmp3 <- m2a %>% rxFoceiLik(et, theta=c(2, 1.6, 4.5,0.01), eta=c(0.01, -0.01),dv=dv, omegaInv=omegaInv, log.det.OMGAinv.5=log.det.OMGAinv.5)
+
     tmp4 <- m2a %>% rxFoceiLp(et, theta=c(2, 1.6, 4.5,0.01), eta=c(0.01, -0.01),dv=dv, omegaInv=omegaInv, log.det.OMGAinv.5=log.det.OMGAinv.5)
 
     tmp5 <- m2a %>%rxFoceiInner(et, theta=c(2, 1.6, 4.5,0.01), eta=c(10, 10),dv=dv, omegaInv=omegaInv, invisible=1, log.det.OMGAinv.5=log.det.OMGAinv.5)

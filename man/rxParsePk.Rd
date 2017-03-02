@@ -4,7 +4,7 @@
 \alias{rxParsePk}
 \title{Parse PK function for inclusion in RxODE}
 \usage{
-rxParsePk(x)
+rxParsePk(x, init = NULL)
 }
 \arguments{
 \item{x}{PK function}

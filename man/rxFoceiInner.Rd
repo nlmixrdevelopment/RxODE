@@ -2,12 +2,20 @@
 % Please edit documentation in R/focei.R
 \name{rxFoceiInner}
 \alias{rxFoceiInner}
+\alias{rxFoceiInner.rxFocei}
 \alias{rxFoceiInner.RxODE}
 \alias{rxFoceiInner.rxDll}
 \title{Solve the FOCEI inner problem}
 \usage{
 rxFoceiInner(object, ..., dv, eta, omegaInv, invisible = 0, m = 6,
   epsilon = 1e-05, past = 0, delta = 0, max_iterations = 0,
+  linesearch_algorithm = "LBFGS_LINESEARCH_DEFAULT", max_linesearch = 20,
+  min_step = 1e-20, max_step = 1e+20, ftol = 1e-04, wolfe = 0.9,
+  gtol = 0.9, orthantwise_c = 0, orthantwise_start = 0,
+  orthantwise_end = length(eta))
+
+\method{rxFoceiInner}{rxFocei}(object, ..., dv, eta, omegaInv, invisible = 0,
+  m = 6, epsilon = 1e-05, past = 0, delta = 0, max_iterations = 0,
   linesearch_algorithm = "LBFGS_LINESEARCH_DEFAULT", max_linesearch = 20,
   min_step = 1e-20, max_step = 1e+20, ftol = 1e-04, wolfe = 0.9,
   gtol = 0.9, orthantwise_c = 0, orthantwise_start = 0,

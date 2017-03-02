@@ -4,7 +4,8 @@
 \alias{rxSymInvCreate}
 \title{Creates an object for caluclating Omega/Omega^-1 and dervatives}
 \usage{
-rxSymInvCreate(mat, diag.xform = c("sqrt", "log", "identity"))
+rxSymInvCreate(mat, diag.xform = c("sqrt", "log", "identity"),
+  scale.to = NULL)
 }
 \arguments{
 \item{mat}{Initial Omega matrix}

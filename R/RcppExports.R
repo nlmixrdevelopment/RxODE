@@ -17,3 +17,7 @@ RxODE_focei_finalize_llik <- function(rho) {
     .Call('RxODE_RxODE_focei_finalize_llik', PACKAGE = 'RxODE', rho)
 }
 
+RxODE_finalize_log_det_OMGAinv_5 <- function(rho) {
+    .Call('RxODE_RxODE_finalize_log_det_OMGAinv_5', PACKAGE = 'RxODE', rho)
+}
+

@@ -54,3 +54,14 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// RxODE_finalize_log_det_OMGAinv_5
+NumericVector RxODE_finalize_log_det_OMGAinv_5(SEXP rho);
+RcppExport SEXP RxODE_RxODE_finalize_log_det_OMGAinv_5(SEXP rhoSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type rho(rhoSEXP);
+    rcpp_result_gen = Rcpp::wrap(RxODE_finalize_log_det_OMGAinv_5(rho));
+    return rcpp_result_gen;
+END_RCPP
+}

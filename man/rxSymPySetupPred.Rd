@@ -4,7 +4,7 @@
 \alias{rxSymPySetupPred}
 \title{Setup Pred function based on RxODE object.}
 \usage{
-rxSymPySetupPred(obj, predfn, pkpars, errfn)
+rxSymPySetupPred(obj, predfn, pkpars, errfn, init = NULL, grad = FALSE)
 }
 \arguments{
 \item{obj}{RxODE object}
@@ -14,6 +14,10 @@ rxSymPySetupPred(obj, predfn, pkpars, errfn)
 \item{pkpars}{Pk Pars function}
 
 \item{errfn}{Error function}
+
+\item{init}{Initialization parameters for scaling.}
+
+\item{grad}{Boolaen indicated if the the equations for the gradient be calculated}
 }
 \value{
 RxODE object expanded with predfn and with calculated sensitivities.
