@@ -72,3 +72,54 @@ NumericVector RxODE_finalize_log_det_OMGAinv_5(SEXP rho){
   e["log.det.OMGAinv.5"] = ret;
   return ret;
 }
+
+
+// [[Rcpp::export]]
+void RxODE_finalize_focei_omega(SEXP rho){
+  Environment e = as<Environment>(rho);
+  List dOmega = as<List>(e["dOmega"]);
+  mat omegaInv = as<mat>(e["omegaInv"]);
+  mat c;
+  vec diag;
+  int ntheta = dOmega.length();
+  NumericVector trInv(ntheta);
+  List prod1(ntheta);
+  int i;
+  for (i = 0; i < ntheta; i++){
+    c = omegaInv * as<mat>(dOmega[i]);
+    diag = c.diag();
+    trInv[i] = 0.5*sum(diag);
+    c = c * omegaInv;
+    prod1[i] = c;
+  }
+  e["tr.omegaInv.dOmega.0.5"] = trInv;
+  e["omegaInv.dOmega.omegaInv"] = prod1;
+}
+
+//' Calculate d(eta)/d(omega)
+//'
+//' @param eta the eta to caluclate the differential for.
+//'
+//' @param rho environment where omegaInv.dOmega.omegaInv and tr.omegaInv.dOmega.0.5
+//' are calculated.  This is done with the rxSymInv function.
+//'
+//' @keywords internal
+//' @export
+// [[Rcpp::export]]
+NumericVector rxDetaDomega(SEXP rho, SEXP eta_sexp){
+  Environment e = as<Environment>(rho);
+  List dOmega = as<List>(e["omegaInv.dOmega.omegaInv"]);
+  NumericVector omegaInv = as<NumericVector>(e["tr.omegaInv.dOmega.0.5"]);
+  mat eta = as<mat>(eta_sexp);
+  mat c;
+  vec ret;
+  int ntheta = dOmega.length();
+  NumericVector dEta(ntheta);
+  int i;
+  for (i = 0; i < ntheta; i++){
+    c = 0.5*(eta.t() * as<mat>(dOmega[i]) * eta);
+    ret = c.diag()-omegaInv[i];
+    dEta[i] = sum(ret);
+  }
+  return(dEta);
+}

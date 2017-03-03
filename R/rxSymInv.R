@@ -53,7 +53,8 @@ rxSymInvC <- function(mat1, mat, diag.xform=c("sqrt", "log", "identity"), scale.
     }
     rxCat("Calculate symbolic inverse...");
     sympy.inv <- rSymPy::sympy(sprintf("(%s).inv()", sympy.mat));
-    sympy.inv.det <- sprintf("(Matrix([%s])).det()", gsub("[\n]", ", ", sympy.inv));
+    sympy.inv.txt <- sprintf("Matrix([%s])", gsub("[\n]", ", ", sympy.inv));
+    sympy.inv.det <- sprintf("(%s).det()", sympy.inv.txt);
     sympy.inv <- gsub(rex::rex(start, any_spaces, "[", any_spaces,
                                capture(anything), any_spaces, "]", any_spaces, end),
                       "\\1", strsplit(sympy.inv, "\n")[[1]]);
@@ -176,12 +177,22 @@ rxSymInvCreate <- function(mat,
                            scale.to=NULL){
     diag.xform <- match.arg(diag.xform);
     mat2 <- mat;
-    if (is.null(scale.to)){
-        mat2 <- NULL;
+    elts <- as.vector(mat)[which(as.vector(lower.tri(mat,TRUE))*1==1)];
+    th.unscaled <- c();
+    for (i in 1:length(elts)){
+        if (elts[i] != 0){
+            th.unscaled[length(th.unscaled) + 1] <- elts[i];
+        }
     }
     ret <-rxSymInvC(mat1=(mat>0)*1, mat=mat2,
                     diag.xform=diag.xform, scale.to=scale.to);
+    th <- th.unscaled;
+    if (!is.null(scale.to)){
+        th <- rep(scale.to, length(th.unscaled))
+    }
     ret <- list(fmat=ret[[2]],
+                th.unscaled=th.unscaled,
+                th=th,
                 fn=inline::cfunction(signature(theta="numeric", oi="integer", tn="integer"), ret[[1]]));
     class(ret) <- "rxSymInv";
     return(ret);
@@ -246,6 +257,7 @@ rxSymInv <- function(invobj, theta, pow=0, dTheta=0){
                 RxODE_finalize_log_det_OMGAinv_5(ret);
                 ret$omegaInv <- old;
             })
+            RxODE_finalize_focei_omega(ret);
             return(ret)
         } else {
             return(invobj$fn(as.double(theta), as.integer(pow), as.integer(dTheta)));

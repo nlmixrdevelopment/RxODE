@@ -65,3 +65,25 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// RxODE_finalize_focei_omega
+void RxODE_finalize_focei_omega(SEXP rho);
+RcppExport SEXP RxODE_RxODE_finalize_focei_omega(SEXP rhoSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type rho(rhoSEXP);
+    RxODE_finalize_focei_omega(rho);
+    return R_NilValue;
+END_RCPP
+}
+// rxDetaDomega
+NumericVector rxDetaDomega(SEXP rho, SEXP eta_sexp);
+RcppExport SEXP RxODE_rxDetaDomega(SEXP rhoSEXP, SEXP eta_sexpSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type rho(rhoSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type eta_sexp(eta_sexpSEXP);
+    rcpp_result_gen = Rcpp::wrap(rxDetaDomega(rho, eta_sexp));
+    return rcpp_result_gen;
+END_RCPP
+}

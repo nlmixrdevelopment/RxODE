@@ -21,3 +21,20 @@ RxODE_finalize_log_det_OMGAinv_5 <- function(rho) {
     .Call('RxODE_RxODE_finalize_log_det_OMGAinv_5', PACKAGE = 'RxODE', rho)
 }
 
+RxODE_finalize_focei_omega <- function(rho) {
+    invisible(.Call('RxODE_RxODE_finalize_focei_omega', PACKAGE = 'RxODE', rho))
+}
+
+#' Calculate d(eta)/d(omega)
+#'
+#' @param eta the eta to caluclate the differential for.
+#'
+#' @param rho environment where omegaInv.dOmega.omegaInv and tr.omegaInv.dOmega.0.5
+#' are calculated.  This is done with the rxSymInv function.
+#'
+#' @keywords internal
+#' @export
+rxDetaDomega <- function(rho, eta_sexp) {
+    .Call('RxODE_rxDetaDomega', PACKAGE = 'RxODE', rho, eta_sexp)
+}
+
