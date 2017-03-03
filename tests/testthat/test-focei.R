@@ -140,7 +140,7 @@ rxPermissive({
 
     ## m2a <- rxSymPySetupPred(m2, pred, pk, err)
 
-    log.det.OMGAinv.5 <- 0.5756463
+    log.det.OMGAinv.5 <- sum(log(diag(chol(omegaInv))))
 
     tmp1 <- m2a$inner %>% solve(et, theta=c(2, 1.6, 4.5,0.01), eta=c(0.01, -0.01), log.det.OMGAinv.5=log.det.OMGAinv.5)
 

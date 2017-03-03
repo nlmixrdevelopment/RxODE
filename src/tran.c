@@ -876,15 +876,13 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
             // this is a parameter with an initial value.
             tb.ini[tb.ix] = 1;
             if (!strcmp("ini0",name)){
-	      if (strstr(v,"rx_")){
-		// These are not initilizations but constants
-	        tb.ini0[tb.ix] = 0;
-              } else {
-		tb.ini0[tb.ix] = 1;
-              }
+	      tb.ini0[tb.ix] = 1;
             } else {
 	      tb.ini0[tb.ix] = 0;
-	    }
+              if (strstr(v,"rx_") != NULL){
+                tb.lh[tb.ix] = 1;
+              }
+            }
           } else {
             // There is more than one call to this variable, it is a
             // conditional variabile

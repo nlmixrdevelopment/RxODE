@@ -717,22 +717,24 @@ rxErrEnv <- function(expr){
 ##' Parse PK function for inclusion in RxODE
 ##'
 ##' @param x PK function
+##' @inheritParams rxParseErr
 ##' @return RxODE transformed text.
 ##' @author Matthew L. Fidler
 ##' @keywords internal
 ##' @export
-rxParsePk <- function(x, init=NULL){
-    return(rxParseErr(x, init=init, ret=""));
+rxParsePk <- function(x, init=NULL, scale.to=NULL){
+    return(rxParseErr(x, init=init, ret="", scale.to=scale.to));
 }
 ##' Prepare Pred function for inclusion in RxODE
 ##'
 ##' @param x pred function
+##' @inheritParams rxParseErr
 ##' @return RxODE transformed text.
 ##' @author Matthew L. Fidler
 ##' @keywords internal
 ##' @export
-rxParsePred <- function(x, init=NULL){
-    return(rxParseErr(x, ret="rx_pred_", init=init));
+rxParsePred <- function(x, init=NULL, scale.to=NULL){
+    return(rxParseErr(x, ret="rx_pred_", init=init, scale.to=scale.to));
 }
 ##' Prepare Error function for inclusion in RxODE
 ##'
@@ -764,7 +766,7 @@ rxParseErr <- function(x, base.theta, diag.xform=c("sqrt", "log", "identity"),
     if (!missing(init)){
         assignInMyNamespace("rxErrEnv.init", init);
     }
-    if (!missing(scale.to)){
+    if (!missing(scale.to) && !is.null(scale.to)){
         assignInMyNamespace("rxErrEnv.scale.to", scale.to);
     }
     if (class(x) == "function"){
