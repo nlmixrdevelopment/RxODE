@@ -1,5 +1,5 @@
-rxFoceiEtaSetup <- function(object, ..., dv, eta, omegaInv, nonmem=FALSE, log.det.OMGAinv.5=0){
-    args <- list(object=object, ..., eta=eta);
+rxFoceiEtaSetup <- function(object, ..., dv, eta, theta, omegaInv=NULL, nonmem=FALSE, log.det.OMGAinv.5=0){
+    args <- list(object=object, ..., eta=eta, theta=theta);
     setup <- do.call(getFromNamespace("rxSolveSetup", "RxODE"), args, envir = parent.frame(1));
     return(with(setup, {
         tmp <- environment(object$.call);
@@ -20,6 +20,8 @@ rxFoceiEtaSetup <- function(object, ..., dv, eta, omegaInv, nonmem=FALSE, log.de
         setup$object <- object;
         setup$eta.mat <- matrix(eta, ncol=1);
         setup$log.det.OMGAinv.5 <- log.det.OMGAinv.5;
+        setup$neta <- as.integer(length(eta))
+        setup$ntheta <- as.integer(length(theta))
         return(list2env(setup));
     }))
 }
@@ -216,4 +218,45 @@ rxFoceiInner.rxDll <- function(object, ..., dv, eta, omegaInv,
             RxODE_focei_finalize_llik(env)
         }
     }))
+}
+
+
+##' FOCEI THETA setup,
+##'
+##' This is basically for testing
+##'
+##' @param object RxODE object
+##' @param ... values sent to rxFoceiEtaSetup
+##' @param dv dependent variable
+##' @param eta eta values.
+##' @param omegaInv Inverse omega
+##' @param env Environment to use, instead of rxFoceiEtaSetup environment
+##' @param nonmem Match NONMEMs approximation of the hessian.
+##' @return environment of solved information.
+##' @author Matthew L. Fidler
+##' @keywords internal
+rxFoceiTheta <- function(object, ..., dv, eta, omegaInv, env, nonmem=FALSE){
+    UseMethod("rxFoceiTheta");
+}
+
+##' @rdname rxFoceiTheta
+rxFoceiTheta.rxFocei <- function(object, ..., dv, eta, omegaInv, env, nonmem=FALSE){
+    args <- as.list(match.call(expand.dots=TRUE))[-1];
+    args$object <- object$outer$cmpMgr$rxDll();
+    return(do.call(getFromNamespace("rxFoceiTheta.rxDll", "RxODE"), args, envir=parent.frame(1)));
+}
+
+##' @rdname rxFoceiTheta
+rxFoceiTheta.RxODE <- function(object, ..., dv, eta, omegaInv, env, nonmem){
+    args <- as.list(match.call(expand.dots=TRUE))[-1];
+    args$object <- object$cmpMgr$rxDll();
+    return(do.call(getFromNamespace("rxFoceiTheta.rxDll", "RxODE"), args, envir=parent.frame(1)));
+}
+##' @rdname rxFoceiTheta
+rxFoceiTheta.rxDll <- function(object, ..., dv, eta, omegaInv, env, nonmem){
+    if (missing(env)){
+        args <- as.list(match.call(expand.dots=TRUE))[-1];
+        env <- do.call(getFromNamespace("rxFoceiEtaSetup", "RxODE"), args, envir = parent.frame(1));
+    }
+    return(object$.call(rxTrans(object)["ode_solver_focei_outer"], env));
 }

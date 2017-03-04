@@ -286,4 +286,56 @@ rxPermissive({
 
         expect_equal(lik2, llik.lapl);
     })
+
+    tmp1 <- m2a$outer %>% solve(et, theta=c(2, 1.6, 4.5,0.01), eta=c(0.01, -0.01))
+
+    tmp2 <- m2a %>% rxFoceiTheta(et, theta=c(2, 1.6, 4.5,0.01), eta=c(0.01, -0.01),dv=dv, omegaInv=omegaInv, log.det.OMGAinv.5=log.det.OMGAinv.5)
+
+    tmp2.nm <- m2a %>% rxFoceiEta(et, theta=c(2, 1.6, 4.5,0.01), eta=c(0.01, -0.01),dv=dv, omegaInv=omegaInv, nonmem=TRUE, log.det.OMGAinv.5=log.det.OMGAinv.5)
+
+    test_that("rxFoceiTheta makes sense", {
+
+        expect_equal(tmp1$rx_pred_, tmp2$f); ## F
+        err <- matrix(dv - tmp1$rx_pred_, ncol=1)
+        expect_equal(err, tmp2$err) ## Err
+        R <- matrix(tmp1$rx_r_, ncol=1)
+        expect_equal(R, tmp2$R) ## R (Varinace)
+        m <- as.matrix(tmp1[,c("_sens_rx_pred__ETA_1_", "_sens_rx_pred__ETA_2_")])
+        dimnames(m) <- list(NULL, NULL)
+        m2 <- tmp2$dErr
+        dimnames(m2) <- list(NULL, NULL)
+        expect_equal(m, m2) ## Check dErr
+        m <- as.matrix(tmp1[, c("_sens_rx_r__ETA_1_", "_sens_rx_r__ETA_2_")]);
+        dimnames(m) <- list(NULL, NULL);
+        m2 <- tmp2$dR
+        dimnames(m2) <- list(NULL, NULL)
+        expect_equal(m, m2) ## Check dR
+        c <- list(matrix(tmp1[["_sens_rx_r__ETA_1_"]] / tmp1[["rx_r_"]],ncol=1),matrix(tmp1[["_sens_rx_r__ETA_2_"]] / tmp1[["rx_r_"]],ncol=1))
+        expect_equal(c, tmp2$c) ## c
+        B <- matrix(2 / tmp1[["rx_r_"]],ncol=1)
+        expect_equal(B, tmp2$B)
+        a <- list(matrix(tmp1[["_sens_rx_pred__ETA_1_"]],ncol=1) - err/R*matrix(tmp1[["_sens_rx_r__ETA_1_"]]),
+                  matrix(tmp1[["_sens_rx_pred__ETA_2_"]],ncol=1)- err/R*matrix(tmp1[["_sens_rx_r__ETA_2_"]]));
+        expect_equal(a, tmp2$a);
+
+        a <- list(matrix(tmp2.nm$dErr[, 1], ncol=1),
+                  matrix(tmp2.nm$dErr[, 2], ncol=1))
+        expect_equal(tmp2.nm$a, a)
+
+        ## Does not include the matrix multilpaction part (done with RcppArmadillo)
+        lp <- matrix(c(NA, NA), ncol=1)
+        c <- matrix(tmp1[["_sens_rx_r__ETA_1_"]] / tmp1[["rx_r_"]],ncol=1)
+        fp <- as.matrix(tmp1[,c("_sens_rx_pred__ETA_1_" )])
+        lp[1, 1] <- .5*apply(err*fp*B + .5*err^2*B*c - c, 2, sum)
+        c <- matrix(tmp1[["_sens_rx_r__ETA_2_"]] / tmp1[["rx_r_"]],ncol=1)
+        fp <- as.matrix(tmp1[,c("_sens_rx_pred__ETA_2_" )])
+        lp[2, 1] <- .5*apply(err*fp*B + .5*err^2*B*c - c, 2, sum)
+        expect_equal(lp, tmp2$lp)
+
+        llik <- -0.5 * sum(err ^ 2 / R + log(R));
+
+        expect_equal(llik, tmp2$llik);
+
+    })
+
 }, silent=TRUE)

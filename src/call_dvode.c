@@ -617,7 +617,7 @@ SEXP RxODE_ode_solver_focei_outer (SEXP sexp_rho){
   // lhs = pred (d(pred)/d(eta)) R (d(R)/d(eta))
   int neta, ntheta;
   neta = INTEGER(findVar(installChar(mkChar("neta")),sexp_rho))[0];
-  ntheta = INTEGER(findVar(installChar(mkChar("neta")),sexp_rho))[0];
+  ntheta = INTEGER(findVar(installChar(mkChar("ntheta")),sexp_rho))[0];
   SEXP sexp_fp     = PROTECT(allocMatrix(REALSXP, n_all_times-ixds, neta)); pro++;
   SEXP sexp_fp_t   = PROTECT(allocMatrix(REALSXP, n_all_times-ixds, ntheta)); pro++;
   SEXP sexp_fp_2   = PROTECT(allocMatrix(REALSXP, n_all_times-ixds, neta)); pro++;
@@ -676,28 +676,26 @@ SEXP RxODE_ode_solver_focei_outer (SEXP sexp_rho){
       // d(pred)/d(eta#)
       for (j = 1; j < neta+1; j++){
         fpm[(n_all_times-ixds)*(j-1)+k] = lhs[j];
-        if (do_nonmem){
-          REAL(VECTOR_ELT(sexp_a, j-1))[k] = lhs[j];
-        } else {
-          REAL(VECTOR_ELT(sexp_a, j-1))[k] = lhs[j]-err[k]/RxODE_safe_zero(lhs[neta+1])*lhs[j+neta+1];
-        }
+	REAL(VECTOR_ELT(sexp_a, j-1))[k] = lhs[j];
       }
-      // d(pred)/d(theta#)
+      /* // d(pred)/d(theta#) */
       for (j = 1+neta; j < neta+ntheta+1; j++){
-	fpt[(n_all_times-ixds)*(j-1-neta)+k]=lhs[j];
+      	fpt[(n_all_times-ixds)*(j-1-neta)+k]=lhs[j];
       }
-      // d^2(pred)/d^2(eta#)
+      /* // d^2(pred)/d^2(eta#) */
       for (j = neta + ntheta + 1; j < 2*neta + ntheta + 1; j++){
-	fp2[(n_all_times-ixds)*(j-1-neta-ntheta)+k] = lhs[j];
+      	fp2[(n_all_times-ixds)*(j-1-neta-ntheta)+k] = lhs[j];
       }
-      // d^2(pred)/(d(eta#)d(theta#))
-      for (h = 0; h < ntheta; h++){
-	for (n = 0; h < neta; n++){
+      /* // d^2(pred)/(d(eta#)d(theta#)) */
+      h = 0;
+      for (j = 2*neta + ntheta + 1; j < neta*ntheta + 2*neta + ntheta + 1; j++){
+	for (n = 0; n < neta; n++){
 	  REAL(VECTOR_ELT(sexp_fp_te,h))[n*(n_all_times-ixds)+k]=lhs[j];
 	  j++;
 	}
       }
-      // Now 
+      j = neta*ntheta + 2*neta + ntheta + 1;
+      // Now
       if (lhs[j] <= 0){
         RxODE_ode_free();
         error("A covariance term is zero or negative and should remain positive.");
@@ -706,25 +704,30 @@ SEXP RxODE_ode_solver_focei_outer (SEXP sexp_rho){
       /* logR[k]=log(lhs[j]); */
       /* Rinv[k]=1/lhs[j]; */
       B[k]=2/lhs[j];
-      // d(R)/d(eta#)
+      /* // d(R)/d(eta#) */
       for (j=ntheta*neta + 2*neta + ntheta + 2; j < ntheta*neta + 3*neta + ntheta + 2; j++){
         /* Rprintf("j: %d; Adj: %d; k: %d\n",j, j-neta-2,k); */
         rp[(n_all_times-ixds)*(j-(ntheta*neta + 2*neta + ntheta + 2))+k] = lhs[j];
         REAL(VECTOR_ELT(sexp_c, j-(ntheta*neta + 2*neta + ntheta + 2)))[k] = lhs[j]/RxODE_safe_zero(r[k]);
+	if (!do_nonmem){
+          // tmp1[["_sens_rx_pred__ETA_1_"]],ncol=1) - err/R*matrix(tmp1[["_sens_rx_r__ETA_1_"]]
+          REAL(VECTOR_ELT(sexp_a, j-(ntheta*neta + 2*neta + ntheta + 2)))[k] += -err[k]/RxODE_safe_zero(r[k])*lhs[j];
+        }
       }
-      // d(R)/d(theta#)
+      /* // d(R)/d(theta#) */
       for (j=ntheta*neta + 3*neta + ntheta + 2; j < ntheta*neta + 3*neta + 2*ntheta + 2; j++){
         /* Rprintf("j: %d; Adj: %d; k: %d\n",j, j-neta-2,k); */
         rpt[(n_all_times-ixds)*(j-(ntheta*neta + 3*neta + ntheta + 2))+k] = lhs[j];
       }
-      // d^2(R)/d^2(eta)
+      /* // d^2(R)/d^2(eta) */
       for (j=ntheta*neta + 3*neta + 2*ntheta + 2; j < ntheta*neta + 4*neta + 2*ntheta + 2; j++){
         /* Rprintf("j: %d; Adj: %d; k: %d\n",j, j-neta-2,k); */
         rp2[(n_all_times-ixds)*(j-(ntheta*neta + 3*neta + 2*ntheta + 2))+k] = lhs[j];
       }
       // d^2(R)/(d(eta#)d(theta#))
-      for (h = 0; h < ntheta; h++){
-        for (n = 0; h < neta; n++){
+      h = 0;
+      for (j = ntheta*neta + 4*neta + 2*ntheta + 2; j < 2*ntheta*neta + 4*neta + 2*ntheta + 2; j++){
+        for (n = 0; n < neta; n++){
           REAL(VECTOR_ELT(sexp_rp_te,h))[n*(n_all_times-ixds)+k]=lhs[j];
           j++;
         }
@@ -739,14 +742,16 @@ SEXP RxODE_ode_solver_focei_outer (SEXP sexp_rho){
       k++;
     }
   }
-  /* /\* llik = -.5*sum(eps^2/(f^2*sig2) + log(f^2*sig2)) - .5*t(ETA) %*% OMGAinv %*% ETA *\/ */
+  /* llik = -.5*sum(eps^2/(f^2*sig2) + log(f^2*sig2)) - .5*t(ETA) %*% OMGAinv %*% ETA */
   defineVar(installChar(mkChar("f")),sexp_f,sexp_rho);
+  defineVar(installChar(mkChar("err")),sexp_err,sexp_rho);
   defineVar(installChar(mkChar("dErr")),sexp_fp,sexp_rho);
   defineVar(installChar(mkChar("dErr.dTheta")),sexp_fp_t,sexp_rho);
+  defineVar(installChar(mkChar("dErr2")),sexp_fp_2,sexp_rho);
   defineVar(installChar(mkChar("dErr.dEta.dTheta")),sexp_fp_te,sexp_rho);
-  defineVar(installChar(mkChar("err")),sexp_err,sexp_rho);
   defineVar(installChar(mkChar("dR")),sexp_rp,sexp_rho);
   defineVar(installChar(mkChar("dR.dTheta")),sexp_rpt,sexp_rho);
+  defineVar(installChar(mkChar("dR2")),sexp_rp_2,sexp_rho);
   defineVar(installChar(mkChar("dR.dEta.dTheta")),sexp_rp_te,sexp_rho);
   defineVar(installChar(mkChar("c")),sexp_c,sexp_rho);
   defineVar(installChar(mkChar("R")),sexp_r,sexp_rho);
@@ -754,7 +759,7 @@ SEXP RxODE_ode_solver_focei_outer (SEXP sexp_rho){
   defineVar(installChar(mkChar("a")),sexp_a,sexp_rho);
   defineVar(installChar(mkChar("llik")),sexp_llik,sexp_rho);
   defineVar(installChar(mkChar("lp")),sexp_lp,sexp_rho);
-  /* /\* Rprintf("llik[0] = %f\n",llik[0]); *\/ */
+  /* Rprintf("llik[0] = %f\n",llik[0]); */
   UNPROTECT(pro);
   if (fp) fclose(fp);
   RxODE_ode_free();
