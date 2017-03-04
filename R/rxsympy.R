@@ -398,13 +398,15 @@ rxSymPySensitivity2Full <- function(state, etas, thetas, model, cond){
     all.sens <- extraLines <- c();
     rxCat(rxSymPySensitivityFull.text);
     for (s1 in state){
-        for (eta in etas){
-            if (identical(etas, thetas)){
+        if (identical(etas, thetas)){
+            for (eta in etas){
                 tmp <- rxSymPySensitivity2Full_(state, s1, eta, eta, all.sens);
                 all.sens <- tmp$all.sens;
                 extraLines[length(extraLines) + 1] <- tmp$line;
-            } else {
-                for (sns in thetas){
+            }
+        } else {
+            for (sns in thetas){
+                for (eta in etas){
                     tmp <- rxSymPySensitivity2Full_(state, s1, eta, sns, all.sens);
                     all.sens <- unique(c(all.sens, tmp$all.sens));
                     extraLines[length(extraLines) + 1] <- tmp$line;
@@ -633,8 +635,8 @@ rxSymPySetupDPred <- function(newmod, calcSens, states, prd="rx_pred_"){
             extraLines[length(extraLines) + 1] <- tmp;
 
         }
-        for (eta in calcSens$eta){
-            for (theta in calcSens$theta){
+        for (theta in calcSens$theta){
+            for (eta in calcSens$eta){
                 newLine2 <- rSymPy::sympy(sprintf("diff(diff(%s,%s),%s)", prd, rxToSymPy(theta), rxToSymPy(eta)));
                 tmp <- c(newLine2);
                 for (state in states){
@@ -652,7 +654,6 @@ rxSymPySetupDPred <- function(newmod, calcSens, states, prd="rx_pred_"){
                 }
                 tmp <- sprintf("rx__sens_%s_BY_%s_BY_%s__ = %s", prd, rxToSymPy(eta), rxToSymPy(theta), rxFromSymPy(tmp));
                 extraLines[length(extraLines) + 1] <- tmp;
-
             }
         }
         attr(extraLines, "zeroSens") <- zeroSens;

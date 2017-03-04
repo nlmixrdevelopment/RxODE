@@ -1082,8 +1082,8 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
   fprintf(outpt,"\tSEXP state  = PROTECT(allocVector(STRSXP, %d));\n",statei);
   fprintf(outpt,"\tSEXP sens   = PROTECT(allocVector(STRSXP, %d));\n",sensi);
   fprintf(outpt,"\tSEXP dfdy   = PROTECT(allocVector(STRSXP, %d));\n",tb.ndfdy);
-  fprintf(outpt,"\tSEXP tran   = PROTECT(allocVector(STRSXP, 11));\n");
-  fprintf(outpt,"\tSEXP trann  = PROTECT(allocVector(STRSXP, 11));\n");
+  fprintf(outpt,"\tSEXP tran   = PROTECT(allocVector(STRSXP, 12));\n");
+  fprintf(outpt,"\tSEXP trann  = PROTECT(allocVector(STRSXP, 12));\n");
   fprintf(outpt,"\tSEXP mmd5   = PROTECT(allocVector(STRSXP, 2));\n");
   fprintf(outpt,"\tSEXP mmd5n  = PROTECT(allocVector(STRSXP, 2));\n");
   fprintf(outpt,"\tSEXP model  = PROTECT(allocVector(STRSXP, 4));\n");
@@ -1320,6 +1320,9 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
   
   fprintf(outpt,"\tSET_STRING_ELT(trann,10,mkChar(\"ode_solver_ptr\"));\n");
   fprintf(outpt,"\tSET_STRING_ELT(tran, 10,mkChar(\"%sode_solver_ptr\"));\n",model_prefix);
+
+  fprintf(outpt,"\tSET_STRING_ELT(trann,11,mkChar(\"ode_solver_focei_outer\"));\n");
+  fprintf(outpt,"\tSET_STRING_ELT(tran, 11,mkChar(\"%sode_solver_focei_outer\"));\n",model_prefix);
   
   fprintf(outpt,"\tsetAttrib(tran, R_NamesSymbol, trann);\n");
   fprintf(outpt,"\tsetAttrib(mmd5, R_NamesSymbol, mmd5n);\n");
@@ -1817,8 +1820,8 @@ SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP pref
   SEXP lst   = PROTECT(allocVector(VECSXP, 9));
   SEXP names = PROTECT(allocVector(STRSXP, 9));
   
-  SEXP tran  = PROTECT(allocVector(STRSXP, 11));
-  SEXP trann = PROTECT(allocVector(STRSXP, 11));
+  SEXP tran  = PROTECT(allocVector(STRSXP, 12));
+  SEXP trann = PROTECT(allocVector(STRSXP, 12));
   
   SEXP state = PROTECT(allocVector(STRSXP,tb.statei));
   SEXP sens  = PROTECT(allocVector(STRSXP,tb.sensi));
@@ -1956,6 +1959,10 @@ SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP pref
   sprintf(buf,"%sode_solver_ptr",model_prefix);
   SET_STRING_ELT(trann,10,mkChar("ode_solver_ptr"));
   SET_STRING_ELT(tran, 10,mkChar(buf));
+
+  sprintf(buf,"%sode_solver_focei_outer",model_prefix);
+  SET_STRING_ELT(trann,11,mkChar("ode_solver_focei_outer"));
+  SET_STRING_ELT(tran, 11,mkChar(buf));
   
   fpIO2 = fopen(out2, "r");
   err_msg((intptr_t) fpIO2, "Error parsing. (Couldn't access out2.txt).\n", -1);

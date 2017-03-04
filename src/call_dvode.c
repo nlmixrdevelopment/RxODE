@@ -577,6 +577,190 @@ SEXP RxODE_ode_solver_focei_hessian(SEXP sexp_rho){
   return(sexp_rho);
 }
 
+SEXP RxODE_ode_solver_focei_outer (SEXP sexp_rho){
+  //Outer problem gradient for lbfgs
+  int i, j, k=0, h, n, pro = 0;
+  SEXP sexp_theta = findVar(installChar(mkChar("params")),sexp_rho);
+  SEXP sexp_inits = findVar(installChar(mkChar("inits")),sexp_rho);
+  SEXP sexp_lhs   = findVar(installChar(mkChar("lhs_vars")),sexp_rho);
+  // Events
+  SEXP sexp_time = findVar(installChar(mkChar("time")),sexp_rho);
+  SEXP sexp_evid = findVar(installChar(mkChar("evid")),sexp_rho);
+  SEXP sexp_dose = findVar(installChar(mkChar("amt")),sexp_rho);
+  // Covariates
+  SEXP sexp_pcov = findVar(installChar(mkChar("pcov")),sexp_rho);
+  SEXP sexp_cov = findVar(installChar(mkChar("cov")),sexp_rho);
+  SEXP sexp_locf = findVar(installChar(mkChar("isLocf")),sexp_rho);
+  // Solver Options
+  SEXP sexp_atol = findVar(installChar(mkChar("atol")),sexp_rho);
+  SEXP sexp_rtol = findVar(installChar(mkChar("rtol")),sexp_rho);
+  SEXP sexp_hmin = findVar(installChar(mkChar("hmin")),sexp_rho);
+  SEXP sexp_hmax = findVar(installChar(mkChar("hmax")),sexp_rho);
+  SEXP sexp_h0 = findVar(installChar(mkChar("hini")),sexp_rho);
+  SEXP sexp_mxordn = findVar(installChar(mkChar("maxordn")),sexp_rho);
+  SEXP sexp_mxords = findVar(installChar(mkChar("maxords")),sexp_rho);
+  SEXP sexp_mx = findVar(installChar(mkChar("maxsteps")),sexp_rho);
+  SEXP sexp_stiff = findVar(installChar(mkChar("stiff")),sexp_rho);
+  SEXP sexp_transit_abs = findVar(installChar(mkChar("transit_abs")),sexp_rho);
+  // NONMEM approximation?
+  int do_nonmem = INTEGER(findVar(installChar(mkChar("nonmem")),sexp_rho))[0];
+  
+
+  par_ptr       = REAL(sexp_theta);
+  inits         = REAL(sexp_inits);
+
+  RxODE_ode_setup(sexp_inits, sexp_lhs, sexp_time, sexp_evid, sexp_dose, sexp_pcov, sexp_cov, sexp_locf, sexp_atol, sexp_rtol, sexp_hmin, sexp_hmax, sexp_h0, sexp_mxordn, sexp_mxords, sexp_mx, sexp_stiff, sexp_transit_abs);
+  RxODE_ode_alloc();
+  
+  RxODE_ode_solver_c(neq, stiff, evid, inits, dose, solve, rc);
+
+  // lhs = pred (d(pred)/d(eta)) R (d(R)/d(eta))
+  int neta, ntheta;
+  neta = INTEGER(findVar(installChar(mkChar("neta")),sexp_rho))[0];
+  ntheta = INTEGER(findVar(installChar(mkChar("neta")),sexp_rho))[0];
+  SEXP sexp_fp     = PROTECT(allocMatrix(REALSXP, n_all_times-ixds, neta)); pro++;
+  SEXP sexp_fp_t   = PROTECT(allocMatrix(REALSXP, n_all_times-ixds, ntheta)); pro++;
+  SEXP sexp_fp_2   = PROTECT(allocMatrix(REALSXP, n_all_times-ixds, neta)); pro++;
+  SEXP sexp_rp     = PROTECT(allocMatrix(REALSXP, n_all_times-ixds, neta)); pro++;
+  SEXP sexp_rpt    = PROTECT(allocMatrix(REALSXP, n_all_times-ixds, ntheta)); pro++;
+  SEXP sexp_rp_2   = PROTECT(allocMatrix(REALSXP, n_all_times-ixds, neta)); pro++;
+  SEXP sexp_f      = PROTECT(allocVector(REALSXP, n_all_times-ixds)); pro++;
+  SEXP sexp_err    = PROTECT(allocMatrix(REALSXP, n_all_times-ixds, 1)); pro++;
+  SEXP sexp_r      = PROTECT(allocMatrix(REALSXP, n_all_times-ixds, 1)); pro++;
+  /* SEXP sexp_Rinv   = PROTECT(allocMatrix(REALSXP, n_all_times-ixds, 1)); pro++;*/
+  /* SEXP sexp_logR   = PROTECT(allocMatrix(REALSXP, n_all_times-ixds, 1)); pro++;*/
+  SEXP sexp_B      = PROTECT(allocMatrix(REALSXP, n_all_times-ixds, 1)); pro++;
+  SEXP sexp_c      = PROTECT(allocVector(VECSXP, neta)); pro++;
+  SEXP sexp_a      = PROTECT(allocVector(VECSXP, neta)); pro++;
+  SEXP sexp_fp_te  = PROTECT(allocVector(VECSXP, ntheta)); pro++;
+  SEXP sexp_rp_te  = PROTECT(allocVector(VECSXP, ntheta)); pro++;
+  SEXP sexp_llik   = PROTECT(allocVector(REALSXP, 1)); pro++;
+  SEXP sexp_lp   = PROTECT(allocMatrix(REALSXP, neta, 1)); pro++;
+  
+  double *llik  = REAL(sexp_llik);
+  double *fpm  = REAL(sexp_fp);
+  double *fpt  = REAL(sexp_fp_t);
+  double *fp2  = REAL(sexp_fp_2);
+  double *f    = REAL(sexp_f);
+  double *err  = REAL(sexp_err);
+  
+  double *DV   = REAL(findVar(installChar(mkChar("DV")),sexp_rho));
+  double *rp   = REAL(sexp_rp);
+  double *rpt  = REAL(sexp_rpt);
+  double *rp2  = REAL(sexp_rp_2);
+  double *lp   = REAL(sexp_lp);
+  
+  for (j = 0; j < neta; j++){
+    SET_VECTOR_ELT(sexp_c,j,PROTECT(allocMatrix(REALSXP, n_all_times-ixds, 1))); pro++;
+    SET_VECTOR_ELT(sexp_a,j,PROTECT(allocMatrix(REALSXP, n_all_times-ixds, 1))); pro++;
+  }
+  for (j = 0; j < ntheta; j++){
+    SET_VECTOR_ELT(sexp_fp_te,j,PROTECT(allocMatrix(REALSXP, n_all_times-ixds, neta))); pro++;
+    SET_VECTOR_ELT(sexp_rp_te,j,PROTECT(allocMatrix(REALSXP, n_all_times-ixds, neta))); pro++;
+  }
+  double *r    = REAL(sexp_r);
+  /* double *logR = REAL(sexp_logR); */
+  /* double *Rinv = REAL(sexp_Rinv); */
+  double *B    = REAL(sexp_B);
+  llik[0] = 0;
+  for (j = 0; j < neta; j++){
+    lp[j] = 0;
+  }
+  // Now create the pred vector and d(pred)/d(eta) matrix.
+  // Assuming lhs[0] = pred and lhs[1:n] = d(pred)/d(eta#)
+  for (i = 0; i < n_all_times; i++){
+    if (!evid[i]){
+      calc_lhs(all_times[i], solve+i*neq, lhs);
+      f[k] = lhs[0]; // Pred
+      err[k] = DV[k] - f[k];
+      // d(pred)/d(eta#)
+      for (j = 1; j < neta+1; j++){
+        fpm[(n_all_times-ixds)*(j-1)+k] = lhs[j];
+        if (do_nonmem){
+          REAL(VECTOR_ELT(sexp_a, j-1))[k] = lhs[j];
+        } else {
+          REAL(VECTOR_ELT(sexp_a, j-1))[k] = lhs[j]-err[k]/RxODE_safe_zero(lhs[neta+1])*lhs[j+neta+1];
+        }
+      }
+      // d(pred)/d(theta#)
+      for (j = 1+neta; j < neta+ntheta+1; j++){
+	fpt[(n_all_times-ixds)*(j-1-neta)+k]=lhs[j];
+      }
+      // d^2(pred)/d^2(eta#)
+      for (j = neta + ntheta + 1; j < 2*neta + ntheta + 1; j++){
+	fp2[(n_all_times-ixds)*(j-1-neta-ntheta)+k] = lhs[j];
+      }
+      // d^2(pred)/(d(eta#)d(theta#))
+      for (h = 0; h < ntheta; h++){
+	for (n = 0; h < neta; n++){
+	  REAL(VECTOR_ELT(sexp_fp_te,h))[n*(n_all_times-ixds)+k]=lhs[j];
+	  j++;
+	}
+      }
+      // Now 
+      if (lhs[j] <= 0){
+        RxODE_ode_free();
+        error("A covariance term is zero or negative and should remain positive.");
+      }
+      r[k]=lhs[j]; // R always has to be positive.
+      /* logR[k]=log(lhs[j]); */
+      /* Rinv[k]=1/lhs[j]; */
+      B[k]=2/lhs[j];
+      // d(R)/d(eta#)
+      for (j=ntheta*neta + 2*neta + ntheta + 2; j < ntheta*neta + 3*neta + ntheta + 2; j++){
+        /* Rprintf("j: %d; Adj: %d; k: %d\n",j, j-neta-2,k); */
+        rp[(n_all_times-ixds)*(j-(ntheta*neta + 2*neta + ntheta + 2))+k] = lhs[j];
+        REAL(VECTOR_ELT(sexp_c, j-(ntheta*neta + 2*neta + ntheta + 2)))[k] = lhs[j]/RxODE_safe_zero(r[k]);
+      }
+      // d(R)/d(theta#)
+      for (j=ntheta*neta + 3*neta + ntheta + 2; j < ntheta*neta + 3*neta + 2*ntheta + 2; j++){
+        /* Rprintf("j: %d; Adj: %d; k: %d\n",j, j-neta-2,k); */
+        rpt[(n_all_times-ixds)*(j-(ntheta*neta + 3*neta + ntheta + 2))+k] = lhs[j];
+      }
+      // d^2(R)/d^2(eta)
+      for (j=ntheta*neta + 3*neta + 2*ntheta + 2; j < ntheta*neta + 4*neta + 2*ntheta + 2; j++){
+        /* Rprintf("j: %d; Adj: %d; k: %d\n",j, j-neta-2,k); */
+        rp2[(n_all_times-ixds)*(j-(ntheta*neta + 3*neta + 2*ntheta + 2))+k] = lhs[j];
+      }
+      // d^2(R)/(d(eta#)d(theta#))
+      for (h = 0; h < ntheta; h++){
+        for (n = 0; h < neta; n++){
+          REAL(VECTOR_ELT(sexp_rp_te,h))[n*(n_all_times-ixds)+k]=lhs[j];
+          j++;
+        }
+      }
+      for (j = 0; j < neta; j++){
+        //.5*apply(eps*fp*B + .5*eps^2*B*c - c, 2, sum) - OMGAinv %*% ETA
+        lp[j] += 0.5 * err[k]* fpm[(n_all_times-ixds)*j+k]*B[k]  +
+          0.25 * err[k] * err[k] * B[k] * REAL(VECTOR_ELT(sexp_c, j))[k] -
+          0.5 * REAL(VECTOR_ELT(sexp_c, j))[k];
+      }
+      llik[0] += -0.5*(err[k]*err[k]/RxODE_safe_zero(r[k])+RxODE_safe_log(r[k]));
+      k++;
+    }
+  }
+  /* /\* llik = -.5*sum(eps^2/(f^2*sig2) + log(f^2*sig2)) - .5*t(ETA) %*% OMGAinv %*% ETA *\/ */
+  defineVar(installChar(mkChar("f")),sexp_f,sexp_rho);
+  defineVar(installChar(mkChar("dErr")),sexp_fp,sexp_rho);
+  defineVar(installChar(mkChar("dErr.dTheta")),sexp_fp_t,sexp_rho);
+  defineVar(installChar(mkChar("dErr.dEta.dTheta")),sexp_fp_te,sexp_rho);
+  defineVar(installChar(mkChar("err")),sexp_err,sexp_rho);
+  defineVar(installChar(mkChar("dR")),sexp_rp,sexp_rho);
+  defineVar(installChar(mkChar("dR.dTheta")),sexp_rpt,sexp_rho);
+  defineVar(installChar(mkChar("dR.dEta.dTheta")),sexp_rp_te,sexp_rho);
+  defineVar(installChar(mkChar("c")),sexp_c,sexp_rho);
+  defineVar(installChar(mkChar("R")),sexp_r,sexp_rho);
+  defineVar(installChar(mkChar("B")),sexp_B,sexp_rho);
+  defineVar(installChar(mkChar("a")),sexp_a,sexp_rho);
+  defineVar(installChar(mkChar("llik")),sexp_llik,sexp_rho);
+  defineVar(installChar(mkChar("lp")),sexp_lp,sexp_rho);
+  /* /\* Rprintf("llik[0] = %f\n",llik[0]); *\/ */
+  UNPROTECT(pro);
+  if (fp) fclose(fp);
+  RxODE_ode_free();
+  return sexp_rho;
+}
+
 SEXP RxODE_ode_solver_focei_eta (SEXP sexp_eta, SEXP sexp_rho){
   // Inner problem solver for lbfgs
   SEXP eta_env = findVar(installChar(mkChar("eta")),sexp_rho);
@@ -711,7 +895,6 @@ SEXP RxODE_ode_solver_focei_eta (SEXP sexp_eta, SEXP sexp_rho){
           rp[(n_all_times-ixds)*(j-neta-2)+k] = lhs[j];
           REAL(VECTOR_ELT(sexp_c, j-neta-2))[k] = lhs[j]/RxODE_safe_zero(r[k]);
           /* Rprintf("Found %d\n",REAL(VECTOR_ELT(sexp_c, j-1-(nlhs-1)/2))[0]); */
-          /* c[(n_all_times-ixds)*(j-1-(nlhs-1)/2)+k]  = lhs[j+1]/r[k]; */
         }
         for (j = 0; j < neta; j++){
           // .5*apply(eps*fp*B + .5*eps^2*B*c - c, 2, sum) - OMGAinv %*% ETA
@@ -939,6 +1122,7 @@ void R_init_RxODE(DllInfo *info){
   R_RegisterCCallable("RxODE","RxODE_ode_solver_old_c", (DL_FUNC) RxODE_ode_solver_old_c);
   R_RegisterCCallable("RxODE","RxODE_ode_solver_0_6_c", (DL_FUNC) RxODE_ode_solver_0_6_c);
   R_RegisterCCallable("RxODE","RxODE_ode_solver_focei_eta", (DL_FUNC) RxODE_ode_solver_focei_eta);
+  R_RegisterCCallable("RxODE","RxODE_ode_solver_focei_outer", (DL_FUNC) RxODE_ode_solver_focei_outer);
   R_RegisterCCallable("RxODE","RxODE_ode_solver_focei_hessian", (DL_FUNC) RxODE_ode_solver_focei_hessian); 
   R_RegisterCCallable("RxODE","RxODE_ode_setup",         (DL_FUNC) RxODE_ode_setup);
   R_RegisterCCallable("RxODE","RxODE_ode_free", (DL_FUNC) RxODE_ode_free);

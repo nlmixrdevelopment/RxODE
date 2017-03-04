@@ -16,8 +16,11 @@ calulated according to the \code{vars} parameter below.}
 \item{dy}{is a string for the state or varaible in the df(.)/dy(.).}
 
 \item{vars}{is a boolean indicating if parameters will be included
-for the dy component in the df(.)/dy(.), instead of just state
-variables (required for sensitivity equations).}
+    for the dy component in the df(.)/dy(.), instead of just state
+    variables (required for sensitivity equations).
+
+    vars can also be a list of variables.  In this case the
+    df(.)/dy(.) will be augmented with the variables in this list.}
 }
 \value{
 RxODE syntax lines for the df(.)/dy(.)
