@@ -399,10 +399,17 @@ rxSymPySensitivity2Full <- function(state, etas, thetas, model, cond){
     rxCat(rxSymPySensitivityFull.text);
     for (s1 in state){
         if (identical(etas, thetas)){
-            for (eta in etas){
-                tmp <- rxSymPySensitivity2Full_(state, s1, eta, eta, all.sens);
-                all.sens <- tmp$all.sens;
-                extraLines[length(extraLines) + 1] <- tmp$line;
+            for (e1 in etas){
+                for (e2 in etas){
+                    tmp2 <- sort(c(e1, e2));
+                    tmpO <- as.numeric(gsub(rex::rex(start, "ETA", or("[", "_"), capture(numbers), or("]")), "\\1", tmp2));
+                    tmp2 <- tmp2[order(tmpO)];
+                    if (identical(tmp2, c(e1, e2))){
+                        tmp <- rxSymPySensitivity2Full_(state, s1, e1, e2, all.sens);
+                        all.sens <- tmp$all.sens;
+                        extraLines[length(extraLines) + 1] <- tmp$line;
+                    }
+                }
             }
         } else {
             for (sns in thetas){
@@ -616,33 +623,60 @@ rxSymPySetupDPred <- function(newmod, calcSens, states, prd="rx_pred_"){
             zeroSens <- attr(tmp1, "zeroSens");
         }
         extraLines <- c(tmp1, tmp2);
-        for (var in calcSens$eta){
-            newLine2 <- rSymPy::sympy(sprintf("diff(diff(%s,%s),%s)", prd, rxToSymPy(var), rxToSymPy(var)));
-            tmp <- c(newLine2);
-            for (state in states){
-                newLine <- rSymPy::sympy(sprintf("diff(diff(%s,%s),%s)",prd, state, state));
-                tmp[length(tmp) + 1] <- sprintf("(%s)*rx__sens_%s_BY_%s_BY_%s__",
-                                                newLine, state, rxToSymPy(var), rxToSymPy(var));
+        ## These derivations are given in Equation #37.
+        ## Should be dErr^2/(dEtaL dEtaK)
+        for (eL in calcSens$eta){
+            for (eK in calcSens$eta){
+                tmp2 <- c(eK, eL)
+                tmpO <- as.numeric(gsub(rex::rex(start, "ETA", or("[", "_"), capture(numbers), or("]")), "\\1", tmp2));
+                tmp2 <- tmp2[order(tmpO)];
+                if (identical(tmp2, c(eK, eL))){
+                    newLine2 <- rSymPy::sympy(sprintf("diff(diff(%s,%s),%s)", prd, rxToSymPy(eK), rxToSymPy(eL)));
+                    tmp <- c(newLine2);
+                    for (state in states){
+                        newLine <- rSymPy::sympy(sprintf("diff(diff(%s,%s),%s)",prd, rxToSymPy(eK), state));
+                        tmp[length(tmp) + 1] <- sprintf("(%s)*rx__sens_%s_BY_%s__",
+                                                        newLine, state, rxToSymPy(eL));
+                        newLine <- rSymPy::sympy(sprintf("diff(diff(%s,%s),%s)",prd, state, rxToSymPy(eL)));
+                        tmp[length(tmp) + 1] <- sprintf("(%s)*rx__sens_%s_BY_%s__",
+                                                        newLine, state, rxToSymPy(eK));
+                        newLine <- rSymPy::sympy(sprintf("diff(diff(%s,%s),%s)",prd, state, state));
+                        tmp[length(tmp) + 1] <- sprintf("(%s)*rx__sens_%s_BY_%s__*rx__sens_%s_BY_%s__",
+                                                        newLine, state, rxToSymPy(eL), state, rxToSymPy(eK));
+                        newLine <- rSymPy::sympy(sprintf("diff(%s,%s)",prd, state));
+                        tmp[length(tmp) + 1] <- sprintf("(%s)*rx__sens_%s_BY_%s_BY_%s__",
+                                                        newLine, state, rxToSymPy(eK), rxToSymPy(eL));
+                    }
+                    tmp <- paste(paste0("(", tmp, ")"), collapse=" + ")
+                    tmp <- rSymPy::sympy(sprintf("simplify(%s(%s))",
+                                                 ifelse(prd == "rx_pred_", "-", ""),
+                                                 tmp));
+                    if (tmp != "0"){
+                        zeroSens <- FALSE;
+                    }
+                    tmp <- sprintf("rx__sens_%s_BY_%s_BY_%s__ = %s", prd, rxToSymPy(eK), rxToSymPy(eL), rxFromSymPy(tmp));
+                    extraLines[length(extraLines) + 1] <- tmp;
+                }
             }
-            tmp <- paste(paste0("(", tmp, ")"), collapse=" + ")
-            tmp <- rSymPy::sympy(sprintf("simplify(%s(%s))",
-                                         ifelse(prd == "rx_pred_", "-", ""),
-                                         tmp));
-            if (tmp != "0"){
-                zeroSens <- FALSE;
-            }
-            tmp <- sprintf("rx__sens_%s_BY_%s_BY_%s__ = %s", prd, rxToSymPy(var), rxToSymPy(var), rxFromSymPy(tmp));
-            extraLines[length(extraLines) + 1] <- tmp;
-
         }
         for (theta in calcSens$theta){
             for (eta in calcSens$eta){
-                newLine2 <- rSymPy::sympy(sprintf("diff(diff(%s,%s),%s)", prd, rxToSymPy(theta), rxToSymPy(eta)));
+                newLine2 <- rSymPy::sympy(sprintf("diff(diff(%s,%s),%s)", prd, rxToSymPy(eta), rxToSymPy(theta)));
                 tmp <- c(newLine2);
                 for (state in states){
+                    newLine <- rSymPy::sympy(sprintf("diff(diff(%s,%s),%s)",prd, rxToSymPy(eta), state));
+                    tmp[length(tmp) + 1] <- sprintf("(%s)*rx__sens_%s_BY_%s__",
+                                                    newLine, state, rxToSymPy(theta));
+                    newLine <- rSymPy::sympy(sprintf("diff(diff(%s,%s),%s)",prd, state, rxToSymPy(theta)));
+                    tmp[length(tmp) + 1] <- sprintf("(%s)*rx__sens_%s_BY_%s__",
+                                                    newLine, state, rxToSymPy(eta));
                     newLine <- rSymPy::sympy(sprintf("diff(diff(%s,%s),%s)",prd, state, state));
+                    tmp[length(tmp) + 1] <- sprintf("(%s)*rx__sens_%s_BY_%s__*rx__sens_%s_BY_%s__",
+                                                    newLine, state, rxToSymPy(theta), state, rxToSymPy(eta));
+                    newLine <- rSymPy::sympy(sprintf("diff(%s,%s)",prd, state));
                     tmp[length(tmp) + 1] <- sprintf("(%s)*rx__sens_%s_BY_%s_BY_%s__",
                                                     newLine, state, rxToSymPy(eta), rxToSymPy(theta));
+
                 }
                 tmp <- paste(paste0("(", tmp, ")"), collapse=" + ")
                 tmp <- rSymPy::sympy(sprintf("simplify(%s(%s))",

@@ -314,8 +314,10 @@ rxPermissive({
         expect_equal(c, tmp2$c) ## c
         B <- matrix(2 / tmp1[["rx_r_"]],ncol=1)
         expect_equal(B, tmp2$B)
+
         a <- list(matrix(tmp1[["_sens_rx_pred__ETA_1_"]],ncol=1) - err/R*matrix(tmp1[["_sens_rx_r__ETA_1_"]]),
                   matrix(tmp1[["_sens_rx_pred__ETA_2_"]],ncol=1)- err/R*matrix(tmp1[["_sens_rx_r__ETA_2_"]]));
+
         expect_equal(a, tmp2$a);
 
         a <- list(matrix(tmp2.nm$dErr[, 1], ncol=1),
@@ -335,6 +337,22 @@ rxPermissive({
         llik <- -0.5 * sum(err ^ 2 / R + log(R));
 
         expect_equal(llik, tmp2$llik);
+
+        ##
+        expect_equal(tmp2$dErr.dTheta,
+                     matrix(c(tmp1[["_sens_rx_pred__THETA_1_"]],tmp1[["_sens_rx_pred__THETA_2_"]],tmp1[["_sens_rx_pred__THETA_3_"]],tmp1[["_sens_rx_pred__THETA_4_"]]),ncol=4))
+
+        expect_equal(tmp2$dR.dTheta,
+                     matrix(c(tmp1[["_sens_rx_r__THETA_1_"]],tmp1[["_sens_rx_r__THETA_2_"]],tmp1[["_sens_rx_r__THETA_3_"]],tmp1[["_sens_rx_r__THETA_4_"]]),ncol=4))
+
+        expect_equal(tmp2$dR2,
+                     list(matrix(c(tmp1[["_sens_rx_r__BY_ETA_1__ETA_1_"]],tmp1[["_sens_rx_r__BY_ETA_1__ETA_2_"]]),ncol=2),
+                          matrix(c(tmp1[["_sens_rx_r__BY_ETA_1__ETA_2_"]],tmp1[["_sens_rx_r__BY_ETA_2__ETA_2_"]]),ncol=2)
+                          ))
+
+        expect_equal(tmp2$dErr2,
+                     list(matrix(c(tmp1[["_sens_rx_pred__BY_ETA_1__ETA_1_"]],tmp1[["_sens_rx_pred__BY_ETA_1__ETA_2_"]]),ncol=2),
+                          matrix(c(tmp1[["_sens_rx_pred__BY_ETA_1__ETA_2_"]],tmp1[["_sens_rx_pred__BY_ETA_2__ETA_2_"]]),ncol=2)))
 
     })
 

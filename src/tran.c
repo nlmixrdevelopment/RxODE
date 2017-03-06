@@ -467,7 +467,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       
       tb.fn = (!strcmp("function", name) && i==0) ? 1 : 0;
       D_ParseNode *xpn = d_get_child(pn,i);
-
+      
       if (!strcmp("theta",name)){
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
         sprintf(buf,"_THETA_%s_",v);
@@ -513,6 +513,11 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         if (xpn->start_loc.s ==  xpn->end){
           trans_syntax_error_report_fn(NEEDSEMI);
         } 
+      }
+
+      if (!strcmp("decimalint",name)){
+	sprintf(SBPTR,".0");
+        sb.o += 2;
       }
 
       if (!strcmp("mult_part",name)){
@@ -1599,7 +1604,7 @@ void codegen(FILE *outpt, int show_ode) {
     for (i=0, j=0; i<tb.nv; i++) {
       if (tb.lh[i] != 1) continue;
       retieve_var(i, buf);
-      fprintf(outpt, "\t_lhs[%d]=", j);
+      fprintf(outpt, "\t_lhs[%d]=_as_zero(", j);
       for (k = 0; k < strlen(buf); k++){
         if (buf[k] == '.'){
           fprintf(outpt,"_DoT_");
@@ -1610,7 +1615,7 @@ void codegen(FILE *outpt, int show_ode) {
           fprintf(outpt,"%c",buf[k]);
         }
       }
-      fprintf(outpt, ";\n");
+      fprintf(outpt, ");\n");
       j++;
     }
     fprintf(outpt, "}\n");

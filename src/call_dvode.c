@@ -48,6 +48,13 @@ void (*dydt)(unsigned int neq, double t, double *A, double *DADT);
 void (*calc_jac)(unsigned int neq, double t, double *A, double *JAC, unsigned int __NROWPD__);
 void (*calc_lhs)(double t, double *A, double *lhs);
 
+double RxODE_as_zero(double x){
+  if (abs(x) < sqrt(DOUBLE_EPS)){
+    return(0.0);
+  } else {
+    return(x);
+  }
+}
 
 double RxODE_safe_log(double x){
   if (x == 0.0){
@@ -579,7 +586,7 @@ SEXP RxODE_ode_solver_focei_hessian(SEXP sexp_rho){
 
 SEXP RxODE_ode_solver_focei_outer (SEXP sexp_rho){
   //Outer problem gradient for lbfgs
-  int i, j, k=0, h, n, pro = 0;
+  int i, j, k=0, h, n, pro = 0, i0 = 0,e1,e2;
   SEXP sexp_theta = findVar(installChar(mkChar("params")),sexp_rho);
   SEXP sexp_inits = findVar(installChar(mkChar("inits")),sexp_rho);
   SEXP sexp_lhs   = findVar(installChar(mkChar("lhs_vars")),sexp_rho);
@@ -620,10 +627,10 @@ SEXP RxODE_ode_solver_focei_outer (SEXP sexp_rho){
   ntheta = INTEGER(findVar(installChar(mkChar("ntheta")),sexp_rho))[0];
   SEXP sexp_fp     = PROTECT(allocMatrix(REALSXP, n_all_times-ixds, neta)); pro++;
   SEXP sexp_fp_t   = PROTECT(allocMatrix(REALSXP, n_all_times-ixds, ntheta)); pro++;
-  SEXP sexp_fp_2   = PROTECT(allocMatrix(REALSXP, n_all_times-ixds, neta)); pro++;
+  SEXP sexp_fp_2   = PROTECT(allocVector(VECSXP, neta)); pro++;
   SEXP sexp_rp     = PROTECT(allocMatrix(REALSXP, n_all_times-ixds, neta)); pro++;
   SEXP sexp_rpt    = PROTECT(allocMatrix(REALSXP, n_all_times-ixds, ntheta)); pro++;
-  SEXP sexp_rp_2   = PROTECT(allocMatrix(REALSXP, n_all_times-ixds, neta)); pro++;
+  SEXP sexp_rp_2   = PROTECT(allocVector(VECSXP, neta)); pro++;
   SEXP sexp_f      = PROTECT(allocVector(REALSXP, n_all_times-ixds)); pro++;
   SEXP sexp_err    = PROTECT(allocMatrix(REALSXP, n_all_times-ixds, 1)); pro++;
   SEXP sexp_r      = PROTECT(allocMatrix(REALSXP, n_all_times-ixds, 1)); pro++;
@@ -635,24 +642,28 @@ SEXP RxODE_ode_solver_focei_outer (SEXP sexp_rho){
   SEXP sexp_fp_te  = PROTECT(allocVector(VECSXP, ntheta)); pro++;
   SEXP sexp_rp_te  = PROTECT(allocVector(VECSXP, ntheta)); pro++;
   SEXP sexp_llik   = PROTECT(allocVector(REALSXP, 1)); pro++;
-  SEXP sexp_lp   = PROTECT(allocMatrix(REALSXP, neta, 1)); pro++;
+  SEXP sexp_lp     = PROTECT(allocMatrix(REALSXP, neta, 1)); pro++;
+
+  SEXP sexp_l_dn_dt = PROTECT(allocMatrix(REALSXP, neta, ntheta)); pro++;
   
   double *llik  = REAL(sexp_llik);
   double *fpm  = REAL(sexp_fp);
   double *fpt  = REAL(sexp_fp_t);
-  double *fp2  = REAL(sexp_fp_2);
   double *f    = REAL(sexp_f);
   double *err  = REAL(sexp_err);
   
   double *DV   = REAL(findVar(installChar(mkChar("DV")),sexp_rho));
   double *rp   = REAL(sexp_rp);
   double *rpt  = REAL(sexp_rpt);
-  double *rp2  = REAL(sexp_rp_2);
   double *lp   = REAL(sexp_lp);
+
+  double *l_dn_dt = REAL(sexp_l_dn_dt);
   
   for (j = 0; j < neta; j++){
     SET_VECTOR_ELT(sexp_c,j,PROTECT(allocMatrix(REALSXP, n_all_times-ixds, 1))); pro++;
     SET_VECTOR_ELT(sexp_a,j,PROTECT(allocMatrix(REALSXP, n_all_times-ixds, 1))); pro++;
+    SET_VECTOR_ELT(sexp_fp_2,j,PROTECT(allocMatrix(REALSXP, n_all_times-ixds, neta))); pro++;
+    SET_VECTOR_ELT(sexp_rp_2,j,PROTECT(allocMatrix(REALSXP, n_all_times-ixds, neta))); pro++;
   }
   for (j = 0; j < ntheta; j++){
     SET_VECTOR_ELT(sexp_fp_te,j,PROTECT(allocMatrix(REALSXP, n_all_times-ixds, neta))); pro++;
@@ -665,6 +676,10 @@ SEXP RxODE_ode_solver_focei_outer (SEXP sexp_rho){
   llik[0] = 0;
   for (j = 0; j < neta; j++){
     lp[j] = 0;
+  }
+
+  for (j = 0; j < ntheta*neta; j++){
+    l_dn_dt[j] = 0;
   }
   // Now create the pred vector and d(pred)/d(eta) matrix.
   // Assuming lhs[0] = pred and lhs[1:n] = d(pred)/d(eta#)
@@ -679,22 +694,36 @@ SEXP RxODE_ode_solver_focei_outer (SEXP sexp_rho){
 	REAL(VECTOR_ELT(sexp_a, j-1))[k] = lhs[j];
       }
       /* // d(pred)/d(theta#) */
-      for (j = 1+neta; j < neta+ntheta+1; j++){
-      	fpt[(n_all_times-ixds)*(j-1-neta)+k]=lhs[j];
+      i0 = 1+neta;
+      for (j = i0; j < i0+ntheta; j++){
+      	fpt[(n_all_times-ixds)*(j-i0)+k]=lhs[j];
       }
       /* // d^2(pred)/d^2(eta#) */
-      for (j = neta + ntheta + 1; j < 2*neta + ntheta + 1; j++){
-      	fp2[(n_all_times-ixds)*(j-1-neta-ntheta)+k] = lhs[j];
+      i0 += ntheta;
+      e1=0; e2=0;
+      for (j = i0; j < i0+(neta)*(neta+1)/2; j++){
+      	/* fp2[(n_all_times-ixds)*(j-i0)+k] = lhs[j]; */
+	REAL(VECTOR_ELT(sexp_fp_2,e1))[e2*(n_all_times-ixds)+k]=lhs[j];
+	if (e1 == e2){
+	  e1=0;
+	  e2++;
+	} else {
+	  REAL(VECTOR_ELT(sexp_fp_2,e2))[e1*(n_all_times-ixds)+k]=lhs[j];
+	  e1++;
+	}
       }
       /* // d^2(pred)/(d(eta#)d(theta#)) */
+      i0 += (neta)*(neta+1)/2;
       h = 0;
-      for (j = 2*neta + ntheta + 1; j < neta*ntheta + 2*neta + ntheta + 1; j++){
+      for (j = i0; j < i0 + neta*ntheta; ){
 	for (n = 0; n < neta; n++){
 	  REAL(VECTOR_ELT(sexp_fp_te,h))[n*(n_all_times-ixds)+k]=lhs[j];
 	  j++;
 	}
+	h++;
       }
-      j = neta*ntheta + 2*neta + ntheta + 1;
+      i0 += neta*ntheta;
+      j=i0;
       // Now
       if (lhs[j] <= 0){
         RxODE_ode_free();
@@ -705,40 +734,69 @@ SEXP RxODE_ode_solver_focei_outer (SEXP sexp_rho){
       /* Rinv[k]=1/lhs[j]; */
       B[k]=2/lhs[j];
       /* // d(R)/d(eta#) */
-      for (j=ntheta*neta + 2*neta + ntheta + 2; j < ntheta*neta + 3*neta + ntheta + 2; j++){
+      i0++;
+      for (j=i0; j < i0+neta; j++){
         /* Rprintf("j: %d; Adj: %d; k: %d\n",j, j-neta-2,k); */
-        rp[(n_all_times-ixds)*(j-(ntheta*neta + 2*neta + ntheta + 2))+k] = lhs[j];
-        REAL(VECTOR_ELT(sexp_c, j-(ntheta*neta + 2*neta + ntheta + 2)))[k] = lhs[j]/RxODE_safe_zero(r[k]);
+        rp[(n_all_times-ixds)*(j-i0)+k] = lhs[j];
+        REAL(VECTOR_ELT(sexp_c, j-i0))[k] = lhs[j]/RxODE_safe_zero(r[k]);
 	if (!do_nonmem){
           // tmp1[["_sens_rx_pred__ETA_1_"]],ncol=1) - err/R*matrix(tmp1[["_sens_rx_r__ETA_1_"]]
-          REAL(VECTOR_ELT(sexp_a, j-(ntheta*neta + 2*neta + ntheta + 2)))[k] += -err[k]/RxODE_safe_zero(r[k])*lhs[j];
+          REAL(VECTOR_ELT(sexp_a, j-i0))[k] += -err[k]/RxODE_safe_zero(r[k])*lhs[j];
         }
       }
+      i0 += neta;
       /* // d(R)/d(theta#) */
-      for (j=ntheta*neta + 3*neta + ntheta + 2; j < ntheta*neta + 3*neta + 2*ntheta + 2; j++){
+      for (j=i0; j < i0+ntheta; j++){
         /* Rprintf("j: %d; Adj: %d; k: %d\n",j, j-neta-2,k); */
-        rpt[(n_all_times-ixds)*(j-(ntheta*neta + 3*neta + ntheta + 2))+k] = lhs[j];
+        rpt[(n_all_times-ixds)*(j-i0)+k] = lhs[j];
       }
+      i0 += ntheta;
       /* // d^2(R)/d^2(eta) */
-      for (j=ntheta*neta + 3*neta + 2*ntheta + 2; j < ntheta*neta + 4*neta + 2*ntheta + 2; j++){
+      e1=0; e2=0;
+      for (j=i0; j < i0+(neta)*(neta+1)/2; j++){
         /* Rprintf("j: %d; Adj: %d; k: %d\n",j, j-neta-2,k); */
-        rp2[(n_all_times-ixds)*(j-(ntheta*neta + 3*neta + 2*ntheta + 2))+k] = lhs[j];
+	REAL(VECTOR_ELT(sexp_rp_2,e1))[e2*(n_all_times-ixds)+k]=lhs[j];
+        if (e1 == e2){
+          e1=0;
+          e2++;
+        } else {
+          REAL(VECTOR_ELT(sexp_rp_2,e2))[e1*(n_all_times-ixds)+k]=lhs[j];
+          e1++;
+        }
       }
       // d^2(R)/(d(eta#)d(theta#))
+      i0 += (neta)*(neta+1)/2;
       h = 0;
-      for (j = ntheta*neta + 4*neta + 2*ntheta + 2; j < 2*ntheta*neta + 4*neta + 2*ntheta + 2; j++){
+      for (j = i0; j < i0+ntheta*neta; ){
         for (n = 0; n < neta; n++){
           REAL(VECTOR_ELT(sexp_rp_te,h))[n*(n_all_times-ixds)+k]=lhs[j];
           j++;
         }
+	h++;
       }
+      i0 += ntheta*neta;
       for (j = 0; j < neta; j++){
         //.5*apply(eps*fp*B + .5*eps^2*B*c - c, 2, sum) - OMGAinv %*% ETA
         lp[j] += 0.5 * err[k]* fpm[(n_all_times-ixds)*j+k]*B[k]  +
           0.25 * err[k] * err[k] * B[k] * REAL(VECTOR_ELT(sexp_c, j))[k] -
           0.5 * REAL(VECTOR_ELT(sexp_c, j))[k];
       }
-      llik[0] += -0.5*(err[k]*err[k]/RxODE_safe_zero(r[k])+RxODE_safe_log(r[k]));
+      for (h=0; h < ntheta; h++){
+        for (n = 0; n < neta; n++){
+	  // Eq #47 Almquist 2015
+	  l_dn_dt[neta*h+n]+=0/* 2*fpt[(n_all_times-ixds)*h+k]*fpm[(n_all_times-ixds)*n+k]/r[k]- */
+	    /* 2*err[k]*fpm[(n_all_times-ixds)*n+k]*rpt[(n_all_times-ixds)*h+k]+ */
+	    /* 2*err[k]*REAL(VECTOR_ELT(sexp_fp_te,h))[n*(n_all_times-ixds)+k]/r[k]- */
+	    /* err[k]*err[k]*REAL(VECTOR_ELT(sexp_rp_te,h))[n*(n_all_times-ixds)+k]/(r[k]*r[k])+ */
+	    /* 2*err[k]*err[k]*rp[(n_all_times-ixds)*n+k]/(r[k]*r[k]*r[k])- */
+	    /* 2*err[k]*rp[(n_all_times-ixds)*n+k]*fpt[(n_all_times-ixds)*h+k]/(r[k]*r[k])+ // trace is not needed since R is a scalar, not a vector */
+	    /* rp[(n_all_times-ixds)*n+k]*rpt[(n_all_times-ixds)*h+k]/(r[k]*r[k])+ */
+	    /* REAL(VECTOR_ELT(sexp_rp_te,h))[n*(n_all_times-ixds)+k]/r[k] */
+	    ;
+	  // The Omega terms are not calculated here...
+        }
+      }
+	  llik[0] += -0.5*(err[k]*err[k]/RxODE_safe_zero(r[k])+RxODE_safe_log(r[k]));
       k++;
     }
   }
@@ -759,6 +817,7 @@ SEXP RxODE_ode_solver_focei_outer (SEXP sexp_rho){
   defineVar(installChar(mkChar("a")),sexp_a,sexp_rho);
   defineVar(installChar(mkChar("llik")),sexp_llik,sexp_rho);
   defineVar(installChar(mkChar("lp")),sexp_lp,sexp_rho);
+  defineVar(installChar(mkChar("l.dEta.dTheta")), sexp_l_dn_dt,sexp_rho);
   /* Rprintf("llik[0] = %f\n",llik[0]); */
   UNPROTECT(pro);
   if (fp) fclose(fp);
@@ -1151,4 +1210,5 @@ void R_init_RxODE(DllInfo *info){
   R_RegisterCCallable("RxODE","RxODE_factorial",        (DL_FUNC) RxODE_factorial);
   R_RegisterCCallable("RxODE","RxODE_safe_log",         (DL_FUNC) RxODE_safe_log);
   R_RegisterCCallable("RxODE","RxODE_safe_zero",        (DL_FUNC) RxODE_safe_zero);
+  R_RegisterCCallable("RxODE","RxODE_as_zero",          (DL_FUNC) RxODE_as_zero);
 }
