@@ -153,6 +153,8 @@ rxSymPyVars <- function(model){
         rSymPy::sympyStart();
     if (class(model) == "character" && length(model) > 1){
         vars <- model;
+    } else if (class(model) == "character" && length(model) == 1 && regexpr(rex::rex(or("=", "<-")), model) == -1){
+        vars <- model;
     } else {
         vars <- c(rxParams(model), rxState(model),
                   "podo", "t", "time", "tlast");

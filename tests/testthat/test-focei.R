@@ -15,6 +15,16 @@ rxPermissive({
              hi.idx=hi.idx)         # index of strict hi-half
     }
 
+    m1 <- RxODE({
+        d/dt(centr) = - CL / V*centr;
+    })
+
+    m1a <- RxODE(m1, calcSens=TRUE);
+
+    test_that("m1a created successfully.", {
+        expect_equal(class(m1a), "RxODE");
+    })
+
     m2 <- RxODE({
         d/dt(depot) = -KA*depot;
         d/dt(centr) = KA*depot - CL / V*centr;
