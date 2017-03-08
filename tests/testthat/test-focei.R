@@ -289,6 +289,8 @@ rxPermissive({
         expect_equal(lik2, llik.lapl);
     })
 
+    m2a <- rxSymPySetupPred(m2, pred, pk, err, grad=TRUE)
+
     tmp1 <- m2a$outer %>% solve(et, theta=c(2, 1.6, 4.5,0.01), eta=c(0.01, -0.01))
 
     tmp2 <- m2a %>% rxFoceiTheta(et, theta=c(2, 1.6, 4.5,0.01), eta=c(0.01, -0.01),dv=dv, inv.env=symenv)

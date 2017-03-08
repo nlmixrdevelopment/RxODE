@@ -745,7 +745,8 @@ rxIf__ <- function(x){
 ##' @author Matthew L. Fidler
 ##' @keywords internal
 ##' @export
-rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, scale.to=NULL, grad=FALSE){
+rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, scale.to=NULL, grad=FALSE, grad.internal=FALSE){
+    oobj <- obj;
     rxSymPyVars(obj);
     on.exit({rxSymPyClean()});
     if (!is.null(pkpars)){
@@ -783,7 +784,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, sc
         } else {
             calcSens <- rxParams(full);
         }
-        if (grad){
+        if (grad.internal){
             calcSens <- list(eta=etas);
             thetas <- rxParams(full);
             thetas <- thetas[regexpr(regTheta, thetas) != -1];
@@ -888,12 +889,16 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, sc
     } else {
         err <- ""
     }
-    if (!grad){
-        ret <- list(obj=obj,
+    if (!grad.internal){
+        outer <- NULL;
+        if (grad){
+            outer <- rxSymPySetupPred(obj=obj, predfn=predfn, pkpars=pkpars,
+                                      errfn=errfn, init=init, scale.to=scale.to, grad.internal=TRUE);
+        }
+        ret <- list(obj=oobj,
                     inner=RxODE(paste0(base, "\n", pred, "\n", err)),
                     extra.pars=extra.pars,
-                    outer=rxSymPySetupPred(obj=obj, predfn=predfn, pkpars=pkpars,
-                                           errfn=errfn, init=init, scale.to=scale.to, TRUE));
+                    outer=outer);
         class(ret) <- "rxFocei";
         return(ret);
     } else {

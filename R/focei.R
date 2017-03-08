@@ -1,4 +1,4 @@
-rxFoceiEtaSetup <- function(object, ..., dv, eta, theta, nonmem=FALSE, inv.env=parent.frame(1)){
+rxFoceiEtaSetup <- function(object, ..., dv, eta, theta, nonmem=FALSE, inv.env=parent.frame(1), id= -1){
     args <- list(object=object, ..., eta=eta, theta=theta);
     setup <- c(do.call(getFromNamespace("rxSolveSetup", "RxODE"), args, envir = parent.frame(1)),
                as.list(inv.env));
@@ -20,6 +20,7 @@ rxFoceiEtaSetup <- function(object, ..., dv, eta, theta, nonmem=FALSE, inv.env=p
         setup$eta.mat <- matrix(eta, ncol=1);
         setup$neta <- as.integer(length(eta))
         setup$ntheta <- as.integer(length(theta))
+        setup$id = as.integer(id);
         return(list2env(setup));
     }))
 }

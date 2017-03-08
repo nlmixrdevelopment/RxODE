@@ -1604,7 +1604,7 @@ void codegen(FILE *outpt, int show_ode) {
     for (i=0, j=0; i<tb.nv; i++) {
       if (tb.lh[i] != 1) continue;
       retieve_var(i, buf);
-      fprintf(outpt, "\t_lhs[%d]=_as_zero(", j);
+      fprintf(outpt, "\t_lhs[%d]=", j);
       for (k = 0; k < strlen(buf); k++){
         if (buf[k] == '.'){
           fprintf(outpt,"_DoT_");
@@ -1615,7 +1615,7 @@ void codegen(FILE *outpt, int show_ode) {
           fprintf(outpt,"%c",buf[k]);
         }
       }
-      fprintf(outpt, ");\n");
+      fprintf(outpt, ";\n");
       j++;
     }
     fprintf(outpt, "}\n");

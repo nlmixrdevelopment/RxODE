@@ -888,6 +888,7 @@ SEXP RxODE_ode_solver_focei_eta (SEXP sexp_eta, SEXP sexp_rho){
   if (is_same){
     return sexp_rho;
   } else {
+    SEXP temp;
     SEXP sexp_theta = findVar(installChar(mkChar("params")),sexp_rho);
     SEXP sexp_inits = findVar(installChar(mkChar("inits")),sexp_rho);
     SEXP sexp_lhs   = findVar(installChar(mkChar("lhs_vars")),sexp_rho);
@@ -993,8 +994,18 @@ SEXP RxODE_ode_solver_focei_eta (SEXP sexp_eta, SEXP sexp_rho){
           }
         }
 	if (lhs[j] <= 0){
+	  for (j = 0; j < nlhs; j++){
+	    Rprintf("lhs[%d] = %f\n", j, lhs[j]);
+	  }
+	  Rprintf("\n");
+	  temp = getAttrib(sexp_theta, R_NamesSymbol);
+	  for (j = 0; j < length(sexp_theta); j++){
+	    Rprintf("params[%d] = %s = %f\n", j, CHAR(STRING_ELT(temp, j)),par_ptr[j]);
+	  }
 	  RxODE_ode_free();
-          error("A covariance term is zero or negative and should remain positive.");
+          error("A covariance term is zero or negative and should remain positive (at id=%d, t=%f, f=%f).",
+		INTEGER(findVar(installChar(mkChar("id")),sexp_rho))[0],
+		all_times[i], f[k]);
 	}
         r[k]=lhs[j]; // R always has to be positive.
         /* logR[k]=log(lhs[j]); */
