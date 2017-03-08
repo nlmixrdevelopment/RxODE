@@ -131,7 +131,9 @@ rxPermissive({
 
     omega <- matrix(c(0.1, 0, 0, 0.1), nrow=2)
 
-    omegaInv <- solve(omega)
+    symo <- rxSymInvCreate(omega);
+
+    symenv <- rxSymInv(symo, c(sqrt(0.1), sqrt(0.1)))
 
     ## test_that("theta/eta solve works", {
     ##     expect_equal(suppressWarnings(digest(m2a %>% solve(et, theta=c(2, 1.6, 4.5, 0.1), eta=c(0.01, -0.01)) %>% as.data.frame %>% round(3))),
@@ -140,19 +142,18 @@ rxPermissive({
 
     ## m2a <- rxSymPySetupPred(m2, pred, pk, err)
 
-    log.det.OMGAinv.5 <- sum(log(diag(chol(omegaInv))))
 
-    tmp1 <- m2a$inner %>% solve(et, theta=c(2, 1.6, 4.5,0.01), eta=c(0.01, -0.01), log.det.OMGAinv.5=log.det.OMGAinv.5)
+    tmp1 <- m2a$inner %>% solve(et, theta=c(2, 1.6, 4.5,0.01), eta=c(0.01, -0.01))
 
-    tmp2 <- m2a %>% rxFoceiEta(et, theta=c(2, 1.6, 4.5,0.01), eta=c(0.01, -0.01),dv=dv, omegaInv=omegaInv, log.det.OMGAinv.5=log.det.OMGAinv.5)
+    tmp2 <- m2a %>% rxFoceiEta(et, theta=c(2, 1.6, 4.5,0.01), eta=c(0.01, -0.01),dv=dv, inv.env=symenv)
 
-    tmp2.nm <- m2a %>% rxFoceiEta(et, theta=c(2, 1.6, 4.5,0.01), eta=c(0.01, -0.01),dv=dv, omegaInv=omegaInv, nonmem=TRUE, log.det.OMGAinv.5=log.det.OMGAinv.5)
+    tmp2.nm <- m2a %>% rxFoceiEta(et, theta=c(2, 1.6, 4.5,0.01), eta=c(0.01, -0.01),dv=dv, inv.env=symenv, nonmem=TRUE)
 
-    tmp3 <- m2a %>% rxFoceiLik(et, theta=c(2, 1.6, 4.5,0.01), eta=c(0.01, -0.01),dv=dv, omegaInv=omegaInv, log.det.OMGAinv.5=log.det.OMGAinv.5)
+    tmp3 <- m2a %>% rxFoceiLik(et, theta=c(2, 1.6, 4.5,0.01), eta=c(0.01, -0.01),dv=dv, inv.env=tmp2)
 
-    tmp4 <- m2a %>% rxFoceiLp(et, theta=c(2, 1.6, 4.5,0.01), eta=c(0.01, -0.01),dv=dv, omegaInv=omegaInv, log.det.OMGAinv.5=log.det.OMGAinv.5)
+    tmp4 <- m2a %>% rxFoceiLp(et, theta=c(2, 1.6, 4.5,0.01), eta=c(0.01, -0.01),dv=dv, inv.env=symenv)
 
-    tmp5 <- m2a %>%rxFoceiInner(et, theta=c(2, 1.6, 4.5,0.01), eta=c(10, 10),dv=dv, omegaInv=omegaInv, invisible=1, log.det.OMGAinv.5=log.det.OMGAinv.5)
+    tmp5 <- m2a %>%rxFoceiInner(et, theta=c(2, 1.6, 4.5,0.01), eta=c(10, 10),dv=dv, inv.env=symenv, invisible=1)
 
     test_that("rxFoceiEta makes sense", {
         expect_equal(tmp1$rx_pred_, tmp2$f); ## F
@@ -197,6 +198,7 @@ rxPermissive({
         expect_equal(llik, tmp2$llik);
 
         eta <- c(0.01, -0.01)
+        omegaInv <- symenv$omegaInv
         llik <- -0.5 * sum(err ^ 2 / R + log(R)) - 0.5 * t(matrix(eta,ncol=1)) %*% omegaInv %*% matrix(eta,ncol=1);
         llik <- -llik;
 
@@ -236,7 +238,7 @@ rxPermissive({
         log.det.H.neg.5 = sum(log(diag(H.neg.5)))
 
         RxODE_focei_eta_lik(tmp2$eta, tmp2)
-
+        log.det.OMGAinv.5 <- symenv$log.det.OMGAinv.5
         llik = -tmp2$llik2 + log.det.OMGAinv.5             #note no -1/2 with OMGAinv.5
         llik.lapl =llik - log.det.H.neg.5               #note no 1/2
         llik.lapl = as.vector(llik.lapl);
@@ -289,12 +291,11 @@ rxPermissive({
 
     tmp1 <- m2a$outer %>% solve(et, theta=c(2, 1.6, 4.5,0.01), eta=c(0.01, -0.01))
 
-    tmp2 <- m2a %>% rxFoceiTheta(et, theta=c(2, 1.6, 4.5,0.01), eta=c(0.01, -0.01),dv=dv, omegaInv=omegaInv, log.det.OMGAinv.5=log.det.OMGAinv.5)
+    tmp2 <- m2a %>% rxFoceiTheta(et, theta=c(2, 1.6, 4.5,0.01), eta=c(0.01, -0.01),dv=dv, inv.env=symenv)
 
-    tmp2.nm <- m2a %>% rxFoceiEta(et, theta=c(2, 1.6, 4.5,0.01), eta=c(0.01, -0.01),dv=dv, omegaInv=omegaInv, nonmem=TRUE, log.det.OMGAinv.5=log.det.OMGAinv.5)
+    tmp2.nm <- m2a %>% rxFoceiTheta(et, theta=c(2, 1.6, 4.5,0.01), eta=c(0.01, -0.01),dv=dv, inv.env=symenv, nonmem=TRUE)
 
     test_that("rxFoceiTheta makes sense", {
-
         expect_equal(tmp1$rx_pred_, tmp2$f); ## F
         err <- matrix(dv - tmp1$rx_pred_, ncol=1)
         expect_equal(err, tmp2$err) ## Err
@@ -340,10 +341,12 @@ rxPermissive({
 
         ##
         expect_equal(tmp2$dErr.dTheta,
-                     matrix(c(tmp1[["_sens_rx_pred__THETA_1_"]],tmp1[["_sens_rx_pred__THETA_2_"]],tmp1[["_sens_rx_pred__THETA_3_"]],tmp1[["_sens_rx_pred__THETA_4_"]]),ncol=4))
+                     matrix(c(tmp1[["_sens_rx_pred__THETA_1_"]],tmp1[["_sens_rx_pred__THETA_2_"]],tmp1[["_sens_rx_pred__THETA_3_"]],tmp1[["_sens_rx_pred__THETA_4_"]],
+                              rep(0, dim(tmp2$dErr.dTheta)[1] * 2)),ncol=6))
 
         expect_equal(tmp2$dR.dTheta,
-                     matrix(c(tmp1[["_sens_rx_r__THETA_1_"]],tmp1[["_sens_rx_r__THETA_2_"]],tmp1[["_sens_rx_r__THETA_3_"]],tmp1[["_sens_rx_r__THETA_4_"]]),ncol=4))
+                     matrix(c(tmp1[["_sens_rx_r__THETA_1_"]],tmp1[["_sens_rx_r__THETA_2_"]],tmp1[["_sens_rx_r__THETA_3_"]],tmp1[["_sens_rx_r__THETA_4_"]],
+                              rep(0, dim(tmp2$dErr.dTheta)[1] * 2)),ncol=6))
 
         expect_equal(tmp2$dR2,
                      list(matrix(c(tmp1[["_sens_rx_r__BY_ETA_1__ETA_1_"]],tmp1[["_sens_rx_r__BY_ETA_1__ETA_2_"]]),ncol=2),

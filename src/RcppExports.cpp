@@ -76,14 +76,23 @@ BEGIN_RCPP
 END_RCPP
 }
 // rxDetaDomega
-NumericVector rxDetaDomega(SEXP rho, SEXP eta_sexp);
-RcppExport SEXP RxODE_rxDetaDomega(SEXP rhoSEXP, SEXP eta_sexpSEXP) {
+void rxDetaDomega(SEXP rho);
+RcppExport SEXP RxODE_rxDetaDomega(SEXP rhoSEXP) {
 BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< SEXP >::type rho(rhoSEXP);
-    Rcpp::traits::input_parameter< SEXP >::type eta_sexp(eta_sexpSEXP);
-    rcpp_result_gen = Rcpp::wrap(rxDetaDomega(rho, eta_sexp));
-    return rcpp_result_gen;
+    rxDetaDomega(rho);
+    return R_NilValue;
+END_RCPP
+}
+// rxDetaDtheta
+void rxDetaDtheta(SEXP rho, Function f);
+RcppExport SEXP RxODE_rxDetaDtheta(SEXP rhoSEXP, SEXP fSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type rho(rhoSEXP);
+    Rcpp::traits::input_parameter< Function >::type f(fSEXP);
+    rxDetaDtheta(rho, f);
+    return R_NilValue;
 END_RCPP
 }

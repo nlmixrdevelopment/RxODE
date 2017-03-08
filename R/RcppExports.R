@@ -32,9 +32,15 @@ RxODE_finalize_focei_omega <- function(rho) {
 #' @param rho environment where omegaInv.dOmega.omegaInv and tr.omegaInv.dOmega.0.5
 #' are calculated.  This is done with the rxSymInv function.
 #'
+#' @return Nothing.  Add omega.28 and omega.47 to the environment rho.
+#' 
 #' @keywords internal
 #' @export
-rxDetaDomega <- function(rho, eta_sexp) {
-    .Call('RxODE_rxDetaDomega', PACKAGE = 'RxODE', rho, eta_sexp)
+rxDetaDomega <- function(rho) {
+    invisible(.Call('RxODE_rxDetaDomega', PACKAGE = 'RxODE', rho))
+}
+
+rxDetaDtheta <- function(rho, f) {
+    invisible(.Call('RxODE_rxDetaDtheta', PACKAGE = 'RxODE', rho, f))
 }
 

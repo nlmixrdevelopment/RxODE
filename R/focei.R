@@ -1,6 +1,7 @@
-rxFoceiEtaSetup <- function(object, ..., dv, eta, theta, omegaInv=NULL, nonmem=FALSE, log.det.OMGAinv.5=0){
+rxFoceiEtaSetup <- function(object, ..., dv, eta, theta, nonmem=FALSE, inv.env=parent.frame(1)){
     args <- list(object=object, ..., eta=eta, theta=theta);
-    setup <- do.call(getFromNamespace("rxSolveSetup", "RxODE"), args, envir = parent.frame(1));
+    setup <- c(do.call(getFromNamespace("rxSolveSetup", "RxODE"), args, envir = parent.frame(1)),
+               as.list(inv.env));
     return(with(setup, {
         tmp <- environment(object$.call);
         if (any(names(tmp) == "eta.trans")){
@@ -14,18 +15,38 @@ rxFoceiEtaSetup <- function(object, ..., dv, eta, theta, omegaInv=NULL, nonmem=F
         }
         setup$nonmem <- as.integer(nonmem)
         setup$DV <- as.double(dv);
-        setup$omegaInv <- omegaInv;
-        setup$eta <- NULL;
         setup$eta.trans <- as.integer(eta.trans);
         setup$object <- object;
         setup$eta.mat <- matrix(eta, ncol=1);
-        setup$log.det.OMGAinv.5 <- log.det.OMGAinv.5;
         setup$neta <- as.integer(length(eta))
         setup$ntheta <- as.integer(length(theta))
         return(list2env(setup));
     }))
 }
-
+##' Finalize Likelihood for individual.
+##'
+##' @param env Environment where likelihood is finalized.
+##' @return The likelihood with the fitted values, posthoc eta, and possibly the individual contribution to the gradient.
+##' @author Matthew L. Fidler
+##' @keywords internal
+##' @export
+rxFoceiFinalizeLlik <- function(env){
+    return(tryCatch({RxODE_focei_finalize_llik(env)},
+                    error=function(e){
+        if (any(is.nan(as.vector(env$H)))){
+            cat("Warning: Underflow/overflow; resetting ETAs to 0.\n");
+            print(env$H)
+            eta <- rep(0, length(env$eta));
+            RxODE_focei_eta_lik(eta, env);
+            RxODE_focei_eta_lp(eta, env);
+            RxODE_focei_finalize_llik(env);
+        } else {
+            cat("Warning: Hessian not positive definite (correcting with nearPD)\n");
+            env$H <- -as.matrix(Matrix::nearPD(-env$H)$mat);
+            RxODE_focei_finalize_llik(env)
+        }
+    }))
+}
 ##' FOCEI ETA setup,
 ##'
 ##' This is basically for testing
@@ -34,31 +55,30 @@ rxFoceiEtaSetup <- function(object, ..., dv, eta, theta, omegaInv=NULL, nonmem=F
 ##' @param ... values sent to rxFoceiEtaSetup
 ##' @param dv dependent variable
 ##' @param eta eta values.
-##' @param omegaInv Inverse omega
 ##' @param env Environment to use, instead of rxFoceiEtaSetup environment
 ##' @param nonmem Match NONMEMs approximation of the hessian.
 ##' @return environment of solved information.
 ##' @author Matthew L. Fidler
 ##' @keywords internal
-rxFoceiEta <- function(object, ..., dv, eta, omegaInv, env, nonmem=FALSE){
+rxFoceiEta <- function(object, ..., dv, eta,  env, nonmem=FALSE){
     UseMethod("rxFoceiEta");
 }
 
 ##' @rdname rxFoceiEta
-rxFoceiEta.rxFocei <- function(object, ..., dv, eta, omegaInv, env, nonmem=FALSE){
+rxFoceiEta.rxFocei <- function(object, ..., dv, eta, env, nonmem=FALSE){
     args <- as.list(match.call(expand.dots=TRUE))[-1];
     args$object <- object$inner$cmpMgr$rxDll();
     return(do.call(getFromNamespace("rxFoceiEta.rxDll", "RxODE"), args, envir=parent.frame(1)));
 }
 
 ##' @rdname rxFoceiEta
-rxFoceiEta.RxODE <- function(object, ..., dv, eta, omegaInv, env, nonmem){
+rxFoceiEta.RxODE <- function(object, ..., dv, eta,  env, nonmem){
     args <- as.list(match.call(expand.dots=TRUE))[-1];
     args$object <- object$cmpMgr$rxDll();
     return(do.call(getFromNamespace("rxFoceiEta.rxDll", "RxODE"), args, envir=parent.frame(1)));
 }
 ##' @rdname rxFoceiEta
-rxFoceiEta.rxDll <- function(object, ..., dv, eta, omegaInv, env, nonmem){
+rxFoceiEta.rxDll <- function(object, ..., dv, eta, env, nonmem){
     if (missing(env)){
         args <- as.list(match.call(expand.dots=TRUE))[-1];
         env <- do.call(getFromNamespace("rxFoceiEtaSetup", "RxODE"), args, envir = parent.frame(1));
@@ -74,23 +94,23 @@ rxFoceiEta.rxDll <- function(object, ..., dv, eta, omegaInv, env, nonmem){
 ##' @return -llik
 ##' @author Matthew L. Fidler
 ##' @keywords internal
-rxFoceiLik <- function(object, ..., dv, eta, omegaInv){
+rxFoceiLik <- function(object, ..., dv, eta){
     UseMethod("rxFoceiLik");
 }
 ##' @rdname rxFoceiLik
-rxFoceiLik.rxFocei <- function(object, ..., dv, eta, omegaInv){
+rxFoceiLik.rxFocei <- function(object, ..., dv, eta){
     args <- as.list(match.call(expand.dots=TRUE))[-1];
     args$object <- object$inner$cmpMgr$rxDll();
     return(do.call(getFromNamespace("rxFoceiLik.rxDll", "RxODE"), args, envir=parent.frame(1)));
 }
 ##' @rdname rxFoceiLik
-rxFoceiLik.RxODE <- function(object, ..., dv, eta, omegaInv){
+rxFoceiLik.RxODE <- function(object, ..., dv, eta){
     args <- as.list(match.call(expand.dots=TRUE))[-1];
     args$object <- object$cmpMgr$rxDll();
     return(do.call(getFromNamespace("rxFoceiLik.rxDll", "RxODE"), args, envir=parent.frame(1)));
 }
 ##' @rdname rxFoceiLik
-rxFoceiLik.rxDll <- function(object, ..., dv, eta, omegaInv){
+rxFoceiLik.rxDll <- function(object, ..., dv, eta){
     object$.call(rxTrans(object)["ode_solver_ptr"]); ## Assign the ODE pointers (and Jacobian Type)
     args <- as.list(match.call(expand.dots=TRUE))[-1];
     env <- do.call(getFromNamespace("rxFoceiEtaSetup", "RxODE"), args, envir = parent.frame(1));
@@ -104,23 +124,23 @@ rxFoceiLik.rxDll <- function(object, ..., dv, eta, omegaInv){
 ##' @return -grad
 ##' @author Matthew L. Fidler
 ##' @keywords internal
-rxFoceiLp <- function(object, ..., dv, eta, omegaInv){
+rxFoceiLp <- function(object, ..., dv, eta){
     UseMethod("rxFoceiLp");
 }
 ##' @rdname rxFoceiLp
-rxFoceiLp.rxFocei <- function(object, ..., dv, eta, omegaInv){
+rxFoceiLp.rxFocei <- function(object, ..., dv, eta){
     args <- as.list(match.call(expand.dots=TRUE))[-1];
     args$object <- object$inner$cmpMgr$rxDll();
     return(do.call(getFromNamespace("rxFoceiLp.rxDll", "RxODE"), args, envir=parent.frame(1)));
 }
 ##' @rdname rxFoceiLp
-rxFoceiLp.RxODE <- function(object, ..., dv, eta, omegaInv){
+rxFoceiLp.RxODE <- function(object, ..., dv, eta){
     args <- as.list(match.call(expand.dots=TRUE))[-1];
     args$object <- object$cmpMgr$rxDll();
     return(do.call(getFromNamespace("rxFoceiLp.rxDll", "RxODE"), args, envir=parent.frame(1)));
 }
 ##' @rdname rxFoceiLp
-rxFoceiLp.rxDll <- function(object, ..., dv, eta, omegaInv){
+rxFoceiLp.rxDll <- function(object, ..., dv, eta){
     object$.call(rxTrans(object)["ode_solver_ptr"]); ## Assign the ODE pointers (and Jacobian Type)
     args <- as.list(match.call(expand.dots=TRUE))[-1];
     env <- do.call(getFromNamespace("rxFoceiEtaSetup", "RxODE"), args, envir = parent.frame(1));
@@ -153,7 +173,7 @@ rxFoceiLp.rxDll <- function(object, ..., dv, eta, omegaInv){
 ##' @author Matthew L. Fidler
 ##' @keywords internal
 ##' @export
-rxFoceiInner <- function(object, ..., dv, eta, omegaInv,
+rxFoceiInner <- function(object, ..., dv, eta,
                          invisible = 0, m = 6, epsilon = 1e-05, past = 0, delta = 0,
                          max_iterations = 0, linesearch_algorithm = "LBFGS_LINESEARCH_DEFAULT",
                          max_linesearch = 20, min_step = 1e-20, max_step = 1e+20,
@@ -163,7 +183,7 @@ rxFoceiInner <- function(object, ..., dv, eta, omegaInv,
 }
 ##' @rdname rxFoceiInner
 ##' @export
-rxFoceiInner.rxFocei <- function(object, ..., dv, eta, omegaInv,
+rxFoceiInner.rxFocei <- function(object, ..., dv, eta,
                                invisible = 0, m = 6, epsilon = 1e-05, past = 0, delta = 0,
                                max_iterations = 0, linesearch_algorithm = "LBFGS_LINESEARCH_DEFAULT",
                                max_linesearch = 20, min_step = 1e-20, max_step = 1e+20,
@@ -175,7 +195,7 @@ rxFoceiInner.rxFocei <- function(object, ..., dv, eta, omegaInv,
 }
 ##' @rdname rxFoceiInner
 ##' @export
-rxFoceiInner.RxODE <- function(object, ..., dv, eta, omegaInv,
+rxFoceiInner.RxODE <- function(object, ..., dv, eta,
                                invisible = 0, m = 6, epsilon = 1e-05, past = 0, delta = 0,
                                max_iterations = 0, linesearch_algorithm = "LBFGS_LINESEARCH_DEFAULT",
                                max_linesearch = 20, min_step = 1e-20, max_step = 1e+20,
@@ -187,7 +207,7 @@ rxFoceiInner.RxODE <- function(object, ..., dv, eta, omegaInv,
 }
 ##' @rdname rxFoceiInner
 ##' @export
-rxFoceiInner.rxDll <- function(object, ..., dv, eta, omegaInv,
+rxFoceiInner.rxDll <- function(object, ..., dv, eta,
                                invisible = 0, m = 6, epsilon = 1e-05, past = 0, delta = 0,
                                max_iterations = 0, linesearch_algorithm = "LBFGS_LINESEARCH_DEFAULT",
                                max_linesearch = 20, min_step = 1e-20, max_step = 1e+20,
@@ -204,20 +224,7 @@ rxFoceiInner.rxDll <- function(object, ..., dv, eta, omegaInv,
                            max_linesearch=max_linesearch, min_step=min_step, max_step=max_step,
                            ftol=ftol, wolfe=wolfe, gtol=gtol, orthantwise_c=orthantwise_c,
                            orthantwise_start=orthantwise_start, orthantwise_end = orthantwise_end);
-    return(tryCatch({RxODE_focei_finalize_llik(env)},
-                    error=function(e){
-        if (any(is.nan(as.vector(env$H)))){
-            cat("Warning: Underflow/overflow; resetting ETAs to 0.\n");
-            eta <- rep(0, length(env$eta));
-            RxODE_focei_eta_lik(eta, env);
-            RxODE_focei_eta_lp(eta, env);
-            RxODE_focei_finalize_llik(env);
-        } else {
-            cat("Warning: Hessian not positive definite (correcting with nearPD)\n");
-            env$H <- -as.matrix(Matrix::nearPD(-env$H)$mat);
-            RxODE_focei_finalize_llik(env)
-        }
-    }))
+    return(rxFoceiFinalizeLlik(env));
 }
 
 
@@ -235,28 +242,31 @@ rxFoceiInner.rxDll <- function(object, ..., dv, eta, omegaInv,
 ##' @return environment of solved information.
 ##' @author Matthew L. Fidler
 ##' @keywords internal
-rxFoceiTheta <- function(object, ..., dv, eta, omegaInv, env, nonmem=FALSE){
+rxFoceiTheta <- function(object, ..., dv, eta, env, nonmem=FALSE){
     UseMethod("rxFoceiTheta");
 }
 
 ##' @rdname rxFoceiTheta
-rxFoceiTheta.rxFocei <- function(object, ..., dv, eta, omegaInv, env, nonmem=FALSE){
+rxFoceiTheta.rxFocei <- function(object, ..., dv, eta, env, nonmem=FALSE){
     args <- as.list(match.call(expand.dots=TRUE))[-1];
     args$object <- object$outer$cmpMgr$rxDll();
     return(do.call(getFromNamespace("rxFoceiTheta.rxDll", "RxODE"), args, envir=parent.frame(1)));
 }
 
 ##' @rdname rxFoceiTheta
-rxFoceiTheta.RxODE <- function(object, ..., dv, eta, omegaInv, env, nonmem){
+rxFoceiTheta.RxODE <- function(object, ..., dv, eta, env, nonmem){
     args <- as.list(match.call(expand.dots=TRUE))[-1];
     args$object <- object$cmpMgr$rxDll();
     return(do.call(getFromNamespace("rxFoceiTheta.rxDll", "RxODE"), args, envir=parent.frame(1)));
 }
 ##' @rdname rxFoceiTheta
-rxFoceiTheta.rxDll <- function(object, ..., dv, eta, omegaInv, env, nonmem){
+rxFoceiTheta.rxDll <- function(object, ..., dv, eta, env, nonmem){
     if (missing(env)){
         args <- as.list(match.call(expand.dots=TRUE))[-1];
         env <- do.call(getFromNamespace("rxFoceiEtaSetup", "RxODE"), args, envir = parent.frame(1));
     }
-    return(object$.call(rxTrans(object)["ode_solver_focei_outer"], env));
+    rxDetaDomega(env); ## setup omega.28 and omega.47
+    object$.call(rxTrans(object)["ode_solver_focei_outer"], env);
+    rxDetaDtheta(env, rxFoceiFinalizeLlik);
+    return(env);
 }
