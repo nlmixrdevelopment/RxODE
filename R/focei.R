@@ -272,6 +272,6 @@ rxFoceiTheta.rxDll <- function(object, ..., dv, eta, env, nonmem){
     }
     rxDetaDomega(env); ## setup omega.28 and omega.47
     object$.call(rxTrans(object)["ode_solver_focei_outer"], env);
-    rxDetaDtheta(env, rxFoceiFinalizeLlik);
+    rxDetaDtheta(env);
     return(env);
 }

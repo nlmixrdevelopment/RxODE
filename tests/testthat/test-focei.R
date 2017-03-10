@@ -231,7 +231,7 @@ rxPermissive({
         H[Hidx$hi.idx] = H[Hidx$lo.idx]
         H = -.5*H - omegaInv;
 
-        .Call("RxODE_ode_solver_focei_hessian", tmp2);
+        rxHessian(tmp2);
         expect_equal(tmp2$H, H);
 
         H.neg.5 = tryCatch({
@@ -270,7 +270,7 @@ rxPermissive({
         H[Hidx$hi.idx] = H[Hidx$lo.idx]
         H = -.5*H - omegaInv;
 
-        .Call("RxODE_ode_solver_focei_hessian", tmp2.nm);
+        rxHessian(tmp2.nm);
         expect_equal(tmp2.nm$H, H);
 
         H.neg.5 = tryCatch({

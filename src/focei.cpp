@@ -8,7 +8,6 @@ using namespace R;
 using namespace arma;
 
 extern "C" SEXP RxODE_ode_solver_focei_eta (SEXP sexp_eta, SEXP sexp_rho);
-extern "C" SEXP RxODE_ode_solver_focei_hessian(SEXP sexp_rho);
 extern "C" int nEq();
 extern "C" unsigned int nLhs();
 extern "C" unsigned int nAllTimes();
@@ -188,6 +187,40 @@ void rxInner(SEXP etanews, SEXP rho){
   }
 }
 
+// [[Rcpp::export]]
+void rxHessian(SEXP rho){
+  Environment e = as<Environment>(rho);
+  int do_nonmem = as<int>(e["nonmem"]);
+  int neta = as<int>(e["neta"]);
+  mat omegaInv = as<mat>(e["omegaInv"]);
+  mat B = as<mat>(e["B"]);
+  List c = as<List>(e["c"]);
+  List a = as<List>(e["a"]);
+  NumericVector f = as<NumericVector>(e["f"]);
+  mat H(neta, neta);
+  int k, l;
+  mat al, ak, cl, ck, tmp(1,1);
+  for (k = 0; k < neta; k++){
+    for (l = 0; l <= k; l++){
+      al = as<mat>(a[l]);
+      ak = as<mat>(a[k]);
+      cl = as<mat>(c[l]);
+      ck = as<mat>(c[k]);
+      if (do_nonmem){
+	tmp  = -0.5*sum(al % B % ak + cl % ck)-omegaInv(k,l);
+      } else {
+	tmp  = -0.5*sum(al % B % ak - cl % ck)-omegaInv(k,l);
+      }
+      H(k,l) = tmp(0,0);
+      // Fill out the mirror compenent.
+      if (l != k){
+	H(l,k)=H(k,l);
+      }
+    }
+  }
+  e["H"] = H;
+}
+
 
 // [[Rcpp::export]]
 NumericVector RxODE_focei_eta_lik(SEXP sexp_eta, SEXP sexp_rho){
@@ -217,7 +250,7 @@ XPtr<rxFn2> RxODE_focei_eta(std::string fstr){
 
 // [[Rcpp::export]]
 NumericVector RxODE_focei_finalize_llik(SEXP rho){
-  RxODE_ode_solver_focei_hessian(rho);
+  rxHessian(rho);
   Environment e = as<Environment>(rho);
   // Calculate -1/2 log(det(-H)) by chol.
   mat c = chol(-as<mat>(e["H"]));
@@ -322,7 +355,7 @@ void rxDetaDomega(SEXP rho){
 }
 
 // [[Rcpp::export]]
-void rxDetaDtheta(SEXP rho, Function f){
+void rxDetaDtheta(SEXP rho){
   int i,h,n;
   Environment e = as<Environment>(rho);
   mat H2 = as<mat>(e["H2"]);
@@ -474,7 +507,7 @@ void rxDetaDtheta(SEXP rho, Function f){
   }
   e["dH.dTheta"] = DhDh;
   // Now caluclate dl(eta)/dTheta (Eq 28) and add to the overall dl/dTheta
-  RxODE_ode_solver_focei_hessian(e); // Calculate Hessian
+  rxHessian(e); // Calculate Hessian
   mat H = as<mat>(e["H"]);
   mat Hinv = inv(H);
   e["Hinv"] = Hinv;

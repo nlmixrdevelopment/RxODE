@@ -632,34 +632,6 @@ void RxODE_ode_solve_env(SEXP sexp_rho){
 
 }
 
-SEXP RxODE_ode_solver_focei_hessian(SEXP sexp_rho){
-  int pro=0,k,l,i;
-  int do_nonmem = INTEGER(findVar(installChar(mkChar("nonmem")),sexp_rho))[0];
-  int neta = INTEGER(findVar(installChar(mkChar("neta")),sexp_rho))[0];
-  SEXP sexp_H     = PROTECT(allocMatrix(REALSXP, neta, neta)); pro++;
-  double *H = REAL(sexp_H);
-  double *omegaInv = REAL(findVar(installChar(mkChar("omegaInv")),sexp_rho));
-  double *B = REAL(findVar(installChar(mkChar("B")),sexp_rho));
-  SEXP sexp_c      = findVar(installChar(mkChar("c")),sexp_rho);
-  SEXP sexp_a      = findVar(installChar(mkChar("a")),sexp_rho);
-  SEXP sexp_f      = findVar(installChar(mkChar("f")),sexp_rho);
-  int nobs = length(sexp_f);
-  for (k = 0; k < neta; k++){
-    for (l = 0; l <= k; l++){
-      H[k*neta+l]= - omegaInv[k*neta+l];
-      for (i =0; i < nobs; i++){
-	H[k*neta+l] += -0.5*(REAL(VECTOR_ELT(sexp_a, l))[i] * B[i] *REAL(VECTOR_ELT(sexp_a, k))[i] +
-			     ((do_nonmem ? 1 : -1))*(REAL(VECTOR_ELT(sexp_c, l))[i] *REAL(VECTOR_ELT(sexp_c, k))[i]));
-      }
-      // Fill out the mirror compenent.
-      H[l*neta+k]= H[k*neta+l];
-    }
-  }
-  UNPROTECT(pro);
-  defineVar(installChar(mkChar("H")),sexp_H,sexp_rho);
-  return(sexp_rho);
-}
-
 SEXP RxODE_ode_solver_focei_outer (SEXP sexp_rho){
   //Outer problem gradient for lbfgs
   int i, j, k=0, h, n, pro = 0, i0 = 0,e1,e2;
@@ -1142,7 +1114,6 @@ void R_init_RxODE(DllInfo *info){
   R_RegisterCCallable("RxODE","RxODE_ode_solver_old_c", (DL_FUNC) RxODE_ode_solver_old_c);
   R_RegisterCCallable("RxODE","RxODE_ode_solver_0_6_c", (DL_FUNC) RxODE_ode_solver_0_6_c);
   R_RegisterCCallable("RxODE","RxODE_ode_solver_focei_outer", (DL_FUNC) RxODE_ode_solver_focei_outer);
-  R_RegisterCCallable("RxODE","RxODE_ode_solver_focei_hessian", (DL_FUNC) RxODE_ode_solver_focei_hessian); 
   R_RegisterCCallable("RxODE","RxODE_ode_setup",         (DL_FUNC) RxODE_ode_setup);
   R_RegisterCCallable("RxODE","RxODE_ode_free", (DL_FUNC) RxODE_ode_free);
   

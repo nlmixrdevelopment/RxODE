@@ -19,6 +19,16 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
+// rxHessian
+void rxHessian(SEXP rho);
+RcppExport SEXP RxODE_rxHessian(SEXP rhoSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type rho(rhoSEXP);
+    rxHessian(rho);
+    return R_NilValue;
+END_RCPP
+}
 // RxODE_focei_eta_lik
 NumericVector RxODE_focei_eta_lik(SEXP sexp_eta, SEXP sexp_rho);
 RcppExport SEXP RxODE_RxODE_focei_eta_lik(SEXP sexp_etaSEXP, SEXP sexp_rhoSEXP) {
@@ -97,13 +107,12 @@ BEGIN_RCPP
 END_RCPP
 }
 // rxDetaDtheta
-void rxDetaDtheta(SEXP rho, Function f);
-RcppExport SEXP RxODE_rxDetaDtheta(SEXP rhoSEXP, SEXP fSEXP) {
+void rxDetaDtheta(SEXP rho);
+RcppExport SEXP RxODE_rxDetaDtheta(SEXP rhoSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< SEXP >::type rho(rhoSEXP);
-    Rcpp::traits::input_parameter< Function >::type f(fSEXP);
-    rxDetaDtheta(rho, f);
+    rxDetaDtheta(rho);
     return R_NilValue;
 END_RCPP
 }

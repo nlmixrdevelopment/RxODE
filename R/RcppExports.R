@@ -5,6 +5,10 @@ rxInner <- function(etanews, rho) {
     invisible(.Call('RxODE_rxInner', PACKAGE = 'RxODE', etanews, rho))
 }
 
+rxHessian <- function(rho) {
+    invisible(.Call('RxODE_rxHessian', PACKAGE = 'RxODE', rho))
+}
+
 RxODE_focei_eta_lik <- function(sexp_eta, sexp_rho) {
     .Call('RxODE_RxODE_focei_eta_lik', PACKAGE = 'RxODE', sexp_eta, sexp_rho)
 }
@@ -44,7 +48,7 @@ rxDetaDomega <- function(rho) {
     invisible(.Call('RxODE_rxDetaDomega', PACKAGE = 'RxODE', rho))
 }
 
-rxDetaDtheta <- function(rho, f) {
-    invisible(.Call('RxODE_rxDetaDtheta', PACKAGE = 'RxODE', rho, f))
+rxDetaDtheta <- function(rho) {
+    invisible(.Call('RxODE_rxDetaDtheta', PACKAGE = 'RxODE', rho))
 }
 
