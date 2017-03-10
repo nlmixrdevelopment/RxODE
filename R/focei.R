@@ -17,8 +17,10 @@ rxFoceiEtaSetup <- function(object, ..., dv, eta, theta, nonmem=FALSE, inv.env=p
         setup$DV <- as.double(dv);
         setup$eta.trans <- as.integer(eta.trans);
         setup$object <- object;
+        setup$eta <- eta;
         setup$eta.mat <- matrix(eta, ncol=1);
         setup$neta <- as.integer(length(eta))
+        setup$theta <- theta;
         setup$ntheta <- as.integer(length(theta))
         setup$id = as.integer(id);
         return(list2env(setup));
@@ -84,7 +86,9 @@ rxFoceiEta.rxDll <- function(object, ..., dv, eta, env, nonmem){
         args <- as.list(match.call(expand.dots=TRUE))[-1];
         env <- do.call(getFromNamespace("rxFoceiEtaSetup", "RxODE"), args, envir = parent.frame(1));
     }
-    return(object$.call(rxTrans(object)["ode_solver_focei_eta"], eta, env));
+    object$.call(rxTrans(object)["ode_solver_ptr"]); ## Assign the ODE pointers (and Jacobian Type)
+    rxInner(eta, env);
+    return(env);
 }
 
 ##' Get -LLIK for individual

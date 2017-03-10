@@ -9,12 +9,11 @@
 \usage{
 rxFoceiEta(object, ..., dv, eta, env, nonmem = FALSE)
 
-\method{rxFoceiEta}{rxFocei}(object, ..., dv, eta, omegaInv, env,
-  nonmem = FALSE)
+\method{rxFoceiEta}{rxFocei}(object, ..., dv, eta, env, nonmem = FALSE)
 
-\method{rxFoceiEta}{RxODE}(object, ..., dv, eta, omegaInv, env, nonmem)
+\method{rxFoceiEta}{RxODE}(object, ..., dv, eta, env, nonmem)
 
-\method{rxFoceiEta}{rxDll}(object, ..., dv, eta, omegaInv, env, nonmem)
+\method{rxFoceiEta}{rxDll}(object, ..., dv, eta, env, nonmem)
 }
 \arguments{
 \item{object}{RxODE object}
@@ -28,8 +27,6 @@ rxFoceiEta(object, ..., dv, eta, env, nonmem = FALSE)
 \item{env}{Environment to use, instead of rxFoceiEtaSetup environment}
 
 \item{nonmem}{Match NONMEMs approximation of the hessian.}
-
-\item{omegaInv}{Inverse omega}
 }
 \value{
 environment of solved information.

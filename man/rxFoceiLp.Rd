@@ -7,13 +7,13 @@
 \alias{rxFoceiLp.rxDll}
 \title{Get -Grad for individual}
 \usage{
-rxFoceiLp(object, ..., dv, eta, omegaInv)
+rxFoceiLp(object, ..., dv, eta)
 
-\method{rxFoceiLp}{rxFocei}(object, ..., dv, eta, omegaInv)
+\method{rxFoceiLp}{rxFocei}(object, ..., dv, eta)
 
-\method{rxFoceiLp}{RxODE}(object, ..., dv, eta, omegaInv)
+\method{rxFoceiLp}{RxODE}(object, ..., dv, eta)
 
-\method{rxFoceiLp}{rxDll}(object, ..., dv, eta, omegaInv)
+\method{rxFoceiLp}{rxDll}(object, ..., dv, eta)
 }
 \arguments{
 \item{object}{RxODE object}
@@ -23,8 +23,6 @@ rxFoceiLp(object, ..., dv, eta, omegaInv)
 \item{dv}{dependent variable}
 
 \item{eta}{eta values.}
-
-\item{omegaInv}{Inverse omega}
 }
 \value{
 -grad

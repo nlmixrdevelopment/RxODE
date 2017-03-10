@@ -7,29 +7,29 @@
 \alias{rxFoceiInner.rxDll}
 \title{Solve the FOCEI inner problem}
 \usage{
-rxFoceiInner(object, ..., dv, eta, omegaInv, invisible = 0, m = 6,
+rxFoceiInner(object, ..., dv, eta, invisible = 0, m = 6, epsilon = 1e-05,
+  past = 0, delta = 0, max_iterations = 0,
+  linesearch_algorithm = "LBFGS_LINESEARCH_DEFAULT", max_linesearch = 20,
+  min_step = 1e-20, max_step = 1e+20, ftol = 1e-04, wolfe = 0.9,
+  gtol = 0.9, orthantwise_c = 0, orthantwise_start = 0,
+  orthantwise_end = length(eta))
+
+\method{rxFoceiInner}{rxFocei}(object, ..., dv, eta, invisible = 0, m = 6,
   epsilon = 1e-05, past = 0, delta = 0, max_iterations = 0,
   linesearch_algorithm = "LBFGS_LINESEARCH_DEFAULT", max_linesearch = 20,
   min_step = 1e-20, max_step = 1e+20, ftol = 1e-04, wolfe = 0.9,
   gtol = 0.9, orthantwise_c = 0, orthantwise_start = 0,
   orthantwise_end = length(eta))
 
-\method{rxFoceiInner}{rxFocei}(object, ..., dv, eta, omegaInv, invisible = 0,
-  m = 6, epsilon = 1e-05, past = 0, delta = 0, max_iterations = 0,
+\method{rxFoceiInner}{RxODE}(object, ..., dv, eta, invisible = 0, m = 6,
+  epsilon = 1e-05, past = 0, delta = 0, max_iterations = 0,
   linesearch_algorithm = "LBFGS_LINESEARCH_DEFAULT", max_linesearch = 20,
   min_step = 1e-20, max_step = 1e+20, ftol = 1e-04, wolfe = 0.9,
   gtol = 0.9, orthantwise_c = 0, orthantwise_start = 0,
   orthantwise_end = length(eta))
 
-\method{rxFoceiInner}{RxODE}(object, ..., dv, eta, omegaInv, invisible = 0,
-  m = 6, epsilon = 1e-05, past = 0, delta = 0, max_iterations = 0,
-  linesearch_algorithm = "LBFGS_LINESEARCH_DEFAULT", max_linesearch = 20,
-  min_step = 1e-20, max_step = 1e+20, ftol = 1e-04, wolfe = 0.9,
-  gtol = 0.9, orthantwise_c = 0, orthantwise_start = 0,
-  orthantwise_end = length(eta))
-
-\method{rxFoceiInner}{rxDll}(object, ..., dv, eta, omegaInv, invisible = 0,
-  m = 6, epsilon = 1e-05, past = 0, delta = 0, max_iterations = 0,
+\method{rxFoceiInner}{rxDll}(object, ..., dv, eta, invisible = 0, m = 6,
+  epsilon = 1e-05, past = 0, delta = 0, max_iterations = 0,
   linesearch_algorithm = "LBFGS_LINESEARCH_DEFAULT", max_linesearch = 20,
   min_step = 1e-20, max_step = 1e+20, ftol = 1e-04, wolfe = 0.9,
   gtol = 0.9, orthantwise_c = 0, orthantwise_start = 0,
@@ -43,8 +43,6 @@ rxFoceiInner(object, ..., dv, eta, omegaInv, invisible = 0, m = 6,
 \item{dv}{dependent variable}
 
 \item{eta}{eta value}
-
-\item{omegaInv}{inverse omega matrix}
 
 \item{invisible}{Invisible LBFGS tracing.}
 
@@ -77,6 +75,8 @@ rxFoceiInner(object, ..., dv, eta, omegaInv, invisible = 0, m = 6,
 \item{orthantwise_start}{LBFGS orthantwise_start}
 
 \item{orthantwise_end}{LBFGS orthantwise_end}
+
+\item{omegaInv}{inverse omega matrix}
 }
 \value{
 Loglik with fitted and posthoc attributes

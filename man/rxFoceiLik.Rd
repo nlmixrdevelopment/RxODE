@@ -7,13 +7,13 @@
 \alias{rxFoceiLik.rxDll}
 \title{Get -LLIK for individual}
 \usage{
-rxFoceiLik(object, ..., dv, eta, omegaInv)
+rxFoceiLik(object, ..., dv, eta)
 
-\method{rxFoceiLik}{rxFocei}(object, ..., dv, eta, omegaInv)
+\method{rxFoceiLik}{rxFocei}(object, ..., dv, eta)
 
-\method{rxFoceiLik}{RxODE}(object, ..., dv, eta, omegaInv)
+\method{rxFoceiLik}{RxODE}(object, ..., dv, eta)
 
-\method{rxFoceiLik}{rxDll}(object, ..., dv, eta, omegaInv)
+\method{rxFoceiLik}{rxDll}(object, ..., dv, eta)
 }
 \arguments{
 \item{object}{RxODE object}
@@ -23,8 +23,6 @@ rxFoceiLik(object, ..., dv, eta, omegaInv)
 \item{dv}{dependent variable}
 
 \item{eta}{eta values.}
-
-\item{omegaInv}{Inverse omega}
 }
 \value{
 -llik

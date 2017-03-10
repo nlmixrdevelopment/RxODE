@@ -212,7 +212,7 @@ rxPermissive({
         llik <- -0.5 * sum(err ^ 2 / R + log(R)) - 0.5 * t(matrix(eta,ncol=1)) %*% omegaInv %*% matrix(eta,ncol=1);
         llik <- -llik;
 
-        expect_equal(llik, tmp3);
+        expect_equal(as.vector(llik), tmp3);
 
         lp2 <- lp - omegaInv %*% matrix(eta, ncol=1)
 

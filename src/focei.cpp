@@ -9,28 +9,199 @@ using namespace arma;
 
 extern "C" SEXP RxODE_ode_solver_focei_eta (SEXP sexp_eta, SEXP sexp_rho);
 extern "C" SEXP RxODE_ode_solver_focei_hessian(SEXP sexp_rho);
+extern "C" int nEq();
+extern "C" unsigned int nLhs();
+extern "C" unsigned int nAllTimes();
+extern "C" int rxEvid(int i);
+extern "C" double rxLhs(int i);
+extern "C" void rxCalcLhs(int i);
+extern "C" void RxODE_ode_solve_env(SEXP sexp_rho);
+extern "C" unsigned int nObs();
+extern "C" void RxODE_ode_solve_env(SEXP sexp_rho);
+extern "C" void RxODE_ode_free();
+extern "C" double RxODE_safe_zero(double x);
+extern "C" double RxODE_safe_log(double x);
+
+// [[Rcpp::export]]
+void rxInner(SEXP etanews, SEXP rho){
+  Environment e = as<Environment>(rho);
+  if (!(e.exists("neta") && e.exists("ntheta") && e.exists("dOmega") &&
+	e.exists("DV") && e.exists("nonmem") && e.exists("eta") &&
+	e.exists("eta.mat") && e.exists("eta.trans") &&
+	e.exists("params")
+	)){
+    stop("Environment not setup correctly for rxInner.");
+  }
+  NumericVector par_ptr = as<NumericVector>(e["params"]);
+  IntegerVector eta_i = as<IntegerVector>(e["eta.trans"]);
+  NumericVector etanew = as<NumericVector>(etanews);
+  NumericVector eta = as<NumericVector>(e["eta"]);
+  mat etam = as<NumericVector>(e["eta.mat"]);
+  unsigned int recalc = 0;
+  unsigned int i = 0, j = 0, k = 0;
+  if (!e.exists("llik")){
+    recalc = 1;
+  } else if (eta.size() != etanew.size()){
+    stop("Inconsistent eta size for rxInner.");
+  } else {
+    for (i = 0; i < (unsigned int)(eta.size()); i++){
+      if (eta[i] != etanew[i]){
+	recalc = 1;
+	break;
+      }
+    }
+  }
+  if (recalc){
+    for (i = 0; i < (unsigned int)(etanew.size()); i++){
+      /* Rprintf("\tpar[%d] from %f to %f\n",eta_i[i],par_ptr[eta_i[i]], eta[i]); */
+      par_ptr[eta_i[i]] = etanew[i];
+      eta[i] = etanew[i];
+      etam(i,0) = eta[i];
+    }
+    e["params"] = par_ptr;
+    e["eta"] = eta;
+    e["eta.mat"] = etam;
+
+    RxODE_ode_solve_env(rho);
+    
+    unsigned int neta = as<unsigned int>(e["neta"]);
+    unsigned int ntheta = as<unsigned int>(e["ntheta"]);
+    List dOmega = as<List>(e["dOmega"]);
+    NumericVector DV = as<NumericVector>(e["DV"]);
+    int do_nonmem = as<int>(e["nonmem"]);
+  
+    unsigned int nomega = (unsigned int)(dOmega.size());
+  
+    mat fpm = mat(nObs(), neta);
+    mat fpt = mat(nObs(),ntheta+nomega);
+    NumericVector fp2(neta);
+  
+    mat rp = mat(nObs(),neta);
+    NumericVector rp2(neta);
+    mat rpt = mat(nObs(),ntheta+nomega);
+
+    NumericVector f(nObs());
+    mat err = mat(nObs(),1);
+    mat r = mat(nObs(),1);
+
+    mat B = mat(nObs(),1);
+    List c(neta);
+    List a(neta);
+  
+    List fpte(ntheta+nomega);
+    List rpte(ntheta+nomega);
+
+    NumericVector llik(1);
+    mat lp = mat(neta,1);
+
+    mat lDnDt = mat(neta,ntheta+nomega);
+    mat lDn = mat(neta,neta);
+
+    for (i = 0; i < neta; i++){
+      a[i] = mat(nObs(),1);
+      c[i] = mat(nObs(),1);
+      lp[i] = 0;
+    }
+
+    llik[0]=0;
+
+    /* // Now create the pred vector and d(pred)/d(eta) matrix. */
+    /* // Assuming rxLhs(0) = pred and rxLhs(1:n) = d(pred)/d(eta#) */
+    // Solve
+    mat cur;
+    for (i = 0; i < nAllTimes(); i++){
+      if (!rxEvid(i)){
+	rxCalcLhs(i);
+	f[k] = rxLhs(0); // Pred
+	err(k, 0) = DV[k] - f[k];
+	// d(pred)/d(eta#)
+	for (j = 1; j < neta+1; j++){
+	  fpm(k, j-1) = rxLhs(j);
+	  cur = as<mat>(a[j-1]);
+	  if (do_nonmem){
+	    cur(k,0) =  rxLhs(j);
+	  } else {
+	    cur(k,0) = rxLhs(j)-err(k, 0)/RxODE_safe_zero(rxLhs(neta+1))*rxLhs(j+neta+1);
+	  }
+	  a[j-1]=cur;
+	}
+	if (rxLhs(j) <= 0){
+	  for (j = 0; j < nLhs(); j++){
+	    Rprintf("rxLhs(%d) = %f\n", j, rxLhs(j));
+	  }
+	  Rprintf("\n");
+	  // temp = getAttrib(sexp_theta, R_NamesSymbol);
+	  // for (j = 0; j < length(sexp_theta); j++){
+	  //   Rprintf("params[%d] = %f\n", j, par_ptr[j]);
+	  // }
+	  RxODE_ode_free();
+	  stop("A covariance term is zero or negative and should remain positive");
+	}
+	r(k, 0)=rxLhs(j); // R always has to be positive.
+	/* logR[k]=log(rxLhs(j)); */
+	/* Rinv[k]=1/rxLhs(j); */
+	B(k, 0)=2/rxLhs(j);
+	for (j=neta+2; j < nLhs(); j++){
+	  /* Rprintf("j: %d; Adj: %d; k: %d\n",j, j-neta-2,k); */
+	  rp(k,j-neta-2) = rxLhs(j);
+	  cur = as<mat>(c[j-neta-2]);
+	  cur(k,0) = rxLhs(j)/RxODE_safe_zero(r(k, 0));
+	  c[j-neta-2] = cur;
+	}
+	for (j = 0; j < neta; j++){
+	  // .5*apply(eps*fp*B + .5*eps^2*B*c - c, 2, sum) - OMGAinv %*% ETA
+	  cur = as<mat>(c[j]);
+	  lp[j] += 0.5 * err(k, 0)* fpm(k, j) * B(k, 0)  +
+	    0.25 * err(k, 0) * err(k, 0) * B(k, 0) * cur(k,0) -
+	    0.5 * cur(k,0);
+	}
+	llik[0] += -0.5*(err(k, 0)*err(k, 0)/RxODE_safe_zero(r(k, 0))+RxODE_safe_log(r(k, 0)));
+	k++;
+      }
+    }
+    // Free
+    RxODE_ode_free();
+
+    mat omegaInv = as<mat>(e["omegaInv"]);
+
+    NumericVector llik2(1);
+    mat llikm = mat(1,1);
+    llikm(0, 0)=  llik[0];
+    llikm = -(llikm - 0.5*(etam.t() * omegaInv * etam));
+    llik2[0] = llikm(0, 0);
+
+    mat ep2 = -(lp- omegaInv * etam);
+  
+    // Assign in env
+    e["err"] = err;
+    e["f"] = f;
+    e["dErr"] = fpm;
+    e["dR"] = rp;
+    e["c"] = c;
+    e["R"] = r;
+    e["B"] = B;
+    e["a"] = a;
+    e["llik"] = llik;
+    e["lp"] = lp;
+    e["llik2"] = wrap(llik2);
+    e["ep2"] = wrap(ep2);
+  }
+}
+
 
 // [[Rcpp::export]]
 NumericVector RxODE_focei_eta_lik(SEXP sexp_eta, SEXP sexp_rho){
-  SEXP solve_env = RxODE_ode_solver_focei_eta(sexp_eta, sexp_rho);
-  Environment e = as<Environment>(solve_env);
-  mat omegaInv = as<mat>(e["omegaInv"]);
-  vec eta = as<vec>(e["eta"]);
-  vec aret = -(as<vec>(e["llik"])-0.5*(eta.t() * omegaInv * eta));
-  e["llik2"] = wrap(aret);
-  NumericVector ret = as<NumericVector>(wrap(aret));
+  rxInner(sexp_eta, sexp_rho);
+  Environment e = as<Environment>(sexp_rho);
+  NumericVector ret = as<NumericVector>(wrap(e["llik2"]));
   return ret;
 }
 
 // [[Rcpp::export]]
 NumericVector RxODE_focei_eta_lp(SEXP sexp_eta, SEXP sexp_rho){
-  SEXP solve_env = RxODE_ode_solver_focei_eta(sexp_eta, sexp_rho);
-  Environment e = as<Environment>(solve_env);
-  mat omegaInv = as<mat>(e["omegaInv"]);
-  vec eta = as<vec>(e["eta"]);
-  vec aret = -(as<vec>(e["lp"])- omegaInv * eta);
-  e.assign("ep2",aret);
-  NumericVector ret = as<NumericVector>(wrap(aret));
+  rxInner(sexp_eta, sexp_rho);
+  Environment e = as<Environment>(sexp_rho);
+  NumericVector ret = as<NumericVector>(wrap(e["ep2"]));
   return ret;
 }
 

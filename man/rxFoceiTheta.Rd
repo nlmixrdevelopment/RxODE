@@ -7,14 +7,13 @@
 \alias{rxFoceiTheta.rxDll}
 \title{FOCEI THETA setup,}
 \usage{
-rxFoceiTheta(object, ..., dv, eta, omegaInv, env, nonmem = FALSE)
+rxFoceiTheta(object, ..., dv, eta, env, nonmem = FALSE)
 
-\method{rxFoceiTheta}{rxFocei}(object, ..., dv, eta, omegaInv, env,
-  nonmem = FALSE)
+\method{rxFoceiTheta}{rxFocei}(object, ..., dv, eta, env, nonmem = FALSE)
 
-\method{rxFoceiTheta}{RxODE}(object, ..., dv, eta, omegaInv, env, nonmem)
+\method{rxFoceiTheta}{RxODE}(object, ..., dv, eta, env, nonmem)
 
-\method{rxFoceiTheta}{rxDll}(object, ..., dv, eta, omegaInv, env, nonmem)
+\method{rxFoceiTheta}{rxDll}(object, ..., dv, eta, env, nonmem)
 }
 \arguments{
 \item{object}{RxODE object}
@@ -25,11 +24,11 @@ rxFoceiTheta(object, ..., dv, eta, omegaInv, env, nonmem = FALSE)
 
 \item{eta}{eta values.}
 
-\item{omegaInv}{Inverse omega}
-
 \item{env}{Environment to use, instead of rxFoceiEtaSetup environment}
 
 \item{nonmem}{Match NONMEMs approximation of the hessian.}
+
+\item{omegaInv}{Inverse omega}
 }
 \value{
 environment of solved information.

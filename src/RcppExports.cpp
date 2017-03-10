@@ -8,6 +8,17 @@
 
 using namespace Rcpp;
 
+// rxInner
+void rxInner(SEXP etanews, SEXP rho);
+RcppExport SEXP RxODE_rxInner(SEXP etanewsSEXP, SEXP rhoSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type etanews(etanewsSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type rho(rhoSEXP);
+    rxInner(etanews, rho);
+    return R_NilValue;
+END_RCPP
+}
 // RxODE_focei_eta_lik
 NumericVector RxODE_focei_eta_lik(SEXP sexp_eta, SEXP sexp_rho);
 RcppExport SEXP RxODE_RxODE_focei_eta_lik(SEXP sexp_etaSEXP, SEXP sexp_rhoSEXP) {
