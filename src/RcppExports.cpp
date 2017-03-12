@@ -106,6 +106,16 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
+// rxOuter_
+void rxOuter_(SEXP rho);
+RcppExport SEXP RxODE_rxOuter_(SEXP rhoSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type rho(rhoSEXP);
+    rxOuter_(rho);
+    return R_NilValue;
+END_RCPP
+}
 // rxDetaDtheta
 void rxDetaDtheta(SEXP rho);
 RcppExport SEXP RxODE_rxDetaDtheta(SEXP rhoSEXP) {
@@ -114,5 +124,16 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< SEXP >::type rho(rhoSEXP);
     rxDetaDtheta(rho);
     return R_NilValue;
+END_RCPP
+}
+// rxOuter
+NumericVector rxOuter(SEXP rho);
+RcppExport SEXP RxODE_rxOuter(SEXP rhoSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type rho(rhoSEXP);
+    rcpp_result_gen = Rcpp::wrap(rxOuter(rho));
+    return rcpp_result_gen;
 END_RCPP
 }

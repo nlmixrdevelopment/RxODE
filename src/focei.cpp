@@ -124,7 +124,7 @@ void rxInner(SEXP etanews, SEXP rho){
 	  }
 	  a[j-1]=cur;
 	}
-	if (rxLhs(j) <= 0){
+	if (rxLhs(j) < 0){
 	  for (j = 0; j < nLhs(); j++){
 	    Rprintf("rxLhs(%d) = %f\n", j, rxLhs(j));
 	  }
@@ -346,12 +346,302 @@ void rxDetaDomega(SEXP rho){
     List dOmega2T = dOmega2[i];
     for (j = 0; j < neta; j++){
       c2 = eta.t() * as<mat>(dOmega2T[j]);
-      ret = c2.diag();
-      dEta47(j, i) = sum(ret);
+      dEta47(j, i) = c2(0, 0);
     }
   }
   e["omega.28"] = dEta;
   e["omega.47"] = dEta47;
+}
+
+// [[Rcpp::export]]
+void rxOuter_ (SEXP rho){
+  //Outer problem gradient for lbfgs
+  Environment e = as<Environment>(rho);
+  unsigned int i, j, k=0, h, n, i0 = 0,e1,e2;
+  
+  mat omegaInv = as<mat>(e["omegaInv"]);
+  
+  unsigned int neta = as<unsigned int>(e["neta"]);
+  unsigned int ntheta = as<unsigned int>(e["ntheta"]);
+  List dOmega = as<List>(e["dOmega"]);
+  NumericVector DV = as<NumericVector>(e["DV"]);
+  int do_nonmem = as<int>(e["nonmem"]);
+  
+  unsigned int nomega = (unsigned int)(dOmega.size());
+
+  RxODE_ode_solve_env(rho);
+  
+  mat fpm = mat(nObs(), neta);
+  mat fpt = mat(nObs(),ntheta+nomega);
+  List fp2(neta);
+  
+  mat rp = mat(nObs(),neta);
+  mat rpt = mat(nObs(),ntheta+nomega);
+  List rp2(neta);
+
+  NumericVector f(nObs());
+  mat err = mat(nObs(),1);
+  mat r = mat(nObs(),1);
+
+  mat B = mat(nObs(),1);
+  List c(neta);
+  List a(neta);
+  
+  List fpte(ntheta+nomega);
+  List rpte(ntheta+nomega);
+
+  NumericVector llik(1);
+  mat lp = mat(neta,1);
+
+  mat lDnDt = mat(neta,ntheta+nomega);
+  mat lDn = mat(neta,neta);
+
+  for (i = 0; i < neta; i++){
+    a[i] = mat(nObs(),1);
+    c[i] = mat(nObs(),1);
+    fp2[i] = mat(nObs(),neta);
+    rp2[i] = mat(nObs(),neta);
+    lp(i,0) = 0;
+    for (j = 0; j < neta; j++){
+      lDn(i, j) = -omegaInv(i, j);
+    }
+  }
+  for (j = 0; j < ntheta+nomega; j++){
+    fpte[j] = mat(nObs(),neta);
+    rpte[j] = mat(nObs(),neta);
+    for (i = 0; i < neta; i++){
+      lDnDt(i,j) = 0;
+    }
+  }
+
+  llik[0]=0;
+  
+  // Now create the pred vector and d(pred)/d(eta) matrix.
+  // Assuming rxLhs(0) = pred and rxLhs(1:n) = d(pred)/d(eta#)
+  mat cur;
+  for (i = 0; i < nAllTimes(); i++){
+    if (!rxEvid(i)){
+      rxCalcLhs(i);
+      f[k] = rxLhs(0); // Pred
+      err(k, 0) = DV[k] - f[k];
+      // d(pred)/d(eta#)
+      // Rprintf("d(pred)/d(eta#)\n");
+      for (j = 1; j < neta+1; j++){
+        fpm(k,j-1) = rxLhs(j);
+	cur = as<mat>(a[j-1]);
+	cur(k,0) =  rxLhs(j);
+        a[j-1]=cur;
+      }
+      /* // d(pred)/d(theta#) */
+      // Rprintf("d(pred)/d(theta#)\n");
+      i0 = 1+neta;
+      for (j = i0; j < i0+ntheta; j++){
+	fpt(k,j-i0) = rxLhs(j);
+      }
+      /* // d^2(pred)/d^2(eta#) */
+      // Rprintf("d^2(pred)/d^2(eta#)\n");
+      i0 += ntheta;
+      e1=0; e2=0;
+      for (j = i0; j < i0+(neta)*(neta+1)/2; j++){
+        /* fp2[(nAllTimes()-ixds)*(j-i0)+k] = rxLhs(j); */
+	cur = as<mat>(fp2[e1]);
+	cur(k,e2) = rxLhs(j);
+	fp2[e1] = cur;
+        if (e1 == e2){
+          e1=0;
+          e2++;
+        } else {
+	  cur = as<mat>(fp2[e2]);
+	  cur(k,e1) = rxLhs(j);
+	  fp2[e2]=cur;
+          e1++;
+        }
+      }
+      /* // d^2(pred)/(d(eta#)d(theta#)) */
+      // Rprintf("d^2(pred)/d2(eta#)d(theta#)\n");
+      i0 += neta*(neta+1)/2;
+      h = 0;
+      for (j = i0; j < i0 + neta*ntheta; ){
+        for (n = 0; n < neta; n++){
+	  cur =as<mat>(fpte[h]);
+	  cur(k,n) =rxLhs(j);
+	  fpte[h] =cur;
+          j++;
+        }
+        h++;
+      }
+      i0 += neta*ntheta;
+      j=i0;
+      // Now
+      if (rxLhs(j) <= 0){
+	Rprintf("R = rxLhs(%d) = %f\n\n", j, rxLhs(j));
+	for (j = 0; j < nLhs(); j++){
+          Rprintf("rxLhs(%d) = %f\n", j, rxLhs(j));
+        }
+        Rprintf("\n");
+        RxODE_ode_free();
+        stop("A covariance term is zero or negative and should remain positive.");
+      }
+      r(k, 0)=rxLhs(j); // R always has to be positive.
+      /* logR[k]=log(rxLhs(j)); */
+      /* Rinv[k]=1/rxLhs(j); */
+      B(k, 0)=2/rxLhs(j);
+      /* // d(R)/d(eta#) */
+      // Rprintf("d(R)/d(eta#)\n");
+      i0++;
+      for (j=i0; j < i0+neta; j++){
+        /* Rprintf("j: %d; Adj: %d; k: %d\n",j, j-neta-2,k); */
+        rp(k, j-i0) = rxLhs(j);
+	cur = as<mat>(c[j-i0]);
+	cur(k,0) = rxLhs(j)/RxODE_safe_zero(r(k, 0));
+	c[j-i0] = cur;
+        if (!do_nonmem){
+          // tmp1[["_sens_rx_pred__ETA_1_"]],ncol=1) - err/R*matrix(tmp1[["_sens_rx_r__ETA_1_"]]
+	  cur =as<mat>(a[j-i0]);
+	  cur(k, 0)+= -err(k, 0)/RxODE_safe_zero(r(k, 0))*rxLhs(j);
+	  a[j-i0] = cur;
+        }
+      }
+      i0 += neta;
+      /* // d(R)/d(theta#) */
+      // Rprintf("d(R)/d(theta#)\n");
+      for (j=i0; j < i0+ntheta; j++){
+        /* Rprintf("j: %d; Adj: %d; k: %d\n",j, j-neta-2,k); */
+        rpt(k, j-i0) = rxLhs(j);
+      }
+      i0 += ntheta;
+      /* // d^2(R)/d^2(eta) */
+      // Rprintf("d(R)/d^2(eta#)\n");
+      e1=0; e2=0;
+      for (j=i0; j < i0+(neta)*(neta+1)/2; j++){
+        /* Rprintf("j: %d; Adj: %d; k: %d\n",j, j-neta-2,k); */
+	cur = as<mat>(rp2[e1]);
+	cur(k,e2) = rxLhs(j);
+	rp2[e1] = cur;
+        if (e1 == e2){
+          e1=0;
+          e2++;
+        } else {
+	  cur = as<mat>(rp2[e2]);
+	  cur(k,e1) = rxLhs(j);
+	  rp2[e2] = cur;
+          e1++;
+        }
+      }
+      // d^2(R)/(d(eta#)d(theta#))
+      // Rprintf("d^2(R)/d(eta#)d(theta#)\n");
+      i0 += neta*(neta+1)/2;
+      h = 0;
+      for (j = i0; j < i0+ntheta*neta; ){
+        for (n = 0; n < neta; n++){
+	  cur = as<mat>(rpte[h]);
+	  cur(k,n) = rxLhs(j);
+          j++;
+        }
+        h++;
+      }
+      // Rprintf("lp\n");
+      i0 += ntheta*neta;
+      for (j = 0; j < neta; j++){
+        //.5*apply(eps*fp*B + .5*eps^2*B*c - c, 2, sum) - OMGAinv %*% ETA
+	// eq 12
+	cur = as<mat>(c[j]);
+        lp(j, 0) += 0.5 * err(k, 0)* fpm(k, j)*B(k, 0)  +
+          0.25 * err(k, 0) * err(k, 0) * B(k, 0) * cur(k,0) -
+          0.5 * cur(k,0);
+      }
+      // Rprintf("47\n");
+      for (h=0; h < ntheta; h++){
+        for (n = 0; n < neta; n++){
+          // Eq #47 Almquist 2015
+	  cur = as<mat>(fpte[h]);
+	  lDnDt(n, h) += -(fpt(k, h)*fpm(k, n)/r(k, 0)-
+			   err(k, 0)*fpm(k, n)*rpt(k, h)/(r(k, 0)*r(k, 0))+
+			   err(k, 0)*cur(k, n)/r(k, 0));
+	  cur = as<mat>(rpte[h]);
+	  lDnDt(n, h) += -(-0.5*err(k, 0)*err(k, 0)*cur(k, n)/(r(k, 0)*r(k, 0))+
+			   err(k, 0)*err(k, 0)*rp(k, n)*rpt(k, h)/(r(k, 0)*r(k, 0)*r(k, 0))-
+			   err(k, 0)*rp(k, n)*fpt(k, h)/(r(k, 0)*r(k, 0))+ // trace is not needed since R is a scalar, not a vector
+			   0.5*rp(k, n)*rpt(k, h)/(r(k, 0)*r(k, 0))+
+			   0.5*cur(k, n)/r(k, 0));
+        }
+      }
+      // Rprintf("13\n");
+      // Eq #13 Almquist 2015
+      for (e1 = 0; e1 < neta; e1++){
+        for (e2 = 0; e2 <= e1; e2++){
+	  // fpm = d(err)/d(eta)
+          // fpt = d(err)/d(theta)
+          // fp2 = d^2(err)/d(eta)^2
+          // fpte = d^2(err)/d(eta)d(theta)
+          lDn(e1, e2) += -(fpm(k, e1)*fpm(k, e2)/r(k, 0)-
+			   err(k, 0)*rp(k, e2)*fpm(k, e1)/(r(k, 0)*r(k, 0)));
+	  cur = as<mat>(fp2[e1]);
+	  lDn(e1, e2) += -(err(k, 0)*cur(k, e2)/r(k, 0));
+	  cur = as<mat>(rp2[e1]);
+	  lDn(e1, e2) += -(-0.5*err(k, 0)*err(k, 0)*cur(k, e2)/(r(k, 0)*r(k, 0))+
+			   err(k, 0)*err(k, 0)*rp(k, e1)*rp(k, e2)/(r(k, 0)*r(k, 0)*r(k, 0))-
+			   err(k, 0)*rp(k, e1) * fpm(k, e2)/(r(k, 0)*r(k, 0))-
+			   rp(k, e1)*rp(k, e2)/(r(k, 0)*r(k, 0))+ // traces not needed.
+			   cur(k, e2)/r(k, 0));
+        }
+      }
+      llik[0] += -0.5*(err(k, 0)*err(k, 0)/RxODE_safe_zero(r(k, 0))+RxODE_safe_log(r(k, 0)));
+      k++;
+    }
+  }
+  /* Finalize Eq #47 in Almquist 2015*/
+  mat omega47 = as<mat>(e["omega.47"]);
+  for (h=ntheta; h < ntheta+nomega; h++){
+    for (n = 0; n < neta; n++){
+      lDnDt(n, h) += -omega47(n,h-ntheta);
+      // Finalize Eta2 and R2.
+      for (i = 0; i < nObs(); i++){
+	cur = as<mat>(fpte[h]);
+	cur(i,n) = 0;
+	fpte[h] = cur;
+	cur = as<mat>(rpte[h]);
+        cur(i,n) = 0;
+        rpte[h] = cur;
+      }
+    }
+    // Finalize dErr.dTheta to contain 0 for omega terms.
+    for (i = 0; i < nObs(); i++){
+      fpt(i, h) = 0;
+      rpt(i, h) = 0;
+    }
+  }
+  for (e1 = 0; e1 < neta; e1++){
+    for (e2 = 0; e2 <= e1; e2++){
+      lDn(e1, e2) = lDn(e2, e1);
+    }
+  }
+  /* llik = -.5*sum(eps^2/(f^2*sig2) + log(f^2*sig2)) - .5*t(ETA) %*% OMGAinv %*% ETA */
+  e["f"] = f;
+  e["err"] = err;
+  
+  e["dErr"] = fpm;
+  e["dErr2"] = fp2;
+  e["dErr.dTheta"] = fpt;
+  e["dErr.dEta.dTheta"] = fpte;
+
+  e["R"] = r;
+  
+  e["dR"] = rp;
+  e["dR.dTheta"] = rpt;
+  e["dR2"] = rp2;
+  e["dR.dEta.dTheta"] = rpte;
+
+  e["a"] = a;
+  e["B"] = B;
+  e["c"] = c;
+
+  e["llik"] = llik;
+  e["lp"] = lp;
+
+  e["l.dEta.dTheta"] = lDnDt;
+  e["H2"] = lDn;
+  RxODE_ode_free();
 }
 
 // [[Rcpp::export]]
@@ -540,5 +830,15 @@ void rxDetaDtheta(SEXP rho){
   ret.attr("grad") = as<NumericVector>(wrap(dLdTheta));
   ret.attr("dEta.dTheta") = as<NumericVector>(wrap(DnDt));
   e["ret"] = ret;
+}
+
+// [[Rcpp::export]]
+NumericVector rxOuter(SEXP rho){
+  rxDetaDomega(rho); // setup omega.28 and omega.47
+  rxOuter_(rho);
+  rxDetaDtheta(rho);
+  Environment e = as<Environment>(rho);
+  NumericVector ret = as<NumericVector>(e["ret"]);
+  return ret;
 }
 

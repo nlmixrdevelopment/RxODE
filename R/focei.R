@@ -266,12 +266,11 @@ rxFoceiTheta.RxODE <- function(object, ..., dv, eta, env, nonmem){
 }
 ##' @rdname rxFoceiTheta
 rxFoceiTheta.rxDll <- function(object, ..., dv, eta, env, nonmem){
+    object$.call(rxTrans(object)["ode_solver_ptr"]); ## Assign the ODE pointers (and Jacobian Type)
     if (missing(env)){
         args <- as.list(match.call(expand.dots=TRUE))[-1];
         env <- do.call(getFromNamespace("rxFoceiEtaSetup", "RxODE"), args, envir = parent.frame(1));
     }
-    rxDetaDomega(env); ## setup omega.28 and omega.47
-    object$.call(rxTrans(object)["ode_solver_focei_outer"], env);
-    rxDetaDtheta(env);
+    rxOuter(env);
     return(env);
 }

@@ -48,7 +48,15 @@ rxDetaDomega <- function(rho) {
     invisible(.Call('RxODE_rxDetaDomega', PACKAGE = 'RxODE', rho))
 }
 
+rxOuter_ <- function(rho) {
+    invisible(.Call('RxODE_rxOuter_', PACKAGE = 'RxODE', rho))
+}
+
 rxDetaDtheta <- function(rho) {
     invisible(.Call('RxODE_rxDetaDtheta', PACKAGE = 'RxODE', rho))
+}
+
+rxOuter <- function(rho) {
+    .Call('RxODE_rxOuter', PACKAGE = 'RxODE', rho)
 }
 

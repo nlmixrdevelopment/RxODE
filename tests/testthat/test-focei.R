@@ -299,13 +299,13 @@ rxPermissive({
         expect_equal(lik2, llik.lapl);
     })
 
-    m2a <- rxSymPySetupPred(m2, pred, pk, err, grad=TRUE)
+    m2ag <- rxSymPySetupPred(m2, pred, pk, err, grad=TRUE)
 
-    tmp1 <- m2a$outer %>% solve(et, theta=c(2, 1.6, 4.5,0.01), eta=c(0.01, -0.01))
+    tmp1 <- m2ag$outer %>% solve(et, theta=c(2, 1.6, 4.5,0.01), eta=c(0.01, -0.01))
 
-    tmp2 <- m2a %>% rxFoceiTheta(et, theta=c(2, 1.6, 4.5,0.01), eta=c(0.01, -0.01),dv=dv, inv.env=symenv)
+    tmp2 <- m2ag %>% rxFoceiTheta(et, theta=c(2, 1.6, 4.5,0.01), eta=c(0.01, -0.01),dv=dv, inv.env=symenv)
 
-    tmp2.nm <- m2a %>% rxFoceiTheta(et, theta=c(2, 1.6, 4.5,0.01), eta=c(0.01, -0.01),dv=dv, inv.env=symenv, nonmem=TRUE)
+    tmp2.nm <- m2ag %>% rxFoceiTheta(et, theta=c(2, 1.6, 4.5,0.01), eta=c(0.01, -0.01),dv=dv, inv.env=symenv, nonmem=TRUE)
 
     test_that("rxFoceiTheta makes sense", {
         expect_equal(tmp1$rx_pred_, tmp2$f); ## F
