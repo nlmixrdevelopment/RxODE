@@ -307,7 +307,7 @@ rxPermissive({
 
     tmp2.nm <- m2ag %>% rxFoceiTheta(et, theta=c(2, 1.6, 4.5,0.01), eta=c(0.01, -0.01),dv=dv, inv.env=symenv, nonmem=TRUE)
 
-    tmp5 <- m2ag %>% rxFoceiInner(et, theta=c(2, 1.6, 4.5,0.01), eta=c(0.01, -0.01),dv=dv, inv.env=symenv, invisible=TRUE)
+    tmp5.g <- m2ag %>%rxFoceiInner(et, theta=c(2, 1.6, 4.5,0.01), eta=c(10, 10),dv=dv, inv.env=symenv, invisible=1)
 
     test_that("rxFoceiTheta makes sense", {
         expect_equal(tmp1$rx_pred_, tmp2$f); ## F
@@ -339,7 +339,7 @@ rxPermissive({
                   matrix(tmp2.nm$dErr[, 2], ncol=1))
         expect_equal(tmp2.nm$a, a)
 
-        ## Does not include the matrix multilpaction part (done with RcppArmadillo)
+        ## Does not include the matrix mult part (done with RcppArmadillo)
         lp <- matrix(c(NA, NA), ncol=1)
         c <- matrix(tmp1[["_sens_rx_r__ETA_1_"]] / tmp1[["rx_r_"]],ncol=1)
         fp <- as.matrix(tmp1[,c("_sens_rx_pred__ETA_1_" )])
@@ -369,7 +369,22 @@ rxPermissive({
 
         expect_equal(tmp2$dErr2,
                      list(matrix(c(tmp1[["_sens_rx_pred__BY_ETA_1__ETA_1_"]],tmp1[["_sens_rx_pred__BY_ETA_1__ETA_2_"]]),ncol=2),
-                          matrix(c(tmp1[["_sens_rx_pred__BY_ETA_1__ETA_2_"]],tmp1[["_sens_rx_pred__BY_ETA_2__ETA_2_"]]),ncol=2)))
+                          matrix(c(tmp1[["_sens_rx_pred__BY_ETA_1__ETA_2_"]],tmp1[["_sens_rx_pred__BY_ETA_2__ETA_2_"]]),ncol=2)));
+
+        ## Now Test dErr.dEta.dTheta
+        expect_equal(tmp2$dErr.dEta.dTheta,
+                     list(matrix(c(tmp1[["_sens_rx_pred__BY_ETA_1__THETA_1_"]],
+                                   tmp1[["_sens_rx_pred__BY_ETA_2__THETA_1_"]]), ncol=2),
+                          matrix(c(tmp1[["_sens_rx_pred__BY_ETA_1__THETA_2_"]],
+                                   tmp1[["_sens_rx_pred__BY_ETA_2__THETA_2_"]]), ncol=2),
+                          matrix(c(tmp1[["_sens_rx_pred__BY_ETA_1__THETA_3_"]],
+                                   tmp1[["_sens_rx_pred__BY_ETA_2__THETA_3_"]]), ncol=2),
+                          matrix(c(tmp1[["_sens_rx_pred__BY_ETA_1__THETA_4_"]],
+                                   tmp1[["_sens_rx_pred__BY_ETA_2__THETA_4_"]]), ncol=2),
+                          matrix(rep(0, 2 * length(tmp1[, 1])), ncol=2),
+                          matrix(rep(0, 2 * length(tmp1[, 1])), ncol=2)));
+
+        ## Now test dR.dEta.dTheta
 
     })
 

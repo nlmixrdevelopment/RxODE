@@ -513,7 +513,7 @@ void rxOuter_ (SEXP rho){
       /* // d^2(R)/d^2(eta) */
       // Rprintf("d(R)/d^2(eta#)\n");
       e1=0; e2=0;
-      for (j=i0; j < i0+(neta)*(neta+1)/2; j++){
+      for (j=i0; j < i0+neta*(neta+1)/2; j++){
         /* Rprintf("j: %d; Adj: %d; k: %d\n",j, j-neta-2,k); */
 	cur = as<mat>(rp2[e1]);
 	cur(k,e2) = rxLhs(j);
@@ -536,6 +536,7 @@ void rxOuter_ (SEXP rho){
         for (n = 0; n < neta; n++){
 	  cur = as<mat>(rpte[h]);
 	  cur(k,n) = rxLhs(j);
+	  rpte[h] = cur;
           j++;
         }
         h++;
