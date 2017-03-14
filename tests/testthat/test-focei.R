@@ -455,6 +455,21 @@ rxPermissive({
 
         expect_equal(tmp2a, tmp2$l.dEta.dTheta)
 
+        ## Now test  #46
+        expect_equal(tmp2$dEta.dTheta, -solve(tmp2$H2) %*% tmp2$l.dEta.dTheta);
+
+        ## Now test dErr.dTheta. (Equation #33)
+        f <- function(k){
+            tmp2$dErr.dTheta[, k] + tmp2$dErr %*% tmp2$dEta.dTheta[, k]
+        }
+
+        expect_equal(tmp2$dErr.dTheta., cbind(f(1), f(2), f(3), f(4), f(5), f(6)))
+
+        f <- function(k){
+            tmp2$dR.dTheta[, k] + tmp2$dR %*% tmp2$dEta.dTheta[, k]
+        }
+
+        expect_equal(tmp2$dR.dTheta., cbind(f(1), f(2), f(3), f(4), f(5), f(6)));
 
     })
 
