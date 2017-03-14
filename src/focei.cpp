@@ -107,7 +107,7 @@ void rxInner(SEXP etanews, SEXP rho){
     /* // Now create the pred vector and d(pred)/d(eta) matrix. */
     /* // Assuming rxLhs(0) = pred and rxLhs(1:n) = d(pred)/d(eta#) */
     // Solve
-    mat cur;
+    mat cur, cuR;
     for (i = 0; i < nAllTimes(); i++){
       if (!rxEvid(i)){
 	rxCalcLhs(i);
@@ -418,7 +418,7 @@ void rxOuter_ (SEXP rho){
   
   // Now create the pred vector and d(pred)/d(eta) matrix.
   // Assuming rxLhs(0) = pred and rxLhs(1:n) = d(pred)/d(eta#)
-  mat cur;
+  mat cur, cuR;
   for (i = 0; i < nAllTimes(); i++){
     if (!rxEvid(i)){
       rxCalcLhs(i);
@@ -575,16 +575,16 @@ void rxOuter_ (SEXP rho){
           // fpt = d(err)/d(theta)
           // fp2 = d^2(err)/d(eta)^2
           // fpte = d^2(err)/d(eta)d(theta)
-          lDn(e1, e2) += -(fpm(k, e1)*fpm(k, e2)/r(k, 0)-
-			   err(k, 0)*rp(k, e2)*fpm(k, e1)/(r(k, 0)*r(k, 0)));
 	  cur = as<mat>(fp2[e1]);
-	  lDn(e1, e2) += -(err(k, 0)*cur(k, e2)/r(k, 0));
-	  cur = as<mat>(rp2[e1]);
-	  lDn(e1, e2) += -(-0.5*err(k, 0)*err(k, 0)*cur(k, e2)/(r(k, 0)*r(k, 0))+
-			   err(k, 0)*err(k, 0)*rp(k, e1)*rp(k, e2)/(r(k, 0)*r(k, 0)*r(k, 0))-
-			   err(k, 0)*rp(k, e1) * fpm(k, e2)/(r(k, 0)*r(k, 0))-
-			   rp(k, e1)*rp(k, e2)/(r(k, 0)*r(k, 0))+ // traces not needed.
-			   cur(k, e2)/r(k, 0));
+	  cuR = as<mat>(rp2[e1]);
+	  lDn(e1, e2) += -0.5*(2 * fpm(k, e1) * fpm(k, e2) / r(k, 0)-
+			       2 * err(k, 0) *  rp(k, e2) * fpm(k,e1)/(r(k, 0) * r(k, 0))+
+			       2 * err(k, 0) * cur(k,e2) / r(k, 0) -
+			       err(k, 0) * err(k, 0) * cuR(k, e2) / (r(k, 0) * r(k, 0)) +
+			       2 * err(k, 0) * err(k, 0) * rp(k, e1) * rp(k, e2) / (r(k, 0) * r(k, 0) * r(k, 0)) -
+                               2 * err(k, 0) * rp(k, e1) * fpm(k, e2) / (r(k, 0) * r(k, 0)) -
+                               rp(k, e1) * rp(k, e2) / (r(k, 0) * r(k, 0)) + cuR(k, e2) / r(k, 0));
+          
         }
       }
       llik[0] += -0.5*(err(k, 0)*err(k, 0)/RxODE_safe_zero(r(k, 0))+RxODE_safe_log(r(k, 0)));
@@ -614,7 +614,7 @@ void rxOuter_ (SEXP rho){
   }
   for (e1 = 0; e1 < neta; e1++){
     for (e2 = 0; e2 <= e1; e2++){
-      lDn(e1, e2) = lDn(e2, e1);
+      lDn(e2, e1) = lDn(e1, e2);
     }
   }
   /* llik = -.5*sum(eps^2/(f^2*sig2) + log(f^2*sig2)) - .5*t(ETA) %*% OMGAinv %*% ETA */

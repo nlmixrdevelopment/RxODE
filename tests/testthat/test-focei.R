@@ -385,6 +385,38 @@ rxPermissive({
                           matrix(rep(0, 2 * length(tmp1[, 1])), ncol=2)));
 
         ## Now test dR.dEta.dTheta
+        expect_equal(tmp2$dR.dEta.dTheta,
+                     list(matrix(c(tmp1[["_sens_rx_r__BY_ETA_1__THETA_1_"]],
+                                   tmp1[["_sens_rx_r__BY_ETA_2__THETA_1_"]]), ncol=2),
+                          matrix(c(tmp1[["_sens_rx_r__BY_ETA_1__THETA_2_"]],
+                                   tmp1[["_sens_rx_r__BY_ETA_2__THETA_2_"]]), ncol=2),
+                          matrix(c(tmp1[["_sens_rx_r__BY_ETA_1__THETA_3_"]],
+                                   tmp1[["_sens_rx_r__BY_ETA_2__THETA_3_"]]), ncol=2),
+                          matrix(c(tmp1[["_sens_rx_r__BY_ETA_1__THETA_4_"]],
+                                   tmp1[["_sens_rx_r__BY_ETA_2__THETA_4_"]]), ncol=2),
+                          matrix(rep(0, 2 * length(tmp1[, 1])), ncol=2),
+                          matrix(rep(0, 2 * length(tmp1[, 1])), ncol=2)))
+
+        ## Now test H2.
+        h2f <- function(k, l){
+            ## Equation 13
+            dErr.k <- tmp2$dErr[, k];
+            dErr.l <- tmp2$dErr[, l];
+            dR.k <- tmp2$dR[, k];
+            dR.l <- tmp2$dR[, l];
+            dErr.k.l <- tmp2$dErr2[[k]][, l];
+            dR.k.l <- tmp2$dR2[[k]][, l];
+            err <- tmp2$err;
+            R <- tmp2$R;
+            return(-0.5 * sum(2 * dErr.l * dErr.k / R - 2 * err * dR.l * dErr.k / (R * R) +
+                              2 * err * dErr.k.l / R - err * err * dR.k.l / (R * R) +
+                              2 * err * err * dR.k * dR.l / (R * R * R) -
+                              2 * err * dR.k * dErr.l / (R * R) -
+                              dR.k * dR.l / (R * R) + dR.k.l / R) - symenv$omegaInv[k, l]);
+        }
+        h2 <- matrix(c(h2f(1, 1), h2f(2, 1), h2f(1, 2), h2f(2, 2)), ncol=2)
+
+        expect_equal(h2, tmp2$H2);
 
     })
 
