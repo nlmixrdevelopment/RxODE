@@ -307,6 +307,8 @@ rxPermissive({
 
     tmp2.nm <- m2ag %>% rxFoceiTheta(et, theta=c(2, 1.6, 4.5,0.01), eta=c(0.01, -0.01),dv=dv, inv.env=symenv, nonmem=TRUE)
 
+    tmp5 <- m2ag %>% rxFoceiInner(et, theta=c(2, 1.6, 4.5,0.01), eta=c(0.01, -0.01),dv=dv, inv.env=symenv, invisible=TRUE)
+
     test_that("rxFoceiTheta makes sense", {
         expect_equal(tmp1$rx_pred_, tmp2$f); ## F
         err <- matrix(dv - tmp1$rx_pred_, ncol=1)

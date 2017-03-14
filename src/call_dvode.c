@@ -63,7 +63,7 @@ double rxLhs(int i){
   if (i < nlhs){
     return(lhs[i]);
   } else {
-    error("Trying to access an equation that isn't calculated.\n");
+    error("Trying to access an equation that isn't calculated. lhs(%d)\n",i);
   }
 }
 
@@ -827,7 +827,6 @@ void R_init_RxODE(DllInfo *info){
   R_RegisterCCallable("RxODE","RxODE_assign_fn_pointers", (DL_FUNC) RxODE_assign_fn_pointers);
   R_RegisterCCallable("RxODE","RxODE_ode_solver_old_c", (DL_FUNC) RxODE_ode_solver_old_c);
   R_RegisterCCallable("RxODE","RxODE_ode_solver_0_6_c", (DL_FUNC) RxODE_ode_solver_0_6_c);
-  R_RegisterCCallable("RxODE","RxODE_ode_solver_focei_outer", (DL_FUNC) RxODE_ode_solver_focei_outer);
   R_RegisterCCallable("RxODE","RxODE_ode_setup",         (DL_FUNC) RxODE_ode_setup);
   R_RegisterCCallable("RxODE","RxODE_ode_free", (DL_FUNC) RxODE_ode_free);
   

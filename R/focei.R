@@ -184,42 +184,10 @@ rxFoceiInner <- function(object, ..., dv, eta,
                          max_linesearch = 20, min_step = 1e-20, max_step = 1e+20,
                          ftol = 1e-04, wolfe = 0.9, gtol = 0.9, orthantwise_c = 0,
                          orthantwise_start = 0, orthantwise_end = length(eta)){
-    UseMethod("rxFoceiInner");
-}
-##' @rdname rxFoceiInner
-##' @export
-rxFoceiInner.rxFocei <- function(object, ..., dv, eta,
-                               invisible = 0, m = 6, epsilon = 1e-05, past = 0, delta = 0,
-                               max_iterations = 0, linesearch_algorithm = "LBFGS_LINESEARCH_DEFAULT",
-                               max_linesearch = 20, min_step = 1e-20, max_step = 1e+20,
-                               ftol = 1e-04, wolfe = 0.9, gtol = 0.9, orthantwise_c = 0,
-                               orthantwise_start = 0, orthantwise_end = length(eta)){
+    inner.dll <- object$inner$cmpMgr$rxDll();
+    inner.dll$.call(rxTrans(inner.dll)["ode_solver_ptr"]); ## Assign the ODE pointers (and Jacobian Type)
     args <- as.list(match.call(expand.dots=TRUE))[-1];
-    args$object <- object$inner$cmpMgr$rxDll();
-    return(do.call(getFromNamespace("rxFoceiInner.rxDll", "RxODE"), args, envir=parent.frame(1)));
-}
-##' @rdname rxFoceiInner
-##' @export
-rxFoceiInner.RxODE <- function(object, ..., dv, eta,
-                               invisible = 0, m = 6, epsilon = 1e-05, past = 0, delta = 0,
-                               max_iterations = 0, linesearch_algorithm = "LBFGS_LINESEARCH_DEFAULT",
-                               max_linesearch = 20, min_step = 1e-20, max_step = 1e+20,
-                               ftol = 1e-04, wolfe = 0.9, gtol = 0.9, orthantwise_c = 0,
-                               orthantwise_start = 0, orthantwise_end = length(eta)){
-    args <- as.list(match.call(expand.dots=TRUE))[-1];
-    args$object <- object$cmpMgr$rxDll();
-    return(do.call(getFromNamespace("rxFoceiInner.rxDll", "RxODE"), args, envir=parent.frame(1)));
-}
-##' @rdname rxFoceiInner
-##' @export
-rxFoceiInner.rxDll <- function(object, ..., dv, eta,
-                               invisible = 0, m = 6, epsilon = 1e-05, past = 0, delta = 0,
-                               max_iterations = 0, linesearch_algorithm = "LBFGS_LINESEARCH_DEFAULT",
-                               max_linesearch = 20, min_step = 1e-20, max_step = 1e+20,
-                               ftol = 1e-04, wolfe = 0.9, gtol = 0.9, orthantwise_c = 0,
-                               orthantwise_start = 0, orthantwise_end = length(eta)){
-    object$.call(rxTrans(object)["ode_solver_ptr"]); ## Assign the ODE pointers (and Jacobian Type)
-    args <- as.list(match.call(expand.dots=TRUE))[-1];
+    args$object <- inner.dll;
     env <- do.call(getFromNamespace("rxFoceiEtaSetup", "RxODE"), args, envir = parent.frame(1));
     lik <- RxODE_focei_eta("lik");
     lp <- RxODE_focei_eta("lp")
@@ -229,7 +197,14 @@ rxFoceiInner.rxDll <- function(object, ..., dv, eta,
                            max_linesearch=max_linesearch, min_step=min_step, max_step=max_step,
                            ftol=ftol, wolfe=wolfe, gtol=gtol, orthantwise_c=orthantwise_c,
                            orthantwise_start=orthantwise_start, orthantwise_end = orthantwise_end);
-    return(rxFoceiFinalizeLlik(env));
+    if (is.null(object$outer)){
+        return(rxFoceiFinalizeLlik(env));
+    } else {
+        args$object <- object;
+        args$eta <- env$eta;
+        env <- do.call(getFromNamespace("rxFoceiTheta", "RxODE"), args, envir = parent.frame(1));
+        return(env$ret);
+    }
 }
 
 
