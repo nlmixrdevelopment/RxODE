@@ -418,6 +418,44 @@ rxPermissive({
 
         expect_equal(h2, tmp2$H2);
 
+        ## Now test l.dEta.dTheta
+
+        lEH <- function(k, m){
+            ## Equation 47
+            dErr.m <- tmp2$dErr.dTheta[, m];
+            dErr.k <- tmp2$dErr[, k];
+            dErr.k.m <- tmp2$dErr.dEta.dTheta[[m]][, k];
+            ##
+            dR.m <- tmp2$dR.dTheta[, m];
+            dR.k <- tmp2$dR[, k];
+            dR.k.m <- tmp2$dR.dEta.dTheta[[m]][, k];
+            ##
+            err <- tmp2$err;
+            R <- tmp2$R;
+            nomega <- length(tmp2$dOmega)
+            ntheta <- tmp2$ntheta;
+            if (m > ntheta){
+                ome <- tmp2$omega.47[k, m - ntheta];
+            } else {
+                ome <- 0;
+            }
+            return(-0.5 * sum(2 * dErr.m * dErr.k / R -
+                              2 * err * dR.m * dErr.k / (R * R) +
+                              2 * err * dErr.k.m / R -
+                              err * err * dR.k.m / (R * R) +
+                              2 * err * err * dR.k * dR.m / (R * R * R) -
+                              2 * err * dR.k * dErr.m / (R * R) +
+                              dR.m * dR.k / (R * R) +
+                              dR.k.m / R) - ome);
+        }
+
+        df <- expand.grid(k=c(1, 2), theta=1:6);
+
+        tmp2a <- matrix(as.vector(apply(df, 1, function(x) {return(lEH(x[1], x[2]))})), nrow=2)
+
+        expect_equal(tmp2a, tmp2$l.dEta.dTheta)
+
+
     })
 
 }, silent=TRUE)
