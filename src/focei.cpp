@@ -724,7 +724,7 @@ void rxDetaDtheta(SEXP rho){
   mat DbDh = mat(dRdTheta.n_rows,0);
   for (h = 0; h < ntheta; h++){
     mat1 = -2*dRdTheta_.col(h)/(R % R);
-    DbDh = join_rows(mat1, DbDh);
+    DbDh = join_rows(DbDh, mat1);
   }
   e["dB.dTheta"] = DbDh;
   // Now da*/dTheta #30
@@ -743,9 +743,9 @@ void rxDetaDtheta(SEXP rho){
       if (do_nonmem){
 	mat3 = mat2.col(h);
       } else {
-	mat3 = mat2.col(h) + dErrdTheta_.col(h) % dR.col(n) /R + err % dRdTheta_.col(h) % dR.col(n)/(R % R) - err % mat1.col(h)/R;
+	mat3 = mat2.col(h) - dErrdTheta_.col(h) % dR.col(n) /R + err % dRdTheta_.col(h) % dR.col(n)/(R % R) - err % mat1.col(h)/R;
       }
-      cur = join_rows(mat3, cur);
+      cur = join_rows(cur, mat3);
     }
     DaDh[n]=cur;
   }

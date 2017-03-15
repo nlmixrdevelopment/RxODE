@@ -498,7 +498,39 @@ rxPermissive({
             dR.m <- tmp2$dR.dTheta.[, m];
             dR.k <- tmp2$dR[, k];
             dR.k.m <- tmp2$dR.dEta.dTheta.[[k]][, m];
+            R <- tmp2$R;
+            return(-dR.m * dR.k / (R * R) + dR.k.m / R);
         }
+
+        expect_equal(tmp2$dc.dTheta, list(matrix(c(f(1, 1), f(1, 2), f(1, 3), f(1, 4), f(1, 5), f(1, 6)), ncol=6),
+                                          matrix(c(f(2, 1), f(2, 2), f(2, 3), f(2, 4), f(2, 5), f(2, 6)), ncol=6)))
+
+        ## Now dB/dTheta
+        f <- function(m){
+            dR.m <- tmp2$dR.dTheta.[, m];
+            R <- tmp2$R;
+            return(-2 * dR.m / (R * R));
+        }
+
+        expect_equal(tmp2$dB.dTheta, matrix(c(f(1), f(2), f(3), f(4), f(5), f(6)), ncol=6))
+
+        ## Now da/dTheta
+        f <- function(k, m){
+            dErr.m.k <- tmp2$dErr.dEta.dTheta.[[k]][, m];
+            dErr.m <- tmp2$dErr.dTheta.[, m];
+            dR.k <- tmp2$dR[, k];
+            dR.m <- tmp2$dR.dTheta.[, m];
+            dR.m.k <- tmp2$dR.dEta.dTheta.[[k]][, m];
+            err <- tmp2$err;
+            R <- tmp2$R;
+            return(dErr.m.k - dErr.m * dR.k / R +
+                   err * dR.m * dR.k / (R * R) -
+                   err * dR.m.k / R);
+        }
+
+        expect_equal(tmp2$da.dTheta,
+                     list(matrix(c(f(1, 1), f(1, 2), f(1, 3), f(1, 4), f(1, 5), f(1, 6)), ncol=6),
+                          matrix(c(f(2, 1), f(2, 2), f(2, 3), f(2, 4), f(2, 5), f(2, 6)), ncol=6)));
 
     })
 
