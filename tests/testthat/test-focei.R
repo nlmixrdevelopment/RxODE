@@ -610,8 +610,80 @@ rxPermissive({
                           matrix(v[9:12], 2),
                           matrix(v[13:16], 2),
                           matrix(v[17:20], 2),
-                          matrix(v[21:24], 2)))
+                          matrix(v[21:24], 2)));
 
+        ## Test Inverses
+        expect_equal(solve(tmp2$H), tmp2$Hinv);
+        expect_equal(solve(tmp2.nm$H), tmp2.nm$Hinv);
+
+        f <- function(m){
+            dErr.m <- tmp2$dErr.dTheta[, m];
+            dR.m <- tmp2$dR.dTheta[, m];
+            err <- tmp2$err;
+            R <- tmp2$R;
+            eta <- tmp2$eta.mat
+            if (m > 4){
+                ome <- tmp2$omega.28[m - 4]
+            } else {
+                ome <- 0;
+            }
+            Hinv <- tmp2$Hinv;
+            dH <- tmp2$dH.dTheta[[m]];
+            return(-0.5 * sum(2 * err * dErr.m / R -
+                              err * err * dR.m / (R * R) +
+                              dR.m / R)  + ome - 0.5 * sum(diag(Hinv %*% dH)));
+        }
+
+        expect_equal(tmp2$l.dTheta, c(f(1), f(2), f(3), f(4), f(5), f(6)))
+
+        f <- function(m){
+            dErr.m <- tmp2.nm$dErr.dTheta[, m];
+            dR.m <- tmp2.nm$dR.dTheta[, m];
+            err <- tmp2.nm$err;
+            R <- tmp2.nm$R;
+            eta <- tmp2.nm$eta.mat
+            if (m > 4){
+                ome <- tmp2.nm$omega.28[m - 4]
+            } else {
+                ome <- 0;
+            }
+            Hinv <- tmp2.nm$Hinv;
+            dH <- tmp2.nm$dH.dTheta[[m]];
+            return(-0.5 * sum(2 * err * dErr.m / R -
+                              err * err * dR.m / (R * R) +
+                              dR.m / R)  + ome - 0.5 * sum(diag(Hinv %*% dH)));
+        }
+
+        expect_equal(tmp2.nm$l.dTheta, c(f(1), f(2), f(3), f(4), f(5), f(6)))
+
+        ## Now test omega.28
+        f <- function(m){
+            eta <- tmp2$eta.mat;
+            omegaInv <- symenv$omegaInv;
+            dOmega <- symenv$dOmega[[m]];
+            return(0.5 * t(eta) %*% omegaInv %*% dOmega %*% omegaInv %*% eta - 0.5 * sum(diag(omegaInv %*% dOmega)))
+        }
+
+        expect_equal(tmp2$omega.28, c(f(1), f(2)))
+
+        ## Now test omega.47
+
+        f <- function(m, k){
+            eta <- tmp2$eta.mat;
+            eta1 <- rep(0, length(as.vector(eta)));
+            eta1[k] <- 1;
+            eta1 <- matrix(eta1, ncol=1);
+            omegaInv <- symenv$omegaInv;
+            dOmega <- symenv$dOmega[[m]];
+            return(t(eta) %*% omegaInv %*% dOmega %*% omegaInv %*% eta1);
+        }
+
+        df <- expand.grid(m=1:2, k=1:2);
+        df <- df[order(df$m), ];
+
+        v <- matrix(apply(df, 1, function(x) {return(f(x[1], x[2]))}), nrow=2);
+
+        expect_equal(v, tmp2$omega.47);
 
     })
 
