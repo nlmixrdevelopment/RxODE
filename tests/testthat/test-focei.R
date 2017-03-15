@@ -541,6 +541,76 @@ rxPermissive({
                      list(matrix(c(f(1, 1), f(1, 2), f(1, 3), f(1, 4), f(1, 5), f(1, 6)), ncol=6),
                           matrix(c(f(2, 1), f(2, 2), f(2, 3), f(2, 4), f(2, 5), f(2, 6)), ncol=6)));
 
+        ## Test dH/dTheta
+
+        f <- function(m, k, l){
+            da.l.m <- tmp2$da.dTheta[[l]][, m];
+            B <- tmp2$B
+            a.k <- tmp2$a[[k]];
+            a.l <- tmp2$a[[l]];
+            B.m <- tmp2$dB.dTheta[, m];
+            da.k.m <- tmp2$da.dTheta[[k]][, m];
+            dc.l.m <- tmp2$dc.dTheta[[l]][, m];
+            dc.k.m <- tmp2$dc.dTheta[[k]][, m];
+            c.k <- tmp2$c[[k]];
+            c.l <- tmp2$c[[l]];
+            if (m > 4){
+                ome <- symenv$dOmegaInv[[m - 4]][k, l];
+            } else {
+                ome <- 0;
+            }
+            return(-0.5 * sum(da.l.m * B * a.k +
+                              a.l * B.m * a.k +
+                              a.l * B * da.k.m -
+                              dc.l.m * c.k -
+                              c.l * dc.k.m) - ome);
+        }
+
+        df <- expand.grid(m=1:6, k=1:2, l=1:2);
+        df <- df[order(df$m, df$k, df$l), ];
+
+        v <- apply(df, 1, function(x) {return(f(x[1], x[2], x[3]))})
+
+        expect_equal(tmp2$dH.dTheta,
+                     list(matrix(v[1:4], 2),
+                          matrix(v[5:8], 2),
+                          matrix(v[9:12], 2),
+                          matrix(v[13:16], 2),
+                          matrix(v[17:20], 2),
+                          matrix(v[21:24], 2)))
+
+        f <- function(m, k, l){
+            da.l.m <- tmp2.nm$da.dTheta[[l]][, m];
+            B <- tmp2.nm$B
+            a.k <- tmp2.nm$a[[k]];
+            a.l <- tmp2.nm$a[[l]];
+            B.m <- tmp2.nm$dB.dTheta[, m];
+            da.k.m <- tmp2.nm$da.dTheta[[k]][, m];
+            dc.l.m <- tmp2.nm$dc.dTheta[[l]][, m];
+            dc.k.m <- tmp2.nm$dc.dTheta[[k]][, m];
+            c.k <- tmp2.nm$c[[k]];
+            c.l <- tmp2.nm$c[[l]];
+            if (m > 4){
+                ome <- symenv$dOmegaInv[[m - 4]][k, l];
+            } else {
+                ome <- 0;
+            }
+            return(-0.5 * sum(da.l.m * B * a.k +
+                              a.l * B.m * a.k +
+                              a.l * B * da.k.m +
+                              dc.l.m * c.k +
+                              c.l * dc.k.m) - ome);
+        }
+
+        v <- apply(df, 1, function(x) {return(f(x[1], x[2], x[3]))})
+
+        expect_equal(tmp2.nm$dH.dTheta,
+                     list(matrix(v[1:4], 2),
+                          matrix(v[5:8], 2),
+                          matrix(v[9:12], 2),
+                          matrix(v[13:16], 2),
+                          matrix(v[17:20], 2),
+                          matrix(v[21:24], 2)))
 
 
     })

@@ -772,9 +772,9 @@ void rxDetaDtheta(SEXP rho){
         dcl = as<mat>(DcDh[l]);
         dck = as<mat>(DcDh[k]);
 	if (do_nonmem){
-	  mat1(k,l) = -0.5*sum(dal.col(h) % B % al + al % DbDh.col(h) % ak + al % B % dak.col(h) + dcl.col(h) % ck + cl % dck.col(h));
+	  mat1(k,l) = -0.5*sum(dal.col(h) % B % ak + al % DbDh.col(h) % ak + al % B % dak.col(h) + dcl.col(h) % ck + cl % dck.col(h));
 	} else {
-	  mat1(k,l) = -0.5*sum(dal.col(h) % B % al + al % DbDh.col(h) % ak + al % B % dak.col(h) - dcl.col(h) % ck - cl % dck.col(h));
+	  mat1(k,l) = -0.5*sum(dal.col(h) % B % ak + al % DbDh.col(h) % ak + al % B % dak.col(h) - dcl.col(h) % ck - cl % dck.col(h));
 	}
 	if (h >= ptheta){
 	  // Put in dOmega^-1/dTheta term.
