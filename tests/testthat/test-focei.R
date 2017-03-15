@@ -494,7 +494,11 @@ rxPermissive({
                                                 matrix(c(f(2, 1), f(2, 2), f(2, 3), f(2, 4), f(2, 5), f(2, 6)), ncol=6)))
 
         ## Now dc/dTheta
-
+        f <- function(k, m){
+            dR.m <- tmp2$dR.dTheta.[, m];
+            dR.k <- tmp2$dR[, k];
+            dR.k.m <- tmp2$dR.dEta.dTheta.[[k]][, m];
+        }
 
     })
 

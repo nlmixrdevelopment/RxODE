@@ -715,7 +715,7 @@ void rxDetaDtheta(SEXP rho){
     for (h = 0; h < ntheta; h++){
       mat1 = as<mat>(dRdEtadTheta_[n]);
       mat2 = -dRdTheta_.col(h)  % dR.col(n)/(R % R)+mat1.col(h)/R;
-      cur = join_rows(mat2, cur);
+      cur = join_rows(cur, mat2);
     }
     DcDh[n]=cur;
   }
