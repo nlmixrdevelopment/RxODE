@@ -532,6 +532,17 @@ rxPermissive({
                      list(matrix(c(f(1, 1), f(1, 2), f(1, 3), f(1, 4), f(1, 5), f(1, 6)), ncol=6),
                           matrix(c(f(2, 1), f(2, 2), f(2, 3), f(2, 4), f(2, 5), f(2, 6)), ncol=6)));
 
+        f <- function(k, m){
+            dErr.m.k <- tmp2$dErr.dEta.dTheta.[[k]][, m];
+            return(dErr.m.k);
+        }
+
+        expect_equal(tmp2.nm$da.dTheta,
+                     list(matrix(c(f(1, 1), f(1, 2), f(1, 3), f(1, 4), f(1, 5), f(1, 6)), ncol=6),
+                          matrix(c(f(2, 1), f(2, 2), f(2, 3), f(2, 4), f(2, 5), f(2, 6)), ncol=6)));
+
+
+
     })
 
 }, silent=TRUE)
