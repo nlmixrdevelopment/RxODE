@@ -818,8 +818,31 @@ void rxDetaDtheta(SEXP rho){
   ret += -as<NumericVector>(wrap(sum(ldiag)));
   ret.attr("fitted") = as<NumericVector>(e["f"]);
   ret.attr("posthoc") = as<NumericVector>(wrap(e["eta.mat"]));
-  ret.attr("grad") = as<NumericVector>(wrap(dLdTheta));
-  ret.attr("dEta.dTheta") = as<NumericVector>(wrap(DnDt));
+  if (e.exists("inits.vec")){
+    // This calculation is done on the non-scaled parameters, but
+    // needs to be changed to the scaled parameters.
+    // This assumes scaling is to 1.0
+    //
+    NumericVector ini = as<NumericVector>(e["inits.vec"]);
+    if (ini.size() != dLdTheta.size()){
+      stop("Inconsistent gradient and inits.vec size.");
+    }
+    NumericVector dLdThetaS(ntheta);
+    mat DnDtS=mat(neta,ntheta);
+    for (h = 0; h < ntheta; h++){
+      dLdThetaS[h] = dLdTheta[h]*ini[h];
+      for (n = 0; n <neta; n++){
+	DnDtS(n,h) = DnDt(n,h)*ini[h];
+      }
+    }
+    e["l.dTheta.s"]=dLdThetaS;
+    e["dEta.dTheta.s"] = DnDtS;
+    ret.attr("grad") = as<NumericVector>(wrap(dLdThetaS));
+    ret.attr("dEta.dTheta") = as<NumericVector>(wrap(DnDtS));
+  } else {
+    ret.attr("grad") = as<NumericVector>(wrap(dLdTheta));
+    ret.attr("dEta.dTheta") = as<NumericVector>(wrap(DnDt));
+  }
   e["ret"] = ret;
 }
 

@@ -1,4 +1,5 @@
-rxFoceiEtaSetup <- function(object, ..., dv, eta, theta, nonmem=FALSE, inv.env=parent.frame(1), id= -1){
+rxFoceiEtaSetup <- function(object, ..., dv, eta, theta, nonmem=FALSE, inv.env=parent.frame(1), id= -1,
+                            inits.vec=NULL, sigdig=0, par=NULL){
     args <- list(object=object, ..., eta=eta, theta=theta);
     setup <- c(do.call(getFromNamespace("rxSolveSetup", "RxODE"), args, envir = parent.frame(1)),
                as.list(inv.env));
@@ -22,7 +23,14 @@ rxFoceiEtaSetup <- function(object, ..., dv, eta, theta, nonmem=FALSE, inv.env=p
         setup$neta <- as.integer(length(eta))
         setup$theta <- theta;
         setup$ntheta <- as.integer(length(theta))
-        setup$id = as.integer(id);
+        setup$id <- as.integer(id);
+        if (!is.null(inits.vec)){
+            setup$inits.vec <- inits.vec;
+        }
+        if (!is.null(par)){
+            setup$par <- par;
+        }
+        setup$sigdig <- sigdig;
         return(list2env(setup));
     }))
 }

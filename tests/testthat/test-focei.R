@@ -309,6 +309,9 @@ rxPermissive({
 
     tmp5.g <- m2ag %>%rxFoceiInner(et, theta=c(2, 1.6, 4.5,0.01), eta=c(10, 10),dv=dv, inv.env=symenv, invisible=1)
 
+    tmp5.g2 <- m2ag %>%rxFoceiInner(et, theta=c(2, 1.6, 4.5,0.01), eta=c(10, 10),dv=dv, inv.env=symenv, invisible=1,
+                                    inits.vec=rep(0.5, 6))
+
     test_that("rxFoceiTheta makes sense", {
         expect_equal(tmp1$rx_pred_, tmp2$f); ## F
         err <- matrix(dv - tmp1$rx_pred_, ncol=1)
@@ -684,6 +687,10 @@ rxPermissive({
         v <- matrix(apply(df, 1, function(x) {return(f(x[1], x[2]))}), nrow=2);
 
         expect_equal(v, tmp2$omega.47);
+
+        ## Test scaling
+        expect_equal(attr(tmp5.g,"grad") / 2, attr(tmp5.g2,"grad"));
+        expect_equal(attr(tmp5.g,"dEta.dTheta") / 2, attr(tmp5.g2,"dEta.dTheta"));
 
     })
 
