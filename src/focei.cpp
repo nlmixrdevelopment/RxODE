@@ -812,9 +812,10 @@ void rxDetaDtheta(SEXP rho){
   mat cH = chol(-as<mat>(e["H"]));
   vec diag = cH.diag();
   vec ldiag = log(diag);
-  NumericVector ret = aret(0,0);
+  NumericVector ret(1);
+  ret = -aret(0,0);
   // log(det(omegaInv^1/2)) = 1/2*log(det(omegaInv))
-  ret = as<NumericVector>(e["log.det.OMGAinv.5"])-ret;
+  ret += as<NumericVector>(e["log.det.OMGAinv.5"]);
   ret += -as<NumericVector>(wrap(sum(ldiag)));
   ret.attr("fitted") = as<NumericVector>(e["f"]);
   ret.attr("posthoc") = as<NumericVector>(wrap(e["eta.mat"]));
