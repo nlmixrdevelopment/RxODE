@@ -662,7 +662,7 @@ void rxDetaDtheta(SEXP rho){
   mat dErrdTheta_ = mat(dErrdTheta.n_rows,0);
   for (i = 0; i < ntheta; i++){
     mat cur = dErrdTheta.col(i)+dErr * DnDt.col(i);
-    dErrdTheta_ = join_rows(cur,dErrdTheta_);
+    dErrdTheta_ = join_rows(dErrdTheta_,cur);
   }
   e["dErr.dTheta."] = dErrdTheta_;
   // Now (dR/dTheta)*
@@ -673,7 +673,7 @@ void rxDetaDtheta(SEXP rho){
   mat cur;
   for (i = 0; i < ntheta; i++){
     cur = dRdTheta.col(i)+dR * DnDt.col(i);
-    dRdTheta_ = join_rows(cur,dRdTheta_);
+    dRdTheta_ = join_rows(dRdTheta_,cur);
   }
   e["dR.dTheta."] = dRdTheta_;
   // Now #37
@@ -681,19 +681,14 @@ void rxDetaDtheta(SEXP rho){
   // tmp2$dErr.dEta.dTheta[[2]][,2]-matrix(rowSums(tmp2$dErr2[[1]]*tmp2$dEta.dTheta[2,2]))
   int neta = DnDt.n_rows;
   List dErrdEtadTheta_(neta);
-  List dErrdEtadTheta = as<List>(e["dErr.dEta.dTheta"]);
+  List dErrdEtadTheta = as<List>(e["dErr.dEta.dTheta"]); // dErr.dEta.dTheta
   List dErr2 = as<List>(e["dErr2"]);
-  mat mat1, mat2;
-  for (i = 0; i < neta; i++){
+  mat mat0, mat1, mat2;
+  for (i = 0 ; i < neta; i++){
     cur = mat(dErrdTheta.n_rows,0);
-    for (h=0; h < ntheta; h++){
-      mat1 = as<mat>(dErrdEtadTheta[h]);
-      mat1 = -mat1.col(i);
-      mat2 = as<mat>(dErr2[i]);
-      for (n = 0; n < neta; n++){
-	mat1 = mat1 - mat2.col(n)*DnDt(n,h);
-      }
-      cur = join_rows(cur,mat1);
+    for(h = 0; h < ntheta; h++){
+      cur = join_rows(cur, -(as<mat>(dErrdEtadTheta[h])).col(i) -
+		      (as<mat>(dErr2[i])) * DnDt.col(h));
     }
     dErrdEtadTheta_[i]=cur;
   }
@@ -702,16 +697,11 @@ void rxDetaDtheta(SEXP rho){
   List dRdEtadTheta_(neta);
   List dRdEtadTheta = as<List>(e["dR.dEta.dTheta"]);
   List dR2 = as<List>(e["dR2"]);
-  for (i = 0; i < neta; i++){
+  for (i = 0 ; i < neta; i++){
     cur = mat(dRdTheta.n_rows,0);
-    for (h=0; h < ntheta; h++){
-      mat1 = as<mat>(dRdEtadTheta[h]);
-      mat1 = mat1.col(i);
-      mat2 = as<mat>(dR2[i]);
-      for (n = 0; n < neta; n++){
-        mat1 = mat1 + mat2.col(n)*DnDt(n,h);
-      }
-      cur = join_rows(cur,mat1);
+    for(h = 0; h < ntheta; h++){
+      cur = join_rows(cur, (as<mat>(dRdEtadTheta[h])).col(i) +
+                      (as<mat>(dR2[i])) * DnDt.col(h));
     }
     dRdEtadTheta_[i]=cur;
   }
@@ -725,7 +715,7 @@ void rxDetaDtheta(SEXP rho){
     for (h = 0; h < ntheta; h++){
       mat1 = as<mat>(dRdEtadTheta_[n]);
       mat2 = -dRdTheta_.col(h)  % dR.col(n)/(R % R)+mat1.col(h)/R;
-      cur = join_rows(cur,mat2);
+      cur = join_rows(mat2, cur);
     }
     DcDh[n]=cur;
   }
@@ -734,7 +724,7 @@ void rxDetaDtheta(SEXP rho){
   mat DbDh = mat(dRdTheta.n_rows,0);
   for (h = 0; h < ntheta; h++){
     mat1 = -2*dRdTheta_.col(h)/(R % R);
-    DbDh = join_rows(DbDh,mat1);
+    DbDh = join_rows(mat1, DbDh);
   }
   e["dB.dTheta"] = DbDh;
   // Now da*/dTheta #30
@@ -755,7 +745,7 @@ void rxDetaDtheta(SEXP rho){
       } else {
 	mat3 = mat2.col(h) + dErrdTheta_.col(h) % dR.col(n) /R + err % dRdTheta_.col(h) % dR.col(n)/(R % R) - err % mat1.col(h)/R;
       }
-      cur = join_rows(cur,mat3);
+      cur = join_rows(mat3, cur);
     }
     DaDh[n]=cur;
   }

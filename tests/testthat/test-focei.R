@@ -459,17 +459,42 @@ rxPermissive({
         expect_equal(tmp2$dEta.dTheta, -solve(tmp2$H2) %*% tmp2$l.dEta.dTheta);
 
         ## Now test dErr.dTheta. (Equation #33)
-        f <- function(k){
-            tmp2$dErr.dTheta[, k] + tmp2$dErr %*% tmp2$dEta.dTheta[, k]
+        f <- function(m){
+            tmp2$dErr.dTheta[, m] + tmp2$dErr %*% tmp2$dEta.dTheta[, m]
         }
 
         expect_equal(tmp2$dErr.dTheta., cbind(f(1), f(2), f(3), f(4), f(5), f(6)))
 
-        f <- function(k){
-            tmp2$dR.dTheta[, k] + tmp2$dR %*% tmp2$dEta.dTheta[, k]
+        f <- function(m){
+            tmp2$dR.dTheta[, m] + tmp2$dR %*% tmp2$dEta.dTheta[, m]
         }
 
         expect_equal(tmp2$dR.dTheta., cbind(f(1), f(2), f(3), f(4), f(5), f(6)));
+
+        ## Now #37
+        f <- function(k, m){
+            dErr.k.m <- tmp2$dErr.dEta.dTheta[[m]][, k];
+            err1 <- tmp2$dErr2[[k]];
+            dNdH <- tmp2$dEta.dTheta[, m];
+            return(-dErr.k.m - err1 %*% dNdH);
+        }
+
+        expect_equal(tmp2$dErr.dEta.dTheta., list(matrix(c(f(1, 1), f(1, 2), f(1, 3), f(1, 4), f(1, 5), f(1, 6)), ncol=6),
+                                                  matrix(c(f(2, 1), f(2, 2), f(2, 3), f(2, 4), f(2, 5), f(2, 6)), ncol=6)))
+
+        ## Now #37 for dR
+        f <- function(k, m){
+            dR.k.m <- tmp2$dR.dEta.dTheta[[m]][, k];
+            err1 <- tmp2$dR2[[k]];
+            dNdH <- tmp2$dEta.dTheta[, m];
+            return(dR.k.m + err1 %*% dNdH);
+        }
+
+        expect_equal(tmp2$dR.dEta.dTheta., list(matrix(c(f(1, 1), f(1, 2), f(1, 3), f(1, 4), f(1, 5), f(1, 6)), ncol=6),
+                                                matrix(c(f(2, 1), f(2, 2), f(2, 3), f(2, 4), f(2, 5), f(2, 6)), ncol=6)))
+
+        ## Now dc/dTheta
+
 
     })
 
