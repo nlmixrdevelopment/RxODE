@@ -1,5 +1,5 @@
 rxFoceiEtaSetup <- function(object, ..., dv, eta, theta, nonmem=FALSE, inv.env=parent.frame(1), id= -1,
-                            inits.vec=NULL, sigdig=0, par=NULL){
+                            inits.vec=NULL){
     args <- list(object=object, ..., eta=eta, theta=theta);
     setup <- c(do.call(getFromNamespace("rxSolveSetup", "RxODE"), args, envir = parent.frame(1)),
                as.list(inv.env));
@@ -24,16 +24,23 @@ rxFoceiEtaSetup <- function(object, ..., dv, eta, theta, nonmem=FALSE, inv.env=p
         setup$theta <- theta;
         setup$ntheta <- as.integer(length(theta))
         setup$id <- as.integer(id);
+        setup$nearPD <- rxNearPd;
         if (!is.null(inits.vec)){
             setup$inits.vec <- inits.vec;
         }
-        if (!is.null(par)){
-            setup$par <- par;
-        }
-        setup$sigdig <- sigdig;
         return(list2env(setup));
     }))
 }
+
+rxNearPd <- function(mat, env){
+    if (any(is.na(mat))){
+        env$reset <- 1;
+        return(mat)
+    } else {
+        return(as.matrix(Matrix::nearPD(mat)$mat));
+    }
+}
+
 ##' Finalize Likelihood for individual.
 ##'
 ##' @param env Environment where likelihood is finalized.
@@ -42,21 +49,7 @@ rxFoceiEtaSetup <- function(object, ..., dv, eta, theta, nonmem=FALSE, inv.env=p
 ##' @keywords internal
 ##' @export
 rxFoceiFinalizeLlik <- function(env){
-    return(tryCatch({RxODE_focei_finalize_llik(env)},
-                    error=function(e){
-        if (any(is.nan(as.vector(env$H)))){
-            cat("Warning: Underflow/overflow; resetting ETAs to 0.\n");
-            print(env$H)
-            eta <- rep(0, length(env$eta));
-            RxODE_focei_eta_lik(eta, env);
-            RxODE_focei_eta_lp(eta, env);
-            RxODE_focei_finalize_llik(env);
-        } else {
-            cat("Warning: Hessian not positive definite (correcting with nearPD)\n");
-            env$H <- -as.matrix(Matrix::nearPD(-env$H)$mat);
-            RxODE_focei_finalize_llik(env)
-        }
-    }))
+    return()
 }
 ##' FOCEI ETA setup,
 ##'
@@ -205,12 +198,62 @@ rxFoceiInner <- function(object, ..., dv, eta,
                            max_linesearch=max_linesearch, min_step=min_step, max_step=max_step,
                            ftol=ftol, wolfe=wolfe, gtol=gtol, orthantwise_c=orthantwise_c,
                            orthantwise_start=orthantwise_start, orthantwise_end = orthantwise_end);
+    if (any(is.na(env$eta))){
+        warning("ETA estimate failed; keeping prior");
+        env <- do.call(getFromNamespace("rxFoceiEta", "RxODE"), args, envir = parent.frame(1));
+    }
+    if (any(env$eta > 1e4)){
+        warning("ETA estimate overflow; keeping prior");
+        env <- do.call(getFromNamespace("rxFoceiEta", "RxODE"), args, envir = parent.frame(1));
+    }
     if (is.null(object$outer)){
-        return(rxFoceiFinalizeLlik(env));
+        return(tryCatch({RxODE_focei_finalize_llik(env)},
+                        error=function(e){
+            if (any(is.na(as.vector(env$H)))){
+                cat(sprintf("Warning: Underflow/overflow; resetting ETAs to 0 (ID=%s).\n", env$id));
+                args$eta <- rep(0, length(env$eta));
+                env$eta <- args$eta;
+                output <- lbfgs::lbfgs(lik, lp, eta, environment=env,
+                                       invisible=invisible, m=m, epsilon=epsilon, past=past, delta=delta,
+                                       max_iterations=max_iterations, linesearch_algorithm=linesearch_algorithm,
+                                       max_linesearch=max_linesearch, min_step=min_step, max_step=max_step,
+                                       ftol=ftol, wolfe=wolfe, gtol=gtol, orthantwise_c=orthantwise_c,
+                                       orthantwise_start=orthantwise_start, orthantwise_end = orthantwise_end)
+                if (any(is.na(env$eta))){
+                    warning("ETA estimate failed; Assume ETA=0");
+                    env <- do.call(getFromNamespace("rxFoceiEta", "RxODE"), args, envir = parent.frame(1));
+                }
+                if (any(env$eta > 1e4)){
+                    warning("ETA estimate overflow; Assume ETA");
+                    env <- do.call(getFromNamespace("rxFoceiEta", "RxODE"), args, envir = parent.frame(1));
+                }
+                return(RxODE_focei_finalize_llik(env));
+            } else {
+                cat("Warning: Hessian not positive definite (correcting with nearPD)\n");
+                env$H <- -rxNearPd(-env$H, env);
+                return(RxODE_focei_finalize_llik(env))
+            }
+        }))
     } else {
         args$object <- object;
         args$eta <- env$eta;
+        ## print(env$id)
+        ## print(args$eta);
+        ## print(eta);
+        ## print(output);
         env <- do.call(getFromNamespace("rxFoceiTheta", "RxODE"), args, envir = parent.frame(1));
+        if (env$reset == 1){
+            if (reset){
+                stop("Cannot correct ETA underflow/overflow.");
+            } else {
+                cat(sprintf("Warning: Underflow/overflow; resetting ETAs to 0 (ID=%s).\n", env$id));
+                print(env$theta);
+                args$eta <- rep(0, length(env$eta));
+                args$reset  <- TRUE;
+                force(args)
+                return(do.call(getFromNamespace("rxFoceiInner", "RxODE"), args, envir = parent.frame(1)));
+            }
+        }
         return(env$ret);
     }
 }

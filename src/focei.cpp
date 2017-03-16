@@ -651,7 +651,15 @@ void rxDetaDtheta(SEXP rho){
   Environment e = as<Environment>(rho);
   mat H2 = as<mat>(e["H2"]);
   mat lDnDt = as<mat>(e["l.dEta.dTheta"]);
-  mat iH2 = inv(H2);
+  mat iH2;
+  e["reset"] = 0;
+  NumericVector reset = as<NumericVector>(e["reset"]);
+  try{
+    iH2 = inv(H2);
+  } catch(...){
+    Rprintf("Warning: H2 seems singular; Using pseudo-inverse\n");
+    iH2 = pinv(H2);
+  }
   mat DnDt = -iH2 * lDnDt;
   e["dEta.dTheta"] = DnDt;
   // Now  (dErr/dTheta)*
@@ -790,7 +798,13 @@ void rxDetaDtheta(SEXP rho){
   // Now caluclate dl(eta)/dTheta (Eq 28) and add to the overall dl/dTheta
   rxHessian(e); // Calculate Hessian
   mat H = as<mat>(e["H"]);
-  mat Hinv = inv(H);
+  mat Hinv;
+  try{
+    Hinv = inv(H);
+  } catch(...){
+    Rprintf("Warning: Hessian seems singular; Using pseudo-inverse\n");
+    Hinv = pinv(H);
+  }
   e["Hinv"] = Hinv;
   NumericVector dEta = as<NumericVector>(e["omega.28"]);
   NumericVector dLdTheta(ntheta);
@@ -809,42 +823,55 @@ void rxDetaDtheta(SEXP rho){
   mat eta = as<mat>(e["eta.mat"]);
   mat aret = -(as<vec>(e["llik"])-0.5*(eta.t() * omegaInv * eta));
   e["llik2"] = aret(0,0);
-  mat cH = chol(-as<mat>(e["H"]));
-  vec diag = cH.diag();
-  vec ldiag = log(diag);
-  NumericVector ret(1);
-  ret = -aret(0,0);
-  // log(det(omegaInv^1/2)) = 1/2*log(det(omegaInv))
-  ret += as<NumericVector>(e["log.det.OMGAinv.5"]);
-  ret += -as<NumericVector>(wrap(sum(ldiag)));
-  ret.attr("fitted") = as<NumericVector>(e["f"]);
-  ret.attr("posthoc") = as<NumericVector>(wrap(e["eta.mat"]));
-  if (e.exists("inits.vec")){
-    // This calculation is done on the non-scaled parameters, but
-    // needs to be changed to the scaled parameters.
-    // This assumes scaling is to 1.0
-    //
-    NumericVector ini = as<NumericVector>(e["inits.vec"]);
-    if (ini.size() != dLdTheta.size()){
-      stop("Inconsistent gradient and inits.vec size.");
+  mat cH;
+  try{
+    cH = chol(-as<mat>(e["H"]));
+  } catch(...){
+    cH = -as<mat>(e["H"]);
+    Function nearPD = as<Function>(e["nearPD"]);
+    cH = as<mat>(nearPD(cH, rho));
+    reset = as<NumericVector>(e["reset"]);
+    if (reset[0] != 1){
+      cH = chol(cH);
+      Rprintf("Warning: The Hessian is non-positive definite, correcting with nearPD\n");
     }
-    NumericVector dLdThetaS(ntheta);
-    mat DnDtS=mat(neta,ntheta);
-    for (h = 0; h < ntheta; h++){
-      dLdThetaS[h] = dLdTheta[h]*ini[h];
-      for (n = 0; n <neta; n++){
-	DnDtS(n,h) = DnDt(n,h)*ini[h];
-      }
-    }
-    e["l.dTheta.s"]=dLdThetaS;
-    e["dEta.dTheta.s"] = DnDtS;
-    ret.attr("grad") = as<NumericVector>(wrap(dLdThetaS));
-    ret.attr("dEta.dTheta") = as<NumericVector>(wrap(DnDtS));
-  } else {
-    ret.attr("grad") = as<NumericVector>(wrap(dLdTheta));
-    ret.attr("dEta.dTheta") = as<NumericVector>(wrap(DnDt));
   }
-  e["ret"] = ret;
+  if (reset[0] != 1){
+    vec diag = cH.diag();
+    vec ldiag = log(diag);
+    NumericVector ret(1);
+    ret = -aret(0,0);
+    // log(det(omegaInv^1/2)) = 1/2*log(det(omegaInv))
+    ret += as<NumericVector>(e["log.det.OMGAinv.5"]);
+    ret += -as<NumericVector>(wrap(sum(ldiag)));
+    ret.attr("fitted") = as<NumericVector>(e["f"]);
+    ret.attr("posthoc") = as<NumericVector>(wrap(e["eta.mat"]));
+    if (e.exists("inits.vec")){
+      // This calculation is done on the non-scaled parameters, but
+      // needs to be changed to the scaled parameters.
+      // This assumes scaling is to 1.0
+      //
+      NumericVector ini = as<NumericVector>(e["inits.vec"]);
+      if (ini.size() != dLdTheta.size()){
+        stop("Inconsistent gradient and inits.vec size.");
+      }
+      NumericVector dLdThetaS(ntheta);
+      // Even though the parameters are scaled for the overall
+      // optimization, by the time the eta parameters are updated, the
+      // parameters are unscaled. so dEta.dTheta are not scaled.
+      for (h = 0; h < ntheta; h++){
+        dLdThetaS[h] = dLdTheta[h]/ini[h];
+      }
+      e["l.dTheta.s"]=dLdThetaS;
+      ret.attr("grad") = as<NumericVector>(wrap(dLdThetaS));
+    } else {
+      ret.attr("grad") = as<NumericVector>(wrap(dLdTheta));
+    }
+    ret.attr("dEta.dTheta") = as<NumericVector>(wrap(DnDt));
+    e["ret"] = ret;
+  } else {
+    e["ret"] = NA_REAL;
+  }
 }
 
 // [[Rcpp::export]]
@@ -854,6 +881,26 @@ NumericVector rxOuter(SEXP rho){
   rxDetaDtheta(rho);
   Environment e = as<Environment>(rho);
   NumericVector ret = as<NumericVector>(e["ret"]);
+  return ret;
+}
+
+// [[Rcpp::export]]
+NumericVector rxUpdateEtas(SEXP DnDhS, SEXP DhS, SEXP initS){
+  int i = 0;
+  uword j = 0;
+  List DnDh = as<List>(DnDhS); // e["dEta.dTheta"]
+  mat Dh = as<mat>(DhS); // e["dTheta"]
+  mat inits = as<mat>(initS); // e["inits.mat"]
+  mat cur;
+  mat prod;
+  for (i = 0; i < DnDh.size(); i++){
+    cur = as<mat>(DnDh[i]);
+    prod = cur * Dh;
+    for (j = 0; j < prod.n_rows; j++){
+      inits(i, j) += prod(j, 0);
+    }
+  }
+  NumericVector ret = as<NumericVector>(wrap(inits));
   return ret;
 }
 
