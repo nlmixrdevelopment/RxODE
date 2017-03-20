@@ -21,15 +21,13 @@ rxPermissive({
     transTo("d/dt(cmt)= log(fac!)-cmt*ka", "lgamma1p(fac)")
     transTo("d/dt(cmt)= log(fac!)-cmt*ka", "exp(lgamma1p(fac))", FALSE)
 
-    transTo("d/dt(cmt)= (1+fac)!-cmt*ka", "exp(lgamma1p(1+fac))")
-    transTo("d/dt(cmt)= log((1+fac)!)-cmt*ka", "lgamma1p(1+fac)")
-    transTo("d/dt(cmt)= log((1+fac)!)-cmt*ka", "exp(lgamma1p(1+fac))", FALSE)
+    transTo("d/dt(cmt)= (1+fac)!-cmt*ka", "exp(lgamma1p(1.0+fac))")
+    transTo("d/dt(cmt)= log((1+fac)!)-cmt*ka", "lgamma1p(1.0+fac)")
+    transTo("d/dt(cmt)= log((1+fac)!)-cmt*ka", "exp(lgamma1p(1.0+fac))", FALSE)
 
-    transTo("d/dt(cmt)= factorial(1+fac)-cmt*ka", "factorial(1+fac)")
-    transTo("d/dt(cmt)= lgamma(1+fac)-cmt*ka", "lgamma(1+fac)")
-    transTo("d/dt(cmt)= gamma(1+fac)-cmt*ka", "lgammafn(1+fac)")
-    transTo("d/dt(cmt)= lfactorial(1+fac)-cmt*ka", "lgamma1p(1+fac)")
-
-
+    transTo("d/dt(cmt)= factorial(1+fac)-cmt*ka", "factorial(1.0+fac)")
+    transTo("d/dt(cmt)= lgamma(1+fac)-cmt*ka", "lgamma(1.0+fac)")
+    transTo("d/dt(cmt)= gamma(1+fac)-cmt*ka", "lgammafn(1.0+fac)")
+    transTo("d/dt(cmt)= lfactorial(1+fac)-cmt*ka", "lgamma1p(1.0+fac)")
 
 }, silent=TRUE)
