@@ -689,8 +689,8 @@ rxPermissive({
         expect_equal(v, tmp2$omega.47);
 
         ## Test scaling
-        expect_equal(attr(tmp5.g,"grad") / 2, attr(tmp5.g2,"grad"));
-        expect_equal(attr(tmp5.g,"dEta.dTheta") / 2, attr(tmp5.g2,"dEta.dTheta"));
+        expect_equal(attr(tmp5.g,"grad") * 2, attr(tmp5.g2,"grad"));
+        expect_equal(attr(tmp5.g,"dEta.dTheta"), attr(tmp5.g2,"dEta.dTheta"));
 
     })
 

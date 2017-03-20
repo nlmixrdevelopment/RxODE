@@ -255,16 +255,12 @@ rxFoceiInner <- function(object, ..., dv, eta,
         ## print(output);
         env <- do.call(getFromNamespace("rxFoceiTheta", "RxODE"), args, envir = parent.frame(1));
         if (env$reset == 1){
-            if (reset){
-                stop("Cannot correct ETA underflow/overflow.");
-            } else {
-                cat(sprintf("Warning: Underflow/overflow; resetting ETAs to 0 (ID=%s).\n", env$id));
-                print(env$theta);
-                args$eta <- rep(0, length(env$eta));
-                args$reset  <- TRUE;
-                force(args)
-                return(do.call(getFromNamespace("rxFoceiInner", "RxODE"), args, envir = parent.frame(1)));
-            }
+            cat(sprintf("Warning: Underflow/overflow; resetting ETAs to 0 (ID=%s).\n", env$id));
+            print(env$theta);
+            args$eta <- rep(0, length(env$eta));
+            args$reset  <- TRUE;
+            force(args)
+            return(do.call(getFromNamespace("rxFoceiInner", "RxODE"), args, envir = parent.frame(1)));
         }
         return(env$ret);
     }
