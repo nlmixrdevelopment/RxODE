@@ -1503,6 +1503,7 @@ rxLoad <- function(obj){
                 rc <- try(dyn.load(dll), silent = TRUE);
                 if (inherits(rc, "try-error")){ #nocov start
                     ## Should not get here.
+                    dyn.load(dll)
                     stop(sprintf("error loading dll file %s, even after trying to recompile.", dll));
                 } # nocov end
             } else {

@@ -20,7 +20,6 @@ typedef long (*RxODE_cnt) ();
 typedef void (*RxODE_inc) ();
 typedef double (*RxODE_val) ();
 typedef SEXP (*RxODE_ode_solver) (SEXP sexp_theta, SEXP sexp_inits, SEXP sexp_lhs, SEXP sexp_time, SEXP sexp_evid,SEXP sexp_dose, SEXP sexp_pcov, SEXP sexp_cov, SEXP sexp_locf, SEXP sexp_atol, SEXP sexp_rtol, SEXP sexp_hmin, SEXP sexp_hmax, SEXP sexp_h0, SEXP sexp_mxordn, SEXP sexp_mxords, SEXP sexp_mx,SEXP sexp_stiff, SEXP sexp_transit_abs, SEXP sexp_object, SEXP sexp_extra_args);
-typedef SEXP (*RxODE_ode_focei_outer)(SEXP sexp_env);
 typedef void (*RxODE_assign_fn_pointers)(void (*fun_dydt)(unsigned int, double, double *, double *),void (*fun_calc_lhs)(double, double *, double *),void (*fun_calc_jac)(unsigned int, double, double *, double *, unsigned int),int fun_jt,int fun_mf, int fun_debug);
 
 typedef void (*RxODE_ode_solver_old_c)(int *neq,double *theta,double *time,int *evid,int *ntime,double *inits,double *dose,double *ret,double *atol,double *rtol,int *stiff,int *transit_abs,int *nlhs,double *lhs,int *rc);
@@ -37,7 +36,6 @@ RxODE_fn _safe_log, _safe_zero, factorial, _as_zero;
 RxODE_assign_fn_pointers _assign_fn_pointers;
 RxODE_ode_solver_old_c _old_c;
 RxODE_ode_solver_0_6_c _c_0_6;
-RxODE_ode_focei_outer _focei_outer;
 
 void __ODE_SOLVER__(
                     int *neq,
@@ -131,11 +129,6 @@ extern SEXP __ODE_SOLVER_SEXP__ (// Parameters
 	     sexp_object,sexp_extra_args);
 }
 
-extern SEXP __ODE_SOLVER_FOCEI_OUTER__ (SEXP sexp_rho){
-  __ODE_SOLVER_PTR__();
-  return _focei_outer(sexp_rho);
-}
-
 //Initilize the dll to match RxODE's calls
 void __R_INIT__ (DllInfo *info){
   // Get the RxODE calling interfaces
@@ -157,7 +150,6 @@ void __R_INIT__ (DllInfo *info){
   _assign_fn_pointers=(RxODE_assign_fn_pointers) R_GetCCallable("RxODE","RxODE_assign_fn_pointers");
   _old_c = (RxODE_ode_solver_old_c) R_GetCCallable("RxODE","RxODE_ode_solver_old_c");
   _c_0_6 = (RxODE_ode_solver_0_6_c)R_GetCCallable("RxODE","RxODE_ode_solver_0_6_c");
-  _focei_outer=(RxODE_ode_focei_outer)R_GetCCallable("RxODE","RxODE_ode_solver_focei_outer");
   // Register the outside functions
   R_RegisterCCallable(__LIB_STR__,__ODE_SOLVER_STR__,       (DL_FUNC) __ODE_SOLVER__);
   R_RegisterCCallable(__LIB_STR__,__ODE_SOLVER_SEXP_STR__,  (DL_FUNC) __ODE_SOLVER_SEXP__);
