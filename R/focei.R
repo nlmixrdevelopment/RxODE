@@ -63,12 +63,14 @@ rxFoceiFinalizeLlik <- function(env){
 ##' @param nonmem Match NONMEMs approximation of the hessian.
 ##' @return environment of solved information.
 ##' @author Matthew L. Fidler
+##' @export
 ##' @keywords internal
 rxFoceiEta <- function(object, ..., dv, eta,  env, nonmem=FALSE){
     UseMethod("rxFoceiEta");
 }
 
 ##' @rdname rxFoceiEta
+##' @export
 rxFoceiEta.rxFocei <- function(object, ..., dv, eta, env, nonmem=FALSE){
     args <- as.list(match.call(expand.dots=TRUE))[-1];
     args$object <- object$inner$cmpMgr$rxDll();
@@ -76,12 +78,14 @@ rxFoceiEta.rxFocei <- function(object, ..., dv, eta, env, nonmem=FALSE){
 }
 
 ##' @rdname rxFoceiEta
+##' @export
 rxFoceiEta.RxODE <- function(object, ..., dv, eta,  env, nonmem){
     args <- as.list(match.call(expand.dots=TRUE))[-1];
     args$object <- object$cmpMgr$rxDll();
     return(do.call(getFromNamespace("rxFoceiEta.rxDll", "RxODE"), args, envir=parent.frame(1)));
 }
 ##' @rdname rxFoceiEta
+##' @export
 rxFoceiEta.rxDll <- function(object, ..., dv, eta, env, nonmem){
     if (missing(env)){
         args <- as.list(match.call(expand.dots=TRUE))[-1];
@@ -100,22 +104,26 @@ rxFoceiEta.rxDll <- function(object, ..., dv, eta, env, nonmem){
 ##' @return -llik
 ##' @author Matthew L. Fidler
 ##' @keywords internal
+##' @export
 rxFoceiLik <- function(object, ..., dv, eta){
     UseMethod("rxFoceiLik");
 }
 ##' @rdname rxFoceiLik
+##' @export
 rxFoceiLik.rxFocei <- function(object, ..., dv, eta){
     args <- as.list(match.call(expand.dots=TRUE))[-1];
     args$object <- object$inner$cmpMgr$rxDll();
     return(do.call(getFromNamespace("rxFoceiLik.rxDll", "RxODE"), args, envir=parent.frame(1)));
 }
 ##' @rdname rxFoceiLik
+##' @export
 rxFoceiLik.RxODE <- function(object, ..., dv, eta){
     args <- as.list(match.call(expand.dots=TRUE))[-1];
     args$object <- object$cmpMgr$rxDll();
     return(do.call(getFromNamespace("rxFoceiLik.rxDll", "RxODE"), args, envir=parent.frame(1)));
 }
 ##' @rdname rxFoceiLik
+##' @export
 rxFoceiLik.rxDll <- function(object, ..., dv, eta){
     object$.call(rxTrans(object)["ode_solver_ptr"]); ## Assign the ODE pointers (and Jacobian Type)
     args <- as.list(match.call(expand.dots=TRUE))[-1];
@@ -130,22 +138,26 @@ rxFoceiLik.rxDll <- function(object, ..., dv, eta){
 ##' @return -grad
 ##' @author Matthew L. Fidler
 ##' @keywords internal
+##' @export
 rxFoceiLp <- function(object, ..., dv, eta){
     UseMethod("rxFoceiLp");
 }
 ##' @rdname rxFoceiLp
+##' @export
 rxFoceiLp.rxFocei <- function(object, ..., dv, eta){
     args <- as.list(match.call(expand.dots=TRUE))[-1];
     args$object <- object$inner$cmpMgr$rxDll();
     return(do.call(getFromNamespace("rxFoceiLp.rxDll", "RxODE"), args, envir=parent.frame(1)));
 }
 ##' @rdname rxFoceiLp
+##' @export
 rxFoceiLp.RxODE <- function(object, ..., dv, eta){
     args <- as.list(match.call(expand.dots=TRUE))[-1];
     args$object <- object$cmpMgr$rxDll();
     return(do.call(getFromNamespace("rxFoceiLp.rxDll", "RxODE"), args, envir=parent.frame(1)));
 }
 ##' @rdname rxFoceiLp
+##' @export
 rxFoceiLp.rxDll <- function(object, ..., dv, eta){
     object$.call(rxTrans(object)["ode_solver_ptr"]); ## Assign the ODE pointers (and Jacobian Type)
     args <- as.list(match.call(expand.dots=TRUE))[-1];
@@ -273,11 +285,13 @@ rxFoceiInner <- function(object, ..., dv, eta,
 ##' @return environment of solved information.
 ##' @author Matthew L. Fidler
 ##' @keywords internal
+##' @export
 rxFoceiTheta <- function(object, ..., dv, eta, env, nonmem=FALSE){
     UseMethod("rxFoceiTheta");
 }
 
 ##' @rdname rxFoceiTheta
+##' @export
 rxFoceiTheta.rxFocei <- function(object, ..., dv, eta, env, nonmem=FALSE){
     args <- as.list(match.call(expand.dots=TRUE))[-1];
     args$object <- object$outer$cmpMgr$rxDll();
@@ -285,12 +299,14 @@ rxFoceiTheta.rxFocei <- function(object, ..., dv, eta, env, nonmem=FALSE){
 }
 
 ##' @rdname rxFoceiTheta
+##' @export
 rxFoceiTheta.RxODE <- function(object, ..., dv, eta, env, nonmem){
     args <- as.list(match.call(expand.dots=TRUE))[-1];
     args$object <- object$cmpMgr$rxDll();
     return(do.call(getFromNamespace("rxFoceiTheta.rxDll", "RxODE"), args, envir=parent.frame(1)));
 }
 ##' @rdname rxFoceiTheta
+##' @export
 rxFoceiTheta.rxDll <- function(object, ..., dv, eta, env, nonmem){
     object$.call(rxTrans(object)["ode_solver_ptr"]); ## Assign the ODE pointers (and Jacobian Type)
     if (missing(env)){
