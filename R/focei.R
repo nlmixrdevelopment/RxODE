@@ -191,7 +191,7 @@ rxFoceiLp.rxDll <- function(object, ..., dv, eta){
 ##' @author Matthew L. Fidler
 ##' @keywords internal
 ##' @export
-rxFoceiInner <- function(object, ..., dv, eta,
+rxFoceiInner <- function(object, ..., dv, eta, eta.bak=NULL,
                          invisible = 0, m = 6, epsilon = 1e-05, past = 0, delta = 0,
                          max_iterations = 0, linesearch_algorithm = "LBFGS_LINESEARCH_DEFAULT",
                          max_linesearch = 20, min_step = 1e-20, max_step = 1e+20,
@@ -256,11 +256,24 @@ rxFoceiInner <- function(object, ..., dv, eta,
         env <- do.call(getFromNamespace("rxFoceiTheta", "RxODE"), args, envir = parent.frame(1));
         if (env$reset == 1){
             cat(sprintf("Warning: Underflow/overflow; resetting ETAs to 0 (ID=%s).\n", env$id));
-            print(env$theta);
+            inner.dll$.call(rxTrans(inner.dll)["ode_solver_ptr"]); ## Assign the ODE pointers (and Jacobian Type)
             args$eta <- rep(0, length(env$eta));
-            args$reset  <- TRUE;
-            force(args)
-            return(do.call(getFromNamespace("rxFoceiInner", "RxODE"), args, envir = parent.frame(1)));
+            args$object <- inner.dll;
+            env <- do.call(getFromNamespace("rxFoceiEtaSetup", "RxODE"), args, envir = parent.frame(1));
+            output <- lbfgs::lbfgs(lik, lp, eta, environment=env,
+                                   invisible=invisible, m=m, epsilon=epsilon, past=past, delta=delta,
+                                   max_iterations=max_iterations, linesearch_algorithm=linesearch_algorithm,
+                                   max_linesearch=max_linesearch, min_step=min_step, max_step=max_step,
+                                   ftol=ftol, wolfe=wolfe, gtol=gtol, orthantwise_c=orthantwise_c,
+                                   orthantwise_start=orthantwise_start, orthantwise_end = orthantwise_end);
+            args$object <- object;
+            args$eta <- env$eta;
+            if (env$reset == 1){
+                stop("Cannot reset problem.");
+            }
+            env <- do.call(getFromNamespace("rxFoceiTheta", "RxODE"), args, envir = parent.frame(1));
+
+
         }
         return(env$ret);
     }

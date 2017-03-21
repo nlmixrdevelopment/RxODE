@@ -884,8 +884,9 @@ NumericVector rxOuter(SEXP rho){
   return ret;
 }
 
+//' @export
 // [[Rcpp::export]]
-NumericVector rxUpdateEtas(SEXP DnDhS, SEXP DhS, SEXP initS){
+NumericVector rxUpdateEtas(SEXP DnDhS, SEXP DhS, SEXP initS, SEXP acceptNS){
   int i = 0;
   uword j = 0;
   List DnDh = as<List>(DnDhS); // e["dEta.dTheta"]
@@ -893,11 +894,22 @@ NumericVector rxUpdateEtas(SEXP DnDhS, SEXP DhS, SEXP initS){
   mat inits = as<mat>(initS); // e["inits.mat"]
   mat cur;
   mat prod;
+  double acceptN = as<double>(acceptNS);
+  int accept;
   for (i = 0; i < DnDh.size(); i++){
     cur = as<mat>(DnDh[i]);
     prod = cur * Dh;
+    accept = 1;
     for (j = 0; j < prod.n_rows; j++){
-      inits(i, j) += prod(j, 0);
+      if (abs(prod(j,0)+inits(i, j)) > acceptN){
+	accept = 0;
+	break;
+      }
+    }
+    if (accept){
+      for (j = 0; j < prod.n_rows; j++){
+        inits(i, j) += prod(j, 0);
+      }
     }
   }
   NumericVector ret = as<NumericVector>(wrap(inits));

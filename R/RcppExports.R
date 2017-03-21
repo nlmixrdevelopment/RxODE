@@ -60,7 +60,8 @@ rxOuter <- function(rho) {
     .Call('RxODE_rxOuter', PACKAGE = 'RxODE', rho)
 }
 
-rxUpdateEtas <- function(DnDhS, DhS, initS) {
-    .Call('RxODE_rxUpdateEtas', PACKAGE = 'RxODE', DnDhS, DhS, initS)
+#' @export
+rxUpdateEtas <- function(DnDhS, DhS, initS, acceptNS) {
+    .Call('RxODE_rxUpdateEtas', PACKAGE = 'RxODE', DnDhS, DhS, initS, acceptNS)
 }
 

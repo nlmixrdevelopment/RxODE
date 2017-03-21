@@ -138,15 +138,16 @@ BEGIN_RCPP
 END_RCPP
 }
 // rxUpdateEtas
-NumericVector rxUpdateEtas(SEXP DnDhS, SEXP DhS, SEXP initS);
-RcppExport SEXP RxODE_rxUpdateEtas(SEXP DnDhSSEXP, SEXP DhSSEXP, SEXP initSSEXP) {
+NumericVector rxUpdateEtas(SEXP DnDhS, SEXP DhS, SEXP initS, SEXP acceptNS);
+RcppExport SEXP RxODE_rxUpdateEtas(SEXP DnDhSSEXP, SEXP DhSSEXP, SEXP initSSEXP, SEXP acceptNSSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< SEXP >::type DnDhS(DnDhSSEXP);
     Rcpp::traits::input_parameter< SEXP >::type DhS(DhSSEXP);
     Rcpp::traits::input_parameter< SEXP >::type initS(initSSEXP);
-    rcpp_result_gen = Rcpp::wrap(rxUpdateEtas(DnDhS, DhS, initS));
+    Rcpp::traits::input_parameter< SEXP >::type acceptNS(acceptNSSEXP);
+    rcpp_result_gen = Rcpp::wrap(rxUpdateEtas(DnDhS, DhS, initS, acceptNS));
     return rcpp_result_gen;
 END_RCPP
 }
