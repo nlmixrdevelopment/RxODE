@@ -5,6 +5,7 @@ statement_list : (statement)+ ;
 statement 
   : ini end_statement 
   | ini0 end_statement
+  | ini0f end_statement
   | assignment end_statement
   | derivative end_statement
   | jac end_statement
@@ -37,6 +38,8 @@ print_command
   : 'print' | 'ode_print' | 'jac_print' | 'lhs_print';
 
 ini0       : identifier_r ('(0)' | '{0}' | '[0]') ('=' | '<-') ini_const;
+
+ini0f     : identifier_r ('(0)' | '{0}' | '[0]') ('=' | '<-') additive_expression;
 
 ini        : identifier_r ('=' | '<-') ini_const;
 

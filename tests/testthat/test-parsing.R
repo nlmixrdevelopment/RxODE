@@ -244,7 +244,7 @@ d/dt(z) = 3.0e7*y^2
 d/dt(y) = -1.0*(d/dt(x)+d/dt(z))
 ")
 
-    badParse(desc = "Assignment of state varaible #3","
+    goodParse(desc = "Assignment of state varaible #3","
 a       = 1.0E4+0
 x(0)    = 1+2
 d/dt(x) = a*y*z - 0.04*x

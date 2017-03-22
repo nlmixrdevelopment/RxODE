@@ -820,6 +820,17 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         continue;
       }
 
+      if (!strcmp("ini0f", name) && rx_syntax_allow_ini && i == 0){
+	sprintf(sb.s,"(__0f__)");
+	sb.o = 8;
+	sbt.o = 0;
+	char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+	sprintf(SBPTR,"%s",v);
+	sb.o = strlen(sb.s);
+	sprintf(SBTPTR,"%s(0)",v);
+	sbt.o = strlen(sbt.s);
+      }
+
       if ((!strcmp("assignment", name) || !strcmp("ini", name) || !strcmp("ini0", name)) && i==0) {
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
         if ((rx_syntax_allow_ini && !strcmp("ini", name)) || !strcmp("ini0", name)){
@@ -904,12 +915,12 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
     }
 
     if (!strcmp("assignment", name) || !strcmp("ini", name) || !strcmp("derivative", name) || !strcmp("jac",name) || !strcmp("dfdy",name) ||
-        !strcmp("ini0",name)){
+        !strcmp("ini0",name) || !strcmp("ini0f",name)){
       fprintf(fpIO, "%s;\n", sb.s);
       fprintf(fpIO2, "%s;\n", sbt.s);
     }
 
-    if (!rx_syntax_assign && (!strcmp("assignment", name) || !strcmp("ini", name) || !strcmp("ini0",name))){
+    if (!rx_syntax_assign && (!strcmp("assignment", name) || !strcmp("ini", name) || !strcmp("ini0",name) || !strcmp("ini0f",name))){
       if (!strcmp("ini0",name)){
         i = 2;
       } else {
@@ -960,6 +971,7 @@ void prnt_vars(int scenario, FILE *outpt, int lhs, const char *pre_str, const ch
   if (scenario == 0){
     // show_ode = 1 dydt
     // show_ode = 2 Jacobian
+    // show_ode = 3 Ini statement
     // show_ode = 0 LHS
     if (show_ode == 2 || show_ode == 0){
       //__DDtStateVar_#__
@@ -968,12 +980,14 @@ void prnt_vars(int scenario, FILE *outpt, int lhs, const char *pre_str, const ch
       }
     }
     // Now get Jacobain information  __PDStateVar_df_dy__ if needed
-    for (i = 0; i < tb.ndfdy; i++){
-      retieve_var(tb.df[i], buf1);
-      retieve_var(tb.dy[i], buf2);
-      // This is for dydt/ LHS/ or jacobian for df(state)/dy(parameter)
-      if (show_ode == 1 || show_ode == 0 || tb.sdfdy[i] == 1){
-	fprintf(outpt,"\t__PDStateVar_%s_SeP_%s__,\n",buf1,buf2);
+    if (show_ode != 3){
+      for (i = 0; i < tb.ndfdy; i++){
+        retieve_var(tb.df[i], buf1);
+        retieve_var(tb.dy[i], buf2);
+        // This is for dydt/ LHS/ or jacobian for df(state)/dy(parameter)
+        if (show_ode == 1 || show_ode == 0 || tb.sdfdy[i] == 1){
+          fprintf(outpt,"\t__PDStateVar_%s_SeP_%s__,\n",buf1,buf2);
+        }
       }
     }
   }
@@ -1380,6 +1394,8 @@ void codegen(FILE *outpt, int show_ode) {
     fprintf(outpt, "%s", hdft[1]);
   } else if (show_ode == 2){
     fprintf(outpt, "// Jacobian derived vars\nvoid %scalc_jac(unsigned int _neq, double t, double *__zzStateVar__, double *__PDStateVar__, unsigned int __NROWPD__) {\n",model_prefix);
+  } else if (show_ode == 3){
+    fprintf(outpt, "// Functional based initial conditions.\nvoid %sinis(SEXP _ini_sexp){\n\tdouble *__zzStateVar__ = REAL(_ini_sexp);\n\tdouble t=0;\n",model_prefix);
   } else {
     fprintf(outpt, "// prj-specific derived vars\nvoid %scalc_lhs(double t, double *__zzStateVar__, double *_lhs) {\n",model_prefix);
   }
@@ -1388,20 +1404,24 @@ void codegen(FILE *outpt, int show_ode) {
   }
   if ((show_ode == 2 && found_jac == 1) || show_ode != 2){
     prnt_vars(0, outpt, 0, "double \n\t", "\n",show_ode);     /* declare all used vars */
-    fprintf(outpt,"\t_update_par_ptr(t);\n");
+    if (show_ode == 3){
+      fprintf(outpt,"\t_update_par_ptr(0.0);\n");
+    } else {
+      fprintf(outpt,"\t_update_par_ptr(t);\n");
+    }
     prnt_vars(1, outpt, 1, "", "\n",show_ode);                   /* pass system pars */
     for (i=0; i<tb.nd; i++) {                   /* name state vars */
       retieve_var(tb.di[i], buf);
       fprintf(outpt,"\t");
       for (k = 0; k < strlen(buf); k++){
-        if (buf[k] == '.'){
-          fprintf(outpt,"_DoT_");
-          if (!rx_syntax_allow_dots){
-            trans_syntax_error_report_fn(NODOT);
-          }
-        } else {
-          fprintf(outpt,"%c",buf[k]);
-        }
+	if (buf[k] == '.'){
+	  fprintf(outpt,"_DoT_");
+	  if (!rx_syntax_allow_dots){
+	    trans_syntax_error_report_fn(NODOT);
+	  }
+	} else {
+	  fprintf(outpt,"%c",buf[k]);
+	}
       }
       fprintf(outpt," = __zzStateVar__[%d];\n", i);
     }
@@ -1426,6 +1446,26 @@ void codegen(FILE *outpt, int show_ode) {
         }
         continue;
       }
+      if (show_ode == 3 && strstr(sLine,"full_print;")){
+	continue;
+      }
+      s = strstr(sLine,"(__0f__)");
+      if (s){
+	if (show_ode == 3){
+	  // FIXME
+	  for (i = 0; i < tb.nd; i++){
+	    retieve_var(tb.di[i], buf);
+	    sprintf(to,"(__0f__)%s=",buf);
+	    if (strstr(sLine,to)){
+	      fprintf(outpt, "\tif (ISNA(%s)){\n\t\t%s\t}\n",buf,sLine+8);
+	      continue;
+	    }
+	  }
+	  error("%s(0) does not name sense because '%s' is not a state variable.",buf, buf);
+	} else {
+	  continue;
+	}
+      }
       s = strstr(sLine,"ode_print;");
       if (show_ode == 1 && !s) s = strstr(sLine,"full_print;");
       if (show_ode != 1 && s) continue;
@@ -1449,6 +1489,9 @@ void codegen(FILE *outpt, int show_ode) {
       
       s = strstr(sLine, "__DDtStateVar__");
       if (s){
+	if (show_ode == 3){
+	  continue;
+	}
 	if (show_ode!= 1){
 	  for (i = 0; i < tb.nd; i++){
 	    // Replace __DDtStateVar__[#] -> __DDtStateVar_#__
@@ -1507,6 +1550,9 @@ void codegen(FILE *outpt, int show_ode) {
       
       s = strstr(sLine,"__PDStateVar__");
       if (s){
+	if (show_ode == 3){
+	  continue;
+	}
 	for (i = 0; i < tb.ndfdy; i++){
           retieve_var(tb.df[i], df);
           retieve_var(tb.dy[i], dy);
@@ -1598,6 +1644,23 @@ void codegen(FILE *outpt, int show_ode) {
   } else if (show_ode == 2){
     //fprintf(outpt,"\tfree(__ld_DDtStateVar__);\n");
     fprintf(outpt, "  _jac_counter_inc();\n");
+    fprintf(outpt, "}\n");
+  } else if (show_ode == 3){
+    for (i = 0; i < tb.nd; i++){
+      retieve_var(tb.di[i], buf);
+      fprintf(outpt,"  __zzStateVar__[%d]=",i);
+      for (k = 0; k < strlen(buf); k++){
+        if (buf[k] == '.'){
+          fprintf(outpt,"_DoT_");
+          if (!rx_syntax_allow_dots){
+            trans_syntax_error_report_fn(NODOT);
+          }
+        } else {
+          fprintf(outpt,"%c",buf[k]);
+        }
+      }
+      fprintf(outpt, ";\n");
+    }
     fprintf(outpt, "}\n");
   } else {
     fprintf(outpt, "\n");
@@ -1740,6 +1803,7 @@ void trans_internal(char *orig_file, char* parse_file, char* c_file){
     err_msg((intptr_t) fpIO, "error opening output c file\n", -2);
     codegen(fpIO, 1);
     codegen(fpIO, 2);
+    codegen(fpIO, 3);
     codegen(fpIO, 0);
     print_aux_info(fpIO,buf, infile);
     fclose(fpIO);
