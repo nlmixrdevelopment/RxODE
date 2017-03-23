@@ -789,19 +789,34 @@ rxIf__ <- function(x){
 ##' @author Matthew L. Fidler
 ##' @keywords internal
 ##' @export
-rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, scale.to=NULL, grad=FALSE, grad.internal=FALSE){
+rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, grad=FALSE, grad.internal=FALSE){
     oobj <- obj;
     rxSymPyVars(obj);
     on.exit({rxSymPyClean()});
     if (!is.null(pkpars)){
-        txt <- rxParsePk(pkpars, init=init, scale.to=scale.to);
+        txt <- as.vector(unlist(strsplit(rxParsePk(pkpars, init=init), "\n")));
+        re <- rex::rex(start, "init", or("_", ".", ""), or("C", "c"), "ond", or("ition", ""),or("", "s"), any_spaces,
+                       or("=", "<-"), any_spaces, "c(", capture(anything), ")", any_spaces, ";", any_spaces, end);
+        w <- which(regexpr(re, txt) != -1)
+        if (length(w) == 1){
+            inis <- txt[w];
+            inis <- strsplit(gsub(re, "\\1", inis), " *, *")[[1]];
+            if (length(rxState(oobj)) == length(inis)){
+                inis <- paste(paste0(rxState(oobj), "(0)=", inis, ";"), collapse="\n");
+                txt[w] <- inis;
+            } else {
+                stop("Specified %s initial conditions when there are only %s states.", length(inis), length(rxState(oobj)));
+            }
+        } else if (length(w) > 1){
+            stop("Multiple initCondition= found.  Please choose one.");
+        }
         newmod <- rxGetModel(paste0(paste(txt, collapse="\n"), "\n", rxNorm(obj)));
         obj <- newmod;
     } else {
         calcSens <- rxParams(obj)
         newmod <- obj;
     }
-    txt <- rxParsePred(predfn, init=init, scale.to=scale.to)
+    txt <- rxParsePred(predfn, init=init)
     pred.mod <- rxGetModel(txt);
     extra.pars <- c();
     if (!is.null(errfn)){
@@ -811,7 +826,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, sc
         }))
         pars <- pars[w];
         mtheta <- max(as.numeric(gsub(rex::rex("THETA[", capture(numbers), "]"), "\\1", pars)))
-        txt <- rxParseErr(errfn, base.theta=mtheta + 1, init=init, scale.to=scale.to);
+        txt <- rxParseErr(errfn, base.theta=mtheta + 1, init=init);
         extra.pars <- attr(txt, "ini");
         err.mod <- rxGetModel(txt);
     }
@@ -937,7 +952,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, sc
         outer <- NULL;
         if (grad){
             outer <- rxSymPySetupPred(obj=oobj, predfn=predfn, pkpars=pkpars,
-                                      errfn=errfn, init=init, scale.to=scale.to, grad.internal=TRUE);
+                                      errfn=errfn, init=init, grad.internal=TRUE);
         }
         ret <- list(obj=oobj,
                     inner=RxODE(paste0(base, "\n", pred, "\n", err)),
