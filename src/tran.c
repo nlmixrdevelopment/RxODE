@@ -215,6 +215,7 @@ typedef struct symtab {
   int ini[MXSYM];        /* initial variable assignment =2 if there are two assignments */
   int ini0[MXSYM];        /* state initial variable assignment =2 if there are two assignments */
   int di[MXDER];        /* ith of state vars */
+  int fdi[MXDER];        /* Functional initilization of state variable */
   int nv;                       /* nbr of symbols */
   int ix;                       /* ith of curr symbol */
   int id;                       /* ith of curr symbol */
@@ -224,6 +225,7 @@ typedef struct symtab {
   int pos_de;
   int ini_i; // #ini
   int statei; // # states
+  int fdn; // # conditional states
   int sensi;
   int li; // # lhs
   int pi; // # param
@@ -1034,7 +1036,7 @@ void prnt_vars(int scenario, FILE *outpt, int lhs, const char *pre_str, const ch
 }
 
 void print_aux_info(FILE *outpt, char *model, char *orig_model){
-  int i, j, k, islhs,pi = 0,li = 0, o=0, o2=0, statei = 0, ini_i = 0, sensi=0,
+  int i, j, k, islhs,pi = 0,li = 0, o=0, o2=0, statei = 0, ini_i = 0, sensi=0, fdi=0,
     in_str=0;
   char *s2;
   char sLine[MXLEN+1];
@@ -1071,6 +1073,10 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
     } else {
       sprintf(s_aux_info+o, "\tSET_STRING_ELT(state,%d,mkChar(\"%s\"));\n", statei++, buf);
     }
+    if (tb.fdi[i]){
+      o = strlen(s_aux_info);
+      sprintf(s_aux_info+o, "\tSET_STRING_ELT(fn_ini,%d,mkChar(\"%s\"));\n", fdi++, buf);
+    }
     o = strlen(s_aux_info);
   }
   for (i=0; i<tb.ndfdy; i++) {                     /* name state vars */
@@ -1094,12 +1100,13 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
     o = strlen(s_aux_info);
   }
   fprintf(outpt,"extern SEXP %smodel_vars(){\n",model_prefix);
-  fprintf(outpt,"\tSEXP lst    = PROTECT(allocVector(VECSXP, 10));\n");
-  fprintf(outpt,"\tSEXP names  = PROTECT(allocVector(STRSXP, 10));\n");
+  fprintf(outpt,"\tSEXP lst    = PROTECT(allocVector(VECSXP, 11));\n");
+  fprintf(outpt,"\tSEXP names  = PROTECT(allocVector(STRSXP, 11));\n");
   fprintf(outpt,"\tSEXP params = PROTECT(allocVector(STRSXP, %d));\n",pi);
   fprintf(outpt,"\tSEXP lhs    = PROTECT(allocVector(STRSXP, %d));\n",li);
   fprintf(outpt,"\tSEXP state  = PROTECT(allocVector(STRSXP, %d));\n",statei);
   fprintf(outpt,"\tSEXP sens   = PROTECT(allocVector(STRSXP, %d));\n",sensi);
+  fprintf(outpt,"\tSEXP fn_ini = PROTECT(allocVector(STRSXP, %d));\n",fdi);
   fprintf(outpt,"\tSEXP dfdy   = PROTECT(allocVector(STRSXP, %d));\n",tb.ndfdy);
   fprintf(outpt,"\tSEXP tran   = PROTECT(allocVector(STRSXP, 12));\n");
   fprintf(outpt,"\tSEXP trann  = PROTECT(allocVector(STRSXP, 12));\n");
@@ -1297,6 +1304,9 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
   fprintf(outpt,"\tSET_STRING_ELT(names,9,mkChar(\"sens\"));\n");
   fprintf(outpt,"\tSET_VECTOR_ELT(lst,  9,sens);\n");
   
+  fprintf(outpt,"\tSET_STRING_ELT(names,10,mkChar(\"fn.ini\"));\n");
+  fprintf(outpt,"\tSET_VECTOR_ELT(lst,  10,fn_ini);\n");
+  
   // md5 values
   fprintf(outpt,"\tSET_STRING_ELT(mmd5n,0,mkChar(\"file_md5\"));\n");
   fprintf(outpt,"\tSET_STRING_ELT(mmd5,0,mkChar(\"%s\"));\n",md5);
@@ -1340,8 +1350,8 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
   fprintf(outpt,"\tSET_STRING_ELT(trann,10,mkChar(\"ode_solver_ptr\"));\n");
   fprintf(outpt,"\tSET_STRING_ELT(tran, 10,mkChar(\"%sode_solver_ptr\"));\n",model_prefix);
 
-  fprintf(outpt,"\tSET_STRING_ELT(trann,11,mkChar(\"ode_solver_focei_outer\"));\n");
-  fprintf(outpt,"\tSET_STRING_ELT(tran, 11,mkChar(\"%sode_solver_focei_outer\"));\n",model_prefix);
+  fprintf(outpt,"\tSET_STRING_ELT(trann,11,mkChar(\"inis\"));\n");
+  fprintf(outpt,"\tSET_STRING_ELT(tran, 11,mkChar(\"%sinis\"));\n",model_prefix);
   
   fprintf(outpt,"\tsetAttrib(tran, R_NamesSymbol, trann);\n");
   fprintf(outpt,"\tsetAttrib(mmd5, R_NamesSymbol, mmd5n);\n");
@@ -1349,7 +1359,7 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
   fprintf(outpt,"\tsetAttrib(ini, R_NamesSymbol, inin);\n");
   fprintf(outpt,"\tsetAttrib(lst, R_NamesSymbol, names);\n");
 
-  fprintf(outpt,"\tUNPROTECT(15);\n");
+  fprintf(outpt,"\tUNPROTECT(16);\n");
   
   fprintf(outpt,"\treturn lst;\n");
   fprintf(outpt,"}\n");
@@ -1457,11 +1467,14 @@ void codegen(FILE *outpt, int show_ode) {
 	    retieve_var(tb.di[i], buf);
 	    sprintf(to,"(__0f__)%s=",buf);
 	    if (strstr(sLine,to)){
-	      fprintf(outpt, "\tif (ISNA(%s)){\n\t\t%s\t}\n",buf,sLine+8);
-	      continue;
+	      if (!tb.fdi[i]){
+		tb.fdi[i] = 1;
+		tb.fdn++;
+	      }
+	      fprintf(outpt, "\t//if (ISNA(%s)){ // Always apply; Othersiwse, Since this updates vector, it may cause this to only be updated once.\n\t\t%s\t//}\n",buf,sLine+8);
 	    }
 	  }
-	  error("%s(0) does not name sense because '%s' is not a state variable.",buf, buf);
+	  continue;
 	} else {
 	  continue;
 	}
@@ -1693,6 +1706,7 @@ void reset (){
   memset(tb.lh,		0, MXSYM);
   memset(tb.ini,	0, MXSYM);
   memset(tb.di,		0, MXDER);
+  memset(tb.fdi,        0, MXDER);
   memset(tb.dy,		0, MXSYM);
   memset(tb.sdfdy,	0, MXSYM);
   // Reset integers
@@ -1712,6 +1726,7 @@ void reset (){
   tb.ndfdy	= 0;
   tb.maxtheta   = 0;
   tb.maxeta     = 0;
+  tb.fdn        = 0;
   // reset globals
   found_print = 0;
   found_jac = 0;
@@ -1820,7 +1835,7 @@ SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP pref
   char snum[512];
   char *s2;
   char sLine[MXLEN+1];
-  int i, j, islhs, pi=0, li=0, ini_i = 0,o2=0,k=0;
+  int i, j, islhs, pi=0, li=0, ini_i = 0,o2=0,k=0, l=0;
   double d;
   reset(); 
   rx_syntax_assign = R_get_option("RxODE.syntax.assign",1);
@@ -1886,14 +1901,15 @@ SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP pref
     error("Parse model 3 must be specified.");
   }
   trans_internal(orig, in, out);
-  SEXP lst   = PROTECT(allocVector(VECSXP, 9));
-  SEXP names = PROTECT(allocVector(STRSXP, 9));
+  SEXP lst   = PROTECT(allocVector(VECSXP, 10));
+  SEXP names = PROTECT(allocVector(STRSXP, 10));
   
   SEXP tran  = PROTECT(allocVector(STRSXP, 12));
   SEXP trann = PROTECT(allocVector(STRSXP, 12));
   
-  SEXP state = PROTECT(allocVector(STRSXP,tb.statei));
-  SEXP sens  = PROTECT(allocVector(STRSXP,tb.sensi));
+  SEXP state  = PROTECT(allocVector(STRSXP,tb.statei));
+  SEXP sens   = PROTECT(allocVector(STRSXP,tb.sensi));
+  SEXP fn_ini = PROTECT(allocVector(STRSXP, tb.fdn));
 
   SEXP dfdy = PROTECT(allocVector(STRSXP,tb.ndfdy));
   
@@ -1907,7 +1923,7 @@ SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP pref
   SEXP model  = PROTECT(allocVector(STRSXP,4));
   SEXP modeln = PROTECT(allocVector(STRSXP,4));
 
-  k=0;j=0;
+  k=0;j=0;l=0;
   for (i=0; i<tb.nd; i++) {                     /* name state vars */
     retieve_var(tb.di[i], buf);
     if (strstr(buf,"rx__sens_")){
@@ -1915,6 +1931,9 @@ SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP pref
       SET_STRING_ELT(state,k++,mkChar(buf));
     } else {
       SET_STRING_ELT(state,k++,mkChar(buf));
+    }
+    if (tb.fdi[i]){
+      SET_STRING_ELT(state,l++,mkChar(buf));
     }
   }
   for (i=0; i<tb.ndfdy; i++) {                     /* name state vars */
@@ -1984,6 +2003,9 @@ SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP pref
   SET_STRING_ELT(names,8,mkChar("sens"));
   SET_VECTOR_ELT(lst,  8,sens);
   
+  SET_STRING_ELT(names,8,mkChar("fn.ini"));
+  SET_VECTOR_ELT(lst,  8,fn_ini);
+  
   SET_STRING_ELT(trann,0,mkChar("jac"));
   if (found_jac == 1){
     SET_STRING_ELT(tran,0,mkChar("fulluser")); // Full User Matrix
@@ -2029,8 +2051,8 @@ SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP pref
   SET_STRING_ELT(trann,10,mkChar("ode_solver_ptr"));
   SET_STRING_ELT(tran, 10,mkChar(buf));
 
-  sprintf(buf,"%sode_solver_focei_outer",model_prefix);
-  SET_STRING_ELT(trann,11,mkChar("ode_solver_focei_outer"));
+  sprintf(buf,"%sinis",model_prefix);
+  SET_STRING_ELT(trann,11,mkChar("inis"));
   SET_STRING_ELT(tran, 11,mkChar(buf));
   
   fpIO2 = fopen(out2, "r");
@@ -2152,7 +2174,7 @@ SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP pref
   setAttrib(tran,  R_NamesSymbol, trann);
   setAttrib(lst,   R_NamesSymbol, names);
   setAttrib(model, R_NamesSymbol, modeln);
-  UNPROTECT(13);
+  UNPROTECT(14);
   remove(out3);
   if (rx_syntax_error){
     error("Syntax Errors (see above)");

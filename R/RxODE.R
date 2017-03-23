@@ -621,7 +621,7 @@ summary.RxCompilationManager <- function(object, ...)
 ##' @export
 coef.RxODE <- function(object,
                        ...){
-    ret <- rxModelVars(object)[c("params", "state", "ini", "sens")];
+    ret <- rxModelVars(object)[c("params", "state", "ini", "sens", "fn.ini")];
     ret$RxODE <- object;
     class(ret) <- "rxCoef";
     return(ret);
@@ -672,7 +672,12 @@ print.rxCoef <- function(x, ...){
         if (length(x$sens) > 0){
             tmp <- tmp[regexpr(regSens, names(tmp)) == -1];
         }
+        tmp <- tmp[!(names(tmp) %in% x$fn.ini)];
         print(tmp);
+    }
+    if (length(x$fn.ini) > 0){
+        cat("\nParameter Based Initial conditions:\n");
+        print(x$fn.ini);
     }
     cat("\nCompartents:\n");
     tmp <- rxState(rxDllObj);
@@ -1182,7 +1187,7 @@ rxTrans.character <- function(model,
 rxTransMakevars <- function(rxProps,                                                                              # rxTrans translation properties
                             rxDll, # Dll of file
                             compileFlags =c("parsed_md5", "ode_solver", "ode_solver_sexp", "ode_solver_0_6",
-                                            "ode_solver_ptr", "ode_solver_focei_outer",
+                                            "ode_solver_ptr", "inis",
                                             "model_vars", "calc_lhs", "calc_jac", "dydt"), # List of compile flags
                             debug        = FALSE,                                                                 # Debug compile?
                             ...){
@@ -1991,6 +1996,8 @@ rxInits <- function(rxDllObj,        # rxDll object
                 missing <- missing[regexpr(regSens, missing) == -1]
                 if (!noerror && length(missing) > 0){
                     if (getOption("RxODE.warn.on.assign", TRUE))
+                        ## FIXME: Functional inis are not assigned here...
+                        ## FIXME: warning for inis that are specified, since they will not be honored.
                         warning(sprintf("Assiged %s to %s.", paste(missing, collapse = ", "), default))
                 }
             }

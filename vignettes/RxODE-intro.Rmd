@@ -144,6 +144,13 @@ x <- solve(mod1,theta, ev, inits)
 head(x)
 ```
 
+Or with mattigr
+
+```{r}
+x <- mod1 %>% solve(theta, ev, inits)
+head(x)
+```
+
 
 ```{r fig.width=10}
 par(mfrow=c(1,2))

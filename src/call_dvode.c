@@ -47,6 +47,7 @@ FILE *fp;
 void (*dydt)(unsigned int neq, double t, double *A, double *DADT);
 void (*calc_jac)(unsigned int neq, double t, double *A, double *JAC, unsigned int __NROWPD__);
 void (*calc_lhs)(double t, double *A, double *lhs);
+void (*update_inis)(SEXP _ini_sexp);
 
 void rxInner(SEXP rho);
 
@@ -532,6 +533,7 @@ void RxODE_ode_solver_0_6_c(int *neq,
 void RxODE_assign_fn_pointers(void (*fun_dydt)(unsigned int, double, double *, double *),
                               void (*fun_calc_lhs)(double, double *, double *),
                               void (*fun_calc_jac)(unsigned int, double, double *, double *, unsigned int),
+			      void (*fun_update_inis)(SEXP _ini_sexp),
                               int fun_jt,
                               int fun_mf,
                               int fun_debug){
@@ -539,6 +541,7 @@ void RxODE_assign_fn_pointers(void (*fun_dydt)(unsigned int, double, double *, d
   dydt     = fun_dydt;
   calc_jac = fun_calc_jac;
   calc_lhs = fun_calc_lhs;
+  update_inis = fun_update_inis;
   // Assign solver options
   global_jt     = fun_jt;
   global_mf     = fun_mf;
@@ -596,6 +599,7 @@ void RxODE_ode_setup(SEXP sexp_inits,
   rx_aprox_M.kind = !is_locf;
   nlhs          = length(sexp_lhs);
   neq           = length(sexp_inits);
+  update_inis(sexp_inits); // Update any run-time initial conditions.
 }
 
 void RxODE_ode_solve_env(SEXP sexp_rho){
