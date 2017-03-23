@@ -156,7 +156,8 @@ rxSymPyVars <- function(model){
     } else if (class(model) == "character" && length(model) == 1 && regexpr(rex::rex(or("=", "<-")), model) == -1){
         vars <- model;
     } else {
-        vars <- c(rxParams(model), rxState(model),
+        vars <- c(rxParams(model),
+                  rxState(model),
                   "podo", "t", "time", "tlast");
     }
     vars <- sapply(vars, function(x){return(rxToSymPy(x))});
@@ -359,6 +360,14 @@ rxSymPySensitivityFull <- function(state, calcSens, model, cond){
             .Jython$exec(sprintf("%s=%s", var, line));
             assignInMyNamespace("rxSymPy.vars", c(rxSymPy.vars, var));
             extraLines[length(extraLines) + 1] <- sprintf("%s=%s", var.rx, rxFromSymPy(line));
+            ini <- sprintf("%s(0)", s1);
+            ini <- rxToSymPy(ini)
+            if (any(rxSymPy.vars == ini)){
+                line <- sprintf("diff(%s, %s)", ini, rxToSymPy(sns));
+                line <- rSymPy::sympy(line);
+                tmp <- sprintf("rx__sens_%s_BY_%s__", s1, rxToSymPy(sns));
+                extraLines[length(extraLines) + 1] <- sprintf("%s(0)=%s", tmp, rxFromSymPy(line));
+            }
             rxCat(".")
         }
     }
@@ -390,8 +399,18 @@ rxSymPySensitivity2Full_ <- function(state, s1, eta, sns, all.sens){
     var <- rxToSymPy(var.rx)
     .Jython$exec(sprintf("%s=%s", var, line));
     assignInMyNamespace("rxSymPy.vars", c(rxSymPy.vars, var));
+    ini <- sprintf("%s(0)", s1);
+    ini <- rxToSymPy(ini)
+    if (any(rxSymPy.vars == ini)){
+        line <- sprintf("diff(diff(%s, %s),%s)", ini, rxToSymPy(eta), rxToSymPy(sns));
+        line <- rSymPy::sympy(line);
+        tmp <- sprintf("rx__sens_%s_BY_%s_BY_%s__", s1, rxToSymPy(eta), rxToSymPy(sns));
+        ini.line <- sprintf("%s(0)=%s", tmp, rxFromSymPy(line));
+    } else {
+        ini.line <- NULL;
+    }
     rxCat(".");
-    return(list(all.sens=all.sens, line=sprintf("%s=%s", var.rx, rxFromSymPy(line))));
+    return(list(all.sens=all.sens, line=sprintf("%s=%s", var.rx, rxFromSymPy(line)), ini.line=ini.line));
 }
 
 ## Note the model and cond are not used in the function BUT are used
@@ -410,6 +429,9 @@ rxSymPySensitivity2Full <- function(state, etas, thetas, model, cond){
                         tmp <- rxSymPySensitivity2Full_(state, s1, e1, e2, all.sens);
                         all.sens <- tmp$all.sens;
                         extraLines[length(extraLines) + 1] <- tmp$line;
+                        if (!is.null(tmp$ini.line)){
+                            extraLines[length(extraLines) + 1] <- tmp$ini.line;
+                        }
                     }
                 }
             }
@@ -419,6 +441,9 @@ rxSymPySensitivity2Full <- function(state, etas, thetas, model, cond){
                     tmp <- rxSymPySensitivity2Full_(state, s1, eta, sns, all.sens);
                     all.sens <- unique(c(all.sens, tmp$all.sens));
                     extraLines[length(extraLines) + 1] <- tmp$line;
+                    if (!is.null(tmp$ini.line)){
+                        extraLines[length(extraLines) + 1] <- tmp$ini.line;
+                    }
                 }
             }
         }
@@ -528,6 +553,15 @@ rxSymPySensitivity <- function(model, calcSens, calcJac=FALSE, keepState=NULL,
                 tmp <- rSymPy::sympy(rxToSymPy(sprintf("d/dt(%s)", v)));
                 tmp <- rxFromSymPy(tmp);
                 extraLines[length(extraLines) + 1] <- sprintf("d/dt(%s)=%s", v, tmp);
+                ini <- sprintf("%s(0)", v);
+                ini <- rxToSymPy(ini)
+                if (any(rxSymPy.vars == ini)){
+                    tmp <- rSymPy::sympy(ini);
+                    extraLines[length(extraLines) + 1] <- sprintf("%s(0)=%s", v, rxFromSymPy(tmp));
+                } else if (any(v == names(rxInits(model)))){
+                    tmp <- as.vector(rxInits(model)[v]);
+                    extraLines[length(extraLines) + 1] <- sprintf("%s(0)=%s", v, tmp);
+                }
             }
         }
         extraLines <- c(extraLines, rxSymPySensitivity.single(model, calcSens, calcJac));
@@ -627,6 +661,7 @@ rxSymPySetupDPred <- function(newmod, calcSens, states, prd="rx_pred_"){
         extraLines <- c(tmp1, tmp2);
         ## These derivations are given in Equation #37.
         ## Should be dErr^2/(dEtaL dEtaK)
+        rxCat("##   d(.)^2/(d(eta1)d(eta2)) ");
         for (eL in calcSens$eta){
             for (eK in calcSens$eta){
                 tmp2 <- c(eK, eL)
@@ -658,9 +693,11 @@ rxSymPySetupDPred <- function(newmod, calcSens, states, prd="rx_pred_"){
                     }
                     tmp <- sprintf("rx__sens_%s_BY_%s_BY_%s__ = %s", prd, rxToSymPy(eK), rxToSymPy(eL), rxFromSymPy(tmp));
                     extraLines[length(extraLines) + 1] <- tmp;
+                    rxCat(".");
                 }
             }
         }
+        rxCat("\n##   d(.)^2/(d(theta)d(eta))");
         for (theta in calcSens$theta){
             for (eta in calcSens$eta){
                 newLine2 <- rSymPy::sympy(sprintf("diff(diff(%s,%s),%s)", prd, rxToSymPy(eta), rxToSymPy(theta)));
@@ -690,11 +727,14 @@ rxSymPySetupDPred <- function(newmod, calcSens, states, prd="rx_pred_"){
                 }
                 tmp <- sprintf("rx__sens_%s_BY_%s_BY_%s__ = %s", prd, rxToSymPy(eta), rxToSymPy(theta), rxFromSymPy(tmp));
                 extraLines[length(extraLines) + 1] <- tmp;
+                rxCat(".");
             }
         }
+        rxCat("\n");
         attr(extraLines, "zeroSens") <- zeroSens;
         return(extraLines);
     }
+    rxCat("## ");
     rxSymPyVars(calcSens);
     for (var in calcSens){
         newLine2 <- rSymPy::sympy(sprintf("diff(%s,%s)", prd, rxToSymPy(var)));
@@ -714,7 +754,9 @@ rxSymPySetupDPred <- function(newmod, calcSens, states, prd="rx_pred_"){
         }
         tmp <- sprintf("rx__sens_%s_BY_%s__ = %s", prd, rxToSymPy(var), rxFromSymPy(tmp));
         extraLines[length(extraLines) + 1] <- tmp;
+        rxCat(".");
     }
+    rxCat("\n");
     attr(extraLines, "zeroSens") <- zeroSens;
     return(extraLines);
 }
@@ -894,7 +936,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, sc
     if (!grad.internal){
         outer <- NULL;
         if (grad){
-            outer <- rxSymPySetupPred(obj=obj, predfn=predfn, pkpars=pkpars,
+            outer <- rxSymPySetupPred(obj=oobj, predfn=predfn, pkpars=pkpars,
                                       errfn=errfn, init=init, scale.to=scale.to, grad.internal=TRUE);
         }
         ret <- list(obj=oobj,

@@ -32,6 +32,8 @@ regPrint <- rex::rex(start, or(known.print), or(group("(", anything, ")", any_sp
                                                 group(any_spaces, at_most(";", 1), any_spaces)),
                      end)
 
+regIni0 <- rex::rex(start, "rx_", capture(anything), "_ini_0__", end);
+
 
 ## Start DSL based on http://adv-r.had.co.nz/dsl.html
 ## These operators are called to create the language and are not called in tests.
@@ -422,7 +424,11 @@ evalPrints <- function(x, envir=parent.frame()){
 unknownSympy <- function(op){
     force(op)
     function(...){
-        stop(sprintf("RxODE doesn't know how to translate '%s' to sympy.", op));
+        if (identical(c(...), c(0))){
+            return(sprintf("rx_%s_ini_0__", op));
+        } else {
+            stop(sprintf("RxODE doesn't know how to translate '%s' to sympy.", op));
+        }
     }
 }
 
@@ -466,10 +472,11 @@ rxEnv <- function(expr){
     names <- allNames(expr)
     ## Replace time with t.
     n1 <- names;
-    n2 <- gsub(regDfDy, "df(\\1)/dy(\\2)",
-               gsub(regDfDyTh, "df(\\1)/dy(\\2[\\3])",
-                    gsub(regDDt, "d/dt(\\1)",
-                         gsub(rex::rex(start, regThEt, end), "\\1[\\2]", names))));
+    n2 <- gsub(regIni0, "\\1(0)",
+               gsub(regDfDy, "df(\\1)/dy(\\2)",
+                    gsub(regDfDyTh, "df(\\1)/dy(\\2[\\3])",
+                         gsub(regDDt, "d/dt(\\1)",
+                              gsub(rex::rex(start, regThEt, end), "\\1[\\2]", names)))));
     n2[n2 == "time"] <- "t";
     symbol.list <- setNames(as.list(n2), n1);
     symbol.env <- list2env(symbol.list, parent=rxSympyFEnv);

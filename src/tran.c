@@ -1116,6 +1116,7 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
   fprintf(outpt,"\tSEXP modeln = PROTECT(allocVector(STRSXP, 4));\n");
   fprintf(outpt,"%s",s_aux_info);
   // Save for outputting in trans
+  tb.fdn = fdi;
   tb.pi = pi;
   tb.li = li;
   tb.statei = statei;
@@ -1933,7 +1934,7 @@ SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP pref
       SET_STRING_ELT(state,k++,mkChar(buf));
     }
     if (tb.fdi[i]){
-      SET_STRING_ELT(state,l++,mkChar(buf));
+      SET_STRING_ELT(fn_ini,l++,mkChar(buf));
     }
   }
   for (i=0; i<tb.ndfdy; i++) {                     /* name state vars */
