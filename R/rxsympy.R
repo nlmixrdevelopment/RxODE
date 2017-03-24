@@ -151,7 +151,7 @@ rxSympyStart <- function(){
     if (is.null(.rxSymPy$started)){
         if (requireNamespace("rPython", quietly = TRUE)){
             try(require(rPython), silent=TRUE);
-            rPython::python.exec("import sys")
+            rPython::python.exec("import sys");
             rPython::python.exec("import gc")
             rPython::python.exec( paste( "sys.path.append(", system.file( "Lib", package = "rSymPy" ), ")", sep = '"' ) )
             rPython::python.exec("from sympy import *")
@@ -861,6 +861,7 @@ rxIf__ <- function(x){
         return(sprintf("if (%s) {", paste(x, collapse=" && ")));
     }
 }
+rxSymPySetupPred.warn <- FALSE
 ##' Setup Pred function based on RxODE object.
 ##'
 ##' This is for the so-called inner problem.
@@ -875,7 +876,8 @@ rxIf__ <- function(x){
 ##' @author Matthew L. Fidler
 ##' @keywords internal
 ##' @export
-rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, grad=FALSE, grad.internal=FALSE){
+rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, grad=FALSE, grad.internal=FALSE,
+                             run.internal=FALSE){
     if (!grad.internal){
         cache.file <- sprintf("rx_%s%s.prd", digest::digest(deparse(list(rxModelVars(obj)$md5["parsed_md5"], deparse(body(predfn)), deparse(body(pkpars)),
                                                                          deparse(body(errfn)), init, grad))),
@@ -885,184 +887,222 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
     }
     if (file.exists(cache.file) && !grad.internal){
         load(file=cache.file);
+        if (any(names(ret) == "warn")){
+            if (ret$warn){
+                warning("Some of your prediction function does not depend on the state varibles.");
+            }
+        }
         return(ret);
     } else {
-        oobj <- obj;
-        rxModelVars(oobj)
-        rxSymPyVars(obj);
-        on.exit({rxSymPyClean()});
-        if (!is.null(pkpars)){
-            txt <- as.vector(unlist(strsplit(rxParsePk(pkpars, init=init), "\n")));
-            re <- rex::rex(start, "init", or("_", ".", ""), or("C", "c"), "ond", or("ition", ""),or("", "s"), any_spaces,
-                           or("=", "<-"), any_spaces, "c(", capture(anything), ")", any_spaces, ";", any_spaces, end);
-            w <- which(regexpr(re, txt) != -1)
-            if (length(w) == 1){
-                inis <- txt[w];
-                inis <- strsplit(gsub(re, "\\1", inis), " *, *")[[1]];
-                if (length(rxState(oobj)) == length(inis)){
-                    inis <- paste(paste0(rxState(oobj), "(0)=", inis, ";"), collapse="\n");
-                    txt[w] <- inis;
-                } else {
-                    stop("Specified %s initial conditions when there are only %s states.", length(inis), length(rxState(oobj)));
+        if (!run.internal && !grad.internal){
+            rfile <- tempfile(fileext=".R")
+            dta <- tempfile(fileext=".rdata")
+            save(obj, predfn, pkpars, errfn, init, grad, file=dta);
+            ## on.exit({unlink(dta); unlink(rfile)});
+            rf <- sprintf("load(%s); tmp <- RxODE::rxSymPySetupPred(obj, predfn, pkpars, errfn, init, grad, run.internal=TRUE);", deparse(dta));
+            sink(rfile);
+            cat(rf);
+            sink();
+            sh <- "system"   # windows's default shell COMSPEC does not handle UNC paths
+            cmd <- sprintf("%s/bin/Rscript %s",
+                           Sys.getenv("R_HOME"), deparse(rfile));
+            system(cmd, ignore.stdout=!getOption("RxODE.verbose", TRUE),
+                   ignore.stderr=!getOption("RxODE.verbose", TRUE));
+            if (file.exists(cache.file)){
+                load(file=cache.file);
+                if (any(names(ret) == "warn")){
+                    if (ret$warn){
+                        warning("Some of your prediction function does not depend on the state varibles.");
+                    }
                 }
-            } else if (length(w) > 1){
-                stop("Multiple initCondition= found.  Please choose one.");
+                return(ret);
+            } else {
+                stop("Error Creating expanded function.");
             }
-            newmod <- rxGetModel(paste0(paste(txt, collapse="\n"), "\n", rxNorm(obj)));
-            obj <- newmod;
         } else {
-            calcSens <- rxParams(obj)
-            newmod <- obj;
-        }
-        txt <- rxParsePred(predfn, init=init)
-        pred.mod <- rxGetModel(txt);
-        extra.pars <- c();
-        if (!is.null(errfn)){
-            pars <- rxParams(rxGetModel(paste0(rxNorm(obj), "\n", rxNorm(pred.mod))));
-            w <- which(sapply(pars, function(x){
-                return(substr(x, 0, 2) == "TH")
-            }))
-            pars <- pars[w];
-            mtheta <- max(as.numeric(gsub(rex::rex("THETA[", capture(numbers), "]"), "\\1", pars)))
-            txt <- rxParseErr(errfn, base.theta=mtheta + 1, init=init);
-            extra.pars <- attr(txt, "ini");
-            err.mod <- rxGetModel(txt);
-        }
-        if (!is.null(pkpars)){
-            full <- paste0(rxNorm(obj), "\n", rxNorm(pred.mod));
+            oobj <- obj;
+            rxModelVars(oobj)
+            rxSymPyVars(obj);
+            on.exit({rxSymPyClean()});
+            if (!is.null(pkpars)){
+                txt <- as.vector(unlist(strsplit(rxParsePk(pkpars, init=init), "\n")));
+                re <- rex::rex(start, "init", or("_", ".", ""), or("C", "c"), "ond", or("ition", ""),or("", "s"), any_spaces,
+                               or("=", "<-"), any_spaces, "c(", capture(anything), ")", any_spaces, ";", any_spaces, end);
+                w <- which(regexpr(re, txt) != -1)
+                if (length(w) == 1){
+                    inis <- txt[w];
+                    inis <- strsplit(gsub(re, "\\1", inis), " *, *")[[1]];
+                    if (length(rxState(oobj)) == length(inis)){
+                        inis <- paste(paste0(rxState(oobj), "(0)=", inis, ";"), collapse="\n");
+                        txt[w] <- inis;
+                    } else {
+                        stop("Specified %s initial conditions when there are only %s states.", length(inis), length(rxState(oobj)));
+                    }
+                } else if (length(w) > 1){
+                    stop("Multiple initCondition= found.  Please choose one.");
+                }
+                newmod <- rxGetModel(paste0(paste(txt, collapse="\n"), "\n", rxNorm(obj)));
+                obj <- newmod;
+            } else {
+                calcSens <- rxParams(obj)
+                newmod <- obj;
+            }
+            txt <- rxParsePred(predfn, init=init)
+            pred.mod <- rxGetModel(txt);
+            extra.pars <- c();
             if (!is.null(errfn)){
-                full <- paste0(full, "\n", rxNorm(err.mod));
+                pars <- rxParams(rxGetModel(paste0(rxNorm(obj), "\n", rxNorm(pred.mod))));
+                w <- which(sapply(pars, function(x){
+                    return(substr(x, 0, 2) == "TH")
+                }))
+                pars <- pars[w];
+                mtheta <- max(as.numeric(gsub(rex::rex("THETA[", capture(numbers), "]"), "\\1", pars)))
+                txt <- rxParseErr(errfn, base.theta=mtheta + 1, init=init);
+                extra.pars <- attr(txt, "ini");
+                err.mod <- rxGetModel(txt);
             }
-            full <- rxGetModel(full);
-            etas <- rxParams(full);
-            etas <- etas[regexpr(regEta, etas) != -1];
-            if (length(etas) > 0){
-                calcSens <- etas;
-            } else {
-                calcSens <- rxParams(full);
+            if (!is.null(pkpars)){
+                full <- paste0(rxNorm(obj), "\n", rxNorm(pred.mod));
+                if (!is.null(errfn)){
+                    full <- paste0(full, "\n", rxNorm(err.mod));
+                }
+                full <- rxGetModel(full);
+                etas <- rxParams(full);
+                etas <- etas[regexpr(regEta, etas) != -1];
+                if (length(etas) > 0){
+                    calcSens <- etas;
+                } else {
+                    calcSens <- rxParams(full);
+                }
+                if (grad.internal){
+                    calcSens <- list(eta=etas);
+                    thetas <- rxParams(full);
+                    thetas <- thetas[regexpr(regTheta, thetas) != -1];
+                    calcSens$theta <- thetas;
+                }
             }
-            if (grad.internal){
-                calcSens <- list(eta=etas);
-                thetas <- rxParams(full);
-                thetas <- thetas[regexpr(regTheta, thetas) != -1];
-                calcSens$theta <- thetas;
-            }
-        }
-        baseState <- rxState(obj);
-        obj <- rxGetModel(rxNorm(obj, removeJac=TRUE, removeSens=TRUE), calcSens=calcSens, collapseModel=TRUE);
-        base <- rxNorm(obj);
-        cnd.base <- rxNorm(newmod, TRUE); ## Get the conditional statements
-        if (is.null(cnd.base)) cnd.base <- "";
-        cnd.pred <- rxNorm(pred.mod, TRUE);
-        if (is.null(cnd.pred)) cnd.pred <- "";
-        one.pred <- FALSE;
-        some.pred <- FALSE;
-        setup.prd <- function(curr.base, curr.pred){
-            rxCondition(obj, ifelse(curr.base == "", FALSE, curr.base));
-            rxCondition(pred.mod, ifelse(curr.pred == "", FALSE, curr.pred));
-            rxSymPyClean();
-            rxSymPySetup(paste0(rxNorm(obj), "\n", rxNorm(pred.mod)));
-            lines <- rxIf__(c(curr.base, curr.pred));
-            return(lines)
-        }
-        grd <- expand.grid(cnd.base, cnd.pred)
-        grd <- grd[!(paste0("(!",grd$Var1,")") == grd$Var2), ]
-        grd <- grd[!(paste0("(!",grd$Var2,")") == grd$Var1), ]
-        pred <- paste(apply(grd, 1, function(x){
-            curr.base <- x[1];
-            curr.pred <- x[2];
-            lines <- c();
-            lgl <- TRUE
-            lines <- setup.prd(curr.base, curr.pred);
-            if (lines == ""){
-                lgl <- FALSE;
-                lines <- "";
-            }
-            rxCat(sprintf("## Calculate d(f)/d(eta) %s\n", lines));
-            newmod <- rxGetModel(paste0(rxNorm(obj), "\n", rxNorm(pred.mod)));
-            newlines <- rxSymPySetupDPred(newmod, calcSens, baseState)
-            if(attr(newlines, "zeroSens")){
-                some.pred <<- TRUE;
-            } else {
-                one.pred <<- TRUE;
-            }
-            if (length(newlines) == 0){
-                rxSymPyClean()
-                stop();
-            }
-            lines <- c(lines, rxNorm(pred.mod), newlines);
-            if (lgl){
-                lines <- c(lines, "}")
-            }
-            rxCat(sprintf("## %sdone\n", ifelse(lgl, "}", "")));
-            return(paste(lines, collapse="\n"));
-        }), collapse="\n");
-        if (!one.pred){
-            stop("At least some part of your prediction function needs to depend on the state variables.")
-        }
-        if (some.pred){
-            warning("Some of your prediction function does not depend on the state varibles.");
-        }
-        if (!is.null(errfn)){
-            cnd.err <- rxNorm(err.mod, TRUE);
-            if (is.null(cnd.err)) cnd.err <- "";
-            grd <- expand.grid(cnd.base, cnd.err, cnd.pred)
-            grd <- grd[!(paste0("(!",grd$Var1,")") == grd$Var2), ]
-            grd <- grd[!(paste0("(!",grd$Var1,")") == grd$Var3), ]
-            grd <- grd[!(paste0("(!",grd$Var2,")") == grd$Var1), ]
-            grd <- grd[!(paste0("(!",grd$Var2,")") == grd$Var3), ]
-            grd <- grd[!(paste0("(!",grd$Var3,")") == grd$Var1), ]
-            grd <- grd[!(paste0("(!",grd$Var3,")") == grd$Var2), ]
-            setup.err <- function(curr.base, curr.err, curr.pred){
+            baseState <- rxState(obj);
+            obj <- rxGetModel(rxNorm(obj, removeJac=TRUE, removeSens=TRUE), calcSens=calcSens, collapseModel=TRUE);
+            base <- rxNorm(obj);
+            cnd.base <- rxNorm(newmod, TRUE); ## Get the conditional statements
+            if (is.null(cnd.base)) cnd.base <- "";
+            cnd.pred <- rxNorm(pred.mod, TRUE);
+            if (is.null(cnd.pred)) cnd.pred <- "";
+            one.pred <- FALSE;
+            some.pred <- FALSE;
+            setup.prd <- function(curr.base, curr.pred){
                 rxCondition(obj, ifelse(curr.base == "", FALSE, curr.base));
                 rxCondition(pred.mod, ifelse(curr.pred == "", FALSE, curr.pred));
-                rxCondition(err.mod, ifelse(curr.err == "", FALSE, curr.err));
                 rxSymPyClean();
-                rxSymPySetup(paste0(rxNorm(obj), "\n", rxNorm(pred.mod), "\n", rxNorm(err.mod)));
-                lines <- rxIf__(c(curr.base, curr.pred, curr.err));
+                rxSymPySetup(paste0(rxNorm(obj), "\n", rxNorm(pred.mod)));
+                lines <- rxIf__(c(curr.base, curr.pred));
                 return(lines)
             }
-            err <- paste(apply(grd, 1, function(x){
+            grd <- expand.grid(cnd.base, cnd.pred)
+            grd <- grd[!(paste0("(!",grd$Var1,")") == grd$Var2), ]
+            grd <- grd[!(paste0("(!",grd$Var2,")") == grd$Var1), ]
+            pred <- paste(apply(grd, 1, function(x){
                 curr.base <- x[1];
-                curr.err <- x[2];
-                curr.pred <- x[3];
+                curr.pred <- x[2];
                 lines <- c();
                 lgl <- TRUE
-                lines <- setup.err(curr.base, curr.err, curr.pred);
+                lines <- setup.prd(curr.base, curr.pred);
                 if (lines == ""){
                     lgl <- FALSE;
-                    lines <- c();
+                    lines <- "";
                 }
-                rxCat(sprintf("## Calculate d(err)/d(eta) %s\n", lines));
-                newmod <- rxGetModel(paste0(rxNorm(obj), "\n", rxNorm(err.mod)));
-                newlines <- rxSymPySetupDPred(newmod, calcSens, baseState, prd="rx_r_")
-                lines <- c(lines, rxNorm(err.mod), newlines);
+                rxCat(sprintf("## Calculate d(f)/d(eta) %s\n", lines));
+                newmod <- rxGetModel(paste0(rxNorm(obj), "\n", rxNorm(pred.mod)));
+                newlines <- rxSymPySetupDPred(newmod, calcSens, baseState)
+                if(attr(newlines, "zeroSens")){
+                    some.pred <<- TRUE;
+                } else {
+                    one.pred <<- TRUE;
+                }
+                if (length(newlines) == 0){
+                    rxSymPyClean()
+                    stop();
+                }
+                lines <- c(lines, rxNorm(pred.mod), newlines);
                 if (lgl){
                     lines <- c(lines, "}")
                 }
                 rxCat(sprintf("## %sdone\n", ifelse(lgl, "}", "")));
                 return(paste(lines, collapse="\n"));
-            }), collapse="\n")
-        } else {
-            err <- ""
-        }
-        if (!grad.internal){
-            outer <- NULL;
-            if (grad){
-                outer <- rxSymPySetupPred(obj=oobj, predfn=predfn, pkpars=pkpars,
-                                          errfn=errfn, init=init, grad.internal=TRUE);
+            }), collapse="\n");
+            if (!one.pred){
+                stop("At least some part of your prediction function needs to depend on the state variables.")
             }
-            ret <- list(obj=oobj,
-                        inner=RxODE(paste0(base, "\n", pred, "\n", err)),
-                        extra.pars=extra.pars,
-                        outer=outer);
-            class(ret) <- "rxFocei";
-            rxGc();
-            rxForget();
-            save(ret, file=cache.file);
-            return(ret);
-        } else {
-            return(RxODE(paste0(base, "\n", pred, "\n", err)));
+            if (some.pred){
+                rxSymPySetupPred.warn <- TRUE
+            }
+            if (!is.null(errfn)){
+                cnd.err <- rxNorm(err.mod, TRUE);
+                if (is.null(cnd.err)) cnd.err <- "";
+                grd <- expand.grid(cnd.base, cnd.err, cnd.pred)
+                grd <- grd[!(paste0("(!",grd$Var1,")") == grd$Var2), ]
+                grd <- grd[!(paste0("(!",grd$Var1,")") == grd$Var3), ]
+                grd <- grd[!(paste0("(!",grd$Var2,")") == grd$Var1), ]
+                grd <- grd[!(paste0("(!",grd$Var2,")") == grd$Var3), ]
+                grd <- grd[!(paste0("(!",grd$Var3,")") == grd$Var1), ]
+                grd <- grd[!(paste0("(!",grd$Var3,")") == grd$Var2), ]
+                setup.err <- function(curr.base, curr.err, curr.pred){
+                    rxCondition(obj, ifelse(curr.base == "", FALSE, curr.base));
+                    rxCondition(pred.mod, ifelse(curr.pred == "", FALSE, curr.pred));
+                    rxCondition(err.mod, ifelse(curr.err == "", FALSE, curr.err));
+                    rxSymPyClean();
+                    rxSymPySetup(paste0(rxNorm(obj), "\n", rxNorm(pred.mod), "\n", rxNorm(err.mod)));
+                    lines <- rxIf__(c(curr.base, curr.pred, curr.err));
+                    return(lines)
+                }
+                err <- paste(apply(grd, 1, function(x){
+                    curr.base <- x[1];
+                    curr.err <- x[2];
+                    curr.pred <- x[3];
+                    lines <- c();
+                    lgl <- TRUE
+                    lines <- setup.err(curr.base, curr.err, curr.pred);
+                    if (lines == ""){
+                        lgl <- FALSE;
+                        lines <- c();
+                    }
+                    rxCat(sprintf("## Calculate d(err)/d(eta) %s\n", lines));
+                    newmod <- rxGetModel(paste0(rxNorm(obj), "\n", rxNorm(err.mod)));
+                    newlines <- rxSymPySetupDPred(newmod, calcSens, baseState, prd="rx_r_")
+                    lines <- c(lines, rxNorm(err.mod), newlines);
+                    if (lgl){
+                        lines <- c(lines, "}")
+                    }
+                    rxCat(sprintf("## %sdone\n", ifelse(lgl, "}", "")));
+                    return(paste(lines, collapse="\n"));
+                }), collapse="\n")
+            } else {
+                err <- ""
+            }
+            if (!grad.internal){
+                outer <- NULL;
+                if (grad){
+                    outer <- rxSymPySetupPred(obj=oobj, predfn=predfn, pkpars=pkpars,
+                                              errfn=errfn, init=init, run.internal=TRUE, grad.internal=TRUE);
+                }
+                ret <- list(obj=oobj,
+                            inner=RxODE(paste0(base, "\n", pred, "\n", err)),
+                            extra.pars=extra.pars,
+                            outer=outer,
+                            warn=rxSymPySetupPred.warn);
+                rxSymPySetupPred.warn <- FALSE;
+                class(ret) <- "rxFocei";
+                rxGc();
+                rxForget();
+                save(ret, file=cache.file);
+                if (ret$warn){
+                    warning("Some of your prediction function does not depend on the state varibles.");
+                }
+
+                return(ret);
+            } else {
+                return(RxODE(paste0(base, "\n", pred, "\n", err)));
+            }
         }
     }
 }

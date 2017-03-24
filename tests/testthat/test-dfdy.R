@@ -59,7 +59,6 @@ mu = 1 ## nonstiff; 10 moderately stiff; 1000 stiff
     })
 
     test_that("Jacobian specified but sensitivity not specified.", {
-        skip.java();
         jac <- RxODE("
 d/dt(y)  = dy
 d/dt(dy) = mu*(1-y^2)*dy - y
@@ -75,7 +74,6 @@ mu = 1 ## nonstiff; 10 moderately stiff; 1000 stiff
     })
 
     test_that("Sensitivity specified.", {
-        skip.java();
         sens <- RxODE("
 d/dt(y)  = dy
 d/dt(dy) = mu*(1-y^2)*dy - y
@@ -91,7 +89,6 @@ mu = 1 ## nonstiff; 10 moderately stiff; 1000 stiff
     })
 
     test_that("Jac/Sens can be caluclated from \"normal\" model", {
-        skip.java();
         norm <- RxODE("
 d/dt(y)  = dy
 d/dt(dy) = mu*(1-y^2)*dy - y
@@ -118,7 +115,6 @@ mu = 1 ## nonstiff; 10 moderately stiff; 1000 stiff
     })
 
     test_that("Jacobian and sensitivity specified.", {
-        skip.java();
         sens <- RxODE("
 d/dt(y)  = dy
 d/dt(dy) = mu*(1-y^2)*dy - y
@@ -173,7 +169,6 @@ mu = 1 ## nonstiff; 10 moderately stiff; 1000 stiff
     })
 
     test_that("Transit Sensitivities",{
-        skip.java();
 
         mod <- RxODE("
 ## Table 3 from Savic 2007
