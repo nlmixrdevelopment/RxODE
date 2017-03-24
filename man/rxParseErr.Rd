@@ -5,7 +5,7 @@
 \title{Prepare Error function for inclusion in RxODE}
 \usage{
 rxParseErr(x, base.theta, diag.xform = c("sqrt", "log", "identity"),
-  ret = "rx_r_", init = NULL, scale.to = NULL)
+  ret = "rx_r_", init = NULL)
 }
 \arguments{
 \item{x}{error function}
@@ -17,8 +17,6 @@ rxParseErr(x, base.theta, diag.xform = c("sqrt", "log", "identity"),
 \item{ret}{Intenral return type.  Should not be changed by the user...}
 
 \item{init}{Initilization vector}
-
-\item{scale.to}{Scale parameters to this number.}
 }
 \value{
 RxODE transformed text

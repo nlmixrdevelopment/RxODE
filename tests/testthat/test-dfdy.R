@@ -1,14 +1,6 @@
 require(RxODE);
 context("Test Jacobian (df/dy) parsing")
 
-rJava <- tryCatch({require(rJava); TRUE},error=function(e){return(FALSE)})
-
-skip.java <- function(){
-    if (!rJava){
-        skip("rJava not setup appropriately.")
-    }
-}
-
 rxPermissive({
 
     Vtpol2 <- RxODE("
@@ -149,8 +141,6 @@ mu = 1 ## nonstiff; 10 moderately stiff; 1000 stiff
 })
 
     test_that("Conditional Sensitivites",{
-        skip.java();
-
         transit.if <- RxODE({
             ## Table 3 from Savic 2007
             cl = 17.2 # (L/hr)

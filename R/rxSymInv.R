@@ -1,8 +1,5 @@
 rxSymInvC.slow <- NULL;  ## Memoize
 rxSymInvC <- function(mat1, mat, diag.xform=c("sqrt", "log", "identity"), scale.to=NULL){
-    if (!exists(".Jython", .GlobalEnv)){
-        rSymPy::sympyStart()
-    }
     if (!all(as.vector(mat1) == 1 || as.vector(mat1) == 1)){
         stop("This has to be a matrix of all 1s or 0s.");
     }
@@ -47,12 +44,12 @@ rxSymInvC <- function(mat1, mat, diag.xform=c("sqrt", "log", "identity"), scale.
     vars <- paste0("t", seq(0, i - 1))
     syms <- paste(vars, collapse=", ");
     if (length(vars) == 1){
-        .Jython$exec(sprintf("%s = Symbol('%s')",syms, syms));
+        rxSympyExec(sprintf("%s = Symbol('%s')",syms, syms));
     } else {
-        .Jython$exec(sprintf("%s = symbols('%s')",syms, syms));
+        rxSympyExec(sprintf("%s = symbols('%s')",syms, syms));
     }
     rxCat("Calculate symbolic inverse...");
-    sympy.inv <- rSymPy::sympy(sprintf("(%s).inv()", sympy.mat));
+    sympy.inv <- rxSymPy(sprintf("(%s).inv()", sympy.mat));
     sympy.inv.txt <- sprintf("Matrix([%s])", gsub("[\n]", ", ", sympy.inv));
     sympy.inv.det <- sprintf("(%s).det()", sympy.inv.txt);
     sympy.inv <- gsub(rex::rex(start, any_spaces, "[", any_spaces,
@@ -61,7 +58,7 @@ rxSymInvC <- function(mat1, mat, diag.xform=c("sqrt", "log", "identity"), scale.
     sympy.inv <- matrix(unlist(strsplit(sympy.inv, rex::rex(",", any_spaces))), d, byrow=TRUE);
     rxCat("done\n");
     rxCat("Calculate symbolic determinant of inverse...");
-    sympy.inv.det <- rSymPy::sympy(sympy.inv.det);
+    sympy.inv.det <- rxSymPy(sympy.inv.det);
     sympy.inv.det <- sympyC(sympy.inv.det);
     rxCat("done\n");
     v <- vars[1]
@@ -102,7 +99,7 @@ rxSymInvC <- function(mat1, mat, diag.xform=c("sqrt", "log", "identity"), scale.
                                ret <- "0";
                            } else {
                                cnt()
-                               ret <- rSymPy::sympy(sprintf("diff(%s,%s)", x, v));
+                               ret <- rxSymPy(sprintf("diff(%s,%s)", x, v));
                            }
                            ret <- sprintf("    REAL(ret)[%s] = %s;", i, sympyC(ret));
                            i <<- i + 1;
@@ -120,7 +117,7 @@ rxSymInvC <- function(mat1, mat, diag.xform=c("sqrt", "log", "identity"), scale.
                                ret <- "0";
                            } else {
                                cnt()
-                               ret <- rSymPy::sympy(sprintf("diff(%s,%s)", x, v));
+                               ret <- rxSymPy(sprintf("diff(%s,%s)", x, v));
                            }
                            ret <- sprintf("    REAL(ret)[%s] = %s;", i, sympyC(ret));
                            i <<- i + 1;

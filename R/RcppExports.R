@@ -60,6 +60,22 @@ rxOuter <- function(rho) {
     .Call('RxODE_rxOuter', PACKAGE = 'RxODE', rho)
 }
 
+#' Update ETAs based on d(eta)/d(theta)
+#'
+#' This updates the ETA initial estimates based on the knowledge of d(eta)/d(theta)
+#'
+#' @param DnDhS This is the d(eta)/d(theta) list where there is a
+#'   d(eta)/d(theta) matrix for each subject
+#'
+#' @param DhS This is the change in theta observed between steps.
+#'
+#' @param initS This is the ETA intiail condition matrix
+#'
+#' @param acceptNS Acceptance criteria for the new eta.  |eta| < acceptNS for the new eta
+#'   to be accepted.
+#'
+#' @keywords internal
+#'
 #' @export
 rxUpdateEtas <- function(DnDhS, DhS, initS, acceptNS) {
     .Call('RxODE_rxUpdateEtas', PACKAGE = 'RxODE', DnDhS, DhS, initS, acceptNS)

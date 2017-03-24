@@ -17,7 +17,7 @@ void F77_NAME(dlsoda)(
 		      int *);
 
 long slvr_counter, dadt_counter, jac_counter;
-double *InfusionRate;
+double InfusionRate[100];
 double ATOL;		//absolute error
 double RTOL;		//relative error
 double HMAX;
@@ -28,7 +28,8 @@ int    do_transit_abs=0;
 double tlast=0;
 double podo=0;
 double *par_ptr, *inits, *dose, *solve, *lhs;
-int    *par_cov, *evid, *rc;
+int    *par_cov, *evid;
+int rc[1];
 double *cov_ptr;
 int    ncov, nlhs, neq, stiff;
 int    is_locf;
@@ -461,21 +462,21 @@ void RxODE_ode_solver_old_c(int *neq,
 }
 
 void RxODE_ode_free(){
-  Free(InfusionRate);
-  Free(solve);
-  Free(lhs);
-  Free(rc);
+  /* Free(InfusionRate); */
+  /* Free(solve); */
+  /* Free(lhs); */
+  /* Free(rc); */
 }
 
 void RxODE_ode_alloc(){
-  /* solve = (double*) R_alloc(neq*n_all_times+1, sizeof(double)); */
-  /* lhs = (double *) R_alloc(nlhs,sizeof(double)); */
+  solve = (double*) R_alloc(neq*n_all_times+1, sizeof(double));
+  lhs = (double *) R_alloc(nlhs,sizeof(double));
   /* InfusionRate = (double *)R_alloc(neq+2,sizeof(double)); */
   /* rc = (int *) R_alloc(1,sizeof(int)); */
-  solve         = (double *) Calloc(neq*nAllTimes()+1,double);
-  lhs           = (double *) Calloc(nlhs,double);
-  InfusionRate  = (double *) Calloc(neq+2,double);
-  rc = (int *) Calloc(1,int);
+  /* solve         = (double *) Calloc(neq*nAllTimes()+1,double); */
+  /* lhs           = (double *) Calloc(nlhs,double); */
+  /* InfusionRate  = (double *) Calloc(neq+2,double); */
+  /* rc = (int *) Calloc(1,int); */
   rc[0] = 0;
 }
 

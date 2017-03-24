@@ -4,14 +4,12 @@
 \alias{rxParsePk}
 \title{Parse PK function for inclusion in RxODE}
 \usage{
-rxParsePk(x, init = NULL, scale.to = NULL)
+rxParsePk(x, init = NULL)
 }
 \arguments{
 \item{x}{PK function}
 
 \item{init}{Initilization vector}
-
-\item{scale.to}{Scale parameters to this number.}
 }
 \value{
 RxODE transformed text.

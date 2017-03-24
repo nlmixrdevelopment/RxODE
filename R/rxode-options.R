@@ -32,6 +32,22 @@ rxSetupMemoize <- function(){
     }
 }
 
+##' Clear memoise cache for RxODE
+##'
+##' @author Matthew L. Fidler
+##' @keywords internal
+##' @export
+rxForget <- function(){
+    reSlow <- rex::rex(".slow",end)
+    f <- sys.function(-1)
+    ns <- environment(f)
+    .slow <- ls(pattern=reSlow,envir=ns);
+    for (slow in .slow){
+        fast <- sub(reSlow, "", slow);
+        memoise::forget(get(fast, envir=ns));
+    }
+}
+
 ## strict/permissive
 rxOpt <- list(RxODE.prefer.tbl               =c(FALSE, FALSE),
               RxODE.display.tbl              =c(TRUE, TRUE),

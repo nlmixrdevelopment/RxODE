@@ -4,14 +4,12 @@
 \alias{rxParsePred}
 \title{Prepare Pred function for inclusion in RxODE}
 \usage{
-rxParsePred(x, init = NULL, scale.to = NULL)
+rxParsePred(x, init = NULL)
 }
 \arguments{
 \item{x}{pred function}
 
 \item{init}{Initilization vector}
-
-\item{scale.to}{Scale parameters to this number.}
 }
 \value{
 RxODE transformed text.
