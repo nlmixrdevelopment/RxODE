@@ -123,3 +123,57 @@ owd <- getwd();
 on.exit({setwd(owd)});
 setwd(devtools::package_file());
 knitr::knit(devtools::package_file("README.Rmd"))
+
+
+create.syminv.cache <- function(n=1){
+    owd <- getwd();
+    on.exit(setwd(owd))
+    setwd(devtools::package_file("inst/inv"));
+    i <- 0;
+    if (n == 1){
+        m <- matrix(1, 1);
+        for (xform in c("sqrt", "log", "identity")){
+            rxSymInvC(m, xform);
+        }
+    } else {
+        m <- matrix(rep(1, n * n), n);
+        m[lower.tri(m)] <- 0;
+        m[upper.tri(m)] <- 0;
+        n2 <- sum(lower.tri(m) * 1);
+        grd <- eval(parse(text=sprintf("expand.grid(%s)", paste(rep("c(0,1)", n2), collapse=", "))));
+        for (i in 1:length(grd[, 1])){
+            v <- as.vector(m);
+            vw <- which(as.vector(lower.tri(m) * 1) == 1);
+            v[vw] <- grd[i, ];
+            mc <- matrix(v, n);
+            mc[upper.tri(mc)] <- t(mc)[upper.tri(mc)];
+            for (xform in c("sqrt", "log", "identity")){
+                rxSymInvC(mc, xform);
+                cat(".");
+                i <- i + 1;
+                if (i %% 5 == 0){
+                    cat(i);
+                }
+                if (i %% 50 == 0){
+                    cat("\n");
+                }
+            }
+            ## print(mc);
+            ## mc[upper.tri(mc)] <- grd[i, ]
+            ## mc[lower.tri(mc)] <- t(mc)[lower.tri(mc)];
+            ## print(mc);
+        }
+        ## print(n2)
+        ## print(m);
+        ## print(grd);
+    }
+    cat("\n");
+}
+
+create.syminv.cache();
+
+create.syminv.cache(2);
+
+## create.syminv.cache(3);
+
+## create.syminv.cache(4);

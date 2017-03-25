@@ -24,7 +24,7 @@ Suggests:
     devtools,
     covr,
     rmarkdown,
-    PythonInR
+    rPython
 Imports:
     utils,
     methods,

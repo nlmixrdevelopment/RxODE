@@ -150,7 +150,6 @@ rxSympyStart <- function(){
     }
     if (is.null(.rxSymPy$started)){
         if (requireNamespace("rPython", quietly = TRUE)){
-            try(require(rPython), silent=TRUE);
             rPython::python.exec("import sys");
             rPython::python.exec("import gc")
             rPython::python.exec( paste( "sys.path.append(", system.file( "Lib", package = "rSymPy" ), ")", sep = '"' ) )
@@ -158,20 +157,19 @@ rxSympyStart <- function(){
             .rxSymPy$started <- "rPython";
         }
     }
-    if (is.null(.rxSymPy$started)){
-        if (requireNamespace("PythonInR", quietly = TRUE)) {
-            try(require(PythonInR), silent=TRUE)
-            if(PythonInR::pyIsConnected()) {
-                PythonInR::pyExecp("import sys")
-                PythonInR::pyExecp("import gc")
-                PythonInR::pyExecp( paste( "sys.path.append(", system.file( "Lib", package = "rSymPy" ), ")", sep = '"' ) )
-                PythonInR::pyExecp("from sympy import *")
-                .rxSymPy$started <- "PythonInR";
-            } else {
-                cat("Warning: Python in R not working; make sure python is in the path, trying Jython.\n");
-            }
-        }
-    }
+    ## if (is.null(.rxSymPy$started)){
+    ##     if (requireNamespace("PythonInR", quietly = TRUE)) {
+    ##         if(PythonInR::pyIsConnected()) {
+    ##             PythonInR::pyExecp("import sys")
+    ##             PythonInR::pyExecp("import gc")
+    ##             PythonInR::pyExecp( paste( "sys.path.append(", system.file( "Lib", package = "rSymPy" ), ")", sep = '"' ) )
+    ##             PythonInR::pyExecp("from sympy import *")
+    ##             .rxSymPy$started <- "PythonInR";
+    ##         } else {
+    ##             cat("Warning: Python in R not working; make sure python is in the path, trying Jython.\n");
+    ##         }
+    ##     }
+    ## }
     if (is.null(.rxSymPy$started)){
         if (!exists(".Jython", .GlobalEnv)){
             rSymPy::sympyStart()
@@ -190,9 +188,10 @@ rxSympyExec <- function(...){
     rxSympyStart();
     if (.rxSymPy$started == "rPython"){
         rPython::python.exec(...);
-    } else if (.rxSymPy$started == "PythonInR"){
-        PythonInR::pyExecp(...);
-    } else if (.rxSymPy$started == "rSymPy"){
+    } ## else if (.rxSymPy$started == "PythonInR"){
+    ##     PythonInR::pyExecp(...);
+    ## }
+    else if (.rxSymPy$started == "rSymPy"){
         .Jython$exec(...);
     }
 }
@@ -215,12 +214,13 @@ rxSymPy <- function(...){
         ret <- (.C("py_get_var", "__Rsympy", not.found.var = integer(1),
                    resultado = character(1), PACKAGE = "rPython"))$resultado;
         return(ret);
-    } else if (.rxSymPy$started == "PythonInR"){
-        PythonInR::pyExec(paste("__Rsympy=None"))
-        PythonInR::pyExec(paste("__Rsympy=", ..., sep = ""))
-        PythonInR::pyExec(paste("__Rsympy = str(__Rsympy)"))
-        return(PythonInR::pyGet("__Rsympy"));
-    } else if (.rxSymPy$started == "rSymPy"){
+    } ## else if (.rxSymPy$started == "PythonInR"){
+    ##     PythonInR::pyExec(paste("__Rsympy=None"))
+    ##     PythonInR::pyExec(paste("__Rsympy=", ..., sep = ""))
+    ##     PythonInR::pyExec(paste("__Rsympy = str(__Rsympy)"))
+    ##     return(PythonInR::pyGet("__Rsympy"));
+    ## }
+    else if (.rxSymPy$started == "rSymPy"){
         rSymPy::sympy(...)
     }
 }
@@ -1093,7 +1093,6 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                 rxSymPySetupPred.warn <- FALSE;
                 class(ret) <- "rxFocei";
                 rxGc();
-                rxForget();
                 save(ret, file=cache.file);
                 if (ret$warn){
                     warning("Some of your prediction function does not depend on the state varibles.");

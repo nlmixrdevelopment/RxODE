@@ -3,7 +3,7 @@
 [![codecov.io](https://codecov.io/github/mattfidler/RxODE/coverage.svg?branch=master)](https://codecov.io/github/mattfidler/RxODE?branch=master)
 [![CRAN version](http://www.r-pkg.org/badges/version/RxODE)](https://cran.r-project.org/package=RxODE)
 
-![plot of chunk compileVignette](figure/compileVignette-1.png)
+
 
 
 ## RxODE: A tool for performing simulations from Ordinary Differential Equation (ODE) models, with applications for pharmacometrics
@@ -321,13 +321,38 @@ head(x)
 ## [6,]    5  2299.255 1466.670 2131.7169 1.214742 36.48434 7.1774981
 ```
 
+Or with mattigr
+
+```r
+x <- mod1 %>% solve(theta, ev, inits)
+```
+
+```
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+```
+
+```r
+head(x)
+```
+
+```
+##      time     depot    centr      peri      eff       C2        C3
+## [1,]    0 10000.000    0.000    0.0000 1.000000  0.00000 0.0000000
+## [2,]    1  7452.765 1783.897  273.1895 1.084664 44.37555 0.9198298
+## [3,]    2  5554.370 2206.295  793.8758 1.180825 54.88296 2.6729825
+## [4,]    3  4139.542 2086.518 1323.5783 1.228914 51.90343 4.4564927
+## [5,]    4  3085.103 1788.795 1776.2702 1.234610 44.49738 5.9807076
+## [6,]    5  2299.255 1466.670 2131.7169 1.214742 36.48434 7.1774981
+```
+
 ```r
 par(mfrow=c(1,2))
 matplot(x[,"C2"], type="l", ylab="Central Concentration")
 matplot(x[,"eff"], type="l", ylab = "Effect")
 ```
 
-![plot of chunk unnamed-chunk-15](vignettes/figure/unnamed-chunk-15-1.png)
+![plot of chunk unnamed-chunk-16](vignettes/figure/unnamed-chunk-16-1.png)
 
 #### Simulation of Variability with RxODE
 Variability in model parameters can be simulated by creating a matrix
@@ -347,12 +372,12 @@ head(theta.all)
 
 ```
 ##         KA       CL   V2    Q  V3 Kin Kout EC50
-## [1,] 0.294 14.47378 40.2 10.5 297   1    1  200
-## [2,] 0.294 19.24972 40.2 10.5 297   1    1  200
-## [3,] 0.294 19.97822 40.2 10.5 297   1    1  200
-## [4,] 0.294 24.65951 40.2 10.5 297   1    1  200
-## [5,] 0.294 17.35324 40.2 10.5 297   1    1  200
-## [6,] 0.294 16.19164 40.2 10.5 297   1    1  200
+## [1,] 0.294 21.43742 40.2 10.5 297   1    1  200
+## [2,] 0.294 20.56427 40.2 10.5 297   1    1  200
+## [3,] 0.294 20.14228 40.2 10.5 297   1    1  200
+## [4,] 0.294 21.86093 40.2 10.5 297   1    1  200
+## [5,] 0.294 23.10703 40.2 10.5 297   1    1  200
+## [6,] 0.294 14.13567 40.2 10.5 297   1    1  200
 ```
 
 Each subproblem can be simulated by using an explicit loop (or the `apply()`
@@ -373,7 +398,7 @@ for (i in 1:nsub)
 matplot(cp.all, type="l", ylab="Central Concentration")
 ```
 
-![plot of chunk unnamed-chunk-17](vignettes/figure/unnamed-chunk-17-1.png)
+![plot of chunk unnamed-chunk-18](vignettes/figure/unnamed-chunk-18-1.png)
 
 It is now straightforward to perform calculations and generate plots
 with the simulated data. Below,  the 5th, 50th, and 95th percentiles
@@ -384,7 +409,7 @@ cp.q <- apply(cp.all, 1, quantile, prob = c(0.05, 0.50, 0.95))
 matplot(t(cp.q), type="l", lty=c(2,1,2), col=c(2,1,2), ylab="Central Concentration")
 ```
 
-![plot of chunk unnamed-chunk-18](vignettes/figure/unnamed-chunk-18-1.png)
+![plot of chunk unnamed-chunk-19](vignettes/figure/unnamed-chunk-19-1.png)
 
 #### Facilities for generating R shiny applications
 
