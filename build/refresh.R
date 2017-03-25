@@ -125,7 +125,7 @@ setwd(devtools::package_file());
 knitr::knit(devtools::package_file("README.Rmd"))
 
 
-create.syminv.cache <- function(n=1){
+create.syminv.cache <- function(n=1, xforms=c("sqrt", "log", "identity")){
     owd <- getwd();
     on.exit(setwd(owd))
     setwd(devtools::package_file("inst/inv"));
@@ -147,7 +147,7 @@ create.syminv.cache <- function(n=1){
             v[vw] <- grd[i, ];
             mc <- matrix(v, n);
             mc[upper.tri(mc)] <- t(mc)[upper.tri(mc)];
-            for (xform in c("sqrt", "log", "identity")){
+            for (xform in xforms){
                 rxSymInvC(mc, xform);
                 cat(".");
                 i <- i + 1;
@@ -174,6 +174,4 @@ create.syminv.cache();
 
 create.syminv.cache(2);
 
-## create.syminv.cache(3);
-
-## create.syminv.cache(4);
+create.syminv.cache(3, c("sqrt", "identity"));
