@@ -151,9 +151,15 @@ rxSympyStart <- function(){
     if (is.null(.rxSymPy$started)){
         if (requireNamespace("rPython", quietly = TRUE)){
             rPython::python.exec("import sys");
-            rPython::python.exec("import gc")
-            rPython::python.exec( paste( "sys.path.append(", system.file( "Lib", package = "rSymPy" ), ")", sep = '"' ) )
-            rPython::python.exec("from sympy import *")
+            rPython::python.exec("import gc");
+
+            ## rPython::python.exec( paste( "sys.path.append(", system.file( "Lib", package = "rSymPy" ), ")", sep = '"' ) )
+            tryCatch({
+                rPython::python.exec("from sympy import *")
+            }, error=function(e){
+                rPython::python.exec( paste( "sys.path.append(", system.file( "Lib", package = "rSymPy" ), ")", sep = '"' ) )
+                rPython::python.exec("from sympy import *")
+            })
             .rxSymPy$started <- "rPython";
         }
     }
@@ -224,6 +230,17 @@ rxSymPy <- function(...){
         rSymPy::sympy(...)
     }
 }
+##' Return the version of Sympy that is running
+##'
+##' @return  Verson of sympy that is running.
+##' @author Matthew L. Fidler
+##' @export
+rxSymPyVersion <- function(){
+    rxSympyExec("import sympy");
+    return(rxSymPy("sympy.__version__"))
+}
+
+rxSymPyVersion.slow <- NULL;
 
 ##' Setup sympy variables
 ##'

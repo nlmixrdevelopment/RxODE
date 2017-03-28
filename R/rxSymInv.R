@@ -56,10 +56,15 @@ rxSymInvC <- function(mat1, diag.xform=c("sqrt", "log", "identity")){
         sympy.inv <- rxSymPy(sprintf("(%s).inv()", sympy.mat));
         sympy.inv.txt <- sprintf("Matrix([%s])", gsub("[\n]", ", ", sympy.inv));
         sympy.inv.det <- sprintf("(%s).det()", sympy.inv.txt);
-        sympy.inv <- gsub(rex::rex(start, any_spaces, "[", any_spaces,
-                                   capture(anything), any_spaces, "]", any_spaces, end),
-                          "\\1", strsplit(sympy.inv, "\n")[[1]]);
-        sympy.inv <- matrix(unlist(strsplit(sympy.inv, rex::rex(",", any_spaces))), d, byrow=TRUE);
+        mat.reg <- rex::rex(start, or(group(any_spaces, "["),
+                                      group(any_spaces, "Matrix([[")), any_spaces,
+                            capture(anything), any_spaces,
+                            or(group("]", any_spaces, end),
+                               group("]])", any_spaces, end)));
+        mat.sep.reg <- rex::rex(or(group("]", any_spaces, ",", any_spaces, "["),
+                                   group(any_spaces, ",", any_spaces)))
+        sympy.inv <- gsub(mat.reg, "\\1", strsplit(sympy.inv, "\n")[[1]]);
+        sympy.inv <- matrix(unlist(strsplit(sympy.inv, mat.sep.reg)), d, byrow=TRUE);
         rxCat("done\n");
         rxCat("Calculate symbolic determinant of inverse...");
         sympy.inv.det <- rxSymPy(sympy.inv.det);
@@ -190,9 +195,6 @@ rxSymInvCreate <- function(mat,
     ret <-rxSymInvC(mat1=(mat>0)*1,
                     diag.xform=diag.xform);
     th <- th.unscaled;
-    if (!is.null(scale.to)){
-        th <- rep(scale.to, length(th.unscaled))
-    }
     ret <- list(fmat=ret[[2]],
                 th.unscaled=th.unscaled,
                 th=th,
@@ -266,4 +268,13 @@ rxSymInv <- function(invobj, theta, pow=0, dTheta=0){
             return(invobj$fn(as.double(theta), as.integer(pow), as.integer(dTheta)));
         }
     }
+}
+
+
+rxBlockZeros <- function(mat, i){
+    return(!((row(mat) > i & col(mat) > i) | (row(mat) <= i & col(mat) <= i)))
+}
+
+rxIsBlock <- function(mat, i){
+    all(mat[rxBlockZeros(mat, i)] == 0);
 }
