@@ -176,5 +176,4 @@ create.syminv.cache(2);
 
 create.syminv.cache(3);
 
-## Should do something for block matrixes...
-## create.syminv.cache(4, c("sqrt", "identity"));
+## create.syminv.cache(4);
