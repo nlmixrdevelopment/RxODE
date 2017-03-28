@@ -178,6 +178,12 @@ rxSymInvC <- function(mat1, diag.xform=c("sqrt", "log", "identity")){
     return(ret);
 }
 
+rxSymInvCreateC <- function(c){
+    inline::cfunction(signature(theta="numeric", oi="integer", tn="integer"), c)
+}
+
+rxSymInvCreateC.slow <- NULL
+
 ##' Creates an object for caluclating Omega/Omega^-1 and dervatives
 ##'
 ##' @param mat Initial Omega matrix
@@ -197,15 +203,59 @@ rxSymInvCreate <- function(mat,
             th.unscaled[length(th.unscaled) + 1] <- elts[i];
         }
     }
-    ret <-rxSymInvC(mat1=(mat>0)*1,
-                    diag.xform=diag.xform);
-    th <- th.unscaled;
-    ret <- list(fmat=ret[[2]],
-                th.unscaled=th.unscaled,
-                th=th,
-                fn=inline::cfunction(signature(theta="numeric", oi="integer", tn="integer"), ret[[1]]));
-    class(ret) <- "rxSymInv";
-    return(ret);
+    mat1 <- (mat>0)*1;
+    dmat <- dim(mat1)[1] -1;
+    block <- list();
+    last <- 1;
+    if (dmat != 0){
+        for (i in 1:dmat){
+            if (all(mat1[rxBlockZeros(mat1,i)] == 0)){
+                s <- seq(last, i);
+                cur <- mat[s, s];
+                if (length(cur) == 1){
+                    cur <- matrix(cur, 1);
+                }
+                last <- i + 1;
+                block[[length(block) + 1]] <- cur;
+            }
+        }
+    }
+    if (length(block) != 0){
+        s <- seq(last, dmat + 1);
+        cur <- mat[s, s];
+        if (length(cur) == 1){
+            cur <- matrix(cur, 1);
+        }
+        block[[length(block) + 1]] <- cur
+    }
+    if (length(block) == 0){
+        ret <-rxSymInvC(mat1=mat1,
+                        diag.xform=diag.xform);
+        th <- th.unscaled;
+        ret <- list(fmat=ret[[2]],
+                    th.unscaled=th.unscaled,
+                    th=th,
+                    fn=rxSymInvCreateC(ret[[1]]));
+        class(ret) <- "rxSymInv";
+        return(ret);
+    } else {
+        mat <- Matrix::bdiag(block);
+        matI <- lapply(block, rxSymInvCreate, diag.xform=diag.xform);
+        th <- th.unscaled;
+        ret <- list(mat=mat,
+                    matI=matI,
+                    th.unscaled=th.unscaled);
+        class(ret) <- "rxSymInvBlock"
+        return(ret);
+    }
+}
+
+##' @export
+print.rxSymInvBlock <- function(x, ...){
+    d <- dim(x$mat)[1]
+    cat(sprintf("Object to create Omega and Omega^-1 & derivitaves for a %sx%s matrix:\n", d, d))
+    print(x$mat);
+    cat("Use `rxSymInv' for the matrix.\n");
 }
 
 ##' @export
@@ -232,9 +282,7 @@ print.rxSymInv <- function(x, ...){
 ##' @author Matthew L. Fidler
 ##' @export
 rxSymInv <- function(invobj, theta, pow=0, dTheta=0){
-    if (class(invobj) != "rxSymInv"){
-        stop("This needs to be applied on an object created with 'rxSymInvCreate'.");
-    } else {
+    if (class(invobj) == "rxSymInv"){
         if (!any(pow == c(1, 0, -1))){
             stop("The power can only be 1, 0, or -1");
         }
@@ -278,6 +326,87 @@ rxSymInv <- function(invobj, theta, pow=0, dTheta=0){
         } else {
             return(invobj$fn(as.double(theta), as.integer(pow), as.integer(dTheta)));
         }
+    } else if (class(invobj) == "rxSymInvBlock"){
+        if (!any(pow == c(1, 0, -1))){
+            stop("The power can only be 1, 0, or -1");
+        }
+        nthetas <- lapply(invobj$matI, function(x){
+            x$fn(0, 0L, 1L)
+        });
+        tot.nthetas <- sum(unlist(nthetas))
+        if (dTheta < 0 || round(dTheta) != dTheta || dTheta > tot.nthetas) {
+            stop(sprintf("dTheta can be any integer from 0 to %s", ntheta));
+        }
+        if (length(theta) != tot.nthetas){
+            stop(sprintf("This requires %d theta estimates.", tot.nthetas));
+        }
+        all.theta <- theta;
+        theta.decomp <- lapply(invobj$matI, function(x) {
+            s <- seq(1, x$fn(0, 0L, 1L));
+            ret <- all.theta[s]
+            all.theta <<- all.theta[-s];
+            return(ret);
+        });
+        nn <- 1;
+        theta.i <- lapply(invobj$matI, function(x) {
+            s <- seq(nn, nn + x$fn(0, 0L, 1L) - 1);
+            nn <<- max(s) + 1;
+            return(s);
+        });
+        blockfn <- function(pow, dTheta){
+            if (pow == 0L && dTheta == -1L){
+                ##
+                ret <- lapply(1:length(invobj$matI), function(x){
+                    tmp <- invobj$matI[[x]];
+                    th <- theta.decomp[[x]];
+                    return(tryCatch(tmp$fn(as.double(th),0L, -1L), error=function(e){return(NA)}))
+                })
+                ret <- unlist(ret)
+                return(sum(ret));
+            } else {
+                ret <- lapply(1:length(invobj$matI), function(x){
+                    tmp <- invobj$matI[[x]];
+                    th <- theta.decomp[[x]];
+                    if (dTheta > 0){
+                        thi <- theta.i[[x]];
+                        if (dTheta > max(thi) || dTheta < min(thi)){
+                            d <- dim(tmp$fmat)[1];
+                            return(matrix(rep(0, d * d), d));
+                        } else {
+                            return(rxSymInv(tmp, th, pow, dTheta - min(thi) + 1))
+                        }
+                    }
+                    return(rxSymInv(tmp, th, pow, dTheta));
+                });
+                return(as.matrix(Matrix::bdiag(ret)));
+            }
+
+        }
+        ret <- new.env(parent=emptyenv());
+        if (pow == 0){
+            ret <- new.env(parent=emptyenv());
+            theta <- as.double(theta);
+            ret$omega <- blockfn(1L, 0L);
+            ret$omegaInv <- blockfn(-1L, 0L);
+            ret$dOmega <- list();
+            ret$dOmegaInv <- list();
+            for (i in seq(1, tot.nthetas)){
+                ret$dOmega[[i]] <- blockfn(1L, as.integer(i));
+                ret$dOmegaInv[[i]] <- blockfn(-1L, as.integer(i));
+            }
+            ret$log.det.OMGAinv.5 <- blockfn(0L, -1L);
+            if (is.na(ret$log.det.OMGAinv.5)){
+                cat("Warning: Omega^-1 may not positive definite (correcting with nearPD)\n");
+                old <- ret$omegaInv
+                ret$omegaInv <- as.matrix(Matrix::nearPD(ret$omegaInv)$mat);
+                RxODE_finalize_log_det_OMGAinv_5(ret);
+                ret$omegaInv <- old;
+            }
+            RxODE_finalize_focei_omega(ret);
+            return(ret);
+        }
+    } else {
+        stop("This needs to be applied on an object created with 'rxSymInvCreate'.");
     }
 }
 
