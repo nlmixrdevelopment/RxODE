@@ -55,7 +55,7 @@ rxSymInvC <- function(mat1, diag.xform=c("sqrt", "log", "identity")){
         rxCat("Calculate symbolic inverse...");
         sympy.inv <- rxSymPy(sprintf("(%s).inv()", sympy.mat));
         sympy.inv.txt <- sprintf("Matrix([%s])", gsub("[\n]", ", ", sympy.inv));
-        sympy.inv.det <- sprintf("(%s).det()", sympy.inv.txt);
+        sympy.inv.det.tmp <- sprintf("(%s).det()", sympy.inv.txt);
         mat.reg <- rex::rex(start, or(group(any_spaces, "["),
                                       group(any_spaces, "Matrix([[")), any_spaces,
                             capture(anything), any_spaces,
@@ -67,8 +67,11 @@ rxSymInvC <- function(mat1, diag.xform=c("sqrt", "log", "identity")){
         sympy.inv <- matrix(unlist(strsplit(sympy.inv, mat.sep.reg)), d, byrow=TRUE);
         rxCat("done\n");
         rxCat("Calculate symbolic determinant of inverse...");
-        sympy.inv.det <- rxSymPy(sympy.inv.det);
-        sympy.inv.det <- sympyC(sympy.inv.det);
+        sympy.inv.det <- "NA_REAL";
+        R.utils::withTimeout({
+                     sympy.inv.det <- rxSymPy(sympy.inv.det.tmp);
+                     sympy.inv.det <<- sympyC(sympy.inv.det);
+                 }, timeout=60 * 70, onTimeout="warning");
         rxCat("done\n");
         v <- vars[1]
         rxCat("Calculate d(Omega)/d(Est) and d(Omega^-1)/d(Est)...\n");
@@ -142,10 +145,12 @@ rxSymInvC <- function(mat1, diag.xform=c("sqrt", "log", "identity")){
                        sprintf("REAL(ret)[0] = %d;", d),
                        "} else if (theta_n == -1){",
                        sprintf("REAL(ret)[0] = %s;", sympy.inv.det),
+                       "if (!ISNA(REAL(ret)[0])){",
                        "if (REAL(ret)[0] > 0){",
                        "REAL(ret)[0] = 0.5*log(REAL(ret)[0]);",
                        "} else {",
                        "error(\"Omega^-1 not positive definite\");",
+                       "}",
                        "}",
                        "} else {",
                        sprintf("REAL(ret)[0] = %d;", length(vars)),
@@ -262,6 +267,12 @@ rxSymInv <- function(invobj, theta, pow=0, dTheta=0){
                 RxODE_finalize_log_det_OMGAinv_5(ret);
                 ret$omegaInv <- old;
             })
+            if (is.na(ret$log.det.OMGAinv.5)){
+                old <- ret$omegaInv
+                ret$omegaInv <- as.matrix(Matrix::nearPD(ret$omegaInv)$mat);
+                RxODE_finalize_log_det_OMGAinv_5(ret);
+                ret$omegaInv <- old;
+            }
             RxODE_finalize_focei_omega(ret);
             return(ret)
         } else {
