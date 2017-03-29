@@ -54,8 +54,11 @@ rxSymInvC <- function(mat1, diag.xform=c("sqrt", "log", "identity")){
         }
         rxCat("Calculate symbolic inverse...");
         sympy.inv <- rxSymPy(sprintf("(%s).inv()", sympy.mat));
+        if (sympy.inv == "None"){
+            stop("Inverse not calculated.");
+        }
         sympy.inv.txt <- sprintf("Matrix([%s])", gsub("[\n]", ", ", sympy.inv));
-        sympy.inv.det.tmp <- sprintf("(%s).det()", sympy.inv.txt);
+        sympy.inv.det.tmp1 <- sprintf("(%s).det()", sympy.inv.txt);
         mat.reg <- rex::rex(start, or(group(any_spaces, "["),
                                       group(any_spaces, "Matrix([[")), any_spaces,
                             capture(anything), any_spaces,
@@ -65,12 +68,16 @@ rxSymInvC <- function(mat1, diag.xform=c("sqrt", "log", "identity")){
                                    group(any_spaces, ",", any_spaces)))
         sympy.inv <- gsub(mat.reg, "\\1", strsplit(sympy.inv, "\n")[[1]]);
         sympy.inv <- matrix(unlist(strsplit(sympy.inv, mat.sep.reg)), d, byrow=TRUE);
+
         rxCat("done\n");
-        rxCat("Calculate symbolic determinant of inverse...");
-        sympy.inv.det <- "NA_REAL";
-        sympy.inv.det <- rxSymPy(sympy.inv.det.tmp);
-        sympy.inv.det <- sympyC(sympy.inv.det);
-        rxCat("done\n");
+        if (d <= 3){
+            rxCat("Calculate symbolic determinant of inverse...");
+            sympy.inv.det <- rxSymPy(sympy.inv.det.tmp1)
+            sympy.inv.det <- sympyC(sympy.inv.det);
+            rxCat("done\n");
+        } else {
+            sympy.inv.det <- "NA_REAL";
+        }
         v <- vars[1]
         rxCat("Calculate d(Omega)/d(Est) and d(Omega^-1)/d(Est)...\n");
         cnt.i <- 0;
@@ -409,7 +416,16 @@ rxSymInv <- function(invobj, theta, pow=0, dTheta=0){
 rxBlockZeros <- function(mat, i){
     return(!((row(mat) > i & col(mat) > i) | (row(mat) <= i & col(mat) <= i)))
 }
-
 rxIsBlock <- function(mat, i){
-    all(mat[rxBlockZeros(mat, i)] == 0);
+    if (missing(i)){
+        for (j in 1:(dim(mat) - 1)){
+            if (rxIsBlock(mat, j)){
+                return(TRUE)
+            } else {
+                return(FALSE);
+            }
+        }
+    } else {
+        return(all(mat[rxBlockZeros(mat, i)] == 0));
+    }
 }

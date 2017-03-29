@@ -147,15 +147,30 @@ create.syminv.cache <- function(n=1, xforms=c("sqrt", "log", "identity")){
             v[vw] <- grd[i, ];
             mc <- matrix(v, n);
             mc[upper.tri(mc)] <- t(mc)[upper.tri(mc)];
-            for (xform in xforms){
-                rxSymInvCreate(mc, xform);
-                cat(".");
-                i <- i + 1;
-                if (i %% 5 == 0){
-                    cat(i);
+            dmat <- dim(mc)[1] -1;
+            block <- list();
+            last <- 1;
+            if (dmat != 0){
+                for (i in 1:dmat){
+                    if (all(mc[rxBlockZeros(mc,i)] == 0)){
+                        s <- seq(last, i);
+                        cur <-matrix(as.double(mc[s, s]), length(s));
+                        last <- i + 1;
+                        block[[length(block) + 1]] <- cur;
+                    }
                 }
-                if (i %% 50 == 0){
-                    cat("\n");
+            }
+            if (length(block) == 0){
+                for (xform in xforms){
+                    rxSymInvC(mc, xform);
+                    cat(".");
+                    i <- i + 1;
+                    if (i %% 5 == 0){
+                        cat(i);
+                    }
+                    if (i %% 50 == 0){
+                        cat("\n");
+                    }
                 }
             }
             ## print(mc);
@@ -170,10 +185,10 @@ create.syminv.cache <- function(n=1, xforms=c("sqrt", "log", "identity")){
     cat("\n");
 }
 
-create.syminv.cache();
+## create.syminv.cache();
 
-create.syminv.cache(2);
+## create.syminv.cache(2);
 
-create.syminv.cache(3);
+## create.syminv.cache(3);
 
 ## create.syminv.cache(4);
