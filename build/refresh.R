@@ -148,7 +148,7 @@ create.syminv.cache <- function(n=1, xforms=c("sqrt", "log", "identity")){
             mc <- matrix(v, n);
             mc[upper.tri(mc)] <- t(mc)[upper.tri(mc)];
             for (xform in xforms){
-                rxSymInvC(mc, xform);
+                rxSymInvCreate(mc, xform);
                 cat(".");
                 i <- i + 1;
                 if (i %% 5 == 0){
@@ -176,4 +176,4 @@ create.syminv.cache(2);
 
 create.syminv.cache(3);
 
-create.syminv.cache(4);
+## create.syminv.cache(4);

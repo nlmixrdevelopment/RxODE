@@ -68,10 +68,8 @@ rxSymInvC <- function(mat1, diag.xform=c("sqrt", "log", "identity")){
         rxCat("done\n");
         rxCat("Calculate symbolic determinant of inverse...");
         sympy.inv.det <- "NA_REAL";
-        R.utils::withTimeout({
-                     sympy.inv.det <- rxSymPy(sympy.inv.det.tmp);
-                     sympy.inv.det <<- sympyC(sympy.inv.det);
-                 }, timeout=60 * 70, onTimeout="warning");
+        sympy.inv.det <- rxSymPy(sympy.inv.det.tmp);
+        sympy.inv.det <- sympyC(sympy.inv.det);
         rxCat("done\n");
         v <- vars[1]
         rxCat("Calculate d(Omega)/d(Est) and d(Omega^-1)/d(Est)...\n");
@@ -203,7 +201,10 @@ rxSymInvCreate <- function(mat,
             th.unscaled[length(th.unscaled) + 1] <- elts[i];
         }
     }
-    mat1 <- (mat>0)*1;
+    mat1 <-(mat>0)*1;
+    if (length(mat1) == 1){
+        mat1 <- matrix(mat1, 1);
+    }
     dmat <- dim(mat1)[1] -1;
     block <- list();
     last <- 1;
@@ -211,10 +212,7 @@ rxSymInvCreate <- function(mat,
         for (i in 1:dmat){
             if (all(mat1[rxBlockZeros(mat1,i)] == 0)){
                 s <- seq(last, i);
-                cur <- mat[s, s];
-                if (length(cur) == 1){
-                    cur <- matrix(cur, 1);
-                }
+                cur <-matrix(as.double(mat[s, s]), length(s));
                 last <- i + 1;
                 block[[length(block) + 1]] <- cur;
             }
@@ -222,11 +220,8 @@ rxSymInvCreate <- function(mat,
     }
     if (length(block) != 0){
         s <- seq(last, dmat + 1);
-        cur <- mat[s, s];
-        if (length(cur) == 1){
-            cur <- matrix(cur, 1);
-        }
-        block[[length(block) + 1]] <- cur
+        cur <- matrix(as.double(mat[s, s]), length(s));
+        block[[length(block) + 1]] <- cur;
     }
     if (length(block) == 0){
         ret <-rxSymInvC(mat1=mat1,
@@ -239,7 +234,7 @@ rxSymInvCreate <- function(mat,
         class(ret) <- "rxSymInv";
         return(ret);
     } else {
-        mat <- Matrix::bdiag(block);
+        mat <- Matrix::.bdiag(block);
         matI <- lapply(block, rxSymInvCreate, diag.xform=diag.xform);
         th <- th.unscaled;
         ret <- list(mat=mat,

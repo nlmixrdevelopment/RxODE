@@ -49,4 +49,50 @@ rxPermissive({
         }
     })
 
+    mat2 <- matrix(rep(1, 4), 2)
+    mat2[rxBlockZeros(mat2, 1)] <- 0
+    mat2i <- rxSymInvCreate(mat2);
+
+    mat3.1 <- matrix(rep(1, 3 * 3), 3)
+    mat3.1[rxBlockZeros(mat3.1, 1)] <- 0
+    mat3.1i <- rxSymInvCreate(mat3.1);
+
+
+    mat3.2 <- matrix(rep(1, 3 * 3), 3)
+    mat3.2[rxBlockZeros(mat3.2, 2)] <- 0
+    mat3.2i <- rxSymInvCreate(mat3.2);
+
+    mat3 <- diag(3)
+    mat3 <- rxSymInvCreate(mat3);
+
+
+    mat4.1 <- matrix(rep(1, 4 * 4), 4)
+    mat4.1[rxBlockZeros(mat4.1, 1)] <- 0
+    mat4.1i <- rxSymInvCreate(mat4.1);
+
+
+    mat4.2 <- matrix(rep(1, 4 * 4), 4)
+    mat4.2[rxBlockZeros(mat4.2, 2)] <- 0
+    mat4.2i <- rxSymInvCreate(mat4.2);
+
+
+    mat4.3 <- matrix(rep(1, 4 * 4), 4)
+    mat4.3[rxBlockZeros(mat4.3, 3)] <- 0
+    mat4.3i <- rxSymInvCreate(mat4.3);
+
+    mat4 <- diag(4);
+    mat4 <- rxSymInvCreate(mat4);
+
+
+    test_that("Symbolc inverses produce block matricies", {
+        expect_equal(class(mat2i), "rxSymInvBlock");
+        expect_equal(class(mat3.1i), "rxSymInvBlock");
+        expect_equal(class(mat3.2i), "rxSymInvBlock");
+        expect_equal(class(mat3), "rxSymInvBlock");
+        expect_equal(class(mat4.1i), "rxSymInvBlock");
+        expect_equal(class(mat4.2i), "rxSymInvBlock");
+        expect_equal(class(mat4.3i), "rxSymInvBlock");
+        expect_equal(class(mat4), "rxSymInvBlock");
+    })
+
 }, silent=TRUE)
