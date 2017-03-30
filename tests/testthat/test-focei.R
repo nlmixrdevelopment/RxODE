@@ -232,6 +232,8 @@ rxPermissive({
         H = -.5*H - omegaInv;
 
         rxHessian(tmp2);
+        dimnames(tmp2$H) <- list(NULL, NULL);
+        dimnames(H) <- list(NULL, NULL);
         expect_equal(tmp2$H, H);
 
         H.neg.5 = tryCatch({
@@ -271,6 +273,8 @@ rxPermissive({
         H = -.5*H - omegaInv;
 
         rxHessian(tmp2.nm);
+        dimnames(tmp2.nm$H) <- list(NULL, NULL);
+        dimnames(H) <- list(NULL, NULL);
         expect_equal(tmp2.nm$H, H);
 
         H.neg.5 = tryCatch({
