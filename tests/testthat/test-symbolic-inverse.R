@@ -1,5 +1,6 @@
 context("Test Symbolic inverse by sympy. (Needed for Almquist2015)")
 rxPermissive({
+
     rmat <- function(dim){
         mat <- round(matrix(runif(dim ^ 2), dim, dim));
         mat[lower.tri(mat)] <- t(mat)[lower.tri(mat)];
@@ -36,16 +37,34 @@ rxPermissive({
     })
 
     test_that("Random inverses make sense", {
-        for (i in 1:10){
+        for (i in 1:11){
             mat <- rmat(round(runif(1,0.5,3.5)));
             symo <- rxSymInvCreate(mat);
-            nt <- symo$fn(as.double(0), as.integer(0), as.integer(1));
+            nt <- rxSymInv(symo, "n");
             for (j in 1:10){
                 par <- abs(rnorm(nt))
                 m <- symo %>% rxSymInv(par, 1);
                 m1 <- solve(m);
-                expect_equal(m1, symo %>% rxSymInv(par, -1));
+                m <- symo %>% rxSymInv(par, -1)
+                dimnames(m) <- list(NULL, NULL);
+                dimnames(m1) <- list(NULL, NULL);
+                expect_equal(m1, m);
             }
+        }
+    })
+
+    test_that("diag 3x3 random inverses", {
+        mat <- diag(3);
+        symo <- rxSymInvCreate(mat);
+        nt <- rxSymInv(symo, "n");
+        for (j in 1:10){
+            par <- abs(rnorm(nt))
+            m <- symo %>% rxSymInv(par, 1);
+            m1 <- solve(m);
+            m <- symo %>% rxSymInv(par, -1);
+            dimnames(m) <- list(NULL, NULL);
+            dimnames(m1) <- list(NULL, NULL);
+            expect_equal(m1, m);
         }
     })
 

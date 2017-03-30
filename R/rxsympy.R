@@ -135,7 +135,7 @@ rxExpandIfElse <- function(model, removeInis=TRUE, removePrint=TRUE){
 rxExpandIfElse.slow <- NULL
 
 
-
+.rxSymPy <- NULL;
 rxSymPy.vars <- c();
 
 ##' Start Sympy
@@ -144,8 +144,8 @@ rxSymPy.vars <- c();
 ##' @keywords internal
 ##' @export
 rxSympyStart <- function(){
-    if (!exists(".rxSymPy", .GlobalEnv)){
-        assign(".rxSymPy", new.env(parent = emptyenv()), pos=.GlobalEnv)
+    if (is.null(.rxSymPy)){
+        assignInMyNamespace(".rxSymPy", new.env(parent = emptyenv()))
         .rxSymPy$started <- NULL;
     }
     if (is.null(.rxSymPy$started)){
@@ -216,9 +216,12 @@ rxSymPy <- function(...){
         rPython::python.exec(paste("__Rsympy=", ..., sep = ""))
         rPython::python.exec(paste("__Rsympy = str(__Rsympy)"))
         ## Don't worry about JSON;  Sometimes it fails if you call it anyway.
+        ## ret <- rPython::python.get("__Rsympy");
+        ## See https://github.com/hadley/devtools/issues/427
         ## Rather just use the character
         ret <- (.C("py_get_var", "__Rsympy", not.found.var = integer(1),
                    resultado = character(1), PACKAGE = "rPython"))$resultado;
+
         return(ret);
     } ## else if (.rxSymPy$started == "PythonInR"){
     ##     PythonInR::pyExec(paste("__Rsympy=None"))

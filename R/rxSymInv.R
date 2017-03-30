@@ -285,6 +285,11 @@ print.rxSymInv <- function(x, ...){
 ##' @export
 rxSymInv <- function(invobj, theta, pow=0, dTheta=0){
     if (class(invobj) == "rxSymInv"){
+        if (length(theta) == 1){
+            if (theta == "n"){
+                return(invobj$fn(0, 0L, 1L));
+            }
+        }
         if (!any(pow == c(1, 0, -1))){
             stop("The power can only be 1, 0, or -1");
         }
@@ -336,6 +341,11 @@ rxSymInv <- function(invobj, theta, pow=0, dTheta=0){
             x$fn(0, 0L, 1L)
         });
         tot.nthetas <- sum(unlist(nthetas))
+        if (length(theta) == 1){
+            if (theta == "n"){
+                return(tot.nthetas);
+            }
+        }
         if (dTheta < 0 || round(dTheta) != dTheta || dTheta > tot.nthetas) {
             stop(sprintf("dTheta can be any integer from 0 to %s", ntheta));
         }
@@ -406,6 +416,8 @@ rxSymInv <- function(invobj, theta, pow=0, dTheta=0){
             }
             RxODE_finalize_focei_omega(ret);
             return(ret);
+        } else {
+            return(blockfn(as.integer(pow), as.integer(dTheta)));
         }
     } else {
         stop("This needs to be applied on an object created with 'rxSymInvCreate'.");
