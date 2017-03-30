@@ -909,6 +909,10 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                 warning("Some of your prediction function does not depend on the state varibles.");
             }
         }
+        rxLoad(ret$inner);
+        if (!is.null(ret$outer)){
+            rxLoad(ret$outer);
+        }
         return(ret);
     } else {
         if (!run.internal && !grad.internal){
