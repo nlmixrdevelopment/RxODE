@@ -928,6 +928,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
             cat(rf);
             sink();
             sh <- "system"   # windows's default shell COMSPEC does not handle UNC paths
+            Sys.setenv("R_TESTS" = "")
             cmd <- sprintf("%s/bin/Rscript %s",
                            Sys.getenv("R_HOME"), deparse(rfile));
             system(cmd, ignore.stdout=!getOption("RxODE.verbose", TRUE),

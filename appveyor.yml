@@ -34,7 +34,7 @@ environment:
 
 build_script:
   - travis-tool.sh install_deps
-  - travis-tool.sh install_github mattfidler/dparser-R
+  - travis-tool.sh install_github nlmixrdevelopment/dparser-R
 
 test_script:
   - travis-tool.sh run_tests
