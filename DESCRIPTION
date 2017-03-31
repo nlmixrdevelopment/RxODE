@@ -24,7 +24,8 @@ Suggests:
     devtools,
     covr,
     rmarkdown,
-    SnakeCharmR
+    SnakeCharmR,
+    rSymPy,
 Imports:
     utils,
     methods,
@@ -33,7 +34,6 @@ Imports:
     tidyr,    
     rex,
     dparser,
-    rSymPy,
     brew,
     tibble,
     memoise,
