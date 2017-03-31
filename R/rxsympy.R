@@ -149,18 +149,18 @@ rxSympyStart <- function(){
         .rxSymPy$started <- NULL;
     }
     if (is.null(.rxSymPy$started)){
-        if (requireNamespace("rPython", quietly = TRUE)){
-            rPython::python.exec("import sys");
-            rPython::python.exec("import gc");
+        if (requireNamespace("SnakeCharmR", quietly = TRUE)){
+            SnakeCharmR::py.exec("import sys");
+            SnakeCharmR::py.exec("import gc");
 
-            ## rPython::python.exec( paste( "sys.path.append(", system.file( "Lib", package = "rSymPy" ), ")", sep = '"' ) )
+            ## SnakeCharmR::py.exec( paste( "sys.path.append(", system.file( "Lib", package = "rSymPy" ), ")", sep = '"' ) )
             tryCatch({
-                rPython::python.exec("from sympy import *")
+                SnakeCharmR::py.exec("from sympy import *")
             }, error=function(e){
-                rPython::python.exec( paste( "sys.path.append(", system.file( "Lib", package = "rSymPy" ), ")", sep = '"' ) )
-                rPython::python.exec("from sympy import *")
+                SnakeCharmR::py.exec( paste( "sys.path.append(", system.file( "Lib", package = "rSymPy" ), ")", sep = '"' ) )
+                SnakeCharmR::py.exec("from sympy import *")
             })
-            .rxSymPy$started <- "rPython";
+            .rxSymPy$started <- "SnakeCharmR";
         }
     }
     ## if (is.null(.rxSymPy$started)){
@@ -192,12 +192,14 @@ rxSympyStart <- function(){
 ##' @export
 rxSympyExec <- function(...){
     rxSympyStart();
-    if (.rxSymPy$started == "rPython"){
-        rPython::python.exec(...);
-    } ## else if (.rxSymPy$started == "PythonInR"){
+    if (.rxSymPy$started == "SnakeCharmR"){
+        SnakeCharmR::py.exec(...);
+    }
+    ## else if (.rxSymPy$started == "PythonInR"){
     ##     PythonInR::pyExecp(...);
     ## }
-    else if (.rxSymPy$started == "rSymPy"){
+    ## else
+    if (.rxSymPy$started == "rSymPy"){
         .Jython$exec(...);
     }
 }
@@ -211,25 +213,21 @@ rxSympyExec <- function(...){
 ##' @export
 rxSymPy <- function(...){
     rxSympyStart();
-    if (.rxSymPy$started == "rPython"){
-        rPython::python.exec(paste("__Rsympy=None"))
-        rPython::python.exec(paste("__Rsympy=", ..., sep = ""))
-        rPython::python.exec(paste("__Rsympy = str(__Rsympy)"))
-        ## Don't worry about JSON;  Sometimes it fails if you call it anyway.
-        ## ret <- rPython::python.get("__Rsympy");
-        ## See https://github.com/hadley/devtools/issues/427
-        ## Rather just use the character
-        ret <- (.C("py_get_var", "__Rsympy", not.found.var = integer(1),
-                   resultado = character(1), PACKAGE = "rPython"))$resultado;
-
+    if (.rxSymPy$started == "SnakeCharmR"){
+        SnakeCharmR::py.exec(paste("__Rsympy=None"))
+        SnakeCharmR::py.exec(paste("__Rsympy=", ..., sep = ""))
+        SnakeCharmR::py.exec(paste("__Rsympy = str(__Rsympy)"))
+        ret <- SnakeCharmR::py.get("__Rsympy");
         return(ret);
-    } ## else if (.rxSymPy$started == "PythonInR"){
+    }
+    ## else if (.rxSymPy$started == "PythonInR"){
     ##     PythonInR::pyExec(paste("__Rsympy=None"))
     ##     PythonInR::pyExec(paste("__Rsympy=", ..., sep = ""))
     ##     PythonInR::pyExec(paste("__Rsympy = str(__Rsympy)"))
     ##     return(PythonInR::pyGet("__Rsympy"));
     ## }
-    else if (.rxSymPy$started == "rSymPy"){
+    ## else
+    if (.rxSymPy$started == "rSymPy"){
         rSymPy::sympy(...)
     }
 }
