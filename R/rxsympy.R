@@ -176,11 +176,21 @@ rxSympyStart <- function(){
     ##         }
     ##     }
     ## }
-    if (is.null(.rxSymPy$started)){
-        if (!exists(".Jython", .GlobalEnv)){
-            rSymPy::sympyStart()
-            .rxSymPy$started <- "rSymPy";
+    if (requireNamespace("rSymPy", quietly = TRUE)){
+        if (is.null(.rxSymPy$started)){
+            if (!exists(".Jython", .GlobalEnv)){
+                rSymPy::sympyStart()
+                .rxSymPy$started <- "rSymPy";
+            }
         }
+    }
+
+    if (is.null(.rxSymPy$started)){
+        cat("RxODE requires sympy for this function\n");
+        cat("You can install sympy for python and then use python using SnakeCharmR\n");
+        cat("In windows you can have help setting this up by typing: `rxWinPythonSetup()`\n");
+        cat("Another option is to use the package rSymPy, which depends on Java and is a bit slower (and older) version of sympy.\n");
+        stop("Could not start sympy");
     }
 }
 ##' Execute python statement without getting the return value.
