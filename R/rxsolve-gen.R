@@ -1,15 +1,15 @@
 ## Generated code from build/refresh.R
 
-##' @importFrom tidyr spread_
+
 ##' @export
-spread_.solveRxDll <- function (data, key_col, value_col, fill = NA, convert = FALSE, 
+spread_.solveRxDll <- function (data, key_col, value_col, fill = NA, convert = FALSE,
     drop = TRUE, sep = NULL) {
   call <- as.list(match.call(expand.dots=TRUE))[-1];
   call$data <- dplyr::as.tbl(data)
   return(do.call(getFromNamespace("spread_","dplyr"), call, envir = parent.frame(1)));
 }
 
-##' @importFrom tidyr unite_
+
 ##' @export
 unite_.solveRxDll <- function (data, col, from, sep = "_", remove = TRUE) {
   call <- as.list(match.call(expand.dots=TRUE))[-1];
@@ -17,25 +17,25 @@ unite_.solveRxDll <- function (data, col, from, sep = "_", remove = TRUE) {
   return(do.call(getFromNamespace("unite_","dplyr"), call, envir = parent.frame(1)));
 }
 
-##' @importFrom tidyr separate_
+
 ##' @export
-separate_.solveRxDll <- function (data, col, into, sep = "[^[:alnum:]]+", remove = TRUE, 
+separate_.solveRxDll <- function (data, col, into, sep = "[^[:alnum:]]+", remove = TRUE,
     convert = FALSE, extra = "warn", fill = "warn", ...) {
   call <- as.list(match.call(expand.dots=TRUE))[-1];
   call$data <- dplyr::as.tbl(data)
   return(do.call(getFromNamespace("separate_","dplyr"), call, envir = parent.frame(1)));
 }
 
-##' @importFrom tidyr gather_
+
 ##' @export
-gather_.solveRxDll <- function (data, key_col, value_col, gather_cols, na.rm = FALSE, 
+gather_.solveRxDll <- function (data, key_col, value_col, gather_cols, na.rm = FALSE,
     convert = FALSE, factor_key = FALSE) {
   call <- as.list(match.call(expand.dots=TRUE))[-1];
   call$data <- dplyr::as.tbl(data)
   return(do.call(getFromNamespace("gather_","dplyr"), call, envir = parent.frame(1)));
 }
 
-##' @importFrom dplyr sample_frac
+
 ##' @export
 sample_frac.solveRxDll <- function (tbl, size = 1, replace = FALSE, weight = NULL, .env = parent.frame()) {
   call <- as.list(match.call())[-1];
@@ -43,7 +43,7 @@ sample_frac.solveRxDll <- function (tbl, size = 1, replace = FALSE, weight = NUL
   return(do.call(getFromNamespace("sample_frac","dplyr"), call, envir = parent.frame(1)));
 }
 
-##' @importFrom dplyr sample_n
+
 ##' @export
 sample_n.solveRxDll <- function (tbl, size, replace = FALSE, weight = NULL, .env = parent.frame()) {
   call <- as.list(match.call())[-1];
@@ -51,7 +51,7 @@ sample_n.solveRxDll <- function (tbl, size, replace = FALSE, weight = NULL, .env
   return(do.call(getFromNamespace("sample_n","dplyr"), call, envir = parent.frame(1)));
 }
 
-##' @importFrom dplyr group_by_
+
 ##' @export
 group_by_.solveRxDll <- function (.data, ..., .dots, add = FALSE) {
   call <- as.list(match.call())[-1];
@@ -59,7 +59,7 @@ group_by_.solveRxDll <- function (.data, ..., .dots, add = FALSE) {
   return(do.call(getFromNamespace("group_by_","dplyr"), call, envir = parent.frame(1)));
 }
 
-##' @importFrom dplyr rename_
+
 ##' @export
 rename_.solveRxDll <- function (.data, ..., .dots) {
   call <- as.list(match.call())[-1];
@@ -67,7 +67,7 @@ rename_.solveRxDll <- function (.data, ..., .dots) {
   return(do.call(getFromNamespace("rename_","dplyr"), call, envir = parent.frame(1)));
 }
 
-##' @importFrom dplyr arrange_
+
 ##' @export
 arrange_.solveRxDll <- function (.data, ..., .dots) {
   call <- as.list(match.call())[-1];
@@ -75,7 +75,7 @@ arrange_.solveRxDll <- function (.data, ..., .dots) {
   return(do.call(getFromNamespace("arrange_","dplyr"), call, envir = parent.frame(1)));
 }
 
-##' @importFrom dplyr summarise_
+
 ##' @export
 summarise_.solveRxDll <- function (.data, ..., .dots) {
   call <- as.list(match.call())[-1];
@@ -83,7 +83,7 @@ summarise_.solveRxDll <- function (.data, ..., .dots) {
   return(do.call(getFromNamespace("summarise_","dplyr"), call, envir = parent.frame(1)));
 }
 
-##' @importFrom dplyr transmute_
+
 ##' @export
 transmute_.solveRxDll <- function (.data, ..., .dots) {
   call <- as.list(match.call())[-1];
@@ -91,7 +91,7 @@ transmute_.solveRxDll <- function (.data, ..., .dots) {
   return(do.call(getFromNamespace("transmute_","dplyr"), call, envir = parent.frame(1)));
 }
 
-##' @importFrom dplyr mutate_
+
 ##' @export
 mutate_.solveRxDll <- function (.data, ..., .dots) {
   call <- as.list(match.call())[-1];
@@ -99,7 +99,7 @@ mutate_.solveRxDll <- function (.data, ..., .dots) {
   return(do.call(getFromNamespace("mutate_","dplyr"), call, envir = parent.frame(1)));
 }
 
-##' @importFrom dplyr distinct_
+
 ##' @export
 distinct_.solveRxDll <- function (.data, ..., .dots, .keep_all = FALSE) {
   call <- as.list(match.call())[-1];
@@ -107,7 +107,7 @@ distinct_.solveRxDll <- function (.data, ..., .dots, .keep_all = FALSE) {
   return(do.call(getFromNamespace("distinct_","dplyr"), call, envir = parent.frame(1)));
 }
 
-##' @importFrom dplyr rename_
+
 ##' @export
 rename_.solveRxDll <- function (.data, ..., .dots) {
   call <- as.list(match.call())[-1];
@@ -115,7 +115,7 @@ rename_.solveRxDll <- function (.data, ..., .dots) {
   return(do.call(getFromNamespace("rename_","dplyr"), call, envir = parent.frame(1)));
 }
 
-##' @importFrom dplyr select_
+
 ##' @export
 select_.solveRxDll <- function (.data, ..., .dots) {
   call <- as.list(match.call())[-1];
@@ -123,7 +123,7 @@ select_.solveRxDll <- function (.data, ..., .dots) {
   return(do.call(getFromNamespace("select_","dplyr"), call, envir = parent.frame(1)));
 }
 
-##' @importFrom dplyr arrange_
+
 ##' @export
 arrange_.solveRxDll <- function (.data, ..., .dots) {
   call <- as.list(match.call())[-1];
@@ -131,7 +131,7 @@ arrange_.solveRxDll <- function (.data, ..., .dots) {
   return(do.call(getFromNamespace("arrange_","dplyr"), call, envir = parent.frame(1)));
 }
 
-##' @importFrom dplyr slice_
+
 ##' @export
 slice_.solveRxDll <- function (.data, ..., .dots) {
   call <- as.list(match.call())[-1];
@@ -139,7 +139,7 @@ slice_.solveRxDll <- function (.data, ..., .dots) {
   return(do.call(getFromNamespace("slice_","dplyr"), call, envir = parent.frame(1)));
 }
 
-##' @importFrom dplyr filter_
+
 ##' @export
 filter_.solveRxDll <- function (.data, ..., .dots) {
   call <- as.list(match.call())[-1];
@@ -161,7 +161,7 @@ by.solveRxDll <- function (data, INDICES, FUN, ..., simplify = TRUE) {
   return(do.call("by.data.frame", call, envir = parent.frame(1)));
 }
 
-##' @importFrom stats aggregate
+
 ##' @export
 aggregate.solveRxDll <- function (x, ...) {
   call <- as.list(match.call(expand.dots=TRUE))[-1];
@@ -190,7 +190,7 @@ duplicated.solveRxDll <- function (x, incomparables = FALSE, ...) {
   return(do.call("duplicated.data.frame", call, envir = parent.frame(1)));
 }
 
-##' @importFrom utils edit
+
 ##' @export
 edit.solveRxDll <- function (name, ...) {
   call <- as.list(match.call(expand.dots=TRUE))[-1];
@@ -198,7 +198,7 @@ edit.solveRxDll <- function (name, ...) {
   return(do.call("edit.data.frame", call, envir = parent.frame(1)));
 }
 
-##' @importFrom methods Math
+
 ##' @export
 Math.solveRxDll <- function(x, ...){
   call <- as.list(match.call(expand.dots=TRUE))[-1];
@@ -227,7 +227,7 @@ subset.solveRxDll <- function (x, ...) {
   return(do.call("subset.data.frame", call, envir = parent.frame(1)));
 }
 
-##' @importFrom utils stack
+
 ##' @export
 stack.solveRxDll <- function (x, ...) {
   call <- as.list(match.call(expand.dots=TRUE))[-1];
@@ -235,7 +235,7 @@ stack.solveRxDll <- function (x, ...) {
   return(do.call("stack.data.frame", call, envir = parent.frame(1)));
 }
 
-##' @importFrom utils unstack
+
 ##' @export
 unstack.solveRxDll <- function (x, ...) {
   call <- as.list(match.call(expand.dots=TRUE))[-1];

@@ -25,7 +25,7 @@ for (f in c("spread_", "unite_", "separate_", "gather_")){
     fn <- deparse(eval(parse(text=sprintf("args(%s)", f))));
     fn <- paste0(fn[-length(fn)], collapse="\n");
     one <- eval(parse(text=sprintf("attr(formals(%s)[1],\"names\")", f)));
-    cat(sprintf("##' @importFrom tidyr %s
+    cat(sprintf("## importFrom tidyr %s
 ##' @export
 %s.solveRxDll <- %s{
   call <- as.list(match.call(expand.dots=TRUE))[-1];
@@ -41,7 +41,7 @@ for (f in c("sample_frac", "sample_n", "group_by_", "rename_", "arrange_",
     fn <- deparse(eval(parse(text=sprintf("args(%s)", f))));
     fn <- paste0(fn[-length(fn)], collapse="\n");
     one <- eval(parse(text=sprintf("attr(formals(%s)[1],\"names\")", f)))
-    cat(sprintf("##' @importFrom dplyr %s
+    cat(sprintf("## importFrom dplyr %s
 ##' @export
 %s.solveRxDll <- %s{
   call <- as.list(match.call())[-1];
@@ -63,7 +63,7 @@ for (f in c("row.names", "by", "aggregate", "anyDuplicated", "droplevels",
     one <- eval(parse(text=sprintf("attr(formals(%s)[1],\"names\")", f)))
     ns <- gsub("package:", "", find(f));
     if (!any(ns == c("base"))){
-        cat(sprintf("##' @importFrom %s %s\n", ns, f));
+        cat(sprintf("## importFrom %s %s\n", ns, f));
     }
     cat(sprintf("##' @export
 %s.solveRxDll <- %s{

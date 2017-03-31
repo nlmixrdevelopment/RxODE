@@ -576,7 +576,6 @@ as.data.frame.solveRxDll <- function(x, row.names = NULL, optional = FALSE, ...,
 ##'
 ##' @param x Solved RxODE object
 ##' @return data frame of solved object.
-##' @importFrom tibble as_data_frame
 ##' @author Matthew L. Fidler
 as_data_frame.solveRxDll <- function(x){
     return(tibble::as_data_frame(as.matrix(x)));
@@ -602,7 +601,6 @@ tail.solveRxDll <- function(x, n = 6L, addrownums = TRUE, ...){
 ##' @param x Solved RxDll object
 ##' @param ... other arguments (ignored)
 ##' @author Matthew L.Fidler
-##' @importFrom dplyr as.tbl
 ##' @export as.tbl.solveRxDll
 as.tbl.solveRxDll <- function(x, ...){
     return(dplyr::as.tbl(as.data.frame(x)));
