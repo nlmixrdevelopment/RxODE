@@ -1,4 +1,4 @@
-utils::globalVariables(c(".Jython", ".rxSymPy"));
+utils::globalVariables(c(".Jython"));
 ## Based on normalized grammar output by parser which has
 ## if (expr) {
 ## }

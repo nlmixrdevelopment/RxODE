@@ -5,6 +5,10 @@
     ## See https://github.com/hadley/r-pkgs/issues/203
     ## They suggest an environment, but I used the current namespace.
     rxSetupMemoize()
+    ## Setup the path
+    if (!rxWinRtoolsPath()){
+        cat("Rtools is not setup!!!\n\nYou need a working Rtools installation for this package to work.\n You can setup using the command 'rxWinSetup()'\nThis will also setup python and sympy to run a bit faster than rSymPy\n");
+    }
 } ## nocov end
 
 ##' This setups the memoized functions.
