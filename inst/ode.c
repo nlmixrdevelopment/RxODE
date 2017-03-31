@@ -37,6 +37,8 @@ RxODE_assign_fn_pointers _assign_fn_pointers;
 RxODE_ode_solver_old_c _old_c;
 RxODE_ode_solver_0_6_c _c_0_6;
 
+extern void __ODE_SOLVER_PTR__();
+
 void __ODE_SOLVER__(
                     int *neq,
                     double *theta,      //order:
@@ -155,6 +157,14 @@ void __R_INIT__ (DllInfo *info){
   R_RegisterCCallable(__LIB_STR__,__ODE_SOLVER_SEXP_STR__,  (DL_FUNC) __ODE_SOLVER_SEXP__);
   R_RegisterCCallable(__LIB_STR__,__ODE_SOLVER_0_6_STR__,   (DL_FUNC) __ODE_SOLVER_0_6__);
   R_RegisterCCallable(__LIB_STR__,__ODE_SOLVER_PTR_STR__,   (DL_FUNC) __ODE_SOLVER_PTR__);
+
+  /* R_CallMethodDef callMethods[]  = { */
+  /*   {__ODE_SOLVER_PTR_STR__, (DL_FUNC) &__ODE_SOLVER_PTR__, 0}, */
+  /*   {__ODE_SOLVER_SEXP_STR__, (DL_FUNC) &__ODE_SOLVER_SEXP__, 21}, */
+  /*   {NULL, NULL, 0} */
+  /* }; */
+  R_registerRoutines(info, NULL, NULL, NULL, NULL);
+  R_useDynamicSymbols(info,TRUE);
   // Register the function pointers so if someone directly calls the
   // ode solvers directly, they use the last loaded RxODE model.
   __ODE_SOLVER_PTR__();

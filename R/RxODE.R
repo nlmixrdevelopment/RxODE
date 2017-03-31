@@ -303,7 +303,7 @@
 ##' @concept Ordinary differential equations
 ##' @concept Pharmacokinetics (PK)
 ##' @concept Pharmacodynamics (PD)
-##' @useDynLib RxODE trans
+##' @useDynLib RxODE, .registration=TRUE
 ##' @importFrom Rcpp evalCpp
 ##' @importFrom utils getFromNamespace assignInMyNamespace download.file
 ##' @importFrom stats setNames

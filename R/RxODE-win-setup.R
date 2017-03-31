@@ -1,9 +1,13 @@
 rxWget <- function(url, to){
-    if (Sys.which("wget") != ""){
-        download.file(url, to, method="wget", extra="--progress=dot ");
-    } else if (Sys.which("curl" != "")){
-        download.file(url, to, method="curl");
-    } else {
+    if (.Platform$GUI == "RTerm"){
+        if (Sys.which("wget") != ""){
+            download.file(url, to, method="wget", extra="--progress=dot --no-check-certificate");
+        } else if (Sys.which("curl" != "")){
+            download.file(url, to, method="curl");
+        } else {
+            download.file(url, to);
+        }
+    } else{
         download.file(url, to);
     }
 }
@@ -31,9 +35,13 @@ rxWinRtoolsPath <- function(rm.rtools=TRUE){
         if (file.exists("C:/Rtools")){
             gcc <- list.files("c:/Rtools", "gcc",full.names=TRUE)[1]
             for (x in c("c:/Rtools/bin", ifelse(.Platform$r_arch == "i386","C:/Rtools/mingw_32/bin", "C:/Rtools/mingw_64/bin"),
+                        ifelse(.Platform$r_arch == "i386","C:/Rtools/mingw_32/opt/bin", "C:/Rtools/mingw_64/opt/bin"),
                         file.path(gcc, "bin"),
                         ifelse(.Platform$r_arch == "i386",file.path(gcc, "bin32"), file.path(gcc, "bin64")))){
                 path <- c(normalizePath(x), path);
+            }
+            if (file.exists("C:/Python27/python.exe")){
+                path <- c(normalizePath("c:/Python27"), path);
             }
             path <- paste(path, collapse=";");
             Sys.setenv(PATH=unique(path));
@@ -86,4 +94,3 @@ rxWinSetup <- function(rm.rtools=TRUE){
     }
     rxWinPythonSetup();
 }
-

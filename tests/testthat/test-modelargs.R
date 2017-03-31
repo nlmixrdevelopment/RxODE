@@ -17,6 +17,7 @@ rxPermissive({
     sink("temp.rx")
     cat('d/dt(y) = r * y * (1 - y/K);\n');
     sink()
+    Sys.sleep(1);
     ode3 <- RxODE('temp.rx');
     unlink("temp.rx");
 

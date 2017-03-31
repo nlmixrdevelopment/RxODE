@@ -826,7 +826,43 @@ double RxODE_factorial(double x){
   return exp(lgamma1p(x));
 }
 
+SEXP RxODE_rxInner(SEXP etanewsSEXP, SEXP rhoSEXP);
+SEXP RxODE_rxHessian(SEXP rhoSEXP);
+SEXP RxODE_RxODE_focei_eta_lik(SEXP sexp_etaSEXP, SEXP sexp_rhoSEXP);
+SEXP RxODE_RxODE_focei_eta_lp(SEXP sexp_etaSEXP, SEXP sexp_rhoSEXP);
+SEXP RxODE_RxODE_focei_eta(SEXP fstrSEXP);
+SEXP RxODE_RxODE_focei_finalize_llik(SEXP rhoSEXP);
+SEXP RxODE_RxODE_finalize_log_det_OMGAinv_5(SEXP rhoSEXP);
+SEXP RxODE_rxDetaDomega(SEXP rhoSEXP);
+SEXP RxODE_rxOuter_(SEXP rhoSEXP);
+SEXP RxODE_rxDetaDtheta(SEXP rhoSEXP);
+SEXP RxODE_rxOuter(SEXP rhoSEXP);
+SEXP RxODE_rxUpdateEtas(SEXP DnDhSSEXP, SEXP DhSSEXP, SEXP initSSEXP, SEXP acceptNSSEXP);
+SEXP RxODE_RxODE_finalize_focei_omega(SEXP rho);
+SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SEXP parse_model,SEXP parse_model3);
 void R_init_RxODE(DllInfo *info){
+
+  R_CallMethodDef callMethods[]  = {
+    {"RxODE_ode_solver", (DL_FUNC) &RxODE_ode_solver, 21},
+    {"RxODE_rxInner", (DL_FUNC) &RxODE_rxInner, 2},
+    {"RxODE_rxHessian", (DL_FUNC) &RxODE_rxHessian, 1},
+    {"RxODE_RxODE_focei_eta_lik", (DL_FUNC) &RxODE_RxODE_focei_eta_lik, 2},
+    {"RxODE_RxODE_focei_eta_lp", (DL_FUNC) &RxODE_RxODE_focei_eta_lp, 2},
+    {"RxODE_RxODE_focei_eta", (DL_FUNC) &RxODE_RxODE_focei_eta, 1},
+    {"RxODE_RxODE_focei_finalize_llik", (DL_FUNC) &RxODE_RxODE_focei_finalize_llik, 1},
+    {"RxODE_RxODE_finalize_log_det_OMGAinv_5", (DL_FUNC) &RxODE_RxODE_finalize_log_det_OMGAinv_5, 1},
+    {"RxODE_RxODE_finalize_focei_omega", (DL_FUNC) &RxODE_RxODE_finalize_focei_omega, 1},
+    {"RxODE_rxDetaDomega", (DL_FUNC) &RxODE_rxDetaDomega, 1},
+    {"RxODE_rxOuter_", (DL_FUNC) &RxODE_rxOuter_, 1},
+    {"RxODE_rxDetaDtheta", (DL_FUNC) &RxODE_rxDetaDtheta, 1},
+    {"RxODE_rxOuter", (DL_FUNC) &RxODE_rxOuter, 1},
+    {"RxODE_rxUpdateEtas", (DL_FUNC) &RxODE_rxUpdateEtas, 1},
+    {"trans", (DL_FUNC) &trans, 8},
+    {NULL, NULL, 0}
+  };
+  R_registerRoutines(info, NULL, callMethods, NULL, NULL);
+  R_useDynamicSymbols(info, FALSE);
+  
   //Functions
   R_RegisterCCallable("RxODE","RxODE_ode_solver",       (DL_FUNC) RxODE_ode_solver);
   R_RegisterCCallable("RxODE","RxODE_assign_fn_pointers", (DL_FUNC) RxODE_assign_fn_pointers);
