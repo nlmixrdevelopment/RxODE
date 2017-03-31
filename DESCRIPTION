@@ -24,7 +24,7 @@ Suggests:
     devtools,
     covr,
     rmarkdown,
-    rPython
+    SnakeCharmR
 Imports:
     utils,
     methods,

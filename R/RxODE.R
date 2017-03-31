@@ -1383,8 +1383,6 @@ rxCompile.character <-  function(model,           # Model
             setwd(dir);
             try(dyn.unload(finalDll), silent = TRUE);
             try(unlink(finalDll));
-            rtst <- Sys.getenv("R_TESTS")
-            Sys.setenv("R_TESTS" = "")
             cmd <- sprintf("%s/bin/R CMD SHLIB %s",
                            Sys.getenv("R_HOME"), base::basename(cFile));
             if (getOption("RxODE.echo.compile", FALSE)){
@@ -1395,7 +1393,6 @@ rxCompile.character <-  function(model,           # Model
             rc <- tryCatch(do.call(sh, list(cmd, ignore.stdout = !getOption("RxODE.echo.compile", FALSE), ignore.stderr = !getOption("RxODE.echo.compile", FALSE))),
                            error = function(e) "error",
                            warning = function(w) "warning");
-            Sys.setenv("R_TESTS" = rtst)
             if (any(rc == c("error", "warning"))){
                 try(do.call(sh, list(cmd, ignore.stdout = FALSE, ignore.stderr = FALSE)),
                     silent = FALSE)
