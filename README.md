@@ -1,6 +1,6 @@
-[![Build Status](https://travis-ci.org/mattfidler/RxODE.svg?branch=master)](https://travis-ci.org/mattfidler/RxODE)
-[![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/mattfidler/RxODE?branch=master&svg=true)](https://ci.appveyor.com/project/mattfidler/RxODE)
-[![codecov.io](https://codecov.io/github/mattfidler/RxODE/coverage.svg?branch=master)](https://codecov.io/github/mattfidler/RxODE?branch=master)
+[![Build Status](https://travis-ci.org/nlmixrdevelopment/RxODE.svg?branch=master)](https://travis-ci.org/nlmixrdevelopment/RxODE)
+[![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/nlmixrdevelopment/RxODE?branch=master&svg=true)](https://ci.appveyor.com/project/nlmixrdevelopment/RxODE)
+[![codecov.io](https://codecov.io/github/nlmixrdevelopment/RxODE/coverage.svg?branch=master)](https://codecov.io/github/nlmixrdevelopment/RxODE?branch=master)
 [![CRAN version](http://www.r-pkg.org/badges/version/RxODE)](https://cran.r-project.org/package=RxODE)
 
 
@@ -372,12 +372,12 @@ head(theta.all)
 
 ```
 ##         KA       CL   V2    Q  V3 Kin Kout EC50
-## [1,] 0.294 21.43742 40.2 10.5 297   1    1  200
-## [2,] 0.294 20.56427 40.2 10.5 297   1    1  200
-## [3,] 0.294 20.14228 40.2 10.5 297   1    1  200
-## [4,] 0.294 21.86093 40.2 10.5 297   1    1  200
-## [5,] 0.294 23.10703 40.2 10.5 297   1    1  200
-## [6,] 0.294 14.13567 40.2 10.5 297   1    1  200
+## [1,] 0.294 24.53237 40.2 10.5 297   1    1  200
+## [2,] 0.294 19.90850 40.2 10.5 297   1    1  200
+## [3,] 0.294 20.17518 40.2 10.5 297   1    1  200
+## [4,] 0.294 14.32180 40.2 10.5 297   1    1  200
+## [5,] 0.294 18.10990 40.2 10.5 297   1    1  200
+## [6,] 0.294 18.48289 40.2 10.5 297   1    1  200
 ```
 
 Each subproblem can be simulated by using an explicit loop (or the `apply()`

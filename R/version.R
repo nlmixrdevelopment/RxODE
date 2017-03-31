@@ -4,4 +4,4 @@
 ##' @author Matthew L. Fidler
 ##' @keywords internal
 ##' @export
-rxVersion <- function(){return(c(version="0.6-0",repo="https://github.com/mattfidler/RxODE"))}
+rxVersion <- function(){return(c(version="0.6-0",repo="https://github.com/nlmixrdevelopment/RxODE"))}
