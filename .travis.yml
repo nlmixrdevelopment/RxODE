@@ -1,8 +1,9 @@
 language: r
 cache: packages
-script: - |
+script: -|
   R CMD build .
   travis_wait 20 R CMD check RxODE*tar.gz
+  
 r:
   - 3.2
   - 3.3
