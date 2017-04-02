@@ -13,5 +13,5 @@
 \item{...}{Additional arguments}
 }
 \description{
-tidyr compatability layer for solveRxDll
+compatability function for tidyr
 }

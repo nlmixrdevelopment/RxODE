@@ -20,8 +20,8 @@ cat(hd);
 sink();
 cat("Generate dplyr and tidyr compatability functions.\n")
 tidyr.fns <- c("spread_", "unite_", "separate_", "gather_");
-dplyr.fns <- c("sample_frac", "sample_n", "group_by_", "rename_", "arrange_",
-               "summarise_", "transmute_", "mutate_", "distinct_", "rename_",
+dplyr.fns <- c("sample_frac", "sample_n", "group_by_", "rename_",
+               "summarise_", "transmute_", "mutate_", "distinct_",
                "select_", "arrange_", "slice_", "filter_");
 ## require(tidyr)
 ## require(dplyr)
@@ -38,7 +38,7 @@ for (f in tidyr.fns){
 ##' @method %s solveRxDll
 ##'
 ##' @title %s for \\code{solveRxDll} object
-##' @description tidyr compatability layer for solveRxDll
+##' @description compatability function for tidyr
 ##' @param data Solved ODE, an \\code{solveRxDll} object.
 ##' @param ... Additional arguments
 ##'
@@ -62,9 +62,8 @@ for (f in dplyr.fns){
 ##' @export %s.solveRxDll
 ##'
 ##' @method %s solveRxDll
-##'
+##' @description compatability function for dplyr
 ##' @title %s for \\code{solveRxDll} object
-##' @description dplyr compatability layer for solveRxDll
 ##' @param %s Solved equation, an \\code{solveRxDll} object.
 ##' @param ... Additional arguments
 ##'

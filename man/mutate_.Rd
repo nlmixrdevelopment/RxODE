@@ -13,5 +13,5 @@
 \item{...}{Additional arguments}
 }
 \description{
-dplyr compatability layer for solveRxDll
+compatability function for dplyr
 }

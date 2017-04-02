@@ -3,25 +3,15 @@
 \name{arrange_}
 \alias{arrange_}
 \alias{arrange_.solveRxDll}
-\alias{arrange_}
-\alias{arrange_.solveRxDll}
 \title{arrange_ for \code{solveRxDll} object}
 \usage{
-\method{arrange_}{solveRxDll}(.data, ...)
-
 \method{arrange_}{solveRxDll}(.data, ...)
 }
 \arguments{
 \item{.data}{Solved equation, an \code{solveRxDll} object.}
 
 \item{...}{Additional arguments}
-
-\item{.data}{Solved equation, an \code{solveRxDll} object.}
-
-\item{...}{Additional arguments}
 }
 \description{
-dplyr compatability layer for solveRxDll
-
-dplyr compatability layer for solveRxDll
+compatability function for dplyr
 }
