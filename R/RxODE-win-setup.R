@@ -65,6 +65,7 @@ rxWinRtoolsPath <- function(rm.rtools=TRUE){
             }
             if (file.exists("C:/Python27/python.exe")){
                 path <- c(normalizePath("c:/Python27"), path);
+                Sys.setenv(PYTHONHOME="c:/Python27");
             }
             path <- path[path != ""];
             path <- paste(path, collapse=";");
@@ -93,9 +94,6 @@ rxWinPythonSetup <- function(){
         } else {
             unlink("python-2.7.13.msi");
         }
-    }
-    if (!file.exists("C:/Python27/Lib/site-packages/sympy")){
-        system("c:/Python27/Scripts/pip install sympy");
     }
     if (!requireNamespace("SnakeCharmR", quietly = TRUE)){
         devtools::install_github("mattfidler/SnakeCharmR");

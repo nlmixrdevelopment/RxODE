@@ -157,8 +157,18 @@ rxSympyStart <- function(){
             tryCatch({
                 SnakeCharmR::py.exec("from sympy import *")
             }, error=function(e){
-                SnakeCharmR::py.exec( paste( "sys.path.append(", system.file( "Lib", package = "rSymPy" ), ")", sep = '"' ) )
-                SnakeCharmR::py.exec("from sympy import *")
+                tryCatch({
+                    system("python -m pip install sympy");
+                    SnakeCharmR::py.exec("from sympy import *");
+                }, error=function(e){
+                    if (requireNamespace("rSymPy", quietly = TRUE)){
+                        SnakeCharmR::py.exec( paste( "sys.path.append(", system.file( "Lib", package = "rSymPy" ), ")", sep = '"' ) )
+                        SnakeCharmR::py.exec("from sympy import *")
+                    } else {
+                        stop("Could not install sympy.  Please install it in python manually.");
+                    }
+                })
+
             })
             .rxSymPy$started <- "SnakeCharmR";
         }
