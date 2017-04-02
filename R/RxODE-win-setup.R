@@ -24,9 +24,10 @@ rxWinRtoolsPath <- function(rm.rtools=TRUE){
             if (file.exists(x)){
                 return(normalizePath(x));
             } else {
-                return(x);
+                return("");
             }
         }))
+        path <- path[path != ""];
         if (rm.rtools){
             path <- path[regexpr(rex::rex(or("Rtools", "RTOOLS", "rtools")), path) == -1]
         }
@@ -34,15 +35,21 @@ rxWinRtoolsPath <- function(rm.rtools=TRUE){
         path <- c(r.path, path);
         if (file.exists("C:/Rtools")){
             gcc <- list.files("c:/Rtools", "gcc",full.names=TRUE)[1]
+            if (is.na(gcc)){
+                gcc <- "";
+            }
             for (x in c("c:/Rtools/bin", ifelse(.Platform$r_arch == "i386","C:/Rtools/mingw_32/bin", "C:/Rtools/mingw_64/bin"),
                         ifelse(.Platform$r_arch == "i386","C:/Rtools/mingw_32/opt/bin", "C:/Rtools/mingw_64/opt/bin"),
-                        file.path(gcc, "bin"),
-                        ifelse(.Platform$r_arch == "i386",file.path(gcc, "bin32"), file.path(gcc, "bin64")))){
-                path <- c(normalizePath(x), path);
+                        ifelse(gcc == "", "", file.path(gcc, "bin")),
+                        ifelse(gcc == "", "", ifelse(.Platform$r_arch == "i386",file.path(gcc, "bin32"), file.path(gcc, "bin64"))))){
+                if (file.exists(x)){
+                    path <- c(normalizePath(x), path);
+                }
             }
             if (file.exists("C:/Python27/python.exe")){
                 path <- c(normalizePath("c:/Python27"), path);
             }
+            path <- path[path != ""];
             path <- paste(path, collapse=";");
             Sys.setenv(PATH=unique(path));
             return(TRUE);
@@ -57,14 +64,18 @@ rxWinRtoolsPath <- function(rm.rtools=TRUE){
 ##' @export
 rxWinPythonSetup <- function(){
     if (!file.exists("C:/Python27/lib")){
-        python <- tempfile(fileext="-python-2.7.13.msi");
-        rxWget("https://www.python.org/ftp/python/2.7.13/python-2.7.13.msi", python);
+        ## unlink("python-2.7.13.msi")
+        if (!file.exists("python-2.7.13.msi")){
+            rxWget("https://www.python.org/ftp/python/2.7.13/python-2.7.13.msi", "python-2.7.13.msi");
+        }
         cat("Install python to the default location (c:/Python27)\n");
-        system(sprintf("explorer \"%s\"",python))
-        readline(prompt="Press [enter] to continue");
-        unlink(python)
+        shell("start python-2.7.13.msi")
+        ## readline(prompt="Press [enter] to continue");
+        ## unlink(python)
         if (!file.exists("C:/Python27/lib")){
             stop("Python installation unsuccessful.");
+        } else {
+            unlink("python-2.7.13.msi");
         }
     }
     if (!file.exists("C:/Python27/Lib/site-packages/sympy")){

@@ -1,6 +1,6 @@
 library(devtools)
-library(tidyr)
-library(dplyr)
+## library(tidyr)
+## library(dplyr)
 cat("Copy header to inst directory")
 
 file.copy(devtools::package_file("src/RxODE_types.h"),
@@ -19,35 +19,52 @@ sink(devtools::package_file("src/ode.h"))
 cat(hd);
 sink();
 cat("Generate dplyr and tidyr compatability functions.\n")
+tidyr.fns <- c("spread_", "unite_", "separate_", "gather_");
+dplyr.fns <- c("sample_frac", "sample_n", "group_by_", "rename_", "arrange_",
+               "summarise_", "transmute_", "mutate_", "distinct_", "rename_",
+               "select_", "arrange_", "slice_", "filter_");
+## require(tidyr)
+## require(dplyr)
 sink(package_file("R/rxsolve-gen.R"))
 cat("## Generated code from build/refresh.R\n\n");
-for (f in c("spread_", "unite_", "separate_", "gather_")){
-    fn <- deparse(eval(parse(text=sprintf("args(%s)", f))));
-    fn <- paste0(fn[-length(fn)], collapse="\n");
-    one <- eval(parse(text=sprintf("attr(formals(%s)[1],\"names\")", f)));
-    cat(sprintf("## importFrom tidyr %s
-##' @export
-%s.solveRxDll <- %s{
+one <- "data"
+for (f in tidyr.fns){
+    ## fn <- deparse(eval(parse(text=sprintf("args(%s)", f))));
+    ## fn <- paste0(fn[-length(fn)], collapse="\n");
+    ## one <- eval(parse(text=sprintf("attr(formals(%s)[1],\"names\")", f)));
+    cat(sprintf("##' @name %s
+##' @export %s.solveRxDll
+##'
+##' @method %s solveRxDll
+##'
+##' @title %s for \\code{solveRxDll} object
+##' @param data Solved ODE, an \\code{solveRxDll} object.
+##' @param ... Additional arguments
+##'
+%s.solveRxDll <- function(%s, ...){
   call <- as.list(match.call(expand.dots=TRUE))[-1];
   call$%s <- dplyr::as.tbl(%s)
-  return(do.call(getFromNamespace(\"%s\",\"dplyr\"), call, envir = parent.frame(1)));
-}\n\n",f, f, fn, one, one, f));
+  return(do.call(getFromNamespace(\"%s\",\"tidyr\"), call, envir = parent.frame(1)));
+}\n\n",f, f, f, f, f, one, one, one, f));
 }
-
 ## merge?
-for (f in c("sample_frac", "sample_n", "group_by_", "rename_", "arrange_",
-            "summarise_", "transmute_", "mutate_", "distinct_", "rename_",
-            "select_", "arrange_", "slice_", "filter_")){
-    fn <- deparse(eval(parse(text=sprintf("args(%s)", f))));
-    fn <- paste0(fn[-length(fn)], collapse="\n");
-    one <- eval(parse(text=sprintf("attr(formals(%s)[1],\"names\")", f)))
-    cat(sprintf("## importFrom dplyr %s
-##' @export
-%s.solveRxDll <- %s{
-  call <- as.list(match.call())[-1];
-  call$%s <- %s(%s);
+for (f in dplyr.fns){
+    ## fn <- deparse(eval(parse(text=sprintf("args(%s)", f))));
+    ## one <- eval(parse(text=sprintf("attr(formals(%s)[1],\"names\")", f)))
+    cat(sprintf("##' @name %s
+##' @export %s.solveRxDll
+##'
+##' @method %s solveRxDll
+##'
+##' @title %s for \\code{solveRxDll} object
+##' @param data Solved equation, an \\code{solveRxDll} object.
+##' @param ... Additional arguments
+##'
+%s.solveRxDll <- function(%s, ...){
+  call <- as.list(match.call(expand.dots=TRUE))[-1];
+  call$%s <- %s(%s)
   return(do.call(getFromNamespace(\"%s\",\"dplyr\"), call, envir = parent.frame(1)));
-}\n\n",f, f, fn, one, ifelse(one == "tbl", "dplyr::as.tbl", "asTbl"), one, f));
+}\n\n",f, f, f, f, f, one, one, ifelse(one == "tbl", "dplyr::as.tbl", "asTbl"),  one, f))
 }
 
 for (f in c("row.names", "by", "aggregate", "anyDuplicated", "droplevels",
@@ -63,7 +80,7 @@ for (f in c("row.names", "by", "aggregate", "anyDuplicated", "droplevels",
     one <- eval(parse(text=sprintf("attr(formals(%s)[1],\"names\")", f)))
     ns <- gsub("package:", "", find(f));
     if (!any(ns == c("base"))){
-        cat(sprintf("## importFrom %s %s\n", ns, f));
+        cat(sprintf("##' @importFrom %s %s\n", ns, f));
     }
     cat(sprintf("##' @export
 %s.solveRxDll <- %s{

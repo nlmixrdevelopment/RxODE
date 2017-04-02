@@ -126,10 +126,6 @@ work <- tempfile("Rx_intro-")
 mod1 <- RxODE(model = ode, modName = "mod1", wd = work)
 ```
 
-```
-## c:/R/R-32~1.3/bin/R CMD SHLIB mod1_i386.c
-```
-
 A typical pharmacokinetics-pharmacodynamics (PKPD) model can be
 plotted in `RxODE`. This model, as shown in the figure below:
 
@@ -138,15 +134,8 @@ plot(mod1);
 ```
 
 ```
-##                              C2                              C3 
-##                      "centr/V2"                       "peri/V3" 
-##                     d/dt(depot)                     d/dt(centr) 
-##                     "-KA*depot"      "KA*depot-CL*C2-Q*C2+Q*C3" 
-##                      d/dt(peri)                       d/dt(eff) 
-##                     "Q*C2-Q*C3" "Kin-Kout*(1-C2/(EC50+C2))*eff"
+## Package igraph needed for this function to work. Please install it.
 ```
-
-![plot of chunk unnamed-chunk-3](vignettes/figure/unnamed-chunk-3-1.png)
 
 Sometimes the size of the boxes may need to be adjusted, you can do
 this by adjusting the `size` argument:
@@ -156,15 +145,8 @@ plot(mod1,size=40);
 ```
 
 ```
-##                              C2                              C3 
-##                      "centr/V2"                       "peri/V3" 
-##                     d/dt(depot)                     d/dt(centr) 
-##                     "-KA*depot"      "KA*depot-CL*C2-Q*C2+Q*C3" 
-##                      d/dt(peri)                       d/dt(eff) 
-##                     "Q*C2-Q*C3" "Kin-Kout*(1-C2/(EC50+C2))*eff"
+## Package igraph needed for this function to work. Please install it.
 ```
-
-![plot of chunk unnamed-chunk-4](vignettes/figure/unnamed-chunk-4-1.png)
 
 Model parameters can be defined as named vectors. Names of parameters in
 the vector must be a superset of parameters in the ODE model, and the
@@ -255,6 +237,14 @@ in the output matrix x.
 
 ```r
 x <- mod1$solve(theta, ev, inits)
+```
+
+```
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+```
+
+```r
 head(x)
 ```
 
@@ -272,6 +262,14 @@ This can also be solved by the `predict()` or `solve()` methods:
 
 ```r
 x <- predict(mod1,theta, ev, inits)
+```
+
+```
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+```
+
+```r
 head(x)
 ```
 
@@ -288,6 +286,14 @@ or
 
 ```r
 x <- solve(mod1,theta, ev, inits)
+```
+
+```
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+```
+
+```r
 head(x)
 ```
 
@@ -305,6 +311,14 @@ Or with mattigr
 
 ```r
 x <- mod1 %>% solve(theta, ev, inits)
+```
+
+```
+## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
+## centr, peri to 0.
+```
+
+```r
 head(x)
 ```
 
@@ -344,12 +358,12 @@ head(theta.all)
 
 ```
 ##         KA       CL   V2    Q  V3 Kin Kout EC50
-## [1,] 0.294 16.82606 40.2 10.5 297   1    1  200
-## [2,] 0.294 19.15463 40.2 10.5 297   1    1  200
-## [3,] 0.294 16.27225 40.2 10.5 297   1    1  200
-## [4,] 0.294 24.00847 40.2 10.5 297   1    1  200
-## [5,] 0.294 19.60693 40.2 10.5 297   1    1  200
-## [6,] 0.294 16.31177 40.2 10.5 297   1    1  200
+## [1,] 0.294 23.10682 40.2 10.5 297   1    1  200
+## [2,] 0.294 15.64921 40.2 10.5 297   1    1  200
+## [3,] 0.294 20.27977 40.2 10.5 297   1    1  200
+## [4,] 0.294 23.25100 40.2 10.5 297   1    1  200
+## [5,] 0.294 18.80865 40.2 10.5 297   1    1  200
+## [6,] 0.294 19.15333 40.2 10.5 297   1    1  200
 ```
 
 Each subproblem can be simulated by using an explicit loop (or the `apply()`

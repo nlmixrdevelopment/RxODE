@@ -1,149 +1,272 @@
 ## Generated code from build/refresh.R
 
-
-##' @export
-spread_.solveRxDll <- function (data, key_col, value_col, fill = NA, convert = FALSE,
-    drop = TRUE, sep = NULL) {
+##' @name spread_
+##' @export spread_.solveRxDll
+##'
+##' @method spread_ solveRxDll
+##'
+##' @title spread_ for \code{solveRxDll} object
+##' @param data Solved ODE, an \code{solveRxDll} object.
+##' @param ... Additional arguments
+##'
+spread_.solveRxDll <- function(data, ...){
   call <- as.list(match.call(expand.dots=TRUE))[-1];
   call$data <- dplyr::as.tbl(data)
-  return(do.call(getFromNamespace("spread_","dplyr"), call, envir = parent.frame(1)));
+  return(do.call(getFromNamespace("spread_","tidyr"), call, envir = parent.frame(1)));
 }
 
-
-##' @export
-unite_.solveRxDll <- function (data, col, from, sep = "_", remove = TRUE) {
+##' @name unite_
+##' @export unite_.solveRxDll
+##'
+##' @method unite_ solveRxDll
+##'
+##' @title unite_ for \code{solveRxDll} object
+##' @param data Solved ODE, an \code{solveRxDll} object.
+##' @param ... Additional arguments
+##'
+unite_.solveRxDll <- function(data, ...){
   call <- as.list(match.call(expand.dots=TRUE))[-1];
   call$data <- dplyr::as.tbl(data)
-  return(do.call(getFromNamespace("unite_","dplyr"), call, envir = parent.frame(1)));
+  return(do.call(getFromNamespace("unite_","tidyr"), call, envir = parent.frame(1)));
 }
 
-
-##' @export
-separate_.solveRxDll <- function (data, col, into, sep = "[^[:alnum:]]+", remove = TRUE,
-    convert = FALSE, extra = "warn", fill = "warn", ...) {
+##' @name separate_
+##' @export separate_.solveRxDll
+##'
+##' @method separate_ solveRxDll
+##'
+##' @title separate_ for \code{solveRxDll} object
+##' @param data Solved ODE, an \code{solveRxDll} object.
+##' @param ... Additional arguments
+##'
+separate_.solveRxDll <- function(data, ...){
   call <- as.list(match.call(expand.dots=TRUE))[-1];
   call$data <- dplyr::as.tbl(data)
-  return(do.call(getFromNamespace("separate_","dplyr"), call, envir = parent.frame(1)));
+  return(do.call(getFromNamespace("separate_","tidyr"), call, envir = parent.frame(1)));
 }
 
-
-##' @export
-gather_.solveRxDll <- function (data, key_col, value_col, gather_cols, na.rm = FALSE,
-    convert = FALSE, factor_key = FALSE) {
+##' @name gather_
+##' @export gather_.solveRxDll
+##'
+##' @method gather_ solveRxDll
+##'
+##' @title gather_ for \code{solveRxDll} object
+##' @param data Solved ODE, an \code{solveRxDll} object.
+##' @param ... Additional arguments
+##'
+gather_.solveRxDll <- function(data, ...){
   call <- as.list(match.call(expand.dots=TRUE))[-1];
   call$data <- dplyr::as.tbl(data)
-  return(do.call(getFromNamespace("gather_","dplyr"), call, envir = parent.frame(1)));
+  return(do.call(getFromNamespace("gather_","tidyr"), call, envir = parent.frame(1)));
 }
 
-
-##' @export
-sample_frac.solveRxDll <- function (tbl, size = 1, replace = FALSE, weight = NULL, .env = parent.frame()) {
-  call <- as.list(match.call())[-1];
-  call$tbl <- dplyr::as.tbl(tbl);
+##' @name sample_frac
+##' @export sample_frac.solveRxDll
+##'
+##' @method sample_frac solveRxDll
+##'
+##' @title sample_frac for \code{solveRxDll} object
+##' @param data Solved equation, an \code{solveRxDll} object.
+##' @param ... Additional arguments
+##'
+sample_frac.solveRxDll <- function(data, ...){
+  call <- as.list(match.call(expand.dots=TRUE))[-1];
+  call$data <- asTbl(data)
   return(do.call(getFromNamespace("sample_frac","dplyr"), call, envir = parent.frame(1)));
 }
 
-
-##' @export
-sample_n.solveRxDll <- function (tbl, size, replace = FALSE, weight = NULL, .env = parent.frame()) {
-  call <- as.list(match.call())[-1];
-  call$tbl <- dplyr::as.tbl(tbl);
+##' @name sample_n
+##' @export sample_n.solveRxDll
+##'
+##' @method sample_n solveRxDll
+##'
+##' @title sample_n for \code{solveRxDll} object
+##' @param data Solved equation, an \code{solveRxDll} object.
+##' @param ... Additional arguments
+##'
+sample_n.solveRxDll <- function(data, ...){
+  call <- as.list(match.call(expand.dots=TRUE))[-1];
+  call$data <- asTbl(data)
   return(do.call(getFromNamespace("sample_n","dplyr"), call, envir = parent.frame(1)));
 }
 
-
-##' @export
-group_by_.solveRxDll <- function (.data, ..., .dots, add = FALSE) {
-  call <- as.list(match.call())[-1];
-  call$.data <- asTbl(.data);
+##' @name group_by_
+##' @export group_by_.solveRxDll
+##'
+##' @method group_by_ solveRxDll
+##'
+##' @title group_by_ for \code{solveRxDll} object
+##' @param data Solved equation, an \code{solveRxDll} object.
+##' @param ... Additional arguments
+##'
+group_by_.solveRxDll <- function(data, ...){
+  call <- as.list(match.call(expand.dots=TRUE))[-1];
+  call$data <- asTbl(data)
   return(do.call(getFromNamespace("group_by_","dplyr"), call, envir = parent.frame(1)));
 }
 
-
-##' @export
-rename_.solveRxDll <- function (.data, ..., .dots) {
-  call <- as.list(match.call())[-1];
-  call$.data <- asTbl(.data);
+##' @name rename_
+##' @export rename_.solveRxDll
+##'
+##' @method rename_ solveRxDll
+##'
+##' @title rename_ for \code{solveRxDll} object
+##' @param data Solved equation, an \code{solveRxDll} object.
+##' @param ... Additional arguments
+##'
+rename_.solveRxDll <- function(data, ...){
+  call <- as.list(match.call(expand.dots=TRUE))[-1];
+  call$data <- asTbl(data)
   return(do.call(getFromNamespace("rename_","dplyr"), call, envir = parent.frame(1)));
 }
 
-
-##' @export
-arrange_.solveRxDll <- function (.data, ..., .dots) {
-  call <- as.list(match.call())[-1];
-  call$.data <- asTbl(.data);
+##' @name arrange_
+##' @export arrange_.solveRxDll
+##'
+##' @method arrange_ solveRxDll
+##'
+##' @title arrange_ for \code{solveRxDll} object
+##' @param data Solved equation, an \code{solveRxDll} object.
+##' @param ... Additional arguments
+##'
+arrange_.solveRxDll <- function(data, ...){
+  call <- as.list(match.call(expand.dots=TRUE))[-1];
+  call$data <- asTbl(data)
   return(do.call(getFromNamespace("arrange_","dplyr"), call, envir = parent.frame(1)));
 }
 
-
-##' @export
-summarise_.solveRxDll <- function (.data, ..., .dots) {
-  call <- as.list(match.call())[-1];
-  call$.data <- asTbl(.data);
+##' @name summarise_
+##' @export summarise_.solveRxDll
+##'
+##' @method summarise_ solveRxDll
+##'
+##' @title summarise_ for \code{solveRxDll} object
+##' @param data Solved equation, an \code{solveRxDll} object.
+##' @param ... Additional arguments
+##'
+summarise_.solveRxDll <- function(data, ...){
+  call <- as.list(match.call(expand.dots=TRUE))[-1];
+  call$data <- asTbl(data)
   return(do.call(getFromNamespace("summarise_","dplyr"), call, envir = parent.frame(1)));
 }
 
-
-##' @export
-transmute_.solveRxDll <- function (.data, ..., .dots) {
-  call <- as.list(match.call())[-1];
-  call$.data <- asTbl(.data);
+##' @name transmute_
+##' @export transmute_.solveRxDll
+##'
+##' @method transmute_ solveRxDll
+##'
+##' @title transmute_ for \code{solveRxDll} object
+##' @param data Solved equation, an \code{solveRxDll} object.
+##' @param ... Additional arguments
+##'
+transmute_.solveRxDll <- function(data, ...){
+  call <- as.list(match.call(expand.dots=TRUE))[-1];
+  call$data <- asTbl(data)
   return(do.call(getFromNamespace("transmute_","dplyr"), call, envir = parent.frame(1)));
 }
 
-
-##' @export
-mutate_.solveRxDll <- function (.data, ..., .dots) {
-  call <- as.list(match.call())[-1];
-  call$.data <- asTbl(.data);
+##' @name mutate_
+##' @export mutate_.solveRxDll
+##'
+##' @method mutate_ solveRxDll
+##'
+##' @title mutate_ for \code{solveRxDll} object
+##' @param data Solved equation, an \code{solveRxDll} object.
+##' @param ... Additional arguments
+##'
+mutate_.solveRxDll <- function(data, ...){
+  call <- as.list(match.call(expand.dots=TRUE))[-1];
+  call$data <- asTbl(data)
   return(do.call(getFromNamespace("mutate_","dplyr"), call, envir = parent.frame(1)));
 }
 
-
-##' @export
-distinct_.solveRxDll <- function (.data, ..., .dots, .keep_all = FALSE) {
-  call <- as.list(match.call())[-1];
-  call$.data <- asTbl(.data);
+##' @name distinct_
+##' @export distinct_.solveRxDll
+##'
+##' @method distinct_ solveRxDll
+##'
+##' @title distinct_ for \code{solveRxDll} object
+##' @param data Solved equation, an \code{solveRxDll} object.
+##' @param ... Additional arguments
+##'
+distinct_.solveRxDll <- function(data, ...){
+  call <- as.list(match.call(expand.dots=TRUE))[-1];
+  call$data <- asTbl(data)
   return(do.call(getFromNamespace("distinct_","dplyr"), call, envir = parent.frame(1)));
 }
 
-
-##' @export
-rename_.solveRxDll <- function (.data, ..., .dots) {
-  call <- as.list(match.call())[-1];
-  call$.data <- asTbl(.data);
+##' @name rename_
+##' @export rename_.solveRxDll
+##'
+##' @method rename_ solveRxDll
+##'
+##' @title rename_ for \code{solveRxDll} object
+##' @param data Solved equation, an \code{solveRxDll} object.
+##' @param ... Additional arguments
+##'
+rename_.solveRxDll <- function(data, ...){
+  call <- as.list(match.call(expand.dots=TRUE))[-1];
+  call$data <- asTbl(data)
   return(do.call(getFromNamespace("rename_","dplyr"), call, envir = parent.frame(1)));
 }
 
-
-##' @export
-select_.solveRxDll <- function (.data, ..., .dots) {
-  call <- as.list(match.call())[-1];
-  call$.data <- asTbl(.data);
+##' @name select_
+##' @export select_.solveRxDll
+##'
+##' @method select_ solveRxDll
+##'
+##' @title select_ for \code{solveRxDll} object
+##' @param data Solved equation, an \code{solveRxDll} object.
+##' @param ... Additional arguments
+##'
+select_.solveRxDll <- function(data, ...){
+  call <- as.list(match.call(expand.dots=TRUE))[-1];
+  call$data <- asTbl(data)
   return(do.call(getFromNamespace("select_","dplyr"), call, envir = parent.frame(1)));
 }
 
-
-##' @export
-arrange_.solveRxDll <- function (.data, ..., .dots) {
-  call <- as.list(match.call())[-1];
-  call$.data <- asTbl(.data);
+##' @name arrange_
+##' @export arrange_.solveRxDll
+##'
+##' @method arrange_ solveRxDll
+##'
+##' @title arrange_ for \code{solveRxDll} object
+##' @param data Solved equation, an \code{solveRxDll} object.
+##' @param ... Additional arguments
+##'
+arrange_.solveRxDll <- function(data, ...){
+  call <- as.list(match.call(expand.dots=TRUE))[-1];
+  call$data <- asTbl(data)
   return(do.call(getFromNamespace("arrange_","dplyr"), call, envir = parent.frame(1)));
 }
 
-
-##' @export
-slice_.solveRxDll <- function (.data, ..., .dots) {
-  call <- as.list(match.call())[-1];
-  call$.data <- asTbl(.data);
+##' @name slice_
+##' @export slice_.solveRxDll
+##'
+##' @method slice_ solveRxDll
+##'
+##' @title slice_ for \code{solveRxDll} object
+##' @param data Solved equation, an \code{solveRxDll} object.
+##' @param ... Additional arguments
+##'
+slice_.solveRxDll <- function(data, ...){
+  call <- as.list(match.call(expand.dots=TRUE))[-1];
+  call$data <- asTbl(data)
   return(do.call(getFromNamespace("slice_","dplyr"), call, envir = parent.frame(1)));
 }
 
-
-##' @export
-filter_.solveRxDll <- function (.data, ..., .dots) {
-  call <- as.list(match.call())[-1];
-  call$.data <- asTbl(.data);
+##' @name filter_
+##' @export filter_.solveRxDll
+##'
+##' @method filter_ solveRxDll
+##'
+##' @title filter_ for \code{solveRxDll} object
+##' @param data Solved equation, an \code{solveRxDll} object.
+##' @param ... Additional arguments
+##'
+filter_.solveRxDll <- function(data, ...){
+  call <- as.list(match.call(expand.dots=TRUE))[-1];
+  call$data <- asTbl(data)
   return(do.call(getFromNamespace("filter_","dplyr"), call, envir = parent.frame(1)));
 }
 
@@ -161,7 +284,7 @@ by.solveRxDll <- function (data, INDICES, FUN, ..., simplify = TRUE) {
   return(do.call("by.data.frame", call, envir = parent.frame(1)));
 }
 
-
+##' @importFrom stats aggregate
 ##' @export
 aggregate.solveRxDll <- function (x, ...) {
   call <- as.list(match.call(expand.dots=TRUE))[-1];
@@ -190,7 +313,7 @@ duplicated.solveRxDll <- function (x, incomparables = FALSE, ...) {
   return(do.call("duplicated.data.frame", call, envir = parent.frame(1)));
 }
 
-
+##' @importFrom utils edit
 ##' @export
 edit.solveRxDll <- function (name, ...) {
   call <- as.list(match.call(expand.dots=TRUE))[-1];
@@ -198,7 +321,7 @@ edit.solveRxDll <- function (name, ...) {
   return(do.call("edit.data.frame", call, envir = parent.frame(1)));
 }
 
-
+##' @importFrom methods Math
 ##' @export
 Math.solveRxDll <- function(x, ...){
   call <- as.list(match.call(expand.dots=TRUE))[-1];
@@ -227,7 +350,7 @@ subset.solveRxDll <- function (x, ...) {
   return(do.call("subset.data.frame", call, envir = parent.frame(1)));
 }
 
-
+##' @importFrom utils stack
 ##' @export
 stack.solveRxDll <- function (x, ...) {
   call <- as.list(match.call(expand.dots=TRUE))[-1];
@@ -235,7 +358,7 @@ stack.solveRxDll <- function (x, ...) {
   return(do.call("stack.data.frame", call, envir = parent.frame(1)));
 }
 
-
+##' @importFrom utils unstack
 ##' @export
 unstack.solveRxDll <- function (x, ...) {
   call <- as.list(match.call(expand.dots=TRUE))[-1];
