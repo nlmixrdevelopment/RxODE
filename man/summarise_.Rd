@@ -5,10 +5,10 @@
 \alias{summarise_.solveRxDll}
 \title{summarise_ for \code{solveRxDll} object}
 \usage{
-\method{summarise_}{solveRxDll}(data, ...)
+\method{summarise_}{solveRxDll}(.data, ...)
 }
 \arguments{
-\item{data}{Solved equation, an \code{solveRxDll} object.}
-
 \item{...}{Additional arguments}
+
+\item{data}{Solved equation, an \code{solveRxDll} object.}
 }

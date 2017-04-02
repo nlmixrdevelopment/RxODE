@@ -5,10 +5,10 @@
 \alias{group_by_.solveRxDll}
 \title{group_by_ for \code{solveRxDll} object}
 \usage{
-\method{group_by_}{solveRxDll}(data, ...)
+\method{group_by_}{solveRxDll}(.data, ...)
 }
 \arguments{
-\item{data}{Solved equation, an \code{solveRxDll} object.}
-
 \item{...}{Additional arguments}
+
+\item{data}{Solved equation, an \code{solveRxDll} object.}
 }

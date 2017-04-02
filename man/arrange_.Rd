@@ -7,14 +7,14 @@
 \alias{arrange_.solveRxDll}
 \title{arrange_ for \code{solveRxDll} object}
 \usage{
-\method{arrange_}{solveRxDll}(data, ...)
+\method{arrange_}{solveRxDll}(.data, ...)
 
-\method{arrange_}{solveRxDll}(data, ...)
+\method{arrange_}{solveRxDll}(.data, ...)
 }
 \arguments{
-\item{data}{Solved equation, an \code{solveRxDll} object.}
-
 \item{...}{Additional arguments}
+
+\item{data}{Solved equation, an \code{solveRxDll} object.}
 
 \item{data}{Solved equation, an \code{solveRxDll} object.}
 

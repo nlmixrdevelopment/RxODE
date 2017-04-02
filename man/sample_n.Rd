@@ -5,10 +5,10 @@
 \alias{sample_n.solveRxDll}
 \title{sample_n for \code{solveRxDll} object}
 \usage{
-\method{sample_n}{solveRxDll}(data, ...)
+\method{sample_n}{solveRxDll}(tbl, ...)
 }
 \arguments{
-\item{data}{Solved equation, an \code{solveRxDll} object.}
-
 \item{...}{Additional arguments}
+
+\item{data}{Solved equation, an \code{solveRxDll} object.}
 }

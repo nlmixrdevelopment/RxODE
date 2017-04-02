@@ -1,14 +1,31 @@
 rxWget <- function(url, to){
-    if (.Platform$GUI == "RTerm"){
-        if (Sys.which("wget") != ""){
-            download.file(url, to, method="wget", extra="--progress=dot --no-check-certificate");
-        } else if (Sys.which("curl" != "")){
-            download.file(url, to, method="curl");
+    if (Sys.which("wget") == ""){
+        if (.Platform$r_arch == "i386"){
+            if (file.exists("c:/RTOOLS/mingw_32/bin")){
+                download.file("https://eternallybored.org/misc/wget/current/wget.exe", "c:/RTOOLS/mingw_32/bin/wget.exe");
+                if (!file.exists("c:/RTOOLS/mingw_32/bin/wget.exe")){
+                    stop("Cannot get wget...");
+                }
+            } else {
+                download.file("https://eternallybored.org/misc/wget/current/wget.exe", "wget.exe");
+
+            }
         } else {
-            download.file(url, to);
+            if (file.exists("c:/RTOOLS/mingw_64/bin")){
+                download.file("https://eternallybored.org/misc/wget/current/wget64.exe", "c:/RTOOLS/mingw_64/bin/wget.exe");
+                if (!file.exists("c:/RTOOLS/mingw_64/bin/wget.exe")){
+                    stop("Cannot get wget...");
+                }
+            } else {
+                download.file("https://eternallybored.org/misc/wget/current/wget64.exe", "wget.exe");
+            }
         }
-    } else{
-        download.file(url, to);
+    }
+    if (Sys.which("wget") == ""){
+        stop("Wget not working...");
+    }
+    if (Sys.which("wget") != ""){
+        download.file(url, to, method="wget", extra="--progress=dot --no-check-certificate");
     }
 }
 ##' Setup Rtools path
@@ -70,8 +87,7 @@ rxWinPythonSetup <- function(){
         }
         cat("Install python to the default location (c:/Python27)\n");
         shell("start python-2.7.13.msi")
-        ## readline(prompt="Press [enter] to continue");
-        ## unlink(python)
+        readline(prompt="Press [enter] to continue");
         if (!file.exists("C:/Python27/lib")){
             stop("Python installation unsuccessful.");
         } else {

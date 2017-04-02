@@ -5,10 +5,10 @@
 \alias{filter_.solveRxDll}
 \title{filter_ for \code{solveRxDll} object}
 \usage{
-\method{filter_}{solveRxDll}(data, ...)
+\method{filter_}{solveRxDll}(.data, ...)
 }
 \arguments{
-\item{data}{Solved equation, an \code{solveRxDll} object.}
-
 \item{...}{Additional arguments}
+
+\item{data}{Solved equation, an \code{solveRxDll} object.}
 }

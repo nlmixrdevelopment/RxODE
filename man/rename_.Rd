@@ -7,14 +7,14 @@
 \alias{rename_.solveRxDll}
 \title{rename_ for \code{solveRxDll} object}
 \usage{
-\method{rename_}{solveRxDll}(data, ...)
+\method{rename_}{solveRxDll}(.data, ...)
 
-\method{rename_}{solveRxDll}(data, ...)
+\method{rename_}{solveRxDll}(.data, ...)
 }
 \arguments{
-\item{data}{Solved equation, an \code{solveRxDll} object.}
-
 \item{...}{Additional arguments}
+
+\item{data}{Solved equation, an \code{solveRxDll} object.}
 
 \item{data}{Solved equation, an \code{solveRxDll} object.}
 

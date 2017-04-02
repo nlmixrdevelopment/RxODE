@@ -47,10 +47,16 @@ for (f in tidyr.fns){
   return(do.call(getFromNamespace(\"%s\",\"tidyr\"), call, envir = parent.frame(1)));
 }\n\n",f, f, f, f, f, one, one, one, f));
 }
+as.tbls <- c("sample_n", "sample_frac");
 ## merge?
 for (f in dplyr.fns){
     ## fn <- deparse(eval(parse(text=sprintf("args(%s)", f))));
     ## one <- eval(parse(text=sprintf("attr(formals(%s)[1],\"names\")", f)))
+    if (any(f == as.tbls)){
+        one <- "tbl";
+    } else {
+        one <- ".data";
+    }
     cat(sprintf("##' @name %s
 ##' @export %s.solveRxDll
 ##'
@@ -64,7 +70,9 @@ for (f in dplyr.fns){
   call <- as.list(match.call(expand.dots=TRUE))[-1];
   call$%s <- %s(%s)
   return(do.call(getFromNamespace(\"%s\",\"dplyr\"), call, envir = parent.frame(1)));
-}\n\n",f, f, f, f, f, one, one, ifelse(one == "tbl", "dplyr::as.tbl", "asTbl"),  one, f))
+}\n\n",f, f, f, f, f, one, one, ifelse(one == "tbl", "dplyr::as.tbl",
+                                ifelse(any(f == as.tbls),
+                                       "dplyr::as.tbl", "asTbl")),  one, f))
 }
 
 for (f in c("row.names", "by", "aggregate", "anyDuplicated", "droplevels",

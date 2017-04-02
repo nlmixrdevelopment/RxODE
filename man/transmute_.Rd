@@ -5,10 +5,10 @@
 \alias{transmute_.solveRxDll}
 \title{transmute_ for \code{solveRxDll} object}
 \usage{
-\method{transmute_}{solveRxDll}(data, ...)
+\method{transmute_}{solveRxDll}(.data, ...)
 }
 \arguments{
-\item{data}{Solved equation, an \code{solveRxDll} object.}
-
 \item{...}{Additional arguments}
+
+\item{data}{Solved equation, an \code{solveRxDll} object.}
 }

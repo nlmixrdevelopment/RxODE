@@ -5,10 +5,10 @@
 \alias{select_.solveRxDll}
 \title{select_ for \code{solveRxDll} object}
 \usage{
-\method{select_}{solveRxDll}(data, ...)
+\method{select_}{solveRxDll}(.data, ...)
 }
 \arguments{
-\item{data}{Solved equation, an \code{solveRxDll} object.}
-
 \item{...}{Additional arguments}
+
+\item{data}{Solved equation, an \code{solveRxDll} object.}
 }

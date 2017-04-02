@@ -4,7 +4,7 @@
 \alias{as_data_frame.solveRxDll}
 \title{Use the as_data_frame method for solved object x}
 \usage{
-as_data_frame.solveRxDll(x)
+\method{as_data_frame}{solveRxDll}(x)
 }
 \arguments{
 \item{x}{Solved RxODE object}

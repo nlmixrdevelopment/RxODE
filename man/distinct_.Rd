@@ -5,10 +5,10 @@
 \alias{distinct_.solveRxDll}
 \title{distinct_ for \code{solveRxDll} object}
 \usage{
-\method{distinct_}{solveRxDll}(data, ...)
+\method{distinct_}{solveRxDll}(.data, ...)
 }
 \arguments{
-\item{data}{Solved equation, an \code{solveRxDll} object.}
-
 \item{...}{Additional arguments}
+
+\item{data}{Solved equation, an \code{solveRxDll} object.}
 }
