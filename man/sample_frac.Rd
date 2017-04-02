@@ -8,7 +8,10 @@
 \method{sample_frac}{solveRxDll}(tbl, ...)
 }
 \arguments{
-\item{...}{Additional arguments}
+\item{tbl}{Solved equation, an \code{solveRxDll} object.}
 
-\item{data}{Solved equation, an \code{solveRxDll} object.}
+\item{...}{Additional arguments}
+}
+\description{
+dplyr compatability layer for solveRxDll
 }

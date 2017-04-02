@@ -38,6 +38,7 @@ for (f in tidyr.fns){
 ##' @method %s solveRxDll
 ##'
 ##' @title %s for \\code{solveRxDll} object
+##' @description tidyr compatability layer for solveRxDll
 ##' @param data Solved ODE, an \\code{solveRxDll} object.
 ##' @param ... Additional arguments
 ##'
@@ -63,14 +64,15 @@ for (f in dplyr.fns){
 ##' @method %s solveRxDll
 ##'
 ##' @title %s for \\code{solveRxDll} object
-##' @param data Solved equation, an \\code{solveRxDll} object.
+##' @description dplyr compatability layer for solveRxDll
+##' @param %s Solved equation, an \\code{solveRxDll} object.
 ##' @param ... Additional arguments
 ##'
 %s.solveRxDll <- function(%s, ...){
   call <- as.list(match.call(expand.dots=TRUE))[-1];
   call$%s <- %s(%s)
   return(do.call(getFromNamespace(\"%s\",\"dplyr\"), call, envir = parent.frame(1)));
-}\n\n",f, f, f, f, f, one, one, ifelse(one == "tbl", "dplyr::as.tbl",
+}\n\n",f, f, f, f, one, f, one, one, ifelse(one == "tbl", "dplyr::as.tbl",
                                 ifelse(any(f == as.tbls),
                                        "dplyr::as.tbl", "asTbl")),  one, f))
 }

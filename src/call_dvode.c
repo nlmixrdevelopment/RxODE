@@ -856,7 +856,7 @@ void R_init_RxODE(DllInfo *info){
     {"RxODE_rxOuter_", (DL_FUNC) &RxODE_rxOuter_, 1},
     {"RxODE_rxDetaDtheta", (DL_FUNC) &RxODE_rxDetaDtheta, 1},
     {"RxODE_rxOuter", (DL_FUNC) &RxODE_rxOuter, 1},
-    {"RxODE_rxUpdateEtas", (DL_FUNC) &RxODE_rxUpdateEtas, 1},
+    {"RxODE_rxUpdateEtas", (DL_FUNC) &RxODE_rxUpdateEtas, 4},
     {"trans", (DL_FUNC) &trans, 8},
     {NULL, NULL, 0}
   };

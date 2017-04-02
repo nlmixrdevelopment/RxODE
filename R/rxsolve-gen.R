@@ -6,6 +6,7 @@
 ##' @method spread_ solveRxDll
 ##'
 ##' @title spread_ for \code{solveRxDll} object
+##' @description tidyr compatability layer for solveRxDll
 ##' @param data Solved ODE, an \code{solveRxDll} object.
 ##' @param ... Additional arguments
 ##'
@@ -21,6 +22,7 @@ spread_.solveRxDll <- function(data, ...){
 ##' @method unite_ solveRxDll
 ##'
 ##' @title unite_ for \code{solveRxDll} object
+##' @description tidyr compatability layer for solveRxDll
 ##' @param data Solved ODE, an \code{solveRxDll} object.
 ##' @param ... Additional arguments
 ##'
@@ -36,6 +38,7 @@ unite_.solveRxDll <- function(data, ...){
 ##' @method separate_ solveRxDll
 ##'
 ##' @title separate_ for \code{solveRxDll} object
+##' @description tidyr compatability layer for solveRxDll
 ##' @param data Solved ODE, an \code{solveRxDll} object.
 ##' @param ... Additional arguments
 ##'
@@ -51,6 +54,7 @@ separate_.solveRxDll <- function(data, ...){
 ##' @method gather_ solveRxDll
 ##'
 ##' @title gather_ for \code{solveRxDll} object
+##' @description tidyr compatability layer for solveRxDll
 ##' @param data Solved ODE, an \code{solveRxDll} object.
 ##' @param ... Additional arguments
 ##'
@@ -66,7 +70,8 @@ gather_.solveRxDll <- function(data, ...){
 ##' @method sample_frac solveRxDll
 ##'
 ##' @title sample_frac for \code{solveRxDll} object
-##' @param data Solved equation, an \code{solveRxDll} object.
+##' @description dplyr compatability layer for solveRxDll
+##' @param tbl Solved equation, an \code{solveRxDll} object.
 ##' @param ... Additional arguments
 ##'
 sample_frac.solveRxDll <- function(tbl, ...){
@@ -81,7 +86,8 @@ sample_frac.solveRxDll <- function(tbl, ...){
 ##' @method sample_n solveRxDll
 ##'
 ##' @title sample_n for \code{solveRxDll} object
-##' @param data Solved equation, an \code{solveRxDll} object.
+##' @description dplyr compatability layer for solveRxDll
+##' @param tbl Solved equation, an \code{solveRxDll} object.
 ##' @param ... Additional arguments
 ##'
 sample_n.solveRxDll <- function(tbl, ...){
@@ -96,7 +102,8 @@ sample_n.solveRxDll <- function(tbl, ...){
 ##' @method group_by_ solveRxDll
 ##'
 ##' @title group_by_ for \code{solveRxDll} object
-##' @param data Solved equation, an \code{solveRxDll} object.
+##' @description dplyr compatability layer for solveRxDll
+##' @param .data Solved equation, an \code{solveRxDll} object.
 ##' @param ... Additional arguments
 ##'
 group_by_.solveRxDll <- function(.data, ...){
@@ -111,7 +118,8 @@ group_by_.solveRxDll <- function(.data, ...){
 ##' @method rename_ solveRxDll
 ##'
 ##' @title rename_ for \code{solveRxDll} object
-##' @param data Solved equation, an \code{solveRxDll} object.
+##' @description dplyr compatability layer for solveRxDll
+##' @param .data Solved equation, an \code{solveRxDll} object.
 ##' @param ... Additional arguments
 ##'
 rename_.solveRxDll <- function(.data, ...){
@@ -126,7 +134,8 @@ rename_.solveRxDll <- function(.data, ...){
 ##' @method arrange_ solveRxDll
 ##'
 ##' @title arrange_ for \code{solveRxDll} object
-##' @param data Solved equation, an \code{solveRxDll} object.
+##' @description dplyr compatability layer for solveRxDll
+##' @param .data Solved equation, an \code{solveRxDll} object.
 ##' @param ... Additional arguments
 ##'
 arrange_.solveRxDll <- function(.data, ...){
@@ -141,7 +150,8 @@ arrange_.solveRxDll <- function(.data, ...){
 ##' @method summarise_ solveRxDll
 ##'
 ##' @title summarise_ for \code{solveRxDll} object
-##' @param data Solved equation, an \code{solveRxDll} object.
+##' @description dplyr compatability layer for solveRxDll
+##' @param .data Solved equation, an \code{solveRxDll} object.
 ##' @param ... Additional arguments
 ##'
 summarise_.solveRxDll <- function(.data, ...){
@@ -156,7 +166,8 @@ summarise_.solveRxDll <- function(.data, ...){
 ##' @method transmute_ solveRxDll
 ##'
 ##' @title transmute_ for \code{solveRxDll} object
-##' @param data Solved equation, an \code{solveRxDll} object.
+##' @description dplyr compatability layer for solveRxDll
+##' @param .data Solved equation, an \code{solveRxDll} object.
 ##' @param ... Additional arguments
 ##'
 transmute_.solveRxDll <- function(.data, ...){
@@ -171,7 +182,8 @@ transmute_.solveRxDll <- function(.data, ...){
 ##' @method mutate_ solveRxDll
 ##'
 ##' @title mutate_ for \code{solveRxDll} object
-##' @param data Solved equation, an \code{solveRxDll} object.
+##' @description dplyr compatability layer for solveRxDll
+##' @param .data Solved equation, an \code{solveRxDll} object.
 ##' @param ... Additional arguments
 ##'
 mutate_.solveRxDll <- function(.data, ...){
@@ -186,7 +198,8 @@ mutate_.solveRxDll <- function(.data, ...){
 ##' @method distinct_ solveRxDll
 ##'
 ##' @title distinct_ for \code{solveRxDll} object
-##' @param data Solved equation, an \code{solveRxDll} object.
+##' @description dplyr compatability layer for solveRxDll
+##' @param .data Solved equation, an \code{solveRxDll} object.
 ##' @param ... Additional arguments
 ##'
 distinct_.solveRxDll <- function(.data, ...){
@@ -201,7 +214,8 @@ distinct_.solveRxDll <- function(.data, ...){
 ##' @method rename_ solveRxDll
 ##'
 ##' @title rename_ for \code{solveRxDll} object
-##' @param data Solved equation, an \code{solveRxDll} object.
+##' @description dplyr compatability layer for solveRxDll
+##' @param .data Solved equation, an \code{solveRxDll} object.
 ##' @param ... Additional arguments
 ##'
 rename_.solveRxDll <- function(.data, ...){
@@ -216,7 +230,8 @@ rename_.solveRxDll <- function(.data, ...){
 ##' @method select_ solveRxDll
 ##'
 ##' @title select_ for \code{solveRxDll} object
-##' @param data Solved equation, an \code{solveRxDll} object.
+##' @description dplyr compatability layer for solveRxDll
+##' @param .data Solved equation, an \code{solveRxDll} object.
 ##' @param ... Additional arguments
 ##'
 select_.solveRxDll <- function(.data, ...){
@@ -231,7 +246,8 @@ select_.solveRxDll <- function(.data, ...){
 ##' @method arrange_ solveRxDll
 ##'
 ##' @title arrange_ for \code{solveRxDll} object
-##' @param data Solved equation, an \code{solveRxDll} object.
+##' @description dplyr compatability layer for solveRxDll
+##' @param .data Solved equation, an \code{solveRxDll} object.
 ##' @param ... Additional arguments
 ##'
 arrange_.solveRxDll <- function(.data, ...){
@@ -246,7 +262,8 @@ arrange_.solveRxDll <- function(.data, ...){
 ##' @method slice_ solveRxDll
 ##'
 ##' @title slice_ for \code{solveRxDll} object
-##' @param data Solved equation, an \code{solveRxDll} object.
+##' @description dplyr compatability layer for solveRxDll
+##' @param .data Solved equation, an \code{solveRxDll} object.
 ##' @param ... Additional arguments
 ##'
 slice_.solveRxDll <- function(.data, ...){
@@ -261,7 +278,8 @@ slice_.solveRxDll <- function(.data, ...){
 ##' @method filter_ solveRxDll
 ##'
 ##' @title filter_ for \code{solveRxDll} object
-##' @param data Solved equation, an \code{solveRxDll} object.
+##' @description dplyr compatability layer for solveRxDll
+##' @param .data Solved equation, an \code{solveRxDll} object.
 ##' @param ... Additional arguments
 ##'
 filter_.solveRxDll <- function(.data, ...){

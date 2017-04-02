@@ -134,8 +134,15 @@ plot(mod1);
 ```
 
 ```
-## Package igraph needed for this function to work. Please install it.
+##                              C2                              C3 
+##                      "centr/V2"                       "peri/V3" 
+##                     d/dt(depot)                     d/dt(centr) 
+##                     "-KA*depot"      "KA*depot-CL*C2-Q*C2+Q*C3" 
+##                      d/dt(peri)                       d/dt(eff) 
+##                     "Q*C2-Q*C3" "Kin-Kout*(1-C2/(EC50+C2))*eff"
 ```
+
+![plot of chunk unnamed-chunk-3](vignettes/figure/unnamed-chunk-3-1.png)
 
 Sometimes the size of the boxes may need to be adjusted, you can do
 this by adjusting the `size` argument:
@@ -145,8 +152,15 @@ plot(mod1,size=40);
 ```
 
 ```
-## Package igraph needed for this function to work. Please install it.
+##                              C2                              C3 
+##                      "centr/V2"                       "peri/V3" 
+##                     d/dt(depot)                     d/dt(centr) 
+##                     "-KA*depot"      "KA*depot-CL*C2-Q*C2+Q*C3" 
+##                      d/dt(peri)                       d/dt(eff) 
+##                     "Q*C2-Q*C3" "Kin-Kout*(1-C2/(EC50+C2))*eff"
 ```
+
+![plot of chunk unnamed-chunk-4](vignettes/figure/unnamed-chunk-4-1.png)
 
 Model parameters can be defined as named vectors. Names of parameters in
 the vector must be a superset of parameters in the ODE model, and the
@@ -326,12 +340,12 @@ head(theta.all)
 
 ```
 ##         KA       CL   V2    Q  V3 Kin Kout EC50
-## [1,] 0.294 19.79712 40.2 10.5 297   1    1  200
-## [2,] 0.294 16.84010 40.2 10.5 297   1    1  200
-## [3,] 0.294 13.05028 40.2 10.5 297   1    1  200
-## [4,] 0.294 22.26800 40.2 10.5 297   1    1  200
-## [5,] 0.294 18.46676 40.2 10.5 297   1    1  200
-## [6,] 0.294 18.55188 40.2 10.5 297   1    1  200
+## [1,] 0.294 16.82606 40.2 10.5 297   1    1  200
+## [2,] 0.294 19.15463 40.2 10.5 297   1    1  200
+## [3,] 0.294 16.27225 40.2 10.5 297   1    1  200
+## [4,] 0.294 24.00847 40.2 10.5 297   1    1  200
+## [5,] 0.294 19.60693 40.2 10.5 297   1    1  200
+## [6,] 0.294 16.31177 40.2 10.5 297   1    1  200
 ```
 
 Each subproblem can be simulated by using an explicit loop (or the `apply()`

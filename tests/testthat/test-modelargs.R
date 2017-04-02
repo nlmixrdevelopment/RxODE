@@ -11,15 +11,16 @@ rxPermissive({
         expect_equal(rxModelVars(ode)$md5["parsed_md5"], rxModelVars(ode2)$md5["parsed_md5"])
     })
 
-    if (file.exists("temp.rx"))
-        unlink("temp.rx");
+    tmp <- tempfile(fileext=".rx");
 
-    sink("temp.rx")
+    sink(tmp)
     cat('d/dt(y) = r * y * (1 - y/K);\n');
     sink()
-    Sys.sleep(1);
-    ode3 <- RxODE('temp.rx');
-    unlink("temp.rx");
+    while (!file.exists(tmp)){
+        Sys.sleep(1)
+    }
+    ode3 <- RxODE(tmp);
+    unlink(tmp);
 
     test_that("file and string returns the same result", {
         expect_equal(rxModelVars(ode)$md5["parsed_md5"], rxModelVars(ode3)$md5["parsed_md5"])
@@ -44,7 +45,8 @@ rxPermissive({
         d/dt(eff)  = Kin - Kout*(1-C2/(EC50+C2))*eff;
     })
 
-    sink("temp.rx")
+    tmp <- tempfile(fileext=".rx");
+    sink(tmp)
     cat('
          C2 = centr/V2;
          C3 = peri/V3;
@@ -53,8 +55,11 @@ rxPermissive({
          d/dt(peri)  =                    Q*C2 - Q*C3;
          d/dt(eff)  = Kin - Kout*(1-C2/(EC50+C2))*eff;');
     sink();
-    ode3 <- RxODE('temp.rx');
-    unlink("temp.rx");
+    while (!file.exists(tmp)){
+        Sys.sleep(1)
+    }
+    ode3 <- RxODE(tmp);
+    unlink(tmp);
 
     test_that("string and expression returns the same result", {
         expect_equal(rxModelVars(ode)$md5["parsed_md5"], rxModelVars(ode2)$md5["parsed_md5"])
