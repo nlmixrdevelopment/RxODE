@@ -1,6 +1,7 @@
 language: r
 cache: packages
-script: -|
+script:
+  - |
   R CMD build .
   travis_wait 20 R CMD check RxODE*tar.gz
   
@@ -25,6 +26,9 @@ matrix:
 r_github_packages:
   - jimhester/covr
   - nlmixrdevelopment/dparser-R
+  
+after_failure:
+- find *Rcheck -name '*.fail' -print -exec cat '{}' \;
 
 after_success:
   - travis_wait 20 Rscript -e 'covr::codecov()'
