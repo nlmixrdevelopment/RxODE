@@ -193,6 +193,7 @@ rxSympyStart <- function(){
             if (!exists(".Jython", .GlobalEnv)){
                 rSymPy::sympyStart()
                 .rxSymPy$started <- "rSymPy";
+                try({.Jython$exec("import gc");});
             }
         }
     }
