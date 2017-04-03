@@ -1,10 +1,7 @@
 language: r
+
 cache: packages
-script:
-  - |
-  R CMD build .
-  travis_wait 20 R CMD check RxODE*tar.gz
-  
+
 r:
   - 3.2
   - 3.3
@@ -27,6 +24,11 @@ r_github_packages:
   - jimhester/covr
   - nlmixrdevelopment/dparser-R
   
+script: 
+  - |
+    R CMD build .
+    travis_wait 40 R CMD check RxODE*tar.gz
+    
 after_failure:
 - find *Rcheck -name '*.fail' -print -exec cat '{}' \;
 
