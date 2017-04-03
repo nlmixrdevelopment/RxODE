@@ -17,25 +17,31 @@ environment:
    _R_CHECK_FORCE_SUGGESTS_: false
    
   matrix:
-  - R_VERSION: devel
+  - PATH: C:\Python27;%PATH%
+    R_VERSION: devel
     GCC_PATH: mingw_32
 
-  - R_VERSION: devel
+  - PATH: C:\Python27;%PATH%
+    R_VERSION: devel
     R_ARCH: x64
     GCC_PATH: mingw_64
 
-  - R_VERSION: release
+  - PATH: C:\Python27;%PATH%;
+    R_VERSION: release
     R_ARCH: x64
 
-  - R_VERSION: stable
+  - PATH: C:\Python27;%PATH%
+    R_VERSION: stable
 
-  - R_VERSION: oldrel
+  - PATH: C:\Python27;%PATH%
+    R_VERSION: oldrel
     RTOOLS_VERSION: 32
     CRAN: http://cran.rstudio.com
 
 build_script:
   - travis-tool.sh install_deps
   - travis-tool.sh install_github nlmixrdevelopment/dparser-R
+  - travis-tool.sh install_github asieira/SnakeCharmR
 
 test_script:
   - travis-tool.sh run_tests
