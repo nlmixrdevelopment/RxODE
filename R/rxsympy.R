@@ -150,27 +150,29 @@ rxSympyStart <- function(){
     }
     if (is.null(.rxSymPy$started)){
         if (requireNamespace("SnakeCharmR", quietly = TRUE)){
-            SnakeCharmR::py.exec("import sys");
-            SnakeCharmR::py.exec("import gc");
+            try({
+                SnakeCharmR::py.exec("import sys");
+                SnakeCharmR::py.exec("import gc");
 
-            ## SnakeCharmR::py.exec( paste( "sys.path.append(", system.file( "Lib", package = "rSymPy" ), ")", sep = '"' ) )
-            tryCatch({
-                SnakeCharmR::py.exec("from sympy import *")
-            }, error=function(e){
+                ## SnakeCharmR::py.exec( paste( "sys.path.append(", system.file( "Lib", package = "rSymPy" ), ")", sep = '"' ) )
                 tryCatch({
-                    system("python -m pip install sympy");
-                    SnakeCharmR::py.exec("from sympy import *");
+                    SnakeCharmR::py.exec("from sympy import *")
                 }, error=function(e){
-                    if (requireNamespace("rSymPy", quietly = TRUE)){
-                        SnakeCharmR::py.exec( paste( "sys.path.append(", system.file( "Lib", package = "rSymPy" ), ")", sep = '"' ) )
-                        SnakeCharmR::py.exec("from sympy import *")
-                    } else {
-                        stop("Could not install sympy.  Please install it in python manually.");
-                    }
-                })
+                    tryCatch({
+                        system("python -m pip install sympy");
+                        SnakeCharmR::py.exec("from sympy import *");
+                    }, error=function(e){
+                        if (requireNamespace("rSymPy", quietly = TRUE)){
+                            SnakeCharmR::py.exec( paste( "sys.path.append(", system.file( "Lib", package = "rSymPy" ), ")", sep = '"' ) )
+                            SnakeCharmR::py.exec("from sympy import *")
+                        } else {
+                            stop("Could not install sympy.  Please install it in python manually.");
+                        }
+                    })
 
+                })
+                .rxSymPy$started <- "SnakeCharmR";
             })
-            .rxSymPy$started <- "SnakeCharmR";
         }
     }
     ## if (is.null(.rxSymPy$started)){
@@ -186,8 +188,8 @@ rxSympyStart <- function(){
     ##         }
     ##     }
     ## }
-    if (requireNamespace("rSymPy", quietly = TRUE)){
-        if (is.null(.rxSymPy$started)){
+    if (is.null(.rxSymPy$started)){
+        if (requireNamespace("rSymPy", quietly = TRUE)){
             if (!exists(".Jython", .GlobalEnv)){
                 rSymPy::sympyStart()
                 .rxSymPy$started <- "rSymPy";
