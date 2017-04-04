@@ -148,33 +148,33 @@ rxSympyStart <- function(){
         assignInMyNamespace(".rxSymPy", new.env(parent = emptyenv()))
         .rxSymPy$started <- NULL;
     }
-    if (is.null(.rxSymPy$started)){
-        if (requireNamespace("SnakeCharmR", quietly = TRUE)){
-            try({
-                SnakeCharmR::py.exec("import sys");
-                SnakeCharmR::py.exec("import gc");
-
-                ## SnakeCharmR::py.exec( paste( "sys.path.append(", system.file( "Lib", package = "rSymPy" ), ")", sep = '"' ) )
-                tryCatch({
-                    SnakeCharmR::py.exec("from sympy import *")
-                }, error=function(e){
+    try({
+        if (is.null(.rxSymPy$started)){
+            if (requireNamespace("SnakeCharmR", quietly = TRUE)){
+                try({
+                    SnakeCharmR::py.exec("import sys");
+                    SnakeCharmR::py.exec("import gc");
                     tryCatch({
-                        system("python -m pip install sympy");
-                        SnakeCharmR::py.exec("from sympy import *");
+                        SnakeCharmR::py.exec("from sympy import *")
                     }, error=function(e){
-                        if (requireNamespace("rSymPy", quietly = TRUE)){
-                            SnakeCharmR::py.exec( paste( "sys.path.append(", system.file( "Lib", package = "rSymPy" ), ")", sep = '"' ) )
-                            SnakeCharmR::py.exec("from sympy import *")
-                        } else {
-                            stop("Could not install sympy.  Please install it in python manually.");
-                        }
-                    })
+                        tryCatch({
+                            system("python -m pip install sympy");
+                            SnakeCharmR::py.exec("from sympy import *");
+                        }, error=function(e){
+                            if (requireNamespace("rSymPy", quietly = TRUE)){
+                                SnakeCharmR::py.exec( paste( "sys.path.append(", system.file( "Lib", package = "rSymPy" ), ")", sep = '"' ) )
+                                SnakeCharmR::py.exec("from sympy import *")
+                            } else {
+                                stop("Could not install sympy.  Please install it in python manually.");
+                            }
+                        })
 
+                    })
+                    .rxSymPy$started <- "SnakeCharmR";
                 })
-                .rxSymPy$started <- "SnakeCharmR";
-            })
+            }
         }
-    }
+    })
     ## if (is.null(.rxSymPy$started)){
     ##     if (requireNamespace("PythonInR", quietly = TRUE)) {
     ##         if(PythonInR::pyIsConnected()) {
@@ -1147,11 +1147,9 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                 } else {
                     rxCat(sprintf("Great! This model has created for FOCEI%s!\nIt will be cached for future runs.\n", ifelse(grad, "(with Gradient)")))
                 }
-
                 if (ret$warn){
                     warning("Some of your prediction function does not depend on the state varibles.");
                 }
-
                 return(ret);
             } else {
                 return(RxODE(paste0(base, "\n", pred, "\n", err)));
