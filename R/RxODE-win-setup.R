@@ -96,7 +96,7 @@ rxWinPythonSetup <- function(){
         }
     }
     if (!requireNamespace("SnakeCharmR", quietly = TRUE)){
-        devtools::install_github("mattfidler/SnakeCharmR");
+        devtools::install_github("asieira/SnakeCharmR");
     }
 }
 ##' Setup Windows components for RxODE
