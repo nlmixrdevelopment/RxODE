@@ -10,7 +10,7 @@ r:
 os:
   - linux
   - osx
-
+  
 matrix:
   exclude:
   allow_failures:
@@ -36,4 +36,4 @@ after_failure:
 - find *Rcheck -name '*.fail' -print -exec cat '{}' \;
 
 after_success:
-  - travis_wait 20 Rscript -e 'covr::codecov()'
+  - travis_wait 20 Rscript -e 'covr::codecov(line_exclusions=c("R/RxODE-win-setup.R", "src/errmsg.f", "src/rprint.c"))'
