@@ -81,3 +81,7 @@ rxUpdateEtas <- function(DnDhS, DhS, initS, acceptNS) {
     .Call('RxODE_rxUpdateEtas', PACKAGE = 'RxODE', DnDhS, DhS, initS, acceptNS)
 }
 
+getMacroConstants <- function(rho) {
+    invisible(.Call('RxODE_getMacroConstants', PACKAGE = 'RxODE', rho))
+}
+

@@ -151,3 +151,13 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// getMacroConstants
+void getMacroConstants(SEXP rho);
+RcppExport SEXP RxODE_getMacroConstants(SEXP rhoSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type rho(rhoSEXP);
+    getMacroConstants(rho);
+    return R_NilValue;
+END_RCPP
+}
