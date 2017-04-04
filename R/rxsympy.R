@@ -1145,7 +1145,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                 if (requireNamespace("SnakeCharmR", quietly = TRUE)){
                     rxCat(sprintf(praise::praise("${Exclamation}! This model has ${created} for FOCEI%s!\nIt will be cached for future runs.\n"), ifelse(grad, "(with Gradient)")))
                 } else {
-                    rxCat(sprintf(praise::praise("Great! This model has created for FOCEI%s!\nIt will be cached for future runs.\n"), ifelse(grad, "(with Gradient)")))
+                    rxCat(sprintf("Great! This model has created for FOCEI%s!\nIt will be cached for future runs.\n", ifelse(grad, "(with Gradient)")))
                 }
 
                 if (ret$warn){
