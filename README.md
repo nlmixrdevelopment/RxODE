@@ -1,5 +1,5 @@
 [![Build Status](https://travis-ci.org/nlmixrdevelopment/RxODE.svg?branch=master)](https://travis-ci.org/nlmixrdevelopment/RxODE)
-[![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/mattfidler/RxODE?branch=master&svg=true)](https://ci.appveyor.com/project/mattfidler/RxODE)
+[![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/8vv1e3hncve9tnva?svg=true)](https://ci.appveyor.com/project/mattfidler/RxODE)
 [![codecov.io](https://codecov.io/github/nlmixrdevelopment/RxODE/coverage.svg?branch=master)](https://codecov.io/github/nlmixrdevelopment/RxODE?branch=master)
 [![CRAN version](http://www.r-pkg.org/badges/version/RxODE)](https://cran.r-project.org/package=RxODE)
 
