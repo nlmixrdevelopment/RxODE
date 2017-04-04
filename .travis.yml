@@ -18,7 +18,10 @@ matrix:
     os: linux
   - r: devel
     os: osx
-
+  - r: 3.3
+    os: osx
+  - r: 3.2
+    os: osx
 
 r_github_packages:
   - jimhester/covr
