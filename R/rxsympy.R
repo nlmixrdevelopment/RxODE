@@ -951,13 +951,14 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
             sh <- "system"   # windows's default shell COMSPEC does not handle UNC paths
             cmd <- sprintf("%s/bin/Rscript %s",
                            Sys.getenv("R_HOME"), deparse(rfile));
-            cmd.out <- suppressWarnings(system(cmd, ignore.stdout=!getOption("RxODE.verbose", TRUE),
-                                               ignore.stderr=!getOption("RxODE.verbose", TRUE)));
-            if (cmd.out == 1L){
-                stop("Error setting up function (see above)");
-            }
+            suppressWarnings(system(cmd, ignore.stdout=!getOption("RxODE.verbose", TRUE),
+                                    ignore.stderr=!getOption("RxODE.verbose", TRUE)));
             if (file.exists(cache.file)){
                 load(file=cache.file);
+                rxLoad(ret$inner);
+                if (!is.null(ret$outer)){
+                    rxLoad(ret$outer);
+                }
                 if (any(names(ret) == "warn")){
                     if (ret$warn){
                         warning("Some of your prediction function does not depend on the state varibles.");
