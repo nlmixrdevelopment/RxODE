@@ -31,5 +31,9 @@ rxPermissive({
                      "c7cffaa650a47e2b28e4cba99c603dde")
     })
 
+    theta <- RxODE({
+        a = cos(theta)
+    })
+
 
 }, silent=TRUE)

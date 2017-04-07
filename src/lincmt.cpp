@@ -81,32 +81,18 @@ void getMacroConstants(SEXP rho){
     stop("Cannot figure out the parameterization for the linear compartments.");
   }
   mat g = mat(ncmt, 2);
-  mat dKa = mat(ncmt, 2);
-  mat dV  = mat(ncmt, 2);
-  mat dK  = mat(ncmt, 2);
   if (ncmt == 1){
     alpha = k;
     A = 1.0/volume;
     g(0, 0) = alpha;
-    // Derivs
-    dKa(0, 0) = 0;
-    dV(0, 0) = 0;
-    dK(0, 0) = 1;
-    dK(0, 1) = 0;
     if (oral == 1){
       g(0, 1) = ka / (ka - alpha) * A;
-      // Derivs
-      dKa(0, 1) = -A*ka/R_pow(-alpha + ka, 2) + A/(-alpha + ka);
-      dV(0, 1) = ka/(volume*volume*(alpha - ka));
     } else {
       g(0, 1) = A;
-      //Derivs
-      dKa(0, 1) = 0;
-      dV(0, 1) = -1.0/(volume*volume);
     }
-    e["dKa"] = dKa;
-    e["dV"] = dV;
-    e["dK"] = dK;
+    if (parameterization == 1){
+      k  = as<double>(e["CL"]) / volume;  // ke = CL/V or CL=ke*V
+    }
     e["alpha"] = alpha;
     e["A"] = A;
   } else if (ncmt == 2) {
@@ -118,20 +104,17 @@ void getMacroConstants(SEXP rho){
     
     g(0,0) = alpha;
     g(1,0) = beta;
-    
     if (oral==1) {
       g(0,1) = ka / (ka - alpha) * A;
       g(1,1) = ka / (ka - beta) * B;
-    } else {
+    } else { // IV
       g(0,1) = A;
       g(1,1) = B;
     }
-
     e["alpha"] = alpha;
     e["A"] = A;
     e["beta"] = beta;
     e["B"] = B;
-    
   } else if (ncmt == 3){
     a0      = k * k21 * k31;
     a1      = k * k31 + k21 * k31 + k21 * k13 + k * k21 + k31 * k12;

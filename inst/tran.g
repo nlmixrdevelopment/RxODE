@@ -45,8 +45,8 @@ ini        : identifier_r ('=' | '<-') ini_const;
 
 derivative : 'd/dt' '(' identifier_r_no_output ')' ('=' | '<-') additive_expression;
 der_rhs    : 'd/dt' '(' identifier_r_no_output ')';
-jac        : jac_command '(' identifier_r_no_output ',' (theta_noout | eta_noout | identifier_r_no_output) ')' ('=' | '<-') additive_expression;
-jac_rhs    : jac_command '(' identifier_r_no_output ',' (theta_noout | eta_noout | identifier_r_no_output) ')';
+jac        : jac_command '(' identifier_r_no_output ',' (theta0_noout | theta_noout | eta_noout | identifier_r_no_output) ')' ('=' | '<-') additive_expression;
+jac_rhs    : jac_command '(' identifier_r_no_output ',' (theta0_noout | theta_noout | eta_noout | identifier_r_no_output) ')';
 
 // transit(n,mtt) -> transit3(t,n,mtt)
 transit2   : 'transit' '(' trans_const ',' trans_const ')';
@@ -54,8 +54,8 @@ transit2   : 'transit' '(' trans_const ',' trans_const ')';
 // transit(n,mtt, bio) -> transit4(t,n,mtt,bio)
 transit3   : 'transit' '(' trans_const ',' trans_const ',' trans_const ')';
 
-dfdy        : 'df' '(' identifier_r_no_output ')/dy(' (theta_noout | eta_noout | identifier_r_no_output) ')' ('=' | '<-') additive_expression;
-dfdy_rhs    : 'df' '(' identifier_r_no_output ')/dy(' (theta_noout | eta_noout | identifier_r_no_output) ')';
+dfdy        : 'df' '(' identifier_r_no_output ')/dy(' (theta0_noout | theta_noout | eta_noout | identifier_r_no_output) ')' ('=' | '<-') additive_expression;
+dfdy_rhs    : 'df' '(' identifier_r_no_output ')/dy(' (theta0_noout | theta_noout | eta_noout | identifier_r_no_output) ')';
 
 jac_command : 'jac' | 'df/dy';
 
@@ -87,7 +87,7 @@ multiplicative_expression : unary_expression
 
 mult_part : ('*' | '/') unary_expression ;
 
-unary_expression : ('+' | '-')? (theta | eta | primary_expression | power_expression );
+unary_expression : ('+' | '-')? (theta0 | theta | eta | primary_expression | power_expression );
 
 power_expression : primary_expression power_operator primary_expression ;
 
@@ -96,6 +96,7 @@ power_operator   : ('^' | '**');
 primary_expression 
   : constant
   | identifier_r
+  | theta0
   | theta
   | eta
   | der_rhs
@@ -130,9 +131,11 @@ identifier_r_no_output: identifier_r_no_output_1 | identifier_r_no_output_2;
 
 theta: ('THETA' | 'theta') '[' decimalint ']';
 eta: ('ETA' | 'eta') '[' decimalint ']';
+theta0: ('THETA' | 'theta' | 'ETA' | 'eta');
 
 theta_noout: ('THETA' | 'theta') '[' decimalint ']';
 eta_noout: ('ETA' | 'eta') '[' decimalint ']';
+theta0_noout: ('THETA' | 'theta' | 'ETA' | 'eta');
 
 
 decimalint: "0|([1-9][0-9]*)" $term -1;

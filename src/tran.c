@@ -303,7 +303,6 @@ void wprint_node(int depth, char *name, char *value, void *client_data) {
     sprintf(SBTPTR, "tlast");
     sb.o  += 7;
     sbt.o += 5;
-    
   } else if (!strcmp("identifier",name) && !strcmp("gamma",value)){
     sprintf(SBPTR, "lgammafn");
     sb.o += 8;
@@ -346,7 +345,9 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
   char *value = (char*)rc_dup_str(pn->start_loc.s, pn->end);
   char buf[512];
   if ((!strcmp("identifier", name) || !strcmp("identifier_r", name) ||
-       !strcmp("identifier_r_no_output",name)) &&
+       !strcmp("identifier_r_no_output",name) || !strcmp("theta_noout", name) ||
+       !strcmp("theta0_noout", name) || !strcmp("eta_noout", name) ||
+       !strcmp("theta0", name) || !strcmp("theta", name) || !strcmp("eta", name)) &&
       new_or_ith(value)) {
     /* printf("[%d]->%s\n",tb.nv,value); */
     sprintf(tb.ss+tb.pos, "%s,", value);
@@ -365,6 +366,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
   if (!strcmp("identifier", name) ||
       !strcmp("identifier_r", name) ||
       !strcmp("constant", name) ||
+      !strcmp("theta0", name) ||
       !strcmp("+", name) ||
       !strcmp("-", name) ||
       !strcmp("*", name) ||
