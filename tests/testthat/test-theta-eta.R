@@ -35,5 +35,14 @@ rxPermissive({
         a = cos(theta)
     })
 
+    eta <- RxODE({
+        a = cos(eta)
+    })
+
+    test_that("theta/eta only parsing works", {
+        expect_equal(class(theta), "RxODE")
+        expect_equal(class(eta), "RxODE")
+    })
+
 
 }, silent=TRUE)

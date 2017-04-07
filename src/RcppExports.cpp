@@ -161,3 +161,13 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
+// getLinDerivs
+void getLinDerivs(SEXP rho);
+RcppExport SEXP RxODE_getLinDerivs(SEXP rhoSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type rho(rhoSEXP);
+    getLinDerivs(rho);
+    return R_NilValue;
+END_RCPP
+}

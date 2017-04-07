@@ -218,3 +218,335 @@ create.syminv.cache <- function(n=1, xforms=c("sqrt", "log", "identity")){
 ## create.syminv.cache(3);
 
 ## create.syminv.cache(4);
+
+## cpp code
+
+if (Sys.getenv("RxODE_derivs") == "TRUE"){
+
+    cat("Generating deriatives for solved linear models:");
+    i <- 0;
+    cur.par <- 1;
+    create.cpp.code <- function(model){
+        rxSymPySetup(model);
+        p <- rxParams(model);
+        lhs <- rxLhs(model);
+        lhs <- lhs[regexpr(rex::rex(or("alpha", "beta", "gamma", "A", "B", "C")), lhs) != -1]
+        ncmt <- length(lhs) / 2;
+        ks <- c("alpha", "beta", "gamma");
+        cfs <- c("A", "B", "C");
+        up <- gsub("K21P", "K21", gsub("BETAP", "BETA", gsub("ALPHAP", "ALPHA", toupper(p))));
+        lines <- c();
+        lines[length(lines) + 1] <- sprintf("if (par == %s && ncmt == %s && oral == %s){\n", cur.par, ncmt, ifelse(any(up == "KA"), "1", "0"));
+        lines[length(lines) + 1] <- sprintf("  if (%s){\n", paste(sprintf("e.exists(\"%s\")", up), collapse=" && "));
+        lines[length(lines) + 1] <- paste0(paste(sprintf("    double %s = as<double>(e[\"%s\"]);", p, up), collapse="\n"), "\n");
+        lines[length(lines) + 1] <- paste0(paste(sprintf("    mat d%s = mat(%s, 2);", up, ncmt), collapse="\n"), "\n");
+        for (curP in p){
+            for (curL in lhs){
+                cat(".")
+                i <<- i + 1;
+                if (i %% 5 == 0){
+                    cat(i)
+                }
+                if (i %% 50 == 0){
+                    cat("\n");
+                }
+                tmp <- rxSymPy(sprintf("diff(%s, %s)", curL, curP))
+                if (any(curL == ks)){
+                    par <- sprintf("(%s, 0)", which(curL == ks) - 1);
+                } else {
+                    par <- sprintf("(%s, 1)", which(curL == cfs) - 1)
+                }
+                tmp <- sprintf("    d%s%s = %s;", gsub("K21P", "K21", gsub("BETAP", "BETA", gsub("ALPHAP", "ALPHA", toupper(curP)))), par, sympyC(tmp));
+                lines[length(lines) + 1] <- paste0(tmp, "\n");
+            }
+        }
+        lines[length(lines) + 1] <- paste0(paste(sprintf("    e[\"d%s\"] = d%s;", up, up), collapse="\n"), "\n");
+        lines[length(lines) + 1] <- paste0(sprintf("  } else {\n    stop(\"Some required parameters not in environment (need %s)\");\n  }\n}\n",
+                                                   paste(up, collapse=", ")));
+        rxSymPyClean();
+        return(lines);
+    }
+
+    cpp <- c()
+
+    lin.1cmt.p1.oral <- RxODE({
+        volume = V
+        k = CL / volume
+        alpha = k;
+        A = ka / (ka - alpha)/volume;
+    })
+
+    cpp <- c(cpp, create.cpp.code(lin.1cmt.p1.oral))
+
+    lin.1cmt.p1 <- RxODE({
+        volume = V
+        k = CL / volume
+        alpha = k;
+        A = 1.0/volume;
+    })
+
+    cpp <- c(cpp, create.cpp.code(lin.1cmt.p1))
+
+    lin.2cmt.p1 <- RxODE({
+        volume = V
+        k = CL / volume
+        k12 = Q / volume
+        k21 = Q / V2
+        beta  = 0.5 * (k12 + k21 + k - sqrt((k12 + k21 + k) * (k12 + k21 + k) - 4.0 * k21 * k));
+        alpha = k21 * k / beta;
+        A     = (alpha - k21) / (alpha - beta) / volume;
+        B     = (beta - k21) / (beta - alpha) / volume;
+    })
+
+    cpp <- c(cpp, create.cpp.code(lin.2cmt.p1));
+
+    lin.2cmt.p1.oral <- RxODE({
+        volume = V
+        k = CL / volume
+        k12 = Q / volume
+        k21 = Q / V2
+        beta  = 0.5 * (k12 + k21 + k - sqrt((k12 + k21 + k) * (k12 + k21 + k) - 4.0 * k21 * k));
+        alpha = k21 * k / beta;
+        A     = ka / (ka - alpha) * (alpha - k21) / (alpha - beta) / volume;
+        B     = ka / (ka - beta) * (beta - k21) / (beta - alpha) / volume;
+    })
+
+    cpp <- c(cpp, create.cpp.code(lin.2cmt.p1.oral));
+
+
+    ## Fixme 3 cmt returns zoo :(
+    lin.3cmt.p1 <- RxODE({
+        volume = V
+        k = CL / volume
+        k12 = Q / volume
+        k21 = Q / V2
+        k13     = Q2 / volume
+        k31     = Q2 / V3
+        a0      = k * k21 * k31;
+        a1      = k * k31 + k21 * k31 + k21 * k13 + k * k21 + k31 * k12;
+        a2      = k + k12 + k13 + k21 + k31;
+        pp       = a1 - a2 * a2 / 3.0;
+        q       = 2.0 * a2 * a2 * a2 / 27.0 - a1 * a2 /3.0 + a0;
+        r1      = sqrt(-pp * pp * pp / 27.0);
+        r2      = 2 * r1 ^ (1.0 / 3.0);
+        th   = acos(-q / (2.0 * r1)) / 3
+        alpha   = -(cos(th) * r2 - a2 / 3.0);
+        beta    = -(cos(th + 2.0 / 3.0 * pi) * r2 - a2 / 3.0);
+        gamma   = -(cos(th + 4.0 / 3.0 * pi) * r2 - a2 / 3.0);
+        A       = (k21 - alpha) * (k31 - alpha) / (alpha - beta) / (alpha - gamma) / volume;
+        B       = (k21 - beta) * (k31 - beta) / (beta - alpha) / (beta - gamma) / volume;
+        C       = (k21 - gamma) * (k31 - gamma) / (gamma - alpha) / (gamma - beta) / volume;
+    })
+
+    ## p and theta do not seem to work with sympy.
+    cpp <- c(cpp, create.cpp.code(lin.3cmt.p1));
+
+    lin.3cmt.p1.oral <- RxODE({
+        volume = V
+        k = CL / volume
+        k12 = Q / volume
+        k21 = Q / V2
+        k13     = Q2 / volume
+        k31     = Q2 / V3
+        a0      = k * k21 * k31;
+        a1      = k * k31 + k21 * k31 + k21 * k13 + k * k21 + k31 * k12;
+        a2      = k + k12 + k13 + k21 + k31;
+        pp       = a1 - a2 * a2 / 3.0;
+        q       = 2.0 * a2 * a2 * a2 / 27.0 - a1 * a2 /3.0 + a0;
+        r1      = sqrt(-pp * pp * pp / 27.0);
+        r2      = 2 * r1 ^ (1.0 / 3.0);
+        th   = acos(-q / (2.0 * r1)) / 3
+        alpha   = -(cos(th) * r2 - a2 / 3.0);
+        beta    = -(cos(th + 2.0 / 3.0 * pi) * r2 - a2 / 3.0);
+        gamma   = -(cos(th + 4.0 / 3.0 * pi) * r2 - a2 / 3.0);
+        A       = ka / (ka - alpha) * (k21 - alpha) * (k31 - alpha) / (alpha - beta) / (alpha - gamma) / volume;
+        B       = ka / (ka - beta) * (k21 - beta) * (k31 - beta) / (beta - alpha) / (beta - gamma) / volume;
+        C       = ka / (ka - gamma) * (k21 - gamma) * (k31 - gamma) / (gamma - alpha) / (gamma - beta) / volume;
+    })
+    cpp <- c(cpp, create.cpp.code(lin.3cmt.p1.oral));
+
+    ## parameterization #2
+    cur.par <- 2;
+
+    lin.1cmt.p2.oral <- RxODE({
+        volume = V
+        alpha = k;
+        A = ka / (ka - alpha)/volume;
+    })
+
+    cpp <- c(cpp, create.cpp.code(lin.1cmt.p2.oral))
+
+    lin.1cmt.p2 <- RxODE({
+        volume = V
+        alpha = k;
+        A = 1.0/volume;
+    })
+
+    cpp <- c(cpp, create.cpp.code(lin.1cmt.p2))
+
+    lin.2cmt.p2 <- RxODE({
+        volume = V
+        beta  = 0.5 * (k12 + k21 + k - sqrt((k12 + k21 + k) * (k12 + k21 + k) - 4.0 * k21 * k));
+        alpha = k21 * k / beta;
+        A     = (alpha - k21) / (alpha - beta) / volume;
+        B     = (beta - k21) / (beta - alpha) / volume;
+    })
+
+    cpp <- c(cpp, create.cpp.code(lin.2cmt.p2));
+
+    lin.2cmt.p2.oral <- RxODE({
+        volume = V
+        beta  = 0.5 * (k12 + k21 + k - sqrt((k12 + k21 + k) * (k12 + k21 + k) - 4.0 * k21 * k));
+        alpha = k21 * k / beta;
+        A     = ka / (ka - alpha) * (alpha - k21) / (alpha - beta) / volume;
+        B     = ka / (ka - beta) * (beta - k21) / (beta - alpha) / volume;
+    })
+
+    cpp <- c(cpp, create.cpp.code(lin.2cmt.p2.oral));
+
+    lin.3cmt.p2 <- RxODE({
+        volume = V
+        a0      = k * k21 * k31;
+        a1      = k * k31 + k21 * k31 + k21 * k13 + k * k21 + k31 * k12;
+        a2      = k + k12 + k13 + k21 + k31;
+        pp       = a1 - a2 * a2 / 3.0;
+        q       = 2.0 * a2 * a2 * a2 / 27.0 - a1 * a2 /3.0 + a0;
+        r1      = sqrt(-pp * pp * pp / 27.0);
+        r2      = 2 * r1 ^ (1.0 / 3.0);
+        th   = acos(-q / (2.0 * r1)) / 3
+        alpha   = -(cos(th) * r2 - a2 / 3.0);
+        beta    = -(cos(th + 2.0 / 3.0 * pi) * r2 - a2 / 3.0);
+        gamma   = -(cos(th + 4.0 / 3.0 * pi) * r2 - a2 / 3.0);
+        A       = (k21 - alpha) * (k31 - alpha) / (alpha - beta) / (alpha - gamma) / volume;
+        B       = (k21 - beta) * (k31 - beta) / (beta - alpha) / (beta - gamma) / volume;
+        C       = (k21 - gamma) * (k31 - gamma) / (gamma - alpha) / (gamma - beta) / volume;
+    })
+
+    ## p and theta do not seem to work with sympy.
+    cpp <- c(cpp, create.cpp.code(lin.3cmt.p2));
+
+    lin.3cmt.p2.oral <- RxODE({
+        volume = V
+        a0      = k * k21 * k31;
+        a1      = k * k31 + k21 * k31 + k21 * k13 + k * k21 + k31 * k12;
+        a2      = k + k12 + k13 + k21 + k31;
+        pp       = a1 - a2 * a2 / 3.0;
+        q       = 2.0 * a2 * a2 * a2 / 27.0 - a1 * a2 /3.0 + a0;
+        r1      = sqrt(-pp * pp * pp / 27.0);
+        r2      = 2 * r1 ^ (1.0 / 3.0);
+        th   = acos(-q / (2.0 * r1)) / 3
+        alpha   = -(cos(th) * r2 - a2 / 3.0);
+        beta    = -(cos(th + 2.0 / 3.0 * pi) * r2 - a2 / 3.0);
+        gamma   = -(cos(th + 4.0 / 3.0 * pi) * r2 - a2 / 3.0);
+        A       = ka / (ka - alpha) * (k21 - alpha) * (k31 - alpha) / (alpha - beta) / (alpha - gamma) / volume;
+        B       = ka / (ka - beta) * (k21 - beta) * (k31 - beta) / (beta - alpha) / (beta - gamma) / volume;
+        C       = ka / (ka - gamma) * (k21 - gamma) * (k31 - gamma) / (gamma - alpha) / (gamma - beta) / volume;
+    })
+
+    cpp <- c(cpp, create.cpp.code(lin.3cmt.p2.oral));
+
+
+    cur.par <- 3;
+
+    lin.2cmt.p3 <- RxODE({
+        volume = V
+        k = CL / volume
+        k12 = Q / volume
+        k21 = Q / (VSS - volume)
+        beta  = 0.5 * (k12 + k21 + k - sqrt((k12 + k21 + k) * (k12 + k21 + k) - 4.0 * k21 * k));
+        alpha = k21 * k / beta;
+        A     = (alpha - k21) / (alpha - beta) / volume;
+        B     = (beta - k21) / (beta - alpha) / volume;
+    })
+
+    cpp <- c(cpp, create.cpp.code(lin.2cmt.p3));
+
+    lin.2cmt.p3.oral <- RxODE({
+        volume = V
+        k = CL / volume
+        k12 = Q / volume
+        k21 = Q / (VSS - volume)
+        beta  = 0.5 * (k12 + k21 + k - sqrt((k12 + k21 + k) * (k12 + k21 + k) - 4.0 * k21 * k));
+        alpha = k21 * k / beta;
+        A     = ka / (ka - alpha) * (alpha - k21) / (alpha - beta) / volume;
+        B     = ka / (ka - beta) * (beta - k21) / (beta - alpha) / volume;
+    })
+
+    cpp <- c(cpp, create.cpp.code(lin.2cmt.p3.oral));
+
+    cur.par <- 4;
+
+    lin.2cmt.p4 <- RxODE({
+        volume = V
+        k21 = (aob*betaP+alphaP)/(aob+1);
+        k   = (alphaP*betaP)/k21;
+        k12 = alphaP+betaP-k21-k;
+        beta  = 0.5 * (k12 + k21 + k - sqrt((k12 + k21 + k) * (k12 + k21 + k) - 4.0 * k21 * k));
+        alpha = k21 * k / beta;
+        A     = (alpha - k21) / (alpha - beta) / volume;
+        B     = (beta - k21) / (beta - alpha) / volume;
+    })
+
+    cpp <- c(cpp, create.cpp.code(lin.2cmt.p4));
+
+    lin.2cmt.p4.oral <- RxODE({
+        volume = V
+        k21 = (aob*betaP+alphaP)/(aob+1);
+        k   = (alphaP*betaP)/k21;
+        k12 = alphaP+betaP-k21-k;
+        beta  = 0.5 * (k12 + k21 + k - sqrt((k12 + k21 + k) * (k12 + k21 + k) - 4.0 * k21 * k));
+        alpha = k21 * k / beta;
+        A     = ka / (ka - alpha) * (alpha - k21) / (alpha - beta) / volume;
+        B     = ka / (ka - beta) * (beta - k21) / (beta - alpha) / volume;
+    })
+
+    cpp <- c(cpp, create.cpp.code(lin.2cmt.p4));
+
+    cur.par <- 5;
+
+    lin.2cmt.p5 <- RxODE({
+        volume = V
+        beta  = betap
+        alpha = alphap
+        k21 = k21p
+        A     = (alpha - k21) / (alpha - beta) / volume;
+        B     = (beta - k21) / (beta - alpha) / volume;
+    })
+
+    cpp <- c(cpp, create.cpp.code(lin.2cmt.p5));
+
+    lin.2cmt.p5.oral <- RxODE({
+        volume = V
+        beta  = betap
+        alpha = alphap
+        k21 = k21p
+        beta  = 0.5 * (k12 + k21 + k - sqrt((k12 + k21 + k) * (k12 + k21 + k) - 4.0 * k21 * k));
+        alpha = k21 * k / beta;
+        A     = ka / (ka - alpha) * (alpha - k21) / (alpha - beta) / volume;
+        B     = ka / (ka - beta) * (beta - k21) / (beta - alpha) / volume;
+    })
+
+    cpp <- c(cpp, create.cpp.code(lin.2cmt.p5));
+
+
+    sink(devtools::package_file("src/lincmtDiff.cpp"));
+    cat("// [[Rcpp::depends(RcppArmadillo)]]
+// Generated by refresh.R;Can be recreated by refresh(derivs=TRUE) in source directory after loading RxODE by library(devtools);load_all();
+#include <RcppArmadillo.h>
+#include <R.h>
+using namespace Rcpp;
+using namespace R;
+using namespace arma;
+// [[Rcpp::export]]
+void getLinDerivs(SEXP rho){
+  Environment e = as<Environment>(rho);
+  int par = as<int>(e[\"parameterization\"]);
+  int ncmt = as<int>(e[\"ncmp\"]);
+  int oral = as<int>(e[\"oral\"]);
+  double zoo = R_PosInf; // Zoo is in dV :(
+");
+    cat(paste(cpp, collapse="\n"));
+    cat("}\n");
+    sink()
+
+}

@@ -85,3 +85,7 @@ getMacroConstants <- function(rho) {
     invisible(.Call('RxODE_getMacroConstants', PACKAGE = 'RxODE', rho))
 }
 
+getLinDerivs <- function(rho) {
+    invisible(.Call('RxODE_getLinDerivs', PACKAGE = 'RxODE', rho))
+}
+

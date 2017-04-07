@@ -76,10 +76,15 @@ rxClean <- function(wd = getwd()){
 }
 
 
-refresh <- function(){
+refresh <- function(derivs=FALSE){
     ## nocov start
     cat("Dparser Version\n");
     print(dparser::dpVersion())
+    if (derivs){
+        Sys.setenv(RxODE_derivs=TRUE)
+    } else {
+        Sys.setenv(RxODE_derivs=FALSE)
+    }
     source(devtools::package_file("build/refresh.R"))
     ## nocov end
 }

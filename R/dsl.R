@@ -303,9 +303,10 @@ rxSympyC$"**" <- function(a, b){
 rxSympyC$"^" <- function(a, b){
     sprintf("pow(%s, %s)", a, b);
 }
-rxSympyC$exp <- functionOp("exp");
-rxSympyC$exp <- functionOp("log");
-rxSympyC$sqrt <- functionOp("sqrt");
+
+for (f in sympy.equiv.f){
+    rxSympyC[[f]] <- functionOp(f);
+}
 rxSympyC$"(" <- unaryOp("(", ")")
 for (op in c("+", "-", "*", "/")){
     rxSympyC[[op]] <- binaryOp(paste0(" ", op, " "));
