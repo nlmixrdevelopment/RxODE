@@ -461,6 +461,10 @@ sympyEnv <- function(expr){
     n2[n2 == "f"] <- "rx_pred_"
     ## Replace print functions with nothing.
     n2[n2 %in% c('print', 'jac_print', 'ode_print', 'jac0_print', 'ode_print', 'ode0_print', 'lhs_print')] <- "";
+    res <- rxSymPyReserved()
+    res <- res[res != "pi"];
+    w <- which(n2 %in% res);
+    n2[w] <- sprintf("rx_SymPy_Res_%s", n2[w]);
     symbol.list <- setNames(as.list(n2), n1);
     symbol.env <- list2env(symbol.list, parent=rxSymPyFEnv);
     return(symbol.env)
@@ -475,11 +479,12 @@ rxEnv <- function(expr){
     names <- allNames(expr)
     ## Replace time with t.
     n1 <- names;
-    n2 <- gsub(regIni0, "\\1(0)",
-               gsub(regDfDy, "df(\\1)/dy(\\2)",
-                    gsub(regDfDyTh, "df(\\1)/dy(\\2[\\3])",
-                         gsub(regDDt, "d/dt(\\1)",
-                              gsub(rex::rex(start, regThEt, end), "\\1[\\2]", names)))));
+    n2 <- gsub(rex::rex(start, "rx_SymPy_Res_"), "",
+               gsub(regIni0, "\\1(0)",
+                    gsub(regDfDy, "df(\\1)/dy(\\2)",
+                         gsub(regDfDyTh, "df(\\1)/dy(\\2[\\3])",
+                              gsub(regDDt, "d/dt(\\1)",
+                                   gsub(rex::rex(start, regThEt, end), "\\1[\\2]", names))))));
     n2[n2 == "time"] <- "t";
     symbol.list <- setNames(as.list(n2), n1);
     symbol.env <- list2env(symbol.list, parent=rxSymPyFEnv);
