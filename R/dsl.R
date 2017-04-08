@@ -34,7 +34,6 @@ regPrint <- rex::rex(start, or(known.print), or(group("(", anything, ")", any_sp
 
 regIni0 <- rex::rex(start, "rx_", capture(anything), "_ini_0__", end);
 
-
 ## Start DSL based on http://adv-r.had.co.nz/dsl.html
 ## These operators are called to create the language and are not called in tests.
 ## nocov start
@@ -149,16 +148,16 @@ functionBrewxy <- function(brew){
 }
 
 sympyRxFEnv <- new.env(parent = emptyenv())
-rxSympyFEnv <- new.env(parent = emptyenv())
+rxSymPyFEnv <- new.env(parent = emptyenv())
 for (op in c("+", "-", "*")){
-    rxSympyFEnv[[op]] <- binaryOp(paste0(" ", op, " "));
+    rxSymPyFEnv[[op]] <- binaryOp(paste0(" ", op, " "));
     sympyRxFEnv[[op]] <- binaryOp(paste0(" ", op, " "));
 }
-rxSympyFEnv$c <- function(...){
+rxSymPyFEnv$c <- function(...){
     eval(parse(text=sprintf("c(%s)",paste(paste0("rxToSymPy(",c(...),")"),collapse=","))))
 }
-rxSympyFEnv$"/" <- divOp();
-rxSympyFEnv$"[" <- function(name, val){
+rxSymPyFEnv$"/" <- divOp();
+rxSymPyFEnv$"[" <- function(name, val){
     n <- toupper(name)
     err <- "RxODE only supports THETA[#] and ETA[#] numbers."
     if (any(n == c("THETA", "ETA")) && is.numeric(val)){
@@ -173,8 +172,8 @@ rxSympyFEnv$"[" <- function(name, val){
 };
 
 sympyRxFEnv$"/" <- binaryOp(" / ");
-rxSympyFEnv$"^" <- binaryOp("**")
-rxSympyFEnv$"**" <- binaryOp("**")
+rxSymPyFEnv$"^" <- binaryOp("**")
+rxSymPyFEnv$"**" <- binaryOp("**")
 sympyRxFEnv$"**" <- binaryOp("^")
 sympyRxFEnv$"^" <- binaryOp("^")
 
@@ -185,26 +184,26 @@ functionIgnore <- function(){
 }
 
 for (p in known.print){
-    rxSympyFEnv[[p]] <- functionIgnore();
+    rxSymPyFEnv[[p]] <- functionIgnore();
 }
 
-rxSympyFEnv$dt <- function(e1){
+rxSymPyFEnv$dt <- function(e1){
     paste0("__dt__", e1, "__");
 }
 
-rxSympyFEnv$df <- function(e1){
+rxSymPyFEnv$df <- function(e1){
     paste0("__df_", e1, "_")
 }
 
-rxSympyFEnv$dy <- function(e1){
+rxSymPyFEnv$dy <- function(e1){
     paste0("_dy_", e1, "__")
 }
 
 ## rx -> sympy
-rxSympyFEnv$bessel_i <- besselOp("i");
-rxSympyFEnv$bessel_j <- besselOp("j");
-rxSympyFEnv$bessel_k <- besselOp("k");
-rxSympyFEnv$bessel_y <- besselOp("y");
+rxSymPyFEnv$bessel_i <- besselOp("i");
+rxSymPyFEnv$bessel_j <- besselOp("j");
+rxSymPyFEnv$bessel_k <- besselOp("k");
+rxSymPyFEnv$bessel_y <- besselOp("y");
 
 ## sympy -> rx
 sympyRxFEnv$besseli <- besselOp2("i");
@@ -213,41 +212,41 @@ sympyRxFEnv$besselk <- besselOp2("k");
 sympyRxFEnv$bessely <- besselOp2("y");
 
 
-## rxSympyFEnv$"[" <- binaryOp("_")
+## rxSymPyFEnv$"[" <- binaryOp("_")
 ##
-rxSympyFEnv$"(" <- unaryOp("(", ")")
+rxSymPyFEnv$"(" <- unaryOp("(", ")")
 sympyRxFEnv$"(" <- unaryOp("(", ")")
 
 ## pow -> **
-rxSympyFEnv$pow <- binaryOp2("**");
+rxSymPyFEnv$pow <- binaryOp2("**");
 sympyRxFEnv$pow <- binaryOp2("^");
 
 ## gammafn -> gamma
-rxSympyFEnv$gammafn <- functionOp("gamma")
-rxSympyFEnv$lgammafn <- functionOp2("log(gamma(", "))")
-rxSympyFEnv$lgamma <- functionOp2("log(gamma(", "))")
-rxSympyFEnv$tetragamma <- functionOp2("psigamma(", ", 2)")
-rxSympyFEnv$pentagamma <- functionOp2("psigamma(", ", 3)")
-rxSympyFEnv$lbeta <- functionOp2("log(beta(", "))")
-rxSympyFEnv$lgamma1p <- functionOp2("log(gamma((", ")+1))")
-rxSympyFEnv$cospi <- functionOp2("cos(pi * (", "))")
-rxSympyFEnv$sinpi <- functionOp2("sin(pi * (", "))")
-rxSympyFEnv$tanpi <- functionOp2("tan(pi * (", "))")
-rxSympyFEnv$logspace_add <- binaryOp2(" + ");
-rxSympyFEnv$logspace_sub <- binaryOp2(" - ");
+rxSymPyFEnv$gammafn <- functionOp("gamma")
+rxSymPyFEnv$lgammafn <- functionOp2("log(gamma(", "))")
+rxSymPyFEnv$lgamma <- functionOp2("log(gamma(", "))")
+rxSymPyFEnv$tetragamma <- functionOp2("psigamma(", ", 2)")
+rxSymPyFEnv$pentagamma <- functionOp2("psigamma(", ", 3)")
+rxSymPyFEnv$lbeta <- functionOp2("log(beta(", "))")
+rxSymPyFEnv$lgamma1p <- functionOp2("log(gamma((", ")+1))")
+rxSymPyFEnv$cospi <- functionOp2("cos(pi * (", "))")
+rxSymPyFEnv$sinpi <- functionOp2("sin(pi * (", "))")
+rxSymPyFEnv$tanpi <- functionOp2("tan(pi * (", "))")
+rxSymPyFEnv$logspace_add <- binaryOp2(" + ");
+rxSymPyFEnv$logspace_sub <- binaryOp2(" - ");
 sympyRxFEnv$loggamma <- functionOp("lgamma");
 ## Following R functions are not translated
 ## ftrunc, fround, fprec, fsign, sign, fmin2, fmax2, imin2, imax2, logspace_sum
 ## choose lchoose
 
-rxSympyFEnv$R_pow <- binaryOp2("**");
-rxSympyFEnv$R_pow_di <- binaryOp2("**");
-rxSympyFEnv$log1p <- functionOp2("log(1 + (", "))");
-rxSympyFEnv$log1pmx <- functionBrewx("(log(1 + (<%=x%>))-(<%=x%>))");
-rxSympyFEnv$expm1 <- functionOp2("(exp(", ")-1)");
+rxSymPyFEnv$R_pow <- binaryOp2("**");
+rxSymPyFEnv$R_pow_di <- binaryOp2("**");
+rxSymPyFEnv$log1p <- functionOp2("log(1 + (", "))");
+rxSymPyFEnv$log1pmx <- functionBrewx("(log(1 + (<%=x%>))-(<%=x%>))");
+rxSymPyFEnv$expm1 <- functionOp2("(exp(", ")-1)");
 
-rxSympyFEnv$choose <- functionBrewxy("(factorial(<%=x%>)/(factorial(<%=y%>)*factorial((<%=x%>)-(<%=y%>))))");
-rxSympyFEnv$lchoose <- functionBrewxy("(log(gamma((<%=x%>)+1))-log(gamma((<%=y%>)+1))-log(gamma((<%=x%>)-(<%=y%>)+1)))");
+rxSymPyFEnv$choose <- functionBrewxy("(factorial(<%=x%>)/(factorial(<%=y%>)*factorial((<%=x%>)-(<%=y%>))))");
+rxSymPyFEnv$lchoose <- functionBrewxy("(log(gamma((<%=x%>)+1))-log(gamma((<%=y%>)+1))-log(gamma((<%=x%>)-(<%=y%>)+1)))");
 
 rxPrintOp <- function(op){
     force(op)
@@ -256,9 +255,9 @@ rxPrintOp <- function(op){
         eval(bquote(rxToSymPy(.(txt))))
     }
 }
-## rxSympyFEnv$sprintf <- rxPrintOp("sprintf")
-## rxSympyFEnv$paste <- rxPrintOp("paste")
-## rxSympyFEnv$paste0 <- rxPrintOp("paste0")
+## rxSymPyFEnv$sprintf <- rxPrintOp("sprintf")
+## rxSymPyFEnv$paste <- rxPrintOp("paste")
+## rxSymPyFEnv$paste0 <- rxPrintOp("paste0")
 
 ## equivalent functions
 sympy.equiv.f <- c("abs", "acos", "acosh", "asin", "atan", "atan2", "atanh", "beta",
@@ -266,11 +265,11 @@ sympy.equiv.f <- c("abs", "acos", "acosh", "asin", "atan", "atan2", "atanh", "be
                    "gamma", "log", "log10", "sin", "sinh", "sqrt", "tan",
                    "tanh", "trigamma")
 for (f in sympy.equiv.f){
-    rxSympyFEnv[[f]] <- functionOp(f);
+    rxSymPyFEnv[[f]] <- functionOp(f);
     sympyRxFEnv[[f]] <- functionOp(f);
 }
 
-rxSympyFEnv$structure <- function(one, ..., .Names){
+rxSymPyFEnv$structure <- function(one, ..., .Names){
     eval(parse(text=sprintf("rxToSymPy(%s)", deparse(sprintf("%s", one)))));
 }
 
@@ -278,16 +277,16 @@ sympyRxFEnv$structure <- function(one, ..., .Names){
     eval(parse(text=sprintf("rxFromSymPy(%s)", deparse(sprintf("%s", one)))));
 }
 
-rxSympyAllowDiff <- FALSE;
-rxSympyFEnv$diff <- function(fn, x){
-    if (rxSympyAllowDiff){
+rxSymPyAllowDiff <- FALSE;
+rxSymPyFEnv$diff <- function(fn, x){
+    if (rxSymPyAllowDiff){
         sprintf("diff(%s,%s)", fn, x);
     } else {
         stop("diff is not suported in RxODE.");
     }
 }
 
-rxSympyFEnv$psigamma <- function(z, n){
+rxSymPyFEnv$psigamma <- function(z, n){
     paste0("polygamma(", n, ", ", z, ")");
 }
 sympyRxFEnv$polygamma <- function(n, z){
@@ -296,23 +295,23 @@ sympyRxFEnv$polygamma <- function(n, z){
 
 ## Add sympy->C mini DSL for omega parsing
 
-rxSympyC <- new.env(parent = emptyenv())
-rxSympyC$"**" <- function(a, b){
+rxSymPyC <- new.env(parent = emptyenv())
+rxSymPyC$"**" <- function(a, b){
     sprintf("pow(%s, %s)", a, b);
 }
-rxSympyC$"^" <- function(a, b){
+rxSymPyC$"^" <- function(a, b){
     sprintf("pow(%s, %s)", a, b);
 }
 
 for (f in sympy.equiv.f){
-    rxSympyC[[f]] <- functionOp(f);
+    rxSymPyC[[f]] <- functionOp(f);
 }
-rxSympyC$"(" <- unaryOp("(", ")")
+rxSymPyC$"(" <- unaryOp("(", ")")
 for (op in c("+", "-", "*", "/")){
-    rxSympyC[[op]] <- binaryOp(paste0(" ", op, " "));
+    rxSymPyC[[op]] <- binaryOp(paste0(" ", op, " "));
 }
 
-unknownCSympy <- function(op){
+unknownCSymPy <- function(op){
     force(op)
     function(...){
         stop(sprintf("RxODE doesn't support '%s' translation for Omega translation.", op));
@@ -322,9 +321,9 @@ unknownCSympy <- function(op){
 sympyCEnv <- function(expr){
     ## Known functions
     calls <- allCalls(expr)
-    callList <- setNames(lapply(calls, unknownCSympy), calls)
+    callList <- setNames(lapply(calls, unknownCSymPy), calls)
     callEnv <- list2env(callList);
-    rxSympyFEnv <- cloneEnv(rxSympyC, callEnv);
+    rxSymPyFEnv <- cloneEnv(rxSymPyC, callEnv);
     names <- allNames(expr)
     ## Replace time with t.
     n1 <- names;
@@ -333,7 +332,7 @@ sympyCEnv <- function(expr){
     n2 <- gsub(rex::rex("pi"), "M_PI", n2)
     n2 <- gsub("None", "NA_REAL", n2);
     symbol.list <- setNames(as.list(n2), n1);
-    symbol.env <- list2env(symbol.list, parent=rxSympyC);
+    symbol.env <- list2env(symbol.list, parent=rxSymPyC);
     return(symbol.env)
 }
 
@@ -358,7 +357,7 @@ sympyTransit4 <- function(t, n, mtt, bio, podo="podo"){
            ktr," * (", t,") - log(gamma(1 + (", n, "))))");
 }
 
-rxSympyFEnv$transit <- function(n, mtt, bio){
+rxSymPyFEnv$transit <- function(n, mtt, bio){
     if (missing(bio))
         bio <- 1;
     sympyTransit4("t", n, mtt, bio);
@@ -425,7 +424,7 @@ evalPrints <- function(x, envir=parent.frame()){
     }
 }
 
-unknownSympy <- function(op){
+unknownSymPy <- function(op){
     force(op)
     function(...){
         if (identical(c(...), c(0))){
@@ -450,9 +449,9 @@ cloneEnv <- function(env, parent = parent.env(env)) {
 sympyEnv <- function(expr){
     ## Known functions
     calls <- allCalls(expr)
-    callList <- setNames(lapply(calls, unknownSympy), calls)
+    callList <- setNames(lapply(calls, unknownSymPy), calls)
     callEnv <- list2env(callList);
-    rxSympyFEnv <- cloneEnv(rxSympyFEnv, callEnv);
+    rxSymPyFEnv <- cloneEnv(rxSymPyFEnv, callEnv);
     names <- allNames(expr)
     ## Replace time with t.
     n1 <- names;
@@ -463,7 +462,7 @@ sympyEnv <- function(expr){
     ## Replace print functions with nothing.
     n2[n2 %in% c('print', 'jac_print', 'ode_print', 'jac0_print', 'ode_print', 'ode0_print', 'lhs_print')] <- "";
     symbol.list <- setNames(as.list(n2), n1);
-    symbol.env <- list2env(symbol.list, parent=rxSympyFEnv);
+    symbol.env <- list2env(symbol.list, parent=rxSymPyFEnv);
     return(symbol.env)
 }
 
@@ -472,7 +471,7 @@ rxEnv <- function(expr){
     calls <- allCalls(expr)
     callList <- setNames(lapply(calls, unknownRx), calls)
     callEnv <- list2env(callList);
-    rxSympyFEnv <- cloneEnv(sympyRxFEnv, callEnv);
+    rxSymPyFEnv <- cloneEnv(sympyRxFEnv, callEnv);
     names <- allNames(expr)
     ## Replace time with t.
     n1 <- names;
@@ -483,7 +482,7 @@ rxEnv <- function(expr){
                               gsub(rex::rex(start, regThEt, end), "\\1[\\2]", names)))));
     n2[n2 == "time"] <- "t";
     symbol.list <- setNames(as.list(n2), n1);
-    symbol.env <- list2env(symbol.list, parent=rxSympyFEnv);
+    symbol.env <- list2env(symbol.list, parent=rxSymPyFEnv);
 }
 
 

@@ -2,7 +2,7 @@
 % Please edit documentation in R/rxsympy.R
 \name{rxSymPyVersion}
 \alias{rxSymPyVersion}
-\title{Return the version of Sympy that is running}
+\title{Return the version of SymPy that is running}
 \usage{
 rxSymPyVersion()
 }
@@ -10,7 +10,7 @@ rxSymPyVersion()
 Verson of sympy that is running.
 }
 \description{
-Return the version of Sympy that is running
+Return the version of SymPy that is running
 }
 \author{
 Matthew L. Fidler

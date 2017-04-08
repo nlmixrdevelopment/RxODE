@@ -138,12 +138,12 @@ rxExpandIfElse.slow <- NULL
 .rxSymPy <- NULL;
 rxSymPy.vars <- c();
 
-##' Start Sympy
+##' Start SymPy
 ##'
 ##' @author G Grothendieck, Matthew L. Fidler
 ##' @keywords internal
 ##' @export
-rxSympyStart <- function(){
+rxSymPyStart <- function(){
     if (is.null(.rxSymPy)){
         assignInMyNamespace(".rxSymPy", new.env(parent = emptyenv()))
         .rxSymPy$started <- NULL;
@@ -215,8 +215,8 @@ rxSympyStart <- function(){
 ##' @author G Grothendieck, Matthew L. Fidler
 ##' @keywords internal
 ##' @export
-rxSympyExec <- function(...){
-    rxSympyStart();
+rxSymPyExec <- function(...){
+    rxSymPyStart();
     if (.rxSymPy$started == "SnakeCharmR"){
         SnakeCharmR::py.exec(...);
     }
@@ -237,7 +237,7 @@ rxSympyExec <- function(...){
 ##' @keywords internal
 ##' @export
 rxSymPy <- function(...){
-    rxSympyStart();
+    rxSymPyStart();
     if (.rxSymPy$started == "SnakeCharmR"){
         SnakeCharmR::py.exec(paste("__Rsympy=None"))
         SnakeCharmR::py.exec(paste("__Rsympy=", ..., sep = ""))
@@ -256,17 +256,30 @@ rxSymPy <- function(...){
         rSymPy::sympy(...)
     }
 }
-##' Return the version of Sympy that is running
+##' Return the version of SymPy that is running
 ##'
 ##' @return  Verson of sympy that is running.
 ##' @author Matthew L. Fidler
 ##' @export
 rxSymPyVersion <- function(){
-    rxSympyExec("import sympy");
+    rxSymPyExec("import sympy");
     return(rxSymPy("sympy.__version__"))
 }
-
 rxSymPyVersion.slow <- NULL;
+
+##' Return a list of reserved functions and variables from sympy
+##'
+##' @return List of reserevd functions and variaibles from sympy.
+##' @author Matthew L. Fidler
+##' @keywords internal
+##' @export
+rxSymPyReserved <- function(){
+    rxSymPyExec("import sympy");
+    vars <- rxSymPy("dir(sympy)")
+    vars <- eval(parse(text=sprintf("c(%s)", substr(vars, 2, nchar(vars) - 1))));
+    return(vars)
+}
+rxSymPyReserved.slow <- NULL;
 
 ##' Setup sympy variables
 ##'
@@ -278,7 +291,7 @@ rxSymPyVersion.slow <- NULL;
 ##' @keywords internal
 ##' @export
 rxSymPyVars <- function(model){
-    rxSympyStart();
+    rxSymPyStart();
     if (class(model) == "character" && length(model) > 1){
         vars <- model;
     } else if (class(model) == "character" && length(model) == 1 && regexpr(rex::rex(or("=", "<-")), model) == -1){
@@ -292,9 +305,9 @@ rxSymPyVars <- function(model){
     known <- c(rxSymPy.vars, vars);
     assignInMyNamespace("rxSymPy.vars", known);
     if (length(vars) == 1){
-        rxSympyExec(sprintf("%s = Symbol('%s')", vars, vars));
+        rxSymPyExec(sprintf("%s = Symbol('%s')", vars, vars));
     } else {
-        rxSympyExec(sprintf("%s = symbols('%s')", paste(vars, collapse=", "), paste(vars, collapse=" ")));
+        rxSymPyExec(sprintf("%s = symbols('%s')", paste(vars, collapse=", "), paste(vars, collapse=" ")));
     }
     return(invisible());
 }
@@ -313,7 +326,7 @@ rxSymPySetup <- function(model){
     for (line in setup){
         tmp <- line;
         names(tmp) <- NULL;
-        rxSympyExec(tmp);
+        rxSymPyExec(tmp);
     }
     return(invisible());
 }
@@ -367,7 +380,7 @@ rxSymPyDfDy <- function(model, df, dy, vars=FALSE){
         var <- rxToSymPy(sprintf("df(%s)/dy(%s)", df, dy));
         line <- sprintf("diff(%s,%s)", var1, rxToSymPy(dy));
         line <- rxSymPy(line);
-        rxSympyExec(sprintf("%s=%s", var, line));
+        rxSymPyExec(sprintf("%s=%s", var, line));
         ret <- sprintf("df(%s)/dy(%s) = %s", df, dy, rxFromSymPy(line));
         return(ret);
     }
@@ -458,7 +471,7 @@ rxSymPyExists <- function(var){
 ##' @keywords internal
 rxSymPyClear <- function(var){
     if (rxSymPyExists(var)){
-        rxSympyExec(sprintf("del %s", var));
+        rxSymPyExec(sprintf("del %s", var));
     }
 }
 
@@ -485,7 +498,7 @@ rxSymPySensitivityFull <- function(state, calcSens, model, cond){
             line <- rxSymPy(line);
             var.rx <- sprintf("d/dt(rx__sens_%s_BY_%s__)", s1, rxToSymPy(sns))
             var <- rxToSymPy(var.rx)
-            rxSympyExec(sprintf("%s=%s", var, line));
+            rxSymPyExec(sprintf("%s=%s", var, line));
             assignInMyNamespace("rxSymPy.vars", c(rxSymPy.vars, var));
             extraLines[length(extraLines) + 1] <- sprintf("%s=%s", var.rx, rxFromSymPy(line));
             ini <- sprintf("%s(0)", s1);
@@ -525,7 +538,7 @@ rxSymPySensitivity2Full_ <- function(state, s1, eta, sns, all.sens){
     line <- rxSymPy(line);
     var.rx <- sprintf("d/dt(rx__sens_%s_BY_%s_BY_%s__)", s1, rxToSymPy(eta), rxToSymPy(sns))
     var <- rxToSymPy(var.rx)
-    rxSympyExec(sprintf("%s=%s", var, line));
+    rxSymPyExec(sprintf("%s=%s", var, line));
     assignInMyNamespace("rxSymPy.vars", c(rxSymPy.vars, var));
     ini <- sprintf("%s(0)", s1);
     ini <- rxToSymPy(ini)
@@ -1166,10 +1179,10 @@ rxGc <- function(){
     tf <- tempfile();
     sink(tf);
     on.exit({sink();unlink(tf)})
-    try({rxSympyExec("gc.collect()")});
+    try({rxSymPyExec("gc.collect()")});
 }
 
-## Supported Sympy special functions
+## Supported SymPy special functions
 ## besseli -> besseli(nu,z) -> bessel_i(z,nu,1)
 ## besselj -> besselj(nu,z) -> bessel_j(z,nu)
 ## besselk -> besselk(nu,z) -> bessel_k(z,nu,1)
