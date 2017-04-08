@@ -166,6 +166,7 @@ rxPermissive({
     tmp5 <- m2a %>%rxFoceiInner(et, theta=c(2, 1.6, 4.5,0.01), eta=c(10, 10),dv=dv, inv.env=symenv, invisible=1)
 
     test_that("rxFoceiEta makes sense", {
+
         expect_equal(tmp1$rx_pred_, tmp2$f); ## F
         err <- matrix(dv - tmp1$rx_pred_, ncol=1)
         expect_equal(err, tmp2$err) ## Err
@@ -303,6 +304,15 @@ rxPermissive({
         expect_equal(lik2, llik.lapl);
     })
 
+    m2 <- RxODE({
+        d/dt(depot) = -KA*depot;
+        d/dt(centr) = KA*depot - CL / V*centr;
+    })
+
+    err <- function(f){
+        return(f ^ 2* theta[4] ^ 2); ## Theta 4 is residual sd for proportional error.
+    }
+
     m2ag <- rxSymPySetupPred(m2, pred, pk, err, grad=TRUE)
 
     tmp1 <- m2ag$outer %>% solve(et, theta=c(2, 1.6, 4.5,0.01), eta=c(0.01, -0.01))
@@ -317,6 +327,7 @@ rxPermissive({
                                     inits.vec=rep(0.5, 6))
 
     test_that("rxFoceiTheta makes sense", {
+
         expect_equal(tmp1$rx_pred_, tmp2$f); ## F
         err <- matrix(dv - tmp1$rx_pred_, ncol=1)
         expect_equal(err, tmp2$err) ## Err
