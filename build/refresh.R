@@ -250,7 +250,9 @@ if (Sys.getenv("RxODE_derivs") == "TRUE"){
                 if (i %% 50 == 0){
                     cat("\n");
                 }
-                tmp <- rxSymPy(sprintf("diff(%s, %s)", curL, curP))
+                tmp <- rxSymPy(sprintf("diff(%s, %s)",
+                                       rxToSymPy(curL),
+                                       rxToSymPy(curP)))
                 if (any(curL == ks)){
                     par <- sprintf("(%s, 0)", which(curL == ks) - 1);
                 } else {
@@ -325,14 +327,14 @@ if (Sys.getenv("RxODE_derivs") == "TRUE"){
         a0      = k * k21 * k31;
         a1      = k * k31 + k21 * k31 + k21 * k13 + k * k21 + k31 * k12;
         a2      = k + k12 + k13 + k21 + k31;
-        pp       = a1 - a2 * a2 / 3;
+        p       = a1 - a2 * a2 / 3;
         q       = 2 * a2 * a2 * a2 / 27 - a1 * a2 /3 + a0;
-        r1      = sqrt(-pp * pp * pp / 27);
+        r1      = sqrt(-p * p * p / 27);
         r2      = 2 * r1 ^ (1 / 3);
-        th   = acos(-q / (2 * r1)) / 3
-        alpha   = -(cos(th) * r2 - a2 / 3);
-        beta    = -(cos(th + 2 * pi / 3) * r2 - a2 / 3);
-        gamma   = -(cos(th + 4 * pi / 3) * r2 - a2 / 3);
+        theta   = acos(-q / (2 * r1)) / 3
+        alpha   = -(cos(theta) * r2 - a2 / 3);
+        beta    = -(cos(theta + 2 / 3 * pi) * r2 - a2 / 3);
+        gamma   = -(cos(theta + 4 / 3 * pi) * r2 - a2 / 3);
         A       = (k21 - alpha) * (k31 - alpha) / (alpha - beta) / (alpha - gamma) / volume;
         B       = (k21 - beta) * (k31 - beta) / (beta - alpha) / (beta - gamma) / volume;
         C       = (k21 - gamma) * (k31 - gamma) / (gamma - alpha) / (gamma - beta) / volume;
@@ -438,10 +440,10 @@ if (Sys.getenv("RxODE_derivs") == "TRUE"){
         q       = 2 * a2 * a2 * a2 / 27 - a1 * a2 /3 + a0;
         r1      = sqrt(-pp * pp * pp / 27);
         r2      = 2 * r1 ^ (1 / 3);
-        th   = acos(-q / (2 * r1)) / 3
-        alpha   = -(cos(th) * r2 - a2 / 3);
-        beta    = -(cos(th + 2 / 3 * pi) * r2 - a2 / 3);
-        gamma   = -(cos(th + 4 / 3 * pi) * r2 - a2 / 3);
+        theta   = acos(-q / (2 * r1)) / 3
+        alpha   = -(cos(theta) * r2 - a2 / 3);
+        beta    = -(cos(theta + 2 / 3 * pi) * r2 - a2 / 3);
+        gamma   = -(cos(theta + 4 / 3 * pi) * r2 - a2 / 3);
         A       = ka / (ka - alpha) * (k21 - alpha) * (k31 - alpha) / (alpha - beta) / (alpha - gamma) / volume;
         B       = ka / (ka - beta) * (k21 - beta) * (k31 - beta) / (beta - alpha) / (beta - gamma) / volume;
         C       = ka / (ka - gamma) * (k21 - gamma) * (k31 - gamma) / (gamma - alpha) / (gamma - beta) / volume;
@@ -544,7 +546,7 @@ void getLinDerivs(SEXP rho){
   int par = as<int>(e[\"parameterization\"]);
   int ncmt = as<int>(e[\"ncmt\"]);
   int oral = as<int>(e[\"oral\"]);
-  double zoo = R_PosInf; // Zoo is in dV :(
+  // double zoo = R_PosInf; // Zoo is in dV :(
 ");
     cat(paste(cpp, collapse="\n"));
     cat(" stop(\"environment not setup properly for this function.\");\n");

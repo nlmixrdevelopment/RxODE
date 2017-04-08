@@ -69,6 +69,8 @@ divOp <- function(){
             paste0("rx__d_dt_",gsub(rex::rex(start, "__dt__"), "", e2));
         } else if (grepl(rex::rex(start, "__df_", anything, "_", end), e1) && grepl(rex::rex(start, "_dy_",anything, "__", end), e2)){
             paste0("rx", substring(e1, 0, nchar(e1) - 1), e2)
+        } else if (class(e1) == "numeric"){
+            paste0("S(", e1, ") / ", e2)
         } else {
             paste0(e1, " / ", e2)
         }
@@ -330,6 +332,7 @@ sympyCEnv <- function(expr){
     n2 <- names;
     n2 <- gsub(rex::rex("t", capture(numbers)), "REAL(theta)[\\1]", n2)
     n2 <- gsub(rex::rex("pi"), "M_PI", n2)
+    n2 <- gsub(rex::rex(start, "rx_SymPy_Res_"), "", n2)
     n2 <- gsub("None", "NA_REAL", n2);
     symbol.list <- setNames(as.list(n2), n1);
     symbol.env <- list2env(symbol.list, parent=rxSymPyC);
@@ -460,7 +463,7 @@ sympyEnv <- function(expr){
     ## Replace f with rx_pred_
     n2[n2 == "f"] <- "rx_pred_"
     ## Replace print functions with nothing.
-    n2[n2 %in% c('print', 'jac_print', 'ode_print', 'jac0_print', 'ode_print', 'ode0_print', 'lhs_print')] <- "";
+    n2[regexpr(regPrint, n2) != -1] <- "";
     res <- rxSymPyReserved()
     res <- res[res != "pi"];
     w <- which(n2 %in% res);
@@ -816,3 +819,6 @@ rxParseErr <- function(x, base.theta, diag.xform=c("sqrt", "log", "identity"),
 
 ## Stop DSL
 
+rm(f);
+rm(op);
+rm(p);
