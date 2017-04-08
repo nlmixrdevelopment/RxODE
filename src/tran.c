@@ -261,6 +261,7 @@ int new_or_ith(const char *s) {
   if (!strcmp("time", s)) return 0;
   if (!strcmp("podo", s)) return 0;
   if (!strcmp("tlast", s)) return 0;
+  if (strstr("[", s) != NULL) return 0;
   if (!tb.nv) return 1;
 
   for (i=0; i<tb.nv; i++) {
@@ -345,9 +346,9 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
   char *value = (char*)rc_dup_str(pn->start_loc.s, pn->end);
   char buf[512];
   if ((!strcmp("identifier", name) || !strcmp("identifier_r", name) ||
-       !strcmp("identifier_r_no_output",name) || !strcmp("theta_noout", name) ||
-       !strcmp("theta0_noout", name) || !strcmp("eta_noout", name) ||
-       !strcmp("theta0", name) || !strcmp("theta", name) || !strcmp("eta", name)) &&
+       !strcmp("identifier_r_no_output",name)  ||
+       !strcmp("theta0_noout", name) || 
+       !strcmp("theta0", name)) &&
       new_or_ith(value)) {
     /* printf("[%d]->%s\n",tb.nv,value); */
     sprintf(tb.ss+tb.pos, "%s,", value);
