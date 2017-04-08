@@ -16,6 +16,8 @@ test_that("1 cmt CL/V", {
         expect_equal(e$oral, 0L);
         expect_equal(e$parameterization, 1L);
         expect_equal(e$ncmt, 1L);
+        getLinDerivs(e);
+        expect_true(all(ls(e)[regexpr("^d",ls(e))!= -1] %in% c("dCL", "dV")))
     }
 })
 context("\tOral");
@@ -39,6 +41,8 @@ test_that("oral (Ka) 1 cmt CL/V", {
         expect_equal(e$oral, 1L);
         expect_equal(e$parameterization, 1L);
         expect_equal(e$ncmt, 1L);
+        getLinDerivs(e);
+        expect_true(all(ls(e)[regexpr("^d",ls(e))!= -1] %in% c("dCL", "dV", "dKA")))
     }
 })
 
@@ -60,6 +64,8 @@ test_that("1 cmt K/V", {
         expect_equal(e$oral, 0L);
         expect_equal(e$parameterization, 2L);
         expect_equal(e$ncmt, 1L);
+        getLinDerivs(e);
+        expect_true(all(ls(e)[regexpr("^d",ls(e))!= -1] %in% c("dK", "dV")))
     }
 })
 context("\tOral");
@@ -82,6 +88,8 @@ test_that("oral (Ka) 1 cmt K/V", {
         expect_equal(e$oral, 1L);
         expect_equal(e$parameterization, 2L);
         expect_equal(e$ncmt, 1L);
+        getLinDerivs(e);
+        expect_true(all(ls(e)[regexpr("^d",ls(e))!= -1] %in% c("dK", "dV", "dKA")))
     }
 })
 
@@ -114,6 +122,8 @@ test_that("2 cmt CL V Q, V2", {
         expect_equal(e$oral, 0L);
         expect_equal(e$parameterization, 1L);
         expect_equal(e$ncmt, 2L);
+        getLinDerivs(e);
+        expect_true(all(ls(e)[regexpr("^d",ls(e))!= -1] %in% c("dCL", "dV", "dQ", "dV2")))
     }
 })
 
@@ -148,6 +158,8 @@ test_that("oral 2 cmt CL V Q, V2", {
         expect_equal(e$oral, 1L);
         expect_equal(e$parameterization, 1L);
         expect_equal(e$ncmt, 2L);
+        getLinDerivs(e);
+        expect_true(all(ls(e)[regexpr("^d",ls(e))!= -1] %in% c("dCL", "dV", "dQ", "dV2", "dKA")));
     }
 });
 
@@ -179,6 +191,8 @@ test_that("2 cmt k, V, k12, k21", {
         expect_equal(e$oral, 0L);
         expect_equal(e$parameterization, 2L);
         expect_equal(e$ncmt, 2L);
+        getLinDerivs(e);
+        expect_true(all(ls(e)[regexpr("^d",ls(e))!= -1] %in% c("dK", "dV", "dK12", "dK21")));
     }
 })
 context("\tOral");
@@ -211,6 +225,8 @@ test_that("oral 2 cmt k, V, k12, k21", {
         expect_equal(e$oral, 1L);
         expect_equal(e$parameterization, 2L);
         expect_equal(e$ncmt, 2L);
+        getLinDerivs(e);
+        expect_true(all(ls(e)[regexpr("^d",ls(e))!= -1] %in% c("dK", "dV", "dK12", "dK21", "dKA")));
     }
 })
 
@@ -243,6 +259,8 @@ test_that("2 cmt CL V Q, VSS", {
         expect_equal(e$oral, 0L);
         expect_equal(e$parameterization, 3L);
         expect_equal(e$ncmt, 2L);
+        getLinDerivs(e);
+        expect_true(all(ls(e)[regexpr("^d",ls(e))!= -1] %in% c("dCL", "dV", "dQ", "dVSS")));
     }
 })
 
@@ -276,6 +294,8 @@ test_that("oral 2 cmt CL V Q, VSS", {
         expect_equal(e$oral, 1L);
         expect_equal(e$parameterization, 3L);
         expect_equal(e$ncmt, 2L);
+        getLinDerivs(e);
+        expect_true(all(ls(e)[regexpr("^d",ls(e))!= -1] %in% c("dCL", "dV", "dQ", "dVSS", "dKA")));
     }
 })
 
@@ -311,6 +331,8 @@ test_that("2 cmt ALPHA, BETA, AOB, V", {
         expect_equal(e$oral, 0L);
         expect_equal(e$parameterization, 4L);
         expect_equal(e$ncmt, 2L);
+        getLinDerivs(e);
+        expect_true(all(ls(e)[regexpr("^d",ls(e))!= -1] %in% c("dALPHA", "dBETA", "dAOB", "dV")));
     }
 })
 
@@ -347,6 +369,8 @@ test_that("2 cmt ALPHA, BETA, AOB, V, KA", {
         expect_equal(e$oral, 1L);
         expect_equal(e$parameterization, 4L);
         expect_equal(e$ncmt, 2L);
+        getLinDerivs(e);
+        expect_true(all(ls(e)[regexpr("^d",ls(e))!= -1] %in% c("dALPHA", "dBETA", "dAOB", "dV", "dKA")));
     }
 })
 
@@ -381,6 +405,8 @@ test_that("2 cmt ALPHA, BETA, AOB, V", {
         expect_equal(e$oral, 0L);
         expect_equal(e$parameterization, 5L);
         expect_equal(e$ncmt, 2L);
+        getLinDerivs(e);
+        expect_true(all(ls(e)[regexpr("^d",ls(e))!= -1] %in% c("dALPHA", "dBETA", "dK21", "dV")));
     }
 })
 
@@ -416,6 +442,8 @@ test_that("oral 2 cmt ALPHA, BETA, k21, V", {
         expect_equal(e$oral, 1L);
         expect_equal(e$parameterization, 5L);
         expect_equal(e$ncmt, 2L);
+        getLinDerivs(e);
+        expect_true(all(ls(e)[regexpr("^d",ls(e))!= -1] %in% c("dALPHA", "dBETA", "dK21", "dV", "dKA")));
     }
 })
 
@@ -466,6 +494,8 @@ test_that("3 cmt CL V Q, V2", {
         expect_equal(e$oral, 0L);
         expect_equal(e$parameterization, 1L);
         expect_equal(e$ncmt, 3L);
+        getLinDerivs(e);
+        expect_true(all(ls(e)[regexpr("^d",ls(e))!= -1] %in% c("dCL", "dV", "dQ", "dV2", "dQ2", "dV3")));
     }
 })
 
@@ -517,6 +547,8 @@ test_that("oral 3 cmt CL V Q, V2", {
         expect_equal(e$oral, 1L);
         expect_equal(e$parameterization, 1L);
         expect_equal(e$ncmt, 3L);
+        getLinDerivs(e);
+        expect_true(all(ls(e)[regexpr("^d",ls(e))!= -1] %in% c("dCL", "dV", "dQ", "dV2", "dQ2", "dV3", "dKA")));
     }
 })
 
@@ -566,6 +598,8 @@ test_that("3 cmt V K12 K21 K13 K31", {
         expect_equal(e$oral, 0L);
         expect_equal(e$parameterization, 2L);
         expect_equal(e$ncmt, 3L);
+        getLinDerivs(e);
+        expect_true(all(ls(e)[regexpr("^d",ls(e))!= -1] %in% c("dV", "dK12", "dK21", "dK13", "dK31", "dK")));
     }
 })
 context("\tOral")
@@ -615,5 +649,7 @@ test_that("3 cmt V K12 K21 K13 K31", {
         expect_equal(e$oral, 1L);
         expect_equal(e$parameterization, 2L);
         expect_equal(e$ncmt, 3L);
+        getLinDerivs(e);
+        expect_true(all(ls(e)[regexpr("^d",ls(e))!= -1] %in% c("dV", "dK12", "dK21", "dK13", "dK31", "dK", "dKA")));
     }
 })

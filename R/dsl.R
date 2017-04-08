@@ -330,6 +330,7 @@ sympyCEnv <- function(expr){
     n1 <- names;
     n2 <- names;
     n2 <- gsub(rex::rex("t", capture(numbers)), "REAL(theta)[\\1]", n2)
+    n2 <- gsub(rex::rex("pi"), "M_PI", n2)
     n2 <- gsub("None", "NA_REAL", n2);
     symbol.list <- setNames(as.list(n2), n1);
     symbol.env <- list2env(symbol.list, parent=rxSympyC);

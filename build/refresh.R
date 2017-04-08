@@ -261,7 +261,7 @@ if (Sys.getenv("RxODE_derivs") == "TRUE"){
             }
         }
         lines[length(lines) + 1] <- paste0(paste(sprintf("    e[\"d%s\"] = d%s;", up, up), collapse="\n"), "\n");
-        lines[length(lines) + 1] <- paste0(sprintf("  } else {\n    stop(\"Some required parameters not in environment (need %s)\");\n  }\n}\n",
+        lines[length(lines) + 1] <- paste0(sprintf("  return;\n  } else {\n    stop(\"Some required parameters not in environment (need %s)\");\n  }\n}\n",
                                                    paste(up, collapse=", ")));
         rxSymPyClean();
         return(lines);
@@ -282,7 +282,7 @@ if (Sys.getenv("RxODE_derivs") == "TRUE"){
         volume = V
         k = CL / volume
         alpha = k;
-        A = 1.0/volume;
+        A = 1/volume;
     })
 
     cpp <- c(cpp, create.cpp.code(lin.1cmt.p1))
@@ -292,7 +292,7 @@ if (Sys.getenv("RxODE_derivs") == "TRUE"){
         k = CL / volume
         k12 = Q / volume
         k21 = Q / V2
-        beta  = 0.5 * (k12 + k21 + k - sqrt((k12 + k21 + k) * (k12 + k21 + k) - 4.0 * k21 * k));
+        beta  = 0.5 * (k12 + k21 + k - sqrt((k12 + k21 + k) * (k12 + k21 + k) - 4 * k21 * k));
         alpha = k21 * k / beta;
         A     = (alpha - k21) / (alpha - beta) / volume;
         B     = (beta - k21) / (beta - alpha) / volume;
@@ -305,7 +305,7 @@ if (Sys.getenv("RxODE_derivs") == "TRUE"){
         k = CL / volume
         k12 = Q / volume
         k21 = Q / V2
-        beta  = 0.5 * (k12 + k21 + k - sqrt((k12 + k21 + k) * (k12 + k21 + k) - 4.0 * k21 * k));
+        beta  = 0.5 * (k12 + k21 + k - sqrt((k12 + k21 + k) * (k12 + k21 + k) - 4 * k21 * k));
         alpha = k21 * k / beta;
         A     = ka / (ka - alpha) * (alpha - k21) / (alpha - beta) / volume;
         B     = ka / (ka - beta) * (beta - k21) / (beta - alpha) / volume;
@@ -325,20 +325,23 @@ if (Sys.getenv("RxODE_derivs") == "TRUE"){
         a0      = k * k21 * k31;
         a1      = k * k31 + k21 * k31 + k21 * k13 + k * k21 + k31 * k12;
         a2      = k + k12 + k13 + k21 + k31;
-        pp       = a1 - a2 * a2 / 3.0;
-        q       = 2.0 * a2 * a2 * a2 / 27.0 - a1 * a2 /3.0 + a0;
-        r1      = sqrt(-pp * pp * pp / 27.0);
-        r2      = 2 * r1 ^ (1.0 / 3.0);
-        th   = acos(-q / (2.0 * r1)) / 3
-        alpha   = -(cos(th) * r2 - a2 / 3.0);
-        beta    = -(cos(th + 2.0 / 3.0 * pi) * r2 - a2 / 3.0);
-        gamma   = -(cos(th + 4.0 / 3.0 * pi) * r2 - a2 / 3.0);
+        pp       = a1 - a2 * a2 / 3;
+        q       = 2 * a2 * a2 * a2 / 27 - a1 * a2 /3 + a0;
+        r1      = sqrt(-pp * pp * pp / 27);
+        r2      = 2 * r1 ^ (1 / 3);
+        th   = acos(-q / (2 * r1)) / 3
+        alpha   = -(cos(th) * r2 - a2 / 3);
+        beta    = -(cos(th + 2 * pi / 3) * r2 - a2 / 3);
+        gamma   = -(cos(th + 4 * pi / 3) * r2 - a2 / 3);
         A       = (k21 - alpha) * (k31 - alpha) / (alpha - beta) / (alpha - gamma) / volume;
         B       = (k21 - beta) * (k31 - beta) / (beta - alpha) / (beta - gamma) / volume;
         C       = (k21 - gamma) * (k31 - gamma) / (gamma - alpha) / (gamma - beta) / volume;
     })
 
     ## p and theta do not seem to work with sympy.
+    ## also cos(th + 2/3*pi) does not give the same results as as cos(th+2*pi/3)
+    ## This is due to the sympy numbers :(
+    ## See http://docs.sympy.org/dev/gotchas.html#python-numbers-vs-sympy-numbers
     cpp <- c(cpp, create.cpp.code(lin.3cmt.p1));
 
     lin.3cmt.p1.oral <- RxODE({
@@ -351,18 +354,19 @@ if (Sys.getenv("RxODE_derivs") == "TRUE"){
         a0      = k * k21 * k31;
         a1      = k * k31 + k21 * k31 + k21 * k13 + k * k21 + k31 * k12;
         a2      = k + k12 + k13 + k21 + k31;
-        pp       = a1 - a2 * a2 / 3.0;
-        q       = 2.0 * a2 * a2 * a2 / 27.0 - a1 * a2 /3.0 + a0;
-        r1      = sqrt(-pp * pp * pp / 27.0);
-        r2      = 2 * r1 ^ (1.0 / 3.0);
-        th   = acos(-q / (2.0 * r1)) / 3
-        alpha   = -(cos(th) * r2 - a2 / 3.0);
-        beta    = -(cos(th + 2.0 / 3.0 * pi) * r2 - a2 / 3.0);
-        gamma   = -(cos(th + 4.0 / 3.0 * pi) * r2 - a2 / 3.0);
+        pp       = a1 - a2 * a2 / 3;
+        q       = 2 * a2 * a2 * a2 / 27 - a1 * a2 /3 + a0;
+        r1      = sqrt(-pp * pp * pp / 27);
+        r2      = 2 * r1 ^ (1 / 3);
+        th   = acos(-q / (2 * r1)) / 3
+        alpha   = -(cos(th) * r2 - a2 / 3);
+        beta    = -(cos(th + 2 * pi / 3) * r2 - a2 / 3);
+        gamma   = -(cos(th + 4 * pi / 3) * r2 - a2 / 3);
         A       = ka / (ka - alpha) * (k21 - alpha) * (k31 - alpha) / (alpha - beta) / (alpha - gamma) / volume;
         B       = ka / (ka - beta) * (k21 - beta) * (k31 - beta) / (beta - alpha) / (beta - gamma) / volume;
         C       = ka / (ka - gamma) * (k21 - gamma) * (k31 - gamma) / (gamma - alpha) / (gamma - beta) / volume;
     })
+
     cpp <- c(cpp, create.cpp.code(lin.3cmt.p1.oral));
 
     ## parameterization #2
@@ -379,14 +383,14 @@ if (Sys.getenv("RxODE_derivs") == "TRUE"){
     lin.1cmt.p2 <- RxODE({
         volume = V
         alpha = k;
-        A = 1.0/volume;
+        A = 1/volume;
     })
 
     cpp <- c(cpp, create.cpp.code(lin.1cmt.p2))
 
     lin.2cmt.p2 <- RxODE({
         volume = V
-        beta  = 0.5 * (k12 + k21 + k - sqrt((k12 + k21 + k) * (k12 + k21 + k) - 4.0 * k21 * k));
+        beta  = 0.5 * (k12 + k21 + k - sqrt((k12 + k21 + k) * (k12 + k21 + k) - 4 * k21 * k));
         alpha = k21 * k / beta;
         A     = (alpha - k21) / (alpha - beta) / volume;
         B     = (beta - k21) / (beta - alpha) / volume;
@@ -396,7 +400,7 @@ if (Sys.getenv("RxODE_derivs") == "TRUE"){
 
     lin.2cmt.p2.oral <- RxODE({
         volume = V
-        beta  = 0.5 * (k12 + k21 + k - sqrt((k12 + k21 + k) * (k12 + k21 + k) - 4.0 * k21 * k));
+        beta  = 0.5 * (k12 + k21 + k - sqrt((k12 + k21 + k) * (k12 + k21 + k) - 4 * k21 * k));
         alpha = k21 * k / beta;
         A     = ka / (ka - alpha) * (alpha - k21) / (alpha - beta) / volume;
         B     = ka / (ka - beta) * (beta - k21) / (beta - alpha) / volume;
@@ -409,14 +413,14 @@ if (Sys.getenv("RxODE_derivs") == "TRUE"){
         a0      = k * k21 * k31;
         a1      = k * k31 + k21 * k31 + k21 * k13 + k * k21 + k31 * k12;
         a2      = k + k12 + k13 + k21 + k31;
-        pp       = a1 - a2 * a2 / 3.0;
-        q       = 2.0 * a2 * a2 * a2 / 27.0 - a1 * a2 /3.0 + a0;
-        r1      = sqrt(-pp * pp * pp / 27.0);
-        r2      = 2 * r1 ^ (1.0 / 3.0);
-        th   = acos(-q / (2.0 * r1)) / 3
-        alpha   = -(cos(th) * r2 - a2 / 3.0);
-        beta    = -(cos(th + 2.0 / 3.0 * pi) * r2 - a2 / 3.0);
-        gamma   = -(cos(th + 4.0 / 3.0 * pi) * r2 - a2 / 3.0);
+        pp       = a1 - a2 * a2 / 3;
+        q       = 2 * a2 * a2 * a2 / 27 - a1 * a2 /3 + a0;
+        r1      = sqrt(-pp * pp * pp / 27);
+        r2      = 2 * r1 ^ (1 / 3);
+        th   = acos(-q / (2 * r1)) / 3
+        alpha   = -(cos(th) * r2 - a2 / 3);
+        beta    = -(cos(th + 2 / 3 * pi) * r2 - a2 / 3);
+        gamma   = -(cos(th + 4 / 3 * pi) * r2 - a2 / 3);
         A       = (k21 - alpha) * (k31 - alpha) / (alpha - beta) / (alpha - gamma) / volume;
         B       = (k21 - beta) * (k31 - beta) / (beta - alpha) / (beta - gamma) / volume;
         C       = (k21 - gamma) * (k31 - gamma) / (gamma - alpha) / (gamma - beta) / volume;
@@ -430,14 +434,14 @@ if (Sys.getenv("RxODE_derivs") == "TRUE"){
         a0      = k * k21 * k31;
         a1      = k * k31 + k21 * k31 + k21 * k13 + k * k21 + k31 * k12;
         a2      = k + k12 + k13 + k21 + k31;
-        pp       = a1 - a2 * a2 / 3.0;
-        q       = 2.0 * a2 * a2 * a2 / 27.0 - a1 * a2 /3.0 + a0;
-        r1      = sqrt(-pp * pp * pp / 27.0);
-        r2      = 2 * r1 ^ (1.0 / 3.0);
-        th   = acos(-q / (2.0 * r1)) / 3
-        alpha   = -(cos(th) * r2 - a2 / 3.0);
-        beta    = -(cos(th + 2.0 / 3.0 * pi) * r2 - a2 / 3.0);
-        gamma   = -(cos(th + 4.0 / 3.0 * pi) * r2 - a2 / 3.0);
+        pp       = a1 - a2 * a2 / 3;
+        q       = 2 * a2 * a2 * a2 / 27 - a1 * a2 /3 + a0;
+        r1      = sqrt(-pp * pp * pp / 27);
+        r2      = 2 * r1 ^ (1 / 3);
+        th   = acos(-q / (2 * r1)) / 3
+        alpha   = -(cos(th) * r2 - a2 / 3);
+        beta    = -(cos(th + 2 / 3 * pi) * r2 - a2 / 3);
+        gamma   = -(cos(th + 4 / 3 * pi) * r2 - a2 / 3);
         A       = ka / (ka - alpha) * (k21 - alpha) * (k31 - alpha) / (alpha - beta) / (alpha - gamma) / volume;
         B       = ka / (ka - beta) * (k21 - beta) * (k31 - beta) / (beta - alpha) / (beta - gamma) / volume;
         C       = ka / (ka - gamma) * (k21 - gamma) * (k31 - gamma) / (gamma - alpha) / (gamma - beta) / volume;
@@ -453,7 +457,7 @@ if (Sys.getenv("RxODE_derivs") == "TRUE"){
         k = CL / volume
         k12 = Q / volume
         k21 = Q / (VSS - volume)
-        beta  = 0.5 * (k12 + k21 + k - sqrt((k12 + k21 + k) * (k12 + k21 + k) - 4.0 * k21 * k));
+        beta  = 0.5 * (k12 + k21 + k - sqrt((k12 + k21 + k) * (k12 + k21 + k) - 4 * k21 * k));
         alpha = k21 * k / beta;
         A     = (alpha - k21) / (alpha - beta) / volume;
         B     = (beta - k21) / (beta - alpha) / volume;
@@ -466,7 +470,7 @@ if (Sys.getenv("RxODE_derivs") == "TRUE"){
         k = CL / volume
         k12 = Q / volume
         k21 = Q / (VSS - volume)
-        beta  = 0.5 * (k12 + k21 + k - sqrt((k12 + k21 + k) * (k12 + k21 + k) - 4.0 * k21 * k));
+        beta  = 0.5 * (k12 + k21 + k - sqrt((k12 + k21 + k) * (k12 + k21 + k) - 4 * k21 * k));
         alpha = k21 * k / beta;
         A     = ka / (ka - alpha) * (alpha - k21) / (alpha - beta) / volume;
         B     = ka / (ka - beta) * (beta - k21) / (beta - alpha) / volume;
@@ -481,7 +485,7 @@ if (Sys.getenv("RxODE_derivs") == "TRUE"){
         k21 = (aob*betaP+alphaP)/(aob+1);
         k   = (alphaP*betaP)/k21;
         k12 = alphaP+betaP-k21-k;
-        beta  = 0.5 * (k12 + k21 + k - sqrt((k12 + k21 + k) * (k12 + k21 + k) - 4.0 * k21 * k));
+        beta  = 0.5 * (k12 + k21 + k - sqrt((k12 + k21 + k) * (k12 + k21 + k) - 4 * k21 * k));
         alpha = k21 * k / beta;
         A     = (alpha - k21) / (alpha - beta) / volume;
         B     = (beta - k21) / (beta - alpha) / volume;
@@ -494,13 +498,13 @@ if (Sys.getenv("RxODE_derivs") == "TRUE"){
         k21 = (aob*betaP+alphaP)/(aob+1);
         k   = (alphaP*betaP)/k21;
         k12 = alphaP+betaP-k21-k;
-        beta  = 0.5 * (k12 + k21 + k - sqrt((k12 + k21 + k) * (k12 + k21 + k) - 4.0 * k21 * k));
+        beta  = 0.5 * (k12 + k21 + k - sqrt((k12 + k21 + k) * (k12 + k21 + k) - 4 * k21 * k));
         alpha = k21 * k / beta;
         A     = ka / (ka - alpha) * (alpha - k21) / (alpha - beta) / volume;
         B     = ka / (ka - beta) * (beta - k21) / (beta - alpha) / volume;
     })
 
-    cpp <- c(cpp, create.cpp.code(lin.2cmt.p4));
+    cpp <- c(cpp, create.cpp.code(lin.2cmt.p4.oral));
 
     cur.par <- 5;
 
@@ -520,14 +524,11 @@ if (Sys.getenv("RxODE_derivs") == "TRUE"){
         beta  = betap
         alpha = alphap
         k21 = k21p
-        beta  = 0.5 * (k12 + k21 + k - sqrt((k12 + k21 + k) * (k12 + k21 + k) - 4.0 * k21 * k));
-        alpha = k21 * k / beta;
         A     = ka / (ka - alpha) * (alpha - k21) / (alpha - beta) / volume;
         B     = ka / (ka - beta) * (beta - k21) / (beta - alpha) / volume;
     })
 
-    cpp <- c(cpp, create.cpp.code(lin.2cmt.p5));
-
+    cpp <- c(cpp, create.cpp.code(lin.2cmt.p5.oral));
 
     sink(devtools::package_file("src/lincmtDiff.cpp"));
     cat("// [[Rcpp::depends(RcppArmadillo)]]
@@ -541,12 +542,15 @@ using namespace arma;
 void getLinDerivs(SEXP rho){
   Environment e = as<Environment>(rho);
   int par = as<int>(e[\"parameterization\"]);
-  int ncmt = as<int>(e[\"ncmp\"]);
+  int ncmt = as<int>(e[\"ncmt\"]);
   int oral = as<int>(e[\"oral\"]);
   double zoo = R_PosInf; // Zoo is in dV :(
 ");
     cat(paste(cpp, collapse="\n"));
+    cat(" stop(\"environment not setup properly for this function.\");\n");
     cat("}\n");
     sink()
-
+    rxClean();
+    load_all();
+    cat("done.\n");
 }

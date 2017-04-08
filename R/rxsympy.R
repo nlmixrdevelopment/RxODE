@@ -156,6 +156,7 @@ rxSympyStart <- function(){
                     SnakeCharmR::py.exec("import gc");
                     tryCatch({
                         SnakeCharmR::py.exec("from sympy import *")
+                        SnakeCharmR::py.exec("from __future__ import division");
                     }, error=function(e){
                         tryCatch({
                             system("python -m pip install sympy");
@@ -193,6 +194,7 @@ rxSympyStart <- function(){
             if (!exists(".Jython", .GlobalEnv)){
                 rSymPy::sympyStart()
                 .rxSymPy$started <- "rSymPy";
+                .Jython$exec("from __future__ import division");
                 try({.Jython$exec("import gc");});
             }
         }

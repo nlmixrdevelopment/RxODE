@@ -861,7 +861,7 @@ void R_init_RxODE(DllInfo *info){
     {"RxODE_rxUpdateEtas", (DL_FUNC) &RxODE_rxUpdateEtas, 4},
     {"trans", (DL_FUNC) &trans, 8},
     {"RxODE_getMacroConstants", (DL_FUNC) &RxODE_getMacroConstants, 1},
-    {"RxODE_getLinDerivs", (DL_FUNC) &RxODE_getMacroConstants, 1},
+    {"RxODE_getLinDerivs", (DL_FUNC) &RxODE_getLinDerivs, 1},
     {NULL, NULL, 0}
   };
   R_registerRoutines(info, NULL, callMethods, NULL, NULL);
