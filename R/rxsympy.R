@@ -150,8 +150,8 @@ rxSymPyStart <- function(){
     }
     try({
         if (is.null(.rxSymPy$started)){
-            if (is.null(getOption("RxODE.sympy.engine", NULL)) ||
-                identical(getOption("RxODE.sympy.engine", NULL), "SnakeCharmR")){
+            if (getOption("RxODE.sympy.engine", "") == ""||
+                identical(getOption("RxODE.sympy.engine", ""), "SnakeCharmR")){
                 if (requireNamespace("SnakeCharmR", quietly = TRUE)){
                     try({
                         SnakeCharmR::py.exec("import sys");
@@ -178,9 +178,39 @@ rxSymPyStart <- function(){
             }
         }
     })
-    if (is.null(.rxSymPy$started)){
-        if (is.null(getOption("RxODE.sympy.engine", NULL)) ||
-            identical(getOption("RxODE.sympy.engine", NULL), "PythonInR")){
+    try({
+        if (is.null(.rxSymPy$started)){
+            if (getOption("RxODE.sympy.engine", "") == ""||
+                identical(getOption("RxODE.sympy.engine", ""), "rPython")){
+                if (requireNamespace("rPython", quietly = TRUE)){
+                    try({
+                        rPython::python.exec("import sys");
+                        rPython::python.exec("import gc");
+                        tryCatch({
+                            rPython::python.exec("from sympy import *")
+                        }, error=function(e){
+                            tryCatch({
+                                system("python -m pip install sympy");
+                                rPython::python.exec("from sympy import *");
+                            }, error=function(e){
+                                if (requireNamespace("rSymPy", quietly = TRUE)){
+                                    rPython::python.exec( paste( "sys.path.append(", system.file( "Lib", package = "rSymPy" ), ")", sep = '"' ) )
+                                    rPython::python.exec("from sympy import *")
+                                } else {
+                                    stop("Could not install sympy.  Please install it in python manually.");
+                                }
+                            })
+
+                        })
+                        .rxSymPy$started <- "rPython";
+                    })
+                }
+            }
+        }
+    })
+    try({if (is.null(.rxSymPy$started)){
+        if (getOption("RxODE.sympy.engine", "") == "" ||
+            identical(getOption("RxODE.sympy.engine", ""), "PythonInR")){
             if (requireNamespace("PythonInR", quietly = TRUE)) {
                 if(PythonInR::pyIsConnected()) {
                     PythonInR::pyExecp("import sys")
@@ -209,10 +239,10 @@ rxSymPyStart <- function(){
                 }
             }
         }
-    }
+    }})
     if (is.null(.rxSymPy$started)){
-        if (is.null(getOption("RxODE.sympy.engine", NULL)) ||
-            identical(getOption("RxODE.sympy.engine", NULL), "PythonInR")){
+        if (getOption("RxODE.sympy.engine", "") == ""||
+            identical(getOption("RxODE.sympy.engine", ""), "rSymPy")){
             if (requireNamespace("rSymPy", quietly = TRUE)){
                 if (!exists(".Jython", .GlobalEnv)){
                     rSymPy::sympyStart()
@@ -243,6 +273,9 @@ rxSymPyExec <- function(...){
     if (.rxSymPy$started == "SnakeCharmR"){
         SnakeCharmR::py.exec(...);
     }
+    if (.rxSymPy$started == "rPython"){
+        rPython::python.exec(...);
+    }
     if (.rxSymPy$started == "PythonInR"){
         PythonInR::pyExecp(...);
     }
@@ -265,6 +298,13 @@ rxSymPy <- function(...){
         SnakeCharmR::py.exec(paste("__Rsympy=", ..., sep = ""))
         SnakeCharmR::py.exec(paste("__Rsympy = str(__Rsympy)"))
         ret <- SnakeCharmR::py.get("__Rsympy");
+        return(ret);
+    }
+    if (.rxSymPy$started == "rPython"){
+        rPython::python.exec(paste("__Rsympy=None"))
+        rPython::python.exec(paste("__Rsympy=", ..., sep = ""))
+        rPython::python.exec(paste("__Rsympy = str(__Rsympy)"))
+        ret <- rPython::python.get("__Rsympy");
         return(ret);
     }
     if (.rxSymPy$started == "PythonInR"){
