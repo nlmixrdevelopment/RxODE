@@ -175,19 +175,19 @@ rxSymPyStart <- function(){
             }
         }
     })
-    ## if (is.null(.rxSymPy$started)){
-    ##     if (requireNamespace("PythonInR", quietly = TRUE)) {
-    ##         if(PythonInR::pyIsConnected()) {
-    ##             PythonInR::pyExecp("import sys")
-    ##             PythonInR::pyExecp("import gc")
-    ##             PythonInR::pyExecp( paste( "sys.path.append(", system.file( "Lib", package = "rSymPy" ), ")", sep = '"' ) )
-    ##             PythonInR::pyExecp("from sympy import *")
-    ##             .rxSymPy$started <- "PythonInR";
-    ##         } else {
-    ##             cat("Warning: Python in R not working; make sure python is in the path, trying Jython.\n");
-    ##         }
-    ##     }
-    ## }
+    if (is.null(.rxSymPy$started)){
+        if (requireNamespace("PythonInR", quietly = TRUE)) {
+            if(PythonInR::pyIsConnected()) {
+                PythonInR::pyExecp("import sys")
+                PythonInR::pyExecp("import gc")
+                PythonInR::pyExecp( paste( "sys.path.append(", system.file( "Lib", package = "rSymPy" ), ")", sep = '"' ) )
+                PythonInR::pyExecp("from sympy import *")
+                .rxSymPy$started <- "PythonInR";
+            } else {
+                cat("Warning: Python in R not working; make sure python is in the path, trying Jython.\n");
+            }
+        }
+    }
     if (is.null(.rxSymPy$started)){
         if (requireNamespace("rSymPy", quietly = TRUE)){
             if (!exists(".Jython", .GlobalEnv)){
@@ -218,11 +218,10 @@ rxSymPyExec <- function(...){
     if (.rxSymPy$started == "SnakeCharmR"){
         SnakeCharmR::py.exec(...);
     }
-    ## else if (.rxSymPy$started == "PythonInR"){
-    ##     PythonInR::pyExecp(...);
-    ## }
-    ## else
-    if (.rxSymPy$started == "rSymPy"){
+    if (.rxSymPy$started == "PythonInR"){
+        PythonInR::pyExecp(...);
+    }
+    else if (.rxSymPy$started == "rSymPy"){
         .Jython$exec(...);
     }
 }
@@ -243,13 +242,12 @@ rxSymPy <- function(...){
         ret <- SnakeCharmR::py.get("__Rsympy");
         return(ret);
     }
-    ## else if (.rxSymPy$started == "PythonInR"){
-    ##     PythonInR::pyExec(paste("__Rsympy=None"))
-    ##     PythonInR::pyExec(paste("__Rsympy=", ..., sep = ""))
-    ##     PythonInR::pyExec(paste("__Rsympy = str(__Rsympy)"))
-    ##     return(PythonInR::pyGet("__Rsympy"));
-    ## }
-    ## else
+    if (.rxSymPy$started == "PythonInR"){
+        PythonInR::pyExec(paste("__Rsympy=None"))
+        PythonInR::pyExec(paste("__Rsympy=", ..., sep = ""))
+        PythonInR::pyExec(paste("__Rsympy = str(__Rsympy)"))
+        return(PythonInR::pyGet("__Rsympy"));
+    }
     if (.rxSymPy$started == "rSymPy"){
         rSymPy::sympy(...)
     }
