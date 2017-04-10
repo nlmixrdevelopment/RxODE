@@ -161,6 +161,16 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
+// linCmtEnv
+void linCmtEnv(SEXP rho);
+RcppExport SEXP RxODE_linCmtEnv(SEXP rhoSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type rho(rhoSEXP);
+    linCmtEnv(rho);
+    return R_NilValue;
+END_RCPP
+}
 // getLinDerivs
 void getLinDerivs(SEXP rho);
 RcppExport SEXP RxODE_getLinDerivs(SEXP rhoSEXP) {
