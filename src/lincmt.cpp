@@ -171,7 +171,7 @@ void linCmtEnv(SEXP rho){
   getMacroConstants(rho);
   getLinDerivs(rho);
   Environment e = as<Environment>(rho);
-  int linCmt = as<int>(e["cmt"]);
+  int linCmt = as<int>(e["cmt"])-1;
   int parameterization = as<int>(e["parameterization"]);
   unsigned int ncmt = as<unsigned int>(e["ncmt"]);
   int oral = as<int>(e["oral"]);
@@ -193,13 +193,12 @@ void linCmtEnv(SEXP rho){
 	  2*ncmt+oral+((tlag == 0.0) ? 0 : 1) + 1,
 	  fill::zeros);
   unsigned int b = 0, m = 0, l = 0, i = 0, j = 0;
-  double thisT = 0.0, tT = 0.0, sum = 0.0, res, t1, t2, tinf, rate;
+  double thisT = 0.0, tT = 0.0, res, t1, t2, tinf, rate;
   mat cur;
   
   for (b = 0; b < sampling.n_rows; b++){
     // Get the next dose, index if necessary.
-    while (sampling(b,0) > dosing(m,0) &&
-	   m < dosing.n_rows){
+    while (m < dosing.n_rows && sampling(b,0) > dosing(m,0)){
       m++;
     }
     for(l=0; l < m; l++){
@@ -207,7 +206,6 @@ void linCmtEnv(SEXP rho){
       cmt = (((int)(dosing(l, 1)))%10000)/100 - 1;
       if (cmt != linCmt) continue;
       if (dosing(l, 1) > 10000) {
-	sum = 0.0;
         if (dosing(l, 2) > 0){
           // During infusion
 	  tT = sampling(b,0) - dosing(l, 0);
@@ -226,9 +224,78 @@ void linCmtEnv(SEXP rho){
 	}
 	t1 = ((thisT < tinf) ? thisT : tinf);        //during infusion
 	t2 = ((thisT > tinf) ? thisT - tinf : 0.0);  // after infusion
-	for (i = 0; i < ncmt; i++)
-	  sum += par(i,1) / par(i,0) * (1 - exp(-par(i,0) * t1)) * exp(-par(i,0) * t2);
-	ret(b,0) += rate * sum;
+	for (i = 0; i < ncmt; i++){
+	  ret(b,0) += rate*par(i,1) / par(i,0) * (1 - exp(-par(i,0) * t1)) * exp(-par(i,0) * t2);
+	  // FIXME derivs
+	  for (j = 0; j < ncmt*2; j++){
+            if (parameterization == 1){
+              switch(j){
+              case 0:
+                cur = as<mat>(e["dV"]);
+                break;
+              case 1:
+                cur = as<mat>(e["dCL"]);
+                break;
+              case 2:
+                cur = as<mat>(e["dV2"]);
+                break;
+              case 3:
+                cur = as<mat>(e["dQ"]);
+                break;
+              case 4:
+                cur = as<mat>(e["dV3"]);
+                break;
+              case 5:
+                cur = as<mat>(e["dQ2"]);
+                break;
+              }
+            } else if (parameterization == 2){
+              switch(j){
+              case 0:
+                cur = as<mat>(e["dV"]);
+                break;
+              case 1:
+                cur = as<mat>(e["dK"]);
+                break;
+              case 2:
+                cur = as<mat>(e["dK12"]);
+                break;
+              case 3:
+                cur = as<mat>(e["dK21"]);
+                break;
+              case 4:
+                cur = as<mat>(e["dK13"]);
+                break;
+              case 5:
+                cur = as<mat>(e["dK31"]);
+                break;
+              }
+            } else if (parameterization == 3){
+              switch(j){
+              case 0:
+                cur = as<mat>(e["dV"]);
+                break;
+              case 1:
+                cur = as<mat>(e["dCL"]);
+                break;
+              case 2:
+                cur = as<mat>(e["dVSS"]);
+                break;
+              case 3:
+                cur = as<mat>(e["dQ"]);
+                break;
+              }
+            }
+	    // > rxSymPy("simplify(diff(rate*p1(V)/p0(V)*(1-exp(-p0(V)*t1))*exp(p0(V)*t2),V))")
+            // [1] "rate*(-(exp(t1*p0(V)) - 1)*p1(V)*Derivative(p0(V), V) + (t1*p1(V)*Derivative(p0(V), V) + t2*(exp(t1*p0(V)) - 1)*p1(V)*Derivative(p0(V), V) + (exp(t1*p0(V)) - 1)*Derivative(p1(V), V))*p0(V))*exp(-2*t1*p0(V))*exp((t1 + t2)*p0(V))/p0(V)**2"
+            ret(b,j+1) = rate*(-(exp(t1*par(i, 0)) - 1)*par(i, 1)*cur(i, 0) + (t1*par(i, 1)*cur(i, 0) + t2*(exp(t1*par(i, 0)) - 1)*par(i, 1)*cur(i, 0) + (exp(t1*par(i, 0)) - 1)*cur(i, 1))*par(i, 0))*exp(-2*t1*par(i, 0))*exp((t1 + t2)*par(i, 0))/pow(par(i, 0), 2);
+          }
+	  if (oral == 1){
+	    ret(b, j) = 0;
+	    j++;
+	  }
+	  // FIXME tlag
+        }
       } else {
         thisT = sampling(b,0) - dosing(l, 0) - tlag;
 	if (thisT < 0) continue;
