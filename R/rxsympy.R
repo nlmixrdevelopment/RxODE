@@ -729,8 +729,9 @@ rxSymPySensitivity.single <- function(model, calcSens, calcJac){
 ##'     calculated.
 ##' @param keepState State parameters to keep the sensitivites for.
 ##'
-##' @param collapseModel A boolean to collapse the model to not
-##'     include any left handed quantities.
+##' @param collapseModel A boolean to collapse the model that each
+##'     expression only depends on the unspecified parameters (instead on LHS quantities).
+##'
 ##' @return Model syntax that includes the sensitivity parameters.
 ##' @author Matthew L. Fidler
 ##' @export
@@ -765,6 +766,11 @@ rxSymPySensitivity <- function(model, calcSens, calcJac=FALSE, keepState=NULL,
                     extraLines[length(extraLines) + 1] <- sprintf("%s(0)=%s", v, tmp);
                 }
             }
+            for (v in rxLhs(model)){
+                tmp <- rxSymPy(rxToSymPy(sprintf("%s", v)));
+                tmp <- rxFromSymPy(tmp);
+                extraLines[length(extraLines) + 1] <- sprintf("%s=%s", v, tmp);
+            }
         }
         extraLines <- c(extraLines, rxSymPySensitivity.single(model, calcSens, calcJac));
     } else {
@@ -781,6 +787,11 @@ rxSymPySensitivity <- function(model, calcSens, calcJac=FALSE, keepState=NULL,
                     tmp <- rxSymPy(rxToSymPy(sprintf("d/dt(%s)", v)));
                     tmp <- rxFromSymPy(tmp);
                     tmpl[length(tmpl) + 1] <- sprintf("d/dt(%s)=%s", v, tmp);
+                }
+                for (v in rxLhs(model)){
+                    tmp <- rxSymPy(rxToSymPy(sprintf("%s", v)));
+                    tmp <- rxFromSymPy(tmp);
+                    tmpl[length(tmpl) + 1] <- sprintf("%s=%s", v, tmp);
                 }
             }
             extraLines <- c(extraLines,
@@ -1107,6 +1118,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                 }
             }
             baseState <- rxState(obj);
+            oLhs <- rxLhs(obj);
             obj <- rxGetModel(rxNorm(obj, removeJac=TRUE, removeSens=TRUE), calcSens=calcSens, collapseModel=TRUE);
             base <- rxNorm(obj);
             cnd.base <- rxNorm(newmod, TRUE); ## Get the conditional statements
@@ -1137,7 +1149,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                     lines <- "";
                 }
                 rxCat(sprintf("## Calculate d(f)/d(eta) %s\n", lines));
-                newmod <- rxGetModel(paste0(rxNorm(obj), "\n", rxNorm(pred.mod)));
+                newmod <- rxNorm(rxGetModel(paste0(rxNorm(obj), "\n", rxNorm(pred.mod))));
                 newlines <- rxSymPySetupDPred(newmod, calcSens, baseState)
                 if(attr(newlines, "zeroSens")){
                     some.pred <<- TRUE;
@@ -1148,7 +1160,12 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                     rxSymPyClean()
                     stop();
                 }
-                lines <- c(lines, rxNorm(pred.mod), newlines);
+                newmod <- rxGetModel(newmod);
+                tmp <- rxSymPy("rx_pred_");
+                lines <- c(lines,
+                           ## Make sure rx_pred_ is not in terms of LHS components.
+                           gsub(rex::rex("rx_pred_=", anything), sprintf("rx_pred_=%s", rxFromSymPy(tmp)), rxNorm(pred.mod)),
+                           newlines);
                 if (lgl){
                     lines <- c(lines, "}")
                 }
@@ -1156,6 +1173,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                 return(paste(lines, collapse="\n"));
             }), collapse="\n");
             if (!one.pred){
+                cat(pred);
                 stop("At least some part of your prediction function needs to depend on the state variables.")
             }
             if (some.pred){
@@ -1194,7 +1212,11 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                     rxCat(sprintf("## Calculate d(err)/d(eta) %s\n", lines));
                     newmod <- rxGetModel(paste0(rxNorm(obj), "\n", rxNorm(err.mod)));
                     newlines <- rxSymPySetupDPred(newmod, calcSens, baseState, prd="rx_r_")
-                    lines <- c(lines, rxNorm(err.mod), newlines);
+                    tmp <- rxSymPy("rx_r_");
+                    lines <- c(lines,
+                               ## Make sure rx_r_ is not in terms of LHS components.
+                               gsub(rex::rex("rx_r_=", anything), sprintf("rx_r_=%s", rxFromSymPy(tmp)), rxNorm(err.mod)),
+                               newlines);
                     if (lgl){
                         lines <- c(lines, "}")
                     }
@@ -1210,6 +1232,9 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                     outer <- rxSymPySetupPred(obj=oobj, predfn=predfn, pkpars=pkpars,
                                               errfn=errfn, init=init, run.internal=TRUE, grad.internal=TRUE);
                 }
+
+                base <- gsub(rex::rex(or(oLhs), "=", anything, ";"), "", strsplit(base, "\n")[[1]])
+                base <- paste(base[base != ""], collapse="\n");
                 ret <- list(obj=oobj,
                             inner=RxODE(paste0(base, "\n", pred, "\n", err)),
                             extra.pars=extra.pars,
@@ -1229,6 +1254,8 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                 }
                 return(ret);
             } else {
+                base <- gsub(rex::rex(or(oLhs), "=", anything, ";"), "", strsplit(base, "\n")[[1]])
+                base <- paste(base[base != ""], collapse="\n");
                 return(RxODE(paste0(base, "\n", pred, "\n", err)));
             }
         }

@@ -62,7 +62,8 @@ rxPermissive({
 
     m2a1 <- rxSymPySetupPred(m2, pred, pk)
 
-    m2a2 <- rxSymPySetupPred(m2, pred)
+    ## Fixme?
+    ## m2a2 <- rxSymPySetupPred(m2, pred)
 
     m2a <- rxSymPySetupPred(m2, pred, pk, err)
 
@@ -126,7 +127,7 @@ rxPermissive({
 
     test_that("1, 2 and 3 parameter Pred Setup works", {
         expect_equal(class(m2a1), "rxFocei")
-        expect_equal(class(m2a2), "rxFocei")
+        ## expect_equal(class(m2a2), "rxFocei")
         expect_equal(class(m2a), "rxFocei")
         expect_equal(class(m2b), "rxFocei")
         expect_equal(class(m2c), "rxFocei")
@@ -847,5 +848,33 @@ rxPermissive({
         expect_true(all(!duplicated(out)));
     })
 
+    mod <- RxODE({
+        C2 = centr/V2;
+        C3 = peri/V3;
+        d/dt(centr) =  - CL*C2 - Q*C2 + Q*C3;
+        d/dt(peri)  = Q*C2 - Q*C3;
+    })
+
+
+
+    par <- function ()
+    {
+        CL <- THETA[1] * exp(ETA[1])
+        V2 <- THETA[2]
+        Q <- THETA[3]  * exp(ETA[2]);
+        V3 <- THETA[4]
+    }
+
+    pred <- function() C2
+
+
+    focei.mod1 <- rxSymPySetupPred(mod, pred, par, err=function(){return(prop(0.1) + add(0.1))});
+
+    focei.mod2 <- rxSymPySetupPred(mod, pred, par, err=function(){return(prop(0.1) + add(0.1))}, grad=TRUE);
+
+    test_that("Can use a LHS quantity to caluclate PRED.", {
+        expect_equal(class(focei.mod1), "rxFocei");
+        expect_equal(class(focei.mod2), "rxFocei");
+    })
 
 }, silent=TRUE)
