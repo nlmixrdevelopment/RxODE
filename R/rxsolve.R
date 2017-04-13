@@ -823,3 +823,19 @@ cbind.solveRxDll <- function(...){
     stop("cbind is unsupported.  First convert to a data.frame with as.data.frame(x).")
 }
 
+
+##' @name as.data.table
+##' @export as.data.table.solveRxDll
+##'
+##' @method as.data.table solveRxDll
+##'
+##' @title as.data.table for \code{solveRxDll} object
+##' @description compatability function for tidyr
+##' @param data Solved ODE, an \code{solveRxDll} object.
+##' @param ... Additional arguments
+##'
+as.data.table.solveRxDll <- function(x, ...){
+    call <- as.list(match.call(expand.dots=TRUE))[-1];
+    call$x <- as.data.table(x);
+    return(do.call(getFromNamespace("as.data.table","data.table"), call, envir = parent.frame(1)));
+}
