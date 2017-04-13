@@ -19,8 +19,8 @@ calculated.}
 
 \item{keepState}{State parameters to keep the sensitivites for.}
 
-\item{collapseModel}{A boolean to collapse the model to not
-include any left handed quantities.}
+\item{collapseModel}{A boolean to collapse the model that each
+expression only depends on the unspecified parameters (instead on LHS quantities).}
 }
 \value{
 Model syntax that includes the sensitivity parameters.

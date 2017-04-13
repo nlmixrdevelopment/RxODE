@@ -31,8 +31,7 @@ Suggests:
     dplyr,
     tidyr,
     tibble,
-    praise,
-    data.table
+    praise
 Imports:
     utils,
     methods,
