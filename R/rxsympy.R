@@ -170,8 +170,8 @@ rxSymPyStart <- function(){
                                     stop("Could not install sympy.  Please install it in python manually.");
                                 }
                             })
-
                         })
+                        SnakeCharmR::py.exec("linCmtC = Function('linCmtC')");
                         .rxSymPy$started <- "SnakeCharmR";
                     })
                 }
@@ -202,6 +202,7 @@ rxSymPyStart <- function(){
                             })
 
                         })
+                        rPython::python.exec("linCmtC = Function('linCmtC')");
                         .rxSymPy$started <- "rPython";
                     })
                 }
@@ -233,6 +234,7 @@ rxSymPyStart <- function(){
                         })
 
                     })
+                    PythonInR::pyExecp("linCmtC = Function('linCmtC')");
                     .rxSymPy$started <- "PythonInR";
                 } else {
                     cat("Warning: Python in R not working; make sure python is in the path, trying Jython.\n");
@@ -298,6 +300,8 @@ rxSymPy <- function(...){
         SnakeCharmR::py.exec(paste("__Rsympy=", ..., sep = ""))
         SnakeCharmR::py.exec(paste("__Rsympy = str(__Rsympy)"))
         ret <- SnakeCharmR::py.get("__Rsympy");
+        ret <- gsub("\\b_","rx_underscore_",ret);
+        ret <- gsub(",[)]",")",ret);
         return(ret);
     }
     if (.rxSymPy$started == "rPython"){
@@ -305,16 +309,24 @@ rxSymPy <- function(...){
         rPython::python.exec(paste("__Rsympy=", ..., sep = ""))
         rPython::python.exec(paste("__Rsympy = str(__Rsympy)"))
         ret <- rPython::python.get("__Rsympy");
+        ret <- gsub("\\b_","rx_underscore_",ret);
+        ret <- gsub(",[)]",")",ret);
         return(ret);
     }
     if (.rxSymPy$started == "PythonInR"){
         PythonInR::pyExec(paste("__Rsympy=None"))
         PythonInR::pyExec(paste("__Rsympy=", ..., sep = ""))
         PythonInR::pyExec(paste("__Rsympy = str(__Rsympy)"))
-        return(PythonInR::pyGet("__Rsympy"));
+        ret <- PythonInR::pyGet("__Rsympy");
+        ret <- gsub("\\b_","rx_underscore_",ret);
+        ret <- gsub(",[)]",")",ret);
+        return(ret);
     }
     if (.rxSymPy$started == "rSymPy"){
-        rSymPy::sympy(...)
+        ret <- rSymPy::sympy(...)
+        ret <- gsub("\\b_","rx_underscore_",ret);
+        ret <- gsub(",[)]",")",ret);
+        return(ret);
     }
 }
 ##' Return the version of SymPy that is running

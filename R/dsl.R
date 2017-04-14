@@ -279,14 +279,29 @@ sympyRxFEnv$structure <- function(one, ..., .Names){
     eval(parse(text=sprintf("rxFromSymPy(%s)", deparse(sprintf("%s", one)))));
 }
 
+sympyRxFEnv$Subs <- function(expr, what, with){
+    what <- strsplit(substring(what, 2, nchar(what) - 1), ",")[[1]];
+    with <- strsplit(substring(with, 2, nchar(with) - 1), ",")[[1]];
+    for (i in 1:length(what)){
+        expr <- gsub(rex::rex(boundary, what[i], boundary), with[i], expr, perl=TRUE);
+    }
+    return(expr);
+}
+
+sympyRxFEnv$subs <- sympyRxFEnv$Subs;
+
 rxSymPyAllowDiff <- FALSE;
-rxSymPyFEnv$diff <- function(fn, x){
-    if (rxSymPyAllowDiff){
-        sprintf("diff(%s,%s)", fn, x);
-    } else {
-        stop("diff is not suported in RxODE.");
+
+rxSymPyDiff <- function(name){
+    force(name)
+    function(fn, x){
+        stop(sprintf("'%s' is not suported in RxODE.", name));
     }
 }
+
+rxSymPyFEnv$diff <- rxSymPyDiff("diff");
+rxSymPyFEnv$D <- rxSymPyDiff("D");
+rxSymPyFEnv$Derivative <- rxSymPyDiff("Derivative");
 
 rxSymPyFEnv$psigamma <- function(z, n){
     paste0("polygamma(", n, ", ", z, ")");
@@ -396,6 +411,61 @@ allCalls <- function(x) {
     }
 }
 
+getParList <- function(par, ncmt){
+    pars <- list(
+        c("V", "CL", "V2", "Q", "V3", "Q2"),
+        c("V", "K", "K12", "K21", "K13", "K31"),
+        c("V", "CL", "VSS", "Q", "V3", "Q2")
+        );
+    return(c(pars[[par]][seq(1, 2 * ncmt)], "KA", "TLAG"));
+}
+
+changeDerivs <- function(fn, var){
+    ## Fn is a vector fn[1] == function name,the rest are the argments
+    if (fn[1] == "linCmtC"){
+        ## linCmtC(double t, int parameterization, unsigned int col, double p1, double p2, double p3, double p4, double p5, double p6, double p7, double p8)
+        col <- fn[4];
+        if (col != "1"){
+            stop("Cannot currently take a second order deriavative of linCmt.");
+        } else {
+            if (length(var) > 1){
+                env <- rxEnv(var)
+                fnl <- as.list(var[-1])
+                if (any(names(sympyRxFEnv) == var[1])){
+                    fne <- sympyRxFEnv[[var[1]]]
+                    var <- do.call(fne, fnl)
+                } else {
+                    stop("Cannot figure out how to deparse the deriavative");
+                }
+            }
+            vals <- fn[-(1:4)];
+            w <- which(vals == var);
+            if (length(w) == 1){
+                w <- w + 1;
+                fn[4] <- paste(w);
+                return(sprintf("%s(%s)", fn[1], paste(fn[-1], collapse=", ")));
+            } else {
+                stop("Could not figure out how to take the derivative.")
+            }
+        }
+
+        ## tmp <- sapply(fn[-1], function(x){rxFromSymPy(x)})
+        ## env <- rep(1, length(tmp))
+        ## names(env) <- tmp;
+        ## env <- list2env(as.list(env));
+        ## getMacroConstants(env);
+        ## print(as.list(env));
+        ## ncmt <- env$ncmt;
+        ## par <- env$parameterization;
+        ## col <- as.integer(which(var == getParList(par, ncmt)) + 1);
+        ## tmp <- c(tmp, rep("0", 8 - length(tmp)))
+        ## return(sprintf("dLinCmt(%s, %s, %s, %s)", col, par, ncmt, paste(fn[-1], collapse=", ")));
+        return("");
+    } else {
+        stop(sprintf("RxODE does not know how to take a deriavite of '%s'", fn[1]));
+    }
+}
+
 evalPrints <- function(x, envir=parent.frame()){
     if (is.atomic(x) || is.name(x)) {
         ## Leave unchanged
@@ -415,6 +485,11 @@ evalPrints <- function(x, envir=parent.frame()){
             }
             txt <- eval(parse(text=txt))
             return(txt)
+        } else if ((identical(x[[1]], quote(Derivative)) ||
+                   identical(x[[1]], quote(D)) ||
+                   identical(x[[1]], quote(diff))) &&
+                   length(x) == 3){
+            return(changeDerivs(as.character(x[[2]]), as.character(x[[3]])));
         } else {
             as.call(lapply(x, evalPrints, envir=envir));
         }
@@ -530,26 +605,36 @@ rxToSymPy <- function(x, envir=parent.frame(1)) {
             if (addNames){
                 names(txt) <- vars;
             }
+            txt <- gsub("\\brx_underscore_", "_", txt, perl=TRUE);
             return(txt);
         } else {
-            return(eval(parse(text=sprintf("RxODE::rxToSymPy(%s)", deparse(paste(as.vector(x), collapse="\n"))))));
+            txt <- eval(parse(text=sprintf("RxODE::rxToSymPy(%s)", deparse(paste(as.vector(x), collapse="\n")))))
+            txt <- gsub("\\brx_underscore_", "_", txt, perl=TRUE);
+            return(txt);
         }
     } else if (class(substitute(x)) == "name"){
         cls <- tryCatch({class(x)}, error=function(e){return("error")});
         if (any(cls == c("list", "rxDll", "RxCompilationManager", "RxODE", "solveRxDll"))){
             ret <- strsplit(rxNorm(x),"\n")[[1]];
             ret <- rxRmIni(ret);
-            ret <- eval(parse(text=sprintf("RxODE::rxToSymPy(%s,envir=envir)", deparse(paste0(as.vector(ret), collapse="\n")))), envir=envir);
-            return(ret);
+            txt <- eval(parse(text=sprintf("RxODE::rxToSymPy(%s,envir=envir)", deparse(paste0(as.vector(ret), collapse="\n")))), envir=envir);
+            txt <- gsub("\\brx_underscore_", "_", txt, perl=TRUE);
+            return(txt);
         } else if (cls == "character" && length(cls) == 1){
-            return(eval(parse(text=sprintf("RxODE::rxToSymPy(%s)", deparse(as.vector(x))))));
+            txt <- eval(parse(text=sprintf("RxODE::rxToSymPy(%s)", deparse(as.vector(x)))));
+            txt <- gsub("\\brx_underscore_", "_", txt, perl=TRUE);
+            return(txt);
         } else {
             expr <- evalPrints(substitute(x), envir=envir)
-            return(eval(expr, sympyEnv(expr)))
+            txt <- eval(expr, sympyEnv(expr))
+            txt <- gsub("\\brx_underscore_", "_", txt, perl=TRUE);
+            return(txt)
         }
     } else {
         expr <- evalPrints(substitute(x), envir=envir)
-        return(eval(expr, sympyEnv(expr)))
+        txt <- eval(expr, sympyEnv(expr));
+        txt <- gsub("\\brx_underscore_", "_", txt, perl=TRUE);
+        return(txt)
     }
 }
 
@@ -578,19 +663,23 @@ rxFromSymPy <- function(x, envir=parent.frame(1)) {
             }
             return(txt);
         } else {
-            return(eval(parse(text=sprintf("RxODE::rxFromSymPy(%s)", deparse(paste(x, collapse="\n"))))));
+            txt <- eval(parse(text=sprintf("RxODE::rxFromSymPy(%s)", deparse(paste(x, collapse="\n")))));
+            return(txt);
         }
     } else if (class(substitute(x)) == "name"){
         cls <- tryCatch({class(x)}, error=function(e){return("error")});
         if (cls == "character" && length(cls) == 1){
-            return(eval(parse(text=sprintf("RxODE::rxFromSymPy(%s)", deparse(x)))));
+            txt <- eval(parse(text=sprintf("RxODE::rxFromSymPy(%s)", deparse(x))));
+            return(txt);
         } else {
             expr <- evalPrints(substitute(x), envir=envir)
-            return(eval(expr, rxEnv(expr)))
+            txt <- eval(expr, rxEnv(expr));
+            return(txt)
         }
     } else {
         expr <- evalPrints(substitute(x), envir=envir)
-        return(eval(expr, rxEnv(expr)))
+        txt <- eval(expr, rxEnv(expr))
+        return(txt)
     }
 }
 
