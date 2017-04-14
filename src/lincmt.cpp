@@ -176,33 +176,62 @@ void linCmtEnv(SEXP rho){
   unsigned int ncmt = as<unsigned int>(e["ncmt"]);
   int oral = as<int>(e["oral"]);
   mat g = as<mat>(e["g"]);
-  mat et = as<mat>(e["events"]); // et2$get.EventTable()
   mat dosing = as<mat>(e["dosing"]); // et$get.dosing()
-  mat sampling = as<mat>(e["sampling"]); // et$get.sampling()
+  mat sampling = as<mat>(e["t"]); // et$get.sampling()[,]
   mat par = as<mat>(e["g"]);
   int cmt = -1;
   double tlag = 0.0;
-  if (e.exists("tlag")){
-    tlag = as<double>(e["tlag"]);
+  if (e.exists("TLAG")){
+    tlag = as<double>(e["TLAG"]);
   }
   double ka = 0;
   if (oral == 1){
     ka = as<double>(e["KA"]);
   }
   mat ret(sampling.n_rows,
-	  2*ncmt+oral+((tlag == 0.0) ? 0 : 1) + 1,
+	  2*ncmt+oral+((tlag == 0.0) ? 0 : 1) + 2,
 	  fill::zeros);
-  unsigned int b = 0, m = 0, l = 0, i = 0, j = 0;
+  StringVector cname(2*ncmt+oral+((tlag == 0.0) ? 0 : 1) + 2);
+  cname(0) = "t";
+  cname(1) = "f";
+  unsigned int b = 0, m = 0, l = 0, i = 0, j = 0, p = 0, ij = 0;
   double thisT = 0.0, tT = 0.0, res, t1, t2, tinf, rate;
   mat cur;
   
   for (b = 0; b < sampling.n_rows; b++){
     // Get the next dose, index if necessary.
-    while (m < dosing.n_rows && sampling(b,0) > dosing(m,0)){
-      m++;
+
+    i = 0;
+    j = dosing.n_rows-1;
+    // Use approx's bisection function as inspiration for the bisection here.
+    /* handle out-of-domain points */
+    if(sampling(b,0) < dosing(i,0)){
+      m = 0;
+    } else if (sampling(b,0) > dosing(j,0)){
+      m=j;
+    } else {
+      /* find the last dose by bisection */
+      while(i < j - 1) { /* x[i] <= v <= x[j] */
+        ij = (i + j)/2; /* i+1 <= ij <= j-1 */
+        if(sampling(b, 0) < dosing(ij, 0))
+	  j = ij;
+	else
+	  i = ij;
+        /* still i < j */
+      }
+      if (sampling(b, 0) == dosing(j, 0)){
+	// warning("A sample occurs at exactly the same time as an observation, check your event table.");
+	m = j;
+      } else if (sampling(b, 0) == dosing(i, 0)){
+	// warning("A sample occurs at exactly the same time as an observation, check your event table.");
+	m = i;
+      } else {
+	m = i;
+      }
     }
     for(l=0; l < m; l++){
       //superpostion
+      ret(b,0)=sampling(b,0);
       cmt = (((int)(dosing(l, 1)))%10000)/100 - 1;
       if (cmt != linCmt) continue;
       if (dosing(l, 1) > 10000) {
@@ -210,88 +239,116 @@ void linCmtEnv(SEXP rho){
           // During infusion
 	  tT = sampling(b,0) - dosing(l, 0);
 	  thisT = tT - tlag;
-	  tinf  = dosing(l+1, 0)-dosing(l, 0);
+	  p = l+1;
+	  while (p < dosing.n_rows && dosing(p, 2) != -dosing(l, 2)){
+	    p++;
+	  }
+	  if (dosing(p, 2) != -dosing(l, 2)){
+	    stop("Could not find a stop to the infusion.  Check the event table.");
+	  }
+	  tinf  = dosing(p, 0)-dosing(l, 0);
 	  rate  = dosing(l, 2);
 	} else {
 	  // After  infusion
 	  tT = sampling(b,0) - dosing(l - 1, 0);
 	  thisT = tT- tlag;
-	  tinf  = dosing(l, 0) - dosing(l-1, 0) - tlag;
+	  p = l-1;
+	  while (p >= 0 && dosing(p, 2) != -dosing(l, 2)){
+            p--;
+          }
+          if (dosing(p, 2) != -dosing(l, 2)){
+            stop("Could not find a start to the infusion.  Check the event table.");
+          }
+	  tinf  = dosing(l, 0) - dosing(p, 0) - tlag;
 	  rate  = -dosing(l, 2);
-	  if (dosing(l,2) != -dosing(l-1,2)){
-	    stop("This can only handle constant on/off infusion rates...(currently)");
-	  }
 	}
 	t1 = ((thisT < tinf) ? thisT : tinf);        //during infusion
 	t2 = ((thisT > tinf) ? thisT - tinf : 0.0);  // after infusion
 	for (i = 0; i < ncmt; i++){
-	  ret(b,0) += rate*par(i,1) / par(i,0) * (1 - exp(-par(i,0) * t1)) * exp(-par(i,0) * t2);
+	  ret(b,1) += rate*par(i,1) / par(i,0) * (1 - exp(-par(i,0) * t1)) * exp(-par(i,0) * t2);
 	  // FIXME derivs
 	  for (j = 0; j < ncmt*2; j++){
             if (parameterization == 1){
               switch(j){
               case 0:
                 cur = as<mat>(e["dV"]);
+		cname(2+j) = "dV";
                 break;
               case 1:
                 cur = as<mat>(e["dCL"]);
+		cname(2+j) = "dCL";
                 break;
               case 2:
                 cur = as<mat>(e["dV2"]);
+		cname(2+j) = "dV2";
                 break;
               case 3:
                 cur = as<mat>(e["dQ"]);
+		cname(2+j) = "dQ";
                 break;
               case 4:
                 cur = as<mat>(e["dV3"]);
+		cname(2+j) = "dV3";
                 break;
               case 5:
                 cur = as<mat>(e["dQ2"]);
+		cname(2+j) = "dQ2";
                 break;
               }
             } else if (parameterization == 2){
               switch(j){
               case 0:
                 cur = as<mat>(e["dV"]);
+		cname(2+j) = "dV";
                 break;
               case 1:
                 cur = as<mat>(e["dK"]);
+		cname(2+j) = "dK";
                 break;
               case 2:
                 cur = as<mat>(e["dK12"]);
+		cname(2+j) = "dK12";
                 break;
               case 3:
                 cur = as<mat>(e["dK21"]);
+		cname(2+j) = "dK21";
                 break;
               case 4:
                 cur = as<mat>(e["dK13"]);
+		cname(2+j) = "dK13";
                 break;
               case 5:
                 cur = as<mat>(e["dK31"]);
+		cname(2+j) = "dK31";
                 break;
               }
             } else if (parameterization == 3){
               switch(j){
               case 0:
                 cur = as<mat>(e["dV"]);
+		cname(2+j) = "dV";
                 break;
               case 1:
                 cur = as<mat>(e["dCL"]);
+		cname(2+j) = "dCL";
                 break;
               case 2:
                 cur = as<mat>(e["dVSS"]);
+		cname(2+j) = "dVSS";
                 break;
               case 3:
                 cur = as<mat>(e["dQ"]);
+		cname(2+j) = "dQ";
                 break;
               }
             }
 	    // > rxSymPy("simplify(diff(rate*p1(V)/p0(V)*(1-exp(-p0(V)*t1))*exp(p0(V)*t2),V))")
             // [1] "rate*(-(exp(t1*p0(V)) - 1)*p1(V)*Derivative(p0(V), V) + (t1*p1(V)*Derivative(p0(V), V) + t2*(exp(t1*p0(V)) - 1)*p1(V)*Derivative(p0(V), V) + (exp(t1*p0(V)) - 1)*Derivative(p1(V), V))*p0(V))*exp(-2*t1*p0(V))*exp((t1 + t2)*p0(V))/p0(V)**2"
-            ret(b,j+1) = rate*(-(exp(t1*par(i, 0)) - 1)*par(i, 1)*cur(i, 0) + (t1*par(i, 1)*cur(i, 0) + t2*(exp(t1*par(i, 0)) - 1)*par(i, 1)*cur(i, 0) + (exp(t1*par(i, 0)) - 1)*cur(i, 1))*par(i, 0))*exp(-2*t1*par(i, 0))*exp((t1 + t2)*par(i, 0))/pow(par(i, 0), 2);
+            ret(b,j+2) = rate*(-(exp(t1*par(i, 0)) - 1)*par(i, 1)*cur(i, 0) + (t1*par(i, 1)*cur(i, 0) + t2*(exp(t1*par(i, 0)) - 1)*par(i, 1)*cur(i, 0) + (exp(t1*par(i, 0)) - 1)*cur(i, 1))*par(i, 0))*exp(-2*t1*par(i, 0))*exp((t1 + t2)*par(i, 0))/pow(par(i, 0), 2);
           }
 	  if (oral == 1){
-	    ret(b, j) = 0;
+	    ret(b, j+2) = 0;
+	    cname(j+2) = "dKA";
 	    j++;
 	  }
 	  // FIXME tlag
@@ -301,92 +358,202 @@ void linCmtEnv(SEXP rho){
 	if (thisT < 0) continue;
 	res = ((oral == 1) ? exp(-ka * thisT) : 0.0);
         for (i = 0; i < ncmt; i++){
-	  ret(b, 0) += dosing(l, 2) * par(i,1) * (exp(-par(i,0) * thisT) - res);
+	  ret(b, 1) += dosing(l, 2) * par(i,1) * (exp(-par(i,0) * thisT) - res);
 	  // Now add the derivs
 	  for (j = 0; j < ncmt*2; j++){
 	    if (parameterization == 1){
-	      switch(j){
-	      case 0:
-		cur = as<mat>(e["dV"]);
-		break;
-	      case 1:
-                cur = as<mat>(e["dCL"]);
-		break;
-	      case 2:
-                cur = as<mat>(e["dV2"]);
-		break;
-	      case 3:
-                cur = as<mat>(e["dQ"]);
-		break;
-	      case 4:
-                cur = as<mat>(e["dV3"]);
-		break;
-	      case 5:
-                cur = as<mat>(e["dQ2"]);
-		break;
-	      }
-	    } else if (parameterization == 2){
-	      switch(j){
-	      case 0:
-                cur = as<mat>(e["dV"]);
-                break;
-	      case 1:
-                cur = as<mat>(e["dK"]);
-                break;
-	      case 2:
-                cur = as<mat>(e["dK12"]);
-                break;
-	      case 3:
-                cur = as<mat>(e["dK21"]);
-                break;
-	      case 4:
-                cur = as<mat>(e["dK13"]);
-                break;
-	      case 5:
-                cur = as<mat>(e["dK31"]);
-                break;
-	      }
-	    } else if (parameterization == 3){
-	      switch(j){
+              switch(j){
               case 0:
                 cur = as<mat>(e["dV"]);
+                cname(2+j) = "dV";
                 break;
               case 1:
                 cur = as<mat>(e["dCL"]);
+                cname(2+j) = "dCL";
                 break;
               case 2:
-                cur = as<mat>(e["dVSS"]);
+                cur = as<mat>(e["dV2"]);
+                cname(2+j) = "dV2";
                 break;
               case 3:
                 cur = as<mat>(e["dQ"]);
+                cname(2+j) = "dQ";
+                break;
+              case 4:
+                cur = as<mat>(e["dV3"]);
+                cname(2+j) = "dV3";
+                break;
+              case 5:
+                cur = as<mat>(e["dQ2"]);
+                cname(2+j) = "dQ2";
                 break;
               }
-	    }
-	    ret(b,j+1) = -dosing(l, 2)*(thisT*par(i,1)*cur(i, 0) + (res*exp(thisT*par(i, 0)) - 1)*cur(i, 1))*exp(-thisT*par(i, 0));
+            } else if (parameterization == 2){
+              switch(j){
+              case 0:
+                cur = as<mat>(e["dV"]);
+                cname(2+j) = "dV";
+                break;
+              case 1:
+                cur = as<mat>(e["dK"]);
+                cname(2+j) = "dK";
+                break;
+              case 2:
+                cur = as<mat>(e["dK12"]);
+                cname(2+j) = "dK12";
+                break;
+              case 3:
+                cur = as<mat>(e["dK21"]);
+                cname(2+j) = "dK21";
+                break;
+              case 4:
+                cur = as<mat>(e["dK13"]);
+                cname(2+j) = "dK13";
+                break;
+              case 5:
+                cur = as<mat>(e["dK31"]);
+                cname(2+j) = "dK31";
+                break;
+              }
+            } else if (parameterization == 3){
+              switch(j){
+              case 0:
+                cur = as<mat>(e["dV"]);
+                cname(2+j) = "dV";
+                break;
+              case 1:
+                cur = as<mat>(e["dCL"]);
+                cname(2+j) = "dCL";
+                break;
+              case 2:
+                cur = as<mat>(e["dVSS"]);
+                cname(2+j) = "dVSS";
+                break;
+              case 3:
+                cur = as<mat>(e["dQ"]);
+                cname(2+j) = "dQ";
+                break;
+              }
+            }
+	    ret(b,j+2) = -dosing(l, 2)*(thisT*par(i,1)*cur(i, 0) + (res*exp(thisT*par(i, 0)) - 1)*cur(i, 1))*exp(-thisT*par(i, 0));
           } //j
 	  if (oral == 1){ // dKA
 	    cur = as<mat>(e["dKA"]);
 	    // rxSymPy("diff(Dose*p1(V)*(exp(-p0(V)*thisT)-res), V)")
             // [1] "-Dose*thisT*p1(V)*exp(-thisT*p0(V))*Derivative(p0(V), V) + Dose*(-res + exp(-thisT*p0(V)))*Derivative(p1(V), V)"
-	    ret(b,j) = dosing(l, 2)*(-thisT*exp(-thisT*par(i, 0))*cur(i, 0) + thisT*exp(-ka*thisT))*par(i, 1) +
+	    ret(b,j+2) = dosing(l, 2)*(-thisT*exp(-thisT*par(i, 0))*cur(i, 0) + thisT*exp(-ka*thisT))*par(i, 1) +
 	      dosing(l, 2)*(exp(-thisT*par(i, 0)) - exp(-ka*thisT))*cur(i, 1);
+	    cname(2+j) = "dKA";
 	    j++;
 	  }
 	  // dTlag
 	  if (tlag > 0){
+	    cname(2+j) = "dTLAG";
 	    if (oral == 1){
 	      // rxSymPy("diff(Dose*p1*(exp(-p0*(tT-tlag))-res), tlag)")
               // [1] "Dose*p1*(-ka*exp(-ka*(tT - tlag)) + p0*exp(-p0*(tT - tlag)))"
-	      ret(b,j) = dosing(l, 2)*par(i, 1)*((-ka*(tT-tlag)) + par(i, 0)*exp(-par(i, 0)*(tT - tlag)));
+	      ret(b,j+2) = dosing(l, 2)*par(i, 1)*((-ka*(tT-tlag)) + par(i, 0)*exp(-par(i, 0)*(tT - tlag)));
             } else {
 	      // rxSymPyExec("res=0");rxSymPy("diff(Dose*p1*(exp(-p0*(tT-tlag))-res), tlag)")
               // [1] "Dose*p0*p1*exp(-p0*(tT - tlag))"
-	      ret(b,j) = dosing(l, 2)*par(i, 1)*par(i, 0)*exp(-par(i, 0)*(tT - tlag));
+	      ret(b,j+2) = dosing(l, 2)*par(i, 1)*par(i, 0)*exp(-par(i, 0)*(tT - tlag));
 	    }
 	  }
         } //i
       }
     } //l
   } // b
-  e["ret"] = ret;
+  NumericMatrix retn = wrap(ret);
+  colnames(retn) = cname;
+  e["ret"] = retn;
+}
+
+extern "C" double linCmtC(double t, int parameterization, unsigned int col, double p1, double p2, double p3, double p4, double p5, double p6, double p7, double p8);
+
+double linCmtC(double t, int parameterization, unsigned int col, 
+	       double p1, double p2,
+	       double p3, double p4,
+	       double p5, double p6,
+	       double p7, double p8){
+  Environment e;
+  mat tmat(1,1);
+  tmat(0,0) = t;
+  e["t"]= tmat;
+  if (parameterization == 1){
+    if (p1 > 0 && p2 > 0){
+      e["V"] = p1;
+      e["CL"] = p2;
+    } else {
+      stop("Clearance and Volume must be above 0.");
+    }
+    if (p3 > 0 && p4 > 0){
+      e["V2"] = p3;
+      e["Q"] = p4;
+    } else if (!(p3 <= 0 && p4 <= 0)){
+      stop("Both V2 and Q have to be above 0.");
+    }
+
+    if (p5 > 0 && p6 > 0){
+      e["V3"] = p5;
+      e["Q2"] = p6;
+    } else if (!(p5 <= 0 && p6 <= 0)){
+      stop("Both V2 and Q have to be above 0.");
+    }
+  } else if (parameterization == 2){
+    if (p1 > 0 && p2 > 0){
+      e["V"] = p1;
+      e["K"] = p2;
+    } else {
+      stop("K and Volume must be above 0.");
+    }
+    if (p3 > 0 && p4 > 0){
+      e["K12"] = p3;
+      e["K21"] = p4;
+    } else if (!(p3 <= 0 && p4 <= 0)){
+      stop("Both K12 and K21 have to be above 0.");
+    }
+
+    if (p5 > 0 && p6 > 0){
+      e["K13"] = p5;
+      e["K31"] = p6;
+    } else if (!(p5 <= 0 && p6 <= 0)){
+      stop("Both K13 and K31 have to be above 0.");
+    }
+  } else if (parameterization == 3) {
+    if (p1 > 0 && p2 > 0){
+      e["V"] = p1;
+      e["CL"] = p2;
+    } else {
+      stop("Clearance and Volume must be above 0.");
+    }
+    if (p3 > 0 && p4 > 0){
+      e["VSS"] = p3;
+      e["Q"] = p4;
+    } else if (!(p3 <= 0 && p4 <= 0)){
+      stop("Both V2 and Q have to be above 0.");
+    }
+    if (p5 > 0 && p6 > 0){
+      stop("This parametrizaiton is not yet supported for 3 cmt model");
+      // e["V3"] = p5;
+      // e["Q2"] = p6;
+    } else if (!(p5 <= 0 && p6 <= 0)){
+      stop("Both V2 and Q have to be above 0.");
+    }
+  } else {
+    stop("Other parameterzations not yet supported.");
+  }
+  if (p7 > 0){
+    e["KA"] = p7;
+  }
+  if (p8 > 0){
+    e["TLAG"] = p8;
+  }
+  linCmtEnv(as<SEXP>(e));
+  mat retm = as<mat>(e["ret"]);
+  if (col >= retm.n_cols){
+    stop("Requested variable outside of bounds.");
+  } else {
+    double ret = retm(0, col);
+    return ret;
+  }
 }
