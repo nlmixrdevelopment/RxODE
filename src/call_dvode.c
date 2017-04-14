@@ -844,6 +844,8 @@ SEXP RxODE_getMacroConstants(SEXP rho);
 SEXP RxODE_getLinDerivs(SEXP rho);
 SEXP RxODE_linCmtEnv(SEXP rho);
 
+double solvedC(double t, int parameterization, unsigned int cmt, unsigned int col, double p1, double p2, double p3, double p4, double p5, double p6, double p7, double p8);
+
 void R_init_RxODE(DllInfo *info){
   R_CallMethodDef callMethods[]  = {
     {"RxODE_ode_solver", (DL_FUNC) &RxODE_ode_solver, 21},
@@ -897,4 +899,5 @@ void R_init_RxODE(DllInfo *info){
   R_RegisterCCallable("RxODE","RxODE_safe_log",         (DL_FUNC) RxODE_safe_log);
   R_RegisterCCallable("RxODE","RxODE_safe_zero",        (DL_FUNC) RxODE_safe_zero);
   R_RegisterCCallable("RxODE","RxODE_as_zero",          (DL_FUNC) RxODE_as_zero);
+  R_RegisterCCallable("RxODE","solvedC",                (DL_FUNC) solvedC);
 }

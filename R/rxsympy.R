@@ -171,7 +171,6 @@ rxSymPyStart <- function(){
                                 }
                             })
                         })
-                        SnakeCharmR::py.exec("linCmtC = Function('linCmtC')");
                         .rxSymPy$started <- "SnakeCharmR";
                     })
                 }
@@ -202,7 +201,6 @@ rxSymPyStart <- function(){
                             })
 
                         })
-                        rPython::python.exec("linCmtC = Function('linCmtC')");
                         .rxSymPy$started <- "rPython";
                     })
                 }
@@ -234,7 +232,6 @@ rxSymPyStart <- function(){
                         })
 
                     })
-                    PythonInR::pyExecp("linCmtC = Function('linCmtC')");
                     .rxSymPy$started <- "PythonInR";
                 } else {
                     cat("Warning: Python in R not working; make sure python is in the path, trying Jython.\n");
@@ -285,6 +282,16 @@ rxSymPyExec <- function(...){
         .Jython$exec(...);
     }
 }
+##' Fix SymPy expressions to be R parsable expressions
+##'
+##' @param var sympy expression
+##' @return R valid expression
+##' @author Matthew L. Fidler
+rxSymPyFix <- function(var){
+    ret <- gsub(rex::rex(boundary, "_"), "rx_underscore_", var, perl=TRUE);
+    ret <- gsub(rex::rex(",", any_spaces, ")"), ")", ret)
+    return(ret);
+}
 
 ##' Execute sympy statement.
 ##'
@@ -300,32 +307,24 @@ rxSymPy <- function(...){
         SnakeCharmR::py.exec(paste("__Rsympy=", ..., sep = ""))
         SnakeCharmR::py.exec(paste("__Rsympy = str(__Rsympy)"))
         ret <- SnakeCharmR::py.get("__Rsympy");
-        ret <- gsub("\\b_","rx_underscore_",ret);
-        ret <- gsub(",[)]",")",ret);
-        return(ret);
+        return(rxSymPyFix(ret));
     }
     if (.rxSymPy$started == "rPython"){
         rPython::python.exec(paste("__Rsympy=None"))
         rPython::python.exec(paste("__Rsympy=", ..., sep = ""))
         rPython::python.exec(paste("__Rsympy = str(__Rsympy)"))
         ret <- rPython::python.get("__Rsympy");
-        ret <- gsub("\\b_","rx_underscore_",ret);
-        ret <- gsub(",[)]",")",ret);
-        return(ret);
+        return(rxSymPyFix(ret));
     }
     if (.rxSymPy$started == "PythonInR"){
         PythonInR::pyExec(paste("__Rsympy=None"))
         PythonInR::pyExec(paste("__Rsympy=", ..., sep = ""))
         PythonInR::pyExec(paste("__Rsympy = str(__Rsympy)"))
         ret <- PythonInR::pyGet("__Rsympy");
-        ret <- gsub("\\b_","rx_underscore_",ret);
-        ret <- gsub(",[)]",")",ret);
-        return(ret);
+        return(rxSymPyFix(ret));
     }
     if (.rxSymPy$started == "rSymPy"){
-        ret <- rSymPy::sympy(...)
-        ret <- gsub("\\b_","rx_underscore_",ret);
-        ret <- gsub(",[)]",")",ret);
+        ret <- rxSymPyFix(rSymPy::sympy(...))
         return(ret);
     }
 }
@@ -385,6 +384,26 @@ rxSymPyVars <- function(model){
     return(invisible());
 }
 
+##' Setup sympy functions
+##'
+##' This creates sympy unspecified functions for later evaulation in the CAS sympy.
+##'
+##' @param functions a list of functions
+##' @return NULL
+##' @author Matthew L. Fidler
+##' @keywords internal
+##' @export
+rxSymPyFunctions <- function(functions){
+    vars <- sapply(functions, function(x){return(rxToSymPy(x))});
+    known <- c(rxSymPy.vars, vars);
+    assignInMyNamespace("rxSymPy.vars", known);
+    for (f in vars){
+        rxSymPyExec(sprintf("%s = Function('%s')", vars, vars));
+    }
+    return(invisible());
+}
+
+
 ##' Setup a sympy environment that sets up the specified RxODE model.
 ##'
 ##' @param model RxODE family of objects
@@ -401,6 +420,7 @@ rxSymPySetup <- function(model){
         names(tmp) <- NULL;
         rxSymPyExec(tmp);
     }
+    rxSymPyFunctions(names(rxDefinedDerivatives));
     return(invisible());
 }
 
@@ -544,7 +564,8 @@ rxSymPyExists <- function(var){
 ##' @keywords internal
 rxSymPyClear <- function(var){
     if (rxSymPyExists(var)){
-        rxSymPyExec(sprintf("del %s", var));
+        try(rxSymPyExec(sprintf("del %s", var)), silent=TRUE);
+        try(rxSymPyExec(sprintf("del %s", rxToSymPy(var))), silent=TRUE)
     }
 }
 

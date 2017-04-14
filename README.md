@@ -301,7 +301,7 @@ print(x)
 
 ```
 ## Solved RxODE object
-## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpC80kEF\Rx_intro-13e46fb66eb1/mod1.d/mod1_i386.dll
+## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpGcMxjK\Rx_intro-58c50b35bea/mod1.d/mod1_i386.dll
 ## 
 ## Parameters:
 ##      V2      V3      KA      CL       Q     Kin    Kout    EC50 
@@ -334,7 +334,7 @@ print(x)
 
 ```
 ## Solved RxODE object
-## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpC80kEF\Rx_intro-13e46fb66eb1/mod1.d/mod1_i386.dll
+## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpGcMxjK\Rx_intro-58c50b35bea/mod1.d/mod1_i386.dll
 ## 
 ## Parameters:
 ##      V2      V3      KA      CL       Q     Kin    Kout    EC50 
@@ -368,7 +368,7 @@ print(x)
 
 ```
 ## Solved RxODE object
-## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpC80kEF\Rx_intro-13e46fb66eb1/mod1.d/mod1_i386.dll
+## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpGcMxjK\Rx_intro-58c50b35bea/mod1.d/mod1_i386.dll
 ## 
 ## Parameters:
 ##      V2      V3      KA      CL       Q     Kin    Kout    EC50 
@@ -475,7 +475,7 @@ x
 
 ```
 ## Solved RxODE object
-## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpC80kEF\Rx_intro-13e46fb66eb1/mod1.d/mod1_i386.dll
+## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpGcMxjK\Rx_intro-58c50b35bea/mod1.d/mod1_i386.dll
 ## 
 ## Parameters:
 ##      V2      V3      KA      CL       Q     Kin    Kout    EC50 
@@ -519,7 +519,7 @@ x
 
 ```
 ## Solved RxODE object
-## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpC80kEF\Rx_intro-13e46fb66eb1/mod1.d/mod1_i386.dll
+## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpGcMxjK\Rx_intro-58c50b35bea/mod1.d/mod1_i386.dll
 ## 
 ## Parameters:
 ##      V2      V3      KA      CL       Q     Kin    Kout    EC50 
@@ -560,7 +560,7 @@ x
 
 ```
 ## Solved RxODE object
-## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpC80kEF\Rx_intro-13e46fb66eb1/mod1.d/mod1_i386.dll
+## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpGcMxjK\Rx_intro-58c50b35bea/mod1.d/mod1_i386.dll
 ## 
 ## Parameters:
 ##    V2    V3    KA    CL     Q   Kin  Kout  EC50 
@@ -611,12 +611,12 @@ head(theta.all)
 
 ```
 ##         KA       CL   V2    Q  V3 Kin Kout EC50
-## [1,] 0.294 16.82606 40.2 10.5 297   1    1  200
-## [2,] 0.294 19.15463 40.2 10.5 297   1    1  200
-## [3,] 0.294 16.27225 40.2 10.5 297   1    1  200
-## [4,] 0.294 24.00847 40.2 10.5 297   1    1  200
-## [5,] 0.294 19.60693 40.2 10.5 297   1    1  200
-## [6,] 0.294 16.31177 40.2 10.5 297   1    1  200
+## [1,] 0.294 15.65616 40.2 10.5 297   1    1  200
+## [2,] 0.294 18.25974 40.2 10.5 297   1    1  200
+## [3,] 0.294 14.94421 40.2 10.5 297   1    1  200
+## [4,] 0.294 20.07690 40.2 10.5 297   1    1  200
+## [5,] 0.294 19.53355 40.2 10.5 297   1    1  200
+## [6,] 0.294 16.98002 40.2 10.5 297   1    1  200
 ```
 
 Each subproblem can be simulated by using an explicit loop (or the `apply()`

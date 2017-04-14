@@ -468,14 +468,30 @@ void linCmtEnv(SEXP rho){
   e["ret"] = retn;
 }
 
-extern "C" double linCmtC(double t, int parameterization, unsigned int col, double p1, double p2, double p3, double p4, double p5, double p6, double p7, double p8);
+extern "C" double solvedC(double t, int parameterization, unsigned int cmt, unsigned int col, double p1, double p2, double p3, double p4, double p5, double p6, double p7, double p8);
 
-double linCmtC(double t, int parameterization, unsigned int col, 
+double solvedC_last_t = -9999999;
+int solvedC_last_par = -1;
+mat solvedC_last_mat;
+
+double solvedC(double t, int parameterization, unsigned int cmt,
+	       unsigned int col, 
 	       double p1, double p2,
 	       double p3, double p4,
 	       double p5, double p6,
 	       double p7, double p8){
+  double ret;
+  mat retm;
+  if (t == solvedC_last_t && solvedC_last_par == parameterization){
+    if (col >= retm.n_cols){
+      stop("Requested variable outside of bounds.");
+    } else {
+      ret = retm(0, col);
+      return ret;
+    }
+  }
   Environment e;
+  e["cmt"] = cmt;
   mat tmat(1,1);
   tmat(0,0) = t;
   e["t"]= tmat;
@@ -549,11 +565,14 @@ double linCmtC(double t, int parameterization, unsigned int col,
     e["TLAG"] = p8;
   }
   linCmtEnv(as<SEXP>(e));
-  mat retm = as<mat>(e["ret"]);
+  retm = as<mat>(e["ret"]);
+  solvedC_last_t = t;
+  solvedC_last_par = parameterization;
+  solvedC_last_mat = retm;
   if (col >= retm.n_cols){
     stop("Requested variable outside of bounds.");
   } else {
-    double ret = retm(0, col);
+    ret = retm(0, col);
     return ret;
   }
 }
