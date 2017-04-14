@@ -111,6 +111,15 @@ ev$add.dosing(dose=20000, nbr.doses=5, start.time=120, dosing.interval=24)
 ev$add.sampling(0:240)
 ```
 
+If you wish you can also do this with the `mattigr` pipe operator `%>%`
+
+```{r}
+ev <- eventTable(amount.untis="mg", time.units="hours") %>%
+    add.dosing(dose=10000, nbr.doses=10, dosing.interval=12) %>%
+    add.dosing(dose=20000, nbr.doses=5, start.time=120,dosing.interval=24) %>%
+    add.sampling(0:240);
+```
+
 The functions `get.dosing()` and `get.sampling()` can be used to
 retrieve information from the event table.  
 
@@ -131,32 +140,107 @@ x <- mod1$solve(theta, ev, inits)
 head(x)
 ```
 
+This returns a matrix.  You can see the compartment values in the plot
+below:
+
+```{r}
+par(mfrow=c(1,2))
+matplot(x[,"C2"], type="l", ylab="Central Concentration")
+matplot(x[,"eff"], type="l", ylab = "Effect")
+```
+
+You can also return a solved object that
+behaves a little like a data-frame.
+
 This can also be solved by the `predict()` or `solve()` methods:
 
 ```{r}
 x <- predict(mod1,theta, ev, inits)
-head(x)
+print(x)
 ```
 or
 
 ```{r}
 x <- solve(mod1,theta, ev, inits)
-head(x)
+print(x)
 ```
 
-Or with mattigr
+Or with `mattigr`
 
 ```{r}
 x <- mod1 %>% solve(theta, ev, inits)
-head(x)
+print(x)
+```
+
+The solved object acts as a `data.frame` or `tbl` that can be filtered
+by `dpylr`.  For example you could filter it easily.
+
+```{r}
+library(dplyr)
+x <- mod1 %>% solve(theta,ev,inits) %>%  filter(time <=3)
+x
+```
+
+It can also be transformed to a `data.table`:
+
+```{r}
+dt <- NULL
+if (any(installed.packages()[,"Package"] == "data.table")){
+    library(data.table)
+    dt <- as.data.table(mod1 %>% solve(theta, ev, inits))
+}
+dt
+```
+
+However it isn't just a simple data object.  You can use the solved
+object to update paramters on the fly, or even change the sampling
+time.
+
+```{r}
+x <- mod1 %>% solve(theta,ev,inits);
+```
+
+To examine or change initial conditions, you can use the syntax
+`cmt.0`, `cmt0`, or `cmt_0`. In the case of the `eff` compartment
+defined by the model, this is:
+
+```{r}
+x$eff0
+```
+
+which shows the initial condition of the effect compartment.  If you
+wished to change this initial condition to 2, this can be done easily
+by:
+
+```{r}
+x$eff0 <- 2
+x
+```
+
+Notice that the inital effect is now `2`.
+
+You can also change the sampling times easily by this method by
+changing `t` or `time`.  For example:
+
+```{r}
+x$t <- seq(0,5,length.out=20)
+x
+```
+
+You can also access or change parameters in this way:
+
+```{r}
+x$KA <- 1;
+x
 ```
 
 
-```{r fig.width=10}
-par(mfrow=c(1,2))
-matplot(x[,"C2"], type="l", ylab="Central Concentration")
-matplot(x[,"eff"], type="l", ylab = "Effect")
-```
+You can access/change all the parametrs, initilizations or events with
+the `$params`, `$inits`, `$events` accessor syntax, similar to what is
+used above.
+
+This syntax makes it easy to update and explore the effect of various
+parametrs on the solved object.
 
 #### Simulation of Variability with RxODE
 Variability in model parameters can be simulated by creating a matrix
