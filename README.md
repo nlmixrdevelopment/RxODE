@@ -217,18 +217,19 @@ ev$add.sampling(0:240)
 If you wish you can also do this with the `mattigr` pipe operator `%>%`
 
 ```r
-ev <- eventTable(amount.untis="mg", time.units="hours") %>%
+ev <- eventTable(amount.units="mg", time.units="hours") %>%
     add.dosing(dose=10000, nbr.doses=10, dosing.interval=12) %>%
     add.dosing(dose=20000, nbr.doses=5, start.time=120,dosing.interval=24) %>%
     add.sampling(0:240);
 ```
 
 ```
-## Error in eventTable(amount.untis = "mg", time.units = "hours"): unused argument (amount.untis = "mg")
+## Warning in eventTable$add.dosing(dose = dose, nbr.doses = nbr.doses,
+## dosing.interval = dosing.interval, : imputing start.timeTRUE
 ```
 
 The functions `get.dosing()` and `get.sampling()` can be used to
-retrieve information from the event table.  
+retrieve information from the event table.
 
 ```r
 head(ev$get.dosing())
@@ -264,14 +265,6 @@ in the output matrix x.
 
 ```r
 x <- mod1$solve(theta, ev, inits)
-```
-
-```
-## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
-## centr, peri to 0.
-```
-
-```r
 head(x)
 ```
 
@@ -303,20 +296,12 @@ This can also be solved by the `predict()` or `solve()` methods:
 
 ```r
 x <- predict(mod1,theta, ev, inits)
-```
-
-```
-## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
-## centr, peri to 0.
-```
-
-```r
 print(x)
 ```
 
 ```
 ## Solved RxODE object
-## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpC80kEF\Rx_intro-13e440de7946/mod1.d/mod1_i386.dll
+## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpC80kEF\Rx_intro-13e46fb66eb1/mod1.d/mod1_i386.dll
 ## 
 ## Parameters:
 ##      V2      V3      KA      CL       Q     Kin    Kout    EC50 
@@ -344,20 +329,12 @@ or
 
 ```r
 x <- solve(mod1,theta, ev, inits)
-```
-
-```
-## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
-## centr, peri to 0.
-```
-
-```r
 print(x)
 ```
 
 ```
 ## Solved RxODE object
-## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpC80kEF\Rx_intro-13e440de7946/mod1.d/mod1_i386.dll
+## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpC80kEF\Rx_intro-13e46fb66eb1/mod1.d/mod1_i386.dll
 ## 
 ## Parameters:
 ##      V2      V3      KA      CL       Q     Kin    Kout    EC50 
@@ -386,20 +363,12 @@ Or with `mattigr`
 
 ```r
 x <- mod1 %>% solve(theta, ev, inits)
-```
-
-```
-## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
-## centr, peri to 0.
-```
-
-```r
 print(x)
 ```
 
 ```
 ## Solved RxODE object
-## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpC80kEF\Rx_intro-13e440de7946/mod1.d/mod1_i386.dll
+## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpC80kEF\Rx_intro-13e46fb66eb1/mod1.d/mod1_i386.dll
 ## 
 ## Parameters:
 ##      V2      V3      KA      CL       Q     Kin    Kout    EC50 
@@ -430,14 +399,6 @@ by `dpylr`.  For example you could filter it easily.
 ```r
 library(dplyr)
 x <- mod1 %>% solve(theta,ev,inits) %>%  filter(time <=3)
-```
-
-```
-## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
-## centr, peri to 0.
-```
-
-```r
 x
 ```
 
@@ -457,30 +418,22 @@ if (any(installed.packages()[,"Package"] == "data.table")){
     library(data.table)
     dt <- as.data.table(mod1 %>% solve(theta, ev, inits))
 }
-```
-
-```
-## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
-## centr, peri to 0.
-```
-
-```r
 dt
 ```
 
 ```
-##      time       depot     centr       peri      eff       C2         C3
-##   1:    0 10000.00000    0.0000     0.0000 1.000000  0.00000  0.0000000
-##   2:    1  7452.76491 1783.8970   273.1895 1.084664 44.37555  0.9198298
-##   3:    2  5554.37049 2206.2948   793.8758 1.180825 54.88296  2.6729825
-##   4:    3  4139.54175 2086.5177  1323.5783 1.228914 51.90343  4.4564927
-##   5:    4  3085.10315 1788.7947  1776.2702 1.234610 44.49738  5.9807076
-##  ---                                                                   
-## 237:  236    55.94393  657.1472 12306.1449 1.085710 16.34694 41.4348314
-## 238:  237    41.69367  634.5027 12044.3385 1.082312 15.78365 40.5533284
-## 239:  238    31.07331  614.4486 11786.1638 1.079377 15.28479 39.6840532
-## 240:  239    23.15820  596.3951 11532.0795 1.076794 14.83570 38.8285506
-## 241:  240    17.25925  579.9010 11282.3975 1.074483 14.42540 37.9878702
+##      time      depot    centr       peri      eff       C2         C3
+##   1:    0 10000.0000    0.000     0.0000 1.000000  0.00000  0.0000000
+##   2:    1  7452.7649 1783.897   273.1895 1.084664 44.37555  0.9198298
+##   3:    2  5554.3705 2206.295   793.8758 1.180825 54.88296  2.6729825
+##   4:    3  4139.5417 2086.518  1323.5783 1.228914 51.90343  4.4564927
+##   5:    4  3085.1031 1788.795  1776.2702 1.234610 44.49738  5.9807076
+##  ---                                                                 
+## 237:  236  1905.2150 1964.727 14626.2758 1.313831 48.87380 49.2467199
+## 238:  237  1419.9120 1659.449 14581.3856 1.262552 41.27983 49.0955744
+## 239:  238  1058.2271 1422.876 14468.9169 1.220748 35.39492 48.7168918
+## 240:  239   788.6719 1240.194 14306.8912 1.187761 30.85060 48.1713509
+## 241:  240   587.7787 1099.007 14109.2052 1.162169 27.33849 47.5057415
 ```
 
 However it isn't just a simple data object.  You can use the solved
@@ -489,11 +442,6 @@ time.
 
 ```r
 x <- mod1 %>% solve(theta,ev,inits);
-```
-
-```
-## Warning in rxInits(object, inits, rxState(object), 0): Assiged depot,
-## centr, peri to 0.
 ```
 
 To examine or change initial conditions, you can use the syntax
@@ -527,7 +475,7 @@ x
 
 ```
 ## Solved RxODE object
-## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpC80kEF\Rx_intro-13e440de7946/mod1.d/mod1_i386.dll
+## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpC80kEF\Rx_intro-13e46fb66eb1/mod1.d/mod1_i386.dll
 ## 
 ## Parameters:
 ##      V2      V3      KA      CL       Q     Kin    Kout    EC50 
@@ -571,7 +519,7 @@ x
 
 ```
 ## Solved RxODE object
-## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpC80kEF\Rx_intro-13e440de7946/mod1.d/mod1_i386.dll
+## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpC80kEF\Rx_intro-13e46fb66eb1/mod1.d/mod1_i386.dll
 ## 
 ## Parameters:
 ##      V2      V3      KA      CL       Q     Kin    Kout    EC50 
@@ -612,7 +560,7 @@ x
 
 ```
 ## Solved RxODE object
-## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpC80kEF\Rx_intro-13e440de7946/mod1.d/mod1_i386.dll
+## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpC80kEF\Rx_intro-13e46fb66eb1/mod1.d/mod1_i386.dll
 ## 
 ## Parameters:
 ##    V2    V3    KA    CL     Q   Kin  Kout  EC50 
@@ -663,12 +611,12 @@ head(theta.all)
 
 ```
 ##         KA       CL   V2    Q  V3 Kin Kout EC50
-## [1,] 0.294 17.12182 40.2 10.5 297   1    1  200
-## [2,] 0.294 16.19309 40.2 10.5 297   1    1  200
-## [3,] 0.294 22.43899 40.2 10.5 297   1    1  200
-## [4,] 0.294 18.35741 40.2 10.5 297   1    1  200
-## [5,] 0.294 19.11127 40.2 10.5 297   1    1  200
-## [6,] 0.294 22.24332 40.2 10.5 297   1    1  200
+## [1,] 0.294 16.82606 40.2 10.5 297   1    1  200
+## [2,] 0.294 19.15463 40.2 10.5 297   1    1  200
+## [3,] 0.294 16.27225 40.2 10.5 297   1    1  200
+## [4,] 0.294 24.00847 40.2 10.5 297   1    1  200
+## [5,] 0.294 19.60693 40.2 10.5 297   1    1  200
+## [6,] 0.294 16.31177 40.2 10.5 297   1    1  200
 ```
 
 Each subproblem can be simulated by using an explicit loop (or the `apply()`

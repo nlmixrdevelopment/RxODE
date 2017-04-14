@@ -114,14 +114,14 @@ ev$add.sampling(0:240)
 If you wish you can also do this with the `mattigr` pipe operator `%>%`
 
 ```{r}
-ev <- eventTable(amount.untis="mg", time.units="hours") %>%
+ev <- eventTable(amount.units="mg", time.units="hours") %>%
     add.dosing(dose=10000, nbr.doses=10, dosing.interval=12) %>%
     add.dosing(dose=20000, nbr.doses=5, start.time=120,dosing.interval=24) %>%
     add.sampling(0:240);
 ```
 
 The functions `get.dosing()` and `get.sampling()` can be used to
-retrieve information from the event table.  
+retrieve information from the event table.
 
 ```{r}
 head(ev$get.dosing())
