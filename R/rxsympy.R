@@ -399,6 +399,8 @@ rxSymPyFunctions <- function(functions){
     assignInMyNamespace("rxSymPy.vars", known);
     for (f in vars){
         rxSymPyExec(sprintf("%s = Function('%s')", vars, vars));
+        rxSymPyFEnv[[f]] <- functionOp(f);
+        sympyRxFEnv[[f]] <- functionOp(f);
     }
     return(invisible());
 }
@@ -412,6 +414,7 @@ rxSymPyFunctions <- function(functions){
 ##' @keywords internal
 ##' @export
 rxSymPySetup <- function(model){
+    rxSymPyFunctions(names(rxDefinedDerivatives));
     setup <- rxToSymPy(model);
     rxSymPyVars(model)
     assignInMyNamespace("rxSymPy.vars", c(rxSymPy.vars, names(setup)))
@@ -420,7 +423,6 @@ rxSymPySetup <- function(model){
         names(tmp) <- NULL;
         rxSymPyExec(tmp);
     }
-    rxSymPyFunctions(names(rxDefinedDerivatives));
     return(invisible());
 }
 

@@ -461,6 +461,38 @@ void RxODE_ode_solver_old_c(int *neq,
   }
 }
 
+SEXP RxODE_ode_get_dosing(){
+  SEXP sexp_ret;
+  int ndoses = 0, i, j = 0;
+  for (i = 0; i < n_all_times; i++){
+    if (rxEvid(i)){
+      ndoses++;
+    }
+  }
+  sexp_ret  = PROTECT(allocMatrix(REALSXP, ndoses, 3));
+  double *ret   = REAL(sexp_ret);
+  for (i = 0; i < n_all_times; i++){
+    if (rxEvid(i)){
+      ret[j] = all_times[i];
+      ret[ndoses+j] =(double)(evid[i]);
+      ret[ndoses*2+j] = dose[j];
+      /* Rprintf("\tj:%d(%d)\tt: %f\tevid:%f\tdose:%f\n", */
+      /* 	      j, ndoses, */
+      /* 	      ret[j],ret[ndoses+j],ret[ndoses*2+j]); */
+      j++;
+    }
+  }
+  // Unprotect after solving.
+  UNPROTECT(1);
+  return sexp_ret;
+}
+
+SEXP RxODE_ode_dosing_;
+
+SEXP RxODE_ode_dosing(){
+  return RxODE_ode_dosing_;
+}
+
 void RxODE_ode_free(){
   /* Free(InfusionRate); */
   /* Free(solve); */
@@ -577,6 +609,7 @@ void RxODE_ode_setup(SEXP sexp_inits,
   n_all_times   = length(sexp_time);
   evid          = INTEGER(sexp_evid);
   dose          = REAL(sexp_dose);
+  RxODE_ode_dosing_ = RxODE_ode_get_dosing();
   // Covariates
   par_cov       = INTEGER(sexp_pcov);
   cov_ptr       = REAL(sexp_cov);

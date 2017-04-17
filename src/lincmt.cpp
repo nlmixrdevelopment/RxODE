@@ -7,6 +7,7 @@ using namespace Rcpp;
 using namespace R;
 using namespace arma;
 
+extern "C" SEXP RxODE_ode_dosing();
 
 // [[Rcpp::export]]
 void getMacroConstants(SEXP rho){
@@ -163,6 +164,27 @@ void getMacroConstants(SEXP rho){
   e["g"] = g;
 }
 
+int locateDoseIndex(mat dosing, const double obs_time){
+  int i, j, ij;
+  i = 0;
+  j = dosing.n_rows - 1;
+  if (obs_time <= dosing(i, 0)){
+    return i;
+  }
+  if (obs_time >= dosing(j, 0)){
+    return j;
+  }
+  while(i < j - 1) { /* x[i] <= obs_time <= x[j] */
+    ij = (i + j)/2; /* i+1 <= ij <= j-1 */
+    if(obs_time < dosing(ij, 0))
+      j = ij;
+    else
+      i = ij;
+  }
+  return i;
+}//subscript of dose
+
+
 // Unlinke nlmixr's solved equtions, this uses an event table.
 void getLinDerivs(SEXP rho);
 
@@ -194,44 +216,14 @@ void linCmtEnv(SEXP rho){
   StringVector cname(2*ncmt+oral+((tlag == 0.0) ? 0 : 1) + 2);
   cname(0) = "t";
   cname(1) = "f";
-  unsigned int b = 0, m = 0, l = 0, i = 0, j = 0, p = 0, ij = 0;
+  unsigned int b = 0, m = 0, l = 0, i = 0, j = 0, p = 0;
   double thisT = 0.0, tT = 0.0, res, t1, t2, tinf, rate;
   mat cur;
-  
   for (b = 0; b < sampling.n_rows; b++){
-    // Get the next dose, index if necessary.
-
-    i = 0;
-    j = dosing.n_rows-1;
-    // Use approx's bisection function as inspiration for the bisection here.
-    /* handle out-of-domain points */
-    if(sampling(b,0) < dosing(i,0)){
-      m = 0;
-    } else if (sampling(b,0) > dosing(j,0)){
-      m=j;
-    } else {
-      /* find the last dose by bisection */
-      while(i < j - 1) { /* x[i] <= v <= x[j] */
-        ij = (i + j)/2; /* i+1 <= ij <= j-1 */
-        if(sampling(b, 0) < dosing(ij, 0))
-	  j = ij;
-	else
-	  i = ij;
-        /* still i < j */
-      }
-      if (sampling(b, 0) == dosing(j, 0)){
-	// warning("A sample occurs at exactly the same time as an observation, check your event table.");
-	m = j;
-      } else if (sampling(b, 0) == dosing(i, 0)){
-	// warning("A sample occurs at exactly the same time as an observation, check your event table.");
-	m = i;
-      } else {
-	m = i;
-      }
-    }
-    for(l=0; l < m; l++){
+    m = locateDoseIndex(dosing, sampling(b,0));
+    ret(b,0)=sampling(b,0);
+    for(l=0; l <= m; l++){
       //superpostion
-      ret(b,0)=sampling(b,0);
       cmt = (((int)(dosing(l, 1)))%10000)/100 - 1;
       if (cmt != linCmt) continue;
       if (dosing(l, 1) > 10000) {
@@ -358,7 +350,8 @@ void linCmtEnv(SEXP rho){
 	if (thisT < 0) continue;
 	res = ((oral == 1) ? exp(-ka * thisT) : 0.0);
         for (i = 0; i < ncmt; i++){
-	  ret(b, 1) += dosing(l, 2) * par(i,1) * (exp(-par(i,0) * thisT) - res);
+	  ret(b, 1) += dosing(l, 2) * par(i,1) *
+	    (exp(-par(i,0) * thisT) - res);
 	  // Now add the derivs
 	  for (j = 0; j < ncmt*2; j++){
 	    if (parameterization == 1){
@@ -468,90 +461,87 @@ void linCmtEnv(SEXP rho){
   e["ret"] = retn;
 }
 
-extern "C" double solvedC(double t, int parameterization, unsigned int cmt, unsigned int col, double p1, double p2, double p3, double p4, double p5, double p6, double p7, double p8);
+extern "C" double solvedC(double t, int parameterization, int cmt, unsigned int col, double p1, double p2, double p3, double p4, double p5, double p6, double p7, double p8);
 
-double solvedC_last_t = -9999999;
-int solvedC_last_par = -1;
-mat solvedC_last_mat;
+Environment solvedEnv;
 
-double solvedC(double t, int parameterization, unsigned int cmt,
-	       unsigned int col, 
-	       double p1, double p2,
-	       double p3, double p4,
-	       double p5, double p6,
-	       double p7, double p8){
-  double ret;
-  mat retm;
-  if (t == solvedC_last_t && solvedC_last_par == parameterization){
-    if (col >= retm.n_cols){
-      stop("Requested variable outside of bounds.");
-    } else {
-      ret = retm(0, col);
-      return ret;
-    }
+void clearSolved(){
+  const char* strs[] = { "t", "cmt", "V", "CL",
+			 "V2", "Q", "V3", "Q2",
+			 "K","K12","K21", "K13",
+			 "K31", "VSS",
+			 "KA","TLAG"};
+  for (unsigned int i=0; i<sizeof(strs)/sizeof(const char*); i++) {
+    const char *name = strs[i];
+    if (solvedEnv.exists(name))
+      solvedEnv.remove(name);
   }
-  Environment e;
-  e["cmt"] = cmt;
-  mat tmat(1,1);
+}
+
+double solvedC(double t, int parameterization, int cmt, unsigned int col, double p1, double p2, double p3, double p4, double p5, double p6, double p7, double p8){
+  double ret;
+  Environment solvedEnv;
+  clearSolved();
+  mat tmat = mat(1,1);
   tmat(0,0) = t;
-  e["t"]= tmat;
+  solvedEnv["t"]=tmat;
+  solvedEnv["cmt"]=cmt;
   if (parameterization == 1){
     if (p1 > 0 && p2 > 0){
-      e["V"] = p1;
-      e["CL"] = p2;
+      solvedEnv["V"] = p1;
+      solvedEnv["CL"] = p2;
     } else {
       stop("Clearance and Volume must be above 0.");
     }
     if (p3 > 0 && p4 > 0){
-      e["V2"] = p3;
-      e["Q"] = p4;
+      solvedEnv["V2"] = p3;
+      solvedEnv["Q"] = p4;
     } else if (!(p3 <= 0 && p4 <= 0)){
       stop("Both V2 and Q have to be above 0.");
     }
-
     if (p5 > 0 && p6 > 0){
-      e["V3"] = p5;
-      e["Q2"] = p6;
+      solvedEnv["V3"] = p5;
+      solvedEnv["Q2"] = p6;
     } else if (!(p5 <= 0 && p6 <= 0)){
       stop("Both V2 and Q have to be above 0.");
     }
   } else if (parameterization == 2){
     if (p1 > 0 && p2 > 0){
-      e["V"] = p1;
-      e["K"] = p2;
+      solvedEnv["V"] = p1;
+      solvedEnv["K"] = p2;
     } else {
       stop("K and Volume must be above 0.");
     }
     if (p3 > 0 && p4 > 0){
-      e["K12"] = p3;
-      e["K21"] = p4;
+      solvedEnv["K12"] = p3;
+      solvedEnv["K21"] = p4;
     } else if (!(p3 <= 0 && p4 <= 0)){
       stop("Both K12 and K21 have to be above 0.");
     }
 
     if (p5 > 0 && p6 > 0){
-      e["K13"] = p5;
-      e["K31"] = p6;
+      solvedEnv["K13"] = p5;
+      solvedEnv["K31"] = p6;
     } else if (!(p5 <= 0 && p6 <= 0)){
       stop("Both K13 and K31 have to be above 0.");
     }
   } else if (parameterization == 3) {
     if (p1 > 0 && p2 > 0){
-      e["V"] = p1;
-      e["CL"] = p2;
+      solvedEnv["V"] = p1;
+      solvedEnv["CL"] = p2;
     } else {
       stop("Clearance and Volume must be above 0.");
     }
     if (p3 > 0 && p4 > 0){
-      e["VSS"] = p3;
-      e["Q"] = p4;
+      solvedEnv["VSS"] = p3;
+      solvedEnv["Q"] = p4;
     } else if (!(p3 <= 0 && p4 <= 0)){
       stop("Both V2 and Q have to be above 0.");
     }
     if (p5 > 0 && p6 > 0){
       stop("This parametrizaiton is not yet supported for 3 cmt model");
-      // e["V3"] = p5;
-      // e["Q2"] = p6;
+      // solvedEnv["V3"] = p5;
+      // solvedEnv["Q2"] = p6;
     } else if (!(p5 <= 0 && p6 <= 0)){
       stop("Both V2 and Q have to be above 0.");
     }
@@ -559,20 +549,18 @@ double solvedC(double t, int parameterization, unsigned int cmt,
     stop("Other parameterzations not yet supported.");
   }
   if (p7 > 0){
-    e["KA"] = p7;
+    solvedEnv["KA"] = p7;
   }
   if (p8 > 0){
-    e["TLAG"] = p8;
+    solvedEnv["TLAG"] = p8;
   }
-  linCmtEnv(as<SEXP>(e));
-  retm = as<mat>(e["ret"]);
-  solvedC_last_t = t;
-  solvedC_last_par = parameterization;
-  solvedC_last_mat = retm;
+  solvedEnv["dosing"] = RxODE_ode_dosing();
+  linCmtEnv(as<SEXP>(solvedEnv));
+  mat retm = as<mat>(solvedEnv["ret"]);
   if (col >= retm.n_cols){
     stop("Requested variable outside of bounds.");
   } else {
     ret = retm(0, col);
-    return ret;
   }
+  return ret;
 }

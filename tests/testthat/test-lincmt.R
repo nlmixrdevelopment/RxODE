@@ -652,4 +652,185 @@ test_that("3 cmt V K12 K21 K13 K31", {
         getLinDerivs(e);
         expect_true(all(ls(e)[regexpr("^d",ls(e))!= -1] %in% c("dV", "dK12", "dK21", "dK13", "dK31", "dK", "dKA")));
     }
+
+    context("Test the solved equations")
+
+    et <- eventTable() %>% add.dosing(dose=3, nbr.doses=6, dosing.interval=8) %>%
+        add.sampling(seq(0, 48, length.out=200))
+
+    rxClean()
+
+    ode.1c <- RxODE({
+        C2 = center/V;
+        d/dt(center) = - CL*C2
+    })
+
+    sol.1c <- RxODE({
+        ## double solvedC(double t, int parameterization, int cmt, unsigned int col, double p1, double p2, double p3, double p4, double p5, double p6, double p7, double p8);
+        center=solvedC(t, 1, 1, 1, V, CL, 0, 0, 0, 0, 0, 0);
+    })
+
+    o.1c <- ode.1c %>% solve(params=c(V=20, CL=25), events=et)
+
+    s.1c <- sol.1c %>% solve(params=c(V=20, CL=25), events=et)
+
+    s.1c.e <- rxLinCmt(params=c(V=20, CL=25), events=et)
+
+    test_that("1 compartment solved models and ODEs same.", {
+        expect_equal(round(o.1c$C2,4), round(s.1c$center,4))
+        expect_equal(round(o.1c$C2,4), round(s.1c.e[,"f"],4))
+        expect_equal(s.1c$center, s.1c.e[,"f"])
+    })
+
+    ode.1c.ka <- RxODE({
+        C2 = center/V;
+        d / dt(depot) = -KA * depot
+        d/dt(center) = KA * depot - CL*C2
+    })
+
+    sol.1c.ka <- RxODE({
+        ## double solvedC(double t, int parameterization, int cmt, unsigned int col, double p1, double p2, double p3, double p4, double p5, double p6, double p7, double p8);
+        center=solvedC(t, 1, 1, 1, V, CL, 0, 0, 0, 0, KA, 0);
+    })
+
+    o.1c <- ode.1c.ka %>% solve(params=c(V=20, CL=25, KA=2), events=et)
+
+    s.1c <- sol.1c.ka %>% solve(params=c(V=20, CL=25, KA=2), events=et)
+
+    s.1c.e <- rxLinCmt(params=c(V=20, CL=25, KA=2), events=et)
+
+    test_that("1 compartment oral solved models and ODEs same.", {
+        expect_equal(round(o.1c$C2,4), round(s.1c$center,4))
+        expect_equal(round(o.1c$C2,4), round(s.1c.e[,"f"],4))
+        expect_equal(s.1c$center, s.1c.e[,"f"])
+    })
+
+    ode.2c <- RxODE({
+        C2 = centr/V;
+        C3 = peri/V2;
+        d/dt(centr) = - CL*C2 - Q*C2 + Q*C3;
+        d/dt(peri)  = Q*C2 - Q*C3;
+    })
+
+    sol.2c <- RxODE({
+        ## double solvedC(double t, int parameterization, int cmt, unsigned int col, double p1, double p2, double p3, double p4, double p5, double p6, double p7, double p8);
+        center=solvedC(t, 1, 1, 1, V, CL, V2, Q, 0, 0, 0, 0);
+    })
+
+    o.2c <- ode.2c %>% solve(params=c(V=40, CL=18, V2=297, Q=10), events=et)
+
+    s.2c <- sol.2c %>% solve(params=c(V=40, CL=18, V2=297, Q=10), events=et)
+
+    s.2c.e <- rxLinCmt(params=c(V=40, CL=18, V2=297, Q=10), events=et)
+
+    test_that("2 compartment oral solved models and ODEs same.", {
+        expect_equal(round(o.2c$C2,4), round(s.2c$center,4))
+        expect_equal(round(o.2c$C2,4), round(s.2c.e[,"f"],4))
+        expect_equal(s.2c$center, s.2c.e[,"f"])
+    })
+
+    ode.2c.ka <- RxODE({
+        C2 = centr/V;
+        C3 = peri/V2;
+        d/dt(depot) =-KA*depot;
+        d/dt(centr) = KA*depot - CL*C2 - Q*C2 + Q*C3;
+        d/dt(peri)  =                    Q*C2 - Q*C3;
+    })
+
+    sol.2c.ka <- RxODE({
+        ## double solvedC(double t, int parameterization, int cmt, unsigned int col, double p1, double p2, double p3, double p4, double p5, double p6, double p7, double p8);
+        center=solvedC(t, 1, 1, 1, V, CL, V2, Q, 0, 0, KA, 0);
+    })
+
+    o.2c <- ode.2c.ka %>% solve(params=c(V=40, CL=18, V2=297, Q=10, KA= 0.3), events=et)
+
+    s.2c <- sol.2c.ka %>% solve(params=c(V=40, CL=18, V2=297, Q=10, KA=0.3), events=et)
+
+    s.2c.e <- rxLinCmt(params=c(V=40, CL=18, V2=297, Q=10, KA=0.3), events=et)
+
+    test_that("2 compartment oral solved models and ODEs same.", {
+        expect_equal(round(o.2c$C2,4), round(s.2c$center,4))
+        expect_equal(round(o.2c$C2,4), round(s.2c.e[,"f"],4))
+        expect_equal(s.2c$center, s.2c.e[,"f"])
+    })
+
+
+    ode.3c <- RxODE({
+        C2 = centr/V;
+        C3 = peri/V2;
+        C4 = peri2 / V3
+        d/dt(centr) = - CL*C2 - Q*C2 + Q*C3  - Q2*C2 + Q2*C4;
+        d/dt(peri)  = Q*C2 - Q*C3;
+        d / dt(peri2) = Q2 * C2 - Q2 * C4
+    })
+
+    sol.3c <- RxODE({
+        ## double solvedC(double t, int parameterization, int cmt, unsigned int col, double p1, double p2, double p3, double p4, double p5, double p6, double p7, double p8);
+        center=solvedC(t, 1, 1, 1, V, CL, V2, Q, V3, Q2, 0, 0);
+    })
+
+    o.3c <- ode.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=et)
+
+    s.3c <- sol.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=et)
+
+    s.3c.e <- rxLinCmt(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=et)
+
+    test_that("3 compartment solved models and ODEs same.", {
+        expect_equal(round(o.3c$C2,4), round(s.3c$center,4))
+        expect_equal(round(o.3c$C2,4), round(s.3c.e[,"f"],4))
+        expect_equal(s.3c$center, s.3c.e[,"f"])
+    })
+
+
+    ode.3c.ka <- RxODE({
+        C2 = centr/V;
+        C3 = peri/V2;
+        C4 = peri2 / V3
+        d/dt(depot) =-KA*depot;
+        d/dt(centr) = KA*depot - CL*C2 - Q*C2 + Q*C3  - Q2*C2 + Q2*C4;
+        d/dt(peri)  = Q*C2 - Q*C3;
+        d / dt(peri2) = Q2 * C2 - Q2 * C4
+    })
+
+    sol.3c.ka <- RxODE({
+        ## double solvedC(double t, int parameterization, int cmt, unsigned int col, double p1, double p2, double p3, double p4, double p5, double p6, double p7, double p8);
+        center=solvedC(t, 1, 1, 1, V, CL, V2, Q, V3, Q2, KA, 0);
+    })
+
+    o.3c <- ode.3c.ka %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400, KA=0.3), events=et)
+
+    s.3c <- sol.3c.ka %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400, KA=0.3), events=et)
+
+    s.3c.e <- rxLinCmt(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400, KA=0.3), events=et)
+
+    test_that("3 compartment oral solved models and ODEs same.", {
+        expect_equal(round(o.3c$C2,4), round(s.3c$center,4))
+        expect_equal(round(o.3c$C2,4), round(s.3c.e[,"f"],4))
+        expect_equal(s.3c$center, s.3c.e[,"f"])
+    })
+
 })
+
+
+## Now test out the solveC interface vs the environmental interface
+
+
+## sol <- RxODE({
+##     tm=solvedC(t, 1, 1, 0, CL, V, 0, 0, 0, 0, 0, 0);
+##     f=solvedC(t, 1, 1, 1, CL, V, 0, 0, 0, 0, 0, 0);
+##     dCL=solvedC(t, 1, 1, 2, CL, V, 0, 0, 0, 0, 0, 0);
+##     dV=solvedC(t, 1, 1, 3, CL, V, 0, 0, 0, 0, 0, 0);
+## })
+
+## m <- sol %>% rxSolve(params=c(V=20, CL=25), events=et)
+
+## solKA <- RxODE({
+##     tm=solvedC(t, 1, 1, 0, CL, V, 0, 0, 0, 0, KA, 0);
+##     f=solvedC(t, 1, 1, 1, CL, V, 0, 0, 0, 0, KA, 0);
+##     dCL=solvedC(t, 1, 1, 2, CL, V, 0, 0, 0, 0, KA, 0);
+##     dV=solvedC(t, 1, 1, 3, CL, V, 0, 0, 0, 0, KA, 0);
+##     dKA=solvedC(t, 1, 1, 4, CL, V, 0, 0, 0, 0, KA, 0);
+## })
+
+
+## m <- solKA %>% rxSolve(params=c(V=20, CL=25, KA=3), events=et)

@@ -427,7 +427,10 @@ rxDefinedDerivatives$solvedC <- function(fn, var){
     if (col != "1"){
         stop("Cannot currently take a second order deriavative of solvedC.");
     } else {
-        vals <- fn[-(1:4)];
+        vals <- fn[-(1:5)];
+        nv <- suppressWarnings({as.numeric(vals)});
+        w <- which(nv == 0);
+        vals <- vals[-w];
         w <- which(vals == var);
         if (length(w) == 1){
             w <- w + 1;

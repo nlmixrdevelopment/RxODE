@@ -683,15 +683,19 @@ print.rxCoef <- function(x, ...){
     }
     cat("\nCompartents:\n");
     tmp <- rxState(rxDllObj);
-    names(tmp) <- paste0("cmt=", 1:length(tmp));
-    if (length(x$sens) > 0){
-        tmp1 <- tmp[regexpr(regSens, tmp) == -1];
-        print(tmp1);
-        cat("\nSensitivites:\n");
-        tmp2 <- gsub(regSens, "d/dt(d(\\1)/d(\\2))", tmp[regexpr(regSens, tmp) != -1]);
-        print(tmp2);
+    if (length(tmp) > 0){
+        names(tmp) <- paste0("cmt=", 1:length(tmp));
+        if (length(x$sens) > 0){
+            tmp1 <- tmp[regexpr(regSens, tmp) == -1];
+            print(tmp1);
+            cat("\nSensitivites:\n");
+            tmp2 <- gsub(regSens, "d/dt(d(\\1)/d(\\2))", tmp[regexpr(regSens, tmp) != -1]);
+            print(tmp2);
+        } else {
+            print(tmp);
+        }
     } else {
-        print(tmp);
+        cat("No ODEs in this dll.\n");
     }
     return(invisible());
 }

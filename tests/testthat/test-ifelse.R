@@ -184,10 +184,11 @@ rxPermissive({
 
     ode2 <- RxODE(ode, calcSens=TRUE, collapseModel=TRUE);
 
-    test_that("LHS variables can be removed", {
-        expect_true(length(rxLhs(ode1)) > 1);
-        expect_true(length(rxLhs(ode2)) == 0);
-    })
+    ## No longer true or needed...
+    ## test_that("LHS variables can be removed", {
+    ##     expect_true(length(rxLhs(ode1)) > 1);
+    ##     expect_true(length(rxLhs(ode2)) == 0);
+    ## })
 
     ode3 <- RxODE({
         if (route == 1){
