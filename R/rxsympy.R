@@ -474,6 +474,9 @@ rxSymPyDfDy <- function(model, df, dy, vars=FALSE){
         var1 <- rxToSymPy(sprintf("d/dt(%s)", df));
         var <- rxToSymPy(sprintf("df(%s)/dy(%s)", df, dy));
         line <- sprintf("diff(%s,%s)", var1, rxToSymPy(dy));
+        ## Some diffs are paritally implemented in RxODE translation.
+        line <- rxFromSymPy(line)
+        line <- rxToSymPy(line)
         line <- rxSymPy(line);
         rxSymPyExec(sprintf("%s=%s", var, line));
         ret <- sprintf("df(%s)/dy(%s) = %s", df, dy, rxFromSymPy(line));
@@ -601,6 +604,9 @@ rxSymPySensitivityFull <- function(state, calcSens, model, cond){
             ini <- rxToSymPy(ini)
             if (any(rxSymPy.vars == ini)){
                 line <- sprintf("diff(%s, %s)", ini, rxToSymPy(sns));
+                ## Some diffs are paritally implemented in RxODE translation.
+                line <- rxFromSymPy(line)
+                line <- rxToSymPy(line)
                 line <- rxSymPy(line);
                 tmp <- sprintf("rx__sens_%s_BY_%s__", s1, rxToSymPy(sns));
                 extraLines[length(extraLines) + 1] <- sprintf("%s(0)=%s", tmp, rxFromSymPy(line));
@@ -619,6 +625,11 @@ rxSymPySensitivity2Full_ <- function(state, s1, eta, sns, all.sens){
     v1 <- rxToSymPy(sprintf("d/dt(rx__sens_%s_BY_%s__)", s1, rxToSymPy(sns)));
     v1 <- rxSymPy(v1);
     tmp <- c(sprintf("diff(%s,%s)",v1, rxToSymPy(eta)));
+    ## Some diffs are paritally implemented in RxODE translation.
+    line <- rxFromSymPy(line)
+    line <- rxToSymPy(line)
+    tmp <- rxFromSymPy(tmp)
+    tmp <- rxToSymPy(tmp)
     vars <- c();
     for (s2 in state){
         extra <- sprintf("diff(%s,%s)*rx__sens_%s_BY_%s__", v1, rxToSymPy(s2), s2, rxToSymPy(eta))
@@ -640,6 +651,9 @@ rxSymPySensitivity2Full_ <- function(state, s1, eta, sns, all.sens){
     ini <- rxToSymPy(ini)
     if (any(rxSymPy.vars == ini)){
         line <- sprintf("diff(diff(%s, %s),%s)", ini, rxToSymPy(eta), rxToSymPy(sns));
+        ## Some diffs are paritally implemented in RxODE translation.
+        line <- rxFromSymPy(line)
+        line <- rxToSymPy(line)
         line <- rxSymPy(line);
         tmp <- sprintf("rx__sens_%s_BY_%s_BY_%s__", s1, rxToSymPy(eta), rxToSymPy(sns));
         ini.line <- sprintf("%s(0)=%s", tmp, rxFromSymPy(line));
@@ -917,19 +931,38 @@ rxSymPySetupDPred <- function(newmod, calcSens, states, prd="rx_pred_"){
                 tmpO <- as.numeric(gsub(rex::rex(start, "ETA", or("[", "_"), capture(numbers), or("]")), "\\1", tmp2));
                 tmp2 <- tmp2[order(tmpO)];
                 if (identical(tmp2, c(eK, eL))){
-                    newLine2 <- rxSymPy(sprintf("diff(diff(%s,%s),%s)", prd, rxToSymPy(eK), rxToSymPy(eL)));
+                    newLine2 <- rxSymPy(sprintf("diff(%s,%s)", prd, rxToSymPy(eK)));
+                    ## Some diffs are paritally implemented in RxODE translation.
+                    newLine2 <- rxFromSymPy(newLine2)
+                    newLine2 <- rxToSymPy(newLine2)
+                    newLine2 <- rxSymPy(sprintf("diff(%s,%s)", newLine2, rxToSymPy(eL)));
+                    ## Some diffs are paritally implemented in RxODE translation.
+                    newLine2 <- rxFromSymPy(newLine2)
+                    newLine2 <- rxToSymPy(newLine2)
                     tmp <- c(newLine2);
                     for (state in states){
                         newLine <- rxSymPy(sprintf("diff(diff(%s,%s),%s)",prd, rxToSymPy(eK), state));
+                        ## Some diffs are paritally implemented in RxODE translation.
+                        newLine <- rxFromSymPy(newLine)
+                        newLine <- rxToSymPy(newLine)
                         tmp[length(tmp) + 1] <- sprintf("(%s)*rx__sens_%s_BY_%s__",
                                                         newLine, state, rxToSymPy(eL));
                         newLine <- rxSymPy(sprintf("diff(diff(%s,%s),%s)",prd, state, rxToSymPy(eL)));
+                        ## Some diffs are paritally implemented in RxODE translation.
+                        newLine <- rxFromSymPy(newLine)
+                        newLine <- rxToSymPy(newLine)
                         tmp[length(tmp) + 1] <- sprintf("(%s)*rx__sens_%s_BY_%s__",
                                                         newLine, state, rxToSymPy(eK));
                         newLine <- rxSymPy(sprintf("diff(diff(%s,%s),%s)",prd, state, state));
+                        ## Some diffs are paritally implemented in RxODE translation.
+                        newLine <- rxFromSymPy(newLine)
+                        newLine <- rxToSymPy(newLine)
                         tmp[length(tmp) + 1] <- sprintf("(%s)*rx__sens_%s_BY_%s__*rx__sens_%s_BY_%s__",
                                                         newLine, state, rxToSymPy(eL), state, rxToSymPy(eK));
                         newLine <- rxSymPy(sprintf("diff(%s,%s)",prd, state));
+                        ## Some diffs are paritally implemented in RxODE translation.
+                        newLine <- rxFromSymPy(newLine)
+                        newLine <- rxToSymPy(newLine)
                         tmp[length(tmp) + 1] <- sprintf("(%s)*rx__sens_%s_BY_%s_BY_%s__",
                                                         newLine, state, rxToSymPy(eK), rxToSymPy(eL));
                     }
@@ -950,18 +983,33 @@ rxSymPySetupDPred <- function(newmod, calcSens, states, prd="rx_pred_"){
         for (theta in calcSens$theta){
             for (eta in calcSens$eta){
                 newLine2 <- rxSymPy(sprintf("diff(diff(%s,%s),%s)", prd, rxToSymPy(eta), rxToSymPy(theta)));
+                ## Some diffs are paritally implemented in RxODE translation.
+                newLine2 <- rxFromSymPy(newLine2)
+                newLine2 <- rxToSymPy(newLine2)
                 tmp <- c(newLine2);
                 for (state in states){
                     newLine <- rxSymPy(sprintf("diff(diff(%s,%s),%s)",prd, rxToSymPy(eta), state));
+                    ## Some diffs are paritally implemented in RxODE translation.
+                    newLine <- rxFromSymPy(newLine)
+                    newLine <- rxToSymPy(newLine)
                     tmp[length(tmp) + 1] <- sprintf("(%s)*rx__sens_%s_BY_%s__",
                                                     newLine, state, rxToSymPy(theta));
                     newLine <- rxSymPy(sprintf("diff(diff(%s,%s),%s)",prd, state, rxToSymPy(theta)));
+                    ## Some diffs are paritally implemented in RxODE translation.
+                    newLine <- rxFromSymPy(newLine)
+                    newLine <- rxToSymPy(newLine)
                     tmp[length(tmp) + 1] <- sprintf("(%s)*rx__sens_%s_BY_%s__",
                                                     newLine, state, rxToSymPy(eta));
                     newLine <- rxSymPy(sprintf("diff(diff(%s,%s),%s)",prd, state, state));
+                    ## Some diffs are paritally implemented in RxODE translation.
+                    newLine <- rxFromSymPy(newLine)
+                    newLine <- rxToSymPy(newLine)
                     tmp[length(tmp) + 1] <- sprintf("(%s)*rx__sens_%s_BY_%s__*rx__sens_%s_BY_%s__",
                                                     newLine, state, rxToSymPy(theta), state, rxToSymPy(eta));
                     newLine <- rxSymPy(sprintf("diff(%s,%s)",prd, state));
+                    ## Some diffs are paritally implemented in RxODE translation.
+                    newLine <- rxFromSymPy(newLine)
+                    newLine <- rxToSymPy(newLine)
                     tmp[length(tmp) + 1] <- sprintf("(%s)*rx__sens_%s_BY_%s_BY_%s__",
                                                     newLine, state, rxToSymPy(eta), rxToSymPy(theta));
 
@@ -987,17 +1035,22 @@ rxSymPySetupDPred <- function(newmod, calcSens, states, prd="rx_pred_"){
     rxSymPyVars(calcSens);
     for (var in calcSens){
         newLine2 <- rxSymPy(sprintf("diff(%s,%s)", prd, rxToSymPy(var)));
+        ## Some diffs are paritally implemented in RxODE translation.
+        newLine2 <- rxFromSymPy(newLine2)
+        newLine2 <- rxToSymPy(newLine2)
         tmp <- c(newLine2);
         for (state in states){
             newLine <- rxSymPy(sprintf("diff(%s,%s)",prd, state));
+            ## Some diffs are paritally implemented in RxODE translation.
+            newLine <- rxFromSymPy(newLine)
+            newLine <- rxToSymPy(newLine)
             tmp[length(tmp) + 1] <- sprintf("(%s)*rx__sens_%s_BY_%s__",
                                             newLine, state, rxToSymPy(var));
         }
         tmp <- paste(paste0("(", tmp, ")"), collapse=" + ")
         tmp <- rxSymPy(sprintf("simplify(%s(%s))",
-                                     ifelse(prd == "rx_pred_", "-", ""),
-                                     tmp
-                                     ));
+                               ifelse(prd == "rx_pred_", "-", ""),
+                               tmp));
         if (tmp != "0"){
             zeroSens <- FALSE;
         }
@@ -1154,7 +1207,9 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
             }
             baseState <- rxState(obj);
             oLhs <- rxLhs(obj);
-            obj <- rxGetModel(rxNorm(obj, removeJac=TRUE, removeSens=TRUE), calcSens=calcSens, collapseModel=TRUE);
+            if (length(baseState) > 0){
+                obj <- rxGetModel(rxNorm(obj, removeJac=TRUE, removeSens=TRUE), calcSens=calcSens, collapseModel=TRUE);
+            }
             base <- rxNorm(obj);
             cnd.base <- rxNorm(newmod, TRUE); ## Get the conditional statements
             if (is.null(cnd.base)) cnd.base <- "";

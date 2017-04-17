@@ -588,10 +588,10 @@ rxToSymPy <- function(x, envir=parent.frame(1)) {
             vars <- c();
             addNames <- TRUE;
             txt <- unlist(lapply(txt, function(x){
-                var <- eval(parse(text=sprintf("RxODE::rxToSymPy(%s)", x[1])));
+                var <- paste0(eval(parse(text=sprintf("RxODE::rxToSymPy(%s)", x[1]))));
                 if (length(x) == 2){
                     vars <<- c(vars, var);
-                    eq <- eval(parse(text=sprintf("RxODE::rxToSymPy(%s)", x[2])));
+                    eq <- paste0(eval(parse(text=sprintf("RxODE::rxToSymPy(%s)", x[2]))));
                     return(sprintf("%s = %s", var, eq));
                 } else {
                     addNames <<- FALSE
@@ -604,7 +604,7 @@ rxToSymPy <- function(x, envir=parent.frame(1)) {
             }
             return(txt);
         } else {
-            txt <- eval(parse(text=sprintf("RxODE::rxToSymPy(%s)", deparse(paste(as.vector(x), collapse="\n")))))
+            txt <- paste0(eval(parse(text=sprintf("RxODE::rxToSymPy(%s)", deparse(paste(as.vector(x), collapse="\n"))))))
             return(txt);
         }
     } else if (class(substitute(x)) == "name"){
@@ -612,20 +612,20 @@ rxToSymPy <- function(x, envir=parent.frame(1)) {
         if (any(cls == c("list", "rxDll", "RxCompilationManager", "RxODE", "solveRxDll"))){
             ret <- strsplit(rxNorm(x),"\n")[[1]];
             ret <- rxRmIni(ret);
-            txt <- eval(parse(text=sprintf("RxODE::rxToSymPy(%s,envir=envir)", deparse(paste0(as.vector(ret), collapse="\n")))), envir=envir);
+            txt <- paste0(eval(parse(text=sprintf("RxODE::rxToSymPy(%s,envir=envir)", deparse(paste0(as.vector(ret), collapse="\n")))), envir=envir));
             return(txt);
         } else if (cls == "character" && length(cls) == 1){
-            txt <- eval(parse(text=sprintf("RxODE::rxToSymPy(%s)", deparse(as.vector(x)))));
+            txt <- paste0(eval(parse(text=sprintf("RxODE::rxToSymPy(%s)", deparse(as.vector(x))))));
             return(txt);
         } else {
             expr <- evalPrints(substitute(x), envir=envir)
             txt <- eval(expr, sympyEnv(expr))
-            return(txt)
+            return(paste0(txt))
         }
     } else {
         expr <- evalPrints(substitute(x), envir=envir)
         txt <- eval(expr, sympyEnv(expr));
-        return(txt)
+        return(paste0(txt))
     }
 }
 
@@ -639,10 +639,10 @@ rxFromSymPy <- function(x, envir=parent.frame(1)) {
             vars <- c();
             addNames <- TRUE;
             txt <- unlist(lapply(txt, function(x){
-                var <- eval(parse(text=sprintf("RxODE::rxFromSymPy(%s)", x[1])));
+                var <- paste0(eval(parse(text=sprintf("RxODE::rxFromSymPy(%s)", x[1]))));
                 if (length(x) == 2){
                     vars <<- c(vars, var);
-                    eq <- eval(parse(text=sprintf("RxODE::rxFromSymPy(%s)", x[2])));
+                    eq <- paste0(eval(parse(text=sprintf("RxODE::rxFromSymPy(%s)", x[2]))));
                     return(sprintf("%s = %s", var, eq));
                 } else {
                     addNames <<- FALSE
@@ -654,23 +654,23 @@ rxFromSymPy <- function(x, envir=parent.frame(1)) {
             }
             return(txt);
         } else {
-            txt <- eval(parse(text=sprintf("RxODE::rxFromSymPy(%s)", deparse(paste(x, collapse="\n")))));
+            txt <- sprintf(eval(parse(text=sprintf("RxODE::rxFromSymPy(%s)", deparse(paste(x, collapse="\n"))))));
             return(txt);
         }
     } else if (class(substitute(x)) == "name"){
         cls <- tryCatch({class(x)}, error=function(e){return("error")});
         if (cls == "character" && length(cls) == 1){
-            txt <- eval(parse(text=sprintf("RxODE::rxFromSymPy(%s)", deparse(x))));
+            txt <- paste0(eval(parse(text=sprintf("RxODE::rxFromSymPy(%s)", deparse(x)))));
             return(txt);
         } else {
             expr <- evalPrints(substitute(x), envir=envir)
             txt <- eval(expr, rxEnv(expr));
-            return(txt)
+            return(paste0(txt))
         }
     } else {
         expr <- evalPrints(substitute(x), envir=envir)
         txt <- eval(expr, rxEnv(expr))
-        return(txt)
+        return(paste0(txt))
     }
 }
 

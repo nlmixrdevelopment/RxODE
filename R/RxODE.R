@@ -1155,6 +1155,9 @@ rxTrans.character <- function(model,
             }
         }
         if (!is.null(calcSens)){
+            if (length(rxState(ret)) <= 0){
+                stop("Sensitivities do not make sense for models without ODEs.")
+            }
             new <- rxSymPySensitivity(rxModelVars(rxNorm(ret)), calcSens=calcSens, calcJac=calcJac,
                                       collapseModel=collapseModel);
             expandModel <- tempfile();
@@ -1168,6 +1171,9 @@ rxTrans.character <- function(model,
             unlink(expandModel);
             ret$md5 <- md5;
         } else if (calcJac){
+            if (length(rxState(ret)) <= 0){
+                stop("Jacobians do not make sense for models without ODEs.")
+            }
             new <- rxSymPyJacobian(rxModelVars(rxNorm(ret)));
             expandModel <- tempfile();
             sink(expandModel);

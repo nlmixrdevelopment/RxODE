@@ -207,11 +207,11 @@ rxPermissive({
 
     ode5 <- RxODE(ode3, calcSens=TRUE)
 
-    test_that("LHS variables can be removed", {
-        expect_true(length(rxLhs(ode3)) > 1);
-        expect_true(length(rxLhs(ode4)) == 0);
-        expect_equal(rxLhs(ode3), rxLhs(ode5))
-    })
+    ## test_that("LHS variables can be removed", {
+    ##     expect_true(length(rxLhs(ode3)) > 1);
+    ##     expect_true(length(rxLhs(ode4)) == 0);
+    ##     expect_equal(rxLhs(ode3), rxLhs(ode5))
+    ## })
 
     pred <- function(){
         if (cmt == 1){
