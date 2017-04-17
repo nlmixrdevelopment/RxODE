@@ -253,7 +253,21 @@ NumericVector RxODE_focei_finalize_llik(SEXP rho){
   rxHessian(rho);
   Environment e = as<Environment>(rho);
   // Calculate -1/2 log(det(-H)) by chol.
-  mat c = chol(-as<mat>(e["H"]));
+  mat c;
+  NumericVector reset;
+  try{
+    c = chol(-as<mat>(e["H"]));
+  } catch(...){
+    e["reset"] = 0;
+    c = -as<mat>(e["H"]);
+    Function nearPD = as<Function>(e["nearPD"]);
+    c = as<mat>(nearPD(c, rho));
+    reset = as<NumericVector>(e["reset"]);
+    if (reset[0] != 1){
+      Rprintf("Warning: The Hessian is non-positive definite, correcting with nearPD\n");
+    }
+    c = chol(-as<mat>(e["H"]));
+  }
   vec diag = c.diag();
   vec ldiag = log(diag);
   NumericVector ret = -as<NumericVector>(e["llik2"]);
