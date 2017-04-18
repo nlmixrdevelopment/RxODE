@@ -50,19 +50,44 @@ rxWinRtoolsPath <- function(rm.rtools=TRUE){
         }
         r.path <- normalizePath(file.path(Sys.getenv("R_HOME"),paste0("bin",Sys.getenv("R_ARCH"))));
         path <- c(r.path, path);
-        if (file.exists("C:/Rtools")){
-            gcc <- list.files("c:/Rtools", "gcc",full.names=TRUE)[1]
+        ## Look in the registry...
+        ## This is taken from devtools and adapted.
+
+        rtools.base <- "C:/Rtools";
+        if (!file.exists(rtools.base)){
+            keys <- NULL;
+            keys <- utils::readRegistry("SOFTWARE\\R-core\\Rtools", hive = "HCU", view = "32-bit", maxdepth = 2);
+            if (is.null(keys))
+                try(keys <- utils::readRegistry("SOFTWARE\\R-core\\Rtools", hive = "HLM", view = "32-bit", maxdepth = 2), silent = TRUE);
+            if (is.null(keys)){
+                stop("Cannot use this package because Rtools isn't setup appropriately...")
+            }
+
+            for(i in seq_along(keys)) {
+                version <- names(keys)[[i]]
+                key <- keys[[version]]
+                if (!is.list(key) || is.null(key$InstallPath)) next;
+                install_path <- normalizePath(key$InstallPath, mustWork = FALSE, winslash = "/");
+                if (file.exists(install_path)){
+                    rtools.base <- install_path;
+                }
+            }
+        }
+        if (file.exists(rtools.base)){
+            gcc <- list.files(rtools.base, "gcc",full.names=TRUE)[1]
             if (is.na(gcc)){
                 gcc <- "";
             }
-            for (x in c("c:/Rtools/bin", ifelse(.Platform$r_arch == "i386","C:/Rtools/mingw_32/bin", "C:/Rtools/mingw_64/bin"),
-                        ifelse(.Platform$r_arch == "i386","C:/Rtools/mingw_32/opt/bin", "C:/Rtools/mingw_64/opt/bin"),
+            for (x in c(file.path(rtools.base, "bin"),
+                        file.path(rtools.base, ifelse(.Platform$r_arch == "i386","mingw_32/bin", "mingw_64/bin")),
+                        file.path(rtools.base, ifelse(.Platform$r_arch == "i386","mingw_32/opt/bin", "mingw_64/opt/bin")),
                         ifelse(gcc == "", "", file.path(gcc, "bin")),
                         ifelse(gcc == "", "", ifelse(.Platform$r_arch == "i386",file.path(gcc, "bin32"), file.path(gcc, "bin64"))))){
                 if (file.exists(x)){
                     path <- c(normalizePath(x), path);
                 }
             }
+            ## Fixme setup Python...
             if (file.exists("C:/Python27/python.exe")){
                 path <- c(normalizePath("c:/Python27"), path);
                 Sys.setenv(PYTHONHOME="c:/Python27");

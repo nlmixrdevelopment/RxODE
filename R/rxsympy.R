@@ -267,19 +267,19 @@ rxSymPyStart <- function(){
 ##' @author G Grothendieck, Matthew L. Fidler
 ##' @keywords internal
 ##' @export
-rxSymPyExec <- function(code, ...){
+rxSymPyExec <- function(...){
     rxSymPyStart();
     if (.rxSymPy$started == "SnakeCharmR"){
-        SnakeCharmR::py.exec(code, ...);
+        SnakeCharmR::py.exec(...);
     }
     if (.rxSymPy$started == "rPython"){
-        rPython::python.exec(code, ...);
+        rPython::python.exec(...);
     }
     if (.rxSymPy$started == "PythonInR"){
-        PythonInR::pyExecp(code, ...);
+        PythonInR::pyExecp(...);
     }
     else if (.rxSymPy$started == "rSymPy"){
-        .Jython$exec(code, ...);
+        .Jython$exec(...);
     }
 }
 ##' Fix SymPy expressions to be R parsable expressions
@@ -310,31 +310,31 @@ rxSymPyPreFix <- function(var){
 ##' @author G Grothendieck, Matthew L. Fidler
 ##' @keywords internal
 ##' @export
-rxSymPy <- function(code, ...){
+rxSymPy <- function(...){
     rxSymPyStart();
     if (.rxSymPy$started == "SnakeCharmR"){
         SnakeCharmR::py.exec(paste("__Rsympy=None"))
-        SnakeCharmR::py.exec(paste("__Rsympy=", code, ..., sep = ""))
+        SnakeCharmR::py.exec(paste("__Rsympy=", ..., sep = ""))
         SnakeCharmR::py.exec(paste("__Rsympy = str(__Rsympy)"))
         ret <- SnakeCharmR::py.get("__Rsympy");
         return(rxSymPyFix(ret));
     }
     if (.rxSymPy$started == "rPython"){
         rPython::python.exec(paste("__Rsympy=None"))
-        rPython::python.exec(paste("__Rsympy=", code, ..., sep = ""))
+        rPython::python.exec(paste("__Rsympy=", ..., sep = ""))
         rPython::python.exec(paste("__Rsympy = str(__Rsympy)"))
         ret <- rPython::python.get("__Rsympy");
         return(rxSymPyFix(ret));
     }
     if (.rxSymPy$started == "PythonInR"){
         PythonInR::pyExec(paste("__Rsympy=None"))
-        PythonInR::pyExec(paste("__Rsympy=", code, ..., sep = ""))
+        PythonInR::pyExec(paste("__Rsympy=", ..., sep = ""))
         PythonInR::pyExec(paste("__Rsympy = str(__Rsympy)"))
         ret <- PythonInR::pyGet("__Rsympy");
         return(rxSymPyFix(ret));
     }
     if (.rxSymPy$started == "rSymPy"){
-        ret <- rxSymPyFix(rSymPy::sympy(code, ...))
+        ret <- rxSymPyFix(rSymPy::sympy(...))
         return(ret);
     }
 }
