@@ -34,6 +34,8 @@ rxFoceiEtaSetup <- function(object, ..., dv, eta, theta, nonmem=FALSE, inv.env=p
 
 rxNearPd <- function(mat, env){
     if (any(is.na(mat))){
+        cat("Bad matrix:\n");
+        print(mat);
         env$reset <- 1;
         return(mat)
     } else {

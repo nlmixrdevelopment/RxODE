@@ -284,7 +284,21 @@ NumericVector RxODE_focei_finalize_llik(SEXP rho){
 NumericVector RxODE_finalize_log_det_OMGAinv_5(SEXP rho){
   // log(det(omegaInv^1/2)) = 1/2*log(det(omegaInv))
   Environment e = as<Environment>(rho);
-  mat c = chol(as<mat>(e["omegaInv"]));
+  NumericVector reset;
+  mat c;
+  try{
+    c = chol(as<mat>(e["omegaInv"]));
+  } catch(...){
+    e["reset"] = 0;
+    c = as<mat>(e["omegaInv"]);
+    Function nearPD = as<Function>(e["nearPD"]);
+    c = as<mat>(nearPD(c, rho));
+    reset = as<NumericVector>(e["reset"]);
+    if (reset[0] != 1){
+      Rprintf("Warning: The Omega^-1 is non-positive definite, correcting with nearPD\n");
+    }
+    c = chol(-as<mat>(e["H"]));
+  }
   vec diag = c.diag();
   vec ldiag = log(diag);
   NumericVector ret = as<NumericVector>(wrap(sum(ldiag)));

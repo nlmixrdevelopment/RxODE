@@ -48,9 +48,9 @@ rxSymInvC <- function(mat1, diag.xform=c("sqrt", "log", "identity")){
         vars <- paste0("t", seq(0, i - 1))
         syms <- paste(vars, collapse=", ");
         if (length(vars) == 1){
-            rxSympyExec(sprintf("%s = Symbol('%s')",syms, syms));
+            rxSymPyExec(sprintf("%s = Symbol('%s')",syms, syms));
         } else {
-            rxSympyExec(sprintf("%s = symbols('%s')",syms, syms));
+            rxSymPyExec(sprintf("%s = symbols('%s')",syms, syms));
         }
         rxCat("Calculate symbolic inverse...");
         sympy.inv <- rxSymPy(sprintf("(%s).inv()", sympy.mat));

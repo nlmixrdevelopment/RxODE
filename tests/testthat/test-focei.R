@@ -877,4 +877,26 @@ rxPermissive({
         expect_equal(class(focei.mod2), "rxFocei");
     })
 
+    ## Now test solved focei capability.
+    sol.1c.ka <- RxODE({
+        ## double solvedC(double t, int parameterization, int cmt, unsigned int col, double p1, double p2, double p3, double p4, double p5, double p6, double p7, double p8);
+        sf=solvedC(t, 1, 1, 1, V, CL, 0, 0, 0, 0, KA, 0);
+    })
+
+    prd <- function(){
+        return(sf);
+    }
+
+    err <- function(f){
+        return(f ^ 2* theta[4] ^ 2); ## Theta 4 is residual sd for proportional error.
+    }
+
+    mypar1 = function ()
+    {
+        CL = exp(THETA[1] + ETA[1])
+        V = exp(THETA[2] + ETA[2])
+    }
+
+    rxSymPySetupPred(sol.1c.ka, prd, mypar1, err, run.internal=TRUE)
+
 }, silent=TRUE)
