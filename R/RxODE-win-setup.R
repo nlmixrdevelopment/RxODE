@@ -57,9 +57,9 @@ rxWinRtoolsPath <- function(rm.rtools=TRUE){
         if (!file.exists(rtools.base)){
             keys <- NULL;
             keys <- utils::readRegistry("SOFTWARE\\R-core\\Rtools", hive = "HCU", view = "32-bit", maxdepth = 2);
-            if (is.null(keys))
+            if (is.null(keys) || length(keys) == 0)
                 try(keys <- utils::readRegistry("SOFTWARE\\R-core\\Rtools", hive = "HLM", view = "32-bit", maxdepth = 2), silent = TRUE);
-            if (is.null(keys)){
+            if (is.null(keys) || length(keys) == 0){
                 stop("Cannot use this package because Rtools isn't setup appropriately...")
             }
 
@@ -88,9 +88,27 @@ rxWinRtoolsPath <- function(rm.rtools=TRUE){
                 }
             }
             ## Fixme setup Python...
-            if (file.exists("C:/Python27/python.exe")){
-                path <- c(normalizePath("c:/Python27"), path);
-                Sys.setenv(PYTHONHOME="c:/Python27");
+            keys <- NULL;
+            keys <- try(utils::readRegistry("SOFTWARE\\Python\\PythonCore", hive = "HCU", view = "32-bit", maxdepth = 3), silent=TRUE);
+            if (is.null(keys) || length(keys) == 0){
+                try(keys <- utils::readRegistry("SOFTWARE\\Python\\PythonCore", hive = "HLM", view = "32-bit", maxdepth = 3), silent = TRUE);
+            }
+            python.base <- NULL
+            for (i in seq_along(keys)){
+                try(python.base <- keys[[i]]$InstallPath$`(Default)`, silent=TRUE)
+                if (!is.null(python.base)){
+                    if (file.exists(file.path(python.base, "python.exe"))){
+                        break;
+                    } else {
+                        python.base <- NULL;
+                    }
+                }
+            }
+            if (!is.null(python.base)){
+                if (file.exists(python.base)){
+                    path <- c(normalizePath(python.base), path);
+                    Sys.setenv(PYTHONHOME=python.base);
+                }
             }
             path <- path[path != ""];
             path <- paste(path, collapse=";");
