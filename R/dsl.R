@@ -8,10 +8,10 @@ regToSens1 <- rex::rex( capture(regIdentifier), or("_", ".", ":"),  capture(regI
 regToSens2 <- rex::rex( "d/dt(d(", capture(regIdentifier), ")/d(",  capture(regIdentifier), "))");
 regFloat1 <- rex::rex(or(group(some_of("0":"9"), ".", any_of("0":"9")),
                          group(any_of("0":"9"), ".", some_of("0":"9"))),
-                      at_most(group(or("E", "e"), at_most(or("+", "-"), 1), some_of("0":"9")), 1));
-regFloat2 <- rex::rex(some_of("0":"9"), or("E", "e"), at_most(or("-", "+"), 1), some_of("0":"9"));
+                      maybe(group(one_of("E", "e"), maybe(one_of("+", "-")), some_of("0":"9"))));
+regFloat2 <- rex::rex(some_of("0":"9"), one_of("E", "e"), maybe(one_of("-", "+")), some_of("0":"9"));
 regDecimalint <- rex::rex(or("0", group("1":"9", any_of("0":"9"))))
-regNum <- rex::rex(at_most("-", 1), or(regDecimalint, regFloat1, regFloat2))
+regNum <- rex::rex(maybe("-"), or(regDecimalint, regFloat1, regFloat2))
 regDDt <- rex::rex(start, "rx__d_dt_", capture(anything), "__", end);
 regDfDy <- rex::rex(start, "rx__df_", capture(anything), "_dy_", capture(anything), "__", end);
 regThEt <- rex::rex(capture(or("TH", ""), "ETA"), "_",
