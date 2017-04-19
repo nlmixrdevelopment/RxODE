@@ -80,6 +80,7 @@ rxWinRtoolsPath <- function(rm.rtools=TRUE){
             }
             for (x in c(file.path(rtools.base, "bin"),
                         file.path(rtools.base, ifelse(.Platform$r_arch == "i386","mingw_32/bin", "mingw_64/bin")),
+                        file.path(rtools.base, ifelse(.Platform$r_arch == "i386","mingw_32/bin", "mingw_64/bin")),
                         file.path(rtools.base, ifelse(.Platform$r_arch == "i386","mingw_32/opt/bin", "mingw_64/opt/bin")),
                         ifelse(gcc == "", "", file.path(gcc, "bin")),
                         ifelse(gcc == "", "", ifelse(.Platform$r_arch == "i386",file.path(gcc, "bin32"), file.path(gcc, "bin64"))))){
@@ -87,7 +88,6 @@ rxWinRtoolsPath <- function(rm.rtools=TRUE){
                     path <- c(normalizePath(x), path);
                 }
             }
-            ## Fixme setup Python...
             keys <- NULL;
             keys <- try(utils::readRegistry("SOFTWARE\\Python\\PythonCore", hive = "HCU", view = "32-bit", maxdepth = 3), silent=TRUE);
             if (is.null(keys) || length(keys) == 0){
@@ -110,6 +110,17 @@ rxWinRtoolsPath <- function(rm.rtools=TRUE){
                     Sys.setenv(PYTHONHOME=python.base);
                 }
             }
+            keys <- NULL;
+            keys <- try(utils::readRegistry("SOFTWARE\\Aspell", hive="HLM", view="32-bit", maxdepth=3), silent=TRUE);
+            ## Add aspell for cran checks...
+            if (!is.null(keys)){
+                if (any(names(keys) == "Path")){
+                    if (file.exists(keys$Path)){
+                        path <- c(normalizePath(keys$Path), path);
+                    }
+                }
+            }
+
             path <- path[path != ""];
             path <- paste(path, collapse=";");
             Sys.setenv(PATH=unique(path));
