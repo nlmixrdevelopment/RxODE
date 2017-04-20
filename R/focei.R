@@ -189,6 +189,9 @@ rxFoceiLp.rxDll <- function(object, ..., dv, eta){
 ##' @param orthantwise_c LBFGS orthantwise_c
 ##' @param orthantwise_start LBFGS orthantwise_start
 ##' @param orthantwise_end LBFGS orthantwise_end
+##' @param estimate Boolean indicating if the optimization should be
+##'     perfomed(TRUE), or just keep the eta, and calculate the Loglik
+##'     with fitted/posthoc attributes(FALSE).
 ##' @return Loglik with fitted and posthoc attributes
 ##' @author Matthew L. Fidler
 ##' @keywords internal
@@ -198,7 +201,8 @@ rxFoceiInner <- function(object, ..., dv, eta, eta.bak=NULL,
                          max_iterations = 0, linesearch_algorithm = "LBFGS_LINESEARCH_DEFAULT",
                          max_linesearch = 20, min_step = 1e-20, max_step = 1e+20,
                          ftol = 1e-04, wolfe = 0.9, gtol = 0.9, orthantwise_c = 0,
-                         orthantwise_start = 0, orthantwise_end = length(eta)){
+                         orthantwise_start = 0, orthantwise_end = length(eta),
+                         estimate=TRUE){
     inner.dll <- object$inner$cmpMgr$rxDll();
     inner.dll$.call(rxTrans(inner.dll)["ode_solver_ptr"]); ## Assign the ODE pointers (and Jacobian Type)
     args <- as.list(match.call(expand.dots=TRUE))[-1];
@@ -206,12 +210,16 @@ rxFoceiInner <- function(object, ..., dv, eta, eta.bak=NULL,
     env <- do.call(getFromNamespace("rxFoceiEtaSetup", "RxODE"), args, envir = parent.frame(1));
     lik <- RxODE_focei_eta("lik");
     lp <- RxODE_focei_eta("lp")
-    output <- lbfgs::lbfgs(lik, lp, eta, environment=env,
-                           invisible=invisible, m=m, epsilon=epsilon, past=past, delta=delta,
-                           max_iterations=max_iterations, linesearch_algorithm=linesearch_algorithm,
-                           max_linesearch=max_linesearch, min_step=min_step, max_step=max_step,
-                           ftol=ftol, wolfe=wolfe, gtol=gtol, orthantwise_c=orthantwise_c,
-                           orthantwise_start=orthantwise_start, orthantwise_end = orthantwise_end);
+    if (estimate){
+        output <- lbfgs::lbfgs(lik, lp, eta, environment=env,
+                               invisible=invisible, m=m, epsilon=epsilon, past=past, delta=delta,
+                               max_iterations=max_iterations, linesearch_algorithm=linesearch_algorithm,
+                               max_linesearch=max_linesearch, min_step=min_step, max_step=max_step,
+                               ftol=ftol, wolfe=wolfe, gtol=gtol, orthantwise_c=orthantwise_c,
+                               orthantwise_start=orthantwise_start, orthantwise_end = orthantwise_end);
+    } else {
+        output <- RxODE_focei_eta_lik(eta, env);
+    }
     if (any(is.na(env$eta))){
         warning("ETA estimate failed; keeping prior");
         env <- do.call(getFromNamespace("rxFoceiEta", "RxODE"), args, envir = parent.frame(1));
