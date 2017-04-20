@@ -148,137 +148,90 @@ rxSymPyStart <- function(){
         assignInMyNamespace(".rxSymPy", new.env(parent = emptyenv()))
         .rxSymPy$started <- NULL;
     }
-    try({
-        if (is.null(.rxSymPy$started)){
-            if (getOption("RxODE.sympy.engine", "") == ""||
-                identical(getOption("RxODE.sympy.engine", ""), "SnakeCharmR")){
-                if (requireNamespace("SnakeCharmR", quietly = TRUE)){
-                    try({
-                        SnakeCharmR::py.exec("import sys");
-                        SnakeCharmR::py.exec("import gc");
-                        tryCatch({
-                            SnakeCharmR::py.exec("from sympy import *")
-                        }, error=function(e){
-                            tryCatch({
-                                system("python -m pip install sympy");
-                                SnakeCharmR::py.exec("from sympy import *");
-                            }, error=function(e){
-                                if (requireNamespace("rSymPy", quietly = TRUE)){
-                                    SnakeCharmR::py.exec( paste( "sys.path.append(", system.file( "Lib", package = "rSymPy" ), ")", sep = '"' ) )
-                                    SnakeCharmR::py.exec("from sympy import *")
-                                } else {
-                                    stop("Could not install sympy.  Please install it in python manually.");
-                                }
-                            })
-                        })
-                        .rxSymPy$started <- "SnakeCharmR";
-                    })
-                }
-            }
-        }
-    })
-    try({
-        if (is.null(.rxSymPy$started)){
-            if (getOption("RxODE.sympy.engine", "") == ""||
-                identical(getOption("RxODE.sympy.engine", ""), "rPython")){
-                if (requireNamespace("rPython", quietly = TRUE)){
-                    try({
-                        rPython::python.exec("import sys");
-                        rPython::python.exec("import gc");
-                        tryCatch({
-                            rPython::python.exec("from sympy import *")
-                        }, error=function(e){
-                            tryCatch({
-                                system("python -m pip install sympy");
-                                rPython::python.exec("from sympy import *");
-                            }, error=function(e){
-                                if (requireNamespace("rSymPy", quietly = TRUE)){
-                                    rPython::python.exec( paste( "sys.path.append(", system.file( "Lib", package = "rSymPy" ), ")", sep = '"' ) )
-                                    rPython::python.exec("from sympy import *")
-                                } else {
-                                    stop("Could not install sympy.  Please install it in python manually.");
-                                }
-                            })
-
-                        })
-                        .rxSymPy$started <- "rPython";
-                    })
-                }
-            }
-        }
-    })
-    try({if (is.null(.rxSymPy$started)){
-        if (getOption("RxODE.sympy.engine", "") == "" ||
-            identical(getOption("RxODE.sympy.engine", ""), "PythonInR")){
-            if (requireNamespace("PythonInR", quietly = TRUE)) {
-                if(PythonInR::pyIsConnected()) {
-                    PythonInR::pyExecp("import sys")
-                    PythonInR::pyExecp("import gc")
-                    PythonInR::pyExecp( paste( "sys.path.append(", system.file( "Lib", package = "rSymPy" ), ")", sep = '"' ) )
-                    PythonInR::pyExecp("from sympy import *")
-                    tryCatch({
-                        PythonInR::pyExecp("from sympy import *")
-                    }, error=function(e){
-                        tryCatch({
+    start <- function(python){
+        if (is.null(.rxSymPy$started) &&
+            any(getOption("RxODE.sympy.engine", "") == c("", python))){
+            if (requireNamespace(python, quietly = TRUE)){
+                tmp <- try({rxSymPyExec("import sys", .python = python, .start = FALSE)});
+                if (!inherits(tmp, "try-error")){
+                    try({rxSymPyExec("import gc", .python = python, .start = FALSE)});
+                    tmp <- try({rxSymPyExec("from sympy import *", .python=python, .start=FALSE)})
+                    if (inherits(tmp, "try-error")){
+                        ## try to install
+                        tmp <- try({
                             system("python -m pip install sympy");
-                            PythonInR::pyExecp("from sympy import *");
-                        }, error=function(e){
-                            if (requireNamespace("rSymPy", quietly = TRUE)){
-                                PythonInR::pyExecp( paste( "sys.path.append(", system.file( "Lib", package = "rSymPy" ), ")", sep = '"' ) )
-                                PythonInR::pyExecp("from sympy import *")
-                            } else {
-                                stop("Could not install sympy.  Please install it in python manually.");
-                            }
+                            rxSymPyExec("from sympy import *", .python=python, .start=FALSE);
+                            .rxSymPy$started <- python;
                         })
-
-                    })
-                    .rxSymPy$started <- "PythonInR";
-                } else {
-                    cat("Warning: Python in R not working; make sure python is in the path, trying Jython.\n");
+                        if (inherits(tmp, "try-error")){
+                            rxCat("Could not install sympy in the system python.\n");
+                            if (requireNamespace("rSymPy", quietly = TRUE)){
+                                rxSymPyExec( paste( "sys.path.append(", system.file( "Lib", package = "rSymPy" ), ")", sep = '"' ),
+                                            .python=python, .start=FALSE);
+                                rxSymPyExec( "from sympy import *",
+                                            .python=python, .start=FALSE);
+                                rxCat(sprintf("Using sympy in rSymPy by running it in %s\n", python));
+                                .rxSymPy$started <- python;
+                            }
+                        } else {
+                            rxCat(sprintf("Successfully installed sympy\nUsing sympy via %s\n", python));
+                            .rxSymPy$started <- python;
+                        }
+                    } else {
+                        rxCat(sprintf("Using sympy via %s\n", python));
+                        .rxSymPy$started <- python;
+                    }
                 }
             }
         }
-    }})
+    }
+    start("SnakeCharmR");
+    start("rPython");
+    start("PythonInR");
     if (is.null(.rxSymPy$started)){
-        if (getOption("RxODE.sympy.engine", "") == ""||
-            identical(getOption("RxODE.sympy.engine", ""), "rSymPy")){
+        if (any(getOption("RxODE.sympy.engine", "") == c("", "rSymPy"))) {
             if (requireNamespace("rSymPy", quietly = TRUE)){
                 if (!exists(".Jython", .GlobalEnv)){
                     rSymPy::sympyStart()
                     .rxSymPy$started <- "rSymPy";
-                    try({.Jython$exec("import gc");});
+                    try({.Jython$exec("import gc")});
                 }
             }
         }
     }
 
     if (is.null(.rxSymPy$started)){
-        cat("RxODE requires sympy for this function\n");
-        cat("You can install sympy for python and then use python using SnakeCharmR\n");
-        cat("In windows you can have help setting this up by typing: `rxWinPythonSetup()`\n");
-        cat("Another option is to use the package rSymPy, which depends on Java and is a bit slower (and older) version of sympy.\n");
+        rxCat("RxODE requires sympy for this function\n");
+        rxCat("You can install sympy for python and then use python using either SnakeCharmR, rPython, PythonInR\n");
+        rxCat("In windows you can have help setting this up by typing: `rxWinPythonSetup()`\n");
+        rxCat("Another option is to use the package rSymPy, which depends on Java and is a bit slower (and older) version of sympy.\n");
         stop("Could not start sympy");
     }
 }
 ##' Execute python statement without getting the return value.
 ##'
 ##' @param ... Parameters sent to Jython to execute.
+##' @param .python Python to use, defaults to the started python.
+##' @param .start A boolean (default TRUE) starting python first if
+##'     RxODE doesn't know it has been started...
 ##' @return Nothing
-##' @author G Grothendieck, Matthew L. Fidler
+##' @author Matthew L. Fidler
 ##' @keywords internal
 ##' @export
-rxSymPyExec <- function(...){
-    rxSymPyStart();
-    if (.rxSymPy$started == "SnakeCharmR"){
+rxSymPyExec <- function(..., .python=rxSymPy$started, .start=TRUE){
+    if (.start && is.null(.python)){
+        rxSymPyStart();
+    }
+    if (.python == "SnakeCharmR"){
         SnakeCharmR::py.exec(...);
     }
-    if (.rxSymPy$started == "rPython"){
+    if (.python == "rPython"){
         rPython::python.exec(...);
     }
-    if (.rxSymPy$started == "PythonInR"){
+    if (.python == "PythonInR"){
         PythonInR::pyExecp(...);
     }
-    else if (.rxSymPy$started == "rSymPy"){
+    if (.python == "rSymPy"){
         .Jython$exec(...);
     }
 }
