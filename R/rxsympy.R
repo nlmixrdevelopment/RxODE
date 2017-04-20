@@ -218,9 +218,10 @@ rxSymPyStart <- function(){
 ##' @author Matthew L. Fidler
 ##' @keywords internal
 ##' @export
-rxSymPyExec <- function(..., .python=rxSymPy$started, .start=TRUE){
-    if (.start && is.null(.python)){
+rxSymPyExec <- function(..., .python, .start=TRUE){
+    if (.start && missing(.python)){
         rxSymPyStart();
+        .python <- .rxSymPy$started;
     }
     if (.python == "SnakeCharmR"){
         SnakeCharmR::py.exec(...);
@@ -309,6 +310,7 @@ rxSymPyVersion.slow <- NULL;
 ##' @keywords internal
 ##' @export
 rxSymPyReserved <- function(){
+    rxSymPyStart();
     rxSymPyExec("import sympy");
     vars <- rxSymPy("dir(sympy)")
     vars <- eval(parse(text=sprintf("c(%s)", substr(vars, 2, nchar(vars) - 1))));
