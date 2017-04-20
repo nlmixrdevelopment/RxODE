@@ -4,10 +4,15 @@
 \alias{rxSymPyExec}
 \title{Execute python statement without getting the return value.}
 \usage{
-rxSymPyExec(...)
+rxSymPyExec(..., .python, .start = TRUE)
 }
 \arguments{
 \item{...}{Parameters sent to Jython to execute.}
+
+\item{.python}{Python to use, defaults to the started python.}
+
+\item{.start}{A boolean (default TRUE) starting python first if
+RxODE doesn't know it has been started...}
 }
 \value{
 Nothing
@@ -16,6 +21,6 @@ Nothing
 Execute python statement without getting the return value.
 }
 \author{
-G Grothendieck, Matthew L. Fidler
+Matthew L. Fidler
 }
 \keyword{internal}

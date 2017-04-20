@@ -9,7 +9,7 @@ rxFoceiInner(object, ..., dv, eta, eta.bak = NULL, invisible = 0, m = 6,
   linesearch_algorithm = "LBFGS_LINESEARCH_DEFAULT", max_linesearch = 20,
   min_step = 1e-20, max_step = 1e+20, ftol = 1e-04, wolfe = 0.9,
   gtol = 0.9, orthantwise_c = 0, orthantwise_start = 0,
-  orthantwise_end = length(eta))
+  orthantwise_end = length(eta), estimate = TRUE)
 }
 \arguments{
 \item{object}{RxODE object}
@@ -51,6 +51,10 @@ rxFoceiInner(object, ..., dv, eta, eta.bak = NULL, invisible = 0, m = 6,
 \item{orthantwise_start}{LBFGS orthantwise_start}
 
 \item{orthantwise_end}{LBFGS orthantwise_end}
+
+\item{estimate}{Boolean indicating if the optimization should be
+perfomed(TRUE), or just keep the eta, and calculate the Loglik
+with fitted/posthoc attributes(FALSE).}
 
 \item{omegaInv}{inverse omega matrix}
 }
