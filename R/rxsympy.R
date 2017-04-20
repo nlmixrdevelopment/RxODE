@@ -532,7 +532,10 @@ rxSymPyExists <- function(var){
 rxSymPyClear <- function(var){
     if (rxSymPyExists(var)){
         try(rxSymPyExec(sprintf("del %s", var)), silent=TRUE);
-        try(rxSymPyExec(sprintf("del %s", rxToSymPy(var))), silent=TRUE)
+    }
+    tmp <- rxToSymPy(var);
+    if (rxSymPyExists(tmp)){
+        try(rxSymPyExec(sprintf("del %s", tmp)), silent=TRUE)
     }
 }
 
@@ -1155,7 +1158,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                     lines <- "";
                 }
                 rxCat(sprintf("## Calculate d(f)/d(eta) %s\n", lines));
-                newmod <- rxNorm(rxGetModel(paste0(rxNorm(obj), "\n", rxNorm(pred.mod))));
+                newmod <- rxGetModel(paste0(rxNorm(obj), "\n", rxNorm(pred.mod)));
                 newlines <- rxSymPySetupDPred(newmod, calcSens, baseState)
                 if(attr(newlines, "zeroSens")){
                     some.pred <<- TRUE;
@@ -1166,7 +1169,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                     rxSymPyClean()
                     stop();
                 }
-                newmod <- rxGetModel(newmod);
+                newmod <- rxGetModel(rxNorm(newmod));
                 tmp <- rxSymPy("rx_pred_");
                 lines <- c(lines,
                            ## Make sure rx_pred_ is not in terms of LHS components.
