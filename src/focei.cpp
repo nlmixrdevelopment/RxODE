@@ -255,7 +255,23 @@ NumericVector RxODE_focei_finalize_llik(SEXP rho){
   // Calculate -1/2 log(det(-H)) by chol.
   mat c;
   NumericVector reset;
-  c = chol(-as<mat>(e["H"]));
+  e["corrected"] = 0;
+  try{
+    c = chol(-as<mat>(e["H"]));
+  } catch(...){
+    e["reset"] = 0;
+    c = -as<mat>(e["H"]);
+    Function nearPD = as<Function>(e["nearPD"]);
+    c = as<mat>(nearPD(c, rho));
+    reset = as<NumericVector>(e["reset"]);
+    if (reset[0] != 1){
+      Rprintf("Warning: The Omega^-1 is non-positive definite, correcting with nearPD\n");
+      e["corrected"] = 1;
+    } else {
+      stop("Cannot correct matrix\n");
+    }
+    c = chol(c);
+  }
   vec diag = c.diag();
   vec ldiag = log(diag);
   NumericVector ret = -as<NumericVector>(e["llik2"]);
@@ -264,6 +280,7 @@ NumericVector RxODE_focei_finalize_llik(SEXP rho){
   ret += -as<NumericVector>(wrap(sum(ldiag)));
   ret.attr("fitted") = as<NumericVector>(e["f"]);
   ret.attr("posthoc") = as<NumericVector>(e["eta"]);
+  ret.attr("corrected") = as<NumericVector>(e["corrected"]);
   e["ret"] = ret;
   return ret;
 }
@@ -839,6 +856,7 @@ void rxDetaDtheta(SEXP rho){
   mat eta = as<mat>(e["eta.mat"]);
   mat aret = -(as<vec>(e["llik"])-0.5*(eta.t() * omegaInv * eta));
   e["llik2"] = aret(0,0);
+  e["corrected"] = 0;
   mat cH;
   try{
     cH = chol(-as<mat>(e["H"]));
@@ -850,6 +868,7 @@ void rxDetaDtheta(SEXP rho){
     if (reset[0] != 1){
       cH = chol(cH);
       Rprintf("Warning: The Hessian is non-positive definite, correcting with nearPD\n");
+      e["corrected"] = 1;
     }
   }
   if (reset[0] != 1){
@@ -884,6 +903,7 @@ void rxDetaDtheta(SEXP rho){
       ret.attr("grad") = as<NumericVector>(wrap(dLdTheta));
     }
     ret.attr("dEta.dTheta") = as<NumericVector>(wrap(DnDt));
+    ret.attr("corrected") = as<NumericVector>(e["corrected"]);
     e["ret"] = ret;
   } else {
     e["ret"] = NA_REAL;
