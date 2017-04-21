@@ -210,16 +210,20 @@ rxFoceiInner <- function(object, ..., dv, eta, eta.bak=NULL,
     env <- do.call(getFromNamespace("rxFoceiEtaSetup", "RxODE"), args, envir = parent.frame(1));
     lik <- RxODE_focei_eta("lik");
     lp <- RxODE_focei_eta("lp")
-    if (estimate){
-        output <- lbfgs::lbfgs(lik, lp, eta, environment=env,
-                               invisible=invisible, m=m, epsilon=epsilon, past=past, delta=delta,
-                               max_iterations=max_iterations, linesearch_algorithm=linesearch_algorithm,
-                               max_linesearch=max_linesearch, min_step=min_step, max_step=max_step,
-                               ftol=ftol, wolfe=wolfe, gtol=gtol, orthantwise_c=orthantwise_c,
-                               orthantwise_start=orthantwise_start, orthantwise_end = orthantwise_end);
-    } else {
-        output <- RxODE_focei_eta_lik(eta, env);
+    est <- function(){
+        if (estimate){
+            output <- lbfgs::lbfgs(lik, lp, eta, environment=env,
+                                   invisible=invisible, m=m, epsilon=epsilon, past=past, delta=delta,
+                                   max_iterations=max_iterations, linesearch_algorithm=linesearch_algorithm,
+                                   max_linesearch=max_linesearch, min_step=min_step, max_step=max_step,
+                                   ftol=ftol, wolfe=wolfe, gtol=gtol, orthantwise_c=orthantwise_c,
+                                   orthantwise_start=orthantwise_start, orthantwise_end = orthantwise_end);
+        } else {
+            output <- RxODE_focei_eta_lik(eta, env);
+        }
+        return(output);
     }
+    output <- est();
     if (any(is.na(env$eta))){
         warning("ETA estimate failed; keeping prior");
         env <- do.call(getFromNamespace("rxFoceiEta", "RxODE"), args, envir = parent.frame(1));
@@ -229,33 +233,25 @@ rxFoceiInner <- function(object, ..., dv, eta, eta.bak=NULL,
         env <- do.call(getFromNamespace("rxFoceiEta", "RxODE"), args, envir = parent.frame(1));
     }
     if (is.null(object$outer)){
-        return(tryCatch({RxODE_focei_finalize_llik(env)},
-                        error=function(e){
-            if (any(is.na(as.vector(env$H)))){
-                cat(sprintf("Warning: Underflow/overflow; resetting ETAs to 0 (ID=%s).\n", env$id));
-                args$eta <- rep(0, length(env$eta));
-                env$eta <- args$eta;
-                output <- lbfgs::lbfgs(lik, lp, eta, environment=env,
-                                       invisible=invisible, m=m, epsilon=epsilon, past=past, delta=delta,
-                                       max_iterations=max_iterations, linesearch_algorithm=linesearch_algorithm,
-                                       max_linesearch=max_linesearch, min_step=min_step, max_step=max_step,
-                                       ftol=ftol, wolfe=wolfe, gtol=gtol, orthantwise_c=orthantwise_c,
-                                       orthantwise_start=orthantwise_start, orthantwise_end = orthantwise_end)
-                if (any(is.na(env$eta))){
-                    warning("ETA estimate failed; Assume ETA=0");
-                    env <- do.call(getFromNamespace("rxFoceiEta", "RxODE"), args, envir = parent.frame(1));
-                }
-                if (any(env$eta > 1e4)){
-                    warning("ETA estimate overflow; Assume ETA");
-                    env <- do.call(getFromNamespace("rxFoceiEta", "RxODE"), args, envir = parent.frame(1));
-                }
-                return(RxODE_focei_finalize_llik(env));
-            } else {
-                cat("Warning: Hessian not positive definite (correcting with nearPD)\n");
-                env$H <- -rxNearPd(-env$H, env);
-                return(RxODE_focei_finalize_llik(env))
+        ret <- RxODE_focei_finalize_llik(env);
+        if (env$reset == 1){
+            cat(sprintf("Warning: Problem with Hessian or ETA estimate, resetting ETAs to 0 (ID=%s).\n", env$id));
+            args$eta <- rep(0, length(env$eta));
+            env$eta <- args$eta;
+            output <- est();
+            if (any(is.na(env$eta))){
+                warning("ETA estimate failed; Assume ETA=0");
+                env <- do.call(getFromNamespace("rxFoceiEta", "RxODE"), args, envir = parent.frame(1));
             }
-        }))
+            if (any(env$eta > 1e4)){
+                warning("ETA estimate overflow; Assume ETA");
+                env <- do.call(getFromNamespace("rxFoceiEta", "RxODE"), args, envir = parent.frame(1));
+            }
+            ret <- RxODE_focei_finalize_llik(env);
+            attr(ret, "corrected") <- 1L;
+            return(ret);
+        }
+        return(ret);
     } else {
         args$object <- object;
         args$eta <- env$eta;
@@ -265,25 +261,21 @@ rxFoceiInner <- function(object, ..., dv, eta, eta.bak=NULL,
         ## print(output);
         env <- do.call(getFromNamespace("rxFoceiTheta", "RxODE"), args, envir = parent.frame(1));
         if (env$reset == 1){
-            cat(sprintf("Warning: Underflow/overflow; resetting ETAs to 0 (ID=%s).\n", env$id));
+            cat(sprintf("Warning: Problem with Hessian or ETA estimate, resetting ETAs to 0 (ID=%s).\n", env$id));
             inner.dll$.call(rxTrans(inner.dll)["ode_solver_ptr"]); ## Assign the ODE pointers (and Jacobian Type)
             args$eta <- rep(0, length(env$eta));
             args$object <- inner.dll;
             env <- do.call(getFromNamespace("rxFoceiEtaSetup", "RxODE"), args, envir = parent.frame(1));
-            output <- lbfgs::lbfgs(lik, lp, eta, environment=env,
-                                   invisible=invisible, m=m, epsilon=epsilon, past=past, delta=delta,
-                                   max_iterations=max_iterations, linesearch_algorithm=linesearch_algorithm,
-                                   max_linesearch=max_linesearch, min_step=min_step, max_step=max_step,
-                                   ftol=ftol, wolfe=wolfe, gtol=gtol, orthantwise_c=orthantwise_c,
-                                   orthantwise_start=orthantwise_start, orthantwise_end = orthantwise_end);
+            output <- est();
             args$object <- object;
             args$eta <- env$eta;
+            env <- do.call(getFromNamespace("rxFoceiTheta", "RxODE"), args, envir = parent.frame(1));
             if (env$reset == 1){
                 stop("Cannot reset problem.");
             }
-            env <- do.call(getFromNamespace("rxFoceiTheta", "RxODE"), args, envir = parent.frame(1));
-
-
+            ret <- env$ret;
+            attr(ret, "corrected") <- 1L;
+            return(ret);
         }
         return(env$ret);
     }

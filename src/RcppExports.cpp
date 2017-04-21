@@ -8,6 +8,17 @@
 
 using namespace Rcpp;
 
+// rxInv
+NumericVector rxInv(SEXP matrix);
+RcppExport SEXP RxODE_rxInv(SEXP matrixSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type matrix(matrixSEXP);
+    rcpp_result_gen = Rcpp::wrap(rxInv(matrix));
+    return rcpp_result_gen;
+END_RCPP
+}
 // rxInner
 void rxInner(SEXP etanews, SEXP rho);
 RcppExport SEXP RxODE_rxInner(SEXP etanewsSEXP, SEXP rhoSEXP) {

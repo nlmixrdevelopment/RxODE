@@ -876,6 +876,7 @@ SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP pref
 SEXP RxODE_getMacroConstants(SEXP rho);
 SEXP RxODE_getLinDerivs(SEXP rho);
 SEXP RxODE_linCmtEnv(SEXP rho);
+SEXP RxODE_rxInv(SEXP matrix);
 
 double solvedC(double t, int parameterization, unsigned int cmt, unsigned int col, double p1, double p2, double p3, double p4, double p5, double p6, double p7, double p8);
 
@@ -899,6 +900,7 @@ void R_init_RxODE(DllInfo *info){
     {"RxODE_getMacroConstants", (DL_FUNC) &RxODE_getMacroConstants, 1},
     {"RxODE_getLinDerivs", (DL_FUNC) &RxODE_getLinDerivs, 1},
     {"RxODE_linCmtEnv", (DL_FUNC) &RxODE_linCmtEnv, 1},
+    {"RxODE_rxInv", (DL_FUNC) &RxODE_rxInv, 1},
     {NULL, NULL, 0}
   };
   R_registerRoutines(info, NULL, callMethods, NULL, NULL);

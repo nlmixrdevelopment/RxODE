@@ -20,6 +20,25 @@ extern "C" void RxODE_ode_solve_env(SEXP sexp_rho);
 extern "C" void RxODE_ode_free();
 extern "C" double RxODE_safe_zero(double x);
 extern "C" double RxODE_safe_log(double x);
+//' Invert matrix using Rcpp Armadilo.  
+//'
+//' @param matrix matrix to be inverted.
+//' @return inverse or pseudo inverse of matrix.
+//' @export
+// [[Rcpp::export]]
+NumericVector rxInv(SEXP matrix){
+  mat smatrix= as<mat>(matrix);
+  mat imat;
+  try{
+    imat = inv(smatrix);
+  } catch(...){
+    Rprintf("Warning: matrix seems singular; Using pseudo-inverse\n");
+    imat = pinv(smatrix);
+  }
+  NumericVector ret;
+  ret = wrap(imat);
+  return(ret);
+}
 
 // [[Rcpp::export]]
 void rxInner(SEXP etanews, SEXP rho){
@@ -858,27 +877,40 @@ void rxDetaDtheta(SEXP rho){
   e["llik2"] = aret(0,0);
   e["corrected"] = 0;
   mat cH;
+  vec diag;
+  vec ldiag;
+  NumericVector dH;
   try{
     cH = chol(-as<mat>(e["H"]));
+    diag = cH.diag();
+    ldiag = log(diag);
+    dH = wrap(sum(ldiag));
   } catch(...){
     cH = -as<mat>(e["H"]);
-    Function nearPD = as<Function>(e["nearPD"]);
-    cH = as<mat>(nearPD(cH, rho));
-    reset = as<NumericVector>(e["reset"]);
-    if (reset[0] != 1){
-      cH = chol(cH);
-      Rprintf("Warning: The Hessian is non-positive definite, correcting with nearPD\n");
-      e["corrected"] = 1;
+    dH = wrap(det(-cH));
+    if (dH[0] > 0){
+      dH=0.5*log(dH);
+      Rprintf("Warning: The Hessian chol() decomposition failed, but we can use the (slower) determinant instead\n");
+    } else {
+      Function nearPD = as<Function>(e["nearPD"]);
+      cH = as<mat>(nearPD(cH, rho));
+      reset = as<NumericVector>(e["reset"]);
+      if (reset[0] != 1){
+        cH = chol(cH);
+	diag = cH.diag();
+        ldiag = log(diag);
+        dH = wrap(sum(ldiag));
+        Rprintf("Warning: The Hessian is non-positive definite, correcting with nearPD\n");
+        e["corrected"] = 1;
+      }
     }
   }
   if (reset[0] != 1){
-    vec diag = cH.diag();
-    vec ldiag = log(diag);
     NumericVector ret(1);
     ret = -aret(0,0);
     // log(det(omegaInv^1/2)) = 1/2*log(det(omegaInv))
     ret += as<NumericVector>(e["log.det.OMGAinv.5"]);
-    ret += -as<NumericVector>(wrap(sum(ldiag)));
+    ret += -dH;
     ret.attr("fitted") = as<NumericVector>(e["f"]);
     ret.attr("posthoc") = as<NumericVector>(wrap(e["eta.mat"]));
     if (e.exists("inits.vec")){
