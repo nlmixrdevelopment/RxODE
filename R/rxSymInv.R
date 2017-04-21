@@ -40,6 +40,8 @@ rxSymInvC <- function(mat1, diag.xform=c("sqrt", "log", "identity")){
             diag(mat1) <- sprintf("%s**2", diag(mat1))
         } else if (diag.xform == "log"){
             diag(mat1) <- sprintf("exp(%s)", diag(mat1))
+        } else {
+            diag(mat1) <- sprintf("(%s)", diag(mat1));
         }
         omat <- fmat <- mat1;
         sympy.mat <- sprintf("Matrix([%s])", paste(apply(mat1, 1, function(x){
@@ -267,6 +269,29 @@ print.rxSymInv <- function(x, ...){
     print(x$fmat);
     cat("Use `rxSymInv' for the matrix.\n");
 }
+
+##' Get the theta numbers for the diagonal elements.
+##'
+##' These start at element 1 like in R instead of element 0 like in C
+##'
+##' @param x object created with rxSymInvCreate
+##' @return Theta numbers for diagonal elements
+##' @author Matthew L. Fidler
+##' @export
+rxSymDiag <- function(x){
+    if (class(x) == "rxSymInv"){
+        return(as.numeric(gsub(rex::rex(anything, "t", capture(any_numbers),anything), "\\1", diag(x$fmat))) + 1)
+    } else if (class(x) == "rxSymInvBlock"){
+        mx <- 0;
+        ret <- c()
+        for (i in seq_along(x$matI)){
+            ret <- c(ret, rxSymDiag(x$matI[[i]]) + mx);
+            mx <- ret[length(ret)];
+        }
+        return(ret);
+    }
+}
+
 ##' Get Omega and Omega^-1 and derivatives
 ##'
 ##' @param invobj rxSymInv object
