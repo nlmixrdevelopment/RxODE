@@ -1,5 +1,5 @@
 rxFoceiEtaSetup <- function(object, ..., dv, eta, theta, nonmem=FALSE, inv.env=parent.frame(1), id= -1,
-                            inits.vec=NULL){
+                            inits.vec=NULL, atol.outer=1e-16, rtol.outer=1e-16){
     args <- list(object=object, ..., eta=eta, theta=theta);
     setup <- c(do.call(getFromNamespace("rxSolveSetup", "RxODE"), args, envir = parent.frame(1)),
                as.list(inv.env));
@@ -24,6 +24,8 @@ rxFoceiEtaSetup <- function(object, ..., dv, eta, theta, nonmem=FALSE, inv.env=p
         setup$theta <- theta;
         setup$ntheta <- as.integer(length(theta))
         setup$id <- as.integer(id);
+        setup$atol.outer <- atol.outer;
+        setup$rtol.outer <- rtol.outer;
         setup$nearPD <- rxNearPd;
         if (!is.null(inits.vec)){
             setup$inits.vec <- inits.vec;
@@ -228,13 +230,13 @@ rxFoceiInner <- function(object, ..., dv, eta, eta.bak=NULL,
         warning("ETA estimate failed; keeping prior");
         env <- do.call(getFromNamespace("rxFoceiEta", "RxODE"), args, envir = parent.frame(1));
     }
-    if (any(env$eta > 1e4)){
+    if (any(abs(env$eta) > 1e4)){
         warning("ETA estimate overflow; keeping prior");
         env <- do.call(getFromNamespace("rxFoceiEta", "RxODE"), args, envir = parent.frame(1));
     }
     if (is.null(object$outer)){
         ret <- RxODE_focei_finalize_llik(env);
-        if (env$reset == 1){
+        if (attr(ret, "corrected") == 1){
             cat(sprintf("Warning: Problem with Hessian or ETA estimate, resetting ETAs to 0 (ID=%s).\n", env$id));
             args$eta <- rep(0, length(env$eta));
             env$eta <- args$eta;
@@ -271,6 +273,7 @@ rxFoceiInner <- function(object, ..., dv, eta, eta.bak=NULL,
             args$eta <- env$eta;
             env <- do.call(getFromNamespace("rxFoceiTheta", "RxODE"), args, envir = parent.frame(1));
             if (env$reset == 1){
+                print(env$par)
                 stop("Cannot reset problem.");
             }
             ret <- env$ret;
@@ -324,6 +327,14 @@ rxFoceiTheta.rxDll <- function(object, ..., dv, eta, env, nonmem){
         args <- as.list(match.call(expand.dots=TRUE))[-1];
         env <- do.call(getFromNamespace("rxFoceiEtaSetup", "RxODE"), args, envir = parent.frame(1));
     }
-    rxOuter(env);
+    env$atol.inner <- env$atol;
+    env$rtol.inner <- env$rtol;
+    env$atol <- env$atol.outer;
+    env$rtol <- env$rtol.outer;
+    on.exit({
+        env$atol <- env$atol.inner;
+        env$rtol <- env$rtol.inner;
+    })
+    rxOuter(env)
     return(env);
 }
