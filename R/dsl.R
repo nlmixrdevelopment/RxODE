@@ -897,6 +897,68 @@ rxParseErr <- function(x, base.theta, diag.xform=c("sqrt", "log", "identity"),
     }
 }
 
+##' This function splits a function based on + or - terms
+##'
+##' It uses the parser and does not disturb terms within other
+##' functions.  For example:
+##'
+##' a*exp(b+c)+d*log(e-f)-g*f
+##'
+##' would return
+##'
+##' c("a * exp(b + c)", "d * log(e - f)", "- g * f")
+##'
+##' @param x Quoted R expression for splitting
+##' @param level Internal level of parsing
+##' @return character vector of the split expressions
+##' @author Matthew L. Fidler
+rxSplitPlusQ <- function(x, level=0){
+    if (is.atomic(x) || is.name(x)) {
+        ## Leave unchanged
+        return(character());
+    } else if (is.call(x)) { # Call recurse_call recursively
+        if ((identical(x[[1]], quote(`+`)) ||
+             identical(x[[1]], quote(`-`))) && level == 0){
+            if (length(x) == 3){
+                if (identical(x[[1]], quote(`+`))){
+                    one <- paste(deparse(x[[3]]), collapse="");
+                } else {
+                    one <- paste("-", paste(deparse(x[[3]]), collapse=""));
+                }
+                tmp <- rxSplitPlusQ(x[[2]], level=0);
+                if (length(tmp) > 0){
+                    return(c(tmp, one))
+                } else {
+                    tmp <- paste(deparse(x[[2]]), collapse="");
+                    return(c(tmp, one))
+                }
+            } else {
+                ## Unary + or -
+                if (identical(x[[1]], quote(`+`))){
+                    one <- paste(deparse(x[[2]]), collapse="");
+                } else {
+                    one <- paste("-", paste(deparse(x[[2]]), collapse=""));
+                }
+                return(one);
+            }
+        } else {
+            return(unlist(lapply(x, rxSplitPlusQ, level=1)))
+        }
+    } else if (is.pairlist(x)) {
+        ## Call recurse_call recursively
+        return(unlist(lapply(x, rxSplitPlusQ, level=level)))
+    } else { # User supplied incorrect input
+        stop("Don't know how to handle type ", typeof(x),
+             call. = FALSE)
+    }
+}
+
+## rxSplitPlusQ(quote(2*THETA[3]^2*centr*rx__sens_centr_BY_ETA_2__BY_THETA_3___*exp(-2*ETA[2]-2*THETA[2])-
+##                    4*THETA[3]^2*centr*rx__sens_centr_BY_THETA_3___*exp(-2*ETA[2]-2*THETA[2])+
+##                    2*THETA[3]^2*rx__sens_centr_BY_ETA_2___*rx__sens_centr_BY_THETA_3___*exp(-2*ETA[2]-2*THETA[2])-
+##                    4*THETA[3]*centr^2*exp(-2*ETA[2]-2*THETA[2])+
+##                    4*THETA[3]*centr*rx__sens_centr_BY_ETA_2___*exp(-2*ETA[2]-2*THETA[2])))
+
 ## Stop DSL
 
 rm(f);

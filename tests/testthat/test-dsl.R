@@ -144,6 +144,13 @@ rxPermissive({
         expect_equal(rxFromSymPy(BY_THETA_1_), "BY_THETA_1_")
     })
 
+    context("Test factor expansion by `rxSplitPlusQ'")
+    test_that("rxSplitPlusQ", {
+        expect_equal(rxSplitPlusQ(quote(a*exp(b+c)+d*log(e-f)-g*f)), c("a * exp(b + c)", "d * log(e - f)", "- g * f"))
+        expect_equal(rxSplitPlusQ(quote(-a*exp(b+c)+d*log(e-f)-g*f)), c("-a * exp(b + c)", "d * log(e - f)", "- g * f"))
+        expect_equal(rxSplitPlusQ(quote( + a*exp(b+c)+d*log(e-f)-g*f)), c("+a * exp(b + c)", "d * log(e - f)", "- g * f"))
+    })
+
     context("Test Error DSLs")
 
     pk <- function(){
