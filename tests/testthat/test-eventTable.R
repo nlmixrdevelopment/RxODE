@@ -139,11 +139,13 @@ rxPermissive({
 
     et <- eventTable() %>%
         add.sampling(seq(from=0, to=100, by=0.01)) %>%
-        add.dosing(30, amount.units="mg");
+        add.dosing(30, amount.units="mg") %>%
+        add.dosing(30, start.time=24, nbr.doses=4, dosing.interval=24);
 
     et2 <- eventTable();
     et2$add.sampling(seq(from=0, to=100, by=0.01))
     et2$add.dosing(30, amount.units="mg")
+    et2$add.dosing(30, start.time=24, nbr.doses=4, dosing.interval=24)
 
     test_that("%>% and $ syntax are equivalent.", {
         expect_equal(et$get.EventTable(), et2$get.EventTable());

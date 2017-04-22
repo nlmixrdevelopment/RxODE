@@ -4,39 +4,12 @@
 \alias{add.dosing}
 \title{Add dosing to eventTable}
 \usage{
-add.dosing(eventTable, dose, nbr.doses = 1, dosing.interval = 24,
-  dosing.to = 1, rate = NULL, amount.units = NA, start.time,
-  do.sampling = FALSE, time.units = NA, ...)
+add.dosing(eventTable, ...)
 }
 \arguments{
 \item{eventTable}{eventTable object}
 
-\item{dose}{numeric scalar, dose amount in \code{amount.units}}
-
-\item{nbr.doses}{integer, number of doses;}
-
-\item{dosing.interval}{required numeric scalar, time between doses
-in \code{time.units}, defaults to 24 of \code{time.units="hours"};}
-
-\item{dosing.to}{integer, compartment the dose goes into
-(first compartment by default);}
-
-\item{rate}{\code{rate}: for infusions, the rate of infusion (default
-is \code{NULL}, for bolus dosing;}
-
-\item{amount.units}{optional string indicating the dosing units.
-Defaults to \code{NA} to indicate as per the original \code{EventTable}
-definition.}
-
-\item{start.time}{required dosing start time;}
-
-\item{do.sampling}{logical, should observation sampling records
-be added at the dosing times? Defaults to \code{FALSE}.}
-
-\item{time.units}{optional string indicating the time units.
-Defaults to \code{"hours"} to indicate as per the original \code{EventTable} definition.}
-
-\item{...}{ignored arguments}
+\item{...}{arguments sent to eventTable$add.dosing.}
 }
 \value{
 eventTable with updated dosing (note the event table will be updated anyway)

@@ -1,4 +1,4 @@
-# event table (dosing + sampling obs from the system)
+                                        # event table (dosing + sampling obs from the system)
 # An eventTable object contains a numeric matrix with
 # a time vector, an event id  describing two types
 # of timed records, doses (input) and sampling times
@@ -366,40 +366,14 @@ function(x, ...)
 ##' piping syntax through magrittr
 ##'
 ##' @param eventTable eventTable object
-##' @param dose numeric scalar, dose amount in \code{amount.units}
-##' @param nbr.doses integer, number of doses;
-##' @param dosing.interval required numeric scalar, time between doses
-##'      in \code{time.units}, defaults to 24 of \code{time.units="hours"};
-##' @param dosing.to  integer, compartment the dose goes into
-##'        (first compartment by default);
-##' @param rate \code{rate}: for infusions, the rate of infusion (default
-##'            is \code{NULL}, for bolus dosing;
-##' @param amount.units optional string indicating the dosing units.
-##'           Defaults to \code{NA} to indicate as per the original \code{EventTable}
-##'           definition.
-##' @param start.time required dosing start time;
-##' @param do.sampling logical, should observation sampling records
-##'            be added at the dosing times? Defaults to \code{FALSE}.
-##' @param time.units  optional string indicating the time units.
-##'           Defaults to \code{"hours"} to indicate as per the original \code{EventTable} definition.
-##' @param ... ignored arguments
+##' @param ... arguments sent to eventTable$add.dosing.
 ##' @return eventTable with updated dosing (note the event table will be updated anyway)
 ##' @author Matthew L. Fidler
 ##' @seealso \code{\link{eventTable}}, \code{\link{RxODE}}
 ##' @export
-add.dosing <- function(eventTable,
-                       dose,
-                       nbr.doses = 1,
-                       dosing.interval = 24,
-                       dosing.to=1,
-                       rate=NULL,
-                       amount.units = NA,
-                       start.time,
-                       do.sampling=FALSE,
-                       time.units = NA, ...) {
-    eventTable$add.dosing(dose=dose, nbr.doses=nbr.doses, dosing.interval=dosing.interval,
-                          dosing.to=dosing.to, rate=rate, amount.untits=amount.units,
-                          time.untis=time.units)
+add.dosing <- function(eventTable, ...) {
+    args <- as.list(match.call())[-(1:2)];
+    do.call(eventTable$add.dosing, args)
     return(eventTable)
 }
 ##' Add sampling to eventTable
