@@ -529,8 +529,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
 	if (i == 0){
 	  if (!strcmp("/",v)){
-	    sprintf(SBPTR,"_safe_zero(");
-            sb.o += 11;
+	    sprintf(SBPTR,"safe_zero(");
+            sb.o += 10;
             safe_zero = 1;
 	  } else {
 	    safe_zero = 0;

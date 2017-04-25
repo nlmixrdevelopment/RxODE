@@ -271,6 +271,25 @@ for (f in sympy.equiv.f){
     sympyRxFEnv[[f]] <- functionOp(f);
 }
 
+rxSymPyAbsLog <- FALSE
+rxSymPyLogSign <- c()
+
+sympyRxFEnv$log <- function(arg){
+    if (rxSymPyAbsLog){
+        tmp <- rxSymPyLogSign
+        argn <- eval(parse(text=sprintf("rxSplitPlusQ(quote(%s))", arg)))
+        if (length(argn) > 1){
+            tmp[length(tmp) + 1] <- paste0("(", arg, ")");
+        } else {
+            tmp[length(tmp) + 1] <- arg;
+        }
+        assignInMyNamespace("rxSymPyLogSign", tmp);
+        return(paste0("abs_log(", arg, ")"))
+    } else {
+        return(paste0("log(", arg, ")"))
+    }
+}
+
 rxSymPyFEnv$structure <- function(one, ..., .Names){
     eval(parse(text=sprintf("rxToSymPy(%s)", deparse(sprintf("%s", one)))));
 }
@@ -897,6 +916,14 @@ rxParseErr <- function(x, base.theta, diag.xform=c("sqrt", "log", "identity"),
     }
 }
 
+rxSimpleExprP <- function(x){
+    if (is.name(x) || is.atomic(x)){
+        return(TRUE)
+    } else {
+        return(FALSE)
+    }
+}
+
 ##' This function splits a function based on + or - terms
 ##'
 ##' It uses the parser and does not disturb terms within other
@@ -913,9 +940,12 @@ rxParseErr <- function(x, base.theta, diag.xform=c("sqrt", "log", "identity"),
 ##' @return character vector of the split expressions
 ##' @author Matthew L. Fidler
 rxSplitPlusQ <- function(x, level=0){
-    if (is.atomic(x) || is.name(x)) {
-        ## Leave unchanged
-        return(character());
+    if (is.name(x) || is.atomic(x)){
+        if (level == 0){
+            return(paste(deparse(x), collapse=""));
+        } else {
+            return(character())
+        }
     } else if (is.call(x)) { # Call recurse_call recursively
         if ((identical(x[[1]], quote(`+`)) ||
              identical(x[[1]], quote(`-`))) && level == 0){
@@ -942,11 +972,23 @@ rxSplitPlusQ <- function(x, level=0){
                 return(one);
             }
         } else {
-            return(unlist(lapply(x, rxSplitPlusQ, level=1)))
+            tmp <- unlist(lapply(x, rxSplitPlusQ, level=1));
+            if (level == 0){
+                if (length(tmp) == 0){
+                    tmp <- paste(deparse(x), collapse="")
+                }
+            }
+            return(tmp)
         }
     } else if (is.pairlist(x)) {
         ## Call recurse_call recursively
-        return(unlist(lapply(x, rxSplitPlusQ, level=level)))
+        tmp <- unlist(lapply(x, rxSplitPlusQ, level=level));
+        if (level == 0){
+            if (length(tmp) == 0){
+                tmp <- paste(deparse(x), collapse="");
+            }
+        }
+        return(tmp)
     } else { # User supplied incorrect input
         stop("Don't know how to handle type ", typeof(x),
              call. = FALSE)

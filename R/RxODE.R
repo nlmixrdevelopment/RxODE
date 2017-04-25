@@ -1192,6 +1192,7 @@ rxTrans.character <- function(model,
             return(c(ret$trans, ret$md5));
         }
     } else {
+        rxCat(model);
         stop("Syntax Error (see above)");
     }
 

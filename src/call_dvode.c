@@ -117,6 +117,25 @@ double RxODE_safe_zero(double x){
   }
 }
 
+double RxODE_sign_exp(double sgn, double x){
+  if (sgn > 0.0){
+    return(exp(x));
+  } else if (sgn < 0.0){
+    return(-exp(x));
+  } else {
+    return(0.0);
+  }
+}
+
+double RxODE_abs_log(double x){
+  if (x > 0.0){
+    return log(x);
+  } else if (x < 0.0){
+    return log(-x);
+  } else {
+    return 0.0;
+  }
+}
 
 /* Taken directly from https://github.com/wch/r-source/blob/922777f2a0363fd6fe07e926971547dd8315fc24/src/library/stats/src/approx.c*/
 
@@ -665,9 +684,7 @@ void RxODE_ode_solve_env(SEXP sexp_rho){
 
   RxODE_ode_setup(sexp_inits, sexp_lhs, sexp_time, sexp_evid, sexp_dose, sexp_pcov, sexp_cov, sexp_locf, sexp_atol, sexp_rtol, sexp_hmin, sexp_hmax, sexp_h0, sexp_mxordn, sexp_mxords, sexp_mx, sexp_stiff, sexp_transit_abs);
   RxODE_ode_alloc();
-  
   RxODE_ode_solver_c(neq, stiff, evid, inits, dose, solve, rc);
-
 }
 
 SEXP RxODE_ode_solver (// Parameters
@@ -935,4 +952,6 @@ void R_init_RxODE(DllInfo *info){
   R_RegisterCCallable("RxODE","RxODE_safe_zero",        (DL_FUNC) RxODE_safe_zero);
   R_RegisterCCallable("RxODE","RxODE_as_zero",          (DL_FUNC) RxODE_as_zero);
   R_RegisterCCallable("RxODE","solvedC",                (DL_FUNC) solvedC);
+  R_RegisterCCallable("RxODE","RxODE_sign_exp",         (DL_FUNC) RxODE_sign_exp);
+  R_RegisterCCallable("RxODE","RxODE_abs_log",          (DL_FUNC) RxODE_abs_log);
 }

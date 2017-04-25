@@ -258,6 +258,7 @@ rxPermissive({
         llik.lapl = as.vector(llik.lapl);
         attr(llik.lapl, "fitted") <- tmp2$f;
         attr(llik.lapl, "posthoc") <- tmp2$eta;
+        attr(llik.lapl, "corrected") <- 0L
 
         lik2 <- RxODE_focei_finalize_llik(tmp2);
 
@@ -299,10 +300,12 @@ rxPermissive({
         llik.lapl = as.vector(llik.lapl);
         attr(llik.lapl, "fitted") <- tmp2.nm$f;
         attr(llik.lapl, "posthoc") <- tmp2.nm$eta;
+        attr(llik.lapl, "corrected") <- 0L
 
         lik2 <- RxODE_focei_finalize_llik(tmp2.nm);
 
         expect_equal(lik2, llik.lapl);
+
     })
 
     m2 <- RxODE({
@@ -361,11 +364,14 @@ rxPermissive({
         ## Does not include the matrix mult part (done with RcppArmadillo)
         lp <- matrix(c(NA, NA), ncol=1)
         c <- matrix(tmp1[["_sens_rx_r__ETA_1_"]] / tmp1[["rx_r_"]],ncol=1)
+        expect_equal(c, tmp2$c[[1]])
         fp <- as.matrix(tmp1[,c("_sens_rx_pred__ETA_1_" )])
         lp[1, 1] <- .5*apply(err*fp*B + .5*err^2*B*c - c, 2, sum)
         c <- matrix(tmp1[["_sens_rx_r__ETA_2_"]] / tmp1[["rx_r_"]],ncol=1)
+        expect_equal(c, tmp2$c[[2]])
         fp <- as.matrix(tmp1[,c("_sens_rx_pred__ETA_2_" )])
         lp[2, 1] <- .5*apply(err*fp*B + .5*err^2*B*c - c, 2, sum)
+
         expect_equal(lp, tmp2$lp)
 
         llik <- -0.5 * sum(err ^ 2 / R + log(R));
@@ -876,6 +882,99 @@ rxPermissive({
         expect_equal(class(focei.mod1), "rxFocei");
         expect_equal(class(focei.mod2), "rxFocei");
     })
+
+    ## Test the gradient for a single subject
+    ev <- eventTable() %>%
+        add.sampling(c(0.25, 0.5, 0.75, 1, 1.5, 2, 2.5, 3, 4, 6, 8, 12, 16, 20, 24,
+                       36, 48, 60, 71.99, 95.99, 119.99, 143.99, 144.25, 144.5, 144.75,
+                       145, 145.5, 146, 146.5, 147, 148, 150, 152, 156, 160, 164, 167.99,
+                       191.99, 215.99, 216.25, 216.5, 216.75, 217, 217.5, 218, 218.5, 219,
+                       220, 222, 224, 228, 232, 236, 240, 252, 264, 276, 288)) %>%
+        add.dosing(dose=1000, start.time=0, nbr.doses=1) %>%
+        add.dosing(dose=10000, start.time=72, nbr.doses=7, dosing.interval=24)
+
+    DV <- c(0, 137.6, 142.1, 113, 134.8, 143.4, 106.9, 64.2, 118.5, 73.9, 90.8, 83.1,
+            61, 75.4, 46.3, 54.5, 29.8, 29.3, 12.5, 13.2, 0, 64.9, 0, 81.5, 0, 108.3, 0, 243.3,
+            185.5, 190.5, 169.9, 180.7, 205, 163.2, 169.5, 224.2, 126.3, 129.1, 107.7, 146.2, 96,
+            113.2, 0, 79.7, 0, 85.3, 0, 226.9, 172, 164.2, 148.7, 200.9, 151, 160.6, 142.4, 154.8,
+            126.9, 134.8, 129.1, 110.4, 121.6, 78.9, 37, 37.2, 28.3, 27.7)
+
+    THETA <- c(1.59170802337068, 4.45624870814774, 0.330113291259874, 0.151067662733064, 0.132428482079086)
+
+    mypar1 = function ()
+    {
+        CL = exp(THETA[1] + ETA[1])
+        V = exp(THETA[2] + ETA[2])
+    }
+
+    m1 <- RxODE({
+        C2 = centr/V;
+        d/dt(centr) = - CL*C2
+    })
+
+    pred = function() C2
+
+    err = function(){err ~ prop(.1)}
+
+    m1g <- rxSymPySetupPred(m1, pred, mypar1, err, grad=TRUE, logify=FALSE)
+
+    ETA <- c(0, 0);
+
+    symo <- rxSymInvCreate(structure(c(0.1, 0, 0, 0.11), .Dim = c(2L, 2L)),
+                           diag.xform="sqrt")
+
+    symenv <- rxSymInv(symo, THETA[4:5])
+
+    ret <- m1g %>% rxFoceiInner(ev, theta=THETA[-(4:5)], eta=ETA,
+                                dv=DV, inv.env=symenv, NONMEM=1, invisible=1,
+                                rtol.outer=1e-12, atol.outer= 1e-13)
+
+    m1g <- rxSymPySetupPred(m1, pred, mypar1, err, grad=TRUE, logify=TRUE)
+
+    ## ret2 <- m1g %>% rxFoceiTheta(et, theta=THETA, eta=ETA,dv=DV, inv.env=symenv)
+
+    ret2 <- m1g %>% rxFoceiInner(ev, theta=THETA[-(4:5)], eta=ETA,
+                                dv=DV, inv.env=symenv, NONMEM=1, invisible=1,
+                                rtol.outer=1e-12, atol.outer= 1e-13)
+
+    library(numDeriv)
+
+    f <- function(th=THETA[-(4:5)]){
+        return(suppressWarnings({as.vector(m1g %>% rxFoceiInner(ev, theta=th, eta=as.vector(attr(ret,"posthoc")),
+                                                                dv=DV, inv.env=symenv, NONMEM=1, invisible=1))}))
+    }
+
+    gr.richard <- grad(f, THETA[-(4:5)])
+
+    gr.simple <- grad(f, THETA[-(4:5)], method="simple")
+
+    ## While it is close, it isn't exactly the same.
+    gr.calc <- attr(ret, "grad")
+
+    ## m1g$outer <- RxODE(rxLogifyModel(m1g$outer))
+
+    ## ret2 <- m1g %>% rxFoceiInner(ev, theta=THETA[-(4:5)], eta=ETA,
+    ##                             dv=DV, inv.env=symenv, NONMEM=1, invisible=1,
+    ##                             rtol.outer=1e-12, atol.outer= 1e-13)
+    ## The numerical values may not be right from NumDeriv either
+    ## gr2.calc <- attr(ret2, "grad")
+
+    ## Michelis Menton test
+    mm <- RxODE({
+        C2 = centr / V;
+        d/dt(centr)  = -(VM*C2)/(KM+C2);
+    })
+
+    mypar3 <- function(lVM, lKM, lV )
+    {
+        VM = exp(theta[1] + eta[1])
+        KM = exp(theta[2] + eta[2])
+        V  = exp(theta[3] + eta[3])
+    }
+
+    pred <- function() C2
+
+    focei.mm.mod2 <- rxSymPySetupPred(mm, pred, par, err=function(){err ~ prop(0.1)}, grad=TRUE, run.internal=TRUE);
 
     ## Now test solved focei capability.
     sol.1c.ka <- RxODE({
