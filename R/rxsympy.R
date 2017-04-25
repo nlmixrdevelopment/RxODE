@@ -1293,7 +1293,15 @@ rxGc <- function(){
     on.exit({sink();unlink(tf)})
     try({rxSymPyExec("gc.collect()")});
 }
-
+##' Takes a model and expands it to log multiplication
+##'
+##' This is a numerical trick to help reduce multiplcation errors when
+##' numbers are of very different magnitude.
+##'
+##' @param model RxODE model
+##' @return Lines for expanded model. (but not compiled)
+##' @author Matthew L. Fidler
+##' @export
 rxLogifyModel <- function(model){
     rxSymPyVars(model);
     ## rxCat(rxNorm(model));
@@ -1302,7 +1310,7 @@ rxLogifyModel <- function(model){
         assignInMyNamespace("rxSymPyAbsLog", FALSE);
         assignInMyNamespace("rxSymPyLogSign", c());
     });
-    n <- 0;
+    n <- 1;
     rxCat("## Logify ie a*b -> exp(log(abs(a))+log(abs(b)))*sign(a*b)\n")
     rxCat("## ")
     negReg <- rex::rex(start, any_spaces, "-", any_spaces)
