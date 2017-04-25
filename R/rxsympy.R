@@ -892,21 +892,32 @@ rxSymPySetupDPred <- function(newmod, calcSens, states, prd="rx_pred_"){
                 tmpO <- as.numeric(gsub(rex::rex(start, "ETA", or("[", "_"), capture(numbers), or("]")), "\\1", tmp2));
                 tmp2 <- tmp2[order(tmpO)];
                 if (identical(tmp2, c(eK, eL))){
+                    ## diff(h)/d(eK,eL)
                     newLine2 <- rxSymPy(sprintf("diff(diff(%s,%s),%s)", prd, rxToSymPy(eK), rxToSymPy(eL)));
                     ## Some diffs are paritally implemented in RxODE translation.
                     newLine2 <- rxFromSymPy(newLine2)
                     newLine2 <- rxToSymPy(newLine2)
                     tmp <- c(newLine2);
                     for (state in states){
+                        ## diff(h)/d(eK, state) * dstate/deta_eL
+                        ## = diff(h)/d(eK, state) * sensitivity_state_eL
                         newLine <- rxSymPy(sprintf("diff(diff(%s,%s),%s)",prd, rxToSymPy(eK), state));
                         tmp[length(tmp) + 1] <- sprintf("(%s)*rx__sens_%s_BY_%s__",
                                                         newLine, state, rxToSymPy(eL));
+
+                        ## d^2(h)/d(x,eL) * dx/d(eK)
+                        ## d^2(h)/d(x,eL) * sens_state_eK
                         newLine <- rxSymPy(sprintf("diff(diff(%s,%s),%s)",prd, state, rxToSymPy(eL)));
                         tmp[length(tmp) + 1] <- sprintf("(%s)*rx__sens_%s_BY_%s__",
                                                         newLine, state, rxToSymPy(eK));
+
+                        ## d^2h/d^2(state) * (dstate/deta_el) * (dstate/deta_eK)
+                        ## d^2h/d^2(state) * sens_state_el * sens_state_eK
                         newLine <- rxSymPy(sprintf("diff(diff(%s,%s),%s)",prd, state, state));
                         tmp[length(tmp) + 1] <- sprintf("(%s)*rx__sens_%s_BY_%s__*rx__sens_%s_BY_%s__",
                                                         newLine, state, rxToSymPy(eL), state, rxToSymPy(eK));
+                        ## dh/d(state) * dstate/(eK, eL)
+                        ## dh/d(state) * sens_state_eK_eL
                         newLine <- rxSymPy(sprintf("diff(%s,%s)",prd, state));
                         tmp[length(tmp) + 1] <- sprintf("(%s)*rx__sens_%s_BY_%s_BY_%s__",
                                                         newLine, state, rxToSymPy(eK), rxToSymPy(eL));
@@ -927,18 +938,26 @@ rxSymPySetupDPred <- function(newmod, calcSens, states, prd="rx_pred_"){
         rxCat("\n##   d(.)^2/(d(theta)d(eta))");
         for (theta in calcSens$theta){
             for (eta in calcSens$eta){
+                ## dh/d(eta,theta)
                 newLine2 <- rxSymPy(sprintf("diff(diff(%s,%s),%s)", prd, rxToSymPy(eta), rxToSymPy(theta)));
                 tmp <- c(newLine2);
                 for (state in states){
+                    ## d^2h/d(eta,state)*dstate/theta
+                    ## d^2h/d(eta,state)*sens_state_theta
                     newLine <- rxSymPy(sprintf("diff(diff(%s,%s),%s)",prd, rxToSymPy(eta), state));
                     tmp[length(tmp) + 1] <- sprintf("(%s)*rx__sens_%s_BY_%s__",
                                                     newLine, state, rxToSymPy(theta));
+                    ## d^2h/d(state,theta)*dstate/eta
+                    ## d^2h/d(state,theta)*sens_state_eta
                     newLine <- rxSymPy(sprintf("diff(diff(%s,%s),%s)",prd, state, rxToSymPy(theta)));
                     tmp[length(tmp) + 1] <- sprintf("(%s)*rx__sens_%s_BY_%s__",
                                                     newLine, state, rxToSymPy(eta));
+                    ## d^2h/d^2(state)*dstate/eta
+                    ## d^2h/d^2(state)*sens_state_eta
                     newLine <- rxSymPy(sprintf("diff(diff(%s,%s),%s)",prd, state, state));
                     tmp[length(tmp) + 1] <- sprintf("(%s)*rx__sens_%s_BY_%s__*rx__sens_%s_BY_%s__",
                                                     newLine, state, rxToSymPy(theta), state, rxToSymPy(eta));
+                    ## dh/d(state)*d(h)/(deta,dtheta)
                     newLine <- rxSymPy(sprintf("diff(%s,%s)",prd, state));
                     tmp[length(tmp) + 1] <- sprintf("(%s)*rx__sens_%s_BY_%s_BY_%s__",
                                                     newLine, state, rxToSymPy(eta), rxToSymPy(theta));
@@ -959,8 +978,11 @@ rxSymPySetupDPred <- function(newmod, calcSens, states, prd="rx_pred_"){
         return(extraLines);
     }
     rxCat("## ");
+
+    ## Equation #21
     rxSymPyVars(calcSens);
     for (var in calcSens){
+        ##
         newLine2 <- rxSymPy(sprintf("diff(%s,%s)", prd, rxToSymPy(var)));
         tmp <- c(newLine2);
         for (state in states){
@@ -1012,7 +1034,7 @@ rxSymPySetupPred.warn <- FALSE
 ##' @author Matthew L. Fidler
 ##' @keywords internal
 ##' @export
-rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, grad=FALSE, logify=TRUE, grad.internal=FALSE,
+rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, grad=FALSE, logify=FALSE, grad.internal=FALSE,
                              run.internal=FALSE){
     if (!grad.internal){
         cache.file <- sprintf("rx_%s%s.prd",

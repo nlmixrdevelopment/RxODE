@@ -762,7 +762,9 @@ void rxOuter_ (SEXP rho){
 void rxDetaDtheta(SEXP rho){
   int i,h,n;
   Environment e = as<Environment>(rho);
-  mat H2 = as<mat>(e["H2"]);
+  rxHessian(e); // Calculate Hessian
+  // mat H2 = as<mat>(e["H2"]);
+  mat H2 = as<mat>(e["H"]); // Although the paper prescribes using H2, using H gives a more accuate gradient...
   // Now caluclate dl(eta)/dTheta (Eq 28) and add to the overall dl/dTheta
   mat lDnDt = as<mat>(e["l.dEta.dTheta"]);
   mat iH2;
@@ -771,7 +773,7 @@ void rxDetaDtheta(SEXP rho){
   try{
     iH2 = inv(H2);
   } catch(...){
-    Rprintf("Warning: H2 seems singular; Using pseudo-inverse\n");
+    Rprintf("Warning: Hessian (H) seems singular; Using pseudo-inverse\n");
     iH2 = pinv(H2);
   }
   // # 46
@@ -811,7 +813,7 @@ void rxDetaDtheta(SEXP rho){
     cur = mat(dErrdTheta.n_rows,0);
     for(h = 0; h < ntheta; h++){
       // dErr2 =d^2(err)/d(eta)^2
-      cur = join_rows(cur, -(as<mat>(dErrdEtadTheta[h])).col(i) -
+      cur = join_rows(cur, -(as<mat>(dErrdEtadTheta[h])).col(i) +
 		      (as<mat>(dErr2[i])) * DnDt.col(h));
     }
     dErrdEtadTheta_[i]=cur;
@@ -912,26 +914,26 @@ void rxDetaDtheta(SEXP rho){
   }
   e["dH.dTheta"] = DhDh;
   // Now caluclate dl(eta)/dTheta (Eq 28) and add to the overall dl/dTheta
-  rxHessian(e); // Calculate Hessian
-  mat H = as<mat>(e["H"]);
-  mat Hinv;
-  try{
-    Hinv = inv(H);
-  } catch(...){
-    Rprintf("Warning: Hessian seems singular; Using pseudo-inverse\n");
-    Hinv = pinv(H);
-  }
-  e["Hinv"] = Hinv;
+  // Although the prescribes using Hessian H, using H2 gives a better approximation for 1 cmt gradient.
+  // mat H = as<mat>(e["H"]);
+  // mat Hinv;
+  // try{
+  //   Hinv = inv(H);
+  // } catch(...){
+  //   Rprintf("Warning: Hessian (H2) seems singular; Using pseudo-inverse\n");
+  //   Hinv = pinv(H);
+  // }
+  // e["Hinv"] = Hinv;
   NumericVector dEta = as<NumericVector>(e["omega.28"]);
   NumericVector dLdTheta(ntheta);
   for (h = 0; h < ntheta; h++){
     mat1 = -0.5*sum(2 * err % dErrdTheta.col(h) / R - err % err % dRdTheta.col(h) / (R % R) + dRdTheta.col(h) / R);
     if (h >= ptheta){
-      mat1 = mat1+ dEta[h-ptheta];
+      mat1 = mat1 + dEta[h-ptheta];
     }
     // Now add -1/2*tr(Hinv*DhDh[h])
     mat2 = as<mat>(DhDh[h]);
-    mat3 = Hinv * mat2;
+    mat3 = iH2 * mat2;
     dLdTheta[h] = mat1(0,0)-0.5*sum(mat3.diag());
   }
   e["l.dTheta"] = dLdTheta;
