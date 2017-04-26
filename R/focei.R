@@ -27,6 +27,7 @@ rxFoceiEtaSetup <- function(object, ..., dv, eta, theta, nonmem=FALSE, inv.env=p
         setup$atol.outer <- atol.outer;
         setup$rtol.outer <- rtol.outer;
         setup$nearPD <- rxNearPd;
+        setup$rc <- 0L;
         if (!is.null(inits.vec)){
             setup$inits.vec <- inits.vec;
         }
@@ -168,6 +169,7 @@ rxFoceiLp.rxDll <- function(object, ..., dv, eta){
     env <- do.call(getFromNamespace("rxFoceiEtaSetup", "RxODE"), args, envir = parent.frame(1));
     return(RxODE_focei_eta_lp(eta, env))
 }
+
 ##' Solve the FOCEI inner problem
 ##'
 ##' @param object RxODE object

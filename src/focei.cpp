@@ -14,7 +14,6 @@ extern "C" unsigned int nAllTimes();
 extern "C" int rxEvid(int i);
 extern "C" double rxLhs(int i);
 extern "C" void rxCalcLhs(int i);
-extern "C" void RxODE_ode_solve_env(SEXP sexp_rho);
 extern "C" unsigned int nObs();
 extern "C" void RxODE_ode_solve_env(SEXP sexp_rho);
 extern "C" void RxODE_ode_free();
@@ -79,9 +78,9 @@ void rxInner(SEXP etanews, SEXP rho){
       etam(i,0) = eta[i];
     }
     e["params"] = par_ptr;
-    e["eta"] = eta;
+    e["eta"]    = eta;
     e["eta.mat"] = etam;
-
+    
     RxODE_ode_solve_env(rho);
     
     unsigned int neta = as<unsigned int>(e["neta"]);
@@ -242,10 +241,30 @@ void rxHessian(SEXP rho){
   e["H"] = H;
 }
 
+void rxInner2(SEXP sexp_eta, SEXP sexp_rho){
+  rxInner(sexp_eta, sexp_rho);
+  Environment e = as<Environment>(sexp_rho);
+  if (as<int>(e["rc"]) != 0){
+    if (as<int>(e["stiff"])){
+      e["stiff"] = 0;
+    } else {
+      e["stiff"] = 1;
+    }
+    Rprintf("\nWarning: Switched solver.\n");
+    e.remove("llik");
+    rxInner(sexp_eta, sexp_rho);
+    // Switch back.
+    if (as<int>(e["stiff"])){
+      e["stiff"] = 0;
+    } else {
+      e["stiff"] = 1;
+    }
+  }
+}
 
 // [[Rcpp::export]]
 NumericVector RxODE_focei_eta_lik(SEXP sexp_eta, SEXP sexp_rho){
-  rxInner(sexp_eta, sexp_rho);
+  rxInner2(sexp_eta, sexp_rho);
   Environment e = as<Environment>(sexp_rho);
   NumericVector ret = as<NumericVector>(wrap(e["llik2"]));
   return ret;
@@ -253,7 +272,7 @@ NumericVector RxODE_focei_eta_lik(SEXP sexp_eta, SEXP sexp_rho){
 
 // [[Rcpp::export]]
 NumericVector RxODE_focei_eta_lp(SEXP sexp_eta, SEXP sexp_rho){
-  rxInner(sexp_eta, sexp_rho);
+  rxInner2(sexp_eta, sexp_rho);
   Environment e = as<Environment>(sexp_rho);
   NumericVector ret = as<NumericVector>(wrap(e["ep2"]));
   return ret;
@@ -763,8 +782,8 @@ void rxDetaDtheta(SEXP rho){
   int i,h,n;
   Environment e = as<Environment>(rho);
   rxHessian(e); // Calculate Hessian
-  // mat H2 = as<mat>(e["H2"]);
-  mat H2 = as<mat>(e["H"]); // Although the paper prescribes using H2, using H gives a more accuate gradient...
+  mat H2 = as<mat>(e["H2"]);
+  // mat H2 = as<mat>(e["H"]); // Although the paper prescribes using H2, using H gives a more accuate gradient...
   // Now caluclate dl(eta)/dTheta (Eq 28) and add to the overall dl/dTheta
   mat lDnDt = as<mat>(e["l.dEta.dTheta"]);
   mat iH2;
@@ -914,26 +933,26 @@ void rxDetaDtheta(SEXP rho){
   }
   e["dH.dTheta"] = DhDh;
   // Now caluclate dl(eta)/dTheta (Eq 28) and add to the overall dl/dTheta
-  // Although the prescribes using Hessian H, using H2 gives a better approximation for 1 cmt gradient.
-  // mat H = as<mat>(e["H"]);
-  // mat Hinv;
-  // try{
-  //   Hinv = inv(H);
-  // } catch(...){
-  //   Rprintf("Warning: Hessian (H2) seems singular; Using pseudo-inverse\n");
-  //   Hinv = pinv(H);
-  // }
-  // e["Hinv"] = Hinv;
+  // Although the prescribes using Hessian H, using H2 gives a better approximation for 1 cmt gradient
+  mat H = as<mat>(e["H"]);
+  mat Hinv;
+  try{
+    Hinv = inv(H);
+  } catch(...){
+    Rprintf("Warning: Hessian (H) seems singular; Using pseudo-inverse\n");
+    Hinv = pinv(H);
+  }
+  e["Hinv"] = Hinv;
   NumericVector dEta = as<NumericVector>(e["omega.28"]);
   NumericVector dLdTheta(ntheta);
   for (h = 0; h < ntheta; h++){
     mat1 = -0.5*sum(2 * err % dErrdTheta.col(h) / R - err % err % dRdTheta.col(h) / (R % R) + dRdTheta.col(h) / R);
     if (h >= ptheta){
-      mat1 = mat1 + dEta[h-ptheta];
+      mat1 = mat1+ dEta[h-ptheta];
     }
     // Now add -1/2*tr(Hinv*DhDh[h])
     mat2 = as<mat>(DhDh[h]);
-    mat3 = iH2 * mat2;
+    mat3 = Hinv * mat2;
     dLdTheta[h] = mat1(0,0)-0.5*sum(mat3.diag());
   }
   e["l.dTheta"] = dLdTheta;

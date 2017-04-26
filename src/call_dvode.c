@@ -272,7 +272,7 @@ void call_lsoda(int neq, double *x, int *evid, int nx, double *inits, double *do
 	    {
 	      Rprintf("IDID=%d, %s\n", istate, err_msg[-istate-1]);
 	      *rc = istate;
-	      error("Error solving using LSODA");
+	      Rprintf("Error solving using LSODA\n");
 	      return;
 	    }
 	  slvr_counter++;
@@ -381,7 +381,7 @@ void call_dop(int neq, double *x, int *evid, int nx, double *inits, double *dose
 	    {
 	      Rprintf("IDID=%d, %s\n", idid, err_msg[-idid-1]);
 	      *rc = idid;
-	      error("Error sovling using dop853");
+	      Rprintf("Error sovling using dop853");
 	      return;  //exit(1);  // dj: should not abort R
 	    }
 
@@ -678,6 +678,8 @@ void RxODE_ode_solve_env(SEXP sexp_rho){
   SEXP sexp_mx = findVar(installChar(mkChar("maxsteps")),sexp_rho);
   SEXP sexp_stiff = findVar(installChar(mkChar("stiff")),sexp_rho);
   SEXP sexp_transit_abs = findVar(installChar(mkChar("transit_abs")),sexp_rho);
+  SEXP sexp_rc = findVar(installChar(mkChar("rc")),sexp_rho);
+  int *rce    = INTEGER(sexp_rc);
 
   par_ptr       = REAL(sexp_theta);
   inits         = REAL(sexp_inits);
@@ -685,6 +687,8 @@ void RxODE_ode_solve_env(SEXP sexp_rho){
   RxODE_ode_setup(sexp_inits, sexp_lhs, sexp_time, sexp_evid, sexp_dose, sexp_pcov, sexp_cov, sexp_locf, sexp_atol, sexp_rtol, sexp_hmin, sexp_hmax, sexp_h0, sexp_mxordn, sexp_mxords, sexp_mx, sexp_stiff, sexp_transit_abs);
   RxODE_ode_alloc();
   RxODE_ode_solver_c(neq, stiff, evid, inits, dose, solve, rc);
+  // Send rc to environment
+  rce[0] = rc[0];
 }
 
 SEXP RxODE_ode_solver (// Parameters
@@ -897,6 +901,8 @@ SEXP RxODE_rxInv(SEXP matrix);
 
 double solvedC(double t, int parameterization, unsigned int cmt, unsigned int col, double p1, double p2, double p3, double p4, double p5, double p6, double p7, double p8);
 
+SEXP RxODE_rxCoutEcho(SEXP number);
+
 void R_init_RxODE(DllInfo *info){
   R_CallMethodDef callMethods[]  = {
     {"RxODE_ode_solver", (DL_FUNC) &RxODE_ode_solver, 21},
@@ -918,6 +924,7 @@ void R_init_RxODE(DllInfo *info){
     {"RxODE_getLinDerivs", (DL_FUNC) &RxODE_getLinDerivs, 1},
     {"RxODE_linCmtEnv", (DL_FUNC) &RxODE_linCmtEnv, 1},
     {"RxODE_rxInv", (DL_FUNC) &RxODE_rxInv, 1},
+    {"RxODE_rxCoutEcho", (DL_FUNC) & RxODE_rxCoutEcho, 1},
     {NULL, NULL, 0}
   };
   R_registerRoutines(info, NULL, callMethods, NULL, NULL);

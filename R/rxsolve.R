@@ -50,7 +50,7 @@
 ##'     the current value of the covariate.
 ##'
 ##' @param stiff a logical (\code{TRUE} by default) indicating whether
-##'     the ODE system is stifff or not.
+##'     the ODE system is stiff or not.
 ##'
 ##'     For stiff ODE sytems (\code{stiff = TRUE}), \code{RxODE} uses the
 ##'     LSODA (Livermore Solver for Ordinary Differential Equations)
@@ -428,51 +428,134 @@ rxSolve.rxDll <- function(object, params=NULL, events=NULL, inits = NULL, scale 
     rxLoad(object);
     call <- as.list(match.call(expand.dots = TRUE))[-1];
     setup <- do.call(getFromNamespace("rxSolveSetup", "RxODE"), call, envir = parent.frame(1));
-    ret <- with(setup,{
-        ret <- object$.call(rxTrans(object)["ode_solver_sexp"],
-                     ## Parameters
-                     params,
-                     inits,
-                     lhs_vars,
-                     ## events
-                     time,
-                     evid,
-                     amt,
-                     ## Covariates
-                     pcov,
-                     cov,
-                     isLocf,
-                     ## Solver options (double)
-                     atol,
-                     rtol,
-                     hmin,
-                     hmax,
-                     hini,
-                     ## Solver options ()
-                     maxordn,
-                     maxords,
-                     maxsteps,
-                     stiff,
-                     transit_abs,
-                     ## Passed to build solver object.
-                     object,
-                     extra.args)
-        rc <- attr(ret, "solveRxDll")$counts["rc"];
-        attr(ret, "solveRxDll")$matrix <- attr(ret, "solveRxDll")$matrix[events$get.obs.rec(), ];
-        ## Change sensitivities to be d/dt(d(A)/d(B)) form.
-        dim <- dimnames(attr(ret, "solveRxDll")$matrix);
-        dim[[2]] <- gsub(regSens,"d/dt(d(\\1)/d(\\2))",dim[[2]]);
-        dimnames(attr(ret, "solveRxDll")$matrix) <- dim;
+    sink.file <- tempfile();
+    orig.sink.number <- sink.number()
+    on.exit({while(sink.number() > orig.sink.number){
+        sink();
+    };
+        unlink(sink.file)})
+    sink(sink.file);
+    ret <- try({with(setup,{
+                    ret <- object$.call(rxTrans(object)["ode_solver_sexp"],
+                                        ## Parameters
+                                        params,
+                                        inits,
+                                        lhs_vars,
+                                        ## events
+                                        time,
+                                        evid,
+                                        amt,
+                                        ## Covariates
+                                        pcov,
+                                        cov,
+                                        isLocf,
+                                        ## Solver options (double)
+                                        atol,
+                                        rtol,
+                                        hmin,
+                                        hmax,
+                                        hini,
+                                        ## Solver options ()
+                                        maxordn,
+                                        maxords,
+                                        maxsteps,
+                                        stiff,
+                                        transit_abs,
+                                        ## Passed to build solver object.
+                                        object,
+                                        extra.args)
+                    rc <- attr(ret, "solveRxDll")$counts["rc"];
+                    attr(ret, "solveRxDll")$matrix <- attr(ret, "solveRxDll")$matrix[events$get.obs.rec(), ];
+                    ## Change sensitivities to be d/dt(d(A)/d(B)) form.
+                    dim <- dimnames(attr(ret, "solveRxDll")$matrix);
+                    dim[[2]] <- gsub(regSens,"d/dt(d(\\1)/d(\\2))",dim[[2]]);
+                    dimnames(attr(ret, "solveRxDll")$matrix) <- dim;
 
-        if (rc != 0)
-            stop(sprintf("could not solve ODE, IDID = %d (see further messages)", rc))
-        scale <- setup$scale;
-        for (d in names(scale)){
-            attr(ret, "solveRxDll")$matrix[, d] <- attr(ret, "solveRxDll")$matrix[, d] / scale[d];
+                    if (rc != 0)
+                        stop(sprintf("could not solve ODE, IDID = %d (see further messages)", rc))
+                    scale <- setup$scale;
+                    for (d in names(scale)){
+                        attr(ret, "solveRxDll")$matrix[, d] <- attr(ret, "solveRxDll")$matrix[, d] / scale[d];
+                    }
+                    ret
+                })})
+    sink();
+    if (inherits(ret, "try-error")){
+        ## Error solving, try the other solver.
+        errs <- paste(suppressWarnings({readLines(sink.file)}), collapse="\n");
+        call$stiff <- !call$stiff;
+        setup <- do.call(getFromNamespace("rxSolveSetup", "RxODE"), call, envir = parent.frame(1));
+        sink(sink.file);
+        ret <- try({with(setup,{
+                        ret <- object$.call(rxTrans(object)["ode_solver_sexp"],
+                                            ## Parameters
+                                            params,
+                                            inits,
+                                            lhs_vars,
+                                            ## events
+                                            time,
+                                            evid,
+                                            amt,
+                                            ## Covariates
+                                            pcov,
+                                            cov,
+                                            isLocf,
+                                            ## Solver options (double)
+                                            atol,
+                                            rtol,
+                                            hmin,
+                                            hmax,
+                                            hini,
+                                            ## Solver options ()
+                                            maxordn,
+                                            maxords,
+                                            maxsteps,
+                                            stiff,
+                                            transit_abs,
+                                            ## Passed to build solver object.
+                                            object,
+                                            extra.args)
+                        rc <- attr(ret, "solveRxDll")$counts["rc"];
+                        attr(ret, "solveRxDll")$matrix <- attr(ret, "solveRxDll")$matrix[events$get.obs.rec(), ];
+                        ## Change sensitivities to be d/dt(d(A)/d(B)) form.
+                        dim <- dimnames(attr(ret, "solveRxDll")$matrix);
+                        dim[[2]] <- gsub(regSens,"d/dt(d(\\1)/d(\\2))",dim[[2]]);
+                        dimnames(attr(ret, "solveRxDll")$matrix) <- dim;
+
+                        if (rc != 0)
+                            stop(sprintf("could not solve ODE, IDID = %d (see further messages)", rc))
+                        scale <- setup$scale;
+                        for (d in names(scale)){
+                            attr(ret, "solveRxDll")$matrix[, d] <- attr(ret, "solveRxDll")$matrix[, d] / scale[d];
+                        }
+                        ret
+                    })});
+        sink();
+        if (inherits(ret, "try-error")){
+            if (call$stiff){
+                rxCat("DOP853 errors:\n");
+                rxCat(errs, "\n");
+            } else {
+                rxCat("LSODA errors:\n");
+                rxCat(errs, "\n");
+            }
+            errs <- paste(suppressWarnings({readLines(sink.file)}), collapse="\n");
+            if (call$stiff){
+                rxCat("LSODA errors:\n");
+                rxCat(errs, "\n");
+            } else {
+                rxCat("DOP853 errors:\n");
+                rxCat(errs, "\n");
+            }
+            stop("Tried both LSODA and DOP853, but could not solve the system.")
+        } else {
+            if (call$stiff){
+                warning("Originally tried DOP853, but it failed to solve, so used LSODA instead.")
+            } else {
+                warning("Originally tried LSODA, but it failed to solve, so used DOP853 instead.")
+            }
         }
-        ret
-    })
-    ## Subset to observations only.
+    }
     return(ret);
 } # end function rxSolve.rxDll
 
@@ -823,7 +906,7 @@ cbind.solveRxDll <- function(...){
     stop("cbind is unsupported.  First convert to a data.frame with as.data.frame(x).")
 }
 
-
+## This causes the whole package to crash...
 ## ##' @name as.data.table
 ## ##' @export as.data.table.solveRxDll
 ## ##'
