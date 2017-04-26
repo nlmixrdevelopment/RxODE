@@ -102,3 +102,14 @@ getLinDerivs <- function(rho) {
     invisible(.Call('RxODE_getLinDerivs', PACKAGE = 'RxODE', rho))
 }
 
+#' Echo cout to console for a number
+#'
+#' @param number number to output
+#'
+#'  @return nothing.
+#'
+#' @export
+rxCoutEcho <- function(number) {
+    invisible(.Call('RxODE_rxCoutEcho', PACKAGE = 'RxODE', number))
+}
+

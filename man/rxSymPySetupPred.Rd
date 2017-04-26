@@ -5,7 +5,7 @@
 \title{Setup Pred function based on RxODE object.}
 \usage{
 rxSymPySetupPred(obj, predfn, pkpars = NULL, errfn = NULL, init = NULL,
-  grad = FALSE, logify = TRUE, grad.internal = FALSE,
+  grad = FALSE, logify = FALSE, grad.internal = FALSE,
   run.internal = FALSE)
 }
 \arguments{

@@ -192,3 +192,13 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
+// rxCoutEcho
+void rxCoutEcho(NumericVector number);
+RcppExport SEXP RxODE_rxCoutEcho(SEXP numberSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type number(numberSEXP);
+    rxCoutEcho(number);
+    return R_NilValue;
+END_RCPP
+}
