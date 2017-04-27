@@ -923,9 +923,11 @@ rxSymPySetupDPred <- function(newmod, calcSens, states, prd="rx_pred_"){
                                                         newLine, state, rxToSymPy(eK), rxToSymPy(eL));
                     }
                     tmp <- paste(paste0("(", tmp, ")"), collapse=" + ")
-                    tmp <- rxSymPy(sprintf("%s(%s)",
-                                                 ifelse(prd == "rx_pred_", "-", ""),
-                                                 tmp));
+                    tmp <- sprintf("%s", tmp);
+                    ## if (prd == "rx_pred_"){
+                    ##     tmp <- paste0("-(", tmp, ")");
+                    ## }
+                    tmp <- rxSymPy(tmp);
                     if (tmp != "0"){
                         zeroSens <- FALSE;
                     }
@@ -964,7 +966,11 @@ rxSymPySetupDPred <- function(newmod, calcSens, states, prd="rx_pred_"){
 
                 }
                 tmp <- paste(paste0("(", tmp, ")"), collapse=" + ")
-                tmp <- rxSymPy(sprintf("%s(%s)", ifelse(prd == "rx_pred_", "-", ""), tmp));
+                tmp <- sprintf("%s", tmp);
+                ## if (prd == "rx_pred_") {
+                ##     tmp <- paste0("-(", tmp, ")");
+                ## }
+                tmp <- rxSymPy(tmp);
                 if (tmp != "0"){
                     zeroSens <- FALSE;
                 }
@@ -991,7 +997,13 @@ rxSymPySetupDPred <- function(newmod, calcSens, states, prd="rx_pred_"){
                                             newLine, state, rxToSymPy(var));
         }
         tmp <- paste(paste0("(", tmp, ")"), collapse=" + ")
-        tmp <- rxSymPy(sprintf("(%s(%s))", ifelse(prd == "rx_pred_", "-", ""), tmp));
+        ## if (prd == "rx_pred_"){
+        ##     print(tmp);
+        ##     tmp <- sprintf("-(%s)", tmp);
+        ##     print(tmp)
+        ## }
+        tmp <- rxSymPy(tmp);
+        ## print(tmp)
         if (tmp != "0"){
             zeroSens <- FALSE;
         }

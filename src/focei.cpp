@@ -132,7 +132,7 @@ void rxInner(SEXP etanews, SEXP rho){
       if (!rxEvid(i)){
 	rxCalcLhs(i);
 	f[k] = rxLhs(0); // Pred
-	err(k, 0) = DV[k] - f[k];
+	err(k, 0) =  f[k] - DV[k];
 	// d(pred)/d(eta#)
 	for (j = 1; j < neta+1; j++){
 	  fpm(k, j-1) = rxLhs(j);
@@ -496,7 +496,7 @@ void rxOuter_ (SEXP rho){
     if (!rxEvid(i)){
       rxCalcLhs(i);
       f[k] = rxLhs(0); // Pred
-      err(k, 0) = DV[k] - f[k];
+      err(k, 0) = f[k] - DV[k];
       // d(pred)/d(eta#)
       // Rprintf("d(pred)/d(eta#)\n");
       for (j = 1; j < neta+1; j++){
@@ -832,7 +832,7 @@ void rxDetaDtheta(SEXP rho){
     cur = mat(dErrdTheta.n_rows,0);
     for(h = 0; h < ntheta; h++){
       // dErr2 =d^2(err)/d(eta)^2
-      cur = join_rows(cur, -(as<mat>(dErrdEtadTheta[h])).col(i) +
+      cur = join_rows(cur, (as<mat>(dErrdEtadTheta[h])).col(i) +
 		      (as<mat>(dErr2[i])) * DnDt.col(h));
     }
     dErrdEtadTheta_[i]=cur;

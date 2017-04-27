@@ -30,9 +30,6 @@ rxPermissive({
         d/dt(centr) = KA*depot - CL / V*centr;
     })
 
-    et <- eventTable() %>% add.dosing(dose=30000) %>%
-        add.sampling(c(0.25, 0.5, 0.75, 1, 1.5, 2, 2.5, 3, 4, 6, 8, 12, 16, 20, 24, 36, 48, 60, 71.99))
-
     pk <- function(){
         KA = exp(THETA[1])
         CL = exp(THETA[2] + ETA[1])
@@ -138,7 +135,35 @@ rxPermissive({
     })
 
 
-    dv <- c(1126.1, 869.9, 883.6, 1244, 995.2, 946.4, 589.2, 754.4, 1060.8, 433, 609.5, 630.1, 342.1, 322.9, 196.3, 89.8, 42.8, 16.6, 8.4)
+    ev <- eventTable() %>%
+        add.sampling(c(95.99, 119.99, 143.99, 144.25, 144.5, 144.75,
+                       145, 145.5, 146, 146.5, 147, 148, 150, 152, 156, 160, 164, 167.99,
+                       191.99, 215.99, 216.25, 216.5, 216.75, 217, 217.5, 218, 218.5, 219,
+                       220, 222, 224, 228, 232, 236, 240, 252, 264, 276, 288)) %>%
+        add.dosing(dose=60000, start.time=72, nbr.doses=7, dosing.interval=24)
+
+    dv <- c(263.6, 164.7, 287.3, 1248.7, 1211.5, 1017.7, 1690.1, 1029.8,
+            890.7, 598.4, 1009.3, 1159.8, 742.2, 724.6, 728.2, 509.7, 243.1,
+            259.9, 242.2, 281.4, 1500.1, 1281.4, 1200.2, 1378.8, 1373.2,
+            582.9, 960.2, 720.3, 852.6, 950.3, 654.7, 402.5, 456, 346.5,
+            268.2, 134.2, 42.6, 25.9, 14.6)
+
+    m1 <- RxODE({
+        C2 = centr/V;
+        d/dt(centr) = - CL*C2
+    })
+
+
+    pred = function() C2
+
+
+    mypar1 = function ()
+    {
+        CL = exp(THETA[1] + ETA[1])
+        V = exp(THETA[2] + ETA[2])
+    }
+
+    m2a <- rxSymPySetupPred(m1, pred, mypar1, function(){err ~ prop(0.1)})
 
     omega <- matrix(c(0.1, 0, 0, 0.1), nrow=2)
 
@@ -146,32 +171,27 @@ rxPermissive({
 
     symenv <- rxSymInv(symo, c(sqrt(0.1), sqrt(0.1)))
 
-    ## test_that("theta/eta solve works", {
-    ##     expect_equal(suppressWarnings(digest(m2a %>% solve(et, theta=c(2, 1.6, 4.5, 0.1), eta=c(0.01, -0.01)) %>% as.data.frame %>% round(3))),
-    ##                  "13baa6cabb14367e1328149d3c14ebf7");
-    ## })
+    THETA <- c(1.6, 4.5, sqrt(0.1));
+    ETA <- c(-0.147736086922763, -0.294637022436797)
 
-    ## m2a <- rxSymPySetupPred(m2, pred, pk, err)
+    tmp1 <- m2a$inner %>% rxSolve(ev, theta=THETA, eta=ETA)
 
+    tmp2 <- m2a %>% rxFoceiEta(ev, theta=THETA, eta=ETA,dv=dv, inv.env=symenv)
 
-    tmp1 <- m2a$inner %>% solve(et, theta=c(2, 1.6, 4.5,0.01), eta=c(0.01, -0.01))
+    tmp2.nm <- m2a %>% rxFoceiEta(ev, theta=THETA, eta=ETA,dv=dv, inv.env=symenv, nonmem=TRUE)
 
-    tmp2 <- m2a %>% rxFoceiEta(et, theta=c(2, 1.6, 4.5,0.01), eta=c(0.01, -0.01),dv=dv, inv.env=symenv)
+    tmp3 <- m2a %>% rxFoceiLik(ev, theta=THETA, eta=ETA,dv=dv, inv.env=tmp2)
 
-    tmp2.nm <- m2a %>% rxFoceiEta(et, theta=c(2, 1.6, 4.5,0.01), eta=c(0.01, -0.01),dv=dv, inv.env=symenv, nonmem=TRUE)
+    tmp4 <- m2a %>% rxFoceiLp(ev, theta=THETA, eta=ETA,dv=dv, inv.env=symenv)
 
-    tmp3 <- m2a %>% rxFoceiLik(et, theta=c(2, 1.6, 4.5,0.01), eta=c(0.01, -0.01),dv=dv, inv.env=tmp2)
-
-    tmp4 <- m2a %>% rxFoceiLp(et, theta=c(2, 1.6, 4.5,0.01), eta=c(0.01, -0.01),dv=dv, inv.env=symenv)
-
-    tmp5 <- m2a %>%rxFoceiInner(et, theta=c(2, 1.6, 4.5,0.01), eta=c(10, 10),dv=dv, inv.env=symenv, invisible=1)
+    tmp5 <- m2a %>%rxFoceiInner(ev, theta=THETA, eta=c(10, 10),dv=dv, inv.env=symenv, invisible=1)
 
     test_that("rxFoceiEta makes sense", {
 
         expect_equal(tmp1$rx_pred_, tmp2$f); ## F
-        err <- matrix(dv - tmp1$rx_pred_, ncol=1)
+        err <- matrix(tmp1$rx_pred_ - dv , ncol=1)
         expect_equal(err, tmp2$err) ## Err
-        R <- matrix(tmp1$rx_r_, ncol=1)
+        R <- matrix(tmp1$rx_r_, ncol=1) ## check
         expect_equal(R, tmp2$R) ## R (Varinace)
         m <- as.matrix(tmp1[,c("_sens_rx_pred__ETA_1_", "_sens_rx_pred__ETA_2_")])
         dimnames(m) <- list(NULL, NULL)
@@ -184,9 +204,11 @@ rxPermissive({
         dimnames(m2) <- list(NULL, NULL)
         expect_equal(m, m2) ## Check dR
         c <- list(matrix(tmp1[["_sens_rx_r__ETA_1_"]] / tmp1[["rx_r_"]],ncol=1),matrix(tmp1[["_sens_rx_r__ETA_2_"]] / tmp1[["rx_r_"]],ncol=1))
-        expect_equal(c, tmp2$c) ## c
+        expect_equal(c, tmp2$c) ## check
         B <- matrix(2 / tmp1[["rx_r_"]],ncol=1)
-        expect_equal(B, tmp2$B)
+        expect_equal(B, tmp2$B) ## check
+
+        ## This is different...  According to the Almquist paper 2015
         a <- list(matrix(tmp1[["_sens_rx_pred__ETA_1_"]],ncol=1) - err/R*matrix(tmp1[["_sens_rx_r__ETA_1_"]]),
                   matrix(tmp1[["_sens_rx_pred__ETA_2_"]],ncol=1)- err/R*matrix(tmp1[["_sens_rx_r__ETA_2_"]]));
         expect_equal(a, tmp2$a);
@@ -209,7 +231,7 @@ rxPermissive({
 
         expect_equal(llik, tmp2$llik);
 
-        eta <- c(0.01, -0.01)
+        eta <- ETA
         omegaInv <- symenv$omegaInv
         llik <- -0.5 * sum(err ^ 2 / R + log(R)) - 0.5 * t(matrix(eta,ncol=1)) %*% omegaInv %*% matrix(eta,ncol=1);
         llik <- -llik;
@@ -248,7 +270,7 @@ rxPermissive({
             diag(.md) = abs(diag(.m)) * 1.1 + .001
             chol(.md)
         })
-                                        #H.neg.5 = chol(-H)
+        ##H.neg.5 = chol(-H)
         log.det.H.neg.5 = sum(log(diag(H.neg.5)))
 
         RxODE_focei_eta_lik(tmp2$eta, tmp2)
@@ -306,34 +328,42 @@ rxPermissive({
 
         expect_equal(lik2, llik.lapl);
 
+        expect_equal(as.vector(lik2), -209.467627968204);
+
     })
 
-    m2 <- RxODE({
-        d/dt(depot) = -KA*depot;
-        d/dt(centr) = KA*depot - CL / V*centr;
+    m1 <- RxODE({
+        C2 = centr/V;
+        d/dt(centr) = - CL*C2
     })
 
-    err <- function(f){
-        return(f ^ 2* theta[4] ^ 2); ## Theta 4 is residual sd for proportional error.
+
+    pred = function() C2
+
+
+    mypar1 = function ()
+    {
+        CL = exp(THETA[1] + ETA[1])
+        V = exp(THETA[2] + ETA[2])
     }
 
-    m2ag <- rxSymPySetupPred(m2, pred, pk, err, grad=TRUE)
+    m2ag <- rxSymPySetupPred(m1, pred, mypar1, function(){err ~ prop(0.1)}, grad=TRUE)
 
-    tmp1 <- m2ag$outer %>% solve(et, theta=c(2, 1.6, 4.5,0.01), eta=c(0.01, -0.01))
+    tmp1 <- m2ag$outer %>% solve(ev, theta=THETA, eta=ETA)
 
-    tmp2 <- m2ag %>% rxFoceiTheta(et, theta=c(2, 1.6, 4.5,0.01), eta=c(0.01, -0.01),dv=dv, inv.env=symenv)
+    tmp2 <- m2ag %>% rxFoceiTheta(ev, theta=THETA, eta=ETA,dv=dv, inv.env=symenv)
 
-    tmp2.nm <- m2ag %>% rxFoceiTheta(et, theta=c(2, 1.6, 4.5,0.01), eta=c(0.01, -0.01),dv=dv, inv.env=symenv, nonmem=TRUE)
+    tmp2.nm <- m2ag %>% rxFoceiTheta(ev, theta=THETA, eta=ETA,dv=dv, inv.env=symenv, nonmem=TRUE)
 
-    tmp5.g <- m2ag %>%rxFoceiInner(et, theta=c(2, 1.6, 4.5,0.01), eta=c(10, 10),dv=dv, inv.env=symenv, invisible=1)
+    tmp5.g <- m2ag %>%rxFoceiInner(ev, theta=THETA, eta=ETA,dv=dv, inv.env=symenv, invisible=1)
 
-    tmp5.g2 <- m2ag %>%rxFoceiInner(et, theta=c(2, 1.6, 4.5,0.01), eta=c(10, 10),dv=dv, inv.env=symenv, invisible=1,
-                                    inits.vec=rep(0.5, 6))
+    tmp5.g2 <- m2ag %>%rxFoceiInner(ev, theta=THETA, eta=ETA,dv=dv, inv.env=symenv, invisible=1,
+                                    inits.vec=rep(0.5, 5))
 
     test_that("rxFoceiTheta makes sense", {
 
         expect_equal(tmp1$rx_pred_, tmp2$f); ## F
-        err <- matrix(dv - tmp1$rx_pred_, ncol=1)
+        err <- matrix(tmp1$rx_pred_ - dv, ncol=1)
         expect_equal(err, tmp2$err) ## Err
         R <- matrix(tmp1$rx_r_, ncol=1)
         expect_equal(R, tmp2$R) ## R (Varinace)
@@ -380,12 +410,12 @@ rxPermissive({
 
         ##
         expect_equal(tmp2$dErr.dTheta,
-                     matrix(c(tmp1[["_sens_rx_pred__THETA_1_"]],tmp1[["_sens_rx_pred__THETA_2_"]],tmp1[["_sens_rx_pred__THETA_3_"]],tmp1[["_sens_rx_pred__THETA_4_"]],
-                              rep(0, dim(tmp2$dErr.dTheta)[1] * 2)),ncol=6))
+                     matrix(c(tmp1[["_sens_rx_pred__THETA_1_"]],tmp1[["_sens_rx_pred__THETA_2_"]],tmp1[["_sens_rx_pred__THETA_3_"]],
+                              rep(0, dim(tmp2$dErr.dTheta)[1] * 2)),ncol=5))
 
         expect_equal(tmp2$dR.dTheta,
-                     matrix(c(tmp1[["_sens_rx_r__THETA_1_"]],tmp1[["_sens_rx_r__THETA_2_"]],tmp1[["_sens_rx_r__THETA_3_"]],tmp1[["_sens_rx_r__THETA_4_"]],
-                              rep(0, dim(tmp2$dErr.dTheta)[1] * 2)),ncol=6))
+                     matrix(c(tmp1[["_sens_rx_r__THETA_1_"]],tmp1[["_sens_rx_r__THETA_2_"]],tmp1[["_sens_rx_r__THETA_3_"]],
+                              rep(0, dim(tmp2$dErr.dTheta)[1] * 2)),ncol=5))
 
         expect_equal(tmp2$dR2,
                      list(matrix(c(tmp1[["_sens_rx_r__BY_ETA_1__ETA_1_"]],tmp1[["_sens_rx_r__BY_ETA_1__ETA_2_"]]),ncol=2),
@@ -404,8 +434,6 @@ rxPermissive({
                                    tmp1[["_sens_rx_pred__BY_ETA_2__THETA_2_"]]), ncol=2),
                           matrix(c(tmp1[["_sens_rx_pred__BY_ETA_1__THETA_3_"]],
                                    tmp1[["_sens_rx_pred__BY_ETA_2__THETA_3_"]]), ncol=2),
-                          matrix(c(tmp1[["_sens_rx_pred__BY_ETA_1__THETA_4_"]],
-                                   tmp1[["_sens_rx_pred__BY_ETA_2__THETA_4_"]]), ncol=2),
                           matrix(rep(0, 2 * length(tmp1[, 1])), ncol=2),
                           matrix(rep(0, 2 * length(tmp1[, 1])), ncol=2)));
 
@@ -417,8 +445,6 @@ rxPermissive({
                                    tmp1[["_sens_rx_r__BY_ETA_2__THETA_2_"]]), ncol=2),
                           matrix(c(tmp1[["_sens_rx_r__BY_ETA_1__THETA_3_"]],
                                    tmp1[["_sens_rx_r__BY_ETA_2__THETA_3_"]]), ncol=2),
-                          matrix(c(tmp1[["_sens_rx_r__BY_ETA_1__THETA_4_"]],
-                                   tmp1[["_sens_rx_r__BY_ETA_2__THETA_4_"]]), ncol=2),
                           matrix(rep(0, 2 * length(tmp1[, 1])), ncol=2),
                           matrix(rep(0, 2 * length(tmp1[, 1])), ncol=2)))
 
@@ -439,6 +465,7 @@ rxPermissive({
                               2 * err * dR.k * dErr.l / (R * R) -
                               dR.k * dR.l / (R * R) + dR.k.l / R) - symenv$omegaInv[k, l]);
         }
+
         h2 <- matrix(c(h2f(1, 1), h2f(2, 1), h2f(1, 2), h2f(2, 2)), ncol=2)
 
         expect_equal(h2, tmp2$H2);
@@ -474,7 +501,7 @@ rxPermissive({
                               dR.k.m / R) - ome);
         }
 
-        df <- expand.grid(k=c(1, 2), theta=1:6);
+        df <- expand.grid(k=c(1, 2), theta=1:5);
 
         tmp2a <- matrix(as.vector(apply(df, 1, function(x) {return(lEH(x[1], x[2]))})), nrow=2)
 
@@ -488,24 +515,24 @@ rxPermissive({
             tmp2$dErr.dTheta[, m] + tmp2$dErr %*% tmp2$dEta.dTheta[, m]
         }
 
-        expect_equal(tmp2$dErr.dTheta., cbind(f(1), f(2), f(3), f(4), f(5), f(6)))
+        expect_equal(tmp2$dErr.dTheta., cbind(f(1), f(2), f(3), f(4), f(5)))
 
         f <- function(m){
             tmp2$dR.dTheta[, m] + tmp2$dR %*% tmp2$dEta.dTheta[, m]
         }
 
-        expect_equal(tmp2$dR.dTheta., cbind(f(1), f(2), f(3), f(4), f(5), f(6)));
+        expect_equal(tmp2$dR.dTheta., cbind(f(1), f(2), f(3), f(4), f(5)));
 
         ## Now #37
         f <- function(k, m){
             dErr.k.m <- tmp2$dErr.dEta.dTheta[[m]][, k];
             err1 <- tmp2$dErr2[[k]];
             dNdH <- tmp2$dEta.dTheta[, m];
-            return(-dErr.k.m - err1 %*% dNdH);
+            return(dErr.k.m + err1 %*% dNdH);
         }
 
-        expect_equal(tmp2$dErr.dEta.dTheta., list(matrix(c(f(1, 1), f(1, 2), f(1, 3), f(1, 4), f(1, 5), f(1, 6)), ncol=6),
-                                                  matrix(c(f(2, 1), f(2, 2), f(2, 3), f(2, 4), f(2, 5), f(2, 6)), ncol=6)))
+        expect_equal(tmp2$dErr.dEta.dTheta., list(matrix(c(f(1, 1), f(1, 2), f(1, 3), f(1, 4), f(1, 5)), ncol=5),
+                                                  matrix(c(f(2, 1), f(2, 2), f(2, 3), f(2, 4), f(2, 5)), ncol=5)))
 
         ## Now #37 for dR
         f <- function(k, m){
@@ -515,8 +542,8 @@ rxPermissive({
             return(dR.k.m + err1 %*% dNdH);
         }
 
-        expect_equal(tmp2$dR.dEta.dTheta., list(matrix(c(f(1, 1), f(1, 2), f(1, 3), f(1, 4), f(1, 5), f(1, 6)), ncol=6),
-                                                matrix(c(f(2, 1), f(2, 2), f(2, 3), f(2, 4), f(2, 5), f(2, 6)), ncol=6)))
+        expect_equal(tmp2$dR.dEta.dTheta., list(matrix(c(f(1, 1), f(1, 2), f(1, 3), f(1, 4), f(1, 5)), ncol=5),
+                                                matrix(c(f(2, 1), f(2, 2), f(2, 3), f(2, 4), f(2, 5)), ncol=5)))
 
         ## Now dc/dTheta
         f <- function(k, m){
@@ -527,8 +554,8 @@ rxPermissive({
             return(-dR.m * dR.k / (R * R) + dR.k.m / R);
         }
 
-        expect_equal(tmp2$dc.dTheta, list(matrix(c(f(1, 1), f(1, 2), f(1, 3), f(1, 4), f(1, 5), f(1, 6)), ncol=6),
-                                          matrix(c(f(2, 1), f(2, 2), f(2, 3), f(2, 4), f(2, 5), f(2, 6)), ncol=6)))
+        expect_equal(tmp2$dc.dTheta, list(matrix(c(f(1, 1), f(1, 2), f(1, 3), f(1, 4), f(1, 5)), ncol=5),
+                                          matrix(c(f(2, 1), f(2, 2), f(2, 3), f(2, 4), f(2, 5)), ncol=5)))
 
         ## Now dB/dTheta
         f <- function(m){
@@ -537,7 +564,7 @@ rxPermissive({
             return(-2 * dR.m / (R * R));
         }
 
-        expect_equal(tmp2$dB.dTheta, matrix(c(f(1), f(2), f(3), f(4), f(5), f(6)), ncol=6))
+        expect_equal(tmp2$dB.dTheta, matrix(c(f(1), f(2), f(3), f(4), f(5)), ncol=5))
 
         ## Now da/dTheta
         f <- function(k, m){
@@ -554,8 +581,8 @@ rxPermissive({
         }
 
         expect_equal(tmp2$da.dTheta,
-                     list(matrix(c(f(1, 1), f(1, 2), f(1, 3), f(1, 4), f(1, 5), f(1, 6)), ncol=6),
-                          matrix(c(f(2, 1), f(2, 2), f(2, 3), f(2, 4), f(2, 5), f(2, 6)), ncol=6)));
+                     list(matrix(c(f(1, 1), f(1, 2), f(1, 3), f(1, 4), f(1, 5)), ncol=5),
+                          matrix(c(f(2, 1), f(2, 2), f(2, 3), f(2, 4), f(2, 5)), ncol=5)));
 
         f <- function(k, m){
             dErr.m.k <- tmp2$dErr.dEta.dTheta.[[k]][, m];
@@ -563,8 +590,8 @@ rxPermissive({
         }
 
         expect_equal(tmp2.nm$da.dTheta,
-                     list(matrix(c(f(1, 1), f(1, 2), f(1, 3), f(1, 4), f(1, 5), f(1, 6)), ncol=6),
-                          matrix(c(f(2, 1), f(2, 2), f(2, 3), f(2, 4), f(2, 5), f(2, 6)), ncol=6)));
+                     list(matrix(c(f(1, 1), f(1, 2), f(1, 3), f(1, 4), f(1, 5)), ncol=5),
+                          matrix(c(f(2, 1), f(2, 2), f(2, 3), f(2, 4), f(2, 5)), ncol=5)));
 
         ## Test dH/dTheta
 
@@ -579,8 +606,8 @@ rxPermissive({
             dc.k.m <- tmp2$dc.dTheta[[k]][, m];
             c.k <- tmp2$c[[k]];
             c.l <- tmp2$c[[l]];
-            if (m > 4){
-                ome <- symenv$dOmegaInv[[m - 4]][k, l];
+            if (m > 3){
+                ome <- symenv$dOmegaInv[[m - 3]][k, l];
             } else {
                 ome <- 0;
             }
@@ -591,7 +618,7 @@ rxPermissive({
                               c.l * dc.k.m) - ome);
         }
 
-        df <- expand.grid(m=1:6, k=1:2, l=1:2);
+        df <- expand.grid(m=1:5, k=1:2, l=1:2);
         df <- df[order(df$m, df$k, df$l), ];
 
         v <- apply(df, 1, function(x) {return(f(x[1], x[2], x[3]))})
@@ -601,8 +628,7 @@ rxPermissive({
                           matrix(v[5:8], 2),
                           matrix(v[9:12], 2),
                           matrix(v[13:16], 2),
-                          matrix(v[17:20], 2),
-                          matrix(v[21:24], 2)))
+                          matrix(v[17:20], 2)))
 
         f <- function(m, k, l){
             da.l.m <- tmp2.nm$da.dTheta[[l]][, m];
@@ -615,8 +641,8 @@ rxPermissive({
             dc.k.m <- tmp2.nm$dc.dTheta[[k]][, m];
             c.k <- tmp2.nm$c[[k]];
             c.l <- tmp2.nm$c[[l]];
-            if (m > 4){
-                ome <- symenv$dOmegaInv[[m - 4]][k, l];
+            if (m > 3){
+                ome <- symenv$dOmegaInv[[m - 3]][k, l];
             } else {
                 ome <- 0;
             }
@@ -634,8 +660,7 @@ rxPermissive({
                           matrix(v[5:8], 2),
                           matrix(v[9:12], 2),
                           matrix(v[13:16], 2),
-                          matrix(v[17:20], 2),
-                          matrix(v[21:24], 2)));
+                          matrix(v[17:20], 2)));
 
         ## Test Inverses
         expect_equal(solve(tmp2$H), tmp2$Hinv);
@@ -647,8 +672,8 @@ rxPermissive({
             err <- tmp2$err;
             R <- tmp2$R;
             eta <- tmp2$eta.mat
-            if (m > 4){
-                ome <- tmp2$omega.28[m - 4]
+            if (m > 3){
+                ome <- tmp2$omega.28[m - 3]
             } else {
                 ome <- 0;
             }
@@ -659,7 +684,7 @@ rxPermissive({
                               dR.m / R)  + ome - 0.5 * sum(diag(Hinv %*% dH)));
         }
 
-        expect_equal(tmp2$l.dTheta, c(f(1), f(2), f(3), f(4), f(5), f(6)))
+        expect_equal(tmp2$l.dTheta, c(f(1), f(2), f(3), f(4), f(5)))
 
         f <- function(m){
             dErr.m <- tmp2.nm$dErr.dTheta[, m];
@@ -667,8 +692,8 @@ rxPermissive({
             err <- tmp2.nm$err;
             R <- tmp2.nm$R;
             eta <- tmp2.nm$eta.mat
-            if (m > 4){
-                ome <- tmp2.nm$omega.28[m - 4]
+            if (m > 3){
+                ome <- tmp2.nm$omega.28[m - 3]
             } else {
                 ome <- 0;
             }
@@ -679,7 +704,7 @@ rxPermissive({
                               dR.m / R)  + ome - 0.5 * sum(diag(Hinv %*% dH)));
         }
 
-        expect_equal(tmp2.nm$l.dTheta, c(f(1), f(2), f(3), f(4), f(5), f(6)))
+        expect_equal(tmp2.nm$l.dTheta, c(f(1), f(2), f(3), f(4), f(5)))
 
         ## Now test omega.28
         f <- function(m){
@@ -974,7 +999,7 @@ rxPermissive({
 
     pred <- function() C2
 
-    focei.mm.mod2 <- rxSymPySetupPred(mm, pred, par, err=function(){err ~ prop(0.1)}, grad=TRUE, run.internal=TRUE);
+    ## focei.mm.mod2 <- rxSymPySetupPred(mm, pred, par, err=function(){err ~ prop(0.1)}, grad=TRUE, run.internal=TRUE);
 
     ## Now test solved focei capability.
     sol.1c.ka <- RxODE({
