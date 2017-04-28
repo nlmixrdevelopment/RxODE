@@ -1,5 +1,6 @@
 rxFoceiEtaSetup <- function(object, ..., dv, eta, theta, nonmem=FALSE, inv.env=parent.frame(1), id= -1,
-                            inits.vec=NULL, atol.outer=1e-8, rtol.outer=1e-6){
+                            inits.vec=NULL, atol.outer=1e-8, rtol.outer=1e-6,
+                            switch.solver=FALSE, pred.minus.dv=TRUE){
     args <- list(object=object, ..., eta=eta, theta=theta);
     setup <- c(do.call(getFromNamespace("rxSolveSetup", "RxODE"), args, envir = parent.frame(1)),
                as.list(inv.env));
@@ -28,6 +29,8 @@ rxFoceiEtaSetup <- function(object, ..., dv, eta, theta, nonmem=FALSE, inv.env=p
         setup$rtol.outer <- rtol.outer;
         setup$nearPD <- rxNearPd;
         setup$rc <- 0L;
+        setup$switch.solver <- as.integer(switch.solver);
+        setup$pred.minus.dv <- as.integer(pred.minus.dv);
         if (!is.null(inits.vec)){
             setup$inits.vec <- inits.vec;
         }

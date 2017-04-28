@@ -128,11 +128,16 @@ void rxInner(SEXP etanews, SEXP rho){
     /* // Assuming rxLhs(0) = pred and rxLhs(1:n) = d(pred)/d(eta#) */
     // Solve
     mat cur, cuR;
+    int prd = as<int>(e["pred.minus.dv"]);
     for (i = 0; i < nAllTimes(); i++){
       if (!rxEvid(i)){
 	rxCalcLhs(i);
 	f[k] = rxLhs(0); // Pred
-	err(k, 0) =  f[k] - DV[k];
+	if (prd == 1){
+	  err(k, 0) =  f[k] - DV[k];
+	} else {
+	  err(k, 0) =  DV[k] - f[k];
+        }
 	// d(pred)/d(eta#)
 	for (j = 1; j < neta+1; j++){
 	  fpm(k, j-1) = rxLhs(j);
@@ -170,9 +175,8 @@ void rxInner(SEXP etanews, SEXP rho){
 	for (j = 0; j < neta; j++){
 	  // .5*apply(eps*fp*B + .5*eps^2*B*c - c, 2, sum) - OMGAinv %*% ETA
 	  cur = as<mat>(c[j]);
-	  lp[j] += 0.5 * err(k, 0)* fpm(k, j) * B(k, 0)  +
-	    0.25 * err(k, 0) * err(k, 0) * B(k, 0) * cur(k,0) -
-	    0.5 * cur(k,0);
+	  lp[j] += 0.25 * err(k, 0) * err(k, 0) * B(k, 0) * cur(k,0) -
+	    0.5 * cur(k,0) - 0.5 * err(k, 0)* fpm(k, j) * B(k, 0);
 	}
 	llik[0] += -0.5*(err(k, 0)*err(k, 0)/RxODE_safe_zero(r(k, 0))+RxODE_safe_log(r(k, 0)));
 	k++;
@@ -180,16 +184,16 @@ void rxInner(SEXP etanews, SEXP rho){
     }
     // Free
     RxODE_ode_free();
-
+    mat llikm = mat(1,1);
+    
     mat omegaInv = as<mat>(e["omegaInv"]);
 
     NumericVector llik2(1);
-    mat llikm = mat(1,1);
     llikm(0, 0)=  llik[0];
     llikm = -(llikm - 0.5*(etam.t() * omegaInv * etam));
     llik2[0] = llikm(0, 0);
 
-    mat ep2 = -(lp- omegaInv * etam);
+    mat ep2 = -(lp - omegaInv * etam);
   
     // Assign in env
     e["err"] = err;
@@ -244,20 +248,22 @@ void rxHessian(SEXP rho){
 void rxInner2(SEXP sexp_eta, SEXP sexp_rho){
   rxInner(sexp_eta, sexp_rho);
   Environment e = as<Environment>(sexp_rho);
-  if (as<int>(e["rc"]) != 0){
-    if (as<int>(e["stiff"])){
-      e["stiff"] = 0;
-    } else {
-      e["stiff"] = 1;
-    }
-    Rprintf("\nWarning: Switched solver.\n");
-    e.remove("llik");
-    rxInner(sexp_eta, sexp_rho);
-    // Switch back.
-    if (as<int>(e["stiff"])){
-      e["stiff"] = 0;
-    } else {
-      e["stiff"] = 1;
+  if (as<int>(e["switch.solver"]) == 1){
+    if (as<int>(e["rc"]) != 0){
+      if (as<int>(e["stiff"])){
+        e["stiff"] = 0;
+      } else {
+        e["stiff"] = 1;
+      }
+      Rprintf("\nWarning: Switched solver.\n");
+      e.remove("llik");
+      rxInner(sexp_eta, sexp_rho);
+      // Switch back.
+      if (as<int>(e["stiff"])){
+        e["stiff"] = 0;
+      } else {
+        e["stiff"] = 1;
+      }
     }
   }
 }
@@ -621,12 +627,8 @@ void rxOuter_ (SEXP rho){
         //.5*apply(eps*fp*B + .5*eps^2*B*c - c, 2, sum) - OMGAinv %*% ETA
 	// eq 12
 	cur = as<mat>(c[j]);
-        lp(j, 0) += RxODE_sign_exp(B(k, 0)*err(k, 0)*fpm(k, j),
-				   RxODE_abs_log(0.5) + RxODE_abs_log(err(k, 0)) + RxODE_abs_log(fpm(k, j)) + RxODE_abs_log(B(k, 0)))  +
-          RxODE_sign_exp(cur(k,0)*B(k, 0) ,
-			 log(0.25) + 2*RxODE_abs_log(err(k, 0))  +
-			 RxODE_abs_log(B(k, 0)) + RxODE_abs_log(cur(k,0))) -
-          RxODE_sign_exp(cur(k,0),log(0.5) + RxODE_abs_log(cur(k,0)));
+        lp[j] += 0.25 * err(k, 0) * err(k, 0) * B(k, 0) * cur(k,0) -
+          0.5 * cur(k,0) - 0.5 * err(k, 0)* fpm(k, j) * B(k, 0);
       }
       // Rprintf("47\n");
       for (h=0; h < ntheta; h++){

@@ -134,6 +134,7 @@ rxPermissive({
         expect_true(length(rxInit(m2f$inner)) == 0)
     })
 
+    context("Inner Problem Tests")
 
     ev <- eventTable() %>%
         add.sampling(c(95.99, 119.99, 143.99, 144.25, 144.5, 144.75,
@@ -186,6 +187,8 @@ rxPermissive({
 
     tmp5 <- m2a %>%rxFoceiInner(ev, theta=THETA, eta=c(10, 10),dv=dv, inv.env=symenv, invisible=1)
 
+    tmp5 <- m2a %>%rxFoceiInner(ev, theta=THETA, eta=c(10, 10),dv=dv, inv.env=symenv, invisible=1, pred.minus.dv=FALSE)
+
     test_that("rxFoceiEta makes sense", {
 
         expect_equal(tmp1$rx_pred_, tmp2$f); ## F
@@ -221,10 +224,10 @@ rxPermissive({
         lp <- matrix(c(NA, NA), ncol=1)
         c <- matrix(tmp1[["_sens_rx_r__ETA_1_"]] / tmp1[["rx_r_"]],ncol=1)
         fp <- as.matrix(tmp1[,c("_sens_rx_pred__ETA_1_" )])
-        lp[1, 1] <- .5*apply(err*fp*B + .5*err^2*B*c - c, 2, sum)
+        lp[1, 1] <- .5*apply(-err*fp*B + .5*err^2*B*c - c, 2, sum)
         c <- matrix(tmp1[["_sens_rx_r__ETA_2_"]] / tmp1[["rx_r_"]],ncol=1)
         fp <- as.matrix(tmp1[,c("_sens_rx_pred__ETA_2_" )])
-        lp[2, 1] <- .5*apply(err*fp*B + .5*err^2*B*c - c, 2, sum)
+        lp[2, 1] <- .5*apply(-err*fp*B + .5*err^2*B*c - c, 2, sum)
         expect_equal(lp, tmp2$lp)
 
         llik <- -0.5 * sum(err ^ 2 / R + log(R));
@@ -332,6 +335,8 @@ rxPermissive({
 
     })
 
+    ## Make sure the eta f/grads are correct...
+
     m1 <- RxODE({
         C2 = centr/V;
         d/dt(centr) = - CL*C2
@@ -346,6 +351,8 @@ rxPermissive({
         CL = exp(THETA[1] + ETA[1])
         V = exp(THETA[2] + ETA[2])
     }
+
+    context("Outer Problem Gradient Tests")
 
     m2ag <- rxSymPySetupPred(m1, pred, mypar1, function(){err ~ prop(0.1)}, grad=TRUE)
 
@@ -396,11 +403,11 @@ rxPermissive({
         c <- matrix(tmp1[["_sens_rx_r__ETA_1_"]] / tmp1[["rx_r_"]],ncol=1)
         expect_equal(c, tmp2$c[[1]])
         fp <- as.matrix(tmp1[,c("_sens_rx_pred__ETA_1_" )])
-        lp[1, 1] <- .5*apply(err*fp*B + .5*err^2*B*c - c, 2, sum)
+        lp[1, 1] <- .5*apply(-err*fp*B + .5*err^2*B*c - c, 2, sum)
         c <- matrix(tmp1[["_sens_rx_r__ETA_2_"]] / tmp1[["rx_r_"]],ncol=1)
         expect_equal(c, tmp2$c[[2]])
         fp <- as.matrix(tmp1[,c("_sens_rx_pred__ETA_2_" )])
-        lp[2, 1] <- .5*apply(err*fp*B + .5*err^2*B*c - c, 2, sum)
+        lp[2, 1] <- .5*apply(-err*fp*B + .5*err^2*B*c - c, 2, sum)
 
         expect_equal(lp, tmp2$lp)
 
@@ -741,6 +748,8 @@ rxPermissive({
 
     })
 
+    context("Test Initial conditions -> sensitivity initial conditions")
+
     fini <- RxODE({
         C2 = centr/V2;
         C3 = peri/V3;
@@ -908,6 +917,7 @@ rxPermissive({
         expect_equal(class(focei.mod2), "rxFocei");
     })
 
+    context("Test actual gradients")
     ## Test the gradient for a single subject
     ev <- eventTable() %>%
         add.sampling(c(0.25, 0.5, 0.75, 1, 1.5, 2, 2.5, 3, 4, 6, 8, 12, 16, 20, 24,
@@ -962,10 +972,18 @@ rxPermissive({
                                 dv=DV, inv.env=symenv, NONMEM=1, invisible=1,
                                 rtol.outer=1e-12, atol.outer= 1e-13)
 
+    m1g2 <- rxSymPySetupPred(m1, pred, mypar1, err, grad=TRUE, logify=TRUE, pred.minus.dv=FALSE)
+
+    ## ret2 <- m1g %>% rxFoceiTheta(et, theta=THETA, eta=ETA,dv=DV, inv.env=symenv)
+
+    ret2a <- m1g2 %>% rxFoceiInner(ev, theta=THETA[-(4:5)], eta=ETA,
+                                 dv=DV, inv.env=symenv, NONMEM=1, invisible=1,
+                                 rtol.outer=1e-12, atol.outer= 1e-13, pred.minus.dv=FALSE)
+
     library(numDeriv)
 
     f <- function(th=THETA[-(4:5)]){
-        return(suppressWarnings({as.vector(m1g %>% rxFoceiInner(ev, theta=th, eta=as.vector(attr(ret,"posthoc")),
+        return(suppressWarnings({as.vector(m1g %>% rxFoceiInner(ev, theta=th, eta=as.vector(attr(ret2,"posthoc")),
                                                                 dv=DV, inv.env=symenv, NONMEM=1, invisible=1))}))
     }
 
@@ -974,7 +992,20 @@ rxPermissive({
     gr.simple <- grad(f, THETA[-(4:5)], method="simple")
 
     ## While it is close, it isn't exactly the same.
-    gr.calc <- attr(ret, "grad")
+    gr.calc <- attr(ret2, "grad")
+
+
+    f <- function(th=THETA[-(4:5)]){
+        return(suppressWarnings({as.vector(m1g %>% rxFoceiInner(ev, theta=th, eta=as.vector(attr(ret2a,"posthoc")),
+                                                                dv=DV, inv.env=symenv, NONMEM=1, invisible=1))}))
+    }
+
+    gr.richard <- grad(f, THETA[-(4:5)])
+
+    gr.simple <- grad(f, THETA[-(4:5)], method="simple")
+
+    ## While it is close, it isn't exactly the same.
+    gr.calc <- attr(ret2a, "grad")
 
     ## m1g$outer <- RxODE(rxLogifyModel(m1g$outer))
 
@@ -984,6 +1015,7 @@ rxPermissive({
     ## The numerical values may not be right from NumDeriv either
     ## gr2.calc <- attr(ret2, "grad")
 
+    context("Michelis Menton test")
     ## Michelis Menton test
     mm <- RxODE({
         C2 = centr / V;

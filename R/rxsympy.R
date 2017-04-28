@@ -871,7 +871,7 @@ rxAddReturn <- function(fn, ret=TRUE){
     return(paste(txt, collapse="\n"))
 }
 
-rxSymPySetupDPred <- function(newmod, calcSens, states, prd="rx_pred_"){
+rxSymPySetupDPred <- function(newmod, calcSens, states, prd="rx_pred_", pred.minus.dv=TRUE){
     states <- states[regexpr(rex::rex(start, "rx_"), states) == -1]
     extraLines <- c();
     zeroSens <- TRUE;
@@ -924,9 +924,9 @@ rxSymPySetupDPred <- function(newmod, calcSens, states, prd="rx_pred_"){
                     }
                     tmp <- paste(paste0("(", tmp, ")"), collapse=" + ")
                     tmp <- sprintf("%s", tmp);
-                    ## if (prd == "rx_pred_"){
-                    ##     tmp <- paste0("-(", tmp, ")");
-                    ## }
+                    if (!pred.minus.dv && prd == "rx_pred_"){
+                        tmp <- paste0("-(", tmp, ")");
+                    }
                     tmp <- rxSymPy(tmp);
                     if (tmp != "0"){
                         zeroSens <- FALSE;
@@ -967,9 +967,9 @@ rxSymPySetupDPred <- function(newmod, calcSens, states, prd="rx_pred_"){
                 }
                 tmp <- paste(paste0("(", tmp, ")"), collapse=" + ")
                 tmp <- sprintf("%s", tmp);
-                ## if (prd == "rx_pred_") {
-                ##     tmp <- paste0("-(", tmp, ")");
-                ## }
+                if (!pred.minus.dv && prd == "rx_pred_") {
+                    tmp <- paste0("-(", tmp, ")");
+                }
                 tmp <- rxSymPy(tmp);
                 if (tmp != "0"){
                     zeroSens <- FALSE;
@@ -997,11 +997,9 @@ rxSymPySetupDPred <- function(newmod, calcSens, states, prd="rx_pred_"){
                                             newLine, state, rxToSymPy(var));
         }
         tmp <- paste(paste0("(", tmp, ")"), collapse=" + ")
-        ## if (prd == "rx_pred_"){
-        ##     print(tmp);
-        ##     tmp <- sprintf("-(%s)", tmp);
-        ##     print(tmp)
-        ## }
+        if (!pred.minus.dv && prd == "rx_pred_"){
+            tmp <- sprintf("-(%s)", tmp);
+        }
         tmp <- rxSymPy(tmp);
         ## print(tmp)
         if (tmp != "0"){
@@ -1040,18 +1038,23 @@ rxSymPySetupPred.warn <- FALSE
 ##' @param pkpars Pk Pars function
 ##' @param errfn Error function
 ##' @param init Initialization parameters for scaling.
-##' @param grad Boolaen indicated if the the equations for the gradient be calculated
-##' @param logify Boolean to do multipication in log-space to reduce round-off error.
-##' @return RxODE object expanded with predfn and with calculated sensitivities.
+##' @param grad Boolaen indicated if the the equations for the
+##'     gradient be calculated
+##' @param logify Boolean to do multipication in log-space to reduce
+##'     round-off error.
+##' @param pred.minus.dv Boolean stating if the FOCEi objective
+##'     function is based on PRED-DV (like NONMEM).  Default TRUE.
+##' @return RxODE object expanded with predfn and with calculated
+##'     sensitivities.
 ##' @author Matthew L. Fidler
 ##' @keywords internal
 ##' @export
-rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, grad=FALSE, logify=FALSE, grad.internal=FALSE,
-                             run.internal=FALSE){
+rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, grad=FALSE, logify=FALSE, pred.minus.dv=TRUE,
+                             grad.internal=FALSE, run.internal=FALSE){
     if (!grad.internal){
         cache.file <- sprintf("rx_%s%s.prd",
                               digest::digest(deparse(list(rxModelVars(obj)$md5["parsed_md5"], deparse(body(predfn)), deparse(body(pkpars)),
-                                                          deparse(body(errfn)), init, grad, logify))),
+                                                          deparse(body(errfn)), init, grad, logify, pred.minus.dv))),
                               .Platform$dynlib.ext);
     } else {
         cache.file <- "";
@@ -1072,9 +1075,9 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
         if (!run.internal && !grad.internal){
             rfile <- tempfile(fileext=".R")
             dta <- tempfile(fileext=".rdata")
-            save(obj, predfn, pkpars, errfn, init, grad, logify, file=dta);
+            save(obj, predfn, pkpars, errfn, init, grad, logify, pred.minus.dv, file=dta);
             ## on.exit({unlink(dta); unlink(rfile)});
-            rf <- sprintf("load(%s); tmp <- RxODE::rxSymPySetupPred(obj, predfn, pkpars, errfn, init, grad, logify, run.internal=TRUE);", deparse(dta));
+            rf <- sprintf("load(%s); tmp <- RxODE::rxSymPySetupPred(obj, predfn, pkpars, errfn, init, grad, logify, pred.minus.dv, run.internal=TRUE);", deparse(dta));
             sink(rfile);
             cat(rf);
             sink();
@@ -1275,7 +1278,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                 outer <- NULL;
                 if (grad){
                     outer <- rxSymPySetupPred(obj=oobj, predfn=predfn, pkpars=pkpars,
-                                              errfn=errfn, init=init, logify=logify,
+                                              errfn=errfn, init=init, logify=logify,pred.minus.dv=pred.minus.dv,
                                               run.internal=TRUE, grad.internal=TRUE);
                 }
 
