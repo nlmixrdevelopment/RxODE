@@ -983,8 +983,9 @@ rxPermissive({
     library(numDeriv)
 
     f <- function(th=THETA[-(4:5)]){
-        return(suppressWarnings({as.vector(m1g %>% rxFoceiInner(ev, theta=th, eta=as.vector(attr(ret2,"posthoc")),
-                                                                dv=DV, inv.env=symenv, NONMEM=1, invisible=1))}))
+        return(suppressWarnings(-2 * {as.vector(m1g %>% rxFoceiInner(ev, theta=th, eta=as.vector(attr(ret2,"posthoc")),
+                                                                     dv=DV, inv.env=symenv, NONMEM=1, invisible=1,
+                                                                     estimate=FALSE))}))
     }
 
     gr.richard <- grad(f, THETA[-(4:5)])
@@ -992,7 +993,7 @@ rxPermissive({
     gr.simple <- grad(f, THETA[-(4:5)], method="simple")
 
     ## While it is close, it isn't exactly the same.
-    gr.calc <- attr(ret2, "grad")
+    gr.calc <- -2 * attr(ret2, "grad")
 
 
     f <- function(th=THETA[-(4:5)]){

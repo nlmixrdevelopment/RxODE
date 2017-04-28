@@ -934,8 +934,6 @@ void rxDetaDtheta(SEXP rho){
     DhDh[h]=mat1;
   }
   e["dH.dTheta"] = DhDh;
-  // Now caluclate dl(eta)/dTheta (Eq 28) and add to the overall dl/dTheta
-  // Although the prescribes using Hessian H, using H2 gives a better approximation for 1 cmt gradient
   mat H = as<mat>(e["H"]);
   mat Hinv;
   try{
