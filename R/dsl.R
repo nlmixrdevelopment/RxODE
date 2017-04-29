@@ -274,6 +274,26 @@ for (f in sympy.equiv.f){
 rxSymPyAbsLog <- FALSE
 rxSymPyLogSign <- c()
 
+rxSymPyExpThetas <- c()
+rxSymPyExpEtas <- c()
+
+sympyRxFEnv$exp <- function(arg){
+    ## Check for log-scale parameters.
+    theta.reg <- rex::rex(boundary, or("THETA", "theta"), or("[", ")"));
+    eta.reg <- rex::rex(boundary, or("ETA", "eta"), or("[", ")"));
+    tmp <- suppressWarnings({as.numeric(gsub(rex::rex(start, capture(any_numbers), or(")", "]"), anything),"\\1",
+                                             strsplit(paste0(arg), theta.reg, perl=TRUE)[[1]]))});
+    tmp <- sort(unique(c(rxSymPyExpThetas, tmp[!is.na(tmp)])));
+    assignInMyNamespace("rxSymPyExpThetas", tmp);
+    ##
+    tmp <- gsub(theta.reg, "", paste0(arg))
+    tmp <- suppressWarnings({as.numeric(gsub(rex::rex(start, capture(any_numbers), or(")", "]"), anything),"\\1",
+                                             strsplit((tmp), eta.reg, perl=TRUE)[[1]]))});
+    tmp <- sort(unique(c(rxSymPyExpEtas, tmp[!is.na(tmp)])));
+    assignInMyNamespace("rxSymPyExpEtas", tmp);
+    return(paste0("exp(", arg, ")"))
+}
+
 sympyRxFEnv$log <- function(arg){
     if (rxSymPyAbsLog){
         tmp <- rxSymPyLogSign

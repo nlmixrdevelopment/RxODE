@@ -1102,6 +1102,8 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                 stop("Error Creating expanded function.");
             }
         } else {
+            assignInMyNamespace("rxSymPyExpThetas", c());
+            assignInMyNamespace("rxSymPyExpEtas", c());
             oobj <- obj;
             rxModelVars(oobj)
             rxSymPyVars(obj);
@@ -1294,7 +1296,10 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                             inner=RxODE(mod),
                             extra.pars=extra.pars,
                             outer=outer,
-                            warn=rxSymPySetupPred.warn);
+                            warn=rxSymPySetupPred.warn,
+                            pred.minus.dv=pred.minus.dv,
+                            log.thetas=rxSymPyExpThetas,
+                            log.etas=rxSymPyExpEtas);
                 rxSymPySetupPred.warn <- FALSE;
                 class(ret) <- "rxFocei";
                 rxGc();
