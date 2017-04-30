@@ -480,6 +480,7 @@ rxSolve.rxDll <- function(object, params=NULL, events=NULL, inits = NULL, scale 
                     ret
                 })})
     sink();
+    did.cat <- FALSE
     if (inherits(ret, "try-error")){
         ## Error solving, try the other solver.
         errs <- paste(suppressWarnings({readLines(sink.file)}), collapse="\n");
@@ -532,6 +533,7 @@ rxSolve.rxDll <- function(object, params=NULL, events=NULL, inits = NULL, scale 
                     })});
         sink();
         if (inherits(ret, "try-error")){
+            did.cat <- TRUE;
             if (call$stiff){
                 rxCat("DOP853 errors:\n");
                 rxCat(errs, "\n");
@@ -549,10 +551,19 @@ rxSolve.rxDll <- function(object, params=NULL, events=NULL, inits = NULL, scale 
             }
             stop("Tried both LSODA and DOP853, but could not solve the system.")
         } else {
+            did.cat <- FALSE;
             if (call$stiff){
                 warning("Originally tried DOP853, but it failed to solve, so used LSODA instead.")
             } else {
                 warning("Originally tried LSODA, but it failed to solve, so used DOP853 instead.")
+            }
+        }
+    }
+    if (file.exists(sink.file)){
+        if (file.size(sink.file) != 0){
+            if (!did.cat){
+                txt <- paste(suppressWarnings({readLines(sink.file)}), collapse="\n");
+                cat(txt, "\n");
             }
         }
     }
