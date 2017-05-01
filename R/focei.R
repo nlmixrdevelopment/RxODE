@@ -219,18 +219,21 @@ rxFoceiInner <- function(object, ..., dv, eta, eta.bak=NULL,
     lp <- RxODE_focei_eta("lp")
     est <- function(){
         if (estimate){
-            output <- lbfgs::lbfgs(lik, lp, eta, environment=env,
+            if (class(args$eta) == "call"){
+                args$eta <- eval(args$eta, envir=parent.frame(2))
+            }
+            output <- lbfgs::lbfgs(lik, lp, args$eta, environment=env,
                                    invisible=invisible, m=m, epsilon=epsilon, past=past, delta=delta,
                                    max_iterations=max_iterations, linesearch_algorithm=linesearch_algorithm,
                                    max_linesearch=max_linesearch, min_step=min_step, max_step=max_step,
                                    ftol=ftol, wolfe=wolfe, gtol=gtol, orthantwise_c=orthantwise_c,
                                    orthantwise_start=orthantwise_start, orthantwise_end = orthantwise_end);
+            rxInner(output$par, env);
         } else {
-            output <- RxODE_focei_eta_lik(eta, env);
+            rxInner(args$eta, env);
         }
-        return(output);
     }
-    output <- est();
+    est();
     if (any(is.na(env$eta))){
         warning("ETA estimate failed; keeping prior");
         env <- do.call(getFromNamespace("rxFoceiEta", "RxODE"), args, envir = parent.frame(1));
@@ -245,7 +248,7 @@ rxFoceiInner <- function(object, ..., dv, eta, eta.bak=NULL,
             cat(sprintf("Warning: Problem with Hessian or ETA estimate, resetting ETAs to 0 (ID=%s).\n", env$id));
             args$eta <- rep(0, length(env$eta));
             env$eta <- args$eta;
-            output <- est();
+            est();
             if (any(is.na(env$eta))){
                 warning("ETA estimate failed; Assume ETA=0");
                 env <- do.call(getFromNamespace("rxFoceiEta", "RxODE"), args, envir = parent.frame(1));
@@ -273,7 +276,7 @@ rxFoceiInner <- function(object, ..., dv, eta, eta.bak=NULL,
             args$eta <- rep(0, length(env$eta));
             args$object <- inner.dll;
             env <- do.call(getFromNamespace("rxFoceiEtaSetup", "RxODE"), args, envir = parent.frame(1));
-            output <- est();
+            est();
             args$object <- object;
             args$eta <- env$eta;
             env <- do.call(getFromNamespace("rxFoceiTheta", "RxODE"), args, envir = parent.frame(1));

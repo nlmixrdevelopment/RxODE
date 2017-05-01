@@ -150,7 +150,6 @@ on.exit({setwd(owd)});
 setwd(devtools::package_file());
 knitr::knit(devtools::package_file("README.Rmd"))
 
-
 create.syminv.cache <- function(n=1, xforms=c("sqrt", "log", "identity")){
     owd <- getwd();
     on.exit(setwd(owd))
@@ -189,6 +188,7 @@ create.syminv.cache <- function(n=1, xforms=c("sqrt", "log", "identity")){
             if (length(block) == 0){
                 for (xform in xforms){
                     rxSymInvC(mc, xform);
+                    rxSymInvC(mc, xform, chol=TRUE);
                     cat(".");
                     i <- i + 1;
                     if (i %% 5 == 0){

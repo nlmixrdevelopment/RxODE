@@ -311,7 +311,7 @@ NumericVector RxODE_focei_finalize_llik(SEXP rho){
     c = as<mat>(nearPD(c, rho));
     reset = as<NumericVector>(e["reset"]);
     if (reset[0] != 1){
-      Rprintf("Warning: The Omega^-1 is non-positive definite, correcting with nearPD\n");
+      Rprintf("Warning: The Hessian is non-positive definite, correcting with nearPD\n");
       e["corrected"] = 1;
     } else {
       stop("Cannot correct matrix\n");
@@ -320,13 +320,14 @@ NumericVector RxODE_focei_finalize_llik(SEXP rho){
   }
   vec diag = c.diag();
   vec ldiag = log(diag);
-  NumericVector ret = -as<NumericVector>(e["llik2"]);
-  // log(det(omegaInv^1/2)) = 1/2*log(det(omegaInv))
-  ret += as<NumericVector>(e["log.det.OMGAinv.5"]);
-  ret += -as<NumericVector>(wrap(sum(ldiag)));
+  e["log.det.H.neg.5"]= wrap(sum(ldiag));
+  NumericVector ret = -as<NumericVector>(e["llik2"])+ as<NumericVector>(e["log.det.OMGAinv.5"])-as<NumericVector>(e["log.det.H.neg.5"]);
   ret.attr("fitted") = as<NumericVector>(e["f"]);
   ret.attr("posthoc") = as<NumericVector>(e["eta"]);
   ret.attr("corrected") = as<NumericVector>(e["corrected"]);
+  // ret.attr("llik2") = as<NumericVector>(e["llik2"]);
+  // ret.attr("log.det.OMGAinv.5") = as<NumericVector>(e["log.det.OMGAinv.5"]);
+  // ret.attr("log.det.H.neg.5") = as<NumericVector>(e["log.det.H.neg.5"]);
   e["ret"] = ret;
   return ret;
 }

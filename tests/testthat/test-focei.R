@@ -189,6 +189,8 @@ rxPermissive({
 
     tmp5 <- m2a %>%rxFoceiInner(ev, theta=THETA, eta=c(10, 10),dv=dv, inv.env=symenv, invisible=1, pred.minus.dv=FALSE)
 
+    tmp5a <- m2a %>%rxFoceiInner(ev, theta=THETA, eta=c(0, 0),dv=dv, inv.env=symenv, invisible=1, nonmem=TRUE)
+
     test_that("rxFoceiEta makes sense", {
 
         expect_equal(tmp1$rx_pred_, tmp2$f); ## F
@@ -332,6 +334,8 @@ rxPermissive({
         expect_equal(lik2, llik.lapl);
 
         expect_equal(as.vector(lik2), -209.467627968204);
+
+        expect_equal(as.vector(tmp5a), -209.467627968204);
 
     })
 

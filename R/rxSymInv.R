@@ -1,5 +1,5 @@
 rxSymInvC.slow <- NULL;  ## Memoize
-rxSymInvC <- function(mat1, diag.xform=c("sqrt", "log", "identity")){
+rxSymInvC <- function(mat1, diag.xform=c("sqrt", "log", "identity"), chol=FALSE){
     if (!all(as.vector(mat1) == 1 || as.vector(mat1) == 1)){
         stop("This has to be a matrix of all 1s or 0s.");
     }
@@ -8,7 +8,7 @@ rxSymInvC <- function(mat1, diag.xform=c("sqrt", "log", "identity")){
     }
     diag.xform <- match.arg(diag.xform)
     cache.file <- sprintf("rx_%s.inv",
-                          digest::digest(deparse(list(mat1, diag.xform))));
+                          digest::digest(deparse(list(mat1, diag.xform, chol))));
     cache.file2 <- file.path(system.file("inv", package="RxODE"), cache.file);
     if (file.exists(cache.file)){
         load(cache.file);
@@ -54,11 +54,17 @@ rxSymInvC <- function(mat1, diag.xform=c("sqrt", "log", "identity")){
         } else {
             rxSymPyExec(sprintf("%s = symbols('%s')",syms, syms));
         }
-        rxCat("Calculate symbolic inverse...");
-        sympy.inv <- rxSymPy(sprintf("(%s).inv()", sympy.mat));
-        if (sympy.inv == "None"){
-            stop("Inverse not calculated.");
+        if (chol){
+            rxCat("Calculate symbolic inverse:  t(chol.mat) %*% chol.mat ...\n");
+            sympy.inv <- rxSymPy(sprintf("Transpose(Matrix([%s]))*Matrix([%s])", sympy.mat, sympy.mat));
+        } else {
+            rxCat("Calculate symbolic inverse...");
+            sympy.inv <- rxSymPy(sprintf("(%s).inv()", sympy.mat));
+            if (sympy.inv == "None"){
+                stop("Inverse not calculated.");
+            }
         }
+        sympy.inv <- gsub("[\n\t ]*", "", sympy.inv)
         sympy.inv.txt <- sprintf("Matrix([%s])", gsub("[\n]", ", ", sympy.inv));
         sympy.inv.det.tmp1 <- sprintf("(%s).det()", sympy.inv.txt);
         mat.reg <- rex::rex(start, or(group(any_spaces, "["),
@@ -70,14 +76,30 @@ rxSymInvC <- function(mat1, diag.xform=c("sqrt", "log", "identity")){
                                    group(any_spaces, ",", any_spaces)))
         sympy.inv <- gsub(mat.reg, "\\1", strsplit(sympy.inv, "\n")[[1]]);
         sympy.inv <- matrix(unlist(strsplit(sympy.inv, mat.sep.reg)), d, byrow=TRUE);
-
         rxCat("done\n");
-        if (d <= 3){
+        if (chol){
+            rxCat("Calculate Omega in terms of chol(Omega^-1) parameterization...\n");
+            sympy.inv.inv <- rxSymPy(sprintf("(%s).inv()", sympy.inv.txt));
+            if (sympy.inv == "None"){
+                stop("Inverse not calculated.");
+            }
+            sympy.inv.inv.txt <- sprintf("Matrix([%s])", gsub("[\n]", ", ", sympy.inv.inv));
+            sympy.inv.inv <- gsub(mat.reg, "\\1", strsplit(sympy.inv.inv, "\n")[[1]]);
+            sympy.inv.inv <- matrix(unlist(strsplit(sympy.inv.inv, mat.sep.reg)), d, byrow=TRUE);
+            ch <- omat;
+            omat <- fmat <- sympy.inv.inv;
+            rxCat("done\n");
+            rxCat("Calculate log(det(OMGAinv))...")
+            sympy.inv.det <- paste(sprintf("log(%s)", diag(ch)), collapse=" + ");
+            sympy.inv.det <- sympyC(sympy.inv.det);
+            cat("done\n");
+        }
+        if (d <= 3 && !chol){
             rxCat("Calculate symbolic determinant of inverse...");
             sympy.inv.det <- rxSymPy(sympy.inv.det.tmp1)
             sympy.inv.det <- sympyC(sympy.inv.det);
             rxCat("done\n");
-        } else {
+        } else if (!chol) {
             sympy.inv.det <- "NA_REAL";
         }
         v <- vars[1]
@@ -152,13 +174,14 @@ rxSymInvC <- function(mat1, diag.xform=c("sqrt", "log", "identity")){
                        sprintf("REAL(ret)[0] = %d;", d),
                        "} else if (theta_n == -1){",
                        sprintf("REAL(ret)[0] = %s;", sympy.inv.det),
-                       "if (!ISNA(REAL(ret)[0])){",
-                       "if (REAL(ret)[0] > 0){",
-                       "REAL(ret)[0] = 0.5*log(REAL(ret)[0]);",
-                       "} else {",
-                       "error(\"Omega^-1 not positive definite\");",
-                       "}",
-                       "}",
+                       ifelse(chol, "// 0.5*log(det(Omega^-1)) Directly estimated.",
+                              paste(c("if (!ISNA(REAL(ret)[0])){",
+                                "if (REAL(ret)[0] > 0){",
+                                "REAL(ret)[0] = 0.5*log(REAL(ret)[0]);",
+                                "} else {",
+                                "error(\"Omega^-1 not positive definite\");",
+                                "}",
+                                "}"), collapse="\n")),
                        "} else {",
                        sprintf("REAL(ret)[0] = %d;", length(vars)),
                        "}",
@@ -194,16 +217,33 @@ rxSymInvCreateC.slow <- NULL
 ##' Creates an object for caluclating Omega/Omega^-1 and dervatives
 ##'
 ##' @param mat Initial Omega matrix
-##' @param diag.xform transformation to diagonal elements of OMEGA.
+##' @param diag.xform transformation to diagonal elements of OMEGA. or chol(Omega^-1)
+##' @param chol Boolean to state if the parameter values specify the OMEGA matrix or chol(Omega^-1)
 ##' @return A rxSymInv object
 ##' @author Matthew L. Fidler
 ##' @keywords internal
 ##' @export
 rxSymInvCreate <- function(mat,
-                           diag.xform=c("sqrt", "log", "identity")){
+                           diag.xform=c("sqrt", "log", "identity"),
+                           chol=FALSE){
     diag.xform <- match.arg(diag.xform);
     mat2 <- mat;
-    elts <- as.vector(mat)[which(as.vector(lower.tri(mat,TRUE))*1==1)];
+    if (chol){
+        mat2 <- rxInv(mat2);
+        mat2 <- try({chol(mat2)});
+        if (inherits(mat2, "try-error")){
+            rxCat("Warning: Initial Omega matrix inverse is non-positive definite, correcting with nearPD")
+            mat2 <- as.matrix(Matrix::nearPD(mat)$mat);
+            mat2 <- chol(mat2);
+        }
+    }
+    mat3 = mat2;
+    if (diag.xform == "sqrt"){
+        diag(mat3) <- sqrt(diag(mat3));
+    } else if (diag.xform == "log"){
+        diag(mat3) <- log(diag(mat3));
+    }
+    elts <- as.vector(mat3)[which(as.vector(lower.tri(mat3,TRUE))*1==1)];
     th.unscaled <- c();
     for (i in 1:length(elts)){
         if (elts[i] != 0){
@@ -234,21 +274,21 @@ rxSymInvCreate <- function(mat,
     }
     if (length(block) == 0){
         ret <-rxSymInvC(mat1=mat1,
-                        diag.xform=diag.xform);
+                        diag.xform=diag.xform, chol=chol);
         th <- th.unscaled;
         ret <- list(fmat=ret[[2]],
-                    th.unscaled=th.unscaled,
-                    th=th,
+                    chol=chol,
+                    th=th.unscaled,
                     fn=rxSymInvCreateC(ret[[1]]));
         class(ret) <- "rxSymInv";
         return(ret);
     } else {
         mat <- Matrix::.bdiag(block);
-        matI <- lapply(block, rxSymInvCreate, diag.xform=diag.xform);
-        th <- th.unscaled;
+        matI <- lapply(block, rxSymInvCreate, diag.xform=diag.xform, chol=chol);
         ret <- list(mat=mat,
                     matI=matI,
-                    th.unscaled=th.unscaled);
+                    th=th.unscaled,
+                    chol=chol);
         class(ret) <- "rxSymInvBlock"
         return(ret);
     }
