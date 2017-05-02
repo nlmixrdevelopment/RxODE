@@ -78,7 +78,7 @@ sampling points defined in the events \code{eventTable}.  This
 is for time-varying covariates.}
 
 \item{stiff}{a logical (\code{TRUE} by default) indicating whether
-    the ODE system is stifff or not.
+    the ODE system is stiff or not.
 
     For stiff ODE sytems (\code{stiff = TRUE}), \code{RxODE} uses the
     LSODA (Livermore Solver for Ordinary Differential Equations)

@@ -4,59 +4,20 @@
 \alias{rxFoceiInner}
 \title{Solve the FOCEI inner problem}
 \usage{
-rxFoceiInner(object, ..., dv, eta, eta.bak = NULL, invisible = 0, m = 6,
-  epsilon = 1e-05, past = 0, delta = 0, max_iterations = 0,
-  linesearch_algorithm = "LBFGS_LINESEARCH_DEFAULT", max_linesearch = 20,
-  min_step = 1e-20, max_step = 1e+20, ftol = 1e-04, wolfe = 0.9,
-  gtol = 0.9, orthantwise_c = 0, orthantwise_start = 0,
-  orthantwise_end = length(eta), estimate = TRUE)
+rxFoceiInner(object, ..., dv, eta, eta.bak = NULL, estimate = TRUE)
 }
 \arguments{
 \item{object}{RxODE object}
 
-\item{...}{values sent to rxFoceiEtaSetup}
+\item{...}{values sent to rxFoceiEtaSetup and lbfgs}
 
 \item{dv}{dependent variable}
 
 \item{eta}{eta value}
 
-\item{invisible}{Invisible LBFGS tracing.}
-
-\item{m}{LBFGS m}
-
-\item{epsilon}{LBFGS epsilon}
-
-\item{past}{LBFGS past}
-
-\item{delta}{LBFGS delta}
-
-\item{max_iterations}{LBFGS max_iterations}
-
-\item{linesearch_algorithm}{LBFGS linesearch_algorithm}
-
-\item{max_linesearch}{LBFGS max_linesearch}
-
-\item{min_step}{LBFGS min_step}
-
-\item{max_step}{LBFGS max_step}
-
-\item{ftol}{LBFGS ftol}
-
-\item{wolfe}{LBFGS wolfe}
-
-\item{gtol}{LBFGS gtol}
-
-\item{orthantwise_c}{LBFGS orthantwise_c}
-
-\item{orthantwise_start}{LBFGS orthantwise_start}
-
-\item{orthantwise_end}{LBFGS orthantwise_end}
-
 \item{estimate}{Boolean indicating if the optimization should be
 perfomed(TRUE), or just keep the eta, and calculate the Loglik
 with fitted/posthoc attributes(FALSE).}
-
-\item{omegaInv}{inverse omega matrix}
 }
 \value{
 Loglik with fitted and posthoc attributes

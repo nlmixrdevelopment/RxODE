@@ -176,26 +176,9 @@ rxFoceiLp.rxDll <- function(object, ..., dv, eta){
 ##' Solve the FOCEI inner problem
 ##'
 ##' @param object RxODE object
-##' @param ... values sent to rxFoceiEtaSetup
+##' @param ... values sent to rxFoceiEtaSetup and lbfgs
 ##' @param dv dependent variable
 ##' @param eta eta value
-##' @param omegaInv inverse omega matrix
-##' @param invisible Invisible LBFGS tracing.
-##' @param m LBFGS m
-##' @param epsilon LBFGS epsilon
-##' @param past LBFGS past
-##' @param delta LBFGS delta
-##' @param max_iterations LBFGS max_iterations
-##' @param linesearch_algorithm LBFGS linesearch_algorithm
-##' @param max_linesearch LBFGS max_linesearch
-##' @param min_step LBFGS min_step
-##' @param max_step LBFGS max_step
-##' @param ftol LBFGS ftol
-##' @param wolfe LBFGS wolfe
-##' @param gtol LBFGS gtol
-##' @param orthantwise_c LBFGS orthantwise_c
-##' @param orthantwise_start LBFGS orthantwise_start
-##' @param orthantwise_end LBFGS orthantwise_end
 ##' @param estimate Boolean indicating if the optimization should be
 ##'     perfomed(TRUE), or just keep the eta, and calculate the Loglik
 ##'     with fitted/posthoc attributes(FALSE).
@@ -204,11 +187,6 @@ rxFoceiLp.rxDll <- function(object, ..., dv, eta){
 ##' @keywords internal
 ##' @export
 rxFoceiInner <- function(object, ..., dv, eta, eta.bak=NULL,
-                         invisible = 0, m = 6, epsilon = 1e-05, past = 0, delta = 0,
-                         max_iterations = 0, linesearch_algorithm = "LBFGS_LINESEARCH_DEFAULT",
-                         max_linesearch = 20, min_step = 1e-20, max_step = 1e+20,
-                         ftol = 1e-04, wolfe = 0.9, gtol = 0.9, orthantwise_c = 0,
-                         orthantwise_start = 0, orthantwise_end = length(eta),
                          estimate=TRUE){
     inner.dll <- object$inner$cmpMgr$rxDll();
     inner.dll$.call(rxTrans(inner.dll)["ode_solver_ptr"]); ## Assign the ODE pointers (and Jacobian Type)
@@ -221,13 +199,13 @@ rxFoceiInner <- function(object, ..., dv, eta, eta.bak=NULL,
         if (estimate){
             if (class(args$eta) == "call"){
                 args$eta <- eval(args$eta, envir=parent.frame(2))
+                args$orthantwise_end <- length(args$eta);
             }
-            output <- lbfgs::lbfgs(lik, lp, args$eta, environment=env,
-                                   invisible=invisible, m=m, epsilon=epsilon, past=past, delta=delta,
-                                   max_iterations=max_iterations, linesearch_algorithm=linesearch_algorithm,
-                                   max_linesearch=max_linesearch, min_step=min_step, max_step=max_step,
-                                   ftol=ftol, wolfe=wolfe, gtol=gtol, orthantwise_c=orthantwise_c,
-                                   orthantwise_start=orthantwise_start, orthantwise_end = orthantwise_end);
+            args$call_eval <- lik;
+            args$call_grad <- lp;
+            args$vars <- args$eta;
+            args$environment <- env
+            output <- do.call(getFromNamespace("lbfgs","lbfgs"), args, envir = parent.frame(1))
             rxInner(output$par, env);
         } else {
             rxInner(args$eta, env);
@@ -248,6 +226,7 @@ rxFoceiInner <- function(object, ..., dv, eta, eta.bak=NULL,
             cat(sprintf("Warning: Problem with Hessian or ETA estimate, resetting ETAs to 0 (ID=%s).\n", env$id));
             args$eta <- rep(0, length(env$eta));
             env$eta <- args$eta;
+            args$orthantwise_end <- length(args$eta);
             est();
             if (any(is.na(env$eta))){
                 warning("ETA estimate failed; Assume ETA=0");
@@ -265,6 +244,7 @@ rxFoceiInner <- function(object, ..., dv, eta, eta.bak=NULL,
     } else {
         args$object <- object;
         args$eta <- env$eta;
+        args$orthantwise_end <- length(args$eta);
         ## print(env$id)
         ## print(args$eta);
         ## print(eta);
@@ -274,11 +254,13 @@ rxFoceiInner <- function(object, ..., dv, eta, eta.bak=NULL,
             cat(sprintf("Warning: Problem with Hessian or ETA estimate, resetting ETAs to 0 (ID=%s).\n", env$id));
             inner.dll$.call(rxTrans(inner.dll)["ode_solver_ptr"]); ## Assign the ODE pointers (and Jacobian Type)
             args$eta <- rep(0, length(env$eta));
+            args$orthantwise_end <- length(args$eta);
             args$object <- inner.dll;
             env <- do.call(getFromNamespace("rxFoceiEtaSetup", "RxODE"), args, envir = parent.frame(1));
             est();
             args$object <- object;
             args$eta <- env$eta;
+            args$orthantwise_end <- length(args$eta);
             env <- do.call(getFromNamespace("rxFoceiTheta", "RxODE"), args, envir = parent.frame(1));
             if (env$reset == 1){
                 print(env$par)

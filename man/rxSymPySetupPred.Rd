@@ -5,8 +5,8 @@
 \title{Setup Pred function based on RxODE object.}
 \usage{
 rxSymPySetupPred(obj, predfn, pkpars = NULL, errfn = NULL, init = NULL,
-  grad = FALSE, logify = FALSE, grad.internal = FALSE,
-  run.internal = FALSE)
+  grad = FALSE, logify = FALSE, pred.minus.dv = TRUE,
+  grad.internal = FALSE, run.internal = FALSE)
 }
 \arguments{
 \item{obj}{RxODE object}
@@ -19,12 +19,18 @@ rxSymPySetupPred(obj, predfn, pkpars = NULL, errfn = NULL, init = NULL,
 
 \item{init}{Initialization parameters for scaling.}
 
-\item{grad}{Boolaen indicated if the the equations for the gradient be calculated}
+\item{grad}{Boolaen indicated if the the equations for the
+gradient be calculated}
 
-\item{logify}{Boolean to do multipication in log-space to reduce round-off error.}
+\item{logify}{Boolean to do multipication in log-space to reduce
+round-off error.}
+
+\item{pred.minus.dv}{Boolean stating if the FOCEi objective
+function is based on PRED-DV (like NONMEM).  Default TRUE.}
 }
 \value{
-RxODE object expanded with predfn and with calculated sensitivities.
+RxODE object expanded with predfn and with calculated
+    sensitivities.
 }
 \description{
 This is for the so-called inner problem.

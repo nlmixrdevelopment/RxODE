@@ -4,12 +4,14 @@
 \alias{rxSymInvCreate}
 \title{Creates an object for caluclating Omega/Omega^-1 and dervatives}
 \usage{
-rxSymInvCreate(mat, diag.xform = c("sqrt", "log", "identity"))
+rxSymInvCreate(mat, diag.xform = c("sqrt", "log", "identity"), chol = FALSE)
 }
 \arguments{
 \item{mat}{Initial Omega matrix}
 
-\item{diag.xform}{transformation to diagonal elements of OMEGA.}
+\item{diag.xform}{transformation to diagonal elements of OMEGA. or chol(Omega^-1)}
+
+\item{chol}{Boolean to state if the parameter values specify the OMEGA matrix or chol(Omega^-1)}
 }
 \value{
 A rxSymInv object
