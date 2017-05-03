@@ -1358,7 +1358,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                 ## if (requireNamespace("praise", quietly = TRUE)){
                 ##     rxCat(sprintf(praise::praise("${Exclamation}! This model has ${created} for FOCEI%s!\nIt will be cached for future runs.\n"), ifelse(grad, "(with Gradient)", "")))
                 ## } else {
-                    rxCat(sprintf("This model has created for FOCEI%s!\nIt will be cached for future runs.\n", ifelse(grad, "(with Gradient)", "")))
+                rxCat(sprintf("This model has created for FOCEI%s!\nIt will be cached for future runs.\n", ifelse(grad, "(with Gradient)", "")))
                 ## }
                 if (ret$warn){
                     warning("Some of your prediction function does not depend on the state varibles.");
@@ -1489,12 +1489,12 @@ rxLogifyModel <- function(model){
                     n <- n + 1;
                     l2[j] <- tmp;
                 }
-                ## l0 <- sprintf("%s=%s;", l1, gsub(rex::rex("+-"), "-", paste(l2, collapse="+")));
-                tmp <- gsub(rex::rex(any_spaces, "=", any_spaces, "+", any_spaces), "=",
-                            gsub(rex::rex(any_spaces, "-", any_spaces, "+", any_spaces), "-",
-                                 gsub(rex::rex(any_spaces, "+", any_spaces, "-", any_spaces), "-",
-                                      paste(l1, "=", c("", rep(l1, length(l2) - 1)), "+", l2))))
-                l0 <- paste(tmp, collapse="\n");
+                l0 <- rxSplitLines(l1, gsub(rex::rex("+-"), "-", paste(l2, collapse="+")));
+                ## tmp <- gsub(rex::rex(any_spaces, "=", any_spaces, "+", any_spaces), "=",
+                ##             gsub(rex::rex(any_spaces, "-", any_spaces, "+", any_spaces), "-",
+                ##                  gsub(rex::rex(any_spaces, "+", any_spaces, "-", any_spaces), "-",
+                ##                       paste(l1, "=", c("", rep(l1, length(l2) - 1)), "+", l2))))
+                ## l0 <- paste(tmp, collapse="\n");
                 lines[i] <- l0;
             }
         }
