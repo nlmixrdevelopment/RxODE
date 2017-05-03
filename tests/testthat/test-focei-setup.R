@@ -1,20 +1,6 @@
 context("Focei Setup checks");
 rxPermissive({
 
-    mat.indices <- function(nETA){
-        idx = do.call("rbind",
-                      lapply(1:nETA, function(k) cbind(k:nETA, k)))
-        H = matrix(1:(nETA^2), nETA, nETA)
-        Hlo.idx = row(H)>=col(H)
-        lo.idx = H[row(H)>col(H)]
-        hi.idx = t(H)[row(H)>col(H)]
-
-        list(idx=idx,                       # (r, c) of lo-half
-             Hlo.idx=Hlo.idx,       # index of lo-half
-             lo.idx=lo.idx,         # index of strict lo-half
-             hi.idx=hi.idx)         # index of strict hi-half
-    }
-
     m1 <- RxODE({
         d/dt(centr) = - CL / V*centr;
     })
@@ -423,7 +409,16 @@ rxPermissive({
 
     pred <- function() C2
 
-    ## focei.mm.mod2 <- rxSymPySetupPred(mm, pred, par, err=function(){err ~ prop(0.1)}, grad=TRUE, run.internal=TRUE);
+    test_that("Functions outside of RxODE/global/nlmixr raise errors", {
+        expect_error(rxSymPySetupPred(mm, pred, par, err=function(){err ~ prop(0.1)}, grad=TRUE));
+    })
+
+    focei.mm.mod2 <- rxSymPySetupPred(mm, pred, mypar3, err=function(){err ~ prop(0.1)}, grad=TRUE, logify=TRUE);
+
+    ## Fixme: should the lines be split?  Logify is one approach, but perhaps just a split...?
+    test_that("long lines are handled...",{
+        expect_equal(class(focei.mm.mod2), "rxFocei");
+    })
 
     ## Now test solved focei capability.
     sol.1c.ka <- RxODE({

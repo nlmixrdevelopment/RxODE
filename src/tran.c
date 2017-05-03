@@ -11,10 +11,10 @@
 #include <Rmath.h>
 #include "tran.g.d_parser.c"
 #define max(a,b) (a)>(b) ? (a):(b)
-#define MXSYM 5000
-#define MXDER 500
-#define MXLEN 1200
-#define MXBUF 2400
+#define MXSYM 10000
+#define MXDER 1000
+#define MXLEN 2400
+#define MXBUF 4800
 #define SBPTR sb.s+sb.o
 #define SBTPTR sbt.s+sbt.o
 
@@ -1611,9 +1611,16 @@ void codegen(FILE *outpt, int show_ode) {
           strcpy(sLine, s2);
           Free(s2);
           s2=NULL;
-        }
-        
+        }        
       }
+      // Replace __DDtStateVar__[#] -> __DDtStateVar_#__
+      /* sprintf(to,""); */
+      to[0]='\0';
+      sprintf(from," ");
+      s2 = repl_str(sLine,from,to);
+      strcpy(sLine, s2);
+      Free(s2);
+      s2=NULL;
       fprintf(outpt, "\t%s", sLine);
     }
     fclose(fpIO);

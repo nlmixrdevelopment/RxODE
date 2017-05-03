@@ -1049,8 +1049,21 @@ rxSymPySetupPred.warn <- FALSE
 ##' @author Matthew L. Fidler
 ##' @keywords internal
 ##' @export
-rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, grad=FALSE, logify=FALSE, pred.minus.dv=TRUE,
+rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, grad=FALSE, logify=TRUE, pred.minus.dv=TRUE,
                              grad.internal=FALSE, run.internal=FALSE){
+    good.fns <- c(".GlobalEnv", "package:RxODE", "package:nlmixr")
+    check.good <- function(x){
+        tmp <- suppressWarnings({find(deparse(substitute(x)))})
+        if (!identical(tmp, character())){
+            if (!any(tmp == good.fns)){
+                stop(sprintf("%s is from %s and can't be used in this context.", deparse(substitute(x)), tmp))
+            }
+        }
+    }
+    check.good(predfn);
+    check.good(pkpars);
+    check.good(errfn);
+
     if (!grad.internal){
         cache.file <- sprintf("rx_%s%s.prd",
                               digest::digest(deparse(list(rxModelVars(obj)$md5["parsed_md5"], deparse(body(predfn)), deparse(body(pkpars)),
@@ -1438,12 +1451,12 @@ rxLogifyModel <- function(model){
                     n <- n + 1;
                     l2[j] <- tmp;
                 }
-                l0 <- sprintf("%s=%s;", l1, gsub(rex::rex("+-"), "-", paste(l2, collapse="+")));
-                ## tmp <- gsub(rex::rex(any_spaces, "=", any_spaces, "+", any_spaces), "=",
-                ##             gsub(rex::rex(any_spaces, "-", any_spaces, "+", any_spaces), "-",
-                ##                  gsub(rex::rex(any_spaces, "+", any_spaces, "-", any_spaces), "-",
-                ##                       paste(l1, "=", c("", rep(l1, length(l2) - 1)), "+", l2))))
-                ## tmp <- paste(tmp, collapse="\n");
+                ## l0 <- sprintf("%s=%s;", l1, gsub(rex::rex("+-"), "-", paste(l2, collapse="+")));
+                tmp <- gsub(rex::rex(any_spaces, "=", any_spaces, "+", any_spaces), "=",
+                            gsub(rex::rex(any_spaces, "-", any_spaces, "+", any_spaces), "-",
+                                 gsub(rex::rex(any_spaces, "+", any_spaces, "-", any_spaces), "-",
+                                      paste(l1, "=", c("", rep(l1, length(l2) - 1)), "+", l2))))
+                l0 <- paste(tmp, collapse="\n");
                 lines[i] <- l0;
             }
         }
