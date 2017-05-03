@@ -201,9 +201,10 @@ rxFoceiInner <- function(object, ..., dv, eta, eta.bak=NULL,
     lp <- RxODE_focei_eta("lp")
     est <- function(){
         if (estimate){
+            force(eta);
             if (class(args$eta) == "call"){
-                args$eta <- eval(args$eta, envir=parent.frame(2))
-                args$orthantwise_end <- length(args$eta);
+                force(eta)
+                args$eta <- eta
             }
             args$call_eval <- lik;
             args$call_grad <- lp;
