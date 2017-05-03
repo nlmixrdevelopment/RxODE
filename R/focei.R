@@ -99,6 +99,7 @@ rxFoceiEta.rxDll <- function(object, ..., dv, eta, env, nonmem){
         args <- as.list(match.call(expand.dots=TRUE))[-1];
         env <- do.call(getFromNamespace("rxFoceiEtaSetup", "RxODE"), args, envir = parent.frame(1));
     }
+    rxLoad(object)
     object$.call(rxTrans(object)["ode_solver_ptr"]); ## Assign the ODE pointers (and Jacobian Type)
     rxInner(eta, env);
     return(env);
@@ -133,6 +134,7 @@ rxFoceiLik.RxODE <- function(object, ..., dv, eta){
 ##' @rdname rxFoceiLik
 ##' @export
 rxFoceiLik.rxDll <- function(object, ..., dv, eta){
+    rxLoad(object)
     object$.call(rxTrans(object)["ode_solver_ptr"]); ## Assign the ODE pointers (and Jacobian Type)
     args <- as.list(match.call(expand.dots=TRUE))[-1];
     env <- do.call(getFromNamespace("rxFoceiEtaSetup", "RxODE"), args, envir = parent.frame(1));
@@ -167,6 +169,7 @@ rxFoceiLp.RxODE <- function(object, ..., dv, eta){
 ##' @rdname rxFoceiLp
 ##' @export
 rxFoceiLp.rxDll <- function(object, ..., dv, eta){
+    rxLoad(object)
     object$.call(rxTrans(object)["ode_solver_ptr"]); ## Assign the ODE pointers (and Jacobian Type)
     args <- as.list(match.call(expand.dots=TRUE))[-1];
     env <- do.call(getFromNamespace("rxFoceiEtaSetup", "RxODE"), args, envir = parent.frame(1));
@@ -189,6 +192,7 @@ rxFoceiLp.rxDll <- function(object, ..., dv, eta){
 rxFoceiInner <- function(object, ..., dv, eta, eta.bak=NULL,
                          estimate=TRUE){
     inner.dll <- object$inner$cmpMgr$rxDll();
+    rxLoad(inner.dll)
     inner.dll$.call(rxTrans(inner.dll)["ode_solver_ptr"]); ## Assign the ODE pointers (and Jacobian Type)
     args <- as.list(match.call(expand.dots=TRUE))[-1];
     args$object <- inner.dll;
@@ -252,6 +256,7 @@ rxFoceiInner <- function(object, ..., dv, eta, eta.bak=NULL,
         env <- do.call(getFromNamespace("rxFoceiTheta", "RxODE"), args, envir = parent.frame(1));
         if (env$reset == 1){
             cat(sprintf("Warning: Problem with Hessian or ETA estimate, resetting ETAs to 0 (ID=%s).\n", env$id));
+            rxLoad(inner.dll)
             inner.dll$.call(rxTrans(inner.dll)["ode_solver_ptr"]); ## Assign the ODE pointers (and Jacobian Type)
             args$eta <- rep(0, length(env$eta));
             args$orthantwise_end <- length(args$eta);
@@ -312,6 +317,7 @@ rxFoceiTheta.RxODE <- function(object, ..., dv, eta, env, nonmem){
 ##' @rdname rxFoceiTheta
 ##' @export
 rxFoceiTheta.rxDll <- function(object, ..., dv, eta, env, nonmem){
+    rxLoad(object);
     object$.call(rxTrans(object)["ode_solver_ptr"]); ## Assign the ODE pointers (and Jacobian Type)
     if (missing(env)){
         args <- as.list(match.call(expand.dots=TRUE))[-1];
