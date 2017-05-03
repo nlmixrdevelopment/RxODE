@@ -411,6 +411,42 @@ rxSymPySetupIf <- function(model){
         return(model)
     }
 }
+##' Split line into multiple lines at + or - breaks
+##'
+##' @param lhs Left handed side to construct
+##' @param rhs Right handed side to construct
+##' @param limit the number of characters for the expression to be
+##'     before it is split.  By default this is 1100
+##' @return an expression where the lhs is constructed iteratevly by
+##'     splitting the lhs and adding it iteratevly to the lhs.
+##'
+##' For example:
+##'
+##' lhs = 1 + 2 + 3
+##'
+##' Would become
+##'
+##' lhs = 1
+##' lhs = lhs + 2
+##' lhs = lhs + 3
+##'
+##' When calling rxSplitLines("lhs", "1+2+3", 0)
+##'
+##' This is to deal with the unwieldly lines that sometimes come out
+##' of sympy.
+##'
+##' @author Matthew L. Fidler
+##' @export
+##' @keywords internal
+rxSplitLines <- function(lhs, rhs, limit=1100){
+    if ((nchar(lhs) + nchar(rhs) + 4) < limit){
+        return(sprintf("%s = %s", lhs, rhs))
+    } else {
+        rh <- eval(parse(text=sprintf("rxSplitPlusQ(quote(%s))", rhs)));
+        rh[-1] <- gsub("[+][-]", "-", paste0(lhs, "+", rh[-1]));
+        return(paste(paste0(lhs, " = ", rh), collapse="\n"));
+    }
+}
 
 ##' Calculate df/dy derivatives
 ##'
@@ -441,7 +477,7 @@ rxSymPyDfDy <- function(model, df, dy, vars=FALSE){
         line <- sprintf("diff(%s,%s)", var1, rxToSymPy(dy));
         line <- rxSymPy(line);
         rxSymPyExec(sprintf("%s=%s", var, line));
-        ret <- sprintf("df(%s)/dy(%s) = %s", df, dy, rxFromSymPy(line));
+        ret <- rxSplitLines(sprintf("df(%s)/dy(%s)", df, dy), rxFromSymPy(line));
         return(ret);
     }
 }
@@ -931,7 +967,8 @@ rxSymPySetupDPred <- function(newmod, calcSens, states, prd="rx_pred_", pred.min
                     if (tmp != "0"){
                         zeroSens <- FALSE;
                     }
-                    tmp <- sprintf("rx__sens_%s_BY_%s_BY_%s__ = %s", prd, rxToSymPy(eK), rxToSymPy(eL), rxFromSymPy(tmp));
+                    tmp <- rxSplitLines(sprintf("rx__sens_%s_BY_%s_BY_%s__ ", prd, rxToSymPy(eK), rxToSymPy(eL)),
+                                        rxFromSymPy(tmp));
                     extraLines[length(extraLines) + 1] <- tmp;
                     rxCat(".");
                 }
@@ -974,7 +1011,7 @@ rxSymPySetupDPred <- function(newmod, calcSens, states, prd="rx_pred_", pred.min
                 if (tmp != "0"){
                     zeroSens <- FALSE;
                 }
-                tmp <- sprintf("rx__sens_%s_BY_%s_BY_%s__ = %s", prd, rxToSymPy(eta), rxToSymPy(theta), rxFromSymPy(tmp));
+                tmp <- rxSplitLines(sprintf("rx__sens_%s_BY_%s_BY_%s__", prd, rxToSymPy(eta), rxToSymPy(theta)), rxFromSymPy(tmp));
                 extraLines[length(extraLines) + 1] <- tmp;
                 rxCat(".");
             }
@@ -1005,7 +1042,7 @@ rxSymPySetupDPred <- function(newmod, calcSens, states, prd="rx_pred_", pred.min
         if (tmp != "0"){
             zeroSens <- FALSE;
         }
-        tmp <- sprintf("rx__sens_%s_BY_%s__ = %s", prd, rxToSymPy(var), rxFromSymPy(tmp));
+        tmp <- rxSplitLines(sprintf("rx__sens_%s_BY_%s__", prd, rxToSymPy(var)), rxFromSymPy(tmp));
         extraLines[length(extraLines) + 1] <- tmp;
         rxCat(".");
     }
@@ -1049,7 +1086,7 @@ rxSymPySetupPred.warn <- FALSE
 ##' @author Matthew L. Fidler
 ##' @keywords internal
 ##' @export
-rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, grad=FALSE, logify=TRUE, pred.minus.dv=TRUE,
+rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, grad=FALSE, logify=FALSE, pred.minus.dv=TRUE,
                              grad.internal=FALSE, run.internal=FALSE){
     good.fns <- c(".GlobalEnv", "package:RxODE", "package:nlmixr")
     check.good <- function(x){
@@ -1317,11 +1354,12 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                 class(ret) <- "rxFocei";
                 rxGc();
                 save(ret, file=cache.file);
-                if (requireNamespace("praise", quietly = TRUE)){
-                    rxCat(sprintf(praise::praise("${Exclamation}! This model has ${created} for FOCEI%s!\nIt will be cached for future runs.\n"), ifelse(grad, "(with Gradient)", "")))
-                } else {
-                    rxCat(sprintf("Great! This model has created for FOCEI%s!\nIt will be cached for future runs.\n", ifelse(grad, "(with Gradient)", "")))
-                }
+                ## Praising the user is a bit cookey, so I'm removing it.
+                ## if (requireNamespace("praise", quietly = TRUE)){
+                ##     rxCat(sprintf(praise::praise("${Exclamation}! This model has ${created} for FOCEI%s!\nIt will be cached for future runs.\n"), ifelse(grad, "(with Gradient)", "")))
+                ## } else {
+                    rxCat(sprintf("This model has created for FOCEI%s!\nIt will be cached for future runs.\n", ifelse(grad, "(with Gradient)", "")))
+                ## }
                 if (ret$warn){
                     warning("Some of your prediction function does not depend on the state varibles.");
                 }
