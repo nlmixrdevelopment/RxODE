@@ -182,6 +182,7 @@ rxFoceiLp.rxDll <- function(object, ..., dv, eta){
 ##' @param ... values sent to rxFoceiEtaSetup and lbfgs
 ##' @param dv dependent variable
 ##' @param eta eta value
+##' @param eta.bak
 ##' @param estimate Boolean indicating if the optimization should be
 ##'     perfomed(TRUE), or just keep the eta, and calculate the Loglik
 ##'     with fitted/posthoc attributes(FALSE).
@@ -195,17 +196,16 @@ rxFoceiInner <- function(object, ..., dv, eta, eta.bak=NULL,
     rxLoad(inner.dll)
     inner.dll$.call(rxTrans(inner.dll)["ode_solver_ptr"]); ## Assign the ODE pointers (and Jacobian Type)
     args <- as.list(match.call(expand.dots=TRUE))[-1];
+    args$dv <- dv
+    args$eta <- eta
+    args$eta.bak <- eta.bak
+    args$estimate <- estimate
     args$object <- inner.dll;
     env <- do.call(getFromNamespace("rxFoceiEtaSetup", "RxODE"), args, envir = parent.frame(1));
     lik <- RxODE_focei_eta("lik");
     lp <- RxODE_focei_eta("lp")
     est <- function(){
         if (estimate){
-            force(eta);
-            if (class(args$eta) == "call"){
-                force(eta)
-                args$eta <- eta
-            }
             args$call_eval <- lik;
             args$call_grad <- lp;
             args$vars <- args$eta;
