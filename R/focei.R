@@ -182,7 +182,7 @@ rxFoceiLp.rxDll <- function(object, ..., dv, eta){
 ##' @param ... values sent to rxFoceiEtaSetup and lbfgs
 ##' @param dv dependent variable
 ##' @param eta eta value
-##' @param eta.bak
+##' @param eta.bak backup eta value in case eta estimation fails
 ##' @param estimate Boolean indicating if the optimization should be
 ##'     perfomed(TRUE), or just keep the eta, and calculate the Loglik
 ##'     with fitted/posthoc attributes(FALSE).

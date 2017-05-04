@@ -1086,6 +1086,7 @@ rxSymPySetupPred.warn <- FALSE
 ##' @author Matthew L. Fidler
 ##' @keywords internal
 ##' @export
+##' @importFrom utils find
 rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, grad=FALSE, logify=FALSE, pred.minus.dv=TRUE,
                              grad.internal=FALSE, run.internal=FALSE){
     good.fns <- c(".GlobalEnv", "package:RxODE", "package:nlmixr")

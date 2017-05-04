@@ -15,6 +15,8 @@ rxFoceiInner(object, ..., dv, eta, eta.bak = NULL, estimate = TRUE)
 
 \item{eta}{eta value}
 
+\item{eta.bak}{backup eta value in case eta estimation fails}
+
 \item{estimate}{Boolean indicating if the optimization should be
 perfomed(TRUE), or just keep the eta, and calculate the Loglik
 with fitted/posthoc attributes(FALSE).}
