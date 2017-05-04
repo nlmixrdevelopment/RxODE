@@ -294,7 +294,7 @@ rxPermissive({
 
     ## context("Test actual gradients")
 
-    ## ## Test the gradient for a single subject
+    ## Test the gradient for a single subject
     ## ev <- eventTable() %>%
     ##     add.sampling(c(0.25, 0.5, 0.75, 1, 1.5, 2, 2.5, 3, 4, 6, 8, 12, 16, 20, 24,
     ##                    36, 48, 60, 71.99, 95.99, 119.99, 143.99, 144.25, 144.5, 144.75,
@@ -392,7 +392,7 @@ rxPermissive({
     ## The numerical values may not be right from NumDeriv either
     ## gr2.calc <- attr(ret2, "grad")
 
-    context("Michelis Menton test")
+    context("Michelis Menton test (long lines)")
     ## Michelis Menton test
 
     mm <- RxODE({
@@ -409,9 +409,9 @@ rxPermissive({
 
     pred <- function() C2
 
-    test_that("Functions outside of RxODE/global/nlmixr raise errors", {
-        expect_error(rxSymPySetupPred(mm, pred, par, err=function(){err ~ prop(0.1)}, grad=TRUE));
-    })
+    ## test_that("Functions outside of RxODE/global/nlmixr raise errors", {
+    ##     expect_error(rxSymPySetupPred(mm, pred, par, err=function(){err ~ prop(0.1)}, grad=TRUE));
+    ## })
 
     focei.mm.mod2 <- rxSymPySetupPred(mm, pred, mypar3, err=function(){err ~ prop(0.1)}, grad=TRUE, logify=TRUE);
 
