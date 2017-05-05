@@ -56,7 +56,7 @@ rxSymInvC <- function(mat1, diag.xform=c("sqrt", "log", "identity"), chol=FALSE)
         }
         if (chol){
             rxCat("Calculate symbolic inverse:  t(chol.mat) %*% chol.mat ...\n");
-            sympy.inv <- rxSymPy(sprintf("Transpose(Matrix([%s]))*Matrix([%s])", sympy.mat, sympy.mat));
+            sympy.inv <- rxSymPy(sprintf("((Matrix([%s])).transpose()).multiply(Matrix([%s]))", sympy.mat, sympy.mat));
         } else {
             rxCat("Calculate symbolic inverse...");
             sympy.inv <- rxSymPy(sprintf("(%s).inv()", sympy.mat));
