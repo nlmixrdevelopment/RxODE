@@ -192,6 +192,12 @@ rxSymPyStart <- function(){
         if (any(getOption("RxODE.sympy.engine", "") == c("", "rSymPy"))) {
             if (requireNamespace("rSymPy", quietly = TRUE)){
                 if (!exists(".Jython", .GlobalEnv)){
+                    rxCat("Using sympy via rSymPy (creating jython process)\n");
+                    rSymPy::sympyStart()
+                    .rxSymPy$started <- "rSymPy";
+                    try({.Jython$exec("import gc")});
+                } else {
+                    rxCat("Using sympy via rSymPy (with exisiting jython)\n");
                     rSymPy::sympyStart()
                     .rxSymPy$started <- "rSymPy";
                     try({.Jython$exec("import gc")});
