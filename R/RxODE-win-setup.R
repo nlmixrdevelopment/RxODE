@@ -89,9 +89,11 @@ rxWinRtoolsPath <- function(rm.rtools=TRUE){
                 }
             }
             keys <- NULL;
-            keys <- try(utils::readRegistry("SOFTWARE\\Python\\PythonCore", hive = "HCU", view = "32-bit", maxdepth = 3), silent=TRUE);
+            keys <- try(utils::readRegistry("SOFTWARE\\Python\\PythonCore", hive = "HCU", ## view = "32-bit",
+                                            maxdepth = 3), silent=TRUE);
             if (is.null(keys) || length(keys) == 0){
-                try(keys <- utils::readRegistry("SOFTWARE\\Python\\PythonCore", hive = "HLM", view = "32-bit", maxdepth = 3), silent = TRUE);
+                try(keys <- utils::readRegistry("SOFTWARE\\Python\\PythonCore", hive = "HLM", ## view = "32-bit",
+                                                maxdepth = 3), silent = TRUE);
             }
             python.base <- NULL
             for (i in seq_along(keys)){
@@ -115,6 +117,7 @@ rxWinRtoolsPath <- function(rm.rtools=TRUE){
                 Sys.setenv(PYTHONPATH=paste(python.base, normalizePath(lib.path), collapse=";"));
             }
             keys <- NULL;
+            ## Is there a 64 bit aspell that should be checked for...?
             keys <- try(utils::readRegistry("SOFTWARE\\Aspell", hive="HLM", view="32-bit", maxdepth=3), silent=TRUE);
             ## Add aspell for cran checks...
             if (!is.null(keys)){
