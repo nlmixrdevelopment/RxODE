@@ -17,7 +17,7 @@ rxSymInvC <- function(mat1, diag.xform=c("sqrt", "log", "identity"), chol=FALSE)
         load(cache.file2);
         return(ret)
     } else {
-        cat("Diagional form: ", diag.xform, "\n");
+        cat("Diagonal form: ", diag.xform, "\n");
         print(mat1);
         num <- as.vector(mat1[upper.tri(mat1,TRUE)]);
         i <- 0;
