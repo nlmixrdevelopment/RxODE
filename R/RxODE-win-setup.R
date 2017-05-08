@@ -110,6 +110,10 @@ rxWinRtoolsPath <- function(rm.rtools=TRUE){
                     Sys.setenv(PYTHONHOME=python.base);
                 }
             }
+            lib.path <- file.path(python.base, "Lib");
+            if (file.exists(lib.path)){
+                Sys.setenv(PYTHONPATH=paste(python.base, normalizePath(lib.path), collapse=";"));
+            }
             keys <- NULL;
             keys <- try(utils::readRegistry("SOFTWARE\\Aspell", hive="HLM", view="32-bit", maxdepth=3), silent=TRUE);
             ## Add aspell for cran checks...
@@ -137,16 +141,30 @@ rxWinRtoolsPath <- function(rm.rtools=TRUE){
 rxWinPythonSetup <- function(){
     if (!file.exists("C:/Python27/lib")){
         ## unlink("python-2.7.13.msi")
-        if (!file.exists("python-2.7.13.msi")){
-            rxWget("https://www.python.org/ftp/python/2.7.13/python-2.7.13.msi", "python-2.7.13.msi");
-        }
-        cat("Install python to the default location (c:/Python27)\n");
-        shell("start python-2.7.13.msi")
-        readline(prompt="Press [enter] to continue");
-        if (!file.exists("C:/Python27/lib")){
-            stop("Python installation unsuccessful.");
+        if (.Platform$r_arch == "i386"){
+            if (!file.exists("python-2.7.13.msi")){
+                rxWget("https://www.python.org/ftp/python/2.7.13/python-2.7.13.msi", "python-2.7.13.msi");
+            }
+            cat("Install python to the default location (c:/Python27)\n");
+            shell("start python-2.7.13.msi")
+            readline(prompt="Press [enter] to continue");
+            if (!file.exists("C:/Python27/lib")){
+                stop("Python installation unsuccessful.");
+            } else {
+                unlink("python-2.7.13.msi");
+            }
         } else {
-            unlink("python-2.7.13.msi");
+            if (!file.exists("python.2.7.13.amd64.msi")){
+                rxWget("https://www.python.org/ftp/python/2.7.13/python.2.7.13.amd64.msi", "python.2.7.13.amd64.msi");
+            }
+            cat("Install python to the default location (c:/Python27)\n");
+            shell("start python.2.7.13.amd64.msi")
+            readline(prompt="Press [enter] to continue");
+            if (!file.exists("C:/Python27/lib")){
+                stop("Python installation unsuccessful.");
+            } else {
+                unlink("python.2.7.13.amd64.msi");
+            }
         }
     }
     if (!requireNamespace("SnakeCharmR", quietly = TRUE)){
