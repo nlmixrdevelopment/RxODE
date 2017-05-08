@@ -119,10 +119,10 @@ rxWinRtoolsPath <- function(rm.rtools=TRUE){
                     path <- c(normalizePath(python.base), path);
                     Sys.setenv(PYTHONHOME=python.base);
                 }
-            }
-            lib.path <- file.path(python.base, "Lib");
-            if (file.exists(lib.path)){
-                Sys.setenv(PYTHONPATH=paste(python.base, normalizePath(lib.path), collapse=";"));
+                lib.path <- file.path(python.base, "Lib");
+                if (file.exists(lib.path)){
+                    Sys.setenv(PYTHONPATH=paste(python.base, normalizePath(lib.path), collapse=";"));
+                }
             }
             keys <- NULL;
             ## Is there a 64 bit aspell that should be checked for...?
