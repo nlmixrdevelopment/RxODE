@@ -28,6 +28,31 @@ rxWget <- function(url, to){
         download.file(url, to, method="wget", extra="--progress=dot --no-check-certificate");
     }
 }
+
+rxPythonBaseWin <- function(){
+    if(!.Platform$OS.type == "unix"){
+    } else {
+        keys <- NULL;
+        keys <- try(utils::readRegistry("SOFTWARE\\Python\\PythonCore", hive = "HCU", ## view = "32-bit",
+                                        maxdepth = 3), silent=TRUE);
+        if (is.null(keys) || length(keys) == 0){
+            try(keys <- utils::readRegistry("SOFTWARE\\Python\\PythonCore", hive = "HLM", ## view = "32-bit",
+                                            maxdepth = 3), silent = TRUE);
+        }
+        python.base <- NULL
+        for (i in seq_along(keys)){
+            try(python.base <- keys[[i]]$InstallPath$`(Default)`, silent=TRUE)
+            if (!is.null(python.base)){
+                if (file.exists(file.path(python.base, "python.exe"))){
+                    break;
+                } else {
+                    python.base <- NULL;
+                }
+            }
+        }
+        return(python.base)
+    }
+}
 ##' Setup Rtools path
 ##'
 ##' @param rm.rtools Remove the Rtools from the current path specs.
@@ -88,24 +113,7 @@ rxWinRtoolsPath <- function(rm.rtools=TRUE){
                     path <- c(normalizePath(x), path);
                 }
             }
-            keys <- NULL;
-            keys <- try(utils::readRegistry("SOFTWARE\\Python\\PythonCore", hive = "HCU", ## view = "32-bit",
-                                            maxdepth = 3), silent=TRUE);
-            if (is.null(keys) || length(keys) == 0){
-                try(keys <- utils::readRegistry("SOFTWARE\\Python\\PythonCore", hive = "HLM", ## view = "32-bit",
-                                                maxdepth = 3), silent = TRUE);
-            }
-            python.base <- NULL
-            for (i in seq_along(keys)){
-                try(python.base <- keys[[i]]$InstallPath$`(Default)`, silent=TRUE)
-                if (!is.null(python.base)){
-                    if (file.exists(file.path(python.base, "python.exe"))){
-                        break;
-                    } else {
-                        python.base <- NULL;
-                    }
-                }
-            }
+            python.base <- rxPythonBaseWin();
             if (!is.null(python.base)){
                 if (file.exists(python.base)){
                     path <- c(normalizePath(python.base), path);
@@ -142,16 +150,18 @@ rxWinRtoolsPath <- function(rm.rtools=TRUE){
 ##' @author Matthew L. Fidler
 ##' @export
 rxWinPythonSetup <- function(){
-    if (!file.exists("C:/Python27/lib")){
+    base <- rxPythonBaseWin()
+    if (is.null(base)){
         ## unlink("python-2.7.13.msi")
         if (.Platform$r_arch == "i386"){
             if (!file.exists("python-2.7.13.msi")){
                 rxWget("https://www.python.org/ftp/python/2.7.13/python-2.7.13.msi", "python-2.7.13.msi");
             }
-            cat("Install python to the default location (c:/Python27)\n");
+            cat("Install python\n");
             shell("start python-2.7.13.msi")
             readline(prompt="Press [enter] to continue");
-            if (!file.exists("C:/Python27/lib")){
+            base <- rxPythonBaseWin()
+            if (is.null(base)){
                 stop("Python installation unsuccessful.");
             } else {
                 unlink("python-2.7.13.msi");
@@ -160,10 +170,11 @@ rxWinPythonSetup <- function(){
             if (!file.exists("python.2.7.13.amd64.msi")){
                 rxWget("https://www.python.org/ftp/python/2.7.13/python.2.7.13.amd64.msi", "python.2.7.13.amd64.msi");
             }
-            cat("Install python to the default location (c:/Python27)\n");
+            cat("Install python\n");
             shell("start python.2.7.13.amd64.msi")
             readline(prompt="Press [enter] to continue");
-            if (!file.exists("C:/Python27/lib")){
+            base <- rxPythonBaseWin()
+            if (is.null(base)){
                 stop("Python installation unsuccessful.");
             } else {
                 unlink("python.2.7.13.amd64.msi");
