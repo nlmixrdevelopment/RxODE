@@ -255,6 +255,11 @@ rxSolveSetup <- function(object, params=NULL, events=NULL, inits = NULL, scale =
             warning("Assumed transit compartment model since 'podo' is in the model.")
         }
     }
+    if (class(params) != "numeric"){
+        n <- names(params);
+        params <- as.double(params);
+        names(params) <- n;
+    }
     ## Params and inits passed
     extra.args <- list(events = events$copy(),
                        covs = covs, stiff = stiff,
@@ -484,7 +489,7 @@ rxSolve.rxDll <- function(object, params=NULL, events=NULL, inits = NULL, scale 
     if (inherits(ret, "try-error")){
         ## Error solving, try the other solver.
         errs <- paste(suppressWarnings({readLines(sink.file)}), collapse="\n");
-        call$stiff <- !call$stiff;
+        call$stiff <- !stiff;
         setup <- do.call(getFromNamespace("rxSolveSetup", "RxODE"), call, envir = parent.frame(1));
         sink(sink.file);
         ret <- try({with(setup,{

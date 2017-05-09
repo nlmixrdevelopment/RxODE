@@ -349,45 +349,10 @@ RxODE <- function(model, modName = basename(wd), wd = getwd(),
     .version <- rxVersion()["version"]; # object version
     .last.solve.args <- NULL   # to be populated by solve()
 
-    solve <- function(params=NULL,                      # Parameter
-                      events=NULL,                      # Events
-                      inits              = NULL,   # Initial Events
-                      scale              = c(), #scale
-                      covs               = NULL,   # Covariates
-                      stiff              = TRUE,   # Is the system stiff
-                      transit_abs        = NULL,  # Transit compartment absorption?
-                      atol               = 1.0e-6, # Absoltue Tolerance for LSODA solver
-                      rtol               = 1.0e-6, # Relative Tolerance for LSODA solver
-                      maxsteps           = 5000,   # Maximum number of steps
-                      hmin               = 0,      # Hmin
-                      hmax               = NULL,   # Hmax
-                      hini               = 0,      # Hini
-                      maxordn            = 12,     # maxordn
-                      maxords            = 5,      # maxords
-                      ...,
-                      covs_interpolation = c("linear", "constant"),
-                      theta=numeric(), eta=numeric()){
+    solve <- function(...){
         .last.solve.args <<- as.list(match.call(expand.dots = TRUE));
         rx <- cmpMgr$rxDll();
-        return(as.matrix(rxSolve(rx,
-                                 params=NULL,                      # Parameter
-                                 events=NULL,                      # Events
-                                 inits              = NULL,   # Initial Events
-                                 scale              = c(), #scale
-                                 covs               = NULL,   # Covariates
-                                 stiff              = TRUE,   # Is the system stiff
-                                 transit_abs        = NULL,  # Transit compartment absorption?
-                                 atol               = 1.0e-6, # Absoltue Tolerance for LSODA solver
-                                 rtol               = 1.0e-6, # Relative Tolerance for LSODA solver
-                                 maxsteps           = 5000,   # Maximum number of steps
-                                 hmin               = 0,      # Hmin
-                                 hmax               = NULL,   # Hmax
-                                 hini               = 0,      # Hini
-                                 maxordn            = 12,     # maxordn
-                                 maxords            = 5,      # maxords
-                                 ...,
-                                 covs_interpolation = c("linear", "constant"),
-                                 theta=numeric(), eta=numeric())));
+        return(as.matrix(rxSolve(rx,...)));
     }
     force <- FALSE
     if (class(do.compile) == "logical"){
