@@ -11,7 +11,7 @@ C1=centr/V;
 StepSize=1
 Extension=6
 
-mod1KA <- RxODE(model=ode1KA, modName='mod1KA')
+mod1KA <- RxODE(model=ode1KA)
 
 params <- demo[1,c("CL","V","KA")]
 
