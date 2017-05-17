@@ -110,4 +110,45 @@ refresh <- function(derivs=FALSE){
     source(devtools::package_file("build/refresh.R"))
     ## nocov end
 }
+##' do.call while setting up windows path for compiling
+##'
+##' @param ... Arguments sent to do.call
+##' @param envir Environment to do the call in
+##' @return do.call return
+##' @author Matthew L. Fidler
+##' @keywords internal
+##' @export
+rx.do.call <- function(..., envir=parent.frame()){
+    rtools.base <- rxRtoolsBaseWin();
+    if (file.exists(rtools.base)){
+        old.path <- Sys.getenv("PATH");
+        on.exit(Sys.setenv(PATH=old.path));
+        path <- unique(sapply(gsub("/", "\\\\", strsplit(Sys.getenv("PATH"), ";")[[1]]), function(x){
+            if (file.exists(x)){
+                return(normalizePath(x));
+            } else {
+                return("");
+            }
+        }))
+        path <- path[path != ""];
+        path <- path[regexpr(rex::rex(or("Rtools", "RTOOLS", "rtools")), path) == -1];
+        gcc <- list.files(rtools.base, "gcc",full.names=TRUE)[1]
+        if (is.na(gcc)){
+            gcc <- "";
+        }
+        for (x in rev(c(file.path(rtools.base, "bin"),
+                        file.path(rtools.base, ifelse(.Platform$r_arch == "i386","mingw_32/bin", "mingw_64/bin")),
+                        file.path(rtools.base, ifelse(.Platform$r_arch == "i386","mingw_32/bin", "mingw_64/bin")),
+                        file.path(rtools.base, ifelse(.Platform$r_arch == "i386","mingw_32/opt/bin", "mingw_64/opt/bin")),
+                        ifelse(gcc == "", "", file.path(gcc, "bin")),
+                        ifelse(gcc == "", "", ifelse(.Platform$r_arch == "i386",file.path(gcc, "bin32"), file.path(gcc, "bin64")))))){
+            if (file.exists(x)){
+                path <- c(normalizePath(x), path);
+            }
+        }
+        path <- paste(path, collapse=";");
+        Sys.setenv(PATH=unique(path));
+    }
+    do.call(..., envir=envir);
+}
 

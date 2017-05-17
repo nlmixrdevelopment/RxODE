@@ -227,6 +227,8 @@ rxSymPyStart <- function(){
 rxSymPyExec <- function(..., .python, .start=TRUE){
     if (.start && missing(.python)){
         rxSymPyStart();
+    }
+    if (missing(.python)){
         .python <- .rxSymPy$started;
     }
     if (.python == "SnakeCharmR"){

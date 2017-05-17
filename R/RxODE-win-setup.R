@@ -30,7 +30,7 @@ rxWget <- function(url, to){
 }
 
 rxPythonBaseWin <- function(){
-    if(!.Platform$OS.type == "unix"){
+    if(.Platform$OS.type == "unix"){
     } else {
         keys <- NULL;
         keys <- try(utils::readRegistry("SOFTWARE\\Python\\PythonCore", hive = "HCU", ## view = "32-bit",
@@ -53,31 +53,14 @@ rxPythonBaseWin <- function(){
         return(python.base)
     }
 }
-##' Setup Rtools path
+##' Return Rtools base
 ##'
-##' @param rm.rtools Remove the Rtools from the current path specs.
-##'
+##' @return Rtools base path, or "" on unix-style platforms.
 ##' @author Matthew L. Fidler
-rxWinRtoolsPath <- function(rm.rtools=TRUE){
+rxRtoolsBaseWin <- function(){
     if(.Platform$OS.type == "unix"){
-        return(TRUE)
+        return("");
     } else {
-        path <- unique(sapply(gsub("/", "\\\\", strsplit(Sys.getenv("PATH"), ";")[[1]]), function(x){
-            if (file.exists(x)){
-                return(normalizePath(x));
-            } else {
-                return("");
-            }
-        }))
-        path <- path[path != ""];
-        if (rm.rtools){
-            path <- path[regexpr(rex::rex(or("Rtools", "RTOOLS", "rtools")), path) == -1]
-        }
-        r.path <- normalizePath(file.path(Sys.getenv("R_HOME"),paste0("bin",Sys.getenv("R_ARCH"))));
-        path <- c(r.path, path);
-        ## Look in the registry...
-        ## This is taken from devtools and adapted.
-
         rtools.base <- "C:/Rtools";
         if (!file.exists(rtools.base)){
             keys <- NULL;
@@ -98,17 +81,49 @@ rxWinRtoolsPath <- function(rm.rtools=TRUE){
                 }
             }
         }
+        return(rtools.base)
+    }
+}
+##' Setup Rtools path
+##'
+##' @param rm.rtools Remove the Rtools from the current path specs.
+##'
+##' @author Matthew L. Fidler
+rxWinRtoolsPath <- function(rm.rtools=TRUE){
+    ## Note that devtools seems to assume that rtools/bin is setup appropriately, and figures out the c compiler from there.
+    if(.Platform$OS.type == "unix"){
+        return(TRUE)
+    } else {
+        path <- unique(sapply(gsub("/", "\\\\", strsplit(Sys.getenv("PATH"), ";")[[1]]), function(x){
+            if (file.exists(x)){
+                return(normalizePath(x));
+            } else {
+                return("");
+            }
+        }))
+        path <- path[path != ""];
+        if (rm.rtools){
+            path <- path[regexpr(rex::rex(or("Rtools", "RTOOLS", "rtools")), path) == -1]
+        }
+        r.path <- normalizePath(file.path(Sys.getenv("R_HOME"),paste0("bin",Sys.getenv("R_ARCH"))));
+        path <- c(r.path, path);
+        ## Look in the registry...
+        ## This is taken from devtools and adapted.
+        rtools.base <- rxRtoolsBaseWin();
         if (file.exists(rtools.base)){
             gcc <- list.files(rtools.base, "gcc",full.names=TRUE)[1]
             if (is.na(gcc)){
                 gcc <- "";
             }
-            for (x in c(file.path(rtools.base, "bin"),
-                        file.path(rtools.base, ifelse(.Platform$r_arch == "i386","mingw_32/bin", "mingw_64/bin")),
-                        file.path(rtools.base, ifelse(.Platform$r_arch == "i386","mingw_32/bin", "mingw_64/bin")),
-                        file.path(rtools.base, ifelse(.Platform$r_arch == "i386","mingw_32/opt/bin", "mingw_64/opt/bin")),
-                        ifelse(gcc == "", "", file.path(gcc, "bin")),
-                        ifelse(gcc == "", "", ifelse(.Platform$r_arch == "i386",file.path(gcc, "bin32"), file.path(gcc, "bin64"))))){
+            for (x in rev(c(file.path(rtools.base, "bin")##,
+                            ## file.path(rtools.base, "mingw_32/bin") ## Rtools sets up the mingw_32/bin first (even if x64)
+                            ## file.path(rtools.base, ifelse(.Platform$r_arch == "i386","mingw_32/bin", "mingw_64/bin")),
+                            ## file.path(rtools.base, ifelse(.Platform$r_arch == "i386","mingw_32/bin", "mingw_64/bin")),
+                            ## file.path(rtools.base, ifelse(.Platform$r_arch == "i386","mingw_32/opt/bin", "mingw_64/opt/bin")),
+                            ## ifelse(gcc == "", "", file.path(gcc, "bin")),
+                            ## ifelse(gcc == "", "", ifelse(.Platform$r_arch == "i386",file.path(gcc, "bin32"), file.path(gcc, "bin64"))
+                                   ## )
+                            ))){
                 if (file.exists(x)){
                     path <- c(normalizePath(x), path);
                 }
@@ -137,8 +152,8 @@ rxWinRtoolsPath <- function(rm.rtools=TRUE){
             }
 
             path <- path[path != ""];
-            path <- paste(path, collapse=";");
-            Sys.setenv(PATH=unique(path));
+            path <- paste(unique(path), collapse=";");
+            Sys.setenv(PATH=path);
             return(TRUE);
         } else {
             return(FALSE)

@@ -1403,11 +1403,11 @@ rxCompile.character <-  function(model,           # Model
             }
             compileFile <- tempfile();
             stdErrFile <- tempfile();
-            rc <- tryCatch(do.call(sh, list(cmd, ignore.stdout = !getOption("RxODE.echo.compile", FALSE), ignore.stderr = !getOption("RxODE.echo.compile", FALSE))),
+            rc <- tryCatch(rx.do.call(sh, list(cmd, ignore.stdout = !getOption("RxODE.echo.compile", FALSE), ignore.stderr = !getOption("RxODE.echo.compile", FALSE))),
                            error = function(e) "error",
                            warning = function(w) "warning");
             if (any(rc == c("error", "warning"))){
-                try(do.call(sh, list(cmd, ignore.stdout = FALSE, ignore.stderr = FALSE)),
+                try(rx.do.call(sh, list(cmd, ignore.stdout = FALSE, ignore.stderr = FALSE)),
                     silent = FALSE)
                 stop(sprintf("error compiling %s", cFile));
             }
