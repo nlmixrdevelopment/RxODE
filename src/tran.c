@@ -681,14 +681,14 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
 	ii = 0;
 	if (strstr(v,"THETA[") != NULL){
-	  sprintf(buf,"_THETA_%.*s_",strlen(v)-7,v+6);
+	  sprintf(buf,"_THETA_%.*s_",(int)(strlen(v))-7,v+6);
 	  sprintf(SBTPTR, "%s)",v);
           sbt.o = strlen(sbt.s);
 	  sprintf(SBPTR, "%s]]",buf);
           sb.o = strlen(sb.s);
 	  ii = 1;
 	} else if (strstr(v,"ETA[") != NULL) {
-	  sprintf(buf,"_ETA_%.*s_",strlen(v)-5,v+4);
+	  sprintf(buf,"_ETA_%.*s_",(int)(strlen(v))-5,v+4);
           sprintf(SBTPTR, "%s)",v);
           sbt.o = strlen(sbt.s);
           sprintf(SBPTR, "%s]]",buf);
@@ -1249,7 +1249,7 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
           if (s2){
             sprintf(s_aux_info+o,"\tSET_STRING_ELT(inin,%d,mkChar(\"%s\"));\n",ini_i, buf);
             o = strlen(s_aux_info);
-            sprintf(s_aux_info+o,"\tREAL(ini)[%d] = %.*s;\n",(int)(ini_i++), strlen(sLine)-strlen(buf2)-2,sLine + strlen(buf2));
+            sprintf(s_aux_info+o,"\tREAL(ini)[%d] = %.*s;\n",(int)(ini_i++), (int)(strlen(sLine))-(int)(strlen(buf2))-2,sLine + (int)(strlen(buf2)));
             o = strlen(s_aux_info);
             continue;
           }
