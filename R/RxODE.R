@@ -365,8 +365,12 @@ RxODE <- function(model, modName = basename(wd), wd = getwd(),
     if (do.compile){
         cmpMgr$compile(force);
         ## Add for backward compatibility.
-        cmpMgr$dllfile <- rxDll(cmpMgr$rxDll());
-        cmpMgr$ode_solver <- rxTrans(cmpMgr$rxDll(), calcJac=calcJac, calcSens=calcSens, collapseModel=collapseModel)["ode_solver"];
+        tmp <- rxDll(cmpMgr$rxDll());
+        names(tmp) <- NULL;
+        cmpMgr$dllfile <- tmp;
+        tmp <- rxTrans(cmpMgr$rxDll(), calcJac=calcJac, calcSens=calcSens, collapseModel=collapseModel)["ode_solver"]
+        names(tmp) <- NULL
+        cmpMgr$ode_solver <- tmp;
         model <- rxModelVars(cmpMgr$rxDll())$model["model"];
         names(model) <- NULL;
         cmpMgr$model <- model

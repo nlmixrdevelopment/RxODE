@@ -452,11 +452,11 @@ void RxODE_ode_solver_old_c(int *neq,
                             double *lhs,
                             int *rc){
   int i;
-  /* for (i=0; i< *neq; i++) InfusionRate[i] = 0.0; */
+  for (i=0; i< *neq; i++) InfusionRate[i] = 0.0;
   ATOL = *atol;
   RTOL = *rtol;
   do_transit_abs = *transit_abs;
-  par_ptr = theta;
+  *par_ptr = *theta;
   // Assign to default LSODA behvior, or 0
   HMIN           = 0;
   HMAX           = 0;
@@ -468,7 +468,7 @@ void RxODE_ode_solver_old_c(int *neq,
   dadt_counter   = 0;
   jac_counter    = 0;
   // Assign global time information
-  all_times     = time; 
+  *all_times     = *time; 
   n_all_times   = *ntime;
   // Call solver
   RxODE_ode_solver_c(*neq, *stiff, evid, inits, dose, ret, rc);
@@ -553,7 +553,7 @@ void RxODE_ode_solver_0_6_c(int *neq,
 			    int mxords,
 			    int mxstep){
   int i;
-  /* for (i=0; i<*neq; i++) InfusionRate[i] = 0.0; */
+  for (i=0; i<*neq; i++) InfusionRate[i] = 0.0;
   ATOL = *atol;
   RTOL = *rtol;
   do_transit_abs = *transit_abs;
@@ -735,7 +735,7 @@ SEXP RxODE_ode_solver (// Parameters
   
   double *ret   = REAL(sexp_ret);
   
-  /* for (i=0; i<neq; i++) InfusionRate[i] = 0.0; */
+  for (i=0; i<neq; i++) InfusionRate[i] = 0.0;
   
   RxODE_ode_solver_c(neq, stiff, evid, inits, dose, solve, rc);
 

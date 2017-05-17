@@ -9,6 +9,7 @@
 #define LHS_Rprintf Rprintf
 #define max(a,b) (((a)>(b))?(a):(b))
 #define min(a,b) (((a)<(b))?(a):(b))
+
 // Types for par pointers.r
 typedef void (*RxODE_update_par_ptr)(double t);
 typedef double (*RxODE_transit3)(double t, double n, double mtt);
@@ -43,7 +44,7 @@ solvedC_type solvedC;
 
 extern void __ODE_SOLVER_PTR__();
 
-void __ODE_SOLVER__(
+extern void __ODE_SOLVER__(
                     int *neq,
                     double *theta,      //order:
                     double *time,
