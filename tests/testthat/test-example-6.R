@@ -27,6 +27,11 @@ d/dt(blood)     = a*intestine - b*blood
         expect_equal(digest(round(as.data.frame(pk),4)),"e76e55f01b5da4f3dadaa23448981b4f")
     })
 
+    pk2 <- solve(mod, et, matrix=TRUE)
+    test_that("matrix solving works.",{
+        expect_equal(as.matrix(pk),pk2)
+    })
+
     ## Change QD dosing to BID dosing.
     et2 <- eventTable(time.units="days")
     et2$add.sampling(seq(0,10,by=1/24))

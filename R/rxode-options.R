@@ -71,6 +71,24 @@ rxOpt <- list(RxODE.prefer.tbl               =c(FALSE, FALSE),
               RxODE.sympy.engine             =c("", "")
               );
 
+RxODE.prefer.tbl <- NULL
+RxODE.display.tbl <- NULL
+RxODE.echo.compile <- NULL
+RxODE.warn.on.assign <- NULL
+RxODE.compile.on.load <- NULL
+RxODE.syntax.assign <- NULL
+RxODE.syntax.star.pow <- NULL
+RxODE.syntax.require.semicolon <- NULL
+RxODE.syntax.allow.dots <- NULL
+RxODE.syntax.allow.ini0 <- NULL
+RxODE.syntax.allow.ini <- NULL
+RxODE.calculate.jacobian <- NULL
+RxODE.calculate.sensitivity <- NULL
+RxODE.verbose <- NULL
+RxODE.suppress.syntax.info <- NULL
+RxODE.sympy.engine <- NULL
+
+
 ##' Permissive or Strict RxODE sytax options
 ##'
 ##' This sets the RxODE syntax to be permissive or strict
@@ -147,17 +165,34 @@ rxOptions <- function(expr, op.rx=NULL, silent=FALSE, respect=FALSE,
                 rxClean();
             }
             opOld <- options();
-            on.exit({options(opOld); if (rxclean){rxClean();}});
+            on.exit({options(opOld); rxSyncOptions(); if (rxclean){rxClean();}});
         }
         if (respect){
             op <- options();
             w <- !(names(op.rx) %in% names(op))
             if (any(w)) options(op.rx[w]);
+            rxSyncOptions()
         } else {
             options(op.rx);
+            rxSyncOptions()
         }
         if (class(substitute(expr)) == "{"){
             return(eval(substitute(expr), envir=parent.frame(1)));
         }
     }
 }
+
+##' Sync options with RxODE varaibles
+##'
+##' Accessing RxODE options via getOption slows down solving.  This
+##' allows the options to be synced with variables.
+##'
+##' @author Matthew L. Fidler
+##' @export
+rxSyncOptions <- function(){
+    for (var in names(rxOpt)){
+        assignInMyNamespace(var, getOption(var, rxOpt[[var]][1]));
+    }
+}
+
+rxSyncOptions();

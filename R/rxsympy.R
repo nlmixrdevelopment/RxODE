@@ -150,7 +150,7 @@ rxSymPyStart <- function(){
     }
     start <- function(python){
         if (is.null(.rxSymPy$started) &&
-            any(getOption("RxODE.sympy.engine", "") == c("", python))){
+            any(RxODE.sympy.engine == c("", python))){
             if (requireNamespace(python, quietly = TRUE)){
                 tmp <- try({rxSymPyExec("import sys", .python = python, .start = FALSE)});
                 if (!inherits(tmp, "try-error")){
@@ -189,7 +189,7 @@ rxSymPyStart <- function(){
     start("rPython");
     start("PythonInR");
     if (is.null(.rxSymPy$started)){
-        if (any(getOption("RxODE.sympy.engine", "") == c("", "rSymPy"))) {
+        if (any(RxODE.sympy.engine == c("", "rSymPy"))) {
             if (requireNamespace("rSymPy", quietly = TRUE)){
                 if (!exists(".Jython", .GlobalEnv)){
                     rxCat("Using sympy via rSymPy (creating jython process)\n");
@@ -1143,8 +1143,8 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
             sh <- "system"   # windows's default shell COMSPEC does not handle UNC paths
             cmd <- sprintf("%s/bin/Rscript %s",
                            Sys.getenv("R_HOME"), deparse(rfile));
-            suppressWarnings(system(cmd, ignore.stdout=!getOption("RxODE.verbose", TRUE),
-                                    ignore.stderr=!getOption("RxODE.verbose", TRUE)));
+            suppressWarnings(system(cmd, ignore.stdout=!RxODE.verbose,
+                                    ignore.stderr=!RxODE.verbose));
             if (file.exists(cache.file)){
                 load(file=cache.file);
                 rxLoad(ret$inner);

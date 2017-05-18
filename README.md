@@ -134,15 +134,8 @@ plot(mod1);
 ```
 
 ```
-##                              C2                              C3 
-##                      "centr/V2"                       "peri/V3" 
-##                     d/dt(depot)                     d/dt(centr) 
-##                     "-KA*depot"      "KA*depot-CL*C2-Q*C2+Q*C3" 
-##                      d/dt(peri)                       d/dt(eff) 
-##                     "Q*C2-Q*C3" "Kin-Kout*(1-C2/(EC50+C2))*eff"
+## Package igraph needed for this function to work. Please install it.
 ```
-
-![plot of chunk unnamed-chunk-3](vignettes/figure/unnamed-chunk-3-1.png)
 
 Sometimes the size of the boxes may need to be adjusted, you can do
 this by adjusting the `size` argument:
@@ -152,15 +145,8 @@ plot(mod1,size=40);
 ```
 
 ```
-##                              C2                              C3 
-##                      "centr/V2"                       "peri/V3" 
-##                     d/dt(depot)                     d/dt(centr) 
-##                     "-KA*depot"      "KA*depot-CL*C2-Q*C2+Q*C3" 
-##                      d/dt(peri)                       d/dt(eff) 
-##                     "Q*C2-Q*C3" "Kin-Kout*(1-C2/(EC50+C2))*eff"
+## Package igraph needed for this function to work. Please install it.
 ```
-
-![plot of chunk unnamed-chunk-4](vignettes/figure/unnamed-chunk-4-1.png)
 
 Model parameters can be defined as named vectors. Names of parameters in
 the vector must be a superset of parameters in the ODE model, and the
@@ -296,7 +282,7 @@ print(x)
 
 ```
 ## Solved RxODE object
-## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpesfoD8\Rx_intro-5c941d7d43e0/mod1.d/mod1_i386.dll
+## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\Rtmp0I6Cju\Rx_intro-6c81e3a728e/mod1.d/mod1_x64.dll
 ## 
 ## Parameters:
 ##      V2      V3      KA      CL       Q     Kin    Kout    EC50 
@@ -309,7 +295,7 @@ print(x)
 ## 
 ## 
 ## First part of data:
-## # A tibble: 241 × 7
+## # A tibble: 241 x 7
 ##    time     depot    centr      peri      eff       C2        C3
 ##   <dbl>     <dbl>    <dbl>     <dbl>    <dbl>    <dbl>     <dbl>
 ## 1     0 10000.000    0.000    0.0000 1.000000  0.00000 0.0000000
@@ -329,7 +315,7 @@ print(x)
 
 ```
 ## Solved RxODE object
-## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpesfoD8\Rx_intro-5c941d7d43e0/mod1.d/mod1_i386.dll
+## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\Rtmp0I6Cju\Rx_intro-6c81e3a728e/mod1.d/mod1_x64.dll
 ## 
 ## Parameters:
 ##      V2      V3      KA      CL       Q     Kin    Kout    EC50 
@@ -342,7 +328,7 @@ print(x)
 ## 
 ## 
 ## First part of data:
-## # A tibble: 241 × 7
+## # A tibble: 241 x 7
 ##    time     depot    centr      peri      eff       C2        C3
 ##   <dbl>     <dbl>    <dbl>     <dbl>    <dbl>    <dbl>     <dbl>
 ## 1     0 10000.000    0.000    0.0000 1.000000  0.00000 0.0000000
@@ -363,7 +349,7 @@ print(x)
 
 ```
 ## Solved RxODE object
-## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpesfoD8\Rx_intro-5c941d7d43e0/mod1.d/mod1_i386.dll
+## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\Rtmp0I6Cju\Rx_intro-6c81e3a728e/mod1.d/mod1_x64.dll
 ## 
 ## Parameters:
 ##      V2      V3      KA      CL       Q     Kin    Kout    EC50 
@@ -376,7 +362,7 @@ print(x)
 ## 
 ## 
 ## First part of data:
-## # A tibble: 241 × 7
+## # A tibble: 241 x 7
 ##    time     depot    centr      peri      eff       C2        C3
 ##   <dbl>     <dbl>    <dbl>     <dbl>    <dbl>    <dbl>     <dbl>
 ## 1     0 10000.000    0.000    0.0000 1.000000  0.00000 0.0000000
@@ -393,6 +379,26 @@ by `dpylr`.  For example you could filter it easily.
 
 ```r
 library(dplyr)
+```
+
+```
+## 
+## Attaching package: 'dplyr'
+```
+
+```
+## The following objects are masked from 'package:stats':
+## 
+##     filter, lag
+```
+
+```
+## The following objects are masked from 'package:base':
+## 
+##     intersect, setdiff, setequal, union
+```
+
+```r
 x <- mod1 %>% solve(theta,ev,inits) %>%  filter(time <=3)
 x
 ```
@@ -413,6 +419,49 @@ if (any(installed.packages()[,"Package"] == "data.table")){
     library(data.table)
     dt <- as.data.table(mod1 %>% solve(theta, ev, inits))
 }
+```
+
+```
+## data.table 1.10.4
+```
+
+```
+##   The fastest way to learn (by data.table authors): https://www.datacamp.com/courses/data-analysis-the-data-table-way
+```
+
+```
+##   Documentation: ?data.table, example(data.table) and browseVignettes("data.table")
+```
+
+```
+##   Release notes, videos and slides: http://r-datatable.com
+```
+
+```
+## -------------------------------------------------------------------------
+```
+
+```
+## data.table + dplyr code now lives in dtplyr.
+## Please library(dtplyr)!
+```
+
+```
+## -------------------------------------------------------------------------
+```
+
+```
+## 
+## Attaching package: 'data.table'
+```
+
+```
+## The following objects are masked from 'package:dplyr':
+## 
+##     between, first, last
+```
+
+```r
 dt
 ```
 
@@ -470,7 +519,7 @@ x
 
 ```
 ## Solved RxODE object
-## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpesfoD8\Rx_intro-5c941d7d43e0/mod1.d/mod1_i386.dll
+## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\Rtmp0I6Cju\Rx_intro-6c81e3a728e/mod1.d/mod1_x64.dll
 ## 
 ## Parameters:
 ##      V2      V3      KA      CL       Q     Kin    Kout    EC50 
@@ -483,7 +532,7 @@ x
 ## 
 ## 
 ## First part of data:
-## # A tibble: 241 × 7
+## # A tibble: 241 x 7
 ##    time     depot    centr      peri      eff       C2        C3
 ##   <dbl>     <dbl>    <dbl>     <dbl>    <dbl>    <dbl>     <dbl>
 ## 1     0 10000.000    0.000    0.0000 2.000000  0.00000 0.0000000
@@ -514,7 +563,7 @@ x
 
 ```
 ## Solved RxODE object
-## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpesfoD8\Rx_intro-5c941d7d43e0/mod1.d/mod1_i386.dll
+## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\Rtmp0I6Cju\Rx_intro-6c81e3a728e/mod1.d/mod1_x64.dll
 ## 
 ## Parameters:
 ##      V2      V3      KA      CL       Q     Kin    Kout    EC50 
@@ -527,7 +576,7 @@ x
 ## 
 ## 
 ## First part of data:
-## # A tibble: 20 × 7
+## # A tibble: 20 x 7
 ##        time     depot     centr      peri      eff       C2        C3
 ##       <dbl>     <dbl>     <dbl>     <dbl>    <dbl>    <dbl>     <dbl>
 ## 1 0.0000000 10000.000    0.0000   0.00000 2.000000  0.00000 0.0000000
@@ -555,7 +604,7 @@ x
 
 ```
 ## Solved RxODE object
-## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpesfoD8\Rx_intro-5c941d7d43e0/mod1.d/mod1_i386.dll
+## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\Rtmp0I6Cju\Rx_intro-6c81e3a728e/mod1.d/mod1_x64.dll
 ## 
 ## Parameters:
 ##    V2    V3    KA    CL     Q   Kin  Kout  EC50 
@@ -568,7 +617,7 @@ x
 ## 
 ## 
 ## First part of data:
-## # A tibble: 241 × 7
+## # A tibble: 241 x 7
 ##    time      depot     centr      peri      eff        C2        C3
 ##   <dbl>      <dbl>     <dbl>     <dbl>    <dbl>     <dbl>     <dbl>
 ## 1     0 10000.0000    0.0000    0.0000 2.000000   0.00000  0.000000
@@ -606,12 +655,12 @@ head(theta.all)
 
 ```
 ##         KA       CL   V2    Q  V3 Kin Kout EC50
-## [1,] 0.294 16.82606 40.2 10.5 297   1    1  200
-## [2,] 0.294 19.15463 40.2 10.5 297   1    1  200
-## [3,] 0.294 16.27225 40.2 10.5 297   1    1  200
-## [4,] 0.294 24.00847 40.2 10.5 297   1    1  200
-## [5,] 0.294 19.60693 40.2 10.5 297   1    1  200
-## [6,] 0.294 16.31177 40.2 10.5 297   1    1  200
+## [1,] 0.294 15.95093 40.2 10.5 297   1    1  200
+## [2,] 0.294 15.56685 40.2 10.5 297   1    1  200
+## [3,] 0.294 18.30135 40.2 10.5 297   1    1  200
+## [4,] 0.294 14.15973 40.2 10.5 297   1    1  200
+## [5,] 0.294 21.37879 40.2 10.5 297   1    1  200
+## [6,] 0.294 21.87371 40.2 10.5 297   1    1  200
 ```
 
 Each subproblem can be simulated by using an explicit loop (or the `apply()`

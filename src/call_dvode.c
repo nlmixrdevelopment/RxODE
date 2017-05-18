@@ -38,7 +38,7 @@ int    n_all_times;
 int    mxstep;
 int    MXORDN;
 int    MXORDS;
-int    global_jt, global_mf, global_debug, ixds;
+int    global_jt, global_mf, global_debug, ixds,ndoses = -1;
 double *all_times;
 FILE *fp;
 
@@ -52,7 +52,6 @@ void (*calc_lhs)(double t, double *A, double *lhs);
 void (*update_inis)(SEXP _ini_sexp);
 
 void rxInner(SEXP rho);
-
 
 void rxCalcLhs(int i){
   if (i < n_all_times){
@@ -82,8 +81,22 @@ unsigned int nAllTimes (){
   return (unsigned int)(n_all_times);
 }
 
+unsigned int nDoses(){
+  if (ndoses < 0){
+    ndoses=0;
+    for (int i = 0; i < n_all_times; i++){
+      if (rxEvid(i)){
+        ndoses++;
+      }
+    }
+    return ndoses;
+  } else {
+    return ndoses;
+  }
+}
+
 unsigned int nObs(){
-  return (unsigned int)(n_all_times - ixds);
+  return (unsigned int)(n_all_times - nDoses());
 }
 
 unsigned int nLhs (){
@@ -493,19 +506,14 @@ void RxODE_ode_solver_old_c(int *neq,
 
 SEXP RxODE_ode_get_dosing(){
   SEXP sexp_ret;
-  int ndoses = 0, i, j = 0;
-  for (i = 0; i < n_all_times; i++){
-    if (rxEvid(i)){
-      ndoses++;
-    }
-  }
-  sexp_ret  = PROTECT(allocMatrix(REALSXP, ndoses, 3));
+  int  i, j = 0;
+  sexp_ret  = PROTECT(allocMatrix(REALSXP, nDoses(), 3));
   double *ret   = REAL(sexp_ret);
   for (i = 0; i < n_all_times; i++){
     if (rxEvid(i)){
       ret[j] = all_times[i];
-      ret[ndoses+j] =(double)(evid[i]);
-      ret[ndoses*2+j] = dose[j];
+      ret[nDoses()+j] =(double)(evid[i]);
+      ret[nDoses()*2+j] = dose[j];
       /* Rprintf("\tj:%d(%d)\tt: %f\tevid:%f\tdose:%f\n", */
       /* 	      j, ndoses, */
       /* 	      ret[j],ret[ndoses+j],ret[ndoses*2+j]); */
@@ -635,6 +643,7 @@ void RxODE_ode_setup(SEXP sexp_inits,
                      SEXP sexp_transit_abs){
   /* RxODE_ode_free(); */
   // Events
+  ndoses        = -1;
   all_times     = REAL(sexp_time);
   n_all_times   = length(sexp_time);
   evid          = INTEGER(sexp_evid);
@@ -728,12 +737,14 @@ SEXP RxODE_ode_solver (// Parameters
 		       SEXP sexp_transit_abs,
 		       // Object Creation
 		       SEXP sexp_object,
-		       SEXP sexp_extra_args){
+		       SEXP sexp_extra_args,
+		       SEXP sexp_matrix){
   // TODO: Absorption lag?
   // TODO: Annotation?
   // TODO: Units
   // TODO: Bioavailiability
   // Parameters
+  int pro=0;
   par_ptr       = REAL(sexp_theta);
   inits         = REAL(sexp_inits);
   // Events
@@ -741,109 +752,146 @@ SEXP RxODE_ode_solver (// Parameters
   RxODE_ode_alloc();
   
   int i = 0, j = 0;
-  SEXP sexp_ret     = PROTECT(allocMatrix(REALSXP, nAllTimes(), ncov+1+neq+nlhs));
-  SEXP sexp_counter = PROTECT(allocVector(INTSXP,4));
+  SEXP sexp_counter = PROTECT(allocVector(INTSXP,4));pro++;
   int    *counts    = INTEGER(sexp_counter);
-  
-  double *ret   = REAL(sexp_ret);
+
+  int *matrix = INTEGER(sexp_matrix);
   
   for (i=0; i<neq; i++) InfusionRate[i] = 0.0;
   
   RxODE_ode_solver_c(neq, stiff, evid, inits, dose, solve, rc);
-
+  SEXP sexp_ret     = PROTECT(allocMatrix(REALSXP, nObs(), ncov+1+neq+nlhs)); pro++;
+  double *ret   = REAL(sexp_ret);
+  
   // Now create the matrix.
+  int ii=0;
   for (i = 0; i < nAllTimes(); i++){
     // Time
-    ret[i] = all_times[i];
-    // State
-    if (neq){
-      for (j = 0; j < neq; j++){
-      	ret[nAllTimes()*(j+1)+i] = solve[j+i*neq];
+    if (rxEvid(i)==0){
+      ret[ii] = all_times[i];
+      // State
+      if (neq){
+        for (j = 0; j < neq; j++){
+          ret[nObs()*(j+1)+ii] = solve[j+i*neq];
+        }
       }
-    }
-    // LHS
-    if (nlhs){
-      rxCalcLhs(i);
-      for (j = 0; j < nlhs; j++){
-	ret[nAllTimes()*(j+1+neq)+i] = rxLhs(j);
+      // LHS
+      if (nlhs){
+        rxCalcLhs(i);
+        for (j = 0; j < nlhs; j++){
+          ret[nObs()*(j+1+neq)+ii] = rxLhs(j);
+        }
       }
-    }
-    // Cov
-    if (ncov > 0){
-      for (j = 0; j < ncov; j++){
-      	ret[nAllTimes()*(j+1+neq+nlhs)+i] = cov_ptr[j*nAllTimes()+i];
+      // Cov
+      if (ncov > 0){
+        for (j = 0; j < ncov; j++){
+          ret[nObs()*(j+1+neq+nlhs)+ii] = cov_ptr[j*nAllTimes()+i];
+        }
       }
+      ii++;
     }
   }
-  SEXP sexp_dimnames = PROTECT(allocVector(VECSXP,2));
+  SEXP sexp_dimnames = PROTECT(allocVector(VECSXP,2));pro++;
   SET_VECTOR_ELT(sexp_dimnames, 0, R_NilValue);
-  SEXP sexp_colnames = PROTECT(allocVector(STRSXP,1+neq+nlhs+ncov));
-  SEXP sexp_solve    = PROTECT(allocVector(REALSXP,1+neq+nlhs+ncov));
+  SEXP sexp_colnames = PROTECT(allocVector(STRSXP,1+neq+nlhs+ncov)); pro++;
   SET_STRING_ELT(sexp_colnames, 0, mkChar("time"));
-  double *solver = REAL(sexp_solve);
-  solver[0] = all_times[nAllTimes()-1];
   SEXP temp = getAttrib(sexp_inits, R_NamesSymbol);
-  for (i = 0; i < neq; i++){
-  SET_STRING_ELT(sexp_colnames, 1+i, STRING_ELT(temp,i));
-    solver[1+i] = inits[i];
-  }
-  for (i = 0; i < nlhs; i++){
-    SET_STRING_ELT(sexp_colnames,1+neq+i, STRING_ELT(sexp_lhs,i));
-    solver[1+neq+i] = NA_REAL;
-  }
-  temp = getAttrib(sexp_theta,R_NamesSymbol);
-  for (i = 0; i < ncov; i++){
-    SET_STRING_ELT(sexp_colnames,1+neq+nlhs+i, STRING_ELT(temp, par_cov[i]-1));
-    solver[1+neq+nlhs+i] = NA_REAL;
-  }
-  SET_VECTOR_ELT(sexp_dimnames,1,sexp_colnames);
-  setAttrib(sexp_ret, R_DimNamesSymbol, sexp_dimnames);
-  SEXP sexp_ncounter = PROTECT(allocVector(STRSXP, 4));
-  SET_STRING_ELT(sexp_ncounter, 0, mkChar("solver"));
-  counts[0] = slvr_counter;
-  SET_STRING_ELT(sexp_ncounter, 1, mkChar("dadt"));
-  counts[1] = dadt_counter;
-  SET_STRING_ELT(sexp_ncounter, 2, mkChar("user_jac"));
-  counts[2] = jac_counter;
-  SET_STRING_ELT(sexp_ncounter, 3, mkChar("rc"));
-  counts[3] = rc[0];
-  setAttrib(sexp_counter, R_NamesSymbol, sexp_ncounter);
+  if (matrix[0]){
+    for (i = 0; i < neq; i++){
+      SET_STRING_ELT(sexp_colnames, 1+i, STRING_ELT(temp,i));
+    }
+    for (i = 0; i < nlhs; i++){
+      SET_STRING_ELT(sexp_colnames,1+neq+i, STRING_ELT(sexp_lhs,i));
+    }
+    temp = getAttrib(sexp_theta,R_NamesSymbol);
+    for (i = 0; i < ncov; i++){
+      SET_STRING_ELT(sexp_colnames,1+neq+nlhs+i, STRING_ELT(temp, par_cov[i]-1));
+    }
+    SET_VECTOR_ELT(sexp_dimnames,1,sexp_colnames);
+    setAttrib(sexp_ret, R_DimNamesSymbol, sexp_dimnames);
+    SEXP sexp_solve2   = PROTECT(allocVector(VECSXP, 2)); pro++;
+    SEXP sexp_rc = PROTECT(allocVector(INTSXP,1)); pro++;
+    int *rc2 = INTEGER(sexp_rc);
+    rc2[0] = rc[0];
+    SET_VECTOR_ELT(sexp_solve2, 0,sexp_ret);
+    SET_VECTOR_ELT(sexp_solve2, 1,sexp_rc);
+    UNPROTECT(pro);
+    if (fp) fclose(fp);
+    RxODE_ode_free();
+    return sexp_solve2;
+  } else {
+    SEXP sexp_solve    = PROTECT(allocVector(REALSXP,1+neq+nlhs+ncov)); pro++;
+    double *solver = REAL(sexp_solve);
+    solver[0] = all_times[nAllTimes()-1];
+    for (i = 0; i < neq; i++){
+      SET_STRING_ELT(sexp_colnames, 1+i, STRING_ELT(temp,i));
+      solver[1+i] = inits[i];
+    }
+    for (i = 0; i < nlhs; i++){
+      SET_STRING_ELT(sexp_colnames,1+neq+i, STRING_ELT(sexp_lhs,i));
+      solver[1+neq+i] = NA_REAL;
+    }
+    temp = getAttrib(sexp_theta,R_NamesSymbol);
+    for (i = 0; i < ncov; i++){
+      SET_STRING_ELT(sexp_colnames,1+neq+nlhs+i, STRING_ELT(temp, par_cov[i]-1));
+      solver[1+neq+nlhs+i] = NA_REAL;
+    }
+    SET_VECTOR_ELT(sexp_dimnames,1,sexp_colnames);
+    setAttrib(sexp_ret, R_DimNamesSymbol, sexp_dimnames);
+    SEXP sexp_ncounter = PROTECT(allocVector(STRSXP, 4)); pro++;
+    SET_STRING_ELT(sexp_ncounter, 0, mkChar("solver"));
+    counts[0] = slvr_counter;
+    SET_STRING_ELT(sexp_ncounter, 1, mkChar("dadt"));
+    counts[1] = dadt_counter;
+    SET_STRING_ELT(sexp_ncounter, 2, mkChar("user_jac"));
+    counts[2] = jac_counter;
+    SET_STRING_ELT(sexp_ncounter, 3, mkChar("rc"));
+    counts[3] = rc[0];
+    setAttrib(sexp_counter, R_NamesSymbol, sexp_ncounter);
   
-  SEXP sexp_lst   = PROTECT(allocVector(VECSXP, 5 + length(sexp_extra_args)));
-  SEXP sexp_lstn  = PROTECT(allocVector(STRSXP, 5 + length(sexp_extra_args)));
+    SEXP sexp_lst   = PROTECT(allocVector(VECSXP, 5 + length(sexp_extra_args))); pro++;
+    SEXP sexp_lstn  = PROTECT(allocVector(STRSXP, 5 + length(sexp_extra_args))); pro++;
 
-  SET_STRING_ELT(sexp_lstn,0,mkChar("matrix"));
-  SET_VECTOR_ELT(sexp_lst, 0,sexp_ret);
+    SET_STRING_ELT(sexp_lstn,0,mkChar("matrix"));
+    SET_VECTOR_ELT(sexp_lst, 0,sexp_ret);
   
-  SET_STRING_ELT(sexp_lstn,1,mkChar("counts"));
-  SET_VECTOR_ELT(sexp_lst, 1,sexp_counter);
+    SET_STRING_ELT(sexp_lstn,1,mkChar("counts"));
+    SET_VECTOR_ELT(sexp_lst, 1,sexp_counter);
   
-  SET_STRING_ELT(sexp_lstn,2,mkChar("inits"));
-  SET_VECTOR_ELT(sexp_lst, 2,sexp_inits);
+    SET_STRING_ELT(sexp_lstn,2,mkChar("inits"));
+    SET_VECTOR_ELT(sexp_lst, 2,sexp_inits);
   
-  SET_STRING_ELT(sexp_lstn,3,mkChar("params"));
-  SET_VECTOR_ELT(sexp_lst, 3,sexp_theta);
+    SET_STRING_ELT(sexp_lstn,3,mkChar("params"));
+    SET_VECTOR_ELT(sexp_lst, 3,sexp_theta);
   
-  SET_STRING_ELT(sexp_lstn,4,mkChar("object"));
-  SET_VECTOR_ELT(sexp_lst, 4,sexp_object);
+    SET_STRING_ELT(sexp_lstn,4,mkChar("object"));
+    SET_VECTOR_ELT(sexp_lst, 4,sexp_object);
 
-  temp = getAttrib(sexp_extra_args,R_NamesSymbol);
-  for (i = 0; i < length(sexp_extra_args); i++){
-    SET_STRING_ELT(sexp_lstn,5+i,STRING_ELT(temp,i));
-    SET_VECTOR_ELT(sexp_lst, 5+i,VECTOR_ELT(sexp_extra_args,i));
+    temp = getAttrib(sexp_extra_args,R_NamesSymbol);
+    for (i = 0; i < length(sexp_extra_args); i++){
+      SET_STRING_ELT(sexp_lstn,5+i,STRING_ELT(temp,i));
+      SET_VECTOR_ELT(sexp_lst, 5+i,VECTOR_ELT(sexp_extra_args,i));
+    }
+  
+    setAttrib(sexp_lst, R_NamesSymbol, sexp_lstn);
+    setAttrib(sexp_solve, install("solveRxDll"), sexp_lst);
+    SEXP sexp_class = PROTECT(allocVector(STRSXP, 1)); pro++;
+    SET_STRING_ELT(sexp_class, 0, mkChar("solveRxDll"));
+    setAttrib(sexp_solve, R_ClassSymbol, sexp_class);
+    setAttrib(sexp_solve, R_NamesSymbol, sexp_colnames);
+
+    SEXP sexp_solve2   = PROTECT(allocVector(VECSXP, 2)); pro++;
+    SEXP sexp_rc = PROTECT(allocVector(INTSXP,1)); pro++;
+    int *rc2 = INTEGER(sexp_rc);
+    rc2[0] = rc[0];
+    SET_VECTOR_ELT(sexp_solve2, 0,sexp_solve);
+    SET_VECTOR_ELT(sexp_solve2, 1,sexp_rc);
+
+    UNPROTECT(pro);
+    if (fp) fclose(fp);
+    RxODE_ode_free();
+    return sexp_solve2;
   }
-  
-  setAttrib(sexp_lst, R_NamesSymbol, sexp_lstn);
-  setAttrib(sexp_solve, install("solveRxDll"), sexp_lst);
-  SEXP sexp_class = PROTECT(allocVector(STRSXP, 1));
-  SET_STRING_ELT(sexp_class, 0, mkChar("solveRxDll"));
-  setAttrib(sexp_solve, R_ClassSymbol, sexp_class);
-  setAttrib(sexp_solve, R_NamesSymbol, sexp_colnames);
-
-  UNPROTECT(9);
-  if (fp) fclose(fp);
-  RxODE_ode_free();
-  return sexp_solve;
 }
 
 double RxODE_InfusionRate(int val){
@@ -917,7 +965,7 @@ SEXP RxODE_rxCoutEcho(SEXP number);
 
 void R_init_RxODE(DllInfo *info){
   R_CallMethodDef callMethods[]  = {
-    {"RxODE_ode_solver", (DL_FUNC) &RxODE_ode_solver, 21},
+    {"RxODE_ode_solver", (DL_FUNC) &RxODE_ode_solver, 22},
     {"RxODE_rxInner", (DL_FUNC) &RxODE_rxInner, 2},
     {"RxODE_rxHessian", (DL_FUNC) &RxODE_rxHessian, 1},
     {"RxODE_RxODE_focei_eta_lik", (DL_FUNC) &RxODE_RxODE_focei_eta_lik, 2},

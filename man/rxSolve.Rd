@@ -25,28 +25,28 @@ rxSolve(object, params = NULL, events = NULL, inits = NULL, scale = c(),
   transit_abs = NULL, atol = 1e-08, rtol = 1e-06, maxsteps = 5000,
   hmin = 0, hmax = NULL, hini = 0, maxordn = 12, maxords = 5, ...,
   covs_interpolation = c("linear", "constant"), theta = numeric(),
-  eta = numeric())
+  eta = numeric(), matrix = FALSE)
 
 \method{rxSolve}{RxCompilationManager}(object, params = NULL, events = NULL,
   inits = NULL, scale = c(), covs = NULL, stiff = TRUE,
   transit_abs = NULL, atol = 1e-08, rtol = 1e-06, maxsteps = 5000,
   hmin = 0, hmax = NULL, hini = 0, maxordn = 12, maxords = 5, ...,
   covs_interpolation = c("linear", "constant"), theta = numeric(),
-  eta = numeric())
+  eta = numeric(), matrix = FALSE)
 
 \method{rxSolve}{character}(object, params = NULL, events = NULL,
   inits = NULL, scale = c(), covs = NULL, stiff = TRUE,
   transit_abs = NULL, atol = 1e-08, rtol = 1e-06, maxsteps = 5000,
   hmin = 0, hmax = NULL, hini = 0, maxordn = 12, maxords = 5, ...,
   covs_interpolation = c("linear", "constant"), theta = numeric(),
-  eta = numeric())
+  eta = numeric(), matrix = FALSE)
 
 \method{rxSolve}{rxDll}(object, params = NULL, events = NULL,
   inits = NULL, scale = c(), covs = NULL, stiff = TRUE,
   transit_abs = NULL, atol = 1e-08, rtol = 1e-06, maxsteps = 5000,
   hmin = 0, hmax = NULL, hini = 0, maxordn = 12, maxords = 5, ...,
   covs_interpolation = c("linear", "constant"), theta = numeric(),
-  eta = numeric())
+  eta = numeric(), matrix = FALSE)
 }
 \arguments{
 \item{object}{is a either a RxODE family of objects, or a file-name
@@ -141,6 +141,9 @@ added to inits}
 
 \item{eta}{A vector of parameters that will be named ETA[#] and
 added to inits}
+
+\item{matrix}{A boolean inticating if a matrix should be returned
+instead of the RxODE's solved object}
 }
 \value{
 An \dQuote{rxSolve} solve object that stores the solved

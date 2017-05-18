@@ -6,7 +6,7 @@ rxReq <- function(pkg){
     ## nocov end
 }
 asTbl <- function(obj){
-    if (getOption("RxODE.prefer.tbl", TRUE) && requireNamespace("dplyr", quietly = TRUE)){
+    if (RxODE.prefer.tbl && requireNamespace("dplyr", quietly = TRUE)){
         return(dplyr::as.tbl(as.data.frame(obj)));
     } else {
         return(as.data.frame(obj))
@@ -14,7 +14,7 @@ asTbl <- function(obj){
 }
 
 rxTbl <- function(x, msg){
-    if (getOption("RxODE.prefer.tbl", TRUE) && class(x) == "data.frame" && requireNamespace("dplyr", quietly = TRUE)){
+    if (RxODE.prefer.tbl && class(x) == "data.frame" && requireNamespace("dplyr", quietly = TRUE)){
         if (!missing(msg)){
             rxCat(sprintf("Change solved object to dplyr's tbl for %s\n", msg));
         }
@@ -34,7 +34,7 @@ rxTbl <- function(x, msg){
 ##' @export
 rxCat <- function(a, ...){
     ## nocov start
-    if (getOption("RxODE.verbose", TRUE)){
+    if (RxODE.verbose){
         if (class(a) == "RxODE"){
             cat(rxNorm(a));
         } else {

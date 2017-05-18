@@ -9,7 +9,8 @@ rxSolveSetup(object, params = NULL, events = NULL, inits = NULL,
   atol = 1e-08, rtol = 1e-06, maxsteps = 5000, hmin = 0, hmax = NULL,
   hini = 0, maxordn = 12, maxords = 5, ...,
   covs_interpolation = c("linear", "constant"), theta = numeric(),
-  eta = numeric(), inC = FALSE)
+  eta = numeric(), matrix = FALSE, inC = FALSE, counts = NULL,
+  do.solve = FALSE)
 }
 \arguments{
 \item{object}{is a either a RxODE family of objects, or a file-name
@@ -105,9 +106,18 @@ added to inits}
 \item{eta}{A vector of parameters that will be named ETA[#] and
 added to inits}
 
+\item{matrix}{A boolean inticating if a matrix should be returned
+instead of the RxODE's solved object}
+
 \item{inC}{Boolean to tell the RxODE to setup the solver in
 memory/C calls.  Should not be used unless you know what you
 are doing.}
+
+\item{counts}{a NULL value that is not used in the algorithm, but
+used to suppress carrying over counts from other solved
+routines.}
+
+\item{do.solve}{a boolean value indicating if this should also solve the system.}
 }
 \value{
 list of parameters ready to be used in a C call.
