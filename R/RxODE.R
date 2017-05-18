@@ -891,7 +891,9 @@ rx.initCmpMgr <-
         if (!rxDllLoaded(.rxDll) && !file.exists(rxDll(.rxDll)) && getOption("RxODE.compile.on.load", TRUE)){
             compile();
         }
-        return(rxLoad(.rxDll));
+        rxLoad(.rxDll);
+        .rxDll$.call(rxTrans(.rxDll)["ode_solver_ptr"])
+        return();
     }
 
     dynUnload <- function(){
