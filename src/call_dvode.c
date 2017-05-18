@@ -29,6 +29,7 @@ double tlast=0;
 double podo=0;
 double *par_ptr, *inits, *dose, *solve, *lhs;
 int    *par_cov, *evid;
+int   do_par_cov=1;
 int rc[1];
 double *cov_ptr;
 int    ncov, nlhs, neq, stiff;
@@ -190,16 +191,18 @@ static double rx_approx1(double v, double *x, double *y, int n,
 void update_par_ptr(double t){
   // Update all covariate parameters
   int k;
-  for (k = 0; k < ncov; k++){
-    if (par_cov[k]){
-      // Use the same methodology as approxfun.
-      // There is some rumor the C function may go away...
-      rx_aprox_M.ylow = cov_ptr[nAllTimes()*k];
-      rx_aprox_M.yhigh = cov_ptr[nAllTimes()*k+nAllTimes()-1];
-      par_ptr[par_cov[k]-1] = rx_approx1(t, all_times, cov_ptr+nAllTimes()*k, nAllTimes(), &rx_aprox_M);
-    }
-    if (global_debug){
-      Rprintf("par_ptr[%d] (cov %d/%d) = %f\n",par_cov[k]-1, k,ncov,cov_ptr[par_cov[k]-1]);
+  if (do_par_cov){
+    for (k = 0; k < ncov; k++){
+      if (par_cov[k]){
+        // Use the same methodology as approxfun.
+        // There is some rumor the C function may go away...
+        rx_aprox_M.ylow = cov_ptr[nAllTimes()*k];
+        rx_aprox_M.yhigh = cov_ptr[nAllTimes()*k+nAllTimes()-1];
+        par_ptr[par_cov[k]-1] = rx_approx1(t, all_times, cov_ptr+nAllTimes()*k, nAllTimes(), &rx_aprox_M);
+      }
+      if (global_debug){
+        Rprintf("par_ptr[%d] (cov %d/%d) = %f\n",par_cov[k]-1, k,ncov,cov_ptr[par_cov[k]-1]);
+      }
     }
   }
 }
@@ -439,24 +442,24 @@ void RxODE_ode_solver_c(int neq, int stiff, int *evid, double *inits, double *do
 void RxODE_ode_solver_old_c(int *neq,
                             double *theta,  //order:
                             double *time,
-                            int *evid,
+                            int *evidp,
                             int *ntime,
-                            double *inits,
-                            double *dose,
+                            double *initsp,
+                            double *dosep,
                             double *ret,
                             double *atol,
                             double *rtol,
                             int *stiff,
                             int *transit_abs,
                             int *nlhs,
-                            double *lhs,
+                            double *lhsp,
                             int *rc){
   int i;
   for (i=0; i< *neq; i++) InfusionRate[i] = 0.0;
   ATOL = *atol;
   RTOL = *rtol;
   do_transit_abs = *transit_abs;
-  *par_ptr = *theta;
+  par_ptr = theta;
   // Assign to default LSODA behvior, or 0
   HMIN           = 0;
   HMAX           = 0;
@@ -468,10 +471,18 @@ void RxODE_ode_solver_old_c(int *neq,
   dadt_counter   = 0;
   jac_counter    = 0;
   // Assign global time information
-  *all_times     = *time; 
+  all_times     = time;
   n_all_times   = *ntime;
   // Call solver
-  RxODE_ode_solver_c(*neq, *stiff, evid, inits, dose, ret, rc);
+  evid=evidp;
+  inits=initsp;
+  dose=dosep;
+  solve=ret;
+  lhs=lhsp;
+  do_par_cov    = 0;
+  /* Rprintf("Call Solver; par_ptr[0] = %f; evid[0]=%d; inits[0]=%d\n",par_ptr[0],evid[0],inits[0]); */
+  RxODE_ode_solver_c(*neq, *stiff, evid, inits, dose, solve, rc);
+  /* Rprintf("Update LHS\n"); */
   // Update LHS
   if (*nlhs) {
     for (i=0; i<*ntime; i++){
@@ -631,6 +642,7 @@ void RxODE_ode_setup(SEXP sexp_inits,
   RxODE_ode_dosing_ = RxODE_ode_get_dosing();
   // Covariates
   par_cov       = INTEGER(sexp_pcov);
+  do_par_cov    = 1;
   cov_ptr       = REAL(sexp_cov);
   ncov          = length(sexp_pcov);
   is_locf       = INTEGER(sexp_locf)[0];
