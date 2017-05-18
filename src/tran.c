@@ -11,10 +11,10 @@
 #include <Rmath.h>
 #include "tran.g.d_parser.c"
 #define max(a,b) (a)>(b) ? (a):(b)
-#define MXSYM 5000
-#define MXDER 500
-#define MXLEN 1200
-#define MXBUF 2400
+#define MXSYM 50000
+#define MXDER 5000
+#define MXLEN 12000
+#define MXBUF 24000
 #define SBPTR sb.s+sb.o
 #define SBTPTR sbt.s+sbt.o
 
