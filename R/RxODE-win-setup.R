@@ -35,7 +35,7 @@ rxPythonBaseWin <- function(){
         keys <- NULL;
         keys <- try(utils::readRegistry("SOFTWARE\\Python\\PythonCore", hive = "HCU", ## view = "32-bit",
                                         maxdepth = 3), silent=TRUE);
-        if (is.null(keys) || length(keys) == 0){
+        if (is.null(keys) || length(keys) == 0 || inherits(keys, "try-error")){
             try(keys <- utils::readRegistry("SOFTWARE\\Python\\PythonCore", hive = "HLM", ## view = "32-bit",
                                             maxdepth = 3), silent = TRUE);
         }
@@ -49,6 +49,9 @@ rxPythonBaseWin <- function(){
                     python.base <- NULL;
                 }
             }
+        }
+        if (!is.null(python.base)){
+            python.base <- gsub("\\", "/", shortPathName(gsub(rex::rex(any_of("/", "\\"), end), "", python.base)), fixed=TRUE);
         }
         return(python.base)
     }
@@ -122,7 +125,7 @@ rxWinRtoolsPath <- function(rm.rtools=TRUE){
                             ## file.path(rtools.base, ifelse(.Platform$r_arch == "i386","mingw_32/opt/bin", "mingw_64/opt/bin")),
                             ## ifelse(gcc == "", "", file.path(gcc, "bin")),
                             ## ifelse(gcc == "", "", ifelse(.Platform$r_arch == "i386",file.path(gcc, "bin32"), file.path(gcc, "bin64"))
-                                   ## )
+                            ## )
                             ))){
                 if (file.exists(x)){
                     path <- c(normalizePath(x), path);
@@ -130,15 +133,21 @@ rxWinRtoolsPath <- function(rm.rtools=TRUE){
             }
             python.base <- rxPythonBaseWin();
             if (!is.null(python.base)){
-                if (file.exists(python.base)){
+                python <- normalizePath(file.path(python.base, "python.exe"));
+                if (file.exists(python)){
+                    Sys.setenv(PYTHON_EXE=python); ## For PythonInR
                     path <- c(normalizePath(python.base), path);
                     Sys.setenv(PYTHONHOME=python.base);
-                }
-                lib.path <- file.path(python.base, "Lib");
-                if (file.exists(lib.path)){
-                    Sys.setenv(PYTHONPATH=paste(python.base, normalizePath(lib.path), collapse=";"));
+                    lib.path <- file.path(python.base, "Lib");
+                    if (length(list.files(lib.path)) > 0){
+                        Sys.setenv(PYTHONPATH=paste(python.base, normalizePath(lib.path), collapse=";"));
+                    }
                 }
             }
+            ## java <- as.vector(Sys.which("java"));
+            ## if (java != ""){
+            ##     java <- sub(rex::rex(one_of("/", "\\"), except_any_of("/", "\\", "\n"), end), "", java)
+            ## }
             keys <- NULL;
             ## Is there a 64 bit aspell that should be checked for...?
             keys <- try(utils::readRegistry("SOFTWARE\\Aspell", hive="HLM", view="32-bit", maxdepth=3), silent=TRUE);
