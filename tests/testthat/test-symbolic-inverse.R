@@ -12,14 +12,14 @@ rxPermissive({
     mat <- diag(c(0.1, 0.1))
     symo <- rxSymInvCreate(mat);
 
-    testthat("Creates the correct log.det.OmegaInv.5", {
+    test_that("Creates the correct log.det.OmegaInv.5", {
         expect_equal(rxSymInv(symo, sqrt(c(0.1, 0.1)))$log.det.OMGAinv.5, 2.30258509299405)
     })
 
     mat <- diag(c(0.1, 0.1))
     symo <- rxSymInvCreate(mat, chol=TRUE);
 
-    testthat("Creates the correct log.det.OmegaInv.5", {
+    test_that("Creates the correct log.det.OmegaInv.5", {
         expect_equal(rxSymInv(symo, symo$th)$log.det.OMGAinv.5, 2.30258509299405)
     })
 
