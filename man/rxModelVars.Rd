@@ -2,9 +2,27 @@
 % Please edit documentation in R/RxODE.R
 \name{rxModelVars}
 \alias{rxModelVars}
+\alias{rxModelVars.list}
+\alias{rxModelVars.rxDll}
+\alias{rxModelVars.RxCompilationManager}
+\alias{rxModelVars.RxODE}
+\alias{rxModelVars.solveRxDll}
+\alias{rxModelVars.character}
 \title{All model variables for a RxODE object}
 \usage{
 rxModelVars(obj)
+
+\method{rxModelVars}{list}(obj)
+
+\method{rxModelVars}{rxDll}(obj)
+
+\method{rxModelVars}{RxCompilationManager}(obj)
+
+\method{rxModelVars}{RxODE}(obj)
+
+\method{rxModelVars}{solveRxDll}(obj)
+
+\method{rxModelVars}{character}(obj)
 }
 \arguments{
 \item{obj}{RxODE family of objects}

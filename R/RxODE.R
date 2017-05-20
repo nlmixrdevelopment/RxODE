@@ -351,8 +351,7 @@ RxODE <- function(model, modName = basename(wd), wd = getwd(),
 
     solve <- function(..., matrix=TRUE){
         ## .last.solve.args <<- as.list(match.call(expand.dots = TRUE));
-        rx <- dll
-        return(rxSolve(rx,..., matrix=matrix));
+        return(rxSolveSetup(dll,..., matrix=matrix, do.solve=TRUE));
     }
     force <- FALSE
     if (class(do.compile) == "logical"){
@@ -1793,39 +1792,67 @@ rxNorm <- function(obj, condition=NULL, removeInis, removeJac, removeSens){
 ##' @author Matthew L.Fidler
 ##' @export
 rxModelVars <- function(obj){
-    if (class(obj) == "RxODE"){
-        return(obj$dll$modVars)
-    } else if (class(obj) == "rxDll"){
-        return(obj$modVars)
-    } else if (class(obj) == "solveRxDll"){
-        dll <- attr(obj, "solveRxDll");
-        return(dll$modVars);
-    } else if (class(obj) == "list"){
-        if (all(c("params", "lhs", "state", "trans", "ini", "model", "md5", "podo", "dfdy") %in% names(obj))){
-            return(obj);
-        } else {
-            stop("Cannot figure out the model variables.")
-        }
-    } else if (class(obj) == "character"){
-        if (length(obj) == 1){
-            cFile <- tempfile();
-            if (file.exists(obj)){
-                parsModel <- obj;
-                on.exit({unlink(cFile)});
-            } else {
-                parseModel <- tempfile();
-                sink(parseModel);
-                cat(paste(obj, collapse="\n"));
-                sink()
-                on.exit({unlink(parseModel); unlink(cFile)});
-            }
-            ret <- rxTrans(parseModel, cFile, modVars=TRUE);
-            return(ret);
-        } else {
-            return(rxModelVars.character(paste(obj, collapse="\n")));
-        }
+    UseMethod("rxModelVars");
+}
+
+##' @rdname rxModelVars
+##' @export
+rxModelVars.list <- function(obj){
+    if (all(c("params", "lhs", "state", "trans", "ini", "model", "md5", "podo", "dfdy") %in% names(obj))){
+        return(obj);
+    } else {
+        stop("Cannot figure out the model variables.")
     }
 }
+
+##' @rdname rxModelVars
+##' @export
+rxModelVars.rxDll <- function(obj){
+    return(obj$modVars)
+}
+
+##' @rdname rxModelVars
+##' @export
+rxModelVars.RxCompilationManager <- function(obj){
+    return(rxModelVars.rxDll(obj$rxDll()))
+}
+
+##' @rdname rxModelVars
+##' @export
+rxModelVars.RxODE <- function(obj){
+    return(rxModelVars.rxDll(obj$cmpMgr$rxDll()))
+}
+
+##' @rdname rxModelVars
+##' @export
+rxModelVars.solveRxDll <- function(obj){
+    lst <- attr(obj, "solveRxDll");
+    return(rxModelVars.rxDll(lst$object));
+}
+
+##' @rdname rxModelVars
+##' @export
+rxModelVars.character <- function(obj){
+    if (length(obj) == 1){
+        cFile <- tempfile();
+        if (file.exists(obj)){
+            parsModel <- obj;
+            on.exit({unlink(cFile)});
+        } else {
+            parseModel <- tempfile();
+            sink(parseModel);
+            cat(paste(obj, collapse="\n"));
+            sink()
+            on.exit({unlink(parseModel); unlink(cFile)});
+        }
+        ret <- rxTrans(parseModel, cFile, modVars=TRUE);
+        return(ret);
+    } else {
+        rxModelVars.character(paste(obj, collapse="\n"));
+    }
+}
+
+rxModelVars.character.slow <- NULL;
 
 ##' Print rxDll object
 ##'

@@ -1050,7 +1050,7 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
     retieve_var(i, buf);
     if (islhs == 1){
       sprintf(s_aux_info+o, "\tSET_STRING_ELT(lhs,%d,mkChar(\"%s\"));\n", li++, buf);
-    } else if (strcmp(buf,"pi")){
+    } else {
       for (j = 1; j <= tb.maxtheta;j++){
         sprintf(buf2,"_THETA_%d_",j);
         if (!strcmp(buf,buf2)){
@@ -1971,7 +1971,7 @@ SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP pref
     retieve_var(i, buf);
     if (islhs == 1){
       SET_STRING_ELT(lhs,li++,mkChar(buf));
-    } else if (strcmp(buf,"pi")){
+    } else {
       for (j = 1; j <= tb.maxtheta;j++){
 	sprintf(buf2,"_THETA_%d_",j);
 	if (!strcmp(buf, buf2)){
