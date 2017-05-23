@@ -984,7 +984,7 @@ void R_init_RxODE(DllInfo *info){
     {"RxODE_getLinDerivs", (DL_FUNC) &RxODE_getLinDerivs, 1},
     {"RxODE_linCmtEnv", (DL_FUNC) &RxODE_linCmtEnv, 1},
     {"RxODE_rxInv", (DL_FUNC) &RxODE_rxInv, 1},
-    {"RxODE_rxCoutEcho", (DL_FUNC) & RxODE_rxCoutEcho, 1},
+    {"RxODE_rxCoutEcho", (DL_FUNC) &RxODE_rxCoutEcho, 1},
     {NULL, NULL, 0}
   };
   R_registerRoutines(info, NULL, callMethods, NULL, NULL);
