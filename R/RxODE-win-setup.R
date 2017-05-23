@@ -51,7 +51,7 @@ rxPythonBaseWin <- function(){
             }
         }
         if (!is.null(python.base)){
-            python.base <- gsub("\\", "/", shortPathName(gsub(rex::rex(any_of("/", "\\"), end), "", python.base)), fixed=TRUE);
+            python.base <- gsub("\\", "/", utils::shortPathName(gsub(rex::rex(any_of("/", "\\"), end), "", python.base)), fixed=TRUE);
         }
         return(python.base)
     }

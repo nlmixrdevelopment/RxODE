@@ -1434,6 +1434,7 @@ rxCompile.character <-  function(model,           # Model
         }
     }
     .call <- function(...){return(.Call(...))};
+    .c <- function(...){return(.C(...))};
     args <- list(model = model, dir = dir, prefix = prefix,
                  extraC = extraC, force = force, modName = modName,
                  ...);
@@ -1442,6 +1443,7 @@ rxCompile.character <-  function(model,           # Model
                 extra   = extraC,
                 modVars = allModVars,
                 .call   = .call,
+                .c      = .c,
                 args    = args);
     class(ret) <- "rxDll";
     return(ret);

@@ -1,6 +1,7 @@
 context("Test Backward Compatability")
 
 rxPermissive({
+
     demo <- structure(list(ID = c(1012, 1012, 1012, 1012, 1012, 1012, 1012, 1012), TIME = c(588.5, 600.5, 612.5, 624.5, 636.5, 648.5, 660.5, 672.5), DOSE = c(2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000), AMT = c(1000, 1000, 1000, 1000, 1000, 1000, 1000, 0), TAD = c(0, 0, 0, 0, 0, 0, 0, 12), CL = c(5.851496056, 5.851496056, 5.851496056, 5.851496056, 5.851496056, 5.851496056, 5.851496056, 5.851496056), V = c(49.3930186, 49.3930186, 49.3930186, 49.3930186, 49.3930186, 49.3930186, 49.3930186, 49.3930186), KA = c(3.320205555, 3.320205555, 3.320205555, 3.320205555, 3.320205555, 3.320205555, 3.320205555, 3.320205555), TAD4 = c(0, 12, 24, 36, 48, 60, 72, 84)), .Names = c("ID", "TIME", "DOSE", "AMT", "TAD", "CL", "V", "KA", "TAD4"), row.names = c(NA, -8L), class = c("data.frame"), sorted = c("ID", "TIME"));
 
     ode1KA <- "
@@ -38,7 +39,6 @@ C1=centr/V;
 
     ## test old solving.
 
-
     event.table <- ev$get.EventTable()
     modelVars <- mod1KA$get.modelVars()
     state_vars <- modelVars$state;
@@ -62,22 +62,23 @@ C1=centr/V;
     transit_abs <- FALSE
     stiff <- TRUE
 
-    xx <- .C(cmpMgr$ode_solver,
-             as.integer(neq),
-             as.double(params),
-             as.double(event.table$time),
-             as.integer(event.table$evid),
-             length(event.table$time),
-             as.double(inits),
-             as.double(event.table$amt[event.table$evid > 0]),
-             as.double(ret),
-             as.double(atol),
-             as.double(rtol),
-             as.integer(stiff),
-             as.integer(transit_abs),
-             as.integer(nlhs),
-             as.double(lhs),
-             rc);
+    ode_solve <- cmpMgr$ode_solver;
+    xx <- mod1KA$dll$.c(ode_solve,
+                        as.integer(neq),
+                        as.double(params),
+                        as.double(event.table$time),
+                        as.integer(event.table$evid),
+                        length(event.table$time),
+                        as.double(inits),
+                        as.double(event.table$amt[event.table$evid > 0]),
+                        as.double(ret),
+                        as.double(atol),
+                        as.double(rtol),
+                        as.integer(stiff),
+                        as.integer(transit_abs),
+                        as.integer(nlhs),
+                        as.double(lhs),
+                        rc);
 
 
     x2 <- cbind(matrix(xx[[8]], ncol=neq, byrow=T),

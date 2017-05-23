@@ -252,6 +252,7 @@ rxSolveSetup <- function(object, params=NULL, events=NULL, inits = NULL, scale =
                          theta=numeric(), eta=numeric(), matrix=FALSE,
                          inC=FALSE, counts=NULL, do.solve=FALSE){
     modVars <- object$modVars
+    trans <- modVars$trans
     state <- modVars$state;
     lhs <- modVars$lhs;
     pars <- modVars$params;
@@ -415,7 +416,7 @@ rxSolveSetup <- function(object, params=NULL, events=NULL, inits = NULL, scale =
     transit_abs=as.integer(transit_abs);
     do.matrix=as.integer(matrix)
     if (do.solve){
-        sexp <- rxTrans(object)["ode_solver_sexp"]
+        sexp <- trans["ode_solver_sexp"]
         ret <- try({ret <- object$.call(sexp,
                                         ## Parameters
                                         params,
