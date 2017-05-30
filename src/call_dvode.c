@@ -253,8 +253,8 @@ void call_lsoda(int neq, double *x, int *evid, int nx, double *inits, double *do
     };
   if (global_debug)
     Rprintf("JT: %d\n",jt);
-  rwork = (double*)R_alloc(lrw+1, sizeof(double));
-  iwork = (int*)R_alloc(liw+1, sizeof(int));
+  rwork = (double*)Calloc(lrw+1, double);
+  iwork = (int*)Calloc(liw+1, int);
 
   iopt = 1;
   
@@ -330,6 +330,8 @@ void call_lsoda(int neq, double *x, int *evid, int nx, double *inits, double *do
 	fprintf(fp, "\n");
       }
     }
+  Free(rwork);
+  Free(iwork);
 }
 
 //dummy solout fn
@@ -533,18 +535,18 @@ SEXP RxODE_ode_dosing(){
 
 void RxODE_ode_free(){
   /* Free(InfusionRate); */
-  /* Free(solve); */
-  /* Free(lhs); */
+  Free(solve);
+  Free(lhs);
   /* Free(rc); */
 }
 
 void RxODE_ode_alloc(){
-  solve = (double*)  R_alloc(neq*n_all_times+1, sizeof(double));
-  lhs   = (double*)  R_alloc(nlhs,sizeof(double));
+  /* solve = (double*)  R_alloc(neq*n_all_times+1, sizeof(double)); */
+  /* lhs   = (double*)  R_alloc(nlhs,sizeof(double)); */
   /* InfusionRate = (double *) R_alloc(neq+2,sizeof(double)); */
   /* rc           = (int *)    R_alloc(1,sizeof(int)); */
-  /* solve        = (double *) Calloc(neq*nAllTimes()+1,double); */
-  /* lhs          = (double *) Calloc(nlhs,double); */
+  solve        = (double *) Calloc(neq*nAllTimes()+1,double);
+  lhs          = (double *) Calloc(nlhs,double);
   /* InfusionRate = (double *) Calloc(neq+2,double); */
   /* rc = (int *) Calloc(1,int); */
   rc[0] = 0;
