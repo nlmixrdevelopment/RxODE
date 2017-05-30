@@ -960,6 +960,9 @@ rxSimpleExprP <- function(x){
 ##' @return character vector of the split expressions
 ##' @author Matthew L. Fidler
 rxSplitPlusQ <- function(x, level=0){
+    if (class(x) == "character" && level == 0){
+        return(eval(parse(text=sprintf("rxSplitPlusQ(quote(%s))", x))))
+    }
     if (is.name(x) || is.atomic(x)){
         if (level == 0){
             return(paste(deparse(x), collapse=""));

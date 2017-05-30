@@ -229,6 +229,7 @@ if (Sys.getenv("RxODE_derivs") == "TRUE"){
     create.cpp.code <- function(model){
         rxSymPySetup(model);
         p <- rxParams(model);
+        p <- p[p != "pi"];
         lhs <- rxLhs(model);
         lhs <- lhs[regexpr(rex::rex(or("alpha", "beta", "gamma", "A", "B", "C")), lhs) != -1]
         ncmt <- length(lhs) / 2;
@@ -258,7 +259,13 @@ if (Sys.getenv("RxODE_derivs") == "TRUE"){
                 } else {
                     par <- sprintf("(%s, 1)", which(curL == cfs) - 1)
                 }
-                tmp <- sprintf("    d%s%s = %s;", gsub("K21P", "K21", gsub("BETAP", "BETA", gsub("ALPHAP", "ALPHA", toupper(curP)))), par, sympyC(tmp));
+                tmp <- sympyC(tmp);
+                tmp <- rxSplitPlusQ(tmp);
+                tmpeq <- sprintf("    d%s%s", gsub("K21P", "K21", gsub("BETAP", "BETA", gsub("ALPHAP", "ALPHA", toupper(curP)))), par);
+                tmp[1] <- sprintf("%s = %s;", tmpeq, gsub(" +", "", tmp[1]));
+                if (length(tmp) > 1){
+                    tmp[-1] <- sprintf("%s += %s;", tmpeq, gsub(" +", "", tmp[-1]));
+                }
                 lines[length(lines) + 1] <- paste0(tmp, "\n");
             }
         }
@@ -315,8 +322,6 @@ if (Sys.getenv("RxODE_derivs") == "TRUE"){
 
     cpp <- c(cpp, create.cpp.code(lin.2cmt.p1.oral));
 
-
-    ## Fixme 3 cmt returns zoo :(
     lin.3cmt.p1 <- RxODE({
         volume = V
         k = CL / volume
@@ -340,10 +345,6 @@ if (Sys.getenv("RxODE_derivs") == "TRUE"){
         C       = (k21 - gamma) * (k31 - gamma) / (gamma - alpha) / (gamma - beta) / volume;
     })
 
-    ## p and theta do not seem to work with sympy.
-    ## also cos(th + 2/3*pi) does not give the same results as as cos(th+2*pi/3)
-    ## This is due to the sympy numbers :(
-    ## See http://docs.sympy.org/dev/gotchas.html#python-numbers-vs-sympy-numbers
     cpp <- c(cpp, create.cpp.code(lin.3cmt.p1));
 
     lin.3cmt.p1.oral <- RxODE({
