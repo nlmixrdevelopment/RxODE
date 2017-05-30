@@ -184,42 +184,42 @@ ktr = (n+1)/mtt
 d/dt(depot) = exp(log(bio*podo)+log(ktr)+n*log(ktr*t)-ktr*t-lgammafn(n+1))-ka*depot
 d/dt(cen) = ka*depot-k*cen
 ")
-        mod <- RxODE(mod, calcSens=TRUE)
+    mod <- RxODE(mod, calcSens=TRUE)
 
-        et <- eventTable();
-        et$add.sampling(seq(0, 10, length.out=200));
-        et$add.dosing(20, start.time=0);
+    et <- eventTable();
+    et$add.sampling(seq(0, 10, length.out=200));
+    et$add.dosing(20, start.time=0);
 
-        transit <- suppressWarnings({rxSolve(mod, et, transit_abs=TRUE)})
-        ## Used the log(0) protection since the depot_mtt sensitivity
-        ## includes log(t*...) and t=0
-        ##
-        ## These results are now system dependent since it uses
-        ## log(sqrt(DOUBLE_EPS)) and DOUBLE_EPS varies by platform, so
-        ## just make sure the results are not NA.
-        expect_true(all(!is.na(transit$depot_mtt)));
+    transit <- suppressWarnings({rxSolve(mod, et, transit_abs=TRUE)})
+    ## Used the log(0) protection since the depot_mtt sensitivity
+    ## includes log(t*...) and t=0
+    ##
+    ## These results are now system dependent since it uses
+    ## log(sqrt(DOUBLE_EPS)) and DOUBLE_EPS varies by platform, so
+    ## just make sure the results are not NA.
+    expect_true(all(!is.na(transit[["_sens_depot_mtt"]])));
 
-        mod <- RxODE({
-            ## Table 3 from Savic 2007
-            cl = 17.2 # (L/hr)
-            vc = 45.1 # L
-            tvka = 0.38 # 1/hr
-            tvmtt = 0.37 # hr
-            ka = tvka * exp(eta_ka);
-            mtt = tvmtt * exp(eta_mtt);
-            bio=1
-            n = 20.1
-            k = cl/vc
-            ktr = (n+1)/mtt
-            ## note that lgammafn is the same as lgamma in R.
-            d/dt(depot) = exp(log(bio*podo)+log(ktr)+n*log(ktr*t)-ktr*t-lgammafn(n+1))-ka*depot
-            d/dt(cen) = ka*depot-k*cen
-        });
+    mod <- RxODE({
+        ## Table 3 from Savic 2007
+        cl = 17.2 # (L/hr)
+        vc = 45.1 # L
+        tvka = 0.38 # 1/hr
+        tvmtt = 0.37 # hr
+        ka = tvka * exp(eta_ka);
+        mtt = tvmtt * exp(eta_mtt);
+        bio=1
+        n = 20.1
+        k = cl/vc
+        ktr = (n+1)/mtt
+        ## note that lgammafn is the same as lgamma in R.
+        d/dt(depot) = exp(log(bio*podo)+log(ktr)+n*log(ktr*t)-ktr*t-lgammafn(n+1))-ka*depot
+        d/dt(cen) = ka*depot-k*cen
+    });
 
-        tmp <- RxODE(mod, calcSens=c("eta_ka", "eta_mtt"));
-        expect_true(all(!is.na(transit$depot_mtt)));
+    tmp <- RxODE(mod, calcSens=c("eta_ka", "eta_mtt"));
+    expect_true(all(!is.na(transit[["_sens_depot_mtt"]])));
 
-        ## tmp <- RxODE(mod, calcSens=list(eta=c("eta_ka", "eta_mtt"), theta=c("cl", "vc")));
+    ## tmp <- RxODE(mod, calcSens=list(eta=c("eta_ka", "eta_mtt"), theta=c("cl", "vc")));
 });
 
 }, silent=TRUE)

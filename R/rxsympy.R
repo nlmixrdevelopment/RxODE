@@ -1112,8 +1112,11 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
 
     if (!grad.internal){
         cache.file <- sprintf("rx_%s%s.prd",
-                              digest::digest(deparse(list(rxModelVars(obj)$md5["parsed_md5"], deparse(body(predfn)), deparse(body(pkpars)),
-                                                          deparse(body(errfn)), init, grad, logify, pred.minus.dv))),
+                              digest::digest(paste(deparse(list(rxModelVars(obj)$md5["parsed_md5"],
+                                                                ifelse(is.function(predfn), paste(deparse(body(predfn)), collapse=""), ""),
+                                                                ifelse(is.function(pkpars), paste(deparse(body(pkpars)), collapse=""), ""),
+                                                                ifelse(is.function(errfn), paste(deparse(body(errfn)), collapse=""), ""),
+                                                                init, grad, logify, pred.minus.dv)), collapse="")),
                               .Platform$dynlib.ext);
     } else {
         cache.file <- "";
@@ -1282,7 +1285,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                 return(paste(lines, collapse="\n"));
             }), collapse="\n");
             if (!one.pred){
-                cat(pred);
+                cat(pred, "\n");
                 stop("At least some part of your prediction function needs to depend on the state variables.")
             }
             if (some.pred){

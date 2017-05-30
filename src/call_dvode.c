@@ -539,13 +539,13 @@ void RxODE_ode_free(){
 }
 
 void RxODE_ode_alloc(){
-  solve = (double*) R_alloc(neq*n_all_times+1, sizeof(double));
-  lhs = (double *) R_alloc(nlhs,sizeof(double));
-  /* InfusionRate = (double *)R_alloc(neq+2,sizeof(double)); */
-  /* rc = (int *) R_alloc(1,sizeof(int)); */
-  /* solve         = (double *) Calloc(neq*nAllTimes()+1,double); */
-  /* lhs           = (double *) Calloc(nlhs,double); */
-  /* InfusionRate  = (double *) Calloc(neq+2,double); */
+  solve = (double*)  R_alloc(neq*n_all_times+1, sizeof(double));
+  lhs   = (double*)  R_alloc(nlhs,sizeof(double));
+  /* InfusionRate = (double *) R_alloc(neq+2,sizeof(double)); */
+  /* rc           = (int *)    R_alloc(1,sizeof(int)); */
+  /* solve        = (double *) Calloc(neq*nAllTimes()+1,double); */
+  /* lhs          = (double *) Calloc(nlhs,double); */
+  /* InfusionRate = (double *) Calloc(neq+2,double); */
   /* rc = (int *) Calloc(1,int); */
   rc[0] = 0;
 }
@@ -626,7 +626,6 @@ void RxODE_ode_setup(SEXP sexp_inits,
                      SEXP sexp_evid,
                      SEXP sexp_dose,
                      // Covariates
-
                      SEXP sexp_pcov,
                      SEXP sexp_cov,
                      SEXP sexp_locf,
@@ -715,6 +714,7 @@ void RxODE_ode_solve_env(SEXP sexp_rho){
 SEXP RxODE_ode_solver (// Parameters
 		       SEXP sexp_theta,
 		       SEXP sexp_inits,
+		       SEXP sexp_scale,
 		       SEXP sexp_lhs,
 		       // Events
 		       SEXP sexp_time,
@@ -760,43 +760,44 @@ SEXP RxODE_ode_solver (// Parameters
   for (i=0; i<neq; i++) InfusionRate[i] = 0.0;
   
   RxODE_ode_solver_c(neq, stiff, evid, inits, dose, solve, rc);
-  SEXP sexp_ret     = PROTECT(allocMatrix(REALSXP, nObs(), ncov+1+neq+nlhs)); pro++;
-  double *ret   = REAL(sexp_ret);
-  
-  // Now create the matrix.
-  int ii=0;
-  for (i = 0; i < nAllTimes(); i++){
-    // Time
-    if (rxEvid(i)==0){
-      ret[ii] = all_times[i];
-      // State
-      if (neq){
-        for (j = 0; j < neq; j++){
-          ret[nObs()*(j+1)+ii] = solve[j+i*neq];
-        }
-      }
-      // LHS
-      if (nlhs){
-        rxCalcLhs(i);
-        for (j = 0; j < nlhs; j++){
-          ret[nObs()*(j+1+neq)+ii] = rxLhs(j);
-        }
-      }
-      // Cov
-      if (ncov > 0){
-        for (j = 0; j < ncov; j++){
-          ret[nObs()*(j+1+neq+nlhs)+ii] = cov_ptr[j*nAllTimes()+i];
-        }
-      }
-      ii++;
-    }
-  }
-  SEXP sexp_dimnames = PROTECT(allocVector(VECSXP,2));pro++;
-  SET_VECTOR_ELT(sexp_dimnames, 0, R_NilValue);
-  SEXP sexp_colnames = PROTECT(allocVector(STRSXP,1+neq+nlhs+ncov)); pro++;
-  SET_STRING_ELT(sexp_colnames, 0, mkChar("time"));
-  SEXP temp = getAttrib(sexp_inits, R_NamesSymbol);
+  double *scale = REAL(sexp_scale);
   if (matrix[0]){
+    SEXP sexp_ret     = PROTECT(allocMatrix(REALSXP, nObs(), ncov+1+neq+nlhs)); pro++;
+    double *ret   = REAL(sexp_ret);
+  
+    // Now create the matrix.
+    int ii=0;
+    for (i = 0; i < nAllTimes(); i++){
+      // Time
+      if (rxEvid(i)==0){
+        ret[ii] = all_times[i];
+        // State
+        if (neq){
+          for (j = 0; j < neq; j++){
+            ret[nObs()*(j+1)+ii] = solve[j+i*neq]/scale[j];
+          }
+        }
+        // LHS
+        if (nlhs){
+          rxCalcLhs(i);
+          for (j = 0; j < nlhs; j++){
+            ret[nObs()*(j+1+neq)+ii] = rxLhs(j);
+          }
+        }
+        // Cov
+        if (ncov > 0){
+          for (j = 0; j < ncov; j++){
+            ret[nObs()*(j+1+neq+nlhs)+ii] = cov_ptr[j*nAllTimes()+i];
+          }
+        }
+        ii++;
+      }
+    }
+    SEXP sexp_dimnames = PROTECT(allocVector(VECSXP,2));pro++;
+    SET_VECTOR_ELT(sexp_dimnames, 0, R_NilValue);
+    SEXP sexp_colnames = PROTECT(allocVector(STRSXP,1+neq+nlhs+ncov)); pro++;
+    SET_STRING_ELT(sexp_colnames, 0, mkChar("time"));
+    SEXP temp = getAttrib(sexp_inits, R_NamesSymbol);
     for (i = 0; i < neq; i++){
       SET_STRING_ELT(sexp_colnames, 1+i, STRING_ELT(temp,i));
     }
@@ -820,9 +821,53 @@ SEXP RxODE_ode_solver (// Parameters
     RxODE_ode_free();
     return sexp_solve2;
   } else {
+    int ncols =ncov+1+neq+nlhs,
+      nobs =nObs(),
+      ntimes = nAllTimes();
+    SEXP df = PROTECT(allocVector(VECSXP,ncols)); pro++;
+    for (i = 0; i < ncols; i++){
+      SET_VECTOR_ELT(df, i, PROTECT(allocVector(REALSXP, nobs))); pro++;
+    }
+    // Now create the matrix.
+    double *dfp;
+    int ii=0;
+    for (i = 0; i < ntimes; i++){
+      // Time
+      if (rxEvid(i)==0){
+	dfp = REAL(VECTOR_ELT(df, 0));
+        dfp[ii] = all_times[i];
+        // State
+        if (neq){
+          for (j = 0; j < neq; j++){
+	    dfp = REAL(VECTOR_ELT(df, j+1));
+            dfp[ii] = solve[j+i*neq]/scale[j];
+          }
+        }
+        // LHS
+        if (nlhs){
+          rxCalcLhs(i);
+          for (j = 0; j < nlhs; j++){
+	    dfp = REAL(VECTOR_ELT(df, j+1+neq));
+	    dfp[ii] =rxLhs(j);
+          }
+        }
+        // Cov
+        if (ncov > 0){
+          for (j = 0; j < ncov; j++){
+	    dfp = REAL(VECTOR_ELT(df, j+1+neq+nlhs));
+            dfp[ii] = cov_ptr[j*nAllTimes()+i];
+          }
+        }
+        ii++;
+      }
+    }
     SEXP sexp_solve    = PROTECT(allocVector(REALSXP,1+neq+nlhs+ncov)); pro++;
+    SEXP sexp_colnames = PROTECT(allocVector(STRSXP,1+neq+nlhs+ncov)); pro++;
+    SEXP sexp_rownames = PROTECT(allocVector(INTSXP,2)); pro++;
+    SEXP temp = getAttrib(sexp_inits, R_NamesSymbol);
+    SET_STRING_ELT(sexp_colnames, 0, mkChar("time"));
     double *solver = REAL(sexp_solve);
-    solver[0] = all_times[nAllTimes()-1];
+    solver[0] = all_times[ntimes-1];
     for (i = 0; i < neq; i++){
       SET_STRING_ELT(sexp_colnames, 1+i, STRING_ELT(temp,i));
       solver[1+i] = inits[i];
@@ -836,8 +881,12 @@ SEXP RxODE_ode_solver (// Parameters
       SET_STRING_ELT(sexp_colnames,1+neq+nlhs+i, STRING_ELT(temp, par_cov[i]-1));
       solver[1+neq+nlhs+i] = NA_REAL;
     }
-    SET_VECTOR_ELT(sexp_dimnames,1,sexp_colnames);
-    setAttrib(sexp_ret, R_DimNamesSymbol, sexp_dimnames);
+    /* SET_VECTOR_ELT(df,1,sexp_colnames); */
+    INTEGER(sexp_rownames)[0] = NA_INTEGER;
+    INTEGER(sexp_rownames)[1] = -nobs;
+    
+    setAttrib(df, R_RowNamesSymbol, sexp_rownames);
+    setAttrib(df, R_NamesSymbol, sexp_colnames);
     SEXP sexp_ncounter = PROTECT(allocVector(STRSXP, 4)); pro++;
     SET_STRING_ELT(sexp_ncounter, 0, mkChar("solver"));
     counts[0] = slvr_counter;
@@ -848,43 +897,50 @@ SEXP RxODE_ode_solver (// Parameters
     SET_STRING_ELT(sexp_ncounter, 3, mkChar("rc"));
     counts[3] = rc[0];
     setAttrib(sexp_counter, R_NamesSymbol, sexp_ncounter);
-  
-    SEXP sexp_lst   = PROTECT(allocVector(VECSXP, 5 + length(sexp_extra_args))); pro++;
-    SEXP sexp_lstn  = PROTECT(allocVector(STRSXP, 5 + length(sexp_extra_args))); pro++;
 
-    SET_STRING_ELT(sexp_lstn,0,mkChar("matrix"));
-    SET_VECTOR_ELT(sexp_lst, 0,sexp_ret);
-  
-    SET_STRING_ELT(sexp_lstn,1,mkChar("counts"));
-    SET_VECTOR_ELT(sexp_lst, 1,sexp_counter);
-  
-    SET_STRING_ELT(sexp_lstn,2,mkChar("inits"));
-    SET_VECTOR_ELT(sexp_lst, 2,sexp_inits);
-  
-    SET_STRING_ELT(sexp_lstn,3,mkChar("params"));
-    SET_VECTOR_ELT(sexp_lst, 3,sexp_theta);
-  
-    SET_STRING_ELT(sexp_lstn,4,mkChar("object"));
-    SET_VECTOR_ELT(sexp_lst, 4,sexp_object);
+    SEXP env = eval(lang1(install("new.env")),R_GlobalEnv);
 
-    temp = getAttrib(sexp_extra_args,R_NamesSymbol);
-    for (i = 0; i < length(sexp_extra_args); i++){
-      SET_STRING_ELT(sexp_lstn,5+i,STRING_ELT(temp,i));
-      SET_VECTOR_ELT(sexp_lst, 5+i,VECTOR_ELT(sexp_extra_args,i));
-    }
-  
-    setAttrib(sexp_lst, R_NamesSymbol, sexp_lstn);
-    setAttrib(sexp_solve, install("solveRxDll"), sexp_lst);
-    SEXP sexp_class = PROTECT(allocVector(STRSXP, 1)); pro++;
-    SET_STRING_ELT(sexp_class, 0, mkChar("solveRxDll"));
-    setAttrib(sexp_solve, R_ClassSymbol, sexp_class);
-    setAttrib(sexp_solve, R_NamesSymbol, sexp_colnames);
+    defineVar(install("counts"), sexp_counter, env);
+    defineVar(install("inits"), sexp_inits, env);
+    defineVar(install("params"), sexp_theta, env);
 
+    defineVar(install("lhs_vars"), sexp_lhs, env);
+    // Events
+    defineVar(install("time"), sexp_time, env);
+    defineVar(install("evid"), sexp_evid, env);
+    defineVar(install("amt"), sexp_dose, env);
+    // Covariates
+    defineVar(install("pcov"), sexp_pcov, env);
+    defineVar(install("cov"), sexp_cov, env);
+    defineVar(install("isLocf"), sexp_locf, env);
+    // Solver Options
+    defineVar(install("atol"), sexp_atol, env);
+    defineVar(install("rtol"), sexp_rtol, env);
+    defineVar(install("hmin"), sexp_hmin, env);
+    defineVar(install("hmax"), sexp_hmax, env);
+    defineVar(install("hini"), sexp_h0, env);
+    defineVar(install("maxordn"), sexp_mxordn, env);
+    defineVar(install("maxords"), sexp_mxords, env);
+    defineVar(install("maxsteps"), sexp_mx, env);
+    defineVar(install("stiff"), sexp_stiff, env);
+    defineVar(install("transit_abs"), sexp_transit_abs, env);
+    defineVar(install("env"), sexp_object, env);
+    defineVar(install("extra.args"), sexp_extra_args, env);
+    /* defineVar(install("rc"), sexp_rc, env); */
+    
+    setAttrib(df,install(".env"), env);
+
+    SEXP cls = PROTECT(allocVector(STRSXP, 2)); pro++;
+    SET_STRING_ELT(cls, 0, mkChar("solveRxODE"));
+    SET_STRING_ELT(cls, 1, mkChar("data.frame"));
+
+    classgets(df, cls);
+    
     SEXP sexp_solve2   = PROTECT(allocVector(VECSXP, 2)); pro++;
     SEXP sexp_rc = PROTECT(allocVector(INTSXP,1)); pro++;
     int *rc2 = INTEGER(sexp_rc);
     rc2[0] = rc[0];
-    SET_VECTOR_ELT(sexp_solve2, 0,sexp_solve);
+    SET_VECTOR_ELT(sexp_solve2, 0,df);
     SET_VECTOR_ELT(sexp_solve2, 1,sexp_rc);
 
     UNPROTECT(pro);
@@ -965,7 +1021,7 @@ SEXP RxODE_rxCoutEcho(SEXP number);
 
 void R_init_RxODE(DllInfo *info){
   R_CallMethodDef callMethods[]  = {
-    {"RxODE_ode_solver", (DL_FUNC) &RxODE_ode_solver, 22},
+    {"RxODE_ode_solver", (DL_FUNC) &RxODE_ode_solver, 23},
     {"RxODE_rxInner", (DL_FUNC) &RxODE_rxInner, 2},
     {"RxODE_rxHessian", (DL_FUNC) &RxODE_rxHessian, 1},
     {"RxODE_RxODE_focei_eta_lik", (DL_FUNC) &RxODE_RxODE_focei_eta_lik, 2},

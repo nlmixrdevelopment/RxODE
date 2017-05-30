@@ -2,18 +2,9 @@
 % Please edit documentation in R/focei.R
 \name{rxFoceiEta}
 \alias{rxFoceiEta}
-\alias{rxFoceiEta.rxFocei}
-\alias{rxFoceiEta.RxODE}
-\alias{rxFoceiEta.rxDll}
 \title{FOCEI ETA setup,}
 \usage{
 rxFoceiEta(object, ..., dv, eta, env, nonmem = FALSE)
-
-\method{rxFoceiEta}{rxFocei}(object, ..., dv, eta, env, nonmem = FALSE)
-
-\method{rxFoceiEta}{RxODE}(object, ..., dv, eta, env, nonmem)
-
-\method{rxFoceiEta}{rxDll}(object, ..., dv, eta, env, nonmem)
 }
 \arguments{
 \item{object}{RxODE object}

@@ -349,9 +349,321 @@ RxODE <- function(model, modName = basename(wd), wd = getwd(),
     .version <- rxVersion()["version"]; # object version
     .last.solve.args <- NULL   # to be populated by solve()
 
-    solve <- function(..., matrix=TRUE){
-        ## .last.solve.args <<- as.list(match.call(expand.dots = TRUE));
-        return(rxSolveSetup(dll,..., matrix=matrix, do.solve=TRUE));
+    .c <- function(...){.C(...)};
+
+    solve <- function(params=NULL, events=NULL, inits = NULL, scale = c(),
+                      covs = NULL, stiff = TRUE, transit_abs = NULL,
+                      atol = 1.0e-8, rtol = 1.0e-6, maxsteps = 5000, hmin = 0, hmax = NULL, hini = 0, maxordn = 12,
+                      maxords = 5, ..., covs_interpolation = c("linear", "constant"),
+                      theta=numeric(), eta=numeric(), matrix=TRUE,
+                      inC=FALSE, counts=NULL, do.solve=TRUE){
+        env <- environment(.c);
+        modVars <- dll$modVars;
+        trans <- modVars$trans
+        state <- modVars$state;
+        lhs <- modVars$lhs;
+        pars <- modVars$params;
+        if (!is.null(params)){
+            if (is.null(events) && class(params) == "EventTable"){
+                events <- params;
+                params <- c();
+            }
+        }
+        if (is.null(transit_abs)){
+            transit_abs <- modVars$podo;
+            if (transit_abs){
+                warning("Assumed transit compartment model since 'podo' is in the model.")
+            }
+        }
+        if (class(params) != "numeric"){
+            n <- names(params);
+            params <- as.double(params);
+            names(params) <- n;
+        }
+        ## Params and inits passed
+        extra.args <- list(events = events$copy(),
+                           covs = covs, stiff = stiff,
+                           transit_abs = transit_abs, atol = atol, rtol = rtol, maxsteps = maxsteps,
+                           hmin = hmin, hmax = hmax, hini = hini, maxordn = maxordn, maxords = maxords,
+                           covs_interpolation = covs_interpolation, ...);
+        params <- c(params, rxThetaEta(theta, eta));
+        event.table <- events$get.EventTable()
+        if (!is.numeric(maxordn))
+            stop("`maxordn' must be numeric")
+        if (maxordn < 1 || maxordn > 12)
+            stop("`maxordn' must be >1 and < = 12")
+        if (!is.numeric(maxords))
+            stop("`maxords' must be numeric")
+        if (maxords < 1 || maxords > 5)
+            stop("`maxords' must be >1 and < = 5")
+        if (!is.numeric(rtol))
+            stop("`rtol' must be numeric")
+        if (!is.numeric(atol))
+            stop("`atol' must be numeric")
+        if (!is.numeric(hmin))
+            stop("`hmin' must be numeric")
+        if (hmin < 0)
+            stop("`hmin' must be a non-negative value")
+        if (is.null(hmax)){
+            if (is.null(event.table$time)){
+                hmax <- 0;
+            } else {
+                hmax <- max(abs(diff(event.table$time)))
+            }
+        }
+        if (!is.numeric(hmax))
+            stop("`hmax' must be numeric")
+        if (hmax < 0)
+            stop("`hmax' must be a non-negative value")
+        if (hmax == Inf)
+            hmax <- 0
+        if (!is.null(hini)){
+            if (hini < 0)
+                stop("`hini' must be a non-negative value")
+        } else {
+            hini <- 0;
+        }
+        ## preserve input arguments.
+        inits <- rxInits(dll, inits, state, 0);
+        params <- rxInits(dll, params, pars, NA, !is.null(covs));
+
+        if (!is.null(covs)){
+            cov <- as.matrix(covs);
+            pcov <- sapply(dimnames(cov)[[2]], function(x){
+                w <- which(x == names(params));
+                if (length(w) == 1){
+                    return(w)
+                } else {
+                    return(0);
+                }
+            })
+            n_cov <- length(pcov);
+            ## Now check if there is any unspecified parameters by either covariate or parameter
+            w <- which(is.na(params));
+            if (!all(names(params)[w] %in% dimnames(cov)[[2]])){
+                stop("Some model specified variables were not specified by either a covariate or parameter");
+            }
+            ## Assign all parameters matching a covariate to zero.
+            for (i in pcov){
+                if (i > 0){
+                    params[i] <- 0;
+                }
+            }
+            covnames <- dimnames(cov)[[2]]
+        } else {
+            ## For now zero out the covariates
+            pcov <- c();
+            cov <- c();
+            n_cov <- 0;
+            covnames <- c();
+        }
+        lhs_vars <- lhs
+        if (is.null(inits)){
+            n <- state;
+            inits <- rep(0.0, length(n));
+            names(inits) <- n;
+        }
+        s <- as.list(match.call(expand.dots = TRUE))
+        wh <- grep(pattern = "[Ss]\\d+$", names(s))
+        if (length(scale) > 0 && length(wh) > 0){
+            stop("Cannot specify both 'scale=c(...)' and S#=, please pick one for to scale the ODE compartments.")
+        }
+        ## HACK: fishing scaling variables "S1 S2 S3 ..." from params call
+        ## to solve(). Maybe define a "scale = c(central = 7.6, ...)" argument
+        ## similar to "params = "?
+        scaler.ix <- c()
+        if (length(wh) > 0) {
+            scaler.ix <- as.numeric(substring(names(s)[wh], 2))
+            if (any(duplicated(scaler.ix))){
+                stop("Duplicate scaling factors found.");
+            }
+            scale <- unlist(s[wh]);
+            if (any(length(inits) < scaler.ix)){
+                warning(sprintf("scaler variable(s) above the number of compartments: %s.",
+                                paste(paste0("S", scaler.ix[scaler.ix > length(inits)]), collapse=", ")))
+                scale <- scale[scaler.ix < length(inits)]
+                scaler.ix <- scaler.ix[scaler.ix < length(inits)];
+            }
+            names(scale) <- state[scaler.ix];
+        }
+        scale <- c(scale);
+        scale <- rxInits(dll, scale, state, 1, noini=TRUE);
+        isLocf <- 0;
+        if (length(covs_interpolation) > 1){
+            isLocf <- 0;
+        } else if (covs_interpolation == "constant"){
+            isLocf <- 1;
+        } else if (covs_interpolation != "linear"){
+            stop("Unknown covariate interpolation specified.");
+        }
+        if (event.table$time[1] != 0){
+            warning(sprintf("The initial conditions are at t = %s instead of t = 0.", event.table$time[1]))
+        }
+        ## Ensure that inits and params have names.
+        names(inits) <- state
+        names(params) <- pars;
+
+        time <- event.table$time;
+        evid <- as.integer(event.table$evid);
+        amt <- as.double(event.table$amt[event.table$evid>0]);
+        ## Covariates
+        pcov=as.integer(pcov);
+        cov=as.double(cov);
+        isLocf=as.integer(isLocf);
+        ## Solver options (double)
+        atol=as.double(atol);
+        rtol=as.double(rtol);
+        hmin=as.double(hmin);
+        hmax=as.double(hmax);
+        hini=as.double(hini);
+        ## Solver options ()
+        maxordn=as.integer(maxordn);
+        maxords=as.integer(maxords);
+        maxsteps=as.integer(maxsteps);
+        stiff=as.integer(stiff);
+        transit_abs=as.integer(transit_abs);
+        do.matrix=as.integer(matrix)
+        if (do.solve){
+            sexp <- trans["ode_solver_sexp"]
+            ret <- try({ret <- .Call(sexp,
+                                     ## Parameters
+                                     params,
+                                     inits,
+                                     as.double(scale),
+                                     lhs_vars,
+                                     ## events
+                                     time,
+                                     evid,
+                                     amt,
+                                     ## Covariates
+                                     pcov,
+                                     cov,
+                                     isLocf,
+                                     ## Solver options (double)
+                                     atol,
+                                     rtol,
+                                     hmin,
+                                     hmax,
+                                     hini,
+                                     ## Solver options ()
+                                     maxordn,
+                                     maxords,
+                                     maxsteps,
+                                     stiff,
+                                     transit_abs,
+                                     ## Passed to build solver object.
+                                     env,
+                                     extra.args,
+                                     do.matrix)
+                rc <- ret[[2]];
+                ret <- ret[[1]];
+                ## attr(ret, "solveRxDll")$matrix <- attr(ret, "solveRxDll")$matrix[events$get.obs.rec(), ];
+                ## Change sensitivities to be d/dt(d(A)/d(B)) form.
+                ## dim <- dimnames(attr(ret, "solveRxDll")$matrix);
+                ## dim[[2]] <- gsub(regSens,"d/dt(d(\\1)/d(\\2))",dim[[2]]);
+                ## dimnames(attr(ret, "solveRxDll")$matrix) <- dim;
+                if (rc != 0)
+                    stop(sprintf("could not solve ODE, IDID = %d (see further messages)", rc))
+                ret
+            })
+            if (inherits(ret, "try-error")){
+                ## Error solving, try the other solver.
+                ## errs <- paste(suppressWarnings({readLines(sink.file)}), collapse="\n");
+                stiff <- 1L - stiff;
+                ## sink(sink.file);
+                try({ret <- .Call(sexp,
+                                  ## Parameters
+                                  params,
+                                  inits,
+                                  as.double(scale),
+                                  lhs_vars,
+                                  ## events
+                                  time,
+                                  evid,
+                                  amt,
+                                  ## Covariates
+                                  pcov,
+                                  cov,
+                                  isLocf,
+                                  ## Solver options (double)
+                                  atol,
+                                  rtol,
+                                  hmin,
+                                  hmax,
+                                  hini,
+                                  ## Solver options ()
+                                  maxordn,
+                                  maxords,
+                                  maxsteps,
+                                  stiff,
+                                  transit_abs,
+                                  ## Passed to build solver object.
+                                  env,
+                                  extra.args,
+                                  do.matrix)
+                    rc <- ret[[2]];
+                    ret <- ret[[1]];
+                    ## attr(ret, "solveRxDll")$matrix <- attr(ret, "solveRxDll")$matrix[events$get.obs.rec(), ];
+                    ## Change sensitivities to be d/dt(d(A)/d(B)) form.
+                    ## dim <- dimnames(attr(ret, "solveRxDll")$matrix);
+                    ## dim[[2]] <- gsub(regSens,"d/dt(d(\\1)/d(\\2))",dim[[2]]);
+                    ## dimnames(attr(ret, "solveRxDll")$matrix) <- dim;
+
+                    if (rc != 0)
+                        stop(sprintf("could not solve ODE, IDID = %d (see further messages)", rc))
+                    ret
+                })
+                ## sink();
+                if (inherits(ret, "try-error")){
+                    stop("Tried both LSODA and DOP853, but could not solve the system.")
+                } else {
+                    if (stiff == 1L){
+                        warning("Originally tried DOP853, but it failed to solve, so used LSODA instead.")
+                    } else {
+                        warning("Originally tried LSODA, but it failed to solve, so used DOP853 instead.")
+                    }
+                }
+            }
+            ## Now do scaling
+        } else {
+            ret <- list(params=params,
+                        inits=inits,
+                        lhs_vars=lhs_vars,
+                        ## events
+                        time=time,
+                        evid=evid,
+                        amt=amt,
+                        ## Covariates
+                        pcov=pcov,
+                        cov=cov,
+                        isLocf=isLocf,
+                        ## Solver options (double)
+                        atol=atol,
+                        rtol=rtol,
+                        hmin=hmin,
+                        hmax=hmax,
+                        hini=hini,
+                        ## Solver options ()
+                        maxordn=maxordn,
+                        maxords=maxords,
+                        maxsteps=maxsteps,
+                        stiff=stiff,
+                        transit_abs=transit_abs,
+                        ## Passed to build solver object.
+                        object=env,
+                        extra.args=extra.args,
+                        scale=scale,
+                        events=events,
+                        event.table=event.table,
+                        do.matrix=do.matrix);
+
+            if (inC){
+                .Call("RxODE_ode_setup", inits, lhs_vars, time, evid, amt, pcov, cov, isLocf, atol, rtol, hmin, hmax,
+                      hini, maxordn, maxords, maxsteps, stiff, transit_abs,
+                      PACKAGE="RxODE");
+            }
+        }
+        return(ret);
     }
     force <- FALSE
     if (class(do.compile) == "logical"){
@@ -360,6 +672,9 @@ RxODE <- function(model, modName = basename(wd), wd = getwd(),
     }
     if (is.null(do.compile)){
         do.compile <- TRUE
+    }
+    assignPtr <- function(){
+        .Call(dll$modVars$trans["ode_solver_ptr"]);
     }
     if (do.compile){
         cmpMgr$compile(force);
@@ -390,7 +705,8 @@ RxODE <- function(model, modName = basename(wd), wd = getwd(),
             compile = cmpMgr$compile,
             get.index = cmpMgr$get.index,
             run = solve,
-            getObj = function(obj) get(obj, envir = environment(solve)))
+            getObj = function(obj) get(obj, envir = environment(solve)),
+            assignPtr=assignPtr)
     if (do.compile){
         vars <- rxModelVars(cmpMgr$rxDll());
         out$calcJac <- (length(vars$dfdy) > 0);
@@ -649,14 +965,16 @@ coef.RxCompilationManager <- function(...){
 
 ##' @rdname coef.RxODE
 ##' @export
-coef.solveRxDll <- function(object, ...){
-    lst <- attr(object, "solveRxDll");
+coef.solveRxODE <- function(object, ...){
+    env <- attr(object, ".env");
+    rxode <- env$env$out;
+    lst <- c(list(params=env$params, inits=env$inits), env$extra.args)
     ret <- list();
     ret$params <- lst$params;
     ret$state <- lst$inits;
-    ret$sens <- rxModelVars(object)["sens"];
+    ret$sens <- rxModelVars(rxode)["sens"];
     ret$state <- ret$state[regexpr(regSens, names(ret$state)) == -1]
-    ret$RxODE <- lst$object;
+    ret$RxODE <- rxode;
     class(ret) <- "rxCoefSolve";
     return(ret);
 }
@@ -900,7 +1218,6 @@ rx.initCmpMgr <-
             compile();
         }
         rxLoad(.rxDll);
-        .rxDll$.call(rxTrans(.rxDll)["ode_solver_ptr"])
         return();
     }
 
@@ -1827,9 +2144,10 @@ rxModelVars.RxODE <- function(obj){
 
 ##' @rdname rxModelVars
 ##' @export
-rxModelVars.solveRxDll <- function(obj){
-    lst <- attr(obj, "solveRxDll");
-    return(rxModelVars.rxDll(lst$object));
+rxModelVars.solveRxODE <- function(obj){
+    env <- attr(obj, ".env");
+    rxode <- env$env$out;
+    return(rxModelVars.RxODE(rxode));
 }
 
 ##' @rdname rxModelVars
@@ -1967,6 +2285,7 @@ rxInits <- function(rxDllObj,        # rxDll object
                     req,             # Required names, and order
                     default = 0,     # Default value; If NA, then throw error if doesn't exist
                     noerror = FALSE, # no error thrown for NA
+                    noini=FALSE,
                     ...){
     ## rxInits returns the inits of rxDllObj
     ##
@@ -1983,8 +2302,11 @@ rxInits <- function(rxDllObj,        # rxDll object
     ##   replaced with the default value.  If the default value is NA,
     ##   then throw an error if the values are not specified in either
     ##   the vec or the rxDllObj.
-
-    ini <- rxModelVars(rxDllObj)$ini;
+    if (noini){
+        ini <- c();
+    } else {
+        ini <- rxModelVars(rxDllObj)$ini;
+    }
     miss <- c();
     if (!missing(req)){
         if ((is.na(default) && noerror) || !is.na(default)){
@@ -2029,128 +2351,6 @@ rxInits <- function(rxDllObj,        # rxDll object
 ##' @export
 rxInit <- rxInits;
 
-accessComp <- function(obj, arg){
-    lst <- obj;
-    class(lst) <- "list";
-    if (any(names(obj) == arg)){
-        return(lst[[arg]]);
-    } else {
-        if (arg == "calcJac"){
-            return(length(rxModelVars(obj)$dfdy) > 0)
-        } else if (arg == "calcSens"){
-            return(length(rxModelVars(obj)$sens) > 0)
-        } else if (any(rxState(obj) == gsub(regIni, "", arg))){
-            arg <- gsub(regIni, "", arg);
-            ret <- rxInits(obj)[arg];
-            if (is.na(ret)){
-                ret <- NA;
-                names(ret) <- arg;
-                return(ret)
-            } else {
-                return(ret)
-            }
-        } else if (any(rxParams(obj) == arg)){
-            ret <- rxInits(obj)[arg];
-            if (is.na(ret)){
-                ret <- NA;
-                names(ret) <- arg;
-                return(ret)
-            } else {
-                return(ret)
-            }
-        } else {
-            return(NULL);
-        }
-    }
-}
-
-##' @author Matthew L.Fidler
-##' @export
-"$.solveRxDll" <-  function(obj, arg, exact = TRUE){
-    m <- as.data.frame(obj);
-    ret <- m[[arg, exact = exact]];
-    if (is.null(ret) & class(arg) == "character"){
-        if (arg == "t"){
-            return(m[["time"]]);
-        } else {
-            tmp <- attr(obj, "solveRxDll");
-            if (regexpr(regToSens1, arg) != -1){
-                ret <- m[[gsub(regToSens1, "d/dt(d(\\1)/d(\\2))", arg)]];
-                if (!is.null(ret)){
-                    return(ret)
-                }
-            }
-            if (isTRUE(exact)){
-                w <- which(names(tmp) == arg);
-            } else {
-                w <- which(regexpr(rex::rex(start, arg), names(tmp)) != -1)
-                if (length(w) == 1 && !any(names(tmp) == arg) && is.na(exact)){
-                    warning(sprintf("partial match of '%s' to '%s'", arg, names(tmp)[w]));
-                }
-            }
-            if (length(w) == 1){
-                return(tmp[[w]]);
-            }
-            if (any(names(tmp$param) == arg)){
-                return(tmp$param[arg]);
-            }
-            if (any(names(tmp$init) == gsub(regIni, "", arg))){
-                arg <- gsub(regIni, "", arg);
-                return(tmp$init[arg]);
-            }
-            if (any(arg == names(tmp$events))){
-                if (substr(arg, 0, 4) == "get."){
-                    return(tmp$events[[arg]]);
-                } else {
-                    call <- as.list(match.call(expand.dots = TRUE));
-                    env <- parent.frame();
-                    return(function(..., .obj = obj, .objName = toString(call$obj), .objArg = toString(call$arg), .envir = env){
-                        return(solveRxDll_updateEventTable(.obj, .objName, .objArg, ..., envir = .envir));
-                    });
-                }
-            }
-            return(NULL);
-        }
-    } else {
-        return(rxTbl(ret));
-    }
-}
-
-
-##' @author Matthew L.Fidler
-##' @export
-"[.solveRxDll" <- function(x, i, j, drop){
-    df <- as.data.frame(x);
-    if (!missing(i) && missing(j) && missing(drop)){
-        df <- df[i, ];
-    } else if (missing(i) && !missing(j) && missing(drop)){
-        df <- df[, j];
-    } else if (!missing(i) && !missing(j) && missing(drop)){
-        df <- df[i, j];
-    } else if (missing(i) && missing(j) && missing(drop)){
-        df <- df[];
-    } else if (!missing(i) && missing(j) && !missing(drop)){
-        df <- df[i, drop = drop];
-    } else if (missing(i) && !missing(j) && !missing(drop)){
-        df <- df[, j, drop = drop];
-    } else if (!missing(i) && !missing(j) && !missing(drop)){
-        df <- df[i, j, drop = drop];
-    } else if (missing(i) && missing(j) && !missing(drop)){
-        df <- df[drop = drop];
-    }
-    return(rxTbl(df))
-}
-
-##' @author Matthew L.Fidler
-##' @export
-"[[.solveRxDll" <- function(obj, arg, exact = TRUE, internal = FALSE){
-    if (internal){
-        tmp <- attr(obj, "solveRxDll");
-        return(tmp[[arg, exact = exact]]);
-    } else {
-        "$.solveRxDll"(obj, arg, exact = exact);
-    }
-}
 ##' Reload RxODE dll
 ##'
 ##' Can be useful for debugging

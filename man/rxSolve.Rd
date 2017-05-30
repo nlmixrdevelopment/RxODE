@@ -2,11 +2,8 @@
 % Please edit documentation in R/rxsolve.R
 \name{rxSolve}
 \alias{rxSolve}
-\alias{rxSolve.solveRxDll}
 \alias{rxSolve.RxODE}
-\alias{rxSolve.RxCompilationManager}
-\alias{rxSolve.character}
-\alias{rxSolve.rxDll}
+\alias{rxSolve.solveRxODE}
 \title{Solves a ODE equation}
 \usage{
 rxSolve(object, params = NULL, events = NULL, inits = NULL, scale = c(),
@@ -15,11 +12,6 @@ rxSolve(object, params = NULL, events = NULL, inits = NULL, scale = c(),
   maxordn = 12, maxords = 5, ..., covs_interpolation = c("linear",
   "constant"), theta = numeric(), eta = numeric())
 
-\method{rxSolve}{solveRxDll}(object, params, events, inits, scale, covs, stiff,
-  transit_abs, atol, rtol, maxsteps, hmin, hmax, hini, maxordn, maxords, ...,
-  covs_interpolation = c("linear", "constant"), theta = numeric(),
-  eta = numeric())
-
 \method{rxSolve}{RxODE}(object, params = NULL, events = NULL,
   inits = NULL, scale = c(), covs = NULL, stiff = TRUE,
   transit_abs = NULL, atol = 1e-08, rtol = 1e-06, maxsteps = 5000,
@@ -27,21 +19,7 @@ rxSolve(object, params = NULL, events = NULL, inits = NULL, scale = c(),
   covs_interpolation = c("linear", "constant"), theta = numeric(),
   eta = numeric(), matrix = FALSE)
 
-\method{rxSolve}{RxCompilationManager}(object, params = NULL, events = NULL,
-  inits = NULL, scale = c(), covs = NULL, stiff = TRUE,
-  transit_abs = NULL, atol = 1e-08, rtol = 1e-06, maxsteps = 5000,
-  hmin = 0, hmax = NULL, hini = 0, maxordn = 12, maxords = 5, ...,
-  covs_interpolation = c("linear", "constant"), theta = numeric(),
-  eta = numeric(), matrix = FALSE)
-
-\method{rxSolve}{character}(object, params = NULL, events = NULL,
-  inits = NULL, scale = c(), covs = NULL, stiff = TRUE,
-  transit_abs = NULL, atol = 1e-08, rtol = 1e-06, maxsteps = 5000,
-  hmin = 0, hmax = NULL, hini = 0, maxordn = 12, maxords = 5, ...,
-  covs_interpolation = c("linear", "constant"), theta = numeric(),
-  eta = numeric(), matrix = FALSE)
-
-\method{rxSolve}{rxDll}(object, params = NULL, events = NULL,
+\method{rxSolve}{solveRxODE}(object, params = NULL, events = NULL,
   inits = NULL, scale = c(), covs = NULL, stiff = TRUE,
   transit_abs = NULL, atol = 1e-08, rtol = 1e-06, maxsteps = 5000,
   hmin = 0, hmax = NULL, hini = 0, maxordn = 12, maxords = 5, ...,

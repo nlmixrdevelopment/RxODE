@@ -3,7 +3,7 @@
 \name{coef.RxODE}
 \alias{coef.RxODE}
 \alias{coef.RxCompilationManager}
-\alias{coef.solveRxDll}
+\alias{coef.solveRxODE}
 \alias{coef.rxDll}
 \title{Return the RxODE coefficients}
 \usage{
@@ -11,7 +11,7 @@
 
 \method{coef}{RxCompilationManager}(...)
 
-\method{coef}{solveRxDll}(object, ...)
+\method{coef}{solveRxODE}(object, ...)
 
 \method{coef}{rxDll}(...)
 }

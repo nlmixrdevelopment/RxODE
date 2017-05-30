@@ -23,6 +23,7 @@ rxTbl <- function(x, msg){
         if (!missing(msg)){
             rxCat(sprintf("Change solved object to data.frame for %s\n", msg))
         }
+        attr(x, ".env") <- NULL;
         return(x)
     }
 }

@@ -245,7 +245,8 @@ First part of data:
 
     t1 <- gsub("(EC50|200.000|eff|1) *$", "\\1", t1);
 
-    options(RxODE.display.tbl = TRUE)
+    options(RxODE.display.tbl = TRUE);
+    rxSyncOptions();
     test_that("print(pred); RxODE.display.tbl = TRUE", {
         tmpfile <- tmpsink();
         print(pred);
@@ -256,7 +257,7 @@ First part of data:
         expect_equal(gsub("(# A tibble: [0-9]+ ).*( [0-9]+)","\\1x\\2",p1),t1);
     })
     options(RxODE.display.tbl = FALSE)
-
+    rxSyncOptions();
     t1 <- strsplit(sprintf("Solved RxODE object
 Dll: %s
 

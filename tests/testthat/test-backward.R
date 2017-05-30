@@ -36,9 +36,7 @@ C1=centr/V;
         expect_equal(class(x), "data.frame")
     })
 
-
     ## test old solving.
-
     event.table <- ev$get.EventTable()
     modelVars <- mod1KA$get.modelVars()
     state_vars <- modelVars$state;

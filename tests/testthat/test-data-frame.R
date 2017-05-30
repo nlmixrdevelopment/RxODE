@@ -65,11 +65,11 @@ rxPermissive({
 
     test_that("Character data frame assignment operators [] make sense",{
         o1.assign <- o1.first;
-        expect_equal(class(o1.assign), "solveRxDll")
+        expect_equal(class(o1.assign), c("solveRxODE", "data.frame"))
         o1.assign[,"depot"] <- 0;
         expect_equal(rep(0,times = length(as.data.frame(o1.assign)[,1])),as.data.frame(o1.assign)[,"depot"]);
         expect_equal(rep(0,times = length(o1.assign$depot)),o1.assign$depot);
-        expect_false(any(class(o1.assign) == "solveRxDll"));
+        expect_false(any(class(o1.assign) == "solveRxODE"));
     })
 
     test_that("Numeric data frame lookup operators [[]] make sense",{
@@ -89,11 +89,11 @@ rxPermissive({
 
     test_that("Character data frame assignment operators [[]] make sense",{
         o1.assign <- o1.first;
-        expect_equal(class(o1.assign), "solveRxDll")
+        expect_equal(class(o1.assign), c("solveRxODE", "data.frame"))
         o1.assign[["depot"]] <- 0;
         expect_equal(rep(0,times = length(as.data.frame(o1.assign)[,1])),as.data.frame(o1.assign)[["depot"]]);
         expect_equal(rep(0,times = length(o1.assign$depot)),o1.assign$depot);
-        expect_false(any(class(o1.assign) == "solveRxDll"));
+        expect_false(any(class(o1.assign) == "solveRxODE"));
     })
 
 
@@ -104,19 +104,19 @@ rxPermissive({
 
     test_that("Character data frame assignment operators $ make sense",{
         o1.assign <- o1.first;
-        expect_equal(class(o1.assign), "solveRxDll")
+        expect_equal(class(o1.assign), c("solveRxODE", "data.frame"))
         o1.assign$depot <- 0;
         expect_equal(rep(0,times = length(as.data.frame(o1.assign)[,1])),as.data.frame(o1.assign)$depot);
         expect_equal(rep(0,times = length(o1.assign$depot)),o1.assign$depot);
-        expect_false(any(class(o1.assign) == "solveRxDll"));
+        expect_false(any(class(o1.assign) == "solveRxODE"));
     })
 
     test_that("rownames lookup & assignment makes sense",{
-        expect_equal(rownames(o1.first),NULL);
+        expect_equal(rownames(o1.first),paste(seq(1, length(o1.first[, 1]))));
         rownames(o1.first) <- paste("row",1:length(o1.first$depot));
         expect_equal(rownames(o1.first),paste("row",1:length(o1.first$depot)));
         rownames(o1.first) <- NULL;
-        expect_equal(rownames(o1.first),NULL);
+        expect_equal(rownames(o1.first),paste(seq(1, length(o1.first[, 1]))));
     })
 
 }, silent=TRUE)

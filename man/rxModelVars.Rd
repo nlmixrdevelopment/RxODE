@@ -6,7 +6,7 @@
 \alias{rxModelVars.rxDll}
 \alias{rxModelVars.RxCompilationManager}
 \alias{rxModelVars.RxODE}
-\alias{rxModelVars.solveRxDll}
+\alias{rxModelVars.solveRxODE}
 \alias{rxModelVars.character}
 \title{All model variables for a RxODE object}
 \usage{
@@ -20,7 +20,7 @@ rxModelVars(obj)
 
 \method{rxModelVars}{RxODE}(obj)
 
-\method{rxModelVars}{solveRxDll}(obj)
+\method{rxModelVars}{solveRxODE}(obj)
 
 \method{rxModelVars}{character}(obj)
 }

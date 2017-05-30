@@ -165,10 +165,8 @@
 eventTable <- function(amount.units = NA, time.units = "hours")
 {
     if (!missing(amount.units)){
-        if (class(amount.units) == "solveRxDll"){
-            tmp <- attr(amount.units, "solveRxDll");
-            events <- tmp$events;
-            return(events);
+        if (is(amount.units, "solveRxODE")){
+            return(attr(amount.units,".env")$extra.args$events)
         }
     }
     .EventTable <- NULL

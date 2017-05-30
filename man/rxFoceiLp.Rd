@@ -2,18 +2,9 @@
 % Please edit documentation in R/focei.R
 \name{rxFoceiLp}
 \alias{rxFoceiLp}
-\alias{rxFoceiLp.rxFocei}
-\alias{rxFoceiLp.RxODE}
-\alias{rxFoceiLp.rxDll}
 \title{Get -Grad for individual}
 \usage{
 rxFoceiLp(object, ..., dv, eta)
-
-\method{rxFoceiLp}{rxFocei}(object, ..., dv, eta)
-
-\method{rxFoceiLp}{RxODE}(object, ..., dv, eta)
-
-\method{rxFoceiLp}{rxDll}(object, ..., dv, eta)
 }
 \arguments{
 \item{object}{RxODE object}

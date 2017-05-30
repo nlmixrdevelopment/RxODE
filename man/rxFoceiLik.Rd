@@ -2,18 +2,9 @@
 % Please edit documentation in R/focei.R
 \name{rxFoceiLik}
 \alias{rxFoceiLik}
-\alias{rxFoceiLik.rxFocei}
-\alias{rxFoceiLik.RxODE}
-\alias{rxFoceiLik.rxDll}
 \title{Get -LLIK for individual}
 \usage{
 rxFoceiLik(object, ..., dv, eta)
-
-\method{rxFoceiLik}{rxFocei}(object, ..., dv, eta)
-
-\method{rxFoceiLik}{RxODE}(object, ..., dv, eta)
-
-\method{rxFoceiLik}{rxDll}(object, ..., dv, eta)
 }
 \arguments{
 \item{object}{RxODE object}

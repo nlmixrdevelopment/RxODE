@@ -2,18 +2,9 @@
 % Please edit documentation in R/focei.R
 \name{rxFoceiTheta}
 \alias{rxFoceiTheta}
-\alias{rxFoceiTheta.rxFocei}
-\alias{rxFoceiTheta.RxODE}
-\alias{rxFoceiTheta.rxDll}
 \title{FOCEI THETA setup,}
 \usage{
 rxFoceiTheta(object, ..., dv, eta, env, nonmem = FALSE)
-
-\method{rxFoceiTheta}{rxFocei}(object, ..., dv, eta, env, nonmem = FALSE)
-
-\method{rxFoceiTheta}{RxODE}(object, ..., dv, eta, env, nonmem)
-
-\method{rxFoceiTheta}{rxDll}(object, ..., dv, eta, env, nonmem)
 }
 \arguments{
 \item{object}{RxODE object}
