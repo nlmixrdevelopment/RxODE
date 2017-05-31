@@ -74,7 +74,7 @@ rxClean <- function(wd = getwd()){
         }
     }
     if (normalizePath(wd) != normalizePath(RxODE.cache.directory)){
-        rxCat("Cleaning cache directory as well.\n");
+        ## rxCat("Cleaning cache directory as well.\n");
         rxClean(RxODE.cache.directory);
     }
     return(length(list.files(pattern = pat)) == 0);
