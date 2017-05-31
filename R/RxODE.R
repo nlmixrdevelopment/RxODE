@@ -305,9 +305,9 @@
 ##' @concept Pharmacodynamics (PD)
 ##' @useDynLib RxODE, .registration=TRUE
 ##' @importFrom Rcpp evalCpp
-##' @importFrom utils getFromNamespace assignInMyNamespace download.file
-##' @importFrom stats setNames
-##' @importFrom methods signature
+##' @importFrom utils getFromNamespace assignInMyNamespace download.file head
+##' @importFrom stats setNames update
+##' @importFrom methods signature is
 ##' @export
 RxODE <- function(model, modName = basename(wd), wd = ifelse(RxODE.cache.directory == ".", getwd(), RxODE.cache.directory),
                   filename = NULL, do.compile = NULL, extraC = NULL,
@@ -351,6 +351,14 @@ RxODE <- function(model, modName = basename(wd), wd = ifelse(RxODE.cache.directo
 
     .c <- function(...){.C(...)};
 
+    sexp.address <- NULL
+    .sexp <- function(...){
+        if (is.null(sexp.address)){
+            sexp.address <<- getNativeSymbolInfo(as.vector(out$dll$modVars$trans["ode_solver_sexp"]),gsub("_$","",out$dll$modVars$trans["prefix"]))$address
+        }
+        .Primitive(".Call")(sexp.address,...);
+    }
+
     solve <- function(params=NULL, events=NULL, inits = NULL, scale = c(),
                       covs = NULL, stiff = TRUE, transit_abs = NULL,
                       atol = 1.0e-8, rtol = 1.0e-6, maxsteps = 5000, hmin = 0, hmax = NULL, hini = 0, maxordn = 12,
@@ -359,7 +367,6 @@ RxODE <- function(model, modName = basename(wd), wd = ifelse(RxODE.cache.directo
                       inC=FALSE, counts=NULL, do.solve=TRUE){
         env <- environment(.c);
         modVars <- dll$modVars;
-        sexp <- dll$sexp;
         trans <- modVars$trans
         state <- modVars$state;
         lhs <- modVars$lhs;
@@ -525,8 +532,7 @@ RxODE <- function(model, modName = basename(wd), wd = ifelse(RxODE.cache.directo
         transit_abs=as.integer(transit_abs);
         do.matrix=as.integer(matrix)
         if (do.solve){
-            ret <- try({ret <- .Primitive(".Call")(sexp,
-                                     ## Parameters
+            ret <- try({ret <- .sexp(## Parameters
                                      params,
                                      inits,
                                      as.double(scale),
@@ -571,36 +577,35 @@ RxODE <- function(model, modName = basename(wd), wd = ifelse(RxODE.cache.directo
                 ## errs <- paste(suppressWarnings({readLines(sink.file)}), collapse="\n");
                 stiff <- 1L - stiff;
                 ## sink(sink.file);
-                try({ret <- .Primitive(".Call")(sexp,
-                    ## Parameters
-                    params,
-                    inits,
-                    as.double(scale),
-                    lhs_vars,
-                    ## events
-                    time,
-                    evid,
-                    amt,
-                    ## Covariates
-                    pcov,
-                    cov,
-                    isLocf,
-                    ## Solver options (double)
-                    atol,
-                    rtol,
-                    hmin,
-                    hmax,
-                    hini,
-                    ## Solver options ()
-                    maxordn,
-                    maxords,
-                    maxsteps,
-                    stiff,
-                    transit_abs,
-                    ## Passed to build solver object.
-                    env,
-                    extra.args,
-                    do.matrix)
+                try({ret <- .sexp(## Parameters
+                         params,
+                         inits,
+                         as.double(scale),
+                         lhs_vars,
+                         ## events
+                         time,
+                         evid,
+                         amt,
+                         ## Covariates
+                         pcov,
+                         cov,
+                         isLocf,
+                         ## Solver options (double)
+                         atol,
+                         rtol,
+                         hmin,
+                         hmax,
+                         hini,
+                         ## Solver options ()
+                         maxordn,
+                         maxords,
+                         maxsteps,
+                         stiff,
+                         transit_abs,
+                         ## Passed to build solver object.
+                         env,
+                         extra.args,
+                         do.matrix)
                     rc <- ret[[2]];
                     ret <- ret[[1]];
                     ## attr(ret, "solveRxDll")$matrix <- attr(ret, "solveRxDll")$matrix[events$get.obs.rec(), ];
@@ -673,8 +678,12 @@ RxODE <- function(model, modName = basename(wd), wd = ifelse(RxODE.cache.directo
     if (is.null(do.compile)){
         do.compile <- TRUE
     }
+    ptr.address <- NULL
     assignPtr <- function(){
-        .Primitive(".Call")(dll$ptr);
+        if (is.null(ptr.address)){
+            ptr.address <<- getNativeSymbolInfo(as.vector(out$dll$modVars$trans["ode_solver_ptr"]),gsub("_$","",out$dll$modVars$trans["prefix"]))$address;
+        }
+        .Primitive(".Call")(ptr.address);
     }
     if (do.compile){
         cmpMgr$compile(force);
@@ -712,8 +721,6 @@ RxODE <- function(model, modName = basename(wd), wd = ifelse(RxODE.cache.directo
         out$calcJac <- (length(vars$dfdy) > 0);
         out$calcSens <- (length(vars$sens) > 0)
         out$dll <- cmpMgr$rxDll();
-        out$dll$sexp <- getNativeSymbolInfo(as.vector(out$dll$modVars$trans["ode_solver_sexp"]),gsub("_$","",out$dll$modVars$trans["prefix"]))$address
-        out$dll$ptr <- getNativeSymbolInfo(as.vector(out$dll$modVars$trans["ode_solver_ptr"]),gsub("_$","",out$dll$modVars$trans["prefix"]))$address
         out$dll$old <- getNativeSymbolInfo(as.vector(out$dll$modVars$trans["ode_solver"]),gsub("_$","",out$dll$modVars$trans["prefix"]))$address
         dll <- out$dll;
     } else {

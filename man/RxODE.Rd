@@ -4,9 +4,10 @@
 \alias{RxODE}
 \title{Create an ODE-based model specification}
 \usage{
-RxODE(model, modName = basename(wd), wd = getwd(), filename = NULL,
-  do.compile = NULL, extraC = NULL, debug = FALSE, calcJac = NULL,
-  calcSens = NULL, collapseModel = FALSE, ...)
+RxODE(model, modName = basename(wd), wd = ifelse(RxODE.cache.directory ==
+  ".", getwd(), RxODE.cache.directory), filename = NULL, do.compile = NULL,
+  extraC = NULL, debug = FALSE, calcJac = NULL, calcSens = NULL,
+  collapseModel = FALSE, ...)
 }
 \arguments{
 \item{model}{This is the ODE model specification.  It can be:
