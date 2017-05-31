@@ -1,4 +1,3 @@
-rxSymInvC.slow <- NULL;  ## Memoize
 rxSymInvC <- function(mat1, diag.xform=c("sqrt", "log", "identity"), chol=FALSE){
     if (!all(as.vector(mat1) == 1 || as.vector(mat1) == 1)){
         stop("This has to be a matrix of all 1s or 0s.");
@@ -7,8 +6,9 @@ rxSymInvC <- function(mat1, diag.xform=c("sqrt", "log", "identity"), chol=FALSE)
         stop("Diagonal elements must be non-zero.");
     }
     diag.xform <- match.arg(diag.xform)
-    cache.file <- sprintf("rx_%s.inv",
-                          digest::digest(deparse(list(mat1, diag.xform, chol))));
+    cache.file <- file.path(ifelse(RxODE.cache.directory == ".", getwd(), RxODE.cache.directory),
+                            sprintf("rx_%s.inv",
+                                    digest::digest(deparse(list(mat1, diag.xform, chol)))));
     cache.file2 <- file.path(system.file("inv", package="RxODE"), cache.file);
     if (file.exists(cache.file)){
         load(cache.file);

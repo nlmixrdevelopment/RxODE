@@ -309,7 +309,7 @@
 ##' @importFrom stats setNames
 ##' @importFrom methods signature
 ##' @export
-RxODE <- function(model, modName = basename(wd), wd = getwd(),
+RxODE <- function(model, modName = basename(wd), wd = ifelse(RxODE.cache.directory == ".", getwd(), RxODE.cache.directory),
                   filename = NULL, do.compile = NULL, extraC = NULL,
                   debug = FALSE,
                   calcJac=NULL, calcSens=NULL,

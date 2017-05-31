@@ -1111,13 +1111,14 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
     check.good(errfn);
 
     if (!grad.internal){
-        cache.file <- sprintf("rx_%s%s.prd",
-                              digest::digest(paste(deparse(list(rxModelVars(obj)$md5["parsed_md5"],
-                                                                ifelse(is.function(predfn), paste(deparse(body(predfn)), collapse=""), ""),
-                                                                ifelse(is.function(pkpars), paste(deparse(body(pkpars)), collapse=""), ""),
-                                                                ifelse(is.function(errfn), paste(deparse(body(errfn)), collapse=""), ""),
-                                                                init, grad, logify, pred.minus.dv)), collapse="")),
-                              .Platform$dynlib.ext);
+        cache.file <- file.path(ifelse(RxODE.cache.directory == ".", getwd(), RxODE.cache.directory),
+                                sprintf("rx_%s%s.prd",
+                                        digest::digest(paste(deparse(list(rxModelVars(obj)$md5["parsed_md5"],
+                                                                          ifelse(is.function(predfn), paste(deparse(body(predfn)), collapse=""), ""),
+                                                                          ifelse(is.function(pkpars), paste(deparse(body(pkpars)), collapse=""), ""),
+                                                                          ifelse(is.function(errfn), paste(deparse(body(errfn)), collapse=""), ""),
+                                                                          init, grad, logify, pred.minus.dv)), collapse="")),
+                                        .Platform$dynlib.ext));
     } else {
         cache.file <- "";
     }
