@@ -163,16 +163,39 @@ rxFoceiInner <- function(object, ..., dv, eta, eta.bak=NULL,
             args$call_grad <- lp;
             args$vars <- args$eta;
             args$environment <- env
-            output <- do.call(getFromNamespace("lbfgs","lbfgs"), args, envir = parent.frame(1))
-            rxInner(output$par, env);
+            env$eta <- args$eta;
+            output <- try(do.call(getFromNamespace("lbfgs","lbfgs"), args, envir = parent.frame(1)), silent=TRUE)
+            if (inherits(output, "try-error")){
+                args$vars <- rep(0, length(args$eta));
+                output <- try(do.call(getFromNamespace("lbfgs","lbfgs"), args, envir = parent.frame(1)), silent=TRUE)
+                if (inherits(output, "try-error")){
+                    output <- rxInner(rep(0, length(args$eta)), env);
+                }
+            }
+            return(output);
         } else {
-            rxInner(args$eta, env);
+            ret <- rxInner(args$eta, env);
+            return(ret);
         }
     }
     est();
     if (any(is.na(env$eta))){
-        warning("ETA estimate failed; keeping prior");
-        env <- do.call(getFromNamespace("rxFoceiEta", "RxODE"), args, envir = parent.frame(1));
+        if (is.null(args$eta.bak)){
+            args$eta <- args$eta.bak
+            print(env$eta);
+            est()
+            print(env$eta);
+            if (any(is.na(env$eta))){
+                args$eta <- ret(0, length(args$eta));
+            }
+        } else {
+            args$eta <- rep(0, length(args$eta))
+            est();
+            if (any(is.na(env$eta))){
+                args$eta <- rep(0, length(args$eta))
+                env <- do.call(getFromNamespace("rxFoceiEta", "RxODE"), args, envir = parent.frame(1));
+            }
+        }
     }
     if (any(abs(env$eta) > 1e4)){
         warning("ETA estimate overflow; keeping prior");

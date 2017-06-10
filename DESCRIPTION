@@ -63,4 +63,4 @@ SystemRequirements: GNU make
 License: GPL (>= 2) 
 URL: https://www.r-project.org, https://github.com/hallowkm/RxODE
 RoxygenNote: 6.0.1
-LinkingTo: dparser, Rcpp, RcppArmadillo
+LinkingTo: dparser, Rcpp, RcppArmadillo, lamW

@@ -16,8 +16,8 @@ regIfOrElse <- rex::rex(or(regIf, regElse))
 ##' @author Matthew L. Fidler
 ##' @keywords internal
 rxRmIni <- function(x){
-    x <- x[regexpr(rex::rex(start,any_spaces,or(names(rxInits(x))),any_spaces,"="), x) == -1];
-    x <- x[regexpr(rex::rex(start,any_spaces,or(names(rxInits(x))),"(0)", any_spaces,"="), x) == -1];
+    x <- x[regexpr(rex::rex(start,any_spaces,or(names(rxInits(x))),any_spaces,or("=", "~")), x) == -1];
+    x <- x[regexpr(rex::rex(start,any_spaces,or(names(rxInits(x))),"(0)", any_spaces,or("=", "~")), x) == -1];
     return(x);
 }
 ##' Remove Jacobian
@@ -26,14 +26,14 @@ rxRmIni <- function(x){
 ##' @author Matthew L. Fidler
 ##' @keywords internal
 rxRmJac <- function(x){
-    return(x[regexpr(rex::rex(regJac, any_spaces, "="), x) == -1])
+    return(x[regexpr(rex::rex(regJac, any_spaces, or("=", "~")), x) == -1])
 }
 ##' Remove sensitivity equations
 ##' @param x RxODE lines to remove
 ##' @return Lines with d/dt(rx_sens_...._) removed.
 ##' @author Matthew L. Fidler
 rxRmSens <- function(x){
-    return(x[regexpr(rex::rex(start, any_spaces, "d/dt(", any_spaces, regSens, any_spaces, ")", any_spaces, "="), x) == -1]);
+    return(x[regexpr(rex::rex(start, any_spaces, "d/dt(", any_spaces, regSens, any_spaces, ")", any_spaces, or("=", "~")), x) == -1]);
 }
 ##' Remove print statements
 ##' @param x RxODE lines to remove
@@ -254,6 +254,7 @@ rxSymPyFix <- function(var){
     ret <- gsub(rex::rex(",", any_spaces, ")"), ")", ret)
     if (any(regexpr(rex::rex(boundary, or("D(", "Derivative(", "diff(")), ret) != -1)){
         ## See if RxODE translation can fix this.
+
         ret <- rxFromSymPy(ret);
         ret <- rxToSymPy(ret);
     }
@@ -339,7 +340,7 @@ rxSymPyVars <- function(model){
     rxSymPyStart();
     if (class(model) == "character" && length(model) > 1){
         vars <- model;
-    } else if (class(model) == "character" && length(model) == 1 && regexpr(rex::rex(or("=", "<-")), model) == -1){
+    } else if (class(model) == "character" && length(model) == 1 && regexpr(rex::rex(or("=", "<-", "~")), model) == -1){
         vars <- model;
     } else {
         vars <- c(rxParams(model),
@@ -411,7 +412,7 @@ rxSymPySetupIf <- function(model){
         return(rxSymPySetup(model));
     } else {
         lastLine <- sub(rex::rex(start, any_spaces, capture(anything), any_spaces, end),
-                        "\\1", strsplit(model[length(model)], "=")[[1]][1])
+                        "\\1", strsplit(model[length(model)], "[=~]")[[1]][1])
         if (!rxSymPyExists(rxToSymPy(lastLine))){
             model.setup <- paste(model, collapse="\n");
             rxSymPySetup(model.setup)
@@ -761,7 +762,7 @@ rxSymPySensitivity.single <- function(model, calcSens, calcJac){
     } else {
         extraLines <- rxRmJac(extraLines);
     }
-    extraLines <- extraLines[regexpr(rex::rex(any_spaces, regJac, any_spaces, "=", any_spaces,
+    extraLines <- extraLines[regexpr(rex::rex(any_spaces, regJac, any_spaces, or("=", "~"), any_spaces,
                                               "0", any_spaces, or(";", ""), any_spaces), extraLines) == -1];
     ## cat(paste(extraLines, collapese="\n"), "\n")
     return(extraLines);
@@ -1140,7 +1141,11 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
             dta <- tempfile(fileext=".rdata")
             save(obj, predfn, pkpars, errfn, init, grad, logify, pred.minus.dv, file=dta);
             ## on.exit({unlink(dta); unlink(rfile)});
-            rf <- sprintf("load(%s); tmp <- RxODE::rxSymPySetupPred(obj, predfn, pkpars, errfn, init, grad, logify, pred.minus.dv, run.internal=TRUE);", deparse(dta));
+            tmp <- options();
+            tmp <- tmp[regexpr(rex::rex(start, "RxODE."), names(tmp)) != -1];
+            rf <- sprintf("%s;load(%s); require(RxODE);tmp <- rxSymPySetupPred(obj, predfn, pkpars, errfn, init, grad, logify, pred.minus.dv, run.internal=TRUE);",
+                          sub(rex::rex(",", any_spaces, ".Names", anything,end),"",sub(rex::rex(start,"structure(list("),"options(",paste0(deparse(tmp),collapse=""))),
+                          deparse(dta));
             sink(rfile);
             cat(rf);
             sink();
@@ -1174,7 +1179,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
             if (!is.null(pkpars)){
                 txt <- as.vector(unlist(strsplit(rxParsePk(pkpars, init=init), "\n")));
                 re <- rex::rex(start, "init", or("_", ".", ""), or("C", "c"), "ond", or("ition", ""),or("", "s"), any_spaces,
-                               or("=", "<-"), any_spaces, "c(", capture(anything), ")", any_spaces, ";", any_spaces, end);
+                               or("=", "<-", "~"), any_spaces, "c(", capture(anything), ")", any_spaces, ";", any_spaces, end);
                 w <- which(regexpr(re, txt) != -1)
                 if (length(w) == 1){
                     inis <- txt[w];
@@ -1347,7 +1352,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                                               run.internal=TRUE, grad.internal=TRUE);
                 }
 
-                base <- gsub(rex::rex(or(oLhs), "=", anything, ";"), "", strsplit(base, "\n")[[1]])
+                base <- gsub(rex::rex(or(group(anything, "~", anything), group(or(oLhs), "=", anything, ";"))), "", strsplit(base, "\n")[[1]])
                 base <- paste(base[base != ""], collapse="\n");
                 mod <- rxGetModel(paste0(base, "\n", pred, "\n", err))
                 if (logify){
@@ -1378,7 +1383,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                 }
                 return(ret);
             } else {
-                base <- gsub(rex::rex(or(oLhs), "=", anything, ";"), "", strsplit(base, "\n")[[1]])
+                base <- gsub(rex::rex(or(group(anything, "~", anything), group(or(oLhs), "=", anything, ";"))), "", strsplit(base, "\n")[[1]])
                 base <- paste(base[base != ""], collapse="\n");
                 mod <- rxGetModel(paste0(base, "\n", pred, "\n", err));
                 if (logify){
@@ -1423,8 +1428,8 @@ rxLogifyModel <- function(model){
     cnd <- rxNorm(model, TRUE);
     lines <- strsplit(rxNorm(model), "\n")[[1]];
     for (i in seq_along(lines)){
-        if (regexpr("=", lines[i])){
-            l0 <- strsplit(lines[i], "=")[[1]];
+        if (regexpr("[=~]", lines[i])){
+            l0 <- strsplit(lines[i], or("=", "~"))[[1]];
             if (length(l0) == 2){l1 <- l0[1];
                 l2 <- eval(parse(text=sprintf("rxSplitPlusQ(quote(%s))", substr(l0[2], 1, nchar(l0[2]) - 1))));
                 for (j in seq_along(l2)){

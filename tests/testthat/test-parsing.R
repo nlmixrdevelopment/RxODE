@@ -2,6 +2,7 @@
 library("RxODE")
 context("Test Parsing of models")
 rxPermissive({
+
     badParse <- function(desc,code){
         test_that(desc,{
             tmp <- tempfile();
@@ -38,34 +39,33 @@ rxPermissive({
     badParse('incorrect d/dt operator','d/dt(y = 1);')
 
     ## Statements don't require ; now.
-    options(RxODE.syntax.require.semicolon=FALSE);
+    options(RxODE.syntax.require.semicolon=FALSE);rxSyncOptions();
     goodParse('comments must be outside statements','d/dt(y) = 1   # bad comment;')
     goodParse('missing end of statement ";" dosen\'t cause errors',
               paste(sep = "\n",
                     'd/dt(depot) = -ka * depot',
                     'd/dt(centr) =  ka * depot - kout * centr;'))
 
-    options(RxODE.syntax.require.semicolon=TRUE);
+    options(RxODE.syntax.require.semicolon=TRUE);rxSyncOptions();
     badParse('comments must be outside statements','d/dt(y) = 1   # bad comment;')
     badParse('missing end of statement ";"',
              paste(sep = "\n",
                    'd/dt(depot) = -ka * depot',
                    'd/dt(centr) =  ka * depot - kout * centr;'))
 
-    options(RxODE.syntax.require.semicolon=FALSE);
-
+    options(RxODE.syntax.require.semicolon=FALSE);rxSyncOptions();
     badParse('arithmetic syntax error',
              paste(sep = "\n",
                    '# comment, just to show error in line 3',
                    'd/dt(y) = -ka;',
                    'C1 = /y;'))
     ## added ** operator
-    options(RxODE.syntax.star.pow=TRUE);
+    options(RxODE.syntax.star.pow=TRUE);rxSyncOptions();
     goodParse('existing operator **',
               code = paste(sep = "\n",
                            'd/dt(y) = -ka;',
                            'C1 = ka *  y**2;'))
-    options(RxODE.syntax.star.pow=FALSE);
+    options(RxODE.syntax.star.pow=FALSE);rxSyncOptions();
     badParse('existing operator **',
              code = paste(sep = "\n",
                           'd/dt(y) = -ka;',
@@ -96,7 +96,7 @@ rxPermissive({
                           'd/dt(y) = F * y;')
              )
 
-    options(RxODE.syntax.allow.dots=TRUE)
+    options(RxODE.syntax.allow.dots=TRUE);rxSyncOptions();
 
     goodParse(desc = 'dot in variable name (ini0)',
               code = paste(sep = "\n",
@@ -138,7 +138,7 @@ rxPermissive({
                            'd/dt(y) = F * y;')
               )
 
-    options(RxODE.syntax.allow.dots=FALSE)
+    options(RxODE.syntax.allow.dots=FALSE); rxSyncOptions();
     badParse(desc = 'dot in variable name (ini0)',
              code = paste(sep = "\n",
                           'F = 0.75;',
@@ -182,7 +182,7 @@ rxPermissive({
     badParse(desc = 'Assignment with <<- not supported',
              'd/dt(y_1) <<- F*y')
 
-    options(RxODE.syntax.assign=TRUE)
+    options(RxODE.syntax.assign=TRUE); rxSyncOptions();
     goodParse(desc = 'Assignment with <- supported #1',
               'd/dt(y_1) <- F*y')
 
@@ -204,7 +204,7 @@ rxPermissive({
     goodParse(desc = 'Assignment with <- supported #7',
               'd/dt(y_1) = F*y; df(y_1)/dy(y_1) <- 0')
 
-    options(RxODE.syntax.assign=FALSE)
+    options(RxODE.syntax.assign=FALSE); rxSyncOptions();
     badParse(desc = 'Assignment with <- not supported #1',
              'd/dt(y_1) <- F*y')
 
@@ -305,10 +305,10 @@ d/dt(x) = a*y*z - 0.04*x
 d/dt(z) = 3.0e7*y^2
 d/dt(y) = -1.0*(d/dt(x)+d/dt(z))
 ")
-    options(RxODE.syntax.allow.ini0=FALSE)
+    options(RxODE.syntax.allow.ini0=FALSE); rxSyncOptions();
     badParse(desc = 'y_1(0) unsupported when RxODE.syntax.allow.ini0=FALSE',
               'y_1(0) = 1;d/dt(y_1) = F*y_1')
-    options(RxODE.syntax.allow.ini0=TRUE)
+    options(RxODE.syntax.allow.ini0=TRUE); rxSyncOptions();
 
     badParse(desc="Defining df(var1)/dy(var2) where var1 is not a state variable.",
              "

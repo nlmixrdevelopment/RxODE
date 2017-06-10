@@ -10,9 +10,7 @@ rxState(obj, state)
 \item{obj}{RxODE family of objects}
 
 \item{state}{is a string indicating the state or compartment that
-    you would like to lookup.
-
-'}
+you would like to lookup.}
 }
 \value{
 If state is missing, return a character vector of all the states.

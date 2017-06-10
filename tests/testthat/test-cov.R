@@ -58,7 +58,7 @@ rxPermissive({
 
     lin.interp$c2 <- cov.lin(lin.interp$t);
 
-    test_that("Constant Approximation simialr to approxfun.", {
+    test_that("Constant Approximation similar to approxfun.", {
         expect_equal(lin.interp$c, lin.interp$c2);
     })
 

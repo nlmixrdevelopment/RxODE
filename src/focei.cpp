@@ -194,7 +194,12 @@ void rxInner(SEXP etanews, SEXP rho){
     llik2[0] = llikm(0, 0);
 
     mat ep2 = -(lp - omegaInv * etam);
-  
+
+    mat omega = as<mat>(e["omega"]);
+    mat Vfo_full = (fpm * omega * fpm.t()); // From Mentre 2006 p. 352
+    mat Vfo = Vfo_full.diag();
+    e["Vfo"] = wrap(Vfo);
+
     // Assign in env
     e["err"] = err;
     e["f"] = f;
@@ -323,6 +328,8 @@ NumericVector RxODE_focei_finalize_llik(SEXP rho){
   e["log.det.H.neg.5"]= wrap(sum(ldiag));
   NumericVector ret = -as<NumericVector>(e["llik2"])+ as<NumericVector>(e["log.det.OMGAinv.5"])-as<NumericVector>(e["log.det.H.neg.5"]);
   ret.attr("fitted") = as<NumericVector>(e["f"]);
+  ret.attr("Vi") = as<NumericVector>(e["R"]); // Sigma
+  ret.attr("Vfo") = as<NumericVector>(e["Vfo"]); // FO Variance (See Mentre 2006) Prediction Discrepancies for the Evaluation of Nonlinear Mixed-Effects Models
   ret.attr("posthoc") = as<NumericVector>(e["eta"]);
   ret.attr("corrected") = as<NumericVector>(e["corrected"]);
   // ret.attr("llik2") = as<NumericVector>(e["llik2"]);
@@ -753,6 +760,12 @@ void rxOuter_ (SEXP rho){
     }
   }
   /* llik = -.5*sum(eps^2/(f^2*sig2) + log(f^2*sig2)) - .5*t(ETA) %*% OMGAinv %*% ETA */
+
+  mat omega = as<mat>(e["omega"]);
+  mat Vfo_full = (fpm * omega * fpm.t()); // From Mentre 2006 p. 352
+  mat Vfo = Vfo_full.diag();
+  e["Vfo"] = wrap(Vfo);
+  
   e["f"] = f;
   e["err"] = err;
   
@@ -1021,6 +1034,12 @@ void rxDetaDtheta(SEXP rho){
       ret.attr("grad") = as<NumericVector>(wrap(dLdTheta));
     }
     ret.attr("dEta.dTheta") = as<NumericVector>(wrap(DnDt));
+    mat omega = as<mat>(e["omega"]);
+    mat fpm = as<mat>(e["dErr"]);
+    mat Vfo_full = (fpm * omega * fpm.t()); // From Mentre 2006 p. 352
+    mat Vfo = Vfo_full.diag();
+    ret.attr("Vfo") = wrap(Vfo);
+    ret.attr("Vi") = as<NumericVector>(e["R"]); // Sigma
     ret.attr("corrected") = as<NumericVector>(e["corrected"]);
     e["ret"] = ret;
   } else {

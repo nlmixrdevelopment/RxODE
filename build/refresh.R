@@ -29,7 +29,7 @@ sink(package_file("R/rxsolve-gen.R"))
 cat("## Generated code from build/refresh.R\n\n");
 one <- "data"
 for (f in tidyr.fns){
-    ## fn <- deparse(eval(parse(text=sprintf("args(%s)", f))));
+     ## fn <- deparse(eval(parse(text=sprintf("args(%s)", f))));
     ## fn <- paste0(fn[-length(fn)], collapse="\n");
     ## one <- eval(parse(text=sprintf("attr(formals(%s)[1],\"names\")", f)));
     cat(sprintf("##' @name %s
@@ -140,9 +140,7 @@ tmp <- readLines(devtools::package_file(".git/config"))
 cat(gsub("\\.git$", "", gsub(".*git@github.com:", "", tmp[which(tmp == '[remote "origin"]')[1]+1])))
 cat("\"))}\n");
 sink();
-devtools::load_all();
-
-document();
+## devtools::load_all();
 
 cat("Update README\n");
 owd <- getwd();
@@ -223,337 +221,262 @@ create.syminv.cache <- function(n=1, xforms=c("sqrt", "log", "identity")){
 
 if (Sys.getenv("RxODE_derivs") == "TRUE"){
 
-    cat("Generating deriatives for solved linear models:");
+    template.diff <- "if(rate>0){
+ if(T<=tinf){
+<%=CpIin%>
+ }else{
+<%=CpIout%>
+ }
+}else{
+<%=Cp%>
+}";
+
+
     i <- 0;
-    cur.par <- 1;
-    create.cpp.code <- function(model){
-        rxSymPySetup(model);
-        p <- rxParams(model);
-        p <- p[p != "pi"];
-        lhs <- rxLhs(model);
-        lhs <- lhs[regexpr(rex::rex(or("alpha", "beta", "gamma", "A", "B", "C")), lhs) != -1]
-        ncmt <- length(lhs) / 2;
-        ks <- c("alpha", "beta", "gamma");
-        cfs <- c("A", "B", "C");
-        up <- gsub("K21P", "K21", gsub("BETAP", "BETA", gsub("ALPHAP", "ALPHA", toupper(p))));
-        lines <- c();
-        lines[length(lines) + 1] <- sprintf("if (par == %s && ncmt == %s && oral == %s){\n", cur.par, ncmt, ifelse(any(up == "KA"), "1", "0"));
-        lines[length(lines) + 1] <- sprintf("  if (%s){\n", paste(sprintf("e.exists(\"%s\")", up), collapse=" && "));
-        lines[length(lines) + 1] <- paste0(paste(sprintf("    double %s = as<double>(e[\"%s\"]);", p, up), collapse="\n"), "\n");
-        lines[length(lines) + 1] <- paste0(paste(sprintf("    mat d%s = mat(%s, 2);", up, ncmt), collapse="\n"), "\n");
-        for (curP in p){
-            for (curL in lhs){
-                cat(".")
-                i <<- i + 1;
-                if (i %% 5 == 0){
-                    cat(i)
-                }
-                if (i %% 50 == 0){
-                    cat("\n");
-                }
-                tmp <- rxSymPy(sprintf("diff(%s, %s)",
-                                       rxToSymPy(curL),
-                                       rxToSymPy(curP)))
-                if (any(curL == ks)){
-                    par <- sprintf("(%s, 0)", which(curL == ks) - 1);
-                } else {
-                    par <- sprintf("(%s, 1)", which(curL == cfs) - 1)
-                }
-                tmp <- sympyC(tmp);
-                tmp <- rxSplitPlusQ(tmp);
-                tmpeq <- sprintf("    d%s%s", gsub("K21P", "K21", gsub("BETAP", "BETA", gsub("ALPHAP", "ALPHA", toupper(curP)))), par);
-                tmp[1] <- sprintf("%s = %s;", tmpeq, gsub(" +", "", tmp[1]));
-                if (length(tmp) > 1){
-                    tmp[-1] <- sprintf("%s += %s;", tmpeq, gsub(" +", "", tmp[-1]));
-                }
-                lines[length(lines) + 1] <- paste0(tmp, "\n");
-            }
+    oral.tlag <- "exp(-ka * (tT - tlag))"
+    oral <- "exp(-ka * T)";
+
+    fn <- function(A, alpha, tlag=F){
+        if (tlag){
+            c(sprintf("Dose*%s*(exp(-%s*(tT - tlag)))", A, alpha), ## Cp =
+              sprintf("Dose*%s*(exp(-%s*(tT - tlag)) - %s)", A, alpha, oral.tlag), ## CpO =
+              ## t1 = ((thisT < tinf) ? thisT : tinf);        //during infusion
+              ## t2 = ((thisT > tinf) ? thisT - tinf : 0.0);  // after infusion
+              sprintf("rate * %s / %s * (1 - exp(-%s* tT))", A, alpha, alpha), ## CpIin
+              sprintf("rate * %s / %s * (1 - exp(-%s * tinf))*(exp(-%s*(tT-tinf)))", A, alpha, alpha, alpha) ## CpIout
+              )
+        } else {
+            c(sprintf("Dose*%s*(exp(-%s*T))", A, alpha), ## Cp =
+              sprintf("Dose*%s*(exp(-%s*T) - %s)", A, alpha, oral), ## CpO =
+              ##t1 = ((thisT < tinf) ? thisT : tinf);        //during infusion
+              ##t2 = ((thisT > tinf) ? thisT - tinf : 0.0);  // after infusion
+              sprintf("rate * %s / %s * (1 - exp(-%s* T))", A, alpha, alpha), ## CpIin
+              sprintf("rate * %s / %s * (1 - exp(-%s * tinf))*(exp(-%s*(T-tinf)))", A, alpha, alpha, alpha) ## CpIout
+              )
         }
-        lines[length(lines) + 1] <- paste0(paste(sprintf("    e[\"d%s\"] = d%s;", up, up), collapse="\n"), "\n");
-        lines[length(lines) + 1] <- paste0(sprintf("  return;\n  } else {\n    stop(\"Some required parameters not in environment (need %s)\");\n  }\n}\n",
-                                                   paste(up, collapse=", ")));
-        rxSymPyClean();
-        return(lines);
     }
 
-    cpp <- c()
+    mod.1  <- paste(c("Cp=", "CpO=", "CpIin=", "CpIout="), fn("A", "alpha"));
+    mod.1.tlag  <- paste(c("Cp=", "CpO=", "CpIin=", "CpIout="), fn("A", "alpha", T));
 
-    lin.1cmt.p1.oral <- RxODE({
-        volume = V
-        k = CL / volume
-        alpha = k;
-        A = ka / (ka - alpha)/volume;
-    })
+    mod.2  <- paste(mod.1, "+", fn("B", "beta"));
+    mod.2.tlag  <- paste(mod.1.tlag, "+", fn("B", "beta", T));
 
-    cpp <- c(cpp, create.cpp.code(lin.1cmt.p1.oral))
+    mod.3  <- paste(mod.2, "+", fn("C", "gamma"));
+    mod.3.tlag  <- paste(mod.2.tlag, "+", fn("C", "gamma", T));
 
-    lin.1cmt.p1 <- RxODE({
-        volume = V
-        k = CL / volume
-        alpha = k;
-        A = 1/volume;
-    })
+    ## Create RxODE models
+    mod.1 <- RxODE(paste(mod.1, collapse="\n"))
+    mod.1.tlag <- RxODE(paste(mod.1.tlag, collapse="\n"))
 
-    cpp <- c(cpp, create.cpp.code(lin.1cmt.p1))
+    mod.2 <- RxODE(paste(mod.2, collapse="\n"))
+    mod.2.tlag <- RxODE(paste(mod.2.tlag, collapse="\n"))
 
-    lin.2cmt.p1 <- RxODE({
-        volume = V
-        k = CL / volume
-        k12 = Q / volume
-        k21 = Q / V2
-        beta  = 0.5 * (k12 + k21 + k - sqrt((k12 + k21 + k) * (k12 + k21 + k) - 4 * k21 * k));
-        alpha = k21 * k / beta;
-        A     = (alpha - k21) / (alpha - beta) / volume;
-        B     = (beta - k21) / (beta - alpha) / volume;
-    })
+    mod.3 <- RxODE(paste(mod.3, collapse="\n"))
+    mod.3.tlag <- RxODE(paste(mod.3.tlag, collapse="\n"))
 
-    cpp <- c(cpp, create.cpp.code(lin.2cmt.p1));
+    i <- 0;
 
-    lin.2cmt.p1.oral <- RxODE({
-        volume = V
-        k = CL / volume
-        k12 = Q / volume
-        k21 = Q / V2
-        beta  = 0.5 * (k12 + k21 + k - sqrt((k12 + k21 + k) * (k12 + k21 + k) - 4 * k21 * k));
-        alpha = k21 * k / beta;
-        A     = ka / (ka - alpha) * (alpha - k21) / (alpha - beta) / volume;
-        B     = ka / (ka - beta) * (beta - k21) / (beta - alpha) / volume;
-    })
+    cur.p <- c("A", "alpha", "B", "beta", "C", "gamma", "ka", "tlag");
+    cur.p.rep <- c("par(0,1)", "par(0,0)", "par(1,1)", "par(1,0)", "par(2,1)", "par(2,0)", "ka", "tlag");
 
-    cpp <- c(cpp, create.cpp.code(lin.2cmt.p1.oral));
+    ipp <- function(){
+        cat(".")
+        i <<- i + 1;
+        if (i %% 5 == 0){
+            cat(i)
+        }
+        if (i %% 50 == 0){
+            cat("\n");
+        }
+    }
 
-    lin.3cmt.p1 <- RxODE({
-        volume = V
-        k = CL / volume
-        k12 = Q / volume
-        k21 = Q / V2
-        k13     = Q2 / volume
-        k31     = Q2 / V3
-        a0      = k * k21 * k31;
-        a1      = k * k31 + k21 * k31 + k21 * k13 + k * k21 + k31 * k12;
-        a2      = k + k12 + k13 + k21 + k31;
-        p       = a1 - a2 * a2 / 3;
-        q       = 2 * a2 * a2 * a2 / 27 - a1 * a2 /3 + a0;
-        r1      = sqrt(-p * p * p / 27);
-        r2      = 2 * r1 ^ (1 / 3);
-        theta   = acos(-q / (2 * r1)) / 3
-        alpha   = -(cos(theta) * r2 - a2 / 3);
-        beta    = -(cos(theta + 2 / 3 * pi) * r2 - a2 / 3);
-        gamma   = -(cos(theta + 4 / 3 * pi) * r2 - a2 / 3);
-        A       = (k21 - alpha) * (k31 - alpha) / (alpha - beta) / (alpha - gamma) / volume;
-        B       = (k21 - beta) * (k31 - beta) / (beta - alpha) / (beta - gamma) / volume;
-        C       = (k21 - gamma) * (k31 - gamma) / (gamma - alpha) / (gamma - beta) / volume;
-    })
-
-    cpp <- c(cpp, create.cpp.code(lin.3cmt.p1));
-
-    lin.3cmt.p1.oral <- RxODE({
-        volume = V
-        k = CL / volume
-        k12 = Q / volume
-        k21 = Q / V2
-        k13     = Q2 / volume
-        k31     = Q2 / V3
-        a0      = k * k21 * k31;
-        a1      = k * k31 + k21 * k31 + k21 * k13 + k * k21 + k31 * k12;
-        a2      = k + k12 + k13 + k21 + k31;
-        pp       = a1 - a2 * a2 / 3;
-        q       = 2 * a2 * a2 * a2 / 27 - a1 * a2 /3 + a0;
-        r1      = sqrt(-pp * pp * pp / 27);
-        r2      = 2 * r1 ^ (1 / 3);
-        th   = acos(-q / (2 * r1)) / 3
-        alpha   = -(cos(th) * r2 - a2 / 3);
-        beta    = -(cos(th + 2 * pi / 3) * r2 - a2 / 3);
-        gamma   = -(cos(th + 4 * pi / 3) * r2 - a2 / 3);
-        A       = ka / (ka - alpha) * (k21 - alpha) * (k31 - alpha) / (alpha - beta) / (alpha - gamma) / volume;
-        B       = ka / (ka - beta) * (k21 - beta) * (k31 - beta) / (beta - alpha) / (beta - gamma) / volume;
-        C       = ka / (ka - gamma) * (k21 - gamma) * (k31 - gamma) / (gamma - alpha) / (gamma - beta) / volume;
-    })
-
-    cpp <- c(cpp, create.cpp.code(lin.3cmt.p1.oral));
-
-    ## parameterization #2
-    cur.par <- 2;
-
-    lin.1cmt.p2.oral <- RxODE({
-        volume = V
-        alpha = k;
-        A = ka / (ka - alpha)/volume;
-    })
-
-    cpp <- c(cpp, create.cpp.code(lin.1cmt.p2.oral))
-
-    lin.1cmt.p2 <- RxODE({
-        volume = V
-        alpha = k;
-        A = 1/volume;
-    })
-
-    cpp <- c(cpp, create.cpp.code(lin.1cmt.p2))
-
-    lin.2cmt.p2 <- RxODE({
-        volume = V
-        beta  = 0.5 * (k12 + k21 + k - sqrt((k12 + k21 + k) * (k12 + k21 + k) - 4 * k21 * k));
-        alpha = k21 * k / beta;
-        A     = (alpha - k21) / (alpha - beta) / volume;
-        B     = (beta - k21) / (beta - alpha) / volume;
-    })
-
-    cpp <- c(cpp, create.cpp.code(lin.2cmt.p2));
-
-    lin.2cmt.p2.oral <- RxODE({
-        volume = V
-        beta  = 0.5 * (k12 + k21 + k - sqrt((k12 + k21 + k) * (k12 + k21 + k) - 4 * k21 * k));
-        alpha = k21 * k / beta;
-        A     = ka / (ka - alpha) * (alpha - k21) / (alpha - beta) / volume;
-        B     = ka / (ka - beta) * (beta - k21) / (beta - alpha) / volume;
-    })
-
-    cpp <- c(cpp, create.cpp.code(lin.2cmt.p2.oral));
-
-    lin.3cmt.p2 <- RxODE({
-        volume = V
-        a0      = k * k21 * k31;
-        a1      = k * k31 + k21 * k31 + k21 * k13 + k * k21 + k31 * k12;
-        a2      = k + k12 + k13 + k21 + k31;
-        pp       = a1 - a2 * a2 / 3;
-        q       = 2 * a2 * a2 * a2 / 27 - a1 * a2 /3 + a0;
-        r1      = sqrt(-pp * pp * pp / 27);
-        r2      = 2 * r1 ^ (1 / 3);
-        th   = acos(-q / (2 * r1)) / 3
-        alpha   = -(cos(th) * r2 - a2 / 3);
-        beta    = -(cos(th + 2 / 3 * pi) * r2 - a2 / 3);
-        gamma   = -(cos(th + 4 / 3 * pi) * r2 - a2 / 3);
-        A       = (k21 - alpha) * (k31 - alpha) / (alpha - beta) / (alpha - gamma) / volume;
-        B       = (k21 - beta) * (k31 - beta) / (beta - alpha) / (beta - gamma) / volume;
-        C       = (k21 - gamma) * (k31 - gamma) / (gamma - alpha) / (gamma - beta) / volume;
-    })
-
-    ## p and theta do not seem to work with sympy.
-    cpp <- c(cpp, create.cpp.code(lin.3cmt.p2));
-
-    lin.3cmt.p2.oral <- RxODE({
-        volume = V
-        a0      = k * k21 * k31;
-        a1      = k * k31 + k21 * k31 + k21 * k13 + k * k21 + k31 * k12;
-        a2      = k + k12 + k13 + k21 + k31;
-        pp       = a1 - a2 * a2 / 3;
-        q       = 2 * a2 * a2 * a2 / 27 - a1 * a2 /3 + a0;
-        r1      = sqrt(-pp * pp * pp / 27);
-        r2      = 2 * r1 ^ (1 / 3);
-        theta   = acos(-q / (2 * r1)) / 3
-        alpha   = -(cos(theta) * r2 - a2 / 3);
-        beta    = -(cos(theta + 2 / 3 * pi) * r2 - a2 / 3);
-        gamma   = -(cos(theta + 4 / 3 * pi) * r2 - a2 / 3);
-        A       = ka / (ka - alpha) * (k21 - alpha) * (k31 - alpha) / (alpha - beta) / (alpha - gamma) / volume;
-        B       = ka / (ka - beta) * (k21 - beta) * (k31 - beta) / (beta - alpha) / (beta - gamma) / volume;
-        C       = ka / (ka - gamma) * (k21 - gamma) * (k31 - gamma) / (gamma - alpha) / (gamma - beta) / volume;
-    })
-
-    cpp <- c(cpp, create.cpp.code(lin.3cmt.p2.oral));
-
-
-    cur.par <- 3;
-
-    lin.2cmt.p3 <- RxODE({
-        volume = V
-        k = CL / volume
-        k12 = Q / volume
-        k21 = Q / (VSS - volume)
-        beta  = 0.5 * (k12 + k21 + k - sqrt((k12 + k21 + k) * (k12 + k21 + k) - 4 * k21 * k));
-        alpha = k21 * k / beta;
-        A     = (alpha - k21) / (alpha - beta) / volume;
-        B     = (beta - k21) / (beta - alpha) / volume;
-    })
-
-    cpp <- c(cpp, create.cpp.code(lin.2cmt.p3));
-
-    lin.2cmt.p3.oral <- RxODE({
-        volume = V
-        k = CL / volume
-        k12 = Q / volume
-        k21 = Q / (VSS - volume)
-        beta  = 0.5 * (k12 + k21 + k - sqrt((k12 + k21 + k) * (k12 + k21 + k) - 4 * k21 * k));
-        alpha = k21 * k / beta;
-        A     = ka / (ka - alpha) * (alpha - k21) / (alpha - beta) / volume;
-        B     = ka / (ka - beta) * (beta - k21) / (beta - alpha) / volume;
-    })
-
-    cpp <- c(cpp, create.cpp.code(lin.2cmt.p3.oral));
-
-    cur.par <- 4;
-
-    lin.2cmt.p4 <- RxODE({
-        volume = V
-        k21 = (aob*betaP+alphaP)/(aob+1);
-        k   = (alphaP*betaP)/k21;
-        k12 = alphaP+betaP-k21-k;
-        beta  = 0.5 * (k12 + k21 + k - sqrt((k12 + k21 + k) * (k12 + k21 + k) - 4 * k21 * k));
-        alpha = k21 * k / beta;
-        A     = (alpha - k21) / (alpha - beta) / volume;
-        B     = (beta - k21) / (beta - alpha) / volume;
-    })
-
-    cpp <- c(cpp, create.cpp.code(lin.2cmt.p4));
-
-    lin.2cmt.p4.oral <- RxODE({
-        volume = V
-        k21 = (aob*betaP+alphaP)/(aob+1);
-        k   = (alphaP*betaP)/k21;
-        k12 = alphaP+betaP-k21-k;
-        beta  = 0.5 * (k12 + k21 + k - sqrt((k12 + k21 + k) * (k12 + k21 + k) - 4 * k21 * k));
-        alpha = k21 * k / beta;
-        A     = ka / (ka - alpha) * (alpha - k21) / (alpha - beta) / volume;
-        B     = ka / (ka - beta) * (beta - k21) / (beta - alpha) / volume;
-    })
-
-    cpp <- c(cpp, create.cpp.code(lin.2cmt.p4.oral));
-
-    cur.par <- 5;
-
-    lin.2cmt.p5 <- RxODE({
-        volume = V
-        beta  = betap
-        alpha = alphap
-        k21 = k21p
-        A     = (alpha - k21) / (alpha - beta) / volume;
-        B     = (beta - k21) / (beta - alpha) / volume;
-    })
-
-    cpp <- c(cpp, create.cpp.code(lin.2cmt.p5));
-
-    lin.2cmt.p5.oral <- RxODE({
-        volume = V
-        beta  = betap
-        alpha = alphap
-        k21 = k21p
-        A     = ka / (ka - alpha) * (alpha - k21) / (alpha - beta) / volume;
-        B     = ka / (ka - beta) * (beta - k21) / (beta - alpha) / volume;
-    })
-
-    cpp <- c(cpp, create.cpp.code(lin.2cmt.p5.oral));
-
-    sink(devtools::package_file("src/lincmtDiff.cpp"));
-    cat("// [[Rcpp::depends(RcppArmadillo)]]
+    create.cpp.code <- function(totcmt=3){
+        sink(devtools::package_file("src/lincmtDiff.cpp"));
+        cat("// [[Rcpp::depends(RcppArmadillo)]]
 // Generated by refresh.R;Can be recreated by refresh(derivs=TRUE) in source directory after loading RxODE by library(devtools);load_all();
 #include <RcppArmadillo.h>
 #include <R.h>
 using namespace Rcpp;
 using namespace R;
 using namespace arma;
-// [[Rcpp::export]]
-void getLinDerivs(SEXP rho){
-  Environment e = as<Environment>(rho);
-  int par = as<int>(e[\"parameterization\"]);
-  int ncmt = as<int>(e[\"ncmt\"]);
-  int oral = as<int>(e[\"oral\"]);
-  // double zoo = R_PosInf; // Zoo is in dV :(
-");
-    cat(paste(cpp, collapse="\n"));
-    cat(" stop(\"environment not setup properly for this function.\");\n");
-    cat("}\n");
-    sink()
+extern \"C\" double getLinDeriv(int ncmt, int diff1, int diff2, double rate, double tinf, double Dose, double ka, double tlag, double T, double tT, mat par);
+double getLinDeriv(int ncmt, int diff1, int diff2, double rate, double tinf, double Dose, double ka, double tlag, double T, double tT, mat par){
+double ret = 0;
+")
+        sink();
+        for (ncmt in seq(1, totcmt)){
+            for (oral in c(1, 0)){
+                lines <- c();
+                i <<- 0;
+                cat(sprintf("Calculating base %s cmt %s derivatives\n", ncmt, ifelse(oral == 1, "oral", "bolus/infusion")))
+                pars <- cur.p[seq(1, ncmt * 2)];
+                if (oral) pars <- c(pars, "ka", "tlag");
+                for (curP in pars){
+                    if (curP == "tlag"){
+                        if (ncmt == 1){
+                            rxSymPySetup(mod.1.tlag);
+                        } else if (ncmt == 2){
+                            rxSymPySetup(mod.2.tlag);
+                        } else if (ncmt == 3){
+                            rxSymPySetup(mod.3.tlag);
+                        }
+                    } else {
+                        if (ncmt == 1){
+                            rxSymPySetup(mod.1);
+                        } else if (ncmt == 2){
+                            rxSymPySetup(mod.2);
+                        } else if (ncmt == 3){
+                            rxSymPySetup(mod.3);
+                        }
+                    }
+                    cpn <- NULL;
+                    if (is.null(cpn)){
+                        w <- which(cur.p == curP);
+                        if (length(w) == 1){
+                            cpn <- w;
+                        }
+                    }
+                    if (oral){
+                        CpO <- rxSymPy(sprintf("diff(%s, %s)",
+                                               rxToSymPy("CpO"),
+                                               rxToSymPy(curP)));
+                        CpO <- paste(sub("+=-", "-=", paste0(" ret+=", gsub(" +", "", rxSplitPlusQ(sympyC(CpO))), ";"), fixed=TRUE), collapse="\n");
+                        ipp();
+                    } else {
+                        Cp <- rxSymPy(sprintf("diff(%s, %s)",
+                                              rxToSymPy("Cp"),
+                                              rxToSymPy(curP)));
+                        Cp <- paste(sub("+=-", "-=", paste0("  ret+=", gsub(" +", "", rxSplitPlusQ(sympyC(Cp))), ";"), fixed=TRUE), collapse="\n");
+                        ipp();
+                        CpIin <- rxSymPy(sprintf("diff(%s, %s)",
+                                                 rxToSymPy("CpIin" ),
+                                                 rxToSymPy(curP)));
+                        CpIin <- paste(sub("+=-", "-=", paste0("  ret+=", gsub(" +", "", rxSplitPlusQ(sympyC(CpIin))), ";"), fixed=TRUE), collapse="\n");
+                        ipp();
+                        CpIout <- rxSymPy(sprintf("diff(%s, %s)",
+                                                  rxToSymPy("CpIout" ),
+                                                  rxToSymPy(curP)));
+                        CpIout <- paste(sub("+=-", "-=", paste0("  ret+=", gsub(" +", "", rxSplitPlusQ(sympyC(CpIout))), ";"), fixed=TRUE), collapse="\n");
+                        ipp();
+                    }
+                    saveName <- sprintf("d%s", toupper(curP));
+                    tmf <- tempfile()
+                    if (oral){
+                        tmp <- CpO
+                    } else {
+                        brew::brew(text=template.diff, output=tmf)
+                        tmp <- readLines(tmf);
+                        unlink(tmf);
+                    }
+                    lines[length(lines) + 1] <- sprintf("if(ncmt==%s&&%s&&diff1==%s&&diff2==0){//%s",ncmt,
+                                                        ifelse(oral == 1, "ka>0", "ka<=0"), cpn, saveName);
+                    first <- FALSE;
+                    ii <- 0;
+                    for (i in seq_along(pars[seq(1, ncmt * 2)])){
+                        tmp <- gsub(rex::rex(boundary, cur.p[i], boundary), cur.p.rep[i], tmp, perl=TRUE)
+                    }
+                    lines <- c(lines, tmp);
+                    lines[length(lines) + 1] <- paste0(" return ret;\n}//", saveName);
+                    for (curP2 in pars){
+                        cpn2 <- NULL;
+                        if (is.null(cpn2)){
+                            w <- which(cur.p == curP2);
+                            if (length(w) == 1){
+                                cpn2 <- w;
+                            }
+                        }
+                        ## Schwarz's theorem says this is communicative since
+                        ## this has continuous second order partial
+                        ## derivatives
+                        if (cpn2 >= cpn){
+                            if (any(c(curP, curP2) == "tlag")){
+                                if (ncmt == 1){
+                                    rxSymPySetup(mod.1.tlag);
+                                } else if (ncmt == 2){
+                                    rxSymPySetup(mod.2.tlag);
+                                } else if (ncmt == 3){
+                                    rxSymPySetup(mod.3.tlag);
+                                }
+                            } else {
+                                if (ncmt == 1){
+                                    rxSymPySetup(mod.1);
+                                } else if (ncmt == 2){
+                                    rxSymPySetup(mod.2);
+                                } else if (ncmt == 3){
+                                    rxSymPySetup(mod.3);
+                                }
+                            }
+                            ipp();
+                            if (oral){
+                                CpO <- rxSymPy(sprintf("diff(diff(%s, %s), %s)",
+                                                       rxToSymPy("CpO"),
+                                                       rxToSymPy(curP),
+                                                       rxToSymPy(curP2)));
+                                CpO <- paste(sub("+=-", "-=", paste0(" ret+=", gsub(" +", "", rxSplitPlusQ(sympyC(CpO))), ";"), fixed=TRUE), collapse="\n");
+                                ipp();
+                            } else {
+                                Cp <- rxSymPy(sprintf("diff(diff(%s, %s), %s)",
+                                                      rxToSymPy("Cp"),
+                                                      rxToSymPy(curP),
+                                                      rxToSymPy(curP2)));
+                                Cp <- paste(sub("+=-", "-=", paste0("  ret+=", gsub(" +", "", rxSplitPlusQ(sympyC(Cp))), ";"), fixed=TRUE), collapse="\n");
+                                ipp();
+                                CpIin <- rxSymPy(sprintf("diff(diff(%s, %s), %s)",
+                                                         rxToSymPy("CpIin" ),
+                                                         rxToSymPy(curP),
+                                                         rxToSymPy(curP2)));
+                                CpIin <- paste(sub("+=-", "-=", paste0("  ret+=", gsub(" +", "", rxSplitPlusQ(sympyC(CpIin))), ";"), fixed=TRUE), collapse="\n");
+                                ipp();
+                                CpIout <- rxSymPy(sprintf("diff(diff(%s, %s), %s)",
+                                                          rxToSymPy("CpIout"),
+                                                          rxToSymPy(curP),
+                                                          rxToSymPy(curP2)));
+                                CpIout <- paste(sub("+=-", "-=", paste0("  ret+=", gsub(" +", "", rxSplitPlusQ(sympyC(CpIout))), ";"), fixed=TRUE), collapse="\n");
+
+                           }
+                            saveName <- sprintf("d%s.d%s", toupper(curP), toupper(curP2));
+                            if (oral){
+                                tmp <- CpO;
+                            } else {
+                                tmf <- tempfile()
+                                brew::brew(text=template.diff, output=tmf)
+                                tmp <- readLines(tmf);
+                                unlink(tmf);
+                            }
+
+                            lines[length(lines) + 1] <- sprintf("if(ncmt==%s&&%s&&diff1==%s&&diff2==%s){//%s", ncmt,
+                                                                ifelse(oral == 1, "ka>0", "ka<=0"), cpn, cpn2, saveName);
+                            first <- FALSE;
+                            ii <- 0;
+                            for (i in seq_along(pars[seq(1, ncmt * 2)])){
+                                tmp <- gsub(rex::rex(boundary, cur.p[i], boundary), cur.p.rep[i], tmp, perl=TRUE)
+                            }
+                            lines <- c(lines, tmp);
+                            lines[length(lines) + 1] <- paste0(" return ret;\n}//", saveName);
+                        }
+                    }
+                }
+                rxSymPyClean();
+                sink(devtools::package_file("src/lincmtDiff.cpp"), append=TRUE);
+                cat("\n", paste(lines, collapse="\n"));
+                sink();
+                cat("done\n");
+            }
+        }
+        sink(devtools::package_file("src/lincmtDiff.cpp"), append=TRUE);
+        cat("\n stop(\"Linear derivatives not calculated; Somethings wrong.\");\n");
+        cat(" return ret;\n")
+        cat("}\n");
+        sink();
+    }
+
+    create.cpp.code();
+
     rxClean();
-    load_all();
+    ## load_all();
     cat("done.\n");
 }
+
+document();
+

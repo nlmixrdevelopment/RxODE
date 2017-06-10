@@ -155,6 +155,9 @@ for (op in c("+", "-", "*")){
     rxSymPyFEnv[[op]] <- binaryOp(paste0(" ", op, " "));
     sympyRxFEnv[[op]] <- binaryOp(paste0(" ", op, " "));
 }
+
+rxSymPyFEnv[["~"]] <- binaryOp(" = ");
+
 rxSymPyFEnv$c <- function(...){
     eval(parse(text=sprintf("c(%s)",paste(paste0("rxToSymPy(",c(...),")"),collapse=","))))
 }
@@ -359,6 +362,10 @@ rxSymPyC$"^" <- function(a, b){
     sprintf("pow(%s, %s)", a, b);
 }
 
+rxSymPyC$S <- function(x){
+    sprintf("%s", x);
+}
+
 for (f in sympy.equiv.f){
     rxSymPyC[[f]] <- functionOp(f);
 }
@@ -366,6 +373,7 @@ rxSymPyC$"(" <- unaryOp("(", ")")
 for (op in c("+", "-", "*", "/")){
     rxSymPyC[[op]] <- binaryOp(paste0(" ", op, " "));
 }
+
 
 unknownCSymPy <- function(op){
     force(op)
@@ -388,6 +396,7 @@ sympyCEnv <- function(expr){
     n2 <- gsub(rex::rex("pi"), "M_PI", n2)
     n2 <- gsub(rex::rex(start, "rx_SymPy_Res_"), "", n2)
     n2 <- gsub("None", "NA_REAL", n2);
+    w <- n2[n2 == "t"];
     symbol.list <- setNames(as.list(n2), n1);
     symbol.env <- list2env(symbol.list, parent=rxSymPyC);
     return(symbol.env)
@@ -450,38 +459,27 @@ allCalls <- function(x) {
     }
 }
 
-getParList <- function(par, ncmt){
-    pars <- list(
-        c("V", "CL", "V2", "Q", "V3", "Q2"),
-        c("V", "K", "K12", "K21", "K13", "K31"),
-        c("V", "CL", "VSS", "Q", "V3", "Q2")
-        );
-    return(c(pars[[par]][seq(1, 2 * ncmt)], "KA", "TLAG"));
-}
-
 rxDefinedDerivatives <- new.env(parent = emptyenv())
 
-rxDefinedDerivatives$solvedC <- function(fn, var){
-    col <- fn[4];
-    if (col != "1"){
-        stop("Cannot currently take a second order deriavative of solvedC.");
-    } else {
-        vals <- fn[-(1:5)];
-        nv <- suppressWarnings({as.numeric(vals)});
-        w <- which(nv == 0);
-        vals <- vals[-w];
-        w <- which(vals == var);
-        if (length(w) == 1){
-            w <- w + 1;
-            fn[4] <- paste(w);
-            return(sprintf("%s(%s)", fn[1], paste(fn[-1], collapse=", ")));
+rxDefinedDerivatives$solveLinB <- function(fn, var){
+    fn <- fn[-1];
+    diff1 <- fn[3];
+    diff2 <- fn[4];
+    if (diff2 != "0"){
+        stop("Cannot currently take the third order derivitave of solveLinB.")
+    } else{
+        vals <- paste(fn[-seq(1:4)]);
+        w <- which(vals == var)
+        if (diff1 == "0"){
+            ret <- sprintf("solveLinB(%s,%s,0,%s)", paste(fn[1:2], collapse=","), w, paste(vals, collapse=","))
         } else {
-            stop("Could not figure out how to take the derivative.")
+            ret <- sprintf("solveLinB(%s,%s,%s)", paste(fn[1:3], collapse=","), w, paste(vals, collapse=","));
         }
+        return(ret);
     }
 }
 
-changeDerivs <- function(fn, var){
+changeDerivs <- function(fn, var, var2=NULL){
     ## Fn is a vector fn[1] == function name,the rest are the argments
     if (length(var) > 1){
         env <- rxEnv(var)
@@ -493,9 +491,27 @@ changeDerivs <- function(fn, var){
             stop("Cannot figure out how to deparse the deriavative");
         }
     }
+    if (!is.null(var2)){
+        if (length(var2) > 1){
+            env <- rxEnv(var2)
+            fnl <- as.list(var2[-1])
+            if (any(names(sympyRxFEnv) == var2[1])){
+                fne <- sympyRxFEnv[[var2[1]]]
+                var2 <- do.call(fne, fnl)
+            } else {
+                stop("Cannot figure out how to deparse the deriavative");
+            }
+        }
+    }
     if (any(names(rxDefinedDerivatives) == fn[1])){
         fne <- rxDefinedDerivatives[[fn[1]]];
-        return(do.call(fne, list(fn, var)))
+        ret <- do.call(fne, list(fn, var));
+        if (!is.null(var2)){
+            ## Send through parser recursively...
+            ret <- sprintf("D(%s,%s)", ret, var2);
+            return(rxFromSymPy(ret));
+        }
+        return(ret)
     } else {
         stop(sprintf("RxODE does not know how to take a deriavite of '%s'", fn[1]));
     }
@@ -513,7 +529,7 @@ evalPrints <- function(x, envir=parent.frame()){
             identical(x[[1]], quote(rxToSymPy)) ||
             identical(x[[1]], quote(rxFromSymPy))){
             txt <- sprintf("%s", eval(x, envir));
-            if (regexpr("=", txt) != -1){
+            if (regexpr("[=~]", txt) != -1){
                 txt <- deparse(txt);
             } else {
                 txt <- paste0("quote(", txt, ")")
@@ -525,6 +541,11 @@ evalPrints <- function(x, envir=parent.frame()){
                    identical(x[[1]], quote(diff))) &&
                    length(x) == 3){
             return(changeDerivs(as.character(x[[2]]), as.character(x[[3]])));
+        } else if ((identical(x[[1]], quote(Derivative)) ||
+                    identical(x[[1]], quote(D)) ||
+                    identical(x[[1]], quote(diff))) &&
+                   length(x) == 4){
+            changeDerivs(as.character(x[[2]]), as.character(x[[3]]), as.character(x[[4]]));
         } else {
             as.call(lapply(x, evalPrints, envir=envir));
         }
@@ -535,6 +556,12 @@ evalPrints <- function(x, envir=parent.frame()){
         stop("Don't know how to handle type ", typeof(x),
              call. = FALSE)
     }
+}
+
+for (f in names(rxDefinedDerivatives)){
+    rxSymPyC[[f]] <- functionOp(f);
+    sympyRxFEnv[[f]] <- functionOp(f);
+    rxSymPyFEnv[[f]] <- functionOp(f);
 }
 
 unknownSymPy <- function(op){
@@ -623,10 +650,11 @@ rxToSymPy <- function(x, envir=parent.frame(1)) {
         if (length(x) == 1){
             names(x) <- NULL;
             txt <- strsplit(gsub(";", "\n", x), "\n+")[[1]];
-            txt <- strsplit(txt, "=", txt);
+            txt <- strsplit(txt, rex::rex(or("=", "~", "<-")));
             vars <- c();
             addNames <- TRUE;
             txt <- unlist(lapply(txt, function(x){
+                tmp <- x[1]
                 var <- paste0(eval(parse(text=sprintf("RxODE::rxToSymPy(%s)", x[1]))));
                 if (length(x) == 2){
                     vars <<- c(vars, var);
@@ -643,7 +671,7 @@ rxToSymPy <- function(x, envir=parent.frame(1)) {
             }
             return(txt);
         } else {
-            txt <- paste0(eval(parse(text=sprintf("RxODE::rxToSymPy(%s)", deparse(paste(as.vector(x), collapse="\n"))))))
+            txt <- paste0(eval(parse(text=sprintf("RxODE::rxToSymPy(%s)", paste(deparse(paste(as.vector(x), collapse="\n"), collapse=""))))))
             return(txt);
         }
     } else if (class(substitute(x)) == "name"){
@@ -651,10 +679,10 @@ rxToSymPy <- function(x, envir=parent.frame(1)) {
         if (any(cls == c("list", "rxDll", "RxCompilationManager", "RxODE", "solveRxDll"))){
             ret <- strsplit(rxNorm(x),"\n")[[1]];
             ret <- rxRmIni(ret);
-            txt <- paste0(eval(parse(text=sprintf("RxODE::rxToSymPy(%s,envir=envir)", deparse(paste0(as.vector(ret), collapse="\n")))), envir=envir));
+            txt <- paste0(eval(parse(text=sprintf("RxODE::rxToSymPy(%s,envir=envir)", paste(deparse(paste0(as.vector(ret), collapse="\n")), collapse=""))), envir=envir));
             return(txt);
         } else if (cls == "character" && length(cls) == 1){
-            txt <- paste0(eval(parse(text=sprintf("RxODE::rxToSymPy(%s)", deparse(as.vector(x))))));
+            txt <- paste0(eval(parse(text=sprintf("RxODE::rxToSymPy(%s)", paste(deparse(as.vector(x)), collapse="")))));
             return(txt);
         } else {
             expr <- evalPrints(substitute(x), envir=envir)
@@ -674,7 +702,7 @@ rxFromSymPy <- function(x, envir=parent.frame(1)) {
     if (class(substitute(x)) == "character"){
         if (length(x) == 1){
             txt <- strsplit(x, "\n+")[[1]];
-            txt <- strsplit(txt, "=", txt);
+            txt <- strsplit(txt, "[=~]", txt);
             vars <- c();
             addNames <- TRUE;
             txt <- unlist(lapply(txt, function(x){

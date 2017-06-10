@@ -90,18 +90,6 @@ rxUpdateEtas <- function(DnDhS, DhS, initS, acceptNS) {
     .Call(RxODE_rxUpdateEtas, DnDhS, DhS, initS, acceptNS)
 }
 
-getMacroConstants <- function(rho) {
-    invisible(.Call(RxODE_getMacroConstants, rho))
-}
-
-linCmtEnv <- function(rho) {
-    invisible(.Call(RxODE_linCmtEnv, rho))
-}
-
-getLinDerivs <- function(rho) {
-    invisible(.Call(RxODE_getLinDerivs, rho))
-}
-
 #' Echo cout to console for a number
 #'
 #' @param number number to output
@@ -111,5 +99,9 @@ getLinDerivs <- function(rho) {
 #' @export
 rxCoutEcho <- function(number) {
     invisible(.Call(RxODE_rxCoutEcho, number))
+}
+
+W_Cpp <- function(z, branch) {
+    .Call(RxODE_W_Cpp, z, branch)
 }
 

@@ -162,36 +162,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// getMacroConstants
-void getMacroConstants(SEXP rho);
-RcppExport SEXP RxODE_getMacroConstants(SEXP rhoSEXP) {
-BEGIN_RCPP
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< SEXP >::type rho(rhoSEXP);
-    getMacroConstants(rho);
-    return R_NilValue;
-END_RCPP
-}
-// linCmtEnv
-void linCmtEnv(SEXP rho);
-RcppExport SEXP RxODE_linCmtEnv(SEXP rhoSEXP) {
-BEGIN_RCPP
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< SEXP >::type rho(rhoSEXP);
-    linCmtEnv(rho);
-    return R_NilValue;
-END_RCPP
-}
-// getLinDerivs
-void getLinDerivs(SEXP rho);
-RcppExport SEXP RxODE_getLinDerivs(SEXP rhoSEXP) {
-BEGIN_RCPP
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< SEXP >::type rho(rhoSEXP);
-    getLinDerivs(rho);
-    return R_NilValue;
-END_RCPP
-}
 // rxCoutEcho
 void rxCoutEcho(NumericVector number);
 RcppExport SEXP RxODE_rxCoutEcho(SEXP numberSEXP) {
@@ -200,5 +170,17 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< NumericVector >::type number(numberSEXP);
     rxCoutEcho(number);
     return R_NilValue;
+END_RCPP
+}
+// W_Cpp
+NumericVector W_Cpp(const NumericVector& z, int branch);
+RcppExport SEXP RxODE_W_Cpp(SEXP zSEXP, SEXP branchSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const NumericVector& >::type z(zSEXP);
+    Rcpp::traits::input_parameter< int >::type branch(branchSEXP);
+    rcpp_result_gen = Rcpp::wrap(W_Cpp(z, branch));
+    return rcpp_result_gen;
 END_RCPP
 }

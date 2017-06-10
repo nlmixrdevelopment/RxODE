@@ -134,8 +134,15 @@ plot(mod1);
 ```
 
 ```
-## Package igraph needed for this function to work. Please install it.
+##                              C2                              C3 
+##                      "centr/V2"                       "peri/V3" 
+##                     d/dt(depot)                     d/dt(centr) 
+##                     "-KA*depot"      "KA*depot-CL*C2-Q*C2+Q*C3" 
+##                      d/dt(peri)                       d/dt(eff) 
+##                     "Q*C2-Q*C3" "Kin-Kout*(1-C2/(EC50+C2))*eff"
 ```
+
+![plot of chunk unnamed-chunk-3](vignettes/figure/unnamed-chunk-3-1.png)
 
 Sometimes the size of the boxes may need to be adjusted, you can do
 this by adjusting the `size` argument:
@@ -145,8 +152,15 @@ plot(mod1,size=40);
 ```
 
 ```
-## Package igraph needed for this function to work. Please install it.
+##                              C2                              C3 
+##                      "centr/V2"                       "peri/V3" 
+##                     d/dt(depot)                     d/dt(centr) 
+##                     "-KA*depot"      "KA*depot-CL*C2-Q*C2+Q*C3" 
+##                      d/dt(peri)                       d/dt(eff) 
+##                     "Q*C2-Q*C3" "Kin-Kout*(1-C2/(EC50+C2))*eff"
 ```
+
+![plot of chunk unnamed-chunk-4](vignettes/figure/unnamed-chunk-4-1.png)
 
 Model parameters can be defined as named vectors. Names of parameters in
 the vector must be a superset of parameters in the ODE model, and the
@@ -282,7 +296,7 @@ print(x)
 
 ```
 ## Solved RxODE object
-## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\Rtmp0I6Cju\Rx_intro-6c81e3a728e/mod1.d/mod1_x64.dll
+## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpKax2LC\Rx_intro-4320592d5afe/mod1.d/mod1_x64.dll
 ## 
 ## Parameters:
 ##      V2      V3      KA      CL       Q     Kin    Kout    EC50 
@@ -315,7 +329,7 @@ print(x)
 
 ```
 ## Solved RxODE object
-## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\Rtmp0I6Cju\Rx_intro-6c81e3a728e/mod1.d/mod1_x64.dll
+## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpKax2LC\Rx_intro-4320592d5afe/mod1.d/mod1_x64.dll
 ## 
 ## Parameters:
 ##      V2      V3      KA      CL       Q     Kin    Kout    EC50 
@@ -349,7 +363,7 @@ print(x)
 
 ```
 ## Solved RxODE object
-## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\Rtmp0I6Cju\Rx_intro-6c81e3a728e/mod1.d/mod1_x64.dll
+## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpKax2LC\Rx_intro-4320592d5afe/mod1.d/mod1_x64.dll
 ## 
 ## Parameters:
 ##      V2      V3      KA      CL       Q     Kin    Kout    EC50 
@@ -379,26 +393,6 @@ by `dpylr`.  For example you could filter it easily.
 
 ```r
 library(dplyr)
-```
-
-```
-## 
-## Attaching package: 'dplyr'
-```
-
-```
-## The following objects are masked from 'package:stats':
-## 
-##     filter, lag
-```
-
-```
-## The following objects are masked from 'package:base':
-## 
-##     intersect, setdiff, setequal, union
-```
-
-```r
 x <- mod1 %>% solve(theta,ev,inits) %>%  filter(time <=3)
 x
 ```
@@ -419,49 +413,6 @@ if (any(installed.packages()[,"Package"] == "data.table")){
     library(data.table)
     dt <- as.data.table(mod1 %>% solve(theta, ev, inits))
 }
-```
-
-```
-## data.table 1.10.4
-```
-
-```
-##   The fastest way to learn (by data.table authors): https://www.datacamp.com/courses/data-analysis-the-data-table-way
-```
-
-```
-##   Documentation: ?data.table, example(data.table) and browseVignettes("data.table")
-```
-
-```
-##   Release notes, videos and slides: http://r-datatable.com
-```
-
-```
-## -------------------------------------------------------------------------
-```
-
-```
-## data.table + dplyr code now lives in dtplyr.
-## Please library(dtplyr)!
-```
-
-```
-## -------------------------------------------------------------------------
-```
-
-```
-## 
-## Attaching package: 'data.table'
-```
-
-```
-## The following objects are masked from 'package:dplyr':
-## 
-##     between, first, last
-```
-
-```r
 dt
 ```
 
@@ -519,7 +470,7 @@ x
 
 ```
 ## Solved RxODE object
-## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\Rtmp0I6Cju\Rx_intro-6c81e3a728e/mod1.d/mod1_x64.dll
+## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpKax2LC\Rx_intro-4320592d5afe/mod1.d/mod1_x64.dll
 ## 
 ## Parameters:
 ##      V2      V3      KA      CL       Q     Kin    Kout    EC50 
@@ -563,7 +514,7 @@ x
 
 ```
 ## Solved RxODE object
-## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\Rtmp0I6Cju\Rx_intro-6c81e3a728e/mod1.d/mod1_x64.dll
+## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpKax2LC\Rx_intro-4320592d5afe/mod1.d/mod1_x64.dll
 ## 
 ## Parameters:
 ##      V2      V3      KA      CL       Q     Kin    Kout    EC50 
@@ -604,7 +555,7 @@ x
 
 ```
 ## Solved RxODE object
-## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\Rtmp0I6Cju\Rx_intro-6c81e3a728e/mod1.d/mod1_x64.dll
+## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpKax2LC\Rx_intro-4320592d5afe/mod1.d/mod1_x64.dll
 ## 
 ## Parameters:
 ##    V2    V3    KA    CL     Q   Kin  Kout  EC50 
@@ -617,16 +568,16 @@ x
 ## 
 ## 
 ## First part of data:
-## # A tibble: 241 x 7
-##    time      depot     centr      peri      eff        C2        C3
-##   <dbl>      <dbl>     <dbl>     <dbl>    <dbl>     <dbl>     <dbl>
-## 1     0 10000.0000    0.0000    0.0000 2.000000   0.00000  0.000000
-## 2     1  3678.7945 4245.2332  742.6034 1.669738 105.60282  2.500348
-## 3     2  1353.3534 3650.5802 1767.4951 1.589641  90.81045  5.951162
-## 4     3   497.8706 2398.6713 2479.2430 1.473088  59.66844  8.347619
-## 5     4   183.1561 1442.4959 2876.7992 1.335833  35.88298  9.686193
-## 6     5    67.3793  852.3637 3064.0837 1.217771  21.20308 10.316780
-## # ... with 235 more rows
+## # A tibble: 20 x 7
+##        time     depot    centr       peri      eff        C2        C3
+##       <dbl>     <dbl>    <dbl>      <dbl>    <dbl>     <dbl>     <dbl>
+## 1 0.0000000 10000.000    0.000    0.00000 2.000000   0.00000 0.0000000
+## 2 0.2631579  7686.205 2098.224   77.62338 1.822345  52.19463 0.2613582
+## 3 0.5263158  5907.775 3348.269  267.29379 1.737850  83.29027 0.8999791
+## 4 0.7894737  4540.837 4010.290  519.32777 1.692658  99.75845 1.7485784
+## 5 1.0526316  3490.181 4272.980  799.73120 1.665007 106.29303 2.6926976
+## 6 1.3157895  2682.625 4272.092 1085.82977 1.644283 106.27096 3.6559925
+## # ... with 14 more rows
 ```
 
 
@@ -655,12 +606,12 @@ head(theta.all)
 
 ```
 ##         KA       CL   V2    Q  V3 Kin Kout EC50
-## [1,] 0.294 15.95093 40.2 10.5 297   1    1  200
-## [2,] 0.294 15.56685 40.2 10.5 297   1    1  200
-## [3,] 0.294 18.30135 40.2 10.5 297   1    1  200
-## [4,] 0.294 14.15973 40.2 10.5 297   1    1  200
-## [5,] 0.294 21.37879 40.2 10.5 297   1    1  200
-## [6,] 0.294 21.87371 40.2 10.5 297   1    1  200
+## [1,] 0.294 16.82606 40.2 10.5 297   1    1  200
+## [2,] 0.294 19.15463 40.2 10.5 297   1    1  200
+## [3,] 0.294 16.27225 40.2 10.5 297   1    1  200
+## [4,] 0.294 24.00847 40.2 10.5 297   1    1  200
+## [5,] 0.294 19.60693 40.2 10.5 297   1    1  200
+## [6,] 0.294 16.31177 40.2 10.5 297   1    1  200
 ```
 
 Each subproblem can be simulated by using an explicit loop (or the `apply()`

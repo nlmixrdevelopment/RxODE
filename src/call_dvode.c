@@ -674,7 +674,9 @@ void RxODE_ode_setup(SEXP sexp_inits,
   rx_aprox_M.kind = !is_locf;
   nlhs          = length(sexp_lhs);
   neq           = length(sexp_inits);
-  update_inis(sexp_inits); // Update any run-time initial conditions.
+  if (length(sexp_inits) > 0){
+    update_inis(sexp_inits); // Update any run-time initial conditions.
+  }
 }
 
 void RxODE_ode_solve_env(SEXP sexp_rho){
@@ -753,6 +755,7 @@ SEXP RxODE_ode_solver (// Parameters
   RxODE_ode_setup(sexp_inits, sexp_lhs, sexp_time, sexp_evid, sexp_dose, sexp_pcov, sexp_cov, sexp_locf, sexp_atol, sexp_rtol, sexp_hmin, sexp_hmax, sexp_h0, sexp_mxordn, sexp_mxords, sexp_mx, sexp_stiff, sexp_transit_abs);
   RxODE_ode_alloc();
   
+  
   int i = 0, j = 0;
   SEXP sexp_counter = PROTECT(allocVector(INTSXP,4));pro++;
   int    *counts    = INTEGER(sexp_counter);
@@ -760,8 +763,9 @@ SEXP RxODE_ode_solver (// Parameters
   int *matrix = INTEGER(sexp_matrix);
   
   for (i=0; i<neq; i++) InfusionRate[i] = 0.0;
-  
-  RxODE_ode_solver_c(neq, stiff, evid, inits, dose, solve, rc);
+  if (neq > 0){
+    RxODE_ode_solver_c(neq, stiff, evid, inits, dose, solve, rc);
+  }
   double *scale = REAL(sexp_scale);
   if (matrix[0]){
     SEXP sexp_ret     = PROTECT(allocMatrix(REALSXP, nObs(), ncov+1+neq+nlhs)); pro++;
@@ -957,7 +961,8 @@ double RxODE_InfusionRate(int val){
 }
 
 double RxODE_par_ptr(int val){
-  return par_ptr[val];
+  double ret =par_ptr[val];
+  return ret;
 }
 
 long RxODE_jac_counter_val(){
@@ -1012,15 +1017,12 @@ SEXP RxODE_rxOuter(SEXP rhoSEXP);
 SEXP RxODE_rxUpdateEtas(SEXP DnDhSSEXP, SEXP DhSSEXP, SEXP initSSEXP, SEXP acceptNSSEXP);
 SEXP RxODE_RxODE_finalize_focei_omega(SEXP rho);
 SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SEXP parse_model,SEXP parse_model3);
-SEXP RxODE_getMacroConstants(SEXP rho);
-SEXP RxODE_getLinDerivs(SEXP rho);
 SEXP RxODE_linCmtEnv(SEXP rho);
 SEXP RxODE_rxInv(SEXP matrix);
 
-double solvedC(double t, int parameterization, unsigned int cmt, unsigned int col, double p1, double p2, double p3, double p4, double p5, double p6, double p7, double p8);
-
 SEXP RxODE_rxCoutEcho(SEXP number);
 
+double solveLinB(double t, int linCmt, int diff1, int diff2, double A, double alpha, double B, double beta, double C, double gamma, double ka, double tlag);
 void R_init_RxODE(DllInfo *info){
   R_CallMethodDef callMethods[]  = {
     {"RxODE_ode_solver", (DL_FUNC) &RxODE_ode_solver, 23},
@@ -1038,9 +1040,6 @@ void R_init_RxODE(DllInfo *info){
     {"RxODE_rxOuter", (DL_FUNC) &RxODE_rxOuter, 1},
     {"RxODE_rxUpdateEtas", (DL_FUNC) &RxODE_rxUpdateEtas, 4},
     {"trans", (DL_FUNC) &trans, 8},
-    {"RxODE_getMacroConstants", (DL_FUNC) &RxODE_getMacroConstants, 1},
-    {"RxODE_getLinDerivs", (DL_FUNC) &RxODE_getLinDerivs, 1},
-    {"RxODE_linCmtEnv", (DL_FUNC) &RxODE_linCmtEnv, 1},
     {"RxODE_rxInv", (DL_FUNC) &RxODE_rxInv, 1},
     {"RxODE_rxCoutEcho", (DL_FUNC) &RxODE_rxCoutEcho, 1},
     {NULL, NULL, 0}
@@ -1076,7 +1075,9 @@ void R_init_RxODE(DllInfo *info){
   R_RegisterCCallable("RxODE","RxODE_safe_log",         (DL_FUNC) RxODE_safe_log);
   R_RegisterCCallable("RxODE","RxODE_safe_zero",        (DL_FUNC) RxODE_safe_zero);
   R_RegisterCCallable("RxODE","RxODE_as_zero",          (DL_FUNC) RxODE_as_zero);
-  R_RegisterCCallable("RxODE","solvedC",                (DL_FUNC) solvedC);
   R_RegisterCCallable("RxODE","RxODE_sign_exp",         (DL_FUNC) RxODE_sign_exp);
   R_RegisterCCallable("RxODE","RxODE_abs_log",          (DL_FUNC) RxODE_abs_log);
+  R_RegisterCCallable("RxODE","RxODE_solveLinB",        (DL_FUNC) solveLinB);
 }
+
+

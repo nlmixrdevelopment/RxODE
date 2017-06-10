@@ -37,15 +37,15 @@ printf_command
 print_command
   : 'print' | 'ode_print' | 'jac_print' | 'lhs_print';
 
-ini0       : identifier_r ('(0)' | '{0}' | '[0]') ('=' | '<-') ini_const;
+ini0       : identifier_r ('(0)' | '{0}' | '[0]') ('=' | '<-' ) ini_const;
 
-ini0f     : identifier_r ('(0)' | '{0}' | '[0]') ('=' | '<-') additive_expression;
+ini0f     : identifier_r ('(0)' | '{0}' | '[0]') ('=' | '<-' ) additive_expression;
 
-ini        : identifier_r ('=' | '<-') ini_const;
+ini        : identifier_r ('=' | '<-' ) ini_const;
 
 derivative : 'd/dt' '(' identifier_r_no_output ')' ('=' | '<-') additive_expression;
 der_rhs    : 'd/dt' '(' identifier_r_no_output ')';
-jac        : jac_command '(' identifier_r_no_output ',' (theta0_noout | theta_noout | eta_noout | identifier_r_no_output) ')' ('=' | '<-') additive_expression;
+jac        : jac_command '(' identifier_r_no_output ',' (theta0_noout | theta_noout | eta_noout | identifier_r_no_output) ')' ('=' | '<-' ) additive_expression;
 jac_rhs    : jac_command '(' identifier_r_no_output ',' (theta0_noout | theta_noout | eta_noout | identifier_r_no_output) ')';
 
 // transit(n,mtt) -> transit3(t,n,mtt)
@@ -54,14 +54,14 @@ transit2   : 'transit' '(' trans_const ',' trans_const ')';
 // transit(n,mtt, bio) -> transit4(t,n,mtt,bio)
 transit3   : 'transit' '(' trans_const ',' trans_const ',' trans_const ')';
 
-dfdy        : 'df' '(' identifier_r_no_output ')/dy(' (theta0_noout | theta_noout | eta_noout | identifier_r_no_output) ')' ('=' | '<-') additive_expression;
+dfdy        : 'df' '(' identifier_r_no_output ')/dy(' (theta0_noout | theta_noout | eta_noout | identifier_r_no_output) ')' ('=' | '<-' ) additive_expression;
 dfdy_rhs    : 'df' '(' identifier_r_no_output ')/dy(' (theta0_noout | theta_noout | eta_noout | identifier_r_no_output) ')';
 
 jac_command : 'jac' | 'df/dy';
 
 end_statement : (';')* ;
 
-assignment : identifier_r ('=' | '<-') additive_expression;
+assignment : identifier_r ('=' | '<-' | '~' ) additive_expression;
 
 logical_or_expression : logical_and_expression 
     (('||' | '|')  logical_and_expression)* ;
@@ -117,7 +117,7 @@ factorial: fact_const '!';
 lfactorial: "log *[(]" fact_const "! *[)]";
 lfactorial_exp: "log *[(] *[(] *" additive_expression "[)] *! *[)]";
 
-function : identifier '(' additive_expression (',' additive_expression)* ')' ;
+function : identifier '(' (additive_expression)* (',' additive_expression)* ')' ;
 
 ini_const : '-'? constant;
 fact_const: identifier_r_no_output | '-'? (decimalint | float1 | float2) ;

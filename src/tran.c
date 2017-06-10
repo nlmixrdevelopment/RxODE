@@ -394,6 +394,15 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
     sprintf(SBTPTR,"=");
     sbt.o++;
   }
+
+  // Suppress LHS calculation with ~
+  if (!strcmp("~",name)){
+    sprintf(SBPTR," =");
+    sb.o += 2;
+    sprintf(SBTPTR,"~");
+    sbt.o++;
+    tb.lh[tb.ix] = 10; // Suppress LHS printout.
+  }
   
   if (!strcmp("|",name)){
     sprintf(SBPTR," ||");
@@ -519,12 +528,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
           trans_syntax_error_report_fn(NEEDSEMI);
         } 
       }
-
-      if (!strcmp("decimalint",name)){
-	sprintf(SBPTR,".0");
-        sb.o += 2;
-      }
-
+      
       if (!strcmp("mult_part",name)){
 	char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
 	if (i == 0){

@@ -338,6 +338,7 @@ RxODE <- function(model, modName = basename(wd), wd = ifelse(RxODE.cache.directo
         ##     model <- paste(model[-length(model)], collapse="\n");
         ## }
     }
+    model <- rxLinCmtTrans(model);
     ## RxODE compilation manager (location of parsed code, generated C,  shared libs, etc.)
 
     cmpMgr <- rx.initCmpMgr(model, modName, wd,  extraC, debug, missing(modName),
@@ -1595,6 +1596,9 @@ rxDllLoaded <- function(x, retry = TRUE){
     } else {
         print(m);
         options(RxODE.echo.compile = TRUE);
+        rxSyncOptions()
+        on.exit({options(RxODE.echo.compile = TRUE);
+            rxSyncOptions();})
         m <- rxCompile(x, force = FALSE);
         stop(sprintf("Can't figure out if the object is loaded (%s)...", .Platform$dynlib.ext));
     }
@@ -1957,7 +1961,6 @@ rxDfdy <- function(obj){
 ##' @param state is a string indicating the state or compartment that
 ##'     you would like to lookup.
 ##'
-##' '
 ##' @return If state is missing, return a character vector of all the states.
 ##'
 ##' If state is a string, return the compartment number of the named state.
@@ -2166,7 +2169,7 @@ rxModelVars.character <- function(obj){
     if (length(obj) == 1){
         cFile <- tempfile();
         if (file.exists(obj)){
-            parsModel <- obj;
+            parseModel <- obj;
             on.exit({unlink(cFile)});
         } else {
             parseModel <- tempfile();

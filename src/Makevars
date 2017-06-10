@@ -3,7 +3,7 @@ PKG_FFLAGS=$(FPICFLAGS)
 PKG_FCFLAGS=$(FPICFLAGS)
 
 SOURCES_C = call_dvode.c dop853.c tran.c rprintf.c
-SOURCES_CPP = focei.cpp lincmt.cpp lincmtDiff.cpp RcppExports.cpp util.cpp
+SOURCES_CPP = focei.cpp lincmt.cpp lincmtDiff.cpp RcppExports.cpp util.cpp w.cpp
 SOURCES_FORTAN = dlsoda.f opkda1_abbr.f opkda2.f errmsg.f
 
 OBJECTS = $(SOURCES_C:.c=.o) $(SOURCES_FORTAN:.f=.o) $(SOURCES_CPP:.cpp=.o)
