@@ -34,7 +34,7 @@ findLhs <- function(x) {
 ##' @keywords internal
 rxLinCmtTrans <- function(modText){
     vars <- c();
-    txt <- try({strsplit(rxNorm(modText), "\n")[[1]]}, , silent = TRUE);
+    txt <- try({strsplit(rxNorm(modText), "\n")[[1]]}, silent = TRUE);
     if (inherits(txt, "try-error")){
         return(modText);
     }
