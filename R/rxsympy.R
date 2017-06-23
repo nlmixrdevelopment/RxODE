@@ -303,12 +303,17 @@ rxSymPy <- function(...){
 }
 ##' Return the version of SymPy that is running
 ##'
-##' @return  Verson of sympy that is running.
+##' @param numeric boolean that specifies if the major and minor
+##'     release should be a number.
+##' @return Verson of sympy that is running.
 ##' @author Matthew L. Fidler
 ##' @export
-rxSymPyVersion <- function(){
+rxSymPyVersion <- function(numeric=TRUE){
     rxSymPyExec("import sympy");
-    return(rxSymPy("sympy.__version__"))
+    ret <- rxSymPy("sympy.__version__");
+    if (numeric)
+        ret <- as.numeric(sub("^([0-9]+[.][0-9]+.)*", "\\1", ret))
+    return()
 }
 rxSymPyVersion.slow <- NULL;
 
