@@ -30,8 +30,7 @@ Suggests:
     rSymPy,
     dplyr,
     tidyr,
-    tibble,
-    praise
+    tibble
 Imports:
     utils,
     methods,

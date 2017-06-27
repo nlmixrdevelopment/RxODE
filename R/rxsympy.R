@@ -1434,7 +1434,7 @@ rxLogifyModel <- function(model){
     lines <- strsplit(rxNorm(model), "\n")[[1]];
     for (i in seq_along(lines)){
         if (regexpr("[=~]", lines[i])){
-            l0 <- strsplit(lines[i], or("=", "~"))[[1]];
+            l0 <- strsplit(lines[i], "[=~]")[[1]];
             if (length(l0) == 2){l1 <- l0[1];
                 l2 <- eval(parse(text=sprintf("rxSplitPlusQ(quote(%s))", substr(l0[2], 1, nchar(l0[2]) - 1))));
                 for (j in seq_along(l2)){
