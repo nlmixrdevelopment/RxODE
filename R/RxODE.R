@@ -314,6 +314,11 @@ RxODE <- function(model, modName = basename(wd), wd = ifelse(RxODE.cache.directo
                   debug = FALSE,
                   calcJac=NULL, calcSens=NULL,
                   collapseModel=FALSE, ...) {
+    if (missing(modName) && RxODE.delete.unnamed){
+        do.delete <- TRUE;
+    } else {
+        do.delete <- FALSE;
+    }
     if (!missing(model) && !missing(filename))
         stop("must specify exactly one of 'model' or 'filename'")
     if (missing(model) && !missing(filename)){
@@ -726,6 +731,9 @@ RxODE <- function(model, modName = basename(wd), wd = ifelse(RxODE.cache.directo
         dll <- out$dll;
     } else {
         out$dll <- NULL;
+    }
+    if (do.delete){
+        reg.finalizer(environment(solve), rxodeGc, onexit=TRUE);
     }
     class(out) <- "RxODE"
    out
@@ -2379,4 +2387,20 @@ rxReload <- function(){
     dyn.load(tmp$path);
     ret <- ret && !is.null(getLoadedDLLs()$RxODE)
     return(ret)
+}
+
+##' Garbage Collection for RxODE objects
+##'
+##' When objects are created without a model name/dll name and RxODE
+##' option RxODE.delete.unnamed is TRUE, remove the associated dll
+##' when R is done with them (i.e. when the RxODE object is deleted or
+##' R exits normally.)  If R crashes, thes files will still remain.
+##'
+##' @param env RxODE environment for cleanup.
+##' @return Nothing
+##' @author Matthew L. Fidler
+##' @keywords internal
+##' @export
+rxodeGc <- function(env){
+    rxDelete(env$out);
 }

@@ -69,7 +69,8 @@ rxOpt <- list(RxODE.prefer.tbl               =c(FALSE, FALSE),
               RxODE.verbose                  =c(TRUE, TRUE),
               RxODE.suppress.syntax.info     =c(FALSE, FALSE),
               RxODE.sympy.engine             =c("", ""),
-              RxODE.cache.directory          =c(".", ".")
+              RxODE.cache.directory          =c(".", "."),
+              RxODE.delete.unnamed=c(TRUE, TRUE)
               );
 
 RxODE.prefer.tbl <- NULL
@@ -89,6 +90,7 @@ RxODE.verbose <- NULL
 RxODE.suppress.syntax.info <- NULL
 RxODE.sympy.engine <- NULL
 RxODE.cache.directory <- NULL
+RxODE.delete.unnamed <- NULL
 
 
 ##' Permissive or Strict RxODE sytax options

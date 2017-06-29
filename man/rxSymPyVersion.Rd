@@ -4,7 +4,11 @@
 \alias{rxSymPyVersion}
 \title{Return the version of SymPy that is running}
 \usage{
-rxSymPyVersion()
+rxSymPyVersion(numeric = TRUE)
+}
+\arguments{
+\item{numeric}{boolean that specifies if the major and minor
+release should be a number.}
 }
 \value{
 Verson of sympy that is running.
