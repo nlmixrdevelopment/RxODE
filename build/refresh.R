@@ -303,6 +303,14 @@ using namespace arma;
 extern \"C\" double getLinDeriv(int ncmt, int diff1, int diff2, double rate, double tinf, double Dose, double ka, double tlag, double T, double tT, mat par);
 double getLinDeriv(int ncmt, int diff1, int diff2, double rate, double tinf, double Dose, double ka, double tlag, double T, double tT, mat par){
 double ret = 0;
+int tmp = 0;
+if (diff2 != 0){ // Swap
+  if (diff1 > diff2){
+     tmp = diff1;
+     diff1 = diff2;
+     diff2 = tmp;
+  }
+}
 ")
         sink();
         for (ncmt in seq(1, totcmt)){
@@ -465,7 +473,7 @@ double ret = 0;
             }
         }
         sink(devtools::package_file("src/lincmtDiff.cpp"), append=TRUE);
-        cat("\n stop(\"Linear derivatives not calculated; Somethings wrong.\");\n");
+        cat("\n stop(\"Linear derivatives not calculated; Somethings wrong:\\n (ncmt=%d, diff1=%d, diff2=%d, rate=%f, tinf=%f, Dose=%f, ka=%f, tlag=%f, T=%f, tT=%f, mat par)\",ncmt, diff1, diff2, rate,tinf,Dose,ka,tlag,T,tT);\n");
         cat(" return ret;\n")
         cat("}\n");
         sink();
