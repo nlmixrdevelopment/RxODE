@@ -116,8 +116,8 @@ rxLinCmtTrans <- function(modText){
                 lines[length(lines) + 1] <- sprintf("rx_k31 ~ %s/%s", q2, v3);
             }
         } else if (any(vars.up == "K")) {
-            k <- vars.get("K");
-            v <- vars.get("V");
+            k <- get.var("K");
+            v <- get.var("V");
             lines[length(lines) + 1] <- sprintf("rx_v ~ %s", v);
             lines[length(lines) + 1] <- sprintf("rx_k ~ %s", k);
             if (any(vars.up == "K12")){
