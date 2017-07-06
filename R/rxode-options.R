@@ -181,7 +181,11 @@ rxOptions <- function(expr, op.rx=NULL, silent=FALSE, respect=FALSE,
             rxSyncOptions()
         }
         if (class(substitute(expr)) == "{"){
-            return(eval(substitute(expr), envir=parent.frame(1)));
+            if (silent){
+                return(suppressMessages(eval(substitute(expr), envir=parent.frame(1))));
+            } else {
+                return(eval(substitute(expr), envir=parent.frame(1)));
+            }
         }
     }
 }

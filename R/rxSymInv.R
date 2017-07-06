@@ -17,8 +17,8 @@ rxSymInvC <- function(mat1, diag.xform=c("sqrt", "log", "identity"), chol=FALSE)
         load(cache.file2);
         return(ret)
     } else {
-        cat("Diagonal form: ", diag.xform, "\n");
-        print(mat1);
+        rxCat("Diagonal form: ", diag.xform, "\n");
+        rxPrint(mat1);
         num <- as.vector(mat1[upper.tri(mat1,TRUE)]);
         i <- 0;
         num <- sapply(num, function(x){
@@ -92,7 +92,7 @@ rxSymInvC <- function(mat1, diag.xform=c("sqrt", "log", "identity"), chol=FALSE)
             rxCat("Calculate log(det(OMGAinv))...")
             sympy.inv.det <- paste(sprintf("log(%s)", diag(ch)), collapse=" + ");
             sympy.inv.det <- sympyC(sympy.inv.det);
-            cat("done\n");
+            rxCat("done\n");
         }
         if (d <= 3 && !chol){
             rxCat("Calculate symbolic determinant of inverse...");
@@ -297,17 +297,17 @@ rxSymInvCreate <- function(mat,
 ##' @export
 print.rxSymInvBlock <- function(x, ...){
     d <- dim(x$mat)[1]
-    cat(sprintf("Object to create Omega and Omega^-1 & derivitaves for a %sx%s matrix:\n", d, d))
-    print(x$mat);
-    cat("Use `rxSymInv' for the matrix.\n");
+    rxCat(sprintf("Object to create Omega and Omega^-1 & derivitaves for a %sx%s matrix:\n", d, d))
+    rxPrint(x$mat);
+    rxCat("Use `rxSymInv' for the matrix.\n");
 }
 
 ##' @export
 print.rxSymInv <- function(x, ...){
     d <- dim(x$fmat)[1]
-    cat(sprintf("Object to create Omega and Omega^-1 & derivitaves for a %sx%s matrix:\n", d, d))
-    print(x$fmat);
-    cat("Use `rxSymInv' for the matrix.\n");
+    rxCat(sprintf("Object to create Omega and Omega^-1 & derivitaves for a %sx%s matrix:\n", d, d))
+    rxPrint(x$fmat);
+    rxCat("Use `rxSymInv' for the matrix.\n");
 }
 
 ##' Get the theta numbers for the diagonal elements.
@@ -381,7 +381,7 @@ rxSymInv <- function(invobj, theta, pow=0, dTheta=0){
             }
             tryCatch({ret$log.det.OMGAinv.5 <- invobj$fn(theta,0L, -1L)},
                      error=function(e){
-                cat("Warning: Omega^-1 not positive definite (correcting with nearPD)\n");
+                rxCat("Warning: Omega^-1 not positive definite (correcting with nearPD)\n");
                 old <- ret$omegaInv
                 ret$omegaInv <- as.matrix(Matrix::nearPD(ret$omegaInv)$mat);
                 RxODE_finalize_log_det_OMGAinv_5(ret);
@@ -473,7 +473,7 @@ rxSymInv <- function(invobj, theta, pow=0, dTheta=0){
             }
             ret$log.det.OMGAinv.5 <- blockfn(0L, -1L);
             if (is.na(ret$log.det.OMGAinv.5)){
-                cat("Warning: Omega^-1 may not positive definite (correcting with nearPD)\n");
+                rxCat("Warning: Omega^-1 may not positive definite (correcting with nearPD)\n");
                 old <- ret$omegaInv
                 ret$omegaInv <- as.matrix(Matrix::nearPD(ret$omegaInv)$mat);
                 RxODE_finalize_log_det_OMGAinv_5(ret);

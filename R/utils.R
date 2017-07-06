@@ -44,13 +44,33 @@ rxCat <- function(a, ...){
     ## nocov start
     if (RxODE.verbose){
         if (class(a) == "RxODE"){
-            cat(rxNorm(a));
+            message(rxNorm(a), appendLF=FALSE);
         } else {
-            cat(a, ...);
+            message(a, ..., appendLF=FALSE);
         }
     }
     ## nocov end
 }
+
+##' Print x using the message facility
+##'
+##' This allows the suppressMessages to work on print functions.  This
+##' captures the output via R.Util's captureOutput function and then
+##' sends it through the message routine.
+##'
+##' catpureOutput was used since it is much faster than the internal
+##' capture.output see https://www.r-bloggers.com/performance-captureoutput-is-much-faster-than-capture-output/
+##' @param x object to print
+##' @param ... Other things output
+##' @return return value from print function (returned invisibly)
+##' @author Matthew L. Fidler
+##' @export
+##' @keywords internal
+rxPrint <- function(x, ...){
+    message(invisible(paste(R.utils::captureOutput(ret <- print(x, ...)), collapse="\n")), appendLF=TRUE);
+    return(invisible(x));
+}
+
 ##' Cleanup anonymous dlls
 ##'
 ##' This cleans up any dlls created by text files
