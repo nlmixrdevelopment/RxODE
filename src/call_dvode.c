@@ -744,9 +744,9 @@ SEXP RxODE_ode_solver (// Parameters
 		       SEXP sexp_extra_args,
 		       SEXP sexp_matrix){
   // TODO: Absorption lag?
-  // TODO: Annotation?
-  // TODO: Units
-  // TODO: Bioavailiability
+  // TODO: Annotation? -- in nlmixr
+  // TODO: Units -- Can be in nlmixr
+  // TODO: Bioavailiability?
   // Parameters
   int pro=0;
   par_ptr       = REAL(sexp_theta);
