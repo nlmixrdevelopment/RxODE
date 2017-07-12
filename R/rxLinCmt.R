@@ -65,11 +65,23 @@ rxLinCmtTrans <- function(modText){
         vars.up <- toupper(vars);
         oral <- any(vars.up == "KA");
         get.var <- function(var){
-            w <- which(vars.up == var)
-            if (length(w) == 1){
-                return(vars[w])
+            if (length(var) == 1){
+                w <- which(vars.up == var)
+                if (length(w) == 1){
+                    return(vars[w])
+                } else {
+                    stop(sprintf("Requires Parameter '%s'", var))
+                }
             } else {
-                stop(sprintf("Requires Parameter '%s'", var))
+                i <- 1;
+                while(i <= length(var)){
+                    w <- which(vars.up == var[i]);
+                    if (length(w) == 1){
+                        return(vars[w]);
+                    }
+                    i <- i + 1;
+                }
+                stop(sprintf("Requires one of he following parameters '%s'", paste(var, collapse="', '")));
             }
         }
         lines <- c();
@@ -90,14 +102,14 @@ rxLinCmtTrans <- function(modText){
         ncmt <- 1;
         if (any(vars.up == "CL")){
             cl <- get.var("CL");
-            v <- get.var("V");
+            v <- get.var(c("V", "VC"));
             lines[length(lines) + 1] <- sprintf("rx_v ~ %s", v);
             lines[length(lines) + 1] <- sprintf("rx_k ~ %s/%s", cl, v);
             type <- 1;
-            if (any(vars.up == "V2")){
+            if ((any(vars.up == "V2") || any(vars.up == "VP"))){
                 ncmt <- 2;
                 Q <- get.var("Q");
-                v2 <- get.var("V2");
+                v2 <- get.var(c("V2", "VP"));
                 lines[length(lines) + 1] <- sprintf("rx_k12 ~ %s/%s", Q, v);
                 lines[length(lines) + 1] <- sprintf("rx_k21 ~ %s/%s", Q, v2);
             } else if (any(vars.up == "VT")){
@@ -125,13 +137,9 @@ rxLinCmtTrans <- function(modText){
                 q2 <- get.var("CLD2");
                 lines[length(lines) + 1] <- sprintf("rx_k13 ~ %s/%s", q2, v);
             }
-        } else if (any(vars.up == "K") || any(vars.up == "KE")) {
-            if (any(vars.up == "KE")){
-                k <- get.var("KE");
-            } else {
-                k <- get.var("K");
-            }
-            v <- get.var("V");
+        } else if (any(vars.up == "K") || any(vars.up == "KE") || any(vars.up == "KEL")) {
+            k <- get.var(c("K", "KE", "KEL"))
+            v <- get.var(c("V", "VC"));
             lines[length(lines) + 1] <- sprintf("rx_v ~ %s", v);
             lines[length(lines) + 1] <- sprintf("rx_k ~ %s", k);
             if (any(vars.up == "K12")){
