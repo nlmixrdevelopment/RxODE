@@ -312,7 +312,7 @@ rxSymPyVersion <- function(numeric=TRUE){
     rxSymPyExec("import sympy");
     ret <- rxSymPy("sympy.__version__");
     if (numeric)
-        ret <- as.numeric(sub("^([0-9]+[.][0-9]+.)*", "\\1", ret))
+        ret <- as.numeric(sub("^([0-9]+[.][0-9]+).*", "\\1", ret))
     return(ret)
 }
 rxSymPyVersion.slow <- NULL;
