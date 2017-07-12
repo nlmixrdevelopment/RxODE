@@ -62,14 +62,11 @@ rxCat <- function(a, ...){
 ##' capture.output see https://www.r-bloggers.com/performance-captureoutput-is-much-faster-than-capture-output/
 ##' @param x object to print
 ##' @param ... Other things output
-##' @return return value from print function (returned invisibly)
 ##' @author Matthew L. Fidler
 ##' @export
 ##' @keywords internal
 rxPrint <- function(x, ...){
-    x <- NULL
     message(invisible(paste(R.utils::captureOutput(x <<- print(x, ...)), collapse="\n")), appendLF=TRUE);
-    return(invisible(x));
 }
 
 ##' Cleanup anonymous dlls
