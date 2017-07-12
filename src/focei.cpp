@@ -319,7 +319,7 @@ NumericVector RxODE_focei_finalize_llik(SEXP rho){
       Rprintf("Warning: The Hessian is non-positive definite, correcting with nearPD\n");
       e["corrected"] = 1;
     } else {
-      stop("Cannot correct matrix\n");
+      stop("Cannot correct Hessian Matrix to be non-positive definte matrix\n");
     }
     c = chol(c);
   }

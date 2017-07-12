@@ -70,7 +70,7 @@ rxOpt <- list(RxODE.prefer.tbl               =c(FALSE, FALSE),
               RxODE.suppress.syntax.info     =c(FALSE, FALSE),
               RxODE.sympy.engine             =c("", ""),
               RxODE.cache.directory          =c(".", "."),
-              RxODE.delete.unnamed=c(TRUE, TRUE)
+              RxODE.delete.unnamed=c(FALSE, FALSE) ## FIXME
               );
 
 RxODE.prefer.tbl <- NULL

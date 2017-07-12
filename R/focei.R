@@ -180,13 +180,12 @@ rxFoceiInner <- function(object, ..., dv, eta, eta.bak=NULL,
     }
     est();
     if (any(is.na(env$eta))){
-        if (is.null(args$eta.bak)){
+        if (!is.null(args$eta.bak)){
             args$eta <- args$eta.bak
-            print(env$eta);
             est()
-            print(env$eta);
             if (any(is.na(env$eta))){
-                args$eta <- ret(0, length(args$eta));
+                args$eta <- rep(0, length(args$eta));
+                env <- do.call(getFromNamespace("rxFoceiEta", "RxODE"), args, envir = parent.frame(1));
             }
         } else {
             args$eta <- rep(0, length(args$eta))
@@ -198,12 +197,19 @@ rxFoceiInner <- function(object, ..., dv, eta, eta.bak=NULL,
         }
     }
     if (any(abs(env$eta) > 1e4)){
-        warning("ETA estimate overflow; keeping prior");
         env <- do.call(getFromNamespace("rxFoceiEta", "RxODE"), args, envir = parent.frame(1));
+        if (any(abs(env$eta) > 1e4)){
+            args$eta <- rep(0, length(args$eta))
+            est();
+            if (any(is.na(env$eta))){
+                args$eta <- rep(0, length(args$eta))
+                env <- do.call(getFromNamespace("rxFoceiEta", "RxODE"), args, envir = parent.frame(1));
+            }
+        }
     }
     if (is.null(object$outer)){
-        ret <- RxODE_focei_finalize_llik(env);
-        if (attr(ret, "corrected") == 1){
+        ret <- try(RxODE_focei_finalize_llik(env), silent=TRUE);
+        if ((attr(ret, "corrected") == 1) || inherits(ret, "try-error")){
             cat(sprintf("Warning: Problem with Hessian or ETA estimate, resetting ETAs to 0 (ID=%s).\n", env$id));
             args$eta <- rep(0, length(env$eta));
             env$eta <- args$eta;
