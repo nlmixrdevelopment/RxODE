@@ -67,7 +67,8 @@ rxCat <- function(a, ...){
 ##' @export
 ##' @keywords internal
 rxPrint <- function(x, ...){
-    message(invisible(paste(R.utils::captureOutput(ret <- print(x, ...)), collapse="\n")), appendLF=TRUE);
+    x <- NULL
+    message(invisible(paste(R.utils::captureOutput(x <<- print(x, ...)), collapse="\n")), appendLF=TRUE);
     return(invisible(x));
 }
 
