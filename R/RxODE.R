@@ -1866,6 +1866,7 @@ rxDll.RxODE <- function(obj, ...){
 ##' @export
 rxLoad <- function(obj){
     if (!(rxDllLoaded(obj))){
+        dll <- obj$cmpMgr$dllfile;
         rc <- try(dyn.load(dll), silent = TRUE);
         if (inherits(rc, "try-error")){
             if (RxODE.compile.on.load){
@@ -1875,6 +1876,9 @@ rxLoad <- function(obj){
                     ## Should not get here.
                     rxDelete(obj);
                     obj <- RxODE(obj);
+                    if (rxDllLoaded(obj)){
+                        return(invisible());
+                    }
                     stop(sprintf("error loading dll file %s, even after trying to recompile.", dll));
                 } # nocov end
             } else {
