@@ -197,6 +197,27 @@ void rxInner(SEXP etanews, SEXP rho){
 
     mat omega = as<mat>(e["omega"]);
     mat Vfo_full = (fpm * omega * fpm.t()); // From Mentre 2006 p. 352
+    // There seems to be a difference between how NONMEM and R/S types
+    // of software calculate WRES.  Mentre 2006 states that the
+    // Variance under the FO condition should only be diag(Vfo_full),
+    // but Hooker 2007 claims there is a
+    // diag(Vfo_full)+diag(dh/deta*Sigma*dh/deta).
+    // h = the additional error from the predicted function.
+    //
+    // In the nlmixr/FOCEi implemented here, the variance of the err
+    // term is 1, or Sigma is a 1 by 1 matrix with one element (1)
+    //
+    // The dh/deta term would be the sd term, or sqrt(r), which means
+    // sqrt(r)*sqrt(r)=|r|.  Since r is positive, this would be r.
+    //
+    // Also according to Hooker, WRES is calculated under the FO
+    // assumption, where eta=0, eps=0 for this r term and Vfo term.
+    // However, conditional weighted residuals are calculated under
+    // the FOCE condition for the Vfo and the FO conditions for
+    // dh/deta
+    //
+    // The Vfo calculation is separated out so it can be used in CWRES and WRES.
+    
     mat Vfo = Vfo_full.diag();
     e["Vfo"] = wrap(Vfo);
 

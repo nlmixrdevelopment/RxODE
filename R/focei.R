@@ -217,13 +217,20 @@ rxFoceiInner <- function(object, ..., dv, eta, eta.bak=NULL,
             est();
             if (any(is.na(env$eta))){
                 warning("ETA estimate failed; Assume ETA=0");
+                args$eta <- rep(0, length(args$eta))
                 env <- do.call(getFromNamespace("rxFoceiEta", "RxODE"), args, envir = parent.frame(1));
             }
             if (any(env$eta > 1e4)){
                 warning("ETA estimate overflow; Assume ETA");
                 env <- do.call(getFromNamespace("rxFoceiEta", "RxODE"), args, envir = parent.frame(1));
             }
-            ret <- RxODE_focei_finalize_llik(env);
+            ret <- try(RxODE_focei_finalize_llik(env), silent=TRUE)
+            if (inherits(ret, "try-error")){
+                warning("ETA estimate failed; Assume ETA=0");
+                args$eta <- rep(0, length(args$eta))
+                env <- do.call(getFromNamespace("rxFoceiEta", "RxODE"), args, envir = parent.frame(1));
+                ret <- RxODE_focei_finalize_llik(env)
+            }
             attr(ret, "corrected") <- 1L;
             return(ret);
         }
