@@ -55,7 +55,7 @@ void rxInner(SEXP etanews, SEXP rho){
   IntegerVector eta_i = as<IntegerVector>(e["eta.trans"]);
   NumericVector etanew = as<NumericVector>(etanews);
   NumericVector eta = as<NumericVector>(e["eta"]);
-  mat etam = as<NumericVector>(e["eta.mat"]);
+  mat etam = as<mat>(e["eta.mat"]);
   unsigned int recalc = 0;
   unsigned int i = 0, j = 0, k = 0;
   if (!e.exists("llik")){
@@ -199,7 +199,7 @@ void rxInner(SEXP etanews, SEXP rho){
     mat Vfo_full = (fpm * omega * fpm.t()); // From Mentre 2006 p. 352
     // There seems to be a difference between how NONMEM and R/S types
     // of software calculate WRES.  Mentre 2006 states that the
-    // Variance under the FO condition should only be diag(Vfo_full),
+    // Variance under the FO condition should only be diag(Vfo_full) + Sigma,
     // but Hooker 2007 claims there is a
     // diag(Vfo_full)+diag(dh/deta*Sigma*dh/deta).
     // h = the additional error from the predicted function.
@@ -219,8 +219,10 @@ void rxInner(SEXP etanews, SEXP rho){
     // The Vfo calculation is separated out so it can be used in CWRES and WRES.
     
     mat Vfo = Vfo_full.diag();
+    mat dErr_dEta = fpm * etam;
     e["Vfo"] = wrap(Vfo);
-
+    e["dErr_dEta"] = wrap(dErr_dEta);
+    
     // Assign in env
     e["err"] = err;
     e["f"] = f;
@@ -351,6 +353,7 @@ NumericVector RxODE_focei_finalize_llik(SEXP rho){
   ret.attr("fitted") = as<NumericVector>(e["f"]);
   ret.attr("Vi") = as<NumericVector>(e["R"]); // Sigma
   ret.attr("Vfo") = as<NumericVector>(e["Vfo"]); // FO Variance (See Mentre 2006) Prediction Discrepancies for the Evaluation of Nonlinear Mixed-Effects Models
+  ret.attr("dErr_dEta") = as<NumericVector>(e["dErr_dEta"]);
   ret.attr("posthoc") = as<NumericVector>(e["eta"]);
   ret.attr("corrected") = as<NumericVector>(e["corrected"]);
   // ret.attr("llik2") = as<NumericVector>(e["llik2"]);
@@ -785,7 +788,12 @@ void rxOuter_ (SEXP rho){
   mat omega = as<mat>(e["omega"]);
   mat Vfo_full = (fpm * omega * fpm.t()); // From Mentre 2006 p. 352
   mat Vfo = Vfo_full.diag();
+  mat etam = as<mat>(e["eta.mat"]);
+  mat dErr_dEta = fpm * etam;
+  mat dR_dEta = rp * etam;
+
   e["Vfo"] = wrap(Vfo);
+  e["dErr_dEta"] = wrap(dErr_dEta);
   
   e["f"] = f;
   e["err"] = err;
@@ -1032,6 +1040,7 @@ void rxDetaDtheta(SEXP rho){
     ret += as<NumericVector>(e["log.det.OMGAinv.5"]);
     ret += -dH;
     ret.attr("fitted") = as<NumericVector>(e["f"]);
+    mat etam = as<mat>(e["eta.mat"]);
     ret.attr("posthoc") = as<NumericVector>(wrap(e["eta.mat"]));
     if (e.exists("inits.vec")){
       // This calculation is done on the non-scaled parameters, but
@@ -1059,7 +1068,9 @@ void rxDetaDtheta(SEXP rho){
     mat fpm = as<mat>(e["dErr"]);
     mat Vfo_full = (fpm * omega * fpm.t()); // From Mentre 2006 p. 352
     mat Vfo = Vfo_full.diag();
+    mat dErr_dEta = fpm * etam;
     ret.attr("Vfo") = wrap(Vfo);
+    ret.attr("dErr_dEta") = wrap(dErr_dEta);
     ret.attr("Vi") = as<NumericVector>(e["R"]); // Sigma
     ret.attr("corrected") = as<NumericVector>(e["corrected"]);
     e["ret"] = ret;

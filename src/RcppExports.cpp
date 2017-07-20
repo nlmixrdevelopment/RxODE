@@ -10,7 +10,7 @@ using namespace Rcpp;
 
 // rxInv
 NumericVector rxInv(SEXP matrix);
-RcppExport SEXP RxODE_rxInv(SEXP matrixSEXP) {
+RcppExport SEXP _RxODE_rxInv(SEXP matrixSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -21,7 +21,7 @@ END_RCPP
 }
 // rxInner
 void rxInner(SEXP etanews, SEXP rho);
-RcppExport SEXP RxODE_rxInner(SEXP etanewsSEXP, SEXP rhoSEXP) {
+RcppExport SEXP _RxODE_rxInner(SEXP etanewsSEXP, SEXP rhoSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< SEXP >::type etanews(etanewsSEXP);
@@ -32,7 +32,7 @@ END_RCPP
 }
 // rxHessian
 void rxHessian(SEXP rho);
-RcppExport SEXP RxODE_rxHessian(SEXP rhoSEXP) {
+RcppExport SEXP _RxODE_rxHessian(SEXP rhoSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< SEXP >::type rho(rhoSEXP);
@@ -42,7 +42,7 @@ END_RCPP
 }
 // RxODE_focei_eta_lik
 NumericVector RxODE_focei_eta_lik(SEXP sexp_eta, SEXP sexp_rho);
-RcppExport SEXP RxODE_RxODE_focei_eta_lik(SEXP sexp_etaSEXP, SEXP sexp_rhoSEXP) {
+RcppExport SEXP _RxODE_RxODE_focei_eta_lik(SEXP sexp_etaSEXP, SEXP sexp_rhoSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -54,7 +54,7 @@ END_RCPP
 }
 // RxODE_focei_eta_lp
 NumericVector RxODE_focei_eta_lp(SEXP sexp_eta, SEXP sexp_rho);
-RcppExport SEXP RxODE_RxODE_focei_eta_lp(SEXP sexp_etaSEXP, SEXP sexp_rhoSEXP) {
+RcppExport SEXP _RxODE_RxODE_focei_eta_lp(SEXP sexp_etaSEXP, SEXP sexp_rhoSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -66,7 +66,7 @@ END_RCPP
 }
 // RxODE_focei_eta
 XPtr<rxFn2> RxODE_focei_eta(std::string fstr);
-RcppExport SEXP RxODE_RxODE_focei_eta(SEXP fstrSEXP) {
+RcppExport SEXP _RxODE_RxODE_focei_eta(SEXP fstrSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -77,7 +77,7 @@ END_RCPP
 }
 // RxODE_focei_finalize_llik
 NumericVector RxODE_focei_finalize_llik(SEXP rho);
-RcppExport SEXP RxODE_RxODE_focei_finalize_llik(SEXP rhoSEXP) {
+RcppExport SEXP _RxODE_RxODE_focei_finalize_llik(SEXP rhoSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -88,7 +88,7 @@ END_RCPP
 }
 // RxODE_finalize_log_det_OMGAinv_5
 NumericVector RxODE_finalize_log_det_OMGAinv_5(SEXP rho);
-RcppExport SEXP RxODE_RxODE_finalize_log_det_OMGAinv_5(SEXP rhoSEXP) {
+RcppExport SEXP _RxODE_RxODE_finalize_log_det_OMGAinv_5(SEXP rhoSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -99,7 +99,7 @@ END_RCPP
 }
 // RxODE_finalize_focei_omega
 void RxODE_finalize_focei_omega(SEXP rho);
-RcppExport SEXP RxODE_RxODE_finalize_focei_omega(SEXP rhoSEXP) {
+RcppExport SEXP _RxODE_RxODE_finalize_focei_omega(SEXP rhoSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< SEXP >::type rho(rhoSEXP);
@@ -109,7 +109,7 @@ END_RCPP
 }
 // rxDetaDomega
 void rxDetaDomega(SEXP rho);
-RcppExport SEXP RxODE_rxDetaDomega(SEXP rhoSEXP) {
+RcppExport SEXP _RxODE_rxDetaDomega(SEXP rhoSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< SEXP >::type rho(rhoSEXP);
@@ -119,7 +119,7 @@ END_RCPP
 }
 // rxOuter_
 void rxOuter_(SEXP rho);
-RcppExport SEXP RxODE_rxOuter_(SEXP rhoSEXP) {
+RcppExport SEXP _RxODE_rxOuter_(SEXP rhoSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< SEXP >::type rho(rhoSEXP);
@@ -129,7 +129,7 @@ END_RCPP
 }
 // rxDetaDtheta
 void rxDetaDtheta(SEXP rho);
-RcppExport SEXP RxODE_rxDetaDtheta(SEXP rhoSEXP) {
+RcppExport SEXP _RxODE_rxDetaDtheta(SEXP rhoSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< SEXP >::type rho(rhoSEXP);
@@ -139,7 +139,7 @@ END_RCPP
 }
 // rxOuter
 NumericVector rxOuter(SEXP rho);
-RcppExport SEXP RxODE_rxOuter(SEXP rhoSEXP) {
+RcppExport SEXP _RxODE_rxOuter(SEXP rhoSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -150,7 +150,7 @@ END_RCPP
 }
 // rxUpdateEtas
 NumericVector rxUpdateEtas(SEXP DnDhS, SEXP DhS, SEXP initS, SEXP acceptNS);
-RcppExport SEXP RxODE_rxUpdateEtas(SEXP DnDhSSEXP, SEXP DhSSEXP, SEXP initSSEXP, SEXP acceptNSSEXP) {
+RcppExport SEXP _RxODE_rxUpdateEtas(SEXP DnDhSSEXP, SEXP DhSSEXP, SEXP initSSEXP, SEXP acceptNSSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -164,7 +164,7 @@ END_RCPP
 }
 // rxCoutEcho
 void rxCoutEcho(NumericVector number);
-RcppExport SEXP RxODE_rxCoutEcho(SEXP numberSEXP) {
+RcppExport SEXP _RxODE_rxCoutEcho(SEXP numberSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< NumericVector >::type number(numberSEXP);
@@ -174,7 +174,7 @@ END_RCPP
 }
 // W_Cpp
 NumericVector W_Cpp(const NumericVector& z, int branch);
-RcppExport SEXP RxODE_W_Cpp(SEXP zSEXP, SEXP branchSEXP) {
+RcppExport SEXP _RxODE_W_Cpp(SEXP zSEXP, SEXP branchSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;

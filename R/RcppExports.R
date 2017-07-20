@@ -7,39 +7,39 @@
 #' @return inverse or pseudo inverse of matrix.
 #' @export
 rxInv <- function(matrix) {
-    .Call(RxODE_rxInv, matrix)
+    .Call(`_RxODE_rxInv`, matrix)
 }
 
 rxInner <- function(etanews, rho) {
-    invisible(.Call(RxODE_rxInner, etanews, rho))
+    invisible(.Call(`_RxODE_rxInner`, etanews, rho))
 }
 
 rxHessian <- function(rho) {
-    invisible(.Call(RxODE_rxHessian, rho))
+    invisible(.Call(`_RxODE_rxHessian`, rho))
 }
 
 RxODE_focei_eta_lik <- function(sexp_eta, sexp_rho) {
-    .Call(RxODE_RxODE_focei_eta_lik, sexp_eta, sexp_rho)
+    .Call(`_RxODE_RxODE_focei_eta_lik`, sexp_eta, sexp_rho)
 }
 
 RxODE_focei_eta_lp <- function(sexp_eta, sexp_rho) {
-    .Call(RxODE_RxODE_focei_eta_lp, sexp_eta, sexp_rho)
+    .Call(`_RxODE_RxODE_focei_eta_lp`, sexp_eta, sexp_rho)
 }
 
 RxODE_focei_eta <- function(fstr) {
-    .Call(RxODE_RxODE_focei_eta, fstr)
+    .Call(`_RxODE_RxODE_focei_eta`, fstr)
 }
 
 RxODE_focei_finalize_llik <- function(rho) {
-    .Call(RxODE_RxODE_focei_finalize_llik, rho)
+    .Call(`_RxODE_RxODE_focei_finalize_llik`, rho)
 }
 
 RxODE_finalize_log_det_OMGAinv_5 <- function(rho) {
-    .Call(RxODE_RxODE_finalize_log_det_OMGAinv_5, rho)
+    .Call(`_RxODE_RxODE_finalize_log_det_OMGAinv_5`, rho)
 }
 
 RxODE_finalize_focei_omega <- function(rho) {
-    invisible(.Call(RxODE_RxODE_finalize_focei_omega, rho))
+    invisible(.Call(`_RxODE_RxODE_finalize_focei_omega`, rho))
 }
 
 #' Calculate d(eta)/d(omega)
@@ -54,19 +54,19 @@ RxODE_finalize_focei_omega <- function(rho) {
 #' @keywords internal
 #' @export
 rxDetaDomega <- function(rho) {
-    invisible(.Call(RxODE_rxDetaDomega, rho))
+    invisible(.Call(`_RxODE_rxDetaDomega`, rho))
 }
 
 rxOuter_ <- function(rho) {
-    invisible(.Call(RxODE_rxOuter_, rho))
+    invisible(.Call(`_RxODE_rxOuter_`, rho))
 }
 
 rxDetaDtheta <- function(rho) {
-    invisible(.Call(RxODE_rxDetaDtheta, rho))
+    invisible(.Call(`_RxODE_rxDetaDtheta`, rho))
 }
 
 rxOuter <- function(rho) {
-    .Call(RxODE_rxOuter, rho)
+    .Call(`_RxODE_rxOuter`, rho)
 }
 
 #' Update ETAs based on d(eta)/d(theta)
@@ -87,7 +87,7 @@ rxOuter <- function(rho) {
 #'
 #' @export
 rxUpdateEtas <- function(DnDhS, DhS, initS, acceptNS) {
-    .Call(RxODE_rxUpdateEtas, DnDhS, DhS, initS, acceptNS)
+    .Call(`_RxODE_rxUpdateEtas`, DnDhS, DhS, initS, acceptNS)
 }
 
 #' Echo cout to console for a number
@@ -98,10 +98,10 @@ rxUpdateEtas <- function(DnDhS, DhS, initS, acceptNS) {
 #'
 #' @export
 rxCoutEcho <- function(number) {
-    invisible(.Call(RxODE_rxCoutEcho, number))
+    invisible(.Call(`_RxODE_rxCoutEcho`, number))
 }
 
 W_Cpp <- function(z, branch) {
-    .Call(RxODE_W_Cpp, z, branch)
+    .Call(`_RxODE_W_Cpp`, z, branch)
 }
 
