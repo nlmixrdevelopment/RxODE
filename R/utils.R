@@ -152,7 +152,8 @@ rx.do.call <- function(..., envir=parent.frame()){
     rtools.base <- rxRtoolsBaseWin();
     if (file.exists(rtools.base)){
         old.path <- Sys.getenv("PATH");
-        on.exit(Sys.setenv(PATH=old.path));
+        old.binpref <- Sys.getenv("BINPREF");
+        on.exit(Sys.setenv(PATH=old.path, BINPREF=old.binpref));
         path <- unique(sapply(gsub("/", "\\\\", strsplit(Sys.getenv("PATH"), ";")[[1]]), function(x){
             if (file.exists(x)){
                 return(normalizePath(x));
@@ -168,7 +169,6 @@ rx.do.call <- function(..., envir=parent.frame()){
         }
         for (x in rev(c(file.path(rtools.base, "bin"),
                         file.path(rtools.base, ifelse(.Platform$r_arch == "i386","mingw_32/bin", "mingw_64/bin")),
-                        file.path(rtools.base, ifelse(.Platform$r_arch == "i386","mingw_32/bin", "mingw_64/bin")),
                         file.path(rtools.base, ifelse(.Platform$r_arch == "i386","mingw_32/opt/bin", "mingw_64/opt/bin")),
                         ifelse(gcc == "", "", file.path(gcc, "bin")),
                         ifelse(gcc == "", "", ifelse(.Platform$r_arch == "i386",file.path(gcc, "bin32"), file.path(gcc, "bin64")))))){
@@ -176,8 +176,12 @@ rx.do.call <- function(..., envir=parent.frame()){
                 path <- c(normalizePath(x), path);
             }
         }
-        path <- paste(path, collapse=";");
-        Sys.setenv(PATH=unique(path));
+        path <- paste(unique(path), collapse=";");
+        Sys.setenv(PATH=path);
+        x <- file.path(rtools.base, ifelse(.Platform$r_arch == "i386","mingw_32/bin", "mingw_64/bin"));
+        if (file.exists(x)){
+            Sys.setenv(BINPREF=gsub("([^/])$", "\\1/", gsub("\\\\", "/", normalizePath(x))));
+        }
     }
     do.call(..., envir=envir);
 }
