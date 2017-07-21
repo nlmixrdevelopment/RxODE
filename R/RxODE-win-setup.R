@@ -131,6 +131,9 @@ rxWinRtoolsPath <- function(rm.rtools=TRUE){
                     path <- c(normalizePath(x), path);
                 }
             }
+            if (file.exists(file.path(rtools.base, "bin"))){
+                Sys.setenv(BINPREF=file.path(rtools.base, "bin"))
+            }
             python.base <- rxPythonBaseWin();
             if (!is.null(python.base)){
                 python <- normalizePath(file.path(python.base, "python.exe"));
