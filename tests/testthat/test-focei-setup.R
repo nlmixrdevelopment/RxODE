@@ -60,6 +60,24 @@ rxPermissive({
         return(add(0.05) + prop(0.1));
     }
 
+    pk4 <- function(){
+        KA = exp(THETA[1])
+        CL = exp(THETA[2] + ETA[1])
+        V = exp(THETA[3] + ETA[2])
+        prop.err = THETA[4]
+    }
+
+    err4 <- function(f){
+        return(prop(prop.err));
+    }
+
+    err5 <- function(f){
+        return(add(prop.err));
+    }
+
+    m2.4 <- rxSymPySetupPred(m2, pred, pk4, err4)
+    m2.5 <- rxSymPySetupPred(m2, pred, pk4, err5)
+
     m2c <- rxSymPySetupPred(m2, pred, pk, err3)
 
     pred2 <- function(){
@@ -117,6 +135,8 @@ rxPermissive({
         expect_equal(class(m2d), "rxFocei")
         expect_equal(class(m2e), "rxFocei")
         expect_equal(class(m2f), "rxFocei")
+        expect_equal(class(m2.4), "rxFocei")
+        expect_equal(class(m2.5), "rxFocei")
         expect_true(length(rxInit(m2f$inner)) == 0)
     })
 
