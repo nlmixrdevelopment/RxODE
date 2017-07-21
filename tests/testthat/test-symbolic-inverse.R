@@ -41,13 +41,13 @@ rxPermissive({
         expect_error(symo %>% rxSymInv(1:4))
         expect_equal(symo %>% rxSymInv(1:3, pow= -1), structure(c(1.8, -0.4, -0.4, 0.2), .Dim = c(2L, 2L)));
         expect_equal(symo %>% rxSymInv(c(1, 0.5, 2), -1, 0.5), 0.5 * log(det(symo %>% rxSymInv(c(1, 0.5, 2), -1))))
-        f <- tempfile();
-        sink(f)
-        print(symo)
-        sink();
-        tmp <- readLines(f);
-        unlink(f);
-        expect_equal(tmp, c("Object to create Omega and Omega^-1 & derivitaves for a 2x2 matrix:", "     [,1]   [,2]  ", "[1,] \"t0^2\" \"t1\"  ", "[2,] \"t1\"   \"t2^2\"", "Use `rxSymInv' for the matrix."));
+        ## f <- tempfile();
+        ## sink(f)
+        ## print(symo)
+        ## sink();
+        ## tmp <- readLines(f);
+        ## unlink(f);
+        ## expect_equal(tmp, c("Object to create Omega and Omega^-1 & derivitaves for a 2x2 matrix:", "     [,1]   [,2]  ", "[1,] \"t0^2\" \"t1\"  ", "[2,] \"t1\"   \"t2^2\"", "Use `rxSymInv' for the matrix."));
     })
 
     test_that("Random inverses make sense", {

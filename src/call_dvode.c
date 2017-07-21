@@ -1040,8 +1040,8 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_rxOuter", (DL_FUNC) &_RxODE_rxOuter, 1},
     {"_RxODE_rxUpdateEtas", (DL_FUNC) &_RxODE_rxUpdateEtas, 4},
     {"trans", (DL_FUNC) &trans, 8},
-    {"RxODE_rxInv", (DL_FUNC) &_RxODE_rxInv, 1},
-    {"RxODE_rxCoutEcho", (DL_FUNC) &_RxODE_rxCoutEcho, 1},
+    {"_RxODE_rxInv", (DL_FUNC) &_RxODE_rxInv, 1},
+    {"_RxODE_rxCoutEcho", (DL_FUNC) &_RxODE_rxCoutEcho, 1},
     {NULL, NULL, 0}
   };
   R_registerRoutines(info, NULL, callMethods, NULL, NULL);

@@ -131,11 +131,13 @@ rxLinCmtTrans <- function(modText){
                 v3 <- get.var("V3");
                 q2 <- get.var("Q2");
                 lines[length(lines) + 1] <- sprintf("rx_k13 ~ %s/%s", q2, v);
+                lines[length(lines) + 1] <- sprintf("rx_k31 ~ %s/%s", q2, v3);
             } else if (any(vars.up == "VT2")) {
                 ncmt <- 3;
                 v3 <- get.var("VT2");
                 q2 <- get.var("CLD2");
                 lines[length(lines) + 1] <- sprintf("rx_k13 ~ %s/%s", q2, v);
+                lines[length(lines) + 1] <- sprintf("rx_k31 ~ %s/%s", q2, v3);
             }
         } else if (any(vars.up == "K") || any(vars.up == "KE") || any(vars.up == "KEL")) {
             k <- get.var(c("K", "KE", "KEL"))
