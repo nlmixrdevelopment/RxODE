@@ -25,7 +25,7 @@ Steps:
    * In the "Select Additional Tasks" dialog window, check the
      option "Edit the system PATH".  This is important to be able to
      locate the C, Fortran compilers and other tools needed during 
-     the use of `RxODE`.  
+     the use of `RxODE`.
 
    * A simple way to test whether `Rtools` was properly installed is
      to compile the `hello.c` program.  Simply open a new MSDOS command 
@@ -46,8 +46,9 @@ Steps:
      Hello World!
      ```
 
-     If you get the error `gcc: error: CreateProcess: No such file or directory`     then you know `Rtools` was not properly installed, in particular,
-     it did not update your system `PATH` variable.
+     If you get the error `gcc: error: CreateProcess: No such file or
+     directory` then you know `Rtools` was not properly installed, in
+     particular, it did not update your system `PATH` variable.
 
 2.  Obtain the `RxODE` package, either from github or CRAN.  The 
     installation requires use of the gcc compiler, so you'll know if Step 1 
@@ -65,7 +66,7 @@ Steps:
       ``` 
       install.packages("devtools")
       library("devtools", lib = "C:/Rlib")
-      install_github("hallowkm/RxODE/RxODE")
+      install_github("nlmixrdevelopment/RxODE")
       ```
 
 3. Test the `RxODE` installation:

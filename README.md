@@ -40,7 +40,7 @@ Steps:
    * In the "Select Additional Tasks" dialog window, check the
      option "Edit the system PATH".  This is important to be able to
      locate the C, Fortran compilers and other tools needed during 
-     the use of `RxODE`.  
+     the use of `RxODE`.
 
    * A simple way to test whether `Rtools` was properly installed is
      to compile the `hello.c` program.  Simply open a new MSDOS command 
@@ -61,8 +61,9 @@ Steps:
      Hello World!
      ```
 
-     If you get the error `gcc: error: CreateProcess: No such file or directory`     then you know `Rtools` was not properly installed, in particular,
-     it did not update your system `PATH` variable.
+     If you get the error `gcc: error: CreateProcess: No such file or
+     directory` then you know `Rtools` was not properly installed, in
+     particular, it did not update your system `PATH` variable.
 
 2.  Obtain the `RxODE` package, either from github or CRAN.  The 
     installation requires use of the gcc compiler, so you'll know if Step 1 
@@ -80,7 +81,7 @@ Steps:
       ``` 
       install.packages("devtools")
       library("devtools", lib = "C:/Rlib")
-      install_github("hallowkm/RxODE/RxODE")
+      install_github("nlmixrdevelopment/RxODE")
       ```
 
 3. Test the `RxODE` installation:
@@ -296,9 +297,17 @@ print(x)
 
 ```
 ## Solved RxODE object
-## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpS488tR\Rx_intro-231c63735e9d/mod1.d/mod1_x64.dll
+## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpYr2ddH\Rx_intro-1e206bc0b0/mod1.d/mod1_x64.dll
 ## 
 ## Parameters:
+```
+
+```
+## Warning: Installed Rcpp (0.12.12) different from Rcpp used to build dplyr (0.12.11).
+## Please reinstall dplyr to avoid random crashes or undefined behavior.
+```
+
+```
 ##      V2      V3      KA      CL       Q     Kin    Kout    EC50 
 ##  40.200 297.000   0.294  18.600  10.500   1.000   1.000 200.000 
 ## 
@@ -329,7 +338,7 @@ print(x)
 
 ```
 ## Solved RxODE object
-## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpS488tR\Rx_intro-231c63735e9d/mod1.d/mod1_x64.dll
+## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpYr2ddH\Rx_intro-1e206bc0b0/mod1.d/mod1_x64.dll
 ## 
 ## Parameters:
 ##      V2      V3      KA      CL       Q     Kin    Kout    EC50 
@@ -363,7 +372,7 @@ print(x)
 
 ```
 ## Solved RxODE object
-## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpS488tR\Rx_intro-231c63735e9d/mod1.d/mod1_x64.dll
+## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpYr2ddH\Rx_intro-1e206bc0b0/mod1.d/mod1_x64.dll
 ## 
 ## Parameters:
 ##      V2      V3      KA      CL       Q     Kin    Kout    EC50 
@@ -520,7 +529,7 @@ x
 
 ```
 ## Solved RxODE object
-## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpS488tR\Rx_intro-231c63735e9d/mod1.d/mod1_x64.dll
+## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpYr2ddH\Rx_intro-1e206bc0b0/mod1.d/mod1_x64.dll
 ## 
 ## Parameters:
 ##      V2      V3      KA      CL       Q     Kin    Kout    EC50 
@@ -564,7 +573,7 @@ x
 
 ```
 ## Solved RxODE object
-## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpS488tR\Rx_intro-231c63735e9d/mod1.d/mod1_x64.dll
+## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpYr2ddH\Rx_intro-1e206bc0b0/mod1.d/mod1_x64.dll
 ## 
 ## Parameters:
 ##      V2      V3      KA      CL       Q     Kin    Kout    EC50 
@@ -605,7 +614,7 @@ x
 
 ```
 ## Solved RxODE object
-## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpS488tR\Rx_intro-231c63735e9d/mod1.d/mod1_x64.dll
+## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpYr2ddH\Rx_intro-1e206bc0b0/mod1.d/mod1_x64.dll
 ## 
 ## Parameters:
 ##    V2    V3    KA    CL     Q   Kin  Kout  EC50 
@@ -656,12 +665,12 @@ head(theta.all)
 
 ```
 ##         KA       CL   V2    Q  V3 Kin Kout EC50
-## [1,] 0.294 16.59628 40.2 10.5 297   1    1  200
-## [2,] 0.294 20.72278 40.2 10.5 297   1    1  200
-## [3,] 0.294 23.32283 40.2 10.5 297   1    1  200
-## [4,] 0.294 20.19896 40.2 10.5 297   1    1  200
-## [5,] 0.294 22.32383 40.2 10.5 297   1    1  200
-## [6,] 0.294 21.67093 40.2 10.5 297   1    1  200
+## [1,] 0.294 24.64917 40.2 10.5 297   1    1  200
+## [2,] 0.294 17.88461 40.2 10.5 297   1    1  200
+## [3,] 0.294 14.43490 40.2 10.5 297   1    1  200
+## [4,] 0.294 21.46713 40.2 10.5 297   1    1  200
+## [5,] 0.294 17.43918 40.2 10.5 297   1    1  200
+## [6,] 0.294 19.05176 40.2 10.5 297   1    1  200
 ```
 
 Each subproblem can be simulated by using an explicit loop (or the `apply()`

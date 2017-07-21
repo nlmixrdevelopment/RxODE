@@ -11,9 +11,6 @@ rxPrint(x, ...)
 
 \item{...}{Other things output}
 }
-\value{
-return value from print function (returned invisibly)
-}
 \description{
 This allows the suppressMessages to work on print functions.  This
 captures the output via R.Util's captureOutput function and then
