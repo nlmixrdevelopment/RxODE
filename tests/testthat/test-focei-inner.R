@@ -172,6 +172,7 @@ rxPermissive({
 
         attr(lik2, "Vi") <- NULL; # FIXME test
         attr(lik2, "Vfo") <- NULL; # FIXME test
+        attr(lik2, "dErr_dEta") <- NULL # FIXME test
 
         expect_equal(lik2, llik.lapl);
 
@@ -214,8 +215,10 @@ rxPermissive({
         attr(llik.lapl, "corrected") <- 0L
 
         lik2 <- RxODE_focei_finalize_llik(tmp2.nm);
+
         attr(lik2, "Vi") <- NULL; # FIXME test
         attr(lik2, "Vfo") <- NULL; # FIXME test
+        attr(lik2, "dErr_dEta") <- NULL # FIXME test
 
         expect_equal(lik2, llik.lapl);
 
