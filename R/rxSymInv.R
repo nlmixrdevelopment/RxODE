@@ -250,7 +250,7 @@ rxSymInvCreate <- function(mat,
             th.unscaled[length(th.unscaled) + 1] <- elts[i];
         }
     }
-    mat1 <-(mat>0)*1;
+    mat1 <-(mat != 0)*1;
     if (length(mat1) == 1){
         mat1 <- matrix(mat1, 1);
     }
