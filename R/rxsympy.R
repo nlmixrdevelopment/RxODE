@@ -523,7 +523,7 @@ rxSymPyDfDyFull <- function(model, vars, cond){
             rxCat(".")
         }
     }
-    rxCat("done!\n");
+    rxCat("done.\n");
     return(extraLines);
 }
 
@@ -629,7 +629,7 @@ rxSymPySensitivityFull <- function(state, calcSens, model, cond){
             rxCat(".")
         }
     }
-    rxCat("\ndone!\n");
+    rxCat("\ndone.\n");
     return(list(all.sens=all.sens, extraLines=extraLines))
 }
 
@@ -707,7 +707,7 @@ rxSymPySensitivity2Full <- function(state, etas, thetas, model, cond){
             }
         }
     }
-    rxCat("\ndone!\n");
+    rxCat("\ndone.\n");
     return(list(all.sens=all.sens, extraLines=extraLines))
 }
 rxSymPySensitivity2Full.slow <- NULL;
@@ -762,7 +762,7 @@ rxSymPySensitivity.single <- function(model, calcSens, calcJac){
                 rxCat("\n");
             }
         }
-        rxCat("\ndone!\n");
+        rxCat("\ndone.\n");
         ## extraLines <- extraLines[regexpr(rex::rex("=", any_spaces, "0", end), extraLines) == -1];
     } else {
         extraLines <- rxRmJac(extraLines);
@@ -1522,7 +1522,7 @@ rxLogifyModel <- function(model){
             }
         }
     }
-    rxCat("\n## done!\n");
+    rxCat("\n## done.\n");
     newMod <- paste(paste(lines, collapse="\n"), "\n");
     ## rxCat(newMod)
     return(newMod);
