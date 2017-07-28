@@ -18,6 +18,8 @@ void F77_NAME(dlsoda)(
 
 long slvr_counter, dadt_counter, jac_counter;
 double InfusionRate[100];
+int BadDose[100];
+int nBadDose=0;
 double ATOL;		//absolute error
 double RTOL;		//relative error
 double HMAX;
@@ -231,7 +233,7 @@ void jdum_lsoda(int *neq, double *t, double *A,int *ml, int *mu, double *JAC, in
 }
 void call_lsoda(int neq, double *x, int *evid, int nx, double *inits, double *dose, double *ret, int *rc)
 {
-  int i, j;
+  int i, j, foundBad;
   double xout, xp=x[0], yp[99];
   int itol = 1;
   double  rtol = RTOL, atol = ATOL;
@@ -297,23 +299,38 @@ void call_lsoda(int neq, double *x, int *evid, int nx, double *inits, double *do
       if (wh)
 	{
 	  cmt = (wh%10000)/100 - 1;
-	  if (wh>10000)
-	    {
-	      InfusionRate[cmt] += dose[ixds];
+	  if (cmt+1 >= nEq()){
+	    foundBad = 0;
+            for (j = 0; j <nBadDose; j++){
+	      if (BadDose[j] == cmt+1){
+		foundBad=1;
+		break;
+	      }
 	    }
-	  else
-	    {
-	      if (do_transit_abs)
-		{
-		  podo = dose[ixds];
-		  tlast = xout;
-		}
-	      else yp[cmt] += dose[ixds];	//dosing before obs
+	    if (!foundBad){
+	      BadDose[nBadDose]=cmt+1;
+	      nBadDose++;
 	    }
-	  istate = 1;
+	  } else {
+	    if (wh>10000)
+              {
+                InfusionRate[cmt] += dose[ixds];
+              }
+            else
+              {
+                if (do_transit_abs)
+                  {
+                    podo = dose[ixds];
+                    tlast = xout;
+                  }
+                else yp[cmt] += dose[ixds];     //dosing before obs
+              }
+	    
+	    istate = 1;
 
-	  ixds++;
-	  xp = xout;
+	    ixds++;
+	    xp = xout;
+	  }
 	}
       for(j=0; j<neq; j++) ret[neq*i+j] = yp[j];
       //Rprintf("wh=%d cmt=%d tm=%g rate=%g\n", wh, cmt, xp, InfusionRate[cmt]);
@@ -535,6 +552,12 @@ SEXP RxODE_ode_dosing(){
 
 void RxODE_ode_free(){
   /* Free(InfusionRate); */
+  int j;
+  if (nBadDose){
+    for (j=0; j < nBadDose; j++){
+      warning("Dose to Compartment %d ignored (not in ODE)",BadDose[j]);
+    }
+  }
   Free(solve);
   Free(lhs);
   /* Free(rc); */
@@ -674,6 +697,7 @@ void RxODE_ode_setup(SEXP sexp_inits,
   rx_aprox_M.kind = !is_locf;
   nlhs          = length(sexp_lhs);
   neq           = length(sexp_inits);
+  nBadDose = 0;
   if (length(sexp_inits) > 0){
     update_inis(sexp_inits); // Update any run-time initial conditions.
   }
