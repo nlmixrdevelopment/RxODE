@@ -601,11 +601,20 @@ rxSymPySensitivityFull <- function(state, calcSens, model, cond){
             tmp <- c()
             vars <- c();
             for (s2 in state){
-                vars <- c(vars, sprintf("rx__sens_%s_BY_%s__", s2, rxToSymPy(sns)));
+                v <- sprintf("rx__sens_%s_BY_%s__", s2, rxToSymPy(sns))
+                if (!rxSymPyExists(v)){
+                    rxSymPyExec(sprintf("%s=0", v));
+                }
+                vars <- c(vars, v);
                 extra <- sprintf("df(%s)/dy(%s)*rx__sens_%s_BY_%s__", s1, rxToSymPy(s2), s2, rxToSymPy(sns))
                 tmp <- c(tmp, extra);
             }
-            tmp <- c(tmp, sprintf("df(%s)/dy(%s)", s1, rxToSymPy(sns)));
+            v <- sprintf("df(%s)/dy(%s)", s1, rxToSymPy(sns))
+            v2 <- rxToSymPy(v);
+            if (!rxSymPyExists(v2)){
+                rxSymPyExec(sprintf("%s=0", v2));
+            }
+            tmp <- c(tmp, v);
             rxSymPyVars(vars);
             all.sens <- c(all.sens, vars);
             line <- rxToSymPy(paste(tmp, collapse=" + "))
@@ -1225,6 +1234,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                 }
                 full <- rxGetModel(full);
                 etas <- rxParams(full);
+                thetas <- etas[regexpr(regTheta, etas) != -1];
                 etas <- etas[regexpr(regEta, etas) != -1];
                 if (length(etas) > 0){
                     calcSens <- etas;
@@ -1233,8 +1243,6 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                 }
                 if (grad.internal){
                     calcSens <- list(eta=etas);
-                    thetas <- rxParams(full);
-                    thetas <- thetas[regexpr(regTheta, thetas) != -1];
                     calcSens$theta <- thetas;
                 }
             }
