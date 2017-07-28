@@ -355,6 +355,9 @@ NumericVector RxODE_focei_finalize_llik(SEXP rho){
   ret.attr("Vfo") = as<NumericVector>(e["Vfo"]); // FO Variance (See Mentre 2006) Prediction Discrepancies for the Evaluation of Nonlinear Mixed-Effects Models
   ret.attr("dErr_dEta") = as<NumericVector>(e["dErr_dEta"]);
   ret.attr("posthoc") = as<NumericVector>(e["eta"]);
+  if (e.exists("c.hess")){
+    ret.attr("c.hess") = as<NumericVector>(e["c.hess"]);
+  }
   ret.attr("corrected") = as<NumericVector>(e["corrected"]);
   // ret.attr("llik2") = as<NumericVector>(e["llik2"]);
   // ret.attr("log.det.OMGAinv.5") = as<NumericVector>(e["log.det.OMGAinv.5"]);
@@ -1042,6 +1045,9 @@ void rxDetaDtheta(SEXP rho){
     ret.attr("fitted") = as<NumericVector>(e["f"]);
     mat etam = as<mat>(e["eta.mat"]);
     ret.attr("posthoc") = as<NumericVector>(wrap(e["eta.mat"]));
+    if (e.exists("c.hess")){
+      ret.attr("c.hess") = as<NumericVector>(e["c.hess"]);
+    }
     if (e.exists("inits.vec")){
       // This calculation is done on the non-scaled parameters, but
       // needs to be changed to the scaled parameters.

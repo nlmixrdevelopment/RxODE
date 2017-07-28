@@ -135,16 +135,19 @@ rxFoceiLp <- function(object, ..., dv, eta){
 ##' @param ... values sent to rxFoceiEtaSetup and lbfgs
 ##' @param dv dependent variable
 ##' @param eta eta value
+##' @param c.hess Hessian curvature matrix in compressed form (Used for n1qn1)
 ##' @param eta.bak backup eta value in case eta estimation fails
 ##' @param estimate Boolean indicating if the optimization should be
 ##'     perfomed(TRUE), or just keep the eta, and calculate the Loglik
 ##'     with fitted/posthoc attributes(FALSE).
+##' @param inner.opt Inner optimization method; Either n1qn1 or lbfgs
 ##' @return Loglik with fitted and posthoc attributes
 ##' @author Matthew L. Fidler
 ##' @keywords internal
 ##' @export
-rxFoceiInner <- function(object, ..., dv, eta, eta.bak=NULL,
-                         estimate=TRUE){
+rxFoceiInner <- function(object, ..., dv, eta, c.hess=NULL, eta.bak=NULL,
+                         estimate=TRUE, inner.opt=c("n1qn1", "lbfgs")){
+    inner.opt <- match.arg(inner.opt);
     inner.rxode <- object$inner;
     rxLoad(inner.rxode)
     inner.rxode$assignPtr(); ## Assign the ODE pointers (and Jacobian Type)
@@ -157,6 +160,7 @@ rxFoceiInner <- function(object, ..., dv, eta, eta.bak=NULL,
     env <- do.call(getFromNamespace("rxFoceiEtaSetup", "RxODE"), args, envir = parent.frame(1));
     lik <- RxODE_focei_eta("lik");
     lp <- RxODE_focei_eta("lp")
+    c.hess <- NULL
     est <- function(){
         if (estimate){
             args$call_eval <- lik;
@@ -164,10 +168,27 @@ rxFoceiInner <- function(object, ..., dv, eta, eta.bak=NULL,
             args$vars <- args$eta;
             args$environment <- env
             env$eta <- args$eta;
-            output <- try(do.call(getFromNamespace("lbfgs","lbfgs"), args, envir = parent.frame(1)), silent=TRUE)
+            est0 <- function(){
+                if (inner.opt == "n1qn1"){
+                    if (is.null(c.hess)){
+                        args$c.hess <- c.hess;
+                    }
+                    output <- do.call(getFromNamespace("n1qn1","nlmixr"), args, envir = parent.frame(1))
+                    ##output <- try(do.call(getFromNamespace("n1qn1","nlmixr"), args, envir = parent.frame(1)), silent=TRUE)
+                    if (!inherits(output, "try-error")){
+                        env$c.hess <- output$c.hess
+                        c.hess <<- output$c.hess;
+                    }
+                } else {
+                    output <- try(do.call(getFromNamespace("lbfgs","lbfgs"), args, envir = parent.frame(1)), silent=TRUE)
+                }
+                return(output);
+            }
+
+            output <- est0();
             if (inherits(output, "try-error")){
                 args$vars <- rep(0, length(args$eta));
-                output <- try(do.call(getFromNamespace("lbfgs","lbfgs"), args, envir = parent.frame(1)), silent=TRUE)
+                output <- est0();
                 if (inherits(output, "try-error")){
                     output <- rxInner(rep(0, length(args$eta)), env);
                 }

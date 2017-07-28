@@ -807,7 +807,7 @@ rxErrEnvF$add <- function(est){
         }
     } else {
         theta <- sprintf("THETA[%s]", rxErrEnv.theta);
-        est <- as.numeric(est);
+        est <- estN;
         theta.est <- theta;
         if (rxErrEnv.diag.xform == "sqrt"){
             ret <- (sprintf("(%s)^2", theta.est))
