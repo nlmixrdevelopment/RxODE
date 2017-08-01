@@ -176,38 +176,13 @@ rxWinRtoolsPath <- function(rm.rtools=TRUE){
 rxWinPythonSetup <- function(){
     base <- rxPythonBaseWin()
     if (is.null(base)){
-        ## unlink("python-2.7.13.msi")
-        if (.Platform$r_arch == "i386"){
-            if (!file.exists("python-2.7.13.msi")){
-                rxWget("https://www.python.org/ftp/python/2.7.13/python-2.7.13.msi", "python-2.7.13.msi");
-            }
-            cat("Install python\n");
-            shell("start python-2.7.13.msi")
-            readline(prompt="Press [enter] to continue");
-            base <- rxPythonBaseWin()
-            if (is.null(base)){
-                stop("Python installation unsuccessful.");
-            } else {
-                unlink("python-2.7.13.msi");
-            }
-        } else {
-            if (!file.exists("python.2.7.13.amd64.msi")){
-                rxWget("https://www.python.org/ftp/python/2.7.13/python.2.7.13.amd64.msi", "python.2.7.13.amd64.msi");
-            }
-            cat("Install python\n");
-            shell("start python.2.7.13.amd64.msi")
-            readline(prompt="Press [enter] to continue");
-            base <- rxPythonBaseWin()
-            if (is.null(base)){
-                stop("Python installation unsuccessful.");
-            } else {
-                unlink("python.2.7.13.amd64.msi");
-            }
-        }
+        stop("This requires python.  Please setup and add to path.")
     }
+    shell("pip install sympy")
     if (!requireNamespace("SnakeCharmR", quietly = TRUE)){
         devtools::install_github("asieira/SnakeCharmR");
     }
+    message("To be safe, please restart R before using RxODE with SymPy")
 }
 ##' Setup Windows components for RxODE
 ##'
