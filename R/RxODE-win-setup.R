@@ -178,7 +178,7 @@ rxWinPythonSetup <- function(){
     if (is.null(base)){
         stop("This requires python.  Please setup and add to path.")
     }
-    shell("pip install sympy")
+    system("python -m pip install sympy")
     if (!requireNamespace("SnakeCharmR", quietly = TRUE)){
         devtools::install_github("asieira/SnakeCharmR");
     }
