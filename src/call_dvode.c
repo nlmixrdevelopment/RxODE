@@ -299,7 +299,7 @@ void call_lsoda(int neq, double *x, int *evid, int nx, double *inits, double *do
       if (wh)
 	{
 	  cmt = (wh%10000)/100 - 1;
-	  if (cmt+1 >= nEq()){
+	  if (cmt+1 > nEq()){
 	    foundBad = 0;
             for (j = 0; j <nBadDose; j++){
 	      if (BadDose[j] == cmt+1){
