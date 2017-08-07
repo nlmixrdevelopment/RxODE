@@ -33,11 +33,6 @@ environment:
   - PATH: C:\Python27;%PATH%
     R_VERSION: stable
 
-  - PATH: C:\Python27;%PATH%
-    R_VERSION: oldrel
-    RTOOLS_VERSION: 32
-    CRAN: http://cran.rstudio.com
-
 build_script:
   - travis-tool.sh install_deps
   - travis-tool.sh install_github nlmixrdevelopment/dparser-R
