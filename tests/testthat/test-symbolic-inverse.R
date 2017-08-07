@@ -155,4 +155,4 @@ rxPermissive({
         expect_equal(class(mat4), "rxSymInvBlock");
     })
 
-}, silent=TRUE)
+}, silent=TRUE, on.validate=TRUE)

@@ -100,24 +100,30 @@ RxODE.delete.unnamed <- NULL
 ##' @param expr Expression to evaluate in the permissive/strict
 ##'     environment.  If unspecified, set the options for the current
 ##'     environment.
-##' @param silent when true, also silence the syntax errors and
-##'     interactive output (useful in testing).
 ##' @param respect when TRUE, respect any options that are specified.
 ##'     This is called at startup, but really should not be called
 ##'     elsewhere, otherwise the options are not changed.
+##' @param cran When specifyed and true, run on CRAN. Otherwise it is skipped on cran.
+##' @param on.validate When TRUE run only when validating.
+##' @param silent when true, also silence the syntax errors and
+##'     interactive output (useful in testing).
 ##' @param rxclean when TRUE, call rxClean before and after the expr
 ##'     is called.
-##'
 ##' @author Matthew L. Fidler
 ##' @export
-rxPermissive <- function(expr, silent=FALSE, respect=FALSE, rxclean=(regexpr("/tests/testthat/", getwd(), fixed=TRUE) != -1)){
+rxPermissive <- function(expr, silent=(regexpr("/tests/testthat/", getwd(), fixed=TRUE) != -1),
+                         respect=FALSE,
+                         rxclean=(regexpr("/tests/testthat/", getwd(), fixed=TRUE) != -1),
+                         cran=FALSE, on.validate=FALSE){
     args  <- as.list(match.call())[-1];
     args$op.rx <- 2;
     do.call(getFromNamespace("rxOptions", "RxODE"), args, envir=parent.frame(1));
 }
 ##' @rdname rxPermissive
 ##' @export
-rxStrict <- function(expr, silent=FALSE, respect=FALSE, rxclean=(regexpr("/tests/testthat/", getwd(), fixed=TRUE) != -1)){
+rxStrict <- function(expr, silent=(regexpr("/tests/testthat/", getwd(), fixed=TRUE) != -1), respect=FALSE,
+                     rxclean=(regexpr("/tests/testthat/", getwd(), fixed=TRUE) != -1),
+                     cran=FALSE, on.validate=FALSE){
     args  <- as.list(match.call())[-1];
     args$op.rx <- 1;
     do.call(getFromNamespace("rxOptions", "RxODE"), args, envir=parent.frame(1));
@@ -135,56 +141,70 @@ rxStrict <- function(expr, silent=FALSE, respect=FALSE, rxclean=(regexpr("/tests
 ##' @param op.rx A numeric for strict (1) or permissive (2) syntax.
 ##' @author Matthew L. Fidler
 ##' @export
-rxOptions <- function(expr, op.rx=NULL, silent=FALSE, respect=FALSE,
-                      rxclean=(regexpr("/tests/testthat/", getwd(), fixed=TRUE))){
-    if (missing(expr) && is.null(op.rx)){
-        op <- options()
-        op <- op[regexpr(rex::rex("RxODE."), names(op)) != -1];
-        op <- op[order(names(op))];
-        sapply(names(op), function(n){rxCat(sprintf("%s: %s\n", n, op[[n]]))});
-        return(invisible(op));
-    } else {
-        if (class(op.rx) == "character"){
-            if (op.rx == "strict"){
-                op.rx  <- 1;
-            } else {
-                op.rx <- 2;
-            }
-        }
-        if (class(op.rx) == "numeric"){
-            if (op.rx <= 2){
-                x  <- op.rx;
-                op.rx  <- list()
-                for (v in names(rxOpt)){
-                    op.rx[[v]] <- rxOpt[[v]][x];
+rxOptions <- function(expr, op.rx=NULL, silent=(regexpr("/tests/testthat/", getwd(), fixed=TRUE) != 1), respect=FALSE,
+                      rxclean=(regexpr("/tests/testthat/", getwd(), fixed=TRUE) != 1),
+                      cran=FALSE, on.validate=FALSE){
+    do.it <- TRUE
+    if (!identical(Sys.getenv("NOT_CRAN"), "true") && !cran){
+        ## on Cran, but only tested when not on cran, skip.
+        do.it <- FALSE
+    }
+    if (on.validate && !identical(Sys.getenv("RxODE_VALIDATION_FULL"), "true")){
+        do.it <- FALSE
+    }
+    if (!on.validate && identical(Sys.getenv("RxODE_VALIDATION_FULL"), "true")){
+        do.it <- FALSE
+    }
+    if (do.it){
+        if (missing(expr) && is.null(op.rx)){
+            op <- options()
+            op <- op[regexpr(rex::rex("RxODE."), names(op)) != -1];
+            op <- op[order(names(op))];
+            sapply(names(op), function(n){rxCat(sprintf("%s: %s\n", n, op[[n]]))});
+            return(invisible(op));
+        } else {
+            if (class(op.rx) == "character"){
+                if (op.rx == "strict"){
+                    op.rx  <- 1;
+                } else {
+                    op.rx <- 2;
                 }
             }
-        }
-        if (!missing(silent)){
-            op.rx$RxODE.verbose=!silent;
-            op.rx$RxODE.suppress.syntax.info=silent;
-        }
-        if (!missing(expr)){
-            if (rxclean){
-                rxClean();
+            if (class(op.rx) == "numeric"){
+                if (op.rx <= 2){
+                    x  <- op.rx;
+                    op.rx  <- list()
+                    for (v in names(rxOpt)){
+                        op.rx[[v]] <- rxOpt[[v]][x];
+                    }
+                }
             }
-            opOld <- options();
-            on.exit({options(opOld); rxSyncOptions(); if (rxclean){rxClean();}});
-        }
-        if (respect){
-            op <- options();
-            w <- !(names(op.rx) %in% names(op))
-            if (any(w)) options(op.rx[w]);
-            rxSyncOptions()
-        } else {
-            options(op.rx);
-            rxSyncOptions()
-        }
-        if (class(substitute(expr)) == "{"){
-            if (silent){
-                return(suppressMessages(eval(substitute(expr), envir=parent.frame(1))));
+            if (!missing(silent)){
+                op.rx$RxODE.verbose=!silent;
+                op.rx$RxODE.suppress.syntax.info=silent;
+            }
+            if (!missing(expr)){
+                if (rxclean){
+                    rxClean();
+                }
+                opOld <- options();
+                on.exit({options(opOld); rxSyncOptions(); if (rxclean){rxClean();}});
+            }
+            if (respect){
+                op <- options();
+                w <- !(names(op.rx) %in% names(op))
+                if (any(w)) options(op.rx[w]);
+                rxSyncOptions()
             } else {
-                return(eval(substitute(expr), envir=parent.frame(1)));
+                options(op.rx);
+                rxSyncOptions()
+            }
+            if (class(substitute(expr)) == "{"){
+                if (silent){
+                    return(suppressMessages(eval(substitute(expr), envir=parent.frame(1))));
+                } else {
+                    return(eval(substitute(expr), envir=parent.frame(1)));
+                }
             }
         }
     }
@@ -200,6 +220,12 @@ rxOptions <- function(expr, op.rx=NULL, silent=FALSE, respect=FALSE,
 rxSyncOptions <- function(){
     for (var in names(rxOpt)){
         assignInMyNamespace(var, getOption(var, rxOpt[[var]][1]));
+    }
+}
+
+rxSkipValidate <- function(){
+    if(!identical(Sys.getenv("RxODE_VALIDATION_FULL"), "true")){
+        testthat::skip("Only run on full validation")
     }
 }
 

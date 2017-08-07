@@ -1045,6 +1045,7 @@ SEXP _RxODE_linCmtEnv(SEXP rho);
 SEXP _RxODE_rxInv(SEXP matrix);
 
 SEXP _RxODE_rxCoutEcho(SEXP number);
+SEXP _RxODE_W_Cpp(SEXP zSEXP, SEXP branchSEXP);
 
 double solveLinB(double t, int linCmt, int diff1, int diff2, double A, double alpha, double B, double beta, double C, double gamma, double ka, double tlag);
 void R_init_RxODE(DllInfo *info){
@@ -1066,6 +1067,7 @@ void R_init_RxODE(DllInfo *info){
     {"trans", (DL_FUNC) &trans, 8},
     {"_RxODE_rxInv", (DL_FUNC) &_RxODE_rxInv, 1},
     {"_RxODE_rxCoutEcho", (DL_FUNC) &_RxODE_rxCoutEcho, 1},
+    {"_RxODE_W_Cpp", (DL_FUNC) &_RxODE_W_Cpp,2},
     {NULL, NULL, 0}
   };
   R_registerRoutines(info, NULL, callMethods, NULL, NULL);

@@ -22,4 +22,4 @@ rxPermissive({
     })
 
     unlink(test.dir, recursive = TRUE)
-}, silent=TRUE)
+}, silent=TRUE, cran=TRUE)

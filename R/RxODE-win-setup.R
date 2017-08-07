@@ -118,11 +118,11 @@ rxWinRtoolsPath <- function(rm.rtools=TRUE){
             if (is.na(gcc)){
                 gcc <- "";
             }
-            for (x in rev(c(file.path(rtools.base, "bin")##,
+            for (x in rev(c(file.path(rtools.base, "bin"),
                             ## file.path(rtools.base, "mingw_32/bin") ## Rtools sets up the mingw_32/bin first (even if x64)
-                            ## file.path(rtools.base, ifelse(.Platform$r_arch == "i386","mingw_32/bin", "mingw_64/bin")),
-                            ## file.path(rtools.base, ifelse(.Platform$r_arch == "i386","mingw_32/bin", "mingw_64/bin")),
-                            ## file.path(rtools.base, ifelse(.Platform$r_arch == "i386","mingw_32/opt/bin", "mingw_64/opt/bin")),
+                            file.path(rtools.base, ifelse(.Platform$r_arch == "i386","mingw_32/bin", "mingw_64/bin")),
+                            file.path(rtools.base, ifelse(.Platform$r_arch == "i386","mingw_32/bin", "mingw_64/bin")),
+                            file.path(rtools.base, ifelse(.Platform$r_arch == "i386","mingw_32/opt/bin", "mingw_64/opt/bin"))
                             ## ifelse(gcc == "", "", file.path(gcc, "bin")),
                             ## ifelse(gcc == "", "", ifelse(.Platform$r_arch == "i386",file.path(gcc, "bin32"), file.path(gcc, "bin64"))
                             ## )

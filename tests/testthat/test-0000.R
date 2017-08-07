@@ -1,2 +1,4 @@
-context("Install sympy and mpmath (if needed)");
-rxSymPyStart()
+rxPermissive({
+    context("Install sympy and mpmath (if needed)");
+    rxSymPyStart()
+})

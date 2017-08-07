@@ -231,4 +231,4 @@ rxPermissive({
 
     })
 
-}, silent=TRUE)
+}, silent=TRUE, on.validate=TRUE)

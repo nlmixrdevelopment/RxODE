@@ -143,4 +143,4 @@ rxPermissive({
     })
 
     rxClean()
-}, silent=TRUE)
+}, silent=TRUE, cran=TRUE)

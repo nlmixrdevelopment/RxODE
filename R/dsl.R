@@ -673,7 +673,7 @@ rxToSymPy <- function(x, envir=parent.frame(1)) {
             }
             return(txt);
         } else {
-            txt <- paste0(eval(parse(text=sprintf("RxODE::rxToSymPy(%s)", paste(deparse(paste(as.vector(x), collapse="\n"), collapse=""))))))
+            txt <- paste0(eval(parse(text=sprintf("RxODE::rxToSymPy(%s)", paste(deparse(paste(as.vector(x), collapse="\n")))))), collapse="")
             return(txt);
         }
     } else if (class(substitute(x)) == "name"){

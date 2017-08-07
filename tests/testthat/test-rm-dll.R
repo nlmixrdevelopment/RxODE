@@ -1,4 +1,4 @@
-context("Removind dlls")
+context("Removing dlls")
 rxPermissive({
     options(RxODE.delete.unnamed=TRUE);
     rxSyncOptions();

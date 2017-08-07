@@ -244,4 +244,4 @@ rxPermissive({
     ## The numerical values may not be right from NumDeriv either
     ## gr2.calc <- attr(ret2, "grad")
 
-}, silent=TRUE)
+}, silent=TRUE, on.validate=TRUE)

@@ -161,10 +161,10 @@ rxLinCmtTrans <- function(modText){
         } else if (any(vars.up == "AOB")){
             ncmt <- 2;
             type <- 4;
-            v <- var.get("V");
-            aob <- var.get("AOB");
-            alpha <- var.get("ALPHA");
-            beta <- var.get("BETA");
+            v <- get.var("V");
+            aob <- get.var("AOB");
+            alpha <- get.var("ALPHA");
+            beta <- get.var("BETA");
             lines[length(lines) + 1] <- sprintf("rx_v ~ %s", v);
             lines[length(lines) + 1] <- sprintf("rx_k21 ~ (%s*%s+%s)/(%s+1)", aob, beta, alpha, aob);
             lines[length(lines) + 1] <- sprintf("rx_k ~ (%s*%s)/rx_k21", alpha, beta)
@@ -173,9 +173,9 @@ rxLinCmtTrans <- function(modText){
             ncmt <- 2;
             type <- 5;
             k21 <- get.var("K21");
-            alpha <- var.get("ALPHA");
-            beta <- var.get("BETA");
-            v <- var.get("V");
+            alpha <- get.var("ALPHA");
+            beta <- get.var("BETA");
+            v <- get.var("V");
             lines[length(lines) + 1] <- sprintf("rx_v ~ %s", v);
             lines[length(lines) + 1] <- sprintf("rx_k21 ~ %s", k21);
             lines[length(lines) + 1] <- sprintf("rx_k ~ (%s*%s)/rx_k21", alpha, beta);

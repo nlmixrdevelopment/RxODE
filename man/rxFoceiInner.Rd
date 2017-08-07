@@ -4,7 +4,8 @@
 \alias{rxFoceiInner}
 \title{Solve the FOCEI inner problem}
 \usage{
-rxFoceiInner(object, ..., dv, eta, eta.bak = NULL, estimate = TRUE)
+rxFoceiInner(object, ..., dv, eta, c.hess = NULL, eta.bak = NULL,
+  estimate = TRUE, inner.opt = c("n1qn1", "lbfgs"))
 }
 \arguments{
 \item{object}{RxODE object}
@@ -15,11 +16,15 @@ rxFoceiInner(object, ..., dv, eta, eta.bak = NULL, estimate = TRUE)
 
 \item{eta}{eta value}
 
+\item{c.hess}{Hessian curvature matrix in compressed form (Used for n1qn1)}
+
 \item{eta.bak}{backup eta value in case eta estimation fails}
 
 \item{estimate}{Boolean indicating if the optimization should be
 perfomed(TRUE), or just keep the eta, and calculate the Loglik
 with fitted/posthoc attributes(FALSE).}
+
+\item{inner.opt}{Inner optimization method; Either n1qn1 or lbfgs}
 }
 \value{
 Loglik with fitted and posthoc attributes

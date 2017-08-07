@@ -4,8 +4,10 @@
 \alias{rxOptions}
 \title{Options for RxODE}
 \usage{
-rxOptions(expr, op.rx = NULL, silent = FALSE, respect = FALSE,
-  rxclean = (regexpr("/tests/testthat/", getwd(), fixed = TRUE)))
+rxOptions(expr, op.rx = NULL, silent = (regexpr("/tests/testthat/", getwd(),
+  fixed = TRUE) != 1), respect = FALSE,
+  rxclean = (regexpr("/tests/testthat/", getwd(), fixed = TRUE) != 1),
+  cran = FALSE, on.validate = FALSE)
 }
 \arguments{
 \item{expr}{Expression to evaluate in the permissive/strict
@@ -23,6 +25,10 @@ elsewhere, otherwise the options are not changed.}
 
 \item{rxclean}{when TRUE, call rxClean before and after the expr
 is called.}
+
+\item{cran}{When specifyed and true, run on CRAN. Otherwise it is skipped on cran.}
+
+\item{on.validate}{When TRUE run only when validating.}
 }
 \description{
 This is a backend for \code{rxPermissive} (with

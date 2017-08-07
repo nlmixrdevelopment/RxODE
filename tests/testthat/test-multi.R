@@ -160,5 +160,5 @@ rxPermissive({
         m3$dynUnload()
         expect_equal(unlink(test.dir, recursive = TRUE),0) # 0==success, 1==failed
     })
-}, silent=TRUE);
+}, silent=TRUE, cran=TRUE);
 
