@@ -198,9 +198,6 @@ rxPermissive({
         CL = exp(THETA[2] + ETA[1])
         V = exp(THETA[3] + ETA[2])
     }
-}, silent=TRUE)
-
-rxPermissive({
     context("Test `logify'")
     test_that("Test Logify", {
         expect_equal(rxLogifyModel("rx_r_=ETA[1]*THETA[4]^2"), "rx_r_ = sign_exp(ETA[1], abs_log(ETA[1]) + 2 * abs_log(THETA[4])) \n")
