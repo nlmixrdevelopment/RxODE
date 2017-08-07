@@ -60,7 +60,7 @@ print.solveRxODE <- function(x, ...){
     w <- which((names(lst$params) %in% names(x)))
     if (length(w) > 0){
         print(lst$params[-w]);
-        cat("\n\nFirst Part of Time Varying Covariates:\n");
+        message("\nFirst Part of Time Varying Covariates:");
         d <- as.data.frame(lst$covs)[, names(lst$params)[w]];
         if (length(w) == 1){
             d <- data.frame(d = d);
@@ -72,7 +72,15 @@ print.solveRxODE <- function(x, ...){
             print(dplyr::as.tbl(d), n = n, width = width);
         }
     }  else {
-        print(lst$params);
+        p <- lst$params;
+        if (length(env$pcov) > 0){
+            p2 <- p[-env$pcov];
+            print(p2)
+            message("\nTime Varying Covariates");
+            message(paste(names(p[env$pcov]), collapse=" "));
+        } else {
+            print(p);
+        }
     }
     cat("\n\nInitial Conditions:\n")
     inits <- lst$inits[regexpr(regSens, names(lst$inits)) == -1];
@@ -623,7 +631,7 @@ rxSolve <- function(object,                      # RxODE object
                     maxords            = 5,      # maxords
                     ...,
                     covs_interpolation = c("linear", "constant"),
-                    theta=numeric(), eta=numeric()) {
+                    theta=numeric(), eta=numeric(), add.cov=FALSE) {
     ## rxSolve returns
     UseMethod("rxSolve");
 } # end function rxSolve
@@ -634,9 +642,9 @@ rxSolve <- function(object,                      # RxODE object
 rxSolve.RxODE <- function(object, params=NULL, events=NULL, inits = NULL, scale=c(), covs = NULL, stiff = TRUE, transit_abs = NULL,
                           atol = 1.0e-8, rtol = 1.0e-6, maxsteps = 5000, hmin = 0, hmax = NULL, hini = 0, maxordn = 12,
                           maxords = 5, ..., covs_interpolation = c("linear", "constant"),
-                          theta=numeric(), eta=numeric(), matrix=FALSE){
+                          theta=numeric(), eta=numeric(), matrix=FALSE, add.cov=FALSE){
     return(object$solve(params, events, inits, scale, covs, stiff, transit_abs, atol, rtol, maxsteps, hmin, hmax, hini, maxordn, maxords,...,
-                        covs_interpolation = covs_interpolation, theta=theta, eta=eta, matrix=matrix))
+                        covs_interpolation = covs_interpolation, theta=theta, eta=eta, matrix=matrix, add.cov=add.cov))
 }
 
 ##' @rdname rxSolve
@@ -644,11 +652,11 @@ rxSolve.RxODE <- function(object, params=NULL, events=NULL, inits = NULL, scale=
 rxSolve.solveRxODE <- function(object, params=NULL, events=NULL, inits = NULL, scale=c(), covs = NULL, stiff = TRUE, transit_abs = NULL,
                           atol = 1.0e-8, rtol = 1.0e-6, maxsteps = 5000, hmin = 0, hmax = NULL, hini = 0, maxordn = 12,
                           maxords = 5, ..., covs_interpolation = c("linear", "constant"),
-                          theta=numeric(), eta=numeric(), matrix=FALSE){
+                          theta=numeric(), eta=numeric(), matrix=FALSE, add.cov=FALSE){
     env <- attr(object, ".env");
     rxode <- env$env$out;
     return(rxode$solve(params, events, inits, scale, covs, stiff, transit_abs, atol, rtol, maxsteps, hmin, hmax, hini, maxordn, maxords,...,
-                       covs_interpolation = covs_interpolation, theta=theta, eta=eta, matrix=matrix))
+                       covs_interpolation = covs_interpolation, theta=theta, eta=eta, matrix=matrix, add.cov=add.cov))
 }
 
 

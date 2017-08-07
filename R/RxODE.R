@@ -369,7 +369,7 @@ RxODE <- function(model, modName = basename(wd), wd = ifelse(RxODE.cache.directo
                       covs = NULL, stiff = TRUE, transit_abs = NULL,
                       atol = 1.0e-8, rtol = 1.0e-6, maxsteps = 5000, hmin = 0, hmax = NULL, hini = 0, maxordn = 12,
                       maxords = 5, ..., covs_interpolation = c("linear", "constant"),
-                      theta=numeric(), eta=numeric(), matrix=TRUE,
+                      theta=numeric(), eta=numeric(), matrix=TRUE,add.cov=FALSE,
                       inC=FALSE, counts=NULL, do.solve=TRUE){
         env <- environment(.c);
         modVars <- dll$modVars;
@@ -399,7 +399,7 @@ RxODE <- function(model, modName = basename(wd), wd = ifelse(RxODE.cache.directo
                            covs = covs, stiff = stiff,
                            transit_abs = transit_abs, atol = atol, rtol = rtol, maxsteps = maxsteps,
                            hmin = hmin, hmax = hmax, hini = hini, maxordn = maxordn, maxords = maxords,
-                           covs_interpolation = covs_interpolation, ...);
+                           covs_interpolation = covs_interpolation, add.cov=add.cov, ...);
         params <- c(params, rxThetaEta(theta, eta));
         event.table <- events$get.EventTable()
         if (!is.numeric(maxordn))
@@ -536,37 +536,39 @@ RxODE <- function(model, modName = basename(wd), wd = ifelse(RxODE.cache.directo
         maxsteps=as.integer(maxsteps);
         stiff=as.integer(stiff);
         transit_abs=as.integer(transit_abs);
-        do.matrix=as.integer(matrix)
+        do.matrix=as.integer(matrix);
+        add.cov = as.integer(add.cov)
         if (do.solve){
             ret <- try({ret <- .sexp(## Parameters
-                                     params,
-                                     inits,
-                                     as.double(scale),
-                                     lhs_vars,
-                                     ## events
-                                     time,
-                                     evid,
-                                     amt,
-                                     ## Covariates
-                                     pcov,
-                                     cov,
-                                     isLocf,
-                                     ## Solver options (double)
-                                     atol,
-                                     rtol,
-                                     hmin,
-                                     hmax,
-                                     hini,
-                                     ## Solver options ()
-                                     maxordn,
-                                     maxords,
-                                     maxsteps,
-                                     stiff,
-                                     transit_abs,
-                                     ## Passed to build solver object.
-                                     env,
-                                     extra.args,
-                                     do.matrix)
+                            params,
+                            inits,
+                            as.double(scale),
+                            lhs_vars,
+                            ## events
+                            time,
+                            evid,
+                            amt,
+                            ## Covariates
+                            pcov,
+                            cov,
+                            isLocf,
+                            ## Solver options (double)
+                            atol,
+                            rtol,
+                            hmin,
+                            hmax,
+                            hini,
+                            ## Solver options ()
+                            maxordn,
+                            maxords,
+                            maxsteps,
+                            stiff,
+                            transit_abs,
+                            ## Passed to build solver object.
+                            env,
+                            extra.args,
+                            do.matrix,
+                            add.cov)
                 rc <- ret[[2]];
                 ret <- ret[[1]];
                 ## attr(ret, "solveRxDll")$matrix <- attr(ret, "solveRxDll")$matrix[events$get.obs.rec(), ];
@@ -611,7 +613,8 @@ RxODE <- function(model, modName = basename(wd), wd = ifelse(RxODE.cache.directo
                          ## Passed to build solver object.
                          env,
                          extra.args,
-                         do.matrix)
+                         do.matrix,
+                         add.cov)
                     rc <- ret[[2]];
                     ret <- ret[[1]];
                     ## attr(ret, "solveRxDll")$matrix <- attr(ret, "solveRxDll")$matrix[events$get.obs.rec(), ];
@@ -666,7 +669,8 @@ RxODE <- function(model, modName = basename(wd), wd = ifelse(RxODE.cache.directo
                         scale=scale,
                         events=events,
                         event.table=event.table,
-                        do.matrix=do.matrix);
+                        do.matrix=do.matrix,
+                        add.cov=add.cov);
 
             if (inC){
                 .Call("RxODE_ode_setup", inits, lhs_vars, time, evid, amt, pcov, cov, isLocf, atol, rtol, hmin, hmax,

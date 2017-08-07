@@ -25,7 +25,7 @@ rxPermissive({
                    params = c(a=-8/3, b=-10),
                    events = et,
                    inits = c(X=1, Y=1, Z=1),
-                   covs = cov);
+                   covs = cov, add.cov=TRUE);
     sink();
     lin.interp <- read.csv("temp.csv");
     unlink("temp.csv");
@@ -48,7 +48,7 @@ rxPermissive({
                    events = et,
                    inits = c(X=1, Y=1, Z=1),
                    covs = cov,
-                   covs_interpolation="constant");
+                   covs_interpolation="constant", add.cov=TRUE);
     sink()
     lin.interp <- read.csv("temp.csv");
     unlink("temp.csv");
@@ -70,7 +70,7 @@ rxPermissive({
         rxSolve(ode,
                 params = c(a=-8/3, b=-10, c = 0),
                 events = et,
-                inits = c(X=1, Y=1, Z=1))
+                inits = c(X=1, Y=1, Z=1), add.cov=TRUE)
     sink();
     unlink("temp");
 
@@ -89,13 +89,13 @@ rxPermissive({
                    params = c(a=-8/3, b=-10),
                    events = et,
                    inits = c(X=1, Y=1, Z=1),
-                   covs = cov)
+                   covs = cov, add.cov=TRUE)
 
     out3 <- rxSolve(ode,
                     params = c(a=-8/3, b=-10),
                     events = et,
                     inits = c(X=1, Y=1, Z=1),
-                    covs = cov)
+                    covs = cov, add.cov=TRUE)
     sink();
     unlink("temp");
 
@@ -112,7 +112,7 @@ rxPermissive({
                     params = c(a=-8/3, b=-10),
                     events = et,
                     inits = c(X=1, Y=1, Z=1),
-                    covs = cov)
+                    covs = cov, add.cov=TRUE)
     sink();
     unlink("temp");
 

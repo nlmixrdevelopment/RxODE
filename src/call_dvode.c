@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include "dop853.h"
 #define max(a, b) ((a) > (b) ? (a) : (b))
-#define RLEN (neq+nlhs+ncov+1)
 #include <R.h>
 #include <Rinternals.h>
 #include <Rmath.h> //Rmath includes math.
@@ -766,7 +765,8 @@ SEXP RxODE_ode_solver (// Parameters
 		       // Object Creation
 		       SEXP sexp_object,
 		       SEXP sexp_extra_args,
-		       SEXP sexp_matrix){
+		       SEXP sexp_matrix,
+		       SEXP sexp_add_cov){
   // TODO: Absorption lag?
   // TODO: Annotation? -- in nlmixr
   // TODO: Units -- Can be in nlmixr
@@ -791,8 +791,9 @@ SEXP RxODE_ode_solver (// Parameters
     RxODE_ode_solver_c(neq, stiff, evid, inits, dose, solve, rc);
   }
   double *scale = REAL(sexp_scale);
+  int add_cov = INTEGER(sexp_add_cov)[0];
   if (matrix[0]){
-    SEXP sexp_ret     = PROTECT(allocMatrix(REALSXP, nObs(), ncov+1+neq+nlhs)); pro++;
+    SEXP sexp_ret     = PROTECT(allocMatrix(REALSXP, nObs(), add_cov*ncov+1+neq+nlhs)); pro++;
     double *ret   = REAL(sexp_ret);
   
     // Now create the matrix.
@@ -815,7 +816,7 @@ SEXP RxODE_ode_solver (// Parameters
           }
         }
         // Cov
-        if (ncov > 0){
+        if (add_cov*ncov > 0){
           for (j = 0; j < ncov; j++){
             ret[nObs()*(j+1+neq+nlhs)+ii] = cov_ptr[j*nAllTimes()+i];
           }
@@ -825,7 +826,7 @@ SEXP RxODE_ode_solver (// Parameters
     }
     SEXP sexp_dimnames = PROTECT(allocVector(VECSXP,2));pro++;
     SET_VECTOR_ELT(sexp_dimnames, 0, R_NilValue);
-    SEXP sexp_colnames = PROTECT(allocVector(STRSXP,1+neq+nlhs+ncov)); pro++;
+    SEXP sexp_colnames = PROTECT(allocVector(STRSXP,1+neq+nlhs+add_cov*ncov)); pro++;
     SET_STRING_ELT(sexp_colnames, 0, mkChar("time"));
     SEXP temp = getAttrib(sexp_inits, R_NamesSymbol);
     for (i = 0; i < neq; i++){
@@ -835,7 +836,7 @@ SEXP RxODE_ode_solver (// Parameters
       SET_STRING_ELT(sexp_colnames,1+neq+i, STRING_ELT(sexp_lhs,i));
     }
     temp = getAttrib(sexp_theta,R_NamesSymbol);
-    for (i = 0; i < ncov; i++){
+    for (i = 0; i < add_cov*ncov; i++){
       SET_STRING_ELT(sexp_colnames,1+neq+nlhs+i, STRING_ELT(temp, par_cov[i]-1));
     }
     SET_VECTOR_ELT(sexp_dimnames,1,sexp_colnames);
@@ -851,7 +852,7 @@ SEXP RxODE_ode_solver (// Parameters
     RxODE_ode_free();
     return sexp_solve2;
   } else {
-    int ncols =ncov+1+neq+nlhs,
+    int ncols =add_cov*ncov+1+neq+nlhs,
       nobs =nObs(),
       ntimes = nAllTimes();
     SEXP df = PROTECT(allocVector(VECSXP,ncols)); pro++;
@@ -882,8 +883,8 @@ SEXP RxODE_ode_solver (// Parameters
           }
         }
         // Cov
-        if (ncov > 0){
-          for (j = 0; j < ncov; j++){
+        if (add_cov*ncov > 0){
+          for (j = 0; j < add_cov*ncov; j++){
 	    dfp = REAL(VECTOR_ELT(df, j+1+neq+nlhs));
             dfp[ii] = cov_ptr[j*nAllTimes()+i];
           }
@@ -891,8 +892,8 @@ SEXP RxODE_ode_solver (// Parameters
         ii++;
       }
     }
-    SEXP sexp_solve    = PROTECT(allocVector(REALSXP,1+neq+nlhs+ncov)); pro++;
-    SEXP sexp_colnames = PROTECT(allocVector(STRSXP,1+neq+nlhs+ncov)); pro++;
+    SEXP sexp_solve    = PROTECT(allocVector(REALSXP,1+neq+nlhs+ncov*add_cov)); pro++;
+    SEXP sexp_colnames = PROTECT(allocVector(STRSXP,1+neq+nlhs+ncov*add_cov)); pro++;
     SEXP sexp_rownames = PROTECT(allocVector(INTSXP,2)); pro++;
     SEXP temp = getAttrib(sexp_inits, R_NamesSymbol);
     SET_STRING_ELT(sexp_colnames, 0, mkChar("time"));
@@ -907,7 +908,7 @@ SEXP RxODE_ode_solver (// Parameters
       solver[1+neq+i] = NA_REAL;
     }
     temp = getAttrib(sexp_theta,R_NamesSymbol);
-    for (i = 0; i < ncov; i++){
+    for (i = 0; i < ncov*add_cov; i++){
       SET_STRING_ELT(sexp_colnames,1+neq+nlhs+i, STRING_ELT(temp, par_cov[i]-1));
       solver[1+neq+nlhs+i] = NA_REAL;
     }
@@ -1050,7 +1051,7 @@ SEXP _RxODE_W_Cpp(SEXP zSEXP, SEXP branchSEXP);
 double solveLinB(double t, int linCmt, int diff1, int diff2, double A, double alpha, double B, double beta, double C, double gamma, double ka, double tlag);
 void R_init_RxODE(DllInfo *info){
   R_CallMethodDef callMethods[]  = {
-    {"RxODE_ode_solver", (DL_FUNC) &RxODE_ode_solver, 23},
+    {"RxODE_ode_solver", (DL_FUNC) &RxODE_ode_solver, 24},
     {"_RxODE_rxInner", (DL_FUNC) &_RxODE_rxInner, 2},
     {"_RxODE_rxHessian", (DL_FUNC) &_RxODE_rxHessian, 1},
     {"_RxODE_RxODE_focei_eta_lik", (DL_FUNC) &_RxODE_RxODE_focei_eta_lik, 2},
@@ -1105,5 +1106,4 @@ void R_init_RxODE(DllInfo *info){
   R_RegisterCCallable("RxODE","RxODE_abs_log",          (DL_FUNC) RxODE_abs_log);
   R_RegisterCCallable("RxODE","RxODE_solveLinB",        (DL_FUNC) solveLinB);
 }
-
 

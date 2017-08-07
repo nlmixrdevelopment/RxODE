@@ -10,21 +10,21 @@ rxSolve(object, params = NULL, events = NULL, inits = NULL, scale = c(),
   covs = NULL, stiff = TRUE, transit_abs = NULL, atol = 1e-06,
   rtol = 1e-06, maxsteps = 5000, hmin = 0, hmax = NULL, hini = 0,
   maxordn = 12, maxords = 5, ..., covs_interpolation = c("linear",
-  "constant"), theta = numeric(), eta = numeric())
+  "constant"), theta = numeric(), eta = numeric(), add.cov = FALSE)
 
 \method{rxSolve}{RxODE}(object, params = NULL, events = NULL,
   inits = NULL, scale = c(), covs = NULL, stiff = TRUE,
   transit_abs = NULL, atol = 1e-08, rtol = 1e-06, maxsteps = 5000,
   hmin = 0, hmax = NULL, hini = 0, maxordn = 12, maxords = 5, ...,
   covs_interpolation = c("linear", "constant"), theta = numeric(),
-  eta = numeric(), matrix = FALSE)
+  eta = numeric(), matrix = FALSE, add.cov = FALSE)
 
 \method{rxSolve}{solveRxODE}(object, params = NULL, events = NULL,
   inits = NULL, scale = c(), covs = NULL, stiff = TRUE,
   transit_abs = NULL, atol = 1e-08, rtol = 1e-06, maxsteps = 5000,
   hmin = 0, hmax = NULL, hini = 0, maxordn = 12, maxords = 5, ...,
   covs_interpolation = c("linear", "constant"), theta = numeric(),
-  eta = numeric(), matrix = FALSE)
+  eta = numeric(), matrix = FALSE, add.cov = FALSE)
 }
 \arguments{
 \item{object}{is a either a RxODE family of objects, or a file-name
