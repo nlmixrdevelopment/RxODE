@@ -977,7 +977,7 @@ void prnt_vars(int scenario, FILE *outpt, int lhs, const char *pre_str, const ch
   int i, j, k;
   char buf[64], buf1[64],buf2[64];
   fprintf(outpt, "%s", pre_str);  /* dj: avoid security vulnerability */
-  if (scenario == 0){
+  if (scenario == 0 || scenario == 2){
     // show_ode = 1 dydt
     // show_ode = 2 Jacobian
     // show_ode = 3 Ini statement
@@ -985,7 +985,11 @@ void prnt_vars(int scenario, FILE *outpt, int lhs, const char *pre_str, const ch
     if (show_ode == 2 || show_ode == 0){
       //__DDtStateVar_#__
       for (i = 0; i < tb.nd; i++){
-	fprintf(outpt,"\t__DDtStateVar_%d__,\n",i);
+	if (scenario == 0){
+	  fprintf(outpt,"\t__DDtStateVar_%d__,\n",i);
+	} else {
+	  fprintf(outpt,"\t(void)__DDtStateVar_%d__;\n",i);
+	}
       }
     }
     // Now get Jacobain information  __PDStateVar_df_dy__ if needed
@@ -995,7 +999,11 @@ void prnt_vars(int scenario, FILE *outpt, int lhs, const char *pre_str, const ch
         retieve_var(tb.dy[i], buf2);
         // This is for dydt/ LHS/ or jacobian for df(state)/dy(parameter)
         if (show_ode == 1 || show_ode == 0 || tb.sdfdy[i] == 1){
-          fprintf(outpt,"\t__PDStateVar_%s_SeP_%s__,\n",buf1,buf2);
+	  if (scenario == 0){
+	    fprintf(outpt,"\t__PDStateVar_%s_SeP_%s__,\n",buf1,buf2);
+          } else {
+	    fprintf(outpt,"\t(void)__PDStateVar_%s_SeP_%s__;\n",buf1,buf2);
+	  }
         }
       }
     }
@@ -1020,6 +1028,22 @@ void prnt_vars(int scenario, FILE *outpt, int lhs, const char *pre_str, const ch
         fprintf(outpt, ",\n");
       else
         fprintf(outpt, ";\n");
+      break;
+    case 2: // Case 2 is for suppressing all the warnings for the variables by using (void)var;
+      // See https://stackoverflow.com/questions/1486904/how-do-i-best-silence-a-warning-about-unused-variables
+      fprintf(outpt,"\t");
+      fprintf(outpt,"(void)");
+      for (k = 0; k < strlen(buf); k++){
+        if (buf[k] == '.'){
+          fprintf(outpt,"_DoT_");
+          if (!rx_syntax_allow_dots){
+            trans_syntax_error_report_fn(NODOT);
+          }
+        } else {
+          fprintf(outpt,"%c",buf[k]);
+        }
+      }
+      fprintf(outpt, ";\n");
       break;
     case 1:
       // Case 1 is for declaring the par_ptr.
@@ -1422,6 +1446,7 @@ void codegen(FILE *outpt, int show_ode) {
   }
   if ((show_ode == 2 && found_jac == 1) || show_ode != 2){
     prnt_vars(0, outpt, 0, "double \n\t", "\n",show_ode);     /* declare all used vars */
+    prnt_vars(2, outpt, 0, "\t(void)t;", "\n",show_ode);     /* declare all used vars */
     if (show_ode == 3){
       fprintf(outpt,"\t_update_par_ptr(0.0);\n");
     } else {

@@ -133,9 +133,9 @@ extern SEXP __ODE_SOLVER_SEXP__ (// Parameters
 				 SEXP sexp_add_cov){
   __ODE_SOLVER_PTR__();
   RxODE_ode_solver ode_solver = (RxODE_ode_solver) R_GetCCallable("RxODE","RxODE_ode_solver");
-  ode_solver(sexp_theta,sexp_inits,sexp_lhs,sexp_time,sexp_evid,sexp_dose,sexp_pcov,sexp_cov,sexp_locf,sexp_atol,
-	      sexp_rtol,sexp_hmin,sexp_hmax,sexp_h0,sexp_mxordn,sexp_mxords,sexp_mx,sexp_stiff,sexp_transit_abs,
-	     sexp_object,sexp_extra_args,sexp_matrix,sexp_add_cov);
+  return ode_solver(sexp_theta,sexp_inits,sexp_lhs,sexp_time,sexp_evid,sexp_dose,sexp_pcov,sexp_cov,sexp_locf,sexp_atol,
+		    sexp_rtol,sexp_hmin,sexp_hmax,sexp_h0,sexp_mxordn,sexp_mxords,sexp_mx,sexp_stiff,sexp_transit_abs,
+		    sexp_object,sexp_extra_args,sexp_matrix,sexp_add_cov);
 }
 
 //Initilize the dll to match RxODE's calls

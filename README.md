@@ -127,6 +127,10 @@ work <- tempfile("Rx_intro-")
 mod1 <- RxODE(model = ode, modName = "mod1", wd = work)
 ```
 
+```
+## c:/R/Open/R-3.4.0/bin/R CMD SHLIB mod1_x64.c
+```
+
 A typical pharmacokinetics-pharmacodynamics (PKPD) model can be
 plotted in `RxODE`. This model, as shown in the figure below:
 
@@ -297,7 +301,7 @@ print(x)
 
 ```
 ## Solved RxODE object
-## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpMdRtSj\Rx_intro-3d44fc95c5c/mod1.d/mod1_x64.dll
+## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpEJbyxc\Rx_intro-218ccd730d7/mod1.d/mod1_x64.dll
 ## 
 ## Parameters:
 ##      V2      V3      KA      CL       Q     Kin    Kout    EC50 
@@ -330,7 +334,7 @@ print(x)
 
 ```
 ## Solved RxODE object
-## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpMdRtSj\Rx_intro-3d44fc95c5c/mod1.d/mod1_x64.dll
+## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpEJbyxc\Rx_intro-218ccd730d7/mod1.d/mod1_x64.dll
 ## 
 ## Parameters:
 ##      V2      V3      KA      CL       Q     Kin    Kout    EC50 
@@ -364,7 +368,7 @@ print(x)
 
 ```
 ## Solved RxODE object
-## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpMdRtSj\Rx_intro-3d44fc95c5c/mod1.d/mod1_x64.dll
+## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpEJbyxc\Rx_intro-218ccd730d7/mod1.d/mod1_x64.dll
 ## 
 ## Parameters:
 ##      V2      V3      KA      CL       Q     Kin    Kout    EC50 
@@ -521,7 +525,7 @@ x
 
 ```
 ## Solved RxODE object
-## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpMdRtSj\Rx_intro-3d44fc95c5c/mod1.d/mod1_x64.dll
+## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpEJbyxc\Rx_intro-218ccd730d7/mod1.d/mod1_x64.dll
 ## 
 ## Parameters:
 ##      V2      V3      KA      CL       Q     Kin    Kout    EC50 
@@ -565,7 +569,7 @@ x
 
 ```
 ## Solved RxODE object
-## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpMdRtSj\Rx_intro-3d44fc95c5c/mod1.d/mod1_x64.dll
+## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpEJbyxc\Rx_intro-218ccd730d7/mod1.d/mod1_x64.dll
 ## 
 ## Parameters:
 ##      V2      V3      KA      CL       Q     Kin    Kout    EC50 
@@ -606,7 +610,7 @@ x
 
 ```
 ## Solved RxODE object
-## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpMdRtSj\Rx_intro-3d44fc95c5c/mod1.d/mod1_x64.dll
+## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpEJbyxc\Rx_intro-218ccd730d7/mod1.d/mod1_x64.dll
 ## 
 ## Parameters:
 ##    V2    V3    KA    CL     Q   Kin  Kout  EC50 
@@ -657,12 +661,12 @@ head(theta.all)
 
 ```
 ##         KA       CL   V2    Q  V3 Kin Kout EC50
-## [1,] 0.294 18.86548 40.2 10.5 297   1    1  200
-## [2,] 0.294 17.51064 40.2 10.5 297   1    1  200
-## [3,] 0.294 21.09753 40.2 10.5 297   1    1  200
-## [4,] 0.294 22.09175 40.2 10.5 297   1    1  200
-## [5,] 0.294 16.48372 40.2 10.5 297   1    1  200
-## [6,] 0.294 17.53939 40.2 10.5 297   1    1  200
+## [1,] 0.294 21.84103 40.2 10.5 297   1    1  200
+## [2,] 0.294 17.32672 40.2 10.5 297   1    1  200
+## [3,] 0.294 19.57217 40.2 10.5 297   1    1  200
+## [4,] 0.294 17.13967 40.2 10.5 297   1    1  200
+## [5,] 0.294 17.50485 40.2 10.5 297   1    1  200
+## [6,] 0.294 15.81795 40.2 10.5 297   1    1  200
 ```
 
 Each subproblem can be simulated by using an explicit loop (or the `apply()`
