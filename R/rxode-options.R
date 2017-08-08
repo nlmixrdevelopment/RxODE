@@ -195,7 +195,7 @@ rxOptions <- function(expr, op.rx=NULL, silent=(regexpr("/tests/testthat/", getw
                 w <- !(names(op.rx) %in% names(op))
                 if (any(w)) options(op.rx[w]);
                 rxSyncOptions()
-            } else {
+            } else if (length(op.rx) > 0){
                 options(op.rx);
                 rxSyncOptions()
             }
