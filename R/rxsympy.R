@@ -1160,6 +1160,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
             rf <- sprintf("%s;options(RxODE.delete.unnamed=FALSE);load(%s); require(RxODE);tmp <- rxSymPySetupPred(obj, predfn, pkpars, errfn, init, grad, logify, pred.minus.dv, run.internal=TRUE);",
                           sub("options\\(\\)", "", sub(rex::rex(",", any_spaces, ".Names", anything,end),"",sub(rex::rex(start,"structure(list("),"options(",paste0(deparse(tmp),collapse="")))),
                           deparse(dta));
+            rf <- gsub("^;", "", rf)
             sink(rfile);
             cat(rf);
             sink();

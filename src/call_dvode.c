@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "dop853.h"
+#define NCMT 1000
 #define max(a, b) ((a) > (b) ? (a) : (b))
 #include <R.h>
 #include <Rinternals.h>
@@ -16,8 +17,8 @@ void F77_NAME(dlsoda)(
 		      int *);
 
 long slvr_counter, dadt_counter, jac_counter;
-double InfusionRate[100];
-int BadDose[100];
+double InfusionRate[NCMT];
+int BadDose[NCMT];
 int nBadDose=0;
 double ATOL;		//absolute error
 double RTOL;		//relative error
@@ -362,7 +363,7 @@ void call_dop(int neq, double *x, int *evid, int nx, double *inits, double *dose
   int itol=0;		//0: rtol/atol scalars; 1: rtol/atol vectors
   int iout=0;		//iout=0: solout() NEVER called
   int idid=0;
-  int wh, cmt;
+  int wh, cmt, foundBad=0;
   char *err_msg[]=
     {
       "input is not consistent",
@@ -426,19 +427,33 @@ void call_dop(int neq, double *x, int *evid, int nx, double *inits, double *dose
       if (wh)
 	{
 	  cmt = (wh%10000)/100 - 1;
-	  if (wh>10000)
-	    {
-	      InfusionRate[cmt] += dose[ixds];
-	    }
-	  else
-	    {
-	      if (do_transit_abs)
-		{
-		  podo = dose[ixds];
-		  tlast = xout;
-		}
-	      else yp[cmt] += dose[ixds];	//dosing before obs
-	    }
+	  if (cmt >= nEq()){
+            foundBad = 0;
+            for (j = 0; j <nBadDose; j++){
+              if (BadDose[j] == cmt+1){
+                foundBad=1;
+                break;
+              }
+            }
+            if (!foundBad){
+              BadDose[nBadDose]=cmt+1;
+              nBadDose++;
+            }
+          } else {
+	    if (wh>10000)
+	      {
+		InfusionRate[cmt] += dose[ixds];
+	      }
+	    else
+	      {
+		if (do_transit_abs)
+		  {
+		    podo = dose[ixds];
+		    tlast = xout;
+		  }
+		else yp[cmt] += dose[ixds];	//dosing before obs
+	      }
+	  }
 	  ixds++;
 	  xp = xout;
 	}
@@ -462,6 +477,9 @@ void call_dop(int neq, double *x, int *evid, int nx, double *inits, double *dose
 void RxODE_ode_solver_c(int neq, int stiff, int *evid, double *inits, double *dose, double *solve, int *rc){
   ixds = 0;
   if (neq) {
+    if (neq > NCMT){
+      error("RxODE does not support %d compartments (Currently only %d compartments)", neq, NCMT);
+    }
     if (stiff==0){
       call_dop(neq, all_times, evid, nAllTimes(), inits, dose, solve, rc);
     } else{
@@ -485,6 +503,9 @@ void RxODE_ode_solver_old_c(int *neq,
                             int *nlhs,
                             double *lhsp,
                             int *rc){
+  if (*neq > NCMT){
+    error("RxODE does not support %d compartments (Currently only %d compartments)", neq, NCMT);
+  }
   int i;
   for (i=0; i< *neq; i++) InfusionRate[i] = 0.0;
   ATOL = *atol;
@@ -563,6 +584,9 @@ void RxODE_ode_free(){
 }
 
 void RxODE_ode_alloc(){
+  if (neq > NCMT){
+    error("RxODE does not support %d compartments (Currently only %d compartments)", neq, NCMT);
+  }
   /* solve = (double*)  R_alloc(neq*n_all_times+1, sizeof(double)); */
   /* lhs   = (double*)  R_alloc(nlhs,sizeof(double)); */
   /* InfusionRate = (double *) R_alloc(neq+2,sizeof(double)); */
@@ -595,6 +619,9 @@ void RxODE_ode_solver_0_6_c(int *neq,
 			    int mxordn,
 			    int mxords,
 			    int mxstep){
+  if (*neq > NCMT){
+    error("RxODE does not support %d compartments (Currently only %d compartments)", neq, NCMT);
+  }
   int i;
   for (i=0; i<*neq; i++) InfusionRate[i] = 0.0;
   ATOL = *atol;
@@ -697,6 +724,9 @@ void RxODE_ode_setup(SEXP sexp_inits,
   nlhs          = length(sexp_lhs);
   neq           = length(sexp_inits);
   nBadDose = 0;
+  if (neq > NCMT){
+    error("RxODE does not support %d compartments (Currently only %d compartments)", neq, NCMT);
+  }
   if (length(sexp_inits) > 0){
     update_inis(sexp_inits); // Update any run-time initial conditions.
   }

@@ -239,6 +239,7 @@ void rxInner(SEXP etanews, SEXP rho){
   }
 }
 
+//' @export
 // [[Rcpp::export]]
 void rxHessian(SEXP rho){
   Environment e = as<Environment>(rho);

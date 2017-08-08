@@ -1011,6 +1011,8 @@ rxSimpleExprP <- function(x){
 ##' @param level Internal level of parsing
 ##' @return character vector of the split expressions
 ##' @author Matthew L. Fidler
+##' @export
+##' @keywords internal
 rxSplitPlusQ <- function(x, level=0){
     if (class(x) == "character" && level == 0){
         return(eval(parse(text=sprintf("rxSplitPlusQ(quote(%s))", x))))

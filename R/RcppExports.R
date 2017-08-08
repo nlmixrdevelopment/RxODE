@@ -14,6 +14,7 @@ rxInner <- function(etanews, rho) {
     invisible(.Call(`_RxODE_rxInner`, etanews, rho))
 }
 
+#' @export
 rxHessian <- function(rho) {
     invisible(.Call(`_RxODE_rxHessian`, rho))
 }
