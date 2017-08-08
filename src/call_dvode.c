@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "dop853.h"
-#define NCMT 1000
+#define NCMT 100
 #define max(a, b) ((a) > (b) ? (a) : (b))
 #include <R.h>
 #include <Rinternals.h>
