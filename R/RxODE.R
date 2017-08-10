@@ -5,13 +5,12 @@
 ##'
 ##' @param model This is the ODE model specification.  It can be:
 ##' \itemize{
-##'
 ##'  \item a string containing the set of ordinary differential
 ##'     equations (ODE) and other expressions defining the changes in
 ##'     the dynamic system.
 ##'  \item a file name where the ODE system equation is contained
 ##'  \item An ODE expression enclosed in \code{\{\}}
-##' }
+##'   }
 ##'
 ##' (see also the \code{filename} argument). For
 ##'     details, see the sections \dQuote{Details} and
@@ -1518,7 +1517,11 @@ rxTrans.character <- function(model,
             cat(new);
             cat("\n");
             sink()
-            ret <- .Call("trans", model, expandModel, cFile, extraC, modelPrefix, md5, parseModel, out3, PACKAGE="RxODE");
+            ret <- try({.Call(trans, model, expandModel, cFile, extraC, modelPrefix, md5, parseModel, out3)}, silent=TRUE);
+            if (inherits(ret, "try-error")){
+                rxCat("\n", paste(readLines(expandModel), collapse="\n"), "\n");
+                stop("Syntax Errors")
+            }
             ## dparser::dpReload();
             ## rxReload();
             unlink(expandModel);
@@ -1764,6 +1767,7 @@ rxCompile.character <-  function(model,           # Model
             if (any(rc == c("error", "warning"))){
                 try(rx.do.call(sh, list(cmd, ignore.stdout = FALSE, ignore.stderr = FALSE)),
                     silent = FALSE)
+                rxCat("\n\nModel:\n", paste(readLines(mFile), collapse="\n"), "\n")
                 stop(sprintf("error compiling %s", cFile));
             }
             if (dllCopy){

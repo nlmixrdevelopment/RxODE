@@ -70,9 +70,9 @@ divOp <- function(){
         } else if (grepl(rex::rex(start, "__df_", anything, "_", end), e1) && grepl(rex::rex(start, "_dy_",anything, "__", end), e2)){
             paste0("rx", substring(e1, 0, nchar(e1) - 1), e2)
         } else if (class(e1) == "numeric"){
-            paste0("S(", e1, ") / ", e2)
+            paste0("S(", e1, ")/", e2)
         } else {
-            paste0(e1, " / ", e2)
+            paste0(e1, "/", e2)
         }
     }
 }
@@ -176,7 +176,23 @@ rxSymPyFEnv$"[" <- function(name, val){
     }
 };
 
-sympyRxFEnv$"/" <- binaryOp(" / ");
+sympyRxFEnv$"[" <- function(name, val){
+    n <- toupper(name)
+    err <- "RxODE only supports THETA[#] and ETA[#] numbers."
+    if (any(n == c("THETA", "ETA")) && is.numeric(val)){
+        if (round(val) == val && val > 0){
+            return(sprintf("%s[%s]", n, val));
+        } else {
+            stop(err);
+        }
+    } else {
+        stop(err)
+    }
+}
+
+sympyRxFEnv$dt <- function(w) {return(sprintf("dt(%s)", w))}
+
+sympyRxFEnv$"/" <- binaryOp("/");
 rxSymPyFEnv$"^" <- binaryOp("**")
 rxSymPyFEnv$"**" <- binaryOp("**")
 sympyRxFEnv$"**" <- binaryOp("^")
@@ -394,7 +410,7 @@ sympyCEnv <- function(expr){
     n2 <- names;
     n2 <- gsub(rex::rex("t", capture(numbers)), "REAL(theta)[\\1]", n2)
     n2 <- gsub(rex::rex("pi"), "M_PI", n2)
-    n2 <- gsub(rex::rex(start, "rx_SymPy_Res_"), "", n2)
+    n2 <- gsub(rex::rex("rx_SymPy_Res_"), "", n2)
     n2 <- gsub("None", "NA_REAL", n2);
     w <- n2[n2 == "t"];
     symbol.list <- setNames(as.list(n2), n1);
@@ -416,7 +432,7 @@ sympyC <- function(x){
 ## nocov end
 
 sympyTransit4 <- function(t, n, mtt, bio, podo="podo"){
-    ktr <- paste0("((", n, " + 1) / (", mtt, "))");
+    ktr <- paste0("((", n, " + 1)/(", mtt, "))");
     lktr <- paste0("(log((", n, ") + 1) - log(", mtt, "))");
     paste0("exp(log((", bio,") * (", podo, ")) + ", lktr, " + (",
            n, ") * ", "(", lktr," + log(", t, ")) - ",
@@ -621,12 +637,12 @@ rxEnv <- function(expr){
     names <- allNames(expr)
     ## Replace time with t.
     n1 <- names;
-    n2 <- gsub(rex::rex(start, "rx_SymPy_Res_"), "",
-               gsub(regIni0, "\\1(0)",
-                    gsub(regDfDy, "df(\\1)/dy(\\2)",
-                         gsub(regDfDyTh, "df(\\1)/dy(\\2[\\3])",
-                              gsub(regDDt, "d/dt(\\1)",
-                                   gsub(rex::rex(start, regThEt, end), "\\1[\\2]", names))))));
+    n2 <- gsub(regIni0, "\\1(0)",
+               gsub(regDfDy, "df(\\1)/dy(\\2)",
+                    gsub(regDfDyTh, "df(\\1)/dy(\\2[\\3])",
+                         gsub(regDDt, "d/dt(\\1)",
+                              gsub(rex::rex(start, regThEt, end), "\\1[\\2]", names)))));
+    n2 <- gsub(rex::rex("rx_SymPy_Res_"), "", n2)
     n2[n2 == "time"] <- "t";
     n2 <- gsub(rex::rex("__DoT__"), ".", n2)
     symbol.list <- setNames(as.list(n2), n1);

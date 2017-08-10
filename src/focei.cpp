@@ -21,6 +21,7 @@ extern "C" double RxODE_safe_zero(double x);
 extern "C" double RxODE_safe_log(double x);
 extern "C" double RxODE_sign_exp(double sgn, double x);
 extern "C" double RxODE_abs_log(double x);
+void rxDetaDomega(SEXP rho);
 //' Invert matrix using Rcpp Armadilo.  
 //'
 //' @param matrix matrix to be inverted.
@@ -360,6 +361,8 @@ NumericVector RxODE_focei_finalize_llik(SEXP rho){
     ret.attr("c.hess") = as<NumericVector>(e["c.hess"]);
   }
   ret.attr("corrected") = as<NumericVector>(e["corrected"]);
+  rxDetaDomega(e);
+  ret.attr("omega.28") = as<NumericVector>(e["omega.28"]);
   // ret.attr("llik2") = as<NumericVector>(e["llik2"]);
   // ret.attr("log.det.OMGAinv.5") = as<NumericVector>(e["log.det.OMGAinv.5"]);
   // ret.attr("log.det.H.neg.5") = as<NumericVector>(e["log.det.H.neg.5"]);
