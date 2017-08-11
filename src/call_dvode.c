@@ -488,7 +488,7 @@ void RxODE_ode_solver_c(int neq, int stiff, int *evid, double *inits, double *do
   }
 }
 
-void RxODE_ode_solver_old_c(int *neq,
+void RxODE_ode_solver_old_c(int *neqa,
                             double *theta,  //order:
                             double *time,
                             int *evidp,
@@ -498,20 +498,28 @@ void RxODE_ode_solver_old_c(int *neq,
                             double *ret,
                             double *atol,
                             double *rtol,
-                            int *stiff,
+                            int *stiffa,
                             int *transit_abs,
-                            int *nlhs,
+                            int *nlhsa,
                             double *lhsp,
                             int *rc){
-  if (*neq > NCMT){
+  if (*neqa > NCMT){
     error("RxODE does not support %d compartments (Currently only %d compartments)", neq, NCMT);
   }
   int i;
-  for (i=0; i< *neq; i++) InfusionRate[i] = 0.0;
+  for (i=0; i< *neqa; i++) InfusionRate[i] = 0.0;
+  ndoses = -1;
+  all_times         = time;
+  n_all_times       = *ntime;
+  //RxODE_ode_dosing_ = RxODE_ode_get_dosing();
+  // par_cov
+  do_par_cov        = 0;
+  // cov_ptr
+  ncov              = 0;
+  is_locf           = 0;
+  // Solver Options
   ATOL = *atol;
   RTOL = *rtol;
-  do_transit_abs = *transit_abs;
-  par_ptr = theta;
   // Assign to default LSODA behvior, or 0
   HMIN           = 0;
   HMAX           = 0;
@@ -519,26 +527,38 @@ void RxODE_ode_solver_old_c(int *neq,
   MXORDN         = 0;
   MXORDS         = 0;
   mxstep         = 0;
+  // Counters
   slvr_counter   = 0;
   dadt_counter   = 0;
   jac_counter    = 0;
+
+  nlhs           = *nlhsa;
+  neq            = *neqa;
+  stiff          = *stiffa;
+  
+  
+
+  nBadDose = 0;
+  do_transit_abs = *transit_abs;
+  
+  par_ptr = theta;
+  inits   = initsp;
+  dose    = dosep;
+  solve   = ret;
+  lhs     = lhsp;
+  evid    = evidp;
+
   // Assign global time information
-  all_times     = time;
-  n_all_times   = *ntime;
   // Call solver
-  evid=evidp;
-  inits=initsp;
-  dose=dosep;
-  solve=ret;
-  lhs=lhsp;
-  do_par_cov    = 0;
+  
+  
   /* Rprintf("Call Solver; par_ptr[0] = %f; evid[0]=%d; inits[0]=%d\n",par_ptr[0],evid[0],inits[0]); */
-  RxODE_ode_solver_c(*neq, *stiff, evid, inits, dose, solve, rc);
+  RxODE_ode_solver_c(*neqa, *stiffa, evidp, initsp, dosep, ret, rc);
   /* Rprintf("Update LHS\n"); */
   // Update LHS
-  if (*nlhs) {
+  if (*nlhsa) {
     for (i=0; i<*ntime; i++){
-      calc_lhs(time[i], ret+i*(*neq), lhs+i*(*nlhs));
+      calc_lhs(time[i], ret+i*(*neqa), lhsp+i*(*nlhsa));
     }
   }
 }
