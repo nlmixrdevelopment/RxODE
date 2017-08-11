@@ -244,4 +244,25 @@ rxPermissive({
     ## The numerical values may not be right from NumDeriv either
     ## gr2.calc <- attr(ret2, "grad")
 
+    ## now try  Rik's exmaple
+    rx <- RxODE({
+        d/dt(abs)    = -KA*abs;
+        d/dt(centr)  =  KA*abs-(Cl/Vc)*centr;
+        ## Concentration is calculated
+        cp = centr / Vc;
+    })
+
+    pk <- function(){
+        Cl <- exp(THETA[1] + eta[1])
+        Vc <- exp(THETA[2] + eta[2])
+        KA <- exp(THETA[3] + eta[3])
+    }
+    pred <- function() cp
+
+    m <- rxSymPySetupPred(rx, pred, pk)
+    test_that("1, 2 and 3 parameter Pred Setup works", {
+        expect_equal(class(m), "rxFocei")
+    })
+
+
 }, silent=TRUE, on.validate=TRUE)
