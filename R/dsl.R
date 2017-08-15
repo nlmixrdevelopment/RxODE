@@ -20,6 +20,7 @@ regDfDyTh <- rex::rex(start, "rx__df_", capture(anything), "_dy_", regThEt, "__"
 regEta <- rex::rex(start, "ETA[", capture("1":"9", any_of("0":"9")), "]")
 regTheta <- rex::rex(start, "THETA[", capture("1":"9", any_of("0":"9")), "]")
 regJac <- rex::rex( "df(", capture(regIdentifier), ")/dy(",  capture(or(regIdentifier, group(or("THETA[", "ETA["), "1":"9", any_of("0":"9"), "]"))), ")");
+regRate <- rex::rex(start, "rx__rate_", capture(anything), "__");
 known.print <- c('printf', 'Rprintf', 'print',
                  'jac_printf', 'jac_Rprintf', 'jac_print',
                  'ode_printf', 'ode_Rprintf', 'ode_print',
@@ -210,6 +211,10 @@ for (p in known.print){
 
 rxSymPyFEnv$dt <- function(e1){
     paste0("__dt__", e1, "__");
+}
+
+rxSymPyFEnv$rate <- function(e1){
+    paste0("rx__rate_", e1, "__");
 }
 
 rxSymPyFEnv$df <- function(e1){
@@ -642,7 +647,9 @@ rxEnv <- function(expr){
                     gsub(regDfDyTh, "df(\\1)/dy(\\2[\\3])",
                          gsub(regDDt, "d/dt(\\1)",
                               gsub(rex::rex(start, regThEt, end), "\\1[\\2]", names)))));
+    n2 <- gsub(regRate, "rate(\\1)", n2);
     n2 <- gsub(rex::rex("rx_SymPy_Res_"), "", n2)
+
     n2[n2 == "time"] <- "t";
     n2 <- gsub(rex::rex("__DoT__"), ".", n2)
     symbol.list <- setNames(as.list(n2), n1);

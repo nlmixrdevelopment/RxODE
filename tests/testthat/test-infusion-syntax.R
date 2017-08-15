@@ -41,4 +41,12 @@ rxPermissive({
             d/dt(Z) = -X*Y + c*Y - Z + rate(X);
         }))})
 
-}, silent=TRUE)
+    ## Now test DSL handling
+    test_that("rate(Y) translates to python/sympy correctly.", {
+        expect_equal(structure("rx__d_dt_depot__ = rx__rate_depot__ - ka * depot", .Names = "rx__d_dt_depot__"),
+                     rxToSymPy("d/dt(depot)=rate(depot)-ka*depot"));
+        expect_equal(structure("d/dt(depot) = rate(depot) - ka * depot", .Names = "d/dt(depot)"),
+                     rxFromSymPy("rx__d_dt_depot__ = rx__rate_depot__ - ka * depot"))
+    })
+
+}, silent=TRUE, on.validate=TRUE);
