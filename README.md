@@ -9,7 +9,7 @@
 ## RxODE: A tool for performing simulations from Ordinary Differential Equation (ODE) models, with applications for pharmacometrics
 ***  
 
-##### Authors: Melissa Hallow, Wenping Wang, and Matthew L. Fidler
+##### Authors: Matthew L. Fidler, Melissa Hallow and Wenping Wang
 
 ***
 
