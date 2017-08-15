@@ -28,3 +28,4 @@ c("a * exp(b + c)", "d * log(e - f)", "- g * f")
 \author{
 Matthew L. Fidler
 }
+\keyword{internal}

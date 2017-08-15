@@ -19,18 +19,22 @@ rxHessian <- function(rho) {
     invisible(.Call(`_RxODE_rxHessian`, rho))
 }
 
+#' @export
 RxODE_focei_eta_lik <- function(sexp_eta, sexp_rho) {
     .Call(`_RxODE_RxODE_focei_eta_lik`, sexp_eta, sexp_rho)
 }
 
+#' @export
 RxODE_focei_eta_lp <- function(sexp_eta, sexp_rho) {
     .Call(`_RxODE_RxODE_focei_eta_lp`, sexp_eta, sexp_rho)
 }
 
+#' @export
 RxODE_focei_eta <- function(fstr) {
     .Call(`_RxODE_RxODE_focei_eta`, fstr)
 }
 
+#' @export
 RxODE_focei_finalize_llik <- function(rho) {
     .Call(`_RxODE_RxODE_focei_finalize_llik`, rho)
 }

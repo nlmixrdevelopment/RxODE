@@ -34,6 +34,7 @@
 #include <stdint.h>
 #endif
 
+
 char *repl_str(const char *str, const char *from, const char *to) {
   // From http://creativeandcritical.net/str-replace-c by Laird Shaw
   /* Adjust each of the below values to suit your needs. */
@@ -209,6 +210,7 @@ char s_aux_info[64*MXSYM];
 typedef struct symtab {
   char ss[64*MXSYM];                     /* symbol string: all vars*/
   char de[64*MXSYM];             /* symbol string: all Des*/
+  char ddt[MXSYM];
   int deo[MXSYM];        /* offest of des */
   int vo[MXSYM];        /* offset of symbols */
   int lh[MXSYM];        /* lhs symbols? =9 if a state var*/
@@ -450,8 +452,10 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       }
       if (!strcmp("derivative", name) && i< 2) continue;
       if (!strcmp("der_rhs", name)    && i< 2) continue;
+      if (!strcmp("inf_rhs", name)    && i< 2) continue;
       if (!strcmp("derivative", name) && i==3) continue;
       if (!strcmp("der_rhs", name)    && i==3) continue;
+      if (!strcmp("inf_rhs", name)    && i==3) continue;
       if (!strcmp("derivative", name) && i==4) continue;
       
       if (!strcmp("jac", name)     && i< 2)   continue;
@@ -787,6 +791,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         /* sprintf(sb.s, "__DDtStateVar__[%d] = InfusionRate(%d) +", tb.nd, tb.nd); */
         /* sb.o = strlen(sb.s); */
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+        sprintf(tb.ddt, "%s",v);
         if (new_de(v)){
           sprintf(sb.s, "__DDtStateVar__[%d] = _InfusionRate(%d) + ", tb.nd, tb.nd);
           sb.o = strlen(sb.s);
@@ -829,6 +834,28 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         continue;
       }
 
+      if (!strcmp("inf_rhs", name)) {
+        char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+        if (new_de(v)){
+          sprintf(buf,"Tried to use rate(%s) before d/dt(%s) was defined",v,v);
+          trans_syntax_error_report_fn(buf);
+        } else {
+	  if (strcmp(tb.ddt, v)){
+	    sprintf(SBPTR, "_InfusionRate(%d)", tb.id);
+            sb.o = strlen(sb.s);
+            sprintf(SBTPTR, "rate(%s)", v);
+            sbt.o = strlen(sbt.s);
+          } else {
+	    sprintf(SBPTR, "0.0");
+            sb.o = strlen(sb.s);
+            sprintf(SBTPTR, "0.0");
+            sbt.o = strlen(sbt.s);
+	  }
+        }
+        Free(v);
+        continue;
+      }
+
       if (!strcmp("ini0f", name) && rx_syntax_allow_ini && i == 0){
 	sprintf(sb.s,"(__0f__)");
 	sb.o = 8;
@@ -842,6 +869,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 
       if ((!strcmp("assignment", name) || !strcmp("ini", name) || !strcmp("ini0", name)) && i==0) {
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+	tb.ddt[0]='\0';
         if ((rx_syntax_allow_ini && !strcmp("ini", name)) || !strcmp("ini0", name)){
           sprintf(sb.s,"(__0__)");
           sb.o = 7;
@@ -954,7 +982,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
     }
 
   }
-
 }
 
 void retieve_var(int i, char *buf) {

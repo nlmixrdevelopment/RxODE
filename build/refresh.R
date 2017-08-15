@@ -122,25 +122,25 @@ sink(devtools::package_file("src/tran.g.d_parser.c"))
 cat(paste(file,collapse="\n"));
 sink();
 unlink(devtools::package_file("src/tran.o"))
-sink(devtools::package_file("R/version.R"))
-cat("##\' Version and repository for this dparser package.
-##\'
-##\' @return A character vector with the version and repository.
-##\' @author Matthew L. Fidler
-##\' @keywords internal
-##\' @export
-rxVersion <- function(){return(c(version=\"");
-ver <- readLines(devtools::package_file("DESCRIPTION"));
-ver <- ver[regexpr("^Version:", ver) != -1]
-ver <- ver[1];
-cat(gsub("Version: +", "", ver))
-cat("\",repo=\"");
-cat("https://github.com/")
-tmp <- readLines(devtools::package_file(".git/config"))
-cat(gsub("\\.git$", "", gsub(".*git@github.com:", "", tmp[which(tmp == '[remote "origin"]')[1]+1])))
-cat("\"))}\n");
-sink();
-## devtools::load_all();
+## sink(devtools::package_file("R/version.R"))
+## cat("##\' Version and repository for this dparser package.
+## ##\'
+## ##\' @return A character vector with the version and repository.
+## ##\' @author Matthew L. Fidler
+## ##\' @keywords internal
+## ##\' @export
+## rxVersion <- function(){return(c(version=\"");
+## ver <- readLines(devtools::package_file("DESCRIPTION"));
+## ver <- ver[regexpr("^Version:", ver) != -1]
+## ver <- ver[1];
+## cat(gsub("Version: +", "", ver))
+## cat("\",repo=\"");
+## cat("https://github.com/")
+## tmp <- readLines(devtools::package_file(".git/config"))
+## cat(gsub("\\.git$", "", gsub(".*git@github.com:", "", tmp[which(tmp == '[remote "origin"]')[1]+1])))
+## cat("\"))}\n");
+## sink();
+## ## devtools::load_all();
 
 cat("Update README\n");
 owd <- getwd();

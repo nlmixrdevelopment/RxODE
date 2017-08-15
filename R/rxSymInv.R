@@ -489,7 +489,8 @@ rxSymInv <- function(invobj, theta, pow=0, dTheta=0){
     }
 }
 
-
+##' @export
+##' @keywords intenral
 rxBlockZeros <- function(mat, i){
     return(!((row(mat) > i & col(mat) > i) | (row(mat) <= i & col(mat) <= i)))
 }

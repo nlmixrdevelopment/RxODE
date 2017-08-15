@@ -1,3 +1,11 @@
+rxode.logo <- " _____         ____  _____  ______
+ |  __ \\       / __ \\|  __ \\|  ____| %s
+ | |__) |__  _| |  | | |  | | |__
+ |  _  / \\ \\/ / |  | | |  | |  __|
+ | | \\ \\  >  <| |__| | |__| | |____
+ |_|  \\_\\/_/\\_\\\\____/|_____/|______|
+"
+
 ##' Version and repository for this dparser package.
 ##'
 ##' @return A character vector with the version and repository.

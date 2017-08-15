@@ -12,13 +12,12 @@ RxODE(model, modName = basename(wd), wd = ifelse(RxODE.cache.directory ==
 \arguments{
 \item{model}{This is the ODE model specification.  It can be:
 \itemize{
-
  \item a string containing the set of ordinary differential
     equations (ODE) and other expressions defining the changes in
     the dynamic system.
  \item a file name where the ODE system equation is contained
  \item An ODE expression enclosed in \code{\{\}}
-}
+  }
 
 (see also the \code{filename} argument). For
     details, see the sections \dQuote{Details} and

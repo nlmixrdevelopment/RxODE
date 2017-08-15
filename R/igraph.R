@@ -12,7 +12,7 @@ RxODE.quoteVar <- function(var, word = TRUE){
     return(ret);
 }
 
-
+##'@export
 igraph <- function(obj, ...){
     ## In case anyone else wants to use the method...
     UseMethod("igraph");
@@ -688,6 +688,7 @@ nodeInfo <- function(x,       # RxODE normalized model
                 biList   = biList));
 } # end function nodeInfo
 
+##' @export
 igraph.rxDll <- function(x,                                   #  object
                          shape      = c("square", "circle", "csquare", "rectangle", "crectangle", "vrectangle", "sphere", "none"),
                          size       = 30,                     # Size of square

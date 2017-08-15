@@ -298,6 +298,7 @@ void rxInner2(SEXP sexp_eta, SEXP sexp_rho){
   }
 }
 
+//' @export
 // [[Rcpp::export]]
 NumericVector RxODE_focei_eta_lik(SEXP sexp_eta, SEXP sexp_rho){
   rxInner2(sexp_eta, sexp_rho);
@@ -305,7 +306,7 @@ NumericVector RxODE_focei_eta_lik(SEXP sexp_eta, SEXP sexp_rho){
   NumericVector ret = as<NumericVector>(wrap(e["llik2"]));
   return ret;
 }
-
+//' @export
 // [[Rcpp::export]]
 NumericVector RxODE_focei_eta_lp(SEXP sexp_eta, SEXP sexp_rho){
   rxInner2(sexp_eta, sexp_rho);
@@ -313,7 +314,7 @@ NumericVector RxODE_focei_eta_lp(SEXP sexp_eta, SEXP sexp_rho){
   NumericVector ret = as<NumericVector>(wrap(e["ep2"]));
   return ret;
 }
-
+//' @export
 // [[Rcpp::export]]
 XPtr<rxFn2> RxODE_focei_eta(std::string fstr){
   if (fstr == "lik")
@@ -323,7 +324,7 @@ XPtr<rxFn2> RxODE_focei_eta(std::string fstr){
   else 
     return XPtr<rxFn2>(R_NilValue); // runtime error as NULL no XPtr
 }
-
+//' @export
 // [[Rcpp::export]]
 NumericVector RxODE_focei_finalize_llik(SEXP rho){
   rxHessian(rho);
