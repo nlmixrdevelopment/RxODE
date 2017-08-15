@@ -350,6 +350,7 @@ rxSymPyVars <- function(model){
     } else {
         vars <- c(rxParams(model),
                   rxState(model),
+                  sprintf("rate(%s)", rxState(model)),
                   "podo", "t", "time", "tlast");
     }
     vars <- sapply(vars, function(x){return(rxToSymPy(x))});
@@ -824,7 +825,7 @@ rxSymPySensitivity <- function(model, calcSens, calcJac=FALSE, keepState=NULL,
             for (v in rxState(model)){
                 tmp <- rxSymPy(rxToSymPy(sprintf("d/dt(%s)", v)));
                 tmp <- rxFromSymPy(tmp);
-                extraLines[length(extraLines) + 1] <- sprintf("d/dt(%s)=%s", v, tmp);
+                extraLines[length(extraLines) + 1] <- sprintf("d/dt(%s)=rate(%s)+%s", v, v, tmp);
                 ini <- sprintf("%s(0)", v);
                 ini <- rxToSymPy(ini)
                 tmp <- try({rxSymPy(ini)}, silent=TRUE);
@@ -860,7 +861,7 @@ rxSymPySensitivity <- function(model, calcSens, calcJac=FALSE, keepState=NULL,
                 for (v in rxState(model)){
                     tmp <- rxSymPy(rxToSymPy(sprintf("d/dt(%s)", v)));
                     tmp <- rxFromSymPy(tmp);
-                    tmpl[length(tmpl) + 1] <- sprintf("d/dt(%s)=%s", v, tmp);
+                    tmpl[length(tmpl) + 1] <- sprintf("d/dt(%s)=rate(%s)+%s", v, v, tmp);
                 }
                 for (v in rxLhs(model)){
                     tmp <- rxSymPy(rxToSymPy(sprintf("%s", v)));
@@ -1310,7 +1311,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                 return(paste(lines, collapse="\n"));
             }), collapse="\n");
             if (!one.pred){
-                cat(pred, "\n");
+                rxCat(pred, "\n");
                 stop("At least some part of your prediction function needs to depend on the state variables.")
             }
             if (some.pred){

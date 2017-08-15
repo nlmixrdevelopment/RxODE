@@ -848,7 +848,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
           } else {
 	    sprintf(SBPTR, "0.0");
             sb.o = strlen(sb.s);
-            sprintf(SBTPTR, "0.0");
+            sprintf(SBTPTR, "rate(%s)", v);
             sbt.o = strlen(sbt.s);
 	  }
         }
