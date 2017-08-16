@@ -1,4 +1,4 @@
-rxFoceiEtaSetup <- function(object, ..., dv, eta, theta, nonmem=FALSE, inv.env=parent.frame(1), id= -1,
+rxFoceiEtaSetup <- function(object, ..., dv, eta, theta, nonmem=FALSE, table=TRUE, inv.env=parent.frame(1), id= -1,
                             inits.vec=NULL, atol.outer=1e-8, rtol.outer=1e-6,
                             switch.solver=FALSE, pred.minus.dv=TRUE){
     args <- list(object=object, ..., eta=eta, theta=theta);
@@ -16,6 +16,7 @@ rxFoceiEtaSetup <- function(object, ..., dv, eta, theta, nonmem=FALSE, inv.env=p
             tmp$eta.trans <- eta.trans;
         }
         setup$nonmem <- as.integer(nonmem)
+        setup$table <- as.integer(table)
         setup$DV <- as.double(dv);
         setup$eta.trans <- as.integer(eta.trans);
         setup$object <- object;
@@ -129,7 +130,8 @@ rxFoceiLp <- function(object, ..., dv, eta){
 ##' @inheritParams rxFoceiEta
 ##' @keywords internal
 ##' @export
-rxFoceiGrad <- function(object, ret, ..., theta, eta=NULL, dv){
+rxFoceiGrad <- function(object, ret, ..., theta, eta=NULL, dv,
+                        numDeriv.method="Richardson"){
     grad <- attr(ret,"grad");
     if (!is.null(grad)){
         return(grad);
@@ -171,7 +173,7 @@ rxFoceiGrad <- function(object, ret, ..., theta, eta=NULL, dv){
         }
         H <- fun(new.theta)
         Hinv <- rxInv(matrix(H, length(args$eta)));
-        jac <- numDeriv::jacobian(fun, new.theta);
+        jac <- numDeriv::jacobian(fun, new.theta, method=numDeriv.method);
         gr <- sapply(seq_along(env$lp), function(x){
             return(-env$lp[x] - 0.5 * sum(diag(Hinv %*% matrix(jac[, x], length(args$eta)))))
         })
@@ -207,7 +209,7 @@ rxFoceiGrad <- function(object, ret, ..., theta, eta=NULL, dv){
             args$theta <- c(theta, rest.theta);
             ret <- do.call(getFromNamespace("rxFoceiInner","RxODE"), args)
         }
-        gr <- c(numDeriv::grad(func, new.theta), attr(ret, "omega.28"))
+        gr <- c(numDeriv::grad(func, new.theta, method=numDeriv.method), attr(ret, "omega.28"))
         if (any(names(args) == "inits.vec")){
             gr <- gr / args$inits.vec;
         }

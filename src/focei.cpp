@@ -182,6 +182,7 @@ void rxInner(SEXP etanews, SEXP rho){
     List dOmega = as<List>(e["dOmega"]);
     NumericVector DV = as<NumericVector>(e["DV"]);
     int do_nonmem = as<int>(e["nonmem"]);
+    int do_table = as<int>(e["table"]);
   
     unsigned int nomega = (unsigned int)(dOmega.size());
   
@@ -288,34 +289,35 @@ void rxInner(SEXP etanews, SEXP rho){
     llik2[0] = llikm(0, 0);
 
     mat ep2 = -(lp - omegaInv * etam);
-
-    mat omega = as<mat>(e["omega"]);
-    mat Vfo_full = (fpm * omega * fpm.t()); // From Mentre 2006 p. 352
-    // There seems to be a difference between how NONMEM and R/S types
-    // of software calculate WRES.  Mentre 2006 states that the
-    // Variance under the FO condition should only be diag(Vfo_full) + Sigma,
-    // but Hooker 2007 claims there is a
-    // diag(Vfo_full)+diag(dh/deta*Sigma*dh/deta).
-    // h = the additional error from the predicted function.
-    //
-    // In the nlmixr/FOCEi implemented here, the variance of the err
-    // term is 1, or Sigma is a 1 by 1 matrix with one element (1)
-    //
-    // The dh/deta term would be the sd term, or sqrt(r), which means
-    // sqrt(r)*sqrt(r)=|r|.  Since r is positive, this would be r.
-    //
-    // Also according to Hooker, WRES is calculated under the FO
-    // assumption, where eta=0, eps=0 for this r term and Vfo term.
-    // However, conditional weighted residuals are calculated under
-    // the FOCE condition for the Vfo and the FO conditions for
-    // dh/deta
-    //
-    // The Vfo calculation is separated out so it can be used in CWRES and WRES.
+    if (do_table){
+      mat omega = as<mat>(e["omega"]);
+      mat Vfo_full = (fpm * omega * fpm.t()); // From Mentre 2006 p. 352
+      // There seems to be a difference between how NONMEM and R/S types
+      // of software calculate WRES.  Mentre 2006 states that the
+      // Variance under the FO condition should only be diag(Vfo_full) + Sigma,
+      // but Hooker 2007 claims there is a
+      // diag(Vfo_full)+diag(dh/deta*Sigma*dh/deta).
+      // h = the additional error from the predicted function.
+      //
+      // In the nlmixr/FOCEi implemented here, the variance of the err
+      // term is 1, or Sigma is a 1 by 1 matrix with one element (1)
+      //
+      // The dh/deta term would be the sd term, or sqrt(r), which means
+      // sqrt(r)*sqrt(r)=|r|.  Since r is positive, this would be r.
+      //
+      // Also according to Hooker, WRES is calculated under the FO
+      // assumption, where eta=0, eps=0 for this r term and Vfo term.
+      // However, conditional weighted residuals are calculated under
+      // the FOCE condition for the Vfo and the FO conditions for
+      // dh/deta
+      //
+      // The Vfo calculation is separated out so it can be used in CWRES and WRES.
     
-    mat Vfo = Vfo_full.diag();
-    mat dErr_dEta = fpm * etam;
-    e["Vfo"] = wrap(Vfo);
-    e["dErr_dEta"] = wrap(dErr_dEta);
+      mat Vfo = Vfo_full.diag();
+      mat dErr_dEta = fpm * etam;
+      e["Vfo"] = wrap(Vfo);
+      e["dErr_dEta"] = wrap(dErr_dEta);
+    }
     
     // Assign in env
     e["err"] = err;
@@ -446,17 +448,22 @@ NumericVector RxODE_focei_finalize_llik(SEXP rho){
   vec ldiag = log(diag);
   e["log.det.H.neg.5"]= wrap(sum(ldiag));
   NumericVector ret = -as<NumericVector>(e["llik2"])+ as<NumericVector>(e["log.det.OMGAinv.5"])-as<NumericVector>(e["log.det.H.neg.5"]);
-  ret.attr("fitted") = as<NumericVector>(e["f"]);
-  ret.attr("Vi") = as<NumericVector>(e["R"]); // Sigma
-  ret.attr("Vfo") = as<NumericVector>(e["Vfo"]); // FO Variance (See Mentre 2006) Prediction Discrepancies for the Evaluation of Nonlinear Mixed-Effects Models
-  ret.attr("dErr_dEta") = as<NumericVector>(e["dErr_dEta"]);
+  int do_table = as<int>(e["table"]);
+  if (do_table){
+    ret.attr("fitted") = as<NumericVector>(e["f"]);
+    ret.attr("Vi") = as<NumericVector>(e["R"]); // Sigma
+    ret.attr("Vfo") = as<NumericVector>(e["Vfo"]); // FO Variance (See Mentre 2006) Prediction Discrepancies for the Evaluation of Nonlinear Mixed-Effects Models
+    ret.attr("dErr_dEta") = as<NumericVector>(e["dErr_dEta"]);
+  }
   ret.attr("posthoc") = as<NumericVector>(e["eta"]);
   if (e.exists("c.hess")){
     ret.attr("c.hess") = as<NumericVector>(e["c.hess"]);
   }
   ret.attr("corrected") = as<NumericVector>(e["corrected"]);
   rxDetaDomega(e);
-  ret.attr("omega.28") = as<NumericVector>(e["omega.28"]);
+  if (!do_table){
+    ret.attr("omega.28") = as<NumericVector>(e["omega.28"]);
+  }
   // ret.attr("llik2") = as<NumericVector>(e["llik2"]);
   // ret.attr("log.det.OMGAinv.5") = as<NumericVector>(e["log.det.OMGAinv.5"]);
   // ret.attr("log.det.H.neg.5") = as<NumericVector>(e["log.det.H.neg.5"]);
@@ -886,15 +893,17 @@ void rxOuter_ (SEXP rho){
   }
   /* llik = -.5*sum(eps^2/(f^2*sig2) + log(f^2*sig2)) - .5*t(ETA) %*% OMGAinv %*% ETA */
 
-  mat omega = as<mat>(e["omega"]);
-  mat Vfo_full = (fpm * omega * fpm.t()); // From Mentre 2006 p. 352
-  mat Vfo = Vfo_full.diag();
-  mat etam = as<mat>(e["eta.mat"]);
-  mat dErr_dEta = fpm * etam;
-  mat dR_dEta = rp * etam;
-
-  e["Vfo"] = wrap(Vfo);
-  e["dErr_dEta"] = wrap(dErr_dEta);
+  int do_table = as<int>(e["table"]);
+  if (do_table){
+    mat omega = as<mat>(e["omega"]);
+    mat Vfo_full = (fpm * omega * fpm.t()); // From Mentre 2006 p. 352
+    mat Vfo = Vfo_full.diag();
+    mat etam = as<mat>(e["eta.mat"]);
+    mat dErr_dEta = fpm * etam;
+    mat dR_dEta = rp * etam;
+    e["Vfo"] = wrap(Vfo);
+    e["dErr_dEta"] = wrap(dErr_dEta);
+  }
   
   e["f"] = f;
   e["err"] = err;
@@ -1170,12 +1179,15 @@ void rxDetaDtheta(SEXP rho){
     ret.attr("dEta.dTheta") = as<NumericVector>(wrap(DnDt));
     mat omega = as<mat>(e["omega"]);
     mat fpm = as<mat>(e["dErr"]);
-    mat Vfo_full = (fpm * omega * fpm.t()); // From Mentre 2006 p. 352
-    mat Vfo = Vfo_full.diag();
-    mat dErr_dEta = fpm * etam;
-    ret.attr("Vfo") = wrap(Vfo);
-    ret.attr("dErr_dEta") = wrap(dErr_dEta);
-    ret.attr("Vi") = as<NumericVector>(e["R"]); // Sigma
+    int do_table = as<int>(e["table"]);
+    if (do_table){
+      mat Vfo_full = (fpm * omega * fpm.t()); // From Mentre 2006 p. 352
+      mat Vfo = Vfo_full.diag();
+      mat dErr_dEta = fpm * etam;
+      ret.attr("Vfo") = wrap(Vfo);
+      ret.attr("dErr_dEta") = wrap(dErr_dEta);
+      ret.attr("Vi") = as<NumericVector>(e["R"]); // Sigma
+    }
     ret.attr("corrected") = as<NumericVector>(e["corrected"]);
     e["ret"] = ret;
   } else {

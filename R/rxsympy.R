@@ -1163,11 +1163,11 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
         if (!run.internal && !grad.internal && !theta.internal){
             rfile <- tempfile(fileext=".R")
             dta <- tempfile(fileext=".rdata")
-            save(obj, predfn, pkpars, errfn, init, grad, logify, pred.minus.dv, file=dta);
+            save(obj, predfn, pkpars, errfn, init, grad, logify, pred.minus.dv, theta.derivs, file=dta);
             ## on.exit({unlink(dta); unlink(rfile)});
             tmp <- options();
             tmp <- tmp[regexpr(rex::rex(start, "RxODE."), names(tmp)) != -1];
-            rf <- sprintf("%s;options(RxODE.delete.unnamed=FALSE);load(%s); require(RxODE);tmp <- rxSymPySetupPred(obj, predfn, pkpars, errfn, init, grad, logify, pred.minus.dv, run.internal=TRUE);",
+            rf <- sprintf("%s;options(RxODE.delete.unnamed=FALSE);load(%s); require(RxODE);tmp <- rxSymPySetupPred(obj, predfn, pkpars, errfn, init, grad, logify, pred.minus.dv, theta.derivs, run.internal=TRUE);",
                           sub("options\\(\\)", "", sub(rex::rex(",", any_spaces, ".Names", anything,end),"",sub(rex::rex(start,"structure(list("),"options(",paste0(deparse(tmp),collapse="")))),
                           deparse(dta));
             rf <- gsub("^;", "", rf)
