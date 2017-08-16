@@ -42,6 +42,99 @@ NumericVector rxInv(SEXP matrix){
   return(ret);
 }
 
+//' @export
+// [[Rcpp::export]]
+void rxGrad(SEXP rho){
+  Environment e = as<Environment>(rho);
+  mat err = mat(nObs(),1);
+  mat r = mat(nObs(),1);
+  int prd = as<int>(e["pred.minus.dv"]);
+  // unsigned int neta = as<unsigned int>(e["neta"]);
+  unsigned int ntheta = as<unsigned int>(e["ntheta"]);
+  NumericVector DV = as<NumericVector>(e["DV"]);
+  NumericVector f(nObs());
+  mat fpm = mat(nObs(), ntheta);
+  mat rp = mat(nObs(),ntheta);
+  mat lp = mat(ntheta,1);
+  mat B = mat(nObs(),1);
+  List c(ntheta);
+  // List a(ntheta);
+  mat cur;
+  // int do_nonmem = as<int>(e["nonmem"]);
+  unsigned int i = 0, j = 0, k = 0;
+  RxODE_ode_solve_env(rho);
+  for (i = 0; i < ntheta; i++){
+    lp[i] = 0;
+    // a[i] = mat(nObs(),1);
+    c[i] = mat(nObs(),1);
+  }
+  for (i = 0; i < nAllTimes(); i++){
+    if (!rxEvid(i)){
+      // Rprintf("%d:\n",i);
+      // Rprintf("F\n");
+      rxCalcLhs(i);
+      f[k] = rxLhs(0); // Pred
+      if (prd == 1){
+        err(k, 0) =  f[k] - DV[k];
+      } else {
+        err(k, 0) =  DV[k] - f[k];
+      }
+      // Rprintf("dpred\n");
+      // d(pred)/d(theta#)
+      for (j = 1; j < ntheta+1; j++){
+	fpm(k, j-1) = rxLhs(j);
+	// cur = as<mat>(a[j-1]);
+        // if (do_nonmem){
+        //   cur(k,0) =  rxLhs(j);
+        // } else {
+        //   cur(k,0) = rxLhs(j)-err(k, 0)/RxODE_safe_zero(rxLhs(neta+1))*rxLhs(j+neta+1);
+        // }
+        // a[j-1]=cur;
+      }
+      // R
+      // Rprintf("R\n");
+      if (rxLhs(j) < 0){
+	Rprintf("R term is %d\n",j);
+	for (j = 0; j < nLhs(); j++){
+	  Rprintf("rxLhs(%d) = %f\n", j, rxLhs(j));
+	}
+	Rprintf("\n");
+	// temp = getAttrib(sexp_theta, R_NamesSymbol);
+	// for (j = 0; j < length(sexp_theta); j++){
+	//   Rprintf("params[%d] = %f\n", j, par_ptr[j]);
+	// }
+	RxODE_ode_free();
+	stop("A covariance term is zero or negative and should remain positive");
+      }
+      r(k, 0)=rxLhs(j); // R always has to be positive.
+      B(k, 0)=2/rxLhs(j);
+      // Rprintf("dR\n");
+      for (j=ntheta+2; j < nLhs(); j++){
+	rp(k,j-ntheta-2) = rxLhs(j);
+	cur = as<mat>(c[j-ntheta-2]);
+	cur(k,0) = rxLhs(j)/RxODE_safe_zero(r(k, 0));
+	c[j-ntheta-2] = cur;
+      }
+      for (j = 0; j < ntheta; j++){
+	// .5*apply(eps*fp*B + .5*eps^2*B*c - c, 2, sum) - OMGAinv %*% ETA
+	// Rprintf("lp[%d] ",j);
+	cur = as<mat>(c[j]);
+	lp[j] += 0.25 * err(k, 0) * err(k, 0) * B(k, 0) * cur(k,0) -
+	  0.5 * cur(k,0) - 0.5 * err(k, 0)* fpm(k, j) * B(k, 0);
+      }
+      // Rprintf("done\n");
+      k++;
+    }
+  }
+  // Free
+  RxODE_ode_free();
+  e["err"] = err;
+  e["f"] = f;
+  e["dErr"] = fpm;
+  e["dR"] = rp;
+  e["R"] = r;
+  e["lp"] = -lp;
+}
 // [[Rcpp::export]]
 void rxInner(SEXP etanews, SEXP rho){
   Environment e = as<Environment>(rho);

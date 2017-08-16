@@ -5,7 +5,8 @@
 \title{Solve the FOCEI inner problem}
 \usage{
 rxFoceiInner(object, ..., dv, eta, c.hess = NULL, eta.bak = NULL,
-  estimate = TRUE, inner.opt = c("n1qn1", "lbfgs"))
+  estimate = TRUE, inner.opt = c("n1qn1", "lbfgs"), return.env = FALSE,
+  add.grad = FALSE)
 }
 \arguments{
 \item{object}{RxODE object}
@@ -25,6 +26,10 @@ perfomed(TRUE), or just keep the eta, and calculate the Loglik
 with fitted/posthoc attributes(FALSE).}
 
 \item{inner.opt}{Inner optimization method; Either n1qn1 or lbfgs}
+
+\item{return.env}{Return the environment instead of the llik.}
+
+\item{add.grad}{Add A gradient attribute, if not present.}
 }
 \value{
 Loglik with fitted and posthoc attributes

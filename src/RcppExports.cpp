@@ -19,6 +19,16 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// rxGrad
+void rxGrad(SEXP rho);
+RcppExport SEXP _RxODE_rxGrad(SEXP rhoSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type rho(rhoSEXP);
+    rxGrad(rho);
+    return R_NilValue;
+END_RCPP
+}
 // rxInner
 void rxInner(SEXP etanews, SEXP rho);
 RcppExport SEXP _RxODE_rxInner(SEXP etanewsSEXP, SEXP rhoSEXP) {

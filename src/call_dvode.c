@@ -1078,6 +1078,7 @@ double RxODE_factorial(double x){
   return exp(lgamma1p(x));
 }
 
+SEXP _RxODE_rxGrad(SEXP rhoSEXP);
 SEXP _RxODE_rxInner(SEXP etanewsSEXP, SEXP rhoSEXP);
 SEXP _RxODE_rxHessian(SEXP rhoSEXP);
 SEXP _RxODE_RxODE_focei_eta_lik(SEXP sexp_etaSEXP, SEXP sexp_rhoSEXP);
@@ -1103,6 +1104,7 @@ void R_init_RxODE(DllInfo *info){
   R_CallMethodDef callMethods[]  = {
     {"RxODE_ode_solver", (DL_FUNC) &RxODE_ode_solver, 24},
     {"_RxODE_rxInner", (DL_FUNC) &_RxODE_rxInner, 2},
+    {"_RxODE_rxGrad", (DL_FUNC) &_RxODE_rxGrad, 1},
     {"_RxODE_rxHessian", (DL_FUNC) &_RxODE_rxHessian, 1},
     {"_RxODE_RxODE_focei_eta_lik", (DL_FUNC) &_RxODE_RxODE_focei_eta_lik, 2},
     {"_RxODE_RxODE_focei_eta_lp", (DL_FUNC) &_RxODE_RxODE_focei_eta_lp, 2},

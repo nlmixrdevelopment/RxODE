@@ -10,6 +10,11 @@ rxInv <- function(matrix) {
     .Call(`_RxODE_rxInv`, matrix)
 }
 
+#' @export
+rxGrad <- function(rho) {
+    invisible(.Call(`_RxODE_rxGrad`, rho))
+}
+
 rxInner <- function(etanews, rho) {
     invisible(.Call(`_RxODE_rxInner`, etanews, rho))
 }

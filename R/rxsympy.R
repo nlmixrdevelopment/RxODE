@@ -1117,7 +1117,8 @@ rxSymPySetupPred.warn <- FALSE
 ##' @export
 ##' @importFrom utils find
 rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, grad=FALSE, logify=FALSE, pred.minus.dv=TRUE,
-                             grad.internal=FALSE, run.internal=FALSE){
+                             theta.derivs=FALSE,
+                             grad.internal=FALSE, run.internal=FALSE, theta.internal=FALSE){
     good.fns <- c(".GlobalEnv", "package:RxODE", "package:nlmixr")
     check.good <- function(x){
         tmp <- suppressWarnings({find(deparse(substitute(x)))})
@@ -1138,25 +1139,28 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                                                                           ifelse(is.function(predfn), paste(deparse(body(predfn)), collapse=""), ""),
                                                                           ifelse(is.function(pkpars), paste(deparse(body(pkpars)), collapse=""), ""),
                                                                           ifelse(is.function(errfn), paste(deparse(body(errfn)), collapse=""), ""),
-                                                                          init, grad, logify, pred.minus.dv)), collapse="")),
+                                                                          init, grad, logify, pred.minus.dv, theta.derivs)), collapse="")),
                                         .Platform$dynlib.ext));
     } else {
         cache.file <- "";
     }
-    if (file.exists(cache.file) && !grad.internal){
+    if (file.exists(cache.file) && !grad.internal && !theta.internal){
         load(file=cache.file);
         if (any(names(ret) == "warn")){
             if (ret$warn){
-                warning("Some of your prediction function does not depend on the state varibles.");
+                warning("Some of your prediction function does not depend on the state variables.");
             }
         }
         rxLoad(ret$inner);
         if (!is.null(ret$outer)){
             rxLoad(ret$outer);
         }
+        if (!is.null(ret$theta)){
+            rxLoad(ret$theta);
+        }
         return(ret);
     } else {
-        if (!run.internal && !grad.internal){
+        if (!run.internal && !grad.internal && !theta.internal){
             rfile <- tempfile(fileext=".R")
             dta <- tempfile(fileext=".rdata")
             save(obj, predfn, pkpars, errfn, init, grad, logify, pred.minus.dv, file=dta);
@@ -1243,14 +1247,20 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                 etas <- rxParams(full);
                 thetas <- etas[regexpr(regTheta, etas) != -1];
                 etas <- etas[regexpr(regEta, etas) != -1];
-                if (length(etas) > 0){
+                if (length(etas) > 0 && !theta.internal && !grad.internal){
+                    rxCat("## Calculate ETA-based prediction and error derivatives:\n")
                     calcSens <- etas;
                 } else {
                     calcSens <- rxParams(full);
                 }
                 if (grad.internal){
+                    rxCat("## Calculate THETA/ETA-based prediction and error 1st and 2nd order derivatives:\n")
                     calcSens <- list(eta=etas);
                     calcSens$theta <- thetas;
+                }
+                if (theta.internal){
+                    rxCat("## Calculate THETA-based prediction and error derivatives:\n")
+                    calcSens <- thetas;
                 }
             }
             baseState <- rxState(obj);
@@ -1286,7 +1296,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                     lgl <- FALSE;
                     lines <- "";
                 }
-                rxCat(sprintf("## Calculate d(f)/d(eta) %s\n", lines));
+                rxCat(sprintf("## Calculate d(f)/d(%seta) %s\n", ifelse(theta.internal, "th", ""), lines));
                 newmod <- rxGetModel(paste0(rxNorm(obj), "\n", rxNorm(pred.mod)));
                 newlines <- rxSymPySetupDPred(newmod, calcSens, baseState)
                 if(attr(newlines, "zeroSens")){
@@ -1347,7 +1357,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                         lgl <- FALSE;
                         lines <- c();
                     }
-                    rxCat(sprintf("## Calculate d(err)/d(eta) %s\n", lines));
+                    rxCat(sprintf("## Calculate d(err)/d(%seta) %s\n", ifelse(theta.internal, "th", ""), lines));
                     newmod <- rxGetModel(paste0(rxNorm(obj), "\n", rxNorm(err.mod)));
                     newlines <- rxSymPySetupDPred(newmod, calcSens, baseState, prd="rx_r_")
                     tmp <- rxSymPy("rx_r_");
@@ -1364,12 +1374,13 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
             } else {
                 err <- ""
             }
-            if (!grad.internal){
+            if (!grad.internal && !theta.internal){
                 outer <- NULL;
+                theta <- NULL;
                 if (grad){
                     outer <- rxSymPySetupPred(obj=oobj, predfn=predfn, pkpars=pkpars,
                                               errfn=errfn, init=init, logify=logify,pred.minus.dv=pred.minus.dv,
-                                              run.internal=TRUE, grad.internal=TRUE);
+                                              run.internal=TRUE, grad.internal=TRUE, theta.internal=FALSE);
                 }
 
                 base <- gsub(rex::rex(or(group(anything, "~", anything), group(or(oLhs), "=", anything, ";"))), "", strsplit(base, "\n")[[1]])
@@ -1380,23 +1391,31 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                 } else {
                     mod <- rxNorm(mod);
                 }
+                rxGc();
+                if (!grad && theta.derivs){
+                    rxForget();
+                    theta <- rxSymPySetupPred(obj=oobj, predfn=predfn, pkpars=pkpars,
+                                              errfn=errfn, init=init, logify=logify,pred.minus.dv=pred.minus.dv,
+                                              theta.internal=TRUE);
+                }
                 ret <- list(obj=oobj,
                             inner=RxODE(mod),
                             extra.pars=extra.pars,
                             outer=outer,
+                            theta=theta,
                             warn=rxSymPySetupPred.warn,
                             pred.minus.dv=pred.minus.dv,
                             log.thetas=rxSymPyExpThetas,
                             log.etas=rxSymPyExpEtas);
                 rxSymPySetupPred.warn <- FALSE;
                 class(ret) <- "rxFocei";
-                rxGc();
+
                 save(ret, file=cache.file);
                 ## Praising the user is a bit cookey, so I'm removing it.
                 ## if (requireNamespace("praise", quietly = TRUE)){
                 ##     rxCat(sprintf(praise::praise("${Exclamation}! This model has ${created} for FOCEI%s!\nIt will be cached for future runs.\n"), ifelse(grad, "(with Gradient)", "")))
                 ## } else {
-                rxCat(sprintf("This model has created for FOCEI%s.\nIt will be cached for future runs.\n", ifelse(grad, "(with Gradient)", "")))
+                rxCat(sprintf("The model-based sensitivities have been calculated%s.\nIt will be cached for future runs.\n", ifelse(grad, " (with FOCEi Global Gradient)", "")))
                 ## }
                 if (ret$warn){
                     warning("Some of your prediction function does not depend on the state varibles.");

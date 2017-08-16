@@ -49,16 +49,6 @@ rxNearPd <- function(mat, env){
     }
 }
 
-##' Finalize Likelihood for individual.
-##'
-##' @param env Environment where likelihood is finalized.
-##' @return The likelihood with the fitted values, posthoc eta, and possibly the individual contribution to the gradient.
-##' @author Matthew L. Fidler
-##' @keywords internal
-##' @export
-rxFoceiFinalizeLlik <- function(env){
-    return()
-}
 ##' FOCEI ETA setup,
 ##'
 ##' This is basically for testing
@@ -129,6 +119,103 @@ rxFoceiLp <- function(object, ..., dv, eta){
     return(RxODE_focei_eta_lp(eta, env));
 }
 
+##' Calculate the Gradient for an individual
+##'
+##' This can be based on a combination of numerical differention and
+##' symbolic differentiation or purely numerical differentiation.
+##'
+##' @param object focei object
+##' @param ret individual return object to add "grad" attribute to...
+##' @inheritParams rxFoceiEta
+##' @keywords internal
+##' @export
+rxFoceiGrad <- function(object, ret, ..., theta, eta=NULL, dv){
+    grad <- attr(ret,"grad");
+    if (!is.null(grad)){
+        return(grad);
+    } else if (!is.null(object$theta)) {
+        ## Use Almquist's method BUT the dH/dTheta is numerically caluclated...
+        theta.rxode <- object$theta;
+        inner.rxode <- object$inner;
+        if (is.null(eta)){
+            eta <- as.vector(attr(ret, "posthoc"))
+        }
+        ome.28 <- as.vector(attr(ret,"omega.28"))
+        c.hess <- attr(ret,"c.hess")
+        if (length(theta) == length(rxParams(theta.rxode)) - length(eta)){
+            new.theta <- theta;
+            rest.theta <- c();
+        } else {
+            new.theta <- theta[seq(1, length(theta) - length(ome.28))]
+            rest.theta <- theta[-seq(1, length(theta) - length(ome.28))]
+        }
+        args <- as.list(match.call(expand.dots=TRUE))[-1];
+        args$dv <- dv
+        args$theta <- new.theta
+        args$eta <- eta
+        args$object <- theta.rxode;
+        env <- do.call(getFromNamespace("rxFoceiEtaSetup", "RxODE"), args, envir = parent.frame(1));
+        theta.rxode$assignPtr(); ## Assign the ODE pointers (and Jacobian Type)
+        rxGrad(env);
+        args$object <- object
+        ## Get dH/dTheta by numeric differentiation...
+        ##inner.rxode$assignPtr(); ## Assign the ODE pointers (and Jacobian Type)
+        args$return.env <- TRUE
+        args$c.hess <- c.hess
+        fun <- function(theta){
+            args$theta <- c(theta, rest.theta);
+            args$estimate <- FALSE
+            env2 <- do.call(getFromNamespace("rxFoceiInner", "RxODE"), args, envir = parent.frame(1));
+            rxHessian(env2);
+            return(as.vector(env2$H));
+        }
+        H <- fun(new.theta)
+        Hinv <- rxInv(matrix(H, length(args$eta)));
+        jac <- numDeriv::jacobian(fun, new.theta);
+        gr <- sapply(seq_along(env$lp), function(x){
+            return(-env$lp[x] - 0.5 * sum(diag(Hinv %*% matrix(jac[, x], length(args$eta)))))
+        })
+        gr <- c(gr, ome.28)
+        if (any(ls(env) == "inits.vec")){
+            gr <- gr / env$inits.vec;
+        }
+        attr(ret,"grad") <- gr;
+        return(ret);
+    } else {
+        ## Use brute force
+        inner.rxode <- object$inner;
+        if (is.null(eta)){
+            eta <- as.vector(attr(ret, "posthoc"))
+        }
+        ome.28 <- as.vector(attr(ret,"omega.28"))
+        c.hess <- attr(ret,"c.hess")
+        if (length(theta) == length(rxParams(inner.rxode)) - length(eta)){
+            new.theta <- theta;
+            rest.theta <- c();
+        } else {
+            new.theta <- theta[seq(1, length(theta) - length(ome.28))]
+            rest.theta <- theta[-seq(1, length(theta) - length(ome.28))]
+        }
+        args <- as.list(match.call(expand.dots=TRUE))[-1];
+        args$object <- object;
+        args$dv <- dv
+        args$theta <- new.theta
+        args$eta <- eta
+        args$c.hess <- c.hess;
+        args$add.grad <- FALSE
+        func <- function(theta){
+            args$theta <- c(theta, rest.theta);
+            ret <- do.call(getFromNamespace("rxFoceiInner","RxODE"), args)
+        }
+        gr <- c(numDeriv::grad(func, new.theta), attr(ret, "omega.28"))
+        if (any(names(args) == "inits.vec")){
+            gr <- gr / args$inits.vec;
+        }
+        attr(ret,"grad") <- gr;
+        return(ret);
+    }
+}
+
 ##' Solve the FOCEI inner problem
 ##'
 ##' @param object RxODE object
@@ -141,12 +228,15 @@ rxFoceiLp <- function(object, ..., dv, eta){
 ##'     perfomed(TRUE), or just keep the eta, and calculate the Loglik
 ##'     with fitted/posthoc attributes(FALSE).
 ##' @param inner.opt Inner optimization method; Either n1qn1 or lbfgs
+##' @param return.env Return the environment instead of the llik.
+##' @param add.grad Add A gradient attribute, if not present.
 ##' @return Loglik with fitted and posthoc attributes
 ##' @author Matthew L. Fidler
 ##' @keywords internal
 ##' @export
 rxFoceiInner <- function(object, ..., dv, eta, c.hess=NULL, eta.bak=NULL,
-                         estimate=TRUE, inner.opt=c("n1qn1", "lbfgs")){
+                         estimate=TRUE, inner.opt=c("n1qn1", "lbfgs"), return.env=FALSE,
+                         add.grad=FALSE){
     inner.opt <- match.arg(inner.opt);
     inner.rxode <- object$inner;
     rxLoad(inner.rxode)
@@ -228,6 +318,9 @@ rxFoceiInner <- function(object, ..., dv, eta, c.hess=NULL, eta.bak=NULL,
             }
         }
     }
+    if (return.env){
+        return(env);
+    }
     if (is.null(object$outer)){
         ret <- try(RxODE_focei_finalize_llik(env), silent=TRUE);
         if ((attr(ret, "corrected") == 1) || inherits(ret, "try-error")){
@@ -253,7 +346,12 @@ rxFoceiInner <- function(object, ..., dv, eta, c.hess=NULL, eta.bak=NULL,
                 ret <- RxODE_focei_finalize_llik(env)
             }
             attr(ret, "corrected") <- 1L;
-            return(ret);
+        }
+        if (add.grad){
+            args <- as.list(match.call(expand.dots=TRUE))[-1];
+            args$eta <- NULL;
+            args$ret <- ret;
+            ret <- do.call(getFromNamespace("rxFoceiGrad", "RxODE"), args, envir = parent.frame(1))
         }
         return(ret);
     } else {
@@ -284,7 +382,6 @@ rxFoceiInner <- function(object, ..., dv, eta, c.hess=NULL, eta.bak=NULL,
             }
             ret <- env$ret;
             attr(ret, "corrected") <- 1L;
-            return(ret);
         }
         return(env$ret);
     }
