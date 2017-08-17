@@ -1392,16 +1392,15 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                 mod <- rxGetModel(paste0(base, "\n", pred, "\n", err))
                 if (logify){
                     mod <- rxLogifyModel(mod);
-                } else {
-                    mod <- rxNorm(mod);
                 }
+                mod <- rxNorm(mod);
                 rxGc();
                 if (!grad && theta.derivs){
                     rxForget();
                     theta <- rxSymPySetupPred(obj=oobj, predfn=predfn, pkpars=pkpars,
                                               errfn=errfn, init=init, logify=logify,pred.minus.dv=pred.minus.dv,
                                               theta.derivs=TRUE, run.internal=TRUE, grad.internal=FALSE, theta.internal=TRUE);
-                    theta <- RxODE(theta);
+                    theta <- RxODE(rxNorm(theta));
                 }
                 ret <- list(obj=oobj,
                             inner=RxODE(mod),
@@ -1432,9 +1431,8 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                 mod <- rxGetModel(paste0(base, "\n", pred, "\n", err));
                 if (logify){
                     mod <- rxLogifyModel(mod);
-                } else {
-                    mod <- rxNorm(mod);
                 }
+                mod <- rxNorm(mod);
                 return(RxODE(mod));
             }
         }

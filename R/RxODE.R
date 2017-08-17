@@ -1370,7 +1370,8 @@ rxMd5 <- function(model,         # Model File
                 ret <- suppressWarnings({readLines(model)});
                 mod <- paste(ret, collapse = "\n");
             } else {
-                stop("Requires model to be a file.");
+                ret <- model
+                mod <- model;
             }
         } else {
             ret <- model;
@@ -1497,11 +1498,12 @@ rxTrans.character <- function(model,
     out3 <- tempfile();
     on.exit(unlink(parseModel));
     rxReq("dparser");
-    ret <- .Call("trans", model, model, cFile, extraC, modelPrefix, md5, parseModel, out3, PACKAGE="RxODE");
+    ret <- .Call(trans, model, model, cFile, extraC, modelPrefix, md5, parseModel, out3, PACKAGE="RxODE");
+    md5 <- c(file_md5 = md5, parsed_md5 = rxMd5(ret$model["normModel"], extraC, calcJac, calcSens, collapseModel)$digest);
+    ret$md5 <- md5
     ## dparser::dpReload();
     ## rxReload()
     if (file.exists(cFile)){
-        md5 <- c(file_md5 = md5, parsed_md5 = rxMd5(parseModel, extraC, calcJac, calcSens, collapseModel)$digest);
         ret$md5 <- md5
         if (class(calcSens) == "logical"){
             if (!calcSens){
@@ -1519,8 +1521,9 @@ rxTrans.character <- function(model,
             cat(new);
             cat("\n");
             sink()
-            md5 <- c(file_md5 = md5, parsed_md5 = rxMd5(expandModel, extraC, calcJac, calcSens, collapseModel)$digest)
             ret <- try({.Call(trans, model, expandModel, cFile, extraC, modelPrefix, md5, parseModel, out3)}, silent=TRUE);
+            md5 <- c(file_md5 = md5, parsed_md5 = rxMd5(ret$model["normModel"], extraC, calcJac, calcSens, collapseModel)$digest)
+            ret$md5 <- md5
             if (inherits(ret, "try-error")){
                 rxCat("\n", paste(readLines(expandModel), collapse="\n"), "\n");
                 stop("Syntax Errors")
@@ -1540,6 +1543,8 @@ rxTrans.character <- function(model,
             cat("\n");
             sink()
             ret <- .Call("trans", model, expandModel, cFile, extraC, modelPrefix, md5, parseModel, out3, PACKAGE="RxODE");
+            md5 <- c(file_md5 = md5, parsed_md5 = rxMd5(ret$model["normModel"], extraC, calcJac, calcSens, collapseModel)$digest)
+            ret$md5 <- md5
             ## dparser::dpReload();
             ## rxReload();
             unlink(expandModel);
@@ -1557,27 +1562,35 @@ rxTrans.character <- function(model,
 }
 rxTransMakevars <- function(rxProps,                                                                              # rxTrans translation properties
                             rxDll, # Dll of file
+                            cFile,
                             compileFlags =c("parsed_md5", "ode_solver", "ode_solver_sexp", "ode_solver_0_6",
                                             "ode_solver_ptr", "inis",
                                             "model_vars", "calc_lhs", "calc_jac", "dydt"), # List of compile flags
                             debug        = FALSE,                                                                 # Debug compile?
                             ...){
     ## rxTransCompileFlags returns a string for the compiler options
+    ctxt <- suppressWarnings({readLines(cFile)});
     neededProps <- c("jac", compileFlags);
     if (all(neededProps %in% names(rxProps))){
+        ret <- "";
         if (rxProps["jac"] == "fulluser"){
-            ret <- " -D__JT__=1 -D__MF__=21";
+            ctxt <- gsub("__JT__", "1", ctxt)
+            ctxt <- gsub("__MF__", "21", ctxt)
         } else if (rxProps["jac"] == "fullint"){
-            ret <- " -D__JT__=2 -D__MF__=22";
+            ctxt <- gsub("__JT__", "2", ctxt)
+            ctxt <- gsub("__MF__", "22", ctxt)
         }
         tmp <- rxProps[compileFlags];
         for (x in c("parsed_md5", "ode_solver", "ode_solver_sexp", "ode_solver_0_6", "ode_solver_ptr", "ode_solver_focei_outer")){
-            tmp[sprintf("%s_str", x)] <- sprintf("\"\\\"%s\\\"\"", tmp[x]);
+            tmp[sprintf("%s_str", x)] <- sprintf("\"%s\"", tmp[x]);
         }
-        tmp["lib_str"] <- sprintf("\"\\\"%s\\\"\"", gsub(.Platform$dynlib.ext, "", basename(rxDll)));
-        ret <- paste(c(ret, sprintf("-D__%s__=%s", toupper(names(tmp)), tmp),
-                       sprintf("-D__R_INIT__=%s", sprintf("R_init_%s", gsub(.Platform$dynlib.ext, "", basename(rxDll))))),
-                     collapse = " ");
+        tmp["lib_str"] <- sprintf("\"%s\"", gsub(.Platform$dynlib.ext, "", basename(rxDll)));
+        for (flg in names(tmp)){
+            ctxt <- gsub(sprintf("__%s__", toupper(flg)), tmp[flg], ctxt);
+        }
+        ctxt <- gsub("__R_INIT__", sprintf("R_init_%s", gsub(.Platform$dynlib.ext, "", basename(rxDll))), ctxt)
+        writeLines(ctxt, cFile);
+        ret <- ""
         if (debug){
             ret <- sprintf("%s -D__DEBUG__", ret);
         }
@@ -1697,8 +1710,10 @@ rxCompile.character <-  function(model,           # Model
     cDllFile <- file.path(dir, sprintf("%s%s", substr(prefix, 0, nchar(prefix)-1), .Platform$dynlib.ext));
     if (dllCopy){
         finalDll <- file.path(getwd(), basename(cDllFile));
+        finalC <- file.path(getwd(), basename(cFile));
     } else {
         finalDll <-  cDllFile;
+        finalC <-  cFile;
     }
     if (!file.exists(model)){
         mFile <- sprintf("%s.rx", substr(cFile, 0, nchar(cFile)-2));
@@ -1730,13 +1745,12 @@ rxCompile.character <-  function(model,           # Model
     if (force || needCompile){
         Makevars <- file.path(dir, "Makevars");
         trans <- rxTrans(mFile, cFile = cFile, md5 = md5$digest, extraC = extraC, ..., modelPrefix = prefix, calcJac=calcJac, calcSens=calcSens, collapseModel=collapseModel);
-        ## FIXME: seems to break for ETA/THETA sensitivities.
-        ## if (file.exists(finalDll)){
-        ##     if (modVars["parsed_md5"] == trans["parsed_md5"]){
-        ##         rxCat("Don't need to recompile, minimal change to model detected.\n");
-        ##         needCompile <- FALSE;
-        ##     }
-        ## }
+        if (file.exists(finalDll)){
+            if (modVars["parsed_md5"] == trans["parsed_md5"]){
+                rxCat("Don't need to recompile, minimal change to model detected.\n");
+                needCompile <- FALSE;
+            }
+        }
         if (force || needCompile){
             ## Setup Makevars
             owd <- getwd();
@@ -1748,11 +1762,14 @@ rxCompile.character <-  function(model,           # Model
             if (file.exists(Makevars)){
                 unlink(Makevars);
             }
-            sink(Makevars);
-            cat(rxTransMakevars(trans, finalDll, ...));
-            sink();
             ## Now create C file
             rxTrans(mFile, cFile = cFile, md5 = md5$digest, extraC = extraC, ..., modelPrefix = prefix, calcJac=calcJac, calcSens=calcSens, collapseModel=collapseModel)
+            sink(Makevars);
+            cat(rxTransMakevars(trans, finalDll, cFile, ...));
+            sink();
+            if (dllCopy){
+                file.copy(cFile, finalC);
+            }
             sh <- "system"   # windows's default shell COMSPEC does not handle UNC paths
             ## Change working directory
             setwd(dir);
