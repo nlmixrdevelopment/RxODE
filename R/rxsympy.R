@@ -1118,7 +1118,8 @@ rxSymPySetupPred.warn <- FALSE
 ##' @importFrom utils find
 rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, grad=FALSE, logify=FALSE, pred.minus.dv=TRUE,
                              theta.derivs=FALSE,
-                             grad.internal=FALSE, run.internal=FALSE, theta.internal=FALSE){
+                             grad.internal=FALSE, theta.internal=FALSE,
+                             run.internal=FALSE){
     good.fns <- c(".GlobalEnv", "package:RxODE", "package:nlmixr")
     check.good <- function(x){
         tmp <- suppressWarnings({find(deparse(substitute(x)))})
@@ -1132,7 +1133,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
     check.good(pkpars);
     check.good(errfn);
 
-    if (!grad.internal){
+    if (!grad.internal && !theta.internal){
         cache.file <- file.path(ifelse(RxODE.cache.directory == ".", getwd(), RxODE.cache.directory),
                                 sprintf("rx_%s%s.prd",
                                         digest::digest(paste(deparse(list(rxModelVars(obj)$md5["parsed_md5"],
@@ -1184,6 +1185,9 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                 rxLoad(ret$inner);
                 if (!is.null(ret$outer)){
                     rxLoad(ret$outer);
+                }
+                if (!is.null(ret$theta)){
+                    rxLoad(ret$theta);
                 }
                 if (any(names(ret) == "warn")){
                     if (ret$warn){
@@ -1396,7 +1400,8 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                     rxForget();
                     theta <- rxSymPySetupPred(obj=oobj, predfn=predfn, pkpars=pkpars,
                                               errfn=errfn, init=init, logify=logify,pred.minus.dv=pred.minus.dv,
-                                              theta.internal=TRUE);
+                                              theta.derivs=TRUE, run.internal=TRUE, grad.internal=FALSE, theta.internal=TRUE);
+                    theta <- RxODE(theta);
                 }
                 ret <- list(obj=oobj,
                             inner=RxODE(mod),

@@ -1362,36 +1362,36 @@ rxMd5 <- function(model,         # Model File
                   ...){
     ## rxMd5 returns MD5 of model file.
     ## digest(file = TRUE) includes file times, so it doesn't work for this needs.
+    args <- list(...);
     if (class(model) == "character"){
         if (length(model) == 1){
             if (file.exists(model)){
-                ret <- suppressWarnings({readLines(model)});
-                mod <- paste(ret, collapse = "\n");
+                model <- paste(suppressWarnings({readLines(model)}), collapse="\n");
             } else {
                 stop("Requires model to be a file.");
             }
         } else {
-            ret <- model;
-            mod <- paste(ret, collapse="\n");
+            model <- paste(model, collapse="\n");
         }
-        if (class(extraC) == "character"){
-            if (file.exists(extraC)){
-                ret <- c(ret, gsub(rex::rex(or(any_spaces, any_newlines)), "", readLines(extraC), perl = TRUE));
-            }
-        }
-        tmp <- c(RxODE.syntax.assign, RxODE.syntax.star.pow, RxODE.syntax.require.semicolon, RxODE.syntax.allow.dots, RxODE.syntax.allow.ini0, RxODE.syntax.allow.ini, RxODE.calculate.jacobian, RxODE.calculate.sensitivity, calcJac, calcSens, collapseModel);
-        ret <- c(ret, tmp);
-        tmp <- getLoadedDLLs()$RxODE;
-        class(tmp) <- "list";
-        ## new RxODE dlls gives different digests.
-        ret <- c(ret, digest::digest(tmp$path,file=TRUE, algo="md5"));
-        ## Add version and github repository information
-        ret <- c(ret, rxVersion());
-        return(list(text = mod,
-                    digest = digest::digest(ret, algo="md5")));
     } else {
-        rxModelVars(model)$md5;
+        model <- paste(as.vector(rxModelVars(m1)$model["parseModel"]), collapse="\n")
     }
+    args$model <- model;
+    if (class(extraC) == "character"){
+        if (file.exists(extraC)){
+            args$extraC <- gsub(rex::rex(or(any_spaces, any_newlines)), "", readLines(extraC), perl = TRUE);
+        }
+    }
+    args <- c(args, list(RxODE.syntax.assign, RxODE.syntax.star.pow, RxODE.syntax.require.semicolon, RxODE.syntax.allow.dots, RxODE.syntax.allow.ini0, RxODE.syntax.allow.ini, RxODE.calculate.jacobian, RxODE.calculate.sensitivity));
+    tmp <- getLoadedDLLs()$RxODE;
+    class(tmp) <- "list";
+        ## new RxODE dlls gives different digests.
+    args$rxdll.md5 <- digest::digest(tmp$path,file=TRUE, algo="md5");
+    ## Add version and github repository information
+    args$ver <- rxVersion()
+    ret <- list(text = args$model,
+                digest = digest::digest(args, algo="md5"))
+    return(ret);
 } # end function rxMd5
 ##' Translate the model to C code if needed
 ##'
@@ -1517,6 +1517,7 @@ rxTrans.character <- function(model,
             cat(new);
             cat("\n");
             sink()
+            md5 <- c(file_md5 = md5, parsed_md5 = rxMd5(expandModel, extraC, calcJac, calcSens, collapseModel)$digest)
             ret <- try({.Call(trans, model, expandModel, cFile, extraC, modelPrefix, md5, parseModel, out3)}, silent=TRUE);
             if (inherits(ret, "try-error")){
                 rxCat("\n", paste(readLines(expandModel), collapse="\n"), "\n");
@@ -1727,12 +1728,13 @@ rxCompile.character <-  function(model,           # Model
     if (force || needCompile){
         Makevars <- file.path(dir, "Makevars");
         trans <- rxTrans(mFile, cFile = cFile, md5 = md5$digest, extraC = extraC, ..., modelPrefix = prefix, calcJac=calcJac, calcSens=calcSens, collapseModel=collapseModel);
-        if (file.exists(finalDll)){
-            if (modVars["parsed_md5"] == trans["parsed_md5"]){
-                rxCat("Don't need to recompile, minimal change to model detected.\n");
-                needCompile <- FALSE;
-            }
-        }
+        ## FIXME: seems to break for ETA/THETA sensitivities.
+        ## if (file.exists(finalDll)){
+        ##     if (modVars["parsed_md5"] == trans["parsed_md5"]){
+        ##         rxCat("Don't need to recompile, minimal change to model detected.\n");
+        ##         needCompile <- FALSE;
+        ##     }
+        ## }
         if (force || needCompile){
             ## Setup Makevars
             owd <- getwd();
