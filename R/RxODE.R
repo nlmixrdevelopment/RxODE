@@ -1331,6 +1331,8 @@ rxPrefix <- function(model,          # Model or file name of model
     return(modelPrefix);
 } # end function rxPrefix
 
+
+
 ##' Return the md5 of an RxODE object or file
 ##'
 ##' This md5 is based on the model and possibly the extra c code
@@ -1362,36 +1364,36 @@ rxMd5 <- function(model,         # Model File
                   ...){
     ## rxMd5 returns MD5 of model file.
     ## digest(file = TRUE) includes file times, so it doesn't work for this needs.
-    args <- list(...);
     if (class(model) == "character"){
         if (length(model) == 1){
             if (file.exists(model)){
-                model <- paste(suppressWarnings({readLines(model)}), collapse="\n");
+                ret <- suppressWarnings({readLines(model)});
+                mod <- paste(ret, collapse = "\n");
             } else {
                 stop("Requires model to be a file.");
             }
         } else {
-            model <- paste(model, collapse="\n");
+            ret <- model;
+            mod <- paste(ret, collapse="\n");
         }
-    } else {
-        model <- paste(as.vector(rxModelVars(m1)$model["parseModel"]), collapse="\n")
-    }
-    args$model <- model;
-    if (class(extraC) == "character"){
-        if (file.exists(extraC)){
-            args$extraC <- gsub(rex::rex(or(any_spaces, any_newlines)), "", readLines(extraC), perl = TRUE);
+        if (class(extraC) == "character"){
+            if (file.exists(extraC)){
+                ret <- c(ret, gsub(rex::rex(or(any_spaces, any_newlines)), "", readLines(extraC), perl = TRUE));
+            }
         }
-    }
-    args <- c(args, list(RxODE.syntax.assign, RxODE.syntax.star.pow, RxODE.syntax.require.semicolon, RxODE.syntax.allow.dots, RxODE.syntax.allow.ini0, RxODE.syntax.allow.ini, RxODE.calculate.jacobian, RxODE.calculate.sensitivity));
-    tmp <- getLoadedDLLs()$RxODE;
-    class(tmp) <- "list";
+        tmp <- c(RxODE.syntax.assign, RxODE.syntax.star.pow, RxODE.syntax.require.semicolon, RxODE.syntax.allow.dots, RxODE.syntax.allow.ini0, RxODE.syntax.allow.ini, RxODE.calculate.jacobian, RxODE.calculate.sensitivity, calcJac, calcSens, collapseModel);
+        ret <- c(ret, tmp);
+        tmp <- getLoadedDLLs()$RxODE;
+        class(tmp) <- "list";
         ## new RxODE dlls gives different digests.
-    args$rxdll.md5 <- digest::digest(tmp$path,file=TRUE, algo="md5");
-    ## Add version and github repository information
-    args$ver <- rxVersion()
-    ret <- list(text = args$model,
-                digest = digest::digest(args, algo="md5"))
-    return(ret);
+        ret <- c(ret, digest::digest(tmp$path,file=TRUE, algo="md5"));
+        ## Add version and github repository information
+        ret <- c(ret, rxVersion());
+        return(list(text = mod,
+                    digest = digest::digest(ret, algo="md5")));
+    } else {
+        rxModelVars(model)$md5;
+    }
 } # end function rxMd5
 ##' Translate the model to C code if needed
 ##'
