@@ -1499,7 +1499,11 @@ rxTrans.character <- function(model,
     on.exit(unlink(parseModel));
     rxReq("dparser");
     ret <- .Call(trans, model, model, cFile, extraC, modelPrefix, md5, parseModel, out3, PACKAGE="RxODE");
-    md5 <- c(file_md5 = md5, parsed_md5 = rxMd5(ret$model["normModel"], extraC, calcJac, calcSens, collapseModel)$digest);
+    md5 <- c(file_md5 = md5, parsed_md5 = rxMd5(c(ret$model["normModel"],
+                                                  ret$ini,
+                                                  ret$state,
+                                                  ret$params,
+                                                  ret$lhs), extraC, calcJac, calcSens, collapseModel)$digest);
     ret$md5 <- md5
     ## dparser::dpReload();
     ## rxReload()
