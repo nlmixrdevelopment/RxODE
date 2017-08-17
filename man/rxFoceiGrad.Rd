@@ -4,7 +4,8 @@
 \alias{rxFoceiGrad}
 \title{Calculate the Gradient for an individual}
 \usage{
-rxFoceiGrad(object, ret, ..., theta, eta = NULL, dv)
+rxFoceiGrad(object, ret, ..., theta, eta = NULL, dv,
+  numDeriv.method = "Richardson")
 }
 \arguments{
 \item{object}{focei object}

@@ -6,8 +6,8 @@
 \usage{
 rxSymPySetupPred(obj, predfn, pkpars = NULL, errfn = NULL, init = NULL,
   grad = FALSE, logify = FALSE, pred.minus.dv = TRUE,
-  theta.derivs = FALSE, grad.internal = FALSE, run.internal = FALSE,
-  theta.internal = FALSE)
+  theta.derivs = FALSE, grad.internal = FALSE, theta.internal = FALSE,
+  run.internal = FALSE)
 }
 \arguments{
 \item{obj}{RxODE object}
