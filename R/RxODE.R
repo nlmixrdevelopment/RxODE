@@ -689,6 +689,7 @@ RxODE <- function(model, modName = basename(wd), wd = ifelse(RxODE.cache.directo
     }
     ptr.address <- NULL
     assignPtr <- function(){
+        cmpMgr$dynLoad();
         if (is.null(ptr.address)){
             ptr.address <<- getNativeSymbolInfo(as.vector(out$dll$modVars$trans["ode_solver_ptr"]),gsub("_$","",out$dll$modVars$trans["prefix"]))$address;
         }
@@ -1907,7 +1908,7 @@ rxLoad <- function(obj){
                 rc <- try(dyn.load(dll), silent = TRUE);
                 if (inherits(rc, "try-error")){ #nocov start
                     ## Should not get here.
-                    rxDelete(obj);
+                    ## rxDelete(obj);
                     obj <- RxODE(obj);
                     if (rxDllLoaded(obj)){
                         return(invisible());
@@ -2439,5 +2440,5 @@ rxReload <- function(){
 ##' @keywords internal
 ##' @export
 rxodeGc <- function(env){
-    rxDelete(env$out);
+    ## rxDelete(env$out);
 }

@@ -73,7 +73,6 @@ rxFoceiEta <- function(object, ..., dv, eta,  env, nonmem=FALSE){
         args[[1]] <- object;
         env <- do.call(getFromNamespace("rxFoceiEtaSetup", "RxODE"), args, envir = parent.frame(1));
     }
-    rxLoad(object)
     object$assignPtr(); ## Assign the ODE pointers (and Jacobian Type)
     rxInner(eta, env);
     return(env);
@@ -94,7 +93,6 @@ rxFoceiLik <- function(object, ..., dv, eta){
         object <- object$inner;
         args[[1]] <- object;
     }
-    rxLoad(object);
     object$assignPtr(); ## Assign the ODE pointers (and Jacobian Type)
     env <- do.call(getFromNamespace("rxFoceiEtaSetup", "RxODE"), args, envir = parent.frame(1));
     return(RxODE_focei_eta_lik(eta, env))
@@ -114,7 +112,6 @@ rxFoceiLp <- function(object, ..., dv, eta){
         object <- object$inner;
         args[[1]] <- object;
     }
-    rxLoad(object);
     object$assignPtr(); ## Assign the ODE pointers (and Jacobian Type)
     env <- do.call(getFromNamespace("rxFoceiEtaSetup", "RxODE"), args, envir = parent.frame(1));
     return(RxODE_focei_eta_lp(eta, env));
@@ -241,7 +238,6 @@ rxFoceiInner <- function(object, ..., dv, eta, c.hess=NULL, eta.bak=NULL,
                          add.grad=FALSE){
     inner.opt <- match.arg(inner.opt);
     inner.rxode <- object$inner;
-    rxLoad(inner.rxode)
     inner.rxode$assignPtr(); ## Assign the ODE pointers (and Jacobian Type)
     args <- as.list(match.call(expand.dots=TRUE))[-1];
     args$dv <- dv
@@ -367,7 +363,6 @@ rxFoceiInner <- function(object, ..., dv, eta, c.hess=NULL, eta.bak=NULL,
         env <- do.call(getFromNamespace("rxFoceiTheta", "RxODE"), args, envir = parent.frame(1));
         if (env$reset == 1){
             cat(sprintf("Warning: Problem with Hessian or ETA estimate, resetting ETAs to 0 (ID=%s).\n", env$id));
-            rxLoad(inner.rxode)
             inner.rxode$assignPtr();
             args$eta <- rep(0, length(env$eta));
             args$orthantwise_end <- length(args$eta);
@@ -415,7 +410,6 @@ rxFoceiTheta <- function(object, ..., dv, eta, env, nonmem=FALSE){
         args[[1]] <- object;
         env <- do.call(getFromNamespace("rxFoceiEtaSetup", "RxODE"), args, envir = parent.frame(1));
     }
-    rxLoad(object)
     object$assignPtr(); ## Assign the ODE pointers (and Jacobian Type)
     env$atol.inner <- env$atol;
     env$rtol.inner <- env$rtol;
