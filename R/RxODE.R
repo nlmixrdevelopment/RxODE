@@ -1958,6 +1958,10 @@ rxDelete <- function(obj){
         obj$delete();
     } else {
         dll <- rxDll(obj);
+        cFile <- sub(rex::rex(.Platform$dynlib.ext,end), ".c", dll)
+        if (file.exists(cFile)){
+            unlink(cFile);
+        }
         rxUnload(obj)
         unlink(dll);
         return(!file.exists(dll));
@@ -2440,5 +2444,5 @@ rxReload <- function(){
 ##' @keywords internal
 ##' @export
 rxodeGc <- function(env){
-    ## rxDelete(env$out);
+    rxDelete(env$out);
 }

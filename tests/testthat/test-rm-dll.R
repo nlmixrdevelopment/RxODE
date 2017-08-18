@@ -1,5 +1,6 @@
 context("Removing dlls")
 rxPermissive({
+
     options(RxODE.delete.unnamed=TRUE);
     rxSyncOptions();
     ode <- RxODE({
@@ -11,11 +12,13 @@ rxPermissive({
     dll <- rxDll(ode);
     test_that("dll exists", {
         expect_true(file.exists(dll));
+        expect_true(file.exists(gsub("[.][^.]*$", ".c", dll)));
     })
     rm(ode);
     gc();
     test_that("dll removed", {
         expect_false(file.exists(dll));
+        expect_false(file.exists(gsub("[.][^.]*$", ".c", dll)));
     })
     ## FIXME -- Parallelization removes dll?  I don't think so since it is loaded elsewhere.  Can we test this?
     options(RxODE.delete.unnamed=FALSE);
@@ -40,4 +43,5 @@ rxPermissive({
     unlink(dll);
     options(RxODE.delete.unnamed=TRUE);
     rxSyncOptions();
+
 }, silent=TRUE)
