@@ -20,7 +20,7 @@ regDfDyTh <- rex::rex(start, "rx__df_", capture(anything), "_dy_", regThEt, "__"
 regEta <- rex::rex(start, "ETA[", capture("1":"9", any_of("0":"9")), "]")
 regTheta <- rex::rex(start, "THETA[", capture("1":"9", any_of("0":"9")), "]")
 regJac <- rex::rex( "df(", capture(regIdentifier), ")/dy(",  capture(or(regIdentifier, group(or("THETA[", "ETA["), "1":"9", any_of("0":"9"), "]"))), ")");
-regRate <- rex::rex(start, "rx__rate_", capture(anything), "__");
+## regRate <- rex::rex(start, "rx__rate_", capture(anything), "__");
 known.print <- c('printf', 'Rprintf', 'print',
                  'jac_printf', 'jac_Rprintf', 'jac_print',
                  'ode_printf', 'ode_Rprintf', 'ode_print',
@@ -214,7 +214,10 @@ rxSymPyFEnv$dt <- function(e1){
 }
 
 rxSymPyFEnv$rate <- function(e1){
-    paste0("rx__rate_", e1, "__");
+    sprintf("rate(%s,t)", e1);
+}
+sympyRxFEnv$rate <- function(e1, ...){
+    sprintf("rate(%s)", e1);
 }
 
 rxSymPyFEnv$df <- function(e1){
@@ -482,6 +485,16 @@ allCalls <- function(x) {
 
 rxDefinedDerivatives <- new.env(parent = emptyenv())
 
+rxDefinedDerivatives$rate <- function(fn, var){
+    fn <- fn[-1];
+    if (var == "t"){
+        return("0")
+    } else {
+        warning(sprintf("diff(rate(%s,t),%s)"), fn[1], t);
+        return("0")
+    }
+
+}
 rxDefinedDerivatives$solveLinB <- function(fn, var){
     fn <- fn[-1];
     diff1 <- fn[3];
@@ -647,7 +660,7 @@ rxEnv <- function(expr){
                     gsub(regDfDyTh, "df(\\1)/dy(\\2[\\3])",
                          gsub(regDDt, "d/dt(\\1)",
                               gsub(rex::rex(start, regThEt, end), "\\1[\\2]", names)))));
-    n2 <- gsub(regRate, "rate(\\1)", n2);
+    ## n2 <- gsub(regRate, "rate(\\1)", n2);
     n2 <- gsub(rex::rex("rx_SymPy_Res_"), "", n2)
 
     n2[n2 == "time"] <- "t";

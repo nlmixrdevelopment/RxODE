@@ -274,6 +274,14 @@ rxSymPyPreFix <- function(var){
 ##' @keywords internal
 ##' @export
 rxSymPy <- function(...){
+    ret <- try(rxSymPy0(...), silent=TRUE);
+    if (inherits(ret, "try-error")){
+        args <- list(...)
+        stop(sprintf("Error running sympy command:\n    %s\n\n%s", args[[1]], attr(ret, "condition")$message));
+    }
+    return(ret)
+}
+rxSymPy0 <- function(...){
     rxSymPyStart();
     if (.rxSymPy$started == "SnakeCharmR"){
         SnakeCharmR::py.exec(paste("__Rsympy=None"))
@@ -350,7 +358,6 @@ rxSymPyVars <- function(model){
     } else {
         vars <- c(rxParams(model),
                   rxState(model),
-                  sprintf("rate(%s)", rxState(model)),
                   "podo", "t", "time", "tlast");
     }
     vars <- sapply(vars, function(x){return(rxToSymPy(x))});
@@ -911,6 +918,7 @@ rxSymPyClean <- function(){
     ## rxSymPy("clear_cache()");
     assignInMyNamespace("rxSymPy.vars", c());
     rxGc();
+    rxSymPyFunctions(names(rxDefinedDerivatives))
 }
 
 ##' Add a return statment to a function.
@@ -1440,7 +1448,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
 }
 
 rxGc <- function(){
-    gc(reset=TRUE);
+    ## gc(reset=TRUE);
     tf <- tempfile();
     sink(tf);
     on.exit({sink();unlink(tf)})
