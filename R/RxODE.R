@@ -1586,7 +1586,8 @@ rxTransMakevars <- function(rxProps,                                            
             ctxt <- gsub("__MF__", "22", ctxt)
         }
         tmp <- rxProps[compileFlags];
-        for (x in c("parsed_md5", "ode_solver", "ode_solver_sexp", "ode_solver_0_6", "ode_solver_ptr", "ode_solver_focei_outer")){
+        for (x in c("parsed_md5", "ode_solver", "ode_solver_sexp", "ode_solver_0_6", "ode_solver_ptr", "ode_solver_focei_outer",
+                    "model_vars")){
             tmp[sprintf("%s_str", x)] <- sprintf("\"%s\"", tmp[x]);
         }
         tmp["lib_str"] <- sprintf("\"%s\"", gsub(.Platform$dynlib.ext, "", basename(rxDll)));

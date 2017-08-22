@@ -138,6 +138,16 @@ extern SEXP __ODE_SOLVER_SEXP__ (// Parameters
 		    sexp_object,sexp_extra_args,sexp_matrix,sexp_add_cov);
 }
 
+static R_NativePrimitiveArgType __ODE_SOLVER__rx_t[] = {
+  //*neq, *theta, *time,  *evid, *ntime, *inits,   *dose,   *ret,     *atol,  *rtol,   *stiff, *transit_abs, *nlhs, *lhs, *rc
+  INTSXP,REALSXP, REALSXP, INTSXP, INTSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, INTSXP, INTSXP, INTSXP, REALSXP, INTSXP
+};
+
+static R_NativePrimitiveArgType  __ODE_SOLVER_0_6__rx_t[] = {
+  //*neq, *theta, *time,  *evid, *ntime, *inits,   *dose,   *ret,     *atol,  *rtol,   *stiff, *transit_abs, *nlhs, *lhs, *rc
+  INTSXP,REALSXP, REALSXP, INTSXP, INTSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, INTSXP, INTSXP, INTSXP, REALSXP, INTSXP, REALSXP, REALSXP, REALSXP, INTSXP, INTSXP, INTSXP
+};
+
 //Initilize the dll to match RxODE's calls
 void __R_INIT__ (DllInfo *info){
   // Get the RxODE calling interfaces
@@ -168,15 +178,26 @@ void __R_INIT__ (DllInfo *info){
   R_RegisterCCallable(__LIB_STR__,__ODE_SOLVER_0_6_STR__,   (DL_FUNC) __ODE_SOLVER_0_6__);
   R_RegisterCCallable(__LIB_STR__,__ODE_SOLVER_PTR_STR__,   (DL_FUNC) __ODE_SOLVER_PTR__);
 
+  /* R_registerRoutines(info, NULL, NULL, NULL, NULL); */
+  /* R_useDynamicSymbols(info,TRUE); */
+
+  static const R_CMethodDef cMethods[] = {
+    {__ODE_SOLVER_STR__, (DL_FUNC) &__ODE_SOLVER__, 15, __ODE_SOLVER__rx_t},
+    {__ODE_SOLVER_0_6_STR__, (DL_FUNC) &__ODE_SOLVER_0_6__, 21, __ODE_SOLVER_0_6__rx_t},
+    {NULL, NULL, 0, NULL}
+  };
+  
   R_CallMethodDef callMethods[]  = {
     {__ODE_SOLVER_PTR_STR__, (DL_FUNC) &__ODE_SOLVER_PTR__, 0},
-    {__ODE_SOLVER_SEXP_STR__, (DL_FUNC) &__ODE_SOLVER_SEXP__, 21},
+    {__ODE_SOLVER_SEXP_STR__, (DL_FUNC) &__ODE_SOLVER_SEXP__, 23},
+    {__MODEL_VARS_STR__, (DL_FUNC) &__MODEL_VARS__, 0},
     {"__INIS__", (DL_FUNC) &__INIS__, 1},
     {NULL, NULL, 0}
   };
-  R_registerRoutines(info, NULL, callMethods, NULL, NULL);
-  R_useDynamicSymbols(info,TRUE);
+  R_registerRoutines(info, cMethods, callMethods, NULL, NULL);
+  R_useDynamicSymbols(info,FALSE);
   // Register the function pointers so if someone directly calls the
   // ode solvers directly, they use the last loaded RxODE model.
   __ODE_SOLVER_PTR__();
 }
+
