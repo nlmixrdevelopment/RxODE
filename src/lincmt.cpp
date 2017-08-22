@@ -80,11 +80,9 @@ double solveLinB(double t, int linCmt, int diff1, int diff2, double d_A, double 
 	}
 	tinf  = dosing(p, 0)-dosing(l, 0);
 	rate  = dosing(l, 2);
+	if (tT >= tinf) continue;
       } else {
 	// After  infusion
-	tT = t - dosing(l - 1, 0);
-	thisT = tT- tlag;
-	
 	p = l-1;
 	while (p >= 0 && dosing(p, 2) != -dosing(l, 2)){
 	  p--;
@@ -93,6 +91,10 @@ double solveLinB(double t, int linCmt, int diff1, int diff2, double d_A, double 
 	  stop("Could not find a start to the infusion.  Check the event table.");
 	}
 	tinf  = dosing(l, 0) - dosing(p, 0) - tlag;
+	
+	tT = t - dosing(p, 0);
+        thisT = tT- tlag;       
+
 	rate  = -dosing(l, 2);
       }
       t1 = ((thisT < tinf) ? thisT : tinf);        //during infusion
@@ -101,7 +103,7 @@ double solveLinB(double t, int linCmt, int diff1, int diff2, double d_A, double 
       case 0: // Solved equation -- A
 	////////////////////////////////////////////////////////////////////////////////
 	ret += rate*A / alpha * (1 - exp(-alpha * t1)) * exp(-alpha * t2);
-	break;
+        break;
       case 1: // dA
 	switch(diff2){
 	case 0:
