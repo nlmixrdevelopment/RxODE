@@ -42,6 +42,7 @@ int    MXORDN;
 int    MXORDS;
 int    global_jt, global_mf, global_debug, ixds,ndoses = -1;
 double *all_times;
+int *idose;
 FILE *fp;
 
 /* void __DYDT__(unsigned int neq, double t, double *A, double *DADT); */
@@ -54,6 +55,15 @@ void (*calc_lhs)(double t, double *A, double *lhs);
 void (*update_inis)(SEXP _ini_sexp);
 
 void rxInner(SEXP rho);
+
+double rxTime(int i){
+  if (i < n_all_times){
+    return(all_times[i]);
+  } else {
+    error("Time cannot be retrived (%dth entry).",i);
+  }
+  return 0;
+}
 
 void rxCalcLhs(int i){
   if (i < n_all_times){
@@ -89,6 +99,8 @@ unsigned int nDoses(){
     for (int i = 0; i < n_all_times; i++){
       if (rxEvid(i)){
         ndoses++;
+	idose = (int*) Realloc(idose, ndoses, int);
+	idose[ndoses-1] = i;
       }
     }
     return ndoses;
@@ -96,6 +108,35 @@ unsigned int nDoses(){
     return ndoses;
   }
 }
+
+double rxDosingTime(int i){
+  if (i < nDoses()){
+    return (all_times[idose[i]]);
+  } else {
+    error("Dosing cannot retreived (%dth dose).", i);
+  }
+  return 0;
+}
+
+int rxDosingEvid(int i){
+  if (i < nDoses()){
+    return (evid[idose[i]]);
+  } else {
+    error("Dosing cannot retreived (%dth dose).", i);
+  }
+  return 0;
+}
+
+double rxDose(int i){
+  if (i < nDoses()){
+    return(dose[i]);
+  } else {
+    error("Dose cannot be retrived (%dth entry).",i);
+  }
+  return 0;
+}
+
+
 
 unsigned int nObs(){
   return (unsigned int)(n_all_times - nDoses());
@@ -261,7 +302,8 @@ void call_lsoda(int neq, double *x, int *evid, int nx, double *inits, double *do
     Rprintf("JT: %d\n",jt);
   rwork = (double*)Calloc(lrw+1, double);
   iwork = (int*)Calloc(liw+1, int);
-
+  idose = (int*)Calloc(0, int);
+  
   iopt = 1;
   
   rwork[4] = H0; // H0 -- determined by solver
@@ -567,32 +609,26 @@ void RxODE_ode_solver_old_c(int *neqa,
   }
 }
 
-SEXP RxODE_ode_get_dosing(){
-  SEXP sexp_ret;
-  int  i, j = 0;
-  sexp_ret  = PROTECT(allocMatrix(REALSXP, nDoses(), 3));
-  double *ret   = REAL(sexp_ret);
-  for (i = 0; i < n_all_times; i++){
-    if (rxEvid(i)){
-      ret[j] = all_times[i];
-      ret[nDoses()+j] =(double)(evid[i]);
-      ret[nDoses()*2+j] = dose[j];
-      /* Rprintf("\tj:%d(%d)\tt: %f\tevid:%f\tdose:%f\n", */
-      /* 	      j, ndoses, */
-      /* 	      ret[j],ret[ndoses+j],ret[ndoses*2+j]); */
-      j++;
-    }
-  }
-  // Unprotect after solving.
-  UNPROTECT(1);
-  return sexp_ret;
-}
-
-SEXP RxODE_ode_dosing_;
-
-SEXP RxODE_ode_dosing(){
-  return RxODE_ode_dosing_;
-}
+/* SEXP RxODE_ode_get_dosing(){ */
+/*   SEXP sexp_ret; */
+/*   int  i, j = 0; */
+/*   sexp_ret  = PROTECT(allocMatrix(REALSXP, nDoses(), 3)); */
+/*   double *ret   = REAL(sexp_ret); */
+/*   for (i = 0; i < n_all_times; i++){ */
+/*     if (rxEvid(i)){ */
+/*       ret[j] = all_times[i]; */
+/*       ret[nDoses()+j] =(double)(evid[i]); */
+/*       ret[nDoses()*2+j] = dose[j]; */
+/*       /\* Rprintf("\tj:%d(%d)\tt: %f\tevid:%f\tdose:%f\n", *\/ */
+/*       /\* 	      j, ndoses, *\/ */
+/*       /\* 	      ret[j],ret[ndoses+j],ret[ndoses*2+j]); *\/ */
+/*       j++; */
+/*     } */
+/*   } */
+/*   // Unprotect after solving. */
+/*   UNPROTECT(1); */
+/*   return sexp_ret; */
+/* } */
 
 void RxODE_ode_free(){
   /* Free(InfusionRate); */
@@ -604,6 +640,7 @@ void RxODE_ode_free(){
   }
   Free(solve);
   Free(lhs);
+  Free(idose);
   /* Free(rc); */
 }
 
@@ -611,12 +648,14 @@ void RxODE_ode_alloc(){
   if (neq > NCMT){
     error("RxODE does not support %d compartments (Currently only %d compartments)", neq, NCMT);
   }
+  /* RxODE_ode_dosing_calc = 0; */
   /* solve = (double*)  R_alloc(neq*n_all_times+1, sizeof(double)); */
   /* lhs   = (double*)  R_alloc(nlhs,sizeof(double)); */
   /* InfusionRate = (double *) R_alloc(neq+2,sizeof(double)); */
   /* rc           = (int *)    R_alloc(1,sizeof(int)); */
   solve        = (double *) Calloc(neq*nAllTimes()+1,double);
   lhs          = (double *) Calloc(nlhs,double);
+  idose        = (int *) Calloc(0, int);
   /* InfusionRate = (double *) Calloc(neq+2,double); */
   /* rc = (int *) Calloc(1,int); */
   rc[0] = 0;
@@ -722,7 +761,6 @@ void RxODE_ode_setup(SEXP sexp_inits,
   n_all_times   = length(sexp_time);
   evid          = INTEGER(sexp_evid);
   dose          = REAL(sexp_dose);
-  RxODE_ode_dosing_ = RxODE_ode_get_dosing();
   // Covariates
   par_cov       = INTEGER(sexp_pcov);
   do_par_cov    = 1;
