@@ -1,31 +1,25 @@
-// [[Rcpp::depends(RcppArmadillo)]]
-#include <RcppArmadillo.h>
 #include <R.h>
-#include "RxODE_types.h"
+#include <Rinternals.h>
 
-using namespace Rcpp;
-using namespace R;
-using namespace arma;
-
-extern "C" SEXP RxODE_ode_dosing();
+extern SEXP RxODE_ode_dosing();
 // extern "C" double getLinDeriv(int ncmt, int diff1, int diff2, double rate, double tinf, double Dose, double ka, double tlag, double T, double tT, mat par);
-extern "C" double RxODE_solveLinB(double t, int linCmt, int diff1, int diff2, double A, double alpha, double B, double beta, double C, double gamma, double ka, double tlag);
+extern double RxODE_solveLinB(double t, int linCmt, int diff1, int diff2, double A, double alpha, double B, double beta, double C, double gamma, double ka, double tlag);
+extern unsigned int nDoses();
 
-
-int locateDoseIndex(mat dosing, const double obs_time){
+int locateDoseIndex(double *dosing, const double obs_time){
   // Uses bisection for slightly faster lookup of dose index.
   int i, j, ij;
   i = 0;
-  j = dosing.n_rows - 1;
-  if (obs_time <= dosing(i, 0)){
+  j = nDoses() - 1;
+  if (obs_time <= dosing[i]){
     return i;
   }
-  if (obs_time >= dosing(j, 0)){
+  if (obs_time >= dosing[j]){
     return j;
   }
   while(i < j - 1) { /* x[i] <= obs_time <= x[j] */
     ij = (i + j)/2; /* i+1 <= ij <= j-1 */
-    if(obs_time < dosing(ij, 0))
+    if(obs_time < dosing[ij])
       j = ij;
     else
       i = ij;
@@ -42,7 +36,7 @@ double RxODE_solveLinB(double t, int linCmt, int diff1, int diff2, double d_A, d
   } else if (d_A > 0 && d_alpha > 0){
     ncmt = 1;
   } else {
-    stop("You need to specify at least A(=%f) and alpha (=%f). (@t=%f, d1=%d, d2=%d)", d_A, d_alpha, t, diff1, diff2);
+    error("You need to specify at least A(=%f) and alpha (=%f). (@t=%f, d1=%d, d2=%d)", d_A, d_alpha, t, diff1, diff2);
   }
 
   double alpha = d_alpha;
@@ -56,7 +50,8 @@ double RxODE_solveLinB(double t, int linCmt, int diff1, int diff2, double d_A, d
   
   int oral, cmt;
   oral = (ka > 0) ? 1 : 0;
-  mat dosing  = as<mat>(RxODE_ode_dosing()); // et$get.dosing()
+  SEXP dosing_sexp  = RxODE_ode_dosing(); // et$get.dosing()
+  double *dosing = REAL(dosing_sexp);
   double ret = 0;
   unsigned int m = 0, l = 0, p = 0;
   double thisT = 0.0, tT = 0.0, res, t1, t2, tinf;
@@ -64,38 +59,38 @@ double RxODE_solveLinB(double t, int linCmt, int diff1, int diff2, double d_A, d
   m = locateDoseIndex(dosing, t);
   for(l=0; l <= m; l++){
     //superpostion
-    cmt = (((int)(dosing(l, 1)))%10000)/100 - 1;
+    cmt = (((int)(dosing[l+nDoses()]))%10000)/100 - 1;
     if (cmt != linCmt) continue;
-    if (dosing(l, 1) > 10000) {
-      if (dosing(l, 2) > 0){
+    if (dosing[l+nDoses()] > 10000) {
+      if (dosing[l+2*nDoses()] > 0){
 	// During infusion
-	tT = t - dosing(l, 0);
+	tT = t - dosing[l];
 	thisT = tT - tlag;
 	p = l+1;
-	while (p < dosing.n_rows && dosing(p, 2) != -dosing(l, 2)){
+	while (p < nDoses() && dosing[p+2*nDoses()] != -dosing[l+2*nDoses()]){
 	  p++;
 	}
-	if (dosing(p, 2) != -dosing(l, 2)){
-	  stop("Could not find a stop to the infusion.  Check the event table.");
+	if (dosing[p+2*nDoses()] != -dosing[l+2*nDoses()]){
+	  error("Could not find a error to the infusion.  Check the event table.");
 	}
-	tinf  = dosing(p, 0)-dosing(l, 0);
-	rate  = dosing(l, 2);
+	tinf  = dosing[p]-dosing[l];
+	rate  = dosing[l+2*nDoses()];
 	if (tT >= tinf) continue;
       } else {
 	// After  infusion
 	p = l-1;
-	while (p >= 0 && dosing(p, 2) != -dosing(l, 2)){
+	while (p >= 0 && dosing[p+2*nDoses()] != -dosing[l+2*nDoses()]){
 	  p--;
 	}
-	if (dosing(p, 2) != -dosing(l, 2)){
-	  stop("Could not find a start to the infusion.  Check the event table.");
+	if (dosing[p+2*nDoses()] != -dosing[l+2*nDoses()]){
+	  error("Could not find a start to the infusion.  Check the event table.");
 	}
-	tinf  = dosing(l, 0) - dosing(p, 0) - tlag;
+	tinf  = dosing[l] - dosing[p] - tlag;
 	
-	tT = t - dosing(p, 0);
+	tT = t - dosing[p];
         thisT = tT- tlag;       
 
-	rate  = -dosing(l, 2);
+	rate  = -dosing[l+2*nDoses()];
       }
       t1 = ((thisT < tinf) ? thisT : tinf);        //during infusion
       t2 = ((thisT > tinf) ? thisT - tinf : 0.0);  // after infusion
@@ -408,63 +403,63 @@ double RxODE_solveLinB(double t, int linCmt, int diff1, int diff2, double d_A, d
         }
       }
     } else {
-      tT = t - dosing(l, 0);
+      tT = t - dosing[l];
       thisT = tT - tlag;
       if (thisT < 0) continue;
       res = ((oral == 1) ? exp(-ka * thisT) : 0.0);
       switch(diff1){
       case 0:
-        ret += dosing(l, 2) * A *(exp(-alpha * thisT) - res);
+        ret += dosing[l+2*nDoses()] * A *(exp(-alpha * thisT) - res);
         break;
       case 1: //dA
 	switch(diff2){
 	case 0:
-	  ret += dosing(l, 2) * (exp(-alpha * thisT) - res);
+	  ret += dosing[l+2*nDoses()] * (exp(-alpha * thisT) - res);
           break;
 	case 2: // dA, dAlpha
-	  ret -= dosing(l, 2)*exp(-alpha * thisT) * thisT;
+	  ret -= dosing[l+2*nDoses()]*exp(-alpha * thisT) * thisT;
 	  break;
 	case 7: // dA, dKa
 	  if (oral == 1){
-	    ret += dosing(l, 2) * (exp(-ka * thisT) * thisT);
+	    ret += dosing[l+2*nDoses()] * (exp(-ka * thisT) * thisT);
 	  }
 	  break;
 	case 8: // dA, dTlag
-	  ret += dosing(l, 2)* (exp(-alpha * thisT) * alpha - exp(-ka * thisT) * ka);
+	  ret += dosing[l+2*nDoses()]* (exp(-alpha * thisT) * alpha - exp(-ka * thisT) * ka);
 	  break;
         }
       case 2: //dAlpha
 	switch(diff2){
 	case 0:
-	  ret -= dosing(l, 2) * A * (exp(-alpha * thisT) * thisT);
+	  ret -= dosing[l+2*nDoses()] * A * (exp(-alpha * thisT) * thisT);
           break;
 	case 1: //dAlpha, dA
-	  ret -= dosing(l, 2) * (exp(-alpha * thisT) * thisT);
+	  ret -= dosing[l+2*nDoses()] * (exp(-alpha * thisT) * thisT);
           break;
 	case 2: //dAlpha, dAlpha
-	  ret += dosing(l, 2) * A * (exp(-alpha * thisT) * thisT*thisT);
+	  ret += dosing[l+2*nDoses()] * A * (exp(-alpha * thisT) * thisT*thisT);
           break;
 	case 7: //dAlpha, dKa
 	  ret -= 0;
 	  break;
 	case 8: //dAlpha, dTlag
-	  ret -= dosing(l,2) * A * (exp(-alpha * thisT) * alpha * thisT - exp(-alpha * thisT));
+	  ret -= dosing[l+2*nDoses()] * A * (exp(-alpha * thisT) * alpha * thisT - exp(-alpha * thisT));
 	  break;
         }
       case 7: //dKa
         if (oral == 1){
 	  switch(diff2){
 	  case 0:
-	    ret += dosing(l, 2) * A * (exp(-ka * thisT) * thisT);
+	    ret += dosing[l+2*nDoses()] * A * (exp(-ka * thisT) * thisT);
 	    break;
 	  case 1: //dKa, dA
-	    ret += dosing(l, 2) * (exp(-ka * thisT) * thisT);
+	    ret += dosing[l+2*nDoses()] * (exp(-ka * thisT) * thisT);
             break;
 	  case 7: //dKa, dKa
-	    ret -= dosing(l, 2) * A * (exp(-ka * thisT) * thisT * thisT);
+	    ret -= dosing[l+2*nDoses()] * A * (exp(-ka * thisT) * thisT * thisT);
 	    break;
 	  case 8: //dKa, dTlag
-	    ret += dosing(l, 2) * A * (exp(-ka * thisT) * ka * thisT - exp(-ka * thisT));
+	    ret += dosing[l+2*nDoses()] * A * (exp(-ka * thisT) * ka * thisT - exp(-ka * thisT));
             break;
           }
         }
@@ -472,19 +467,19 @@ double RxODE_solveLinB(double t, int linCmt, int diff1, int diff2, double d_A, d
       case 8: //dTlag
 	switch(diff2){
 	case 0:
-	  ret += dosing(l, 2) * A * (exp(-alpha * thisT) * alpha - exp(-ka * thisT) * ka);
+	  ret += dosing[l+2*nDoses()] * A * (exp(-alpha * thisT) * alpha - exp(-ka * thisT) * ka);
 	  break;
 	case 1: // dTlag, dA
-	  ret += dosing(l, 2) * (exp(-alpha * thisT) * alpha - exp(-ka * thisT) * ka);
+	  ret += dosing[l+2*nDoses()] * (exp(-alpha * thisT) * alpha - exp(-ka * thisT) * ka);
 	  break;
 	case 2: // dTlag, dAlpha
-	  ret += dosing(l, 2) * A * (exp(-alpha * thisT) - exp(-alpha * thisT) * thisT * alpha);
+	  ret += dosing[l+2*nDoses()] * A * (exp(-alpha * thisT) - exp(-alpha * thisT) * thisT * alpha);
 	  break;
 	case 7: // dTlag, dKa
-	  ret -=  dosing(l, 2) * A * (exp(-ka * thisT) - exp(-ka * thisT) * thisT * ka);
+	  ret -=  dosing[l+2*nDoses()] * A * (exp(-ka * thisT) - exp(-ka * thisT) * thisT * ka);
           break;
 	case 8: // dTlag, dTlag
-	  ret += dosing(l, 2) * A * (exp(-alpha * thisT) * alpha * alpha - exp(-ka * thisT) * ka * ka);
+	  ret += dosing[l+2*nDoses()] * A * (exp(-alpha * thisT) * alpha * alpha - exp(-ka * thisT) * ka * ka);
           break;
         }
         break;
@@ -492,57 +487,57 @@ double RxODE_solveLinB(double t, int linCmt, int diff1, int diff2, double d_A, d
       if (ncmt >= 2){
 	switch(diff1){
         case 0:
-          ret += dosing(l, 2) * B *(exp(-beta * thisT) - res);
+          ret += dosing[l+2*nDoses()] * B *(exp(-beta * thisT) - res);
           break;
         case 3: //dA
           switch(diff2){
           case 0:
-            ret += dosing(l, 2) * (exp(-beta * thisT) - res);
+            ret += dosing[l+2*nDoses()] * (exp(-beta * thisT) - res);
             break;
           case 4: // dA, dBeta
-            ret -= dosing(l, 2)*exp(-beta * thisT) * thisT;
+            ret -= dosing[l+2*nDoses()]*exp(-beta * thisT) * thisT;
             break;
           case 7: // dA, dKa
             if (oral == 1){
-              ret += dosing(l, 2) * (exp(-ka * thisT) * thisT);
+              ret += dosing[l+2*nDoses()] * (exp(-ka * thisT) * thisT);
             }
             break;
           case 8: // dA, dTlag
-            ret += dosing(l, 2)* (exp(-beta * thisT) * beta - exp(-ka * thisT) * ka);
+            ret += dosing[l+2*nDoses()]* (exp(-beta * thisT) * beta - exp(-ka * thisT) * ka);
             break;
           }
         case 4: //dBeta
           switch(diff2){
           case 0:
-            ret -= dosing(l, 2) * B * (exp(-beta * thisT) * thisT);
+            ret -= dosing[l+2*nDoses()] * B * (exp(-beta * thisT) * thisT);
             break;
           case 3: //dBeta, dA
-            ret -= dosing(l, 2) * (exp(-beta * thisT) * thisT);
+            ret -= dosing[l+2*nDoses()] * (exp(-beta * thisT) * thisT);
             break;
           case 4: //dBeta, dBeta
-            ret += dosing(l, 2) * B * (exp(-beta * thisT) * thisT*thisT);
+            ret += dosing[l+2*nDoses()] * B * (exp(-beta * thisT) * thisT*thisT);
             break;
           case 7: //dBeta, dKa
             ret -= 0;
             break;
           case 8: //dBeta, dTlag
-            ret -= dosing(l,2) * B * (exp(-beta * thisT) * beta * thisT - exp(-beta * thisT));
+            ret -= dosing[l+2*nDoses()] * B * (exp(-beta * thisT) * beta * thisT - exp(-beta * thisT));
             break;
           }
         case 7: //dKa
           if (oral == 1){
             switch(diff2){
             case 0:
-              ret += dosing(l, 2) * B * (exp(-ka * thisT) * thisT);
+              ret += dosing[l+2*nDoses()] * B * (exp(-ka * thisT) * thisT);
               break;
             case 3: //dKa, dA
-              ret += dosing(l, 2) * (exp(-ka * thisT) * thisT);
+              ret += dosing[l+2*nDoses()] * (exp(-ka * thisT) * thisT);
               break;
             case 7: //dKa, dKa
-              ret -= dosing(l, 2) * B * (exp(-ka * thisT) * thisT * thisT);
+              ret -= dosing[l+2*nDoses()] * B * (exp(-ka * thisT) * thisT * thisT);
               break;
             case 8: //dKa, dTlag
-              ret += dosing(l, 2) * B * (exp(-ka * thisT) * ka * thisT - exp(-ka * thisT));
+              ret += dosing[l+2*nDoses()] * B * (exp(-ka * thisT) * ka * thisT - exp(-ka * thisT));
               break;
             }
           }
@@ -550,19 +545,19 @@ double RxODE_solveLinB(double t, int linCmt, int diff1, int diff2, double d_A, d
         case 8: //dTlag
           switch(diff2){
           case 0:
-            ret += dosing(l, 2) * B * (exp(-beta * thisT) * beta - exp(-ka * thisT) * ka);
+            ret += dosing[l+2*nDoses()] * B * (exp(-beta * thisT) * beta - exp(-ka * thisT) * ka);
             break;
           case 3: // dTlag, dA
-            ret += dosing(l, 2) * (exp(-beta * thisT) * beta - exp(-ka * thisT) * ka);
+            ret += dosing[l+2*nDoses()] * (exp(-beta * thisT) * beta - exp(-ka * thisT) * ka);
             break;
           case 4: // dTlag, dBeta
-            ret += dosing(l, 2) * B * (exp(-beta * thisT) - exp(-beta * thisT) * thisT * beta);
+            ret += dosing[l+2*nDoses()] * B * (exp(-beta * thisT) - exp(-beta * thisT) * thisT * beta);
             break;
           case 7: // dTlag, dKa
-            ret -=  dosing(l, 2) * B * (exp(-ka * thisT) - exp(-ka * thisT) * thisT * ka);
+            ret -=  dosing[l+2*nDoses()] * B * (exp(-ka * thisT) - exp(-ka * thisT) * thisT * ka);
             break;
           case 8: // dTlag, dTlag
-            ret += dosing(l, 2) * B * (exp(-beta * thisT) * beta * beta - exp(-ka * thisT) * ka * ka);
+            ret += dosing[l+2*nDoses()] * B * (exp(-beta * thisT) * beta * beta - exp(-ka * thisT) * ka * ka);
             break;
           }
           break;
@@ -570,57 +565,57 @@ double RxODE_solveLinB(double t, int linCmt, int diff1, int diff2, double d_A, d
         if (ncmt >= 3){
 	  switch(diff1){
           case 0:
-            ret += dosing(l, 2) * C *(exp(-gamma * thisT) - res);
+            ret += dosing[l+2*nDoses()] * C *(exp(-gamma * thisT) - res);
             break;
           case 5: //dA
             switch(diff2){
             case 0:
-              ret += dosing(l, 2) * (exp(-gamma * thisT) - res);
+              ret += dosing[l+2*nDoses()] * (exp(-gamma * thisT) - res);
               break;
             case 6: // dA, dGamma
-              ret -= dosing(l, 2)*exp(-gamma * thisT) * thisT;
+              ret -= dosing[l+2*nDoses()]*exp(-gamma * thisT) * thisT;
               break;
             case 7: // dA, dKa
               if (oral == 1){
-                ret += dosing(l, 2) * (exp(-ka * thisT) * thisT);
+                ret += dosing[l+2*nDoses()] * (exp(-ka * thisT) * thisT);
               }
               break;
             case 8: // dA, dTlag
-              ret += dosing(l, 2)* (exp(-gamma * thisT) * gamma - exp(-ka * thisT) * ka);
+              ret += dosing[l+2*nDoses()]* (exp(-gamma * thisT) * gamma - exp(-ka * thisT) * ka);
               break;
             }
           case 6: //dGamma
             switch(diff2){
             case 0:
-              ret -= dosing(l, 2) * C * (exp(-gamma * thisT) * thisT);
+              ret -= dosing[l+2*nDoses()] * C * (exp(-gamma * thisT) * thisT);
               break;
             case 5: //dGamma, dA
-              ret -= dosing(l, 2) * (exp(-gamma * thisT) * thisT);
+              ret -= dosing[l+2*nDoses()] * (exp(-gamma * thisT) * thisT);
               break;
             case 6: //dGamma, dGamma
-              ret += dosing(l, 2) * C * (exp(-gamma * thisT) * thisT*thisT);
+              ret += dosing[l+2*nDoses()] * C * (exp(-gamma * thisT) * thisT*thisT);
               break;
             case 7: //dGamma, dKa
               ret -= 0;
               break;
             case 8: //dGamma, dTlag
-              ret -= dosing(l,2) * C * (exp(-gamma * thisT) * gamma * thisT - exp(-gamma * thisT));
+              ret -= dosing[l+2*nDoses()] * C * (exp(-gamma * thisT) * gamma * thisT - exp(-gamma * thisT));
               break;
             }
           case 7: //dKa
             if (oral == 1){
               switch(diff2){
               case 0:
-                ret += dosing(l, 2) * C * (exp(-ka * thisT) * thisT);
+                ret += dosing[l+2*nDoses()] * C * (exp(-ka * thisT) * thisT);
                 break;
               case 5: //dKa, dA
-                ret += dosing(l, 2) * (exp(-ka * thisT) * thisT);
+                ret += dosing[l+2*nDoses()] * (exp(-ka * thisT) * thisT);
                 break;
               case 7: //dKa, dKa
-                ret -= dosing(l, 2) * C * (exp(-ka * thisT) * thisT * thisT);
+                ret -= dosing[l+2*nDoses()] * C * (exp(-ka * thisT) * thisT * thisT);
                 break;
               case 8: //dKa, dTlag
-                ret += dosing(l, 2) * C * (exp(-ka * thisT) * ka * thisT - exp(-ka * thisT));
+                ret += dosing[l+2*nDoses()] * C * (exp(-ka * thisT) * ka * thisT - exp(-ka * thisT));
                 break;
               }
             }
@@ -628,19 +623,19 @@ double RxODE_solveLinB(double t, int linCmt, int diff1, int diff2, double d_A, d
           case 8: //dTlag
             switch(diff2){
             case 0:
-              ret += dosing(l, 2) * C * (exp(-gamma * thisT) * gamma - exp(-ka * thisT) * ka);
+              ret += dosing[l+2*nDoses()] * C * (exp(-gamma * thisT) * gamma - exp(-ka * thisT) * ka);
               break;
             case 5: // dTlag, dA
-              ret += dosing(l, 2) * (exp(-gamma * thisT) * gamma - exp(-ka * thisT) * ka);
+              ret += dosing[l+2*nDoses()] * (exp(-gamma * thisT) * gamma - exp(-ka * thisT) * ka);
               break;
             case 6: // dTlag, dGamma
-              ret += dosing(l, 2) * C * (exp(-gamma * thisT) - exp(-gamma * thisT) * thisT * gamma);
+              ret += dosing[l+2*nDoses()] * C * (exp(-gamma * thisT) - exp(-gamma * thisT) * thisT * gamma);
               break;
             case 7: // dTlag, dKa
-              ret -=  dosing(l, 2) * C * (exp(-ka * thisT) - exp(-ka * thisT) * thisT * ka);
+              ret -=  dosing[l+2*nDoses()] * C * (exp(-ka * thisT) - exp(-ka * thisT) * thisT * ka);
               break;
             case 8: // dTlag, dTlag
-              ret += dosing(l, 2) * C * (exp(-gamma * thisT) * gamma * gamma - exp(-ka * thisT) * ka * ka);
+              ret += dosing[l+2*nDoses()] * C * (exp(-gamma * thisT) * gamma * gamma - exp(-ka * thisT) * ka * ka);
               break;
             }
             break;
