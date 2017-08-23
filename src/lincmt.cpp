@@ -9,7 +9,7 @@ using namespace arma;
 
 extern "C" SEXP RxODE_ode_dosing();
 // extern "C" double getLinDeriv(int ncmt, int diff1, int diff2, double rate, double tinf, double Dose, double ka, double tlag, double T, double tT, mat par);
-extern "C" double solveLinB(double t, int linCmt, int diff1, int diff2, double A, double alpha, double B, double beta, double C, double gamma, double ka, double tlag);
+extern "C" double RxODE_solveLinB(double t, int linCmt, int diff1, int diff2, double A, double alpha, double B, double beta, double C, double gamma, double ka, double tlag);
 
 
 int locateDoseIndex(mat dosing, const double obs_time){
@@ -33,7 +33,7 @@ int locateDoseIndex(mat dosing, const double obs_time){
   return i;
 }//subscript of dose
 
-double solveLinB(double t, int linCmt, int diff1, int diff2, double d_A, double d_alpha, double d_B, double d_beta, double d_C, double d_gamma, double d_ka, double d_tlag){
+double RxODE_solveLinB(double t, int linCmt, int diff1, int diff2, double d_A, double d_alpha, double d_B, double d_beta, double d_C, double d_gamma, double d_ka, double d_tlag){
   unsigned int ncmt = 1;
   if (d_C > 0 && d_gamma > 0){
     ncmt = 3;

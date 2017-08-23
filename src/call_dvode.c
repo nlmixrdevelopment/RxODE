@@ -143,6 +143,10 @@ double RxODE_sign_exp(double sgn, double x){
   }
 }
 
+static R_NativePrimitiveArgType RxODE_sign_exp_t[] = {
+  REALSXP, REALSXP
+};
+
 double RxODE_abs_log(double x){
   if (x > 0.0){
     return log(x);
@@ -1035,6 +1039,10 @@ double RxODE_InfusionRate(int val){
   return InfusionRate[val];
 }
 
+static R_NativePrimitiveArgType RxODE_one_int_t[] = {
+  INTSXP
+};
+
 double RxODE_par_ptr(int val){
   double ret =par_ptr[val];
   return ret;
@@ -1070,13 +1078,26 @@ double RxODE_transit4(double t, double n, double mtt, double bio){
   return exp(log(bio*podo)+lktr+n*(lktr+log(t))-ktr*t-lgamma1p(n));
 }
 
+static R_NativePrimitiveArgType RxODE_transit4_t[] = {
+  REALSXP, REALSXP, REALSXP, REALSXP
+};
+
 double RxODE_transit3(double t, double n, double mtt){
   return RxODE_transit4(t, n,mtt, 1.0);
 }
 
+static R_NativePrimitiveArgType RxODE_transit3_t[] = {
+  REALSXP, REALSXP, REALSXP
+};
+
 double RxODE_factorial(double x){
   return exp(lgamma1p(x));
 }
+
+static R_NativePrimitiveArgType RxODE_one_dbl_t[] = {
+  REALSXP
+};
+
 
 SEXP _RxODE_rxGrad(SEXP rhoSEXP);
 SEXP _RxODE_rxInner(SEXP etanewsSEXP, SEXP rhoSEXP);
@@ -1099,7 +1120,12 @@ SEXP _RxODE_rxInv(SEXP matrix);
 SEXP _RxODE_rxCoutEcho(SEXP number);
 SEXP _RxODE_W_Cpp(SEXP zSEXP, SEXP branchSEXP);
 
-double solveLinB(double t, int linCmt, int diff1, int diff2, double A, double alpha, double B, double beta, double C, double gamma, double ka, double tlag);
+double RxODE_solveLinB(double t, int linCmt, int diff1, int diff2, double A, double alpha, double B, double beta, double C, double gamma, double ka, double tlag);
+static R_NativePrimitiveArgType RxODE_solveLinB_t[] = {
+  //t,    linCmt,  diff1,  diff2,  A,       alpha,  B,       beta,     C,       gamma, double ka, double tlag)
+  REALSXP, INTSXP, INTSXP, INTSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP
+};
+
 void R_init_RxODE(DllInfo *info){
   R_CallMethodDef callMethods[]  = {
     {"RxODE_ode_solver", (DL_FUNC) &RxODE_ode_solver, 24},
@@ -1123,8 +1149,6 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_W_Cpp", (DL_FUNC) &_RxODE_W_Cpp,2},
     {NULL, NULL, 0}
   };
-  R_registerRoutines(info, NULL, callMethods, NULL, NULL);
-  R_useDynamicSymbols(info, FALSE);
   
   //Functions
   R_RegisterCCallable("RxODE","RxODE_ode_solver",       (DL_FUNC) RxODE_ode_solver);
@@ -1156,6 +1180,31 @@ void R_init_RxODE(DllInfo *info){
   R_RegisterCCallable("RxODE","RxODE_as_zero",          (DL_FUNC) RxODE_as_zero);
   R_RegisterCCallable("RxODE","RxODE_sign_exp",         (DL_FUNC) RxODE_sign_exp);
   R_RegisterCCallable("RxODE","RxODE_abs_log",          (DL_FUNC) RxODE_abs_log);
-  R_RegisterCCallable("RxODE","RxODE_solveLinB",        (DL_FUNC) solveLinB);
+  R_RegisterCCallable("RxODE","RxODE_solveLinB",        (DL_FUNC) RxODE_solveLinB);
+
+  static const R_CMethodDef cMethods[] = {
+    {"RxODE_InfusionRate", (DL_FUNC) &RxODE_InfusionRate, 1, RxODE_one_int_t},
+    {"RxODE_par_ptr", (DL_FUNC) &RxODE_par_ptr, 1, RxODE_one_int_t},
+    {"RxODE_jac_counter_val", (DL_FUNC) &RxODE_jac_counter_val, 0},
+    {"RxODE_dadt_counter_val",(DL_FUNC) &RxODE_dadt_counter_val, 0},
+    {"RxODE_jac_counter_inc", (DL_FUNC) &RxODE_jac_counter_inc, 0},
+    {"RxODE_dadt_counter_inc",(DL_FUNC) &RxODE_dadt_counter_inc, 0},
+    {"RxODE_podo",(DL_FUNC) &RxODE_podo, 0},
+    {"RxODE_tlast",(DL_FUNC) &RxODE_tlast, 0},
+    {"RxODE_transit4",(DL_FUNC) &RxODE_transit4, 4, RxODE_transit4_t},
+    {"RxODE_transit3", (DL_FUNC) &RxODE_transit3, 4, RxODE_transit3_t},
+    {"RxODE_factorial", (DL_FUNC) &RxODE_factorial, 1, RxODE_one_dbl_t},
+    {"RxODE_safe_log", (DL_FUNC) &RxODE_safe_log, 1, RxODE_one_dbl_t},
+    {"RxODE_safe_zero", (DL_FUNC) &RxODE_safe_zero, 1, RxODE_one_dbl_t},
+    {"RxODE_as_zero", (DL_FUNC) &RxODE_as_zero, 1, RxODE_one_dbl_t},
+    {"RxODE_sign_exp", (DL_FUNC) &RxODE_sign_exp, 2, RxODE_sign_exp_t},
+    {"RxODE_abs_log", (DL_FUNC) &RxODE_abs_log, 1, RxODE_one_dbl_t},
+    {"RxODE_solveLinB", (DL_FUNC) &RxODE_solveLinB, 12, RxODE_solveLinB_t},
+    {NULL, NULL, 0, NULL}
+  };
+
+  R_registerRoutines(info, cMethods, callMethods, NULL, NULL);
+  R_useDynamicSymbols(info, FALSE);
+
 }
 
