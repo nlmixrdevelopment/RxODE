@@ -48,7 +48,7 @@ der_rhs    : 'd/dt' '(' identifier_r_no_output ')';
 jac        : jac_command '(' identifier_r_no_output ',' (theta0_noout | theta_noout | eta_noout | identifier_r_no_output) ')' ('=' | '<-' ) additive_expression;
 jac_rhs    : jac_command '(' identifier_r_no_output ',' (theta0_noout | theta_noout | eta_noout | identifier_r_no_output) ')';
 
-inf_cmd    : ('infusionRate' | 'InfusionRate' | 'infusion_rate' | 'rate');
+inf_cmd    : ('rxRate');
 inf_rhs    : inf_cmd '(' identifier_r_no_output ')';
 
 // transit(n,mtt) -> transit3(t,n,mtt)

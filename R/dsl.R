@@ -822,12 +822,12 @@ allCalls <- function(x) {
 
 rxDefinedDerivatives <- new.env(parent = emptyenv())
 
-rxDefinedDerivatives$rate <- function(fn, var){
+rxDefinedDerivatives$rxRate <- function(fn, var){
     fn <- fn[-1];
     if (var == "t"){
         return("0")
     } else {
-        warning(sprintf("diff(rate(%s,t),%s)"), fn[1], t);
+        warning(sprintf("diff(rxRate(%s,t),%s)"), fn[1], t);
         return("0")
     }
 
