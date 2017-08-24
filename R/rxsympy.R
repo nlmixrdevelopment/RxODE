@@ -340,6 +340,57 @@ rxSymPyReserved <- function(){
 }
 rxSymPyReserved.slow <- NULL;
 
+##' Add undefined variables to sympy
+##'
+##' @param txt Text to add undefined variables to...
+##' @return nothing
+##' @author Matthew L. Fidler
+##' @export
+##' @keywords internal
+rxSyPyAddVars <- function(txt){
+    allVars <- function(x){
+        defined <- character()
+        f <- function(x){
+            if (is.atomic(x)) {
+                character()
+            } else if (is.name(x)) {
+                as.character(x)
+            } else if (is.call(x) || is.pairlist(x)) {
+                if (identical(x[[1]], quote(`~`)) ||
+                    identical(x[[1]], quote(`=`)) ||
+                    identical(x[[1]], quote(`<-`))){
+                    if (is.call(x[[3]])){
+                        ret <- unique(unlist(lapply(x[[3]][-1], f)));
+                    } else {
+                        ret <- unique(unlist(lapply(x[[3]], f)));
+                    }
+                    ret <- ret[!(ret %in% defined)]
+                    defined <<- unique(c(defined, x[[2]]))
+                    return(ret)
+                } else {
+                    children <- lapply(x[-1], f)
+                    unique(unlist(children))
+                }
+            } else {
+                stop("Don't know how to handle type ", typeof(x),
+                     call. = FALSE)
+            }
+        }
+        f(x);
+    }
+    vars <- allVars(eval(parse(text=sprintf("quote({%s})", txt))))
+    for (v in vars){
+        if (!rxSymPyExists(v)){
+            known <- c(rxSymPy.vars, v);
+            assignInMyNamespace("rxSymPy.vars", known);
+            if (length(vars) == 1){
+                rxSymPyExec(sprintf("%s = Symbol('%s')", v, v));
+            }
+        }
+    }
+    return(invisible());
+}
+
 ##' Setup sympy variables
 ##'
 ##' This creates sympy variables for later evaulation in the CAS sympy.
@@ -832,7 +883,7 @@ rxSymPySensitivity <- function(model, calcSens, calcJac=FALSE, keepState=NULL,
             for (v in rxState(model)){
                 tmp <- rxSymPy(rxToSymPy(sprintf("d/dt(%s)", v)));
                 tmp <- rxFromSymPy(tmp);
-                extraLines[length(extraLines) + 1] <- sprintf("d/dt(%s)=rate(%s)+%s", v, v, tmp);
+                extraLines[length(extraLines) + 1] <- sprintf("d/dt(%s)=rxRate(%s)+%s", v, v, tmp);
                 ini <- sprintf("%s(0)", v);
                 ini <- rxToSymPy(ini)
                 tmp <- try({rxSymPy(ini)}, silent=TRUE);
@@ -868,7 +919,7 @@ rxSymPySensitivity <- function(model, calcSens, calcJac=FALSE, keepState=NULL,
                 for (v in rxState(model)){
                     tmp <- rxSymPy(rxToSymPy(sprintf("d/dt(%s)", v)));
                     tmp <- rxFromSymPy(tmp);
-                    tmpl[length(tmpl) + 1] <- sprintf("d/dt(%s)=rate(%s)+%s", v, v, tmp);
+                    tmpl[length(tmpl) + 1] <- sprintf("d/dt(%s)=rxRate(%s)+%s", v, v, tmp);
                 }
                 for (v in rxLhs(model)){
                     tmp <- rxSymPy(rxToSymPy(sprintf("%s", v)));
@@ -1571,6 +1622,18 @@ rxLogifyModel <- function(model){
     newMod <- paste(paste(lines, collapse="\n"), "\n");
     ## rxCat(newMod)
     return(newMod);
+}
+##' Return the expanded expression (via sympy)
+##'
+##' @param x text sympy-compatible expression
+##' @param expr SymPy expression to use.  By default uses expand.
+##' @return sympy value for rxSymPy...
+##' @author Matthew L. Fidler
+##' @export
+##' @keywords internal
+rxSymPyExpand <- function(x, expr="expand"){
+    rxSyPyAddVars(x)
+    return(rxSymPy(sprintf("expand(%s)", rxToSymPy(x))))
 }
 
 ## Supported SymPy special functions

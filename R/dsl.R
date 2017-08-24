@@ -191,13 +191,37 @@ sympyRxFEnv$"[" <- function(name, val){
     }
 }
 
-sympyRxFEnv$dt <- function(w) {return(sprintf("dt(%s)", w))}
+dsl.strip.paren <- function(x){
+    x.cur <- x
+    x.new <- gsub(rex::rex(start, any_spaces, "(", any_spaces, capture(anything), any_spaces, ")", any_spaces, end), "\\1", x.cur);
+    while (nchar(x.cur) != nchar(x.new)){
+        x.cur <- x.new
+        x.new <- gsub(rex::rex(start, any_spaces, "(", any_spaces, capture(anything), any_spaces, ")", any_spaces, end), "\\1", x.cur);
+    }
+    return(x.new)
+}
 
-sympyRxFEnv$"/" <- binaryOp("/");
+dsl.to.pow <- function(a, b){
+    a <- dsl.strip.paren(a);
+    b <- dsl.strip.paren(b);
+    num <- suppressWarnings({as.numeric(b)});
+    if (is.na(num)){
+        return(sprintf("R_pow(%s, %s)", a, b));
+    } else if (num == round(num)){
+        return(sprintf("R_pow_di(%s, %s)", a, b));
+    } else if (num == 0.5){
+        return(sprintf("sqrt(%s)", a));
+    } else {
+        return(sprintf("R_pow(%s, %s)", a, b));
+    }
+}
+
+
+sympyRxFEnv$dt <- function(w) {return(sprintf("dt(%s)", w))}
 rxSymPyFEnv$"^" <- binaryOp("**")
 rxSymPyFEnv$"**" <- binaryOp("**")
-sympyRxFEnv$"**" <- binaryOp("^")
-sympyRxFEnv$"^" <- binaryOp("^")
+sympyRxFEnv$"**" <- dsl.to.pow
+sympyRxFEnv$"^" <- dsl.to.pow
 
 functionIgnore <- function(){
     function(...){
@@ -213,11 +237,11 @@ rxSymPyFEnv$dt <- function(e1){
     paste0("__dt__", e1, "__");
 }
 
-rxSymPyFEnv$rate <- function(e1){
-    sprintf("rate(%s,t)", e1);
+rxSymPyFEnv$rxRate <- function(e1){
+    sprintf("rxRate(%s,t)", e1);
 }
-sympyRxFEnv$rate <- function(e1, ...){
-    sprintf("rate(%s)", e1);
+sympyRxFEnv$rxRate <- function(e1, ...){
+    sprintf("rxRate(%s)", e1);
 }
 
 rxSymPyFEnv$df <- function(e1){
@@ -291,11 +315,103 @@ rxPrintOp <- function(op){
 ## equivalent functions
 sympy.equiv.f <- c("abs", "acos", "acosh", "asin", "atan", "atan2", "atanh", "beta",
                    "cos", "cosh", "digamma", "erf", "erfc", "exp", "factorial",
-                   "gamma", "log", "log10", "sin", "sinh", "sqrt", "tan",
+                   "gamma", "log10", "sin", "sinh", "sqrt", "tan",
                    "tanh", "trigamma")
 for (f in sympy.equiv.f){
     rxSymPyFEnv[[f]] <- functionOp(f);
     sympyRxFEnv[[f]] <- functionOp(f);
+}
+
+
+dsl.factor.pi.1 <- function(x){
+    mult.split <- eval(parse(text=sprintf("rxSplitPlusQ(quote(%s),mult=TRUE)", x)));
+    w <- which(mult.split == "M_PI");
+    if (length(w) == 1){
+        r <- gsub(rex::rex(" * 1/"), " * ", paste(mult.split[-w], collapse=" * "));
+        if (r == "")
+            r <- "1"
+        return(r);
+    }
+    w <- which(mult.split == "M_2PI");
+    if (length(w) >= 1){
+        mult.split[w[1]] <- "2"
+        return(gsub(rex::rex(" * 1/"), " * ", paste(mult.split, collapse=" * ")));
+    }
+    w <- which(mult.split == "M_PI_2");
+    if (length(w) >=  1){
+        mult.split[w[1]] <- "1/2"
+        return(gsub(rex::rex(" * 1/"), " * ", paste(mult.split, collapse=" * ")));
+    }
+    w <- which(mult.split == "M_PI_4");
+    if (length(w) >= 1){
+        mult.split[w[1]] <- "1/4"
+        return(gsub(rex::rex(" * 1/"), " * ", paste(mult.split, collapse=" * ")));
+    }
+    w <- which(mult.split == "M_1_PI")
+    if (length(w) >= 1){
+        mult.split[w[1]] <- "R_pow_di(M_PI,-2)";
+        return(gsub(rex::rex(" * 1/"), " * ", paste(mult.split, collapse=" * ")));
+    }
+    w <- which(mult.split == "M_2_PI")
+    if (length(w) >= 1){
+        mult.split[w[1]] <- "2 * R_pow_di(M_PI,-2)";
+        return(gsub(rex::rex(" * 1/"), " * ", paste(mult.split, collapse=" * ")));
+    }
+    w <- which(mult.split == "M_2_SQRTPI")
+    if (length(w) >= 1){
+        mult.split[w[1]] <- "2 * R_pow(M_PI,-1.5)";
+        return(gsub(rex::rex(" * 1/"), " * ", paste(mult.split, collapse=" * ")));
+    }
+    w <- which(mult.split == "M_SQRT_PI")
+    if (length(w) >= 1){
+        mult.split[w[1]] <- "2 * R_pow(M_PI,-1.5)";
+        return(gsub(rex::rex(" * 1/"), " * ", paste(mult.split, collapse=" * ")));
+    }
+    reg <- rex::rex(start, any_spaces, capture("R_pow", or("_di", ""), "("), any_spaces,
+                    capture(except_some_of(", "), "PI", except_some_of(", ")), any_spaces, ",", any_spaces,
+                    capture(except_some_of(", )")), any_spaces, ")")
+    w <- which(regexpr(reg, mult.split) != -1)
+    if (length(w) >= 1){
+        num <- suppressWarnings(as.numeric(gsub(reg, "\\3", mult.split[w])));
+        if (is.na(num)){
+            pow <- paste0(gsub(reg, "\\3", mult.split[w]), " - 1");
+            mult.split[w] <- gsub(reg, sprintf("\\1\\2,%s)", pow), mult.split[w])
+        } else {
+            pow <- num - 1;
+            if (pow == 1){
+                mult.split[w] <- gsub(reg, "\\2", mult.split[w])
+            } else {
+                mult.split[w] <- gsub(reg, sprintf("\\1\\2,%s)", pow), mult.split[w])
+            }
+        }
+        return(gsub(rex::rex(" * 1/"), " * ", paste(mult.split, collapse=" * ")))
+    }
+    return(NA)
+}
+
+
+dsl.factor.pi <- function(x, op="cos"){
+    factored <- sapply(eval(parse(text=sprintf("rxSplitPlusQ(quote(%s))", x))), dsl.factor.pi.1);
+    if (any(is.na(factored))){
+        return(sprintf("%s(%s)", op, x))
+    } else {
+        return(sprintf("%spi(%s)", op, gsub(rex::rex("+ -"), "-", paste(factored, collapse=" + "))))
+    }
+
+}
+
+sympyRxFEnv$cos <- function(x){
+    ## Convert to cospi
+    return(dsl.factor.pi(x))
+}
+sympyRxFEnv$sin <- function(x){
+    ## Convert to cospi
+    dsl.factor.pi(x, "sin")
+}
+
+sympyRxFEnv$tan <- function(x){
+    ## Convert to cospi
+    dsl.factor.pi(x, "tan")
 }
 
 rxSymPyAbsLog <- FALSE
@@ -321,6 +437,206 @@ sympyRxFEnv$exp <- function(arg){
     return(paste0("exp(", arg, ")"))
 }
 
+
+dsl.handle.log <- function(x, abs=FALSE){
+    ## Put more accurate functions in...
+    ## lgamma1p
+    x <- dsl.strip.paren(x);
+    num <- suppressWarnings(as.numeric(x))
+    if (!is.na(num)){
+        if (num == 2){
+            return("M_LN2");
+        } else if (num == 10){
+            return("M_LN10");
+        }
+    }
+    if (any(x == c("M_SQRT_PI", "sqrt(M_PI)"))){
+        return("M_LN_SQRT_PI");
+    } else if (any(x == c("sqrt(2 * M_PI)", "sqrt(M_PI * 2)", "sqrt(M_2PI)"))){
+        return("M_LN_SQRT_2PI");
+    } else if (any(x == c("sqrt(M_PI/2)", "sqrt(M_PI_2)"))){
+        return("M_LN_SQRT_PId2");
+    }
+    pls <- eval(parse(text=sprintf("rxSplitPlusQ(quote(%s))", x)));
+    if (length(pls) == 1) {
+        reg <- rex::rex(start, any_spaces, "gamma(", capture(anything), ")", any_spaces, end)
+        new <- sub(reg, "\\1", pls);
+        if (nchar(new) != nchar(pls)){
+            new.expand <- rxSymPyExpand(new);
+            pls <- eval(parse(text=sprintf("rxSplitPlusQ(quote(%s))", new.expand)));
+            pls.n <- suppressWarnings({as.numeric(pls)})
+            w <- which(!is.na(pls.n));
+            if (length(w) == 1){
+                n <- pls.n[w] - 1;
+                if (n == 0){
+                    pls <- pls[-w];
+                } else {
+                    pls[w] <- paste(n);
+                }
+                ret <- gsub(rex::rex("+-"), "-", paste(sapply(pls, rxFromSymPy), collapse="+"))
+                if (abs){
+                    return(sprintf("lgamma1p(abs(%s))", ret))
+                } else {
+                    return(sprintf("lgamma1p(%s)", ret))
+                }
+            }
+        }
+    }
+    ## log1pexp
+    w <- which(pls == "1");
+    if (length(pls) == 2 && length(w) == 1){
+        pls <- pls[-w];
+        reg <- rex::rex(start, any_spaces, "exp(", capture(anything), ")", any_spaces, end)
+        new <- sub(reg, ifelse(abs, "log1pexp(abs(\\1))", "log1pexp(\\1)"), pls);
+        if (nchar(new) != nchar(pls)){
+            return(new)
+        } else {
+            return(sprintf(ifelse(abs, "log1p(abs(%s))", "log1p(%s)"), pls))
+        }
+
+    }
+    ## log1p
+    ## log(1+x) or log(x + 1) or log(y + 1 + z)
+    ## First expand
+    x.expand <- rxSymPyExpand(x);
+    ## Then split on +
+    pls <- eval(parse(text=sprintf("rxSplitPlusQ(quote(%s))", x.expand)));
+    ## Let see if any of these are numeric...
+    pls.n <- suppressWarnings({as.numeric(pls)})
+    w <- which(!is.na(pls.n));
+    if (length(w) == 1){
+        n <- pls.n[w] - 1;
+        if (n == 0){
+            pls <- pls[-w];
+        } else {
+            pls[w] <- paste(n);
+        }
+        for (i in seq_along(pls)){
+            tmp <- pls[i]
+            pls[i] <- rxFromSymPy(tmp);
+        }
+        ret <- gsub(rex::rex("+-"), "-", paste(pls, collapse="+"))
+        if (abs){
+            return(sprintf("log1p(abs(%s))", ret))
+        } else {
+            return(sprintf("log1p(%s)", ret))
+        }
+    }
+    p1 <- rex::rex(start, any_spaces, "1", any_spaces, "+", any_spaces)
+    p2 <- rex::rex(any_spaces, "+", any_spaces, "1", any_spaces, end)
+    if (regexpr(p2, x) != -1){
+        x2 <- gsub(p2, "", x);
+        if (abs){
+            return(sprintf("log1p(abs(%s))", x2))
+        } else {
+            return(sprintf("log1p(%s)", x2))
+        }
+    } else if (regexpr(p1, x) != -1){
+        x2 <- gsub(p1, "", x);
+        if (abs){
+            return(sprintf("log1p(abs(%s))", x2))
+        } else {
+            return(sprintf("log1p(%s)", x2))
+        }
+    } else {
+        return(sprintf("%slog(%s)", ifelse(abs, "abs_", ""), x));
+    }
+}
+rxSymPyFEnv$log2 <- function(e1){
+    if (e1 == "E" || e1 == "exp(1)"){
+        return("1/log(2)");
+    } else {
+        return(paste0("log(", e1, ")/log(2)"));
+    }
+}
+
+rxSymPyFEnv$log10 <- function(e1){
+    if (e1 == "E" || e1 == "exp(1)" || e1 == "e"){
+        return("1/log(10)");
+    } else {
+        return(paste0("log10(", e1, ")"));
+    }
+}
+
+sympyRxFEnv$log10 <- function(e1){
+    if (e1 == "M_E" || e1 == "exp(1)" || e1 == "e"){
+        return("M_LOG10E");
+    } else {
+        return(paste0("log10(", e1, ")"));
+    }
+}
+sympyRxFEnv[["/"]] <- function(e1, e2, sep="/"){
+    if (e2 == "M_LN2"){
+        if (e1 == 1){
+            ## log(e)/log(2)
+            return("M_LOG2E");
+        }
+        reg <- rex::rex(start, any_spaces, "log(");
+        if (regexpr(reg, e1) != -1){
+            return(sub(reg, "log2(", e1));
+        }
+        return(paste0(e1, " * M_LOG2E"))
+    }
+    if (e1 == "M_PI"){
+        if (e2 == 2){
+            return("M_PI_2")
+        } else if (e2 == 4){
+            return("M_PI_4")
+        }
+    }
+    if (e1 == 1){
+        if (e2 == "M_PI"){
+            return("M_1_PI")
+        } else if (e2 == "sqrt(2)"){
+            return("M_SQRT1_2");
+        } else if (e2 == "sqrt(M_2PI)"){
+            return("M_1_SQRT_2PI");
+        }
+    }
+    if (e1 == 2){
+        if (e2 == "M_PI"){
+            return("M_2_PI")
+        } else if (e2 == "M_SQRT_PI"){
+            return("M_2_SQRTPI")
+        }
+    }
+    if (e2 == "M_LN10"){
+        if (e1 == 1){
+            ## log(e)/log(10)
+            return("M_LOG10E");
+        }
+        reg <- rex::rex(start, any_spaces, "log(");
+        if (regexpr(reg, e1) != -1){
+            return(sub(reg, "log10(", e1));
+        }
+        return(paste0(e1, " * M_LOG10E"))
+    }
+    return(paste0(e1, sep, e2))
+}
+sympyRxFEnv[["*"]] <- function(e1, e2, sep=" * "){
+     if ((e1 == 2 && e2 == "M_PI") ||
+        (e2 == 2 && e1 == "M_PI")){
+        return("M_2PI")
+    } else {
+        ##  You shouldn't need to parse additive expressions first, since R handles multiplication before +/-
+        if (e2 == 2){
+            mult.split <- eval(parse(text=sprintf("rxSplitPlusQ(quote(%s),mult=TRUE)", e1)))
+            w.pi <- which(mult.split == "M_PI");
+            if (length(w.pi) == 1){
+                return(gsub(rex::rex(sep, "1/"), sep, paste0(paste(mult.split[-w.pi], collapse=sep), sep, "M_2PI")));
+            }
+        }
+        if (e2 == "M_PI"){
+            mult.split <- eval(parse(text=sprintf("rxSplitPlusQ(quote(%s),mult=TRUE)", e1)))
+            w.2 <- which(mult.split == "2");
+            if (length(w.2) == 1){
+                return(gsub(rex::rex(sep, "1/"), sep, paste0(paste(mult.split[-w.2], collapse=sep), sep, "M_2PI")));
+            }
+        }
+        return(paste0(e1, sep, e2))
+    }
+}
+
 sympyRxFEnv$log <- function(arg){
     if (rxSymPyAbsLog){
         tmp <- rxSymPyLogSign
@@ -331,9 +647,30 @@ sympyRxFEnv$log <- function(arg){
             tmp[length(tmp) + 1] <- arg;
         }
         assignInMyNamespace("rxSymPyLogSign", tmp);
-        return(paste0("abs_log(", arg, ")"))
+        return(dsl.handle.log(arg, abs=TRUE));
     } else {
-        return(paste0("log(", arg, ")"))
+        return(dsl.handle.log(arg));
+    }
+}
+
+sympyRxFEnv$sqrt <- function(arg){
+    arg <- dsl.strip.paren(arg);
+    if (any(arg == c("2/M_PI", "M_2_PI"))){
+        return("M_SQRT_2dPI");
+    } else if (arg == "M_PI"){
+        return("M_SQRT_PI");
+    } else {
+        num <- suppressWarnings(as.numeric(arg));
+        if (!is.na(num)){
+            if (num == 32){
+                return("M_SQRT_32")
+            } else if (num == 3){
+                return("M_SQRT_3");
+            } else if (num == 2){
+                return("M_SQRT_2");
+            }
+        }
+        return(sprintf("sqrt(%s)", arg))
     }
 }
 
@@ -641,6 +978,31 @@ sympyEnv <- function(expr){
     w <- which(n2 %in% res);
     n2[w] <- sprintf("rx_SymPy_Res_%s", n2[w]);
     n2 <- gsub(rex::rex("rx_underscore_"), "_", n2);
+    n2[n2 == "M_E"] <- "E";
+    n2[n2 == "M_PI"] <- "pi";
+    n2[n2 == "M_PI_2"] <- "pi/2";
+    n2[n2 == "M_PI_4"] <- "pi/4";
+    n2[n2 == "M_1_PI"] <- "1/pi";
+    n2[n2 == "M_2_PI"] <- "2/pi";
+    n2[n2 == "M_2PI"] <- "2*pi";
+    n2[n2 == "M_SQRT_PI"] <- "sqrt(pi)";
+    n2[n2 == "M_2_SQRTPI"] <- "2/sqrt(pi)";
+    n2[n2 == "M_1_SQRT_2PI"] <- "1/sqrt(2*pi)";
+    n2[n2 == "M_SQRT_2"] <- "sqrt(2)";
+    n2[n2 == "M_SQRT_3"] <- "sqrt(3)";
+    n2[n2 == "M_SQRT_32"] <- "sqrt(32)";
+    n2[n2 == "M_SQRT_2dPI"] <- "sqrt(2/pi)";
+    n2[n2 == "M_LN_SQRT_PI"] <- "log(sqrt(pi))";
+    n2[n2 == "M_LN_SQRT_2PI"] <- "log(sqrt(2*pi))";
+    n2[n2 == "M_LN_SQRT_PId2"] <- "log(sqrt(pi/2))";
+    n2[n2 == "M_SQRT2"] <- "sqrt(2)";
+    n2[n2 == "M_SQRT3"] <- "sqrt(3)";
+    n2[n2 == "M_SQRT32"] <- "sqrt(32)";
+    n2[n2 == "M_LOG10_2"] <- "log10(2)";
+    n2[n2 == "M_LOG2E"] <- "1/log(2)"
+    n2[n2 == "M_LOG10E"] <- "log10(E)"
+    n2[n2 == "M_LN2"] <- "log(2)"
+    n2[n2 == "M_LN10"] <- "log(10)"
     symbol.list <- setNames(as.list(n2), n1);
     symbol.env <- list2env(symbol.list, parent=rxSymPyFEnv);
     return(symbol.env)
@@ -662,7 +1024,8 @@ rxEnv <- function(expr){
                               gsub(rex::rex(start, regThEt, end), "\\1[\\2]", names)))));
     ## n2 <- gsub(regRate, "rate(\\1)", n2);
     n2 <- gsub(rex::rex("rx_SymPy_Res_"), "", n2)
-
+    n2[n2 == "E"] <- "M_E";
+    n2[n2 == "pi"] <- "M_PI";
     n2[n2 == "time"] <- "t";
     n2 <- gsub(rex::rex("__DoT__"), ".", n2)
     symbol.list <- setNames(as.list(n2), n1);
@@ -725,11 +1088,13 @@ rxToSymPy <- function(x, envir=parent.frame(1)) {
         } else {
             expr <- evalPrints(substitute(x), envir=envir)
             txt <- eval(expr, sympyEnv(expr))
+            txt <- gsub(rex::rex(" * 1/"), "/", txt);
             return(paste0(txt))
         }
     } else {
         expr <- evalPrints(substitute(x), envir=envir)
         txt <- eval(expr, sympyEnv(expr));
+        txt <- gsub(rex::rex(" * 1/"), "/", txt);
         return(paste0(txt))
     }
 }
@@ -780,7 +1145,6 @@ rxFromSymPy <- function(x, envir=parent.frame(1)) {
 }
 
 ## Start error function DSL
-
 rxErrEnvF <- new.env(parent = emptyenv())
 for (op in c("+", "-", "*", "/", "^", "**",
              "!=", "==", "&", "&&", "|", "||")){
@@ -1045,11 +1409,13 @@ rxSimpleExprP <- function(x){
 ##'
 ##' @param x Quoted R expression for splitting
 ##' @param level Internal level of parsing
+##' @param mult boolean to split based on * and / expressions instead.
+##'     By default this is turned off.
 ##' @return character vector of the split expressions
 ##' @author Matthew L. Fidler
 ##' @export
 ##' @keywords internal
-rxSplitPlusQ <- function(x, level=0){
+rxSplitPlusQ <- function(x, level=0, mult=FALSE){
     if (class(x) == "character" && level == 0){
         return(eval(parse(text=sprintf("rxSplitPlusQ(quote(%s))", x))))
     }
@@ -1060,15 +1426,21 @@ rxSplitPlusQ <- function(x, level=0){
             return(character())
         }
     } else if (is.call(x)) { # Call recurse_call recursively
-        if ((identical(x[[1]], quote(`+`)) ||
-             identical(x[[1]], quote(`-`))) && level == 0){
+        if ((mult && ((identical(x[[1]], quote(`*`)) ||
+                       identical(x[[1]], quote(`/`))) && level == 0)) ||
+            (!mult && ((identical(x[[1]], quote(`+`)) ||
+                        identical(x[[1]], quote(`-`))) && level == 0))){
             if (length(x) == 3){
                 if (identical(x[[1]], quote(`+`))){
                     one <- paste(deparse(x[[3]]), collapse="");
-                } else {
+                } else if (!mult){
                     one <- paste("-", paste(deparse(x[[3]]), collapse=""));
+                } else if (identical(x[[1]], quote(`*`))){
+                    one <- paste(deparse(x[[3]]), collapse="");
+                } else if (mult){
+                    one <- paste("1/", paste(deparse(x[[3]]), collapse=""));
                 }
-                tmp <- rxSplitPlusQ(x[[2]], level=0);
+                tmp <- rxSplitPlusQ(x[[2]], level=0, mult=mult);
                 if (length(tmp) > 0){
                     return(c(tmp, one))
                 } else {
@@ -1085,7 +1457,7 @@ rxSplitPlusQ <- function(x, level=0){
                 return(one);
             }
         } else {
-            tmp <- unlist(lapply(x, rxSplitPlusQ, level=1));
+            tmp <- unlist(lapply(x, rxSplitPlusQ, level=1, mult=mult));
             if (level == 0){
                 if (length(tmp) == 0){
                     tmp <- paste(deparse(x), collapse="")
@@ -1095,7 +1467,7 @@ rxSplitPlusQ <- function(x, level=0){
         }
     } else if (is.pairlist(x)) {
         ## Call recurse_call recursively
-        tmp <- unlist(lapply(x, rxSplitPlusQ, level=level));
+        tmp <- unlist(lapply(x, rxSplitPlusQ, level=level, mult=mult));
         if (level == 0){
             if (length(tmp) == 0){
                 tmp <- paste(deparse(x), collapse="");
