@@ -221,269 +221,303 @@ create.syminv.cache <- function(n=1, xforms=c("sqrt", "log", "identity")){
 
 if (Sys.getenv("RxODE_derivs") == "TRUE"){
 
-    template.diff <- "if(rate>0){
- if(T<=tinf){
-<%=CpIin%>
- }else{
-<%=CpIout%>
- }
-}else{
-<%=Cp%>
-}";
+    lin.diff <- function(){
+        ## These are the derivatives in infusion
+        tmp <- RxODE({
+            ret = rate*A / alpha * (1 - exp(-alpha * t1)) * exp(-alpha * t2);
+        })
 
+        rxSymPySetup(tmp)
+        dA <- rxLogifyModel(sprintf("ret=%s", rxSymPy("diff(ret, A)")))
 
-    i <- 0;
-    oral.tlag <- "exp(-ka * (tT - tlag))"
-    oral <- "exp(-ka * T)";
+        rxSymPySetup(tmp)
+        dA.dA <- sprintf("ret=%s", rxSymPy("diff(diff(ret, A),A)"));
 
-    fn <- function(A, alpha, tlag=F){
-        if (tlag){
-            c(sprintf("Dose*%s*(exp(-%s*(tT - tlag)))", A, alpha), ## Cp =
-              sprintf("Dose*%s*(exp(-%s*(tT - tlag)) - %s)", A, alpha, oral.tlag), ## CpO =
-              ## t1 = ((thisT < tinf) ? thisT : tinf);        //during infusion
-              ## t2 = ((thisT > tinf) ? thisT - tinf : 0.0);  // after infusion
-              sprintf("rate * %s / %s * (1 - exp(-%s* tT))", A, alpha, alpha), ## CpIin
-              sprintf("rate * %s / %s * (1 - exp(-%s * tinf))*(exp(-%s*(tT-tinf)))", A, alpha, alpha, alpha) ## CpIout
-              )
-        } else {
-            c(sprintf("Dose*%s*(exp(-%s*T))", A, alpha), ## Cp =
-              sprintf("Dose*%s*(exp(-%s*T) - %s)", A, alpha, oral), ## CpO =
-              ##t1 = ((thisT < tinf) ? thisT : tinf);        //during infusion
-              ##t2 = ((thisT > tinf) ? thisT - tinf : 0.0);  // after infusion
-              sprintf("rate * %s / %s * (1 - exp(-%s* T))", A, alpha, alpha), ## CpIin
-              sprintf("rate * %s / %s * (1 - exp(-%s * tinf))*(exp(-%s*(T-tinf)))", A, alpha, alpha, alpha) ## CpIout
-              )
-        }
+        rxSymPySetup(tmp)
+        dA.dAlpha <- rxLogifyModel(sprintf("ret=%s", rxSymPy("diff(diff(ret, A),alpha)")));
+
+        rxSymPySetup(tmp)
+        dAlpha = rxLogifyModel(sprintf("ret=%s", rxSymPy("diff(ret, alpha)")))
+
+        rxSymPySetup(tmp)
+        dAlpha.dA = rxLogifyModel(sprintf("ret=%s", rxSymPy("diff(diff(ret, alpha),A)")));
+
+        rxSymPySetup(tmp)
+        dAlpha.dAlpha = rxLogifyModel(sprintf("ret=%s", rxSymPy("diff(diff(ret, alpha),alpha)")));
+
+        tmp <- RxODE({
+            ret = rate*A / alpha * (1 - exp(-alpha * (tT- tlag)));
+        })
+
+        ## Now tlag derivatives during infusion  (i.e. t2=0)
+
+        rxSymPySetup(tmp)
+        dTlag.Inf = rxLogifyModel(sprintf("ret=%s", rxSymPy("diff(ret, tlag)")));
+
+        rxSymPySetup(tmp)
+        dTlag.dA.Inf = rxLogifyModel(sprintf("ret=%s", rxSymPy("diff(diff(ret, tlag),A)")));
+
+        rxSymPySetup(tmp)
+        dTlag.dAlpha.Inf = rxLogifyModel(sprintf("ret=%s", rxSymPy("diff(diff(ret, tlag),alpha)")));
+
+        rxSymPySetup(tmp)
+        dTlag.dTlag.Inf = rxLogifyModel(sprintf("ret=%s", rxSymPy("diff(diff(ret, tlag),tlag)")));
+
+        rxSymPySetup(tmp) ## These are likely exactly the same...
+        dAlpha.dTlag.Inf = rxLogifyModel(sprintf("ret=%s", rxSymPy("diff(diff(ret, alpha),tlag)")));
+
+        rxSymPySetup(tmp) ## These are likely exactly the same...
+        dA.dTlag.Inf = rxLogifyModel(sprintf("ret=%s", rxSymPy("diff(diff(ret, A),tlag)")));
+
+        ## Now tlag derivatives during after infusion  (i.e. t2!=0)
+        tmp <- RxODE({
+            ret = rate*A / alpha * (1 - exp(-alpha * (tinfA - tlag))) * exp(-alpha * (tT- tlag));
+        })
+
+        rxSymPySetup(tmp)
+        dTlag = rxLogifyModel(sprintf("ret=%s", rxSymPy("diff(ret, tlag)")));
+
+        rxSymPySetup(tmp)
+        dTlag.dA = rxLogifyModel(sprintf("ret=%s", rxSymPy("diff(diff(ret, tlag),A)")));
+
+        rxSymPySetup(tmp)
+        dTlag.dAlpha = rxLogifyModel(sprintf("ret=%s", rxSymPy("diff(diff(ret, tlag),alpha)")));
+
+        rxSymPySetup(tmp)
+        dTlag.dTlag = rxLogifyModel(sprintf("ret=%s", rxSymPy("diff(diff(ret, tlag), tlag)")));
+
+        rxSymPySetup(tmp) ## These are likely exactly the same...
+        dAlpha.dTlag = rxLogifyModel(sprintf("ret=%s", rxSymPy("diff(diff(ret, alpha),tlag)")));
+
+        rxSymPySetup(tmp) ## These are likely exactly the same...
+        dA.dTlag = rxLogifyModel(sprintf("ret=%s", rxSymPy("diff(diff(ret, A),tlag)")));
+
+        ## Now oral derivatives
+        tmp <- RxODE({
+            ret = dose * A *(exp(-alpha * (tT - tlag)) - exp(-ka * (tT - tlag)))
+        })
+
+        rxSymPySetup(tmp)
+        dA.Oral = rxLogifyModel(sprintf("ret=%s", rxSymPy("diff(ret, A)")));
+
+        rxSymPySetup(tmp)
+        dA.dA.Oral = rxLogifyModel(sprintf("ret=%s", rxSymPy("diff(diff(ret, A), A)")));
+
+        rxSymPySetup(tmp)
+        dA.dAlpha.Oral = rxLogifyModel(sprintf("ret=%s", rxSymPy("diff(diff(ret, A), alpha)")));
+
+        rxSymPySetup(tmp)
+        dA.dKa.Oral = rxLogifyModel(sprintf("ret=%s", rxSymPy("diff(diff(ret, A), ka)")));
+
+        rxSymPySetup(tmp)
+        dA.dTlag.Oral = rxLogifyModel(sprintf("ret=%s", rxSymPy("diff(diff(ret, A), tlag)")));
+
+        rxSymPySetup(tmp)
+        dAlpha.Oral = rxLogifyModel(sprintf("ret=%s", rxSymPy("diff(ret, alpha)")));
+
+        rxSymPySetup(tmp)
+        dAlpha.dA.Oral = rxLogifyModel(sprintf("ret=%s", rxSymPy("diff(diff(ret, alpha), A)")));
+
+        rxSymPySetup(tmp)
+        dAlpha.dAlpha.Oral = rxLogifyModel(sprintf("ret=%s", rxSymPy("diff(diff(ret, alpha), alpha)")));
+
+        rxSymPySetup(tmp)
+        dAlpha.dKa.Oral = rxLogifyModel(sprintf("ret=%s", rxSymPy("diff(diff(ret, alpha), ka)")));
+
+        rxSymPySetup(tmp)
+        dAlpha.dTlag.Oral = rxLogifyModel(sprintf("ret=%s", rxSymPy("diff(diff(ret, alpha), tlag)")));
+
+        rxSymPySetup(tmp)
+        dTlag.Oral = rxLogifyModel(sprintf("ret=%s", rxSymPy("diff(ret, tlag)")));
+
+        rxSymPySetup(tmp)
+        dTlag.dA.Oral = rxLogifyModel(sprintf("ret=%s", rxSymPy("diff(diff(ret, tlag), A)")));
+
+        rxSymPySetup(tmp)
+        dTlag.dAlpha.Oral = rxLogifyModel(sprintf("ret=%s", rxSymPy("diff(diff(ret, tlag), alpha)")));
+
+        rxSymPySetup(tmp)
+        dTlag.dKa.Oral = rxLogifyModel(sprintf("ret=%s", rxSymPy("diff(diff(ret, tlag), ka)")));
+
+        rxSymPySetup(tmp)
+        dTlag.dTlag.Oral = rxLogifyModel(sprintf("ret=%s", rxSymPy("diff(diff(ret, tlag), tlag)")));
+
+        rxSymPySetup(tmp)
+        dKa.Oral = rxLogifyModel(sprintf("ret=%s", rxSymPy("diff(ret, ka)")));
+
+        rxSymPySetup(tmp)
+        dKa.dA.Oral = rxLogifyModel(sprintf("ret=%s", rxSymPy("diff(diff(ret, ka),A)")));
+
+        rxSymPySetup(tmp)
+        dKa.dAlpha.Oral = rxLogifyModel(sprintf("ret=%s", rxSymPy("diff(diff(ret, ka),alpha)")));
+
+        rxSymPySetup(tmp)
+        dKa.dKa.Oral = rxLogifyModel(sprintf("ret=%s", rxSymPy("diff(diff(ret, ka),ka)")));
+
+        rxSymPySetup(tmp)
+        dKa.dTlag.Oral = rxLogifyModel(sprintf("ret=%s", rxSymPy("diff(diff(ret, ka), tlag)")));
+
+        ## Bolus model
+        tmp <- RxODE({
+            ret = dose * A *exp(-alpha * (tT - tlag))
+        })
+
+        rxSymPySetup(tmp)
+        dA.Bolus = rxLogifyModel(sprintf("ret=%s", rxSymPy("diff(ret, A)")));
+
+        rxSymPySetup(tmp)
+        dA.dA.Bolus = rxLogifyModel(sprintf("ret=%s", rxSymPy("diff(diff(ret, A), A)")));
+
+        rxSymPySetup(tmp)
+        dA.dAlpha.Bolus = rxLogifyModel(sprintf("ret=%s", rxSymPy("diff(diff(ret, A), alpha)")));
+
+        rxSymPySetup(tmp)
+        dA.dTlag.Bolus = rxLogifyModel(sprintf("ret=%s", rxSymPy("diff(diff(ret, A), tlag)")));
+
+        rxSymPySetup(tmp)
+        dAlpha.Bolus = rxLogifyModel(sprintf("ret=%s", rxSymPy("diff(ret, alpha)")));
+
+        rxSymPySetup(tmp)
+        dAlpha.dA.Bolus = rxLogifyModel(sprintf("ret=%s", rxSymPy("diff(diff(ret, alpha), A)")));
+
+        rxSymPySetup(tmp)
+        dAlpha.dAlpha.Bolus = rxLogifyModel(sprintf("ret=%s", rxSymPy("diff(diff(ret, alpha), alpha)")));
+
+        rxSymPySetup(tmp)
+        dAlpha.dTlag.Bolus = rxLogifyModel(sprintf("ret=%s", rxSymPy("diff(diff(ret, alpha), tlag)")));
+
+        rxSymPySetup(tmp)
+        dTlag.Bolus = rxLogifyModel(sprintf("ret=%s", rxSymPy("diff(ret, tlag)")));
+
+        rxSymPySetup(tmp)
+        dTlag.dA.Bolus = rxLogifyModel(sprintf("ret=%s", rxSymPy("diff(diff(ret, tlag), A)")));
+
+        rxSymPySetup(tmp)
+        dTlag.dAlpha.Bolus = rxLogifyModel(sprintf("ret=%s", rxSymPy("diff(diff(ret, tlag), alpha)")));
+
+        rxSymPySetup(tmp)
+        dTlag.dTlag.Bolus = rxLogifyModel(sprintf("ret=%s", rxSymPy("diff(diff(ret, tlag), tlag)")));
+
+        reg <- rex::rex(any_spaces, or("\n", ""), any_spaces, end);
+        regRx <- rex::rex(capture(or("sign_exp(", "abs_log(", "safe_zero(",
+                                     "abs_log1p(", "podo(", "tlast(", "factorial(")))
+
+        writeLines(c("// Generated by refresh.R;Can be recreated by refresh(derivs=TRUE) in source directory after loading RxODE by library(devtools);load_all();",
+                     "#include <R.h>",
+                     "#include <Rinternals.h>",
+                     "#define dTlag 8",
+                     "#define dKa 7","",
+                     "extern double RxODE_safe_zero(double x);",
+                     "extern double RxODE_sign_exp(double sgn, double x);",
+                     "extern double RxODE_abs_log(double x);",
+                     "extern double RxODE_abs_log1p(double x);",
+                     "extern double RxODE_podo();",
+                     "extern double RxODE_tlast();",
+                     "extern double RxODE_factorial(double x);","",
+                     ##
+                     "extern double rxSolveLinBdInf(int diff1, int diff2, int dA, int dAlpha, double rate, double tT, double t1, double t2, double tinf, double A, double alpha, double tlag){",
+                     "double ret = 0, tinfA=tinf+tlag;",
+                     ##
+                     "if ((diff1 == dA && diff2 == 0) || (diff1 == 0 && diff2 == dA)) {",
+                     gsub(regRx, "RxODE_\\1", gsub(reg, ";", dA)),
+                     "} else if (diff1 == dA && diff2 == dA){",
+                     gsub(regRx, "RxODE_\\1", gsub(reg, ";", dA.dA)),
+                     "} else if (diff1 == dA && diff2 == dAlpha){",
+                     gsub(regRx, "RxODE_\\1", gsub(reg, ";", dA.dAlpha)),
+                     "} else if (diff1 == dA && diff2 == dTlag && t2 == 0){",
+                     gsub(regRx, "RxODE_\\1", gsub(reg, ";", dA.dTlag.Inf)),
+                     "} else if (diff1 == dA && diff2 == dTlag && t2 != 0){",
+                     gsub(regRx, "RxODE_\\1", gsub(reg, ";", dA.dTlag)),
+                     ##
+                     "} else if ((diff1 == dAlpha && diff2 == 0) || (diff1 == 0 && diff2 == dAlpha)) {",
+                     gsub(regRx, "RxODE_\\1", gsub(reg, ";", dAlpha)),
+                     "} else if (diff1 == dAlpha && diff2 == dA){",
+                     gsub(regRx, "RxODE_\\1", gsub(reg, ";", dAlpha.dA)),
+                     "} else if (diff1 == dAlpha && diff2 == dAlpha){",
+                     gsub(regRx, "RxODE_\\1", gsub(reg, ";", dAlpha.dAlpha)),
+                     "} else if (diff1 == dAlpha && diff2 == dTlag && t2 == 0){",
+                     gsub(regRx, "RxODE_\\1", gsub(reg, ";", dAlpha.dTlag.Inf)),
+                     "} else if (diff1 == dAlpha && diff2 == dTlag && t2 != 0){",
+                     gsub(regRx, "RxODE_\\1", gsub(reg, ";", dAlpha.dTlag)),
+                     ##
+                     "} else if (t2 == 0 && ((diff1 == dTlag && diff2 == 0) || (diff1 == 0 && diff2 == dTlag))){",
+                     gsub(regRx, "RxODE_\\1", gsub(reg, ";", dTlag.Inf)),
+                     "} else if (t2 != 0 && ((diff1 == dTlag && diff2 == 0) || (diff1 == 0 && diff2 == dTlag))){",
+                     gsub(regRx, "RxODE_\\1", gsub(reg, ";", dTlag)),
+                     "} else if (t2 == 0 && diff1 == dTlag && diff2 == dA){",
+                     gsub(regRx, "RxODE_\\1", gsub(reg, ";", dTlag.dA.Inf)),
+                     "} else if (t2 != 0 && diff1 == dTlag && diff2 == dA){",
+                     gsub(regRx, "RxODE_\\1", gsub(reg, ";", dTlag.dA)),
+                     "} else if (t2 == 0 && diff1 == dTlag && diff2 == dAlpha){",
+                     gsub(regRx, "RxODE_\\1", gsub(reg, ";", dTlag.dAlpha.Inf)),
+                     "} else if (t2 != 0 && diff1 == dTlag && diff2 == dAlpha){",
+                     gsub(regRx, "RxODE_\\1", gsub(reg, ";", dTlag.dAlpha)),
+                     "} else if (t2 == 0 && diff1 == dTlag && diff2 == dTlag){",
+                     gsub(regRx, "RxODE_\\1", gsub(reg, ";", dTlag.dTlag.Inf)),
+                     "} else if (t2 != 0 && diff1 == dTlag && diff2 == dTlag){",
+                     gsub(regRx, "RxODE_\\1", gsub(reg, ";", dTlag.dTlag)),
+                     "} else { return 0 ;}",
+                     "return ret;}", "",
+                     ##
+                     "extern double rxSolveLinBDiff(int diff1, int diff2, int dA, int dAlpha, double dose, double tT, double A, double alpha, double ka, double tlag){",
+                     "double ret = 0;",
+                     ##
+                     "if (ka > 0 && ((diff1 == dA && diff2 == 0) || (diff1 == 0 && diff2 == dA))) {",
+                     gsub(regRx, "RxODE_\\1", gsub(reg, ";", dA.Oral)),
+                     "} else if (ka > 0 && ((diff1 == dAlpha && diff2 == 0) || (diff1 == 0 && diff2 == dAlpha))) {",
+                     gsub(regRx, "RxODE_\\1", gsub(reg, ";", dAlpha.Oral)),
+                     "} else if (ka > 0 && ((diff1 == dKa && diff2 == 0) || (diff1 == 0 && diff2 == dKa))) {",
+                     gsub(regRx, "RxODE_\\1", gsub(reg, ";", dKa.Oral)),
+                     "} else if (ka > 0 && ((diff1 == dTlag && diff2 == 0) || (diff1 == 0 && diff2 == dTlag))) {",
+                     gsub(regRx, "RxODE_\\1", gsub(reg, ";", dTlag.Oral)),
+                     ##
+                     "} else if (ka > 0 && diff1 == dA && diff2 == dA) {",
+                     gsub(regRx, "RxODE_\\1", gsub(reg, ";", dA.dA.Oral)),
+                     "} else if (ka > 0 && diff1 == dA && diff2 == dAlpha) {",
+                     gsub(regRx, "RxODE_\\1", gsub(reg, ";", dA.dAlpha.Oral)),
+                     "} else if (ka > 0 && diff1 == dA && diff2 == dKa) {",
+                     gsub(regRx, "RxODE_\\1", gsub(reg, ";", dA.dKa.Oral)),
+                     "} else if (ka > 0 && diff1 == dA && diff2 == dTlag) {",
+                     gsub(regRx, "RxODE_\\1", gsub(reg, ";", dA.dTlag.Oral)),
+                     ##
+                     "} else if (ka > 0 && diff1 == dAlpha && diff2 == dA) {",
+                     gsub(regRx, "RxODE_\\1", gsub(reg, ";", dAlpha.dA.Oral)),
+                     "} else if (ka > 0 && diff1 == dAlpha && diff2 == dAlpha) {",
+                     gsub(regRx, "RxODE_\\1", gsub(reg, ";", dAlpha.dAlpha.Oral)),
+                     "} else if (ka > 0 && diff1 == dAlpha && diff2 == dKa) {",
+                     gsub(regRx, "RxODE_\\1", gsub(reg, ";", dAlpha.dKa.Oral)),
+                     "} else if (ka > 0 && diff1 == dAlpha && diff2 == dTlag) {",
+                     gsub(regRx, "RxODE_\\1", gsub(reg, ";", dAlpha.dTlag.Oral)),
+                     ##
+                     "} else if (ka <= 0 && ((diff1 == dA && diff2 == 0) || (diff1 == 0 && diff2 == dA))) {",
+                     gsub(regRx, "RxODE_\\1", gsub(reg, ";", dA.Bolus)),
+                     "} else if (ka <= 0 && ((diff1 == dAlpha && diff2 == 0) || (diff1 == 0 && diff2 == dAlpha))) {",
+                     gsub(regRx, "RxODE_\\1", gsub(reg, ";", dAlpha.Bolus)),
+                     "} else if (ka <= 0 && ((diff1 == dTlag && diff2 == 0) || (diff1 == 0 && diff2 == dTlag))) {",
+                     gsub(regRx, "RxODE_\\1", gsub(reg, ";", dTlag.Bolus)),
+                     ##
+                     "} else if (ka <= 0 && diff1 == dA && diff2 == dA) {",
+                     gsub(regRx, "RxODE_\\1", gsub(reg, ";", dA.dA.Bolus)),
+                     "} else if (ka <= 0 && diff1 == dA && diff2 == dAlpha) {",
+                     gsub(regRx, "RxODE_\\1", gsub(reg, ";", dA.dAlpha.Bolus)),
+                     "} else if (ka <= 0 && diff1 == dA && diff2 == dTlag) {",
+                     gsub(regRx, "RxODE_\\1", gsub(reg, ";", dA.dTlag.Bolus)),
+                     ##
+                     "} else if (ka <= 0 && diff1 == dAlpha && diff2 == dA) {",
+                     gsub(regRx, "RxODE_\\1", gsub(reg, ";", dAlpha.dA.Bolus)),
+                     "} else if (ka <= 0 && diff1 == dAlpha && diff2 == dAlpha) {",
+                     gsub(regRx, "RxODE_\\1", gsub(reg, ";", dAlpha.dAlpha.Bolus)),
+                     "} else if (ka <= 0 && diff1 == dAlpha && diff2 == dTlag) {",
+                     gsub(regRx, "RxODE_\\1", gsub(reg, ";", dAlpha.dTlag.Bolus)),
+                     ##
+                     "} else { return 0 ;}",
+                     "return ret;}"
+                     ), devtools::package_file("src/lincmtDiff.c"))
+
+        rxClean();
+        ## load_all();
+        cat("done.\n");
     }
-
-    mod.1  <- paste(c("Cp=", "CpO=", "CpIin=", "CpIout="), fn("A", "alpha"));
-    mod.1.tlag  <- paste(c("Cp=", "CpO=", "CpIin=", "CpIout="), fn("A", "alpha", T));
-
-    mod.2  <- paste(mod.1, "+", fn("B", "beta"));
-    mod.2.tlag  <- paste(mod.1.tlag, "+", fn("B", "beta", T));
-
-    mod.3  <- paste(mod.2, "+", fn("C", "gamma"));
-    mod.3.tlag  <- paste(mod.2.tlag, "+", fn("C", "gamma", T));
-
-    ## Create RxODE models
-    mod.1 <- RxODE(paste(mod.1, collapse="\n"))
-    mod.1.tlag <- RxODE(paste(mod.1.tlag, collapse="\n"))
-
-    mod.2 <- RxODE(paste(mod.2, collapse="\n"))
-    mod.2.tlag <- RxODE(paste(mod.2.tlag, collapse="\n"))
-
-    mod.3 <- RxODE(paste(mod.3, collapse="\n"))
-    mod.3.tlag <- RxODE(paste(mod.3.tlag, collapse="\n"))
-
-    i <- 0;
-
-    cur.p <- c("A", "alpha", "B", "beta", "C", "gamma", "ka", "tlag");
-    cur.p.rep <- c("par(0,1)", "par(0,0)", "par(1,1)", "par(1,0)", "par(2,1)", "par(2,0)", "ka", "tlag");
-
-    ipp <- function(){
-        cat(".")
-        i <<- i + 1;
-        if (i %% 5 == 0){
-            cat(i)
-        }
-        if (i %% 50 == 0){
-            cat("\n");
-        }
-    }
-
-    create.cpp.code <- function(totcmt=3){
-        sink(devtools::package_file("src/lincmtDiff.cpp"));
-        cat("// [[Rcpp::depends(RcppArmadillo)]]
-// Generated by refresh.R;Can be recreated by refresh(derivs=TRUE) in source directory after loading RxODE by library(devtools);load_all();
-#include <RcppArmadillo.h>
-#include <R.h>
-using namespace Rcpp;
-using namespace R;
-using namespace arma;
-extern \"C\" double getLinDeriv(int ncmt, int diff1, int diff2, double rate, double tinf, double Dose, double ka, double tlag, double T, double tT, mat par);
-double getLinDeriv(int ncmt, int diff1, int diff2, double rate, double tinf, double Dose, double ka, double tlag, double T, double tT, mat par){
-double ret = 0;
-int tmp = 0;
-if (diff2 != 0){ // Swap
-  if (diff1 > diff2){
-     tmp = diff1;
-     diff1 = diff2;
-     diff2 = tmp;
-  }
-}
-")
-        sink();
-        for (ncmt in seq(1, totcmt)){
-            for (oral in c(1, 0)){
-                lines <- c();
-                i <<- 0;
-                cat(sprintf("Calculating base %s cmt %s derivatives\n", ncmt, ifelse(oral == 1, "oral", "bolus/infusion")))
-                pars <- cur.p[seq(1, ncmt * 2)];
-                if (oral) pars <- c(pars, "ka", "tlag");
-                for (curP in pars){
-                    if (curP == "tlag"){
-                        if (ncmt == 1){
-                            rxSymPySetup(mod.1.tlag);
-                        } else if (ncmt == 2){
-                            rxSymPySetup(mod.2.tlag);
-                        } else if (ncmt == 3){
-                            rxSymPySetup(mod.3.tlag);
-                        }
-                    } else {
-                        if (ncmt == 1){
-                            rxSymPySetup(mod.1);
-                        } else if (ncmt == 2){
-                            rxSymPySetup(mod.2);
-                        } else if (ncmt == 3){
-                            rxSymPySetup(mod.3);
-                        }
-                    }
-                    cpn <- NULL;
-                    if (is.null(cpn)){
-                        w <- which(cur.p == curP);
-                        if (length(w) == 1){
-                            cpn <- w;
-                        }
-                    }
-                    if (oral){
-                        CpO <- rxSymPy(sprintf("diff(%s, %s)",
-                                               rxToSymPy("CpO"),
-                                               rxToSymPy(curP)));
-                        CpO <- paste(sub("+=-", "-=", paste0(" ret+=", gsub(" +", "", rxSplitPlusQ(sympyC(CpO))), ";"), fixed=TRUE), collapse="\n");
-                        ipp();
-                    } else {
-                        Cp <- rxSymPy(sprintf("diff(%s, %s)",
-                                              rxToSymPy("Cp"),
-                                              rxToSymPy(curP)));
-                        Cp <- paste(sub("+=-", "-=", paste0("  ret+=", gsub(" +", "", rxSplitPlusQ(sympyC(Cp))), ";"), fixed=TRUE), collapse="\n");
-                        ipp();
-                        CpIin <- rxSymPy(sprintf("diff(%s, %s)",
-                                                 rxToSymPy("CpIin" ),
-                                                 rxToSymPy(curP)));
-                        CpIin <- paste(sub("+=-", "-=", paste0("  ret+=", gsub(" +", "", rxSplitPlusQ(sympyC(CpIin))), ";"), fixed=TRUE), collapse="\n");
-                        ipp();
-                        CpIout <- rxSymPy(sprintf("diff(%s, %s)",
-                                                  rxToSymPy("CpIout" ),
-                                                  rxToSymPy(curP)));
-                        CpIout <- paste(sub("+=-", "-=", paste0("  ret+=", gsub(" +", "", rxSplitPlusQ(sympyC(CpIout))), ";"), fixed=TRUE), collapse="\n");
-                        ipp();
-                    }
-                    saveName <- sprintf("d%s", toupper(curP));
-                    tmf <- tempfile()
-                    if (oral){
-                        tmp <- CpO
-                    } else {
-                        brew::brew(text=template.diff, output=tmf)
-                        tmp <- readLines(tmf);
-                        unlink(tmf);
-                    }
-                    lines[length(lines) + 1] <- sprintf("if(ncmt==%s&&%s&&diff1==%s&&diff2==0){//%s",ncmt,
-                                                        ifelse(oral == 1, "ka>0", "ka<=0"), cpn, saveName);
-                    first <- FALSE;
-                    ii <- 0;
-                    for (i in seq_along(pars[seq(1, ncmt * 2)])){
-                        tmp <- gsub(rex::rex(boundary, cur.p[i], boundary), cur.p.rep[i], tmp, perl=TRUE)
-                    }
-                    lines <- c(lines, tmp);
-                    lines[length(lines) + 1] <- paste0(" return ret;\n}//", saveName);
-                    for (curP2 in pars){
-                        cpn2 <- NULL;
-                        if (is.null(cpn2)){
-                            w <- which(cur.p == curP2);
-                            if (length(w) == 1){
-                                cpn2 <- w;
-                            }
-                        }
-                        ## Schwarz's theorem says this is communicative since
-                        ## this has continuous second order partial
-                        ## derivatives
-                        if (cpn2 >= cpn){
-                            if (any(c(curP, curP2) == "tlag")){
-                                if (ncmt == 1){
-                                    rxSymPySetup(mod.1.tlag);
-                                } else if (ncmt == 2){
-                                    rxSymPySetup(mod.2.tlag);
-                                } else if (ncmt == 3){
-                                    rxSymPySetup(mod.3.tlag);
-                                }
-                            } else {
-                                if (ncmt == 1){
-                                    rxSymPySetup(mod.1);
-                                } else if (ncmt == 2){
-                                    rxSymPySetup(mod.2);
-                                } else if (ncmt == 3){
-                                    rxSymPySetup(mod.3);
-                                }
-                            }
-                            ipp();
-                            if (oral){
-                                CpO <- rxSymPy(sprintf("diff(diff(%s, %s), %s)",
-                                                       rxToSymPy("CpO"),
-                                                       rxToSymPy(curP),
-                                                       rxToSymPy(curP2)));
-                                CpO <- paste(sub("+=-", "-=", paste0(" ret+=", gsub(" +", "", rxSplitPlusQ(sympyC(CpO))), ";"), fixed=TRUE), collapse="\n");
-                                ipp();
-                            } else {
-                                Cp <- rxSymPy(sprintf("diff(diff(%s, %s), %s)",
-                                                      rxToSymPy("Cp"),
-                                                      rxToSymPy(curP),
-                                                      rxToSymPy(curP2)));
-                                Cp <- paste(sub("+=-", "-=", paste0("  ret+=", gsub(" +", "", rxSplitPlusQ(sympyC(Cp))), ";"), fixed=TRUE), collapse="\n");
-                                ipp();
-                                CpIin <- rxSymPy(sprintf("diff(diff(%s, %s), %s)",
-                                                         rxToSymPy("CpIin" ),
-                                                         rxToSymPy(curP),
-                                                         rxToSymPy(curP2)));
-                                CpIin <- paste(sub("+=-", "-=", paste0("  ret+=", gsub(" +", "", rxSplitPlusQ(sympyC(CpIin))), ";"), fixed=TRUE), collapse="\n");
-                                ipp();
-                                CpIout <- rxSymPy(sprintf("diff(diff(%s, %s), %s)",
-                                                          rxToSymPy("CpIout"),
-                                                          rxToSymPy(curP),
-                                                          rxToSymPy(curP2)));
-                                CpIout <- paste(sub("+=-", "-=", paste0("  ret+=", gsub(" +", "", rxSplitPlusQ(sympyC(CpIout))), ";"), fixed=TRUE), collapse="\n");
-
-                           }
-                            saveName <- sprintf("d%s.d%s", toupper(curP), toupper(curP2));
-                            if (oral){
-                                tmp <- CpO;
-                            } else {
-                                tmf <- tempfile()
-                                brew::brew(text=template.diff, output=tmf)
-                                tmp <- readLines(tmf);
-                                unlink(tmf);
-                            }
-
-                            lines[length(lines) + 1] <- sprintf("if(ncmt==%s&&%s&&diff1==%s&&diff2==%s){//%s", ncmt,
-                                                                ifelse(oral == 1, "ka>0", "ka<=0"), cpn, cpn2, saveName);
-                            first <- FALSE;
-                            ii <- 0;
-                            for (i in seq_along(pars[seq(1, ncmt * 2)])){
-                                tmp <- gsub(rex::rex(boundary, cur.p[i], boundary), cur.p.rep[i], tmp, perl=TRUE)
-                            }
-                            lines <- c(lines, tmp);
-                            lines[length(lines) + 1] <- paste0(" return ret;\n}//", saveName);
-                        }
-                    }
-                }
-                rxSymPyClean();
-                sink(devtools::package_file("src/lincmtDiff.cpp"), append=TRUE);
-                cat("\n", paste(lines, collapse="\n"));
-                sink();
-                cat("done\n");
-            }
-        }
-        sink(devtools::package_file("src/lincmtDiff.cpp"), append=TRUE);
-        cat("\n stop(\"Linear derivatives not calculated; Somethings wrong:\\n (ncmt=%d, diff1=%d, diff2=%d, rate=%f, tinf=%f, Dose=%f, ka=%f, tlag=%f, T=%f, tT=%f, mat par)\",ncmt, diff1, diff2, rate,tinf,Dose,ka,tlag,T,tT);\n");
-        cat(" return ret;\n")
-        cat("}\n");
-        sink();
-    }
-
-    create.cpp.code();
-
-    rxClean();
-    ## load_all();
-    cat("done.\n");
 }
 
 document();

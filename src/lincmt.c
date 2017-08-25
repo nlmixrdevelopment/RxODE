@@ -3,6 +3,8 @@
 
 /* extern SEXP RxODE_ode_dosing(); */
 // extern "C" double getLinDeriv(int ncmt, int diff1, int diff2, double rate, double tinf, double Dose, double ka, double tlag, double T, double tT, mat par);
+extern double rxSolveLinBdInf(int diff1, int diff2, int dA, int dAlpha, double rate, double tT, double t1, double t2, double tinf, double A, double alpha, double tlag);
+extern double rxSolveLinBDiff(int diff1, int diff2, int dA, int dAlpha, double dose, double tT, double A, double alpha, double ka, double tlag);
 extern double RxODE_solveLinB(double t, int linCmt, int diff1, int diff2, double A, double alpha, double B, double beta, double C, double gamma, double ka, double tlag);
 extern unsigned int nDoses();
 extern double rxDosingTime(int i);
@@ -92,558 +94,53 @@ double RxODE_solveLinB(double t, int linCmt, int diff1, int diff2, double d_A, d
 	tinf  = rxDosingTime(l) - rxDosingTime(p) - tlag;
 	
 	tT = t - rxDosingTime(p);
-        thisT = tT- tlag;       
+        thisT = tT- tlag;
 
 	rate  = -dose;
       }
       t1 = ((thisT < tinf) ? thisT : tinf);        //during infusion
       t2 = ((thisT > tinf) ? thisT - tinf : 0.0);  // after infusion
-      switch(diff1){
-      case 0: // Solved equation -- A
-	////////////////////////////////////////////////////////////////////////////////
+      if (diff1 == 0 && diff2 == 0){
 	ret += rate*A / alpha * (1 - exp(-alpha * t1)) * exp(-alpha * t2);
-        break;
-      case 1: // dA
-	switch(diff2){
-	case 0:
-	  ret += rate/alpha * (1 - exp(-alpha * t1)) * exp(-alpha * t2);
-	  break;
-	case 2: // dA, dAlpha
-	  ret += (rate/alpha * (exp(-alpha * t1) * t1) - rate/(alpha*alpha) *  (1 - exp(-alpha * t1))) * exp(-alpha * t2) -
-	    rate/alpha * (1 - exp(-alpha * t1)) * (exp(-alpha * t2) * t2);
-          break;
-	case 8: // dA, dTlag
-	  if (thisT < tinf){
-            // During infusion
-            // t1=thisT
-            // t2=0;
-	    ret -= (rate/alpha * (exp(-alpha * (tT - tlag)) * alpha));
-	  } else {
-	    ret += rate/alpha * (1 - exp(-alpha * tinf)) * (exp(-alpha * (tT - tinf - tlag)) * alpha);
-          }
-	  break;
-	}
-	break;
-      case 2: // dAlpha
-	switch(diff2){
-        case 0:
-	  ret += (rate * A/alpha * (exp(-alpha * t1) * t1) - rate * A/(alpha*alpha) * (1 - exp(-alpha * t1))) * exp(-alpha * t2) -
-	    rate * A/alpha * (1 - exp(-alpha * t1)) * (exp(-alpha * t2) * t2);
-	  break;
-	case 1: // dAlpha, dA
-	  ret += (rate/alpha * (exp(-alpha * t1) * t1) - rate/(alpha*alpha) *  (1 - exp(-alpha * t1))) * exp(-alpha * t2) -
-            rate/alpha * (1 - exp(-alpha * t1)) * (exp(-alpha * t2) * t2);
-          break;
-	case 2: // dAlpha, dAlpha
-	  ret -= ((rate * A/alpha * exp(-alpha * t1) * t1 - (rate * A/(alpha * alpha)) * (1 - exp(-alpha * t1))) * exp(-alpha * t2) * t2 +
-		  (rate * A/alpha * (exp(-alpha * t1) * t1 * t1) +
-		   rate * A/(alpha*alpha) * exp(-alpha * t1) * t1 +
-		   ((rate * A/(alpha * alpha)) * exp(-alpha * t1) * t1 - rate * A *  (alpha + alpha)/pow(alpha,4) * (1 - exp(-alpha * t1)))) * exp(-alpha * t2) +
-		  ((rate * A/alpha * exp(-alpha * t1) * t1 -  rate * A/(alpha*alpha) * (1 - exp(-alpha * t1))) * exp(-alpha * t2) * t2 -
-		   rate * A/alpha * (1 - exp(-alpha * t1)) * (exp(-alpha * t2) * t2 * t2)));
-	  break;
-	case 8: // dAlpha, dTlag
-	  if (thisT < tinf){
-            // During infusion
-            // t1=thisT
-            // t2=0;
-	    ret += rate * A/alpha * (exp(-alpha * (tT - tlag)) * alpha * (tT - tlag) - exp(-alpha * (tT - tlag))) +
-	      rate * A/(alpha * alpha) * exp(-alpha * (tT - tlag)) * alpha;
-          } else {
-	    // After infusion
-            // t1=tinf
-            // t2 = thisT-tinf
-	    ret += (rate * A/alpha * ((exp(-alpha * tinf)) * tinf) - rate * A/(alpha * alpha) * (1 - (exp(-alpha * tinf)))) * exp(-alpha * (tT - tinf - tlag)) * alpha -
-	      rate * A/alpha * (1 - (exp(-alpha * tinf))) * (exp(-alpha * (tT - tinf - tlag)) * alpha *  (tT - tinf - tlag) - exp(-alpha * (tT - tinf - tlag)));
-	  }
-	  break;
-	}
-        break;
-      case 8: //dTlag
-	if (thisT < tinf){
-	  // During infusion
-	  // t1=thisT
-	  // t2=0;
-	  switch(diff2){
-	  case 0:
-	    ret -= (rate * A/alpha * (exp(-alpha * (tT - tlag)) * alpha));
-	    break;
-	  case 1: // dTlag, dA
-	    ret -= (rate/alpha * exp(-alpha * (tT - tlag)) * alpha);
-	    break;
-	  case 2: // dTlag, dAlpha
-	    ret -= (rate * A/alpha * (exp(-alpha * (tT - tlag)) - exp(-alpha * (tT - tlag)) * (tT - tlag) * alpha) -
-		    rate * A/(alpha*alpha) * exp(-alpha * (tT - tlag)) * alpha);
-	    break;
-	  case 8: // dTlag dTlag
-	    ret -= (rate * A/alpha * (exp(-alpha * (tT - tlag)) * alpha * alpha));
-	    break;
-          }
-	} else {
-	  // After infusion
-	  // t1=tinf
-	  // t2 = thisT-tinf
-	  switch(diff2){
-	  case 0:
-	    ret += rate * A/alpha * (1 - exp(-alpha * tinf)) * (exp(-alpha * (tT - tlag - tinf)) * alpha);
-	    break;
-	  case 1: //dTlag, dA
-	    ret += rate/alpha * (1 - exp(-alpha * tinf)) *  exp(-alpha * (tT - tlag - tinf)) * alpha;
-	    break;
-	  case 2: //dTlag, dAlpha
-	    ret += (rate * A/alpha * (exp(-alpha * tinf) * tinf) - rate * A/(alpha*alpha) *  (1 - exp(-alpha * tinf))) * exp(-alpha * (tT - tlag - tinf)) * alpha + rate * A/alpha * (1 - exp(-alpha * tinf)) * (exp(-alpha * (tT - tlag - tinf)) - exp(-alpha * (tT - tlag - tinf)) * (tT - tlag - tinf) * alpha);
-	    break;
-          case 8: //dTlag, dTlag
-	    ret += rate * A/alpha * (1 - exp(-alpha * tinf)) * (exp(-alpha * (tT - tlag - tinf)) * alpha * alpha);
-	    break;
-          }
-	}
+      } else {
+	ret += rxSolveLinBdInf(diff1, diff2, 1, 2, rate, tT, t1, t2, tinf, A, alpha, tlag);
       }
-      ////////////////////////////////////////////////////////////////////////////////
       if (ncmt >= 2){
-	switch(diff1){
-        case 0: // Solved equation -- B
-          ////////////////////////////////////////////////////////////////////////////////
-          ret += rate*B / beta * (1 - exp(-beta * t1)) * exp(-beta * t2);
-          break;
-        case 3: // dA
-          switch(diff2){
-          case 0:
-            ret += rate/beta * (1 - exp(-beta * t1)) * exp(-beta * t2);
-            break;
-          case 4: // dA, dBeta
-            ret += (rate/beta * (exp(-beta * t1) * t1) - rate/(beta*beta) *  (1 - exp(-beta * t1))) * exp(-beta * t2) -
-              rate/beta * (1 - exp(-beta * t1)) * (exp(-beta * t2) * t2);
-            break;
-          case 8: // dA, dTlag
-            if (thisT < tinf){
-              // During infusion
-              // t1=thisT
-              // t2=0;
-              ret -= (rate/beta * (exp(-beta * (tT - tlag)) * beta));
-            } else {
-              ret += rate/beta * (1 - exp(-beta * tinf)) * (exp(-beta * (tT - tinf - tlag)) * beta);
-            }
-            break;
-          }
-          break;
-        case 4: // dBeta
-          switch(diff2){
-          case 0:
-            ret += (rate * B/beta * (exp(-beta * t1) * t1) - rate * B/(beta*beta) * (1 - exp(-beta * t1))) * exp(-beta * t2) -
-              rate * B/beta * (1 - exp(-beta * t1)) * (exp(-beta * t2) * t2);
-            break;
-          case 3: // dBeta, dA
-            ret += (rate/beta * (exp(-beta * t1) * t1) - rate/(beta*beta) *  (1 - exp(-beta * t1))) * exp(-beta * t2) -
-              rate/beta * (1 - exp(-beta * t1)) * (exp(-beta * t2) * t2);
-            break;
-          case 4: // dBeta, dBeta
-            ret -= ((rate * B/beta * exp(-beta * t1) * t1 - (rate * B/(beta * beta)) * (1 - exp(-beta * t1))) * exp(-beta * t2) * t2 +
-                    (rate * B/beta * (exp(-beta * t1) * t1 * t1) +
-                     rate * B/(beta*beta) * exp(-beta * t1) * t1 +
-                     ((rate * B/(beta * beta)) * exp(-beta * t1) * t1 - rate * B *  (beta + beta)/pow(beta,4) * (1 - exp(-beta * t1)))) * exp(-beta * t2) +
-                    ((rate * B/beta * exp(-beta * t1) * t1 -  rate * B/(beta*beta) * (1 - exp(-beta * t1))) * exp(-beta * t2) * t2 -
-                     rate * B/beta * (1 - exp(-beta * t1)) * (exp(-beta * t2) * t2 * t2)));
-            break;
-          case 8: // dBeta, dTlag
-            if (thisT < tinf){
-              // During infusion
-              // t1=thisT
-              // t2=0;
-              ret += rate * B/beta * (exp(-beta * (tT - tlag)) * beta * (tT - tlag) - exp(-beta * (tT - tlag))) +
-                rate * B/(beta * beta) * exp(-beta * (tT - tlag)) * beta;
-            } else {
-              // After infusion
-              // t1=tinf
-              // t2 = thisT-tinf
-              ret += (rate * B/beta * ((exp(-beta * tinf)) * tinf) - rate * B/(beta * beta) * (1 - (exp(-beta * tinf)))) * exp(-beta * (tT - tinf - tlag)) * beta -
-                rate * B/beta * (1 - (exp(-beta * tinf))) * (exp(-beta * (tT - tinf - tlag)) * beta *  (tT - tinf - tlag) - exp(-beta * (tT - tinf - tlag)));
-            }
-            break;
-          }
-          break;
-        case 8: //dTlag
-          if (thisT < tinf){
-            // During infusion
-            // t1=thisT
-            // t2=0;
-            switch(diff2){
-            case 0:
-              ret -= (rate * B/beta * (exp(-beta * (tT - tlag)) * beta));
-              break;
-            case 3: // dTlag, dA
-              ret -= (rate/beta * exp(-beta * (tT - tlag)) * beta);
-              break;
-            case 4: // dTlag, dBeta
-              ret -= (rate * B/beta * (exp(-beta * (tT - tlag)) - exp(-beta * (tT - tlag)) * (tT - tlag) * beta) -
-                      rate * B/(beta*beta) * exp(-beta * (tT - tlag)) * beta);
-              break;
-            case 8: // dTlag dTlag
-              ret -= (rate * B/beta * (exp(-beta * (tT - tlag)) * beta * beta));
-              break;
-            }
+	if (diff1 == 0 && diff2 == 0){
+	  ret += rate*B / beta * (1 - exp(-beta * t1)) * exp(-beta * t2);
+	} else {
+	  ret += rxSolveLinBdInf(diff1, diff2, 3, 4, rate, tT, t1, t2, tinf, B, beta, tlag);
+	}
+	if (ncmt >= 3){
+	  if (diff1 == 0 && diff2 == 0){
+	    ret += rate*C / gamma * (1 - exp(-gamma * t1)) * exp(-gamma * t2);
           } else {
-            // After infusion
-            // t1=tinf
-            // t2 = thisT-tinf
-            switch(diff2){
-            case 0:
-              ret += rate * B/beta * (1 - exp(-beta * tinf)) * (exp(-beta * (tT - tlag - tinf)) * beta);
-              break;
-            case 3: //dTlag, dA
-              ret += rate/beta * (1 - exp(-beta * tinf)) *  exp(-beta * (tT - tlag - tinf)) * beta;
-              break;
-            case 4: //dTlag, dBeta
-              ret += (rate * B/beta * (exp(-beta * tinf) * tinf) - rate * B/(beta*beta) *  (1 - exp(-beta * tinf))) * exp(-beta * (tT - tlag - tinf)) * beta + rate * B/beta * (1 - exp(-beta * tinf)) * (exp(-beta * (tT - tlag - tinf)) - exp(-beta * (tT - tlag - tinf)) * (tT - tlag - tinf) * beta);
-              break;
-            case 8: //dTlag, dTlag
-              ret += rate * B/beta * (1 - exp(-beta * tinf)) * (exp(-beta * (tT - tlag - tinf)) * beta * beta);
-              break;
-	    }
+	    ret += rxSolveLinBdInf(diff1, diff2, 5, 6, rate, tT, t1, t2, tinf, C, gamma, tlag);
 	  }
 	}
-        if (ncmt >= 3){
-	  switch(diff1){
-          case 0: // Solved equation -- C
-            ////////////////////////////////////////////////////////////////////////////////
-            ret += rate*C / gamma * (1 - exp(-gamma * t1)) * exp(-gamma * t2);
-            break;
-          case 5: // dA
-            switch(diff2){
-            case 0:
-              ret += rate/gamma * (1 - exp(-gamma * t1)) * exp(-gamma * t2);
-              break;
-            case 6: // dA, dGamma
-              ret += (rate/gamma * (exp(-gamma * t1) * t1) - rate/(gamma*gamma) *  (1 - exp(-gamma * t1))) * exp(-gamma * t2) -
-                rate/gamma * (1 - exp(-gamma * t1)) * (exp(-gamma * t2) * t2);
-              break;
-            case 8: // dA, dTlag
-              if (thisT < tinf){
-                // During infusion
-                // t1=thisT
-                // t2=0;
-                ret -= (rate/gamma * (exp(-gamma * (tT - tlag)) * gamma));
-              } else {
-                ret += rate/gamma * (1 - exp(-gamma * tinf)) * (exp(-gamma * (tT - tinf - tlag)) * gamma);
-              }
-              break;
-            }
-            break;
-          case 6: // dGamma
-            switch(diff2){
-            case 0:
-              ret += (rate * C/gamma * (exp(-gamma * t1) * t1) - rate * C/(gamma*gamma) * (1 - exp(-gamma * t1))) * exp(-gamma * t2) -
-                rate * C/gamma * (1 - exp(-gamma * t1)) * (exp(-gamma * t2) * t2);
-              break;
-            case 5: // dGamma, dA
-              ret += (rate/gamma * (exp(-gamma * t1) * t1) - rate/(gamma*gamma) *  (1 - exp(-gamma * t1))) * exp(-gamma * t2) -
-                rate/gamma * (1 - exp(-gamma * t1)) * (exp(-gamma * t2) * t2);
-              break;
-            case 6: // dGamma, dGamma
-              ret -= ((rate * C/gamma * exp(-gamma * t1) * t1 - (rate * C/(gamma * gamma)) * (1 - exp(-gamma * t1))) * exp(-gamma * t2) * t2 +
-                      (rate * C/gamma * (exp(-gamma * t1) * t1 * t1) +
-                       rate * C/(gamma*gamma) * exp(-gamma * t1) * t1 +
-                       ((rate * C/(gamma * gamma)) * exp(-gamma * t1) * t1 - rate * C *  (gamma + gamma)/pow(gamma,4) * (1 - exp(-gamma * t1)))) * exp(-gamma * t2) +
-                      ((rate * C/gamma * exp(-gamma * t1) * t1 -  rate * C/(gamma*gamma) * (1 - exp(-gamma * t1))) * exp(-gamma * t2) * t2 -
-                       rate * C/gamma * (1 - exp(-gamma * t1)) * (exp(-gamma * t2) * t2 * t2)));
-              break;
-            case 8: // dGamma, dTlag
-              if (thisT < tinf){
-                // During infusion
-                // t1=thisT
-                // t2=0;
-                ret += rate * C/gamma * (exp(-gamma * (tT - tlag)) * gamma * (tT - tlag) - exp(-gamma * (tT - tlag))) +
-                  rate * C/(gamma * gamma) * exp(-gamma * (tT - tlag)) * gamma;
-              } else {
-                // After infusion
-                // t1=tinf
-                // t2 = thisT-tinf
-                ret += (rate * C/gamma * ((exp(-gamma * tinf)) * tinf) - rate * C/(gamma * gamma) * (1 - (exp(-gamma * tinf)))) * exp(-gamma * (tT - tinf - tlag)) * gamma -
-                  rate * C/gamma * (1 - (exp(-gamma * tinf))) * (exp(-gamma * (tT - tinf - tlag)) * gamma *  (tT - tinf - tlag) - exp(-gamma * (tT - tinf - tlag)));
-              }
-              break;
-            }
-            break;
-          case 8: //dTlag
-            if (thisT < tinf){
-              // During infusion
-              // t1=thisT
-              // t2=0;
-              switch(diff2){
-              case 0:
-                ret -= (rate * C/gamma * (exp(-gamma * (tT - tlag)) * gamma));
-                break;
-              case 5: // dTlag, dA
-                ret -= (rate/gamma * exp(-gamma * (tT - tlag)) * gamma);
-                break;
-              case 6: // dTlag, dGamma
-                ret -= (rate * C/gamma * (exp(-gamma * (tT - tlag)) - exp(-gamma * (tT - tlag)) * (tT - tlag) * gamma) -
-                        rate * C/(gamma*gamma) * exp(-gamma * (tT - tlag)) * gamma);
-                break;
-              case 8: // dTlag dTlag
-                ret -= (rate * C/gamma * (exp(-gamma * (tT - tlag)) * gamma * gamma));
-                break;
-              }
-            } else {
-              // After infusion
-              // t1=tinf
-              // t2 = thisT-tinf
-              switch(diff2){
-              case 0:
-                ret += rate * C/gamma * (1 - exp(-gamma * tinf)) * (exp(-gamma * (tT - tlag - tinf)) * gamma);
-                break;
-              case 5: //dTlag, dA
-                ret += rate/gamma * (1 - exp(-gamma * tinf)) *  exp(-gamma * (tT - tlag - tinf)) * gamma;
-                break;
-              case 6: //dTlag, dGamma
-                ret += (rate * C/gamma * (exp(-gamma * tinf) * tinf) - rate * C/(gamma*gamma) *  (1 - exp(-gamma * tinf))) * exp(-gamma * (tT - tlag - tinf)) * gamma + rate * C/gamma * (1 - exp(-gamma * tinf)) * (exp(-gamma * (tT - tlag - tinf)) - exp(-gamma * (tT - tlag - tinf)) * (tT - tlag - tinf) * gamma);
-                break;
-              case 8: //dTlag, dTlag
-                ret += rate * C/gamma * (1 - exp(-gamma * tinf)) * (exp(-gamma * (tT - tlag - tinf)) * gamma * gamma);
-                break;
-              }
-            }
-          }
-        }
       }
     } else {
       tT = t - rxDosingTime(l);
       thisT = tT - tlag;
       if (thisT < 0) continue;
       res = ((oral == 1) ? exp(-ka * thisT) : 0.0);
-      switch(diff1){
-      case 0:
-        ret += dose * A *(exp(-alpha * thisT) - res);
-        break;
-      case 1: //dA
-	switch(diff2){
-	case 0:
-	  ret += dose * (exp(-alpha * thisT) - res);
-          break;
-	case 2: // dA, dAlpha
-	  ret -= dose*exp(-alpha * thisT) * thisT;
-	  break;
-	case 7: // dA, dKa
-	  if (oral == 1){
-	    ret += dose * (exp(-ka * thisT) * thisT);
-	  }
-	  break;
-	case 8: // dA, dTlag
-	  ret += dose* (exp(-alpha * thisT) * alpha - exp(-ka * thisT) * ka);
-	  break;
-        }
-      case 2: //dAlpha
-	switch(diff2){
-	case 0:
-	  ret -= dose * A * (exp(-alpha * thisT) * thisT);
-          break;
-	case 1: //dAlpha, dA
-	  ret -= dose * (exp(-alpha * thisT) * thisT);
-          break;
-	case 2: //dAlpha, dAlpha
-	  ret += dose * A * (exp(-alpha * thisT) * thisT*thisT);
-          break;
-	case 7: //dAlpha, dKa
-	  ret -= 0;
-	  break;
-	case 8: //dAlpha, dTlag
-	  ret -= dose * A * (exp(-alpha * thisT) * alpha * thisT - exp(-alpha * thisT));
-	  break;
-        }
-      case 7: //dKa
-        if (oral == 1){
-	  switch(diff2){
-	  case 0:
-	    ret += dose * A * (exp(-ka * thisT) * thisT);
-	    break;
-	  case 1: //dKa, dA
-	    ret += dose * (exp(-ka * thisT) * thisT);
-            break;
-	  case 7: //dKa, dKa
-	    ret -= dose * A * (exp(-ka * thisT) * thisT * thisT);
-	    break;
-	  case 8: //dKa, dTlag
-	    ret += dose * A * (exp(-ka * thisT) * ka * thisT - exp(-ka * thisT));
-            break;
-          }
-        }
-        break;
-      case 8: //dTlag
-	switch(diff2){
-	case 0:
-	  ret += dose * A * (exp(-alpha * thisT) * alpha - exp(-ka * thisT) * ka);
-	  break;
-	case 1: // dTlag, dA
-	  ret += dose * (exp(-alpha * thisT) * alpha - exp(-ka * thisT) * ka);
-	  break;
-	case 2: // dTlag, dAlpha
-	  ret += dose * A * (exp(-alpha * thisT) - exp(-alpha * thisT) * thisT * alpha);
-	  break;
-	case 7: // dTlag, dKa
-	  ret -=  dose * A * (exp(-ka * thisT) - exp(-ka * thisT) * thisT * ka);
-          break;
-	case 8: // dTlag, dTlag
-	  ret += dose * A * (exp(-alpha * thisT) * alpha * alpha - exp(-ka * thisT) * ka * ka);
-          break;
-        }
-        break;
+      if (diff1 == 0 && diff2 == 0){
+	ret += dose * A *(exp(-alpha * thisT) - res);
+      } else {
+	ret += rxSolveLinBDiff(diff1, diff2, 1, 2, dose, tT, A, alpha, ka, tlag);
       }
       if (ncmt >= 2){
-	switch(diff1){
-        case 0:
-          ret += dose * B *(exp(-beta * thisT) - res);
-          break;
-        case 3: //dA
-          switch(diff2){
-          case 0:
-            ret += dose * (exp(-beta * thisT) - res);
-            break;
-          case 4: // dA, dBeta
-            ret -= dose*exp(-beta * thisT) * thisT;
-            break;
-          case 7: // dA, dKa
-            if (oral == 1){
-              ret += dose * (exp(-ka * thisT) * thisT);
-            }
-            break;
-          case 8: // dA, dTlag
-            ret += dose* (exp(-beta * thisT) * beta - exp(-ka * thisT) * ka);
-            break;
-          }
-        case 4: //dBeta
-          switch(diff2){
-          case 0:
-            ret -= dose * B * (exp(-beta * thisT) * thisT);
-            break;
-          case 3: //dBeta, dA
-            ret -= dose * (exp(-beta * thisT) * thisT);
-            break;
-          case 4: //dBeta, dBeta
-            ret += dose * B * (exp(-beta * thisT) * thisT*thisT);
-            break;
-          case 7: //dBeta, dKa
-            ret -= 0;
-            break;
-          case 8: //dBeta, dTlag
-            ret -= dose * B * (exp(-beta * thisT) * beta * thisT - exp(-beta * thisT));
-            break;
-          }
-        case 7: //dKa
-          if (oral == 1){
-            switch(diff2){
-            case 0:
-              ret += dose * B * (exp(-ka * thisT) * thisT);
-              break;
-            case 3: //dKa, dA
-              ret += dose * (exp(-ka * thisT) * thisT);
-              break;
-            case 7: //dKa, dKa
-              ret -= dose * B * (exp(-ka * thisT) * thisT * thisT);
-              break;
-            case 8: //dKa, dTlag
-              ret += dose * B * (exp(-ka * thisT) * ka * thisT - exp(-ka * thisT));
-              break;
-            }
-          }
-          break;
-        case 8: //dTlag
-          switch(diff2){
-          case 0:
-            ret += dose * B * (exp(-beta * thisT) * beta - exp(-ka * thisT) * ka);
-            break;
-          case 3: // dTlag, dA
-            ret += dose * (exp(-beta * thisT) * beta - exp(-ka * thisT) * ka);
-            break;
-          case 4: // dTlag, dBeta
-            ret += dose * B * (exp(-beta * thisT) - exp(-beta * thisT) * thisT * beta);
-            break;
-          case 7: // dTlag, dKa
-            ret -=  dose * B * (exp(-ka * thisT) - exp(-ka * thisT) * thisT * ka);
-            break;
-          case 8: // dTlag, dTlag
-            ret += dose * B * (exp(-beta * thisT) * beta * beta - exp(-ka * thisT) * ka * ka);
-            break;
-          }
-          break;
-        }
+	if (diff1 == 0 && diff2 == 0){
+          ret += dose * B *(exp(-beta * thisT) - res);        
+	} else {
+	  ret += rxSolveLinBDiff(diff1, diff2, 3, 4, dose, tT, B, beta, ka, tlag);
+	}
         if (ncmt >= 3){
-	  switch(diff1){
-          case 0:
+	  if (diff1 == 0 && diff2 == 0){
             ret += dose * C *(exp(-gamma * thisT) - res);
-            break;
-          case 5: //dA
-            switch(diff2){
-            case 0:
-              ret += dose * (exp(-gamma * thisT) - res);
-              break;
-            case 6: // dA, dGamma
-              ret -= dose*exp(-gamma * thisT) * thisT;
-              break;
-            case 7: // dA, dKa
-              if (oral == 1){
-                ret += dose * (exp(-ka * thisT) * thisT);
-              }
-              break;
-            case 8: // dA, dTlag
-              ret += dose* (exp(-gamma * thisT) * gamma - exp(-ka * thisT) * ka);
-              break;
-            }
-          case 6: //dGamma
-            switch(diff2){
-            case 0:
-              ret -= dose * C * (exp(-gamma * thisT) * thisT);
-              break;
-            case 5: //dGamma, dA
-              ret -= dose * (exp(-gamma * thisT) * thisT);
-              break;
-            case 6: //dGamma, dGamma
-              ret += dose * C * (exp(-gamma * thisT) * thisT*thisT);
-              break;
-            case 7: //dGamma, dKa
-              ret -= 0;
-              break;
-            case 8: //dGamma, dTlag
-              ret -= dose * C * (exp(-gamma * thisT) * gamma * thisT - exp(-gamma * thisT));
-              break;
-            }
-          case 7: //dKa
-            if (oral == 1){
-              switch(diff2){
-              case 0:
-                ret += dose * C * (exp(-ka * thisT) * thisT);
-                break;
-              case 5: //dKa, dA
-                ret += dose * (exp(-ka * thisT) * thisT);
-                break;
-              case 7: //dKa, dKa
-                ret -= dose * C * (exp(-ka * thisT) * thisT * thisT);
-                break;
-              case 8: //dKa, dTlag
-                ret += dose * C * (exp(-ka * thisT) * ka * thisT - exp(-ka * thisT));
-                break;
-              }
-            }
-            break;
-          case 8: //dTlag
-            switch(diff2){
-            case 0:
-              ret += dose * C * (exp(-gamma * thisT) * gamma - exp(-ka * thisT) * ka);
-              break;
-            case 5: // dTlag, dA
-              ret += dose * (exp(-gamma * thisT) * gamma - exp(-ka * thisT) * ka);
-              break;
-            case 6: // dTlag, dGamma
-              ret += dose * C * (exp(-gamma * thisT) - exp(-gamma * thisT) * thisT * gamma);
-              break;
-            case 7: // dTlag, dKa
-              ret -=  dose * C * (exp(-ka * thisT) - exp(-ka * thisT) * thisT * ka);
-              break;
-            case 8: // dTlag, dTlag
-              ret += dose * C * (exp(-gamma * thisT) * gamma * gamma - exp(-ka * thisT) * ka * ka);
-              break;
-            }
-            break;
-          }          
+	  } else {
+	    ret += rxSolveLinBDiff(diff1, diff2, 5, 6, dose, tT, C, gamma, ka, tlag);
+          }
         }
       }
     }
