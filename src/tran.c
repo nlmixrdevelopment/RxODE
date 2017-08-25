@@ -263,6 +263,31 @@ int new_or_ith(const char *s) {
   if (!strcmp("time", s)) return 0;
   if (!strcmp("podo", s)) return 0;
   if (!strcmp("tlast", s)) return 0;
+  // Ignore M_ constants
+  if (!strcmp("M_E", s)) return 0;
+  if (!strcmp("M_LOG2E", s)) return 0;
+  if (!strcmp("M_LOG10E", s)) return 0;
+  if (!strcmp("M_LN2", s)) return 0;
+  if (!strcmp("M_LN10", s)) return 0;
+  if (!strcmp("M_PI", s)) return 0;
+  if (!strcmp("M_PI_2", s)) return 0;
+  if (!strcmp("M_PI_4", s)) return 0;
+  if (!strcmp("M_1_PI", s)) return 0;
+  if (!strcmp("M_2_PI", s)) return 0;
+  if (!strcmp("M_2_SQRTPI", s)) return 0;
+  if (!strcmp("M_SQRT2", s)) return 0;
+  if (!strcmp("M_SQRT1_2", s)) return 0;
+  if (!strcmp("M_SQRT_3", s)) return 0;
+  if (!strcmp("M_SQRT_32", s)) return 0;
+  if (!strcmp("M_LOG10_2", s)) return 0;
+  if (!strcmp("M_2PI", s)) return 0;
+  if (!strcmp("M_SQRT_PI", s)) return 0;
+  if (!strcmp("M_1_SQRT_2PI", s)) return 0;
+  if (!strcmp("M_SQRT_2dPI", s)) return 0;
+  if (!strcmp("M_LN_SQRT_PI", s)) return 0;
+  if (!strcmp("M_LN_SQRT_2PI", s)) return 0;
+  if (!strcmp("M_LN_SQRT_PId2", s)) return 0;
+  // Ignore THETA[] and ETA
   if (strstr("[", s) != NULL) return 0;
   if (!tb.nv) return 1;
 

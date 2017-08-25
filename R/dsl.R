@@ -474,11 +474,7 @@ dsl.handle.log <- function(x, abs=FALSE){
                     pls[w] <- paste(n);
                 }
                 ret <- gsub(rex::rex("+-"), "-", paste(sapply(pls, rxFromSymPy), collapse="+"))
-                if (abs){
-                    return(sprintf("lgamma1p(abs(%s))", ret))
-                } else {
-                    return(sprintf("lgamma1p(%s)", ret))
-                }
+                return(sprintf("lgamma1p(%s))", ret))
             }
         }
     }
@@ -487,11 +483,11 @@ dsl.handle.log <- function(x, abs=FALSE){
     if (length(pls) == 2 && length(w) == 1){
         pls <- pls[-w];
         reg <- rex::rex(start, any_spaces, "exp(", capture(anything), ")", any_spaces, end)
-        new <- sub(reg, ifelse(abs, "log1pexp(abs(\\1))", "log1pexp(\\1)"), pls);
+        new <- sub(reg, "log1pexp(\\1)", pls);
         if (nchar(new) != nchar(pls)){
             return(new)
         } else {
-            return(sprintf(ifelse(abs, "log1p(abs(%s))", "log1p(%s)"), pls))
+            return(sprintf("%slog1p(%s)", ifelse(abs, "abs_", ""), pls))
         }
 
     }
@@ -516,28 +512,16 @@ dsl.handle.log <- function(x, abs=FALSE){
             pls[i] <- rxFromSymPy(tmp);
         }
         ret <- gsub(rex::rex("+-"), "-", paste(pls, collapse="+"))
-        if (abs){
-            return(sprintf("log1p(abs(%s))", ret))
-        } else {
-            return(sprintf("log1p(%s)", ret))
-        }
+        return(sprintf("log1p(%s)", ret))
     }
     p1 <- rex::rex(start, any_spaces, "1", any_spaces, "+", any_spaces)
     p2 <- rex::rex(any_spaces, "+", any_spaces, "1", any_spaces, end)
     if (regexpr(p2, x) != -1){
         x2 <- gsub(p2, "", x);
-        if (abs){
-            return(sprintf("log1p(abs(%s))", x2))
-        } else {
-            return(sprintf("log1p(%s)", x2))
-        }
+        return(sprintf("log1p(%s)", x2))
     } else if (regexpr(p1, x) != -1){
         x2 <- gsub(p1, "", x);
-        if (abs){
-            return(sprintf("log1p(abs(%s))", x2))
-        } else {
-            return(sprintf("log1p(%s)", x2))
-        }
+        return(sprintf("log1p(%s)", x2))
     } else {
         return(sprintf("%slog(%s)", ifelse(abs, "abs_", ""), x));
     }

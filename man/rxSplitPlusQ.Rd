@@ -4,12 +4,15 @@
 \alias{rxSplitPlusQ}
 \title{This function splits a function based on + or - terms}
 \usage{
-rxSplitPlusQ(x, level = 0)
+rxSplitPlusQ(x, level = 0, mult = FALSE)
 }
 \arguments{
 \item{x}{Quoted R expression for splitting}
 
 \item{level}{Internal level of parsing}
+
+\item{mult}{boolean to split based on * and / expressions instead.
+By default this is turned off.}
 }
 \value{
 character vector of the split expressions

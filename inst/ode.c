@@ -35,7 +35,7 @@ RxODE_inc _dadt_counter_inc, _jac_counter_inc;
 RxODE_val podo, tlast;
 RxODE_transit4 _transit4;
 RxODE_transit3 _transit3;
-RxODE_fn _safe_log, safe_zero, factorial, _as_zero, abs_log;
+RxODE_fn _safe_log, safe_zero, factorial, _as_zero, abs_log, abs_log1p;
 RxODE_fn2 sign_exp;
 RxODE_assign_fn_pointers _assign_fn_pointers;
 RxODE_ode_solver_old_c _old_c;
@@ -171,6 +171,7 @@ void __R_INIT__ (DllInfo *info){
   _c_0_6 = (RxODE_ode_solver_0_6_c)R_GetCCallable("RxODE","RxODE_ode_solver_0_6_c");
   sign_exp = (RxODE_fn2) R_GetCCallable("RxODE","RxODE_sign_exp");
   abs_log = (RxODE_fn) R_GetCCallable("RxODE","RxODE_abs_log");
+  abs_log1p = (RxODE_fn) R_GetCCallable("RxODE","RxODE_abs_log1p");
   solveLinB = (RxODE_solveLinB) R_GetCCallable("RxODE","RxODE_solveLinB");
   // Register the outside functions
   R_RegisterCCallable(__LIB_STR__,__ODE_SOLVER_STR__,       (DL_FUNC) __ODE_SOLVER__);

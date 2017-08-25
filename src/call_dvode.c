@@ -198,6 +198,17 @@ double RxODE_abs_log(double x){
   }
 }
 
+double RxODE_abs_log1p(double x){
+  if (x + 1.0 > 0.0){
+    return(log1p(x));
+  } else if (x + 1.0 > 0.0){
+    return(log1p(-x));
+  } else {
+    return 0.0;
+  }
+}
+
+
 /* Taken directly from https://github.com/wch/r-source/blob/922777f2a0363fd6fe07e926971547dd8315fc24/src/library/stats/src/approx.c*/
 
 typedef struct {
@@ -1218,6 +1229,7 @@ void R_init_RxODE(DllInfo *info){
   R_RegisterCCallable("RxODE","RxODE_as_zero",          (DL_FUNC) RxODE_as_zero);
   R_RegisterCCallable("RxODE","RxODE_sign_exp",         (DL_FUNC) RxODE_sign_exp);
   R_RegisterCCallable("RxODE","RxODE_abs_log",          (DL_FUNC) RxODE_abs_log);
+  R_RegisterCCallable("RxODE","RxODE_abs_log1p",        (DL_FUNC) RxODE_abs_log1p);
   R_RegisterCCallable("RxODE","RxODE_solveLinB",        (DL_FUNC) RxODE_solveLinB);
 
   static const R_CMethodDef cMethods[] = {
@@ -1237,6 +1249,7 @@ void R_init_RxODE(DllInfo *info){
     {"RxODE_as_zero", (DL_FUNC) &RxODE_as_zero, 1, RxODE_one_dbl_t},
     {"RxODE_sign_exp", (DL_FUNC) &RxODE_sign_exp, 2, RxODE_sign_exp_t},
     {"RxODE_abs_log", (DL_FUNC) &RxODE_abs_log, 1, RxODE_one_dbl_t},
+    {"RxODE_abs_log1p", (DL_FUNC) &RxODE_abs_log1p, 1, RxODE_one_dbl_t},
     {"RxODE_solveLinB", (DL_FUNC) &RxODE_solveLinB, 12, RxODE_solveLinB_t},
     {NULL, NULL, 0, NULL}
   };
