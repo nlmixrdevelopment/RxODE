@@ -152,6 +152,7 @@ functionBrewxy <- function(brew){
 
 sympyRxFEnv <- new.env(parent = emptyenv())
 rxSymPyFEnv <- new.env(parent = emptyenv())
+
 for (op in c("+", "-", "*")){
     rxSymPyFEnv[[op]] <- binaryOp(paste0(" ", op, " "));
     sympyRxFEnv[[op]] <- binaryOp(paste0(" ", op, " "));
@@ -457,8 +458,10 @@ dsl.handle.log <- function(x, abs=FALSE){
     } else if (any(x == c("sqrt(M_PI/2)", "sqrt(M_PI_2)"))){
         return("M_LN_SQRT_PId2");
     }
-    pls <- eval(parse(text=sprintf("rxSplitPlusQ(quote(%s))", x)));
-    if (length(pls) == 1) {
+    pls <- try(eval(parse(text=sprintf("rxSplitPlusQ(quote(%s))", x))), silent=TRUE);
+    if (inherits(pls, "try-error")){
+        return(sprintf("%slog(%s)", ifelse(abs, "abs_", ""), x))
+    } else if (length(pls) == 1) {
         reg <- rex::rex(start, any_spaces, "gamma(", capture(anything), ")", any_spaces, end)
         new <- sub(reg, "\\1", pls);
         if (nchar(new) != nchar(pls)){
@@ -475,6 +478,7 @@ dsl.handle.log <- function(x, abs=FALSE){
                 }
                 ret <- gsub(rex::rex("+-"), "-", paste(sapply(pls, rxFromSymPy), collapse="+"))
                 return(sprintf("lgamma1p(%s))", ret))
+                return(sprintf("lgamma1p(%s)", ret))
             }
         }
     }
@@ -1039,18 +1043,37 @@ rxToSymPy <- function(x, envir=parent.frame(1)) {
             vars <- c();
             addNames <- TRUE;
             txt <- unlist(lapply(txt, function(x){
-                tmp <- x[1]
-                var <- paste0(eval(parse(text=sprintf("RxODE::rxToSymPy(%s)", x[1]))));
+                tmp <- sub(rex::rex(any_spaces, end), "", sub(rex::rex(start, any_spaces), "", x[1]))
+                if (exists(tmp, envir)){
+                    res <- rxSymPyReserved()
+                    if (any(tmp == res)){
+                        var <- paste0("rx_SymPy_Res_", tmp)
+                    } else {
+                        var <- tmp;
+                    }
+                } else {
+                    var <- paste0(eval(parse(text=sprintf("RxODE::rxToSymPy(%s)", tmp)), envir=envir));
+                }
                 if (length(x) == 2){
                     vars <<- c(vars, var);
-                    eq <- paste0(eval(parse(text=sprintf("RxODE::rxToSymPy(%s)", x[2]))));
+                    tmp <- sub(rex::rex(any_spaces, end), "", sub(rex::rex(start, any_spaces), "", x[2]))
+                    if (exists(tmp, envir)){
+                        res <- rxSymPyReserved()
+                        if (any(tmp == res)){
+                            eq <- paste0("rx_SymPy_Res_", tmp)
+                        } else {
+                            eq <- tmp;
+                        }
+                    } else {
+                        eq <- paste0(eval(parse(text=sprintf("RxODE::rxToSymPy(%s)", tmp)), envir=envir));
+                    }
                     return(sprintf("%s = %s", var, eq));
                 } else {
                     addNames <<- FALSE
                     return(var);
                 }
             }));
-            ## txt <- txt[txt != ""];
+    ## txt <- txt[txt != ""];
             if (addNames){
                 names(txt) <- vars;
             }
@@ -1064,15 +1087,15 @@ rxToSymPy <- function(x, envir=parent.frame(1)) {
         if (any(cls == c("list", "rxDll", "RxCompilationManager", "RxODE", "solveRxDll"))){
             ret <- strsplit(rxNorm(x),"\n")[[1]];
             ret <- rxRmIni(ret);
-            txt <- paste0(eval(parse(text=sprintf("RxODE::rxToSymPy(%s,envir=envir)", paste(deparse(paste0(as.vector(ret), collapse="\n")), collapse=""))), envir=envir));
+            txt <- paste0(eval(parse(text=sprintf("RxODE::rxToSymPy(%s)", paste(deparse(paste0(as.vector(ret), collapse="\n")), collapse=""))), envir=envir));
             return(txt);
         } else if (cls == "character" && length(cls) == 1){
             txt <- paste0(eval(parse(text=sprintf("RxODE::rxToSymPy(%s)", paste(deparse(as.vector(x)), collapse="")))));
             return(txt);
         } else {
             expr <- evalPrints(substitute(x), envir=envir)
-            txt <- eval(expr, sympyEnv(expr))
-            txt <- gsub(rex::rex(" * 1/"), "/", txt);
+            txt  <- eval(expr, sympyEnv(expr))
+            txt  <- gsub(rex::rex(" * 1/"), "/", txt);
             return(paste0(txt))
         }
     } else {
@@ -1085,7 +1108,7 @@ rxToSymPy <- function(x, envir=parent.frame(1)) {
 
 ##' @rdname rxToSymPy
 ##' @export
-rxFromSymPy <- function(x, envir=parent.frame(1)) {
+ rxFromSymPy <- function(x, envir=parent.frame(1)) {
     if (class(substitute(x)) == "character"){
         if (length(x) == 1){
             txt <- strsplit(x, "\n+")[[1]];
@@ -1093,10 +1116,20 @@ rxFromSymPy <- function(x, envir=parent.frame(1)) {
             vars <- c();
             addNames <- TRUE;
             txt <- unlist(lapply(txt, function(x){
-                var <- paste0(eval(parse(text=sprintf("RxODE::rxFromSymPy(%s)", x[1]))));
+                tmp <- sub(rex::rex(any_spaces, end), "", sub(rex::rex(start, any_spaces), "", x[1]))
+                if (exists(tmp, envir)){
+                    var <- sub(rex::rex(start, "rx_SymPy_Res_"), "", tmp)
+                } else {
+                    var <- paste0(eval(parse(text=sprintf("RxODE::rxFromSymPy(%s)", tmp)), envir=envir));
+                }
                 if (length(x) == 2){
                     vars <<- c(vars, var);
-                    eq <- paste0(eval(parse(text=sprintf("RxODE::rxFromSymPy(%s)", x[2]))));
+                    tmp <- sub(rex::rex(any_spaces, end), "", sub(rex::rex(start, any_spaces), "", x[2]))
+                    if (exists(tmp, envir)){
+                        e1 <- sub(rex::rex(start, "rx_SymPy_Res_"), "", tmp)
+                    } else {
+                        eq <- paste0(eval(parse(text=sprintf("RxODE::rxFromSymPy(%s)", x[2])), envir=envir));
+                    }
                     return(sprintf("%s = %s", var, eq));
                 } else {
                     addNames <<- FALSE

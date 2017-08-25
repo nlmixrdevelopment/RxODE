@@ -281,6 +281,5 @@ rxPermissive({
         expect_equal(rxLogifyModel("rx_r_=-center^2"), "rx_r_ = -exp(2 * abs_log(center)) \n")
     })
 
-}## , on.validate=TRUE
-)
+}, on.validate=TRUE)
 

@@ -2,9 +2,12 @@
 % Please edit documentation in R/rxValidate.R
 \name{rxValidate}
 \alias{rxValidate}
+\alias{rxTest}
 \title{Validate RxODE}
 \usage{
 rxValidate(full = TRUE)
+
+rxTest(full = TRUE)
 }
 \arguments{
 \item{full}{Should a full validation be performed?  (By default

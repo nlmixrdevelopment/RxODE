@@ -447,13 +447,15 @@ rxSymPyFunctions <- function(functions){
 ##' Setup a sympy environment that sets up the specified RxODE model.
 ##'
 ##' @param model RxODE family of objects
+##' @param envir Environment to evaluate the model in (defaults to
+##'     parent frame)
 ##' @return a boolean indicating if the environment is cached.
 ##' @author Matthew L. Fidler
 ##' @keywords internal
 ##' @export
-rxSymPySetup <- function(model){
+rxSymPySetup <- function(model, envir=parent.frame()){
     rxSymPyFunctions(names(rxDefinedDerivatives));
-    setup <- rxToSymPy(model);
+    setup <- rxToSymPy(model, envir=envir);
     rxSymPyVars(model)
     assignInMyNamespace("rxSymPy.vars", c(rxSymPy.vars, names(setup)))
     for (line in setup){
