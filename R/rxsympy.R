@@ -1516,7 +1516,7 @@ rxGc <- function(){
 ##' @return Lines for expanded model. (but not compiled)
 ##' @author Matthew L. Fidler
 ##' @export
-rxLogifyModel <- function(model){
+rxLogifyModel <- function(model, expand=TRUE){
     rxSymPyVars(model);
     ## rxCat(rxNorm(model));
     on.exit({
@@ -1544,7 +1544,7 @@ rxLogifyModel <- function(model){
                     }
                     tmp2 <- eval(parse(text=sprintf("rxSimpleExprP(quote(%s))", tmp)));
                     if (!tmp2){
-                        tmp <- rxSymPy(sprintf("expand_log(log(%s), force=True)", rxToSymPy(tmp)));
+                        tmp <- rxSymPy(sprintf(paste0("expand_log(log(", ifelse(expand, "expand(%s)", "%s"), "), force=True)"), rxToSymPy(tmp)));
                         assignInMyNamespace("rxSymPyAbsLog", TRUE);
                         assignInMyNamespace("rxSymPyLogSign", c());
                         tmp <- rxFromSymPy(tmp);

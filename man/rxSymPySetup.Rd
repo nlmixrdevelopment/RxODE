@@ -4,10 +4,13 @@
 \alias{rxSymPySetup}
 \title{Setup a sympy environment that sets up the specified RxODE model.}
 \usage{
-rxSymPySetup(model)
+rxSymPySetup(model, envir = parent.frame())
 }
 \arguments{
 \item{model}{RxODE family of objects}
+
+\item{envir}{Environment to evaluate the model in (defaults to
+parent frame)}
 }
 \value{
 a boolean indicating if the environment is cached.

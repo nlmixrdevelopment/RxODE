@@ -210,7 +210,8 @@ dsl.to.pow <- function(a, b){
         return(sprintf("R_pow(%s, %s)", a, b));
     } else if (num == round(num)){
         return(sprintf("R_pow_di(%s, %s)", a, b));
-    } else if (num == 0.5){
+    } else
+    if (num == 0.5){
         return(sprintf("sqrt(%s)", a));
     } else {
         return(sprintf("R_pow(%s, %s)", a, b));

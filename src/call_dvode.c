@@ -151,7 +151,7 @@ int nEq (){
 }
 
 double RxODE_as_zero(double x){
-  if (abs(x) < sqrt(DOUBLE_EPS)){
+  if (fabs(x) < sqrt(DOUBLE_EPS)){
     return(0.0);
   } else {
     return(x);
@@ -159,7 +159,7 @@ double RxODE_as_zero(double x){
 }
 
 double RxODE_safe_log(double x){
-  if (x == 0.0){
+  if (fabs(x) <= sqrt(DOUBLE_EPS)){
     return log(sqrt(DOUBLE_EPS));
   } else {
     return log(x);
@@ -167,7 +167,7 @@ double RxODE_safe_log(double x){
 }
 
 double RxODE_safe_zero(double x){
-  if (x == 0){
+  if (fabs(x) <= sqrt(DOUBLE_EPS)){
     return sqrt(DOUBLE_EPS);
   } else {
     return(x);
@@ -189,7 +189,9 @@ static R_NativePrimitiveArgType RxODE_sign_exp_t[] = {
 };
 
 double RxODE_abs_log(double x){
-  if (x > 0.0){
+  if  (fabs(x) <= sqrt(DOUBLE_EPS)){
+    return log(sqrt(DOUBLE_EPS));
+  } else if (x > 0.0){
     return log(x);
   } else if (x < 0.0){
     return log(-x);
@@ -1175,6 +1177,23 @@ static R_NativePrimitiveArgType RxODE_solveLinB_t[] = {
   REALSXP, INTSXP, INTSXP, INTSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP
 };
 
+SEXP _rxKahanSum(SEXP input);
+SEXP _rxNeumaierSum(SEXP input);
+
+SEXP _rxPythonSum(SEXP input);
+SEXP _rxProd(SEXP input);
+SEXP _rxSum(SEXP input);
+
+double RxODE_KahanSum(double *input, int len);
+double RxODE_NeumaierSum(double *input, int len);
+double RxODE_sum(double *input, int len);
+double RxODE_prod(double *input, int len);
+
+static R_NativePrimitiveArgType RxODE_Sum_t[] = {
+  REALSXP, INTSXP
+};
+
+
 void R_init_RxODE(DllInfo *info){
   R_CallMethodDef callMethods[]  = {
     {"RxODE_ode_solver", (DL_FUNC) &RxODE_ode_solver, 24},
@@ -1196,6 +1215,11 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_rxInv", (DL_FUNC) &_RxODE_rxInv, 1},
     {"_RxODE_rxCoutEcho", (DL_FUNC) &_RxODE_rxCoutEcho, 1},
     {"_RxODE_W_Cpp", (DL_FUNC) &_RxODE_W_Cpp,2},
+    {"_rxKahanSum", (DL_FUNC) &_rxKahanSum,1},
+    {"_rxNeumaierSum", (DL_FUNC) &_rxNeumaierSum,1},
+    {"_rxPythonSum", (DL_FUNC) &_rxPythonSum, 1},
+    {"_rxSum", (DL_FUNC) &_rxSum, 1},
+    {"_rxProd", (DL_FUNC) &_rxProd, 1},
     {NULL, NULL, 0}
   };
   
@@ -1232,6 +1256,12 @@ void R_init_RxODE(DllInfo *info){
   R_RegisterCCallable("RxODE","RxODE_abs_log1p",        (DL_FUNC) RxODE_abs_log1p);
   R_RegisterCCallable("RxODE","RxODE_solveLinB",        (DL_FUNC) RxODE_solveLinB);
 
+  R_RegisterCCallable("RxODE","RxODE_KahanSum",         (DL_FUNC) RxODE_KahanSum);
+  R_RegisterCCallable("RxODE","RxODE_NeumaierSum",      (DL_FUNC) RxODE_NeumaierSum);
+  R_RegisterCCallable("RxODE","RxODE_sum",              (DL_FUNC) RxODE_sum);
+  R_RegisterCCallable("RxODE","RxODE_prod",             (DL_FUNC) RxODE_prod);
+
+
   static const R_CMethodDef cMethods[] = {
     {"RxODE_InfusionRate", (DL_FUNC) &RxODE_InfusionRate, 1, RxODE_one_int_t},
     {"RxODE_par_ptr", (DL_FUNC) &RxODE_par_ptr, 1, RxODE_one_int_t},
@@ -1251,6 +1281,10 @@ void R_init_RxODE(DllInfo *info){
     {"RxODE_abs_log", (DL_FUNC) &RxODE_abs_log, 1, RxODE_one_dbl_t},
     {"RxODE_abs_log1p", (DL_FUNC) &RxODE_abs_log1p, 1, RxODE_one_dbl_t},
     {"RxODE_solveLinB", (DL_FUNC) &RxODE_solveLinB, 12, RxODE_solveLinB_t},
+    {"RxODE_KahanSum", (DL_FUNC) &RxODE_KahanSum, 2, RxODE_Sum_t},
+    {"RxODE_NeumaierSum", (DL_FUNC) &RxODE_NeumaierSum, 2, RxODE_Sum_t},
+    {"RxODE_sum", (DL_FUNC) &RxODE_sum, 2, RxODE_Sum_t},
+    {"RxODE_prod", (DL_FUNC) &RxODE_prod, 2, RxODE_Sum_t},
     {NULL, NULL, 0, NULL}
   };
 

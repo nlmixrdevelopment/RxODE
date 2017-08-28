@@ -4,7 +4,7 @@
 \alias{rxLogifyModel}
 \title{Takes a model and expands it to log multiplication}
 \usage{
-rxLogifyModel(model)
+rxLogifyModel(model, expand = TRUE)
 }
 \arguments{
 \item{model}{RxODE model}

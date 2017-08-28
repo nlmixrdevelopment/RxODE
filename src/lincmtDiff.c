@@ -15,88 +15,111 @@ extern double RxODE_factorial(double x);
 
 extern double rxSolveLinBdInf(int diff1, int diff2, int dA, int dAlpha, double rate, double tT, double t1, double t2, double tinf, double A, double alpha, double tlag){
 double ret = 0, tinfA=tinf+tlag;
-if ((diff1 == dA && diff2 == 0) || (diff1 == 0 && diff2 == dA)) {
-ret = RxODE_sign_exp(RxODE_safe_zero(alpha)*rate*(1 - exp(-alpha * t1)), -alpha * t2 - RxODE_abs_log(RxODE_safe_zero(alpha)) + RxODE_abs_log(rate) + RxODE_abs_log1p(- exp(-alpha * t1)));
-} else if (diff1 == dA && diff2 == dA){
-ret=0;
-} else if (diff1 == dA && diff2 == dAlpha){
-ret = RxODE_sign_exp(RxODE_safe_zero(alpha)*rate*t1, -alpha * t1 - alpha * t2 - RxODE_abs_log(RxODE_safe_zero(alpha)) + RxODE_abs_log(rate) + RxODE_abs_log(t1))-RxODE_sign_exp(RxODE_safe_zero(alpha)*rate*t2*(1 - exp(-alpha * t1)), -alpha * t2 - RxODE_abs_log(RxODE_safe_zero(alpha)) + RxODE_abs_log(rate) + RxODE_abs_log(t2) + RxODE_abs_log1p(- exp(-alpha * t1)))-RxODE_sign_exp(rate*(1 - exp(-alpha * t1)), -alpha * t2 - 2 * RxODE_abs_log(RxODE_safe_zero(alpha)) + RxODE_abs_log(rate) + RxODE_abs_log1p(- exp(-alpha * t1)));
-} else if (diff1 == dA && diff2 == dTlag && t2 == 0){
-ret = -RxODE_sign_exp(rate, -alpha * (tT - tlag) + RxODE_abs_log(rate));
-} else if (diff1 == dA && diff2 == dTlag && t2 != 0){
-ret = RxODE_sign_exp(rate*(1 - exp(-alpha * (tinfA - tlag))), -alpha * (tT - tlag) + RxODE_abs_log(rate) + RxODE_abs_log1p(- exp(-alpha * (tinfA - tlag))))-RxODE_sign_exp(rate, -alpha * (tT - tlag) - alpha * (tinfA - tlag) + RxODE_abs_log(rate));
-} else if ((diff1 == dAlpha && diff2 == 0) || (diff1 == 0 && diff2 == dAlpha)) {
-ret = RxODE_sign_exp(A*RxODE_safe_zero(alpha)*rate*t1, -alpha * t1 - alpha * t2 + RxODE_abs_log(A) - RxODE_abs_log(RxODE_safe_zero(alpha)) + RxODE_abs_log(rate) + RxODE_abs_log(t1))-RxODE_sign_exp(A*RxODE_safe_zero(alpha)*rate*t2*(1 - exp(-alpha * t1)), -alpha * t2 + RxODE_abs_log(A) - RxODE_abs_log(RxODE_safe_zero(alpha)) + RxODE_abs_log(rate) + RxODE_abs_log(t2) + RxODE_abs_log1p(- exp(-alpha * t1)))-RxODE_sign_exp(A*rate*(1 - exp(-alpha * t1)), -alpha * t2 + RxODE_abs_log(A) - 2 * RxODE_abs_log(RxODE_safe_zero(alpha)) + RxODE_abs_log(rate) + RxODE_abs_log1p(- exp(-alpha * t1)));
-} else if (diff1 == dAlpha && diff2 == dA){
-ret = RxODE_sign_exp(RxODE_safe_zero(alpha)*rate*t1, -alpha * t1 - alpha * t2 - RxODE_abs_log(RxODE_safe_zero(alpha)) + RxODE_abs_log(rate) + RxODE_abs_log(t1))-RxODE_sign_exp(RxODE_safe_zero(alpha)*rate*t2*(1 - exp(-alpha * t1)), -alpha * t2 - RxODE_abs_log(RxODE_safe_zero(alpha)) + RxODE_abs_log(rate) + RxODE_abs_log(t2) + RxODE_abs_log1p(- exp(-alpha * t1)))-RxODE_sign_exp(rate*(1 - exp(-alpha * t1)), -alpha * t2 - 2 * RxODE_abs_log(RxODE_safe_zero(alpha)) + RxODE_abs_log(rate) + RxODE_abs_log1p(- exp(-alpha * t1)));
-} else if (diff1 == dAlpha && diff2 == dAlpha){
-ret = -RxODE_sign_exp(A*RxODE_safe_zero(alpha)*rate, -alpha * t1 - alpha * t2 + RxODE_abs_log(A) - RxODE_abs_log(RxODE_safe_zero(alpha)) + RxODE_abs_log(rate) + 2 * RxODE_abs_log(t1))-RxODE_sign_exp(A*RxODE_safe_zero(alpha)*rate*t1*t2*2, -alpha * t1 - alpha * t2 + RxODE_abs_log(A) - RxODE_abs_log(RxODE_safe_zero(alpha)) + RxODE_abs_log(rate) + RxODE_abs_log(t1) + RxODE_abs_log(t2) + M_LN2)+RxODE_sign_exp(A*RxODE_safe_zero(alpha)*rate*(1 - exp(-alpha * t1)), -alpha * t2 + RxODE_abs_log(A) - RxODE_abs_log(RxODE_safe_zero(alpha)) + RxODE_abs_log(rate) + 2 * RxODE_abs_log(t2) + RxODE_abs_log1p(- exp(-alpha * t1)))-RxODE_sign_exp(A*rate*t1*2, -alpha * t1 - alpha * t2 + RxODE_abs_log(A) - 2 * RxODE_abs_log(RxODE_safe_zero(alpha)) + RxODE_abs_log(rate) + RxODE_abs_log(t1) + M_LN2)+RxODE_sign_exp(A*rate*t2*(1 - exp(-alpha * t1))*2, -alpha * t2 + RxODE_abs_log(A) - 2 * RxODE_abs_log(RxODE_safe_zero(alpha)) + RxODE_abs_log(rate) + RxODE_abs_log(t2) + RxODE_abs_log1p(- exp(-alpha * t1)) + M_LN2)+RxODE_sign_exp(A*RxODE_safe_zero(alpha)*rate*(1 - exp(-alpha * t1))*2, -alpha * t2 + RxODE_abs_log(A) - 3 * RxODE_abs_log(RxODE_safe_zero(alpha)) + RxODE_abs_log(rate) + RxODE_abs_log1p(- exp(-alpha * t1)) + M_LN2);
-} else if (diff1 == dAlpha && diff2 == dTlag && t2 == 0){
-ret = -RxODE_sign_exp(A*rate*(-tT + tlag), -alpha * (tT - tlag) + RxODE_abs_log(A) + RxODE_abs_log(rate) + RxODE_abs_log(-tT + tlag));
-} else if (diff1 == dAlpha && diff2 == dTlag && t2 != 0){
-ret = RxODE_sign_exp(A*rate*(1 - exp(-alpha * (tinfA - tlag)))*(-tT + tlag), -alpha * (tT - tlag) + RxODE_abs_log(A) + RxODE_abs_log(rate) + RxODE_abs_log1p(- exp(-alpha * (tinfA - tlag))) + RxODE_abs_log(-tT + tlag))-RxODE_sign_exp(A*rate*(-tT + tlag), -alpha * (tT - tlag) - alpha * (tinfA - tlag) + RxODE_abs_log(A) + RxODE_abs_log(rate) + RxODE_abs_log(-tT + tlag))-RxODE_sign_exp(A*rate*(-tinfA + tlag)*2, -alpha * (tT - tlag) - alpha * (tinfA - tlag) + RxODE_abs_log(A) + RxODE_abs_log(rate) + RxODE_abs_log(-tinfA + tlag) + M_LN2);
-} else if (t2 == 0 && ((diff1 == dTlag && diff2 == 0) || (diff1 == 0 && diff2 == dTlag))){
-ret = -RxODE_sign_exp(A*rate, -alpha * (tT - tlag) + RxODE_abs_log(A) + RxODE_abs_log(rate));
-} else if (t2 != 0 && ((diff1 == dTlag && diff2 == 0) || (diff1 == 0 && diff2 == dTlag))){
-ret = RxODE_sign_exp(A*rate*(1 - exp(-alpha * (tinfA - tlag))), -alpha * (tT - tlag) + RxODE_abs_log(A) + RxODE_abs_log(rate) + RxODE_abs_log1p(- exp(-alpha * (tinfA - tlag))))-RxODE_sign_exp(A*rate, -alpha * (tT - tlag) - alpha * (tinfA - tlag) + RxODE_abs_log(A) + RxODE_abs_log(rate));
-} else if (t2 == 0 && diff1 == dTlag && diff2 == dA){
-ret = -RxODE_sign_exp(rate, -alpha * (tT - tlag) + RxODE_abs_log(rate));
-} else if (t2 != 0 && diff1 == dTlag && diff2 == dA){
-ret = RxODE_sign_exp(rate*(1 - exp(-alpha * (tinfA - tlag))), -alpha * (tT - tlag) + RxODE_abs_log(rate) + RxODE_abs_log1p(- exp(-alpha * (tinfA - tlag))))-RxODE_sign_exp(rate, -alpha * (tT - tlag) - alpha * (tinfA - tlag) + RxODE_abs_log(rate));
-} else if (t2 == 0 && diff1 == dTlag && diff2 == dAlpha){
-ret = -RxODE_sign_exp(A*rate*(-tT + tlag), -alpha * (tT - tlag) + RxODE_abs_log(A) + RxODE_abs_log(rate) + RxODE_abs_log(-tT + tlag));
-} else if (t2 != 0 && diff1 == dTlag && diff2 == dAlpha){
-ret = RxODE_sign_exp(A*rate*(1 - exp(-alpha * (tinfA - tlag)))*(-tT + tlag), -alpha * (tT - tlag) + RxODE_abs_log(A) + RxODE_abs_log(rate) + RxODE_abs_log1p(- exp(-alpha * (tinfA - tlag))) + RxODE_abs_log(-tT + tlag))-RxODE_sign_exp(A*rate*(-tT + tlag), -alpha * (tT - tlag) - alpha * (tinfA - tlag) + RxODE_abs_log(A) + RxODE_abs_log(rate) + RxODE_abs_log(-tT + tlag))-RxODE_sign_exp(A*rate*(-tinfA + tlag)*2, -alpha * (tT - tlag) - alpha * (tinfA - tlag) + RxODE_abs_log(A) + RxODE_abs_log(rate) + RxODE_abs_log(-tinfA + tlag) + M_LN2);
-} else if (t2 == 0 && diff1 == dTlag && diff2 == dTlag){
-ret = -RxODE_sign_exp(A*alpha*rate, -alpha * (tT - tlag) + RxODE_abs_log(A) + RxODE_abs_log(alpha) + RxODE_abs_log(rate));
-} else if (t2 != 0 && diff1 == dTlag && diff2 == dTlag){
-ret = RxODE_sign_exp(A*alpha*rate*(1 - exp(-alpha * (tinfA - tlag))), -alpha * (tT - tlag) + RxODE_abs_log(A) + RxODE_abs_log(alpha) + RxODE_abs_log(rate) + RxODE_abs_log1p(- exp(-alpha * (tinfA - tlag))))-RxODE_sign_exp(A*alpha*rate*3, -alpha * (tT - tlag) - alpha * (tinfA - tlag) + RxODE_abs_log(A) + RxODE_abs_log(alpha) + RxODE_abs_log(rate) + log1p(2));
-} else { return 0 ;}
-return ret;}
+  if ((diff1 == dA && diff2 == 0) || (diff1 == 0 && diff2 == dA)){
+    ret=RxODE_sign_exp((rate*exp(-alpha*t2)/alpha-rate*exp(-alpha*t1)*exp(-alpha*t2)/alpha),RxODE_abs_log(rate*exp(-alpha*t2)/alpha-rate*exp(-alpha*t1)*exp(-alpha*t2)/alpha));
+  } else if ((diff1 == dAlpha && diff2 == 0) || (diff1 == 0 && diff2 == dAlpha)){
+    ret=RxODE_sign_exp(A*RxODE_safe_zero(alpha)*rate*t1,-alpha*t1-alpha*t2+RxODE_abs_log(A)-RxODE_abs_log(RxODE_safe_zero(alpha))+RxODE_abs_log(rate)+RxODE_abs_log(t1))-RxODE_sign_exp((A*rate*t2*exp(-alpha*t2)/alpha-A*rate*t2*exp(-alpha*t1)*exp(-alpha*t2)/alpha),RxODE_abs_log(A*rate*t2*exp(-alpha*t2)/alpha-A*rate*t2*exp(-alpha*t1)*exp(-alpha*t2)/alpha))-RxODE_sign_exp((A*rate*exp(-alpha*t2)/R_pow_di(alpha,2)-A*rate*exp(-alpha*t1)*exp(-alpha*t2)/R_pow_di(alpha,2)),RxODE_abs_log(A*rate*exp(-alpha*t2)/R_pow_di(alpha,2)-A*rate*exp(-alpha*t1)*exp(-alpha*t2)/R_pow_di(alpha,2)));
+  } else if (t2 <= 0.0 && ((diff1 == dTlag && diff2 == 0) || (diff1 == 0 && diff2 == dTlag))){
+    ret=-RxODE_sign_exp(A*rate,-alpha*tT+alpha*tlag+RxODE_abs_log(A)+RxODE_abs_log(rate));
+  } else if (t2 > 0.0 && ((diff1 == dTlag && diff2 == 0) || (diff1 == 0 && diff2 == dTlag))){
+    ret=RxODE_sign_exp((A*rate*exp(-alpha*tT)*exp(alpha*tlag)-A*rate*exp(-alpha*tT)*exp(-alpha*tinfA)*exp(2*alpha*tlag)),RxODE_abs_log(A*rate*exp(-alpha*tT)*exp(alpha*tlag)-A*rate*exp(-alpha*tT)*exp(-alpha*tinfA)*exp(2*alpha*tlag)))-RxODE_sign_exp(A*rate,-alpha*tT-alpha*tinfA+2*alpha*tlag+RxODE_abs_log(A)+RxODE_abs_log(rate));
+  } else if (diff1 == dA && diff2 == dA){
+    ret=0;
+  } else if (diff1 == dA && diff2 == dAlpha){
+    ret=RxODE_sign_exp(RxODE_safe_zero(alpha)*rate*t1,-alpha*t1-alpha*t2-RxODE_abs_log(RxODE_safe_zero(alpha))+RxODE_abs_log(rate)+RxODE_abs_log(t1))-RxODE_sign_exp((rate*t2*exp(-alpha*t2)/alpha-rate*t2*exp(-alpha*t1)*exp(-alpha*t2)/alpha),RxODE_abs_log(rate*t2*exp(-alpha*t2)/alpha-rate*t2*exp(-alpha*t1)*exp(-alpha*t2)/alpha))-RxODE_sign_exp((rate*exp(-alpha*t2)/R_pow_di(alpha,2)-rate*exp(-alpha*t1)*exp(-alpha*t2)/R_pow_di(alpha,2)),RxODE_abs_log(rate*exp(-alpha*t2)/R_pow_di(alpha,2)-rate*exp(-alpha*t1)*exp(-alpha*t2)/R_pow_di(alpha,2)));
+  } else if (diff1 == dAlpha && diff2 == dA){
+    ret=RxODE_sign_exp(RxODE_safe_zero(alpha)*rate*t1,-alpha*t1-alpha*t2-RxODE_abs_log(RxODE_safe_zero(alpha))+RxODE_abs_log(rate)+RxODE_abs_log(t1))-RxODE_sign_exp((rate*t2*exp(-alpha*t2)/alpha-rate*t2*exp(-alpha*t1)*exp(-alpha*t2)/alpha),RxODE_abs_log(rate*t2*exp(-alpha*t2)/alpha-rate*t2*exp(-alpha*t1)*exp(-alpha*t2)/alpha))-RxODE_sign_exp((rate*exp(-alpha*t2)/R_pow_di(alpha,2)-rate*exp(-alpha*t1)*exp(-alpha*t2)/R_pow_di(alpha,2)),RxODE_abs_log(rate*exp(-alpha*t2)/R_pow_di(alpha,2)-rate*exp(-alpha*t1)*exp(-alpha*t2)/R_pow_di(alpha,2)));
+  } else if (diff1 == dAlpha && diff2 == dAlpha){
+    ret=-RxODE_sign_exp(A*RxODE_safe_zero(alpha)*rate,-alpha*t1-alpha*t2+RxODE_abs_log(A)-RxODE_abs_log(RxODE_safe_zero(alpha))+RxODE_abs_log(rate)+2*RxODE_abs_log(t1));
+    ret-=RxODE_sign_exp(A*RxODE_safe_zero(alpha)*rate*t1*t2*2,-alpha*t1-alpha*t2+RxODE_abs_log(A)-RxODE_abs_log(RxODE_safe_zero(alpha))+RxODE_abs_log(rate)+RxODE_abs_log(t1)+RxODE_abs_log(t2)+M_LN2);
+    ret+=RxODE_sign_exp((A*rate*R_pow_di(t2,2)*exp(-alpha*t2)/alpha-A*rate*R_pow_di(t2,2)*exp(-alpha*t1)*exp(-alpha*t2)/alpha),RxODE_abs_log(A*rate*R_pow_di(t2,2)*exp(-alpha*t2)/alpha-A*rate*R_pow_di(t2,2)*exp(-alpha*t1)*exp(-alpha*t2)/alpha));
+    ret-=RxODE_sign_exp(A*rate*t1*2,-alpha*t1-alpha*t2+RxODE_abs_log(A)-2*RxODE_abs_log(RxODE_safe_zero(alpha))+RxODE_abs_log(rate)+RxODE_abs_log(t1)+M_LN2);
+    ret+=RxODE_sign_exp((2*A*rate*t2*exp(-alpha*t2)/R_pow_di(alpha,2)-2*A*rate*t2*exp(-alpha*t1)*exp(-alpha*t2)/R_pow_di(alpha,2)),RxODE_abs_log(2*A*rate*t2*exp(-alpha*t2)/R_pow_di(alpha,2)-2*A*rate*t2*exp(-alpha*t1)*exp(-alpha*t2)/R_pow_di(alpha,2)));
+    ret+=RxODE_sign_exp((2*A*rate*exp(-alpha*t2)/R_pow_di(alpha,3)-2*A*rate*exp(-alpha*t1)*exp(-alpha*t2)/R_pow_di(alpha,3)),RxODE_abs_log(2*A*rate*exp(-alpha*t2)/R_pow_di(alpha,3)-2*A*rate*exp(-alpha*t1)*exp(-alpha*t2)/R_pow_di(alpha,3)));
+ret=-RxODE_sign_exp(rate,-alpha*tT+alpha*tlag+RxODE_abs_log(rate));
+ret=-RxODE_sign_exp((-A*rate*tT*exp(-alpha*tT)*exp(alpha*tlag)+A*rate*tlag*exp(-alpha*tT)*exp(alpha*tlag)),RxODE_abs_log(-A*rate*tT*exp(-alpha*tT)*exp(alpha*tlag)+A*rate*tlag*exp(-alpha*tT)*exp(alpha*tlag)));
+ret=-RxODE_sign_exp(A*alpha*rate,-alpha*tT+alpha*tlag+RxODE_abs_log(A)+RxODE_abs_log(alpha)+RxODE_abs_log(rate));
+ret=RxODE_sign_exp((rate*exp(-alpha*tT)*exp(alpha*tlag)-rate*exp(-alpha*tT)*exp(-alpha*tinfA)*exp(2*alpha*tlag)),RxODE_abs_log(rate*exp(-alpha*tT)*exp(alpha*tlag)-rate*exp(-alpha*tT)*exp(-alpha*tinfA)*exp(2*alpha*tlag)))-RxODE_sign_exp(rate,-alpha*tT-alpha*tinfA+2*alpha*tlag+RxODE_abs_log(rate));
+ret=RxODE_sign_exp((-A*rate*tT*exp(-alpha*tT)*exp(alpha*tlag)+A*rate*tT*exp(-alpha*tT)*exp(-alpha*tinfA)*exp(2*alpha*tlag)+A*rate*tlag*exp(-alpha*tT)*exp(alpha*tlag)-A*rate*tlag*exp(-alpha*tT)*exp(-alpha*tinfA)*exp(2*alpha*tlag)),RxODE_abs_log(-A*rate*tT*exp(-alpha*tT)*exp(alpha*tlag)+A*rate*tT*exp(-alpha*tT)*exp(-alpha*tinfA)*exp(2*alpha*tlag)+A*rate*tlag*exp(-alpha*tT)*exp(alpha*tlag)-A*rate*tlag*exp(-alpha*tT)*exp(-alpha*tinfA)*exp(2*alpha*tlag)));
+    ret-=RxODE_sign_exp((-A*rate*tT*exp(-alpha*tT)*exp(-alpha*tinfA)*exp(2*alpha*tlag)+A*rate*tlag*exp(-alpha*tT)*exp(-alpha*tinfA)*exp(2*alpha*tlag)),RxODE_abs_log(-A*rate*tT*exp(-alpha*tT)*exp(-alpha*tinfA)*exp(2*alpha*tlag)+A*rate*tlag*exp(-alpha*tT)*exp(-alpha*tinfA)*exp(2*alpha*tlag)));
+    ret-=RxODE_sign_exp((-2*A*rate*tinfA*exp(-alpha*tT)*exp(-alpha*tinfA)*exp(2*alpha*tlag)+2*A*rate*tlag*exp(-alpha*tT)*exp(-alpha*tinfA)*exp(2*alpha*tlag)),RxODE_abs_log(-2*A*rate*tinfA*exp(-alpha*tT)*exp(-alpha*tinfA)*exp(2*alpha*tlag)+2*A*rate*tlag*exp(-alpha*tT)*exp(-alpha*tinfA)*exp(2*alpha*tlag)));
+ret=RxODE_sign_exp((A*alpha*rate*exp(-alpha*tT)*exp(alpha*tlag)-A*alpha*rate*exp(-alpha*tT)*exp(-alpha*tinfA)*exp(2*alpha*tlag)),RxODE_abs_log(A*alpha*rate*exp(-alpha*tT)*exp(alpha*tlag)-A*alpha*rate*exp(-alpha*tT)*exp(-alpha*tinfA)*exp(2*alpha*tlag)))-RxODE_sign_exp(A*alpha*rate*3,-alpha*tT-alpha*tinfA+2*alpha*tlag+RxODE_abs_log(A)+RxODE_abs_log(alpha)+RxODE_abs_log(rate)+log1p(2));
+  } else {
+    return 0;
+  }
+
+  return ret;
+}
 
 extern double rxSolveLinBDiff(int diff1, int diff2, int dA, int dAlpha, double dose, double tT, double A, double alpha, double ka, double tlag){
-double ret = 0;
-if (ka > 0 && ((diff1 == dA && diff2 == 0) || (diff1 == 0 && diff2 == dA))) {
-ret = RxODE_sign_exp(dose*(-exp(-ka * (tT - tlag)) + exp(-alpha * (tT - tlag))), RxODE_abs_log(dose) + RxODE_abs_log(-exp(-ka * (tT - tlag)) + exp(-alpha * (tT - tlag))));
-} else if (ka > 0 && ((diff1 == dAlpha && diff2 == 0) || (diff1 == 0 && diff2 == dAlpha))) {
-ret = RxODE_sign_exp(A*dose*(-tT + tlag), -alpha * (tT - tlag) + RxODE_abs_log(A) + RxODE_abs_log(dose) + RxODE_abs_log(-tT + tlag));
-} else if (ka > 0 && ((diff1 == dKa && diff2 == 0) || (diff1 == 0 && diff2 == dKa))) {
-ret = -RxODE_sign_exp(A*dose*(-tT + tlag), -ka * (tT - tlag) + RxODE_abs_log(A) + RxODE_abs_log(dose) + RxODE_abs_log(-tT + tlag));
-} else if (ka > 0 && ((diff1 == dTlag && diff2 == 0) || (diff1 == 0 && diff2 == dTlag))) {
-ret = RxODE_sign_exp(A*dose*(alpha * exp(-alpha * (tT - tlag)) - ka * exp(-ka * (tT - tlag))), RxODE_abs_log(A) + RxODE_abs_log(dose) + RxODE_abs_log(alpha * exp(-alpha * (tT - tlag)) - ka * exp(-ka * (tT - tlag))));
-} else if (ka > 0 && diff1 == dA && diff2 == dA) {
-ret = 0;
-} else if (ka > 0 && diff1 == dA && diff2 == dAlpha) {
-ret = RxODE_sign_exp(dose*(-tT + tlag), -alpha * (tT - tlag) + RxODE_abs_log(dose) + RxODE_abs_log(-tT + tlag));
-} else if (ka > 0 && diff1 == dA && diff2 == dKa) {
-ret = -RxODE_sign_exp(dose*(-tT + tlag), -ka * (tT - tlag) + RxODE_abs_log(dose) + RxODE_abs_log(-tT + tlag));
-} else if (ka > 0 && diff1 == dA && diff2 == dTlag) {
-ret = RxODE_sign_exp(dose*(alpha * exp(-alpha * (tT - tlag)) - ka * exp(-ka * (tT - tlag))), RxODE_abs_log(dose) + RxODE_abs_log(alpha * exp(-alpha * (tT - tlag)) - ka * exp(-ka * (tT - tlag))));
-} else if (ka > 0 && diff1 == dAlpha && diff2 == dA) {
-ret = RxODE_sign_exp(dose*(-tT + tlag), -alpha * (tT - tlag) + RxODE_abs_log(dose) + RxODE_abs_log(-tT + tlag));
-} else if (ka > 0 && diff1 == dAlpha && diff2 == dAlpha) {
-ret = RxODE_sign_exp(A*dose*(-tT + tlag), -alpha * (tT - tlag) + RxODE_abs_log(A) + RxODE_abs_log(dose) + 2 * RxODE_abs_log(-tT + tlag));
-} else if (ka > 0 && diff1 == dAlpha && diff2 == dKa) {
-ret = 0;
-} else if (ka > 0 && diff1 == dAlpha && diff2 == dTlag) {
-ret = RxODE_sign_exp(A*alpha*dose*(-tT + tlag), -alpha * (tT - tlag) + RxODE_abs_log(A) + RxODE_abs_log(alpha) + RxODE_abs_log(dose) + RxODE_abs_log(-tT + tlag))+RxODE_sign_exp(A*dose, -alpha * (tT - tlag) + RxODE_abs_log(A) + RxODE_abs_log(dose));
-} else if (ka <= 0 && ((diff1 == dA && diff2 == 0) || (diff1 == 0 && diff2 == dA))) {
-ret = RxODE_sign_exp(dose, -alpha * (tT - tlag) + RxODE_abs_log(dose));
-} else if (ka <= 0 && ((diff1 == dAlpha && diff2 == 0) || (diff1 == 0 && diff2 == dAlpha))) {
-ret = RxODE_sign_exp(A*dose*(-tT + tlag), -alpha * (tT - tlag) + RxODE_abs_log(A) + RxODE_abs_log(dose) + RxODE_abs_log(-tT + tlag));
-} else if (ka <= 0 && ((diff1 == dTlag && diff2 == 0) || (diff1 == 0 && diff2 == dTlag))) {
-ret = RxODE_sign_exp(A*alpha*dose, -alpha * (tT - tlag) + RxODE_abs_log(A) + RxODE_abs_log(alpha) + RxODE_abs_log(dose));
-} else if (ka <= 0 && diff1 == dA && diff2 == dA) {
-ret = 0;
-} else if (ka <= 0 && diff1 == dA && diff2 == dAlpha) {
-ret = RxODE_sign_exp(dose*(-tT + tlag), -alpha * (tT - tlag) + RxODE_abs_log(dose) + RxODE_abs_log(-tT + tlag));
-} else if (ka <= 0 && diff1 == dA && diff2 == dTlag) {
-ret = RxODE_sign_exp(alpha*dose, -alpha * (tT - tlag) + RxODE_abs_log(alpha) + RxODE_abs_log(dose));
-} else if (ka <= 0 && diff1 == dAlpha && diff2 == dA) {
-ret = RxODE_sign_exp(dose*(-tT + tlag), -alpha * (tT - tlag) + RxODE_abs_log(dose) + RxODE_abs_log(-tT + tlag));
-} else if (ka <= 0 && diff1 == dAlpha && diff2 == dAlpha) {
-ret = RxODE_sign_exp(A*dose*(-tT + tlag), -alpha * (tT - tlag) + RxODE_abs_log(A) + RxODE_abs_log(dose) + 2 * RxODE_abs_log(-tT + tlag));
-} else if (ka <= 0 && diff1 == dAlpha && diff2 == dTlag) {
-ret = RxODE_sign_exp(A*alpha*dose*(-tT + tlag), -alpha * (tT - tlag) + RxODE_abs_log(A) + RxODE_abs_log(alpha) + RxODE_abs_log(dose) + RxODE_abs_log(-tT + tlag))+RxODE_sign_exp(A*dose, -alpha * (tT - tlag) + RxODE_abs_log(A) + RxODE_abs_log(dose));
-} else { return 0 ;}
-return ret;}
+  double ret = 0;
+  if (ka > 0 && ((diff1 == dA && diff2 == 0) || (diff1 == 0 && diff2 == dA))){
+    ret=RxODE_sign_exp((-dose*exp(-ka*tT)*exp(ka*tlag)+dose*exp(-alpha*tT)*exp(alpha*tlag)),RxODE_abs_log(-dose*exp(-ka*tT)*exp(ka*tlag)+dose*exp(-alpha*tT)*exp(alpha*tlag)));
+  } else if (ka > 0 && ((diff1 == dAlpha && diff2 == 0) || (diff1 == 0 && diff2 == dAlpha))){
+    ret=RxODE_sign_exp((-A*dose*tT*exp(-alpha*tT)*exp(alpha*tlag)+A*dose*tlag*exp(-alpha*tT)*exp(alpha*tlag)),RxODE_abs_log(-A*dose*tT*exp(-alpha*tT)*exp(alpha*tlag)+A*dose*tlag*exp(-alpha*tT)*exp(alpha*tlag)));
+  } else if (ka > 0 && ((diff1 == dKa && diff2 == 0) || (diff1 == 0 && diff2 == dKa))){
+    ret=-RxODE_sign_exp((-A*dose*tT*exp(-ka*tT)*exp(ka*tlag)+A*dose*tlag*exp(-ka*tT)*exp(ka*tlag)),RxODE_abs_log(-A*dose*tT*exp(-ka*tT)*exp(ka*tlag)+A*dose*tlag*exp(-ka*tT)*exp(ka*tlag)));
+  } else if (ka > 0 && ((diff1 == dTlag && diff2 == 0) || (diff1 == 0 && diff2 == dTlag))){
+    ret=RxODE_sign_exp((A*alpha*dose*exp(-alpha*tT)*exp(alpha*tlag)-A*dose*ka*exp(-ka*tT)*exp(ka*tlag)),RxODE_abs_log(A*alpha*dose*exp(-alpha*tT)*exp(alpha*tlag)-A*dose*ka*exp(-ka*tT)*exp(ka*tlag)));
+  } else if (ka <= 0 && ((diff1 == dA && diff2 == 0) || (diff1 == 0 && diff2 == dA))){
+    ret=RxODE_sign_exp(dose,-alpha*tT+alpha*tlag+RxODE_abs_log(dose));
+  } else if (ka <= 0 && ((diff1 == dAlpha && diff2 == 0) || (diff1 == 0 && diff2 == dAlpha))){
+    ret=RxODE_sign_exp((-A*dose*tT*exp(-alpha*tT)*exp(alpha*tlag)+A*dose*tlag*exp(-alpha*tT)*exp(alpha*tlag)),RxODE_abs_log(-A*dose*tT*exp(-alpha*tT)*exp(alpha*tlag)+A*dose*tlag*exp(-alpha*tT)*exp(alpha*tlag)));
+  } else if (ka <= 0 && ((diff1 == dTlag && diff2 == 0) || (diff1 == 0 && diff2 == dTlag))){
+    ret=RxODE_sign_exp(A*alpha*dose,-alpha*tT+alpha*tlag+RxODE_abs_log(A)+RxODE_abs_log(alpha)+RxODE_abs_log(dose));
+  } else if (ka > 0 && diff1 == dA && diff2 == dA){
+    ret=0;
+  } else if (ka > 0 && diff1 == dA && diff2 == dAlpha){
+    ret=RxODE_sign_exp((-dose*tT*exp(-alpha*tT)*exp(alpha*tlag)+dose*tlag*exp(-alpha*tT)*exp(alpha*tlag)),RxODE_abs_log(-dose*tT*exp(-alpha*tT)*exp(alpha*tlag)+dose*tlag*exp(-alpha*tT)*exp(alpha*tlag)));
+  } else if (ka > 0 && diff1 == dA && diff2 == dKa){
+    ret=-RxODE_sign_exp((-dose*tT*exp(-ka*tT)*exp(ka*tlag)+dose*tlag*exp(-ka*tT)*exp(ka*tlag)),RxODE_abs_log(-dose*tT*exp(-ka*tT)*exp(ka*tlag)+dose*tlag*exp(-ka*tT)*exp(ka*tlag)));
+  } else if (ka > 0 && diff1 == dA && diff2 == dTlag){
+    ret=RxODE_sign_exp((alpha*dose*exp(-alpha*tT)*exp(alpha*tlag)-dose*ka*exp(-ka*tT)*exp(ka*tlag)),RxODE_abs_log(alpha*dose*exp(-alpha*tT)*exp(alpha*tlag)-dose*ka*exp(-ka*tT)*exp(ka*tlag)));
+  } else if (ka > 0 && diff1 == dAlpha && diff2 == dA){
+    ret=RxODE_sign_exp((-dose*tT*exp(-alpha*tT)*exp(alpha*tlag)+dose*tlag*exp(-alpha*tT)*exp(alpha*tlag)),RxODE_abs_log(-dose*tT*exp(-alpha*tT)*exp(alpha*tlag)+dose*tlag*exp(-alpha*tT)*exp(alpha*tlag)));
+  } else if (ka > 0 && diff1 == dAlpha && diff2 == dAlpha){
+    ret=RxODE_sign_exp((A*dose*R_pow_di(tT,2)*exp(-alpha*tT)*exp(alpha*tlag)-2*A*dose*tT*tlag*exp(-alpha*tT)*exp(alpha*tlag)+A*dose*R_pow_di(tlag,2)*exp(-alpha*tT)*exp(alpha*tlag)),RxODE_abs_log(A*dose*R_pow_di(tT,2)*exp(-alpha*tT)*exp(alpha*tlag)-2*A*dose*tT*tlag*exp(-alpha*tT)*exp(alpha*tlag)+A*dose*R_pow_di(tlag,2)*exp(-alpha*tT)*exp(alpha*tlag)));
+  } else if (ka > 0 && diff1 == dAlpha && diff2 == dKa){
+    ret=0;
+  } else if (ka > 0 && diff1 == dAlpha && diff2 == dTlag){
+    ret=RxODE_sign_exp((-A*alpha*dose*tT*exp(-alpha*tT)*exp(alpha*tlag)+A*alpha*dose*tlag*exp(-alpha*tT)*exp(alpha*tlag)),RxODE_abs_log(-A*alpha*dose*tT*exp(-alpha*tT)*exp(alpha*tlag)+A*alpha*dose*tlag*exp(-alpha*tT)*exp(alpha*tlag)))+RxODE_sign_exp(A*dose,-alpha*tT+alpha*tlag+RxODE_abs_log(A)+RxODE_abs_log(dose));
+  } else if (ka > 0 && diff1 == dKa && diff2 == dA){
+    ret=-RxODE_sign_exp((-dose*tT*exp(-ka*tT)*exp(ka*tlag)+dose*tlag*exp(-ka*tT)*exp(ka*tlag)),RxODE_abs_log(-dose*tT*exp(-ka*tT)*exp(ka*tlag)+dose*tlag*exp(-ka*tT)*exp(ka*tlag)));
+  } else if (ka > 0 && diff1 == dKa && diff2 == dAlpha){
+    ret=0;
+  } else if (ka > 0 && diff1 == dKa && diff2 == dKa){
+    ret=-RxODE_sign_exp((A*dose*R_pow_di(tT,2)*exp(-ka*tT)*exp(ka*tlag)-2*A*dose*tT*tlag*exp(-ka*tT)*exp(ka*tlag)+A*dose*R_pow_di(tlag,2)*exp(-ka*tT)*exp(ka*tlag)),RxODE_abs_log(A*dose*R_pow_di(tT,2)*exp(-ka*tT)*exp(ka*tlag)-2*A*dose*tT*tlag*exp(-ka*tT)*exp(ka*tlag)+A*dose*R_pow_di(tlag,2)*exp(-ka*tT)*exp(ka*tlag)));
+  } else if (ka > 0 && diff1 == dKa && diff2 == dTlag){
+    ret=-RxODE_sign_exp((-A*dose*ka*tT*exp(-ka*tT)*exp(ka*tlag)+A*dose*ka*tlag*exp(-ka*tT)*exp(ka*tlag)),RxODE_abs_log(-A*dose*ka*tT*exp(-ka*tT)*exp(ka*tlag)+A*dose*ka*tlag*exp(-ka*tT)*exp(ka*tlag)))-RxODE_sign_exp(A*dose,-ka*tT+ka*tlag+RxODE_abs_log(A)+RxODE_abs_log(dose));
+  } else if (ka > 0 && diff1 == dTlag && diff2 == dA){
+    ret=RxODE_sign_exp((alpha*dose*exp(-alpha*tT)*exp(alpha*tlag)-dose*ka*exp(-ka*tT)*exp(ka*tlag)),RxODE_abs_log(alpha*dose*exp(-alpha*tT)*exp(alpha*tlag)-dose*ka*exp(-ka*tT)*exp(ka*tlag)));
+  } else if (ka > 0 && diff1 == dTlag && diff2 == dAlpha){
+    ret=RxODE_sign_exp((-A*alpha*dose*tT*exp(-alpha*tT)*exp(alpha*tlag)+A*alpha*dose*tlag*exp(-alpha*tT)*exp(alpha*tlag)+A*dose*exp(-alpha*tT)*exp(alpha*tlag)),RxODE_abs_log(-A*alpha*dose*tT*exp(-alpha*tT)*exp(alpha*tlag)+A*alpha*dose*tlag*exp(-alpha*tT)*exp(alpha*tlag)+A*dose*exp(-alpha*tT)*exp(alpha*tlag)));
+  } else if (ka > 0 && diff1 == dTlag && diff2 == dKa){
+    ret=RxODE_sign_exp((A*dose*ka*tT*exp(-ka*tT)*exp(ka*tlag)-A*dose*ka*tlag*exp(-ka*tT)*exp(ka*tlag)-A*dose*exp(-ka*tT)*exp(ka*tlag)),RxODE_abs_log(A*dose*ka*tT*exp(-ka*tT)*exp(ka*tlag)-A*dose*ka*tlag*exp(-ka*tT)*exp(ka*tlag)-A*dose*exp(-ka*tT)*exp(ka*tlag)));
+  } else if (ka > 0 && diff1 == dTlag && diff2 == dTlag){
+    ret=RxODE_sign_exp((A*R_pow_di(alpha,2)*dose*exp(-alpha*tT)*exp(alpha*tlag)-A*dose*R_pow_di(ka,2)*exp(-ka*tT)*exp(ka*tlag)),RxODE_abs_log(A*R_pow_di(alpha,2)*dose*exp(-alpha*tT)*exp(alpha*tlag)-A*dose*R_pow_di(ka,2)*exp(-ka*tT)*exp(ka*tlag)));
+  } else if (ka <= 0 && diff1 == dA && diff2 == dA){
+    ret=0;
+  } else if (ka <= 0 && diff1 == dA && diff2 == dAlpha){
+    ret=RxODE_sign_exp((-dose*tT*exp(-alpha*tT)*exp(alpha*tlag)+dose*tlag*exp(-alpha*tT)*exp(alpha*tlag)),RxODE_abs_log(-dose*tT*exp(-alpha*tT)*exp(alpha*tlag)+dose*tlag*exp(-alpha*tT)*exp(alpha*tlag)));
+  } else if (ka <= 0 && diff1 == dA && diff2 == dTlag){
+    ret=RxODE_sign_exp(alpha*dose,-alpha*tT+alpha*tlag+RxODE_abs_log(alpha)+RxODE_abs_log(dose));
+  } else if (ka <= 0 && diff1 == dAlpha && diff2 == dA){
+    ret=RxODE_sign_exp((-dose*tT*exp(-alpha*tT)*exp(alpha*tlag)+dose*tlag*exp(-alpha*tT)*exp(alpha*tlag)),RxODE_abs_log(-dose*tT*exp(-alpha*tT)*exp(alpha*tlag)+dose*tlag*exp(-alpha*tT)*exp(alpha*tlag)));
+  } else if (ka <= 0 && diff1 == dAlpha && diff2 == dAlpha){
+    ret=RxODE_sign_exp((A*dose*R_pow_di(tT,2)*exp(-alpha*tT)*exp(alpha*tlag)-2*A*dose*tT*tlag*exp(-alpha*tT)*exp(alpha*tlag)+A*dose*R_pow_di(tlag,2)*exp(-alpha*tT)*exp(alpha*tlag)),RxODE_abs_log(A*dose*R_pow_di(tT,2)*exp(-alpha*tT)*exp(alpha*tlag)-2*A*dose*tT*tlag*exp(-alpha*tT)*exp(alpha*tlag)+A*dose*R_pow_di(tlag,2)*exp(-alpha*tT)*exp(alpha*tlag)));
+  } else if (ka <= 0 && diff1 == dAlpha && diff2 == dTlag){
+    ret=RxODE_sign_exp((-A*alpha*dose*tT*exp(-alpha*tT)*exp(alpha*tlag)+A*alpha*dose*tlag*exp(-alpha*tT)*exp(alpha*tlag)),RxODE_abs_log(-A*alpha*dose*tT*exp(-alpha*tT)*exp(alpha*tlag)+A*alpha*dose*tlag*exp(-alpha*tT)*exp(alpha*tlag)))+RxODE_sign_exp(A*dose,-alpha*tT+alpha*tlag+RxODE_abs_log(A)+RxODE_abs_log(dose));
+  } else if (ka <= 0 && diff1 == dTlag && diff2 == dA){
+    ret=RxODE_sign_exp(alpha*dose,-alpha*tT+alpha*tlag+RxODE_abs_log(alpha)+RxODE_abs_log(dose));
+  } else if (ka <= 0 && diff1 == dTlag && diff2 == dAlpha){
+    ret=RxODE_sign_exp((-A*alpha*dose*tT*exp(-alpha*tT)*exp(alpha*tlag)+A*alpha*dose*tlag*exp(-alpha*tT)*exp(alpha*tlag)),RxODE_abs_log(-A*alpha*dose*tT*exp(-alpha*tT)*exp(alpha*tlag)+A*alpha*dose*tlag*exp(-alpha*tT)*exp(alpha*tlag)))+RxODE_sign_exp(A*dose,-alpha*tT+alpha*tlag+RxODE_abs_log(A)+RxODE_abs_log(dose));
+  } else if (ka <= 0 && diff1 == dTlag && diff2 == dTlag){
+    ret=RxODE_sign_exp(A*dose,-alpha*tT+alpha*tlag+RxODE_abs_log(A)+2*RxODE_abs_log(alpha)+RxODE_abs_log(dose));
+  } else {
+    return 0;
+  }
+
+  return ret;
+}

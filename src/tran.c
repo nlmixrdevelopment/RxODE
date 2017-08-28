@@ -346,6 +346,11 @@ void wprint_node(int depth, char *name, char *value, void *client_data) {
     sb.o += 9;
     sprintf(SBTPTR, "log");
     sbt.o += 3;
+  } else if (!strcmp("identifier",name) && !strcmp("abs",value)){
+    sprintf(SBPTR, "fabs");
+    sb.o += 9;
+    sprintf(SBTPTR, "abs");
+    sbt.o += 3;
   } else {
     // Apply fix for dot.syntax
     for (i = 0; i < strlen(value); i++){

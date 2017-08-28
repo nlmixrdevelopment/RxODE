@@ -186,3 +186,60 @@ rx.do.call <- function(..., envir=parent.frame()){
     do.call(..., envir=envir);
 }
 
+
+
+#' Using the Kahan method, take a more accurate sum
+#'
+#' @param numbers A vector of numbers to sum.
+#' @return Sum of numbers
+#' @references
+#' \url{https://en.wikipedia.org/wiki/Kahan_summation_algorithm}
+#' @export
+rxKahanSum <- function(numbers) {
+    .Call(`_rxKahanSum`, as.double(numbers))
+}
+
+#' Using the Neumaier method, take a more accurate sum
+#'
+#' @inheritParams rxKahanSum
+#' @return Sum of numbers, a bit more accurate than rxKahanSum
+#' @references
+#' \url{https://en.wikipedia.org/wiki/Kahan_summation_algorithm}
+#' @export
+rxNeumaierSum <- function(numbers) {
+    .Call(`_rxNeumaierSum`, as.double(numbers))
+}
+
+#' Return an accurate floating point sum of values
+#'
+#' This method avoids loss of precision by tracking multiple
+#' intermediate partial sums. Based on python's math.fsum
+#'
+#' @inheritParams rxKahanSum
+#'
+#' @return Sum of numbers without loss of precision
+#'
+#' The algorithm's accuracy depends on IEEE-754 arithmetic guarantees
+#' and the typical case where the rounding mode is half-even. On some
+#' non-Windows builds, the underlying C library uses extended
+#' precision addition and may occasionally double-round an
+#' intermediate sum causing it to be off in its least significant bit.
+#'
+#' @export
+#' @author Matthew Fidler (R implementation), Raymond Hettinger,
+#'     Jonathan Shewchuk, Python Team
+#' @references
+#'
+#' \url{https://docs.python.org/2/library/math.html}
+#'
+#' \url{https://code.activestate.com/recipes/393090/}
+#'
+#' \url{https://github.com/python/cpython/blob/a0ce375e10b50f7606cb86b072fed7d8cd574fe7/Modules/mathmodule.c}
+#'
+#' Shewchuk, JR. (1996)
+#' \emph{Adaptive Precision Floating-Point Arithmetic and Fast Robust Geometric Predicates.}
+#' \url{http://www-2.cs.cmu.edu/afs/cs/project/quake/public/papers/robust-arithmetic.ps}
+#'
+rxPythonFsum <- function(numbers) {
+    .Call(`_rxPythonSum`, as.double(numbers))
+}
