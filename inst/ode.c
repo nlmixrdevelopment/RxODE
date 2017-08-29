@@ -49,8 +49,8 @@ double _sum(unsigned int n, ...){
   va_list valist;
   va_start(valist, n);
   double *p = Calloc(n, double);
-  for (int i; i < n; i++){
-    p[i] = va_arg(valist, int);
+  for (unsigned int i = 0; i < n; i++){
+    p[i] = va_arg(valist, double);
   }
   va_end(valist);
   double s = _sum1(p, n);
@@ -62,8 +62,8 @@ double _prod(unsigned int n, ...){
   va_list valist;
   va_start(valist, n);
   double *p = Calloc(n, double);
-  for (int i; i < n; i++){
-    p[i] = va_arg(valist, int);
+  for (unsigned int i = 0; i < n; i++){
+    p[i] = va_arg(valist, double);
   }
   va_end(valist);
   double s = _prod1(p, n);

@@ -393,6 +393,10 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       ) {
     sprintf(SBPTR, "%s",name);
     sb.o++;
+    if (!(strcmp(",", name)) && depth == 1){
+      sprintf(SBPTR, "(double)");
+      sb.o += 8;
+    }
     sprintf(SBTPTR,"%s",name);
     sbt.o++;
   }
@@ -461,7 +465,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
   }
   Free(value);
   
-  depth++;
+  //depth++;
   if (nch != 0) {
     if (!strcmp("power_expression", name)) {
       sprintf(SBPTR, " R_pow(");
@@ -515,18 +519,21 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       
       tb.fn = (!strcmp("function", name) && i==0) ? 1 : 0;
 
+      if (tb.fn) depth = 0;
+
       D_ParseNode *xpn = d_get_child(pn,i);
       
       if (tb.fn){
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
         if (!strcmp("prod",v) || !strcmp("sum",v)){
 	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
-          sprintf(SBPTR, "_%s(%d,",v, ii);
+          sprintf(SBPTR, "_%s(%d, (double) ",v, ii);
           sprintf(SBTPTR, "%s(", v);
           sb.o = strlen(sb.s);
           sbt.o = strlen(sbt.s);
           Free(v);
           i = 1;// Parse next arguments
+	  depth=1;
 	  continue;
         }
         Free(v);
@@ -571,7 +578,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         Free(v);
         continue;
       }
-      
       wprint_parsetree(pt, xpn, depth, fn, client_data);
       if (rx_syntax_require_semicolon && !strcmp("end_statement",name) && i == 0){
         if (xpn->start_loc.s ==  xpn->end){

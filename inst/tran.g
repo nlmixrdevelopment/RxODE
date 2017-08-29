@@ -92,7 +92,9 @@ mult_part : ('*' | '/') unary_expression ;
 
 unary_expression : ('+' | '-')? (theta0 | theta | eta | primary_expression | power_expression );
 
-power_expression : primary_expression power_operator primary_expression ;
+exponent_expression : ('+' | '-')? (theta0 | theta | eta | primary_expression );
+
+power_expression : primary_expression power_operator exponent_expression;
 
 power_operator   : ('^' | '**');
 

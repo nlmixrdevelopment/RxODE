@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include <R.h>
 #include <Rinternals.h>
 #include <Rmath.h> //Rmath includes math.
@@ -184,17 +185,17 @@ SEXP _rxPythonSum(SEXP input){
   return rets;
 }
 
-unsigned int RxODE_sum_type = 0;
+unsigned int RxODE_sum_type = 1;
 extern double RxODE_sum (double *input, unsigned int n){
-  switch (RxODE_sum_type){
-  case 0:
-    return RxODE_DoubleSum(input, n);
-  case 1:
+  /* switch (RxODE_sum_type){ */
+  /* case 0: */
+  /*   return RxODE_DoubleSum(input, n); */
+  /* case 1: */
     return RxODE_Python_fsum(input, n);
-    break;
-  }
-  error("Unknown sum type.");
-  return 0;
+  /*   break; */
+  /* } */
+  /* error("Unknown sum type."); */
+  /* return 0; */
 }
 
 SEXP _rxSum(SEXP input){
@@ -205,3 +206,17 @@ SEXP _rxSum(SEXP input){
   UNPROTECT(1);
   return rets;
 }
+
+extern double RxODE_sumV(unsigned int n, ...){
+  va_list valist;
+  va_start(valist, n);
+  double *p = Calloc(n, double);
+  for (unsigned int i = 0; i < n; i++){
+    p[i] = va_arg(valist, double);
+  }
+  va_end(valist);
+  double s = RxODE_sum(p, n);
+  Free(p);
+  return s;
+}
+

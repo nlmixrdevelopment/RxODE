@@ -418,7 +418,7 @@ RxODE <- function(model, modName = basename(wd), wd = ifelse(RxODE.cache.directo
         if (hmin < 0)
             stop("`hmin' must be a non-negative value")
         if (is.null(hmax)){
-            if (is.null(event.table$time)){
+            if (is.null(event.table$time) || length(event.table$time) == 1){
                 hmax <- 0;
             } else {
                 hmax <- max(abs(diff(event.table$time)))
