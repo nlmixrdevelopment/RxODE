@@ -1,3 +1,5 @@
+#include <stdio.h>
+#include <stdarg.h>
 #include <R.h>
 #include <Rinternals.h>
 #include <Rmath.h>
@@ -25,8 +27,8 @@ typedef void (*RxODE_assign_fn_pointers)(void (*fun_dydt)(unsigned int, double, 
 
 typedef void (*RxODE_ode_solver_old_c)(int *neq,double *theta,double *time,int *evid,int *ntime,double *inits,double *dose,double *ret,double *atol,double *rtol,int *stiff,int *transit_abs,int *nlhs,double *lhs,int *rc);
 typedef void (*RxODE_ode_solver_0_6_c)(int *neq,double *theta,double *time,int *evid,int *ntime,double *inits,double *dose,double *ret,double *atol,double *rtol,int *stiff,int *transit_abs,int *nlhs,double *lhs,int *rc,double hmin, double hmax,double h0,int mxordn,int mxords,int mxstep);
-
 typedef double (*RxODE_solveLinB)(double t, int linCmt, int diff1, int diff2, double A, double alpha, double B, double beta, double C, double gamma, double ka, double tlag);
+typedef double (*RxODE_sum_prod)(double *input, unsigned int n);
 // Give par pointers
 RxODE_vec _par_ptr, _InfusionRate;
 RxODE_update_par_ptr _update_par_ptr;
@@ -41,6 +43,33 @@ RxODE_assign_fn_pointers _assign_fn_pointers;
 RxODE_ode_solver_old_c _old_c;
 RxODE_ode_solver_0_6_c _c_0_6;
 RxODE_solveLinB solveLinB;
+RxODE_sum_prod _sum1, _prod1;
+
+double _sum(unsigned int n, ...){
+  va_list valist;
+  va_start(valist, n);
+  double *p = Calloc(n, double);
+  for (int i; i < n; i++){
+    p[i] = va_arg(valist, int);
+  }
+  va_end(valist);
+  double s = _sum1(p, n);
+  Free(p);
+  return s;
+}
+
+double _prod(unsigned int n, ...){
+  va_list valist;
+  va_start(valist, n);
+  double *p = Calloc(n, double);
+  for (int i; i < n; i++){
+    p[i] = va_arg(valist, int);
+  }
+  va_end(valist);
+  double s = _prod1(p, n);
+  Free(p);
+  return s;
+}
 
 extern void __ODE_SOLVER_PTR__();
 
@@ -169,6 +198,8 @@ void __R_INIT__ (DllInfo *info){
   _assign_fn_pointers=(RxODE_assign_fn_pointers) R_GetCCallable("RxODE","RxODE_assign_fn_pointers");
   _old_c = (RxODE_ode_solver_old_c) R_GetCCallable("RxODE","RxODE_ode_solver_old_c");
   _c_0_6 = (RxODE_ode_solver_0_6_c)R_GetCCallable("RxODE","RxODE_ode_solver_0_6_c");
+  _sum1   = (RxODE_sum_prod)R_GetCCallable("RxODE","RxODE_sum");
+  _prod1 = (RxODE_sum_prod) R_GetCCallable("RxODE","RxODE_prod");
   sign_exp = (RxODE_fn2) R_GetCCallable("RxODE","RxODE_sign_exp");
   abs_log = (RxODE_fn) R_GetCCallable("RxODE","RxODE_abs_log");
   abs_log1p = (RxODE_fn) R_GetCCallable("RxODE","RxODE_abs_log1p");

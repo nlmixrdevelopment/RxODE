@@ -514,7 +514,23 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       if ((!strcmp("theta",name) || !strcmp("eta",name)) && i != 2) continue;
       
       tb.fn = (!strcmp("function", name) && i==0) ? 1 : 0;
+
       D_ParseNode *xpn = d_get_child(pn,i);
+      
+      if (tb.fn){
+        char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+        if (!strcmp("prod",v) || !strcmp("sum",v)){
+	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
+          sprintf(SBPTR, "_%s(%d,",v, ii);
+          sprintf(SBTPTR, "%s(", v);
+          sb.o = strlen(sb.s);
+          sbt.o = strlen(sbt.s);
+          Free(v);
+          i = 1;// Parse next arguments
+	  continue;
+        }
+        Free(v);
+      }
       
       if (!strcmp("theta",name)){
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
