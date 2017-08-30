@@ -1177,7 +1177,7 @@ rxSymPySetupPred.warn <- FALSE
 ##' @keywords internal
 ##' @export
 ##' @importFrom utils find
-rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, grad=FALSE, logify=FALSE, pred.minus.dv=TRUE,
+rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, grad=FALSE, sum.prod=FALSE, pred.minus.dv=TRUE,
                              theta.derivs=FALSE,
                              grad.internal=FALSE, theta.internal=FALSE,
                              run.internal=FALSE){
@@ -1201,7 +1201,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                                                                           ifelse(is.function(predfn), paste(deparse(body(predfn)), collapse=""), ""),
                                                                           ifelse(is.function(pkpars), paste(deparse(body(pkpars)), collapse=""), ""),
                                                                           ifelse(is.function(errfn), paste(deparse(body(errfn)), collapse=""), ""),
-                                                                          init, grad, logify, pred.minus.dv, theta.derivs)), collapse="")),
+                                                                          init, grad, sum.prod, pred.minus.dv, theta.derivs)), collapse="")),
                                         .Platform$dynlib.ext));
     } else {
         cache.file <- "";
@@ -1225,11 +1225,11 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
         if (!run.internal && !grad.internal && !theta.internal){
             rfile <- tempfile(fileext=".R")
             dta <- tempfile(fileext=".rdata")
-            save(obj, predfn, pkpars, errfn, init, grad, logify, pred.minus.dv, theta.derivs, file=dta);
+            save(obj, predfn, pkpars, errfn, init, grad, sum.prod, pred.minus.dv, theta.derivs, file=dta);
             ## on.exit({unlink(dta); unlink(rfile)});
             tmp <- options();
             tmp <- tmp[regexpr(rex::rex(start, "RxODE."), names(tmp)) != -1];
-            rf <- sprintf("%s;options(RxODE.delete.unnamed=FALSE);load(%s); require(RxODE);tmp <- rxSymPySetupPred(obj, predfn, pkpars, errfn, init, grad, logify, pred.minus.dv, theta.derivs, run.internal=TRUE);",
+            rf <- sprintf("%s;options(RxODE.delete.unnamed=FALSE);load(%s); require(RxODE);tmp <- rxSymPySetupPred(obj, predfn, pkpars, errfn, init, grad, sum.prod, pred.minus.dv, theta.derivs, run.internal=TRUE);",
                           sub("options\\(\\)", "", sub(rex::rex(",", any_spaces, ".Names", anything,end),"",sub(rex::rex(start,"structure(list("),"options(",paste0(deparse(tmp),collapse="")))),
                           deparse(dta));
             rf <- gsub("^;", "", rf)
@@ -1444,22 +1444,22 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                 theta <- NULL;
                 if (grad){
                     outer <- rxSymPySetupPred(obj=oobj, predfn=predfn, pkpars=pkpars,
-                                              errfn=errfn, init=init, logify=logify,pred.minus.dv=pred.minus.dv,
+                                              errfn=errfn, init=init, sum.prod=sum.prod,pred.minus.dv=pred.minus.dv,
                                               run.internal=TRUE, grad.internal=TRUE, theta.internal=FALSE);
                 }
 
                 base <- gsub(rex::rex(or(group(anything, "~", anything), group(or(oLhs), "=", anything, ";"))), "", strsplit(base, "\n")[[1]])
                 base <- paste(base[base != ""], collapse="\n");
                 mod <- rxGetModel(paste0(base, "\n", pred, "\n", err))
-                if (logify){
-                    mod <- rxLogifyModel(mod);
+                if (sum.prod){
+                    mod <- rxSumProdModel(mod);
                 }
                 mod <- rxNorm(mod);
                 rxGc();
                 if (!grad && theta.derivs){
                     rxForget();
                     theta <- rxSymPySetupPred(obj=oobj, predfn=predfn, pkpars=pkpars,
-                                              errfn=errfn, init=init, logify=logify,pred.minus.dv=pred.minus.dv,
+                                              errfn=errfn, init=init, sum.prod=sum.prod,pred.minus.dv=pred.minus.dv,
                                               theta.derivs=TRUE, run.internal=TRUE, grad.internal=FALSE, theta.internal=TRUE);
                     theta <- RxODE(rxNorm(theta));
                 }
@@ -1490,8 +1490,8 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                 base <- gsub(rex::rex(or(group(anything, "~", anything), group(or(oLhs), "=", anything, ";"))), "", strsplit(base, "\n")[[1]])
                 base <- paste(base[base != ""], collapse="\n");
                 mod <- rxGetModel(paste0(base, "\n", pred, "\n", err));
-                if (logify){
-                    mod <- rxLogifyModel(mod);
+                if (sum.prod){
+                    mod <- rxSumProdModel(mod);
                 }
                 mod <- rxNorm(mod);
                 return(RxODE(mod));
@@ -1507,124 +1507,7 @@ rxGc <- function(){
     on.exit({sink();unlink(tf)})
     try({rxSymPyExec("gc.collect()")});
 }
-##' Takes a model and expands it to log multiplication
-##'
-##' This is a numerical trick to help reduce multiplcation errors when
-##' numbers are of very different magnitude.
-##'
-##' @param model RxODE model
-##' @return Lines for expanded model. (but not compiled)
-##' @author Matthew L. Fidler
-##' @export
-rxLogifyModel <- function(model, expand=TRUE){
-    rxSymPyVars(model);
-    ## rxCat(rxNorm(model));
-    on.exit({
-        rxSymPyClean();
-        assignInMyNamespace("rxSymPyAbsLog", FALSE);
-        assignInMyNamespace("rxSymPyLogSign", c());
-    });
-    n <- 1;
-    rxCat("## Logify ie a*b -> exp(log(abs(a))+log(abs(b)))*sign(a*b)\n")
-    rxCat("## ")
-    negReg <- rex::rex(start, any_spaces, "-", any_spaces)
-    cnd <- rxNorm(model, TRUE);
-    lines <- strsplit(rxNorm(model), "\n")[[1]];
-    for (i in seq_along(lines)){
-        if (regexpr("[=~]", lines[i])){
-            l0 <- strsplit(lines[i], "[=~]")[[1]];
-            if (length(l0) == 2){l1 <- l0[1];
-                l2 <- eval(parse(text=sprintf("rxSplitPlusQ(quote(%s))", substr(l0[2], 1, nchar(l0[2]) - 1))));
-                for (j in seq_along(l2)){
-                    tmp <- l2[j];
-                    neg <- FALSE;
-                    if (regexpr(negReg, tmp) != -1){
-                        tmp <- gsub(negReg, "", tmp)
-                        neg <- TRUE;
-                    }
-                    tmp2 <- eval(parse(text=sprintf("rxSimpleExprP(quote(%s))", tmp)));
-                    if (!tmp2){
-                        tmp <- rxSymPy(sprintf(paste0("expand_log(log(", ifelse(expand, "expand(%s)", "%s"), "), force=True)"), rxToSymPy(tmp)));
-                        assignInMyNamespace("rxSymPyAbsLog", TRUE);
-                        assignInMyNamespace("rxSymPyLogSign", c());
-                        tmp <- rxFromSymPy(tmp);
-                        if (length(rxSymPyLogSign) == 0){
-                            tmp <- sprintf("exp(%s)", tmp);
-                        } else {
-                            even.v <- c();
-                            zero.v <- c();
-                            for (v in rxSymPyLogSign){
-                                regs <- c()
-                                regs[1] <- rex::rex(start, capture(any_spaces), capture(any_numbers), any_spaces,
-                                                    "*", any_spaces, "abs_log(", v, ")", anything)
-                                regs[2] <- rex::rex(anything, capture(or("+", "-")), any_spaces, capture(any_numbers), any_spaces,
-                                                    "*", any_spaces, "abs_log(", v, ")", anything);
-                                regs[3] <- rex::rex(anything, capture("-"), capture(any_spaces), "abs_log(", v, ")", anything);
-                                for (reg in regs){
-                                    if (regexpr(reg, tmp, perl=TRUE) != -1){
-                                        num <- gsub(reg, "\\2", tmp, perl=TRUE);
-                                        pm <- gsub(reg, "\\1", tmp, perl=TRUE);
-                                        num <- suppressWarnings({as.numeric(num)});
-                                        if (!is.na(num)){
-                                            if (num %% 2 == 0){
-                                                even.v <- c(even.v, v);
-                                            }
-                                        }
-                                        if (pm == "-"){
-                                            ## Should be zero protected...
-                                            zero.v <- c(zero.v, v);
-                                        }
-                                    }
-                                }
-                            }
-                            vs <- rxSymPyLogSign
-                            if (length(even.v) > 0) {
-                                vs <- vs[!(vs %in% even.v)]
-                            }
-                            if (length(zero.v)){
-                                vs[vs %in% zero.v] <- sprintf("safe_zero(%s)", vs[vs %in% zero.v])
-                            }
-                            for (v in zero.v){
-                                tmp <- gsub(rex::rex("abs_log(", v, ")"),
-                                            sprintf("abs_log(safe_zero(%s))", v), tmp);
-                            }
-                            if (length(vs) > 0){
-                                tmp <- sprintf("sign_exp(%s, %s)",
-                                               paste(vs, collapse="*"),
-                                               tmp);
-                            } else {
-                                tmp <- sprintf("exp(%s)", tmp);
-                            }
-                        }
-                    }
-                    if (neg){
-                        tmp <- sprintf("-%s", tmp);
-                    }
-                    rxCat(".");
-                    if (n %% 5 == 0){
-                        rxCat(n);
-                    }
-                    if (n %% 50 == 0){
-                        rxCat("\n## ");
-                    }
-                    n <- n + 1;
-                    l2[j] <- tmp;
-                }
-                l0 <- rxSplitLines(l1, gsub(rex::rex("+-"), "-", paste(l2, collapse="+")));
-                ## tmp <- gsub(rex::rex(any_spaces, "=", any_spaces, "+", any_spaces), "=",
-                ##             gsub(rex::rex(any_spaces, "-", any_spaces, "+", any_spaces), "-",
-                ##                  gsub(rex::rex(any_spaces, "+", any_spaces, "-", any_spaces), "-",
-                ##                       paste(l1, "=", c("", rep(l1, length(l2) - 1)), "+", l2))))
-                ## l0 <- paste(tmp, collapse="\n");
-                lines[i] <- l0;
-            }
-        }
-    }
-    rxCat("\n## done.\n");
-    newMod <- paste(paste(lines, collapse="\n"), "\n");
-    ## rxCat(newMod)
-    return(newMod);
-}
+
 ##' Return the expanded expression (via sympy)
 ##'
 ##' @param x text sympy-compatible expression
@@ -1635,7 +1518,7 @@ rxLogifyModel <- function(model, expand=TRUE){
 ##' @keywords internal
 rxSymPyExpand <- function(x, expr="expand"){
     rxSyPyAddVars(x)
-    return(rxSymPy(sprintf("expand(%s)", rxToSymPy(x))))
+    return(rxSymPy(sprintf("%s(%s)", expr, rxToSymPy(x))))
 }
 
 ## Supported SymPy special functions

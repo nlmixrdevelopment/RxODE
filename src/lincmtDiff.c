@@ -8,8 +8,10 @@
 
 #define _prod RxODE_prodV
 #define _sum  RxODE_sumV
+#define _sign RxODE_signV
 #define safe_zero RxODE_safe_zero
 
+extern double RxODE_signV(unsigned int n, ...);
 extern double RxODE_prodV(unsigned int n, ...);
 extern double RxODE_sumV(unsigned int n, ...);
 extern double RxODE_safe_zero(double x);

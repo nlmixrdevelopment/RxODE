@@ -19,6 +19,75 @@ extern double RxODE_DoubleSum(double *input, int n){
   return sum;
 }
 
+
+#define PW_BLOCKSIZE    128
+// Adapted from numpy https://github.com/juliantaylor/numpy/blob/b0bc01275cac04483e6df021211c1fa2ba65eaa3/numpy/core/src/umath/loops.c.src
+/*
+ * Pairwise summation, rounding error O(lg n) instead of O(n).
+ * The recursion depth is O(lg n) as well.
+ */
+extern double RxODE_pairwise_add_double(double *a, unsigned int n)
+{
+  if (n < 8) {
+    return RxODE_DoubleSum(a, (int) n);
+  }
+  else if (n <= PW_BLOCKSIZE) {
+    unsigned int i;
+    double r[8], res;
+
+    /*
+     * sum a block with 8 accumulators
+     * 8 times unroll reduces blocksize to 16 and allows vectorization with
+     * avx without changing summation ordering
+     */
+    r[0] = a[0];
+    r[1] = a[1];
+    r[2] = a[2];
+    r[3] = a[3];
+    r[4] = a[4];
+    r[5] = a[5];
+    r[6] = a[6];
+    r[7] = a[7];
+
+    for (i = 8; i < n - (n % 8); i += 8) {
+      r[0] += a[(i + 0)];
+      r[1] += a[(i + 1)];
+      r[2] += a[(i + 2)];
+      r[3] += a[(i + 3)];
+      r[4] += a[(i + 4)];
+      r[5] += a[(i + 5)];
+      r[6] += a[(i + 6)];
+      r[7] += a[(i + 7)];
+    }
+
+    /* accumulate now to avoid stack spills for single peel loop */
+    res = ((r[0] + r[1]) + (r[2] + r[3])) +
+      ((r[4] + r[5]) + (r[6] + r[7]));
+
+    /* do non multiple of 8 rest */
+    for (; i < n; i++) {
+      res += a[i];
+    }
+    return res;
+  }
+  else {
+    /* divide by two but avoid non-multiples of unroll factor */
+    unsigned int n2 = n / 2;
+    n2 -= n2 % 8;
+    return RxODE_pairwise_add_double(a, n2) +
+      RxODE_pairwise_add_double(a + n2, n - n2);
+  }
+}
+
+SEXP _rxPairwiseSum(SEXP input){
+  int len = length(input);
+  double *dinput = REAL(input);
+  SEXP rets = PROTECT(allocVector(REALSXP,1));
+  REAL(rets)[0] = RxODE_pairwise_add_double(dinput, len);
+  UNPROTECT(1);
+  return rets;
+}
+
 extern double RxODE_KahanSum(double *input, int len){
   volatile double sum = 0.0;
   volatile double y;
@@ -187,15 +256,32 @@ SEXP _rxPythonSum(SEXP input){
 
 unsigned int RxODE_sum_type = 1;
 extern double RxODE_sum (double *input, unsigned int n){
-  /* switch (RxODE_sum_type){ */
-  /* case 0: */
-  /*   return RxODE_DoubleSum(input, n); */
-  /* case 1: */
+  switch (RxODE_sum_type){
+  case 0:
+    return RxODE_DoubleSum(input, n);
+    break;
+  case 1:
+    return RxODE_pairwise_add_double(input, n);
+    break;
+  case 2:
     return RxODE_Python_fsum(input, n);
-  /*   break; */
-  /* } */
-  /* error("Unknown sum type."); */
-  /* return 0; */
+    break;
+  case 3:
+    return RxODE_KahanSum(input, n);
+    break;
+  case 4:
+    return RxODE_NeumaierSum(input, n);
+    break;
+  }
+  //RxODE_KahanSum;
+  // RxODE_NeumaierSum
+  error("Unknown sum type.");
+  return 0;
+}
+
+SEXP _rxSetSum(SEXP input){
+  RxODE_sum_type = (unsigned int) INTEGER(input)[0];
+  return R_NilValue;
 }
 
 SEXP _rxSum(SEXP input){

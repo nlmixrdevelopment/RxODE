@@ -1183,6 +1183,8 @@ SEXP _rxNeumaierSum(SEXP input);
 SEXP _rxPythonSum(SEXP input);
 SEXP _rxProd(SEXP input);
 SEXP _rxSum(SEXP input);
+SEXP _rxSetSum(SEXP input);
+SEXP _rxPairwiseSum(SEXP input);
 
 double RxODE_KahanSum(double *input, int len);
 double RxODE_NeumaierSum(double *input, int len);
@@ -1218,8 +1220,10 @@ void R_init_RxODE(DllInfo *info){
     {"_rxKahanSum", (DL_FUNC) &_rxKahanSum,1},
     {"_rxNeumaierSum", (DL_FUNC) &_rxNeumaierSum,1},
     {"_rxPythonSum", (DL_FUNC) &_rxPythonSum, 1},
+    {"_rxPairwiseSum", (DL_FUNC) &_rxPairwiseSum, 1},
     {"_rxSum", (DL_FUNC) &_rxSum, 1},
     {"_rxProd", (DL_FUNC) &_rxProd, 1},
+    {"_rxSetSum",(DL_FUNC) &_rxSetSum, 1},
     {NULL, NULL, 0}
   };
   

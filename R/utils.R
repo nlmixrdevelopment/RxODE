@@ -243,3 +243,56 @@ rxNeumaierSum <- function(numbers) {
 rxPythonFsum <- function(numbers) {
     .Call(`_rxPythonSum`, as.double(numbers))
 }
+
+#' Return an accurate floating point sum of values
+#'
+#' This was taken by NumPy and adapted for use here.
+#'
+#' @inheritParams rxKahanSum
+#'
+#' @return A sum of numbers with a rounding error of O(lg n) instead
+#'     of O(n).
+#' @author Matthew Fidler (R implementation), Julian Taylor, Nathaniel
+#'     J Smith, and others in NumPy team.
+#' @references
+#' \url{https://github.com/juliantaylor/numpy/blob/b0bc01275cac04483e6df021211c1fa2ba65eaa3/numpy/core/src/umath/loops.c.src}
+#'
+#' \url{https://github.com/numpy/numpy/pull/3685}
+#'
+rxPairwiseSum <- function(numbers) {
+    .Call(`_rxPairwiseSum`, as.double(numbers))
+}
+
+#' Using RxODE's default method, take a sum
+#'
+#' @inheritParams rxKahanSum
+#' @return Sum of numbers
+#' @export
+rxSum <- function(numbers) {
+    .Call(`_rxSum`, as.double(numbers))
+}
+
+##' Choose the type of sums to use for RxODE.
+##'
+##' Choose the types of sums to use in RxODE.  These are used in the
+##' RxODE \code{sum} blocks and the \code{rxSum} function
+##'
+##' @param type Sum type to use for \code{rxSum} and \code{sum()} in
+##'     RxODE code blocks.
+##'
+##' \code{pairwise} uses the pairwise sum (fast, default)
+##'
+##' \code{fsum} uses Python's fsum function (most accurate)
+##'
+##' \code{kahan} uses kahan correction
+##'
+##' \code{neumaier} uses Neumaier correction
+##'
+##' \code{c} uses no correction, bud default/native summing
+##'
+##' @return nothing
+##' @author Matthew L. Fidler
+##' @export
+rxSetSum <- function(type=c("pairwise", "fsum", "kahan", "neumaier", "c")){
+    invisible(.Call(`_rxSetSum`, as.integer()))
+}

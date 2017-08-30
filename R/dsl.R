@@ -210,10 +210,10 @@ dsl.to.pow <- function(a, b){
         return(sprintf("R_pow(%s, %s)", a, b));
     } else if (num == round(num)){
         return(sprintf("R_pow_di(%s, %s)", a, b));
-    } else
-    if (num == 0.5){
+    } else if (num == 0.5){
         return(sprintf("sqrt(%s)", a));
     } else {
+        print(num); print(b);
         return(sprintf("R_pow(%s, %s)", a, b));
     }
 }
@@ -416,9 +416,6 @@ sympyRxFEnv$tan <- function(x){
     dsl.factor.pi(x, "tan")
 }
 
-rxSymPyAbsLog <- FALSE
-rxSymPyLogSign <- c()
-
 rxSymPyExpThetas <- c()
 rxSymPyExpEtas <- c()
 
@@ -461,6 +458,10 @@ dsl.handle.log <- function(x, abs=FALSE){
     }
     pls <- try(eval(parse(text=sprintf("rxSplitPlusQ(quote(%s))", x))), silent=TRUE);
     if (inherits(pls, "try-error")){
+        tmp <- rex::rex(start, "safe_zero(", capture(anything), ")", end);
+        if (regexpr(tmp, x) != -1){
+            x <- gsub(tmp, "\\1", x);
+        }
         return(sprintf("%slog(%s)", ifelse(abs, "abs_", ""), x))
     } else if (length(pls) == 1) {
         reg <- rex::rex(start, any_spaces, "gamma(", capture(anything), ")", any_spaces, end)
@@ -494,7 +495,6 @@ dsl.handle.log <- function(x, abs=FALSE){
         } else {
             return(sprintf("%slog1p(%s)", ifelse(abs, "abs_", ""), pls))
         }
-
     }
     ## log1p
     ## log(1+x) or log(x + 1) or log(y + 1 + z)
@@ -528,6 +528,10 @@ dsl.handle.log <- function(x, abs=FALSE){
         x2 <- gsub(p1, "", x);
         return(sprintf("log1p(%s)", x2))
     } else {
+        tmp <- rex::rex(start, "safe_zero(", capture(anything), ")", end);
+        if (regexpr(tmp, x) != -1){
+            x <- gsub(tmp, "\\1", x);
+        }
         return(sprintf("%slog(%s)", ifelse(abs, "abs_", ""), x));
     }
 }
@@ -626,21 +630,7 @@ sympyRxFEnv[["*"]] <- function(e1, e2, sep=" * "){
     }
 }
 
-sympyRxFEnv$log <- function(arg){
-    if (rxSymPyAbsLog){
-        tmp <- rxSymPyLogSign
-        argn <- eval(parse(text=sprintf("rxSplitPlusQ(quote(%s))", arg)))
-        if (length(argn) > 1){
-            tmp[length(tmp) + 1] <- paste0("(", arg, ")");
-        } else {
-            tmp[length(tmp) + 1] <- arg;
-        }
-        assignInMyNamespace("rxSymPyLogSign", tmp);
-        return(dsl.handle.log(arg, abs=TRUE));
-    } else {
-        return(dsl.handle.log(arg));
-    }
-}
+sympyRxFEnv$log <- dsl.handle.log;
 
 sympyRxFEnv$sqrt <- function(arg){
     arg <- dsl.strip.paren(arg);
@@ -1497,6 +1487,114 @@ rxSplitPlusQ <- function(x, level=0, mult=FALSE){
              call. = FALSE)
     }
 }
+
+
+
+sumProdEnv <- new.env(parent = emptyenv())
+
+
+sumProdEnv$"^" <- binaryOp("^")
+sumProdEnv$"**" <- binaryOp("^")
+
+sumProdEnv[["*"]] <- function(a, b){
+    a <- dsl.strip.paren(a)
+    b <- dsl.strip.paren(b)
+    ## log transformed
+    sprintf("prod(%s, %s)", sub(rex::rex(start, "prod(", capture(anything), ")", end), "\\1", a), b)
+}
+
+sumProdEnv[["/"]] <- function(a, b){
+    a <- dsl.strip.paren(a)
+    b <- dsl.strip.paren(b)
+    sprintf("prod(%s, 1/%s)", sub(rex::rex(start, "prod(", capture(anything), ")", end), "\\1", a), b)
+}
+
+sumProdEnv[["+"]] <- function(a, b){
+    a <- dsl.strip.paren(a)
+    if (!missing(b)){
+        b <- dsl.strip.paren(b)
+        sprintf("sum(%s, %s)", sub(rex::rex(start, "sum(", capture(anything), ")", end), "\\1", a), b)
+    } else {
+        return(a)
+    }
+}
+
+sumProdEnv[["-"]] <- function(a, b){
+    a <- dsl.strip.paren(a)
+    if (!missing(b)){
+        b <- dsl.strip.paren(b)
+        sprintf("sum(%s, -%s)", sub(rex::rex(start, "sum(", capture(anything), ")", end), "\\1", a), b)
+    } else {
+        paste0("-", a)
+    }
+}
+
+sumProdEnv[["("]] <- function(a){
+    return(sprintf("%s", a));
+}
+
+sumProdEnv$"[" <- function(name, val){
+    n <- toupper(name)
+    err <- "RxODE only supports THETA[#] and ETA[#] numbers."
+    if (any(n == c("THETA", "ETA")) && is.numeric(val)){
+        if (round(val) == val && val > 0){
+            return(sprintf("%s[%s]", n, val));
+        } else {
+            stop(err);
+        }
+    } else {
+        stop(err)
+    }
+}
+
+sumProdRxEnv <- function(expr){
+    ## Known functions
+    calls <- allCalls(expr)
+    callList <- setNames(lapply(calls, functionOp), calls)
+    callEnv <- list2env(callList);
+    currEnv <- cloneEnv(sumProdEnv, callEnv);
+    names <- allNames(expr)
+    ## Replace time with t.
+    n1 <- names;
+    n2 <- names;
+    symbol.list <- setNames(as.list(n2), n1);
+    symbol.env <- list2env(symbol.list, parent=currEnv);
+    return(symbol.env)
+}
+
+rxSumProd <- function(x){
+    return(eval(x, sumProdRxEnv(x)))
+}
+##' Recast model in terms of sum/prod
+##'
+##' @param model RxODE model
+##' @return model string with prod(.) and sum(.) for all these
+##'     operations.
+##' @author Matthew L. Fidler
+##' @export
+rxSumProdModel <- function(model, expand=FALSE){
+    rxSymPySetup(model);
+    cnd <- rxNorm(model, TRUE);
+    lines <- strsplit(rxNorm(model), "\n")[[1]];
+
+    for (i in seq_along(lines)){
+        if (regexpr("[=~]", lines[i])){
+            type <- sub(".*([=~]).*", "\\1", lines[i]);
+            l0 <- strsplit(lines[i], "[=~]")[[1]];
+            l2 <- substr(l0[2], 1, nchar(l0[2]) - 1);
+            if (expand){
+                l2 <- rxSymPy(sprintf("expand(%s)", rxToSymPy(l2)))
+                l2 <- rxFromSymPy(l2)
+            }
+            l0[2] <- eval(parse(text=sprintf("rxSumProd(quote(%s))", l2)))
+            lines[i] <- paste0(paste0(l0[1], type, l0[2]));
+        }
+    }
+    mod <- paste(lines, collapse="\n")
+    return(mod);
+}
+
+
 
 ## rxSplitPlusQ(quote(2*THETA[3]^2*centr*rx__sens_centr_BY_ETA_2__BY_THETA_3___*exp(-2*ETA[2]-2*THETA[2])-
 ##                    4*THETA[3]^2*centr*rx__sens_centr_BY_THETA_3___*exp(-2*ETA[2]-2*THETA[2])+

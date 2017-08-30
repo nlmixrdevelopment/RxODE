@@ -525,7 +525,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       
       if (tb.fn){
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-        if (!strcmp("prod",v) || !strcmp("sum",v)){
+        if (!strcmp("prod",v) || !strcmp("sum",v) || !strcmp("sign",v)){
 	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
           sprintf(SBPTR, "_%s(%d, (double) ",v, ii);
           sprintf(SBTPTR, "%s(", v);

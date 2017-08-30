@@ -71,6 +71,20 @@ double _prod(unsigned int n, ...){
   return s;
 }
 
+extern double _sign(unsigned int n, ...){
+  va_list valist;
+  va_start(valist, n);
+  double s = 1;
+  for (unsigned int i = 0; i < n; i++){
+    s = sign(va_arg(valist, double))*s;
+    if (s == 0){
+      break;
+    }
+  }
+  va_end(valist);
+  return s;
+}
+
 extern void __ODE_SOLVER_PTR__();
 
 extern void __ODE_SOLVER__(
