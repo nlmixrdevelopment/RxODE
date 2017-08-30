@@ -12,11 +12,11 @@
 //Not used: https://sourceforge.net/p/gmat/git/ci/264a12acad195e6a2467cfdc68abdcee801f73fc/tree/prototype/OptimalControl/ThirdParty/Intlab_V6/accsumdot/FastAccSum.m
 
 extern double RxODE_DoubleSum(double *input, int n){
-  double sum = input[0];
+  long double sum = (long double)input[0];
   for (int i = 1; i < n; i++){
-    sum += input[i];
+    sum += (long double)input[i];
   }
-  return sum;
+  return (double)sum;
 }
 
 
@@ -26,38 +26,44 @@ extern double RxODE_DoubleSum(double *input, int n){
  * Pairwise summation, rounding error O(lg n) instead of O(n).
  * The recursion depth is O(lg n) as well.
  */
-extern double RxODE_pairwise_add_double(double *a, unsigned int n)
+
+extern long double RxODE_pairwise_add_ld(double *a, unsigned int n)
 {
   if (n < 8) {
-    return RxODE_DoubleSum(a, (int) n);
+    long double res = 0.0;
+    unsigned int i;
+    for (i = 0; i <= n; i++){
+      res += (long double) a[i];
+    }
+    return res;
   }
   else if (n <= PW_BLOCKSIZE) {
     unsigned int i;
-    double r[8], res;
+    long double r[8], res;
 
     /*
      * sum a block with 8 accumulators
      * 8 times unroll reduces blocksize to 16 and allows vectorization with
      * avx without changing summation ordering
      */
-    r[0] = a[0];
-    r[1] = a[1];
-    r[2] = a[2];
-    r[3] = a[3];
-    r[4] = a[4];
-    r[5] = a[5];
-    r[6] = a[6];
-    r[7] = a[7];
+    r[0] = (long double)a[0];
+    r[1] = (long double)a[1];
+    r[2] = (long double)a[2];
+    r[3] = (long double)a[3];
+    r[4] = (long double)a[4];
+    r[5] = (long double)a[5];
+    r[6] = (long double)a[6];
+    r[7] = (long double)a[7];
 
     for (i = 8; i < n - (n % 8); i += 8) {
-      r[0] += a[(i + 0)];
-      r[1] += a[(i + 1)];
-      r[2] += a[(i + 2)];
-      r[3] += a[(i + 3)];
-      r[4] += a[(i + 4)];
-      r[5] += a[(i + 5)];
-      r[6] += a[(i + 6)];
-      r[7] += a[(i + 7)];
+      r[0] += (long double)a[(i + 0)];
+      r[1] += (long double)a[(i + 1)];
+      r[2] += (long double)a[(i + 2)];
+      r[3] += (long double)a[(i + 3)];
+      r[4] += (long double)a[(i + 4)];
+      r[5] += (long double)a[(i + 5)];
+      r[6] += (long double)a[(i + 6)];
+      r[7] += (long double)a[(i + 7)];
     }
 
     /* accumulate now to avoid stack spills for single peel loop */
@@ -66,7 +72,7 @@ extern double RxODE_pairwise_add_double(double *a, unsigned int n)
 
     /* do non multiple of 8 rest */
     for (; i < n; i++) {
-      res += a[i];
+      res += (long double)a[i];
     }
     return res;
   }
@@ -74,9 +80,16 @@ extern double RxODE_pairwise_add_double(double *a, unsigned int n)
     /* divide by two but avoid non-multiples of unroll factor */
     unsigned int n2 = n / 2;
     n2 -= n2 % 8;
-    return RxODE_pairwise_add_double(a, n2) +
-      RxODE_pairwise_add_double(a + n2, n - n2);
+    return RxODE_pairwise_add_ld(a, n2) +
+      RxODE_pairwise_add_ld(a + n2, n - n2);
   }
+}
+
+extern double RxODE_pairwise_add_double(double *a, unsigned int n)
+{
+  long double ld;
+  ld = RxODE_pairwise_add_ld(a, n);
+  return (double)ld;
 }
 
 SEXP _rxPairwiseSum(SEXP input){
@@ -89,17 +102,18 @@ SEXP _rxPairwiseSum(SEXP input){
 }
 
 extern double RxODE_KahanSum(double *input, int len){
-  volatile double sum = 0.0;
-  volatile double y;
-  volatile double t, c = 0.0; // A running compensation for lost low-order bits.
+  volatile long double sum = 0.0;
+  volatile long double y;
+  volatile long double t, c = 0.0; // A running compensation for lost low-order bits.
   int i;
+
   for (i = 0; i < len; i++){
-    y = input[i] - c; 
+    y = (long double)input[i] - c; 
     t = sum + y;
     c = (t - sum) - y;       // (t - sum) cancels the high-order part of y; subtracting y recovers negative (low part of y)
     sum = t;                 // Algebraically, c should always be zero. Beware overly-aggressive optimizing compilers!
   }
-  return sum;
+  return (double)sum;
 }
 
 SEXP _rxKahanSum(SEXP input){
@@ -112,15 +126,15 @@ SEXP _rxKahanSum(SEXP input){
 }
 
 extern double RxODE_NeumaierSum(double *input, int len){
-  double sum = input[0];
-  volatile double t,  c = 0.0; // A running compensation for lost low-order bits.
+  long double sum = input[0];
+  volatile long double t,  c = 0.0; // A running compensation for lost low-order bits.
   int i;
   for (i = 1; i < len; i++){
-    t = sum + input[i];
-    if (fabs(sum) >= fabs(input[i])){
-      c += (sum - t) + input[i]; // If sum is bigger, low-order digits of input[i] are lost.
+    t = sum + (long double)input[i];
+    if (fabsl(sum) >= fabsl((long double)input[i])){
+      c += (sum - t) + (long double)input[i]; // If sum is bigger, low-order digits of input[i] are lost.
     } else {
-      c += (input[i] - t) + sum; // Else low-order digits of sum are lost
+      c += ((long double)input[i] - t) + sum; // Else low-order digits of sum are lost
     }
     sum = t;
   }
@@ -142,18 +156,18 @@ extern double RxODE_Python_fsum (double *iterable, unsigned int iterable_len){
   // See http://code.activestate.com/recipes/393090-binary-floating-point-summation-accurate-to-full-p/
   // Also https://github.com/python/cpython/blob/a0ce375e10b50f7606cb86b072fed7d8cd574fe7/Modules/mathmodule.c
   // Mostly the same as python's math.fsum
-  double x, y, t;
-  double xsave, special_sum = 0.0, inf_sum = 0.0, sum = 0.0;
-  volatile double hi, yr, lo;
+  long double x, y, t;
+  long double xsave, special_sum = 0.0, inf_sum = 0.0, sum = 0.0;
+  volatile long double hi, yr, lo;
   unsigned int ix, i, j, n = 0, m = NUM_PARTIALS;
-  double *p = Calloc(NUM_PARTIALS, double);
+  long double *p = Calloc(NUM_PARTIALS, long double);
   // for x in input
   for (ix = 0; ix < iterable_len; ix++){
-    x = iterable[ix];
+    x = (long double) iterable[ix];
     xsave = x;
     for (i = j = 0; j < n; j++) {
       y = p[j];
-      if (fabs(x) < fabs(y)) {
+      if (fabsl(x) < fabsl(y)) {
         t = x; x = y; y = t;
       }
       hi = x + y;
@@ -185,7 +199,7 @@ extern double RxODE_Python_fsum (double *iterable, unsigned int iterable_len){
           //&& _fsum_realloc(&p, n, ps, &m)
           // Doubles the size of array.
           m += m;
-          p = Realloc(p, m, double);
+          p = Realloc(p, m, long double);
 	}
 	p[n++] = x;
       }
@@ -257,7 +271,7 @@ SEXP _rxPythonSum(SEXP input){
 unsigned int RxODE_sum_type = 1;
 extern double RxODE_sum (double *input, unsigned int n){
   switch (RxODE_sum_type){
-  case 0:
+  case 5:
     return RxODE_DoubleSum(input, n);
     break;
   case 1:
