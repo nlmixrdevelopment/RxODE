@@ -1568,6 +1568,7 @@ rxSumProd <- function(x){
 ##' Recast model in terms of sum/prod
 ##'
 ##' @param model RxODE model
+##' @param expand Boolean indicating if the expression is expanded.
 ##' @return model string with prod(.) and sum(.) for all these
 ##'     operations.
 ##' @author Matthew L. Fidler

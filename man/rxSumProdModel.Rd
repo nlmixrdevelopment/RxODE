@@ -8,6 +8,8 @@ rxSumProdModel(model, expand = FALSE)
 }
 \arguments{
 \item{model}{RxODE model}
+
+\item{expand}{Boolean indicating if the expression is expanded.}
 }
 \value{
 model string with prod(.) and sum(.) for all these
