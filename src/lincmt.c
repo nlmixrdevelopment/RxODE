@@ -14,9 +14,11 @@ extern double rxDosingTime(int i);
 extern int rxDosingEvid(int i);
 extern double RxODE_prodV(unsigned int n, ...);
 extern double RxODE_sumV(unsigned int n, ...);
+extern double RxODE_safe_zero(double);
 
 #define sum RxODE_sumV
 #define prod RxODE_prodV
+#define safe_zero RxODE_safe_zero
 double rxDose(int i);
 
 int locateDoseIndex(const double obs_time){
@@ -87,8 +89,8 @@ double RxODE_solveLinB(double t, int linCmt, int diff1, int diff2, double d_A, d
     if (evid > 10000) {
       if (dose > 0){
 	// During infusion
-	tT = t - rxDosingTime(l);
-	thisT = tT - tlag;
+	tT = sum(2, t, - rxDosingTime(l));
+	thisT = sum(2, tT, - tlag);
 	p = l+1;
 	while (p < nDoses() && rxDose(p) != -dose){
 	  p++;
@@ -96,7 +98,7 @@ double RxODE_solveLinB(double t, int linCmt, int diff1, int diff2, double d_A, d
 	if (rxDose(p) != -dose){
 	  error("Could not find a error to the infusion.  Check the event table.");
 	}
-	tinf  = rxDosingTime(p)-rxDosingTime(l);
+	tinf  = sum(2,rxDosingTime(p),-rxDosingTime(l));
 	rate  = dose;
 	if (tT >= tinf) continue;
       } else {
@@ -108,53 +110,53 @@ double RxODE_solveLinB(double t, int linCmt, int diff1, int diff2, double d_A, d
 	if (rxDose(p) != -dose){
 	  error("Could not find a start to the infusion.  Check the event table.");
 	}
-	tinf  = rxDosingTime(l) - rxDosingTime(p) - tlag;
+	tinf  = sum(3, rxDosingTime(l), - rxDosingTime(p), - tlag);
 	
-	tT = t - rxDosingTime(p);
-        thisT = tT- tlag;
+	tT = sum(2, t, - rxDosingTime(p));
+        thisT = sum(2, tT, -tlag);
 
 	rate  = -dose;
       }
       t1 = ((thisT < tinf) ? thisT : tinf);        //during infusion
-      t2 = ((thisT > tinf) ? thisT - tinf : 0.0);  // after infusion
+      t2 = ((thisT > tinf) ? sum(2, thisT, - tinf) : 0.0);  // after infusion
       if (diff1 == 0 && diff2 == 0){
-	sumar[nsum++] = rate*A / alpha * (1 - exp(-alpha * t1)) * exp(-alpha * t2);
+	sumar[nsum++] = prod(5, rate,A,1.0/safe_zero(alpha),sum(2, 1.0,-exp(prod(2, -alpha, t1))),exp(prod(2, -alpha,t2)));
       } else {
 	sumar[nsum++] = rxSolveLinBdInf(diff1, diff2, 1, 2, rate, tT, t1, t2, tinf, A, alpha, tlag);
       }
       if (ncmt >= 2){
 	if (diff1 == 0 && diff2 == 0){
-	  sumar[nsum++] = rate*B / beta * (1 - exp(-beta * t1)) * exp(-beta * t2);
+	  sumar[nsum++] = prod(5, rate,B , 1.0/safe_zero(beta),sum(2, 1.0,-exp(prod(2, -beta, t1))),exp(prod(2, -beta,t2)));
 	} else {
 	  sumar[nsum++] = rxSolveLinBdInf(diff1, diff2, 3, 4, rate, tT, t1, t2, tinf, B, beta, tlag);
 	}
 	if (ncmt >= 3){
 	  if (diff1 == 0 && diff2 == 0){
-	    sumar[nsum++] = rate*C / gamma * (1 - exp(-gamma * t1)) * exp(-gamma * t2);
+	    sumar[nsum++] = prod(5, rate,C , 1.0/safe_zero(gamma),sum(2, 1.0,-exp(prod(2, -gamma, t1))),exp(prod(2, -gamma,t2)));
           } else {
 	    sumar[nsum++] = rxSolveLinBdInf(diff1, diff2, 5, 6, rate, tT, t1, t2, tinf, C, gamma, tlag);
 	  }
 	}
       }
     } else {
-      tT = t - rxDosingTime(l);
-      thisT = tT - tlag;
+      tT = sum(2, t, -rxDosingTime(l));
+      thisT = sum(2, tT, -tlag);
       if (thisT < 0) continue;
-      res = ((oral == 1) ? exp(-ka * thisT) : 0.0);
+      res = ((oral == 1) ? exp(prod(2, -ka , thisT)) : 0.0);
       if (diff1 == 0 && diff2 == 0){
-	sumar[nsum++] = dose * A *(exp(-alpha * thisT) - res);
+	sumar[nsum++] = prod(3, dose, A, sum(2, exp(prod(2, -alpha, thisT)),-res));
       } else {
 	sumar[nsum++] = rxSolveLinBDiff(diff1, diff2, 1, 2, dose, tT, A, alpha, ka, tlag);
       }
       if (ncmt >= 2){
 	if (diff1 == 0 && diff2 == 0){
-          sumar[nsum++] = dose * B *(exp(-beta * thisT) - res);        
+          sumar[nsum++] = prod(3, dose, B, sum(2, exp(prod(2, -beta, thisT)),-res));
 	} else {
 	  sumar[nsum++] = rxSolveLinBDiff(diff1, diff2, 3, 4, dose, tT, B, beta, ka, tlag);
 	}
         if (ncmt >= 3){
 	  if (diff1 == 0 && diff2 == 0){
-            sumar[nsum++] = dose * C *(exp(-gamma * thisT) - res);
+            sumar[nsum++] = prod(3, dose, C, sum(2, exp(prod(2, -gamma, thisT)),-res));
 	  } else {
 	    sumar[nsum++] = rxSolveLinBDiff(diff1, diff2, 5, 6, dose, tT, C, gamma, ka, tlag);
           }
