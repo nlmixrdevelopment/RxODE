@@ -63,6 +63,14 @@ rxLinCmtTrans <- function(modText){
         }
         vars <- unique(c(vars, rxLhs(modText),rxParam(modText)))
         vars.up <- toupper(vars);
+        reg <- rex::rex(start, "V", capture(number), end);
+        w <- which(regexpr(reg, vars.up) != -1);
+        if (length(w) > 0){
+            min.v <- min(as.numeric(gsub(reg, "\\1", vars.up[w])));
+            vs <- paste0("V", seq(min.v, min.v + 2))
+        } else {
+            vs <- paste0("V", 1:3);
+        }
         oral <- any(vars.up == "KA");
         get.var <- function(var){
             if (length(var) == 1){
@@ -102,14 +110,14 @@ rxLinCmtTrans <- function(modText){
         ncmt <- 1;
         if (any(vars.up == "CL")){
             cl <- get.var("CL");
-            v <- get.var(c("V", "VC"));
+            v <- get.var(c("V", "VC", vs[1]));
             lines[length(lines) + 1] <- sprintf("rx_v ~ %s", v);
             lines[length(lines) + 1] <- sprintf("rx_k ~ %s/%s", cl, v);
             type <- 1;
-            if ((any(vars.up == "V2") || any(vars.up == "VP"))){
+            if ((any(vars.up == vs[2]) || any(vars.up == "VP"))){
                 ncmt <- 2;
                 Q <- get.var("Q");
-                v2 <- get.var(c("V2", "VP"));
+                v2 <- get.var(c(vs[2], "VP"));
                 lines[length(lines) + 1] <- sprintf("rx_k12 ~ %s/%s", Q, v);
                 lines[length(lines) + 1] <- sprintf("rx_k21 ~ %s/%s", Q, v2);
             } else if (any(vars.up == "VT")){
@@ -126,9 +134,9 @@ rxLinCmtTrans <- function(modText){
                 lines[length(lines) + 1] <- sprintf("rx_k12 ~ %s/%s", Q, v);
                 lines[length(lines) + 1] <- sprintf("rx_k21 ~ %s/(%s-%s)", Q, vss, v);
             }
-            if (any(vars.up == "V3")){
+            if (any(vars.up == vs[3])){
                 ncmt <- 3;
-                v3 <- get.var("V3");
+                v3 <- get.var(vs[3]);
                 q2 <- get.var("Q2");
                 lines[length(lines) + 1] <- sprintf("rx_k13 ~ %s/%s", q2, v);
                 lines[length(lines) + 1] <- sprintf("rx_k31 ~ %s/%s", q2, v3);
@@ -141,7 +149,7 @@ rxLinCmtTrans <- function(modText){
             }
         } else if (any(vars.up == "K") || any(vars.up == "KE") || any(vars.up == "KEL")) {
             k <- get.var(c("K", "KE", "KEL"))
-            v <- get.var(c("V", "VC"));
+            v <- get.var(c("V", "VC", v[1]));
             lines[length(lines) + 1] <- sprintf("rx_v ~ %s", v);
             lines[length(lines) + 1] <- sprintf("rx_k ~ %s", k);
             if (any(vars.up == "K12")){
@@ -161,7 +169,7 @@ rxLinCmtTrans <- function(modText){
         } else if (any(vars.up == "AOB")){
             ncmt <- 2;
             type <- 4;
-            v <- get.var("V");
+            v <- get.var(c("V", "VC", vs[1]));
             aob <- get.var("AOB");
             alpha <- get.var("ALPHA");
             beta <- get.var("BETA");
@@ -175,7 +183,7 @@ rxLinCmtTrans <- function(modText){
             k21 <- get.var("K21");
             alpha <- get.var("ALPHA");
             beta <- get.var("BETA");
-            v <- get.var("V");
+            v <- get.var(c("V", "VC", v[1]));
             lines[length(lines) + 1] <- sprintf("rx_v ~ %s", v);
             lines[length(lines) + 1] <- sprintf("rx_k21 ~ %s", k21);
             lines[length(lines) + 1] <- sprintf("rx_k ~ (%s*%s)/rx_k21", alpha, beta);
@@ -227,13 +235,18 @@ rxLinCmtTrans <- function(modText){
         }
         solve <- sprintf("solveLinB(t, %s, 0, 0, rx_A, rx_alpha, rx_B, rx_beta, rx_C, rx_gamma, rx_ka, rx_tlag)", linCmt);
         ret <- c();
-        if (w > 1){
-            ret <- txt[seq(1, w - 1)];
+        if (length(w) == 1){
+            if (w > 2){
+                ret <- txt[seq(1, w - 1)];
+                ret <- c(ret, lines,
+                         gsub(re, sprintf("\\1%s\\3", solve), txt[w]));
+                if (length(ret) != w){
+                    ret <- c(ret, txt[-seq(1:w)]);
+                }
+            }
         }
-        ret <- c(ret, lines,
-                 gsub(re, sprintf("\\1%s\\3", solve), txt[w]));
-        if (length(ret) != w){
-            ret <- c(ret, txt[-seq(1:w)]);
+        if (length(ret) == 0){
+            ret <- c(lines, gsub(re, sprintf("\\1%s\\3", solve), txt))
         }
         return(paste(ret, collapse="\n"));
     } else {
