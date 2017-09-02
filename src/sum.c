@@ -27,13 +27,13 @@ extern double RxODE_DoubleSum(double *input, int n){
  * The recursion depth is O(lg n) as well.
  */
 
-extern long double RxODE_pairwise_add_ld(double *a, unsigned int n)
+extern long double RxODE_pairwise_add_ld2(long double *a, unsigned int n)
 {
   if (n < 8) {
     long double res = 0.0;
     unsigned int i;
     for (i = 0; i <= n; i++){
-      res += (long double) a[i];
+      res +=  a[i];
     }
     return res;
   }
@@ -46,24 +46,82 @@ extern long double RxODE_pairwise_add_ld(double *a, unsigned int n)
      * 8 times unroll reduces blocksize to 16 and allows vectorization with
      * avx without changing summation ordering
      */
-    r[0] = (long double)a[0];
-    r[1] = (long double)a[1];
-    r[2] = (long double)a[2];
-    r[3] = (long double)a[3];
-    r[4] = (long double)a[4];
-    r[5] = (long double)a[5];
-    r[6] = (long double)a[6];
-    r[7] = (long double)a[7];
+    r[0] = a[0];
+    r[1] = a[1];
+    r[2] = a[2];
+    r[3] = a[3];
+    r[4] = a[4];
+    r[5] = a[5];
+    r[6] = a[6];
+    r[7] = a[7];
 
     for (i = 8; i < n - (n % 8); i += 8) {
-      r[0] += (long double)a[(i + 0)];
-      r[1] += (long double)a[(i + 1)];
-      r[2] += (long double)a[(i + 2)];
-      r[3] += (long double)a[(i + 3)];
-      r[4] += (long double)a[(i + 4)];
-      r[5] += (long double)a[(i + 5)];
-      r[6] += (long double)a[(i + 6)];
-      r[7] += (long double)a[(i + 7)];
+      r[0] += a[(i + 0)];
+      r[1] += a[(i + 1)];
+      r[2] += a[(i + 2)];
+      r[3] += a[(i + 3)];
+      r[4] += a[(i + 4)];
+      r[5] += a[(i + 5)];
+      r[6] += a[(i + 6)];
+      r[7] += a[(i + 7)];
+    }
+
+    /* accumulate now to avoid stack spills for single peel loop */
+    res = ((r[0] + r[1]) + (r[2] + r[3])) +
+      ((r[4] + r[5]) + (r[6] + r[7]));
+
+    /* do non multiple of 8 rest */
+    for (; i < n; i++) {
+      res += a[i];
+    }
+    return res;
+  }
+  else {
+    /* divide by two but avoid non-multiples of unroll factor */
+    unsigned int n2 = n / 2;
+    n2 -= n2 % 8;
+    return RxODE_pairwise_add_ld2(a, n2) +
+      RxODE_pairwise_add_ld2(a + n2, n - n2);
+  }
+}
+
+extern long double RxODE_pairwise_add_ld(double *a, unsigned int n)
+{
+  if (n < 8) {
+    long double res = 0.0;
+    unsigned int i;
+    for (i = 0; i <= n; i++){
+      res +=  a[i];
+    }
+    return res;
+  }
+  else if (n <= PW_BLOCKSIZE) {
+    unsigned int i;
+    long double r[8], res;
+
+    /*
+     * sum a block with 8 accumulators
+     * 8 times unroll reduces blocksize to 16 and allows vectorization with
+     * avx without changing summation ordering
+     */
+    r[0] = a[0];
+    r[1] = a[1];
+    r[2] = a[2];
+    r[3] = a[3];
+    r[4] = a[4];
+    r[5] = a[5];
+    r[6] = a[6];
+    r[7] = a[7];
+
+    for (i = 8; i < n - (n % 8); i += 8) {
+      r[0] += a[(i + 0)];
+      r[1] += a[(i + 1)];
+      r[2] += a[(i + 2)];
+      r[3] += a[(i + 3)];
+      r[4] += a[(i + 4)];
+      r[5] += a[(i + 5)];
+      r[6] += a[(i + 6)];
+      r[7] += a[(i + 7)];
     }
 
     /* accumulate now to avoid stack spills for single peel loop */

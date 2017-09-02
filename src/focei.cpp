@@ -6,12 +6,17 @@
 
 extern "C" double RxODE_sumV(unsigned int n, ...);
 extern "C" double RxODE_prodV(unsigned int n, ...);
+extern "C" double RxODE_sum (double *input, unsigned int n);
 #define _prod RxODE_prodV
 #define _sum  RxODE_sumV
+// 1 = pairwise sum
 // 2 = python's fsum
 // 5 = double sum
-#define gradSum 5
-#define gradProd 2
+#define gradSum 1
+// 1 = (long double)
+// 2 = (double)
+// 3 = sign*exp(log sum) with (log double) precision 
+#define gradProd 3
 
 extern "C" void RxODE_sum_set(unsigned int i);
 extern "C" unsigned int RxODE_sum_get();
@@ -236,14 +241,16 @@ void rxInner(SEXP etanews, SEXP rho){
     mat lDnDt = mat(neta,ntheta+nomega);
     mat lDn = mat(neta,neta);
 
+    double *lpi =Calloc(neta*nObs()*3,double);
+    double *llik0 =Calloc(nObs()*2,double);
+
     for (i = 0; i < neta; i++){
       a[i] = mat(nObs(),1);
       c[i] = mat(nObs(),1);
       lp[i] = 0;
     }
 
-    llik[0]=0;
-
+    
     /* // Now create the pred vector and d(pred)/d(eta) matrix. */
     /* // Assuming rxLhs(0) = pred and rxLhs(1:n) = d(pred)/d(eta#) */
     // Solve
@@ -254,9 +261,9 @@ void rxInner(SEXP etanews, SEXP rho){
 	rxCalcLhs(i);
 	f[k] = rxLhs(0); // Pred
 	if (prd == 1){
-	  err(k, 0) =  f[k] - DV[k];
+	  err(k, 0) =  _sum(2, f[k], - DV[k]);
 	} else {
-	  err(k, 0) =  DV[k] - f[k];
+	  err(k, 0) =  _sum(2, DV[k], - f[k]);
         }
 	// d(pred)/d(eta#)
 	for (j = 1; j < neta+1; j++){
@@ -286,24 +293,37 @@ void rxInner(SEXP etanews, SEXP rho){
 	r(k, 0)=rxLhs(j); // R always has to be positive.
 	/* logR[k]=log(rxLhs(j)); */
 	/* Rinv[k]=1/rxLhs(j); */
-	B(k, 0)=2/rxLhs(j);
+	B(k, 0)=_prod(2, 2.0, 1.0/rxLhs(j));
 	for (j=neta+2; j < nLhs(); j++){
 	  /* Rprintf("j: %d; Adj: %d; k: %d\n",j, j-neta-2,k); */
 	  rp(k,j-neta-2) = rxLhs(j);
 	  cur = as<mat>(c[j-neta-2]);
-	  cur(k,0) = rxLhs(j)/RxODE_safe_zero(r(k, 0));
+	  cur(k,0) = _prod(2,rxLhs(j),1.0/RxODE_safe_zero(r(k, 0)));
 	  c[j-neta-2] = cur;
 	}
 	for (j = 0; j < neta; j++){
 	  // .5*apply(eps*fp*B + .5*eps^2*B*c - c, 2, sum) - OMGAinv %*% ETA
 	  cur = as<mat>(c[j]);
-	  lp[j] += 0.25 * err(k, 0) * err(k, 0) * B(k, 0) * cur(k,0) -
-	    0.5 * cur(k,0) - 0.5 * err(k, 0)* fpm(k, j) * B(k, 0);
+	  lpi[k         +3*nObs()*j] = _prod(5, 0.25, err(k, 0), err(k, 0), B(k, 0), cur(k,0));
+	  lpi[k+nObs()  +3*nObs()*j] = - _prod(2, 0.5, cur(k,0));
+	  lpi[k+2*nObs()+3*nObs()*j] = - _prod(4, 0.5, err(k, 0), fpm(k, j), B(k, 0));
+	  // lp[j] = _sum(4,lp[j],
+	  // 	       _prod(5, 0.25, err(k, 0), err(k, 0), B(k, 0), cur(k,0)),
+	  // 	       - _prod(2, 0.5, cur(k,0)),
+	  // 	       );
 	}
-	llik[0] += -0.5*(err(k, 0)*err(k, 0)/RxODE_safe_zero(r(k, 0))+RxODE_safe_log(r(k, 0)));
+	llik0[k] = -_prod(4,0.5,err(k, 0),err(k, 0),1.0/RxODE_safe_zero(r(k, 0)));
+	llik0[k+nObs()] = -_prod(2, 0.5, RxODE_safe_log(r(k, 0)));
 	k++;
       }
     }
+    // Deferred sums (to reduce round-off error)
+    for (j = 0; j < neta; j++){
+      lp[j] = RxODE_sum(lpi+3*nObs()*j,3*nObs());
+    }
+    llik[0] = RxODE_sum(llik0,2*nObs());
+    Free(lpi);
+    Free(llik0);
     // Free
     RxODE_ode_free();
     RxODE_sum_set(oldsum);
@@ -851,48 +871,48 @@ void rxOuter_ (SEXP rho){
 	  // e2 = l
 	  cur = as<mat>(fp2[e1]);
 	  cuR = as<mat>(rp2[e1]);
-	  // lDn(e1, e2) += -(fpm(k, e1) * fpm(k, e2) / r(k, 0)-
-	  // 		   err(k, 0) *  rp(k, e2) * fpm(k,e1)/(r(k, 0) * r(k, 0))+
-	  // 		   err(k, 0) * cur(k,e2) / r(k, 0) -
-	  // 		   0.5*err(k, 0) * err(k, 0) * cuR(k, e2) / (r(k, 0) * r(k, 0)) +
-	  // 		   err(k, 0) * err(k, 0) * rp(k, e1) * rp(k, e2) / (r(k, 0) * r(k, 0) * r(k, 0)) -
-	  // 		   err(k, 0) * rp(k, e1) * fpm(k, e2) / (r(k, 0) * r(k, 0)) -
-          //                  0.5*rp(k, e1) * rp(k, e2) / (r(k, 0) * r(k, 0)) + 0.5*cuR(k, e2) / r(k, 0));
-	  lDn(e1, e2) += -(// d(err)/d(eta,l)*R^-1*d(err)/d(eta,k)
-			   RxODE_sign_exp(fpm(k, e1) * fpm(k, e2) * RxODE_safe_zero(r(k, 0)),
-					  RxODE_abs_log(fpm(k, e1)) +
-					  RxODE_abs_log(fpm(k, e2)) -
-					  RxODE_abs_log(RxODE_safe_zero(r(k, 0))))-
-			   // err/R^2*dR/d(eta,l)*derr/d(eta,k)
-                           RxODE_sign_exp(err(k, 0) *  rp(k, e2) * fpm(k,e1),
-					  RxODE_abs_log(err(k, 0)) +
-					  RxODE_abs_log(rp(k, e2)) + // dR/d(eta,l)
-					  RxODE_abs_log(fpm(k,e1)) - // derr/d(eta,k)
-					  2*RxODE_abs_log(RxODE_safe_zero(r(k, 0))))+
-			   // err/R*derr^2/(d(eta,k)*d(eta,j))
-                           RxODE_sign_exp(err(k, 0) * cur(k,e2) * RxODE_safe_zero(r(k, 0)),
-					  RxODE_abs_log(err(k, 0)) +
-					  RxODE_abs_log(cur(k,e2)) - //derr^2/deta(k,l)
-					  RxODE_abs_log(RxODE_safe_zero(r(k, 0))))-
-			   // 0.5*err^2/R^2*dR/(deta(k,j))
-			   RxODE_sign_exp(cuR(k, e2),
-					  log(0.5)+2*RxODE_abs_log(err(k, 0)) +
-					  RxODE_abs_log(cuR(k, e2)) - 2*RxODE_abs_log(RxODE_safe_zero(r(k, 0)))) +
-			   // err^2/R^3*dR/(deta(k))*dR/(deta(l))
-			   RxODE_sign_exp(rp(k, e1) * rp(k, e2) * RxODE_safe_zero(r(k, 0)),
-					  2*RxODE_abs_log(err(k, 0)) + RxODE_abs_log(rp(k, e1)) +
-					  RxODE_abs_log(rp(k, e2)) -3* RxODE_abs_log(RxODE_safe_zero(r(k, 0)))) -
-			   // err/R^2*dR/(deta(k))*derr/deta(l)
-                           RxODE_sign_exp(err(k, 0) * rp(k, e1) * fpm(k, e2),
-					  RxODE_abs_log(err(k, 0)) + RxODE_abs_log(rp(k, e1)) + RxODE_abs_log(fpm(k, e2)) -
-					  2*RxODE_abs_log(r(k, 0))) -
-			   // 0.5*trace(dR/deta(k)*dR/deta(l)/R^2)
-                           RxODE_sign_exp(rp(k, e1) * rp(k, e2),
-					  log(0.5)+RxODE_abs_log(rp(k, e1)) +
-					  RxODE_abs_log(rp(k, e2)) - 2*RxODE_abs_log(RxODE_safe_zero(r(k, 0)))) +
-			   //0.5*trace(dR^2/d(eta(k,l))*R^-1)
-			   RxODE_sign_exp(cuR(k, e2)*RxODE_safe_zero(r(k, 0)),
-					  log(0.5)+RxODE_abs_log(cuR(k, e2))- RxODE_abs_log(RxODE_safe_zero(r(k, 0)))));
+	  lDn(e1, e2) += -(fpm(k, e1) * fpm(k, e2) / r(k, 0)-
+	  		   err(k, 0) *  rp(k, e2) * fpm(k,e1)/(r(k, 0) * r(k, 0))+
+	  		   err(k, 0) * cur(k,e2) / r(k, 0) -
+	  		   0.5*err(k, 0) * err(k, 0) * cuR(k, e2) / (r(k, 0) * r(k, 0)) +
+	  		   err(k, 0) * err(k, 0) * rp(k, e1) * rp(k, e2) / (r(k, 0) * r(k, 0) * r(k, 0)) -
+	  		   err(k, 0) * rp(k, e1) * fpm(k, e2) / (r(k, 0) * r(k, 0)) -
+                           0.5*rp(k, e1) * rp(k, e2) / (r(k, 0) * r(k, 0)) + 0.5*cuR(k, e2) / r(k, 0));
+	  // lDn(e1, e2) += -(// d(err)/d(eta,l)*R^-1*d(err)/d(eta,k)
+	  // 		   RxODE_sign_exp(fpm(k, e1) * fpm(k, e2) * RxODE_safe_zero(r(k, 0)),
+	  // 				  RxODE_abs_log(fpm(k, e1)) +
+	  // 				  RxODE_abs_log(fpm(k, e2)) -
+	  // 				  RxODE_abs_log(RxODE_safe_zero(r(k, 0))))-
+	  // 		   // err/R^2*dR/d(eta,l)*derr/d(eta,k)
+          //                  RxODE_sign_exp(err(k, 0) *  rp(k, e2) * fpm(k,e1),
+	  // 				  RxODE_abs_log(err(k, 0)) +
+	  // 				  RxODE_abs_log(rp(k, e2)) + // dR/d(eta,l)
+	  // 				  RxODE_abs_log(fpm(k,e1)) - // derr/d(eta,k)
+	  // 				  2*RxODE_abs_log(RxODE_safe_zero(r(k, 0))))+
+	  // 		   // err/R*derr^2/(d(eta,k)*d(eta,j))
+          //                  RxODE_sign_exp(err(k, 0) * cur(k,e2) * RxODE_safe_zero(r(k, 0)),
+	  // 				  RxODE_abs_log(err(k, 0)) +
+	  // 				  RxODE_abs_log(cur(k,e2)) - //derr^2/deta(k,l)
+	  // 				  RxODE_abs_log(RxODE_safe_zero(r(k, 0))))-
+	  // 		   // 0.5*err^2/R^2*dR/(deta(k,j))
+	  // 		   RxODE_sign_exp(cuR(k, e2),
+	  // 				  log(0.5)+2*RxODE_abs_log(err(k, 0)) +
+	  // 				  RxODE_abs_log(cuR(k, e2)) - 2*RxODE_abs_log(RxODE_safe_zero(r(k, 0)))) +
+	  // 		   // err^2/R^3*dR/(deta(k))*dR/(deta(l))
+	  // 		   RxODE_sign_exp(rp(k, e1) * rp(k, e2) * RxODE_safe_zero(r(k, 0)),
+	  // 				  2*RxODE_abs_log(err(k, 0)) + RxODE_abs_log(rp(k, e1)) +
+	  // 				  RxODE_abs_log(rp(k, e2)) -3* RxODE_abs_log(RxODE_safe_zero(r(k, 0)))) -
+	  // 		   // err/R^2*dR/(deta(k))*derr/deta(l)
+          //                  RxODE_sign_exp(err(k, 0) * rp(k, e1) * fpm(k, e2),
+	  // 				  RxODE_abs_log(err(k, 0)) + RxODE_abs_log(rp(k, e1)) + RxODE_abs_log(fpm(k, e2)) -
+	  // 				  2*RxODE_abs_log(r(k, 0))) -
+	  // 		   // 0.5*trace(dR/deta(k)*dR/deta(l)/R^2)
+          //                  RxODE_sign_exp(rp(k, e1) * rp(k, e2),
+	  // 				  log(0.5)+RxODE_abs_log(rp(k, e1)) +
+	  // 				  RxODE_abs_log(rp(k, e2)) - 2*RxODE_abs_log(RxODE_safe_zero(r(k, 0)))) +
+	  // 		   //0.5*trace(dR^2/d(eta(k,l))*R^-1)
+	  // 		   RxODE_sign_exp(cuR(k, e2)*RxODE_safe_zero(r(k, 0)),
+	  // 				  log(0.5)+RxODE_abs_log(cuR(k, e2))- RxODE_abs_log(RxODE_safe_zero(r(k, 0)))));
           
         }
       }

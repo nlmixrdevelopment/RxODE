@@ -5,6 +5,8 @@
 #include <Rinternals.h>
 #include <Rmath.h> //Rmath includes math.
 
+extern long double RxODE_pairwise_add_ld2(long double *a, unsigned int n);
+
 unsigned int RxODE_prod_type = 1;
 extern void RxODE_prod_set(unsigned int i){
   RxODE_prod_type = i;
@@ -31,6 +33,23 @@ extern double RxODE_prod_ld(double *input, unsigned int n){
   return (double)p;
 }
 
+extern double RxODE_prod_ldl(double *input, unsigned int n){
+  long double s = 1.0;
+  long double *p = Calloc(n,long double);
+  p[0] = (long double)input[0];
+  for  (unsigned int i = 0; i < n; i++){
+    if (input[i] == 0){
+      Free(p);
+      return 0.0;
+    }
+    s =(long double)(sign(input[i]));
+    p[i] = logl(fabsl((long double)input[i]));
+  }
+  s = (double)(s*expl(RxODE_pairwise_add_ld2(p, n)));
+  Free(p);
+  return (double)s;
+}
+
 extern double RxODE_prod_d(double *input, unsigned int n){
   double p = 1;
   for  (unsigned int i = 0; i < n; i++){
@@ -50,7 +69,11 @@ extern double RxODE_prod(double *input, unsigned int n){
   case 2: // simple double multiply
     return RxODE_prod_d(input, n);
     break;
+  case 3: // long double exp(log add)
+    return RxODE_prod_ldl(input, n);
+    break;
   }
+  return 0.0;
 }
 
 
