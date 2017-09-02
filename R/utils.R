@@ -294,5 +294,24 @@ rxSum <- function(numbers) {
 ##' @author Matthew L. Fidler
 ##' @export
 rxSetSum <- function(type=c("pairwise", "fsum", "kahan", "neumaier", "c")){
-    invisible(.Call(`_rxSetSum`, as.integer()))
+    i <- which(type == c("pairwise", "fsum", "kahan", "neumaier", "c"))
+    invisible(.Call(`_rxSetSum`, as.integer(i)))
+}
+
+##' Choose the type of product to use in RxODE.  These are used in the
+##' RxODE \code{prod} blocks
+##'
+##' @param type  Product to use for \code{prod()} in RxODE blocks
+##'
+##' \code{long double} converts to long double, performs the
+##' multiplication and then converts back.
+##'
+##' \code{double} uses the standard double scale for multiplication.
+##'
+##' @return nothing
+##' @author Matthew L. Fidler
+##' @export
+rxSetProd <- function(type=c("long double", "double")){
+    i <- which(type == c("long double", "double"));
+    invisible(.Call(`_rxSetProd`, as.integer(i)))
 }

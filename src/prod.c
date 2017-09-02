@@ -5,7 +5,22 @@
 #include <Rinternals.h>
 #include <Rmath.h> //Rmath includes math.
 
-extern double RxODE_prod(double *input, unsigned int n){
+unsigned int RxODE_prod_type = 1;
+extern void RxODE_prod_set(unsigned int i){
+  RxODE_prod_type = i;
+}
+
+extern unsigned int RxODE_prod_get(){
+  return RxODE_prod_type;
+}
+
+
+SEXP _rxSetProd(SEXP input){
+  RxODE_prod_type = (unsigned int) INTEGER(input)[0];
+  return R_NilValue;
+}
+
+extern double RxODE_prod_ld(double *input, unsigned int n){
   long double p = 1;
   for  (unsigned int i = 0; i < n; i++){
     if (input[i] == 0){
@@ -14,6 +29,28 @@ extern double RxODE_prod(double *input, unsigned int n){
     p *= input[i];
   }
   return (double)p;
+}
+
+extern double RxODE_prod_d(double *input, unsigned int n){
+  double p = 1;
+  for  (unsigned int i = 0; i < n; i++){
+    if (input[i] == 0){
+      return 0.0; 
+    }
+    p *= input[i];
+  }
+  return p;
+}
+
+extern double RxODE_prod(double *input, unsigned int n){
+  switch (RxODE_prod_type){
+  case 1: // long double multiply, then convert back.
+    return RxODE_prod_ld(input, n);
+    break;
+  case 2: // simple double multiply
+    return RxODE_prod_d(input, n);
+    break;
+  }
 }
 
 

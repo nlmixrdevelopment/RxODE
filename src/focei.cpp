@@ -1,7 +1,22 @@
 // [[Rcpp::depends(RcppArmadillo)]]
+#include <stdarg.h>
 #include <RcppArmadillo.h>
 #include <R.h>
 #include "RxODE_types.h"
+
+extern "C" double RxODE_sumV(unsigned int n, ...);
+extern "C" double RxODE_prodV(unsigned int n, ...);
+#define _prod RxODE_prodV
+#define _sum  RxODE_sumV
+// 2 = python's fsum
+// 5 = double sum
+#define gradSum 5
+#define gradProd 2
+
+extern "C" void RxODE_sum_set(unsigned int i);
+extern "C" unsigned int RxODE_sum_get();
+extern "C" void RxODE_prod_set(unsigned int i);
+extern "C" unsigned int RxODE_prod_get();
 
 using namespace Rcpp;
 using namespace R;
@@ -45,6 +60,8 @@ NumericVector rxInv(SEXP matrix){
 //' @export
 // [[Rcpp::export]]
 void rxGrad(SEXP rho){
+  unsigned int oldsum = RxODE_sum_get();
+  unsigned int oldprod = RxODE_prod_get();
   Environment e = as<Environment>(rho);
   mat err = mat(nObs(),1);
   mat r = mat(nObs(),1);
@@ -63,6 +80,8 @@ void rxGrad(SEXP rho){
   // int do_nonmem = as<int>(e["nonmem"]);
   unsigned int i = 0, j = 0, k = 0;
   RxODE_ode_solve_env(rho);
+  RxODE_sum_set(gradSum); //
+  RxODE_prod_set(gradProd);
   for (i = 0; i < ntheta; i++){
     lp[i] = 0;
     // a[i] = mat(nObs(),1);
@@ -104,6 +123,8 @@ void rxGrad(SEXP rho){
 	//   Rprintf("params[%d] = %f\n", j, par_ptr[j]);
 	// }
 	RxODE_ode_free();
+	RxODE_sum_set(oldsum);
+	RxODE_prod_set(oldprod);
 	stop("A covariance term is zero or negative and should remain positive");
       }
       r(k, 0)=rxLhs(j); // R always has to be positive.
@@ -128,6 +149,8 @@ void rxGrad(SEXP rho){
   }
   // Free
   RxODE_ode_free();
+  RxODE_sum_set(oldsum);
+  RxODE_prod_set(oldprod);
   e["err"] = err;
   e["f"] = f;
   e["dErr"] = fpm;
@@ -152,6 +175,8 @@ void rxInner(SEXP etanews, SEXP rho){
   mat etam = as<mat>(e["eta.mat"]);
   unsigned int recalc = 0;
   unsigned int i = 0, j = 0, k = 0;
+  unsigned int oldsum = RxODE_sum_get();
+  unsigned int oldprod = RxODE_prod_get();
   if (!e.exists("llik")){
     recalc = 1;
   } else if (eta.size() != etanew.size()){
@@ -176,7 +201,7 @@ void rxInner(SEXP etanews, SEXP rho){
     e["eta.mat"] = etam;
     
     RxODE_ode_solve_env(rho);
-    
+    RxODE_sum_set(gradSum);//fsum
     unsigned int neta = as<unsigned int>(e["neta"]);
     unsigned int ntheta = as<unsigned int>(e["ntheta"]);
     List dOmega = as<List>(e["dOmega"]);
@@ -254,6 +279,8 @@ void rxInner(SEXP etanews, SEXP rho){
 	  //   Rprintf("params[%d] = %f\n", j, par_ptr[j]);
 	  // }
 	  RxODE_ode_free();
+	  RxODE_sum_set(oldsum);
+          RxODE_prod_set(oldprod);
 	  stop("A covariance term is zero or negative and should remain positive");
 	}
 	r(k, 0)=rxLhs(j); // R always has to be positive.
@@ -279,6 +306,8 @@ void rxInner(SEXP etanews, SEXP rho){
     }
     // Free
     RxODE_ode_free();
+    RxODE_sum_set(oldsum);
+    RxODE_prod_set(oldprod);
     mat llikm = mat(1,1);
     
     mat omegaInv = as<mat>(e["omegaInv"]);
@@ -318,6 +347,7 @@ void rxInner(SEXP etanews, SEXP rho){
       e["Vfo"] = wrap(Vfo);
       e["dErr_dEta"] = wrap(dErr_dEta);
     }
+
     
     // Assign in env
     e["err"] = err;
@@ -575,6 +605,8 @@ void rxDetaDomega(SEXP rho){
 // [[Rcpp::export]]
 void rxOuter_ (SEXP rho){
   //Outer problem gradient for lbfgs
+  unsigned int oldsum = RxODE_sum_get();
+  unsigned int oldprod = RxODE_prod_get();
   Environment e = as<Environment>(rho);
   unsigned int i, j, k=0, h, n, i0 = 0,e1,e2;
   
@@ -589,6 +621,7 @@ void rxOuter_ (SEXP rho){
   unsigned int nomega = (unsigned int)(dOmega.size());
 
   RxODE_ode_solve_env(rho);
+  RxODE_sum_set(gradSum);
   
   mat fpm = mat(nObs(), neta);
   mat fpt = mat(nObs(),ntheta+nomega);
@@ -699,6 +732,8 @@ void rxOuter_ (SEXP rho){
         }
         Rprintf("\n");
         RxODE_ode_free();
+	RxODE_sum_set(oldsum);
+	RxODE_sum_set(oldprod);
         stop("A covariance term is zero or negative and should remain positive.");
       }
       r(k, 0)=rxLhs(j); // R always has to be positive.
@@ -929,6 +964,8 @@ void rxOuter_ (SEXP rho){
 
   e["l.dEta.dTheta"] = lDnDt;
   e["H2"] = lDn;
+  RxODE_sum_set(oldsum);
+  RxODE_prod_set(oldprod);
   RxODE_ode_free();
 }
 
@@ -1197,10 +1234,17 @@ void rxDetaDtheta(SEXP rho){
 
 // [[Rcpp::export]]
 NumericVector rxOuter(SEXP rho){
+  Environment e = as<Environment>(rho);
+  if (!(e.exists("neta") && e.exists("ntheta") && e.exists("dOmega") &&
+        e.exists("DV") && e.exists("nonmem") && e.exists("eta") &&
+        e.exists("eta.mat") && e.exists("eta.trans") &&
+        e.exists("params")
+        )){
+    stop("Environment not setup correctly for rxOuter.");
+  }
   rxDetaDomega(rho); // setup omega.28 and omega.47
   rxOuter_(rho);
   rxDetaDtheta(rho);
-  Environment e = as<Environment>(rho);
   NumericVector ret = as<NumericVector>(e["ret"]);
   return ret;
 }

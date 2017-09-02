@@ -293,6 +293,15 @@ extern double RxODE_sum (double *input, unsigned int n){
   return 0;
 }
 
+extern void RxODE_sum_set(unsigned int i){
+  RxODE_sum_type = i;
+}
+
+extern unsigned int RxODE_sum_get(){
+  return RxODE_sum_type;
+}
+
+
 SEXP _rxSetSum(SEXP input){
   RxODE_sum_type = (unsigned int) INTEGER(input)[0];
   return R_NilValue;

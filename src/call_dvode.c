@@ -1184,6 +1184,7 @@ SEXP _rxPythonSum(SEXP input);
 SEXP _rxProd(SEXP input);
 SEXP _rxSum(SEXP input);
 SEXP _rxSetSum(SEXP input);
+SEXP _rxSetProd(SEXP input);
 SEXP _rxPairwiseSum(SEXP input);
 
 double RxODE_KahanSum(double *input, int len);
@@ -1224,6 +1225,7 @@ void R_init_RxODE(DllInfo *info){
     {"_rxSum", (DL_FUNC) &_rxSum, 1},
     {"_rxProd", (DL_FUNC) &_rxProd, 1},
     {"_rxSetSum",(DL_FUNC) &_rxSetSum, 1},
+    {"_rxSetProd",(DL_FUNC) &_rxSetProd, 1},
     {NULL, NULL, 0}
   };
   
