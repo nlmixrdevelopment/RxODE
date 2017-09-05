@@ -7,7 +7,7 @@
 
 extern long double RxODE_pairwise_add_ld2(long double *a, unsigned int n);
 
-unsigned int RxODE_prod_type = 1;
+unsigned int RxODE_prod_type = 3;
 extern void RxODE_prod_set(unsigned int i){
   RxODE_prod_type = i;
 }
