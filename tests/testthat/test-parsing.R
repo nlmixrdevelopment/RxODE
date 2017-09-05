@@ -395,5 +395,11 @@ mu = 1+bad ## nonstiff; 10 moderately stiff; 1000 stiff
     goodParse(desc="a*b/c^2/d",
               "d/dt(x)=a*b/c^2/d*x")
 
+    goodParse(desc="Transit as a compartment",
+              "d/dt(transit) = -(1/mtt) * transit
+        d/dt(depot)   =  (1/mtt) * transit - ka * depot
+        d/dt(center)  = ka * depot - (cl/v1) * center - (q/v1) * center + (q/v2) * periph
+        d/dt(periph)  = (q / v1) * center - (q / v2) * periph
+        cp = center / v1")
 
 }, silent=TRUE);
