@@ -261,9 +261,9 @@ void rxInner(SEXP etanews, SEXP rho){
 	rxCalcLhs(i);
 	f[k] = rxLhs(0); // Pred
 	if (prd == 1){
-	  err(k, 0) =  _sum(2, f[k], - DV[k]);
+	  err(k, 0) =  f[k] - DV[k];
 	} else {
-	  err(k, 0) =  _sum(2, DV[k], - f[k]);
+	  err(k, 0) =  DV[k] - f[k];
         }
 	// d(pred)/d(eta#)
 	for (j = 1; j < neta+1; j++){
@@ -307,10 +307,6 @@ void rxInner(SEXP etanews, SEXP rho){
 	  lpi[k         +3*nObs()*j] = _prod(5, 0.25, err(k, 0), err(k, 0), B(k, 0), cur(k,0));
 	  lpi[k+nObs()  +3*nObs()*j] = - _prod(2, 0.5, cur(k,0));
 	  lpi[k+2*nObs()+3*nObs()*j] = - _prod(4, 0.5, err(k, 0), fpm(k, j), B(k, 0));
-	  // lp[j] = _sum(4,lp[j],
-	  // 	       _prod(5, 0.25, err(k, 0), err(k, 0), B(k, 0), cur(k,0)),
-	  // 	       - _prod(2, 0.5, cur(k,0)),
-	  // 	       );
 	}
 	llik0[k] = -_prod(4,0.5,err(k, 0),err(k, 0),1.0/RxODE_safe_zero(r(k, 0)));
 	llik0[k+nObs()] = -_prod(2, 0.5, RxODE_safe_log(r(k, 0)));
@@ -628,7 +624,7 @@ void rxOuter_ (SEXP rho){
   unsigned int oldsum = RxODE_sum_get();
   unsigned int oldprod = RxODE_prod_get();
   Environment e = as<Environment>(rho);
-  unsigned int i, j, k=0, h, n, i0 = 0,e1,e2;
+  unsigned int i, j, k=0, h, n, i0 = 0,e1,e2, e3;
   
   mat omegaInv = as<mat>(e["omegaInv"]);
   
@@ -664,6 +660,11 @@ void rxOuter_ (SEXP rho){
 
   NumericVector llik(1);
   mat lp = mat(neta,1);
+  
+  double *lpi =Calloc(neta*nObs()*3,double);
+  double *llik0 =Calloc(nObs()*2,double);
+  double *lDnDtS = Calloc(neta*ntheta*nObs()*8, double);
+  double *lDnS = Calloc(neta*(neta+1)/2*nObs()*8, double);
 
   mat lDnDt = mat(neta,ntheta+nomega);
   mat lDn = mat(neta,neta);
@@ -681,16 +682,13 @@ void rxOuter_ (SEXP rho){
   for (j = 0; j < ntheta+nomega; j++){
     fpte[j] = mat(nObs(),neta);
     rpte[j] = mat(nObs(),neta);
-    for (i = 0; i < neta; i++){
-      lDnDt(i,j) = 0;
-    }
   }
 
   llik[0]=0;
   
   // Now create the pred vector and d(pred)/d(eta) matrix.
   // Assuming rxLhs(0) = pred and rxLhs(1:n) = d(pred)/d(eta#)
-  mat cur, cuR;
+  mat cur, cur2, cuR;
   for (i = 0; i < nAllTimes(); i++){
     if (!rxEvid(i)){
       rxCalcLhs(i);
@@ -767,13 +765,13 @@ void rxOuter_ (SEXP rho){
         /* Rprintf("j: %d; Adj: %d; k: %d\n",j, j-neta-2,k); */
         rp(k, j-i0) = rxLhs(j);
 	cur = as<mat>(c[j-i0]);
-	cur(k,0) = RxODE_sign_exp(rxLhs(j)*RxODE_safe_zero(r(k, 0)),RxODE_abs_log(rxLhs(j))-RxODE_abs_log(RxODE_safe_zero(r(k, 0))));
+	// cur(k,0) = RxODE_sign_exp(rxLhs(j)*RxODE_safe_zero(r(k, 0)),RxODE_abs_log(rxLhs(j))-RxODE_abs_log(RxODE_safe_zero(r(k, 0))));
+	cur(k, 0) = _prod(2, rxLhs(j), 1.0/r(k, 0));
 	c[j-i0] = cur;
         if (!do_nonmem){
           // tmp1[["_sens_rx_pred__ETA_1_"]],ncol=1) - err/R*matrix(tmp1[["_sens_rx_r__ETA_1_"]]
 	  cur =as<mat>(a[j-i0]);
-	  cur(k, 0)+= -RxODE_sign_exp(err(k, 0)*RxODE_safe_zero(r(k, 0))*rxLhs(j),
-				      RxODE_abs_log(err(k, 0))-RxODE_abs_log(RxODE_safe_zero(r(k, 0)))+RxODE_abs_log(rxLhs(j)));
+	  cur(k, 0)+= -_prod(3, err(k, 0), 1.0/r(k, 0), rxLhs(j));
 	  a[j-i0] = cur;
         }
       }
@@ -822,8 +820,9 @@ void rxOuter_ (SEXP rho){
         //.5*apply(eps*fp*B + .5*eps^2*B*c - c, 2, sum) - OMGAinv %*% ETA
 	// eq 12
 	cur = as<mat>(c[j]);
-        lp[j] += 0.25 * err(k, 0) * err(k, 0) * B(k, 0) * cur(k,0) -
-          0.5 * cur(k,0) - 0.5 * err(k, 0)* fpm(k, j) * B(k, 0);
+	lpi[k         +3*nObs()*j] = _prod(5, 0.25, err(k, 0), err(k, 0), B(k, 0), cur(k,0));
+        lpi[k+nObs()  +3*nObs()*j] = - _prod(2, 0.5, cur(k,0));
+        lpi[k+2*nObs()+3*nObs()*j] = - _prod(4, 0.5, err(k, 0), fpm(k, j), B(k, 0));
       }
       // Rprintf("47\n");
       for (h=0; h < ntheta; h++){
@@ -836,31 +835,31 @@ void rxOuter_ (SEXP rho){
           // n = k
           // h = m
 	  cur = as<mat>(fpte[h]);
-	  lDnDt(n, h) += -(RxODE_sign_exp(fpt(k, h)*fpm(k, n)*RxODE_safe_zero(r(k, 0)),
-					  RxODE_abs_log(fpt(k, h))+RxODE_abs_log(fpm(k, n))-RxODE_abs_log(RxODE_safe_zero(r(k, 0))))-
-			   RxODE_sign_exp(err(k, 0)*fpm(k, n)*rpt(k, h),
-					  RxODE_abs_log(err(k, 0))+RxODE_abs_log(fpm(k, n))+RxODE_abs_log(rpt(k, h))-2*RxODE_abs_log(r(k, 0)))+
-			   RxODE_sign_exp(err(k, 0)*cur(k, n)*RxODE_safe_zero(r(k, 0)),
-					  RxODE_abs_log(err(k, 0))+RxODE_abs_log(cur(k, n))-RxODE_abs_log(RxODE_safe_zero(r(k, 0)))));
-	  cur = as<mat>(rpte[h]);
-	  lDnDt(n, h) += -(-RxODE_sign_exp(cur(k, n),
-					   log(0.5)+2*RxODE_abs_log(err(k, 0))+RxODE_abs_log(cur(k, n))-2*RxODE_abs_log(r(k, 0)))+
-			   RxODE_sign_exp(rp(k, n)*rpt(k, h)*RxODE_safe_zero(r(k, 0)),
-					  // err^2/R^3*dR/dtheta*dR/deta
-					  2*RxODE_abs_log(err(k, 0))+RxODE_abs_log(rp(k, n))+RxODE_abs_log(rpt(k, h))-
-					  3*RxODE_abs_log(r(k, 0)))-
-			   RxODE_sign_exp(err(k, 0)*rp(k, n)*fpt(k, h),
-					  RxODE_abs_log(err(k, 0))+RxODE_abs_log(rp(k, n))+
-					  RxODE_abs_log(fpt(k, h))-2*RxODE_abs_log(RxODE_safe_zero(r(k, 0))))+
-			   // trace is not needed since R is a scalar, not a vector
-			   RxODE_sign_exp(rp(k, n)*rpt(k, h),
-					  log(0.5)+RxODE_abs_log(rp(k, n))+RxODE_abs_log(rpt(k, h))-2*RxODE_abs_log(RxODE_safe_zero(r(k, 0))))+
-			   RxODE_sign_exp(cur(k, n)*RxODE_safe_zero(r(k, 0)),
-					  log(0.5)+RxODE_abs_log(cur(k, n))-RxODE_abs_log(r(k, 0))));
+	  cur2 = as<mat>(rpte[h]);
+	  
+	  // lDnDt(n, h) += -_prod(3, fpt(k, h), fpm(k, n), 1.0/r(k, 0))
+	  //   + _prod(5, err(k, 0), fpm(k, n), rpt(k, h), 1.0/r(k, 0), 1.0/r(k, 0))
+	  //   - _prod(3, err(k, 0), cur(k, n), 1.0/r(k, 0))
+	  //   + _prod(6, 0.5,err(k, 0), err(k, 0), cur2(k, n), 1.0/r(k, 0), 1.0/r(k, 0))
+	  //   - _prod(7, err(k, 0), err(k, 0), 1.0/r(k, 0), 1.0/r(k, 0), 1.0/r(k, 0), rp(k, n), rpt(k, h))
+	  //   + _prod(5, err(k, 0), rp(k, n), fpt(k, h), 1.0/r(k, 0), 1.0/r(k, 0))
+	  //   // trace is not needed since R is a scalar, not a vector
+	  //   - _prod(5, 0.5, rp(k, n), rpt(k, h), 1.0/r(k, 0), 1.0/r(k, 0))
+	  //   - _prod(3, 0.5, cur2(k, n), 1.0/r(k, 0))
+	  //   ;
+	  lDnDtS[k         +8*nObs()*(h+n*ntheta)] = -_prod(3, fpt(k, h), fpm(k, n), 1.0/r(k, 0));
+	  lDnDtS[k+nObs()  +8*nObs()*(h+n*ntheta)] = + _prod(5, err(k, 0), fpm(k, n), rpt(k, h), 1.0/r(k, 0), 1.0/r(k, 0));
+	  lDnDtS[k+2*nObs()+8*nObs()*(h+n*ntheta)] = - _prod(3, err(k, 0), cur(k, n), 1.0/r(k, 0));
+	  lDnDtS[k+3*nObs()+8*nObs()*(h+n*ntheta)] = + _prod(6, 0.5,err(k, 0), err(k, 0), cur2(k, n), 1.0/r(k, 0), 1.0/r(k, 0));
+	  lDnDtS[k+4*nObs()+8*nObs()*(h+n*ntheta)] = - _prod(7, err(k, 0), err(k, 0), 1.0/r(k, 0), 1.0/r(k, 0), 1.0/r(k, 0), rp(k, n), rpt(k, h));
+	  lDnDtS[k+5*nObs()+8*nObs()*(h+n*ntheta)] = + _prod(5, err(k, 0), rp(k, n), fpt(k, h), 1.0/r(k, 0), 1.0/r(k, 0));
+	  lDnDtS[k+6*nObs()+8*nObs()*(h+n*ntheta)] = - _prod(5, 0.5, rp(k, n), rpt(k, h), 1.0/r(k, 0), 1.0/r(k, 0));
+	  lDnDtS[k+7*nObs()+8*nObs()*(h+n*ntheta)] = - _prod(3, 0.5, cur2(k, n), 1.0/r(k, 0));
         }
       }
       // Rprintf("13\n");
       // Eq #13 Almquist 2015
+      e3 = 0;
       for (e1 = 0; e1 < neta; e1++){
         for (e2 = 0; e2 <= e1; e2++){
 	  // fpm = d(err)/d(eta)
@@ -871,14 +870,24 @@ void rxOuter_ (SEXP rho){
 	  // e2 = l
 	  cur = as<mat>(fp2[e1]);
 	  cuR = as<mat>(rp2[e1]);
-	  lDn(e1, e2) += -(fpm(k, e1) * fpm(k, e2) / r(k, 0)-
-	  		   err(k, 0) *  rp(k, e2) * fpm(k,e1)/(r(k, 0) * r(k, 0))+
-	  		   err(k, 0) * cur(k,e2) / r(k, 0) -
-	  		   0.5*err(k, 0) * err(k, 0) * cuR(k, e2) / (r(k, 0) * r(k, 0)) +
-	  		   err(k, 0) * err(k, 0) * rp(k, e1) * rp(k, e2) / (r(k, 0) * r(k, 0) * r(k, 0)) -
-	  		   err(k, 0) * rp(k, e1) * fpm(k, e2) / (r(k, 0) * r(k, 0)) -
-                           0.5*rp(k, e1) * rp(k, e2) / (r(k, 0) * r(k, 0)) + 0.5*cuR(k, e2) / r(k, 0));
-	  // lDn(e1, e2) += -(// d(err)/d(eta,l)*R^-1*d(err)/d(eta,k)
+	  lDnS[k         +8*nObs()*e3] = - _prod(3, fpm(k, e1), fpm(k, e2), 1.0/ r(k, 0));
+	  lDnS[k+nObs()  +8*nObs()*e3] = + _prod(5, err(k, 0),  rp(k, e2), fpm(k,e1), 1.0/r(k, 0),  1.0 / r(k, 0));
+	  lDnS[k+2*nObs()+8*nObs()*e3] = - _prod(3, err(k, 0),  cur(k,e2),  1.0/ r(k, 0));
+	  lDnS[k+3*nObs()+8*nObs()*e3] = + _prod(6, 0.5, err(k, 0), err(k, 0), cuR(k, e2),  1.0 / r(k, 0),  1.0 / r(k, 0));
+	  lDnS[k+4*nObs()+8*nObs()*e3] = - _prod(7, err(k, 0), err(k, 0), rp(k, e1), rp(k, e2), 1.0 / r(k, 0), 1.0 / r(k, 0), 1.0 / r(k, 0));
+	  lDnS[k+5*nObs()+8*nObs()*e3] = + _prod(5, err(k, 0), rp(k, e1), fpm(k, e2), 1.0 / r(k, 0), 1.0 / r(k, 0));
+	  lDnS[k+6*nObs()+8*nObs()*e3] = + _prod(5, 0.5, rp(k, e1), rp(k, e2), 1.0/ r(k, 0), 1.0 / r(k, 0));
+	  lDnS[k+7*nObs()+8*nObs()*e3] = - _prod(3, 0.5, cuR(k, e2), 1.0/ r(k, 0));
+	  e3++;
+	  // lDn(e1, e2) += -_prod(3, fpm(k, e1), fpm(k, e2), 1.0/ r(k, 0));
+          // lDn(e1, e2) += + _prod(5, err(k, 0),  rp(k, e2), fpm(k,e1), 1.0/r(k, 0),  1.0 / r(k, 0));
+          // lDn(e1, e2) += - _prod(3, err(k, 0),  cur(k,e2),  1.0/ r(k, 0));
+          // lDn(e1, e2) += + _prod(6, 0.5, err(k, 0), err(k, 0), cuR(k, e2),  1.0 / r(k, 0),  1.0 / r(k, 0));
+          // lDn(e1, e2) += - _prod(7, err(k, 0), err(k, 0), rp(k, e1), rp(k, e2), 1.0 / r(k, 0), 1.0 / r(k, 0), 1.0 / r(k, 0));
+          // lDn(e1, e2) += + _prod(5, err(k, 0), rp(k, e1), fpm(k, e2), 1.0 / r(k, 0), 1.0 / r(k, 0));
+          // lDn(e1, e2) += + _prod(5, 0.5, rp(k, e1), rp(k, e2), 1.0/ r(k, 0), 1.0 / r(k, 0));
+          // lDn(e1, e2) += - _prod(3, 0.5, cuR(k, e2), 1.0/ r(k, 0));
+	  // lDn(e1, e2) += -(// d(err)/d*(e1+1)/2(eta,l)*R^-1*d(err)/d(eta,k)
 	  // 		   RxODE_sign_exp(fpm(k, e1) * fpm(k, e2) * RxODE_safe_zero(r(k, 0)),
 	  // 				  RxODE_abs_log(fpm(k, e1)) +
 	  // 				  RxODE_abs_log(fpm(k, e2)) -
@@ -916,10 +925,34 @@ void rxOuter_ (SEXP rho){
           
         }
       }
-      llik[0] += -0.5*(err(k, 0)*err(k, 0)/RxODE_safe_zero(r(k, 0))+RxODE_safe_log(r(k, 0)));
+      llik0[k] = -_prod(4,0.5,err(k, 0),err(k, 0),1.0/RxODE_safe_zero(r(k, 0)));
+      llik0[k+nObs()] = -_prod(2, 0.5, RxODE_safe_log(r(k, 0)));
       k++;
     }
   }
+  // Deferred sums (to reduce round-off error)
+  for (j = 0; j < neta; j++){
+    lp[j] = RxODE_sum(lpi+3*nObs()*j,3*nObs());
+  }
+  for (h=0; h < ntheta; h++){
+    for (n = 0; n < neta; n++){
+      lDnDt(n, h) = RxODE_sum(lDnDtS+8*nObs()*(h+n*ntheta), 8*nObs());
+    }
+  }
+  e3 = 0;
+  for (e1 = 0; e1 < neta; e1++){
+    for (e2 = 0; e2 <= e1; e2++){
+      // FIXME add omegaInf to RxODE_sum
+      lDn(e1, e2) += RxODE_sum(lDnS+8*nObs()*e3, 8*nObs());
+      lDn(e2, e1) = lDn(e1, e2);
+      e3++;
+    }
+  }
+  llik[0] = RxODE_sum(llik0,2*nObs());
+  Free(lpi);
+  Free(llik0);
+  Free(lDnDtS);
+  Free(lDnS);
   /* Finalize Eq #47 in Almquist 2015*/
   mat omega47 = as<mat>(e["omega.47"]);
   for (h=ntheta; h < ntheta+nomega; h++){

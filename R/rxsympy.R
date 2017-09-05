@@ -277,10 +277,25 @@ rxSymPy <- function(...){
     ret <- try(rxSymPy0(...), silent=TRUE);
     if (inherits(ret, "try-error")){
         args <- list(...)
-        stop(sprintf("Error running sympy command:\n    %s\n\n%s", args[[1]], attr(ret, "condition")$message));
+        cmd <- args[[1]]
+        reg <- rex::rex("diff(", capture(except_any_of(",")), ",", capture(except_any_of(")")), ")")
+        if (regexpr(reg, cmd) != -1){
+            var <- gsub(reg, "\\1", cmd);
+            val <- try(rxSymPy0(var), silent=TRUE);
+            if (!inherits(val, "try-error")){
+                stop(sprintf("Error running sympy command:\n    %s\n    %s: %s\n\n%s",
+                             cmd, var, val, attr(ret, "condition")$message))
+            } else {
+                stop(sprintf("Error running sympy command:\n    %s\n    %s: %s\n\n%s",
+                             cmd, var, attr(val, "condition")$message, attr(ret, "condition")$message))
+
+            }
+        }
+        stop(sprintf("Error running sympy command:\n    %s\n\n%s", cmd, attr(ret, "condition")$message));
     }
     return(ret)
 }
+
 rxSymPy0 <- function(...){
     rxSymPyStart();
     if (.rxSymPy$started == "SnakeCharmR"){
