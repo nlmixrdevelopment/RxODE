@@ -458,10 +458,6 @@ dsl.handle.log <- function(x, abs=FALSE){
     }
     pls <- try(eval(parse(text=sprintf("rxSplitPlusQ(quote(%s))", x))), silent=TRUE);
     if (inherits(pls, "try-error")){
-        tmp <- rex::rex(start, "safe_zero(", capture(anything), ")", end);
-        if (regexpr(tmp, x) != -1){
-            x <- gsub(tmp, "\\1", x);
-        }
         return(sprintf("%slog(%s)", ifelse(abs, "abs_", ""), x))
     } else if (length(pls) == 1) {
         reg <- rex::rex(start, any_spaces, "gamma(", capture(anything), ")", any_spaces, end)
@@ -528,13 +524,10 @@ dsl.handle.log <- function(x, abs=FALSE){
         x2 <- gsub(p1, "", x);
         return(sprintf("log1p(%s)", x2))
     } else {
-        tmp <- rex::rex(start, "safe_zero(", capture(anything), ")", end);
-        if (regexpr(tmp, x) != -1){
-            x <- gsub(tmp, "\\1", x);
-        }
         return(sprintf("%slog(%s)", ifelse(abs, "abs_", ""), x));
     }
 }
+
 rxSymPyFEnv$log2 <- function(e1){
     if (e1 == "E" || e1 == "exp(1)"){
         return("1/log(2)");
@@ -1577,7 +1570,6 @@ rxSumProdModel <- function(model, expand=FALSE){
     rxSymPySetup(model);
     cnd <- rxNorm(model, TRUE);
     lines <- strsplit(rxNorm(model), "\n")[[1]];
-
     for (i in seq_along(lines)){
         if (regexpr("[=~]", lines[i])){
             type <- sub(".*([=~]).*", "\\1", lines[i]);
