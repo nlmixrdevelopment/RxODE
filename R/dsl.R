@@ -1485,40 +1485,69 @@ rxSplitPlusQ <- function(x, level=0, mult=FALSE){
 
 sumProdEnv <- new.env(parent = emptyenv())
 
+rxSumProdSum <- FALSE
+rxSumProdProd <- FALSE
+
 
 sumProdEnv$"^" <- binaryOp("^")
 sumProdEnv$"**" <- binaryOp("^")
 
 sumProdEnv[["*"]] <- function(a, b){
-    a <- dsl.strip.paren(a)
-    b <- dsl.strip.paren(b)
-    ## log transformed
-    sprintf("prod(%s, %s)", sub(rex::rex(start, "prod(", capture(anything), ")", end), "\\1", a), b)
+    if (rxSumProdProd){
+        a <- dsl.strip.paren(a)
+        b <- dsl.strip.paren(b)
+        ## log transformed
+        sprintf("prod(%s, %s)", sub(rex::rex(start, "prod(", capture(anything), ")", end), "\\1", a), b)
+    } else {
+        sprintf("%s * %s", a, b)
+    }
 }
 
 sumProdEnv[["/"]] <- function(a, b){
-    a <- dsl.strip.paren(a)
-    b <- dsl.strip.paren(b)
-    sprintf("prod(%s, 1/%s)", sub(rex::rex(start, "prod(", capture(anything), ")", end), "\\1", a), b)
+    if (rxSumProdProd){
+        a <- dsl.strip.paren(a)
+        b <- dsl.strip.paren(b)
+        sprintf("prod(%s, 1/%s)", sub(rex::rex(start, "prod(", capture(anything), ")", end), "\\1", a), b)
+    } else {
+        sprintf("%s / %s", a, b)
+    }
 }
 
 sumProdEnv[["+"]] <- function(a, b){
-    a <- dsl.strip.paren(a)
-    if (!missing(b)){
-        b <- dsl.strip.paren(b)
-        sprintf("sum(%s, %s)", sub(rex::rex(start, "sum(", capture(anything), ")", end), "\\1", a), b)
+    if (rxSumProdSum){
+        a <- dsl.strip.paren(a)
+        if (!missing(b)){
+            b <- dsl.strip.paren(b)
+            return(sprintf("sum(%s, %s)", sub(rex::rex(start, "sum(", capture(anything), ")", end), "\\1", a), b))
+        } else {
+            return(a)
+        }
     } else {
-        return(a)
+        if (!missing(b)){
+            b <- dsl.strip.paren(b)
+            return(sprintf("%s + %s", a, b))
+        } else {
+            return(a)
+        }
     }
 }
 
 sumProdEnv[["-"]] <- function(a, b){
-    a <- dsl.strip.paren(a)
-    if (!missing(b)){
-        b <- dsl.strip.paren(b)
-        sprintf("sum(%s, -%s)", sub(rex::rex(start, "sum(", capture(anything), ")", end), "\\1", a), b)
+    if (rxSumProdSum){
+        a <- dsl.strip.paren(a)
+        if (!missing(b)){
+            b <- dsl.strip.paren(b)
+            sprintf("sum(%s, -%s)", sub(rex::rex(start, "sum(", capture(anything), ")", end), "\\1", a), b)
+        } else {
+            paste0("-", a)
+        }
     } else {
-        paste0("-", a)
+        if (!missing(b)){
+            b <- dsl.strip.paren(b)
+            return(sprintf("%s - %s", a, b))
+        } else {
+            return(paste0("-", a));
+        }
     }
 }
 
@@ -1566,7 +1595,10 @@ rxSumProd <- function(x){
 ##'     operations.
 ##' @author Matthew L. Fidler
 ##' @export
-rxSumProdModel <- function(model, expand=FALSE){
+rxSumProdModel <- function(model, expand=FALSE, sum=FALSE, prod=TRUE){
+    ## Sum for pairwise is equivalent to regular sum under 8 elements.
+    assignInMyNamespace("rxSumProdSum", sum)
+    assignInMyNamespace("rxSumProdProd", prod)
     rxSymPySetup(model);
     cnd <- rxNorm(model, TRUE);
     lines <- strsplit(rxNorm(model), "\n")[[1]];
