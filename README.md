@@ -9,7 +9,7 @@
 ## RxODE: A tool for performing simulations from Ordinary Differential Equation (ODE) models, with applications for pharmacometrics
 ***  
 
-##### Authors: Matthew L. Fidler, Melissa Hallow and Wenping Wang
+##### Authors: Melissa Hallow, Wenping Wang, and Matthew L. Fidler
 
 ***
 
@@ -135,15 +135,8 @@ plot(mod1);
 ```
 
 ```
-##                              C2                              C3 
-##                      "centr/V2"                       "peri/V3" 
-##                     d/dt(depot)                     d/dt(centr) 
-##                     "-KA*depot"      "KA*depot-CL*C2-Q*C2+Q*C3" 
-##                      d/dt(peri)                       d/dt(eff) 
-##                     "Q*C2-Q*C3" "Kin-Kout*(1-C2/(EC50+C2))*eff"
+## Package igraph needed for this function to work. Please install it.
 ```
-
-![plot of chunk unnamed-chunk-3](vignettes/figure/unnamed-chunk-3-1.png)
 
 Sometimes the size of the boxes may need to be adjusted, you can do
 this by adjusting the `size` argument:
@@ -153,15 +146,8 @@ plot(mod1,size=40);
 ```
 
 ```
-##                              C2                              C3 
-##                      "centr/V2"                       "peri/V3" 
-##                     d/dt(depot)                     d/dt(centr) 
-##                     "-KA*depot"      "KA*depot-CL*C2-Q*C2+Q*C3" 
-##                      d/dt(peri)                       d/dt(eff) 
-##                     "Q*C2-Q*C3" "Kin-Kout*(1-C2/(EC50+C2))*eff"
+## Package igraph needed for this function to work. Please install it.
 ```
-
-![plot of chunk unnamed-chunk-4](vignettes/figure/unnamed-chunk-4-1.png)
 
 Model parameters can be defined as named vectors. Names of parameters in
 the vector must be a superset of parameters in the ODE model, and the
@@ -297,7 +283,7 @@ print(x)
 
 ```
 ## Solved RxODE object
-## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\Rtmp6FJes7\Rx_intro-24e862327ab/mod1.d/mod1_x64.dll
+## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpYdfzmg\Rx_intro-1bf86a82ea0/mod1.d/mod1_x64.dll
 ## 
 ## Parameters:
 ##      V2      V3      KA      CL       Q     Kin    Kout    EC50 
@@ -330,7 +316,7 @@ print(x)
 
 ```
 ## Solved RxODE object
-## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\Rtmp6FJes7\Rx_intro-24e862327ab/mod1.d/mod1_x64.dll
+## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpYdfzmg\Rx_intro-1bf86a82ea0/mod1.d/mod1_x64.dll
 ## 
 ## Parameters:
 ##      V2      V3      KA      CL       Q     Kin    Kout    EC50 
@@ -364,7 +350,7 @@ print(x)
 
 ```
 ## Solved RxODE object
-## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\Rtmp6FJes7\Rx_intro-24e862327ab/mod1.d/mod1_x64.dll
+## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpYdfzmg\Rx_intro-1bf86a82ea0/mod1.d/mod1_x64.dll
 ## 
 ## Parameters:
 ##      V2      V3      KA      CL       Q     Kin    Kout    EC50 
@@ -521,7 +507,7 @@ x
 
 ```
 ## Solved RxODE object
-## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\Rtmp6FJes7\Rx_intro-24e862327ab/mod1.d/mod1_x64.dll
+## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpYdfzmg\Rx_intro-1bf86a82ea0/mod1.d/mod1_x64.dll
 ## 
 ## Parameters:
 ##      V2      V3      KA      CL       Q     Kin    Kout    EC50 
@@ -565,7 +551,7 @@ x
 
 ```
 ## Solved RxODE object
-## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\Rtmp6FJes7\Rx_intro-24e862327ab/mod1.d/mod1_x64.dll
+## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpYdfzmg\Rx_intro-1bf86a82ea0/mod1.d/mod1_x64.dll
 ## 
 ## Parameters:
 ##      V2      V3      KA      CL       Q     Kin    Kout    EC50 
@@ -606,7 +592,7 @@ x
 
 ```
 ## Solved RxODE object
-## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\Rtmp6FJes7\Rx_intro-24e862327ab/mod1.d/mod1_x64.dll
+## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpYdfzmg\Rx_intro-1bf86a82ea0/mod1.d/mod1_x64.dll
 ## 
 ## Parameters:
 ##    V2    V3    KA    CL     Q   Kin  Kout  EC50 
@@ -657,12 +643,12 @@ head(theta.all)
 
 ```
 ##         KA       CL   V2    Q  V3 Kin Kout EC50
-## [1,] 0.294 16.60186 40.2 10.5 297   1    1  200
-## [2,] 0.294 17.05487 40.2 10.5 297   1    1  200
-## [3,] 0.294 17.19849 40.2 10.5 297   1    1  200
-## [4,] 0.294 17.29130 40.2 10.5 297   1    1  200
-## [5,] 0.294 17.44944 40.2 10.5 297   1    1  200
-## [6,] 0.294 23.51423 40.2 10.5 297   1    1  200
+## [1,] 0.294 19.26351 40.2 10.5 297   1    1  200
+## [2,] 0.294 20.06536 40.2 10.5 297   1    1  200
+## [3,] 0.294 18.66969 40.2 10.5 297   1    1  200
+## [4,] 0.294 15.28734 40.2 10.5 297   1    1  200
+## [5,] 0.294 24.80117 40.2 10.5 297   1    1  200
+## [6,] 0.294 20.83581 40.2 10.5 297   1    1  200
 ```
 
 Each subproblem can be simulated by using an explicit loop (or the `apply()`

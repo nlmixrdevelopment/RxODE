@@ -4,9 +4,9 @@
 #include <R.h>
 #include "RxODE_types.h"
 
-extern "C" double RxODE_sumV(unsigned int n, ...);
-extern "C" double RxODE_prodV(unsigned int n, ...);
-extern "C" double RxODE_sum (double *input, unsigned int n);
+extern "C" double RxODE_sumV(int n, ...);
+extern "C" double RxODE_prodV(int n, ...);
+extern "C" double RxODE_sum (double *input, int n);
 #define _prod RxODE_prodV
 #define _sum  RxODE_sumV
 

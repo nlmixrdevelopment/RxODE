@@ -28,7 +28,7 @@ typedef void (*RxODE_assign_fn_pointers)(void (*fun_dydt)(unsigned int, double, 
 typedef void (*RxODE_ode_solver_old_c)(int *neq,double *theta,double *time,int *evid,int *ntime,double *inits,double *dose,double *ret,double *atol,double *rtol,int *stiff,int *transit_abs,int *nlhs,double *lhs,int *rc);
 typedef void (*RxODE_ode_solver_0_6_c)(int *neq,double *theta,double *time,int *evid,int *ntime,double *inits,double *dose,double *ret,double *atol,double *rtol,int *stiff,int *transit_abs,int *nlhs,double *lhs,int *rc,double hmin, double hmax,double h0,int mxordn,int mxords,int mxstep);
 typedef double (*RxODE_solveLinB)(double t, int linCmt, int diff1, int diff2, double A, double alpha, double B, double beta, double C, double gamma, double ka, double tlag);
-typedef double (*RxODE_sum_prod)(double *input, unsigned int n);
+typedef double (*RxODE_sum_prod)(double *input, int n);
 // Give par pointers
 RxODE_vec _par_ptr, _InfusionRate;
 RxODE_update_par_ptr _update_par_ptr;
@@ -45,7 +45,7 @@ RxODE_ode_solver_0_6_c _c_0_6;
 RxODE_solveLinB solveLinB;
 RxODE_sum_prod _sum1, _prod1;
 
-double _sum(unsigned int n, ...){
+double _sum(int n, ...){
   va_list valist;
   va_start(valist, n);
   double *p = Calloc(n, double);
@@ -58,7 +58,7 @@ double _sum(unsigned int n, ...){
   return s;
 }
 
-double _prod(unsigned int n, ...){
+double _prod(int n, ...){
   va_list valist;
   va_start(valist, n);
   double *p = Calloc(n, double);

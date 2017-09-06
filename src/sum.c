@@ -27,19 +27,20 @@ extern double RxODE_DoubleSum(double *input, int n){
  * The recursion depth is O(lg n) as well.
  */
 
-extern long double RxODE_pairwise_add_ld(double *a, unsigned int n)
+static double
+RxODE_pairwise_add_DOUBLE(double *a, int n)
 {
   if (n < 8) {
-    long double res = 0.0;
-    unsigned int i;
-    for (i = 0; i <= n; i++){
-      res +=  a[i];
+    int i;
+    double res = 0.;
+    for (i = 0; i < n; i++) {
+      res += a[i];
     }
     return res;
   }
   else if (n <= PW_BLOCKSIZE) {
-    unsigned int i;
-    long double r[8], res;
+    int i;
+    double r[8], res;
 
     /*
      * sum a block with 8 accumulators
@@ -72,31 +73,24 @@ extern long double RxODE_pairwise_add_ld(double *a, unsigned int n)
 
     /* do non multiple of 8 rest */
     for (; i < n; i++) {
-      res += (long double)a[i];
+      res += a[i];
     }
     return res;
   }
   else {
     /* divide by two but avoid non-multiples of unroll factor */
-    unsigned int n2 = n / 2;
+    int n2 = n / 2;
     n2 -= n2 % 8;
-    return RxODE_pairwise_add_ld(a, n2) +
-      RxODE_pairwise_add_ld(a + n2, n - n2);
+    return RxODE_pairwise_add_DOUBLE(a, n2) +
+      RxODE_pairwise_add_DOUBLE(a + n2, n - n2);
   }
-}
-
-extern double RxODE_pairwise_add_double(double *a, unsigned int n)
-{
-  long double ld;
-  ld = RxODE_pairwise_add_ld(a, n);
-  return (double)ld;
 }
 
 SEXP _rxPairwiseSum(SEXP input){
   int len = length(input);
   double *dinput = REAL(input);
   SEXP rets = PROTECT(allocVector(REALSXP,1));
-  REAL(rets)[0] = RxODE_pairwise_add_double(dinput, len);
+  REAL(rets)[0] = RxODE_pairwise_add_DOUBLE(dinput, len);
   UNPROTECT(1);
   return rets;
 }
@@ -152,14 +146,14 @@ SEXP _rxNeumaierSum(SEXP input){
 
 #define NUM_PARTIALS  32  /* initial partials array size, on stack */
 
-extern double RxODE_Python_fsum (double *iterable, unsigned int iterable_len){
+extern double RxODE_Python_fsum (double *iterable, int iterable_len){
   // See http://code.activestate.com/recipes/393090-binary-floating-point-summation-accurate-to-full-p/
   // Also https://github.com/python/cpython/blob/a0ce375e10b50f7606cb86b072fed7d8cd574fe7/Modules/mathmodule.c
   // Mostly the same as python's math.fsum
   long double x, y, t;
   long double xsave, special_sum = 0.0, inf_sum = 0.0, sum = 0.0;
   volatile long double hi, yr, lo;
-  unsigned int ix, i, j, n = 0, m = NUM_PARTIALS;
+  int ix, i, j, n = 0, m = NUM_PARTIALS;
   long double *p = Calloc(NUM_PARTIALS, long double);
   // for x in input
   for (ix = 0; ix < iterable_len; ix++){
@@ -268,14 +262,14 @@ SEXP _rxPythonSum(SEXP input){
   return rets;
 }
 
-unsigned int RxODE_sum_type = 1;
-extern double RxODE_sum (double *input, unsigned int n){
+int RxODE_sum_type = 1;
+extern double RxODE_sum (double *input, int n){
   switch (RxODE_sum_type){
   case 5:
     return RxODE_DoubleSum(input, n);
     break;
   case 1:
-    return RxODE_pairwise_add_double(input, n);
+    return RxODE_pairwise_add_DOUBLE(input, n);
     break;
   case 2:
     return RxODE_Python_fsum(input, n);
@@ -293,17 +287,17 @@ extern double RxODE_sum (double *input, unsigned int n){
   return 0;
 }
 
-extern void RxODE_sum_set(unsigned int i){
+extern void RxODE_sum_set(int i){
   RxODE_sum_type = i;
 }
 
-extern unsigned int RxODE_sum_get(){
+extern int RxODE_sum_get(){
   return RxODE_sum_type;
 }
 
 
 SEXP _rxSetSum(SEXP input){
-  RxODE_sum_type = (unsigned int) INTEGER(input)[0];
+  RxODE_sum_type = (int) INTEGER(input)[0];
   return R_NilValue;
 }
 
@@ -316,7 +310,7 @@ SEXP _rxSum(SEXP input){
   return rets;
 }
 
-extern double RxODE_sumV(unsigned int n, ...){
+extern double RxODE_sumV(int n, ...){
   va_list valist;
   va_start(valist, n);
   double *p = Calloc(n, double);

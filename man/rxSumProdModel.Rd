@@ -4,7 +4,7 @@
 \alias{rxSumProdModel}
 \title{Recast model in terms of sum/prod}
 \usage{
-rxSumProdModel(model, expand = FALSE)
+rxSumProdModel(model, expand = FALSE, sum = FALSE, prod = TRUE)
 }
 \arguments{
 \item{model}{RxODE model}

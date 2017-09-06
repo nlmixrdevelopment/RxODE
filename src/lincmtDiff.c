@@ -11,9 +11,9 @@
 #define _sign RxODE_signV
 #define safe_zero RxODE_safe_zero
 
-extern double RxODE_signV(unsigned int n, ...);
-extern double RxODE_prodV(unsigned int n, ...);
-extern double RxODE_sumV(unsigned int n, ...);
+extern double RxODE_signV(int n, ...);
+extern double RxODE_prodV(int n, ...);
+extern double RxODE_sumV(int n, ...);
 extern double RxODE_safe_zero(double x);
 
 extern double rxSolveLinBdInf(int diff1, int diff2, int dA, int dAlpha, double rate, double tT, double t1, double t2, double tinf, double A, double alpha, double tlag){

@@ -1187,8 +1187,6 @@ SEXP _rxSetSum(SEXP input);
 SEXP _rxSetProd(SEXP input);
 SEXP _rxPairwiseSum(SEXP input);
 
-double RxODE_KahanSum(double *input, int len);
-double RxODE_NeumaierSum(double *input, int len);
 double RxODE_sum(double *input, int len);
 double RxODE_prod(double *input, int len);
 
@@ -1262,8 +1260,6 @@ void R_init_RxODE(DllInfo *info){
   R_RegisterCCallable("RxODE","RxODE_abs_log1p",        (DL_FUNC) RxODE_abs_log1p);
   R_RegisterCCallable("RxODE","RxODE_solveLinB",        (DL_FUNC) RxODE_solveLinB);
 
-  R_RegisterCCallable("RxODE","RxODE_KahanSum",         (DL_FUNC) RxODE_KahanSum);
-  R_RegisterCCallable("RxODE","RxODE_NeumaierSum",      (DL_FUNC) RxODE_NeumaierSum);
   R_RegisterCCallable("RxODE","RxODE_sum",              (DL_FUNC) RxODE_sum);
   R_RegisterCCallable("RxODE","RxODE_prod",             (DL_FUNC) RxODE_prod);
 
@@ -1287,8 +1283,6 @@ void R_init_RxODE(DllInfo *info){
     {"RxODE_abs_log", (DL_FUNC) &RxODE_abs_log, 1, RxODE_one_dbl_t},
     {"RxODE_abs_log1p", (DL_FUNC) &RxODE_abs_log1p, 1, RxODE_one_dbl_t},
     {"RxODE_solveLinB", (DL_FUNC) &RxODE_solveLinB, 12, RxODE_solveLinB_t},
-    {"RxODE_KahanSum", (DL_FUNC) &RxODE_KahanSum, 2, RxODE_Sum_t},
-    {"RxODE_NeumaierSum", (DL_FUNC) &RxODE_NeumaierSum, 2, RxODE_Sum_t},
     {"RxODE_sum", (DL_FUNC) &RxODE_sum, 2, RxODE_Sum_t},
     {"RxODE_prod", (DL_FUNC) &RxODE_prod, 2, RxODE_Sum_t},
     {NULL, NULL, 0, NULL}
