@@ -70,6 +70,7 @@ void rxGrad(SEXP rho){
   // int do_nonmem = as<int>(e["nonmem"]);
   unsigned int i = 0, j = 0, k = 0;
   RxODE_ode_solve_env(rho);
+  double *lpi =Calloc(ntheta*nObs()*3,double);
   for (i = 0; i < ntheta; i++){
     lp[i] = 0;
     // a[i] = mat(nObs(),1);
@@ -126,15 +127,22 @@ void rxGrad(SEXP rho){
         // .5*apply(eps*fp*B + .5*eps^2*B*c - c, 2, sum) - OMGAinv %*% ETA
         // Rprintf("lp[%d] ",j);
         cur = as<mat>(c[j]);
-        lp[j] += 0.25 * err(k, 0) * err(k, 0) * B(k, 0) * cur(k,0) -
-          0.5 * cur(k,0) - 0.5 * err(k, 0)* fpm(k, j) * B(k, 0);
+	lpi[k         +3*nObs()*j] = _prod(5, 0.25, err(k, 0), err(k, 0), B(k, 0), cur(k,0));
+        lpi[k+nObs()  +3*nObs()*j] = - _prod(2, 0.5, cur(k,0));
+        lpi[k+2*nObs()+3*nObs()*j] = - _prod(4, 0.5, err(k, 0), fpm(k, j), B(k, 0));
       }
       // Rprintf("done\n");
       k++;
     }
   }
+  // Deferred sum to reduce round-off error.
+  for (j = 0; j < ntheta; j++){
+    // Rprintf("%f", eta[j]);
+    lp[j] = RxODE_sum(lpi+3*nObs()*j,3*nObs());
+  }
   // Free
   RxODE_ode_free();
+  Free(lpi);
   e["err"] = err;
   e["f"] = f;
   e["dErr"] = fpm;
@@ -295,31 +303,10 @@ void rxInner(SEXP etanews, SEXP rho){
       }
     }
     // Deferred sums (to reduce round-off error)
-    // Rprintf("eta(deta): ");
     for (j = 0; j < neta; j++){
       // Rprintf("%f", eta[j]);
       lp[j] = RxODE_sum(lpi+3*nObs()*j,3*nObs());
-      // if (ISNAN(lp[j])){
-      //   for (j = 0; j < neta; j++){
-      //     Rprintf("\t: ETA[%d] (grad) =%f (%f)\n",j+1,eta[j], lp[j]);
-      //   }
-      //   stop("NaN in ETA gradient.");
-      // }
-      // Rprintf("(%f) ", lp[j]);
     }
-    // Rprintf("\n");
-    // for (j = 0; j < nLhs(); j++){
-    //   Rprintf("rxLhs(%d) = %f\n", j, rxLhs(j));
-    // }
-    // for (j = 0; j < neta; j++){
-    //   Rprintf("lp[%d]: ", j);
-    //   for (k = 0; k < 3*nObs(); k++){
-    // 	Rprintf("%f ", lpi[3*nObs()*j+k]);
-    //   }
-    //   Rprintf("\n\n");
-    // }
-    // Rprintf("\n");
-    // Rprintf("\n");
     llik[0] = RxODE_sum(llik0,2*nObs());
     Free(lpi);
     Free(llik0);
