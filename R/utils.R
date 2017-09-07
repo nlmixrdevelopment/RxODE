@@ -311,7 +311,7 @@ rxSetSum <- function(type=c("pairwise", "fsum", "kahan", "neumaier", "c")){
 ##' @return nothing
 ##' @author Matthew L. Fidler
 ##' @export
-rxSetProd <- function(type=c("long double", "double")){
-    i <- which(type == c("long double", "double"));
+rxSetProd <- function(type=c("long double", "double", "logify")){
+    i <- which(type == c("long double", "double", "logify"));
     invisible(.Call(`_rxSetProd`, as.integer(i)))
 }

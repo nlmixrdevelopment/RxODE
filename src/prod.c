@@ -7,7 +7,9 @@
 
 extern double RxODE_sum (double *input, int n);
 
-int RxODE_prod_type = 1;
+extern double RxODE_pairwise_add_LONG_DOUBLE(long double *a, int n);
+
+int RxODE_prod_type = 3;
 
 extern void RxODE_prod_set(int i){
   RxODE_prod_type = i;
@@ -46,25 +48,19 @@ extern double RxODE_prod_d(double *input, int n){
 }
 
 extern double RxODE_prod_logify(double *input, int n){
-  double *p = Calloc(n,double);
-  double s = 1.0, tmp;
+  long double *p = Calloc(n,long double);
+  long double s = 1.0;
   for (int i = 0; i < n; i++){
     if (input[i] == 0){
       Free(p);
       return 0.0;
     }
-    s = sign(input[i])*s;
-    tmp = fabs(input[i]);
-    if (tmp < 1.0){
-      tmp = 1.0 / tmp;
-      p[i] = -log(tmp);
-    } else {
-      p[i] = log(tmp);
-    }
+    s = ((long double)sign(input[i]))*s;
+    p[i] = logl(fabsl(input[i]));
   }
-  s = exp(RxODE_sum(p, n))*s;
+  s = expl(RxODE_pairwise_add_LONG_DOUBLE(p, n))*s;
   Free(p);
-  return s;
+  return (double)s;
 }
 
 extern double RxODE_prod(double *input, int n){

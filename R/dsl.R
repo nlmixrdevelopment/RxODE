@@ -1595,7 +1595,7 @@ rxSumProd <- function(x){
 ##'     operations.
 ##' @author Matthew L. Fidler
 ##' @export
-rxSumProdModel <- function(model, expand=FALSE, sum=FALSE, prod=TRUE){
+rxSumProdModel <- function(model, expand=FALSE, sum=TRUE, prod=TRUE){
     ## Sum for pairwise is equivalent to regular sum under 8 elements.
     assignInMyNamespace("rxSumProdSum", sum)
     assignInMyNamespace("rxSumProdProd", prod)
