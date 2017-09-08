@@ -191,6 +191,7 @@ void rxInner(SEXP etanews, SEXP rho){
     e["eta.mat"] = etam;
     
     RxODE_ode_solve_env(rho);
+    
     unsigned int neta = as<unsigned int>(e["neta"]);
     unsigned int ntheta = as<unsigned int>(e["ntheta"]);
     List dOmega = as<List>(e["dOmega"]);
@@ -351,7 +352,6 @@ void rxInner(SEXP etanews, SEXP rho){
       e["Vfo"] = wrap(Vfo);
       e["dErr_dEta"] = wrap(dErr_dEta);
     }
-
     
     // Assign in env
     e["err"] = err;
@@ -1232,6 +1232,7 @@ void rxDetaDtheta(SEXP rho){
       // This assumes scaling is to 1.0
       //
       NumericVector ini = as<NumericVector>(e["inits.vec"]);
+      double scaleTo = as<double>(e["scale.to"]);
       if (ini.size() != dLdTheta.size()){
         stop("Inconsistent gradient and inits.vec size.");
       }
@@ -1240,7 +1241,14 @@ void rxDetaDtheta(SEXP rho){
       // optimization, by the time the eta parameters are updated, the
       // parameters are unscaled. so dEta.dTheta are not scaled.
       for (h = 0; h < ntheta; h++){
-        dLdThetaS[h] = dLdTheta[h]/ini[h];
+	// f(theta(scaled))
+	// The next is dscale/dTheta
+	// L(theta(scaled));
+	// We have dL/dtheta
+	// theta(scaled) = scaled*ini/scaleTo or
+	// scaled(theta) = theta/(ini/scaleTo)
+	// dscaled / dtheta = 1/ini/scaleTo
+        dLdThetaS[h] = dLdTheta[h]*(ini[h]/scaleTo);
       }
       e["l.dTheta.s"]=dLdThetaS;
       ret.attr("grad") = as<NumericVector>(wrap(dLdThetaS));
@@ -1268,17 +1276,10 @@ void rxDetaDtheta(SEXP rho){
 
 // [[Rcpp::export]]
 NumericVector rxOuter(SEXP rho){
-  Environment e = as<Environment>(rho);
-  if (!(e.exists("neta") && e.exists("ntheta") && e.exists("dOmega") &&
-        e.exists("DV") && e.exists("nonmem") && e.exists("eta") &&
-        e.exists("eta.mat") && e.exists("eta.trans") &&
-        e.exists("params")
-        )){
-    stop("Environment not setup correctly for rxOuter.");
-  }
   rxDetaDomega(rho); // setup omega.28 and omega.47
   rxOuter_(rho);
   rxDetaDtheta(rho);
+  Environment e = as<Environment>(rho);
   NumericVector ret = as<NumericVector>(e["ret"]);
   return ret;
 }
@@ -1291,7 +1292,7 @@ NumericVector rxOuter(SEXP rho){
 //'
 //' @param DhS This is the change in theta observed between steps.
 //'
-//' @param initS This is the ETA intiail condition matrix
+//' @param initS This is the ETA initial condition matrix
 //'
 //' @param acceptNS Acceptance criteria for the new eta.  |eta| < acceptNS for the new eta
 //'   to be accepted.

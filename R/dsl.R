@@ -210,12 +210,12 @@ dsl.to.pow <- function(a, b){
         return(sprintf("R_pow(%s, %s)", a, b));
     } else if (num == round(num)){
         return(sprintf("R_pow_di(%s, %s)", a, b));
-    } else if (num == 0.5){
-        return(sprintf("sqrt(%s)", a));
-    } else {
-        print(num); print(b);
-        return(sprintf("R_pow(%s, %s)", a, b));
-    }
+    } else
+        if (num == 0.5){
+            return(sprintf("sqrt(%s)", a));
+        } else {
+            return(sprintf("R_pow(%s, %s)", a, b));
+        }
 }
 
 
@@ -416,6 +416,9 @@ sympyRxFEnv$tan <- function(x){
     dsl.factor.pi(x, "tan")
 }
 
+rxSymPyAbsLog <- FALSE
+rxSymPyLogSign <- c()
+
 rxSymPyExpThetas <- c()
 rxSymPyExpEtas <- c()
 
@@ -491,6 +494,7 @@ dsl.handle.log <- function(x, abs=FALSE){
         } else {
             return(sprintf("%slog1p(%s)", ifelse(abs, "abs_", ""), pls))
         }
+
     }
     ## log1p
     ## log(1+x) or log(x + 1) or log(y + 1 + z)
@@ -527,7 +531,6 @@ dsl.handle.log <- function(x, abs=FALSE){
         return(sprintf("%slog(%s)", ifelse(abs, "abs_", ""), x));
     }
 }
-
 rxSymPyFEnv$log2 <- function(e1){
     if (e1 == "E" || e1 == "exp(1)"){
         return("1/log(2)");
@@ -600,7 +603,7 @@ sympyRxFEnv[["/"]] <- function(e1, e2, sep="/"){
     return(paste0(e1, sep, e2))
 }
 sympyRxFEnv[["*"]] <- function(e1, e2, sep=" * "){
-     if ((e1 == 2 && e2 == "M_PI") ||
+    if ((e1 == 2 && e2 == "M_PI") ||
         (e2 == 2 && e1 == "M_PI")){
         return("M_2PI")
     } else {
@@ -623,7 +626,21 @@ sympyRxFEnv[["*"]] <- function(e1, e2, sep=" * "){
     }
 }
 
-sympyRxFEnv$log <- dsl.handle.log;
+sympyRxFEnv$log <- function(arg){
+    if (rxSymPyAbsLog){
+        tmp <- rxSymPyLogSign
+        argn <- eval(parse(text=sprintf("rxSplitPlusQ(quote(%s))", arg)))
+        if (length(argn) > 1){
+            tmp[length(tmp) + 1] <- paste0("(", arg, ")");
+        } else {
+            tmp[length(tmp) + 1] <- arg;
+        }
+        assignInMyNamespace("rxSymPyLogSign", tmp);
+        return(dsl.handle.log(arg, abs=TRUE));
+    } else {
+        return(dsl.handle.log(arg));
+    }
+}
 
 sympyRxFEnv$sqrt <- function(arg){
     arg <- dsl.strip.paren(arg);
@@ -880,8 +897,8 @@ evalPrints <- function(x, envir=parent.frame()){
             txt <- eval(parse(text=txt))
             return(txt)
         } else if ((identical(x[[1]], quote(Derivative)) ||
-                   identical(x[[1]], quote(D)) ||
-                   identical(x[[1]], quote(diff))) &&
+                    identical(x[[1]], quote(D)) ||
+                    identical(x[[1]], quote(diff))) &&
                    length(x) == 3){
             return(changeDerivs(as.character(x[[2]]), as.character(x[[3]])));
         } else if ((identical(x[[1]], quote(Derivative)) ||
@@ -1057,7 +1074,7 @@ rxToSymPy <- function(x, envir=parent.frame(1)) {
                     return(var);
                 }
             }));
-    ## txt <- txt[txt != ""];
+            ## txt <- txt[txt != ""];
             if (addNames){
                 names(txt) <- vars;
             }
@@ -1092,7 +1109,7 @@ rxToSymPy <- function(x, envir=parent.frame(1)) {
 
 ##' @rdname rxToSymPy
 ##' @export
- rxFromSymPy <- function(x, envir=parent.frame(1)) {
+rxFromSymPy <- function(x, envir=parent.frame(1)) {
     if (class(substitute(x)) == "character"){
         if (length(x) == 1){
             txt <- strsplit(x, "\n+")[[1]];
@@ -1595,11 +1612,15 @@ rxSumProd <- function(x){
 ##'     operations.
 ##' @author Matthew L. Fidler
 ##' @export
-rxSumProdModel <- function(model, expand=FALSE, sum=TRUE, prod=TRUE){
+rxSumProdModel <- function(model, expand=FALSE, sum=FALSE, prod=TRUE, logify=FALSE){
     ## Sum for pairwise is equivalent to regular sum under 8 elements.
     assignInMyNamespace("rxSumProdSum", sum)
     assignInMyNamespace("rxSumProdProd", prod)
     rxSymPySetup(model);
+    if (logify){
+        model <- rxLogifyModel(model, expand)
+        expand <- FALSE
+    }
     cnd <- rxNorm(model, TRUE);
     lines <- strsplit(rxNorm(model), "\n")[[1]];
     for (i in seq_along(lines)){

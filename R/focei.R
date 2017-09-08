@@ -1,6 +1,6 @@
 rxFoceiEtaSetup <- function(object, ..., dv, eta, theta, nonmem=FALSE, table=TRUE, inv.env=parent.frame(1), id= -1,
                             inits.vec=NULL, atol.outer=1e-8, rtol.outer=1e-6,
-                            switch.solver=FALSE, pred.minus.dv=TRUE){
+                            switch.solver=FALSE, pred.minus.dv=TRUE, scale.to=1){
     args <- list(object=object, ..., eta=eta, theta=theta);
     args$do.solve <- FALSE;
     setup <- c(do.call(object$solve, args), as.list(inv.env));
@@ -35,6 +35,7 @@ rxFoceiEtaSetup <- function(object, ..., dv, eta, theta, nonmem=FALSE, table=TRU
         if (!is.null(inits.vec)){
             setup$inits.vec <- inits.vec;
         }
+        setup$scale.to <- scale.to;
         return(list2env(setup));
     }))
 }
@@ -130,7 +131,7 @@ rxFoceiLp <- function(object, ..., dv, eta){
 rxFoceiGrad <- function(object, ret, ..., theta, eta=NULL, dv,
                         numDeriv.method="Richardson"){
     grad <- attr(ret,"grad");
-    if (!is.null(grad)){
+    if (!is.null(grad) && length(grad) > 0){
         return(grad);
     } else if (!is.null(object$theta)) {
         ## Use Almquist's method BUT the dH/dTheta is numerically caluclated...
@@ -176,7 +177,7 @@ rxFoceiGrad <- function(object, ret, ..., theta, eta=NULL, dv,
         })
         gr <- c(gr, ome.28)
         if (any(ls(env) == "inits.vec")){
-            gr <- gr / env$inits.vec;
+            gr <- gr / (env$inits.vec / env$scale.to);
         }
         attr(ret,"grad") <- gr;
         return(ret);
@@ -207,8 +208,8 @@ rxFoceiGrad <- function(object, ret, ..., theta, eta=NULL, dv,
             ret <- do.call(getFromNamespace("rxFoceiInner","RxODE"), args)
         }
         gr <- c(numDeriv::grad(func, new.theta, method=numDeriv.method), attr(ret, "omega.28"))
-        if (any(names(args) == "inits.vec")){
-            gr <- gr / args$inits.vec;
+        if (any(names(args) == "inits.vec") && !is.null(args$scale.to)){
+            gr <- gr / (args$inits.vec / args$scale.to);
         }
         attr(ret,"grad") <- gr;
         return(ret);

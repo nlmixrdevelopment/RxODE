@@ -315,3 +315,13 @@ rxSetProd <- function(type=c("long double", "double", "logify")){
     i <- which(type == c("long double", "double", "logify"));
     invisible(.Call(`_rxSetProd`, as.integer(i)))
 }
+
+
+#' Using RxODE's default method, take a product
+#'
+#' @inheritParams rxKahanSum
+#' @return Product of numbers
+#' @export
+rxProd <- function(numbers) {
+    .Call(`_rxProd`, as.double(numbers))
+}

@@ -1536,6 +1536,125 @@ rxSymPyExpand <- function(x, expr="expand"){
     return(rxSymPy(sprintf("%s(%s)", expr, rxToSymPy(x))))
 }
 
+
+##' Takes a model and expands it to log multiplication
+##'
+##' This is a numerical trick to help reduce multiplcation errors when
+##' numbers are of very different magnitude.
+##'
+##' @param model RxODE model
+##' @return Lines for expanded model. (but not compiled)
+##' @author Matthew L. Fidler
+##' @export
+rxLogifyModel <- function(model, expand=TRUE){
+    rxSymPyVars(model);
+    ## rxCat(rxNorm(model));
+    on.exit({
+        rxSymPyClean();
+        assignInMyNamespace("rxSymPyAbsLog", FALSE);
+        assignInMyNamespace("rxSymPyLogSign", c());
+    });
+    n <- 1;
+    rxCat("## Logify ie a*b -> exp(log(abs(a))+log(abs(b)))*sign(a*b)\n")
+    rxCat("## ")
+    negReg <- rex::rex(start, any_spaces, "-", any_spaces)
+    cnd <- rxNorm(model, TRUE);
+    lines <- strsplit(rxNorm(model), "\n")[[1]];
+    for (i in seq_along(lines)){
+        if (regexpr("[=~]", lines[i])){
+            l0 <- strsplit(lines[i], "[=~]")[[1]];
+            if (length(l0) == 2){l1 <- l0[1];
+                l2 <- eval(parse(text=sprintf("rxSplitPlusQ(quote(%s))", substr(l0[2], 1, nchar(l0[2]) - 1))));
+                for (j in seq_along(l2)){
+                    tmp <- l2[j];
+                    neg <- FALSE;
+                    if (regexpr(negReg, tmp) != -1){
+                        tmp <- gsub(negReg, "", tmp)
+                        neg <- TRUE;
+                    }
+                    tmp2 <- eval(parse(text=sprintf("rxSimpleExprP(quote(%s))", tmp)));
+                    if (!tmp2){
+                        tmp <- rxSymPy(sprintf(paste0("expand_log(log(", ifelse(expand, "expand(%s)", "%s"), "), force=True)"), rxToSymPy(tmp)));
+                        assignInMyNamespace("rxSymPyAbsLog", TRUE);
+                        assignInMyNamespace("rxSymPyLogSign", c());
+                        tmp <- rxFromSymPy(tmp);
+                        if (length(rxSymPyLogSign) == 0){
+                            tmp <- sprintf("exp(%s)", tmp);
+                        } else {
+                            even.v <- c();
+                            zero.v <- c();
+                            for (v in rxSymPyLogSign){
+                                regs <- c()
+                                regs[1] <- rex::rex(start, capture(any_spaces), capture(any_numbers), any_spaces,
+                                                    "*", any_spaces, "abs_log(", v, ")", anything)
+                                regs[2] <- rex::rex(anything, capture(or("+", "-")), any_spaces, capture(any_numbers), any_spaces,
+                                                    "*", any_spaces, "abs_log(", v, ")", anything);
+                                regs[3] <- rex::rex(anything, capture("-"), capture(any_spaces), "abs_log(", v, ")", anything);
+                                for (reg in regs){
+                                    if (regexpr(reg, tmp, perl=TRUE) != -1){
+                                        num <- gsub(reg, "\\2", tmp, perl=TRUE);
+                                        pm <- gsub(reg, "\\1", tmp, perl=TRUE);
+                                        num <- suppressWarnings({as.numeric(num)});
+                                        if (!is.na(num)){
+                                            if (num %% 2 == 0){
+                                                even.v <- c(even.v, v);
+                                            }
+                                        }
+                                        if (pm == "-"){
+                                            ## Should be zero protected...
+                                            zero.v <- c(zero.v, v);
+                                        }
+                                    }
+                                }
+                            }
+                            vs <- rxSymPyLogSign
+                            if (length(even.v) > 0) {
+                                vs <- vs[!(vs %in% even.v)]
+                            }
+                            if (length(zero.v)){
+                                vs[vs %in% zero.v] <- sprintf("safe_zero(%s)", vs[vs %in% zero.v])
+                            }
+                            for (v in zero.v){
+                                tmp <- gsub(rex::rex("abs_log(", v, ")"),
+                                            sprintf("abs_log(safe_zero(%s))", v), tmp);
+                            }
+                            if (length(vs) > 0){
+                                tmp <- sprintf("sign_exp(%s, %s)",
+                                               paste(vs, collapse="*"),
+                                               tmp);
+                            } else {
+                                tmp <- sprintf("exp(%s)", tmp);
+                            }
+                        }
+                    }
+                    if (neg){
+                        tmp <- sprintf("-%s", tmp);
+                    }
+                    rxCat(".");
+                    if (n %% 5 == 0){
+                        rxCat(n);
+                    }
+                    if (n %% 50 == 0){
+                        rxCat("\n## ");
+                    }
+                    n <- n + 1;
+                    l2[j] <- tmp;
+                }
+                l0 <- rxSplitLines(l1, gsub(rex::rex("+-"), "-", paste(l2, collapse="+")));
+                ## tmp <- gsub(rex::rex(any_spaces, "=", any_spaces, "+", any_spaces), "=",
+                ##             gsub(rex::rex(any_spaces, "-", any_spaces, "+", any_spaces), "-",
+                ##                  gsub(rex::rex(any_spaces, "+", any_spaces, "-", any_spaces), "-",
+                ##                       paste(l1, "=", c("", rep(l1, length(l2) - 1)), "+", l2))))
+                ## l0 <- paste(tmp, collapse="\n");
+                lines[i] <- l0;
+            }
+        }
+    }
+    rxCat("\n## done.\n");
+    newMod <- paste(paste(lines, collapse="\n"), "\n");
+    ## rxCat(newMod)
+    return(newMod);
+}
 ## Supported SymPy special functions
 ## besseli -> besseli(nu,z) -> bessel_i(z,nu,1)
 ## besselj -> besselj(nu,z) -> bessel_j(z,nu)
