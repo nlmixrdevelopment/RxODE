@@ -318,7 +318,7 @@ rxPrintOp <- function(op){
 sympy.equiv.f <- c("abs", "acos", "acosh", "asin", "atan", "atan2", "atanh", "beta",
                    "cos", "cosh", "digamma", "erf", "erfc", "exp", "factorial",
                    "gamma", "log10", "sin", "sinh", "sqrt", "tan",
-                   "tanh", "trigamma")
+                   "tanh", "trigamma", "log")
 for (f in sympy.equiv.f){
     rxSymPyFEnv[[f]] <- functionOp(f);
     sympyRxFEnv[[f]] <- functionOp(f);
