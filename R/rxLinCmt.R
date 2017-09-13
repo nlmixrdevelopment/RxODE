@@ -234,21 +234,9 @@ rxLinCmtTrans <- function(modText){
             }
         }
         solve <- sprintf("solveLinB(t, %s, 0, 0, rx_A, rx_alpha, rx_B, rx_beta, rx_C, rx_gamma, rx_ka, rx_tlag)", linCmt);
-        ret <- c();
-        if (length(w) == 1){
-            if (w > 2){
-                ret <- txt[seq(1, w - 1)];
-                ret <- c(ret, lines,
-                         gsub(re, sprintf("\\1%s\\3", solve), txt[w]));
-                if (length(ret) != w){
-                    ret <- c(ret, txt[-seq(1:w)]);
-                }
-            }
-        }
-        if (length(ret) == 0){
-            ret <- c(lines, gsub(re, sprintf("\\1%s\\3", solve), txt))
-        }
-        return(paste(ret, collapse="\n"));
+        lines <- paste(lines, collapse="\n");
+        txt <- paste(sub(re, sprintf("%s\n\\1%s\\3", lines, solve), txt), collapse="\n");
+        return(txt)
     } else {
         stop("Can only have one linCmt() function in the model.  Assign it to a variable if you need the concentrations more than once.");
     }

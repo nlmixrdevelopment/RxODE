@@ -46,11 +46,11 @@ int locateDoseIndex(const double obs_time){
 
 double RxODE_solveLinB(double t, int linCmt, int diff1, int diff2, double d_A, double d_alpha, double d_B, double d_beta, double d_C, double d_gamma, double d_ka, double d_tlag){
   unsigned int ncmt = 1;
-  if (d_C > 0 && d_gamma > 0){
+  if (d_C != 0. && d_gamma != 0.){
     ncmt = 3;
-  } else if (d_B > 0 && d_beta > 0){
+  } else if (d_B != 0. && d_beta != 0.){
     ncmt = 2;
-  } else if (d_A > 0 && d_alpha > 0){
+  } else if (d_A != 0. && d_alpha != 0.){
     ncmt = 1;
   } else {
     error("You need to specify at least A(=%f) and alpha (=%f). (@t=%f, d1=%d, d2=%d)", d_A, d_alpha, t, diff1, diff2);

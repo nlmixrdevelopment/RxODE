@@ -9,7 +9,7 @@ extern double RxODE_sum (double *input, int n);
 
 extern double RxODE_pairwise_add_DOUBLE(double *a, int n);
 
-int RxODE_prod_type = 1;
+int RxODE_prod_type = 3;
 
 extern void RxODE_prod_set(int i){
   RxODE_prod_type = i;
