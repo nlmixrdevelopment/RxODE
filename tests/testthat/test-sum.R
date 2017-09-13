@@ -1,7 +1,7 @@
 rxPermissive({
     context("Test PythonFsum")
     test_that("Fsum", {
-
+        rxSetSum("fsum")
         expect_equal(rxPythonFsum(c()), 0);
         expect_equal(rxPythonFsum(c(0)), 0);
         expect_equal(rxPythonFsum(c(1e100, 1.0, -1e100, 1e-100, 1e50, -1.0, -1e50)), 1e-100);
@@ -51,5 +51,6 @@ rxPermissive({
         expect_equal(s$s6, 10000000000000002.0)
         expect_equal(s$s7, 0.0)
         expect_equal(s$s8, 2.0)
+        rxSetSum("pairwise")
     })
 })
