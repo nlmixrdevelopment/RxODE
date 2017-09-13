@@ -88,7 +88,7 @@ rxOuter <- function(rho) {
 #'
 #' @param DhS This is the change in theta observed between steps.
 #'
-#' @param initS This is the ETA intiail condition matrix
+#' @param initS This is the ETA initial condition matrix
 #'
 #' @param acceptNS Acceptance criteria for the new eta.  |eta| < acceptNS for the new eta
 #'   to be accepted.

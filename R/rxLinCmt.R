@@ -65,11 +65,20 @@ rxLinCmtTrans <- function(modText){
         vars.up <- toupper(vars);
         reg <- rex::rex(start, "V", capture(number), end);
         w <- which(regexpr(reg, vars.up) != -1);
-        if (length(w) > 0){
-            min.v <- min(as.numeric(gsub(reg, "\\1", vars.up[w])));
-            vs <- paste0("V", seq(min.v, min.v + 2))
-        } else {
-            vs <- paste0("V", 1:3);
+        if (any(vars.up == "V")){
+            if (length(w) > 0){
+                min.v <- min(as.numeric(gsub(reg, "\\1", vars.up[w])));
+                vs <- c("V", paste0("V", seq(min.v, min.v + 1)))
+            } else {
+                vs <- c("V", paste0("V", 1:2));
+            }
+        } else{
+            if (length(w) > 0){
+                min.v <- min(as.numeric(gsub(reg, "\\1", vars.up[w])));
+                vs <- paste0("V", seq(min.v, min.v + 2))
+            } else {
+                vs <- paste0("V", 1:3);
+            }
         }
         oral <- any(vars.up == "KA");
         get.var <- function(var){
