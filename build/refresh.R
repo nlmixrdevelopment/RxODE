@@ -225,7 +225,7 @@ if (Sys.getenv("RxODE_derivs") == "TRUE"){
         ## These are the derivatives in infusion
         reg <- rex::rex(any_spaces, or(";", ""), or("\n", ""), any_spaces, end);
         rxLogifyModel <- function(x){
-            ret <- RxODE(strsplit(gsub(" +", "", rxSumProdModel(x)), "\n")[[1]])
+            ret <- RxODE(strsplit(gsub(" +", "", rxSumProdModel(x, sum=TRUE, prod=TRUE)), "\n")[[1]])
             ret <- gsub(rex::rex("(__0__)"), "", gsub(reg, ";", rxModelVars(ret)$model["parseModel"]));
             cat(".")
             return(ret)

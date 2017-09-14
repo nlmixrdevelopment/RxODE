@@ -132,7 +132,7 @@ rxFoceiGrad <- function(object, ret, ..., theta, eta=NULL, dv,
                         numDeriv.method="Richardson"){
     grad <- attr(ret,"grad");
     if (!is.null(grad) && length(grad) > 0){
-        return(grad);
+        return(ret);
     } else if (!is.null(object$theta)) {
         ## Use Almquist's method BUT the dH/dTheta is numerically caluclated...
         theta.rxode <- object$theta;

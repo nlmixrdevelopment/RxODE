@@ -1608,6 +1608,9 @@ rxSumProd <- function(x){
 ##'
 ##' @param model RxODE model
 ##' @param expand Boolean indicating if the expression is expanded.
+##' @param sum Use sum(...)
+##' @param prod Use prod(...)
+##' @param logify Use logify
 ##' @return model string with prod(.) and sum(.) for all these
 ##'     operations.
 ##' @author Matthew L. Fidler
