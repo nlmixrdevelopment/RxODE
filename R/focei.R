@@ -178,7 +178,7 @@ rxFoceiGrad <- function(object, ret, ..., theta, eta=NULL, dv,
             return(-env$lp[x] - 0.5 * sum(diag(Hinv %*% matrix(jac[, x], length(args$eta)))))
         })
         gr <- c(gr, ome.28)
-        if (any(ls(env) == "inits.vec")){
+        if (any(ls(env) == "inits.vec") && !is.null(args$scale.to)){
             gr <- gr / (env$inits.vec / env$scale.to);
         }
         attr(ret,"grad") <- gr;

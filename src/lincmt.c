@@ -53,7 +53,8 @@ double RxODE_solveLinB(double t, int linCmt, int diff1, int diff2, double d_A, d
   } else if (d_alpha > 0.){
     ncmt = 1;
   } else {
-    error("You need to specify at least A(=%f) and alpha (=%f). (@t=%f, d1=%d, d2=%d)", d_A, d_alpha, t, diff1, diff2);
+    return 0.0;
+    //error("You need to specify at least A(=%f) and alpha (=%f). (@t=%f, d1=%d, d2=%d)", d_A, d_alpha, t, diff1, diff2);
   }
 
   double alpha = d_alpha;

@@ -1248,7 +1248,7 @@ void rxDetaDtheta(SEXP rho){
 	// theta(scaled) = scaled*ini/scaleTo or
 	// scaled(theta) = theta/(ini/scaleTo)
 	// dscaled / dtheta = 1/ini/scaleTo
-        dLdThetaS[h] = dLdTheta[h]*(ini[h]/scaleTo);
+        dLdThetaS[h] = dLdTheta[h]/(ini[h]/scaleTo);
       }
       e["l.dTheta.s"]=dLdThetaS;
       ret.attr("grad") = as<NumericVector>(wrap(dLdThetaS));
