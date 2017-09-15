@@ -706,10 +706,14 @@ sympyRxFEnv$polygamma <- function(n, z){
 
 rxSymPyC <- new.env(parent = emptyenv())
 rxSymPyC$"**" <- function(a, b){
-    sprintf("pow(%s, %s)", a, b);
+    a <- dsl.strip.paren(a);
+    b <- dsl.strip.paren(b);
+    sprintf("pow((%s == 0 && %s <= 0 ? %s : %s), %s)", a, b, .Machine$double.eps, a, b);
 }
 rxSymPyC$"^" <- function(a, b){
-    sprintf("pow(%s, %s)", a, b);
+    a <- dsl.strip.paren(a);
+    b <- dsl.strip.paren(b);
+    sprintf("pow((%s == 0 && %s <= 0 ? %s : %s), %s)", a, b, .Machine$double.eps, a, b);
 }
 
 rxSymPyC$S <- function(x){
@@ -720,8 +724,12 @@ for (f in sympy.equiv.f){
     rxSymPyC[[f]] <- functionOp(f);
 }
 rxSymPyC$"(" <- unaryOp("(", ")")
-for (op in c("+", "-", "*", "/")){
+for (op in c("+", "-", "*")){
     rxSymPyC[[op]] <- binaryOp(paste0(" ", op, " "));
+}
+
+rxSymPyC[["/"]] <- function(e1, e2){
+    sprintf("%s /( (%s == 0) ? %s : %s)", e1, e2, .Machine$double.eps, e2)
 }
 
 
