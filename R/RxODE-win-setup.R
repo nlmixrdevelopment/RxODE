@@ -1,28 +1,40 @@
 rxWget <- function(url, to){
-    if (Sys.which("wget") == ""){
+  cat("Checking for wget.exe...\n")
+  
+  if (Sys.which("wget") == ""){
         if (.Platform$r_arch == "i386"){
-            if (file.exists("c:/RTOOLS/mingw_32/bin")){
-                download.file("https://eternallybored.org/misc/wget/current/wget.exe", "c:/RTOOLS/mingw_32/bin/wget.exe");
-                if (!file.exists("c:/RTOOLS/mingw_32/bin/wget.exe")){
-                    stop("Cannot get wget...");
+          
+          rtoolslist <- paste(letters, ":/RTOOLS/mingw_32/bin", sep="")
+          rtoolspath <- rtoolslist[which(file.exists(rtoolslist, sep=""))]
+          
+            if (any(file.exists(rtoolspath))){
+              try(download.file("https://eternallybored.org/misc/wget/current/wget.exe", paste(rtoolspath, "/wget.exe", sep="")))
+              if (!file.exists(paste(rtoolspath, "/wget.exe", sep=""))){
+                    stop(paste("Cannot install wget. Please download from https://eternallybored.org/misc/wget/current/wget.exe and install into ",
+                               rtoolspath, " before continuing.\n", sep=""))
                 }
             } else {
-                download.file("https://eternallybored.org/misc/wget/current/wget.exe", "wget.exe");
+                try(download.file("https://eternallybored.org/misc/wget/current/wget.exe", "wget.exe"))
 
             }
         } else {
-            if (file.exists("c:/RTOOLS/mingw_64/bin")){
-                download.file("https://eternallybored.org/misc/wget/current/wget64.exe", "c:/RTOOLS/mingw_64/bin/wget.exe");
-                if (!file.exists("c:/RTOOLS/mingw_64/bin/wget.exe")){
-                    stop("Cannot get wget...");
+          
+          rtoolslist <- paste(letters, ":/RTOOLS/mingw_64/bin", sep="")
+          rtoolspath <- rtoolslist[which(file.exists(rtoolslist, sep=""))]
+          
+          if (any(file.exists(rtoolspath))){
+                try(download.file("https://eternallybored.org/misc/wget/current/wget64.exe", paste(rtoolspath, "/wget.exe", sep="")))
+                if (!file.exists(paste(rtoolspath, "/wget.exe", sep=""))){
+                  stop(paste("Cannot install wget. Please download from https://eternallybored.org/misc/wget/current/wget64.exe and install as wget.exe into ",
+                             rtoolspath, " before continuing.\n", sep=""))
                 }
             } else {
-                download.file("https://eternallybored.org/misc/wget/current/wget64.exe", "wget.exe");
+                try(download.file("https://eternallybored.org/misc/wget/current/wget64.exe", "wget.exe"))
             }
         }
     }
     if (Sys.which("wget") == ""){
-        stop("Wget not working...");
+        stop("wget is not available. Please install manually before continuing.");
     }
     if (Sys.which("wget") != ""){
         download.file(url, to, method="wget", extra="--progress=dot --no-check-certificate");
@@ -64,27 +76,34 @@ rxRtoolsBaseWin <- function(){
     if(.Platform$OS.type == "unix"){
         return("");
     } else {
-        rtools.base <- "C:/Rtools";
-        if (!file.exists(rtools.base)){
-            keys <- NULL;
-            keys <- utils::readRegistry("SOFTWARE\\R-core\\Rtools", hive = "HCU", view = "32-bit", maxdepth = 2);
-            if (is.null(keys) || length(keys) == 0)
-                try(keys <- utils::readRegistry("SOFTWARE\\R-core\\Rtools", hive = "HLM", view = "32-bit", maxdepth = 2), silent = TRUE);
-            if (is.null(keys) || length(keys) == 0){
-                stop("Cannot use this package because Rtools isn't setup appropriately...")
-            }
-
-            for(i in seq_along(keys)) {
-                version <- names(keys)[[i]]
-                key <- keys[[version]]
-                if (!is.list(key) || is.null(key$InstallPath)) next;
-                install_path <- normalizePath(key$InstallPath, mustWork = FALSE, winslash = "/");
-                if (file.exists(install_path)){
-                    rtools.base <- install_path;
-                }
-            }
-        }
-        return(rtools.base)
+        
+        if (length(grep("rtools", tolower(Sys.which("gcc.exe"))))==0) {
+          stop("RxODE cannot be installed, since Rtools isn't set up appropriately. Please (re)install it and try again.\n")
+        } 
+        
+        # if (!file.exists(rtools.base)){
+        #     keys <- NULL
+        #     try(keys <- utils::readRegistry("SOFTWARE\\R-core\\Rtools", hive = "HCU", view = "32-bit", maxdepth = 2), silent = TRUE)
+        #     if (is.null(keys) || length(keys) == 0)
+        #         try(keys <- utils::readRegistry("SOFTWARE\\R-core\\Rtools", hive = "HLM", view = "32-bit", maxdepth = 2), silent = TRUE)
+        #     if (is.null(keys) || length(keys) == 0){
+        #         stop("Cannot use this package because Rtools isn't setup appropriately...")
+        #     }
+        # 
+            # for(i in seq_along(keys)) {
+            #     version <- names(keys)[[i]]
+            #     key <- keys[[version]]
+            #     if (!is.list(key) || is.null(key$InstallPath)) next;
+            #     install_path <- normalizePath(key$InstallPath, mustWork = FALSE, winslash = "/");
+            #     if (file.exists(install_path)){
+            #         rtools.base <- install_path;
+            #     }
+            # }
+        # }
+      
+      rtoolslist  <- paste(letters, ":/Rtools", sep="")
+      rtools.base <- rtoolslist[which(file.exists(rtoolslist, sep=""))]
+      return(rtools.base)
     }
 }
 ##' Setup Rtools path
@@ -110,6 +129,7 @@ rxWinRtoolsPath <- function(rm.rtools=TRUE){
         }
         r.path <- normalizePath(file.path(Sys.getenv("R_HOME"),paste0("bin",Sys.getenv("R_ARCH"))));
         path <- c(r.path, path);
+        
         ## Look in the registry...
         ## This is taken from devtools and adapted.
         rtools.base <- rxRtoolsBaseWin();
@@ -140,7 +160,7 @@ rxWinRtoolsPath <- function(rm.rtools=TRUE){
                     Sys.setenv(PYTHONHOME=python.base);
                     lib.path <- file.path(python.base, "Lib");
                     if (length(list.files(lib.path)) > 0){
-                        Sys.setenv(PYTHONPATH=paste(python.base, normalizePath(lib.path), collapse=";"));
+                        Sys.setenv(PYTHONPATH=paste(python.base, normalizePath(lib.path), sep=";"));
                     }
                 }
             }
@@ -176,13 +196,19 @@ rxWinRtoolsPath <- function(rm.rtools=TRUE){
 rxWinPythonSetup <- function(){
     base <- rxPythonBaseWin()
     if (is.null(base)){
-        stop("This requires python.  Please setup and add to path.")
+        stop("RxODE requires Python. Please install an appropriate version and add it to the system path.")
     }
-    system("python -m pip install sympy")
+    if (file.access(paste(base, "/Lib/site-packages", sep=""),2)==-1){
+      stop("The Python library path does not appear to be writeable. Please rectify this situation, restart R, and try again.")
+    } 
+    message("Attempting to install simpy. This may take a few seconds...")
+    try(system("python -m pip install sympy"))
+    
     if (!requireNamespace("SnakeCharmR", quietly = TRUE)){
+        message("Attempting to install SnakeCharmR. This may take a few seconds...")
         devtools::install_github("asieira/SnakeCharmR");
     }
-    message("To be safe, please restart R before using RxODE with SymPy")
+    message("Please restart your R session before using RxODE with sympy.")
 }
 ##' Setup Windows components for RxODE
 ##'
@@ -191,16 +217,16 @@ rxWinPythonSetup <- function(){
 ##' @export
 rxWinSetup <- function(rm.rtools=TRUE){
     if (!rxWinRtoolsPath(rm.rtools)){
-        cat("This package will not work without Rtools being installed!\n");
-        cat("Currently downloading https://cran.r-project.org/bin/windows/Rtools/Rtools33.exe...\n");
-        rtools <- tempfile(fileext="-Rtools33.exe");
-        cat("Downloading to", rtools, "\n");
-        rxWget("http://cran.r-project.org/bin/windows/Rtools/Rtools33.exe", rtools);
-        system(rtools);
-        unlink(rtools);
-        if (!rxWinRtoolsPath(rm.rtools)){
-            stop("Rtools not setup correctly.");
-        }
+        cat("This package requires Rtools! Please download from http://cran.r-project.org/bin/windows/Rtools/, install and restart your R session before proceeding.\n");
+        # cat("Currently downloading https://cran.r-project.org/bin/windows/Rtools/Rtools33.exe...\n");
+        # rtools <- tempfile(fileext="-Rtools33.exe");
+        # cat("Downloading to", rtools, "\n");
+        # rxWget("http://cran.r-project.org/bin/windows/Rtools/Rtools33.exe", rtools);
+        # system(rtools);
+        # unlink(rtools);
+        # if (!rxWinRtoolsPath(rm.rtools)){
+        #     stop("Rtools not setup correctly.");
+        # }
     }
     rxWinPythonSetup();
 }
