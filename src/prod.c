@@ -9,6 +9,8 @@ extern double RxODE_sum (double *input, int n);
 
 extern double RxODE_pairwise_add_DOUBLE(double *a, int n);
 
+extern double RxODE_safe_log(double x);
+
 int RxODE_prod_type = 3;
 
 extern void RxODE_prod_set(int i){
@@ -56,7 +58,7 @@ extern double RxODE_prod_logify(double *input, int n){
       return 0.0;
     }
     s = sign(input[i])*s;
-    p[i] = log(fabs(input[i]));
+    p[i] = RxODE_safe_log(fabs(input[i]));
   }
   s = exp(RxODE_pairwise_add_DOUBLE(p, n))*s;
   Free(p);

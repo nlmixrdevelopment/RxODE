@@ -158,17 +158,19 @@ double RxODE_as_zero(double x){
   }
 }
 
-double RxODE_safe_log(double x){
-  if (fabs(x) <= sqrt(DOUBLE_EPS)){
-    return log(sqrt(DOUBLE_EPS));
+extern double RxODE_safe_log(double x){
+  if (x <= 0){
+    // Warning?
+    return log(DOUBLE_EPS);
   } else {
     return log(x);
   }
 }
 
 double RxODE_safe_zero(double x){
-  if (fabs(x) <= sqrt(DOUBLE_EPS)){
-    return sqrt(DOUBLE_EPS);
+  if (x == 0){
+    // Warning?
+    return DOUBLE_EPS;
   } else {
     return(x);
   }
