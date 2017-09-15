@@ -176,6 +176,21 @@ double RxODE_safe_zero(double x){
   }
 }
 
+double RxODE_pow(double x, double y){
+  if (x == 0 && y <= 0){
+    return R_pow(DOUBLE_EPS, y);
+  } else {
+    return R_pow(x, y);
+  }
+}
+double RxODE_pow_di(double x, int i){
+  if (x == 0 && i <= 0){
+    return R_pow_di(DOUBLE_EPS, i);
+  } else {
+    return R_pow_di(x, i);
+  }
+}
+
 double RxODE_sign_exp(double sgn, double x){
   if (sgn > 0.0){
     return(exp(x));
@@ -1264,6 +1279,9 @@ void R_init_RxODE(DllInfo *info){
 
   R_RegisterCCallable("RxODE","RxODE_sum",              (DL_FUNC) RxODE_sum);
   R_RegisterCCallable("RxODE","RxODE_prod",             (DL_FUNC) RxODE_prod);
+
+  R_RegisterCCallable("RxODE","RxODE_pow",              (DL_FUNC) RxODE_pow);
+  R_RegisterCCallable("RxODE","RxODE_pow_di",           (DL_FUNC) RxODE_pow_di);
 
 
   static const R_CMethodDef cMethods[] = {

@@ -65,10 +65,10 @@ rxPermissive({
 
     tmp2.nm <- m2ag %>% rxFoceiTheta(ev, theta=THETA, eta=ETA,dv=dv, inv.env=symenv, nonmem=TRUE)
 
-    tmp5.g <- m2ag %>%rxFoceiInner(ev, theta=THETA, eta=ETA,dv=dv, inv.env=symenv, invisible=1)
+    tmp5.g <- m2ag %>%rxFoceiInner(ev, theta=THETA, eta=ETA,dv=dv, inv.env=symenv, invisible=1, scale.to=1)
 
     tmp5.g2 <- m2ag %>%rxFoceiInner(ev, theta=THETA, eta=ETA,dv=dv, inv.env=symenv, invisible=1,
-                                    inits.vec=rep(0.5, 5))
+                                    inits.vec=rep(0.5, 5), scale.to=1)
 
     test_that("rxFoceiTheta makes sense", {
 
@@ -446,7 +446,9 @@ rxPermissive({
         expect_equal(v, tmp2$omega.47);
 
         ## Test scaling
-        expect_equal(attr(tmp5.g,"grad") * 2, attr(tmp5.g2,"grad"));
+        expect_equal(attr(tmp5.g,"grad"), attr(tmp5.g2,"grad") * 2);
+
         expect_equal(attr(tmp5.g,"dEta.dTheta"), attr(tmp5.g2,"dEta.dTheta"));
+
     })
 }, silent=TRUE, on.validate=TRUE)

@@ -207,14 +207,14 @@ dsl.to.pow <- function(a, b){
     b <- dsl.strip.paren(b);
     num <- suppressWarnings({as.numeric(b)});
     if (is.na(num)){
-        return(sprintf("R_pow(%s, %s)", a, b));
+        return(sprintf("Rx_pow(%s, %s)", a, b));
     } else if (num == round(num)){
-        return(sprintf("R_pow_di(%s, %s)", a, b));
+        return(sprintf("Rx_pow_di(%s, %s)", a, b));
     } else
         if (num == 0.5){
             return(sprintf("sqrt(%s)", a));
         } else {
-            return(sprintf("R_pow(%s, %s)", a, b));
+            return(sprintf("Rx_pow(%s, %s)", a, b));
         }
 }
 
@@ -296,6 +296,8 @@ sympyRxFEnv$loggamma <- functionOp("lgamma");
 
 rxSymPyFEnv$R_pow <- binaryOp2("**");
 rxSymPyFEnv$R_pow_di <- binaryOp2("**");
+rxSymPyFEnv$Rx_pow <- binaryOp2("**");
+rxSymPyFEnv$Rx_pow_di <- binaryOp2("**");
 rxSymPyFEnv$log1p <- functionOp2("log(1 + (", "))");
 rxSymPyFEnv$log1pmx <- functionBrewx("(log(1 + (<%=x%>))-(<%=x%>))");
 rxSymPyFEnv$expm1 <- functionOp2("(exp(", ")-1)");
@@ -351,25 +353,25 @@ dsl.factor.pi.1 <- function(x){
     }
     w <- which(mult.split == "M_1_PI")
     if (length(w) >= 1){
-        mult.split[w[1]] <- "R_pow_di(M_PI,-2)";
+        mult.split[w[1]] <- "Rx_pow_di(M_PI,-2)";
         return(gsub(rex::rex(" * 1/"), " * ", paste(mult.split, collapse=" * ")));
     }
     w <- which(mult.split == "M_2_PI")
     if (length(w) >= 1){
-        mult.split[w[1]] <- "2 * R_pow_di(M_PI,-2)";
+        mult.split[w[1]] <- "2 * Rx_pow_di(M_PI,-2)";
         return(gsub(rex::rex(" * 1/"), " * ", paste(mult.split, collapse=" * ")));
     }
     w <- which(mult.split == "M_2_SQRTPI")
     if (length(w) >= 1){
-        mult.split[w[1]] <- "2 * R_pow(M_PI,-1.5)";
+        mult.split[w[1]] <- "2 * Rx_pow(M_PI,-1.5)";
         return(gsub(rex::rex(" * 1/"), " * ", paste(mult.split, collapse=" * ")));
     }
     w <- which(mult.split == "M_SQRT_PI")
     if (length(w) >= 1){
-        mult.split[w[1]] <- "2 * R_pow(M_PI,-1.5)";
+        mult.split[w[1]] <- "2 * Rx_pow(M_PI,-1.5)";
         return(gsub(rex::rex(" * 1/"), " * ", paste(mult.split, collapse=" * ")));
     }
-    reg <- rex::rex(start, any_spaces, capture("R_pow", or("_di", ""), "("), any_spaces,
+    reg <- rex::rex(start, any_spaces, capture("Rx_pow", or("_di", ""), "("), any_spaces,
                     capture(except_some_of(", "), "PI", except_some_of(", ")), any_spaces, ",", any_spaces,
                     capture(except_some_of(", )")), any_spaces, ")")
     w <- which(regexpr(reg, mult.split) != -1)

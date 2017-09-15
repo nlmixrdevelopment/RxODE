@@ -9,11 +9,17 @@
 #define _prod RxODE_prodV
 #define _sum  RxODE_sumV
 #define _sign RxODE_signV
+#define Rx_pow RxODE_pow
+#define Rx_pow_di RxODE_pow_di
+#define R_pow RxODE_pow
+#define R_pow_di RxODE_pow_di
 #define safe_zero RxODE_safe_zero
 
 extern double RxODE_signV(int n, ...);
 extern double RxODE_prodV(int n, ...);
 extern double RxODE_sumV(int n, ...);
+extern double RxODE_pow(double x, double y);
+extern double RxODE_pow_di(double x, int i);
 extern double RxODE_safe_zero(double x);
 
 extern double rxSolveLinBdInf(int diff1, int diff2, int dA, int dAlpha, double rate, double tT, double t1, double t2, double tinf, double A, double alpha, double tlag){

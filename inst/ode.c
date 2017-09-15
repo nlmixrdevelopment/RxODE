@@ -11,12 +11,15 @@
 #define LHS_Rprintf Rprintf
 #define max(a,b) (((a)>(b))?(a):(b))
 #define min(a,b) (((a)<(b))?(a):(b))
+#define R_pow Rx_pow
+#define R_pow_di Rx_pow_di
 
 // Types for par pointers.r
 typedef void (*RxODE_update_par_ptr)(double t);
 typedef double (*RxODE_transit3)(double t, double n, double mtt);
 typedef double (*RxODE_fn) (double x);
 typedef double (*RxODE_fn2) (double x, double y);
+typedef double (*RxODE_fn2i) (double x, int i);
 typedef double (*RxODE_transit4)(double t, double n, double mtt, double bio);
 typedef double (*RxODE_vec) (int val);
 typedef long (*RxODE_cnt) ();
@@ -38,7 +41,8 @@ RxODE_val podo, tlast;
 RxODE_transit4 _transit4;
 RxODE_transit3 _transit3;
 RxODE_fn _safe_log, safe_zero, factorial, _as_zero, abs_log, abs_log1p;
-RxODE_fn2 sign_exp;
+RxODE_fn2 sign_exp, Rx_pow;
+RxODE_fn2i Rx_pow_di;
 RxODE_assign_fn_pointers _assign_fn_pointers;
 RxODE_ode_solver_old_c _old_c;
 RxODE_ode_solver_0_6_c _c_0_6;
@@ -215,6 +219,8 @@ void __R_INIT__ (DllInfo *info){
   _sum1   = (RxODE_sum_prod)R_GetCCallable("RxODE","RxODE_sum");
   _prod1 = (RxODE_sum_prod) R_GetCCallable("RxODE","RxODE_prod");
   sign_exp = (RxODE_fn2) R_GetCCallable("RxODE","RxODE_sign_exp");
+  Rx_pow = (RxODE_fn2) R_GetCCallable("RxODE","RxODE_pow");
+  Rx_pow_di = (RxODE_fn2i) R_GetCCallable("RxODE","RxODE_pow_di");
   abs_log = (RxODE_fn) R_GetCCallable("RxODE","RxODE_abs_log");
   abs_log1p = (RxODE_fn) R_GetCCallable("RxODE","RxODE_abs_log1p");
   solveLinB = (RxODE_solveLinB) R_GetCCallable("RxODE","RxODE_solveLinB");
