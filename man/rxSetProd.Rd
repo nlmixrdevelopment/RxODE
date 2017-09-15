@@ -5,7 +5,7 @@
 \title{Choose the type of product to use in RxODE.  These are used in the
 RxODE \code{prod} blocks}
 \usage{
-rxSetProd(type = c("long double", "double"))
+rxSetProd(type = c("long double", "double", "logify"))
 }
 \arguments{
 \item{type}{Product to use for \code{prod()} in RxODE blocks

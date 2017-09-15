@@ -12,7 +12,7 @@ d(eta)/d(theta) matrix for each subject}
 
 \item{DhS}{This is the change in theta observed between steps.}
 
-\item{initS}{This is the ETA intiail condition matrix}
+\item{initS}{This is the ETA initial condition matrix}
 
 \item{acceptNS}{Acceptance criteria for the new eta.  |eta| < acceptNS for the new eta
 to be accepted.}
