@@ -142,16 +142,18 @@ rxFoceiGrad <- function(object, ret, ..., theta, eta=NULL, dv,
         }
         ome.28 <- as.vector(attr(ret,"omega.28"))
         c.hess <- attr(ret,"c.hess")
-        if (length(theta) == length(rxParams(theta.rxode)) - length(eta)){
-            new.theta <- theta;
-            rest.theta <- c();
-        } else {
-            new.theta <- theta[seq(1, length(theta) - length(ome.28))]
-            rest.theta <- theta[-seq(1, length(theta) - length(ome.28))]
-        }
+        ## if (length(theta) == length(rxParams(theta.rxode)) - length(eta)){
+        ##     new.theta <- theta;
+        ##     rest.theta <- c();
+        ## } else {
+        ##     new.theta <- theta[seq(1, length(theta) - length(ome.28))]
+        ##     rest.theta <- theta[-seq(1, length(theta) - length(ome.28))]
+        ## }
+        ## print(new.theta)
+        ## print(rest.theta)
         args <- as.list(match.call(expand.dots=TRUE))[-1];
         args$dv <- dv
-        args$theta <- new.theta
+        args$theta <- theta
         args$eta <- eta
         args$object <- theta.rxode;
         env <- do.call(getFromNamespace("rxFoceiEtaSetup", "RxODE"), args, envir = parent.frame(1));
@@ -163,15 +165,15 @@ rxFoceiGrad <- function(object, ret, ..., theta, eta=NULL, dv,
         args$return.env <- TRUE
         args$c.hess <- c.hess
         fun <- function(theta){
-            args$theta <- c(theta, rest.theta);
+            args$theta <- theta## c(theta, rest.theta) ;
             args$estimate <- FALSE
             env2 <- do.call(getFromNamespace("rxFoceiInner", "RxODE"), args, envir = parent.frame(1));
             rxHessian(env2);
             return(as.vector(env2$H));
         }
-        H <- fun(new.theta)
+        H <- fun(theta)
         Hinv <- rxInv(matrix(H, length(args$eta)));
-        jac <- numDeriv::jacobian(fun, new.theta, method=numDeriv.method);
+        jac <- numDeriv::jacobian(fun, theta, method=numDeriv.method);
         gr <- sapply(seq_along(env$lp), function(x){
             return(-env$lp[x] - 0.5 * sum(diag(Hinv %*% matrix(jac[, x], length(args$eta)))))
         })
@@ -189,25 +191,18 @@ rxFoceiGrad <- function(object, ret, ..., theta, eta=NULL, dv,
         }
         ome.28 <- as.vector(attr(ret,"omega.28"))
         c.hess <- attr(ret,"c.hess")
-        if (length(theta) == length(rxParams(inner.rxode)) - length(eta)){
-            new.theta <- theta;
-            rest.theta <- c();
-        } else {
-            new.theta <- theta[seq(1, length(theta) - length(ome.28))]
-            rest.theta <- theta[-seq(1, length(theta) - length(ome.28))]
-        }
         args <- as.list(match.call(expand.dots=TRUE))[-1];
         args$object <- object;
         args$dv <- dv
-        args$theta <- new.theta
+        args$theta <- theta
         args$eta <- eta
         args$c.hess <- c.hess;
         args$add.grad <- FALSE
         func <- function(theta){
-            args$theta <- c(theta, rest.theta);
+            args$theta <- theta;
             ret <- do.call(getFromNamespace("rxFoceiInner","RxODE"), args)
         }
-        gr <- c(numDeriv::grad(func, new.theta, method=numDeriv.method), attr(ret, "omega.28"))
+        gr <- c(numDeriv::grad(func, theta, method=numDeriv.method), attr(ret, "omega.28"))
         if (any(names(args) == "inits.vec") && !is.null(args$scale.to)){
             gr <- gr / (args$inits.vec / args$scale.to);
         }
@@ -356,6 +351,7 @@ rxFoceiInner <- function(object, ..., dv, eta, c.hess=NULL, eta.bak=NULL,
     } else {
         args$object <- object;
         args$eta <- env$eta;
+        args$theta <- env$theta;
         args$orthantwise_end <- length(args$eta);
         ## print(env$id)
         ## print(args$eta);

@@ -439,7 +439,6 @@ RxODE <- function(model, modName = basename(wd), wd = ifelse(RxODE.cache.directo
         ## preserve input arguments.
         inits <- rxInits(dll, inits, state, 0);
         params <- rxInits(dll, params, pars, NA, !is.null(covs));
-
         if (!is.null(covs)){
             cov <- as.matrix(covs);
             pcov <- sapply(dimnames(cov)[[2]], function(x){
@@ -454,6 +453,7 @@ RxODE <- function(model, modName = basename(wd), wd = ifelse(RxODE.cache.directo
             ## Now check if there is any unspecified parameters by either covariate or parameter
             w <- which(is.na(params));
             if (!all(names(params)[w] %in% dimnames(cov)[[2]])){
+                print(params)
                 stop("Some model specified variables were not specified by either a covariate or parameter");
             }
             ## Assign all parameters matching a covariate to zero.
