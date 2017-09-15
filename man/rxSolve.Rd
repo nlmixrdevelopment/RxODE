@@ -120,6 +120,10 @@ added to inits}
 \item{eta}{A vector of parameters that will be named ETA[#] and
 added to inits}
 
+\item{add.cov}{A boolean indicating if covariates should be added
+to the output matrix or data frame. By default this is
+disabled.}
+
 \item{matrix}{A boolean inticating if a matrix should be returned
 instead of the RxODE's solved object}
 }

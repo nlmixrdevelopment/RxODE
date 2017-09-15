@@ -11,8 +11,6 @@ RxODE.quoteVar <- function(var, word = TRUE){
     ret <- eval(ret)
     return(ret);
 }
-
-##'@export
 igraph <- function(obj, ...){
     ## In case anyone else wants to use the method...
     UseMethod("igraph");

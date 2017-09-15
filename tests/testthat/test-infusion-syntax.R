@@ -1,6 +1,7 @@
 rxPermissive({
 
     context("Infusion Syntax test")
+
     rx1 <- RxODE({
         d/dt(X) = a*X + Y*Z;
         d/dt(Y) = b*(Y - Z);
@@ -13,9 +14,9 @@ rxPermissive({
     })
 
     rx2 <- RxODE({
-        d/dt(X) = a*X + Y*Z + rate(X);
-        d/dt(Y) = b*(Y - Z) + rate(Y);
-        d/dt(Z) = -X*Y + c*Y - Z + rate(Z);
+        d/dt(X) = a*X + Y*Z + rxRate(X);
+        d/dt(Y) = b*(Y - Z) + rxRate(Y);
+        d/dt(Z) = -X*Y + c*Y - Z + rxRate(Z);
     })
 
     test_that("No infusions are in the ODE.", {
@@ -24,9 +25,9 @@ rxPermissive({
     })
 
     rx3 <- RxODE({
-        d/dt(X) = a*X + Y*Z + rate(X);
-        d/dt(Y) = b*(Y - Z) + rate(X);
-        d/dt(Z) = -X*Y + c*Y - Z + rate(X);
+        d/dt(X) = a*X + Y*Z + rxRate(X);
+        d/dt(Y) = b*(Y - Z) + rxRate(X);
+        d/dt(Z) = -X*Y + c*Y - Z + rxRate(X);
     })
 
     test_that("Can reference prior infusions in current d/dt()", {
@@ -36,17 +37,17 @@ rxPermissive({
     test_that("rate(Y) before d/dt(Y) throws errors",
     {
         expect_error(RxODE({
-            d/dt(X) = a*X + Y*Z + rate(Y);
-            d/dt(Y) = b*(Y - Z) + rate(X);
-            d/dt(Z) = -X*Y + c*Y - Z + rate(X);
+            d/dt(X) = a*X + Y*Z + rxRate(Y);
+            d/dt(Y) = b*(Y - Z) + rxRate(X);
+            d/dt(Z) = -X*Y + c*Y - Z + rxRate(X);
         }))})
 
     ## Now test DSL handling
     test_that("rate(Y) translates to python/sympy correctly.", {
-        expect_equal(structure("rx__d_dt_depot__ = rx__rate_depot__ - ka * depot", .Names = "rx__d_dt_depot__"),
-                     rxToSymPy("d/dt(depot)=rate(depot)-ka*depot"));
-        expect_equal(structure("d/dt(depot) = rate(depot) - ka * depot", .Names = "d/dt(depot)"),
-                     rxFromSymPy("rx__d_dt_depot__ = rx__rate_depot__ - ka * depot"))
+        expect_equal(structure("rx__d_dt_depot__ = rxRate(depot) - ka * depot", .Names = "rx__d_dt_depot__"),
+                     rxToSymPy("d/dt(depot)=rxRate(depot)-ka*depot"));
+        expect_equal(structure("d/dt(depot) = rxRate(depot) - ka * depot", .Names = "d/dt(depot)"),
+                     rxFromSymPy("rx__d_dt_depot__ = rxRate(depot) - ka * depot"))
     })
 
 }, silent=TRUE, on.validate=TRUE);

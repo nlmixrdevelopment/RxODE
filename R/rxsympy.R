@@ -1543,6 +1543,7 @@ rxSymPyExpand <- function(x, expr="expand"){
 ##' numbers are of very different magnitude.
 ##'
 ##' @param model RxODE model
+##' @param expand Expand the symbolic expression using sympy?
 ##' @return Lines for expanded model. (but not compiled)
 ##' @author Matthew L. Fidler
 ##' @export

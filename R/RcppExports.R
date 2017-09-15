@@ -10,7 +10,10 @@ rxInv <- function(matrix) {
     .Call(`_RxODE_rxInv`, matrix)
 }
 
+#' Returns the gradient for FOCEi environment
+#' @param rho Environment to calculate the gradient for...
 #' @export
+#' @keywords internal
 rxGrad <- function(rho) {
     invisible(.Call(`_RxODE_rxGrad`, rho))
 }
@@ -19,27 +22,43 @@ rxInner <- function(etanews, rho) {
     invisible(.Call(`_RxODE_rxInner`, etanews, rho))
 }
 
+#' Get the Hessian for the environment
+#' @param rho environment
 #' @export
+#' @keywords internal
 rxHessian <- function(rho) {
     invisible(.Call(`_RxODE_rxHessian`, rho))
 }
 
+#' Get the likelihood for ETA
+#' @param sexp_eta ETA for likelihood
+#' @param sexp_rho Environment with solving options
 #' @export
+#' @keywords internal
 RxODE_focei_eta_lik <- function(sexp_eta, sexp_rho) {
     .Call(`_RxODE_RxODE_focei_eta_lik`, sexp_eta, sexp_rho)
 }
 
+#' Get the likelihood slope for ETA
+#' @inheritParams RxODE_focei_eta_lik
 #' @export
+#' @keywords internal
 RxODE_focei_eta_lp <- function(sexp_eta, sexp_rho) {
     .Call(`_RxODE_RxODE_focei_eta_lp`, sexp_eta, sexp_rho)
 }
 
+#' Get the Function pointers for the LBJ'S routine
+#' @param fstr a string of the function pointer to return.  "lik" for likelihood and "lp" for likelihood gradient.
 #' @export
+#' @keywords internal
 RxODE_focei_eta <- function(fstr) {
     .Call(`_RxODE_RxODE_focei_eta`, fstr)
 }
 
+#' Finalize likelihood environment
+#' @param  rho Environment to finalize.  Returns an individual likelihood. 
 #' @export
+#' @keywords internal
 RxODE_focei_finalize_llik <- function(rho) {
     .Call(`_RxODE_RxODE_focei_finalize_llik`, rho)
 }

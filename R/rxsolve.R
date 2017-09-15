@@ -483,6 +483,28 @@ update.solveRxODE <- function(object, ...){
 ##'     with a RxODE model specification, or a string with a RxODE
 ##'     model specification.
 ##'
+##' @param covs_interpolation specifies the interpolation method for
+##'     time-varying covariates. When solving ODEs it often samples
+##'     times outside the sampling time specified in \code{events}.
+##'     When this happens, the time varying covariates are
+##'     interpolated.  Currently this can be \code{"linear"}
+##'     interpolation (the default), which interpolates the covariate
+##'     by solving the line between the observed covariates and
+##'     extrapolating the new covariate value. The other possibility is
+##'     \code{"constant"}, or Last observation carried forward.  In this
+##'     approach, the last observation of the covariate is considered
+##'     the current value of the covariate.
+##'
+##' @param theta A vector of parameters that will be named THETA[#] and
+##'     added to inits
+##'
+##' @param eta A vector of parameters that will be named ETA[#] and
+##'     added to inits
+##'
+##' @param add.cov A boolean indicating if covariates should be added
+##'     to the output matrix or data frame. By default this is
+##'     disabled.
+##'
 ##' @param params a numeric named vector with values for every
 ##'     parameter in the ODE system; the names must correspond to the
 ##'     parameter identifiers used in the ODE specification;
@@ -496,12 +518,6 @@ update.solveRxODE <- function(object, ...){
 ##'     vector must be the same as the state variables (e.g., PK/PD
 ##'     compartments);
 ##'
-##' @param theta A vector of parameters that will be named THETA[#] and
-##'     added to inits
-##'
-##' @param eta A vector of parameters that will be named ETA[#] and
-##'     added to inits
-##'
 ##' @param scale a numeric named vector with scaling for ode
 ##'     parameters of the system.  The names must correstond to the
 ##'     parameter identifiers in the ODE specification. Each of the
@@ -512,18 +528,6 @@ update.solveRxODE <- function(object, ...){
 ##' @param covs a matrix or dataframe the same number of rows as the
 ##'     sampling points defined in the events \code{eventTable}.  This
 ##'     is for time-varying covariates.
-##'
-##' @param covs_interpolation specifies the interpolation method for
-##'     time-varying covariates. When solving ODEs it often samples
-##'     times outside the sampling time specified in \code{events}.
-##'     When this happens, the time varying covariates are
-##'     interpolated.  Currently this can be \code{"linear"}
-##'     interpolation (the default), which interpolates the covariate
-##'     by solving the line between the observed covariates and
-##'     extrapolating the new covariate value. The other possibility is
-##'     \code{"constant"}, or Last observation carried forward.  In this
-##'     approach, the last observation of the covariate is considered
-##'     the current value of the covariate.
 ##'
 ##' @param stiff a logical (\code{TRUE} by default) indicating whether
 ##'     the ODE system is stiff or not.

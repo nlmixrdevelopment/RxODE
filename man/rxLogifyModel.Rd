@@ -8,6 +8,8 @@ rxLogifyModel(model, expand = TRUE)
 }
 \arguments{
 \item{model}{RxODE model}
+
+\item{expand}{Expand the symbolic expression using sympy?}
 }
 \value{
 Lines for expanded model. (but not compiled)

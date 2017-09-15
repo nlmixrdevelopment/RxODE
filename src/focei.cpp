@@ -49,7 +49,10 @@ NumericVector rxInv(SEXP matrix){
   return(ret);
 }
 
+//' Returns the gradient for FOCEi environment
+//' @param rho Environment to calculate the gradient for...
 //' @export
+//' @keywords internal
 // [[Rcpp::export]]
 void rxGrad(SEXP rho){
   Environment e = as<Environment>(rho);
@@ -369,7 +372,10 @@ void rxInner(SEXP etanews, SEXP rho){
   }
 }
 
+//' Get the Hessian for the environment
+//' @param rho environment
 //' @export
+//' @keywords internal
 // [[Rcpp::export]]
 void rxHessian(SEXP rho){
   Environment e = as<Environment>(rho);
@@ -427,7 +433,11 @@ void rxInner2(SEXP sexp_eta, SEXP sexp_rho){
   }
 }
 
+//' Get the likelihood for ETA
+//' @param sexp_eta ETA for likelihood
+//' @param sexp_rho Environment with solving options
 //' @export
+//' @keywords internal
 // [[Rcpp::export]]
 NumericVector RxODE_focei_eta_lik(SEXP sexp_eta, SEXP sexp_rho){
   rxInner2(sexp_eta, sexp_rho);
@@ -435,7 +445,10 @@ NumericVector RxODE_focei_eta_lik(SEXP sexp_eta, SEXP sexp_rho){
   NumericVector ret = as<NumericVector>(wrap(e["llik2"]));
   return ret;
 }
+//' Get the likelihood slope for ETA
+//' @inheritParams RxODE_focei_eta_lik
 //' @export
+//' @keywords internal
 // [[Rcpp::export]]
 NumericVector RxODE_focei_eta_lp(SEXP sexp_eta, SEXP sexp_rho){
   rxInner2(sexp_eta, sexp_rho);
@@ -443,7 +456,10 @@ NumericVector RxODE_focei_eta_lp(SEXP sexp_eta, SEXP sexp_rho){
   NumericVector ret = as<NumericVector>(wrap(e["ep2"]));
   return ret;
 }
+//' Get the Function pointers for the LBJ'S routine
+//' @param fstr a string of the function pointer to return.  "lik" for likelihood and "lp" for likelihood gradient.
 //' @export
+//' @keywords internal
 // [[Rcpp::export]]
 XPtr<rxFn2> RxODE_focei_eta(std::string fstr){
   if (fstr == "lik")
@@ -453,7 +469,10 @@ XPtr<rxFn2> RxODE_focei_eta(std::string fstr){
   else 
     return XPtr<rxFn2>(R_NilValue); // runtime error as NULL no XPtr
 }
+//' Finalize likelihood environment
+//' @param  rho Environment to finalize.  Returns an individual likelihood. 
 //' @export
+//' @keywords internal
 // [[Rcpp::export]]
 NumericVector RxODE_focei_finalize_llik(SEXP rho){
   rxHessian(rho);

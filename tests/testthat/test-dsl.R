@@ -44,6 +44,8 @@ rxPermissive({
         expect_equal(rxToSymPy(tanpi(a)), "tan(pi * (a))")
         expect_equal(rxToSymPy(pow(a, b)), "(a)**(b)")
         expect_equal(rxToSymPy(R_pow(a, b)), "(a)**(b)")
+        expect_equal(rxToSymPy(Rx_pow_di(a, b)), "(a)**(b)")
+        expect_equal(rxToSymPy(Rx_pow(a, b)), "(a)**(b)")
         expect_equal(rxToSymPy(R_pow_di(a, b)), "(a)**(b)")
         expect_equal(rxToSymPy(log1p(a)), "log(1 + (a))")
         expect_equal(rxToSymPy(log1pmx(a)), "(log(1 + (a))-(a))")
@@ -161,8 +163,8 @@ rxPermissive({
         expect_equal(rxFromSymPy(log(-x + 1)), "log1p(- x)");
         expect_equal(rxFromSymPy(log(1 - x)), "log1p(- x)");
         expect_equal(rxFromSymPy(log(1 + exp(x))), "log1pexp(x)")
-        expect_equal(rxFromSymPy(log((1 + x)^2)), "log1p(R_pow_di(x, 2)+2 * x)")
-        expect_equal(rxFromSymPy(log((0.75 + x)^2)), "log1p(R_pow_di(x, 2)+1.5 * x-0.4375)")
+        expect_equal(rxFromSymPy(log((1 + x)^2)), "log1p(Rx_pow_di(x, 2)+2 * x)")
+        expect_equal(rxFromSymPy(log((0.75 + x)^2)), "log1p(Rx_pow_di(x, 2)+1.5 * x-0.4375)")
         expect_equal(rxFromSymPy(E), "M_E")
         expect_equal(rxToSymPy(M_E), "E")
         expect_equal(rxFromSymPy(log(2)), "M_LN2")
@@ -221,7 +223,7 @@ rxPermissive({
         expect_equal(rxFromSymPy("tan(2*pi)"), "tanpi(2)")
         expect_equal(rxFromSymPy("tan(pi/2)"), "tanpi(1/2)")
         expect_equal(rxFromSymPy("tan((pi/2)^2+pi)"), "tanpi(M_PI_2 + 1)")
-        expect_equal(rxFromSymPy("tan((pi/2)^2+pi+1)"), "tan(R_pow_di(M_PI_2, 2) + M_PI + 1)")
+        expect_equal(rxFromSymPy("tan((pi/2)^2+pi+1)"), "tan(Rx_pow_di(M_PI_2, 2) + M_PI + 1)")
     })
 
     context("Test Error DSLs")
