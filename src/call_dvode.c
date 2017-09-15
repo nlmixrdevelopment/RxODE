@@ -43,6 +43,7 @@ int    MXORDS;
 int    global_jt, global_mf, global_debug, ixds,ndoses = -1;
 double *all_times;
 int *idose;
+int idosen = 0;
 FILE *fp;
 
 /* void __DYDT__(unsigned int neq, double t, double *A, double *DADT); */
@@ -99,7 +100,16 @@ unsigned int nDoses(){
     for (int i = 0; i < n_all_times; i++){
       if (rxEvid(i)){
         ndoses++;
-	idose = (int*) Realloc(idose, ndoses, int);
+	if (ndoses >= idosen){
+	  if (idosen == 0){
+	    idose = Calloc(32,int);
+	    idosen = 32;
+	  } else {
+	    idosen *= 2;
+            Rprintf("Reallocating to %d\n", idosen);
+            idose = Realloc(idose, idosen, int);
+	  }
+	}
 	idose[ndoses-1] = i;
       }
     }
@@ -332,7 +342,6 @@ void call_lsoda(int neq, double *x, int *evid, int nx, double *inits, double *do
     Rprintf("JT: %d\n",jt);
   rwork = (double*)Calloc(lrw+1, double);
   iwork = (int*)Calloc(liw+1, int);
-  idose = (int*)Calloc(0, int);
   
   iopt = 1;
   
@@ -671,6 +680,7 @@ void RxODE_ode_free(){
   Free(solve);
   Free(lhs);
   Free(idose);
+  idosen       = 0;
   /* Free(rc); */
 }
 
@@ -683,9 +693,8 @@ void RxODE_ode_alloc(){
   /* lhs   = (double*)  R_alloc(nlhs,sizeof(double)); */
   /* InfusionRate = (double *) R_alloc(neq+2,sizeof(double)); */
   /* rc           = (int *)    R_alloc(1,sizeof(int)); */
-  solve        = (double *) Calloc(neq*nAllTimes()+1,double);
-  lhs          = (double *) Calloc(nlhs,double);
-  idose        = (int *) Calloc(0, int);
+  solve        = Calloc(neq*nAllTimes()+1,double);
+  lhs          = Calloc(nlhs,double);
   /* InfusionRate = (double *) Calloc(neq+2,double); */
   /* rc = (int *) Calloc(1,int); */
   rc[0] = 0;
