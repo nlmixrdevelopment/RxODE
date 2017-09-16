@@ -80,6 +80,23 @@ rxLinCmtTrans <- function(modText){
                 vs <- paste0("V", 1:3);
             }
         }
+        reg <- rex::rex(start, "Q", capture(number), end);
+        w <- which(regexpr(reg, vars.up) != -1);
+        if (any(vars.up == "Q")){
+            if (length(w) > 0){
+                min.q <- min(as.numeric(gsub(reg, "\\1", vars.up[w])));
+                qs <- c("Q", paste0("Q", seq(min.q, min.q + 1)))
+            } else {
+                qs <- c("Q", paste0("Q", 1:2));
+            }
+        } else{
+            if (length(w) > 0){
+                min.q <- min(as.numeric(gsub(reg, "\\1", vars.up[w])));
+                vs <- paste0("Q", seq(min.q, min.q + 2))
+            } else {
+                vs <- paste0("Q", 1:3);
+            }
+        }
         oral <- any(vars.up == "KA");
         get.var <- function(var){
             if (length(var) == 1){
@@ -125,7 +142,7 @@ rxLinCmtTrans <- function(modText){
             type <- 1;
             if ((any(vars.up == vs[2]) || any(vars.up == "VP"))){
                 ncmt <- 2;
-                Q <- get.var("Q");
+                Q <- get.var(qs[1]);
                 v2 <- get.var(c(vs[2], "VP"));
                 lines[length(lines) + 1] <- sprintf("rx_k12 ~ %s/%s", Q, v);
                 lines[length(lines) + 1] <- sprintf("rx_k21 ~ %s/%s", Q, v2);
@@ -138,7 +155,7 @@ rxLinCmtTrans <- function(modText){
             } else if (any(vars.up == "VSS")){
                 ncmt <- 2;
                 type <- 3;
-                Q <- get.var("Q");
+                Q <- get.var(qs[1]);
                 vss <- get.var("VSS");
                 lines[length(lines) + 1] <- sprintf("rx_k12 ~ %s/%s", Q, v);
                 lines[length(lines) + 1] <- sprintf("rx_k21 ~ %s/(%s-%s)", Q, vss, v);
@@ -146,7 +163,7 @@ rxLinCmtTrans <- function(modText){
             if (any(vars.up == vs[3])){
                 ncmt <- 3;
                 v3 <- get.var(vs[3]);
-                q2 <- get.var("Q2");
+                q2 <- get.var(qs[2]);
                 lines[length(lines) + 1] <- sprintf("rx_k13 ~ %s/%s", q2, v);
                 lines[length(lines) + 1] <- sprintf("rx_k31 ~ %s/%s", q2, v3);
             } else if (any(vars.up == "VT2")) {

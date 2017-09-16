@@ -15,6 +15,7 @@ extern int rxDosingEvid(int i);
 extern double RxODE_prodV(unsigned int n, ...);
 extern double RxODE_sumV(unsigned int n, ...);
 extern double RxODE_safe_zero(double);
+extern void setExtraCmt(int xtra);
 
 #define sum RxODE_sumV
 #define prod RxODE_prodV
@@ -56,7 +57,8 @@ double RxODE_solveLinB(double t, int linCmt, int diff1, int diff2, double d_A, d
     return 0.0;
     //error("You need to specify at least A(=%f) and alpha (=%f). (@t=%f, d1=%d, d2=%d)", d_A, d_alpha, t, diff1, diff2);
   }
-
+  setExtraCmt(linCmt+1);
+  
   double alpha = d_alpha;
   double A = d_A;
   double beta = d_beta;

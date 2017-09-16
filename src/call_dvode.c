@@ -44,6 +44,7 @@ int    global_jt, global_mf, global_debug, ixds,ndoses = -1;
 double *all_times;
 int *idose;
 int idosen = 0;
+int extraCmt = 0;
 FILE *fp;
 
 /* void __DYDT__(unsigned int neq, double t, double *A, double *DADT); */
@@ -56,6 +57,12 @@ void (*calc_lhs)(double t, double *A, double *lhs);
 void (*update_inis)(SEXP _ini_sexp);
 
 void rxInner(SEXP rho);
+
+void setExtraCmt(int xtra){
+  if (xtra > extraCmt){
+    extraCmt = xtra;
+  }
+}
 
 double rxTime(int i){
   if (i < n_all_times){
@@ -674,13 +681,16 @@ void RxODE_ode_free(){
   int j;
   if (nBadDose){
     for (j=0; j < nBadDose; j++){
-      warning("Dose to Compartment %d ignored (not in ODE)",BadDose[j]);
+      if (BadDose[j] > extraCmt){
+	warning("Dose to Compartment %d ignored (not in ODE)",BadDose[j]);
+      }
     }
   }
   Free(solve);
   Free(lhs);
   Free(idose);
   idosen       = 0;
+  extraCmt     = 0;
   /* Free(rc); */
 }
 
