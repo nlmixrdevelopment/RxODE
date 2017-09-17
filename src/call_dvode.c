@@ -907,7 +907,8 @@ SEXP RxODE_ode_solver (// Parameters
 		       SEXP sexp_object,
 		       SEXP sexp_extra_args,
 		       SEXP sexp_matrix,
-		       SEXP sexp_add_cov){
+		       SEXP sexp_add_cov,
+		       SEXP sexp_ignore_state){
   // TODO: Absorption lag?
   // TODO: Annotation? -- in nlmixr
   // TODO: Units -- Can be in nlmixr
@@ -922,6 +923,11 @@ SEXP RxODE_ode_solver (// Parameters
   
   
   int i = 0, j = 0;
+  int *rmState = INTEGER(sexp_ignore_state);
+  int nPrnState =0;
+  for (i = 0; i < length(sexp_ignore_state); i++){
+    nPrnState+= (1-rmState[i]);
+  }
   SEXP sexp_counter = PROTECT(allocVector(INTSXP,4));pro++;
   int    *counts    = INTEGER(sexp_counter);
 
@@ -934,32 +940,36 @@ SEXP RxODE_ode_solver (// Parameters
   double *scale = REAL(sexp_scale);
   int add_cov = INTEGER(sexp_add_cov)[0];
   if (matrix[0]){
-    SEXP sexp_ret     = PROTECT(allocMatrix(REALSXP, nObs(), add_cov*ncov+1+neq+nlhs)); pro++;
+    SEXP sexp_ret     = PROTECT(allocMatrix(REALSXP, nObs(), add_cov*ncov+1+nPrnState+nlhs)); pro++;
     double *ret   = REAL(sexp_ret);
   
     // Now create the matrix.
-    int ii=0;
+    int ii=0, jj;
     for (i = 0; i < nAllTimes(); i++){
       // Time
       if (rxEvid(i)==0){
         ret[ii] = all_times[i];
         // State
-        if (neq){
+        if (nPrnState){
+	  jj = 0;
           for (j = 0; j < neq; j++){
-            ret[nObs()*(j+1)+ii] = solve[j+i*neq]/scale[j];
+	    if (rmState[j] == 0){
+	      ret[nObs()*(jj+1)+ii] = solve[j+i*neq]/scale[j];
+	      jj++;
+            }
           }
         }
         // LHS
         if (nlhs){
           rxCalcLhs(i);
           for (j = 0; j < nlhs; j++){
-            ret[nObs()*(j+1+neq)+ii] = rxLhs(j);
+            ret[nObs()*(j+1+nPrnState)+ii] = rxLhs(j);
           }
         }
         // Cov
         if (add_cov*ncov > 0){
           for (j = 0; j < ncov; j++){
-            ret[nObs()*(j+1+neq+nlhs)+ii] = cov_ptr[j*nAllTimes()+i];
+            ret[nObs()*(j+1+nPrnState+nlhs)+ii] = cov_ptr[j*nAllTimes()+i];
           }
         }
         ii++;
@@ -967,18 +977,22 @@ SEXP RxODE_ode_solver (// Parameters
     }
     SEXP sexp_dimnames = PROTECT(allocVector(VECSXP,2));pro++;
     SET_VECTOR_ELT(sexp_dimnames, 0, R_NilValue);
-    SEXP sexp_colnames = PROTECT(allocVector(STRSXP,1+neq+nlhs+add_cov*ncov)); pro++;
+    SEXP sexp_colnames = PROTECT(allocVector(STRSXP,1+nPrnState+nlhs+add_cov*ncov)); pro++;
     SET_STRING_ELT(sexp_colnames, 0, mkChar("time"));
     SEXP temp = getAttrib(sexp_inits, R_NamesSymbol);
+    ii = 0;
     for (i = 0; i < neq; i++){
-      SET_STRING_ELT(sexp_colnames, 1+i, STRING_ELT(temp,i));
+      if (!rmState[i]){
+	SET_STRING_ELT(sexp_colnames, 1+ii, STRING_ELT(temp,i));
+	ii++;
+      }
     }
     for (i = 0; i < nlhs; i++){
-      SET_STRING_ELT(sexp_colnames,1+neq+i, STRING_ELT(sexp_lhs,i));
+      SET_STRING_ELT(sexp_colnames,1+nPrnState+i, STRING_ELT(sexp_lhs,i));
     }
     temp = getAttrib(sexp_theta,R_NamesSymbol);
     for (i = 0; i < add_cov*ncov; i++){
-      SET_STRING_ELT(sexp_colnames,1+neq+nlhs+i, STRING_ELT(temp, par_cov[i]-1));
+      SET_STRING_ELT(sexp_colnames,1+nPrnState+nlhs+i, STRING_ELT(temp, par_cov[i]-1));
     }
     SET_VECTOR_ELT(sexp_dimnames,1,sexp_colnames);
     setAttrib(sexp_ret, R_DimNamesSymbol, sexp_dimnames);
@@ -993,7 +1007,7 @@ SEXP RxODE_ode_solver (// Parameters
     RxODE_ode_free();
     return sexp_solve2;
   } else {
-    int ncols =add_cov*ncov+1+neq+nlhs,
+    int ncols =add_cov*ncov+1+nPrnState+nlhs,
       nobs =nObs(),
       ntimes = nAllTimes();
     SEXP df = PROTECT(allocVector(VECSXP,ncols)); pro++;
@@ -1002,56 +1016,64 @@ SEXP RxODE_ode_solver (// Parameters
     }
     // Now create the matrix.
     double *dfp;
-    int ii=0;
+    int ii=0, jj = 0;
     for (i = 0; i < ntimes; i++){
       // Time
       if (rxEvid(i)==0){
 	dfp = REAL(VECTOR_ELT(df, 0));
         dfp[ii] = all_times[i];
         // State
-        if (neq){
+        if (nPrnState){
+	  jj = 0;
           for (j = 0; j < neq; j++){
-	    dfp = REAL(VECTOR_ELT(df, j+1));
-            dfp[ii] = solve[j+i*neq]/scale[j];
+	    if (!rmState[j]){
+	      dfp = REAL(VECTOR_ELT(df, jj+1));
+              dfp[ii] = solve[j+i*neq]/scale[j];
+	      jj++;
+            }
           }
         }
         // LHS
         if (nlhs){
           rxCalcLhs(i);
           for (j = 0; j < nlhs; j++){
-	    dfp = REAL(VECTOR_ELT(df, j+1+neq));
+	    dfp = REAL(VECTOR_ELT(df, j+1+nPrnState));
 	    dfp[ii] =rxLhs(j);
           }
         }
         // Cov
         if (add_cov*ncov > 0){
           for (j = 0; j < add_cov*ncov; j++){
-	    dfp = REAL(VECTOR_ELT(df, j+1+neq+nlhs));
+	    dfp = REAL(VECTOR_ELT(df, j+1+nPrnState+nlhs));
             dfp[ii] = cov_ptr[j*nAllTimes()+i];
           }
         }
         ii++;
       }
     }
-    SEXP sexp_solve    = PROTECT(allocVector(REALSXP,1+neq+nlhs+ncov*add_cov)); pro++;
-    SEXP sexp_colnames = PROTECT(allocVector(STRSXP,1+neq+nlhs+ncov*add_cov)); pro++;
+    SEXP sexp_solve    = PROTECT(allocVector(REALSXP,1+nPrnState+nlhs+ncov*add_cov)); pro++;
+    SEXP sexp_colnames = PROTECT(allocVector(STRSXP,1+nPrnState+nlhs+ncov*add_cov)); pro++;
     SEXP sexp_rownames = PROTECT(allocVector(INTSXP,2)); pro++;
     SEXP temp = getAttrib(sexp_inits, R_NamesSymbol);
     SET_STRING_ELT(sexp_colnames, 0, mkChar("time"));
     double *solver = REAL(sexp_solve);
     solver[0] = all_times[ntimes-1];
+    ii = 0;
     for (i = 0; i < neq; i++){
-      SET_STRING_ELT(sexp_colnames, 1+i, STRING_ELT(temp,i));
-      solver[1+i] = inits[i];
+      if (!rmState[i]){
+	SET_STRING_ELT(sexp_colnames, 1+ii, STRING_ELT(temp,i));
+        solver[1+ii] = inits[i];
+	ii++;
+      }
     }
     for (i = 0; i < nlhs; i++){
-      SET_STRING_ELT(sexp_colnames,1+neq+i, STRING_ELT(sexp_lhs,i));
-      solver[1+neq+i] = NA_REAL;
+      SET_STRING_ELT(sexp_colnames,1+nPrnState+i, STRING_ELT(sexp_lhs,i));
+      solver[1+nPrnState+i] = NA_REAL;
     }
     temp = getAttrib(sexp_theta,R_NamesSymbol);
     for (i = 0; i < ncov*add_cov; i++){
-      SET_STRING_ELT(sexp_colnames,1+neq+nlhs+i, STRING_ELT(temp, par_cov[i]-1));
-      solver[1+neq+nlhs+i] = NA_REAL;
+      SET_STRING_ELT(sexp_colnames,1+nPrnState+nlhs+i, STRING_ELT(temp, par_cov[i]-1));
+      solver[1+nPrnState+nlhs+i] = NA_REAL;
     }
     /* SET_VECTOR_ELT(df,1,sexp_colnames); */
     INTEGER(sexp_rownames)[0] = NA_INTEGER;
@@ -1233,7 +1255,7 @@ static R_NativePrimitiveArgType RxODE_Sum_t[] = {
 
 void R_init_RxODE(DllInfo *info){
   R_CallMethodDef callMethods[]  = {
-    {"RxODE_ode_solver", (DL_FUNC) &RxODE_ode_solver, 24},
+    {"RxODE_ode_solver", (DL_FUNC) &RxODE_ode_solver, 25},
     {"_RxODE_rxInner", (DL_FUNC) &_RxODE_rxInner, 2},
     {"_RxODE_rxGrad", (DL_FUNC) &_RxODE_rxGrad, 1},
     {"_RxODE_rxHessian", (DL_FUNC) &_RxODE_rxHessian, 1},

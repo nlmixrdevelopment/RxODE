@@ -376,6 +376,7 @@ RxODE <- function(model, modName = basename(wd), wd = ifelse(RxODE.cache.directo
         state <- modVars$state;
         lhs <- modVars$lhs;
         pars <- modVars$params;
+        state.ignore <- modVars$state.ignore
         if (!is.null(params)){
             if (is.null(events) && class(params) == "EventTable"){
                 events <- params;
@@ -567,7 +568,8 @@ RxODE <- function(model, modName = basename(wd), wd = ifelse(RxODE.cache.directo
                             env,
                             extra.args,
                             do.matrix,
-                            add.cov)
+                            add.cov,
+                            state.ignore)
                 rc <- ret[[2]];
                 ret <- ret[[1]];
                 ## attr(ret, "solveRxDll")$matrix <- attr(ret, "solveRxDll")$matrix[events$get.obs.rec(), ];
@@ -613,7 +615,8 @@ RxODE <- function(model, modName = basename(wd), wd = ifelse(RxODE.cache.directo
                          env,
                          extra.args,
                          do.matrix,
-                         add.cov)
+                         add.cov,
+                         state.ignore)
                     rc <- ret[[2]];
                     ret <- ret[[1]];
                     ## attr(ret, "solveRxDll")$matrix <- attr(ret, "solveRxDll")$matrix[events$get.obs.rec(), ];
@@ -669,7 +672,8 @@ RxODE <- function(model, modName = basename(wd), wd = ifelse(RxODE.cache.directo
                         events=events,
                         event.table=event.table,
                         do.matrix=do.matrix,
-                        add.cov=add.cov);
+                        add.cov=add.cov,
+                        state.ignore=state.ignore);
 
             if (inC){
                 .Call("RxODE_ode_setup", inits, lhs_vars, time, evid, amt, pcov, cov, isLocf, atol, rtol, hmin, hmax,
