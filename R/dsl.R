@@ -34,6 +34,7 @@ regPrint <- rex::rex(start, or(known.print), or(group("(", anything, ")", any_sp
                      end)
 
 regIni0 <- rex::rex(start, "rx_", capture(anything), "_ini_0__", end);
+regIni <- rex::rex(or(group(one_of("_."), "0"), "0", "(0)", "[0]", "{0}"), end);
 
 ## Start DSL based on http://adv-r.had.co.nz/dsl.html
 ## These operators are called to create the language and are not called in tests.
