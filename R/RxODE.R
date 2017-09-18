@@ -1092,34 +1092,6 @@ print.rxCoefSolve <- function(x, ...){
     return(invisible());
 }
 
-
-##' Plot a model digram for simple ODE models
-##'
-##' @param x is an RxODE object.
-##'
-##' @param ... other arguments, see \code{\link{rxPlot}} for full
-##'     description.
-##'
-##' @seealso \code{\link{rxPlot}},\code{\link{RxODE}}.
-##'
-##' @export
-##' @importFrom graphics plot
-plot.RxODE <- function(x,...){ # nocov start
-    rxPlot(x$cmpMgr$rxDll(),...);
-} # nocov end
-
-##' @rdname plot.RxODE
-##' @export
-plot.rxDll <- function(x, ...){ #nocov start
-    rxPlot(x, ...);
-} #nocov end
-
-##' @rdname plot.RxODE
-##' @export
-plot.RxCompilationManager <- function(x, ...){ #nocov start
-    rxPlot(x, ...);
-} #nocov end
-
 ##' A compilation manager for RxODE models
 ##'
 ##' This function parses, compiles, links, and loads the shared object

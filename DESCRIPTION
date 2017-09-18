@@ -18,7 +18,6 @@ Suggests:
     knitr,
     nlme,
     shiny,
-    igraph,
     tcltk,
     testthat,
     devtools,
