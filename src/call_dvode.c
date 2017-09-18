@@ -1225,7 +1225,7 @@ SEXP _RxODE_RxODE_finalize_focei_omega(SEXP rho);
 SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SEXP parse_model,SEXP parse_model3);
 SEXP _RxODE_linCmtEnv(SEXP rho);
 SEXP _RxODE_rxInv(SEXP matrix);
-
+SEXP _RxODE_removableDrive(SEXP letter);
 SEXP _RxODE_rxCoutEcho(SEXP number);
 SEXP _RxODE_W_Cpp(SEXP zSEXP, SEXP branchSEXP);
 
@@ -1282,6 +1282,7 @@ void R_init_RxODE(DllInfo *info){
     {"_rxProd", (DL_FUNC) &_rxProd, 1},
     {"_rxSetSum",(DL_FUNC) &_rxSetSum, 1},
     {"_rxSetProd",(DL_FUNC) &_rxSetProd, 1},
+    {"_RxODE_removableDrive", (DL_FUNC) &_RxODE_removableDrive, 1},
     {NULL, NULL, 0}
   };
   

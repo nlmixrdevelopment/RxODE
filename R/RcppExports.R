@@ -134,3 +134,7 @@ W_Cpp <- function(z, branch) {
     .Call(`_RxODE_W_Cpp`, z, branch)
 }
 
+removableDrive <- function(driveRoot) {
+    .Call(`_RxODE_removableDrive`, driveRoot)
+}
+

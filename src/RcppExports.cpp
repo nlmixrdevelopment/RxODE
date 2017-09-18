@@ -194,3 +194,14 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// removableDrive
+bool removableDrive(std::string driveRoot);
+RcppExport SEXP _RxODE_removableDrive(SEXP driveRootSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< std::string >::type driveRoot(driveRootSEXP);
+    rcpp_result_gen = Rcpp::wrap(removableDrive(driveRoot));
+    return rcpp_result_gen;
+END_RCPP
+}

@@ -26,18 +26,23 @@ rxPhysicalDrives <- function(duplicates=FALSE){
             if (length(dups) > 1){
                 if (duplicates){
                     ## Duplicate drive names are more likely to be removable media letters (like usb/cd/etc.)
-                    return(sort(unique(dups)))
+                    d <- paste0(sort(unique(dups)), "\\")
+                    w <- which(!sapply(d, removableDrive))
+                    return(d[w]);
                 } else {
-                    return(sort(unique(ns[!(ns %in% dups)])));
+                    d <- paste0(sort(unique(ns[!(ns %in% dups)])), "\\");
+                    w <- which(!sapply(d, removableDrive))
+                    return(d[w]);
                 }
             } else {
-                return(sort(ns))
+                d <- paste0(sort(ns), "\\");
+                w <- which(!sapply(d, removableDrive))
+                return(d[w])
             }
             ret <- ns;
         } else {
-            ret <- "C:";
+            ret <- "C:\\";
         }
-        assignInMyNamespace("rxPhysicalDrives.save", ret);
         return(ret)
     }
 }
@@ -112,9 +117,8 @@ rxRtoolsBaseWin <- function(){
             ver <- R.Version();
             ver <- paste0(ver$major, ".", gsub(rex::rex(start, capture(except_any_of(".")), ".", anything, end), "\\1", ver$minor))
             if (!file.exists(rtools.base)){## Based on Issue #2, Rtools may also be installed to RBuildTools;  This is also reflected on the R-stan website.
-                rtoolslist <- apply(expand.grid(c("Rtools", paste0("Rtools/", ver), "RBuildTools", paste0("RBuildTools/", ver)), paste0(rxPhysicalDrives(), "/")),1,
+                rtoolslist <- apply(expand.grid(c("Rtools", paste0("Rtools/", ver), "RBuildTools", paste0("RBuildTools/", ver)), rxPhysicalDrives()),1,
                                     function(x){ paste0(x[2], x[1])});
-                rtoolslist  <- paste(rxPhysicalDrives(), ":/Rtools", sep="")
                 for (path in rtoolslist){
                     if (file.exists(path)){
                         return(path)
