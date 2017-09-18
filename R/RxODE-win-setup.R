@@ -1,43 +1,35 @@
-rxWget <- function(url, to){
-  cat("Checking for wget.exe...\n")
-  
-  if (Sys.which("wget") == ""){
-        if (.Platform$r_arch == "i386"){
-          
-          rtoolslist <- paste(letters, ":/RTOOLS/mingw_32/bin", sep="")
-          rtoolspath <- rtoolslist[which(file.exists(rtoolslist, sep=""))]
-          
-            if (any(file.exists(rtoolspath))){
-              try(download.file("https://eternallybored.org/misc/wget/current/wget.exe", paste(rtoolspath, "/wget.exe", sep="")))
-              if (!file.exists(paste(rtoolspath, "/wget.exe", sep=""))){
-                    stop(paste("Cannot install wget. Please download from https://eternallybored.org/misc/wget/current/wget.exe and install into ",
-                               rtoolspath, " before continuing.\n", sep=""))
-                }
+rxPhysicalDrives.save <- NULL;
+##' Returns a list of physical drives that have been or currently are
+##' mounted to the computer.
+##'
+##' This excludes network drives.  See
+##' \url{https://www.forensicmag.com/article/2012/06/windows-7-registry-forensics-part-5}
+##'
+##' @return Drives with letters
+##' @author Matthew L. Fidler
+##' @keywords internal
+##' @export
+rxPhysicalDrives <- function(){
+    if(.Platform$OS.type == "unix"){
+        return(NULL)
+    } else {
+        if (is.null(rxPhysicalDrives.save)){
+            ## This lists all the drive letters (and volume
+            ## information) of drives mounted to your computer.
+            n <- names(utils::readRegistry("SYSTEM\\MountedDevices"))
+            reg <- rex::rex(start, "\\DosDevices\\", capture(or("A":"Z", "a":"z"), ":"), end)
+            ns <- n[regexpr(reg, n) != -1];
+            if (length(n) > 0){
+                ns <- sort(unique(toupper(gsub(reg, "\\1", ns))));
+                ret <- ns;
             } else {
-                try(download.file("https://eternallybored.org/misc/wget/current/wget.exe", "wget.exe"))
-
+                ret <- "C:";
             }
+            assignInMyNamespace("rxPhysicalDrives.save", ret);
+            return(ret)
         } else {
-          
-          rtoolslist <- paste(letters, ":/RTOOLS/mingw_64/bin", sep="")
-          rtoolspath <- rtoolslist[which(file.exists(rtoolslist, sep=""))]
-          
-          if (any(file.exists(rtoolspath))){
-                try(download.file("https://eternallybored.org/misc/wget/current/wget64.exe", paste(rtoolspath, "/wget.exe", sep="")))
-                if (!file.exists(paste(rtoolspath, "/wget.exe", sep=""))){
-                  stop(paste("Cannot install wget. Please download from https://eternallybored.org/misc/wget/current/wget64.exe and install as wget.exe into ",
-                             rtoolspath, " before continuing.\n", sep=""))
-                }
-            } else {
-                try(download.file("https://eternallybored.org/misc/wget/current/wget64.exe", "wget.exe"))
-            }
+            return(rxPhysicalDrives.save);
         }
-    }
-    if (Sys.which("wget") == ""){
-        stop("wget is not available. Please install manually before continuing.");
-    }
-    if (Sys.which("wget") != ""){
-        download.file(url, to, method="wget", extra="--progress=dot --no-check-certificate");
     }
 }
 
@@ -76,34 +68,54 @@ rxRtoolsBaseWin <- function(){
     if(.Platform$OS.type == "unix"){
         return("");
     } else {
-        
-        if (length(grep("rtools", tolower(Sys.which("gcc.exe"))))==0) {
-          stop("RxODE cannot be installed, since Rtools isn't set up appropriately. Please (re)install it and try again.\n")
-        } 
-        
-        # if (!file.exists(rtools.base)){
-        #     keys <- NULL
-        #     try(keys <- utils::readRegistry("SOFTWARE\\R-core\\Rtools", hive = "HCU", view = "32-bit", maxdepth = 2), silent = TRUE)
-        #     if (is.null(keys) || length(keys) == 0)
-        #         try(keys <- utils::readRegistry("SOFTWARE\\R-core\\Rtools", hive = "HLM", view = "32-bit", maxdepth = 2), silent = TRUE)
-        #     if (is.null(keys) || length(keys) == 0){
-        #         stop("Cannot use this package because Rtools isn't setup appropriately...")
-        #     }
-        # 
-            # for(i in seq_along(keys)) {
-            #     version <- names(keys)[[i]]
-            #     key <- keys[[version]]
-            #     if (!is.list(key) || is.null(key$InstallPath)) next;
-            #     install_path <- normalizePath(key$InstallPath, mustWork = FALSE, winslash = "/");
-            #     if (file.exists(install_path)){
-            #         rtools.base <- install_path;
-            #     }
-            # }
-        # }
-      
-      rtoolslist  <- paste(letters, ":/Rtools", sep="")
-      rtools.base <- rtoolslist[which(file.exists(rtoolslist, sep=""))]
-      return(rtools.base)
+        ## The grep solution assumes that the path is setup correctly;
+        if (length(grep("(rtools|rbuildtools)", tolower(Sys.which("gcc.exe"))))!=0) {
+            normalizePath(sub("[/\\](mingw).*", "", Sys.which("gcc.exe")))
+        } else {
+            ## Rtools doesn't add itself to the path by default.  To
+            ## remove install headaches, fish for the path a bit.
+
+            ## The general solution also corrects the problem of
+            ## having msys or cygwin compilers on top of the Rtools
+            ## compiler, and will adjust the path (just because which
+            ## shows a different path doesn't mean Rtools isn't
+            ## there.)
+            if (!file.exists(rtools.base)){
+                ## This is what Rtools installer is supposed to do.  There is some discussion on devtools if this really occurs...
+                keys <- NULL
+                try(keys <- utils::readRegistry("SOFTWARE\\R-core\\Rtools", hive = "HCU", view = "32-bit", maxdepth = 2), silent = TRUE)
+                if (is.null(keys) || length(keys) == 0)
+                    try(keys <- utils::readRegistry("SOFTWARE\\R-core\\Rtools", hive = "HLM", view = "32-bit", maxdepth = 2), silent = TRUE)
+                if (is.null(keys) || length(keys) == 0){
+                    stop("Cannot use this package because Rtools isn't setup appropriately...")
+                }
+
+                for(i in seq_along(keys)) {
+                    version <- names(keys)[[i]]
+                    key <- keys[[version]]
+                    if (!is.list(key) || is.null(key$InstallPath)) next;
+                    install_path <- normalizePath(key$InstallPath, mustWork = FALSE, winslash = "/");
+                    if (file.exists(install_path)){
+                        rtools.base <- install_path;
+                    }
+                }
+            }
+            ver <- R.Version();
+            ver <- paste0(ver$major, ".", gsub(rex::rex(start, capture(except_any_of(".")), ".", anything, end), "\\1", ver$minor))
+            if (!file.exists(rtools.base)){## Based on Issue #2, Rtools may also be installed to RBuildTools;  This is also reflected on the R-stan website.
+                rtoolslist <- apply(expand.grid(c("Rtools", paste0("Rtools/", ver), "RBuildTools", paste0("RBuildTools/", ver)), paste0(rxPhysicalDrives(), "/")),1,
+                                    function(x){ paste0(x[2], x[1])});
+                rtoolslist  <- paste(rxPhysicalDrives(), ":/Rtools", sep="")
+                for (path in rtoolslist){
+                    if (file.exists(path)){
+                        return(path)
+                    }
+                }
+                ## This way avoid's R's slow for loop, but calculates all file.exists.  I think it may still be slower than a for loop that terminates early
+                ## rtools.base <- rtoolslist[which(file.exists(rtoolslist, sep=""))]
+            }
+            return(rtools.base)
+        }
     }
 }
 ##' Setup Rtools path
@@ -129,7 +141,7 @@ rxWinRtoolsPath <- function(rm.rtools=TRUE){
         }
         r.path <- normalizePath(file.path(Sys.getenv("R_HOME"),paste0("bin",Sys.getenv("R_ARCH"))));
         path <- c(r.path, path);
-        
+
         ## Look in the registry...
         ## This is taken from devtools and adapted.
         rtools.base <- rxRtoolsBaseWin();
@@ -138,6 +150,7 @@ rxWinRtoolsPath <- function(rm.rtools=TRUE){
             if (is.na(gcc)){
                 gcc <- "";
             }
+            ## This allows both toolchains to be present, but RxODE should still work...
             for (x in rev(c(file.path(rtools.base, "bin"),
                             ## file.path(rtools.base, "mingw_32/bin") ## Rtools sets up the mingw_32/bin first (even if x64)
                             file.path(rtools.base, ifelse(.Platform$r_arch == "i386","mingw_32/bin", "mingw_64/bin")),
@@ -179,7 +192,14 @@ rxWinRtoolsPath <- function(rm.rtools=TRUE){
                     }
                 }
             }
-
+            ## Last Cran check for Rtools is qpdf
+            qpdf <- c(paste0(rtools.base, "/qpdf/bin"), paste0(rxPhysicalDrives(), "/qpdf/bin"))
+            for (p in qpdf){
+                if (file.exists(p)){
+                    path <- c(normalizePath(p), path);
+                    break;
+                }
+            }
             path <- path[path != ""];
             path <- paste(unique(path), collapse=";");
             Sys.setenv(PATH=path);
@@ -200,10 +220,10 @@ rxWinPythonSetup <- function(){
     }
     if (file.access(paste(base, "/Lib/site-packages", sep=""),2)==-1){
       stop("The Python library path does not appear to be writeable. Please rectify this situation, restart R, and try again.")
-    } 
+    }
     message("Attempting to install simpy. This may take a few seconds...")
     try(system("python -m pip install sympy"))
-    
+
     if (!requireNamespace("SnakeCharmR", quietly = TRUE)){
         message("Attempting to install SnakeCharmR. This may take a few seconds...")
         devtools::install_github("asieira/SnakeCharmR");
