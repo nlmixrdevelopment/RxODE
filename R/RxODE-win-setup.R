@@ -1,35 +1,44 @@
-rxPhysicalDrives.save <- NULL;
+rxPhysicalDrives.slow <- NULL; # memoise.
 ##' Returns a list of physical drives that have been or currently are
 ##' mounted to the computer.
 ##'
 ##' This excludes network drives.  See
 ##' \url{https://www.forensicmag.com/article/2012/06/windows-7-registry-forensics-part-5}
 ##'
+##' @param duplicates Return drives with duplicate entires in
+##'     \code{SYSTEM\MountedDevices}; These are likely removable media.  By default this is \code{FALSE}
 ##' @return Drives with letters
 ##' @author Matthew L. Fidler
 ##' @keywords internal
 ##' @export
-rxPhysicalDrives <- function(){
+rxPhysicalDrives <- function(duplicates=FALSE){
     if(.Platform$OS.type == "unix"){
         return(NULL)
     } else {
-        if (is.null(rxPhysicalDrives.save)){
-            ## This lists all the drive letters (and volume
-            ## information) of drives mounted to your computer.
-            n <- names(utils::readRegistry("SYSTEM\\MountedDevices"))
-            reg <- rex::rex(start, "\\DosDevices\\", capture(or("A":"Z", "a":"z"), ":"), end)
-            ns <- n[regexpr(reg, n) != -1];
-            if (length(n) > 0){
-                ns <- sort(unique(toupper(gsub(reg, "\\1", ns))));
-                ret <- ns;
+        ## This lists all the drive letters (and volume
+        ## information) of drives mounted to your computer.
+        n <- names(utils::readRegistry("SYSTEM\\MountedDevices"))
+        reg <- rex::rex(start, "\\DosDevices\\", capture(or("A":"Z", "a":"z"), ":"), end)
+        ns <- n[regexpr(reg, n) != -1];
+        if (length(n) > 0){
+            ns <- toupper(gsub(reg, "\\1", ns));
+            dups <- unique(ns[duplicated(ns)]);
+            if (length(dups) > 1){
+                if (duplicates){
+                    ## Duplicate drive names are more likely to be removable media letters (like usb/cd/etc.)
+                    return(sort(unique(dups)))
+                } else {
+                    return(sort(unique(ns[!(ns %in% dups)])));
+                }
             } else {
-                ret <- "C:";
+                return(sort(ns))
             }
-            assignInMyNamespace("rxPhysicalDrives.save", ret);
-            return(ret)
+            ret <- ns;
         } else {
-            return(rxPhysicalDrives.save);
+            ret <- "C:";
         }
+        assignInMyNamespace("rxPhysicalDrives.save", ret);
+        return(ret)
     }
 }
 

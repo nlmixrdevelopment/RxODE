@@ -5,7 +5,11 @@
 \title{Returns a list of physical drives that have been or currently are
 mounted to the computer.}
 \usage{
-rxPhysicalDrives()
+rxPhysicalDrives(duplicates = FALSE)
+}
+\arguments{
+\item{duplicates}{Return drives with duplicate entires in
+\code{SYSTEM\MountedDevices}; These are likely removable media.  By default this is \code{FALSE}}
 }
 \value{
 Drives with letters
