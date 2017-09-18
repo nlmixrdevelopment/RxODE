@@ -489,6 +489,16 @@ rxSymInv <- function(invobj, theta, pow=0, dTheta=0){
     }
 }
 
+##' Creates a logical matrix for block matrixes.
+##'
+##' @param mat Matrix
+##' @param i Row/column where block matrix should be setup.
+##'
+##' @return A logical matrix returning where the elements should be
+##'     zero.
+##'
+##' @keywords internal
+##' @export
 rxBlockZeros <- function(mat, i){
     return(!((row(mat) > i & col(mat) > i) | (row(mat) <= i & col(mat) <= i)))
 }
