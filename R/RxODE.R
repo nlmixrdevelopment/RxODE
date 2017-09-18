@@ -1,3 +1,4 @@
+rex::register_shortcuts("RxODE");
 ##' Create an ODE-based model specification
 ##'
 ##' Create a dynamic ODE-based model object suitably for translation
