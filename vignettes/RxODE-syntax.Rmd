@@ -48,16 +48,40 @@ end-of-line).
 A block of statements is a set of statements delimited by
 curly braces, `{ ... }`.
 
-Statements can be either assignments or conditional `if`
-statements. Assignment statements can be either **simple**
-assignments, where the left hand is an identifier (i.e., variable), or 
-special **time-derivative** assignments, where the left hand
-specifies the change of the amount in the corresponding state
-variable (compartment) with respect to time e.g., `d/dt(depot)`:
+Statements can be either assignments, conditional `if` statements, or
+printing statements (for debugging/testing). Assignment statements can
+be:
+
+- **simple** assignments, where the left hand is an identifier (i.e.,
+  variable)
+- special **time-derivative** assignments, where the left hand
+  specifies the change of the amount in the corresponding state
+  variable (compartment) with respect to time e.g., `d/dt(depot)`:
+- special **initial-condition** assignments where the left hand
+  specifies the compartment of the initial condition being specified,
+  e.g. `depot(0) = 0`
+- special **Jacobian-derivative** assignments, where the left hand
+  specifies the change in the compartment ode with respect to a
+  variable.  For example, if `d/dt(y) = dy`, then a Jacobian for this
+  compartment can be specified as `df(y)/dy(dy) = 1`.  There may be
+  some advantage to obtaining the solution or specifying the Jacobian
+  for very stiff ODE systems.  However, for the few stiff systems we
+  tried with LSODA, this actually slightly slowed down the solving.
+  
+Note that assignment can be done by `=` or `<-`.
+
+Additionally, assignment can be done with the `~` operator, which
+causes RxODE to use the variable/expression while solving but suppress
+output to either the matrix or data-frame returned in R. The
+suppression works with **simple assignments** and **time-derivative**
+assignments.  All other variable/assignments do not produce output,
+but are used for the solving.
+
+An example model is shown below:
 
 ```
    # simple assignment
-   C2 = centr/V2;  
+   C2 = centr/V2;
 
    # time-derivative assignment
    d/dt(centr) = F*KA*depot - CL*C2 - Q*C2 + Q*C3; 
@@ -68,7 +92,7 @@ however, no character nor integer expressions are currently supported.
 
 Numeric expressions can include the following numeric operators `+, -,
 *, /, ^` and those mathematical functions defined in the C or the R
-math libraries (e.g., `fabs`, `exp`, `log`, `sin`).  In addition, the
+math libraries (e.g., `fabs`, `exp`, `log`, `sin`, `abs`).  In addition, the
 factorial operator and function (either `!` or `factorial` as in R)
 can be used. Notice that the modulo operator `%` is currently
 unsupported.
@@ -84,8 +108,9 @@ than `abc`, `Abc`, `ABc`, etc.
 
 ### Identifiers
 
-Identifiers (variable names) may consist of one or more alphanumeric 
-and underscore `_` characters, but the first character cannot be a digit.
+Like R, Identifiers (variable names) may consist of one or more alphanumeric,
+underscore `_` or period `.` characters, but the first character
+cannot be a digit or underscore `_`.
 
 Identifiers in a model specification can refer to:
 * State variables in the dynamic system (e.g., compartments in a
@@ -93,6 +118,8 @@ Identifiers in a model specification can refer to:
 * Implied input variable, `t` (time), `tlast` (last time point), and 
   `podo` (oral dose, in the undocumented case of absorption transit 
    models).
+* Special constants like `pi` or
+  [R's predefined constants](https://cran.r-project.org/doc/manuals/r-release/R-exts.html#Mathematical-constants).
 * Model parameters (e.g., `ka` rate of absorption, `CL` clearance, etc.)
 * Others, as created by assignments as part of the model specification;
   these are referred as *LHS* (left-hand side) variable.
@@ -101,6 +128,12 @@ Currently, the `RxODE` modeling language only recognizes system state
 variables and "parameters", thus, any values that need to be passed 
 from R to the ODE model (e.g., `age`) should be passed in the `params` 
 argument of the integrator function `solve()`.
+
+Sometimes RxODE generates variables that are fed back to RxODE.  These
+variables start with the `rx` prefix.  To avoid any problems, it is
+suggested to not use these variables starting with the `rx` prefix.
+
+## Special RxODE functions
 
 ## Interface and data handling between R and the generated C code
 
@@ -138,4 +171,3 @@ open source tool *DParser*, Plevyak (2015).
 ## Bugs and/or deficiencies
 
 The modulo operator `%` is currently unsupported. 
-

@@ -107,7 +107,7 @@ applied more generally to any ODE model.
 The model equations are specified through a text string in R. Both
 differential and algebraic equations are permitted. Differential
 equations are specified by `d/dt(var_name) = `. Each
-equation is separated by a semicolon.
+equation can be separated by a semicolon.
 
 ```r
 ode <- "
@@ -126,28 +126,7 @@ library(RxODE)
 work <- tempfile("Rx_intro-")
 mod1 <- RxODE(model = ode, modName = "mod1", wd = work)
 ```
-
-A typical pharmacokinetics-pharmacodynamics (PKPD) model can be
-plotted in `RxODE`. This model, as shown in the figure below:
-
-```r
-plot(mod1);
-```
-
-```
-## Package igraph needed for this function to work. Please install it.
-```
-
-Sometimes the size of the boxes may need to be adjusted, you can do
-this by adjusting the `size` argument:
-
-```r
-plot(mod1,size=40);
-```
-
-```
-## Package igraph needed for this function to work. Please install it.
-```
+##### Specify ODE parameters and initial conditions
 
 Model parameters can be defined as named vectors. Names of parameters in
 the vector must be a superset of parameters in the ODE model, and the
@@ -157,7 +136,7 @@ order of parameters within the vector is not important.
 theta <- 
    c(KA=2.94E-01, CL=1.86E+01, V2=4.02E+01, # central 
      Q=1.05E+01,  V3=2.97E+02,              # peripheral
-     Kin=1, Kout=1, EC50=200)               # effects  
+     Kin=1, Kout=1, EC50=200)               # effects
 ```
 
 Initial conditions (ICs) are defined through a vector as well. If the
@@ -166,7 +145,7 @@ ODEs in the model, and the order must be the same as the order in
 which the ODEs are listed in the model. 
 
 ```r
-inits <- c(0, 0, 0, 1)    
+inits <- c(0, 0, 0, 1)
 ```
 
 When elements are named, missing elements are added and set to
@@ -178,6 +157,7 @@ code above.
 inits <- c(eff=1);
 ```
 
+##### Specify Dosing and sampling in RxODE
 
 `RxODE` provides a simple and very flexible way to specify dosing and
 sampling through functions that generate an event table. First, an
@@ -241,7 +221,9 @@ head(ev$get.sampling())
 ## 21    5    0  NA
 ```
 
-The simulation can now be run by calling the model object's run
+##### Solving ODEs
+
+The ODE can now be solved by calling the model object's `run` or `solve`
 function. Simulation results for all variables in the model are stored
 in the output matrix x. 
 
@@ -269,12 +251,12 @@ matplot(x[,"C2"], type="l", ylab="Central Concentration")
 matplot(x[,"eff"], type="l", ylab = "Effect")
 ```
 
-![plot of chunk unnamed-chunk-14](vignettes/figure/unnamed-chunk-14-1.png)
+![plot of chunk unnamed-chunk-12](vignettes/figure/unnamed-chunk-12-1.png)
 
-You can also return a solved object that
-behaves a little like a data-frame.
+##### Using RxODE data frames
 
-This can also be solved by the `predict()` or `solve()` methods:
+You can also return a solved object that is a modified data-frame.
+This is done by the `predict()` or `solve()` methods:
 
 ```r
 x <- predict(mod1,theta, ev, inits)
@@ -283,7 +265,7 @@ print(x)
 
 ```
 ## Solved RxODE object
-## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpYdfzmg\Rx_intro-1bf86a82ea0/mod1.d/mod1_x64.dll
+## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\Rtmpm6X7Cd\Rx_intro-f64392e276f/mod1.d/mod1_x64.dll
 ## 
 ## Parameters:
 ##      V2      V3      KA      CL       Q     Kin    Kout    EC50 
@@ -316,7 +298,7 @@ print(x)
 
 ```
 ## Solved RxODE object
-## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpYdfzmg\Rx_intro-1bf86a82ea0/mod1.d/mod1_x64.dll
+## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\Rtmpm6X7Cd\Rx_intro-f64392e276f/mod1.d/mod1_x64.dll
 ## 
 ## Parameters:
 ##      V2      V3      KA      CL       Q     Kin    Kout    EC50 
@@ -350,7 +332,7 @@ print(x)
 
 ```
 ## Solved RxODE object
-## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpYdfzmg\Rx_intro-1bf86a82ea0/mod1.d/mod1_x64.dll
+## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\Rtmpm6X7Cd\Rx_intro-f64392e276f/mod1.d/mod1_x64.dll
 ## 
 ## Parameters:
 ##      V2      V3      KA      CL       Q     Kin    Kout    EC50 
@@ -412,65 +394,12 @@ x
 ## 4    3  4139.542 2086.518 1323.5783 1.228914 51.90343 4.4564927
 ```
 
-It can also be transformed to a `data.table`:
-
-```r
-dt <- NULL
-if (any(installed.packages()[,"Package"] == "data.table")){
-    library(data.table)
-    dt <- as.data.table(mod1 %>% solve(theta, ev, inits))
-}
-```
-
-```
-## data.table 1.10.4
-```
-
-```
-##   The fastest way to learn (by data.table authors): https://www.datacamp.com/courses/data-analysis-the-data-table-way
-```
-
-```
-##   Documentation: ?data.table, example(data.table) and browseVignettes("data.table")
-```
-
-```
-##   Release notes, videos and slides: http://r-datatable.com
-```
-
-```
-## 
-## Attaching package: 'data.table'
-```
-
-```
-## The following objects are masked from 'package:dplyr':
-## 
-##     between, first, last
-```
-
-```r
-dt
-```
-
-```
-##      time       depot     centr       peri      eff       C2         C3
-##   1:    0 10000.00000    0.0000     0.0000 1.000000  0.00000  0.0000000
-##   2:    1  7452.76491 1783.8970   273.1895 1.084664 44.37555  0.9198298
-##   3:    2  5554.37049 2206.2948   793.8758 1.180825 54.88296  2.6729825
-##   4:    3  4139.54175 2086.5177  1323.5783 1.228914 51.90343  4.4564927
-##   5:    4  3085.10315 1788.7947  1776.2702 1.234610 44.49738  5.9807076
-##  ---                                                                   
-## 237:  236    55.94393  657.1472 12306.1449 1.085710 16.34694 41.4348314
-## 238:  237    41.69367  634.5027 12044.3385 1.082312 15.78365 40.5533284
-## 239:  238    31.07331  614.4486 11786.1638 1.079377 15.28479 39.6840532
-## 240:  239    23.15820  596.3951 11532.0795 1.076794 14.83570 38.8285506
-## 241:  240    17.25925  579.9010 11282.3975 1.074483 14.42540 37.9878702
-```
-
 However it isn't just a simple data object.  You can use the solved
 object to update paramters on the fly, or even change the sampling
 time.
+
+
+First we need to recreate the original solved system:
 
 ```r
 x <- mod1 %>% solve(theta,ev,inits);
@@ -507,7 +436,7 @@ x
 
 ```
 ## Solved RxODE object
-## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpYdfzmg\Rx_intro-1bf86a82ea0/mod1.d/mod1_x64.dll
+## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\Rtmpm6X7Cd\Rx_intro-f64392e276f/mod1.d/mod1_x64.dll
 ## 
 ## Parameters:
 ##      V2      V3      KA      CL       Q     Kin    Kout    EC50 
@@ -551,7 +480,7 @@ x
 
 ```
 ## Solved RxODE object
-## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpYdfzmg\Rx_intro-1bf86a82ea0/mod1.d/mod1_x64.dll
+## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\Rtmpm6X7Cd\Rx_intro-f64392e276f/mod1.d/mod1_x64.dll
 ## 
 ## Parameters:
 ##      V2      V3      KA      CL       Q     Kin    Kout    EC50 
@@ -576,7 +505,19 @@ x
 ## # ... with 14 more rows
 ```
 
-You can also access or change parameters in this way:
+You can also access or change parameters by the `$` operator.  For
+example, accessing `KA` can be done by:
+
+```r
+x$KA
+```
+
+```
+##    KA 
+## 0.294
+```
+
+And you may change it by assigning it to a new value.
 
 ```r
 x$KA <- 1;
@@ -592,7 +533,7 @@ x
 
 ```
 ## Solved RxODE object
-## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpYdfzmg\Rx_intro-1bf86a82ea0/mod1.d/mod1_x64.dll
+## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\Rtmpm6X7Cd\Rx_intro-f64392e276f/mod1.d/mod1_x64.dll
 ## 
 ## Parameters:
 ##    V2    V3    KA    CL     Q   Kin  Kout  EC50 
@@ -623,15 +564,565 @@ the `$params`, `$inits`, `$events` accessor syntax, similar to what is
 used above.
 
 This syntax makes it easy to update and explore the effect of various
-parametrs on the solved object.
+parameters on the solved object.
+
+#### Mixing Solved Systems and ODEs.
+
+In addition to pure ODEs, you may mix solved systems and ODEs.  The
+prior 2-compartment indirect response model can be simplified with a
+`linCmt()` function:
+
+```r
+mod2 <- RxODE({
+    ## the order of variables do not matter, the type of compartmental
+    ## model is determined by the parameters specified.
+    C2   = linCmt(KA, CL, V2, Q, V3);
+    eff(0) = 1  ## This specifies that the effect compartment starts at 1.
+    kin = kin0+ amp*cos(2*pi*ctime)
+    d/dt(eff) =  Kin - Kout*(1-C2/(EC50+C2))*eff;
+})
+```
+.
+Like a Sherlock Holmes on the case of a mystery, the `linCmt()`
+function figures out the type of model to use based on the parameter
+names specified.
+
+Most often, pharmacometric models are parameterized in terms of volume
+and clearances. Clearances are specified by NONMEM-style names of
+`CL`, `Q`, `Q1`, `Q2`, etc. or distributional clearances `CLD`,
+`CLD2`. Volumes are specified by Central (`VC` or `V`),
+Peripheral/Tissue (`VP`, `VT`).
+
+Another popular parameterization is in terms of micro-constants. RxODE assumes
+compartment `1` is the central compartment.  The elimination constant
+would be specified by `K`, `Ke` or `Kel`.
+
+Once the `linCmt()` sleuthing is complete, the `1`, `2` or `3`
+compartment model solution is used as the value of `linCmt()`.
+
+This allows the indirect response model above to assign the
+2-compartment model to the `C2` variable and the used in the indirect
+response model.
+
+When mixing the solved systems and the ODEs, the solved system's
+compartment is always the last compartment.  This is because the
+solved system technically isn't a compartment to be solved.  Adding
+the dosing compartment to the end will not interfere with the actual
+ODE to be solved.
+
+Therefore,in the two-compartment indirect response model, the effect
+compartment is compartment #1 while the PK dosing compartment for the
+depot is compartment #2.
+
+This compartment model requires a new event table since the
+compartment number changed:
+
+```r
+ev <- eventTable(amount.units='mg', time.units='hours') %>%
+    add.dosing(dose=10000, nbr.doses=10, dosing.interval=12,dosing.to=2) %>%
+    add.dosing(dose=20000, nbr.doses=5, start.time=120,dosing.interval=24,dosing.to=2) %>%
+    add.sampling(0:240);
+```
+
+This can be solved with the following command:
+
+```r
+(x <- mod2 %>%  solve(theta, ev))
+```
+
+```
+## Error in rxInits(dll, params, pars, NA, !is.null(covs)): Missing the following parameter(s):
+## kin0 amp ctime
+```
+
+Note this solving did not require specifying the effect compartment
+initial condition to be `1`.  Rather, this is already pre-specified by `eff(0)=1`.
+
+This can be solved for different initial conditions easily:
+
+```r
+(x <- mod2 %>%  solve(theta, ev,c(eff=2)))
+```
+
+```
+## Error in rxInits(dll, params, pars, NA, !is.null(covs)): Missing the following parameter(s):
+## kin0 amp ctime
+```
+
+The RxODE detective also does not require you to specify the variables
+in the `linCmt()` function if they are already defined in the block.
+
+Therefore, the following function will also work to solve the same
+system.
+
+```r
+mod3 <- RxODE({
+    KA=2.94E-01;
+    CL=1.86E+01; 
+    V2=4.02E+01; 
+    Q=1.05E+01;
+    V3=2.97E+02; 
+    Kin=1;
+    Kout=1;
+    EC50=200;
+    ## The linCmt() picks up the variables from above
+    C2   = linCmt();
+    eff(0) = 1  ## This specifies that the effect compartment starts at 1.
+    d/dt(eff) =  Kin - Kout*(1-C2/(EC50+C2))*eff;
+})
+
+(x <- mod3 %>%  solve(ev))
+```
+
+```
+## Solved RxODE object
+## Dll: c:/SVN/Wenping/RxODE/vignettes/rx_4fc39d41795204d36ccbd801eb81663b_x64.dll
+## 
+## Parameters:
+##      KA      CL      V2       Q      V3     Kin    Kout    EC50 
+##   0.294  18.600  40.200  10.500 297.000   1.000   1.000 200.000 
+## 
+## 
+## Initial Conditions:
+## eff 
+##   1 
+## 
+## 
+## First part of data:
+## # A tibble: 241 x 3
+##    time      eff       C2
+##   <dbl>    <dbl>    <dbl>
+## 1     0 1.000000  0.00000
+## 2     1 1.084665 44.37555
+## 3     2 1.180826 54.88295
+## 4     3 1.228914 51.90342
+## 5     4 1.234610 44.49737
+## 6     5 1.214743 36.48434
+## # ... with 235 more rows
+```
+
+Note that you do not specify the parameters when solving the system
+since they are built into the model, but you can override the parameters:
+
+```r
+(x <- mod3 %>%  solve(c(KA=10),ev))
+```
+
+```
+## Solved RxODE object
+## Dll: c:/SVN/Wenping/RxODE/vignettes/rx_4fc39d41795204d36ccbd801eb81663b_x64.dll
+## 
+## Parameters:
+##    KA    CL    V2     Q    V3   Kin  Kout  EC50 
+##  10.0  18.6  40.2  10.5 297.0   1.0   1.0 200.0 
+## 
+## 
+## Initial Conditions:
+## eff 
+##   1 
+## 
+## 
+## First part of data:
+## # A tibble: 241 x 3
+##    time      eff        C2
+##   <dbl>    <dbl>     <dbl>
+## 1     0 1.000000   0.00000
+## 2     1 1.340982 130.61937
+## 3     2 1.392185  64.75317
+## 4     3 1.298397  33.17930
+## 5     4 1.191799  18.02218
+## 6     5 1.115887  10.72199
+## # ... with 235 more rows
+```
+
+#### ODEs and covariates
+
+Covariates are easy to specify in RxODE, you can specify them as a
+variable. Time-varying covariates, like clock time in a circadian
+rhythm model, can also be used.  Extending the indirect response model
+already discussed, we have:
+
+```r
+mod3 <- RxODE({
+    KA=2.94E-01;
+    CL=1.86E+01; 
+    V2=4.02E+01; 
+    Q=1.05E+01;
+    V3=2.97E+02; 
+    Kin0=1;
+    Kout=1;
+    EC50=200;
+    ## The linCmt() picks up the variables from above
+    C2   = linCmt();
+    Tz= 8
+    amp=0.1
+    eff(0) = 1  ## This specifies that the effect compartment starts at 1.
+    ## Kin changes based on time of day (like cortosol)
+    Kin =   Kin0 +amp *cos(2*pi*(ctime-Tz)/24)
+    d/dt(eff) =  Kin - Kout*(1-C2/(EC50+C2))*eff;
+})
+
+
+ev <- eventTable(amount.units="mg", time.units="hours") %>%
+    add.dosing(dose=10000, nbr.doses=1, dosing.to=2) %>%
+    add.sampling(seq(0,48,length.out=100));
+
+
+ ## Create data frame of  8 am dosing for the first dose
+cov.df  <- data.frame(ctime =(seq(0,48,length.out=100)+8) %% 24);
+```
+
+Now there is a covariate present, the system can be solved using the cov option
+
+```r
+(r1 <- solve(mod3, ev, covs=cov.df,covs_interpolation="linear"))
+```
+
+```
+## Solved RxODE object
+## Dll: c:/SVN/Wenping/RxODE/vignettes/rx_d86522ae68ecd84e47790f7e71c0cf79_x64.dll
+## 
+## Parameters:
+##         KA         CL         V2          Q         V3       Kin0 
+##   0.294000  18.600000  40.200000  10.500000 297.000000   1.000000 
+##       Kout       EC50         Tz        amp         pi 
+##   1.000000 200.000000   8.000000   0.100000   3.141593
+```
+
+```
+## 
+## Time Varying Covariates
+```
+
+```
+## ctime
+```
+
+```
+## 
+## 
+## Initial Conditions:
+## eff 
+##   1 
+## 
+## 
+## First part of data:
+## # A tibble: 100 x 4
+##        time      eff       C2      Kin
+##       <dbl>    <dbl>    <dbl>    <dbl>
+## 1 0.0000000 1.000000  0.00000 1.099195
+## 2 0.4848485 1.067175 27.76574 1.096795
+## 3 0.9696970 1.144556 43.67518 1.092837
+## 4 1.4545455 1.212373 51.75572 1.087385
+## 5 1.9393939 1.263980 54.76289 1.080527
+## 6 2.4242424 1.298023 54.57072 1.072373
+## # ... with 94 more rows
+```
+
+When solving ODE equations, the solver may sample times outside of the
+data.  When this happens, this ODE solver uses linear interpolation
+between the covariate values. This is the default value.  It is
+equivalent to R's `approxfun` with `method="linear"`, which is the
+default `approxfun`.
+
+```r
+par(mfrow=c(1,2))
+matplot(r1[,"C2"], type="l", ylab="Central Concentration")
+matplot(r1[,"eff"], type="l", ylab = "Effect")
+```
+
+![plot of chunk unnamed-chunk-31](vignettes/figure/unnamed-chunk-31-1.png)
+Note that the linear approximation in this case leads to some kinks in
+the solved system at 24-hours where the covariate has a linear
+interpolation between near 24 and near 0.
+
+In RxODE, covariate interpolation can also be the last observation
+carried forward.  In constant approximation.  This is equivalent to R's
+`approxfun` with `method="constant"`.
+
+```r
+(r2 <- solve(mod3, ev, covs=cov.df,covs_interpolation="constant"))
+```
+
+```
+## Solved RxODE object
+## Dll: c:/SVN/Wenping/RxODE/vignettes/rx_d86522ae68ecd84e47790f7e71c0cf79_x64.dll
+## 
+## Parameters:
+##         KA         CL         V2          Q         V3       Kin0 
+##   0.294000  18.600000  40.200000  10.500000 297.000000   1.000000 
+##       Kout       EC50         Tz        amp         pi 
+##   1.000000 200.000000   8.000000   0.100000   3.141593
+```
+
+```
+## 
+## Time Varying Covariates
+```
+
+```
+## ctime
+```
+
+```
+## 
+## 
+## Initial Conditions:
+## eff 
+##   1 
+## 
+## 
+## First part of data:
+## # A tibble: 100 x 4
+##        time      eff       C2      Kin
+##       <dbl>    <dbl>    <dbl>    <dbl>
+## 1 0.0000000 1.000000  0.00000 1.099195
+## 2 0.4848485 1.067628 27.76574 1.096795
+## 3 0.9696970 1.145644 43.67518 1.092837
+## 4 1.4545455 1.214226 51.75572 1.087385
+## 5 1.9393939 1.266668 54.76289 1.080527
+## 6 2.4242424 1.301568 54.57072 1.072373
+## # ... with 94 more rows
+```
+
+which dives the following plots:
+
+```r
+par(mfrow=c(1,2))
+matplot(r2[,"C2"], type="l", ylab="Central Concentration")
+matplot(r2[,"eff"], type="l", ylab = "Effect")
+```
+
+![plot of chunk unnamed-chunk-33](vignettes/figure/unnamed-chunk-33-1.png)
+
+In this case, the plots seem to be smoother.
+
+#### RxODE and transit compartment models
+
+Savic 2008 first introduced the idea of transit compartments being a
+mechanistic explanation of a a lag-time type phenomena. RxODE has special handling of these models:
+
+You can specify this in a similar manner as the original paper:
+
+```r
+mod <- RxODE({
+    ## Table 3 from Savic 2007
+    cl = 17.2 # (L/hr)
+    vc = 45.1 # L
+    ka = 0.38 # 1/hr
+    mtt = 0.37 # hr
+    bio=1
+    n = 20.1
+    k = cl/vc
+    ktr = (n+1)/mtt
+    ## note that lgammafn is the same as lgamma in R.
+    d/dt(depot) = exp(log(bio*podo)+log(ktr)+n*log(ktr*t)-ktr*t-lgammafn(n+1))-ka*depot
+    d/dt(cen) = ka*depot-k*cen
+})
+
+et <- eventTable();
+et$add.sampling(seq(0, 7, length.out=200));
+et$add.dosing(20, start.time=0);
+
+transit <- rxSolve(mod, et, transit_abs=TRUE)
+
+par(mfrow=c(1,1))
+with(transit,matplot(time,cen, type="l", ylab="Central Concentration", xlab=""))
+```
+
+![plot of chunk unnamed-chunk-34](vignettes/figure/unnamed-chunk-34-1.png)
+Another option is to specify the transit compartment function `transit` syntax.  This specifies the parameters 
+`transit(number of transit compartments, mean transit time, bioavailibility)`.  The bioavailibity term is optional. 
+
+Using the `transit` code also automatically turns on the `transit_abs`
+option.  Therefore, the same model can be specified by:
+
+```r
+mod <- RxODE({
+    ## Table 3 from Savic 2007
+    cl = 17.2 # (L/hr)
+    vc = 45.1 # L
+    ka = 0.38 # 1/hr
+    mtt = 0.37 # hr
+    bio=1
+    n = 20.1
+    k = cl/vc
+    ktr = (n+1)/mtt
+    d/dt(depot) = transit(n,mtt,bio)-ka*depot
+    d/dt(cen) = ka*depot-k*cen
+})
+
+et <- eventTable();
+et$add.sampling(seq(0, 7, length.out=200));
+et$add.dosing(20, start.time=0);
+
+transit <- rxSolve(mod, et)
+```
+
+```
+## Warning in object$solve(params, events, inits, scale, covs, stiff,
+## transit_abs, : Assumed transit compartment model since 'podo' is in the
+## model.
+```
+
+```r
+par(mfrow=c(1,1))
+with(transit,matplot(time,cen, type="l", ylab="Central Concentration", xlab=""))
+```
+
+![plot of chunk unnamed-chunk-35](vignettes/figure/unnamed-chunk-35-1.png)
+
+
+#### Stiff ODEs with Jacobian Specification
+
+Occasionally, you may come across
+a
+[**stiff** differential equation](https://en.wikipedia.org/wiki/Stiff_equation),
+that is a differential equation that is numerically unstable and small
+variations in parameters cause different solutions to the ODEs.  One
+way to tackle this is to choose a stiff-solver, or hybrid stiff solver
+(like the default LSODA).  Typically this is enough. However exact
+Jacobian solutions may increase the stability of the ODE.  (Note the
+Jacobian is the derivative of the ODE specification with respect to
+each variable). In RxODE you can specify the Jacobian with the
+`df(state)/dy(variable)=` statement.  A classic ODE that has stiff
+properties under various conditions is
+the
+[van dar Pol ](http://www.ece.northwestern.edu/local-apps/matlabhelp/techdoc/math_anal/diffeq6.html) differential
+equations.
+
+In RxODE these can be specified by the following:
+
+```r
+Vtpol2 <- RxODE({
+    d/dt(y)  = dy
+    d/dt(dy) = mu*(1-y^2)*dy - y
+    ## Jacobian
+    df(y)/dy(dy)  = 1
+    df(dy)/dy(y)  = -2*dy*mu*y - 1
+    df(dy)/dy(dy) = mu*(1-y^2)
+    ## Initial conditions
+    y(0) = 2
+    dy(0) = 0
+    ## mu
+    mu = 1 ## nonstiff; 10 moderately stiff; 1000 stiff
+})
+
+et <- eventTable();
+et$add.sampling(seq(0, 10, length.out=200));
+et$add.dosing(20, start.time=0);
+
+(s1 <- Vtpol2 %>%  solve(et))
+```
+
+```
+## Solved RxODE object
+## Dll: c:/SVN/Wenping/RxODE/vignettes/rx_48f4818a1ac4277dbb4ecfeca4f1c5b4_x64.dll
+## 
+## Parameters:
+## mu 
+##  1 
+## 
+## 
+## Initial Conditions:
+##  y dy 
+##  2  0 
+## 
+## 
+## First part of data:
+## # A tibble: 200 x 3
+##         time        y          dy
+##        <dbl>    <dbl>       <dbl>
+## 1 0.00000000 22.00000  0.00000000
+## 2 0.05025126 21.99781 -0.04555302
+## 3 0.10050251 21.99552 -0.04555778
+## 4 0.15075377 21.99323 -0.04556254
+## 5 0.20100503 21.99094 -0.04556731
+## 6 0.25125628 21.98865 -0.04557207
+## # ... with 194 more rows
+```
+
+While this is not stiff at mu=1, mu=1000 is a stiff system
+
+```r
+(s2 <- Vtpol2 %>%  solve(c(mu=1000), et))
+```
+
+```
+## Solved RxODE object
+## Dll: c:/SVN/Wenping/RxODE/vignettes/rx_48f4818a1ac4277dbb4ecfeca4f1c5b4_x64.dll
+## 
+## Parameters:
+##   mu 
+## 1000 
+## 
+## 
+## Initial Conditions:
+##  y dy 
+##  2  0 
+## 
+## 
+## First part of data:
+## # A tibble: 200 x 3
+##         time        y            dy
+##        <dbl>    <dbl>         <dbl>
+## 1 0.00000000 22.00000  0.000000e+00
+## 2 0.05025126 22.00000 -4.554866e-05
+## 3 0.10050251 22.00000 -4.554866e-05
+## 4 0.15075377 21.99999 -4.554867e-05
+## 5 0.20100503 21.99999 -4.554867e-05
+## 6 0.25125628 21.99999 -4.554868e-05
+## # ... with 194 more rows
+```
+
+While this is easy enough to do, it is a bit tedious.  If you have
+RxODE setup appropriately, that is you have:
+
+- **Python** installed in your system
+- **sympy** installed in your system
+- **SnakeCharmR** installed in R
+
+You can use the computer algebra system sympy to calculate the
+Jacobian automatically.
+
+This is done by the RxODE option `calcJac` option:
+
+```
+Vtpol <- RxODE({
+    d/dt(y)  = dy
+    d/dt(dy) = mu*(1-y^2)*dy - y
+    ## Initial conditions
+    y(0) = 2
+    dy(0) = 0
+    ## mu
+    mu = 1 ## nonstiff; 10 moderately stiff; 1000 stiff
+}, calcJac=TRUE)
+
+```
+To see the generated model, you can use `rxCat`:
+
+```
+> rxCat(Vtpol)
+d/dt(y)=dy;
+d/dt(dy)=mu*(1-y^2)*dy-y;
+y(0)=2;
+dy(0)=0;
+mu=1;
+df(y)/dy(y)=0;
+df(dy)/dy(y)=-2*dy*mu*y-1;
+df(y)/dy(dy)=1;
+df(dy)/dy(dy)=mu*(-Rx_pow_di(y,2)+1);
+
+```
+
+
 
 #### Simulation of Variability with RxODE
 Variability in model parameters can be simulated by creating a matrix
 of parameter values for use in the simulation. In the example below,
-40% variability in clearance is simulated. 
+40% variability in clearance is simulated.
 
 ```r
-options(RxODE.warn.on.assign = FALSE); ## Turn of warning on assignment of initial conditions
 nsub <- 100						  #number of subproblems
 CL <- 1.86E+01*exp(rnorm(nsub,0,.4^2))
 theta.all <- 
@@ -643,12 +1134,12 @@ head(theta.all)
 
 ```
 ##         KA       CL   V2    Q  V3 Kin Kout EC50
-## [1,] 0.294 19.26351 40.2 10.5 297   1    1  200
-## [2,] 0.294 20.06536 40.2 10.5 297   1    1  200
-## [3,] 0.294 18.66969 40.2 10.5 297   1    1  200
-## [4,] 0.294 15.28734 40.2 10.5 297   1    1  200
-## [5,] 0.294 24.80117 40.2 10.5 297   1    1  200
-## [6,] 0.294 20.83581 40.2 10.5 297   1    1  200
+## [1,] 0.294 21.21253 40.2 10.5 297   1    1  200
+## [2,] 0.294 18.04813 40.2 10.5 297   1    1  200
+## [3,] 0.294 14.82503 40.2 10.5 297   1    1  200
+## [4,] 0.294 21.18793 40.2 10.5 297   1    1  200
+## [5,] 0.294 17.41911 40.2 10.5 297   1    1  200
+## [6,] 0.294 19.75585 40.2 10.5 297   1    1  200
 ```
 
 Each subproblem can be simulated by using an explicit loop (or the `apply()`
@@ -669,7 +1160,7 @@ for (i in 1:nsub)
 matplot(cp.all, type="l", ylab="Central Concentration")
 ```
 
-![plot of chunk unnamed-chunk-26](vignettes/figure/unnamed-chunk-26-1.png)
+![plot of chunk unnamed-chunk-39](vignettes/figure/unnamed-chunk-39-1.png)
 
 It is now straightforward to perform calculations and generate plots
 with the simulated data. Below,  the 5th, 50th, and 95th percentiles
@@ -680,7 +1171,7 @@ cp.q <- apply(cp.all, 1, quantile, prob = c(0.05, 0.50, 0.95))
 matplot(t(cp.q), type="l", lty=c(2,1,2), col=c(2,1,2), ylab="Central Concentration")
 ```
 
-![plot of chunk unnamed-chunk-27](vignettes/figure/unnamed-chunk-27-1.png)
+![plot of chunk unnamed-chunk-40](vignettes/figure/unnamed-chunk-40-1.png)
 
 #### Facilities for generating R shiny applications
 

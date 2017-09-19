@@ -305,7 +305,7 @@ rex::register_shortcuts("RxODE");
 ##' @concept Pharmacodynamics (PD)
 ##' @useDynLib RxODE, .registration=TRUE
 ##' @importFrom Rcpp evalCpp
-##' @importFrom utils getFromNamespace assignInMyNamespace download.file head
+##' @importFrom utils getFromNamespace assignInMyNamespace download.file head sessionInfo
 ##' @importFrom stats setNames update
 ##' @importFrom methods signature is
 ##' @export
@@ -511,9 +511,9 @@ RxODE <- function(model, modName = basename(wd), wd = ifelse(RxODE.cache.directo
         } else if (covs_interpolation != "linear"){
             stop("Unknown covariate interpolation specified.");
         }
-        if (event.table$time[1] != 0){
-            warning(sprintf("The initial conditions are at t = %s instead of t = 0.", event.table$time[1]))
-        }
+        ## if (event.table$time[1] != 0){
+        ##     warning(sprintf("The initial conditions are at t = %s instead of t = 0.", event.table$time[1]))
+        ## }
         ## Ensure that inits and params have names.
         names(inits) <- state
         names(params) <- pars;
@@ -929,7 +929,13 @@ print.RxODE <-
         .ready <- x$cmpMgr$getObj(".compiled")
         .msg <- if (.ready) "ready to run" else "needs compilation"
     }
-    cat(sprintf('RxODE model named "%s" (%s)\n', x$modName, .msg))
+    dll <- basename(rxDll(x));
+    dll <- substr(dll, 1, nchar(dll) - nchar(.Platform$dynlib.ext) - nchar(.Platform$r_arch) - 1)
+    cat(sprintf('RxODE model named "%s" (%s)\n', dll, .msg))
+    if (!any(names(list(...)) == "rxSuppress") && valid){
+        cat(sprintf('States: %s\n', paste(rxState(x), collapse=", ")))
+        cat(sprintf('Params: %s\n', paste(rxParams(x), collapse=", ")))
+    }
     invisible(x)
 }
 
@@ -943,7 +949,7 @@ print.RxODE <-
 ##' @export
 summary.RxODE <- function(object, ...)
 {
-    print.RxODE(object);
+    print.RxODE(object, rxSuppress=TRUE);
     summary.rxDll(object$cmpMgr$rxDll(), noprint = TRUE)
     invisible(object)
 }

@@ -61,11 +61,14 @@ rxPermissive({
         sink();
         p1 <- readLines(tmpfile);
         unlink(tmpfile);
-        expect_equal(p1,sprintf("RxODE model named \"%s\" (ready to run)",basename(getwd())));
+        dlln <- basename(rxDll(m1))
+        dlln <- substring(dlln, 1, nchar(dlln) - 1 - nchar(.Platform$dynlib.ext) - nchar(.Platform$r_arch))
+        expect_equal(p1,c(sprintf("RxODE model named \"%s\" (ready to run)",dlln),
+                          "States: depot, centr, peri, eff",
+                          "Params: V2, V3, KA, CL, Q, Kin, Kout, EC50"));
     });
 
     test_that("Print m1$cmpMgr", {
-
         tmpfile <- tempfile()
         tmpfile <- tmpsink();
         print(m1$cmpMgr)
@@ -204,7 +207,9 @@ rxPermissive({
         sink();
         p1 <- readLines(tmpfile);
         unlink(tmpfile);
-        expect_equal(p1,c(sprintf("RxODE model named \"%s\" (ready to run)",basename(getwd())),
+        dlln <- basename(rxDll(m1))
+        dlln <- substring(dlln, 1, nchar(dlln) - 1 - nchar(.Platform$dynlib.ext) - nchar(.Platform$r_arch))
+        expect_equal(p1,c(sprintf("RxODE model named \"%s\" (ready to run)",dlln),
                           s.base))
     })
 
@@ -302,6 +307,8 @@ First part of data:
         p1 <- readLines(tmpfile);
         unlink(tmpfile);
         ## print(p1);
-        expect_equal(p1,sprintf("RxODE model named \"%s\" (invalid object, needs to be re-created)",basename(getwd())))
+        dlln <- basename(rxDll(m1))
+        dlln <- substring(dlln, 1, nchar(dlln) - 1 - nchar(.Platform$dynlib.ext) - nchar(.Platform$r_arch))
+        expect_equal(p1,sprintf("RxODE model named \"%s\" (invalid object, needs to be re-created)",dlln))
     })
 }, silent=TRUE)

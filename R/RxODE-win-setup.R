@@ -74,6 +74,8 @@ rxPythonBaseWin <- function(){
         return(python.base)
     }
 }
+
+rxRtoolsBaseWin.slow <- NULL ## memoise
 ##' Return Rtools base
 ##'
 ##' @return Rtools base path, or "" on unix-style platforms.
@@ -83,8 +85,10 @@ rxRtoolsBaseWin <- function(){
         return("");
     } else {
         ## The grep solution assumes that the path is setup correctly;
-        if (length(grep("(rtools|rbuildtools)", tolower(Sys.which("gcc.exe"))))!=0) {
-            normalizePath(sub("[/\\](mingw).*", "", Sys.which("gcc.exe")))
+        gcc <- Sys.which("gcc.exe")
+        rtools <- sub("[/\\](mingw).*", "", gcc);
+        if (file.exists(file.path(rtools, "Rtools.txt"))){
+            return(rtools)
         } else {
             ## Rtools doesn't add itself to the path by default.  To
             ## remove install headaches, fish for the path a bit.
