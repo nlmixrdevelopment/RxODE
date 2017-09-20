@@ -133,7 +133,6 @@ Sometimes RxODE generates variables that are fed back to RxODE.  These
 variables start with the `rx` prefix.  To avoid any problems, it is
 suggested to not use these variables starting with the `rx` prefix.
 
-## Special RxODE functions
 
 ## Interface and data handling between R and the generated C code
 
