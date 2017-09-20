@@ -26,7 +26,7 @@ rxPermissive({
         return(cntr);
     }
 
-    test_that("Error when pred dosen't depend on state varaibles", {
+    test_that("Error when pred dosen't depend on state variables", {
         expect_error(rxSymPySetupPred(m2, pred, pk));
     })
 

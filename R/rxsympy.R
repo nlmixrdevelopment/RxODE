@@ -1267,7 +1267,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                 }
                 if (any(names(ret) == "warn")){
                     if (ret$warn){
-                        warning("Some of your prediction function does not depend on the state varibles.");
+                        warning("Some of your prediction function does not depend on the state variables.");
                     }
                 }
                 return(ret);
@@ -1478,7 +1478,12 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                                               theta.derivs=TRUE, run.internal=TRUE, grad.internal=FALSE, theta.internal=TRUE);
                     theta <- RxODE(rxNorm(theta));
                 }
+                ostate <- rxState(oobj);
+                keep <- c(sprintf("d/dt(%s)", ostate), sprintf("%s(0)=", ostate), "rx_pred_=", "rx_r_=");
+                pred.only <- strsplit(rxNorm(mod), "\n")[[1]]
+                pred.only <- paste(pred.only[regexpr(rex::rex(start, or(keep)), pred.only) != -1], collapse="\n");
                 ret <- list(obj=oobj,
+                            pred.only=RxODE(pred.only),
                             inner=RxODE(mod),
                             extra.pars=extra.pars,
                             outer=outer,
@@ -1491,14 +1496,9 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                 class(ret) <- "rxFocei";
 
                 save(ret, file=cache.file);
-                ## Praising the user is a bit cookey, so I'm removing it.
-                ## if (requireNamespace("praise", quietly = TRUE)){
-                ##     rxCat(sprintf(praise::praise("${Exclamation}! This model has ${created} for FOCEI%s!\nIt will be cached for future runs.\n"), ifelse(grad, "(with Gradient)", "")))
-                ## } else {
-                rxCat(sprintf("The model-based sensitivities have been calculated%s.\nIt will be cached for future runs.\n", ifelse(grad, " (with FOCEi Global Gradient)", "")))
-                ## }
+                rxCat(sprintf("The model-based sensitivities have been calculated%s.\nIt will be cached for future runs.\n", ifelse(grad, " (with FOCEi Global Gradient)", "")));
                 if (ret$warn){
-                    warning("Some of your prediction function does not depend on the state varibles.");
+                    warning("Some of your prediction function does not depend on the state variables.");
                 }
                 return(ret);
             } else {
