@@ -8,7 +8,7 @@ Authors@R: c(
    person("Melissa", "Hallow",
       role = "aut", email = "hallowkm@uga.edu"),
    person("Wenping", "Wang", 
-      role = c("aut", "cre"), email = "Wenping.wang@outlook.com")
+      role = c("aut", "cre"), email = "wwang8198@gmail.com")
    )
 Author: Matthew L. Fidler [aut], Melissa Hallow [aut], Wenping Wang [aut, cre]
 Maintainer: Wenping Wang <wwang8198@gmail.com>
