@@ -6,7 +6,7 @@
 library(knitr)
 ```
 
-# `RxODE` Modeling Syntax
+# RxODE Modeling Syntax
 
 ## Introduction
 

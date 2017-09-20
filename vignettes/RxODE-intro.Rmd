@@ -1,6 +1,6 @@
 ---
 title: "Introduction to RxODE"
-author: "Melissa Hallow, Wenping Wang, and Matthew L. Fidler"
+author: "Matthew L. Fidler, Melissa Hallow, and Wenping Wang"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
