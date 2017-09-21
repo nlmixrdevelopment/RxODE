@@ -186,8 +186,8 @@ rxSymPyStart <- function(){
         }
     }
     start("SnakeCharmR");
-    start("rPython");
-    start("PythonInR");
+    ## start("rPython");
+    ## start("PythonInR");
     if (is.null(.rxSymPy$started)){
         if (any(RxODE.sympy.engine == c("", "rSymPy"))) {
             if (requireNamespace("rSymPy", quietly = TRUE)){
@@ -208,7 +208,7 @@ rxSymPyStart <- function(){
 
     if (is.null(.rxSymPy$started)){
         rxCat("RxODE requires sympy for this function\n");
-        rxCat("You can install sympy for python and then use python using either SnakeCharmR, rPython, PythonInR\n");
+        rxCat("You can install sympy for python and then use python using SnakeCharmR\n");
         rxCat("In windows you can have help setting this up by typing: `rxWinPythonSetup()`\n");
         rxCat("Another option is to use the package rSymPy, which depends on Java and is a bit slower (and older) version of sympy.\n");
         stop("Could not start sympy");
@@ -234,12 +234,12 @@ rxSymPyExec <- function(..., .python, .start=TRUE){
     if (.python == "SnakeCharmR"){
         SnakeCharmR::py.exec(...);
     }
-    if (.python == "rPython"){
-        rPython::python.exec(...);
-    }
-    if (.python == "PythonInR"){
-        PythonInR::pyExecp(...);
-    }
+    ## if (.python == "rPython"){
+    ##     rPython::python.exec(...);
+    ## }
+    ## if (.python == "PythonInR"){
+    ##     PythonInR::pyExecp(...);
+    ## }
     if (.python == "rSymPy"){
         .Jython$exec(...);
     }
@@ -305,20 +305,20 @@ rxSymPy0 <- function(...){
         ret <- SnakeCharmR::py.get("__Rsympy");
         return(rxSymPyFix(ret));
     }
-    if (.rxSymPy$started == "rPython"){
-        rPython::python.exec(paste("__Rsympy=None"))
-        rPython::python.exec(paste("__Rsympy=", ..., sep = ""))
-        rPython::python.exec(paste("__Rsympy = str(__Rsympy)"))
-        ret <- rPython::python.get("__Rsympy");
-        return(rxSymPyFix(ret));
-    }
-    if (.rxSymPy$started == "PythonInR"){
-        PythonInR::pyExec(paste("__Rsympy=None"))
-        PythonInR::pyExec(paste("__Rsympy=", ..., sep = ""))
-        PythonInR::pyExec(paste("__Rsympy = str(__Rsympy)"))
-        ret <- PythonInR::pyGet("__Rsympy");
-        return(rxSymPyFix(ret));
-    }
+    ## if (.rxSymPy$started == "rPython"){
+    ##     rPython::python.exec(paste("__Rsympy=None"))
+    ##     rPython::python.exec(paste("__Rsympy=", ..., sep = ""))
+    ##     rPython::python.exec(paste("__Rsympy = str(__Rsympy)"))
+    ##     ret <- rPython::python.get("__Rsympy");
+    ##     return(rxSymPyFix(ret));
+    ## }
+    ## if (.rxSymPy$started == "PythonInR"){
+    ##     PythonInR::pyExec(paste("__Rsympy=None"))
+    ##     PythonInR::pyExec(paste("__Rsympy=", ..., sep = ""))
+    ##     PythonInR::pyExec(paste("__Rsympy = str(__Rsympy)"))
+    ##     ret <- PythonInR::pyGet("__Rsympy");
+    ##     return(rxSymPyFix(ret));
+    ## }
     if (.rxSymPy$started == "rSymPy"){
         ret <- rxSymPyFix(rSymPy::sympy(...))
         return(ret);

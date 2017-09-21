@@ -24,8 +24,6 @@ Suggests:
     covr,
     rmarkdown,
     SnakeCharmR,
-    PythonInR,
-    rPython,
     rSymPy,
     dplyr,
     tidyr,
