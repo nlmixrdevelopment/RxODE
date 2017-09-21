@@ -36,6 +36,7 @@ environment:
 build_script:
   - travis-tool.sh install_deps
   - travis-tool.sh install_github nlmixrdevelopment/dparser-R
+  - travis-tool.sh install_github hadley/testthat
   - travis-tool.sh install_github asieira/SnakeCharmR
 
 test_script:
