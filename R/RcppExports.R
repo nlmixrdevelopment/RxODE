@@ -18,6 +18,10 @@ rxGrad <- function(rho) {
     invisible(.Call(`_RxODE_rxGrad`, rho))
 }
 
+rxInnerNum <- function(etanews, rho) {
+    invisible(.Call(`_RxODE_rxInnerNum`, etanews, rho))
+}
+
 rxInner <- function(etanews, rho) {
     invisible(.Call(`_RxODE_rxInner`, etanews, rho))
 }

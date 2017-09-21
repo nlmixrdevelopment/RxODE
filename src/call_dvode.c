@@ -56,8 +56,6 @@ void (*calc_jac)(unsigned int neq, double t, double *A, double *JAC, unsigned in
 void (*calc_lhs)(double t, double *A, double *lhs);
 void (*update_inis)(SEXP _ini_sexp);
 
-void rxInner(SEXP rho);
-
 void setExtraCmt(int xtra){
   if (xtra > extraCmt){
     extraCmt = xtra;
@@ -1210,6 +1208,7 @@ static R_NativePrimitiveArgType RxODE_one_dbl_t[] = {
 
 SEXP _RxODE_rxGrad(SEXP rhoSEXP);
 SEXP _RxODE_rxInner(SEXP etanewsSEXP, SEXP rhoSEXP);
+SEXP _RxODE_rxInnerNum(SEXP etanewsSEXP, SEXP rhoSEXP);
 SEXP _RxODE_rxHessian(SEXP rhoSEXP);
 SEXP _RxODE_RxODE_focei_eta_lik(SEXP sexp_etaSEXP, SEXP sexp_rhoSEXP);
 SEXP _RxODE_RxODE_focei_eta_lp(SEXP sexp_etaSEXP, SEXP sexp_rhoSEXP);
@@ -1257,6 +1256,7 @@ void R_init_RxODE(DllInfo *info){
   R_CallMethodDef callMethods[]  = {
     {"RxODE_ode_solver", (DL_FUNC) &RxODE_ode_solver, 25},
     {"_RxODE_rxInner", (DL_FUNC) &_RxODE_rxInner, 2},
+    {"_RxODE_rxInnerNum", (DL_FUNC) &_RxODE_rxInnerNum, 2},
     {"_RxODE_rxGrad", (DL_FUNC) &_RxODE_rxGrad, 1},
     {"_RxODE_rxHessian", (DL_FUNC) &_RxODE_rxHessian, 1},
     {"_RxODE_RxODE_focei_eta_lik", (DL_FUNC) &_RxODE_RxODE_focei_eta_lik, 2},
