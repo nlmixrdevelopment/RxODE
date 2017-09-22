@@ -1468,6 +1468,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                 mod <- rxGetModel(paste0(base, "\n", pred, "\n", err))
                 if (sum.prod){
                     mod <- rxSumProdModel(mod);
+                    base <- rxSumProdModel(base)
                 }
                 mod <- rxNorm(mod);
                 rxGc();
