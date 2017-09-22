@@ -1033,7 +1033,7 @@ print.rxCoef <- function(x, ...){
     if (length(rxParams(rxDllObj)) > 0){
         cat("\nUser supplied parameters:\n");
         print(rxInits(rxDllObj, c(), rxParams(rxDllObj), NA, TRUE))
-        cat("\nUser Initial conditions:\n");
+        cat("\nUser initial conditions:\n");
         tmp <- rxInits(rxDllObj, c(), rxState(rxDllObj), 0, TRUE);
         if (length(x$sens) > 0){
             tmp <- tmp[regexpr(regSens, names(tmp)) == -1];

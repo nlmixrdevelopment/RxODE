@@ -41,7 +41,7 @@ d/dt(y3) = a3*y1*y2
         rxDelete(rigid);
         options(RxODE.compile.on.load = FALSE);
         rxSyncOptions();
-        expect_error(rxLoad(rigid),regexp="error loading dll file");
+        expect_error(rxLoad(rigid),regexp="Error loading DLL file ");
         options(RxODE.compile.on.load = TRUE);
         rxSyncOptions();
         expect_false(rxDllLoaded(rigid));

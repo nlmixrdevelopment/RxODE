@@ -63,7 +63,7 @@ rxPermissive({
         unlink(tmpfile);
         dlln <- basename(rxDll(m1))
         dlln <- substring(dlln, 1, nchar(dlln) - 1 - nchar(.Platform$dynlib.ext) - nchar(.Platform$r_arch))
-        expect_equal(p1,c(sprintf("RxODE model named \"%s\" (ready to run)",dlln),
+        expect_equal(p1,c(sprintf("RxODE model named \"%s\" (ready to run).",dlln),
                           "States: depot, centr, peri, eff",
                           "Params: V2, V3, KA, CL, Q, Kin, Kout, EC50"));
     });
@@ -84,19 +84,19 @@ rxPermissive({
         sink();
         p1 <- readLines(tmpfile);
         unlink(tmpfile);
-        expect_equal(p1,sprintf("RxODE dll named \"%s\" is loaded and ready to use.",basename(rxDll(m1))));
+        expect_equal(p1,sprintf("RxODE DLL named \"%s\" is loaded and ready to use.",basename(rxDll(m1))));
     })
 
     ##
-    cf <- c("","User Supplied Parameters:",
+    cf <- c("","User supplied parameters:",
             "  V2   V3   KA   CL    Q  Kin Kout EC50 ",
             "  NA   NA   NA   NA   NA   NA   NA   NA ",
             "",
-            "User Initial Conditions:",
+            "User initial conditions:",
             "depot centr  peri   eff ",
             "    0     0     0     0 ",
             "",
-            "Compartents:",
+            "Compartments:",
             "  cmt=1   cmt=2   cmt=3   cmt=4 ",
             "\"depot\" \"centr\"  \"peri\"   \"eff\" ");
 
@@ -110,15 +110,15 @@ rxPermissive({
         unlink(tmpfile);
         expect_equal(p1,cf);
     })
-    cf2 <- c("","User Supplied Parameters:",
+    cf2 <- c("","User supplied parameters:",
              "     KA      CL      V2       Q      V3     Kin    Kout    EC50 ",
              "  0.291  18.600  40.200  10.500 297.000   1.000   1.000 200.000 ",
              "",
-             "User Initial Conditions:",
+             "User initial Conditions:",
              "depot centr  peri   eff ",
              "    0     0     0     1 ",
              "",
-             "Compartents:",
+             "Compartments:",
              "  cmt=1   cmt=2   cmt=3   cmt=4 ",
              "\"depot\" \"centr\"  \"peri\"   \"eff\" ")
 
@@ -139,15 +139,15 @@ rxPermissive({
         expect_equal(p1,cf)
     })
 
-    cfp <- c("","User Supplied Parameters ($params):",
+    cfp <- c("","User supplied parameters ($params):",
              "     V2      V3      KA      CL       Q     Kin    Kout    EC50 ",
              " 40.200 297.000   0.291  18.600  10.500   1.000   1.000 200.000 ",
              "",
-             "User Initial Conditions ($state):",
+             "User initial conditions ($state):",
              "depot centr  peri   eff ",
              "    0     0     0     1 ",
              "",
-             "Compartents:",
+             "Compartments:",
              "  cmt=1   cmt=2   cmt=3   cmt=4 ",
              "\"depot\" \"centr\"  \"peri\"   \"eff\" ");
 
@@ -160,11 +160,11 @@ rxPermissive({
         expect_equal(p1,cfp);
     })
 
-    cfp2 <- c("","User Supplied Parameters ($params):",
+    cfp2 <- c("","User supplied parameters ($params):",
               "   KA    CL    V2     Q    V3   Kin  Kout  EC50 ",
               "  0.3  18.6  40.2  10.5 297.0   1.0   1.0 200.0 ",
               "",
-              "User Initial Conditions ($state):",
+              "User initial conditions ($state):",
               "depot centr  peri   eff ",
               "    0     0     0     1 ",
               "",
@@ -172,7 +172,7 @@ rxPermissive({
               "     KA      CL      V2       Q      V3     Kin    Kout    EC50     eff ",
               "  0.291  18.600  40.200  10.500 297.000   1.000   1.000 200.000   1.000 ",
               "",
-              "Compartents:",
+              "Compartments:",
               "  cmt=1   cmt=2   cmt=3   cmt=4 ",
               "\"depot\" \"centr\"  \"peri\"   \"eff\" ");
 
@@ -185,7 +185,7 @@ rxPermissive({
         expect_equal(p1,cfp2)
     })
     ##
-    s.base <- c(sprintf("dll: %s",rxDll(m1)),
+    s.base <- c(sprintf("DLL: %s",rxDll(m1)),
                 cf,
                 "",
                 "Calculated Variables:",
@@ -209,7 +209,7 @@ rxPermissive({
         unlink(tmpfile);
         dlln <- basename(rxDll(m1))
         dlln <- substring(dlln, 1, nchar(dlln) - 1 - nchar(.Platform$dynlib.ext) - nchar(.Platform$r_arch))
-        expect_equal(p1,c(sprintf("RxODE model named \"%s\" (ready to run)",dlln),
+        expect_equal(p1,c(sprintf("RxODE model named \"%s\" (ready to run).",dlln),
                           s.base))
     })
 
@@ -309,6 +309,6 @@ First part of data:
         ## print(p1);
         dlln <- basename(rxDll(m1))
         dlln <- substring(dlln, 1, nchar(dlln) - 1 - nchar(.Platform$dynlib.ext) - nchar(.Platform$r_arch))
-        expect_equal(p1,sprintf("RxODE model named \"%s\" (invalid object, needs to be re-created)",dlln))
+        expect_equal(p1,sprintf("RxODE model named \"%s\" (invalid object, needs to be re-created).",dlln))
     })
 }, silent=TRUE)
