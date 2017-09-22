@@ -28,16 +28,30 @@ rxPhysicalDrives <- function(duplicates=FALSE){
                     ## Duplicate drive names are more likely to be removable media letters (like usb/cd/etc.)
                     d <- paste0(sort(unique(dups)), "\\")
                     w <- which(!sapply(d, removableDrive))
-                    return(d[w]);
+                    if (length(d) >= 1){
+                        return(d)
+                    } else {
+                        return("C:\\")
+                    }
                 } else {
                     d <- paste0(sort(unique(ns[!(ns %in% dups)])), "\\");
                     w <- which(!sapply(d, removableDrive))
-                    return(d[w]);
+                    d <- d[w]
+                    if (length(d) >= 1){
+                        return(d)
+                    } else {
+                        return("C:\\")
+                    }
                 }
             } else {
                 d <- paste0(sort(ns), "\\");
-                w <- which(!sapply(d, removableDrive))
-                return(d[w])
+                w <- which(!sapply(d, removableDrive));
+                d <- d[w]
+                if (length(d) >= 1){
+                    return(d)
+                } else {
+                    return("C:\\")
+                }
             }
             ret <- ns;
         } else {
@@ -98,23 +112,22 @@ rxRtoolsBaseWin <- function(){
             ## compiler, and will adjust the path (just because which
             ## shows a different path doesn't mean Rtools isn't
             ## there.)
+            ## This is what Rtools installer is supposed to do.  There is some discussion on devtools if this really occurs...
+            rtools.base <- "C:/Rtools";
             if (!file.exists(rtools.base)){
-                ## This is what Rtools installer is supposed to do.  There is some discussion on devtools if this really occurs...
                 keys <- NULL
-                try(keys <- utils::readRegistry("SOFTWARE\\R-core\\Rtools", hive = "HCU", view = "32-bit", maxdepth = 2), silent = TRUE)
+                keys <- try(utils::readRegistry("SOFTWARE\\R-core\\Rtools", hive = "HCU", view = "32-bit", maxdepth = 2), silent = TRUE)
                 if (is.null(keys) || length(keys) == 0)
-                    try(keys <- utils::readRegistry("SOFTWARE\\R-core\\Rtools", hive = "HLM", view = "32-bit", maxdepth = 2), silent = TRUE)
-                if (is.null(keys) || length(keys) == 0){
-                    stop("Cannot use this package because Rtools isn't setup appropriately...")
-                }
-
-                for(i in seq_along(keys)) {
-                    version <- names(keys)[[i]]
-                    key <- keys[[version]]
-                    if (!is.list(key) || is.null(key$InstallPath)) next;
-                    install_path <- normalizePath(key$InstallPath, mustWork = FALSE, winslash = "/");
-                    if (file.exists(install_path)){
-                        rtools.base <- install_path;
+                    keys <- try(utils::readRegistry("SOFTWARE\\R-core\\Rtools", hive = "HLM", view = "32-bit", maxdepth = 2), silent = TRUE)
+                if (!inherits(keys, "try-error")){
+                    for(i in seq_along(keys)) {
+                        version <- names(keys)[[i]]
+                        key <- keys[[version]]
+                        if (!is.list(key) || is.null(key$InstallPath)) next;
+                        install_path <- normalizePath(key$InstallPath, mustWork = FALSE, winslash = "/");
+                        if (file.exists(install_path)){
+                            rtools.base <- install_path;
+                        }
                     }
                 }
             }

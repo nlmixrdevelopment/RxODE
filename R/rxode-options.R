@@ -6,6 +6,7 @@
     ## They suggest an environment, but I used the current namespace.
     rxSetupMemoize()
     ## Setup the path
+    tmp <- try(rxWinRtoolsPath(), silent=TRUE);
     if (!rxWinRtoolsPath()){
         packageStartupMessage("Rtools is not setup!!!\n\nYou need a working Rtools installation for RxODE to work.\n You can setup using the command 'rxWinSetup()'\nThis will also setup python and sympy to run a bit faster than rSymPy\n");
     }
