@@ -1205,28 +1205,14 @@ static R_NativePrimitiveArgType RxODE_one_dbl_t[] = {
   REALSXP
 };
 
-
-SEXP _RxODE_rxGrad(SEXP rhoSEXP);
-SEXP _RxODE_rxInner(SEXP etanewsSEXP, SEXP rhoSEXP);
-SEXP _RxODE_rxInnerNum(SEXP etanewsSEXP, SEXP rhoSEXP);
-SEXP _RxODE_rxHessian(SEXP rhoSEXP);
-SEXP _RxODE_RxODE_focei_eta_lik(SEXP sexp_etaSEXP, SEXP sexp_rhoSEXP);
-SEXP _RxODE_RxODE_focei_eta_lp(SEXP sexp_etaSEXP, SEXP sexp_rhoSEXP);
-SEXP _RxODE_RxODE_focei_eta(SEXP fstrSEXP);
-SEXP _RxODE_RxODE_focei_finalize_llik(SEXP rhoSEXP);
-SEXP _RxODE_RxODE_finalize_log_det_OMGAinv_5(SEXP rhoSEXP);
-SEXP _RxODE_rxDetaDomega(SEXP rhoSEXP);
-SEXP _RxODE_rxOuter_(SEXP rhoSEXP);
-SEXP _RxODE_rxDetaDtheta(SEXP rhoSEXP);
-SEXP _RxODE_rxOuter(SEXP rhoSEXP);
-SEXP _RxODE_rxUpdateEtas(SEXP DnDhSSEXP, SEXP DhSSEXP, SEXP initSSEXP, SEXP acceptNSSEXP);
-SEXP _RxODE_RxODE_finalize_focei_omega(SEXP rho);
 SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SEXP parse_model,SEXP parse_model3);
 SEXP _RxODE_linCmtEnv(SEXP rho);
 SEXP _RxODE_rxInv(SEXP matrix);
 SEXP _RxODE_removableDrive(SEXP letter);
 SEXP _RxODE_rxCoutEcho(SEXP number);
 SEXP _RxODE_W_Cpp(SEXP zSEXP, SEXP branchSEXP);
+SEXP _RxODE_RxODE_finalize_focei_omega(SEXP);
+SEXP _RxODE_RxODE_finalize_log_det_OMGAinv_5(SEXP);
 
 double RxODE_solveLinB(double t, int linCmt, int diff1, int diff2, double A, double alpha, double B, double beta, double C, double gamma, double ka, double tlag);
 static R_NativePrimitiveArgType RxODE_solveLinB_t[] = {
@@ -1255,23 +1241,10 @@ static R_NativePrimitiveArgType RxODE_Sum_t[] = {
 void R_init_RxODE(DllInfo *info){
   R_CallMethodDef callMethods[]  = {
     {"RxODE_ode_solver", (DL_FUNC) &RxODE_ode_solver, 25},
-    {"_RxODE_rxInner", (DL_FUNC) &_RxODE_rxInner, 2},
-    {"_RxODE_rxInnerNum", (DL_FUNC) &_RxODE_rxInnerNum, 2},
-    {"_RxODE_rxGrad", (DL_FUNC) &_RxODE_rxGrad, 1},
-    {"_RxODE_rxHessian", (DL_FUNC) &_RxODE_rxHessian, 1},
-    {"_RxODE_RxODE_focei_eta_lik", (DL_FUNC) &_RxODE_RxODE_focei_eta_lik, 2},
-    {"_RxODE_RxODE_focei_eta_lp", (DL_FUNC) &_RxODE_RxODE_focei_eta_lp, 2},
-    {"_RxODE_RxODE_focei_eta", (DL_FUNC) &_RxODE_RxODE_focei_eta, 1},
-    {"_RxODE_RxODE_focei_finalize_llik", (DL_FUNC) &_RxODE_RxODE_focei_finalize_llik, 1},
-    {"_RxODE_RxODE_finalize_log_det_OMGAinv_5", (DL_FUNC) &_RxODE_RxODE_finalize_log_det_OMGAinv_5, 1},
-    {"_RxODE_RxODE_finalize_focei_omega", (DL_FUNC) &_RxODE_RxODE_finalize_focei_omega, 1},
-    {"_RxODE_rxDetaDomega", (DL_FUNC) &_RxODE_rxDetaDomega, 1},
-    {"_RxODE_rxOuter_", (DL_FUNC) &_RxODE_rxOuter_, 1},
-    {"_RxODE_rxDetaDtheta", (DL_FUNC) &_RxODE_rxDetaDtheta, 1},
-    {"_RxODE_rxOuter", (DL_FUNC) &_RxODE_rxOuter, 1},
-    {"_RxODE_rxUpdateEtas", (DL_FUNC) &_RxODE_rxUpdateEtas, 4},
     {"trans", (DL_FUNC) &trans, 8},
     {"_RxODE_rxInv", (DL_FUNC) &_RxODE_rxInv, 1},
+    {"_RxODE_RxODE_finalize_focei_omega",(DL_FUNC) &_RxODE_RxODE_finalize_focei_omega, 1},
+    {"_RxODE_RxODE_finalize_log_det_OMGAinv_5",(DL_FUNC) &_RxODE_RxODE_finalize_log_det_OMGAinv_5, 1},
     {"_RxODE_rxCoutEcho", (DL_FUNC) &_RxODE_rxCoutEcho, 1},
     {"_RxODE_W_Cpp", (DL_FUNC) &_RxODE_W_Cpp,2},
     {"_rxKahanSum", (DL_FUNC) &_rxKahanSum,1},
@@ -1285,7 +1258,22 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_removableDrive", (DL_FUNC) &_RxODE_removableDrive, 1},
     {NULL, NULL, 0}
   };
-  
+
+  // C callables needed in FOCEi
+  R_RegisterCCallable("RxODE","nEq",                 (DL_FUNC) nEq);
+  R_RegisterCCallable("RxODE","nLhs",                (DL_FUNC) nLhs);
+  R_RegisterCCallable("RxODE","rxLhs",               (DL_FUNC) rxLhs);
+  R_RegisterCCallable("RxODE","nAllTimes",           (DL_FUNC) nAllTimes);
+  R_RegisterCCallable("RxODE","rxEvid",              (DL_FUNC) rxEvid);
+  R_RegisterCCallable("RxODE","rxCalcLhs",           (DL_FUNC) rxCalcLhs);
+  R_RegisterCCallable("RxODE","nObs",                (DL_FUNC) nObs);
+  R_RegisterCCallable("RxODE","RxODE_ode_solve_env", (DL_FUNC) RxODE_ode_solve_env);
+  R_RegisterCCallable("RxODE","RxODE_ode_free",      (DL_FUNC) RxODE_ode_free);
+  R_RegisterCCallable("RxODE","RxODE_safe_zero",     (DL_FUNC) RxODE_safe_zero);
+  R_RegisterCCallable("RxODE","RxODE_safe_log",      (DL_FUNC) RxODE_safe_log);
+  R_RegisterCCallable("RxODE","RxODE_sign_exp",      (DL_FUNC) RxODE_sign_exp);
+  R_RegisterCCallable("RxODE","RxODE_abs_log",       (DL_FUNC) RxODE_abs_log);
+
   //Functions
   R_RegisterCCallable("RxODE","RxODE_ode_solver",       (DL_FUNC) RxODE_ode_solver);
   R_RegisterCCallable("RxODE","RxODE_assign_fn_pointers", (DL_FUNC) RxODE_assign_fn_pointers);

@@ -144,7 +144,15 @@ rxRtoolsBaseWin <- function(){
                 ## This way avoid's R's slow for loop, but calculates all file.exists.  I think it may still be slower than a for loop that terminates early
                 ## rtools.base <- rtoolslist[which(file.exists(rtoolslist, sep=""))]
             }
-            return(rtools.base)
+            if (file.exists(rtools.base)){
+                return(rtools.base)
+            } else if (file.exists(rtools)) {
+                message("gcc available, assuming it comes from rtools...\nRxODE may not work with other compilers.\n")
+                return(rtools)
+            } else {
+                message("This package requires Rtools!\nPlease download from http://cran.r-project.org/bin/windows/Rtools/, install and restart your R session before proceeding.x")
+                return("c:/Rtools")
+            }
         }
     }
 }

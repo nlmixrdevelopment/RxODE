@@ -7,7 +7,7 @@
 ##' @author Matthew L. Fidler
 ##' @export
 rxValidate <- function(full=TRUE){
-    rxVersion(" Validation", TRUE);
+    ## rxVersion(" Validation", TRUE);
     if (is.character(full)){
         old.wd <- getwd();
         on.exit({setwd(old.wd); Sys.setenv(RxODE_VALIDATION_FULL="false", NOT_CRAN="")});

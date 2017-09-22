@@ -10,117 +10,12 @@ rxInv <- function(matrix) {
     .Call(`_RxODE_rxInv`, matrix)
 }
 
-#' Returns the gradient for FOCEi environment
-#' @param rho Environment to calculate the gradient for...
-#' @export
-#' @keywords internal
-rxGrad <- function(rho) {
-    invisible(.Call(`_RxODE_rxGrad`, rho))
-}
-
-rxInnerNum <- function(etanews, rho) {
-    invisible(.Call(`_RxODE_rxInnerNum`, etanews, rho))
-}
-
-rxInner <- function(etanews, rho) {
-    invisible(.Call(`_RxODE_rxInner`, etanews, rho))
-}
-
-#' Get the Hessian for the environment
-#' @param rho environment
-#' @export
-#' @keywords internal
-rxHessian <- function(rho) {
-    invisible(.Call(`_RxODE_rxHessian`, rho))
-}
-
-#' Get the likelihood for ETA
-#' @param sexp_eta ETA for likelihood
-#' @param sexp_rho Environment with solving options
-#' @export
-#' @keywords internal
-RxODE_focei_eta_lik <- function(sexp_eta, sexp_rho) {
-    .Call(`_RxODE_RxODE_focei_eta_lik`, sexp_eta, sexp_rho)
-}
-
-#' Get the likelihood slope for ETA
-#' @inheritParams RxODE_focei_eta_lik
-#' @export
-#' @keywords internal
-RxODE_focei_eta_lp <- function(sexp_eta, sexp_rho) {
-    .Call(`_RxODE_RxODE_focei_eta_lp`, sexp_eta, sexp_rho)
-}
-
-#' Get the Function pointers for the LBJ'S routine
-#' @param fstr a string of the function pointer to return.  "lik" for likelihood and "lp" for likelihood gradient.
-#' @export
-#' @keywords internal
-RxODE_focei_eta <- function(fstr) {
-    .Call(`_RxODE_RxODE_focei_eta`, fstr)
-}
-
-#' Finalize likelihood environment
-#' @param  rho Environment to finalize.  Returns an individual likelihood. 
-#' @export
-#' @keywords internal
-RxODE_focei_finalize_llik <- function(rho) {
-    .Call(`_RxODE_RxODE_focei_finalize_llik`, rho)
-}
-
-RxODE_finalize_log_det_OMGAinv_5 <- function(rho) {
-    .Call(`_RxODE_RxODE_finalize_log_det_OMGAinv_5`, rho)
-}
-
 RxODE_finalize_focei_omega <- function(rho) {
     invisible(.Call(`_RxODE_RxODE_finalize_focei_omega`, rho))
 }
 
-#' Calculate d(eta)/d(omega)
-#'
-#' @param eta the eta to caluclate the differential for.
-#'
-#' @param rho environment where omegaInv.dOmega.omegaInv and tr.omegaInv.dOmega.0.5
-#' are calculated.  This is done with the rxSymInv function.
-#'
-#' @return Nothing.  Add omega.28 and omega.47 to the environment rho.
-#' 
-#' @keywords internal
-#' @export
-rxDetaDomega <- function(rho) {
-    invisible(.Call(`_RxODE_rxDetaDomega`, rho))
-}
-
-rxOuter_ <- function(rho) {
-    invisible(.Call(`_RxODE_rxOuter_`, rho))
-}
-
-rxDetaDtheta <- function(rho) {
-    invisible(.Call(`_RxODE_rxDetaDtheta`, rho))
-}
-
-rxOuter <- function(rho) {
-    .Call(`_RxODE_rxOuter`, rho)
-}
-
-#' Update ETAs based on d(eta)/d(theta)
-#'
-#' This updates the ETA initial estimates based on the knowledge of d(eta)/d(theta)
-#'
-#' @param DnDhS This is the d(eta)/d(theta) list where there is a
-#'   d(eta)/d(theta) matrix for each subject
-#'
-#' @param DhS This is the change in theta observed between steps.
-#'
-#' @param initS This is the ETA initial condition matrix
-#'
-#' @param acceptNS Acceptance criteria for the new eta.  |eta| < acceptNS for the new eta
-#'   to be accepted.
-#'
-#' @keywords internal
-#'
-#' @export
-rxUpdateEtas <- function(DnDhS, DhS, initS, acceptNS) {
-    .Call(`_RxODE_rxUpdateEtas`, DnDhS, DhS, initS, acceptNS)
+RxODE_finalize_log_det_OMGAinv_5 <- function(rho) {
+    .Call(`_RxODE_RxODE_finalize_log_det_OMGAinv_5`, rho)
 }
 
 #' Echo cout to console for a number

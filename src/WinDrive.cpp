@@ -38,7 +38,8 @@ bool IsUsbDevice( std::string letter )
   else
     {
       CloseHandle(deviceHandle);
-      Rcpp::stop("Failed to define bus type for some drives.",letter.c_str());
+      Rcpp::warning("Failed to define bus type for some drives.");
+      return false;
     }
    
   CloseHandle(deviceHandle);
