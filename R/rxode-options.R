@@ -150,10 +150,16 @@ rxOptions <- function(expr, op.rx=NULL, silent=(regexpr("/tests/testthat/", getw
         ## on Cran, but only tested when not on cran, skip.
         do.it <- FALSE
     }
-    if (on.validate && !identical(Sys.getenv("RxODE_VALIDATION_FULL"), "true")){
+    if (is(on.validate, "character")){
+        val.txt <- on.validate;
+        on.validate <- TRUE
+    } else {
+        val.txt <- "RxODE_VALIDATION_FULL"
+    }
+    if (on.validate && !identical(Sys.getenv(val.txt), "true")){
         do.it <- FALSE
     }
-    if (!on.validate && identical(Sys.getenv("RxODE_VALIDATION_FULL"), "true")){
+    if (!on.validate && identical(Sys.getenv(val.txt), "true")){
         do.it <- FALSE
     }
     if (do.it){
