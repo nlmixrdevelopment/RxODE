@@ -884,7 +884,7 @@ changeDerivs <- function(fn, var, var2=NULL){
         }
         return(ret)
     } else {
-        stop(sprintf("RxODE does not know how to take a deriavite of '%s'", fn[1]));
+        stop(sprintf("RxODE does not know how to take a derivative of '%s'.", fn[1]));
     }
 }
 
@@ -941,7 +941,7 @@ unknownSymPy <- function(op){
         if (identical(c(...), c(0))){
             return(sprintf("rx_%s_ini_0__", op));
         } else {
-            stop(sprintf("RxODE doesn't know how to translate '%s' to sympy.", op));
+            stop(sprintf("RxODE doesn't know how to translate '%s' to SymPy.", op));
         }
     }
 }
@@ -1252,7 +1252,7 @@ rxErrEnvF$add <- function(est){
     }
     return(ret);
 }
-rxErrEnvF$"for" <- function(...){stop("for not supported (yet)")}
+rxErrEnvF$"for" <- function(...){stop("'for' is not supported (yet).")}
 rxErrEnvF$"return" <- function(est){
     if (rxErrEnv.ret == ""){
         stop("The PK function should not return anything.")
@@ -1504,7 +1504,7 @@ rxSplitPlusQ <- function(x, level=0, mult=FALSE){
         }
         return(tmp)
     } else { # User supplied incorrect input
-        stop("Don't know how to handle type ", typeof(x),
+        stop("Don't know how to handle type '", typeof(x), "'.", 
              call. = FALSE)
     }
 }

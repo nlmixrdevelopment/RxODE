@@ -100,7 +100,7 @@ summary.solveRxODE <- function(object, ...){
     rxode <- env$env$out;
     lst <- c(list(params=env$params, inits=env$inits), env$extra.args)
     cat("Solved RxODE object\n");
-    cat(sprintf("Dll: %s\n\n", rxDll(rxode)))
+    cat(sprintf("DLL: %s\n\n", rxDll(rxode)))
     cat("Model:\n");
     cat("################################################################################\n");
     cat(rxode$dll$modVars$model["model"]);
@@ -109,7 +109,7 @@ summary.solveRxODE <- function(object, ...){
     w <- which((names(lst$params) %in% names(object)));
     if (length(w) > 0){
         print(lst$params[-w]);
-        cat("\n\nSummary of Time Varying Covariates:\n");
+        cat("\n\nSummary of time-varying covariates:\n");
         d <- as.data.frame(lst$covs)[, names(lst$params)[w]];
         if (length(w) == 1){
             d <- data.frame(d = d);
@@ -119,7 +119,7 @@ summary.solveRxODE <- function(object, ...){
     }  else {
         print(lst$params);
     }
-    cat("\n\nInitial Conditions:\n")
+    cat("\n\nInitial conditions:\n")
     print(lst$inits);
     cat("\n\nSummary of solved data:\n")
     print(summary.data.frame(object))
@@ -416,11 +416,11 @@ update.solveRxODE <- function(object, ...){
         names(inits) <- gsub(regIni, "", arg);
         return(update(obj, inits = inits));
     } else if (any(rxParams(rxode) == arg)){
-        rxCat("Updating object with new paramter values.\n")
+        rxCat("Updating object with new parameter values.\n")
         if (length(value) == 1){
             covs <- as.data.frame(lst$covs);
             if (any(names(covs) == arg)){
-                cat(sprintf("Changing time varying covariate \"%s\" to a simple parameter value %s\n", arg, value));
+                cat(sprintf("Changing time-varying covariate \"%s\" to a simple parameter value %s.\n", arg, value));
                 ncovs <- names(covs);
                 covs <- as.data.frame(covs[, names(covs) != arg]);
                 names(covs) <- ncovs[ncovs != arg];
@@ -441,7 +441,7 @@ update.solveRxODE <- function(object, ...){
             return(update(obj, covs = covs));
         }
     } else if (arg == "params"){
-        rxCat("Updating object with new paramter values.\n");
+        rxCat("Updating object with new parameter values.\n");
         return(update(obj, params = value));
     } else if (arg == "inits"){
         rxCat("Updating object with new initial conditions.\n")

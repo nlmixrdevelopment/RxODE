@@ -226,10 +226,11 @@ rxWinRtoolsPath <- function(rm.rtools=TRUE){
         }
     }
 }
-##' Setup python and sympy for windows
+##' Setup Python and SymPy for windows
 ##'
 ##' @author Matthew L. Fidler
 ##' @export
+
 rxWinPythonSetup <- function(){
     base <- rxPythonBaseWin()
     if (is.null(base)){
@@ -238,15 +239,16 @@ rxWinPythonSetup <- function(){
     if (file.access(paste(base, "/Lib/site-packages", sep=""),2)==-1){
       stop("The Python library path does not appear to be writeable. Please rectify this situation, restart R, and try again.")
     }
-    message("Attempting to install simpy. This may take a few seconds...")
+    message("Attempting to install SymPy. This may take a few seconds...")
     try(system("python -m pip install sympy"))
 
     if (!requireNamespace("SnakeCharmR", quietly = TRUE)){
         message("Attempting to install SnakeCharmR. This may take a few seconds...")
         devtools::install_github("asieira/SnakeCharmR");
     }
-    message("Please restart your R session before using RxODE with sympy.")
+    message("Please restart your R session before using RxODE.")
 }
+
 ##' Setup Windows components for RxODE
 ##'
 ##' @param rm.rtools Remove Rtools from path?

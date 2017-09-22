@@ -207,14 +207,14 @@ rxSymPyStart <- function(){
     }
 
     if (is.null(.rxSymPy$started)){
-        rxCat("RxODE requires sympy for this function\n");
-        rxCat("You can install sympy for python and then use python using SnakeCharmR\n");
-        rxCat("In windows you can have help setting this up by typing: `rxWinPythonSetup()`\n");
-        rxCat("Another option is to use the package rSymPy, which depends on Java and is a bit slower (and older) version of sympy.\n");
-        stop("Could not start sympy");
+        rxCat("RxODE requires SymPy for this function.\n");
+        rxCat("We recommend you install SymPy for Python and then interact with Python using SnakeCharmR.\n");
+        rxCat("In Windows you can have help setting this up by typing: `rxWinPythonSetup()`.\n");
+        rxCat("Another option is to use the package rSymPy, which depends on Java and is a bit slower (and older) version of SymPy.\n");
+        stop("Could not start SymPy");
     }
 }
-##' Execute python statement without getting the return value.
+##' Execute Python statement without getting the return value.
 ##'
 ##' @param ... Parameters sent to Jython to execute.
 ##' @param .python Python to use, defaults to the started python.
@@ -283,10 +283,10 @@ rxSymPy <- function(...){
             var <- gsub(reg, "\\1", cmd);
             val <- try(rxSymPy0(var), silent=TRUE);
             if (!inherits(val, "try-error")){
-                stop(sprintf("Error running sympy command:\n    %s\n    %s: %s\n\n%s",
+                stop(sprintf("Error running SymPy command:\n    %s\n    %s: %s\n\n%s",
                              cmd, var, val, attr(ret, "condition")$message))
             } else {
-                stop(sprintf("Error running sympy command:\n    %s\n    %s: %s\n\n%s",
+                stop(sprintf("Error running SymPy command:\n    %s\n    %s: %s\n\n%s",
                              cmd, var, attr(val, "condition")$message, attr(ret, "condition")$message))
 
             }
@@ -355,7 +355,7 @@ rxSymPyReserved <- function(){
 }
 rxSymPyReserved.slow <- NULL;
 
-##' Add undefined variables to sympy
+##' Add undefined variables to SymPy
 ##'
 ##' @param txt Text to add undefined variables to...
 ##' @return nothing
@@ -387,7 +387,7 @@ rxSyPyAddVars <- function(txt){
                     unique(unlist(children))
                 }
             } else {
-                stop("Don't know how to handle type ", typeof(x),
+                stop("Don't know how to handle type ", typeof(x), ".",
                      call. = FALSE)
             }
         }
@@ -406,9 +406,9 @@ rxSyPyAddVars <- function(txt){
     return(invisible());
 }
 
-##' Setup sympy variables
+##' Setup SymPy variables
 ##'
-##' This creates sympy variables for later evaulation in the CAS sympy.
+##' This creates SymPy variables for later evaulation in the CAS SymPy.
 ##'
 ##' @param model RxODE family of objects
 ##' @return NULL
@@ -437,9 +437,9 @@ rxSymPyVars <- function(model){
     return(invisible());
 }
 
-##' Setup sympy functions
+##' Setup SymPy functions
 ##'
-##' This creates sympy unspecified functions for later evaulation in the CAS sympy.
+##' This creates SymPy unspecified functions for later evaulation in the CAS SymPy.
 ##'
 ##' @param functions a list of functions
 ##' @return NULL
@@ -459,7 +459,7 @@ rxSymPyFunctions <- function(functions){
 }
 
 
-##' Setup a sympy environment that sets up the specified RxODE model.
+##' Setup a SymPy environment that sets up the specified RxODE model.
 ##'
 ##' @param model RxODE family of objects
 ##' @param envir Environment to evaluate the model in (defaults to
@@ -481,7 +481,7 @@ rxSymPySetup <- function(model, envir=parent.frame()){
     return(invisible());
 }
 
-##' Setup sympy envirnoment if needed
+##' Setup SymPy environment if needed
 ##'
 ##' @param model RxODE lines to setup
 ##' @author Matthew L. Fidler
@@ -523,7 +523,7 @@ rxSymPySetupIf <- function(model){
 ##' When calling rxSplitLines("lhs", "1+2+3", 0)
 ##'
 ##' This is to deal with the unwieldly lines that sometimes come out
-##' of sympy.
+##' of SymPy.
 ##'
 ##' @author Matthew L. Fidler
 ##' @export
@@ -605,13 +605,13 @@ rxSymPyDfDyFull <- function(model, vars, cond){
 
 rxSymPyDfDyFull.slow <- NULL;
 
-##' Calculate the full jacobain for a model
+##' Calculate the full Jacobian for a model
 ##'
-##' This expand the model to caluclate the jacobian.  This requires
+##' This expand the model to caluclate the Jacobian.  This requires
 ##' rSymPy.
 ##'
 ##' @param model RxODE family of objects
-##' @return RxODE syntax for model with jacobian specified.
+##' @return RxODE syntax for model with Jacobian specified.
 ##' @author Matthew L. Fidler
 rxSymPyJacobian <- function(model){
     cnd <- rxNorm(model, TRUE); ## Get the conditional statements
@@ -640,9 +640,9 @@ rxSymPyJacobian <- function(model){
 
 rxSymPyJacobian.slow <- NULL
 
-##' Does the varaible exists in the sympy python environment
+##' Does the varaible exist in the SymPy Python environment?
 ##'
-##' @param var Variable to test if it exists.
+##' @param var Variable to be tested.
 ##' @return boolean
 ##' @author Matthew L. Fidler
 ##' @keywords internal
@@ -665,7 +665,7 @@ rxSymPyClear <- function(var){
     }
 }
 
-rxSymPySensitivityFull.text <- "Calculate Sensitivities."
+rxSymPySensitivityFull.text <- "Calculate sensitivities."
 
 ## Note the model and cond are not used in the function BUT are used
 ## to memoise the correct call. Please don't remove them :)
@@ -870,7 +870,7 @@ rxSymPySensitivity.single <- function(model, calcSens, calcJac){
 ##' @param calcSens Either a logical or list of sensitivity parameters
 ##'     to calculate. When \code{TRUE}, calculate the sensitivities of
 ##'     all the known parameters.  When \code{FALSE} raise an error.
-##' @param calcJac A boolean that determines if the jacobian should be
+##' @param calcJac A boolean that determines if the Jacobian should be
 ##'     calculated.
 ##' @param keepState State parameters to keep the sensitivites for.
 ##'
@@ -971,7 +971,7 @@ rxSymPySensitivity <- function(model, calcSens, calcJac=FALSE, keepState=NULL,
 
 rxSymPySensitivity.slow <- NULL;
 
-##' Remove variables created by RxODE from the sympy environment.
+##' Remove variables created by RxODE from the SymPy environment.
 ##'
 ##' @author Matthew L. Fidler
 ##' @keywords internal
@@ -1523,11 +1523,11 @@ rxGc <- function(){
     try({rxSymPyExec("gc.collect()")});
 }
 
-##' Return the expanded expression (via sympy)
+##' Return the expanded expression (via SymPy)
 ##'
-##' @param x text sympy-compatible expression
+##' @param x text SymPy-compatible expression
 ##' @param expr SymPy expression to use.  By default uses expand.
-##' @return sympy value for rxSymPy...
+##' @return SymPy value for rxSymPy...
 ##' @author Matthew L. Fidler
 ##' @export
 ##' @keywords internal
@@ -1543,7 +1543,7 @@ rxSymPyExpand <- function(x, expr="expand"){
 ##' numbers are of very different magnitude.
 ##'
 ##' @param model RxODE model
-##' @param expand Expand the symbolic expression using sympy?
+##' @param expand Expand the symbolic expression using SymPy?
 ##' @return Lines for expanded model. (but not compiled)
 ##' @author Matthew L. Fidler
 ##' @export

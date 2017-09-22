@@ -104,7 +104,7 @@ rxLinCmtTrans <- function(modText){
                 if (length(w) == 1){
                     return(vars[w])
                 } else {
-                    stop(sprintf("Requires Parameter '%s'", var))
+                    stop(sprintf("Requires parameter '%s'.", var))
                 }
             } else {
                 i <- 1;
@@ -115,7 +115,7 @@ rxLinCmtTrans <- function(modText){
                     }
                     i <- i + 1;
                 }
-                stop(sprintf("Requires one of he following parameters '%s'", paste(var, collapse="', '")));
+                stop(sprintf("Requires one of the following parameters: '%s'.", paste(var, collapse="', '")));
             }
         }
         lines <- c();

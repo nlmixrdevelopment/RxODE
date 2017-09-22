@@ -23,12 +23,12 @@ asTbl <- function(obj){
 rxTbl <- function(x, msg){
     if (RxODE.prefer.tbl && class(x) == "data.frame" && requireNamespace("dplyr", quietly = TRUE)){
         if (!missing(msg)){
-            rxCat(sprintf("Change solved object to dplyr's tbl for %s\n", msg));
+            rxCat(sprintf("Change solved object to dplyr's tbl for %s.\n", msg));
         }
         return(dplyr::as.tbl(x))
     } else {
         if (!missing(msg)){
-            rxCat(sprintf("Change solved object to data.frame for %s\n", msg))
+            rxCat(sprintf("Change solved object to data.frame for %s.\n", msg))
         }
         attr(x, ".env") <- NULL;
         return(x)
@@ -69,9 +69,9 @@ rxPrint <- function(x, ...){
     message(invisible(paste(R.utils::captureOutput(x <<- print(x, ...)), collapse="\n")), appendLF=TRUE);
 }
 
-##' Cleanup anonymous dlls
+##' Cleanup anonymous DLLs
 ##'
-##' This cleans up any dlls created by text files
+##' This cleans up any DLLs created by text files
 ##'
 ##' @param wd What directory should be cleand
 ##'
