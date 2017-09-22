@@ -27,7 +27,8 @@ Suggests:
     rSymPy,
     dplyr,
     tidyr,
-    tibble
+    tibble,
+    curl
 Imports:
     utils,
     methods,

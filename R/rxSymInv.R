@@ -232,7 +232,7 @@ rxSymInvCreate <- function(mat,
         mat2 <- rxInv(mat2);
         mat2 <- try({chol(mat2)});
         if (inherits(mat2, "try-error")){
-            rxCat("Warning: Initial Omega matrix inverse is non-positive definite, correcting with nearPD")
+            rxCat("Warning: Initial Omega matrix inverse is non-positive definite, correcting with nearPD.")
             mat2 <- as.matrix(Matrix::nearPD(mat)$mat);
             mat2 <- chol(mat2);
         }
@@ -381,7 +381,7 @@ rxSymInv <- function(invobj, theta, pow=0, dTheta=0){
             }
             tryCatch({ret$log.det.OMGAinv.5 <- invobj$fn(theta,0L, -1L)},
                      error=function(e){
-                rxCat("Warning: Omega^-1 not positive definite (correcting with nearPD)\n");
+                rxCat("Warning: Omega^-1 not positive definite (correcting with nearPD).\n");
                 old <- ret$omegaInv
                 ret$omegaInv <- as.matrix(Matrix::nearPD(ret$omegaInv)$mat);
                 RxODE_finalize_log_det_OMGAinv_5(ret);
@@ -412,7 +412,7 @@ rxSymInv <- function(invobj, theta, pow=0, dTheta=0){
             }
         }
         if (dTheta < 0 || round(dTheta) != dTheta || dTheta > tot.nthetas) {
-            stop(sprintf("dTheta can be any integer from 0 to %s", ntheta));
+            stop(sprintf("dTheta can be any integer from 0 to %s.", ntheta));
         }
         if (length(theta) != tot.nthetas){
             stop(sprintf("This requires %d theta estimates.", tot.nthetas));

@@ -1,4 +1,4 @@
-                                        # event table (dosing + sampling obs from the system)
+# event table (dosing + sampling obs from the system)
 # An eventTable object contains a numeric matrix with
 # a time vector, an event id  describing two types
 # of timed records, doses (input) and sampling times
