@@ -5,7 +5,7 @@
 \alias{rxDll.character}
 \alias{rxDll.rxDll}
 \alias{rxDll.RxODE}
-\title{Return the dll associated with the RxODE object}
+\title{Return the DLL associated with the RxODE object}
 \usage{
 rxDll(obj, ...)
 

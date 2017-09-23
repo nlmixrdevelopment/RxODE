@@ -13,7 +13,7 @@ rxDllLoaded(x, retry = TRUE)
 determine if the object is loaded or not...}
 }
 \value{
-a boolean stating if the dll is loaded
+a boolean stating if the DLL is loaded
 }
 \description{
 Determine if the rxDll is loaded or not.

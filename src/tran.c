@@ -1504,7 +1504,8 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
   
   fprintf(outpt,"\treturn lst;\n");
   fprintf(outpt,"}\n");
-  fprintf(outpt, __HD_SOLVE__);
+  fprintf(outpt, __HD_SOLVE1__);
+  fprintf(outpt, __HD_SOLVE2__);
 }
 
 void codegen(FILE *outpt, int show_ode) {

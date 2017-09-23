@@ -2,18 +2,18 @@
 % Please edit documentation in R/rxsympy.R
 \name{rxSymPyExists}
 \alias{rxSymPyExists}
-\title{Does the varaible exists in the sympy python environment}
+\title{Does the varaible exist in the SymPy Python environment?}
 \usage{
 rxSymPyExists(var)
 }
 \arguments{
-\item{var}{Variable to test if it exists.}
+\item{var}{Variable to be tested.}
 }
 \value{
 boolean
 }
 \description{
-Does the varaible exists in the sympy python environment
+Does the varaible exist in the SymPy Python environment?
 }
 \author{
 Matthew L. Fidler

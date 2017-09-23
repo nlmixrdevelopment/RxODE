@@ -2,7 +2,7 @@
 % Please edit documentation in R/rxsympy.R
 \name{rxSymPyVars}
 \alias{rxSymPyVars}
-\title{Setup sympy variables}
+\title{Setup SymPy variables}
 \usage{
 rxSymPyVars(model)
 }
@@ -10,7 +10,7 @@ rxSymPyVars(model)
 \item{model}{RxODE family of objects}
 }
 \description{
-This creates sympy variables for later evaulation in the CAS sympy.
+This creates SymPy variables for later evaulation in the CAS SymPy.
 }
 \author{
 Matthew L. Fidler

@@ -35,7 +35,7 @@ specified, a subdirectoy named after the
 \dQuote{\code{modName.d}} will be created and populated with a
 C file, a dynamic loading library, plus various other working
 files. If missing, the files are created (and removed) in the
-temporary directory, and the RxODE dll for the model is
+temporary directory, and the RxODE DLL for the model is
 created in the current directory named \code{rx_????_platform}, for
 example \code{rx_129f8f97fb94a87ca49ca8dafe691e1e_i386.dll}}
 

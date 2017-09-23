@@ -2,7 +2,7 @@
 % Please edit documentation in R/RxODE.R
 \name{rxUnload}
 \alias{rxUnload}
-\title{Unload the dll for the object}
+\title{Unload the DLL for the object}
 \usage{
 rxUnload(obj)
 }
@@ -10,7 +10,7 @@ rxUnload(obj)
 \item{obj}{a RxODE family of objects}
 }
 \description{
-This unloads the dll in the R session so that the dll can be
+This unloads the DLL in the R session so that the DLL can be
 deleted.  All the c functions will no longer be accessible.
 }
 \author{

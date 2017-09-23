@@ -2,7 +2,7 @@
 % Please edit documentation in R/rxsympy.R
 \name{rxSymPySetupIf}
 \alias{rxSymPySetupIf}
-\title{Setup sympy envirnoment if needed}
+\title{Setup SymPy environment if needed}
 \usage{
 rxSymPySetupIf(model)
 }
@@ -13,7 +13,7 @@ rxSymPySetupIf(model)
 model lines
 }
 \description{
-Setup sympy envirnoment if needed
+Setup SymPy environment if needed
 }
 \author{
 Matthew L. Fidler

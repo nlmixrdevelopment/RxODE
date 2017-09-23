@@ -43,11 +43,11 @@ A list of RxODE model properties including:
    and interim code that is used to generate the final C file \code{parseModel}}
 }
 \description{
-Return all the known model variables for a specified rxode object
+Return all the known model variables for a specified RxODE object
 }
 \details{
 These items are only calculated after compilation; they are
-built-into the RxODE compiled dll.
+built-into the RxODE compiled DLL.
 }
 \author{
 Matthew L.Fidler

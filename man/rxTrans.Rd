@@ -47,7 +47,7 @@ compiled to make sure that multiple RxODE objects can coexist
 in the same R session.}
 
 \item{md5}{Is the md5 of the model before parsing, and is used to
-embed the md5 into dll, and then provide for functions like
+embed the md5 into DLL, and then provide for functions like
 \code{\link{rxModelVars}}.}
 
 \item{modName}{a string to be used as the model name. This string

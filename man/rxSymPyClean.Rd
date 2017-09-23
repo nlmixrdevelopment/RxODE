@@ -2,12 +2,12 @@
 % Please edit documentation in R/rxsympy.R
 \name{rxSymPyClean}
 \alias{rxSymPyClean}
-\title{Remove variables created by RxODE from the sympy environment.}
+\title{Remove variables created by RxODE from the SymPy environment.}
 \usage{
 rxSymPyClean()
 }
 \description{
-Remove variables created by RxODE from the sympy environment.
+Remove variables created by RxODE from the SymPy environment.
 }
 \author{
 Matthew L. Fidler

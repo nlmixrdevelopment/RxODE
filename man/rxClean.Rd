@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils.R
 \name{rxClean}
 \alias{rxClean}
-\title{Cleanup anonymous dlls}
+\title{Cleanup anonymous DLLs}
 \usage{
 rxClean(wd = getwd())
 }
@@ -16,7 +16,7 @@ well as call_dvode.o and associated files}
 TRUE if successful
 }
 \description{
-This cleans up any dlls created by text files
+This cleans up any DLLs created by text files
 }
 \author{
 Matthew L. Fidler

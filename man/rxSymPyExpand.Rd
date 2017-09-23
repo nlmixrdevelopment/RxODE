@@ -2,20 +2,20 @@
 % Please edit documentation in R/rxsympy.R
 \name{rxSymPyExpand}
 \alias{rxSymPyExpand}
-\title{Return the expanded expression (via sympy)}
+\title{Return the expanded expression (via SymPy)}
 \usage{
 rxSymPyExpand(x, expr = "expand")
 }
 \arguments{
-\item{x}{text sympy-compatible expression}
+\item{x}{text SymPy-compatible expression}
 
 \item{expr}{SymPy expression to use.  By default uses expand.}
 }
 \value{
-sympy value for rxSymPy...
+SymPy value for rxSymPy...
 }
 \description{
-Return the expanded expression (via sympy)
+Return the expanded expression (via SymPy)
 }
 \author{
 Matthew L. Fidler

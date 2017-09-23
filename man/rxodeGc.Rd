@@ -13,8 +13,8 @@ rxodeGc(env)
 Nothing
 }
 \description{
-When objects are created without a model name/dll name and RxODE
-option RxODE.delete.unnamed is TRUE, remove the associated dll
+When objects are created without a model name/DLL name and RxODE
+option RxODE.delete.unnamed is TRUE, remove the associated DLL
 when R is done with them (i.e. when the RxODE object is deleted or
 R exits normally.)  If R crashes, thes files will still remain.
 }

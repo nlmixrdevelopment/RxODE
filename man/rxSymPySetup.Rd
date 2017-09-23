@@ -2,7 +2,7 @@
 % Please edit documentation in R/rxsympy.R
 \name{rxSymPySetup}
 \alias{rxSymPySetup}
-\title{Setup a sympy environment that sets up the specified RxODE model.}
+\title{Setup a SymPy environment that sets up the specified RxODE model.}
 \usage{
 rxSymPySetup(model, envir = parent.frame())
 }
@@ -16,7 +16,7 @@ parent frame)}
 a boolean indicating if the environment is cached.
 }
 \description{
-Setup a sympy environment that sets up the specified RxODE model.
+Setup a SymPy environment that sets up the specified RxODE model.
 }
 \author{
 Matthew L. Fidler

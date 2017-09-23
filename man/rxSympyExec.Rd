@@ -2,7 +2,7 @@
 % Please edit documentation in R/rxsympy.R
 \name{rxSymPyExec}
 \alias{rxSymPyExec}
-\title{Execute python statement without getting the return value.}
+\title{Execute Python statement without getting the return value.}
 \usage{
 rxSymPyExec(..., .python, .start = TRUE)
 }
@@ -18,7 +18,7 @@ RxODE doesn't know it has been started...}
 Nothing
 }
 \description{
-Execute python statement without getting the return value.
+Execute Python statement without getting the return value.
 }
 \author{
 Matthew L. Fidler

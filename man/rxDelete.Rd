@@ -2,7 +2,7 @@
 % Please edit documentation in R/RxODE.R
 \name{rxDelete}
 \alias{rxDelete}
-\title{Delete the dll for the model}
+\title{Delete the DLL for the model}
 \usage{
 rxDelete(obj)
 }
@@ -10,10 +10,10 @@ rxDelete(obj)
 \item{obj}{RxODE family of objects}
 }
 \value{
-a boolean stating if the operation was successful.
+A boolean stating if the operation was successful.
 }
 \description{
-This function deletes the dll, but doesn't delete the model
+This function deletes the DLL, but doesn't delete the model
 information in the object.
 }
 \author{

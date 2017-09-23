@@ -42,7 +42,7 @@ rxCompile(model, dir, prefix, extraC = NULL, force = FALSE,
 
     If specified, the C code is stored in the specified directory
     and then compiled in that directory.  The C code is not removed
-    after the dll is created in the same directory.  This can be
+    after the DLL is created in the same directory.  This can be
     useful to debug the c-code outputs.}
 
 \item{prefix}{is a string indicating the prefix to use in the C
@@ -77,18 +77,18 @@ LHS variables when calculating sensitivites.}
 function.}
 }
 \value{
-A rxdll object that has the following components
+An rxDll object that has the following components
 
-\item{dll}{dll path}
+\item{dll}{DLL path}
 \item{model}{model specification}
-\item{.c}{A function to call C code in the correct context from the dll
+\item{.c}{A function to call C code in the correct context from the DLL
          using the \code{\link{.C}} function.}
-\item{.call}{A function to call C code in the correct context from the dll
+\item{.call}{A function to call C code in the correct context from the DLL
          using the \code{\link{.Call}} function.}
 \item{args}{A list of the arguments used to create the rxDll object.}
 }
 \description{
-This is the compilation workhorse creating the RxODE model dll
+This is the compilation workhorse creating the RxODE model DLL
 files.
 }
 \seealso{

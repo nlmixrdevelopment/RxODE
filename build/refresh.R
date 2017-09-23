@@ -12,9 +12,18 @@ odec <- readLines(devtools::package_file("inst/ode.c"));
 w <- which(regexpr("__ODE_SOLVER__", odec) != -1)[1];
 ode <- odec[seq(1, w - 1)];
 solve <- odec[seq(w, length(odec))];
-hd <- sprintf("#define __HD_ODE__ \"%s\\n\"\n#define __HD_SOLVE__ \"%s\\n\"\n",
+solve <- paste(gsub("%", "%%", gsub("\"", "\\\\\"", solve)), collapse="\\n")
+if (nchar(solve) > 4095){
+    solve1 <- substr(solve, 1, 4094);
+    solve2 <- substr(solve, 4095, nchar(solve))
+} else {
+    solve1 <- solve;
+    solve2 <- "";
+}
+
+hd <- sprintf("#define __HD_ODE__ \"%s\\n\"\n#define __HD_SOLVE1__ \"%s\"\n#define __HD_SOLVE2__ \"%s\"",
               paste(gsub("%", "%%", gsub("\"", "\\\\\"", ode)), collapse="\\n"),
-              paste(gsub("%", "%%", gsub("\"", "\\\\\"", solve)), collapse="\\n"));
+              solve1, solve2);
 sink(devtools::package_file("src/ode.h"))
 cat(hd);
 sink();

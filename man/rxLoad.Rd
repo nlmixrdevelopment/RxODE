@@ -2,7 +2,7 @@
 % Please edit documentation in R/RxODE.R
 \name{rxLoad}
 \alias{rxLoad}
-\title{Load the dll for the object}
+\title{Load the DLL for the object}
 \usage{
 rxLoad(obj)
 }
@@ -10,7 +10,7 @@ rxLoad(obj)
 \item{obj}{a RxODE family of objects}
 }
 \description{
-This loads the dll into the current R session to allow C functions
+This loads the DLL into the current R session to allow C functions
 to be called in R.
 }
 \author{

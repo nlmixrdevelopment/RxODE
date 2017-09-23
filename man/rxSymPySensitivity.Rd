@@ -14,7 +14,7 @@ rxSymPySensitivity(model, calcSens, calcJac = FALSE, keepState = NULL,
 to calculate. When \code{TRUE}, calculate the sensitivities of
 all the known parameters.  When \code{FALSE} raise an error.}
 
-\item{calcJac}{A boolean that determines if the jacobian should be
+\item{calcJac}{A boolean that determines if the Jacobian should be
 calculated.}
 
 \item{keepState}{State parameters to keep the sensitivites for.}

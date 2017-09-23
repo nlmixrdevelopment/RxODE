@@ -2,12 +2,12 @@
 % Please edit documentation in R/RxODE-win-setup.R
 \name{rxWinPythonSetup}
 \alias{rxWinPythonSetup}
-\title{Setup python and sympy for windows}
+\title{Setup Python and SymPy for windows}
 \usage{
 rxWinPythonSetup()
 }
 \description{
-Setup python and sympy for windows
+Setup Python and SymPy for windows
 }
 \author{
 Matthew L. Fidler

@@ -31,7 +31,7 @@ lhs = lhs + 3
 When calling rxSplitLines("lhs", "1+2+3", 0)
 
 This is to deal with the unwieldly lines that sometimes come out
-of sympy.
+of SymPy.
 }
 \description{
 Split line into multiple lines at + or - breaks

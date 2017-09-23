@@ -2,7 +2,7 @@
 % Please edit documentation in R/rxsympy.R
 \name{rxSyPyAddVars}
 \alias{rxSyPyAddVars}
-\title{Add undefined variables to sympy}
+\title{Add undefined variables to SymPy}
 \usage{
 rxSyPyAddVars(txt)
 }
@@ -13,7 +13,7 @@ rxSyPyAddVars(txt)
 nothing
 }
 \description{
-Add undefined variables to sympy
+Add undefined variables to SymPy
 }
 \author{
 Matthew L. Fidler

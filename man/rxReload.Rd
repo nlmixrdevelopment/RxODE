@@ -2,7 +2,7 @@
 % Please edit documentation in R/RxODE.R
 \name{rxReload}
 \alias{rxReload}
-\title{Reload RxODE dll}
+\title{Reload RxODE DLL}
 \usage{
 rxReload()
 }

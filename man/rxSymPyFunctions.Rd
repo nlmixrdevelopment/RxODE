@@ -2,7 +2,7 @@
 % Please edit documentation in R/rxsympy.R
 \name{rxSymPyFunctions}
 \alias{rxSymPyFunctions}
-\title{Setup sympy functions}
+\title{Setup SymPy functions}
 \usage{
 rxSymPyFunctions(functions)
 }
@@ -10,7 +10,7 @@ rxSymPyFunctions(functions)
 \item{functions}{a list of functions}
 }
 \description{
-This creates sympy unspecified functions for later evaulation in the CAS sympy.
+This creates SymPy unspecified functions for later evaulation in the CAS SymPy.
 }
 \author{
 Matthew L. Fidler
