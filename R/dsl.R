@@ -1032,6 +1032,13 @@ rxEnv <- function(expr){
     symbol.env <- list2env(symbol.list, parent=rxSymPyFEnv);
 }
 
+exists2 <- function(x, where){
+    if (nchar(x) < 1000){
+        return(exists(x, where))
+    } else {
+        return(FALSE);
+    }
+}
 
 ## gamma -> gammafn
 ## polygamma -> polygamma(n, z) returns log(gamma(z)).diff(n + 1) = psigamma(z, n)
@@ -1052,11 +1059,19 @@ rxToSymPy <- function(x, envir=parent.frame(1)) {
             names(x) <- NULL;
             txt <- strsplit(gsub(";", "\n", x), "\n+")[[1]];
             txt <- strsplit(txt, rex::rex(or("=", "~", "<-")));
+            tmp <- unlist(lapply(txt, function(x){length(x)}));
+            if (length(tmp) > 1){
+                if (all(tmp == 1)){
+                    txt <- paste(txt, collapse=" ");
+                } else if (any(tmp == 2) && any(tmp == 1)){
+                    stop("continuation lines are not supported...");
+                }
+            }
             vars <- c();
             addNames <- TRUE;
             txt <- unlist(lapply(txt, function(x){
                 tmp <- sub(rex::rex(any_spaces, end), "", sub(rex::rex(start, any_spaces), "", x[1]))
-                if (exists(tmp, envir)){
+                if (exists2(tmp, envir)){
                     res <- rxSymPyReserved()
                     if (any(tmp == res)){
                         var <- paste0("rx_SymPy_Res_", tmp)
@@ -1129,7 +1144,7 @@ rxFromSymPy <- function(x, envir=parent.frame(1)) {
             addNames <- TRUE;
             txt <- unlist(lapply(txt, function(x){
                 tmp <- sub(rex::rex(any_spaces, end), "", sub(rex::rex(start, any_spaces), "", x[1]))
-                if (exists(tmp, envir)){
+                if (exists2(tmp, envir)){
                     var <- sub(rex::rex(start, "rx_SymPy_Res_"), "", tmp)
                 } else {
                     var <- paste0(eval(parse(text=sprintf("RxODE::rxFromSymPy(%s)", tmp)), envir=envir));
@@ -1137,7 +1152,7 @@ rxFromSymPy <- function(x, envir=parent.frame(1)) {
                 if (length(x) == 2){
                     vars <<- c(vars, var);
                     tmp <- sub(rex::rex(any_spaces, end), "", sub(rex::rex(start, any_spaces), "", x[2]))
-                    if (exists(tmp, envir)){
+                    if (exists2(tmp, envir)){
                         e1 <- sub(rex::rex(start, "rx_SymPy_Res_"), "", tmp)
                     } else {
                         eq <- paste0(eval(parse(text=sprintf("RxODE::rxFromSymPy(%s)", x[2])), envir=envir));
@@ -1504,7 +1519,7 @@ rxSplitPlusQ <- function(x, level=0, mult=FALSE){
         }
         return(tmp)
     } else { # User supplied incorrect input
-        stop("Don't know how to handle type '", typeof(x), "'.", 
+        stop("Don't know how to handle type '", typeof(x), "'.",
              call. = FALSE)
     }
 }

@@ -182,6 +182,9 @@ rxSymPyStart <- function(){
                         .rxSymPy$started <- python;
                     }
                 }
+                if (!is.null(.rxSymPy$started)){
+                    rxSymPyFunctions(names(rxDefinedDerivatives));
+                }
             }
         }
     }
@@ -202,6 +205,9 @@ rxSymPyStart <- function(){
                     .rxSymPy$started <- "rSymPy";
                     try({.Jython$exec("import gc")});
                 }
+            }
+            if (!is.null(.rxSymPy$started)){
+                rxSymPyFunctions(names(rxDefinedDerivatives));
             }
         }
     }
@@ -292,6 +298,8 @@ rxSymPy <- function(...){
             }
         }
         stop(sprintf("Error running sympy command:\n    %s\n\n%s", cmd, attr(ret, "condition")$message));
+    } else {
+        ret <- paste(strsplit(ret, "\n+")[[1]], collapse=" ");
     }
     return(ret)
 }
