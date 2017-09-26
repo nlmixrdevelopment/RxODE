@@ -1190,10 +1190,20 @@ rxSymPySetupPred.warn <- FALSE
 ##' @param init Initialization parameters for scaling.
 ##' @param grad Boolaen indicated if the the equations for the
 ##'     gradient be calculated
-##' @param logify Boolean to do multipication in log-space to reduce
-##'     round-off error.
+##' @param sum.prod
 ##' @param pred.minus.dv Boolean stating if the FOCEi objective
 ##'     function is based on PRED-DV (like NONMEM).  Default TRUE.
+##' @param theta.derivs Boolean indicating if theta derivatives are
+##'     setup
+##' @param grad.internal Internal gradient flag.  This function is
+##'     recursively called, and this shouldn't be set by the user.
+##' @param theta.internal Internal theta flag.  This function is
+##'     recursively called and shouldn't be called by the user.
+##' @param run.internal Boolean to see if the function should be run
+##'     internally.
+##' @param only.numeric Instead of setting up the sensitivities for
+##'     the inner problem, modify the RxODE to use numeric
+##'     differentiation for the numeric inner problem only.
 ##' @return RxODE object expanded with predfn and with calculated
 ##'     sensitivities.
 ##' @author Matthew L. Fidler
@@ -1201,7 +1211,7 @@ rxSymPySetupPred.warn <- FALSE
 ##' @export
 ##' @importFrom utils find
 rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, grad=FALSE, sum.prod=FALSE, pred.minus.dv=TRUE,
-                             theta.derivs=FALSE,
+                             theta.derivs=FALSE,only.numeric=FALSE,
                              grad.internal=FALSE, theta.internal=FALSE,
                              run.internal=FALSE){
     good.fns <- c(".GlobalEnv", "package:RxODE", "package:nlmixr")
@@ -1224,7 +1234,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                                                                           ifelse(is.function(predfn), paste(deparse(body(predfn)), collapse=""), ""),
                                                                           ifelse(is.function(pkpars), paste(deparse(body(pkpars)), collapse=""), ""),
                                                                           ifelse(is.function(errfn), paste(deparse(body(errfn)), collapse=""), ""),
-                                                                          init, grad, sum.prod, pred.minus.dv, theta.derivs)), collapse="")),
+                                                                          init, grad, sum.prod, pred.minus.dv, theta.derivs, only.numeric)), collapse="")),
                                         .Platform$dynlib.ext));
     } else {
         cache.file <- "";
@@ -1236,7 +1246,9 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                 warning("Some of your prediction function does not depend on the state variables.");
             }
         }
-        rxLoad(ret$inner);
+        if (!is.null(ret$inner)){
+            rxLoad(ret$inner);
+        }
         if (!is.null(ret$outer)){
             rxLoad(ret$outer);
         }
@@ -1248,11 +1260,11 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
         if (!run.internal && !grad.internal && !theta.internal){
             rfile <- tempfile(fileext=".R")
             dta <- tempfile(fileext=".rdata")
-            save(obj, predfn, pkpars, errfn, init, grad, sum.prod, pred.minus.dv, theta.derivs, file=dta);
+            save(obj, predfn, pkpars, errfn, init, grad, sum.prod, pred.minus.dv, theta.derivs, only.numeric, file=dta);
             ## on.exit({unlink(dta); unlink(rfile)});
             tmp <- options();
             tmp <- tmp[regexpr(rex::rex(start, "RxODE."), names(tmp)) != -1];
-            rf <- sprintf("%s;options(RxODE.delete.unnamed=FALSE);load(%s); require(RxODE);tmp <- rxSymPySetupPred(obj, predfn, pkpars, errfn, init, grad, sum.prod, pred.minus.dv, theta.derivs, run.internal=TRUE);",
+            rf <- sprintf("%s;options(RxODE.delete.unnamed=FALSE);load(%s); require(RxODE);tmp <- rxSymPySetupPred(obj, predfn, pkpars, errfn, init, grad, sum.prod, pred.minus.dv, theta.derivs, only.numeric, run.internal=TRUE);",
                           sub("options\\(\\)", "", sub(rex::rex(",", any_spaces, ".Names", anything,end),"",sub(rex::rex(start,"structure(list("),"options(",paste0(deparse(tmp),collapse="")))),
                           deparse(dta));
             rf <- gsub("^;", "", rf)
@@ -1335,7 +1347,9 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                 etas <- rxParams(full);
                 thetas <- etas[regexpr(regTheta, etas) != -1];
                 etas <- etas[regexpr(regEta, etas) != -1];
-                if (length(etas) > 0 && !theta.internal && !grad.internal){
+                if (only.numeric){
+                    calcSens <- c()
+                } else if (length(etas) > 0 && !theta.internal && !grad.internal){
                     rxCat("## Calculate ETA-based prediction and error derivatives:\n")
                     calcSens <- etas;
                 } else {
@@ -1384,28 +1398,40 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                     lgl <- FALSE;
                     lines <- "";
                 }
-                rxCat(sprintf("## Calculate d(f)/d(%seta) %s\n", ifelse(theta.internal, "th", ""), lines));
                 newmod <- rxGetModel(paste0(rxNorm(obj), "\n", rxNorm(pred.mod)));
-                newlines <- rxSymPySetupDPred(newmod, calcSens, baseState)
-                if(attr(newlines, "zeroSens")){
-                    some.pred <<- TRUE;
+                if (only.numeric){
+                    rxSymPySetup(newmod);
+                    tmp <- rxSymPy("rx_pred_");
+                    prd <- gsub(rex::rex("rx_pred_=", anything), sprintf("rx_pred_=%s", rxFromSymPy(tmp)), rxNorm(pred.mod));
+                    lines <- c(lines, prd)
+                    states <- rxState(newmod);
+                    reg <- rex::rex("rx_pred_=", anything, or(states), anything);
+                    if (regexpr(reg, prd) != -1){
+                        one.pred <<- TRUE
+                    }
                 } else {
-                    one.pred <<- TRUE;
+                    rxCat(sprintf("## Calculate d(f)/d(%seta) %s\n", ifelse(theta.internal, "th", ""), lines));
+                    newlines <- rxSymPySetupDPred(newmod, calcSens, baseState)
+                    if(attr(newlines, "zeroSens")){
+                        some.pred <<- TRUE;
+                    } else {
+                        one.pred <<- TRUE;
+                    }
+                    if (length(newlines) == 0){
+                        rxSymPyClean()
+                        stop();
+                    }
+                    newmod <- rxGetModel(rxNorm(newmod));
+                    tmp <- rxSymPy("rx_pred_");
+                    lines <- c(lines,
+                               ## Make sure rx_pred_ is not in terms of LHS components.
+                               gsub(rex::rex("rx_pred_=", anything), sprintf("rx_pred_=%s", rxFromSymPy(tmp)), rxNorm(pred.mod)),
+                               newlines);
+                    if (lgl){
+                        lines <- c(lines, "}")
+                    }
+                    rxCat(sprintf("## %sdone\n", ifelse(lgl, "}", "")));
                 }
-                if (length(newlines) == 0){
-                    rxSymPyClean()
-                    stop();
-                }
-                newmod <- rxGetModel(rxNorm(newmod));
-                tmp <- rxSymPy("rx_pred_");
-                lines <- c(lines,
-                           ## Make sure rx_pred_ is not in terms of LHS components.
-                           gsub(rex::rex("rx_pred_=", anything), sprintf("rx_pred_=%s", rxFromSymPy(tmp)), rxNorm(pred.mod)),
-                           newlines);
-                if (lgl){
-                    lines <- c(lines, "}")
-                }
-                rxCat(sprintf("## %sdone\n", ifelse(lgl, "}", "")));
                 return(paste(lines, collapse="\n"));
             }), collapse="\n");
             if (!one.pred){
@@ -1445,19 +1471,31 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                         lgl <- FALSE;
                         lines <- c();
                     }
-                    rxCat(sprintf("## Calculate d(err)/d(%seta) %s\n", ifelse(theta.internal, "th", ""), lines));
                     newmod <- rxGetModel(paste0(rxNorm(obj), "\n", rxNorm(err.mod)));
-                    newlines <- rxSymPySetupDPred(newmod, calcSens, baseState, prd="rx_r_")
-                    tmp <- rxSymPy("rx_r_");
-                    lines <- c(lines,
-                               ## Make sure rx_r_ is not in terms of LHS components.
-                               gsub(rex::rex("rx_r_=", anything), sprintf("rx_r_=%s", rxFromSymPy(tmp)), rxNorm(err.mod)),
-                               newlines);
-                    if (lgl){
-                        lines <- c(lines, "}")
+                    if (only.numeric){
+                        rxSymPySetup(newmod);
+                        tmp <- rxSymPy("rx_r_");
+                        prd <- gsub(rex::rex("rx_r_=", anything),
+                                    sprintf("rx_r_=%s", rxFromSymPy(tmp)),
+                                    rxNorm(pred.mod));
+                        lines <- c(lines, prd)
+                        if (lgl){
+                            lines <- c(lines, "}")
+                        }
+                    } else {
+                        rxCat(sprintf("## Calculate d(err)/d(%seta) %s\n", ifelse(theta.internal, "th", ""), lines));
+                        newlines <- rxSymPySetupDPred(newmod, calcSens, baseState, prd="rx_r_")
+                        tmp <- rxSymPy("rx_r_");
+                        lines <- c(lines,
+                                   ## Make sure rx_r_ is not in terms of LHS components.
+                                   gsub(rex::rex("rx_r_=", anything), sprintf("rx_r_=%s", rxFromSymPy(tmp)), rxNorm(err.mod)),
+                                   newlines);
+                        if (lgl){
+                            lines <- c(lines, "}")
+                        }
+                        rxCat(sprintf("## %sdone\n", ifelse(lgl, "}", "")));
+                        return(paste(lines, collapse="\n"));
                     }
-                    rxCat(sprintf("## %sdone\n", ifelse(lgl, "}", "")));
-                    return(paste(lines, collapse="\n"));
                 }), collapse="\n")
             } else {
                 err <- ""
@@ -1480,7 +1518,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                 }
                 mod <- rxNorm(mod);
                 rxGc();
-                if (!grad && theta.derivs){
+                if (!grad && theta.derivs && !only.numeric){
                     rxForget();
                     theta <- rxSymPySetupPred(obj=oobj, predfn=predfn, pkpars=pkpars,
                                               errfn=errfn, init=init, sum.prod=sum.prod,pred.minus.dv=pred.minus.dv,
@@ -1491,9 +1529,14 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                 keep <- c(sprintf("d/dt(%s)", ostate), sprintf("%s(0)=", ostate), "rx_pred_=", "rx_r_=");
                 pred.only <- strsplit(rxNorm(mod), "\n")[[1]]
                 pred.only <- paste(pred.only[regexpr(rex::rex(start, or(keep)), pred.only) != -1], collapse="\n");
+                if (only.numeric){
+                    mod <- NULL;
+                } else {
+                    mod <- RxODE(mod);
+                }
                 ret <- list(obj=oobj,
                             pred.only=RxODE(pred.only),
-                            inner=RxODE(mod),
+                            inner=mod,
                             extra.pars=extra.pars,
                             outer=outer,
                             theta=theta,
@@ -1505,7 +1548,11 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                 class(ret) <- "rxFocei";
 
                 save(ret, file=cache.file);
-                rxCat(sprintf("The model-based sensitivities have been calculated%s.\nIt will be cached for future runs.\n", ifelse(grad, " (with FOCEi Global Gradient)", "")));
+                if (only.numeric){
+                    rxCat("The model has been setup to calculate residuals.\nIt will be cached for future runs.\n");
+                } else {
+                    rxCat(sprintf("The model-based sensitivities have been calculated%s.\nIt will be cached for future runs.\n", ifelse(grad, " (with FOCEi Global Gradient)", "")));
+                }
                 if (ret$warn){
                     warning("Some of your prediction function does not depend on the state variables.");
                 }
