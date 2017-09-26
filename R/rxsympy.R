@@ -1477,7 +1477,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                         tmp <- rxSymPy("rx_r_");
                         prd <- gsub(rex::rex("rx_r_=", anything),
                                     sprintf("rx_r_=%s", rxFromSymPy(tmp)),
-                                    rxNorm(pred.mod));
+                                    rxNorm(err.mod));
                         lines <- c(lines, prd)
                         if (lgl){
                             lines <- c(lines, "}")
@@ -1494,8 +1494,8 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                             lines <- c(lines, "}")
                         }
                         rxCat(sprintf("## %sdone\n", ifelse(lgl, "}", "")));
-                        return(paste(lines, collapse="\n"));
                     }
+                    return(paste(lines, collapse="\n"));
                 }), collapse="\n")
             } else {
                 err <- ""
@@ -1512,6 +1512,22 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                 base <- gsub(rex::rex(or(group(anything, "~", anything), group(or(oLhs), "=", anything, ";"))), "", strsplit(base, "\n")[[1]])
                 base <- paste(base[base != ""], collapse="\n");
                 mod <- rxGetModel(paste0(base, "\n", pred, "\n", err))
+                ostate <- rxState(oobj);
+                if (only.numeric){
+                    mod <- strsplit(strsplit(rxNorm(mod), "\n")[[1]], "=");
+                    mod <- sapply(mod, function(x){
+                        tmp <- x[1];
+                        var <- rxToSymPy(tmp)
+                        var <- rxSymPy(var)
+                        var <- rxFromSymPy(var);
+                        if (regexpr(rex::rex("d/dt("), x[1]) != -1){
+                            return(sprintf("%s=%s;", x[1], var));
+                        } else {
+                            return(sprintf("%s=%s;", x[1], gsub(";+ *$", "", x[2])));
+                        }
+                    })
+                    mod <- paste(mod, collapse="\n");
+                }
                 if (sum.prod){
                     mod <- rxSumProdModel(mod);
                     base <- rxSumProdModel(base)
@@ -1525,7 +1541,6 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                                               theta.derivs=TRUE, run.internal=TRUE, grad.internal=FALSE, theta.internal=TRUE);
                     theta <- RxODE(rxNorm(theta));
                 }
-                ostate <- rxState(oobj);
                 keep <- c(sprintf("d/dt(%s)", ostate), sprintf("%s(0)=", ostate), "rx_pred_=", "rx_r_=");
                 pred.only <- strsplit(rxNorm(mod), "\n")[[1]]
                 pred.only <- paste(pred.only[regexpr(rex::rex(start, or(keep)), pred.only) != -1], collapse="\n");
