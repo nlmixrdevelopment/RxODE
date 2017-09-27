@@ -1064,7 +1064,17 @@ rxToSymPy <- function(x, envir=parent.frame(1)) {
                 if (all(tmp == 1)){
                     txt <- paste(txt, collapse=" ");
                 } else if (any(tmp == 2) && any(tmp == 1)){
-                    stop("continuation lines are not supported...");
+                    txt2 <- list()
+                    for (i in seq_along(txt)){
+                        if (length(txt[[i]]) == 2){
+                            txt2[[length(txt2) + 1]] <- txt[[i]]
+                        } else {
+                            tmp <- txt2[[length(txt2)]];
+                            tmp[2] <- gsub(" +", "", paste(tmp[2], txt[[i]]));
+                            txt2[[length(txt2)]] <- tmp
+                        }
+                    }
+                    txt <- txt2
                 }
             }
             vars <- c();
