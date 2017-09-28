@@ -616,7 +616,7 @@ void RxODE_ode_solver_old_c(int *neqa,
   H0             = 0;
   MXORDN         = 0;
   MXORDS         = 0;
-  mxstep         = 0;
+  mxstep         = 5000; // Not LSODA default but RxODE default
   // Counters
   slvr_counter   = 0;
   dadt_counter   = 0;
