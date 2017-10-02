@@ -666,24 +666,19 @@ sympyRxFEnv$sqrt <- function(arg){
     }
 }
 
-dsl.deparse <- function(...){
-    return(paste(deparse(...), collapse=""))
-}
-
 rxSymPyFEnv$structure <- function(one, ..., .Names){
-    eval(parse(text=sprintf("rxToSymPy(%s)", dsl.deparse(sprintf("%s", one)))));
+    eval(parse(text=sprintf("rxToSymPy(%s)", deparse(sprintf("%s", one)))));
 }
 
 sympyRxFEnv$structure <- function(one, ..., .Names){
-    eval(parse(text=sprintf("rxFromSymPy(%s)", dsl.deparse(sprintf("%s", one)))));
+    eval(parse(text=sprintf("rxFromSymPy(%s)", deparse(sprintf("%s", one)))));
 }
 
 sympyRxFEnv$Subs <- function(expr, what, with){
     what <- strsplit(substring(what, 2, nchar(what) - 1), ",")[[1]];
     with <- strsplit(substring(with, 2, nchar(with) - 1), ",")[[1]];
     for (i in 1:length(what)){
-        tmp <- dsl.strip.paren(what[i]);
-        expr <- gsub(tmp, with[i], expr, fixed=TRUE);
+        expr <- gsub(rex::rex(boundary, what[i], boundary), with[i], expr, perl=TRUE);
     }
     return(expr);
 }
@@ -772,7 +767,7 @@ sympyC <- function(x){
     if (class(substitute(x)) == "character"){
         return(eval(parse(text=sprintf("RxODE:::sympyC(quote(%s))", x))))
     } else if (class(substitute(x)) == "name"){
-        return(eval(parse(text=sprintf("RxODE:::sympyC(%s)", dsl.deparse(x)))));
+        return(eval(parse(text=sprintf("RxODE:::sympyC(%s)", deparse(x)))));
     } else {
         return(eval(x, sympyCEnv(x)))
     }
@@ -864,7 +859,7 @@ changeDerivs <- function(fn, var, var2=NULL){
             fne <- sympyRxFEnv[[var[1]]]
             var <- do.call(fne, fnl)
         } else {
-            stop("Cannot figure out how to deparse the derivatives.");
+            stop("Cannot figure out how to deparse the deriavative");
         }
     }
     if (!is.null(var2)){
@@ -875,18 +870,18 @@ changeDerivs <- function(fn, var, var2=NULL){
                 fne <- sympyRxFEnv[[var2[1]]]
                 var2 <- do.call(fne, fnl)
             } else {
-                stop("Cannot figure out how to deparse the derivatives.");
+                stop("Cannot figure out how to deparse the deriavative");
             }
         }
     }
-    if (any(names(RxODE:::rxDefinedDerivatives) == fn[1])){
-        ret <- do.call(get(fn[1], getFromNamespace("rxDefinedDerivatives", "RxODE")), list(fn, var));
+    if (any(names(rxDefinedDerivatives) == fn[1])){
+        fne <- rxDefinedDerivatives[[fn[1]]];
+        ret <- do.call(fne, list(fn, var));
         if (!is.null(var2)){
             ## Send through parser recursively...
             ret <- sprintf("D(%s,%s)", ret, var2);
-            ret <- rxFromSymPy(ret)
+            return(rxFromSymPy(ret));
         }
-        ret <- eval(parse(text=paste0("quote(", ret, ")")))
         return(ret)
     } else {
         stop(sprintf("RxODE does not know how to take a derivative of '%s'.", fn[1]));
@@ -906,7 +901,7 @@ evalPrints <- function(x, envir=parent.frame()){
             identical(x[[1]], quote(rxFromSymPy))){
             txt <- sprintf("%s", eval(x, envir));
             if (regexpr("[=~]", txt) != -1){
-                txt <- dsl.deparse(txt);
+                txt <- deparse(txt);
             } else {
                 txt <- paste0("quote(", txt, ")")
             }
@@ -1035,7 +1030,6 @@ rxEnv <- function(expr){
     n2 <- gsub(rex::rex("__DoT__"), ".", n2)
     symbol.list <- setNames(as.list(n2), n1);
     symbol.env <- list2env(symbol.list, parent=rxSymPyFEnv);
-    return(symbol.env);
 }
 
 exists2 <- function(x, where){
@@ -1122,7 +1116,7 @@ rxToSymPy <- function(x, envir=parent.frame(1)) {
             }
             return(txt);
         } else {
-            txt <- paste0(eval(parse(text=sprintf("RxODE::rxToSymPy(%s)", dsl.deparse(paste(as.vector(x), collapse="\n"))))), collapse="")
+            txt <- paste0(eval(parse(text=sprintf("RxODE::rxToSymPy(%s)", paste(deparse(paste(as.vector(x), collapse="\n")))))), collapse="")
             return(txt);
         }
     } else if (class(substitute(x)) == "name"){
@@ -1130,10 +1124,10 @@ rxToSymPy <- function(x, envir=parent.frame(1)) {
         if (any(cls == c("list", "rxDll", "RxCompilationManager", "RxODE", "solveRxDll"))){
             ret <- strsplit(rxNorm(x),"\n")[[1]];
             ret <- rxRmIni(ret);
-            txt <- paste0(eval(parse(text=sprintf("RxODE::rxToSymPy(%s)", dsl.deparse(paste0(as.vector(ret), collapse="\n")))), envir=envir), collapse="");
+            txt <- paste0(eval(parse(text=sprintf("RxODE::rxToSymPy(%s)", paste(deparse(paste0(as.vector(ret), collapse="\n")), collapse=""))), envir=envir));
             return(txt);
         } else if (cls == "character" && length(cls) == 1){
-            txt <- paste0(eval(parse(text=sprintf("RxODE::rxToSymPy(%s)", dsl.deparse(as.vector(x))))));
+            txt <- paste0(eval(parse(text=sprintf("RxODE::rxToSymPy(%s)", paste(deparse(as.vector(x)), collapse="")))));
             return(txt);
         } else {
             expr <- evalPrints(substitute(x), envir=envir)
@@ -1202,13 +1196,13 @@ rxFromSymPy <- function(x, envir=parent.frame(1)) {
             }
             return(txt);
         } else {
-            txt <- sprintf(eval(parse(text=sprintf("RxODE::rxFromSymPy(%s)", dsl.deparse(paste(x, collapse="\n"))))));
+            txt <- sprintf(eval(parse(text=sprintf("RxODE::rxFromSymPy(%s)", deparse(paste(x, collapse="\n"))))));
             return(txt);
         }
     } else if (class(substitute(x)) == "name"){
         cls <- tryCatch({class(x)}, error=function(e){return("error")});
         if (cls == "character" && length(cls) == 1){
-            txt <- paste0(eval(parse(text=sprintf("RxODE::rxFromSymPy(%s)", dsl.deparse(x)))));
+            txt <- paste0(eval(parse(text=sprintf("RxODE::rxFromSymPy(%s)", deparse(x)))));
             return(txt);
         } else {
             expr <- evalPrints(substitute(x), envir=envir)
@@ -1435,7 +1429,7 @@ rxParseErr <- function(x, base.theta, diag.xform=c("sqrt", "log", "identity"),
         assignInMyNamespace("rxErrEnv.init", NULL);
         return(ret)
     } else if (class(substitute(x)) == "name"){
-        ret <- eval(parse(text=sprintf("RxODE:::rxParseErr(%s)", dsl.deparse(x))))
+        ret <- eval(parse(text=sprintf("RxODE:::rxParseErr(%s)", deparse(x))))
         if (regexpr("else if", ret) != -1){
             stop("else if expressions not supported (yet).");
         }
@@ -1499,7 +1493,7 @@ rxSplitPlusQ <- function(x, level=0, mult=FALSE){
     }
     if (is.name(x) || is.atomic(x)){
         if (level == 0){
-            return(dsl.deparse(x));
+            return(paste(deparse(x), collapse=""));
         } else {
             return(character())
         }
@@ -1510,27 +1504,27 @@ rxSplitPlusQ <- function(x, level=0, mult=FALSE){
                         identical(x[[1]], quote(`-`))) && level == 0))){
             if (length(x) == 3){
                 if (identical(x[[1]], quote(`+`))){
-                    one <- paste(dsl.deparse(x[[3]]), collapse="");
+                    one <- paste(deparse(x[[3]]), collapse="");
                 } else if (!mult){
-                    one <- paste("-", paste(dsl.deparse(x[[3]]), collapse=""));
+                    one <- paste("-", paste(deparse(x[[3]]), collapse=""));
                 } else if (identical(x[[1]], quote(`*`))){
-                    one <- paste(dsl.deparse(x[[3]]), collapse="");
+                    one <- paste(deparse(x[[3]]), collapse="");
                 } else if (mult){
-                    one <- paste("1/", paste(dsl.deparse(x[[3]]), collapse=""));
+                    one <- paste("1/", paste(deparse(x[[3]]), collapse=""));
                 }
                 tmp <- rxSplitPlusQ(x[[2]], level=0, mult=mult);
                 if (length(tmp) > 0){
                     return(c(tmp, one))
                 } else {
-                    tmp <- paste(dsl.deparse(x[[2]]), collapse="");
+                    tmp <- paste(deparse(x[[2]]), collapse="");
                     return(c(tmp, one))
                 }
             } else {
                 ## Unary + or -
                 if (identical(x[[1]], quote(`+`))){
-                    one <- paste(dsl.deparse(x[[2]]), collapse="");
+                    one <- paste(deparse(x[[2]]), collapse="");
                 } else {
-                    one <- paste("-", paste(dsl.deparse(x[[2]]), collapse=""));
+                    one <- paste("-", paste(deparse(x[[2]]), collapse=""));
                 }
                 return(one);
             }
@@ -1538,7 +1532,7 @@ rxSplitPlusQ <- function(x, level=0, mult=FALSE){
             tmp <- unlist(lapply(x, rxSplitPlusQ, level=1, mult=mult));
             if (level == 0){
                 if (length(tmp) == 0){
-                    tmp <- paste(dsl.deparse(x), collapse="")
+                    tmp <- paste(deparse(x), collapse="")
                 }
             }
             return(tmp)
@@ -1548,7 +1542,7 @@ rxSplitPlusQ <- function(x, level=0, mult=FALSE){
         tmp <- unlist(lapply(x, rxSplitPlusQ, level=level, mult=mult));
         if (level == 0){
             if (length(tmp) == 0){
-                tmp <- paste(dsl.deparse(x), collapse="");
+                tmp <- paste(deparse(x), collapse="");
             }
         }
         return(tmp)
