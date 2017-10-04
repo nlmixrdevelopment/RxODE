@@ -6,8 +6,8 @@
 \usage{
 rxSymPySetupPred(obj, predfn, pkpars = NULL, errfn = NULL, init = NULL,
   grad = FALSE, sum.prod = FALSE, pred.minus.dv = TRUE,
-  theta.derivs = FALSE, grad.internal = FALSE, theta.internal = FALSE,
-  run.internal = FALSE)
+  theta.derivs = FALSE, only.numeric = FALSE, grad.internal = FALSE,
+  theta.internal = FALSE, run.internal = FALSE)
 }
 \arguments{
 \item{obj}{RxODE object}
@@ -23,11 +23,27 @@ rxSymPySetupPred(obj, predfn, pkpars = NULL, errfn = NULL, init = NULL,
 \item{grad}{Boolaen indicated if the the equations for the
 gradient be calculated}
 
+\item{sum.prod}{A boolean determining if RxODE should use more
+numerically stable sums/products.}
+
 \item{pred.minus.dv}{Boolean stating if the FOCEi objective
 function is based on PRED-DV (like NONMEM).  Default TRUE.}
 
-\item{logify}{Boolean to do multipication in log-space to reduce
-round-off error.}
+\item{theta.derivs}{Boolean indicating if theta derivatives are
+setup}
+
+\item{only.numeric}{Instead of setting up the sensitivities for
+the inner problem, modify the RxODE to use numeric
+differentiation for the numeric inner problem only.}
+
+\item{grad.internal}{Internal gradient flag.  This function is
+recursively called, and this shouldn't be set by the user.}
+
+\item{theta.internal}{Internal theta flag.  This function is
+recursively called and shouldn't be called by the user.}
+
+\item{run.internal}{Boolean to see if the function should be run
+internally.}
 }
 \value{
 RxODE object expanded with predfn and with calculated

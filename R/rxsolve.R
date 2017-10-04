@@ -546,9 +546,13 @@ update.solveRxODE <- function(object, ...){
 ##' @param transit_abs boolean indicating if this is a transit
 ##'     compartment absorption
 ##'
-##' @param atol a numeric absolute tolerance (1e-08 by default);
+##' @param atol a numeric absolute tolerance (1e-08 by default) used
+##'     by the ODE solver to determine if a good solution has been
+##'     achieved;
 ##'
-##' @param rtol a numeric relative tolerance (1e-06 by default).
+##' @param rtol a numeric relative tolerance (1e-06 by default) used
+##'     by the ODE solver to determine if a good solution has been
+##'     achieved.
 ##'
 ##' @param maxsteps maximum number of (internally defined) steps allowed
 ##'     during one call to the solver. (5000 by default)

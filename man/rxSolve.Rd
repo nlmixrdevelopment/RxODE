@@ -72,9 +72,13 @@ is for time-varying covariates.}
 \item{transit_abs}{boolean indicating if this is a transit
 compartment absorption}
 
-\item{atol}{a numeric absolute tolerance (1e-08 by default);}
+\item{atol}{a numeric absolute tolerance (1e-08 by default) used
+by the ODE solver to determine if a good solution has been
+achieved;}
 
-\item{rtol}{a numeric relative tolerance (1e-06 by default).}
+\item{rtol}{a numeric relative tolerance (1e-06 by default) used
+by the ODE solver to determine if a good solution has been
+achieved.}
 
 \item{maxsteps}{maximum number of (internally defined) steps allowed
 during one call to the solver. (5000 by default)}

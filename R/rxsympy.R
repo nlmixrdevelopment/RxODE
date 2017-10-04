@@ -1190,20 +1190,21 @@ rxSymPySetupPred.warn <- FALSE
 ##' @param init Initialization parameters for scaling.
 ##' @param grad Boolaen indicated if the the equations for the
 ##'     gradient be calculated
-##' @param sum.prod
+##' @param sum.prod A boolean determining if RxODE should use more
+##'     numerically stable sums/products.
 ##' @param pred.minus.dv Boolean stating if the FOCEi objective
 ##'     function is based on PRED-DV (like NONMEM).  Default TRUE.
 ##' @param theta.derivs Boolean indicating if theta derivatives are
 ##'     setup
+##' @param only.numeric Instead of setting up the sensitivities for
+##'     the inner problem, modify the RxODE to use numeric
+##'     differentiation for the numeric inner problem only.
 ##' @param grad.internal Internal gradient flag.  This function is
 ##'     recursively called, and this shouldn't be set by the user.
 ##' @param theta.internal Internal theta flag.  This function is
 ##'     recursively called and shouldn't be called by the user.
 ##' @param run.internal Boolean to see if the function should be run
 ##'     internally.
-##' @param only.numeric Instead of setting up the sensitivities for
-##'     the inner problem, modify the RxODE to use numeric
-##'     differentiation for the numeric inner problem only.
 ##' @return RxODE object expanded with predfn and with calculated
 ##'     sensitivities.
 ##' @author Matthew L. Fidler
