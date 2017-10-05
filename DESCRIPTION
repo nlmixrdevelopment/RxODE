@@ -34,7 +34,7 @@ Imports:
     methods,
     digest,
     rex,
-    dparser (>= 0.1.6),
+    dparser (>= 0.1.7),
     brew,
     memoise,
     magrittr,
@@ -62,4 +62,4 @@ SystemRequirements: GNU make
 License: GPL (>= 2) 
 URL: https://www.r-project.org, https://github.com/hallowkm/RxODE
 RoxygenNote: 6.0.1
-LinkingTo: dparser(>= 0.1.6), Rcpp (>= 0.12.3), RcppArmadillo(>= 0.5.600.2.0), lamW
+LinkingTo: dparser(>= 0.1.7), Rcpp (>= 0.12.3), RcppArmadillo(>= 0.5.600.2.0), lamW
