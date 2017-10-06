@@ -518,7 +518,7 @@ RxODE <- function(model, modName = basename(wd), wd = ifelse(RxODE.cache.directo
         names(inits) <- state
         names(params) <- pars;
 
-        time <- event.table$time;
+        time <- as.double(event.table$time);
         evid <- as.integer(event.table$evid);
         amt <- as.double(event.table$amt[event.table$evid>0]);
         ## Covariates
@@ -541,8 +541,8 @@ RxODE <- function(model, modName = basename(wd), wd = ifelse(RxODE.cache.directo
         add.cov = as.integer(add.cov)
         if (do.solve){
             ret <- try({ret <- .sexp(## Parameters
-                            params,
-                            inits,
+                            as.double(params),
+                            as.double(inits),
                             as.double(scale),
                             lhs_vars,
                             ## events
