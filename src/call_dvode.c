@@ -1210,7 +1210,6 @@ SEXP _RxODE_linCmtEnv(SEXP rho);
 SEXP _RxODE_rxInv(SEXP matrix);
 SEXP _RxODE_removableDrive(SEXP letter);
 SEXP _RxODE_rxCoutEcho(SEXP number);
-SEXP _RxODE_W_Cpp(SEXP zSEXP, SEXP branchSEXP);
 SEXP _RxODE_RxODE_finalize_focei_omega(SEXP);
 SEXP _RxODE_RxODE_finalize_log_det_OMGAinv_5(SEXP);
 
@@ -1246,7 +1245,6 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_RxODE_finalize_focei_omega",(DL_FUNC) &_RxODE_RxODE_finalize_focei_omega, 1},
     {"_RxODE_RxODE_finalize_log_det_OMGAinv_5",(DL_FUNC) &_RxODE_RxODE_finalize_log_det_OMGAinv_5, 1},
     {"_RxODE_rxCoutEcho", (DL_FUNC) &_RxODE_rxCoutEcho, 1},
-    {"_RxODE_W_Cpp", (DL_FUNC) &_RxODE_W_Cpp,2},
     {"_rxKahanSum", (DL_FUNC) &_rxKahanSum,1},
     {"_rxNeumaierSum", (DL_FUNC) &_rxNeumaierSum,1},
     {"_rxPythonSum", (DL_FUNC) &_rxPythonSum, 1},

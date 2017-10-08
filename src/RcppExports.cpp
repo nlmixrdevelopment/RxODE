@@ -50,18 +50,6 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
-// W_Cpp
-NumericVector W_Cpp(const NumericVector& z, int branch);
-RcppExport SEXP _RxODE_W_Cpp(SEXP zSEXP, SEXP branchSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const NumericVector& >::type z(zSEXP);
-    Rcpp::traits::input_parameter< int >::type branch(branchSEXP);
-    rcpp_result_gen = Rcpp::wrap(W_Cpp(z, branch));
-    return rcpp_result_gen;
-END_RCPP
-}
 // removableDrive
 bool removableDrive(std::string driveRoot);
 RcppExport SEXP _RxODE_removableDrive(SEXP driveRootSEXP) {
