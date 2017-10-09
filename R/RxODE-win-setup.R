@@ -265,7 +265,7 @@ rxWinPythonSetup <- function(){
 
     if (!requireNamespace("SnakeCharmR", quietly = TRUE)){
         message("Attempting to install SnakeCharmR. This may take a few seconds...")
-        devtools::install_github("asieira/SnakeCharmR");
+        devtools::install_github("nlmixrdevelopment/SnakeCharmR");
     }
     message("Please restart your R session before using RxODE.")
 }
