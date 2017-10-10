@@ -567,13 +567,11 @@ RxODE <- function(model, modName = basename(wd), wd = ifelse(RxODE.cache.directo
                             transit_abs,
                             ## Passed to build solver object.
                             env,
-                            extra.args,
-                            do.matrix,
-                            add.cov,
-                            state.ignore)
+                            as.integer(c(state.ignore, add.cov, do.matrix)),
+                            extra.args)
                 rc <- ret[[2]];
                 ret <- ret[[1]];
-                ## attr(ret, "solveRxDll")$matrix <- attr(ret, "solveRxDll")$matrix[events$get.obs.rec(), ];
+                            ## attr(ret, "solveRxDll")$matrix <- attr(ret, "solveRxDll")$matrix[events$get.obs.rec(), ];
                 ## Change sensitivities to be d/dt(d(A)/d(B)) form.
                 ## dim <- dimnames(attr(ret, "solveRxDll")$matrix);
                 ## dim[[2]] <- gsub(regSens,"d/dt(d(\\1)/d(\\2))",dim[[2]]);
@@ -614,10 +612,8 @@ RxODE <- function(model, modName = basename(wd), wd = ifelse(RxODE.cache.directo
                          transit_abs,
                          ## Passed to build solver object.
                          env,
-                         extra.args,
-                         do.matrix,
-                         add.cov,
-                         state.ignore)
+                         as.integer(c(state.ignore, add.cov, do.matrix)),
+                         extra.args)
                     rc <- ret[[2]];
                     ret <- ret[[1]];
                     ## attr(ret, "solveRxDll")$matrix <- attr(ret, "solveRxDll")$matrix[events$get.obs.rec(), ];

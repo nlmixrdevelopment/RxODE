@@ -903,10 +903,8 @@ SEXP RxODE_ode_solver (// Parameters
 		       SEXP sexp_transit_abs,
 		       // Object Creation
 		       SEXP sexp_object,
-		       SEXP sexp_extra_args,
-		       SEXP sexp_matrix,
-		       SEXP sexp_add_cov,
-		       SEXP sexp_ignore_state){
+		       SEXP sexp_opts,
+                       SEXP sexp_extra_args){
   // TODO: Absorption lag?
   // TODO: Annotation? -- in nlmixr
   // TODO: Units -- Can be in nlmixr
@@ -921,23 +919,23 @@ SEXP RxODE_ode_solver (// Parameters
   
   
   int i = 0, j = 0;
-  int *rmState = INTEGER(sexp_ignore_state);
+  int *rmState = INTEGER(sexp_opts);
   int nPrnState =0;
-  for (i = 0; i < length(sexp_ignore_state); i++){
+  for (i = 0; i < length(sexp_opts)-2; i++){
     nPrnState+= (1-rmState[i]);
   }
   SEXP sexp_counter = PROTECT(allocVector(INTSXP,4));pro++;
   int    *counts    = INTEGER(sexp_counter);
 
-  int *matrix = INTEGER(sexp_matrix);
+  int matrix = INTEGER(sexp_opts)[length(sexp_opts)-1];
   
   for (i=0; i<neq; i++) InfusionRate[i] = 0.0;
   if (neq > 0){
     RxODE_ode_solver_c(neq, stiff, evid, inits, dose, solve, rc);
   }
   double *scale = REAL(sexp_scale);
-  int add_cov = INTEGER(sexp_add_cov)[0];
-  if (matrix[0]){
+  int add_cov = INTEGER(sexp_opts)[length(sexp_opts)-2];
+  if (matrix){
     SEXP sexp_ret     = PROTECT(allocMatrix(REALSXP, nObs(), add_cov*ncov+1+nPrnState+nlhs)); pro++;
     double *ret   = REAL(sexp_ret);
   
@@ -1239,7 +1237,7 @@ static R_NativePrimitiveArgType RxODE_Sum_t[] = {
 
 void R_init_RxODE(DllInfo *info){
   R_CallMethodDef callMethods[]  = {
-    {"RxODE_ode_solver", (DL_FUNC) &RxODE_ode_solver, 25},
+    {"RxODE_ode_solver", (DL_FUNC) &RxODE_ode_solver, 23},
     {"trans", (DL_FUNC) &trans, 8},
     {"_RxODE_rxInv", (DL_FUNC) &_RxODE_rxInv, 1},
     {"_RxODE_RxODE_finalize_focei_omega",(DL_FUNC) &_RxODE_RxODE_finalize_focei_omega, 1},
