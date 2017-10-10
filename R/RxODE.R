@@ -518,7 +518,7 @@ RxODE <- function(model, modName = basename(wd), wd = ifelse(RxODE.cache.directo
         names(inits) <- state
         names(params) <- pars;
 
-        time <- as.double(event.table$time);
+        time <- event.table$time; ## Changing this to as.double fails tests
         evid <- as.integer(event.table$evid);
         amt <- as.double(event.table$amt[event.table$evid>0]);
         ## Covariates
@@ -541,8 +541,8 @@ RxODE <- function(model, modName = basename(wd), wd = ifelse(RxODE.cache.directo
         add.cov = as.integer(add.cov)
         if (do.solve){
             ret <- try({ret <- .sexp(## Parameters
-                            as.double(params),
-                            as.double(inits),
+                            params,
+                            inits,
                             as.double(scale),
                             lhs_vars,
                             ## events
@@ -1680,7 +1680,7 @@ rxCompile.character <-  function(model,           # Model
                                  force   = FALSE, # Force compile
                                  modName = NULL,  # Model Name
                                  calcJac=NULL, # Calculate Jacobian
-                                 calcSens=NULL, # Calculate Sensitivity
+                                  calcSens=NULL, # Calculate Sensitivity
                                  collapseModel=FALSE,
                                  ...){
     ## rxCompile returns the DLL name that was created.
@@ -1783,7 +1783,13 @@ rxCompile.character <-  function(model,           # Model
             if (dllCopy){
                 file.copy(cDllFile, finalDll);
             }
-            try(dyn.load(finalDll, local = FALSE), silent = TRUE);
+            tmp <- try(dyn.load(finalDll, local = FALSE), silent=TRUE);
+            if (inherits(tmp, "try-error")){
+                tmp <- try(dyn.load(basename(finalDll), local = FALSE), silent=TRUE);
+                if (inherits(tmp, "try-error")){
+                    stop("Error loading model.")
+                }
+            }
             modVars <- sprintf("%smodel_vars", prefix);
             if (is.loaded(modVars)){
                 allModVars <- eval(parse(text = sprintf(".Call(\"%s\")", modVars)), envir = .GlobalEnv)
