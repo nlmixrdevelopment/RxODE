@@ -1774,6 +1774,9 @@ rxCompile.character <-  function(model,           # Model
                 try(rx.do.call(sh, list(cmd, ignore.stdout = FALSE, ignore.stderr = FALSE)),
                     silent = FALSE)
                 rxCat("\n\nModel:\n", paste(readLines(mFile), collapse="\n"), "\n")
+                rxCat(sprintf("cFile: %s\n", cFile))
+                rxCat(sprintf("cmd: %s\n", cmd))
+                rxCat(sprintf("wd: %s\n", dir))
                 stop(sprintf("error compiling %s", cFile));
             }
             if (dllCopy){

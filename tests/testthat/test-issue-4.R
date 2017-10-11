@@ -48,6 +48,8 @@ rxPermissive({
         unlink("tmp", recursive=TRUE)
     devtools::create("tmp");
     devtools::use_testthat("tmp");
+    l <- writeLines(c("Sys.setenv(R_TESTS = \"\")", readLines("tmp/tests/testthat.R")),
+                    "tmp/tests/testthat.R");
     writeLines(c("test_that(\"inside_package rxode check\", {", "    model <- RxODE::RxODE({",  "        C2 = centr/V2", "        C3 = peri/V3", "        d/dt(depot) = -KA * depot",  "        d/dt(centr) = KA * depot - CL * C2 - Q * C2 + Q * C3",  "        d/dt(peri) = Q * C2 - Q * C3", "        d/dt(eff) = Kin - Kout * (1 - C2/(EC50 + C2)) * eff",  "    }, modName = paste(sample(LETTERS, 5), collapse = \"\"), wd = tempfile())",  "    expect_equal(RxODE::rxState(model), c(\"depot\", \"centr\", \"peri\", ",  "        \"eff\"))", "    expect_equal(RxODE::rxParams(model), c(\"V2\", \"V3\", \"KA\", ",  "        \"CL\", \"Q\", \"Kin\", \"Kout\", \"EC50\"))", "})"),
                "tmp/tests/testthat/test-inside-package.R")
     tmp <- devtools::check("tmp", document=FALSE, quiet=TRUE);
