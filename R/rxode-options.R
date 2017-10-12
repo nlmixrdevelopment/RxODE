@@ -170,14 +170,14 @@ rxOptions <- function(expr, op.rx=NULL, silent=(regexpr("/tests/testthat/", getw
             sapply(names(op), function(n){rxCat(sprintf("%s: %s\n", n, op[[n]]))});
             return(invisible(op));
         } else {
-            if (class(op.rx) == "character"){
+            if (is(op.rx,"character")){
                 if (op.rx == "strict"){
                     op.rx  <- 1;
                 } else {
                     op.rx <- 2;
                 }
             }
-            if (class(op.rx) == "numeric"){
+            if (is(op.rx,"numeric")){
                 if (op.rx <= 2){
                     x  <- op.rx;
                     op.rx  <- list()
@@ -206,7 +206,7 @@ rxOptions <- function(expr, op.rx=NULL, silent=(regexpr("/tests/testthat/", getw
                 options(op.rx);
                 rxSyncOptions()
             }
-            if (class(substitute(expr)) == "{"){
+            if (is(substitute(expr),"{")){
                 if (silent){
                     return(suppressMessages(eval(substitute(expr), envir=parent.frame(1))));
                 } else {

@@ -425,9 +425,9 @@ rxSyPyAddVars <- function(txt){
 ##' @export
 rxSymPyVars <- function(model){
     rxSymPyStart();
-    if (class(model) == "character" && length(model) > 1){
+    if (is(model,"character") && length(model) > 1){
         vars <- model;
-    } else if (class(model) == "character" && length(model) == 1 && regexpr(rex::rex(or("=", "<-", "~")), model) == -1){
+    } else if (is(model,"character") && length(model) == 1 && regexpr(rex::rex(or("=", "<-", "~")), model) == -1){
         vars <- model;
     } else {
         vars <- c(rxParams(model),
@@ -581,7 +581,7 @@ rxSymPyDfDy <- function(model, df, dy, vars=FALSE){
 }
 
 rxSymPyDfDyFull <- function(model, vars, cond){
-    if (class(vars) == "logical"){
+    if (is(vars,"logical")){
         if (vars){
             jac <- expand.grid(s1=rxState(model), s2=c(rxState(model), rxParams(model)),
                                stringsAsFactors=FALSE);
@@ -589,7 +589,7 @@ rxSymPyDfDyFull <- function(model, vars, cond){
             jac <- expand.grid(s1=rxState(model), s2=rxState(model),
                                stringsAsFactors=FALSE);
         }
-    } else if (class(vars) == "character"){
+    } else if (is(vars,"character")){
         jac <- expand.grid(s1=rxState(model), s2=c(rxState(model), vars),
                            stringsAsFactors=FALSE)
 
@@ -812,7 +812,7 @@ rxSymPySensitivity.single <- function(model, calcSens, calcJac){
     rxSymPySetupIf(model);
     state <- rxState(model);
     state <- state[regexpr(rex::rex(start, "rx_"), state) == -1];
-    if (class(calcSens) == "list" && all(c("eta","theta") %in% names(calcSens))){
+    if (is(calcSens,"list") && all(c("eta","theta") %in% names(calcSens))){
         extraLines <- rxSymPyDfDy(model, vars=c(calcSens$eta, calcSens$theta));
         eta <- calcSens$eta;
         theta <- calcSens$theta;
@@ -893,7 +893,7 @@ rxSymPySensitivity <- function(model, calcSens, calcJac=FALSE, keepState=NULL,
     if (missing(calcSens)){
         calcSens <- rxParams(model);
     }
-    if (class(calcSens) == "logical"){
+    if (is(calcSens,"logical")){
         if (calcSens){
             calcSens <- rxParams(model);
         } else {
@@ -1024,7 +1024,7 @@ rxSymPySetupDPred <- function(newmod, calcSens, states, prd="rx_pred_", pred.min
     states <- states[regexpr(rex::rex(start, "rx_"), states) == -1]
     extraLines <- c();
     zeroSens <- TRUE;
-    if (class(calcSens) == "list"){
+    if (is(calcSens,"list")){
         tmp1 <- rxSymPySetupDPred(newmod, calcSens$eta, states, prd)
         zeroSens <- attr(tmp1, "zeroSens");
         tmp2 <- rxSymPySetupDPred(newmod, calcSens$theta, states, prd)

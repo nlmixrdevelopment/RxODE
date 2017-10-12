@@ -319,9 +319,9 @@ print.rxSymInv <- function(x, ...){
 ##' @author Matthew L. Fidler
 ##' @export
 rxSymDiag <- function(x){
-    if (class(x) == "rxSymInv"){
+    if (is(x,"rxSymInv")){
         return(as.numeric(gsub(rex::rex(anything, "t", capture(any_numbers),anything), "\\1", diag(x$fmat))) + 1)
-    } else if (class(x) == "rxSymInvBlock"){
+    } else if (is(x,"rxSymInvBlock")){
         mx <- 0;
         ret <- c()
         for (i in seq_along(x$matI)){
@@ -349,7 +349,7 @@ rxSymDiag <- function(x){
 ##' @author Matthew L. Fidler
 ##' @export
 rxSymInv <- function(invobj, theta, pow=0, dTheta=0){
-    if (class(invobj) == "rxSymInv"){
+    if (is(invobj,"rxSymInv")){
         if (length(theta) == 1){
             if (theta == "n"){
                 return(invobj$fn(0, 0L, 1L));
@@ -398,7 +398,7 @@ rxSymInv <- function(invobj, theta, pow=0, dTheta=0){
         } else {
             return(invobj$fn(as.double(theta), as.integer(pow), as.integer(dTheta)));
         }
-    } else if (class(invobj) == "rxSymInvBlock"){
+    } else if (is(invobj,"rxSymInvBlock")){
         if (!any(pow == c(1, 0, -1))){
             stop("The power can only be 1, 0, or -1");
         }

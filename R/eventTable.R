@@ -273,7 +273,7 @@ eventTable <- function(amount.units = NA, time.units = "hours")
     "clear.sampling" <- function(){
         ## Clears all sampling.
         .EventTable <<- .EventTable[!.obs.rec, ,drop = TRUE] ;
-        if (class(.EventTable) == "list"){
+        if (is(.EventTable,"list")){
             .EventTable <<- as.data.frame(.EventTable);
         }
         .obs.rec <<- .EventTable$evid == 0
@@ -282,7 +282,7 @@ eventTable <- function(amount.units = NA, time.units = "hours")
 
     "clear.dosing" <- function(){
         .EventTable <<- .EventTable[.obs.rec, ,drop = TRUE] ;
-        if (class(.EventTable) == "list"){
+        if (is(.EventTable,"list")){
             .EventTable <<- as.data.frame(.EventTable);
         }
         .obs.rec <<- .EventTable$evid==0

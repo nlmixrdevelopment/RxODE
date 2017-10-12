@@ -71,7 +71,7 @@ divOp <- function(){
             paste0("rx__d_dt_",gsub(rex::rex(start, "__dt__"), "", e2));
         } else if (grepl(rex::rex(start, "__df_", anything, "_", end), e1) && grepl(rex::rex(start, "_dy_",anything, "__", end), e2)){
             paste0("rx", substring(e1, 0, nchar(e1) - 1), e2)
-        } else if (class(e1) == "numeric"){
+        } else if (is(e1,"numeric")){
             paste0("S(", e1, ")/", e2)
         } else {
             paste0(e1, "/", e2)
@@ -764,9 +764,9 @@ sympyCEnv <- function(expr){
 }
 
 sympyC <- function(x){
-    if (class(substitute(x)) == "character"){
+    if (is(substitute(x),"character")){
         return(eval(parse(text=sprintf("RxODE:::sympyC(quote(%s))", x))))
-    } else if (class(substitute(x)) == "name"){
+    } else if (is(substitute(x),"name")){
         return(eval(parse(text=sprintf("RxODE:::sympyC(%s)", deparse(x)))));
     } else {
         return(eval(x, sympyCEnv(x)))
@@ -1054,7 +1054,7 @@ exists2 <- function(x, where){
 ##' @keywords internal
 ##' @export
 rxToSymPy <- function(x, envir=parent.frame(1)) {
-    if (class(substitute(x)) == "character"){
+    if (is(substitute(x),"character")){
         if (length(x) == 1){
             names(x) <- NULL;
             txt <- strsplit(gsub(";", "\n", x), "\n+")[[1]];
@@ -1119,7 +1119,7 @@ rxToSymPy <- function(x, envir=parent.frame(1)) {
             txt <- paste0(eval(parse(text=sprintf("RxODE::rxToSymPy(%s)", paste(deparse(paste(as.vector(x), collapse="\n")))))), collapse="")
             return(txt);
         }
-    } else if (class(substitute(x)) == "name"){
+    } else if (is(substitute(x),"name")){
         cls <- tryCatch({class(x)}, error=function(e){return("error")});
         if (any(cls == c("list", "rxDll", "RxCompilationManager", "RxODE", "solveRxDll"))){
             ret <- strsplit(rxNorm(x),"\n")[[1]];
@@ -1146,7 +1146,7 @@ rxToSymPy <- function(x, envir=parent.frame(1)) {
 ##' @rdname rxToSymPy
 ##' @export
 rxFromSymPy <- function(x, envir=parent.frame(1)) {
-    if (class(substitute(x)) == "character"){
+    if (is(substitute(x),"character")){
         if (length(x) == 1){
             txt <- strsplit(x, "\n+")[[1]];
             txt <- strsplit(txt, "[=~]", txt);
@@ -1199,7 +1199,7 @@ rxFromSymPy <- function(x, envir=parent.frame(1)) {
             txt <- sprintf(eval(parse(text=sprintf("RxODE::rxFromSymPy(%s)", deparse(paste(x, collapse="\n"))))));
             return(txt);
         }
-    } else if (class(substitute(x)) == "name"){
+    } else if (is(substitute(x),"name")){
         cls <- tryCatch({class(x)}, error=function(e){return("error")});
         if (cls == "character" && length(cls) == 1){
             txt <- paste0(eval(parse(text=sprintf("RxODE::rxFromSymPy(%s)", deparse(x)))));
@@ -1413,10 +1413,10 @@ rxParseErr <- function(x, base.theta, diag.xform=c("sqrt", "log", "identity"),
     if (!missing(init)){
         assignInMyNamespace("rxErrEnv.init", init);
     }
-    if (class(x) == "function"){
+    if (is(x,"function")){
         x <- rxAddReturn(x, ret != "");
     }
-    if (class(substitute(x)) == "character"){
+    if (is(substitute(x),"character")){
         ret <- eval(parse(text=sprintf("RxODE:::rxParseErr(quote({%s}))", x)));
         ret <- substring(ret, 3, nchar(ret) - 2)
         if (regexpr("else if", ret) != -1){
@@ -1428,7 +1428,7 @@ rxParseErr <- function(x, base.theta, diag.xform=c("sqrt", "log", "identity"),
         assignInMyNamespace("rxErrEnv.ret", "rx_r_");
         assignInMyNamespace("rxErrEnv.init", NULL);
         return(ret)
-    } else if (class(substitute(x)) == "name"){
+    } else if (is(substitute(x),"name")){
         ret <- eval(parse(text=sprintf("RxODE:::rxParseErr(%s)", deparse(x))))
         if (regexpr("else if", ret) != -1){
             stop("else if expressions not supported (yet).");
@@ -1441,7 +1441,7 @@ rxParseErr <- function(x, base.theta, diag.xform=c("sqrt", "log", "identity"),
         return(ret);
     } else {
         ret <- c();
-        if (class(x) == "character"){
+        if (is(x,"character")){
             ret <- eval(parse(text=sprintf("RxODE:::rxParseErr(quote({%s}))", paste(x, collapse="\n"))));
             ret <- substring(ret, 3, nchar(ret) - 2);
         } else {
@@ -1488,7 +1488,7 @@ rxSimpleExprP <- function(x){
 ##' @export
 ##' @keywords internal
 rxSplitPlusQ <- function(x, level=0, mult=FALSE){
-    if (class(x) == "character" && level == 0){
+    if (is(x,"character") && level == 0){
         return(eval(parse(text=sprintf("rxSplitPlusQ(quote(%s))", x))))
     }
     if (is.name(x) || is.atomic(x)){

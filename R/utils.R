@@ -21,7 +21,7 @@ asTbl <- function(obj){
 }
 
 rxTbl <- function(x, msg){
-    if (RxODE.prefer.tbl && class(x) == "data.frame" && requireNamespace("dplyr", quietly = TRUE)){
+    if (RxODE.prefer.tbl && is(x,"data.frame") && requireNamespace("dplyr", quietly = TRUE)){
         if (!missing(msg)){
             rxCat(sprintf("Change solved object to dplyr's tbl for %s.\n", msg));
         }
@@ -43,7 +43,7 @@ rxTbl <- function(x, msg){
 rxCat <- function(a, ...){
     ## nocov start
     if (RxODE.verbose){
-        if (class(a) == "RxODE"){
+        if (is(a,"RxODE")){
             message(rxNorm(a), appendLF=FALSE);
         } else {
             message(a, ..., appendLF=FALSE);

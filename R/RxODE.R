@@ -325,20 +325,20 @@ RxODE <- function(model, modName = basename(wd), wd = ifelse(RxODE.cache.directo
         model <- filename;
     }
     if (!missing(model) && missing(filename)){
-        if (class(substitute(model)) == "{"){
+        if (is(substitute(model),"{")){
             model <- deparse(substitute(model));
             if (model[1] == "{"){
                 model <- model[-1];
                 model <- model[-length(model)];
             }
             model <- paste(model, collapse="\n");
-        } else if (class(model) == "RxODE"){
+        } else if (is(model,"RxODE")){
             model <- rxModelVars(model)$model["model"];
             if (!is.null(calcJac) && is.null(calcSens)){
                 calcSens <- FALSE;
             }
         }
-        ## else if ((class(model) == "function" || class(model) == "call")){
+        ## else if ((is(model,"function") || is(model,"call"))){
         ##     model <- deparse(body(model))[-1];
         ##     model <- paste(model[-length(model)], collapse="\n");
         ## }
@@ -379,7 +379,7 @@ RxODE <- function(model, modName = basename(wd), wd = ifelse(RxODE.cache.directo
         pars <- modVars$params;
         state.ignore <- modVars$state.ignore
         if (!is.null(params)){
-            if (is.null(events) && class(params) == "EventTable"){
+            if (is.null(events) && is(params,"EventTable")){
                 events <- params;
                 params <- c();
             }
@@ -390,7 +390,7 @@ RxODE <- function(model, modName = basename(wd), wd = ifelse(RxODE.cache.directo
                 warning("Assumed transit compartment model since 'podo' is in the model.")
             }
         }
-        if (class(params) != "numeric"){
+        if (!is(params, "numeric")){
             n <- names(params);
             params <- as.double(params);
             names(params) <- n;
@@ -681,7 +681,7 @@ RxODE <- function(model, modName = basename(wd), wd = ifelse(RxODE.cache.directo
         return(ret);
     }
     force <- FALSE
-    if (class(do.compile) == "logical"){
+    if (is(do.compile,"logical")){
         if (do.compile)
             force <- TRUE;
     }
@@ -751,28 +751,28 @@ RxODE <- function(model, modName = basename(wd), wd = ifelse(RxODE.cache.directo
 ##' @author Matthew L. Fidler
 ##' @keywords internal
 rxGetModel <- function(model, calcSens=FALSE, calcJac=FALSE, collapseModel=FALSE){
-    if (class(substitute(model)) == "call"){
+    if (is(substitute(model),"call")){
         model <- model;
     }
-    if (class(substitute(model)) == "{"){
+    if (is(substitute(model),"{")){
         model <- deparse(substitute(model))
         if (model[1] == "{"){
             model <- model[-1];
             model <- model[-length(model)];
         }
         model <- paste(model, collapse="\n");
-    } else if (class(model) == "function" || class(model) == "call"){
+    } else if (is(model,"function") || is(model,"call")){
         model <- deparse(body(model));
         if (model[1] == "{"){
             model <- model[-1];
             model <- model[-length(model)];
         }
         model <- paste(model, collapse="\n");
-    } else if (class(model) == "character"){
+    } else if (is(model,"character")){
         if (file.exists(model)){
             ret$use_model_name <- TRUE;
         }
-    } else if (class(model) == "name"){
+    } else if (is(model,"name")){
         model <- eval(model);
     } else {
         stop(sprintf("Can't figure out how to handle the model argument (%s).", class(model)));
@@ -1207,7 +1207,7 @@ rx.initCmpMgr <-
         } else {
             .rxDll <<- rxCompile(.model, .mdir, extraC = .extraC, debug = .debug, modName = .modName,  calcJac=.calcJac, calcSens=.calcSens, collapseModel=.collapseModel);
         }
-        if (class(.rxDll) == "rxDll"){
+        if (is(.rxDll,"rxDll")){
             .compiled <<- TRUE;
         }
         invisible(.compiled);
@@ -1344,7 +1344,7 @@ rxMd5 <- function(model,         # Model File
                   ...){
     ## rxMd5 returns MD5 of model file.
     ## digest(file = TRUE) includes file times, so it doesn't work for this needs.
-    if (class(model) == "character"){
+    if (is(model,"character")){
         if (length(model) == 1){
             if (file.exists(model)){
                 ret <- suppressWarnings({readLines(model)});
@@ -1357,7 +1357,7 @@ rxMd5 <- function(model,         # Model File
             ret <- model;
             mod <- paste(ret, collapse="\n");
         }
-        if (class(extraC) == "character"){
+        if (is(extraC,"character")){
             if (file.exists(extraC)){
                 ret <- c(ret, gsub(rex::rex(or(any_spaces, any_newlines)), "", readLines(extraC), perl = TRUE));
             }
@@ -1489,7 +1489,7 @@ rxTrans.character <- function(model,
     ## rxReload()
     if (file.exists(cFile)){
         ret$md5 <- md5
-        if (class(calcSens) == "logical"){
+        if (is(calcSens,"logical")){
             if (!calcSens){
                 calcSens <- NULL;
             }
@@ -1943,7 +1943,7 @@ rxUnload <- function(obj){
 ##' @author Matthew L.Fidler
 ##' @export
 rxDelete <- function(obj){
-    if (class(obj) == "RxODE"){
+    if (is(obj,"RxODE")){
         obj$delete();
     } else {
         dll <- rxDll(obj);
@@ -2110,7 +2110,7 @@ rxNorm <- function(obj, condition=NULL, removeInis, removeJac, removeSens){
         }
         return(paste(ret, collapse="\n"))
     } else {
-        if (class(condition) == "logical"){
+        if (is(condition,"logical")){
             if (!condition){
                 condition <- NULL;
             } else {
@@ -2125,7 +2125,7 @@ rxNorm <- function(obj, condition=NULL, removeInis, removeJac, removeSens){
             names(tmp) <- NULL;
             return(tmp)
         } else {
-            if (class(condition) == "character"){
+            if (is(condition,"character")){
                 tmp <- rxExpandIfElse(obj)[condition];
                 names(tmp) <- NULL;
                 return(tmp)

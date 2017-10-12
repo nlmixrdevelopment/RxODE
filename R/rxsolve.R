@@ -167,7 +167,7 @@ summary.solveRxODE <- function(object, ...){
 `$.solveRxODE` <-  function(obj, arg, exact = TRUE){
     m <- as.data.frame(obj);
     ret <- m[[arg, exact = exact]];
-    if (is.null(ret) & class(arg) == "character"){
+    if (is.null(ret) & is(arg,"character")){
         if (nchar(arg) > 6 && substr(arg, 1, 6) == "_sens_"){
             w <- which(gsub(regSens, "_sens_\\1_\\2", names(m)) == arg);
             if (length(w) == 1){
@@ -255,7 +255,7 @@ solveRxODE_updateEventTable <- function(obj, objName, name, ..., envir = parent.
 `[.solveRxODE` <- function(x, i, j, drop){
     df <- as.data.frame(x);
     assign.names <- NULL
-    if (!missing(j) && class(j) == "character"){
+    if (!missing(j) && is(j,"character")){
         nm <- names(df);
         nms <- gsub(regSens, "_sens_\\1_\\2", nm);
         assign.names <- j;
@@ -273,11 +273,11 @@ solveRxODE_updateEventTable <- function(obj, objName, name, ..., envir = parent.
         df <- df[i, ];
     } else if (missing(i) && !missing(j) && missing(drop)){
         df <- df[, j];
-        if (!is.null(assign.names) && class(df) == "data.frame")
+        if (!is.null(assign.names) && is(df,"data.frame"))
             names(df) <- assign.names
     } else if (!missing(i) && !missing(j) && missing(drop)){
         df <- df[i, j];
-        if (!is.null(assign.names) && class(df) == "data.frame")
+        if (!is.null(assign.names) && is(df,"data.frame"))
             names(df) <- assign.names
     } else if (missing(i) && missing(j) && missing(drop)){
         df <- df[drop = drop];
@@ -289,7 +289,7 @@ solveRxODE_updateEventTable <- function(obj, objName, name, ..., envir = parent.
             names(df) <- assign.names
     } else if (!missing(i) && !missing(j) && !missing(drop)){
         df <- df[i, j, drop = drop];
-        if (!is.null(assign.names) && class(df) == "data.frame")
+        if (!is.null(assign.names) && is(df,"data.frame"))
             names(df) <- assign.names
     } else if (missing(i) && missing(j) && !missing(drop)){
         df <- df[,, drop = drop];
@@ -368,7 +368,7 @@ update.solveRxODE <- function(object, ...){
 ##' @export
 ##' @keywords internal
 `+.solveRxODE` <- function(solved, new){
-    if (class(new) == "EventTable"){
+    if (is(new,"EventTable")){
         return(update(solved, events=new));
     } else {
         return(as.data.frame(solved) + new);
@@ -397,11 +397,11 @@ update.solveRxODE <- function(object, ...){
     lst <- c(list(params=env$params, inits=env$inits), env$extra.args)
     iarg <- gsub(regIni, "", arg);
     if (arg == "time"){
-        if (class(value) == "EventTable"){
+        if (is(value,"EventTable")){
             cat("Update event table and solved object.\n");
             return(update(obj, events = eventTable))
-        } else if (class(value) == "data.frame"){
-        } else if (class(value) == "numeric"){
+        } else if (is(value,"data.frame")){
+        } else if (is(value,"numeric")){
             rxCat("Updating sampling times in the event table updating object.\n");
             eventTable <- lst$events$copy();
             eventTable$clear.sampling();
