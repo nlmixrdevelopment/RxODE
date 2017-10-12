@@ -842,39 +842,43 @@ void RxODE_ode_setup(SEXP sexp_inits,
 }
 
 void RxODE_ode_solve_env(SEXP sexp_rho){
-  SEXP sexp_theta = findVar(installChar(mkChar("params")),sexp_rho);
-  SEXP sexp_inits = findVar(installChar(mkChar("inits")),sexp_rho);
-  SEXP sexp_lhs   = findVar(installChar(mkChar("lhs_vars")),sexp_rho);
+  int pro = 0;
+  SEXP sexp_theta = PROTECT(findVar(installChar(mkChar("params")),sexp_rho));pro++;
+  SEXP sexp_inits = PROTECT(findVar(installChar(mkChar("inits")),sexp_rho)); pro++;
+  SEXP sexp_lhs   = PROTECT(findVar(installChar(mkChar("lhs_vars")),sexp_rho)); pro++;
   // Events
-  SEXP sexp_time = findVar(installChar(mkChar("time")),sexp_rho);
-  SEXP sexp_evid = findVar(installChar(mkChar("evid")),sexp_rho);
-  SEXP sexp_dose = findVar(installChar(mkChar("amt")),sexp_rho);
+  SEXP sexp_time = PROTECT(findVar(installChar(mkChar("time")),sexp_rho)); pro++;
+  SEXP sexp_evid = PROTECT(findVar(installChar(mkChar("evid")),sexp_rho)); pro++;
+  SEXP sexp_dose = PROTECT(findVar(installChar(mkChar("amt")),sexp_rho)); pro++;
   // Covariates
-  SEXP sexp_pcov = findVar(installChar(mkChar("pcov")),sexp_rho);
-  SEXP sexp_cov = findVar(installChar(mkChar("cov")),sexp_rho);
-  SEXP sexp_locf = findVar(installChar(mkChar("isLocf")),sexp_rho);
+  SEXP sexp_pcov = PROTECT(findVar(installChar(mkChar("pcov")),sexp_rho)); pro++;
+  SEXP sexp_cov = PROTECT(findVar(installChar(mkChar("cov")),sexp_rho)); pro++;
+  SEXP sexp_locf = PROTECT(findVar(installChar(mkChar("isLocf")),sexp_rho)); pro++;
   // Solver Options
-  SEXP sexp_atol = findVar(installChar(mkChar("atol")),sexp_rho);
-  SEXP sexp_rtol = findVar(installChar(mkChar("rtol")),sexp_rho);
-  SEXP sexp_hmin = findVar(installChar(mkChar("hmin")),sexp_rho);
-  SEXP sexp_hmax = findVar(installChar(mkChar("hmax")),sexp_rho);
-  SEXP sexp_h0 = findVar(installChar(mkChar("hini")),sexp_rho);
-  SEXP sexp_mxordn = findVar(installChar(mkChar("maxordn")),sexp_rho);
-  SEXP sexp_mxords = findVar(installChar(mkChar("maxords")),sexp_rho);
-  SEXP sexp_mx = findVar(installChar(mkChar("maxsteps")),sexp_rho);
-  SEXP sexp_stiff = findVar(installChar(mkChar("stiff")),sexp_rho);
-  SEXP sexp_transit_abs = findVar(installChar(mkChar("transit_abs")),sexp_rho);
-  SEXP sexp_rc = findVar(installChar(mkChar("rc")),sexp_rho);
+  SEXP sexp_atol = PROTECT(findVar(installChar(mkChar("atol")),sexp_rho)); pro++;
+  SEXP sexp_rtol = PROTECT(findVar(installChar(mkChar("rtol")),sexp_rho)); pro++;
+  SEXP sexp_hmin = PROTECT(findVar(installChar(mkChar("hmin")),sexp_rho)); pro++;
+  SEXP sexp_hmax = PROTECT(findVar(installChar(mkChar("hmax")),sexp_rho)); pro++;
+  SEXP sexp_h0 = PROTECT(findVar(installChar(mkChar("hini")),sexp_rho)); pro++;
+  SEXP sexp_mxordn = PROTECT(findVar(installChar(mkChar("maxordn")),sexp_rho)); pro++;
+  SEXP sexp_mxords = PROTECT(findVar(installChar(mkChar("maxords")),sexp_rho)); pro++;
+  SEXP sexp_mx = PROTECT(findVar(installChar(mkChar("maxsteps")),sexp_rho)); pro++;
+  SEXP sexp_stiff = PROTECT(findVar(installChar(mkChar("stiff")),sexp_rho)); pro++;
+  SEXP sexp_transit_abs = PROTECT(findVar(installChar(mkChar("transit_abs")),sexp_rho)); pro++;
+  SEXP sexp_rc = PROTECT(findVar(installChar(mkChar("rc")),sexp_rho)); pro++;
   int *rce    = INTEGER(sexp_rc);
 
   par_ptr       = REAL(sexp_theta);
   inits         = REAL(sexp_inits);
 
-  RxODE_ode_setup(sexp_inits, sexp_lhs, sexp_time, sexp_evid, sexp_dose, sexp_pcov, sexp_cov, sexp_locf, sexp_atol, sexp_rtol, sexp_hmin, sexp_hmax, sexp_h0, sexp_mxordn, sexp_mxords, sexp_mx, sexp_stiff, sexp_transit_abs);
+  RxODE_ode_setup(sexp_inits, sexp_lhs, sexp_time, sexp_evid, sexp_dose, sexp_pcov, sexp_cov,
+		  sexp_locf, sexp_atol, sexp_rtol, sexp_hmin, sexp_hmax, sexp_h0, sexp_mxordn,
+		  sexp_mxords, sexp_mx, sexp_stiff, sexp_transit_abs);
   RxODE_ode_alloc();
   RxODE_ode_solver_c(neq, stiff, evid, inits, dose, solve, rc);
   // Send rc to environment
   rce[0] = rc[0];
+  UNPROTECT(pro);
 }
 
 SEXP RxODE_ode_solver (// Parameters
@@ -914,7 +918,9 @@ SEXP RxODE_ode_solver (// Parameters
   par_ptr       = REAL(sexp_theta);
   inits         = REAL(sexp_inits);
   // Events
-  RxODE_ode_setup(sexp_inits, sexp_lhs, sexp_time, sexp_evid, sexp_dose, sexp_pcov, sexp_cov, sexp_locf, sexp_atol, sexp_rtol, sexp_hmin, sexp_hmax, sexp_h0, sexp_mxordn, sexp_mxords, sexp_mx, sexp_stiff, sexp_transit_abs);
+  RxODE_ode_setup(sexp_inits, sexp_lhs, sexp_time, sexp_evid, sexp_dose, sexp_pcov, sexp_cov,
+		  sexp_locf, sexp_atol, sexp_rtol, sexp_hmin, sexp_hmax, sexp_h0, sexp_mxordn,
+		  sexp_mxords, sexp_mx, sexp_stiff, sexp_transit_abs);
   RxODE_ode_alloc();
   
   
@@ -975,7 +981,7 @@ SEXP RxODE_ode_solver (// Parameters
     SET_VECTOR_ELT(sexp_dimnames, 0, R_NilValue);
     SEXP sexp_colnames = PROTECT(allocVector(STRSXP,1+nPrnState+nlhs+add_cov*ncov)); pro++;
     SET_STRING_ELT(sexp_colnames, 0, mkChar("time"));
-    SEXP temp = getAttrib(sexp_inits, R_NamesSymbol);
+    SEXP temp = PROTECT(getAttrib(sexp_inits, R_NamesSymbol)); pro++;
     ii = 0;
     for (i = 0; i < neq; i++){
       if (!rmState[i]){
@@ -1088,7 +1094,7 @@ SEXP RxODE_ode_solver (// Parameters
     counts[3] = rc[0];
     setAttrib(sexp_counter, R_NamesSymbol, sexp_ncounter);
 
-    SEXP env = eval(lang1(install("new.env")),R_GlobalEnv);
+    SEXP env = PROTECT(eval(lang1(install("new.env")),R_GlobalEnv));pro++;
 
     defineVar(install("counts"), sexp_counter, env);
     defineVar(install("inits"), sexp_inits, env);
