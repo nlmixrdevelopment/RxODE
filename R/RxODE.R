@@ -579,53 +579,53 @@ RxODE <- function(model, modName = basename(wd), wd = ifelse(RxODE.cache.directo
                 if (rc != 0)
                     stop(sprintf("could not solve ODE, IDID = %d (see further messages)", rc))
                 ret
-            })
+            }, silent=TRUE)
             if (inherits(ret, "try-error")){
                 ## Error solving, try the other solver.
                 ## errs <- paste(suppressWarnings({readLines(sink.file)}), collapse="\n");
                 stiff <- 1L - stiff;
                 ## sink(sink.file);
-                try({ret <- .sexp(## Parameters
-                         params,
-                         inits,
-                         as.double(scale),
-                         lhs_vars,
-                         ## events
-                         time,
-                         evid,
-                         amt,
-                         ## Covariates
-                         pcov,
-                         cov,
-                         isLocf,
-                         ## Solver options (double)
-                         atol,
-                         rtol,
-                         hmin,
-                         hmax,
-                         hini,
-                         ## Solver options ()
-                         maxordn,
-                         maxords,
-                         maxsteps,
-                         stiff,
-                         transit_abs,
-                         ## Passed to build solver object.
-                         env,
-                         as.integer(c(state.ignore, add.cov, do.matrix)),
-                         extra.args)
-                    rc <- ret[[2]];
-                    ret <- ret[[1]];
-                    ## attr(ret, "solveRxDll")$matrix <- attr(ret, "solveRxDll")$matrix[events$get.obs.rec(), ];
-                    ## Change sensitivities to be d/dt(d(A)/d(B)) form.
-                    ## dim <- dimnames(attr(ret, "solveRxDll")$matrix);
-                    ## dim[[2]] <- gsub(regSens,"d/dt(d(\\1)/d(\\2))",dim[[2]]);
-                    ## dimnames(attr(ret, "solveRxDll")$matrix) <- dim;
+                ret <- try({ret <- .sexp(## Parameters
+                                params,
+                                inits,
+                                as.double(scale),
+                                lhs_vars,
+                                ## events
+                                time,
+                                evid,
+                                amt,
+                                ## Covariates
+                                pcov,
+                                cov,
+                                isLocf,
+                                ## Solver options (double)
+                                atol,
+                                rtol,
+                                hmin,
+                                hmax,
+                                hini,
+                                ## Solver options ()
+                                maxordn,
+                                maxords,
+                                maxsteps,
+                                stiff,
+                                transit_abs,
+                                ## Passed to build solver object.
+                                env,
+                                as.integer(c(state.ignore, add.cov, do.matrix)),
+                                extra.args)
+                                rc <- ret[[2]];
+                                ret <- ret[[1]];
+                                ## attr(ret, "solveRxDll")$matrix <- attr(ret, "solveRxDll")$matrix[events$get.obs.rec(), ];
+                                ## Change sensitivities to be d/dt(d(A)/d(B)) form.
+                                ## dim <- dimnames(attr(ret, "solveRxDll")$matrix);
+                                ## dim[[2]] <- gsub(regSens,"d/dt(d(\\1)/d(\\2))",dim[[2]]);
+                                ## dimnames(attr(ret, "solveRxDll")$matrix) <- dim;
 
-                    if (rc != 0)
-                        stop(sprintf("Could not solve ODE, IDID = %d (see further messages).", rc))
-                    ret
-                })
+                                if (rc != 0)
+                                    stop(sprintf("Could not solve ODE, IDID = %d (see further messages).", rc))
+                                ret
+                }, silent=TRUE);
                 ## sink();
                 if (inherits(ret, "try-error")){
                     stop("Tried both LSODA and DOP853, but could not solve the system.")
