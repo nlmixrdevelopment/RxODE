@@ -487,13 +487,18 @@ update.solveRxODE <- function(object, ...){
 ##'     time-varying covariates. When solving ODEs it often samples
 ##'     times outside the sampling time specified in \code{events}.
 ##'     When this happens, the time varying covariates are
-##'     interpolated.  Currently this can be \code{"linear"}
-##'     interpolation (the default), which interpolates the covariate
-##'     by solving the line between the observed covariates and
-##'     extrapolating the new covariate value. The other possibility is
-##'     \code{"constant"}, or Last observation carried forward.  In this
-##'     approach, the last observation of the covariate is considered
-##'     the current value of the covariate.
+##'     interpolated.  Currently this can be:
+##'
+##' \itemize{
+##' \item \code{"linear"} interpolation (the default), which interpolates the covariate
+##'     by solving the line between the observed covariates and extrapolating the new
+##'     covariate value.
+##' \item \code{"constant"} -- Last observation carried forward.
+##' \item \code{"NOCB"} -- Next Observation Carried Backward.  This is the same method
+##'       that NONMEM uses.
+##' \item \code{"midpoint"} Last observation carried forward to midpoint; Next observation
+##'   carried backward to midpoint.
+##' }
 ##'
 ##' @param theta A vector of parameters that will be named THETA[#] and
 ##'     added to inits
@@ -638,7 +643,7 @@ rxSolve <- function(object,                      # RxODE object
                     maxordn            = 12,     # maxordn
                     maxords            = 5,      # maxords
                     ...,
-                    covs_interpolation = c("linear", "constant"),
+                    covs_interpolation = c("linear", "constant", "NOCB", "midpoint"),
                     theta=numeric(), eta=numeric(), add.cov=FALSE) {
     ## rxSolve returns
     UseMethod("rxSolve");
@@ -649,7 +654,7 @@ rxSolve <- function(object,                      # RxODE object
 ##' @export
 rxSolve.RxODE <- function(object, params=NULL, events=NULL, inits = NULL, scale=c(), covs = NULL, stiff = TRUE, transit_abs = NULL,
                           atol = 1.0e-8, rtol = 1.0e-6, maxsteps = 5000, hmin = 0, hmax = NULL, hini = 0, maxordn = 12,
-                          maxords = 5, ..., covs_interpolation = c("linear", "constant"),
+                          maxords = 5, ..., covs_interpolation = c("linear", "constant", "NOCB", "midpoint"),
                           theta=numeric(), eta=numeric(), matrix=FALSE, add.cov=FALSE){
     return(object$solve(params, events, inits, scale, covs, stiff, transit_abs, atol, rtol, maxsteps, hmin, hmax, hini, maxordn, maxords,...,
                         covs_interpolation = covs_interpolation, theta=theta, eta=eta, matrix=matrix, add.cov=add.cov))
@@ -659,7 +664,7 @@ rxSolve.RxODE <- function(object, params=NULL, events=NULL, inits = NULL, scale=
 ##' @export
 rxSolve.solveRxODE <- function(object, params=NULL, events=NULL, inits = NULL, scale=c(), covs = NULL, stiff = TRUE, transit_abs = NULL,
                           atol = 1.0e-8, rtol = 1.0e-6, maxsteps = 5000, hmin = 0, hmax = NULL, hini = 0, maxordn = 12,
-                          maxords = 5, ..., covs_interpolation = c("linear", "constant"),
+                          maxords = 5, ..., covs_interpolation = c("linear", "constant", "NOCB", "midpoint"),
                           theta=numeric(), eta=numeric(), matrix=FALSE, add.cov=FALSE){
     env <- attr(object, ".env");
     rxode <- env$env$out;

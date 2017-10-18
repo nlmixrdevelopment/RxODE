@@ -40,6 +40,51 @@ rxPermissive({
         expect_equal(lin.interp$c, lin.interp$c2);
     })
 
+    ## NONMEM interpolation
+    sink("temp.csv");
+    cat("t,c\n");
+    out <- rxSolve(ode,
+                   params = c(a=-8/3, b=-10),
+                   events = et,
+                   inits = c(X=1, Y=1, Z=1),
+                   covs = cov,
+                   covs_interpolation="NOCB", add.cov=TRUE);
+    sink()
+    lin.interp <- read.csv("temp.csv");
+    unlink("temp.csv");
+
+    cov.lin <- approxfun(out$time, out$c, yleft=cov$c[1], yright=cov$c[length(cov$c)],
+                         method="constant", f=1);
+    lin.interp$c2 <- cov.lin(lin.interp$t);
+
+    test_that("NOCB Approximation similar to approxfun.", {
+        expect_equal(lin.interp$c, lin.interp$c2);
+    })
+
+
+    ## midpoint interpolation
+    sink("temp.csv");
+    cat("t,c\n");
+    out <- rxSolve(ode,
+                   params = c(a=-8/3, b=-10),
+                   events = et,
+                   inits = c(X=1, Y=1, Z=1),
+                   covs = cov,
+                   covs_interpolation="midpoint", add.cov=TRUE);
+    sink()
+    lin.interp <- read.csv("temp.csv");
+    unlink("temp.csv");
+
+    cov.lin <- approxfun(out$time, out$c, yleft=cov$c[1], yright=cov$c[length(cov$c)],
+                         method="constant", f=0.5);
+
+    lin.interp$c2 <- cov.lin(lin.interp$t);
+
+    test_that("midpoint Approximation similar to approxfun.", {
+        expect_equal(lin.interp$c, lin.interp$c2);
+    })
+
+
     ## covs_interpolation
     sink("temp.csv");
     cat("t,c\n");
@@ -61,6 +106,7 @@ rxPermissive({
     test_that("Constant Approximation similar to approxfun.", {
         expect_equal(lin.interp$c, lin.interp$c2);
     })
+
 
     out <- as.data.frame(out);
     out <- out[,names(out) != "c"];

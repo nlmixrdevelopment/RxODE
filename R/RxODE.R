@@ -368,7 +368,7 @@ RxODE <- function(model, modName = basename(wd), wd = ifelse(RxODE.cache.directo
     solve <- function(params=NULL, events=NULL, inits = NULL, scale = c(),
                       covs = NULL, stiff = TRUE, transit_abs = NULL,
                       atol = 1.0e-8, rtol = 1.0e-6, maxsteps = 5000, hmin = 0, hmax = NULL, hini = 0, maxordn = 12,
-                      maxords = 5, ..., covs_interpolation = c("linear", "constant"),
+                      maxords = 5, ..., covs_interpolation = c("linear", "constant", "NOCB", "midpoint"),
                       theta=numeric(), eta=numeric(), matrix=TRUE,add.cov=FALSE,
                       inC=FALSE, counts=NULL, do.solve=TRUE){
         env <- environment(.c);
@@ -503,11 +503,15 @@ RxODE <- function(model, modName = basename(wd), wd = ifelse(RxODE.cache.directo
         }
         scale <- c(scale);
         scale <- rxInits(dll, scale, state, 1, noini=TRUE);
-        isLocf <- 0;
+        isLocf <- 0L;
         if (length(covs_interpolation) > 1){
-            isLocf <- 0;
+            isLocf <- 0L;
         } else if (covs_interpolation == "constant"){
-            isLocf <- 1;
+            isLocf <- 1L;
+        } else if (covs_interpolation == "NOCB"){
+            isLocf <- 2L;
+        } else if (covs_interpolation == "midpoint"){
+            isLocf <- 3L;
         } else if (covs_interpolation != "linear"){
             stop("Unknown covariate interpolation specified.");
         }

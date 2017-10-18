@@ -10,21 +10,22 @@ rxSolve(object, params = NULL, events = NULL, inits = NULL, scale = c(),
   covs = NULL, stiff = TRUE, transit_abs = NULL, atol = 1e-06,
   rtol = 1e-06, maxsteps = 5000, hmin = 0, hmax = NULL, hini = 0,
   maxordn = 12, maxords = 5, ..., covs_interpolation = c("linear",
-  "constant"), theta = numeric(), eta = numeric(), add.cov = FALSE)
+  "constant", "NOCB", "midpoint"), theta = numeric(), eta = numeric(),
+  add.cov = FALSE)
 
 \method{rxSolve}{RxODE}(object, params = NULL, events = NULL,
   inits = NULL, scale = c(), covs = NULL, stiff = TRUE,
   transit_abs = NULL, atol = 1e-08, rtol = 1e-06, maxsteps = 5000,
   hmin = 0, hmax = NULL, hini = 0, maxordn = 12, maxords = 5, ...,
-  covs_interpolation = c("linear", "constant"), theta = numeric(),
-  eta = numeric(), matrix = FALSE, add.cov = FALSE)
+  covs_interpolation = c("linear", "constant", "NOCB", "midpoint"),
+  theta = numeric(), eta = numeric(), matrix = FALSE, add.cov = FALSE)
 
 \method{rxSolve}{solveRxODE}(object, params = NULL, events = NULL,
   inits = NULL, scale = c(), covs = NULL, stiff = TRUE,
   transit_abs = NULL, atol = 1e-08, rtol = 1e-06, maxsteps = 5000,
   hmin = 0, hmax = NULL, hini = 0, maxordn = 12, maxords = 5, ...,
-  covs_interpolation = c("linear", "constant"), theta = numeric(),
-  eta = numeric(), matrix = FALSE, add.cov = FALSE)
+  covs_interpolation = c("linear", "constant", "NOCB", "midpoint"),
+  theta = numeric(), eta = numeric(), matrix = FALSE, add.cov = FALSE)
 }
 \arguments{
 \item{object}{is a either a RxODE family of objects, or a file-name
@@ -107,16 +108,21 @@ compartment.  This includes S# = numeric will scale a compartment
 like NONMEM.}
 
 \item{covs_interpolation}{specifies the interpolation method for
-time-varying covariates. When solving ODEs it often samples
-times outside the sampling time specified in \code{events}.
-When this happens, the time varying covariates are
-interpolated.  Currently this can be \code{"linear"}
-interpolation (the default), which interpolates the covariate
-by solving the line between the observed covariates and
-extrapolating the new covariate value. The other possibility is
-\code{"constant"}, or Last observation carried forward.  In this
-approach, the last observation of the covariate is considered
-the current value of the covariate.}
+    time-varying covariates. When solving ODEs it often samples
+    times outside the sampling time specified in \code{events}.
+    When this happens, the time varying covariates are
+    interpolated.  Currently this can be:
+
+\itemize{
+\item \code{"linear"} interpolation (the default), which interpolates the covariate
+    by solving the line between the observed covariates and extrapolating the new
+    covariate value.
+\item \code{"constant"} -- Last observation carried forward.
+\item \code{"NOCB"} -- Next Observation Carried Backward.  This is the same method
+      that NONMEM uses.
+\item \code{"midpoint"} Last observation carried forward to midpoint; Next observation
+  carried backward to midpoint.
+}}
 
 \item{theta}{A vector of parameters that will be named THETA[#] and
 added to inits}

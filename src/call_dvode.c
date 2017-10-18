@@ -827,9 +827,26 @@ void RxODE_ode_setup(SEXP sexp_inits,
   slvr_counter   = 0;
   dadt_counter   = 0;
   jac_counter    = 0;
-  rx_aprox_M.f2 = 0.0; //= f=0 
-  rx_aprox_M.f1 = 1.0; // = 1-f = 1;
-  rx_aprox_M.kind = !is_locf;
+  // LOCF
+  if (is_locf == 1){
+    rx_aprox_M.f2 = 0.0; //= f=0 
+    rx_aprox_M.f1 = 1.0; // = 1-f = 1;
+    rx_aprox_M.kind = 0;
+  } else if (is_locf == 2) {
+    // NOCB
+    rx_aprox_M.f2 = 1.0; //= f=1
+    rx_aprox_M.f1 = 0.0;
+    rx_aprox_M.kind = 0;
+  } else if (is_locf == 3){
+    rx_aprox_M.f2 = 0.5; //= f=0.5
+    rx_aprox_M.f1 = 0.5;
+    rx_aprox_M.kind = 0;
+  } else {
+    // Linear
+    rx_aprox_M.f2 = 1.0; //= f=0
+    rx_aprox_M.f1 = 0.0;
+    rx_aprox_M.kind = 1;
+  }
   nlhs          = length(sexp_lhs);
   neq           = length(sexp_inits);
   nBadDose = 0;
