@@ -1233,6 +1233,7 @@ SEXP _RxODE_removableDrive(SEXP letter);
 SEXP _RxODE_rxCoutEcho(SEXP number);
 SEXP _RxODE_RxODE_finalize_focei_omega(SEXP);
 SEXP _RxODE_RxODE_finalize_log_det_OMGAinv_5(SEXP);
+SEXP _rxCholInv(SEXP dms, SEXP theta, SEXP tn);
 
 double RxODE_solveLinB(double t, int linCmt, int diff1, int diff2, double A, double alpha, double B, double beta, double C, double gamma, double ka, double tlag);
 static R_NativePrimitiveArgType RxODE_solveLinB_t[] = {
@@ -1249,6 +1250,7 @@ SEXP _rxSum(SEXP input);
 SEXP _rxSetSum(SEXP input);
 SEXP _rxSetProd(SEXP input);
 SEXP _rxPairwiseSum(SEXP input);
+SEXP _RxODE_rxToOmega(SEXP cholInv);
 
 double RxODE_sum(double *input, int len);
 double RxODE_prod(double *input, int len);
@@ -1275,6 +1277,8 @@ void R_init_RxODE(DllInfo *info){
     {"_rxSetSum",(DL_FUNC) &_rxSetSum, 1},
     {"_rxSetProd",(DL_FUNC) &_rxSetProd, 1},
     {"_RxODE_removableDrive", (DL_FUNC) &_RxODE_removableDrive, 1},
+    {"_rxCholInv", (DL_FUNC) &_rxCholInv, 3},
+    {"_RxODE_rxToOmega", (DL_FUNC) &_RxODE_rxToOmega, 1},
     {NULL, NULL, 0}
   };
 

@@ -10,6 +10,10 @@ rxInv <- function(matrix) {
     .Call(`_RxODE_rxInv`, matrix)
 }
 
+rxToOmega <- function(cholMat) {
+    .Call(`_RxODE_rxToOmega`, cholMat)
+}
+
 RxODE_finalize_focei_omega <- function(rho) {
     invisible(.Call(`_RxODE_RxODE_finalize_focei_omega`, rho))
 }

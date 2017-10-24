@@ -19,6 +19,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// rxToOmega
+arma::mat rxToOmega(arma::mat cholMat);
+RcppExport SEXP _RxODE_rxToOmega(SEXP cholMatSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type cholMat(cholMatSEXP);
+    rcpp_result_gen = Rcpp::wrap(rxToOmega(cholMat));
+    return rcpp_result_gen;
+END_RCPP
+}
 // RxODE_finalize_focei_omega
 void RxODE_finalize_focei_omega(SEXP rho);
 RcppExport SEXP _RxODE_RxODE_finalize_focei_omega(SEXP rhoSEXP) {

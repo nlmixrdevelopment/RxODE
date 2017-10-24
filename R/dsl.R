@@ -711,13 +711,18 @@ rxSymPyC <- new.env(parent = emptyenv())
 rxSymPyC$"**" <- function(a, b){
     a <- dsl.strip.paren(a);
     b <- dsl.strip.paren(b);
-    sprintf("pow((%s == 0 && %s <= 0 ? %s : %s), %s)", a, b, .Machine$double.eps, a, b);
+    num <- suppressWarnings({as.numeric(b)});
+    if (is.na(num)){
+        return(sprinf("R_pow(%s, %s)", a, b))
+    } else if (num == round(num)) {
+        return(sprintf("R_pow_di(%s, %s)", a, b));
+    } else if (num == 0.5){
+        return(sprintf("sqrt(%s)", a));
+    } else {
+        return(sprintf("Rx_pow(%s, %s)", a, b));
+    }
 }
-rxSymPyC$"^" <- function(a, b){
-    a <- dsl.strip.paren(a);
-    b <- dsl.strip.paren(b);
-    sprintf("pow((%s == 0 && %s <= 0 ? %s : %s), %s)", a, b, .Machine$double.eps, a, b);
-}
+rxSymPyC$"^" <- rxSymPyC$"**"
 
 rxSymPyC$S <- function(x){
     sprintf("%s", x);

@@ -157,65 +157,14 @@ on.exit({setwd(owd)});
 setwd(devtools::package_file());
 knitr::knit(devtools::package_file("README.Rmd"))
 
-create.syminv.cache <- function(n=1, xforms=c("sqrt", "log", "identity")){
-    owd <- getwd();
-    on.exit(setwd(owd))
-    setwd(devtools::package_file("inst/inv"));
-    i <- 0;
-    if (n == 1){
-        m <- matrix(1, 1);
-        for (xform in c("sqrt", "log", "identity")){
-            rxSymInvC(m, xform);
-        }
-    } else {
-        m <- matrix(rep(1, n * n), n);
-        m[lower.tri(m)] <- 0;
-        m[upper.tri(m)] <- 0;
-        n2 <- sum(lower.tri(m) * 1);
-        grd <- eval(parse(text=sprintf("expand.grid(%s)", paste(rep("c(0,1)", n2), collapse=", "))));
-        for (i in 1:length(grd[, 1])){
-            v <- as.vector(m);
-            vw <- which(as.vector(lower.tri(m) * 1) == 1);
-            v[vw] <- grd[i, ];
-            mc <- matrix(v, n);
-            mc[upper.tri(mc)] <- t(mc)[upper.tri(mc)];
-            dmat <- dim(mc)[1] -1;
-            block <- list();
-            last <- 1;
-            if (dmat != 0){
-                for (i in 1:dmat){
-                    if (all(mc[rxBlockZeros(mc,i)] == 0)){
-                        s <- seq(last, i);
-                        cur <-matrix(as.double(mc[s, s]), length(s));
-                        last <- i + 1;
-                        block[[length(block) + 1]] <- cur;
-                    }
-                }
-            }
-            if (length(block) == 0){
-                for (xform in xforms){
-                    rxSymInvC(mc, xform);
-                    rxSymInvC(mc, xform, chol=TRUE);
-                    cat(".");
-                    i <- i + 1;
-                    if (i %% 5 == 0){
-                        cat(i);
-                    }
-                    if (i %% 50 == 0){
-                        cat("\n");
-                    }
-                }
-            }
-            ## print(mc);
-            ## mc[upper.tri(mc)] <- grd[i, ]
-            ## mc[lower.tri(mc)] <- t(mc)[lower.tri(mc)];
-            ## print(mc);
-        }
-        ## print(n2)
-        ## print(m);
-        ## print(grd);
-    }
-    cat("\n");
+gen.ome <- function(mx){
+    ret <- paste0(sprintf("//Generated from refresh.R for %s dimensions\n#include <R.h>\n#include <Rdefines.h>\n#include <R_ext/Error.h>\n#include <Rmath.h>\nSEXP _rxCholInv(SEXP dms, SEXP theta, SEXP tn){\nint dm=INTEGER(dms)[0];\nif (dm == 0){\n  SEXP ret=  PROTECT(allocVector(INTSXP,1));\n  INTEGER(ret)[0] = %s;\n  UNPROTECT(1);\n  return(ret);\n}", mx, mx),
+                  paste(sapply(1:mx, function(x){
+                      sprintf("else if (dm == %s){\n%s\n}\n", x, rxSymInvC2(matrix(rep(1, x * x), x), allow.cache=FALSE));
+                  }), collapse=""), "\n  return R_NilValue;\n}");
+    sink(devtools::package_file("src/omegaChol.c"));
+    cat(ret)
+    sink();
 }
 
 ## create.syminv.cache();
@@ -229,6 +178,8 @@ create.syminv.cache <- function(n=1, xforms=c("sqrt", "log", "identity")){
 ## cpp code
 
 if (Sys.getenv("RxODE_derivs") == "TRUE"){
+
+    gen.ome(12);
 
     lin.diff <- function(logify=TRUE){
         ## These are the derivatives in infusion

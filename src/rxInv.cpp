@@ -5,6 +5,7 @@
 using namespace Rcpp;
 using namespace R;
 using namespace arma;
+extern "C" SEXP _rxCholInv(SEXP dms, SEXP theta, SEXP tn);
 
 //' Invert matrix using Rcpp Armadilo.  
 //'
@@ -24,6 +25,19 @@ NumericVector rxInv(SEXP matrix){
   NumericVector ret;
   ret = wrap(imat);
   return(ret);
+}
+
+arma::mat rxToCholOmega(arma::mat cholMat){
+  // Only the cholesky is needed for the liklihood caclation
+  return inv(trimatu(cholMat));
+}
+
+// [[Rcpp::export]]
+arma::mat rxToOmega(arma::mat cholMat){
+  // The Omega is need.
+  // U^-1*trans(U^1) = Omega
+  arma::mat U1 = inv(trimatu(cholMat));
+  return U1*trans(U1);
 }
 
 // [[Rcpp::export]]
@@ -54,8 +68,12 @@ void RxODE_finalize_focei_omega(SEXP rho){
     }
     prod2[i] = prodI;
   }
-  e["tr.omegaInv.dOmega.0.5"] = trInv;
+  // = tr(omegaInv*dOmega) = tr(omegaInv*omega*d(Omega^-1)*omega) = tr(d(Omega^-1)*omega)
+  // This requires an expensive inverse....
+  //e["tr.omegaInv.dOmega.0.5"] = trInv;
+  // omegaInv.dOmega.omegaInv = d(Omega^-1)
   e["omegaInv.dOmega.omegaInv"] = prod1;
+  // omegaInv.dOmega.omegaInv.dEta = d(Omega^-1)*dEta
   e["omegaInv.dOmega.omegaInv.dEta"] = prod2;
 }
 // [[Rcpp::export]]
@@ -75,7 +93,7 @@ NumericVector RxODE_finalize_log_det_OMGAinv_5(SEXP rho){
     if (reset[0] != 1){
       Rprintf("Warning: The Omega^-1 is non-positive definite, correcting with nearPD\n");
     }
-    c = chol(-as<mat>(e["H"]));
+    c = chol(-as<mat>(e["omegaInv"]));
   }
   vec diag = c.diag();
   vec ldiag = log(diag);
