@@ -40,6 +40,60 @@ arma::mat rxToOmega(arma::mat cholMat){
   return U1*trans(U1);
 }
 
+
+// [[Rcpp::export]]
+void rxSymInvCholEnvCalculate(Environment e, std::string what, Function invFn){
+  if (!e.exists(what)){
+    List invObj;
+    if (e.exists("invobj")){
+      invObj = as<List>(e["invobj"]);
+    } else {
+      stop("error in rxSymInvCholEnvCalculate environment");
+    }
+    NumericVector theta;
+    if (e.exists("theta")){
+       theta = as<NumericVector>(e["theta"]);
+    } else {
+      stop("theta for omega calculations not setup yet.");
+    }
+    int ntheta = theta.size(), i=0;
+    if (what == "chol.omegaInv"){
+      e["chol.omegaInv"]=as<NumericMatrix>(invFn(invObj, theta, "cholOmegaInv"));
+    } else if (what == "omegaInv"){
+      e["omegaInv"]= as<NumericMatrix>(invFn(invObj, theta, "omegaInv",-1));
+    } else if (what == "d.omegaInv"){
+      List ret(ntheta);
+      for (i =0; i < ntheta; i++){
+	ret[i] = as<NumericMatrix>(invFn(invObj, theta, "d(omegaInv)",i+1));
+      }
+      e["d.omegaInv"] = ret;
+    } else if (what == "d.D.omegaInv"){
+      List ret(ntheta);
+      for (i =0; i < ntheta; i++){
+        ret[i] = as<NumericVector>(invFn(invObj, theta, "d(D)",i+1));
+      }
+      e["d.D.omegaInv"] = ret;
+    } else if (what == "chol.omega"){
+      rxSymInvCholEnvCalculate(e, "chol.omegaInv", invFn);
+      arma::mat ret = rxToCholOmega(as<arma::mat>(e["chol.omegaInv"]));
+      e["chol.omega"] = ret; 
+    } else if (what == "omega"){
+      rxSymInvCholEnvCalculate(e, "chol.omega", invFn);
+      arma::mat U1 = as<mat>(e["chol.omega"]);
+      arma::mat omega = U1*trans(U1);
+      e["omega"] = omega;
+    } else if (what == "log.det.OMGAinv.5"){
+      // Note this does NOT include the 2 pi bit
+      rxSymInvCholEnvCalculate(e,"chol.omegaInv",invFn);
+      arma::mat c = as<arma::mat>(e["chol.omegaInv"]);
+      arma::vec diag = c.diag();
+      arma::vec ldiag = log(diag);
+      NumericVector ret = as<NumericVector>(wrap(sum(ldiag)));
+      e["log.det.OMGAinv.5"] = ret;
+    }
+  }
+}
+
 // [[Rcpp::export]]
 void RxODE_finalize_focei_omega(SEXP rho){
   Environment e = as<Environment>(rho);

@@ -12,7 +12,13 @@ if (dm == 0){
   return(ret);
 }else if (dm == 1){
   int theta_n = INTEGER(tn)[0];
-  if (theta_n < -2 || theta_n > 1){
+  if (theta_n == -2){
+    SEXP ret = PROTECT(allocVector(INTSXP, 1));
+    INTEGER(ret)[0] = 1;
+    UNPROTECT(1);
+    return ret;
+  }
+  else if (theta_n < -3 || theta_n > 1){
     error("d(Omega^-1) Derivative outside bounds.");
   }
   else if (length(theta) != 1){
@@ -33,7 +39,7 @@ if (dm == 0){
     return(ret);
   } else {
     SEXP ret = PROTECT(allocVector(REALSXP, 1));for(int i = 0; i < 1; i++){REAL(ret)[i]=0;}
-    if (theta_n == -2){
+    if (theta_n == -3){
       REAL(ret)[0] = 2 * exp(2 * REAL(theta)[0]);
     }
     UNPROTECT(1);
@@ -42,7 +48,13 @@ if (dm == 0){
 }
 else if (dm == 2){
   int theta_n = INTEGER(tn)[0];
-  if (theta_n < -4 || theta_n > 3){
+  if (theta_n == -2){
+    SEXP ret = PROTECT(allocVector(INTSXP, 1));
+    INTEGER(ret)[0] = 2;
+    UNPROTECT(1);
+    return ret;
+  }
+  else if (theta_n < -5 || theta_n > 3){
     error("d(Omega^-1) Derivative outside bounds.");
   }
   else if (length(theta) != 3){
@@ -78,10 +90,10 @@ else if (dm == 2){
     return(ret);
   } else {
     SEXP ret = PROTECT(allocVector(REALSXP, 2));for(int i = 0; i < 2; i++){REAL(ret)[i]=0;}
-    if (theta_n == -2){
+    if (theta_n == -3){
       REAL(ret)[0] = 2 * exp(2 * REAL(theta)[0]);
     }
-    else if (theta_n == -4){
+    else if (theta_n == -5){
       REAL(ret)[1] = 2 * exp(2 * REAL(theta)[2]);
     }
     UNPROTECT(1);
@@ -90,7 +102,13 @@ else if (dm == 2){
 }
 else if (dm == 3){
   int theta_n = INTEGER(tn)[0];
-  if (theta_n < -7 || theta_n > 6){
+  if (theta_n == -2){
+    SEXP ret = PROTECT(allocVector(INTSXP, 1));
+    INTEGER(ret)[0] = 3;
+    UNPROTECT(1);
+    return ret;
+  }
+  else if (theta_n < -8 || theta_n > 6){
     error("d(Omega^-1) Derivative outside bounds.");
   }
   else if (length(theta) != 6){
@@ -155,13 +173,13 @@ else if (dm == 3){
     return(ret);
   } else {
     SEXP ret = PROTECT(allocVector(REALSXP, 3));for(int i = 0; i < 3; i++){REAL(ret)[i]=0;}
-    if (theta_n == -2){
+    if (theta_n == -3){
       REAL(ret)[0] = 2 * exp(2 * REAL(theta)[0]);
     }
-    else if (theta_n == -4){
+    else if (theta_n == -5){
       REAL(ret)[1] = 2 * exp(2 * REAL(theta)[2]);
     }
-    else if (theta_n == -7){
+    else if (theta_n == -8){
       REAL(ret)[2] = 2 * exp(2 * REAL(theta)[5]);
     }
     UNPROTECT(1);
@@ -170,7 +188,13 @@ else if (dm == 3){
 }
 else if (dm == 4){
   int theta_n = INTEGER(tn)[0];
-  if (theta_n < -11 || theta_n > 10){
+  if (theta_n == -2){
+    SEXP ret = PROTECT(allocVector(INTSXP, 1));
+    INTEGER(ret)[0] = 4;
+    UNPROTECT(1);
+    return ret;
+  }
+  else if (theta_n < -12 || theta_n > 10){
     error("d(Omega^-1) Derivative outside bounds.");
   }
   else if (length(theta) != 10){
@@ -282,16 +306,16 @@ else if (dm == 4){
     return(ret);
   } else {
     SEXP ret = PROTECT(allocVector(REALSXP, 4));for(int i = 0; i < 4; i++){REAL(ret)[i]=0;}
-    if (theta_n == -2){
+    if (theta_n == -3){
       REAL(ret)[0] = 2 * exp(2 * REAL(theta)[0]);
     }
-    else if (theta_n == -4){
+    else if (theta_n == -5){
       REAL(ret)[1] = 2 * exp(2 * REAL(theta)[2]);
     }
-    else if (theta_n == -7){
+    else if (theta_n == -8){
       REAL(ret)[2] = 2 * exp(2 * REAL(theta)[5]);
     }
-    else if (theta_n == -11){
+    else if (theta_n == -12){
       REAL(ret)[3] = 2 * exp(2 * REAL(theta)[9]);
     }
     UNPROTECT(1);
@@ -300,7 +324,13 @@ else if (dm == 4){
 }
 else if (dm == 5){
   int theta_n = INTEGER(tn)[0];
-  if (theta_n < -16 || theta_n > 15){
+  if (theta_n == -2){
+    SEXP ret = PROTECT(allocVector(INTSXP, 1));
+    INTEGER(ret)[0] = 5;
+    UNPROTECT(1);
+    return ret;
+  }
+  else if (theta_n < -17 || theta_n > 15){
     error("d(Omega^-1) Derivative outside bounds.");
   }
   else if (length(theta) != 15){
@@ -481,19 +511,19 @@ else if (dm == 5){
     return(ret);
   } else {
     SEXP ret = PROTECT(allocVector(REALSXP, 5));for(int i = 0; i < 5; i++){REAL(ret)[i]=0;}
-    if (theta_n == -2){
+    if (theta_n == -3){
       REAL(ret)[0] = 2 * exp(2 * REAL(theta)[0]);
     }
-    else if (theta_n == -4){
+    else if (theta_n == -5){
       REAL(ret)[1] = 2 * exp(2 * REAL(theta)[2]);
     }
-    else if (theta_n == -7){
+    else if (theta_n == -8){
       REAL(ret)[2] = 2 * exp(2 * REAL(theta)[5]);
     }
-    else if (theta_n == -11){
+    else if (theta_n == -12){
       REAL(ret)[3] = 2 * exp(2 * REAL(theta)[9]);
     }
-    else if (theta_n == -16){
+    else if (theta_n == -17){
       REAL(ret)[4] = 2 * exp(2 * REAL(theta)[14]);
     }
     UNPROTECT(1);
@@ -502,7 +532,13 @@ else if (dm == 5){
 }
 else if (dm == 6){
   int theta_n = INTEGER(tn)[0];
-  if (theta_n < -22 || theta_n > 21){
+  if (theta_n == -2){
+    SEXP ret = PROTECT(allocVector(INTSXP, 1));
+    INTEGER(ret)[0] = 6;
+    UNPROTECT(1);
+    return ret;
+  }
+  else if (theta_n < -23 || theta_n > 21){
     error("d(Omega^-1) Derivative outside bounds.");
   }
   else if (length(theta) != 21){
@@ -778,22 +814,22 @@ else if (dm == 6){
     return(ret);
   } else {
     SEXP ret = PROTECT(allocVector(REALSXP, 6));for(int i = 0; i < 6; i++){REAL(ret)[i]=0;}
-    if (theta_n == -2){
+    if (theta_n == -3){
       REAL(ret)[0] = 2 * exp(2 * REAL(theta)[0]);
     }
-    else if (theta_n == -4){
+    else if (theta_n == -5){
       REAL(ret)[1] = 2 * exp(2 * REAL(theta)[2]);
     }
-    else if (theta_n == -7){
+    else if (theta_n == -8){
       REAL(ret)[2] = 2 * exp(2 * REAL(theta)[5]);
     }
-    else if (theta_n == -11){
+    else if (theta_n == -12){
       REAL(ret)[3] = 2 * exp(2 * REAL(theta)[9]);
     }
-    else if (theta_n == -16){
+    else if (theta_n == -17){
       REAL(ret)[4] = 2 * exp(2 * REAL(theta)[14]);
     }
-    else if (theta_n == -22){
+    else if (theta_n == -23){
       REAL(ret)[5] = 2 * exp(2 * REAL(theta)[20]);
     }
     UNPROTECT(1);
@@ -802,7 +838,13 @@ else if (dm == 6){
 }
 else if (dm == 7){
   int theta_n = INTEGER(tn)[0];
-  if (theta_n < -29 || theta_n > 28){
+  if (theta_n == -2){
+    SEXP ret = PROTECT(allocVector(INTSXP, 1));
+    INTEGER(ret)[0] = 7;
+    UNPROTECT(1);
+    return ret;
+  }
+  else if (theta_n < -30 || theta_n > 28){
     error("d(Omega^-1) Derivative outside bounds.");
   }
   else if (length(theta) != 28){
@@ -1203,25 +1245,25 @@ else if (dm == 7){
     return(ret);
   } else {
     SEXP ret = PROTECT(allocVector(REALSXP, 7));for(int i = 0; i < 7; i++){REAL(ret)[i]=0;}
-    if (theta_n == -2){
+    if (theta_n == -3){
       REAL(ret)[0] = 2 * exp(2 * REAL(theta)[0]);
     }
-    else if (theta_n == -4){
+    else if (theta_n == -5){
       REAL(ret)[1] = 2 * exp(2 * REAL(theta)[2]);
     }
-    else if (theta_n == -7){
+    else if (theta_n == -8){
       REAL(ret)[2] = 2 * exp(2 * REAL(theta)[5]);
     }
-    else if (theta_n == -11){
+    else if (theta_n == -12){
       REAL(ret)[3] = 2 * exp(2 * REAL(theta)[9]);
     }
-    else if (theta_n == -16){
+    else if (theta_n == -17){
       REAL(ret)[4] = 2 * exp(2 * REAL(theta)[14]);
     }
-    else if (theta_n == -22){
+    else if (theta_n == -23){
       REAL(ret)[5] = 2 * exp(2 * REAL(theta)[20]);
     }
-    else if (theta_n == -29){
+    else if (theta_n == -30){
       REAL(ret)[6] = 2 * exp(2 * REAL(theta)[27]);
     }
     UNPROTECT(1);
@@ -1230,7 +1272,13 @@ else if (dm == 7){
 }
 else if (dm == 8){
   int theta_n = INTEGER(tn)[0];
-  if (theta_n < -37 || theta_n > 36){
+  if (theta_n == -2){
+    SEXP ret = PROTECT(allocVector(INTSXP, 1));
+    INTEGER(ret)[0] = 8;
+    UNPROTECT(1);
+    return ret;
+  }
+  else if (theta_n < -38 || theta_n > 36){
     error("d(Omega^-1) Derivative outside bounds.");
   }
   else if (length(theta) != 36){
@@ -1790,28 +1838,28 @@ else if (dm == 8){
     return(ret);
   } else {
     SEXP ret = PROTECT(allocVector(REALSXP, 8));for(int i = 0; i < 8; i++){REAL(ret)[i]=0;}
-    if (theta_n == -2){
+    if (theta_n == -3){
       REAL(ret)[0] = 2 * exp(2 * REAL(theta)[0]);
     }
-    else if (theta_n == -4){
+    else if (theta_n == -5){
       REAL(ret)[1] = 2 * exp(2 * REAL(theta)[2]);
     }
-    else if (theta_n == -7){
+    else if (theta_n == -8){
       REAL(ret)[2] = 2 * exp(2 * REAL(theta)[5]);
     }
-    else if (theta_n == -11){
+    else if (theta_n == -12){
       REAL(ret)[3] = 2 * exp(2 * REAL(theta)[9]);
     }
-    else if (theta_n == -16){
+    else if (theta_n == -17){
       REAL(ret)[4] = 2 * exp(2 * REAL(theta)[14]);
     }
-    else if (theta_n == -22){
+    else if (theta_n == -23){
       REAL(ret)[5] = 2 * exp(2 * REAL(theta)[20]);
     }
-    else if (theta_n == -29){
+    else if (theta_n == -30){
       REAL(ret)[6] = 2 * exp(2 * REAL(theta)[27]);
     }
-    else if (theta_n == -37){
+    else if (theta_n == -38){
       REAL(ret)[7] = 2 * exp(2 * REAL(theta)[35]);
     }
     UNPROTECT(1);
@@ -1820,7 +1868,13 @@ else if (dm == 8){
 }
 else if (dm == 9){
   int theta_n = INTEGER(tn)[0];
-  if (theta_n < -46 || theta_n > 45){
+  if (theta_n == -2){
+    SEXP ret = PROTECT(allocVector(INTSXP, 1));
+    INTEGER(ret)[0] = 9;
+    UNPROTECT(1);
+    return ret;
+  }
+  else if (theta_n < -47 || theta_n > 45){
     error("d(Omega^-1) Derivative outside bounds.");
   }
   else if (length(theta) != 45){
@@ -2577,31 +2631,31 @@ else if (dm == 9){
     return(ret);
   } else {
     SEXP ret = PROTECT(allocVector(REALSXP, 9));for(int i = 0; i < 9; i++){REAL(ret)[i]=0;}
-    if (theta_n == -2){
+    if (theta_n == -3){
       REAL(ret)[0] = 2 * exp(2 * REAL(theta)[0]);
     }
-    else if (theta_n == -4){
+    else if (theta_n == -5){
       REAL(ret)[1] = 2 * exp(2 * REAL(theta)[2]);
     }
-    else if (theta_n == -7){
+    else if (theta_n == -8){
       REAL(ret)[2] = 2 * exp(2 * REAL(theta)[5]);
     }
-    else if (theta_n == -11){
+    else if (theta_n == -12){
       REAL(ret)[3] = 2 * exp(2 * REAL(theta)[9]);
     }
-    else if (theta_n == -16){
+    else if (theta_n == -17){
       REAL(ret)[4] = 2 * exp(2 * REAL(theta)[14]);
     }
-    else if (theta_n == -22){
+    else if (theta_n == -23){
       REAL(ret)[5] = 2 * exp(2 * REAL(theta)[20]);
     }
-    else if (theta_n == -29){
+    else if (theta_n == -30){
       REAL(ret)[6] = 2 * exp(2 * REAL(theta)[27]);
     }
-    else if (theta_n == -37){
+    else if (theta_n == -38){
       REAL(ret)[7] = 2 * exp(2 * REAL(theta)[35]);
     }
-    else if (theta_n == -46){
+    else if (theta_n == -47){
       REAL(ret)[8] = 2 * exp(2 * REAL(theta)[44]);
     }
     UNPROTECT(1);
@@ -2610,7 +2664,13 @@ else if (dm == 9){
 }
 else if (dm == 10){
   int theta_n = INTEGER(tn)[0];
-  if (theta_n < -56 || theta_n > 55){
+  if (theta_n == -2){
+    SEXP ret = PROTECT(allocVector(INTSXP, 1));
+    INTEGER(ret)[0] = 10;
+    UNPROTECT(1);
+    return ret;
+  }
+  else if (theta_n < -57 || theta_n > 55){
     error("d(Omega^-1) Derivative outside bounds.");
   }
   else if (length(theta) != 55){
@@ -3606,34 +3666,34 @@ else if (dm == 10){
     return(ret);
   } else {
     SEXP ret = PROTECT(allocVector(REALSXP, 10));for(int i = 0; i < 10; i++){REAL(ret)[i]=0;}
-    if (theta_n == -2){
+    if (theta_n == -3){
       REAL(ret)[0] = 2 * exp(2 * REAL(theta)[0]);
     }
-    else if (theta_n == -4){
+    else if (theta_n == -5){
       REAL(ret)[1] = 2 * exp(2 * REAL(theta)[2]);
     }
-    else if (theta_n == -7){
+    else if (theta_n == -8){
       REAL(ret)[2] = 2 * exp(2 * REAL(theta)[5]);
     }
-    else if (theta_n == -11){
+    else if (theta_n == -12){
       REAL(ret)[3] = 2 * exp(2 * REAL(theta)[9]);
     }
-    else if (theta_n == -16){
+    else if (theta_n == -17){
       REAL(ret)[4] = 2 * exp(2 * REAL(theta)[14]);
     }
-    else if (theta_n == -22){
+    else if (theta_n == -23){
       REAL(ret)[5] = 2 * exp(2 * REAL(theta)[20]);
     }
-    else if (theta_n == -29){
+    else if (theta_n == -30){
       REAL(ret)[6] = 2 * exp(2 * REAL(theta)[27]);
     }
-    else if (theta_n == -37){
+    else if (theta_n == -38){
       REAL(ret)[7] = 2 * exp(2 * REAL(theta)[35]);
     }
-    else if (theta_n == -46){
+    else if (theta_n == -47){
       REAL(ret)[8] = 2 * exp(2 * REAL(theta)[44]);
     }
-    else if (theta_n == -56){
+    else if (theta_n == -57){
       REAL(ret)[9] = 2 * exp(2 * REAL(theta)[54]);
     }
     UNPROTECT(1);
@@ -3642,7 +3702,13 @@ else if (dm == 10){
 }
 else if (dm == 11){
   int theta_n = INTEGER(tn)[0];
-  if (theta_n < -67 || theta_n > 66){
+  if (theta_n == -2){
+    SEXP ret = PROTECT(allocVector(INTSXP, 1));
+    INTEGER(ret)[0] = 11;
+    UNPROTECT(1);
+    return ret;
+  }
+  else if (theta_n < -68 || theta_n > 66){
     error("d(Omega^-1) Derivative outside bounds.");
   }
   else if (length(theta) != 66){
@@ -4923,37 +4989,37 @@ else if (dm == 11){
     return(ret);
   } else {
     SEXP ret = PROTECT(allocVector(REALSXP, 11));for(int i = 0; i < 11; i++){REAL(ret)[i]=0;}
-    if (theta_n == -2){
+    if (theta_n == -3){
       REAL(ret)[0] = 2 * exp(2 * REAL(theta)[0]);
     }
-    else if (theta_n == -4){
+    else if (theta_n == -5){
       REAL(ret)[1] = 2 * exp(2 * REAL(theta)[2]);
     }
-    else if (theta_n == -7){
+    else if (theta_n == -8){
       REAL(ret)[2] = 2 * exp(2 * REAL(theta)[5]);
     }
-    else if (theta_n == -11){
+    else if (theta_n == -12){
       REAL(ret)[3] = 2 * exp(2 * REAL(theta)[9]);
     }
-    else if (theta_n == -16){
+    else if (theta_n == -17){
       REAL(ret)[4] = 2 * exp(2 * REAL(theta)[14]);
     }
-    else if (theta_n == -22){
+    else if (theta_n == -23){
       REAL(ret)[5] = 2 * exp(2 * REAL(theta)[20]);
     }
-    else if (theta_n == -29){
+    else if (theta_n == -30){
       REAL(ret)[6] = 2 * exp(2 * REAL(theta)[27]);
     }
-    else if (theta_n == -37){
+    else if (theta_n == -38){
       REAL(ret)[7] = 2 * exp(2 * REAL(theta)[35]);
     }
-    else if (theta_n == -46){
+    else if (theta_n == -47){
       REAL(ret)[8] = 2 * exp(2 * REAL(theta)[44]);
     }
-    else if (theta_n == -56){
+    else if (theta_n == -57){
       REAL(ret)[9] = 2 * exp(2 * REAL(theta)[54]);
     }
-    else if (theta_n == -67){
+    else if (theta_n == -68){
       REAL(ret)[10] = 2 * exp(2 * REAL(theta)[65]);
     }
     UNPROTECT(1);
@@ -4962,7 +5028,13 @@ else if (dm == 11){
 }
 else if (dm == 12){
   int theta_n = INTEGER(tn)[0];
-  if (theta_n < -79 || theta_n > 78){
+  if (theta_n == -2){
+    SEXP ret = PROTECT(allocVector(INTSXP, 1));
+    INTEGER(ret)[0] = 12;
+    UNPROTECT(1);
+    return ret;
+  }
+  else if (theta_n < -80 || theta_n > 78){
     error("d(Omega^-1) Derivative outside bounds.");
   }
   else if (length(theta) != 78){
@@ -6578,40 +6650,40 @@ else if (dm == 12){
     return(ret);
   } else {
     SEXP ret = PROTECT(allocVector(REALSXP, 12));for(int i = 0; i < 12; i++){REAL(ret)[i]=0;}
-    if (theta_n == -2){
+    if (theta_n == -3){
       REAL(ret)[0] = 2 * exp(2 * REAL(theta)[0]);
     }
-    else if (theta_n == -4){
+    else if (theta_n == -5){
       REAL(ret)[1] = 2 * exp(2 * REAL(theta)[2]);
     }
-    else if (theta_n == -7){
+    else if (theta_n == -8){
       REAL(ret)[2] = 2 * exp(2 * REAL(theta)[5]);
     }
-    else if (theta_n == -11){
+    else if (theta_n == -12){
       REAL(ret)[3] = 2 * exp(2 * REAL(theta)[9]);
     }
-    else if (theta_n == -16){
+    else if (theta_n == -17){
       REAL(ret)[4] = 2 * exp(2 * REAL(theta)[14]);
     }
-    else if (theta_n == -22){
+    else if (theta_n == -23){
       REAL(ret)[5] = 2 * exp(2 * REAL(theta)[20]);
     }
-    else if (theta_n == -29){
+    else if (theta_n == -30){
       REAL(ret)[6] = 2 * exp(2 * REAL(theta)[27]);
     }
-    else if (theta_n == -37){
+    else if (theta_n == -38){
       REAL(ret)[7] = 2 * exp(2 * REAL(theta)[35]);
     }
-    else if (theta_n == -46){
+    else if (theta_n == -47){
       REAL(ret)[8] = 2 * exp(2 * REAL(theta)[44]);
     }
-    else if (theta_n == -56){
+    else if (theta_n == -57){
       REAL(ret)[9] = 2 * exp(2 * REAL(theta)[54]);
     }
-    else if (theta_n == -67){
+    else if (theta_n == -68){
       REAL(ret)[10] = 2 * exp(2 * REAL(theta)[65]);
     }
-    else if (theta_n == -79){
+    else if (theta_n == -80){
       REAL(ret)[11] = 2 * exp(2 * REAL(theta)[77]);
     }
     UNPROTECT(1);

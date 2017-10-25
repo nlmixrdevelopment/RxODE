@@ -606,7 +606,11 @@ rxSymInvC2 <- function(mat1, diag.xform=c("log", "sqrt", "identity"),
         ## -1/2*t(eta)*-d(Omega^-1)*eta
         ##
         ## The second part is -1/2*tr(Omega^-1*dOmega) = +1/2*tr(Omega^-1*Omega*d(Omega^-1)*Omega) or
-        ## +1/2*tr(d(Omega^-1)*Omega);  Omega needs to be inverted, but no symbolically.
+        ## +1/2*tr(d(Omega^-1)*Omega);  Omega needs to be inverted, but no symbolically.d
+        ##
+        ## In fact the whole of dOmega does not need to be calculated,
+        ## rather the diff(D_Omega^-1) where the D is the LDL^T
+        ## factorization
 
         ## Equation #29 uses d(Omega^-1)
         ##
@@ -630,7 +634,7 @@ rxSymInvC2 <- function(mat1, diag.xform=c("log", "sqrt", "identity"),
         diag <- paste(sapply(diags, function(x){
             y <- -(x + 2);
             i <<- 0
-            z <- sprintf("    %sif (theta_n == %s){\n%s\n    }",ifelse(y == 0, "", "else "), x,
+            z <- sprintf("    %sif (theta_n == %s){\n%s\n    }",ifelse(y == 0, "", "else "), x - 1,
                          paste(sapply(sdiag, function(z){
                              cnt()
                              z <- rxSymPy(sprintf("diff(%s,t%s)", z, y))
@@ -675,8 +679,8 @@ rxSymInvC2 <- function(mat1, diag.xform=c("log", "sqrt", "identity"),
                            collapse="\n")))})), collapse="\n")
         matExpr <- sprintf("  if (theta_n >= -1){\n    SEXP ret = PROTECT(allocMatrix(REALSXP, %s, %s));for (int i = 0; i < %s; i++){REAL(ret)[i]=0;}\n", d, d, d * d);
         vecExpr <- sprintf("    UNPROTECT(1);\n    return(ret);\n  } else {\n    SEXP ret = PROTECT(allocVector(REALSXP, %s));for(int i = 0; i < %s; i++){REAL(ret)[i]=0;}\n%s\n    UNPROTECT(1);\n    return(ret);\n  }", d, d, diag, d);
-        src <- sprintf("  int theta_n = INTEGER(tn)[0];\n  if (theta_n < %s || theta_n > %s){\n    error(\"d(Omega^-1) Derivative outside bounds.\");\n  }\n  else if (length(theta) != %s){\n    error(\"Requires vector with %s arguments.\");\n  }\n%s\n%s\n%s",
-                       min(diags), length(vars), length(vars), length(vars), paste0(matExpr, omega0), omega1, paste0(omega1p, "\n", vecExpr))
+        src <- sprintf("  int theta_n = INTEGER(tn)[0];\n  if (theta_n == -2){\n    SEXP ret = PROTECT(allocVector(INTSXP, 1));\n    INTEGER(ret)[0] = %s;\n    UNPROTECT(1);\n    return ret;\n  }\n  else if (theta_n < %s || theta_n > %s){\n    error(\"d(Omega^-1) Derivative outside bounds.\");\n  }\n  else if (length(theta) != %s){\n    error(\"Requires vector with %s arguments.\");\n  }\n%s\n%s\n%s",
+                       d, min(diags) - 1, length(vars), length(vars), length(vars), paste0(matExpr, omega0), omega1, paste0(omega1p, "\n", vecExpr))
         src <- strsplit(src, "\n")[[1]]
         reg <- rex::rex(any_spaces, "REAL(ret)[", any_numbers, "]", any_spaces, "=", any_spaces, "0", any_spaces, ";");
         ## Take out the =0; expressions
@@ -785,12 +789,14 @@ rxSymInvCholCreate <- function(mat,
             }
             #signature(theta="numeric", tn="integer")
             fn <- eval(bquote(function(theta, tn){
+                if (tn == -2L){
+                    return(.(length(w)));
+                }
                 new.theta <- rep(0.0, .((d + 1) * d / 2));
                 new.theta[.(w)] <- theta;
                 return(.Call(`_rxCholInv`, .(as.integer(d)), as.double(new.theta), as.integer(tn)));
             }))
             ret <- list(fmat=fmat,
-                        th=th.unscaled,
                         fn=fn,
                         cache=TRUE)
             class(ret) <- "rxSymInvChol";
@@ -801,7 +807,6 @@ rxSymInvCholCreate <- function(mat,
             print(ret)
             th <- th.unscaled;
             ret <- list(fmat=ret[[2]],
-                        th=th.unscaled,
                         fn=rxSymInvCreate2C(ret[[1]]));
             class(ret) <- "rxSymInvChol";
             return(ret);
@@ -809,28 +814,177 @@ rxSymInvCholCreate <- function(mat,
     } else {
         mat <- Matrix::.bdiag(block);
         matI <- lapply(block, rxSymInvCholCreate, diag.xform=diag.xform);
-        ret <- list(mat=mat,
-                    matI=matI,
-                    th=th.unscaled);
-        class(ret) <- "rxSymInvCholBlock"
+        ntheta <- sum(sapply(matI, function(x){
+            return(x$fn(NULL, -2L));
+        }))
+        i <- 1;
+        theta.part <- lapply(matI, function(x){
+            len <- x$fn(NULL, -2L)
+            ret <- as.integer(seq(i, by=1, length=len));
+            i <<- max(ret) + 1;
+            return(ret)
+        })
+        fn <- eval(bquote(function(theta, tn){
+            force(matI);
+            if (tn == -2L){
+                return(.(ntheta));
+            }
+            theta.part <- .(theta.part);
+            lst <- lapply(seq_along(theta.part),
+                          function(x){
+                mt <- matI[[x]];
+                w <- theta.part[[x]];
+                new.theta <- theta[w];
+                ctn <- as.integer(tn);
+                if (ctn == -1L || ctn == 0L){
+                    return(mt$fn(as.double(new.theta), ctn));
+                } else {
+                    ## the ctn should refer to the theta relative to
+                    ## the current submatrix; However this function
+                    ## has the theta number relative to the whole
+                    ## matrix.
+                    if (ctn > 0L){
+                        if (ctn > max(w) | ctn < min(w)){
+                            mat <- mt$fn(as.double(new.theta), 0L);
+                            d <- dim(mat)[1]
+                            return(matrix(rep(0, d * d), d));
+                        } else {
+                            ctn <- as.integer(ctn - min(w) + 1)
+                            return(mt$fn(as.double(new.theta), ctn));
+                        }
+                    } else {
+                        ctn <- as.integer(-ctn - 2)
+                        if (ctn > max(w) | ctn < min(w)){
+                            vec <- mt$fn(as.double(new.theta), -3L);
+                            d <- length(vec)
+                            return(rep(0, d));
+                        } else {
+                            ctn <- as.integer(-(ctn - min(w) + 1) - 2L)
+                            return(mt$fn(as.double(new.theta), ctn));
+                        }
+                    }
+                }
+            })
+            if (tn >= -1){
+                return(as.matrix(Matrix::.bdiag(lst)))
+            } else {
+                return(unlist(lst));
+            }
+        }))
+        ret <- list(fmat=mat,
+                    fn=fn);
+        class(ret) <- "rxSymInvChol";
         return(ret);
     }
 }
-
-##' @export
-print.rxSymInvCholBlock <- function(x, ...){
-    d <- dim(x$mat)[1]
-    rxCat(sprintf("Object to create Omega and Omega^-1 & derivitaves for a %sx%s matrix:\n", d, d))
-    rxPrint(x$mat);
-    rxCat("Use `rxSymInvChol' for the matrix.\n");
-}
-
-##' @export
+##'
 print.rxSymInvChol <- function(x, ...){
     d <- dim(x$fmat)[1]
     rxCat(sprintf("Object to create Omega and Omega^-1 & derivitaves for a %sx%s matrix:\n", d, d))
     rxPrint(x$fmat);
     rxCat("Use `rxSymInvChol' for the matrix.\n");
+}
+
+
+##' Get Omega^-1 and derivatives
+##'
+##' @param invobj Object for inverse-type calculations
+##' @param theta Thetas to be used for calculation.  If missing, a
+##'     special s3 class is created and returned to access Omega^1
+##'     objects as needed and cache them based on the theta that is
+##'     used.
+##' @param type The type of object.  Currently the following types are
+##'     supported:
+##' \itemize{
+##' \item \code{cholOmegaInv} gives the
+##'     Cholesky decomposition of the Omega Inverse matrix.
+##' \item \code{omegaInv} gives the Omega Inverse matrix.
+##' \item \code{d(omegaInv)} gives the d(Omega^-1) withe respect to the
+##'     theta parameter specified in \code{theta.number}.
+##' \item \code{d(D)} gives the d(diagonal(Omega^-1)) with respect to
+##'     the theta parameter specified in the \code{theta.number}
+##'     parameter
+##' }
+##' @param theta.number For types \code{d(omegaInv)} and \code{d(D)},
+##'     the theta number that the derivative is taken against.  This
+##'     must be positive from 1 to the number of thetas defining the
+##'     Omega matrix.
+##' @return Matrix based on parameters or environment with all the
+##'     matrixes calculated in variables omega, omegaInv, dOmega,
+##'     dOmegaInv.
+##' @author Matthew L. Fidler
+##' @export
+rxSymInvChol <- function(invobj, theta, type=c("cholOmegaInv", "omegaInv", "d(omegaInv)", "d(D)", "ntheta"), theta.number=0L){
+    if (missing(theta)){
+        env <- new.env(parent = emptyenv());
+        env$invobj <- invobj;
+        ret <- list(env=env);
+        class(ret) <- "rxSymInvCholEnv";
+        return(ret);
+    }
+    type <- match.arg(type);
+    if (type == "cholOmegaInv"){
+        theta.number <- 0L;
+    } else if (type == "omegaInv"){
+        theta.number <- -1L;
+    } else if (type == "d(omegaInv)"){
+        if (theta.number <= 0){
+            stop("Theta number must be positive for d(omegaInv)");
+        }
+        theta.number <- as.integer(theta.number)
+    } else if (type == "d(D)"){
+        if (theta.number <= 0){
+            stop("Theta number must be positive for d(omegaInv)");
+        }
+        theta.number <- as.integer(-2 - theta.number);
+    } else if (type == "ntheta"){
+        theta.number <- -2L;
+    }
+    if (is(invobj,"rxSymInvChol")){
+        return(invobj$fn(theta, theta.number))
+    } else {
+        stop("Unsupported type")
+    }
+}
+
+##'@export
+`$.rxSymInvCholEnv` <- function(obj, arg, exact = TRUE){
+    ob <- obj;
+    class(ob) <- "list";
+    if (arg == "env"){
+        return(ob$env);
+    } else if (arg == "invobj"){
+        return(ob$env$invobj);
+    } else if (arg == "theta"){
+        if (exists("theta", ob$env)){
+            return(ob$env$theta)
+        } else {
+            return(NULL);
+        }
+    }
+    .Call(`_RxODE_rxSymInvCholEnvCalculate`, ob$env, arg, getFromNamespace("rxSymInvChol", "RxODE"))
+    if (exists(arg, envir=ob$env)){
+        return(get(arg, envir=ob$env));
+    } else {
+        return(NULL);
+    }
+}
+
+##'@export
+"$<-.rxSymInvCholEnv" <- function(obj, arg, value){
+    if (arg == "theta"){
+        ob <- obj;
+        class(ob) <- "list";
+        ntheta <- rxSymInvChol(ob$env$invobj, value, "ntheta")
+        if (length(value) == ntheta){
+            assign("theta", as.double(value), ob$env);
+            return(obj)
+        } else {
+            stop("theta is not the right size.")
+        }
+    } else {
+        stop("Can only assign theta.")
+    }
 }
 
 
@@ -840,3 +994,13 @@ print.rxSymInvChol <- function(x, ...){
 ## case of the cholesky decomposition parametrization this becomes
 ## sum(log(diag)); Therefore for inner problem only calculate these
 ## two quantities.  For outer problem, or gradient evaluation more is needed.
+
+print.rxSymInvCholEnv <- function(x, ...){
+    if (is.null(x$theta)){
+        message("Uninitialized $theta, please assign!")
+    } else {
+        message(sprintf("$theta=c(%s) for:\n", paste(x$theta, collapse=", ")))
+        print(x$invobj$fmat)
+        message("\nThis allows accessing $omegaInv, $omega, etc. For a full list see str(.)");
+    }
+}

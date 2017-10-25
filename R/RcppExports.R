@@ -14,6 +14,10 @@ rxToOmega <- function(cholMat) {
     .Call(`_RxODE_rxToOmega`, cholMat)
 }
 
+rxSymInvCholEnvCalculate <- function(e, what, invFn) {
+    invisible(.Call(`_RxODE_rxSymInvCholEnvCalculate`, e, what, invFn))
+}
+
 RxODE_finalize_focei_omega <- function(rho) {
     invisible(.Call(`_RxODE_RxODE_finalize_focei_omega`, rho))
 }

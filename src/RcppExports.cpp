@@ -30,6 +30,18 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// rxSymInvCholEnvCalculate
+void rxSymInvCholEnvCalculate(Environment e, std::string what, Function invFn);
+RcppExport SEXP _RxODE_rxSymInvCholEnvCalculate(SEXP eSEXP, SEXP whatSEXP, SEXP invFnSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Environment >::type e(eSEXP);
+    Rcpp::traits::input_parameter< std::string >::type what(whatSEXP);
+    Rcpp::traits::input_parameter< Function >::type invFn(invFnSEXP);
+    rxSymInvCholEnvCalculate(e, what, invFn);
+    return R_NilValue;
+END_RCPP
+}
 // RxODE_finalize_focei_omega
 void RxODE_finalize_focei_omega(SEXP rho);
 RcppExport SEXP _RxODE_RxODE_finalize_focei_omega(SEXP rhoSEXP) {
