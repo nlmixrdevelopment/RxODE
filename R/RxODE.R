@@ -365,13 +365,13 @@ RxODE <- function(model, modName = basename(wd), wd = ifelse(RxODE.cache.directo
         .Primitive(".Call")(sexp.address,...);
     }
 
-    solve <- function(params=NULL, events=NULL, inits = NULL, scale = c(),
+    solve <- eval(bquote(function(params=NULL, events=NULL, inits = NULL, scale = c(),
                       covs = NULL, stiff = TRUE, transit_abs = NULL,
                       atol = 1.0e-8, rtol = 1.0e-6, maxsteps = 5000, hmin = 0, hmax = NULL, hini = 0, maxordn = 12,
                       maxords = 5, ..., covs_interpolation = c("linear", "constant", "NOCB", "midpoint"),
                       theta=numeric(), eta=numeric(), matrix=TRUE,add.cov=FALSE,
                       inC=FALSE, counts=NULL, do.solve=TRUE){
-        env <- environment(.c);
+        env <- .(environment(.c));
         modVars <- dll$modVars;
         trans <- modVars$trans
         state <- modVars$state;
@@ -522,7 +522,7 @@ RxODE <- function(model, modName = basename(wd), wd = ifelse(RxODE.cache.directo
         names(inits) <- state
         names(params) <- pars;
 
-        time <- event.table$time; ## Changing this to as.double fails tests
+        time <- as.double(event.table$time);
         evid <- as.integer(event.table$evid);
         amt <- as.double(event.table$amt[event.table$evid>0]);
         ## Covariates
@@ -573,17 +573,17 @@ RxODE <- function(model, modName = basename(wd), wd = ifelse(RxODE.cache.directo
                             env,
                             as.integer(c(state.ignore, add.cov, do.matrix)),
                             extra.args)
-                rc <- ret[[2]];
-                ret <- ret[[1]];
+                            rc <- ret[[2]];
+                            ret <- ret[[1]];
                             ## attr(ret, "solveRxDll")$matrix <- attr(ret, "solveRxDll")$matrix[events$get.obs.rec(), ];
-                ## Change sensitivities to be d/dt(d(A)/d(B)) form.
-                ## dim <- dimnames(attr(ret, "solveRxDll")$matrix);
-                ## dim[[2]] <- gsub(regSens,"d/dt(d(\\1)/d(\\2))",dim[[2]]);
-                ## dimnames(attr(ret, "solveRxDll")$matrix) <- dim;
-                if (rc != 0)
-                    stop(sprintf("could not solve ODE, IDID = %d (see further messages)", rc))
-                ret
-            }, silent=TRUE)
+                            ## Change sensitivities to be d/dt(d(A)/d(B)) form.
+                            ## dim <- dimnames(attr(ret, "solveRxDll")$matrix);
+                            ## dim[[2]] <- gsub(regSens,"d/dt(d(\\1)/d(\\2))",dim[[2]]);
+                            ## dimnames(attr(ret, "solveRxDll")$matrix) <- dim;
+                            if (rc != 0)
+                                stop(sprintf("could not solve ODE, IDID = %d (see further messages)", rc))
+                            ret
+            }, silent=FALSE)
             if (inherits(ret, "try-error")){
                 ## Error solving, try the other solver.
                 ## errs <- paste(suppressWarnings({readLines(sink.file)}), collapse="\n");
@@ -629,7 +629,7 @@ RxODE <- function(model, modName = basename(wd), wd = ifelse(RxODE.cache.directo
                                 if (rc != 0)
                                     stop(sprintf("Could not solve ODE, IDID = %d (see further messages).", rc))
                                 ret
-                }, silent=TRUE);
+                }, silent=FALSE);
                 ## sink();
                 if (inherits(ret, "try-error")){
                     stop("Tried both LSODA and DOP853, but could not solve the system.")
@@ -683,7 +683,7 @@ RxODE <- function(model, modName = basename(wd), wd = ifelse(RxODE.cache.directo
             }
         }
         return(ret);
-    }
+    }))
     force <- FALSE
     if (is(do.compile,"logical")){
         if (do.compile)
