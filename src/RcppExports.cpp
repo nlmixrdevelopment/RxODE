@@ -42,6 +42,18 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
+// rxInvWishartVar
+arma::mat rxInvWishartVar(arma::mat Omega, double nu);
+RcppExport SEXP _RxODE_rxInvWishartVar(SEXP OmegaSEXP, SEXP nuSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type Omega(OmegaSEXP);
+    Rcpp::traits::input_parameter< double >::type nu(nuSEXP);
+    rcpp_result_gen = Rcpp::wrap(rxInvWishartVar(Omega, nu));
+    return rcpp_result_gen;
+END_RCPP
+}
 // RxODE_finalize_focei_omega
 void RxODE_finalize_focei_omega(SEXP rho);
 RcppExport SEXP _RxODE_RxODE_finalize_focei_omega(SEXP rhoSEXP) {

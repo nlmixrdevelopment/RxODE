@@ -94,6 +94,41 @@ void rxSymInvCholEnvCalculate(Environment e, std::string what, Function invFn){
   }
 }
 
+//' Calculate Wishart Variance based on Omega matrix
+//'
+//' @param Omega is the square positive definite matrix
+//' @param nu is the degrees of freedom of the Wishart Distribution.
+//' @return Variance matrix
+//' @export
+//[[Rcpp::export]]
+arma::mat rxInvWishartVar(arma::mat Omega, double nu){
+  if (Omega.n_rows != Omega.n_cols){
+    stop("Matrix is required to be positive definite (square) matrix.");
+  }
+  double p = (double)(Omega.n_rows);
+  double vp3 = nu - p - 3;
+  if (vp3 <= 0){
+    stop("The degrees of freedom are too small.");
+  }
+  double vpm1 = nu-p-1;
+  double vpp1 = nu-p+1;
+  double vp   = nu-p;
+  double tmp;
+  arma::mat var(Omega.n_rows, Omega.n_cols);
+  for (int i =0; i < p; i++){
+    for (int j=i; j<p; j++){
+      tmp =Omega(i, j);
+      if (j==i){
+	var(i,i)=2*tmp*tmp/(vpm1*vpm1*vp3);
+      } else {
+	var(i,j) = (vpp1*tmp*tmp+vpm1*tmp*Omega(j,i))/(vp*vpm1*vpm1*vp3);
+	var(j,i) = var(i,j);
+      }
+    }
+  }
+  return var;
+}
+
 // [[Rcpp::export]]
 void RxODE_finalize_focei_omega(SEXP rho){
   Environment e = as<Environment>(rho);
