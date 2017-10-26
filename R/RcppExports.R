@@ -18,6 +18,16 @@ rxSymInvCholEnvCalculate <- function(e, what, invFn) {
     invisible(.Call(`_RxODE_rxSymInvCholEnvCalculate`, e, what, invFn))
 }
 
+#' Calculate Wishart Variance based on Omega matrix
+#'
+#' @param Omega is the square positive definite matrix
+#' @param nu is the degrees of freedom of the Wishart Distribution.
+#' @return Variance matrix
+#' @export
+rxInvWishartVar <- function(Omega, nu) {
+    .Call(`_RxODE_rxInvWishartVar`, Omega, nu)
+}
+
 RxODE_finalize_focei_omega <- function(rho) {
     invisible(.Call(`_RxODE_RxODE_finalize_focei_omega`, rho))
 }

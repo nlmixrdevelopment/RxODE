@@ -22,7 +22,7 @@
 #define NEEDSEMI "Lines need to end with ';' or to match R's handling of line endings set 'options(RxODE.syntax.require.semicolon = FALSE)'."
 #define NEEDPOW "'**' not supported, use '^' instead or set 'options(RxODE.syntax.star.pow = TRUE)'."
 #define NODOT "'.' in variables and states not supported, use '_' instead or set 'options(RxODE.syntax.allow.dots = TRUE)'."
-#define NOINI0 "'%s(0)' for initilization not allowed.  To allow set 'options(RxODE.syntax.allow.ini0 = TRUE)'."
+#define NOINI0 "'%s(0)' for initialization not allowed.  To allow set 'options(RxODE.syntax.allow.ini0 = TRUE)'."
 #define NOSTATE "Defined 'df(%s)/dy(%s)', but '%s' is not a state!"
 #define NOSTATEVAR "Defined 'df(%s)/dy(%s)', but '%s' is not a state or variable!"
 
@@ -202,7 +202,7 @@ extern D_ParserTables parser_tables_RxODE;
 unsigned int found_jac = 0, found_print = 0;
 int rx_syntax_assign = 0, rx_syntax_star_pow = 0,
   rx_syntax_require_semicolon = 0, rx_syntax_allow_dots = 0,
-  rx_syntax_allow_ini0 = 1, rx_syntax_allow_ini = 1;
+  rx_syntax_allow_ini0 = 1, rx_syntax_allow_ini = 1, rx_syntax_allow_assign_state = 0;
 
 char s_aux_info[64*MXSYM];
 
@@ -217,8 +217,8 @@ typedef struct symtab {
   int ini[MXSYM];        /* initial variable assignment =2 if there are two assignments */
   int ini0[MXSYM];        /* state initial variable assignment =2 if there are two assignments */
   int di[MXDER];        /* ith of state vars */
-  int idi[MXDER];       /* sould ith state variable be ignored 0/1 */
-  int fdi[MXDER];        /* Functional initilization of state variable */
+  int idi[MXDER];       /* should ith state variable be ignored 0/1 */
+  int fdi[MXDER];        /* Functional initialization of state variable */
   int nv;                       /* nbr of symbols */
   int ix;                       /* ith of curr symbol */
   int id;                       /* ith of curr symbol */
@@ -859,8 +859,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
           sbt.o = strlen(sbt.s);
 	  new_or_ith(v);
           /* Rprintf("%s; tb.ini = %d; tb.ini0 = %d; tb.lh = %d\n",v,tb.ini[tb.ix],tb.ini0[tb.ix],tb.lh[tb.ix]); */
-          if  ((tb.ini[tb.ix] == 1 && tb.ini0[tb.ix] == 0) || tb.lh[tb.ix] == 1){
-            sprintf(buf,"Cannot assign state variable %s; For initial condition assigment use '%s(0) = #'.\n",v,v);
+          if (!rx_syntax_allow_assign_state && ((tb.ini[tb.ix] == 1 && tb.ini0[tb.ix] == 0) || tb.lh[tb.ix] == 1)){
+            sprintf(buf,"Cannot assign state variable %s; For initial condition assignment use '%s(0) = #'.\n  Changing states can break sensitivity analysis (for nlmixr glmm/focei).\n  To override this behavior set 'options(RxODE.syntax.assign.state = TRUE)'.\n",v,v);
             trans_syntax_error_report_fn(buf);
           }
 	  tb.lh[tb.ix] = 9;
@@ -1995,6 +1995,7 @@ SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP pref
   rx_suppress_syntax_info = R_get_option("RxODE.suppress.syntax.info",0);
   rx_syntax_allow_ini0 = R_get_option("RxODE.syntax.allow.ini0",1);
   rx_syntax_allow_ini  = R_get_option("RxODE.syntax.allow.ini",1);
+  rx_syntax_allow_assign_state = R_get_option("RxODE.syntax.assign.state",0);
   rx_syntax_error = 0;
   set_d_use_r_headers(0);
   set_d_rdebug_grammar_level(0);
