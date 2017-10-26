@@ -709,7 +709,7 @@ rxSymInvCreate2C <- function(src){
 
 rxSymInvCreateC.slow <- NULL
 
-##' Creates an object for caluclating Omega/Omega^-1 and dervatives
+##' Creates an object for calculating Omega/Omega^-1 and derivatives
 ##'
 ##' @param mat Initial Omega matrix
 ##' @param diag.xform transformation to diagonal elements of OMEGA. or chol(Omega^-1)
@@ -885,106 +885,14 @@ print.rxSymInvChol <- function(x, ...){
     rxCat("Use `rxSymInvChol' for the matrix.\n");
 }
 
-
-##' Get Omega^-1 and derivatives
-##'
-##' @param invobj Object for inverse-type calculations
-##' @param theta Thetas to be used for calculation.  If missing, a
-##'     special s3 class is created and returned to access Omega^1
-##'     objects as needed and cache them based on the theta that is
-##'     used.
-##' @param type The type of object.  Currently the following types are
-##'     supported:
-##' \itemize{
-##' \item \code{cholOmegaInv} gives the
-##'     Cholesky decomposition of the Omega Inverse matrix.
-##' \item \code{omegaInv} gives the Omega Inverse matrix.
-##' \item \code{d(omegaInv)} gives the d(Omega^-1) withe respect to the
-##'     theta parameter specified in \code{theta.number}.
-##' \item \code{d(D)} gives the d(diagonal(Omega^-1)) with respect to
-##'     the theta parameter specified in the \code{theta.number}
-##'     parameter
-##' }
-##' @param theta.number For types \code{d(omegaInv)} and \code{d(D)},
-##'     the theta number that the derivative is taken against.  This
-##'     must be positive from 1 to the number of thetas defining the
-##'     Omega matrix.
-##' @return Matrix based on parameters or environment with all the
-##'     matrixes calculated in variables omega, omegaInv, dOmega,
-##'     dOmegaInv.
-##' @author Matthew L. Fidler
-##' @export
-rxSymInvChol <- function(invobj, theta, type=c("cholOmegaInv", "omegaInv", "d(omegaInv)", "d(D)", "ntheta"), theta.number=0L){
-    if (missing(theta)){
-        env <- new.env(parent = emptyenv());
-        env$invobj <- invobj;
-        ret <- list(env=env);
-        class(ret) <- "rxSymInvCholEnv";
-        return(ret);
-    }
-    type <- match.arg(type);
-    if (type == "cholOmegaInv"){
-        theta.number <- 0L;
-    } else if (type == "omegaInv"){
-        theta.number <- -1L;
-    } else if (type == "d(omegaInv)"){
-        if (theta.number <= 0){
-            stop("Theta number must be positive for d(omegaInv)");
-        }
-        theta.number <- as.integer(theta.number)
-    } else if (type == "d(D)"){
-        if (theta.number <= 0){
-            stop("Theta number must be positive for d(omegaInv)");
-        }
-        theta.number <- as.integer(-2 - theta.number);
-    } else if (type == "ntheta"){
-        theta.number <- -2L;
-    }
-    if (is(invobj,"rxSymInvChol")){
-        return(invobj$fn(theta, theta.number))
-    } else {
-        stop("Unsupported type")
-    }
-}
-
 ##'@export
 `$.rxSymInvCholEnv` <- function(obj, arg, exact = TRUE){
-    ob <- obj;
-    class(ob) <- "list";
-    if (arg == "env"){
-        return(ob$env);
-    } else if (arg == "invobj"){
-        return(ob$env$invobj);
-    } else if (arg == "theta"){
-        if (exists("theta", ob$env)){
-            return(ob$env$theta)
-        } else {
-            return(NULL);
-        }
-    }
-    .Call(`_RxODE_rxSymInvCholEnvCalculate`, ob$env, arg, getFromNamespace("rxSymInvChol", "RxODE"))
-    if (exists(arg, envir=ob$env)){
-        return(get(arg, envir=ob$env));
-    } else {
-        return(NULL);
-    }
+    return(.Call(`_RxODE_rxSymInvCholEnvCalculate`, obj, arg, NULL))
 }
 
 ##'@export
 "$<-.rxSymInvCholEnv" <- function(obj, arg, value){
-    if (arg == "theta"){
-        ob <- obj;
-        class(ob) <- "list";
-        ntheta <- rxSymInvChol(ob$env$invobj, value, "ntheta")
-        if (length(value) == ntheta){
-            assign("theta", as.double(value), ob$env);
-            return(obj)
-        } else {
-            stop("theta is not the right size.")
-        }
-    } else {
-        stop("Can only assign theta.")
-    }
+    return(.Call(`_RxODE_rxSymInvCholEnvCalculate`, obj, arg, value))
 }
 
 
@@ -997,7 +905,7 @@ rxSymInvChol <- function(invobj, theta, type=c("cholOmegaInv", "omegaInv", "d(om
 
 print.rxSymInvCholEnv <- function(x, ...){
     if (is.null(x$theta)){
-        message("Uninitialized $theta, please assign!")
+        message(sprintf("Uninitialized $theta, please assign (requires %s arguments)!", x$ntheta))
     } else {
         message(sprintf("$theta=c(%s) for:\n", paste(x$theta, collapse=", ")))
         print(x$invobj$fmat)

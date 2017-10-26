@@ -30,16 +30,31 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// rxSymInvCholEnvCalculate
-void rxSymInvCholEnvCalculate(Environment e, std::string what, Function invFn);
-RcppExport SEXP _RxODE_rxSymInvCholEnvCalculate(SEXP eSEXP, SEXP whatSEXP, SEXP invFnSEXP) {
+// rxSymInvChol
+SEXP rxSymInvChol(RObject invObjOrMarix, Nullable<NumericVector> theta, std::string type, int thetaNumber);
+RcppExport SEXP _RxODE_rxSymInvChol(SEXP invObjOrMarixSEXP, SEXP thetaSEXP, SEXP typeSEXP, SEXP thetaNumberSEXP) {
 BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Environment >::type e(eSEXP);
+    Rcpp::traits::input_parameter< RObject >::type invObjOrMarix(invObjOrMarixSEXP);
+    Rcpp::traits::input_parameter< Nullable<NumericVector> >::type theta(thetaSEXP);
+    Rcpp::traits::input_parameter< std::string >::type type(typeSEXP);
+    Rcpp::traits::input_parameter< int >::type thetaNumber(thetaNumberSEXP);
+    rcpp_result_gen = Rcpp::wrap(rxSymInvChol(invObjOrMarix, theta, type, thetaNumber));
+    return rcpp_result_gen;
+END_RCPP
+}
+// rxSymInvCholEnvCalculate
+SEXP rxSymInvCholEnvCalculate(List obj, std::string what, Nullable<NumericVector> theta);
+RcppExport SEXP _RxODE_rxSymInvCholEnvCalculate(SEXP objSEXP, SEXP whatSEXP, SEXP thetaSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< List >::type obj(objSEXP);
     Rcpp::traits::input_parameter< std::string >::type what(whatSEXP);
-    Rcpp::traits::input_parameter< Function >::type invFn(invFnSEXP);
-    rxSymInvCholEnvCalculate(e, what, invFn);
-    return R_NilValue;
+    Rcpp::traits::input_parameter< Nullable<NumericVector> >::type theta(thetaSEXP);
+    rcpp_result_gen = Rcpp::wrap(rxSymInvCholEnvCalculate(obj, what, theta));
+    return rcpp_result_gen;
 END_RCPP
 }
 // rxInvWishartVar

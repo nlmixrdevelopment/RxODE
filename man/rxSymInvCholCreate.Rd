@@ -2,7 +2,7 @@
 % Please edit documentation in R/rxSymInv.R
 \name{rxSymInvCholCreate}
 \alias{rxSymInvCholCreate}
-\title{Creates an object for caluclating Omega/Omega^-1 and dervatives}
+\title{Creates an object for calculating Omega/Omega^-1 and derivatives}
 \usage{
 rxSymInvCholCreate(mat, diag.xform = c("log", "sqrt", "identity"))
 }
@@ -17,7 +17,7 @@ rxSymInvCholCreate(mat, diag.xform = c("log", "sqrt", "identity"))
 A rxSymInv object
 }
 \description{
-Creates an object for caluclating Omega/Omega^-1 and dervatives
+Creates an object for calculating Omega/Omega^-1 and derivatives
 }
 \author{
 Matthew L. Fidler

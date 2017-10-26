@@ -14,8 +14,42 @@ rxToOmega <- function(cholMat) {
     .Call(`_RxODE_rxToOmega`, cholMat)
 }
 
-rxSymInvCholEnvCalculate <- function(e, what, invFn) {
-    invisible(.Call(`_RxODE_rxSymInvCholEnvCalculate`, e, what, invFn))
+#' Get Omega^-1 and derivatives
+#'
+#' @param invObjOrMatrix Object for inverse-type calculations.  If this is a matrix,
+#'     setup the object for inversion by \code{\link{rxSymInvCholCreate}} with the default arguments and return
+#'     a reactive s3 object.  Otherwise, use the inversion object to calculate the requested derivative/inverse.
+#' @param theta Thetas to be used for calculation.  If missing (\code{NULL}), a
+#'     special s3 class is created and returned to access Omega^1
+#'     objects as needed and cache them based on the theta that is
+#'     used.
+#' @param type The type of object.  Currently the following types are
+#'     supported:
+#' \itemize{
+#' \item \code{cholOmegaInv} gives the
+#'     Cholesky decomposition of the Omega Inverse matrix.
+#' \item \code{omegaInv} gives the Omega Inverse matrix.
+#' \item \code{d(omegaInv)} gives the d(Omega^-1) withe respect to the
+#'     theta parameter specified in \code{theta.number}.
+#' \item \code{d(D)} gives the d(diagonal(Omega^-1)) with respect to
+#'     the theta parameter specified in the \code{theta.number}
+#'     parameter
+#' }
+#' @param theta.number For types \code{d(omegaInv)} and \code{d(D)},
+#'     the theta number that the derivative is taken against.  This
+#'     must be positive from 1 to the number of thetas defining the
+#'     Omega matrix.
+#' @return Matrix based on parameters or environment with all the
+#'     matrixes calculated in variables omega, omegaInv, dOmega,
+#'     dOmegaInv.
+#' @author Matthew L. Fidler
+#' @export
+rxSymInvChol <- function(invObjOrMarix, theta = NULL, type = "cholOmegaInv", thetaNumber = 0L) {
+    .Call(`_RxODE_rxSymInvChol`, invObjOrMarix, theta, type, thetaNumber)
+}
+
+rxSymInvCholEnvCalculate <- function(obj, what, theta = NULL) {
+    .Call(`_RxODE_rxSymInvCholEnvCalculate`, obj, what, theta)
 }
 
 #' Calculate Wishart Variance based on Omega matrix

@@ -1236,6 +1236,7 @@ SEXP _RxODE_RxODE_finalize_log_det_OMGAinv_5(SEXP);
 SEXP _rxCholInv(SEXP dms, SEXP theta, SEXP tn);
 SEXP _RxODE_rxSymInvCholEnvCalculate(SEXP, SEXP, SEXP);
 SEXP _RxODE_rxInvWishartVar(SEXP, SEXP);
+SEXP _RxODE_rxSymInvChol(SEXP, SEXP, SEXP, SEXP);
 
 double RxODE_solveLinB(double t, int linCmt, int diff1, int diff2, double A, double alpha, double B, double beta, double C, double gamma, double ka, double tlag);
 static R_NativePrimitiveArgType RxODE_solveLinB_t[] = {
@@ -1283,6 +1284,7 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_rxToOmega", (DL_FUNC) &_RxODE_rxToOmega, 1},
     {"_RxODE_rxSymInvCholEnvCalculate", (DL_FUNC) &_RxODE_rxSymInvCholEnvCalculate, 3},
     {"_RxODE_rxInvWishartVar", (DL_FUNC) &_RxODE_rxInvWishartVar, 2},
+    {"_RxODE_rxSymInvChol", (DL_FUNC) &_RxODE_rxSymInvChol, 4},
     {NULL, NULL, 0}
   };
 

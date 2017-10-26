@@ -39,59 +39,166 @@ arma::mat rxToOmega(arma::mat cholMat){
   arma::mat U1 = inv(trimatu(cholMat));
   return U1*trans(U1);
 }
-
+//' Get Omega^-1 and derivatives
+//'
+//' @param invObjOrMatrix Object for inverse-type calculations.  If this is a matrix,
+//'     setup the object for inversion by \code{\link{rxSymInvCholCreate}} with the default arguments and return
+//'     a reactive s3 object.  Otherwise, use the inversion object to calculate the requested derivative/inverse.
+//' @param theta Thetas to be used for calculation.  If missing (\code{NULL}), a
+//'     special s3 class is created and returned to access Omega^1
+//'     objects as needed and cache them based on the theta that is
+//'     used.
+//' @param type The type of object.  Currently the following types are
+//'     supported:
+//' \itemize{
+//' \item \code{cholOmegaInv} gives the
+//'     Cholesky decomposition of the Omega Inverse matrix.
+//' \item \code{omegaInv} gives the Omega Inverse matrix.
+//' \item \code{d(omegaInv)} gives the d(Omega^-1) withe respect to the
+//'     theta parameter specified in \code{theta.number}.
+//' \item \code{d(D)} gives the d(diagonal(Omega^-1)) with respect to
+//'     the theta parameter specified in the \code{theta.number}
+//'     parameter
+//' }
+//' @param theta.number For types \code{d(omegaInv)} and \code{d(D)},
+//'     the theta number that the derivative is taken against.  This
+//'     must be positive from 1 to the number of thetas defining the
+//'     Omega matrix.
+//' @return Matrix based on parameters or environment with all the
+//'     matrixes calculated in variables omega, omegaInv, dOmega,
+//'     dOmegaInv.
+//' @author Matthew L. Fidler
+//' @export
+// [[Rcpp::export]]
+SEXP rxSymInvChol(RObject invObjOrMarix, Nullable<NumericVector> theta = R_NilValue, std::string type = "cholOmegaInv", int thetaNumber = 0){
+  if (invObjOrMarix.isObject()){
+    List invObj  = as<List>(invObjOrMarix);
+    if (theta.isNull()){
+      // Missing theta
+      Environment e = new_env();
+      e["invobj"] = invObj;
+      List ret = Rcpp::List::create(Rcpp::Named("env")=e);
+      ret.attr("class") = "rxSymInvCholEnv";
+      return ret;
+    } else {
+      NumericVector par(theta);
+      int tn = thetaNumber;
+      if (type == "cholOmegaInv"){
+        tn = 0;
+      } else if (type == "omegaInv"){
+        tn = -1;
+      } else if (type == "d(omegaInv)"){
+        if (tn <= 0){
+          stop("Theta number must be positive for d(omegaInv).");
+        }
+      } else if (type == "d(D)"){
+        if (tn <= 0){
+          stop("Theta number must be positive for d(D).");
+        }
+        tn = -2 - tn;
+      } else if (type == "ntheta"){
+        tn = -2;
+      }
+      try {
+        Function fn = as<Function>(invObj["fn"]);
+        return fn(par, tn);
+      } catch (...) {
+        stop("Unspported invobj type.");
+      }
+    }
+  } else  {
+    Environment rxode("package:RxODE");
+    Function rxSymInvCholCreate = as<Function>(rxode["rxSymInvCholCreate"]);
+    return rxSymInvChol(rxSymInvCholCreate(invObjOrMarix), R_NilValue, "cholOmegaInv", 0);
+  }
+  return R_NilValue;
+}
 
 // [[Rcpp::export]]
-void rxSymInvCholEnvCalculate(Environment e, std::string what, Function invFn){
-  if (!e.exists(what)){
-    List invObj;
-    if (e.exists("invobj")){
-      invObj = as<List>(e["invobj"]);
+SEXP rxSymInvCholEnvCalculate(List obj, std::string what, Nullable<NumericVector> theta = R_NilValue){
+  Environment e = as<Environment>(obj["env"]);
+  if (theta.isNull()){
+    if (e.exists(what)){
+      return e[what];
+    } else if (what == "theta"){
+      return R_NilValue;
     } else {
-      stop("error in rxSymInvCholEnvCalculate environment");
+      List invObj;
+      if (e.exists("invobj")){
+        invObj = as<List>(e["invobj"]);
+      } else {
+        stop("Error in rxSymInvCholEnvCalculate environment.");
+      }
+      if (what == "ntheta"){
+        e["ntheta"] = rxSymInvChol(invObj,NumericVector::create(1),"ntheta",0);
+        return(e["ntheta"]);
+      }
+      NumericVector theta;
+      if (e.exists("theta")){
+        theta = as<NumericVector>(e["theta"]);
+      } else {
+        stop("theta for omega calculations not setup yet.");
+      }
+      int ntheta = theta.size(), i=0;
+      if (what == "chol.omegaInv"){
+        e["chol.omegaInv"]=as<NumericMatrix>(rxSymInvChol(invObj, theta, "cholOmegaInv"));
+      } else if (what == "omegaInv"){
+        e["omegaInv"]= as<NumericMatrix>(rxSymInvChol(invObj, theta, "omegaInv",-1));
+      } else if (what == "d.omegaInv"){
+        List ret(ntheta);
+        for (i =0; i < ntheta; i++){
+          ret[i] = as<NumericMatrix>(rxSymInvChol(invObj, theta, "d(omegaInv)",i+1));
+        }
+        e["d.omegaInv"] = ret;
+      } else if (what == "d.D.omegaInv"){
+        List ret(ntheta);
+        for (i =0; i < ntheta; i++){
+          ret[i] = as<NumericVector>(rxSymInvChol(invObj, theta, "d(D)",i+1));
+        }
+        e["d.D.omegaInv"] = ret;
+      } else if (what == "chol.omega"){
+        rxSymInvCholEnvCalculate(obj, "chol.omegaInv", R_NilValue);
+        arma::mat ret = rxToCholOmega(as<arma::mat>(e["chol.omegaInv"]));
+        e["chol.omega"] = ret; 
+      } else if (what == "omega"){
+        rxSymInvCholEnvCalculate(obj, "chol.omega", R_NilValue);
+        arma::mat U1 = as<mat>(e["chol.omega"]);
+        arma::mat omega = U1*trans(U1);
+        e["omega"] = omega;
+      } else if (what == "log.det.OMGAinv.5"){
+        // Note this does NOT include the 2 pi bit
+        rxSymInvCholEnvCalculate(obj,"chol.omegaInv", R_NilValue);
+        arma::mat c = as<arma::mat>(e["chol.omegaInv"]);
+        arma::vec diag = c.diag();
+        arma::vec ldiag = log(diag);
+        NumericVector ret = as<NumericVector>(wrap(sum(ldiag)));
+        e["log.det.OMGAinv.5"] = ret;
+      }
+      return e[what];
     }
-    NumericVector theta;
-    if (e.exists("theta")){
-       theta = as<NumericVector>(e["theta"]);
+  } else {
+    if (what == "theta"){
+      NumericVector par(theta);
+      int ntheta = as<int>(rxSymInvCholEnvCalculate(obj, "ntheta", R_NilValue));
+      if (par.size() == ntheta){
+        // Clear cache with the exception of
+        CharacterVector sym = e.ls(TRUE);
+	// Clear the cache
+        for (int i = 0; i < sym.size(); i++){
+          if (sym[i] != "invobj" && sym[i] != "ntheta") {
+            e.remove(as<std::string>(sym[i]));
+          }
+        }
+        e["theta"] = par;
+        return(obj);
+      } else {
+	stop("theta has to have %d elements.", ntheta);
+      }
     } else {
-      stop("theta for omega calculations not setup yet.");
-    }
-    int ntheta = theta.size(), i=0;
-    if (what == "chol.omegaInv"){
-      e["chol.omegaInv"]=as<NumericMatrix>(invFn(invObj, theta, "cholOmegaInv"));
-    } else if (what == "omegaInv"){
-      e["omegaInv"]= as<NumericMatrix>(invFn(invObj, theta, "omegaInv",-1));
-    } else if (what == "d.omegaInv"){
-      List ret(ntheta);
-      for (i =0; i < ntheta; i++){
-	ret[i] = as<NumericMatrix>(invFn(invObj, theta, "d(omegaInv)",i+1));
-      }
-      e["d.omegaInv"] = ret;
-    } else if (what == "d.D.omegaInv"){
-      List ret(ntheta);
-      for (i =0; i < ntheta; i++){
-        ret[i] = as<NumericVector>(invFn(invObj, theta, "d(D)",i+1));
-      }
-      e["d.D.omegaInv"] = ret;
-    } else if (what == "chol.omega"){
-      rxSymInvCholEnvCalculate(e, "chol.omegaInv", invFn);
-      arma::mat ret = rxToCholOmega(as<arma::mat>(e["chol.omegaInv"]));
-      e["chol.omega"] = ret; 
-    } else if (what == "omega"){
-      rxSymInvCholEnvCalculate(e, "chol.omega", invFn);
-      arma::mat U1 = as<mat>(e["chol.omega"]);
-      arma::mat omega = U1*trans(U1);
-      e["omega"] = omega;
-    } else if (what == "log.det.OMGAinv.5"){
-      // Note this does NOT include the 2 pi bit
-      rxSymInvCholEnvCalculate(e,"chol.omegaInv",invFn);
-      arma::mat c = as<arma::mat>(e["chol.omegaInv"]);
-      arma::vec diag = c.diag();
-      arma::vec ldiag = log(diag);
-      NumericVector ret = as<NumericVector>(wrap(sum(ldiag)));
-      e["log.det.OMGAinv.5"] = ret;
+      stop("Can only assign 'theta' in this environment.");
     }
   }
+  return R_NilValue;
 }
 
 //' Calculate Wishart Variance based on Omega matrix
