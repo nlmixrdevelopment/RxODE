@@ -787,7 +787,8 @@ rxSymInvCholCreate <- function(mat,
             if (length(w) == 0){
                 stop("zero matrix.")
             }
-            #signature(theta="numeric", tn="integer")
+            ##signature(theta="numeric", tn="integer")
+            ## FIXME move these functions to Cpp?
             fn <- eval(bquote(function(theta, tn){
                 if (tn == -2L){
                     return(.(length(w)));
@@ -824,6 +825,8 @@ rxSymInvCholCreate <- function(mat,
             i <<- max(ret) + 1;
             return(ret)
         })
+        ## FIXME move these to C/C++
+        ## Drop the dependency on Matrix (since this is partially run in R)
         fn <- eval(bquote(function(theta, tn){
             force(matI);
             if (tn == -2L){
@@ -865,7 +868,7 @@ rxSymInvCholCreate <- function(mat,
                     }
                 }
             })
-            if (tn >= -1){
+            if (tn >= -1){g
                 return(as.matrix(Matrix::.bdiag(lst)))
             } else {
                 return(unlist(lst));
