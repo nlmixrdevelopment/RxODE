@@ -70,7 +70,7 @@ arma::mat rxToOmega(arma::mat cholMat){
 //' @author Matthew L. Fidler
 //' @export
 // [[Rcpp::export]]
-SEXP rxSymInvChol(RObject invObjOrMarix, Nullable<NumericVector> theta = R_NilValue, std::string type = "cholOmegaInv", int thetaNumber = 0){
+RObject rxSymInvChol(RObject invObjOrMarix, Nullable<NumericVector> theta = R_NilValue, std::string type = "cholOmegaInv", int thetaNumber = 0){
   if (invObjOrMarix.isObject()){
     List invObj  = as<List>(invObjOrMarix);
     if (theta.isNull()){
@@ -115,7 +115,7 @@ SEXP rxSymInvChol(RObject invObjOrMarix, Nullable<NumericVector> theta = R_NilVa
 }
 
 // [[Rcpp::export]]
-SEXP rxSymInvCholEnvCalculate(List obj, std::string what, Nullable<NumericVector> theta = R_NilValue){
+RObject rxSymInvCholEnvCalculate(List obj, std::string what, Nullable<NumericVector> theta = R_NilValue){
   Environment e = as<Environment>(obj["env"]);
   if (theta.isNull()){
     if (e.exists(what)){
@@ -237,7 +237,7 @@ arma::mat rxInvWishartVar(arma::mat Omega, double nu){
 }
 
 // [[Rcpp::export]]
-void RxODE_finalize_focei_omega(SEXP rho){
+void RxODE_finalize_focei_omega(RObject rho){
   Environment e = as<Environment>(rho);
   List dOmega = as<List>(e["dOmega"]);
   mat omegaInv = as<mat>(e["omegaInv"]);

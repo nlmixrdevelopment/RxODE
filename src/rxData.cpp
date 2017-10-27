@@ -3,7 +3,6 @@
 
 using namespace Rcpp;
 using namespace arma;
-
 //' Setup a data frame for solving multiple subjects at once in RxODE.
 //'
 //' @param df dataframe to setup; Must be in RxODE compatible format.
@@ -66,21 +65,26 @@ List rxDataSetup(const DataFrame &df, const Nullable<StringVector> &covNames = R
   IntegerVector nCov(nSub);
   IntegerVector nDose(nSub);
   IntegerVector nObsN(nSub);
+  IntegerVector posEt(nSub);
+  IntegerVector nEtN(nSub);
   double minTime = NA_REAL;
   double maxTime = -1e10;
-  int m = 0;
+  int m = 0, nEt=0;
   for (i = 0; i < ids; i++){
     if (lastId != id[i]){
       lastId     = id[i];
       newId[m]   = id[i];
       posDose[m] = j;
       posObs[m]  = k;
+      posEt[m] = i;
       if (m != 0){
         nDose[m-1] = nDoses;
         nObsN[m-1]  = nObs;
+	nEtN[m-1] = nEt;
       }
       nDoses = 0;
       nObs = 0;
+      nEt  = 0;
       m++;
     }
     if (evid[i]){
@@ -90,6 +94,7 @@ List rxDataSetup(const DataFrame &df, const Nullable<StringVector> &covNames = R
       newAmt[j]   = amt[i];
       nDoses++;
       j++;
+      nEt++;
     } else {
       // Observation
       newDv[k]    = dv[i];
@@ -101,10 +106,12 @@ List rxDataSetup(const DataFrame &df, const Nullable<StringVector> &covNames = R
       }
       nObs++;
       k++;
+      nEt++;
     }
   }
   nDose[m-1]=nDoses;
   nObsN[m-1]=nObs;
+  nEtN[m-1] = nEt;
 
   // Covariates are stacked by id that is
   // id=cov1,cov1,cov1,cov2,cov2,cov2,...
@@ -140,9 +147,13 @@ List rxDataSetup(const DataFrame &df, const Nullable<StringVector> &covNames = R
                                                         _["posDose"] = posDose,
                                                         _["posObs"]  = posObs,
                                                         _["posCov"]  = posCov,
+							_["posEvent"]= posEt,
                                                         _["nDose"]   = nDose,
                                                         _["nObs"]    = nObsN,
-                                                        _["nCov"]    = nCov),
+                                                        _["nCov"]    = nCov,
+							_["nEvent"]   = nEtN),
+			  _["et"] = DataFrame::create(_["evid"]=evid,
+						      _["time"]=time0),
                           _["cov"]=newCov,
                           _["nSub"]=nSub,
                           _["nDoses"]=newEvid.size(),
@@ -203,4 +214,46 @@ List rxEventTableExpand(const int &nsub,const DataFrame &df,
     ret.attr("class") = "RxODE.multi.data.dup";
     return ret;
   }
+}
+
+bool rxIs(RObject obj, std::string cls){
+  if (obj.isObject()){
+    CharacterVector classattr = obj.attr("class");
+    for (int i = 0; i < classattr.size(); i++){
+      if (as<std::string>(classattr[i]) == cls){
+	return true;
+      }
+    }
+  }
+  return false;
+}
+
+
+RObject rxSolveCpp(List args, Environment e){
+  List dll = as<List>(e["dll"]);
+  List modVars = as<List>(dll["modVars"]);
+  CharacterVector trans = modVars["trans"];
+  CharacterVector state = modVars["state"];
+  CharacterVector lhs = modVars["lhs"];
+  CharacterVector pars = modVars["pars"];
+  Nullable<IntegerVector> stateIgnore = modVars["state.ignore"];
+  NumericVector params;
+  RObject par0 = args["params"];
+  RObject ev0  = args["events"];
+  List events;
+  // 
+  if (rxIs(par0, "eventTable")){
+    events = as<List>(par0);
+  } else if (rxIs(ev0,"eventTable")){
+    events = as<List>(ev0);
+  } else {
+    stop("The solve requires an event table.");
+  }
+  
+  // if (!is.null(params)){
+  //   if (is.null(events) && is(params,"EventTable")){
+  //     events <- params;
+  //     params <- c();
+  //   }
+  // }
 }

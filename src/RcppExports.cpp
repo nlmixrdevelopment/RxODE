@@ -60,7 +60,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // rxSymInvChol
-SEXP rxSymInvChol(RObject invObjOrMarix, Nullable<NumericVector> theta, std::string type, int thetaNumber);
+RObject rxSymInvChol(RObject invObjOrMarix, Nullable<NumericVector> theta, std::string type, int thetaNumber);
 RcppExport SEXP _RxODE_rxSymInvChol(SEXP invObjOrMarixSEXP, SEXP thetaSEXP, SEXP typeSEXP, SEXP thetaNumberSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -74,7 +74,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // rxSymInvCholEnvCalculate
-SEXP rxSymInvCholEnvCalculate(List obj, std::string what, Nullable<NumericVector> theta);
+RObject rxSymInvCholEnvCalculate(List obj, std::string what, Nullable<NumericVector> theta);
 RcppExport SEXP _RxODE_rxSymInvCholEnvCalculate(SEXP objSEXP, SEXP whatSEXP, SEXP thetaSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -99,11 +99,11 @@ BEGIN_RCPP
 END_RCPP
 }
 // RxODE_finalize_focei_omega
-void RxODE_finalize_focei_omega(SEXP rho);
+void RxODE_finalize_focei_omega(RObject rho);
 RcppExport SEXP _RxODE_RxODE_finalize_focei_omega(SEXP rhoSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< SEXP >::type rho(rhoSEXP);
+    Rcpp::traits::input_parameter< RObject >::type rho(rhoSEXP);
     RxODE_finalize_focei_omega(rho);
     return R_NilValue;
 END_RCPP
