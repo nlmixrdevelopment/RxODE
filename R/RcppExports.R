@@ -5,17 +5,19 @@
 #'
 #' @param df dataframe to setup; Must be in RxODE compatible format.
 #' @param covNames Covariate names in dataset.
+#' @param amountUnits Dosing amount units.
+#' @param timeUnits Time units.
 #'
 #' @return A data structure to allow C-based for loop (ie solving each
 #'       individual in C)
 #'
 #' @export
-rxDataSetup <- function(df, covNames = NULL) {
-    .Call(`_RxODE_rxDataSetup`, df, covNames)
+rxDataSetup <- function(df, covNames = NULL, amountUnits = "NA", timeUnits = "hours") {
+    .Call(`_RxODE_rxDataSetup`, df, covNames, amountUnits, timeUnits)
 }
 
-rxEventTableExpand <- function(nsub, df) {
-    .Call(`_RxODE_rxEventTableExpand`, nsub, df)
+rxEventTableExpand <- function(nsub, df, amountUnits = "NA", timeUnits = "hours") {
+    .Call(`_RxODE_rxEventTableExpand`, nsub, df, amountUnits, timeUnits)
 }
 
 #' Invert matrix using Rcpp Armadilo.  

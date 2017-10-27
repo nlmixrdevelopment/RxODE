@@ -8,13 +8,16 @@ using namespace arma;
 //'
 //' @param df dataframe to setup; Must be in RxODE compatible format.
 //' @param covNames Covariate names in dataset.
+//' @param amountUnits Dosing amount units.
+//' @param timeUnits Time units.
 //'
 //' @return A data structure to allow C-based for loop (ie solving each
 //'       individual in C)
 //'
 //' @export
 // [[Rcpp::export]]
-List rxDataSetup(const DataFrame &df, const Nullable<StringVector> &covNames = R_NilValue){
+List rxDataSetup(const DataFrame &df, const Nullable<StringVector> &covNames = R_NilValue,
+		 const std::string &amountUnits = "NA", const std::string &timeUnits = "hours"){
   // Purpose: get positions of each id and the length of each id's observations
   // Separate out dose vectors and observation vectors
   IntegerVector id    = df["ID"];
@@ -63,7 +66,8 @@ List rxDataSetup(const DataFrame &df, const Nullable<StringVector> &covNames = R
   IntegerVector nCov(nSub);
   IntegerVector nDose(nSub);
   IntegerVector nObsN(nSub);
-    
+  double minTime = NA_REAL;
+  double maxTime = -1e10;
   int m = 0;
   for (i = 0; i < ids; i++){
     if (lastId != id[i]){
@@ -90,6 +94,11 @@ List rxDataSetup(const DataFrame &df, const Nullable<StringVector> &covNames = R
       // Observation
       newDv[k]    = dv[i];
       newTimeO[k] = time0[i];
+      if (nObs == 0){
+	minTime = time0[i];
+      } else if (time0[i] > maxTime) {
+	maxTime = time0[i];
+      }
       nObs++;
       k++;
     }
@@ -138,13 +147,19 @@ List rxDataSetup(const DataFrame &df, const Nullable<StringVector> &covNames = R
                           _["nSub"]=nSub,
                           _["nDoses"]=newEvid.size(),
                           _["nObs"]=newDv.size(),
-                          _["cov.names"]=covNames);
+			  _["min.time"] = minTime,
+			  _["max.time"] = maxTime,
+                          _["cov.names"]=covNames,
+			  _["amount.units"]=amountUnits,
+			  _["time.units"]=timeUnits
+			  );
   ret.attr("class") = "RxODE.multi.data";
   return ret;
 }
 
 //[[Rcpp::export]]
-List rxEventTableExpand(const int &nsub,const DataFrame &df){
+List rxEventTableExpand(const int &nsub,const DataFrame &df,
+                        const std::string &amountUnits = "NA", const std::string &timeUnits = "hours"){
   // Purpose: Expand current event table to have number of subjects,
   // and then return rxDataSetup list.
   //IntegerVector id    = df["id"];
@@ -172,5 +187,5 @@ List rxEventTableExpand(const int &nsub,const DataFrame &df){
 				    _["DV"]=nDv,
 				    _["TIME"]=nTime,
 				    _["AMT"]=nAmt);
-  return rxDataSetup(ndf, R_NilValue);
+  return rxDataSetup(ndf, R_NilValue, amountUnits, timeUnits);
 }

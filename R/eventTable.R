@@ -1,4 +1,4 @@
-# event table (dosing + sampling obs from the system)
+                                        # event table (dosing + sampling obs from the system)
 # An eventTable object contains a numeric matrix with
 # a time vector, an event id  describing two types
 # of timed records, doses (input) and sampling times
@@ -336,7 +336,7 @@ eventTable <- function(amount.units = NA, time.units = "hours")
             get.units = function() c(dosing = .amount.units, time = .time.units),
             import.EventTable = import.EventTable,
             copy = copy,
-            expand=function(nsub){ return(rxEventTableExpand(nsub, .EventTable))}
+            expand=function(nsub){return(rxEventTableExpand(as.integer(nsub), as.data.frame(.EventTable), paste(.amount.units), paste(.time.units))); }
         )
     class(out) <- "EventTable"
     out
@@ -405,8 +405,12 @@ magrittr::`%>%`
 print.RxODE.multi.data <- function(x, ...){
     message("RxODE multi-subject data:")
     message(sprintf("  Number of Subjects: %s", x$nSub))
-    message(sprintf("  Number of Observations: %s", x$nObs))
-    message(sprintf("  Number of Dosing Records: %s", x$nDose))
+    message(sprintf("  Number of Observations: %s (t=%s to %s%s)", x$nObs, x$min.time, x$max.time, ifelse(x$time.units == "NA", "", paste0(" ", x$time.units))))
+    if (x$nDose == 0){
+        message("  No Dosing Records.")
+    } else {
+        message(sprintf("  Number of Dosing Records: %s%s", x$nDose, ifelse(x$amount.units == "NA", "", paste0(" (in ", x$amount.units, ")"))))
+    }
     if (!is.null(x$cov.names)){
         message(sprintf("  Covariates: %s", paste(x$cov.names, collapse=", ")))
     }

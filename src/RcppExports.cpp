@@ -9,26 +9,30 @@
 using namespace Rcpp;
 
 // rxDataSetup
-List rxDataSetup(const DataFrame& df, const Nullable<StringVector>& covNames);
-RcppExport SEXP _RxODE_rxDataSetup(SEXP dfSEXP, SEXP covNamesSEXP) {
+List rxDataSetup(const DataFrame& df, const Nullable<StringVector>& covNames, const std::string& amountUnits, const std::string& timeUnits);
+RcppExport SEXP _RxODE_rxDataSetup(SEXP dfSEXP, SEXP covNamesSEXP, SEXP amountUnitsSEXP, SEXP timeUnitsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const DataFrame& >::type df(dfSEXP);
     Rcpp::traits::input_parameter< const Nullable<StringVector>& >::type covNames(covNamesSEXP);
-    rcpp_result_gen = Rcpp::wrap(rxDataSetup(df, covNames));
+    Rcpp::traits::input_parameter< const std::string& >::type amountUnits(amountUnitsSEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type timeUnits(timeUnitsSEXP);
+    rcpp_result_gen = Rcpp::wrap(rxDataSetup(df, covNames, amountUnits, timeUnits));
     return rcpp_result_gen;
 END_RCPP
 }
 // rxEventTableExpand
-List rxEventTableExpand(const int& nsub, const DataFrame& df);
-RcppExport SEXP _RxODE_rxEventTableExpand(SEXP nsubSEXP, SEXP dfSEXP) {
+List rxEventTableExpand(const int& nsub, const DataFrame& df, const std::string& amountUnits, const std::string& timeUnits);
+RcppExport SEXP _RxODE_rxEventTableExpand(SEXP nsubSEXP, SEXP dfSEXP, SEXP amountUnitsSEXP, SEXP timeUnitsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const int& >::type nsub(nsubSEXP);
     Rcpp::traits::input_parameter< const DataFrame& >::type df(dfSEXP);
-    rcpp_result_gen = Rcpp::wrap(rxEventTableExpand(nsub, df));
+    Rcpp::traits::input_parameter< const std::string& >::type amountUnits(amountUnitsSEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type timeUnits(timeUnitsSEXP);
+    rcpp_result_gen = Rcpp::wrap(rxEventTableExpand(nsub, df, amountUnits, timeUnits));
     return rcpp_result_gen;
 END_RCPP
 }
