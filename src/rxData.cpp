@@ -159,7 +159,8 @@ List rxDataSetup(const DataFrame &df, const Nullable<StringVector> &covNames = R
 
 //[[Rcpp::export]]
 List rxEventTableExpand(const int &nsub,const DataFrame &df,
-                        const std::string &amountUnits = "NA", const std::string &timeUnits = "hours"){
+                        const std::string &amountUnits = "NA", const std::string &timeUnits = "hours",
+			const LogicalVector &expandData = false){
   // Purpose: Expand current event table to have number of subjects,
   // and then return rxDataSetup list.
   //IntegerVector id    = df["id"];
@@ -167,14 +168,19 @@ List rxEventTableExpand(const int &nsub,const DataFrame &df,
   //NumericVector dv    = df["dv"];
   NumericVector time0 = df["time"];
   NumericVector amt   = df["amt"];
-  int newdim = nsub*amt.size();
+  int newdim = amt.size();
+  int newsub = 1;
+  if (expandData[0]){
+    newdim *= nsub;
+    newsub = nsub;
+  }
   IntegerVector nId(newdim);
   IntegerVector nEvid(newdim);
   NumericVector nDv(newdim);
   NumericVector nTime(newdim);
   NumericVector nAmt(newdim);
   for (int i = 0; i < amt.size(); i++){
-    for (int j = 0; j < nsub; j++){
+    for (int j = 0; j < newsub; j++){
       nId[i+j*amt.size()] = j+1;
       nEvid[i+j*amt.size()] = evid[i];
       nTime[i+j*amt.size()] = time0[i];
@@ -187,5 +193,14 @@ List rxEventTableExpand(const int &nsub,const DataFrame &df,
 				    _["DV"]=nDv,
 				    _["TIME"]=nTime,
 				    _["AMT"]=nAmt);
-  return rxDataSetup(ndf, R_NilValue, amountUnits, timeUnits);
+  List ret = rxDataSetup(ndf, R_NilValue, amountUnits, timeUnits);
+  if (expandData[0]){
+    return ret;
+  } else {
+    ret["nSub"]=nsub;
+    ret["nDoses"]=nsub*as<int>(ret["nDoses"]);
+    ret["nObs"]=nsub*as<int>(ret["nObs"]);
+    ret.attr("class") = "RxODE.multi.data.dup";
+    return ret;
+  }
 }

@@ -16,8 +16,8 @@ rxDataSetup <- function(df, covNames = NULL, amountUnits = "NA", timeUnits = "ho
     .Call(`_RxODE_rxDataSetup`, df, covNames, amountUnits, timeUnits)
 }
 
-rxEventTableExpand <- function(nsub, df, amountUnits = "NA", timeUnits = "hours") {
-    .Call(`_RxODE_rxEventTableExpand`, nsub, df, amountUnits, timeUnits)
+rxEventTableExpand <- function(nsub, df, amountUnits = "NA", timeUnits = "hours", expandData = FALSE) {
+    .Call(`_RxODE_rxEventTableExpand`, nsub, df, amountUnits, timeUnits, expandData)
 }
 
 #' Invert matrix using Rcpp Armadilo.  

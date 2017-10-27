@@ -109,6 +109,9 @@
 #'    \item{copy}{makes a copy of the current event table. To create
 #'        a copy of an event table object use \code{qd2 <- qd$copy()}.}
 #'
+#'    \item{expand}{Expands the event table for multi-subject solving.
+#'    This is done by qd$expand(400) for a 400 subject data expansion}
+#'
 #' @author Melissa Hallow and Wenping Wang
 #'
 #' @seealso \code{\link{RxODE}}
@@ -336,7 +339,7 @@ eventTable <- function(amount.units = NA, time.units = "hours")
             get.units = function() c(dosing = .amount.units, time = .time.units),
             import.EventTable = import.EventTable,
             copy = copy,
-            expand=function(nsub){return(rxEventTableExpand(as.integer(nsub), as.data.frame(.EventTable), paste(.amount.units), paste(.time.units))); }
+            expand=function(nsub, expand.data=FALSE){return(rxEventTableExpand(as.integer(nsub), as.data.frame(.EventTable), paste(.amount.units), paste(.time.units), expand.data)); }
         )
     class(out) <- "EventTable"
     out
@@ -415,3 +418,6 @@ print.RxODE.multi.data <- function(x, ...){
         message(sprintf("  Covariates: %s", paste(x$cov.names, collapse=", ")))
     }
 }
+
+##' @export
+print.RxODE.multi.data.dup <- print.RxODE.multi.data;

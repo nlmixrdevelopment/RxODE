@@ -4,12 +4,16 @@
 \alias{rxDataSetup}
 \title{Setup a data frame for solving multiple subjects at once in RxODE.}
 \usage{
-rxDataSetup(df, covNames = NULL)
+rxDataSetup(df, covNames = NULL, amountUnits = "NA", timeUnits = "hours")
 }
 \arguments{
 \item{df}{dataframe to setup; Must be in RxODE compatible format.}
 
 \item{covNames}{Covariate names in dataset.}
+
+\item{amountUnits}{Dosing amount units.}
+
+\item{timeUnits}{Time units.}
 }
 \value{
 A data structure to allow C-based for loop (ie solving each

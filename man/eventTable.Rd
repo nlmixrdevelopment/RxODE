@@ -98,6 +98,9 @@ Its arguments are
 
    \item{copy}{makes a copy of the current event table. To create
        a copy of an event table object use \code{qd2 <- qd$copy()}.}
+
+   \item{expand}{Expands the event table for multi-subject solving.
+   This is done by qd$expand(400) for a 400 subject data expansion}
 }
 \description{
 Initializes an object of class \sQuote{EventTable} with methods for
