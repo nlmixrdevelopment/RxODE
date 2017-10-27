@@ -335,7 +335,8 @@ eventTable <- function(amount.units = NA, time.units = "hours")
             get.sampling = function() .EventTable[.obs.rec, ,drop = FALSE],
             get.units = function() c(dosing = .amount.units, time = .time.units),
             import.EventTable = import.EventTable,
-            copy = copy
+            copy = copy,
+            expand=function(nsub){ return(rxEventTableExpand(nsub, .EventTable))}
         )
     class(out) <- "EventTable"
     out
@@ -398,3 +399,15 @@ add.sampling <- function(eventTable, time, time.units = NA){
 ##' @importFrom magrittr %>%
 ##' @export
 magrittr::`%>%`
+
+
+##' @export
+print.RxODE.multi.data <- function(x, ...){
+    message("RxODE multi-subject data:")
+    message(sprintf("  Number of Subjects: %s", x$nSub))
+    message(sprintf("  Number of Observations: %s", x$nObs))
+    message(sprintf("  Number of Dosing Records: %s", x$nDose))
+    if (!is.null(x$cov.names)){
+        message(sprintf("  Covariates: %s", paste(x$cov.names, collapse=", ")))
+    }
+}

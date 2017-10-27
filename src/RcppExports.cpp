@@ -8,6 +8,30 @@
 
 using namespace Rcpp;
 
+// rxDataSetup
+List rxDataSetup(const DataFrame& df, const Nullable<StringVector>& covNames);
+RcppExport SEXP _RxODE_rxDataSetup(SEXP dfSEXP, SEXP covNamesSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const DataFrame& >::type df(dfSEXP);
+    Rcpp::traits::input_parameter< const Nullable<StringVector>& >::type covNames(covNamesSEXP);
+    rcpp_result_gen = Rcpp::wrap(rxDataSetup(df, covNames));
+    return rcpp_result_gen;
+END_RCPP
+}
+// rxEventTableExpand
+List rxEventTableExpand(const int& nsub, const DataFrame& df);
+RcppExport SEXP _RxODE_rxEventTableExpand(SEXP nsubSEXP, SEXP dfSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const int& >::type nsub(nsubSEXP);
+    Rcpp::traits::input_parameter< const DataFrame& >::type df(dfSEXP);
+    rcpp_result_gen = Rcpp::wrap(rxEventTableExpand(nsub, df));
+    return rcpp_result_gen;
+END_RCPP
+}
 // rxInv
 NumericVector rxInv(SEXP matrix);
 RcppExport SEXP _RxODE_rxInv(SEXP matrixSEXP) {
