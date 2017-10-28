@@ -3,6 +3,94 @@
 
 using namespace Rcpp;
 using namespace arma;
+
+//' Check the type of an object using Rcpp
+//'
+//' @param obj Object to check
+//' @param cls Type of class.  Only s3 classes and primitive classes are checked.
+//'    For matrix types they are distinguished as \code{numeric.matrix}, \code{integer.matrix},
+//'    \code{logical.matrix}, and \code{character.matrix} as well as the traditional \code{matrix}
+//'    class.
+//'
+//' @return A boolean indicating if the object is a member of the class.
+//' @keywords internal
+//' @export
+// [[Rcpp::export]]
+bool rxIs(RObject obj, std::string cls){
+  if (obj.isObject()){
+    CharacterVector classattr = obj.attr("class");
+    for (int i = 0; i < classattr.size(); i++){
+      if (as<std::string>(classattr[i]) == cls){
+        return true;
+      }
+    }
+  } else {
+    int type = obj.sexp_type();
+    bool hasDim = obj.hasAttribute("dim");
+    if (type == REALSXP){
+      if (hasDim){
+	if (cls == "numeric.matrix" || cls == "matrix"){
+	  return true;
+	} else {
+	  return false;
+	}
+      } else {
+	if (cls == "numeric")
+          return true;
+        else 
+          return false;
+      }
+    }
+    if (type == INTSXP){
+      if (hasDim){
+	if (cls == "integer.matrix" || cls == "matrix"){
+          return true;
+        } else {
+          return false;
+        }
+      } else {
+	if (cls == "integer")
+          return true;
+        else
+          return false;
+      }
+    }
+    if (type == LGLSXP){
+      if (hasDim){
+        if (cls == "logical.matrix" || cls == "matrix"){
+          return true;
+        } else {
+          return false;
+        }
+      } else {
+	if (cls == "logical")
+          return true;
+        else
+          return false;
+      }
+    }
+    if (type == STRSXP){
+      if (hasDim){
+	if (cls == "character.matrix" || cls == "matrix"){
+          return true;
+        } else {
+          return false;
+        }
+      } else {
+	if (cls == "character")
+          return true;
+        else
+          return false;
+      }
+    }
+  }
+  return false;
+}
+
+// List rxSetupParameters(RObject dllInfo, RObject param, RObject theta = R_NilValue, RObject eta = R_NilValue){
+//   // Purpose: Sort parameters
+// }
+
 //' Setup a data frame for solving multiple subjects at once in RxODE.
 //'
 //' @param df dataframe to setup; Must be in RxODE compatible format.
@@ -216,19 +304,6 @@ List rxEventTableExpand(const int &nsub,const DataFrame &df,
   }
 }
 
-bool rxIs(RObject obj, std::string cls){
-  if (obj.isObject()){
-    CharacterVector classattr = obj.attr("class");
-    for (int i = 0; i < classattr.size(); i++){
-      if (as<std::string>(classattr[i]) == cls){
-	return true;
-      }
-    }
-  }
-  return false;
-}
-
-
 RObject rxSolveCpp(List args, Environment e){
   List dll = as<List>(e["dll"]);
   List modVars = as<List>(dll["modVars"]);
@@ -246,8 +321,6 @@ RObject rxSolveCpp(List args, Environment e){
     events = as<List>(par0);
   } else if (rxIs(ev0,"eventTable")){
     events = as<List>(ev0);
-  } else {
-    stop("The solve requires an event table.");
   }
   
   // if (!is.null(params)){

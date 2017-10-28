@@ -8,6 +8,18 @@
 
 using namespace Rcpp;
 
+// rxIs
+bool rxIs(RObject obj, std::string cls);
+RcppExport SEXP _RxODE_rxIs(SEXP objSEXP, SEXP clsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< RObject >::type obj(objSEXP);
+    Rcpp::traits::input_parameter< std::string >::type cls(clsSEXP);
+    rcpp_result_gen = Rcpp::wrap(rxIs(obj, cls));
+    return rcpp_result_gen;
+END_RCPP
+}
 // rxDataSetup
 List rxDataSetup(const DataFrame& df, const Nullable<StringVector>& covNames, const std::string& amountUnits, const std::string& timeUnits);
 RcppExport SEXP _RxODE_rxDataSetup(SEXP dfSEXP, SEXP covNamesSEXP, SEXP amountUnitsSEXP, SEXP timeUnitsSEXP) {
