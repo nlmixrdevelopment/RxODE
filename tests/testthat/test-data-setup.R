@@ -15,6 +15,9 @@ rxPermissive({
             expect_equal(as.double(as.matrix(dat[dat$ID == i & dat$EVID != 0,
                                                  c("EVID", "TIME", "AMT")])),
                          as.double(as.matrix(convert1$dose[w, ])))
+            w <- seq(convert1$ids$posEvent[i] + 1, convert1$ids$posEvent[i] + convert1$ids$nEvent[i])
+            expect_equal(as.double(as.matrix(dat[dat$ID == i, c("EVID", "TIME")])),
+                         as.double(as.matrix(convert1$et[w, ])))
         }
     })
 
@@ -38,6 +41,9 @@ rxPermissive({
                      convert2$ids$posCov[i] + convert2$ids$nCov[i])
             expect_equal(as.double(convert2$cov[w]),
                          as.double(as.matrix(dat[dat$ID == i & dat$EVID == 0,cn])));
+            w <- seq(convert1$ids$posEvent[i] + 1, convert1$ids$posEvent[i] + convert1$ids$nEvent[i])
+            expect_equal(as.double(as.matrix(dat[dat$ID == i, c("EVID", "TIME")])),
+                         as.double(as.matrix(convert1$et[w, ])))
         }
     })
 
@@ -61,6 +67,9 @@ rxPermissive({
                      convert2$ids$posCov[i] + convert2$ids$nCov[i])
             expect_equal(as.double(convert2$cov[w]),
                          as.double(as.matrix(dat[dat$ID == i & dat$EVID == 0,cn])));
+            w <- seq(convert1$ids$posEvent[i] + 1, convert1$ids$posEvent[i] + convert1$ids$nEvent[i])
+            expect_equal(as.double(as.matrix(dat[dat$ID == i, c("EVID", "TIME")])),
+                         as.double(as.matrix(convert1$et[w, ])))
         }
     })
 
@@ -84,6 +93,9 @@ rxPermissive({
                      convert2$ids$posCov[i] + convert2$ids$nCov[i])
             expect_equal(as.double(convert2$cov[w]),
                          as.double(as.matrix(dat[dat$ID == i & dat$EVID == 0,cn])));
+            w <- seq(convert1$ids$posEvent[i] + 1, convert1$ids$posEvent[i] + convert1$ids$nEvent[i])
+            expect_equal(as.double(as.matrix(dat[dat$ID == i, c("EVID", "TIME")])),
+                         as.double(as.matrix(convert1$et[w, ])))
         }
     })
 })
