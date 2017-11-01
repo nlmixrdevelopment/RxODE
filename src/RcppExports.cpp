@@ -9,14 +9,15 @@
 using namespace Rcpp;
 
 // rxIs
-bool rxIs(RObject obj, std::string cls);
-RcppExport SEXP _RxODE_rxIs(SEXP objSEXP, SEXP clsSEXP) {
+bool rxIs(const RObject& obj, std::string cls, bool reset);
+RcppExport SEXP _RxODE_rxIs(SEXP objSEXP, SEXP clsSEXP, SEXP resetSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< RObject >::type obj(objSEXP);
+    Rcpp::traits::input_parameter< const RObject& >::type obj(objSEXP);
     Rcpp::traits::input_parameter< std::string >::type cls(clsSEXP);
-    rcpp_result_gen = Rcpp::wrap(rxIs(obj, cls));
+    Rcpp::traits::input_parameter< bool >::type reset(resetSEXP);
+    rcpp_result_gen = Rcpp::wrap(rxIs(obj, cls, reset));
     return rcpp_result_gen;
 END_RCPP
 }

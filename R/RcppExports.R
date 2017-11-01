@@ -7,13 +7,16 @@
 #' @param cls Type of class.  Only s3 classes and primitive classes are checked.
 #'    For matrix types they are distinguished as \code{numeric.matrix}, \code{integer.matrix},
 #'    \code{logical.matrix}, and \code{character.matrix} as well as the traditional \code{matrix}
-#'    class.
+#'    class. Additionally checks for \code{event.data.frame} which is an \code{data.frame} object
+#'    with \code{time},  \code{evid} and \code{amt}. (UPPER, lower or Title cases accepted)
+#' @param reset Boolean to reset cache.  This should only be used internally.  By default there is
+#'        no caching, and this value is \code{TRUE}.
 #'
 #' @return A boolean indicating if the object is a member of the class.
 #' @keywords internal
 #' @export
-rxIs <- function(obj, cls) {
-    .Call(`_RxODE_rxIs`, obj, cls)
+rxIs <- function(obj, cls, reset = TRUE) {
+    .Call(`_RxODE_rxIs`, obj, cls, reset)
 }
 
 #' Setup a data frame for solving multiple subjects at once in RxODE.
