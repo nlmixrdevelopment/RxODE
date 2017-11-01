@@ -4,7 +4,7 @@
 \alias{rxIs}
 \title{Check the type of an object using Rcpp}
 \usage{
-rxIs(obj, cls)
+rxIs(obj, cls, reset = TRUE)
 }
 \arguments{
 \item{obj}{Object to check}
@@ -12,7 +12,11 @@ rxIs(obj, cls)
 \item{cls}{Type of class.  Only s3 classes and primitive classes are checked.
 For matrix types they are distinguished as \code{numeric.matrix}, \code{integer.matrix},
 \code{logical.matrix}, and \code{character.matrix} as well as the traditional \code{matrix}
-class.}
+class. Additionally checks for \code{event.data.frame} which is an \code{data.frame} object
+with \code{time},  \code{evid} and \code{amt}. (UPPER, lower or Title cases accepted)}
+
+\item{reset}{Boolean to reset cache.  This should only be used internally.  By default there is
+no caching, and this value is \code{TRUE}.}
 }
 \value{
 A boolean indicating if the object is a member of the class.

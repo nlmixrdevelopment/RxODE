@@ -22,16 +22,16 @@ BEGIN_RCPP
 END_RCPP
 }
 // rxDataSetup
-List rxDataSetup(const DataFrame& df, const Nullable<StringVector>& covNames, const std::string& amountUnits, const std::string& timeUnits);
-RcppExport SEXP _RxODE_rxDataSetup(SEXP dfSEXP, SEXP covNamesSEXP, SEXP amountUnitsSEXP, SEXP timeUnitsSEXP) {
+List rxDataSetup(const RObject& ro, const Nullable<StringVector>& covNames, const std::string& amountUnits, const std::string& timeUnits);
+RcppExport SEXP _RxODE_rxDataSetup(SEXP roSEXP, SEXP covNamesSEXP, SEXP amountUnitsSEXP, SEXP timeUnitsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const DataFrame& >::type df(dfSEXP);
+    Rcpp::traits::input_parameter< const RObject& >::type ro(roSEXP);
     Rcpp::traits::input_parameter< const Nullable<StringVector>& >::type covNames(covNamesSEXP);
     Rcpp::traits::input_parameter< const std::string& >::type amountUnits(amountUnitsSEXP);
     Rcpp::traits::input_parameter< const std::string& >::type timeUnits(timeUnitsSEXP);
-    rcpp_result_gen = Rcpp::wrap(rxDataSetup(df, covNames, amountUnits, timeUnits));
+    rcpp_result_gen = Rcpp::wrap(rxDataSetup(ro, covNames, amountUnits, timeUnits));
     return rcpp_result_gen;
 END_RCPP
 }

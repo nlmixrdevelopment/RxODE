@@ -1,10 +1,55 @@
 rxPermissive({
     ## Test the behavior
-    context("Test FOCEi Data Setup (for RcppParallel-style for loop); 0 cov")
+    context("Test Data Setup (for RcppParallel-style for loop); 0 cov")
     library(dplyr);
     load(devtools::package_file("tests/testthat/test-data-setup.Rdata"))
     test_that("conversion without covariates", {
         convert1 <- rxDataSetup(dat);
+        expect_equal(length(convert1$cov), 0);
+        expect_equal(length(convert1$cov.names), 0);
+        for (i in unique(dat$ID)){
+            w <- seq(convert1$ids$posObs[i] + 1, convert1$ids$posObs[i] + convert1$ids$nObs[i])
+            expect_equal(as.double(as.matrix(dat[dat$ID == i & dat$EVID == 0,
+                                                 c("DV", "TIME")])),
+                         as.double(as.matrix(convert1$obs[w, ])))
+            w <- seq(convert1$ids$posDose[i] + 1, convert1$ids$posDose[i] + convert1$ids$nDose[i])
+            expect_equal(as.double(as.matrix(dat[dat$ID == i & dat$EVID != 0,
+                                                 c("EVID", "TIME", "AMT")])),
+                         as.double(as.matrix(convert1$dose[w, ])))
+            w <- seq(convert1$ids$posEvent[i] + 1, convert1$ids$posEvent[i] + convert1$ids$nEvent[i])
+            expect_equal(as.double(as.matrix(dat[dat$ID == i, c("EVID", "TIME")])),
+                         as.double(as.matrix(convert1$et[w, ])))
+        }
+        expect_false(convert1$missing.id)
+        expect_false(convert1$missing.dv)
+    })
+
+    context("  matrix instead of data.frame")
+    test_that("matrix", {
+        convert1 <- rxDataSetup(as.matrix(dat));
+        expect_equal(length(convert1$cov), 0);
+        expect_equal(length(convert1$cov.names), 0);
+        for (i in unique(dat$ID)){
+            w <- seq(convert1$ids$posObs[i] + 1, convert1$ids$posObs[i] + convert1$ids$nObs[i])
+            expect_equal(as.double(as.matrix(dat[dat$ID == i & dat$EVID == 0,
+                                                 c("DV", "TIME")])),
+                         as.double(as.matrix(convert1$obs[w, ])))
+            w <- seq(convert1$ids$posDose[i] + 1, convert1$ids$posDose[i] + convert1$ids$nDose[i])
+            expect_equal(as.double(as.matrix(dat[dat$ID == i & dat$EVID != 0,
+                                                 c("EVID", "TIME", "AMT")])),
+                         as.double(as.matrix(convert1$dose[w, ])))
+            w <- seq(convert1$ids$posEvent[i] + 1, convert1$ids$posEvent[i] + convert1$ids$nEvent[i])
+            expect_equal(as.double(as.matrix(dat[dat$ID == i, c("EVID", "TIME")])),
+                         as.double(as.matrix(convert1$et[w, ])))
+        }
+        expect_false(convert1$missing.id)
+        expect_false(convert1$missing.dv)
+    })
+
+
+    context("  tbl instead of data.frame")
+    test_that("tbl", {
+        convert1 <- rxDataSetup(as.tbl(dat));
         expect_equal(length(convert1$cov), 0);
         expect_equal(length(convert1$cov.names), 0);
         for (i in unique(dat$ID)){

@@ -151,7 +151,7 @@ bool rxIs(const RObject &obj, std::string cls,bool reset = true){
 
 //' Setup a data frame for solving multiple subjects at once in RxODE.
 //'
-//' @param df dataframe to setup; Must be in RxODE compatible format.
+//' @param ro R object to setup; Must be in RxODE compatible format.
 //' @param covNames Covariate names in dataset.
 //' @param amountUnits Dosing amount units.
 //' @param timeUnits Time units.
@@ -161,11 +161,13 @@ bool rxIs(const RObject &obj, std::string cls,bool reset = true){
 //'
 //' @export
 // [[Rcpp::export]]
-List rxDataSetup(const DataFrame &df, const Nullable<StringVector> &covNames = R_NilValue,
+List rxDataSetup(const RObject &ro, const Nullable<StringVector> &covNames = R_NilValue,
 		 const std::string &amountUnits = "NA", const std::string &timeUnits = "hours"){
   // Purpose: get positions of each id and the length of each id's observations
   // Separate out dose vectors and observation vectors
-  if (rxIs(df,"event.data.frame")){
+  if (rxIs(ro,"event.data.frame")||
+      rxIs(ro,"event.matrix")){
+    DataFrame df = as<DataFrame>(ro);
     int nSub = 0, nObs = 0, nDoses = 0, i = 0, j = 0, k=0;
     IntegerVector evid  = as<IntegerVector>(df[rxcEvid]);
     bool missingId = false;
