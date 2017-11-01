@@ -10,34 +10,17 @@ init:
 install:
   ps: Bootstrap
 
+cache:
+  - C:\RLibrary
+
 # Adapt as necessary starting from here
 environment:
   global:
    USE_RTOOLS: true
    _R_CHECK_FORCE_SUGGESTS_: false
    
-  matrix:
-  - PATH: C:\Python27;%PATH%
-    R_VERSION: devel
-    GCC_PATH: mingw_32
-
-  - PATH: C:\Python27;%PATH%
-    R_VERSION: devel
-    R_ARCH: x64
-    GCC_PATH: mingw_64
-
-  - PATH: C:\Python27;%PATH%;
-    R_VERSION: release
-    R_ARCH: x64
-
-  - PATH: C:\Python27;%PATH%
-    R_VERSION: stable
-
 build_script:
   - travis-tool.sh install_deps
-  - travis-tool.sh install_github nlmixrdevelopment/dparser-R
-  - travis-tool.sh install_github nlmixrdevelopment/SnakeCharmR
-  - travis-tool.sh install_github r-lib/testthat
 
 test_script:
   - travis-tool.sh run_tests
