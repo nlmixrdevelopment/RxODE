@@ -264,6 +264,7 @@ void RxODE_finalize_focei_omega(RObject rho){
     }
     prod2[i] = prodI;
   }
+  e["tr.omegaInv.dOmega.0.5"] = trInv;
   // = tr(omegaInv*dOmega) = tr(omegaInv*omega*d(Omega^-1)*omega) = tr(d(Omega^-1)*omega)
   // This requires an expensive inverse....
   //e["tr.omegaInv.dOmega.0.5"] = trInv;
