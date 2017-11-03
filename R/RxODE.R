@@ -2065,6 +2065,8 @@ rxNorm <- function(obj, condition=NULL, removeInis, removeJac, removeSens){
     }
 }
 
+##' @rdname rxModelVars
+##' @export
 rxModelVars.character <- function(obj){
     if (length(obj) == 1){
         cFile <- tempfile();

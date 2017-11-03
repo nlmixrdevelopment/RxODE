@@ -426,7 +426,7 @@ List rxModelVars(RObject obj = R_NilValue){
     return (lst["modVars"]);
   } else if (rxIs(obj, "character")){
     Environment RxODE("package:RxODE");
-    Function f = RxODE["rxModelVars.character"];
+    Function f = as<Function>(RxODE["rxModelVars.character"]);
     return f(obj);
   } else if (rxIs(obj,"list")){
     bool params=false, lhs=false, state=false, trans=false, ini=false, model=false, md5=false, podo=false, dfdy=false;
@@ -557,6 +557,18 @@ CharacterVector rxLhs(RObject obj = R_NilValue){
   List modVar = rxModelVars(obj);
   CharacterVector ret = modVar["lhs"];
   return ret;
+}
+
+NumericVector rxInits2(RObject obj = R_NilValue, Nullable<NumericVector>vec = R_NilValue,
+		       Nullable<CharacterVector> req = R_NilValue,
+		       NumericVector defaultValue = 0,
+		       bool noerror = false,
+		       bool noini=false){
+  NumericVector oini;
+  List modVar = rxModelVars(obj);
+  if (!noini){
+    oini = modVar["ini"];
+  }
 }
 
 RObject rxSolveCpp(List args, Environment e){
