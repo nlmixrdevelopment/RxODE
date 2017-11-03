@@ -34,6 +34,62 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// rxModelVars
+List rxModelVars(RObject obj);
+RcppExport SEXP _RxODE_rxModelVars(SEXP objSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< RObject >::type obj(objSEXP);
+    rcpp_result_gen = Rcpp::wrap(rxModelVars(obj));
+    return rcpp_result_gen;
+END_RCPP
+}
+// rxState
+RObject rxState(RObject obj, RObject state);
+RcppExport SEXP _RxODE_rxState(SEXP objSEXP, SEXP stateSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< RObject >::type obj(objSEXP);
+    Rcpp::traits::input_parameter< RObject >::type state(stateSEXP);
+    rcpp_result_gen = Rcpp::wrap(rxState(obj, state));
+    return rcpp_result_gen;
+END_RCPP
+}
+// rxParams
+CharacterVector rxParams(RObject obj);
+RcppExport SEXP _RxODE_rxParams(SEXP objSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< RObject >::type obj(objSEXP);
+    rcpp_result_gen = Rcpp::wrap(rxParams(obj));
+    return rcpp_result_gen;
+END_RCPP
+}
+// rxDfdy
+CharacterVector rxDfdy(RObject obj);
+RcppExport SEXP _RxODE_rxDfdy(SEXP objSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< RObject >::type obj(objSEXP);
+    rcpp_result_gen = Rcpp::wrap(rxDfdy(obj));
+    return rcpp_result_gen;
+END_RCPP
+}
+// rxLhs
+CharacterVector rxLhs(RObject obj);
+RcppExport SEXP _RxODE_rxLhs(SEXP objSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< RObject >::type obj(objSEXP);
+    rcpp_result_gen = Rcpp::wrap(rxLhs(obj));
+    return rcpp_result_gen;
+END_RCPP
+}
 // rxInv
 NumericVector rxInv(SEXP matrix);
 RcppExport SEXP _RxODE_rxInv(SEXP matrixSEXP) {

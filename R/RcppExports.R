@@ -32,6 +32,101 @@ rxDataSetup <- function(ro, covNames = NULL, amountUnits = NA_character_, timeUn
     .Call(`_RxODE_rxDataSetup`, ro, covNames, amountUnits, timeUnits)
 }
 
+#' All model variables for a RxODE object
+#'
+#' Return all the known model variables for a specified RxODE object
+#'
+#' These items are only calculated after compilation; they are
+#' built-into the RxODE compiled DLL.
+#'
+#' @param obj RxODE family of objects
+#'
+#' @return A list of RxODE model properties including:
+#'
+#' \item{params}{ a character vector of names of the model parameters}
+#' \item{lhs}{ a character vector of the names of the model calculated parameters}
+#' \item{state}{ a character vector of the compartments in RxODE object}
+#' \item{trans}{ a named vector of translated model properties
+#'       including what type of jacobian is specified, the \code{C} function prefixes,
+#'       as well as the \code{C} functions names to be called through the compiled model.}
+#' \item{md5}{a named vector that gives the digest of the model (\code{file_md5}) and the parsed model
+#'      (\code{parsed_md5})}
+#' \item{model}{ a named vector giving the input model (\code{model}),
+#'    normalized model (no comments and standard syntax for parsing, \code{normModel}),
+#'    and interim code that is used to generate the final C file \code{parseModel}}
+#'
+#' @keywords internal
+#' @author Matthew L.Fidler
+#' @export
+rxModelVars <- function(obj = NULL) {
+    .Call(`_RxODE_rxModelVars`, obj)
+}
+
+#' State variables
+#'
+#' This returns the model's compartments or states.
+#'
+#' @inheritParams rxModelVars
+#'
+#' @param state is a string indicating the state or compartment that
+#'     you would like to lookup.
+#'
+#' @return If state is missing, return a character vector of all the states.
+#'
+#' If state is a string, return the compartment number of the named state.
+#'
+#' @seealso \code{\link{RxODE}}
+#'
+#' @author Matthew L.Fidler
+#' @export
+rxState <- function(obj = NULL, state = NULL) {
+    .Call(`_RxODE_rxState`, obj, state)
+}
+
+#' Parameters specified by the model
+#'
+#' This return the model's parameters that are required to solve the
+#' ODE system.
+#'
+#' @inheritParams rxModelVars
+#'
+#' @return a character vector listing the parameters in the model.
+#'
+#' @author Matthew L.Fidler
+#' @export
+rxParams <- function(obj = NULL) {
+    .Call(`_RxODE_rxParams`, obj)
+}
+
+#' Jacobain and parameter derivatives
+#'
+#' Return Jacobain and parameter derivatives
+#'
+#' @inheritParams rxModelVars
+#'
+#' @return A list of the jacobian parameters defined in this RxODE
+#'     object.
+#' @author Matthew L. Fidler
+#' @export
+rxDfdy <- function(obj = NULL) {
+    .Call(`_RxODE_rxDfdy`, obj)
+}
+
+#' Left handed Variables
+#'
+#' This returns the model calculated variables
+#'
+#' @inheritParams rxModelVars
+#'
+#' @return a character vector listing the calculated parameters
+#' @seealso \code{\link{RxODE}}
+#'
+#' @author Matthew L.Fidler
+#' @export
+rxLhs <- function(obj = NULL) {
+    .Call(`_RxODE_rxLhs`, obj)
+}
+
 #' Invert matrix using Rcpp Armadilo.  
 #'
 #' @param matrix matrix to be inverted.

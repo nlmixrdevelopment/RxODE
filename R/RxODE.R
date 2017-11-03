@@ -1845,6 +1845,10 @@ rxCompile.RxODE <- function(model, ...){
     model$cmpMgr$compile()
 }
 
+##' @rdname rxParams
+##' @export
+rxParam <- rxParams
+
 
 ##' Return the DLL associated with the RxODE object
 ##'
@@ -1961,85 +1965,6 @@ rxDelete <- function(obj){
     }
 }
 
-##' Parameters specified by the model
-##'
-##' This return the model's parameters that are required to solve the
-##' ODE system.
-##'
-##' @inheritParams rxModelVars
-##'
-##' @return a character vector listing the parameters in the model.
-##'
-##' @author Matthew L.Fidler
-##' @export
-rxParams <- function(obj){
-    return(rxModelVars(obj)$params);
-}
-
-##' @rdname rxParams
-##' @export
-rxParam <- rxParams
-
-
-##' Jacobain and parameter derivates
-##'
-##' Return Jacobain and parameter derivates
-##'
-##' @inheritParams rxModelVars
-##'
-##' @return A list of the jacobian parameters defined in this RxODE
-##'     object.
-##' @author Matthew L. Fidler
-##' @export
-rxDfdy <- function(obj){
-    return(rxModelVars(obj)$dfdy);
-}
-
-##' State variables
-##'
-##' This returns the model's compartments or states.
-##'
-##' @inheritParams rxModelVars
-##'
-##' @param state is a string indicating the state or compartment that
-##'     you would like to lookup.
-##'
-##' @return If state is missing, return a character vector of all the states.
-##'
-##' If state is a string, return the compartment number of the named state.
-##'
-##' @seealso \code{\link{RxODE}}
-##'
-##' @author Matthew L.Fidler
-##' @export
-rxState <- function(obj, state){
-    if (missing(state)){
-        return(rxModelVars(obj)$state);
-    } else {
-        objState <- rxState(obj);
-        if (length(objState) == 1)
-            warning("Only one state variable should be input.", immediate = TRUE);
-        w <- which(objState == state)
-        if (length(w) != 1){
-            stop(sprintf("Cannot locate compartment \"%s\".", state));
-        }
-        return(w);
-    }
-}
-##' Left handed Variables
-##'
-##' This returns the model calculated variables
-##'
-##' @inheritParams rxModelVars
-##'
-##' @return a character vector listing the calculated parameters
-##' @seealso \code{\link{RxODE}}
-##'
-##' @author Matthew L.Fidler
-##' @export
-rxLhs <- function(obj){
-    return(rxModelVars(obj)$lhs);
-}
 
 rxConditionLst <- list();
 ##' Current Condition for RxODE object
@@ -2140,74 +2065,6 @@ rxNorm <- function(obj, condition=NULL, removeInis, removeJac, removeSens){
     }
 }
 
-##' All model variables for a RxODE object
-##'
-##' Return all the known model variables for a specified RxODE object
-##'
-##' These items are only calculated after compilation; they are
-##' built-into the RxODE compiled DLL.
-##'
-##' @param obj RxODE family of objects
-##'
-##' @return A list of RxODE model properties including:
-##'
-##' \item{params}{ a character vector of names of the model parameters}
-##' \item{lhs}{ a character vector of the names of the model calculated parameters}
-##' \item{state}{ a character vector of the compartments in RxODE object}
-##' \item{trans}{ a named vector of translated model properties
-##'       including what type of jacobian is specified, the \code{C} function prefixes,
-##'       as well as the \code{C} functions names to be called through the compiled model.}
-##' \item{md5}{a named vector that gives the digest of the model (\code{file_md5}) and the parsed model
-##'      (\code{parsed_md5})}
-##' \item{model}{ a named vector giving the input model (\code{model}),
-##'    normalized model (no comments and standard syntax for parsing, \code{normModel}),
-##'    and interim code that is used to generate the final C file \code{parseModel}}
-##'
-##' @keywords internal
-##' @author Matthew L.Fidler
-##' @export
-rxModelVars <- function(obj){
-    UseMethod("rxModelVars");
-}
-
-##' @rdname rxModelVars
-##' @export
-rxModelVars.list <- function(obj){
-    if (all(c("params", "lhs", "state", "trans", "ini", "model", "md5", "podo", "dfdy") %in% names(obj))){
-        return(obj);
-    } else {
-        stop("Cannot figure out the model variables.")
-    }
-}
-
-##' @rdname rxModelVars
-##' @export
-rxModelVars.rxDll <- function(obj){
-    return(obj$modVars)
-}
-
-##' @rdname rxModelVars
-##' @export
-rxModelVars.RxCompilationManager <- function(obj){
-    return(rxModelVars.rxDll(obj$rxDll()))
-}
-
-##' @rdname rxModelVars
-##' @export
-rxModelVars.RxODE <- function(obj){
-    return(rxModelVars.rxDll(obj$cmpMgr$rxDll()))
-}
-
-##' @rdname rxModelVars
-##' @export
-rxModelVars.solveRxODE <- function(obj){
-    env <- attr(obj, ".env");
-    rxode <- env$env$out;
-    return(rxModelVars.RxODE(rxode));
-}
-
-##' @rdname rxModelVars
-##' @export
 rxModelVars.character <- function(obj){
     if (length(obj) == 1){
         cFile <- tempfile();

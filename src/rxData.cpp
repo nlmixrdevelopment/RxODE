@@ -145,6 +145,13 @@ bool rxIs(const RObject &obj, std::string cls){
           return false;
       }
     }
+    if (type == VECSXP){
+      if (cls == "list"){
+        return true;
+      } else {
+        return false;
+      }
+    }
   }
   return false;
 }
@@ -374,6 +381,182 @@ List rxDataSetup(const RObject &ro, const RObject &covNames = R_NilValue,
   } else {
     stop("Data is not setup appropriately.");
   }
+}
+//' All model variables for a RxODE object
+//'
+//' Return all the known model variables for a specified RxODE object
+//'
+//' These items are only calculated after compilation; they are
+//' built-into the RxODE compiled DLL.
+//'
+//' @param obj RxODE family of objects
+//'
+//' @return A list of RxODE model properties including:
+//'
+//' \item{params}{ a character vector of names of the model parameters}
+//' \item{lhs}{ a character vector of the names of the model calculated parameters}
+//' \item{state}{ a character vector of the compartments in RxODE object}
+//' \item{trans}{ a named vector of translated model properties
+//'       including what type of jacobian is specified, the \code{C} function prefixes,
+//'       as well as the \code{C} functions names to be called through the compiled model.}
+//' \item{md5}{a named vector that gives the digest of the model (\code{file_md5}) and the parsed model
+//'      (\code{parsed_md5})}
+//' \item{model}{ a named vector giving the input model (\code{model}),
+//'    normalized model (no comments and standard syntax for parsing, \code{normModel}),
+//'    and interim code that is used to generate the final C file \code{parseModel}}
+//'
+//' @keywords internal
+//' @author Matthew L.Fidler
+//' @export
+// [[Rcpp::export]]
+List rxModelVars(RObject obj = R_NilValue){
+  if (rxIs(obj,"RxODE")) {
+    Function f = as<Function>((as<List>((as<List>(obj))["cmpMgr"]))["rxDll"]);
+    List lst = f();
+    return lst["modVars"];
+  } else if (rxIs(obj,"solveRxODE")){
+    Environment e = as<Environment>((as<Environment>(obj.attr(".env")))["env"]);
+    return  rxModelVars(e["out"]);
+  } else if (rxIs(obj,"rxDll")){
+    List lobj = (as<List>(obj))["modVars"];
+    return lobj;
+  } else if (rxIs(obj, "RxCompilationManager")){
+    Function f =  as<Function>((as<List>(obj))["rxDll"]);
+    List lst = f();
+    return (lst["modVars"]);
+  } else if (rxIs(obj, "character")){
+    Environment RxODE("package:RxODE");
+    Function f = RxODE["rxModelVars.character"];
+    return f(obj);
+  } else if (rxIs(obj,"list")){
+    bool params=false, lhs=false, state=false, trans=false, ini=false, model=false, md5=false, podo=false, dfdy=false;
+    List lobj  = as<List>(obj);
+    CharacterVector nobj = lobj.names();
+    for (int i = 0; i < nobj.size(); i++){
+      if (!params && nobj[i]== "params"){
+	params=true;
+      } else if (!lhs && nobj[i] == "lhs"){
+	lhs=true;
+      } else if (!state && nobj[i] == "state"){
+	state=true;
+      } else if (!trans && nobj[i] == "trans"){
+	trans=true;
+      } else if (!ini && nobj[i] == "ini"){
+	ini = true;
+      } else if (!model && nobj[i] == "model"){
+	model = true;
+      } else if (!md5 && nobj[i] == "md5"){
+	md5 = true;
+      } else if (!podo && nobj[i] == "podo"){
+	podo=true;
+      } else if (!dfdy && nobj[i] == "dfdy"){
+	dfdy = true;
+      } else {
+	return lobj;
+      }
+    }
+    stop("Cannot figure out the model variables.");
+  } else {
+    stop("Need an RxODE-type object to extract model variables from.");
+  }
+}
+//' State variables
+//'
+//' This returns the model's compartments or states.
+//'
+//' @inheritParams rxModelVars
+//'
+//' @param state is a string indicating the state or compartment that
+//'     you would like to lookup.
+//'
+//' @return If state is missing, return a character vector of all the states.
+//'
+//' If state is a string, return the compartment number of the named state.
+//'
+//' @seealso \code{\link{RxODE}}
+//'
+//' @author Matthew L.Fidler
+//' @export
+// [[Rcpp::export]]
+RObject rxState(RObject obj = R_NilValue, RObject state = R_NilValue){
+  List modVar = rxModelVars(obj);
+  CharacterVector states = modVar["state"];
+  if (state.isNULL()){
+    return states;
+  }
+  else if (rxIs(state,"character")){
+    CharacterVector lookup = as<CharacterVector>(state);
+    if (lookup.size() > 1){
+      // Fixme?
+      stop("Can only lookup one state at a time.");
+    }
+    if (states.size() == 1){
+      warning("Only one state variable should be input.");
+    }
+    IntegerVector ret(1);
+    for (int i = 0; i < states.size(); i++){
+      if (states[i] == lookup[0]){
+	ret[0] = i+1;
+	return ret;
+      }
+    }
+    stop("Cannot locate compartment \"%s\".",as<std::string>(lookup[0]).c_str());
+  }
+  return R_NilValue;
+}
+
+//' Parameters specified by the model
+//'
+//' This return the model's parameters that are required to solve the
+//' ODE system.
+//'
+//' @inheritParams rxModelVars
+//'
+//' @return a character vector listing the parameters in the model.
+//'
+//' @author Matthew L.Fidler
+//' @export
+//[[Rcpp::export]]
+CharacterVector rxParams(RObject obj = R_NilValue){
+  List modVar = rxModelVars(obj);
+  CharacterVector ret = modVar["params"];
+  return ret;
+}
+
+
+//' Jacobain and parameter derivatives
+//'
+//' Return Jacobain and parameter derivatives
+//'
+//' @inheritParams rxModelVars
+//'
+//' @return A list of the jacobian parameters defined in this RxODE
+//'     object.
+//' @author Matthew L. Fidler
+//' @export
+//[[Rcpp::export]]
+CharacterVector rxDfdy(RObject obj = R_NilValue){
+  List modVar = rxModelVars(obj);
+  CharacterVector ret = modVar["dfdy"];
+  return ret;
+}
+
+//' Left handed Variables
+//'
+//' This returns the model calculated variables
+//'
+//' @inheritParams rxModelVars
+//'
+//' @return a character vector listing the calculated parameters
+//' @seealso \code{\link{RxODE}}
+//'
+//' @author Matthew L.Fidler
+//' @export
+//[[Rcpp::export]]
+CharacterVector rxLhs(RObject obj = R_NilValue){
+  List modVar = rxModelVars(obj);
+  CharacterVector ret = modVar["lhs"];
+  return ret;
 }
 
 RObject rxSolveCpp(List args, Environment e){

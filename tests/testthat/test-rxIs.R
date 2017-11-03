@@ -70,5 +70,8 @@ rxPermissive({
         expect_false(rxIs(a, "logical.matrix"))
         expect_true(rxIs(a, "character.matrix"))
         expect_true(rxIs(a, "matrix"))
+        expect_true(rxIs(list(a="b"), "list"))
+        expect_true(rxIs(list(), "list"))
+        expect_true(rxIs(list("b"), "list"))
     })
 }, cran=TRUE)
