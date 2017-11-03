@@ -4,7 +4,7 @@
 \alias{rxIs}
 \title{Check the type of an object using Rcpp}
 \usage{
-rxIs(obj, cls, reset = TRUE)
+rxIs(obj, cls)
 }
 \arguments{
 \item{obj}{Object to check}
@@ -14,9 +14,6 @@ For matrix types they are distinguished as \code{numeric.matrix}, \code{integer.
 \code{logical.matrix}, and \code{character.matrix} as well as the traditional \code{matrix}
 class. Additionally checks for \code{event.data.frame} which is an \code{data.frame} object
 with \code{time},  \code{evid} and \code{amt}. (UPPER, lower or Title cases accepted)}
-
-\item{reset}{Boolean to reset cache.  This should only be used internally.  By default there is
-no caching, and this value is \code{TRUE}.}
 }
 \value{
 A boolean indicating if the object is a member of the class.

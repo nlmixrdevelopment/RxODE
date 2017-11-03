@@ -9,44 +9,28 @@
 using namespace Rcpp;
 
 // rxIs
-bool rxIs(const RObject& obj, std::string cls, bool reset);
-RcppExport SEXP _RxODE_rxIs(SEXP objSEXP, SEXP clsSEXP, SEXP resetSEXP) {
+bool rxIs(const RObject& obj, std::string cls);
+RcppExport SEXP _RxODE_rxIs(SEXP objSEXP, SEXP clsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const RObject& >::type obj(objSEXP);
     Rcpp::traits::input_parameter< std::string >::type cls(clsSEXP);
-    Rcpp::traits::input_parameter< bool >::type reset(resetSEXP);
-    rcpp_result_gen = Rcpp::wrap(rxIs(obj, cls, reset));
+    rcpp_result_gen = Rcpp::wrap(rxIs(obj, cls));
     return rcpp_result_gen;
 END_RCPP
 }
 // rxDataSetup
-List rxDataSetup(const RObject& ro, const Nullable<StringVector>& covNames, const std::string& amountUnits, const std::string& timeUnits);
+List rxDataSetup(const RObject& ro, const RObject& covNames, const StringVector& amountUnits, const StringVector& timeUnits);
 RcppExport SEXP _RxODE_rxDataSetup(SEXP roSEXP, SEXP covNamesSEXP, SEXP amountUnitsSEXP, SEXP timeUnitsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const RObject& >::type ro(roSEXP);
-    Rcpp::traits::input_parameter< const Nullable<StringVector>& >::type covNames(covNamesSEXP);
-    Rcpp::traits::input_parameter< const std::string& >::type amountUnits(amountUnitsSEXP);
-    Rcpp::traits::input_parameter< const std::string& >::type timeUnits(timeUnitsSEXP);
+    Rcpp::traits::input_parameter< const RObject& >::type covNames(covNamesSEXP);
+    Rcpp::traits::input_parameter< const StringVector& >::type amountUnits(amountUnitsSEXP);
+    Rcpp::traits::input_parameter< const StringVector& >::type timeUnits(timeUnitsSEXP);
     rcpp_result_gen = Rcpp::wrap(rxDataSetup(ro, covNames, amountUnits, timeUnits));
-    return rcpp_result_gen;
-END_RCPP
-}
-// rxEventTableExpand
-List rxEventTableExpand(const int& nsub, const DataFrame& df, const std::string& amountUnits, const std::string& timeUnits, const LogicalVector& expandData);
-RcppExport SEXP _RxODE_rxEventTableExpand(SEXP nsubSEXP, SEXP dfSEXP, SEXP amountUnitsSEXP, SEXP timeUnitsSEXP, SEXP expandDataSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const int& >::type nsub(nsubSEXP);
-    Rcpp::traits::input_parameter< const DataFrame& >::type df(dfSEXP);
-    Rcpp::traits::input_parameter< const std::string& >::type amountUnits(amountUnitsSEXP);
-    Rcpp::traits::input_parameter< const std::string& >::type timeUnits(timeUnitsSEXP);
-    Rcpp::traits::input_parameter< const LogicalVector& >::type expandData(expandDataSEXP);
-    rcpp_result_gen = Rcpp::wrap(rxEventTableExpand(nsub, df, amountUnits, timeUnits, expandData));
     return rcpp_result_gen;
 END_RCPP
 }

@@ -4,7 +4,8 @@
 \alias{rxDataSetup}
 \title{Setup a data frame for solving multiple subjects at once in RxODE.}
 \usage{
-rxDataSetup(ro, covNames = NULL, amountUnits = "NA", timeUnits = "hours")
+rxDataSetup(ro, covNames = NULL, amountUnits = NA_character_,
+  timeUnits = "hours")
 }
 \arguments{
 \item{ro}{R object to setup; Must be in RxODE compatible format.}

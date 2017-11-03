@@ -3,7 +3,7 @@
 # a time vector, an event id  describing two types
 # of timed records, doses (input) and sampling times
 # (state variables); in the future there could be
-# other events (e.g., re-setting after "washoout"
+                                        # other events (e.g., re-setting after "washoout"
 # periods, resetting of compartments (e.g., urine),
 # etc.
 # TODO:
@@ -338,9 +338,8 @@ eventTable <- function(amount.units = NA, time.units = "hours")
             get.sampling = function() .EventTable[.obs.rec, ,drop = FALSE],
             get.units = function() c(dosing = .amount.units, time = .time.units),
             import.EventTable = import.EventTable,
-            copy = copy,
-            expand=function(nsub, expand.data=FALSE){return(rxEventTableExpand(as.integer(nsub), as.data.frame(.EventTable), paste(.amount.units), paste(.time.units), expand.data)); }
-        )
+            copy = copy
+            )
     class(out) <- "EventTable"
     out
 }
@@ -418,6 +417,3 @@ print.RxODE.multi.data <- function(x, ...){
         message(sprintf("  Covariates: %s", paste(x$cov.names, collapse=", ")))
     }
 }
-
-##' @export
-print.RxODE.multi.data.dup <- print.RxODE.multi.data;

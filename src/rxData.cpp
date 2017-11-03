@@ -10,9 +10,12 @@ int rxcAmt  = -1;
 int rxcId   = -1;
 int rxcDv   = -1;
 int rxcLen  = -1;
-bool rxHasEventNames(CharacterVector &nm, bool reset = false){
+bool resetCache = true;
+bool rxHasEventNames(CharacterVector &nm){
   int len = nm.size();
+  bool reset  = resetCache;
   if (reset || len != rxcLen){
+    reset   = resetCache;
     rxcEvid = -1;
     rxcTime = -1;
     rxcAmt  = -1;
@@ -33,6 +36,7 @@ bool rxHasEventNames(CharacterVector &nm, bool reset = false){
       }
     }
   }
+  resetCache = true;
   if (rxcEvid >= 0 && rxcTime >= 0 && rxcAmt >= 0){
     return true;
   } else {
@@ -48,18 +52,18 @@ bool rxHasEventNames(CharacterVector &nm, bool reset = false){
 //'    \code{logical.matrix}, and \code{character.matrix} as well as the traditional \code{matrix}
 //'    class. Additionally checks for \code{event.data.frame} which is an \code{data.frame} object
 //'    with \code{time},  \code{evid} and \code{amt}. (UPPER, lower or Title cases accepted)
-//' @param reset Boolean to reset cache.  This should only be used internally.  By default there is
-//'        no caching, and this value is \code{TRUE}.
 //'
 //' @return A boolean indicating if the object is a member of the class.
 //' @keywords internal
 //' @export
 // [[Rcpp::export]]
-bool rxIs(const RObject &obj, std::string cls,bool reset = true){
-  if (cls == "event.data.frame"){
+bool rxIs(const RObject &obj, std::string cls){
+  if (cls == "rx.event"){
+    return (rxIs(obj, "eventTable") || rxIs(obj, "event.data.frame") || rxIs(obj, "event.matrix"));
+  } else if (cls == "event.data.frame"){
     if (rxIs(obj, "data.frame")){
       CharacterVector cv =as<CharacterVector>((as<DataFrame>(obj)).names());
-      return rxHasEventNames(cv,reset);
+      return rxHasEventNames(cv);
     } else {
       return false;
     }
@@ -68,7 +72,7 @@ bool rxIs(const RObject &obj, std::string cls,bool reset = true){
       List dn = as<List>(obj.attr("dimnames"));
       if (dn.size() == 2){
 	CharacterVector cv = as<CharacterVector>(dn[1]);
-        return rxHasEventNames(cv,reset);
+        return rxHasEventNames(cv);
       } else {
 	return false;
       }
@@ -161,13 +165,23 @@ bool rxIs(const RObject &obj, std::string cls,bool reset = true){
 //'
 //' @export
 // [[Rcpp::export]]
-List rxDataSetup(const RObject &ro, const Nullable<StringVector> &covNames = R_NilValue,
-		 const std::string &amountUnits = "NA", const std::string &timeUnits = "hours"){
+List rxDataSetup(const RObject &ro, const RObject &covNames = R_NilValue,
+		 const StringVector &amountUnits = NA_STRING, const StringVector &timeUnits = "hours"){
   // Purpose: get positions of each id and the length of each id's observations
   // Separate out dose vectors and observation vectors
-  if (rxIs(ro,"event.data.frame")||
+  if (rxIs(ro,"EventTable")){
+    List et = as<List>(ro);
+    Function f = et["get.EventTable"];
+    DataFrame df = f();
+    f = et["get.units"];
+    StringVector units = f();
+    StringVector amt = as<StringVector>(units["dosing"]);
+    StringVector time = as<StringVector>(units["time"]);
+    return rxDataSetup(df, covNames, amt, time);
+  } else if (rxIs(ro,"event.data.frame")||
       rxIs(ro,"event.matrix")){
     DataFrame df = as<DataFrame>(ro);
+    
     int nSub = 0, nObs = 0, nDoses = 0, i = 0, j = 0, k=0;
     IntegerVector evid  = as<IntegerVector>(df[rxcEvid]);
     bool missingId = false;
@@ -211,9 +225,18 @@ List rxDataSetup(const RObject &ro, const Nullable<StringVector> &covNames = R_N
     // Now create data frames of observations and events
     NumericVector newDv(nObs);
     NumericVector newTimeO(nObs);
-    int nCovs;
-    if (covNames.isNotNull()){
-      nCovs=(as<StringVector>(covNames)).size();
+    int nCovs = 0;
+    StringVector covN;
+    bool dataCov = false;
+    DataFrame covDf;
+    if (rxIs(covNames, "character")){
+      covN = (as<StringVector>(covNames));
+      nCovs= covN.size();
+    } else if (rxIs(covNames, "data.frame") || rxIs(covNames,"numeric.matrix")){
+      covDf = as<DataFrame>(covNames);
+      covN = (as<StringVector>(covDf.names()));
+      nCovs = covN.size();
+      dataCov = true;
     } else {
       nCovs=0;
     }
@@ -286,7 +309,9 @@ List rxDataSetup(const RObject &ro, const Nullable<StringVector> &covNames = R_N
     nDose[m-1]=nDoses;
     nObsN[m-1]=nObs;
     nEtN[m-1] = nEt;
-
+    if (dataCov && (as<NumericVector>(covDf[0])).size() != nObs){
+      stop("Covariate data needs ");
+    }
     // Covariates are stacked by id that is
     // id=cov1,cov1,cov1,cov2,cov2,cov2,...
     lastId = id[0]-1;
@@ -306,7 +331,11 @@ List rxDataSetup(const RObject &ro, const Nullable<StringVector> &covNames = R_N
       if (!evid[i]){
         // Observation
         for (n = 0; n < nCovs; n++){
-          newCov[n0 + nc + n*nObsN[m-1]] = (as<NumericVector>(df[as<std::string>((as<StringVector>(covNames))[n])]))[i];
+	  if (dataCov){
+	    newCov[n0 + nc + n*nObsN[m-1]] = (as<NumericVector>(covDf[as<std::string>(covN[n])]))[nc];
+	  } else {
+	    newCov[n0 + nc + n*nObsN[m-1]] = (as<NumericVector>(df[as<std::string>(covN[n])]))[i];
+          }
         }
         nc++;
       }
@@ -334,7 +363,7 @@ List rxDataSetup(const RObject &ro, const Nullable<StringVector> &covNames = R_N
                             _["nObs"]=newDv.size(),
                             _["min.time"] = minTime,
                             _["max.time"] = maxTime,
-                            _["cov.names"]=covNames,
+                            _["cov.names"]=(covN.size() == 0 ? R_NilValue : wrap(covN)),
                             _["amount.units"]=amountUnits,
                             _["time.units"]=timeUnits,
 			    _["missing.id"]=missingId,
@@ -344,58 +373,6 @@ List rxDataSetup(const RObject &ro, const Nullable<StringVector> &covNames = R_N
     return ret;
   } else {
     stop("Data is not setup appropriately.");
-  }
-}
-
-//[[Rcpp::export]]
-List rxEventTableExpand(const int &nsub,const DataFrame &df,
-                        const std::string &amountUnits = "NA", const std::string &timeUnits = "hours",
-                        const LogicalVector &expandData = false){
-  // Purpose: Expand current event table to have number of subjects,
-  // and then return rxDataSetup list.
-  //IntegerVector id    = df["id"];
-  if (rxIs(df, "event.data.frame")){
-    IntegerVector evid  = df[rxcEvid];
-    //NumericVector dv    = df["dv"];
-    NumericVector time0 = df[rxcTime];
-    NumericVector amt   = df[rxcAmt];
-    int newdim = rxcLen;
-    int newsub = 1;
-    if (expandData[0]){
-      newdim *= nsub;
-      newsub = nsub;
-    }
-    IntegerVector nId(newdim);
-    IntegerVector nEvid(newdim);
-    NumericVector nDv(newdim);
-    NumericVector nTime(newdim);
-    NumericVector nAmt(newdim);
-    for (int i = 0; i < amt.size(); i++){
-      for (int j = 0; j < newsub; j++){
-        nId[i+j*amt.size()] = j+1;
-        nEvid[i+j*amt.size()] = evid[i];
-        nTime[i+j*amt.size()] = time0[i];
-        nAmt[i+j*amt.size()] = amt[i];
-        nDv[i+j*amt.size()] = NA_REAL;
-      }
-    }
-    DataFrame ndf = DataFrame::create(_["ID"]=nId,
-                                      _["EVID"]=nEvid,
-                                      _["DV"]=nDv,
-                                      _["TIME"]=nTime,
-                                      _["AMT"]=nAmt);
-    List ret = rxDataSetup(ndf, R_NilValue, amountUnits, timeUnits);
-    if (expandData[0]){
-      return ret;
-    } else {
-      ret["nSub"]=nsub;
-      ret["nDoses"]=nsub*as<int>(ret["nDoses"]);
-      ret["nObs"]=nsub*as<int>(ret["nObs"]);
-      ret.attr("class") = "RxODE.multi.data.dup";
-      return ret;
-    }
-  } else {
-    stop("The data frame expanded is not an event-type dataframe since it is missing key columns.");
   }
 }
 
@@ -410,25 +387,12 @@ RObject rxSolveCpp(List args, Environment e){
   NumericVector params;
   RObject par0 = args["params"];
   RObject ev0  = args["events"];
+  RObject covs = args["covs"];
   List events;
-  bool oneSubject = false;
-  // 
-  if (rxIs(par0, "eventTable")){
-    
-    Function rfn = as<Function>(as<List>(par0)["expand"]);
-    events = rfn(1);
-    oneSubject = true;
-  } else if (rxIs(ev0,"eventTable")){
-    Function rfn = as<Function>(as<List>(par0)["expand"]);
-    events = rfn(1);
-    events = as<List>(ev0);
-    oneSubject = true;
+  // Setup events
+  if (rxIs(par0, "rx.event")){
+    events = rxDataSetup(par0, covs);
+  } else if (rxIs(ev0,"rx.event")){
+    events = rxDataSetup(ev0, covs);
   }
-  
-  // if (!is.null(params)){
-  //   if (is.null(events) && is(params,"EventTable")){
-  //     events <- params;
-  //     params <- c();
-  //   }
-  // }
 }

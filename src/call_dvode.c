@@ -1238,7 +1238,7 @@ SEXP _RxODE_rxSymInvCholEnvCalculate(SEXP, SEXP, SEXP);
 SEXP _RxODE_rxInvWishartVar(SEXP, SEXP);
 SEXP _RxODE_rxSymInvChol(SEXP, SEXP, SEXP, SEXP);
 SEXP _RxODE_rxDataSetup(SEXP,SEXP, SEXP, SEXP);
-SEXP _RxODE_rxIs(SEXP,SEXP,SEXP);
+SEXP _RxODE_rxIs(SEXP,SEXP);
 
 double RxODE_solveLinB(double t, int linCmt, int diff1, int diff2, double A, double alpha, double B, double beta, double C, double gamma, double ka, double tlag);
 static R_NativePrimitiveArgType RxODE_solveLinB_t[] = {
@@ -1256,7 +1256,6 @@ SEXP _rxSetSum(SEXP input);
 SEXP _rxSetProd(SEXP input);
 SEXP _rxPairwiseSum(SEXP input);
 SEXP _RxODE_rxToOmega(SEXP cholInv);
-SEXP _RxODE_rxEventTableExpand(SEXP, SEXP, SEXP, SEXP, SEXP);
 
 double RxODE_sum(double *input, int len);
 double RxODE_prod(double *input, int len);
@@ -1289,8 +1288,7 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_rxInvWishartVar", (DL_FUNC) &_RxODE_rxInvWishartVar, 2},
     {"_RxODE_rxSymInvChol", (DL_FUNC) &_RxODE_rxSymInvChol, 4},
     {"_RxODE_rxDataSetup", (DL_FUNC) &_RxODE_rxDataSetup, 4},
-    {"_RxODE_rxEventTableExpand", (DL_FUNC) &_RxODE_rxEventTableExpand, 5},
-    {"_RxODE_rxIs", (DL_FUNC) &_RxODE_rxIs, 3},
+    {"_RxODE_rxIs", (DL_FUNC) &_RxODE_rxIs, 2},
     {NULL, NULL, 0}
   };
 

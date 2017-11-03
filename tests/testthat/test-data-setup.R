@@ -207,7 +207,7 @@ rxPermissive({
 
     cn <- c("V")
     convert2 <- rxDataSetup(dat, cn);
-    context("Test FOCEi Data Setup (for RcppParallel-style for loop); 1 cov")
+    context("Test Data Setup (for RcppParallel-style for loop); 1 cov")
     test_that("conversion with 1 covariate", {
         expect_equal(length(convert2$cov.names), 1);
         for (i in unique(dat$ID)){
@@ -233,7 +233,7 @@ rxPermissive({
 
     cn <- c("V", "CL")
     convert2 <- rxDataSetup(dat, cn);
-    context("Test FOCEi Data Setup (for RcppParallel-style for loop); 2 cov")
+    context("Test Data Setup (for RcppParallel-style for loop); 2 cov")
     test_that("conversion with 2 covariate", {
         expect_equal(length(convert2$cov.names), 2);
         for (i in unique(dat$ID)){
@@ -259,7 +259,7 @@ rxPermissive({
 
     cn <- c("V", "CL", "DOSE")
     convert2 <- rxDataSetup(dat, cn);
-    context("Test FOCEi Data Setup (for RcppParallel-style for loop); 3 cov")
+    context("Test Data Setup (for RcppParallel-style for loop); 3 cov")
     test_that("conversion with 3 covariate", {
         expect_equal(length(convert2$cov.names), 3);
         for (i in unique(dat$ID)){
@@ -282,4 +282,27 @@ rxPermissive({
                          as.double(as.matrix(convert2$et[w, ])))
         }
     })
+
+    context("Expand event table with covariate information")
+    test_that("Setup Event table", {
+
+        et <- eventTable()   # default time units
+        et$add.sampling(seq(from=0, to=100, by=0.01))
+
+        cov <- data.frame(c=et$get.sampling()$time+1, d=et$get.sampling()$time+1);
+
+        tmp1 <- rxDataSetup(et, as.matrix(cov));
+        tmp2 <- rxDataSetup(et, cov)
+
+        expect_equal(tmp1, tmp2)
+
+        cov2 <- data.frame(c=et$get.sampling()$time[-1]+1, d=et$get.sampling()$time[-1]+1);
+
+        expect_error(rxDataSetup(et, as.matrix(cov2)));
+        expect_error(rxDataSetup(et, cov2));
+
+        cov2 <- data.frame(c=c(et$get.sampling()$time, 1)+1, d=c(et$get.sampling()$time, 1)+1);
+
+    })
+
 })

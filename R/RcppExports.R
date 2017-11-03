@@ -9,14 +9,12 @@
 #'    \code{logical.matrix}, and \code{character.matrix} as well as the traditional \code{matrix}
 #'    class. Additionally checks for \code{event.data.frame} which is an \code{data.frame} object
 #'    with \code{time},  \code{evid} and \code{amt}. (UPPER, lower or Title cases accepted)
-#' @param reset Boolean to reset cache.  This should only be used internally.  By default there is
-#'        no caching, and this value is \code{TRUE}.
 #'
 #' @return A boolean indicating if the object is a member of the class.
 #' @keywords internal
 #' @export
-rxIs <- function(obj, cls, reset = TRUE) {
-    .Call(`_RxODE_rxIs`, obj, cls, reset)
+rxIs <- function(obj, cls) {
+    .Call(`_RxODE_rxIs`, obj, cls)
 }
 
 #' Setup a data frame for solving multiple subjects at once in RxODE.
@@ -30,12 +28,8 @@ rxIs <- function(obj, cls, reset = TRUE) {
 #'       individual in C)
 #'
 #' @export
-rxDataSetup <- function(ro, covNames = NULL, amountUnits = "NA", timeUnits = "hours") {
+rxDataSetup <- function(ro, covNames = NULL, amountUnits = NA_character_, timeUnits = "hours") {
     .Call(`_RxODE_rxDataSetup`, ro, covNames, amountUnits, timeUnits)
-}
-
-rxEventTableExpand <- function(nsub, df, amountUnits = "NA", timeUnits = "hours", expandData = FALSE) {
-    .Call(`_RxODE_rxEventTableExpand`, nsub, df, amountUnits, timeUnits, expandData)
 }
 
 #' Invert matrix using Rcpp Armadilo.  
