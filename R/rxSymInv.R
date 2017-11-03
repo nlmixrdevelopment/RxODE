@@ -868,7 +868,7 @@ rxSymInvCholCreate <- function(mat,
                     }
                 }
             })
-            if (tn >= -1){g
+            if (tn >= -1){
                 return(as.matrix(Matrix::.bdiag(lst)))
             } else {
                 return(unlist(lst));
