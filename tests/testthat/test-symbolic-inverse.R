@@ -28,7 +28,7 @@ rxPermissive({
 
     test_that("Creates the correct matricies,", {
         expect_equal(digest::digest(as.list(symo %>% rxSymInv(1:3))),
-                     "03b76d0284e9d19eb37bacfdae3294e9");
+                     "d764e9f03206b212c6e0168266d5271f");
         expect_equal(symo %>% rxSymInv(1:3, pow=1), structure(c(1, 2, 2, 9), .Dim = c(2L, 2L)));
         expect_equal(symo %>% rxSymInv(1:3, pow=1, 1), structure(c(2, 0, 0, 0), .Dim = c(2L, 2L)));
         expect_equal(symo %>% rxSymInv(1:3, pow=1, 2), structure(c(0, 1, 1, 0), .Dim = c(2L, 2L)));
@@ -55,7 +55,7 @@ rxPermissive({
 
     test_that("Creates the correct matricies,", {
         expect_equal(digest::digest(as.list(symo %>% rxSymInv(1:3))),
-                     "03b76d0284e9d19eb37bacfdae3294e9");
+                     "d764e9f03206b212c6e0168266d5271f");
         expect_equal(symo %>% rxSymInv(1:3, pow=1), structure(c(1, 2, 2, 9), .Dim = c(2L, 2L)));
         expect_equal(symo %>% rxSymInv(1:3, pow=1, 1), structure(c(2, 0, 0, 0), .Dim = c(2L, 2L)));
         expect_equal(symo %>% rxSymInv(1:3, pow=1, 2), structure(c(0, 1, 1, 0), .Dim = c(2L, 2L)));

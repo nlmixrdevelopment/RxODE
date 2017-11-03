@@ -1,4 +1,4 @@
-rxSymInvC <- function(mat1, diag.xform=c("log", "sqrt", "identity"), chol=FALSE){
+rxSymInvC <- function(mat1, diag.xform=c("sqrt", "log", "identity"), chol=FALSE){
     if (!all(as.vector(mat1) == 1 || as.vector(mat1) == 1)){
         stop("This has to be a matrix of all 1s or 0s.");
     }
@@ -209,7 +209,7 @@ rxSymInvC <- function(mat1, diag.xform=c("log", "sqrt", "identity"), chol=FALSE)
 }
 
 rxSymInvCreateC <- function(c){
-    inline::cfunction(signature(theta="numeric", oi="integer", tn="integer"), c)
+    inline::cfunction(signature(theta="numeric", oi="integer", tn="integer"), c, includes="\n#include <Rmath.h>\n")
 }
 
 rxSymInvCreateC.slow <- NULL
@@ -224,7 +224,7 @@ rxSymInvCreateC.slow <- NULL
 ##' @keywords internal
 ##' @export
 rxSymInvCreate <- function(mat,
-                           diag.xform=c("log", "sqrt", "identity"),
+                           diag.xform=c("sqrt", "log", "identity"),
                            chol=FALSE){
     diag.xform <- match.arg(diag.xform);
     mat2 <- mat;
