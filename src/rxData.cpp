@@ -559,16 +559,151 @@ CharacterVector rxLhs(RObject obj = R_NilValue){
   return ret;
 }
 
-NumericVector rxInits2(RObject obj = R_NilValue, Nullable<NumericVector>vec = R_NilValue,
-		       Nullable<CharacterVector> req = R_NilValue,
-		       NumericVector defaultValue = 0,
-		       bool noerror = false,
-		       bool noini=false){
+//' Initial Values and State values for a RxODE object
+//'
+//' Returns the initial values of the rxDll object
+//'
+//' @param obj rxDll, RxODE, or named vector representing default
+//'     initial arguments
+//'
+//' @param vec If supplied, named vector for the model.
+//'
+//' @param req Required names, and the required order for the ODE solver
+//'
+//' @param defaultValue a number or NA representing the default value for
+//'     parameters missing in \code{vec}, but required in \code{req}.
+//'
+//' @param noerror is a boolean specifying if an error should be thrown
+//'     for missing parameter values when \code{default} = \code{NA}
+//'
+//' @keywords internal
+//' @author Matthew L.Fidler
+//' @export
+//[[Rcpp::export]]
+NumericVector rxInits(RObject obj = R_NilValue,
+		      Nullable<NumericVector> vec = R_NilValue,
+		      Nullable<CharacterVector> req = R_NilValue,
+		      double defaultValue = 0,
+		      bool noerror = false,
+		      bool noini=false){
   NumericVector oini;
+  CharacterVector cini;
   List modVar = rxModelVars(obj);
   if (!noini){
-    oini = modVar["ini"];
+    oini = (modVar["ini"]);
+    cini = oini.names();
   }
+  int i, j, k;
+  CharacterVector nreq;
+  NumericVector miss;
+  if (!req.isNull()){
+    nreq = CharacterVector(req);
+    if ((ISNA(defaultValue) && noerror) || !ISNA(defaultValue)){
+      miss = NumericVector(nreq.size());
+      for (i = 0; i < nreq.size(); i++) {
+	miss[i] = defaultValue;
+      }
+      miss.attr("names") = CharacterVector(nreq);
+    }
+  }
+  NumericVector nvec;
+  CharacterVector nvecNames;
+  if (!vec.isNull()){
+    nvec = NumericVector(vec);
+    if (nvec.size() > 0){
+      if (!nvec.hasAttribute("names")){
+	if (!req.isNull() && nreq.size() == nvec.size()){
+	  nvec.attr("names") = req;
+	  nvecNames = req;
+	  std::string wstr = "Assumed order of inputs: ";
+	  for (i = 0; i < nreq.size(); i++){
+	    wstr += (i == 0 ? "" : ", ") + nreq[i];
+	  }
+	  warning(wstr);
+	} else {
+	  std::string sstr = "Length mismatch\nreq: c(";
+	  for (i = 0; i < nreq.size(); i++){
+	    sstr += (i == 0 ? "" : ", ") + nreq[i];
+	  }
+	  sstr += ")\nvec: c(";
+	  for (i = 0; i < nvec.size(); i++){
+            sstr += (i == 0 ? "" : ", ") + std::to_string((double)(nvec[i]));
+          }
+	  sstr += ")";
+	  stop(sstr);
+	}
+      } else {
+	nvecNames = nvec.names();
+      }
+    }
+  }
+  // Prefer c(vec, ini, miss)
+  NumericVector ret;
+  CharacterVector nret;
+  if (!req.isNull()){
+    ret =  NumericVector(nreq.size());
+    bool found = false;
+    for (i = 0; i < nreq.size(); i++){
+      found = false;
+      for (j = 0; !found && j < nvec.size(); j++){
+	if (nreq[i] == nvecNames[j]){
+	  found =  true;
+	  ret[i] = nvec[j];
+	  break;
+	}
+      }
+      for (j = 0; !found && j < cini.size(); j++){
+	if (nreq[i] == cini[j]){
+          found =  true;
+          ret[i] = oini[j];
+          break;
+        }
+      }
+      if (!found)
+	ret[i] = miss[i];
+    }
+    ret.attr("names")= nreq;
+  } else {
+    // In this case
+    // vec <- c(vec, ini);
+    // vec <- vec[!duplicated(names(vec))]
+    CharacterVector dupnames(nvec.size()+oini.size()+miss.size());
+    j = 0;
+    for (i = 0; i < nvec.size(); i++){
+      dupnames[j] = nvecNames[i];
+      j++;
+    }
+    for (i = 0; i < oini.size(); i++){
+      dupnames[j] = cini[i];
+      j++;
+    }
+    LogicalVector dups = duplicated(dupnames);
+    j = 0;
+    for (i = 0; i < dups.size(); i++){
+      if (!dups[i]) j++;
+    }
+    ret = NumericVector(j);
+    CharacterVector retn(j);
+    k = 0, j = 0;
+    for (i = 0; i < nvec.size(); i++){
+      if (!dups[j]){
+	ret[k] = nvec[i];
+	retn[k] = nvecNames[i];
+	k++;
+      }
+      j++;
+    }
+    for (i = 0; i < oini.size(); i++){
+      if (!dups[j]){
+	ret[k] = oini[i];
+        retn[k] = cini[i];
+        k++;
+      }
+      j++;
+    }
+    ret.attr("names") = retn;
+  }
+  return ret;
 }
 
 RObject rxSolveCpp(List args, Environment e){

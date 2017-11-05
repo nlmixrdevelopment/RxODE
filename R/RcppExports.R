@@ -127,6 +127,30 @@ rxLhs <- function(obj = NULL) {
     .Call(`_RxODE_rxLhs`, obj)
 }
 
+#' Initial Values and State values for a RxODE object
+#'
+#' Returns the initial values of the rxDll object
+#'
+#' @param obj rxDll, RxODE, or named vector representing default
+#'     initial arguments
+#'
+#' @param vec If supplied, named vector for the model.
+#'
+#' @param req Required names, and the required order for the ODE solver
+#'
+#' @param defaultValue a number or NA representing the default value for
+#'     parameters missing in \code{vec}, but required in \code{req}.
+#'
+#' @param noerror is a boolean specifying if an error should be thrown
+#'     for missing parameter values when \code{default} = \code{NA}
+#'
+#' @keywords internal
+#' @author Matthew L.Fidler
+#' @export
+rxInits <- function(obj = NULL, vec = NULL, req = NULL, defaultValue = 0, noerror = FALSE, noini = FALSE) {
+    .Call(`_RxODE_rxInits`, obj, vec, req, defaultValue, noerror, noini)
+}
+
 #' Invert matrix using Rcpp Armadilo.  
 #'
 #' @param matrix matrix to be inverted.

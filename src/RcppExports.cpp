@@ -90,6 +90,22 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// rxInits
+NumericVector rxInits(RObject obj, Nullable<NumericVector> vec, Nullable<CharacterVector> req, double defaultValue, bool noerror, bool noini);
+RcppExport SEXP _RxODE_rxInits(SEXP objSEXP, SEXP vecSEXP, SEXP reqSEXP, SEXP defaultValueSEXP, SEXP noerrorSEXP, SEXP noiniSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< RObject >::type obj(objSEXP);
+    Rcpp::traits::input_parameter< Nullable<NumericVector> >::type vec(vecSEXP);
+    Rcpp::traits::input_parameter< Nullable<CharacterVector> >::type req(reqSEXP);
+    Rcpp::traits::input_parameter< double >::type defaultValue(defaultValueSEXP);
+    Rcpp::traits::input_parameter< bool >::type noerror(noerrorSEXP);
+    Rcpp::traits::input_parameter< bool >::type noini(noiniSEXP);
+    rcpp_result_gen = Rcpp::wrap(rxInits(obj, vec, req, defaultValue, noerror, noini));
+    return rcpp_result_gen;
+END_RCPP
+}
 // rxInv
 NumericVector rxInv(SEXP matrix);
 RcppExport SEXP _RxODE_rxInv(SEXP matrixSEXP) {
