@@ -1,8 +1,11 @@
 rxPermissive({
+
     ## Test the behavior
     context("Test Data Setup (for RcppParallel-style for loop); 0 cov")
     library(dplyr);
+
     load(devtools::package_file("tests/testthat/test-data-setup.Rdata"))
+
     test_that("conversion without covariates", {
         convert1 <- rxDataSetup(dat);
         expect_equal(length(convert1$cov), 0);
@@ -285,24 +288,36 @@ rxPermissive({
 
     context("Expand event table with covariate information")
     test_that("Setup Event table", {
-
         et <- eventTable()   # default time units
         et$add.sampling(seq(from=0, to=100, by=0.01))
-
         cov <- data.frame(c=et$get.sampling()$time+1, d=et$get.sampling()$time+1);
-
         tmp1 <- rxDataSetup(et, as.matrix(cov));
         tmp2 <- rxDataSetup(et, cov)
-
         expect_equal(tmp1, tmp2)
-
         cov2 <- data.frame(c=et$get.sampling()$time[-1]+1, d=et$get.sampling()$time[-1]+1);
-
         expect_error(rxDataSetup(et, as.matrix(cov2)));
         expect_error(rxDataSetup(et, cov2));
-
         cov2 <- data.frame(c=c(et$get.sampling()$time, 1)+1, d=c(et$get.sampling()$time, 1)+1);
 
     })
+
+    context("Simulated Residual variables")
+    test_that("Simulated data", {
+        d <- 2;
+        tmp <- matrix(rnorm(d^2), d, d)
+        mcov <- tcrossprod(tmp, tmp)
+        expect_error(rxDataSetup(dat, sigma=mcov));
+        dimnames(mcov) <- list(c("s.a", "s.b"), c("s.a", "s.b"))
+        convert1 <- rxDataSetup(dat, sigma=mcov);
+        expect_equal(convert1$cov.names, NULL)
+        expect_equal(convert1$simulated.vars, c("s.a", "s.b"))
+        cn <- c("V", "CL")
+        ## cov <- dat %>% filter(EVID == 0) %>% select(V, CL)
+        convert2 <- rxDataSetup(dat, cn, sigma=mcov);
+        expect_equal(convert2$cov.names, cn)
+        expect_equal(convert2$simulated.vars, c("s.a", "s.b"))
+    })
+
+
 
 })

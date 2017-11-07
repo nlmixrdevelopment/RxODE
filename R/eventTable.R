@@ -1,4 +1,4 @@
-                                        # event table (dosing + sampling obs from the system)
+# event table (dosing + sampling obs from the system)
 # An eventTable object contains a numeric matrix with
 # a time vector, an event id  describing two types
 # of timed records, doses (input) and sampling times
@@ -411,9 +411,14 @@ print.RxODE.multi.data <- function(x, ...){
     if (x$nDose == 0){
         message("  No Dosing Records.")
     } else {
-        message(sprintf("  Number of Dosing Records: %s%s", x$nDose, ifelse(x$amount.units == "NA", "", paste0(" (in ", x$amount.units, ")"))))
+        message(sprintf("  Number of Dosing Records: %s%s", x$nDose, ifelse(is.na(x$amount.units), "", paste0(" (in ", x$amount.units, ")"))))
     }
-    if (!is.null(x$cov.names)){
-        message(sprintf("  Covariates: %s", paste(x$cov.names, collapse=", ")))
+    obs.cov <- x$cov.names;
+    sim.cov <- x$simulated.vars;
+    if (!is.null(obs.cov)){
+        message(sprintf("  Covariates: %s", paste(obs.cov, collapse=", ")))
+    }
+    if (!is.null(sim.cov)){
+        message(sprintf("  Simulated Variables: %s", paste(sim.cov, collapse=", ")))
     }
 }

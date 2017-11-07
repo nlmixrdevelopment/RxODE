@@ -21,6 +21,12 @@ rxIs <- function(obj, cls) {
 #'
 #' @param ro R object to setup; Must be in RxODE compatible format.
 #' @param covNames Covariate names in dataset.
+#' @param sigma Matrix for simulating residual variability for the number of observations.
+#'      This uses the \code{\link[mvnfast]{rmvn}} assuming mean 0 and covariance given by the named
+#'      matrix.  This then creates a random deviate that is used in the place of the variables.  This should
+#'      not really be used in the ODE specification.  If it is, though, it is treated as a time-varying covariate.
+#'
+#'      Also note this does not use R's random numbers, but uses the seed from R to produce outputs.
 #' @param amountUnits Dosing amount units.
 #' @param timeUnits Time units.
 #'
@@ -28,8 +34,8 @@ rxIs <- function(obj, cls) {
 #'       individual in C)
 #'
 #' @export
-rxDataSetup <- function(ro, covNames = NULL, amountUnits = NA_character_, timeUnits = "hours") {
-    .Call(`_RxODE_rxDataSetup`, ro, covNames, amountUnits, timeUnits)
+rxDataSetup <- function(ro, covNames = NULL, sigma = NULL, amountUnits = NA_character_, timeUnits = "hours") {
+    .Call(`_RxODE_rxDataSetup`, ro, covNames, sigma, amountUnits, timeUnits)
 }
 
 #' All model variables for a RxODE object

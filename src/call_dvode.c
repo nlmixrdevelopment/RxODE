@@ -1237,7 +1237,7 @@ SEXP _rxCholInv(SEXP dms, SEXP theta, SEXP tn);
 SEXP _RxODE_rxSymInvCholEnvCalculate(SEXP, SEXP, SEXP);
 SEXP _RxODE_rxInvWishartVar(SEXP, SEXP);
 SEXP _RxODE_rxSymInvChol(SEXP, SEXP, SEXP, SEXP);
-SEXP _RxODE_rxDataSetup(SEXP,SEXP, SEXP, SEXP);
+SEXP _RxODE_rxDataSetup(SEXP,SEXP, SEXP, SEXP, SEXP);
 SEXP _RxODE_rxIs(SEXP,SEXP);
 SEXP _RxODE_rxModelVars(SEXP);
 SEXP _RxODE_rxState(SEXP, SEXP);
@@ -1293,7 +1293,7 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_rxSymInvCholEnvCalculate", (DL_FUNC) &_RxODE_rxSymInvCholEnvCalculate, 3},
     {"_RxODE_rxInvWishartVar", (DL_FUNC) &_RxODE_rxInvWishartVar, 2},
     {"_RxODE_rxSymInvChol", (DL_FUNC) &_RxODE_rxSymInvChol, 4},
-    {"_RxODE_rxDataSetup", (DL_FUNC) &_RxODE_rxDataSetup, 4},
+    {"_RxODE_rxDataSetup", (DL_FUNC) &_RxODE_rxDataSetup, 5},
     {"_RxODE_rxIs", (DL_FUNC) &_RxODE_rxIs, 2},
     {"_RxODE_rxModelVars", (DL_FUNC) &_RxODE_rxModelVars, 1},
     {"_RxODE_rxState", (DL_FUNC) &_RxODE_rxState, 2},

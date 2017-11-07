@@ -156,14 +156,16 @@ bool rxIs(const RObject &obj, std::string cls){
   return false;
 }
 
-// List rxSetupParameters(RObject dllInfo, RObject param, RObject theta = R_NilValue, RObject eta = R_NilValue){
-//   // Purpose: Sort parameters
-// }
-
 //' Setup a data frame for solving multiple subjects at once in RxODE.
 //'
 //' @param ro R object to setup; Must be in RxODE compatible format.
 //' @param covNames Covariate names in dataset.
+//' @param sigma Matrix for simulating residual variability for the number of observations.
+//'      This uses the \code{\link[mvnfast]{rmvn}} assuming mean 0 and covariance given by the named
+//'      matrix.  This then creates a random deviate that is used in the place of the variables.  This should
+//'      not really be used in the ODE specification.  If it is, though, it is treated as a time-varying covariate.
+//'
+//'      Also note this does not use R's random numbers, but uses the seed from R to produce outputs.
 //' @param amountUnits Dosing amount units.
 //' @param timeUnits Time units.
 //'
@@ -172,8 +174,9 @@ bool rxIs(const RObject &obj, std::string cls){
 //'
 //' @export
 // [[Rcpp::export]]
-List rxDataSetup(const RObject &ro, const RObject &covNames = R_NilValue,
-		 const StringVector &amountUnits = NA_STRING, const StringVector &timeUnits = "hours"){
+List rxDataSetup(RObject ro, RObject covNames = R_NilValue,
+		 RObject sigma = R_NilValue,
+		 StringVector amountUnits = NA_STRING, const StringVector timeUnits = "hours"){
   // Purpose: get positions of each id and the length of each id's observations
   // Separate out dose vectors and observation vectors
   if (rxIs(ro,"EventTable")){
@@ -184,11 +187,10 @@ List rxDataSetup(const RObject &ro, const RObject &covNames = R_NilValue,
     StringVector units = f();
     StringVector amt = as<StringVector>(units["dosing"]);
     StringVector time = as<StringVector>(units["time"]);
-    return rxDataSetup(df, covNames, amt, time);
+    return rxDataSetup(df, covNames, sigma, amt, time);
   } else if (rxIs(ro,"event.data.frame")||
       rxIs(ro,"event.matrix")){
     DataFrame df = as<DataFrame>(ro);
-    
     int nSub = 0, nObs = 0, nDoses = 0, i = 0, j = 0, k=0;
     IntegerVector evid  = as<IntegerVector>(df[rxcEvid]);
     bool missingId = false;
@@ -233,22 +235,65 @@ List rxDataSetup(const RObject &ro, const RObject &covNames = R_NilValue,
     NumericVector newDv(nObs);
     NumericVector newTimeO(nObs);
     int nCovs = 0;
-    StringVector covN;
+    StringVector covN, simN;
     bool dataCov = false;
     DataFrame covDf;
+    NumericMatrix simMat;
+    StringVector simNames;
+    bool simVals = false;
+    NumericMatrix sigmaM;
+    if (rxIs(sigma, "numeric.matrix")){
+      // FIXME more distributions
+      sigmaM = NumericMatrix(sigma);
+      if (sigmaM.nrow() != sigmaM.ncol()){
+	stop("The sigma matrix must be a square matrix.");
+      }
+      if (!sigmaM.hasAttribute("dimnames")){
+	stop("The sigma matrix must have named dimensions.");
+      }
+      List dimnames = sigmaM.attr("dimnames");
+      simNames = as<StringVector>(dimnames[1]);
+      Environment base("package:base");
+      Function loadNamespace=base["loadNamespace"];
+      Environment mvnfast = loadNamespace("mvnfast");
+      Function rmvn = as<Function>(mvnfast["rmvn"]);
+      simMat = NumericMatrix(nObs,sigmaM.ncol());
+      NumericVector m(sigmaM.ncol());
+      // I'm unsure if this for loop is necessary.
+      for (i = 0; i < m.size(); i++){
+	m[i] = 0;
+      }
+      // Ncores = 1?  Should it be parallelized when it can be...?
+      // Note that if so, the number of cores also affects the output.
+      rmvn(_["n"]=nObs, _["mu"]=m, _["sigma"]=sigmaM, _["ncores"]=1, _["A"] = simMat); // simMat is updated with the random deviates
+      simVals = true;
+    }
+    int nCovObs = 0;
     if (rxIs(covNames, "character")){
-      covN = (as<StringVector>(covNames));
-      nCovs= covN.size();
+      covN = as<StringVector>(covNames);
+      nCovObs = covN.size();
+      if (simVals){
+	nCovs= nCovObs + simNames.size();
+      } else {
+        nCovs = nCovObs;
+      }
     } else if (rxIs(covNames, "data.frame") || rxIs(covNames,"numeric.matrix")){
       covDf = as<DataFrame>(covNames);
       covN = (as<StringVector>(covDf.names()));
-      nCovs = covN.size();
+      nCovObs = covN.size();
+      if (simVals){
+	nCovs = nCovObs + simNames.size();
+      } else {
+	nCovs = nCovObs;
+      }
       dataCov = true;
-    } else {
-      nCovs=0;
+    } else if (simVals) {
+      nCovs= simNames.size();
     }
+    
+    // Rprintf("nObs: %d; nCovs: %d\n", nObs, nCovs);
     NumericVector newCov(nObs*nCovs);
-  
+    
     IntegerVector newEvid(nDoses);
     NumericVector newAmt(nDoses);
     NumericVector newTimeA(nDoses);
@@ -264,6 +309,7 @@ List rxDataSetup(const RObject &ro, const RObject &covNames = R_NilValue,
     IntegerVector nObsN(nSub);
     IntegerVector posEt(nSub);
     IntegerVector nEtN(nSub);
+    
     double minTime = NA_REAL;
     double maxTime = -1e10;
     double minIdTime = NA_REAL;
@@ -317,7 +363,7 @@ List rxDataSetup(const RObject &ro, const RObject &covNames = R_NilValue,
     nObsN[m-1]=nObs;
     nEtN[m-1] = nEt;
     if (dataCov && (as<NumericVector>(covDf[0])).size() != nObs){
-      stop("Covariate data needs ");
+      stop("Covariate data needs to match the number of observations in the overall dataset.");
     }
     // Covariates are stacked by id that is
     // id=cov1,cov1,cov1,cov2,cov2,cov2,...
@@ -338,10 +384,15 @@ List rxDataSetup(const RObject &ro, const RObject &covNames = R_NilValue,
       if (!evid[i]){
         // Observation
         for (n = 0; n < nCovs; n++){
-	  if (dataCov){
-	    newCov[n0 + nc + n*nObsN[m-1]] = (as<NumericVector>(covDf[as<std::string>(covN[n])]))[nc];
-	  } else {
-	    newCov[n0 + nc + n*nObsN[m-1]] = (as<NumericVector>(df[as<std::string>(covN[n])]))[i];
+	  k = n0 + nc + n*nObsN[m-1];
+	  if (n < nCovObs){
+	    if (dataCov){
+              newCov[k] = (as<NumericVector>(covDf[as<std::string>(covN[n])]))[nc];
+            } else {
+              newCov[k] = (as<NumericVector>(df[as<std::string>(covN[n])]))[i];
+            }
+          } else {
+	    newCov[k] = simMat(nc, n-nCovObs);
           }
         }
         nc++;
@@ -371,6 +422,9 @@ List rxDataSetup(const RObject &ro, const RObject &covNames = R_NilValue,
                             _["min.time"] = minTime,
                             _["max.time"] = maxTime,
                             _["cov.names"]=(covN.size() == 0 ? R_NilValue : wrap(covN)),
+			    _["n.observed.covariates"] = nCovObs,
+			    _["simulated.vars"] = (simNames.size()== 0 ? R_NilValue : wrap(simNames)),
+			    _["sigma"] = wrap(sigmaM),
                             _["amount.units"]=amountUnits,
                             _["time.units"]=timeUnits,
 			    _["missing.id"]=missingId,

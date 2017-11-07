@@ -4,13 +4,20 @@
 \alias{rxDataSetup}
 \title{Setup a data frame for solving multiple subjects at once in RxODE.}
 \usage{
-rxDataSetup(ro, covNames = NULL, amountUnits = NA_character_,
-  timeUnits = "hours")
+rxDataSetup(ro, covNames = NULL, sigma = NULL,
+  amountUnits = NA_character_, timeUnits = "hours")
 }
 \arguments{
 \item{ro}{R object to setup; Must be in RxODE compatible format.}
 
 \item{covNames}{Covariate names in dataset.}
+
+\item{sigma}{Matrix for simulating residual variability for the number of observations.
+     This uses the \code{\link[mvnfast]{rmvn}} assuming mean 0 and covariance given by the named
+     matrix.  This then creates a random deviate that is used in the place of the variables.  This should
+     not really be used in the ODE specification.  If it is, though, it is treated as a time-varying covariate.
+
+     Also note this does not use R's random numbers, but uses the seed from R to produce outputs.}
 
 \item{amountUnits}{Dosing amount units.}
 
