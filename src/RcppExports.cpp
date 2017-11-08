@@ -21,17 +21,20 @@ BEGIN_RCPP
 END_RCPP
 }
 // rxDataSetup
-List rxDataSetup(RObject ro, RObject covNames, RObject sigma, StringVector amountUnits, const StringVector timeUnits);
-RcppExport SEXP _RxODE_rxDataSetup(SEXP roSEXP, SEXP covNamesSEXP, SEXP sigmaSEXP, SEXP amountUnitsSEXP, SEXP timeUnitsSEXP) {
+List rxDataSetup(const RObject& ro, const RObject& covNames, const RObject& sigma, const RObject& df, const int& ncores, const bool& isChol, const StringVector& amountUnits, const StringVector& timeUnits);
+RcppExport SEXP _RxODE_rxDataSetup(SEXP roSEXP, SEXP covNamesSEXP, SEXP sigmaSEXP, SEXP dfSEXP, SEXP ncoresSEXP, SEXP isCholSEXP, SEXP amountUnitsSEXP, SEXP timeUnitsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< RObject >::type ro(roSEXP);
-    Rcpp::traits::input_parameter< RObject >::type covNames(covNamesSEXP);
-    Rcpp::traits::input_parameter< RObject >::type sigma(sigmaSEXP);
-    Rcpp::traits::input_parameter< StringVector >::type amountUnits(amountUnitsSEXP);
-    Rcpp::traits::input_parameter< const StringVector >::type timeUnits(timeUnitsSEXP);
-    rcpp_result_gen = Rcpp::wrap(rxDataSetup(ro, covNames, sigma, amountUnits, timeUnits));
+    Rcpp::traits::input_parameter< const RObject& >::type ro(roSEXP);
+    Rcpp::traits::input_parameter< const RObject& >::type covNames(covNamesSEXP);
+    Rcpp::traits::input_parameter< const RObject& >::type sigma(sigmaSEXP);
+    Rcpp::traits::input_parameter< const RObject& >::type df(dfSEXP);
+    Rcpp::traits::input_parameter< const int& >::type ncores(ncoresSEXP);
+    Rcpp::traits::input_parameter< const bool& >::type isChol(isCholSEXP);
+    Rcpp::traits::input_parameter< const StringVector& >::type amountUnits(amountUnitsSEXP);
+    Rcpp::traits::input_parameter< const StringVector& >::type timeUnits(timeUnitsSEXP);
+    rcpp_result_gen = Rcpp::wrap(rxDataSetup(ro, covNames, sigma, df, ncores, isChol, amountUnits, timeUnits));
     return rcpp_result_gen;
 END_RCPP
 }

@@ -22,11 +22,20 @@ rxIs <- function(obj, cls) {
 #' @param ro R object to setup; Must be in RxODE compatible format.
 #' @param covNames Covariate names in dataset.
 #' @param sigma Matrix for simulating residual variability for the number of observations.
-#'      This uses the \code{\link[mvnfast]{rmvn}} assuming mean 0 and covariance given by the named
-#'      matrix.  This then creates a random deviate that is used in the place of the variables.  This should
+#'      This uses the \code{\link[mvnfast]{rmvn}} or \code{\link[mvnfast]{rmvt}} assuming mean 0 and covariance given by this named
+#'      matrix.  The residual-type variability is created for each of the named \"err\" components specified by the sigma matrix's
+#'      column names. This then creates a random deviate that is used in the place of each named variable.  This should
 #'      not really be used in the ODE specification.  If it is, though, it is treated as a time-varying covariate.
 #'
-#'      Also note this does not use R's random numbers, but uses the seed from R to produce outputs.
+#'      Also note this does not use R's random numbers, rather it uses a cryptographic parallel random number generator;
+#'
+#'      To allow reproducible research you must both set a random seed with R's \code{\link[base]{set.seed}} function, and keep the
+#'      number of cores constant.  By changing either one of these variables, you will arrive at different random numbers. 
+#' @param df Degrees of freedom for \code{\link[mvnfast]{rmvt}}.  If \code{NULL}, or \code{Inf}, then use a normal distribution.  The
+#'        default is normal.
+#' @param ncores The number of cores for residual simulation.  By default, this is \code{1}.
+#' @param isChol is a boolean indicating that the Cholesky decomposition of the \code{sigma} covariance matrix is supplied instead of
+#'        the  \code{sigma} matrix itself.
 #' @param amountUnits Dosing amount units.
 #' @param timeUnits Time units.
 #'
@@ -34,8 +43,8 @@ rxIs <- function(obj, cls) {
 #'       individual in C)
 #'
 #' @export
-rxDataSetup <- function(ro, covNames = NULL, sigma = NULL, amountUnits = NA_character_, timeUnits = "hours") {
-    .Call(`_RxODE_rxDataSetup`, ro, covNames, sigma, amountUnits, timeUnits)
+rxDataSetup <- function(ro, covNames = NULL, sigma = NULL, df = NULL, ncores = 1L, isChol = FALSE, amountUnits = NA_character_, timeUnits = "hours") {
+    .Call(`_RxODE_rxDataSetup`, ro, covNames, sigma, df, ncores, isChol, amountUnits, timeUnits)
 }
 
 #' Update RxODE multi-subject data with new residuals (in-place).
