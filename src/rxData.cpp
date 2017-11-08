@@ -156,6 +156,38 @@ bool rxIs(const RObject &obj, std::string cls){
   return false;
 }
 
+RObject rxSimSigma(RObject &sigma, int &nObs){
+  if (rxIs(sigma, "numeric.matrix")){
+    // FIXME more distributions
+    NumericMatrix sigmaM(sigma);
+    if (sigmaM.nrow() != sigmaM.ncol()){
+      stop("The sigma matrix must be a square matrix.");
+    }
+    if (!sigmaM.hasAttribute("dimnames")){
+      stop("The sigma matrix must have named dimensions.");
+    }
+    List dimnames = sigmaM.attr("dimnames");
+    StringVector simNames = as<StringVector>(dimnames[1]);
+    Environment base("package:base");
+    Function loadNamespace=base["loadNamespace"];
+    Environment mvnfast = loadNamespace("mvnfast");
+    Function rmvn = as<Function>(mvnfast["rmvn"]);
+    NumericMatrix simMat(nObs,sigmaM.ncol());
+    NumericVector m(sigmaM.ncol());
+    // I'm unsure if this for loop is necessary.
+    for (int i = 0; i < m.size(); i++){
+      m[i] = 0;
+    }
+    // Ncores = 1?  Should it be parallelized when it can be...?
+    // Note that if so, the number of cores also affects the output.
+    rmvn(_["n"]=nObs, _["mu"]=m, _["sigma"]=sigmaM, _["ncores"]=1, _["A"] = simMat); // simMat is updated with the random deviates
+    simMat.attr("dimnames") = List::create(R_NilValue, simNames);
+    return wrap(simMat);
+  } else {
+    return R_NilValue;
+  }
+}
+
 //' Setup a data frame for solving multiple subjects at once in RxODE.
 //'
 //' @param ro R object to setup; Must be in RxODE compatible format.
@@ -242,30 +274,11 @@ List rxDataSetup(RObject ro, RObject covNames = R_NilValue,
     StringVector simNames;
     bool simVals = false;
     NumericMatrix sigmaM;
-    if (rxIs(sigma, "numeric.matrix")){
-      // FIXME more distributions
-      sigmaM = NumericMatrix(sigma);
-      if (sigmaM.nrow() != sigmaM.ncol()){
-	stop("The sigma matrix must be a square matrix.");
-      }
-      if (!sigmaM.hasAttribute("dimnames")){
-	stop("The sigma matrix must have named dimensions.");
-      }
-      List dimnames = sigmaM.attr("dimnames");
+    RObject tmp_ro = rxSimSigma(sigma, nObs);
+    if (!tmp_ro.isNULL()){
+      simMat = as<NumericMatrix>(tmp_ro);
+      List dimnames = simMat.attr("dimnames");
       simNames = as<StringVector>(dimnames[1]);
-      Environment base("package:base");
-      Function loadNamespace=base["loadNamespace"];
-      Environment mvnfast = loadNamespace("mvnfast");
-      Function rmvn = as<Function>(mvnfast["rmvn"]);
-      simMat = NumericMatrix(nObs,sigmaM.ncol());
-      NumericVector m(sigmaM.ncol());
-      // I'm unsure if this for loop is necessary.
-      for (i = 0; i < m.size(); i++){
-	m[i] = 0;
-      }
-      // Ncores = 1?  Should it be parallelized when it can be...?
-      // Note that if so, the number of cores also affects the output.
-      rmvn(_["n"]=nObs, _["mu"]=m, _["sigma"]=sigmaM, _["ncores"]=1, _["A"] = simMat); // simMat is updated with the random deviates
       simVals = true;
     }
     int nCovObs = 0;
@@ -297,7 +310,6 @@ List rxDataSetup(RObject ro, RObject covNames = R_NilValue,
     IntegerVector newEvid(nDoses);
     NumericVector newAmt(nDoses);
     NumericVector newTimeA(nDoses);
-
     lastId = id[0]-1;
   
     IntegerVector newId(nSub);
@@ -424,7 +436,7 @@ List rxDataSetup(RObject ro, RObject covNames = R_NilValue,
                             _["cov.names"]=(covN.size() == 0 ? R_NilValue : wrap(covN)),
 			    _["n.observed.covariates"] = nCovObs,
 			    _["simulated.vars"] = (simNames.size()== 0 ? R_NilValue : wrap(simNames)),
-			    _["sigma"] = wrap(sigmaM),
+			    _["sigma"] = wrap(sigma),
                             _["amount.units"]=amountUnits,
                             _["time.units"]=timeUnits,
 			    _["missing.id"]=missingId,
@@ -436,6 +448,53 @@ List rxDataSetup(RObject ro, RObject covNames = R_NilValue,
     stop("Data is not setup appropriately.");
   }
 }
+
+//' Update RxODE multi-subject data with new residuals (in-place).
+//'
+//' @param md The RxODE multi-data object setup from \code{\link{rxDataSetup}}
+//'
+//' @return A boolean indicating if this is a compatible object for updating residuals.
+//'        If it isn't compatible nothing is done.  Additionally, if there are no random residual
+//'        variables to update, also nothing is done.
+//' @keywords internal
+//' @export
+//[[Rcpp::export]]
+bool rxUpdateResiduals(List &md){
+  if (rxIs(md, "RxODE.multi.data")){
+    RObject sigma = md["sigma"];
+    if (!sigma.isNULL()){
+      int totNObs = as<int>(md["nObs"]);
+      RObject tmp_ro = rxSimSigma(sigma, totNObs);
+      if (!tmp_ro.isNULL()){
+	// Resimulated; now fill in again...
+        NumericMatrix simMat = as<NumericMatrix>(tmp_ro);
+	SEXP cov_ = md["cov"];
+        NumericVector cov = NumericVector(cov_);
+	DataFrame ids = md["ids"];
+	IntegerVector posCov = ids["posCov"];
+	IntegerVector nCov   = ids["nCov"];
+	IntegerVector nObs   = ids["nObs"];
+	int nObsCov = as<int>(md["n.observed.covariates"]);
+	int nSimCov = simMat.ncol();
+	int nc = 0;
+	for (int id = 0; id < posCov.size(); id++){
+	  for (int no = 0; no < nObs[id]; no++){
+	    for (int ns = 0; ns < nSimCov; ns++){
+              cov[posCov[id]+no+(nObsCov+ns)*nObs[id]] = simMat(nc, ns);
+	    }
+	    nc++;
+	  }
+	}
+	return true;
+      }
+      return false;
+    }
+    return false;
+  }
+  return false;
+}
+
+
 //' All model variables for a RxODE object
 //'
 //' Return all the known model variables for a specified RxODE object

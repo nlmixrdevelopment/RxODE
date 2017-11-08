@@ -35,6 +35,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// rxUpdateResiduals
+bool rxUpdateResiduals(List& md);
+RcppExport SEXP _RxODE_rxUpdateResiduals(SEXP mdSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< List& >::type md(mdSEXP);
+    rcpp_result_gen = Rcpp::wrap(rxUpdateResiduals(md));
+    return rcpp_result_gen;
+END_RCPP
+}
 // rxModelVars
 List rxModelVars(RObject obj);
 RcppExport SEXP _RxODE_rxModelVars(SEXP objSEXP) {

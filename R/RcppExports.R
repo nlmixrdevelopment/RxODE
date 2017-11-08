@@ -38,6 +38,19 @@ rxDataSetup <- function(ro, covNames = NULL, sigma = NULL, amountUnits = NA_char
     .Call(`_RxODE_rxDataSetup`, ro, covNames, sigma, amountUnits, timeUnits)
 }
 
+#' Update RxODE multi-subject data with new residuals (in-place).
+#'
+#' @param md The RxODE multi-data object setup from \code{\link{rxDataSetup}}
+#'
+#' @return A boolean indicating if this is a compatible object for updating residuals.
+#'        If it isn't compatible nothing is done.  Additionally, if there are no random residual
+#'        variables to update, also nothing is done.
+#' @keywords internal
+#' @export
+rxUpdateResiduals <- function(md) {
+    .Call(`_RxODE_rxUpdateResiduals`, md)
+}
+
 #' All model variables for a RxODE object
 #'
 #' Return all the known model variables for a specified RxODE object
