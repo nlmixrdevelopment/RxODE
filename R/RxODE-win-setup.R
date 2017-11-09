@@ -65,20 +65,26 @@ rxPythonBaseWin <- function(){
     if(.Platform$OS.type == "unix"){
     } else {
         keys <- NULL;
-        keys <- try(utils::readRegistry("SOFTWARE\\Python\\PythonCore", hive = "HCU", ## view = "32-bit",
-                                        maxdepth = 3), silent=TRUE);
-        if (is.null(keys) || length(keys) == 0 || inherits(keys, "try-error")){
-            try(keys <- utils::readRegistry("SOFTWARE\\Python\\PythonCore", hive = "HLM", ## view = "32-bit",
-                                            maxdepth = 3), silent = TRUE);
-        }
-        python.base <- NULL
-        for (i in seq_along(keys)){
-            try(python.base <- keys[[i]]$InstallPath$`(Default)`, silent=TRUE)
-            if (!is.null(python.base)){
-                if (file.exists(file.path(python.base, "python.exe"))){
-                    break;
-                } else {
-                    python.base <- NULL;
+        keys <- try(utils::readRegistry("SOFTWARE\\nlmixr", hive = "HCU", maxdepth = 2), silent = TRUE);
+        if (!inherits(keys, "try-error") && dir.exists(normalizePath(file.path(keys[[1]], "python"), winslash="/"))){
+            python.base <- normalizePath(file.path(keys[[1]], "python"), winslash="/")
+        } else {
+            keys <- NULL
+            keys <- try(utils::readRegistry("SOFTWARE\\Python\\PythonCore", hive = "HCU", ## view = "32-bit",
+                                            maxdepth = 3), silent=TRUE);
+            if (is.null(keys) || length(keys) == 0 || inherits(keys, "try-error")){
+                try(keys <- utils::readRegistry("SOFTWARE\\Python\\PythonCore", hive = "HLM", ## view = "32-bit",
+                                                maxdepth = 3), silent = TRUE);
+            }
+            python.base <- NULL
+            for (i in seq_along(keys)){
+                try(python.base <- keys[[i]]$InstallPath$`(Default)`, silent=TRUE)
+                if (!is.null(python.base)){
+                    if (file.exists(file.path(python.base, "python.exe"))){
+                        break;
+                    } else {
+                        python.base <- NULL;
+                    }
                 }
             }
         }
@@ -116,17 +122,22 @@ rxRtoolsBaseWin <- function(){
             rtools.base <- "C:/Rtools";
             if (!file.exists(rtools.base)){
                 keys <- NULL
-                keys <- try(utils::readRegistry("SOFTWARE\\R-core\\Rtools", hive = "HCU", view = "32-bit", maxdepth = 2), silent = TRUE)
-                if (is.null(keys) || length(keys) == 0)
-                    keys <- try(utils::readRegistry("SOFTWARE\\R-core\\Rtools", hive = "HLM", view = "32-bit", maxdepth = 2), silent = TRUE)
+                keys <- try(utils::readRegistry("SOFTWARE\\nlmixr", hive = "HCU", maxdepth = 2), silent = TRUE);
                 if (!inherits(keys, "try-error")){
-                    for(i in seq_along(keys)) {
-                        version <- names(keys)[[i]]
-                        key <- keys[[version]]
-                        if (!is.list(key) || is.null(key$InstallPath)) next;
-                        install_path <- normalizePath(key$InstallPath, mustWork = FALSE, winslash = "/");
-                        if (file.exists(install_path)){
-                            rtools.base <- install_path;
+                    rtools.base <- normalizePath(file.path(keys[[1]], "rtools"), winslash="/")
+                } else {
+                    keys <- try(utils::readRegistry("SOFTWARE\\R-core\\Rtools", hive = "HCU", view = "32-bit", maxdepth = 2), silent = TRUE)
+                    if (is.null(keys) || length(keys) == 0)
+                        keys <- try(utils::readRegistry("SOFTWARE\\R-core\\Rtools", hive = "HLM", view = "32-bit", maxdepth = 2), silent = TRUE)
+                    if (!inherits(keys, "try-error")){
+                        for(i in seq_along(keys)) {
+                            version <- names(keys)[[i]]
+                            key <- keys[[version]]
+                            if (!is.list(key) || is.null(key$InstallPath)) next;
+                            install_path <- normalizePath(key$InstallPath, mustWork = FALSE, winslash = "/");
+                            if (file.exists(install_path)){
+                                rtools.base <- install_path;
+                            }
                         }
                     }
                 }
