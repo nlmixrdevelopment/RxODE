@@ -4,7 +4,7 @@
 \alias{rxWinSetup}
 \title{Setup Windows components for RxODE}
 \usage{
-rxWinSetup(rm.rtools = TRUE)
+rxWinSetup(rm.rtools = TRUE, rm.python = TRUE)
 }
 \arguments{
 \item{rm.rtools}{Remove Rtools from path?}

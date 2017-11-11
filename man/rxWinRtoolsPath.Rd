@@ -4,10 +4,12 @@
 \alias{rxWinRtoolsPath}
 \title{Setup Rtools path}
 \usage{
-rxWinRtoolsPath(rm.rtools = TRUE)
+rxWinRtoolsPath(rm.rtools = TRUE, rm.python = TRUE)
 }
 \arguments{
 \item{rm.rtools}{Remove the Rtools from the current path specs.}
+
+\item{rm.python}{Remove Python from the current path specs.}
 }
 \description{
 Setup Rtools path

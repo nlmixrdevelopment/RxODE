@@ -65,7 +65,7 @@ rxPythonBaseWin <- function(){
     if(.Platform$OS.type == "unix"){
     } else {
         keys <- NULL;
-        keys <- try(utils::readRegistry("SOFTWARE\\nlmixr", hive = "HCU", maxdepth = 2), silent = TRUE);
+        keys <- try(utils::readRegistry(sprintf("SOFTWARE\\nlmixr%s", ifelse(.Platform$r_arch == "i386", "32", "")), hive = "HCU", maxdepth = 2), silent = TRUE);
         if (!inherits(keys, "try-error") && dir.exists(normalizePath(file.path(keys[[1]], "python"), winslash="/"))){
             python.base <- normalizePath(file.path(keys[[1]], "python"), winslash="/")
         } else {
@@ -170,9 +170,10 @@ rxRtoolsBaseWin <- function(){
 ##' Setup Rtools path
 ##'
 ##' @param rm.rtools Remove the Rtools from the current path specs.
+##' @param rm.python Remove Python from the current path specs.
 ##'
 ##' @author Matthew L. Fidler
-rxWinRtoolsPath <- function(rm.rtools=TRUE){
+rxWinRtoolsPath <- function(rm.rtools=TRUE, rm.python=TRUE){
     ## Note that devtools seems to assume that rtools/bin is setup appropriately, and figures out the c compiler from there.
     if(.Platform$OS.type == "unix"){
         return(TRUE)
@@ -187,6 +188,9 @@ rxWinRtoolsPath <- function(rm.rtools=TRUE){
         path <- path[path != ""];
         if (rm.rtools){
             path <- path[regexpr(rex::rex(or("Rtools", "RTOOLS", "rtools")), path) == -1]
+        }
+        if (rm.python){
+            path <- path[regexpr(rex::rex(or("Python", "python", "PYTHON")), path) == -1]
         }
         r.path <- normalizePath(file.path(Sys.getenv("R_HOME"),paste0("bin",Sys.getenv("R_ARCH"))));
         path <- c(r.path, path);
@@ -220,10 +224,10 @@ rxWinRtoolsPath <- function(rm.rtools=TRUE){
                     Sys.setenv(PYTHON_EXE=python); ## For PythonInR
                     path <- c(normalizePath(python.base), path);
                     Sys.setenv(PYTHONHOME=python.base);
-                    lib.path <- file.path(python.base, "Lib");
-                    if (length(list.files(lib.path)) > 0){
-                        Sys.setenv(PYTHONPATH=paste(python.base, normalizePath(lib.path), sep=";"));
-                    }
+                    ## lib.path <- file.path(python.base, "Lib");
+                    ## if (length(list.files(lib.path)) > 0){
+                    ##     Sys.setenv(PYTHONPATH=paste(python.base, normalizePath(lib.path), sep=";"));
+                    ## }
                 }
             }
             ## java <- as.vector(Sys.which("java"));
@@ -286,8 +290,8 @@ rxWinPythonSetup <- function(){
 ##' @param rm.rtools Remove Rtools from path?
 ##' @author Matthew L. Fidler
 ##' @export
-rxWinSetup <- function(rm.rtools=TRUE){
-    if (!rxWinRtoolsPath(rm.rtools)){
+rxWinSetup <- function(rm.rtools=TRUE, rm.python=TRUE){
+    if (!rxWinRtoolsPath(rm.rtools, rm.python)){
         cat("This package requires Rtools! Please download from http://cran.r-project.org/bin/windows/Rtools/, install and restart your R session before proceeding.\n");
         # cat("Currently downloading https://cran.r-project.org/bin/windows/Rtools/Rtools33.exe...\n");
         # rtools <- tempfile(fileext="-Rtools33.exe");
