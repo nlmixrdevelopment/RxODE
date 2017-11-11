@@ -122,7 +122,7 @@ rxRtoolsBaseWin <- function(){
             rtools.base <- "C:/Rtools";
             if (!file.exists(rtools.base)){
                 keys <- NULL
-                keys <- try(utils::readRegistry("SOFTWARE\\nlmixr", hive = "HCU", maxdepth = 2), silent = TRUE);
+                keys <- try(utils::readRegistry(sprintf("SOFTWARE\\nlmixr%s", ifelse(.Platform$r_arch == "i386", "32", "")), hive = "HCU", maxdepth = 2), silent = TRUE);
                 if (!inherits(keys, "try-error")){
                     rtools.base <- normalizePath(file.path(keys[[1]], "rtools"), winslash="/")
                 } else {
@@ -161,7 +161,7 @@ rxRtoolsBaseWin <- function(){
                 message("gcc available, assuming it comes from rtools...\nRxODE may not work with other compilers.\n")
                 return(rtools)
             } else {
-                message("This package requires Rtools!\nPlease download from http://cran.r-project.org/bin/windows/Rtools/, install and restart your R session before proceeding.x")
+                message("This package requires Rtools!\nPlease download from http://cran.r-project.org/bin/windows/Rtools/,\ninstall and restart your R session before proceeding.")
                 return("c:/Rtools")
             }
         }
