@@ -34,7 +34,7 @@ Imports:
     methods,
     digest,
     rex,
-    dparser (>= 0.1.7),
+    dparser (>= 0.1.8),
     brew,
     memoise,
     magrittr,
