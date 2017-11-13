@@ -198,6 +198,10 @@ rxWinRtoolsPath <- function(rm.rtools=TRUE, rm.python=TRUE){
         ## Look in the registry...
         ## This is taken from devtools and adapted.
         rtools.base <- rxRtoolsBaseWin();
+        x <- file.path(rtools.base, ifelse(.Platform$r_arch == "i386","mingw_32/bin", "mingw_64/bin"));
+        if (file.exists(x)){
+            Sys.setenv(BINPREF=gsub("([^/])$", "\\1/", gsub("\\\\", "/", normalizePath(x))));
+        }
         if (file.exists(rtools.base)){
             gcc <- list.files(rtools.base, "gcc",full.names=TRUE)[1]
             if (is.na(gcc)){
@@ -221,13 +225,25 @@ rxWinRtoolsPath <- function(rm.rtools=TRUE, rm.python=TRUE){
             if (!is.null(python.base)){
                 python <- normalizePath(file.path(python.base, "python.exe"));
                 if (file.exists(python)){
-                    Sys.setenv(PYTHON_EXE=python); ## For PythonInR
+                    ## Sometimes there are 2 competing python
+                    ## installs.  Make sure to setup everything, just
+                    ## in case... Otherwise it can crash R :(
+                    Sys.setenv(PYTHON_EXE=normalizePath(python)); ## For PythonInR
                     path <- c(normalizePath(python.base), path);
-                    Sys.setenv(PYTHONHOME=python.base);
-                    ## lib.path <- file.path(python.base, "Lib");
-                    ## if (length(list.files(lib.path)) > 0){
-                    ##     Sys.setenv(PYTHONPATH=paste(python.base, normalizePath(lib.path), sep=";"));
-                    ## }
+                    Sys.setenv(PYTHONHOME=normalizePath(python.base));
+                    Sys.setenv(PYTHON_INCLUDE=normalizePath(file.path(python.base, "include")));
+                    python.lib.base <- normalizePath(file.path(python.base, "libs"))
+                    python.lib.name <- list.files(python.lib.base, "[0-9][0-9]+\\.lib$");
+                    if (length(python.lib.name) == 1){
+                        Sys.setenv(PYTHON_LIB=normalizePath(file.path(python.base, "libs", python.lib.name)));
+                    } else {
+                        Sys.unsetenv("PYTHON_LIB")
+                    }
+                    Sys.setenv(PYTHONPATH=paste(c(normalizePath(file.path(python.base, "DLLs")),
+                                                  normalizePath(file.path(python.base, "Lib")),
+                                                  normalizePath(file.path(python.base, "Lib", "site-packages"))),
+                                                collapse=";"));
+                    Sys.unsetenv("PYTHONSTARTUP");
                 }
             }
             ## java <- as.vector(Sys.which("java"));
@@ -292,7 +308,7 @@ rxWinPythonSetup <- function(){
 ##' @export
 rxWinSetup <- function(rm.rtools=TRUE, rm.python=TRUE){
     if (!rxWinRtoolsPath(rm.rtools, rm.python)){
-        cat("This package requires Rtools! Please download from http://cran.r-project.org/bin/windows/Rtools/, install and restart your R session before proceeding.\n");
+        message("This package requires Rtools!\nPlease download from http://cran.r-project.org/bin/windows/Rtools/,\ninstall and restart your R session before proceeding.\n");
         # cat("Currently downloading https://cran.r-project.org/bin/windows/Rtools/Rtools33.exe...\n");
         # rtools <- tempfile(fileext="-Rtools33.exe");
         # cat("Downloading to", rtools, "\n");
