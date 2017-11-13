@@ -249,6 +249,8 @@ First part of data:
 # ... with 32 more rows", rxDll(m1)),"\n")[[1]];
 
     t1 <- gsub("(EC50|200.000|eff|1) *$", "\\1", t1);
+    w <- which(regexpr(rex::rex("# A tibble:"), t1) != -1)[1]
+    t1 <- t1[1:w];
 
     options(RxODE.display.tbl = TRUE);
     rxSyncOptions();
@@ -259,6 +261,8 @@ First part of data:
         p1 <- readLines(tmpfile);
         unlink(tmpfile);
         p1 <- gsub("(EC50|200.000|eff|1) *$", "\\1", p1);
+        w <- which(regexpr(rex::rex("# A tibble:"), p1) != -1)[1]
+        p1 <- p1[1:w];
         expect_equal(gsub("(# A tibble: [0-9]+ ).*( [0-9]+)","\\1x\\2",p1),t1);
     })
     options(RxODE.display.tbl = FALSE)
