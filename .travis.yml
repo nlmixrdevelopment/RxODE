@@ -27,6 +27,7 @@ matrix:
 r_github_packages:
   - jimhester/covr
   - nlmixrdevelopment/dparser-R
+  - nlmixrdevelopment/PreciseSums
   
 script: 
   - |

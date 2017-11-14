@@ -305,6 +305,7 @@ rex::register_shortcuts("RxODE");
 ##' @concept Pharmacodynamics (PD)
 ##' @useDynLib RxODE, .registration=TRUE
 ##' @importFrom mvnfast rmvn
+##' @importFrom PreciseSums fsum
 ##' @importFrom Rcpp evalCpp
 ##' @importFrom utils getFromNamespace assignInMyNamespace download.file head sessionInfo
 ##' @importFrom stats setNames update

@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include "dop853.h"
 #define NCMT 100
 #define max(a, b) ((a) > (b) ? (a) : (b))
@@ -7,6 +8,7 @@
 #include <Rinternals.h>
 #include <Rmath.h> //Rmath includes math.
 #include <R_ext/Rdynload.h>
+#include <PreciseSums.h>
 
 
 void F77_NAME(dlsoda)(
@@ -1253,19 +1255,41 @@ static R_NativePrimitiveArgType RxODE_solveLinB_t[] = {
   REALSXP, INTSXP, INTSXP, INTSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP
 };
 
-SEXP _rxKahanSum(SEXP input);
-SEXP _rxNeumaierSum(SEXP input);
-
-SEXP _rxPythonSum(SEXP input);
-SEXP _rxProd(SEXP input);
-SEXP _rxSum(SEXP input);
-SEXP _rxSetSum(SEXP input);
-SEXP _rxSetProd(SEXP input);
-SEXP _rxPairwiseSum(SEXP input);
 SEXP _RxODE_rxToOmega(SEXP cholInv);
 
-double RxODE_sum(double *input, int len);
-double RxODE_prod(double *input, int len);
+double RxODE_sum(double *input, int len){
+  return PreciseSums_sum(input, len);
+}
+
+extern double RxODE_sumV(int n, ...){
+  va_list valist;
+  va_start(valist, n);
+  double *p = Calloc(n, double);
+  for (unsigned int i = 0; i < n; i++){
+    p[i] = va_arg(valist, double);
+  }
+  va_end(valist);
+  double s = PreciseSums_sum(p, n);
+  Free(p);
+  return s;
+}
+
+double RxODE_prod(double *input, int len){
+  return PreciseSums_prod(input, len);
+}
+
+extern double RxODE_prodV(int n, ...){
+  va_list valist;
+  va_start(valist, n);
+  double *p = Calloc(n, double);
+  for (unsigned int i = 0; i < n; i++){
+    p[i] = va_arg(valist, double);
+  }
+  va_end(valist);
+  double s = PreciseSums_prod(p, n);
+  Free(p);
+  return s;
+}
 
 static R_NativePrimitiveArgType RxODE_Sum_t[] = {
   REALSXP, INTSXP
@@ -1280,14 +1304,6 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_RxODE_finalize_focei_omega",(DL_FUNC) &_RxODE_RxODE_finalize_focei_omega, 1},
     {"_RxODE_RxODE_finalize_log_det_OMGAinv_5",(DL_FUNC) &_RxODE_RxODE_finalize_log_det_OMGAinv_5, 1},
     {"_RxODE_rxCoutEcho", (DL_FUNC) &_RxODE_rxCoutEcho, 1},
-    {"_rxKahanSum", (DL_FUNC) &_rxKahanSum,1},
-    {"_rxNeumaierSum", (DL_FUNC) &_rxNeumaierSum,1},
-    {"_rxPythonSum", (DL_FUNC) &_rxPythonSum, 1},
-    {"_rxPairwiseSum", (DL_FUNC) &_rxPairwiseSum, 1},
-    {"_rxSum", (DL_FUNC) &_rxSum, 1},
-    {"_rxProd", (DL_FUNC) &_rxProd, 1},
-    {"_rxSetSum",(DL_FUNC) &_rxSetSum, 1},
-    {"_rxSetProd",(DL_FUNC) &_rxSetProd, 1},
     {"_RxODE_removableDrive", (DL_FUNC) &_RxODE_removableDrive, 1},
     {"_rxCholInv", (DL_FUNC) &_rxCholInv, 3},
     {"_RxODE_rxToOmega", (DL_FUNC) &_RxODE_rxToOmega, 1},

@@ -141,90 +141,6 @@ refresh <- function(derivs=FALSE){
     ## nocov end
 }
 
-#' Using the Kahan method, take a more accurate sum
-#'
-#' @param numbers A vector of numbers to sum.
-#' @return Sum of numbers
-#' @references
-#' \url{https://en.wikipedia.org/wiki/Kahan_summation_algorithm}
-#' @export
-rxKahanSum <- function(numbers) {
-    .Call(`_rxKahanSum`, as.double(numbers))
-}
-
-#' Using the Neumaier method, take a more accurate sum
-#'
-#' @inheritParams rxKahanSum
-#' @return Sum of numbers, a bit more accurate than rxKahanSum
-#' @references
-#' \url{https://en.wikipedia.org/wiki/Kahan_summation_algorithm}
-#' @export
-rxNeumaierSum <- function(numbers) {
-    .Call(`_rxNeumaierSum`, as.double(numbers))
-}
-
-#' Return an accurate floating point sum of values
-#'
-#' This method avoids loss of precision by tracking multiple
-#' intermediate partial sums. Based on python's math.fsum
-#'
-#' @inheritParams rxKahanSum
-#'
-#' @return Sum of numbers without loss of precision
-#'
-#' The algorithm's accuracy depends on IEEE-754 arithmetic guarantees
-#' and the typical case where the rounding mode is half-even. On some
-#' non-Windows builds, the underlying C library uses extended
-#' precision addition and may occasionally double-round an
-#' intermediate sum causing it to be off in its least significant bit.
-#'
-#' @export
-#' @author Matthew Fidler (R implementation), Raymond Hettinger,
-#'     Jonathan Shewchuk, Python Team
-#' @references
-#'
-#' \url{https://docs.python.org/2/library/math.html}
-#'
-#' \url{https://code.activestate.com/recipes/393090/}
-#'
-#' \url{https://github.com/python/cpython/blob/a0ce375e10b50f7606cb86b072fed7d8cd574fe7/Modules/mathmodule.c}
-#'
-#' Shewchuk, JR. (1996)
-#' \emph{Adaptive Precision Floating-Point Arithmetic and Fast Robust Geometric Predicates.}
-#' \url{http://www-2.cs.cmu.edu/afs/cs/project/quake/public/papers/robust-arithmetic.ps}
-#'
-rxPythonFsum <- function(numbers) {
-    .Call(`_rxPythonSum`, as.double(numbers))
-}
-
-#' Return an accurate floating point sum of values
-#'
-#' This was taken by NumPy and adapted for use here.
-#'
-#' @inheritParams rxKahanSum
-#'
-#' @return A sum of numbers with a rounding error of O(lg n) instead
-#'     of O(n).
-#' @author Matthew Fidler (R implementation), Julian Taylor, Nathaniel
-#'     J Smith, and others in NumPy team.
-#' @references
-#' \url{https://github.com/juliantaylor/numpy/blob/b0bc01275cac04483e6df021211c1fa2ba65eaa3/numpy/core/src/umath/loops.c.src}
-#'
-#' \url{https://github.com/numpy/numpy/pull/3685}
-#'
-rxPairwiseSum <- function(numbers) {
-    .Call(`_rxPairwiseSum`, as.double(numbers))
-}
-
-#' Using RxODE's default method, take a sum
-#'
-#' @inheritParams rxKahanSum
-#' @return Sum of numbers
-#' @export
-rxSum <- function(numbers) {
-    .Call(`_rxSum`, as.double(numbers))
-}
-
 ##' Choose the type of sums to use for RxODE.
 ##'
 ##' Choose the types of sums to use in RxODE.  These are used in the
@@ -247,8 +163,7 @@ rxSum <- function(numbers) {
 ##' @author Matthew L. Fidler
 ##' @export
 rxSetSum <- function(type=c("pairwise", "fsum", "kahan", "neumaier", "c")){
-    i <- which(type == c("pairwise", "fsum", "kahan", "neumaier", "c"))
-    invisible(.Call(`_rxSetSum`, as.integer(i)))
+    PreciseSums::psSetSum(type);
 }
 
 ##' Choose the type of product to use in RxODE.  These are used in the
@@ -265,16 +180,5 @@ rxSetSum <- function(type=c("pairwise", "fsum", "kahan", "neumaier", "c")){
 ##' @author Matthew L. Fidler
 ##' @export
 rxSetProd <- function(type=c("long double", "double", "logify")){
-    i <- which(type == c("long double", "double", "logify"));
-    invisible(.Call(`_rxSetProd`, as.integer(i)))
-}
-
-
-#' Using RxODE's default method, take a product
-#'
-#' @inheritParams rxKahanSum
-#' @return Product of numbers
-#' @export
-rxProd <- function(numbers) {
-    .Call(`_rxProd`, as.double(numbers))
+    PreciseSums::psSetProd(type);
 }
