@@ -55,6 +55,7 @@ bool rxHasEventNames(CharacterVector &nm){
 //'
 //' @return A boolean indicating if the object is a member of the class.
 //' @keywords internal
+//' @author Matthew L. Fidler
 //' @export
 // [[Rcpp::export]]
 bool rxIs(const RObject &obj, std::string cls){
@@ -228,6 +229,7 @@ RObject rxSimSigma(const RObject &sigma,
 //' @return A data structure to allow C-based for loop (ie solving each
 //'       individual in C)
 //'
+//' @author Matthew L. Fidler
 //' @export
 // [[Rcpp::export]]
 List rxDataSetup(const RObject &ro,
@@ -490,6 +492,7 @@ List rxDataSetup(const RObject &ro,
 //' @return A boolean indicating if this is a compatible object for updating residuals.
 //'        If it isn't compatible nothing is done.  Additionally, if there are no random residual
 //'        variables to update, also nothing is done.
+//' @author Matthew L. Fidler
 //' @keywords internal
 //' @export
 //[[Rcpp::export]]
@@ -855,6 +858,22 @@ NumericVector rxInits(RObject obj = R_NilValue,
   }
   return ret;
 }
+//' Setup the initial conditions.
+//'
+//' @param obj RxODE object
+//' @param inits A numeric vector of initial conditions.
+//' @author Matthew L. Fidler
+//' @keywords internal
+//' @export
+//[[Rcpp::export]]
+NumericVector rxSetupIni(RObject obj = R_NilValue,
+			   Nullable<NumericVector> inits = R_NilValue){
+  List modVars = rxModelVars(obj);
+  CharacterVector state = modVars["state"];
+  return rxInits(obj, inits, state, 0.0);
+}
+
+
 
 RObject rxSolveCpp(List args, Environment e){
   List dll = as<List>(e["dll"]);

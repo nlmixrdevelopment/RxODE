@@ -441,7 +441,7 @@ RxODE <- function(model, modName = basename(wd), wd = ifelse(RxODE.cache.directo
             hini <- 0;
         }
         ## preserve input arguments.
-        inits <- rxInits(dll, inits, state, 0);
+        inits <- rxSetupIni(dll, inits);
         params <- rxInits(dll, params, pars, NA, !is.null(covs));
         if (!is.null(covs)){
             cov <- as.matrix(covs);

@@ -1248,6 +1248,7 @@ SEXP _RxODE_rxDfdy(SEXP);
 SEXP _RxODE_rxLhs(SEXP);
 SEXP _RxODE_rxInits(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP _RxODE_rxUpdateResiduals(SEXP);
+SEXP _RxODE_rxSetupIni(SEXP, SEXP);
 
 double RxODE_solveLinB(double t, int linCmt, int diff1, int diff2, double A, double alpha, double B, double beta, double C, double gamma, double ka, double tlag);
 static R_NativePrimitiveArgType RxODE_solveLinB_t[] = {
@@ -1319,6 +1320,7 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_rxLhs", (DL_FUNC) &_RxODE_rxLhs, 1},
     {"_RxODE_rxInits", (DL_FUNC) &_RxODE_rxInits, 6},
     {"_RxODE_rxUpdateResiduals", (DL_FUNC) &_RxODE_rxUpdateResiduals, 1},
+    {"_RxODE_rxSetupIni", (DL_FUNC) &_RxODE_rxSetupIni, 2},
     {NULL, NULL, 0}
   };
 

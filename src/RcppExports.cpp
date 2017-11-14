@@ -121,6 +121,18 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// rxSetupIni
+NumericVector rxSetupIni(RObject obj, Nullable<NumericVector> inits);
+RcppExport SEXP _RxODE_rxSetupIni(SEXP objSEXP, SEXP initsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< RObject >::type obj(objSEXP);
+    Rcpp::traits::input_parameter< Nullable<NumericVector> >::type inits(initsSEXP);
+    rcpp_result_gen = Rcpp::wrap(rxSetupIni(obj, inits));
+    return rcpp_result_gen;
+END_RCPP
+}
 // rxInv
 NumericVector rxInv(SEXP matrix);
 RcppExport SEXP _RxODE_rxInv(SEXP matrixSEXP) {

@@ -312,6 +312,9 @@ rxPermissive({
                     expect_error(rxDataSetup(dat, sigma=mcov));
                     dimnames(mcov) <- list(c("s.a", "s.b"), c("s.a", "s.b"))
                     cholmat <- chol(mcov)
+                    if (ch == 1){
+                        mcov <- cholmat;
+                    }
                     convert1 <- rxDataSetup(dat, sigma=mcov, df=ifelse(df == 0, Inf, df), ncores=cores, isChol=(ch == 1));
                     expect_equal(convert1$cov.names, NULL)
                     expect_equal(convert1$simulated.vars, c("s.a", "s.b"))

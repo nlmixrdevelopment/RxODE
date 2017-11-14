@@ -12,6 +12,7 @@
 #'
 #' @return A boolean indicating if the object is a member of the class.
 #' @keywords internal
+#' @author Matthew L. Fidler
 #' @export
 rxIs <- function(obj, cls) {
     .Call(`_RxODE_rxIs`, obj, cls)
@@ -42,6 +43,7 @@ rxIs <- function(obj, cls) {
 #' @return A data structure to allow C-based for loop (ie solving each
 #'       individual in C)
 #'
+#' @author Matthew L. Fidler
 #' @export
 rxDataSetup <- function(ro, covNames = NULL, sigma = NULL, df = NULL, ncores = 1L, isChol = FALSE, amountUnits = NA_character_, timeUnits = "hours") {
     .Call(`_RxODE_rxDataSetup`, ro, covNames, sigma, df, ncores, isChol, amountUnits, timeUnits)
@@ -54,6 +56,7 @@ rxDataSetup <- function(ro, covNames = NULL, sigma = NULL, df = NULL, ncores = 1
 #' @return A boolean indicating if this is a compatible object for updating residuals.
 #'        If it isn't compatible nothing is done.  Additionally, if there are no random residual
 #'        variables to update, also nothing is done.
+#' @author Matthew L. Fidler
 #' @keywords internal
 #' @export
 rxUpdateResiduals <- function(md) {
@@ -177,6 +180,17 @@ rxLhs <- function(obj = NULL) {
 #' @export
 rxInits <- function(obj = NULL, vec = NULL, req = NULL, defaultValue = 0, noerror = FALSE, noini = FALSE) {
     .Call(`_RxODE_rxInits`, obj, vec, req, defaultValue, noerror, noini)
+}
+
+#' Setup the initial conditions.
+#'
+#' @param obj RxODE object
+#' @param inits A numeric vector of initial conditions.
+#' @author Matthew L. Fidler
+#' @keywords internal
+#' @export
+rxSetupIni <- function(obj = NULL, inits = NULL) {
+    .Call(`_RxODE_rxSetupIni`, obj, inits)
 }
 
 #' Invert matrix using Rcpp Armadilo.  
