@@ -222,12 +222,12 @@ rxToOmega <- function(cholMat) {
 #'     Cholesky decomposition of the Omega Inverse matrix.
 #' \item \code{omegaInv} gives the Omega Inverse matrix.
 #' \item \code{d(omegaInv)} gives the d(Omega^-1) withe respect to the
-#'     theta parameter specified in \code{theta.number}.
+#'     theta parameter specified in \code{thetaNumber}.
 #' \item \code{d(D)} gives the d(diagonal(Omega^-1)) with respect to
-#'     the theta parameter specified in the \code{theta.number}
+#'     the theta parameter specified in the \code{thetaNumber}
 #'     parameter
 #' }
-#' @param theta.number For types \code{d(omegaInv)} and \code{d(D)},
+#' @param thetaNumber For types \code{d(omegaInv)} and \code{d(D)},
 #'     the theta number that the derivative is taken against.  This
 #'     must be positive from 1 to the number of thetas defining the
 #'     Omega matrix.
@@ -236,8 +236,8 @@ rxToOmega <- function(cholMat) {
 #'     dOmegaInv.
 #' @author Matthew L. Fidler
 #' @export
-rxSymInvChol <- function(invObjOrMarix, theta = NULL, type = "cholOmegaInv", thetaNumber = 0L) {
-    .Call(`_RxODE_rxSymInvChol`, invObjOrMarix, theta, type, thetaNumber)
+rxSymInvChol <- function(invObjOrMatrix, theta = NULL, type = "cholOmegaInv", thetaNumber = 0L) {
+    .Call(`_RxODE_rxSymInvChol`, invObjOrMatrix, theta, type, thetaNumber)
 }
 
 rxSymInvCholEnvCalculate <- function(obj, what, theta = NULL) {

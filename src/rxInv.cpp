@@ -55,12 +55,12 @@ arma::mat rxToOmega(arma::mat cholMat){
 //'     Cholesky decomposition of the Omega Inverse matrix.
 //' \item \code{omegaInv} gives the Omega Inverse matrix.
 //' \item \code{d(omegaInv)} gives the d(Omega^-1) withe respect to the
-//'     theta parameter specified in \code{theta.number}.
+//'     theta parameter specified in \code{thetaNumber}.
 //' \item \code{d(D)} gives the d(diagonal(Omega^-1)) with respect to
-//'     the theta parameter specified in the \code{theta.number}
+//'     the theta parameter specified in the \code{thetaNumber}
 //'     parameter
 //' }
-//' @param theta.number For types \code{d(omegaInv)} and \code{d(D)},
+//' @param thetaNumber For types \code{d(omegaInv)} and \code{d(D)},
 //'     the theta number that the derivative is taken against.  This
 //'     must be positive from 1 to the number of thetas defining the
 //'     Omega matrix.
@@ -70,12 +70,14 @@ arma::mat rxToOmega(arma::mat cholMat){
 //' @author Matthew L. Fidler
 //' @export
 // [[Rcpp::export]]
-RObject rxSymInvChol(RObject invObjOrMarix, Nullable<NumericVector> theta = R_NilValue, std::string type = "cholOmegaInv", int thetaNumber = 0){
-  if (invObjOrMarix.isObject()){
-    List invObj  = as<List>(invObjOrMarix);
+RObject rxSymInvChol(RObject invObjOrMatrix, Nullable<NumericVector> theta = R_NilValue, std::string type = "cholOmegaInv", int thetaNumber = 0){
+  if (invObjOrMatrix.isObject()){
+    List invObj  = as<List>(invObjOrMatrix);
     if (theta.isNull()){
       // Missing theta
-      Environment e = new_env();
+      Environment base = R_BaseEnv;
+      Function newEnv = as<Function>(base["new.env"]);
+      Environment e = newEnv(_["parent"] = R_EmptyEnv);
       e["invobj"] = invObj;
       List ret = Rcpp::List::create(Rcpp::Named("env")=e);
       ret.attr("class") = "rxSymInvCholEnv";
@@ -109,7 +111,7 @@ RObject rxSymInvChol(RObject invObjOrMarix, Nullable<NumericVector> theta = R_Ni
   } else  {
     Environment rxode("package:RxODE");
     Function rxSymInvCholCreate = as<Function>(rxode["rxSymInvCholCreate"]);
-    return rxSymInvChol(rxSymInvCholCreate(invObjOrMarix), R_NilValue, "cholOmegaInv", 0);
+    return rxSymInvChol(rxSymInvCholCreate(invObjOrMatrix), R_NilValue, "cholOmegaInv", 0);
   }
   return R_NilValue;
 }

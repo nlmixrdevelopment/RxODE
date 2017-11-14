@@ -21,4 +21,7 @@ A boolean indicating if the object is a member of the class.
 \description{
 Check the type of an object using Rcpp
 }
+\author{
+Matthew L. Fidler
+}
 \keyword{internal}

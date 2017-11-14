@@ -894,4 +894,5 @@ RObject rxSolveCpp(List args, Environment e){
   } else if (rxIs(ev0,"rx.event")){
     events = rxDataSetup(ev0, covs);
   }
+  return R_NilValue;
 }

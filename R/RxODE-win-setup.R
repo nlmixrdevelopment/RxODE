@@ -303,7 +303,7 @@ rxWinPythonSetup <- function(){
 
 ##' Setup Windows components for RxODE
 ##'
-##' @param rm.rtools Remove Rtools from path?
+##' @inheritParams rxWinRtoolsPath
 ##' @author Matthew L. Fidler
 ##' @export
 rxWinSetup <- function(rm.rtools=TRUE, rm.python=TRUE){

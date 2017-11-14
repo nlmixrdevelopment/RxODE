@@ -17,4 +17,7 @@ A boolean indicating if this is a compatible object for updating residuals.
 \description{
 Update RxODE multi-subject data with new residuals (in-place).
 }
+\author{
+Matthew L. Fidler
+}
 \keyword{internal}

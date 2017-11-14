@@ -156,16 +156,16 @@ BEGIN_RCPP
 END_RCPP
 }
 // rxSymInvChol
-RObject rxSymInvChol(RObject invObjOrMarix, Nullable<NumericVector> theta, std::string type, int thetaNumber);
-RcppExport SEXP _RxODE_rxSymInvChol(SEXP invObjOrMarixSEXP, SEXP thetaSEXP, SEXP typeSEXP, SEXP thetaNumberSEXP) {
+RObject rxSymInvChol(RObject invObjOrMatrix, Nullable<NumericVector> theta, std::string type, int thetaNumber);
+RcppExport SEXP _RxODE_rxSymInvChol(SEXP invObjOrMatrixSEXP, SEXP thetaSEXP, SEXP typeSEXP, SEXP thetaNumberSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< RObject >::type invObjOrMarix(invObjOrMarixSEXP);
+    Rcpp::traits::input_parameter< RObject >::type invObjOrMatrix(invObjOrMatrixSEXP);
     Rcpp::traits::input_parameter< Nullable<NumericVector> >::type theta(thetaSEXP);
     Rcpp::traits::input_parameter< std::string >::type type(typeSEXP);
     Rcpp::traits::input_parameter< int >::type thetaNumber(thetaNumberSEXP);
-    rcpp_result_gen = Rcpp::wrap(rxSymInvChol(invObjOrMarix, theta, type, thetaNumber));
+    rcpp_result_gen = Rcpp::wrap(rxSymInvChol(invObjOrMatrix, theta, type, thetaNumber));
     return rcpp_result_gen;
 END_RCPP
 }

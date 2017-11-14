@@ -42,3 +42,6 @@ A data structure to allow C-based for loop (ie solving each
 \description{
 Setup a data frame for solving multiple subjects at once in RxODE.
 }
+\author{
+Matthew L. Fidler
+}
