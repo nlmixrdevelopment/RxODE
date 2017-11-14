@@ -8,7 +8,15 @@ Authors@R: c(
    person("Melissa", "Hallow",
       role = "aut", email = "hallowkm@uga.edu"),
    person("Wenping", "Wang", 
-      role = c("aut", "cre"), email = "wwang8198@gmail.com")
+      role = c("aut", "cre"), email = "wwang8198@gmail.com"),
+   person("Alan", "Hindmarsh",role=c("aut","ctb")),
+   person("Linda", "Petzold", role=c("aut", "ctb")),
+   person("E", "Hairer", role=c("aut","ctb")),
+   person("G", "Wanner", role=c("aut","ctb")),
+   person("J", "Colinge", role=c("aut","ctb")),
+   person("Hadley", "Wickham", role="ctb"),
+   person("G", "Grothendieck", role="ctb"),
+   person("odepack authors", role="cph")
    )
 Author: Matthew L. Fidler [aut], Melissa Hallow [aut], Wenping Wang [aut, cre]
 Maintainer: Wenping Wang <wwang8198@gmail.com>
