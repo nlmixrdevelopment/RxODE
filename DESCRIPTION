@@ -42,6 +42,7 @@ Imports:
     inline,
     Matrix,
     R.utils,
+    PreciseSums,
     mvnfast
 Description: Facilities for running simulations from ordinary
     differential equation (ODE) models, such as pharmacometrics and other
