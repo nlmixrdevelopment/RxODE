@@ -4,9 +4,17 @@ rxPermissive({
     context("Test Data Setup (for RcppParallel-style for loop); 0 cov")
     library(dplyr);
 
-    load("test-data-setup.Rdata")
-
     test_that("conversion without covariates", {
+        if (file.exists("test-data-setup.Rdata")){
+            load("test-data-setup.Rdata")
+        } else {
+            tmp <- try(devtools::package_file("tests/testthat/test-data-setup.Rdata"));
+            if (!inherits(tmp, "try-error") && file.exists(tmp)){
+                load(tmp)
+            } else {
+                skip("Can't load test dataset.")
+            }
+        }
         convert1 <- rxDataSetup(dat);
         expect_equal(length(convert1$cov), 0);
         expect_equal(length(convert1$cov.names), 0);
@@ -29,6 +37,16 @@ rxPermissive({
 
     context("  matrix instead of data.frame")
     test_that("matrix", {
+        if (file.exists("test-data-setup.Rdata")){
+            load("test-data-setup.Rdata")
+        } else {
+            tmp <- try(devtools::package_file("tests/testthat/test-data-setup.Rdata"));
+            if (!inherits(tmp, "try-error") && file.exists(tmp)){
+                load(tmp)
+            } else {
+                skip("Can't load test dataset.")
+            }
+        }
         convert1 <- rxDataSetup(as.matrix(dat));
         expect_equal(length(convert1$cov), 0);
         expect_equal(length(convert1$cov.names), 0);
@@ -52,6 +70,16 @@ rxPermissive({
 
     context("  tbl instead of data.frame")
     test_that("tbl", {
+        if (file.exists("test-data-setup.Rdata")){
+            load("test-data-setup.Rdata")
+        } else {
+            tmp <- try(devtools::package_file("tests/testthat/test-data-setup.Rdata"));
+            if (!inherits(tmp, "try-error") && file.exists(tmp)){
+                load(tmp)
+            } else {
+                skip("Can't load test dataset.")
+            }
+        }
         convert1 <- rxDataSetup(as.tbl(dat));
         expect_equal(length(convert1$cov), 0);
         expect_equal(length(convert1$cov.names), 0);
@@ -72,10 +100,20 @@ rxPermissive({
         expect_false(convert1$missing.dv)
     })
 
-    dat2 <- dat %>% mutate(id=ID, amt=AMT, time=TIME, evid=EVID, dv=DV) %>% select(-ID, -AMT, -TIME, -EVID, -DV);
 
     context("  lower case key column names")
     test_that("conversion without covariates; lower case names", {
+        if (file.exists("test-data-setup.Rdata")){
+            load("test-data-setup.Rdata")
+        } else {
+            tmp <- try(devtools::package_file("tests/testthat/test-data-setup.Rdata"));
+            if (!inherits(tmp, "try-error") && file.exists(tmp)){
+                load(tmp)
+            } else {
+                skip("Can't load test dataset.")
+            }
+        }
+        dat2 <- dat %>% mutate(id=ID, amt=AMT, time=TIME, evid=EVID, dv=DV) %>% select(-ID, -AMT, -TIME, -EVID, -DV);
         convert1 <- rxDataSetup(dat2);
         expect_equal(length(convert1$cov), 0);
         expect_equal(length(convert1$cov.names), 0);
@@ -96,9 +134,19 @@ rxPermissive({
         expect_false(convert1$missing.dv)
     })
 
-    dat2 <- dat %>% mutate(Id=ID, Amt=AMT, Time=TIME, Evid=EVID, Dv=DV) %>% select(-ID, -AMT, -TIME, -EVID, -DV);
     context("  title case key column names")
     test_that("conversion without covariates; lower case names", {
+        if (file.exists("test-data-setup.Rdata")){
+            load("test-data-setup.Rdata")
+        } else {
+            tmp <- try(devtools::package_file("tests/testthat/test-data-setup.Rdata"));
+            if (!inherits(tmp, "try-error") && file.exists(tmp)){
+                load(tmp)
+            } else {
+                skip("Can't load test dataset.")
+            }
+        }
+        dat2 <- dat %>% mutate(Id=ID, Amt=AMT, Time=TIME, Evid=EVID, Dv=DV) %>% select(-ID, -AMT, -TIME, -EVID, -DV);
         convert1 <- rxDataSetup(dat2);
         expect_equal(length(convert1$cov), 0);
         expect_equal(length(convert1$cov.names), 0);
@@ -120,15 +168,35 @@ rxPermissive({
     })
 
     context(" STrange capitalization")
-    dat2 <- dat %>% mutate(Id=ID, AMt=AMT, TIme=TIME, EVid=EVID, Dv=DV) %>% select(-ID, -AMT, -TIME, -EVID, -DV);
     test_that("bad setup", {
+        if (file.exists("test-data-setup.Rdata")){
+            load("test-data-setup.Rdata")
+        } else {
+            tmp <- try(devtools::package_file("tests/testthat/test-data-setup.Rdata"));
+            if (!inherits(tmp, "try-error") && file.exists(tmp)){
+                load(tmp)
+            } else {
+                skip("Can't load test dataset.")
+            }
+        }
+        dat2 <- dat %>% mutate(Id=ID, AMt=AMT, TIme=TIME, EVid=EVID, Dv=DV) %>% select(-ID, -AMT, -TIME, -EVID, -DV);
         expect_error(rxDataSetup(dat2))
     })
 
-    dat2 <- dat %>% select(-DV)
 
     context("  missing DV")
     test_that("missing DV", {
+        if (file.exists("test-data-setup.Rdata")){
+            load("test-data-setup.Rdata")
+        } else {
+            tmp <- try(devtools::package_file("tests/testthat/test-data-setup.Rdata"));
+            if (!inherits(tmp, "try-error") && file.exists(tmp)){
+                load(tmp)
+            } else {
+                skip("Can't load test dataset.")
+            }
+        }
+        dat2 <- dat %>% select(-DV)
         convert1 <- rxDataSetup(dat2);
         expect_equal(length(convert1$cov), 0);
         expect_equal(length(convert1$cov.names), 0);
@@ -151,10 +219,21 @@ rxPermissive({
         expect_true(convert1$missing.dv)
     })
 
-    dat2 <- dat %>% filter(ID == 1) %>% select(-ID)
 
     context("  missing ID")
     test_that("missing ID", {
+        if (file.exists("test-data-setup.Rdata")){
+            load("test-data-setup.Rdata")
+        } else {
+            tmp <- try(devtools::package_file("tests/testthat/test-data-setup.Rdata"));
+            if (!inherits(tmp, "try-error") && file.exists(tmp)){
+                load(tmp)
+            } else {
+                skip("Can't load test dataset.")
+            }
+        }
+        dat2 <- dat %>% filter(ID == 1) %>% select(-ID)
+
         convert1 <- rxDataSetup(dat2);
         expect_equal(length(convert1$cov), 0);
         expect_equal(length(convert1$cov.names), 0);
@@ -201,17 +280,36 @@ rxPermissive({
         expect_true(convert1$missing.dv)
     })
 
-    dat2 <- dat %>% select(-ID);
-
     context("  unsorted ID/TIME throw error.")
     test_that("error on unsorted data", {
+        if (file.exists("test-data-setup.Rdata")){
+            load("test-data-setup.Rdata")
+        } else {
+            tmp <- try(devtools::package_file("tests/testthat/test-data-setup.Rdata"));
+            if (!inherits(tmp, "try-error") && file.exists(tmp)){
+                load(tmp)
+            } else {
+                skip("Can't load test dataset.")
+            }
+        }
+        dat2 <- dat %>% select(-ID);
         expect_error(rxDataSetup(dat2));
     })
 
     cn <- c("V")
-    convert2 <- rxDataSetup(dat, cn);
     context("Test Data Setup (for RcppParallel-style for loop); 1 cov")
     test_that("conversion with 1 covariate", {
+        if (file.exists("test-data-setup.Rdata")){
+            load("test-data-setup.Rdata")
+        } else {
+            tmp <- try(devtools::package_file("tests/testthat/test-data-setup.Rdata"));
+            if (!inherits(tmp, "try-error") && file.exists(tmp)){
+                load(tmp)
+            } else {
+                skip("Can't load test dataset.")
+            }
+        }
+        convert2 <- rxDataSetup(dat, cn);
         expect_equal(length(convert2$cov.names), 1);
         for (i in unique(dat$ID)){
             w <- seq(convert2$ids$posObs[i] + 1,
@@ -234,10 +332,20 @@ rxPermissive({
         }
     })
 
-    cn <- c("V", "CL")
-    convert2 <- rxDataSetup(dat, cn);
     context("Test Data Setup (for RcppParallel-style for loop); 2 cov")
     test_that("conversion with 2 covariate", {
+        if (file.exists("test-data-setup.Rdata")){
+            load("test-data-setup.Rdata")
+        } else {
+            tmp <- try(devtools::package_file("tests/testthat/test-data-setup.Rdata"));
+            if (!inherits(tmp, "try-error") && file.exists(tmp)){
+                load(tmp)
+            } else {
+                skip("Can't load test dataset.")
+            }
+        }
+        convert2 <- rxDataSetup(dat, cn);
+
         expect_equal(length(convert2$cov.names), 2);
         for (i in unique(dat$ID)){
             w <- seq(convert2$ids$posObs[i] + 1,
@@ -261,11 +369,21 @@ rxPermissive({
     })
 
     cn <- c("V", "CL", "DOSE")
-    convert2 <- rxDataSetup(dat, cn);
     context("Test Data Setup (for RcppParallel-style for loop); 3 cov")
     test_that("conversion with 3 covariate", {
         expect_equal(length(convert2$cov.names), 3);
         for (i in unique(dat$ID)){
+            if (file.exists("test-data-setup.Rdata")){
+                load("test-data-setup.Rdata")
+            } else {
+                tmp <- try(devtools::package_file("tests/testthat/test-data-setup.Rdata"));
+                if (!inherits(tmp, "try-error") && file.exists(tmp)){
+                    load(tmp)
+                } else {
+                    skip("Can't load test dataset.")
+                }
+            }
+            convert2 <- rxDataSetup(dat, cn);
             w <- seq(convert2$ids$posObs[i] + 1,
                      convert2$ids$posObs[i] + convert2$ids$nObs[i])
             expect_equal(as.double(as.matrix(dat[dat$ID == i & dat$EVID == 0,
@@ -303,6 +421,16 @@ rxPermissive({
 
     context("Simulated Residual variables")
     test_that("Simulated data", {
+        if (file.exists("test-data-setup.Rdata")){
+            load("test-data-setup.Rdata")
+        } else {
+            tmp <- try(devtools::package_file("tests/testthat/test-data-setup.Rdata"));
+            if (!inherits(tmp, "try-error") && file.exists(tmp)){
+                load(tmp)
+            } else {
+                skip("Can't load test dataset.")
+            }
+        }
         for (ch in c(0, 1)){
             for (df in c(0, 10)){
                 for (cores in 1:2){
