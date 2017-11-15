@@ -255,9 +255,20 @@ rxPermissive({
     })
 
     context("  missing DV/ID");
-    dat2 <- dat %>% filter(ID == 1) %>% select(-ID, -DV)
 
     test_that("missing DV/ID", {
+        if (file.exists("test-data-setup.Rdata")){
+            load("test-data-setup.Rdata")
+        } else {
+            tmp <- try(devtools::package_file("tests/testthat/test-data-setup.Rdata"));
+            if (!inherits(tmp, "try-error") && file.exists(tmp)){
+                load(tmp)
+            } else {
+                skip("Can't load test dataset.")
+            }
+        }
+        dat2 <- dat %>% filter(ID == 1) %>% select(-ID, -DV)
+
         convert1 <- rxDataSetup(dat2);
         expect_equal(length(convert1$cov), 0);
         expect_equal(length(convert1$cov.names), 0);
@@ -332,6 +343,7 @@ rxPermissive({
         }
     })
 
+    cn <- c("V", "CL")
     context("Test Data Setup (for RcppParallel-style for loop); 2 cov")
     test_that("conversion with 2 covariate", {
         if (file.exists("test-data-setup.Rdata")){
@@ -371,19 +383,19 @@ rxPermissive({
     cn <- c("V", "CL", "DOSE")
     context("Test Data Setup (for RcppParallel-style for loop); 3 cov")
     test_that("conversion with 3 covariate", {
+        if (file.exists("test-data-setup.Rdata")){
+            load("test-data-setup.Rdata")
+        } else {
+            tmp <- try(devtools::package_file("tests/testthat/test-data-setup.Rdata"));
+            if (!inherits(tmp, "try-error") && file.exists(tmp)){
+                load(tmp)
+            } else {
+                skip("Can't load test dataset.")
+            }
+        }
+        convert2 <- rxDataSetup(dat, cn);
         expect_equal(length(convert2$cov.names), 3);
         for (i in unique(dat$ID)){
-            if (file.exists("test-data-setup.Rdata")){
-                load("test-data-setup.Rdata")
-            } else {
-                tmp <- try(devtools::package_file("tests/testthat/test-data-setup.Rdata"));
-                if (!inherits(tmp, "try-error") && file.exists(tmp)){
-                    load(tmp)
-                } else {
-                    skip("Can't load test dataset.")
-                }
-            }
-            convert2 <- rxDataSetup(dat, cn);
             w <- seq(convert2$ids$posObs[i] + 1,
                      convert2$ids$posObs[i] + convert2$ids$nObs[i])
             expect_equal(as.double(as.matrix(dat[dat$ID == i & dat$EVID == 0,
