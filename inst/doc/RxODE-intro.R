@@ -168,7 +168,7 @@ cov.df  <- data.frame(ctime =(seq(0,48,length.out=100)+8) %% 24);
 
 (r1 <- solve(mod3, ev, covs=cov.df,covs_interpolation="linear"))
 
-## ------------------------------------------------------------------------
+## ----out.width="100%"----------------------------------------------------
 par(mfrow=c(1,2))
 matplot(r1[,"C2"], type="l", ylab="Central Concentration")
 matplot(r1[,"eff"], type="l", ylab = "Effect")
@@ -176,12 +176,12 @@ matplot(r1[,"eff"], type="l", ylab = "Effect")
 ## ------------------------------------------------------------------------
 (r2 <- solve(mod3, ev, covs=cov.df,covs_interpolation="constant"))
 
-## ------------------------------------------------------------------------
+## ----out.width="100%"----------------------------------------------------
 par(mfrow=c(1,2))
 matplot(r2[,"C2"], type="l", ylab="Central Concentration")
 matplot(r2[,"eff"], type="l", ylab = "Effect")
 
-## ------------------------------------------------------------------------
+## ----out.width="100%"----------------------------------------------------
 
 mod <- RxODE({
     ## Table 3 from Savic 2007
@@ -208,7 +208,7 @@ par(mfrow=c(1,1))
 with(transit,matplot(time,cen, type="l", ylab="Central Concentration", xlab=""))
 
 
-## ------------------------------------------------------------------------
+## ----out.width="100%"----------------------------------------------------
 
 mod <- RxODE({
     ## Table 3 from Savic 2007

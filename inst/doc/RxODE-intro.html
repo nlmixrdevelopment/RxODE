@@ -1,174 +1,371 @@
 <!DOCTYPE html>
-
-<html xmlns="http://www.w3.org/1999/xhtml">
-
+<html>
 <head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 
-<meta charset="utf-8" />
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<meta name="generator" content="pandoc" />
+<title>RxODE: A tool for performing simulations from Ordinary Differential Equation (ODE) models, with applications for pharmacometrics</title>
 
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<script type="text/javascript">
+window.onload = function() {
+  var imgs = document.getElementsByTagName('img'), i, img;
+  for (i = 0; i < imgs.length; i++) {
+    img = imgs[i];
+    // center an image if it is the only element of its parent
+    if (img.parentElement.childElementCount === 1)
+      img.parentElement.style.textAlign = 'center';
+  }
+};
+</script>
 
-<meta name="author" content="Matthew L. Fidler, Melissa Hallow, and Wenping Wang" />
-
-<meta name="date" content="2017-10-04" />
-
-<title>Introduction to RxODE</title>
-
-
-
-<style type="text/css">code{white-space: pre;}</style>
+<!-- Styles for R syntax highlighter -->
 <style type="text/css">
-div.sourceCode { overflow-x: auto; }
-table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
-  margin: 0; padding: 0; vertical-align: baseline; border: none; }
-table.sourceCode { width: 100%; line-height: 100%; }
-td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
-td.sourceCode { padding-left: 5px; }
-code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
-code > span.dt { color: #902000; } /* DataType */
-code > span.dv { color: #40a070; } /* DecVal */
-code > span.bn { color: #40a070; } /* BaseN */
-code > span.fl { color: #40a070; } /* Float */
-code > span.ch { color: #4070a0; } /* Char */
-code > span.st { color: #4070a0; } /* String */
-code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
-code > span.ot { color: #007020; } /* Other */
-code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
-code > span.fu { color: #06287e; } /* Function */
-code > span.er { color: #ff0000; font-weight: bold; } /* Error */
-code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
-code > span.cn { color: #880000; } /* Constant */
-code > span.sc { color: #4070a0; } /* SpecialChar */
-code > span.vs { color: #4070a0; } /* VerbatimString */
-code > span.ss { color: #bb6688; } /* SpecialString */
-code > span.im { } /* Import */
-code > span.va { color: #19177c; } /* Variable */
-code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
-code > span.op { color: #666666; } /* Operator */
-code > span.bu { } /* BuiltIn */
-code > span.ex { } /* Extension */
-code > span.pp { color: #bc7a00; } /* Preprocessor */
-code > span.at { color: #7d9029; } /* Attribute */
-code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
-code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
-code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
-code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+   pre .operator,
+   pre .paren {
+     color: rgb(104, 118, 135)
+   }
+
+   pre .literal {
+     color: #990073
+   }
+
+   pre .number {
+     color: #099;
+   }
+
+   pre .comment {
+     color: #998;
+     font-style: italic
+   }
+
+   pre .keyword {
+     color: #900;
+     font-weight: bold
+   }
+
+   pre .identifier {
+     color: rgb(0, 0, 0);
+   }
+
+   pre .string {
+     color: #d14;
+   }
+</style>
+
+<!-- R syntax highlighter -->
+<script type="text/javascript">
+var hljs=new function(){function m(p){return p.replace(/&/gm,"&amp;").replace(/</gm,"&lt;")}function f(r,q,p){return RegExp(q,"m"+(r.cI?"i":"")+(p?"g":""))}function b(r){for(var p=0;p<r.childNodes.length;p++){var q=r.childNodes[p];if(q.nodeName=="CODE"){return q}if(!(q.nodeType==3&&q.nodeValue.match(/\s+/))){break}}}function h(t,s){var p="";for(var r=0;r<t.childNodes.length;r++){if(t.childNodes[r].nodeType==3){var q=t.childNodes[r].nodeValue;if(s){q=q.replace(/\n/g,"")}p+=q}else{if(t.childNodes[r].nodeName=="BR"){p+="\n"}else{p+=h(t.childNodes[r])}}}if(/MSIE [678]/.test(navigator.userAgent)){p=p.replace(/\r/g,"\n")}return p}function a(s){var r=s.className.split(/\s+/);r=r.concat(s.parentNode.className.split(/\s+/));for(var q=0;q<r.length;q++){var p=r[q].replace(/^language-/,"");if(e[p]){return p}}}function c(q){var p=[];(function(s,t){for(var r=0;r<s.childNodes.length;r++){if(s.childNodes[r].nodeType==3){t+=s.childNodes[r].nodeValue.length}else{if(s.childNodes[r].nodeName=="BR"){t+=1}else{if(s.childNodes[r].nodeType==1){p.push({event:"start",offset:t,node:s.childNodes[r]});t=arguments.callee(s.childNodes[r],t);p.push({event:"stop",offset:t,node:s.childNodes[r]})}}}}return t})(q,0);return p}function k(y,w,x){var q=0;var z="";var s=[];function u(){if(y.length&&w.length){if(y[0].offset!=w[0].offset){return(y[0].offset<w[0].offset)?y:w}else{return w[0].event=="start"?y:w}}else{return y.length?y:w}}function t(D){var A="<"+D.nodeName.toLowerCase();for(var B=0;B<D.attributes.length;B++){var C=D.attributes[B];A+=" "+C.nodeName.toLowerCase();if(C.value!==undefined&&C.value!==false&&C.value!==null){A+='="'+m(C.value)+'"'}}return A+">"}while(y.length||w.length){var v=u().splice(0,1)[0];z+=m(x.substr(q,v.offset-q));q=v.offset;if(v.event=="start"){z+=t(v.node);s.push(v.node)}else{if(v.event=="stop"){var p,r=s.length;do{r--;p=s[r];z+=("</"+p.nodeName.toLowerCase()+">")}while(p!=v.node);s.splice(r,1);while(r<s.length){z+=t(s[r]);r++}}}}return z+m(x.substr(q))}function j(){function q(x,y,v){if(x.compiled){return}var u;var s=[];if(x.k){x.lR=f(y,x.l||hljs.IR,true);for(var w in x.k){if(!x.k.hasOwnProperty(w)){continue}if(x.k[w] instanceof Object){u=x.k[w]}else{u=x.k;w="keyword"}for(var r in u){if(!u.hasOwnProperty(r)){continue}x.k[r]=[w,u[r]];s.push(r)}}}if(!v){if(x.bWK){x.b="\\b("+s.join("|")+")\\s"}x.bR=f(y,x.b?x.b:"\\B|\\b");if(!x.e&&!x.eW){x.e="\\B|\\b"}if(x.e){x.eR=f(y,x.e)}}if(x.i){x.iR=f(y,x.i)}if(x.r===undefined){x.r=1}if(!x.c){x.c=[]}x.compiled=true;for(var t=0;t<x.c.length;t++){if(x.c[t]=="self"){x.c[t]=x}q(x.c[t],y,false)}if(x.starts){q(x.starts,y,false)}}for(var p in e){if(!e.hasOwnProperty(p)){continue}q(e[p].dM,e[p],true)}}function d(B,C){if(!j.called){j();j.called=true}function q(r,M){for(var L=0;L<M.c.length;L++){if((M.c[L].bR.exec(r)||[null])[0]==r){return M.c[L]}}}function v(L,r){if(D[L].e&&D[L].eR.test(r)){return 1}if(D[L].eW){var M=v(L-1,r);return M?M+1:0}return 0}function w(r,L){return L.i&&L.iR.test(r)}function K(N,O){var M=[];for(var L=0;L<N.c.length;L++){M.push(N.c[L].b)}var r=D.length-1;do{if(D[r].e){M.push(D[r].e)}r--}while(D[r+1].eW);if(N.i){M.push(N.i)}return f(O,M.join("|"),true)}function p(M,L){var N=D[D.length-1];if(!N.t){N.t=K(N,E)}N.t.lastIndex=L;var r=N.t.exec(M);return r?[M.substr(L,r.index-L),r[0],false]:[M.substr(L),"",true]}function z(N,r){var L=E.cI?r[0].toLowerCase():r[0];var M=N.k[L];if(M&&M instanceof Array){return M}return false}function F(L,P){L=m(L);if(!P.k){return L}var r="";var O=0;P.lR.lastIndex=0;var M=P.lR.exec(L);while(M){r+=L.substr(O,M.index-O);var N=z(P,M);if(N){x+=N[1];r+='<span class="'+N[0]+'">'+M[0]+"</span>"}else{r+=M[0]}O=P.lR.lastIndex;M=P.lR.exec(L)}return r+L.substr(O,L.length-O)}function J(L,M){if(M.sL&&e[M.sL]){var r=d(M.sL,L);x+=r.keyword_count;return r.value}else{return F(L,M)}}function I(M,r){var L=M.cN?'<span class="'+M.cN+'">':"";if(M.rB){y+=L;M.buffer=""}else{if(M.eB){y+=m(r)+L;M.buffer=""}else{y+=L;M.buffer=r}}D.push(M);A+=M.r}function G(N,M,Q){var R=D[D.length-1];if(Q){y+=J(R.buffer+N,R);return false}var P=q(M,R);if(P){y+=J(R.buffer+N,R);I(P,M);return P.rB}var L=v(D.length-1,M);if(L){var O=R.cN?"</span>":"";if(R.rE){y+=J(R.buffer+N,R)+O}else{if(R.eE){y+=J(R.buffer+N,R)+O+m(M)}else{y+=J(R.buffer+N+M,R)+O}}while(L>1){O=D[D.length-2].cN?"</span>":"";y+=O;L--;D.length--}var r=D[D.length-1];D.length--;D[D.length-1].buffer="";if(r.starts){I(r.starts,"")}return R.rE}if(w(M,R)){throw"Illegal"}}var E=e[B];var D=[E.dM];var A=0;var x=0;var y="";try{var s,u=0;E.dM.buffer="";do{s=p(C,u);var t=G(s[0],s[1],s[2]);u+=s[0].length;if(!t){u+=s[1].length}}while(!s[2]);if(D.length>1){throw"Illegal"}return{r:A,keyword_count:x,value:y}}catch(H){if(H=="Illegal"){return{r:0,keyword_count:0,value:m(C)}}else{throw H}}}function g(t){var p={keyword_count:0,r:0,value:m(t)};var r=p;for(var q in e){if(!e.hasOwnProperty(q)){continue}var s=d(q,t);s.language=q;if(s.keyword_count+s.r>r.keyword_count+r.r){r=s}if(s.keyword_count+s.r>p.keyword_count+p.r){r=p;p=s}}if(r.language){p.second_best=r}return p}function i(r,q,p){if(q){r=r.replace(/^((<[^>]+>|\t)+)/gm,function(t,w,v,u){return w.replace(/\t/g,q)})}if(p){r=r.replace(/\n/g,"<br>")}return r}function n(t,w,r){var x=h(t,r);var v=a(t);var y,s;if(v){y=d(v,x)}else{return}var q=c(t);if(q.length){s=document.createElement("pre");s.innerHTML=y.value;y.value=k(q,c(s),x)}y.value=i(y.value,w,r);var u=t.className;if(!u.match("(\\s|^)(language-)?"+v+"(\\s|$)")){u=u?(u+" "+v):v}if(/MSIE [678]/.test(navigator.userAgent)&&t.tagName=="CODE"&&t.parentNode.tagName=="PRE"){s=t.parentNode;var p=document.createElement("div");p.innerHTML="<pre><code>"+y.value+"</code></pre>";t=p.firstChild.firstChild;p.firstChild.cN=s.cN;s.parentNode.replaceChild(p.firstChild,s)}else{t.innerHTML=y.value}t.className=u;t.result={language:v,kw:y.keyword_count,re:y.r};if(y.second_best){t.second_best={language:y.second_best.language,kw:y.second_best.keyword_count,re:y.second_best.r}}}function o(){if(o.called){return}o.called=true;var r=document.getElementsByTagName("pre");for(var p=0;p<r.length;p++){var q=b(r[p]);if(q){n(q,hljs.tabReplace)}}}function l(){if(window.addEventListener){window.addEventListener("DOMContentLoaded",o,false);window.addEventListener("load",o,false)}else{if(window.attachEvent){window.attachEvent("onload",o)}else{window.onload=o}}}var e={};this.LANGUAGES=e;this.highlight=d;this.highlightAuto=g;this.fixMarkup=i;this.highlightBlock=n;this.initHighlighting=o;this.initHighlightingOnLoad=l;this.IR="[a-zA-Z][a-zA-Z0-9_]*";this.UIR="[a-zA-Z_][a-zA-Z0-9_]*";this.NR="\\b\\d+(\\.\\d+)?";this.CNR="\\b(0[xX][a-fA-F0-9]+|(\\d+(\\.\\d*)?|\\.\\d+)([eE][-+]?\\d+)?)";this.BNR="\\b(0b[01]+)";this.RSR="!|!=|!==|%|%=|&|&&|&=|\\*|\\*=|\\+|\\+=|,|\\.|-|-=|/|/=|:|;|<|<<|<<=|<=|=|==|===|>|>=|>>|>>=|>>>|>>>=|\\?|\\[|\\{|\\(|\\^|\\^=|\\||\\|=|\\|\\||~";this.ER="(?![\\s\\S])";this.BE={b:"\\\\.",r:0};this.ASM={cN:"string",b:"'",e:"'",i:"\\n",c:[this.BE],r:0};this.QSM={cN:"string",b:'"',e:'"',i:"\\n",c:[this.BE],r:0};this.CLCM={cN:"comment",b:"//",e:"$"};this.CBLCLM={cN:"comment",b:"/\\*",e:"\\*/"};this.HCM={cN:"comment",b:"#",e:"$"};this.NM={cN:"number",b:this.NR,r:0};this.CNM={cN:"number",b:this.CNR,r:0};this.BNM={cN:"number",b:this.BNR,r:0};this.inherit=function(r,s){var p={};for(var q in r){p[q]=r[q]}if(s){for(var q in s){p[q]=s[q]}}return p}}();hljs.LANGUAGES.cpp=function(){var a={keyword:{"false":1,"int":1,"float":1,"while":1,"private":1,"char":1,"catch":1,"export":1,virtual:1,operator:2,sizeof:2,dynamic_cast:2,typedef:2,const_cast:2,"const":1,struct:1,"for":1,static_cast:2,union:1,namespace:1,unsigned:1,"long":1,"throw":1,"volatile":2,"static":1,"protected":1,bool:1,template:1,mutable:1,"if":1,"public":1,friend:2,"do":1,"return":1,"goto":1,auto:1,"void":2,"enum":1,"else":1,"break":1,"new":1,extern:1,using:1,"true":1,"class":1,asm:1,"case":1,typeid:1,"short":1,reinterpret_cast:2,"default":1,"double":1,register:1,explicit:1,signed:1,typename:1,"try":1,"this":1,"switch":1,"continue":1,wchar_t:1,inline:1,"delete":1,alignof:1,char16_t:1,char32_t:1,constexpr:1,decltype:1,noexcept:1,nullptr:1,static_assert:1,thread_local:1,restrict:1,_Bool:1,complex:1},built_in:{std:1,string:1,cin:1,cout:1,cerr:1,clog:1,stringstream:1,istringstream:1,ostringstream:1,auto_ptr:1,deque:1,list:1,queue:1,stack:1,vector:1,map:1,set:1,bitset:1,multiset:1,multimap:1,unordered_set:1,unordered_map:1,unordered_multiset:1,unordered_multimap:1,array:1,shared_ptr:1}};return{dM:{k:a,i:"</",c:[hljs.CLCM,hljs.CBLCLM,hljs.QSM,{cN:"string",b:"'\\\\?.",e:"'",i:"."},{cN:"number",b:"\\b(\\d+(\\.\\d*)?|\\.\\d+)(u|U|l|L|ul|UL|f|F)"},hljs.CNM,{cN:"preprocessor",b:"#",e:"$"},{cN:"stl_container",b:"\\b(deque|list|queue|stack|vector|map|set|bitset|multiset|multimap|unordered_map|unordered_set|unordered_multiset|unordered_multimap|array)\\s*<",e:">",k:a,r:10,c:["self"]}]}}}();hljs.LANGUAGES.r={dM:{c:[hljs.HCM,{cN:"number",b:"\\b0[xX][0-9a-fA-F]+[Li]?\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"number",b:"\\b\\d+(?:[eE][+\\-]?\\d*)?L\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"number",b:"\\b\\d+\\.(?!\\d)(?:i\\b)?",e:hljs.IMMEDIATE_RE,r:1},{cN:"number",b:"\\b\\d+(?:\\.\\d*)?(?:[eE][+\\-]?\\d*)?i?\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"number",b:"\\.\\d+(?:[eE][+\\-]?\\d*)?i?\\b",e:hljs.IMMEDIATE_RE,r:1},{cN:"keyword",b:"(?:tryCatch|library|setGeneric|setGroupGeneric)\\b",e:hljs.IMMEDIATE_RE,r:10},{cN:"keyword",b:"\\.\\.\\.",e:hljs.IMMEDIATE_RE,r:10},{cN:"keyword",b:"\\.\\.\\d+(?![\\w.])",e:hljs.IMMEDIATE_RE,r:10},{cN:"keyword",b:"\\b(?:function)",e:hljs.IMMEDIATE_RE,r:2},{cN:"keyword",b:"(?:if|in|break|next|repeat|else|for|return|switch|while|try|stop|warning|require|attach|detach|source|setMethod|setClass)\\b",e:hljs.IMMEDIATE_RE,r:1},{cN:"literal",b:"(?:NA|NA_integer_|NA_real_|NA_character_|NA_complex_)\\b",e:hljs.IMMEDIATE_RE,r:10},{cN:"literal",b:"(?:NULL|TRUE|FALSE|T|F|Inf|NaN)\\b",e:hljs.IMMEDIATE_RE,r:1},{cN:"identifier",b:"[a-zA-Z.][a-zA-Z0-9._]*\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"operator",b:"<\\-(?!\\s*\\d)",e:hljs.IMMEDIATE_RE,r:2},{cN:"operator",b:"\\->|<\\-",e:hljs.IMMEDIATE_RE,r:1},{cN:"operator",b:"%%|~",e:hljs.IMMEDIATE_RE},{cN:"operator",b:">=|<=|==|!=|\\|\\||&&|=|\\+|\\-|\\*|/|\\^|>|<|!|&|\\||\\$|:",e:hljs.IMMEDIATE_RE,r:0},{cN:"operator",b:"%",e:"%",i:"\\n",r:1},{cN:"identifier",b:"`",e:"`",r:0},{cN:"string",b:'"',e:'"',c:[hljs.BE],r:0},{cN:"string",b:"'",e:"'",c:[hljs.BE],r:0},{cN:"paren",b:"[[({\\])}]",e:hljs.IMMEDIATE_RE,r:0}]}};
+hljs.initHighlightingOnLoad();
+</script>
+
+
+
+<style type="text/css">
+body, td {
+   font-family: sans-serif;
+   background-color: white;
+   font-size: 13px;
+}
+
+body {
+  max-width: 800px;
+  margin: auto;
+  padding: 1em;
+  line-height: 20px;
+}
+
+tt, code, pre {
+   font-family: 'DejaVu Sans Mono', 'Droid Sans Mono', 'Lucida Console', Consolas, Monaco, monospace;
+}
+
+h1 {
+   font-size:2.2em;
+}
+
+h2 {
+   font-size:1.8em;
+}
+
+h3 {
+   font-size:1.4em;
+}
+
+h4 {
+   font-size:1.0em;
+}
+
+h5 {
+   font-size:0.9em;
+}
+
+h6 {
+   font-size:0.8em;
+}
+
+a:visited {
+   color: rgb(50%, 0%, 50%);
+}
+
+pre, img {
+  max-width: 100%;
+}
+pre {
+  overflow-x: auto;
+}
+pre code {
+   display: block; padding: 0.5em;
+}
+
+code {
+  font-size: 92%;
+  border: 1px solid #ccc;
+}
+
+code[class] {
+  background-color: #F8F8F8;
+}
+
+table, td, th {
+  border: none;
+}
+
+blockquote {
+   color:#666666;
+   margin:0;
+   padding-left: 1em;
+   border-left: 0.5em #EEE solid;
+}
+
+hr {
+   height: 0px;
+   border-bottom: none;
+   border-top-width: thin;
+   border-top-style: dotted;
+   border-top-color: #999999;
+}
+
+@media print {
+   * {
+      background: transparent !important;
+      color: black !important;
+      filter:none !important;
+      -ms-filter: none !important;
+   }
+
+   body {
+      font-size:12pt;
+      max-width:100%;
+   }
+
+   a, a:visited {
+      text-decoration: underline;
+   }
+
+   hr {
+      visibility: hidden;
+      page-break-before: always;
+   }
+
+   pre, blockquote {
+      padding-right: 1em;
+      page-break-inside: avoid;
+   }
+
+   tr, img {
+      page-break-inside: avoid;
+   }
+
+   img {
+      max-width: 100% !important;
+   }
+
+   @page :left {
+      margin: 15mm 20mm 15mm 10mm;
+   }
+
+   @page :right {
+      margin: 15mm 10mm 15mm 20mm;
+   }
+
+   p, h2, h3 {
+      orphans: 3; widows: 3;
+   }
+
+   h2, h3 {
+      page-break-after: avoid;
+   }
+}
 </style>
 
 
 
-<link href="data:text/css;charset=utf-8,body%20%7B%0Abackground%2Dcolor%3A%20%23fff%3B%0Amargin%3A%201em%20auto%3B%0Amax%2Dwidth%3A%20700px%3B%0Aoverflow%3A%20visible%3B%0Apadding%2Dleft%3A%202em%3B%0Apadding%2Dright%3A%202em%3B%0Afont%2Dfamily%3A%20%22Open%20Sans%22%2C%20%22Helvetica%20Neue%22%2C%20Helvetica%2C%20Arial%2C%20sans%2Dserif%3B%0Afont%2Dsize%3A%2014px%3B%0Aline%2Dheight%3A%201%2E35%3B%0A%7D%0A%23header%20%7B%0Atext%2Dalign%3A%20center%3B%0A%7D%0A%23TOC%20%7B%0Aclear%3A%20both%3B%0Amargin%3A%200%200%2010px%2010px%3B%0Apadding%3A%204px%3B%0Awidth%3A%20400px%3B%0Aborder%3A%201px%20solid%20%23CCCCCC%3B%0Aborder%2Dradius%3A%205px%3B%0Abackground%2Dcolor%3A%20%23f6f6f6%3B%0Afont%2Dsize%3A%2013px%3B%0Aline%2Dheight%3A%201%2E3%3B%0A%7D%0A%23TOC%20%2Etoctitle%20%7B%0Afont%2Dweight%3A%20bold%3B%0Afont%2Dsize%3A%2015px%3B%0Amargin%2Dleft%3A%205px%3B%0A%7D%0A%23TOC%20ul%20%7B%0Apadding%2Dleft%3A%2040px%3B%0Amargin%2Dleft%3A%20%2D1%2E5em%3B%0Amargin%2Dtop%3A%205px%3B%0Amargin%2Dbottom%3A%205px%3B%0A%7D%0A%23TOC%20ul%20ul%20%7B%0Amargin%2Dleft%3A%20%2D2em%3B%0A%7D%0A%23TOC%20li%20%7B%0Aline%2Dheight%3A%2016px%3B%0A%7D%0Atable%20%7B%0Amargin%3A%201em%20auto%3B%0Aborder%2Dwidth%3A%201px%3B%0Aborder%2Dcolor%3A%20%23DDDDDD%3B%0Aborder%2Dstyle%3A%20outset%3B%0Aborder%2Dcollapse%3A%20collapse%3B%0A%7D%0Atable%20th%20%7B%0Aborder%2Dwidth%3A%202px%3B%0Apadding%3A%205px%3B%0Aborder%2Dstyle%3A%20inset%3B%0A%7D%0Atable%20td%20%7B%0Aborder%2Dwidth%3A%201px%3B%0Aborder%2Dstyle%3A%20inset%3B%0Aline%2Dheight%3A%2018px%3B%0Apadding%3A%205px%205px%3B%0A%7D%0Atable%2C%20table%20th%2C%20table%20td%20%7B%0Aborder%2Dleft%2Dstyle%3A%20none%3B%0Aborder%2Dright%2Dstyle%3A%20none%3B%0A%7D%0Atable%20thead%2C%20table%20tr%2Eeven%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0Ap%20%7B%0Amargin%3A%200%2E5em%200%3B%0A%7D%0Ablockquote%20%7B%0Abackground%2Dcolor%3A%20%23f6f6f6%3B%0Apadding%3A%200%2E25em%200%2E75em%3B%0A%7D%0Ahr%20%7B%0Aborder%2Dstyle%3A%20solid%3B%0Aborder%3A%20none%3B%0Aborder%2Dtop%3A%201px%20solid%20%23777%3B%0Amargin%3A%2028px%200%3B%0A%7D%0Adl%20%7B%0Amargin%2Dleft%3A%200%3B%0A%7D%0Adl%20dd%20%7B%0Amargin%2Dbottom%3A%2013px%3B%0Amargin%2Dleft%3A%2013px%3B%0A%7D%0Adl%20dt%20%7B%0Afont%2Dweight%3A%20bold%3B%0A%7D%0Aul%20%7B%0Amargin%2Dtop%3A%200%3B%0A%7D%0Aul%20li%20%7B%0Alist%2Dstyle%3A%20circle%20outside%3B%0A%7D%0Aul%20ul%20%7B%0Amargin%2Dbottom%3A%200%3B%0A%7D%0Apre%2C%20code%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0Aborder%2Dradius%3A%203px%3B%0Acolor%3A%20%23333%3B%0Awhite%2Dspace%3A%20pre%2Dwrap%3B%20%0A%7D%0Apre%20%7B%0Aborder%2Dradius%3A%203px%3B%0Amargin%3A%205px%200px%2010px%200px%3B%0Apadding%3A%2010px%3B%0A%7D%0Apre%3Anot%28%5Bclass%5D%29%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0Acode%20%7B%0Afont%2Dfamily%3A%20Consolas%2C%20Monaco%2C%20%27Courier%20New%27%2C%20monospace%3B%0Afont%2Dsize%3A%2085%25%3B%0A%7D%0Ap%20%3E%20code%2C%20li%20%3E%20code%20%7B%0Apadding%3A%202px%200px%3B%0A%7D%0Adiv%2Efigure%20%7B%0Atext%2Dalign%3A%20center%3B%0A%7D%0Aimg%20%7B%0Abackground%2Dcolor%3A%20%23FFFFFF%3B%0Apadding%3A%202px%3B%0Aborder%3A%201px%20solid%20%23DDDDDD%3B%0Aborder%2Dradius%3A%203px%3B%0Aborder%3A%201px%20solid%20%23CCCCCC%3B%0Amargin%3A%200%205px%3B%0A%7D%0Ah1%20%7B%0Amargin%2Dtop%3A%200%3B%0Afont%2Dsize%3A%2035px%3B%0Aline%2Dheight%3A%2040px%3B%0A%7D%0Ah2%20%7B%0Aborder%2Dbottom%3A%204px%20solid%20%23f7f7f7%3B%0Apadding%2Dtop%3A%2010px%3B%0Apadding%2Dbottom%3A%202px%3B%0Afont%2Dsize%3A%20145%25%3B%0A%7D%0Ah3%20%7B%0Aborder%2Dbottom%3A%202px%20solid%20%23f7f7f7%3B%0Apadding%2Dtop%3A%2010px%3B%0Afont%2Dsize%3A%20120%25%3B%0A%7D%0Ah4%20%7B%0Aborder%2Dbottom%3A%201px%20solid%20%23f7f7f7%3B%0Amargin%2Dleft%3A%208px%3B%0Afont%2Dsize%3A%20105%25%3B%0A%7D%0Ah5%2C%20h6%20%7B%0Aborder%2Dbottom%3A%201px%20solid%20%23ccc%3B%0Afont%2Dsize%3A%20105%25%3B%0A%7D%0Aa%20%7B%0Acolor%3A%20%230033dd%3B%0Atext%2Ddecoration%3A%20none%3B%0A%7D%0Aa%3Ahover%20%7B%0Acolor%3A%20%236666ff%3B%20%7D%0Aa%3Avisited%20%7B%0Acolor%3A%20%23800080%3B%20%7D%0Aa%3Avisited%3Ahover%20%7B%0Acolor%3A%20%23BB00BB%3B%20%7D%0Aa%5Bhref%5E%3D%22http%3A%22%5D%20%7B%0Atext%2Ddecoration%3A%20underline%3B%20%7D%0Aa%5Bhref%5E%3D%22https%3A%22%5D%20%7B%0Atext%2Ddecoration%3A%20underline%3B%20%7D%0A%0Acode%20%3E%20span%2Ekw%20%7B%20color%3A%20%23555%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Edt%20%7B%20color%3A%20%23902000%3B%20%7D%20%0Acode%20%3E%20span%2Edv%20%7B%20color%3A%20%2340a070%3B%20%7D%20%0Acode%20%3E%20span%2Ebn%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Efl%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Ech%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Est%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Eco%20%7B%20color%3A%20%23888888%3B%20font%2Dstyle%3A%20italic%3B%20%7D%20%0Acode%20%3E%20span%2Eot%20%7B%20color%3A%20%23007020%3B%20%7D%20%0Acode%20%3E%20span%2Eal%20%7B%20color%3A%20%23ff0000%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Efu%20%7B%20color%3A%20%23900%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%20code%20%3E%20span%2Eer%20%7B%20color%3A%20%23a61717%3B%20background%2Dcolor%3A%20%23e3d2d2%3B%20%7D%20%0A" rel="stylesheet" type="text/css" />
-
 </head>
 
 <body>
-
-
-
-
-<h1 class="title toc-ignore">Introduction to RxODE</h1>
-<h4 class="author"><em>Matthew L. Fidler, Melissa Hallow, and Wenping Wang</em></h4>
-<h4 class="date"><em>2017-10-04</em></h4>
-
-
-
-<div id="rxode-a-tool-for-performing-simulations-from-ordinary-differential-equation-ode-models-with-applications-for-pharmacometrics" class="section level2">
 <h2>RxODE: A tool for performing simulations from Ordinary Differential Equation (ODE) models, with applications for pharmacometrics</h2>
-<hr />
-<div id="authors-matthew-l.-fidler-melissa-hallow-and-wenping-wang" class="section level5">
+
+<hr/>
+
 <h5>Authors: Matthew L. Fidler, Melissa Hallow, and Wenping Wang</h5>
-<hr />
-</div>
-<div id="introduction" class="section level4">
+
+<hr/>
+
 <h4>Introduction</h4>
-<p><code>RxODE</code> is an R package that facilitates simulation with ODE models in R. It is designed with pharmacometrics models in mind, but can be applied more generally to any ODE model.</p>
-<hr />
-</div>
-<div id="description-of-rxode-illustrated-through-an-example" class="section level4">
+
+<p><code>RxODE</code> is an R package that facilitates simulation with ODE models in
+R. It is designed with pharmacometrics models in mind, but can be
+applied more generally to any ODE model.</p>
+
+<hr/>
+
 <h4>Description of RxODE illustrated through an example</h4>
-<p>The model equations are specified through a text string in R. Both differential and algebraic equations are permitted. Differential equations are specified by <code>d/dt(var_name) =</code>. Each equation can be separated by a semicolon.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">ode &lt;-<span class="st"> &quot;</span>
-<span class="st">   C2 = centr/V2;</span>
-<span class="st">   C3 = peri/V3;</span>
-<span class="st">   d/dt(depot) =-KA*depot;</span>
-<span class="st">   d/dt(centr) = KA*depot - CL*C2 - Q*C2 + Q*C3;</span>
-<span class="st">   d/dt(peri)  =                    Q*C2 - Q*C3;</span>
-<span class="st">   d/dt(eff)  = Kin - Kout*(1-C2/(EC50+C2))*eff;</span>
-<span class="st">&quot;</span></code></pre></div>
-<p>To load <code>RxODE</code> package and compile the model:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(RxODE)
-work &lt;-<span class="st"> </span><span class="kw">tempfile</span>(<span class="st">&quot;Rx_intro-&quot;</span>)
-mod1 &lt;-<span class="st"> </span><span class="kw">RxODE</span>(<span class="dt">model =</span> ode, <span class="dt">modName =</span> <span class="st">&quot;mod1&quot;</span>, <span class="dt">wd =</span> work)</code></pre></div>
-<div id="specify-ode-parameters-and-initial-conditions" class="section level5">
+
+<p>The model equations are specified through a text string in R. Both
+differential and algebraic equations are permitted. Differential
+equations are specified by <code>d/dt(var_name) =</code>. Each
+equation can be separated by a semicolon.</p>
+
+<pre><code class="r">ode &lt;- &quot;
+   C2 = centr/V2;
+   C3 = peri/V3;
+   d/dt(depot) =-KA*depot;
+   d/dt(centr) = KA*depot - CL*C2 - Q*C2 + Q*C3;
+   d/dt(peri)  =                    Q*C2 - Q*C3;
+   d/dt(eff)  = Kin - Kout*(1-C2/(EC50+C2))*eff;
+&quot;
+</code></pre>
+
+<p>To load <code>RxODE</code> package and compile the model: </p>
+
+<pre><code class="r">library(RxODE)
+work &lt;- tempfile(&quot;Rx_intro-&quot;)
+mod1 &lt;- RxODE(model = ode, modName = &quot;mod1&quot;, wd = work)
+</code></pre>
+
 <h5>Specify ODE parameters and initial conditions</h5>
-<p>Model parameters can be defined as named vectors. Names of parameters in the vector must be a superset of parameters in the ODE model, and the order of parameters within the vector is not important.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">theta &lt;-<span class="st"> </span>
-<span class="st">   </span><span class="kw">c</span>(<span class="dt">KA=</span><span class="fl">2.94E-01</span>, <span class="dt">CL=</span><span class="fl">1.86E+01</span>, <span class="dt">V2=</span><span class="fl">4.02E+01</span>, <span class="co"># central </span>
-     <span class="dt">Q=</span><span class="fl">1.05E+01</span>,  <span class="dt">V3=</span><span class="fl">2.97E+02</span>,              <span class="co"># peripheral</span>
-     <span class="dt">Kin=</span><span class="dv">1</span>, <span class="dt">Kout=</span><span class="dv">1</span>, <span class="dt">EC50=</span><span class="dv">200</span>)               <span class="co"># effects</span></code></pre></div>
-<p>Initial conditions (ICs) are defined through a vector as well. If the vector is not named, the number of ICs must equal exactly the number of ODEs in the model, and the order must be the same as the order in which the ODEs are listed in the model.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">inits &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">1</span>)</code></pre></div>
-<p>When elements are named, missing elements are added and set to zero. Also when named, the order of initilizations does not matter. Therefore the following code is an equvalent initialization as the code above.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">inits &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dt">eff=</span><span class="dv">1</span>);</code></pre></div>
-</div>
-<div id="specify-dosing-and-sampling-in-rxode" class="section level5">
+
+<p>Model parameters can be defined as named vectors. Names of parameters in
+the vector must be a superset of parameters in the ODE model, and the
+order of parameters within the vector is not important. </p>
+
+<pre><code class="r">theta &lt;- 
+   c(KA=2.94E-01, CL=1.86E+01, V2=4.02E+01, # central 
+     Q=1.05E+01,  V3=2.97E+02,              # peripheral
+     Kin=1, Kout=1, EC50=200)               # effects
+</code></pre>
+
+<p>Initial conditions (ICs) are defined through a vector as well. If the
+vector is not named, the number of ICs must equal exactly the number of
+ODEs in the model, and the order must be the same as the order in
+which the ODEs are listed in the model. </p>
+
+<pre><code class="r">inits &lt;- c(0, 0, 0, 1)
+</code></pre>
+
+<p>When elements are named, missing elements are added and set to
+zero. Also when named, the order of initilizations does not matter.
+Therefore the following code is an equvalent initialization as the
+code above.</p>
+
+<pre><code class="r">inits &lt;- c(eff=1);
+</code></pre>
+
 <h5>Specify Dosing and sampling in RxODE</h5>
-<p><code>RxODE</code> provides a simple and very flexible way to specify dosing and sampling through functions that generate an event table. First, an empty event table is generated through the “eventTable()” function:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">ev &lt;-<span class="st"> </span><span class="kw">eventTable</span>(<span class="dt">amount.units=</span><span class="st">'mg'</span>, <span class="dt">time.units=</span><span class="st">'hours'</span>)</code></pre></div>
-<p>Next, use the <code>add.dosing()</code> and <code>add.sampling()</code> functions of the <code>EventTable</code> object to specify the dosing (amounts, frequency and/or times, etc.) and observation times at which to sample the state of the system. These functions can be called multiple times to specify more complex dosing or sampling regiments. Here, these functions are used to specify 10mg BID dosing for 5 days, followed by 20mg QD dosing for 5 days:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">ev<span class="op">$</span><span class="kw">add.dosing</span>(<span class="dt">dose=</span><span class="dv">10000</span>, <span class="dt">nbr.doses=</span><span class="dv">10</span>, <span class="dt">dosing.interval=</span><span class="dv">12</span>)
-ev<span class="op">$</span><span class="kw">add.dosing</span>(<span class="dt">dose=</span><span class="dv">20000</span>, <span class="dt">nbr.doses=</span><span class="dv">5</span>, <span class="dt">start.time=</span><span class="dv">120</span>, <span class="dt">dosing.interval=</span><span class="dv">24</span>)
-ev<span class="op">$</span><span class="kw">add.sampling</span>(<span class="dv">0</span><span class="op">:</span><span class="dv">240</span>)</code></pre></div>
+
+<p><code>RxODE</code> provides a simple and very flexible way to specify dosing and
+sampling through functions that generate an event table. First, an
+empty event table is generated through the &ldquo;eventTable()&rdquo; function:</p>
+
+<pre><code class="r">ev &lt;- eventTable(amount.units=&#39;mg&#39;, time.units=&#39;hours&#39;)
+</code></pre>
+
+<p>Next, use the <code>add.dosing()</code> and <code>add.sampling()</code> functions of the
+<code>EventTable</code> object to specify the dosing (amounts, frequency and/or
+times, etc.) and observation times at which to sample the state of the
+system.  These functions can be called multiple times to specify more
+complex dosing or sampling regiments.  Here, these functions are used
+to specify 10mg BID dosing for 5 days, followed by 20mg QD dosing for
+5 days:</p>
+
+<pre><code class="r">ev$add.dosing(dose=10000, nbr.doses=10, dosing.interval=12)
+ev$add.dosing(dose=20000, nbr.doses=5, start.time=120, dosing.interval=24)
+ev$add.sampling(0:240)
+</code></pre>
+
 <p>If you wish you can also do this with the <code>mattigr</code> pipe operator <code>%&gt;%</code></p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">ev &lt;-<span class="st"> </span><span class="kw">eventTable</span>(<span class="dt">amount.units=</span><span class="st">&quot;mg&quot;</span>, <span class="dt">time.units=</span><span class="st">&quot;hours&quot;</span>) <span class="op">%&gt;%</span>
-<span class="st">    </span><span class="kw">add.dosing</span>(<span class="dt">dose=</span><span class="dv">10000</span>, <span class="dt">nbr.doses=</span><span class="dv">10</span>, <span class="dt">dosing.interval=</span><span class="dv">12</span>) <span class="op">%&gt;%</span>
-<span class="st">    </span><span class="kw">add.dosing</span>(<span class="dt">dose=</span><span class="dv">20000</span>, <span class="dt">nbr.doses=</span><span class="dv">5</span>, <span class="dt">start.time=</span><span class="dv">120</span>,<span class="dt">dosing.interval=</span><span class="dv">24</span>) <span class="op">%&gt;%</span>
-<span class="st">    </span><span class="kw">add.sampling</span>(<span class="dv">0</span><span class="op">:</span><span class="dv">240</span>);</code></pre></div>
-<p>The functions <code>get.dosing()</code> and <code>get.sampling()</code> can be used to retrieve information from the event table.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">head</span>(ev<span class="op">$</span><span class="kw">get.dosing</span>())</code></pre></div>
+
+<pre><code class="r">ev &lt;- eventTable(amount.units=&quot;mg&quot;, time.units=&quot;hours&quot;) %&gt;%
+    add.dosing(dose=10000, nbr.doses=10, dosing.interval=12) %&gt;%
+    add.dosing(dose=20000, nbr.doses=5, start.time=120,dosing.interval=24) %&gt;%
+    add.sampling(0:240);
+</code></pre>
+
+<p>The functions <code>get.dosing()</code> and <code>get.sampling()</code> can be used to
+retrieve information from the event table.</p>
+
+<pre><code class="r">head(ev$get.dosing())
+</code></pre>
+
 <pre><code>##   time evid   amt
 ## 1    0  101 10000
 ## 2   12  101 10000
 ## 3   24  101 10000
 ## 4   36  101 10000
 ## 5   48  101 10000
-## 6   60  101 10000</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">head</span>(ev<span class="op">$</span><span class="kw">get.sampling</span>())</code></pre></div>
+## 6   60  101 10000
+</code></pre>
+
+<pre><code class="r">head(ev$get.sampling())
+</code></pre>
+
 <pre><code>##    time evid amt
 ## 16    0    0  NA
 ## 17    1    0  NA
 ## 18    2    0  NA
 ## 19    3    0  NA
 ## 20    4    0  NA
-## 21    5    0  NA</code></pre>
-</div>
-<div id="solving-odes" class="section level5">
+## 21    5    0  NA
+</code></pre>
+
 <h5>Solving ODEs</h5>
-<p>The ODE can now be solved by calling the model object’s <code>run</code> or <code>solve</code> function. Simulation results for all variables in the model are stored in the output matrix x.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">x &lt;-<span class="st"> </span>mod1<span class="op">$</span><span class="kw">solve</span>(theta, ev, inits)
-<span class="kw">head</span>(x)</code></pre></div>
+
+<p>The ODE can now be solved by calling the model object&#39;s <code>run</code> or <code>solve</code>
+function. Simulation results for all variables in the model are stored
+in the output matrix x. </p>
+
+<pre><code class="r">x &lt;- mod1$solve(theta, ev, inits)
+head(x)
+</code></pre>
+
 <pre><code>##      time     depot    centr      peri      eff       C2        C3
 ## [1,]    0 10000.000    0.000    0.0000 1.000000  0.00000 0.0000000
 ## [2,]    1  7452.765 1783.897  273.1895 1.084664 44.37555 0.9198298
 ## [3,]    2  5554.370 2206.295  793.8758 1.180825 54.88296 2.6729825
 ## [4,]    3  4139.542 2086.518 1323.5783 1.228914 51.90343 4.4564927
 ## [5,]    4  3085.103 1788.795 1776.2702 1.234610 44.49738 5.9807076
-## [6,]    5  2299.255 1466.670 2131.7169 1.214742 36.48434 7.1774981</code></pre>
-<p>This returns a matrix. You can see the compartment values in the plot below:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">par</span>(<span class="dt">mfrow=</span><span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">2</span>))
-<span class="kw">matplot</span>(x[,<span class="st">&quot;C2&quot;</span>], <span class="dt">type=</span><span class="st">&quot;l&quot;</span>, <span class="dt">ylab=</span><span class="st">&quot;Central Concentration&quot;</span>)
-<span class="kw">matplot</span>(x[,<span class="st">&quot;eff&quot;</span>], <span class="dt">type=</span><span class="st">&quot;l&quot;</span>, <span class="dt">ylab =</span> <span class="st">&quot;Effect&quot;</span>)</code></pre></div>
-<p><img src="data:image/png;base64,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" /><!-- --></p>
-</div>
-<div id="using-rxode-data-frames" class="section level5">
+## [6,]    5  2299.255 1466.670 2131.7169 1.214742 36.48434 7.1774981
+</code></pre>
+
+<p>This returns a matrix.  You can see the compartment values in the plot
+below:</p>
+
+<pre><code class="r">par(mfrow=c(1,2))
+matplot(x[,&quot;C2&quot;], type=&quot;l&quot;, ylab=&quot;Central Concentration&quot;)
+matplot(x[,&quot;eff&quot;], type=&quot;l&quot;, ylab = &quot;Effect&quot;)
+</code></pre>
+
+<p><img src="data:image/png;base64,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" alt="plot of chunk unnamed-chunk-12"/></p>
+
 <h5>Using RxODE data frames</h5>
-<p>You can also return a solved object that is a modified data-frame. This is done by the <code>predict()</code> or <code>solve()</code> methods:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">x &lt;-<span class="st"> </span><span class="kw">predict</span>(mod1,theta, ev, inits)
-<span class="kw">print</span>(x)</code></pre></div>
+
+<p>You can also return a solved object that is a modified data-frame.
+This is done by the <code>predict()</code> or <code>solve()</code> methods:</p>
+
+<pre><code class="r">x &lt;- predict(mod1,theta, ev, inits)
+print(x)
+</code></pre>
+
 <pre><code>## Solved RxODE object
-## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpQHcddE\Rx_intro-38c848d7502a/mod1.d/mod1_x64.dll
+## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpQRn46R\Rx_intro-7883d2f6590/mod1.d/mod1_x64.dll
 ## 
 ## Parameters:
 ##      V2      V3      KA      CL       Q     Kin    Kout    EC50 
@@ -190,12 +387,17 @@ ev<span class="op">$</span><span class="kw">add.sampling</span>(<span class="dv"
 ## 4     3  4139.542 2086.518 1323.5783 1.228914 51.90343 4.4564927
 ## 5     4  3085.103 1788.795 1776.2702 1.234610 44.49738 5.9807076
 ## 6     5  2299.255 1466.670 2131.7169 1.214742 36.48434 7.1774981
-## # ... with 235 more rows</code></pre>
+## # ... with 235 more rows
+</code></pre>
+
 <p>or</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">x &lt;-<span class="st"> </span><span class="kw">solve</span>(mod1,theta, ev, inits)
-<span class="kw">print</span>(x)</code></pre></div>
+
+<pre><code class="r">x &lt;- solve(mod1,theta, ev, inits)
+print(x)
+</code></pre>
+
 <pre><code>## Solved RxODE object
-## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpQHcddE\Rx_intro-38c848d7502a/mod1.d/mod1_x64.dll
+## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpQRn46R\Rx_intro-7883d2f6590/mod1.d/mod1_x64.dll
 ## 
 ## Parameters:
 ##      V2      V3      KA      CL       Q     Kin    Kout    EC50 
@@ -217,12 +419,17 @@ ev<span class="op">$</span><span class="kw">add.sampling</span>(<span class="dv"
 ## 4     3  4139.542 2086.518 1323.5783 1.228914 51.90343 4.4564927
 ## 5     4  3085.103 1788.795 1776.2702 1.234610 44.49738 5.9807076
 ## 6     5  2299.255 1466.670 2131.7169 1.214742 36.48434 7.1774981
-## # ... with 235 more rows</code></pre>
+## # ... with 235 more rows
+</code></pre>
+
 <p>Or with <code>mattigr</code></p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">x &lt;-<span class="st"> </span>mod1 <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">solve</span>(theta, ev, inits)
-<span class="kw">print</span>(x)</code></pre></div>
+
+<pre><code class="r">x &lt;- mod1 %&gt;% solve(theta, ev, inits)
+print(x)
+</code></pre>
+
 <pre><code>## Solved RxODE object
-## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpQHcddE\Rx_intro-38c848d7502a/mod1.d/mod1_x64.dll
+## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpQRn46R\Rx_intro-7883d2f6590/mod1.d/mod1_x64.dll
 ## 
 ## Parameters:
 ##      V2      V3      KA      CL       Q     Kin    Kout    EC50 
@@ -244,37 +451,59 @@ ev<span class="op">$</span><span class="kw">add.sampling</span>(<span class="dv"
 ## 4     3  4139.542 2086.518 1323.5783 1.228914 51.90343 4.4564927
 ## 5     4  3085.103 1788.795 1776.2702 1.234610 44.49738 5.9807076
 ## 6     5  2299.255 1466.670 2131.7169 1.214742 36.48434 7.1774981
-## # ... with 235 more rows</code></pre>
-<p>The solved object acts as a <code>data.frame</code> or <code>tbl</code> that can be filtered by <code>dpylr</code>. For example you could filter it easily.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(dplyr)</code></pre></div>
-<pre><code>## 
-## Attaching package: 'dplyr'</code></pre>
-<pre><code>## The following objects are masked from 'package:stats':
-## 
-##     filter, lag</code></pre>
-<pre><code>## The following objects are masked from 'package:base':
-## 
-##     intersect, setdiff, setequal, union</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">x &lt;-<span class="st"> </span>mod1 <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">solve</span>(theta,ev,inits) <span class="op">%&gt;%</span><span class="st">  </span><span class="kw">filter</span>(time <span class="op">&lt;=</span><span class="dv">3</span>)
-x</code></pre></div>
+## # ... with 235 more rows
+</code></pre>
+
+<p>The solved object acts as a <code>data.frame</code> or <code>tbl</code> that can be filtered
+by <code>dpylr</code>.  For example you could filter it easily.</p>
+
+<pre><code class="r">library(dplyr)
+x &lt;- mod1 %&gt;% solve(theta,ev,inits) %&gt;%  filter(time &lt;=3)
+x
+</code></pre>
+
 <pre><code>##   time     depot    centr      peri      eff       C2        C3
 ## 1    0 10000.000    0.000    0.0000 1.000000  0.00000 0.0000000
 ## 2    1  7452.765 1783.897  273.1895 1.084664 44.37555 0.9198298
 ## 3    2  5554.370 2206.295  793.8758 1.180825 54.88296 2.6729825
-## 4    3  4139.542 2086.518 1323.5783 1.228914 51.90343 4.4564927</code></pre>
-<p>However it isn’t just a simple data object. You can use the solved object to update paramters on the fly, or even change the sampling time.</p>
+## 4    3  4139.542 2086.518 1323.5783 1.228914 51.90343 4.4564927
+</code></pre>
+
+<p>However it isn&#39;t just a simple data object.  You can use the solved
+object to update paramters on the fly, or even change the sampling
+time.</p>
+
 <p>First we need to recreate the original solved system:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">x &lt;-<span class="st"> </span>mod1 <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">solve</span>(theta,ev,inits);</code></pre></div>
-<p>To examine or change initial conditions, you can use the syntax <code>cmt.0</code>, <code>cmt0</code>, or <code>cmt_0</code>. In the case of the <code>eff</code> compartment defined by the model, this is:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">x<span class="op">$</span>eff0</code></pre></div>
+
+<pre><code class="r">x &lt;- mod1 %&gt;% solve(theta,ev,inits);
+</code></pre>
+
+<p>To examine or change initial conditions, you can use the syntax
+<code>cmt.0</code>, <code>cmt0</code>, or <code>cmt_0</code>. In the case of the <code>eff</code> compartment
+defined by the model, this is:</p>
+
+<pre><code class="r">x$eff0
+</code></pre>
+
 <pre><code>## eff 
-##   1</code></pre>
-<p>which shows the initial condition of the effect compartment. If you wished to change this initial condition to 2, this can be done easily by:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">x<span class="op">$</span>eff0 &lt;-<span class="st"> </span><span class="dv">2</span></code></pre></div>
-<pre><code>## Updating object with new initial conditions.</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">x</code></pre></div>
+##   1
+</code></pre>
+
+<p>which shows the initial condition of the effect compartment.  If you
+wished to change this initial condition to 2, this can be done easily
+by:</p>
+
+<pre><code class="r">x$eff0 &lt;- 2
+</code></pre>
+
+<pre><code>## Updating object with new initial conditions.
+</code></pre>
+
+<pre><code class="r">x
+</code></pre>
+
 <pre><code>## Solved RxODE object
-## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpQHcddE\Rx_intro-38c848d7502a/mod1.d/mod1_x64.dll
+## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpQRn46R\Rx_intro-7883d2f6590/mod1.d/mod1_x64.dll
 ## 
 ## Parameters:
 ##      V2      V3      KA      CL       Q     Kin    Kout    EC50 
@@ -296,14 +525,25 @@ x</code></pre></div>
 ## 4     3  4139.542 2086.517 1323.5786 1.313536 51.90341 4.4564937
 ## 5     4  3085.103 1788.793 1776.2706 1.272430 44.49735 5.9807092
 ## 6     5  2299.255 1466.669 2131.7173 1.231204 36.48431 7.1774995
-## # ... with 235 more rows</code></pre>
+## # ... with 235 more rows
+</code></pre>
+
 <p>Notice that the inital effect is now <code>2</code>.</p>
-<p>You can also change the sampling times easily by this method by changing <code>t</code> or <code>time</code>. For example:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">x<span class="op">$</span>t &lt;-<span class="st"> </span><span class="kw">seq</span>(<span class="dv">0</span>,<span class="dv">5</span>,<span class="dt">length.out=</span><span class="dv">20</span>)</code></pre></div>
-<pre><code>## Updating sampling times in the event table updating object.</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">x</code></pre></div>
+
+<p>You can also change the sampling times easily by this method by
+changing <code>t</code> or <code>time</code>.  For example:</p>
+
+<pre><code class="r">x$t &lt;- seq(0,5,length.out=20)
+</code></pre>
+
+<pre><code>## Updating sampling times in the event table updating object.
+</code></pre>
+
+<pre><code class="r">x
+</code></pre>
+
 <pre><code>## Solved RxODE object
-## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpQHcddE\Rx_intro-38c848d7502a/mod1.d/mod1_x64.dll
+## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpQRn46R\Rx_intro-7883d2f6590/mod1.d/mod1_x64.dll
 ## 
 ## Parameters:
 ##      V2      V3      KA      CL       Q     Kin    Kout    EC50 
@@ -325,17 +565,32 @@ x</code></pre></div>
 ## 4 0.7894737  7928.627 1562.0986 182.59671 1.551517 38.85817 0.6148038
 ## 5 1.0526316  7338.331 1830.0078 297.50288 1.485338 45.52258 1.0016932
 ## 6 1.3157895  6791.983 2012.5211 426.63581 1.438438 50.06271 1.4364842
-## # ... with 14 more rows</code></pre>
-<p>You can also access or change parameters by the <code>$</code> operator. For example, accessing <code>KA</code> can be done by:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">x<span class="op">$</span>KA</code></pre></div>
+## # ... with 14 more rows
+</code></pre>
+
+<p>You can also access or change parameters by the <code>$</code> operator.  For
+example, accessing <code>KA</code> can be done by:</p>
+
+<pre><code class="r">x$KA
+</code></pre>
+
 <pre><code>##    KA 
-## 0.294</code></pre>
+## 0.294
+</code></pre>
+
 <p>And you may change it by assigning it to a new value.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">x<span class="op">$</span>KA &lt;-<span class="st"> </span><span class="dv">1</span>;</code></pre></div>
-<pre><code>## Updating object with new parameter values.</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">x</code></pre></div>
+
+<pre><code class="r">x$KA &lt;- 1;
+</code></pre>
+
+<pre><code>## Updating object with new parameter values.
+</code></pre>
+
+<pre><code class="r">x
+</code></pre>
+
 <pre><code>## Solved RxODE object
-## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpQHcddE\Rx_intro-38c848d7502a/mod1.d/mod1_x64.dll
+## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpQRn46R\Rx_intro-7883d2f6590/mod1.d/mod1_x64.dll
 ## 
 ## Parameters:
 ##    V2    V3    KA    CL     Q   Kin  Kout  EC50 
@@ -357,37 +612,78 @@ x</code></pre></div>
 ## 4 0.7894737  4540.837 4010.290  519.32777 1.692658  99.75845 1.7485784
 ## 5 1.0526316  3490.181 4272.980  799.73120 1.665007 106.29303 2.6926976
 ## 6 1.3157895  2682.625 4272.092 1085.82977 1.644283 106.27096 3.6559925
-## # ... with 14 more rows</code></pre>
-<p>You can access/change all the parametrs, initilizations or events with the <code>$params</code>, <code>$inits</code>, <code>$events</code> accessor syntax, similar to what is used above.</p>
-<p>This syntax makes it easy to update and explore the effect of various parameters on the solved object.</p>
-</div>
-</div>
-<div id="mixing-solved-systems-and-odes." class="section level4">
+## # ... with 14 more rows
+</code></pre>
+
+<p>You can access/change all the parametrs, initilizations or events with
+the <code>$params</code>, <code>$inits</code>, <code>$events</code> accessor syntax, similar to what is
+used above.</p>
+
+<p>This syntax makes it easy to update and explore the effect of various
+parameters on the solved object.</p>
+
 <h4>Mixing Solved Systems and ODEs.</h4>
-<p>In addition to pure ODEs, you may mix solved systems and ODEs. The prior 2-compartment indirect response model can be simplified with a <code>linCmt()</code> function:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">mod2 &lt;-<span class="st"> </span><span class="kw">RxODE</span>({
+
+<p>In addition to pure ODEs, you may mix solved systems and ODEs.  The
+prior 2-compartment indirect response model can be simplified with a
+<code>linCmt()</code> function:</p>
+
+<pre><code class="r">mod2 &lt;- RxODE({
     ## the order of variables do not matter, the type of compartmental
     ## model is determined by the parameters specified.
-    C2   =<span class="st"> </span><span class="kw">linCmt</span>(KA, CL, V2, Q, V3);
-    <span class="kw">eff</span>(<span class="dv">0</span>) =<span class="st"> </span><span class="dv">1</span>  ## This specifies that the effect compartment starts at 1.
-    d<span class="op">/</span><span class="kw">dt</span>(eff) =<span class="st">  </span>Kin <span class="op">-</span><span class="st"> </span>Kout<span class="op">*</span>(<span class="dv">1</span><span class="op">-</span>C2<span class="op">/</span>(EC50<span class="op">+</span>C2))<span class="op">*</span>eff;
-})</code></pre></div>
-<p>Like a Sherlock Holmes on the case of a mystery, the <code>linCmt()</code> function figures out the type of model to use based on the parameter names specified.</p>
-<p>Most often, pharmacometric models are parameterized in terms of volume and clearances. Clearances are specified by NONMEM-style names of <code>CL</code>, <code>Q</code>, <code>Q1</code>, <code>Q2</code>, etc. or distributional clearances <code>CLD</code>, <code>CLD2</code>. Volumes are specified by Central (<code>VC</code> or <code>V</code>), Peripheral/Tissue (<code>VP</code>, <code>VT</code>).</p>
-<p>Another popular parameterization is in terms of micro-constants. RxODE assumes compartment <code>1</code> is the central compartment. The elimination constant would be specified by <code>K</code>, <code>Ke</code> or <code>Kel</code>.</p>
-<p>Once the <code>linCmt()</code> sleuthing is complete, the <code>1</code>, <code>2</code> or <code>3</code> compartment model solution is used as the value of <code>linCmt()</code>.</p>
-<p>This allows the indirect response model above to assign the 2-compartment model to the <code>C2</code> variable and the used in the indirect response model.</p>
-<p>When mixing the solved systems and the ODEs, the solved system’s compartment is always the last compartment. This is because the solved system technically isn’t a compartment to be solved. Adding the dosing compartment to the end will not interfere with the actual ODE to be solved.</p>
-<p>Therefore,in the two-compartment indirect response model, the effect compartment is compartment #1 while the PK dosing compartment for the depot is compartment #2.</p>
-<p>This compartment model requires a new event table since the compartment number changed:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">ev &lt;-<span class="st"> </span><span class="kw">eventTable</span>(<span class="dt">amount.units=</span><span class="st">'mg'</span>, <span class="dt">time.units=</span><span class="st">'hours'</span>) <span class="op">%&gt;%</span>
-<span class="st">    </span><span class="kw">add.dosing</span>(<span class="dt">dose=</span><span class="dv">10000</span>, <span class="dt">nbr.doses=</span><span class="dv">10</span>, <span class="dt">dosing.interval=</span><span class="dv">12</span>,<span class="dt">dosing.to=</span><span class="dv">2</span>) <span class="op">%&gt;%</span>
-<span class="st">    </span><span class="kw">add.dosing</span>(<span class="dt">dose=</span><span class="dv">20000</span>, <span class="dt">nbr.doses=</span><span class="dv">5</span>, <span class="dt">start.time=</span><span class="dv">120</span>,<span class="dt">dosing.interval=</span><span class="dv">24</span>,<span class="dt">dosing.to=</span><span class="dv">2</span>) <span class="op">%&gt;%</span>
-<span class="st">    </span><span class="kw">add.sampling</span>(<span class="dv">0</span><span class="op">:</span><span class="dv">240</span>);</code></pre></div>
+    C2   = linCmt(KA, CL, V2, Q, V3);
+    eff(0) = 1  ## This specifies that the effect compartment starts at 1.
+    d/dt(eff) =  Kin - Kout*(1-C2/(EC50+C2))*eff;
+})
+</code></pre>
+
+<p>Like a Sherlock Holmes on the case of a mystery, the <code>linCmt()</code>
+function figures out the type of model to use based on the parameter
+names specified.</p>
+
+<p>Most often, pharmacometric models are parameterized in terms of volume
+and clearances. Clearances are specified by NONMEM-style names of
+<code>CL</code>, <code>Q</code>, <code>Q1</code>, <code>Q2</code>, etc. or distributional clearances <code>CLD</code>,
+<code>CLD2</code>. Volumes are specified by Central (<code>VC</code> or <code>V</code>),
+Peripheral/Tissue (<code>VP</code>, <code>VT</code>).</p>
+
+<p>Another popular parameterization is in terms of micro-constants. RxODE assumes
+compartment <code>1</code> is the central compartment.  The elimination constant
+would be specified by <code>K</code>, <code>Ke</code> or <code>Kel</code>.</p>
+
+<p>Once the <code>linCmt()</code> sleuthing is complete, the <code>1</code>, <code>2</code> or <code>3</code>
+compartment model solution is used as the value of <code>linCmt()</code>.</p>
+
+<p>This allows the indirect response model above to assign the
+2-compartment model to the <code>C2</code> variable and the used in the indirect
+response model.</p>
+
+<p>When mixing the solved systems and the ODEs, the solved system&#39;s
+compartment is always the last compartment.  This is because the
+solved system technically isn&#39;t a compartment to be solved.  Adding
+the dosing compartment to the end will not interfere with the actual
+ODE to be solved.</p>
+
+<p>Therefore,in the two-compartment indirect response model, the effect
+compartment is compartment #1 while the PK dosing compartment for the
+depot is compartment #2.</p>
+
+<p>This compartment model requires a new event table since the
+compartment number changed:</p>
+
+<pre><code class="r">ev &lt;- eventTable(amount.units=&#39;mg&#39;, time.units=&#39;hours&#39;) %&gt;%
+    add.dosing(dose=10000, nbr.doses=10, dosing.interval=12,dosing.to=2) %&gt;%
+    add.dosing(dose=20000, nbr.doses=5, start.time=120,dosing.interval=24,dosing.to=2) %&gt;%
+    add.sampling(0:240);
+</code></pre>
+
 <p>This can be solved with the following command:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">(x &lt;-<span class="st"> </span>mod2 <span class="op">%&gt;%</span><span class="st">  </span><span class="kw">solve</span>(theta, ev))</code></pre></div>
+
+<pre><code class="r">(x &lt;- mod2 %&gt;%  solve(theta, ev))
+</code></pre>
+
 <pre><code>## Solved RxODE object
-## Dll: c:/SVN/Wenping/RxODE/vignettes/rx_81d15ce58933adc2c565267718213fdb_x64.dll
+## Dll: c:/SVN/Wenping/RxODE/vignettes/rx_9726906eef62efb902a4b7e76ae11819_x64.dll
 ## 
 ## Parameters:
 ##      KA      V2      CL       Q      V3     Kin    Kout    EC50 
@@ -409,12 +705,19 @@ x</code></pre></div>
 ## 4     3 1.228914 51.90342
 ## 5     4 1.234610 44.49737
 ## 6     5 1.214743 36.48434
-## # ... with 235 more rows</code></pre>
-<p>Note this solving did not require specifying the effect compartment initial condition to be <code>1</code>. Rather, this is already pre-specified by <code>eff(0)=1</code>.</p>
+## # ... with 235 more rows
+</code></pre>
+
+<p>Note this solving did not require specifying the effect compartment
+initial condition to be <code>1</code>.  Rather, this is already pre-specified by <code>eff(0)=1</code>.</p>
+
 <p>This can be solved for different initial conditions easily:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">(x &lt;-<span class="st"> </span>mod2 <span class="op">%&gt;%</span><span class="st">  </span><span class="kw">solve</span>(theta, ev,<span class="kw">c</span>(<span class="dt">eff=</span><span class="dv">2</span>)))</code></pre></div>
+
+<pre><code class="r">(x &lt;- mod2 %&gt;%  solve(theta, ev,c(eff=2)))
+</code></pre>
+
 <pre><code>## Solved RxODE object
-## Dll: c:/SVN/Wenping/RxODE/vignettes/rx_81d15ce58933adc2c565267718213fdb_x64.dll
+## Dll: c:/SVN/Wenping/RxODE/vignettes/rx_9726906eef62efb902a4b7e76ae11819_x64.dll
 ## 
 ## Parameters:
 ##      KA      V2      CL       Q      V3     Kin    Kout    EC50 
@@ -436,27 +739,35 @@ x</code></pre></div>
 ## 4     3 1.313536 51.90342
 ## 5     4 1.272430 44.49737
 ## 6     5 1.231204 36.48434
-## # ... with 235 more rows</code></pre>
-<p>The RxODE detective also does not require you to specify the variables in the <code>linCmt()</code> function if they are already defined in the block.</p>
-<p>Therefore, the following function will also work to solve the same system.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">mod3 &lt;-<span class="st"> </span><span class="kw">RxODE</span>({
-    KA=<span class="fl">2.94E-01</span>;
-    CL=<span class="fl">1.86E+01</span>; 
-    V2=<span class="fl">4.02E+01</span>; 
-    Q=<span class="fl">1.05E+01</span>;
-    V3=<span class="fl">2.97E+02</span>; 
-    Kin=<span class="dv">1</span>;
-    Kout=<span class="dv">1</span>;
-    EC50=<span class="dv">200</span>;
+## # ... with 235 more rows
+</code></pre>
+
+<p>The RxODE detective also does not require you to specify the variables
+in the <code>linCmt()</code> function if they are already defined in the block.</p>
+
+<p>Therefore, the following function will also work to solve the same
+system.</p>
+
+<pre><code class="r">mod3 &lt;- RxODE({
+    KA=2.94E-01;
+    CL=1.86E+01; 
+    V2=4.02E+01; 
+    Q=1.05E+01;
+    V3=2.97E+02; 
+    Kin=1;
+    Kout=1;
+    EC50=200;
     ## The linCmt() picks up the variables from above
-    C2   =<span class="st"> </span><span class="kw">linCmt</span>();
-    <span class="kw">eff</span>(<span class="dv">0</span>) =<span class="st"> </span><span class="dv">1</span>  ## This specifies that the effect compartment starts at 1.
-    d<span class="op">/</span><span class="kw">dt</span>(eff) =<span class="st">  </span>Kin <span class="op">-</span><span class="st"> </span>Kout<span class="op">*</span>(<span class="dv">1</span><span class="op">-</span>C2<span class="op">/</span>(EC50<span class="op">+</span>C2))<span class="op">*</span>eff;
+    C2   = linCmt();
+    eff(0) = 1  ## This specifies that the effect compartment starts at 1.
+    d/dt(eff) =  Kin - Kout*(1-C2/(EC50+C2))*eff;
 })
 
-(x &lt;-<span class="st"> </span>mod3 <span class="op">%&gt;%</span><span class="st">  </span><span class="kw">solve</span>(ev))</code></pre></div>
+(x &lt;- mod3 %&gt;%  solve(ev))
+</code></pre>
+
 <pre><code>## Solved RxODE object
-## Dll: c:/SVN/Wenping/RxODE/vignettes/rx_6f272dcdddab67d6c6f443e2686ed21e_x64.dll
+## Dll: c:/SVN/Wenping/RxODE/vignettes/rx_bc93d18d800729e5e0f7a89e749e0d7d_x64.dll
 ## 
 ## Parameters:
 ##      KA      CL      V2       Q      V3     Kin    Kout    EC50 
@@ -478,11 +789,17 @@ x</code></pre></div>
 ## 4     3 1.228914 51.90342
 ## 5     4 1.234610 44.49737
 ## 6     5 1.214743 36.48434
-## # ... with 235 more rows</code></pre>
-<p>Note that you do not specify the parameters when solving the system since they are built into the model, but you can override the parameters:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">(x &lt;-<span class="st"> </span>mod3 <span class="op">%&gt;%</span><span class="st">  </span><span class="kw">solve</span>(<span class="kw">c</span>(<span class="dt">KA=</span><span class="dv">10</span>),ev))</code></pre></div>
+## # ... with 235 more rows
+</code></pre>
+
+<p>Note that you do not specify the parameters when solving the system
+since they are built into the model, but you can override the parameters:</p>
+
+<pre><code class="r">(x &lt;- mod3 %&gt;%  solve(c(KA=10),ev))
+</code></pre>
+
 <pre><code>## Solved RxODE object
-## Dll: c:/SVN/Wenping/RxODE/vignettes/rx_6f272dcdddab67d6c6f443e2686ed21e_x64.dll
+## Dll: c:/SVN/Wenping/RxODE/vignettes/rx_bc93d18d800729e5e0f7a89e749e0d7d_x64.dll
 ## 
 ## Parameters:
 ##    KA    CL    V2     Q    V3   Kin  Kout  EC50 
@@ -504,51 +821,67 @@ x</code></pre></div>
 ## 4     3 1.298397  33.17930
 ## 5     4 1.191799  18.02218
 ## 6     5 1.115887  10.72199
-## # ... with 235 more rows</code></pre>
-</div>
-<div id="odes-and-covariates" class="section level4">
+## # ... with 235 more rows
+</code></pre>
+
 <h4>ODEs and covariates</h4>
-<p>Covariates are easy to specify in RxODE, you can specify them as a variable. Time-varying covariates, like clock time in a circadian rhythm model, can also be used. Extending the indirect response model already discussed, we have:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">mod3 &lt;-<span class="st"> </span><span class="kw">RxODE</span>({
-    KA=<span class="fl">2.94E-01</span>;
-    CL=<span class="fl">1.86E+01</span>; 
-    V2=<span class="fl">4.02E+01</span>; 
-    Q=<span class="fl">1.05E+01</span>;
-    V3=<span class="fl">2.97E+02</span>; 
-    Kin0=<span class="dv">1</span>;
-    Kout=<span class="dv">1</span>;
-    EC50=<span class="dv">200</span>;
+
+<p>Covariates are easy to specify in RxODE, you can specify them as a
+variable. Time-varying covariates, like clock time in a circadian
+rhythm model, can also be used.  Extending the indirect response model
+already discussed, we have:</p>
+
+<pre><code class="r">mod3 &lt;- RxODE({
+    KA=2.94E-01;
+    CL=1.86E+01; 
+    V2=4.02E+01; 
+    Q=1.05E+01;
+    V3=2.97E+02; 
+    Kin0=1;
+    Kout=1;
+    EC50=200;
     ## The linCmt() picks up the variables from above
-    C2   =<span class="st"> </span><span class="kw">linCmt</span>();
-    Tz=<span class="st"> </span><span class="dv">8</span>
-    amp=<span class="fl">0.1</span>
-    <span class="kw">eff</span>(<span class="dv">0</span>) =<span class="st"> </span><span class="dv">1</span>  ## This specifies that the effect compartment starts at 1.
+    C2   = linCmt();
+    Tz= 8
+    amp=0.1
+    eff(0) = 1  ## This specifies that the effect compartment starts at 1.
     ## Kin changes based on time of day (like cortosol)
-    Kin =<span class="st">   </span>Kin0 <span class="op">+</span>amp <span class="op">*</span><span class="kw">cos</span>(<span class="dv">2</span><span class="op">*</span>pi<span class="op">*</span>(ctime<span class="op">-</span>Tz)<span class="op">/</span><span class="dv">24</span>)
-    d<span class="op">/</span><span class="kw">dt</span>(eff) =<span class="st">  </span>Kin <span class="op">-</span><span class="st"> </span>Kout<span class="op">*</span>(<span class="dv">1</span><span class="op">-</span>C2<span class="op">/</span>(EC50<span class="op">+</span>C2))<span class="op">*</span>eff;
+    Kin =   Kin0 +amp *cos(2*pi*(ctime-Tz)/24)
+    d/dt(eff) =  Kin - Kout*(1-C2/(EC50+C2))*eff;
 })
 
 
-ev &lt;-<span class="st"> </span><span class="kw">eventTable</span>(<span class="dt">amount.units=</span><span class="st">&quot;mg&quot;</span>, <span class="dt">time.units=</span><span class="st">&quot;hours&quot;</span>) <span class="op">%&gt;%</span>
-<span class="st">    </span><span class="kw">add.dosing</span>(<span class="dt">dose=</span><span class="dv">10000</span>, <span class="dt">nbr.doses=</span><span class="dv">1</span>, <span class="dt">dosing.to=</span><span class="dv">2</span>) <span class="op">%&gt;%</span>
-<span class="st">    </span><span class="kw">add.sampling</span>(<span class="kw">seq</span>(<span class="dv">0</span>,<span class="dv">48</span>,<span class="dt">length.out=</span><span class="dv">100</span>));
+ev &lt;- eventTable(amount.units=&quot;mg&quot;, time.units=&quot;hours&quot;) %&gt;%
+    add.dosing(dose=10000, nbr.doses=1, dosing.to=2) %&gt;%
+    add.sampling(seq(0,48,length.out=100));
 
 
  ## Create data frame of  8 am dosing for the first dose
-cov.df  &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">ctime =</span>(<span class="kw">seq</span>(<span class="dv">0</span>,<span class="dv">48</span>,<span class="dt">length.out=</span><span class="dv">100</span>)<span class="op">+</span><span class="dv">8</span>) <span class="op">%%</span><span class="st"> </span><span class="dv">24</span>);</code></pre></div>
+cov.df  &lt;- data.frame(ctime =(seq(0,48,length.out=100)+8) %% 24);
+</code></pre>
+
 <p>Now there is a covariate present, the system can be solved using the cov option</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">(r1 &lt;-<span class="st"> </span><span class="kw">solve</span>(mod3, ev, <span class="dt">covs=</span>cov.df,<span class="dt">covs_interpolation=</span><span class="st">&quot;linear&quot;</span>))</code></pre></div>
+
+<pre><code class="r">(r1 &lt;- solve(mod3, ev, covs=cov.df,covs_interpolation=&quot;linear&quot;))
+</code></pre>
+
 <pre><code>## Solved RxODE object
-## Dll: c:/SVN/Wenping/RxODE/vignettes/rx_aff93eac245c3f288b05927b11c00c3d_x64.dll
+## Dll: c:/SVN/Wenping/RxODE/vignettes/rx_a77f48f89e9cfb94a56f0d7afb589ba7_x64.dll
 ## 
 ## Parameters:
 ##         KA         CL         V2          Q         V3       Kin0 
 ##   0.294000  18.600000  40.200000  10.500000 297.000000   1.000000 
 ##       Kout       EC50         Tz        amp         pi 
-##   1.000000 200.000000   8.000000   0.100000   3.141593</code></pre>
+##   1.000000 200.000000   8.000000   0.100000   3.141593
+</code></pre>
+
 <pre><code>## 
-## Time Varying Covariates</code></pre>
-<pre><code>## ctime</code></pre>
+## Time Varying Covariates
+</code></pre>
+
+<pre><code>## ctime
+</code></pre>
+
 <pre><code>## 
 ## 
 ## Initial Conditions:
@@ -566,26 +899,50 @@ cov.df  &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span c
 ## 4 1.4545455 1.212373 51.75572 1.087385
 ## 5 1.9393939 1.263980 54.76289 1.080527
 ## 6 2.4242424 1.298023 54.57072 1.072373
-## # ... with 94 more rows</code></pre>
-<p>When solving ODE equations, the solver may sample times outside of the data. When this happens, this ODE solver uses linear interpolation between the covariate values. This is the default value. It is equivalent to R’s <code>approxfun</code> with <code>method=&quot;linear&quot;</code>, which is the default <code>approxfun</code>.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">par</span>(<span class="dt">mfrow=</span><span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">2</span>))
-<span class="kw">matplot</span>(r1[,<span class="st">&quot;C2&quot;</span>], <span class="dt">type=</span><span class="st">&quot;l&quot;</span>, <span class="dt">ylab=</span><span class="st">&quot;Central Concentration&quot;</span>)
-<span class="kw">matplot</span>(r1[,<span class="st">&quot;eff&quot;</span>], <span class="dt">type=</span><span class="st">&quot;l&quot;</span>, <span class="dt">ylab =</span> <span class="st">&quot;Effect&quot;</span>)</code></pre></div>
-<p><img src="data:image/png;base64,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" /><!-- --></p>
-<p>Note that the linear approximation in this case leads to some kinks in the solved system at 24-hours where the covariate has a linear interpolation between near 24 and near 0.</p>
-<p>In RxODE, covariate interpolation can also be the last observation carried forward, or constant approximation. This is equivalent to R’s <code>approxfun</code> with <code>method=&quot;constant&quot;</code>.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">(r2 &lt;-<span class="st"> </span><span class="kw">solve</span>(mod3, ev, <span class="dt">covs=</span>cov.df,<span class="dt">covs_interpolation=</span><span class="st">&quot;constant&quot;</span>))</code></pre></div>
+## # ... with 94 more rows
+</code></pre>
+
+<p>When solving ODE equations, the solver may sample times outside of the
+data.  When this happens, this ODE solver uses linear interpolation
+between the covariate values. This is the default value.  It is
+equivalent to R&#39;s <code>approxfun</code> with <code>method=&quot;linear&quot;</code>, which is the
+default <code>approxfun</code>.</p>
+
+<pre><code class="r">par(mfrow=c(1,2))
+matplot(r1[,&quot;C2&quot;], type=&quot;l&quot;, ylab=&quot;Central Concentration&quot;)
+matplot(r1[,&quot;eff&quot;], type=&quot;l&quot;, ylab = &quot;Effect&quot;)
+</code></pre>
+
+<p><img src="data:image/png;base64,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" title="plot of chunk unnamed-chunk-31" alt="plot of chunk unnamed-chunk-31" width="100%" /></p>
+
+<p>Note that the linear approximation in this case leads to some kinks in
+the solved system at 24-hours where the covariate has a linear
+interpolation between near 24 and near 0.</p>
+
+<p>In RxODE, covariate interpolation can also be the last observation
+carried forward, or constant approximation.  This is equivalent to R&#39;s
+<code>approxfun</code> with <code>method=&quot;constant&quot;</code>.</p>
+
+<pre><code class="r">(r2 &lt;- solve(mod3, ev, covs=cov.df,covs_interpolation=&quot;constant&quot;))
+</code></pre>
+
 <pre><code>## Solved RxODE object
-## Dll: c:/SVN/Wenping/RxODE/vignettes/rx_aff93eac245c3f288b05927b11c00c3d_x64.dll
+## Dll: c:/SVN/Wenping/RxODE/vignettes/rx_a77f48f89e9cfb94a56f0d7afb589ba7_x64.dll
 ## 
 ## Parameters:
 ##         KA         CL         V2          Q         V3       Kin0 
 ##   0.294000  18.600000  40.200000  10.500000 297.000000   1.000000 
 ##       Kout       EC50         Tz        amp         pi 
-##   1.000000 200.000000   8.000000   0.100000   3.141593</code></pre>
+##   1.000000 200.000000   8.000000   0.100000   3.141593
+</code></pre>
+
 <pre><code>## 
-## Time Varying Covariates</code></pre>
-<pre><code>## ctime</code></pre>
+## Time Varying Covariates
+</code></pre>
+
+<pre><code>## ctime
+</code></pre>
+
 <pre><code>## 
 ## 
 ## Initial Conditions:
@@ -603,95 +960,135 @@ cov.df  &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span c
 ## 4 1.4545455 1.214226 51.75572 1.087385
 ## 5 1.9393939 1.266668 54.76289 1.080527
 ## 6 2.4242424 1.301568 54.57072 1.072373
-## # ... with 94 more rows</code></pre>
+## # ... with 94 more rows
+</code></pre>
+
 <p>which dives the following plots:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">par</span>(<span class="dt">mfrow=</span><span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">2</span>))
-<span class="kw">matplot</span>(r2[,<span class="st">&quot;C2&quot;</span>], <span class="dt">type=</span><span class="st">&quot;l&quot;</span>, <span class="dt">ylab=</span><span class="st">&quot;Central Concentration&quot;</span>)
-<span class="kw">matplot</span>(r2[,<span class="st">&quot;eff&quot;</span>], <span class="dt">type=</span><span class="st">&quot;l&quot;</span>, <span class="dt">ylab =</span> <span class="st">&quot;Effect&quot;</span>)</code></pre></div>
-<p><img src="data:image/png;base64,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" /><!-- --></p>
+
+<pre><code class="r">par(mfrow=c(1,2))
+matplot(r2[,&quot;C2&quot;], type=&quot;l&quot;, ylab=&quot;Central Concentration&quot;)
+matplot(r2[,&quot;eff&quot;], type=&quot;l&quot;, ylab = &quot;Effect&quot;)
+</code></pre>
+
+<p><img src="data:image/png;base64,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" title="plot of chunk unnamed-chunk-33" alt="plot of chunk unnamed-chunk-33" width="100%" /></p>
+
 <p>In this case, the plots seem to be smoother.</p>
-</div>
-<div id="rxode-and-transit-compartment-models" class="section level4">
+
 <h4>RxODE and transit compartment models</h4>
-<p>Savic 2008 first introduced the idea of transit compartments being a mechanistic explanation of a a lag-time type phenomena. RxODE has special handling of these models:</p>
+
+<p>Savic 2008 first introduced the idea of transit compartments being a
+mechanistic explanation of a a lag-time type phenomena. RxODE has special handling of these models:</p>
+
 <p>You can specify this in a similar manner as the original paper:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">mod &lt;-<span class="st"> </span><span class="kw">RxODE</span>({
+
+<pre><code class="r">mod &lt;- RxODE({
     ## Table 3 from Savic 2007
-    cl =<span class="st"> </span><span class="fl">17.2</span> <span class="co"># (L/hr)</span>
-    vc =<span class="st"> </span><span class="fl">45.1</span> <span class="co"># L</span>
-    ka =<span class="st"> </span><span class="fl">0.38</span> <span class="co"># 1/hr</span>
-    mtt =<span class="st"> </span><span class="fl">0.37</span> <span class="co"># hr</span>
-    bio=<span class="dv">1</span>
-    n =<span class="st"> </span><span class="fl">20.1</span>
-    k =<span class="st"> </span>cl<span class="op">/</span>vc
-    ktr =<span class="st"> </span>(n<span class="op">+</span><span class="dv">1</span>)<span class="op">/</span>mtt
+    cl = 17.2 # (L/hr)
+    vc = 45.1 # L
+    ka = 0.38 # 1/hr
+    mtt = 0.37 # hr
+    bio=1
+    n = 20.1
+    k = cl/vc
+    ktr = (n+1)/mtt
     ## note that lgammafn is the same as lgamma in R.
-    d<span class="op">/</span><span class="kw">dt</span>(depot) =<span class="st"> </span><span class="kw">exp</span>(<span class="kw">log</span>(bio<span class="op">*</span>podo)<span class="op">+</span><span class="kw">log</span>(ktr)<span class="op">+</span>n<span class="op">*</span><span class="kw">log</span>(ktr<span class="op">*</span>t)<span class="op">-</span>ktr<span class="op">*</span>t<span class="op">-</span><span class="kw">lgammafn</span>(n<span class="op">+</span><span class="dv">1</span>))<span class="op">-</span>ka<span class="op">*</span>depot
-    d<span class="op">/</span><span class="kw">dt</span>(cen) =<span class="st"> </span>ka<span class="op">*</span>depot<span class="op">-</span>k<span class="op">*</span>cen
+    d/dt(depot) = exp(log(bio*podo)+log(ktr)+n*log(ktr*t)-ktr*t-lgammafn(n+1))-ka*depot
+    d/dt(cen) = ka*depot-k*cen
 })
 
-et &lt;-<span class="st"> </span><span class="kw">eventTable</span>();
-et<span class="op">$</span><span class="kw">add.sampling</span>(<span class="kw">seq</span>(<span class="dv">0</span>, <span class="dv">7</span>, <span class="dt">length.out=</span><span class="dv">200</span>));
-et<span class="op">$</span><span class="kw">add.dosing</span>(<span class="dv">20</span>, <span class="dt">start.time=</span><span class="dv">0</span>);
+et &lt;- eventTable();
+et$add.sampling(seq(0, 7, length.out=200));
+et$add.dosing(20, start.time=0);
 
-transit &lt;-<span class="st"> </span><span class="kw">rxSolve</span>(mod, et, <span class="dt">transit_abs=</span><span class="ot">TRUE</span>)
+transit &lt;- rxSolve(mod, et, transit_abs=TRUE)
 
-<span class="kw">par</span>(<span class="dt">mfrow=</span><span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">1</span>))
-<span class="kw">with</span>(transit,<span class="kw">matplot</span>(time,cen, <span class="dt">type=</span><span class="st">&quot;l&quot;</span>, <span class="dt">ylab=</span><span class="st">&quot;Central Concentration&quot;</span>, <span class="dt">xlab=</span><span class="st">&quot;&quot;</span>))</code></pre></div>
-<p><img src="data:image/png;base64,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" /><!-- --></p>
-<p>Another option is to specify the transit compartment function <code>transit</code> syntax. This specifies the parameters <code>transit(number of transit compartments, mean transit time, bioavailibility)</code>. The bioavailibity term is optional.</p>
-<p>Using the <code>transit</code> code also automatically turns on the <code>transit_abs</code> option. Therefore, the same model can be specified by:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">mod &lt;-<span class="st"> </span><span class="kw">RxODE</span>({
+par(mfrow=c(1,1))
+with(transit,matplot(time,cen, type=&quot;l&quot;, ylab=&quot;Central Concentration&quot;, xlab=&quot;&quot;))
+</code></pre>
+
+<p><img src="data:image/png;base64,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" title="plot of chunk unnamed-chunk-34" alt="plot of chunk unnamed-chunk-34" width="100%" /></p>
+
+<p>Another option is to specify the transit compartment function <code>transit</code> syntax.  This specifies the parameters 
+<code>transit(number of transit compartments, mean transit time, bioavailibility)</code>.  The bioavailibity term is optional. </p>
+
+<p>Using the <code>transit</code> code also automatically turns on the <code>transit_abs</code>
+option.  Therefore, the same model can be specified by:</p>
+
+<pre><code class="r">mod &lt;- RxODE({
     ## Table 3 from Savic 2007
-    cl =<span class="st"> </span><span class="fl">17.2</span> <span class="co"># (L/hr)</span>
-    vc =<span class="st"> </span><span class="fl">45.1</span> <span class="co"># L</span>
-    ka =<span class="st"> </span><span class="fl">0.38</span> <span class="co"># 1/hr</span>
-    mtt =<span class="st"> </span><span class="fl">0.37</span> <span class="co"># hr</span>
-    bio=<span class="dv">1</span>
-    n =<span class="st"> </span><span class="fl">20.1</span>
-    k =<span class="st"> </span>cl<span class="op">/</span>vc
-    ktr =<span class="st"> </span>(n<span class="op">+</span><span class="dv">1</span>)<span class="op">/</span>mtt
-    d<span class="op">/</span><span class="kw">dt</span>(depot) =<span class="st"> </span><span class="kw">transit</span>(n,mtt,bio)<span class="op">-</span>ka<span class="op">*</span>depot
-    d<span class="op">/</span><span class="kw">dt</span>(cen) =<span class="st"> </span>ka<span class="op">*</span>depot<span class="op">-</span>k<span class="op">*</span>cen
+    cl = 17.2 # (L/hr)
+    vc = 45.1 # L
+    ka = 0.38 # 1/hr
+    mtt = 0.37 # hr
+    bio=1
+    n = 20.1
+    k = cl/vc
+    ktr = (n+1)/mtt
+    d/dt(depot) = transit(n,mtt,bio)-ka*depot
+    d/dt(cen) = ka*depot-k*cen
 })
 
-et &lt;-<span class="st"> </span><span class="kw">eventTable</span>();
-et<span class="op">$</span><span class="kw">add.sampling</span>(<span class="kw">seq</span>(<span class="dv">0</span>, <span class="dv">7</span>, <span class="dt">length.out=</span><span class="dv">200</span>));
-et<span class="op">$</span><span class="kw">add.dosing</span>(<span class="dv">20</span>, <span class="dt">start.time=</span><span class="dv">0</span>);
+et &lt;- eventTable();
+et$add.sampling(seq(0, 7, length.out=200));
+et$add.dosing(20, start.time=0);
 
-transit &lt;-<span class="st"> </span><span class="kw">rxSolve</span>(mod, et)</code></pre></div>
+transit &lt;- rxSolve(mod, et)
+</code></pre>
+
 <pre><code>## Warning in object$solve(params, events, inits, scale, covs, stiff,
-## transit_abs, : Assumed transit compartment model since 'podo' is in the
-## model.</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">par</span>(<span class="dt">mfrow=</span><span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">1</span>))
-<span class="kw">with</span>(transit,<span class="kw">matplot</span>(time,cen, <span class="dt">type=</span><span class="st">&quot;l&quot;</span>, <span class="dt">ylab=</span><span class="st">&quot;Central Concentration&quot;</span>, <span class="dt">xlab=</span><span class="st">&quot;&quot;</span>))</code></pre></div>
-<p><img src="data:image/png;base64,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" /><!-- --></p>
-</div>
-<div id="stiff-odes-with-jacobian-specification" class="section level4">
+## transit_abs, : Assumed transit compartment model since &#39;podo&#39; is in the
+## model.
+</code></pre>
+
+<pre><code class="r">par(mfrow=c(1,1))
+with(transit,matplot(time,cen, type=&quot;l&quot;, ylab=&quot;Central Concentration&quot;, xlab=&quot;&quot;))
+</code></pre>
+
+<p><img src="data:image/png;base64,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" title="plot of chunk unnamed-chunk-35" alt="plot of chunk unnamed-chunk-35" width="100%" /></p>
+
 <h4>Stiff ODEs with Jacobian Specification</h4>
-<p>Occasionally, you may come across a <a href="https://en.wikipedia.org/wiki/Stiff_equation"><strong>stiff</strong> differential equation</a>, that is a differential equation that is numerically unstable and small variations in parameters cause different solutions to the ODEs. One way to tackle this is to choose a stiff-solver, or hybrid stiff solver (like the default LSODA). Typically this is enough. However exact Jacobian solutions may increase the stability of the ODE. (Note the Jacobian is the derivative of the ODE specification with respect to each variable). In RxODE you can specify the Jacobian with the <code>df(state)/dy(variable)=</code> statement. A classic ODE that has stiff properties under various conditions is the <a href="http://www.ece.northwestern.edu/local-apps/matlabhelp/techdoc/math_anal/diffeq6.html">van dar Pol</a> differential equations.</p>
+
+<p>Occasionally, you may come across
+a
+<a href="https://en.wikipedia.org/wiki/Stiff_equation"><strong>stiff</strong> differential equation</a>,
+that is a differential equation that is numerically unstable and small
+variations in parameters cause different solutions to the ODEs.  One
+way to tackle this is to choose a stiff-solver, or hybrid stiff solver
+(like the default LSODA).  Typically this is enough. However exact
+Jacobian solutions may increase the stability of the ODE.  (Note the
+Jacobian is the derivative of the ODE specification with respect to
+each variable). In RxODE you can specify the Jacobian with the
+<code>df(state)/dy(variable)=</code> statement.  A classic ODE that has stiff
+properties under various conditions is
+the
+<a href="http://www.ece.northwestern.edu/local-apps/matlabhelp/techdoc/math_anal/diffeq6.html">van dar Pol </a> differential
+equations.</p>
+
 <p>In RxODE these can be specified by the following:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">Vtpol2 &lt;-<span class="st"> </span><span class="kw">RxODE</span>({
-    d<span class="op">/</span><span class="kw">dt</span>(y)  =<span class="st"> </span>dy
-    d<span class="op">/</span><span class="kw">dt</span>(dy) =<span class="st"> </span>mu<span class="op">*</span>(<span class="dv">1</span><span class="op">-</span>y<span class="op">^</span><span class="dv">2</span>)<span class="op">*</span>dy <span class="op">-</span><span class="st"> </span>y
+
+<pre><code class="r">Vtpol2 &lt;- RxODE({
+    d/dt(y)  = dy
+    d/dt(dy) = mu*(1-y^2)*dy - y
     ## Jacobian
-    <span class="kw">df</span>(y)<span class="op">/</span><span class="kw">dy</span>(dy)  =<span class="st"> </span><span class="dv">1</span>
-    <span class="kw">df</span>(dy)<span class="op">/</span><span class="kw">dy</span>(y)  =<span class="st"> </span><span class="op">-</span><span class="dv">2</span><span class="op">*</span>dy<span class="op">*</span>mu<span class="op">*</span>y <span class="op">-</span><span class="st"> </span><span class="dv">1</span>
-    <span class="kw">df</span>(dy)<span class="op">/</span><span class="kw">dy</span>(dy) =<span class="st"> </span>mu<span class="op">*</span>(<span class="dv">1</span><span class="op">-</span>y<span class="op">^</span><span class="dv">2</span>)
+    df(y)/dy(dy)  = 1
+    df(dy)/dy(y)  = -2*dy*mu*y - 1
+    df(dy)/dy(dy) = mu*(1-y^2)
     ## Initial conditions
-    <span class="kw">y</span>(<span class="dv">0</span>) =<span class="st"> </span><span class="dv">2</span>
-    <span class="kw">dy</span>(<span class="dv">0</span>) =<span class="st"> </span><span class="dv">0</span>
+    y(0) = 2
+    dy(0) = 0
     ## mu
-    mu =<span class="st"> </span><span class="dv">1</span> ## nonstiff; 10 moderately stiff; 1000 stiff
+    mu = 1 ## nonstiff; 10 moderately stiff; 1000 stiff
 })
 
-et &lt;-<span class="st"> </span><span class="kw">eventTable</span>();
-et<span class="op">$</span><span class="kw">add.sampling</span>(<span class="kw">seq</span>(<span class="dv">0</span>, <span class="dv">10</span>, <span class="dt">length.out=</span><span class="dv">200</span>));
-et<span class="op">$</span><span class="kw">add.dosing</span>(<span class="dv">20</span>, <span class="dt">start.time=</span><span class="dv">0</span>);
+et &lt;- eventTable();
+et$add.sampling(seq(0, 10, length.out=200));
+et$add.dosing(20, start.time=0);
 
-(s1 &lt;-<span class="st"> </span>Vtpol2 <span class="op">%&gt;%</span><span class="st">  </span><span class="kw">solve</span>(et))</code></pre></div>
+(s1 &lt;- Vtpol2 %&gt;%  solve(et))
+</code></pre>
+
 <pre><code>## Solved RxODE object
-## Dll: c:/SVN/Wenping/RxODE/vignettes/rx_ec4d279db60b60ceb25e137bec256414_x64.dll
+## Dll: c:/SVN/Wenping/RxODE/vignettes/rx_bd3ce07252955888e3cdda1168868950_x64.dll
 ## 
 ## Parameters:
 ## mu 
@@ -713,11 +1110,16 @@ et<span class="op">$</span><span class="kw">add.dosing</span>(<span class="dv">2
 ## 4 0.15075377 21.99323 -0.04556254
 ## 5 0.20100503 21.99094 -0.04556731
 ## 6 0.25125628 21.98865 -0.04557207
-## # ... with 194 more rows</code></pre>
+## # ... with 194 more rows
+</code></pre>
+
 <p>While this is not stiff at mu=1, mu=1000 is a stiff system</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">(s2 &lt;-<span class="st"> </span>Vtpol2 <span class="op">%&gt;%</span><span class="st">  </span><span class="kw">solve</span>(<span class="kw">c</span>(<span class="dt">mu=</span><span class="dv">1000</span>), et))</code></pre></div>
+
+<pre><code class="r">(s2 &lt;- Vtpol2 %&gt;%  solve(c(mu=1000), et))
+</code></pre>
+
 <pre><code>## Solved RxODE object
-## Dll: c:/SVN/Wenping/RxODE/vignettes/rx_ec4d279db60b60ceb25e137bec256414_x64.dll
+## Dll: c:/SVN/Wenping/RxODE/vignettes/rx_bd3ce07252955888e3cdda1168868950_x64.dll
 ## 
 ## Parameters:
 ##   mu 
@@ -739,15 +1141,23 @@ et<span class="op">$</span><span class="kw">add.dosing</span>(<span class="dv">2
 ## 4 0.15075377 21.99999 -4.554867e-05
 ## 5 0.20100503 21.99999 -4.554867e-05
 ## 6 0.25125628 21.99999 -4.554868e-05
-## # ... with 194 more rows</code></pre>
-<p>While this is easy enough to do, it is a bit tedious. If you have RxODE setup appropriately, that is you have:</p>
+## # ... with 194 more rows
+</code></pre>
+
+<p>While this is easy enough to do, it is a bit tedious.  If you have
+RxODE setup appropriately, that is you have:</p>
+
 <ul>
 <li><strong>Python</strong> installed in your system</li>
 <li><strong>sympy</strong> installed in your system</li>
 <li><strong>SnakeCharmR</strong> installed in R</li>
 </ul>
-<p>You can use the computer algebra system sympy to calculate the Jacobian automatically.</p>
+
+<p>You can use the computer algebra system sympy to calculate the
+Jacobian automatically.</p>
+
 <p>This is done by the RxODE option <code>calcJac</code> option:</p>
+
 <pre><code>Vtpol &lt;- RxODE({
     d/dt(y)  = dy
     d/dt(dy) = mu*(1-y^2)*dy - y
@@ -757,8 +1167,11 @@ et<span class="op">$</span><span class="kw">add.dosing</span>(<span class="dv">2
     ## mu
     mu = 1 ## nonstiff; 10 moderately stiff; 1000 stiff
 }, calcJac=TRUE)
+
 </code></pre>
+
 <p>To see the generated model, you can use <code>rxCat</code>:</p>
+
 <pre><code>&gt; rxCat(Vtpol)
 d/dt(y)=dy;
 d/dt(dy)=mu*(1-y^2)*dy-y;
@@ -769,70 +1182,83 @@ df(y)/dy(y)=0;
 df(dy)/dy(y)=-2*dy*mu*y-1;
 df(y)/dy(dy)=1;
 df(dy)/dy(dy)=mu*(-Rx_pow_di(y,2)+1);
+
 </code></pre>
-</div>
-<div id="simulation-of-variability-with-rxode" class="section level4">
+
 <h4>Simulation of Variability with RxODE</h4>
-<p>Variability in model parameters can be simulated by creating a matrix of parameter values for use in the simulation. In the example below, 40% variability in clearance is simulated.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">nsub &lt;-<span class="st"> </span><span class="dv">100</span>                       <span class="co">#number of subproblems</span>
-CL &lt;-<span class="st"> </span><span class="fl">1.86E+01</span><span class="op">*</span><span class="kw">exp</span>(<span class="kw">rnorm</span>(nsub,<span class="dv">0</span>,.<span class="dv">4</span><span class="op">^</span><span class="dv">2</span>))
-theta.all &lt;-<span class="st"> </span>
-<span class="st">    </span><span class="kw">cbind</span>(<span class="dt">KA=</span><span class="fl">2.94E-01</span>, <span class="dt">CL=</span>CL, <span class="dt">V2=</span><span class="fl">4.02E+01</span>,  <span class="co"># central </span>
-    <span class="dt">Q=</span><span class="fl">1.05E+01</span>, <span class="dt">V3=</span><span class="fl">2.97E+02</span>,                <span class="co"># peripheral</span>
-    <span class="dt">Kin=</span><span class="dv">1</span>, <span class="dt">Kout=</span><span class="dv">1</span>, <span class="dt">EC50=</span><span class="dv">200</span>)                <span class="co"># effects  </span>
-<span class="kw">head</span>(theta.all)</code></pre></div>
+
+<p>Variability in model parameters can be simulated by creating a matrix
+of parameter values for use in the simulation. In the example below,
+40% variability in clearance is simulated.</p>
+
+<pre><code class="r">nsub &lt;- 100                       #number of subproblems
+CL &lt;- 1.86E+01*exp(rnorm(nsub,0,.4^2))
+theta.all &lt;- 
+    cbind(KA=2.94E-01, CL=CL, V2=4.02E+01,  # central 
+    Q=1.05E+01, V3=2.97E+02,                # peripheral
+    Kin=1, Kout=1, EC50=200)                # effects  
+head(theta.all)
+</code></pre>
+
 <pre><code>##         KA       CL   V2    Q  V3 Kin Kout EC50
-## [1,] 0.294 15.05409 40.2 10.5 297   1    1  200
-## [2,] 0.294 20.62587 40.2 10.5 297   1    1  200
-## [3,] 0.294 23.32046 40.2 10.5 297   1    1  200
-## [4,] 0.294 23.46986 40.2 10.5 297   1    1  200
-## [5,] 0.294 16.72028 40.2 10.5 297   1    1  200
-## [6,] 0.294 20.17157 40.2 10.5 297   1    1  200</code></pre>
-<p>Each subproblem can be simulated by using an explicit loop (or the <code>apply()</code> function) to run the simulation for each set of parameters of in the parameter matrix.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">nobs &lt;-<span class="st"> </span>ev<span class="op">$</span><span class="kw">get.nobs</span>()
-<span class="kw">set.seed</span>(<span class="dv">1</span>)
-cp.all &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="ot">NA</span>, nobs, nsub)
-<span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span>nsub)
+## [1,] 0.294 16.82606 40.2 10.5 297   1    1  200
+## [2,] 0.294 19.15463 40.2 10.5 297   1    1  200
+## [3,] 0.294 16.27225 40.2 10.5 297   1    1  200
+## [4,] 0.294 24.00847 40.2 10.5 297   1    1  200
+## [5,] 0.294 19.60693 40.2 10.5 297   1    1  200
+## [6,] 0.294 16.31177 40.2 10.5 297   1    1  200
+</code></pre>
+
+<p>Each subproblem can be simulated by using an explicit loop (or the <code>apply()</code>
+function) to run the simulation for each set of parameters of in the parameter
+matrix. </p>
+
+<pre><code class="r">nobs &lt;- ev$get.nobs()
+set.seed(1)
+cp.all &lt;- matrix(NA, nobs, nsub)
+for (i in 1:nsub)
 {
-    theta &lt;-<span class="st"> </span>theta.all[i,]
-    x &lt;-<span class="st"> </span>mod1<span class="op">$</span><span class="kw">solve</span>(theta, ev, <span class="dt">inits=</span>inits)
-    cp.all[, i] &lt;-<span class="st"> </span>x[, <span class="st">&quot;C2&quot;</span>]
+    theta &lt;- theta.all[i,]
+    x &lt;- mod1$solve(theta, ev, inits=inits)
+    cp.all[, i] &lt;- x[, &quot;C2&quot;]
 }
 
-<span class="kw">matplot</span>(cp.all, <span class="dt">type=</span><span class="st">&quot;l&quot;</span>, <span class="dt">ylab=</span><span class="st">&quot;Central Concentration&quot;</span>)</code></pre></div>
-<p><img src="data:image/png;base64,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" /><!-- --></p>
-<p>It is now straightforward to perform calculations and generate plots with the simulated data. Below, the 5th, 50th, and 95th percentiles of the simulated data are plotted.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">cp.q &lt;-<span class="st"> </span><span class="kw">apply</span>(cp.all, <span class="dv">1</span>, quantile, <span class="dt">prob =</span> <span class="kw">c</span>(<span class="fl">0.05</span>, <span class="fl">0.50</span>, <span class="fl">0.95</span>))
-<span class="kw">matplot</span>(<span class="kw">t</span>(cp.q), <span class="dt">type=</span><span class="st">&quot;l&quot;</span>, <span class="dt">lty=</span><span class="kw">c</span>(<span class="dv">2</span>,<span class="dv">1</span>,<span class="dv">2</span>), <span class="dt">col=</span><span class="kw">c</span>(<span class="dv">2</span>,<span class="dv">1</span>,<span class="dv">2</span>), <span class="dt">ylab=</span><span class="st">&quot;Central Concentration&quot;</span>)</code></pre></div>
-<p><img src="data:image/png;base64,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" /><!-- --></p>
-</div>
-<div id="facilities-for-generating-r-shiny-applications" class="section level4">
+matplot(cp.all, type=&quot;l&quot;, ylab=&quot;Central Concentration&quot;)
+</code></pre>
+
+<p><img src="data:image/png;base64,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" alt="plot of chunk unnamed-chunk-39"/></p>
+
+<p>It is now straightforward to perform calculations and generate plots
+with the simulated data. Below,  the 5th, 50th, and 95th percentiles
+of the simulated data are plotted. </p>
+
+<pre><code class="r">cp.q &lt;- apply(cp.all, 1, quantile, prob = c(0.05, 0.50, 0.95))
+matplot(t(cp.q), type=&quot;l&quot;, lty=c(2,1,2), col=c(2,1,2), ylab=&quot;Central Concentration&quot;)
+</code></pre>
+
+<p><img src="data:image/png;base64,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" alt="plot of chunk unnamed-chunk-40"/></p>
+
 <h4>Facilities for generating R shiny applications</h4>
-<p>An example of creating an R <a href="http://shiny.rstudio.com">shiny application</a> to interactively explore responses of various complex dosing regimens is available at <a href="http://qsp.engr.uga.edu:3838/RxODE/RegimenSimulator" class="uri">http://qsp.engr.uga.edu:3838/RxODE/RegimenSimulator</a>. Shiny applications like this one may be programmatically created with the experimental function <code>genShinyApp.template()</code>.</p>
-<p>The above application includes widgets for varying the dose, dosing regimen, dose cycle, and number of cycles.</p>
+
+<p>An example of creating an R <a href="http://shiny.rstudio.com">shiny application</a> to
+interactively explore responses of various complex dosing regimens is available
+at <a href="http://qsp.engr.uga.edu:3838/RxODE/RegimenSimulator">http://qsp.engr.uga.edu:3838/RxODE/RegimenSimulator</a>.  Shiny applications
+like this one may be programmatically created with the experimental function
+<code>genShinyApp.template()</code>.</p>
+
+<p>The above application includes widgets for varying the dose, dosing
+regimen, dose cycle, and number of cycles.</p>
+
 <pre><code>
 genShinyApp.template(appDir = &quot;shinyExample&quot;, verbose=TRUE)
 
 library(shiny)
 runApp(&quot;shinyExample&quot;)
+
 </code></pre>
-</div>
-<div id="click-here-to-go-to-the-shiny-app" class="section level3">
+
 <h3><a href="http://qsp.engr.uga.edu:3838/RxODE/RegimenSimulator">Click here to go to the Shiny App</a></h3>
-</div>
-</div>
-
-
-
-<!-- dynamically load mathjax for compatibility with self-contained -->
-<script>
-  (function () {
-    var script = document.createElement("script");
-    script.type = "text/javascript";
-    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
-    document.getElementsByTagName("head")[0].appendChild(script);
-  })();
-</script>
 
 </body>
+
 </html>

@@ -387,7 +387,7 @@ between the covariate values. This is the default value.  It is
 equivalent to R's `approxfun` with `method="linear"`, which is the
 default `approxfun`.
 
-```{r}
+```{r out.width="100%"}
 par(mfrow=c(1,2))
 matplot(r1[,"C2"], type="l", ylab="Central Concentration")
 matplot(r1[,"eff"], type="l", ylab = "Effect")
@@ -408,7 +408,7 @@ carried forward, or constant approximation.  This is equivalent to R's
 
 which dives the following plots:
 
-```{r}
+```{r out.width="100%"}
 par(mfrow=c(1,2))
 matplot(r2[,"C2"], type="l", ylab="Central Concentration")
 matplot(r2[,"eff"], type="l", ylab = "Effect")
@@ -423,7 +423,7 @@ mechanistic explanation of a a lag-time type phenomena. RxODE has special handli
 
 You can specify this in a similar manner as the original paper:
 
-```{r}
+```{r out.width="100%"}
 
 mod <- RxODE({
     ## Table 3 from Savic 2007
@@ -459,7 +459,7 @@ Using the `transit` code also automatically turns on the `transit_abs`
 option.  Therefore, the same model can be specified by:
 
 
-```{r}
+```{r out.width="100%"}
 
 mod <- RxODE({
     ## Table 3 from Savic 2007
