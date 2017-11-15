@@ -1,7 +1,7 @@
 rxPermissive({
     context("rxIs")
     library(dplyr)
-    load(devtools::package_file("tests/testthat/test-data-setup.Rdata"))
+    load("test-data-setup.Rdata")
     dat <- as.tbl(dat);
     test_that("rxIs tests", {
         expect_true(rxIs(dat, "data.frame"))

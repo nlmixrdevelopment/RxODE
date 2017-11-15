@@ -244,7 +244,7 @@ double RxODE_abs_log1p(double x){
   }
 }
 
-
+/* Authors: Robert Gentleman and Ross Ihaka and The R Core Team */
 /* Taken directly from https://github.com/wch/r-source/blob/922777f2a0363fd6fe07e926971547dd8315fc24/src/library/stats/src/approx.c*/
 
 typedef struct {

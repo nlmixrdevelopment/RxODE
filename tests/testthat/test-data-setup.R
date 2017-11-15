@@ -4,7 +4,7 @@ rxPermissive({
     context("Test Data Setup (for RcppParallel-style for loop); 0 cov")
     library(dplyr);
 
-    load(devtools::package_file("tests/testthat/test-data-setup.Rdata"))
+    load("test-data-setup.Rdata")
 
     test_that("conversion without covariates", {
         convert1 <- rxDataSetup(dat);
