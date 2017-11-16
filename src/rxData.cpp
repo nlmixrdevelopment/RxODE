@@ -875,24 +875,115 @@ NumericVector rxSetupIni(RObject obj = R_NilValue,
 
 
 
-RObject rxSolveCpp(List args, Environment e){
-  List dll = as<List>(e["dll"]);
-  List modVars = as<List>(dll["modVars"]);
-  CharacterVector trans = modVars["trans"];
+RObject rxSolveCpp(const List &args, Environment &e){
+  List dll = e["dll"];
+  List modVars = dll["modVars"];
   CharacterVector state = modVars["state"];
-  CharacterVector lhs = modVars["lhs"];
-  CharacterVector pars = modVars["pars"];
-  Nullable<IntegerVector> stateIgnore = modVars["state.ignore"];
-  NumericVector params;
+  // The initial conditions cannot be changed for each individual; If
+  // they do they need to be a parameter.
+  Nullable<NumericVector> inits0 = args["inits"];
+  NumericVector inits = rxInits(dll, inits0, state, 0.0);
+  // The parameter vector/matrix/data frame contains the parameters
+  // that will be used.
   RObject par0 = args["params"];
   RObject ev0  = args["events"];
   RObject covs = args["covs"];
-  List events;
-  // Setup events
+  RObject ev1;
+  RObject par1;
   if (rxIs(par0, "rx.event")){
-    events = rxDataSetup(par0, covs);
-  } else if (rxIs(ev0,"rx.event")){
-    events = rxDataSetup(ev0, covs);
+    // Swapped events and parameters
+    ev1 = par0;
+    par1 = ev0;
+  } else if (rxIs(ev0, "rx.event")) {
+    ev1 = par0;
+  } else {
+    stop("Need some event information (observation/dosing times) to solve.\nYou can use either 'eventTable' or an RxODE compatible data frame/matrix.");
   }
+  // Now get the parameters (and covariates)
+  //
+  // Unspecified parameters can be found in the modVars["ini"]
+  NumericVector modVarsIni = modVars["ini"];
+  // The event table can contain covariate information, if it is acutally a data frame or matrix.
+  Nullable<CharacterVector> covnames0, simnames0;
+  CharacterVector covnames, simnames;
+  CharacterVector pars = modVars["params"];
+  int i, j, k = 0;
+  CharacterVector tmpCv;
+  List events;
+  if (!rxIs(ev1,"eventTable") &&  covs.isNULL()){
+    // Now covnames is setup correctly, import into a setup data table.
+    // In this case the events are a data frame or matrix
+    CharacterVector tmpCv =as<CharacterVector>((as<DataFrame>(ev1)).names());
+    for (i = 0; i < pars.size(); i++){
+      for (j = 0; j < tmpCv.size(); i++){
+	if (pars[i] == tmpCv[j]){
+	  k++;
+	  break;
+	}
+      }
+    }
+    covnames = CharacterVector(k);
+    k = 0;
+    for (i = 0; i < pars.size(); i++){
+      for (j = 0; j < tmpCv.size(); i++){
+	if (pars[i] == tmpCv[j]){
+	  covnames[k] = pars[i];
+	  k++;
+	  break;
+	}
+      }
+    }
+    events = rxDataSetup(ev1, (covnames.size() == 0 ? R_NilValue : wrap(covnames)),
+			 args["sigma"], args["sigma.df"],
+                         as<int>(args["sigma.ncores"]),
+                         as<bool>(args["sigma.isChol"]),
+                         as<StringVector>(args["amount.units"]),
+                         as<StringVector>(args["time.units"]));
+  } else {
+    events = rxDataSetup(ev1, covs, args["sigma"], args["sigma.df"],
+			 as<int>(args["sigma.ncores"]),
+			 as<bool>(args["sigma.isChol"]),
+			 as<StringVector>(args["amount.units"]),
+			 as<StringVector>(args["time.units"]));
+    covnames0 = as<Nullable<CharacterVector>>(args["cov.names"]);
+    if (!covnames0.isNull()){
+      covnames = CharacterVector(covnames0);
+    }
+  }
+  simnames0 = as<Nullable<CharacterVector>>(events["sim.names"]);
+  if (!simnames0.isNull()){
+    simnames = CharacterVector(simnames);
+  }
+  k = 0;
+  IntegerVector pcov(covnames.size()+simnames.size());
+  for (i = 0; i < covnames.size(); i++){
+    for (j = 0; j < pars.size(); j++){
+      if (covnames[i] == pars[j]){
+	pcov[i] = j + 1;
+	break;
+      }
+    }
+  }
+  for (i = 0; i < simnames.size(); i++){
+    for (j = 0; j < pars.size(); j++){
+      if (simnames[i] == pars[j]){
+        pcov[i] = j + 1;
+        break;
+      }
+    }
+  }
+  // Now pcov gives the which for the covariate parameters.
+  
+  // CharacterVector simnames =events[""]
+  // List events;
+  // CharacterVector trans = modVars["trans"];
+  // CharacterVector lhs = modVars["lhs"];
+  // 
+  // Setup events
+  // if (rxIs(par0, "rx.event")){
+  //   events = rxDataSetup(par0, covs);
+  // } else if (rxIs(ev0,"rx.event")){
+  //   events = rxDataSetup(ev0, covs);
+  // }
   return R_NilValue;
 }
