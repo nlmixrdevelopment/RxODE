@@ -233,7 +233,7 @@ rxPermissive({
             }
         }
         dat2 <- dat %>% filter(ID == 1) %>% select(-ID)
-
+        ##
         convert1 <- rxDataSetup(dat2);
         expect_equal(length(convert1$cov), 0);
         expect_equal(length(convert1$cov.names), 0);
@@ -268,7 +268,7 @@ rxPermissive({
             }
         }
         dat2 <- dat %>% filter(ID == 1) %>% select(-ID, -DV)
-
+        ##
         convert1 <- rxDataSetup(dat2);
         expect_equal(length(convert1$cov), 0);
         expect_equal(length(convert1$cov.names), 0);
@@ -357,7 +357,7 @@ rxPermissive({
             }
         }
         convert2 <- rxDataSetup(dat, cn);
-
+        ##
         expect_equal(length(convert2$cov.names), 2);
         for (i in unique(dat$ID)){
             w <- seq(convert2$ids$posObs[i] + 1,
@@ -428,7 +428,6 @@ rxPermissive({
         expect_error(rxDataSetup(et, as.matrix(cov2)));
         expect_error(rxDataSetup(et, cov2));
         cov2 <- data.frame(c=c(et$get.sampling()$time, 1)+1, d=c(et$get.sampling()$time, 1)+1);
-
     })
 
     context("Simulated Residual variables")
@@ -462,14 +461,14 @@ rxPermissive({
                     cov1 <- convert1$cov + 0;
                     rxUpdateResiduals(convert1);
                     expect_false(all(convert1$cov == cov1));
-
+                    ##
                     cn <- c("V", "CL")
                     ## cov <- dat %>% filter(EVID == 0) %>% select(V, CL)
                     convert2 <- rxDataSetup(dat, cn, sigma=mcov, df=ifelse(df == 0, Inf, df), ncores=cores, isChol=(ch == 1));
-
+                    ##
                     expect_equal(convert2$cov.names, cn)
                     expect_equal(convert2$simulated.vars, c("s.a", "s.b"))
-
+                    ##
                     cov1 <- convert2$cov + 0;
                     rxUpdateResiduals(convert2);
                     ## In this case, the covariates should be the same, but the residuals should change.
@@ -492,7 +491,7 @@ rxPermissive({
                         ## However, the residuals should not be equal.
                         expect_false(all(as.double(mat1.sim) == as.double(mat2.sim)));
                     }
-
                 }}}
     })
+
 })
