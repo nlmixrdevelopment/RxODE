@@ -28,14 +28,6 @@ r_github_packages:
   - jimhester/covr
   - nlmixrdevelopment/dparser-R
   - nlmixrdevelopment/PreciseSums
-  
-script: 
-  - |
-    R CMD build .
-    travis_wait 40 R CMD check RxODE*tar.gz
-    
-after_failure:
-- find *Rcheck -name '*.fail' -print -exec cat '{}' \;
 
 after_success:
   - travis_wait 20 Rscript -e 'covr::codecov(line_exclusions=c("R/RxODE-win-setup.R", "src/errmsg.f", "src/rprint.c"))'
