@@ -104,28 +104,30 @@ rxRtoolsBaseWin <- function(){
     if(.Platform$OS.type == "unix"){
         return("");
     } else {
-        ## The grep solution assumes that the path is setup correctly;
-        gcc <- Sys.which("gcc.exe")
-        rtools <- sub("[/\\](mingw).*", "", gcc);
-        if (file.exists(file.path(rtools, "Rtools.txt"))){
-            return(rtools)
+        ## Prefer nlmixr rtools over everything
+        keys <- NULL
+        keys <- try(utils::readRegistry(sprintf("SOFTWARE\\nlmixr%s", ifelse(.Platform$r_arch == "i386", "32", "")), hive = "HCU", maxdepth = 2), silent = TRUE);
+        if (!inherits(keys, "try-error")){
+            rtools.base <- normalizePath(file.path(keys[[1]], "rtools"), winslash="/")
         } else {
-            ## Rtools doesn't add itself to the path by default.  To
-            ## remove install headaches, fish for the path a bit.
+            ## The grep solution assumes that the path is setup correctly;
+            gcc <- Sys.which("gcc.exe")
+            rtools <- sub("[/\\](mingw).*", "", gcc);
+            if (file.exists(file.path(rtools, "Rtools.txt"))){
+                return(rtools)
+            } else {
+                ## Rtools doesn't add itself to the path by default.  To
+                ## remove install headaches, fish for the path a bit.
 
-            ## The general solution also corrects the problem of
-            ## having msys or cygwin compilers on top of the Rtools
-            ## compiler, and will adjust the path (just because which
-            ## shows a different path doesn't mean Rtools isn't
-            ## there.)
-            ## This is what Rtools installer is supposed to do.  There is some discussion on devtools if this really occurs...
-            rtools.base <- "C:/Rtools";
-            if (!file.exists(rtools.base)){
-                keys <- NULL
-                keys <- try(utils::readRegistry(sprintf("SOFTWARE\\nlmixr%s", ifelse(.Platform$r_arch == "i386", "32", "")), hive = "HCU", maxdepth = 2), silent = TRUE);
-                if (!inherits(keys, "try-error")){
-                    rtools.base <- normalizePath(file.path(keys[[1]], "rtools"), winslash="/")
-                } else {
+                ## The general solution also corrects the problem of
+                ## having msys or cygwin compilers on top of the Rtools
+                ## compiler, and will adjust the path (just because which
+                ## shows a different path doesn't mean Rtools isn't
+                ## there.)
+                ## This is what Rtools installer is supposed to do.  There is some discussion on devtools if this really occurs...
+                rtools.base <- "C:/Rtools";
+                if (!file.exists(rtools.base)){
+                {
                     keys <- try(utils::readRegistry("SOFTWARE\\R-core\\Rtools", hive = "HCU", view = "32-bit", maxdepth = 2), silent = TRUE)
                     if (is.null(keys) || length(keys) == 0)
                         keys <- try(utils::readRegistry("SOFTWARE\\R-core\\Rtools", hive = "HLM", view = "32-bit", maxdepth = 2), silent = TRUE)
@@ -141,28 +143,29 @@ rxRtoolsBaseWin <- function(){
                         }
                     }
                 }
-            }
-            ver <- R.Version();
-            ver <- paste0(ver$major, ".", gsub(rex::rex(start, capture(except_any_of(".")), ".", anything, end), "\\1", ver$minor))
-            if (!file.exists(rtools.base)){## Based on Issue #2, Rtools may also be installed to RBuildTools;  This is also reflected on the R-stan website.
-                rtoolslist <- apply(expand.grid(c("Rtools", paste0("Rtools/", ver), "RBuildTools", paste0("RBuildTools/", ver)), rxPhysicalDrives()),1,
-                                    function(x){ paste0(x[2], x[1])});
-                for (path in rtoolslist){
-                    if (file.exists(path)){
-                        return(path)
-                    }
                 }
-                ## This way avoid's R's slow for loop, but calculates all file.exists.  I think it may still be slower than a for loop that terminates early
-                ## rtools.base <- rtoolslist[which(file.exists(rtoolslist, sep=""))]
-            }
-            if (file.exists(rtools.base)){
-                return(rtools.base)
-            } else if (file.exists(rtools)) {
-                message("gcc available, assuming it comes from rtools...\nRxODE may not work with other compilers.\n")
-                return(rtools)
-            } else {
-                message("This package requires Rtools!\nPlease download from http://cran.r-project.org/bin/windows/Rtools/,\ninstall and restart your R session before proceeding.")
-                return("c:/Rtools")
+                ver <- R.Version();
+                ver <- paste0(ver$major, ".", gsub(rex::rex(start, capture(except_any_of(".")), ".", anything, end), "\\1", ver$minor))
+                if (!file.exists(rtools.base)){## Based on Issue #2, Rtools may also be installed to RBuildTools;  This is also reflected on the R-stan website.
+                    rtoolslist <- apply(expand.grid(c("Rtools", paste0("Rtools/", ver), "RBuildTools", paste0("RBuildTools/", ver)), rxPhysicalDrives()),1,
+                                        function(x){ paste0(x[2], x[1])});
+                    for (path in rtoolslist){
+                        if (file.exists(path)){
+                            return(path)
+                        }
+                    }
+                    ## This way avoid's R's slow for loop, but calculates all file.exists.  I think it may still be slower than a for loop that terminates early
+                    ## rtools.base <- rtoolslist[which(file.exists(rtoolslist, sep=""))]
+                }
+                if (file.exists(rtools.base)){
+                    return(rtools.base)
+                } else if (file.exists(rtools)) {
+                    message("gcc available, assuming it comes from rtools...\nRxODE may not work with other compilers.\n")
+                    return(rtools)
+                } else {
+                    message("This package requires Rtools!\nPlease download from http://cran.r-project.org/bin/windows/Rtools/,\ninstall and restart your R session before proceeding.")
+                    return("c:/Rtools")
+                }
             }
         }
     }
