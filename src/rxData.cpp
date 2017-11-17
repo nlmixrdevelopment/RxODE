@@ -510,7 +510,7 @@ bool rxUpdateResiduals(List &md){
         NumericMatrix simMat = as<NumericMatrix>(tmp_ro);
 	SEXP cov_ = md["cov"];
         NumericVector cov = NumericVector(cov_);
-	DataFrame ids = md["ids"];
+	DataFrame ids = as<DataFrame>(md["ids"]);
 	IntegerVector posCov = ids["posCov"];
 	IntegerVector nCov   = ids["nCov"];
 	IntegerVector nObs   = ids["nObs"];
