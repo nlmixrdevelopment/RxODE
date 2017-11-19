@@ -589,7 +589,9 @@ List rxModelVars(const RObject &obj){
     List lobj  = as<List>(obj);
     CharacterVector nobj = lobj.names();
     for (int i = 0; i < nobj.size(); i++){
-      if (!params && nobj[i]== "params"){
+      if (nobj[i] == "modVars"){
+	return(rxModelVars(lobj["modVars"]));
+      } else if (!params && nobj[i]== "params"){
 	params=true;
       } else if (!lhs && nobj[i] == "lhs"){
 	lhs=true;
