@@ -60,7 +60,7 @@ bool rxHasEventNames(CharacterVector &nm){
 // [[Rcpp::export]]
 bool rxIs(const RObject &obj, std::string cls){
   if (cls == "rx.event"){
-    return (rxIs(obj, "eventTable") || rxIs(obj, "event.data.frame") || rxIs(obj, "event.matrix"));
+    return (rxIs(obj, "EventTable") || rxIs(obj, "event.data.frame") || rxIs(obj, "event.matrix"));
   } else if (cls == "event.data.frame"){
     if (rxIs(obj, "data.frame")){
       CharacterVector cv =as<CharacterVector>((as<DataFrame>(obj)).names());
@@ -940,7 +940,7 @@ RObject rxDataParSetup(const RObject &object,
   int i, j, k = 0;
   CharacterVector tmpCv;
   List ret;
-  if (!rxIs(ev1,"eventTable") &&  covs.isNULL()){
+  if (!rxIs(ev1,"EventTable") &&  covs.isNULL()){
     // Now covnames is setup correctly, import into a setup data table.
     // In this case the events are a data frame or matrix
     CharacterVector tmpCv =as<CharacterVector>((as<DataFrame>(ev1)).names());
@@ -973,13 +973,14 @@ RObject rxDataParSetup(const RObject &object,
       covnames = CharacterVector(covnames0);
     }
   }
-  simnames0 = as<Nullable<CharacterVector>>(ret["sim.names"]);
+  simnames0 = as<Nullable<CharacterVector>>(ret["simulated.vars"]);
   if (!simnames0.isNull()){
     simnames = CharacterVector(simnames);
   }
   // Now get the parameters as a data.frame
   DataFrame parDf;
-  if (rxIs(par1, "data.frame") || rxIs(par1, "matrix")){
+  if (par1.isNULL()){
+  } else if (rxIs(par1, "data.frame") || rxIs(par1, "matrix")){
     parDf = as<DataFrame>(par1);
   } else if (rxIs(par1, "numeric") || rxIs(par1, "integer")){
     // First create a matrix, then convert to a data.frame
