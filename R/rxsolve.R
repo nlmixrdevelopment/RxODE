@@ -700,7 +700,7 @@ rxSolve.solveRxODE <- function(object, params=NULL, events=NULL, inits = NULL, s
 ##' @param sigma.isChol
 ##' @return
 ##' @author Matthew L. Fidler
-rxDataParSetup <- function(dll,
+rxDataParSetup <- function(object,
                            params=NULL,
                            events=NULL,
                            inits=NULL,

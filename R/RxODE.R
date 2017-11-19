@@ -941,6 +941,15 @@ print.RxODE <-
     invisible(x)
 }
 
+##'@export
+print.rxModelVars <- function(x, ...)
+{
+    message("RxODE model variables (see str to see all variables)");
+    message(sprintf('States: %s', paste(x$state, collapse=", ")))
+    message(sprintf('Params: %s', paste(x$params, collapse=", ")))
+    invisible(x)
+}
+
 ##' Print expanded information about the RxODE object.
 ##'
 ##' This prints the expanded information about the RxODE object.

@@ -89,7 +89,7 @@ rxUpdateResiduals <- function(md) {
 #' @keywords internal
 #' @author Matthew L.Fidler
 #' @export
-rxModelVars <- function(obj = NULL) {
+rxModelVars <- function(obj) {
     .Call(`_RxODE_rxModelVars`, obj)
 }
 
@@ -125,11 +125,11 @@ rxState <- function(obj = NULL, state = NULL) {
 #'
 #' @author Matthew L.Fidler
 #' @export
-rxParams <- function(obj = NULL) {
+rxParams <- function(obj) {
     .Call(`_RxODE_rxParams`, obj)
 }
 
-#' Jacobain and parameter derivatives
+#' Jacobian and parameter derivatives
 #'
 #' Return Jacobain and parameter derivatives
 #'
@@ -139,7 +139,7 @@ rxParams <- function(obj = NULL) {
 #'     object.
 #' @author Matthew L. Fidler
 #' @export
-rxDfdy <- function(obj = NULL) {
+rxDfdy <- function(obj) {
     .Call(`_RxODE_rxDfdy`, obj)
 }
 
@@ -154,7 +154,7 @@ rxDfdy <- function(obj = NULL) {
 #'
 #' @author Matthew L.Fidler
 #' @export
-rxLhs <- function(obj = NULL) {
+rxLhs <- function(obj) {
     .Call(`_RxODE_rxLhs`, obj)
 }
 
@@ -178,7 +178,7 @@ rxLhs <- function(obj = NULL) {
 #' @keywords internal
 #' @author Matthew L.Fidler
 #' @export
-rxInits <- function(obj = NULL, vec = NULL, req = NULL, defaultValue = 0, noerror = FALSE, noini = FALSE) {
+rxInits <- function(obj, vec = NULL, req = NULL, defaultValue = 0, noerror = FALSE, noini = FALSE) {
     .Call(`_RxODE_rxInits`, obj, vec, req, defaultValue, noerror, noini)
 }
 
@@ -189,7 +189,7 @@ rxInits <- function(obj = NULL, vec = NULL, req = NULL, defaultValue = 0, noerro
 #' @author Matthew L. Fidler
 #' @keywords internal
 #' @export
-rxSetupIni <- function(obj = NULL, inits = NULL) {
+rxSetupIni <- function(obj, inits = NULL) {
     .Call(`_RxODE_rxSetupIni`, obj, inits)
 }
 

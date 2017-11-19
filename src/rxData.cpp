@@ -562,14 +562,17 @@ bool rxUpdateResiduals(List &md){
 //' @author Matthew L.Fidler
 //' @export
 // [[Rcpp::export]]
-List rxModelVars(RObject obj = R_NilValue){
-  if (rxIs(obj,"RxODE")) {
+List rxModelVars(const RObject &obj){
+  if (rxIs(obj, "rxModelVars")){
+    List ret(obj);
+    return ret;
+  } else if (rxIs(obj,"RxODE")) {
     Function f = as<Function>((as<List>((as<List>(obj))["cmpMgr"]))["rxDll"]);
     List lst = f();
     return lst["modVars"];
   } else if (rxIs(obj,"solveRxODE")){
     Environment e = as<Environment>((as<Environment>(obj.attr(".env")))["env"]);
-    return  rxModelVars(e["out"]);
+    return  rxModelVars(as<RObject>(e["out"]));
   } else if (rxIs(obj,"rxDll")){
     List lobj = (as<List>(obj))["modVars"];
     return lobj;
@@ -631,7 +634,7 @@ List rxModelVars(RObject obj = R_NilValue){
 //' @author Matthew L.Fidler
 //' @export
 // [[Rcpp::export]]
-RObject rxState(RObject obj = R_NilValue, RObject state = R_NilValue){
+RObject rxState(const RObject &obj = R_NilValue, RObject state = R_NilValue){
   List modVar = rxModelVars(obj);
   CharacterVector states = modVar["state"];
   if (state.isNULL()){
@@ -670,14 +673,14 @@ RObject rxState(RObject obj = R_NilValue, RObject state = R_NilValue){
 //' @author Matthew L.Fidler
 //' @export
 //[[Rcpp::export]]
-CharacterVector rxParams(RObject obj = R_NilValue){
+CharacterVector rxParams(const RObject &obj){
   List modVar = rxModelVars(obj);
   CharacterVector ret = modVar["params"];
   return ret;
 }
 
 
-//' Jacobain and parameter derivatives
+//' Jacobian and parameter derivatives
 //'
 //' Return Jacobain and parameter derivatives
 //'
@@ -688,7 +691,7 @@ CharacterVector rxParams(RObject obj = R_NilValue){
 //' @author Matthew L. Fidler
 //' @export
 //[[Rcpp::export]]
-CharacterVector rxDfdy(RObject obj = R_NilValue){
+CharacterVector rxDfdy(const RObject &obj){
   List modVar = rxModelVars(obj);
   CharacterVector ret = modVar["dfdy"];
   return ret;
@@ -706,7 +709,7 @@ CharacterVector rxDfdy(RObject obj = R_NilValue){
 //' @author Matthew L.Fidler
 //' @export
 //[[Rcpp::export]]
-CharacterVector rxLhs(RObject obj = R_NilValue){
+CharacterVector rxLhs(const RObject &obj){
   List modVar = rxModelVars(obj);
   CharacterVector ret = modVar["lhs"];
   return ret;
@@ -733,7 +736,7 @@ CharacterVector rxLhs(RObject obj = R_NilValue){
 //' @author Matthew L.Fidler
 //' @export
 //[[Rcpp::export]]
-NumericVector rxInits(RObject obj = R_NilValue,
+NumericVector rxInits(const RObject &obj,
 		      Nullable<NumericVector> vec = R_NilValue,
 		      Nullable<CharacterVector> req = R_NilValue,
 		      double defaultValue = 0,
@@ -866,7 +869,7 @@ NumericVector rxInits(RObject obj = R_NilValue,
 //' @keywords internal
 //' @export
 //[[Rcpp::export]]
-NumericVector rxSetupIni(RObject obj = R_NilValue,
+NumericVector rxSetupIni(const RObject &obj,
 			   Nullable<NumericVector> inits = R_NilValue){
   List modVars = rxModelVars(obj);
   CharacterVector state = modVars["state"];
@@ -876,7 +879,7 @@ NumericVector rxSetupIni(RObject obj = R_NilValue,
 //[[Rcpp::export]]
 RObject rxDataParSetup_(const List &args){
   // Args is a named list where
-  // dll
+  // object
   // inits
   // params
   // events
@@ -885,13 +888,13 @@ RObject rxDataParSetup_(const List &args){
   // args["sigma.df"],
   // as<int>(args["sigma.ncores"]),
   // as<bool>(args["sigma.isChol"]),
-  List dll = args["dll"];
-  List modVars = dll["modVars"];
+  List object = args["object"];
+  List modVars = rxModelVars(object);
   CharacterVector state = modVars["state"];
   // The initial conditions cannot be changed for each individual; If
   // they do they need to be a parameter.
   Nullable<NumericVector> inits0 = args["inits"];
-  NumericVector inits = rxInits(dll, inits0, state, 0.0);
+  NumericVector inits = rxInits(object, inits0, state, 0.0);
   // The parameter vector/matrix/data frame contains the parameters
   // that will be used.
   RObject par0 = args["params"];

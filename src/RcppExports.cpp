@@ -50,68 +50,68 @@ BEGIN_RCPP
 END_RCPP
 }
 // rxModelVars
-List rxModelVars(RObject obj);
+List rxModelVars(const RObject& obj);
 RcppExport SEXP _RxODE_rxModelVars(SEXP objSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< RObject >::type obj(objSEXP);
+    Rcpp::traits::input_parameter< const RObject& >::type obj(objSEXP);
     rcpp_result_gen = Rcpp::wrap(rxModelVars(obj));
     return rcpp_result_gen;
 END_RCPP
 }
 // rxState
-RObject rxState(RObject obj, RObject state);
+RObject rxState(const RObject& obj, RObject state);
 RcppExport SEXP _RxODE_rxState(SEXP objSEXP, SEXP stateSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< RObject >::type obj(objSEXP);
+    Rcpp::traits::input_parameter< const RObject& >::type obj(objSEXP);
     Rcpp::traits::input_parameter< RObject >::type state(stateSEXP);
     rcpp_result_gen = Rcpp::wrap(rxState(obj, state));
     return rcpp_result_gen;
 END_RCPP
 }
 // rxParams
-CharacterVector rxParams(RObject obj);
+CharacterVector rxParams(const RObject& obj);
 RcppExport SEXP _RxODE_rxParams(SEXP objSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< RObject >::type obj(objSEXP);
+    Rcpp::traits::input_parameter< const RObject& >::type obj(objSEXP);
     rcpp_result_gen = Rcpp::wrap(rxParams(obj));
     return rcpp_result_gen;
 END_RCPP
 }
 // rxDfdy
-CharacterVector rxDfdy(RObject obj);
+CharacterVector rxDfdy(const RObject& obj);
 RcppExport SEXP _RxODE_rxDfdy(SEXP objSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< RObject >::type obj(objSEXP);
+    Rcpp::traits::input_parameter< const RObject& >::type obj(objSEXP);
     rcpp_result_gen = Rcpp::wrap(rxDfdy(obj));
     return rcpp_result_gen;
 END_RCPP
 }
 // rxLhs
-CharacterVector rxLhs(RObject obj);
+CharacterVector rxLhs(const RObject& obj);
 RcppExport SEXP _RxODE_rxLhs(SEXP objSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< RObject >::type obj(objSEXP);
+    Rcpp::traits::input_parameter< const RObject& >::type obj(objSEXP);
     rcpp_result_gen = Rcpp::wrap(rxLhs(obj));
     return rcpp_result_gen;
 END_RCPP
 }
 // rxInits
-NumericVector rxInits(RObject obj, Nullable<NumericVector> vec, Nullable<CharacterVector> req, double defaultValue, bool noerror, bool noini);
+NumericVector rxInits(const RObject& obj, Nullable<NumericVector> vec, Nullable<CharacterVector> req, double defaultValue, bool noerror, bool noini);
 RcppExport SEXP _RxODE_rxInits(SEXP objSEXP, SEXP vecSEXP, SEXP reqSEXP, SEXP defaultValueSEXP, SEXP noerrorSEXP, SEXP noiniSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< RObject >::type obj(objSEXP);
+    Rcpp::traits::input_parameter< const RObject& >::type obj(objSEXP);
     Rcpp::traits::input_parameter< Nullable<NumericVector> >::type vec(vecSEXP);
     Rcpp::traits::input_parameter< Nullable<CharacterVector> >::type req(reqSEXP);
     Rcpp::traits::input_parameter< double >::type defaultValue(defaultValueSEXP);
@@ -122,12 +122,12 @@ BEGIN_RCPP
 END_RCPP
 }
 // rxSetupIni
-NumericVector rxSetupIni(RObject obj, Nullable<NumericVector> inits);
+NumericVector rxSetupIni(const RObject& obj, Nullable<NumericVector> inits);
 RcppExport SEXP _RxODE_rxSetupIni(SEXP objSEXP, SEXP initsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< RObject >::type obj(objSEXP);
+    Rcpp::traits::input_parameter< const RObject& >::type obj(objSEXP);
     Rcpp::traits::input_parameter< Nullable<NumericVector> >::type inits(initsSEXP);
     rcpp_result_gen = Rcpp::wrap(rxSetupIni(obj, inits));
     return rcpp_result_gen;

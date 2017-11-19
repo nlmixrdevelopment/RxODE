@@ -1499,8 +1499,11 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
   fprintf(outpt,"\tsetAttrib(model, R_NamesSymbol, modeln);\n");
   fprintf(outpt,"\tsetAttrib(ini, R_NamesSymbol, inin);\n");
   fprintf(outpt,"\tsetAttrib(lst, R_NamesSymbol, names);\n");
-
-  fprintf(outpt,"\tUNPROTECT(17);\n");
+  fprintf(outpt, "\tSEXP cls = PROTECT(allocVector(STRSXP, 1));\n");
+  fprintf(outpt, "\tSET_STRING_ELT(cls, 0, mkChar(\"rxModelVars\"));\n");
+  fprintf(outpt, "\tclassgets(lst, cls);\n");
+  
+  fprintf(outpt,"\tUNPROTECT(18);\n");
   
   fprintf(outpt,"\treturn lst;\n");
   fprintf(outpt,"}\n");
@@ -2332,7 +2335,11 @@ SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP pref
   setAttrib(tran,  R_NamesSymbol, trann);
   setAttrib(lst,   R_NamesSymbol, names);
   setAttrib(model, R_NamesSymbol, modeln);
-  UNPROTECT(15);
+  SEXP cls = PROTECT(allocVector(STRSXP, 1));
+  SET_STRING_ELT(cls, 0, mkChar("rxModelVars"));
+  classgets(lst, cls);
+  
+  UNPROTECT(16);
   remove(out3);
   if (rx_syntax_error){
     error("Syntax Errors (see above)");
