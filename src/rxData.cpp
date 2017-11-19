@@ -878,30 +878,45 @@ NumericVector rxSetupIni(const RObject &obj,
   return rxInits(obj, inits, state, 0.0);
 }
 
+//' Setup Data and Parameters
+//'
+//' @inheritParams rxSolve
+//' @param sigma Named sigma matrix.
+//' @param sigmaDf The degrees of freedom of a t-distribution for
+//'     simulation.  By default this is \code{NULL} which is
+//'     equivalent to \code{Inf} degrees, or to simulate from a normal
+//'     distribution instead of a t-distribution.
+//' @param sigmaNcores Number of cores for residual simulation.  This,
+//'     along with the seed, affects both the outcome and speed of
+//'     simulation. By default it is one.
+//' @param sigmaIsChol Indicates if the \code{sigma} supplied is a
+//'     Cholesky decomposed matrix instead of the traditional
+//'     symmetric matrix.
+//' @return Data setup for running C-based RxODE runs.
+//' @author Matthew L. Fidler
+//' @keywords internal
+//' @export
 //[[Rcpp::export]]
-RObject rxDataParSetup_(const List &args){
-  // Args is a named list where
-  // object
-  // inits
-  // params
-  // events
-  // covs
-  // args["sigma"]
-  // args["sigma.df"],
-  // as<int>(args["sigma.ncores"]),
-  // as<bool>(args["sigma.isChol"]),
-  List object = args["object"];
+RObject rxDataParSetup(const RObject &object,
+			const RObject &params = R_NilValue,
+			const RObject &events = R_NilValue,
+			const Nullable<NumericVector> &inits = R_NilValue,
+			const RObject &covs  = R_NilValue,
+			const RObject &sigma= R_NilValue,
+                        const RObject &sigmaDf= R_NilValue,
+                        const int &sigmaNcores= 1,
+                        const bool &sigmaIsChol= false,
+			const StringVector &amountUnits = NA_STRING,
+                        const StringVector &timeUnits = "hours"){
   List modVars = rxModelVars(object);
   CharacterVector state = modVars["state"];
   // The initial conditions cannot be changed for each individual; If
   // they do they need to be a parameter.
-  Nullable<NumericVector> inits0 = args["inits"];
-  NumericVector inits = rxInits(object, inits0, state, 0.0);
+  NumericVector initsC = rxInits(object, inits, state, 0.0);
   // The parameter vector/matrix/data frame contains the parameters
   // that will be used.
-  RObject par0 = args["params"];
-  RObject ev0  = args["events"];
-  RObject covs = args["covs"];
+  RObject par0 = params;
+  RObject ev0  = events;
   RObject ev1;
   RObject par1;
   if (rxIs(par0, "rx.event")){
@@ -924,7 +939,7 @@ RObject rxDataParSetup_(const List &args){
   CharacterVector pars = modVars["params"];
   int i, j, k = 0;
   CharacterVector tmpCv;
-  List events;
+  List ret;
   if (!rxIs(ev1,"eventTable") &&  covs.isNULL()){
     // Now covnames is setup correctly, import into a setup data table.
     // In this case the events are a data frame or matrix
@@ -948,24 +963,17 @@ RObject rxDataParSetup_(const List &args){
 	}
       }
     }
-    events = rxDataSetup(ev1, (covnames.size() == 0 ? R_NilValue : wrap(covnames)),
-			 args["sigma"], args["sigma.df"],
-                         as<int>(args["sigma.ncores"]),
-                         as<bool>(args["sigma.isChol"]),
-                         as<StringVector>(args["amount.units"]),
-                         as<StringVector>(args["time.units"]));
+    ret = rxDataSetup(ev1, (covnames.size() == 0 ? R_NilValue : wrap(covnames)),
+		      sigma, sigmaDf, sigmaNcores, sigmaIsChol, amountUnits, timeUnits);
   } else {
-    events = rxDataSetup(ev1, covs, args["sigma"], args["sigma.df"],
-			 as<int>(args["sigma.ncores"]),
-			 as<bool>(args["sigma.isChol"]),
-			 as<StringVector>(args["amount.units"]),
-			 as<StringVector>(args["time.units"]));
-    covnames0 = as<Nullable<CharacterVector>>(args["cov.names"]);
+    ret = rxDataSetup(ev1, covs, sigma, sigmaDf,
+		      sigmaNcores, sigmaIsChol, amountUnits, timeUnits);
+    covnames0 = as<Nullable<CharacterVector>>(covnames);
     if (!covnames0.isNull()){
       covnames = CharacterVector(covnames0);
     }
   }
-  simnames0 = as<Nullable<CharacterVector>>(events["sim.names"]);
+  simnames0 = as<Nullable<CharacterVector>>(ret["sim.names"]);
   if (!simnames0.isNull()){
     simnames = CharacterVector(simnames);
   }
@@ -991,7 +999,7 @@ RObject rxDataParSetup_(const List &args){
     }
     parDf = as<DataFrame>(tmp1);
   }
-  int nSub = as<int>(events["nSub"]);
+  int nSub = as<int>(ret["nSub"]);
   if (parDf.nrow() % nSub != 0){
     stop("The Number of parameters must be a multiple of the number of subjects.");
   }
@@ -1081,11 +1089,12 @@ RObject rxDataParSetup_(const List &args){
       parsVec[i] = modVarsIni[-(posPar[k]+1)];
     }
   }
-  events["pars"] = parsVec;
-  events["nsim"] = parDf.nrow() % nSub;
+  ret["pars"] = parsVec;
+  ret["nsim"] = parDf.nrow() % nSub;
+  ret["inits"] = initsC;
   StringVector cls(2);
   cls(0) = "RxODE.par.data";
   cls(1) = "RxODE.multi.data";
-  events.attr("class") = cls;
-  return events;
+  ret.attr("class") = cls;
+  return ret;
 }

@@ -695,24 +695,17 @@ rxSolve.solveRxODE <- function(object, params=NULL, events=NULL, inits = NULL, s
 ##' @param dll
 ##' @inheritParams rxSolve
 ##' @param sigma Named sigma matrix.
-##' @param sigma.df The degrees of freedom of a t-distribution for
+##' @param sigmaDf The degrees of freedom of a t-distribution for
 ##'     simulation.  By default this is \code{Inf}, or to simulate
 ##'     from a normal distribution instead of a t.
-##' @param sigma.ncores Number of cores for residual simulation.
+##' @param sigmaNcores Number of cores for residual simulation.
 ##'     This, along with the seed, affects both the outcome and speed
 ##'     of simulation. By default it is one.
-##' @param sigma.isChol Indicates if the \code{sigma} supplied is a
+##' @param sigmaIsChol Indicates if the \code{sigma} supplied is a
 ##'     Cholesky decomposed matrix instead of the traditional
 ##'     symmetric matrix.
-##' @return Data setup for running C-based RxODE runs.r
+##' @return Data setup for running C-based RxODE runs.
 ##' @author Matthew L. Fidler
-rxDataParSetup <- function(object,
-                           params=NULL,
-                           events=NULL,
-                           inits=NULL,
-                           sigma=NULL,
-                           sigma.df=Inf,
-                           sigma.ncores=1L,
-                           sigma.isChol=FALSE){
-    return(.Call(`_RxODE_rxDataParSetup_`, as.list(match.call())[-1]));
-}
+##' @keywords internal
+##' @export
+

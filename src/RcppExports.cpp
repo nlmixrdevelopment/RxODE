@@ -133,14 +133,24 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// rxDataParSetup_
-RObject rxDataParSetup_(const List& args);
-RcppExport SEXP _RxODE_rxDataParSetup_(SEXP argsSEXP) {
+// rxDataParSetup
+RObject rxDataParSetup(const RObject& object, const RObject& params, const RObject& events, const Nullable<NumericVector>& inits, const RObject& covs, const RObject& sigma, const RObject& sigmaDf, const int& sigmaNcores, const bool& sigmaIsChol, const StringVector& amountUnits, const StringVector& timeUnits);
+RcppExport SEXP _RxODE_rxDataParSetup(SEXP objectSEXP, SEXP paramsSEXP, SEXP eventsSEXP, SEXP initsSEXP, SEXP covsSEXP, SEXP sigmaSEXP, SEXP sigmaDfSEXP, SEXP sigmaNcoresSEXP, SEXP sigmaIsCholSEXP, SEXP amountUnitsSEXP, SEXP timeUnitsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const List& >::type args(argsSEXP);
-    rcpp_result_gen = Rcpp::wrap(rxDataParSetup_(args));
+    Rcpp::traits::input_parameter< const RObject& >::type object(objectSEXP);
+    Rcpp::traits::input_parameter< const RObject& >::type params(paramsSEXP);
+    Rcpp::traits::input_parameter< const RObject& >::type events(eventsSEXP);
+    Rcpp::traits::input_parameter< const Nullable<NumericVector>& >::type inits(initsSEXP);
+    Rcpp::traits::input_parameter< const RObject& >::type covs(covsSEXP);
+    Rcpp::traits::input_parameter< const RObject& >::type sigma(sigmaSEXP);
+    Rcpp::traits::input_parameter< const RObject& >::type sigmaDf(sigmaDfSEXP);
+    Rcpp::traits::input_parameter< const int& >::type sigmaNcores(sigmaNcoresSEXP);
+    Rcpp::traits::input_parameter< const bool& >::type sigmaIsChol(sigmaIsCholSEXP);
+    Rcpp::traits::input_parameter< const StringVector& >::type amountUnits(amountUnitsSEXP);
+    Rcpp::traits::input_parameter< const StringVector& >::type timeUnits(timeUnitsSEXP);
+    rcpp_result_gen = Rcpp::wrap(rxDataParSetup(object, params, events, inits, covs, sigma, sigmaDf, sigmaNcores, sigmaIsChol, amountUnits, timeUnits));
     return rcpp_result_gen;
 END_RCPP
 }

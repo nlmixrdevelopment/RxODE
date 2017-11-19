@@ -193,8 +193,26 @@ rxSetupIni <- function(obj, inits = NULL) {
     .Call(`_RxODE_rxSetupIni`, obj, inits)
 }
 
-rxDataParSetup_ <- function(args) {
-    .Call(`_RxODE_rxDataParSetup_`, args)
+#' Setup Data and Parameters
+#'
+#' @inheritParams rxSolve
+#' @param sigma Named sigma matrix.
+#' @param sigmaDf The degrees of freedom of a t-distribution for
+#'     simulation.  By default this is \code{NULL} which is
+#'     equivalent to \code{Inf} degrees, or to simulate from a normal
+#'     distribution instead of a t-distribution.
+#' @param sigmaNcores Number of cores for residual simulation.  This,
+#'     along with the seed, affects both the outcome and speed of
+#'     simulation. By default it is one.
+#' @param sigmaIsChol Indicates if the \code{sigma} supplied is a
+#'     Cholesky decomposed matrix instead of the traditional
+#'     symmetric matrix.
+#' @return Data setup for running C-based RxODE runs.
+#' @author Matthew L. Fidler
+#' @keywords internal
+#' @export
+rxDataParSetup <- function(object, params = NULL, events = NULL, inits = NULL, covs = NULL, sigma = NULL, sigmaDf = NULL, sigmaNcores = 1L, sigmaIsChol = FALSE, amountUnits = NA_character_, timeUnits = "hours") {
+    .Call(`_RxODE_rxDataParSetup`, object, params, events, inits, covs, sigma, sigmaDf, sigmaNcores, sigmaIsChol, amountUnits, timeUnits)
 }
 
 #' Invert matrix using Rcpp Armadilo.  
