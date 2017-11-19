@@ -2,9 +2,9 @@
 % Please edit documentation in R/RcppExports.R
 \name{rxDfdy}
 \alias{rxDfdy}
-\title{Jacobain and parameter derivatives}
+\title{Jacobian and parameter derivatives}
 \usage{
-rxDfdy(obj = NULL)
+rxDfdy(obj)
 }
 \arguments{
 \item{obj}{RxODE family of objects}

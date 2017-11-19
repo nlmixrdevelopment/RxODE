@@ -4,7 +4,7 @@
 \alias{rxSetupIni}
 \title{Setup the initial conditions.}
 \usage{
-rxSetupIni(obj = NULL, inits = NULL)
+rxSetupIni(obj, inits = NULL)
 }
 \arguments{
 \item{obj}{RxODE object}

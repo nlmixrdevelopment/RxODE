@@ -5,7 +5,7 @@
 \alias{rxModelVars.character}
 \title{All model variables for a RxODE object}
 \usage{
-rxModelVars(obj = NULL)
+rxModelVars(obj)
 
 rxModelVars.character(obj)
 }

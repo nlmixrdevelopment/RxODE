@@ -5,11 +5,11 @@
 \alias{rxInit}
 \title{Initial Values and State values for a RxODE object}
 \usage{
-rxInits(obj = NULL, vec = NULL, req = NULL, defaultValue = 0,
-  noerror = FALSE, noini = FALSE)
+rxInits(obj, vec = NULL, req = NULL, defaultValue = 0, noerror = FALSE,
+  noini = FALSE)
 
-rxInit(obj = NULL, vec = NULL, req = NULL, defaultValue = 0,
-  noerror = FALSE, noini = FALSE)
+rxInit(obj, vec = NULL, req = NULL, defaultValue = 0, noerror = FALSE,
+  noini = FALSE)
 }
 \arguments{
 \item{obj}{rxDll, RxODE, or named vector representing default
