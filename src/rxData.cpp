@@ -873,10 +873,19 @@ NumericVector rxSetupIni(RObject obj = R_NilValue,
   return rxInits(obj, inits, state, 0.0);
 }
 
-
-
-RObject rxSolveCpp(const List &args, Environment &e){
-  List dll = e["dll"];
+//[[Rcpp::export]]
+RObject rxDataParSetup_(const List &args){
+  // Args is a named list where
+  // dll
+  // inits
+  // params
+  // events
+  // covs
+  // args["sigma"]
+  // args["sigma.df"],
+  // as<int>(args["sigma.ncores"]),
+  // as<bool>(args["sigma.isChol"]),
+  List dll = args["dll"];
   List modVars = dll["modVars"];
   CharacterVector state = modVars["state"];
   // The initial conditions cannot be changed for each individual; If
@@ -895,7 +904,8 @@ RObject rxSolveCpp(const List &args, Environment &e){
     ev1 = par0;
     par1 = ev0;
   } else if (rxIs(ev0, "rx.event")) {
-    ev1 = par0;
+    ev1 = ev0;
+    par1 = par0;
   } else {
     stop("Need some event information (observation/dosing times) to solve.\nYou can use either 'eventTable' or an RxODE compatible data frame/matrix.");
   }
@@ -954,6 +964,32 @@ RObject rxSolveCpp(const List &args, Environment &e){
   if (!simnames0.isNull()){
     simnames = CharacterVector(simnames);
   }
+  // Now get the parameters as a data.frame
+  DataFrame parDf;
+  if (rxIs(par1, "data.frame") || rxIs(par1, "matrix")){
+    parDf = as<DataFrame>(par1);
+  } else if (rxIs(par1, "numeric") || rxIs(par1, "integer")){
+    // First create a matrix, then convert to a data.frame
+    // There may be a faster solution, but this works....
+    NumericVector tmp0 = as<NumericVector>(par1);
+    NumericMatrix tmp1(1, tmp0.size());
+    for (i = 0; i < tmp0.size(); i++){
+      tmp1(0,i) = tmp0[i];
+    }
+    if (tmp0.hasAttribute("names")){
+      tmp1.attr("dimnames") = List::create(R_NilValue, tmp0.names());
+    } else if (tmp0.size() == pars.size()){
+      tmp1.attr("dimnames") = List::create(R_NilValue, pars);
+    } else {
+      // In this case there are no names
+      stop("The parameter names must be specified.");
+    }
+    parDf = as<DataFrame>(tmp1);
+  }
+  int nSub = as<int>(events["nSub"]);
+  if (parDf.nrow() % nSub != 0){
+    stop("The Number of parameters must be a multiple of the number of subjects.");
+  }
   k = 0;
   IntegerVector pcov(covnames.size()+simnames.size());
   for (i = 0; i < covnames.size(); i++){
@@ -973,17 +1009,78 @@ RObject rxSolveCpp(const List &args, Environment &e){
     }
   }
   // Now pcov gives the which for the covariate parameters.
-  
-  // CharacterVector simnames =events[""]
-  // List events;
-  // CharacterVector trans = modVars["trans"];
-  // CharacterVector lhs = modVars["lhs"];
-  // 
-  // Setup events
-  // if (rxIs(par0, "rx.event")){
-  //   events = rxDataSetup(par0, covs);
-  // } else if (rxIs(ev0,"rx.event")){
-  //   events = rxDataSetup(ev0, covs);
-  // }
-  return R_NilValue;
+
+  // Now check if we have all the parameters that are needed.
+  std::string errStr = "";
+  bool allPars = true;
+  bool curPar = false;
+  IntegerVector posPar(pars.size());
+  CharacterVector nms = modVarsIni.names();
+  CharacterVector nmP = parDf.names();
+  for (i = 0; i < pars.size(); i++){
+    curPar = false;
+    // integers are faster to compare than strings.
+    for (j = 0; j < pcov.size(); j++){
+      if (pcov[j] == i - 1){
+	posPar[i] = 0; // Covariates are zeroed out.
+	curPar = true;
+	break;
+      }
+    }
+    // First Check to see if the user specified the parameter.
+    if (!curPar){
+      for (j = 0; j < nmP.size(); j++){
+        if (nmP[j] == pars[i]){
+          curPar = true;
+          posPar[i] = j + 1;
+          break;
+        }
+      }
+    }
+    // Now check $ini
+    if (!curPar){
+      for(j = 0; j < modVarsIni.size(); j++){
+        if (nms[j] == pars[i]){
+          curPar = true;
+          posPar[i] = -j - 1;
+          break;
+        }
+      }
+    }
+    if (!curPar){
+      if (allPars){
+	errStr = "The following parameter(s) are required for solving: " + pars[i];
+      } else {
+	errStr = ", " + pars[i];
+      }
+      allPars = false;
+    }
+  }
+  if (!allPars){
+    stop(errStr);
+  }
+  // Now  the parameter names are setup.
+  // The parameters are setup in a numeric vector in order of pars
+  NumericVector parsVec(pars.size()*parDf.nrow());
+  j = 0;
+  for (i = 0; i < parsVec.size(); i++){
+    j = floor(i / parsVec.size());
+    k = i % parsVec.size();
+    if (posPar[k] == 0){
+      parsVec[i] = 0;
+    } else if (posPar[k] > 0){
+      // posPar[i] = j + 1;
+      parsVec[i] = parDf(j, posPar[k]-1); 
+    } else {
+      // posPar[i] = -j - 1;
+      parsVec[i] = modVarsIni[-(posPar[k]+1)];
+    }
+  }
+  events["pars"] = parsVec;
+  events["nsim"] = parDf.nrow() % nSub;
+  StringVector cls(2);
+  cls(0) = "RxODE.par.data";
+  cls(1) = "RxODE.multi.data";
+  events.attr("class") = cls;
+  return events;
 }

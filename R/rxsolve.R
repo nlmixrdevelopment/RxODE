@@ -689,3 +689,24 @@ rxSolve.solveRxODE <- function(object, params=NULL, events=NULL, inits = NULL, s
 ##     call$x <- as.data.table(x);
 ##     return(do.call(getFromNamespace("as.data.table","data.table"), call, envir = parent.frame(1)));
 ## }
+
+##' Setup Data and Parameters
+##'
+##' @param dll
+##' @inheritParams rxSolve
+##' @param sigma Named sigma matrix.
+##' @param sigma.df
+##' @param sigma.ncores
+##' @param sigma.isChol
+##' @return
+##' @author Matthew L. Fidler
+rxDataParSetup <- function(dll,
+                           params=NULL,
+                           events=NULL,
+                           inits=NULL,
+                           sigma=NULL,
+                           sigma.df=Inf,
+                           sigma.ncores=1L,
+                           sigma.isChol=FALSE){
+    return(.Call(`_RxODE_rxDataParSetup_`, as.list(match.call())[-1]));
+}

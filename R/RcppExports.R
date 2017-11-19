@@ -193,6 +193,10 @@ rxSetupIni <- function(obj = NULL, inits = NULL) {
     .Call(`_RxODE_rxSetupIni`, obj, inits)
 }
 
+rxDataParSetup_ <- function(args) {
+    .Call(`_RxODE_rxDataParSetup_`, args)
+}
+
 #' Invert matrix using Rcpp Armadilo.  
 #'
 #' @param matrix matrix to be inverted.
