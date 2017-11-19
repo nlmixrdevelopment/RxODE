@@ -26,6 +26,21 @@ vector must be the same as the state variables (e.g., PK/PD
 compartments);}
 
 \item{sigma}{Named sigma matrix.}
+
+\item{sigma.df}{The degrees of freedom of a t-distribution for
+simulation.  By default this is \code{Inf}, or to simulate
+from a normal distribution instead of a t.}
+
+\item{sigma.ncores}{Number of cores for residual simulation.
+This, along with the seed, affects both the outcome and speed
+of simulation. By default it is one.}
+
+\item{sigma.isChol}{Indicates if the \code{sigma} supplied is a
+Cholesky decomposed matrix instead of the traditional
+symmetric matrix.}
+}
+\value{
+Data setup for running C-based RxODE runs.r
 }
 \description{
 Setup Data and Parameters
