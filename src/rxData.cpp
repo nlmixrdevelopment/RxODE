@@ -1075,7 +1075,9 @@ RObject rxDataParSetup(const RObject &object,
   }
   // Now  the parameter names are setup.
   // The parameters are setup in a numeric vector in order of pars
-  NumericVector parsVec(pars.size()*parDf.nrow());
+  int nr = parDf.nrow();
+  if (nr == 0) nr = 1;
+  NumericVector parsVec(pars.size()*nr);
   j = 0;
   for (i = 0; i < parsVec.size(); i++){
     j = floor(i / parsVec.size());
@@ -1091,7 +1093,9 @@ RObject rxDataParSetup(const RObject &object,
     }
   }
   ret["pars"] = parsVec;
-  ret["nsim"] = parDf.nrow() % nSub;
+  nr = parDf.nrow() % nSub;
+  if (nr == 0) nr = 1;
+  ret["nsim"] = nr;
   ret["inits"] = initsC;
   StringVector cls(2);
   cls(0) = "RxODE.par.data";
