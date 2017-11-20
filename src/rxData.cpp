@@ -1029,7 +1029,11 @@ RObject rxDataParSetup(const RObject &object,
   bool curPar = false;
   IntegerVector posPar(pars.size());
   CharacterVector nms = modVarsIni.names();
-  CharacterVector nmP = (as<List>(parMat.attr("dimnames")))[1];
+  Nullable<CharacterVector> nmP2 = (as<List>(parMat.attr("dimnames")))[1];
+  CharacterVector nmP;
+  if (!nmP2.isNull()){
+    nmP = CharacterVector(nmP2);
+  }
   for (i = 0; i < pars.size(); i++){
     curPar = false;
     // integers are faster to compare than strings.
@@ -1096,7 +1100,7 @@ RObject rxDataParSetup(const RObject &object,
   if (nr == 0) nr = 1;
   ret["nsim"] = nr;
   ret["inits"] = initsC;
-  ret["n.pars"] = IntegerVector(pars.size());
+  ret["n.pars"] = (int)(pars.size());
   StringVector cls(2);
   cls(0) = "RxODE.par.data";
   cls(1) = "RxODE.multi.data";
