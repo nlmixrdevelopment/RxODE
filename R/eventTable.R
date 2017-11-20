@@ -3,7 +3,7 @@
 # a time vector, an event id  describing two types
 # of timed records, doses (input) and sampling times
 # (state variables); in the future there could be
-                                        # other events (e.g., re-setting after "washoout"
+# other events (e.g., re-setting after "washoout"
 # periods, resetting of compartments (e.g., urine),
 # etc.
 # TODO:

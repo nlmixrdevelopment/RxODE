@@ -978,13 +978,12 @@ RObject rxDataParSetup(const RObject &object,
     simnames = CharacterVector(simnames);
   }
   // Now get the parameters as a data.frame
-  DataFrame parDf;
+  NumericMatrix parMat;
   if (par1.isNULL()){
   } else if (rxIs(par1, "data.frame") || rxIs(par1, "matrix")){
-    parDf = as<DataFrame>(par1);
+    parMat = as<NumericMatrix>(par1);
   } else if (rxIs(par1, "numeric") || rxIs(par1, "integer")){
-    // First create a matrix, then convert to a data.frame
-    // There may be a faster solution, but this works....
+    // Create the matrix
     NumericVector tmp0 = as<NumericVector>(par1);
     NumericMatrix tmp1(1, tmp0.size());
     for (i = 0; i < tmp0.size(); i++){
@@ -998,10 +997,10 @@ RObject rxDataParSetup(const RObject &object,
       // In this case there are no names
       stop("The parameter names must be specified.");
     }
-    parDf = as<DataFrame>(tmp1);
+    parMat = tmp1;
   }
   int nSub = as<int>(ret["nSub"]);
-  if (parDf.nrow() % nSub != 0){
+  if (parMat.nrow() % nSub != 0){
     stop("The Number of parameters must be a multiple of the number of subjects.");
   }
   k = 0;
@@ -1030,7 +1029,7 @@ RObject rxDataParSetup(const RObject &object,
   bool curPar = false;
   IntegerVector posPar(pars.size());
   CharacterVector nms = modVarsIni.names();
-  CharacterVector nmP = parDf.names();
+  CharacterVector nmP = (as<List>(parMat.attr("dimnames")))[1];
   for (i = 0; i < pars.size(); i++){
     curPar = false;
     // integers are faster to compare than strings.
@@ -1075,7 +1074,7 @@ RObject rxDataParSetup(const RObject &object,
   }
   // Now  the parameter names are setup.
   // The parameters are setup in a numeric vector in order of pars
-  int nr = parDf.nrow();
+  int nr = parMat.nrow();
   if (nr == 0) nr = 1;
   NumericVector parsVec(pars.size()*nr);
   j = 0;
@@ -1086,17 +1085,18 @@ RObject rxDataParSetup(const RObject &object,
       parsVec[i] = 0;
     } else if (posPar[k] > 0){
       // posPar[i] = j + 1;
-      parsVec[i] = parDf(j, posPar[k]-1); 
+      parsVec[i] = parMat(j, posPar[k]-1);
     } else {
       // posPar[i] = -j - 1;
       parsVec[i] = modVarsIni[-(posPar[k]+1)];
     }
   }
   ret["pars"] = parsVec;
-  nr = parDf.nrow() % nSub;
+  nr = parMat.nrow() % nSub;
   if (nr == 0) nr = 1;
   ret["nsim"] = nr;
   ret["inits"] = initsC;
+  ret["n.pars"] = IntegerVector(pars.size());
   StringVector cls(2);
   cls(0) = "RxODE.par.data";
   cls(1) = "RxODE.multi.data";
