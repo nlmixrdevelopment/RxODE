@@ -981,7 +981,18 @@ RObject rxDataParSetup(const RObject &object,
   NumericMatrix parMat;
   if (par1.isNULL()){
   } else if (rxIs(par1, "data.frame") || rxIs(par1, "matrix")){
-    parMat = as<NumericMatrix>(par1);
+    if (rxIs(par1,"data.frame")){
+      DataFrame tmp = as<DataFrame>(par1);
+      int nr = tmp.nrows();
+      NumericMatrix tmpM(nr,tmp.size());
+      for (i = 0; i < tmp.size(); i++){
+	tmpM(_,i)=as<NumericVector>(tmp[i]);
+      }
+      parMat=tmpM;
+      parMat.attr("dimnames") = List::create(R_NilValue,tmp.names());
+    } else {
+      parMat = as<NumericMatrix>(par1);
+    }
   } else if (rxIs(par1, "numeric") || rxIs(par1, "integer")){
     // Create the matrix
     NumericVector tmp0 = as<NumericVector>(par1);
@@ -1022,7 +1033,6 @@ RObject rxDataParSetup(const RObject &object,
     }
   }
   // Now pcov gives the which for the covariate parameters.
-
   // Now check if we have all the parameters that are needed.
   std::string errStr = "";
   bool allPars = true;
@@ -1083,8 +1093,8 @@ RObject rxDataParSetup(const RObject &object,
   NumericVector parsVec(pars.size()*nr);
   j = 0;
   for (i = 0; i < parsVec.size(); i++){
-    j = floor(i / parsVec.size());
-    k = i % parsVec.size();
+    j = floor(i / pars.size());
+    k = i % pars.size();
     if (posPar[k] == 0){
       parsVec[i] = 0;
     } else if (posPar[k] > 0){
