@@ -61,5 +61,24 @@ rxPermissive({
         tmp2 <- rxDataParSetup(mod, et, data.frame(c=c(6, 7, 8)));
         expect_equal(tmp2$pars, c(6, 0.6, 6, 0.6, 6, 0.6))
 
+        ## Now matrices
+        tmp2 <- rxDataParSetup(mod, as.matrix(data.frame(a=c(6, 7), b=c(8, 9))), et);
+        expect_equal(tmp2$pars, c(6, 8, 7, 9))
+
+        tmp2 <- rxDataParSetup(mod, as.matrix(data.frame(a=c(6, 7, 8), b=c(8, 9, 10))), et);
+        expect_equal(tmp2$pars, c(6, 8, 7, 9, 8, 10))
+
+        tmp2 <- rxDataParSetup(mod, et, as.matrix(data.frame(a=c(6, 7, 8), b=c(8, 9, 10))));
+        expect_equal(tmp2$pars, c(6, 8, 7, 9, 8, 10))
+
+        tmp2 <- rxDataParSetup(mod, et, as.matrix(data.frame(a=c(6, 7, 8))));
+        expect_equal(tmp2$pars, c(6, 0.6, 7, 0.6, 8, 0.6))
+
+        tmp2 <- rxDataParSetup(mod, et, as.matrix(data.frame(b=c(6, 7, 8))));
+        expect_equal(tmp2$pars, c(6, 6, 6, 7, 6, 8))
+
+        tmp2 <- rxDataParSetup(mod, et, as.matrix(data.frame(c=c(6, 7, 8))));
+        expect_equal(tmp2$pars, c(6, 0.6, 6, 0.6, 6, 0.6))
+
     })
 }, cran=FALSE)
