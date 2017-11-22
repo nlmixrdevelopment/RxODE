@@ -1,6 +1,6 @@
 rxPermissive({
     context("Parameter and Data translation")
-    test_that("par and data", {
+    test_that("named par and single event table", {
 
         mod <- RxODE({
             a = 6
