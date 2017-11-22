@@ -107,7 +107,7 @@ double RxODE_solveLinB(double t, int linCmt, int diff1, int diff2, double d_A, d
       } else {
 	// After  infusion
 	p = l-1;
-	while (p >= 0 && rxDose(p) != -dose){
+	while (p > 0 && rxDose(p) != -dose){
 	  p--;
 	}
 	if (rxDose(p) != -dose){

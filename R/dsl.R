@@ -194,13 +194,22 @@ sympyRxFEnv$"[" <- function(name, val){
 }
 
 dsl.strip.paren <- function(x){
-    x.cur <- x
-    x.new <- gsub(rex::rex(start, any_spaces, "(", any_spaces, capture(anything), any_spaces, ")", any_spaces, end), "\\1", x.cur);
-    while (nchar(x.cur) != nchar(x.new)){
-        x.cur <- x.new
-        x.new <- gsub(rex::rex(start, any_spaces, "(", any_spaces, capture(anything), any_spaces, ")", any_spaces, end), "\\1", x.cur);
+    strip.it <- function(x){
+        if (is.call(x)){
+            if (length(x) == 1){
+                return(x)
+            } else if (as.character(x[[1]]) == "("){
+                return(strip.it(x[[2]]));
+            } else {
+                return(x)
+            }
+        } else {
+            return(x);
+        }
     }
-    return(x.new)
+    ret <- eval(parse(text=sprintf("strip.it(quote(%s))", x)))
+    ret <- paste(deparse(ret), collapse=" ")
+    return(ret)
 }
 
 dsl.to.pow <- function(a, b){
@@ -209,8 +218,8 @@ dsl.to.pow <- function(a, b){
     num <- suppressWarnings({as.numeric(b)});
     if (is.na(num)){
         return(sprintf("Rx_pow(%s, %s)", a, b));
-    } else if (num == round(num)){
-        return(sprintf("Rx_pow_di(%s, %s)", a, b));
+    ## } else if (num == round(num)){
+    ##     return(sprintf("Rx_pow_di(%s, %s)", a, b));
     } else
         if (num == 0.5){
             return(sprintf("sqrt(%s)", a));
