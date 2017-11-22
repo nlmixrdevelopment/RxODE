@@ -25,9 +25,9 @@ matrix:
     os: osx
 
 r_github_packages:
-  - jimhester/covr
+  - r-lib/covr
   - nlmixrdevelopment/dparser-R
   - nlmixrdevelopment/PreciseSums
 
 after_success:
-  - travis_wait 20 Rscript -e 'covr::codecov(line_exclusions=c("R/RxODE-win-setup.R", "src/errmsg.f", "src/rprint.c"))'
+  - Rscript -e 'covr::codecov(line_exclusions=c("R/RxODE-win-setup.R", "src/errmsg.f", "src/rprint.c"))'
