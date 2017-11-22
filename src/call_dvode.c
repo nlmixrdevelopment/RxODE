@@ -730,7 +730,7 @@ void RxODE_ode_solver_0_6_c(int *neq,
 			    double h0,
 			    int mxordn,
 			    int mxords,
-			    int mxstep){
+			    int mxstepA){
   if (*neq > NCMT){
     error("RxODE does not support %d compartments (Currently only %d compartments)", neq, NCMT);
   }
@@ -745,7 +745,7 @@ void RxODE_ode_solver_0_6_c(int *neq,
   H0             = h0;
   MXORDN         = mxordn;
   MXORDS         = mxords;
-  mxstep         = mxstep;
+  mxstep         = mxstepA;
   // Counters
   slvr_counter   = 0;
   dadt_counter   = 0;
