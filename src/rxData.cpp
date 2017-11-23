@@ -75,7 +75,7 @@ bool rxIs(const RObject &obj, std::string cls){
 	CharacterVector cv = as<CharacterVector>(dn[1]);
         return rxHasEventNames(cv);
       } else {
-	return false;
+	return false; // nocov
       }
     } else {
       return false;
