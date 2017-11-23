@@ -30,4 +30,4 @@ r_github_packages:
   - nlmixrdevelopment/PreciseSums
 
 after_success:
-  - Rscript -e 'covr::codecov(line_exclusions=c("R/RxODE-win-setup.R", "src/errmsg.f", "src/rprint.c"))'
+  - Rscript -e 'covr::codecov(line_exclusions=c("R/RxODE-win-setup.R", "src/errmsg.f", "src/rprint.c", "R/dsl.R", "R/rxSymInv.R","R/rxValidate.R","R/rxSolve-gen.R","R/rxsympy.R","R/version.R"))'
