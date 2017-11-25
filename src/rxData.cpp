@@ -897,17 +897,17 @@ NumericVector rxSetupIni(const RObject &obj,
 //' @keywords internal
 //' @export
 //[[Rcpp::export]]
-RObject rxDataParSetup(const RObject &object,
-			const RObject &params = R_NilValue,
-			const RObject &events = R_NilValue,
-			const Nullable<NumericVector> &inits = R_NilValue,
-			const RObject &covs  = R_NilValue,
-			const RObject &sigma= R_NilValue,
-                        const RObject &sigmaDf= R_NilValue,
-                        const int &sigmaNcores= 1,
-                        const bool &sigmaIsChol= false,
-			const StringVector &amountUnits = NA_STRING,
-                        const StringVector &timeUnits = "hours"){
+List rxDataParSetup(const RObject &object,
+		    const RObject &params = R_NilValue,
+		    const RObject &events = R_NilValue,
+		    const Nullable<NumericVector> &inits = R_NilValue,
+		    const RObject &covs  = R_NilValue,
+		    const RObject &sigma= R_NilValue,
+		    const RObject &sigmaDf= R_NilValue,
+		    const int &sigmaNcores= 1,
+		    const bool &sigmaIsChol= false,
+		    const StringVector &amountUnits = NA_STRING,
+		    const StringVector &timeUnits = "hours"){
   List modVars = rxModelVars(object);
   CharacterVector state = modVars["state"];
   // The initial conditions cannot be changed for each individual; If
@@ -945,7 +945,7 @@ RObject rxDataParSetup(const RObject &object,
     // In this case the events are a data frame or matrix
     CharacterVector tmpCv =as<CharacterVector>((as<DataFrame>(ev1)).names());
     for (i = 0; i < pars.size(); i++){
-      for (j = 0; j < tmpCv.size(); i++){
+      for (j = 0; j < tmpCv.size(); j++){
 	if (pars[i] == tmpCv[j]){
 	  k++;
 	  break;
@@ -955,7 +955,7 @@ RObject rxDataParSetup(const RObject &object,
     covnames = CharacterVector(k);
     k = 0;
     for (i = 0; i < pars.size(); i++){
-      for (j = 0; j < tmpCv.size(); i++){
+      for (j = 0; j < tmpCv.size(); j++){
 	if (pars[i] == tmpCv[j]){
 	  covnames[k] = pars[i];
 	  k++;
@@ -986,10 +986,10 @@ RObject rxDataParSetup(const RObject &object,
       int nr = tmp.nrows();
       NumericMatrix tmpM(nr,tmp.size());
       for (i = 0; i < tmp.size(); i++){
-	tmpM(_,i)=as<NumericVector>(tmp[i]);
+	tmpM(_,i) = NumericVector(tmp[i]);
       }
+      tmpM.attr("dimnames") = List::create(R_NilValue,tmp.names());
       parMat=tmpM;
-      parMat.attr("dimnames") = List::create(R_NilValue,tmp.names());
     } else {
       parMat = as<NumericMatrix>(par1);
     }
