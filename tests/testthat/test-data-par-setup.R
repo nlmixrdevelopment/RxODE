@@ -108,13 +108,42 @@ rxPermissive({
                                           b=seq(0.6, 36, length.out=120)));
 
         expect_equal(tmp2$pars, pv);
-
-        tmp2 <- rxDataParSetup(mod, dat,
-                               data.frame(b=seq(0.6, 36, length.out=120),
-                                          a=seq(2, 60, length.out=120)))
-
+        tmp2 <- rxDataParSetup(mod, data.frame(b=seq(0.6, 36, length.out=120),
+                                               a=seq(2, 60, length.out=120)), dat)
         expect_equal(tmp2$pars, pv);
 
+        ##
+        tmp2 <- rxDataParSetup(mod, dat,
+                               as.matrix(data.frame(a=seq(2, 60, length.out=120),
+                                                    b=seq(0.6, 36, length.out=120))));
+
+        expect_equal(tmp2$pars, pv);
+        tmp2 <- rxDataParSetup(mod, as.matrix(data.frame(b=seq(0.6, 36, length.out=120),
+                                                         a=seq(2, 60, length.out=120))), dat)
+        expect_equal(tmp2$pars, pv);
+
+        ## Now only include /some/ of the parameters
+
+        pvB <- as.vector(t(data.frame(a=6, b=seq(0.6, 36, length.out=120))))
+
+        tmp2 <- rxDataParSetup(mod, dat,
+                               data.frame(c=seq(2, 60, length.out=120),
+                                          b=seq(0.6, 36, length.out=120)));
+
+        expect_equal(tmp2$pars, pvB);
+        tmp2 <- rxDataParSetup(mod, data.frame(b=seq(0.6, 36, length.out=120),
+                                               c=seq(2, 60, length.out=120)), dat)
+        expect_equal(tmp2$pars, pvB);
+
+        ##
+        tmp2 <- rxDataParSetup(mod, dat,
+                               as.matrix(data.frame(c=seq(2, 60, length.out=120),
+                                                    b=seq(0.6, 36, length.out=120))));
+
+        expect_equal(tmp2$pars, pvB);
+        tmp2 <- rxDataParSetup(mod, as.matrix(data.frame(b=seq(0.6, 36, length.out=120),
+                                                         c=seq(2, 60, length.out=120))), dat)
+        expect_equal(tmp2$pars, pvB);
 
     })
 }, cran=FALSE)
