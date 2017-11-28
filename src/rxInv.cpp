@@ -158,15 +158,19 @@ RObject rxSymInvCholEnvCalculate(List obj, std::string what, Nullable<NumericVec
           ret[i] = as<NumericVector>(rxSymInvChol(invObj, theta, "d(D)",i+1));
         }
         e["d.D.omegaInv"] = ret;
-      } else if (what == "chol.omega"){
+      } else if (what == "chol.omega1"){
         rxSymInvCholEnvCalculate(obj, "chol.omegaInv", R_NilValue);
         arma::mat ret = rxToCholOmega(as<arma::mat>(e["chol.omegaInv"]));
-        e["chol.omega"] = ret; 
+        e["chol.omega1"] = ret; 
       } else if (what == "omega"){
-        rxSymInvCholEnvCalculate(obj, "chol.omega", R_NilValue);
-        arma::mat U1 = as<mat>(e["chol.omega"]);
+        rxSymInvCholEnvCalculate(obj, "chol.omega1", R_NilValue);
+        arma::mat U1 = as<mat>(e["chol.omega1"]);
         arma::mat omega = U1*trans(U1);
         e["omega"] = omega;
+      } else if (what == "chol.omega"){
+	rxSymInvCholEnvCalculate(obj, "omega", R_NilValue);
+        arma::mat omega = as<mat>(e["omega"]);
+        e["chol.omega"] = chol(omega);
       } else if (what == "log.det.OMGAinv.5"){
         // Note this does NOT include the 2 pi bit
         rxSymInvCholEnvCalculate(obj,"chol.omegaInv", R_NilValue);

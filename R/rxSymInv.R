@@ -702,24 +702,21 @@ rxSymInvC2 <- function(mat1, diag.xform=c("log", "sqrt", "identity"),
     }
 }
 
+##' Return the dimension of the built-in derivatives/inverses
+##'
+##' @keywords internal
+##'@export
+rxSymInvCholN <- function(){
+    .Call(`_rxCholInv`,0L,NULL,NULL)
+}
+
 rxSymInvCreate2C <- function(src){
     return(inline::cfunction(signature(theta="numeric", tn="integer"), src, includes="\n#include <Rmath.h>\n"))
 }
 
 
-rxSymInvCreateC.slow <- NULL
-
-##' Creates an object for calculating Omega/Omega^-1 and derivatives
-##'
-##' @param mat Initial Omega matrix
-##' @param diag.xform transformation to diagonal elements of OMEGA. or chol(Omega^-1)
-##' @param chol Boolean to state if the parameter values specify the OMEGA matrix or chol(Omega^-1)
-##' @return A rxSymInv object
-##' @author Matthew L. Fidler
-##' @keywords internal
-##' @export
-rxSymInvCholCreate <- function(mat,
-                               diag.xform=c("log", "sqrt", "identity")){
+rxSymInvCreateC_.slow <- NULL
+rxSymInvCreateC_ <- function(mat, diag.xform=c("log", "sqrt", "identity")){
     diag.xform <- match.arg(diag.xform);
     mat2 <- mat;
     mat2 <- rxInv(mat2);
@@ -733,7 +730,9 @@ rxSymInvCholCreate <- function(mat,
     } else if (diag.xform == "log"){
         diag(mat3) <- log(diag(mat3));
     }
-    elts <- as.vector(mat3)[which(as.vector(lower.tri(mat3,TRUE))*1==1)];
+    w <- which(as.vector(lower.tri(mat3,TRUE))*1==1);
+    elts <- as.vector(mat3)[w];
+    ini <- as.vector(mat3)[as.vector(upper.tri(mat3, TRUE))];
     th.unscaled <- c();
     for (i in 1:length(elts)){
         if (elts[i] != 0){
@@ -799,6 +798,7 @@ rxSymInvCholCreate <- function(mat,
             }))
             ret <- list(fmat=fmat,
                         fn=fn,
+                        ini=ini,
                         cache=TRUE)
             class(ret) <- "rxSymInvChol";
             return(ret)
@@ -808,13 +808,14 @@ rxSymInvCholCreate <- function(mat,
             print(ret)
             th <- th.unscaled;
             ret <- list(fmat=ret[[2]],
+                        ini=ini,
                         fn=rxSymInvCreate2C(ret[[1]]));
             class(ret) <- "rxSymInvChol";
             return(ret);
         }
     } else {
         mat <- Matrix::.bdiag(block);
-        matI <- lapply(block, rxSymInvCholCreate, diag.xform=diag.xform);
+        matI <- lapply(block, rxSymInvCholCreate, diag.xform=diag.xform, create.env=FALSE);
         ntheta <- sum(sapply(matI, function(x){
             return(x$fn(NULL, -2L));
         }))
@@ -875,27 +876,54 @@ rxSymInvCholCreate <- function(mat,
             }
         }))
         ret <- list(fmat=mat,
+                    ini=ini,
                     fn=fn);
         class(ret) <- "rxSymInvChol";
         return(ret);
     }
 }
+
+##' Creates an object for calculating Omega/Omega^-1 and derivatives
 ##'
-print.rxSymInvChol <- function(x, ...){
+##' @param mat Initial Omega matrix
+##' @param diag.xform transformation to diagonal elements of OMEGA. or chol(Omega^-1)
+##' @param create.env -- Create an environment to calculate the inverses. (By default TRUE)
+##' @param envir -- Environment to evaluate function, bu default it is the parent frame.
+##' @return A rxSymInv object OR a rxSymInv environment
+##' @author Matthew L. Fidler
+##' @keywords internal
+##' @export
+rxSymInvCholCreate <- function(mat,
+                               diag.xform=c("log", "sqrt", "identity"),
+                               create.env=TRUE, envir=parent.frame()){
+    args <- as.list(match.call(expand.dots = TRUE))[-1]
+    args <- args[names(args) != "create.env"]
+    if (create.env){
+        rxi <- do.call(rxSymInvCreateC_, args, envir=envir);
+        ret <- rxSymInvChol(rxi)
+        ret$theta <- rxi$ini
+        return(ret)
+    } else {
+        return(do.call(rxSymInvCreateC_, args, envir=envir));
+    }
+}
+
+##'@export
+print.rxSymInvChol <- function(x, ...){ #nocov start
     d <- dim(x$fmat)[1]
     rxCat(sprintf("Object to create Omega and Omega^-1 & derivitaves for a %sx%s matrix:\n", d, d))
     rxPrint(x$fmat);
     rxCat("Use `rxSymInvChol' for the matrix.\n");
-}
+} #nocov stop
 
 ##'@export
 `$.rxSymInvCholEnv` <- function(obj, arg, exact = TRUE){
-    return(.Call(`_RxODE_rxSymInvCholEnvCalculate`, obj, arg, NULL))
+    return(.Call(`_RxODE_rxSymInvCholEnvCalculate`, obj, arg, NULL)) #nocov
 }
 
 ##'@export
 "$<-.rxSymInvCholEnv" <- function(obj, arg, value){
-    return(.Call(`_RxODE_rxSymInvCholEnvCalculate`, obj, arg, value))
+    return(.Call(`_RxODE_rxSymInvCholEnvCalculate`, obj, arg, value)) #nocov
 }
 
 
@@ -906,7 +934,8 @@ print.rxSymInvChol <- function(x, ...){
 ## sum(log(diag)); Therefore for inner problem only calculate these
 ## two quantities.  For outer problem, or gradient evaluation more is needed.
 
-print.rxSymInvCholEnv <- function(x, ...){
+##'@export
+print.rxSymInvCholEnv <- function(x, ...){ # nocov start
     if (is.null(x$theta)){
         message(sprintf("Uninitialized $theta, please assign (requires %s arguments)!", x$ntheta))
     } else {
@@ -914,4 +943,20 @@ print.rxSymInvCholEnv <- function(x, ...){
         print(x$invobj$fmat)
         message("\nThis allows accessing $omegaInv, $omega, etc. For a full list see str(.)");
     }
-}
+} #nocov end
+
+
+##'@export
+str.rxSymInvCholEnv <- function(x, ...){ # nocov start
+    message("Derivatives and Inverse of a matrix; Assigning theta will change these values.")
+    message(" $ theta             : Current parameters (on inverse Cholesky)")
+    message(" $ ntheta            : Number of parameters")
+    message(" $ chol.omegaInv     : chol(Omega^-1)")
+    message(" $ omegaInv          : Omega^-1")
+    message(" $ d.omegaInv        : d(Omega^-1)")
+    message(" $ d.D.omegaInv      : gives the d(diagonal(Omega^-1))")
+    message(" $ chol.omega        : chol(Omega)")
+    message(" $ omega             : Omega")
+    message(" $ log.det.OMGAinv.5 : log(det(Omega^-1))")
+} #nocov end
+
