@@ -56,7 +56,7 @@ rex::register_shortcuts("RxODE");
 ##'     Jacobain according to the specified ODEs.
 ##'
 ##' @param collapseModel boolean indicating if RxODE will remove all
-##'     LHS variables when calculating sensitivites.
+##'     LHS variables when calculating sensitivities.
 ##'
 ##' @param ... any other arguments are passed to the function
 ##'     \code{\link{readLines}}, (e.g., encoding).

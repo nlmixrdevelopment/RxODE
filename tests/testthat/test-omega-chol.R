@@ -1,6 +1,10 @@
-for (d in seq(1, rxSymInvCholN())){
-    for (dg in c("log"## , "sqrt", "identity"
-                 )){
+for (d in seq(1, ifelse(identical(Sys.getenv("RxODE_VALIDATION_FULL"), "true"), 4, rxSymInvCholN()))){
+    if (identical(Sys.getenv("RxODE_VALIDATION_FULL"), "true")){
+        dgs <- c("sqrt", "identity")
+    } else {
+        dgs <- c("log")
+    }
+    for (dg in dgs){
         test_that("omega chol", {
             context(sprintf("Omega Cholesky %sx%s, %s", d, d, dg));
             ## Creating covariance matrix

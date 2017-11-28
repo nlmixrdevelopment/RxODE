@@ -527,7 +527,7 @@ rxSymInvC2 <- function(mat1, diag.xform=c("log", "sqrt", "identity"),
     }
     cache.file <- file.path(ifelse(RxODE.cache.directory == ".", getwd(), RxODE.cache.directory),
                             sprintf("rx_%s2.inv",
-                                    digest::digest(deparse(list(mat1, diag.xform, chol)))));
+                                    digest::digest(deparse(list(mat1, diag.xform)))));
     cache.file2 <- file.path(system.file("inv", package="RxODE"), cache.file);
     if (allow.cache && file.exists(cache.file)){
         load(cache.file);
@@ -680,7 +680,7 @@ rxSymInvC2 <- function(mat1, diag.xform=c("log", "sqrt", "identity"),
         matExpr <- sprintf("  if (theta_n >= -1){\n    SEXP ret = PROTECT(allocMatrix(REALSXP, %s, %s));for (int i = 0; i < %s; i++){REAL(ret)[i]=0;}\n", d, d, d * d);
         vecExpr <- sprintf("    UNPROTECT(1);\n    return(ret);\n  } else {\n    SEXP ret = PROTECT(allocVector(REALSXP, %s));for(int i = 0; i < %s; i++){REAL(ret)[i]=0;}\n%s\n    UNPROTECT(1);\n    return(ret);\n  }", d, d, diag, d);
         src <- sprintf("  int theta_n = INTEGER(tn)[0];\n  if (theta_n == -2){\n    SEXP ret = PROTECT(allocVector(INTSXP, 1));\n    INTEGER(ret)[0] = %s;\n    UNPROTECT(1);\n    return ret;\n  }\n  else if (theta_n < %s || theta_n > %s){\n    error(\"d(Omega^-1) Derivative outside bounds.\");\n  }\n  else if (length(theta) != %s){\n    error(\"Requires vector with %s arguments.\");\n  }\n%s\n%s\n%s",
-                       d, min(diags) - 1, length(vars), length(vars), length(vars), paste0(matExpr, omega0), omega1, paste0(omega1p, "\n", vecExpr))
+                       length(vars), min(diags) - 1, length(vars), length(vars), length(vars), paste0(matExpr, omega0), omega1, paste0(omega1p, "\n", vecExpr))
         src <- strsplit(src, "\n")[[1]]
         reg <- rex::rex(any_spaces, "REAL(ret)[", any_numbers, "]", any_spaces, "=", any_spaces, "0", any_spaces, ";");
         ## Take out the =0; expressions
@@ -693,12 +693,11 @@ rxSymInvC2 <- function(mat1, diag.xform=c("log", "sqrt", "identity"),
         rxCat("done\n");
         fmat <- matrix(sapply(as.vector(fmat), function(x){force(x);return(rxFromSymPy(x))}), d);
         ret <- src;
+        ret <- list(ret, fmat);
         if (allow.cache){
-            ret <- list(ret, fmat);
             save(ret, file=cache.file);
-        } else {
-            return(src)
         }
+        return(ret)
     }
 }
 
@@ -715,7 +714,7 @@ rxSymInvCreate2C <- function(src){
 }
 
 
-rxSymInvCreateC_.slow <- NULL
+##rxSymInvCreateC_.slow <- NULL
 rxSymInvCreateC_ <- function(mat, diag.xform=c("log", "sqrt", "identity")){
     diag.xform <- match.arg(diag.xform);
     mat2 <- mat;
@@ -805,7 +804,6 @@ rxSymInvCreateC_ <- function(mat, diag.xform=c("log", "sqrt", "identity")){
         } else {
             ret <-rxSymInvC2(mat1=mat1,
                              diag.xform=diag.xform);
-            print(ret)
             th <- th.unscaled;
             ret <- list(fmat=ret[[2]],
                         ini=ini,
@@ -918,12 +916,12 @@ print.rxSymInvChol <- function(x, ...){ #nocov start
 
 ##'@export
 `$.rxSymInvCholEnv` <- function(obj, arg, exact = TRUE){
-    return(.Call(`_RxODE_rxSymInvCholEnvCalculate`, obj, arg, NULL)) #nocov
+    return(.Call(`_RxODE_rxSymInvCholEnvCalculate`, obj, arg, NULL))
 }
 
 ##'@export
 "$<-.rxSymInvCholEnv" <- function(obj, arg, value){
-    return(.Call(`_RxODE_rxSymInvCholEnvCalculate`, obj, arg, value)) #nocov
+    return(.Call(`_RxODE_rxSymInvCholEnvCalculate`, obj, arg, value))
 }
 
 
