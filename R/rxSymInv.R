@@ -815,7 +815,7 @@ rxSymInvCreateC_ <- function(mat, diag.xform=c("log", "sqrt", "identity")){
         }
     } else {
         mat <- Matrix::.bdiag(block);
-        matI <- lapply(block, rxSymInvCholCreate, diag.xform=diag.xform, create.env=FALSE);
+        matI <- lapply(block, rxSymInvCreateC_, diag.xform=diag.xform, create.env=FALSE);
         ntheta <- sum(sapply(matI, function(x){
             return(x$fn(NULL, -2L));
         }))
@@ -947,7 +947,7 @@ print.rxSymInvCholEnv <- function(x, ...){ # nocov start
 
 
 ##'@export
-str.rxSymInvCholEnv <- function(x, ...){ # nocov start
+str.rxSymInvCholEnv <- function(object, ...){ # nocov start
     message("Derivatives and Inverse of a matrix; Assigning theta will change these values.")
     message(" $ theta             : Current parameters (on inverse Cholesky)")
     message(" $ ntheta            : Number of parameters")
