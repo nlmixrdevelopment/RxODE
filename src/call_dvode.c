@@ -768,23 +768,29 @@ SEXP RxODE_get_fn_pointers(void (*fun_dydt)(unsigned int, double, double *, doub
 			   void (*fun_calc_lhs)(double, double *, double *),
 			   void (*fun_calc_jac)(unsigned int, double, double *, double *, unsigned int),
 			   void (*fun_update_inis)(SEXP _ini_sexp),
+			   void (*fun_dydt_lsoda_dum)(int *, double *, double *, double *),
+                           void (*fun_jdum_lsoda)(int *, double *, double *,int *, int *, double *, int *),
 			   int fun_jt,
                            int fun_mf,
                            int fun_debug){
-  SEXP dydt, lhs, jac, inis;
+  SEXP dydt, lhs, jac, inis, dydt_lsoda, jdum;
   int pro=0;
-  SEXP lst      = PROTECT(allocVector(VECSXP, 7)); pro++;
-  SEXP names    = PROTECT(allocVector(STRSXP, 7)); pro++;
+  SEXP lst      = PROTECT(allocVector(VECSXP, 9)); pro++;
+  SEXP names    = PROTECT(allocVector(STRSXP, 9)); pro++;
 
   void (*dydtf)(unsigned int neq, double t, double *A, double *DADT);
   void (*calc_jac)(unsigned int neq, double t, double *A, double *JAC, unsigned int __NROWPD__);
   void (*calc_lhs)(double t, double *A, double *lhs);
   void (*update_inis)(SEXP _ini_sexp);
+  void (*dydt_lsoda_dum)(int *neq, double *t, double *A, double *DADT);
+  void (*jdum_lsoda)(int *neq, double *t, double *A,int *ml, int *mu, double *JAC, int *nrowpd);
   
-  dydtf		= fun_dydt;
-  calc_jac	= fun_calc_jac;
-  calc_lhs	= fun_calc_lhs;
-  update_inis	= fun_update_inis;
+  dydtf		 = fun_dydt;
+  calc_jac	 = fun_calc_jac;
+  calc_lhs	 = fun_calc_lhs;
+  update_inis	 = fun_update_inis;
+  dydt_lsoda_dum = fun_dydt_lsoda_dum;
+  jdum_lsoda     = fun_jdum_lsoda;
   
   SET_STRING_ELT(names,0,mkChar("dydt"));
   dydt=R_MakeExternalPtr(dydtf, install("RxODE_dydt"), R_NilValue);
@@ -806,20 +812,30 @@ SEXP RxODE_get_fn_pointers(void (*fun_dydt)(unsigned int, double, double *, doub
   PROTECT(inis); pro++;
   SET_VECTOR_ELT(lst,  3, inis);
 
-  SET_STRING_ELT(names,4,mkChar("jt"));
+  SET_STRING_ELT(names,4,mkChar("dydt_lsoda"));
+  dydt_lsoda=R_MakeExternalPtr(dydt_lsoda_dum, install("RxODE_dydt_lsoda"), R_NilValue);
+  PROTECT(dydt_lsoda); pro++;
+  SET_VECTOR_ELT(lst,  4, dydt_lsoda);
+  
+  SET_STRING_ELT(names,5,mkChar("jdum"));
+  jdum=R_MakeExternalPtr(jdum_lsoda, install("RxODE_jdum"), R_NilValue);
+  PROTECT(jdum); pro++;
+  SET_VECTOR_ELT(lst,  5, jdum);
+  
+  SET_STRING_ELT(names,6,mkChar("jt"));
   SEXP jt = PROTECT(allocVector(INTSXP, 1)); pro++;
   INTEGER(jt)[0] = fun_jt;
-  SET_VECTOR_ELT(lst,  4, jt);
+  SET_VECTOR_ELT(lst,  6, jt);
 
-  SET_STRING_ELT(names,5,mkChar("mf"));
+  SET_STRING_ELT(names,7,mkChar("mf"));
   SEXP mf = PROTECT(allocVector(INTSXP, 1)); pro++;
   INTEGER(mf)[0] = fun_mf;
-  SET_VECTOR_ELT(lst,  5, mf);
+  SET_VECTOR_ELT(lst,  7, mf);
 
-  SET_STRING_ELT(names,6,mkChar("debug"));
+  SET_STRING_ELT(names,8,mkChar("debug"));
   SEXP debug = PROTECT(allocVector(INTSXP, 1)); pro++;
   INTEGER(debug)[0] = fun_debug;
-  SET_VECTOR_ELT(lst,  6, debug);
+  SET_VECTOR_ELT(lst,  8, debug);
   setAttrib(lst, R_NamesSymbol, names);
 
   UNPROTECT(pro);
@@ -1447,26 +1463,26 @@ void R_init_RxODE(DllInfo *info){
 
 
   static const R_CMethodDef cMethods[] = {
-    {"RxODE_InfusionRate", (DL_FUNC) &RxODE_InfusionRate, 1, RxODE_one_int_t},
-    {"RxODE_par_ptr", (DL_FUNC) &RxODE_par_ptr, 1, RxODE_one_int_t},
-    {"RxODE_jac_counter_val", (DL_FUNC) &RxODE_jac_counter_val, 0},
-    {"RxODE_dadt_counter_val",(DL_FUNC) &RxODE_dadt_counter_val, 0},
-    {"RxODE_jac_counter_inc", (DL_FUNC) &RxODE_jac_counter_inc, 0},
-    {"RxODE_dadt_counter_inc",(DL_FUNC) &RxODE_dadt_counter_inc, 0},
-    {"RxODE_podo",(DL_FUNC) &RxODE_podo, 0},
-    {"RxODE_tlast",(DL_FUNC) &RxODE_tlast, 0},
-    {"RxODE_transit4",(DL_FUNC) &RxODE_transit4, 4, RxODE_transit4_t},
-    {"RxODE_transit3", (DL_FUNC) &RxODE_transit3, 4, RxODE_transit3_t},
-    {"RxODE_factorial", (DL_FUNC) &RxODE_factorial, 1, RxODE_one_dbl_t},
-    {"RxODE_safe_log", (DL_FUNC) &RxODE_safe_log, 1, RxODE_one_dbl_t},
-    {"RxODE_safe_zero", (DL_FUNC) &RxODE_safe_zero, 1, RxODE_one_dbl_t},
-    {"RxODE_as_zero", (DL_FUNC) &RxODE_as_zero, 1, RxODE_one_dbl_t},
-    {"RxODE_sign_exp", (DL_FUNC) &RxODE_sign_exp, 2, RxODE_sign_exp_t},
-    {"RxODE_abs_log", (DL_FUNC) &RxODE_abs_log, 1, RxODE_one_dbl_t},
-    {"RxODE_abs_log1p", (DL_FUNC) &RxODE_abs_log1p, 1, RxODE_one_dbl_t},
-    {"RxODE_solveLinB", (DL_FUNC) &RxODE_solveLinB, 12, RxODE_solveLinB_t},
-    {"RxODE_sum", (DL_FUNC) &RxODE_sum, 2, RxODE_Sum_t},
-    {"RxODE_prod", (DL_FUNC) &RxODE_prod, 2, RxODE_Sum_t},
+    {"RxODE_InfusionRate",	(DL_FUNC) &RxODE_InfusionRate, 1, RxODE_one_int_t},
+    {"RxODE_par_ptr",		(DL_FUNC) &RxODE_par_ptr, 1, RxODE_one_int_t},
+    {"RxODE_jac_counter_val",	(DL_FUNC) &RxODE_jac_counter_val, 0},
+    {"RxODE_dadt_counter_val",	(DL_FUNC) &RxODE_dadt_counter_val, 0},
+    {"RxODE_jac_counter_inc",	(DL_FUNC) &RxODE_jac_counter_inc, 0},
+    {"RxODE_dadt_counter_inc",	(DL_FUNC) &RxODE_dadt_counter_inc, 0},
+    {"RxODE_podo",		(DL_FUNC) &RxODE_podo, 0},
+    {"RxODE_tlast",		(DL_FUNC) &RxODE_tlast, 0},
+    {"RxODE_transit4",		(DL_FUNC) &RxODE_transit4, 4, RxODE_transit4_t},
+    {"RxODE_transit3",		(DL_FUNC) &RxODE_transit3, 4, RxODE_transit3_t},
+    {"RxODE_factorial",		(DL_FUNC) &RxODE_factorial, 1, RxODE_one_dbl_t},
+    {"RxODE_safe_log",		(DL_FUNC) &RxODE_safe_log, 1, RxODE_one_dbl_t},
+    {"RxODE_safe_zero",		(DL_FUNC) &RxODE_safe_zero, 1, RxODE_one_dbl_t},
+    {"RxODE_as_zero",		(DL_FUNC) &RxODE_as_zero, 1, RxODE_one_dbl_t},
+    {"RxODE_sign_exp",		(DL_FUNC) &RxODE_sign_exp, 2, RxODE_sign_exp_t},
+    {"RxODE_abs_log",		(DL_FUNC) &RxODE_abs_log, 1, RxODE_one_dbl_t},
+    {"RxODE_abs_log1p",		(DL_FUNC) &RxODE_abs_log1p, 1, RxODE_one_dbl_t},
+    {"RxODE_solveLinB",		(DL_FUNC) &RxODE_solveLinB, 12, RxODE_solveLinB_t},
+    {"RxODE_sum",		(DL_FUNC) &RxODE_sum, 2, RxODE_Sum_t},
+    {"RxODE_prod",		(DL_FUNC) &RxODE_prod, 2, RxODE_Sum_t},
     {NULL, NULL, 0, NULL}
   };
 

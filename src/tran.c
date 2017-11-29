@@ -1244,8 +1244,8 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
   fprintf(outpt,"\tSEXP sens     = PROTECT(allocVector(STRSXP, %d));\n",sensi);
   fprintf(outpt,"\tSEXP fn_ini   = PROTECT(allocVector(STRSXP, %d));\n",fdi);
   fprintf(outpt,"\tSEXP dfdy     = PROTECT(allocVector(STRSXP, %d));\n",tb.ndfdy);
-  fprintf(outpt,"\tSEXP tran     = PROTECT(allocVector(STRSXP, 13));\n");
-  fprintf(outpt,"\tSEXP trann    = PROTECT(allocVector(STRSXP, 13));\n");
+  fprintf(outpt,"\tSEXP tran     = PROTECT(allocVector(STRSXP, 15));\n");
+  fprintf(outpt,"\tSEXP trann    = PROTECT(allocVector(STRSXP, 15));\n");
   fprintf(outpt,"\tSEXP mmd5     = PROTECT(allocVector(STRSXP, 2));\n");
   fprintf(outpt,"\tSEXP mmd5n    = PROTECT(allocVector(STRSXP, 2));\n");
   fprintf(outpt,"\tSEXP model    = PROTECT(allocVector(STRSXP, 4));\n");
@@ -1498,6 +1498,12 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
 
   fprintf(outpt,"\tSET_STRING_ELT(trann,12,mkChar(\"ode_solver_xptr\"));\n");
   fprintf(outpt,"\tSET_STRING_ELT(tran, 12,mkChar(\"%sode_solver_xptr\"));\n",model_prefix);
+
+  fprintf(outpt,"\tSET_STRING_ELT(trann,13,mkChar(\"dydt_lsoda\"));\n");
+  fprintf(outpt,"\tSET_STRING_ELT(tran, 13,mkChar(\"%sdydt_lsoda\"));\n",model_prefix);
+  
+  fprintf(outpt,"\tSET_STRING_ELT(trann,14,mkChar(\"calc_jac_lsoda\"));\n");
+  fprintf(outpt,"\tSET_STRING_ELT(tran, 14,mkChar(\"%scalc_jac_lsoda\"));\n",model_prefix);
   
   fprintf(outpt,"\tsetAttrib(tran, R_NamesSymbol, trann);\n");
   fprintf(outpt,"\tsetAttrib(mmd5, R_NamesSymbol, mmd5n);\n");
@@ -2063,8 +2069,8 @@ SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP pref
   SEXP lst   = PROTECT(allocVector(VECSXP, 11));
   SEXP names = PROTECT(allocVector(STRSXP, 11));
   
-  SEXP tran  = PROTECT(allocVector(STRSXP, 13));
-  SEXP trann = PROTECT(allocVector(STRSXP, 13));
+  SEXP tran  = PROTECT(allocVector(STRSXP, 15));
+  SEXP trann = PROTECT(allocVector(STRSXP, 15));
   
   SEXP state    = PROTECT(allocVector(STRSXP,tb.statei));
   SEXP stateRmS = PROTECT(allocVector(INTSXP,tb.statei));
@@ -2224,6 +2230,14 @@ SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP pref
   sprintf(buf,"%sode_solver_xptr",model_prefix);
   SET_STRING_ELT(trann,12,mkChar("ode_solver_xptr"));
   SET_STRING_ELT(tran, 12,mkChar(buf));
+
+  sprintf(buf,"%sdydt_lsoda",model_prefix);
+  SET_STRING_ELT(trann,13,mkChar("dydt_lsoda"));
+  SET_STRING_ELT(tran, 13,mkChar(buf));
+
+  sprintf(buf,"%scalc_jac_lsoda",model_prefix);
+  SET_STRING_ELT(trann,14,mkChar("calc_jac_lsoda"));
+  SET_STRING_ELT(tran, 14,mkChar(buf));
   
   fpIO2 = fopen(out2, "r");
   err_msg((intptr_t) fpIO2, "Error parsing. (Couldn't access out2.txt).\n", -1);
