@@ -9,6 +9,54 @@
 #include <Rmath.h> //Rmath includes math.
 #include <R_ext/Rdynload.h>
 #include <PreciseSums.h>
+#include "solve.h"
+
+SEXP getSolvingOptionsPtr(double ATOL,          //absolute error
+			  double RTOL,          //relative error
+			  double H0,
+			  double HMIN,
+			  int global_jt,
+			  int global_mf,
+			  int global_debug,
+			  int mxstep,
+			  int MXORDN,
+			  int MXORDS,
+			  // Approx options
+			  int do_transit_abs,
+			  int nlhs,
+			  int neq,
+			  int stiff,
+			  SEXP dydt,
+			  SEXP calc_jac,
+			  SEXP calc_lhs,
+			  SEXP update_inis,
+			  SEXP dydt_lsoda_dum,
+			  SEXP jdum_lsoda){
+  rx_solving_options o;
+  o.ATOL = ATOL;          //absolute error
+  o.RTOL = RTOL;          //relative error
+  o.H0 = H0;
+  o.HMIN = HMIN;
+  o.global_jt = global_jt;
+  o.global_mf = global_mf;
+  o.global_debug = global_debug;
+  o.mxstep = mxstep;
+  o.MXORDN = MXORDN;
+  o.MXORDS = MXORDS;
+  o.do_transit_abs = do_transit_abs;
+  o.nlhs = nlhs;
+  o.neq = neq;
+  o.stiff = stiff;
+  o.dydt = (t_dydt)(R_ExternalPtrAddr(dydt));
+  o.calc_jac = (t_calc_jac)(R_ExternalPtrAddr(calc_jac));
+  o.calc_lhs = (t_calc_lhs)(R_ExternalPtrAddr(calc_lhs));
+  o.update_inis = (t_update_inis)(R_ExternalPtrAddr(update_inis));
+  o.dydt_lsoda_dum = (t_dydt_lsoda_dum)(R_ExternalPtrAddr(dydt_lsoda_dum));
+  o.jdum_lsoda = (t_jdum_lsoda)(R_ExternalPtrAddr(jdum_lsoda));
+  SEXP ret = PROTECT(R_MakeExternalPtr(&o, install("rx_solving_options"), R_NilValue));
+  UNPROTECT(1);
+  return(ret);
+}
 
 
 void F77_NAME(dlsoda)(
@@ -1376,6 +1424,7 @@ SEXP _RxODE_rxSetupIni(SEXP, SEXP);
 SEXP _RxODE_rxDataParSetup(SEXP, SEXP, SEXP, SEXP, SEXP,
 			   SEXP, SEXP, SEXP, SEXP, SEXP,
 			   SEXP);
+SEXP _RxODE_rxSolvingOptions(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 
 double RxODE_solveLinB(double t, int linCmt, int diff1, int diff2, double A, double alpha, double B, double beta, double C, double gamma, double ka, double tlag);
 static R_NativePrimitiveArgType RxODE_solveLinB_t[] = {
@@ -1449,6 +1498,7 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_rxUpdateResiduals", (DL_FUNC) &_RxODE_rxUpdateResiduals, 1},
     {"_RxODE_rxSetupIni", (DL_FUNC) &_RxODE_rxSetupIni, 2},
     {"_RxODE_rxDataParSetup", (DL_FUNC) &_RxODE_rxDataParSetup, 11},
+    {"_RxODE_rxSolvingOptions",(DL_FUNC) &_RxODE_rxSolvingOptions, 10},
     {NULL, NULL, 0}
   };
 

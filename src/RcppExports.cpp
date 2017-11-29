@@ -154,6 +154,26 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// rxSolvingOptions
+SEXP rxSolvingOptions(const RObject& object, const bool& stiff, const Nullable<LogicalVector>& transit_abs, const double atol, const double rtol, const int maxsteps, const int hmin, const int hini, const int maxordn, const int maxords);
+RcppExport SEXP _RxODE_rxSolvingOptions(SEXP objectSEXP, SEXP stiffSEXP, SEXP transit_absSEXP, SEXP atolSEXP, SEXP rtolSEXP, SEXP maxstepsSEXP, SEXP hminSEXP, SEXP hiniSEXP, SEXP maxordnSEXP, SEXP maxordsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const RObject& >::type object(objectSEXP);
+    Rcpp::traits::input_parameter< const bool& >::type stiff(stiffSEXP);
+    Rcpp::traits::input_parameter< const Nullable<LogicalVector>& >::type transit_abs(transit_absSEXP);
+    Rcpp::traits::input_parameter< const double >::type atol(atolSEXP);
+    Rcpp::traits::input_parameter< const double >::type rtol(rtolSEXP);
+    Rcpp::traits::input_parameter< const int >::type maxsteps(maxstepsSEXP);
+    Rcpp::traits::input_parameter< const int >::type hmin(hminSEXP);
+    Rcpp::traits::input_parameter< const int >::type hini(hiniSEXP);
+    Rcpp::traits::input_parameter< const int >::type maxordn(maxordnSEXP);
+    Rcpp::traits::input_parameter< const int >::type maxords(maxordsSEXP);
+    rcpp_result_gen = Rcpp::wrap(rxSolvingOptions(object, stiff, transit_abs, atol, rtol, maxsteps, hmin, hini, maxordn, maxords));
+    return rcpp_result_gen;
+END_RCPP
+}
 // rxInv
 NumericVector rxInv(SEXP matrix);
 RcppExport SEXP _RxODE_rxInv(SEXP matrixSEXP) {

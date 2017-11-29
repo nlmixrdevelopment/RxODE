@@ -493,5 +493,9 @@ rxPermissive({
                     }
                 }}}
     })
+    context("Solving Options pointer to C structure")
+    test_that("Solving Options produce a pointer to the C structure.", {
+        expect_equal(class(rxSolvingOptions(ode)), "externalptr")
+    })
 
 })

@@ -215,6 +215,10 @@ rxDataParSetup <- function(object, params = NULL, events = NULL, inits = NULL, c
     .Call(`_RxODE_rxDataParSetup`, object, params, events, inits, covs, sigma, sigmaDf, sigmaNcores, sigmaIsChol, amountUnits, timeUnits)
 }
 
+rxSolvingOptions <- function(object, stiff = TRUE, transit_abs = NULL, atol = 1.0e-8, rtol = 1.0e-6, maxsteps = 5000L, hmin = 0L, hini = 0L, maxordn = 12L, maxords = 5L) {
+    .Call(`_RxODE_rxSolvingOptions`, object, stiff, transit_abs, atol, rtol, maxsteps, hmin, hini, maxordn, maxords)
+}
+
 #' Invert matrix using Rcpp Armadilo.  
 #'
 #' @param matrix matrix to be inverted.

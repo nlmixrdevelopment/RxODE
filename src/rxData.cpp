@@ -1119,14 +1119,97 @@ List rxDataParSetup(const RObject &object,
   return ret;
 }
 
+extern "C" {
+  SEXP getSolvingOptionsPtr(double ATOL,          //absolute error
+			    double RTOL,          //relative error
+			    double H0,
+			    double HMIN,
+			    int global_jt,
+			    int global_mf,
+			    int global_debug,
+			    int mxstep,
+			    int MXORDN,
+			    int MXORDS,
+			    // Approx options
+			    int do_transit_abs,
+			    int nlhs,
+			    int neq,
+			    int stiff,
+			    SEXP dydt,
+			    SEXP calc_jac,
+			    SEXP calc_lhs,
+			    SEXP update_inis,
+			    SEXP dydt_lsoda_dum,
+			    SEXP jdum_lsoda);
+}
+
+//[[Rcpp::export]]
+SEXP rxSolvingOptions(const RObject &object,
+                      const bool &stiff = true,
+                      const Nullable<LogicalVector> &transit_abs = R_NilValue,
+                      const double atol = 1.0e-8,
+                      const double rtol = 1.0e-6,
+                      const int maxsteps = 5000,
+                      const int hmin = 0,
+		      const int hini = 0,
+		      const int maxordn = 12,
+                      const int maxords = 5){
+  if (maxordn < 1 || maxordn > 12){
+    stop("'maxordn' must be >1 and < = 12.");
+  }
+  
+  if (maxords < 1 || maxords > 5){
+    stop("'maxords' must be >1 and < = 5.");
+  }
+  if (hmin < 0){
+    stop("'hmin' must be a non-negative value.");
+  }
+  // HMAX is determined by the problem since it can be thought of as the maximum difference of the event table's time
+  if (hini < 0){
+    stop("'hini' must be a non-negative value.");
+  }
+  List modVars = rxModelVars(object);
+  List ptr = modVars["ptr"];
+  int transit = 0;
+  if (transit_abs.isNull()){
+    transit = modVars["podo"];
+    if (transit){
+      warning("Assumed transit compartment model since 'podo' is in the model.");
+    }
+  } else {
+    LogicalVector tr = LogicalVector(transit_abs);
+    if (tr[0]){
+      transit=  1;
+    }
+  }
+  int st=0;
+  if (stiff){
+    st=1;
+  }
+  CharacterVector lhs = as<CharacterVector>(modVars["lhs"]);
+  CharacterVector state = as<CharacterVector>(modVars["state"]);
+  return getSolvingOptionsPtr(atol,rtol,hini, hmin,
+			      as<int>(ptr["jt"]),
+			      as<int>(ptr["mf"]),
+			      as<int>(ptr["debug"]),
+			      maxsteps, maxordn, maxords, transit,
+			      lhs.size(), state.size(),
+			      st,as<SEXP>(ptr["dydt"]),
+			      as<SEXP>(ptr["jac"]),
+			      as<SEXP>(ptr["lhs"]),
+			      as<SEXP>(ptr["inis"]),
+			      as<SEXP>(ptr["dydt_lsoda"]),
+			      as<SEXP>(ptr["jdum"]));
+}
+
 
 List rxSolveC0(const RObject &object,
-	       const RObject &params = R_NilValue,
-	       const RObject &events = R_NilValue,
-	       const Nullable<NumericVector> &inits = R_NilValue,
-	       const RObject &covs  = R_NilValue,
-	       const RObject &sigma= R_NilValue,
-	       const RObject &sigmaDf= R_NilValue,
+               const RObject &params = R_NilValue,
+               const RObject &events = R_NilValue,
+               const Nullable<NumericVector> &inits = R_NilValue,
+               const RObject &covs  = R_NilValue,
+               const RObject &sigma= R_NilValue,
+               const RObject &sigmaDf= R_NilValue,
 	       const int &sigmaNcores= 1,
 	       const bool &sigmaIsChol= false,
 	       const StringVector &amountUnits = NA_STRING,
