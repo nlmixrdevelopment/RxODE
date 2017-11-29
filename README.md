@@ -7,6 +7,7 @@
 
 
 
+
 ## RxODE: A tool for performing simulations from Ordinary Differential Equation (ODE) models, with applications for pharmacometrics
 ***  
 
@@ -14,90 +15,73 @@
 
 ***
 
-`RxODE` installation under R for Windows
-========================================
-
-These notes briefly describe steps to properly install `RxODE` and to
-ensure `Rtools` (https://cran.r-project.org/bin/windows/Rtools/) are properly 
-configured to avoid compilation issues during the use of `RxODE`. 
-
-In a nutshell, installing `RxODE` is very straight forwad, but installing
-and configuring `Rtools` is a bit more delicate and you need to 
-carefully follow the instructions in the "R Installation and Adminstration" 
-manual, in particular Section 6.3, and Appendix D "The Windows Toolset". 
-We point out a couple of details worth extra attention.  Please read on.
-
-Steps:
-------
-
-1. Install the appropriate `Rtools` for your R for Windows version,
-   e.g., `Rtools` 3.2 for R versions 3.1.x through 3.2.x (for full details
-   see http://cran.r-project.org/bin/windows/Rtools/). A couple of 
-   important details:
-
-   * When installing `Rtools`, in the "Select Components" dialog box, 
-     you may select the default "Package authoring installation".
-
-   * In the "Select Additional Tasks" dialog window, check the
-     option "Edit the system PATH".  This is important to be able to
-     locate the C, Fortran compilers and other tools needed during 
-     the use of `RxODE`.
-
-   * A simple way to test whether `Rtools` was properly installed is
-     to compile the `hello.c` program.  Simply open a new MSDOS command 
-     window, create a text file `hello.c` and compile it as follows:
-   
-     ```
-     C:\hello> type hello.c
-     #include<stdio.h>
-     
-     void main(int argc, char **argv)
-     {
-         printf("Hello World!\n");
-     }
-
-     C:\hello> gcc -o hello hello.c
-
-     C:\hello> .\hello
-     Hello World!
-     ```
-
-     If you get the error `gcc: error: CreateProcess: No such file or
-     directory` then you know `Rtools` was not properly installed, in
-     particular, it did not update your system `PATH` variable.
-
-2.  Obtain the `RxODE` package, either from github or CRAN.  The 
-    installation requires use of the gcc compiler, so you'll know if Step 1 
-    was successfully executed.
-
-    * CRAN. Use the usual method for installing pacakges from CRAN.
-
-    * GitHub. First install the `devtools` package (if needed) and 
-      then `RxODE` from GitHub.  You may want to avoid using a library 
-      folder that has spaces in its name (see question 4.1 in the 
-      "R for Windows FAQ" and the pointers therein).  As of `RxODE`
-      version 0.5-1, we've been able to test installations on folder with 
-      spaces in their name, but you may want to be on the safe side.
-      
-      ``` 
-      install.packages("devtools")
-      library("devtools", lib = "C:/Rlib")
-      install_github("nlmixrdevelopment/RxODE")
-      ```
-
-3. Test the `RxODE` installation:
-
-    ``` 
-    library("RxODE", lib = "C:/Rlib")
-    demo("demo1","RxODE")
-    ```
-
-If the demo runs without error, click on the plot window and see if a 
-new plot comes up each time. If so, `RxODE` has been installed correctly.
-
-See `browseVignettes("RxODE")` for an extended example on using 
-`RxODE` for simulations.
-
+function (pkg = ".", reload = TRUE, quick = FALSE, local = TRUE, args = getOption("devtools.install.args"), quiet = FALSE, dependencies = NA, upgrade_dependencies = TRUE, build_vignettes = FALSE, keep_source = getOption("keep.source.pkgs"), threads = getOption("Ncpus", 1), force_deps = FALSE, metadata = remote_metadata(as.package(pkg)), out_dir = NULL, skip_if_log_exists = FALSE, ...) 
+{
+    pkg <- as.package(pkg)
+    check_build_tools(pkg)
+    if (is_loaded(pkg)) {
+        eapply(ns_env(pkg), force, all.names = TRUE)
+    }
+    root_install <- is.null(installing$packages)
+    if (root_install) {
+        on.exit(installing$packages <- NULL, add = TRUE)
+    }
+    if (pkg$package %in% installing$packages) {
+        if (!quiet) {
+            message("Skipping ", pkg$package, ", it is already being installed.")
+        }
+        return(invisible(FALSE))
+    }
+    if (!is.null(out_dir)) {
+        out_file <- file.path(out_dir, paste0(pkg$package, ".out"))
+        if (skip_if_log_exists && file.exists(out_file)) {
+            message("Skipping ", pkg$package, ", installation failed before, see log in ", out_file)
+            return(invisible(FALSE))
+        }
+    }
+    else {
+        out_file <- NULL
+    }
+    installing$packages <- c(installing$packages, pkg$package)
+    if (!quiet) {
+        message("Installing ", pkg$package)
+    }
+    if (build_vignettes && missing(dependencies)) {
+        dependencies <- standardise_dep(TRUE)
+    }
+    else {
+        dependencies <- standardise_dep(dependencies)
+    }
+    initial_deps <- dependencies[dependencies != "Suggests"]
+    final_deps <- dependencies[dependencies == "Suggests"]
+    installing$remote_deps <- remote_deps(pkg)
+    on.exit(installing$remote_deps <- NULL, add = TRUE)
+    install_deps(pkg, dependencies = initial_deps, upgrade = upgrade_dependencies, threads = threads, force_deps = force_deps, quiet = quiet, ..., out_dir = out_dir, skip_if_log_exists = skip_if_log_exists)
+    has_vignettes <- length(tools::pkgVignettes(dir = pkg$path)$docs > 0)
+    if (local && !(has_vignettes && build_vignettes)) {
+        built_path <- pkg$path
+    }
+    else {
+        built_path <- build(pkg, tempdir(), vignettes = build_vignettes, quiet = quiet)
+        on.exit(unlink(built_path), add = TRUE)
+    }
+    opts <- c(paste("--library=", shQuote(.libPaths()[1]), sep = ""), if (keep_source) "--with-keep.source", "--install-tests")
+    if (quick) {
+        opts <- c(opts, "--no-docs", "--no-multiarch", "--no-demo")
+    }
+    opts <- paste(paste(opts, collapse = " "), paste(args, collapse = " "))
+    built_path <- normalizePath(built_path, winslash = "/")
+    R(paste("CMD INSTALL ", shQuote(built_path), " ", opts, sep = ""), fun = system2_check, quiet = quiet || !is.null(out_file), out_file = out_file)
+    unlink(out_file)
+    install_deps(pkg, dependencies = final_deps, upgrade = upgrade_dependencies, threads = threads, force_deps = force_deps, quiet = quiet, ..., out_dir = out_dir, skip_if_log_exists = skip_if_log_exists)
+    if (length(metadata) > 0) {
+        add_metadata(inst(pkg$package), metadata)
+    }
+    if (reload) {
+        reload(pkg, quiet = quiet)
+    }
+    invisible(TRUE)
+}
 #### Introduction
 `RxODE` is an R package that facilitates simulation with ODE models in
 R. It is designed with pharmacometrics models in mind, but can be
@@ -266,7 +250,7 @@ print(x)
 
 ```
 ## Solved RxODE object
-## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpCyGZXE\Rx_intro-2d645938127a/mod1.d/mod1_x64.dll
+## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\Rtmp6tZeO5\Rx_intro-2e604011521d/mod1.d/mod1_x64.dll
 ## 
 ## Parameters:
 ##      V2      V3      KA      CL       Q     Kin    Kout    EC50 
@@ -299,7 +283,7 @@ print(x)
 
 ```
 ## Solved RxODE object
-## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpCyGZXE\Rx_intro-2d645938127a/mod1.d/mod1_x64.dll
+## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\Rtmp6tZeO5\Rx_intro-2e604011521d/mod1.d/mod1_x64.dll
 ## 
 ## Parameters:
 ##      V2      V3      KA      CL       Q     Kin    Kout    EC50 
@@ -333,7 +317,7 @@ print(x)
 
 ```
 ## Solved RxODE object
-## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpCyGZXE\Rx_intro-2d645938127a/mod1.d/mod1_x64.dll
+## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\Rtmp6tZeO5\Rx_intro-2e604011521d/mod1.d/mod1_x64.dll
 ## 
 ## Parameters:
 ##      V2      V3      KA      CL       Q     Kin    Kout    EC50 
@@ -437,7 +421,7 @@ x
 
 ```
 ## Solved RxODE object
-## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpCyGZXE\Rx_intro-2d645938127a/mod1.d/mod1_x64.dll
+## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\Rtmp6tZeO5\Rx_intro-2e604011521d/mod1.d/mod1_x64.dll
 ## 
 ## Parameters:
 ##      V2      V3      KA      CL       Q     Kin    Kout    EC50 
@@ -481,7 +465,7 @@ x
 
 ```
 ## Solved RxODE object
-## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpCyGZXE\Rx_intro-2d645938127a/mod1.d/mod1_x64.dll
+## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\Rtmp6tZeO5\Rx_intro-2e604011521d/mod1.d/mod1_x64.dll
 ## 
 ## Parameters:
 ##      V2      V3      KA      CL       Q     Kin    Kout    EC50 
@@ -534,7 +518,7 @@ x
 
 ```
 ## Solved RxODE object
-## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpCyGZXE\Rx_intro-2d645938127a/mod1.d/mod1_x64.dll
+## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\Rtmp6tZeO5\Rx_intro-2e604011521d/mod1.d/mod1_x64.dll
 ## 
 ## Parameters:
 ##    V2    V3    KA    CL     Q   Kin  Kout  EC50 
@@ -632,7 +616,7 @@ This can be solved with the following command:
 
 ```
 ## Solved RxODE object
-## Dll: c:/SVN/Wenping/RxODE/vignettes/rx_f8bd102b5a0c999651b0f2c87f83b147_x64.dll
+## Dll: c:/SVN/Wenping/RxODE/vignettes/rx_cebaf84819d8ba80ea401bdbb4e64259_x64.dll
 ## 
 ## Parameters:
 ##      KA      V2      CL       Q      V3     Kin    Kout    EC50 
@@ -668,7 +652,7 @@ This can be solved for different initial conditions easily:
 
 ```
 ## Solved RxODE object
-## Dll: c:/SVN/Wenping/RxODE/vignettes/rx_f8bd102b5a0c999651b0f2c87f83b147_x64.dll
+## Dll: c:/SVN/Wenping/RxODE/vignettes/rx_cebaf84819d8ba80ea401bdbb4e64259_x64.dll
 ## 
 ## Parameters:
 ##      KA      V2      CL       Q      V3     Kin    Kout    EC50 
@@ -720,7 +704,7 @@ mod3 <- RxODE({
 
 ```
 ## Solved RxODE object
-## Dll: c:/SVN/Wenping/RxODE/vignettes/rx_0c83e7bd2b7ec40bbff5c5a943705f34_x64.dll
+## Dll: c:/SVN/Wenping/RxODE/vignettes/rx_0cb0a0768c9fc6b8a8d95ac18dde38b5_x64.dll
 ## 
 ## Parameters:
 ##      KA      CL      V2       Q      V3     Kin    Kout    EC50 
@@ -754,7 +738,7 @@ since they are built into the model, but you can override the parameters:
 
 ```
 ## Solved RxODE object
-## Dll: c:/SVN/Wenping/RxODE/vignettes/rx_0c83e7bd2b7ec40bbff5c5a943705f34_x64.dll
+## Dll: c:/SVN/Wenping/RxODE/vignettes/rx_0cb0a0768c9fc6b8a8d95ac18dde38b5_x64.dll
 ## 
 ## Parameters:
 ##    KA    CL    V2     Q    V3   Kin  Kout  EC50 
@@ -824,7 +808,7 @@ Now there is a covariate present, the system can be solved using the cov option
 
 ```
 ## Solved RxODE object
-## Dll: c:/SVN/Wenping/RxODE/vignettes/rx_14186315b2054d89bb9a12305fd05711_x64.dll
+## Dll: c:/SVN/Wenping/RxODE/vignettes/rx_94ecbebd6275aef41114b10f8790f461_x64.dll
 ## 
 ## Parameters:
 ##         KA         CL         V2          Q         V3       Kin0 
@@ -875,7 +859,7 @@ matplot(r1[,"C2"], type="l", ylab="Central Concentration")
 matplot(r1[,"eff"], type="l", ylab = "Effect")
 ```
 
-![plot of chunk unnamed-chunk-31](vignettes/figure/unnamed-chunk-31-1.png)
+<img src="vignettes/figure/unnamed-chunk-31-1.png" title="plot of chunk unnamed-chunk-31" alt="plot of chunk unnamed-chunk-31" width="100%" />
 
 Note that the linear approximation in this case leads to some kinks in
 the solved system at 24-hours where the covariate has a linear
@@ -891,7 +875,7 @@ carried forward, or constant approximation.  This is equivalent to R's
 
 ```
 ## Solved RxODE object
-## Dll: c:/SVN/Wenping/RxODE/vignettes/rx_14186315b2054d89bb9a12305fd05711_x64.dll
+## Dll: c:/SVN/Wenping/RxODE/vignettes/rx_94ecbebd6275aef41114b10f8790f461_x64.dll
 ## 
 ## Parameters:
 ##         KA         CL         V2          Q         V3       Kin0 
@@ -938,7 +922,7 @@ matplot(r2[,"C2"], type="l", ylab="Central Concentration")
 matplot(r2[,"eff"], type="l", ylab = "Effect")
 ```
 
-![plot of chunk unnamed-chunk-33](vignettes/figure/unnamed-chunk-33-1.png)
+<img src="vignettes/figure/unnamed-chunk-33-1.png" title="plot of chunk unnamed-chunk-33" alt="plot of chunk unnamed-chunk-33" width="100%" />
 
 In this case, the plots seem to be smoother.
 
@@ -975,7 +959,7 @@ par(mfrow=c(1,1))
 with(transit,matplot(time,cen, type="l", ylab="Central Concentration", xlab=""))
 ```
 
-![plot of chunk unnamed-chunk-34](vignettes/figure/unnamed-chunk-34-1.png)
+<img src="vignettes/figure/unnamed-chunk-34-1.png" title="plot of chunk unnamed-chunk-34" alt="plot of chunk unnamed-chunk-34" width="100%" />
 
 
 Another option is to specify the transit compartment function `transit` syntax.  This specifies the parameters 
@@ -1017,7 +1001,7 @@ par(mfrow=c(1,1))
 with(transit,matplot(time,cen, type="l", ylab="Central Concentration", xlab=""))
 ```
 
-![plot of chunk unnamed-chunk-35](vignettes/figure/unnamed-chunk-35-1.png)
+<img src="vignettes/figure/unnamed-chunk-35-1.png" title="plot of chunk unnamed-chunk-35" alt="plot of chunk unnamed-chunk-35" width="100%" />
 
 
 #### Stiff ODEs with Jacobian Specification
@@ -1064,7 +1048,7 @@ et$add.dosing(20, start.time=0);
 
 ```
 ## Solved RxODE object
-## Dll: c:/SVN/Wenping/RxODE/vignettes/rx_764ac3612cf417b90b21de9a7fe9534a_x64.dll
+## Dll: c:/SVN/Wenping/RxODE/vignettes/rx_9ab07237dce0a3782025da4f67d7117c_x64.dll
 ## 
 ## Parameters:
 ## mu 
@@ -1097,7 +1081,7 @@ While this is not stiff at mu=1, mu=1000 is a stiff system
 
 ```
 ## Solved RxODE object
-## Dll: c:/SVN/Wenping/RxODE/vignettes/rx_764ac3612cf417b90b21de9a7fe9534a_x64.dll
+## Dll: c:/SVN/Wenping/RxODE/vignettes/rx_9ab07237dce0a3782025da4f67d7117c_x64.dll
 ## 
 ## Parameters:
 ##   mu 
@@ -1181,12 +1165,12 @@ head(theta.all)
 
 ```
 ##         KA       CL   V2    Q  V3 Kin Kout EC50
-## [1,] 0.294 18.27140 40.2 10.5 297   1    1  200
-## [2,] 0.294 17.03367 40.2 10.5 297   1    1  200
-## [3,] 0.294 13.72314 40.2 10.5 297   1    1  200
-## [4,] 0.294 17.53874 40.2 10.5 297   1    1  200
-## [5,] 0.294 17.09203 40.2 10.5 297   1    1  200
-## [6,] 0.294 19.53438 40.2 10.5 297   1    1  200
+## [1,] 0.294 20.18937 40.2 10.5 297   1    1  200
+## [2,] 0.294 16.65416 40.2 10.5 297   1    1  200
+## [3,] 0.294 17.20554 40.2 10.5 297   1    1  200
+## [4,] 0.294 19.71083 40.2 10.5 297   1    1  200
+## [5,] 0.294 16.33232 40.2 10.5 297   1    1  200
+## [6,] 0.294 19.91614 40.2 10.5 297   1    1  200
 ```
 
 Each subproblem can be simulated by using an explicit loop (or the `apply()`

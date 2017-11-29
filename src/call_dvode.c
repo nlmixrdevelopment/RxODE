@@ -764,6 +764,68 @@ void RxODE_ode_solver_0_6_c(int *neq,
   RxODE_ode_free();
 }
 
+SEXP RxODE_get_fn_pointers(void (*fun_dydt)(unsigned int, double, double *, double *),
+			   void (*fun_calc_lhs)(double, double *, double *),
+			   void (*fun_calc_jac)(unsigned int, double, double *, double *, unsigned int),
+			   void (*fun_update_inis)(SEXP _ini_sexp),
+			   int fun_jt,
+                           int fun_mf,
+                           int fun_debug){
+  SEXP dydt, lhs, jac, inis;
+  int pro=0;
+  SEXP lst      = PROTECT(allocVector(VECSXP, 7)); pro++;
+  SEXP names    = PROTECT(allocVector(STRSXP, 7)); pro++;
+
+  void (*dydtf)(unsigned int neq, double t, double *A, double *DADT);
+  void (*calc_jac)(unsigned int neq, double t, double *A, double *JAC, unsigned int __NROWPD__);
+  void (*calc_lhs)(double t, double *A, double *lhs);
+  void (*update_inis)(SEXP _ini_sexp);
+  
+  dydtf		= fun_dydt;
+  calc_jac	= fun_calc_jac;
+  calc_lhs	= fun_calc_lhs;
+  update_inis	= fun_update_inis;
+  
+  SET_STRING_ELT(names,0,mkChar("dydt"));
+  dydt=R_MakeExternalPtr(dydtf, install("RxODE_dydt"), R_NilValue);
+  PROTECT(dydt); pro++;
+  SET_VECTOR_ELT(lst,  0, dydt);
+
+  SET_STRING_ELT(names,1,mkChar("lhs"));
+  lhs=R_MakeExternalPtr(calc_lhs, install("RxODE_lhs"), R_NilValue);
+  PROTECT(lhs); pro++;
+  SET_VECTOR_ELT(lst,  1, lhs);
+
+  SET_STRING_ELT(names,2,mkChar("jac"));
+  jac=R_MakeExternalPtr(calc_jac, install("RxODE_jac"), R_NilValue);
+  PROTECT(jac); pro++;
+  SET_VECTOR_ELT(lst,  2, jac);
+
+  SET_STRING_ELT(names,3,mkChar("inis"));
+  inis=R_MakeExternalPtr(update_inis, install("RxODE_inis"), R_NilValue);
+  PROTECT(inis); pro++;
+  SET_VECTOR_ELT(lst,  3, inis);
+
+  SET_STRING_ELT(names,4,mkChar("jt"));
+  SEXP jt = PROTECT(allocVector(INTSXP, 1)); pro++;
+  INTEGER(jt)[0] = fun_jt;
+  SET_VECTOR_ELT(lst,  4, jt);
+
+  SET_STRING_ELT(names,5,mkChar("mf"));
+  SEXP mf = PROTECT(allocVector(INTSXP, 1)); pro++;
+  INTEGER(mf)[0] = fun_mf;
+  SET_VECTOR_ELT(lst,  5, mf);
+
+  SET_STRING_ELT(names,6,mkChar("debug"));
+  SEXP debug = PROTECT(allocVector(INTSXP, 1)); pro++;
+  INTEGER(debug)[0] = fun_debug;
+  SET_VECTOR_ELT(lst,  6, debug);
+  setAttrib(lst, R_NamesSymbol, names);
+
+  UNPROTECT(pro);
+  return(lst);
+}
+
 void RxODE_assign_fn_pointers(void (*fun_dydt)(unsigned int, double, double *, double *),
                               void (*fun_calc_lhs)(double, double *, double *),
                               void (*fun_calc_jac)(unsigned int, double, double *, double *, unsigned int),
@@ -1346,6 +1408,7 @@ void R_init_RxODE(DllInfo *info){
   //Functions
   R_RegisterCCallable("RxODE","RxODE_ode_solver",       (DL_FUNC) RxODE_ode_solver);
   R_RegisterCCallable("RxODE","RxODE_assign_fn_pointers", (DL_FUNC) RxODE_assign_fn_pointers);
+  R_RegisterCCallable("RxODE","RxODE_get_fn_pointers", (DL_FUNC) RxODE_get_fn_pointers);
   R_RegisterCCallable("RxODE","RxODE_ode_solver_old_c", (DL_FUNC) RxODE_ode_solver_old_c);
   R_RegisterCCallable("RxODE","RxODE_ode_solver_0_6_c", (DL_FUNC) RxODE_ode_solver_0_6_c);
   R_RegisterCCallable("RxODE","RxODE_ode_setup",         (DL_FUNC) RxODE_ode_setup);

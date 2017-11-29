@@ -13,15 +13,15 @@ suppressWarnings({require(knitr)})
 setwd("vignettes")
 knit("RxODE-intro.Rmd")
 setwd("../")
-setwd("inst")
-knit("Install-windows.Rmd");
-setwd("../")
+## setwd("inst")
+## knit("Install-windows.Rmd");
+## setwd("../")
 ```
 
 ```{r include, results="asis", echo=FALSE, warning=FALSE}
 ## read md of the vignette
 mdInput <- readLines("vignettes/RxODE-intro.md")
-install <- readLines("inst/Install-windows.md")
+## install <- readLines("inst/Install-windows.md")
 
 ## remove vignette-specific headers
 toRemove <- 1:10

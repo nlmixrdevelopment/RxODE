@@ -1234,8 +1234,8 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
     o = strlen(s_aux_info);
   }
   fprintf(outpt,"extern SEXP %smodel_vars(){\n",model_prefix);
-  fprintf(outpt,"\tSEXP lst      = PROTECT(allocVector(VECSXP, 12));\n");
-  fprintf(outpt,"\tSEXP names    = PROTECT(allocVector(STRSXP, 12));\n");
+  fprintf(outpt,"\tSEXP lst      = PROTECT(allocVector(VECSXP, 13));\n");
+  fprintf(outpt,"\tSEXP names    = PROTECT(allocVector(STRSXP, 13));\n");
   fprintf(outpt,"\tSEXP params   = PROTECT(allocVector(STRSXP, %d));\n",pi);
   fprintf(outpt,"\tSEXP lhs      = PROTECT(allocVector(STRSXP, %d));\n",li);
   fprintf(outpt,"\tSEXP state    = PROTECT(allocVector(STRSXP, %d));\n",statei);
@@ -1244,8 +1244,8 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
   fprintf(outpt,"\tSEXP sens     = PROTECT(allocVector(STRSXP, %d));\n",sensi);
   fprintf(outpt,"\tSEXP fn_ini   = PROTECT(allocVector(STRSXP, %d));\n",fdi);
   fprintf(outpt,"\tSEXP dfdy     = PROTECT(allocVector(STRSXP, %d));\n",tb.ndfdy);
-  fprintf(outpt,"\tSEXP tran     = PROTECT(allocVector(STRSXP, 12));\n");
-  fprintf(outpt,"\tSEXP trann    = PROTECT(allocVector(STRSXP, 12));\n");
+  fprintf(outpt,"\tSEXP tran     = PROTECT(allocVector(STRSXP, 13));\n");
+  fprintf(outpt,"\tSEXP trann    = PROTECT(allocVector(STRSXP, 13));\n");
   fprintf(outpt,"\tSEXP mmd5     = PROTECT(allocVector(STRSXP, 2));\n");
   fprintf(outpt,"\tSEXP mmd5n    = PROTECT(allocVector(STRSXP, 2));\n");
   fprintf(outpt,"\tSEXP model    = PROTECT(allocVector(STRSXP, 4));\n");
@@ -1447,6 +1447,8 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
   fprintf(outpt,"\tSET_STRING_ELT(names,11,mkChar(\"state.ignore\"));\n");
   fprintf(outpt,"\tSET_VECTOR_ELT(lst,  11,stateRmS);\n");
 
+  fprintf(outpt,"\tSET_STRING_ELT(names,12,mkChar(\"ptr\"));\n");
+  fprintf(outpt,"\tSET_VECTOR_ELT(lst,  12,__ODE_SOLVER_XPTR__());\n");
   
   // md5 values
   fprintf(outpt,"\tSET_STRING_ELT(mmd5n,0,mkChar(\"file_md5\"));\n");
@@ -1493,6 +1495,9 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
 
   fprintf(outpt,"\tSET_STRING_ELT(trann,11,mkChar(\"inis\"));\n");
   fprintf(outpt,"\tSET_STRING_ELT(tran, 11,mkChar(\"%sinis\"));\n",model_prefix);
+
+  fprintf(outpt,"\tSET_STRING_ELT(trann,12,mkChar(\"ode_solver_xptr\"));\n");
+  fprintf(outpt,"\tSET_STRING_ELT(tran, 12,mkChar(\"%sode_solver_xptr\"));\n",model_prefix);
   
   fprintf(outpt,"\tsetAttrib(tran, R_NamesSymbol, trann);\n");
   fprintf(outpt,"\tsetAttrib(mmd5, R_NamesSymbol, mmd5n);\n");
@@ -2058,8 +2063,8 @@ SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP pref
   SEXP lst   = PROTECT(allocVector(VECSXP, 11));
   SEXP names = PROTECT(allocVector(STRSXP, 11));
   
-  SEXP tran  = PROTECT(allocVector(STRSXP, 12));
-  SEXP trann = PROTECT(allocVector(STRSXP, 12));
+  SEXP tran  = PROTECT(allocVector(STRSXP, 13));
+  SEXP trann = PROTECT(allocVector(STRSXP, 13));
   
   SEXP state    = PROTECT(allocVector(STRSXP,tb.statei));
   SEXP stateRmS = PROTECT(allocVector(INTSXP,tb.statei));
@@ -2215,6 +2220,10 @@ SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP pref
   sprintf(buf,"%sinis",model_prefix);
   SET_STRING_ELT(trann,11,mkChar("inis"));
   SET_STRING_ELT(tran, 11,mkChar(buf));
+
+  sprintf(buf,"%sode_solver_xptr",model_prefix);
+  SET_STRING_ELT(trann,12,mkChar("ode_solver_xptr"));
+  SET_STRING_ELT(tran, 12,mkChar(buf));
   
   fpIO2 = fopen(out2, "r");
   err_msg((intptr_t) fpIO2, "Error parsing. (Couldn't access out2.txt).\n", -1);

@@ -27,6 +27,7 @@ typedef void (*RxODE_inc) ();
 typedef double (*RxODE_val) ();
 typedef SEXP (*RxODE_ode_solver) (SEXP sexp_theta, SEXP sexp_inits, SEXP sexp_lhs, SEXP sexp_time, SEXP sexp_evid,SEXP sexp_dose, SEXP sexp_pcov, SEXP sexp_cov, SEXP sexp_locf, SEXP sexp_atol, SEXP sexp_rtol, SEXP sexp_hmin, SEXP sexp_hmax, SEXP sexp_h0, SEXP sexp_mxordn, SEXP sexp_mxords, SEXP sexp_mx,SEXP sexp_stiff, SEXP sexp_transit_abs, SEXP sexp_object, SEXP sexp_extra_args, SEXP sexp_matrix, SEXP sexp_add_cov);
 typedef void (*RxODE_assign_fn_pointers)(void (*fun_dydt)(unsigned int, double, double *, double *),void (*fun_calc_lhs)(double, double *, double *),void (*fun_calc_jac)(unsigned int, double, double *, double *, unsigned int),void (*fun_update_inis)(SEXP _ini_sexp),int fun_jt,int fun_mf, int fun_debug);
+typedef SEXP (*RxODE_assign_fn_xpointers)(void (*fun_dydt)(unsigned int, double, double *, double *),void (*fun_calc_lhs)(double, double *, double *),void (*fun_calc_jac)(unsigned int, double, double *, double *, unsigned int),void (*fun_update_inis)(SEXP _ini_sexp),int fun_jt,int fun_mf, int fun_debug);
 
 typedef void (*RxODE_ode_solver_old_c)(int *neq,double *theta,double *time,int *evid,int *ntime,double *inits,double *dose,double *ret,double *atol,double *rtol,int *stiff,int *transit_abs,int *nlhs,double *lhs,int *rc);
 typedef void (*RxODE_ode_solver_0_6_c)(int *neq,double *theta,double *time,int *evid,int *ntime,double *inits,double *dose,double *ret,double *atol,double *rtol,int *stiff,int *transit_abs,int *nlhs,double *lhs,int *rc,double hmin, double hmax,double h0,int mxordn,int mxords,int mxstep);
@@ -44,6 +45,7 @@ RxODE_fn _safe_log, safe_zero, factorial, _as_zero, abs_log, abs_log1p;
 RxODE_fn2 sign_exp, Rx_pow;
 RxODE_fn2i Rx_pow_di;
 RxODE_assign_fn_pointers _assign_fn_pointers;
+RxODE_assign_fn_xpointers _assign_fn_xpointers;
 RxODE_ode_solver_old_c _old_c;
 RxODE_ode_solver_0_6_c _c_0_6;
 RxODE_solveLinB solveLinB;
@@ -90,6 +92,7 @@ extern double _sign(unsigned int n, ...){
 }
 
 extern void __ODE_SOLVER_PTR__();
+extern SEXP __ODE_SOLVER_XPTR__();
 
 extern void __ODE_SOLVER__(
                     int *neq,
@@ -142,6 +145,16 @@ void __ODE_SOLVER_0_6__(int *neq,
 
 extern void __ODE_SOLVER_PTR__  (){
   _assign_fn_pointers(__DYDT__ , __CALC_LHS__ , __CALC_JAC__, __INIS__, __JT__ , __MF__,
+#ifdef __DEBUG__
+                      1
+#else
+                      0
+#endif
+                      );
+}
+
+extern SEXP __ODE_SOLVER_XPTR__  (){
+  return _assign_fn_xpointers(__DYDT__ , __CALC_LHS__ , __CALC_JAC__, __INIS__, __JT__ , __MF__,
 #ifdef __DEBUG__
                       1
 #else
@@ -214,6 +227,7 @@ void __R_INIT__ (DllInfo *info){
   safe_zero =(RxODE_fn) R_GetCCallable("RxODE","RxODE_safe_zero");
   _as_zero = (RxODE_fn) R_GetCCallable("RxODE","RxODE_as_zero");
   _assign_fn_pointers=(RxODE_assign_fn_pointers) R_GetCCallable("RxODE","RxODE_assign_fn_pointers");
+  _assign_fn_xpointers=(RxODE_assign_fn_xpointers) R_GetCCallable("RxODE","RxODE_get_fn_pointers");
   _old_c = (RxODE_ode_solver_old_c) R_GetCCallable("RxODE","RxODE_ode_solver_old_c");
   _c_0_6 = (RxODE_ode_solver_0_6_c)R_GetCCallable("RxODE","RxODE_ode_solver_0_6_c");
   _sum1   = (RxODE_sum_prod)R_GetCCallable("RxODE","RxODE_sum");
@@ -240,6 +254,7 @@ void __R_INIT__ (DllInfo *info){
   };
   
   R_CallMethodDef callMethods[]  = {
+    {__ODE_SOLVER_XPTR_STR__, (DL_FUNC) &__ODE_SOLVER_XPTR__, 0},
     {__ODE_SOLVER_PTR_STR__, (DL_FUNC) &__ODE_SOLVER_PTR__, 0},
     {__ODE_SOLVER_SEXP_STR__, (DL_FUNC) &__ODE_SOLVER_SEXP__, 23},
     {__MODEL_VARS_STR__, (DL_FUNC) &__MODEL_VARS__, 0},

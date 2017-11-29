@@ -1118,3 +1118,66 @@ List rxDataParSetup(const RObject &object,
   ret.attr("class") = cls;
   return ret;
 }
+
+
+List rxSolveC0(const RObject &object,
+	       const RObject &params = R_NilValue,
+	       const RObject &events = R_NilValue,
+	       const Nullable<NumericVector> &inits = R_NilValue,
+	       const RObject &covs  = R_NilValue,
+	       const RObject &sigma= R_NilValue,
+	       const RObject &sigmaDf= R_NilValue,
+	       const int &sigmaNcores= 1,
+	       const bool &sigmaIsChol= false,
+	       const StringVector &amountUnits = NA_STRING,
+	       const StringVector &timeUnits = "hours"){
+  List modVars = rxModelVars(object);
+  List totDat = rxDataParSetup(object, params, events, inits,
+			       covs, sigma, sigmaDf, sigmaNcores,
+			       sigmaIsChol, amountUnits, timeUnits);
+  DataFrame dose    = as<DataFrame>(totDat["dose"]);
+  DataFrame ids     = as<DataFrame>(totDat["ids"]);
+  DataFrame obs     = as<DataFrame>(totDat["obs"]);
+  DataFrame et      = as<DataFrame>(totDat["et"]);
+  NumericVector pars = as<NumericVector>(totDat["pars"]);
+  NumericVector ini = as<NumericVector>(totDat["inits"]);
+  int npars          = as<int>(totDat["npars"]);
+  int cpar = 0;
+  NumericVector time = as<double>(et["time"]);
+  IntegerVector evid = as<IntegerVector>(et["evid"]);
+  NumericVector amt  = as<double>(dose["amt"]);
+  NumericVector cov = as<NumericVector>(totDat["cov"]);
+  StringVector lhs = as<StringVector>(modVars["lhs"]);
+  /*
+    (## Parameters
+    params, -- pars
+    inits, -- ini
+    as.double(scale),
+    lhs_vars, -- lhs
+    ## events
+    time, -- time
+    evid, -- evid
+    amt, -- amt
+    ## Covariates
+    pcov,
+    cov,
+    isLocf,
+    ## Solver options (double)
+    atol,
+    rtol,
+    hmin,
+    hmax,
+    hini,
+    ## Solver options ()
+    maxordn,
+    maxords,
+    maxsteps,
+    stiff,
+    transit_abs,
+    ## Passed to build solver object.
+    env,
+    as.integer(c(state.ignore, add.cov, do.matrix)),
+    extra.args)
+  */
+  
+}
