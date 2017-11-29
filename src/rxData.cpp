@@ -1148,6 +1148,8 @@ List rxSolveC0(const RObject &object,
   NumericVector amt  = as<double>(dose["amt"]);
   NumericVector cov = as<NumericVector>(totDat["cov"]);
   StringVector lhs = as<StringVector>(modVars["lhs"]);
+  List ret;
+  return ret;
   /*
     (## Parameters
     params, -- pars
