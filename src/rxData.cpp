@@ -1111,6 +1111,7 @@ List rxDataParSetup(const RObject &object,
   ret["nsim"] = nr;
   ret["inits"] = initsC;
   ret["n.pars"] = (int)(pars.size());
+  ret["pcov"] = pcov;
   StringVector cls(2);
   cls(0) = "RxODE.par.data";
   cls(1) = "RxODE.multi.data";
