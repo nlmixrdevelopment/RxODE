@@ -323,14 +323,19 @@ void jdum_lsoda(int *neq, double *t, double *A,int *ml, int *mu, double *JAC, in
   // Update all covariate parameters
   calc_jac(*neq, *t, A, JAC, *nrowpd);
 }
-void call_lsoda(int neq, double *x, int *evid, int nx, double *inits, double *dose, double *ret, int *rc)
+
+// Allow pointers to be called directly
+void call_lsoda0(int neq, double *x, int *evid, int nx, double *inits, double *dose, double *ret, int *rc,
+		 void (*fun_dydt_lsoda_dum)(int *neq, double *t, double *A, double *DADT),
+		 void (*fun_jdum_lsoda)(int *neq, double *t, double *A,int *ml, int *mu, double *JAC, int *nrowpd),
+		 double *ropts, int *iopts)
 {
   int i, j, foundBad;
   double xout, xp=x[0], yp[99];
   int itol = 1;
-  double  rtol = RTOL, atol = ATOL;
+  double  rtol = ropts[0], atol = ropts[1];
   // Set jt to 1 if full is specified.
-  int itask = 1, istate = 1, iopt = 0, lrw=22+neq*max(16, neq+9), liw=20+neq, jt = global_jt;
+  int itask = 1, istate = 1, iopt = 0, lrw=22+neq*max(16, neq+9), liw=20+neq, jt = iopts[0];
   double *rwork;
   int *iwork;
   int wh, cmt;
@@ -351,16 +356,16 @@ void call_lsoda(int neq, double *x, int *evid, int nx, double *inits, double *do
   iwork = (int*)Calloc(liw+1, int);
   
   iopt = 1;
-  
-  rwork[4] = H0; // H0 -- determined by solver
-  rwork[5] = HMAX; // Hmax -- Infinite
-  rwork[6] = HMIN; // Hmin -- 0
+
+  rwork[4] = ropts[2]; // H0 -- determined by solver
+  rwork[5] = ropts[3]; // Hmax -- Infinite
+  rwork[6] = ropts[4]; // Hmin -- 0
   
   iwork[4] = 0; // ixpr  -- No extra printing.
-  iwork[5] = mxstep; // mxstep 
+  iwork[5] = iopts[1]; // mxstep 
   iwork[6] = 0; // MXHNIL 
-  iwork[7] = MXORDN; // MXORDN 
-  iwork[8] = MXORDS;  // MXORDS
+  iwork[7] = iopts[2]; // MXORDN 
+  iwork[8] = iopts[3];  // MXORDS
   
   //--- inits the system
   for(i=0; i<neq; i++) yp[i] = inits[i];
@@ -375,8 +380,8 @@ void call_lsoda(int neq, double *x, int *evid, int nx, double *inits, double *do
       }
       if(xout-xp> DBL_EPSILON*max(fabs(xout),fabs(xp)))
 	{
-	  F77_CALL(dlsoda)(dydt_lsoda_dum, &neq, yp, &xp, &xout, &itol, &rtol, &atol, &itask,
-			   &istate, &iopt, rwork, &lrw, iwork, &liw, &jdum_lsoda, &jt);
+	  F77_CALL(dlsoda)(fun_dydt_lsoda_dum, &neq, yp, &xp, &xout, &itol, &rtol, &atol, &itask,
+			   &istate, &iopt, rwork, &lrw, iwork, &liw, fun_jdum_lsoda, &jt);
 
 	  if (istate<0)
 	    {
@@ -443,15 +448,37 @@ void call_lsoda(int neq, double *x, int *evid, int nx, double *inits, double *do
   Free(iwork);
 }
 
+void call_lsoda(int neq, double *x, int *evid, int nx, double *inits, double *dose, double *ret, int *rc){
+  void (*fun_dydt_lsoda_dum)(int *neq, double *t, double *A, double *DADT);
+  void (*fun_jdum_lsoda)(int *neq, double *t, double *A,int *ml, int *mu, double *JAC, int *nrowpd);
+  fun_dydt_lsoda_dum = dydt_lsoda_dum;
+  fun_jdum_lsoda = jdum_lsoda;
+  double ropts[5];
+  ropts[0] = RTOL;
+  ropts[1] = ATOL;
+  ropts[2] = H0;
+  ropts[3] = HMAX;
+  ropts[4] = HMIN;
+  int iopts[4];
+  iopts[0] = global_jt;
+  iopts[1] = mxstep;
+  iopts[2] = MXORDN;
+  iopts[3] = MXORDS;
+  call_lsoda0(neq, x, evid, nx, inits, dose, ret, rc, fun_dydt_lsoda_dum, fun_jdum_lsoda, ropts, iopts);
+}
+
+
 //dummy solout fn
 void solout(long int nr, double t_old, double t,
 	    double *y, unsigned int n, int *irtrn){}
-void call_dop(int neq, double *x, int *evid, int nx, double *inits, double *dose, double *ret, int *rc)
+void call_dop0(int neq, double *x, int *evid, int nx, double *inits, double *dose, double *ret, int *rc,
+	       void (*fun_dydt)(unsigned int neq, double t, double *A, double *DADT),
+	       double *ropts, int *iopts)
 {
   int i, j;
   //DE solver config vars
   double xout, xp=x[0], yp[99];
-  double rtol=RTOL, atol=ATOL;
+  double rtol=ropts[0], atol=ropts[1];
   int itol=0;		//0: rtol/atol scalars; 1: rtol/atol vectors
   int iout=0;		//iout=0: solout() NEVER called
   int idid=0;
@@ -480,7 +507,7 @@ void call_dop(int neq, double *x, int *evid, int nx, double *inits, double *dose
 	{
 	  idid = dop853(
 			neq,      	/* dimension of the system <= UINT_MAX-1*/
-			dydt,    	/* function computing the value of f(x,y) */
+			fun_dydt,    	/* function computing the value of f(x,y) */
 			xp,           /* initial x-value */
 			yp,           /* initial values for y */
 			xout,         /* final x-value (xend-x may be positive or negative) */
@@ -565,6 +592,25 @@ void call_dop(int neq, double *x, int *evid, int nx, double *inits, double *dose
       }
     }
 }
+
+void call_dop(int neq, double *x, int *evid, int nx, double *inits, double *dose, double *ret, int *rc){
+  void (*fun_dydt)(unsigned int neq, double t, double *A, double *DADT);
+  fun_dydt=dydt;
+  double ropts[5];
+  ropts[0] = RTOL;
+  ropts[1] = ATOL;
+  ropts[2] = H0;
+  ropts[3] = HMAX;
+  ropts[4] = HMIN;
+  int iopts[4];
+  iopts[0] = global_jt;
+  iopts[1] = mxstep;
+  iopts[2] = MXORDN;
+  iopts[3] = MXORDS;
+  call_dop0(neq, x, evid, nx, inits, dose, ret, rc,fun_dydt,ropts, iopts);
+}
+
+
 
 void RxODE_ode_solver_c(int neq, int stiff, int *evid, double *inits, double *dose, double *solve, int *rc){
   ixds = 0;
