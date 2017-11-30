@@ -353,10 +353,15 @@ List rxDataSetup(const RObject &ro,
     IntegerVector nObsN(nSub);
     IntegerVector posEt(nSub);
     IntegerVector nEtN(nSub);
+    NumericVector Hmax(nSub); // For LSODA default
     
     double minTime = NA_REAL;
     double maxTime = -1e10;
     double minIdTime = NA_REAL;
+    double lastTime = 0;
+    //hmax <- max(abs(diff(event.table$time)))
+    double mdiff = 0;
+    double tmp;
     int m = 0, nEt=0;
     for (i = 0; i < ids; i++){
       if (lastId != id[i]){
@@ -369,18 +374,26 @@ List rxDataSetup(const RObject &ro,
           nDose[m-1] = nDoses;
           nObsN[m-1]  = nObs;
           nEtN[m-1] = nEt;
+	  Hmax[m-1] = mdiff;
         }
         nDoses = 0;
         nObs = 0;
         nEt  = 0;
         m++;
 	minIdTime = time0[i];
+	lastTime = time0[i];
+	mdiff = 0;
       }
       if (minIdTime > time0[i]){
 	stop("Data need to be ordered by ID and TIME.");
       } else {
 	minIdTime = time0[i];
       }
+      tmp = time0[i]-lastTime;
+      if (tmp > mdiff){
+	mdiff = tmp;
+      }
+      lastTime = time0[i];
       if (evid[i]){
         // Dose
         newEvid[j]  = evid[i];
@@ -406,6 +419,7 @@ List rxDataSetup(const RObject &ro,
     nDose[m-1]=nDoses;
     nObsN[m-1]=nObs;
     nEtN[m-1] = nEt;
+    Hmax[m-1] = mdiff;
     if (dataCov && covDf.nrow() != nObs){
       stop("Covariate data needs to match the number of observations in the overall dataset.");
     }
@@ -443,20 +457,21 @@ List rxDataSetup(const RObject &ro,
       }
     }
     // nCov[m-1] = nObs*nCovs;
-    List ret = List::create(_["dose"] = DataFrame::create(_["evid"]    = newEvid,
-                                                          _["time"]    = newTimeA,
-                                                          _["amt"]     = newAmt),
-                            _["obs"]  = DataFrame::create(_["dv"]      = newDv,
-                                                          _["time"]    = newTimeO),
-                            _["ids"]  = DataFrame::create(_["id"]      = newId,
-                                                          _["posDose"] = posDose,
-                                                          _["posObs"]  = posObs,
-                                                          _["posCov"]  = posCov,
-                                                          _["posEvent"]= posEt,
-                                                          _["nDose"]   = nDose,
-                                                          _["nObs"]    = nObsN,
-                                                          _["nCov"]    = nCov,
-                                                          _["nEvent"]   = nEtN),
+    List ret = List::create(_["dose"] = DataFrame::create(_["evid"]         = newEvid,
+                                                          _["time"]         = newTimeA,
+                                                          _["amt"]          = newAmt),
+                            _["obs"]  = DataFrame::create(_["dv"]           = newDv,
+                                                          _["time"]         = newTimeO),
+                            _["ids"]  = DataFrame::create(_["id"]           = newId,
+                                                          _["posDose"]      = posDose,
+                                                          _["posObs"]       = posObs,
+                                                          _["posCov"]       = posCov,
+                                                          _["posEvent"]     = posEt,
+                                                          _["nDose"]        = nDose,
+                                                          _["nObs"]         = nObsN,
+                                                          _["nCov"]         = nCov,
+                                                          _["nEvent"]       = nEtN,
+							  _["HmaxDefault"] = Hmax),
                             _["et"] = DataFrame::create(_["evid"]=evid,
                                                         _["time"]=time0),
                             _["cov"]=newCov,
