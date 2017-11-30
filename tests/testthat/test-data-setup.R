@@ -495,6 +495,13 @@ rxPermissive({
     })
     context("Solving Options pointer to C structure")
     test_that("Solving Options produce a pointer to the C structure.", {
+        ode <- RxODE({
+            b       = -1
+            d/dt(X) = a*X + Y*Z;
+            d/dt(Y) = b*(Y - Z);
+            d/dt(Z) = -X*Y + c*Y - Z
+            printf("%.10f,%.10f\n",t,c);
+        })
         expect_equal(class(rxSolvingOptions(ode)), "externalptr")
     })
 
