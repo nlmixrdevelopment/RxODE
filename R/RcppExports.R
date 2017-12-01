@@ -215,8 +215,12 @@ rxDataParSetup <- function(object, params = NULL, events = NULL, inits = NULL, c
     .Call(`_RxODE_rxDataParSetup`, object, params, events, inits, covs, sigma, sigmaDf, sigmaNcores, sigmaIsChol, amountUnits, timeUnits)
 }
 
-rxSolvingOptions <- function(object, stiff = TRUE, transit_abs = NULL, atol = 1.0e-8, rtol = 1.0e-6, maxsteps = 5000L, hmin = 0L, hini = 0L, maxordn = 12L, maxords = 5L) {
-    .Call(`_RxODE_rxSolvingOptions`, object, stiff, transit_abs, atol, rtol, maxsteps, hmin, hini, maxordn, maxords)
+rxSolvingOptions <- function(object, stiff = TRUE, transit_abs = NULL, atol = 1.0e-8, rtol = 1.0e-6, maxsteps = 5000L, hmin = 0L, hini = 0L, maxordn = 12L, maxords = 5L, covs_interpolation = "linear") {
+    .Call(`_RxODE_rxSolvingOptions`, object, stiff, transit_abs, atol, rtol, maxsteps, hmin, hini, maxordn, maxords, covs_interpolation)
+}
+
+rxSolvingData <- function(model, parData, stiff = TRUE, transit_abs = NULL, atol = 1.0e-8, rtol = 1.0e-6, maxsteps = 5000L, hmin = 0L, hmax = NULL, hini = 0L, maxordn = 12L, maxords = 5L, covs_interpolation = "linear") {
+    .Call(`_RxODE_rxSolvingData`, model, parData, stiff, transit_abs, atol, rtol, maxsteps, hmin, hmax, hini, maxordn, maxords, covs_interpolation)
 }
 
 #' Invert matrix using Rcpp Armadilo.  

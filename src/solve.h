@@ -1,4 +1,3 @@
-
 typedef void (*t_dydt)(unsigned int neq, double t, double *A, double *DADT);
 typedef void (*t_calc_jac)(unsigned int neq, double t, double *A, double *JAC, unsigned int __NROWPD__);
 typedef void (*t_calc_lhs)(double t, double *A, double *lhs);
@@ -29,4 +28,52 @@ typedef struct {
   t_update_inis update_inis;
   t_dydt_lsoda_dum dydt_lsoda_dum;
   t_jdum_lsoda jdum_lsoda;
+  // approx fun options
+  double f1;
+  double f2;
+  int kind;
+  double ylow;
+  double yhigh;
+  int is_locf;
 } rx_solving_options;
+
+
+typedef struct {
+  long slvr_counter;
+  long dadt_counter;
+  long jac_counter;
+  double *InfusionRate;
+  int *BadDose;
+  int nBadDose;
+  double HMAX; // Determined by diff
+  double tlast;
+  double podo;
+  double *par_ptr;
+  double *inits;
+  double *dose;
+  double *solve;
+  double *lhs;
+  int    *par_cov;
+  int  *evid;
+  int   do_par_cov;
+  int *rc;
+  double *cov_ptr;
+  int ncov;
+  int n_all_times;
+  int ixds;
+  int ndoses;
+  double *all_times;
+  int *idose;
+  int idosen;
+  int extraCmt;
+  FILE *fp;
+  int id;
+  int sim;
+} rx_solving_options_ind;
+
+typedef struct {
+  rx_solving_options_ind *subjects;
+  int nsub;
+  int nsim;
+  SEXP op;
+} rx_solve;

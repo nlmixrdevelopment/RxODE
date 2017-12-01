@@ -1,5 +1,8 @@
 // [[Rcpp::depends(RcppArmadillo)]]
 #include <RcppArmadillo.h>
+extern "C"{
+#include "solve.h"
+}
 
 using namespace Rcpp;
 using namespace arma;
@@ -354,6 +357,7 @@ List rxDataSetup(const RObject &ro,
     IntegerVector posEt(nSub);
     IntegerVector nEtN(nSub);
     NumericVector Hmax(nSub); // For LSODA default
+    IntegerVector rc(nSub);
     
     double minTime = NA_REAL;
     double maxTime = -1e10;
@@ -375,6 +379,7 @@ List rxDataSetup(const RObject &ro,
           nObsN[m-1]  = nObs;
           nEtN[m-1] = nEt;
 	  Hmax[m-1] = mdiff;
+	  rc[m-1] = 0;
         }
         nDoses = 0;
         nObs = 0;
@@ -420,6 +425,7 @@ List rxDataSetup(const RObject &ro,
     nObsN[m-1]=nObs;
     nEtN[m-1] = nEt;
     Hmax[m-1] = mdiff;
+    rc[m-1] = 0;
     if (dataCov && covDf.nrow() != nObs){
       stop("Covariate data needs to match the number of observations in the overall dataset.");
     }
@@ -471,7 +477,8 @@ List rxDataSetup(const RObject &ro,
                                                           _["nObs"]         = nObsN,
                                                           _["nCov"]         = nCov,
                                                           _["nEvent"]       = nEtN,
-							  _["HmaxDefault"] = Hmax),
+							  _["HmaxDefault"]  = Hmax,
+							  _["rc"]           = rc),
                             _["et"] = DataFrame::create(_["evid"]=evid,
                                                         _["time"]=time0),
                             _["cov"]=newCov,
@@ -1121,12 +1128,21 @@ List rxDataParSetup(const RObject &object,
     }
   }
   ret["pars"] = parsVec;
-  nr = parMat.nrow() % nSub;
+  nr = parMat.nrow() / nSub;
   if (nr == 0) nr = 1;
   ret["nsim"] = nr;
   ret["inits"] = initsC;
   ret["n.pars"] = (int)(pars.size());
   ret["pcov"] = pcov;
+  ret["neq"] = state.size();
+  DataFrame et      = as<DataFrame>(ret["et"]);
+  NumericVector solve(state.size()*et.nrow()*nr);
+  ret["solve"] = solve;
+  CharacterVector lhs = as<CharacterVector>(modVars["lhs"]);
+  ret["lhs"] = NumericVector(lhs.size()*nSub*nr);
+  ret["lhsSize"] = lhs.size();
+  ret["InfusionRate"] =NumericVector(state.size()*nSub*nr);
+  ret["BadDose"] =IntegerVector(state.size()*nSub*nr);
   StringVector cls(2);
   cls(0) = "RxODE.par.data";
   cls(1) = "RxODE.multi.data";
@@ -1150,12 +1166,41 @@ extern "C" {
 			    int nlhs,
 			    int neq,
 			    int stiff,
-			    SEXP dydt,
-			    SEXP calc_jac,
-			    SEXP calc_lhs,
+			    double f1,
+                            double f2,
+                            int kind,
+                            int is_locf,
+                            SEXP dydt,
+                            SEXP calc_jac,
+                            SEXP calc_lhs,
 			    SEXP update_inis,
 			    SEXP dydt_lsoda_dum,
 			    SEXP jdum_lsoda);
+
+  void getSolvingOptionsIndPtr(double *InfusionRate,
+			       int *BadDose,
+			       double HMAX, // Determined by diff
+			       double *par_ptr,
+			       double *inits,
+			       double *dose,
+			       double *solve,
+			       double *lhs,
+			       int    *par_cov,
+			       int  *evid,
+			       int   do_par_cov,
+			       int *rc,
+			       double *cov_ptr,
+			       int ncov,
+			       int n_all_times,
+			       double *all_times,
+			       int id,
+			       int sim,
+			       rx_solving_options_ind *o);
+  SEXP rxSolveData(rx_solving_options_ind *subjects,
+                   int nsub,
+                   int nsim,
+                   SEXP op);
+
 }
 
 //[[Rcpp::export]]
@@ -1168,13 +1213,13 @@ SEXP rxSolvingOptions(const RObject &object,
                       const int hmin = 0,
 		      const int hini = 0,
 		      const int maxordn = 12,
-                      const int maxords = 5){
+                      const int maxords = 5,
+		      std::string covs_interpolation = "linear"){
   if (maxordn < 1 || maxordn > 12){
-    stop("'maxordn' must be >1 and < = 12.");
+    stop("'maxordn' must be >1 and <= 12.");
   }
-  
   if (maxords < 1 || maxords > 5){
-    stop("'maxords' must be >1 and < = 5.");
+    stop("'maxords' must be >1 and <= 5.");
   }
   if (hmin < 0){
     stop("'hmin' must be a non-negative value.");
@@ -1201,6 +1246,27 @@ SEXP rxSolvingOptions(const RObject &object,
   if (stiff){
     st=1;
   }
+  int is_locf = 0;
+  double f1 = 1.0, f2 = 0.0;
+  int kind=1;
+  if (covs_interpolation == "linear"){
+  } else if (covs_interpolation == "constant" || covs_interpolation == "locf" || covs_interpolation == "LOCF"){
+    f2 = 0.0;
+    f1 = 1.0;
+    kind = 0;
+    is_locf=1;
+  } else if (covs_interpolation == "nocb" || covs_interpolation == "NOCB"){
+    f2 = 1.0;
+    f1 = 0.0;
+    kind = 0;
+    is_locf=2;
+  }  else if (covs_interpolation == "midpoint"){
+    f1 = f2 = 0.5;
+    kind = 0;
+    is_locf=3;
+  } else {
+    stop("Unknown covariate interpolation specified.");
+  }
   CharacterVector lhs = as<CharacterVector>(modVars["lhs"]);
   CharacterVector state = as<CharacterVector>(modVars["state"]);
   return getSolvingOptionsPtr(atol,rtol,hini, hmin,
@@ -1209,12 +1275,97 @@ SEXP rxSolvingOptions(const RObject &object,
 			      as<int>(ptr["debug"]),
 			      maxsteps, maxordn, maxords, transit,
 			      lhs.size(), state.size(),
-			      st,as<SEXP>(ptr["dydt"]),
-			      as<SEXP>(ptr["jac"]),
+			      st, f1, f2, kind, is_locf,
+                              as<SEXP>(ptr["dydt"]),
+                              as<SEXP>(ptr["jac"]),
 			      as<SEXP>(ptr["lhs"]),
 			      as<SEXP>(ptr["inis"]),
 			      as<SEXP>(ptr["dydt_lsoda"]),
 			      as<SEXP>(ptr["jdum"]));
+}
+
+//[[Rcpp::export]]
+SEXP rxSolvingData(const RObject &model,
+		   const RObject &parData,
+		   const bool &stiff = true,
+		   const Nullable<LogicalVector> &transit_abs = R_NilValue,
+		   const double atol = 1.0e-8,
+		   const double rtol = 1.0e-6,
+		   const int maxsteps = 5000,
+		   const int hmin = 0,
+		   const Nullable<NumericVector> &hmax = R_NilValue,
+		   const int hini = 0,
+		   const int maxordn = 12,
+		   const int maxords = 5,
+		   std::string covs_interpolation = "linear") {
+  if (rxIs(parData, "RxODE.par.data")){
+    List opt = List(parData);
+    DataFrame ids = as<DataFrame>(opt["ids"]);
+    IntegerVector BadDose = as<IntegerVector>(opt["BadDose"]);
+    NumericVector InfusionRate = as<NumericVector>(opt["InfusionRate"]);
+    NumericVector par = as<NumericVector>(opt["pars"]);
+    double hm;
+    int nPar = as<int>(opt["n.pars"]);
+    int nSub = as<int>(opt["nSub"]);
+    NumericVector inits = as<NumericVector>(opt["inits"]);
+    DataFrame doseDf = as<DataFrame>(opt["dose"]);
+    NumericVector amt = as<NumericVector>(doseDf["amt"]);
+    IntegerVector posDose = as<IntegerVector>(ids["posDose"]);
+    IntegerVector posEvent = as<IntegerVector>(ids["posEvent"]);
+    IntegerVector posCov = as<IntegerVector>(ids["posCov"]);
+    IntegerVector nEvent = as<IntegerVector>(ids["nEvent"]);
+    NumericVector solve = as<NumericVector>(opt["solve"]);
+    DataFrame et      = as<DataFrame>(opt["et"]);
+    IntegerVector evid  = as<IntegerVector>(et["evid"]);
+    NumericVector all_times = as<NumericVector>(et["time"]);
+    int totSize = et.nrow();
+    NumericVector lhs = as<NumericVector>(opt["lhs"]);
+    int lhsSize = as<int>(opt["lhsSize"]);
+    IntegerVector par_cov = as<IntegerVector>(opt["pcov"]);
+    NumericVector cov = as<NumericVector>(opt["cov"]);
+    IntegerVector rc=as<IntegerVector>(ids["rc"]);
+    int do_par_cov = 0;
+    if (par_cov.size() > 0){
+      do_par_cov = 1;
+    }
+    rx_solving_options_ind *inds;
+    int nsim = as<int>(opt["nsim"]);
+    inds = Calloc(nSub*nsim,rx_solving_options_ind);
+    for (int simNum = 0; simNum < nsim; simNum++){
+      for (int id = 0; id < nSub; id++){
+	if (hmax.isNull()){
+          // Get from data.
+          NumericVector hmn = as<NumericVector>(ids["HmaxDefault"]);
+          hm = hmn[id];
+        } else {
+          NumericVector hmn = NumericVector(hmax);
+          if (R_FINITE(hmn[0])){
+            if (hmn[0] < 0)
+	      Free(inds);
+              stop("'hmax' must be a non-negative value.");
+            hm = hmn[0];
+          } else {
+            hm = 0.0;
+          }
+        }
+        getSolvingOptionsIndPtr(&InfusionRate[id],&BadDose[id], hm,&par[id*nPar+nSub*nPar*simNum],
+                                &inits[0], &amt[posDose[id]],
+                                // Solve and lhs are written to in the solve...
+                                &solve[id*totSize+nSub*totSize*simNum],
+                                &lhs[id*lhsSize+nSub*lhsSize*simNum],
+                                // Doesn't change with the solve.
+                                &par_cov[0], &evid[posEvent[id]], do_par_cov, &rc[id], &cov[posCov[id]],
+                                par_cov.size(), nEvent[id], &all_times[posEvent[id]], id, simNum,
+                                &inds[id+simNum*nSub]);
+      }
+    }
+    SEXP op = rxSolvingOptions(model,stiff, transit_abs, atol, rtol, maxsteps, hmin, hini, maxordn,
+			       maxords, covs_interpolation);
+    return rxSolveData(inds, nSub, nsim, op);
+  } else {
+    stop("This requires something setup by 'rxDataParSetup'.");
+  }
+  return R_NilValue;
 }
 
 
