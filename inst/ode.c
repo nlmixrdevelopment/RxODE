@@ -30,7 +30,6 @@ typedef void (*RxODE_assign_fn_pointers)(void (*fun_dydt)(unsigned int, double, 
 typedef SEXP (*RxODE_assign_fn_xpointers)(void (*fun_dydt)(unsigned int, double, double *, double *), void (*fun_calc_lhs)(double, double *, double *), void (*fun_calc_jac)(unsigned int, double, double *, double *, unsigned int), void (*fun_update_inis)(SEXP _ini_sexp), void (*fun_dydt_lsoda_dum)(int *, double *, double *, double *), void (*fun_jdum_lsoda)(int *, double *, double *,int *, int *, double *, int *), int fun_jt,int fun_mf, int fun_debug);
 
 typedef void (*RxODE_ode_solver_old_c)(int *neq,double *theta,double *time,int *evid,int *ntime,double *inits,double *dose,double *ret,double *atol,double *rtol,int *stiff,int *transit_abs,int *nlhs,double *lhs,int *rc);
-typedef void (*RxODE_ode_solver_0_6_c)(int *neq,double *theta,double *time,int *evid,int *ntime,double *inits,double *dose,double *ret,double *atol,double *rtol,int *stiff,int *transit_abs,int *nlhs,double *lhs,int *rc,double hmin, double hmax,double h0,int mxordn,int mxords,int mxstep);
 typedef double (*RxODE_solveLinB)(double t, int linCmt, int diff1, int diff2, double A, double alpha, double B, double beta, double C, double gamma, double ka, double tlag);
 typedef double (*RxODE_sum_prod)(double *input, int n);
 // Give par pointers
@@ -47,7 +46,6 @@ RxODE_fn2i Rx_pow_di;
 RxODE_assign_fn_pointers _assign_fn_pointers;
 RxODE_assign_fn_xpointers _assign_fn_xpointers;
 RxODE_ode_solver_old_c _old_c;
-RxODE_ode_solver_0_6_c _c_0_6;
 RxODE_solveLinB solveLinB;
 RxODE_sum_prod _sum1, _prod1;
 
@@ -114,33 +112,6 @@ extern void __ODE_SOLVER__(
   // Backward compatible ode solver for 0.5* C interface
   __ODE_SOLVER_PTR__();
   _old_c(neq, theta, time, evid, ntime, inits, dose, ret, atol, rtol, stiff, transit_abs, nlhs, lhs, rc);
-}
-
-void __ODE_SOLVER_0_6__(int *neq,
-                        double *theta,  //order:
-                        double *time,
-                        int *evid,
-                        int *ntime,
-                        double *inits,
-                        double *dose,
-                        double *ret,
-                        double *atol,
-                        double *rtol,
-                        int *stiff,
-                        int *transit_abs,
-                        int *nlhs,
-                        double *lhs,
-                        int *rc,
-                        double hmin,
-                        double hmax,
-                        double h0,
-                        int mxordn,
-                        int mxords,
-                        int mxstep) {
-  // Backward compatible ode solver for 0.5* C interface
-  __ODE_SOLVER_PTR__();
-  _c_0_6(neq, theta, time, evid, ntime, inits, dose, ret, atol, rtol, stiff, transit_abs, nlhs, lhs, rc,
-	hmin, hmax, h0, mxordn, mxords, mxstep);
 }
 
 extern void __DYDT_LSODA__(int *neq, double *t, double *A, double *DADT)
@@ -214,10 +185,6 @@ static R_NativePrimitiveArgType __ODE_SOLVER__rx_t[] = {
   INTSXP,REALSXP, REALSXP, INTSXP, INTSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, INTSXP, INTSXP, INTSXP, REALSXP, INTSXP
 };
 
-static R_NativePrimitiveArgType  __ODE_SOLVER_0_6__rx_t[] = {
-  //*neq, *theta, *time,  *evid, *ntime, *inits,   *dose,   *ret,     *atol,  *rtol,   *stiff, *transit_abs, *nlhs, *lhs, *rc
-  INTSXP,REALSXP, REALSXP, INTSXP, INTSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, INTSXP, INTSXP, INTSXP, REALSXP, INTSXP, REALSXP, REALSXP, REALSXP, INTSXP, INTSXP, INTSXP
-};
 
 //Initilize the dll to match RxODE's calls
 void __R_INIT__ (DllInfo *info){
@@ -240,7 +207,6 @@ void __R_INIT__ (DllInfo *info){
   _assign_fn_pointers=(RxODE_assign_fn_pointers) R_GetCCallable("RxODE","RxODE_assign_fn_pointers");
   _assign_fn_xpointers=(RxODE_assign_fn_xpointers) R_GetCCallable("RxODE","RxODE_get_fn_pointers");
   _old_c = (RxODE_ode_solver_old_c) R_GetCCallable("RxODE","RxODE_ode_solver_old_c");
-  _c_0_6 = (RxODE_ode_solver_0_6_c)R_GetCCallable("RxODE","RxODE_ode_solver_0_6_c");
   _sum1   = (RxODE_sum_prod)R_GetCCallable("RxODE","RxODE_sum");
   _prod1 = (RxODE_sum_prod) R_GetCCallable("RxODE","RxODE_prod");
   sign_exp = (RxODE_fn2) R_GetCCallable("RxODE","RxODE_sign_exp");
@@ -252,7 +218,6 @@ void __R_INIT__ (DllInfo *info){
   // Register the outside functions
   R_RegisterCCallable(__LIB_STR__,__ODE_SOLVER_STR__,       (DL_FUNC) __ODE_SOLVER__);
   R_RegisterCCallable(__LIB_STR__,__ODE_SOLVER_SEXP_STR__,  (DL_FUNC) __ODE_SOLVER_SEXP__);
-  R_RegisterCCallable(__LIB_STR__,__ODE_SOLVER_0_6_STR__,   (DL_FUNC) __ODE_SOLVER_0_6__);
   R_RegisterCCallable(__LIB_STR__,__ODE_SOLVER_PTR_STR__,   (DL_FUNC) __ODE_SOLVER_PTR__);
 
   /* R_registerRoutines(info, NULL, NULL, NULL, NULL); */
@@ -260,7 +225,6 @@ void __R_INIT__ (DllInfo *info){
 
   static const R_CMethodDef cMethods[] = {
     {__ODE_SOLVER_STR__, (DL_FUNC) &__ODE_SOLVER__, 15, __ODE_SOLVER__rx_t},
-    {__ODE_SOLVER_0_6_STR__, (DL_FUNC) &__ODE_SOLVER_0_6__, 21, __ODE_SOLVER_0_6__rx_t},
     {NULL, NULL, 0, NULL}
   };
   

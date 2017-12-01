@@ -1562,7 +1562,7 @@ rxTrans.character <- function(model,
 rxTransMakevars <- function(rxProps,                                                                              # rxTrans translation properties
                             rxDll, # Dll of file
                             cFile,
-                            compileFlags =c("parsed_md5", "ode_solver", "ode_solver_sexp", "ode_solver_0_6",
+                            compileFlags =c("parsed_md5", "ode_solver", "ode_solver_sexp",
                                             "ode_solver_ptr", "ode_solver_xptr", "inis",
                                             "model_vars", "calc_lhs", "calc_jac", "dydt"), # List of compile flags
                             debug        = FALSE,                                                                 # Debug compile?
@@ -1580,7 +1580,7 @@ rxTransMakevars <- function(rxProps,                                            
             ctxt <- gsub("__MF__", "22", ctxt)
         }
         tmp <- rxProps[compileFlags];
-        for (x in c("parsed_md5", "ode_solver", "ode_solver_sexp", "ode_solver_0_6", "ode_solver_ptr", "ode_solver_xptr", "ode_solver_focei_outer",
+        for (x in c("parsed_md5", "ode_solver", "ode_solver_sexp", "ode_solver_ptr", "ode_solver_xptr", "ode_solver_focei_outer",
                     "model_vars")){
             tmp[sprintf("%s_str", x)] <- sprintf("\"%s\"", tmp[x]);
         }

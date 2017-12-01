@@ -250,7 +250,7 @@ print(x)
 
 ```
 ## Solved RxODE object
-## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpsFT851\Rx_intro-2e9850053147/mod1.d/mod1_x64.dll
+## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\Rtmp65sM65\Rx_intro-1ce037442524/mod1.d/mod1_x64.dll
 ## 
 ## Parameters:
 ##      V2      V3      KA      CL       Q     Kin    Kout    EC50 
@@ -283,7 +283,7 @@ print(x)
 
 ```
 ## Solved RxODE object
-## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpsFT851\Rx_intro-2e9850053147/mod1.d/mod1_x64.dll
+## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\Rtmp65sM65\Rx_intro-1ce037442524/mod1.d/mod1_x64.dll
 ## 
 ## Parameters:
 ##      V2      V3      KA      CL       Q     Kin    Kout    EC50 
@@ -317,7 +317,7 @@ print(x)
 
 ```
 ## Solved RxODE object
-## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpsFT851\Rx_intro-2e9850053147/mod1.d/mod1_x64.dll
+## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\Rtmp65sM65\Rx_intro-1ce037442524/mod1.d/mod1_x64.dll
 ## 
 ## Parameters:
 ##      V2      V3      KA      CL       Q     Kin    Kout    EC50 
@@ -394,7 +394,7 @@ x
 
 ```
 ## Solved RxODE object
-## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpsFT851\Rx_intro-2e9850053147/mod1.d/mod1_x64.dll
+## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\Rtmp65sM65\Rx_intro-1ce037442524/mod1.d/mod1_x64.dll
 ## 
 ## Parameters:
 ##      V2      V3      KA      CL       Q     Kin    Kout    EC50 
@@ -431,7 +431,7 @@ x
 
 ```
 ## Solved RxODE object
-## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpsFT851\Rx_intro-2e9850053147/mod1.d/mod1_x64.dll
+## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\Rtmp65sM65\Rx_intro-1ce037442524/mod1.d/mod1_x64.dll
 ## 
 ## Parameters:
 ##      V2      V3      KA      CL       Q     Kin    Kout    EC50 
@@ -477,7 +477,7 @@ x
 
 ```
 ## Solved RxODE object
-## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpsFT851\Rx_intro-2e9850053147/mod1.d/mod1_x64.dll
+## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\Rtmp65sM65\Rx_intro-1ce037442524/mod1.d/mod1_x64.dll
 ## 
 ## Parameters:
 ##    V2    V3    KA    CL     Q   Kin  Kout  EC50 
@@ -575,7 +575,7 @@ This can be solved with the following command:
 
 ```
 ## Solved RxODE object
-## Dll: c:/SVN/Wenping/RxODE/vignettes/rx_7916f96fbe1a570bde58105a0865f65e_x64.dll
+## Dll: c:/SVN/Wenping/RxODE/vignettes/rx_02529943ff8c61b19ac41e22470f530e_x64.dll
 ## 
 ## Parameters:
 ##      KA      V2      CL       Q      V3     Kin    Kout    EC50 
@@ -611,7 +611,7 @@ This can be solved for different initial conditions easily:
 
 ```
 ## Solved RxODE object
-## Dll: c:/SVN/Wenping/RxODE/vignettes/rx_7916f96fbe1a570bde58105a0865f65e_x64.dll
+## Dll: c:/SVN/Wenping/RxODE/vignettes/rx_02529943ff8c61b19ac41e22470f530e_x64.dll
 ## 
 ## Parameters:
 ##      KA      V2      CL       Q      V3     Kin    Kout    EC50 
@@ -663,7 +663,7 @@ mod3 <- RxODE({
 
 ```
 ## Solved RxODE object
-## Dll: c:/SVN/Wenping/RxODE/vignettes/rx_cd386d04ee51801c4c1f5577d3bb8eb5_x64.dll
+## Dll: c:/SVN/Wenping/RxODE/vignettes/rx_cb4816577ae1bb396fd11ef61ade4742_x64.dll
 ## 
 ## Parameters:
 ##      KA      CL      V2       Q      V3     Kin    Kout    EC50 
@@ -697,7 +697,7 @@ since they are built into the model, but you can override the parameters:
 
 ```
 ## Solved RxODE object
-## Dll: c:/SVN/Wenping/RxODE/vignettes/rx_cd386d04ee51801c4c1f5577d3bb8eb5_x64.dll
+## Dll: c:/SVN/Wenping/RxODE/vignettes/rx_cb4816577ae1bb396fd11ef61ade4742_x64.dll
 ## 
 ## Parameters:
 ##    KA    CL    V2     Q    V3   Kin  Kout  EC50 
@@ -767,7 +767,7 @@ Now there is a covariate present, the system can be solved using the cov option
 
 ```
 ## Solved RxODE object
-## Dll: c:/SVN/Wenping/RxODE/vignettes/rx_76e6b1b968f1d12f49f37abc501e6c45_x64.dll
+## Dll: c:/SVN/Wenping/RxODE/vignettes/rx_d58b428ac2af694f85e1af8ed22c3b1b_x64.dll
 ## 
 ## Parameters:
 ##         KA         CL         V2          Q         V3       Kin0 
@@ -834,7 +834,7 @@ carried forward, or constant approximation.  This is equivalent to R's
 
 ```
 ## Solved RxODE object
-## Dll: c:/SVN/Wenping/RxODE/vignettes/rx_76e6b1b968f1d12f49f37abc501e6c45_x64.dll
+## Dll: c:/SVN/Wenping/RxODE/vignettes/rx_d58b428ac2af694f85e1af8ed22c3b1b_x64.dll
 ## 
 ## Parameters:
 ##         KA         CL         V2          Q         V3       Kin0 
@@ -1007,7 +1007,7 @@ et$add.dosing(20, start.time=0);
 
 ```
 ## Solved RxODE object
-## Dll: c:/SVN/Wenping/RxODE/vignettes/rx_a483d001886885ceec9d673b31116a02_x64.dll
+## Dll: c:/SVN/Wenping/RxODE/vignettes/rx_ce7adbc5ca9a6dd9197dc350590a0355_x64.dll
 ## 
 ## Parameters:
 ## mu 
@@ -1040,7 +1040,7 @@ While this is not stiff at mu=1, mu=1000 is a stiff system
 
 ```
 ## Solved RxODE object
-## Dll: c:/SVN/Wenping/RxODE/vignettes/rx_a483d001886885ceec9d673b31116a02_x64.dll
+## Dll: c:/SVN/Wenping/RxODE/vignettes/rx_ce7adbc5ca9a6dd9197dc350590a0355_x64.dll
 ## 
 ## Parameters:
 ##   mu 
@@ -1124,12 +1124,12 @@ head(theta.all)
 
 ```
 ##         KA       CL   V2    Q  V3 Kin Kout EC50
-## [1,] 0.294 18.03482 40.2 10.5 297   1    1  200
-## [2,] 0.294 24.43345 40.2 10.5 297   1    1  200
-## [3,] 0.294 18.08677 40.2 10.5 297   1    1  200
-## [4,] 0.294 19.71498 40.2 10.5 297   1    1  200
-## [5,] 0.294 19.16747 40.2 10.5 297   1    1  200
-## [6,] 0.294 22.19526 40.2 10.5 297   1    1  200
+## [1,] 0.294 16.82606 40.2 10.5 297   1    1  200
+## [2,] 0.294 19.15463 40.2 10.5 297   1    1  200
+## [3,] 0.294 16.27225 40.2 10.5 297   1    1  200
+## [4,] 0.294 24.00847 40.2 10.5 297   1    1  200
+## [5,] 0.294 19.60693 40.2 10.5 297   1    1  200
+## [6,] 0.294 16.31177 40.2 10.5 297   1    1  200
 ```
 
 Each subproblem can be simulated by using an explicit loop (or the `apply()`
