@@ -223,7 +223,7 @@ RObject rxSimSigma(const RObject &sigma,
 //'      number of cores constant.  By changing either one of these variables, you will arrive at different random numbers. 
 //' @param df Degrees of freedom for \code{\link[mvnfast]{rmvt}}.  If \code{NULL}, or \code{Inf}, then use a normal distribution.  The
 //'        default is normal.
-//' @param ncores The number of cores for residual simulation.  By default, this is \code{1}.
+//' @param ncoresRV The number of cores for residual simulation.  By default, this is \code{1}.
 //' @param isChol is a boolean indicating that the Cholesky decomposition of the \code{sigma} covariance matrix is supplied instead of
 //'        the  \code{sigma} matrix itself.
 //' @param amountUnits Dosing amount units.
@@ -239,7 +239,7 @@ List rxDataSetup(const RObject &ro,
 		 const RObject &covNames = R_NilValue,
 		 const RObject &sigma = R_NilValue,
 		 const RObject &df = R_NilValue,
-		 const int &ncores = 1,
+		 const int &ncoresRV = 1,
 		 const bool &isChol = false,
 		 const StringVector &amountUnits = NA_STRING,
 		 const StringVector &timeUnits = "hours"){
@@ -253,7 +253,7 @@ List rxDataSetup(const RObject &ro,
     StringVector units = f();
     StringVector amt = as<StringVector>(units["dosing"]);
     StringVector time = as<StringVector>(units["time"]);
-    return rxDataSetup(dataf, covNames, sigma, df, ncores, isChol, amt, time);
+    return rxDataSetup(dataf, covNames, sigma, df, ncoresRV, isChol, amt, time);
   } else if (rxIs(ro,"event.data.frame")||
       rxIs(ro,"event.matrix")){
     DataFrame dataf = as<DataFrame>(ro);
@@ -309,7 +309,7 @@ List rxDataSetup(const RObject &ro,
     NumericMatrix simMat;
     StringVector simNames;
     bool simVals = false;
-    RObject tmp_ro = rxSimSigma(sigma, df, ncores, isChol, nObs);
+    RObject tmp_ro = rxSimSigma(sigma, df, ncoresRV, isChol, nObs);
     if (!tmp_ro.isNULL()){
       simMat = NumericMatrix(tmp_ro);
       List dimnames = simMat.attr("dimnames");
@@ -495,7 +495,7 @@ List rxDataSetup(const RObject &ro,
                             _["time.units"]=timeUnits,
 			    _["missing.id"]=missingId,
 			    _["missing.dv"]=missingDv,
-			    _["ncores"] = wrap(ncores),
+			    _["ncoresRV"] = wrap(ncoresRV),
 			    _["isChol"] = wrap(isChol)
                             );
     // Not sure why, but putting this in above gives errors...
@@ -524,7 +524,7 @@ bool rxUpdateResiduals(List &md){
     if (!sigma.isNULL()){
       int totNObs = as<int>(md["nObs"]);
       RObject df = md["df"];
-      int ncores = as<int>(md["ncores"]);
+      int ncores = as<int>(md["ncoresRV"]);
       bool isChol = as<bool>(md["isChol"]);
       RObject tmp_ro = rxSimSigma(sigma, df, ncores, isChol, totNObs);
       if (!tmp_ro.isNULL()){
@@ -1131,7 +1131,13 @@ List rxDataParSetup(const RObject &object,
   nr = parMat.nrow() / nSub;
   if (nr == 0) nr = 1;
   ret["nsim"] = nr;
+  NumericVector initsS = NumericVector(initsC.size()*nSub*nr);
+  for (i = 0; i < initsS.size(); i++){
+    j = i % initsS.size();
+    initsS[i] =  initsC[j];
+  }
   ret["inits"] = initsC;
+  ret["inits.full"] = initsS;
   ret["n.pars"] = (int)(pars.size());
   ret["pcov"] = pcov;
   ret["neq"] = state.size();
@@ -1170,6 +1176,7 @@ extern "C" {
                             double f2,
                             int kind,
                             int is_locf,
+			    int cores,
                             SEXP dydt,
                             SEXP calc_jac,
                             SEXP calc_lhs,
@@ -1214,6 +1221,7 @@ SEXP rxSolvingOptions(const RObject &object,
 		      const int hini = 0,
 		      const int maxordn = 12,
                       const int maxords = 5,
+		      const int cores = 1,
 		      std::string covs_interpolation = "linear"){
   if (maxordn < 1 || maxordn > 12){
     stop("'maxordn' must be >1 and <= 12.");
@@ -1275,7 +1283,7 @@ SEXP rxSolvingOptions(const RObject &object,
 			      as<int>(ptr["debug"]),
 			      maxsteps, maxordn, maxords, transit,
 			      lhs.size(), state.size(),
-			      st, f1, f2, kind, is_locf,
+			      st, f1, f2, kind, is_locf, cores,
                               as<SEXP>(ptr["dydt"]),
                               as<SEXP>(ptr["jac"]),
 			      as<SEXP>(ptr["lhs"]),
@@ -1297,6 +1305,7 @@ SEXP rxSolvingData(const RObject &model,
 		   const int hini = 0,
 		   const int maxordn = 12,
 		   const int maxords = 5,
+		   const int cores = 1,
 		   std::string covs_interpolation = "linear") {
   if (rxIs(parData, "RxODE.par.data")){
     List opt = List(parData);
@@ -1331,6 +1340,7 @@ SEXP rxSolvingData(const RObject &model,
     rx_solving_options_ind *inds;
     int nsim = as<int>(opt["nsim"]);
     inds = Calloc(nSub*nsim,rx_solving_options_ind);
+    int neq = as<int>(opt["neq"]);
     for (int simNum = 0; simNum < nsim; simNum++){
       for (int id = 0; id < nSub; id++){
 	if (hmax.isNull()){
@@ -1348,8 +1358,8 @@ SEXP rxSolvingData(const RObject &model,
             hm = 0.0;
           }
         }
-        getSolvingOptionsIndPtr(&InfusionRate[id],&BadDose[id], hm,&par[id*nPar+nSub*nPar*simNum],
-                                &inits[0], &amt[posDose[id]],
+        getSolvingOptionsIndPtr(&InfusionRate[id*neq+nSub*neq*simNum],&BadDose[id*neq+nSub*neq*simNum], hm,&par[id*nPar+nSub*nPar*simNum],
+                                &inits[id*neq+nSub*neq*simNum], &amt[posDose[id]],
                                 // Solve and lhs are written to in the solve...
                                 &solve[id*totSize+nSub*totSize*simNum],
                                 &lhs[id*lhsSize+nSub*lhsSize*simNum],
@@ -1360,7 +1370,7 @@ SEXP rxSolvingData(const RObject &model,
       }
     }
     SEXP op = rxSolvingOptions(model,stiff, transit_abs, atol, rtol, maxsteps, hmin, hini, maxordn,
-			       maxords, covs_interpolation);
+			       maxords, cores, covs_interpolation);
     return rxSolveData(inds, nSub, nsim, op);
   } else {
     stop("This requires something setup by 'rxDataParSetup'.");

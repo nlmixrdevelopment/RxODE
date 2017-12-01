@@ -1,0 +1,358 @@
+#include <R.h>
+#include <Rinternals.h>
+#include <Rmath.h> //Rmath includes math.
+#include <R_ext/Rdynload.h>
+#include "solve.h"
+// Yay easy parallel support
+// For Mac, see: http://thecoatlessprofessor.com/programming/openmp-in-r-on-os-x/ (as far as I can tell)
+// It may have arrived, though I'm not sure...
+// According to http://dirk.eddelbuettel.com/papers/rcpp_parallel_talk_jan2015.pdf
+// OpenMP is excellent for parallelizing existing loops where the iterations are independent;
+// OpenMP is used by part of the R core, therefore support will come for all platforms at some time in the future.
+// Since these are independent, we will just use Open MP.
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+#define max(a, b) ((a) > (b) ? (a) : (b))
+
+void getSolvingOptionsIndPtr(double *InfusionRate,
+                             int *BadDose,
+                             double HMAX, // Determined by diff
+                             double *par_ptr,
+                             double *inits,
+                             double *dose,
+                             double *solve,
+                             double *lhs,
+                             int *par_cov,
+                             int *evid,
+                             int do_par_cov,
+                             int *rc,
+                             double *cov_ptr,
+                             int ncov,
+                             int n_all_times,
+                             double *all_times,
+                             int id,
+                             int sim,
+                             rx_solving_options_ind *o){
+  o->slvr_counter = 0;
+  o->dadt_counter = 0;
+  o->jac_counter = 0;
+  o->InfusionRate = InfusionRate;
+  o->BadDose = BadDose;
+  o->nBadDose = 0;
+  o->HMAX = HMAX; // Determined by diff
+  o->tlast = 0.0;
+  o->podo = 0.0;
+  o->par_ptr = par_ptr;
+  o->inits = inits;
+  o->dose = dose;
+  o->solve = solve;
+  o->lhs = lhs;
+  o->par_cov = par_cov;
+  o->evid = evid;
+  o->do_par_cov = do_par_cov;
+  o->rc = rc;
+  o->cov_ptr = cov_ptr;
+  o->ncov = ncov;
+  o->n_all_times = n_all_times;
+  o->ixds = 0;
+  o->ndoses = -1;
+  o->all_times = all_times;
+  /* o.idose = idose;  allocated at run-time*/
+  o->idosen = 0;
+  o->id = id;
+  o->sim = sim;
+  o->extraCmt = 0;
+}
+
+static void getSolvingOptionsPtrFree(SEXP ptr)
+{
+  if(!R_ExternalPtrAddr(ptr)) return;
+  rx_solving_options *o;
+  o  = R_ExternalPtrAddr(ptr);
+  Free(o);
+  R_ClearExternalPtr(ptr);
+}
+
+
+SEXP getSolvingOptionsPtr(double ATOL,          //absolute error
+                          double RTOL,          //relative error
+                          double H0,
+                          double HMIN,
+                          int global_jt,
+                          int global_mf,
+                          int global_debug,
+                          int mxstep,
+                          int MXORDN,
+                          int MXORDS,
+                          // Approx options
+                          int do_transit_abs,
+                          int nlhs,
+                          int neq,
+                          int stiff,
+                          double f1,
+                          double f2,
+                          int kind,
+                          int is_locf,
+			  int cores,
+                          SEXP dydt,
+                          SEXP calc_jac,
+                          SEXP calc_lhs,
+                          SEXP update_inis,
+                          SEXP dydt_lsoda_dum,
+                          SEXP jdum_lsoda){
+  // This really should not be called very often, so just allocate one for now.
+  rx_solving_options *o;
+  o = Calloc(1,rx_solving_options);
+  o->ATOL = ATOL;          //absolute error
+  o->RTOL = RTOL;          //relative error
+  o->H0 = H0;
+  o->HMIN = HMIN;
+  o->global_jt = global_jt;
+  o->global_mf = global_mf;
+  o->global_debug = global_debug;
+  o->mxstep = mxstep;
+  o->MXORDN = MXORDN;
+  o->MXORDS = MXORDS;
+  o->do_transit_abs = do_transit_abs;
+  o->nlhs = nlhs;
+  o->neq = neq;
+  o->stiff = stiff;
+  o->f1 = f1;
+  o->f2 = f2;
+  o->kind = kind;
+  o->is_locf = is_locf;
+  o->dydt = (t_dydt)(R_ExternalPtrAddr(dydt));
+  o->calc_jac = (t_calc_jac)(R_ExternalPtrAddr(calc_jac));
+  o->calc_lhs = (t_calc_lhs)(R_ExternalPtrAddr(calc_lhs));
+  o->update_inis = (t_update_inis)(R_ExternalPtrAddr(update_inis));
+  o->dydt_lsoda_dum = (t_dydt_lsoda_dum)(R_ExternalPtrAddr(dydt_lsoda_dum));
+  o->jdum_lsoda = (t_jdum_lsoda)(R_ExternalPtrAddr(jdum_lsoda));
+  SEXP ret = PROTECT(R_MakeExternalPtr(o, install("rx_solving_options"), R_NilValue));
+  R_RegisterCFinalizerEx(ret, getSolvingOptionsPtrFree, TRUE);
+  UNPROTECT(1);
+  return(ret);
+}
+
+static void rxSolveDataFree(SEXP ptr) {
+  if(!R_ExternalPtrAddr(ptr)) return;
+  rx_solve *o;
+  o  = R_ExternalPtrAddr(ptr);
+  rx_solving_options_ind *inds;
+  int n = (o->nsub)*(o->nsim);
+  int *idose;
+  inds = o->subjects;
+  // Free all the idoses.
+  for (int i = 0; i < n; i++){
+    idose = (&inds[i])->idose;
+    Free(idose);
+  }
+  // Free individuals;
+  Free(inds);
+  // Now free global options
+  SEXP op = o->op;
+  getSolvingOptionsPtrFree(op);
+  // Now free object
+  Free(o);
+  R_ClearExternalPtr(ptr);
+}
+
+SEXP rxSolveData(rx_solving_options_ind *subjects,
+                 int nsub,
+                 int nsim,
+                 SEXP op){
+  rx_solve *o;
+  o = Calloc(1,rx_solve);
+  o->subjects = subjects;
+  o->nsub = nsub;
+  o->nsim = nsim;
+  o->op = op;
+  SEXP ret = PROTECT(R_MakeExternalPtr(o, install("rx_solve"), R_NilValue));
+  R_RegisterCFinalizerEx(ret, rxSolveDataFree, TRUE);
+  UNPROTECT(1);
+  return(ret);
+}
+
+rx_solve *getRxSolve(SEXP ptr){
+  if(!R_ExternalPtrAddr(ptr)){
+    error("Cannot get the solving data.");
+  }
+  rx_solve *o;
+  o  = R_ExternalPtrAddr(ptr);
+  return o;
+}
+
+void F77_NAME(dlsoda)(
+                      void (*)(int *, double *, double *, double *),
+                      int *, double *, double *, double *, int *, double *, double *,
+                      int *, int *, int *, double *,int *,int *, int *,
+                      void (*)(int *, double *, double *, int *, int *, double *, int *),
+                      int *);
+
+void par_lsoda(SEXP sd){
+  rx_solve *rx;
+  rx = getRxSolve(sd);
+  int i, j, foundBad;
+  double xout;
+  double *yp;
+  rx_solving_options *op;
+  if(!R_ExternalPtrAddr(rx->op)){
+    error("Cannot get global ode solver options.");
+  }
+  op = R_ExternalPtrAddr(rx->op);
+  int neq = op->neq;
+  yp = Calloc(neq, double);
+  int itol = 1;
+  double  rtol = op->RTOL, atol = op->ATOL;
+  // Set jt to 1 if full is specified.
+  int itask = 1, istate = 1, iopt = 0, lrw=22+neq*max(16, neq+9), liw=20+neq, jt = op->global_jt;
+  double *rwork;
+  int *iwork;
+  int wh, cmt;
+
+  char *err_msg[]=
+    {
+      "excess work done on this call (perhaps wrong jt).",
+      "excess accuracy requested (tolerances too small).",
+      "illegal input detected (see printed message).",
+      "repeated error test failures (check all inputs).",
+      "repeated convergence failures (perhaps bad jacobian supplied or wrong choice of jt or tolerances).",
+      "error weight became zero during problem. (solution component i vanished, and atol or atol(i) = 0.)",
+      "work space insufficient to finish (see messages)."
+    };
+  int global_debug = op->global_debug;
+  if (global_debug)
+    Rprintf("JT: %d\n",jt);
+  rwork = (double*)Calloc(lrw+1, double);
+  iwork = (int*)Calloc(liw+1, int);
+  
+  iopt = 1;
+
+  rwork[4] = op->H0; // H0 -- determined by solver
+  rwork[6] = op->HMIN; // Hmin -- 0
+  
+  iwork[4] = 0; // ixpr  -- No extra printing.
+  iwork[5] = op->mxstep; // mxstep 
+  iwork[6] = 0; // MXHNIL 
+  iwork[7] = op->MXORDN; // MXORDN 
+  iwork[8] = op->MXORDS;  // MXORDS
+
+  t_dydt_lsoda_dum dydt = (t_dydt_lsoda_dum)(op->dydt_lsoda_dum);
+  t_jdum_lsoda jac = (t_jdum_lsoda)(op->jdum_lsoda);
+  t_update_inis uini = (t_update_inis)(op->update_inis);
+  int nx;
+  rx_solving_options_ind *ind;
+  double *inits;
+  int *evid;
+  double *x;
+  int *BadDose;
+  double *InfusionRate;
+  double *dose;
+  double *ret;
+  int *rc;
+  int nsub = rx->nsub;
+  int nsim = rx->nsim;
+  int cores = op->cores;
+  for (int csim = 0; csim < nsim; csim++){
+    // This part CAN be parallelized.
+#ifdef _OPENMP
+#pragma omp parallel for num_threads(cores)
+#endif
+    for (int csub = 0; csub < nsub; csub++){
+      ind = &(rx->subjects[csub+nsub*nsim]);
+      ind->ixds = 0;
+      nx = ind->n_all_times;
+      inits = ind->inits;
+      evid = ind->evid;
+      BadDose = ind->BadDose;
+      InfusionRate = ind->InfusionRate;
+      dose = ind->dose;
+      ret = ind->solve;
+      x = ind->all_times;
+      rc= ind->rc;
+      rwork[5] = ind->HMAX; // Hmax -- Infinite
+      double xp = x[0];
+      //--- inits the system
+      uini(inits); // Update initial conditions
+      for(i=0; i<neq; i++) yp[i] = inits[i];
+      for(i=0; i<nx; i++) {
+        wh = evid[i];
+        xout = x[i];
+        if (global_debug){
+          Rprintf("i=%d xp=%f xout=%f\n", i, xp, xout);
+        }
+        if(xout-xp> DBL_EPSILON*max(fabs(xout),fabs(xp)))
+          {
+            F77_CALL(dlsoda)(dydt, &neq, yp, &xp, &xout, &itol, &rtol, &atol, &itask,
+                             &istate, &iopt, rwork, &lrw, iwork, &liw, jac, &jt);
+
+            if (istate<0)
+              {
+                Rprintf("IDID=%d, %s\n", istate, err_msg[-istate-1]);
+                *rc = istate;
+		i = nx+42; // Get out of here!
+              }
+            ind->slvr_counter++;
+            //dadt_counter = 0;
+          }
+        if (wh)
+          {
+            cmt = (wh%10000)/100 - 1;
+            if (cmt >= neq){
+              foundBad = 0;
+              for (j = 0; j < ind->nBadDose; j++){
+                if (BadDose[j] == cmt+1){
+                  foundBad=1;
+                  break;
+                }
+              }
+              if (!foundBad){
+                BadDose[ind->nBadDose]=cmt+1;
+                ind->nBadDose++;
+              }
+            } else {
+              if (wh>10000)
+                {
+                  InfusionRate[cmt] += dose[ind->ixds];
+                }
+              else
+                {
+                  if (op->do_transit_abs)
+                    {
+                      ind->podo = dose[ind->ixds];
+                      ind->tlast = xout;
+                    }
+                  else yp[cmt] += dose[ind->ixds];     //dosing before obs
+                }
+            
+              istate = 1;
+
+              ind->ixds++;
+              xp = xout;
+            }
+          }
+        for(j=0; j<neq; j++) ret[neq*i+j] = yp[j];
+        //Rprintf("wh=%d cmt=%d tm=%g rate=%g\n", wh, cmt, xp, InfusionRate[cmt]);
+
+        if (global_debug){
+          Rprintf("ISTATE=%d, ", istate);
+          for(j=0; j<neq; j++)
+            {
+              Rprintf("%f ", yp[j]);
+            }
+          Rprintf("\n");
+        }
+      }
+    }
+    if (rc[0]){
+      Rprintf("Error solving using LSODA\n");
+      Free(rwork);
+      Free(iwork);
+      Free(yp);
+      return;
+    }
+  }
+  Free(rwork);
+  Free(iwork);
+  Free(yp);
+}

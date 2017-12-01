@@ -1558,7 +1558,7 @@ void codegen(FILE *outpt, int show_ode) {
   } else if (show_ode == 2){
     fprintf(outpt, "// Jacobian derived vars\nvoid %scalc_jac(unsigned int _neq, double t, double *__zzStateVar__, double *__PDStateVar__, unsigned int __NROWPD__) {\n",model_prefix);
   } else if (show_ode == 3){
-    fprintf(outpt, "// Functional based initial conditions.\nvoid %sinis(SEXP _ini_sexp){\n\tdouble *__zzStateVar__ = REAL(_ini_sexp);\n\tdouble t=0;\n",model_prefix);
+    fprintf(outpt, "// Functional based initial conditions.\nvoid %sinis(double *__zzStateVar__){\n\tdouble t=0;\n",model_prefix);
   } else {
     fprintf(outpt, "// prj-specific derived vars\nvoid %scalc_lhs(double t, double *__zzStateVar__, double *_lhs) {\n",model_prefix);
   }

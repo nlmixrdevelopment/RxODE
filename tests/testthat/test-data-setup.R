@@ -454,7 +454,7 @@ rxPermissive({
                     if (ch == 1){
                         mcov <- cholmat;
                     }
-                    convert1 <- rxDataSetup(dat, sigma=mcov, df=ifelse(df == 0, Inf, df), ncores=cores, isChol=(ch == 1));
+                    convert1 <- rxDataSetup(dat, sigma=mcov, df=ifelse(df == 0, Inf, df), ncoresRV=cores, isChol=(ch == 1));
                     expect_equal(convert1$cov.names, NULL)
                     expect_equal(convert1$simulated.vars, c("s.a", "s.b"))
                     ## Now Update; the simulted variables should all be different.
@@ -464,7 +464,7 @@ rxPermissive({
                     ##
                     cn <- c("V", "CL")
                     ## cov <- dat %>% filter(EVID == 0) %>% select(V, CL)
-                    convert2 <- rxDataSetup(dat, cn, sigma=mcov, df=ifelse(df == 0, Inf, df), ncores=cores, isChol=(ch == 1));
+                    convert2 <- rxDataSetup(dat, cn, sigma=mcov, df=ifelse(df == 0, Inf, df), ncoresRV=cores, isChol=(ch == 1));
                     ##
                     expect_equal(convert2$cov.names, cn)
                     expect_equal(convert2$simulated.vars, c("s.a", "s.b"))
@@ -502,7 +502,7 @@ rxPermissive({
             d/dt(Z) = -X*Y + c*Y - Z
             printf("%.10f,%.10f\n",t,c);
         })
-        expect_equal(class(rxSolvingOptions(ode)), "externalptr")
+        expect_equal(class(RxODE:::rxSolvingOptions(ode)), "externalptr")
     })
 
 })

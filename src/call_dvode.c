@@ -9,165 +9,6 @@
 #include <Rmath.h> //Rmath includes math.
 #include <R_ext/Rdynload.h>
 #include <PreciseSums.h>
-#include "solve.h"
-
-void getSolvingOptionsIndPtr(double *InfusionRate,
-			     int *BadDose,
-			     double HMAX, // Determined by diff
-			     double *par_ptr,
-			     double *inits,
-			     double *dose,
-			     double *solve,
-			     double *lhs,
-			     int *par_cov,
-			     int *evid,
-			     int do_par_cov,
-			     int *rc,
-			     double *cov_ptr,
-			     int ncov,
-			     int n_all_times,
-			     double *all_times,
-			     int id,
-			     int sim,
-			     rx_solving_options_ind *o){
-  o->slvr_counter = 0;
-  o->dadt_counter = 0;
-  o->jac_counter = 0;
-  o->InfusionRate = InfusionRate;
-  o->BadDose = BadDose;
-  o->nBadDose = 0;
-  o->HMAX = HMAX; // Determined by diff
-  o->tlast = 0.0;
-  o->podo = 0.0;
-  o->par_ptr = par_ptr;
-  o->inits = inits;
-  o->dose = dose;
-  o->solve = solve;
-  o->lhs = lhs;
-  o->par_cov = par_cov;
-  o->evid = evid;
-  o->do_par_cov = do_par_cov;
-  o->rc = rc;
-  o->cov_ptr = cov_ptr;
-  o->ncov = ncov;
-  o->n_all_times = n_all_times;
-  o->ixds = 0;
-  o->ndoses = -1;
-  o->all_times = all_times;
-  /* o.idose = idose;  allocated at run-time*/
-  o->idosen = 0;
-  o->id = id;
-  o->sim = sim;
-  o->extraCmt = 0;
-}
-
-
-static void getSolvingOptionsPtrFree(SEXP ptr)
-{
-  if(!R_ExternalPtrAddr(ptr)) return;
-  rx_solving_options *o;
-  o  = R_ExternalPtrAddr(ptr);
-  Free(o);
-  R_ClearExternalPtr(ptr);
-}
-
-
-SEXP getSolvingOptionsPtr(double ATOL,          //absolute error
-			  double RTOL,          //relative error
-			  double H0,
-			  double HMIN,
-			  int global_jt,
-			  int global_mf,
-			  int global_debug,
-			  int mxstep,
-			  int MXORDN,
-			  int MXORDS,
-			  // Approx options
-			  int do_transit_abs,
-			  int nlhs,
-			  int neq,
-			  int stiff,
-			  double f1,
-                          double f2,
-                          int kind,
-                          int is_locf,
-			  SEXP dydt,
-			  SEXP calc_jac,
-			  SEXP calc_lhs,
-			  SEXP update_inis,
-			  SEXP dydt_lsoda_dum,
-			  SEXP jdum_lsoda){
-  // This really should not be called very often, so just allocate one for now.
-  rx_solving_options *o;
-  o = Calloc(1,rx_solving_options);
-  o->ATOL = ATOL;          //absolute error
-  o->RTOL = RTOL;          //relative error
-  o->H0 = H0;
-  o->HMIN = HMIN;
-  o->global_jt = global_jt;
-  o->global_mf = global_mf;
-  o->global_debug = global_debug;
-  o->mxstep = mxstep;
-  o->MXORDN = MXORDN;
-  o->MXORDS = MXORDS;
-  o->do_transit_abs = do_transit_abs;
-  o->nlhs = nlhs;
-  o->neq = neq;
-  o->stiff = stiff;
-  o->f1 = f1;
-  o->f2 = f2;
-  o->kind = kind;
-  o->is_locf = is_locf;
-  o->dydt = (t_dydt)(R_ExternalPtrAddr(dydt));
-  o->calc_jac = (t_calc_jac)(R_ExternalPtrAddr(calc_jac));
-  o->calc_lhs = (t_calc_lhs)(R_ExternalPtrAddr(calc_lhs));
-  o->update_inis = (t_update_inis)(R_ExternalPtrAddr(update_inis));
-  o->dydt_lsoda_dum = (t_dydt_lsoda_dum)(R_ExternalPtrAddr(dydt_lsoda_dum));
-  o->jdum_lsoda = (t_jdum_lsoda)(R_ExternalPtrAddr(jdum_lsoda));
-  SEXP ret = PROTECT(R_MakeExternalPtr(o, install("rx_solving_options"), R_NilValue));
-  R_RegisterCFinalizerEx(ret, getSolvingOptionsPtrFree, TRUE);
-  UNPROTECT(1);
-  return(ret);
-}
-
-static void rxSolveDataFree(SEXP ptr) {
-  if(!R_ExternalPtrAddr(ptr)) return;
-  rx_solve *o;
-  o  = R_ExternalPtrAddr(ptr);
-  rx_solving_options_ind *inds;
-  int n = (o->nsub)*(o->nsim);
-  int *idose;
-  inds = o->subjects;
-  // Free all the idoses.
-  for (int i = 0; i < n; i++){
-    idose = (&inds[i])->idose;
-    Free(idose);
-  }
-  // Free individuals;
-  Free(inds);
-  // Now free global options
-  SEXP op = o->op;
-  getSolvingOptionsPtrFree(op);
-  // Now free object
-  Free(o);
-  R_ClearExternalPtr(ptr);
-}
-
-SEXP rxSolveData(rx_solving_options_ind *subjects,
-                 int nsub,
-                 int nsim,
-                 SEXP op){
-  rx_solve *o;
-  o = Calloc(1,rx_solve);
-  o->subjects = subjects;
-  o->nsub = nsub;
-  o->nsim = nsim;
-  o->op = op;
-  SEXP ret = PROTECT(R_MakeExternalPtr(o, install("rx_solve"), R_NilValue));
-  R_RegisterCFinalizerEx(ret, rxSolveDataFree, TRUE);
-  UNPROTECT(1);
-  return(ret);
-}
 
 void F77_NAME(dlsoda)(
 		      void (*)(int *, double *, double *, double *),
@@ -214,7 +55,7 @@ FILE *fp;
 void (*dydt)(unsigned int neq, double t, double *A, double *DADT);
 void (*calc_jac)(unsigned int neq, double t, double *A, double *JAC, unsigned int __NROWPD__);
 void (*calc_lhs)(double t, double *A, double *lhs);
-void (*update_inis)(SEXP _ini_sexp);
+void (*update_inis)(double *);
 
 void setExtraCmt(int xtra){
   if (xtra > extraCmt){
@@ -917,7 +758,7 @@ void RxODE_ode_alloc(){
 extern SEXP RxODE_get_fn_pointers(void (*fun_dydt)(unsigned int, double, double *, double *),
 				  void (*fun_calc_lhs)(double, double *, double *),
 				  void (*fun_calc_jac)(unsigned int, double, double *, double *, unsigned int),
-				  void (*fun_update_inis)(SEXP _ini_sexp),
+				  void (*fun_update_inis)(double *),
 				  void (*fun_dydt_lsoda_dum)(int *, double *, double *, double *),
 				  void (*fun_jdum_lsoda)(int *, double *, double *,int *, int *, double *, int *),
 				  int fun_jt,
@@ -931,7 +772,7 @@ extern SEXP RxODE_get_fn_pointers(void (*fun_dydt)(unsigned int, double, double 
   void (*dydtf)(unsigned int neq, double t, double *A, double *DADT);
   void (*calc_jac)(unsigned int neq, double t, double *A, double *JAC, unsigned int __NROWPD__);
   void (*calc_lhs)(double t, double *A, double *lhs);
-  void (*update_inis)(SEXP _ini_sexp);
+  void (*update_inis)(double *);
   void (*dydt_lsoda_dum)(int *neq, double *t, double *A, double *DADT);
   void (*jdum_lsoda)(int *neq, double *t, double *A,int *ml, int *mu, double *JAC, int *nrowpd);
   
@@ -995,7 +836,7 @@ extern SEXP RxODE_get_fn_pointers(void (*fun_dydt)(unsigned int, double, double 
 extern void RxODE_assign_fn_pointers(void (*fun_dydt)(unsigned int, double, double *, double *),
 				     void (*fun_calc_lhs)(double, double *, double *),
 				     void (*fun_calc_jac)(unsigned int, double, double *, double *, unsigned int),
-				     void (*fun_update_inis)(SEXP _ini_sexp),
+				     void (*fun_update_inis)(double *),
 				     int fun_jt,
 				     int fun_mf,
 				     int fun_debug){
@@ -1084,7 +925,7 @@ void RxODE_ode_setup(SEXP sexp_inits,
     error("RxODE does not support %d compartments (Currently only %d compartments)", neq, NCMT);
   }
   if (length(sexp_inits) > 0){
-    update_inis(sexp_inits); // Update any run-time initial conditions.
+    update_inis(REAL(sexp_inits)); // Update any run-time initial conditions.
   }
 }
 

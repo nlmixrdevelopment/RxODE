@@ -15,6 +15,9 @@ rxPermissive({
                       nbr.doses=10,dosing.interval=1)
 
         tmp2 <- rxDataParSetup(mod, et);
+
+        expect_equal(class(RxODE:::rxSolvingData(mod,tmp2)), "externalptr")
+
         expect_equal(class(tmp2), c("RxODE.par.data", "RxODE.multi.data"));
         expect_equal(tmp2$pars, c(6, 0.6))
         expect_equal(tmp2$nsim, 1L)

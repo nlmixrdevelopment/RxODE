@@ -34,7 +34,7 @@ rxIs <- function(obj, cls) {
 #'      number of cores constant.  By changing either one of these variables, you will arrive at different random numbers. 
 #' @param df Degrees of freedom for \code{\link[mvnfast]{rmvt}}.  If \code{NULL}, or \code{Inf}, then use a normal distribution.  The
 #'        default is normal.
-#' @param ncores The number of cores for residual simulation.  By default, this is \code{1}.
+#' @param ncoresRV The number of cores for residual simulation.  By default, this is \code{1}.
 #' @param isChol is a boolean indicating that the Cholesky decomposition of the \code{sigma} covariance matrix is supplied instead of
 #'        the  \code{sigma} matrix itself.
 #' @param amountUnits Dosing amount units.
@@ -45,8 +45,8 @@ rxIs <- function(obj, cls) {
 #'
 #' @author Matthew L. Fidler
 #' @export
-rxDataSetup <- function(ro, covNames = NULL, sigma = NULL, df = NULL, ncores = 1L, isChol = FALSE, amountUnits = NA_character_, timeUnits = "hours") {
-    .Call(`_RxODE_rxDataSetup`, ro, covNames, sigma, df, ncores, isChol, amountUnits, timeUnits)
+rxDataSetup <- function(ro, covNames = NULL, sigma = NULL, df = NULL, ncoresRV = 1L, isChol = FALSE, amountUnits = NA_character_, timeUnits = "hours") {
+    .Call(`_RxODE_rxDataSetup`, ro, covNames, sigma, df, ncoresRV, isChol, amountUnits, timeUnits)
 }
 
 #' Update RxODE multi-subject data with new residuals (in-place).
@@ -215,12 +215,12 @@ rxDataParSetup <- function(object, params = NULL, events = NULL, inits = NULL, c
     .Call(`_RxODE_rxDataParSetup`, object, params, events, inits, covs, sigma, sigmaDf, sigmaNcores, sigmaIsChol, amountUnits, timeUnits)
 }
 
-rxSolvingOptions <- function(object, stiff = TRUE, transit_abs = NULL, atol = 1.0e-8, rtol = 1.0e-6, maxsteps = 5000L, hmin = 0L, hini = 0L, maxordn = 12L, maxords = 5L, covs_interpolation = "linear") {
-    .Call(`_RxODE_rxSolvingOptions`, object, stiff, transit_abs, atol, rtol, maxsteps, hmin, hini, maxordn, maxords, covs_interpolation)
+rxSolvingOptions <- function(object, stiff = TRUE, transit_abs = NULL, atol = 1.0e-8, rtol = 1.0e-6, maxsteps = 5000L, hmin = 0L, hini = 0L, maxordn = 12L, maxords = 5L, cores = 1L, covs_interpolation = "linear") {
+    .Call(`_RxODE_rxSolvingOptions`, object, stiff, transit_abs, atol, rtol, maxsteps, hmin, hini, maxordn, maxords, cores, covs_interpolation)
 }
 
-rxSolvingData <- function(model, parData, stiff = TRUE, transit_abs = NULL, atol = 1.0e-8, rtol = 1.0e-6, maxsteps = 5000L, hmin = 0L, hmax = NULL, hini = 0L, maxordn = 12L, maxords = 5L, covs_interpolation = "linear") {
-    .Call(`_RxODE_rxSolvingData`, model, parData, stiff, transit_abs, atol, rtol, maxsteps, hmin, hmax, hini, maxordn, maxords, covs_interpolation)
+rxSolvingData <- function(model, parData, stiff = TRUE, transit_abs = NULL, atol = 1.0e-8, rtol = 1.0e-6, maxsteps = 5000L, hmin = 0L, hmax = NULL, hini = 0L, maxordn = 12L, maxords = 5L, cores = 1L, covs_interpolation = "linear") {
+    .Call(`_RxODE_rxSolvingData`, model, parData, stiff, transit_abs, atol, rtol, maxsteps, hmin, hmax, hini, maxordn, maxords, cores, covs_interpolation)
 }
 
 #' Invert matrix using Rcpp Armadilo.  

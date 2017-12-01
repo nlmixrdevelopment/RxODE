@@ -21,8 +21,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // rxDataSetup
-List rxDataSetup(const RObject& ro, const RObject& covNames, const RObject& sigma, const RObject& df, const int& ncores, const bool& isChol, const StringVector& amountUnits, const StringVector& timeUnits);
-RcppExport SEXP _RxODE_rxDataSetup(SEXP roSEXP, SEXP covNamesSEXP, SEXP sigmaSEXP, SEXP dfSEXP, SEXP ncoresSEXP, SEXP isCholSEXP, SEXP amountUnitsSEXP, SEXP timeUnitsSEXP) {
+List rxDataSetup(const RObject& ro, const RObject& covNames, const RObject& sigma, const RObject& df, const int& ncoresRV, const bool& isChol, const StringVector& amountUnits, const StringVector& timeUnits);
+RcppExport SEXP _RxODE_rxDataSetup(SEXP roSEXP, SEXP covNamesSEXP, SEXP sigmaSEXP, SEXP dfSEXP, SEXP ncoresRVSEXP, SEXP isCholSEXP, SEXP amountUnitsSEXP, SEXP timeUnitsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -30,11 +30,11 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const RObject& >::type covNames(covNamesSEXP);
     Rcpp::traits::input_parameter< const RObject& >::type sigma(sigmaSEXP);
     Rcpp::traits::input_parameter< const RObject& >::type df(dfSEXP);
-    Rcpp::traits::input_parameter< const int& >::type ncores(ncoresSEXP);
+    Rcpp::traits::input_parameter< const int& >::type ncoresRV(ncoresRVSEXP);
     Rcpp::traits::input_parameter< const bool& >::type isChol(isCholSEXP);
     Rcpp::traits::input_parameter< const StringVector& >::type amountUnits(amountUnitsSEXP);
     Rcpp::traits::input_parameter< const StringVector& >::type timeUnits(timeUnitsSEXP);
-    rcpp_result_gen = Rcpp::wrap(rxDataSetup(ro, covNames, sigma, df, ncores, isChol, amountUnits, timeUnits));
+    rcpp_result_gen = Rcpp::wrap(rxDataSetup(ro, covNames, sigma, df, ncoresRV, isChol, amountUnits, timeUnits));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -155,8 +155,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // rxSolvingOptions
-SEXP rxSolvingOptions(const RObject& object, const bool& stiff, const Nullable<LogicalVector>& transit_abs, const double atol, const double rtol, const int maxsteps, const int hmin, const int hini, const int maxordn, const int maxords, std::string covs_interpolation);
-RcppExport SEXP _RxODE_rxSolvingOptions(SEXP objectSEXP, SEXP stiffSEXP, SEXP transit_absSEXP, SEXP atolSEXP, SEXP rtolSEXP, SEXP maxstepsSEXP, SEXP hminSEXP, SEXP hiniSEXP, SEXP maxordnSEXP, SEXP maxordsSEXP, SEXP covs_interpolationSEXP) {
+SEXP rxSolvingOptions(const RObject& object, const bool& stiff, const Nullable<LogicalVector>& transit_abs, const double atol, const double rtol, const int maxsteps, const int hmin, const int hini, const int maxordn, const int maxords, const int cores, std::string covs_interpolation);
+RcppExport SEXP _RxODE_rxSolvingOptions(SEXP objectSEXP, SEXP stiffSEXP, SEXP transit_absSEXP, SEXP atolSEXP, SEXP rtolSEXP, SEXP maxstepsSEXP, SEXP hminSEXP, SEXP hiniSEXP, SEXP maxordnSEXP, SEXP maxordsSEXP, SEXP coresSEXP, SEXP covs_interpolationSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -170,14 +170,15 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const int >::type hini(hiniSEXP);
     Rcpp::traits::input_parameter< const int >::type maxordn(maxordnSEXP);
     Rcpp::traits::input_parameter< const int >::type maxords(maxordsSEXP);
+    Rcpp::traits::input_parameter< const int >::type cores(coresSEXP);
     Rcpp::traits::input_parameter< std::string >::type covs_interpolation(covs_interpolationSEXP);
-    rcpp_result_gen = Rcpp::wrap(rxSolvingOptions(object, stiff, transit_abs, atol, rtol, maxsteps, hmin, hini, maxordn, maxords, covs_interpolation));
+    rcpp_result_gen = Rcpp::wrap(rxSolvingOptions(object, stiff, transit_abs, atol, rtol, maxsteps, hmin, hini, maxordn, maxords, cores, covs_interpolation));
     return rcpp_result_gen;
 END_RCPP
 }
 // rxSolvingData
-SEXP rxSolvingData(const RObject& model, const RObject& parData, const bool& stiff, const Nullable<LogicalVector>& transit_abs, const double atol, const double rtol, const int maxsteps, const int hmin, const Nullable<NumericVector>& hmax, const int hini, const int maxordn, const int maxords, std::string covs_interpolation);
-RcppExport SEXP _RxODE_rxSolvingData(SEXP modelSEXP, SEXP parDataSEXP, SEXP stiffSEXP, SEXP transit_absSEXP, SEXP atolSEXP, SEXP rtolSEXP, SEXP maxstepsSEXP, SEXP hminSEXP, SEXP hmaxSEXP, SEXP hiniSEXP, SEXP maxordnSEXP, SEXP maxordsSEXP, SEXP covs_interpolationSEXP) {
+SEXP rxSolvingData(const RObject& model, const RObject& parData, const bool& stiff, const Nullable<LogicalVector>& transit_abs, const double atol, const double rtol, const int maxsteps, const int hmin, const Nullable<NumericVector>& hmax, const int hini, const int maxordn, const int maxords, const int cores, std::string covs_interpolation);
+RcppExport SEXP _RxODE_rxSolvingData(SEXP modelSEXP, SEXP parDataSEXP, SEXP stiffSEXP, SEXP transit_absSEXP, SEXP atolSEXP, SEXP rtolSEXP, SEXP maxstepsSEXP, SEXP hminSEXP, SEXP hmaxSEXP, SEXP hiniSEXP, SEXP maxordnSEXP, SEXP maxordsSEXP, SEXP coresSEXP, SEXP covs_interpolationSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -193,8 +194,9 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const int >::type hini(hiniSEXP);
     Rcpp::traits::input_parameter< const int >::type maxordn(maxordnSEXP);
     Rcpp::traits::input_parameter< const int >::type maxords(maxordsSEXP);
+    Rcpp::traits::input_parameter< const int >::type cores(coresSEXP);
     Rcpp::traits::input_parameter< std::string >::type covs_interpolation(covs_interpolationSEXP);
-    rcpp_result_gen = Rcpp::wrap(rxSolvingData(model, parData, stiff, transit_abs, atol, rtol, maxsteps, hmin, hmax, hini, maxordn, maxords, covs_interpolation));
+    rcpp_result_gen = Rcpp::wrap(rxSolvingData(model, parData, stiff, transit_abs, atol, rtol, maxsteps, hmin, hmax, hini, maxordn, maxords, cores, covs_interpolation));
     return rcpp_result_gen;
 END_RCPP
 }

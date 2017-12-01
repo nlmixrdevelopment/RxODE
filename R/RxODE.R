@@ -1564,7 +1564,8 @@ rxTransMakevars <- function(rxProps,                                            
                             cFile,
                             compileFlags =c("parsed_md5", "ode_solver", "ode_solver_sexp",
                                             "ode_solver_ptr", "ode_solver_xptr", "inis",
-                                            "model_vars", "calc_lhs", "calc_jac", "dydt"), # List of compile flags
+                                            "model_vars", "calc_lhs", "calc_jac", "dydt",
+                                            "dydt_lsoda", "calc_jac_lsoda"), # List of compile flags
                             debug        = FALSE,                                                                 # Debug compile?
                             ...){
     ## rxTransCompileFlags returns a string for the compiler options

@@ -1,7 +1,7 @@
 typedef void (*t_dydt)(unsigned int neq, double t, double *A, double *DADT);
 typedef void (*t_calc_jac)(unsigned int neq, double t, double *A, double *JAC, unsigned int __NROWPD__);
 typedef void (*t_calc_lhs)(double t, double *A, double *lhs);
-typedef void (*t_update_inis)(SEXP _ini_sexp);
+typedef void (*t_update_inis)(double *);
 typedef void (*t_dydt_lsoda_dum)(int *neq, double *t, double *A, double *DADT);
 typedef void (*t_jdum_lsoda)(int *neq, double *t, double *A,int *ml, int *mu, double *JAC, int *nrowpd);
 
@@ -35,6 +35,7 @@ typedef struct {
   double ylow;
   double yhigh;
   int is_locf;
+  int cores;
 } rx_solving_options;
 
 
