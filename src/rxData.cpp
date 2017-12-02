@@ -1112,12 +1112,19 @@ List rxDataParSetup(const RObject &object,
   // The parameters are setup in a numeric vector in order of pars
   int nr = parMat.nrow();
   if (nr == 0) nr = 1;
-  NumericVector parsVec(pars.size()*nr);
+  NumericVector parsVec((pars.size()+1)*nr);
   j = 0;
+  uint64_t parnum = 0;
+  union dInt pnD;
   for (i = 0; i < parsVec.size(); i++){
-    j = floor(i / pars.size());
-    k = i % pars.size();
-    if (posPar[k] == 0){
+    j = floor(i / (pars.size() + 1));
+    k = i % (pars.size() + 1);
+    if (k >= pars.size()){
+      // Use the binary representaion of the parameter number
+      pnD.iVal = parnum;
+      parsVec[i] = pnD.dVal;
+      parnum++;
+    } else if (posPar[k] == 0){
       parsVec[i] = 0;
     } else if (posPar[k] > 0){
       // posPar[i] = j + 1;

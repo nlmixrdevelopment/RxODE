@@ -1,3 +1,4 @@
+#include <stdint.h>
 typedef void (*t_dydt)(unsigned int neq, double t, double *A, double *DADT);
 typedef void (*t_calc_jac)(unsigned int neq, double t, double *A, double *JAC, unsigned int __NROWPD__);
 typedef void (*t_calc_lhs)(double t, double *A, double *lhs);
@@ -78,3 +79,9 @@ typedef struct {
   int nsim;
   SEXP op;
 } rx_solve;
+
+union dInt {
+  // Assumes 64 bit double
+  double dVal;
+  uint64_t iVal;
+};
