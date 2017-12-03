@@ -88,7 +88,7 @@ mu = 1 ## nonstiff; 10 moderately stiff; 1000 stiff
         rxDelete(sens);
     })
 
-    test_that("Jac/Sens can be caluclated from \"normal\" model", {
+    test_that("Jac/Sens can be calculated from \"normal\" model", {
         norm <- RxODE("
 d/dt(y)  = dy
 d/dt(dy) = mu*(1-y^2)*dy - y
