@@ -1,8 +1,7 @@
-#include <stdint.h>
-typedef void (*t_dydt)(unsigned int neq, double t, double *A, double *DADT);
-typedef void (*t_calc_jac)(unsigned int neq, double t, double *A, double *JAC, unsigned int __NROWPD__);
-typedef void (*t_calc_lhs)(double t, double *A, double *lhs);
-typedef void (*t_update_inis)(double *);
+typedef void (*t_dydt)(int *neq, double t, double *A, double *DADT);
+typedef void (*t_calc_jac)(int *neq, double t, double *A, double *JAC, unsigned int __NROWPD__);
+typedef void (*t_calc_lhs)(int cSub, double t, double *A, double *lhs);
+typedef void (*t_update_inis)(int cSub, double *);
 typedef void (*t_dydt_lsoda_dum)(int *neq, double *t, double *A, double *DADT);
 typedef void (*t_jdum_lsoda)(int *neq, double *t, double *A,int *ml, int *mu, double *JAC, int *nrowpd);
 
@@ -79,9 +78,3 @@ typedef struct {
   int nsim;
   SEXP op;
 } rx_solve;
-
-union dInt {
-  // Assumes 64 bit double
-  double dVal;
-  uint64_t iVal;
-};

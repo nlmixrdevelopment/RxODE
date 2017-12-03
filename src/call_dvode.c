@@ -48,14 +48,14 @@ int idosen = 0;
 int extraCmt = 0;
 FILE *fp;
 
-/* void __DYDT__(unsigned int neq, double t, double *A, double *DADT); */
+/* void __DYDT__(int *neq, double t, double *A, double *DADT); */
 /* void __CALC_LHS__(double t, double *A, double *lhs); */
 /* void __CALC_JAC__(unsigned int neq, double t, double *A, double *JAC, unsigned int __NROWPD__); */
 
-void (*dydt)(unsigned int neq, double t, double *A, double *DADT);
-void (*calc_jac)(unsigned int neq, double t, double *A, double *JAC, unsigned int __NROWPD__);
-void (*calc_lhs)(double t, double *A, double *lhs);
-void (*update_inis)(double *);
+void (*dydt)(int *neq, double t, double *A, double *DADT);
+void (*calc_jac)(int neq, double t, double *A, double *JAC, unsigned int __NROWPD__);
+void (*calc_lhs)(int cSub, double t, double *A, double *lhs);
+void (*update_inis)(int cSub, double *);
 
 void setExtraCmt(int xtra){
   if (xtra > extraCmt){
@@ -74,7 +74,7 @@ double rxTime(int i){
 
 void rxCalcLhs(int i){
   if (i < n_all_times){
-    calc_lhs(all_times[i], solve+i*neq, lhs);
+    calc_lhs(0, all_times[i], solve+i*neq, lhs);
   } else {
     error("LHS cannot be calculated (%dth entry).",i);
   }
@@ -316,7 +316,7 @@ extern void update_par_ptr(double t){
 //--------------------------------------------------------------------------
 void dydt_lsoda_dum(int *neq, double *t, double *A, double *DADT)
 {
-  dydt(*neq, *t, A, DADT);
+  dydt(neq, *t, A, DADT);
 }
 void jdum_lsoda(int *neq, double *t, double *A,int *ml, int *mu, double *JAC, int *nrowpd){
   // Update all covariate parameters
@@ -338,6 +338,9 @@ void call_lsoda0(int neq, double *x, int *evid, int nx, double *inits, double *d
   double *rwork;
   int *iwork;
   int wh, cmt;
+  int neq2[2];
+  neq2[0] = neq;
+  neq2[1] = 0;
 
   char *err_msg[]=
     {
@@ -379,7 +382,7 @@ void call_lsoda0(int neq, double *x, int *evid, int nx, double *inits, double *d
       }
       if(xout-xp> DBL_EPSILON*max(fabs(xout),fabs(xp)))
 	{
-	  F77_CALL(dlsoda)(fun_dydt_lsoda_dum, &neq, yp, &xp, &xout, &itol, &rtol, &atol, &itask,
+	  F77_CALL(dlsoda)(fun_dydt_lsoda_dum, &neq2[0], yp, &xp, &xout, &itol, &rtol, &atol, &itask,
 			   &istate, &iopt, rwork, &lrw, iwork, &liw, fun_jdum_lsoda, &jt);
 
 	  if (istate<0)
@@ -469,9 +472,9 @@ void call_lsoda(int neq, double *x, int *evid, int nx, double *inits, double *do
 
 //dummy solout fn
 void solout(long int nr, double t_old, double t,
-	    double *y, unsigned int n, int *irtrn){}
+	    double *y, int *nptr, int *irtrn){}
 void call_dop0(int neq, double *x, int *evid, int nx, double *inits, double *dose, double *ret, int *rc,
-	       void (*fun_dydt)(unsigned int neq, double t, double *A, double *DADT),
+	       void (*fun_dydt)(int *neq, double t, double *A, double *DADT),
 	       double *ropts, int *iopts)
 {
   int i, j;
@@ -482,6 +485,9 @@ void call_dop0(int neq, double *x, int *evid, int nx, double *inits, double *dos
   int iout=0;		//iout=0: solout() NEVER called
   int idid=0;
   int wh, cmt, foundBad=0;
+  int neq2[2];
+  neq2[0] = neq;
+  neq2[1] = 0;
   char *err_msg[]=
     {
       "input is not consistent",
@@ -504,8 +510,7 @@ void call_dop0(int neq, double *x, int *evid, int nx, double *inits, double *dos
 		
       if(xout-xp>DBL_EPSILON*max(fabs(xout),fabs(xp)))
 	{
-	  idid = dop853(
-			neq,      	/* dimension of the system <= UINT_MAX-1*/
+	  idid = dop853(&neq2[0],      	/* dimension of the system <= UINT_MAX-1*/
 			fun_dydt,    	/* function computing the value of f(x,y) */
 			xp,           /* initial x-value */
 			yp,           /* initial values for y */
@@ -593,7 +598,7 @@ void call_dop0(int neq, double *x, int *evid, int nx, double *inits, double *dos
 }
 
 void call_dop(int neq, double *x, int *evid, int nx, double *inits, double *dose, double *ret, int *rc){
-  void (*fun_dydt)(unsigned int neq, double t, double *A, double *DADT);
+  void (*fun_dydt)(int *neq, double t, double *A, double *DADT);
   fun_dydt=dydt;
   double ropts[5];
   ropts[0] = RTOL;
@@ -695,7 +700,7 @@ void RxODE_ode_solver_old_c(int *neqa,
   // Update LHS
   if (*nlhsa) {
     for (i=0; i<*ntime; i++){
-      calc_lhs(time[i], ret+i*(*neqa), lhsp+i*(*nlhsa));
+      calc_lhs(0, time[i], ret+i*(*neqa), lhsp+i*(*nlhsa));
     }
   }
 }
@@ -755,10 +760,10 @@ void RxODE_ode_alloc(){
   rc[0] = 0;
 }
 
-extern SEXP RxODE_get_fn_pointers(void (*fun_dydt)(unsigned int, double, double *, double *),
-				  void (*fun_calc_lhs)(double, double *, double *),
-				  void (*fun_calc_jac)(unsigned int, double, double *, double *, unsigned int),
-				  void (*fun_update_inis)(double *),
+extern SEXP RxODE_get_fn_pointers(void (*fun_dydt)(int*, double, double *, double *),
+				  void (*fun_calc_lhs)(int, double, double *, double *),
+				  void (*fun_calc_jac)(int, double, double *, double *, unsigned int),
+				  void (*fun_update_inis)(int, double *),
 				  void (*fun_dydt_lsoda_dum)(int *, double *, double *, double *),
 				  void (*fun_jdum_lsoda)(int *, double *, double *,int *, int *, double *, int *),
 				  int fun_jt,
@@ -769,10 +774,10 @@ extern SEXP RxODE_get_fn_pointers(void (*fun_dydt)(unsigned int, double, double 
   SEXP lst      = PROTECT(allocVector(VECSXP, 9)); pro++;
   SEXP names    = PROTECT(allocVector(STRSXP, 9)); pro++;
 
-  void (*dydtf)(unsigned int neq, double t, double *A, double *DADT);
-  void (*calc_jac)(unsigned int neq, double t, double *A, double *JAC, unsigned int __NROWPD__);
-  void (*calc_lhs)(double t, double *A, double *lhs);
-  void (*update_inis)(double *);
+  void (*dydtf)(int *neq, double t, double *A, double *DADT);
+  void (*calc_jac)(int neq, double t, double *A, double *JAC, unsigned int __NROWPD__);
+  void (*calc_lhs)(int, double t, double *A, double *lhs);
+  void (*update_inis)(int neq, double *);
   void (*dydt_lsoda_dum)(int *neq, double *t, double *A, double *DADT);
   void (*jdum_lsoda)(int *neq, double *t, double *A,int *ml, int *mu, double *JAC, int *nrowpd);
   
@@ -833,10 +838,10 @@ extern SEXP RxODE_get_fn_pointers(void (*fun_dydt)(unsigned int, double, double 
   return(lst);
 }
 
-extern void RxODE_assign_fn_pointers(void (*fun_dydt)(unsigned int, double, double *, double *),
-				     void (*fun_calc_lhs)(double, double *, double *),
-				     void (*fun_calc_jac)(unsigned int, double, double *, double *, unsigned int),
-				     void (*fun_update_inis)(double *),
+extern void RxODE_assign_fn_pointers(void (*fun_dydt)(int*, double, double *, double *),
+				     void (*fun_calc_lhs)(int, double, double *, double *),
+				     void (*fun_calc_jac)(int, double, double *, double *, unsigned int),
+				     void (*fun_update_inis)(int, double *),
 				     int fun_jt,
 				     int fun_mf,
 				     int fun_debug){
@@ -925,7 +930,7 @@ void RxODE_ode_setup(SEXP sexp_inits,
     error("RxODE does not support %d compartments (Currently only %d compartments)", neq, NCMT);
   }
   if (length(sexp_inits) > 0){
-    update_inis(REAL(sexp_inits)); // Update any run-time initial conditions.
+    update_inis(0, REAL(sexp_inits)); // Update any run-time initial conditions.
   }
 }
 

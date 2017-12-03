@@ -492,19 +492,20 @@ rxSymPySetup <- function(model, envir=parent.frame()){
 ##' Setup SymPy environment if needed
 ##'
 ##' @param model RxODE lines to setup
+##' @inheritParams rxSymPySetup
 ##' @author Matthew L. Fidler
 ##' @keywords internal
 ##' @return model lines
 ##' @export
-rxSymPySetupIf <- function(model){
+rxSymPySetupIf <- function(model, envir=parent.frame()){
     if (class(model) != "character"){
-        return(rxSymPySetup(model));
+        return(rxSymPySetup(model, envir=envir));
     } else {
         lastLine <- sub(rex::rex(start, any_spaces, capture(anything), any_spaces, end),
                         "\\1", strsplit(model[length(model)], "[=~]")[[1]][1])
-        if (!rxSymPyExists(rxToSymPy(lastLine))){
+        if (!rxSymPyExists(rxToSymPy(lastLine, envir=envir))){
             model.setup <- paste(model, collapse="\n");
-            rxSymPySetup(model.setup)
+            rxSymPySetup(model.setup, envir=envir)
         }
         return(model)
     }

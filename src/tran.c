@@ -1529,7 +1529,7 @@ void codegen(FILE *outpt, int show_ode) {
   char *hdft[]=
     {
       "\n// prj-specific differential eqns\nvoid ",
-      "dydt(unsigned int _neq, double t, double *__zzStateVar__, double *__DDtStateVar__)\n{\n",
+      "dydt(int *_neq, double t, double *__zzStateVar__, double *__DDtStateVar__)\n{\n",
       "    _dadt_counter_inc();\n}\n\n"
     };
   if (show_ode == 1){
@@ -1556,11 +1556,11 @@ void codegen(FILE *outpt, int show_ode) {
     fprintf(outpt, "%s", model_prefix);
     fprintf(outpt, "%s", hdft[1]);
   } else if (show_ode == 2){
-    fprintf(outpt, "// Jacobian derived vars\nvoid %scalc_jac(unsigned int _neq, double t, double *__zzStateVar__, double *__PDStateVar__, unsigned int __NROWPD__) {\n",model_prefix);
+    fprintf(outpt, "// Jacobian derived vars\nvoid %scalc_jac(int *_neq, double t, double *__zzStateVar__, double *__PDStateVar__, unsigned int __NROWPD__) {\n",model_prefix);
   } else if (show_ode == 3){
-    fprintf(outpt, "// Functional based initial conditions.\nvoid %sinis(double *__zzStateVar__){\n\tdouble t=0;\n",model_prefix);
+    fprintf(outpt, "// Functional based initial conditions.\nvoid %sinis(int _cSub, double *__zzStateVar__){\n\tdouble t=0;\n",model_prefix);
   } else {
-    fprintf(outpt, "// prj-specific derived vars\nvoid %scalc_lhs(double t, double *__zzStateVar__, double *_lhs) {\n",model_prefix);
+    fprintf(outpt, "// prj-specific derived vars\nvoid %scalc_lhs(int _cSub, double t, double *__zzStateVar__, double *_lhs) {\n",model_prefix);
   }
   if (found_print){
     fprintf(outpt,"\n\tint __print_ode__ = 0, __print_vars__ = 0,__print_parm__ = 0,__print_jac__ = 0;\n");

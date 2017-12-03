@@ -259,7 +259,8 @@ void par_lsoda(SEXP sd){
 #pragma omp parallel for num_threads(cores)
 #endif
     for (int csub = 0; csub < nsub; csub++){
-      ind = &(rx->subjects[csub+nsub*nsim]);
+      unsigned int csubject = csub+nsub*nsim;
+      ind = &(rx->subjects[csubject]);
       ind->ixds = 0;
       nx = ind->n_all_times;
       inits = ind->inits;
@@ -273,7 +274,7 @@ void par_lsoda(SEXP sd){
       rwork[5] = ind->HMAX; // Hmax -- Infinite
       double xp = x[0];
       //--- inits the system
-      uini(inits); // Update initial conditions
+      uini(csubject, inits); // Update initial conditions
       for(i=0; i<neq; i++) yp[i] = inits[i];
       for(i=0; i<nx; i++) {
         wh = evid[i];

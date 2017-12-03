@@ -4,7 +4,7 @@
 \alias{rxDataSetup}
 \title{Setup a data frame for solving multiple subjects at once in RxODE.}
 \usage{
-rxDataSetup(ro, covNames = NULL, sigma = NULL, df = NULL, ncores = 1L,
+rxDataSetup(ro, covNames = NULL, sigma = NULL, df = NULL, ncoresRV = 1L,
   isChol = FALSE, amountUnits = NA_character_, timeUnits = "hours")
 }
 \arguments{
@@ -26,7 +26,7 @@ rxDataSetup(ro, covNames = NULL, sigma = NULL, df = NULL, ncores = 1L,
 \item{df}{Degrees of freedom for \code{\link[mvnfast]{rmvt}}.  If \code{NULL}, or \code{Inf}, then use a normal distribution.  The
 default is normal.}
 
-\item{ncores}{The number of cores for residual simulation.  By default, this is \code{1}.}
+\item{ncoresRV}{The number of cores for residual simulation.  By default, this is \code{1}.}
 
 \item{isChol}{is a boolean indicating that the Cholesky decomposition of the \code{sigma} covariance matrix is supplied instead of
 the  \code{sigma} matrix itself.}

@@ -174,12 +174,12 @@ nfcnRead    Number of function calls.
 #include <stdio.h>
 #include <limits.h>
 
-typedef void (*FcnEqDiff)(unsigned int n, double x, double *y, double *f);
-typedef void (*SolTrait)(long int nr, double xold, double x, double* y, unsigned int n, int* irtrn);
+typedef void (*FcnEqDiff)(int *nptr, double x, double *y, double *f);
+typedef void (*SolTrait)(long int nr, double xold, double x, double* y, int *nptr, int* irtrn);
 
 
 extern int dop853
- (unsigned int n,      /* dimension of the system <= UINT_MAX-1*/
+ (int *nptr,      /* dimension of the system <= UINT_MAX-1*/
   FcnEqDiff fcn,       /* function computing the value of f(x,y) */
   double x,            /* initial x-value */
   double* y,           /* initial values for y */
