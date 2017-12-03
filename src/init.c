@@ -76,6 +76,15 @@ extern double RxODE_transit4(double t, double n, double mtt, double bio);
 extern double RxODE_transit3(double t, double n, double mtt);
 extern double RxODE_sum(double *input, int len);
 extern double RxODE_prod(double *input, int len);
+extern void RxODE_ode_solve_env(SEXP sexp_rho);
+extern int nEq ();
+extern unsigned int nObs();
+extern unsigned int nLhs ();
+extern double RxODE_as_zero(double x);
+extern double rxLhs(int i);
+extern void rxCalcLhs(int i);
+extern unsigned int nAllTimes ();
+extern int rxEvid(int i);
 
 extern SEXP RxODE_get_fn_pointers(void (*fun_dydt)(unsigned int, double, double *, double *),
                                   void (*fun_calc_lhs)(double, double *, double *),
@@ -112,6 +121,7 @@ extern void RxODE_dadt_counter_inc();
 extern double RxODE_podo();
 extern double RxODE_tlast();
 extern void update_par_ptr(double t);
+extern void RxODE_ode_free();
 
 // Remove these functions later...
 extern void RxODE_assign_fn_pointers(void (*fun_dydt)(unsigned int, double, double *, double *),
@@ -154,11 +164,21 @@ void R_init_RxODE(DllInfo *info){
   };
 
   // C callables needed in FOCEi
+  R_RegisterCCallable("RxODE","nEq",                 (DL_FUNC) nEq);
+  R_RegisterCCallable("RxODE","nLhs",                (DL_FUNC) nLhs);
+  R_RegisterCCallable("RxODE","rxLhs",               (DL_FUNC) rxLhs);
+  R_RegisterCCallable("RxODE","nAllTimes",           (DL_FUNC) nAllTimes);
+  R_RegisterCCallable("RxODE","rxEvid",              (DL_FUNC) rxEvid);
+  R_RegisterCCallable("RxODE","rxCalcLhs",           (DL_FUNC) rxCalcLhs);
+  R_RegisterCCallable("RxODE","nObs",                (DL_FUNC) nObs);
+
+  R_RegisterCCallable("RxODE","RxODE_ode_solve_env", (DL_FUNC) RxODE_ode_solve_env);
+  R_RegisterCCallable("RxODE","RxODE_ode_free",      (DL_FUNC) RxODE_ode_free);
   R_RegisterCCallable("RxODE","RxODE_safe_zero",     (DL_FUNC) RxODE_safe_zero);
   R_RegisterCCallable("RxODE","RxODE_safe_log",      (DL_FUNC) RxODE_safe_log);
   R_RegisterCCallable("RxODE","RxODE_sign_exp",      (DL_FUNC) RxODE_sign_exp);
   R_RegisterCCallable("RxODE","RxODE_abs_log",       (DL_FUNC) RxODE_abs_log);
-
+  
   //Functions
   R_RegisterCCallable("RxODE","RxODE_ode_solver",       (DL_FUNC) RxODE_ode_solver);
   R_RegisterCCallable("RxODE","RxODE_assign_fn_pointers", (DL_FUNC) RxODE_assign_fn_pointers);

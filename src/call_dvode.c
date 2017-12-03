@@ -72,7 +72,7 @@ double rxTime(int i){
   return 0;
 }
 
-void rxCalcLhs(int i){
+extern void rxCalcLhs(int i){
   if (i < n_all_times){
     calc_lhs(0, all_times[i], solve+i*neq, lhs);
   } else {
@@ -80,7 +80,7 @@ void rxCalcLhs(int i){
   }
 }
 
-double rxLhs(int i){
+extern double rxLhs(int i){
   if (i < nlhs){
     return(lhs[i]);
   } else {
@@ -88,7 +88,7 @@ double rxLhs(int i){
   }
 }
 
-int rxEvid(int i){
+extern int rxEvid(int i){
   if (i < n_all_times){
     return(evid[i]);
   } else {
@@ -96,7 +96,7 @@ int rxEvid(int i){
   }
 }
 
-unsigned int nAllTimes (){
+extern unsigned int nAllTimes (){
   return (unsigned int)(n_all_times);
 }
 
@@ -154,15 +154,15 @@ double rxDose(int i){
 
 
 
-unsigned int nObs(){
+extern unsigned int nObs(){
   return (unsigned int)(n_all_times - nDoses());
 }
 
-unsigned int nLhs (){
+extern unsigned int nLhs (){
   return (unsigned int)(nlhs);
 }
 
-int nEq (){
+extern int nEq (){
   return neq;
 }
 
