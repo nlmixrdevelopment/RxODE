@@ -218,14 +218,13 @@ dsl.to.pow <- function(a, b){
     num <- suppressWarnings({as.numeric(b)});
     if (is.na(num)){
         return(sprintf("Rx_pow(%s, %s)", a, b));
-    ## } else if (num == round(num)){
-    ##     return(sprintf("Rx_pow_di(%s, %s)", a, b));
-    } else
-        if (num == 0.5){
-            return(sprintf("sqrt(%s)", a));
-        } else {
-            return(sprintf("Rx_pow(%s, %s)", a, b));
-        }
+    } else if (abs(num - round(num)) < .Machine$double.eps^0.5){
+        return(sprintf("Rx_pow_di(%s, %s)", a, b));
+    } else if (num == 0.5){
+        return(sprintf("sqrt(%s)", a));
+    } else {
+        return(sprintf("Rx_pow(%s, %s)", a, b));
+    }
 }
 
 
