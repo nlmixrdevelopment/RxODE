@@ -4,6 +4,10 @@ cache: packages
 
 sudo: required
 
+env:
+ global:
+   - _R_CHECK_FORCE_SUGGESTS_: FALSE
+
 r:
   - 3.2
   - 3.3
