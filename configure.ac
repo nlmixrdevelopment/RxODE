@@ -32,10 +32,13 @@ fi
 # if ${ac_pkg_openmp} = "yes" then we have OMP, otherwise it will be "no"
 if test "${ac_pkg_openmp}" = no; then
   OPENMP_CFLAGS=''
-  # you could put AC_MSG_ERROR here is OpenMP is required
 fi
 
 AC_SUBST(OPENMP_CFLAGS)
 
 AC_CONFIG_FILES([src/Makevars])
 AC_OUTPUT
+
+echo --------[[begin src/Makevars]]--------
+cat src/Makevars
+echo --------[[end src/Makevars]]--------

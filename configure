@@ -2678,7 +2678,6 @@ fi
 # if ${ac_pkg_openmp} = "yes" then we have OMP, otherwise it will be "no"
 if test "${ac_pkg_openmp}" = no; then
   OPENMP_CFLAGS=''
-  # you could put AC_MSG_ERROR here is OpenMP is required
 fi
 
 
@@ -3840,3 +3839,7 @@ if test -n "$ac_unrecognized_opts" && test "$enable_option_checking" != no; then
 $as_echo "$as_me: WARNING: unrecognized options: $ac_unrecognized_opts" >&2;}
 fi
 
+
+echo --------[begin src/Makevars]--------
+cat src/Makevars
+echo --------[end src/Makevars]--------

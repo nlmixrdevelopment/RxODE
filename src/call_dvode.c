@@ -726,7 +726,7 @@ void RxODE_ode_solver_old_c(int *neqa,
 /*   return sexp_ret; */
 /* } */
 
-void RxODE_ode_free(){
+extern void RxODE_ode_free(){
   /* Free(InfusionRate); */
   int j;
   if (nBadDose){

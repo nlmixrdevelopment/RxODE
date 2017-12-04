@@ -3,6 +3,7 @@
 #include <Rmath.h> //Rmath includes math.
 #include <R_ext/Rdynload.h>
 #include "solve.h"
+#include "dop853.h"
 // Yay easy parallel support
 // For Mac, see: http://thecoatlessprofessor.com/programming/openmp-in-r-on-os-x/ (as far as I can tell)
 // It may have arrived, though I'm not sure...
@@ -200,12 +201,14 @@ void par_lsoda(SEXP sd){
     error("Cannot get global ode solver options.");
   }
   op = R_ExternalPtrAddr(rx->op);
-  int neq = op->neq;
-  yp = Calloc(neq, double);
+  int neq[2];
+  neq[0] = op->neq;
+  neq[1] = 0;
+  yp = Calloc(neq[0], double);
   int itol = 1;
   double  rtol = op->RTOL, atol = op->ATOL;
   // Set jt to 1 if full is specified.
-  int itask = 1, istate = 1, iopt = 0, lrw=22+neq*max(16, neq+9), liw=20+neq, jt = op->global_jt;
+  int itask = 1, istate = 1, iopt = 0, lrw=22+neq[0]*max(16, neq[0]+9), liw=20+neq[0], jt = op->global_jt;
   double *rwork;
   int *iwork;
   int wh, cmt;
@@ -259,8 +262,7 @@ void par_lsoda(SEXP sd){
 #pragma omp parallel for num_threads(cores)
 #endif
     for (int csub = 0; csub < nsub; csub++){
-      unsigned int csubject = csub+nsub*nsim;
-      ind = &(rx->subjects[csubject]);
+      ind = &(rx->subjects[csub+nsub*nsim]);
       ind->ixds = 0;
       nx = ind->n_all_times;
       inits = ind->inits;
@@ -274,8 +276,8 @@ void par_lsoda(SEXP sd){
       rwork[5] = ind->HMAX; // Hmax -- Infinite
       double xp = x[0];
       //--- inits the system
-      uini(csubject, inits); // Update initial conditions
-      for(i=0; i<neq; i++) yp[i] = inits[i];
+      uini(csub+nsub*nsim, inits); // Update initial conditions
+      for(i=0; i<neq[0]; i++) yp[i] = inits[i];
       for(i=0; i<nx; i++) {
         wh = evid[i];
         xout = x[i];
@@ -284,7 +286,7 @@ void par_lsoda(SEXP sd){
         }
         if(xout-xp> DBL_EPSILON*max(fabs(xout),fabs(xp)))
           {
-            F77_CALL(dlsoda)(dydt, &neq, yp, &xp, &xout, &itol, &rtol, &atol, &itask,
+            F77_CALL(dlsoda)(dydt, neq, yp, &xp, &xout, &itol, &rtol, &atol, &itask,
                              &istate, &iopt, rwork, &lrw, iwork, &liw, jac, &jt);
 
             if (istate<0)
@@ -299,7 +301,7 @@ void par_lsoda(SEXP sd){
         if (wh)
           {
             cmt = (wh%10000)/100 - 1;
-            if (cmt >= neq){
+            if (cmt >= neq[0]){
               foundBad = 0;
               for (j = 0; j < ind->nBadDose; j++){
                 if (BadDose[j] == cmt+1){
@@ -332,12 +334,12 @@ void par_lsoda(SEXP sd){
               xp = xout;
             }
           }
-        for(j=0; j<neq; j++) ret[neq*i+j] = yp[j];
+        for(j=0; j<neq[0]; j++) ret[neq[0]*i+j] = yp[j];
         //Rprintf("wh=%d cmt=%d tm=%g rate=%g\n", wh, cmt, xp, InfusionRate[cmt]);
 
         if (global_debug){
           Rprintf("ISTATE=%d, ", istate);
-          for(j=0; j<neq; j++)
+          for(j=0; j<neq[0]; j++)
             {
               Rprintf("%f ", yp[j]);
             }
@@ -356,4 +358,174 @@ void par_lsoda(SEXP sd){
   Free(rwork);
   Free(iwork);
   Free(yp);
+}
+
+//dummy solout fn
+void solout(long int nr, double t_old, double t,
+            double *y, int *nptr, int *irtrn);//{}
+
+void par_dop(SEXP sd){
+  rx_solve *rx;
+  rx = getRxSolve(sd);
+  int i, j, foundBad;
+  double xout;
+  double *yp;
+  rx_solving_options *op;
+  if(!R_ExternalPtrAddr(rx->op)){
+    error("Cannot get global ode solver options.");
+  }
+  op = R_ExternalPtrAddr(rx->op);
+  int neq[2];
+  neq[0] = op->neq;
+  neq[1] = 0;
+  yp = Calloc(neq, double);
+  
+  //DE solver config vars
+  double rtol=op->RTOL, atol=op->ATOL;
+  int itol=0;           //0: rtol/atol scalars; 1: rtol/atol vectors
+  int iout=0;           //iout=0: solout() NEVER called
+  int idid=0;
+  int wh, cmt;
+  char *err_msg[]=
+    {
+      "input is not consistent",
+      "larger nmax is needed",
+      "step size becomes too small",
+      "problem is probably stiff (interrupted)"
+    };
+  t_dydt dydt = (t_dydt)(op->dydt);
+  t_update_inis uini = (t_update_inis)(op->update_inis);
+  rx_solving_options_ind *ind;
+  double *inits;
+  int *evid;
+  double *x;
+  int *BadDose;
+  double *InfusionRate;
+  double *dose;
+  double *ret;
+  int *rc;
+  int nsub = rx->nsub;
+  int nsim = rx->nsim;
+  int cores = op->cores;
+  int global_debug = op->global_debug;
+  int nx;
+  for (int csim = 0; csim < nsim; csim++){
+    // This part CAN be parallelized.
+#ifdef _OPENMP
+#pragma omp parallel for num_threads(cores)
+#endif
+    for (int csub = 0; csub < nsub; csub++){
+      ind = &(rx->subjects[csub+nsub*nsim]);
+      ind->ixds = 0;
+      nx = ind->n_all_times;
+      inits = ind->inits;
+      evid = ind->evid;
+      BadDose = ind->BadDose;
+      InfusionRate = ind->InfusionRate;
+      dose = ind->dose;
+      ret = ind->solve;
+      x = ind->all_times;
+      rc= ind->rc;
+      double xp = x[0];
+      //--- inits the system
+      uini(csub+nsub*nsim, inits); // Update initial conditions
+      
+      //--- inits the system
+      for(i=0; i<neq[0]; i++) yp[i] = inits[i];
+
+      for(i=0; i<nx; i++)
+	{
+	  wh = evid[i];
+	  xout = x[i];
+	  if (global_debug){
+	    Rprintf("i=%d xp=%f xout=%f\n", i, xp, xout);
+	  }
+	  if(xout-xp>DBL_EPSILON*max(fabs(xout),fabs(xp)))
+	    {
+	      idid = dop853(neq,       /* dimension of the system <= UINT_MAX-1*/
+			    dydt,       /* function computing the value of f(x,y) */
+			    xp,           /* initial x-value */
+			    yp,           /* initial values for y */
+			    xout,         /* final x-value (xend-x may be positive or negative) */
+			    &rtol,          /* relative error tolerance */
+			    &atol,          /* absolute error tolerance */
+			    itol,         /* switch for rtoler and atoler */
+			    solout,         /* function providing the numerical solution during integration */
+			    iout,         /* switch for calling solout */
+			    NULL,           /* messages stream */
+			    DBL_EPSILON,    /* rounding unit */
+			    0,              /* safety factor */
+			    0,              /* parameters for step size selection */
+			    0,
+			    0,              /* for stabilized step size control */
+			    0,              /* maximal step size */
+			    0,            /* initial step size */
+			    0,            /* maximal number of allowed steps */
+			    1,            /* switch for the choice of the coefficients */
+			    -1,                     /* test for stiffness */
+			    0,                      /* number of components for which dense outpout is required */
+			    NULL,           /* indexes of components for which dense output is required, >= nrdens */
+			    0                       /* declared length of icon */
+			    );
+	      if (idid<0)
+		{
+		  Rprintf("IDID=%d, %s\n", idid, err_msg[-idid-1]);
+		  *rc = idid;
+		  i = nx+42; // Get out of here!
+		}
+	      xp = xRead();
+	      ind->slvr_counter++;
+	      //dadt_counter = 0;
+	    }
+	  if (wh)
+	    {
+	      cmt = (wh%10000)/100 - 1;
+	      if (cmt >= neq[0]){
+		foundBad = 0;
+		for (j = 0; j <ind->nBadDose; j++){
+		  if (BadDose[j] == cmt+1){
+		    foundBad=1;
+		    break;
+		  }
+		}
+		if (!foundBad){
+		  BadDose[ind->nBadDose]=cmt+1;
+		  ind->nBadDose++;
+		}
+	      } else {
+		if (wh>10000)
+		  {
+		    InfusionRate[cmt] += dose[ind->ixds];
+		  }
+		else
+		  {
+		    if (op->do_transit_abs)
+		      {
+			ind->podo = dose[ind->ixds];
+                        ind->tlast = xout;
+		      }
+		    else yp[cmt] += dose[ind->ixds];     //dosing before obs
+		  }
+	      }
+	      ind->ixds++;
+	      xp = xout;
+	    }
+	  for(j=0; j<neq[0]; j++) ret[neq[0]*i+j] = yp[j];
+	  //Rprintf("wh=%d cmt=%d tm=%g rate=%g\n", wh, cmt, xp, InfusionRate[cmt]);
+
+	  if (global_debug){
+	    Rprintf("IDID=%d, ", idid);
+	    for(j=0; j<neq[0]; j++)
+	      {
+		Rprintf("%f ", yp[j]);
+	      }
+	    Rprintf("\n");
+	  }
+	}
+    }
+    if (rc[0]){
+      Rprintf("Error sovling using dop853\n");
+      return;
+    }
+  }
 }
