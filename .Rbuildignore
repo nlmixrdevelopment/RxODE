@@ -17,3 +17,5 @@ RxODE.*\.(zip|pdf)$
 ^/?src/.Rhistory
 ^/?src/dparser/.*$
 LICENSE
+/config.status
+/config.log
