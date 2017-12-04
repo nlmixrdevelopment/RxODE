@@ -2,6 +2,8 @@ language: r
 
 cache: packages
 
+sudo: required
+
 r:
   - 3.2
   - 3.3
