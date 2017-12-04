@@ -1,8 +1,8 @@
 CXX_STD = CXX11
-PKG_LIBS = $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS) @SHLIB_OPENMP_CFLAGS@
+PKG_LIBS = $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS) @OPENMP_CFLAGS@
 PKG_FFLAGS=$(FPICFLAGS) 
 PKG_FCFLAGS=$(FPICFLAGS)
-PKG_CFLAGS=@SHLIB_OPENMP_CFLAGS@
+PKG_CFLAGS=@OPENMP_CFLAGS@
 
 SOURCES_C = call_dvode.c dop853.c tran.c rprintf.c lincmt.c lincmtDiff.c omegaChol.c init.c par_solve.c
 SOURCES_CPP = RcppExports.cpp util.cpp WinDrive.cpp rxInv.cpp rxData.cpp
