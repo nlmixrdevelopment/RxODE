@@ -51,16 +51,15 @@ rxDataSetup <- function(ro, covNames = NULL, sigma = NULL, df = NULL, ncoresRV =
 
 #' Update RxODE multi-subject data with new residuals (in-place).
 #'
-#' @param md The RxODE multi-data object setup from \code{\link{rxDataSetup}}
+#' @param multiData The RxODE multi-data object setup from \code{\link{rxDataSetup}}
 #'
-#' @return A boolean indicating if this is a compatible object for updating residuals.
-#'        If it isn't compatible nothing is done.  Additionally, if there are no random residual
-#'        variables to update, also nothing is done.
+#' @return An integer indicating if this is object has residuals that are updating (0 for no-residuals; 1 for residuals).
+#'        
 #' @author Matthew L. Fidler
 #' @keywords internal
 #' @export
-rxUpdateResiduals <- function(md) {
-    .Call(`_RxODE_rxUpdateResiduals`, md)
+rxUpdateResiduals <- function(multiData) {
+    .Call(`_RxODE_rxUpdateResiduals`, multiData)
 }
 
 #' All model variables for a RxODE object
@@ -221,6 +220,10 @@ rxSolvingOptions <- function(object, stiff = TRUE, transit_abs = NULL, atol = 1.
 
 rxSolvingData <- function(model, parData, stiff = TRUE, transit_abs = NULL, atol = 1.0e-8, rtol = 1.0e-6, maxsteps = 5000L, hmin = 0L, hmax = NULL, hini = 0L, maxordn = 12L, maxords = 5L, cores = 1L, covs_interpolation = "linear") {
     .Call(`_RxODE_rxSolvingData`, model, parData, stiff, transit_abs, atol, rtol, maxsteps, hmin, hmax, hini, maxordn, maxords, cores, covs_interpolation)
+}
+
+rxData <- function(object, params = NULL, events = NULL, inits = NULL, covs = NULL, stiff = TRUE, transit_abs = NULL, atol = 1.0e-8, rtol = 1.0e-6, maxsteps = 5000L, hmin = 0L, hmax = NULL, hini = 0L, maxordn = 12L, maxords = 5L, cores = 1L, covs_interpolation = "linear", sigma = NULL, sigmaDf = NULL, sigmaNcores = 1L, sigmaIsChol = FALSE, amountUnits = NA_character_, timeUnits = "hours") {
+    .Call(`_RxODE_rxData`, object, params, events, inits, covs, stiff, transit_abs, atol, rtol, maxsteps, hmin, hmax, hini, maxordn, maxords, cores, covs_interpolation, sigma, sigmaDf, sigmaNcores, sigmaIsChol, amountUnits, timeUnits)
 }
 
 #' Invert matrix using Rcpp Armadilo.  

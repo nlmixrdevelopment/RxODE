@@ -2,6 +2,7 @@
 #include <RcppArmadillo.h>
 extern "C"{
 #include "solve.h"
+  rx_solve *getRxSolve_(SEXP ptr);
 }
 
 using namespace Rcpp;
@@ -509,34 +510,33 @@ List rxDataSetup(const RObject &ro,
 
 //' Update RxODE multi-subject data with new residuals (in-place).
 //'
-//' @param md The RxODE multi-data object setup from \code{\link{rxDataSetup}}
+//' @param multiData The RxODE multi-data object setup from \code{\link{rxDataSetup}}
 //'
-//' @return A boolean indicating if this is a compatible object for updating residuals.
-//'        If it isn't compatible nothing is done.  Additionally, if there are no random residual
-//'        variables to update, also nothing is done.
+//' @return An integer indicating if this is object has residuals that are updating (0 for no-residuals; 1 for residuals).
+//'        
 //' @author Matthew L. Fidler
 //' @keywords internal
 //' @export
 //[[Rcpp::export]]
-bool rxUpdateResiduals(List &md){
-  if (rxIs(md, "RxODE.multi.data")){
-    RObject sigma = md["sigma"];
+bool rxUpdateResiduals(List &multiData){
+  if (rxIs(multiData, "RxODE.multi.data")){
+    RObject sigma = multiData["sigma"];
     if (!sigma.isNULL()){
-      int totNObs = as<int>(md["nObs"]);
-      RObject df = md["df"];
-      int ncores = as<int>(md["ncoresRV"]);
-      bool isChol = as<bool>(md["isChol"]);
+      int totNObs = as<int>(multiData["nObs"]);
+      RObject df = multiData["df"];
+      int ncores = as<int>(multiData["ncoresRV"]);
+      bool isChol = as<bool>(multiData["isChol"]);
       RObject tmp_ro = rxSimSigma(sigma, df, ncores, isChol, totNObs);
       if (!tmp_ro.isNULL()){
 	// Resimulated; now fill in again...
         NumericMatrix simMat = as<NumericMatrix>(tmp_ro);
-	SEXP cov_ = md["cov"];
+	SEXP cov_ = multiData["cov"];
         NumericVector cov = NumericVector(cov_);
-	DataFrame ids = as<DataFrame>(md["ids"]);
+	DataFrame ids = as<DataFrame>(multiData["ids"]);
 	IntegerVector posCov = ids["posCov"];
 	IntegerVector nCov   = ids["nCov"];
 	IntegerVector nObs   = ids["nObs"];
-	int nObsCov = as<int>(md["n.observed.covariates"]);
+	int nObsCov = as<int>(multiData["n.observed.covariates"]);
 	int nSimCov = simMat.ncol();
 	int nc = 0;
 	for (int id = 0; id < posCov.size(); id++){
@@ -556,6 +556,29 @@ bool rxUpdateResiduals(List &md){
   return false;
 }
 
+
+extern "C" int rxUpdateResiduals_(SEXP md);
+int rxUpdateResiduals_(SEXP md){
+  List mdl = List(md);
+  bool ret = rxUpdateResiduals(mdl);
+  if (ret)
+    return 1;
+  else
+    return 0;
+}
+
+extern "C" rx_solve *getRxSolve(SEXP ptr);
+rx_solve *getRxSolve(SEXP ptr){
+  if (rxIs(ptr,"RxODE.pointer.multi")){
+    List lst = List(ptr);
+    SEXP ptr = as<SEXP>(lst["pointer"]);
+    return getRxSolve_(ptr);
+  } else {
+    stop("Cannot get the solving data.");
+  }
+  rx_solve *o;
+  return o;
+}
 
 //' All model variables for a RxODE object
 //'
@@ -1376,6 +1399,43 @@ SEXP rxSolvingData(const RObject &model,
     stop("This requires something setup by 'rxDataParSetup'.");
   }
   return R_NilValue;
+}
+
+//[[Rcpp::export]]
+List rxData(const RObject &object,
+            const RObject &params = R_NilValue,
+            const RObject &events = R_NilValue,
+            const Nullable<NumericVector> &inits = R_NilValue,
+            const RObject &covs  = R_NilValue,
+            const bool &stiff = true,
+            const Nullable<LogicalVector> &transit_abs = R_NilValue,
+            const double atol = 1.0e-8,
+            const double rtol = 1.0e-6,
+            const int maxsteps = 5000,
+            const int hmin = 0,
+            const Nullable<NumericVector> &hmax = R_NilValue,
+            const int hini = 0,
+            const int maxordn = 12,
+            const int maxords = 5,
+            const int cores = 1,
+            std::string covs_interpolation = "linear",
+            const RObject &sigma= R_NilValue,
+            const RObject &sigmaDf= R_NilValue,
+            const int &sigmaNcores= 1,
+            const bool &sigmaIsChol= false,
+            const StringVector &amountUnits = NA_STRING,
+            const StringVector &timeUnits = "hours"){
+  List parData = rxDataParSetup(object,params, events, inits, covs, sigma, sigmaDf,
+				sigmaNcores, sigmaIsChol, amountUnits, timeUnits);
+  parData["pointer"] = rxSolvingData(object, parData, stiff, transit_abs, atol,  rtol, maxsteps,
+                                     hmin, hmax,  hini, maxordn, maxords, cores, covs_interpolation);
+  
+  StringVector cls(3);
+  cls(0) = "RxODE.par.data";
+  cls(1) = "RxODE.multi.data";
+  cls(2) = "RxODE.pointer.multi";
+  parData.attr("class") = cls;
+  return parData;
 }
 
 

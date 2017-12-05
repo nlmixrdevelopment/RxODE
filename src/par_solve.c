@@ -16,6 +16,8 @@
 #endif
 #define max(a, b) ((a) > (b) ? (a) : (b))
 
+int rxUpdateResiduals_(SEXP md);
+
 void getSolvingOptionsIndPtr(double *InfusionRate,
                              int *BadDose,
                              double HMAX, // Determined by diff
@@ -173,8 +175,9 @@ SEXP rxSolveData(rx_solving_options_ind *subjects,
   UNPROTECT(1);
   return(ret);
 }
+rx_solve *getRxSolve(SEXP ptr);
 
-rx_solve *getRxSolve(SEXP ptr){
+extern rx_solve *getRxSolve_(SEXP ptr){
   if(!R_ExternalPtrAddr(ptr)){
     error("Cannot get the solving data.");
   }
@@ -256,13 +259,15 @@ void par_lsoda(SEXP sd){
   int nsub = rx->nsub;
   int nsim = rx->nsim;
   int cores = op->cores;
+  int updateR = 1;
   for (int csim = 0; csim < nsim; csim++){
     // This part CAN be parallelized.
 #ifdef _OPENMP
 #pragma omp parallel for num_threads(cores)
 #endif
     for (int csub = 0; csub < nsub; csub++){
-      ind = &(rx->subjects[csub+nsub*nsim]);
+      neq[1] = csub+nsub*nsim;
+      ind = &(rx->subjects[neq[1]]);
       ind->ixds = 0;
       nx = ind->n_all_times;
       inits = ind->inits;
@@ -276,7 +281,7 @@ void par_lsoda(SEXP sd){
       rwork[5] = ind->HMAX; // Hmax -- Infinite
       double xp = x[0];
       //--- inits the system
-      uini(csub+nsub*nsim, inits); // Update initial conditions
+      uini(neq[1], inits); // Update initial conditions
       for(i=0; i<neq[0]; i++) yp[i] = inits[i];
       for(i=0; i<nx; i++) {
         wh = evid[i];
@@ -346,6 +351,7 @@ void par_lsoda(SEXP sd){
           Rprintf("\n");
         }
       }
+      
     }
     if (rc[0]){
       Rprintf("Error solving using LSODA\n");
@@ -354,6 +360,8 @@ void par_lsoda(SEXP sd){
       Free(yp);
       return;
     }
+    if (updateR)
+      updateR=rxUpdateResiduals_(sd);
   }
   Free(rwork);
   Free(iwork);
@@ -415,7 +423,8 @@ void par_dop(SEXP sd){
 #pragma omp parallel for num_threads(cores)
 #endif
     for (int csub = 0; csub < nsub; csub++){
-      ind = &(rx->subjects[csub+nsub*nsim]);
+      neq[1] = csub+nsub*nsim;
+      ind = &(rx->subjects[neq[1]]);
       ind->ixds = 0;
       nx = ind->n_all_times;
       inits = ind->inits;
