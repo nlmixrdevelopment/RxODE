@@ -4,15 +4,13 @@
 \alias{rxUpdateResiduals}
 \title{Update RxODE multi-subject data with new residuals (in-place).}
 \usage{
-rxUpdateResiduals(md)
+rxUpdateResiduals(multiData)
 }
 \arguments{
-\item{md}{The RxODE multi-data object setup from \code{\link{rxDataSetup}}}
+\item{multiData}{The RxODE multi-data object setup from \code{\link{rxDataSetup}}}
 }
 \value{
-A boolean indicating if this is a compatible object for updating residuals.
-       If it isn't compatible nothing is done.  Additionally, if there are no random residual
-       variables to update, also nothing is done.
+An integer indicating if this is object has residuals that are updating (0 for no-residuals; 1 for residuals).
 }
 \description{
 Update RxODE multi-subject data with new residuals (in-place).

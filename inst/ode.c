@@ -89,6 +89,12 @@ extern double _sign(unsigned int n, ...){
   return s;
 }
 
+rx_solve *_solveData;
+
+extern void __ODE_SOLVER_SOLVEDATA__ (rx_solve *solve){
+  _solveData = solve;
+}
+
 extern void __ODE_SOLVER_PTR__();
 extern SEXP __ODE_SOLVER_XPTR__();
 

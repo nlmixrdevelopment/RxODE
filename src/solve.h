@@ -32,8 +32,6 @@ typedef struct {
   double f1;
   double f2;
   int kind;
-  double ylow;
-  double yhigh;
   int is_locf;
   int cores;
 } rx_solving_options;
@@ -70,6 +68,8 @@ typedef struct {
   FILE *fp;
   int id;
   int sim;
+  double ylow;
+  double yhigh;
 } rx_solving_options_ind;
 
 typedef struct {

@@ -186,6 +186,106 @@ extern rx_solve *getRxSolve_(SEXP ptr){
   return o;
 }
 
+rx_solving_options *getRxOp(rx_solve *rx){
+  if(!R_ExternalPtrAddr(rx->op)){
+    error("Cannot get global ode solver options.");
+  }
+  return (R_ExternalPtrAddr(rx->op));
+}
+
+rx_solving_options_ind *getRxId(rx_solve *rx, unsigned int id){
+  return &(rx->subjects[id]);
+}
+
+extern int nEqP (rx_solve *rx){
+  rx_solving_options *op;
+  op =getRxOp(rx);
+  return op->neq;
+}
+
+extern int rxEvidP(int i, rx_solve *rx, unsigned int id){
+  rx_solving_options_ind *ind;
+  ind = getRxId(rx, id);
+  if (i < ind->n_all_times){
+    return(ind->evid[i]);
+  } else {
+    error("Trying to access EVID outside of defined events.\n");
+  }
+}
+
+extern unsigned int nDosesP(rx_solve *rx, unsigned int id){
+  rx_solving_options_ind *ind;
+  ind = getRxId(rx, id);
+  if (ind->ndoses < 0){
+    ind->ndoses=0;
+    for (int i = 0; i < ind->n_all_times; i++){
+      if (rxEvidP(i, rx, id)){
+        ind->ndoses++;
+        if (ind->ndoses >= ind->idosen){
+          if (ind->idosen == 0){
+            ind->idose = Calloc(32,int);
+            ind->idosen = 32;
+          } else {
+            ind->idosen *= 2;
+            /* Rprintf("Reallocating to %d\n", ind->idosen); */
+            ind->idose = Realloc(ind->idose, ind->idosen, int);
+          }
+        }
+        ind->idose[ind->ndoses-1] = i;
+      }
+    }
+    return ind->ndoses;
+  } else {
+    return ind->ndoses;
+  }
+}
+
+extern unsigned int nObsP (rx_solve *rx, unsigned int id){
+  rx_solving_options_ind *ind;
+  ind = getRxId(rx, id);
+  return (unsigned int)(ind->n_all_times - nDosesP(rx, id));
+}
+
+extern unsigned int nLhsP(rx_solve *rx){
+  rx_solving_options *op;
+  op =getRxOp(rx);
+  return (unsigned int)(op->nlhs);
+}
+extern double rxLhsP(int i, rx_solve *rx, unsigned int id){
+  rx_solving_options_ind *ind;
+  ind = getRxId(rx, id);
+  rx_solving_options *op;
+  op =getRxOp(rx);
+  if (i < op->nlhs){
+    return(ind->lhs[i]);
+  } else {
+    error("Trying to access an equation that isn't calculated. lhs(%d)\n",i);
+  }
+  return 0;
+}
+extern void rxCalcLhsP(int i, rx_solve *rx, unsigned int id){
+  rx_solving_options_ind *ind;
+  ind = getRxId(rx, id);
+  rx_solving_options *op;
+  op =getRxOp(rx);
+  t_calc_lhs calc_lhs = op->calc_lhs;
+  double *solve, *lhs;
+  solve = ind->solve;
+  lhs = ind->lhs;
+  if (i < ind->n_all_times){
+    calc_lhs((int)id, ind->all_times[i], solve+i*op->neq, lhs);
+  } else {
+    error("LHS cannot be calculated (%dth entry).",i);
+  }
+}
+
+extern unsigned int nAllTimesP(rx_solve *rx, unsigned int id){
+  rx_solving_options_ind *ind;
+  ind = getRxId(rx, id);
+  return (unsigned int)(ind->n_all_times);
+}
+
+
 void F77_NAME(dlsoda)(
                       void (*)(int *, double *, double *, double *),
                       int *, double *, double *, double *, int *, double *, double *,
@@ -535,6 +635,80 @@ void par_dop(SEXP sd){
     if (rc[0]){
       Rprintf("Error sovling using dop853\n");
       return;
+    }
+  }
+}
+
+
+/* Authors: Robert Gentleman and Ross Ihaka and The R Core Team */
+/* Taken directly from https://github.com/wch/r-source/blob/922777f2a0363fd6fe07e926971547dd8315fc24/src/library/stats/src/approx.c*/
+/* Changed as follows:
+   - Different Name
+   - Use RxODE structure
+*/
+
+static double rx_approxP(double v, double *x, double *y, int n,
+                         rx_solving_options *Meth, rx_solving_options_ind *id)
+{
+  /* Approximate  y(v),  given (x,y)[i], i = 0,..,n-1 */
+  int i, j, ij;
+
+  if(!n) return R_NaN;
+
+  i = 0;
+  j = n - 1;
+
+  /* handle out-of-domain points */
+  if(v < x[i]) return id->ylow;
+  if(v > x[j]) return id->yhigh;
+
+  /* find the correct interval by bisection */
+  while(i < j - 1) { /* x[i] <= v <= x[j] */
+    ij = (i + j)/2; /* i+1 <= ij <= j-1 */
+    if(v < x[ij]) j = ij; else i = ij;
+    /* still i < j */
+  }
+  /* provably have i == j-1 */
+
+  /* interpolation */
+
+  if(v == x[j]) return y[j];
+  if(v == x[i]) return y[i];
+  /* impossible: if(x[j] == x[i]) return y[i]; */
+
+  if(Meth->kind == 1) /* linear */
+    return y[i] + (y[j] - y[i]) * ((v - x[i])/(x[j] - x[i]));
+  else /* 2 : constant */
+    return (Meth->f1 != 0.0 ? y[i] * Meth->f1 : 0.0)
+      + (Meth->f2 != 0.0 ? y[j] * Meth->f2 : 0.0);
+}/* approx1() */
+
+/* End approx from R */
+
+extern void update_par_ptrP(double t, rx_solve *rx, unsigned int id){
+  rx_solving_options_ind *ind;
+  ind = getRxId(rx, id);
+  rx_solving_options *op;
+  op =getRxOp(rx);
+  // Update all covariate parameters
+  int k;
+  int *par_cov = ind->par_cov;
+  double *par_ptr = ind->par_ptr;
+  double *all_times = ind->all_times;
+  double *cov_ptr = ind->cov_ptr;
+  int ncov = ind->ncov;
+  if (ind->do_par_cov){
+    for (k = 0; k < ind->ncov; k++){
+      if (par_cov[k]){
+        // Use the same methodology as approxfun.
+        // There is some rumor the C function may go away...
+        ind->ylow = cov_ptr[ind->n_all_times*k];
+        ind->yhigh = cov_ptr[ind->n_all_times*k+ind->n_all_times-1];
+        par_ptr[par_cov[k]-1] = rx_approxP(t, all_times, cov_ptr+ind->n_all_times*k, ind->n_all_times, op, ind);
+      }
+      if (op->global_debug){
+        Rprintf("par_ptr[%d] (cov %d/%d) = %f\n",par_cov[k]-1, k,ncov,cov_ptr[par_cov[k]-1]);
+      }
     }
   }
 }

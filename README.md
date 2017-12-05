@@ -250,7 +250,7 @@ print(x)
 
 ```
 ## Solved RxODE object
-## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpYVTNRl\Rx_intro-44e06a4b3b81/mod1.d/mod1_x64.dll
+## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpYj6iKn\Rx_intro-32286ea6196a/mod1.d/mod1_x64.dll
 ## 
 ## Parameters:
 ##      V2      V3      KA      CL       Q     Kin    Kout    EC50 
@@ -283,7 +283,7 @@ print(x)
 
 ```
 ## Solved RxODE object
-## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpYVTNRl\Rx_intro-44e06a4b3b81/mod1.d/mod1_x64.dll
+## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpYj6iKn\Rx_intro-32286ea6196a/mod1.d/mod1_x64.dll
 ## 
 ## Parameters:
 ##      V2      V3      KA      CL       Q     Kin    Kout    EC50 
@@ -317,7 +317,7 @@ print(x)
 
 ```
 ## Solved RxODE object
-## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpYVTNRl\Rx_intro-44e06a4b3b81/mod1.d/mod1_x64.dll
+## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpYj6iKn\Rx_intro-32286ea6196a/mod1.d/mod1_x64.dll
 ## 
 ## Parameters:
 ##      V2      V3      KA      CL       Q     Kin    Kout    EC50 
@@ -347,6 +347,26 @@ by `dpylr`.  For example you could filter it easily.
 
 ```r
 library(dplyr)
+```
+
+```
+## 
+## Attaching package: 'dplyr'
+```
+
+```
+## The following objects are masked from 'package:stats':
+## 
+##     filter, lag
+```
+
+```
+## The following objects are masked from 'package:base':
+## 
+##     intersect, setdiff, setequal, union
+```
+
+```r
 x <- mod1 %>% solve(theta,ev,inits) %>%  filter(time <=3)
 x
 ```
@@ -389,12 +409,19 @@ by:
 
 ```r
 x$eff0 <- 2
+```
+
+```
+## Updating object with new initial conditions.
+```
+
+```r
 x
 ```
 
 ```
 ## Solved RxODE object
-## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpYVTNRl\Rx_intro-44e06a4b3b81/mod1.d/mod1_x64.dll
+## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpYj6iKn\Rx_intro-32286ea6196a/mod1.d/mod1_x64.dll
 ## 
 ## Parameters:
 ##      V2      V3      KA      CL       Q     Kin    Kout    EC50 
@@ -426,12 +453,19 @@ changing `t` or `time`.  For example:
 
 ```r
 x$t <- seq(0,5,length.out=20)
+```
+
+```
+## Updating sampling times in the event table updating object.
+```
+
+```r
 x
 ```
 
 ```
 ## Solved RxODE object
-## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpYVTNRl\Rx_intro-44e06a4b3b81/mod1.d/mod1_x64.dll
+## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpYj6iKn\Rx_intro-32286ea6196a/mod1.d/mod1_x64.dll
 ## 
 ## Parameters:
 ##      V2      V3      KA      CL       Q     Kin    Kout    EC50 
@@ -472,12 +506,19 @@ And you may change it by assigning it to a new value.
 
 ```r
 x$KA <- 1;
+```
+
+```
+## Updating object with new parameter values.
+```
+
+```r
 x
 ```
 
 ```
 ## Solved RxODE object
-## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpYVTNRl\Rx_intro-44e06a4b3b81/mod1.d/mod1_x64.dll
+## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpYj6iKn\Rx_intro-32286ea6196a/mod1.d/mod1_x64.dll
 ## 
 ## Parameters:
 ##    V2    V3    KA    CL     Q   Kin  Kout  EC50 
@@ -575,7 +616,7 @@ This can be solved with the following command:
 
 ```
 ## Solved RxODE object
-## Dll: c:/SVN/Wenping/RxODE/vignettes/rx_6aed56c9241071a510bd274871ddc1fa_x64.dll
+## Dll: c:/SVN/Wenping/RxODE/vignettes/rx_e4b1daf526e09e0ff99fe3065afda3ad_x64.dll
 ## 
 ## Parameters:
 ##      KA      V2      CL       Q      V3     Kin    Kout    EC50 
@@ -611,7 +652,7 @@ This can be solved for different initial conditions easily:
 
 ```
 ## Solved RxODE object
-## Dll: c:/SVN/Wenping/RxODE/vignettes/rx_6aed56c9241071a510bd274871ddc1fa_x64.dll
+## Dll: c:/SVN/Wenping/RxODE/vignettes/rx_e4b1daf526e09e0ff99fe3065afda3ad_x64.dll
 ## 
 ## Parameters:
 ##      KA      V2      CL       Q      V3     Kin    Kout    EC50 
@@ -663,7 +704,7 @@ mod3 <- RxODE({
 
 ```
 ## Solved RxODE object
-## Dll: c:/SVN/Wenping/RxODE/vignettes/rx_bc4a1de0e89f830d38469185cde5c255_x64.dll
+## Dll: c:/SVN/Wenping/RxODE/vignettes/rx_0db3c0aa95861c4137ecceeb732be0c0_x64.dll
 ## 
 ## Parameters:
 ##      KA      CL      V2       Q      V3     Kin    Kout    EC50 
@@ -697,7 +738,7 @@ since they are built into the model, but you can override the parameters:
 
 ```
 ## Solved RxODE object
-## Dll: c:/SVN/Wenping/RxODE/vignettes/rx_bc4a1de0e89f830d38469185cde5c255_x64.dll
+## Dll: c:/SVN/Wenping/RxODE/vignettes/rx_0db3c0aa95861c4137ecceeb732be0c0_x64.dll
 ## 
 ## Parameters:
 ##    KA    CL    V2     Q    V3   Kin  Kout  EC50 
@@ -767,7 +808,7 @@ Now there is a covariate present, the system can be solved using the cov option
 
 ```
 ## Solved RxODE object
-## Dll: c:/SVN/Wenping/RxODE/vignettes/rx_4d9317d7fe4c20d4de91e8fc5c13b71a_x64.dll
+## Dll: c:/SVN/Wenping/RxODE/vignettes/rx_0f7a6a8fe36bc07593c7167971db607d_x64.dll
 ## 
 ## Parameters:
 ##         KA         CL         V2          Q         V3       Kin0 
@@ -834,7 +875,7 @@ carried forward, or constant approximation.  This is equivalent to R's
 
 ```
 ## Solved RxODE object
-## Dll: c:/SVN/Wenping/RxODE/vignettes/rx_4d9317d7fe4c20d4de91e8fc5c13b71a_x64.dll
+## Dll: c:/SVN/Wenping/RxODE/vignettes/rx_0f7a6a8fe36bc07593c7167971db607d_x64.dll
 ## 
 ## Parameters:
 ##         KA         CL         V2          Q         V3       Kin0 
@@ -1007,7 +1048,7 @@ et$add.dosing(20, start.time=0);
 
 ```
 ## Solved RxODE object
-## Dll: c:/SVN/Wenping/RxODE/vignettes/rx_47a594ebc84def1489addb85001e956e_x64.dll
+## Dll: c:/SVN/Wenping/RxODE/vignettes/rx_19d7aa9ae542377ce6debe3b44b6a3ed_x64.dll
 ## 
 ## Parameters:
 ## mu 
@@ -1040,7 +1081,7 @@ While this is not stiff at mu=1, mu=1000 is a stiff system
 
 ```
 ## Solved RxODE object
-## Dll: c:/SVN/Wenping/RxODE/vignettes/rx_47a594ebc84def1489addb85001e956e_x64.dll
+## Dll: c:/SVN/Wenping/RxODE/vignettes/rx_19d7aa9ae542377ce6debe3b44b6a3ed_x64.dll
 ## 
 ## Parameters:
 ##   mu 
@@ -1124,12 +1165,12 @@ head(theta.all)
 
 ```
 ##         KA       CL   V2    Q  V3 Kin Kout EC50
-## [1,] 0.294 15.56218 40.2 10.5 297   1    1  200
-## [2,] 0.294 18.47804 40.2 10.5 297   1    1  200
-## [3,] 0.294 16.66589 40.2 10.5 297   1    1  200
-## [4,] 0.294 18.95548 40.2 10.5 297   1    1  200
-## [5,] 0.294 21.22302 40.2 10.5 297   1    1  200
-## [6,] 0.294 18.31858 40.2 10.5 297   1    1  200
+## [1,] 0.294 24.76959 40.2 10.5 297   1    1  200
+## [2,] 0.294 23.61811 40.2 10.5 297   1    1  200
+## [3,] 0.294 20.03847 40.2 10.5 297   1    1  200
+## [4,] 0.294 20.69697 40.2 10.5 297   1    1  200
+## [5,] 0.294 20.42534 40.2 10.5 297   1    1  200
+## [6,] 0.294 19.49389 40.2 10.5 297   1    1  200
 ```
 
 Each subproblem can be simulated by using an explicit loop (or the `apply()`
