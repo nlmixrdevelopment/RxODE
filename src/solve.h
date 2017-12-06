@@ -5,6 +5,7 @@ typedef void (*t_update_inis)(int cSub, double *);
 typedef void (*t_dydt_lsoda_dum)(int *neq, double *t, double *A, double *DADT);
 typedef void (*t_jdum_lsoda)(int *neq, double *t, double *A,int *ml, int *mu, double *JAC, int *nrowpd);
 
+
 typedef struct {
   // These options should not change based on an individual solve
   double ATOL;          //absolute error
@@ -22,6 +23,13 @@ typedef struct {
   int nlhs;
   int neq;
   int stiff;
+  int ncov;
+  SEXP stateNames;
+  SEXP lhsNames;
+  SEXP paramNames;
+  int *par_cov;
+  double *inits;
+  int do_par_cov;
   t_dydt dydt;
   t_calc_jac calc_jac;
   t_calc_lhs calc_lhs;
@@ -48,16 +56,12 @@ typedef struct {
   double tlast;
   double podo;
   double *par_ptr;
-  double *inits;
   double *dose;
   double *solve;
   double *lhs;
-  int    *par_cov;
   int  *evid;
-  int   do_par_cov;
   int *rc;
   double *cov_ptr;
-  int ncov;
   int n_all_times;
   int ixds;
   int ndoses;
@@ -76,5 +80,12 @@ typedef struct {
   rx_solving_options_ind *subjects;
   int nsub;
   int nsim;
+  int nobs;
+  int add_cov;
+  int matrix;
+  int *stateIgnore;
   SEXP op;
 } rx_solve;
+
+typedef void (*t_set_solve)(rx_solve *);
+typedef rx_solve *(*t_get_solve)();

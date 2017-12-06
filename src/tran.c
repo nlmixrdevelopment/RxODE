@@ -322,15 +322,15 @@ void wprint_node(int depth, char *name, char *value, void *client_data) {
     sb.o += 1;
     sbt.o += 1;
   } else if (!strcmp("podo",value)){
-    sprintf(SBPTR, "podo()");
+    sprintf(SBPTR, "podo(_solveData, _cSub)");
     sprintf(SBTPTR, "podo");
-    sb.o  += 6;
+    sb.o  += 23;
     sbt.o += 4;
     rx_podo = 1;
   } else if (!strcmp("tlast",value)){
-    sprintf(SBPTR, "tlast()");
+    sprintf(SBPTR, "tlast(_solveData, _cSub)");
     sprintf(SBTPTR, "tlast");
-    sb.o  += 7;
+    sb.o  += 24;
     sbt.o += 5;
   } else if (!strcmp("identifier",name) && !strcmp("gamma",value)){
     sprintf(SBPTR, "lgammafn");
@@ -853,7 +853,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
         sprintf(tb.ddt, "%s",v);
         if (new_de(v)){
-          sprintf(sb.s, "__DDtStateVar__[%d] = _InfusionRate(%d) + ", tb.nd, tb.nd);
+          sprintf(sb.s, "__DDtStateVar__[%d] = _InfusionRate(%d, _solveData, _cSub) + ", tb.nd, tb.nd);
           sb.o = strlen(sb.s);
           sprintf(sbt.s, "d/dt(%s)", v);
           sbt.o = strlen(sbt.s);
@@ -913,7 +913,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
           trans_syntax_error_report_fn(buf);
         } else {
 	  if (strcmp(tb.ddt, v)){
-	    sprintf(SBPTR, "_InfusionRate(%d)", tb.id);
+	    sprintf(SBPTR, "_InfusionRate(%d, _solveData, _cSub)", tb.id);
             sb.o = strlen(sb.s);
             sprintf(SBTPTR, "rxRate(%s)", v);
             sbt.o = strlen(sbt.s);
@@ -1157,7 +1157,7 @@ void prnt_vars(int scenario, FILE *outpt, int lhs, const char *pre_str, const ch
           fprintf(outpt,"%c",buf[k]);
         }
       }
-      fprintf(outpt, " = _par_ptr(%d);\n", j++);
+      fprintf(outpt, " = _par_ptr(%d, _solveData, _cSub);\n", j++);
       break;
     default: break;
     }
@@ -1244,8 +1244,8 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
   fprintf(outpt,"  SEXP sens     = PROTECT(allocVector(STRSXP, %d));\n",sensi);
   fprintf(outpt,"  SEXP fn_ini   = PROTECT(allocVector(STRSXP, %d));\n",fdi);
   fprintf(outpt,"  SEXP dfdy     = PROTECT(allocVector(STRSXP, %d));\n",tb.ndfdy);
-  fprintf(outpt,"  SEXP tran     = PROTECT(allocVector(STRSXP, 15));\n");
-  fprintf(outpt,"  SEXP trann    = PROTECT(allocVector(STRSXP, 15));\n");
+  fprintf(outpt,"  SEXP tran     = PROTECT(allocVector(STRSXP, 16));\n");
+  fprintf(outpt,"  SEXP trann    = PROTECT(allocVector(STRSXP, 16));\n");
   fprintf(outpt,"  SEXP mmd5     = PROTECT(allocVector(STRSXP, 2));\n");
   fprintf(outpt,"  SEXP mmd5n    = PROTECT(allocVector(STRSXP, 2));\n");
   fprintf(outpt,"  SEXP model    = PROTECT(allocVector(STRSXP, 4));\n");
@@ -1505,6 +1505,9 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
   fprintf(outpt,"  SET_STRING_ELT(trann,14,mkChar(\"ode_solver_solvedata\"));\n");
   fprintf(outpt,"  SET_STRING_ELT(tran, 14,mkChar(\"%sode_solver_solvedata\"));\n",model_prefix);
   
+  fprintf(outpt,"  SET_STRING_ELT(trann,15,mkChar(\"ode_solver_get_solvedata\"));\n");
+  fprintf(outpt,"  SET_STRING_ELT(tran, 15,mkChar(\"%sode_solver_get_solvedata\"));\n",model_prefix);
+  
   fprintf(outpt,"  setAttrib(tran, R_NamesSymbol, trann);\n");
   fprintf(outpt,"  setAttrib(mmd5, R_NamesSymbol, mmd5n);\n");
   fprintf(outpt,"  setAttrib(model, R_NamesSymbol, modeln);\n");
@@ -1532,8 +1535,8 @@ void codegen(FILE *outpt, int show_ode) {
   char *hdft[]=
     {
       "\n// prj-specific differential eqns\nvoid ",
-      "dydt(int *_neq, double t, double *__zzStateVar__, double *__DDtStateVar__)\n{\n",
-      "    _dadt_counter_inc();\n}\n\n"
+      "dydt(int *_neq, double t, double *__zzStateVar__, double *__DDtStateVar__)\n{\n  int _cSub = _neq[1];\n",
+      "    _dadt_counter_inc(_solveData, _cSub);\n}\n\n"
     };
   if (show_ode == 1){
     fprintf(outpt, __HD_ODE__);
@@ -1559,7 +1562,7 @@ void codegen(FILE *outpt, int show_ode) {
     fprintf(outpt, "%s", model_prefix);
     fprintf(outpt, "%s", hdft[1]);
   } else if (show_ode == 2){
-    fprintf(outpt, "// Jacobian derived vars\nvoid %scalc_jac(int *_neq, double t, double *__zzStateVar__, double *__PDStateVar__, unsigned int __NROWPD__) {\n",model_prefix);
+    fprintf(outpt, "// Jacobian derived vars\nvoid %scalc_jac(int *_neq, double t, double *__zzStateVar__, double *__PDStateVar__, unsigned int __NROWPD__) {\n  int _cSub=_neq[1];\n",model_prefix);
   } else if (show_ode == 3){
     fprintf(outpt, "// Functional based initial conditions.\nvoid %sinis(int _cSub, double *__zzStateVar__){\n  double t=0;\n",model_prefix);
   } else {
@@ -1572,9 +1575,9 @@ void codegen(FILE *outpt, int show_ode) {
     prnt_vars(0, outpt, 0, "  double ", "\n",show_ode);     /* declare all used vars */
     prnt_vars(2, outpt, 0, "  (void)t;\n", "\n",show_ode);     /* declare all used vars */
     if (show_ode == 3){
-      fprintf(outpt,"  _update_par_ptr(0.0);\n");
+      fprintf(outpt,"  _update_par_ptr(0.0, _solveData, _cSub);\n");
     } else {
-      fprintf(outpt,"  _update_par_ptr(t);\n");
+      fprintf(outpt,"  _update_par_ptr(t, _solveData, _cSub);\n");
     }
     prnt_vars(1, outpt, 1, "", "\n",show_ode);                   /* pass system pars */
     for (i=0; i<tb.nd; i++) {                   /* name state vars */
@@ -1820,7 +1823,7 @@ void codegen(FILE *outpt, int show_ode) {
     fprintf(outpt, "%s", hdft[2]);
   } else if (show_ode == 2){
     //fprintf(outpt,"  free(__ld_DDtStateVar__);\n");
-    fprintf(outpt, "  _jac_counter_inc();\n");
+    fprintf(outpt, "  _jac_counter_inc(_solveData, _cSub);\n");
     fprintf(outpt, "}\n");
   } else if (show_ode == 3){
     for (i = 0; i < tb.nd; i++){
@@ -2069,8 +2072,8 @@ SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP pref
   SEXP lst   = PROTECT(allocVector(VECSXP, 11));
   SEXP names = PROTECT(allocVector(STRSXP, 11));
   
-  SEXP tran  = PROTECT(allocVector(STRSXP, 15));
-  SEXP trann = PROTECT(allocVector(STRSXP, 15));
+  SEXP tran  = PROTECT(allocVector(STRSXP, 16));
+  SEXP trann = PROTECT(allocVector(STRSXP, 16));
   
   SEXP state    = PROTECT(allocVector(STRSXP,tb.statei));
   SEXP stateRmS = PROTECT(allocVector(INTSXP,tb.statei));
@@ -2238,6 +2241,10 @@ SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP pref
   sprintf(buf,"%sode_solver_solvedata",model_prefix);
   SET_STRING_ELT(trann,14,mkChar("ode_solver_solvedata"));
   SET_STRING_ELT(tran, 14,mkChar(buf));
+
+  sprintf(buf,"%sode_solver_get_solvedata",model_prefix);
+  SET_STRING_ELT(trann,15,mkChar("ode_solver_get_solvedata"));
+  SET_STRING_ELT(tran, 15,mkChar(buf));
   
   
   fpIO2 = fopen(out2, "r");

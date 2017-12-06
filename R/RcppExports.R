@@ -18,33 +18,6 @@ rxIs <- function(obj, cls) {
     .Call(`_RxODE_rxIs`, obj, cls)
 }
 
-#' Setup a data frame for solving multiple subjects at once in RxODE.
-#'
-#' @param ro R object to setup; Must be in RxODE compatible format.
-#' @param covNames Covariate names in dataset.
-#' @param sigma Matrix for simulating residual variability for the number of observations.
-#'      This uses the \code{\link[mvnfast]{rmvn}} or \code{\link[mvnfast]{rmvt}} assuming mean 0 and covariance given by this named
-#'      matrix.  The residual-type variability is created for each of the named \"err\" components specified by the sigma matrix's
-#'      column names. This then creates a random deviate that is used in the place of each named variable.  This should
-#'      not really be used in the ODE specification.  If it is, though, it is treated as a time-varying covariate.
-#'
-#'      Also note this does not use R's random numbers, rather it uses a cryptographic parallel random number generator;
-#'
-#'      To allow reproducible research you must both set a random seed with R's \code{\link[base]{set.seed}} function, and keep the
-#'      number of cores constant.  By changing either one of these variables, you will arrive at different random numbers. 
-#' @param df Degrees of freedom for \code{\link[mvnfast]{rmvt}}.  If \code{NULL}, or \code{Inf}, then use a normal distribution.  The
-#'        default is normal.
-#' @param ncoresRV The number of cores for residual simulation.  By default, this is \code{1}.
-#' @param isChol is a boolean indicating that the Cholesky decomposition of the \code{sigma} covariance matrix is supplied instead of
-#'        the  \code{sigma} matrix itself.
-#' @param amountUnits Dosing amount units.
-#' @param timeUnits Time units.
-#'
-#' @return A data structure to allow C-based for loop (ie solving each
-#'       individual in C)
-#'
-#' @author Matthew L. Fidler
-#' @export
 rxDataSetup <- function(ro, covNames = NULL, sigma = NULL, df = NULL, ncoresRV = 1L, isChol = FALSE, amountUnits = NA_character_, timeUnits = "hours") {
     .Call(`_RxODE_rxDataSetup`, ro, covNames, sigma, df, ncoresRV, isChol, amountUnits, timeUnits)
 }
@@ -214,16 +187,44 @@ rxDataParSetup <- function(object, params = NULL, events = NULL, inits = NULL, c
     .Call(`_RxODE_rxDataParSetup`, object, params, events, inits, covs, sigma, sigmaDf, sigmaNcores, sigmaIsChol, amountUnits, timeUnits)
 }
 
-rxSolvingOptions <- function(object, stiff = TRUE, transit_abs = NULL, atol = 1.0e-8, rtol = 1.0e-6, maxsteps = 5000L, hmin = 0L, hini = 0L, maxordn = 12L, maxords = 5L, cores = 1L, covs_interpolation = "linear") {
-    .Call(`_RxODE_rxSolvingOptions`, object, stiff, transit_abs, atol, rtol, maxsteps, hmin, hini, maxordn, maxords, cores, covs_interpolation)
+rxSolvingData <- function(model, parData, method = "lsoda", transit_abs = NULL, atol = 1.0e-8, rtol = 1.0e-6, maxsteps = 5000L, hmin = 0L, hmax = NULL, hini = 0L, maxordn = 12L, maxords = 5L, cores = 1L, covs_interpolation = "linear", addCov = FALSE, matrix = FALSE) {
+    .Call(`_RxODE_rxSolvingData`, model, parData, method, transit_abs, atol, rtol, maxsteps, hmin, hmax, hini, maxordn, maxords, cores, covs_interpolation, addCov, matrix)
 }
 
-rxSolvingData <- function(model, parData, stiff = TRUE, transit_abs = NULL, atol = 1.0e-8, rtol = 1.0e-6, maxsteps = 5000L, hmin = 0L, hmax = NULL, hini = 0L, maxordn = 12L, maxords = 5L, cores = 1L, covs_interpolation = "linear") {
-    .Call(`_RxODE_rxSolvingData`, model, parData, stiff, transit_abs, atol, rtol, maxsteps, hmin, hmax, hini, maxordn, maxords, cores, covs_interpolation)
+#' Setup a data frame for solving multiple subjects at once in RxODE.
+#'
+#' @param object R object to setup; Must be in RxODE compatible format.
+#' @inheritParams rxSolve
+#' @param covNames Covariate names in dataset.
+#' @param sigma Matrix for simulating residual variability for the number of observations.
+#'      This uses the \code{\link[mvnfast]{rmvn}} or \code{\link[mvnfast]{rmvt}} assuming mean 0 and covariance given by this named
+#'      matrix.  The residual-type variability is created for each of the named \"err\" components specified by the sigma matrix's
+#'      column names. This then creates a random deviate that is used in the place of each named variable.  This should
+#'      not really be used in the ODE specification.  If it is, though, it is treated as a time-varying covariate.
+#'
+#'      Also note this does not use R's random numbers, rather it uses a cryptographic parallel random number generator;
+#'
+#'      To allow reproducible research you must both set a random seed with R's \code{\link[base]{set.seed}} function, and keep the
+#'      number of cores constant.  By changing either one of these variables, you will arrive at different random numbers. 
+#' @param df Degrees of freedom for \code{\link[mvnfast]{rmvt}}.  If \code{NULL}, or \code{Inf}, then use a normal distribution.  The
+#'        default is normal.
+#' @param ncoresRV The number of cores for residual simulation.  By default, this is \code{1}.
+#' @param isChol is a boolean indicating that the Cholesky decomposition of the \code{sigma} covariance matrix is supplied instead of
+#'        the  \code{sigma} matrix itself.
+#' @param amountUnits Dosing amount units.
+#' @param timeUnits Time units.
+#'
+#' @return A data structure to allow C-based for loop (ie solving each
+#'       individual in C)
+#'
+#' @author Matthew L. Fidler
+#' @export
+rxData <- function(object, params = NULL, events = NULL, inits = NULL, covs = NULL, method = "lsoda", transit_abs = NULL, atol = 1.0e-8, rtol = 1.0e-6, maxsteps = 5000L, hmin = 0L, hmax = NULL, hini = 0L, maxordn = 12L, maxords = 5L, cores = 1L, covs_interpolation = "linear", addCov = FALSE, matrix = FALSE, sigma = NULL, sigmaDf = NULL, sigmaNcores = 1L, sigmaIsChol = FALSE, amountUnits = NA_character_, timeUnits = "hours") {
+    .Call(`_RxODE_rxData`, object, params, events, inits, covs, method, transit_abs, atol, rtol, maxsteps, hmin, hmax, hini, maxordn, maxords, cores, covs_interpolation, addCov, matrix, sigma, sigmaDf, sigmaNcores, sigmaIsChol, amountUnits, timeUnits)
 }
 
-rxData <- function(object, params = NULL, events = NULL, inits = NULL, covs = NULL, stiff = TRUE, transit_abs = NULL, atol = 1.0e-8, rtol = 1.0e-6, maxsteps = 5000L, hmin = 0L, hmax = NULL, hini = 0L, maxordn = 12L, maxords = 5L, cores = 1L, covs_interpolation = "linear", sigma = NULL, sigmaDf = NULL, sigmaNcores = 1L, sigmaIsChol = FALSE, amountUnits = NA_character_, timeUnits = "hours") {
-    .Call(`_RxODE_rxData`, object, params, events, inits, covs, stiff, transit_abs, atol, rtol, maxsteps, hmin, hmax, hini, maxordn, maxords, cores, covs_interpolation, sigma, sigmaDf, sigmaNcores, sigmaIsChol, amountUnits, timeUnits)
+rxSolveC <- function(object, params = NULL, events = NULL, inits = NULL, covs = NULL, method = "lsoda", transit_abs = NULL, atol = 1.0e-8, rtol = 1.0e-6, maxsteps = 5000L, hmin = 0L, hmax = NULL, hini = 0L, maxordn = 12L, maxords = 5L, cores = 1L, covs_interpolation = "linear", addCov = FALSE, matrix = FALSE, sigma = NULL, sigmaDf = NULL, sigmaNcores = 1L, sigmaIsChol = FALSE, amountUnits = NA_character_, timeUnits = "hours") {
+    .Call(`_RxODE_rxSolveC`, object, params, events, inits, covs, method, transit_abs, atol, rtol, maxsteps, hmin, hmax, hini, maxordn, maxords, cores, covs_interpolation, addCov, matrix, sigma, sigmaDf, sigmaNcores, sigmaIsChol, amountUnits, timeUnits)
 }
 
 #' Invert matrix using Rcpp Armadilo.  

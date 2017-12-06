@@ -2,6 +2,7 @@
 #include <Rinternals.h>
 #include <stdlib.h> // for NULL
 #include <R_ext/Rdynload.h>
+#include "solve.h"
 
 static R_NativePrimitiveArgType RxODE_sign_exp_t[] = {
   REALSXP, REALSXP
@@ -48,11 +49,14 @@ SEXP _RxODE_rxSetupIni(SEXP, SEXP);
 SEXP _RxODE_rxDataParSetup(SEXP, SEXP, SEXP, SEXP, SEXP,
                            SEXP, SEXP, SEXP, SEXP, SEXP,
                            SEXP);
-SEXP _RxODE_rxSolvingOptions(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
-SEXP _RxODE_rxSolvingData(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP _RxODE_rxSolvingData(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP,
+			  SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP _RxODE_rxData(SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,
 		   SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,
-		   SEXP,SEXP,SEXP);
+		   SEXP,SEXP,SEXP,SEXP,SEXP);
+SEXP _RxODE_rxSolveC(SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,
+		     SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,
+		     SEXP,SEXP,SEXP,SEXP,SEXP);
 
 double RxODE_solveLinB(double t, int linCmt, int diff1, int diff2, double A, double alpha, double B, double beta, double C, double gamma, double ka, double tlag);
 static R_NativePrimitiveArgType RxODE_solveLinB_t[] = {
@@ -88,6 +92,16 @@ extern double rxLhs(int i);
 extern void rxCalcLhs(int i);
 extern unsigned int nAllTimes ();
 extern int rxEvid(int i);
+
+// Changed for Parallel
+extern int nEqP (rx_solve *rx, unsigned int id);
+extern unsigned int nObsP(rx_solve *rx, unsigned int id);
+extern unsigned int nLhsP (rx_solve *rx, unsigned int id);
+extern double rxLhsP(int i, rx_solve *rx, unsigned int id);
+extern void rxCalcLhsP(int i, rx_solve *rx, unsigned int id);
+extern unsigned int nAllTimesP (rx_solve *rx, unsigned int id);
+extern int rxEvidP(int i, rx_solve *rx, unsigned int id);
+
 
 extern SEXP RxODE_get_fn_pointers(void (*fun_dydt)(unsigned int, double, double *, double *),
                                   void (*fun_calc_lhs)(double, double *, double *),
@@ -126,6 +140,19 @@ extern double RxODE_tlast();
 extern void update_par_ptr(double t);
 extern void RxODE_ode_free();
 
+// Changed for Parallel
+extern double RxODE_InfusionRateP(int val, rx_solve *rx, unsigned int id);
+extern double RxODE_par_ptrP(int val, rx_solve *rx, unsigned int id);
+extern long RxODE_jac_counter_valP(rx_solve *rx, unsigned int id);
+extern long RxODE_dadt_counter_valP(rx_solve *rx, unsigned int id);
+extern void RxODE_jac_counter_incP(rx_solve *rx, unsigned int id);
+extern void RxODE_dadt_counter_incP(rx_solve *rx, unsigned int id);
+extern double RxODE_podoP(rx_solve *rx, unsigned int id);
+extern double RxODE_tlastP(rx_solve *rx, unsigned int id);
+extern void update_par_ptrP(double t);
+extern void RxODE_ode_freeP(rx_solve *rx, unsigned int id);
+
+
 // Remove these functions later...
 extern void RxODE_assign_fn_pointers(void (*fun_dydt)(unsigned int, double, double *, double *),
                                      void (*fun_calc_lhs)(double, double *, double *),
@@ -161,64 +188,82 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_rxUpdateResiduals", (DL_FUNC) &_RxODE_rxUpdateResiduals, 1},
     {"_RxODE_rxSetupIni", (DL_FUNC) &_RxODE_rxSetupIni, 2},
     {"_RxODE_rxDataParSetup", (DL_FUNC) &_RxODE_rxDataParSetup, 11},
-    {"_RxODE_rxSolvingOptions",(DL_FUNC) &_RxODE_rxSolvingOptions, 12},
-    {"_RxODE_rxSolvingData", (DL_FUNC) &_RxODE_rxSolvingData, 14},
-    {"_RxODE_rxData", (DL_FUNC) &_RxODE_rxData, 23},
+    {"_RxODE_rxSolvingData", (DL_FUNC) &_RxODE_rxSolvingData, 16},
+    {"_RxODE_rxData", (DL_FUNC) &_RxODE_rxData, 25},
+    {"_RxODE_rxSolveC", (DL_FUNC) &_RxODE_rxSolveC, 25},
     {NULL, NULL, 0}
   };
 
   // C callables needed in FOCEi
-  R_RegisterCCallable("RxODE","nEq",                 (DL_FUNC) nEq);
-  R_RegisterCCallable("RxODE","nLhs",                (DL_FUNC) nLhs);
-  R_RegisterCCallable("RxODE","rxLhs",               (DL_FUNC) rxLhs);
-  R_RegisterCCallable("RxODE","nAllTimes",           (DL_FUNC) nAllTimes);
-  R_RegisterCCallable("RxODE","rxEvid",              (DL_FUNC) rxEvid);
-  R_RegisterCCallable("RxODE","rxCalcLhs",           (DL_FUNC) rxCalcLhs);
-  R_RegisterCCallable("RxODE","nObs",                (DL_FUNC) nObs);
+  R_RegisterCCallable("RxODE","nEq",                      (DL_FUNC) nEq);
+  R_RegisterCCallable("RxODE","nLhs",                     (DL_FUNC) nLhs);
+  R_RegisterCCallable("RxODE","rxLhs",                    (DL_FUNC) rxLhs);
+  R_RegisterCCallable("RxODE","nAllTimes",                (DL_FUNC) nAllTimes);
+  R_RegisterCCallable("RxODE","rxEvid",                   (DL_FUNC) rxEvid);
+  R_RegisterCCallable("RxODE","rxCalcLhs",                (DL_FUNC) rxCalcLhs);
+  R_RegisterCCallable("RxODE","nObs",                     (DL_FUNC) nObs);
 
-  R_RegisterCCallable("RxODE","RxODE_ode_solve_env", (DL_FUNC) RxODE_ode_solve_env);
-  R_RegisterCCallable("RxODE","RxODE_ode_free",      (DL_FUNC) RxODE_ode_free);
-  R_RegisterCCallable("RxODE","RxODE_safe_zero",     (DL_FUNC) RxODE_safe_zero);
-  R_RegisterCCallable("RxODE","RxODE_safe_log",      (DL_FUNC) RxODE_safe_log);
-  R_RegisterCCallable("RxODE","RxODE_sign_exp",      (DL_FUNC) RxODE_sign_exp);
-  R_RegisterCCallable("RxODE","RxODE_abs_log",       (DL_FUNC) RxODE_abs_log);
+  R_RegisterCCallable("RxODE","nEqP",                      (DL_FUNC) nEqP);
+  R_RegisterCCallable("RxODE","nLhsP",                     (DL_FUNC) nLhsP);
+  R_RegisterCCallable("RxODE","rxLhsP",                    (DL_FUNC) rxLhsP);
+  R_RegisterCCallable("RxODE","nAllTimesP",                (DL_FUNC) nAllTimesP);
+  R_RegisterCCallable("RxODE","rxEvidP",                   (DL_FUNC) rxEvidP);
+  R_RegisterCCallable("RxODE","rxCalcLhsP",                (DL_FUNC) rxCalcLhsP);
+  R_RegisterCCallable("RxODE","nObsP",                     (DL_FUNC) nObsP);
+
+  R_RegisterCCallable("RxODE","RxODE_ode_solve_env",      (DL_FUNC) RxODE_ode_solve_env);
+  R_RegisterCCallable("RxODE","RxODE_ode_free",           (DL_FUNC) RxODE_ode_free);
+  R_RegisterCCallable("RxODE","RxODE_safe_zero",          (DL_FUNC) RxODE_safe_zero);
+  R_RegisterCCallable("RxODE","RxODE_safe_log",           (DL_FUNC) RxODE_safe_log);
+  R_RegisterCCallable("RxODE","RxODE_sign_exp",           (DL_FUNC) RxODE_sign_exp);
+  R_RegisterCCallable("RxODE","RxODE_abs_log",            (DL_FUNC) RxODE_abs_log);
   
   //Functions
-  R_RegisterCCallable("RxODE","RxODE_ode_solver",       (DL_FUNC) RxODE_ode_solver);
+  R_RegisterCCallable("RxODE","RxODE_ode_solver",         (DL_FUNC) RxODE_ode_solver);
   R_RegisterCCallable("RxODE","RxODE_assign_fn_pointers", (DL_FUNC) RxODE_assign_fn_pointers);
-  R_RegisterCCallable("RxODE","RxODE_get_fn_pointers", (DL_FUNC) RxODE_get_fn_pointers);
-  R_RegisterCCallable("RxODE","RxODE_ode_solver_old_c", (DL_FUNC) RxODE_ode_solver_old_c);
+  R_RegisterCCallable("RxODE","RxODE_get_fn_pointers",    (DL_FUNC) RxODE_get_fn_pointers);
+  R_RegisterCCallable("RxODE","RxODE_ode_solver_old_c",   (DL_FUNC) RxODE_ode_solver_old_c);
   
   //Infusion
-  R_RegisterCCallable("RxODE","RxODE_InfusionRate",     (DL_FUNC) RxODE_InfusionRate);
+  R_RegisterCCallable("RxODE","RxODE_InfusionRate",       (DL_FUNC) RxODE_InfusionRate);
+  R_RegisterCCallable("RxODE","RxODE_InfusionRateP",       (DL_FUNC) RxODE_InfusionRateP);
   // Parameters
-  R_RegisterCCallable("RxODE","RxODE_par_ptr",          (DL_FUNC) RxODE_par_ptr);
-  R_RegisterCCallable("RxODE","RxODE_update_par_ptr",   (DL_FUNC) update_par_ptr);
+  R_RegisterCCallable("RxODE","RxODE_par_ptr",            (DL_FUNC) RxODE_par_ptr);
+  R_RegisterCCallable("RxODE","RxODE_update_par_ptr",     (DL_FUNC) update_par_ptr);
+  R_RegisterCCallable("RxODE","RxODE_par_ptrP",            (DL_FUNC) RxODE_par_ptrP);
+  R_RegisterCCallable("RxODE","RxODE_update_par_ptrP",     (DL_FUNC) update_par_ptrP);
   // Counters
-  R_RegisterCCallable("RxODE","RxODE_dadt_counter_val", (DL_FUNC) RxODE_dadt_counter_val);
-  R_RegisterCCallable("RxODE","RxODE_jac_counter_val",  (DL_FUNC) RxODE_jac_counter_val);
-  R_RegisterCCallable("RxODE","RxODE_dadt_counter_inc", (DL_FUNC) RxODE_dadt_counter_inc);
-  R_RegisterCCallable("RxODE","RxODE_jac_counter_inc",  (DL_FUNC) RxODE_jac_counter_inc);
+  R_RegisterCCallable("RxODE","RxODE_dadt_counter_val",   (DL_FUNC) RxODE_dadt_counter_val);
+  R_RegisterCCallable("RxODE","RxODE_jac_counter_val",    (DL_FUNC) RxODE_jac_counter_val);
+  R_RegisterCCallable("RxODE","RxODE_dadt_counter_inc",   (DL_FUNC) RxODE_dadt_counter_inc);
+  R_RegisterCCallable("RxODE","RxODE_jac_counter_inc",    (DL_FUNC) RxODE_jac_counter_inc);
+
+  R_RegisterCCallable("RxODE","RxODE_dadt_counter_valP",   (DL_FUNC) RxODE_dadt_counter_valP);
+  R_RegisterCCallable("RxODE","RxODE_jac_counter_valP",    (DL_FUNC) RxODE_jac_counter_valP);
+  R_RegisterCCallable("RxODE","RxODE_dadt_counter_incP",   (DL_FUNC) RxODE_dadt_counter_incP);
+  R_RegisterCCallable("RxODE","RxODE_jac_counter_incP",    (DL_FUNC) RxODE_jac_counter_incP);
   // podo or tlast
-  R_RegisterCCallable("RxODE","RxODE_podo",             (DL_FUNC) RxODE_podo);
-  R_RegisterCCallable("RxODE","RxODE_tlast",            (DL_FUNC) RxODE_tlast);
+  R_RegisterCCallable("RxODE","RxODE_podo",               (DL_FUNC) RxODE_podo);
+  R_RegisterCCallable("RxODE","RxODE_tlast",              (DL_FUNC) RxODE_tlast);
+  R_RegisterCCallable("RxODE","RxODE_podoP",               (DL_FUNC) RxODE_podoP);
+  R_RegisterCCallable("RxODE","RxODE_tlastP",              (DL_FUNC) RxODE_tlastP);
   // tranit compartment models
-  R_RegisterCCallable("RxODE","RxODE_transit4",         (DL_FUNC) RxODE_transit4);
-  R_RegisterCCallable("RxODE","RxODE_transit3",         (DL_FUNC) RxODE_transit3);
-  R_RegisterCCallable("RxODE","RxODE_factorial",        (DL_FUNC) RxODE_factorial);
-  R_RegisterCCallable("RxODE","RxODE_safe_log",         (DL_FUNC) RxODE_safe_log);
-  R_RegisterCCallable("RxODE","RxODE_safe_zero",        (DL_FUNC) RxODE_safe_zero);
-  R_RegisterCCallable("RxODE","RxODE_as_zero",          (DL_FUNC) RxODE_as_zero);
-  R_RegisterCCallable("RxODE","RxODE_sign_exp",         (DL_FUNC) RxODE_sign_exp);
-  R_RegisterCCallable("RxODE","RxODE_abs_log",          (DL_FUNC) RxODE_abs_log);
-  R_RegisterCCallable("RxODE","RxODE_abs_log1p",        (DL_FUNC) RxODE_abs_log1p);
-  R_RegisterCCallable("RxODE","RxODE_solveLinB",        (DL_FUNC) RxODE_solveLinB);
+  R_RegisterCCallable("RxODE","RxODE_transit4",           (DL_FUNC) RxODE_transit4);
+  R_RegisterCCallable("RxODE","RxODE_transit3",           (DL_FUNC) RxODE_transit3);
+  R_RegisterCCallable("RxODE","RxODE_factorial",          (DL_FUNC) RxODE_factorial);
+  R_RegisterCCallable("RxODE","RxODE_safe_log",           (DL_FUNC) RxODE_safe_log);
+  R_RegisterCCallable("RxODE","RxODE_safe_zero",          (DL_FUNC) RxODE_safe_zero);
+  R_RegisterCCallable("RxODE","RxODE_as_zero",            (DL_FUNC) RxODE_as_zero);
+  R_RegisterCCallable("RxODE","RxODE_sign_exp",           (DL_FUNC) RxODE_sign_exp);
+  R_RegisterCCallable("RxODE","RxODE_abs_log",            (DL_FUNC) RxODE_abs_log);
+  R_RegisterCCallable("RxODE","RxODE_abs_log1p",          (DL_FUNC) RxODE_abs_log1p);
+  R_RegisterCCallable("RxODE","RxODE_solveLinB",          (DL_FUNC) RxODE_solveLinB);
 
-  R_RegisterCCallable("RxODE","RxODE_sum",              (DL_FUNC) RxODE_sum);
-  R_RegisterCCallable("RxODE","RxODE_prod",             (DL_FUNC) RxODE_prod);
+  R_RegisterCCallable("RxODE","RxODE_sum",                (DL_FUNC) RxODE_sum);
+  R_RegisterCCallable("RxODE","RxODE_prod",               (DL_FUNC) RxODE_prod);
 
-  R_RegisterCCallable("RxODE","RxODE_pow",              (DL_FUNC) RxODE_pow);
-  R_RegisterCCallable("RxODE","RxODE_pow_di",           (DL_FUNC) RxODE_pow_di);
+  R_RegisterCCallable("RxODE","RxODE_pow",                (DL_FUNC) RxODE_pow);
+  R_RegisterCCallable("RxODE","RxODE_pow_di",             (DL_FUNC) RxODE_pow_di);
 
 
   static const R_CMethodDef cMethods[] = {

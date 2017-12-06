@@ -3,6 +3,7 @@
 extern "C"{
 #include "solve.h"
   rx_solve *getRxSolve_(SEXP ptr);
+  void rxSolveDataFree(SEXP ptr);
 }
 
 using namespace Rcpp;
@@ -208,33 +209,6 @@ RObject rxSimSigma(const RObject &sigma,
   }
 }
 
-//' Setup a data frame for solving multiple subjects at once in RxODE.
-//'
-//' @param ro R object to setup; Must be in RxODE compatible format.
-//' @param covNames Covariate names in dataset.
-//' @param sigma Matrix for simulating residual variability for the number of observations.
-//'      This uses the \code{\link[mvnfast]{rmvn}} or \code{\link[mvnfast]{rmvt}} assuming mean 0 and covariance given by this named
-//'      matrix.  The residual-type variability is created for each of the named \"err\" components specified by the sigma matrix's
-//'      column names. This then creates a random deviate that is used in the place of each named variable.  This should
-//'      not really be used in the ODE specification.  If it is, though, it is treated as a time-varying covariate.
-//'
-//'      Also note this does not use R's random numbers, rather it uses a cryptographic parallel random number generator;
-//'
-//'      To allow reproducible research you must both set a random seed with R's \code{\link[base]{set.seed}} function, and keep the
-//'      number of cores constant.  By changing either one of these variables, you will arrive at different random numbers. 
-//' @param df Degrees of freedom for \code{\link[mvnfast]{rmvt}}.  If \code{NULL}, or \code{Inf}, then use a normal distribution.  The
-//'        default is normal.
-//' @param ncoresRV The number of cores for residual simulation.  By default, this is \code{1}.
-//' @param isChol is a boolean indicating that the Cholesky decomposition of the \code{sigma} covariance matrix is supplied instead of
-//'        the  \code{sigma} matrix itself.
-//' @param amountUnits Dosing amount units.
-//' @param timeUnits Time units.
-//'
-//' @return A data structure to allow C-based for loop (ie solving each
-//'       individual in C)
-//'
-//' @author Matthew L. Fidler
-//' @export
 // [[Rcpp::export]]
 List rxDataSetup(const RObject &ro,
 		 const RObject &covNames = R_NilValue,
@@ -572,12 +546,24 @@ rx_solve *getRxSolve(SEXP ptr){
   if (rxIs(ptr,"RxODE.pointer.multi")){
     List lst = List(ptr);
     SEXP ptr = as<SEXP>(lst["pointer"]);
-    return getRxSolve_(ptr);
+    rx_solve *ret = getRxSolve_(ptr);
+    // Also assign it.
+    SEXP setS = as<SEXP>(lst["set_solve"]);
+    t_set_solve set_solve = (t_set_solve)R_ExternalPtrAddr(setS);
+    set_solve(ret);
+    return ret;
   } else {
-    stop("Cannot get the solving data.");
+    stop("Cannot get the solving data (getRxSolve).");
   }
   rx_solve *o;
   return o;
+}
+
+extern "C" void freeRxSolve(SEXP ptr);
+void freeRxSolve(SEXP ptr){
+  List lst = List(ptr);
+  SEXP pt = as<SEXP>(lst["pointer"]);
+  rxSolveDataFree(pt);
 }
 
 //' All model variables for a RxODE object
@@ -1154,27 +1140,30 @@ List rxDataParSetup(const RObject &object,
   nr = parMat.nrow() / nSub;
   if (nr == 0) nr = 1;
   ret["nsim"] = nr;
-  NumericVector initsS = NumericVector(initsC.size()*nSub*nr);
-  for (i = 0; i < initsS.size(); i++){
-    j = i % initsS.size();
-    initsS[i] =  initsC[j];
-  }
+  // NumericVector initsS = NumericVector(initsC.size()*nSub*nr);
+  // for (i = 0; i < initsS.size(); i++){
+  //   j = i % initsS.size();
+  //   initsS[i] =  initsC[j];
+  // }
   ret["inits"] = initsC;
-  ret["inits.full"] = initsS;
+  // ret["inits.full"] = initsS;
   ret["n.pars"] = (int)(pars.size());
   ret["pcov"] = pcov;
   ret["neq"] = state.size();
   DataFrame et      = as<DataFrame>(ret["et"]);
   NumericVector solve(state.size()*et.nrow()*nr);
   ret["solve"] = solve;
+  IntegerVector idose(et.nrow()*nr);
+  ret["idose"] = idose;
   CharacterVector lhs = as<CharacterVector>(modVars["lhs"]);
   ret["lhs"] = NumericVector(lhs.size()*nSub*nr);
   ret["lhsSize"] = lhs.size();
   ret["InfusionRate"] =NumericVector(state.size()*nSub*nr);
   ret["BadDose"] =IntegerVector(state.size()*nSub*nr);
-  StringVector cls(2);
-  cls(0) = "RxODE.par.data";
-  cls(1) = "RxODE.multi.data";
+  ret["state.ignore"] = modVars["state.ignore"];
+  CharacterVector cls(2);
+  cls(1) = "RxODE.par.data";
+  cls(0) = "RxODE.multi.data";
   ret.attr("class") = cls;
   return ret;
 }
@@ -1200,6 +1189,13 @@ extern "C" {
                             int kind,
                             int is_locf,
 			    int cores,
+			    int ncov,
+			    int *par_cov,
+                            int do_par_cov,
+			    double *inits,
+                            SEXP stateNames,
+			    SEXP lhsNames,
+			    SEXP paramNames,
                             SEXP dydt,
                             SEXP calc_jac,
                             SEXP calc_lhs,
@@ -1211,31 +1207,30 @@ extern "C" {
 			       int *BadDose,
 			       double HMAX, // Determined by diff
 			       double *par_ptr,
-			       double *inits,
 			       double *dose,
 			       double *solve,
 			       double *lhs,
-			       int    *par_cov,
 			       int  *evid,
-			       int   do_par_cov,
 			       int *rc,
 			       double *cov_ptr,
-			       int ncov,
 			       int n_all_times,
 			       double *all_times,
 			       int id,
 			       int sim,
 			       rx_solving_options_ind *o);
-  SEXP rxSolveData(rx_solving_options_ind *subjects,
-                   int nsub,
-                   int nsim,
-                   SEXP op);
 
+  SEXP rxSolveData(rx_solving_options_ind *subjects,
+		   int nsub,
+		   int nsim,
+		   int *stateIgnore,
+		   int nobs,
+		   int add_cov,
+		   int matrix,
+		   SEXP op);
 }
 
-//[[Rcpp::export]]
 SEXP rxSolvingOptions(const RObject &object,
-                      const bool &stiff = true,
+                      const std::string &method = "lsoda",
                       const Nullable<LogicalVector> &transit_abs = R_NilValue,
                       const double atol = 1.0e-8,
                       const double rtol = 1.0e-6,
@@ -1245,6 +1240,10 @@ SEXP rxSolvingOptions(const RObject &object,
 		      const int maxordn = 12,
                       const int maxords = 5,
 		      const int cores = 1,
+		      const int ncov = 0,
+		      int *par_cov = NULL,
+		      int do_par_cov = 0,
+		      double *inits = NULL,
 		      std::string covs_interpolation = "linear"){
   if (maxordn < 1 || maxordn > 12){
     stop("'maxordn' must be >1 and <= 12.");
@@ -1273,10 +1272,6 @@ SEXP rxSolvingOptions(const RObject &object,
       transit=  1;
     }
   }
-  int st=0;
-  if (stiff){
-    st=1;
-  }
   int is_locf = 0;
   double f1 = 1.0, f2 = 0.0;
   int kind=1;
@@ -1298,8 +1293,17 @@ SEXP rxSolvingOptions(const RObject &object,
   } else {
     stop("Unknown covariate interpolation specified.");
   }
+  int st=0;
+  if (method == "lsoda"){
+    st = 1;
+  } else if (method == "dop"){
+    st = 0;
+  } else {
+    stop("Unknown ODE solving method specified.");
+  }
   CharacterVector lhs = as<CharacterVector>(modVars["lhs"]);
   CharacterVector state = as<CharacterVector>(modVars["state"]);
+  CharacterVector params = as<CharacterVector>(modVars["params"]);
   return getSolvingOptionsPtr(atol,rtol,hini, hmin,
 			      as<int>(ptr["jt"]),
 			      as<int>(ptr["mf"]),
@@ -1307,6 +1311,9 @@ SEXP rxSolvingOptions(const RObject &object,
 			      maxsteps, maxordn, maxords, transit,
 			      lhs.size(), state.size(),
 			      st, f1, f2, kind, is_locf, cores,
+			      ncov,par_cov, do_par_cov, &inits[0],
+			      as<SEXP>(state), as<SEXP>(lhs),
+			      as<SEXP>(params),
                               as<SEXP>(ptr["dydt"]),
                               as<SEXP>(ptr["jac"]),
 			      as<SEXP>(ptr["lhs"]),
@@ -1318,7 +1325,7 @@ SEXP rxSolvingOptions(const RObject &object,
 //[[Rcpp::export]]
 SEXP rxSolvingData(const RObject &model,
 		   const RObject &parData,
-		   const bool &stiff = true,
+		   const std::string &method = "lsoda",
 		   const Nullable<LogicalVector> &transit_abs = R_NilValue,
 		   const double atol = 1.0e-8,
 		   const double rtol = 1.0e-6,
@@ -1329,7 +1336,9 @@ SEXP rxSolvingData(const RObject &model,
 		   const int maxordn = 12,
 		   const int maxords = 5,
 		   const int cores = 1,
-		   std::string covs_interpolation = "linear") {
+		   std::string covs_interpolation = "linear",
+		   bool addCov = false,
+		   bool matrix = false) {
   if (rxIs(parData, "RxODE.par.data")){
     List opt = List(parData);
     DataFrame ids = as<DataFrame>(opt["ids"]);
@@ -1356,6 +1365,7 @@ SEXP rxSolvingData(const RObject &model,
     IntegerVector par_cov = as<IntegerVector>(opt["pcov"]);
     NumericVector cov = as<NumericVector>(opt["cov"]);
     IntegerVector rc=as<IntegerVector>(ids["rc"]);
+    IntegerVector siV = as<IntegerVector>(opt["state.ignore"]);
     int do_par_cov = 0;
     if (par_cov.size() > 0){
       do_par_cov = 1;
@@ -1364,8 +1374,11 @@ SEXP rxSolvingData(const RObject &model,
     int nsim = as<int>(opt["nsim"]);
     inds = Calloc(nSub*nsim,rx_solving_options_ind);
     int neq = as<int>(opt["neq"]);
+    int ncov =-1;
+    int cid;
     for (int simNum = 0; simNum < nsim; simNum++){
       for (int id = 0; id < nSub; id++){
+	cid = id+simNum*nSub;
 	if (hmax.isNull()){
           // Get from data.
           NumericVector hmn = as<NumericVector>(ids["HmaxDefault"]);
@@ -1381,33 +1394,67 @@ SEXP rxSolvingData(const RObject &model,
             hm = 0.0;
           }
         }
-        getSolvingOptionsIndPtr(&InfusionRate[id*neq+nSub*neq*simNum],&BadDose[id*neq+nSub*neq*simNum], hm,&par[id*nPar+nSub*nPar*simNum],
-                                &inits[id*neq+nSub*neq*simNum], &amt[posDose[id]],
+	ncov = par_cov.size();
+        getSolvingOptionsIndPtr(&InfusionRate[cid*neq],&BadDose[cid*neq], hm,&par[cid*nPar],
+                                &amt[posDose[id]],
                                 // Solve and lhs are written to in the solve...
-                                &solve[id*totSize+nSub*totSize*simNum],
-                                &lhs[id*lhsSize+nSub*lhsSize*simNum],
+                                &solve[cid*totSize*neq],
+                                &lhs[cid*lhsSize],
                                 // Doesn't change with the solve.
-                                &par_cov[0], &evid[posEvent[id]], do_par_cov, &rc[id], &cov[posCov[id]],
-                                par_cov.size(), nEvent[id], &all_times[posEvent[id]], id, simNum,
-                                &inds[id+simNum*nSub]);
+				&evid[posEvent[id]], &rc[id], &cov[posCov[id]],
+                                nEvent[id], &all_times[posEvent[id]], id, simNum,
+                                &inds[cid]);
       }
     }
-    SEXP op = rxSolvingOptions(model,stiff, transit_abs, atol, rtol, maxsteps, hmin, hini, maxordn,
-			       maxords, cores, covs_interpolation);
-    return rxSolveData(inds, nSub, nsim, op);
+    SEXP op = rxSolvingOptions(model,method, transit_abs, atol, rtol, maxsteps, hmin, hini, maxordn,
+			       maxords, cores, ncov, &par_cov[0], do_par_cov, &inits[0], covs_interpolation);
+    int add_cov = 0;
+    if (addCov) add_cov = 1;
+    int nobs = as<int>(opt["nObs"]);
+    int mat = 0;
+    if (matrix) mat = 1;
+    return rxSolveData(inds, nSub, nsim, &siV[0], nobs, add_cov, mat, op);
   } else {
     stop("This requires something setup by 'rxDataParSetup'.");
   }
   return R_NilValue;
 }
 
+//' Setup a data frame for solving multiple subjects at once in RxODE.
+//'
+//' @param object R object to setup; Must be in RxODE compatible format.
+//' @inheritParams rxSolve
+//' @param covNames Covariate names in dataset.
+//' @param sigma Matrix for simulating residual variability for the number of observations.
+//'      This uses the \code{\link[mvnfast]{rmvn}} or \code{\link[mvnfast]{rmvt}} assuming mean 0 and covariance given by this named
+//'      matrix.  The residual-type variability is created for each of the named \"err\" components specified by the sigma matrix's
+//'      column names. This then creates a random deviate that is used in the place of each named variable.  This should
+//'      not really be used in the ODE specification.  If it is, though, it is treated as a time-varying covariate.
+//'
+//'      Also note this does not use R's random numbers, rather it uses a cryptographic parallel random number generator;
+//'
+//'      To allow reproducible research you must both set a random seed with R's \code{\link[base]{set.seed}} function, and keep the
+//'      number of cores constant.  By changing either one of these variables, you will arrive at different random numbers. 
+//' @param df Degrees of freedom for \code{\link[mvnfast]{rmvt}}.  If \code{NULL}, or \code{Inf}, then use a normal distribution.  The
+//'        default is normal.
+//' @param ncoresRV The number of cores for residual simulation.  By default, this is \code{1}.
+//' @param isChol is a boolean indicating that the Cholesky decomposition of the \code{sigma} covariance matrix is supplied instead of
+//'        the  \code{sigma} matrix itself.
+//' @param amountUnits Dosing amount units.
+//' @param timeUnits Time units.
+//'
+//' @return A data structure to allow C-based for loop (ie solving each
+//'       individual in C)
+//'
+//' @author Matthew L. Fidler
+//' @export
 //[[Rcpp::export]]
 List rxData(const RObject &object,
             const RObject &params = R_NilValue,
             const RObject &events = R_NilValue,
             const Nullable<NumericVector> &inits = R_NilValue,
             const RObject &covs  = R_NilValue,
-            const bool &stiff = true,
+            const std::string &method = "lsoda",
             const Nullable<LogicalVector> &transit_abs = R_NilValue,
             const double atol = 1.0e-8,
             const double rtol = 1.0e-6,
@@ -1419,6 +1466,8 @@ List rxData(const RObject &object,
             const int maxords = 5,
             const int cores = 1,
             std::string covs_interpolation = "linear",
+	    bool addCov = false,
+            bool matrix = false,
             const RObject &sigma= R_NilValue,
             const RObject &sigmaDf= R_NilValue,
             const int &sigmaNcores= 1,
@@ -1427,78 +1476,120 @@ List rxData(const RObject &object,
             const StringVector &timeUnits = "hours"){
   List parData = rxDataParSetup(object,params, events, inits, covs, sigma, sigmaDf,
 				sigmaNcores, sigmaIsChol, amountUnits, timeUnits);
-  parData["pointer"] = rxSolvingData(object, parData, stiff, transit_abs, atol,  rtol, maxsteps,
-                                     hmin, hmax,  hini, maxordn, maxords, cores, covs_interpolation);
-  
+  parData["pointer"] = rxSolvingData(object, parData, method, transit_abs, atol,  rtol, maxsteps,
+                                     hmin, hmax,  hini, maxordn, maxords, cores, covs_interpolation,
+				     addCov, matrix);
+  List modVars = rxModelVars(object);
+  List ptr = modVars["ptr"];
+  parData["get_solve"] = ptr["get_solve"];
+  parData["set_solve"] = ptr["set_solve"];
   StringVector cls(3);
-  cls(0) = "RxODE.par.data";
+  cls(2) = "RxODE.par.data";
   cls(1) = "RxODE.multi.data";
-  cls(2) = "RxODE.pointer.multi";
+  cls(0) = "RxODE.pointer.multi";
   parData.attr("class") = cls;
   return parData;
 }
 
+extern "C"{
+  void par_lsoda(SEXP sd);
+  void par_dop(SEXP sd);
+  rx_solving_options *getRxOp(rx_solve *rx);
+}
 
-List rxSolveC0(const RObject &object,
-               const RObject &params = R_NilValue,
-               const RObject &events = R_NilValue,
-               const Nullable<NumericVector> &inits = R_NilValue,
-               const RObject &covs  = R_NilValue,
-               const RObject &sigma= R_NilValue,
-               const RObject &sigmaDf= R_NilValue,
-	       const int &sigmaNcores= 1,
-	       const bool &sigmaIsChol= false,
-	       const StringVector &amountUnits = NA_STRING,
-	       const StringVector &timeUnits = "hours"){
-  List modVars = rxModelVars(object);
-  List totDat = rxDataParSetup(object, params, events, inits,
-			       covs, sigma, sigmaDf, sigmaNcores,
-			       sigmaIsChol, amountUnits, timeUnits);
-  DataFrame dose    = as<DataFrame>(totDat["dose"]);
-  DataFrame ids     = as<DataFrame>(totDat["ids"]);
-  DataFrame obs     = as<DataFrame>(totDat["obs"]);
-  DataFrame et      = as<DataFrame>(totDat["et"]);
-  NumericVector pars = as<NumericVector>(totDat["pars"]);
-  NumericVector ini = as<NumericVector>(totDat["inits"]);
-  int npars          = as<int>(totDat["npars"]);
-  int cpar = 0;
-  NumericVector time = as<double>(et["time"]);
-  IntegerVector evid = as<IntegerVector>(et["evid"]);
-  NumericVector amt  = as<double>(dose["amt"]);
-  NumericVector cov = as<NumericVector>(totDat["cov"]);
-  StringVector lhs = as<StringVector>(modVars["lhs"]);
-  List ret;
-  return ret;
-  /*
-    (## Parameters
-    params, -- pars
-    inits, -- ini
-    as.double(scale),
-    lhs_vars, -- lhs
-    ## events
-    time, -- time
-    evid, -- evid
-    amt, -- amt
-    ## Covariates
-    pcov,
-    cov,
-    isLocf,
-    ## Solver options (double)
-    atol,
-    rtol,
-    hmin,
-    hmax,
-    hini,
-    ## Solver options ()
-    maxordn,
-    maxords,
-    maxsteps,
-    stiff,
-    transit_abs,
-    ## Passed to build solver object.
-    env,
-    as.integer(c(state.ignore, add.cov, do.matrix)),
-    extra.args)
-  */
-  
+extern "C"{
+  SEXP RxODE_df(SEXP sd);  
+}
+
+//[[Rcpp::export]]
+SEXP rxSolveC(const RObject &object,
+	      const RObject &params = R_NilValue,
+	      const RObject &events = R_NilValue,
+	      const Nullable<NumericVector> &inits = R_NilValue,
+	      const RObject &covs  = R_NilValue,
+	      const std::string &method = "lsoda",
+	      const Nullable<LogicalVector> &transit_abs = R_NilValue,
+	      const double atol = 1.0e-8,
+	      const double rtol = 1.0e-6,
+	      const int maxsteps = 5000,
+	      const int hmin = 0,
+	      const Nullable<NumericVector> &hmax = R_NilValue,
+	      const int hini = 0,
+	      const int maxordn = 12,
+	      const int maxords = 5,
+	      const int cores = 1,
+	      std::string covs_interpolation = "linear",
+	      bool addCov = false,
+              bool matrix = false,
+              const RObject &sigma= R_NilValue,
+	      const RObject &sigmaDf= R_NilValue,
+	      const int &sigmaNcores= 1,
+	      const bool &sigmaIsChol= false,
+	      const StringVector &amountUnits = NA_STRING,
+	      const StringVector &timeUnits = "hours"){
+  DataFrame ret;
+  List parData = rxData(object, params, events, inits, covs, method, transit_abs, atol,
+			rtol, maxsteps, hmin,hmax, hini, maxordn, maxords, cores,
+			covs_interpolation, addCov, matrix, sigma, sigmaDf, sigmaNcores, sigmaIsChol,
+			amountUnits, timeUnits);
+  rx_solve *rx;
+  rx =getRxSolve(parData);
+  rx_solving_options *op;
+  op = getRxOp(rx);
+  if (op->stiff == 1){
+    // lsoda
+    par_lsoda(parData);
+  } else if (op->stiff == 0){
+    // dop
+    par_dop(parData);
+  }
+  List dat = RxODE_df(parData);
+  if (rx->matrix){
+    dat.attr("class") = "data.frame";
+    int nr = as<NumericVector>(dat[0]).size();
+    NumericMatrix tmpM(nr,dat.size());
+    for (int i = 0; i < dat.size(); i++){
+      tmpM(_,i) = as<NumericVector>(dat[i]);
+    }
+    tmpM.attr("dimnames") = List::create(R_NilValue,dat.names());
+    return tmpM;
+  } else {
+    Function newEnv("new.env", R_BaseNamespace);
+    Environment e = newEnv(_["size"] = 29, _["parent"] = R_EmptyEnv);
+    // Save information
+    // Remove one final; Just for debug.
+    // e["parData"] = parData;
+      
+    e["object"] =  object;
+    e["params"] = params;
+    e["events"] = events;
+    e["inits"] = inits;
+    e["covs"] = covs;
+    e["method"] = method;
+    e["transit_abs"] = transit_abs;
+    e["atol"] = atol;
+    e["rtol"] = rtol;
+    e["maxsteps"] = maxsteps;
+    e["hmin"] = hmin;
+    e["hmax"] = hmax;
+    e["hini"] = hini;
+    e["maxordn"] = maxordn;
+    e["maxords"] = maxords;
+    e["cores"] = cores;
+    e["covs_interpolation"] = covs_interpolation;
+    e["addCov"] = addCov;
+    e["matrix"] = matrix;
+    e["sigma"] = sigma;
+    e["sigmaDf"] = sigmaDf;
+    e["sigmaNcores"] = sigmaNcores;
+    e["sigmaIsChol"] = sigmaIsChol;
+    e["amountUnits"] = amountUnits;
+    e["timeUnits"] = timeUnits;
+    dat.attr(".RxODE.env") = e;
+    CharacterVector cls(2);
+    cls(1) = "solveRxODEm";
+    cls(0) = "data.frame";
+    dat.attr("class") = cls;
+    return(dat);
+  }
 }

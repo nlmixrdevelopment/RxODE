@@ -28,7 +28,7 @@ d/dt(blood)     = a*intestine - b*blood
     et$add.dosing(dose=2/24,rate=2,strt.time=0,
                   nbr.doses=10,dosing.interval=1)
 
-    pk <- solve(mod,et)
+    pk <- solve(mod,et);
 
     ## plot(pk$time,pk$intestine,type="l")
     ## plot(pk$time,pk$blood,type="l")

@@ -6,6 +6,7 @@
 #include "dop853.h"
 // Yay easy parallel support
 // For Mac, see: http://thecoatlessprofessor.com/programming/openmp-in-r-on-os-x/ (as far as I can tell)
+// and https://github.com/Rdatatable/data.table/wiki/Installation#openmp-enabled-compiler-for-mac
 // It may have arrived, though I'm not sure...
 // According to http://dirk.eddelbuettel.com/papers/rcpp_parallel_talk_jan2015.pdf
 // OpenMP is excellent for parallelizing existing loops where the iterations are independent;
@@ -16,22 +17,115 @@
 #endif
 #define max(a, b) ((a) > (b) ? (a) : (b))
 
+void freeRxSolve(SEXP ptr);
+
+extern SEXP RxODE_get_fn_pointers(void (*fun_dydt)(int *neq, double t, double *A, double *DADT),
+                                  void (*fun_calc_lhs)(int, double t, double *A, double *lhs),
+                                  void (*fun_calc_jac)(int neq, double t, double *A, double *JAC, unsigned int __NROWPD__),
+                                  void (*fun_update_inis)(int, double *),
+                                  void (*fun_dydt_lsoda_dum)(int *, double *, double *, double *),
+                                  void (*fun_jdum_lsoda)(int *, double *, double *,int *, int *, double *, int *),
+                                  void (*fun_set_solve)(rx_solve *),
+                                  rx_solve *(*fun_get_solve)(),
+                                  int fun_jt,
+                                  int fun_mf,
+                                  int fun_debug){
+  SEXP dydt, lhs, jac, inis, dydt_lsoda, jdum, get_solveS, set_solveS;
+  int pro=0;
+  SEXP lst      = PROTECT(allocVector(VECSXP, 11)); pro++;
+  SEXP names    = PROTECT(allocVector(STRSXP, 11)); pro++;
+
+  void (*dydtf)(int *neq, double t, double *A, double *DADT);
+  void (*calc_jac)(int neq, double t, double *A, double *JAC, unsigned int __NROWPD__);
+  void (*calc_lhs)(int, double t, double *A, double *lhs);
+  void (*update_inis)(int neq, double *);
+  void (*dydt_lsoda_dum)(int *neq, double *t, double *A, double *DADT);
+  void (*jdum_lsoda)(int *neq, double *t, double *A,int *ml, int *mu, double *JAC, int *nrowpd);
+
+  void (*set_solve)(rx_solve *);
+  rx_solve *(*get_solve)();
+  
+  dydtf          = fun_dydt;
+  calc_jac       = fun_calc_jac;
+  calc_lhs       = fun_calc_lhs;
+  update_inis    = fun_update_inis;
+  dydt_lsoda_dum = fun_dydt_lsoda_dum;
+  jdum_lsoda     = fun_jdum_lsoda;
+  get_solve      = fun_get_solve;
+  set_solve      = fun_set_solve;
+  
+  SET_STRING_ELT(names,0,mkChar("dydt"));
+  dydt=R_MakeExternalPtr(dydtf, install("RxODE_dydt"), R_NilValue);
+  PROTECT(dydt); pro++;
+  SET_VECTOR_ELT(lst,  0, dydt);
+
+  SET_STRING_ELT(names,1,mkChar("lhs"));
+  lhs=R_MakeExternalPtr(calc_lhs, install("RxODE_lhs"), R_NilValue);
+  PROTECT(lhs); pro++;
+  SET_VECTOR_ELT(lst,  1, lhs);
+
+  SET_STRING_ELT(names,2,mkChar("jac"));
+  jac=R_MakeExternalPtr(calc_jac, install("RxODE_jac"), R_NilValue);
+  PROTECT(jac); pro++;
+  SET_VECTOR_ELT(lst,  2, jac);
+
+  SET_STRING_ELT(names,3,mkChar("inis"));
+  inis=R_MakeExternalPtr(update_inis, install("RxODE_inis"), R_NilValue);
+  PROTECT(inis); pro++;
+  SET_VECTOR_ELT(lst,  3, inis);
+
+  SET_STRING_ELT(names,4,mkChar("dydt_lsoda"));
+  dydt_lsoda=R_MakeExternalPtr(dydt_lsoda_dum, install("RxODE_dydt_lsoda"), R_NilValue);
+  PROTECT(dydt_lsoda); pro++;
+  SET_VECTOR_ELT(lst,  4, dydt_lsoda);
+  
+  SET_STRING_ELT(names,5,mkChar("jdum"));
+  jdum=R_MakeExternalPtr(jdum_lsoda, install("RxODE_jdum"), R_NilValue);
+  PROTECT(jdum); pro++;
+  SET_VECTOR_ELT(lst,  5, jdum);
+  
+  SET_STRING_ELT(names,6,mkChar("jt"));
+  SEXP jt = PROTECT(allocVector(INTSXP, 1)); pro++;
+  INTEGER(jt)[0] = fun_jt;
+  SET_VECTOR_ELT(lst,  6, jt);
+
+  SET_STRING_ELT(names,7,mkChar("mf"));
+  SEXP mf = PROTECT(allocVector(INTSXP, 1)); pro++;
+  INTEGER(mf)[0] = fun_mf;
+  SET_VECTOR_ELT(lst,  7, mf);
+
+  SET_STRING_ELT(names,8,mkChar("debug"));
+  SEXP debug = PROTECT(allocVector(INTSXP, 1)); pro++;
+  INTEGER(debug)[0] = fun_debug;
+  SET_VECTOR_ELT(lst,  8, debug);
+
+  SET_STRING_ELT(names,9,mkChar("get_solve"));
+  get_solveS=R_MakeExternalPtr(get_solve, install("RxODE_get_solve"), R_NilValue);
+  PROTECT(get_solveS); pro++;
+  SET_VECTOR_ELT(lst,  9, get_solveS);
+
+  SET_STRING_ELT(names,10,mkChar("set_solve"));
+  set_solveS=R_MakeExternalPtr(set_solve, install("RxODE_set_solve"), R_NilValue);
+  PROTECT(set_solveS); pro++;
+  SET_VECTOR_ELT(lst,  10, set_solveS);
+  setAttrib(lst, R_NamesSymbol, names);
+
+  UNPROTECT(pro);
+  return(lst);
+}
+
 int rxUpdateResiduals_(SEXP md);
 
 void getSolvingOptionsIndPtr(double *InfusionRate,
                              int *BadDose,
                              double HMAX, // Determined by diff
                              double *par_ptr,
-                             double *inits,
                              double *dose,
                              double *solve,
                              double *lhs,
-                             int *par_cov,
                              int *evid,
-                             int do_par_cov,
                              int *rc,
                              double *cov_ptr,
-                             int ncov,
                              int n_all_times,
                              double *all_times,
                              int id,
@@ -47,16 +141,12 @@ void getSolvingOptionsIndPtr(double *InfusionRate,
   o->tlast = 0.0;
   o->podo = 0.0;
   o->par_ptr = par_ptr;
-  o->inits = inits;
   o->dose = dose;
   o->solve = solve;
   o->lhs = lhs;
-  o->par_cov = par_cov;
   o->evid = evid;
-  o->do_par_cov = do_par_cov;
   o->rc = rc;
   o->cov_ptr = cov_ptr;
-  o->ncov = ncov;
   o->n_all_times = n_all_times;
   o->ixds = 0;
   o->ndoses = -1;
@@ -72,7 +162,7 @@ static void getSolvingOptionsPtrFree(SEXP ptr)
 {
   if(!R_ExternalPtrAddr(ptr)) return;
   rx_solving_options *o;
-  o  = R_ExternalPtrAddr(ptr);
+  o  = (rx_solving_options*)R_ExternalPtrAddr(ptr);
   Free(o);
   R_ClearExternalPtr(ptr);
 }
@@ -98,15 +188,24 @@ SEXP getSolvingOptionsPtr(double ATOL,          //absolute error
                           int kind,
                           int is_locf,
 			  int cores,
+			  int ncov,
+			  int *par_cov,
+                          int do_par_cov,
+                          double *inits,
+                          SEXP stateNames,
+			  SEXP lhsNames,
+			  SEXP paramNames,
                           SEXP dydt,
                           SEXP calc_jac,
                           SEXP calc_lhs,
                           SEXP update_inis,
                           SEXP dydt_lsoda_dum,
-                          SEXP jdum_lsoda){
+                          SEXP jdum_lsoda,
+			  SEXP set_solve,
+			  SEXP get_solve){
   // This really should not be called very often, so just allocate one for now.
   rx_solving_options *o;
-  o = Calloc(1,rx_solving_options);
+  o = (rx_solving_options*)R_chk_calloc(1,sizeof(*o));
   o->ATOL = ATOL;          //absolute error
   o->RTOL = RTOL;          //relative error
   o->H0 = H0;
@@ -125,6 +224,12 @@ SEXP getSolvingOptionsPtr(double ATOL,          //absolute error
   o->f2 = f2;
   o->kind = kind;
   o->is_locf = is_locf;
+  o->par_cov = par_cov;
+  o->do_par_cov = do_par_cov;
+  o->stateNames = stateNames;
+  o->lhsNames = lhsNames;
+  o->paramNames = paramNames;
+  o->inits = inits;
   o->dydt = (t_dydt)(R_ExternalPtrAddr(dydt));
   o->calc_jac = (t_calc_jac)(R_ExternalPtrAddr(calc_jac));
   o->calc_lhs = (t_calc_lhs)(R_ExternalPtrAddr(calc_lhs));
@@ -137,10 +242,10 @@ SEXP getSolvingOptionsPtr(double ATOL,          //absolute error
   return(ret);
 }
 
-static void rxSolveDataFree(SEXP ptr) {
+extern void rxSolveDataFree(SEXP ptr) {
   if(!R_ExternalPtrAddr(ptr)) return;
   rx_solve *o;
-  o  = R_ExternalPtrAddr(ptr);
+  o  = (rx_solve*)R_ExternalPtrAddr(ptr);
   rx_solving_options_ind *inds;
   int n = (o->nsub)*(o->nsim);
   int *idose;
@@ -163,128 +268,26 @@ static void rxSolveDataFree(SEXP ptr) {
 SEXP rxSolveData(rx_solving_options_ind *subjects,
                  int nsub,
                  int nsim,
+		 int *stateIgnore,
+		 int nobs,
+                 int add_cov,
+                 int matrix,
                  SEXP op){
   rx_solve *o;
-  o = Calloc(1,rx_solve);
+  o = (rx_solve*)R_chk_calloc(1,sizeof(*o));
   o->subjects = subjects;
   o->nsub = nsub;
   o->nsim = nsim;
   o->op = op;
+  o->stateIgnore = stateIgnore;
+  o->nobs = nobs;
+  o->add_cov = add_cov;
+  o->matrix = matrix;
   SEXP ret = PROTECT(R_MakeExternalPtr(o, install("rx_solve"), R_NilValue));
   R_RegisterCFinalizerEx(ret, rxSolveDataFree, TRUE);
   UNPROTECT(1);
   return(ret);
 }
-rx_solve *getRxSolve(SEXP ptr);
-
-extern rx_solve *getRxSolve_(SEXP ptr){
-  if(!R_ExternalPtrAddr(ptr)){
-    error("Cannot get the solving data.");
-  }
-  rx_solve *o;
-  o  = R_ExternalPtrAddr(ptr);
-  return o;
-}
-
-rx_solving_options *getRxOp(rx_solve *rx){
-  if(!R_ExternalPtrAddr(rx->op)){
-    error("Cannot get global ode solver options.");
-  }
-  return (R_ExternalPtrAddr(rx->op));
-}
-
-rx_solving_options_ind *getRxId(rx_solve *rx, unsigned int id){
-  return &(rx->subjects[id]);
-}
-
-extern int nEqP (rx_solve *rx){
-  rx_solving_options *op;
-  op =getRxOp(rx);
-  return op->neq;
-}
-
-extern int rxEvidP(int i, rx_solve *rx, unsigned int id){
-  rx_solving_options_ind *ind;
-  ind = getRxId(rx, id);
-  if (i < ind->n_all_times){
-    return(ind->evid[i]);
-  } else {
-    error("Trying to access EVID outside of defined events.\n");
-  }
-}
-
-extern unsigned int nDosesP(rx_solve *rx, unsigned int id){
-  rx_solving_options_ind *ind;
-  ind = getRxId(rx, id);
-  if (ind->ndoses < 0){
-    ind->ndoses=0;
-    for (int i = 0; i < ind->n_all_times; i++){
-      if (rxEvidP(i, rx, id)){
-        ind->ndoses++;
-        if (ind->ndoses >= ind->idosen){
-          if (ind->idosen == 0){
-            ind->idose = Calloc(32,int);
-            ind->idosen = 32;
-          } else {
-            ind->idosen *= 2;
-            /* Rprintf("Reallocating to %d\n", ind->idosen); */
-            ind->idose = Realloc(ind->idose, ind->idosen, int);
-          }
-        }
-        ind->idose[ind->ndoses-1] = i;
-      }
-    }
-    return ind->ndoses;
-  } else {
-    return ind->ndoses;
-  }
-}
-
-extern unsigned int nObsP (rx_solve *rx, unsigned int id){
-  rx_solving_options_ind *ind;
-  ind = getRxId(rx, id);
-  return (unsigned int)(ind->n_all_times - nDosesP(rx, id));
-}
-
-extern unsigned int nLhsP(rx_solve *rx){
-  rx_solving_options *op;
-  op =getRxOp(rx);
-  return (unsigned int)(op->nlhs);
-}
-extern double rxLhsP(int i, rx_solve *rx, unsigned int id){
-  rx_solving_options_ind *ind;
-  ind = getRxId(rx, id);
-  rx_solving_options *op;
-  op =getRxOp(rx);
-  if (i < op->nlhs){
-    return(ind->lhs[i]);
-  } else {
-    error("Trying to access an equation that isn't calculated. lhs(%d)\n",i);
-  }
-  return 0;
-}
-extern void rxCalcLhsP(int i, rx_solve *rx, unsigned int id){
-  rx_solving_options_ind *ind;
-  ind = getRxId(rx, id);
-  rx_solving_options *op;
-  op =getRxOp(rx);
-  t_calc_lhs calc_lhs = op->calc_lhs;
-  double *solve, *lhs;
-  solve = ind->solve;
-  lhs = ind->lhs;
-  if (i < ind->n_all_times){
-    calc_lhs((int)id, ind->all_times[i], solve+i*op->neq, lhs);
-  } else {
-    error("LHS cannot be calculated (%dth entry).",i);
-  }
-}
-
-extern unsigned int nAllTimesP(rx_solve *rx, unsigned int id){
-  rx_solving_options_ind *ind;
-  ind = getRxId(rx, id);
-  return (unsigned int)(ind->n_all_times);
-}
-
 
 void F77_NAME(dlsoda)(
                       void (*)(int *, double *, double *, double *),
@@ -293,7 +296,28 @@ void F77_NAME(dlsoda)(
                       void (*)(int *, double *, double *, int *, int *, double *, int *),
                       int *);
 
-void par_lsoda(SEXP sd){
+rx_solve *getRxSolve(SEXP ptr);
+extern rx_solve *getRxSolve_(SEXP ptr){
+  if(!R_ExternalPtrAddr(ptr)){
+    error("Cannot get the solving data (getRxSolve_).");
+  }
+  rx_solve *o;
+  o  = (rx_solve*)R_ExternalPtrAddr(ptr);
+  return o;
+}
+
+rx_solving_options *getRxOp(rx_solve *rx){
+  if(!R_ExternalPtrAddr(rx->op)){
+    error("Cannot get global ode solver options.");
+  }
+  return (rx_solving_options*)(R_ExternalPtrAddr(rx->op));
+}
+
+rx_solving_options_ind *getRxId(rx_solve *rx, unsigned int id){
+  return &(rx->subjects[id]);
+}
+
+extern void par_lsoda(SEXP sd){
   rx_solve *rx;
   rx = getRxSolve(sd);
   int i, j, foundBad;
@@ -303,7 +327,7 @@ void par_lsoda(SEXP sd){
   if(!R_ExternalPtrAddr(rx->op)){
     error("Cannot get global ode solver options.");
   }
-  op = R_ExternalPtrAddr(rx->op);
+  op = (rx_solving_options*)R_ExternalPtrAddr(rx->op);
   int neq[2];
   neq[0] = op->neq;
   neq[1] = 0;
@@ -360,17 +384,18 @@ void par_lsoda(SEXP sd){
   int nsim = rx->nsim;
   int cores = op->cores;
   int updateR = 1;
+  inits = op->inits;
+
   for (int csim = 0; csim < nsim; csim++){
     // This part CAN be parallelized.
 #ifdef _OPENMP
 #pragma omp parallel for num_threads(cores)
 #endif
     for (int csub = 0; csub < nsub; csub++){
-      neq[1] = csub+nsub*nsim;
+      neq[1] = csub+csim*nsub;
       ind = &(rx->subjects[neq[1]]);
       ind->ixds = 0;
       nx = ind->n_all_times;
-      inits = ind->inits;
       evid = ind->evid;
       BadDose = ind->BadDose;
       InfusionRate = ind->InfusionRate;
@@ -398,6 +423,8 @@ void par_lsoda(SEXP sd){
               {
                 Rprintf("IDID=%d, %s\n", istate, err_msg[-istate-1]);
                 *rc = istate;
+		// Bad Solve => NA
+		for (i = 0; i < nx*neq[0]; i++) ret[i] = NA_REAL;
 		i = nx+42; // Get out of here!
               }
             ind->slvr_counter++;
@@ -453,13 +480,13 @@ void par_lsoda(SEXP sd){
       }
       
     }
-    if (rc[0]){
-      Rprintf("Error solving using LSODA\n");
-      Free(rwork);
-      Free(iwork);
-      Free(yp);
-      return;
-    }
+    /* if (rc[0]){ */
+    /*   /\* Rprintf("Error solving using LSODA\n"); *\/ */
+    /*   /\* Free(rwork); *\/ */
+    /*   /\* Free(iwork); *\/ */
+    /*   /\* Free(yp); *\/ */
+    /*   /\* return; *\/ */
+    /* } */
     if (updateR)
       updateR=rxUpdateResiduals_(sd);
   }
@@ -482,7 +509,7 @@ void par_dop(SEXP sd){
   if(!R_ExternalPtrAddr(rx->op)){
     error("Cannot get global ode solver options.");
   }
-  op = R_ExternalPtrAddr(rx->op);
+  op = (rx_solving_options*)R_ExternalPtrAddr(rx->op);
   int neq[2];
   neq[0] = op->neq;
   neq[1] = 0;
@@ -523,11 +550,11 @@ void par_dop(SEXP sd){
 #pragma omp parallel for num_threads(cores)
 #endif
     for (int csub = 0; csub < nsub; csub++){
-      neq[1] = csub+nsub*nsim;
+      neq[1] = csub+csim*nsub;
       ind = &(rx->subjects[neq[1]]);
       ind->ixds = 0;
       nx = ind->n_all_times;
-      inits = ind->inits;
+      inits = op->inits;
       evid = ind->evid;
       BadDose = ind->BadDose;
       InfusionRate = ind->InfusionRate;
@@ -692,13 +719,13 @@ extern void update_par_ptrP(double t, rx_solve *rx, unsigned int id){
   op =getRxOp(rx);
   // Update all covariate parameters
   int k;
-  int *par_cov = ind->par_cov;
+  int *par_cov = op->par_cov;
   double *par_ptr = ind->par_ptr;
   double *all_times = ind->all_times;
   double *cov_ptr = ind->cov_ptr;
-  int ncov = ind->ncov;
-  if (ind->do_par_cov){
-    for (k = 0; k < ind->ncov; k++){
+  int ncov = op->ncov;
+  if (op->do_par_cov){
+    for (k = 0; k < ncov; k++){
       if (par_cov[k]){
         // Use the same methodology as approxfun.
         // There is some rumor the C function may go away...
@@ -712,3 +739,294 @@ extern void update_par_ptrP(double t, rx_solve *rx, unsigned int id){
     }
   }
 }
+
+extern int nEqP (rx_solve *rx){
+  rx_solving_options *op;
+  op =getRxOp(rx);
+  return op->neq;
+}
+
+extern int rxEvidP(int i, rx_solve *rx, unsigned int id){
+  rx_solving_options_ind *ind;
+  ind = getRxId(rx, id);
+  if (i < ind->n_all_times){
+    return(ind->evid[i]);
+  } else {
+    error("Trying to access EVID outside of defined events.\n");
+  }
+}
+
+extern unsigned int nDosesP(rx_solve *rx, unsigned int id){
+  rx_solving_options_ind *ind;
+  ind = getRxId(rx, id);
+  if (ind->ndoses < 0){
+    ind->ndoses=0;
+    for (int i = 0; i < ind->n_all_times; i++){
+      if (rxEvidP(i, rx, id)){
+        ind->ndoses++;
+        if (ind->ndoses >= ind->idosen){
+          if (ind->idosen == 0){
+            ind->idose = Calloc(32,int);
+            ind->idosen = 32;
+          } else {
+            ind->idosen *= 2;
+            /* Rprintf("Reallocating to %d\n", ind->idosen); */
+            ind->idose = Realloc(ind->idose, ind->idosen, int);
+          }
+        }
+        ind->idose[ind->ndoses-1] = i;
+      }
+    }
+    return ind->ndoses;
+  } else {
+    return ind->ndoses;
+  }
+}
+
+extern unsigned int nObsP (rx_solve *rx, unsigned int id){
+  rx_solving_options_ind *ind;
+  ind = getRxId(rx, id);
+  return (unsigned int)(ind->n_all_times - nDosesP(rx, id));
+}
+
+extern unsigned int nLhsP(rx_solve *rx){
+  rx_solving_options *op;
+  op =getRxOp(rx);
+  return (unsigned int)(op->nlhs);
+}
+extern double rxLhsP(int i, rx_solve *rx, unsigned int id){
+  rx_solving_options_ind *ind;
+  ind = getRxId(rx, id);
+  rx_solving_options *op;
+  op =getRxOp(rx);
+  if (i < op->nlhs){
+    return(ind->lhs[i]);
+  } else {
+    error("Trying to access an equation that isn't calculated. lhs(%d)\n",i);
+  }
+  return 0;
+}
+extern void rxCalcLhsP(int i, rx_solve *rx, unsigned int id){
+  rx_solving_options_ind *ind;
+  ind = getRxId(rx, id);
+  rx_solving_options *op;
+  op =getRxOp(rx);
+  t_calc_lhs calc_lhs = op->calc_lhs;
+  double *solve, *lhs;
+  solve = ind->solve;
+  lhs = ind->lhs;
+  if (i < ind->n_all_times){
+    calc_lhs((int)id, ind->all_times[i], solve+i*op->neq, lhs);
+  } else {
+    error("LHS cannot be calculated (%dth entry).",i);
+  }
+}
+
+extern unsigned int nAllTimesP(rx_solve *rx, unsigned int id){
+  rx_solving_options_ind *ind;
+  ind = getRxId(rx, id);
+  return (unsigned int)(ind->n_all_times);
+}
+
+
+extern double RxODE_InfusionRateP(int val, rx_solve *rx, unsigned int id){
+  rx_solving_options_ind *ind;
+  ind = getRxId(rx, id);
+  return ind->InfusionRate[val];
+}
+
+extern double RxODE_par_ptrP(int val, rx_solve *rx, unsigned int id){
+  rx_solving_options_ind *ind;
+  ind = getRxId(rx, id);
+  double ret =ind->par_ptr[val];
+  return ret;
+}
+
+extern long RxODE_jac_counter_valP(rx_solve *rx, unsigned int id){
+  rx_solving_options_ind *ind;
+  ind = getRxId(rx, id);
+  return ind->jac_counter;
+}
+
+extern long RxODE_dadt_counter_valP(rx_solve *rx, unsigned int id){
+  rx_solving_options_ind *ind;
+  ind = getRxId(rx, id);
+  return ind->dadt_counter;
+}
+
+extern void RxODE_jac_counter_incP(rx_solve *rx, unsigned int id){
+  rx_solving_options_ind *ind;
+  ind = getRxId(rx, id);
+  ind->jac_counter++;
+}
+
+extern void RxODE_dadt_counter_incP(rx_solve *rx, unsigned int id){
+  rx_solving_options_ind *ind;
+  ind = getRxId(rx, id);
+  ind->dadt_counter++;
+}
+
+extern double RxODE_podoP(rx_solve *rx, unsigned int id){
+  rx_solving_options_ind *ind;
+  ind = getRxId(rx, id);
+  return ind->podo;
+}
+
+extern double RxODE_tlastP(rx_solve *rx, unsigned int id){
+  rx_solving_options_ind *ind;
+  ind = getRxId(rx, id);
+  return ind->tlast;
+}
+
+extern SEXP RxODE_df(SEXP sd){
+  rx_solve *rx;
+  rx = getRxSolve(sd);
+  rx_solving_options *op;
+  if(!R_ExternalPtrAddr(rx->op)){
+    error("Cannot get global ode solver options.");
+  }
+  op = (rx_solving_options*)R_ExternalPtrAddr(rx->op);
+  int add_cov = rx->add_cov;
+  int ncov = op->ncov;
+  int nlhs = op->nlhs;
+  int nobs = rx->nobs;
+  int nsim = rx->nsim;
+  int *rmState = rx->stateIgnore;
+  int nPrnState =0;
+  int i, j;
+  int neq[2];
+  neq[0] = op->neq;
+  neq[1] = 0;
+  for (i = 0; i < neq[0]; i++){
+    nPrnState+= (1-rmState[i]);
+  }
+  // Mutiple ID data?
+  int md = 0;
+  if (rx->nsub > 1) md = 1;
+  // Multiple simulation data?
+  int sm = 0;
+  if (rx->nsim > 1) sm = 1;
+  int ncols =add_cov*ncov+1+nPrnState+nlhs;
+  int nidCols = md + sm;
+  int pro = 0;
+  SEXP df = PROTECT(allocVector(VECSXP,ncols+nidCols)); pro++;
+  for (i = 0; i < nidCols; i++){
+    SET_VECTOR_ELT(df, i, PROTECT(allocVector(INTSXP, nobs*nsim))); pro++;
+  }
+  for (i = md + sm; i < ncols + nidCols; i++){
+    SET_VECTOR_ELT(df, i, PROTECT(allocVector(REALSXP, nobs*nsim))); pro++;
+  }
+  // Now create the data frame
+  double *dfp;
+  int *dfi;
+  int ii=0, jj = 0, ntimes;
+  rx_solving_options_ind *ind;
+  double *solve;
+  double *cov_ptr;
+  int nsub = rx->nsub;
+  for (int csim = 0; csim < nsim; csim++){
+    for (int csub = 0; csub < nsub; csub++){
+      neq[1] = csub+csim*nsub;
+      ind = &(rx->subjects[neq[1]]);
+      ntimes = ind->n_all_times;
+      solve =  ind->solve;
+      cov_ptr = ind->cov_ptr;
+      for (i = 0; i < ntimes; i++){
+	if (rxEvidP(i,rx,neq[1])==0){
+          jj = 0;
+	  // sim.id
+          if (sm){
+            dfi = INTEGER(VECTOR_ELT(df, jj));
+            dfi[ii] = csim+1;
+            jj++;
+          }
+	  // id
+          if (md){
+            dfi = INTEGER(VECTOR_ELT(df, jj));
+            dfi[ii] = csub+1;
+            jj++;
+          }        
+          // time
+          dfp = REAL(VECTOR_ELT(df, jj));
+          dfp[ii] = ind->all_times[i];
+	  jj++;
+          // States
+          if (nPrnState){
+	    for (j = 0; j < neq[0]; j++){
+               if (!rmState[j]){
+                 dfp = REAL(VECTOR_ELT(df, jj));
+                 dfp[ii] = solve[j+i*neq[0]];//scale[j];
+                 jj++;
+               }
+             }
+          }
+          // LHS
+          if (nlhs){
+	    rxCalcLhsP(i, rx, neq[1]);
+             for (j = 0; j < nlhs; j++){
+               dfp = REAL(VECTOR_ELT(df, jj));
+               dfp[ii] =rxLhsP(j, rx, neq[1]);
+	       jj++;
+             }
+          }
+          // Cov
+          if (add_cov*ncov > 0){
+	    for (j = 0; j < add_cov*ncov; j++){
+	      dfp = REAL(VECTOR_ELT(df, jj));
+	      // is this ntimes = nAllTimes or nObs time for this subject...?
+	      dfp[ii] = cov_ptr[j*ntimes+i];
+	      jj++;
+	    }
+          }
+          ii++;
+        }
+      }
+    }
+  }
+  SEXP sexp_rownames = PROTECT(allocVector(INTSXP,2)); pro++;
+  INTEGER(sexp_rownames)[0] = NA_INTEGER;
+  INTEGER(sexp_rownames)[1] = -nobs*nsim;
+  setAttrib(df, R_RowNamesSymbol, sexp_rownames);
+  SEXP sexp_colnames = PROTECT(allocVector(STRSXP,ncols+nidCols)); pro++;
+  jj = 0;
+  if (sm){
+    SET_STRING_ELT(sexp_colnames, jj, mkChar("sim.id"));
+    jj++;
+  }
+  // id
+  if (md){
+    SET_STRING_ELT(sexp_colnames, jj, mkChar("id"));
+    jj++;
+  }
+  SET_STRING_ELT(sexp_colnames, jj, mkChar("time"));
+  jj++;
+
+  // Put in state names
+  SEXP stateNames = op->stateNames;
+  if (nPrnState){
+    for (j = 0; j < neq[0]; j++){
+      if (!rmState[j]){
+	SET_STRING_ELT(sexp_colnames, jj, STRING_ELT(stateNames,j));
+        jj++;
+      }
+    }
+  }
+  // Put in LHS names
+  SEXP lhsNames = op->lhsNames;
+  for (i = 0; i < nlhs; i++){
+    SET_STRING_ELT(sexp_colnames, jj, STRING_ELT(lhsNames,i));
+    jj++;
+  }
+  // Put in Cov names
+  SEXP paramNames = op->paramNames;
+  int *par_cov = op->par_cov;
+  for (i = 0; i < ncov*add_cov; i++){
+    SET_STRING_ELT(sexp_colnames,jj, STRING_ELT(paramNames, par_cov[i]-1));
+    jj++;
+  }
+  setAttrib(df, R_NamesSymbol, sexp_colnames);
+  UNPROTECT(pro);
+  freeRxSolve(sd);
+  return df;
+}
+
