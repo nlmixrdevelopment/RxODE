@@ -601,9 +601,9 @@ List rxModelVars(const RObject &obj){
     Function f = as<Function>((as<List>((as<List>(obj))["cmpMgr"]))["rxDll"]);
     List lst = f();
     return lst["modVars"];
-  } else if (rxIs(obj,"solveRxODE")){
-    Environment e = as<Environment>((as<Environment>(obj.attr(".env")))["env"]);
-    return  rxModelVars(as<RObject>(e["out"]));
+  } else if (rxIs(obj,"solveRxODE7")){
+    Environment e = as<Environment>(obj.attr(".RxODE.env"));
+    return  rxModelVars(as<RObject>(e["object"]));
   } else if (rxIs(obj,"rxDll")){
     List lobj = (as<List>(obj))["modVars"];
     return lobj;
@@ -1495,10 +1495,8 @@ extern "C"{
   void par_lsoda(SEXP sd);
   void par_dop(SEXP sd);
   rx_solving_options *getRxOp(rx_solve *rx);
-}
-
-extern "C"{
-  SEXP RxODE_df(SEXP sd);  
+  SEXP RxODE_df(SEXP sd);
+  SEXP RxODE_par_df(SEXP sd);
 }
 
 //[[Rcpp::export]]
@@ -1545,6 +1543,7 @@ SEXP rxSolveC(const RObject &object,
   }
   List dat = RxODE_df(parData);
   if (rx->matrix){
+    freeRxSolve(parData);
     dat.attr("class") = "data.frame";
     int nr = as<NumericVector>(dat[0]).size();
     NumericMatrix tmpM(nr,dat.size());
@@ -1555,41 +1554,134 @@ SEXP rxSolveC(const RObject &object,
     return tmpM;
   } else {
     Function newEnv("new.env", R_BaseNamespace);
-    Environment e = newEnv(_["size"] = 29, _["parent"] = R_EmptyEnv);
+    Environment RxODE("package:RxODE");
+    Environment e = newEnv(_["size"] = 29, _["parent"] = RxODE);
     // Save information
     // Remove one final; Just for debug.
     // e["parData"] = parData;
-      
-    e["object"] =  object;
-    e["params"] = params;
-    e["events"] = events;
-    e["inits"] = inits;
-    e["covs"] = covs;
-    e["method"] = method;
-    e["transit_abs"] = transit_abs;
-    e["atol"] = atol;
-    e["rtol"] = rtol;
-    e["maxsteps"] = maxsteps;
-    e["hmin"] = hmin;
-    e["hmax"] = hmax;
-    e["hini"] = hini;
-    e["maxordn"] = maxordn;
-    e["maxords"] = maxords;
-    e["cores"] = cores;
-    e["covs_interpolation"] = covs_interpolation;
-    e["addCov"] = addCov;
-    e["matrix"] = matrix;
-    e["sigma"] = sigma;
-    e["sigmaDf"] = sigmaDf;
-    e["sigmaNcores"] = sigmaNcores;
-    e["sigmaIsChol"] = sigmaIsChol;
-    e["amountUnits"] = amountUnits;
-    e["timeUnits"] = timeUnits;
+    List xtra = RxODE_par_df(parData);
+    e["params.dat"] = xtra[0];
+    e["EventTable"] = xtra[1];
+    e["dosing"] = xtra[3];
+    e["sampling"] = xtra[2];
+    e["obs.rec"] = xtra[4];
+    e["inits.dat"] = parData["inits"];
+    CharacterVector units(2);
+    units[0] = as<std::string>(parData["amount.units"]);
+    units[1] = as<std::string>(parData["time.units"]);
+    CharacterVector unitsN(2);
+    unitsN[0] = "dosing";
+    unitsN[1] = "time";
+    units.names() = unitsN;
+    e["units"] = units;
+    e["nobs"] = parData["nObs"];
+    
+    Function eventTable("eventTable",RxODE);
+    List et = eventTable(_["amount.units"] = parData["amount.units"], _["time.units"] =parData["time.units"]);
+    Function importEt = as<Function>(et["import.EventTable"]);
+    importEt(e["EventTable"]);
+    e["events.EventTable"] = et;
+    freeRxSolve(parData);
+    Function parse2("parse", R_BaseNamespace);
+    Function eval2("eval", R_BaseNamespace);
+    e["get.EventTable"] = eval2(_["expr"]   = parse2(_["text"]="function() EventTable"),
+				_["envir"]  = e);
+    e["get.dosing"] = eval2(_["expr"]   = parse2(_["text"]="function() dosing"),
+			    _["envir"]  = e);
+    e["get.sampling"] = eval2(_["expr"]   = parse2(_["text"]="function() sampling"),
+                            _["envir"]  = e);
+    e["get.obs.rec"] = eval2(_["expr"]   = parse2(_["text"]="function() obs.rec"),
+                              _["envir"]  = e);
+    e["get.units"] = eval2(_["expr"]   = parse2(_["text"]="function() units"),
+			   _["envir"]  = e);
+    e["get.nobs"] = eval2(_["expr"]   = parse2(_["text"]="function() nobs"),
+                           _["envir"]  = e);
+    e["args.object"] =  object;
+    e["args.params"] = params;    
+    e["args.events"] = events;
+    e["args.inits"] = inits;
+    e["args.covs"] = covs;
+    e["args.method"] = method;
+    e["args.transit_abs"] = transit_abs;
+    e["args.atol"] = atol;
+    e["args.rtol"] = rtol;
+    e["args.maxsteps"] = maxsteps;
+    e["args.hmin"] = hmin;
+    e["args.hmax"] = hmax;
+    e["args.hini"] = hini;
+    e["args.maxordn"] = maxordn;
+    e["args.maxords"] = maxords;
+    e["args.cores"] = cores;
+    e["args.covs_interpolation"] = covs_interpolation;
+    e["args.addCov"] = addCov;
+    e["args.matrix"] = matrix;
+    e["args.sigma"] = sigma;
+    e["args.sigmaDf"] = sigmaDf;
+    e["args.sigmaNcores"] = sigmaNcores;
+    e["args.sigmaIsChol"] = sigmaIsChol;
+    e["args.amountUnits"] = amountUnits;
+    e["args.timeUnits"] = timeUnits;
     dat.attr(".RxODE.env") = e;
     CharacterVector cls(2);
-    cls(1) = "solveRxODEm";
-    cls(0) = "data.frame";
+    cls(0) = "solveRxODE7";
+    cls(1) = "data.frame";
     dat.attr("class") = cls;
     return(dat);
   }
+}
+
+//[[Rcpp::export]]
+RObject rxSolveGet(RObject obj,std::string arg){
+  if (rxIs(obj, "solveRxODE7")){
+    List lst = as<List>(obj);
+    CharacterVector nm = lst.names();
+    int i = 0, n = nm.size();
+    for (i = 0; i < n; i++){
+      if (nm[i] == arg){
+        return lst[arg];
+      }
+    }
+    Environment e = Environment(lst.attr(".RxODE.env"));
+    if (e.exists(arg)){
+      return e[arg];
+    }
+    if (arg == "params" || arg == "par" || arg == "pars" || arg == "param"){
+      return rxSolveGet(obj, "params.dat");
+    } else if (arg == "inits" || arg == "init"){
+      return rxSolveGet(obj, "inits.dat");
+    } else if (arg == "t"){
+      return rxSolveGet(obj,"time");
+    }
+    // Now parameters
+    List pars = List(e["params.dat"]);
+    CharacterVector nmp = pars.names();
+    n = pars.size();
+    for (i = 0; i < n; i++){
+      if (nmp[i] == arg){
+        return pars[arg];
+      }
+    }
+    // // Now inis.
+    // Function sub("sub", R_BaseNamespace);
+    // NumericVector ini = NumericVector(e["inits.dat"]);
+    // CharacterVector nmi = ini.names();
+    // n = ini.size();
+    // std::string cur;
+    // for (i = 0; i < n; i++){
+    //   cur = as<std::string>(sub("(?:(?:[_.]0)|0|\\(0\\)|\\[0\\]|\\{0\\})$","", arg));
+    //   if (nmi[i] == cur){
+    //     return wrap(ini[i]);
+    //   }
+    // }
+    // // Sensitivities -- last
+    // // This is slower, defer to last.
+    // for (i = 0; i < n; i++){
+    //   // The regular expression came from rex;  It is a it long...
+    //   if (as<std::string>(sub("rx__sens_((?:[a-zA-Z][_a-zA-Z0-9.]*|(?:\\.){1,}[_a-zA-Z][_a-zA-Z0-9.]*))_BY_((?:[a-zA-Z][_a-zA-Z0-9.]*|(?:\\.){1,}[_a-zA-Z][_a-zA-Z0-9.]*))__",
+    // 			      "_sens_\\1_\\2", nm[i])) == arg){
+    // 	return lst[i];
+    //   }
+    // }
+  }
+  return R_NilValue;
 }

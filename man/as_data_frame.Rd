@@ -2,14 +2,14 @@
 % Please edit documentation in R/rxsolve.R
 \name{as_data_frame}
 \alias{as_data_frame}
-\alias{as_data_frame.solveRxODE}
+\alias{as_data_frame.solveRxODE7}
 \alias{as_data_frame}
-\alias{as.tbl.solveRxODE}
+\alias{as.tbl.solveRxODE7}
 \title{as_data_frame for solveRxODE}
 \usage{
-\method{as_data_frame}{solveRxODE}(x, ...)
+\method{as_data_frame}{solveRxODE7}(x, ...)
 
-\method{as_data_frame}{solveRxODE}(x, ...)
+\method{as_data_frame}{solveRxODE7}(x, ...)
 }
 \arguments{
 \item{x}{Solved data frame}

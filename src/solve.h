@@ -42,6 +42,7 @@ typedef struct {
   int kind;
   int is_locf;
   int cores;
+  int extraCmt;
 } rx_solving_options;
 
 
@@ -68,8 +69,6 @@ typedef struct {
   double *all_times;
   int *idose;
   int idosen;
-  int extraCmt;
-  FILE *fp;
   int id;
   int sim;
   double ylow;

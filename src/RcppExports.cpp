@@ -250,6 +250,18 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// rxSolveGet
+RObject rxSolveGet(RObject obj, std::string arg);
+RcppExport SEXP _RxODE_rxSolveGet(SEXP objSEXP, SEXP argSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< RObject >::type obj(objSEXP);
+    Rcpp::traits::input_parameter< std::string >::type arg(argSEXP);
+    rcpp_result_gen = Rcpp::wrap(rxSolveGet(obj, arg));
+    return rcpp_result_gen;
+END_RCPP
+}
 // rxInv
 NumericVector rxInv(SEXP matrix);
 RcppExport SEXP _RxODE_rxInv(SEXP matrixSEXP) {

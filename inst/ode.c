@@ -16,21 +16,16 @@
 
 // Types for par pointers.r
 typedef void (*RxODE_update_par_ptr)(double t, rx_solve *rx, unsigned int id);
-typedef double (*RxODE_transit3)(double t, double n, double mtt);
+typedef double (*RxODE_transit3P)(double t, rx_solve *rx, unsigned int id, double n, double mtt);
 typedef double (*RxODE_fn) (double x);
 typedef double (*RxODE_fn2) (double x, double y);
 typedef double (*RxODE_fn2i) (double x, int i);
-typedef double (*RxODE_transit4)(double t, double n, double mtt, double bio);
+typedef double (*RxODE_transit4P)(double t, rx_solve *rx, unsigned int id, double n, double mtt, double bio);
 typedef double (*RxODE_vec) (int val, rx_solve *rx, unsigned int id);
 typedef long (*RxODE_cnt) (rx_solve *rx, unsigned int id);
 typedef void (*RxODE_inc) (rx_solve *rx, unsigned int id);
 typedef double (*RxODE_val) (rx_solve *rx, unsigned int id);
 typedef SEXP (*RxODE_ode_solver) (SEXP sexp_theta, SEXP sexp_inits, SEXP sexp_lhs, SEXP sexp_time, SEXP sexp_evid,SEXP sexp_dose, SEXP sexp_pcov, SEXP sexp_cov, SEXP sexp_locf, SEXP sexp_atol, SEXP sexp_rtol, SEXP sexp_hmin, SEXP sexp_hmax, SEXP sexp_h0, SEXP sexp_mxordn, SEXP sexp_mxords, SEXP sexp_mx,SEXP sexp_stiff, SEXP sexp_transit_abs, SEXP sexp_object, SEXP sexp_extra_args, SEXP sexp_matrix, SEXP sexp_add_cov);
-typedef void (*RxODE_assign_fn_pointers)(void (*fun_dydt)(int *, double, double *, double *),
-					 void (*fun_calc_lhs)(int, double, double *, double *),
-					 void (*fun_calc_jac)(int *, double, double *, double *, unsigned int),
-					 void (*fun_update_inis)(int, double * _ini_sexp),
-					 int fun_jt,int fun_mf, int fun_debug);
 typedef SEXP (*RxODE_assign_fn_xpointers)(void (*fun_dydt)(int *, double, double *, double *),
 					  void (*fun_calc_lhs)(int, double, double *, double *),
 					  void (*fun_calc_jac)(int *, double, double *, double *, unsigned int),
@@ -50,12 +45,11 @@ RxODE_update_par_ptr _update_par_ptr;
 RxODE_cnt _dadt_counter_val, _jac_counter_val;
 RxODE_inc _dadt_counter_inc, _jac_counter_inc;
 RxODE_val podo, tlast;
-RxODE_transit4 _transit4;
-RxODE_transit3 _transit3;
+RxODE_transit4P _transit4P;
+RxODE_transit3P _transit3P;
 RxODE_fn _safe_log, safe_zero, factorial, _as_zero, abs_log, abs_log1p;
 RxODE_fn2 sign_exp, Rx_pow;
 RxODE_fn2i Rx_pow_di;
-RxODE_assign_fn_pointers _assign_fn_pointers;
 RxODE_assign_fn_xpointers _assign_fn_xpointers;
 RxODE_ode_solver_old_c _old_c;
 RxODE_solveLinB solveLinB;
@@ -102,6 +96,7 @@ extern double _sign(unsigned int n, ...){
 }
 
 rx_solve *_solveData = NULL;
+extern SEXP __ODE_SOLVER_XPTR__ ();
 
 extern void __ODE_SOLVER_SOLVEDATA__ (rx_solve *solve){
   _solveData = solve;
@@ -111,30 +106,32 @@ extern rx_solve *__ODE_SOLVER_GET_SOLVEDATA__(){
   return _solveData;
 }
 
-extern void __ODE_SOLVER_PTR__();
-extern SEXP __ODE_SOLVER_XPTR__();
-
-extern void __ODE_SOLVER__(
-                    int *neq,
-                    double *theta,      //order:
-                    double *time,
-                    int *evid,
-                    int *ntime,
-                    double *inits,
-                    double *dose,
-                    double *ret,
-                    double *atol,
-                    double *rtol,
-                    int *stiff,
-                    int *transit_abs,
-                    int *nlhs,
-                    double *lhs,
-                    int *rc
-                    ){
-  // Backward compatible ode solver for 0.5* C interface
-  __ODE_SOLVER_PTR__();
+extern void __ODE_SOLVER__(int *neq,
+			   double *theta,      //order:
+			   double *time,
+			   int *evid,
+			   int *ntime,
+			   double *inits,
+			   double *dose,
+			   double *ret,
+			   double *atol,
+			   double *rtol,
+			   int *stiff,
+			   int *transit_abs,
+			   int *nlhs,
+			   double *lhs,
+			   int *rc
+			   ){
+    // Backward compatible ode solver for 0.5* C interface
   _old_c(neq, theta, time, evid, ntime, inits, dose, ret, atol, rtol, stiff, transit_abs, nlhs, lhs, rc);
 }
+
+static R_NativePrimitiveArgType __ODE_SOLVER__rx_t[] = {
+  //*neq, *theta, *time,  *evid, *ntime, *inits,   *dose,   *ret,     *atol,  *rtol,   *stiff, *transit_abs, *nlhs, *lhs, *rc
+  INTSXP,REALSXP, REALSXP, INTSXP, INTSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, INTSXP, INTSXP, INTSXP, REALSXP, INTSXP
+};
+
+// CODE HERE
 
 extern void __DYDT_LSODA__(int *neq, double *t, double *A, double *DADT)
 {
@@ -147,66 +144,17 @@ extern void __CALC_JAC_LSODA__(int *neq, double *t, double *A,int *ml, int *mu, 
 }
 
 
-extern void __ODE_SOLVER_PTR__  (){
-  _assign_fn_pointers(__DYDT__ , __CALC_LHS__ , __CALC_JAC__, __INIS__, __JT__ , __MF__,
-#ifdef __DEBUG__
-                      1
-#else
-                      0
-#endif
-                      );
-}
-
 extern SEXP __ODE_SOLVER_XPTR__  (){
   return _assign_fn_xpointers(__DYDT__ , __CALC_LHS__ , __CALC_JAC__, __INIS__, __DYDT_LSODA__, __CALC_JAC_LSODA__,
-			      __ODE_SOLVER_SOLVEDATA__, __ODE_SOLVER_GET_SOLVEDATA__, __JT__ , __MF__,
+                              __ODE_SOLVER_SOLVEDATA__, __ODE_SOLVER_GET_SOLVEDATA__, __JT__ , __MF__,
 #ifdef __DEBUG__
-                      1
+                              1
 #else
-                      0
+                              0
 #endif
-                      );
+                              );
 }
 
-extern SEXP __ODE_SOLVER_SEXP__ (// Parameters
-                                 SEXP sexp_theta,
-                                 SEXP sexp_inits,
-                                 SEXP sexp_lhs,
-				 // Events
-				 SEXP sexp_time,
-				 SEXP sexp_evid,
-				 SEXP sexp_dose,
-				 // Covariates
-				 SEXP sexp_pcov,
-				 SEXP sexp_cov,
-				 SEXP sexp_locf,
-				 // Solver Options
-				 SEXP sexp_atol,
-				 SEXP sexp_rtol,
-				 SEXP sexp_hmin,
-				 SEXP sexp_hmax,
-				 SEXP sexp_h0,
-				 SEXP sexp_mxordn,
-				 SEXP sexp_mxords,
-				 SEXP sexp_mx,
-				 SEXP sexp_stiff,
-				 SEXP sexp_transit_abs,
-				 // Object Creation
-				 SEXP sexp_object,
-				 SEXP sexp_extra_args,
-				 SEXP sexp_matrix,
-				 SEXP sexp_add_cov){
-  __ODE_SOLVER_PTR__();
-  RxODE_ode_solver ode_solver = (RxODE_ode_solver) R_GetCCallable("RxODE","RxODE_ode_solver");
-  return ode_solver(sexp_theta,sexp_inits,sexp_lhs,sexp_time,sexp_evid,sexp_dose,sexp_pcov,sexp_cov,sexp_locf,sexp_atol,
-		    sexp_rtol,sexp_hmin,sexp_hmax,sexp_h0,sexp_mxordn,sexp_mxords,sexp_mx,sexp_stiff,sexp_transit_abs,
-		    sexp_object,sexp_extra_args,sexp_matrix,sexp_add_cov);
-}
-
-static R_NativePrimitiveArgType __ODE_SOLVER__rx_t[] = {
-  //*neq, *theta, *time,  *evid, *ntime, *inits,   *dose,   *ret,     *atol,  *rtol,   *stiff, *transit_abs, *nlhs, *lhs, *rc
-  INTSXP,REALSXP, REALSXP, INTSXP, INTSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, INTSXP, INTSXP, INTSXP, REALSXP, INTSXP
-};
 
 
 //Initilize the dll to match RxODE's calls
@@ -222,12 +170,11 @@ void __R_INIT__ (DllInfo *info){
   podo  = (RxODE_val) R_GetCCallable("RxODE","RxODE_podoP");
   tlast = (RxODE_val) R_GetCCallable("RxODE","RxODE_tlastP");
   factorial=(RxODE_fn) R_GetCCallable("RxODE","RxODE_factorial");
-  _transit3 = (RxODE_transit3) R_GetCCallable("RxODE","RxODE_transit3");
-  _transit4 = (RxODE_transit4) R_GetCCallable("RxODE","RxODE_transit4");
+  _transit3P = (RxODE_transit3P) R_GetCCallable("RxODE","RxODE_transit3P");
+  _transit4P = (RxODE_transit4P) R_GetCCallable("RxODE","RxODE_transit4P");
   _safe_log =(RxODE_fn) R_GetCCallable("RxODE","RxODE_safe_log");
   safe_zero =(RxODE_fn) R_GetCCallable("RxODE","RxODE_safe_zero");
   _as_zero = (RxODE_fn) R_GetCCallable("RxODE","RxODE_as_zero");
-  _assign_fn_pointers=(RxODE_assign_fn_pointers) R_GetCCallable("RxODE","RxODE_assign_fn_pointers");
   _assign_fn_xpointers=(RxODE_assign_fn_xpointers) R_GetCCallable("RxODE","RxODE_get_fn_pointers");
   _old_c = (RxODE_ode_solver_old_c) R_GetCCallable("RxODE","RxODE_ode_solver_old_c");
   _sum1   = (RxODE_sum_prod)R_GetCCallable("RxODE","RxODE_sum");
@@ -240,8 +187,7 @@ void __R_INIT__ (DllInfo *info){
   solveLinB = (RxODE_solveLinB) R_GetCCallable("RxODE","RxODE_solveLinB");
   // Register the outside functions
   R_RegisterCCallable(__LIB_STR__,__ODE_SOLVER_STR__,       (DL_FUNC) __ODE_SOLVER__);
-  R_RegisterCCallable(__LIB_STR__,__ODE_SOLVER_SEXP_STR__,  (DL_FUNC) __ODE_SOLVER_SEXP__);
-  R_RegisterCCallable(__LIB_STR__,__ODE_SOLVER_PTR_STR__,   (DL_FUNC) __ODE_SOLVER_PTR__);
+  R_RegisterCCallable(__LIB_STR__,"__ODE_SOLVER_XPTR__",   (DL_FUNC) __ODE_SOLVER_XPTR__);
 
   /* R_registerRoutines(info, NULL, NULL, NULL, NULL); */
   /* R_useDynamicSymbols(info,TRUE); */
@@ -253,16 +199,11 @@ void __R_INIT__ (DllInfo *info){
   
   R_CallMethodDef callMethods[]  = {
     {__ODE_SOLVER_XPTR_STR__, (DL_FUNC) &__ODE_SOLVER_XPTR__, 0},
-    {__ODE_SOLVER_PTR_STR__, (DL_FUNC) &__ODE_SOLVER_PTR__, 0},
-    {__ODE_SOLVER_SEXP_STR__, (DL_FUNC) &__ODE_SOLVER_SEXP__, 23},
     {__MODEL_VARS_STR__, (DL_FUNC) &__MODEL_VARS__, 0},
     {"__INIS__", (DL_FUNC) &__INIS__, 1},
     {NULL, NULL, 0}
   };
   R_registerRoutines(info, cMethods, callMethods, NULL, NULL);
   R_useDynamicSymbols(info,FALSE);
-  // Register the function pointers so if someone directly calls the
-  // ode solvers directly, they use the last loaded RxODE model.
-  __ODE_SOLVER_PTR__();
 }
 

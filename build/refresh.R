@@ -12,9 +12,9 @@ odec <- readLines(devtools::package_file("inst/ode.c"));
 solvec <- readLines(devtools::package_file("src/solve.h"));
 w <- which(regexpr("#define R_pow_di Rx_pow_di", odec, fixed=TRUE) != -1)[1];
 odec <- c(odec[1:w], solvec, odec[-(1:w)])
-w <- which(regexpr("__ODE_SOLVER__", odec) != -1)[1];
+w <- which(regexpr("// CODE HERE", odec) != -1)[1];
 ode <- odec[seq(1, w - 1)];
-solve <- odec[seq(w, length(odec))];
+solve <- odec[seq(w + 1, length(odec))];
 solve <- paste(gsub("%", "%%", gsub("\"", "\\\\\"", solve)), collapse="\\n")
 if (nchar(solve) > 4095){
     solve1 <- substr(solve, 1, 4094);

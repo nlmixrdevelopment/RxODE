@@ -1,36 +1,36 @@
 ##' @author Matthew L. Fidler
 ##' @export
 ##' @keywords internal
-as.data.frame.solveRxODE <- function(x, row.names = NULL, optional = FALSE, ...){
-    attr(x, ".env") <- NULL;
+as.data.frame.solveRxODE7 <- function(x, row.names = NULL, optional = FALSE, ...){
+    attr(x, ".RxODE.env") <- NULL;
     class(x) <- "data.frame";
     return(as.data.frame(x, row.names=row.names, optional=optional, ...));
 }
 ##' @name as_data_frame
-##' @export as_data_frame.solveRxODE
-##' @method as_data_frame solveRxODE
+##' @export as_data_frame.solveRxODE7
+##' @method as_data_frame solveRxODE7
 ##' @description compatability function for as_data_frame
 ##' @title as_data_frame for solveRxODE
 ##' @param x Solved data frame
 ##' @param ... Additional arguments
 ##' @author Matthew L. Fidler
 ##' @keywords internal
-as_data_frame.solveRxODE <- function(x, ...){
+as_data_frame.solveRxODE7 <- function(x, ...){
     call <- as.list(match.call(expand.dots=TRUE))[-1];
     call$x <- as.data.frame(x);
     return(do.call(getFromNamespace("as_data_frame","tibble"), call, envir=parent.frame(1)));
 }
 
 ##' @name as_data_frame
-##' @export as_data_frame.solveRxODE
-##' @method as_data_frame solveRxODE
+##' @export as_data_frame.solveRxODE7
+##' @method as_data_frame solveRxODE7
 ##' @description compatability function for as_data_frame
 ##' @title as_data_frame for solveRxODE
 ##' @param x Solved data frame
 ##' @param ... Additional arguments
 ##' @author Matthew L. Fidler
 ##' @keywords internal
-as.tbl.solveRxODE <- function(x, ...){
+as.tbl.solveRxODE7 <- function(x, ...){
     call <- as.list(match.call(expand.dots=TRUE))[-1];
     call$x <- as.data.frame(x);
     return(do.call(getFromNamespace("as.tbl","dplyr"), call, envir=parent.frame(1)));
@@ -38,7 +38,7 @@ as.tbl.solveRxODE <- function(x, ...){
 
 ##' @author Matthew L.Fidler
 ##' @export
-print.solveRxODE <- function(x, ...){
+print.solveRxODE7 <- function(x, ...){
     args <- as.list(match.call(expand.dots = TRUE));
     if (any(names(args) == "n")){
         n <- args$n;
@@ -50,41 +50,45 @@ print.solveRxODE <- function(x, ...){
     } else {
         width <- NULL;
     }
-    env <- attr(x, ".env");
-    rxode <- env$env$out;
-    lst <- c(list(params=env$params, inits=env$inits), env$extra.args)
-    cat("Solved RxODE object\n");
-    cat(sprintf("Dll: %s\n\n", rxDll(rxode)))
-    cat("Parameters:\n")
+    env <- attr(x, ".RxODE.env");
+    rxode <- env$object;
+    message("Solved RxODE object");
     is.dplyr <- requireNamespace("dplyr", quietly = TRUE) && RxODE.display.tbl;
-    w <- which((names(lst$params) %in% names(x)))
-    if (length(w) > 0){
-        print(lst$params[-w]);
-        message("\nFirst Part of Time Varying Covariates:");
-        d <- as.data.frame(lst$covs)[, names(lst$params)[w]];
-        if (length(w) == 1){
-            d <- data.frame(d = d);
-            names(d) <- names(lst$params)[w];
-        }
-        if (!is.dplyr){
-            print(head(d), n = n);
-        } else {
-            print(dplyr::as.tbl(d), n = n, width = width);
-        }
-    }  else {
-        p <- lst$params;
-        if (length(env$pcov) > 0){
-            p2 <- p[-env$pcov];
-            print(p2)
-            message("\nTime Varying Covariates");
-            message(paste(names(p[env$pcov]), collapse=" "));
-        } else {
-            print(p);
-        }
+    ## cat(sprintf("Dll: %s\n\n", rxDll(x)))
+    message("Parameters:");
+    if (!is.dplyr){
+        print(head(as.matrix(x$pars), n = n));
+    } else {
+        print(dplyr::as.tbl(x$pars), n = n, width = width);
     }
-    cat("\n\nInitial Conditions:\n")
-    inits <- lst$inits[regexpr(regSens, names(lst$inits)) == -1];
-    print(inits);
+    ## w <- which((names(lst$params) %in% names(x)))
+    ## if (length(w) > 0){
+    ##     print(lst$params[-w]);
+    ##     message("\nFirst Part of Time Varying Covariates:");
+    ##     d <- as.data.frame(env$covs)[, names(lst$params)[w]];
+    ##     if (length(w) == 1){
+    ##         d <- data.frame(d = d);
+    ##         names(d) <- names(lst$params)[w];
+    ##     }
+    ##     if (!is.dplyr){
+    ##         print(head(d), n = n);
+    ##     } else {
+    ##         print(dplyr::as.tbl(d), n = n, width = width);
+    ##     }
+    ## }  else {
+    ##     p <- lst$params;
+    ##     if (length(env$pcov) > 0){
+    ##         p2 <- p[-env$pcov];
+    ##         print(p2)
+    ##         message("\nTime Varying Covariates");
+    ##         message(paste(names(p[env$pcov]), collapse=" "));
+    ##     } else {
+    ##         print(p);
+    ##     }
+    ## }
+    ## message("\n\nInitial Conditions:")
+    ## inits <- lst$inits[regexpr(regSens, names(lst$inits)) == -1];
+    ## print(inits);
     cat("\n\nFirst part of data:\n")
     if (!is.dplyr){
         print(head(as.matrix(x), n = n));
@@ -164,71 +168,72 @@ summary.solveRxODE <- function(object, ...){
 
 ##' @author Matthew L.Fidler
 ##' @export
-`$.solveRxODE` <-  function(obj, arg, exact = TRUE){
-    m <- as.data.frame(obj);
-    ret <- m[[arg, exact = exact]];
-    if (is.null(ret) & is(arg,"character")){
-        if (nchar(arg) > 6 && substr(arg, 1, 6) == "_sens_"){
-            w <- which(gsub(regSens, "_sens_\\1_\\2", names(m)) == arg);
-            if (length(w) == 1){
-                return(m[, w]);
-            } else {
-                    return(NULL)
-            }
-        }
-        ##
-        ## Slows down
-        ##
-        ## w <- which(gsub(regSens, "\\1_\\2", names(m)) == arg);
-        ## if (length(w) == 1){
-        ##     return(m[, w]);
-        ## }
-        ##
-        if (arg == "t"){
-            return(m[["time"]]);
-        } else {
-            env <- attr(obj, ".env");
-            tmp <- c(list(params=env$params, inits=env$inits), env$extra.args);
-            if (regexpr(regToSens1, arg) != -1){
-                ret <- m[[gsub(regToSens1, "d/dt(d(\\1)/d(\\2))", arg)]];
-                if (!is.null(ret)){
-                    return(ret)
-                }
-            }
-            if (isTRUE(exact)){
-                w <- which(names(tmp) == arg);
-            } else {
-                w <- which(regexpr(rex::rex(start, arg), names(tmp)) != -1)
-                if (length(w) == 1 && !any(names(tmp) == arg) && is.na(exact)){
-                    warning(sprintf("partial match of '%s' to '%s'", arg, names(tmp)[w]));
-                }
-            }
-            if (length(w) == 1){
-                return(tmp[[w]]);
-            }
-            if (any(names(tmp$param) == arg)){
-                return(tmp$param[arg]);
-            }
-            if (any(names(tmp$init) == gsub(regIni, "", arg))){
-                arg <- gsub(regIni, "", arg);
-                return(tmp$init[arg]);
-            }
-            if (any(arg == names(tmp$events))){
-                if (substr(arg, 0, 4) == "get."){
-                    return(tmp$events[[arg]]);
-                } else {
-                    call <- as.list(match.call(expand.dots = TRUE));
-                    env <- parent.frame();
-                    return(function(..., .obj = obj, .objName = toString(call$obj), .objArg = toString(call$arg), .envir = env){
-                        return(solveRxODE_updateEventTable(.obj, .objName, .objArg, ..., envir = .envir));
-                    });
-                }
-            }
-            return(NULL);
-        }
-    } else {
-        return(rxTbl(ret));
-    }
+`$.solveRxODE7` <-  function(obj, arg, exact = TRUE){
+    .Call(`_RxODE_rxSolveGet`, obj, arg);
+    ## m <- as.data.frame(obj);
+    ## ret <- m[[arg, exact = exact]];
+    ## if (is.null(ret) & is(arg,"character")){
+    ##     if (nchar(arg) > 6 && substr(arg, 1, 6) == "_sens_"){
+    ##         w <- which(gsub(regSens, "_sens_\\1_\\2", names(m)) == arg);
+    ##         if (length(w) == 1){
+    ##             return(m[, w]);
+    ##         } else {
+    ##                 return(NULL)
+    ##         }
+    ##     }
+    ##     ##
+    ##     ## Slows down
+    ##     ##
+    ##     ## w <- which(gsub(regSens, "\\1_\\2", names(m)) == arg);
+    ##     ## if (length(w) == 1){
+    ##     ##     return(m[, w]);
+    ##     ## }
+    ##     ##
+    ##     if (arg == "t"){
+    ##         return(m[["time"]]);
+    ##     } else {
+    ##         env <- attr(obj, ".env");
+    ##         tmp <- c(list(params=env$params, inits=env$inits), env$extra.args);
+    ##         if (regexpr(regToSens1, arg) != -1){
+    ##             ret <- m[[gsub(regToSens1, "d/dt(d(\\1)/d(\\2))", arg)]];
+    ##             if (!is.null(ret)){
+    ##                 return(ret)
+    ##             }
+    ##         }
+    ##         if (isTRUE(exact)){
+    ##             w <- which(names(tmp) == arg);
+    ##         } else {
+    ##             w <- which(regexpr(rex::rex(start, arg), names(tmp)) != -1)
+    ##             if (length(w) == 1 && !any(names(tmp) == arg) && is.na(exact)){
+    ##                 warning(sprintf("partial match of '%s' to '%s'", arg, names(tmp)[w]));
+    ##             }
+    ##         }
+    ##         if (length(w) == 1){
+    ##             return(tmp[[w]]);
+    ##         }
+    ##         if (any(names(tmp$param) == arg)){
+    ##             return(tmp$param[arg]);
+    ##         }
+    ##         if (any(names(tmp$init) == gsub(regIni, "", arg))){
+    ##             arg <- gsub(regIni, "", arg);
+    ##             return(tmp$init[arg]);
+    ##         }
+    ##         if (any(arg == names(tmp$events))){
+    ##             if (substr(arg, 0, 4) == "get."){
+    ##                 return(tmp$events[[arg]]);
+    ##             } else {
+    ##                 call <- as.list(match.call(expand.dots = TRUE));
+    ##                 env <- parent.frame();
+    ##                 return(function(..., .obj = obj, .objName = toString(call$obj), .objArg = toString(call$arg), .envir = env){
+    ##                     return(solveRxODE_updateEventTable(.obj, .objName, .objArg, ..., envir = .envir));
+    ##                 });
+    ##             }
+    ##         }
+    ##         return(NULL);
+    ##     }
+    ## } else {
+    ##     return(rxTbl(ret));
+    ## }
 }
 
 solveRxODE_updateEventTable <- function(obj, objName, name, ..., envir = parent.frame()){

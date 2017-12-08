@@ -834,15 +834,15 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         Free(v);
       }
       if (!strcmp("transit2", name) && i == 0){
-        sprintf(SBPTR, "_transit3(t,");
-        sb.o += 12;
+        sprintf(SBPTR, "_transit3P(t, _solveData, _cSub, ");
+        sb.o += 33;
         sprintf(SBTPTR,"transit(");
         sbt.o += 8;
         rx_podo = 1;
       }
       if (!strcmp("transit3", name) && i == 0){
-        sprintf(SBPTR, "_transit4(t,");
-        sb.o += 12;
+        sprintf(SBPTR, "_transit4P(t, _solveData, _cSub, ");
+        sb.o += 33;
         sprintf(SBTPTR,"transit(");
         sbt.o += 8;
         rx_podo = 1;
@@ -1522,7 +1522,7 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
   fprintf(outpt,"  return lst;\n");
   fprintf(outpt,"}\n");
   fprintf(outpt, __HD_SOLVE1__);
-  fprintf(outpt, __HD_SOLVE2__);
+  //fprintf(outpt, __HD_SOLVE2__);
 }
 
 void codegen(FILE *outpt, int show_ode) {

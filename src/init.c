@@ -12,19 +12,10 @@ static R_NativePrimitiveArgType RxODE_one_int_t[] = {
   INTSXP
 };
 
-static R_NativePrimitiveArgType RxODE_transit4_t[] = {
-  REALSXP, REALSXP, REALSXP, REALSXP
-};
-
-static R_NativePrimitiveArgType RxODE_transit3_t[] = {
-  REALSXP, REALSXP, REALSXP
-};
-
 static R_NativePrimitiveArgType RxODE_one_dbl_t[] = {
   REALSXP
 };
 
-SEXP RxODE_ode_solver(SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP);
 SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SEXP parse_model,SEXP parse_model3);
 SEXP _RxODE_linCmtEnv(SEXP rho);
 SEXP _RxODE_rxInv(SEXP matrix);
@@ -57,6 +48,7 @@ SEXP _RxODE_rxData(SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,
 SEXP _RxODE_rxSolveC(SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,
 		     SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,
 		     SEXP,SEXP,SEXP,SEXP,SEXP);
+SEXP _RxODE_rxSolveGet(SEXP, SEXP);
 
 double RxODE_solveLinB(double t, int linCmt, int diff1, int diff2, double A, double alpha, double B, double beta, double C, double gamma, double ka, double tlag);
 static R_NativePrimitiveArgType RxODE_solveLinB_t[] = {
@@ -79,8 +71,6 @@ extern double RxODE_sign_exp(double sgn, double x);
 extern double RxODE_abs_log(double x);
 extern double RxODE_abs_log1p(double x);
 extern double RxODE_factorial(double x);
-extern double RxODE_transit4(double t, double n, double mtt, double bio);
-extern double RxODE_transit3(double t, double n, double mtt);
 extern double RxODE_sum(double *input, int len);
 extern double RxODE_prod(double *input, int len);
 extern void RxODE_ode_solve_env(SEXP sexp_rho);
@@ -101,7 +91,8 @@ extern double rxLhsP(int i, rx_solve *rx, unsigned int id);
 extern void rxCalcLhsP(int i, rx_solve *rx, unsigned int id);
 extern unsigned int nAllTimesP (rx_solve *rx, unsigned int id);
 extern int rxEvidP(int i, rx_solve *rx, unsigned int id);
-
+extern double RxODE_transit4P(double t, rx_solve *rx, unsigned int id, double n, double mtt, double bio);
+extern double RxODE_transit3P(double t, rx_solve *rx, unsigned int id, double n, double mtt);
 
 extern SEXP RxODE_get_fn_pointers(void (*fun_dydt)(unsigned int, double, double *, double *),
                                   void (*fun_calc_lhs)(double, double *, double *),
@@ -165,7 +156,6 @@ extern void RxODE_assign_fn_pointers(void (*fun_dydt)(unsigned int, double, doub
 
 void R_init_RxODE(DllInfo *info){
   R_CallMethodDef callMethods[]  = {
-    {"RxODE_ode_solver", (DL_FUNC) &RxODE_ode_solver, 23},
     {"trans", (DL_FUNC) &trans, 8},
     {"_RxODE_rxInv", (DL_FUNC) &_RxODE_rxInv, 1},
     {"_RxODE_RxODE_finalize_focei_omega",(DL_FUNC) &_RxODE_RxODE_finalize_focei_omega, 1},
@@ -191,6 +181,7 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_rxSolvingData", (DL_FUNC) &_RxODE_rxSolvingData, 16},
     {"_RxODE_rxData", (DL_FUNC) &_RxODE_rxData, 25},
     {"_RxODE_rxSolveC", (DL_FUNC) &_RxODE_rxSolveC, 25},
+    {"_RxODE_rxSolveGet", (DL_FUNC) &_RxODE_rxSolveGet, 2},
     {NULL, NULL, 0}
   };
 
@@ -219,7 +210,6 @@ void R_init_RxODE(DllInfo *info){
   R_RegisterCCallable("RxODE","RxODE_abs_log",            (DL_FUNC) RxODE_abs_log);
   
   //Functions
-  R_RegisterCCallable("RxODE","RxODE_ode_solver",         (DL_FUNC) RxODE_ode_solver);
   R_RegisterCCallable("RxODE","RxODE_assign_fn_pointers", (DL_FUNC) RxODE_assign_fn_pointers);
   R_RegisterCCallable("RxODE","RxODE_get_fn_pointers",    (DL_FUNC) RxODE_get_fn_pointers);
   R_RegisterCCallable("RxODE","RxODE_ode_solver_old_c",   (DL_FUNC) RxODE_ode_solver_old_c);
@@ -248,8 +238,8 @@ void R_init_RxODE(DllInfo *info){
   R_RegisterCCallable("RxODE","RxODE_podoP",               (DL_FUNC) RxODE_podoP);
   R_RegisterCCallable("RxODE","RxODE_tlastP",              (DL_FUNC) RxODE_tlastP);
   // tranit compartment models
-  R_RegisterCCallable("RxODE","RxODE_transit4",           (DL_FUNC) RxODE_transit4);
-  R_RegisterCCallable("RxODE","RxODE_transit3",           (DL_FUNC) RxODE_transit3);
+  R_RegisterCCallable("RxODE","RxODE_transit4P",          (DL_FUNC) RxODE_transit4P);
+  R_RegisterCCallable("RxODE","RxODE_transit3P",          (DL_FUNC) RxODE_transit3P);
   R_RegisterCCallable("RxODE","RxODE_factorial",          (DL_FUNC) RxODE_factorial);
   R_RegisterCCallable("RxODE","RxODE_safe_log",           (DL_FUNC) RxODE_safe_log);
   R_RegisterCCallable("RxODE","RxODE_safe_zero",          (DL_FUNC) RxODE_safe_zero);
@@ -275,8 +265,6 @@ void R_init_RxODE(DllInfo *info){
     {"RxODE_dadt_counter_inc",  (DL_FUNC) &RxODE_dadt_counter_inc, 0},
     {"RxODE_podo",              (DL_FUNC) &RxODE_podo, 0},
     {"RxODE_tlast",             (DL_FUNC) &RxODE_tlast, 0},
-    {"RxODE_transit4",          (DL_FUNC) &RxODE_transit4, 4, RxODE_transit4_t},
-    {"RxODE_transit3",          (DL_FUNC) &RxODE_transit3, 4, RxODE_transit3_t},
     {"RxODE_factorial",         (DL_FUNC) &RxODE_factorial, 1, RxODE_one_dbl_t},
     {"RxODE_safe_log",          (DL_FUNC) &RxODE_safe_log, 1, RxODE_one_dbl_t},
     {"RxODE_safe_zero",         (DL_FUNC) &RxODE_safe_zero, 1, RxODE_one_dbl_t},

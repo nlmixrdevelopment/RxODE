@@ -7,9 +7,10 @@
 rxData(object, params = NULL, events = NULL, inits = NULL, covs = NULL,
   method = "lsoda", transit_abs = NULL, atol = 1e-08, rtol = 1e-06,
   maxsteps = 5000L, hmin = 0L, hmax = NULL, hini = 0L, maxordn = 12L,
-  maxords = 5L, cores = 1L, covs_interpolation = "linear", sigma = NULL,
-  sigmaDf = NULL, sigmaNcores = 1L, sigmaIsChol = FALSE,
-  amountUnits = NA_character_, timeUnits = "hours")
+  maxords = 5L, cores = 1L, covs_interpolation = "linear",
+  addCov = FALSE, matrix = FALSE, sigma = NULL, sigmaDf = NULL,
+  sigmaNcores = 1L, sigmaIsChol = FALSE, amountUnits = NA_character_,
+  timeUnits = "hours")
 }
 \arguments{
 \item{object}{R object to setup; Must be in RxODE compatible format.}
@@ -79,6 +80,9 @@ method.  The default value is 5.  This can be between 1 and 5.}
 \item \code{"midpoint"} Last observation carried forward to midpoint; Next observation
   carried backward to midpoint.
 }}
+
+\item{matrix}{A boolean inticating if a matrix should be returned
+instead of the RxODE's solved object}
 
 \item{sigma}{Matrix for simulating residual variability for the number of observations.
      This uses the \code{\link[mvnfast]{rmvn}} or \code{\link[mvnfast]{rmvt}} assuming mean 0 and covariance given by this named
