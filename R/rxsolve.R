@@ -1,41 +1,3 @@
-##' @author Matthew L. Fidler
-##' @export
-##' @keywords internal
-as.data.frame.solveRxODE7 <- function(x, row.names = NULL, optional = FALSE, ...){
-    attr(x, ".RxODE.env") <- NULL;
-    class(x) <- "data.frame";
-    return(as.data.frame(x, row.names=row.names, optional=optional, ...));
-}
-##' @name as_data_frame
-##' @export as_data_frame.solveRxODE7
-##' @method as_data_frame solveRxODE7
-##' @description compatability function for as_data_frame
-##' @title as_data_frame for solveRxODE
-##' @param x Solved data frame
-##' @param ... Additional arguments
-##' @author Matthew L. Fidler
-##' @keywords internal
-as_data_frame.solveRxODE7 <- function(x, ...){
-    call <- as.list(match.call(expand.dots=TRUE))[-1];
-    call$x <- as.data.frame(x);
-    return(do.call(getFromNamespace("as_data_frame","tibble"), call, envir=parent.frame(1)));
-}
-
-##' @name as_data_frame
-##' @export as_data_frame.solveRxODE7
-##' @method as_data_frame solveRxODE7
-##' @description compatability function for as_data_frame
-##' @title as_data_frame for solveRxODE
-##' @param x Solved data frame
-##' @param ... Additional arguments
-##' @author Matthew L. Fidler
-##' @keywords internal
-as.tbl.solveRxODE7 <- function(x, ...){
-    call <- as.list(match.call(expand.dots=TRUE))[-1];
-    call$x <- as.data.frame(x);
-    return(do.call(getFromNamespace("as.tbl","dplyr"), call, envir=parent.frame(1)));
-}
-
 ##' @author Matthew L.Fidler
 ##' @export
 print.solveRxODE7 <- function(x, ...){
@@ -55,11 +17,14 @@ print.solveRxODE7 <- function(x, ...){
     message("Solved RxODE object");
     is.dplyr <- requireNamespace("dplyr", quietly = TRUE) && RxODE.display.tbl;
     ## cat(sprintf("Dll: %s\n\n", rxDll(x)))
-    message("Parameters:");
-    if (!is.dplyr){
-        print(head(as.matrix(x$pars), n = n));
-    } else {
-        print(dplyr::as.tbl(x$pars), n = n, width = width);
+    message("Parameters ($params):");
+    df <- x$pars
+    if (rxIs(df, "data.frame")){
+        if (!is.dplyr){
+            print(head(as.matrix(x), n = n));
+        } else {
+            print(dplyr::as.tbl(x$pars), n = n, width = width);
+        }
     }
     ## w <- which((names(lst$params) %in% names(x)))
     ## if (length(w) > 0){
@@ -86,7 +51,8 @@ print.solveRxODE7 <- function(x, ...){
     ##         print(p);
     ##     }
     ## }
-    ## message("\n\nInitial Conditions:")
+    message("\n\nInitial Conditions ($inits):")
+    print(x$inits);
     ## inits <- lst$inits[regexpr(regSens, names(lst$inits)) == -1];
     ## print(inits);
     cat("\n\nFirst part of data:\n")
@@ -99,33 +65,17 @@ print.solveRxODE7 <- function(x, ...){
 
 ##' @author Matthew L.Fidler
 ##' @export
-summary.solveRxODE <- function(object, ...){
+summary.solveRxODE7 <- function(object, ...){
     env <- attr(object, ".env");
-    rxode <- env$env$out;
-    lst <- c(list(params=env$params, inits=env$inits), env$extra.args)
-    cat("Solved RxODE object\n");
-    cat(sprintf("DLL: %s\n\n", rxDll(rxode)))
-    cat("Model:\n");
-    cat("################################################################################\n");
-    cat(rxode$dll$modVars$model["model"]);
-    cat("################################################################################\n");
-    cat("Parameters:\n")
-    w <- which((names(lst$params) %in% names(object)));
-    if (length(w) > 0){
-        print(lst$params[-w]);
-        cat("\n\nSummary of time-varying covariates:\n");
-        d <- as.data.frame(lst$covs)[, names(lst$params)[w]];
-        if (length(w) == 1){
-            d <- data.frame(d = d);
-            names(d) <- names(lst$params)[w];
-        }
-        print(summary(d));
-    }  else {
-        print(lst$params);
-    }
-    cat("\n\nInitial conditions:\n")
-    print(lst$inits);
-    cat("\n\nSummary of solved data:\n")
+    message("Model:");
+    message("################################################################################");
+    message(rxNorm(object));
+    message("################################################################################");
+    message("Parameters:")
+    print(object$pars);
+    message("\n\nInitial conditions:")
+    print(object$inits);
+    message("\n\nSummary of solved data:")
     print(summary.data.frame(object))
 }
 

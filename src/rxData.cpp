@@ -602,8 +602,9 @@ List rxModelVars(const RObject &obj){
     List lst = f();
     return lst["modVars"];
   } else if (rxIs(obj,"solveRxODE7")){
-    Environment e = as<Environment>(obj.attr(".RxODE.env"));
-    return  rxModelVars(as<RObject>(e["object"]));
+    CharacterVector cls = obj.attr("class");
+    Environment e = as<Environment>(cls.attr(".RxODE.env"));
+    return  rxModelVars(as<RObject>(e["args.object"]));
   } else if (rxIs(obj,"rxDll")){
     List lobj = (as<List>(obj))["modVars"];
     return lobj;
@@ -1621,10 +1622,10 @@ SEXP rxSolveC(const RObject &object,
     e["args.sigmaIsChol"] = sigmaIsChol;
     e["args.amountUnits"] = amountUnits;
     e["args.timeUnits"] = timeUnits;
-    dat.attr(".RxODE.env") = e;
     CharacterVector cls(2);
     cls(0) = "solveRxODE7";
     cls(1) = "data.frame";
+    cls.attr(".RxODE.env") = e;    
     dat.attr("class") = cls;
     return(dat);
   }
@@ -1641,7 +1642,11 @@ RObject rxSolveGet(RObject obj,std::string arg){
         return lst[arg];
       }
     }
-    Environment e = Environment(lst.attr(".RxODE.env"));
+    CharacterVector cls = lst.attr("class");
+    Environment e = as<Environment>(cls.attr(".RxODE.env"));
+    if (arg == "env"){
+      return as<RObject>(e);
+    }
     if (e.exists(arg)){
       return e[arg];
     }
