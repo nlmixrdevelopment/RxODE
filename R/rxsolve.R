@@ -266,10 +266,10 @@ summary.solveRxODE7 <- function(object, ...){
 
 ##' @author Matthew L.Fidler
 ##' @export
-`[.solveRxODE` <- function(x, i, j, drop){
+`[.solveRxODE7` <- function(x, i, j, drop){
     df <- as.data.frame(x);
     assign.names <- NULL
-    if (!missing(j) && is(j,"character")){
+    if (!missing(j) && rxIs(j,"character")){
         nm <- names(df);
         nms <- gsub(regSens, "_sens_\\1_\\2", nm);
         assign.names <- j;
@@ -287,11 +287,11 @@ summary.solveRxODE7 <- function(object, ...){
         df <- df[i, ];
     } else if (missing(i) && !missing(j) && missing(drop)){
         df <- df[, j];
-        if (!is.null(assign.names) && is(df,"data.frame"))
+        if (!is.null(assign.names) && rxIs(df,"data.frame"))
             names(df) <- assign.names
     } else if (!missing(i) && !missing(j) && missing(drop)){
         df <- df[i, j];
-        if (!is.null(assign.names) && is(df,"data.frame"))
+        if (!is.null(assign.names) && rxIs(df,"data.frame"))
             names(df) <- assign.names
     } else if (missing(i) && missing(j) && missing(drop)){
         df <- df[drop = drop];
@@ -303,12 +303,12 @@ summary.solveRxODE7 <- function(object, ...){
             names(df) <- assign.names
     } else if (!missing(i) && !missing(j) && !missing(drop)){
         df <- df[i, j, drop = drop];
-        if (!is.null(assign.names) && is(df,"data.frame"))
+        if (!is.null(assign.names) && rxIs(df,"data.frame"))
             names(df) <- assign.names
     } else if (missing(i) && missing(j) && !missing(drop)){
         df <- df[,, drop = drop];
     }
-    return(rxTbl(df))
+    return(df)
 }
 
 ##' @author Matthew L.Fidler

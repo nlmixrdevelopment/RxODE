@@ -65,11 +65,11 @@ rxPermissive({
 
     test_that("Character data frame assignment operators [] make sense",{
         o1.assign <- o1.first;
-        expect_equal(class(o1.assign), c("solveRxODE", "data.frame"))
+        expect_equal(as.vector(class(o1.assign)), c("solveRxODE7", "data.frame"))
         o1.assign[,"depot"] <- 0;
         expect_equal(rep(0,times = length(as.data.frame(o1.assign)[,1])),as.data.frame(o1.assign)[,"depot"]);
         expect_equal(rep(0,times = length(o1.assign$depot)),o1.assign$depot);
-        expect_false(any(class(o1.assign) == "solveRxODE"));
+        expect_false(any(as.vector(class(o1.assign)) == "solveRxODE7"));
     })
 
     test_that("Numeric data frame lookup operators [[]] make sense",{
@@ -89,11 +89,11 @@ rxPermissive({
 
     test_that("Character data frame assignment operators [[]] make sense",{
         o1.assign <- o1.first;
-        expect_equal(class(o1.assign), c("solveRxODE", "data.frame"))
+        expect_equal(as.vector(class(o1.assign)), c("solveRxODE7", "data.frame"))
         o1.assign[["depot"]] <- 0;
         expect_equal(rep(0,times = length(as.data.frame(o1.assign)[,1])),as.data.frame(o1.assign)[["depot"]]);
         expect_equal(rep(0,times = length(o1.assign$depot)),o1.assign$depot);
-        expect_false(any(class(o1.assign) == "solveRxODE"));
+        expect_false(any(as.vector(class(o1.assign)) == "solveRxODE7"));
     })
 
 
@@ -104,11 +104,11 @@ rxPermissive({
 
     test_that("Character data frame assignment operators $ make sense",{
         o1.assign <- o1.first;
-        expect_equal(class(o1.assign), c("solveRxODE", "data.frame"))
+        expect_equal(as.vector(class(o1.assign)), c("solveRxODE7", "data.frame"))
         o1.assign$depot <- 0;
         expect_equal(rep(0,times = length(as.data.frame(o1.assign)[,1])),as.data.frame(o1.assign)$depot);
         expect_equal(rep(0,times = length(o1.assign$depot)),o1.assign$depot);
-        expect_false(any(class(o1.assign) == "solveRxODE"));
+        expect_false(any(as.vector(class(o1.assign)) == "solveRxODE7"));
     })
 
     test_that("rownames lookup & assignment makes sense",{
