@@ -225,9 +225,40 @@ List rxDataSetup(const RObject &ro,
     Function f = et["get.EventTable"];
     DataFrame dataf = f();
     f = et["get.units"];
-    StringVector units = f();
-    StringVector amt = as<StringVector>(units["dosing"]);
-    StringVector time = as<StringVector>(units["time"]);
+    RObject unitsRO = f();
+    CharacterVector units;
+    int i, n;
+    if (rxIs(unitsRO, "character")){
+      units = as<CharacterVector>(unitsRO);
+      n=units.size();
+      for (i =0; i<n; i++){
+	if (units[i] == "NA"){
+	  units[i] = NA_STRING;
+	}
+      }
+    } else {
+      units = CharacterVector::create(_["dosing"]=NA_STRING,
+				      _["time"]=NA_STRING);
+    }
+    // {
+    //   units = StringVector(unitsRO);
+    //   if (units[0] == "NA"){
+    // 	units[0] = NA_STRING;
+    //   }
+    //   if (units[1] == "NA"){
+    // 	units[1] = NA_STRING;
+    //   }
+    // } else {
+    //   // Otherwise this is likely 2 NAs.
+    //   units[0] = NA_STRING;
+    //   units[1] = NA_STRING;
+    //   StringVector units2(2);
+    //   units2[0] = "dosing";
+    //   units2[1] = "time";
+    //   units.names() = units;
+    // }
+    CharacterVector amt = (units["dosing"] == NA_STRING) ? StringVector::create(NA_STRING) : as<StringVector>(units["dosing"]);
+    CharacterVector time = (units["time"] == NA_STRING) ? StringVector::create(NA_STRING) : as<StringVector>(units["time"]);
     return rxDataSetup(dataf, covNames, sigma, df, ncoresRV, isChol, amt, time);
   } else if (rxIs(ro,"event.data.frame")||
       rxIs(ro,"event.matrix")){
@@ -466,8 +497,8 @@ List rxDataSetup(const RObject &ro,
 			    _["n.observed.covariates"] = nCovObs,
 			    _["simulated.vars"] = (simNames.size()== 0 ? R_NilValue : wrap(simNames)),
 			    _["sigma"] = wrap(sigma),
-                            _["amount.units"]=amountUnits,
-                            _["time.units"]=timeUnits,
+                            _["amount.units"]=(as<std::string>(amountUnits) == "NA") ? StringVector::create(NA_STRING) : amountUnits,
+                            _["time.units"]=(as<std::string>(timeUnits)  == "NA") ? StringVector::create(NA_STRING) : timeUnits,
 			    _["missing.id"]=missingId,
 			    _["missing.dv"]=missingDv,
 			    _["ncoresRV"] = wrap(ncoresRV),

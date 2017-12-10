@@ -407,7 +407,7 @@ magrittr::`%>%`
 print.RxODE.multi.data <- function(x, ...){
     message("RxODE multi-subject data:")
     message(sprintf("  Number of Subjects: %s", x$nSub))
-    message(sprintf("  Number of Observations: %s (t=%s to %s%s)", x$nObs, x$min.time, x$max.time, ifelse(x$time.units == "NA", "", paste0(" ", x$time.units))))
+    message(sprintf("  Number of Observations: %s (t=%s to %s%s)", x$nObs, x$min.time, x$max.time, ifelse(is.na(x$time.units), "", paste0(" ", x$time.units))))
     if (x$nDose == 0){
         message("  No Dosing Records.")
     } else {

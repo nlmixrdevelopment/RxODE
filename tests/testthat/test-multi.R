@@ -3,6 +3,7 @@
 library(RxODE)
 context("Make sure C operations and symbols don't conflict")
 rxPermissive({
+
     test.dir <- tempfile("Rxmult-")
 
     ## RxODE instance 1

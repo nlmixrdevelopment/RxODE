@@ -4,15 +4,19 @@
 \alias{rxSolve}
 \title{Solves a ODE equation}
 \usage{
-rxSolve(params = NULL, events = NULL, inits = NULL, covs = NULL,
+rxSolve(object, params = NULL, events = NULL, inits = NULL, covs = NULL,
   method = "lsoda", transit_abs = NULL, atol = 1e-08, rtol = 1e-06,
   maxsteps = 5000L, hmin = 0L, hmax = NULL, hini = 0L, maxordn = 12L,
   maxords = 5L, cores = 1L, covs_interpolation = "linear",
-  add.cov = FALSE, matrix = TRUE, sigma = NULL, sigmaDf = NULL,
+  add.cov = FALSE, matrix = FALSE, sigma = NULL, sigmaDf = NULL,
   sigmaNcores = 1L, sigmaIsChol = FALSE, amountUnits = NA_character_,
-  timeUnits = "hours")
+  timeUnits = "hours", stiff)
 }
 \arguments{
+\item{object}{is a either a RxODE family of objects, or a file-name
+with a RxODE model specification, or a string with a RxODE
+model specification.}
+
 \item{params}{a numeric named vector with values for every
 parameter in the ODE system; the names must correspond to the
 parameter identifiers used in the ODE specification;}
@@ -86,23 +90,6 @@ disabled.}
 \item{matrix}{A boolean inticating if a matrix should be returned
 instead of the RxODE's solved object}
 
-\item{object}{is a either a RxODE family of objects, or a file-name
-with a RxODE model specification, or a string with a RxODE
-model specification.}
-
-\item{theta}{A vector of parameters that will be named THETA[#] and
-added to inits}
-
-\item{eta}{A vector of parameters that will be named ETA[#] and
-added to inits}
-
-\item{scale}{a numeric named vector with scaling for ode
-parameters of the system.  The names must correstond to the
-parameter identifiers in the ODE specification. Each of the
-ODE variables will be divided by the scaling factor.  For
-example \code{scale=(center=2)} will divide the center ODE
-variable by 2.}
-
 \item{stiff}{a logical (\code{TRUE} by default) indicating whether
     the ODE system is stiff or not.
 
@@ -116,6 +103,19 @@ variable by 2.}
     DOP853, an explicit Runge-Kutta method of order 8(5, 3) of
     Dormand and Prince as implemented in C by Hairer and Wanner
     (1993).}
+
+\item{theta}{A vector of parameters that will be named THETA[#] and
+added to inits}
+
+\item{eta}{A vector of parameters that will be named ETA[#] and
+added to inits}
+
+\item{scale}{a numeric named vector with scaling for ode
+parameters of the system.  The names must correstond to the
+parameter identifiers in the ODE specification. Each of the
+ODE variables will be divided by the scaling factor.  For
+example \code{scale=(center=2)} will divide the center ODE
+variable by 2.}
 
 \item{...}{Other arguments including scaling factors for each
 compartment.  This includes S# = numeric will scale a compartment
