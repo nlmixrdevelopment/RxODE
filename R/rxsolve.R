@@ -1,3 +1,160 @@
+##' Solves a ODE equation
+##'
+##' This uses RxODE family of objects, file, or model specification to
+##' solve a ODE system.
+##'
+##' @param object is a either a RxODE family of objects, or a file-name
+##'     with a RxODE model specification, or a string with a RxODE
+##'     model specification.
+##'
+##' @param covs_interpolation specifies the interpolation method for
+##'     time-varying covariates. When solving ODEs it often samples
+##'     times outside the sampling time specified in \code{events}.
+##'     When this happens, the time varying covariates are
+##'     interpolated.  Currently this can be:
+##'
+##' \itemize{
+##' \item \code{"linear"} interpolation (the default), which interpolates the covariate
+##'     by solving the line between the observed covariates and extrapolating the new
+##'     covariate value.
+##' \item \code{"constant"} -- Last observation carried forward.
+##' \item \code{"NOCB"} -- Next Observation Carried Backward.  This is the same method
+##'       that NONMEM uses.
+##' \item \code{"midpoint"} Last observation carried forward to midpoint; Next observation
+##'   carried backward to midpoint.
+##' }
+##'
+##' @param theta A vector of parameters that will be named THETA[#] and
+##'     added to inits
+##'
+##' @param eta A vector of parameters that will be named ETA[#] and
+##'     added to inits
+##'
+##' @param add.cov A boolean indicating if covariates should be added
+##'     to the output matrix or data frame. By default this is
+##'     disabled.
+##'
+##' @param params a numeric named vector with values for every
+##'     parameter in the ODE system; the names must correspond to the
+##'     parameter identifiers used in the ODE specification;
+##'
+##' @param events an \code{eventTable} object describing the input
+##'     (e.g., doses) to the dynamic system and observation sampling
+##'     time points (see \code{\link{eventTable}});
+##'
+##' @param inits a vector of initial values of the state variables
+##'     (e.g., amounts in each compartment), and the order in this
+##'     vector must be the same as the state variables (e.g., PK/PD
+##'     compartments);
+##'
+##' @param scale a numeric named vector with scaling for ode
+##'     parameters of the system.  The names must correstond to the
+##'     parameter identifiers in the ODE specification. Each of the
+##'     ODE variables will be divided by the scaling factor.  For
+##'     example \code{scale=(center=2)} will divide the center ODE
+##'     variable by 2.
+##'
+##' @param covs a matrix or dataframe the same number of rows as the
+##'     sampling points defined in the events \code{eventTable}.  This
+##'     is for time-varying covariates.
+##'
+##' @param stiff a logical (\code{TRUE} by default) indicating whether
+##'     the ODE system is stiff or not.
+##'
+##'     For stiff ODE sytems (\code{stiff = TRUE}), \code{RxODE} uses the
+##'     LSODA (Livermore Solver for Ordinary Differential Equations)
+##'     Fortran package, which implements an automatic method switching
+##'     for stiff and non-stiff problems along the integration
+##'     interval, authored by Hindmarsh and Petzold (2003).
+##'
+##'     For non-stiff systems (\code{stiff = FALSE}), \code{RxODE} uses
+##'     DOP853, an explicit Runge-Kutta method of order 8(5, 3) of
+##'     Dormand and Prince as implemented in C by Hairer and Wanner
+##'     (1993).
+##'
+##' @param transit_abs boolean indicating if this is a transit
+##'     compartment absorption
+##'
+##' @param atol a numeric absolute tolerance (1e-08 by default) used
+##'     by the ODE solver to determine if a good solution has been
+##'     achieved;
+##'
+##' @param rtol a numeric relative tolerance (1e-06 by default) used
+##'     by the ODE solver to determine if a good solution has been
+##'     achieved.
+##'
+##' @param maxsteps maximum number of (internally defined) steps allowed
+##'     during one call to the solver. (5000 by default)
+##'
+##' @param hmin The minimum absolute step size allowed. The default
+##'     value is 0.
+##'
+##' @param hmax The maximum absolute step size allowed.  The default
+##'     checks for the maximum difference in times in your sampling and
+##'     events, and uses this value.  The value 0 is equivalent to
+##'     infinite maximum absolute step size.
+##'
+##' @param hini The step size to be attempted on the first step. The
+##'     default value is determined by the solver (when hini = 0)
+##'
+##' @param maxordn The maximum order to be allowed for the nonstiff
+##'     (Adams) method.  The default is 12.  It can be between 1 and
+##'     12.
+##'
+##' @param maxords The maximum order to be allowed for the stiff (BDF)
+##'     method.  The default value is 5.  This can be between 1 and 5.
+##'
+##' @param matrix A boolean inticating if a matrix should be returned
+##'     instead of the RxODE's solved object
+##'
+##' @param ... Other arguments including scaling factors for each
+##'     compartment.  This includes S# = numeric will scale a compartment
+##'     # by a dividing the compartment amount by the scale factor,
+##'     like NONMEM.
+##'
+##' @return An \dQuote{rxSolve} solve object that stores the solved
+##'     value in a matrix with as many rows as there are sampled time
+##'     points and as many columns as system variables (as defined by
+##'     the ODEs and additional assignments in the RxODE model code).
+##'     It also stores information about the call to allow dynmaic
+##'     updating of the solved object.
+##'
+##'     The operations for the object are simialar to a data-frame, but
+##'     expand the \code{$} and \code{[[""]]} access operators and
+##'     assignment operators to resolve based on different parameter
+##'     values, initial conditions, solver parameters, or events (by
+##'     updaing the \code{time} variable).
+##'
+##'     You can call the \code{\link{eventTable}} methods on the solved
+##'     object to update the event table and resolve the system of
+##'     equations.  % Should be able to use roxygen templates...
+##'
+##' @references
+##'
+##' Hindmarsh, A. C.
+##' \emph{ODEPACK, A Systematized Collection of ODE Solvers}.
+##' Scientific Computing, R. S. Stepleman et al. (Eds.),
+##' North-Holland, Amsterdam, 1983, pp. 55-64.
+##'
+##' Petzold, L. R.
+##' \emph{Automatic Selection of Methods for Solving Stiff and Nonstiff
+##' Systems of Ordinary Differential Equations}.
+##' Siam J. Sci. Stat. Comput. 4 (1983), pp. 136-148.
+##'
+##' Hairer, E., Norsett, S. P., and Wanner, G.
+##' \emph{Solving ordinary differential equations I, nonstiff problems}.
+##' 2nd edition, Springer Series in Computational Mathematics,
+##' Springer-Verlag (1993).
+##'
+##'
+##' @seealso \code{\link{RxODE}}
+##' @author Melissa Hallow, Wenping Wang and Matthew Fidler
+##' @export
+rxSolve <- function(object, params = NULL, events = NULL, inits = NULL, covs = NULL, method = "lsoda", transit_abs = NULL, atol = 1.0e-8, rtol = 1.0e-6, maxsteps = 5000L, hmin = 0L, hmax = NULL, hini = 0L, maxordn = 12L, maxords = 5L, cores = 1L, covs_interpolation = "linear", add.cov = FALSE, matrix = FALSE, sigma = NULL, sigmaDf = NULL, sigmaNcores = 1L, sigmaIsChol = FALSE, amountUnits = NA_character_, timeUnits = "hours"){
+    .Call(`_RxODE_rxSolveC`, object, params, events, inits, covs, method, transit_abs, atol, rtol, maxsteps, hmin, hmax, hini, maxordn, maxords, cores, covs_interpolation, add.cov, matrix, sigma, sigmaDf, sigmaNcores, sigmaIsChol, amountUnits, timeUnits);
+}
+
+
 ##' @author Matthew L.Fidler
 ##' @export
 print.solveRxODE7 <- function(x, ...){
@@ -18,12 +175,17 @@ print.solveRxODE7 <- function(x, ...){
     is.dplyr <- requireNamespace("dplyr", quietly = TRUE) && RxODE.display.tbl;
     ## cat(sprintf("Dll: %s\n\n", rxDll(x)))
     message("Parameters ($params):");
-    df <- x$pars
-    if (rxIs(df, "data.frame")){
-        if (!is.dplyr){
-            print(head(as.matrix(x), n = n));
-        } else {
-            print(dplyr::as.tbl(x$pars), n = n, width = width);
+    df <- x$params.single
+    if (!is.null(df)){
+        print(df)
+    } else {
+        df <- x$pars
+        if (rxIs(df, "data.frame")){
+            if (!is.dplyr){
+                print(head(as.matrix(x), n = n));
+            } else {
+                print(dplyr::as.tbl(x$pars), n = n, width = width);
+            }
         }
     }
     ## w <- which((names(lst$params) %in% names(x)))
@@ -55,7 +217,7 @@ print.solveRxODE7 <- function(x, ...){
     print(x$inits);
     ## inits <- lst$inits[regexpr(regSens, names(lst$inits)) == -1];
     ## print(inits);
-    cat("\n\nFirst part of data:\n")
+    message("\n\nFirst part of data (object):")
     if (!is.dplyr){
         print(head(as.matrix(x), n = n));
     } else {
@@ -72,138 +234,24 @@ summary.solveRxODE7 <- function(object, ...){
     message(rxNorm(object));
     message("################################################################################");
     message("Parameters:")
-    print(object$pars);
+    is.dplyr <- requireNamespace("dplyr", quietly = TRUE) && RxODE.display.tbl;
+    df <- object$pars
+    if (!is.dplyr){
+        print(head(as.matrix(x), n = 6L));
+    } else {
+        print(dplyr::as.tbl(x$pars), n = 6L, width = width);
+    }
     message("\n\nInitial conditions:")
     print(object$inits);
     message("\n\nSummary of solved data:")
     print(summary.data.frame(object))
 }
 
-##
-## Accessing Solved Object
-## accessComp <- function(obj, arg){
-##     lst <- obj;
-##     class(lst) <- "list";
-##     if (any(names(obj) == arg)){
-##         return(lst[[arg]]);
-##     } else {
-##         if (arg == "calcJac"){
-##             return(length(rxModelVars(obj)$dfdy) > 0)
-##         } else if (arg == "calcSens"){
-##             return(length(rxModelVars(obj)$sens) > 0)
-##         } else if (any(rxState(obj) == gsub(regIni, "", arg))){
-##             arg <- gsub(regIni, "", arg);
-##             ret <- rxInits(obj)[arg];
-##             if (is.na(ret)){
-##                 ret <- NA;
-##                 names(ret) <- arg;
-##                 return(ret)
-##             } else {
-##                 return(ret)
-##             }
-##         } else if (any(rxParams(obj) == arg)){
-##             ret <- rxInits(obj)[arg];
-##             if (is.na(ret)){
-##                 ret <- NA;
-##                 names(ret) <- arg;
-##                 return(ret)
-##             } else {
-##                 return(ret)
-##             }
-##         } else {
-##             return(NULL);
-##         }
-##     }
-## }
-
 ##' @author Matthew L.Fidler
 ##' @export
 `$.solveRxODE7` <-  function(obj, arg, exact = TRUE){
     .Call(`_RxODE_rxSolveGet`, obj, arg);
-    ## m <- as.data.frame(obj);
-    ## ret <- m[[arg, exact = exact]];
-    ## if (is.null(ret) & is(arg,"character")){
-    ##     if (nchar(arg) > 6 && substr(arg, 1, 6) == "_sens_"){
-    ##         w <- which(gsub(regSens, "_sens_\\1_\\2", names(m)) == arg);
-    ##         if (length(w) == 1){
-    ##             return(m[, w]);
-    ##         } else {
-    ##                 return(NULL)
-    ##         }
-    ##     }
-    ##     ##
-    ##     ## Slows down
-    ##     ##
-    ##     ## w <- which(gsub(regSens, "\\1_\\2", names(m)) == arg);
-    ##     ## if (length(w) == 1){
-    ##     ##     return(m[, w]);
-    ##     ## }
-    ##     ##
-    ##     if (arg == "t"){
-    ##         return(m[["time"]]);
-    ##     } else {
-    ##         env <- attr(obj, ".env");
-    ##         tmp <- c(list(params=env$params, inits=env$inits), env$extra.args);
-    ##         if (regexpr(regToSens1, arg) != -1){
-    ##             ret <- m[[gsub(regToSens1, "d/dt(d(\\1)/d(\\2))", arg)]];
-    ##             if (!is.null(ret)){
-    ##                 return(ret)
-    ##             }
-    ##         }
-    ##         if (isTRUE(exact)){
-    ##             w <- which(names(tmp) == arg);
-    ##         } else {
-    ##             w <- which(regexpr(rex::rex(start, arg), names(tmp)) != -1)
-    ##             if (length(w) == 1 && !any(names(tmp) == arg) && is.na(exact)){
-    ##                 warning(sprintf("partial match of '%s' to '%s'", arg, names(tmp)[w]));
-    ##             }
-    ##         }
-    ##         if (length(w) == 1){
-    ##             return(tmp[[w]]);
-    ##         }
-    ##         if (any(names(tmp$param) == arg)){
-    ##             return(tmp$param[arg]);
-    ##         }
-    ##         if (any(names(tmp$init) == gsub(regIni, "", arg))){
-    ##             arg <- gsub(regIni, "", arg);
-    ##             return(tmp$init[arg]);
-    ##         }
-    ##         if (any(arg == names(tmp$events))){
-    ##             if (substr(arg, 0, 4) == "get."){
-    ##                 return(tmp$events[[arg]]);
-    ##             } else {
-    ##                 call <- as.list(match.call(expand.dots = TRUE));
-    ##                 env <- parent.frame();
-    ##                 return(function(..., .obj = obj, .objName = toString(call$obj), .objArg = toString(call$arg), .envir = env){
-    ##                     return(solveRxODE_updateEventTable(.obj, .objName, .objArg, ..., envir = .envir));
-    ##                 });
-    ##             }
-    ##         }
-    ##         return(NULL);
-    ##     }
-    ## } else {
-    ##     return(rxTbl(ret));
-    ## }
 }
-
-solveRxODE_updateEventTable <- function(obj, objName, name, ..., envir = parent.frame()){
-    rxCat("Update with new event specification.\n")
-    env <- attr(obj, ".env")
-    events <- eventTable()
-    tmp <- env$extra.args$events$copy()
-    events$import.EventTable(tmp$get.EventTable())
-    events[[name]](...);
-    tmp <- update(obj, events = eval(events));
-    assign(objName, tmp, envir = envir);
-    ## envir$...RxODE...temp... <- tmp;
-    ## eval(parse(text = sprintf("%s <- ...RxODE...temp...;", objName)), envir = envir);
-    ## lst <- attr(tmp, "solveRxDll");
-    ## envir$...RxODE...temp... <- lst;
-    ## eval(parse(text = sprintf("%s <- ...RxODE...temp...;", objName)), envir = envir);
-    ## rm("...RxODE...temp...", envir = envir);
-    invisible()
-}
-
 
 ##' @author Matthew L.Fidler
 ##' @export
@@ -425,206 +473,6 @@ update.solveRxODE <- function(object, ...){
 ##' @export
 "[[<-.solveRxODE" <- function(obj, arg, value){
     return("$<-.solveRxODE"(obj, arg, value = value))
-}
-
-
-
-##' Solves a ODE equation
-##'
-##' This uses RxODE family of objects, file, or model specification to
-##' solve a ODE system.
-##'
-##' @param object is a either a RxODE family of objects, or a file-name
-##'     with a RxODE model specification, or a string with a RxODE
-##'     model specification.
-##'
-##' @param covs_interpolation specifies the interpolation method for
-##'     time-varying covariates. When solving ODEs it often samples
-##'     times outside the sampling time specified in \code{events}.
-##'     When this happens, the time varying covariates are
-##'     interpolated.  Currently this can be:
-##'
-##' \itemize{
-##' \item \code{"linear"} interpolation (the default), which interpolates the covariate
-##'     by solving the line between the observed covariates and extrapolating the new
-##'     covariate value.
-##' \item \code{"constant"} -- Last observation carried forward.
-##' \item \code{"NOCB"} -- Next Observation Carried Backward.  This is the same method
-##'       that NONMEM uses.
-##' \item \code{"midpoint"} Last observation carried forward to midpoint; Next observation
-##'   carried backward to midpoint.
-##' }
-##'
-##' @param theta A vector of parameters that will be named THETA[#] and
-##'     added to inits
-##'
-##' @param eta A vector of parameters that will be named ETA[#] and
-##'     added to inits
-##'
-##' @param add.cov A boolean indicating if covariates should be added
-##'     to the output matrix or data frame. By default this is
-##'     disabled.
-##'
-##' @param params a numeric named vector with values for every
-##'     parameter in the ODE system; the names must correspond to the
-##'     parameter identifiers used in the ODE specification;
-##'
-##' @param events an \code{eventTable} object describing the input
-##'     (e.g., doses) to the dynamic system and observation sampling
-##'     time points (see \code{\link{eventTable}});
-##'
-##' @param inits a vector of initial values of the state variables
-##'     (e.g., amounts in each compartment), and the order in this
-##'     vector must be the same as the state variables (e.g., PK/PD
-##'     compartments);
-##'
-##' @param scale a numeric named vector with scaling for ode
-##'     parameters of the system.  The names must correstond to the
-##'     parameter identifiers in the ODE specification. Each of the
-##'     ODE variables will be divided by the scaling factor.  For
-##'     example \code{scale=(center=2)} will divide the center ODE
-##'     variable by 2.
-##'
-##' @param covs a matrix or dataframe the same number of rows as the
-##'     sampling points defined in the events \code{eventTable}.  This
-##'     is for time-varying covariates.
-##'
-##' @param stiff a logical (\code{TRUE} by default) indicating whether
-##'     the ODE system is stiff or not.
-##'
-##'     For stiff ODE sytems (\code{stiff = TRUE}), \code{RxODE} uses the
-##'     LSODA (Livermore Solver for Ordinary Differential Equations)
-##'     Fortran package, which implements an automatic method switching
-##'     for stiff and non-stiff problems along the integration
-##'     interval, authored by Hindmarsh and Petzold (2003).
-##'
-##'     For non-stiff systems (\code{stiff = FALSE}), \code{RxODE} uses
-##'     DOP853, an explicit Runge-Kutta method of order 8(5, 3) of
-##'     Dormand and Prince as implemented in C by Hairer and Wanner
-##'     (1993).
-##'
-##' @param transit_abs boolean indicating if this is a transit
-##'     compartment absorption
-##'
-##' @param atol a numeric absolute tolerance (1e-08 by default) used
-##'     by the ODE solver to determine if a good solution has been
-##'     achieved;
-##'
-##' @param rtol a numeric relative tolerance (1e-06 by default) used
-##'     by the ODE solver to determine if a good solution has been
-##'     achieved.
-##'
-##' @param maxsteps maximum number of (internally defined) steps allowed
-##'     during one call to the solver. (5000 by default)
-##'
-##' @param hmin The minimum absolute step size allowed. The default
-##'     value is 0.
-##'
-##' @param hmax The maximum absolute step size allowed.  The default
-##'     checks for the maximum difference in times in your sampling and
-##'     events, and uses this value.  The value 0 is equivalent to
-##'     infinite maximum absolute step size.
-##'
-##' @param hini The step size to be attempted on the first step. The
-##'     default value is determined by the solver (when hini = 0)
-##'
-##' @param maxordn The maximum order to be allowed for the nonstiff
-##'     (Adams) method.  The default is 12.  It can be between 1 and
-##'     12.
-##'
-##' @param maxords The maximum order to be allowed for the stiff (BDF)
-##'     method.  The default value is 5.  This can be between 1 and 5.
-##'
-##' @param matrix A boolean inticating if a matrix should be returned
-##'     instead of the RxODE's solved object
-##'
-##' @param ... Other arguments including scaling factors for each
-##'     compartment.  This includes S# = numeric will scale a compartment
-##'     # by a dividing the compartment amount by the scale factor,
-##'     like NONMEM.
-##'
-##' @return An \dQuote{rxSolve} solve object that stores the solved
-##'     value in a matrix with as many rows as there are sampled time
-##'     points and as many columns as system variables (as defined by
-##'     the ODEs and additional assignments in the RxODE model code).
-##'     It also stores information about the call to allow dynmaic
-##'     updating of the solved object.
-##'
-##'     The operations for the object are simialar to a data-frame, but
-##'     expand the \code{$} and \code{[[""]]} access operators and
-##'     assignment operators to resolve based on different parameter
-##'     values, initial conditions, solver parameters, or events (by
-##'     updaing the \code{time} variable).
-##'
-##'     You can call the \code{\link{eventTable}} methods on the solved
-##'     object to update the event table and resolve the system of
-##'     equations.  % Should be able to use roxygen templates...
-##'
-##' @references
-##'
-##' Hindmarsh, A. C.
-##' \emph{ODEPACK, A Systematized Collection of ODE Solvers}.
-##' Scientific Computing, R. S. Stepleman et al. (Eds.),
-##' North-Holland, Amsterdam, 1983, pp. 55-64.
-##'
-##' Petzold, L. R.
-##' \emph{Automatic Selection of Methods for Solving Stiff and Nonstiff
-##' Systems of Ordinary Differential Equations}.
-##' Siam J. Sci. Stat. Comput. 4 (1983), pp. 136-148.
-##'
-##' Hairer, E., Norsett, S. P., and Wanner, G.
-##' \emph{Solving ordinary differential equations I, nonstiff problems}.
-##' 2nd edition, Springer Series in Computational Mathematics,
-##' Springer-Verlag (1993).
-##'
-##'
-##' @seealso \code{\link{RxODE}}
-##' @author Melissa Hallow, Wenping Wang and Matthew Fidler
-##' @export
-rxSolve <- function(object,                      # RxODE object
-                    params=NULL,                      # Parameter
-                    events=NULL,                      # Events
-                    inits              = NULL,   # Initial Events
-                    scale              = c(), #scale
-                    covs               = NULL,   # Covariates
-                    stiff              = TRUE,   # Is the system stiff
-                    transit_abs        = NULL,  # Transit compartment absorption?
-                    atol               = 1.0e-6, # Absoltue Tolerance for LSODA solver
-                    rtol               = 1.0e-6, # Relative Tolerance for LSODA solver
-                    maxsteps           = 5000,   # Maximum number of steps
-                    hmin               = 0,      # Hmin
-                    hmax               = NULL,   # Hmax
-                    hini               = 0,      # Hini
-                    maxordn            = 12,     # maxordn
-                    maxords            = 5,      # maxords
-                    ...,
-                    covs_interpolation = c("linear", "constant", "NOCB", "midpoint"),
-                    theta=numeric(), eta=numeric(), add.cov=FALSE) {
-    ## rxSolve returns
-    UseMethod("rxSolve");
-} # end function rxSolve
-
-
-##' @rdname rxSolve
-##' @export
-rxSolve.RxODE <- function(object, params=NULL, events=NULL, inits = NULL, scale=c(), covs = NULL, stiff = TRUE, transit_abs = NULL,
-                          atol = 1.0e-8, rtol = 1.0e-6, maxsteps = 5000, hmin = 0, hmax = NULL, hini = 0, maxordn = 12,
-                          maxords = 5, ..., covs_interpolation = c("linear", "constant", "NOCB", "midpoint"),
-                          theta=numeric(), eta=numeric(), matrix=FALSE, add.cov=FALSE){
-    return(object$solve(params, events, inits, scale, covs, stiff, transit_abs, atol, rtol, maxsteps, hmin, hmax, hini, maxordn, maxords,...,
-                        covs_interpolation = covs_interpolation, theta=theta, eta=eta, matrix=matrix, add.cov=add.cov))
-}
-
-##' @rdname rxSolve
-##' @export
-rxSolve.solveRxODE <- function(object, params=NULL, events=NULL, inits = NULL, scale=c(), covs = NULL, stiff = TRUE, transit_abs = NULL,
-                          atol = 1.0e-8, rtol = 1.0e-6, maxsteps = 5000, hmin = 0, hmax = NULL, hini = 0, maxordn = 12,
-                          maxords = 5, ..., covs_interpolation = c("linear", "constant", "NOCB", "midpoint"),
-                          theta=numeric(), eta=numeric(), matrix=FALSE, add.cov=FALSE){
-    env <- attr(object, ".env");
-    rxode <- env$env$out;
-    return(rxode$solve(params, events, inits, scale, covs, stiff, transit_abs, atol, rtol, maxsteps, hmin, hmax, hini, maxordn, maxords,...,
-                       covs_interpolation = covs_interpolation, theta=theta, eta=eta, matrix=matrix, add.cov=add.cov))
 }
 
 

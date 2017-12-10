@@ -1000,7 +1000,7 @@ List rxDataParSetup(const RObject &object,
   } else {
     ret = rxDataSetup(ev1, covs, sigma, sigmaDf,
 		      sigmaNcores, sigmaIsChol, amountUnits, timeUnits);
-    covnames0 = as<Nullable<CharacterVector>>(covnames);
+    covnames0 = as<Nullable<CharacterVector>>(ret["cov.names"]);
     if (!covnames0.isNull()){
       covnames = CharacterVector(covnames0);
     }
@@ -1080,7 +1080,7 @@ List rxDataParSetup(const RObject &object,
     curPar = false;
     // integers are faster to compare than strings.
     for (j = 0; j < pcov.size(); j++){
-      if (pcov[j] == i - 1){
+      if (pcov[j] == i + 1){
 	posPar[i] = 0; // Covariates are zeroed out.
 	curPar = true;
 	break;
@@ -1500,6 +1500,7 @@ extern "C"{
   SEXP RxODE_par_df(SEXP sd);
 }
 
+
 //[[Rcpp::export]]
 SEXP rxSolveC(const RObject &object,
 	      const RObject &params = R_NilValue,
@@ -1519,8 +1520,8 @@ SEXP rxSolveC(const RObject &object,
 	      const int cores = 1,
 	      std::string covs_interpolation = "linear",
 	      bool addCov = false,
-              bool matrix = false,
-              const RObject &sigma= R_NilValue,
+	      bool matrix = false,
+	      const RObject &sigma= R_NilValue,
 	      const RObject &sigmaDf= R_NilValue,
 	      const int &sigmaNcores= 1,
 	      const bool &sigmaIsChol= false,
@@ -1561,7 +1562,19 @@ SEXP rxSolveC(const RObject &object,
     // Remove one final; Just for debug.
     // e["parData"] = parData;
     List xtra = RxODE_par_df(parData);
-    e["params.dat"] = xtra[0];
+    List pd = as<List>(xtra[0]);
+    e["params.dat"] = pd;
+    if (as<int>(parData["nSub"]) == 1 && as<int>(parData["nsim"]) == 1){
+      int n = pd.size();
+      NumericVector par2(n);
+      for (int i = 0; i <n; i++){
+	par2[i] = (as<NumericVector>(pd[i]))[0];
+      }
+      par2.names() = pd.names();
+      e["params.single"] = par2;
+    } else {
+      e["params.single"] = R_NilValue;
+    }
     e["EventTable"] = xtra[1];
     e["dosing"] = xtra[3];
     e["sampling"] = xtra[2];

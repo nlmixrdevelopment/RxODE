@@ -2,36 +2,17 @@
 % Please edit documentation in R/rxsolve.R
 \name{rxSolve}
 \alias{rxSolve}
-\alias{rxSolve.RxODE}
-\alias{rxSolve.solveRxODE}
 \title{Solves a ODE equation}
 \usage{
-rxSolve(object, params = NULL, events = NULL, inits = NULL, scale = c(),
-  covs = NULL, stiff = TRUE, transit_abs = NULL, atol = 1e-06,
-  rtol = 1e-06, maxsteps = 5000, hmin = 0, hmax = NULL, hini = 0,
-  maxordn = 12, maxords = 5, ..., covs_interpolation = c("linear",
-  "constant", "NOCB", "midpoint"), theta = numeric(), eta = numeric(),
-  add.cov = FALSE)
-
-\method{rxSolve}{RxODE}(object, params = NULL, events = NULL,
-  inits = NULL, scale = c(), covs = NULL, stiff = TRUE,
-  transit_abs = NULL, atol = 1e-08, rtol = 1e-06, maxsteps = 5000,
-  hmin = 0, hmax = NULL, hini = 0, maxordn = 12, maxords = 5, ...,
-  covs_interpolation = c("linear", "constant", "NOCB", "midpoint"),
-  theta = numeric(), eta = numeric(), matrix = FALSE, add.cov = FALSE)
-
-\method{rxSolve}{solveRxODE}(object, params = NULL, events = NULL,
-  inits = NULL, scale = c(), covs = NULL, stiff = TRUE,
-  transit_abs = NULL, atol = 1e-08, rtol = 1e-06, maxsteps = 5000,
-  hmin = 0, hmax = NULL, hini = 0, maxordn = 12, maxords = 5, ...,
-  covs_interpolation = c("linear", "constant", "NOCB", "midpoint"),
-  theta = numeric(), eta = numeric(), matrix = FALSE, add.cov = FALSE)
+rxSolve(params = NULL, events = NULL, inits = NULL, covs = NULL,
+  method = "lsoda", transit_abs = NULL, atol = 1e-08, rtol = 1e-06,
+  maxsteps = 5000L, hmin = 0L, hmax = NULL, hini = 0L, maxordn = 12L,
+  maxords = 5L, cores = 1L, covs_interpolation = "linear",
+  add.cov = FALSE, matrix = TRUE, sigma = NULL, sigmaDf = NULL,
+  sigmaNcores = 1L, sigmaIsChol = FALSE, amountUnits = NA_character_,
+  timeUnits = "hours")
 }
 \arguments{
-\item{object}{is a either a RxODE family of objects, or a file-name
-with a RxODE model specification, or a string with a RxODE
-model specification.}
-
 \item{params}{a numeric named vector with values for every
 parameter in the ODE system; the names must correspond to the
 parameter identifiers used in the ODE specification;}
@@ -45,30 +26,9 @@ time points (see \code{\link{eventTable}});}
 vector must be the same as the state variables (e.g., PK/PD
 compartments);}
 
-\item{scale}{a numeric named vector with scaling for ode
-parameters of the system.  The names must correstond to the
-parameter identifiers in the ODE specification. Each of the
-ODE variables will be divided by the scaling factor.  For
-example \code{scale=(center=2)} will divide the center ODE
-variable by 2.}
-
 \item{covs}{a matrix or dataframe the same number of rows as the
 sampling points defined in the events \code{eventTable}.  This
 is for time-varying covariates.}
-
-\item{stiff}{a logical (\code{TRUE} by default) indicating whether
-    the ODE system is stiff or not.
-
-    For stiff ODE sytems (\code{stiff = TRUE}), \code{RxODE} uses the
-    LSODA (Livermore Solver for Ordinary Differential Equations)
-    Fortran package, which implements an automatic method switching
-    for stiff and non-stiff problems along the integration
-    interval, authored by Hindmarsh and Petzold (2003).
-
-    For non-stiff systems (\code{stiff = FALSE}), \code{RxODE} uses
-    DOP853, an explicit Runge-Kutta method of order 8(5, 3) of
-    Dormand and Prince as implemented in C by Hairer and Wanner
-    (1993).}
 
 \item{transit_abs}{boolean indicating if this is a transit
 compartment absorption}
@@ -102,11 +62,6 @@ default value is determined by the solver (when hini = 0)}
 \item{maxords}{The maximum order to be allowed for the stiff (BDF)
 method.  The default value is 5.  This can be between 1 and 5.}
 
-\item{...}{Other arguments including scaling factors for each
-compartment.  This includes S# = numeric will scale a compartment
-# by a dividing the compartment amount by the scale factor,
-like NONMEM.}
-
 \item{covs_interpolation}{specifies the interpolation method for
     time-varying covariates. When solving ODEs it often samples
     times outside the sampling time specified in \code{events}.
@@ -124,18 +79,48 @@ like NONMEM.}
   carried backward to midpoint.
 }}
 
-\item{theta}{A vector of parameters that will be named THETA[#] and
-added to inits}
-
-\item{eta}{A vector of parameters that will be named ETA[#] and
-added to inits}
-
 \item{add.cov}{A boolean indicating if covariates should be added
 to the output matrix or data frame. By default this is
 disabled.}
 
 \item{matrix}{A boolean inticating if a matrix should be returned
 instead of the RxODE's solved object}
+
+\item{object}{is a either a RxODE family of objects, or a file-name
+with a RxODE model specification, or a string with a RxODE
+model specification.}
+
+\item{theta}{A vector of parameters that will be named THETA[#] and
+added to inits}
+
+\item{eta}{A vector of parameters that will be named ETA[#] and
+added to inits}
+
+\item{scale}{a numeric named vector with scaling for ode
+parameters of the system.  The names must correstond to the
+parameter identifiers in the ODE specification. Each of the
+ODE variables will be divided by the scaling factor.  For
+example \code{scale=(center=2)} will divide the center ODE
+variable by 2.}
+
+\item{stiff}{a logical (\code{TRUE} by default) indicating whether
+    the ODE system is stiff or not.
+
+    For stiff ODE sytems (\code{stiff = TRUE}), \code{RxODE} uses the
+    LSODA (Livermore Solver for Ordinary Differential Equations)
+    Fortran package, which implements an automatic method switching
+    for stiff and non-stiff problems along the integration
+    interval, authored by Hindmarsh and Petzold (2003).
+
+    For non-stiff systems (\code{stiff = FALSE}), \code{RxODE} uses
+    DOP853, an explicit Runge-Kutta method of order 8(5, 3) of
+    Dormand and Prince as implemented in C by Hairer and Wanner
+    (1993).}
+
+\item{...}{Other arguments including scaling factors for each
+compartment.  This includes S# = numeric will scale a compartment
+# by a dividing the compartment amount by the scale factor,
+like NONMEM.}
 }
 \value{
 An \dQuote{rxSolve} solve object that stores the solved

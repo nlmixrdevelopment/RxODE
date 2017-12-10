@@ -221,6 +221,7 @@ SEXP getSolvingOptionsPtr(double ATOL,          //absolute error
   o->f2 = f2;
   o->kind = kind;
   o->is_locf = is_locf;
+  o->ncov=ncov;
   o->par_cov = par_cov;
   o->do_par_cov = do_par_cov;
   o->stateNames = stateNames;
