@@ -89,7 +89,30 @@ bool rxIs(const RObject &obj, std::string cls){
     CharacterVector classattr = obj.attr("class");
     for (int i = 0; i < classattr.size(); i++){
       if (as<std::string>(classattr[i]) == cls){
-        return true;
+	if (cls == "solveRxODE7"){
+	  Environment e = as<Environment>(classattr.attr(".RxODE.env"));
+	  List lobj = List(obj);
+	  if (as<int>(e["check.ncol"]) != lobj.size()){
+	    return false;
+	  }
+	  int nrow = (as<NumericVector>(lobj[0])).size();
+	  if (as<int>(e["check.nrow"]) != nrow){
+            return false;
+          }
+	  CharacterVector cn = CharacterVector(e["check.names"]);
+	  if (cn.size() != lobj.size()){
+	    return false;
+	  }
+	  CharacterVector cn2 = CharacterVector(lobj.names());
+	  for (int j = 0; j < cn.size();j++){
+	    if (cn[j] != cn2[j]){
+	      return false;
+	    }
+	  }
+	  return true;
+        } else {
+	  return true;
+        }
       }
     }
   } else {
@@ -349,6 +372,7 @@ List rxDataSetup(const RObject &ro,
     NumericVector newCov(nObs*nCovs);
     
     IntegerVector newEvid(nDoses);
+    IntegerVector idose(nDoses);
     NumericVector newAmt(nDoses);
     NumericVector newTimeA(nDoses);
     lastId = id[0]-1;
@@ -506,6 +530,7 @@ List rxDataSetup(const RObject &ro,
                             );
     // Not sure why, but putting this in above gives errors...
     ret["df"]= df;
+    ret["idose"] = idose,
     ret.attr("class") = "RxODE.multi.data";
     return ret;
   } else {
@@ -1185,8 +1210,6 @@ List rxDataParSetup(const RObject &object,
   DataFrame et      = as<DataFrame>(ret["et"]);
   NumericVector solve(state.size()*et.nrow()*nr);
   ret["solve"] = solve;
-  IntegerVector idose(et.nrow()*nr);
-  ret["idose"] = idose;
   CharacterVector lhs = as<CharacterVector>(modVars["lhs"]);
   ret["lhs"] = NumericVector(lhs.size()*nSub*nr);
   ret["lhsSize"] = lhs.size();
@@ -1240,6 +1263,7 @@ extern "C" {
 			       double HMAX, // Determined by diff
 			       double *par_ptr,
 			       double *dose,
+			       int *idose,
 			       double *solve,
 			       double *lhs,
 			       int  *evid,
@@ -1383,6 +1407,7 @@ SEXP rxSolvingData(const RObject &model,
     NumericVector inits = as<NumericVector>(opt["inits"]);
     DataFrame doseDf = as<DataFrame>(opt["dose"]);
     NumericVector amt = as<NumericVector>(doseDf["amt"]);
+    IntegerVector idose = as<IntegerVector>(opt["idose"]);
     IntegerVector posDose = as<IntegerVector>(ids["posDose"]);
     IntegerVector posEvent = as<IntegerVector>(ids["posEvent"]);
     IntegerVector posCov = as<IntegerVector>(ids["posCov"]);
@@ -1429,6 +1454,7 @@ SEXP rxSolvingData(const RObject &model,
 	ncov = par_cov.size();
         getSolvingOptionsIndPtr(&InfusionRate[cid*neq],&BadDose[cid*neq], hm,&par[cid*nPar],
                                 &amt[posDose[id]],
+				&idose[posDose[id]],
                                 // Solve and lhs are written to in the solve...
                                 &solve[cid*totSize*neq],
                                 &lhs[cid*lhsSize],
@@ -1575,11 +1601,12 @@ SEXP rxSolveC(const RObject &object,
     par_dop(parData);
   }
   List dat = RxODE_df(parData);
+  int nr = as<NumericVector>(dat[0]).size();
+  int nc = dat.size();
   if (rx->matrix){
     freeRxSolve(parData);
     dat.attr("class") = "data.frame";
-    int nr = as<NumericVector>(dat[0]).size();
-    NumericMatrix tmpM(nr,dat.size());
+    NumericMatrix tmpM(nr,nc);
     for (int i = 0; i < dat.size(); i++){
       tmpM(_,i) = as<NumericVector>(dat[i]);
     }
@@ -1589,6 +1616,9 @@ SEXP rxSolveC(const RObject &object,
     Function newEnv("new.env", R_BaseNamespace);
     Environment RxODE("package:RxODE");
     Environment e = newEnv(_["size"] = 29, _["parent"] = RxODE);
+    e["check.nrow"] = nr;
+    e["check.ncol"] = nc;
+    e["check.names"] = dat.names();
     // Save information
     // Remove one final; Just for debug.
     // e["parData"] = parData;
@@ -1677,7 +1707,7 @@ SEXP rxSolveC(const RObject &object,
 
 //[[Rcpp::export]]
 RObject rxSolveGet(RObject obj,std::string arg){
-  if (rxIs(obj, "solveRxODE7")){
+  if (rxIs(obj, "data.frame")){
     List lst = as<List>(obj);
     CharacterVector nm = lst.names();
     int i = 0, n = nm.size();
@@ -1686,51 +1716,53 @@ RObject rxSolveGet(RObject obj,std::string arg){
         return lst[arg];
       }
     }
-    CharacterVector cls = lst.attr("class");
-    Environment e = as<Environment>(cls.attr(".RxODE.env"));
-    if (arg == "env"){
-      return as<RObject>(e);
-    }
-    if (e.exists(arg)){
-      return e[arg];
-    }
-    if (arg == "params" || arg == "par" || arg == "pars" || arg == "param"){
-      return rxSolveGet(obj, "params.dat");
-    } else if (arg == "inits" || arg == "init"){
-      return rxSolveGet(obj, "inits.dat");
-    } else if (arg == "t"){
-      return rxSolveGet(obj,"time");
-    }
-    // Now parameters
-    List pars = List(e["params.dat"]);
-    CharacterVector nmp = pars.names();
-    n = pars.size();
-    for (i = 0; i < n; i++){
-      if (nmp[i] == arg){
-        return pars[arg];
+    if (rxIs(obj, "solveRxODE7")){
+      CharacterVector cls = lst.attr("class");
+      Environment e = as<Environment>(cls.attr(".RxODE.env"));
+      if (arg == "env"){
+        return as<RObject>(e);
       }
+      if (e.exists(arg)){
+        return e[arg];
+      }
+      if (arg == "params" || arg == "par" || arg == "pars" || arg == "param"){
+        return rxSolveGet(obj, "params.dat");
+      } else if (arg == "inits" || arg == "init"){
+        return rxSolveGet(obj, "inits.dat");
+      } else if (arg == "t"){
+        return rxSolveGet(obj,"time");
+      }
+      // Now parameters
+      List pars = List(e["params.dat"]);
+      CharacterVector nmp = pars.names();
+      n = pars.size();
+      for (i = 0; i < n; i++){
+        if (nmp[i] == arg){
+          return pars[arg];
+        }
+      }
+      // // Now inis.
+      // Function sub("sub", R_BaseNamespace);
+      // NumericVector ini = NumericVector(e["inits.dat"]);
+      // CharacterVector nmi = ini.names();
+      // n = ini.size();
+      // std::string cur;
+      // for (i = 0; i < n; i++){
+      //   cur = as<std::string>(sub("(?:(?:[_.]0)|0|\\(0\\)|\\[0\\]|\\{0\\})$","", arg));
+      //   if (nmi[i] == cur){
+      //     return wrap(ini[i]);
+      //   }
+      // }
+      // // Sensitivities -- last
+      // // This is slower, defer to last.
+      // for (i = 0; i < n; i++){
+      //   // The regular expression came from rex;  It is a it long...
+      //   if (as<std::string>(sub("rx__sens_((?:[a-zA-Z][_a-zA-Z0-9.]*|(?:\\.){1,}[_a-zA-Z][_a-zA-Z0-9.]*))_BY_((?:[a-zA-Z][_a-zA-Z0-9.]*|(?:\\.){1,}[_a-zA-Z][_a-zA-Z0-9.]*))__",
+      //                              "_sens_\\1_\\2", nm[i])) == arg){
+      //        return lst[i];
+      //   }
+      // }
     }
-    // // Now inis.
-    // Function sub("sub", R_BaseNamespace);
-    // NumericVector ini = NumericVector(e["inits.dat"]);
-    // CharacterVector nmi = ini.names();
-    // n = ini.size();
-    // std::string cur;
-    // for (i = 0; i < n; i++){
-    //   cur = as<std::string>(sub("(?:(?:[_.]0)|0|\\(0\\)|\\[0\\]|\\{0\\})$","", arg));
-    //   if (nmi[i] == cur){
-    //     return wrap(ini[i]);
-    //   }
-    // }
-    // // Sensitivities -- last
-    // // This is slower, defer to last.
-    // for (i = 0; i < n; i++){
-    //   // The regular expression came from rex;  It is a it long...
-    //   if (as<std::string>(sub("rx__sens_((?:[a-zA-Z][_a-zA-Z0-9.]*|(?:\\.){1,}[_a-zA-Z][_a-zA-Z0-9.]*))_BY_((?:[a-zA-Z][_a-zA-Z0-9.]*|(?:\\.){1,}[_a-zA-Z][_a-zA-Z0-9.]*))__",
-    // 			      "_sens_\\1_\\2", nm[i])) == arg){
-    // 	return lst[i];
-    //   }
-    // }
   }
   return R_NilValue;
 }

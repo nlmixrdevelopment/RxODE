@@ -169,163 +169,151 @@ rxSolve <- function(object, params = NULL, events = NULL, inits = NULL, covs = N
 ##' @author Matthew L.Fidler
 ##' @export
 print.solveRxODE7 <- function(x, ...){
-    args <- as.list(match.call(expand.dots = TRUE));
-    if (any(names(args) == "n")){
-        n <- args$n;
-    } else {
-        n <- 6L;
-    }
-    if (any(names(args) == "width")){
-        width <- args$width;
-    } else {
-        width <- NULL;
-    }
-    env <- attr(x, ".RxODE.env");
-    rxode <- env$object;
-    message("Solved RxODE object");
-    is.dplyr <- requireNamespace("dplyr", quietly = TRUE) && RxODE.display.tbl;
-    ## cat(sprintf("Dll: %s\n\n", rxDll(x)))
-    message("Parameters ($params):");
-    df <- x$params.single
-    if (!is.null(df)){
-        print(df)
-    } else {
-        df <- x$pars
-        if (rxIs(df, "data.frame")){
-            if (!is.dplyr){
-                print(head(as.matrix(x), n = n));
-            } else {
-                print(dplyr::as.tbl(x$pars), n = n, width = width);
+    if (rxIs(x, "solveRxODE7")){
+        args <- as.list(match.call(expand.dots = TRUE));
+        if (any(names(args) == "n")){
+            n <- args$n;
+        } else {
+            n <- 6L;
+        }
+        if (any(names(args) == "width")){
+            width <- args$width;
+        } else {
+            width <- NULL;
+        }
+        env <- attr(x, ".RxODE.env");
+        rxode <- env$object;
+        message("Solved RxODE object");
+        is.dplyr <- requireNamespace("dplyr", quietly = TRUE) && RxODE.display.tbl;
+        ## cat(sprintf("Dll: %s\n\n", rxDll(x)))
+        message("Parameters ($params):");
+        df <- x$params.single
+        if (!is.null(df)){
+            print(df)
+        } else {
+            df <- x$pars
+            if (rxIs(df, "data.frame")){
+                if (!is.dplyr){
+                    print(head(as.matrix(x), n = n));
+                } else {
+                    print(dplyr::as.tbl(x$pars), n = n, width = width);
+                }
             }
         }
-    }
-    ## w <- which((names(lst$params) %in% names(x)))
-    ## if (length(w) > 0){
-    ##     print(lst$params[-w]);
-    ##     message("\nFirst Part of Time Varying Covariates:");
-    ##     d <- as.data.frame(env$covs)[, names(lst$params)[w]];
-    ##     if (length(w) == 1){
-    ##         d <- data.frame(d = d);
-    ##         names(d) <- names(lst$params)[w];
-    ##     }
-    ##     if (!is.dplyr){
-    ##         print(head(d), n = n);
-    ##     } else {
-    ##         print(dplyr::as.tbl(d), n = n, width = width);
-    ##     }
-    ## }  else {
-    ##     p <- lst$params;
-    ##     if (length(env$pcov) > 0){
-    ##         p2 <- p[-env$pcov];
-    ##         print(p2)
-    ##         message("\nTime Varying Covariates");
-    ##         message(paste(names(p[env$pcov]), collapse=" "));
-    ##     } else {
-    ##         print(p);
-    ##     }
-    ## }
-    message("\n\nInitial Conditions ($inits):")
-    print(x$inits);
-    ## inits <- lst$inits[regexpr(regSens, names(lst$inits)) == -1];
-    ## print(inits);
-    message("\n\nFirst part of data (object):")
-    if (!is.dplyr){
-        print(head(as.matrix(x), n = n));
+        ## w <- which((names(lst$params) %in% names(x)))
+        ## if (length(w) > 0){
+        ##     print(lst$params[-w]);
+        ##     message("\nFirst Part of Time Varying Covariates:");
+        ##     d <- as.data.frame(env$covs)[, names(lst$params)[w]];
+        ##     if (length(w) == 1){
+        ##         d <- data.frame(d = d);
+        ##         names(d) <- names(lst$params)[w];
+        ##     }
+        ##     if (!is.dplyr){
+        ##         print(head(d), n = n);
+        ##     } else {
+        ##         print(dplyr::as.tbl(d), n = n, width = width);
+        ##     }
+        ## }  else {
+        ##     p <- lst$params;
+        ##     if (length(env$pcov) > 0){
+        ##         p2 <- p[-env$pcov];
+        ##         print(p2)
+        ##         message("\nTime Varying Covariates");
+        ##         message(paste(names(p[env$pcov]), collapse=" "));
+        ##     } else {
+        ##         print(p);
+        ##     }
+        ## }
+        message("\n\nInitial Conditions ($inits):")
+        print(x$inits);
+        ## inits <- lst$inits[regexpr(regSens, names(lst$inits)) == -1];
+        ## print(inits);
+        message("\n\nFirst part of data (object):")
+        if (!is.dplyr){
+            print(head(as.matrix(x), n = n));
+        } else {
+            print(dplyr::as.tbl(x), n = n, width = width);
+        }
     } else {
-        print(dplyr::as.tbl(x), n = n, width = width);
+        class(x) <- "data.frame"
+        print.data.frame(x)
     }
 }
 
 ##' @author Matthew L.Fidler
 ##' @export
 summary.solveRxODE7 <- function(object, ...){
-    env <- attr(object, ".env");
-    message("Model:");
-    message("################################################################################");
-    message(rxNorm(object));
-    message("################################################################################");
-    message("Parameters:")
-    is.dplyr <- requireNamespace("dplyr", quietly = TRUE) && RxODE.display.tbl;
-    df <- object$pars
-    if (!is.dplyr){
-        print(head(as.matrix(x), n = 6L));
+    if (rxIs(x, "solveRxODE7")){
+        message("Model:");
+        message("################################################################################");
+        message(rxNorm(object));
+        message("################################################################################");
+        message("Parameters:")
+        is.dplyr <- requireNamespace("dplyr", quietly = TRUE) && RxODE.display.tbl;
+        df <- object$pars
+        if (!is.dplyr){
+            print(head(as.matrix(x), n = 6L));
+        } else {
+            print(dplyr::as.tbl(x$pars), n = 6L, width = width);
+        }
+        message("\n\nInitial conditions:")
+        print(object$inits);
+        message("\n\nSummary of solved data:")
+        print(summary.data.frame(object))
     } else {
-        print(dplyr::as.tbl(x$pars), n = 6L, width = width);
+        class(x) <- "data.frame"
+        NextMethod("print", x);
     }
-    message("\n\nInitial conditions:")
-    print(object$inits);
-    message("\n\nSummary of solved data:")
-    print(summary.data.frame(object))
 }
 
 ##' @author Matthew L.Fidler
 ##' @export
 `$.solveRxODE7` <-  function(obj, arg, exact = TRUE){
-    .Call(`_RxODE_rxSolveGet`, obj, arg);
-}
-
-##' @author Matthew L.Fidler
-##' @export
-`[.solveRxODE7` <- function(x, i, j, drop){
-    df <- as.data.frame(x);
-    assign.names <- NULL
-    if (!missing(j) && rxIs(j,"character")){
-        nm <- names(df);
-        nms <- gsub(regSens, "_sens_\\1_\\2", nm);
-        assign.names <- j;
-        j <- as.vector(sapply(j, function(x){
-            w <- which(nm == x)
-            if (length(w) >= 1){
-                return(w[1]);
-            } else {
-                w <- which(nms == x)
-                return(w[1]);
-            }
-        }));
-    }
-    if (!missing(i) && missing(j) && missing(drop)){
-        df <- df[i, ];
-    } else if (missing(i) && !missing(j) && missing(drop)){
-        df <- df[, j];
-        if (!is.null(assign.names) && rxIs(df,"data.frame"))
-            names(df) <- assign.names
-    } else if (!missing(i) && !missing(j) && missing(drop)){
-        df <- df[i, j];
-        if (!is.null(assign.names) && rxIs(df,"data.frame"))
-            names(df) <- assign.names
-    } else if (missing(i) && missing(j) && missing(drop)){
-        df <- df[drop = drop];
-    } else if (!missing(i) && missing(j) && !missing(drop)){
-        df <- df[i,, drop = drop];
-    } else if (missing(i) && !missing(j) && !missing(drop)){
-        df <- df[, j, drop = drop];
-        if (!is.null(assign.names))
-            names(df) <- assign.names
-    } else if (!missing(i) && !missing(j) && !missing(drop)){
-        df <- df[i, j, drop = drop];
-        if (!is.null(assign.names) && rxIs(df,"data.frame"))
-            names(df) <- assign.names
-    } else if (missing(i) && missing(j) && !missing(drop)){
-        df <- df[,, drop = drop];
-    }
-    return(df)
-}
-
-##' @author Matthew L.Fidler
-##' @export
-"[[.solveRxODE" <- function(obj, arg, exact = TRUE, internal = FALSE){
-    if (internal){
-        env <- attr(obj, ".env");
-        tmp <- c(list(params=env$params, inits=env$inits), env$extra.args)
-        return(tmp[[arg, exact = exact]]);
+    if (rxIs(obj, "solveRxODE7")){
+        return(.Call(`_RxODE_rxSolveGet`, obj, arg))
     } else {
-        `$.solveRxODE`(obj, arg, exact = exact);
+        class(obj) <- "data.frame"
+        NextMethod("$")
     }
 }
 
+##' @author Matthew L.Fidler
+##' @export
+`[.solveRxODE7` <- function(x, i, j, drop=if (missing(i))
+                                              TRUE
+                                          else length(cols) == 1){
+    class(x) <- "data.frame";
+    NextMethod("[");
+}
 
+##' @author Matthew L.Fidler
+##' @export
+"[[.solveRxODE7" <- function(obj, arg, exact = TRUE){
+    if (rxIs(obj, "solveRxODE7")){
+        return(.Call(`_RxODE_rxSolveGet`, obj, arg))
+    } else {
+        class(obj) <- "data.frame";
+        NextMethod("[[")
+    }
+}
 
+##' @export
+t.solveRxODE7 <- function(x){
+    x <- as.matrix(x)
+    NextMethod("t", x);
+}
 
+##' @export
+dimnames.solveRxODE7 <- function(x){
+    list(row.names(x), names(x));
+}
+
+##' @export
+"dimnames<-.solveRxODE7" <- function(x, value){
+    class(x) <- "data.frame";
+    "dimnames<-.data.frame"(x, value);
+}
 
 ##' Assign solved objects using the [] syntax
 ##' @param obj solved object

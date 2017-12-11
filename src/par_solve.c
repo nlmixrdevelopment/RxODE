@@ -119,6 +119,7 @@ void getSolvingOptionsIndPtr(double *InfusionRate,
                              double HMAX, // Determined by diff
                              double *par_ptr,
                              double *dose,
+			     int *idose,
                              double *solve,
                              double *lhs,
                              int *evid,
@@ -149,8 +150,7 @@ void getSolvingOptionsIndPtr(double *InfusionRate,
   o->ixds = 0;
   o->ndoses = -1;
   o->all_times = all_times;
-  /* o.idose = idose;  allocated at run-time*/
-  o->idosen = 0;
+  o->idose = idose;
   o->id = id;
   o->sim = sim;
 }
@@ -246,14 +246,7 @@ extern void rxSolveDataFree(SEXP ptr) {
   rx_solve *o;
   o  = (rx_solve*)R_ExternalPtrAddr(ptr);
   rx_solving_options_ind *inds;
-  int n = (o->nsub)*(o->nsim);
-  int *idose;
   inds = o->subjects;
-  // Free all the idoses.
-  for (int i = 0; i < n; i++){
-    idose = (&inds[i])->idose;
-    Free(idose);
-  }
   // Free individuals;
   Free(inds);
   // Now free global options
@@ -781,16 +774,6 @@ extern unsigned int nDosesP(rx_solve *rx, unsigned int id){
     for (int i = 0; i < ind->n_all_times; i++){
       if (rxEvidP(i, rx, id)){
         ind->ndoses++;
-        if (ind->ndoses >= ind->idosen){
-          if (ind->idosen == 0){
-            ind->idose = Calloc(32,int);
-            ind->idosen = 32;
-          } else {
-            ind->idosen *= 2;
-            /* Rprintf("Reallocating to %d\n", ind->idosen); */
-            ind->idose = Realloc(ind->idose, ind->idosen, int);
-          }
-        }
         ind->idose[ind->ndoses-1] = i;
       }
     }
