@@ -1727,9 +1727,12 @@ RObject rxSolveGet(RObject obj, RObject arg, LogicalVector exact = true){
       } else if (exact[0] == FALSE){
 	dexact = 0;
       }
+      unsigned int slen2;
       for (i = 0; i < n; i++){
-        if ((strncmp((as<std::string>(nm[i])).c_str(), sarg.c_str(), slen)  == 0 )&&
-	    (dexact != 1 || (dexact == 1 && slen == strlen((as<std::string>(nm[i])).c_str())))){
+	slen2 = strlen((as<std::string>(nm[i])).c_str());
+        if (slen <= slen2 &&
+	    (strncmp((as<std::string>(nm[i])).c_str(), sarg.c_str(), slen)  == 0 ) &&
+	    (dexact != 1 || (dexact == 1 && slen == slen2))){
 	  if (dexact == -1){
 	    warning("partial match of '%s' to '%s'",sarg.c_str(), (as<std::string>(nm[i])).c_str());
 	  }
