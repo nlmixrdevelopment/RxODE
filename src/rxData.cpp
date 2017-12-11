@@ -92,20 +92,25 @@ bool rxIs(const RObject &obj, std::string cls){
 	if (cls == "solveRxODE7"){
 	  Environment e = as<Environment>(classattr.attr(".RxODE.env"));
 	  List lobj = List(obj);
+	  CharacterVector cls2= CharacterVector::create("data.frame");
 	  if (as<int>(e["check.ncol"]) != lobj.size()){
+	    obj.attr("class") = cls2;
 	    return false;
 	  }
 	  int nrow = (as<NumericVector>(lobj[0])).size();
 	  if (as<int>(e["check.nrow"]) != nrow){
+	    obj.attr("class") = cls2;
             return false;
           }
 	  CharacterVector cn = CharacterVector(e["check.names"]);
 	  if (cn.size() != lobj.size()){
+	    obj.attr("class") = cls2;
 	    return false;
 	  }
 	  CharacterVector cn2 = CharacterVector(lobj.names());
 	  for (int j = 0; j < cn.size();j++){
 	    if (cn[j] != cn2[j]){
+	      obj.attr("class") = cls2;
 	      return false;
 	    }
 	  }
