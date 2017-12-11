@@ -236,7 +236,6 @@ print.solveRxODE7 <- function(x, ...){
             print(dplyr::as.tbl(x), n = n, width = width);
         }
     } else {
-        class(x) <- "data.frame"
         print.data.frame(x)
     }
 }
@@ -269,13 +268,8 @@ summary.solveRxODE7 <- function(object, ...){
 
 ##' @author Matthew L.Fidler
 ##' @export
-`$.solveRxODE7` <-  function(obj, arg, exact = TRUE){
-    if (rxIs(obj, "solveRxODE7")){
-        return(.Call(`_RxODE_rxSolveGet`, obj, arg))
-    } else {
-        class(obj) <- "data.frame"
-        NextMethod("$")
-    }
+`$.solveRxODE7` <-  function(obj, arg, exact = FALSE){
+    return(.Call(`_RxODE_rxSolveGet`, obj, arg, exact))
 }
 
 ##' @author Matthew L.Fidler
@@ -290,12 +284,7 @@ summary.solveRxODE7 <- function(object, ...){
 ##' @author Matthew L.Fidler
 ##' @export
 "[[.solveRxODE7" <- function(obj, arg, exact = TRUE){
-    if (rxIs(obj, "solveRxODE7")){
-        return(.Call(`_RxODE_rxSolveGet`, obj, arg))
-    } else {
-        class(obj) <- "data.frame";
-        NextMethod("[[")
-    }
+    return(.Call(`_RxODE_rxSolveGet`, obj, arg, exact))
 }
 
 ##' @export

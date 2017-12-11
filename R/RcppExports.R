@@ -227,8 +227,8 @@ rxSolveC <- function(object, params = NULL, events = NULL, inits = NULL, covs = 
     .Call(`_RxODE_rxSolveC`, object, params, events, inits, covs, method, transit_abs, atol, rtol, maxsteps, hmin, hmax, hini, maxordn, maxords, cores, covs_interpolation, addCov, matrix, sigma, sigmaDf, sigmaNcores, sigmaIsChol, amountUnits, timeUnits)
 }
 
-rxSolveGet <- function(obj, arg) {
-    .Call(`_RxODE_rxSolveGet`, obj, arg)
+rxSolveGet <- function(obj, arg, exact = TRUE) {
+    .Call(`_RxODE_rxSolveGet`, obj, arg, exact)
 }
 
 #' Invert matrix using Rcpp Armadilo.  

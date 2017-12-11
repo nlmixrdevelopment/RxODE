@@ -94,23 +94,23 @@ bool rxIs(const RObject &obj, std::string cls){
 	  List lobj = List(obj);
 	  CharacterVector cls2= CharacterVector::create("data.frame");
 	  if (as<int>(e["check.ncol"]) != lobj.size()){
-	    obj.attr("class") = cls2;
+	    lobj.attr("class") = cls2;
 	    return false;
 	  }
 	  int nrow = (as<NumericVector>(lobj[0])).size();
 	  if (as<int>(e["check.nrow"]) != nrow){
-	    obj.attr("class") = cls2;
+	    lobj.attr("class") = cls2;
             return false;
           }
 	  CharacterVector cn = CharacterVector(e["check.names"]);
 	  if (cn.size() != lobj.size()){
-	    obj.attr("class") = cls2;
+	    lobj.attr("class") = cls2;
 	    return false;
 	  }
 	  CharacterVector cn2 = CharacterVector(lobj.names());
 	  for (int j = 0; j < cn.size();j++){
 	    if (cn[j] != cn2[j]){
-	      obj.attr("class") = cls2;
+	      lobj.attr("class") = cls2;
 	      return false;
 	    }
 	  }
@@ -1711,62 +1711,85 @@ SEXP rxSolveC(const RObject &object,
 }
 
 //[[Rcpp::export]]
-RObject rxSolveGet(RObject obj,std::string arg){
+RObject rxSolveGet(RObject obj, RObject arg, LogicalVector exact = true){
+  std::string sarg;
+  int i, n;
   if (rxIs(obj, "data.frame")){
     List lst = as<List>(obj);
-    CharacterVector nm = lst.names();
-    int i = 0, n = nm.size();
-    for (i = 0; i < n; i++){
-      if (nm[i] == arg){
-        return lst[arg];
+    if (rxIs(arg, "character")){
+      sarg = as<std::string>(arg);
+      CharacterVector nm = lst.names();
+      n = nm.size();
+      unsigned int slen = strlen(sarg.c_str());
+      int dexact = -1;
+      if (exact[0] == TRUE){
+	dexact = 1;
+      } else if (exact[0] == FALSE){
+	dexact = 0;
       }
-    }
-    if (rxIs(obj, "solveRxODE7")){
-      CharacterVector cls = lst.attr("class");
-      Environment e = as<Environment>(cls.attr(".RxODE.env"));
-      if (arg == "env"){
-        return as<RObject>(e);
-      }
-      if (e.exists(arg)){
-        return e[arg];
-      }
-      if (arg == "params" || arg == "par" || arg == "pars" || arg == "param"){
-        return rxSolveGet(obj, "params.dat");
-      } else if (arg == "inits" || arg == "init"){
-        return rxSolveGet(obj, "inits.dat");
-      } else if (arg == "t"){
-        return rxSolveGet(obj,"time");
-      }
-      // Now parameters
-      List pars = List(e["params.dat"]);
-      CharacterVector nmp = pars.names();
-      n = pars.size();
       for (i = 0; i < n; i++){
-        if (nmp[i] == arg){
-          return pars[arg];
+        if ((strncmp((as<std::string>(nm[i])).c_str(), sarg.c_str(), slen)  == 0 )&&
+	    (dexact != 1 || (dexact == 1 && slen == strlen((as<std::string>(nm[i])).c_str())))){
+	  if (dexact == -1){
+	    warning("partial match of '%s' to '%s'",sarg.c_str(), (as<std::string>(nm[i])).c_str());
+	  }
+          return lst[i];
         }
       }
-      // // Now inis.
-      // Function sub("sub", R_BaseNamespace);
-      // NumericVector ini = NumericVector(e["inits.dat"]);
-      // CharacterVector nmi = ini.names();
-      // n = ini.size();
-      // std::string cur;
-      // for (i = 0; i < n; i++){
-      //   cur = as<std::string>(sub("(?:(?:[_.]0)|0|\\(0\\)|\\[0\\]|\\{0\\})$","", arg));
-      //   if (nmi[i] == cur){
-      //     return wrap(ini[i]);
-      //   }
-      // }
-      // // Sensitivities -- last
-      // // This is slower, defer to last.
-      // for (i = 0; i < n; i++){
-      //   // The regular expression came from rex;  It is a it long...
-      //   if (as<std::string>(sub("rx__sens_((?:[a-zA-Z][_a-zA-Z0-9.]*|(?:\\.){1,}[_a-zA-Z][_a-zA-Z0-9.]*))_BY_((?:[a-zA-Z][_a-zA-Z0-9.]*|(?:\\.){1,}[_a-zA-Z][_a-zA-Z0-9.]*))__",
-      //                              "_sens_\\1_\\2", nm[i])) == arg){
-      //        return lst[i];
-      //   }
-      // }
+      if (rxIs(obj, "solveRxODE7")){
+	CharacterVector cls = lst.attr("class");
+	Environment e = as<Environment>(cls.attr(".RxODE.env"));
+	if (sarg == "env"){
+	  return as<RObject>(e);
+	}
+	if (e.exists(sarg)){
+	  return e[sarg];
+	}
+	if (sarg == "params" || sarg == "par" || sarg == "pars" || sarg == "param"){
+	  return e["params.dat"];
+	} else if (sarg == "inits" || sarg == "init"){
+	  return e["inits.dat"];
+	} else if (sarg == "t"){
+	  return lst["time"];
+	}
+	// Now parameters
+	List pars = List(e["params.dat"]);
+	CharacterVector nmp = pars.names();
+	n = pars.size();
+	for (i = 0; i < n; i++){
+	  if (nmp[i] == sarg){
+	    return pars[sarg];
+	  }
+	}
+	// // Now inis.
+	// Function sub("sub", R_BaseNamespace);
+	// NumericVector ini = NumericVector(e["inits.dat"]);
+	// CharacterVector nmi = ini.names();
+	// n = ini.size();
+	// std::string cur;
+	// for (i = 0; i < n; i++){
+	//   cur = as<std::string>(sub("(?:(?:[_.]0)|0|\\(0\\)|\\[0\\]|\\{0\\})$","", sarg));
+	//   if (nmi[i] == cur){
+	//     return wrap(ini[i]);
+	//   }
+	// }
+	// // Sensitivities -- last
+	// // This is slower, defer to last.
+	// for (i = 0; i < n; i++){
+	//   // The regular expression came from rex;  It is a it long...
+	//   if (as<std::string>(sub("rx__sens_((?:[a-zA-Z][_a-zA-Z0-9.]*|(?:\\.){1,}[_a-zA-Z][_a-zA-Z0-9.]*))_BY_((?:[a-zA-Z][_a-zA-Z0-9.]*|(?:\\.){1,}[_a-zA-Z][_a-zA-Z0-9.]*))__",
+	//                              "_sens_\\1_\\2", nm[i])) == sarg){
+	//        return lst[i];
+	//   }
+	// }
+      }
+    } else {
+      if (rxIs(arg, "integer") || rxIs(arg, "numeric")){
+	int iarg = as<int>(arg);
+	if (iarg < lst.size()){
+	  return lst[iarg-1];
+	}
+      }
     }
   }
   return R_NilValue;

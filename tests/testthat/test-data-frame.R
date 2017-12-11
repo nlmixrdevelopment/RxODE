@@ -4,6 +4,7 @@ library(digest)
 rxPermissive({
 
     context("rxSolve objects behave as data-frames")
+
     ## RxODE instance 1
     m1 <-
         RxODE(
@@ -39,8 +40,6 @@ rxPermissive({
 
     o1.df <- as.data.frame(o1.first);
     o1.df2 <- as_data_frame(o1.first);
-
-
 
     test_that("Numeric Data frame lookup operators [] make sense",{
         expect_equal(o1.first[],o1.df[]);
