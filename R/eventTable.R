@@ -218,11 +218,11 @@ eventTable <- function(amount.units = NA, time.units = "hours")
             }
             time <- start.time+(1:nbr.doses-1)*dosing.interval
 
-                                        # TODO: should we code individual flags (infusion vs bolus, etc)
-                                        # in the table and convert to a mask integer just prior to
-                                        # invoking the C code?
-                                        # TODO: Handle units. Check that add.dosing() units don't conflict
-                                        # with the eventTable definition (preferred units)
+            ## TODO: should we code individual flags (infusion vs bolus, etc)
+            ## in the table and convert to a mask integer just prior to
+            ## invoking the C code?
+            ## TODO: Handle units. Check that add.dosing() units don't conflict
+            ## with the eventTable definition (preferred units)
             if (is.null(rate)) {#-- bolus
                 wh <- 100*dosing.to+1
                 inp <- data.frame(time=time, evid=wh, amt=dose)

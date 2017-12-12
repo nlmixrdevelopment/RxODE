@@ -1570,7 +1570,7 @@ SEXP rxSolveC(const RObject &object,
 	      const RObject &events = R_NilValue,
 	      const Nullable<NumericVector> &inits = R_NilValue,
 	      const RObject &covs  = R_NilValue,
-	      const std::string &method = "lsoda",
+	      const CharacterVector &method = "lsoda",
 	      const Nullable<LogicalVector> &transit_abs = R_NilValue,
 	      const double atol = 1.0e-8,
 	      const double rtol = 1.0e-6,
@@ -1581,136 +1581,259 @@ SEXP rxSolveC(const RObject &object,
 	      const int maxordn = 12,
 	      const int maxords = 5,
 	      const int cores = 1,
-	      std::string covs_interpolation = "linear",
+	      const CharacterVector &covs_interpolation = "linear",
 	      bool addCov = false,
 	      bool matrix = false,
 	      const RObject &sigma= R_NilValue,
 	      const RObject &sigmaDf= R_NilValue,
 	      const int &sigmaNcores= 1,
 	      const bool &sigmaIsChol= false,
-	      const StringVector &amountUnits = NA_STRING,
-	      const StringVector &timeUnits = "hours"){
-  DataFrame ret;
-  List parData = rxData(object, params, events, inits, covs, method, transit_abs, atol,
-			rtol, maxsteps, hmin,hmax, hini, maxordn, maxords, cores,
-			covs_interpolation, addCov, matrix, sigma, sigmaDf, sigmaNcores, sigmaIsChol,
-			amountUnits, timeUnits);
-  rx_solve *rx;
-  rx =getRxSolve(parData);
-  rx_solving_options *op;
-  op = getRxOp(rx);
-  if (op->stiff == 1){
-    // lsoda
-    par_lsoda(parData);
-  } else if (op->stiff == 0){
-    // dop
-    par_dop(parData);
-  }
-  List dat = RxODE_df(parData);
-  int nr = as<NumericVector>(dat[0]).size();
-  int nc = dat.size();
-  if (rx->matrix){
-    freeRxSolve(parData);
-    dat.attr("class") = "data.frame";
-    NumericMatrix tmpM(nr,nc);
-    for (int i = 0; i < dat.size(); i++){
-      tmpM(_,i) = as<NumericVector>(dat[i]);
+	      const CharacterVector &amountUnits = NA_STRING,
+	      const CharacterVector &timeUnits = "hours"){
+  if (rxIs(object, "rxSolve")){
+    // Check to see what parameters were updated by specParams
+    bool update_params = false,
+      update_events = false,
+      update_inits = false,
+      update_covs = false,
+      update_method = false,
+      update_transit_abs = false,
+      update_atol = false,
+      update_rtol = false,
+      update_maxsteps = false,
+      update_hini = false,
+      update_hmin = false,
+      update_hmax = false,
+      update_maxordn = false,
+      update_maxords = false,
+      update_cores = false,
+      update_covs_interpolation = false,
+      update_addCov = false,
+      update_matrix = false,
+      update_sigma  = false,
+      update_sigmaDf = false,
+      update_sigmaNcores = false,
+      update_sigmaIsChol = false,
+      update_amountUnits = false,
+      update_timeUnits = false;
+    if (specParams.isNull()){
+      warning("No additional parameters were specified; Returning fit.");
+      return object;
     }
-    tmpM.attr("dimnames") = List::create(R_NilValue,dat.names());
-    return tmpM;
-  } else {
-    Function newEnv("new.env", R_BaseNamespace);
-    Environment RxODE("package:RxODE");
-    Environment e = newEnv(_["size"] = 29, _["parent"] = RxODE);
-    e["check.nrow"] = nr;
-    e["check.ncol"] = nc;
-    e["check.names"] = dat.names();
-    // Save information
-    // Remove one final; Just for debug.
-    // e["parData"] = parData;
-    List xtra = RxODE_par_df(parData);
-    List pd = as<List>(xtra[0]);
-    e["params.dat"] = pd;
-    if (as<int>(parData["nSub"]) == 1 && as<int>(parData["nsim"]) == 1){
-      int n = pd.size();
-      NumericVector par2(n);
-      for (int i = 0; i <n; i++){
-	par2[i] = (as<NumericVector>(pd[i]))[0];
+    CharacterVector specs = CharacterVector(specParams);
+    int n = specs.size(), i;
+    for (i = 0; i < n; i++){
+      if (as<std::string>(specs[i]) == "params")
+	update_params = true;
+      else if (as<std::string>(specs[i]) == "events")
+	update_events = true;
+      else if (as<std::string>(specs[i]) == "inits")
+	update_inits = true;
+      else if (as<std::string>(specs[i]) == "covs")
+	update_covs = true;
+      else if (as<std::string>(specs[i]) == "method")
+	update_method = true;
+      else if (as<std::string>(specs[i]) == "transit_abs")
+	update_transit_abs = true;
+      else if (as<std::string>(specs[i]) == "atol")
+	update_atol = true;
+      else if (as<std::string>(specs[i]) == "rtol")
+	update_rtol = true;
+      else if (as<std::string>(specs[i]) == "maxsteps")
+	update_maxsteps = true;
+      else if (as<std::string>(specs[i]) == "hmin")
+	update_hmin = true;
+      else if (as<std::string>(specs[i]) == "hmax")
+	update_hmax = true;
+      else if (as<std::string>(specs[i]) == "maxordn")
+	update_maxordn = true;
+      else if (as<std::string>(specs[i]) == "maxords")
+	update_maxords = true;
+      else if (as<std::string>(specs[i]) == "cores")
+	update_cores = true;
+      else if (as<std::string>(specs[i]) == "covs_interpolation")
+	update_covs_interpolation = true;
+      else if (as<std::string>(specs[i]) == "addCov")
+	update_addCov = true;
+      else if (as<std::string>(specs[i]) == "matrix")
+	update_matrix = true;
+      else if (as<std::string>(specs[i]) == "sigma ")
+	update_sigma  = true;
+      else if (as<std::string>(specs[i]) == "sigmaDf")
+	update_sigmaDf = true;
+      else if (as<std::string>(specs[i]) == "sigmaNcores")
+	update_sigmaNcores = true;
+      else if (as<std::string>(specs[i]) == "sigmaIsChol")
+	update_sigmaIsChol = true;
+      else if (as<std::string>(specs[i]) == "amountUnits")
+	update_amountUnits = true;
+      else if (as<std::string>(specs[i]) == "timeUnits")
+	update_timeUnits = true;
+      else if (as<std::string>(specs[i]) == "hini"){
+	update_hini = true;
       }
-      par2.names() = pd.names();
-      e["params.single"] = par2;
-    } else {
-      e["params.single"] = R_NilValue;
     }
-    e["EventTable"] = xtra[1];
-    e["dosing"] = xtra[3];
-    e["sampling"] = xtra[2];
-    e["obs.rec"] = xtra[4];
-    e["covs"] = xtra[5];
-    e["inits.dat"] = parData["inits"];
-    CharacterVector units(2);
-    units[0] = as<std::string>(parData["amount.units"]);
-    units[1] = as<std::string>(parData["time.units"]);
-    CharacterVector unitsN(2);
-    unitsN[0] = "dosing";
-    unitsN[1] = "time";
-    units.names() = unitsN;
-    e["units"] = units;
-    e["nobs"] = parData["nObs"];
+    // Now update
+    CharacterVector classattr = object.attr("class");
+    Environment e = as<Environment>(classattr.attr(".RxODE.env"));
+
+    RObject new_params = update_params ? params : e["args.params"];
+    RObject new_events = update_events ? events : e["args.events"];
+    Nullable<NumericVector> new_inits = update_inits ? inits : e["args.inits"];
+    RObject new_covs  = update_covs  ? covs  : e["args.covs"];
+    CharacterVector new_method = update_method ? method : e["args.method"];
+    Nullable<LogicalVector> new_transit_abs = update_transit_abs ? transit_abs : e["args.transit_abs"];
+    double new_atol = update_atol ? atol : e["args.atol"];
+    double new_rtol = update_rtol ? rtol : e["args.rtol"];
+    int new_maxsteps = update_maxsteps ? maxsteps : e["args.maxsteps"];
+    int new_hmin = update_hmin ? hmin : e["args.hmin"];
+    Nullable<NumericVector> new_hmax = update_hmax ? hmax : e["args.hmax"];
+    int new_hini = update_hini ? hini : e["args.hini"];
+    int new_maxordn = update_maxordn ? maxordn : e["args.maxordn"];
+    int new_maxords = update_maxords ? maxords : e["args.maxords"];
+    int new_cores = update_cores ? cores : e["args.cores"];
+    CharacterVector new_covs_interpolation = update_covs_interpolation ? covs_interpolation : e["args.covs_interpolation"];
+    bool new_addCov = update_addCov ? addCov : e["args.addCov"];
+    bool new_matrix = update_matrix ? matrix : e["args.matrix"];
+    RObject new_sigma = update_sigma ? sigma : e["args.sigma"];
+    RObject new_sigmaDf = update_sigmaDf ? sigmaDf : e["args.sigmaDf"];
+    int new_sigmaNcores = update_sigmaNcores ? sigmaNcores : e["args.sigmaNcores"];
+    bool new_sigmaIsChol = update_sigmaIsChol ? sigmaIsChol : e["args.sigmaIsChol"];
+    CharacterVector new_amountUnits = update_amountUnits ? amountUnits : e["args.amountUnits"];
+    CharacterVector new_timeUnits = update_timeUnits ? timeUnits : e["args.timeUnits"];
+    RObject new_object = as<RObject>(e["args.object"]);
+    CharacterVector new_specParams(0);
+    return rxSolveC(new_object, new_specParams, new_params, new_events, new_inits, new_covs,
+		    new_method, new_transit_abs, new_atol, new_rtol, new_maxsteps, new_hmin,
+		    new_hmax, new_hini,new_maxordn, new_maxords, new_cores, new_covs_interpolation,
+		    new_addCov, new_matrix, new_sigma, new_sigmaDf, new_sigmaNcores, new_sigmaIsChol,
+		    new_amountUnits, new_timeUnits
+		    );
+  } else {
+    DataFrame ret;
+    List parData = rxData(object, params, events, inits, covs, as<std::string>(method[0]), transit_abs, atol,
+                          rtol, maxsteps, hmin,hmax, hini, maxordn, maxords, cores,
+                          as<std::string>(covs_interpolation[0]), addCov, matrix, sigma, sigmaDf, sigmaNcores, sigmaIsChol,
+                          amountUnits, timeUnits);
+    rx_solve *rx;
+    rx =getRxSolve(parData);
+    rx_solving_options *op;
+    op = getRxOp(rx);
+    if (op->stiff == 1){
+      // lsoda
+      par_lsoda(parData);
+    } else if (op->stiff == 0){
+      // dop
+      par_dop(parData);
+    }
+    List dat = RxODE_df(parData);
+    int nr = as<NumericVector>(dat[0]).size();
+    int nc = dat.size();
+    if (rx->matrix){
+      freeRxSolve(parData);
+      dat.attr("class") = "data.frame";
+      NumericMatrix tmpM(nr,nc);
+      for (int i = 0; i < dat.size(); i++){
+        tmpM(_,i) = as<NumericVector>(dat[i]);
+      }
+      tmpM.attr("dimnames") = List::create(R_NilValue,dat.names());
+      return tmpM;
+    } else {
+      Function newEnv("new.env", R_BaseNamespace);
+      Environment RxODE("package:RxODE");
+      Environment e = newEnv(_["size"] = 29, _["parent"] = RxODE);
+      e["check.nrow"] = nr;
+      e["check.ncol"] = nc;
+      e["check.names"] = dat.names();
+      // Save information
+      // Remove one final; Just for debug.
+      // e["parData"] = parData;
+      List xtra = RxODE_par_df(parData);
+      List pd = as<List>(xtra[0]);
+      e["params.dat"] = pd;
+      if (as<int>(parData["nSub"]) == 1 && as<int>(parData["nsim"]) == 1){
+        int n = pd.size();
+        NumericVector par2(n);
+        for (int i = 0; i <n; i++){
+          par2[i] = (as<NumericVector>(pd[i]))[0];
+        }
+        par2.names() = pd.names();
+        e["params.single"] = par2;
+      } else {
+        e["params.single"] = R_NilValue;
+      }
+      e["EventTable"] = xtra[1];
+      e["dosing"] = xtra[3];
+      e["sampling"] = xtra[2];
+      e["obs.rec"] = xtra[4];
+      e["covs"] = xtra[5];
+      e["inits.dat"] = parData["inits"];
+      CharacterVector units(2);
+      units[0] = as<std::string>(parData["amount.units"]);
+      units[1] = as<std::string>(parData["time.units"]);
+      CharacterVector unitsN(2);
+      unitsN[0] = "dosing";
+      unitsN[1] = "time";
+      units.names() = unitsN;
+      e["units"] = units;
+      e["nobs"] = parData["nObs"];
     
-    Function eventTable("eventTable",RxODE);
-    List et = eventTable(_["amount.units"] = parData["amount.units"], _["time.units"] =parData["time.units"]);
-    Function importEt = as<Function>(et["import.EventTable"]);
-    importEt(e["EventTable"]);
-    e["events.EventTable"] = et;
-    freeRxSolve(parData);
-    Function parse2("parse", R_BaseNamespace);
-    Function eval2("eval", R_BaseNamespace);
-    e["get.EventTable"] = eval2(_["expr"]   = parse2(_["text"]="function() EventTable"),
-				_["envir"]  = e);
-    e["get.dosing"] = eval2(_["expr"]   = parse2(_["text"]="function() dosing"),
-			    _["envir"]  = e);
-    e["get.sampling"] = eval2(_["expr"]   = parse2(_["text"]="function() sampling"),
-                            _["envir"]  = e);
-    e["get.obs.rec"] = eval2(_["expr"]   = parse2(_["text"]="function() obs.rec"),
+      Function eventTable("eventTable",RxODE);
+      List et = eventTable(_["amount.units"] = parData["amount.units"], _["time.units"] =parData["time.units"]);
+      Function importEt = as<Function>(et["import.EventTable"]);
+      importEt(e["EventTable"]);
+      e["events.EventTable"] = et;
+      freeRxSolve(parData);
+      Function parse2("parse", R_BaseNamespace);
+      Function eval2("eval", R_BaseNamespace);
+      e["get.EventTable"] = eval2(_["expr"]   = parse2(_["text"]="function() EventTable"),
+                                  _["envir"]  = e);
+      e["get.dosing"] = eval2(_["expr"]   = parse2(_["text"]="function() dosing"),
                               _["envir"]  = e);
-    e["get.units"] = eval2(_["expr"]   = parse2(_["text"]="function() units"),
-			   _["envir"]  = e);
-    e["get.nobs"] = eval2(_["expr"]   = parse2(_["text"]="function() nobs"),
-                           _["envir"]  = e);
-    e["args.object"] =  object;
-    e["args.params"] = params;    
-    e["args.events"] = events;
-    e["args.inits"] = inits;
-    e["args.covs"] = covs;
-    e["args.method"] = method;
-    e["args.transit_abs"] = transit_abs;
-    e["args.atol"] = atol;
-    e["args.rtol"] = rtol;
-    e["args.maxsteps"] = maxsteps;
-    e["args.hmin"] = hmin;
-    e["args.hmax"] = hmax;
-    e["args.hini"] = hini;
-    e["args.maxordn"] = maxordn;
-    e["args.maxords"] = maxords;
-    e["args.cores"] = cores;
-    e["args.covs_interpolation"] = covs_interpolation;
-    e["args.addCov"] = addCov;
-    e["args.matrix"] = matrix;
-    e["args.sigma"] = sigma;
-    e["args.sigmaDf"] = sigmaDf;
-    e["args.sigmaNcores"] = sigmaNcores;
-    e["args.sigmaIsChol"] = sigmaIsChol;
-    e["args.amountUnits"] = amountUnits;
-    e["args.timeUnits"] = timeUnits;
-    CharacterVector cls(2);
-    cls(0) = "rxSolve";
-    cls(1) = "data.frame";
-    cls.attr(".RxODE.env") = e;    
-    dat.attr("class") = cls;
-    return(dat);
+      e["get.sampling"] = eval2(_["expr"]   = parse2(_["text"]="function() sampling"),
+                                _["envir"]  = e);
+      e["get.obs.rec"] = eval2(_["expr"]   = parse2(_["text"]="function() obs.rec"),
+                               _["envir"]  = e);
+      e["get.units"] = eval2(_["expr"]   = parse2(_["text"]="function() units"),
+                             _["envir"]  = e);
+      e["get.nobs"] = eval2(_["expr"]   = parse2(_["text"]="function() nobs"),
+                            _["envir"]  = e);
+      e["args.object"] =  object;
+      e["args.params"] = params;    
+      e["args.events"] = events;
+      e["args.inits"] = inits;
+      e["args.covs"] = covs;
+      e["args.method"] = method;
+      e["args.transit_abs"] = transit_abs;
+      e["args.atol"] = atol;
+      e["args.rtol"] = rtol;
+      e["args.maxsteps"] = maxsteps;
+      e["args.hmin"] = hmin;
+      e["args.hmax"] = hmax;
+      e["args.hini"] = hini;
+      e["args.maxordn"] = maxordn;
+      e["args.maxords"] = maxords;
+      e["args.cores"] = cores;
+      e["args.covs_interpolation"] = covs_interpolation;
+      e["args.addCov"] = addCov;
+      e["args.matrix"] = matrix;
+      e["args.sigma"] = sigma;
+      e["args.sigmaDf"] = sigmaDf;
+      e["args.sigmaNcores"] = sigmaNcores;
+      e["args.sigmaIsChol"] = sigmaIsChol;
+      e["args.amountUnits"] = amountUnits;
+      e["args.timeUnits"] = timeUnits;
+      CharacterVector cls(2);
+      cls(0) = "rxSolve";
+      cls(1) = "data.frame";
+      cls.attr(".RxODE.env") = e;    
+      dat.attr("class") = cls;
+      return(dat);
+    }
   }
+  return R_NilValue;
 }
+
 
 //[[Rcpp::export]]
 RObject rxSolveGet(RObject obj, RObject arg, LogicalVector exact = true){
@@ -1732,14 +1855,14 @@ RObject rxSolveGet(RObject obj, RObject arg, LogicalVector exact = true){
       unsigned int slen2;
       for (i = 0; i < n; i++){
 	slen2 = strlen((as<std::string>(nm[i])).c_str());
-        if (slen <= slen2 &&
+	if (slen <= slen2 &&
 	    (strncmp((as<std::string>(nm[i])).c_str(), sarg.c_str(), slen)  == 0 ) &&
 	    (dexact != 1 || (dexact == 1 && slen == slen2))){
 	  if (dexact == -1){
 	    warning("partial match of '%s' to '%s'",sarg.c_str(), (as<std::string>(nm[i])).c_str());
 	  }
-          return lst[i];
-        }
+	  return lst[i];
+	}
       }
       if (rxIs(obj, "rxSolve")){
 	CharacterVector cls = lst.attr("class");
@@ -1766,7 +1889,7 @@ RObject rxSolveGet(RObject obj, RObject arg, LogicalVector exact = true){
 	    return pars[sarg];
 	  }
 	}
-	
+        
 	// // Now inis.
 	// Function sub("sub", R_BaseNamespace);
 	// NumericVector ini = NumericVector(e["inits.dat"]);

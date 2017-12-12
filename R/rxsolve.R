@@ -169,6 +169,11 @@ rxSolve <- function(object, params = NULL, events = NULL, inits = NULL, covs = N
           sigmaNcores, sigmaIsChol, amountUnits, timeUnits);
 }
 
+##' @export
+update.rxSolve <- function(object, ...){
+    rxSolve(object, ...);
+}
+
 
 ##' @author Matthew L.Fidler
 ##' @export
