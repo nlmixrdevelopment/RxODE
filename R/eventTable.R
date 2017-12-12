@@ -224,10 +224,10 @@ eventTable <- function(amount.units = NA, time.units = "hours")
             ## TODO: Handle units. Check that add.dosing() units don't conflict
             ## with the eventTable definition (preferred units)
             if (is.null(rate)) {#-- bolus
-                wh <- 100*dosing.to+1
+                wh <- floor(dosing.to / 100) * 1e5 + 100*(dosing.to %% 100) + 1
                 inp <- data.frame(time=time, evid=wh, amt=dose)
             } else {         #-- infusion
-                wh <- 10000+100*dosing.to+1
+                wh <- floor(dosing.to / 100) * 1e5 + 1e4 +100 * (dosing.to %% 100) + 1
                 toff <- dose/rate
                 if (rate<=0) {
                     inp <- NULL

@@ -330,7 +330,7 @@ extern void par_lsoda(SEXP sd){
   int itask = 1, istate = 1, iopt = 0, lrw=22+neq[0]*max(16, neq[0]+9), liw=20+neq[0], jt = op->global_jt;
   double *rwork;
   int *iwork;
-  int wh, cmt;
+  int wh, wh100, cmt;
 
   char *err_msg[]=
     {
@@ -424,7 +424,9 @@ extern void par_lsoda(SEXP sd){
           }
         if (wh)
           {
-            cmt = (wh%10000)/100 - 1;
+	    wh100 = floor(wh/1e5);
+	    wh = wh- wh100;
+            cmt = (wh%10000)/100 - 1 + 100*wh100;
             if (cmt >= neq[0]){
               foundBad = 0;
               for (j = 0; j < ind->nBadDose; j++){
@@ -511,7 +513,7 @@ void par_dop(SEXP sd){
   int itol=0;           //0: rtol/atol scalars; 1: rtol/atol vectors
   int iout=0;           //iout=0: solout() NEVER called
   int idid=0;
-  int wh, cmt;
+  int wh, wh100, cmt;
   char *err_msg[]=
     {
       "input is not consistent",
@@ -608,7 +610,9 @@ void par_dop(SEXP sd){
 	    }
 	  if (wh)
 	    {
-	      cmt = (wh%10000)/100 - 1;
+	      wh100 = floor(wh/1e5);
+              wh = wh - wh100;
+              cmt = (wh%10000)/100 - 1 + 100*wh100;
 	      if (cmt >= neq[0]){
 		foundBad = 0;
 		for (j = 0; j <ind->nBadDose; j++){
