@@ -89,7 +89,7 @@ bool rxIs(const RObject &obj, std::string cls){
     CharacterVector classattr = obj.attr("class");
     for (int i = 0; i < classattr.size(); i++){
       if (as<std::string>(classattr[i]) == cls){
-	if (cls == "solveRxODE7"){
+	if (cls == "rxSolve"){
 	  Environment e = as<Environment>(classattr.attr(".RxODE.env"));
 	  List lobj = List(obj);
 	  CharacterVector cls2= CharacterVector::create("data.frame");
@@ -662,7 +662,7 @@ List rxModelVars(const RObject &obj){
     Function f = as<Function>((as<List>((as<List>(obj))["cmpMgr"]))["rxDll"]);
     List lst = f();
     return lst["modVars"];
-  } else if (rxIs(obj,"solveRxODE7")){
+  } else if (rxIs(obj,"rxSolve")){
     CharacterVector cls = obj.attr("class");
     Environment e = as<Environment>(cls.attr(".RxODE.env"));
     return  rxModelVars(as<RObject>(e["args.object"]));
@@ -1565,6 +1565,7 @@ extern "C"{
 
 //[[Rcpp::export]]
 SEXP rxSolveC(const RObject &object,
+	      const Nullable<CharacterVector> &specParams = R_NilValue,
 	      const RObject &params = R_NilValue,
 	      const RObject &events = R_NilValue,
 	      const Nullable<NumericVector> &inits = R_NilValue,
@@ -1645,6 +1646,7 @@ SEXP rxSolveC(const RObject &object,
     e["dosing"] = xtra[3];
     e["sampling"] = xtra[2];
     e["obs.rec"] = xtra[4];
+    e["covs"] = xtra[5];
     e["inits.dat"] = parData["inits"];
     CharacterVector units(2);
     units[0] = as<std::string>(parData["amount.units"]);
@@ -1702,7 +1704,7 @@ SEXP rxSolveC(const RObject &object,
     e["args.amountUnits"] = amountUnits;
     e["args.timeUnits"] = timeUnits;
     CharacterVector cls(2);
-    cls(0) = "solveRxODE7";
+    cls(0) = "rxSolve";
     cls(1) = "data.frame";
     cls.attr(".RxODE.env") = e;    
     dat.attr("class") = cls;
@@ -1739,7 +1741,7 @@ RObject rxSolveGet(RObject obj, RObject arg, LogicalVector exact = true){
           return lst[i];
         }
       }
-      if (rxIs(obj, "solveRxODE7")){
+      if (rxIs(obj, "rxSolve")){
 	CharacterVector cls = lst.attr("class");
 	Environment e = as<Environment>(cls.attr(".RxODE.env"));
 	if (sarg == "env"){
@@ -1764,6 +1766,7 @@ RObject rxSolveGet(RObject obj, RObject arg, LogicalVector exact = true){
 	    return pars[sarg];
 	  }
 	}
+	
 	// // Now inis.
 	// Function sub("sub", R_BaseNamespace);
 	// NumericVector ini = NumericVector(e["inits.dat"]);
@@ -1793,6 +1796,34 @@ RObject rxSolveGet(RObject obj, RObject arg, LogicalVector exact = true){
 	  return lst[iarg-1];
 	}
       }
+    }
+  }
+  return R_NilValue;
+}
+
+//[[Rcpp::export]]
+RObject rxSolveUpdate(RObject obj,
+		      RObject arg = R_NilValue,
+		      RObject value = R_NilValue){
+  if (rxIs(obj,"rxSolve")){
+    if (rxIs(arg,"character")){
+      CharacterVector what = CharacterVector(arg);
+      if (what.size() == 1){
+	std::string sarg = as<std::string>(what[0]);
+	// Now check to see if is something that can be updated...
+	CharacterVector classattr = obj.attr("class");
+	Environment e = as<Environment>(classattr.attr(".RxODE.env"));
+	List pars = List(e["params.dat"]);
+        CharacterVector nmp = pars.names();
+	int i, n;
+        n = pars.size();
+        for (i = 0; i < n; i++){
+          if (nmp[i] == sarg){
+	    // Update solve.
+            return pars[sarg];
+          }
+        }
+      } 
     }
   }
   return R_NilValue;

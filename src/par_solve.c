@@ -1026,7 +1026,10 @@ extern SEXP RxODE_par_df(SEXP sd){
   int pro=0, i;
   // paramNames
   SEXP paramNames = op->paramNames;
-  int n =length(paramNames);
+  int *par_cov = op->par_cov;
+  int ncov = op->ncov;
+  int npar = length(paramNames);
+  int n = npar - ncov;
   SEXP df = PROTECT(allocVector(VECSXP,n+md+sm)); pro++;
   for (i = 0; i < md+sm; i++){
     SET_VECTOR_ELT(df, i, PROTECT(allocVector(INTSXP, nsim*nsub))); pro++;
@@ -1041,6 +1044,7 @@ extern SEXP RxODE_par_df(SEXP sd){
   double *dfp;
   int nobs = rx->nobs;
   int csub;
+  int is_cov = 0;
   for (csub = 0; csub < nsub; csub++){
     ind = &(rx->subjects[csub]);
     nall+=ind->n_all_times;
@@ -1050,12 +1054,20 @@ extern SEXP RxODE_par_df(SEXP sd){
   SEXP dfd = PROTECT(allocVector(VECSXP,md+3)); pro++; // Dosing
   SEXP dfs = PROTECT(allocVector(VECSXP,md+3)); pro++; // Sampling
   SEXP dfn = PROTECT(allocVector(STRSXP,md+3)); pro++;
+  // Covariate Table
+  SEXP covs = PROTECT(allocVector(VECSXP,md+ncov)); pro++;
+  SEXP covsn = PROTECT(allocVector(STRSXP,md+ncov)); pro++;
   if (md){
     SET_VECTOR_ELT(dfe, 0, PROTECT(allocVector(INTSXP, nall))); pro++;
     SET_VECTOR_ELT(dfd, 0, PROTECT(allocVector(INTSXP, nall-nobs))); pro++;
     SET_VECTOR_ELT(dfs, 0, PROTECT(allocVector(INTSXP, nobs))); pro++;
+    SET_VECTOR_ELT(covs, 0, PROTECT(allocVector(INTSXP, nobs))); pro++;
     SET_STRING_ELT(dfn, 0, mkChar("id"));
+    SET_STRING_ELT(covsn, 0, mkChar("id"));
     i++;
+  }
+  for (i = 0; i < ncov; i++){
+    SET_VECTOR_ELT(covs, md+i, PROTECT(allocVector(REALSXP, nobs))); pro++;
   }
   SEXP isEt = PROTECT(allocVector(LGLSXP,nall)); pro++;
   
@@ -1089,6 +1101,8 @@ extern SEXP RxODE_par_df(SEXP sd){
   INTEGER(dfrs)[0] = NA_INTEGER;
   INTEGER(dfrs)[1] = -nobs;
   setAttrib(dfs, R_RowNamesSymbol, dfrs);
+  setAttrib(covs, R_RowNamesSymbol, dfrs);
+
 
   setAttrib(dfs, R_NamesSymbol, dfn);
   setAttrib(dfd, R_NamesSymbol, dfn);
@@ -1100,13 +1114,15 @@ extern SEXP RxODE_par_df(SEXP sd){
   classgets(dfs, clse);
   classgets(dfd, clse);
   classgets(dfe, clse);
-  double *times, *doses;
+  double *times, *doses, *cov_ptr;
   int evid, iie = 0, iis = 0, iid = 0, curdose, ntimes;
+  int k, kk;
   for (csub = 0; csub < nsub; csub++){
     ind = &(rx->subjects[csub]);
     ntimes = ind->n_all_times;
     times = ind->all_times;
     doses = ind->dose;
+    cov_ptr = ind->cov_ptr;
     curdose=0;
     for (i = 0; i < ntimes; i++){
       evid = rxEvidP(i,rx,csub);
@@ -1128,8 +1144,24 @@ extern SEXP RxODE_par_df(SEXP sd){
         REAL(VECTOR_ELT(dfs, md+2))[iis] = NA_REAL;
 
 	LOGICAL(isEt)[iie] = 1;
-        iie++;
-	iis++;
+	kk = 0;
+	for (k = 0; k < npar; k++){
+          is_cov=0;
+          for (j = 0; j < ncov; j++){
+            if (par_cov[j]-1 == k){
+              is_cov=1;
+              break;
+            }
+          }
+          if (is_cov){
+	    /* Rprintf("covs[%d, %d]\n", kk,iis); */
+	    dfp = REAL(VECTOR_ELT(covs, kk+md));
+            dfp[iis] = cov_ptr[kk*ntimes+iis];
+            kk++;
+          }
+	}
+	iie++;
+        iis++;        
       } else {
 	// Dosing Record
 	if (md){
@@ -1172,10 +1204,19 @@ extern SEXP RxODE_par_df(SEXP sd){
         dfi[ii] = csub+1;
         jj++;
       }
-      for (i = 0; i < n; i++){
-	dfp=REAL(VECTOR_ELT(df, jj));
-	dfp[ii] = par_ptr[i];
-	jj++;
+      for (i = 0; i < npar; i++){
+	is_cov=0;
+	for (j = 0; j < ncov; j++){
+	  if (par_cov[j]-1 == i){
+	    is_cov=1;
+	    break;
+	  }
+	}
+	if (!is_cov){
+	  dfp=REAL(VECTOR_ELT(df, jj));
+          dfp[ii] = par_ptr[i];
+          jj++;
+	}
       }
       ii++;
     }
@@ -1191,24 +1232,47 @@ extern SEXP RxODE_par_df(SEXP sd){
     jj++;
   }
   // id
+  kk = 0;
   if (md){
     SET_STRING_ELT(sexp_colnames, jj, mkChar("id"));
-    jj++;
+    jj++; kk++;
   }
-  for (i = 0; i < n; i++){
-    SET_STRING_ELT(sexp_colnames, jj, STRING_ELT(paramNames,i));
-    jj++;
+  
+  for (i = 0; i < npar; i++){
+    is_cov=0;
+    for (j = 0; j < ncov; j++){
+      if (par_cov[j]-1 == i){
+        is_cov=1;
+        break;
+      }
+    }
+    if (is_cov){
+      SET_STRING_ELT(covsn, kk, STRING_ELT(paramNames,i));
+      kk++;
+    } else {
+      SET_STRING_ELT(sexp_colnames, jj, STRING_ELT(paramNames,i));
+      jj++;
+    }
+    
   }
   setAttrib(df, R_NamesSymbol, sexp_colnames);
+  setAttrib(covs, R_NamesSymbol, covsn);
   SEXP cls = PROTECT(allocVector(STRSXP, 1)); pro++;
   SET_STRING_ELT(cls, 0, mkChar("data.frame"));
   classgets(df, cls);
-  SEXP ret = PROTECT(allocVector(VECSXP,5)); pro++;
+  classgets(covs, cls);
+  SEXP ret = PROTECT(allocVector(VECSXP,6)); pro++;
   SET_VECTOR_ELT(ret, 0, df);
   SET_VECTOR_ELT(ret, 1, dfe);
   SET_VECTOR_ELT(ret, 2, dfs);
   SET_VECTOR_ELT(ret, 3, dfd);
   SET_VECTOR_ELT(ret, 4, isEt);
+  if (ncov > 0){
+    SET_VECTOR_ELT(ret, 5, covs);
+  } else {
+    SEXP nilcov = PROTECT(R_NilValue); pro++;
+    SET_VECTOR_ELT(ret, 5, nilcov);
+  }
   UNPROTECT(pro);
   return ret;
 }

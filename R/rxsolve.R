@@ -162,14 +162,18 @@ rxSolve <- function(object, params = NULL, events = NULL, inits = NULL, covs = N
             }
         }
     }
-    .Call(`_RxODE_rxSolveC`, object, params, events, inits, covs, method, transit_abs, atol, rtol, maxsteps, hmin, hmax, hini, maxordn, maxords, cores, covs_interpolation, add.cov, matrix, sigma, sigmaDf, sigmaNcores, sigmaIsChol, amountUnits, timeUnits);
+    .Call(`_RxODE_rxSolveC`, object, names(as.list(match.call())[-1]),
+          params, events, inits, covs, method, transit_abs, atol, rtol,
+          maxsteps, hmin, hmax, hini, maxordn, maxords, cores,
+          covs_interpolation, add.cov, matrix, sigma, sigmaDf,
+          sigmaNcores, sigmaIsChol, amountUnits, timeUnits);
 }
 
 
 ##' @author Matthew L.Fidler
 ##' @export
-print.solveRxODE7 <- function(x, ...){
-    if (rxIs(x, "solveRxODE7")){
+print.rxSolve <- function(x, ...){
+    if (rxIs(x, "rxSolve")){
         args <- as.list(match.call(expand.dots = TRUE));
         if (any(names(args) == "n")){
             n <- args$n;
@@ -242,8 +246,8 @@ print.solveRxODE7 <- function(x, ...){
 
 ##' @author Matthew L.Fidler
 ##' @export
-summary.solveRxODE7 <- function(object, ...){
-    if (rxIs(x, "solveRxODE7")){
+summary.rxSolve <- function(object, ...){
+    if (rxIs(x, "rxSolve")){
         message("Model:");
         message("################################################################################");
         message(rxNorm(object));
@@ -268,13 +272,19 @@ summary.solveRxODE7 <- function(object, ...){
 
 ##' @author Matthew L.Fidler
 ##' @export
-`$.solveRxODE7` <-  function(obj, arg, exact = FALSE){
+is.rxSolve <- function(x){
+    .Call(`_RxODE_rxIs`, x, "rxSolve");
+}
+
+##' @author Matthew L.Fidler
+##' @export
+`$.rxSolve` <-  function(obj, arg, exact = FALSE){
     return(.Call(`_RxODE_rxSolveGet`, obj, arg, exact))
 }
 
 ##' @author Matthew L.Fidler
 ##' @export
-`[.solveRxODE7` <- function(x, i, j, drop=if (missing(i))
+`[.rxSolve` <- function(x, i, j, drop=if (missing(i))
                                               TRUE
                                           else length(cols) == 1){
     class(x) <- "data.frame";
@@ -283,57 +293,46 @@ summary.solveRxODE7 <- function(object, ...){
 
 ##' @author Matthew L.Fidler
 ##' @export
-"[[.solveRxODE7" <- function(obj, arg, exact = TRUE){
+"[[.rxSolve" <- function(obj, arg, exact = TRUE){
     return(.Call(`_RxODE_rxSolveGet`, obj, arg, exact))
 }
 
 ##' @export
-t.solveRxODE7 <- function(x){
+t.rxSolve <- function(x){
     x <- as.matrix(x)
     NextMethod("t", x);
 }
 
 ##' @export
-dimnames.solveRxODE7 <- function(x){
+dimnames.rxSolve <- function(x){
     list(row.names(x), names(x));
 }
 
 ##' @export
-"dimnames<-.solveRxODE7" <- function(x, value){
+"dimnames<-.rxSolve" <- function(x, value){
     class(x) <- "data.frame";
     "dimnames<-.data.frame"(x, value);
 }
 
-##' Assign solved objects using the [] syntax
-##' @param obj solved object
-##' @param arg1 first argument
-##' @param arg2 second argument
-##' @param value value assumed
-##' @keywords internal
-##' @author Matthew L.Fidler
-##' @export
-"[<-.solveRxODE" <- function(obj, arg1, arg2, value){
-    if (any(arg2 == c(1, "t", "time")) && missing(arg1)){
-        obj$time <- value
-        return(obj);
-    }
-    df <- as.data.frame(obj);
-    if (missing(arg1) & missing(arg2)){
-        df[] <- value;
-    } else if (missing(arg1)){
-        df[, arg2] <-  value;
-    } else if (missing(arg2)){
-        df[arg1, ] <-  value;
+##'@export
+"[<-.rxSolve" <- function(x, i, j, value){
+    if (missing(i) && rxIs(j, "character")){
     } else {
-        d3[arg1, arg2] <- value;
+        class(x) <- "data.frame"
+        if (nargs() < 4){
+            if (missing(j)){
+                return(`[<-.data.frame`(x, i, value = value))
+            } else {
+                return(`[<-.data.frame`(x,, j, value = value))
+            }
+        } else{
+            return(`[<-.data.frame`(x, i, j, value))
+        }
     }
-    return(rxTbl(df, "assignment"))
 }
-
 
 ########################################################
 ## Updating solved object
-
 
 ##' Update the solved object with any of the new parameters.
 ##'
@@ -463,40 +462,13 @@ update.solveRxODE <- function(object, ...){
     return("$<-.solveRxODE"(obj, arg, value = value))
 }
 
-
-## This causes the whole package to crash...
-## ##' @name as.data.table
-## ##' @export as.data.table.solveRxDll
-## ##'
-## ##' @method as.data.table solveRxDll
-## ##'
-## ##' @title as.data.table for \code{solveRxDll} object
-## ##' @description compatability function for tidyr
-## ##' @param data Solved ODE, an \code{solveRxDll} object.
-## ##' @param ... Additional arguments
-## ##'
-## as.data.table.solveRxDll <- function(x, ...){
-##     call <- as.list(match.call(expand.dots=TRUE))[-1];
-##     call$x <- as.data.table(x);
-##     return(do.call(getFromNamespace("as.data.table","data.table"), call, envir = parent.frame(1)));
-## }
-
-##' Setup Data and Parameters
-##'
-##' @param dll
-##' @inheritParams rxSolve
-##' @param sigma Named sigma matrix.
-##' @param sigmaDf The degrees of freedom of a t-distribution for
-##'     simulation.  By default this is \code{Inf}, or to simulate
-##'     from a normal distribution instead of a t.
-##' @param sigmaNcores Number of cores for residual simulation.
-##'     This, along with the seed, affects both the outcome and speed
-##'     of simulation. By default it is one.
-##' @param sigmaIsChol Indicates if the \code{sigma} supplied is a
-##'     Cholesky decomposed matrix instead of the traditional
-##'     symmetric matrix.
-##' @return Data setup for running C-based RxODE runs.
-##' @author Matthew L. Fidler
-##' @keywords internal
-##' @export
-
+## length, [, [<-, [[, [[<-, c.
+## dim (gets you nrow and ncol), t, dimnames
+##
+## [1] $<-           [             [[<-          [<-           all.equal
+## [6] anyDuplicated as.data.frame as.data.table as.list       as.matrix
+## [11] coerce        coerce<-      dcast         dim           dimnames
+## [16] dimnames<-    duplicated    format        head          initialize
+## [21] is.na         melt          merge         na.omit       names<-
+## [26] Ops           print         show          slotsFromS3   split
+## [31] subset        tail          transform     unique        within

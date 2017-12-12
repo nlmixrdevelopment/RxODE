@@ -223,12 +223,16 @@ rxData <- function(object, params = NULL, events = NULL, inits = NULL, covs = NU
     .Call(`_RxODE_rxData`, object, params, events, inits, covs, method, transit_abs, atol, rtol, maxsteps, hmin, hmax, hini, maxordn, maxords, cores, covs_interpolation, addCov, matrix, sigma, sigmaDf, sigmaNcores, sigmaIsChol, amountUnits, timeUnits)
 }
 
-rxSolveC <- function(object, params = NULL, events = NULL, inits = NULL, covs = NULL, method = "lsoda", transit_abs = NULL, atol = 1.0e-8, rtol = 1.0e-6, maxsteps = 5000L, hmin = 0L, hmax = NULL, hini = 0L, maxordn = 12L, maxords = 5L, cores = 1L, covs_interpolation = "linear", addCov = FALSE, matrix = FALSE, sigma = NULL, sigmaDf = NULL, sigmaNcores = 1L, sigmaIsChol = FALSE, amountUnits = NA_character_, timeUnits = "hours") {
-    .Call(`_RxODE_rxSolveC`, object, params, events, inits, covs, method, transit_abs, atol, rtol, maxsteps, hmin, hmax, hini, maxordn, maxords, cores, covs_interpolation, addCov, matrix, sigma, sigmaDf, sigmaNcores, sigmaIsChol, amountUnits, timeUnits)
+rxSolveC <- function(object, specParams = NULL, params = NULL, events = NULL, inits = NULL, covs = NULL, method = "lsoda", transit_abs = NULL, atol = 1.0e-8, rtol = 1.0e-6, maxsteps = 5000L, hmin = 0L, hmax = NULL, hini = 0L, maxordn = 12L, maxords = 5L, cores = 1L, covs_interpolation = "linear", addCov = FALSE, matrix = FALSE, sigma = NULL, sigmaDf = NULL, sigmaNcores = 1L, sigmaIsChol = FALSE, amountUnits = NA_character_, timeUnits = "hours") {
+    .Call(`_RxODE_rxSolveC`, object, specParams, params, events, inits, covs, method, transit_abs, atol, rtol, maxsteps, hmin, hmax, hini, maxordn, maxords, cores, covs_interpolation, addCov, matrix, sigma, sigmaDf, sigmaNcores, sigmaIsChol, amountUnits, timeUnits)
 }
 
 rxSolveGet <- function(obj, arg, exact = TRUE) {
     .Call(`_RxODE_rxSolveGet`, obj, arg, exact)
+}
+
+rxSolveUpdate <- function(obj, arg = NULL, value = NULL) {
+    .Call(`_RxODE_rxSolveUpdate`, obj, arg, value)
 }
 
 #' Invert matrix using Rcpp Armadilo.  
