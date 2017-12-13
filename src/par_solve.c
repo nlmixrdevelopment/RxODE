@@ -425,7 +425,7 @@ extern void par_lsoda(SEXP sd){
         if (wh)
           {
 	    wh100 = floor(wh/1e5);
-	    wh = wh- wh100;
+	    wh = wh- wh100*1e5;
             cmt = (wh%10000)/100 - 1 + 100*wh100;
             if (cmt >= neq[0]){
               foundBad = 0;
@@ -611,7 +611,7 @@ void par_dop(SEXP sd){
 	  if (wh)
 	    {
 	      wh100 = floor(wh/1e5);
-              wh = wh - wh100;
+              wh = wh - wh100*1e5;
               cmt = (wh%10000)/100 - 1 + 100*wh100;
 	      if (cmt >= neq[0]){
 		foundBad = 0;
