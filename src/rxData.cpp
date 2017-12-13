@@ -1562,6 +1562,30 @@ extern "C"{
   SEXP RxODE_par_df(SEXP sd);
 }
 
+#define defrx_params R_NilValue
+#define defrx_events R_NilValue
+#define defrx_inits R_NilValue
+#define defrx_covs R_NilValue
+#define defrx_method "lsoda"
+#define defrx_transit_abs R_NilValue
+#define defrx_atol 1.0e-8
+#define defrx_rtol 1.0e-8
+#define defrx_maxsteps 5000
+#define defrx_hmin 0
+#define defrx_hmax R_NilValue
+#define defrx_hini 0
+#define defrx_maxordn 12
+#define defrx_maxords 5
+#define defrx_cores 1
+#define defrx_covs_interpolation "linear"
+#define defrx_addCov false
+#define defrx_matrix false
+#define defrx_sigma  R_NilValue
+#define defrx_sigmaDf R_NilValue
+#define defrx_sigmaNcores 1
+#define defrx_sigmaIsChol false
+#define defrx_amountUnits NA_STRING
+#define defrx_timeUnits "hours"
 
 //[[Rcpp::export]]
 SEXP rxSolveC(const RObject &object,
@@ -1707,8 +1731,7 @@ SEXP rxSolveC(const RObject &object,
 		    new_method, new_transit_abs, new_atol, new_rtol, new_maxsteps, new_hmin,
 		    new_hmax, new_hini,new_maxordn, new_maxords, new_cores, new_covs_interpolation,
 		    new_addCov, new_matrix, new_sigma, new_sigmaDf, new_sigmaNcores, new_sigmaIsChol,
-		    new_amountUnits, new_timeUnits
-		    );
+		    new_amountUnits, new_timeUnits);
   } else {
     DataFrame ret;
     List parData = rxData(object, params, events, inits, covs, as<std::string>(method[0]), transit_abs, atol,
@@ -1933,20 +1956,296 @@ RObject rxSolveUpdate(RObject obj,
       CharacterVector what = CharacterVector(arg);
       if (what.size() == 1){
 	std::string sarg = as<std::string>(what[0]);
-	// Now check to see if is something that can be updated...
-	CharacterVector classattr = obj.attr("class");
-	Environment e = as<Environment>(classattr.attr(".RxODE.env"));
-	List pars = List(e["params.dat"]);
-        CharacterVector nmp = pars.names();
-	int i, n;
-        n = pars.size();
-        for (i = 0; i < n; i++){
-          if (nmp[i] == sarg){
-	    // Update solve.
-            return pars[sarg];
-          }
-        }
-      } 
+	// Now check to see if this is something that can be updated...
+	if (sarg == "params"){
+	  return rxSolveC(obj,
+                          CharacterVector::create("params"),
+                          value, //defrx_params,
+                          defrx_events,
+                          defrx_inits,
+                          defrx_covs,
+                          defrx_method,
+                          defrx_transit_abs,
+                          defrx_atol,
+                          defrx_rtol,
+                          defrx_maxsteps,
+                          defrx_hmin,
+                          defrx_hmax,
+                          defrx_hini,
+                          defrx_maxordn,
+                          defrx_maxords,
+                          defrx_cores,
+                          defrx_covs_interpolation,
+                          defrx_addCov,
+                          defrx_matrix,
+                          defrx_sigma,
+                          defrx_sigmaDf,
+                          defrx_sigmaNcores,
+                          defrx_sigmaIsChol,
+                          defrx_amountUnits,
+                          defrx_timeUnits);
+	} else if (sarg == "events"){
+	  return rxSolveC(obj,
+			  CharacterVector::create("events"),
+			  defrx_params,
+			  value, // defrx_events,
+			  defrx_inits,
+			  defrx_covs,
+			  defrx_method,
+			  defrx_transit_abs,
+			  defrx_atol,
+			  defrx_rtol,
+			  defrx_maxsteps,
+			  defrx_hmin,
+			  defrx_hmax,
+			  defrx_hini,
+			  defrx_maxordn,
+			  defrx_maxords,
+			  defrx_cores,
+			  defrx_covs_interpolation,
+			  defrx_addCov,
+			  defrx_matrix,
+			  defrx_sigma,
+			  defrx_sigmaDf,
+			  defrx_sigmaNcores,
+			  defrx_sigmaIsChol,
+			  defrx_amountUnits,
+			  defrx_timeUnits);
+	} else if (sarg == "inits"){
+	  return rxSolveC(obj,
+                          CharacterVector::create("inits"),
+                          defrx_params,
+                          defrx_events,
+                          Nullable<NumericVector>(value), //defrx_inits,
+                          defrx_covs,
+                          defrx_method,
+                          defrx_transit_abs,
+                          defrx_atol,
+                          defrx_rtol,
+                          defrx_maxsteps,
+                          defrx_hmin,
+                          defrx_hmax,
+                          defrx_hini,
+                          defrx_maxordn,
+                          defrx_maxords,
+                          defrx_cores,
+                          defrx_covs_interpolation,
+                          defrx_addCov,
+                          defrx_matrix,
+                          defrx_sigma,
+                          defrx_sigmaDf,
+                          defrx_sigmaNcores,
+                          defrx_sigmaIsChol,
+                          defrx_amountUnits,
+                          defrx_timeUnits);
+	} else if (sarg == "covs"){
+	  return rxSolveC(obj,
+                          CharacterVector::create("covs"),
+                          defrx_params,
+                          defrx_events,
+                          defrx_inits,
+                          value,// defrx_covs,
+                          defrx_method,
+                          defrx_transit_abs,
+                          defrx_atol,
+                          defrx_rtol,
+                          defrx_maxsteps,
+                          defrx_hmin,
+                          defrx_hmax,
+                          defrx_hini,
+                          defrx_maxordn,
+                          defrx_maxords,
+                          defrx_cores,
+                          defrx_covs_interpolation,
+                          defrx_addCov,
+                          defrx_matrix,
+                          defrx_sigma,
+                          defrx_sigmaDf,
+                          defrx_sigmaNcores,
+                          defrx_sigmaIsChol,
+                          defrx_amountUnits,
+                          defrx_timeUnits);
+        } else {
+	  CharacterVector classattr = obj.attr("class");
+	  Environment e = as<Environment>(classattr.attr(".RxODE.env"));
+	  List pars = List(e["params.dat"]);
+	  CharacterVector nmp = pars.names();
+	  int i, n, np, nc, j;
+	  np = (as<NumericVector>(pars[0])).size();
+	  List covs = List(e["covs"]);
+	  CharacterVector nmc = covs.names();
+	  nc = (as<NumericVector>(covs[0])).size();
+	  //////////////////////////////////////////////////////////////////////////////
+	  // Update Parameters by name
+	  n = pars.size();
+	  for (i = 0; i < n; i++){
+	    if (nmp[i] == sarg){
+	      // Update solve.
+	      NumericVector val = NumericVector(value);
+	      if (val.size() == np){
+		// Update Parameter
+		pars[i] = val;
+		return rxSolveC(obj,
+				CharacterVector::create("params"),
+				pars, //defrx_params,
+				defrx_events,
+				defrx_inits,
+				defrx_covs,
+				defrx_method,
+				defrx_transit_abs,
+				defrx_atol,
+				defrx_rtol,
+				defrx_maxsteps,
+				defrx_hmin,
+				defrx_hmax,
+				defrx_hini,
+				defrx_maxordn,
+				defrx_maxords,
+				defrx_cores,
+				defrx_covs_interpolation,
+				defrx_addCov,
+				defrx_matrix,
+				defrx_sigma,
+				defrx_sigmaDf,
+				defrx_sigmaNcores,
+				defrx_sigmaIsChol,
+				defrx_amountUnits,
+				defrx_timeUnits);
+	      } else if (val.size() == nc){
+		// Update Parameter & Covariate
+		List newPars(pars.size()-1);
+		CharacterVector newParNames(pars.size()-1);
+		for (j = 0; j < pars.size(); j++){
+		  if (j < i){
+		      newPars[j] = pars[j];
+                      newParNames[j] = nmp[j];
+		  } else if (j > i) {
+		    newPars[j-1] = pars[j-1];
+                    newParNames[j-1] = nmp[j-1];
+                  }
+		}
+		newPars.attr("names") = newParNames;
+		newPars.attr("class") = "data.frame";
+		newPars.attr("row.names") = IntegerVector::create(NA_INTEGER,-np);
+		List newCovs(covs.size()+1);
+		CharacterVector newCovsNames(covs.size()+1);
+		for (j = 0; j < covs.size(); j++){
+		  newCovs[j] = covs[j];
+		  newCovsNames[j] = nmc[j];
+		}
+		newCovs[j] = val;
+		newCovsNames[j] = nmp[i];
+		newCovs.attr("names") = newCovsNames;
+		newCovs.attr("class") = "data.frame";
+                newCovs.attr("row.names") = IntegerVector::create(NA_INTEGER,-nc);
+		return rxSolveC(obj,
+                                CharacterVector::create("params","covs"),
+                                newPars, //defrx_params,
+                                defrx_events,
+                                defrx_inits,
+                                newCovs, //defrx_covs
+                                defrx_method,
+                                defrx_transit_abs,
+                                defrx_atol,
+                                defrx_rtol,
+                                defrx_maxsteps,
+                                defrx_hmin,
+                                defrx_hmax,
+                                defrx_hini,
+                                defrx_maxordn,
+                                defrx_maxords,
+                                defrx_cores,
+                                defrx_covs_interpolation,
+                                defrx_addCov,
+                                defrx_matrix,
+                                defrx_sigma,
+                                defrx_sigmaDf,
+                                defrx_sigmaNcores,
+                                defrx_sigmaIsChol,
+                                defrx_amountUnits,
+                                defrx_timeUnits);
+	      }
+	      return R_NilValue;
+	    }
+	  }
+	  ///////////////////////////////////////////////////////////////////////////////
+	  // Update Covariates by covariate name
+	  n = covs.size();
+	  for (i = 0; i < n; i++){
+	    if (nmc[i] == sarg){
+	      // Update solve.
+	      NumericVector val = NumericVector(value);
+	      if (val.size() == nc){
+		// Update Covariate
+		covs[i]=val;
+		return rxSolveC(obj,
+				CharacterVector::create("covs"),
+				defrx_params,
+				defrx_events,
+				defrx_inits,
+				covs, // defrx_covs,
+				defrx_method,
+				defrx_transit_abs,
+				defrx_atol,
+				defrx_rtol,
+				defrx_maxsteps,
+				defrx_hmin,
+				defrx_hmax,
+				defrx_hini,
+				defrx_maxordn,
+				defrx_maxords,
+				defrx_cores,
+				defrx_covs_interpolation,
+				defrx_addCov,
+				defrx_matrix,
+				defrx_sigma,
+				defrx_sigmaDf,
+				defrx_sigmaNcores,
+				defrx_sigmaIsChol,
+				defrx_amountUnits,
+				defrx_timeUnits);
+	      } else if (val.size() == np){
+		// Update parameter vector.
+		pars[sarg] = val;
+		// Drop covariate
+		List newCov(n-1);
+		for (j = 0; j < n; j++){
+		  if (j != i){
+		    newCov[as<std::string>(nmc[i])] = covs[j];
+		  }
+		}
+		return rxSolveC(obj,
+				CharacterVector::create("covs", "params"),
+				pars,//defrx_params,
+				defrx_events,
+				defrx_inits,
+				newCov, // defrx_covs,
+				defrx_method,
+				defrx_transit_abs,
+				defrx_atol,
+				defrx_rtol,
+				defrx_maxsteps,
+				defrx_hmin,
+				defrx_hmax,
+				defrx_hini,
+				defrx_maxordn,
+				defrx_maxords,
+				defrx_cores,
+				defrx_covs_interpolation,
+				defrx_addCov,
+				defrx_matrix,
+				defrx_sigma,
+				defrx_sigmaDf,
+				defrx_sigmaNcores,
+				defrx_sigmaIsChol,
+				defrx_amountUnits,
+				defrx_timeUnits);
+	      }
+	    }
+	  }
+	  return R_NilValue;
+	}
+      }
     }
   }
   return R_NilValue;

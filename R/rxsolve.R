@@ -322,6 +322,13 @@ dimnames.rxSolve <- function(x){
 ##'@export
 "[<-.rxSolve" <- function(x, i, j, value){
     if (missing(i) && rxIs(j, "character")){
+        ret <- .Call(`_RxODE_rxSolveUpdate`, x, j, value);
+        if (is.null(ret)){
+            class(x) <- "data.frame";
+            return(`[<-.data.frame`(x,, j, value = value))
+        } else {
+            return(ret);
+        }
     } else {
         class(x) <- "data.frame"
         if (nargs() < 4){
