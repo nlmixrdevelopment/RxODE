@@ -1773,7 +1773,11 @@ SEXP rxSolveC(const RObject &object,
       // e["parData"] = parData;
       List xtra = RxODE_par_df(parData);
       List pd = as<List>(xtra[0]);
-      e["params.dat"] = pd;
+      if (pd.size() == 0){
+	e["params.dat"] = R_NilValue;
+      } else {
+	e["params.dat"] = pd;
+      }
       if (as<int>(parData["nSub"]) == 1 && as<int>(parData["nsim"]) == 1){
         int n = pd.size();
         NumericVector par2(n);
@@ -1781,7 +1785,11 @@ SEXP rxSolveC(const RObject &object,
           par2[i] = (as<NumericVector>(pd[i]))[0];
         }
         par2.names() = pd.names();
-        e["params.single"] = par2;
+	if (par2.size() == 0){
+	  e["params.single"] = R_NilValue;
+	} else {
+	  e["params.single"] = par2;
+        }
       } else {
         e["params.single"] = R_NilValue;
       }
@@ -2072,9 +2080,18 @@ RObject rxSolveUpdate(RObject obj,
 	  CharacterVector nmp = pars.names();
 	  int i, n, np, nc, j;
 	  np = (as<NumericVector>(pars[0])).size();
-	  List covs = List(e["covs"]);
-	  CharacterVector nmc = covs.names();
-	  nc = (as<NumericVector>(covs[0])).size();
+	  RObject covsR = e["covs"];
+	  List covs;
+	  if (!covsR.isNULL()){
+	    covs = List(covsR);
+          }
+	  CharacterVector nmc;
+          if (covs.hasAttribute("names")){
+	    nmc = covs.names();
+	    nc = (as<NumericVector>(covs[0])).size();
+          } else {
+	    nc = as<int>(e["nobs"]);
+	  }
 	  //////////////////////////////////////////////////////////////////////////////
 	  // Update Parameters by name
 	  n = pars.size();

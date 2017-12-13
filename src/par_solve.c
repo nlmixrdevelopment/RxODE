@@ -1271,8 +1271,12 @@ extern SEXP RxODE_par_df(SEXP sd){
   SET_VECTOR_ELT(ret, 2, dfs);
   SET_VECTOR_ELT(ret, 3, dfd);
   SET_VECTOR_ELT(ret, 4, isEt);
-  SET_VECTOR_ELT(ret, 5, covs);
-  
+  if (ncov == 0){
+    SEXP covsn = PROTECT(R_NilValue);pro++;
+    SET_VECTOR_ELT(ret, 5, covsn);
+  } else {
+    SET_VECTOR_ELT(ret, 5, covs);
+  }
   UNPROTECT(pro);
   return ret;
 }

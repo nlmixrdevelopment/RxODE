@@ -195,50 +195,38 @@ print.rxSolve <- function(x, ...){
         message("Solved RxODE object");
         is.dplyr <- requireNamespace("dplyr", quietly = TRUE) && RxODE.display.tbl;
         ## cat(sprintf("Dll: %s\n\n", rxDll(x)))
-        message("Parameters ($params):");
         df <- x$params.single
         if (!is.null(df)){
+            message("\nParameters ($params):");
             print(df)
         } else {
             df <- x$pars
-            if (rxIs(df, "data.frame")){
-                if (!is.dplyr){
-                    print(head(as.matrix(x), n = n));
-                } else {
-                    print(dplyr::as.tbl(x$pars), n = n, width = width);
+            if (!is.null(df)){
+                message("\nParameters ($params):");
+                if (rxIs(df, "data.frame")){
+                    if (!is.dplyr){
+                        print(head(as.matrix(df), n = n));
+                    } else {
+                        print(dplyr::as.tbl(df), n = n, width = width);
+                    }
                 }
             }
         }
-        ## w <- which((names(lst$params) %in% names(x)))
-        ## if (length(w) > 0){
-        ##     print(lst$params[-w]);
-        ##     message("\nFirst Part of Time Varying Covariates:");
-        ##     d <- as.data.frame(env$covs)[, names(lst$params)[w]];
-        ##     if (length(w) == 1){
-        ##         d <- data.frame(d = d);
-        ##         names(d) <- names(lst$params)[w];
-        ##     }
-        ##     if (!is.dplyr){
-        ##         print(head(d), n = n);
-        ##     } else {
-        ##         print(dplyr::as.tbl(d), n = n, width = width);
-        ##     }
-        ## }  else {
-        ##     p <- lst$params;
-        ##     if (length(env$pcov) > 0){
-        ##         p2 <- p[-env$pcov];
-        ##         print(p2)
-        ##         message("\nTime Varying Covariates");
-        ##         message(paste(names(p[env$pcov]), collapse=" "));
-        ##     } else {
-        ##         print(p);
-        ##     }
-        ## }
-        message("\n\nInitial Conditions ($inits):")
+        df <- x$covs;
+        if (!is.null(df)){
+            message("\nCovariates ($covs):");
+            if (!is.dplyr){
+                print(head(as.matrix(df), n = n));
+            } else {
+                print(dplyr::as.tbl(df), n = n, width = width);
+            }
+        }
+
+        message("\nInitial Conditions ($inits):")
         print(x$inits);
         ## inits <- lst$inits[regexpr(regSens, names(lst$inits)) == -1];
         ## print(inits);
-        message("\n\nFirst part of data (object):")
+        message("\nFirst part of data (object):")
         if (!is.dplyr){
             print(head(as.matrix(x), n = n));
         } else {
@@ -322,6 +310,7 @@ dimnames.rxSolve <- function(x){
 ##'@export
 "[<-.rxSolve" <- function(x, i, j, value){
     if (missing(i) && rxIs(j, "character")){
+        message("here")
         ret <- .Call(`_RxODE_rxSolveUpdate`, x, j, value);
         if (is.null(ret)){
             class(x) <- "data.frame";
