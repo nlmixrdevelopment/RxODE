@@ -335,7 +335,7 @@ dimnames.rxSolve <- function(x){
 `$<-.rxSolve` <- function(x, name, value){
     ret <- .Call(`_RxODE_rxSolveUpdate`, x, name, value);
     if (is.null(ret)){
-        class(ret) <- "data.frame"
+        class(x) <- "data.frame"
         return (`$<-.data.frame`(x, name, value));
     } else {
         return(ret);
@@ -343,7 +343,27 @@ dimnames.rxSolve <- function(x){
 }
 ##'@export
 "[[<-.rxSolve" <- function(x, i, j, value){
-    return("[<-.rxSolve"(x, i, j, value))
+    if (missing(j) && rxIs(i, "character")){
+        ret <- .Call(`_RxODE_rxSolveUpdate`, x, i, value);
+        if (!is.null(ret)){
+            return(ret);
+        } else {
+            class(x) <- "data.frame"
+            if (missing(j)){
+                return("[[<-.data.frame"(x, i, value=value))
+            } else {
+                return("[[<-.data.frame"(x, i, j, value))
+            }
+
+        }
+    } else {
+        class(x) <- "data.frame"
+        if (missing(j)){
+            return("[[<-.data.frame"(x, i, value=value))
+        } else {
+            return("[[<-.data.frame"(x, i, j, value))
+        }
+    }
 }
 
 ##' Update Solved object with '+'

@@ -1058,6 +1058,8 @@ extern SEXP RxODE_par_df(SEXP sd){
   SEXP dfd = PROTECT(allocVector(VECSXP,md+3)); pro++; // Dosing
   SEXP dfs = PROTECT(allocVector(VECSXP,md+3)); pro++; // Sampling
   SEXP dfn = PROTECT(allocVector(STRSXP,md+3)); pro++;
+  SEXP dfn1 = PROTECT(allocVector(STRSXP,md+3)); pro++;
+  SEXP dfn2 = PROTECT(allocVector(STRSXP,md+3)); pro++;
   // Covariate Table
   SEXP covs = PROTECT(allocVector(VECSXP,md+ncov)); pro++;
   SEXP covsn = PROTECT(allocVector(STRSXP,md+ncov)); pro++;
@@ -1067,6 +1069,8 @@ extern SEXP RxODE_par_df(SEXP sd){
     SET_VECTOR_ELT(dfs, 0, PROTECT(allocVector(INTSXP, nobs))); pro++;
     SET_VECTOR_ELT(covs, 0, PROTECT(allocVector(INTSXP, nobs))); pro++;
     SET_STRING_ELT(dfn, 0, mkChar("id"));
+    SET_STRING_ELT(dfn1, 0, mkChar("id"));
+    SET_STRING_ELT(dfn2, 0, mkChar("id"));
     SET_STRING_ELT(covsn, 0, mkChar("id"));
     i++;
   }
@@ -1079,16 +1083,24 @@ extern SEXP RxODE_par_df(SEXP sd){
   SET_VECTOR_ELT(dfd, md, PROTECT(allocVector(REALSXP, nall-nobs))); pro++;
   SET_VECTOR_ELT(dfs, md, PROTECT(allocVector(REALSXP, nobs))); pro++;
   SET_STRING_ELT(dfn, md, mkChar("time"));
+  SET_STRING_ELT(dfn1, md, mkChar("time"));
+  SET_STRING_ELT(dfn2, md, mkChar("time"));
+
 
   SET_VECTOR_ELT(dfe, md+1, PROTECT(allocVector(INTSXP, nall))); pro++;
   SET_VECTOR_ELT(dfd, md+1, PROTECT(allocVector(INTSXP, nall-nobs))); pro++;
   SET_VECTOR_ELT(dfs, md+1, PROTECT(allocVector(INTSXP, nobs))); pro++;
   SET_STRING_ELT(dfn, md+1, mkChar("evid"));
+  SET_STRING_ELT(dfn1, md+1, mkChar("evid"));
+  SET_STRING_ELT(dfn2, md+1, mkChar("evid"));
 
   SET_VECTOR_ELT(dfe, md+2, PROTECT(allocVector(REALSXP, nall))); pro++;
   SET_VECTOR_ELT(dfd, md+2, PROTECT(allocVector(REALSXP, nall-nobs))); pro++;
   SET_VECTOR_ELT(dfs, md+2, PROTECT(allocVector(REALSXP, nobs))); pro++;
   SET_STRING_ELT(dfn, md+2, mkChar("amt"));
+  SET_STRING_ELT(dfn1, md+2, mkChar("amt"));
+  SET_STRING_ELT(dfn2, md+2, mkChar("amt"));
+
   i++;
 
   SEXP dfre = PROTECT(allocVector(INTSXP,2)); pro++;
@@ -1104,20 +1116,30 @@ extern SEXP RxODE_par_df(SEXP sd){
   SEXP dfrs = PROTECT(allocVector(INTSXP,2)); pro++;
   INTEGER(dfrs)[0] = NA_INTEGER;
   INTEGER(dfrs)[1] = -nobs;
+  SEXP dfrs1 = PROTECT(allocVector(INTSXP,2)); pro++;
+  INTEGER(dfrs1)[0] = NA_INTEGER;
+  INTEGER(dfrs1)[1] = -nobs;
   setAttrib(dfs, R_RowNamesSymbol, dfrs);
-  setAttrib(covs, R_RowNamesSymbol, dfrs);
+  setAttrib(covs, R_RowNamesSymbol, dfrs1);
 
 
   setAttrib(dfs, R_NamesSymbol, dfn);
-  setAttrib(dfd, R_NamesSymbol, dfn);
-  setAttrib(dfe, R_NamesSymbol, dfn);
+  setAttrib(dfd, R_NamesSymbol, dfn1);
+  setAttrib(dfe, R_NamesSymbol, dfn2);
 
   SEXP clse = PROTECT(allocVector(STRSXP, 1)); pro++;
   SET_STRING_ELT(clse, 0, mkChar("data.frame"));
 
+  SEXP clse1 = PROTECT(allocVector(STRSXP, 1)); pro++;
+  SET_STRING_ELT(clse1, 0, mkChar("data.frame"));
+  
+  SEXP clse2 = PROTECT(allocVector(STRSXP, 1)); pro++;
+  SET_STRING_ELT(clse2, 0, mkChar("data.frame"));
+
   classgets(dfs, clse);
-  classgets(dfd, clse);
-  classgets(dfe, clse);
+  classgets(dfd, clse1);
+  classgets(dfe, clse2);
+  
   double *times, *doses, *cov_ptr;
   int evid, iie = 0, iis = 0, iid = 0, curdose, ntimes;
   int k, kk;
@@ -1266,8 +1288,10 @@ extern SEXP RxODE_par_df(SEXP sd){
   setAttrib(covs, R_NamesSymbol, covsn);
   SEXP cls = PROTECT(allocVector(STRSXP, 1)); pro++;
   SET_STRING_ELT(cls, 0, mkChar("data.frame"));
+  SEXP cls1 = PROTECT(allocVector(STRSXP, 1)); pro++;
+  SET_STRING_ELT(cls1, 0, mkChar("data.frame"));
   classgets(df, cls);
-  classgets(covs, cls);
+  classgets(covs, cls1);
   SEXP ret = PROTECT(allocVector(VECSXP,6)); pro++;
   SET_VECTOR_ELT(ret, 0, df);
   SET_VECTOR_ELT(ret, 1, dfe);
