@@ -10,10 +10,8 @@ rxPermissive({
     dat <- mod %>% rxSolve(et, c(k1=0.1), inits=inits)
 
     test_that("initial conditions work", {
-        for (i in 1:104){
-            for (j in seq(i + 1, 105)){
-                expect_equal(dat[, i + 1], dat[, j + 1]);
-            }
+        for (j in seq(3, 106)){
+                expect_equal(dat[, 2], dat[, j]);
         }
     })
 
@@ -27,10 +25,8 @@ rxPermissive({
     dat <- mod %>% rxSolve(et, c(k1=0.1))
 
     test_that("events work", {
-        for (i in 1:104){
-            for (j in seq(i + 1, 105)){
-                expect_equal(dat[, i + 1], dat[, j + 1]);
-            }
+        for (j in seq(3, 106)){
+            expect_equal(dat[, 2], dat[, j]);
         }
     })
 

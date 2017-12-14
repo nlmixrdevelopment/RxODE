@@ -40,11 +40,11 @@ SEXP _RxODE_rxSetupIni(SEXP, SEXP);
 SEXP _RxODE_rxDataParSetup(SEXP, SEXP, SEXP, SEXP, SEXP,
                            SEXP, SEXP, SEXP, SEXP, SEXP,
                            SEXP);
-SEXP _RxODE_rxSolvingData(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP,
-			  SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
-SEXP _RxODE_rxData(SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,
-		   SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,
-		   SEXP,SEXP,SEXP,SEXP,SEXP);
+/* SEXP _RxODE_rxSolvingData(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, */
+/* 			  SEXP, SEXP, SEXP, SEXP, SEXP, SEXP); */
+/* SEXP _RxODE_rxData(SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP, */
+/* 		   SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP, */
+/* 		   SEXP,SEXP,SEXP,SEXP,SEXP); */
 SEXP _RxODE_rxSolveC(SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,
 		     SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,
 		     SEXP,SEXP,SEXP,SEXP,SEXP,SEXP);
@@ -179,8 +179,8 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_rxUpdateResiduals", (DL_FUNC) &_RxODE_rxUpdateResiduals, 1},
     {"_RxODE_rxSetupIni", (DL_FUNC) &_RxODE_rxSetupIni, 2},
     {"_RxODE_rxDataParSetup", (DL_FUNC) &_RxODE_rxDataParSetup, 11},
-    {"_RxODE_rxSolvingData", (DL_FUNC) &_RxODE_rxSolvingData, 16},
-    {"_RxODE_rxData", (DL_FUNC) &_RxODE_rxData, 25},
+    /* {"_RxODE_rxSolvingData", (DL_FUNC) &_RxODE_rxSolvingData, 16}, */
+    /* {"_RxODE_rxData", (DL_FUNC) &_RxODE_rxData, 25}, */
     {"_RxODE_rxSolveC", (DL_FUNC) &_RxODE_rxSolveC, 26},
     {"_RxODE_rxSolveGet", (DL_FUNC) &_RxODE_rxSolveGet, 3},
     {"_RxODE_rxSolveUpdate", (DL_FUNC) &_RxODE_rxSolveUpdate, 3},

@@ -1383,7 +1383,6 @@ SEXP rxSolvingOptions(const RObject &object,
 			      as<SEXP>(ptr["jdum"]));
 }
 
-//[[Rcpp::export]]
 SEXP rxSolvingData(const RObject &model,
 		   const RObject &parData,
 		   const std::string &method = "lsoda",
@@ -1511,7 +1510,6 @@ SEXP rxSolvingData(const RObject &model,
 //'
 //' @author Matthew L. Fidler
 //' @export
-//[[Rcpp::export]]
 List rxData(const RObject &object,
             const RObject &params = R_NilValue,
             const RObject &events = R_NilValue,
@@ -1750,10 +1748,12 @@ SEXP rxSolveC(const RObject &object,
       par_dop(parData);
     }
     List dat = RxODE_df(parData);
+    List xtra;
+    if (!rx->matrix) xtra = RxODE_par_df(parData);
+    freeRxSolve(parData);
     int nr = as<NumericVector>(dat[0]).size();
     int nc = dat.size();
     if (rx->matrix){
-      freeRxSolve(parData);
       dat.attr("class") = "data.frame";
       NumericMatrix tmpM(nr,nc);
       for (int i = 0; i < dat.size(); i++){
@@ -1771,7 +1771,6 @@ SEXP rxSolveC(const RObject &object,
       // Save information
       // Remove one final; Just for debug.
       // e["parData"] = parData;
-      List xtra = RxODE_par_df(parData);
       List pd = as<List>(xtra[0]);
       if (pd.size() == 0){
 	e["params.dat"] = R_NilValue;
@@ -1814,7 +1813,6 @@ SEXP rxSolveC(const RObject &object,
       Function importEt = as<Function>(et["import.EventTable"]);
       importEt(e["EventTable"]);
       e["events.EventTable"] = et;
-      freeRxSolve(parData);
       Function parse2("parse", R_BaseNamespace);
       Function eval2("eval", R_BaseNamespace);
       e["get.EventTable"] = eval2(_["expr"]   = parse2(_["text"]="function() EventTable"),

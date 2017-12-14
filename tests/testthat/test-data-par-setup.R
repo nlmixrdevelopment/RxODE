@@ -16,9 +16,9 @@ rxPermissive({
 
         tmp2 <- rxDataParSetup(mod, et);
 
-        expect_equal(class(RxODE:::rxSolvingData(mod,tmp2)), "externalptr")
+        ## expect_equal(class(RxODE:::rxSolvingData(mod,tmp2)), "externalptr")
 
-        expect_equal(class(tmp2), c("RxODE.par.data", "RxODE.multi.data"));
+        expect_equal(class(tmp2), c("RxODE.multi.data", "RxODE.par.data"));
         expect_equal(tmp2$pars, c(6, 0.6))
         expect_equal(tmp2$nsim, 1L)
         expect_equal(tmp2$n.pars, 2L)
