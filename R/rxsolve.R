@@ -331,23 +331,19 @@ dimnames.rxSolve <- function(x){
         }
     }
 }
-
-########################################################
-## Updating solved object
-
-##' Update the solved object with any of the new parameters.
-##'
-##' @param object Object to be updated
-##' @param ... Arguments to be updated, and resolved.
-##'
-##' @author Matthew L.Fidler
-##' @export
-update.solveRxODE <- function(object, ...){
-    env <- attr(object, ".env");
-    rxode <- env$env$out;
-    args <- c(list(..., params=env$params, inits=env$inits, matrix=FALSE), env$extra.args);
-    args <- args[!duplicated(names(args))];
-    do.call(rxode$solve, args)
+##'@export
+`$<-.rxSolve` <- function(x, name, value){
+    ret <- .Call(`_RxODE_rxSolveUpdate`, x, name, value);
+    if (is.null(ret)){
+        class(ret) <- "data.frame"
+        return (`$<-.data.frame`(x, name, value));
+    } else {
+        return(ret);
+    }
+}
+##'@export
+"[[<-.rxSolve" <- function(x, i, j, value){
+    return("[<-.rxSolve"(x, i, j, value))
 }
 
 ##' Update Solved object with '+'
@@ -358,112 +354,14 @@ update.solveRxODE <- function(object, ...){
 ##' @author Matthew L. Fidler
 ##' @export
 ##' @keywords internal
-`+.solveRxODE` <- function(solved, new){
-    if (is(new,"EventTable")){
+`+.rxSolve` <- function(solved, new){
+    if (rxIs(new,"rx.event")){
         return(update(solved, events=new));
     } else {
         return(as.data.frame(solved) + new);
     }
 }
 
-##' $ Assign for RxODE solved objects
-##'
-##' Assign objects by argumnt as obj$arg <- value
-##'
-##' This also works as obj[[arg]] <- value
-##'
-##' @param obj solveRxDll object
-##' @param arg Dollar sign name
-##' @param value assigned Value.
-##' @seealso \code{\link{rxSolve}}
-##' @keywords internal
-##' @author Matthew L.Fidler
-##' @export
-"$<-.solveRxODE" <- function(obj, arg, value){
-    if (arg == "t"){
-        arg <- "time";
-    }
-    env <- attr(obj, ".env")
-    rxode <- env$env$out;
-    lst <- c(list(params=env$params, inits=env$inits), env$extra.args)
-    iarg <- gsub(regIni, "", arg);
-    if (arg == "time"){
-        if (is(value,"EventTable")){
-            cat("Update event table and solved object.\n");
-            return(update(obj, events = eventTable))
-        } else if (is(value,"data.frame")){
-        } else if (is(value,"numeric")){
-            rxCat("Updating sampling times in the event table updating object.\n");
-            eventTable <- lst$events$copy();
-            eventTable$clear.sampling();
-            et <- eventTable()
-            et$import.EventTable(eventTable$get.EventTable());
-            et$add.sampling(value);
-            return(update(obj, events = et));
-        }
-    } else if (arg != iarg && any(rxState(rxode) == iarg) && length(value) == 1){
-        rxCat("Updating object with new initial conditions.\n")
-        inits <- c(value);
-        names(inits) <- gsub(regIni, "", arg);
-        return(update(obj, inits = inits));
-    } else if (any(rxParams(rxode) == arg)){
-        rxCat("Updating object with new parameter values.\n")
-        if (length(value) == 1){
-            covs <- as.data.frame(lst$covs);
-            if (any(names(covs) == arg)){
-                cat(sprintf("Changing time-varying covariate \"%s\" to a simple parameter value %s.\n", arg, value));
-                ncovs <- names(covs);
-                covs <- as.data.frame(covs[, names(covs) != arg]);
-                names(covs) <- ncovs[ncovs != arg];
-                params <- c(value);
-                names(params) <- arg;
-                params <- c(params, lst$params);
-                return(update(obj, params = params, covs = covs));
-            } else {
-                params <- c(value);
-                names(params) <- arg;
-                params <- c(params, lst$params);
-                return(update(obj, params = params));
-            }
-        } else if (length(value) == length(lst$events$get.sampling()$time)){
-            cat(sprintf("Changing simple parameter \"%s\" to a time-varying covariate.\n", arg));
-            covs <- as.data.frame(lst$covs);
-            covs[[arg]] <- value;
-            return(update(obj, covs = covs));
-        }
-    } else if (arg == "params"){
-        rxCat("Updating object with new parameter values.\n");
-        return(update(obj, params = value));
-    } else if (arg == "inits"){
-        rxCat("Updating object with new initial conditions.\n")
-        return(update(obj, inits = value));
-    } else if (any(arg == names(lst))){
-        args <- list(value);
-        names(args) <- arg;
-        rxCat(sprintf("Updating object with new solving argument %s = %s.\n", arg, value))
-        return(do.call("update", args, envir = parent.frame(1)));
-    } else {
-        df <- as.data.frame(obj);
-        df <- "$<-.data.frame"(df, arg, value);
-        obj <- rxTbl(df, "assignment");
-    }
-    return(obj);
-}
-
-
-##' Assign solved objects using the [[]] syntax
-##' @param obj solved object
-##' @param arg element of solved object
-##' @param value value assumed
-##' @seealso \code{\link{rxSolve}}
-##' @keywords internal
-##' @author Matthew L.Fidler
-##' @export
-"[[<-.solveRxODE" <- function(obj, arg, value){
-    return("$<-.solveRxODE"(obj, arg, value = value))
-}
-
-## length, [, [<-, [[, [[<-, c.
 ## dim (gets you nrow and ncol), t, dimnames
 ##
 ## [1] $<-           [             [[<-          [<-           all.equal

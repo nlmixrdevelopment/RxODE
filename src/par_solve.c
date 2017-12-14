@@ -1242,6 +1242,12 @@ extern SEXP RxODE_par_df(SEXP sd){
     jj++; kk++;
   }
   
+  kk=0;
+  for (i = 0; i < ncov; i++){
+    SET_STRING_ELT(covsn,kk, STRING_ELT(paramNames, par_cov[i]-1));
+    kk++;
+  }
+  
   for (i = 0; i < npar; i++){
     is_cov=0;
     for (j = 0; j < ncov; j++){
@@ -1250,10 +1256,7 @@ extern SEXP RxODE_par_df(SEXP sd){
         break;
       }
     }
-    if (is_cov){
-      SET_STRING_ELT(covsn, kk, STRING_ELT(paramNames,i));
-      kk++;
-    } else {
+    if (!is_cov){
       SET_STRING_ELT(sexp_colnames, jj, STRING_ELT(paramNames,i));
       jj++;
     }
@@ -1272,8 +1275,8 @@ extern SEXP RxODE_par_df(SEXP sd){
   SET_VECTOR_ELT(ret, 3, dfd);
   SET_VECTOR_ELT(ret, 4, isEt);
   if (ncov == 0){
-    SEXP covsn = PROTECT(R_NilValue);pro++;
-    SET_VECTOR_ELT(ret, 5, covsn);
+    SEXP covsn2 = PROTECT(R_NilValue);pro++;
+    SET_VECTOR_ELT(ret, 5, covsn2);
   } else {
     SET_VECTOR_ELT(ret, 5, covs);
   }

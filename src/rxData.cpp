@@ -1829,9 +1829,14 @@ SEXP rxSolveC(const RObject &object,
                              _["envir"]  = e);
       e["get.nobs"] = eval2(_["expr"]   = parse2(_["text"]="function() nobs"),
                             _["envir"]  = e);
-      e["args.object"] =  object;
-      e["args.params"] = params;    
-      e["args.events"] = events;
+      e["args.object"] = object;
+      if (rxIs(events, "rx.event")){
+	e["args.params"] = params;    
+        e["args.events"] = events;
+      } else {
+	e["args.params"] = events;    
+        e["args.events"] = params;
+      }
       e["args.inits"] = inits;
       e["args.covs"] = covs;
       e["args.method"] = method;
@@ -2129,28 +2134,27 @@ RObject rxSolveUpdate(RObject obj,
 				defrx_amountUnits,
 				defrx_timeUnits);
 	      } else if (val.size() == nc){
-		// Update Parameter & Covariate
+		// Change parameter -> Covariate
 		List newPars(pars.size()-1);
 		CharacterVector newParNames(pars.size()-1);
-		for (j = 0; j < pars.size(); j++){
-		  if (j < i){
-		      newPars[j] = pars[j];
-                      newParNames[j] = nmp[j];
-		  } else if (j > i) {
-		    newPars[j-1] = pars[j-1];
-                    newParNames[j-1] = nmp[j-1];
-                  }
-		}
+		for (j = 0; j < i; j++){
+		  newPars[j]     = pars[j];
+		  newParNames[j] = nmp[j];
+                }
+                for (j=i+1; j < pars.size(); j++){
+		  newPars[j-1]     = pars[j];
+                  newParNames[j-1] = nmp[j];
+                }
 		newPars.attr("names") = newParNames;
 		newPars.attr("class") = "data.frame";
 		newPars.attr("row.names") = IntegerVector::create(NA_INTEGER,-np);
 		List newCovs(covs.size()+1);
 		CharacterVector newCovsNames(covs.size()+1);
 		for (j = 0; j < covs.size(); j++){
-		  newCovs[j] = covs[j];
+		  newCovs[j]      = covs[j];
 		  newCovsNames[j] = nmc[j];
 		}
-		newCovs[j] = val;
+		newCovs[j]      = val;
 		newCovsNames[j] = nmp[i];
 		newCovs.attr("names") = newCovsNames;
 		newCovs.attr("class") = "data.frame";
@@ -2222,21 +2226,38 @@ RObject rxSolveUpdate(RObject obj,
 				defrx_amountUnits,
 				defrx_timeUnits);
 	      } else if (val.size() == np){
-		// Update parameter vector.
-		pars[sarg] = val;
-		// Drop covariate
-		List newCov(n-1);
-		for (j = 0; j < n; j++){
-		  if (j != i){
-		    newCov[as<std::string>(nmc[i])] = covs[j];
-		  }
-		}
-		return rxSolveC(obj,
+		// Change Covariate -> Parameter
+		List newPars(pars.size()+1);
+                CharacterVector newParNames(pars.size()+1);
+                for (j = 0; j < pars.size(); j++){
+                  newPars[j]     = pars[j];
+                  newParNames[j] = nmp[j];
+                }
+		newPars[j]     = val;
+		newParNames[j] = nmc[i];
+                newPars.attr("names") = newParNames;
+                newPars.attr("class") = "data.frame";
+                newPars.attr("row.names") = IntegerVector::create(NA_INTEGER,-np);
+		// if ()
+                List newCovs(covs.size()-1);
+                CharacterVector newCovsNames(covs.size()-1);
+                for (j = 0; j < i; j++){
+                  newCovs[j]      = covs[j];
+                  newCovsNames[j] = nmc[j];
+                }
+		for (j=i+1; j < covs.size(); j++){
+                  newCovs[j-1]      = covs[j];
+                  newCovsNames[j-1] = nmc[j];
+                }
+                newCovs.attr("names") = newCovsNames;
+                newCovs.attr("class") = "data.frame";
+                newCovs.attr("row.names") = IntegerVector::create(NA_INTEGER,-nc);
+        	return rxSolveC(obj,
 				CharacterVector::create("covs", "params"),
-				pars,//defrx_params,
+				newPars,//defrx_params,
 				defrx_events,
 				defrx_inits,
-				newCov, // defrx_covs,
+				newCovs, // defrx_covs,
 				defrx_method,
 				defrx_transit_abs,
 				defrx_atol,
