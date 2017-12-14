@@ -1355,14 +1355,25 @@ extern SEXP RxODE_df(SEXP sd){
   int ii=0, jj = 0, ntimes;
   double *solve;
   double *cov_ptr;
-  
+  int nBadDose;
+  int *BadDose;
+  int extraCmt = op->extraCmt;
   for (int csim = 0; csim < nsim; csim++){
     for (csub = 0; csub < nsub; csub++){
       neq[1] = csub+csim*nsub;
       ind = &(rx->subjects[neq[1]]);
+      nBadDose = ind->nBadDose;
+      BadDose = ind->BadDose;
       ntimes = ind->n_all_times;
       solve =  ind->solve;
       cov_ptr = ind->cov_ptr;
+      if (nBadDose && csim == 0){
+	for (i = 0; i < nBadDose; i++){
+	  if (BadDose[i] > extraCmt){
+	    warning("Dose to Compartment %d ignored (not in ODE; id=%d)", BadDose[i],csub+1);
+	  }
+	}
+      }
       for (i = 0; i < ntimes; i++){
 	jj  = 0 ;
 	evid = rxEvidP(i,rx,neq[1]);
