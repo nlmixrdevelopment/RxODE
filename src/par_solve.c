@@ -506,7 +506,7 @@ void par_dop(SEXP sd){
   int neq[2];
   neq[0] = op->neq;
   neq[1] = 0;
-  yp = Calloc(neq, double);
+  yp = Calloc(neq[0], double);
   
   //DE solver config vars
   double rtol=op->RTOL, atol=op->ATOL;

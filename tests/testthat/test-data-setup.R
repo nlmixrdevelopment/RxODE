@@ -1,7 +1,7 @@
 rxPermissive({
 
     ## Test the behavior
-    context("Test Data Setup (for RcppParallel-style for loop); 0 cov")
+    context("Test Data Setup (for Open MP-style for loop); 0 cov")
     library(dplyr);
 
     test_that("conversion without covariates", {
@@ -308,7 +308,7 @@ rxPermissive({
     })
 
     cn <- c("V")
-    context("Test Data Setup (for RcppParallel-style for loop); 1 cov")
+    context("Test Data Setup (for Open MP-style for loop); 1 cov")
     test_that("conversion with 1 covariate", {
         if (file.exists("test-data-setup.Rdata")){
             load("test-data-setup.Rdata")
@@ -344,7 +344,7 @@ rxPermissive({
     })
 
     cn <- c("V", "CL")
-    context("Test Data Setup (for RcppParallel-style for loop); 2 cov")
+    context("Test Data Setup (for Open MP-style for loop); 2 cov")
     test_that("conversion with 2 covariate", {
         if (file.exists("test-data-setup.Rdata")){
             load("test-data-setup.Rdata")
@@ -381,7 +381,7 @@ rxPermissive({
     })
 
     cn <- c("V", "CL", "DOSE")
-    context("Test Data Setup (for RcppParallel-style for loop); 3 cov")
+    context("Test Data Setup (for Open MP-style for loop); 3 cov")
     test_that("conversion with 3 covariate", {
         if (file.exists("test-data-setup.Rdata")){
             load("test-data-setup.Rdata")
