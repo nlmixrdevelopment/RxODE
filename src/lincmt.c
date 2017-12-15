@@ -2,40 +2,44 @@
 #include <stdarg.h>
 #include <R.h>
 #include <Rinternals.h>
+#include "solve.h"
 
 /* extern SEXP RxODE_ode_dosing(); */
 // extern "C" double getLinDeriv(int ncmt, int diff1, int diff2, double rate, double tinf, double Dose, double ka, double tlag, double T, double tT, mat par);
 extern double rxSolveLinBdInf(int diff1, int diff2, int dA, int dAlpha, double rate, double tT, double t1, double t2, double tinf, double A, double alpha, double tlag);
 extern double rxSolveLinBDiff(int diff1, int diff2, int dA, int dAlpha, double dose, double tT, double A, double alpha, double ka, double tlag);
-extern double RxODE_solveLinB(double t, int linCmt, int diff1, int diff2, double A, double alpha, double B, double beta, double C, double gamma, double ka, double tlag);
+
 extern double RxODE_sum (double *input, unsigned int n);
-extern unsigned int nDoses();
-extern double rxDosingTime(int i);
-extern int rxDosingEvid(int i);
 extern double RxODE_prodV(unsigned int n, ...);
 extern double RxODE_sumV(unsigned int n, ...);
 extern double RxODE_safe_zero(double);
-extern void setExtraCmt(int xtra);
+
+extern double rxDosingTimeP(int i, rx_solve *rx, unsigned int id);
+extern unsigned int nDosesP(rx_solve *rx, unsigned int id);
+extern void setExtraCmtP(int xtra, rx_solve *rx);
+extern int rxDosingEvidP(int i, rx_solve *rx, unsigned int id);
+extern double rxDoseP(int i, rx_solve *rx, unsigned int id);
+extern double RxODE_solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt, int diff1, int diff2, double A, double alpha, double B, double beta, double C, double gamma, double ka, double tlag);
 
 #define sum RxODE_sumV
 #define prod RxODE_prodV
 #define safe_zero RxODE_safe_zero
-double rxDose(int i);
 
-int locateDoseIndex(const double obs_time){
+
+int locateDoseIndex(const double obs_time, rx_solve *rx, unsigned int id){
   // Uses bisection for slightly faster lookup of dose index.
   int i, j, ij;
   i = 0;
-  j = nDoses() - 1;
-  if (obs_time <= rxDosingTime(i)){
+  j = nDosesP(rx, id) - 1;
+  if (obs_time <= rxDosingTimeP(i, rx, id)){
     return i;
   }
-  if (obs_time >= rxDosingTime(j)){
+  if (obs_time >= rxDosingTimeP(j, rx, id)){
     return j;
   }
   while(i < j - 1) { /* x[i] <= obs_time <= x[j] */
     ij = (i + j)/2; /* i+1 <= ij <= j-1 */
-    if(obs_time < rxDosingTime(ij))
+    if(obs_time < rxDosingTimeP(ij, rx, id))
       j = ij;
     else
       i = ij;
@@ -45,7 +49,7 @@ int locateDoseIndex(const double obs_time){
 
 #define NUM_PARTIALS  32  /* initial partials array size, on stack */
 
-double RxODE_solveLinB(double t, int linCmt, int diff1, int diff2, double d_A, double d_alpha, double d_B, double d_beta, double d_C, double d_gamma, double d_ka, double d_tlag){
+double RxODE_solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt, int diff1, int diff2, double d_A, double d_alpha, double d_B, double d_beta, double d_C, double d_gamma, double d_ka, double d_tlag){
   unsigned int ncmt = 1;
   if (d_gamma > 0.){
     ncmt = 3;
@@ -57,7 +61,7 @@ double RxODE_solveLinB(double t, int linCmt, int diff1, int diff2, double d_A, d
     return 0.0;
     //error("You need to specify at least A(=%f) and alpha (=%f). (@t=%f, d1=%d, d2=%d)", d_A, d_alpha, t, diff1, diff2);
   }
-  setExtraCmt(linCmt+1);
+  setExtraCmtP(linCmt+1, rx);
   
   double alpha = d_alpha;
   double A = d_A;
@@ -72,50 +76,53 @@ double RxODE_solveLinB(double t, int linCmt, int diff1, int diff2, double d_A, d
   oral = (ka > 0) ? 1 : 0;
   double ret = 0;
   unsigned int m = 0, l = 0, p = 0;
-  int evid;
+  int evid, evid100;
   double thisT = 0.0, tT = 0.0, res, t1, t2, tinf, dose = 0;
   double rate;
-  m = locateDoseIndex(t);
+  m = locateDoseIndex(t, rx, id);
   unsigned int nsum = 0, np = NUM_PARTIALS;
-  double *sumar = Calloc(NUM_PARTIALS, double);
+  double *sumar = Calloc(np, double);
   
   for(l=0; l <= m; l++){
-    if (nsum >= NUM_PARTIALS){
-      np += np;
+    if (nsum >= np){
+      np *= np;
       sumar = Realloc(sumar, np, double);
     }
     //superpostion
-    evid = rxDosingEvid(l);
-    dose = rxDose(l);
-    cmt = (evid%10000)/100 - 1;
+    evid = rxDosingEvidP(l, rx, id);
+    dose = rxDoseP(l, rx, id);
+    // Support 100+ compartments...
+    evid100 = floor(evid/1e5);
+    evid = evid- evid100*1e5;
+    cmt = (evid%10000)/100 - 1 + 100*evid100;
     if (cmt != linCmt) continue;
     if (evid > 10000) {
       if (dose > 0){
 	// During infusion
-	tT = sum(2, t, - rxDosingTime(l));
+	tT = sum(2, t, - rxDosingTimeP(l, rx, id));
 	thisT = sum(2, tT, - tlag);
 	p = l+1;
-	while (p < nDoses() && rxDose(p) != -dose){
+	while (p < nDosesP(rx, id) && rxDoseP(p, rx, id) != -dose){
 	  p++;
 	}
-	if (rxDose(p) != -dose){
+	if (rxDoseP(p,rx,id) != -dose){
 	  error("Could not find a error to the infusion.  Check the event table.");
 	}
-	tinf  = sum(2,rxDosingTime(p),-rxDosingTime(l));
+	tinf  = sum(2,rxDosingTimeP(p,rx,id),-rxDosingTimeP(l,rx,id));
 	rate  = dose;
 	if (tT >= tinf) continue;
       } else {
 	// After  infusion
 	p = l-1;
-	while (p > 0 && rxDose(p) != -dose){
+	while (p > 0 && rxDoseP(p,rx,id) != -dose){
 	  p--;
 	}
-	if (rxDose(p) != -dose){
+	if (rxDoseP(p,rx, id) != -dose){
 	  error("Could not find a start to the infusion.  Check the event table.");
 	}
-	tinf  = sum(3, rxDosingTime(l), - rxDosingTime(p), - tlag);
+	tinf  = sum(3, rxDosingTimeP(l,rx,id), - rxDosingTimeP(p,rx,id), - tlag);
 	
-	tT = sum(2, t, - rxDosingTime(p));
+	tT = sum(2, t, - rxDosingTimeP(p, rx, id));
         thisT = sum(2, tT, -tlag);
 
 	rate  = -dose;
@@ -142,7 +149,7 @@ double RxODE_solveLinB(double t, int linCmt, int diff1, int diff2, double d_A, d
 	}
       }
     } else {
-      tT = sum(2, t, -rxDosingTime(l));
+      tT = sum(2, t, -rxDosingTimeP(l, rx, id));
       thisT = sum(2, tT, -tlag);
       if (thisT < 0) continue;
       res = ((oral == 1) ? exp(prod(2, -ka , thisT)) : 0.0);

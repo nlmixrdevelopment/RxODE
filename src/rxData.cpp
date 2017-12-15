@@ -1668,12 +1668,14 @@ SEXP rxSolveC(const RObject &object,
     rx =getRxSolve(parData);
     rx_solving_options *op;
     op = getRxOp(rx);
-    if (op->stiff == 1){
-      // lsoda
-      par_lsoda(parData);
-    } else if (op->stiff == 0){
-      // dop
-      par_dop(parData);
+    if (op->neq > 0){
+      if (op->stiff == 1){
+        // lsoda
+        par_lsoda(parData);
+      } else if (op->stiff == 0){
+        // dop
+        par_dop(parData);
+      }
     }
     List dat = RxODE_df(parData);
     List xtra;

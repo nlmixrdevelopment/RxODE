@@ -52,11 +52,7 @@ SEXP _RxODE_rxSolveGet(SEXP, SEXP, SEXP);
 SEXP _RxODE_rxSolveUpdate(SEXP, SEXP, SEXP);
 SEXP _RxODE_rxCores();
 
-double RxODE_solveLinB(double t, int linCmt, int diff1, int diff2, double A, double alpha, double B, double beta, double C, double gamma, double ka, double tlag);
-static R_NativePrimitiveArgType RxODE_solveLinB_t[] = {
-  //t,    linCmt,  diff1,  diff2,  A,       alpha,  B,       beta,     C,       gamma, double ka, double tlag)
-  REALSXP, INTSXP, INTSXP, INTSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP
-};
+double RxODE_solveLinB(rx_solve *rx, unsigned int id,double t, int linCmt, int diff1, int diff2, double A, double alpha, double B, double beta, double C, double gamma, double ka, double tlag);
 
 SEXP _RxODE_rxToOmega(SEXP cholInv);
 
@@ -276,7 +272,6 @@ void R_init_RxODE(DllInfo *info){
     {"RxODE_sign_exp",          (DL_FUNC) &RxODE_sign_exp, 2, RxODE_sign_exp_t},
     {"RxODE_abs_log",           (DL_FUNC) &RxODE_abs_log, 1, RxODE_one_dbl_t},
     {"RxODE_abs_log1p",         (DL_FUNC) &RxODE_abs_log1p, 1, RxODE_one_dbl_t},
-    {"RxODE_solveLinB",         (DL_FUNC) &RxODE_solveLinB, 12, RxODE_solveLinB_t},
     {"RxODE_sum",               (DL_FUNC) &RxODE_sum, 2, RxODE_Sum_t},
     {"RxODE_prod",              (DL_FUNC) &RxODE_prod, 2, RxODE_Sum_t},
     {NULL, NULL, 0, NULL}

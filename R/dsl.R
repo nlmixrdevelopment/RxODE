@@ -847,17 +847,17 @@ rxDefinedDerivatives$rxRate <- function(fn, var){
 }
 rxDefinedDerivatives$solveLinB <- function(fn, var){
     fn <- fn[-1];
-    diff1 <- fn[3];
-    diff2 <- fn[4];
+    diff1 <- fn[4];
+    diff2 <- fn[5];
     if (diff2 != "0"){
         stop("Cannot currently take the third order derivitave of solveLinB.")
     } else{
-        vals <- paste(fn[-seq(1:4)]);
+        vals <- paste(fn[-seq(1:5)]);
         w <- which(vals == var)
         if (diff1 == "0"){
-            ret <- sprintf("solveLinB(%s,%s,0,%s)", paste(fn[1:2], collapse=","), w, paste(vals, collapse=","))
+            ret <- sprintf("solveLinB(rx__PTR__,%s,%s,0,%s)", paste(fn[2:3], collapse=","), w, paste(vals, collapse=","))
         } else {
-            ret <- sprintf("solveLinB(%s,%s,%s)", paste(fn[1:3], collapse=","), w, paste(vals, collapse=","));
+            ret <- sprintf("solveLinB(rx__PTR__,%s,%s,%s)", paste(fn[2:4], collapse=","), w, paste(vals, collapse=","));
         }
         return(ret);
     }

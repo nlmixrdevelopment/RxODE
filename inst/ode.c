@@ -37,7 +37,7 @@ typedef SEXP (*RxODE_assign_fn_xpointers)(void (*fun_dydt)(int *, double, double
 					  int fun_jt,int fun_mf, int fun_debug);
 
 typedef void (*RxODE_ode_solver_old_c)(int *neq,double *theta,double *time,int *evid,int *ntime,double *inits,double *dose,double *ret,double *atol,double *rtol,int *stiff,int *transit_abs,int *nlhs,double *lhs,int *rc);
-typedef double (*RxODE_solveLinB)(double t, int linCmt, int diff1, int diff2, double A, double alpha, double B, double beta, double C, double gamma, double ka, double tlag);
+typedef double (*RxODE_solveLinB)(rx_solve *rx, unsigned int id, double t, int linCmt, int diff1, int diff2, double A, double alpha, double B, double beta, double C, double gamma, double ka, double tlag);
 typedef double (*RxODE_sum_prod)(double *input, int n);
 // Give par pointers
 RxODE_vec _par_ptr, _InfusionRate;

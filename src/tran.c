@@ -263,6 +263,7 @@ int new_or_ith(const char *s) {
   if (!strcmp("t", s)) return 0;
   if (!strcmp("time", s)) return 0;
   if (!strcmp("podo", s)) return 0;
+  if (!strcmp("rx__PTR__", s)) return 0;
   if (!strcmp("tlast", s)) return 0;
   // Ignore M_ constants
   if (!strcmp("M_E", s)) return 0;
@@ -332,6 +333,11 @@ void wprint_node(int depth, char *name, char *value, void *client_data) {
     sprintf(SBTPTR, "tlast");
     sb.o  += 24;
     sbt.o += 5;
+  } else if (!strcmp("rx__PTR__",value)){
+    sprintf(SBPTR, "_solveData, _cSub");
+    sb.o += 17;
+    sprintf(SBPTR, "rx__PTR__");
+    sbt.o +=9;
   } else if (!strcmp("identifier",name) && !strcmp("gamma",value)){
     sprintf(SBPTR, "lgammafn");
     sb.o += 8;

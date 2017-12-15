@@ -245,6 +245,7 @@ extern void rxSolveDataFree(SEXP ptr) {
   if(!R_ExternalPtrAddr(ptr)) return;
   rx_solve *o;
   o  = (rx_solve*)R_ExternalPtrAddr(ptr);
+  // Free individuals
   rx_solving_options_ind *inds;
   inds = o->subjects;
   // Free individuals;
@@ -721,24 +722,26 @@ extern void update_par_ptrP(double t, rx_solve *rx, unsigned int id){
   ind = getRxId(rx, id);
   rx_solving_options *op;
   op =getRxOp(rx);
-  // Update all covariate parameters
-  int k;
-  int *par_cov = op->par_cov;
-  double *par_ptr = ind->par_ptr;
-  double *all_times = ind->all_times;
-  double *cov_ptr = ind->cov_ptr;
-  int ncov = op->ncov;
-  if (op->do_par_cov){
-    for (k = 0; k < ncov; k++){
-      if (par_cov[k]){
-        // Use the same methodology as approxfun.
-        // There is some rumor the C function may go away...
-        ind->ylow = cov_ptr[ind->n_all_times*k];
-        ind->yhigh = cov_ptr[ind->n_all_times*k+ind->n_all_times-1];
-        par_ptr[par_cov[k]-1] = rx_approxP(t, all_times, cov_ptr+ind->n_all_times*k, ind->n_all_times, op, ind);
-      }
-      if (op->global_debug){
-        Rprintf("par_ptr[%d] (cov %d/%d) = %f\n",par_cov[k]-1, k,ncov,cov_ptr[par_cov[k]-1]);
+  if (op->neq > 0){
+    // Update all covariate parameters
+    int k;
+    int *par_cov = op->par_cov;
+    double *par_ptr = ind->par_ptr;
+    double *all_times = ind->all_times;
+    double *cov_ptr = ind->cov_ptr;
+    int ncov = op->ncov;
+    if (op->do_par_cov){
+      for (k = 0; k < ncov; k++){
+        if (par_cov[k]){
+          // Use the same methodology as approxfun.
+          // There is some rumor the C function may go away...
+          ind->ylow = cov_ptr[ind->n_all_times*k];
+          ind->yhigh = cov_ptr[ind->n_all_times*k+ind->n_all_times-1];
+          par_ptr[par_cov[k]-1] = rx_approxP(t, all_times, cov_ptr+ind->n_all_times*k, ind->n_all_times, op, ind);
+        }
+        if (op->global_debug){
+          Rprintf("par_ptr[%d] (cov %d/%d) = %f\n",par_cov[k]-1, k,ncov,cov_ptr[par_cov[k]-1]);
+        }
       }
     }
   }
@@ -998,7 +1001,7 @@ int rxDosingEvid(int i){
 }
 
 double rxDoseP(int i, rx_solve *rx, unsigned int id){
-  if (i < nDoses(rx, id)){
+  if (i < nDosesP(rx, id)){
     rx_solving_options_ind *ind;
     ind = getRxId(rx, id);
     return(ind->dose[i]);
