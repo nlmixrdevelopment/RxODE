@@ -150,16 +150,23 @@
 ##' @seealso \code{\link{RxODE}}
 ##' @author Melissa Hallow, Wenping Wang and Matthew Fidler
 ##' @export
-rxSolve <- function(object, params = NULL, events = NULL, inits = NULL, covs = NULL, method = "lsoda", transit_abs = NULL, atol = 1.0e-8, rtol = 1.0e-6, maxsteps = 5000L, hmin = 0L, hmax = NULL, hini = 0L, maxordn = 12L, maxords = 5L, cores = 1L, covs_interpolation = "linear", add.cov = FALSE, matrix = FALSE, sigma = NULL, sigmaDf = NULL, sigmaNcores = 1L, sigmaIsChol = FALSE, amountUnits = NA_character_, timeUnits = "hours", stiff){
+rxSolve <- function(object, params = NULL, events = NULL, inits = NULL, covs = NULL, method = "lsoda", transit_abs = NULL, atol = 1.0e-8, rtol = 1.0e-6, maxsteps = 5000L, hmin = 0L, hmax = NULL, hini = 0L, maxordn = 12L, maxords = 5L, cores, covs_interpolation = "linear", add.cov = FALSE, matrix = FALSE, sigma = NULL, sigmaDf = NULL, sigmaNcores = 1L, sigmaIsChol = FALSE, amountUnits = NA_character_, timeUnits = "hours", stiff){
     if (!missing(stiff) && missing(method)){
         if (rxIs(stiff, "logical")){
             if (stiff){
                 method <- "lsoda"
                 warning("stiff=TRUE has been replaced with method = \"lsoda\".")
             } else {
-                method <- "dop"
-                warning("stiff=FALSE has been replaced with method = \"dop\".")
+                method <- "dop853"
+                warning("stiff=FALSE has been replaced with method = \"dop853\".")
             }
+        }
+    }
+    if (missing(cores)){
+        if (method == "lsoda"){
+            cores <- rxCores();
+        } else {
+            cores <- 1L;
         }
     }
     .Call(`_RxODE_rxSolveC`, object, names(as.list(match.call())[-1]),

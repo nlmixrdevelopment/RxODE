@@ -1291,7 +1291,7 @@ SEXP rxSolvingOptions(const RObject &object,
   int st=0;
   if (method == "lsoda"){
     st = 1;
-  } else if (method == "dop"){
+  } else if (method == "dop853"){
     st = 0;
   } else {
     stop("Unknown ODE solving method specified.");
