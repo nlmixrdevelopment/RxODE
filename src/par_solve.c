@@ -1036,12 +1036,17 @@ extern SEXP RxODE_par_df(SEXP sd){
   int npar = length(paramNames);
   int n = npar - ncov;
   SEXP df = PROTECT(allocVector(VECSXP,n+md+sm)); pro++;
+  SEXP countsDf = PROTECT(allocVector(VECSXP,md+sm+3)); pro++;
   for (i = 0; i < md+sm; i++){
     SET_VECTOR_ELT(df, i, PROTECT(allocVector(INTSXP, nsim*nsub))); pro++;
+    SET_VECTOR_ELT(countsDf, i, PROTECT(allocVector(INTSXP, nsim*nsub))); pro++;
   }
   for (i = 0; i < n; i++){
     SET_VECTOR_ELT(df, i+md+sm, PROTECT(allocVector(REALSXP, nsim*nsub))); pro++;
   }
+  SET_VECTOR_ELT(countsDf, md+sm, PROTECT(allocVector(INTSXP, nsim*nsub))); pro++;
+  SET_VECTOR_ELT(countsDf, md+sm+1, PROTECT(allocVector(INTSXP, nsim*nsub))); pro++;
+  SET_VECTOR_ELT(countsDf, md+sm+2, PROTECT(allocVector(INTSXP, nsim*nsub))); pro++;
   int jj = 0, ii = 0, j = 0, nall = 0;
   double *par_ptr;
   rx_solving_options_ind *ind;
@@ -1117,9 +1122,11 @@ extern SEXP RxODE_par_df(SEXP sd){
   SEXP dfrs = PROTECT(allocVector(INTSXP,2)); pro++;
   INTEGER(dfrs)[0] = NA_INTEGER;
   INTEGER(dfrs)[1] = -nobs;
+  
   SEXP dfrs1 = PROTECT(allocVector(INTSXP,2)); pro++;
   INTEGER(dfrs1)[0] = NA_INTEGER;
   INTEGER(dfrs1)[1] = -nobs;
+  
   setAttrib(dfs, R_RowNamesSymbol, dfrs);
   setAttrib(covs, R_RowNamesSymbol, dfrs1);
 
@@ -1223,14 +1230,21 @@ extern SEXP RxODE_par_df(SEXP sd){
       if (sm){
         dfi = INTEGER(VECTOR_ELT(df, jj));
         dfi[ii] = csim+1;
+	dfi = INTEGER(VECTOR_ELT(countsDf, jj));
+        dfi[ii] = csim+1;
         jj++;
       }
       // id
       if (md){
         dfi = INTEGER(VECTOR_ELT(df, jj));
         dfi[ii] = csub+1;
+	dfi = INTEGER(VECTOR_ELT(countsDf, jj));
+        dfi[ii] = csub+1;
         jj++;
       }
+      INTEGER(VECTOR_ELT(countsDf, sm+md))[ii] = (int)(ind->slvr_counter);
+      INTEGER(VECTOR_ELT(countsDf, sm+md+1))[ii] = (int)(ind->dadt_counter);
+      INTEGER(VECTOR_ELT(countsDf, sm+md+2))[ii] = (int)(ind->jac_counter);
       for (i = 0; i < npar; i++){
 	is_cov=0;
 	for (j = 0; j < ncov; j++){
@@ -1252,18 +1266,31 @@ extern SEXP RxODE_par_df(SEXP sd){
   INTEGER(sexp_rownames)[0] = NA_INTEGER;
   INTEGER(sexp_rownames)[1] = -nsub*nsim;
   setAttrib(df, R_RowNamesSymbol, sexp_rownames);
+
+  SEXP sexp_rownamesCount = PROTECT(allocVector(INTSXP,2)); pro++;
+  INTEGER(sexp_rownamesCount)[0] = NA_INTEGER;
+  INTEGER(sexp_rownamesCount)[1] = -nsub*nsim;
+  setAttrib(countsDf , R_RowNamesSymbol, sexp_rownamesCount);
+
   SEXP sexp_colnames = PROTECT(allocVector(STRSXP,n+sm+md)); pro++;
+  SEXP sexp_colnamesCount = PROTECT(allocVector(STRSXP,3+sm+md)); pro++;
   jj = 0;
   if (sm){
     SET_STRING_ELT(sexp_colnames, jj, mkChar("sim.id"));
+    SET_STRING_ELT(sexp_colnamesCount, jj, mkChar("sim.id"));
     jj++;
   }
   // id
   kk = 0;
   if (md){
     SET_STRING_ELT(sexp_colnames, jj, mkChar("id"));
+    SET_STRING_ELT(sexp_colnamesCount, jj, mkChar("id"));
     jj++; kk++;
   }
+
+  SET_STRING_ELT(sexp_colnamesCount, sm+md, mkChar("slvr"));
+  SET_STRING_ELT(sexp_colnamesCount, sm+md+1, mkChar("dadt"));
+  SET_STRING_ELT(sexp_colnamesCount, sm+md+2, mkChar("jac"));
   
   kk=0;
   for (i = 0; i < ncov; i++){
@@ -1286,14 +1313,25 @@ extern SEXP RxODE_par_df(SEXP sd){
     
   }
   setAttrib(df, R_NamesSymbol, sexp_colnames);
+  setAttrib(countsDf , R_NamesSymbol, sexp_colnamesCount);
   setAttrib(covs, R_NamesSymbol, covsn);
+  
   SEXP cls = PROTECT(allocVector(STRSXP, 1)); pro++;
   SET_STRING_ELT(cls, 0, mkChar("data.frame"));
+  
   SEXP cls1 = PROTECT(allocVector(STRSXP, 1)); pro++;
   SET_STRING_ELT(cls1, 0, mkChar("data.frame"));
   classgets(df, cls);
+  
+  SEXP cls2 = PROTECT(allocVector(STRSXP, 1)); pro++;
+  SET_STRING_ELT(cls2, 0, mkChar("data.frame"));
   classgets(covs, cls1);
-  SEXP ret = PROTECT(allocVector(VECSXP,6)); pro++;
+
+  SEXP cls3 = PROTECT(allocVector(STRSXP, 1)); pro++;
+  SET_STRING_ELT(cls3, 0, mkChar("data.frame"));
+  classgets(countsDf, cls3);
+  
+  SEXP ret = PROTECT(allocVector(VECSXP,7)); pro++;
   SET_VECTOR_ELT(ret, 0, df);
   SET_VECTOR_ELT(ret, 1, dfe);
   SET_VECTOR_ELT(ret, 2, dfs);
@@ -1305,6 +1343,7 @@ extern SEXP RxODE_par_df(SEXP sd){
   } else {
     SET_VECTOR_ELT(ret, 5, covs);
   }
+  SET_VECTOR_ELT(ret, 6, countsDf);
   UNPROTECT(pro);
   return ret;
 }

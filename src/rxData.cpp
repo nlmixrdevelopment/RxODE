@@ -1725,6 +1725,7 @@ SEXP rxSolveC(const RObject &object,
       e["sampling"] = xtra[2];
       e["obs.rec"] = xtra[4];
       e["covs"] = xtra[5];
+      e["counts"] = xtra[6];
       e["inits.dat"] = parData["inits"];
       CharacterVector units(2);
       units[0] = as<std::string>(parData["amount.units"]);
