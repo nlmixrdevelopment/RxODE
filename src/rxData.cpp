@@ -2,8 +2,6 @@
 #include <RcppArmadillo.h>
 extern "C"{
 #include "solve.h"
-  rx_solve *getRxSolve_(SEXP ptr);
-  void rxSolveDataFree(SEXP ptr);
 }
 
 using namespace Rcpp;
@@ -592,7 +590,6 @@ bool rxUpdateResiduals(List &multiData){
 }
 
 
-extern "C" int rxUpdateResiduals_(SEXP md);
 int rxUpdateResiduals_(SEXP md){
   List mdl = List(md);
   bool ret = rxUpdateResiduals(mdl);
@@ -602,7 +599,6 @@ int rxUpdateResiduals_(SEXP md){
     return 0;
 }
 
-extern "C" rx_solve *getRxSolve(SEXP ptr);
 rx_solve *getRxSolve(SEXP ptr){
   if (rxIs(ptr,"RxODE.pointer.multi")){
     List lst = List(ptr);
@@ -620,7 +616,6 @@ rx_solve *getRxSolve(SEXP ptr){
   return o;
 }
 
-extern "C" void freeRxSolve(SEXP ptr);
 void freeRxSolve(SEXP ptr){
   List lst = List(ptr);
   SEXP pt = as<SEXP>(lst["pointer"]);
@@ -1228,68 +1223,6 @@ List rxDataParSetup(const RObject &object,
   return ret;
 }
 
-extern "C" {
-  SEXP getSolvingOptionsPtr(double ATOL,          //absolute error
-			    double RTOL,          //relative error
-			    double H0,
-			    double HMIN,
-			    int global_jt,
-			    int global_mf,
-			    int global_debug,
-			    int mxstep,
-			    int MXORDN,
-			    int MXORDS,
-			    // Approx options
-			    int do_transit_abs,
-			    int nlhs,
-			    int neq,
-			    int stiff,
-			    double f1,
-                            double f2,
-                            int kind,
-                            int is_locf,
-			    int cores,
-			    int ncov,
-			    int *par_cov,
-                            int do_par_cov,
-			    double *inits,
-                            SEXP stateNames,
-			    SEXP lhsNames,
-			    SEXP paramNames,
-                            SEXP dydt,
-                            SEXP calc_jac,
-                            SEXP calc_lhs,
-			    SEXP update_inis,
-			    SEXP dydt_lsoda_dum,
-			    SEXP jdum_lsoda);
-
-  void getSolvingOptionsIndPtr(double *InfusionRate,
-			       int *BadDose,
-			       double HMAX, // Determined by diff
-			       double *par_ptr,
-			       double *dose,
-			       int *idose,
-			       double *solve,
-			       double *lhs,
-			       int  *evid,
-			       int *rc,
-			       double *cov_ptr,
-			       int n_all_times,
-			       double *all_times,
-			       int id,
-			       int sim,
-			       rx_solving_options_ind *o);
-
-  SEXP rxSolveData(rx_solving_options_ind *subjects,
-		   int nsub,
-		   int nsim,
-		   int *stateIgnore,
-		   int nobs,
-		   int add_cov,
-		   int matrix,
-		   SEXP op);
-}
-
 SEXP rxSolvingOptions(const RObject &object,
                       const std::string &method = "lsoda",
                       const Nullable<LogicalVector> &transit_abs = R_NilValue,
@@ -1380,7 +1313,9 @@ SEXP rxSolvingOptions(const RObject &object,
 			      as<SEXP>(ptr["lhs"]),
 			      as<SEXP>(ptr["inis"]),
 			      as<SEXP>(ptr["dydt_lsoda"]),
-			      as<SEXP>(ptr["jdum"]));
+			      as<SEXP>(ptr["jdum"]),
+			      as<SEXP>(ptr["get_solve"]),
+			      as<SEXP>(ptr["set_solve"]));
 }
 
 SEXP rxSolvingData(const RObject &model,
@@ -1550,14 +1485,6 @@ List rxData(const RObject &object,
   cls(0) = "RxODE.pointer.multi";
   parData.attr("class") = cls;
   return parData;
-}
-
-extern "C"{
-  void par_lsoda(SEXP sd);
-  void par_dop(SEXP sd);
-  rx_solving_options *getRxOp(rx_solve *rx);
-  SEXP RxODE_df(SEXP sd);
-  SEXP RxODE_par_df(SEXP sd);
 }
 
 #define defrx_params R_NilValue

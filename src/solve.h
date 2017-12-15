@@ -88,3 +88,76 @@ typedef struct {
 
 typedef void (*t_set_solve)(rx_solve *);
 typedef rx_solve *(*t_get_solve)();
+
+
+rx_solve *getRxSolve_(SEXP ptr);
+void rxSolveDataFree(SEXP ptr);
+int rxUpdateResiduals_(SEXP md);
+rx_solve *getRxSolve(SEXP ptr);
+void freeRxSolve(SEXP ptr);
+
+SEXP getSolvingOptionsPtr(double ATOL,          //absolute error
+                          double RTOL,          //relative error
+                          double H0,
+                          double HMIN,
+                          int global_jt,
+                          int global_mf,
+                          int global_debug,
+                          int mxstep,
+                          int MXORDN,
+                          int MXORDS,
+                          // Approx options
+                          int do_transit_abs,
+                          int nlhs,
+                          int neq,
+                          int stiff,
+                          double f1,
+                          double f2,
+                          int kind,
+                          int is_locf,
+                          int cores,
+                          int ncov,
+                          int *par_cov,
+                          int do_par_cov,
+                          double *inits,
+                          SEXP stateNames,
+                          SEXP lhsNames,
+                          SEXP paramNames,
+                          SEXP dydt,
+                          SEXP calc_jac,
+                          SEXP calc_lhs,
+                          SEXP update_inis,
+                          SEXP dydt_lsoda_dum,
+                          SEXP jdum_lsoda,
+                          SEXP set_solve,
+                          SEXP get_solve);
+void getSolvingOptionsIndPtr(double *InfusionRate,
+                             int *BadDose,
+                             double HMAX, // Determined by diff
+                             double *par_ptr,
+                             double *dose,
+                             int *idose,
+                             double *solve,
+                             double *lhs,
+                             int *evid,
+                             int *rc,
+                             double *cov_ptr,
+                             int n_all_times,
+                             double *all_times,
+                             int id,
+                             int sim,
+                             rx_solving_options_ind *o);
+SEXP rxSolveData(rx_solving_options_ind *subjects,
+                 int nsub,
+                 int nsim,
+                 int *stateIgnore,
+                 int nobs,
+                 int add_cov,
+                 int matrix,
+                 SEXP op);
+void par_lsoda(SEXP sd);
+void par_dop(SEXP sd);
+
+rx_solving_options *getRxOp(rx_solve *rx);
+SEXP RxODE_df(SEXP sd);
+SEXP RxODE_par_df(SEXP sd);
