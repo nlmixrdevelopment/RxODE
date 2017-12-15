@@ -535,13 +535,14 @@ void par_dop(SEXP sd){
   int nsub = rx->nsub;
   int nsim = rx->nsim;
   int cores = op->cores;
+  if (cores > 1){
+    warning("dop853 is not thread safe and is not parallelized.");
+  }
   int global_debug = op->global_debug;
   int nx;
   for (int csim = 0; csim < nsim; csim++){
-    // This part CAN be parallelized.
-#ifdef _OPENMP
-#pragma omp parallel for num_threads(cores)
-#endif
+    // This part CAN be parallelized, if dop is thread safe...
+    // Therefore you could use https://github.com/jacobwilliams/dop853, but I haven't yet
     for (int csub = 0; csub < nsub; csub++){
       neq[1] = csub+csim*nsub;
       ind = &(rx->subjects[neq[1]]);
@@ -557,7 +558,7 @@ void par_dop(SEXP sd){
       rc= ind->rc;
       double xp = x[0];
       //--- inits the system
-      uini(csub+nsub*nsim, inits); // Update initial conditions
+      uini(neq[1], inits); // Update initial conditions
       
       //--- inits the system
       for(i=0; i<neq[0]; i++) yp[i] = inits[i];
@@ -655,10 +656,10 @@ void par_dop(SEXP sd){
 	    Rprintf("\n");
 	  }
 	}
-    }
-    if (rc[0]){
-      Rprintf("Error sovling using dop853\n");
-      return;
+      if (rc[0]){
+        Rprintf("Error sovling using dop853\n");
+        return;
+      }
     }
   }
 }

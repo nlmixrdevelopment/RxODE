@@ -229,6 +229,12 @@ rxSolveUpdate <- function(obj, arg = NULL, value = NULL) {
     .Call(`_RxODE_rxSolveUpdate`, obj, arg, value)
 }
 
+#' Get the number of cores in a system
+#' @export
+rxCores <- function() {
+    .Call(`_RxODE_rxCores`)
+}
+
 #' Invert matrix using Rcpp Armadilo.  
 #'
 #' @param matrix matrix to be inverted.

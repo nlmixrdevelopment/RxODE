@@ -1,5 +1,6 @@
 // [[Rcpp::depends(RcppArmadillo)]]
 #include <RcppArmadillo.h>
+#include<thread>
 extern "C"{
 #include "solve.h"
 }
@@ -2212,4 +2213,11 @@ RObject rxSolveUpdate(RObject obj,
     }
   }
   return R_NilValue;
+}
+//' Get the number of cores in a system
+//' @export
+//[[Rcpp::export]]
+IntegerVector rxCores(){
+  unsigned concurentThreadsSupported = std::thread::hardware_concurrency();
+  return IntegerVector::create((int)(concurentThreadsSupported));
 }
