@@ -86,7 +86,7 @@ static double hinit (int *nptr, FcnEqDiff fcn, double x, double* y,
 {
   double   dnf, dny, atoli, rtoli, sk, h, h1, der2, der12, sqr;
   unsigned int i;
-  unsigned int n = nptr[0];
+  unsigned int n = (unsigned int)(nptr[0]);
 
   dnf = 0.0;
   dny = 0.0;
@@ -425,7 +425,7 @@ static int dopcor (int *nptr, FcnEqDiff fcn, double x, double* y, double xend,
     nstep++;
 
     /* the twelve stages */
-    unsigned int n = nptr[0];
+    unsigned int n = (unsigned int)(nptr[0]);
     for (i = 0; i < n; i++)
       yy1[i] = y[i] + h * a21 * k1[i];
     fcn (nptr, x+c2*h, yy1, k2);
@@ -707,7 +707,7 @@ int dop853
 {
   int          arret, idid;
   unsigned int i;
-  unsigned int n = nptr[0];
+  unsigned int n = (unsigned int)(nptr[0]);
 
   /* initialisations */
   nfcn = nstep = naccpt = nrejct = arret = 0;
