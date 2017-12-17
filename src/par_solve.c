@@ -1,9 +1,13 @@
+#include <stdio.h>
+#include <stdlib.h>
 #include <R.h>
 #include <Rinternals.h>
 #include <Rmath.h> //Rmath includes math.
 #include <R_ext/Rdynload.h>
 #include "solve.h"
 #include "dop853.h"
+#include "common.h"
+#include "lsoda.h"
 // Yay easy parallel support
 // For Mac, see: http://thecoatlessprofessor.com/programming/openmp-in-r-on-os-x/ (as far as I can tell)
 // and https://github.com/Rdatatable/data.table/wiki/Installation#openmp-enabled-compiler-for-mac
@@ -15,7 +19,6 @@
 #ifdef _OPENMP
 #include <omp.h>
 #endif
-#define max(a, b) ((a) > (b) ? (a) : (b))
 
 extern SEXP RxODE_get_fn_pointers(void (*fun_dydt)(int *neq, double t, double *A, double *DADT),
                                   void (*fun_calc_lhs)(int, double t, double *A, double *lhs),
@@ -380,10 +383,7 @@ extern void par_lsoda(SEXP sd){
   inits = op->inits;
 
   for (int csim = 0; csim < nsim; csim++){
-    // This part CAN be parallelized.
-#ifdef _OPENMP
-#pragma omp parallel for num_threads(cores)
-#endif
+    // This part CAN be parallelized, but the original LSODA is not thread safe.
     for (int csub = 0; csub < nsub; csub++){
       neq[1] = csub+csim*nsub;
       ind = &(rx->subjects[neq[1]]);
@@ -488,6 +488,189 @@ extern void par_lsoda(SEXP sd){
   Free(rwork);
   Free(iwork);
   Free(yp);
+}
+
+extern void par_lsoda_thread(SEXP sd){
+  rx_solve *rx;
+  rx = getRxSolve(sd);
+  int i, j, foundBad;
+  double xout;
+  double *yp;
+  rx_solving_options *op;
+  if(!R_ExternalPtrAddr(rx->op)){
+    error("Cannot get global ode solver options.");
+  }
+  op = (rx_solving_options*)R_ExternalPtrAddr(rx->op);
+  int neq[2];
+  neq[0] = op->neq;
+  neq[1] = 0;
+  yp = Calloc(neq[0], double);
+  int itol = 1;
+  double  rtol = {op->RTOL},
+    atol = {op->ATOL};
+  // Set jt to 1 if full is specified.
+  /* int istate = 1, iopt = 0, lrw=22+neq[0]*max(16, neq[0]+9), liw=20+neq[0], jt = op->global_jt; */
+  /* double *rwork; */
+  /* int *iwork; */
+  int wh, wh100, cmt;
+
+  int global_debug = op->global_debug;
+  
+  /* rwork = (double*)Calloc(lrw+1, double); */
+  /* iwork = (int*)Calloc(liw+1, int); */
+  
+  /* iopt = 1; */
+
+  struct lsoda_opt_t opt = {0};
+  opt.ixpr = 0;  // ixpr  -- No extra printing.
+  opt.itask = 1;
+  opt.rtol = rtol;
+  opt.atol = atol;
+  opt.mxstep = op->mxstep;
+  // These need careful treatment on default.
+  opt.h0 = op->H0;
+  opt.hmin = op->HMIN;
+  opt.mxordn = op->MXORDN;
+  opt.mxords = op->MXORDS;
+  // Not setting here:
+  // * mxhnil
+  // * hmxi
+
+  struct lsoda_context_t ctx = {
+    .function = fex,
+    .neq = neq,
+    .data = NULL,
+    .state = 1,
+  };
+  
+  t_dydt_lsoda_dum dydt = (t_dydt_lsoda_dum)(op->dydt_lsoda_dum);
+  t_jdum_lsoda jac = (t_jdum_lsoda)(op->jdum_lsoda);
+  t_update_inis uini = (t_update_inis)(op->update_inis);
+  int nx;
+  rx_solving_options_ind *ind;
+  double *inits;
+  int *evid;
+  double *x;
+  int *BadDose;
+  double *InfusionRate;
+  double *dose;
+  double *ret;
+  int *rc;
+  int nsub = rx->nsub;
+  int nsim = rx->nsim;
+  int cores = op->cores;
+  int updateR = 1;
+  inits = op->inits;
+
+  for (int csim = 0; csim < nsim; csim++){
+    // This part CAN be parallelized.
+#ifdef _OPENMP
+#pragma omp parallel for num_threads(cores)
+#endif
+    for (int csub = 0; csub < nsub; csub++){
+      neq[1] = csub+csim*nsub;
+      ind = &(rx->subjects[neq[1]]);
+      ind->ixds = 0;
+      nx = ind->n_all_times;
+      evid = ind->evid;
+      BadDose = ind->BadDose;
+      InfusionRate = ind->InfusionRate;
+      dose = ind->dose;
+      ret = ind->solve;
+      x = ind->all_times;
+      rc= ind->rc;
+      rwork[5] = ind->HMAX; // Hmax -- Infinite
+      double xp = x[0];
+      //--- inits the system
+      uini(neq[1], inits); // Update initial conditions
+      for(i=0; i<neq[0]; i++) yp[i] = inits[i];
+      for(i=0; i<nx; i++) {
+        wh = evid[i];
+        xout = x[i];
+        if (global_debug){
+          Rprintf("i=%d xp=%f xout=%f\n", i, xp, xout);
+        }
+        if(xout-xp> DBL_EPSILON*max(fabs(xout),fabs(xp)))
+          {
+            /* F77_CALL(dlsoda)(dydt, neq, yp, &xp, &xout, &itol, &rtol, &atol, &itask, */
+            /*                  &istate, &iopt, rwork, &lrw, iwork, &liw, jac, &jt); */
+
+            if (istate<0)
+              {
+                Rprintf("IDID=%d, %s\n", istate, err_msg[-istate-1]);
+                *rc = istate;
+                // Bad Solve => NA
+                for (i = 0; i < nx*neq[0]; i++) ret[i] = NA_REAL;
+                i = nx+42; // Get out of here!
+              }
+            ind->slvr_counter++;
+            //dadt_counter = 0;
+          }
+        if (wh)
+          {
+            wh100 = floor(wh/1e5);
+            wh = wh- wh100*1e5;
+            cmt = (wh%10000)/100 - 1 + 100*wh100;
+            if (cmt >= neq[0]){
+              foundBad = 0;
+              for (j = 0; j < ind->nBadDose; j++){
+                if (BadDose[j] == cmt+1){
+                  foundBad=1;
+                  break;
+                }
+              }
+              if (!foundBad){
+                BadDose[ind->nBadDose]=cmt+1;
+                ind->nBadDose++;
+              }
+            } else {
+              if (wh>10000)
+                {
+                  InfusionRate[cmt] += dose[ind->ixds];
+                }
+              else
+                {
+                  if (op->do_transit_abs)
+                    {
+                      ind->podo = dose[ind->ixds];
+                      ind->tlast = xout;
+                    }
+                  else yp[cmt] += dose[ind->ixds];     //dosing before obs
+                }
+            
+              istate = 1;
+
+              ind->ixds++;
+              xp = xout;
+            }
+          }
+        /* for(j=0; j<neq[0]; j++) ret[neq[0]*i+j] = yp[j]; */
+        //Rprintf("wh=%d cmt=%d tm=%g rate=%g\n", wh, cmt, xp, InfusionRate[cmt]);
+
+        /* if (global_debug){ */
+        /*   Rprintf("ISTATE=%d, ", istate); */
+        /*   for(j=0; j<neq[0]; j++) */
+        /*     { */
+        /*       Rprintf("%f ", yp[j]); */
+        /*     } */
+        /*   Rprintf("\n"); */
+        /* } */
+      }
+      
+    }
+    /* if (rc[0]){ */
+    /*   /\* Rprintf("Error solving using LSODA\n"); *\/ */
+    /*   /\* Free(rwork); *\/ */
+    /*   /\* Free(iwork); *\/ */
+    /*   /\* Free(yp); *\/ */
+    /*   /\* return; *\/ */
+    /* } */
+    if (updateR)
+      updateR=rxUpdateResiduals_(sd);
+  }
+  /* Free(rwork); */
+  /* Free(iwork); */
+  /* Free(yp); */
 }
 
 //dummy solout fn
