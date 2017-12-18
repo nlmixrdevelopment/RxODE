@@ -25,10 +25,10 @@
 ##' }
 ##'
 ##' @param theta A vector of parameters that will be named THETA[#] and
-##'     added to inits
+##'     added to parameters
 ##'
 ##' @param eta A vector of parameters that will be named ETA[#] and
-##'     added to inits
+##'     added to parameters
 ##'
 ##' @param add.cov A boolean indicating if covariates should be added
 ##'     to the output matrix or data frame. By default this is
@@ -150,7 +150,7 @@
 ##' @seealso \code{\link{RxODE}}
 ##' @author Melissa Hallow, Wenping Wang and Matthew Fidler
 ##' @export
-rxSolve <- function(object, params = NULL, events = NULL, inits = NULL, covs = NULL, method = "lsoda", transit_abs = NULL, atol = 1.0e-8, rtol = 1.0e-6, maxsteps = 5000L, hmin = 0L, hmax = NULL, hini = 0L, maxordn = 12L, maxords = 5L, cores, covs_interpolation = "linear", add.cov = FALSE, matrix = FALSE, sigma = NULL, sigmaDf = NULL, sigmaNcores = 1L, sigmaIsChol = FALSE, amountUnits = NA_character_, timeUnits = "hours", stiff){
+rxSolve <- function(object, params = NULL, events = NULL, inits = NULL, covs = NULL, method = "lsoda", transit_abs = NULL, atol = 1.0e-8, rtol = 1.0e-6, maxsteps = 5000L, hmin = 0L, hmax = NULL, hini = 0L, maxordn = 12L, maxords = 5L, cores, covs_interpolation = "linear", add.cov = FALSE, matrix = FALSE, sigma = NULL, sigmaDf = NULL, sigmaNcores = 1L, sigmaIsChol = FALSE, amountUnits = NA_character_, timeUnits = "hours", stiff, theta = NULL, eta = NULL){
     if (!missing(stiff) && missing(method)){
         if (rxIs(stiff, "logical")){
             if (stiff){
@@ -173,7 +173,7 @@ rxSolve <- function(object, params = NULL, events = NULL, inits = NULL, covs = N
           params, events, inits, covs, method, transit_abs, atol, rtol,
           maxsteps, hmin, hmax, hini, maxordn, maxords, cores,
           covs_interpolation, add.cov, matrix, sigma, sigmaDf,
-          sigmaNcores, sigmaIsChol, amountUnits, timeUnits);
+          sigmaNcores, sigmaIsChol, amountUnits, timeUnits, theta, eta);
 }
 
 ##' @export
