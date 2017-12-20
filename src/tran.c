@@ -1650,7 +1650,7 @@ void codegen(FILE *outpt, int show_ode) {
       if (show_ode != 1 && s) continue;
       else if (s) {
         fprintf(outpt,"  Rprintf(\"================================================================================\\n\");\n");
-        fprintf(outpt,"  Rprintf(\"ODE Count: %%d\\tTime (t): %%f\\n\",_dadt_counter_val(),t);\n");
+        fprintf(outpt,"  Rprintf(\"ODE Count: %%d\\tTime (t): %%f\\n\",_dadt_counter_val(_solveData, _cSub),t);\n");
         fprintf(outpt,"  Rprintf(\"================================================================================\\n\");\n");
         fprintf(outpt,"  __print_ode__ = 1;\n");
         fprintf(outpt,"  __print_vars__ = 1;\n");
@@ -1817,7 +1817,7 @@ void codegen(FILE *outpt, int show_ode) {
       if (tb.lh[i]>0) continue;
       j++;
       retieve_var(i, buf);
-      fprintf(outpt, "    Rprintf(\"%s=%%f\\t_par_ptr(%d)=%%f\\n\",%s,_par_ptr(%d));\n", buf, j-1, buf,j-1);
+      fprintf(outpt, "    Rprintf(\"%s=%%f\\t_par_ptr(%d, _solveData, _cSub)=%%f\\n\",%s,_par_ptr(%d, _solveData, _cSub));\n", buf, j-1, buf,j-1);
     }
     fprintf(outpt,"  }\n");
   }
