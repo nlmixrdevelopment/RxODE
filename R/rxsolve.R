@@ -150,7 +150,7 @@
 ##' @seealso \code{\link{RxODE}}
 ##' @author Melissa Hallow, Wenping Wang and Matthew Fidler
 ##' @export
-rxSolve <- function(object, params = NULL, events = NULL, inits = NULL, covs = NULL, method = "lsoda", transit_abs = NULL, atol = 1.0e-8, rtol = 1.0e-6, maxsteps = 5000L, hmin = 0L, hmax = NULL, hini = 0L, maxordn = 12L, maxords = 5L, cores, covs_interpolation = "linear", add.cov = FALSE, matrix = FALSE, sigma = NULL, sigmaDf = NULL, sigmaNcores = 1L, sigmaIsChol = FALSE, amountUnits = NA_character_, timeUnits = "hours", stiff, theta = NULL, eta = NULL){
+rxSolve <- function(object, params = NULL, events = NULL, inits = NULL, covs = NULL, method = "lsoda", transit_abs = NULL, atol = 1.0e-8, rtol = 1.0e-6, maxsteps = 5000L, hmin = 0L, hmax = NULL, hini = 0L, maxordn = 12L, maxords = 5L, cores, covs_interpolation = "linear", add.cov = FALSE, matrix = FALSE, sigma = NULL, sigmaDf = NULL, sigmaNcores = 1L, sigmaIsChol = FALSE, amountUnits = NA_character_, timeUnits = "hours", stiff, theta = NULL, eta = NULL, update.object=FALSE){
     if (!missing(stiff) && missing(method)){
         if (rxIs(stiff, "logical")){
             if (stiff){
@@ -169,11 +169,12 @@ rxSolve <- function(object, params = NULL, events = NULL, inits = NULL, covs = N
             cores <- 1L;
         }
     }
-    .Call(`_RxODE_rxSolveC`, object, names(as.list(match.call())[-1]),
+    nms <- names(as.list(match.call())[-1]);
+    .Call(`_RxODE_rxSolveC`, object, nms,
           params, events, inits, covs, method, transit_abs, atol, rtol,
           maxsteps, hmin, hmax, hini, maxordn, maxords, cores,
           covs_interpolation, add.cov, matrix, sigma, sigmaDf,
-          sigmaNcores, sigmaIsChol, amountUnits, timeUnits, theta, eta);
+          sigmaNcores, sigmaIsChol, amountUnits, timeUnits, theta, eta, update.object);
 }
 
 ##' @export

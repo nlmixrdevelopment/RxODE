@@ -217,8 +217,8 @@ rxDataParSetup <- function(object, params = NULL, events = NULL, inits = NULL, c
     .Call(`_RxODE_rxDataParSetup`, object, params, events, inits, covs, sigma, sigmaDf, sigmaNcores, sigmaIsChol, amountUnits, timeUnits, theta, eta)
 }
 
-rxSolveC <- function(object, specParams = NULL, params = NULL, events = NULL, inits = NULL, covs = NULL, method = "lsoda", transit_abs = NULL, atol = 1.0e-8, rtol = 1.0e-6, maxsteps = 5000L, hmin = 0L, hmax = NULL, hini = 0L, maxordn = 12L, maxords = 5L, cores = 1L, covs_interpolation = "linear", addCov = FALSE, matrix = FALSE, sigma = NULL, sigmaDf = NULL, sigmaNcores = 1L, sigmaIsChol = FALSE, amountUnits = NA_character_, timeUnits = "hours", theta = NULL, eta = NULL) {
-    .Call(`_RxODE_rxSolveC`, object, specParams, params, events, inits, covs, method, transit_abs, atol, rtol, maxsteps, hmin, hmax, hini, maxordn, maxords, cores, covs_interpolation, addCov, matrix, sigma, sigmaDf, sigmaNcores, sigmaIsChol, amountUnits, timeUnits, theta, eta)
+rxSolveC <- function(object, specParams = NULL, params = NULL, events = NULL, inits = NULL, covs = NULL, method = "lsoda", transit_abs = NULL, atol = 1.0e-8, rtol = 1.0e-6, maxsteps = 5000L, hmin = 0L, hmax = NULL, hini = 0L, maxordn = 12L, maxords = 5L, cores = 1L, covs_interpolation = "linear", addCov = FALSE, matrix = FALSE, sigma = NULL, sigmaDf = NULL, sigmaNcores = 1L, sigmaIsChol = FALSE, amountUnits = NA_character_, timeUnits = "hours", theta = NULL, eta = NULL, updateObject = FALSE) {
+    .Call(`_RxODE_rxSolveC`, object, specParams, params, events, inits, covs, method, transit_abs, atol, rtol, maxsteps, hmin, hmax, hini, maxordn, maxords, cores, covs_interpolation, addCov, matrix, sigma, sigmaDf, sigmaNcores, sigmaIsChol, amountUnits, timeUnits, theta, eta, updateObject)
 }
 
 rxSolveGet <- function(obj, arg, exact = TRUE) {

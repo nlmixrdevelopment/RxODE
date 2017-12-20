@@ -1,9 +1,9 @@
-# event table (dosing + sampling obs from the system)
+                                        # event table (dosing + sampling obs from the system)
 # An eventTable object contains a numeric matrix with
 # a time vector, an event id  describing two types
 # of timed records, doses (input) and sampling times
 # (state variables); in the future there could be
-# other events (e.g., re-setting after "washoout"
+                                        # other events (e.g., re-setting after "washoout"
 # periods, resetting of compartments (e.g., urine),
 # etc.
 # TODO:
@@ -167,16 +167,11 @@
 #' @export
 eventTable <- function(amount.units = NA, time.units = "hours")
 {
-    if (!missing(amount.units)){
-        if (is(amount.units, "solveRxODE")){
-            return(attr(amount.units,".env")$extra.args$events)
-        }
-    }
     .EventTable <- NULL
     .obs.rec <- logical(0)     # flag for observation records
 
-    .amount.units <- amount.units  # preferred units
-    .time.units <- time.units
+    .amount.units <- as.vector(amount.units)  # preferred units
+    .time.units <- as.vector(time.units)
 
     "add.dosing" <-
         function(dose,      # amount per dose,
@@ -191,7 +186,7 @@ eventTable <- function(amount.units = NA, time.units = "hours")
         {
             if(!is.na(amount.units)){
                 if(is.na(.amount.units))
-                    .amount.units <<- amount.units   # initialize
+                    .amount.units <<- as.vector(amount.units)   # initialize
                 else if(tolower(.amount.units)!=tolower(amount.units)){
                     stop("dosing units differ from EventTable's")
                 }
@@ -199,7 +194,7 @@ eventTable <- function(amount.units = NA, time.units = "hours")
 
             if(!is.na(time.units)){
                 if(is.na(.time.units))
-                    .time.units <<- time.units   # initialize
+                    .time.units <<- as.vector(time.units)   # initialize
                 else if(tolower(.time.units)!=tolower(time.units)){
                     stop("time units differ from EventTable's")
                 }
@@ -250,7 +245,7 @@ eventTable <- function(amount.units = NA, time.units = "hours")
             else sampling.interval <- 1
 
             if (do.sampling)
-                add.sampling(0:(nbr.doses*dosing.interval), time.units = time.units)
+                add.sampling(0:(nbr.doses*dosing.interval), time.units = as.vector(time.units))
             invisible()
         }
 
@@ -259,7 +254,7 @@ eventTable <- function(amount.units = NA, time.units = "hours")
         {
             if(!is.na(time.units)){
                 if(is.na(.time.units))
-                    .time.units <<- time.units   # initialize
+                    .time.units <<- as.vector(time.units)   # initialize
                 else if(tolower(.time.units)!=tolower(time.units)){
                     stop("time units differ from EventTable's")
                 }
