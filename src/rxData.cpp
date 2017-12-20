@@ -1799,11 +1799,11 @@ SEXP rxSolveC(const RObject &object,
 
     RObject new_object = as<RObject>(e["args.object"]);
     CharacterVector new_specParams(0);
-    List ret = rxSolveC(new_object, new_specParams, new_params, new_events, new_inits, new_covs,
-                        new_method, new_transit_abs, new_atol, new_rtol, new_maxsteps, new_hmin,
-                        new_hmax, new_hini,new_maxordn, new_maxords, new_cores, new_covs_interpolation,
-                        new_addCov, new_matrix, new_sigma, new_sigmaDf, new_sigmaNcores, new_sigmaIsChol,
-                        new_amountUnits, new_timeUnits, R_NilValue, R_NilValue);
+    return rxSolveC(new_object, new_specParams, new_params, new_events, new_inits, new_covs,
+		    new_method, new_transit_abs, new_atol, new_rtol, new_maxsteps, new_hmin,
+		    new_hmax, new_hini,new_maxordn, new_maxords, new_cores, new_covs_interpolation,
+		    new_addCov, new_matrix, new_sigma, new_sigmaDf, new_sigmaNcores, new_sigmaIsChol,
+		    new_amountUnits, new_timeUnits);
   } else {
     DataFrame ret;
     List parData = rxData(object, params, events, inits, covs, as<std::string>(method[0]), transit_abs, atol,
@@ -1892,22 +1892,41 @@ SEXP rxSolveC(const RObject &object,
       e["events.EventTable"] = et;
       Function parse2("parse", R_BaseNamespace);
       Function eval2("eval", R_BaseNamespace);
+      // eventTable style methods
       e["get.EventTable"] = eval2(_["expr"]   = parse2(_["text"]="function() EventTable"),
                                   _["envir"]  = e);
-      e["get.dosing"] = eval2(_["expr"]   = parse2(_["text"]="function() dosing"),
-                              _["envir"]  = e);
-      e["get.sampling"] = eval2(_["expr"]   = parse2(_["text"]="function() sampling"),
-                                _["envir"]  = e);
       e["get.obs.rec"] = eval2(_["expr"]   = parse2(_["text"]="function() obs.rec"),
                                _["envir"]  = e);
-      e["get.units"] = eval2(_["expr"]   = parse2(_["text"]="function() units"),
-                             _["envir"]  = e);
       e["get.nobs"] = eval2(_["expr"]   = parse2(_["text"]="function() nobs"),
                             _["envir"]  = e);
-      e["create.eventTable"] = eval2(_["expr"]   = parse2(_["text"]="function(new.event) {et <- eventTable(amount.units=units[1],time.units=units[2]);if (missing(new.event)) {nev <- EventTable; } else {nev <- new.event;}; et$import.EventTable(nev); return(et);}"),
-                                     _["envir"]  = e);
+      e["add.dosing"] = eval2(_["expr"]   = parse2(_["text"]="function(...) {et <- create.eventTable(); et$add.dosing(...); invisible(rxSolve(args.object,events=et,update.object=TRUE))}"),
+                              _["envir"]  = e);
+      e["clear.dosing"] = eval2(_["expr"]   = parse2(_["text"]="function(...) {et <- create.eventTable(); et$clear.dosing(...); invisible(rxSolve(args.object,events=et,update.object=TRUE))}"),
+                                _["envir"]  = e);
+      e["get.dosing"] = eval2(_["expr"]   = parse2(_["text"]="function() dosing"),
+                              _["envir"]  = e);
+
       e["add.sampling"] = eval2(_["expr"]   = parse2(_["text"]="function(...) {et <- create.eventTable(); et$add.sampling(...); invisible(rxSolve(args.object,events=et,update.object=TRUE))}"),
                                 _["envir"]  = e);
+      
+      e["clear.sampling"] = eval2(_["expr"]   = parse2(_["text"]="function(...) {et <- create.eventTable(); et$clear.sampling(...); invisible(rxSolve(args.object,events=et,update.object=TRUE))}"),
+                                  _["envir"]  = e);
+
+      e["get.sampling"] = eval2(_["expr"]   = parse2(_["text"]="function() sampling"),
+				_["envir"]  = e);
+      
+      e["get.units"] = eval2(_["expr"]   = parse2(_["text"]="function() units"),
+                             _["envir"]  = e);
+
+      e["import.EventTable"] = eval2(_["expr"]   = parse2(_["text"]="function(imp) {et <- create.eventTable(imp); invisible(rxSolve(args.object,events=et,update.object=TRUE))}"),
+				     _["envir"]  = e);
+      
+      e["create.eventTable"] = eval2(_["expr"]   = parse2(_["text"]="function(new.event) {et <- eventTable(amount.units=units[1],time.units=units[2]);if (missing(new.event)) {nev <- EventTable; } else {nev <- new.event;}; et$import.EventTable(nev); return(et);}"),
+                                     _["envir"]  = e);
+      // Note event.copy doesn't really make sense...?  The create.eventTable does basically the same thing.
+      
+      
+      
       e["args.object"] = object;
       if (rxIs(events, "rx.event")){
 	e["args.params"] = params;    
