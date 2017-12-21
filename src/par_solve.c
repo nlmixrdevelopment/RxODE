@@ -192,6 +192,7 @@ SEXP getSolvingOptionsPtr(double ATOL,          //absolute error
 			  int *par_cov,
                           int do_par_cov,
                           double *inits,
+			  double *scale,
                           SEXP stateNames,
 			  SEXP lhsNames,
 			  SEXP paramNames,
@@ -231,6 +232,7 @@ SEXP getSolvingOptionsPtr(double ATOL,          //absolute error
   o->lhsNames = lhsNames;
   o->paramNames = paramNames;
   o->inits = inits;
+  o->scale = scale;
   o->extraCmt = 0;
   o->dydt = (t_dydt)(R_ExternalPtrAddr(dydt));
   o->calc_jac = (t_calc_jac)(R_ExternalPtrAddr(calc_jac));
@@ -378,7 +380,7 @@ extern void par_lsoda(SEXP sd){
   int *rc;
   int nsub = rx->nsub;
   int nsim = rx->nsim;
-  int cores = op->cores;
+  /* int cores = op->cores; */
   int updateR = 1;
   inits = op->inits;
 
@@ -1371,6 +1373,8 @@ extern SEXP RxODE_df(SEXP sd){
   int nPrnState =0;
   int i, j;
   int neq[2];
+  double *scale;
+  scale = op->scale;
   neq[0] = op->neq;
   neq[1] = 0;
   for (i = 0; i < neq[0]; i++){
@@ -1446,9 +1450,9 @@ extern SEXP RxODE_df(SEXP sd){
           // States
           if (nPrnState){
             for (j = 0; j < neq[0]; j++){
-               if (!rmState[j]){
+	      if (!rmState[j]){
                  dfp = REAL(VECTOR_ELT(df, jj));
-                 dfp[ii] = solve[j+i*neq[0]];//scale[j];
+                 dfp[ii] = solve[j+i*neq[0]] / scale[j];
                  jj++;
                }
              }

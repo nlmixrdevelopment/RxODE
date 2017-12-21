@@ -133,9 +133,22 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// rxSetupScale
+NumericVector rxSetupScale(const RObject& obj, Nullable<NumericVector> scale, Nullable<List> extraArgs);
+RcppExport SEXP _RxODE_rxSetupScale(SEXP objSEXP, SEXP scaleSEXP, SEXP extraArgsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const RObject& >::type obj(objSEXP);
+    Rcpp::traits::input_parameter< Nullable<NumericVector> >::type scale(scaleSEXP);
+    Rcpp::traits::input_parameter< Nullable<List> >::type extraArgs(extraArgsSEXP);
+    rcpp_result_gen = Rcpp::wrap(rxSetupScale(obj, scale, extraArgs));
+    return rcpp_result_gen;
+END_RCPP
+}
 // rxDataParSetup
-List rxDataParSetup(const RObject& object, const RObject& params, const RObject& events, const Nullable<NumericVector>& inits, const RObject& covs, const RObject& sigma, const RObject& sigmaDf, const int& sigmaNcores, const bool& sigmaIsChol, const StringVector& amountUnits, const StringVector& timeUnits, const RObject& theta, const RObject& eta);
-RcppExport SEXP _RxODE_rxDataParSetup(SEXP objectSEXP, SEXP paramsSEXP, SEXP eventsSEXP, SEXP initsSEXP, SEXP covsSEXP, SEXP sigmaSEXP, SEXP sigmaDfSEXP, SEXP sigmaNcoresSEXP, SEXP sigmaIsCholSEXP, SEXP amountUnitsSEXP, SEXP timeUnitsSEXP, SEXP thetaSEXP, SEXP etaSEXP) {
+List rxDataParSetup(const RObject& object, const RObject& params, const RObject& events, const Nullable<NumericVector>& inits, const RObject& covs, const RObject& sigma, const RObject& sigmaDf, const int& sigmaNcores, const bool& sigmaIsChol, const StringVector& amountUnits, const StringVector& timeUnits, const RObject& theta, const RObject& eta, const Nullable<NumericVector>& scale, const Nullable<List>& extraArgs);
+RcppExport SEXP _RxODE_rxDataParSetup(SEXP objectSEXP, SEXP paramsSEXP, SEXP eventsSEXP, SEXP initsSEXP, SEXP covsSEXP, SEXP sigmaSEXP, SEXP sigmaDfSEXP, SEXP sigmaNcoresSEXP, SEXP sigmaIsCholSEXP, SEXP amountUnitsSEXP, SEXP timeUnitsSEXP, SEXP thetaSEXP, SEXP etaSEXP, SEXP scaleSEXP, SEXP extraArgsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -152,21 +165,25 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const StringVector& >::type timeUnits(timeUnitsSEXP);
     Rcpp::traits::input_parameter< const RObject& >::type theta(thetaSEXP);
     Rcpp::traits::input_parameter< const RObject& >::type eta(etaSEXP);
-    rcpp_result_gen = Rcpp::wrap(rxDataParSetup(object, params, events, inits, covs, sigma, sigmaDf, sigmaNcores, sigmaIsChol, amountUnits, timeUnits, theta, eta));
+    Rcpp::traits::input_parameter< const Nullable<NumericVector>& >::type scale(scaleSEXP);
+    Rcpp::traits::input_parameter< const Nullable<List>& >::type extraArgs(extraArgsSEXP);
+    rcpp_result_gen = Rcpp::wrap(rxDataParSetup(object, params, events, inits, covs, sigma, sigmaDf, sigmaNcores, sigmaIsChol, amountUnits, timeUnits, theta, eta, scale, extraArgs));
     return rcpp_result_gen;
 END_RCPP
 }
 // rxSolveC
-SEXP rxSolveC(const RObject& object, const Nullable<CharacterVector>& specParams, const RObject& params, const RObject& events, const Nullable<NumericVector>& inits, const RObject& covs, const CharacterVector& method, const Nullable<LogicalVector>& transit_abs, const double atol, const double rtol, const int maxsteps, const int hmin, const Nullable<NumericVector>& hmax, const int hini, const int maxordn, const int maxords, const int cores, const CharacterVector& covs_interpolation, bool addCov, bool matrix, const RObject& sigma, const RObject& sigmaDf, const int& sigmaNcores, const bool& sigmaIsChol, const CharacterVector& amountUnits, const CharacterVector& timeUnits, const RObject& theta, const RObject& eta, const bool updateObject);
-RcppExport SEXP _RxODE_rxSolveC(SEXP objectSEXP, SEXP specParamsSEXP, SEXP paramsSEXP, SEXP eventsSEXP, SEXP initsSEXP, SEXP covsSEXP, SEXP methodSEXP, SEXP transit_absSEXP, SEXP atolSEXP, SEXP rtolSEXP, SEXP maxstepsSEXP, SEXP hminSEXP, SEXP hmaxSEXP, SEXP hiniSEXP, SEXP maxordnSEXP, SEXP maxordsSEXP, SEXP coresSEXP, SEXP covs_interpolationSEXP, SEXP addCovSEXP, SEXP matrixSEXP, SEXP sigmaSEXP, SEXP sigmaDfSEXP, SEXP sigmaNcoresSEXP, SEXP sigmaIsCholSEXP, SEXP amountUnitsSEXP, SEXP timeUnitsSEXP, SEXP thetaSEXP, SEXP etaSEXP, SEXP updateObjectSEXP) {
+SEXP rxSolveC(const RObject& object, const Nullable<CharacterVector>& specParams, const Nullable<List>& extraArgs, const RObject& params, const RObject& events, const Nullable<NumericVector>& inits, const Nullable<NumericVector>& scale, const RObject& covs, const CharacterVector& method, const Nullable<LogicalVector>& transit_abs, const double atol, const double rtol, const int maxsteps, const int hmin, const Nullable<NumericVector>& hmax, const int hini, const int maxordn, const int maxords, const int cores, const CharacterVector& covs_interpolation, bool addCov, bool matrix, const RObject& sigma, const RObject& sigmaDf, const int& sigmaNcores, const bool& sigmaIsChol, const CharacterVector& amountUnits, const CharacterVector& timeUnits, const RObject& theta, const RObject& eta, const bool updateObject);
+RcppExport SEXP _RxODE_rxSolveC(SEXP objectSEXP, SEXP specParamsSEXP, SEXP extraArgsSEXP, SEXP paramsSEXP, SEXP eventsSEXP, SEXP initsSEXP, SEXP scaleSEXP, SEXP covsSEXP, SEXP methodSEXP, SEXP transit_absSEXP, SEXP atolSEXP, SEXP rtolSEXP, SEXP maxstepsSEXP, SEXP hminSEXP, SEXP hmaxSEXP, SEXP hiniSEXP, SEXP maxordnSEXP, SEXP maxordsSEXP, SEXP coresSEXP, SEXP covs_interpolationSEXP, SEXP addCovSEXP, SEXP matrixSEXP, SEXP sigmaSEXP, SEXP sigmaDfSEXP, SEXP sigmaNcoresSEXP, SEXP sigmaIsCholSEXP, SEXP amountUnitsSEXP, SEXP timeUnitsSEXP, SEXP thetaSEXP, SEXP etaSEXP, SEXP updateObjectSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const RObject& >::type object(objectSEXP);
     Rcpp::traits::input_parameter< const Nullable<CharacterVector>& >::type specParams(specParamsSEXP);
+    Rcpp::traits::input_parameter< const Nullable<List>& >::type extraArgs(extraArgsSEXP);
     Rcpp::traits::input_parameter< const RObject& >::type params(paramsSEXP);
     Rcpp::traits::input_parameter< const RObject& >::type events(eventsSEXP);
     Rcpp::traits::input_parameter< const Nullable<NumericVector>& >::type inits(initsSEXP);
+    Rcpp::traits::input_parameter< const Nullable<NumericVector>& >::type scale(scaleSEXP);
     Rcpp::traits::input_parameter< const RObject& >::type covs(covsSEXP);
     Rcpp::traits::input_parameter< const CharacterVector& >::type method(methodSEXP);
     Rcpp::traits::input_parameter< const Nullable<LogicalVector>& >::type transit_abs(transit_absSEXP);
@@ -191,7 +208,26 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const RObject& >::type theta(thetaSEXP);
     Rcpp::traits::input_parameter< const RObject& >::type eta(etaSEXP);
     Rcpp::traits::input_parameter< const bool >::type updateObject(updateObjectSEXP);
-    rcpp_result_gen = Rcpp::wrap(rxSolveC(object, specParams, params, events, inits, covs, method, transit_abs, atol, rtol, maxsteps, hmin, hmax, hini, maxordn, maxords, cores, covs_interpolation, addCov, matrix, sigma, sigmaDf, sigmaNcores, sigmaIsChol, amountUnits, timeUnits, theta, eta, updateObject));
+    rcpp_result_gen = Rcpp::wrap(rxSolveC(object, specParams, extraArgs, params, events, inits, scale, covs, method, transit_abs, atol, rtol, maxsteps, hmin, hmax, hini, maxordn, maxords, cores, covs_interpolation, addCov, matrix, sigma, sigmaDf, sigmaNcores, sigmaIsChol, amountUnits, timeUnits, theta, eta, updateObject));
+    return rcpp_result_gen;
+END_RCPP
+}
+// rxSolveCsmall
+SEXP rxSolveCsmall(const RObject& object, const Nullable<CharacterVector>& specParams, const Nullable<List>& extraArgs, const RObject& params, const RObject& events, const Nullable<NumericVector>& inits, const Nullable<NumericVector>& scale, const RObject& covs, const Nullable<List>& optsL);
+RcppExport SEXP _RxODE_rxSolveCsmall(SEXP objectSEXP, SEXP specParamsSEXP, SEXP extraArgsSEXP, SEXP paramsSEXP, SEXP eventsSEXP, SEXP initsSEXP, SEXP scaleSEXP, SEXP covsSEXP, SEXP optsLSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const RObject& >::type object(objectSEXP);
+    Rcpp::traits::input_parameter< const Nullable<CharacterVector>& >::type specParams(specParamsSEXP);
+    Rcpp::traits::input_parameter< const Nullable<List>& >::type extraArgs(extraArgsSEXP);
+    Rcpp::traits::input_parameter< const RObject& >::type params(paramsSEXP);
+    Rcpp::traits::input_parameter< const RObject& >::type events(eventsSEXP);
+    Rcpp::traits::input_parameter< const Nullable<NumericVector>& >::type inits(initsSEXP);
+    Rcpp::traits::input_parameter< const Nullable<NumericVector>& >::type scale(scaleSEXP);
+    Rcpp::traits::input_parameter< const RObject& >::type covs(covsSEXP);
+    Rcpp::traits::input_parameter< const Nullable<List>& >::type optsL(optsLSEXP);
+    rcpp_result_gen = Rcpp::wrap(rxSolveCsmall(object, specParams, extraArgs, params, events, inits, scale, covs, optsL));
     return rcpp_result_gen;
 END_RCPP
 }

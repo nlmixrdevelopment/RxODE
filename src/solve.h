@@ -29,6 +29,7 @@ typedef struct {
   SEXP paramNames;
   int *par_cov;
   double *inits;
+  double *scale;
   int do_par_cov;
   t_dydt dydt;
   t_calc_jac calc_jac;
@@ -120,6 +121,7 @@ SEXP getSolvingOptionsPtr(double ATOL,          //absolute error
                           int *par_cov,
                           int do_par_cov,
                           double *inits,
+			  double *scale,
                           SEXP stateNames,
                           SEXP lhsNames,
                           SEXP paramNames,

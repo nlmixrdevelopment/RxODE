@@ -37,17 +37,21 @@ SEXP _RxODE_rxLhs(SEXP);
 SEXP _RxODE_rxInits(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP _RxODE_rxUpdateResiduals(SEXP);
 SEXP _RxODE_rxSetupIni(SEXP, SEXP);
+SEXP _RxODE_rxSetupScale(SEXP,SEXP,SEXP);
 SEXP _RxODE_rxDataParSetup(SEXP, SEXP, SEXP, SEXP, SEXP,
                            SEXP, SEXP, SEXP, SEXP, SEXP,
-                           SEXP, SEXP, SEXP);
+                           SEXP, SEXP, SEXP, SEXP, SEXP);
 /* SEXP _RxODE_rxSolvingData(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, */
 /* 			  SEXP, SEXP, SEXP, SEXP, SEXP, SEXP); */
 /* SEXP _RxODE_rxData(SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP, */
 /* 		   SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP, */
 /* 		   SEXP,SEXP,SEXP,SEXP,SEXP); */
-SEXP _RxODE_rxSolveC(SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,
-		     SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,
-		     SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP);
+/* SEXP _RxODE_rxSolveC(SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP, */
+/* 		     SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP, */
+/* 		     SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP, */
+/* 		     SEXP); */
+
+SEXP _RxODE_rxSolveCsmall(SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP);
 SEXP _RxODE_rxSolveGet(SEXP, SEXP, SEXP);
 SEXP _RxODE_rxSolveUpdate(SEXP, SEXP, SEXP);
 SEXP _RxODE_rxCores();
@@ -175,11 +179,11 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_rxInits", (DL_FUNC) &_RxODE_rxInits, 6},
     {"_RxODE_rxUpdateResiduals", (DL_FUNC) &_RxODE_rxUpdateResiduals, 1},
     {"_RxODE_rxSetupIni", (DL_FUNC) &_RxODE_rxSetupIni, 2},
-    {"_RxODE_rxDataParSetup", (DL_FUNC) &_RxODE_rxDataParSetup, 13},
-    /* {"_RxODE_rxSolvingData", (DL_FUNC) &_RxODE_rxSolvingData, 16}, */
-    /* {"_RxODE_rxData", (DL_FUNC) &_RxODE_rxData, 25}, */
-    // Had problem with solaris with 23 args; need to fix...
-    {"_RxODE_rxSolveC", (DL_FUNC) &_RxODE_rxSolveC, 29},
+    {"_RxODE_rxSetupScale", (DL_FUNC) &_RxODE_rxSetupScale, 3},
+    {"_RxODE_rxDataParSetup", (DL_FUNC) &_RxODE_rxDataParSetup, 15},
+    // Solaris needs 23 args; fix me...
+    /* {"_RxODE_rxSolveC", (DL_FUNC) &_RxODE_rxSolveC, 31}, */
+    {"_RxODE_rxSolveCsmall", (DL_FUNC) &_RxODE_rxSolveCsmall, 9},
     {"_RxODE_rxSolveGet", (DL_FUNC) &_RxODE_rxSolveGet, 3},
     {"_RxODE_rxSolveUpdate", (DL_FUNC) &_RxODE_rxSolveUpdate, 3},
     {"_RxODE_rxCores",(DL_FUNC) &_RxODE_rxCores, 0},

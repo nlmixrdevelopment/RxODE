@@ -982,6 +982,50 @@ NumericVector rxSetupIni(const RObject &obj,
   return rxInits(obj, inits, state, 0.0);
 }
 
+//' Setup the initial conditions.
+//'
+//' @param obj RxODE object
+//' @param inits A numeric vector of initial conditions.
+//' @param extraArgs A list of extra args to parse for initial conditions.
+//' @author Matthew L. Fidler
+//' @keywords internal
+//' @export
+//[[Rcpp::export]]
+NumericVector rxSetupScale(const RObject &obj,
+			   Nullable<NumericVector> scale = R_NilValue,
+			   Nullable<List> extraArgs = R_NilValue){
+  List modVars = rxModelVars(obj);
+  CharacterVector state = modVars["state"];
+  NumericVector ret = rxInits(obj, scale, state, 1.0);
+  if (!extraArgs.isNull()){
+    List xtra = as<List>(extraArgs);
+    int i, n=state.size();
+    std::string cur;
+    for (i = 0; i < n; i++){
+      cur = "S" + std::to_string(i+1);
+      if (xtra.containsElementNamed(cur.c_str())){
+	if (ret[i] == 1.0){
+	  ret[i] = as<double>(xtra[cur]);
+	} else {
+	  stop("Trying to scale the same compartment by scale=c(%s=%f,...) and S%d=%f;  Cannot do both.",
+	       (as<std::string>(state[i])).c_str(), ret[i], i+1,as<double>(xtra[i]));
+	}
+      } else {
+	cur = "s" + std::to_string(i+1);
+        if (xtra.containsElementNamed(cur.c_str())){
+          if (ret[i] == 1.0){
+            ret[i] = as<double>(xtra[cur]);
+          } else {
+            stop("Trying to scale the same compartment by scale=c(%s=%f,...) and s%d=%f;  Cannot do both.",
+                 (as<std::string>(state[i])).c_str(), ret[i], i+1,as<double>(xtra[i]));
+          }
+        }
+      }
+    }
+  }
+  return ret;
+}
+
 //' Setup Data and Parameters
 //'
 //' @inheritParams rxSolve
@@ -1013,12 +1057,15 @@ List rxDataParSetup(const RObject &object,
 		    const StringVector &amountUnits = NA_STRING,
 		    const StringVector &timeUnits = "hours",
 		    const RObject &theta = R_NilValue,
-                    const RObject &eta = R_NilValue){
+                    const RObject &eta = R_NilValue,
+		    const Nullable<NumericVector> &scale = R_NilValue,
+		    const Nullable<List> &extraArgs = R_NilValue){
   List modVars = rxModelVars(object);
   CharacterVector state = modVars["state"];
   // The initial conditions cannot be changed for each individual; If
   // they do they need to be a parameter.
   NumericVector initsC = rxInits(object, inits, state, 0.0);
+  NumericVector scaleC = rxSetupScale(object, scale, extraArgs);
   // The parameter vector/matrix/data frame contains the parameters
   // that will be used.
   RObject par0 = params;
@@ -1334,6 +1381,7 @@ List rxDataParSetup(const RObject &object,
   //   initsS[i] =  initsC[j];
   // }
   ret["inits"] = initsC;
+  ret["scale"] = scaleC;
   // ret["inits.full"] = initsS;
   ret["n.pars"] = (int)(pars.size());
   ret["pcov"] = pcov;
@@ -1369,6 +1417,7 @@ SEXP rxSolvingOptions(const RObject &object,
 		      int *par_cov = NULL,
 		      int do_par_cov = 0,
 		      double *inits = NULL,
+		      double *scale = NULL,
 		      std::string covs_interpolation = "linear"){
   if (maxordn < 1 || maxordn > 12){
     stop("'maxordn' must be >1 and <= 12.");
@@ -1436,7 +1485,7 @@ SEXP rxSolvingOptions(const RObject &object,
 			      maxsteps, maxordn, maxords, transit,
 			      lhs.size(), state.size(),
 			      st, f1, f2, kind, is_locf, cores,
-			      ncov,par_cov, do_par_cov, &inits[0],
+			      ncov,par_cov, do_par_cov, &inits[0], &scale[0],
 			      as<SEXP>(state), as<SEXP>(lhs),
 			      as<SEXP>(params),
                               as<SEXP>(ptr["dydt"]),
@@ -1466,7 +1515,7 @@ SEXP rxSolvingData(const RObject &model,
 		   bool addCov = false,
 		   bool matrix = false) {
   if (rxIs(parData, "RxODE.par.data")){
-    List opt = List(parData);
+  List opt = List(parData);
     DataFrame ids = as<DataFrame>(opt["ids"]);
     IntegerVector BadDose = as<IntegerVector>(opt["BadDose"]);
     NumericVector InfusionRate = as<NumericVector>(opt["InfusionRate"]);
@@ -1475,6 +1524,7 @@ SEXP rxSolvingData(const RObject &model,
     int nPar = as<int>(opt["n.pars"]);
     int nSub = as<int>(opt["nSub"]);
     NumericVector inits = as<NumericVector>(opt["inits"]);
+    NumericVector scale = as<NumericVector>(opt["scale"]);
     DataFrame doseDf = as<DataFrame>(opt["dose"]);
     NumericVector amt = as<NumericVector>(doseDf["amt"]);
     IntegerVector idose = as<IntegerVector>(opt["idose"]);
@@ -1535,7 +1585,7 @@ SEXP rxSolvingData(const RObject &model,
       }
     }
     SEXP op = rxSolvingOptions(model,method, transit_abs, atol, rtol, maxsteps, hmin, hini, maxordn,
-			       maxords, cores, ncov, &par_cov[0], do_par_cov, &inits[0], covs_interpolation);
+			       maxords, cores, ncov, &par_cov[0], do_par_cov, &inits[0], &scale[0], covs_interpolation);
     int add_cov = 0;
     if (addCov) add_cov = 1;
     int nobs = as<int>(opt["nObs"]);
@@ -1548,34 +1598,6 @@ SEXP rxSolvingData(const RObject &model,
   return R_NilValue;
 }
 
-//' Setup a data frame for solving multiple subjects at once in RxODE.
-//'
-//' @param object R object to setup; Must be in RxODE compatible format.
-//' @inheritParams rxSolve
-//' @param covNames Covariate names in dataset.
-//' @param sigma Matrix for simulating residual variability for the number of observations.
-//'      This uses the \code{\link[mvnfast]{rmvn}} or \code{\link[mvnfast]{rmvt}} assuming mean 0 and covariance given by this named
-//'      matrix.  The residual-type variability is created for each of the named \"err\" components specified by the sigma matrix's
-//'      column names. This then creates a random deviate that is used in the place of each named variable.  This should
-//'      not really be used in the ODE specification.  If it is, though, it is treated as a time-varying covariate.
-//'
-//'      Also note this does not use R's random numbers, rather it uses a cryptographic parallel random number generator;
-//'
-//'      To allow reproducible research you must both set a random seed with R's \code{\link[base]{set.seed}} function, and keep the
-//'      number of cores constant.  By changing either one of these variables, you will arrive at different random numbers. 
-//' @param df Degrees of freedom for \code{\link[mvnfast]{rmvt}}.  If \code{NULL}, or \code{Inf}, then use a normal distribution.  The
-//'        default is normal.
-//' @param ncoresRV The number of cores for residual simulation.  By default, this is \code{1}.
-//' @param isChol is a boolean indicating that the Cholesky decomposition of the \code{sigma} covariance matrix is supplied instead of
-//'        the  \code{sigma} matrix itself.
-//' @param amountUnits Dosing amount units.
-//' @param timeUnits Time units.
-//'
-//' @return A data structure to allow C-based for loop (ie solving each
-//'       individual in C)
-//'
-//' @author Matthew L. Fidler
-//' @export
 List rxData(const RObject &object,
             const RObject &params = R_NilValue,
             const RObject &events = R_NilValue,
@@ -1602,10 +1624,12 @@ List rxData(const RObject &object,
             const StringVector &amountUnits = NA_STRING,
             const StringVector &timeUnits = "hours",
 	    const RObject &theta = R_NilValue,
-            const RObject &eta = R_NilValue){
+            const RObject &eta = R_NilValue,
+	    const Nullable<NumericVector> &scale = R_NilValue,
+	    const Nullable<List> &extraArgs = R_NilValue){
   List parData = rxDataParSetup(object,params, events, inits, covs, sigma, sigmaDf,
 				sigmaNcores, sigmaIsChol, amountUnits, timeUnits,
-				theta,eta);
+				theta,eta, scale, extraArgs);
   parData["pointer"] = rxSolvingData(object, parData, method, transit_abs, atol,  rtol, maxsteps,
                                      hmin, hmax,  hini, maxordn, maxords, cores, covs_interpolation,
 				     addCov, matrix);
@@ -1648,12 +1672,15 @@ List rxData(const RObject &object,
 
 
 RObject rxCurObj;
+
 //[[Rcpp::export]]
 SEXP rxSolveC(const RObject &object,
-	      const Nullable<CharacterVector> &specParams = R_NilValue,
+              const Nullable<CharacterVector> &specParams = R_NilValue,
+	      const Nullable<List> &extraArgs = R_NilValue,
 	      const RObject &params = R_NilValue,
 	      const RObject &events = R_NilValue,
 	      const Nullable<NumericVector> &inits = R_NilValue,
+	      const Nullable<NumericVector> &scale = R_NilValue,
 	      const RObject &covs  = R_NilValue,
 	      const CharacterVector &method = "lsoda",
 	      const Nullable<LogicalVector> &transit_abs = R_NilValue,
@@ -1703,7 +1730,8 @@ SEXP rxSolveC(const RObject &object,
       update_sigmaNcores = false,
       update_sigmaIsChol = false,
       update_amountUnits = false,
-      update_timeUnits = false;
+      update_timeUnits = false,
+      update_scale = false;
     if (specParams.isNull()){
       warning("No additional parameters were specified; Returning fit.");
       return object;
@@ -1757,9 +1785,10 @@ SEXP rxSolveC(const RObject &object,
 	update_amountUnits = true;
       else if (as<std::string>(specs[i]) == "timeUnits")
 	update_timeUnits = true;
-      else if (as<std::string>(specs[i]) == "hini"){
+      else if (as<std::string>(specs[i]) == "hini")
 	update_hini = true;
-      }
+      else if (as<std::string>(specs[i]) == "scale")
+	update_scale = true;
     }
     // Now update
     Environment e;
@@ -1796,10 +1825,11 @@ SEXP rxSolveC(const RObject &object,
     bool new_sigmaIsChol = update_sigmaIsChol ? sigmaIsChol : e["args.sigmaIsChol"];
     CharacterVector new_amountUnits = update_amountUnits ? amountUnits : e["args.amountUnits"];
     CharacterVector new_timeUnits = update_timeUnits ? timeUnits : e["args.timeUnits"];
+    const Nullable<NumericVector> new_scale = update_scale ? scale : e["args.scale"];
 
     RObject new_object = as<RObject>(e["args.object"]);
     CharacterVector new_specParams(0);
-    return rxSolveC(new_object, new_specParams, new_params, new_events, new_inits, new_covs,
+    return rxSolveC(new_object, new_specParams, extraArgs, new_params, new_events, new_inits, new_scale, new_covs,
 		    new_method, new_transit_abs, new_atol, new_rtol, new_maxsteps, new_hmin,
 		    new_hmax, new_hini,new_maxordn, new_maxords, new_cores, new_covs_interpolation,
 		    new_addCov, new_matrix, new_sigma, new_sigmaDf, new_sigmaNcores, new_sigmaIsChol,
@@ -1809,7 +1839,7 @@ SEXP rxSolveC(const RObject &object,
     List parData = rxData(object, params, events, inits, covs, as<std::string>(method[0]), transit_abs, atol,
                           rtol, maxsteps, hmin,hmax, hini, maxordn, maxords, cores,
                           as<std::string>(covs_interpolation[0]), addCov, matrix, sigma, sigmaDf, sigmaNcores, sigmaIsChol,
-                          amountUnits, timeUnits, theta, eta);
+                          amountUnits, timeUnits, theta, eta, scale, extraArgs);
     rx_solve *rx;
     rx =getRxSolve(parData);
     rx_solving_options *op;
@@ -1986,6 +2016,45 @@ SEXP rxSolveC(const RObject &object,
   return R_NilValue;
 }
 
+//[[Rcpp::export]]
+SEXP rxSolveCsmall(const RObject &object,
+                   const Nullable<CharacterVector> &specParams = R_NilValue,
+                   const Nullable<List> &extraArgs = R_NilValue,
+                   const RObject &params = R_NilValue,
+                   const RObject &events = R_NilValue,
+                   const Nullable<NumericVector> &inits = R_NilValue,
+                   const Nullable<NumericVector> &scale = R_NilValue,
+                   const RObject &covs  = R_NilValue,
+                   const Nullable<List> &optsL = R_NilValue){
+  if (optsL.isNull()){
+    stop("Not meant to be called directly.  Needs options setup.");
+  }
+  List opts = List(optsL);
+  return rxSolveC(object, specParams, extraArgs, params, events, inits, scale, covs,
+                  opts[0], // const CharacterVector &method = "lsoda",
+                  opts[1], // const Nullable<LogicalVector> &transit_abs = R_NilValue,
+                  opts[2], //const double atol = 1.0e-8,
+                  opts[3], // const double rtol = 1.0e-6,
+                  opts[4], //const int maxsteps = 5000,
+                  opts[5], //const int hmin = 0,
+                  opts[6], //const Nullable<NumericVector> &hmax = R_NilValue,
+                  opts[7], //const int hini = 0,
+                  opts[8], //const int maxordn = 12,
+                  opts[9], //const int maxords = 5,
+                  opts[10], //const int cores = 1,
+                  opts[11], //const CharacterVector &covs_interpolation = "linear",
+                  opts[12], //bool addCov = false,
+                  opts[13], //bool matrix = false,
+                  opts[14], //const RObject &sigma= R_NilValue,
+                  opts[15], //const RObject &sigmaDf= R_NilValue,
+                  opts[16], //const int &sigmaNcores= 1,
+                  opts[17], //const bool &sigmaIsChol= false,
+                  opts[18], //const CharacterVector &amountUnits = NA_STRING,
+                  opts[19], //const CharacterVector &timeUnits = "hours",
+                  opts[20], //const RObject &theta = R_NilValue,
+                  opts[21], //const RObject &eta = R_NilValue,
+                  opts[22]);//const bool updateObject = false)
+}
 
 //[[Rcpp::export]]
 RObject rxSolveGet(RObject obj, RObject arg, LogicalVector exact = true){
@@ -2090,9 +2159,11 @@ RObject rxSolveUpdate(RObject obj,
 	if (sarg == "params"){
 	  return rxSolveC(obj,
                           CharacterVector::create("params"),
+			  R_NilValue,
                           value, //defrx_params,
                           defrx_events,
                           defrx_inits,
+			  R_NilValue, // scale (cannot be updated currently.)
                           defrx_covs,
                           defrx_method,
                           defrx_transit_abs,
@@ -2117,9 +2188,11 @@ RObject rxSolveUpdate(RObject obj,
 	} else if (sarg == "events"){
 	  return rxSolveC(obj,
 			  CharacterVector::create("events"),
+			  R_NilValue,
 			  defrx_params,
 			  value, // defrx_events,
 			  defrx_inits,
+			  R_NilValue, // scale
 			  defrx_covs,
 			  defrx_method,
 			  defrx_transit_abs,
@@ -2144,10 +2217,12 @@ RObject rxSolveUpdate(RObject obj,
 	} else if (sarg == "inits"){
 	  return rxSolveC(obj,
                           CharacterVector::create("inits"),
+			  R_NilValue,
                           defrx_params,
                           defrx_events,
                           Nullable<NumericVector>(value), //defrx_inits,
-                          defrx_covs,
+			  R_NilValue, // scale
+			  defrx_covs,
                           defrx_method,
                           defrx_transit_abs,
                           defrx_atol,
@@ -2171,9 +2246,11 @@ RObject rxSolveUpdate(RObject obj,
 	} else if (sarg == "covs"){
 	  return rxSolveC(obj,
                           CharacterVector::create("covs"),
+			  R_NilValue,
                           defrx_params,
                           defrx_events,
                           defrx_inits,
+			  R_NilValue,
                           value,// defrx_covs,
                           defrx_method,
                           defrx_transit_abs,
@@ -2226,9 +2303,11 @@ RObject rxSolveUpdate(RObject obj,
 		pars[i] = val;
 		return rxSolveC(obj,
 				CharacterVector::create("params"),
+				R_NilValue,
 				pars, //defrx_params,
 				defrx_events,
 				defrx_inits,
+				R_NilValue,
 				defrx_covs,
 				defrx_method,
 				defrx_transit_abs,
@@ -2278,9 +2357,11 @@ RObject rxSolveUpdate(RObject obj,
 		newCovs.attr("row.names") = IntegerVector::create(NA_INTEGER,-nc);
 		return rxSolveC(obj,
 				CharacterVector::create("params","covs"),
+				R_NilValue,
 				newPars, //defrx_params,
 				defrx_events,
 				defrx_inits,
+				R_NilValue,
 				newCovs, //defrx_covs
 				defrx_method,
 				defrx_transit_abs,
@@ -2318,9 +2399,11 @@ RObject rxSolveUpdate(RObject obj,
 		covs[i]=val;
 		return rxSolveC(obj,
 				CharacterVector::create("covs"),
+				R_NilValue,
 				defrx_params,
 				defrx_events,
 				defrx_inits,
+				R_NilValue,
 				covs, // defrx_covs,
 				defrx_method,
 				defrx_transit_abs,
@@ -2371,9 +2454,11 @@ RObject rxSolveUpdate(RObject obj,
 		newCovs.attr("row.names") = IntegerVector::create(NA_INTEGER,-nc);
 		return rxSolveC(obj,
 				CharacterVector::create("covs", "params"),
+				R_NilValue,
 				newPars,//defrx_params,
 				defrx_events,
 				defrx_inits,
+				R_NilValue,
 				newCovs, // defrx_covs,
 				defrx_method,
 				defrx_transit_abs,
