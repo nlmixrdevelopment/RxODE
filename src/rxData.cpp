@@ -996,7 +996,8 @@ NumericVector rxSetupScale(const RObject &obj,
 			   Nullable<List> extraArgs = R_NilValue){
   List modVars = rxModelVars(obj);
   CharacterVector state = modVars["state"];
-  NumericVector ret = rxInits(obj, scale, state, 1.0);
+  NumericVector ret = rxInits(obj, scale, state, 1.0, false, true);
+  unsigned int usedS = 0, foundS = 0;
   if (!extraArgs.isNull()){
     List xtra = as<List>(extraArgs);
     int i, n=state.size();
@@ -1006,6 +1007,7 @@ NumericVector rxSetupScale(const RObject &obj,
       if (xtra.containsElementNamed(cur.c_str())){
 	if (ret[i] == 1.0){
 	  ret[i] = as<double>(xtra[cur]);
+	  usedS++;
 	} else {
 	  stop("Trying to scale the same compartment by scale=c(%s=%f,...) and S%d=%f;  Cannot do both.",
 	       (as<std::string>(state[i])).c_str(), ret[i], i+1,as<double>(xtra[i]));
@@ -1015,12 +1017,28 @@ NumericVector rxSetupScale(const RObject &obj,
         if (xtra.containsElementNamed(cur.c_str())){
           if (ret[i] == 1.0){
             ret[i] = as<double>(xtra[cur]);
+	    usedS++;
           } else {
             stop("Trying to scale the same compartment by scale=c(%s=%f,...) and s%d=%f;  Cannot do both.",
                  (as<std::string>(state[i])).c_str(), ret[i], i+1,as<double>(xtra[i]));
           }
         }
       }
+    }
+    Nullable<StringVector> xtraN2 = xtra.names();
+    if (!xtraN2.isNull()){
+      StringVector xtraN = StringVector(xtraN2);
+      n = xtraN.size();
+      for (i = 0; i < n; i++){
+        if (strstr("S", (as<std::string>(xtraN[i])).c_str()) == 0){
+          foundS++;
+        } else if (strstr("s", (as<std::string>(xtraN[i])).c_str()) == 0){
+          foundS++;
+        }
+      }
+    }
+    if (foundS > usedS){
+      warning("Scaled a compartment that is not defined by the RxODE model.");
     }
   }
   return ret;

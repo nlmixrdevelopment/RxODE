@@ -163,12 +163,11 @@ rxSolve <- function(object, params = NULL, events = NULL, inits = NULL, ..., sca
         }
     }
     extra <- list(...);
+    if (any(duplicated(names(extra)))){
+        stop("Duplicate arguments do not make sense.");
+    }
     if (missing(cores)){
-        if (method == "lsoda"){
-            cores <- rxCores();
-        } else {
-            cores <- 1L;
-        }
+        cores <- rxCores();
     }
     nms <- names(as.list(match.call())[-1]);
     .Call(`_RxODE_rxSolveCsmall`, object, nms, extra,
