@@ -8,9 +8,9 @@ rxPermissive({
         d/dt(centr) = KA*depot - CL*C2 - Q*C2 + Q*C3;
         d/dt(peri)  =                    Q*C2 - Q*C3;
         d/dt(eff)  = Kin - Kout*(1-C2/(EC50+C2))*eff;
-                                        #
+        ##
         eff(0) = 1
-                                        #
+        ##
         ## central
         KA=2.94E-01;
         CL=1.86E+01;
@@ -18,7 +18,7 @@ rxPermissive({
         ## peripheral
         Q=1.05E+01;
         V3=2.97E+02;
-                                        #
+        ##
         ## effects
         Kin=1; Kout=1; EC50=200;
     })
@@ -30,7 +30,7 @@ rxPermissive({
     test_that("Bad solve raises error", {
         tf <- tempfile();
         sink(tf)
-        expect_error(model %>% solve(c(KA= -10), event_table), rex::rex("Tried both LSODA and DOP853, but could not solve the system."))
+        expect_error(model %>% solve(c(KA= -10), event_table), rex::rex("Could not solve the system."))
         sink()
         unlink(tf)
     });

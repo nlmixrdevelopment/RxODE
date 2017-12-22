@@ -207,6 +207,7 @@ SEXP getSolvingOptionsPtr(double ATOL,          //absolute error
   // This really should not be called very often, so just allocate one for now.
   rx_solving_options *o;
   o = (rx_solving_options*)R_chk_calloc(1,sizeof(*o));
+  o->badSolve = 0;
   o->ATOL = ATOL;          //absolute error
   o->RTOL = RTOL;          //relative error
   o->H0 = H0;
@@ -420,6 +421,7 @@ extern void par_lsoda(SEXP sd){
                 *rc = istate;
 		// Bad Solve => NA
 		for (i = 0; i < nx*neq[0]; i++) ret[i] = NA_REAL;
+		op->badSolve = 1;
 		i = nx+42; // Get out of here!
               }
             ind->slvr_counter++;
@@ -609,6 +611,7 @@ void par_dop(SEXP sd){
 		  *rc = idid;
 		  // Bad Solve => NA
                   for (i = 0; i < nx*neq[0]; i++) ret[i] = NA_REAL;
+		  op->badSolve = 1;
 		  i = nx+42; // Get out of here!
 		}
 	      xp = xRead();
@@ -1389,6 +1392,14 @@ extern SEXP RxODE_df(SEXP sd){
   int ncols =add_cov*ncov+1+nPrnState+nlhs;
   int nidCols = md + sm;
   int pro = 0;
+  if (op->badSolve){
+    if (nidCols == 0){
+      error("Could not solve the system.");
+    } else {
+      warning("Some ID(s) could not solve the ODEs correctly; These values are replaced with NA.");
+    }
+  }  
+
   SEXP df = PROTECT(allocVector(VECSXP,ncols+nidCols)); pro++;
   for (i = 0; i < nidCols; i++){
     SET_VECTOR_ELT(df, i, PROTECT(allocVector(INTSXP, nobs*nsim))); pro++;

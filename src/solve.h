@@ -8,6 +8,7 @@ typedef void (*t_jdum_lsoda)(int *neq, double *t, double *A,int *ml, int *mu, do
 
 typedef struct {
   // These options should not change based on an individual solve
+  int badSolve;
   double ATOL;          //absolute error
   double RTOL;          //relative error
   double H0;
