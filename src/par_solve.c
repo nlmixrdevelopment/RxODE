@@ -548,6 +548,7 @@ void par_dop(SEXP sd){
   }
   int global_debug = op->global_debug;
   int nx;
+  int updateR = 1;
   for (int csim = 0; csim < nsim; csim++){
     // This part CAN be parallelized, if dop is thread safe...
     // Therefore you could use https://github.com/jacobwilliams/dop853, but I haven't yet
@@ -665,11 +666,13 @@ void par_dop(SEXP sd){
 	    Rprintf("\n");
 	  }
 	}
-      if (rc[0]){
-        Rprintf("Error sovling using dop853\n");
-        return;
-      }
+      /* if (rc[0]){ */
+      /*   Rprintf("Error sovling using dop853\n"); */
+      /*   return; */
+      /* } */
     }
+    if (updateR)
+      updateR=rxUpdateResiduals_(sd);
   }
 }
 
