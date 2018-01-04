@@ -105,21 +105,22 @@ extern SEXP RxODE_get_fn_pointers(void (*fun_dydt)(unsigned int, double, double 
                                   int fun_jt,
                                   int fun_mf,
                                   int fun_debug);
-extern void RxODE_ode_solver_old_c(int *neqa,
-				   double *theta,  //order:
-				   double *time,
-				   int *evidp,
-				   int *ntime,
-				   double *initsp,
-				   double *dosep,
-				   double *ret,
-				   double *atol,
-				   double *rtol,
-				   int *stiffa,
-				   int *transit_abs,
-				   int *nlhsa,
-				   double *lhsp,
-				   int *rc);
+extern void rxSolveOldC(SEXP object, 
+			int *neqa,
+			double *theta,  //order:
+			double *timep,
+			int *evidp,
+			int *ntime,
+			double *initsp,
+			double *dosep,
+			double *retp,
+			double *atol,
+			double *rtol,
+			int *stiffa,
+			int *transit_abs,
+			int *nlhsa,
+			double *lhsp,
+			int *rc);
 
 // Need to change to remove global variables
 extern double RxODE_InfusionRate(int val);
@@ -217,7 +218,7 @@ void R_init_RxODE(DllInfo *info){
   //Functions
   R_RegisterCCallable("RxODE","RxODE_assign_fn_pointers", (DL_FUNC) RxODE_assign_fn_pointers);
   R_RegisterCCallable("RxODE","RxODE_get_fn_pointers",    (DL_FUNC) RxODE_get_fn_pointers);
-  R_RegisterCCallable("RxODE","RxODE_ode_solver_old_c",   (DL_FUNC) RxODE_ode_solver_old_c);
+  R_RegisterCCallable("RxODE","rxSolveOldC",              (DL_FUNC) rxSolveOldC);
   
   //Infusion
   R_RegisterCCallable("RxODE","RxODE_InfusionRate",       (DL_FUNC) RxODE_InfusionRate);

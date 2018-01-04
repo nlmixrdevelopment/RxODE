@@ -36,7 +36,7 @@ typedef SEXP (*RxODE_assign_fn_xpointers)(void (*fun_dydt)(int *, double, double
 					  rx_solve *(*fun_get_solve)(),
 					  int fun_jt,int fun_mf, int fun_debug);
 
-typedef void (*RxODE_ode_solver_old_c)(int *neq,double *theta,double *time,int *evid,int *ntime,double *inits,double *dose,double *ret,double *atol,double *rtol,int *stiff,int *transit_abs,int *nlhs,double *lhs,int *rc);
+typedef void (*RxODE_ode_solver_old_c)(SEXP mv, int *neq,double *theta,double *time,int *evid,int *ntime,double *inits,double *dose,double *ret,double *atol,double *rtol,int *stiff,int *transit_abs,int *nlhs,double *lhs,int *rc);
 typedef double (*RxODE_solveLinB)(rx_solve *rx, unsigned int id, double t, int linCmt, int diff1, int diff2, double A, double alpha, double B, double beta, double C, double gamma, double ka, double tlag);
 typedef double (*RxODE_sum_prod)(double *input, int n);
 // Give par pointers
@@ -106,6 +106,7 @@ extern rx_solve *__ODE_SOLVER_GET_SOLVEDATA__(){
   return _solveData;
 }
 
+SEXP __MODEL_VARS__();
 extern void __ODE_SOLVER__(int *neq,
 			   double *theta,      //order:
 			   double *time,
@@ -122,8 +123,8 @@ extern void __ODE_SOLVER__(int *neq,
 			   double *lhs,
 			   int *rc
 			   ){
-    // Backward compatible ode solver for 0.5* C interface
-  _old_c(neq, theta, time, evid, ntime, inits, dose, ret, atol, rtol, stiff, transit_abs, nlhs, lhs, rc);
+  // Backward compatible ode solver for 0.5* C interface
+  _old_c(__MODEL_VARS__(), neq, theta, time, evid, ntime, inits, dose, ret, atol, rtol, stiff, transit_abs, nlhs, lhs, rc);
 }
 
 static R_NativePrimitiveArgType __ODE_SOLVER__rx_t[] = {
@@ -176,7 +177,7 @@ void __R_INIT__ (DllInfo *info){
   safe_zero =(RxODE_fn) R_GetCCallable("RxODE","RxODE_safe_zero");
   _as_zero = (RxODE_fn) R_GetCCallable("RxODE","RxODE_as_zero");
   _assign_fn_xpointers=(RxODE_assign_fn_xpointers) R_GetCCallable("RxODE","RxODE_get_fn_pointers");
-  _old_c = (RxODE_ode_solver_old_c) R_GetCCallable("RxODE","RxODE_ode_solver_old_c");
+  _old_c = (RxODE_ode_solver_old_c) R_GetCCallable("RxODE","rxSolveOldC");
   _sum1   = (RxODE_sum_prod)R_GetCCallable("RxODE","RxODE_sum");
   _prod1 = (RxODE_sum_prod) R_GetCCallable("RxODE","RxODE_prod");
   sign_exp = (RxODE_fn2) R_GetCCallable("RxODE","RxODE_sign_exp");

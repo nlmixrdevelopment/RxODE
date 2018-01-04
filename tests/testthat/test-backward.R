@@ -14,7 +14,7 @@ C1=centr/V;
 
     mod1KA <- RxODE(model=ode1KA)
 
-    params <- demo[1,c("CL","V","KA")]
+    params <- demo[1,rxModelVars(mod1KA)$params]
 
     ev<-eventTable()
     DOSi<-as.data.frame(demo[demo$AMT>0,])

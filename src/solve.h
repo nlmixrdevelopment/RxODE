@@ -162,5 +162,5 @@ void par_lsoda(SEXP sd);
 void par_dop(SEXP sd);
 
 rx_solving_options *getRxOp(rx_solve *rx);
-SEXP RxODE_df(SEXP sd);
+SEXP RxODE_df(SEXP sd, int doDose);
 SEXP RxODE_par_df(SEXP sd);

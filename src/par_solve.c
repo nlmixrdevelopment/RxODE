@@ -1362,7 +1362,7 @@ extern SEXP RxODE_par_df(SEXP sd){
   return ret;
 }
 
-extern SEXP RxODE_df(SEXP sd){
+extern SEXP RxODE_df(SEXP sd, int doDose){
   rx_solve *rx;
   rx = getRxSolve(sd);
   rx_solving_options *op;
@@ -1393,6 +1393,10 @@ extern SEXP RxODE_df(SEXP sd){
   int sm = 0;
   if (rx->nsim > 1) sm = 1;
   int ncols =add_cov*ncov+1+nPrnState+nlhs;
+  int doseCols = 0;
+  if (doDose){
+    doseCols = 2;
+  }
   int nidCols = md + sm;
   int pro = 0;
   if (op->badSolve){
@@ -1402,17 +1406,26 @@ extern SEXP RxODE_df(SEXP sd){
       warning("Some ID(s) could not solve the ODEs correctly; These values are replaced with NA.");
     }
   }  
-
-  SEXP df = PROTECT(allocVector(VECSXP,ncols+nidCols)); pro++;
-  for (i = 0; i < nidCols; i++){
-    SET_VECTOR_ELT(df, i, PROTECT(allocVector(INTSXP, nobs*nsim))); pro++;
-  }
-  for (i = md + sm; i < ncols + nidCols; i++){
-    SET_VECTOR_ELT(df, i, PROTECT(allocVector(REALSXP, nobs*nsim))); pro++;
-  }
   int csub = 0, evid;
   int nsub = rx->nsub;
   rx_solving_options_ind *ind;
+  int nall = 0;
+  for (csub = 0; csub < nsub; csub++){
+    ind = &(rx->subjects[csub]);
+    nall+=ind->n_all_times;
+  }
+  SEXP df = PROTECT(allocVector(VECSXP,ncols+nidCols+doseCols)); pro++;
+  for (i = 0; i < nidCols; i++){
+    SET_VECTOR_ELT(df, i, PROTECT(allocVector(INTSXP, (doDose == 1 ? nall : nobs)*nsim))); pro++;
+  }
+  if (doDose){
+    SET_VECTOR_ELT(df, i++, PROTECT(allocVector(INTSXP, nall*nsim))); pro++;
+    SET_VECTOR_ELT(df, i, PROTECT(allocVector(REALSXP, nall*nsim))); pro++;
+  }
+  for (i = md + sm + doseCols; i < ncols + doseCols+nidCols; i++){
+    SET_VECTOR_ELT(df, i, PROTECT(allocVector(REALSXP, (doDose == 1 ? nall : nobs)*nsim))); pro++;
+  }
+  
   // Now create the data frame
   double *dfp;
   int *dfi;
@@ -1422,6 +1435,8 @@ extern SEXP RxODE_df(SEXP sd){
   int nBadDose;
   int *BadDose;
   int extraCmt = op->extraCmt;
+  double *dose;
+  int di = 0;
   for (int csim = 0; csim < nsim; csim++){
     for (csub = 0; csub < nsub; csub++){
       neq[1] = csub+csim*nsub;
@@ -1431,6 +1446,8 @@ extern SEXP RxODE_df(SEXP sd){
       ntimes = ind->n_all_times;
       solve =  ind->solve;
       cov_ptr = ind->cov_ptr;
+      dose = ind->dose;
+      di = 0;
       if (nBadDose && csim == 0){
 	for (i = 0; i < nBadDose; i++){
 	  if (BadDose[i] > extraCmt){
@@ -1441,8 +1458,7 @@ extern SEXP RxODE_df(SEXP sd){
       for (i = 0; i < ntimes; i++){
 	jj  = 0 ;
 	evid = rxEvidP(i,rx,neq[1]);
-	if (evid != 0 && csub == 0){
-        } else if (evid==0){
+	if (evid==0 || doDose){
           // sim.id
           if (sm){
             dfi = INTEGER(VECTOR_ELT(df, jj));
@@ -1456,12 +1472,18 @@ extern SEXP RxODE_df(SEXP sd){
             jj++;
 	
           }
+	  if (doDose){
+	    // evid
+            dfi = INTEGER(VECTOR_ELT(df, jj++));
+            dfi[ii] = evid;
+            // amt
+            dfp = REAL(VECTOR_ELT(df, jj++));
+            dfp[ii] = (evid == 0 ? NA_REAL : dose[di++]);
+	  }
           // time
-          dfp = REAL(VECTOR_ELT(df, jj));
+          dfp = REAL(VECTOR_ELT(df, jj++));
           dfp[ii] = ind->all_times[i];
-	  jj++;
-	  
-          // States
+	  // States
           if (nPrnState){
             for (j = 0; j < neq[0]; j++){
 	      if (!rmState[j]){
@@ -1485,7 +1507,7 @@ extern SEXP RxODE_df(SEXP sd){
 	    for (j = 0; j < add_cov*ncov; j++){
 	      dfp = REAL(VECTOR_ELT(df, jj));
 	      // is this ntimes = nAllTimes or nObs time for this subject...?
-	      dfp[ii] = cov_ptr[j*ntimes+i];
+	      dfp[ii] = (evid == 0 ? cov_ptr[j*ntimes+i] : NA_REAL);
 	      jj++;
 	    }
           }
@@ -1496,9 +1518,9 @@ extern SEXP RxODE_df(SEXP sd){
   }
   SEXP sexp_rownames = PROTECT(allocVector(INTSXP,2)); pro++;
   INTEGER(sexp_rownames)[0] = NA_INTEGER;
-  INTEGER(sexp_rownames)[1] = -nobs*nsim;
+  INTEGER(sexp_rownames)[1] = -(doDose == 1 ? nall : nobs)*nsim;
   setAttrib(df, R_RowNamesSymbol, sexp_rownames);
-  SEXP sexp_colnames = PROTECT(allocVector(STRSXP,ncols+nidCols)); pro++;
+  SEXP sexp_colnames = PROTECT(allocVector(STRSXP,ncols+nidCols+doseCols)); pro++;
   jj = 0;
   if (sm){
     SET_STRING_ELT(sexp_colnames, jj, mkChar("sim.id"));
@@ -1507,6 +1529,12 @@ extern SEXP RxODE_df(SEXP sd){
   // id
   if (md){
     SET_STRING_ELT(sexp_colnames, jj, mkChar("id"));
+    jj++;
+  }
+  if (doDose){
+    SET_STRING_ELT(sexp_colnames, jj, mkChar("evid"));
+    jj++;
+    SET_STRING_ELT(sexp_colnames, jj, mkChar("amt"));
     jj++;
   }
   SET_STRING_ELT(sexp_colnames, jj, mkChar("time"));

@@ -1687,6 +1687,7 @@ List rxData(const RObject &object,
 #define defrx_sigmaIsChol false
 #define defrx_amountUnits NA_STRING
 #define defrx_timeUnits "hours"
+#define defrx_addDosing false
 
 
 RObject rxCurObj;
@@ -1720,9 +1721,11 @@ SEXP rxSolveC(const RObject &object,
 	      const bool &sigmaIsChol= false,
 	      const CharacterVector &amountUnits = NA_STRING,
 	      const CharacterVector &timeUnits = "hours",
+              const bool addDosing = false,
 	      const RObject &theta = R_NilValue,
 	      const RObject &eta = R_NilValue,
-	      const bool updateObject = false){
+	      const bool updateObject = false
+              ){
   if (rxIs(object, "rxSolve") || rxIs(object, "environment")){
     // Check to see what parameters were updated by specParams
     bool update_params = false,
@@ -1749,7 +1752,8 @@ SEXP rxSolveC(const RObject &object,
       update_sigmaIsChol = false,
       update_amountUnits = false,
       update_timeUnits = false,
-      update_scale = false;
+      update_scale = false,
+      update_dosing = false;
     if (specParams.isNull()){
       warning("No additional parameters were specified; Returning fit.");
       return object;
@@ -1807,6 +1811,8 @@ SEXP rxSolveC(const RObject &object,
 	update_hini = true;
       else if (as<std::string>(specs[i]) == "scale")
 	update_scale = true;
+      else if (as<std::string>(specs[i]) == "addDosing")
+	update_dosing = true;
     }
     // Now update
     Environment e;
@@ -1844,6 +1850,7 @@ SEXP rxSolveC(const RObject &object,
     CharacterVector new_amountUnits = update_amountUnits ? amountUnits : e["args.amountUnits"];
     CharacterVector new_timeUnits = update_timeUnits ? timeUnits : e["args.timeUnits"];
     const Nullable<NumericVector> new_scale = update_scale ? scale : e["args.scale"];
+    bool new_addDosing = update_dosing ? addDosing : e["args.addDosing"];
 
     RObject new_object = as<RObject>(e["args.object"]);
     CharacterVector new_specParams(0);
@@ -1851,7 +1858,7 @@ SEXP rxSolveC(const RObject &object,
 		    new_method, new_transit_abs, new_atol, new_rtol, new_maxsteps, new_hmin,
 		    new_hmax, new_hini,new_maxordn, new_maxords, new_cores, new_covs_interpolation,
 		    new_addCov, new_matrix, new_sigma, new_sigmaDf, new_sigmaNcores, new_sigmaIsChol,
-		    new_amountUnits, new_timeUnits);
+		    new_amountUnits, new_timeUnits, new_addDosing);
   } else {
     DataFrame ret;
     List parData = rxData(object, params, events, inits, covs, as<std::string>(method[0]), transit_abs, atol,
@@ -1871,7 +1878,13 @@ SEXP rxSolveC(const RObject &object,
         par_dop(parData);
       }
     }
-    List dat = RxODE_df(parData);
+    int doDose = 0;
+    if (addDosing){
+      doDose = 1;
+    } else {
+      doDose = 0;
+    }
+    List dat = RxODE_df(parData, doDose);
     List xtra;
     if (!rx->matrix) xtra = RxODE_par_df(parData);
     freeRxSolve(parData);
@@ -1972,9 +1985,6 @@ SEXP rxSolveC(const RObject &object,
       e["create.eventTable"] = eval2(_["expr"]   = parse2(_["text"]="function(new.event) {et <- eventTable(amount.units=units[1],time.units=units[2]);if (missing(new.event)) {nev <- EventTable; } else {nev <- new.event;}; et$import.EventTable(nev); return(et);}"),
                                      _["envir"]  = e);
       // Note event.copy doesn't really make sense...?  The create.eventTable does basically the same thing.
-      
-      
-      
       e["args.object"] = object;
       if (rxIs(events, "rx.event")){
 	e["args.params"] = params;    
@@ -2005,6 +2015,7 @@ SEXP rxSolveC(const RObject &object,
       e["args.sigmaIsChol"] = sigmaIsChol;
       e["args.amountUnits"] = amountUnits;
       e["args.timeUnits"] = timeUnits;
+      e["args.addDosing"] = addDosing;
       CharacterVector cls(2);
       cls(0) = "rxSolve";
       cls(1) = "data.frame";
@@ -2041,7 +2052,7 @@ SEXP rxSolveCsmall(const RObject &object,
                    const RObject &params = R_NilValue,
                    const RObject &events = R_NilValue,
                    const Nullable<NumericVector> &inits = R_NilValue,
-                   const Nullable<NumericVector> &scale = R_NilValue,
+  const Nullable<NumericVector> &scale = R_NilValue,
                    const RObject &covs  = R_NilValue,
                    const Nullable<List> &optsL = R_NilValue){
   if (optsL.isNull()){
@@ -2071,7 +2082,8 @@ SEXP rxSolveCsmall(const RObject &object,
                   opts[19], //const CharacterVector &timeUnits = "hours",
                   opts[20], //const RObject &theta = R_NilValue,
                   opts[21], //const RObject &eta = R_NilValue,
-                  opts[22]);//const bool updateObject = false)
+                  opts[22], //const bool addDosing = false
+		  opts[23]);//const bool updateObject = false)
 }
 
 //[[Rcpp::export]]
@@ -2202,7 +2214,7 @@ RObject rxSolveUpdate(RObject obj,
                           defrx_sigmaNcores,
                           defrx_sigmaIsChol,
                           defrx_amountUnits,
-                          defrx_timeUnits);
+                          defrx_timeUnits, defrx_addDosing);
 	} else if (sarg == "events"){
 	  return rxSolveC(obj,
 			  CharacterVector::create("events"),
@@ -2231,7 +2243,8 @@ RObject rxSolveUpdate(RObject obj,
 			  defrx_sigmaNcores,
 			  defrx_sigmaIsChol,
 			  defrx_amountUnits,
-			  defrx_timeUnits);
+			  defrx_timeUnits, 
+			  defrx_addDosing);
 	} else if (sarg == "inits"){
 	  return rxSolveC(obj,
                           CharacterVector::create("inits"),
@@ -2260,7 +2273,8 @@ RObject rxSolveUpdate(RObject obj,
                           defrx_sigmaNcores,
                           defrx_sigmaIsChol,
                           defrx_amountUnits,
-                          defrx_timeUnits);
+                          defrx_timeUnits, 
+			  defrx_addDosing);
 	} else if (sarg == "covs"){
 	  return rxSolveC(obj,
                           CharacterVector::create("covs"),
@@ -2289,7 +2303,8 @@ RObject rxSolveUpdate(RObject obj,
                           defrx_sigmaNcores,
                           defrx_sigmaIsChol,
                           defrx_amountUnits,
-                          defrx_timeUnits);
+                          defrx_timeUnits, 
+			  defrx_addDosing);
         } else {
 	  CharacterVector classattr = obj.attr("class");
 	  Environment e = as<Environment>(classattr.attr(".RxODE.env"));
@@ -2346,7 +2361,8 @@ RObject rxSolveUpdate(RObject obj,
 				defrx_sigmaNcores,
 				defrx_sigmaIsChol,
 				defrx_amountUnits,
-				defrx_timeUnits);
+				defrx_timeUnits, 
+				defrx_addDosing);
 	      } else if (val.size() == nc){
 		// Change parameter -> Covariate
 		List newPars(pars.size()-1);
@@ -2400,7 +2416,8 @@ RObject rxSolveUpdate(RObject obj,
 				defrx_sigmaNcores,
 				defrx_sigmaIsChol,
 				defrx_amountUnits,
-				defrx_timeUnits);
+				defrx_timeUnits, 
+				defrx_addDosing);
 	      }
 	      return R_NilValue;
 	    }
@@ -2442,7 +2459,8 @@ RObject rxSolveUpdate(RObject obj,
 				defrx_sigmaNcores,
 				defrx_sigmaIsChol,
 				defrx_amountUnits,
-				defrx_timeUnits);
+				defrx_timeUnits, 
+				defrx_addDosing);
 	      } else if (val.size() == np){
 		// Change Covariate -> Parameter
 		List newPars(pars.size()+1);
@@ -2497,7 +2515,8 @@ RObject rxSolveUpdate(RObject obj,
 				defrx_sigmaNcores,
 				defrx_sigmaIsChol,
 				defrx_amountUnits,
-				defrx_timeUnits);
+				defrx_timeUnits, 
+				defrx_addDosing);
 	      }
 	    }
 	  }
@@ -2507,6 +2526,121 @@ RObject rxSolveUpdate(RObject obj,
     }
   }
   return R_NilValue;
+}
+
+extern "C" void rxSolveOldC(SEXP object, 
+			    int *neqa,
+			    double *theta,  //order:
+			    double *timep,
+			    int *evidp,
+			    int *ntime,
+			    double *initsp,
+			    double *dosep,
+			    double *retp,
+			    double *atol,
+			    double *rtol,
+			    int *stiffa,
+			    int *transit_abs,
+			    int *nlhsa,
+			    double *lhsp,
+			    int *rc){
+  // This solves via the new interface then converts to the old interface.
+  // it copies at then end and will be a little slower
+  List modVars = rxModelVars(object);
+  CharacterVector paramsN = modVars["params"];
+  NumericVector params(paramsN.size());
+  int i;
+  for (i = 0; i < paramsN.size(); i++){
+    params[i] = theta[i];
+  }
+  params.attr("names") = paramsN;
+  // Now create an event data frame
+  List eventDf(3);
+  IntegerVector evid(*ntime);
+  NumericVector time(*ntime);
+  NumericVector amt(*ntime);
+  int j = 0;
+  int nobs = 0;
+  for (i = 0; i < *ntime; i++){
+    time[i] = timep[i];
+    evid[i] = evidp[i];
+    if (evid[i] == 0){
+      amt[i] = NA_REAL;
+      nobs++;
+    } else {
+      amt[i] = dosep[j++];
+    }
+  }
+  eventDf["time"] = time;
+  eventDf["evid"] = evid;
+  eventDf["amt"] = amt;
+  eventDf.attr("row.names") = IntegerVector::create(NA_INTEGER,-(*ntime));
+  eventDf.attr("class") = "data.frame";
+
+  // Now create inits NumericVector
+  NumericVector inits(*neqa);
+  for (i = 0; i < *neqa; i++){
+    inits[i] = initsp[i];
+  }
+  inits.attr("names") = modVars["state"];
+
+  CharacterVector method(1);
+  if (*stiffa == 1){
+    method[0]="lsoda";
+  } else {
+    method[0]="dop853";
+  }
+  LogicalVector transit(1);
+  if (*transit_abs == 1){
+    transit[0] = true;
+  } else {
+    transit[0] = false;
+  }
+  // Now solve
+  SEXP retS = rxSolveC(as<RObject>(object),
+		       R_NilValue,
+		       R_NilValue,
+		       params, //defrx_params,
+		       as<RObject>(eventDf),
+		       inits,
+		       R_NilValue, // scale (cannot be updated currently.)
+		       defrx_covs,
+		       method,
+		       transit,
+		       *atol,
+		       *rtol,
+		       defrx_maxsteps,
+		       defrx_hmin,
+		       defrx_hmax,
+		       defrx_hini,
+		       defrx_maxordn,
+		       defrx_maxords,
+		       defrx_cores,
+		       defrx_covs_interpolation,
+		       defrx_addCov,
+		       true,
+		       defrx_sigma,
+		       defrx_sigmaDf,
+		       defrx_sigmaNcores,
+		       defrx_sigmaIsChol,
+		       defrx_amountUnits,
+		       defrx_timeUnits, 
+		       true);
+  // copy to solve and lhs pointers...
+  NumericMatrix ret = as<NumericMatrix>(retS);
+  IntegerVector dim = as<IntegerVector>(ret.attr("dim"));
+  int k=0, l=0;
+  for (i = 0; i < dim[0]; i++){ // nrow
+    for (j = 0; j < dim[1]; j++){ //ncol
+      if (j < 3){
+      } else if (j < (*neqa)+3){
+	retp[k++] = ret(i,j);
+      } else {
+	lhsp[l++] = ret(i,j);
+      }
+    }
+  }
+  // FIXME: handle rc
 }
 //' Get the number of cores in a system
 //' @export

@@ -112,6 +112,12 @@
 ##'     # by a dividing the compartment amount by the scale factor,
 ##'     like NONMEM.
 ##'
+##' @param addDosing Boolean indicating if the solve should add RxODE
+##'     evid and amt columns.  This will also include dosing
+##'     information and estimates at the doses.  Be default, RxODE
+##'     only includes estimates at the observations. (default
+##'     \code{FALSE}).
+##'
 ##' @return An \dQuote{rxSolve} solve object that stores the solved
 ##'     value in a matrix with as many rows as there are sampled time
 ##'     points and as many columns as system variables (as defined by
@@ -150,7 +156,7 @@
 ##' @seealso \code{\link{RxODE}}
 ##' @author Melissa Hallow, Wenping Wang and Matthew Fidler
 ##' @export
-rxSolve <- function(object, params = NULL, events = NULL, inits = NULL, ..., scale=NULL, covs = NULL, method = "lsoda", transit_abs = NULL, atol = 1.0e-8, rtol = 1.0e-6, maxsteps = 5000L, hmin = 0L, hmax = NULL, hini = 0L, maxordn = 12L, maxords = 5L, cores, covs_interpolation = "linear", add.cov = FALSE, matrix = FALSE, sigma = NULL, sigmaDf = NULL, sigmaNcores = 1L, sigmaIsChol = FALSE, amountUnits = NA_character_, timeUnits = "hours", stiff, theta = NULL, eta = NULL, update.object=FALSE){
+rxSolve <- function(object, params = NULL, events = NULL, inits = NULL, ..., scale=NULL, covs = NULL, method = "lsoda", transit_abs = NULL, atol = 1.0e-8, rtol = 1.0e-6, maxsteps = 5000L, hmin = 0L, hmax = NULL, hini = 0L, maxordn = 12L, maxords = 5L, cores, covs_interpolation = "linear", add.cov = FALSE, matrix = FALSE, sigma = NULL, sigmaDf = NULL, sigmaNcores = 1L, sigmaIsChol = FALSE, amountUnits = NA_character_, timeUnits = "hours", stiff, theta = NULL, eta = NULL, addDosing=FALSE, update.object=FALSE){
     if (!missing(stiff) && missing(method)){
         if (rxIs(stiff, "logical")){
             if (stiff){
@@ -174,7 +180,7 @@ rxSolve <- function(object, params = NULL, events = NULL, inits = NULL, ..., sca
           params, events, inits, scale, covs, list(method, transit_abs, atol, rtol,
           maxsteps, hmin, hmax, hini, maxordn, maxords, cores,
           covs_interpolation, add.cov, matrix, sigma, sigmaDf,
-          sigmaNcores, sigmaIsChol, amountUnits, timeUnits, theta, eta, update.object));
+          sigmaNcores, sigmaIsChol, amountUnits, timeUnits, addDosing, theta, eta, update.object));
 }
 
 ##' @export

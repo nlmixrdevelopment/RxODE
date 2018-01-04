@@ -88,82 +88,8 @@ extern double RxODE_factorial(double x){
 }
 
 //--------------------------------------------------------------------------
-void RxODE_ode_solver_old_c(int *neqa,
-                            double *theta,  //order:
-                            double *time,
-                            int *evidp,
-                            int *ntime,
-                            double *initsp,
-                            double *dosep,
-                            double *ret,
-                            double *atol,
-                            double *rtol,
-                            int *stiffa,
-                            int *transit_abs,
-                            int *nlhsa,
-                            double *lhsp,
-                            int *rc){
-  /* if (*neqa > NCMT){ */
-  /*   error("RxODE does not support %d compartments (Currently only %d compartments)", neq, NCMT); */
-  /* } */
-  /* int i; */
-  /* for (i=0; i< *neqa; i++) InfusionRate[i] = 0.0; */
-  /* ndoses = -1; */
-  /* all_times         = time; */
-  /* n_all_times       = *ntime; */
-  /* //RxODE_ode_dosing_ = RxODE_ode_get_dosing(); */
-  /* // par_cov */
-  /* do_par_cov        = 0; */
-  /* // cov_ptr */
-  /* ncov              = 0; */
-  /* is_locf           = 0; */
-  /* // Solver Options */
-  /* ATOL = *atol; */
-  /* RTOL = *rtol; */
-  /* // Assign to default LSODA behvior, or 0 */
-  /* HMIN           = 0; */
-  /* HMAX           = 0; */
-  /* H0             = 0; */
-  /* MXORDN         = 0; */
-  /* MXORDS         = 0; */
-  /* mxstep         = 5000; // Not LSODA default but RxODE default */
-  /* // Counters */
-  /* slvr_counter   = 0; */
-  /* dadt_counter   = 0; */
-  /* jac_counter    = 0; */
 
-  /* nlhs           = *nlhsa; */
-  /* neq            = *neqa; */
-  /* stiff          = *stiffa; */
-  
-  
-
-  /* nBadDose = 0; */
-  /* do_transit_abs = *transit_abs; */
-  
-  /* par_ptr = theta; */
-  /* inits   = initsp; */
-  /* dose    = dosep; */
-  /* solve   = ret; */
-  /* lhs     = lhsp; */
-  /* evid    = evidp; */
-
-  /* // Assign global time information */
-  /* // Call solver */
-  
-  
-  /* /\* Rprintf("Call Solver; par_ptr[0] = %f; evid[0]=%d; inits[0]=%d\n",par_ptr[0],evid[0],inits[0]); *\/ */
-  /* RxODE_ode_solver_c(*neqa, *stiffa, evidp, initsp, dosep, ret, rc); */
-  /* /\* Rprintf("Update LHS\n"); *\/ */
-  /* // Update LHS */
-  /* if (*nlhsa) { */
-  /*   for (i=0; i<*ntime; i++){ */
-  /*     calc_lhs(0, time[i], ret+i*(*neqa), lhsp+i*(*nlhsa)); */
-  /*   } */
-  /* } */
-}
-
-
+// These are now allocated via R structures in Rcpp.
 extern void RxODE_ode_free(){
 }
 
@@ -177,15 +103,7 @@ extern void RxODE_assign_fn_pointers(void (*fun_dydt)(int*, double, double *, do
 				     int fun_jt,
 				     int fun_mf,
 				     int fun_debug){
-  // Assign functions pointers
-  /* dydt     = fun_dydt; */
-  /* calc_jac = fun_calc_jac; */
-  /* calc_lhs = fun_calc_lhs; */
-  /* update_inis = fun_update_inis; */
-  /* // Assign solver options */
-  /* global_jt     = fun_jt; */
-  /* global_mf     = fun_mf; */
-  /* global_debug  = fun_debug; */
+  // This does nothing, since the function pointers are assigned on startup.
 }
 
 void RxODE_ode_solve_env(SEXP sexp_rho){
