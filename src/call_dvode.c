@@ -106,8 +106,8 @@ extern void RxODE_assign_fn_pointers(void (*fun_dydt)(int*, double, double *, do
   // This does nothing, since the function pointers are assigned on startup.
 }
 
-void RxODE_ode_solve_env(SEXP sexp_rho){
-  error("now.");
+/* void RxODE_ode_solve_env(SEXP sexp_rho){ */
+/*   error("now."); */
   /* int pro = 0; */
   /* SEXP sexp_theta = PROTECT(findVar(installChar(mkChar("params")),sexp_rho));pro++; */
   /* SEXP sexp_inits = PROTECT(findVar(installChar(mkChar("inits")),sexp_rho)); pro++; */
@@ -145,7 +145,7 @@ void RxODE_ode_solve_env(SEXP sexp_rho){
   /* // Send rc to environment */
   /* rce[0] = rc[0]; */
   /* UNPROTECT(pro); */
-}
+/*}*/
 
 extern double RxODE_sum(double *input, int len){
   return PreciseSums_sum(input, len);

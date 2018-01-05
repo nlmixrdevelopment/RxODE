@@ -1275,6 +1275,7 @@ rxTransMakevars <- function(rxProps,                                            
             ctxt <- gsub(sprintf("__%s__", toupper(flg)), tmp[flg], ctxt);
         }
         ctxt <- gsub("__R_INIT__", sprintf("R_init_%s", gsub(.Platform$dynlib.ext, "", basename(rxDll))), ctxt)
+        ctxt <- gsub("__R_UNLOAD__", sprintf("R_unload_%s", gsub(.Platform$dynlib.ext, "", basename(rxDll))), ctxt)
         writeLines(ctxt, cFile);
         ret <- ""
         if (debug){
@@ -1430,7 +1431,8 @@ rxCompile.character <-  function(model,           # Model
     }
     if (force || needCompile){
         Makevars <- file.path(dir, "Makevars");
-        trans <- rxTrans(mFile, cFile = cFile, md5 = md5$digest, extraC = extraC, ..., modelPrefix = prefix, calcJac=calcJac, calcSens=calcSens, collapseModel=collapseModel);
+        trans <- rxTrans(mFile, cFile = cFile, md5 = md5$digest, extraC = extraC, ..., modelPrefix = prefix,
+                         calcJac=calcJac, calcSens=calcSens, collapseModel=collapseModel);
         if (file.exists(finalDll)){
             if (modVars["parsed_md5"] == trans["parsed_md5"]){
                 rxCat("Don't need to recompile, minimal change to model detected.\n");
@@ -1449,7 +1451,8 @@ rxCompile.character <-  function(model,           # Model
                 unlink(Makevars);
             }
             ## Now create C file
-            rxTrans(mFile, cFile = cFile, md5 = md5$digest, extraC = extraC, ..., modelPrefix = prefix, calcJac=calcJac, calcSens=calcSens, collapseModel=collapseModel)
+            rxTrans(mFile, cFile = cFile, md5 = md5$digest, extraC = extraC, ...,
+                    modelPrefix = prefix, calcJac=calcJac, calcSens=calcSens, collapseModel=collapseModel)
             sink(Makevars);
             cat(rxTransMakevars(trans, finalDll, cFile, ...));
             sink();

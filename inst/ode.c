@@ -95,6 +95,11 @@ extern double _sign(unsigned int n, ...){
   return s;
 }
 
+SEXP _mv;
+extern SEXP __MODEL_VARS__(){
+  return _mv;
+}
+
 rx_solve *_solveData = NULL;
 extern SEXP __ODE_SOLVER_XPTR__ ();
 
@@ -157,6 +162,8 @@ extern SEXP __ODE_SOLVER_XPTR__  (){
 }
 
 
+// Single solving options setup
+rx_solving_options _s_op;
 
 //Initilize the dll to match RxODE's calls
 void __R_INIT__ (DllInfo *info){
@@ -206,5 +213,10 @@ void __R_INIT__ (DllInfo *info){
   };
   R_registerRoutines(info, cMethods, callMethods, NULL, NULL);
   R_useDynamicSymbols(info,FALSE);
+  _mv = __MODEL_VARS__0();
 }
 
+
+void __R_UNLOAD__ (DllInfo *info){
+  // Free resources required for single subject solve.
+}

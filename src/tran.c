@@ -1239,7 +1239,7 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
     sprintf(s_aux_info+o, "%s)\"));\n",buf);
     o = strlen(s_aux_info);
   }
-  fprintf(outpt,"extern SEXP %smodel_vars(){\n",model_prefix);
+  fprintf(outpt,"extern SEXP %smodel_vars0(){\n",model_prefix);
   fprintf(outpt,"  SEXP lst      = PROTECT(allocVector(VECSXP, 13));\n");
   fprintf(outpt,"  SEXP names    = PROTECT(allocVector(STRSXP, 13));\n");
   fprintf(outpt,"  SEXP params   = PROTECT(allocVector(STRSXP, %d));\n",pi);
