@@ -1528,7 +1528,7 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
   fprintf(outpt,"  return lst;\n");
   fprintf(outpt,"}\n");
   fprintf(outpt, __HD_SOLVE1__);
-  //fprintf(outpt, __HD_SOLVE2__);
+  fprintf(outpt, __HD_SOLVE2__);
 }
 
 void codegen(FILE *outpt, int show_ode) {
@@ -2078,8 +2078,8 @@ SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP pref
   SEXP lst   = PROTECT(allocVector(VECSXP, 11));
   SEXP names = PROTECT(allocVector(STRSXP, 11));
   
-  SEXP tran  = PROTECT(allocVector(STRSXP, 16));
-  SEXP trann = PROTECT(allocVector(STRSXP, 16));
+  SEXP tran  = PROTECT(allocVector(STRSXP, 18));
+  SEXP trann = PROTECT(allocVector(STRSXP, 18));
   
   SEXP state    = PROTECT(allocVector(STRSXP,tb.statei));
   SEXP stateRmS = PROTECT(allocVector(INTSXP,tb.statei));
@@ -2252,6 +2252,13 @@ SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP pref
   SET_STRING_ELT(trann,15,mkChar("ode_solver_get_solvedata"));
   SET_STRING_ELT(tran, 15,mkChar(buf));
   
+  sprintf(buf,"%d",tb.statei);
+  SET_STRING_ELT(trann,16,mkChar("neq"));
+  SET_STRING_ELT(tran, 16,mkChar(buf));
+
+  sprintf(buf,"%d", tb.li);
+  SET_STRING_ELT(trann,17,mkChar("nlhs"));
+  SET_STRING_ELT(tran, 17,mkChar(buf));
   
   fpIO2 = fopen(out2, "r");
   err_msg((intptr_t) fpIO2, "Error parsing. (Couldn't access out2.txt).\n", -1);

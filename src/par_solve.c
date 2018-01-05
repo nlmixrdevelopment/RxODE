@@ -20,6 +20,7 @@
 #include <omp.h>
 #endif
 
+static void getSolvingOptionsPtrFree(SEXP ptr);
 extern SEXP RxODE_get_fn_pointers(void (*fun_dydt)(int *neq, double t, double *A, double *DADT),
                                   void (*fun_calc_lhs)(int, double t, double *A, double *lhs),
                                   void (*fun_calc_jac)(int neq, double t, double *A, double *JAC, unsigned int __NROWPD__),
@@ -33,8 +34,8 @@ extern SEXP RxODE_get_fn_pointers(void (*fun_dydt)(int *neq, double t, double *A
                                   int fun_debug){
   SEXP dydt, lhs, jac, inis, dydt_lsoda, jdum, get_solveS, set_solveS;
   int pro=0;
-  SEXP lst      = PROTECT(allocVector(VECSXP, 11)); pro++;
-  SEXP names    = PROTECT(allocVector(STRSXP, 11)); pro++;
+  SEXP lst      = PROTECT(allocVector(VECSXP, 12)); pro++;
+  SEXP names    = PROTECT(allocVector(STRSXP, 12)); pro++;
 
   void (*dydtf)(int *neq, double t, double *A, double *DADT);
   void (*calc_jac)(int neq, double t, double *A, double *JAC, unsigned int __NROWPD__);
@@ -111,6 +112,76 @@ extern SEXP RxODE_get_fn_pointers(void (*fun_dydt)(int *neq, double t, double *A
   SET_VECTOR_ELT(lst,  10, set_solveS);
   setAttrib(lst, R_NamesSymbol, names);
 
+  rx_solving_options_ind *inds;
+  inds = Calloc(1,rx_solving_options_ind);
+  rx_solving_options_ind *ind = &inds[0];
+  ind->slvr_counter = 0;
+  ind->dadt_counter = 0;
+  ind->jac_counter = 0;
+  // Provided at initilization of dll...
+  ind->nBadDose = 0;
+  ind->HMAX = 0.0; // Determined by diff
+  ind->tlast = 0.0;
+  ind->podo = 0.0;
+  ind->ixds = 0;
+  ind->ndoses = -1;
+  
+  // This needs to be allocated at run time :(
+  /* ind->idose = idose; */
+  ind->id = 1;
+  ind->sim = 1;
+  
+  rx_solving_options *op;
+  op = (rx_solving_options*)R_chk_calloc(1,sizeof(*op));
+  op->badSolve = 0;
+  op->ATOL = 1.0e-8;          //absolute error
+  op->RTOL = 1.0e-6;          //relative error
+  op->H0 = 0;
+  op->HMIN = 0;
+  op->global_jt = fun_jt;
+  op->global_mf = fun_mf;
+  op->global_debug = fun_debug;
+  op->mxstep = fun_debug;
+  op->MXORDN = 0;
+  op->MXORDS = 0;
+  op->do_transit_abs = 0;
+  // Determined at run-time
+  /* op->stiff = 0; */
+  /* op->f1 = f1; */
+  /* op->f2 = f2; */
+  /* op->kind = kind; */
+  /* op->is_locf = is_locf; */
+  /* op->ncov=ncov; */
+  /* op->par_cov = par_cov; */
+  op->do_par_cov = 0;
+  op->extraCmt = 0;
+  op->dydt = (t_dydt)(R_ExternalPtrAddr(dydt_lsoda));
+  op->calc_jac = (t_calc_jac)(R_ExternalPtrAddr(jac));
+  op->calc_lhs = (t_calc_lhs)(R_ExternalPtrAddr(lhs));
+  op->update_inis = (t_update_inis)(R_ExternalPtrAddr(inis));
+  op->dydt_lsoda_dum = (t_dydt_lsoda_dum)(R_ExternalPtrAddr(dydt_lsoda));
+  op->jdum_lsoda = (t_jdum_lsoda)(R_ExternalPtrAddr(jdum));
+  op->set_solve = (t_set_solve)(set_solve);
+  SEXP opS = PROTECT(R_MakeExternalPtr(op, install("rx_solving_options"), R_NilValue)); pro++;
+  /* R_RegisterCFinalizerEx(opS, getSolvingOptionsPtrFree, TRUE); */
+
+  rx_solve *rx;
+  rx = (rx_solve*)R_chk_calloc(1,sizeof(*rx));
+  rx->subjects = inds;
+  rx->nsub = 1;
+  rx->nsim = 1;
+  rx->op = opS;
+  rx->nobs = -1;
+  rx->add_cov = 0;
+  rx->matrix = 0;
+  SEXP rxS = PROTECT(R_MakeExternalPtr(rx, install("rx_solve"), R_NilValue)); pro++;
+  /* R_RegisterCFinalizerEx(rxS, rxSolveDataFree, TRUE); */
+  
+  SET_STRING_ELT(names,11,mkChar("single_solve"));
+  SET_VECTOR_ELT(lst,  11, rxS);
+  setAttrib(lst, R_NamesSymbol, names);
+
+
   UNPROTECT(pro);
   return(lst);
 }
@@ -135,7 +206,7 @@ void getSolvingOptionsIndPtr(double *InfusionRate,
                              rx_solving_options_ind *o){
   o->slvr_counter = 0;
   o->dadt_counter = 0;
-  o->jac_counter = 0;
+  o->jac_counter  = 0;
   o->InfusionRate = InfusionRate;
   o->BadDose = BadDose;
   o->nBadDose = 0;
@@ -241,6 +312,7 @@ SEXP getSolvingOptionsPtr(double ATOL,          //absolute error
   o->update_inis = (t_update_inis)(R_ExternalPtrAddr(update_inis));
   o->dydt_lsoda_dum = (t_dydt_lsoda_dum)(R_ExternalPtrAddr(dydt_lsoda_dum));
   o->jdum_lsoda = (t_jdum_lsoda)(R_ExternalPtrAddr(jdum_lsoda));
+  o->set_solve = (t_set_solve)(R_ExternalPtrAddr(set_solve));
   SEXP ret = PROTECT(R_MakeExternalPtr(o, install("rx_solving_options"), R_NilValue));
   R_RegisterCFinalizerEx(ret, getSolvingOptionsPtrFree, TRUE);
   UNPROTECT(1);
@@ -316,9 +388,7 @@ rx_solving_options_ind *getRxId(rx_solve *rx, unsigned int id){
   return &(rx->subjects[id]);
 }
 
-extern void par_lsoda(SEXP sd){
-  rx_solve *rx;
-  rx = getRxSolve(sd);
+extern void par_lsoda(rx_solve *rx, SEXP sd, int ini_updateR){
   int i, j, foundBad;
   double xout;
   double *yp;
@@ -338,7 +408,7 @@ extern void par_lsoda(SEXP sd){
   double *rwork;
   int *iwork;
   int wh, wh100, cmt;
-
+  
   char *err_msg[]=
     {
       "excess work done on this call (perhaps wrong jt).",
@@ -366,6 +436,7 @@ extern void par_lsoda(SEXP sd){
   iwork[7] = op->MXORDN; // MXORDN 
   iwork[8] = op->MXORDS;  // MXORDS
 
+  
   t_dydt_lsoda_dum dydt = (t_dydt_lsoda_dum)(op->dydt_lsoda_dum);
   t_jdum_lsoda jac = (t_jdum_lsoda)(op->jdum_lsoda);
   t_update_inis uini = (t_update_inis)(op->update_inis);
@@ -382,9 +453,8 @@ extern void par_lsoda(SEXP sd){
   int nsub = rx->nsub;
   int nsim = rx->nsim;
   /* int cores = op->cores; */
-  int updateR = 1;
+  int updateR = ini_updateR;
   inits = op->inits;
-
   for (int csim = 0; csim < nsim; csim++){
     // This part CAN be parallelized, but the original LSODA is not thread safe.
     for (int csub = 0; csub < nsub; csub++){
@@ -500,9 +570,7 @@ extern void par_lsoda_thread(SEXP sd){
 //dummy solout fn
 void solout(long int nr, double t_old, double t, double *y, int *nptr, int *irtrn){}
 
-void par_dop(SEXP sd){
-  rx_solve *rx;
-  rx = getRxSolve(sd);
+void par_dop(rx_solve *rx, SEXP sd, int ini_updateR){
   int i, j, foundBad;
   double xout;
   double *yp;
@@ -548,7 +616,7 @@ void par_dop(SEXP sd){
   }
   int global_debug = op->global_debug;
   int nx;
-  int updateR = 1;
+  int updateR = ini_updateR;
   for (int csim = 0; csim < nsim; csim++){
     // This part CAN be parallelized, if dop is thread safe...
     // Therefore you could use https://github.com/jacobwilliams/dop853, but I haven't yet
@@ -673,6 +741,20 @@ void par_dop(SEXP sd){
     }
     if (updateR)
       updateR=rxUpdateResiduals_(sd);
+  }
+}
+
+void par_solve(rx_solve *rx, SEXP sd, int ini_updateR){
+  rx_solving_options *op;
+  op = getRxOp(rx);
+  if (op->neq > 0){
+    if (op->stiff == 1){
+      // lsoda
+      par_lsoda(rx, sd, ini_updateR);
+    } else if (op->stiff == 0){
+      // dop
+      par_dop(rx, sd, ini_updateR);
+    }
   }
 }
 

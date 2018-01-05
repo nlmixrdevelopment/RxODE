@@ -637,7 +637,6 @@ void freeRxSolve(SEXP ptr){
   SEXP pt = as<SEXP>(lst["pointer"]);
   rxSolveDataFree(pt);
 }
-
 //' All model variables for a RxODE object
 //'
 //' Return all the known model variables for a specified RxODE object
@@ -1583,7 +1582,7 @@ SEXP rxSolvingData(const RObject &model,
           if (R_FINITE(hmn[0])){
             if (hmn[0] < 0)
 	      Free(inds);
-              stop("'hmax' must be a non-negative value.");
+	    stop("'hmax' must be a non-negative value.");
             hm = hmn[0];
           } else {
             hm = 0.0;
@@ -1867,17 +1866,7 @@ SEXP rxSolveC(const RObject &object,
                           amountUnits, timeUnits, theta, eta, scale, extraArgs);
     rx_solve *rx;
     rx =getRxSolve(parData);
-    rx_solving_options *op;
-    op = getRxOp(rx);
-    if (op->neq > 0){
-      if (op->stiff == 1){
-        // lsoda
-        par_lsoda(parData);
-      } else if (op->stiff == 0){
-        // dop
-        par_dop(parData);
-      }
-    }
+    par_solve(rx, parData, 1);
     int doDose = 0;
     if (addDosing){
       doDose = 1;
@@ -2544,102 +2533,168 @@ extern "C" void rxSolveOldC(SEXP object,
 			    int *nlhsa,
 			    double *lhsp,
 			    int *rc){
+  List mv = rxModelVars(object);
+  rx_solve *rx = (rx_solve*)(R_ExternalPtrAddr(VECTOR_ELT(VECTOR_ELT(mv, 12), 11)));
+  rx_solving_options *op = (rx_solving_options*)R_ExternalPtrAddr(rx->op);
+  rx_solving_options_ind *inds = rx->subjects;
+  rx_solving_options_ind *ind = &inds[0];
+  ind->par_ptr = theta;
+  ind->n_all_times  = *ntime;
+  int neq = op->neq, i = 0;
+  double *InfusionRate =ind->InfusionRate,
+    *scale = op->scale;
+  int *BadDose = ind->BadDose;
+  // A bit paranoid -- make sure these are sane...
+  for (i = 0; i < neq; i++){
+    InfusionRate[i] = 0.0;
+    scale[i] = 1.0;
+    BadDose[i] = 0;
+  }
+  // Instead of having the correct length for idose, use idose length = length of ntime
+  // Saves an additional for loop at the cost of a little memory.
+  IntegerVector idose(*ntime);
+  ind->idose = &idose[0];
+  ind->ndoses=0;
+  for (i = 0; i < ind->n_all_times; i++){
+    if (evidp[i]){
+      ind->ndoses++;
+      ind->idose[ind->ndoses-1] = i;
+    }
+  }
+  op->do_par_cov = 0;
+  // cov_ptr
+  op->ncov              = 0;
+  op->is_locf           = 0;
+  // Solver Options
+  op->ATOL = *atol;
+  op->RTOL = *rtol;
+  // Assign to default LSODA behvior, or 0
+  op->HMIN           = 0;
+  ind->HMAX          = 0;
+  op->H0             = 0;
+  op->MXORDN         = 0;
+  op->MXORDS         = 0;
+  op->mxstep         = 5000; // Not LSODA default but RxODE default
+  // Counters
+  ind->slvr_counter   = 0;
+  ind->dadt_counter   = 0;
+  ind->jac_counter    = 0;
+
+  op->nlhs           = *nlhsa;
+  op->neq            = *neqa;
+  op->stiff          = *stiffa;
+  
+  ind->nBadDose = 0;
+  op->do_transit_abs = *transit_abs;
+
+  ind->all_times = timep;
+  ind->par_ptr = theta;
+  op->inits   = initsp;
+  ind->dose    = dosep;
+  ind->solve   = retp;
+  ind->lhs     = lhsp;
+  ind->evid    = evidp;
+  ind->rc = rc;
+  t_set_solve set_solve = (t_set_solve)(op->set_solve);
+  set_solve(rx);
+  SEXP sd = R_NilValue;
+  par_solve(rx, sd, 0); // Solve without the option of updating residuals.
   // This solves via the new interface then converts to the old interface.
-  // it copies at then end and will be a little slower
-  List modVars = rxModelVars(object);
-  CharacterVector paramsN = modVars["params"];
-  NumericVector params(paramsN.size());
-  int i;
-  for (i = 0; i < paramsN.size(); i++){
-    params[i] = theta[i];
-  }
-  params.attr("names") = paramsN;
-  // Now create an event data frame
-  List eventDf(3);
-  IntegerVector evid(*ntime);
-  NumericVector time(*ntime);
-  NumericVector amt(*ntime);
-  int j = 0;
-  int nobs = 0;
-  for (i = 0; i < *ntime; i++){
-    time[i] = timep[i];
-    evid[i] = evidp[i];
-    if (evid[i] == 0){
-      amt[i] = NA_REAL;
-      nobs++;
-    } else {
-      amt[i] = dosep[j++];
-    }
-  }
-  eventDf["time"] = time;
-  eventDf["evid"] = evid;
-  eventDf["amt"] = amt;
-  eventDf.attr("row.names") = IntegerVector::create(NA_INTEGER,-(*ntime));
-  eventDf.attr("class") = "data.frame";
+  // it copies at then end and will be a lot slower
+  // List modVars = rxModelVars(object);
+  // CharacterVector paramsN = modVars["params"];
+  // NumericVector params(paramsN.size());
+  // int i;
+  // for (i = 0; i < paramsN.size(); i++){
+  //   params[i] = theta[i];
+  // }
+  // params.attr("names") = paramsN;
+  // // Now create an event data frame
+  // List eventDf(3);
+  // IntegerVector evid(*ntime);
+  // NumericVector time(*ntime);
+  // NumericVector amt(*ntime);
+  // int j = 0;
+  // int nobs = 0;
+  // for (i = 0; i < *ntime; i++){
+  //   time[i] = timep[i];
+  //   evid[i] = evidp[i];
+  //   if (evid[i] == 0){
+  //     amt[i] = NA_REAL;
+  //     nobs++;
+  //   } else {
+  //     amt[i] = dosep[j++];
+  //   }
+  // }
+  // eventDf["time"] = time;
+  // eventDf["evid"] = evid;
+  // eventDf["amt"] = amt;
+  // eventDf.attr("row.names") = IntegerVector::create(NA_INTEGER,-(*ntime));
+  // eventDf.attr("class") = "data.frame";
 
-  // Now create inits NumericVector
-  NumericVector inits(*neqa);
-  for (i = 0; i < *neqa; i++){
-    inits[i] = initsp[i];
-  }
-  inits.attr("names") = modVars["state"];
+  // // Now create inits NumericVector
+  // NumericVector inits(*neqa);
+  // for (i = 0; i < *neqa; i++){
+  //   inits[i] = initsp[i];
+  // }
+  // inits.attr("names") = modVars["state"];
 
-  CharacterVector method(1);
-  if (*stiffa == 1){
-    method[0]="lsoda";
-  } else {
-    method[0]="dop853";
-  }
-  LogicalVector transit(1);
-  if (*transit_abs == 1){
-    transit[0] = true;
-  } else {
-    transit[0] = false;
-  }
-  // Now solve
-  SEXP retS = rxSolveC(as<RObject>(object),
-		       R_NilValue,
-		       R_NilValue,
-		       params, //defrx_params,
-		       as<RObject>(eventDf),
-		       inits,
-		       R_NilValue, // scale (cannot be updated currently.)
-		       defrx_covs,
-		       method,
-		       transit,
-		       *atol,
-		       *rtol,
-		       defrx_maxsteps,
-		       defrx_hmin,
-		       defrx_hmax,
-		       defrx_hini,
-		       defrx_maxordn,
-		       defrx_maxords,
-		       defrx_cores,
-		       defrx_covs_interpolation,
-		       defrx_addCov,
-		       true,
-		       defrx_sigma,
-		       defrx_sigmaDf,
-		       defrx_sigmaNcores,
-		       defrx_sigmaIsChol,
-		       defrx_amountUnits,
-		       defrx_timeUnits, 
-		       true);
-  // copy to solve and lhs pointers...
-  NumericMatrix ret = as<NumericMatrix>(retS);
-  IntegerVector dim = as<IntegerVector>(ret.attr("dim"));
-  int k=0, l=0;
-  for (i = 0; i < dim[0]; i++){ // nrow
-    for (j = 0; j < dim[1]; j++){ //ncol
-      if (j < 3){
-      } else if (j < (*neqa)+3){
-	retp[k++] = ret(i,j);
-      } else {
-	lhsp[l++] = ret(i,j);
-      }
-    }
-  }
+  // CharacterVector method(1);
+  // if (*stiffa == 1){
+  //   method[0]="lsoda";
+  // } else {
+  //   method[0]="dop853";
+  // }
+  // LogicalVector transit(1);
+  // if (*transit_abs == 1){
+  //   transit[0] = true;
+  // } else {
+  //   transit[0] = false;
+  // }
+  // // Now solve
+  // SEXP retS = rxSolveC(as<RObject>(object),
+  // 		       R_NilValue,
+  // 		       R_NilValue,
+  // 		       params, //defrx_params,
+  // 		       as<RObject>(eventDf),
+  // 		       inits,
+  // 		       R_NilValue, // scale (cannot be updated currently.)
+  // 		       defrx_covs,
+  // 		       method,
+  // 		       transit,
+  // 		       *atol,
+  // 		       *rtol,
+  // 		       defrx_maxsteps,
+  // 		       defrx_hmin,
+  // 		       defrx_hmax,
+  // 		       defrx_hini,
+  // 		       defrx_maxordn,
+  // 		       defrx_maxords,
+  // 		       defrx_cores,
+  // 		       defrx_covs_interpolation,
+  // 		       defrx_addCov,
+  // 		       true,
+  // 		       defrx_sigma,
+  // 		       defrx_sigmaDf,
+  // 		       defrx_sigmaNcores,
+  // 		       defrx_sigmaIsChol,
+  // 		       defrx_amountUnits,
+  // 		       defrx_timeUnits, 
+  // 		       true);
+  // // copy to solve and lhs pointers...
+  // NumericMatrix ret = as<NumericMatrix>(retS);
+  // IntegerVector dim = as<IntegerVector>(ret.attr("dim"));
+  // int k=0, l=0;
+  // for (i = 0; i < dim[0]; i++){ // nrow
+  //   for (j = 0; j < dim[1]; j++){ //ncol
+  //     if (j < 3){
+  //     } else if (j < (*neqa)+3){
+  // 	retp[k++] = ret(i,j);
+  //     } else {
+  // 	lhsp[l++] = ret(i,j);
+  //     }
+  //   }
+  // }
   // FIXME: handle rc
 }
 

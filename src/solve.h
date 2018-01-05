@@ -38,6 +38,7 @@ typedef struct {
   t_update_inis update_inis;
   t_dydt_lsoda_dum dydt_lsoda_dum;
   t_jdum_lsoda jdum_lsoda;
+  void *set_solve;
   // approx fun options
   double f1;
   double f2;
@@ -158,8 +159,7 @@ SEXP rxSolveData(rx_solving_options_ind *subjects,
                  int add_cov,
                  int matrix,
                  SEXP op);
-void par_lsoda(SEXP sd);
-void par_dop(SEXP sd);
+void par_solve(rx_solve *rx, SEXP sd, int ini_updateR);
 
 rx_solving_options *getRxOp(rx_solve *rx);
 SEXP RxODE_df(SEXP sd, int doDose);

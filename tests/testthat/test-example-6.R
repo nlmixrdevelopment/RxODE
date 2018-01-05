@@ -15,7 +15,6 @@ rxPermissive({
     ## https://cran.r-project.org/web/packages/diffEq/vignettes/ODEinR.pdf p11
 
     ## 6.1
-
     mod <- RxODE("
 a = 6
 b = 0.6

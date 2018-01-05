@@ -96,6 +96,14 @@ extern double _sign(unsigned int n, ...){
 }
 
 SEXP _mv;
+// Single sublect global variables
+// Only need to be allocated once.
+double _s_inits[__NEQ__];
+double _s_scale[__NEQ__];
+double _s_InfusionRate[__NEQ__];
+int _s_BadDose[__NEQ__];
+int _s_stateIgnore[__NEQ__];
+
 extern SEXP __MODEL_VARS__(){
   return _mv;
 }
@@ -214,9 +222,39 @@ void __R_INIT__ (DllInfo *info){
   R_registerRoutines(info, cMethods, callMethods, NULL, NULL);
   R_useDynamicSymbols(info,FALSE);
   _mv = __MODEL_VARS__0();
+  // Use model variables to finalize single solve structure.
+  rx_solve *rx = (rx_solve*)(R_ExternalPtrAddr(VECTOR_ELT(VECTOR_ELT(_mv, 12), 11)));
+  rx_solving_options *op = (rx_solving_options*)R_ExternalPtrAddr(rx->op);
+  rx_solving_options_ind *inds = rx->subjects;
+  rx_solving_options_ind *ind = &inds[0];
+  op->nlhs = __NLHS__;
+  op->neq = __NEQ__;
+  op->stateNames = VECTOR_ELT(_mv, 2);
+  op->lhsNames = VECTOR_ELT(_mv, 1);
+  op->paramNames = VECTOR_ELT(_mv, 0);
+  ind->podo = 0.0;
+  ind->ixds = 0;
+  int i;
+  for (i = 0; i < __NEQ__; i++){
+    _s_inits[i] = 0.0;
+    _s_scale[i] = 1.0;
+    _s_InfusionRate[i] = 0.0;
+    _s_BadDose[i] =0;
+    _s_stateIgnore[i] = 0;
+  }
+  op->inits = &_s_inits[0];
+  op->scale = &_s_scale[0];  
+  ind->InfusionRate = &_s_InfusionRate[0];
+  ind->BadDose = &_s_BadDose[0];
+  rx->stateIgnore = &_s_stateIgnore[0];
 }
-
 
 void __R_UNLOAD__ (DllInfo *info){
   // Free resources required for single subject solve.
+  rx_solve *rx = (rx_solve*)(R_ExternalPtrAddr(VECTOR_ELT(VECTOR_ELT(_mv, 12), 11)));
+  rx_solving_options *op = (rx_solving_options*)R_ExternalPtrAddr(rx->op);
+  rx_solving_options_ind *inds = rx->subjects;
+  Free(inds);
+  Free(op);
+  Free(rx);
 }
