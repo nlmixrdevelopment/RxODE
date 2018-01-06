@@ -96,14 +96,13 @@ extern void RxODE_ode_free(){
 void RxODE_ode_alloc(){
 }
 
-extern void RxODE_assign_fn_pointers(void (*fun_dydt)(int*, double, double *, double *),
-				     void (*fun_calc_lhs)(int, double, double *, double *),
-				     void (*fun_calc_jac)(int, double, double *, double *, unsigned int),
-				     void (*fun_update_inis)(int, double *),
-				     int fun_jt,
-				     int fun_mf,
-				     int fun_debug){
-  // This does nothing, since the function pointers are assigned on startup.
+SEXP __mv;
+extern void RxODE_assign_fn_pointers(SEXP mv){
+  __mv = mv;
+}
+
+extern SEXP RxODE_get_mv(){
+  return __mv;
 }
 
 /* void RxODE_ode_solve_env(SEXP sexp_rho){ */

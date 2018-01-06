@@ -96,6 +96,8 @@ extern int rxEvidP(int i, rx_solve *rx, unsigned int id);
 extern double RxODE_transit4P(double t, rx_solve *rx, unsigned int id, double n, double mtt, double bio);
 extern double RxODE_transit3P(double t, rx_solve *rx, unsigned int id, double n, double mtt);
 
+extern void RxODE_assign_fn_pointers(SEXP mv);
+
 extern SEXP RxODE_get_fn_pointers(void (*fun_dydt)(unsigned int, double, double *, double *),
                                   void (*fun_calc_lhs)(double, double *, double *),
                                   void (*fun_calc_jac)(unsigned int, double, double *, double *, unsigned int),
@@ -148,14 +150,6 @@ extern void RxODE_ode_freeP(rx_solve *rx, unsigned int id);
 
 
 // Remove these functions later...
-extern void RxODE_assign_fn_pointers(void (*fun_dydt)(unsigned int, double, double *, double *),
-                                     void (*fun_calc_lhs)(double, double *, double *),
-                                     void (*fun_calc_jac)(unsigned int, double, double *, double *, unsigned int),
-                                     void (*fun_update_inis)(SEXP _ini_sexp),
-                                     int fun_jt,
-                                     int fun_mf,
-                                     int fun_debug);
-
 
 void R_init_RxODE(DllInfo *info){
   R_CallMethodDef callMethods[]  = {
@@ -216,7 +210,6 @@ void R_init_RxODE(DllInfo *info){
   R_RegisterCCallable("RxODE","RxODE_abs_log",            (DL_FUNC) RxODE_abs_log);
   
   //Functions
-  R_RegisterCCallable("RxODE","RxODE_assign_fn_pointers", (DL_FUNC) RxODE_assign_fn_pointers);
   R_RegisterCCallable("RxODE","RxODE_get_fn_pointers",    (DL_FUNC) RxODE_get_fn_pointers);
   R_RegisterCCallable("RxODE","rxSolveOldC",              (DL_FUNC) rxSolveOldC);
   
@@ -260,7 +253,7 @@ void R_init_RxODE(DllInfo *info){
 
   R_RegisterCCallable("RxODE","RxODE_pow",                (DL_FUNC) RxODE_pow);
   R_RegisterCCallable("RxODE","RxODE_pow_di",             (DL_FUNC) RxODE_pow_di);
-
+  R_RegisterCCallable("RxODE","RxODE_assign_fn_pointers", (DL_FUNC) &RxODE_assign_fn_pointers);
 
   static const R_CMethodDef cMethods[] = {
     {"RxODE_InfusionRate",      (DL_FUNC) &RxODE_InfusionRate, 1, RxODE_one_int_t},

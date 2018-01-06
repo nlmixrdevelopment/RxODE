@@ -718,6 +718,13 @@ List rxModelVars(const RObject &obj){
     }
     stop("Cannot figure out the model variables.");
   } else {
+    CharacterVector cls = obj.attr("class");
+    int i = 0;
+    Rprintf("Class:\t");
+    for (i = 0; i < cls.size(); i++){
+      Rprintf("%s\t", (as<std::string>(cls[i])).c_str());
+    }
+    Rprintf("\n");
     stop("Need an RxODE-type object to extract model variables from.");
   }
 }
@@ -2517,8 +2524,9 @@ RObject rxSolveUpdate(RObject obj,
   return R_NilValue;
 }
 
-extern "C" void rxSolveOldC(SEXP object, 
-			    int *neqa,
+extern "C" SEXP RxODE_get_mv();
+
+extern "C" void rxSolveOldC(int *neqa,
 			    double *theta,  //order:
 			    double *timep,
 			    int *evidp,
@@ -2533,8 +2541,8 @@ extern "C" void rxSolveOldC(SEXP object,
 			    int *nlhsa,
 			    double *lhsp,
 			    int *rc){
-  List mv = rxModelVars(object);
-  rx_solve *rx = (rx_solve*)(R_ExternalPtrAddr(VECTOR_ELT(VECTOR_ELT(mv, 12), 11)));
+  List mv = RxODE_get_mv();
+  rx_solve *rx = (rx_solve*)(R_ExternalPtrAddr(as<SEXP>((as<List>(mv[12]))[11])));
   rx_solving_options *op = (rx_solving_options*)R_ExternalPtrAddr(rx->op);
   rx_solving_options_ind *inds = rx->subjects;
   rx_solving_options_ind *ind = &inds[0];
@@ -2596,9 +2604,16 @@ extern "C" void rxSolveOldC(SEXP object,
   ind->evid    = evidp;
   ind->rc = rc;
   t_set_solve set_solve = (t_set_solve)(op->set_solve);
-  set_solve(rx);
   SEXP sd = R_NilValue;
+  set_solve(rx);
   par_solve(rx, sd, 0); // Solve without the option of updating residuals.
+  t_calc_lhs calc_lhs = (t_calc_lhs)(op->calc_lhs);
+  if (*nlhsa) {
+    for (i=0; i<*ntime; i++){
+      // 0 = first subject; Calc lhs changed...
+      calc_lhs(0, timep[i], retp+i*(*neqa), lhsp+i*(*nlhsa));
+    }
+  }
   // This solves via the new interface then converts to the old interface.
   // it copies at then end and will be a lot slower
   // List modVars = rxModelVars(object);
