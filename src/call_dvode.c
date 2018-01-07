@@ -9,6 +9,7 @@
 #include <Rmath.h> //Rmath includes math.
 #include <R_ext/Rdynload.h>
 #include <PreciseSums.h>
+#include "solve.h"
 
 extern double RxODE_as_zero(double x){
   if (fabs(x) < sqrt(DOUBLE_EPS)){
@@ -104,6 +105,98 @@ extern void RxODE_assign_fn_pointers(SEXP mv){
 extern SEXP RxODE_get_mv(){
   return __mv;
 }
+
+extern void rxSolveOldC(int *neqa,
+			double *theta,  //order:
+			double *timep,
+			int *evidp,
+			int *ntime,
+			double *initsp,
+			double *dosep,
+			double *retp,
+			double *atol,
+			double *rtol,
+			int *stiffa,
+			int *transit_abs,
+			int *nlhsa,
+			double *lhsp,
+			int *rc){
+  rx_solve *rx = (rx_solve*)(R_ExternalPtrAddr(VECTOR_ELT(VECTOR_ELT(__mv, 12), 11)));
+  rx_solving_options *op = (rx_solving_options*)R_ExternalPtrAddr(rx->op);
+  rx_solving_options_ind *inds = rx->subjects;
+  rx_solving_options_ind *ind = &inds[0];
+  ind->par_ptr = theta;
+  ind->n_all_times  = *ntime;
+  int neq = op->neq, i = 0;
+  double *InfusionRate =ind->InfusionRate,
+    *scale = op->scale;
+  int *BadDose = ind->BadDose;
+  // A bit paranoid -- make sure these are sane...
+  for (i = 0; i < neq; i++){
+    InfusionRate[i] = 0.0;
+    scale[i] = 1.0;
+    BadDose[i] = 0;
+  }
+  // Instead of having the correct length for idose, use idose length = length of ntime
+  // Saves an additional for loop at the cost of a little memory.
+  int *idose;
+  idose = Calloc(*ntime,int);
+  ind->idose = idose;
+  ind->ndoses=0;
+  for (i = 0; i < ind->n_all_times; i++){
+    if (evidp[i]){
+      ind->ndoses++;
+      ind->idose[ind->ndoses-1] = i;
+    }
+  }
+  op->do_par_cov = 0;
+  // cov_ptr
+  op->ncov              = 0;
+  op->is_locf           = 0;
+  // Solver Options
+  op->ATOL = *atol;
+  op->RTOL = *rtol;
+  // Assign to default LSODA behvior, or 0
+  op->HMIN           = 0;
+  ind->HMAX          = 0;
+  op->H0             = 0;
+  op->MXORDN         = 0;
+  op->MXORDS         = 0;
+  op->mxstep         = 5000; // Not LSODA default but RxODE default
+  // Counters
+  ind->slvr_counter   = 0;
+  ind->dadt_counter   = 0;
+  ind->jac_counter    = 0;
+
+  op->nlhs           = *nlhsa;
+  op->neq            = *neqa;
+  op->stiff          = *stiffa;
+  
+  ind->nBadDose = 0;
+  op->do_transit_abs = *transit_abs;
+
+  ind->all_times = timep;
+  ind->par_ptr = theta;
+  op->inits   = initsp;
+  ind->dose    = dosep;
+  ind->solve   = retp;
+  ind->lhs     = lhsp;
+  ind->evid    = evidp;
+  ind->rc = rc;
+  t_set_solve set_solve = (t_set_solve)(op->set_solve);
+  SEXP sd = R_NilValue;
+  set_solve(rx);
+  par_solve(rx, sd, 0); // Solve without the option of updating residuals.
+  t_calc_lhs calc_lhs = (t_calc_lhs)(op->calc_lhs);
+  if (*nlhsa) {
+    for (i=0; i<*ntime; i++){
+      // 0 = first subject; Calc lhs changed...
+      calc_lhs(0, timep[i], retp+i*(*neqa), lhsp+i*(*nlhsa));
+    }
+  }
+  Free(idose);
+}
+
 
 /* void RxODE_ode_solve_env(SEXP sexp_rho){ */
 /*   error("now."); */
