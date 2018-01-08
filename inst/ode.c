@@ -41,9 +41,7 @@ typedef void (*RxODE_ode_solver_old_c)(int *neq,double *theta,double *time,int *
 typedef double (*RxODE_solveLinB)(rx_solve *rx, unsigned int id, double t, int linCmt, int diff1, int diff2, double A, double alpha, double B, double beta, double C, double gamma, double ka, double tlag);
 typedef double (*RxODE_sum_prod)(double *input, int n);
 // Give par pointers
-RxODE_vec _par_ptr, _InfusionRate;
-RxODE_update_par_ptr _update_par_ptr;
-RxODE_cnt _dadt_counter_val, _jac_counter_val;
+
 RxODE_inc _dadt_counter_inc, _jac_counter_inc;
 RxODE_val podo, tlast;
 RxODE_transit4P _transit4P;
@@ -56,6 +54,36 @@ RxODE_ode_solver_old_c _old_c;
 RxODE_solveLinB solveLinB;
 RxODE_sum_prod _sum1, _prod1;
 assign_ptr _assign_ptr;
+
+long _dadt_counter_val(rx_solve *rx, unsigned int id){
+  static RxODE_cnt fun = NULL;
+  if (fun == NULL) fun = (RxODE_cnt) R_GetCCallable("RxODE","RxODE_dadt_counter_valP");
+  return fun(rx, id);
+}
+
+long _jac_counter_val(rx_solve *rx, unsigned int id){
+  static RxODE_cnt fun = NULL;
+  if (fun == NULL) fun = (RxODE_cnt) R_GetCCallable("RxODE","RxODE_jac_counter_valP");
+  return fun(rx, id);
+}
+
+void _update_par_ptr(double t, rx_solve *rx, unsigned int id){
+  static RxODE_update_par_ptr fun = NULL;
+  if (fun == NULL) fun = (RxODE_update_par_ptr) R_GetCCallable("RxODE","RxODE_update_par_ptrP");
+  return fun(t, rx, id);
+}
+
+double _par_ptr(int val, rx_solve *rx, unsigned int id){
+  static RxODE_vec fun = NULL ;
+  if (fun == NULL) fun = (RxODE_vec) R_GetCCallable("RxODE","RxODE_par_ptrP");
+  return fun(val, rx, id);
+}
+
+double _InfusionRate(int val, rx_solve *rx, unsigned int id){
+  static RxODE_vec fun = NULL ;
+  if (fun == NULL) fun = (RxODE_vec) R_GetCCallable("RxODE","RxODE_InfusionRateP");
+  return fun(val, rx, id);
+}
 
 double _sum(int n, ...){
   va_list valist;
@@ -97,7 +125,6 @@ extern double _sign(unsigned int n, ...){
   return s;
 }
 
-SEXP _mv;
 // Single sublect global variables
 // Only need to be allocated once.
 double _s_inits[__NEQ__];
@@ -106,8 +133,43 @@ double _s_InfusionRate[__NEQ__];
 int _s_BadDose[__NEQ__];
 int _s_stateIgnore[__NEQ__];
 
+int _mvi=0;
+SEXP _mv;
+SEXP __MODEL_VARS__0();
 extern SEXP __MODEL_VARS__(){
-  return _mv;
+  if (_mvi == 0){
+    _mv = __MODEL_VARS__0();
+    // Use model variables to finalize single solve structure.
+    rx_solve *rx = (rx_solve*)(R_ExternalPtrAddr(VECTOR_ELT(VECTOR_ELT(_mv, 12), 11)));
+    rx_solving_options *op = (rx_solving_options*)R_ExternalPtrAddr(rx->op);
+    rx_solving_options_ind *inds = rx->subjects;
+    rx_solving_options_ind *ind = &inds[0];
+    op->nlhs = __NLHS__;
+    op->neq = __NEQ__;
+    op->stateNames = VECTOR_ELT(_mv, 2);
+    op->lhsNames = VECTOR_ELT(_mv, 1);
+    op->paramNames = VECTOR_ELT(_mv, 0);
+    ind->podo = 0.0;
+    ind->ixds = 0;
+    int i;
+    for (i = 0; i < __NEQ__; i++){
+      _s_inits[i] = 0.0;
+      _s_scale[i] = 1.0;
+      _s_InfusionRate[i] = 0.0;
+      _s_BadDose[i] =0;
+      _s_stateIgnore[i] = 0;
+    }
+    op->inits = &_s_inits[0];
+    op->scale = &_s_scale[0];  
+    ind->InfusionRate = &_s_InfusionRate[0];
+    ind->BadDose = &_s_BadDose[0];
+    rx->stateIgnore = &_s_stateIgnore[0];
+    _assign_ptr(_mv);
+    _mvi = 1;
+    return _mv;
+  } else {
+    return _mv;
+  }
 }
 
 rx_solve *_solveData = NULL;
@@ -182,11 +244,6 @@ rx_solving_options _s_op;
 //Initilize the dll to match RxODE's calls
 void __R_INIT__ (DllInfo *info){
   // Get the RxODE calling interfaces
-  _InfusionRate   = (RxODE_vec) R_GetCCallable("RxODE","RxODE_InfusionRateP");
-  _update_par_ptr = (RxODE_update_par_ptr) R_GetCCallable("RxODE","RxODE_update_par_ptrP");
-  _par_ptr = (RxODE_vec) R_GetCCallable("RxODE","RxODE_par_ptrP");
-  _dadt_counter_val = (RxODE_cnt) R_GetCCallable("RxODE","RxODE_dadt_counter_valP");
-  _jac_counter_val  = (RxODE_cnt) R_GetCCallable("RxODE","RxODE_jac_counter_valP");
   _dadt_counter_inc = (RxODE_inc) R_GetCCallable("RxODE","RxODE_dadt_counter_incP");
   _jac_counter_inc  = (RxODE_inc) R_GetCCallable("RxODE","RxODE_jac_counter_incP");
   podo  = (RxODE_val) R_GetCCallable("RxODE","RxODE_podoP");
@@ -223,39 +280,14 @@ void __R_INIT__ (DllInfo *info){
   
   R_CallMethodDef callMethods[]  = {
     {__ODE_SOLVER_XPTR_STR__, (DL_FUNC) &__ODE_SOLVER_XPTR__, 0},
+    {__ODE_SOLVER_PTR_STR__, (DL_FUNC) &__ODE_SOLVER_PTR__, 0},
     {__MODEL_VARS_STR__, (DL_FUNC) &__MODEL_VARS__, 0},
     {"__INIS__", (DL_FUNC) &__INIS__, 1},
     {NULL, NULL, 0}
   };
   R_registerRoutines(info, cMethods, callMethods, NULL, NULL);
   R_useDynamicSymbols(info,FALSE);
-  _mv = __MODEL_VARS__0();
-  // Use model variables to finalize single solve structure.
-  rx_solve *rx = (rx_solve*)(R_ExternalPtrAddr(VECTOR_ELT(VECTOR_ELT(_mv, 12), 11)));
-  rx_solving_options *op = (rx_solving_options*)R_ExternalPtrAddr(rx->op);
-  rx_solving_options_ind *inds = rx->subjects;
-  rx_solving_options_ind *ind = &inds[0];
-  op->nlhs = __NLHS__;
-  op->neq = __NEQ__;
-  op->stateNames = VECTOR_ELT(_mv, 2);
-  op->lhsNames = VECTOR_ELT(_mv, 1);
-  op->paramNames = VECTOR_ELT(_mv, 0);
-  ind->podo = 0.0;
-  ind->ixds = 0;
-  int i;
-  for (i = 0; i < __NEQ__; i++){
-    _s_inits[i] = 0.0;
-    _s_scale[i] = 1.0;
-    _s_InfusionRate[i] = 0.0;
-    _s_BadDose[i] =0;
-    _s_stateIgnore[i] = 0;
-  }
-  op->inits = &_s_inits[0];
-  op->scale = &_s_scale[0];  
-  ind->InfusionRate = &_s_InfusionRate[0];
-  ind->BadDose = &_s_BadDose[0];
-  rx->stateIgnore = &_s_stateIgnore[0];
-  _assign_ptr(_mv);
+  __MODEL_VARS__();
 }
 
 void __R_UNLOAD__ (DllInfo *info){

@@ -15,7 +15,7 @@ rxPermissive({
                 skip("Can't load test dataset.")
             }
         }
-        convert1 <- rxDataSetup(dat);
+        convert1 <- RxODE:::rxDataSetup(dat);
         expect_equal(length(convert1$cov), 0);
         expect_equal(length(convert1$cov.names), 0);
         for (i in unique(dat$ID)){
@@ -47,7 +47,7 @@ rxPermissive({
                 skip("Can't load test dataset.")
             }
         }
-        convert1 <- rxDataSetup(as.matrix(dat));
+        convert1 <- RxODE:::rxDataSetup(as.matrix(dat));
         expect_equal(length(convert1$cov), 0);
         expect_equal(length(convert1$cov.names), 0);
         for (i in unique(dat$ID)){
@@ -80,7 +80,7 @@ rxPermissive({
                 skip("Can't load test dataset.")
             }
         }
-        convert1 <- rxDataSetup(as.tbl(dat));
+        convert1 <- RxODE:::rxDataSetup(as.tbl(dat));
         expect_equal(length(convert1$cov), 0);
         expect_equal(length(convert1$cov.names), 0);
         for (i in unique(dat$ID)){
@@ -114,7 +114,7 @@ rxPermissive({
             }
         }
         dat2 <- dat %>% mutate(id=ID, amt=AMT, time=TIME, evid=EVID, dv=DV) %>% select(-ID, -AMT, -TIME, -EVID, -DV);
-        convert1 <- rxDataSetup(dat2);
+        convert1 <- RxODE:::rxDataSetup(dat2);
         expect_equal(length(convert1$cov), 0);
         expect_equal(length(convert1$cov.names), 0);
         for (i in unique(dat$ID)){
@@ -147,7 +147,7 @@ rxPermissive({
             }
         }
         dat2 <- dat %>% mutate(Id=ID, Amt=AMT, Time=TIME, Evid=EVID, Dv=DV) %>% select(-ID, -AMT, -TIME, -EVID, -DV);
-        convert1 <- rxDataSetup(dat2);
+        convert1 <- RxODE:::rxDataSetup(dat2);
         expect_equal(length(convert1$cov), 0);
         expect_equal(length(convert1$cov.names), 0);
         for (i in unique(dat$ID)){
@@ -180,7 +180,7 @@ rxPermissive({
             }
         }
         dat2 <- dat %>% mutate(Id=ID, AMt=AMT, TIme=TIME, EVid=EVID, Dv=DV) %>% select(-ID, -AMT, -TIME, -EVID, -DV);
-        expect_error(rxDataSetup(dat2))
+        expect_error(RxODE:::rxDataSetup(dat2))
     })
 
 
@@ -197,7 +197,7 @@ rxPermissive({
             }
         }
         dat2 <- dat %>% select(-DV)
-        convert1 <- rxDataSetup(dat2);
+        convert1 <- RxODE:::rxDataSetup(dat2);
         expect_equal(length(convert1$cov), 0);
         expect_equal(length(convert1$cov.names), 0);
         for (i in unique(dat$ID)){
@@ -234,7 +234,7 @@ rxPermissive({
         }
         dat2 <- dat %>% filter(ID == 1) %>% select(-ID)
         ##
-        convert1 <- rxDataSetup(dat2);
+        convert1 <- RxODE:::rxDataSetup(dat2);
         expect_equal(length(convert1$cov), 0);
         expect_equal(length(convert1$cov.names), 0);
         i <- 1;
@@ -269,7 +269,7 @@ rxPermissive({
         }
         dat2 <- dat %>% filter(ID == 1) %>% select(-ID, -DV)
         ##
-        convert1 <- rxDataSetup(dat2);
+        convert1 <- RxODE:::rxDataSetup(dat2);
         expect_equal(length(convert1$cov), 0);
         expect_equal(length(convert1$cov.names), 0);
         i <- 1;
@@ -304,7 +304,7 @@ rxPermissive({
             }
         }
         dat2 <- dat %>% select(-ID);
-        expect_error(rxDataSetup(dat2));
+        expect_error(RxODE:::rxDataSetup(dat2));
     })
 
     cn <- c("V")
@@ -320,7 +320,7 @@ rxPermissive({
                 skip("Can't load test dataset.")
             }
         }
-        convert2 <- rxDataSetup(dat, cn);
+        convert2 <- RxODE:::rxDataSetup(dat, cn);
         expect_equal(length(convert2$cov.names), 1);
         for (i in unique(dat$ID)){
             w <- seq(convert2$ids$posObs[i] + 1,
@@ -356,7 +356,7 @@ rxPermissive({
                 skip("Can't load test dataset.")
             }
         }
-        convert2 <- rxDataSetup(dat, cn);
+        convert2 <- RxODE:::rxDataSetup(dat, cn);
         ##
         expect_equal(length(convert2$cov.names), 2);
         for (i in unique(dat$ID)){
@@ -393,7 +393,7 @@ rxPermissive({
                 skip("Can't load test dataset.")
             }
         }
-        convert2 <- rxDataSetup(dat, cn);
+        convert2 <- RxODE:::rxDataSetup(dat, cn);
         expect_equal(length(convert2$cov.names), 3);
         for (i in unique(dat$ID)){
             w <- seq(convert2$ids$posObs[i] + 1,
@@ -421,12 +421,12 @@ rxPermissive({
         et <- eventTable()   # default time units
         et$add.sampling(seq(from=0, to=100, by=0.01))
         cov <- data.frame(c=et$get.sampling()$time+1, d=et$get.sampling()$time+1);
-        tmp1 <- rxDataSetup(et, as.matrix(cov));
-        tmp2 <- rxDataSetup(et, cov)
+        tmp1 <- RxODE:::rxDataSetup(et, as.matrix(cov));
+        tmp2 <- RxODE:::rxDataSetup(et, cov)
         expect_equal(tmp1, tmp2)
         cov2 <- data.frame(c=et$get.sampling()$time[-1]+1, d=et$get.sampling()$time[-1]+1);
-        expect_error(rxDataSetup(et, as.matrix(cov2)));
-        expect_error(rxDataSetup(et, cov2));
+        expect_error(RxODE:::rxDataSetup(et, as.matrix(cov2)));
+        expect_error(RxODE:::rxDataSetup(et, cov2));
         cov2 <- data.frame(c=c(et$get.sampling()$time, 1)+1, d=c(et$get.sampling()$time, 1)+1);
     })
 
@@ -448,13 +448,13 @@ rxPermissive({
                     d <- 2;
                     tmp <- matrix(rnorm(d^2), d, d)
                     mcov <- tcrossprod(tmp, tmp)
-                    expect_error(rxDataSetup(dat, sigma=mcov));
+                    expect_error(RxODE:::rxDataSetup(dat, sigma=mcov));
                     dimnames(mcov) <- list(c("s.a", "s.b"), c("s.a", "s.b"))
                     cholmat <- chol(mcov)
                     if (ch == 1){
                         mcov <- cholmat;
                     }
-                    convert1 <- rxDataSetup(dat, sigma=mcov, df=ifelse(df == 0, Inf, df), ncoresRV=cores, isChol=(ch == 1));
+                    convert1 <- RxODE:::rxDataSetup(dat, sigma=mcov, df=ifelse(df == 0, Inf, df), ncoresRV=cores, isChol=(ch == 1));
                     expect_equal(convert1$cov.names, NULL)
                     expect_equal(convert1$simulated.vars, c("s.a", "s.b"))
                     ## Now Update; the simulted variables should all be different.
@@ -464,7 +464,7 @@ rxPermissive({
                     ##
                     cn <- c("V", "CL")
                     ## cov <- dat %>% filter(EVID == 0) %>% select(V, CL)
-                    convert2 <- rxDataSetup(dat, cn, sigma=mcov, df=ifelse(df == 0, Inf, df), ncoresRV=cores, isChol=(ch == 1));
+                    convert2 <- RxODE:::rxDataSetup(dat, cn, sigma=mcov, df=ifelse(df == 0, Inf, df), ncoresRV=cores, isChol=(ch == 1));
                     ##
                     expect_equal(convert2$cov.names, cn)
                     expect_equal(convert2$simulated.vars, c("s.a", "s.b"))
