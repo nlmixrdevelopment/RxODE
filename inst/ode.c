@@ -58,6 +58,7 @@ double _sum1(double *input, int n){
   if (fun == NULL) fun = (RxODE_sum_prod) R_GetCCallable("RxODE","RxODE_sum");
   return fun(input, n);
 }
+
 double _prod1(double *input, int n){
   static RxODE_sum_prod fun = NULL;
   if (fun == NULL) fun = (RxODE_sum_prod) R_GetCCallable("RxODE","RxODE_prod");
@@ -103,6 +104,7 @@ double sign_exp(double x, double y){
   if (fun == NULL) fun = (RxODE_fn2) R_GetCCallable("RxODE","RxODE_sign_exp");
   return fun(x, y);
 }
+
 double _as_zero(double x){
   static RxODE_fn fun = NULL;
   if (fun == NULL) fun = (RxODE_fn) R_GetCCallable("RxODE","RxODE_as_zero");
@@ -303,6 +305,7 @@ extern rx_solve *__ODE_SOLVER_GET_SOLVEDATA__(){
   return _solveData;
 }
 
+extern void __ODE_SOLVER_PTR__();
 SEXP __MODEL_VARS__();
 extern void __ODE_SOLVER__(int *neq,
 			   double *theta,      //order:
@@ -318,8 +321,8 @@ extern void __ODE_SOLVER__(int *neq,
 			   int *transit_abs,
 			   int *nlhs,
 			   double *lhs,
-			   int *rc
-			   ){
+			   int *rc){
+  __ODE_SOLVER_PTR__();
   // Backward compatible ode solver for 0.5* C interface
   _old_c(neq, theta, time, evid, ntime, inits, dose, ret, atol, rtol, stiff, transit_abs, nlhs, lhs, rc);
 }
@@ -354,22 +357,19 @@ extern SEXP __ODE_SOLVER_XPTR__  (){
 }
 
 extern void __ODE_SOLVER_PTR__  (){
-  _assign_ptr(_mv);
+  if (_mvi == 0){
+    __MODEL_VARS__();
+  } else {
+    _assign_ptr(_mv);
+  }
 }
-
-
-// Single solving options setup
-rx_solving_options _s_op;
-
 //Initilize the dll to match RxODE's calls
 void __R_INIT__ (DllInfo *info){
   // Register the outside functions
   R_RegisterCCallable(__LIB_STR__,__ODE_SOLVER_STR__,       (DL_FUNC) __ODE_SOLVER__);
   R_RegisterCCallable(__LIB_STR__,"__ODE_SOLVER_XPTR__",   (DL_FUNC) __ODE_SOLVER_XPTR__);
   R_RegisterCCallable(__LIB_STR__,"__ODE_SOLVER_PTR__",   (DL_FUNC) __ODE_SOLVER_PTR__);
-  /* R_registerRoutines(info, NULL, NULL, NULL, NULL); */
-  /* R_useDynamicSymbols(info,TRUE); */
-
+  
   static const R_CMethodDef cMethods[] = {
     {__ODE_SOLVER_STR__, (DL_FUNC) &__ODE_SOLVER__, 15, __ODE_SOLVER__rx_t},
     {NULL, NULL, 0, NULL}
@@ -382,9 +382,9 @@ void __R_INIT__ (DllInfo *info){
     {"__INIS__", (DL_FUNC) &__INIS__, 1},
     {NULL, NULL, 0}
   };
+
   R_registerRoutines(info, cMethods, callMethods, NULL, NULL);
   R_useDynamicSymbols(info,FALSE);
-  __MODEL_VARS__();
 }
 
 void __R_UNLOAD__ (DllInfo *info){
