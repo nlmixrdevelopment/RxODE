@@ -186,6 +186,7 @@ rxSolve <- function(object, params = NULL, events = NULL, inits = NULL, ..., sca
         ## This is for backward compatibility to create a list of solving options for focei in old nlmixr.
         ## It is likely to go away at some point.
         modVars <- rxModelVars(object);
+        dll <- object$dll;
         trans <- modVars$trans
         state <- modVars$state;
         lhs <- modVars$lhs;
@@ -209,11 +210,6 @@ rxSolve <- function(object, params = NULL, events = NULL, inits = NULL, ..., sca
             names(params) <- n;
         }
         ## Params and inits passed
-        extra.args <- list(events = events$copy(),
-                           covs = covs, stiff = stiff,
-                           transit_abs = transit_abs, atol = atol, rtol = rtol, maxsteps = maxsteps,
-                           hmin = hmin, hmax = hmax, hini = hini, maxordn = maxordn, maxords = maxords,
-                           covs_interpolation = covs_interpolation, add.cov=add.cov, ...);
         params <- c(params, rxThetaEta(theta, eta));
         event.table <- events$get.EventTable()
         if (!is.numeric(maxordn))
@@ -352,7 +348,7 @@ rxSolve <- function(object, params = NULL, events = NULL, inits = NULL, ..., sca
         maxordn=as.integer(maxordn);
         maxords=as.integer(maxords);
         maxsteps=as.integer(maxsteps);
-        stiff=as.integer(stiff);
+        stiff=ifelse(missing(stiff),ifelse(regexpr("lsoda", method) != -1, 1L, 0L), as.integer(stiff));
         transit_abs=as.integer(transit_abs);
         do.matrix=as.integer(matrix);
         add.cov = as.integer(add.cov);
@@ -380,8 +376,7 @@ rxSolve <- function(object, params = NULL, events = NULL, inits = NULL, ..., sca
                     stiff=stiff,
                     transit_abs=transit_abs,
                     ## Passed to build solver object.
-                    object=env,
-                    extra.args=extra.args,
+                    object=object,
                     scale=scale,
                     events=events,
                     event.table=event.table,

@@ -317,15 +317,6 @@ void RxODE_ode_solve_env(SEXP sexp_rho){
   set_solve(rx);
   par_solve(rx, sd, 0); // Solve without the option of updating residuals.
   Free(idose);
-  /* inits         = REAL(sexp_inits); */
-
-  /* RxODE_ode_setup(sexp_inits, sexp_lhs, sexp_time, sexp_evid, sexp_dose, sexp_pcov, sexp_cov, */
-  /* 		  sexp_locf, sexp_atol, sexp_rtol, sexp_hmin, sexp_hmax, sexp_h0, sexp_mxordn, */
-  /* 		  sexp_mxords, sexp_mx, sexp_stiff, sexp_transit_abs); */
-  /* RxODE_ode_alloc(); */
-  /* RxODE_ode_solver_c(neq, stiff, evid, inits, dose, solve, rc); */
-  /* // Send rc to environment */
-  /* rce[0] = rc[0]; */
   UNPROTECT(pro);
 }
 

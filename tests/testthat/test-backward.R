@@ -143,4 +143,7 @@ C1=centr/V;
         expect_equal(round(val1, 3), round(val3, 3))
     })
 
+    ## Now try environmental solve
+    lst <- list2env(rxSolve(sys1, theta, ev, atol=1e-6, rtol=1e-6, do.solve=F))
+
 }, silent=TRUE)
