@@ -1730,7 +1730,8 @@ SEXP rxSolveC(const RObject &object,
               const bool addDosing = false,
 	      const RObject &theta = R_NilValue,
 	      const RObject &eta = R_NilValue,
-	      const bool updateObject = false
+	      const bool updateObject = false,
+	      const bool doSolve = true
               ){
   if (rxIs(object, "rxSolve") || rxIs(object, "environment")){
     // Check to see what parameters were updated by specParams
@@ -1866,11 +1867,76 @@ SEXP rxSolveC(const RObject &object,
 		    new_addCov, new_matrix, new_sigma, new_sigmaDf, new_sigmaNcores, new_sigmaIsChol,
 		    new_amountUnits, new_timeUnits, new_addDosing);
   } else {
-    DataFrame ret;
     List parData = rxData(object, params, events, inits, covs, as<std::string>(method[0]), transit_abs, atol,
                           rtol, maxsteps, hmin,hmax, hini, maxordn, maxords, cores,
                           as<std::string>(covs_interpolation[0]), addCov, matrix, sigma, sigmaDf, sigmaNcores, sigmaIsChol,
                           amountUnits, timeUnits, theta, eta, scale, extraArgs);
+    if (!doSolve){
+      // Backwards Compatible; Create solving environment
+      if (as<int>(parData["nsim"]) == 1 && as<int>(parData["nSub"]) == 1){
+	int stiff = 0;
+	if (as<std::string>(method[0]) == "lsoda"){
+	  stiff = 1;
+	} else if (as<std::string>(method[0]) != "dop853") {
+	  stop("Only lsoda or dop853 can be used with do.solve=FALSE");
+	}
+	List mv = rxModelVars(object);
+	List et = parData["et"];
+	List dose = parData["dose"];
+        List ret;
+        ret["params"] = parData["pars"];
+	ret["inits"] = parData["inits"];
+	ret["lhs_vars"] = mv["lhs"];
+	ret["time"] = et["time"];
+	ret["evid"] = et["evid"];
+	ret["amt"] = dose["amt"];
+	ret["pcov"] = parData["pcov"];
+	ret["cov"] = parData["cov"];
+	// FIXME: isLocf
+        int is_locf = 0;
+        if (as<std::string>(covs_interpolation[0]) == "linear"){
+        } else if (as<std::string>(covs_interpolation[0]) == "constant" || as<std::string>(covs_interpolation[0]) == "locf" || as<std::string>(covs_interpolation[0]) == "LOCF"){
+          is_locf=1;
+        } else if (as<std::string>(covs_interpolation[0]) == "nocb" || as<std::string>(covs_interpolation[0]) == "NOCB"){
+          is_locf=2;
+        }  else if (as<std::string>(covs_interpolation[0]) == "midpoint"){
+          is_locf=3;
+        } else {
+          stop("Unknown covariate interpolation specified.");
+        }
+	ret["isLocf"] = is_locf;
+        ret["atol"] = atol;
+        ret["rtol"] = rtol;
+	ret["hmin"] = hmin;
+	ret["hmax"] = hmax;
+	ret["hini"] = hini;
+	ret["maxordn"] = maxordn;
+	ret["maxords"] = maxords;
+	ret["maxsteps"] = maxsteps;
+	// FIXME stiff
+	ret["stiff"] = stiff;
+        int transit = 0;
+        if (transit_abs.isNull()){
+          transit = mv["podo"];
+          if (transit){
+            warning("Assumed transit compartment model since 'podo' is in the model.");
+          }
+        } else {
+          LogicalVector tr = LogicalVector(transit_abs);
+          if (tr[0]){
+            transit=  1;
+          }
+        }
+	ret["transit_abs"] = transit;
+	IntegerVector rc(2);
+	ret["rc"] = rc;
+        return as<SEXP>(ret);
+      } else {
+	stop("do.solve = TRUE only works with single subject data (currently).");
+      }
+    }
+    DataFrame ret;
+    
     rx_solve *rx;
     rx =getRxSolve(parData);
     par_solve(rx, parData, 1);
@@ -2048,7 +2114,7 @@ SEXP rxSolveCsmall(const RObject &object,
                    const RObject &params = R_NilValue,
                    const RObject &events = R_NilValue,
                    const Nullable<NumericVector> &inits = R_NilValue,
-  const Nullable<NumericVector> &scale = R_NilValue,
+		   const Nullable<NumericVector> &scale = R_NilValue,
                    const RObject &covs  = R_NilValue,
                    const Nullable<List> &optsL = R_NilValue){
   if (optsL.isNull()){
@@ -2079,7 +2145,8 @@ SEXP rxSolveCsmall(const RObject &object,
                   opts[20], //const RObject &theta = R_NilValue,
                   opts[21], //const RObject &eta = R_NilValue,
                   opts[22], //const bool addDosing = false
-		  opts[23]);//const bool updateObject = false)
+		  opts[23],
+		  opts[24]);//const bool updateObject = false)
 }
 
 //[[Rcpp::export]]
