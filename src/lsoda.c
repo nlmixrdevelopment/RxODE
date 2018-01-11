@@ -1,3 +1,5 @@
+#include <R.h>
+#include <Rinternals.h>
 /*
   This is a reentrant-friendly version of the LSODA library.
 
@@ -59,8 +61,6 @@
 */
 
 
-#include <R.h>
-#include <Rinternals.h>
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
@@ -200,46 +200,46 @@ static int check_opt(struct lsoda_context_t * ctx, struct lsoda_opt_t * opt) {
 	/* default itask is 1 */
 	if (opt->itask == 0) opt->itask = 1;
 	if (opt->itask < 1 || opt->itask > 5) {
-		Rprintf( "[lsoda] illegal itask = %d\n", opt->itask);
+		Rprintf("[lsoda] illegal itask = %d\n", opt->itask);
 		return 0;
 	}
 
 	if (opt->ixpr < 0 || opt->ixpr > 1) {
-		Rprintf( "[lsoda] ixpr = %d is illegal\n", opt->ixpr);
+		Rprintf("[lsoda] ixpr = %d is illegal\n", opt->ixpr);
 		return 0;
 	}
 	if (opt->mxstep < 0) {
-		Rprintf( "[lsoda] mxstep < 0\n");
+		Rprintf("[lsoda] mxstep < 0\n");
 		return 0;
 	}
 	if (opt->mxstep == 0) opt->mxstep = mxstp0;
 	if (opt->mxhnil < 0) {
-		Rprintf( "[lsoda] mxhnil < 0\n");
+		Rprintf("[lsoda] mxhnil < 0\n");
 		return 0;
 	}
 	if (ctx->state == 1) {
 		if (opt->mxordn < 0) {
-			Rprintf( "[lsoda] mxordn = %d is less than 0\n", opt->mxordn);
+			Rprintf("[lsoda] mxordn = %d is less than 0\n", opt->mxordn);
 			return 0;
 		}
 		if (opt->mxordn == 0) opt->mxordn = 100;
 		opt->mxordn = min(opt->mxordn, mord[1]);
 		if (opt->mxords < 0) {
-			Rprintf( "[lsoda] mxords = %d is less than 0\n", opt->mxords);
+			Rprintf("[lsoda] mxords = %d is less than 0\n", opt->mxords);
 			return 0;
 		}
 		if (opt->mxords == 0) opt->mxords = 100;
 		opt->mxords = min(opt->mxords, mord[2]);
 	}	/* end if ( ctx->state == 1 )  */
 	if (opt->hmax < 0.) {
-		Rprintf( "[lsoda] hmax < 0.\n");
+		Rprintf("[lsoda] hmax < 0.\n");
 		return 0;
 	}
 	opt->hmxi = 0.;
 	if (opt->hmax > 0)
 		opt->hmxi = 1. / opt->hmax;
 	if (opt->hmin < 0.) {
-		Rprintf( "[lsoda] hmin < 0.\n");
+		Rprintf("[lsoda] hmin < 0.\n");
 		return 0;
 	}
 	return 1;
@@ -469,7 +469,7 @@ void lsoda_reset(struct lsoda_context_t * ctx) {
 void lsoda_free(struct lsoda_context_t * ctx) {
 	free(ctx->common->memory);
 	if(ctx->error) {
-		Rprintf( "unhandled error message: %s\n", ctx->error);
+		Rprintf("unhandled error message: %s\n", ctx->error);
 		free(ctx->error);
 	}
 	free(ctx->common);
@@ -751,12 +751,12 @@ int lsoda(struct lsoda_context_t * ctx, double *y, double *t, double tout) {
 			if ((_C(tn) + _C(h)) == _C(tn)) {
 				_C(nhnil)++;
 				if (_C(nhnil) <= opt->mxhnil) {
-					Rprintf( "lsoda -- warning..internal t = %g and _C(h) = %g are\n", _C(tn), _C(h));
-					Rprintf( "         such that in the machine, t + _C(h) = t on the next step\n");
-					Rprintf( "         solver will continue anyway.\n");
+					Rprintf("lsoda -- warning..internal t = %g and _C(h) = %g are\n", _C(tn), _C(h));
+					Rprintf("         such that in the machine, t + _C(h) = t on the next step\n");
+					Rprintf("         solver will continue anyway.\n");
 					if (_C(nhnil) == opt->mxhnil) {
-						Rprintf( "lsoda -- above warning has been issued %d times,\n", _C(nhnil));
-						Rprintf( "         it will not be issued again for this problem\n");
+						Rprintf("lsoda -- above warning has been issued %d times,\n", _C(nhnil));
+						Rprintf("         it will not be issued again for this problem\n");
 					}
 				}
 			}
@@ -765,10 +765,10 @@ int lsoda(struct lsoda_context_t * ctx, double *y, double *t, double tout) {
 			 */
 			kflag = stoda(ctx, y, jstart);
 			/*
-			   printf( "_C(meth)= %d,   order= %d,   _C(nfe)= %d,   _C(nje)= %d\n",
+			   Rprintf("_C(meth)= %d,   order= %d,   _C(nfe)= %d,   _C(nje)= %d\n",
 			   _C(meth), _C(nq), _C(nfe), _C(nje) );
-			   printf( "t= %20.15e,   _C(h)= %20.15e,   _C(nst)=%d\n", _C(tn), _C(h), _C(nst) );
-			   printf( "y= %20.15e,   %20.15e,   %20.15e\n\n\n",
+			   Rprintf("t= %20.15e,   _C(h)= %20.15e,   _C(nst)=%d\n", _C(tn), _C(h), _C(nst) );
+			   Rprintf("y= %20.15e,   %20.15e,   %20.15e\n\n\n",
 			   _C(yh)[1][1], _C(yh)[1][2], _C(yh)[1][3] );
 			 */
 
@@ -788,10 +788,10 @@ int lsoda(struct lsoda_context_t * ctx, double *y, double *t, double tout) {
 					jstart = -1;
 					if (opt->ixpr) {
 						if (_C(meth) == 2)
-							Rprintf( "[lsoda] a switch to the stiff method has occurred ");
+							Rprintf("[lsoda] a switch to the stiff method has occurred ");
 						if (_C(meth) == 1)
-							Rprintf( "[lsoda] a switch to the nonstiff method has occurred");
-						Rprintf( "at t = %g, tentative step size _C(h) = %g, step _C(nst) = %d\n", _C(tn), _C(h), _C(nst));
+							Rprintf("[lsoda] a switch to the nonstiff method has occurred");
+						Rprintf("at t = %g, tentative step size _C(h) = %g, step _C(nst) = %d\n", _C(tn), _C(h), _C(nst));
 					}
 				}	/* end if ( _C(meth) != _C(mused) )   */
 				/*

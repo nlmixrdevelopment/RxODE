@@ -1,3 +1,5 @@
+#include <R.h>
+#include <Rinternals.h>
 #include "lsoda.h"
 #include "lsoda_internal.h"
 #include "common.h"
@@ -21,7 +23,7 @@ int solsy(struct lsoda_context_t * ctx, double *y)
 	const int neq = ctx->neq;
 	if (_C(miter) != 2) {
 		/* miter has to be 2. the miter=5 case is not implemented. */
-		abort();
+		error("liblsoda does not implement this. (solsy)");
 	}
 	if (_C(miter) == 2)
 		dgesl(_C(wm), neq, _C(ipvt), y, 0);

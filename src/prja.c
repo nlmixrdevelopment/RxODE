@@ -29,7 +29,7 @@ int prja(struct lsoda_context_t * ctx, double *y)
    If _C(miter) = 2, make neq calls to f to approximate J.
 */
 	if (_C(miter) != 2) {
-	        Rprintf( "[prja] _C(miter) != 2\n");
+		Rprintf("[prja] _C(miter) != 2\n");
 		return 0;
 	}
 	if (_C(miter) == 2) {

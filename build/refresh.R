@@ -1,4 +1,28 @@
 library(devtools)
+
+if (!file.exists(devtools::package_file("src/liblsoda"))){
+    owd <- getwd();
+    setwd(devtools::package_file("src"));
+    system("git clone git@github.com:sdwfrost/liblsoda")
+    setwd(owd);
+}
+
+for (file in list.files(devtools::package_file("src/liblsoda/src"), pattern="[.]([hc]|inc)$")){
+    message(sprintf("\tcopy %s", file))
+    lines <- suppressWarnings(readLines(file.path(devtools::package_file("src/liblsoda/src"), file)));
+    lines <- gsub("#include \"cfode_static.inc\"", "#include \"cfode_static.h\"", lines, fixed=TRUE);
+    lines <- gsub("fprintf[(] *stderr *, *", "Rprintf(", lines);
+    lines <- gsub("([ \t])printf[(] *", "\\1Rprintf(", lines);
+    if (any(regexpr("Rprintf", lines) != -1)){
+        lines <- c("#include <R.h>", "#include <Rinternals.h>", lines);
+    }
+    if (file == "solsy.c"){
+        lines <- c("#include <R.h>", "#include <Rinternals.h>", gsub("abort[(] *[)]", "error(\"liblsoda does not implement this. (solsy)\")", lines));
+    }
+    writeLines(lines, file.path(devtools::package_file("src"), gsub("[.]inc$", ".h", file)))
+}
+
+
 ## library(tidyr)
 ## library(dplyr)
 cat("Copy header to inst directory")
