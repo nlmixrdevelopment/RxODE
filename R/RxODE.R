@@ -367,8 +367,8 @@ RxODE <- function(model, modName = basename(wd), wd = ifelse(RxODE.cache.directo
         .Primitive(".Call")(sexp.address,...);
     }
 
-    solve <- function(..., matrix=TRUE){
-        rxSolve(out$dll, ..., matrix=matrix);
+    solve <- function(..., matrix=TRUE, object=NULL){
+        rxSolve(object=out$dll, ..., matrix=matrix);
     }
     force <- FALSE
     if (is(do.compile,"logical")){

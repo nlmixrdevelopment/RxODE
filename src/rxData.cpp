@@ -1035,11 +1035,15 @@ NumericVector rxSetupScale(const RObject &obj,
     if (!xtraN2.isNull()){
       StringVector xtraN = StringVector(xtraN2);
       n = xtraN.size();
+      std::string tmpstr;
       for (i = 0; i < n; i++){
-        if (strstr("S", (as<std::string>(xtraN[i])).c_str()) == 0){
-          foundS++;
-        } else if (strstr("s", (as<std::string>(xtraN[i])).c_str()) == 0){
-          foundS++;
+	tmpstr = (as<std::string>(xtraN[i])).substr(0,1);
+	if (tmpstr == "S" || tmpstr == "s"){
+	  tmpstr = (as<std::string>(xtraN[i])).substr(1,1);
+	  if (tmpstr == "0" || tmpstr == "1" || tmpstr == "2" || tmpstr == "3" || tmpstr == "4" ||
+	      tmpstr == "5" || tmpstr == "6" || tmpstr == "7" || tmpstr == "8" || tmpstr == "9"){
+	    foundS++;
+          }
         }
       }
     }
@@ -1048,6 +1052,160 @@ NumericVector rxSetupScale(const RObject &obj,
     }
   }
   return ret;
+}
+
+NumericMatrix rxSetupParamsThetaEta(const RObject &params = R_NilValue,
+				    const RObject &theta = R_NilValue,
+				    const RObject &eta = R_NilValue){
+  // Now get the parameters as a data.frame
+  NumericMatrix parMat;
+  int i;
+  if (params.isNULL()){
+    if (!theta.isNULL() || !eta.isNULL()){
+      // Create the matrix
+      NumericVector thetaN;
+      if (rxIs(theta,"numeric") || rxIs(theta,"integer")){
+        thetaN = as<NumericVector>(theta);
+      } else if (rxIs(theta, "matrix")){
+        NumericMatrix thetaM = as<NumericMatrix>(theta);
+        if (thetaM.nrow() == 1){
+          thetaN = NumericVector(thetaM.ncol());
+          for (i = 0 ; i < thetaM.ncol(); i++){
+            thetaN[i] = thetaM(1,i);
+          }
+        } else if (thetaM.ncol() == 1){
+          thetaN = NumericVector(thetaM.nrow());
+          for (i = 0 ; i < thetaM.ncol(); i++){
+            thetaN[i] = thetaM(i, i);
+          }
+        } else {
+          stop("'theta' is not compatible with params, check dimensions to make sure they are compatible.");
+        }
+      } else if (!theta.isNULL()){
+        stop("'theta' is not compatible with params, check dimensions to make sure they are compatible.");
+      }
+      // Now eta
+      NumericVector etaN;
+      if (rxIs(eta,"numeric") || rxIs(eta,"integer")){
+        etaN = as<NumericVector>(eta);
+      } else if (rxIs(eta, "matrix")){
+        NumericMatrix etaM = as<NumericMatrix>(eta);
+        if (etaM.nrow() == 1){
+          etaN = NumericVector(etaM.ncol());
+          for (i = 0 ; i < etaM.ncol(); i++){
+            etaN[i] = etaM(0, i);
+          }
+        } else if (etaM.ncol() == 1){
+          etaN = NumericVector(etaM.nrow());
+          for (i = 0 ; i < etaM.ncol(); i++){
+            etaN[i] = etaM(i, 0);
+          }
+        } else {
+          stop("'eta' is not compatible with params, check dimensions to make sure they are compatible.");
+        }
+      } else if (!eta.isNULL()){
+        stop("'eta' is not compatible with params, check dimensions to make sure they are compatible.");
+      }
+      NumericMatrix tmp1(1, thetaN.size()+etaN.size());
+      CharacterVector tmpN = CharacterVector(tmp1.size());
+      for (i = 0; i < thetaN.size(); i++){
+        tmp1(0, i) = thetaN[i];
+        tmpN[i] = "THETA[" + std::to_string(i + 1) + "]";
+      }
+      for (; i < thetaN.size()+ etaN.size(); i++){
+        tmp1(0, i) = etaN[i - thetaN.size()];
+        tmpN[i] = "ETA[" + std::to_string(i - thetaN.size() + 1) + "]";
+      }
+      tmp1.attr("dimnames") = List::create(R_NilValue, tmpN);
+      parMat = tmp1;
+    }
+  } else if (rxIs(params, "data.frame") || rxIs(params, "matrix")){
+    if (rxIs(params,"data.frame")){
+      DataFrame tmp = as<DataFrame>(params);
+      int nr = tmp.nrows();
+      NumericMatrix tmpM(nr,tmp.size());
+      for (i = 0; i < tmp.size(); i++){
+        tmpM(_,i) = NumericVector(tmp[i]);
+      }
+      tmpM.attr("dimnames") = List::create(R_NilValue,tmp.names());
+      parMat=tmpM;
+    } else {
+      parMat = as<NumericMatrix>(params);
+    }
+  } else if (rxIs(params, "numeric") || rxIs(params, "integer")){
+    // Create the matrix
+    NumericVector thetaN;
+    if (rxIs(theta,"numeric") || rxIs(theta,"integer")){
+      thetaN = as<NumericVector>(theta);
+    } else if (rxIs(theta, "matrix")){
+      NumericMatrix thetaM = as<NumericMatrix>(theta);
+      if (thetaM.nrow() == 1){
+        thetaN = NumericVector(thetaM.ncol());
+        for (i = 0 ; i < thetaM.ncol(); i++){
+          thetaN[i] = thetaM(1,i);
+        }
+      } else if (thetaM.ncol() == 1){
+        thetaN = NumericVector(thetaM.nrow());
+        for (i = 0 ; i < thetaM.ncol(); i++){
+          thetaN[i] = thetaM(i, i);
+        }
+      } else {
+        stop("'theta' is not compatible with params, check dimensions to make sure they are compatible.");
+      }
+    } else if (!theta.isNULL()){
+      stop("'theta' is not compatible with params, check dimensions to make sure they are compatible.");
+    }
+    // Now eta
+    NumericVector etaN;
+    if (rxIs(eta,"numeric") || rxIs(eta,"integer")){
+      etaN = as<NumericVector>(eta);
+    } else if (rxIs(eta, "matrix")){
+      NumericMatrix etaM = as<NumericMatrix>(eta);
+      if (etaM.nrow() == 1){
+        etaN = NumericVector(etaM.ncol());
+        for (i = 0 ; i < etaM.ncol(); i++){
+          etaN[i] = etaM(0, i);
+        }
+      } else if (etaM.ncol() == 1){
+        etaN = NumericVector(etaM.nrow());
+        for (i = 0 ; i < etaM.ncol(); i++){
+          etaN[i] = etaM(i, 0);
+        }
+      } else {
+        stop("'eta' is not compatible with params, check dimensions to make sure they are compatible.");
+      }
+    } else if (!eta.isNULL()){
+      stop("'eta' is not compatible with params, check dimensions to make sure they are compatible.");
+    }
+    NumericVector tmp0 = as<NumericVector>(params);
+    NumericMatrix tmp1(1, tmp0.size()+thetaN.size()+etaN.size());
+    CharacterVector tmp0N ;
+    NumericVector pars = as<NumericVector>(params);
+    if (tmp0.hasAttribute("names")){
+      tmp0N = tmp0.names();
+    } else if (tmp0.size() == pars.size()){
+      tmp0N = pars;
+    } else if (tmp0.size() > 0){
+      // In this case there are no names
+      stop("The parameter names must be specified.");
+    }
+    CharacterVector tmpN = CharacterVector(tmp1.size());
+    for (i = 0; i < tmp0.size(); i++){
+      tmp1(0, i) = tmp0[i];
+      tmpN[i]   = tmp0N[i];
+    }
+    for (; i < tmp0.size()+thetaN.size(); i++){
+      tmp1(0, i) = thetaN[i - tmp0.size()];
+      tmpN[i] = "THETA[" + std::to_string(i - tmp0.size() + 1) + "]";
+    }
+    for (; i < tmp0.size()+thetaN.size()+ etaN.size(); i++){
+      tmp1(0, i) = etaN[i - tmp0.size() - thetaN.size()];
+      tmpN[i] = "ETA[" + std::to_string(i - tmp0.size() - thetaN.size() + 1) + "]";
+    }
+    tmp1.attr("dimnames") = List::create(R_NilValue, tmpN);
+    parMat = tmp1;
+  }
+  return parMat;
 }
 
 //' Setup Data and Parameters
@@ -1154,152 +1312,7 @@ List rxDataParSetup(const RObject &object,
   if (!simnames0.isNull()){
     simnames = CharacterVector(simnames);
   }
-  // Now get the parameters as a data.frame
-  NumericMatrix parMat;
-  if (par1.isNULL()){
-    if (!theta.isNULL() || !eta.isNULL()){
-      // Create the matrix
-      NumericVector thetaN;
-      if (rxIs(theta,"numeric") || rxIs(theta,"integer")){
-        thetaN = as<NumericVector>(theta);
-      } else if (rxIs(theta, "matrix")){
-        NumericMatrix thetaM = as<NumericMatrix>(theta);
-        if (thetaM.nrow() == 1){
-          thetaN = NumericVector(thetaM.ncol());
-          for (i = 0 ; i < thetaM.ncol(); i++){
-            thetaN[i] = thetaM(1,i);
-          }
-        } else if (thetaM.ncol() == 1){
-          thetaN = NumericVector(thetaM.nrow());
-          for (i = 0 ; i < thetaM.ncol(); i++){
-            thetaN[i] = thetaM(i, i);
-          }
-        } else {
-          stop("'theta' is not compatible with params, check dimensions to make sure they are compatible.");
-        }
-      } else if (!theta.isNULL()){
-        stop("'theta' is not compatible with params, check dimensions to make sure they are compatible.");
-      }
-      // Now eta
-      NumericVector etaN;
-      if (rxIs(eta,"numeric") || rxIs(eta,"integer")){
-        etaN = as<NumericVector>(eta);
-      } else if (rxIs(eta, "matrix")){
-        NumericMatrix etaM = as<NumericMatrix>(eta);
-        if (etaM.nrow() == 1){
-          etaN = NumericVector(etaM.ncol());
-          for (i = 0 ; i < etaM.ncol(); i++){
-            etaN[i] = etaM(0, i);
-          }
-        } else if (etaM.ncol() == 1){
-          etaN = NumericVector(etaM.nrow());
-          for (i = 0 ; i < etaM.ncol(); i++){
-            etaN[i] = etaM(i, 0);
-          }
-        } else {
-          stop("'eta' is not compatible with params, check dimensions to make sure they are compatible.");
-        }
-      } else if (!eta.isNULL()){
-        stop("'eta' is not compatible with params, check dimensions to make sure they are compatible.");
-      }
-      NumericMatrix tmp1(1, thetaN.size()+etaN.size());
-      CharacterVector tmpN = CharacterVector(tmp1.size());
-      for (i = 0; i < thetaN.size(); i++){
-        tmp1(0, i) = thetaN[i];
-        tmpN[i] = "THETA[" + std::to_string(i + 1) + "]";
-      }
-      for (; i < thetaN.size()+ etaN.size(); i++){
-        tmp1(0, i) = etaN[i - thetaN.size()];
-        tmpN[i] = "ETA[" + std::to_string(i - thetaN.size() + 1) + "]";
-      }
-      tmp1.attr("dimnames") = List::create(R_NilValue, tmpN);
-      parMat = tmp1;
-    }
-  } else if (rxIs(par1, "data.frame") || rxIs(par1, "matrix")){
-    if (rxIs(par1,"data.frame")){
-      DataFrame tmp = as<DataFrame>(par1);
-      int nr = tmp.nrows();
-      NumericMatrix tmpM(nr,tmp.size());
-      for (i = 0; i < tmp.size(); i++){
-	tmpM(_,i) = NumericVector(tmp[i]);
-      }
-      tmpM.attr("dimnames") = List::create(R_NilValue,tmp.names());
-      parMat=tmpM;
-    } else {
-      parMat = as<NumericMatrix>(par1);
-    }
-  } else if (rxIs(par1, "numeric") || rxIs(par1, "integer")){
-    // Create the matrix
-    NumericVector thetaN;
-    if (rxIs(theta,"numeric") || rxIs(theta,"integer")){
-      thetaN = as<NumericVector>(theta);
-    } else if (rxIs(theta, "matrix")){
-      NumericMatrix thetaM = as<NumericMatrix>(theta);
-      if (thetaM.nrow() == 1){
-	thetaN = NumericVector(thetaM.ncol());
-	for (i = 0 ; i < thetaM.ncol(); i++){
-	  thetaN[i] = thetaM(1,i);
-	}
-      } else if (thetaM.ncol() == 1){
-	thetaN = NumericVector(thetaM.nrow());
-        for (i = 0 ; i < thetaM.ncol(); i++){
-          thetaN[i] = thetaM(i, i);
-        }
-      } else {
-	stop("'theta' is not compatible with params, check dimensions to make sure they are compatible.");
-      }
-    } else if (!theta.isNULL()){
-      stop("'theta' is not compatible with params, check dimensions to make sure they are compatible.");
-    }
-    // Now eta
-    NumericVector etaN;
-    if (rxIs(eta,"numeric") || rxIs(eta,"integer")){
-      etaN = as<NumericVector>(eta);
-    } else if (rxIs(eta, "matrix")){
-      NumericMatrix etaM = as<NumericMatrix>(eta);
-      if (etaM.nrow() == 1){
-        etaN = NumericVector(etaM.ncol());
-        for (i = 0 ; i < etaM.ncol(); i++){
-          etaN[i] = etaM(0, i);
-        }
-      } else if (etaM.ncol() == 1){
-        etaN = NumericVector(etaM.nrow());
-        for (i = 0 ; i < etaM.ncol(); i++){
-          etaN[i] = etaM(i, 0);
-        }
-      } else {
-        stop("'eta' is not compatible with params, check dimensions to make sure they are compatible.");
-      }
-    } else if (!eta.isNULL()){
-      stop("'eta' is not compatible with params, check dimensions to make sure they are compatible.");
-    }
-    NumericVector tmp0 = as<NumericVector>(par1);
-    NumericMatrix tmp1(1, tmp0.size()+thetaN.size()+etaN.size());
-    CharacterVector tmp0N ;
-    if (tmp0.hasAttribute("names")){
-      tmp0N = tmp0.names();
-    } else if (tmp0.size() == pars.size()){
-      tmp0N = pars;
-    } else if (tmp0.size() > 0){
-      // In this case there are no names
-      stop("The parameter names must be specified.");
-    }
-    CharacterVector tmpN = CharacterVector(tmp1.size());
-    for (i = 0; i < tmp0.size(); i++){
-      tmp1(0, i) = tmp0[i];
-      tmpN[i]   = tmp0N[i];
-    }
-    for (; i < tmp0.size()+thetaN.size(); i++){
-      tmp1(0, i) = thetaN[i - tmp0.size()];
-      tmpN[i] = "THETA[" + std::to_string(i - tmp0.size() + 1) + "]";
-    }
-    for (; i < tmp0.size()+thetaN.size()+ etaN.size(); i++){
-      tmp1(0, i) = etaN[i - tmp0.size() - thetaN.size()];
-      tmpN[i] = "ETA[" + std::to_string(i - tmp0.size() - thetaN.size() + 1) + "]";
-    }
-    tmp1.attr("dimnames") = List::create(R_NilValue, tmpN);
-    parMat = tmp1;
-  }
+  NumericMatrix parMat = rxSetupParamsThetaEta(par1, theta, eta);
   int nSub = as<int>(ret["nSub"]);
   if (parMat.nrow() % nSub != 0){
     stop("The Number of parameters must be a multiple of the number of subjects.");
@@ -1365,15 +1378,17 @@ List rxDataParSetup(const RObject &object,
       }
     }
     if (!curPar){
-      if (allPars){
+      if (errStr == ""){
 	errStr = "The following parameter(s) are required for solving: " + pars[i];
       } else {
-	errStr = ", " + pars[i];
+	errStr = errStr + ", " + pars[i];
       }
       allPars = false;
     }
   }
   if (!allPars){
+    CharacterVector modSyntax = modVars["model"];
+    Rcout << "Model:\n\n" + modSyntax[0] + "\n";
     stop(errStr);
   }
   // Now  the parameter names are setup.
@@ -1884,7 +1899,21 @@ SEXP rxSolveC(const RObject &object,
 	List et = parData["et"];
 	List dose = parData["dose"];
         List ret;
-        ret["params"] = parData["pars"];
+	if (!extraArgs.isNull()){
+	  ret = as<List>(extraArgs);
+	}
+        RObject par0 = params;
+        RObject ev0  = events;
+        RObject par1;
+        if (rxIs(par0, "rx.event")){
+          // Swapped events and parameters
+          par1 = ev0;
+        } else if (rxIs(ev0, "rx.event")) {
+          par1 = par0;
+        } else {
+          stop("Need some event information (observation/dosing times) to solve.\nYou can use either 'eventTable' or an RxODE compatible data frame/matrix.");
+        }
+        ret["params"] = par1;
 	ret["inits"] = parData["inits"];
 	ret["lhs_vars"] = mv["lhs"];
 	ret["time"] = et["time"];

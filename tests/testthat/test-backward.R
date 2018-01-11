@@ -144,6 +144,40 @@ C1=centr/V;
     })
 
     ## Now try environmental solve
+    object <- RxODE({
+        d/dt(depot)=rxRate(depot)+-depot*exp(ETA[1]+THETA[1]);
+        d/dt(center)=rxRate(center)+-center*exp(ETA[2]+THETA[2])*exp(-ETA[3]-THETA[3])+depot*exp(ETA[1]+THETA[1]);
+        d/dt(rx__sens_depot_BY_ETA_1___)=-depot*exp(ETA[1]+THETA[1])-rx__sens_depot_BY_ETA_1___*exp(ETA[1]+THETA[1]);
+        d/dt(rx__sens_depot_BY_ETA_2___)=-rx__sens_depot_BY_ETA_2___*exp(ETA[1]+THETA[1]);
+        d/dt(rx__sens_depot_BY_ETA_3___)=-rx__sens_depot_BY_ETA_3___*exp(ETA[1]+THETA[1]);
+        d/dt(rx__sens_center_BY_ETA_1___)=depot*exp(ETA[1]+THETA[1])-rx__sens_center_BY_ETA_1___*exp(ETA[2]+THETA[2])*exp(-ETA[3]-THETA[3])+rx__sens_depot_BY_ETA_1___*exp(ETA[1]+THETA[1]);
+        d/dt(rx__sens_center_BY_ETA_2___)=-center*exp(ETA[2]+THETA[2])*exp(-ETA[3]-THETA[3])-rx__sens_center_BY_ETA_2___*exp(ETA[2]+THETA[2])*exp(-ETA[3]-THETA[3])+rx__sens_depot_BY_ETA_2___*exp(ETA[1]+THETA[1]);
+        d/dt(rx__sens_center_BY_ETA_3___)=center*exp(ETA[2]+THETA[2])*exp(-ETA[3]-THETA[3])-rx__sens_center_BY_ETA_3___*exp(ETA[2]+THETA[2])*exp(-ETA[3]-THETA[3])+rx__sens_depot_BY_ETA_3___*exp(ETA[1]+THETA[1]);
+        rx_pred_=center*exp(-ETA[3]-THETA[3]);
+        rx__sens_rx_pred__BY_ETA_1___=rx__sens_center_BY_ETA_1___*exp(-ETA[3]-THETA[3]);
+        rx__sens_rx_pred__BY_ETA_2___=rx__sens_center_BY_ETA_2___*exp(-ETA[3]-THETA[3]);
+        rx__sens_rx_pred__BY_ETA_3___=-center*exp(-ETA[3]-THETA[3])+rx__sens_center_BY_ETA_3___*exp(-ETA[3]-THETA[3]);
+        rx_r_=Rx_pow_di(THETA[4],2);
+        rx__sens_rx_r__BY_ETA_1___=0;
+        rx__sens_rx_r__BY_ETA_2___=0;
+        rx__sens_rx_r__BY_ETA_3___=0;
+    })
+
+
+    et <- eventTable();
+    et$import.EventTable(structure(list(time = c(0, 0, 0.25, 0.57, 1.12, 2.02, 3.82, 5.1, 7.03, 9.05, 12.12, 24, 24.37, 48, 72, 96, 120, 144, 144, 144.25, 144.57, 145.12, 146.02, 147.82, 149.1, 151.03, 153.05, 156.12, 168.37), evid = c(101L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 101L, 0L, 101L, 101L, 101L, 101L, 101L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L), amt = c(4.02, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4.02, 0, 4.02, 4.02, 4.02, 4.02, 4.02, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)), .Names = c("time", "evid", "amt"), row.names = c(NA, 29L), class = "data.frame"))
+
+    args <- list(object=object, et, invisible = 1, epsilon = 1e-04, cov = NULL, atol = 1e-06,
+                 rtol = 1e-06, maxsteps = 99999, numDeriv.method = "simple",
+                 c.hess = NULL, estimate = FALSE, inner.opt = "n1qn1", add.grad = FALSE,
+                 eta = structure(c(0.23787542222305, -0.528088850787306, -0.219490126341574
+                                   ), .Dim = c(1L, 3L)), theta = c(0.261713493062619, -3.18457293837742,
+                                                                   -0.824924506160168, 1.01900805433423), do.solve = FALSE)
+
+    test_that("Can produce a list with do.call(object$solve,...)",{
+        expect_equal(class(do.call(object$solve, args)), "list");
+    })
+
     lst <- list2env(rxSolve(sys1, theta, ev, atol=1e-6, rtol=1e-6, do.solve=F))
 
 }, silent=TRUE)
