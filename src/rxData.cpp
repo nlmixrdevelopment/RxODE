@@ -1913,7 +1913,9 @@ SEXP rxSolveC(const RObject &object,
         } else {
           stop("Need some event information (observation/dosing times) to solve.\nYou can use either 'eventTable' or an RxODE compatible data frame/matrix.");
         }
-        ret["params"] = par1;
+	NumericVector p = parData["pars"];
+	p.attr("names") = mv["params"];
+        ret["params"] = p;
 	ret["inits"] = parData["inits"];
 	ret["lhs_vars"] = mv["lhs"];
 	ret["time"] = et["time"];
