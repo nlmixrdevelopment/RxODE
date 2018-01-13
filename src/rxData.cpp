@@ -1916,7 +1916,13 @@ SEXP rxSolveC(const RObject &object,
 	NumericVector p = parData["pars"];
 	p.attr("names") = mv["params"];
         ret["params"] = p;
-	ret["inits"] = parData["inits"];
+	ret["inits"] = parData["inits"]; // named
+	ret["scale"] = parData["scale"];
+	// add.cov
+	ret["state.ignore"] = parData["state.ignore"];
+	// event.table
+	// events
+	// extra.args
 	ret["lhs_vars"] = mv["lhs"];
 	ret["time"] = et["time"];
 	ret["evid"] = et["evid"];
