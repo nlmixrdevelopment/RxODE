@@ -172,7 +172,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // rxSolveC
-SEXP rxSolveC(const RObject& object, const Nullable<CharacterVector>& specParams, const Nullable<List>& extraArgs, const RObject& params, const RObject& events, const Nullable<NumericVector>& inits, const Nullable<NumericVector>& scale, const RObject& covs, const CharacterVector& method, const Nullable<LogicalVector>& transit_abs, const double atol, const double rtol, const int maxsteps, const int hmin, const Nullable<NumericVector>& hmax, const int hini, const int maxordn, const int maxords, const int cores, const CharacterVector& covs_interpolation, bool addCov, bool matrix, const RObject& sigma, const RObject& sigmaDf, const int& sigmaNcores, const bool& sigmaIsChol, const CharacterVector& amountUnits, const CharacterVector& timeUnits, const bool addDosing, const RObject& theta, const RObject& eta, const bool updateObject, const bool doSolve);
+SEXP rxSolveC(const RObject& object, const Nullable<CharacterVector>& specParams, const Nullable<List>& extraArgs, const RObject& params, const RObject& events, const Nullable<NumericVector>& inits, const Nullable<NumericVector>& scale, const RObject& covs, const CharacterVector& method, const Nullable<LogicalVector>& transit_abs, const double atol, const double rtol, const int maxsteps, const double hmin, const Nullable<NumericVector>& hmax, const double hini, const int maxordn, const int maxords, const int cores, const CharacterVector& covs_interpolation, bool addCov, bool matrix, const RObject& sigma, const RObject& sigmaDf, const int& sigmaNcores, const bool& sigmaIsChol, const CharacterVector& amountUnits, const CharacterVector& timeUnits, const bool addDosing, const RObject& theta, const RObject& eta, const bool updateObject, const bool doSolve);
 RcppExport SEXP _RxODE_rxSolveC(SEXP objectSEXP, SEXP specParamsSEXP, SEXP extraArgsSEXP, SEXP paramsSEXP, SEXP eventsSEXP, SEXP initsSEXP, SEXP scaleSEXP, SEXP covsSEXP, SEXP methodSEXP, SEXP transit_absSEXP, SEXP atolSEXP, SEXP rtolSEXP, SEXP maxstepsSEXP, SEXP hminSEXP, SEXP hmaxSEXP, SEXP hiniSEXP, SEXP maxordnSEXP, SEXP maxordsSEXP, SEXP coresSEXP, SEXP covs_interpolationSEXP, SEXP addCovSEXP, SEXP matrixSEXP, SEXP sigmaSEXP, SEXP sigmaDfSEXP, SEXP sigmaNcoresSEXP, SEXP sigmaIsCholSEXP, SEXP amountUnitsSEXP, SEXP timeUnitsSEXP, SEXP addDosingSEXP, SEXP thetaSEXP, SEXP etaSEXP, SEXP updateObjectSEXP, SEXP doSolveSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -190,9 +190,9 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const double >::type atol(atolSEXP);
     Rcpp::traits::input_parameter< const double >::type rtol(rtolSEXP);
     Rcpp::traits::input_parameter< const int >::type maxsteps(maxstepsSEXP);
-    Rcpp::traits::input_parameter< const int >::type hmin(hminSEXP);
+    Rcpp::traits::input_parameter< const double >::type hmin(hminSEXP);
     Rcpp::traits::input_parameter< const Nullable<NumericVector>& >::type hmax(hmaxSEXP);
-    Rcpp::traits::input_parameter< const int >::type hini(hiniSEXP);
+    Rcpp::traits::input_parameter< const double >::type hini(hiniSEXP);
     Rcpp::traits::input_parameter< const int >::type maxordn(maxordnSEXP);
     Rcpp::traits::input_parameter< const int >::type maxords(maxordsSEXP);
     Rcpp::traits::input_parameter< const int >::type cores(coresSEXP);
