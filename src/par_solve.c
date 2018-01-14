@@ -895,7 +895,7 @@ extern unsigned int nObsP (rx_solve *rx, unsigned int id){
 }
 
 extern unsigned int nObs (){
-  return nObsP (_globalRx, 0);
+  return nObsP(_globalRx, 0);
 }
 
 extern unsigned int nLhsP(rx_solve *rx){

@@ -121,6 +121,7 @@ extern void rxSolveOldC(int *neqa,
 			double *lhsp,
 			int *rc){
   rx_solve *rx = (rx_solve*)(R_ExternalPtrAddr(VECTOR_ELT(VECTOR_ELT(__mv, 12), 11)));
+  rxode_assign_rx(rx);
   rx_solving_options *op = (rx_solving_options*)R_ExternalPtrAddr(rx->op);
   rx_solving_options_ind *inds = rx->subjects;
   rx_solving_options_ind *ind = &inds[0];
@@ -198,7 +199,6 @@ extern void rxSolveOldC(int *neqa,
 
 
 void RxODE_ode_solve_env(SEXP sexp_rho){
-  Rprintf("1\n");
   int pro = 0;
   SEXP sexp_theta = PROTECT(findVar(installChar(mkChar("params")),sexp_rho));pro++;
   SEXP sexp_inits = PROTECT(findVar(installChar(mkChar("inits")),sexp_rho)); pro++;
@@ -225,14 +225,13 @@ void RxODE_ode_solve_env(SEXP sexp_rho){
   SEXP sexp_transit_abs = PROTECT(findVar(installChar(mkChar("transit_abs")),sexp_rho)); pro++;
   SEXP sexp_rc = PROTECT(findVar(installChar(mkChar("rc")),sexp_rho)); pro++;
   int *rce    = INTEGER(sexp_rc);
-  Rprintf("2\n");
   rx_solve *rx = (rx_solve*)(R_ExternalPtrAddr(VECTOR_ELT(VECTOR_ELT(__mv, 12), 11)));
+  rxode_assign_rx(rx);
   rx_solving_options *op = (rx_solving_options*)R_ExternalPtrAddr(rx->op);
   rx_solving_options_ind *inds = rx->subjects;
   rx_solving_options_ind *ind = &inds[0];
   ind->par_ptr = REAL(sexp_theta);
   int neq = op->neq, i = 0;
-  Rprintf("3\n");
   double *InfusionRate =ind->InfusionRate,
     *scale = op->scale;
   int *BadDose = ind->BadDose;
@@ -242,7 +241,6 @@ void RxODE_ode_solve_env(SEXP sexp_rho){
     scale[i] = 1.0;
     BadDose[i] = 0;
   }
-  Rprintf("4\n");
   // Instead of having the correct length for idose, use idose length = length of ntime
   // Saves an additional for loop at the cost of a little memory.
   int *idose;
@@ -255,20 +253,17 @@ void RxODE_ode_solve_env(SEXP sexp_rho){
       ind->idose[ind->ndoses-1] = i;
     }
   }
-  Rprintf("5\n");
   ind->all_times     = REAL(sexp_time);
   ind->n_all_times   = length(sexp_time);
   ind->evid          = INTEGER(sexp_evid);
   ind->dose          = REAL(sexp_dose);
   // Covariates
-  Rprintf("6\n");
   op->par_cov       = INTEGER(sexp_pcov);
   op->do_par_cov    = 1;
   ind->cov_ptr       = REAL(sexp_cov);
   op->ncov          = length(sexp_pcov);
   op->is_locf       = INTEGER(sexp_locf)[0];
   // Solver options
-  Rprintf("7\n");
   op->ATOL           = REAL(sexp_atol)[0];
   op->RTOL           = REAL(sexp_rtol)[0];
   op->HMIN           = REAL(sexp_hmin)[0];
@@ -283,7 +278,6 @@ void RxODE_ode_solve_env(SEXP sexp_rho){
   ind->dadt_counter   = 0;
   ind->jac_counter    = 0;
   // LOCF
-  Rprintf("8\n");
   if (op->is_locf == 1){
     op->f2 = 0.0; //= f=0 
     op->f1 = 1.0; // = 1-f = 1;
@@ -309,21 +303,16 @@ void RxODE_ode_solve_env(SEXP sexp_rho){
   ind->rc = rce;
   
    // Let R handle deallocating the solve and lhs expressions; Should disappear with evironment
-  Rprintf("9\n");
   SEXP sexp_solve = PROTECT(allocVector(REALSXP,ind->n_all_times*op->neq)); pro++;
   SEXP sexp_lhsV = PROTECT(allocVector(REALSXP,ind->n_all_times*op->nlhs)); pro++;
   ind->solve = REAL(sexp_solve);
   ind->lhs     = REAL(sexp_lhsV);
-  Rprintf("10\n");
   defineVar(install(".solve"), sexp_solve, sexp_rho);
   defineVar(install(".lhs"), sexp_lhsV, sexp_rho);
-  Rprintf("11\n");
   t_set_solve set_solve = (t_set_solve)(op->set_solve);
   SEXP sd = R_NilValue;
-  Rprintf("12\n");
   set_solve(rx);
   par_solve(rx, sd, 0); // Solve without the option of updating residuals.
-  Rprintf("13\n");
   Free(idose);
   UNPROTECT(pro);
 }

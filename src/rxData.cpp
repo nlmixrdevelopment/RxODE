@@ -1945,7 +1945,15 @@ SEXP rxSolveC(const RObject &object,
         ret["atol"] = atol;
         ret["rtol"] = rtol;
 	ret["hmin"] = hmin;
-	ret["hmax"] = hmax;
+        if (hmax.isNull()){
+          // Get from data.
+	  List ids = as<List>(parData["ids"]);
+          NumericVector hmn = as<NumericVector>(ids["HmaxDefault"]);
+          ret["hmax"] = hmn[0];
+	} else {
+	  NumericVector hmn = as<NumericVector>(hmax);
+          ret["hmax"] = hmn[0];
+	}
 	ret["hini"] = hini;
 	ret["maxordn"] = maxordn;
 	ret["maxords"] = maxords;
