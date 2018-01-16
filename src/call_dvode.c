@@ -105,6 +105,8 @@ extern SEXP RxODE_get_mv(){
   return __mv;
 }
 
+extern void rxode_assign_rx(rx_solve *rx);
+
 extern void rxSolveOldC(int *neqa,
 			double *theta,  //order:
 			double *timep,
@@ -302,7 +304,7 @@ void RxODE_ode_solve_env(SEXP sexp_rho){
   op->inits   = REAL(sexp_inits);
   ind->rc = rce;
   
-   // Let R handle deallocating the solve and lhs expressions; Should disappear with evironment
+  // Let R handle deallocating the solve and lhs expressions; Should disappear with evironment
   SEXP sexp_solve = PROTECT(allocVector(REALSXP,ind->n_all_times*op->neq)); pro++;
   SEXP sexp_lhsV = PROTECT(allocVector(REALSXP,ind->n_all_times*op->nlhs)); pro++;
   ind->solve = REAL(sexp_solve);

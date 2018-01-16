@@ -904,7 +904,7 @@ extern unsigned int nLhsP(rx_solve *rx){
   return (unsigned int)(op->nlhs);
 }
 extern unsigned int nLhs(){
-  return nObsP (_globalRx, 0);
+  return nLhsP(_globalRx);
 }
 extern double rxLhsP(int i, rx_solve *rx, unsigned int id){
   rx_solving_options_ind *ind;
