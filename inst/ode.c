@@ -385,6 +385,7 @@ void __R_INIT__ (DllInfo *info){
 
   R_registerRoutines(info, cMethods, callMethods, NULL, NULL);
   R_useDynamicSymbols(info,FALSE);
+  __ODE_SOLVER_PTR__();
 }
 
 void __R_UNLOAD__ (DllInfo *info){

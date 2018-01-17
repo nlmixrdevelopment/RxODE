@@ -96,9 +96,11 @@ extern void RxODE_ode_free(){
 void RxODE_ode_alloc(){
 }
 
+void rxAddModelLib(SEXP mv);
 SEXP __mv;
 extern void RxODE_assign_fn_pointers(SEXP mv){
   __mv = mv;
+  rxAddModelLib(mv);
 }
 
 extern SEXP RxODE_get_mv(){

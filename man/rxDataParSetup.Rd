@@ -6,7 +6,8 @@
 \usage{
 rxDataParSetup(object, params = NULL, events = NULL, inits = NULL,
   covs = NULL, sigma = NULL, sigmaDf = NULL, sigmaNcores = 1L,
-  sigmaIsChol = FALSE, amountUnits = NA_character_, timeUnits = "hours")
+  sigmaIsChol = FALSE, amountUnits = NA_character_, timeUnits = "hours",
+  theta = NULL, eta = NULL, scale = NULL, extraArgs = NULL)
 }
 \arguments{
 \item{object}{is a either a RxODE family of objects, or a file-name
@@ -44,6 +45,19 @@ simulation. By default it is one.}
 \item{sigmaIsChol}{Indicates if the \code{sigma} supplied is a
 Cholesky decomposed matrix instead of the traditional
 symmetric matrix.}
+
+\item{theta}{A vector of parameters that will be named THETA[#] and
+added to parameters}
+
+\item{eta}{A vector of parameters that will be named ETA[#] and
+added to parameters}
+
+\item{scale}{a numeric named vector with scaling for ode
+parameters of the system.  The names must correstond to the
+parameter identifiers in the ODE specification. Each of the
+ODE variables will be divided by the scaling factor.  For
+example \code{scale=(center=2)} will divide the center ODE
+variable by 2.}
 }
 \value{
 Data setup for running C-based RxODE runs.

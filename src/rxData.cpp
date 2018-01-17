@@ -2636,6 +2636,12 @@ RObject rxSolveUpdate(RObject obj,
   return R_NilValue;
 }
 
+extern "C" void rxAddModelLib(SEXP mv){
+  Environment RxODE("package:RxODE");
+  Function f = as<Function>(RxODE["rxAddModelLib_"]);
+  f(mv);
+}
+
 //' Get the number of cores in a system
 //' @export
 //[[Rcpp::export]]

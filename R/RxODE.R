@@ -1909,3 +1909,18 @@ rxReload <- function(){
 rxodeGc <- function(env){
     rxDelete(env$out);
 }
+
+rxModels <- new.env(parent = emptyenv())
+##' Assign model variables to an internal environment.
+##'
+##' This should prevent garbage collection and possible segmentation
+##' faults.
+##'
+##' @param mv Model variables
+##'
+##'@keywords internal
+##'@export
+##'
+rxAddModelLib_ <- function(mv){
+    assign(mv$trans["ode_solver_ptr"], mv, rxModels);
+}

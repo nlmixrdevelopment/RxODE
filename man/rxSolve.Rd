@@ -4,13 +4,14 @@
 \alias{rxSolve}
 \title{Solves a ODE equation}
 \usage{
-rxSolve(object, params = NULL, events = NULL, inits = NULL, covs = NULL,
-  method = "lsoda", transit_abs = NULL, atol = 1e-08, rtol = 1e-06,
-  maxsteps = 5000L, hmin = 0L, hmax = NULL, hini = 0L, maxordn = 12L,
-  maxords = 5L, cores = 1L, covs_interpolation = "linear",
-  add.cov = FALSE, matrix = FALSE, sigma = NULL, sigmaDf = NULL,
-  sigmaNcores = 1L, sigmaIsChol = FALSE, amountUnits = NA_character_,
-  timeUnits = "hours", stiff)
+rxSolve(object, params = NULL, events = NULL, inits = NULL, ...,
+  scale = NULL, covs = NULL, method = "lsoda", transit_abs = NULL,
+  atol = 1e-08, rtol = 1e-06, maxsteps = 5000L, hmin = 0L,
+  hmax = NULL, hini = 0L, maxordn = 12L, maxords = 5L, cores,
+  covs_interpolation = "linear", add.cov = FALSE, matrix = FALSE,
+  sigma = NULL, sigmaDf = NULL, sigmaNcores = 1L, sigmaIsChol = FALSE,
+  amountUnits = NA_character_, timeUnits = "hours", stiff, theta = NULL,
+  eta = NULL, addDosing = FALSE, update.object = FALSE, do.solve = TRUE)
 }
 \arguments{
 \item{object}{is a either a RxODE family of objects, or a file-name
@@ -29,6 +30,18 @@ time points (see \code{\link{eventTable}});}
 (e.g., amounts in each compartment), and the order in this
 vector must be the same as the state variables (e.g., PK/PD
 compartments);}
+
+\item{...}{Other arguments including scaling factors for each
+compartment.  This includes S# = numeric will scale a compartment
+# by a dividing the compartment amount by the scale factor,
+like NONMEM.}
+
+\item{scale}{a numeric named vector with scaling for ode
+parameters of the system.  The names must correstond to the
+parameter identifiers in the ODE specification. Each of the
+ODE variables will be divided by the scaling factor.  For
+example \code{scale=(center=2)} will divide the center ODE
+variable by 2.}
 
 \item{covs}{a matrix or dataframe the same number of rows as the
 sampling points defined in the events \code{eventTable}.  This
@@ -105,22 +118,16 @@ instead of the RxODE's solved object}
     (1993).}
 
 \item{theta}{A vector of parameters that will be named THETA[#] and
-added to inits}
+added to parameters}
 
 \item{eta}{A vector of parameters that will be named ETA[#] and
-added to inits}
+added to parameters}
 
-\item{scale}{a numeric named vector with scaling for ode
-parameters of the system.  The names must correstond to the
-parameter identifiers in the ODE specification. Each of the
-ODE variables will be divided by the scaling factor.  For
-example \code{scale=(center=2)} will divide the center ODE
-variable by 2.}
-
-\item{...}{Other arguments including scaling factors for each
-compartment.  This includes S# = numeric will scale a compartment
-# by a dividing the compartment amount by the scale factor,
-like NONMEM.}
+\item{addDosing}{Boolean indicating if the solve should add RxODE
+evid and amt columns.  This will also include dosing
+information and estimates at the doses.  Be default, RxODE
+only includes estimates at the observations. (default
+\code{FALSE}).}
 }
 \value{
 An \dQuote{rxSolve} solve object that stores the solved
