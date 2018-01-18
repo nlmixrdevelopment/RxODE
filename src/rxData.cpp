@@ -204,6 +204,15 @@ bool rxIs(const RObject &obj, std::string cls){
   return false;
 }
 
+extern "C" int rxIsC(SEXP obj, const char *cls){
+  std::string str(cls);
+  if (rxIs(as<RObject>(obj),cls)){
+    return 1;
+  } else {
+    return 0;
+  }
+}
+
 RObject rxSimSigma(const RObject &sigma,
 		   const RObject &df,
 		   const int &ncores,
@@ -2636,10 +2645,81 @@ RObject rxSolveUpdate(RObject obj,
   return R_NilValue;
 }
 
+bool foundEnv = false;
+Environment _rxModels;
 extern "C" void rxAddModelLib(SEXP mv){
-  Environment RxODE("package:RxODE");
-  Function f = as<Function>(RxODE["rxAddModelLib_"]);
-  f(mv);
+  if (!foundEnv){ // minimize R call
+    Environment RxODE("package:RxODE");
+    Function f = as<Function>(RxODE["rxModels_"]);
+    _rxModels = f();
+    foundEnv = true;
+  }
+  CharacterVector trans = as<List>(mv)["trans"];
+  std::string ptr =as<std::string>(trans["ode_solver_ptr"]);
+  _rxModels[ptr]= mv;
+}
+
+extern "C" SEXP rxGetModelLib(const char *s){
+  std::string str(s);
+  if (!foundEnv){
+    Environment RxODE("package:RxODE");
+    Function f = as<Function>(RxODE["rxModels_"]);
+    _rxModels = as<Environment>(f());
+    foundEnv = true;
+  }
+  if (_rxModels.exists(str)){
+    return wrap(_rxModels.get(str));
+  } else {
+    return R_NilValue;
+  }
+}
+extern "C" void rxRmModelLib(const char* s){
+  std::string str(s);
+  if (!foundEnv){
+    Environment RxODE("package:RxODE");
+    Function f = as<Function>(RxODE["rxModels_"]);
+    _rxModels = f();
+    foundEnv = true;
+  }
+  if (_rxModels.exists(str)){
+    _rxModels.remove(str);
+  }
+}
+
+extern "C" void RxODE_assign_fn_pointers_(SEXP mv, int addit);
+
+//' Assign pointer based on model variables
+//' @param object RxODE family of objects
+//' @export
+//[[Rcpp::export]]
+void rxAssignPtr(SEXP object = R_NilValue){
+  List mv=rxModelVars(as<RObject>(object));
+  RxODE_assign_fn_pointers_(as<SEXP>(mv), 0);
+  CharacterVector state = mv["state"];
+  CharacterVector lhs = mv["lhs"];
+  CharacterVector params = mv["params"];
+  int neq = state.size();
+  int nlhs = lhs.size();
+  List ptr=mv[12];
+  rx_solve *rx = (rx_solve*)(R_ExternalPtrAddr(as<SEXP>(ptr[11])));
+  rx_solving_options *op = (rx_solving_options*)R_ExternalPtrAddr(rx->op);
+  rx_solving_options_ind *inds = rx->subjects;
+  rx_solving_options_ind *ind = &inds[0];
+  op->nlhs = nlhs;
+  op->neq = neq;
+  op->stateNames = as<SEXP>(state);
+  op->lhsNames = as<SEXP>(lhs);
+  op->paramNames = as<SEXP>(params);
+  ind->podo = 0.0;
+  ind->ixds = 0;
+  int i;
+  for (i = 0; i < neq; i++){
+    op->inits[i] = 0.0;
+    op->scale[i] = 1.0;
+    ind->InfusionRate[i] = 0.0;
+    ind->BadDose[i] =0;
+    rx->stateIgnore[i] = 0;
+  }
 }
 
 //' Get the number of cores in a system

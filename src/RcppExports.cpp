@@ -259,6 +259,16 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// rxAssignPtr
+void rxAssignPtr(SEXP object);
+RcppExport SEXP _RxODE_rxAssignPtr(SEXP objectSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type object(objectSEXP);
+    rxAssignPtr(object);
+    return R_NilValue;
+END_RCPP
+}
 // rxCores
 IntegerVector rxCores();
 RcppExport SEXP _RxODE_rxCores() {

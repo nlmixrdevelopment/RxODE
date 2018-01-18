@@ -54,7 +54,9 @@ SEXP _RxODE_rxDataParSetup(SEXP, SEXP, SEXP, SEXP, SEXP,
 SEXP _RxODE_rxSolveCsmall(SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP);
 SEXP _RxODE_rxSolveGet(SEXP, SEXP, SEXP);
 SEXP _RxODE_rxSolveUpdate(SEXP, SEXP, SEXP);
+SEXP _RxODE_rxAssignPtr(SEXP);
 SEXP _RxODE_rxCores();
+SEXP RxODE_get_mv();
 
 double RxODE_solveLinB(rx_solve *rx, unsigned int id,double t, int linCmt, int diff1, int diff2, double A, double alpha, double B, double beta, double C, double gamma, double ka, double tlag);
 
@@ -148,12 +150,15 @@ extern double RxODE_tlastP(rx_solve *rx, unsigned int id);
 extern void update_par_ptrP(double t);
 extern void RxODE_ode_freeP(rx_solve *rx, unsigned int id);
 
+extern void rxRmModelLib(const char* s);
+extern SEXP rxGetModelLib(const char *s);
 
 // Remove these functions later...
 
 void R_init_RxODE(DllInfo *info){
   R_CallMethodDef callMethods[]  = {
     {"trans", (DL_FUNC) &trans, 8},
+    {"RxODE_get_mv", (DL_FUNC) &RxODE_get_mv, 0},
     {"_RxODE_rxInv", (DL_FUNC) &_RxODE_rxInv, 1},
     {"_RxODE_RxODE_finalize_focei_omega",(DL_FUNC) &_RxODE_RxODE_finalize_focei_omega, 1},
     {"_RxODE_RxODE_finalize_log_det_OMGAinv_5",(DL_FUNC) &_RxODE_RxODE_finalize_log_det_OMGAinv_5, 1},
@@ -182,9 +187,12 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_rxSolveGet", (DL_FUNC) &_RxODE_rxSolveGet, 3},
     {"_RxODE_rxSolveUpdate", (DL_FUNC) &_RxODE_rxSolveUpdate, 3},
     {"_RxODE_rxCores",(DL_FUNC) &_RxODE_rxCores, 0},
+    {"_RxODE_rxAssignPtr", (DL_FUNC) &_RxODE_rxAssignPtr, 1},
     {NULL, NULL, 0}
   };
-
+  // C callable to assign environments.
+  R_RegisterCCallable("RxODE","rxRmModelLib", (DL_FUNC) rxRmModelLib);
+  R_RegisterCCallable("RxODE","rxGetModelLib", (DL_FUNC) rxGetModelLib);
   // C callables needed in FOCEi
   R_RegisterCCallable("RxODE","nEq",                      (DL_FUNC) nEq);
   R_RegisterCCallable("RxODE","nLhs",                     (DL_FUNC) nLhs);

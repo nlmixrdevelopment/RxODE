@@ -15,3 +15,4 @@ inst/doc
 /config.log
 /src/Makevars
 /src/Makevars.win
+/src/liblsoda/

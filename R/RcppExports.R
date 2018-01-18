@@ -215,6 +215,13 @@ rxSolveUpdate <- function(obj, arg = NULL, value = NULL) {
     .Call(`_RxODE_rxSolveUpdate`, obj, arg, value)
 }
 
+#' Assign pointer based on model variables
+#' @param object RxODE family of objects
+#' @export
+rxAssignPtr <- function(object = NULL) {
+    invisible(.Call(`_RxODE_rxAssignPtr`, object))
+}
+
 #' Get the number of cores in a system
 #' @export
 rxCores <- function() {

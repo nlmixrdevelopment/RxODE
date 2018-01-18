@@ -380,11 +380,7 @@ RxODE <- function(model, modName = basename(wd), wd = ifelse(RxODE.cache.directo
     }
     ptr.address <- NULL
     assignPtr <- function(){
-        cmpMgr$dynLoad();
-        if (is.null(ptr.address)){
-            ptr.address <<- getNativeSymbolInfo(as.vector(out$dll$modVars$trans["ode_solver_ptr"]),gsub("_$","",out$dll$modVars$trans["prefix"]))$address;
-        }
-        .Primitive(".Call")(ptr.address);
+        rxAssignPtr(out$dll);
     }
     if (do.compile){
         cmpMgr$compile(force);
@@ -1911,16 +1907,9 @@ rxodeGc <- function(env){
 }
 
 rxModels <- new.env(parent = emptyenv())
-##' Assign model variables to an internal environment.
-##'
-##' This should prevent garbage collection and possible segmentation
-##' faults.
-##'
-##' @param mv Model variables
-##'
+##' Get the rxModels  information
+##'@param env boolean that returns the environment where models are stored (TRUE), or the currently assigned RxODE model variables (FALSE).
 ##'@keywords internal
 ##'@export
 ##'
-rxAddModelLib_ <- function(mv){
-    assign(mv$trans["ode_solver_ptr"], mv, rxModels);
-}
+rxModels_ <- function(env=TRUE){ if(env){return(rxModels);} else {return(.Call(RxODE_get_mv, PACKAGE="RxODE"))} }

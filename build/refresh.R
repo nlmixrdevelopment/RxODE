@@ -16,8 +16,14 @@ for (file in list.files(devtools::package_file("src/liblsoda/src"), pattern="[.]
     if (any(regexpr("Rprintf", lines) != -1)){
         lines <- c("#include <R.h>", "#include <Rinternals.h>", lines);
     }
+    if (any(regexpr("#define ERROR", lines, fixed=TRUE) != -1)){
+        lines <- gsub("#define ERROR", "#ifdef ERROR\n#undef ERROR\n#endif\n#define ERROR", lines, fixed=TRUE);
+    }
     if (file == "solsy.c"){
         lines <- c("#include <R.h>", "#include <Rinternals.h>", gsub("abort[(] *[)]", "error(\"liblsoda does not implement this. (solsy)\")", lines));
+    }
+    if (file == "lsoda.c"){
+        lines <- gsub("int[ \t]+i[ \t]*([;,])", "int i=0\\1", lines);
     }
     writeLines(lines, file.path(devtools::package_file("src"), gsub("[.]inc$", ".h", file)))
 }

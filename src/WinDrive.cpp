@@ -1,5 +1,6 @@
 #if defined(_WIN32) || defined(WIN32)
 #include <windows.h>
+#undef ERROR
 #include <Rcpp.h>
 // Adapated From http://banderlogi.blogspot.com/2011/06/enum-drive-letters-attached-for-usb.html
 bool IsUsbDevice( std::string letter )

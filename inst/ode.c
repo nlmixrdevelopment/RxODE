@@ -26,7 +26,7 @@ typedef long (*RxODE_cnt) (rx_solve *rx, unsigned int id);
 typedef void (*RxODE_inc) (rx_solve *rx, unsigned int id);
 typedef double (*RxODE_val) (rx_solve *rx, unsigned int id);
 typedef SEXP (*RxODE_ode_solver) (SEXP sexp_theta, SEXP sexp_inits, SEXP sexp_lhs, SEXP sexp_time, SEXP sexp_evid,SEXP sexp_dose, SEXP sexp_pcov, SEXP sexp_cov, SEXP sexp_locf, SEXP sexp_atol, SEXP sexp_rtol, SEXP sexp_hmin, SEXP sexp_hmax, SEXP sexp_h0, SEXP sexp_mxordn, SEXP sexp_mxords, SEXP sexp_mx,SEXP sexp_stiff, SEXP sexp_transit_abs, SEXP sexp_object, SEXP sexp_extra_args, SEXP sexp_matrix, SEXP sexp_add_cov);
-typedef SEXP (*RxODE_assign_ptr)(SEXP);
+typedef void (*RxODE_assign_ptr)(SEXP);
 typedef SEXP (*RxODE_assign_fn_xpointers)(void (*fun_dydt)(int *, double, double *, double *),
 					  void (*fun_calc_lhs)(int, double, double *, double *),
 					  void (*fun_calc_jac)(int *, double, double *, double *, unsigned int),
@@ -47,10 +47,10 @@ double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt, int diff1,
   return fun(rx, id, t, linCmt, diff1, diff2, A, alpha, B, beta, C, gamma, ka, tlag);
 }
 
-SEXP _assign_ptr(SEXP x){
+void _assign_ptr(SEXP x){
   static RxODE_assign_ptr fun = NULL;
   if (fun == NULL) fun = (RxODE_assign_ptr) R_GetCCallable("RxODE","RxODE_assign_fn_pointers");
-  return fun(x);
+  fun(x);
 } 
 
 double _sum1(double *input, int n){
@@ -63,6 +63,20 @@ double _prod1(double *input, int n){
   static RxODE_sum_prod fun = NULL;
   if (fun == NULL) fun = (RxODE_sum_prod) R_GetCCallable("RxODE","RxODE_prod");
   return fun(input, n);
+}
+
+typedef void (*_rxRmModelLibType)(const char *inp);
+void _rxRmModelLib(const char *inp){
+  static _rxRmModelLibType fun = NULL;
+  if (fun == NULL) fun = (_rxRmModelLibType) R_GetCCallable("RxODE","rxRmModelLib");
+  fun(inp);
+}
+
+typedef SEXP (*_rxGetModelLibType)(const char *s);
+SEXP _rxGetModelLib(const char *inp){
+  static _rxGetModelLibType fun = NULL;
+  if (fun == NULL) fun = (_rxGetModelLibType) R_GetCCallable("RxODE","rxGetModelLib");
+  return fun(inp);
 }
 
 void _old_c(int *neq,double *theta,double *time,int *evid,int *ntime,double *inits,double *dose,double *ret,double *atol,double *rtol,int *stiff,int *transit_abs,int *nlhs,double *lhs,int *rc){
@@ -255,39 +269,22 @@ double _s_InfusionRate[__NEQ__];
 int _s_BadDose[__NEQ__];
 int _s_stateIgnore[__NEQ__];
 
-int _mvi=0;
-SEXP _mv;
+SEXP _rxModels;
 SEXP __MODEL_VARS__0();
 extern SEXP __MODEL_VARS__(){
-  if (_mvi == 0){
+  SEXP _mv = _rxGetModelLib(__ODE_SOLVER_PTR_STR__);
+  if (isNull(_mv)){
     _mv = __MODEL_VARS__0();
-    // Use model variables to finalize single solve structure.
     rx_solve *rx = (rx_solve*)(R_ExternalPtrAddr(VECTOR_ELT(VECTOR_ELT(_mv, 12), 11)));
     rx_solving_options *op = (rx_solving_options*)R_ExternalPtrAddr(rx->op);
     rx_solving_options_ind *inds = rx->subjects;
     rx_solving_options_ind *ind = &inds[0];
-    op->nlhs = __NLHS__;
-    op->neq = __NEQ__;
-    op->stateNames = VECTOR_ELT(_mv, 2);
-    op->lhsNames = VECTOR_ELT(_mv, 1);
-    op->paramNames = VECTOR_ELT(_mv, 0);
-    ind->podo = 0.0;
-    ind->ixds = 0;
-    int i;
-    for (i = 0; i < __NEQ__; i++){
-      _s_inits[i] = 0.0;
-      _s_scale[i] = 1.0;
-      _s_InfusionRate[i] = 0.0;
-      _s_BadDose[i] =0;
-      _s_stateIgnore[i] = 0;
-    }
     op->inits = &_s_inits[0];
     op->scale = &_s_scale[0];  
     ind->InfusionRate = &_s_InfusionRate[0];
     ind->BadDose = &_s_BadDose[0];
     rx->stateIgnore = &_s_stateIgnore[0];
     _assign_ptr(_mv);
-    _mvi = 1;
     return _mv;
   } else {
     return _mv;
@@ -357,11 +354,7 @@ extern SEXP __ODE_SOLVER_XPTR__  (){
 }
 
 extern void __ODE_SOLVER_PTR__  (){
-  if (_mvi == 0){
-    __MODEL_VARS__();
-  } else {
-    _assign_ptr(_mv);
-  }
+  __MODEL_VARS__();
 }
 //Initilize the dll to match RxODE's calls
 void __R_INIT__ (DllInfo *info){
@@ -382,7 +375,6 @@ void __R_INIT__ (DllInfo *info){
     {"__INIS__", (DL_FUNC) &__INIS__, 1},
     {NULL, NULL, 0}
   };
-
   R_registerRoutines(info, cMethods, callMethods, NULL, NULL);
   R_useDynamicSymbols(info,FALSE);
   __ODE_SOLVER_PTR__();
@@ -390,12 +382,14 @@ void __R_INIT__ (DllInfo *info){
 
 void __R_UNLOAD__ (DllInfo *info){
   // Free resources required for single subject solve.
-  if (_mvi != 0){
+  SEXP _mv = _rxGetModelLib(__ODE_SOLVER_PTR_STR__);
+  if (!isNull(_mv)){
     rx_solve *rx = (rx_solve*)(R_ExternalPtrAddr(VECTOR_ELT(VECTOR_ELT(_mv, 12), 11)));
     rx_solving_options *op = (rx_solving_options*)R_ExternalPtrAddr(rx->op);
     rx_solving_options_ind *inds = rx->subjects;
     Free(inds);
     Free(op);
     Free(rx);
+    _rxRmModelLib(__ODE_SOLVER_PTR_STR__);
   }
 }

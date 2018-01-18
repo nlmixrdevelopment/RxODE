@@ -96,14 +96,26 @@ extern void RxODE_ode_free(){
 void RxODE_ode_alloc(){
 }
 
-void rxAddModelLib(SEXP mv);
+void rxAddModelLib(SEXP);
+
 SEXP __mv;
-extern void RxODE_assign_fn_pointers(SEXP mv){
+extern void RxODE_assign_fn_pointers_(SEXP mv, int addit){
   __mv = mv;
-  rxAddModelLib(mv);
+  if (addit){
+    rxAddModelLib(mv);
+  }
 }
 
+extern void RxODE_assign_fn_pointers(SEXP mv){
+  RxODE_assign_fn_pointers_(mv, 1);
+}
+
+
+int rxIsC(SEXP obj, const char *cls);
 extern SEXP RxODE_get_mv(){
+  /* if (!rxIsC(__mv,"rxModelVars")){ */
+  /*   error("RxODE C functions were not setup correctly."); */
+  /* } */
   return __mv;
 }
 
@@ -124,7 +136,7 @@ extern void rxSolveOldC(int *neqa,
 			int *nlhsa,
 			double *lhsp,
 			int *rc){
-  rx_solve *rx = (rx_solve*)(R_ExternalPtrAddr(VECTOR_ELT(VECTOR_ELT(__mv, 12), 11)));
+  rx_solve *rx = (rx_solve*)(R_ExternalPtrAddr(VECTOR_ELT(VECTOR_ELT(RxODE_get_mv(), 12), 11)));
   rxode_assign_rx(rx);
   rx_solving_options *op = (rx_solving_options*)R_ExternalPtrAddr(rx->op);
   rx_solving_options_ind *inds = rx->subjects;
@@ -132,6 +144,9 @@ extern void rxSolveOldC(int *neqa,
   ind->par_ptr = theta;
   ind->n_all_times  = *ntime;
   int neq = op->neq, i = 0;
+  if (neq != *neqa) {
+    error("Having a hard time getting RxODE model... (neq:%d != neqa:%d)\n",neq,*neqa);
+  }
   double *InfusionRate =ind->InfusionRate,
     *scale = op->scale;
   int *BadDose = ind->BadDose;
@@ -143,8 +158,9 @@ extern void rxSolveOldC(int *neqa,
   }
   // Instead of having the correct length for idose, use idose length = length of ntime
   // Saves an additional for loop at the cost of a little memory.
-  int *idose;
-  idose = Calloc(*ntime,int);
+  /* int *idose; */
+  SEXP idoses = PROTECT(allocVector(INTSXP, *ntime));
+  int *idose = INTEGER(idoses);
   ind->idose = idose;
   ind->ndoses=0;
   for (i = 0; i < ind->n_all_times; i++){
@@ -198,12 +214,16 @@ extern void rxSolveOldC(int *neqa,
       calc_lhs(0, timep[i], retp+i*(*neqa), lhsp+i*(*nlhsa));
     }
   }
-  Free(idose);
+  UNPROTECT(1);
 }
 
 
 void RxODE_ode_solve_env(SEXP sexp_rho){
+  if(!isEnvironment(sexp_rho)){
+    error("Calling RxODE_ode_solve_env without an environment...");
+  }
   int pro = 0;
+  Rprintf("1\n");
   SEXP sexp_theta = PROTECT(findVar(installChar(mkChar("params")),sexp_rho));pro++;
   SEXP sexp_inits = PROTECT(findVar(installChar(mkChar("inits")),sexp_rho)); pro++;
   SEXP sexp_lhs   = PROTECT(findVar(installChar(mkChar("lhs_vars")),sexp_rho)); pro++;
@@ -229,11 +249,15 @@ void RxODE_ode_solve_env(SEXP sexp_rho){
   SEXP sexp_transit_abs = PROTECT(findVar(installChar(mkChar("transit_abs")),sexp_rho)); pro++;
   SEXP sexp_rc = PROTECT(findVar(installChar(mkChar("rc")),sexp_rho)); pro++;
   int *rce    = INTEGER(sexp_rc);
-  rx_solve *rx = (rx_solve*)(R_ExternalPtrAddr(VECTOR_ELT(VECTOR_ELT(__mv, 12), 11)));
+  Rprintf("2\n");
+  rx_solve *rx = (rx_solve*)(R_ExternalPtrAddr(VECTOR_ELT(VECTOR_ELT(RxODE_get_mv(), 12), 11)));
+  Rprintf("3\n");
   rxode_assign_rx(rx);
+  Rprintf("4\n");
   rx_solving_options *op = (rx_solving_options*)R_ExternalPtrAddr(rx->op);
   rx_solving_options_ind *inds = rx->subjects;
   rx_solving_options_ind *ind = &inds[0];
+  Rprintf("5\n");
   ind->par_ptr = REAL(sexp_theta);
   int neq = op->neq, i = 0;
   double *InfusionRate =ind->InfusionRate,
