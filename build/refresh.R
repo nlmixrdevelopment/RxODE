@@ -38,6 +38,7 @@ file.copy(devtools::package_file("src/RxODE_types.h"),
           overwrite=TRUE);
 
 cat("Generate header string.\n");
+unlink(devtools::package_file("src/tran.o"))
 odec <- readLines(devtools::package_file("inst/ode.c"));
 solvec <- readLines(devtools::package_file("src/solve.h"));
 w <- which(regexpr("#define R_pow_di Rx_pow_di", odec, fixed=TRUE) != -1)[1];
@@ -84,7 +85,6 @@ file <- gsub("^([#]line [0-9]+ )\".*(src)/+(.*)\"","\\1\"\\2/\\3\"",
 sink(devtools::package_file("src/tran.g.d_parser.c"))
 cat(paste(file,collapse="\n"));
 sink();
-unlink(devtools::package_file("src/tran.o"))
 ## sink(devtools::package_file("R/version.R"))
 ## cat("##\' Version and repository for this dparser package.
 ## ##\'

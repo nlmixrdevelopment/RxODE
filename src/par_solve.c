@@ -21,14 +21,14 @@
 #endif
 
 static void getSolvingOptionsPtrFree(SEXP ptr);
-extern SEXP RxODE_get_fn_pointers(void (*fun_dydt)(int *neq, double t, double *A, double *DADT),
-                                  void (*fun_calc_lhs)(int, double t, double *A, double *lhs),
-                                  void (*fun_calc_jac)(int neq, double t, double *A, double *JAC, unsigned int __NROWPD__),
-                                  void (*fun_update_inis)(int, double *),
-                                  void (*fun_dydt_lsoda_dum)(int *, double *, double *, double *),
-                                  void (*fun_jdum_lsoda)(int *, double *, double *,int *, int *, double *, int *),
-                                  void (*fun_set_solve)(rx_solve *),
-                                  rx_solve *(*fun_get_solve)(),
+extern SEXP RxODE_get_fn_pointers(t_dydt fun_dydt,
+                                  t_calc_lhs fun_calc_lhs,
+                                  t_calc_jac fun_calc_jac,
+                                  t_update_inis fun_update_inis,
+                                  t_dydt_lsoda_dum fun_dydt_lsoda_dum,
+                                  t_jdum_lsoda fun_jdum_lsoda,
+                                  t_set_solve fun_set_solve,
+                                  t_get_solve fun_get_solve,
                                   int fun_jt,
                                   int fun_mf,
                                   int fun_debug){
@@ -37,15 +37,15 @@ extern SEXP RxODE_get_fn_pointers(void (*fun_dydt)(int *neq, double t, double *A
   SEXP lst      = PROTECT(allocVector(VECSXP, 12)); pro++;
   SEXP names    = PROTECT(allocVector(STRSXP, 12)); pro++;
 
-  void (*dydtf)(int *neq, double t, double *A, double *DADT);
-  void (*calc_jac)(int neq, double t, double *A, double *JAC, unsigned int __NROWPD__);
-  void (*calc_lhs)(int, double t, double *A, double *lhs);
-  void (*update_inis)(int neq, double *);
-  void (*dydt_lsoda_dum)(int *neq, double *t, double *A, double *DADT);
-  void (*jdum_lsoda)(int *neq, double *t, double *A,int *ml, int *mu, double *JAC, int *nrowpd);
+  t_dydt dydtf;
+  t_calc_jac calc_jac;
+  t_calc_lhs calc_lhs;
+  t_update_inis update_inis;
+  t_dydt_lsoda_dum dydt_lsoda_dum;
+  t_jdum_lsoda jdum_lsoda;
 
-  void (*set_solve)(rx_solve *);
-  rx_solve *(*get_solve)();
+  t_set_solve set_solve;
+  t_get_solve get_solve;
   
   dydtf          = fun_dydt;
   calc_jac       = fun_calc_jac;
@@ -155,13 +155,12 @@ extern SEXP RxODE_get_fn_pointers(void (*fun_dydt)(int *neq, double t, double *A
   /* op->par_cov = par_cov; */
   op->do_par_cov = 0;
   op->extraCmt = 0;
-  op->dydt = (t_dydt)(R_ExternalPtrAddr(dydt_lsoda));
-  op->calc_jac = (t_calc_jac)(R_ExternalPtrAddr(jac));
-  op->calc_lhs = (t_calc_lhs)(R_ExternalPtrAddr(lhs));
-  op->update_inis = (t_update_inis)(R_ExternalPtrAddr(inis));
-  op->dydt_lsoda_dum = (t_dydt_lsoda_dum)(R_ExternalPtrAddr(dydt_lsoda));
-  op->jdum_lsoda = (t_jdum_lsoda)(R_ExternalPtrAddr(jdum));
-  op->set_solve = (t_set_solve)(set_solve);
+  /* op->dydt = (t_dydt)(R_ExternalPtrAddr(dydt_lsoda)); */
+  /* op->calc_jac = (t_calc_jac)(R_ExternalPtrAddr(jac)); */
+  /* op->calc_lhs = (t_calc_lhs)(R_ExternalPtrAddr(lhs)); */
+  /* op->update_inis = (t_update_inis)(R_ExternalPtrAddr(inis)); */
+  /* op->dydt_lsoda_dum = (t_dydt_lsoda_dum)(R_ExternalPtrAddr(dydt_lsoda)); */
+  /* op->jdum_lsoda = (t_jdum_lsoda)(R_ExternalPtrAddr(jdum)); */
   SEXP opS = PROTECT(R_MakeExternalPtr(op, install("rx_solving_options"), R_NilValue)); pro++;
   /* R_RegisterCFinalizerEx(opS, getSolvingOptionsPtrFree, TRUE); */
 
@@ -272,9 +271,7 @@ SEXP getSolvingOptionsPtr(double ATOL,          //absolute error
                           SEXP calc_lhs,
                           SEXP update_inis,
                           SEXP dydt_lsoda_dum,
-                          SEXP jdum_lsoda,
-			  SEXP set_solve,
-			  SEXP get_solve){
+                          SEXP jdum_lsoda){
   // This really should not be called very often, so just allocate one for now.
   rx_solving_options *o;
   o = (rx_solving_options*)R_chk_calloc(1,sizeof(*o));
@@ -312,7 +309,6 @@ SEXP getSolvingOptionsPtr(double ATOL,          //absolute error
   o->update_inis = (t_update_inis)(R_ExternalPtrAddr(update_inis));
   o->dydt_lsoda_dum = (t_dydt_lsoda_dum)(R_ExternalPtrAddr(dydt_lsoda_dum));
   o->jdum_lsoda = (t_jdum_lsoda)(R_ExternalPtrAddr(jdum_lsoda));
-  o->set_solve = (t_set_solve)(R_ExternalPtrAddr(set_solve));
   SEXP ret = PROTECT(R_MakeExternalPtr(o, install("rx_solving_options"), R_NilValue));
   R_RegisterCFinalizerEx(ret, getSolvingOptionsPtrFree, TRUE);
   UNPROTECT(1);

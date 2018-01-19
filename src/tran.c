@@ -1240,8 +1240,8 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
     o = strlen(s_aux_info);
   }
   fprintf(outpt,"extern SEXP %smodel_vars0(){\n",model_prefix);
-  fprintf(outpt,"  SEXP lst      = PROTECT(allocVector(VECSXP, 13));\n");
-  fprintf(outpt,"  SEXP names    = PROTECT(allocVector(STRSXP, 13));\n");
+  fprintf(outpt,"  SEXP lst      = PROTECT(allocVector(VECSXP, 14));\n");
+  fprintf(outpt,"  SEXP names    = PROTECT(allocVector(STRSXP, 14));\n");
   fprintf(outpt,"  SEXP params   = PROTECT(allocVector(STRSXP, %d));\n",pi);
   fprintf(outpt,"  SEXP lhs      = PROTECT(allocVector(STRSXP, %d));\n",li);
   fprintf(outpt,"  SEXP state    = PROTECT(allocVector(STRSXP, %d));\n",statei);
@@ -1256,6 +1256,24 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
   fprintf(outpt,"  SEXP mmd5n    = PROTECT(allocVector(STRSXP, 2));\n");
   fprintf(outpt,"  SEXP model    = PROTECT(allocVector(STRSXP, 4));\n");
   fprintf(outpt,"  SEXP modeln   = PROTECT(allocVector(STRSXP, 4));\n");
+  fprintf(outpt,"  SEXP solve    = PROTECT(allocVector(VECSXP, 4));\n");
+  fprintf(outpt,"  SEXP solven   = PROTECT(allocVector(STRSXP, 4));\n");
+  fprintf(outpt,"  SEXP initsr   = PROTECT(allocVector(REALSXP, %d));\n",statei);
+  fprintf(outpt,"  SEXP scaler   = PROTECT(allocVector(REALSXP, %d));\n",statei);
+  fprintf(outpt,"  SEXP infusionr= PROTECT(allocVector(REALSXP, %d));\n",statei);
+  fprintf(outpt,"  SEXP badDosei = PROTECT(allocVector(INTSXP, %d));\n",statei);
+  fprintf(outpt,"  SEXP stateIgnorei= PROTECT(allocVector(INTSXP, %d));\n",statei);
+
+  fprintf(outpt,"  SET_STRING_ELT(solven,0,mkChar(\"inits\"));\n");
+  fprintf(outpt,"  SET_VECTOR_ELT(solve,  0,initsr);\n");
+  fprintf(outpt,"  SET_STRING_ELT(solven,1,mkChar(\"scale\"));\n");
+  fprintf(outpt,"  SET_VECTOR_ELT(solve,  1,scaler);\n");
+  fprintf(outpt,"  SET_STRING_ELT(solven,2,mkChar(\"infusion\"));\n");
+  fprintf(outpt,"  SET_VECTOR_ELT(solve,  2,infusionr);\n");
+  fprintf(outpt,"  SET_STRING_ELT(solven,3,mkChar(\"badDose\"));\n");
+  fprintf(outpt,"  SET_VECTOR_ELT(solve,  3,badDosei);\n");
+  fprintf(outpt,"  setAttrib(solve, R_NamesSymbol, solven);\n");
+
   fprintf(outpt,"%s",s_aux_info);
   // Save for outputting in trans
   tb.fdn = fdi;
@@ -1455,6 +1473,9 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
 
   fprintf(outpt,"  SET_STRING_ELT(names,12,mkChar(\"ptr\"));\n");
   fprintf(outpt,"  SET_VECTOR_ELT(lst,  12,__ODE_SOLVER_XPTR__());\n");
+
+  fprintf(outpt,"  SET_STRING_ELT(names,13,mkChar(\"solve\"));\n");
+  fprintf(outpt,"  SET_VECTOR_ELT(lst,  13,solve);\n");
   
   // md5 values
   fprintf(outpt,"  SET_STRING_ELT(mmd5n,0,mkChar(\"file_md5\"));\n");
@@ -1523,7 +1544,7 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
   fprintf(outpt, "  SET_STRING_ELT(cls, 0, mkChar(\"rxModelVars\"));\n");
   fprintf(outpt, "  classgets(lst, cls);\n");
   
-  fprintf(outpt,"  UNPROTECT(18);\n");
+  fprintf(outpt,"  UNPROTECT(25);\n");
   
   fprintf(outpt,"  return lst;\n");
   fprintf(outpt,"}\n");

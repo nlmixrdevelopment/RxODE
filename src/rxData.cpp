@@ -1541,15 +1541,13 @@ SEXP rxSolvingOptions(const RObject &object,
 			      as<SEXP>(ptr["lhs"]),
 			      as<SEXP>(ptr["inis"]),
 			      as<SEXP>(ptr["dydt_lsoda"]),
-			      as<SEXP>(ptr["jdum"]),
-			      as<SEXP>(ptr["get_solve"]),
-			      as<SEXP>(ptr["set_solve"]));
+			      as<SEXP>(ptr["jdum"]));
 }
 
 SEXP rxSolvingData(const RObject &model,
-		   const RObject &parData,
-		   const std::string &method = "lsoda",
-		   const Nullable<LogicalVector> &transit_abs = R_NilValue,
+                   const RObject &parData,
+                   const std::string &method = "lsoda",
+                   const Nullable<LogicalVector> &transit_abs = R_NilValue,
 		   const double atol = 1.0e-8,
 		   const double rtol = 1.0e-6,
 		   const int maxsteps = 5000,
@@ -1563,7 +1561,7 @@ SEXP rxSolvingData(const RObject &model,
 		   bool addCov = false,
 		   bool matrix = false) {
   if (rxIs(parData, "RxODE.par.data")){
-  List opt = List(parData);
+    List opt = List(parData);
     DataFrame ids = as<DataFrame>(opt["ids"]);
     IntegerVector BadDose = as<IntegerVector>(opt["BadDose"]);
     NumericVector InfusionRate = as<NumericVector>(opt["InfusionRate"]);
@@ -1644,6 +1642,63 @@ SEXP rxSolvingData(const RObject &model,
     stop("This requires something setup by 'rxDataParSetup'.");
   }
   return R_NilValue;
+}
+
+extern "C" rx_solve *rxSingle(SEXP object, const int stiff,const int transit_abs,
+			      const double atol, const double rtol, const int maxsteps,
+			      const double hmin, const double hini, const int maxordn,
+			      const int maxords, const int cores, const int ncov,
+			      int *par_cov, int do_par_cov, 
+			      int is_locf,
+			      // Other single solve option
+			      double hmax, double *par,
+			      double *amt, double *solve, double *lhs,
+			      int *evid, int *rc, double *cov,
+			      int nTimes, double *all_times){
+  List mv = rxModelVars(object);
+  // Use the number of each element to speed calculation.
+  List solveL = mv[13];
+  NumericVector inits           = solveL[0];
+  NumericVector scale           = solveL[1];
+  NumericVector InfusionRate    = solveL[2];
+  IntegerVector BadDose         = solveL[3];
+  // Instead of having the correct length for idose, use idose length = length of ntime
+  // Saves an additional for loop at the cost of a little memory.
+  /* int *idose; */
+  IntegerVector idose(nTimes);
+  rx_solving_options_ind *inds;
+  inds = Calloc(1,rx_solving_options_ind);
+  getSolvingOptionsIndPtr(&InfusionRate[0],&BadDose[0], hmax, par, amt, &idose[0], solve, 
+			  lhs, evid, rc, cov, nTimes, all_times, 1, 1, &inds[0]);
+  std::string method = "lsoda";
+  if (stiff == 0) {
+    method = "dop853";
+  }
+  std::string covs_interpolation = "linear";
+  if (is_locf == 1){
+    covs_interpolation="constant";
+  } else if (is_locf==2){
+    covs_interpolation="nocb";
+  } else if (is_locf== 3){
+    covs_interpolation="midpoint";
+  }
+  LogicalVector transit_absLV(1);
+  if (transit_abs == 1) {
+    transit_absLV[0] = true;
+  }  else {
+    transit_absLV[0] = false;
+  }
+  SEXP op = rxSolvingOptions(object,method, transit_absLV, atol, rtol, maxsteps, hmin, hini, maxordn,
+			     maxords, 1, ncov, par_cov, do_par_cov, &inits[0], &scale[0], covs_interpolation);
+  IntegerVector siV = mv[11];
+  SEXP ptr = rxSolveData(inds, 1, 1, &siV[0], -1, 0, 0, op);
+  rx_solve *ret = getRxSolve_(ptr);
+  // Also assign it.
+  List ptrL = mv[12];
+  SEXP setS = as<SEXP>(ptrL[10]);
+  t_set_solve set_solve = (t_set_solve)R_ExternalPtrAddr(setS);
+  set_solve(ret);
+  return ret;
 }
 
 List rxData(const RObject &object,
@@ -2695,31 +2750,6 @@ extern "C" void RxODE_assign_fn_pointers_(SEXP mv, int addit);
 void rxAssignPtr(SEXP object = R_NilValue){
   List mv=rxModelVars(as<RObject>(object));
   RxODE_assign_fn_pointers_(as<SEXP>(mv), 0);
-  CharacterVector state = mv["state"];
-  CharacterVector lhs = mv["lhs"];
-  CharacterVector params = mv["params"];
-  int neq = state.size();
-  int nlhs = lhs.size();
-  List ptr=mv[12];
-  rx_solve *rx = (rx_solve*)(R_ExternalPtrAddr(as<SEXP>(ptr[11])));
-  rx_solving_options *op = (rx_solving_options*)R_ExternalPtrAddr(rx->op);
-  rx_solving_options_ind *inds = rx->subjects;
-  rx_solving_options_ind *ind = &inds[0];
-  op->nlhs = nlhs;
-  op->neq = neq;
-  op->stateNames = as<SEXP>(state);
-  op->lhsNames = as<SEXP>(lhs);
-  op->paramNames = as<SEXP>(params);
-  ind->podo = 0.0;
-  ind->ixds = 0;
-  int i;
-  for (i = 0; i < neq; i++){
-    op->inits[i] = 0.0;
-    op->scale[i] = 1.0;
-    ind->InfusionRate[i] = 0.0;
-    ind->BadDose[i] =0;
-    rx->stateIgnore[i] = 0;
-  }
 }
 
 //' Get the number of cores in a system

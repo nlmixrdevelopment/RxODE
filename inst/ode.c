@@ -261,29 +261,12 @@ extern double _sign(unsigned int n, ...){
   return s;
 }
 
-// Single sublect global variables
-// Only need to be allocated once.
-double _s_inits[__NEQ__];
-double _s_scale[__NEQ__];
-double _s_InfusionRate[__NEQ__];
-int _s_BadDose[__NEQ__];
-int _s_stateIgnore[__NEQ__];
-
 SEXP _rxModels;
 SEXP __MODEL_VARS__0();
 extern SEXP __MODEL_VARS__(){
   SEXP _mv = _rxGetModelLib(__ODE_SOLVER_PTR_STR__);
   if (isNull(_mv)){
     _mv = __MODEL_VARS__0();
-    rx_solve *rx = (rx_solve*)(R_ExternalPtrAddr(VECTOR_ELT(VECTOR_ELT(_mv, 12), 11)));
-    rx_solving_options *op = (rx_solving_options*)R_ExternalPtrAddr(rx->op);
-    rx_solving_options_ind *inds = rx->subjects;
-    rx_solving_options_ind *ind = &inds[0];
-    op->inits = &_s_inits[0];
-    op->scale = &_s_scale[0];  
-    ind->InfusionRate = &_s_InfusionRate[0];
-    ind->BadDose = &_s_BadDose[0];
-    rx->stateIgnore = &_s_stateIgnore[0];
     _assign_ptr(_mv);
     return _mv;
   } else {
@@ -354,7 +337,7 @@ extern SEXP __ODE_SOLVER_XPTR__  (){
 }
 
 extern void __ODE_SOLVER_PTR__  (){
-  __MODEL_VARS__();
+  _assign_ptr(__MODEL_VARS__());
 }
 //Initilize the dll to match RxODE's calls
 void __R_INIT__ (DllInfo *info){
@@ -377,19 +360,12 @@ void __R_INIT__ (DllInfo *info){
   };
   R_registerRoutines(info, cMethods, callMethods, NULL, NULL);
   R_useDynamicSymbols(info,FALSE);
-  __ODE_SOLVER_PTR__();
 }
 
 void __R_UNLOAD__ (DllInfo *info){
   // Free resources required for single subject solve.
   SEXP _mv = _rxGetModelLib(__ODE_SOLVER_PTR_STR__);
   if (!isNull(_mv)){
-    rx_solve *rx = (rx_solve*)(R_ExternalPtrAddr(VECTOR_ELT(VECTOR_ELT(_mv, 12), 11)));
-    rx_solving_options *op = (rx_solving_options*)R_ExternalPtrAddr(rx->op);
-    rx_solving_options_ind *inds = rx->subjects;
-    Free(inds);
-    Free(op);
-    Free(rx);
     _rxRmModelLib(__ODE_SOLVER_PTR_STR__);
   }
 }

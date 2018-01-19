@@ -38,7 +38,6 @@ typedef struct {
   t_update_inis update_inis;
   t_dydt_lsoda_dum dydt_lsoda_dum;
   t_jdum_lsoda jdum_lsoda;
-  void *set_solve;
   // approx fun options
   double f1;
   double f2;
@@ -132,9 +131,7 @@ SEXP getSolvingOptionsPtr(double ATOL,          //absolute error
                           SEXP calc_lhs,
                           SEXP update_inis,
                           SEXP dydt_lsoda_dum,
-                          SEXP jdum_lsoda,
-                          SEXP set_solve,
-                          SEXP get_solve);
+                          SEXP jdum_lsoda);
 void getSolvingOptionsIndPtr(double *InfusionRate,
                              int *BadDose,
                              double HMAX, // Determined by diff

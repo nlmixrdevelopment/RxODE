@@ -119,7 +119,20 @@ extern SEXP RxODE_get_mv(){
   return __mv;
 }
 
+/* extern void rxode_assign_rx(rx_solve *rx); */
+
 extern void rxode_assign_rx(rx_solve *rx);
+extern rx_solve *rxSingle(SEXP object, const int stiff,const int transit_abs,
+			  const double atol, const double rtol, const int maxsteps,
+			  const double hmin, const double hini, const int maxordn,
+			  const int maxords, const int cores, const int ncov,
+			  int *par_cov, int do_par_cov, 
+			  int is_locf,
+			  // Other single solve option
+			  double hmax, double *par,
+			  double *amt, double *solve, double *lhs,
+			  int *evid, int *rc, double *cov,
+			  int nTimes, double *all_times);
 
 extern void rxSolveOldC(int *neqa,
 			double *theta,  //order:
@@ -136,77 +149,18 @@ extern void rxSolveOldC(int *neqa,
 			int *nlhsa,
 			double *lhsp,
 			int *rc){
-  rx_solve *rx = (rx_solve*)(R_ExternalPtrAddr(VECTOR_ELT(VECTOR_ELT(RxODE_get_mv(), 12), 11)));
+  SEXP mv = RxODE_get_mv();
+  rx_solve *rx;
+  int par_cov[0];
+  double cov[0];
+  int i =0;
+  rx = rxSingle(mv, *stiffa,*transit_abs, *atol, *rtol, 5000,//maxsteps
+                0, 0, 12, 5, 1, 0, par_cov, 0, 0, 0, theta,
+                dosep, retp, lhsp, evidp, rc, cov, *ntime,timep);
   rxode_assign_rx(rx);
-  rx_solving_options *op = (rx_solving_options*)R_ExternalPtrAddr(rx->op);
-  rx_solving_options_ind *inds = rx->subjects;
-  rx_solving_options_ind *ind = &inds[0];
-  ind->par_ptr = theta;
-  ind->n_all_times  = *ntime;
-  int neq = op->neq, i = 0;
-  if (neq != *neqa) {
-    error("Having a hard time getting RxODE model... (neq:%d != neqa:%d)\n",neq,*neqa);
-  }
-  double *InfusionRate =ind->InfusionRate,
-    *scale = op->scale;
-  int *BadDose = ind->BadDose;
-  // A bit paranoid -- make sure these are sane...
-  for (i = 0; i < neq; i++){
-    InfusionRate[i] = 0.0;
-    scale[i] = 1.0;
-    BadDose[i] = 0;
-  }
-  // Instead of having the correct length for idose, use idose length = length of ntime
-  // Saves an additional for loop at the cost of a little memory.
-  /* int *idose; */
-  SEXP idoses = PROTECT(allocVector(INTSXP, *ntime));
-  int *idose = INTEGER(idoses);
-  ind->idose = idose;
-  ind->ndoses=0;
-  for (i = 0; i < ind->n_all_times; i++){
-    if (evidp[i]){
-      ind->ndoses++;
-      ind->idose[ind->ndoses-1] = i;
-    }
-  }
-  op->do_par_cov = 0;
-  // cov_ptr
-  op->ncov              = 0;
-  op->is_locf           = 0;
-  // Solver Options
-  op->ATOL = *atol;
-  op->RTOL = *rtol;
-  // Assign to default LSODA behvior, or 0
-  op->HMIN           = 0;
-  ind->HMAX          = 0;
-  op->H0             = 0;
-  op->MXORDN         = 0;
-  op->MXORDS         = 0;
-  op->mxstep         = 5000; // Not LSODA default but RxODE default
-  // Counters
-  ind->slvr_counter   = 0;
-  ind->dadt_counter   = 0;
-  ind->jac_counter    = 0;
-
-  op->nlhs           = *nlhsa;
-  op->neq            = *neqa;
-  op->stiff          = *stiffa;
-  
-  ind->nBadDose = 0;
-  op->do_transit_abs = *transit_abs;
-
-  ind->all_times = timep;
-  ind->par_ptr = theta;
-  op->inits   = initsp;
-  ind->dose    = dosep;
-  ind->solve   = retp;
-  ind->lhs     = lhsp;
-  ind->evid    = evidp;
-  ind->rc = rc;
-  t_set_solve set_solve = (t_set_solve)(op->set_solve);
   SEXP sd = R_NilValue;
-  set_solve(rx);
   par_solve(rx, sd, 0); // Solve without the option of updating residuals.
+  rx_solving_options *op = (rx_solving_options*)R_ExternalPtrAddr(rx->op);
   t_calc_lhs calc_lhs = (t_calc_lhs)(op->calc_lhs);
   if (*nlhsa) {
     for (i=0; i<*ntime; i++){
@@ -214,23 +168,19 @@ extern void rxSolveOldC(int *neqa,
       calc_lhs(0, timep[i], retp+i*(*neqa), lhsp+i*(*nlhsa));
     }
   }
-  UNPROTECT(1);
 }
-
 
 void RxODE_ode_solve_env(SEXP sexp_rho){
   if(!isEnvironment(sexp_rho)){
     error("Calling RxODE_ode_solve_env without an environment...");
   }
   int pro = 0;
-  Rprintf("1\n");
   SEXP sexp_theta = PROTECT(findVar(installChar(mkChar("params")),sexp_rho));pro++;
   SEXP sexp_inits = PROTECT(findVar(installChar(mkChar("inits")),sexp_rho)); pro++;
   SEXP sexp_lhs   = PROTECT(findVar(installChar(mkChar("lhs_vars")),sexp_rho)); pro++;
   // Events
   SEXP sexp_time = PROTECT(findVar(installChar(mkChar("time")),sexp_rho)); pro++;
   SEXP sexp_evid = PROTECT(findVar(installChar(mkChar("evid")),sexp_rho)); pro++;
-  int *evidp = INTEGER(sexp_evid);
   SEXP sexp_dose = PROTECT(findVar(installChar(mkChar("amt")),sexp_rho)); pro++;
   // Covariates
   SEXP sexp_pcov = PROTECT(findVar(installChar(mkChar("pcov")),sexp_rho)); pro++;
@@ -249,99 +199,26 @@ void RxODE_ode_solve_env(SEXP sexp_rho){
   SEXP sexp_transit_abs = PROTECT(findVar(installChar(mkChar("transit_abs")),sexp_rho)); pro++;
   SEXP sexp_rc = PROTECT(findVar(installChar(mkChar("rc")),sexp_rho)); pro++;
   int *rce    = INTEGER(sexp_rc);
-  Rprintf("2\n");
-  rx_solve *rx = (rx_solve*)(R_ExternalPtrAddr(VECTOR_ELT(VECTOR_ELT(RxODE_get_mv(), 12), 11)));
-  Rprintf("3\n");
-  rxode_assign_rx(rx);
-  Rprintf("4\n");
-  rx_solving_options *op = (rx_solving_options*)R_ExternalPtrAddr(rx->op);
-  rx_solving_options_ind *inds = rx->subjects;
-  rx_solving_options_ind *ind = &inds[0];
-  Rprintf("5\n");
-  ind->par_ptr = REAL(sexp_theta);
-  int neq = op->neq, i = 0;
-  double *InfusionRate =ind->InfusionRate,
-    *scale = op->scale;
-  int *BadDose = ind->BadDose;
-  // A bit paranoid -- make sure these are sane...
-  for (i = 0; i < neq; i++){
-    InfusionRate[i] = 0.0;
-    scale[i] = 1.0;
-    BadDose[i] = 0;
-  }
-  // Instead of having the correct length for idose, use idose length = length of ntime
-  // Saves an additional for loop at the cost of a little memory.
-  int *idose;
-  idose = Calloc(length(sexp_time),int);
-  ind->idose = idose;
-  ind->ndoses=0;
-  for (i = 0; i < ind->n_all_times; i++){
-    if (evidp[i]){
-      ind->ndoses++;
-      ind->idose[ind->ndoses-1] = i;
-    }
-  }
-  ind->all_times     = REAL(sexp_time);
-  ind->n_all_times   = length(sexp_time);
-  ind->evid          = INTEGER(sexp_evid);
-  ind->dose          = REAL(sexp_dose);
-  // Covariates
-  op->par_cov       = INTEGER(sexp_pcov);
-  op->do_par_cov    = 1;
-  ind->cov_ptr       = REAL(sexp_cov);
-  op->ncov          = length(sexp_pcov);
-  op->is_locf       = INTEGER(sexp_locf)[0];
-  // Solver options
-  op->ATOL           = REAL(sexp_atol)[0];
-  op->RTOL           = REAL(sexp_rtol)[0];
-  op->HMIN           = REAL(sexp_hmin)[0];
-  ind->HMAX          = REAL(sexp_hmax)[0];
-  op->H0             = REAL(sexp_h0)[0];
-  op->MXORDN         = INTEGER(sexp_mxordn)[0];
-  op->MXORDS         = INTEGER(sexp_mxords)[0];
-  op->mxstep         = INTEGER(sexp_mx)[0];
-  op->do_transit_abs = INTEGER(sexp_transit_abs)[0];
-  op->stiff          = INTEGER(sexp_stiff)[0];
-  ind->slvr_counter   = 0;
-  ind->dadt_counter   = 0;
-  ind->jac_counter    = 0;
-  // LOCF
-  if (op->is_locf == 1){
-    op->f2 = 0.0; //= f=0 
-    op->f1 = 1.0; // = 1-f = 1;
-    op->kind = 0;
-  } else if (op->is_locf == 2) {
-    // NOCB
-    op->f2 = 1.0; //= f=1
-    op->f1 = 0.0;
-    op->kind = 0;
-  } else if (op->is_locf == 3){
-    op->f2 = 0.5; //= f=0.5
-    op->f1 = 0.5;
-    op->kind = 0;
-  } else {
-    // Linear
-    op->f2 = 1.0; //= f=0
-    op->f1 = 0.0;
-    op->kind = 1;
-  }
-  op->nlhs          = length(sexp_lhs);
-  op->neq           = length(sexp_inits);
-  op->inits   = REAL(sexp_inits);
-  ind->rc = rce;
-  
+  SEXP mv = RxODE_get_mv();
   // Let R handle deallocating the solve and lhs expressions; Should disappear with evironment
-  SEXP sexp_solve = PROTECT(allocVector(REALSXP,ind->n_all_times*op->neq)); pro++;
-  SEXP sexp_lhsV = PROTECT(allocVector(REALSXP,ind->n_all_times*op->nlhs)); pro++;
-  ind->solve = REAL(sexp_solve);
-  ind->lhs     = REAL(sexp_lhsV);
-  defineVar(install(".solve"), sexp_solve, sexp_rho);
-  defineVar(install(".lhs"), sexp_lhsV, sexp_rho);
-  t_set_solve set_solve = (t_set_solve)(op->set_solve);
+  SEXP sexp_solve = PROTECT(allocVector(REALSXP,length(sexp_time)*length(sexp_inits))); pro++;
+  SEXP sexp_lhsV = PROTECT(allocVector(REALSXP,length(sexp_time)*length(sexp_lhs))); pro++;
+  rx_solve *rx;
+  rx = rxSingle(mv, INTEGER(sexp_stiff)[0], INTEGER(sexp_transit_abs)[0],
+		REAL(sexp_atol)[0], REAL(sexp_rtol)[0], INTEGER(sexp_mx)[0],
+		REAL(sexp_hmin)[0], REAL(sexp_h0)[0],  INTEGER(sexp_mxordn)[0],
+		INTEGER(sexp_mxords)[0], 1, length(sexp_pcov),
+		INTEGER(sexp_pcov), 1,  INTEGER(sexp_locf)[0],
+		// Other single solve option
+		REAL(sexp_hmax)[0], REAL(sexp_theta),
+		REAL(sexp_dose), REAL(sexp_solve), REAL(sexp_lhsV),
+		INTEGER(sexp_evid), rce, REAL(sexp_cov),
+		length(sexp_time), REAL(sexp_time));
+  rxode_assign_rx(rx);
   SEXP sd = R_NilValue;
-  set_solve(rx);
   par_solve(rx, sd, 0); // Solve without the option of updating residuals.
-  Free(idose);
+  defineVar(install(".lhs"), sexp_lhsV, sexp_rho);
+  defineVar(install(".solve"), sexp_solve, sexp_rho);
   UNPROTECT(pro);
 }
 
