@@ -391,9 +391,11 @@ RxODE <- function(model, modName = basename(wd), wd = ifelse(RxODE.cache.directo
         tmp <- rxTrans(cmpMgr$rxDll(), calcJac=calcJac, calcSens=calcSens, collapseModel=collapseModel)["ode_solver"]
         names(tmp) <- NULL
         cmpMgr$ode_solver <- tmp;
-        model <- rxModelVars(cmpMgr$rxDll())$model["model"];
+        mv <- rxModelVars(cmpMgr$rxDll());
+        model <- mv$model["model"];
         names(model) <- NULL;
         cmpMgr$model <- model
+        assign(mv$trans["prefix"], environment(solve), rxModels);
     }
     out <-
        list(modName = modName,

@@ -1777,6 +1777,8 @@ List rxData(const RObject &object,
 
 RObject rxCurObj;
 
+Environment rxRxODEenv(RObject obj);
+
 //[[Rcpp::export]]
 SEXP rxSolveC(const RObject &object,
               const Nullable<CharacterVector> &specParams = R_NilValue,
@@ -1984,6 +1986,7 @@ SEXP rxSolveC(const RObject &object,
 	ret["scale"] = parData["scale"];
 	// add.cov
 	ret["state.ignore"] = parData["state.ignore"];
+	ret["object"] = rxRxODEenv(mv);
 	// event.table
 	// events
 	// extra.args
@@ -2739,6 +2742,18 @@ extern "C" void rxRmModelLib(const char* s){
   if (_rxModels.exists(str)){
     _rxModels.remove(str);
   }
+}
+
+Environment rxRxODEenv(RObject obj){
+  List mv = rxModelVars(obj);
+  CharacterVector trans = mv["trans"];
+  if (!foundEnv){
+    Environment RxODE("package:RxODE");
+    Function f = as<Function>(RxODE["rxModels_"]);
+    _rxModels = f();
+    foundEnv = true;
+  }
+  return as<Environment>(_rxModels[as<std::string>(trans["prefix"])]);
 }
 
 extern "C" void RxODE_assign_fn_pointers_(SEXP mv, int addit);
