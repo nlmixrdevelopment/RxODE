@@ -484,8 +484,29 @@ List rxDataSetup(const RObject &ro,
     nEtN[m-1] = nEt;
     Hmax[m-1] = mdiff;
     rc[m-1] = 0;
+    k = 0;
     if (dataCov && covDf.nrow() != nObs){
-      stop("Covariate data needs to match the number of observations in the overall dataset.");
+      if (covDf.nrow() == ids){
+	List covDf2(covDf.nrow());
+	for (j = 0; j < covDf.ncol(); j++){
+          covDf2[j] = NumericVector(nObs);
+	}
+	for (i = 0; i < ids; i++){
+	  if (!evid[i]){
+	    for (j = 0; j < covDf.ncol(); j++){
+              NumericVector cur = covDf2[j];
+	      cur[k] = (as<NumericVector>(covDf[j]))[i];
+            }
+	    k++;
+	  }
+	}
+        covDf2.attr("names") = covDf.attr("names");
+        covDf2.attr("class") = "data.frame";
+        covDf2.attr("row.names") = IntegerVector::create(NA_INTEGER,-nObs);
+	covDf = as<DataFrame>(covDf2);
+      } else {
+	stop("Covariate data needs to match the number of observations in the overall dataset.");
+      }
     }
     // Covariates are stacked by id that is
     // id=cov1,cov1,cov1,cov2,cov2,cov2,...
@@ -1995,7 +2016,7 @@ SEXP rxSolveC(const RObject &object,
 	ret["evid"] = et["evid"];
 	ret["amt"] = dose["amt"];
 	ret["pcov"] = parData["pcov"];
-	ret["cov"] = parData["cov"];
+	ret["covs"] = parData["cov"];
 	// FIXME: isLocf
         int is_locf = 0;
         if (as<std::string>(covs_interpolation[0]) == "linear"){

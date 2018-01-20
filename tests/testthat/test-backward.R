@@ -180,4 +180,59 @@ C1=centr/V;
 
     lst <- list2env(rxSolve(sys1, theta, ev, atol=1e-6, rtol=1e-6, do.solve=F))
 
+
+    object <- RxODE({
+        d/dt(depot)=rxRate(depot)+prod(-depot,exp(ETA[1]+THETA[1]));
+        d/dt(center)=rxRate(center)+prod(-center,exp(-ETA[3]-THETA[3]),exp(ETA[2]+THETA[2]+prod(THETA[4],WT)))+prod(depot,exp(ETA[1]+THETA[1]));
+        d/dt(rx__sens_depot_BY_ETA_1___)=prod(-depot,exp(ETA[1]+THETA[1]))-prod(rx__sens_depot_BY_ETA_1___,exp(ETA[1]+THETA[1]));
+        d/dt(rx__sens_depot_BY_ETA_2___)=prod(-rx__sens_depot_BY_ETA_2___,exp(ETA[1]+THETA[1]));
+        d/dt(rx__sens_depot_BY_ETA_3___)=prod(-rx__sens_depot_BY_ETA_3___,exp(ETA[1]+THETA[1]));
+        d/dt(rx__sens_center_BY_ETA_1___)=prod(depot,exp(ETA[1]+THETA[1]))-prod(rx__sens_center_BY_ETA_1___,exp(-ETA[3]-THETA[3]),exp(ETA[2]+THETA[2]+prod(THETA[4],WT)))+prod(rx__sens_depot_BY_ETA_1___,exp(ETA[1]+THETA[1]));
+        d/dt(rx__sens_center_BY_ETA_2___)=prod(-center,exp(-ETA[3]-THETA[3]),exp(ETA[2]+THETA[2]+prod(THETA[4],WT)))-prod(rx__sens_center_BY_ETA_2___,exp(-ETA[3]-THETA[3]),exp(ETA[2]+THETA[2]+prod(THETA[4],WT)))+prod(rx__sens_depot_BY_ETA_2___,exp(ETA[1]+THETA[1]));
+        d/dt(rx__sens_center_BY_ETA_3___)=prod(center,exp(-ETA[3]-THETA[3]),exp(ETA[2]+THETA[2]+prod(THETA[4],WT)))-prod(rx__sens_center_BY_ETA_3___,exp(-ETA[3]-THETA[3]),exp(ETA[2]+THETA[2]+prod(THETA[4],WT)))+prod(rx__sens_depot_BY_ETA_3___,exp(ETA[1]+THETA[1]));
+        rx_pred_=prod(center,exp(-ETA[3]-THETA[3]));
+        rx__sens_rx_pred__BY_ETA_1___=prod(rx__sens_center_BY_ETA_1___,exp(-ETA[3]-THETA[3]));
+        rx__sens_rx_pred__BY_ETA_2___=prod(rx__sens_center_BY_ETA_2___,exp(-ETA[3]-THETA[3]));
+        rx__sens_rx_pred__BY_ETA_3___=prod(-center,exp(-ETA[3]-THETA[3]))+prod(rx__sens_center_BY_ETA_3___,exp(-ETA[3]-THETA[3]));
+        rx_r_=Rx_pow_di(THETA[5],2);
+        rx__sens_rx_r__BY_ETA_1___=0;
+        rx__sens_rx_r__BY_ETA_2___=0;
+        rx__sens_rx_r__BY_ETA_3___=0;
+    })
+
+
+    et <- eventTable();
+    et$import.EventTable(structure(list(time = c(0, 0, 0.25, 0.57, 1.12, 2.02, 3.82, 5.1,
+                                                 7.03, 9.05, 12.12, 24, 24.37, 48, 72, 96, 120, 144, 144, 144.25,
+                                                 144.57, 145.12, 146.02, 147.82, 149.1, 151.03, 153.05, 156.12,
+                                                 168.37), evid = c(101L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L,
+                                                                   101L, 0L, 101L, 101L, 101L, 101L, 101L, 0L, 0L, 0L, 0L, 0L, 0L,
+                                                                   0L, 0L, 0L, 0L, 0L), amt = c(4.02, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                                                                                0, 4.02, 0, 4.02, 4.02, 4.02, 4.02, 4.02, 0, 0, 0, 0, 0, 0, 0,
+                                                                                                0, 0, 0, 0)), .Names = c("time", "evid", "amt"), row.names = c(NA,
+                                                                                                                                                               29L), class = "data.frame"));
+
+    ## For Backward Compatible FOCEi covariates this needs to work....
+    tmp <- do.call(what=object$solve, list(object=object, et, invisible = 1, epsilon = 1e-04, covs = data.frame(WT=rep(79.6, 22)),
+                                           atol = 1e-06, rtol = 1e-06, maxsteps = 99999, numDeriv.method = "simple",
+                                           c.hess = NULL, estimate = TRUE, inner.opt = "n1qn1", add.grad = TRUE,
+                                           eta = structure(c(0, 0, 0), .Dim = c(1L, 3L)), theta = c(-2.99573227355399,
+                                                                                                    -0.693147180559945, 0.693147180559945, 0.1, 0.1), do.solve = FALSE))
+
+    test_that("Can solve covariates produce a list with do.call(object$solve,...) covariate size = nObs",{
+        expect_equal(class(tmp), "list");
+        expect_equal(length(tmp$cov), 22);
+    })
+
+    ## Also for backward compatible it needs to take covariate size = nObs+nDose
+    tmp2 <- do.call(what=object$solve, list(object=object, et, invisible = 1, epsilon = 1e-04, covs = data.frame(WT=rep(79.6, 29)),
+                                           atol = 1e-06, rtol = 1e-06, maxsteps = 99999, numDeriv.method = "simple",
+                                           c.hess = NULL, estimate = TRUE, inner.opt = "n1qn1", add.grad = TRUE,
+                                           eta = structure(c(0, 0, 0), .Dim = c(1L, 3L)), theta = c(-2.99573227355399,
+                                                                                                    -0.693147180559945, 0.693147180559945, 0.1, 0.1), do.solve = FALSE))
+    test_that("Can solve covariates produce a list with do.call(object$solve,...) covariate size = nObs + nDose",{
+        expect_equal(class(tmp2), "list");
+        expect_equal(length(tmp2$cov), 22);
+    })
+
 }, silent=TRUE)
