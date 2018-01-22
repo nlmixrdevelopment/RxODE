@@ -368,9 +368,18 @@ function(x, ...)
 ##' @seealso \code{\link{eventTable}}, \code{\link{RxODE}}
 ##' @export
 add.dosing <- function(eventTable, ...) {
+    rxs <- rxIs(eventTable, "rxSolve")
+    if (rxs){
+        tmp <- eventTable$env;
+        tmp$.real.update <- FALSE;
+    }
     args <- as.list(match.call())[-(1:2)];
-    do.call(eventTable$add.dosing, args)
-    return(eventTable)
+    ret <- do.call(eventTable$add.dosing, args)
+    if (rxs){
+        return(ret);
+    } else {
+        return(eventTable)
+    }
 }
 ##' Add sampling to eventTable
 ##'
@@ -388,8 +397,17 @@ add.dosing <- function(eventTable, ...) {
 ##' @seealso \code{\link{eventTable}}, \code{\link{RxODE}}
 ##' @export
 add.sampling <- function(eventTable, time, time.units = NA){
-    eventTable$add.sampling(time=time, time.units=time.units)
-    return(eventTable)
+    rxs <- rxIs(eventTable, "rxSolve")
+    if (rxs){
+        tmp <- eventTable$env;
+        tmp$.real.update <- FALSE;
+    }
+    tmp <- eventTable$add.sampling(time=time, time.units=time.units)
+    if (rxs){
+        return(tmp);
+    } else {
+        return(eventTable)
+    }
 }
 
 

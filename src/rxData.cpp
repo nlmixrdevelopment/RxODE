@@ -1835,7 +1835,13 @@ SEXP rxSolveC(const RObject &object,
 	      const bool updateObject = false,
 	      const bool doSolve = true
               ){
-  if (rxIs(object, "rxSolve") || rxIs(object, "environment")){
+  if (updateObject && !rxIs(object, "rxSolve")){
+    return rxSolveC(rxCurObj, specParams, extraArgs, params, events, inits,
+                    scale, covs, method, transit_abs, atol, rtol, maxsteps,
+                    hmin, hmax, hini, maxordn, maxords, cores,covs_interpolation,
+                    addCov, matrix, sigma, sigmaDf, sigmaNcores, sigmaIsChol,
+                    amountUnits,timeUnits, addDosing, theta, eta, updateObject, doSolve);
+  } else if (rxIs(object, "rxSolve") || rxIs(object, "environment")){
     // Check to see what parameters were updated by specParams
     bool update_params = false,
       update_events = false,
@@ -1963,11 +1969,31 @@ SEXP rxSolveC(const RObject &object,
 
     RObject new_object = as<RObject>(e["args.object"]);
     CharacterVector new_specParams(0);
-    return rxSolveC(new_object, new_specParams, extraArgs, new_params, new_events, new_inits, new_scale, new_covs,
-		    new_method, new_transit_abs, new_atol, new_rtol, new_maxsteps, new_hmin,
-		    new_hmax, new_hini,new_maxordn, new_maxords, new_cores, new_covs_interpolation,
-		    new_addCov, new_matrix, new_sigma, new_sigmaDf, new_sigmaNcores, new_sigmaIsChol,
-		    new_amountUnits, new_timeUnits, new_addDosing);
+    List dat = as<List>(rxSolveC(new_object, new_specParams, extraArgs, new_params, new_events, new_inits, new_scale, new_covs,
+				 new_method, new_transit_abs, new_atol, new_rtol, new_maxsteps, new_hmin,
+				 new_hmax, new_hini,new_maxordn, new_maxords, new_cores, new_covs_interpolation,
+				 new_addCov, new_matrix, new_sigma, new_sigmaDf, new_sigmaNcores, new_sigmaIsChol,
+				 new_amountUnits, new_timeUnits, new_addDosing));
+    if (updateObject && as<bool>(e[".real.update"])){
+      List old = as<List>(rxCurObj);
+      //Should I zero out the List...?
+      CharacterVector oldNms = old.names();
+      CharacterVector nms = dat.names();
+      if (oldNms.size() == nms.size()){
+        int i;
+        for (i = 0; i < nms.size(); i++){
+          old[as<std::string>(nms[i])] = as<SEXP>(dat[as<std::string>(nms[i])]);
+        }
+        old.attr("class") = dat.attr("class");
+        old.attr("row.names") = dat.attr("row.names");
+        return old;
+      } else {
+        warning("Cannot update object...");
+        return dat;
+      }
+    }
+    e[".real.update"] = true;
+    return dat;
   } else {
     List parData = rxData(object, params, events, inits, covs, as<std::string>(method[0]), transit_abs, atol,
                           rtol, maxsteps, hmin,hmax, hini, maxordn, maxords, cores,
@@ -2168,6 +2194,9 @@ SEXP rxSolveC(const RObject &object,
       e["clear.sampling"] = eval2(_["expr"]   = parse2(_["text"]="function(...) {et <- create.eventTable(); et$clear.sampling(...); invisible(rxSolve(args.object,events=et,update.object=TRUE))}"),
                                   _["envir"]  = e);
 
+      e["replace.sampling"] = eval2(_["expr"]   = parse2(_["text"]="function(...) {et <- create.eventTable(); et$clear.sampling(); et$add.sampling(...); invisible(rxSolve(args.object,events=et,update.object=TRUE))}"),
+                                _["envir"]  = e);
+
       e["get.sampling"] = eval2(_["expr"]   = parse2(_["text"]="function() sampling"),
 				_["envir"]  = e);
       
@@ -2211,6 +2240,7 @@ SEXP rxSolveC(const RObject &object,
       e["args.amountUnits"] = amountUnits;
       e["args.timeUnits"] = timeUnits;
       e["args.addDosing"] = addDosing;
+      e[".real.update"] = true;
       CharacterVector cls(2);
       cls(0) = "rxSolve";
       cls(1) = "data.frame";
@@ -2228,7 +2258,7 @@ SEXP rxSolveC(const RObject &object,
 	  }
           old.attr("class") = dat.attr("class");
           old.attr("row.names") = dat.attr("row.names");
-          return dat;
+          return old;
 	} else {
 	  warning("Cannot update object...");
 	  return dat;
@@ -2405,6 +2435,7 @@ RObject rxSolveUpdate(RObject obj,
 		      RObject arg = R_NilValue,
 		      RObject value = R_NilValue){
   if (rxIs(obj,"rxSolve")){
+    rxCurObj = obj;
     if (rxIs(arg,"character")){
       CharacterVector what = CharacterVector(arg);
       if (what.size() == 1){
@@ -2529,6 +2560,11 @@ RObject rxSolveUpdate(RObject obj,
                           defrx_amountUnits,
                           defrx_timeUnits, 
 			  defrx_addDosing);
+	} else if (sarg == "t" || sarg == "time"){
+	  CharacterVector classattr = obj.attr("class");
+          Environment e = as<Environment>(classattr.attr(".RxODE.env"));
+	  Function f = as<Function>(e["replace.sampling"]);
+	  return f(value);
         } else {
 	  CharacterVector classattr = obj.attr("class");
 	  Environment e = as<Environment>(classattr.attr(".RxODE.env"));

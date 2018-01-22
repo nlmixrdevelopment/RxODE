@@ -282,4 +282,26 @@ C1=centr/V;
         expect_equal(x$eff[1], 0.5);
     })
 
+    x <- solve(mod1,theta, ev, inits)
+
+    test_that("Add sampling makes sense", {
+        ## Piping does not update object, like dplyr.
+        tmp <- x %>% add.sampling(0.5);
+        expect_equal(tmp$time[2], 0.5);
+        expect_equal(x$time[2], 1);
+        ## $ access updates object.
+        x$add.sampling(0.5);
+        expect_equal(x$time[2], 0.5);
+    })
+
+    x <- solve(mod1,theta, ev, inits)
+
+    test_that("Add dosing makes sense", {
+        tmp <- x %>% add.dosing(dose=500,start.time=0.5)
+        expect_equal(tmp$get.dosing()$time[2], 0.5);
+        expect_equal(x$get.dosing()$time[2], 12);
+        x$add.dosing(0.5);
+        expect_equal(x$get.dosing()$time[2], 12);
+    })
+
 }, silent=TRUE)
