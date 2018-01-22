@@ -2,11 +2,14 @@
 % Please edit documentation in R/RxODE.R
 \name{rxModels_}
 \alias{rxModels_}
-\title{Get the rxModels environment where loaded RxODE models are stored.}
+\title{Get the rxModels  information}
 \usage{
-rxModels_()
+rxModels_(env = TRUE)
+}
+\arguments{
+\item{env}{boolean that returns the environment where models are stored (TRUE), or the currently assigned RxODE model variables (FALSE).}
 }
 \description{
-Get the rxModels environment where loaded RxODE models are stored.
+Get the rxModels  information
 }
 \keyword{internal}

@@ -1599,9 +1599,9 @@ SEXP rxSolvingData(const RObject &model,
     IntegerVector posEvent = as<IntegerVector>(ids["posEvent"]);
     IntegerVector posCov = as<IntegerVector>(ids["posCov"]);
     IntegerVector nEvent = as<IntegerVector>(ids["nEvent"]);
-    NumericVector solve = as<NumericVector>(opt["solve"]);
-    DataFrame et      = as<DataFrame>(opt["et"]);
-    IntegerVector evid  = as<IntegerVector>(et["evid"]);
+    NumericVector solve  = as<NumericVector>(opt["solve"]);
+    DataFrame et         = as<DataFrame>(opt["et"]);
+    IntegerVector evid   = as<IntegerVector>(et["evid"]);
     NumericVector all_times = as<NumericVector>(et["time"]);
     int totSize = et.nrow();
     NumericVector lhs = as<NumericVector>(opt["lhs"]);
@@ -1616,7 +1616,7 @@ SEXP rxSolvingData(const RObject &model,
     }
     rx_solving_options_ind *inds;
     int nsim = as<int>(opt["nsim"]);
-    inds = Calloc(nSub*nsim,rx_solving_options_ind);
+    inds = (rx_solving_options_ind *)Calloc(nSub*nsim,rx_solving_options_ind);
     int neq = as<int>(opt["neq"]);
     int ncov =-1;
     int cid;
@@ -1688,7 +1688,7 @@ extern "C" rx_solve *rxSingle(SEXP object, const int stiff,const int transit_abs
   /* int *idose; */
   IntegerVector idose(nTimes);
   rx_solving_options_ind *inds;
-  inds = Calloc(1,rx_solving_options_ind);
+  inds = (rx_solving_options_ind *)Calloc(1, rx_solving_options_ind);
   getSolvingOptionsIndPtr(&InfusionRate[0],&BadDose[0], hmax, par, amt, &idose[0], solve, 
 			  lhs, evid, rc, cov, nTimes, all_times, 1, 1, &inds[0]);
   std::string method = "lsoda";
@@ -1800,7 +1800,6 @@ RObject rxCurObj;
 
 Environment rxRxODEenv(RObject obj);
 
-//[[Rcpp::export]]
 SEXP rxSolveC(const RObject &object,
               const Nullable<CharacterVector> &specParams = R_NilValue,
 	      const Nullable<List> &extraArgs = R_NilValue,

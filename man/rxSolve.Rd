@@ -4,10 +4,10 @@
 \alias{rxSolve}
 \title{Solves a ODE equation}
 \usage{
-rxSolve(object, params = NULL, events = NULL, inits = NULL, ...,
+rxSolve(object, params = NULL, events = NULL, inits = NULL,
   scale = NULL, covs = NULL, method = "lsoda", transit_abs = NULL,
   atol = 1e-08, rtol = 1e-06, maxsteps = 5000L, hmin = 0L,
-  hmax = NULL, hini = 0L, maxordn = 12L, maxords = 5L, cores,
+  hmax = NULL, hini = 0L, maxordn = 12L, maxords = 5L, ..., cores,
   covs_interpolation = "linear", add.cov = FALSE, matrix = FALSE,
   sigma = NULL, sigmaDf = NULL, sigmaNcores = 1L, sigmaIsChol = FALSE,
   amountUnits = NA_character_, timeUnits = "hours", stiff, theta = NULL,
@@ -30,11 +30,6 @@ time points (see \code{\link{eventTable}});}
 (e.g., amounts in each compartment), and the order in this
 vector must be the same as the state variables (e.g., PK/PD
 compartments);}
-
-\item{...}{Other arguments including scaling factors for each
-compartment.  This includes S# = numeric will scale a compartment
-# by a dividing the compartment amount by the scale factor,
-like NONMEM.}
 
 \item{scale}{a numeric named vector with scaling for ode
 parameters of the system.  The names must correstond to the
@@ -78,6 +73,11 @@ default value is determined by the solver (when hini = 0)}
 
 \item{maxords}{The maximum order to be allowed for the stiff (BDF)
 method.  The default value is 5.  This can be between 1 and 5.}
+
+\item{...}{Other arguments including scaling factors for each
+compartment.  This includes S# = numeric will scale a compartment
+# by a dividing the compartment amount by the scale factor,
+like NONMEM.}
 
 \item{covs_interpolation}{specifies the interpolation method for
     time-varying covariates. When solving ODEs it often samples
@@ -171,5 +171,5 @@ Springer-Verlag (1993).
 \code{\link{RxODE}}
 }
 \author{
-Melissa Hallow, Wenping Wang and Matthew Fidler
+Matthew Fidler, Melissa Hallow and  Wenping Wang
 }

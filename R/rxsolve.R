@@ -154,9 +154,19 @@
 ##'
 ##'
 ##' @seealso \code{\link{RxODE}}
-##' @author Melissa Hallow, Wenping Wang and Matthew Fidler
+##' @author Matthew Fidler, Melissa Hallow and  Wenping Wang
 ##' @export
-rxSolve <- function(object, params = NULL, events = NULL, inits = NULL, ..., scale=NULL, covs = NULL, method = "lsoda", transit_abs = NULL, atol = 1.0e-8, rtol = 1.0e-6, maxsteps = 5000L, hmin = 0L, hmax = NULL, hini = 0L, maxordn = 12L, maxords = 5L, cores, covs_interpolation = "linear", add.cov = FALSE, matrix = FALSE, sigma = NULL, sigmaDf = NULL, sigmaNcores = 1L, sigmaIsChol = FALSE, amountUnits = NA_character_, timeUnits = "hours", stiff, theta = NULL, eta = NULL, addDosing=FALSE, update.object=FALSE,do.solve=TRUE){
+rxSolve <- function(object, params=NULL, events=NULL, inits = NULL, scale = NULL,
+                    covs = NULL, method = "lsoda", transit_abs = NULL, atol = 1.0e-8, rtol = 1.0e-6,
+                    maxsteps = 5000L, hmin = 0L, hmax = NULL, hini = 0L, maxordn = 12L, maxords = 5L, ...,
+                    cores, covs_interpolation = "linear", add.cov = FALSE, matrix = FALSE, sigma = NULL, sigmaDf = NULL,
+                    sigmaNcores = 1L, sigmaIsChol = FALSE, amountUnits = NA_character_, timeUnits = "hours", stiff,
+                    theta = NULL, eta = NULL, addDosing=FALSE, update.object=FALSE,do.solve=TRUE){
+    ## stiff = TRUE, transit_abs = NULL,
+    ## atol = 1.0e-8, rtol = 1.0e-6, maxsteps = 5000, hmin = 0, hmax = NULL, hini = 0, maxordn = 12,
+    ## maxords = 5, ..., covs_interpolation = c("linear", "constant", "NOCB", "midpoint"),
+    ## theta=numeric(), eta=numeric(), matrix=TRUE,add.cov=FALSE,
+    ## inC=FALSE, counts=NULL, do.solve=TRUE
     if (!missing(stiff) && missing(method)){
         if (rxIs(stiff, "logical")){
             if (stiff){
@@ -169,6 +179,7 @@ rxSolve <- function(object, params = NULL, events = NULL, inits = NULL, ..., sca
         }
     }
     extra <- list(...);
+
     if (any(duplicated(names(extra)))){
         stop("Duplicate arguments do not make sense.");
     }
@@ -263,10 +274,21 @@ summary.rxSolve <- function(object, ...){
         message("Parameters:")
         is.dplyr <- requireNamespace("dplyr", quietly = TRUE) && RxODE.display.tbl;
         df <- object$pars
-        if (!is.dplyr){
-            print(head(as.matrix(x), n = 6L));
+        args <- as.list(match.call(expand.dots = TRUE));
+        if (any(names(args) == "n")){
+            n <- args$n;
         } else {
-            print(dplyr::as.tbl(x$pars), n = 6L, width = width);
+            n <- 6L;
+        }
+        if (!is.dplyr){
+            print(head(as.matrix(x), n = n));
+        } else {
+            if (any(names(args) == "width")){
+                width <- args$width;
+            } else {
+                width <- NULL;
+            }
+            print(dplyr::as.tbl(x$pars), n = n, width = width);
         }
         message("\n\nInitial conditions:")
         print(object$inits);
@@ -292,9 +314,7 @@ is.rxSolve <- function(x){
 
 ##' @author Matthew L.Fidler
 ##' @export
-`[.rxSolve` <- function(x, i, j, drop=if (missing(i))
-                                              TRUE
-                                          else length(cols) == 1){
+`[.rxSolve` <- function(x, i, j, drop){
     class(x) <- "data.frame";
     NextMethod("[");
 }

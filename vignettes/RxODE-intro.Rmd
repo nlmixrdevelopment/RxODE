@@ -406,7 +406,7 @@ carried forward, or constant approximation.  This is equivalent to R's
 (r2 <- solve(mod3, ev, covs=cov.df,covs_interpolation="constant"))
 ```
 
-which dives the following plots:
+which gives the following plots:
 
 ```{r out.width="100%"}
 par(mfrow=c(1,2))

@@ -304,4 +304,14 @@ C1=centr/V;
         expect_equal(x$get.dosing()$time[2], 12);
     })
 
+    x <- solve(mod1,theta, ev, inits)
+
+    x$t <- seq(0,5,length.out=20)
+
+    test_that("Changing sampling makes sense.", {
+        expect_equal(length(x$t), 20)
+        expect_equal(min(x$t), 0)
+        expect_equal(max(x$t), 5)
+    })
+
 }, silent=TRUE)
