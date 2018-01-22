@@ -2337,19 +2337,47 @@ RObject rxSolveGet(RObject obj, RObject arg, LogicalVector exact = true){
 	    return pars[sarg];
 	  }
 	}
+	
         
 	// // Now inis.
 	// Function sub("sub", R_BaseNamespace);
-	// NumericVector ini = NumericVector(e["inits.dat"]);
-	// CharacterVector nmi = ini.names();
-	// n = ini.size();
-	// std::string cur;
-	// for (i = 0; i < n; i++){
-	//   cur = as<std::string>(sub("(?:(?:[_.]0)|0|\\(0\\)|\\[0\\]|\\{0\\})$","", sarg));
-	//   if (nmi[i] == cur){
-	//     return wrap(ini[i]);
-	//   }
-	// }
+	NumericVector ini = NumericVector(e["inits.dat"]);
+	CharacterVector nmi = ini.names();
+	n = ini.size();
+        std::string cur;
+        NumericVector retN(1);
+        for (i = 0; i < n; i++){
+	  cur = as<std::string>(nmi[i]) + "0";
+	  if (cur == sarg){
+	    retN = ini[i];
+	    return as<RObject>(retN);
+	  }
+	  cur = as<std::string>(nmi[i]) + "_0";
+          if (cur == sarg){
+	    retN = ini[i];
+            return as<RObject>(retN);
+          }
+          cur = as<std::string>(nmi[i]) + ".0";
+          if (cur == sarg){
+            retN = ini[i];
+            return as<RObject>(retN);
+          }
+          cur = as<std::string>(nmi[i]) + "[0]";
+          if (cur == sarg){
+	    retN = ini[i];
+            return as<RObject>(retN);
+          }
+          cur = as<std::string>(nmi[i]) + "(0)";
+          if (cur == sarg){
+	    retN = ini[i];
+	    return as<RObject>(retN);
+          }
+          cur = as<std::string>(nmi[i]) + "{0}";
+          if (cur == sarg){
+	    retN = ini[i];
+            return as<RObject>(retN);
+          }
+	}
 	// // Sensitivities -- last
 	// // This is slower, defer to last.
 	// for (i = 0; i < n; i++){

@@ -235,4 +235,35 @@ C1=centr/V;
         expect_equal(length(tmp2$cov), 22);
     })
 
+    mod1 <- RxODE({
+        C2 = centr/V2;
+        C3 = peri/V3;
+        d/dt(depot) =-KA*depot;
+        d/dt(centr) = KA*depot - CL*C2 - Q*C2 + Q*C3;
+        d/dt(peri)  =                    Q*C2 - Q*C3;
+        d/dt(eff)  = Kin - Kout*(1-C2/(EC50+C2))*eff;
+    })
+
+    ev <- eventTable(amount.units="mg", time.units="hours") %>%
+        add.dosing(dose=10000, nbr.doses=10, dosing.interval=12) %>%
+        add.dosing(dose=20000, nbr.doses=5, start.time=120,dosing.interval=24) %>%
+        add.sampling(0:240);
+
+    x <- solve(mod1,theta, ev, inits)
+
+    test_that("Can retrieve initial conditions.", {
+        expect_equal(x$eff0, 1)
+        expect_equal(x$eff.0, 1)
+        expect_equal(x$eff_0, 1)
+        expect_equal(x$centr0, 0)
+        expect_equal(x$centr.0, 0)
+        expect_equal(x$centr_0, 0)
+        expect_equal(x$depot0, 0)
+        expect_equal(x$depot.0, 0)
+        expect_equal(x$depot_0, 0)
+        expect_equal(x$peri0, 0)
+        expect_equal(x$peri.0, 0)
+        expect_equal(x$peri_0, 0)
+    })
+
 }, silent=TRUE)
