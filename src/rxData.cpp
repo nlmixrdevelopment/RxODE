@@ -2744,6 +2744,78 @@ RObject rxSolveUpdate(RObject obj,
 	      }
 	    }
 	  }
+	  ////////////////////////////////////////////////////////////////////////////////
+          // Update Initial Conditions
+	  NumericVector ini = NumericVector(e["inits.dat"]);
+          CharacterVector nmi = ini.names();
+          n = ini.size();
+          std::string cur;
+	  bool doIt = false;
+          for (i = 0; i < n; i++){
+            cur = as<std::string>(nmi[i]) + "0";
+	    if (cur == sarg){
+	      doIt = true;
+	    } else {
+              cur = as<std::string>(nmi[i]) + ".0";
+              if (cur == sarg){
+                doIt = true;
+	      } else {
+		cur = as<std::string>(nmi[i]) + "_0";
+                if (cur == sarg){
+		  doIt = true;
+		} else {
+		  cur = as<std::string>(nmi[i]) + "(0)";
+                  if (cur == sarg){
+                    doIt = true;
+                  } else {
+		    cur = as<std::string>(nmi[i]) + "[0]";
+                    if (cur == sarg){
+		      doIt = true;
+		    } 
+		  }
+		}
+	      }
+	    }
+	    if (doIt){
+	      cur=as<std::string>(nmi[i]);
+              NumericVector ini = NumericVector(e["inits.dat"]);
+	      double v = as<double>(value);
+	      for (j = 0; j < n; j++){
+		if (cur == as<std::string>(nmi[j])){
+		  ini[j] = v;
+		}
+	      }
+              return rxSolveC(obj,
+			      CharacterVector::create("inits"),
+			      R_NilValue,
+			      defrx_params,
+			      defrx_events,
+			      ini,
+			      R_NilValue,
+			      defrx_covs,
+			      defrx_method,
+			      defrx_transit_abs,
+			      defrx_atol,
+			      defrx_rtol,
+			      defrx_maxsteps,
+			      defrx_hmin,
+			      defrx_hmax,
+			      defrx_hini,
+			      defrx_maxordn,
+			      defrx_maxords,
+			      defrx_cores,
+			      defrx_covs_interpolation,
+			      defrx_addCov,
+			      defrx_matrix,
+			      defrx_sigma,
+			      defrx_sigmaDf,
+			      defrx_sigmaNcores,
+			      defrx_sigmaIsChol,
+			      defrx_amountUnits,
+			      defrx_timeUnits, 
+			      defrx_addDosing);
+	    }
+	  }
 	  return R_NilValue;
 	}
       }

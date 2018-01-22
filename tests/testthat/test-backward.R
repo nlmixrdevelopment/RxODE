@@ -249,21 +249,37 @@ C1=centr/V;
         add.dosing(dose=20000, nbr.doses=5, start.time=120,dosing.interval=24) %>%
         add.sampling(0:240);
 
+    theta <-
+        c(KA=2.94E-01, CL=1.86E+01, V2=4.02E+01, # central
+          Q=1.05E+01,  V3=2.97E+02,              # peripheral
+          Kin=1, Kout=1, EC50=200)               # effects
+
+    inits <- c(eff=1);
+
     x <- solve(mod1,theta, ev, inits)
 
     test_that("Can retrieve initial conditions.", {
-        expect_equal(x$eff0, 1)
-        expect_equal(x$eff.0, 1)
-        expect_equal(x$eff_0, 1)
-        expect_equal(x$centr0, 0)
-        expect_equal(x$centr.0, 0)
-        expect_equal(x$centr_0, 0)
-        expect_equal(x$depot0, 0)
-        expect_equal(x$depot.0, 0)
-        expect_equal(x$depot_0, 0)
-        expect_equal(x$peri0, 0)
-        expect_equal(x$peri.0, 0)
-        expect_equal(x$peri_0, 0)
+        expect_equal(x$eff0, 1);
+        expect_equal(x$eff.0, 1);
+        expect_equal(x$eff_0, 1);
+        expect_equal(x$centr0, 0);
+        expect_equal(x$centr.0, 0);
+        expect_equal(x$centr_0, 0);
+        expect_equal(x$depot0, 0);
+        expect_equal(x$depot.0, 0);
+        expect_equal(x$depot_0, 0);
+        expect_equal(x$peri0, 0);
+        expect_equal(x$peri.0, 0);
+        expect_equal(x$peri_0, 0);
+    })
+
+    test_that("Can Update initial conditions", {
+        x$eff0 <- 2;
+        expect_equal(x$eff[1], 2);
+        x$eff.0 <- 1;
+        expect_equal(x$eff[1], 1);
+        x$eff_0 <- 0.5;
+        expect_equal(x$eff[1], 0.5);
     })
 
 }, silent=TRUE)
