@@ -345,6 +345,14 @@ void __R_INIT__ (DllInfo *info){
   R_RegisterCCallable(__LIB_STR__,__ODE_SOLVER_STR__,       (DL_FUNC) __ODE_SOLVER__);
   R_RegisterCCallable(__LIB_STR__,"__ODE_SOLVER_XPTR__",   (DL_FUNC) __ODE_SOLVER_XPTR__);
   R_RegisterCCallable(__LIB_STR__,"__ODE_SOLVER_PTR__",   (DL_FUNC) __ODE_SOLVER_PTR__);
+  R_RegisterCCallable(__LIB_STR__,"__INIS__", (DL_FUNC) __INIS__);
+  R_RegisterCCallable(__LIB_STR__,"__INIS__", (DL_FUNC) __INIS__);
+  R_RegisterCCallable(__LIB_STR__,"__DYDT__", (DL_FUNC) __DYDT__);
+  R_RegisterCCallable(__LIB_STR__,"__CALC_LHS__", (DL_FUNC) __CALC_LHS__);
+  R_RegisterCCallable(__LIB_STR__,"__CALC_JAC__", (DL_FUNC) __CALC_JAC__);
+  R_RegisterCCallable(__LIB_STR__,"__DYDT_LSODA__", (DL_FUNC) __DYDT_LSODA__);
+  R_RegisterCCallable(__LIB_STR__,"__ODE_SOLVER_SOLVEDATA__", (DL_FUNC) __ODE_SOLVER_SOLVEDATA__);
+  R_RegisterCCallable(__LIB_STR__,"__ODE_SOLVER_GET_SOLVEDATA__", (DL_FUNC) __ODE_SOLVER_GET_SOLVEDATA__);
   
   static const R_CMethodDef cMethods[] = {
     {__ODE_SOLVER_STR__, (DL_FUNC) &__ODE_SOLVER__, 15, __ODE_SOLVER__rx_t},
@@ -355,7 +363,6 @@ void __R_INIT__ (DllInfo *info){
     {__ODE_SOLVER_XPTR_STR__, (DL_FUNC) &__ODE_SOLVER_XPTR__, 0},
     {__ODE_SOLVER_PTR_STR__, (DL_FUNC) &__ODE_SOLVER_PTR__, 0},
     {__MODEL_VARS_STR__, (DL_FUNC) &__MODEL_VARS__, 0},
-    {"__INIS__", (DL_FUNC) &__INIS__, 1},
     {NULL, NULL, 0}
   };
   R_registerRoutines(info, cMethods, callMethods, NULL, NULL);
