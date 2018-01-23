@@ -2,7 +2,7 @@
 #include <RcppArmadillo.h>
 #include <thread>
 #include <string>
-extern "C"{
+extern "C" {
 #include "solve.h"
 }
 
@@ -645,6 +645,8 @@ int rxUpdateResiduals_(SEXP md){
     return 0;
 }
 
+
+
 rx_solve *getRxSolve(SEXP ptr){
   if (rxIs(ptr,"RxODE.pointer.multi")){
     List lst = List(ptr);
@@ -662,11 +664,6 @@ rx_solve *getRxSolve(SEXP ptr){
   return o;
 }
 
-void freeRxSolve(SEXP ptr){
-  List lst = List(ptr);
-  SEXP pt = as<SEXP>(lst["pointer"]);
-  rxSolveDataFree(pt);
-}
 //' All model variables for a RxODE object
 //'
 //' Return all the known model variables for a specified RxODE object
@@ -1616,7 +1613,7 @@ SEXP rxSolvingData(const RObject &model,
     }
     rx_solving_options_ind *inds;
     int nsim = as<int>(opt["nsim"]);
-    inds = (rx_solving_options_ind *)Calloc(nSub*nsim,rx_solving_options_ind);
+    inds = rxOptionsIniEnsure(nSub*nsim);
     int neq = as<int>(opt["neq"]);
     int ncov =-1;
     int cid;
@@ -1630,8 +1627,6 @@ SEXP rxSolvingData(const RObject &model,
         } else {
           NumericVector hmn = NumericVector(hmax);
           if (R_FINITE(hmn[0])){
-            if (hmn[0] < 0)
-	      Free(inds);
 	    stop("'hmax' must be a non-negative value.");
             hm = hmn[0];
           } else {
@@ -1688,7 +1683,7 @@ extern "C" rx_solve *rxSingle(SEXP object, const int stiff,const int transit_abs
   /* int *idose; */
   IntegerVector idose(nTimes);
   rx_solving_options_ind *inds;
-  inds = (rx_solving_options_ind *)Calloc(1, rx_solving_options_ind);
+  inds = rxOptionsIniEnsure(1);//(rx_solving_options_ind *)Calloc(1, rx_solving_options_ind);
   getSolvingOptionsIndPtr(&InfusionRate[0],&BadDose[0], hmax, par, amt, &idose[0], solve, 
 			  lhs, evid, rc, cov, nTimes, all_times, 1, 1, &inds[0]);
   std::string method = "lsoda";
@@ -1839,7 +1834,7 @@ SEXP rxSolveC(const RObject &object,
                     scale, covs, method, transit_abs, atol, rtol, maxsteps,
                     hmin, hmax, hini, maxordn, maxords, cores,covs_interpolation,
                     addCov, matrix, sigma, sigmaDf, sigmaNcores, sigmaIsChol,
-                    amountUnits,timeUnits, addDosing, theta, eta, updateObject, doSolve);
+                    amountUnits,timeUnits, addDosing, R_NilValue, R_NilValue, updateObject, false);
   } else if (rxIs(object, "rxSolve") || rxIs(object, "environment")){
     // Check to see what parameters were updated by specParams
     bool update_params = false,
@@ -2096,7 +2091,7 @@ SEXP rxSolveC(const RObject &object,
     DataFrame ret;
     
     rx_solve *rx;
-    rx =getRxSolve(parData);
+    rx = getRxSolve(parData);
     par_solve(rx, parData, 1);
     int doDose = 0;
     if (addDosing){
@@ -2107,7 +2102,6 @@ SEXP rxSolveC(const RObject &object,
     List dat = RxODE_df(parData, doDose);
     List xtra;
     if (!rx->matrix) xtra = RxODE_par_df(parData);
-    freeRxSolve(parData);
     int nr = as<NumericVector>(dat[0]).size();
     int nc = dat.size();
     if (rx->matrix){
@@ -2245,24 +2239,6 @@ SEXP rxSolveC(const RObject &object,
       cls(1) = "data.frame";
       cls.attr(".RxODE.env") = e;    
       dat.attr("class") = cls;
-      if (updateObject){
-	List old = as<List>(rxCurObj);
-	//Should I zero out the List...?
-	CharacterVector oldNms = old.names();
-	CharacterVector nms = dat.names();
-	if (oldNms.size() == nms.size()){
-	  int i;
-	  for (i = 0; i < nms.size(); i++){
-	    old[as<std::string>(nms[i])] = as<SEXP>(dat[as<std::string>(nms[i])]);
-	  }
-          old.attr("class") = dat.attr("class");
-          old.attr("row.names") = dat.attr("row.names");
-          return old;
-	} else {
-	  warning("Cannot update object...");
-	  return dat;
-        }
-      }
       return(dat);
     }
   }

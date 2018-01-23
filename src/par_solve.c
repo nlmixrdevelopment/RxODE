@@ -20,7 +20,28 @@
 #include <omp.h>
 #endif
 
-static void getSolvingOptionsPtrFree(SEXP ptr);
+rx_solve rx_global;
+rx_solving_options op_global;
+
+rx_solving_options_ind *inds_global;
+int max_inds_global = 0;
+
+void rxOptionsIni(){
+  inds_global =Calloc(1024, rx_solving_options_ind);
+  max_inds_global = 1024;
+}
+
+rx_solving_options_ind *rxOptionsIniEnsure(int mx){
+  if (mx >= max_inds_global){
+    inds_global = Realloc(inds_global, max_inds_global, rx_solving_options_ind);
+  }
+  return inds_global;
+}
+
+void rxOptionsFree(){
+  Free(inds_global);
+}
+
 extern SEXP RxODE_get_fn_pointers(t_dydt fun_dydt,
                                   t_calc_lhs fun_calc_lhs,
                                   t_calc_jac fun_calc_jac,
@@ -113,7 +134,7 @@ extern SEXP RxODE_get_fn_pointers(t_dydt fun_dydt,
   setAttrib(lst, R_NamesSymbol, names);
 
   rx_solving_options_ind *inds;
-  inds = Calloc(1,rx_solving_options_ind);
+  inds = rxOptionsIniEnsure(1);//Calloc(1,rx_solving_options_ind);
   rx_solving_options_ind *ind = &inds[0];
   ind->slvr_counter = 0;
   ind->dadt_counter = 0;
@@ -132,7 +153,7 @@ extern SEXP RxODE_get_fn_pointers(t_dydt fun_dydt,
   ind->sim = 1;
   
   rx_solving_options *op;
-  op = (rx_solving_options*)R_chk_calloc(1,sizeof(*op));
+  op = &op_global;
   op->badSolve = 0;
   op->ATOL = 1.0e-8;          //absolute error
   op->RTOL = 1.0e-6;          //relative error
@@ -162,10 +183,9 @@ extern SEXP RxODE_get_fn_pointers(t_dydt fun_dydt,
   /* op->dydt_lsoda_dum = (t_dydt_lsoda_dum)(R_ExternalPtrAddr(dydt_lsoda)); */
   /* op->jdum_lsoda = (t_jdum_lsoda)(R_ExternalPtrAddr(jdum)); */
   SEXP opS = PROTECT(R_MakeExternalPtr(op, install("rx_solving_options"), R_NilValue)); pro++;
-  /* R_RegisterCFinalizerEx(opS, getSolvingOptionsPtrFree, TRUE); */
-
+  
   rx_solve *rx;
-  rx = (rx_solve*)R_chk_calloc(1,sizeof(*rx));
+  rx = &rx_global;//(rx_solve*)R_chk_calloc(1,sizeof(*rx));
   rx->subjects = inds;
   rx->nsub = 1;
   rx->nsim = 1;
@@ -228,16 +248,6 @@ void getSolvingOptionsIndPtr(double *InfusionRate,
   o->sim = sim;
 }
 
-static void getSolvingOptionsPtrFree(SEXP ptr)
-{
-  if(!R_ExternalPtrAddr(ptr)) return;
-  rx_solving_options *o;
-  o  = (rx_solving_options*)R_ExternalPtrAddr(ptr);
-  Free(o);
-  R_ClearExternalPtr(ptr);
-}
-
-
 SEXP getSolvingOptionsPtr(double ATOL,          //absolute error
                           double RTOL,          //relative error
                           double H0,
@@ -274,7 +284,7 @@ SEXP getSolvingOptionsPtr(double ATOL,          //absolute error
                           SEXP jdum_lsoda){
   // This really should not be called very often, so just allocate one for now.
   rx_solving_options *o;
-  o = (rx_solving_options*)R_chk_calloc(1,sizeof(*o));
+  o = &op_global;
   o->badSolve = 0;
   o->ATOL = ATOL;          //absolute error
   o->RTOL = RTOL;          //relative error
@@ -310,26 +320,8 @@ SEXP getSolvingOptionsPtr(double ATOL,          //absolute error
   o->dydt_lsoda_dum = (t_dydt_lsoda_dum)(R_ExternalPtrAddr(dydt_lsoda_dum));
   o->jdum_lsoda = (t_jdum_lsoda)(R_ExternalPtrAddr(jdum_lsoda));
   SEXP ret = PROTECT(R_MakeExternalPtr(o, install("rx_solving_options"), R_NilValue));
-  R_RegisterCFinalizerEx(ret, getSolvingOptionsPtrFree, TRUE);
   UNPROTECT(1);
   return(ret);
-}
-
-extern void rxSolveDataFree(SEXP ptr) {
-  if(!R_ExternalPtrAddr(ptr)) return;
-  rx_solve *o;
-  o  = (rx_solve*)R_ExternalPtrAddr(ptr);
-  // Free individuals
-  rx_solving_options_ind *inds;
-  inds = o->subjects;
-  // Free individuals;
-  Free(inds);
-  // Now free global options
-  SEXP op = o->op;
-  getSolvingOptionsPtrFree(op);
-  // Now free object
-  Free(o);
-  R_ClearExternalPtr(ptr);
 }
 
 SEXP rxSolveData(rx_solving_options_ind *subjects,
@@ -341,7 +333,7 @@ SEXP rxSolveData(rx_solving_options_ind *subjects,
                  int matrix,
                  SEXP op){
   rx_solve *o;
-  o = (rx_solve*)R_chk_calloc(1,sizeof(*o));
+  o = &rx_global;//(rx_solve*)R_chk_calloc(1,sizeof(*o));
   o->subjects = subjects;
   o->nsub = nsub;
   o->nsim = nsim;
@@ -351,7 +343,7 @@ SEXP rxSolveData(rx_solving_options_ind *subjects,
   o->add_cov = add_cov;
   o->matrix = matrix;
   SEXP ret = PROTECT(R_MakeExternalPtr(o, install("rx_solve"), R_NilValue));
-  R_RegisterCFinalizerEx(ret, rxSolveDataFree, TRUE);
+  /* R_RegisterCFinalizerEx(ret, rxSolveDataFree, TRUE); */
   UNPROTECT(1);
   return(ret);
 }
