@@ -644,17 +644,14 @@ int rxUpdateResiduals_(SEXP md){
   else
     return 0;
 }
-
-
+extern "C" void set_solve(rx_solve *rx);
 
 rx_solve *getRxSolve(SEXP ptr){
   if (rxIs(ptr,"RxODE.pointer.multi")){
     List lst = List(ptr);
-    SEXP ptr = as<SEXP>(lst["pointer"]);
-    rx_solve *ret = getRxSolve_(ptr);
+    rxUpdateFuns(lst["trans"]);
+    rx_solve *ret = getRxSolve_();
     // Also assign it.
-    SEXP setS = as<SEXP>(lst["set_solve"]);
-    t_set_solve set_solve = (t_set_solve)R_ExternalPtrAddr(setS);
     set_solve(ret);
     return ret;
   } else {
@@ -1461,6 +1458,7 @@ List rxDataParSetup(const RObject &object,
   ret["InfusionRate"] =NumericVector(state.size()*nSub*nr);
   ret["BadDose"] =IntegerVector(state.size()*nSub*nr);
   ret["state.ignore"] = modVars["state.ignore"];
+  ret["trans"] = modVars["trans"];
   CharacterVector cls(2);
   cls(1) = "RxODE.par.data";
   cls(0) = "RxODE.multi.data";
@@ -1499,7 +1497,6 @@ SEXP rxSolvingOptions(const RObject &object,
     stop("'hini' must be a non-negative value.");
   }
   List modVars = rxModelVars(object);
-  List ptr = modVars["ptr"];
   int transit = 0;
   if (transit_abs.isNull()){
     transit = modVars["podo"];
@@ -1545,21 +1542,12 @@ SEXP rxSolvingOptions(const RObject &object,
   CharacterVector state = as<CharacterVector>(modVars["state"]);
   CharacterVector params = as<CharacterVector>(modVars["params"]);
   return getSolvingOptionsPtr(atol,rtol,hini, hmin,
-			      as<int>(ptr["jt"]),
-			      as<int>(ptr["mf"]),
-			      as<int>(ptr["debug"]),
 			      maxsteps, maxordn, maxords, transit,
 			      lhs.size(), state.size(),
 			      st, f1, f2, kind, is_locf, cores,
 			      ncov,par_cov, do_par_cov, &inits[0], &scale[0],
 			      as<SEXP>(state), as<SEXP>(lhs),
-			      as<SEXP>(params),
-                              as<SEXP>(ptr["dydt"]),
-                              as<SEXP>(ptr["jac"]),
-			      as<SEXP>(ptr["lhs"]),
-			      as<SEXP>(ptr["inis"]),
-			      as<SEXP>(ptr["dydt_lsoda"]),
-			      as<SEXP>(ptr["jdum"]));
+			      as<SEXP>(params));
 }
 
 SEXP rxSolvingData(const RObject &model,
@@ -1673,11 +1661,11 @@ extern "C" rx_solve *rxSingle(SEXP object, const int stiff,const int transit_abs
 			      int nTimes, double *all_times){
   List mv = rxModelVars(object);
   // Use the number of each element to speed calculation.
-  List solveL = mv[13];
-  NumericVector inits           = solveL[0];
-  NumericVector scale           = solveL[1];
-  NumericVector InfusionRate    = solveL[2];
-  IntegerVector BadDose         = solveL[3];
+  List solveL = mv["solve"];
+  NumericVector inits           = solveL["inits"];
+  NumericVector scale           = solveL["scale"];
+  NumericVector InfusionRate    = solveL["infusion"];
+  IntegerVector BadDose         = solveL["badDose"];
   // Instead of having the correct length for idose, use idose length = length of ntime
   // Saves an additional for loop at the cost of a little memory.
   /* int *idose; */
@@ -1707,12 +1695,10 @@ extern "C" rx_solve *rxSingle(SEXP object, const int stiff,const int transit_abs
   SEXP op = rxSolvingOptions(object,method, transit_absLV, atol, rtol, maxsteps, hmin, hini, maxordn,
 			     maxords, 1, ncov, par_cov, do_par_cov, &inits[0], &scale[0], covs_interpolation);
   IntegerVector siV = mv[11];
-  SEXP ptr = rxSolveData(inds, 1, 1, &siV[0], -1, 0, 0, op);
-  rx_solve *ret = getRxSolve_(ptr);
+  rxSolveData(inds, 1, 1, &siV[0], -1, 0, 0, op);
+  rxUpdateFuns(as<SEXP>(mv["trans"]));
+  rx_solve *ret = getRxSolve_();
   // Also assign it.
-  List ptrL = mv[12];
-  SEXP setS = as<SEXP>(ptrL[10]);
-  t_set_solve set_solve = (t_set_solve)R_ExternalPtrAddr(setS);
   set_solve(ret);
   return ret;
 }
@@ -1753,9 +1739,6 @@ List rxData(const RObject &object,
                                      hmin, hmax,  hini, maxordn, maxords, cores, covs_interpolation,
 				     addCov, matrix);
   List modVars = rxModelVars(object);
-  List ptr = modVars["ptr"];
-  parData["get_solve"] = ptr["get_solve"];
-  parData["set_solve"] = ptr["set_solve"];
   StringVector cls(3);
   cls(2) = "RxODE.par.data";
   cls(1) = "RxODE.multi.data";
@@ -2887,9 +2870,7 @@ Environment rxRxODEenv(RObject obj){
   }
   return as<Environment>(_rxModels[as<std::string>(trans["prefix"])]);
 }
-
 extern "C" void RxODE_assign_fn_pointers_(SEXP mv, int addit);
-
 //' Assign pointer based on model variables
 //' @param object RxODE family of objects
 //' @export
@@ -2897,6 +2878,8 @@ extern "C" void RxODE_assign_fn_pointers_(SEXP mv, int addit);
 void rxAssignPtr(SEXP object = R_NilValue){
   List mv=rxModelVars(as<RObject>(object));
   RxODE_assign_fn_pointers_(as<SEXP>(mv), 0);
+  SEXP trans = mv["trans"];
+  rxUpdateFuns(trans);
 }
 
 //' Get the number of cores in a system

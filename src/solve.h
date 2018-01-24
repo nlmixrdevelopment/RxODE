@@ -13,9 +13,6 @@ typedef struct {
   double RTOL;          //relative error
   double H0;
   double HMIN;
-  int global_jt;
-  int global_mf;
-  int global_debug;
   int mxstep;
   int MXORDN;
   int MXORDS;
@@ -32,12 +29,6 @@ typedef struct {
   double *inits;
   double *scale;
   int do_par_cov;
-  t_dydt dydt;
-  t_calc_jac calc_jac;
-  t_calc_lhs calc_lhs;
-  t_update_inis update_inis;
-  t_dydt_lsoda_dum dydt_lsoda_dum;
-  t_jdum_lsoda jdum_lsoda;
   // approx fun options
   double f1;
   double f2;
@@ -92,19 +83,15 @@ typedef void (*t_set_solve)(rx_solve *);
 typedef rx_solve *(*t_get_solve)();
 
 
-rx_solve *getRxSolve_(SEXP ptr);
+rx_solve *getRxSolve_();
 void rxSolveDataFree(SEXP ptr);
 int rxUpdateResiduals_(SEXP md);
 rx_solve *getRxSolve(SEXP ptr);
-void freeRxSolve(SEXP ptr);
 
 SEXP getSolvingOptionsPtr(double ATOL,          //absolute error
                           double RTOL,          //relative error
                           double H0,
                           double HMIN,
-                          int global_jt,
-                          int global_mf,
-                          int global_debug,
                           int mxstep,
                           int MXORDN,
                           int MXORDS,
@@ -125,13 +112,7 @@ SEXP getSolvingOptionsPtr(double ATOL,          //absolute error
 			  double *scale,
                           SEXP stateNames,
                           SEXP lhsNames,
-                          SEXP paramNames,
-                          SEXP dydt,
-                          SEXP calc_jac,
-                          SEXP calc_lhs,
-                          SEXP update_inis,
-                          SEXP dydt_lsoda_dum,
-                          SEXP jdum_lsoda);
+                          SEXP paramNames);
 void getSolvingOptionsIndPtr(double *InfusionRate,
                              int *BadDose,
                              double HMAX, // Determined by diff
@@ -163,3 +144,5 @@ SEXP RxODE_df(SEXP sd, int doDose);
 SEXP RxODE_par_df(SEXP sd);
 
 rx_solving_options_ind *rxOptionsIniEnsure(int mx);
+
+void rxUpdateFuns(SEXP trans);

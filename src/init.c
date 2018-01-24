@@ -100,15 +100,6 @@ extern double RxODE_transit3P(double t, rx_solve *rx, unsigned int id, double n,
 
 extern void RxODE_assign_fn_pointers(SEXP mv);
 
-extern SEXP RxODE_get_fn_pointers(void (*fun_dydt)(unsigned int, double, double *, double *),
-                                  void (*fun_calc_lhs)(double, double *, double *),
-                                  void (*fun_calc_jac)(unsigned int, double, double *, double *, unsigned int),
-                                  void (*fun_update_inis)(SEXP _ini_sexp),
-                                  void (*fun_dydt_lsoda_dum)(int *, double *, double *, double *),
-                                  void (*fun_jdum_lsoda)(int *, double *, double *,int *, int *, double *, int *),
-                                  int fun_jt,
-                                  int fun_mf,
-                                  int fun_debug);
 extern void rxSolveOldC(SEXP object, 
 			int *neqa,
 			double *theta,  //order:
@@ -188,7 +179,6 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_rxSolveGet", (DL_FUNC) &_RxODE_rxSolveGet, 3},
     {"_RxODE_rxSolveUpdate", (DL_FUNC) &_RxODE_rxSolveUpdate, 3},
     {"_RxODE_rxCores",(DL_FUNC) &_RxODE_rxCores, 0},
-    {"_RxODE_rxAssignPtr", (DL_FUNC) &_RxODE_rxAssignPtr, 1},
     {NULL, NULL, 0}
   };
   // C callable to assign environments.
@@ -219,7 +209,6 @@ void R_init_RxODE(DllInfo *info){
   R_RegisterCCallable("RxODE","RxODE_abs_log",            (DL_FUNC) RxODE_abs_log);
   
   //Functions
-  R_RegisterCCallable("RxODE","RxODE_get_fn_pointers",    (DL_FUNC) RxODE_get_fn_pointers);
   R_RegisterCCallable("RxODE","rxSolveOldC",              (DL_FUNC) rxSolveOldC);
   
   //Infusion
@@ -243,8 +232,8 @@ void R_init_RxODE(DllInfo *info){
   // podo or tlast
   R_RegisterCCallable("RxODE","RxODE_podo",               (DL_FUNC) RxODE_podo);
   R_RegisterCCallable("RxODE","RxODE_tlast",              (DL_FUNC) RxODE_tlast);
-  R_RegisterCCallable("RxODE","RxODE_podoP",               (DL_FUNC) RxODE_podoP);
-  R_RegisterCCallable("RxODE","RxODE_tlastP",              (DL_FUNC) RxODE_tlastP);
+  R_RegisterCCallable("RxODE","RxODE_podoP",              (DL_FUNC) RxODE_podoP);
+  R_RegisterCCallable("RxODE","RxODE_tlastP",             (DL_FUNC) RxODE_tlastP);
   // tranit compartment models
   R_RegisterCCallable("RxODE","RxODE_transit4P",          (DL_FUNC) RxODE_transit4P);
   R_RegisterCCallable("RxODE","RxODE_transit3P",          (DL_FUNC) RxODE_transit3P);
@@ -264,6 +253,8 @@ void R_init_RxODE(DllInfo *info){
   R_RegisterCCallable("RxODE","RxODE_pow_di",             (DL_FUNC) RxODE_pow_di);
   R_RegisterCCallable("RxODE","RxODE_assign_fn_pointers", (DL_FUNC) &RxODE_assign_fn_pointers);
 
+  R_RegisterCCallable("RxODE","_RxODE_rxAssignPtr",       (DL_FUNC) _RxODE_rxAssignPtr);
+  
   static const R_CMethodDef cMethods[] = {
     {"RxODE_InfusionRate",      (DL_FUNC) &RxODE_InfusionRate, 1, RxODE_one_int_t},
     {"RxODE_par_ptr",           (DL_FUNC) &RxODE_par_ptr, 1, RxODE_one_int_t},

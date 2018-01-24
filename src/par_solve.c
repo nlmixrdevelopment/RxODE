@@ -42,167 +42,115 @@ void rxOptionsFree(){
   Free(inds_global);
 }
 
-extern SEXP RxODE_get_fn_pointers(t_dydt fun_dydt,
-                                  t_calc_lhs fun_calc_lhs,
-                                  t_calc_jac fun_calc_jac,
-                                  t_update_inis fun_update_inis,
-                                  t_dydt_lsoda_dum fun_dydt_lsoda_dum,
-                                  t_jdum_lsoda fun_jdum_lsoda,
-                                  t_set_solve fun_set_solve,
-                                  t_get_solve fun_get_solve,
-                                  int fun_jt,
-                                  int fun_mf,
-                                  int fun_debug){
-  SEXP dydt, lhs, jac, inis, dydt_lsoda, jdum, get_solveS, set_solveS;
-  int pro=0;
-  SEXP lst      = PROTECT(allocVector(VECSXP, 12)); pro++;
-  SEXP names    = PROTECT(allocVector(STRSXP, 12)); pro++;
+t_dydt g_dydt = NULL;
+void dydt(int *neq, double t, double *A, double *DADT){
+  if (g_dydt == NULL) error("RxODE library not setup correctly.");
+  g_dydt(neq,t,A,DADT);
+}
 
-  t_dydt dydtf;
-  t_calc_jac calc_jac;
-  t_calc_lhs calc_lhs;
-  t_update_inis update_inis;
-  t_dydt_lsoda_dum dydt_lsoda_dum;
-  t_jdum_lsoda jdum_lsoda;
+t_calc_jac g_calc_jac = NULL;
+void calc_jac(int *neq, double t, double *A, double *JAC, unsigned int __NROWPD__){
+  if (g_calc_jac == NULL) error("RxODE library not setup correctly.");
+  g_calc_jac(neq, t, A, JAC, __NROWPD__);
+}
 
-  t_set_solve set_solve;
-  t_get_solve get_solve;
+t_calc_lhs g_calc_lhs = NULL;
+extern void calc_lhs(int cSub, double t, double *A, double *lhs){
+  if (g_calc_lhs == NULL) error("RxODE library not setup correctly.");
+  g_calc_lhs(cSub, t, A, lhs);
+}
+
+t_update_inis g_update_inis = NULL;
+void update_inis(int cSub, double *__zzStateVar__){
+  if (g_update_inis == NULL) error("RxODE library not setup correctly.");
+  g_update_inis(cSub, __zzStateVar__);
+}
+
+t_dydt_lsoda_dum g_dydt_lsoda_dum = NULL;
+void dydt_lsoda_dum(int *neq, double *t, double *A, double *DADT){
+  if (g_dydt_lsoda_dum == NULL) error("RxODE library not setup correctly.");
+  g_dydt_lsoda_dum(neq, t, A, DADT);
+}
+
+t_jdum_lsoda g_jdum_lsoda = NULL;
+void jdum_lsoda(int *neq, double *t, double *A,int *ml, int *mu, double *JAC, int *nrowpd){
+  if (g_jdum_lsoda == NULL) error("RxODE library not setup correctly.");
+  g_jdum_lsoda(neq, t, A,ml, mu, JAC, nrowpd);
+}
+
+t_set_solve g_set_solve = NULL;
+extern void set_solve(rx_solve *rx){
+  if (g_set_solve == NULL) error("RxODE library not setup correctly.");
+  g_set_solve(rx);
+}
+
+t_get_solve g_get_solve = NULL;
+rx_solve *get_solve(){
+  if (g_get_solve == NULL) error("RxODE library not setup correctly.");
+  return g_get_solve();
+}
+
+int global_jt = 2;
+int global_mf = 22;  
+int global_debug = 0;
+
+void rxUpdateFuns(SEXP trans){
+  const char *lib, *dydt, *calc_jac, *calc_lhs, *inis, *dydt_lsoda_dum, *dydt_jdum_lsoda, *ode_solver_solvedata, *ode_solver_get_solvedata;
+  lib = CHAR(STRING_ELT(trans, 0));
+  dydt = CHAR(STRING_ELT(trans, 3));
+  calc_jac = CHAR(STRING_ELT(trans, 4));
+  calc_lhs = CHAR(STRING_ELT(trans, 5));
+  inis = CHAR(STRING_ELT(trans, 11));
+  dydt_lsoda_dum = CHAR(STRING_ELT(trans, 13));
+  dydt_jdum_lsoda = CHAR(STRING_ELT(trans, 14));
+  ode_solver_solvedata = CHAR(STRING_ELT(trans, 15));
+  ode_solver_get_solvedata = CHAR(STRING_ELT(trans, 16));
+  if (strcmp(CHAR(STRING_ELT(trans, 14)),"fulluser") == 0){
+    global_jt = 1;
+    global_mf = 21;
+  } else {
+    global_jt = 2;
+    global_mf = 22;
+  }
   
-  dydtf          = fun_dydt;
-  calc_jac       = fun_calc_jac;
-  calc_lhs       = fun_calc_lhs;
-  update_inis    = fun_update_inis;
-  dydt_lsoda_dum = fun_dydt_lsoda_dum;
-  jdum_lsoda     = fun_jdum_lsoda;
-  get_solve      = fun_get_solve;
-  set_solve      = fun_set_solve;
-  
-  SET_STRING_ELT(names,0,mkChar("dydt"));
-  dydt=R_MakeExternalPtr(dydtf, install("RxODE_dydt"), R_NilValue);
-  PROTECT(dydt); pro++;
-  SET_VECTOR_ELT(lst,  0, dydt);
+  /* 0=lib.name 
+     1 = jac 
+     2 = prefix 
+     3 = dydt 
+     4 = calc_jac 
+     5 = calc_lhs 
+     6 = model_vars 
+     7 = ode_solver 
+     8 = ode_solver_sexp 
+     9 = ode_solver_focei_eta 
+     10 = ode_solver_ptr 
+     11 = inis 
+     12 = ode_solver_xptr 
+     13 = dydt_lsoda 
+     14 = calc_jac_lsoda 
+     15 = ode_solver_solvedata 
+     16 = ode_solver_get_solvedata 
+  */
+  g_dydt =(t_dydt) R_GetCCallable(lib,dydt);
+  g_calc_jac =(t_calc_jac) R_GetCCallable(lib,calc_jac);
+  g_calc_lhs =(t_calc_lhs) R_GetCCallable(lib,calc_lhs);
+  g_update_inis =(t_update_inis) R_GetCCallable(lib,inis);
+  g_dydt_lsoda_dum =(t_dydt_lsoda_dum) R_GetCCallable(lib,dydt_lsoda_dum);
+  g_jdum_lsoda =(t_jdum_lsoda) R_GetCCallable(lib,dydt_jdum_lsoda);
+  g_set_solve = (t_set_solve)R_GetCCallable(lib,ode_solver_solvedata);
+  g_get_solve = (t_get_solve)R_GetCCallable(lib,ode_solver_get_solvedata);
+  global_jt = 2;
+  global_mf = 22;  
+  global_debug = 0;
+}
 
-  SET_STRING_ELT(names,1,mkChar("lhs"));
-  lhs=R_MakeExternalPtr(calc_lhs, install("RxODE_lhs"), R_NilValue);
-  PROTECT(lhs); pro++;
-  SET_VECTOR_ELT(lst,  1, lhs);
-
-  SET_STRING_ELT(names,2,mkChar("jac"));
-  jac=R_MakeExternalPtr(calc_jac, install("RxODE_jac"), R_NilValue);
-  PROTECT(jac); pro++;
-  SET_VECTOR_ELT(lst,  2, jac);
-
-  SET_STRING_ELT(names,3,mkChar("inis"));
-  inis=R_MakeExternalPtr(update_inis, install("RxODE_inis"), R_NilValue);
-  PROTECT(inis); pro++;
-  SET_VECTOR_ELT(lst,  3, inis);
-
-  SET_STRING_ELT(names,4,mkChar("dydt_lsoda"));
-  dydt_lsoda=R_MakeExternalPtr(dydt_lsoda_dum, install("RxODE_dydt_lsoda"), R_NilValue);
-  PROTECT(dydt_lsoda); pro++;
-  SET_VECTOR_ELT(lst,  4, dydt_lsoda);
-  
-  SET_STRING_ELT(names,5,mkChar("jdum"));
-  jdum=R_MakeExternalPtr(jdum_lsoda, install("RxODE_jdum"), R_NilValue);
-  PROTECT(jdum); pro++;
-  SET_VECTOR_ELT(lst,  5, jdum);
-  
-  SET_STRING_ELT(names,6,mkChar("jt"));
-  SEXP jt = PROTECT(allocVector(INTSXP, 1)); pro++;
-  INTEGER(jt)[0] = fun_jt;
-  SET_VECTOR_ELT(lst,  6, jt);
-
-  SET_STRING_ELT(names,7,mkChar("mf"));
-  SEXP mf = PROTECT(allocVector(INTSXP, 1)); pro++;
-  INTEGER(mf)[0] = fun_mf;
-  SET_VECTOR_ELT(lst,  7, mf);
-
-  SET_STRING_ELT(names,8,mkChar("debug"));
-  SEXP debug = PROTECT(allocVector(INTSXP, 1)); pro++;
-  INTEGER(debug)[0] = fun_debug;
-  SET_VECTOR_ELT(lst,  8, debug);
-
-  SET_STRING_ELT(names,9,mkChar("get_solve"));
-  get_solveS=R_MakeExternalPtr(get_solve, install("RxODE_get_solve"), R_NilValue);
-  PROTECT(get_solveS); pro++;
-  SET_VECTOR_ELT(lst,  9, get_solveS);
-
-  SET_STRING_ELT(names,10,mkChar("set_solve"));
-  set_solveS=R_MakeExternalPtr(set_solve, install("RxODE_set_solve"), R_NilValue);
-  PROTECT(set_solveS); pro++;
-  SET_VECTOR_ELT(lst,  10, set_solveS);
-  setAttrib(lst, R_NamesSymbol, names);
-
-  rx_solving_options_ind *inds;
-  inds = rxOptionsIniEnsure(1);//Calloc(1,rx_solving_options_ind);
-  rx_solving_options_ind *ind = &inds[0];
-  ind->slvr_counter = 0;
-  ind->dadt_counter = 0;
-  ind->jac_counter = 0;
-  // Provided at initilization of dll...
-  ind->nBadDose = 0;
-  ind->HMAX = 0.0; // Determined by diff
-  ind->tlast = 0.0;
-  ind->podo = 0.0;
-  ind->ixds = 0;
-  ind->ndoses = -1;
-  
-  // This needs to be allocated at run time :(
-  /* ind->idose = idose; */
-  ind->id = 1;
-  ind->sim = 1;
-  
-  rx_solving_options *op;
-  op = &op_global;
-  op->badSolve = 0;
-  op->ATOL = 1.0e-8;          //absolute error
-  op->RTOL = 1.0e-6;          //relative error
-  op->H0 = 0;
-  op->HMIN = 0;
-  op->global_jt = fun_jt;
-  op->global_mf = fun_mf;
-  op->global_debug = fun_debug;
-  op->mxstep = fun_debug;
-  op->MXORDN = 0;
-  op->MXORDS = 0;
-  op->do_transit_abs = 0;
-  // Determined at run-time
-  /* op->stiff = 0; */
-  /* op->f1 = f1; */
-  /* op->f2 = f2; */
-  /* op->kind = kind; */
-  /* op->is_locf = is_locf; */
-  /* op->ncov=ncov; */
-  /* op->par_cov = par_cov; */
-  op->do_par_cov = 0;
-  op->extraCmt = 0;
-  /* op->dydt = (t_dydt)(R_ExternalPtrAddr(dydt_lsoda)); */
-  /* op->calc_jac = (t_calc_jac)(R_ExternalPtrAddr(jac)); */
-  /* op->calc_lhs = (t_calc_lhs)(R_ExternalPtrAddr(lhs)); */
-  /* op->update_inis = (t_update_inis)(R_ExternalPtrAddr(inis)); */
-  /* op->dydt_lsoda_dum = (t_dydt_lsoda_dum)(R_ExternalPtrAddr(dydt_lsoda)); */
-  /* op->jdum_lsoda = (t_jdum_lsoda)(R_ExternalPtrAddr(jdum)); */
-  SEXP opS = PROTECT(R_MakeExternalPtr(op, install("rx_solving_options"), R_NilValue)); pro++;
-  
-  rx_solve *rx;
-  rx = &rx_global;//(rx_solve*)R_chk_calloc(1,sizeof(*rx));
-  rx->subjects = inds;
-  rx->nsub = 1;
-  rx->nsim = 1;
-  rx->op = opS;
-  rx->nobs = -1;
-  rx->add_cov = 0;
-  rx->matrix = 0;
-  SEXP rxS = PROTECT(R_MakeExternalPtr(rx, install("rx_solve"), R_NilValue)); pro++;
-  /* R_RegisterCFinalizerEx(rxS, rxSolveDataFree, TRUE); */
-  
-  SET_STRING_ELT(names,11,mkChar("single_solve"));
-  SET_VECTOR_ELT(lst,  11, rxS);
-  setAttrib(lst, R_NamesSymbol, names);
-
-
-  UNPROTECT(pro);
-  return(lst);
+void rxClearFuns(){
+  g_dydt = NULL;
+  g_calc_jac = NULL;
+  g_calc_lhs = NULL;
+  g_update_inis = NULL;
+  g_dydt_lsoda_dum = NULL;
+  g_jdum_lsoda = NULL;
 }
 
 int rxUpdateResiduals_(SEXP md);
@@ -252,9 +200,6 @@ SEXP getSolvingOptionsPtr(double ATOL,          //absolute error
                           double RTOL,          //relative error
                           double H0,
                           double HMIN,
-                          int global_jt,
-                          int global_mf,
-                          int global_debug,
                           int mxstep,
                           int MXORDN,
                           int MXORDS,
@@ -275,13 +220,7 @@ SEXP getSolvingOptionsPtr(double ATOL,          //absolute error
 			  double *scale,
                           SEXP stateNames,
 			  SEXP lhsNames,
-			  SEXP paramNames,
-                          SEXP dydt,
-                          SEXP calc_jac,
-                          SEXP calc_lhs,
-                          SEXP update_inis,
-                          SEXP dydt_lsoda_dum,
-                          SEXP jdum_lsoda){
+			  SEXP paramNames){
   // This really should not be called very often, so just allocate one for now.
   rx_solving_options *o;
   o = &op_global;
@@ -290,9 +229,6 @@ SEXP getSolvingOptionsPtr(double ATOL,          //absolute error
   o->RTOL = RTOL;          //relative error
   o->H0 = H0;
   o->HMIN = HMIN;
-  o->global_jt = global_jt;
-  o->global_mf = global_mf;
-  o->global_debug = global_debug;
   o->mxstep = mxstep;
   o->MXORDN = MXORDN;
   o->MXORDS = MXORDS;
@@ -313,12 +249,6 @@ SEXP getSolvingOptionsPtr(double ATOL,          //absolute error
   o->inits = inits;
   o->scale = scale;
   o->extraCmt = 0;
-  o->dydt = (t_dydt)(R_ExternalPtrAddr(dydt));
-  o->calc_jac = (t_calc_jac)(R_ExternalPtrAddr(calc_jac));
-  o->calc_lhs = (t_calc_lhs)(R_ExternalPtrAddr(calc_lhs));
-  o->update_inis = (t_update_inis)(R_ExternalPtrAddr(update_inis));
-  o->dydt_lsoda_dum = (t_dydt_lsoda_dum)(R_ExternalPtrAddr(dydt_lsoda_dum));
-  o->jdum_lsoda = (t_jdum_lsoda)(R_ExternalPtrAddr(jdum_lsoda));
   SEXP ret = PROTECT(R_MakeExternalPtr(o, install("rx_solving_options"), R_NilValue));
   UNPROTECT(1);
   return(ret);
@@ -356,13 +286,8 @@ void F77_NAME(dlsoda)(
                       int *);
 
 rx_solve *getRxSolve(SEXP ptr);
-extern rx_solve *getRxSolve_(SEXP ptr){
-  if(!R_ExternalPtrAddr(ptr)){
-    error("Cannot get the solving data (getRxSolve_).");
-  }
-  rx_solve *o;
-  o  = (rx_solve*)R_ExternalPtrAddr(ptr);
-  return o;
+extern rx_solve *getRxSolve_(){
+  return &rx_global;
 }
 
 rx_solving_options *getRxOp(rx_solve *rx){
@@ -392,7 +317,7 @@ extern void par_lsoda(rx_solve *rx, SEXP sd, int ini_updateR){
   int itol = 1;
   double  rtol = op->RTOL, atol = op->ATOL;
   // Set jt to 1 if full is specified.
-  int itask = 1, istate = 1, iopt = 0, lrw=22+neq[0]*max(16, neq[0]+9), liw=20+neq[0], jt = op->global_jt;
+  int itask = 1, istate = 1, iopt = 0, lrw=22+neq[0]*max(16, neq[0]+9), liw=20+neq[0], jt = global_jt;
   double *rwork;
   int *iwork;
   int wh, wh100, cmt;
@@ -407,7 +332,6 @@ extern void par_lsoda(rx_solve *rx, SEXP sd, int ini_updateR){
       "error weight became zero during problem. (solution component i vanished, and atol or atol(i) = 0.)",
       "work space insufficient to finish (see messages)."
     };
-  int global_debug = op->global_debug;
   if (global_debug)
     Rprintf("JT: %d\n",jt);
   rwork = (double*)Calloc(lrw+1, double);
@@ -424,10 +348,6 @@ extern void par_lsoda(rx_solve *rx, SEXP sd, int ini_updateR){
   iwork[7] = op->MXORDN; // MXORDN 
   iwork[8] = op->MXORDS;  // MXORDS
 
-  
-  t_dydt_lsoda_dum dydt = (t_dydt_lsoda_dum)(op->dydt_lsoda_dum);
-  t_jdum_lsoda jac = (t_jdum_lsoda)(op->jdum_lsoda);
-  t_update_inis uini = (t_update_inis)(op->update_inis);
   int nx;
   rx_solving_options_ind *ind;
   double *inits;
@@ -460,7 +380,7 @@ extern void par_lsoda(rx_solve *rx, SEXP sd, int ini_updateR){
       rwork[5] = ind->HMAX; // Hmax -- Infinite
       double xp = x[0];
       //--- inits the system
-      uini(neq[1], inits); // Update initial conditions
+      update_inis(neq[1], inits); // Update initial conditions
       for(i=0; i<neq[0]; i++) yp[i] = inits[i];
       for(i=0; i<nx; i++) {
         wh = evid[i];
@@ -470,8 +390,8 @@ extern void par_lsoda(rx_solve *rx, SEXP sd, int ini_updateR){
         }
         if(xout-xp> DBL_EPSILON*max(fabs(xout),fabs(xp)))
           {
-            F77_CALL(dlsoda)(dydt, neq, yp, &xp, &xout, &itol, &rtol, &atol, &itask,
-                             &istate, &iopt, rwork, &lrw, iwork, &liw, jac, &jt);
+            F77_CALL(dlsoda)(dydt_lsoda_dum, neq, yp, &xp, &xout, &itol, &rtol, &atol, &itask,
+                             &istate, &iopt, rwork, &lrw, iwork, &liw, jdum_lsoda, &jt);
 
             if (istate<0)
               {
@@ -585,8 +505,6 @@ void par_dop(rx_solve *rx, SEXP sd, int ini_updateR){
       "step size becomes too small",
       "problem is probably stiff (interrupted)"
     };
-  t_dydt dydt = (t_dydt)(op->dydt);
-  t_update_inis uini = (t_update_inis)(op->update_inis);
   rx_solving_options_ind *ind;
   double *inits;
   int *evid;
@@ -602,7 +520,6 @@ void par_dop(rx_solve *rx, SEXP sd, int ini_updateR){
   if (cores > 1){
     warning("dop853 is not thread safe and is not parallelized.");
   }
-  int global_debug = op->global_debug;
   int nx;
   int updateR = ini_updateR;
   for (int csim = 0; csim < nsim; csim++){
@@ -623,7 +540,7 @@ void par_dop(rx_solve *rx, SEXP sd, int ini_updateR){
       rc= ind->rc;
       double xp = x[0];
       //--- inits the system
-      uini(neq[1], inits); // Update initial conditions
+      update_inis(neq[1], inits); // Update initial conditions
       
       //--- inits the system
       for(i=0; i<neq[0]; i++) yp[i] = inits[i];
@@ -820,7 +737,7 @@ extern void update_par_ptrP(double t, rx_solve *rx, unsigned int id){
           ind->yhigh = cov_ptr[ind->n_all_times*k+ind->n_all_times-1];
           par_ptr[par_cov[k]-1] = rx_approxP(t, all_times, cov_ptr+ind->n_all_times*k, ind->n_all_times, op, ind);
         }
-        if (op->global_debug){
+        if (global_debug){
           Rprintf("par_ptr[%d] (cov %d/%d) = %f\n",par_cov[k]-1, k,ncov,cov_ptr[par_cov[k]-1]);
         }
       }
@@ -917,7 +834,6 @@ extern void rxCalcLhsP(int i, rx_solve *rx, unsigned int id){
   ind = getRxId(rx, id);
   rx_solving_options *op;
   op =getRxOp(rx);
-  t_calc_lhs calc_lhs = op->calc_lhs;
   double *solve, *lhs;
   solve = ind->solve;
   lhs = ind->lhs;

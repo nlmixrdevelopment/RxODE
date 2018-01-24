@@ -1240,8 +1240,8 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
     o = strlen(s_aux_info);
   }
   fprintf(outpt,"extern SEXP %smodel_vars0(){\n",model_prefix);
-  fprintf(outpt,"  SEXP lst      = PROTECT(allocVector(VECSXP, 14));\n");
-  fprintf(outpt,"  SEXP names    = PROTECT(allocVector(STRSXP, 14));\n");
+  fprintf(outpt,"  SEXP lst      = PROTECT(allocVector(VECSXP, 13));\n");
+  fprintf(outpt,"  SEXP names    = PROTECT(allocVector(STRSXP, 13));\n");
   fprintf(outpt,"  SEXP params   = PROTECT(allocVector(STRSXP, %d));\n",pi);
   fprintf(outpt,"  SEXP lhs      = PROTECT(allocVector(STRSXP, %d));\n",li);
   fprintf(outpt,"  SEXP state    = PROTECT(allocVector(STRSXP, %d));\n",statei);
@@ -1250,8 +1250,8 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
   fprintf(outpt,"  SEXP sens     = PROTECT(allocVector(STRSXP, %d));\n",sensi);
   fprintf(outpt,"  SEXP fn_ini   = PROTECT(allocVector(STRSXP, %d));\n",fdi);
   fprintf(outpt,"  SEXP dfdy     = PROTECT(allocVector(STRSXP, %d));\n",tb.ndfdy);
-  fprintf(outpt,"  SEXP tran     = PROTECT(allocVector(STRSXP, 16));\n");
-  fprintf(outpt,"  SEXP trann    = PROTECT(allocVector(STRSXP, 16));\n");
+  fprintf(outpt,"  SEXP tran     = PROTECT(allocVector(STRSXP, 17));\n");
+  fprintf(outpt,"  SEXP trann    = PROTECT(allocVector(STRSXP, 17));\n");
   fprintf(outpt,"  SEXP mmd5     = PROTECT(allocVector(STRSXP, 2));\n");
   fprintf(outpt,"  SEXP mmd5n    = PROTECT(allocVector(STRSXP, 2));\n");
   fprintf(outpt,"  SEXP model    = PROTECT(allocVector(STRSXP, 4));\n");
@@ -1470,12 +1470,9 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
 
   fprintf(outpt,"  SET_STRING_ELT(names,11,mkChar(\"state.ignore\"));\n");
   fprintf(outpt,"  SET_VECTOR_ELT(lst,  11,stateRmS);\n");
-
-  fprintf(outpt,"  SET_STRING_ELT(names,12,mkChar(\"ptr\"));\n");
-  fprintf(outpt,"  SET_VECTOR_ELT(lst,  12,__ODE_SOLVER_XPTR__());\n");
-
-  fprintf(outpt,"  SET_STRING_ELT(names,13,mkChar(\"solve\"));\n");
-  fprintf(outpt,"  SET_VECTOR_ELT(lst,  13,solve);\n");
+  
+  fprintf(outpt,"  SET_STRING_ELT(names,12,mkChar(\"solve\"));\n");
+  fprintf(outpt,"  SET_VECTOR_ELT(lst,  12,solve);\n");
   
   // md5 values
   fprintf(outpt,"  SET_STRING_ELT(mmd5n,0,mkChar(\"file_md5\"));\n");
@@ -1484,56 +1481,59 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
   fprintf(outpt,"  SET_STRING_ELT(mmd5,1,mkChar(__PARSED_MD5_STR__));\n");
   
   // now trans output
-  fprintf(outpt,"  SET_STRING_ELT(trann,0,mkChar(\"jac\"));\n");
+  fprintf(outpt,"  SET_STRING_ELT(trann,0,mkChar(\"lib.name\"));\n");
+  fprintf(outpt,"  SET_STRING_ELT(tran, 0,mkChar(\"%.*s\"));\n",(int)(strlen(model_prefix) - 1),model_prefix);
+
+  fprintf(outpt,"  SET_STRING_ELT(trann,1,mkChar(\"jac\"));\n");
   if (found_jac == 1){
-    fprintf(outpt,"  SET_STRING_ELT(tran,0,mkChar(\"fulluser\"));\n"); // Full User Matrix
+    fprintf(outpt,"  SET_STRING_ELT(tran,1,mkChar(\"fulluser\"));\n"); // Full User Matrix
   } else {
-    fprintf(outpt,"  SET_STRING_ELT(tran,0,mkChar(\"fullint\"));\n"); // Full Internal Matrix
+    fprintf(outpt,"  SET_STRING_ELT(tran,1,mkChar(\"fullint\"));\n"); // Full Internal Matrix
   }
-  fprintf(outpt,"  SET_STRING_ELT(trann,1,mkChar(\"prefix\"));\n");
-  fprintf(outpt,"  SET_STRING_ELT(tran, 1,mkChar(\"%s\"));\n",model_prefix);
+  fprintf(outpt,"  SET_STRING_ELT(trann,2,mkChar(\"prefix\"));\n");
+  fprintf(outpt,"  SET_STRING_ELT(tran, 2,mkChar(\"%s\"));\n",model_prefix);
 
-  fprintf(outpt,"  SET_STRING_ELT(trann,2,mkChar(\"dydt\"));\n");
-  fprintf(outpt,"  SET_STRING_ELT(tran, 2,mkChar(\"%sdydt\"));\n",model_prefix);
+  fprintf(outpt,"  SET_STRING_ELT(trann,3,mkChar(\"dydt\"));\n");
+  fprintf(outpt,"  SET_STRING_ELT(tran, 3,mkChar(\"%sdydt\"));\n",model_prefix);
 
-  fprintf(outpt,"  SET_STRING_ELT(trann,3,mkChar(\"calc_jac\"));\n");
-  fprintf(outpt,"  SET_STRING_ELT(tran, 3,mkChar(\"%scalc_jac\"));\n",model_prefix);
+  fprintf(outpt,"  SET_STRING_ELT(trann,4,mkChar(\"calc_jac\"));\n");
+  fprintf(outpt,"  SET_STRING_ELT(tran, 4,mkChar(\"%scalc_jac\"));\n",model_prefix);
 
-  fprintf(outpt,"  SET_STRING_ELT(trann,4,mkChar(\"calc_lhs\"));\n");
-  fprintf(outpt,"  SET_STRING_ELT(tran, 4,mkChar(\"%scalc_lhs\"));\n",model_prefix);
+  fprintf(outpt,"  SET_STRING_ELT(trann,5,mkChar(\"calc_lhs\"));\n");
+  fprintf(outpt,"  SET_STRING_ELT(tran, 5,mkChar(\"%scalc_lhs\"));\n",model_prefix);
 
-  fprintf(outpt,"  SET_STRING_ELT(trann,5,mkChar(\"model_vars\"));\n");
-  fprintf(outpt,"  SET_STRING_ELT(tran, 5,mkChar(\"%smodel_vars\"));\n",model_prefix);
+  fprintf(outpt,"  SET_STRING_ELT(trann,6,mkChar(\"model_vars\"));\n");
+  fprintf(outpt,"  SET_STRING_ELT(tran, 6,mkChar(\"%smodel_vars\"));\n",model_prefix);
   
-  fprintf(outpt,"  SET_STRING_ELT(trann,6,mkChar(\"ode_solver\"));\n");
-  fprintf(outpt,"  SET_STRING_ELT(tran, 6,mkChar(\"%sode_solver\"));\n",model_prefix);
+  fprintf(outpt,"  SET_STRING_ELT(trann,7,mkChar(\"ode_solver\"));\n");
+  fprintf(outpt,"  SET_STRING_ELT(tran, 7,mkChar(\"%sode_solver\"));\n",model_prefix);
   
-  fprintf(outpt,"  SET_STRING_ELT(trann,7,mkChar(\"ode_solver_sexp\"));\n");
-  fprintf(outpt,"  SET_STRING_ELT(tran, 7,mkChar(\"%sode_solver_sexp\"));\n",model_prefix);
+  fprintf(outpt,"  SET_STRING_ELT(trann,8,mkChar(\"ode_solver_sexp\"));\n");
+  fprintf(outpt,"  SET_STRING_ELT(tran, 8,mkChar(\"%sode_solver_sexp\"));\n",model_prefix);
 
-  fprintf(outpt,"  SET_STRING_ELT(trann,8,mkChar(\"ode_solver_focei_eta\"));\n");
-  fprintf(outpt,"  SET_STRING_ELT(tran, 8,mkChar(\"%sode_solver_focei_eta\"));\n",model_prefix);
+  fprintf(outpt,"  SET_STRING_ELT(trann,9,mkChar(\"ode_solver_focei_eta\"));\n");
+  fprintf(outpt,"  SET_STRING_ELT(tran, 9,mkChar(\"%sode_solver_focei_eta\"));\n",model_prefix);
   
-  fprintf(outpt,"  SET_STRING_ELT(trann,9,mkChar(\"ode_solver_ptr\"));\n");
-  fprintf(outpt,"  SET_STRING_ELT(tran, 9,mkChar(\"%sode_solver_ptr\"));\n",model_prefix);
+  fprintf(outpt,"  SET_STRING_ELT(trann,10,mkChar(\"ode_solver_ptr\"));\n");
+  fprintf(outpt,"  SET_STRING_ELT(tran, 10,mkChar(\"%sode_solver_ptr\"));\n",model_prefix);
 
-  fprintf(outpt,"  SET_STRING_ELT(trann,10,mkChar(\"inis\"));\n");
-  fprintf(outpt,"  SET_STRING_ELT(tran, 10,mkChar(\"%sinis\"));\n",model_prefix);
+  fprintf(outpt,"  SET_STRING_ELT(trann,11,mkChar(\"inis\"));\n");
+  fprintf(outpt,"  SET_STRING_ELT(tran, 11,mkChar(\"%sinis\"));\n",model_prefix);
 
-  fprintf(outpt,"  SET_STRING_ELT(trann,11,mkChar(\"ode_solver_xptr\"));\n");
-  fprintf(outpt,"  SET_STRING_ELT(tran, 11,mkChar(\"%sode_solver_xptr\"));\n",model_prefix);
+  fprintf(outpt,"  SET_STRING_ELT(trann,12,mkChar(\"ode_solver_xptr\"));\n");
+  fprintf(outpt,"  SET_STRING_ELT(tran, 12,mkChar(\"%sode_solver_xptr\"));\n",model_prefix);
 
-  fprintf(outpt,"  SET_STRING_ELT(trann,12,mkChar(\"dydt_lsoda\"));\n");
-  fprintf(outpt,"  SET_STRING_ELT(tran, 12,mkChar(\"%sdydt_lsoda\"));\n",model_prefix);
+  fprintf(outpt,"  SET_STRING_ELT(trann,13,mkChar(\"dydt_lsoda\"));\n");
+  fprintf(outpt,"  SET_STRING_ELT(tran, 13,mkChar(\"%sdydt_lsoda\"));\n",model_prefix);
   
-  fprintf(outpt,"  SET_STRING_ELT(trann,13,mkChar(\"calc_jac_lsoda\"));\n");
-  fprintf(outpt,"  SET_STRING_ELT(tran, 13,mkChar(\"%scalc_jac_lsoda\"));\n",model_prefix);
+  fprintf(outpt,"  SET_STRING_ELT(trann,14,mkChar(\"calc_jac_lsoda\"));\n");
+  fprintf(outpt,"  SET_STRING_ELT(tran, 14,mkChar(\"%scalc_jac_lsoda\"));\n",model_prefix);
   
-  fprintf(outpt,"  SET_STRING_ELT(trann,14,mkChar(\"ode_solver_solvedata\"));\n");
-  fprintf(outpt,"  SET_STRING_ELT(tran, 14,mkChar(\"%sode_solver_solvedata\"));\n",model_prefix);
+  fprintf(outpt,"  SET_STRING_ELT(trann,15,mkChar(\"ode_solver_solvedata\"));\n");
+  fprintf(outpt,"  SET_STRING_ELT(tran, 15,mkChar(\"%sode_solver_solvedata\"));\n",model_prefix);
   
-  fprintf(outpt,"  SET_STRING_ELT(trann,15,mkChar(\"ode_solver_get_solvedata\"));\n");
-  fprintf(outpt,"  SET_STRING_ELT(tran, 15,mkChar(\"%sode_solver_get_solvedata\"));\n",model_prefix);
+  fprintf(outpt,"  SET_STRING_ELT(trann,16,mkChar(\"ode_solver_get_solvedata\"));\n");
+  fprintf(outpt,"  SET_STRING_ELT(tran, 16,mkChar(\"%sode_solver_get_solvedata\"));\n",model_prefix);
   
   fprintf(outpt,"  setAttrib(tran, R_NamesSymbol, trann);\n");
   fprintf(outpt,"  setAttrib(mmd5, R_NamesSymbol, mmd5n);\n");

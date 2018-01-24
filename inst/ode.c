@@ -27,16 +27,6 @@ typedef void (*RxODE_inc) (rx_solve *rx, unsigned int id);
 typedef double (*RxODE_val) (rx_solve *rx, unsigned int id);
 typedef SEXP (*RxODE_ode_solver) (SEXP sexp_theta, SEXP sexp_inits, SEXP sexp_lhs, SEXP sexp_time, SEXP sexp_evid,SEXP sexp_dose, SEXP sexp_pcov, SEXP sexp_cov, SEXP sexp_locf, SEXP sexp_atol, SEXP sexp_rtol, SEXP sexp_hmin, SEXP sexp_hmax, SEXP sexp_h0, SEXP sexp_mxordn, SEXP sexp_mxords, SEXP sexp_mx,SEXP sexp_stiff, SEXP sexp_transit_abs, SEXP sexp_object, SEXP sexp_extra_args, SEXP sexp_matrix, SEXP sexp_add_cov);
 typedef void (*RxODE_assign_ptr)(SEXP);
-typedef SEXP (*RxODE_assign_fn_xpointers)(void (*fun_dydt)(int *, double, double *, double *),
-					  void (*fun_calc_lhs)(int, double, double *, double *),
-					  void (*fun_calc_jac)(int *, double, double *, double *, unsigned int),
-					  void (*fun_update_inis)(int, double *_ini_sexp),
-					  void (*fun_dydt_lsoda_dum)(int *, double *, double *, double *),
-					  void (*fun_jdum_lsoda)(int *, double *, double *,int *, int *, double *, int *),
-					  void (*fun_set_solve) (rx_solve *solve),
-					  rx_solve *(*fun_get_solve)(),
-					  int fun_jt,int fun_mf, int fun_debug);
-
 typedef void (*RxODE_ode_solver_old_c)(int *neq,double *theta,double *time,int *evid,int *ntime,double *inits,double *dose,double *ret,double *atol,double *rtol,int *stiff,int *transit_abs,int *nlhs,double *lhs,int *rc);
 typedef double (*RxODE_solveLinB)(rx_solve *rx, unsigned int id, double t, int linCmt, int diff1, int diff2, double A, double alpha, double B, double beta, double C, double gamma, double ka, double tlag);
 typedef double (*RxODE_sum_prod)(double *input, int n);
@@ -84,21 +74,6 @@ void _old_c(int *neq,double *theta,double *time,int *evid,int *ntime,double *ini
   if (fun == NULL) fun = (RxODE_ode_solver_old_c) R_GetCCallable("RxODE","rxSolveOldC");
   return fun(neq, theta, time, evid, ntime, inits, dose, ret, atol, rtol, stiff, 
 	     transit_abs, nlhs, lhs, rc);
-}
-
-SEXP _assign_fn_xpointers(void (*fun_dydt)(int *, double, double *, double *),
-			  void (*fun_calc_lhs)(int, double, double *, double *),
-			  void (*fun_calc_jac)(int *, double, double *, double *, unsigned int),
-			  void (*fun_update_inis)(int, double *_ini_sexp),
-			  void (*fun_dydt_lsoda_dum)(int *, double *, double *, double *),
-			  void (*fun_jdum_lsoda)(int *, double *, double *,int *, int *, double *, int *),
-			  void (*fun_set_solve) (rx_solve *solve),
-			  rx_solve *(*fun_get_solve)(),
-			  int fun_jt,int fun_mf, int fun_debug){
-  static RxODE_assign_fn_xpointers fun = NULL;
-  if (fun == NULL) fun = (RxODE_assign_fn_xpointers) R_GetCCallable("RxODE","RxODE_get_fn_pointers");
-  return fun(fun_dydt, fun_calc_lhs, fun_calc_jac, fun_update_inis, fun_dydt_lsoda_dum, fun_jdum_lsoda, 
-	     fun_set_solve, fun_get_solve, fun_jt, fun_mf, fun_debug);
 }
 
 double Rx_pow_di(double x, double y){
@@ -221,6 +196,13 @@ double _InfusionRate(int val, rx_solve *rx, unsigned int id){
   return fun(val, rx, id);
 }
 
+typedef  SEXP (*_rx_asgn) (SEXP objectSEXP);
+SEXP _RxODE_rxAssignPtr(SEXP objectSEXP){
+  static _rx_asgn fun = NULL;
+  if (fun==NULL) fun = (_rx_asgn)R_GetCCallable("RxODE","_RxODE_rxAssignPtr");
+  return fun(objectSEXP);
+}
+
 double _sum(int n, ...){
   va_list valist;
   va_start(valist, n);
@@ -302,7 +284,7 @@ extern void __ODE_SOLVER__(int *neq,
 			   int *nlhs,
 			   double *lhs,
 			   int *rc){
-  __ODE_SOLVER_PTR__();
+  _RxODE_rxAssignPtr(__MODEL_VARS__());
   // Backward compatible ode solver for 0.5* C interface
   _old_c(neq, theta, time, evid, ntime, inits, dose, ret, atol, rtol, stiff, transit_abs, nlhs, lhs, rc);
 }
@@ -324,33 +306,17 @@ extern void __CALC_JAC_LSODA__(int *neq, double *t, double *A,int *ml, int *mu, 
   __CALC_JAC__(neq, *t, A, JAC, *nrowpd);
 }
 
-
-extern SEXP __ODE_SOLVER_XPTR__  (){
-  return _assign_fn_xpointers(__DYDT__ , __CALC_LHS__ , __CALC_JAC__, __INIS__, __DYDT_LSODA__, __CALC_JAC_LSODA__,
-                              __ODE_SOLVER_SOLVEDATA__, __ODE_SOLVER_GET_SOLVEDATA__, __JT__ , __MF__,
-#ifdef __DEBUG__
-                              1
-#else
-                              0
-#endif
-                              );
-}
-
-extern void __ODE_SOLVER_PTR__  (){
-  _assign_ptr(__MODEL_VARS__());
-}
 //Initilize the dll to match RxODE's calls
 void __R_INIT__ (DllInfo *info){
   // Register the outside functions
   R_RegisterCCallable(__LIB_STR__,__ODE_SOLVER_STR__,       (DL_FUNC) __ODE_SOLVER__);
-  R_RegisterCCallable(__LIB_STR__,"__ODE_SOLVER_XPTR__",   (DL_FUNC) __ODE_SOLVER_XPTR__);
-  R_RegisterCCallable(__LIB_STR__,"__ODE_SOLVER_PTR__",   (DL_FUNC) __ODE_SOLVER_PTR__);
   R_RegisterCCallable(__LIB_STR__,"__INIS__", (DL_FUNC) __INIS__);
   R_RegisterCCallable(__LIB_STR__,"__INIS__", (DL_FUNC) __INIS__);
   R_RegisterCCallable(__LIB_STR__,"__DYDT__", (DL_FUNC) __DYDT__);
   R_RegisterCCallable(__LIB_STR__,"__CALC_LHS__", (DL_FUNC) __CALC_LHS__);
   R_RegisterCCallable(__LIB_STR__,"__CALC_JAC__", (DL_FUNC) __CALC_JAC__);
   R_RegisterCCallable(__LIB_STR__,"__DYDT_LSODA__", (DL_FUNC) __DYDT_LSODA__);
+  R_RegisterCCallable(__LIB_STR__,"__CALC_JAC_LSODA__", (DL_FUNC) __CALC_JAC_LSODA__);
   R_RegisterCCallable(__LIB_STR__,"__ODE_SOLVER_SOLVEDATA__", (DL_FUNC) __ODE_SOLVER_SOLVEDATA__);
   R_RegisterCCallable(__LIB_STR__,"__ODE_SOLVER_GET_SOLVEDATA__", (DL_FUNC) __ODE_SOLVER_GET_SOLVEDATA__);
   
@@ -360,8 +326,6 @@ void __R_INIT__ (DllInfo *info){
   };
   
   R_CallMethodDef callMethods[]  = {
-    {__ODE_SOLVER_XPTR_STR__, (DL_FUNC) &__ODE_SOLVER_XPTR__, 0},
-    {__ODE_SOLVER_PTR_STR__, (DL_FUNC) &__ODE_SOLVER_PTR__, 0},
     {__MODEL_VARS_STR__, (DL_FUNC) &__MODEL_VARS__, 0},
     {NULL, NULL, 0}
   };

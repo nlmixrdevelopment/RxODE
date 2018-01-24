@@ -9,6 +9,7 @@
 #include <R_ext/Rdynload.h>
 #include <PreciseSums.h>
 #include "solve.h"
+extern void calc_lhs(int cSub, double t, double *A, double *lhs);
 
 extern double RxODE_as_zero(double x){
   if (fabs(x) < sqrt(DOUBLE_EPS)){
@@ -160,8 +161,6 @@ extern void rxSolveOldC(int *neqa,
   rxode_assign_rx(rx);
   SEXP sd = R_NilValue;
   par_solve(rx, sd, 0); // Solve without the option of updating residuals.
-  rx_solving_options *op = (rx_solving_options*)R_ExternalPtrAddr(rx->op);
-  t_calc_lhs calc_lhs = (t_calc_lhs)(op->calc_lhs);
   if (*nlhsa) {
     for (i=0; i<*ntime; i++){
       // 0 = first subject; Calc lhs changed...
