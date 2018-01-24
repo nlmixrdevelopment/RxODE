@@ -284,8 +284,8 @@ extern void __ODE_SOLVER__(int *neq,
 			   int *nlhs,
 			   double *lhs,
 			   int *rc){
-  _RxODE_rxAssignPtr(__MODEL_VARS__());
   // Backward compatible ode solver for 0.5* C interface
+  _assign_ptr(__MODEL_VARS__());
   _old_c(neq, theta, time, evid, ntime, inits, dose, ret, atol, rtol, stiff, transit_abs, nlhs, lhs, rc);
 }
 

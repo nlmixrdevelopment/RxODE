@@ -1694,9 +1694,10 @@ extern "C" rx_solve *rxSingle(SEXP object, const int stiff,const int transit_abs
   }
   SEXP op = rxSolvingOptions(object,method, transit_absLV, atol, rtol, maxsteps, hmin, hini, maxordn,
 			     maxords, 1, ncov, par_cov, do_par_cov, &inits[0], &scale[0], covs_interpolation);
-  IntegerVector siV = mv[11];
+  IntegerVector siV = mv["state.ignore"];
   rxSolveData(inds, 1, 1, &siV[0], -1, 0, 0, op);
-  rxUpdateFuns(as<SEXP>(mv["trans"]));
+  SEXP trans = mv["trans"];
+  rxUpdateFuns(trans);
   rx_solve *ret = getRxSolve_();
   // Also assign it.
   set_solve(ret);
@@ -2880,6 +2881,9 @@ void rxAssignPtr(SEXP object = R_NilValue){
   RxODE_assign_fn_pointers_(as<SEXP>(mv), 0);
   SEXP trans = mv["trans"];
   rxUpdateFuns(trans);
+  rx_solve *ret = getRxSolve_();
+  // Also assign it.
+  set_solve(ret);  
 }
 
 //' Get the number of cores in a system

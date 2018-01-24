@@ -33,6 +33,7 @@ void rxOptionsIni(){
 
 rx_solving_options_ind *rxOptionsIniEnsure(int mx){
   if (mx >= max_inds_global){
+    max_inds_global = mx+1024;
     inds_global = Realloc(inds_global, max_inds_global, rx_solving_options_ind);
   }
   return inds_global;
