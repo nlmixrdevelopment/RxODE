@@ -2065,7 +2065,7 @@ SEXP rxSolveC(const RObject &object,
           }
         }
 	ret["transit_abs"] = transit;
-	IntegerVector rc(2);
+	IntegerVector rc(1);
 	ret["rc"] = rc;
         return as<SEXP>(ret);
       } else {

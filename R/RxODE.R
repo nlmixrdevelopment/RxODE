@@ -1256,13 +1256,6 @@ rxTransMakevars <- function(rxProps,                                            
     neededProps <- c("jac", compileFlags);
     if (all(neededProps %in% names(rxProps))){
         ret <- "";
-        if (rxProps["jac"] == "fulluser"){
-            ctxt <- gsub("__JT__", "1", ctxt)
-            ctxt <- gsub("__MF__", "21", ctxt)
-        } else if (rxProps["jac"] == "fullint"){
-            ctxt <- gsub("__JT__", "2", ctxt)
-            ctxt <- gsub("__MF__", "22", ctxt)
-        }
         tmp <- rxProps[compileFlags];
         for (x in c("parsed_md5", "ode_solver", "ode_solver_sexp", "ode_solver_ptr", "ode_solver_xptr", "ode_solver_focei_outer",
                     "model_vars")){

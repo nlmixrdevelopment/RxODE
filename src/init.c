@@ -56,6 +56,7 @@ SEXP _RxODE_rxSolveGet(SEXP, SEXP, SEXP);
 SEXP _RxODE_rxSolveUpdate(SEXP, SEXP, SEXP);
 SEXP _RxODE_rxAssignPtr(SEXP);
 SEXP _RxODE_rxCores();
+SEXP _RxODE_rxAssignPtr(SEXP objectSEXP);
 SEXP RxODE_get_mv();
 
 double RxODE_solveLinB(rx_solve *rx, unsigned int id,double t, int linCmt, int diff1, int diff2, double A, double alpha, double B, double beta, double C, double gamma, double ka, double tlag);
@@ -179,6 +180,7 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_rxSolveGet", (DL_FUNC) &_RxODE_rxSolveGet, 3},
     {"_RxODE_rxSolveUpdate", (DL_FUNC) &_RxODE_rxSolveUpdate, 3},
     {"_RxODE_rxCores",(DL_FUNC) &_RxODE_rxCores, 0},
+    {"_RxODE_rxAssignPtr", (DL_FUNC) &_RxODE_rxAssignPtr, 1},
     {NULL, NULL, 0}
   };
   // C callable to assign environments.
