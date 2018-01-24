@@ -1666,6 +1666,12 @@ extern "C" rx_solve *rxSingle(SEXP object, const int stiff,const int transit_abs
   NumericVector scale           = solveL["scale"];
   NumericVector InfusionRate    = solveL["infusion"];
   IntegerVector BadDose         = solveL["badDose"];
+  for (int i = 0; i < inits.size(); i++){
+    inits[i]           = 0;
+    scale[i]           = 0;
+    InfusionRate[i]    = 0;
+    BadDose[i]         = 0;
+  }
   // Instead of having the correct length for idose, use idose length = length of ntime
   // Saves an additional for loop at the cost of a little memory.
   /* int *idose; */
