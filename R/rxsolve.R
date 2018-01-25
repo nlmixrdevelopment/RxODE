@@ -7,33 +7,6 @@
 ##'     with a RxODE model specification, or a string with a RxODE
 ##'     model specification.
 ##'
-##' @param covs_interpolation specifies the interpolation method for
-##'     time-varying covariates. When solving ODEs it often samples
-##'     times outside the sampling time specified in \code{events}.
-##'     When this happens, the time varying covariates are
-##'     interpolated.  Currently this can be:
-##'
-##' \itemize{
-##' \item \code{"linear"} interpolation (the default), which interpolates the covariate
-##'     by solving the line between the observed covariates and extrapolating the new
-##'     covariate value.
-##' \item \code{"constant"} -- Last observation carried forward.
-##' \item \code{"NOCB"} -- Next Observation Carried Backward.  This is the same method
-##'       that NONMEM uses.
-##' \item \code{"midpoint"} Last observation carried forward to midpoint; Next observation
-##'   carried backward to midpoint.
-##' }
-##'
-##' @param theta A vector of parameters that will be named THETA[#] and
-##'     added to parameters
-##'
-##' @param eta A vector of parameters that will be named ETA[#] and
-##'     added to parameters
-##'
-##' @param add.cov A boolean indicating if covariates should be added
-##'     to the output matrix or data frame. By default this is
-##'     disabled.
-##'
 ##' @param params a numeric named vector with values for every
 ##'     parameter in the ODE system; the names must correspond to the
 ##'     parameter identifiers used in the ODE specification;
@@ -58,19 +31,16 @@
 ##'     sampling points defined in the events \code{eventTable}.  This
 ##'     is for time-varying covariates.
 ##'
-##' @param stiff a logical (\code{TRUE} by default) indicating whether
-##'     the ODE system is stiff or not.
+##' @param method  The method for solving ODEs.  Currently this supports:
 ##'
-##'     For stiff ODE sytems (\code{stiff = TRUE}), \code{RxODE} uses the
-##'     LSODA (Livermore Solver for Ordinary Differential Equations)
-##'     Fortran package, which implements an automatic method switching
-##'     for stiff and non-stiff problems along the integration
-##'     interval, authored by Hindmarsh and Petzold (2003).
-##'
-##'     For non-stiff systems (\code{stiff = FALSE}), \code{RxODE} uses
-##'     DOP853, an explicit Runge-Kutta method of order 8(5, 3) of
-##'     Dormand and Prince as implemented in C by Hairer and Wanner
-##'     (1993).
+##' \itemize{
+##' \item \code{"liblsoda"} thread safe lsoda.  This supports parallel
+##'            thread-based solving, and ignores user Jacobian specification.
+##' \item \code{"lsoda"} -- LSODA solver.  Does not support parallel thread-based
+##'       solving, but allows user Jacobian specification.
+##' \item \code{"dop853"} -- DOP853 solver.  Does not support parallel thread-based
+##'         solving nor user Jacobain specification
+##' }
 ##'
 ##' @param transit_abs boolean indicating if this is a transit
 ##'     compartment absorption
@@ -104,13 +74,86 @@
 ##' @param maxords The maximum order to be allowed for the stiff (BDF)
 ##'     method.  The default value is 5.  This can be between 1 and 5.
 ##'
-##' @param matrix A boolean inticating if a matrix should be returned
-##'     instead of the RxODE's solved object
-##'
 ##' @param ... Other arguments including scaling factors for each
 ##'     compartment.  This includes S# = numeric will scale a compartment
 ##'     # by a dividing the compartment amount by the scale factor,
 ##'     like NONMEM.
+##'
+##' @param cores Number of cores used in parallel ODE solving.  This
+##'     defaults to the number or system cores determined by
+##'     \code{\link{rxCores}} for methods that support parallel
+##'     solving (ie thread-safe methods like "liblsoda").
+##'
+##' @param covs_interpolation specifies the interpolation method for
+##'     time-varying covariates. When solving ODEs it often samples
+##'     times outside the sampling time specified in \code{events}.
+##'     When this happens, the time varying covariates are
+##'     interpolated.  Currently this can be:
+##'
+##' \itemize{
+##' \item \code{"linear"} interpolation (the default), which interpolates the covariate
+##'     by solving the line between the observed covariates and extrapolating the new
+##'     covariate value.
+##' \item \code{"constant"} -- Last observation carried forward.
+##' \item \code{"NOCB"} -- Next Observation Carried Backward.  This is the same method
+##'       that NONMEM uses.
+##' \item \code{"midpoint"} Last observation carried forward to midpoint; Next observation
+##'   carried backward to midpoint.
+##' }
+##'
+##' @param add.cov A boolean indicating if covariates should be added
+##'     to the output matrix or data frame. By default this is
+##'     disabled.
+##'
+##' @param matrix A boolean inticating if a matrix should be returned
+##'     instead of the RxODE's solved object.
+##'
+##' @param sigma Named sigma covariance or Cholesky decomposition of a
+##'     covariance matrix.  The names of the columns indicate
+##'     parameters that are simulated.  These are simulated for every
+##'     observation in the solved system.
+##'
+##' @param sigmaDf Degrees of freedom of the sigma t-distribution.  By
+##'     default it is equivalent to \code{Inf}, or a normal distribution.
+##'
+##' @param sigmaNcores Number of cores used for the simulation of the
+##'     sigma covariates.  By default this is 1. This uses the package
+##'     \code{\link[mvnfast]{rmvn}} and \code{\link[mvnfast]{rmvt}}.
+##'     To reproduce the results you need to run on the same platform
+##'     with the same number of cores. This is the reason this is set
+##'     to be one, regardless of what the number of cores are used in
+##'     threaded ODE solving.
+##'
+##' @param sigmaIsChol Boolean indicating if the sigma is in the
+##'     Cholesky decomposition instead of a symmetric covariance
+##'
+##' @param amountUnits This supplies the dose units of a data frame
+##'     supplied instead of an event table.  This is for importing the
+##'     data as an RxODE event table.
+##'
+##' @param timeUnits This supplies the time units of a data frame
+##'     supplied instead of an event table.  This is for importing the
+##'     data as an RxODE event table.
+##'
+##' @param stiff a logical (\code{TRUE} by default) indicating whether
+##'     the ODE system is stiff or not.
+##'
+##'     For stiff ODE sytems (\code{stiff = TRUE}), \code{RxODE} uses the
+##'     LSODA (Livermore Solver for Ordinary Differential Equations)
+##'     Fortran package, which implements an automatic method switching
+##'     for stiff and non-stiff problems along the integration
+##'     interval, authored by Hindmarsh and Petzold (2003).
+##'
+##'     For non-stiff systems (\code{stiff = FALSE}), \code{RxODE} uses
+##'     DOP853, an explicit Runge-Kutta method of order 8(5, 3) of
+##'     Dormand and Prince as implemented in C by Hairer and Wanner
+##'     (1993).
+##'
+##' @param theta A vector of parameters that will be named THETA[#] and
+##'     added to parameters
+##'
+##' @param eta A vector of parameters that will be named ETA[#] and
+##'     added to parameters
 ##'
 ##' @param addDosing Boolean indicating if the solve should add RxODE
 ##'     evid and amt columns.  This will also include dosing
@@ -118,11 +161,18 @@
 ##'     only includes estimates at the observations. (default
 ##'     \code{FALSE}).
 ##'
+##' @param update.object This is an internally used flag to update the
+##'     RxODE solved object (when supplying an RxODE solved object) as
+##'     well as returning a new object.  You probably should not
+##'     modify it's \code{FALSE} default unless you are willing to
+##'     have unexpected results.
+##' @param do.solve Internal flag.  By default this is \code{TRUE},
+##'     when \code{FALSE} a list of solving options is returned.
 ##' @return An \dQuote{rxSolve} solve object that stores the solved
 ##'     value in a matrix with as many rows as there are sampled time
 ##'     points and as many columns as system variables (as defined by
 ##'     the ODEs and additional assignments in the RxODE model code).
-##'     It also stores information about the call to allow dynmaic
+##'     It also stores information about the call to allow dynamic
 ##'     updating of the solved object.
 ##'
 ##'     The operations for the object are simialar to a data-frame, but
@@ -300,6 +350,13 @@ summary.rxSolve <- function(object, ...){
     }
 }
 
+##' Check to see if this is an rxSolve object.
+##'
+##' @param x object to check to see if it is rxSolve
+##'
+##' If this is an rxSolve object that has expired strip all rxSolve
+##' information.
+##'
 ##' @author Matthew L.Fidler
 ##' @export
 is.rxSolve <- function(x){

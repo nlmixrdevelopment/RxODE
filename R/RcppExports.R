@@ -24,7 +24,7 @@ rxDataSetup <- function(ro, covNames = NULL, sigma = NULL, df = NULL, ncoresRV =
 
 #' Update RxODE multi-subject data with new residuals (in-place).
 #'
-#' @param multiData The RxODE multi-data object setup from \code{\link{rxDataSetup}}
+#' @param multiData The RxODE multi-data object setup from \code{\link{rxDataParSetup}}
 #'
 #' @return An integer indicating if this is object has residuals that are updating (0 for no-residuals; 1 for residuals).
 #'        

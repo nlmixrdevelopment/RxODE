@@ -68,7 +68,6 @@ Description: Facilities for running simulations from ordinary
     in the inst/COPYRIGHTS.
 NeedsCompilation: yes
 VignetteBuilder: knitr
-SystemRequirements: GNU make
 License: GPL (>= 2) 
 URL: https://www.r-project.org, https://github.com/nlmixrdevelopment/RxODE
 RoxygenNote: 6.0.1

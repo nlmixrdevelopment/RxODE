@@ -589,7 +589,7 @@ List rxDataSetup(const RObject &ro,
 
 //' Update RxODE multi-subject data with new residuals (in-place).
 //'
-//' @param multiData The RxODE multi-data object setup from \code{\link{rxDataSetup}}
+//' @param multiData The RxODE multi-data object setup from \code{\link{rxDataParSetup}}
 //'
 //' @return An integer indicating if this is object has residuals that are updating (0 for no-residuals; 1 for residuals).
 //'        
@@ -1913,6 +1913,7 @@ SEXP rxSolveC(const RObject &object,
     if (rxIs(object, "rxSolve")){
       obj = as<List>(obj);
       CharacterVector classattr = object.attr("class");
+      Rcout << "as2\n";
       e = as<Environment>(classattr.attr(".RxODE.env"));
     } else if (rxIs(object, "environment")) {
       e = as<Environment>(object);

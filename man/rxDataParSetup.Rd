@@ -46,6 +46,14 @@ simulation. By default it is one.}
 Cholesky decomposed matrix instead of the traditional
 symmetric matrix.}
 
+\item{amountUnits}{This supplies the dose units of a data frame
+supplied instead of an event table.  This is for importing the
+data as an RxODE event table.}
+
+\item{timeUnits}{This supplies the time units of a data frame
+supplied instead of an event table.  This is for importing the
+data as an RxODE event table.}
+
 \item{theta}{A vector of parameters that will be named THETA[#] and
 added to parameters}
 
