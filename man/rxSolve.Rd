@@ -42,6 +42,17 @@ variable by 2.}
 sampling points defined in the events \code{eventTable}.  This
 is for time-varying covariates.}
 
+\item{method}{The method for solving ODEs.  Currently this supports:
+
+\itemize{
+\item \code{"liblsoda"} thread safe lsoda.  This supports parallel
+           thread-based solving, and ignores user Jacobian specification.
+\item \code{"lsoda"} -- LSODA solver.  Does not support parallel thread-based
+      solving, but allows user Jacobian specification.
+\item \code{"dop853"} -- DOP853 solver.  Does not support parallel thread-based
+        solving nor user Jacobain specification
+}}
+
 \item{transit_abs}{boolean indicating if this is a transit
 compartment absorption}
 
@@ -79,6 +90,11 @@ compartment.  This includes S# = numeric will scale a compartment
 # by a dividing the compartment amount by the scale factor,
 like NONMEM.}
 
+\item{cores}{Number of cores used in parallel ODE solving.  This
+defaults to the number or system cores determined by
+\code{\link{rxCores}} for methods that support parallel
+solving (ie thread-safe methods like "liblsoda").}
+
 \item{covs_interpolation}{specifies the interpolation method for
     time-varying covariates. When solving ODEs it often samples
     times outside the sampling time specified in \code{events}.
@@ -101,7 +117,34 @@ to the output matrix or data frame. By default this is
 disabled.}
 
 \item{matrix}{A boolean inticating if a matrix should be returned
-instead of the RxODE's solved object}
+instead of the RxODE's solved object.}
+
+\item{sigma}{Named sigma covariance or Cholesky decomposition of a
+covariance matrix.  The names of the columns indicate
+parameters that are simulated.  These are simulated for every
+observation in the solved system.}
+
+\item{sigmaDf}{Degrees of freedom of the sigma t-distribution.  By
+default it is equivalent to \code{Inf}, or a normal distribution.}
+
+\item{sigmaNcores}{Number of cores used for the simulation of the
+sigma covariates.  By default this is 1. This uses the package
+\code{\link[mvnfast]{rmvn}} and \code{\link[mvnfast]{rmvt}}.
+To reproduce the results you need to run on the same platform
+with the same number of cores. This is the reason this is set
+to be one, regardless of what the number of cores are used in
+threaded ODE solving.}
+
+\item{sigmaIsChol}{Boolean indicating if the sigma is in the
+Cholesky decomposition instead of a symmetric covariance}
+
+\item{amountUnits}{This supplies the dose units of a data frame
+supplied instead of an event table.  This is for importing the
+data as an RxODE event table.}
+
+\item{timeUnits}{This supplies the time units of a data frame
+supplied instead of an event table.  This is for importing the
+data as an RxODE event table.}
 
 \item{stiff}{a logical (\code{TRUE} by default) indicating whether
     the ODE system is stiff or not.
@@ -128,13 +171,22 @@ evid and amt columns.  This will also include dosing
 information and estimates at the doses.  Be default, RxODE
 only includes estimates at the observations. (default
 \code{FALSE}).}
+
+\item{update.object}{This is an internally used flag to update the
+RxODE solved object (when supplying an RxODE solved object) as
+well as returning a new object.  You probably should not
+modify it's \code{FALSE} default unless you are willing to
+have unexpected results.}
+
+\item{do.solve}{Internal flag.  By default this is \code{TRUE},
+when \code{FALSE} a list of solving options is returned.}
 }
 \value{
 An \dQuote{rxSolve} solve object that stores the solved
     value in a matrix with as many rows as there are sampled time
     points and as many columns as system variables (as defined by
     the ODEs and additional assignments in the RxODE model code).
-    It also stores information about the call to allow dynmaic
+    It also stores information about the call to allow dynamic
     updating of the solved object.
 
     The operations for the object are simialar to a data-frame, but

@@ -430,12 +430,14 @@ extern void par_lsoda(rx_solve *rx, SEXP sd, int ini_updateR){
                 }
               else
                 {
-                  if (op->do_transit_abs)
-                    {
-                      ind->podo = dose[ind->ixds];
-                      ind->tlast = xout;
-                    }
-                  else yp[cmt] += dose[ind->ixds];     //dosing before obs
+                  if (op->do_transit_abs) {
+		    ind->podo = dose[ind->ixds];
+		    ind->tlast = xout;
+		  } else {
+		    ind->podo = 0;
+		    ind->tlast = xout;
+                    yp[cmt] += dose[ind->ixds];     //dosing before obs
+		  }
                 }
             
               istate = 1;
@@ -617,12 +619,14 @@ void par_dop(rx_solve *rx, SEXP sd, int ini_updateR){
 		  }
 		else
 		  {
-		    if (op->do_transit_abs)
-		      {
-			ind->podo = dose[ind->ixds];
-                        ind->tlast = xout;
-		      }
-		    else yp[cmt] += dose[ind->ixds];     //dosing before obs
+		    if (op->do_transit_abs) {
+		      ind->podo = dose[ind->ixds];
+		      ind->tlast = xout;
+		    } else {
+                      ind->podo = 0;
+                      ind->tlast = xout;
+		      yp[cmt] += dose[ind->ixds];     //dosing before obs
+		    }
 		  }
 	      }
 	      ind->ixds++;

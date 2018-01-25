@@ -7,7 +7,7 @@
 rxUpdateResiduals(multiData)
 }
 \arguments{
-\item{multiData}{The RxODE multi-data object setup from \code{\link{rxDataSetup}}}
+\item{multiData}{The RxODE multi-data object setup from \code{\link{rxDataParSetup}}}
 }
 \value{
 An integer indicating if this is object has residuals that are updating (0 for no-residuals; 1 for residuals).

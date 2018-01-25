@@ -29,12 +29,6 @@ C1=centr/V;
     times<-sort(unique(c(timei,seq(minimum,maximum,StepSize))))
     ev$add.sampling(times)
 
-    x <- as.data.frame(mod1KA$run(params, ev))
-
-    test_that("run works with a data frame param", {
-        expect_equal(class(x), "data.frame")
-    })
-
     ## test old solving.
     event.table <- ev$get.EventTable()
     modelVars <- mod1KA$get.modelVars()
@@ -84,6 +78,14 @@ C1=centr/V;
 
     x2 <- cbind(time=event.table$time, x2)[ev$get.obs.rec(), ];
     x2 <- as.data.frame(x2)
+
+    x <- as.data.frame(mod1KA$run(params, ev))
+
+    test_that("run works with a data frame param", {
+        expect_equal(class(x), "data.frame")
+    })
+
+    x3 <- as.data.frame(mod1KA$run(params * 10, ev))
 
     test_that("Old routine works correctly", {
         expect_equal(x2, x);
@@ -312,6 +314,17 @@ C1=centr/V;
         expect_equal(length(x$t), 20)
         expect_equal(min(x$t), 0)
         expect_equal(max(x$t), 5)
+    })
+
+    x <- solve(mod1,theta, ev, inits)
+    t1 <- x$centr
+
+    x$Q <- 5;
+
+    t2 <- x$centr
+
+    test_that("Changing parameters change values.", {
+        expect_true(!(all(t1 == t2)))
     })
 
 }, silent=TRUE)
