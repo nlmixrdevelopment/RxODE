@@ -46,7 +46,7 @@ d/dt(cen) = ka*depot-k*cen
     ## It gives different results than the last different results...? Is it important?  What does it mean?
     test_that("Transit absorption is turned off, and gives other results", {
         expect_equal(round(as.data.frame(no_transit[c(1:15,seq(194-15,194)),]), 4),
-                     dat2);
+                     dat1);
     })
 
     mod <- RxODE("
