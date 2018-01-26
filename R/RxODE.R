@@ -415,63 +415,29 @@ RxODE <- function(model, modName = basename(wd), wd = ifelse(RxODE.cache.directo
     env$model <- model; # actual model code
     ## cmpMgr = cmpMgr,
     env$dynLoad <- eval(bquote(function(force = FALSE){
-        ## NB: we may need to reload (e.g., when we re-start R and
-        ## re-instantiate the RxODE object from a save.image.
-        with(.(env),{
-            dll <- RxODE::rxDll(rxDll);
-            env <- RxODE::rxModels_();
-            if (is.loaded(cmpMgr$ode_solver)){
-                assign(cmpMgr$ode_solver_ptr, rxDll$modVars, env);
-                assign(cmpMgr$prefix, .(env), env);
-                return(TRUE)
-            } else if (file.exists(dll)){
-                dyn.load(dll);
-                assign(cmpMgr$ode_solver_ptr, rxDll$modVars, env);
-                assign(cmpMgr$prefix, .(env), env);
-                return (is.loaded(cmpMgr$ode_solver));
-            } else if (RxODE:::RxODE.compile.on.load){
-                compile();
-                assign(cmpMgr$ode_solver_ptr, rxDll$modVars, env);
-                assign(cmpMgr$prefix, .(env), env);
-                return(TRUE)
-            }
-            return(FALSE);
-        })
+        rx <- .(env);
+        class(rx) <- "RxODE";
+        RxODE::rxDynLoad(rx);
     }));
+    env$load <- env$dynLoad;
     env$dynUnload <- eval(bquote(function(){
-        with(.(env),{
-            dll <- RxODE::rxDll(rxDll);
-            env <- RxODE::rxModels_();
-            if (!is.loaded(cmpMgr$ode_solver)){
-                RxODE:::rxRmModelLib_(cmpMgr$ode_solver_ptr);
-                return(TRUE);
-            } else if (file.exists(dll)){
-                dyn.unload(dll)
-                RxODE:::rxRmModelLib_(cmpMgr$ode_solver_ptr);
-                return(!is.loaded(cmpMgr$ode_solver))
-            } else {
-                stop("Cannot unload..");
-            }
-            return(FALSE);
-        })
+        rx <- .(env);
+        class(rx) <- "RxODE";
+        RxODE::rxDynUnload(rx);
     }));
+    env$unload <- env$dynUnload;
     env$isValid <- eval(bquote(function(){
         return(file.exists(RxODE::rxDll(get("rxDll", envir=.(env)))));
     }))
     env$isLoaded <- eval(bquote(function(){
-        with(.(env), return(is.loaded(cmpMgr$ode_solver)));
+        rx <- .(env);
+        class(rx) <- "RxODE";
+        RxODE::rxIsLoaded(rx);
     }))
     env$delete <- eval(bquote(function(){
-        with(.(env),{
-            if (dynUnload()){
-                dll <- RxODE::rxDll(rxDll);
-                unlink(dll, force=TRUE);
-                return(!file.exists(dll))
-            } else {
-                unlink(dll, force=TRUE);
-                return(!file.exists(dll));
-            }
-        })
+        rx <- .(env);
+        class(rx) <- "RxODE";
+        RxODE::rxDelete(rx);
     }))
     env$parse <- with(env, function(){
         stop("$parse is no longer supported");
@@ -1140,20 +1106,9 @@ rxTransMakevars <- function(rxProps,                                            
     }
 } # end function rxTransCompileFlags
 
-##' Determine if the rxDll is loaded or not.
-##'
-##' @param x is a RxODE family of objects
-##'
-##' @return a boolean stating if the DLL is loaded
-##'
-##' @author Matthew L.Fidler
+##' @rdname rxIsLoaded
 ##' @export
-rxDllLoaded <- function(x, retry = TRUE){
-    if (is.null(x)){
-        return(FALSE);
-    }
-    return(is.loaded(rxDll(x)));
-}
+rxDllLoaded <- rxIsLoaded
 ##' Compile a model if needed
 ##'
 ##' This is the compilation workhorse creating the RxODE model DLL
@@ -1373,63 +1328,20 @@ rxCompile.rxDll <- function(model, ...){
 ##' @rdname rxCompile
 ##' @export
 rxCompile.RxODE <- function(model, ...){
-    model$cmpMgr$compile()
+    model$compile()
 }
 
 ##' @rdname rxParams
 ##' @export
 rxParam <- rxParams
 
-##' Load the DLL for the object
-##'
-##' This loads the DLL into the current R session to allow C functions
-##' to be called in R.
-##'
-##' @param obj RxODE objects
-##'
-##' @author Matthew L.Fidler
+##' @rdname rxDynLoad
 ##' @export
-rxLoad <- function(obj){
-    if (rxIs(obj, "RxODE")){
-        return(invisible(obj$dynLoad()));
-    }
-    stop("Not an RxODE object.");
-}
+rxLoad <- rxDynLoad
 
-##' Unload the DLL for the object
-##'
-##' This unloads the DLL in the R session so that the DLL can be
-##' deleted.  All the c functions will no longer be accessible.
-##'
-##' @param obj a RxODE family of objects
-##'
-##' @author Matthew L.Fidler
+##' @rdname rxDynUnload
 ##' @export
-rxUnload <- function(obj){
-    if (rxIs(obj, "RxODE")){
-        return(invisible(obj$dynUnload()));
-    }
-    stop("Not an RxODE object.");
-}
-
-##' Delete the DLL for the model
-##'
-##' This function deletes the DLL, but doesn't delete the model
-##' information in the object.
-##'
-##' @param obj RxODE family of objects
-##'
-##' @return A boolean stating if the operation was successful.
-##'
-##' @author Matthew L.Fidler
-##' @export
-rxDelete <- function(obj){
-    if (rxIs(obj, "RxODE")){
-        return(invisible(obj$dynUnload()));
-    }
-    stop("Not an RxODE object.");
-}
-
+rxUnload <- rxDynUnload
 
 rxConditionLst <- list();
 ##' Current Condition for RxODE object

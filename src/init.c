@@ -145,8 +145,14 @@ extern void RxODE_ode_freeP(rx_solve *rx, unsigned int id);
 extern void rxRmModelLib(const char* s);
 extern SEXP rxGetModelLib(const char *s);
 
-extern void _RxODE_rxRmModelLib_(SEXP);
-extern void _RxODE_rxDll(SEXP);
+extern SEXP _RxODE_rxRmModelLib_(SEXP);
+extern SEXP _RxODE_rxDll(SEXP);
+extern SEXP _RxODE_rxIsLoaded(SEXP);
+extern SEXP _RxODE_rxDynUnload(SEXP);
+extern SEXP _RxODE_rxDynLoad(SEXP);
+extern SEXP _RxODE_rxDelete(SEXP);
+extern SEXP _RxODE_rxGetRxODE(SEXP);
+
 
 // Remove these functions later...
 
@@ -186,6 +192,11 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_rxAssignPtr", (DL_FUNC) &_RxODE_rxAssignPtr, 1},
     {"_RxODE_rxRmModelLib_",(DL_FUNC) &_RxODE_rxRmModelLib_, 1},
     {"_RxODE_rxDll",(DL_FUNC) &_RxODE_rxDll, 1},
+    {"_RxODE_rxIsLoaded", (DL_FUNC) &_RxODE_rxIsLoaded, 1},
+    {"_RxODE_rxDynUnload", (DL_FUNC) &_RxODE_rxDynUnload, 1},
+    {"_RxODE_rxDynLoad", (DL_FUNC) &_RxODE_rxDynLoad, 1},
+    {"_RxODE_rxDelete", (DL_FUNC) &_RxODE_rxDynLoad, 1},
+    {"_RxODE_rxGetRxODE", (DL_FUNC) &_RxODE_rxGetRxODE, 1},
     {NULL, NULL, 0}
   };
   // C callable to assign environments.

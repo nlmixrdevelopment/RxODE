@@ -2,6 +2,9 @@
 #include <RcppArmadillo.h>
 #include <thread>
 #include <string>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <stdio.h>
 extern "C" {
 #include "solve.h"
 }
@@ -1777,6 +1780,8 @@ Nullable<Environment> rxRxODEenv(RObject obj);
 
 std::string rxDll(RObject obj);
 
+bool rxDynLoad(RObject obj);
+
 SEXP rxSolveC(const RObject &object,
               const Nullable<CharacterVector> &specParams = R_NilValue,
 	      const Nullable<List> &extraArgs = R_NilValue,
@@ -1971,6 +1976,9 @@ SEXP rxSolveC(const RObject &object,
     e[".real.update"] = true;
     return dat;
   } else {
+    if (!rxDynLoad(object)){
+      stop("Cannot load RxODE dlls for this model.");
+    }
     List parData = rxData(object, params, events, inits, covs, as<std::string>(method[0]), transit_abs, atol,
                           rtol, maxsteps, hmin,hmax, hini, maxordn, maxords, cores,
                           as<std::string>(covs_interpolation[0]), addCov, matrix, sigma, sigmaDf, sigmaNcores, sigmaIsChol,
@@ -2827,13 +2835,16 @@ RObject rxSolveUpdate(RObject obj,
 
 bool foundEnv = false;
 Environment _rxModels;
-extern "C" void rxAddModelLib(SEXP mv){
+void getRxModels(){
   if (!foundEnv){ // minimize R call
     Environment RxODE("package:RxODE");
     Function f = as<Function>(RxODE["rxModels_"]);
     _rxModels = f();
     foundEnv = true;
   }
+}
+extern "C" void rxAddModelLib(SEXP mv){
+  getRxModels();
   CharacterVector trans = as<List>(mv)["trans"];
   std::string ptr =as<std::string>(trans["ode_solver_ptr"]);
   _rxModels[ptr]= mv;
@@ -2841,12 +2852,7 @@ extern "C" void rxAddModelLib(SEXP mv){
 
 extern "C" SEXP rxGetModelLib(const char *s){
   std::string str(s);
-  if (!foundEnv){
-    Environment RxODE("package:RxODE");
-    Function f = as<Function>(RxODE["rxModels_"]);
-    _rxModels = as<Environment>(f());
-    foundEnv = true;
-  }
+  getRxModels();
   if (_rxModels.exists(str)){
     return wrap(_rxModels.get(str));
   } else {
@@ -2856,12 +2862,7 @@ extern "C" SEXP rxGetModelLib(const char *s){
 
 //[[Rcpp::export]]
 void rxRmModelLib_(std::string str){
-  if (!foundEnv){
-    Environment RxODE("package:RxODE");
-    Function f = as<Function>(RxODE["rxModels_"]);
-    _rxModels = f();
-    foundEnv = true;
-  }
+  getRxModels();
   if (_rxModels.exists(str)){
     List trans =(as<List>(as<List>(_rxModels[str]))["trans"]);
     std::string rxlib = as<std::string>(trans["prefix"]);
@@ -2878,19 +2879,40 @@ extern "C" void rxRmModelLib(const char* s){
 }
 
 Nullable<Environment> rxRxODEenv(RObject obj){
-  List mv = rxModelVars(obj);
-  CharacterVector trans = mv["trans"];
-  if (!foundEnv){
-    Environment RxODE("package:RxODE");
-    Function f = as<Function>(RxODE["rxModels_"]);
-    _rxModels = f();
-    foundEnv = true;
-  }
-  std::string prefix = as<std::string>(trans["prefix"]);
-  if (_rxModels.exists(prefix)){
-    return as<Environment>(_rxModels[prefix]);
+  if (rxIs(obj, "RxODE")){
+    return(as<Environment>(obj));
+  } else if (rxIs(obj, "rxSolve")){
+    CharacterVector cls = obj.attr("class");
+    Environment e = as<Environment>(cls.attr(".RxODE.env"));
+    return rxRxODEenv(as<RObject>(e["args.object"]));
+  } else if (rxIs(obj, "rxModelVars")){
+    List mv = as<List>(obj);
+    CharacterVector trans = mv["trans"];
+    getRxModels();
+    std::string prefix = as<std::string>(trans["prefix"]);
+    if (_rxModels.exists(prefix)){
+      return as<Environment>(_rxModels[prefix]);
+    } else {
+      return R_NilValue;
+    }
   } else {
-    return R_NilValue;
+    return rxRxODEenv(as<RObject>(rxModelVars(obj)));
+  }
+}
+
+//' Get RxODE model from object
+//' @param object RxODE family of objects
+//' @export
+//[[Rcpp::export]]
+RObject rxGetRxODE(RObject obj){
+  Nullable<Environment> rxode1 = rxRxODEenv(obj);
+  if (rxode1.isNull()){
+    // FIXME compile if needed.
+    stop("Can't figure out the RxODE object");
+  } else {
+    Environment e = as<Environment>(rxode1);
+    e.attr("class") = "RxODE";
+    return as<RObject>(e);
   }
 }
 extern "C" void RxODE_assign_fn_pointers_(SEXP mv, int addit);
@@ -2901,11 +2923,25 @@ extern "C" void RxODE_assign_fn_pointers_(SEXP mv, int addit);
 void rxAssignPtr(SEXP object = R_NilValue){
   List mv=rxModelVars(as<RObject>(object));
   RxODE_assign_fn_pointers_(as<SEXP>(mv), 0);
-  SEXP trans = mv["trans"];
-  rxUpdateFuns(trans);
+  CharacterVector trans = mv["trans"];
+  rxUpdateFuns(as<SEXP>(trans));
   rx_solve *ret = getRxSolve_();
   // Also assign it.
-  set_solve(ret);  
+  set_solve(ret); 
+  // Update rxModels environment.
+  getRxModels();
+  std::string ptr = as<std::string>(trans["ode_solver_ptr"]); 
+  if (!_rxModels.exists(ptr)){
+    _rxModels[ptr] = mv;
+  }
+  Nullable<Environment> e1 = rxRxODEenv(object);
+  if (!e1.isNull()){
+    std::string prefix = as<std::string>(trans["prefix"]);
+    if (!_rxModels.exists(prefix)){
+      Environment e = as<Environment>(e1);
+      _rxModels[prefix] = e;
+    }
+  }      
 }
 
 //' Get the number of cores in a system
@@ -2951,4 +2987,108 @@ std::string rxDll(RObject obj){
       return as<std::string>((as<List>(e["rxDll"]))["dll"]);
     }
   }
+}
+
+//' Determine if the DLL associated with the RxODE object is loaded
+//'
+//' @param obj A RxODE family of objects 
+//'
+//' @return Boolean returning if the RxODE library is loaded.
+//'
+//' @keywords internal
+//' @author Matthew L.Fidler
+//' @export
+//[[Rcpp::export]]
+bool rxIsLoaded(RObject obj){
+  Function isLoaded("is.loaded", R_BaseNamespace);
+  List mv = rxModelVars(obj);
+  CharacterVector trans = mv["trans"];
+  std::string dydt = as<std::string>(trans["ode_solver"]);
+  return as<bool>(isLoaded(dydt));
+}
+
+// 
+inline bool fileExists(const std::string& name) {
+  struct stat buffer;   
+  return (stat (name.c_str(), &buffer) == 0); 
+}
+
+
+//' Load RxODE object
+//'
+//' @param obj A RxODE family of objects 
+//'
+//' @return Boolean returning if the RxODE library is loaded.
+//'
+//' @keywords internal
+//' @author Matthew L.Fidler
+//' @export
+//[[Rcpp::export]]
+bool rxDynLoad(RObject obj){
+  if (!rxIsLoaded(obj)){
+    std::string file = rxDll(obj);
+    if (fileExists(file)){
+      Function dynLoad("dyn.load", R_BaseNamespace);
+      dynLoad(file);
+    } else {
+      Nullable<Environment> e1 = rxRxODEenv(obj);
+      if (!e1.isNull()){
+	Environment e = as<Environment>(e1);
+	Function compile = as<Function>(e["compile"]);
+	compile();
+      }
+    }
+  }
+  if (rxIsLoaded(obj)){
+    rxAssignPtr(obj);
+    return true;
+  } else {
+    return false;
+  }
+}
+
+//' Unload RxODE object
+//'
+//' @param obj A RxODE family of objects 
+//'
+//' @return Boolean returning if the RxODE library is loaded.
+//'
+//' @keywords internal
+//' @author Matthew L.Fidler
+//' @export
+//[[Rcpp::export]]
+bool rxDynUnload(RObject obj){
+  List mv = rxModelVars(obj);
+  CharacterVector trans = mv["trans"];
+  std::string ptr = as<std::string>(trans["ode_solver_ptr"]);
+  if (rxIsLoaded(obj)){
+    Function dynUnload("dyn.unload", R_BaseNamespace);
+    std::string file = rxDll(obj);
+    dynUnload(file);
+  } 
+  rxRmModelLib_(ptr);
+  return !rxIsLoaded(obj);
+}
+
+//' Delete the DLL for the model
+//'
+//' This function deletes the DLL, but doesn't delete the model
+//' information in the object.
+//'
+//' @param obj RxODE family of objects
+//'
+//' @return A boolean stating if the operation was successful.
+//'
+//' @author Matthew L.Fidler
+//' @export
+//[[Rcpp::export]]
+bool rxDelete(RObject obj){
+  if (rxDynUnload(obj)){
+    std::string file = rxDll(obj);
+    if (!fileExists(file)) return true;
+    if (remove(file.c_str()) == 0){
+      return true;
+    }
+  }
+  return false;
 }

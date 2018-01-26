@@ -215,6 +215,13 @@ rxRmModelLib_ <- function(str) {
     invisible(.Call(`_RxODE_rxRmModelLib_`, str))
 }
 
+#' Get RxODE model from object
+#' @param object RxODE family of objects
+#' @export
+rxGetRxODE <- function(obj) {
+    .Call(`_RxODE_rxGetRxODE`, obj)
+}
+
 #' Assign pointer based on model variables
 #' @param object RxODE family of objects
 #' @export
@@ -244,6 +251,60 @@ rxCores <- function() {
 #' @export
 rxDll <- function(obj) {
     .Call(`_RxODE_rxDll`, obj)
+}
+
+#' Determine if the DLL associated with the RxODE object is loaded
+#'
+#' @param obj A RxODE family of objects 
+#'
+#' @return Boolean returning if the RxODE library is loaded.
+#'
+#' @keywords internal
+#' @author Matthew L.Fidler
+#' @export
+rxIsLoaded <- function(obj) {
+    .Call(`_RxODE_rxIsLoaded`, obj)
+}
+
+#' Load RxODE object
+#'
+#' @param obj A RxODE family of objects 
+#'
+#' @return Boolean returning if the RxODE library is loaded.
+#'
+#' @keywords internal
+#' @author Matthew L.Fidler
+#' @export
+rxDynLoad <- function(obj) {
+    .Call(`_RxODE_rxDynLoad`, obj)
+}
+
+#' Unload RxODE object
+#'
+#' @param obj A RxODE family of objects 
+#'
+#' @return Boolean returning if the RxODE library is loaded.
+#'
+#' @keywords internal
+#' @author Matthew L.Fidler
+#' @export
+rxDynUnload <- function(obj) {
+    .Call(`_RxODE_rxDynUnload`, obj)
+}
+
+#' Delete the DLL for the model
+#'
+#' This function deletes the DLL, but doesn't delete the model
+#' information in the object.
+#'
+#' @param obj RxODE family of objects
+#'
+#' @return A boolean stating if the operation was successful.
+#'
+#' @author Matthew L.Fidler
+#' @export
+rxDelete <- function(obj) {
+    .Call(`_RxODE_rxDelete`, obj)
 }
 
 #' Invert matrix using Rcpp Armadilo.  

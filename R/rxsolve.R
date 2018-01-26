@@ -202,7 +202,6 @@
 ##' 2nd edition, Springer Series in Computational Mathematics,
 ##' Springer-Verlag (1993).
 ##'
-##'
 ##' @seealso \code{\link{RxODE}}
 ##' @author Matthew Fidler, Melissa Hallow and  Wenping Wang
 ##' @export

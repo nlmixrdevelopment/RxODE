@@ -226,6 +226,17 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
+// rxGetRxODE
+RObject rxGetRxODE(RObject obj);
+RcppExport SEXP _RxODE_rxGetRxODE(SEXP objSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< RObject >::type obj(objSEXP);
+    rcpp_result_gen = Rcpp::wrap(rxGetRxODE(obj));
+    return rcpp_result_gen;
+END_RCPP
+}
 // rxAssignPtr
 void rxAssignPtr(SEXP object);
 RcppExport SEXP _RxODE_rxAssignPtr(SEXP objectSEXP) {
@@ -254,6 +265,50 @@ BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< RObject >::type obj(objSEXP);
     rcpp_result_gen = Rcpp::wrap(rxDll(obj));
+    return rcpp_result_gen;
+END_RCPP
+}
+// rxIsLoaded
+bool rxIsLoaded(RObject obj);
+RcppExport SEXP _RxODE_rxIsLoaded(SEXP objSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< RObject >::type obj(objSEXP);
+    rcpp_result_gen = Rcpp::wrap(rxIsLoaded(obj));
+    return rcpp_result_gen;
+END_RCPP
+}
+// rxDynLoad
+bool rxDynLoad(RObject obj);
+RcppExport SEXP _RxODE_rxDynLoad(SEXP objSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< RObject >::type obj(objSEXP);
+    rcpp_result_gen = Rcpp::wrap(rxDynLoad(obj));
+    return rcpp_result_gen;
+END_RCPP
+}
+// rxDynUnload
+bool rxDynUnload(RObject obj);
+RcppExport SEXP _RxODE_rxDynUnload(SEXP objSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< RObject >::type obj(objSEXP);
+    rcpp_result_gen = Rcpp::wrap(rxDynUnload(obj));
+    return rcpp_result_gen;
+END_RCPP
+}
+// rxDelete
+bool rxDelete(RObject obj);
+RcppExport SEXP _RxODE_rxDelete(SEXP objSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< RObject >::type obj(objSEXP);
+    rcpp_result_gen = Rcpp::wrap(rxDelete(obj));
     return rcpp_result_gen;
 END_RCPP
 }
