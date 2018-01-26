@@ -253,6 +253,23 @@ rxDll <- function(obj) {
     .Call(`_RxODE_rxDll`, obj)
 }
 
+#' Return the C file associated with the RxODE object
+#'
+#' This will return C code for generating the RxODE DLL.
+#'
+#' @param obj A RxODE family of objects or a character string of the
+#'     model specification or location of a file with a model
+#'     specification.
+#'
+#' @return a path of the library
+#'
+#' @keywords internal
+#' @author Matthew L.Fidler
+#' @export
+rxC <- function(obj) {
+    .Call(`_RxODE_rxC`, obj)
+}
+
 #' Determine if the DLL associated with the RxODE object is loaded
 #'
 #' @param obj A RxODE family of objects 

@@ -1,9 +1,6 @@
 context("Removing dlls")
 rxPermissive({
 
-    options(RxODE.delete.unnamed=TRUE);
-    rxSyncOptions();
-
     ode <- RxODE({
         b       = -1
         d/dt(X) = a*X + Y*Z;

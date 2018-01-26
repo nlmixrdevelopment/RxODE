@@ -268,6 +268,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// rxC
+std::string rxC(RObject obj);
+RcppExport SEXP _RxODE_rxC(SEXP objSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< RObject >::type obj(objSEXP);
+    rcpp_result_gen = Rcpp::wrap(rxC(obj));
+    return rcpp_result_gen;
+END_RCPP
+}
 // rxIsLoaded
 bool rxIsLoaded(RObject obj);
 RcppExport SEXP _RxODE_rxIsLoaded(SEXP objSEXP) {

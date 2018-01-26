@@ -152,6 +152,7 @@ extern SEXP _RxODE_rxDynUnload(SEXP);
 extern SEXP _RxODE_rxDynLoad(SEXP);
 extern SEXP _RxODE_rxDelete(SEXP);
 extern SEXP _RxODE_rxGetRxODE(SEXP);
+extern SEXP _RxODE_rxC(SEXP);
 
 
 // Remove these functions later...
@@ -192,6 +193,7 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_rxAssignPtr", (DL_FUNC) &_RxODE_rxAssignPtr, 1},
     {"_RxODE_rxRmModelLib_",(DL_FUNC) &_RxODE_rxRmModelLib_, 1},
     {"_RxODE_rxDll",(DL_FUNC) &_RxODE_rxDll, 1},
+    {"_RxODE_rxC",(DL_FUNC) &_RxODE_rxC, 1},
     {"_RxODE_rxIsLoaded", (DL_FUNC) &_RxODE_rxIsLoaded, 1},
     {"_RxODE_rxDynUnload", (DL_FUNC) &_RxODE_rxDynUnload, 1},
     {"_RxODE_rxDynLoad", (DL_FUNC) &_RxODE_rxDynLoad, 1},

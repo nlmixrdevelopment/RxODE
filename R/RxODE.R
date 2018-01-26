@@ -1291,6 +1291,7 @@ rxCompile.character <-  function(model,           # Model
                  extraC = extraC, force = force, modName = modName,
                  ...);
     ret <- list(dll     = finalDll,
+                c       = finalC,
                 model   = allModVars$model["model"],
                 extra   = extraC,
                 modVars = allModVars,
