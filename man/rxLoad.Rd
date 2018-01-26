@@ -7,7 +7,7 @@
 rxLoad(obj)
 }
 \arguments{
-\item{obj}{a RxODE family of objects}
+\item{obj}{RxODE objects}
 }
 \description{
 This loads the DLL into the current R session to allow C functions

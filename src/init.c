@@ -145,6 +145,9 @@ extern void RxODE_ode_freeP(rx_solve *rx, unsigned int id);
 extern void rxRmModelLib(const char* s);
 extern SEXP rxGetModelLib(const char *s);
 
+extern void _RxODE_rxRmModelLib_(SEXP);
+extern void _RxODE_rxDll(SEXP);
+
 // Remove these functions later...
 
 void rxOptionsIni();
@@ -181,6 +184,8 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_rxSolveUpdate", (DL_FUNC) &_RxODE_rxSolveUpdate, 3},
     {"_RxODE_rxCores",(DL_FUNC) &_RxODE_rxCores, 0},
     {"_RxODE_rxAssignPtr", (DL_FUNC) &_RxODE_rxAssignPtr, 1},
+    {"_RxODE_rxRmModelLib_",(DL_FUNC) &_RxODE_rxRmModelLib_, 1},
+    {"_RxODE_rxDll",(DL_FUNC) &_RxODE_rxDll, 1},
     {NULL, NULL, 0}
   };
   // C callable to assign environments.

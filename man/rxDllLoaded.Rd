@@ -8,9 +8,6 @@ rxDllLoaded(x, retry = TRUE)
 }
 \arguments{
 \item{x}{is a RxODE family of objects}
-
-\item{retry}{is a flag to retry to load if the function can't
-determine if the object is loaded or not...}
 }
 \value{
 a boolean stating if the DLL is loaded

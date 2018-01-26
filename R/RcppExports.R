@@ -211,6 +211,10 @@ rxSolveUpdate <- function(obj, arg = NULL, value = NULL) {
     .Call(`_RxODE_rxSolveUpdate`, obj, arg, value)
 }
 
+rxRmModelLib_ <- function(str) {
+    invisible(.Call(`_RxODE_rxRmModelLib_`, str))
+}
+
 #' Assign pointer based on model variables
 #' @param object RxODE family of objects
 #' @export
@@ -222,6 +226,24 @@ rxAssignPtr <- function(object = NULL) {
 #' @export
 rxCores <- function() {
     .Call(`_RxODE_rxCores`)
+}
+
+#' Return the DLL associated with the RxODE object
+#'
+#' This will return the dynamic load library or shared object used to
+#' run the C code for RxODE.
+#'
+#' @param obj A RxODE family of objects or a character string of the
+#'     model specification or location of a file with a model
+#'     specification.
+#'
+#' @return a path of the library
+#'
+#' @keywords internal
+#' @author Matthew L.Fidler
+#' @export
+rxDll <- function(obj) {
+    .Call(`_RxODE_rxDll`, obj)
 }
 
 #' Invert matrix using Rcpp Armadilo.  

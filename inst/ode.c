@@ -335,8 +335,10 @@ void __R_INIT__ (DllInfo *info){
 
 void __R_UNLOAD__ (DllInfo *info){
   // Free resources required for single subject solve.
+  Rprintf("Unloading __ODE_SOLVER__ ....");
   SEXP _mv = _rxGetModelLib(__ODE_SOLVER_PTR_STR__);
   if (!isNull(_mv)){
     _rxRmModelLib(__ODE_SOLVER_PTR_STR__);
   }
+  Rprintf("done\\n");
 }

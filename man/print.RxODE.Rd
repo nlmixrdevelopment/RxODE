@@ -2,12 +2,9 @@
 % Please edit documentation in R/RxODE.R
 \name{print.RxODE}
 \alias{print.RxODE}
-\alias{print.RxCompilationManager}
 \title{Print information about the RxODE object.}
 \usage{
 \method{print}{RxODE}(x, ...)
-
-\method{print}{RxCompilationManager}(x, ...)
 }
 \arguments{
 \item{x}{An rxode object}

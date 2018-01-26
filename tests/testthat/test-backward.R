@@ -54,22 +54,22 @@ C1=centr/V;
     stiff <- TRUE
 
     ode_solve <- cmpMgr$ode_solver;
-    xx <- mod1KA$dll$.c(ode_solve,
-                        as.integer(neq),
-                        as.double(params),
-                        as.double(event.table$time),
-                        as.integer(event.table$evid),
-                        length(event.table$time),
-                        as.double(inits),
-                        as.double(event.table$amt[event.table$evid > 0]),
-                        as.double(ret),
-                        as.double(atol),
-                        as.double(rtol),
-                        as.integer(stiff),
-                        as.integer(transit_abs),
-                        as.integer(nlhs),
-                        as.double(lhs),
-                        rc);
+    xx <- mod1KA$.c(ode_solve,
+                    as.integer(neq),
+                    as.double(params),
+                    as.double(event.table$time),
+                    as.integer(event.table$evid),
+                    length(event.table$time),
+                    as.double(inits),
+                    as.double(event.table$amt[event.table$evid > 0]),
+                    as.double(ret),
+                    as.double(atol),
+                    as.double(rtol),
+                    as.integer(stiff),
+                    as.integer(transit_abs),
+                    as.integer(nlhs),
+                    as.double(lhs),
+                    rc);
 
 
     x2 <- cbind(matrix(xx[[8]], ncol=neq, byrow=T),

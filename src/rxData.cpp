@@ -693,9 +693,9 @@ List rxModelVars(const RObject &obj){
     List ret(obj);
     return ret;
   } else if (rxIs(obj,"RxODE")) {
-    Function f = as<Function>((as<List>((as<List>(obj))["cmpMgr"]))["rxDll"]);
-    List lst = f();
-    return lst["modVars"];
+    Environment e = as<Environment>(obj);
+    List rxDll = e["rxDll"];
+    return rxDll["modVars"];
   } else if (rxIs(obj,"rxSolve")){
     CharacterVector cls = obj.attr("class");
     Environment e = as<Environment>(cls.attr(".RxODE.env"));
@@ -703,10 +703,6 @@ List rxModelVars(const RObject &obj){
   } else if (rxIs(obj,"rxDll")){
     List lobj = (as<List>(obj))["modVars"];
     return lobj;
-  } else if (rxIs(obj, "RxCompilationManager")){
-    Function f =  as<Function>((as<List>(obj))["rxDll"]);
-    List lst = f();
-    return (lst["modVars"]);
   } else if (rxIs(obj, "character")){
     Environment RxODE("package:RxODE");
     Function f = as<Function>(RxODE["rxModelVars.character"]);
@@ -1777,7 +1773,9 @@ List rxData(const RObject &object,
 
 RObject rxCurObj;
 
-Environment rxRxODEenv(RObject obj);
+Nullable<Environment> rxRxODEenv(RObject obj);
+
+std::string rxDll(RObject obj);
 
 SEXP rxSolveC(const RObject &object,
               const Nullable<CharacterVector> &specParams = R_NilValue,
@@ -1913,7 +1911,6 @@ SEXP rxSolveC(const RObject &object,
     if (rxIs(object, "rxSolve")){
       obj = as<List>(obj);
       CharacterVector classattr = object.attr("class");
-      Rcout << "as2\n";
       e = as<Environment>(classattr.attr(".RxODE.env"));
     } else if (rxIs(object, "environment")) {
       e = as<Environment>(object);
@@ -2188,6 +2185,7 @@ SEXP rxSolveC(const RObject &object,
                                      _["envir"]  = e);
       // Note event.copy doesn't really make sense...?  The create.eventTable does basically the same thing.
       e["args.object"] = object;
+      e["dll"] = rxDll(object);
       if (rxIs(events, "rx.event")){
 	e["args.params"] = params;    
         e["args.events"] = events;
@@ -2307,6 +2305,13 @@ RObject rxSolveGet(RObject obj, RObject arg, LogicalVector exact = true){
 	Environment e = as<Environment>(cls.attr(".RxODE.env"));
 	if (sarg == "env"){
 	  return as<RObject>(e);
+	}
+	if (sarg == "model"){
+	  List mv = rxModelVars(obj);
+	  CharacterVector mods = mv["model"];
+	  CharacterVector retS = CharacterVector::create(mods["model"]);
+	  retS.attr("class") = "RxODE.modeltext";
+	  return(retS);
 	}
 	if (e.exists(sarg)){
 	  return e[sarg];
@@ -2848,8 +2853,9 @@ extern "C" SEXP rxGetModelLib(const char *s){
     return R_NilValue;
   }
 }
-extern "C" void rxRmModelLib(const char* s){
-  std::string str(s);
+
+//[[Rcpp::export]]
+void rxRmModelLib_(std::string str){
   if (!foundEnv){
     Environment RxODE("package:RxODE");
     Function f = as<Function>(RxODE["rxModels_"]);
@@ -2857,11 +2863,21 @@ extern "C" void rxRmModelLib(const char* s){
     foundEnv = true;
   }
   if (_rxModels.exists(str)){
+    List trans =(as<List>(as<List>(_rxModels[str]))["trans"]);
+    std::string rxlib = as<std::string>(trans["prefix"]);
     _rxModels.remove(str);
-  }
+    if (_rxModels.exists(rxlib)){
+      _rxModels.remove(rxlib);
+    }
+  }  
 }
 
-Environment rxRxODEenv(RObject obj){
+extern "C" void rxRmModelLib(const char* s){
+  std::string str(s);
+  rxRmModelLib_(str);
+}
+
+Nullable<Environment> rxRxODEenv(RObject obj){
   List mv = rxModelVars(obj);
   CharacterVector trans = mv["trans"];
   if (!foundEnv){
@@ -2870,7 +2886,12 @@ Environment rxRxODEenv(RObject obj){
     _rxModels = f();
     foundEnv = true;
   }
-  return as<Environment>(_rxModels[as<std::string>(trans["prefix"])]);
+  std::string prefix = as<std::string>(trans["prefix"]);
+  if (_rxModels.exists(prefix)){
+    return as<Environment>(_rxModels[prefix]);
+  } else {
+    return R_NilValue;
+  }
 }
 extern "C" void RxODE_assign_fn_pointers_(SEXP mv, int addit);
 //' Assign pointer based on model variables
@@ -2893,4 +2914,41 @@ void rxAssignPtr(SEXP object = R_NilValue){
 IntegerVector rxCores(){
   unsigned concurentThreadsSupported = std::thread::hardware_concurrency();
   return IntegerVector::create((int)(concurentThreadsSupported));
+}
+
+//' Return the DLL associated with the RxODE object
+//'
+//' This will return the dynamic load library or shared object used to
+//' run the C code for RxODE.
+//'
+//' @param obj A RxODE family of objects or a character string of the
+//'     model specification or location of a file with a model
+//'     specification.
+//'
+//' @return a path of the library
+//'
+//' @keywords internal
+//' @author Matthew L.Fidler
+//' @export
+//[[Rcpp::export]]
+std::string rxDll(RObject obj){
+  if (rxIs(obj,"RxODE")){
+    Environment e = as<Environment>(obj);
+    return as<std::string>((as<List>(e["rxDll"]))["dll"]);
+  } else if (rxIs(obj,"rxSolve")) {
+    CharacterVector cls = obj.attr("class");
+    Environment e = as<Environment>(cls.attr(".RxODE.env"));
+    return(as<std::string>(e["dll"]));
+  } else if (rxIs(obj, "rxDll")){
+    return as<std::string>(as<List>(obj)["dll"]);
+  } else {
+    List mv = rxModelVars(obj);
+    Nullable<Environment> en = rxRxODEenv(mv);
+    if (en.isNull()){
+      stop("Can't figure out the DLL for this object");
+    } else {
+      Environment e = as<Environment>(en);
+      return as<std::string>((as<List>(e["rxDll"]))["dll"]);
+    }
+  }
 }

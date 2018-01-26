@@ -236,6 +236,9 @@ rxSolve <- function(object, params=NULL, events=NULL, inits = NULL, scale = NULL
     if (missing(cores)){
         cores <- rxCores();
     }
+    if (rxIs(object, "RxODE")){
+        object$dynLoad();
+    }
     nms <- names(as.list(match.call())[-1]);
     .Call(`_RxODE_rxSolveCsmall`, object, nms, extra,
           params, events, inits, scale, covs, list(method, transit_abs, atol, rtol,
@@ -250,11 +253,46 @@ update.rxSolve <- function(object, ...){
     rxSolve(object, ...);
 }
 
+sharedPrint <- function(x){
+    is.dplyr <- requireNamespace("dplyr", quietly = TRUE) && RxODE.display.tbl;
+    ## cat(sprintf("Dll: %s\n\n", rxDll(x)))
+    df <- x$params.single
+    if (!is.null(df)){
+        message(cli::rule(left="Parameters ($params):"));
+        print(df)
+    } else {
+        df <- x$pars
+        if (!is.null(df)){
+            message(cli::rule(left="Parameters ($params):"));
+            if (rxIs(df, "data.frame")){
+                if (!is.dplyr){
+                    print(head(as.matrix(df), n = n));
+                } else {
+                    print(dplyr::as.tbl(df), n = n, width = width);
+                }
+            }
+        }
+    }
+    df <- x$covs;
+    if (!is.null(df)){
+        message(cli::rule(left="Covariates ($covs):"));
+        if (!is.dplyr){
+            print(head(as.matrix(df), n = n));
+        } else {
+            print(dplyr::as.tbl(df), n = n, width = width);
+        }
+    }
+
+    message(cli::rule(left="Initial Conditions ($inits):"))
+    print(x$inits);
+    return(invisible(is.dplyr));
+}
 
 ##' @author Matthew L.Fidler
 ##' @export
 print.rxSolve <- function(x, ...){
     if (rxIs(x, "rxSolve")){
+        message(cli::rule(center="Solved RxODE object", line="bar2"));
         args <- as.list(match.call(expand.dots = TRUE));
         if (any(names(args) == "n")){
             n <- args$n;
@@ -266,48 +304,16 @@ print.rxSolve <- function(x, ...){
         } else {
             width <- NULL;
         }
-        env <- attr(x, ".RxODE.env");
-        rxode <- env$object;
-        message("Solved RxODE object");
-        is.dplyr <- requireNamespace("dplyr", quietly = TRUE) && RxODE.display.tbl;
-        ## cat(sprintf("Dll: %s\n\n", rxDll(x)))
-        df <- x$params.single
-        if (!is.null(df)){
-            message("\nParameters ($params):");
-            print(df)
-        } else {
-            df <- x$pars
-            if (!is.null(df)){
-                message("\nParameters ($params):");
-                if (rxIs(df, "data.frame")){
-                    if (!is.dplyr){
-                        print(head(as.matrix(df), n = n));
-                    } else {
-                        print(dplyr::as.tbl(df), n = n, width = width);
-                    }
-                }
-            }
-        }
-        df <- x$covs;
-        if (!is.null(df)){
-            message("\nCovariates ($covs):");
-            if (!is.dplyr){
-                print(head(as.matrix(df), n = n));
-            } else {
-                print(dplyr::as.tbl(df), n = n, width = width);
-            }
-        }
-
-        message("\nInitial Conditions ($inits):")
-        print(x$inits);
+        is.dplyr <- sharedPrint(x)
         ## inits <- lst$inits[regexpr(regSens, names(lst$inits)) == -1];
         ## print(inits);
-        message("\nFirst part of data (object):")
+        message(cli::rule(left="First part of data (object):"))
         if (!is.dplyr){
             print(head(as.matrix(x), n = n));
         } else {
             print(dplyr::as.tbl(x), n = n, width = width);
         }
+        message(cli::rule(line="bar2"))
     } else {
         print.data.frame(x)
     }
@@ -316,37 +322,17 @@ print.rxSolve <- function(x, ...){
 ##' @author Matthew L.Fidler
 ##' @export
 summary.rxSolve <- function(object, ...){
-    if (rxIs(x, "rxSolve")){
-        message("Model:");
-        message("################################################################################");
+    if (rxIs(object, "rxSolve")){
+        message(cli::rule(center="Summary of Solved RxODE object", line="bar2"));
+        message(cli::rule(left="Model ($model):"));
         message(rxNorm(object));
-        message("################################################################################");
-        message("Parameters:")
-        is.dplyr <- requireNamespace("dplyr", quietly = TRUE) && RxODE.display.tbl;
-        df <- object$pars
-        args <- as.list(match.call(expand.dots = TRUE));
-        if (any(names(args) == "n")){
-            n <- args$n;
-        } else {
-            n <- 6L;
-        }
-        if (!is.dplyr){
-            print(head(as.matrix(x), n = n));
-        } else {
-            if (any(names(args) == "width")){
-                width <- args$width;
-            } else {
-                width <- NULL;
-            }
-            print(dplyr::as.tbl(x$pars), n = n, width = width);
-        }
-        message("\n\nInitial conditions:")
-        print(object$inits);
-        message("\n\nSummary of solved data:")
+        sharedPrint(object)
+        message(cli::rule(left="Summary of solved data:"));
         print(summary.data.frame(object))
+        message(cli::rule(line="bar2"))
     } else {
-        class(x) <- "data.frame"
-        NextMethod("print", x);
+        class(object) <- "data.frame"
+        NextMethod("summary", object);
     }
 }
 
@@ -472,6 +458,13 @@ dimnames.rxSolve <- function(x){
     } else {
         return(as.data.frame(solved) + new);
     }
+}
+
+##'@export
+print.RxODE.modeltext <- function(x, ...){
+    message(cli::rule(center="RxODE Model Syntax", line="bar2"));
+    message(as.vector(x));
+    message(cli::rule(line="bar2"));
 }
 
 ## dim (gets you nrow and ncol), t, dimnames

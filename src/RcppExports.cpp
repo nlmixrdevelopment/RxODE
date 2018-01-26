@@ -216,6 +216,16 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// rxRmModelLib_
+void rxRmModelLib_(std::string str);
+RcppExport SEXP _RxODE_rxRmModelLib_(SEXP strSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< std::string >::type str(strSEXP);
+    rxRmModelLib_(str);
+    return R_NilValue;
+END_RCPP
+}
 // rxAssignPtr
 void rxAssignPtr(SEXP object);
 RcppExport SEXP _RxODE_rxAssignPtr(SEXP objectSEXP) {
@@ -233,6 +243,17 @@ BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     rcpp_result_gen = Rcpp::wrap(rxCores());
+    return rcpp_result_gen;
+END_RCPP
+}
+// rxDll
+std::string rxDll(RObject obj);
+RcppExport SEXP _RxODE_rxDll(SEXP objSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< RObject >::type obj(objSEXP);
+    rcpp_result_gen = Rcpp::wrap(rxDll(obj));
     return rcpp_result_gen;
 END_RCPP
 }

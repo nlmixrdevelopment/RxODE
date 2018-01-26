@@ -2,12 +2,9 @@
 % Please edit documentation in R/RxODE.R
 \name{summary.RxODE}
 \alias{summary.RxODE}
-\alias{summary.RxCompilationManager}
 \title{Print expanded information about the RxODE object.}
 \usage{
 \method{summary}{RxODE}(object, ...)
-
-\method{summary}{RxCompilationManager}(object, ...)
 }
 \arguments{
 \item{object}{RxODE object}

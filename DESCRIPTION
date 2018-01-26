@@ -53,7 +53,8 @@ Imports:
     Matrix,
     R.utils,
     PreciseSums,
-    mvnfast
+    mvnfast,
+    cli
 Description: Facilities for running simulations from ordinary
     differential equation (ODE) models, such as pharmacometrics and other
     compartmental models.  A compilation manager translates the ODE model
