@@ -3067,7 +3067,7 @@ bool rxDynUnload(RObject obj){
     dynUnload(file);
   } 
   rxRmModelLib_(ptr);
-  return !rxIsLoaded(obj);
+  return !(rxIsLoaded(obj));
 }
 
 //' Delete the DLL for the model
@@ -3083,12 +3083,10 @@ bool rxDynUnload(RObject obj){
 //' @export
 //[[Rcpp::export]]
 bool rxDelete(RObject obj){
+  std::string file = rxDll(obj);
   if (rxDynUnload(obj)){
-    std::string file = rxDll(obj);
     if (!fileExists(file)) return true;
-    if (remove(file.c_str()) == 0){
-      return true;
-    }
+    if (remove(file.c_str()) == 0) return true;
   }
   return false;
 }

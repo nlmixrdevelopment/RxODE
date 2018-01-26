@@ -1093,7 +1093,7 @@ rxTransMakevars <- function(rxProps,                                            
         if (debug){
             ret <- sprintf("%s -D__DEBUG__", ret);
         }
-        ret <- sprintf("PKG_CFLAGS=%s\nPKG_LIBS=$(BLAS_LIBS) $(LAPACK_LIBS) $(FLIBS)", ret);
+        ret <- sprintf("#RxODE Makevars\nPKG_CFLAGS=%s\nPKG_LIBS=$(BLAS_LIBS) $(LAPACK_LIBS) $(FLIBS)", ret);
         ## ret <- paste(ret, "-g");
         cat(ret);
         return(ret);

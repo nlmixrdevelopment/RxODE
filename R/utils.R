@@ -82,27 +82,36 @@ rxPrint <- function(x, ...){
 ##'
 ##' @author Matthew L. Fidler
 ##' @export
-rxClean <- function(wd = getwd()){
-    owd <- getwd();
-    setwd(wd);
-    on.exit(setwd(owd));
-    pat <- "^(Makevars|(rx.*)[.](o|dll|s[ol]|c|rx|prd|inv))$"
-    files <- list.files(pattern = pat);
-    for (f in files){
-        if (f == "Makevars" && file.exists("tran.c")){
-            ## nocov start
-            warning("Ignoring Makevars since 'tran.c' is in the same directory.")
-            ## nocov end
-        } else {
-            try(dyn.unload(f), silent = TRUE);
-            unlink(f);
+rxClean <- function(wd){
+    if (missing(wd)){
+        ret <- rxClean(getwd()) && rxClean(rxTempDir);
+        if (RxODE.cache.directory != "."){
+            ret <- ret && rxClean(RxODE.cache.directory)
         }
+        return(ret);
+    } else {
+        owd <- getwd();
+        setwd(wd);
+        on.exit(setwd(owd));
+        pat <- "^(Makevars|(rx.*)[.](o|dll|s[ol]|c|rx|prd|inv))$"
+        files <- list.files(pattern = pat);
+        for (f in files){
+            if (f == "Makevars"){
+                l1 <- readLines("Makevars", n=1L);
+                if (l1 == "#RxODE Makevars"){
+                    unlink(f);
+                }
+            } else {
+                try(dyn.unload(f), silent = TRUE);
+                unlink(f);
+            }
+        }
+        if (normalizePath(wd) != normalizePath(RxODE.cache.directory)){
+            ## rxCat("Cleaning cache directory as well.\n");
+            rxClean(RxODE.cache.directory);
+        }
+        return(length(list.files(pattern = pat)) == 0);
     }
-    if (normalizePath(wd) != normalizePath(RxODE.cache.directory)){
-        ## rxCat("Cleaning cache directory as well.\n");
-        rxClean(RxODE.cache.directory);
-    }
-    return(length(list.files(pattern = pat)) == 0);
 }
 
 ##' Give the cout string for a number

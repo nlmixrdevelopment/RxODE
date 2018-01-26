@@ -195,7 +195,7 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_rxIsLoaded", (DL_FUNC) &_RxODE_rxIsLoaded, 1},
     {"_RxODE_rxDynUnload", (DL_FUNC) &_RxODE_rxDynUnload, 1},
     {"_RxODE_rxDynLoad", (DL_FUNC) &_RxODE_rxDynLoad, 1},
-    {"_RxODE_rxDelete", (DL_FUNC) &_RxODE_rxDynLoad, 1},
+    {"_RxODE_rxDelete", (DL_FUNC) &_RxODE_rxDelete, 1},
     {"_RxODE_rxGetRxODE", (DL_FUNC) &_RxODE_rxGetRxODE, 1},
     {NULL, NULL, 0}
   };
