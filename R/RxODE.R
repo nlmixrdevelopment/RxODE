@@ -1290,8 +1290,8 @@ rxCompile.character <-  function(model,           # Model
     args <- list(model = model, dir = dir, prefix = prefix,
                  extraC = extraC, force = force, modName = modName,
                  ...);
-    ret <- list(dll     = finalDll,
-                c       = finalC,
+    ret <- list(dll     = normalizePath(finalDll, "/"),
+                c       = normalizePath(finalC, "/"),
                 model   = allModVars$model["model"],
                 extra   = extraC,
                 modVars = allModVars,
