@@ -2977,6 +2977,11 @@ std::string rxDll(RObject obj){
     return(as<std::string>(e["dll"]));
   } else if (rxIs(obj, "rxDll")){
     return as<std::string>(as<List>(obj)["dll"]);
+  } else if (rxIs(obj, "character")){
+    Environment RxODE("package:RxODE");
+    Function f = as<Function>(RxODE["rxCompile.character"]);
+    RObject newO = f(as<std::string>(obj));
+    return(rxDll(newO));
   } else {
     List mv = rxModelVars(obj);
     Nullable<Environment> en = rxRxODEenv(mv);

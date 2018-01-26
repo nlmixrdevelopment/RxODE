@@ -202,8 +202,6 @@ rex::register_shortcuts("RxODE");
 ##'           that dynamically loads the object code if needed.}
 ##'       \item{dynUnload}{a function with no argument that unloads
 ##'           the model object code.}
-##'       \item{cmpMgr}{a \dQuote{compilation manager} object, see
-##'           \code{\link{rx.initCmpMgr}}.}
 ##'       \item{delete}{removes all created model files, including C and DDL files.
 ##'           The model object is no longer valid and should be removed, e.g.,
 ##'           \code{rm(m1)}.}

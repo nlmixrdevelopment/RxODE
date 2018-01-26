@@ -68,7 +68,6 @@ rxOpt <- list(RxODE.prefer.tbl               =c(FALSE, FALSE),
               RxODE.display.tbl              =c(TRUE, TRUE),
               RxODE.echo.compile             =c(FALSE, FALSE),
               RxODE.warn.on.assign           =c(TRUE, TRUE),
-              RxODE.compile.on.load          =c(TRUE, TRUE),
               RxODE.syntax.assign            =c(FALSE, TRUE),
               RxODE.syntax.star.pow          =c(FALSE, TRUE),
               RxODE.syntax.require.semicolon =c(TRUE, FALSE),
@@ -89,7 +88,6 @@ RxODE.prefer.tbl <- NULL
 RxODE.display.tbl <- NULL
 RxODE.echo.compile <- NULL
 RxODE.warn.on.assign <- NULL
-RxODE.compile.on.load <- NULL
 RxODE.syntax.assign <- NULL
 RxODE.syntax.star.pow <- NULL
 RxODE.syntax.require.semicolon <- NULL
