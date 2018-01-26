@@ -7,11 +7,21 @@
     rxSetupMemoize()
     ## Setup the path
     tmp <- try(rxWinRtoolsPath(), silent=TRUE);
+    ## Also create temp dir
+    tmp <- Sys.getenv("rxTempDir")
+    if (tmp == ""){
+        tmp <- tempdir()
+    }
+    if (!file.exists(tmp))
+        dir.create(tmp, recursive = TRUE);
+    Sys.setenv(rxTempDir=tmp);
+    utils::assignInMyNamespace("rxTempDir", tmp)
     if (!rxWinRtoolsPath()){
         packageStartupMessage("Rtools is not set up correctly!\n\nYou need a working Rtools installation for RxODE to work.\nYou can set up Rtools using the command 'rxWinSetup()'.\nThis will also set up Python and SymPy to run a bit faster than rSymPy.\n");
     }
 } ## nocov end
 
+rxTempDir <- NULL;
 ##' This setups the memoized functions.
 ##'
 ##' To easily create a memozied function by adding a \code{.slow <- NULL}
@@ -71,8 +81,8 @@ rxOpt <- list(RxODE.prefer.tbl               =c(FALSE, FALSE),
               RxODE.suppress.syntax.info     =c(FALSE, FALSE),
               RxODE.sympy.engine             =c("", ""),
               RxODE.cache.directory          =c(".", "."),
-              RxODE.delete.unnamed           =c(FALSE, FALSE),
-              RxODE.syntax.assign.state      =c(FALSE, FALSE)
+              RxODE.syntax.assign.state      =c(FALSE, FALSE),
+              RxODE.tempfiles                =c(TRUE, TRUE)
               );
 
 RxODE.prefer.tbl <- NULL
@@ -94,6 +104,7 @@ RxODE.sympy.engine <- NULL
 RxODE.cache.directory <- NULL
 RxODE.delete.unnamed <- NULL
 RxODE.syntax.assign.state <- NULL
+RxODE.tempfiles <- NULL;
 
 
 ##' Permissive or Strict RxODE sytax options

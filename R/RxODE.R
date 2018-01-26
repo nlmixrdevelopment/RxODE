@@ -316,11 +316,6 @@ RxODE <- function(model, modName = basename(wd), wd = ifelse(RxODE.cache.directo
                   debug = FALSE,
                   calcJac=NULL, calcSens=NULL,
                   collapseModel=FALSE, ...) {
-    if (missing(modName) && RxODE.delete.unnamed){
-        do.delete <- TRUE;
-    } else {
-        do.delete <- FALSE;
-    }
     if (!missing(model) && !missing(filename))
         stop("Must specify exactly one of 'model' or 'filename'.")
     if (missing(model) && !missing(filename)){
@@ -348,12 +343,21 @@ RxODE <- function(model, modName = basename(wd), wd = ifelse(RxODE.cache.directo
     model <- rxLinCmtTrans(model);
     class(model) <- "RxODE.modeltext"
     ## RxODE compilation manager (location of parsed code, generated C,  shared libs, etc.)
+    env <- new.env(parent=baseenv())
+    env$missing.modName <- missing(modName);
+    if (env$missing.modName){
+        if (RxODE.tempfiles){
+            env$mdir <- rxTempDir;
+        } else {
+            env$mdir <- wd;
+        }
+    } else {
+        env$mdir <- file.path(wd, sprintf("%s.d", modName));
+    }
 
     if (!file.exists(wd))
         dir.create(wd, recursive = TRUE);
 
-    env <- new.env(parent=baseenv())
-    env$missing.modName <- missing(modName);
     env$modName <- modName;
     env$model <- model;
     env$extraC <- extraC;
@@ -361,11 +365,7 @@ RxODE <- function(model, modName = basename(wd), wd = ifelse(RxODE.cache.directo
     env$calcJac <- calcJac;
     env$calcSens <- calcSens;
     env$collapseModel <- collapseModel;
-    if (env$missing.modName){
-        env$mdir <- wd;
-    } else {
-        env$mdir <- file.path(wd, sprintf("%s.d", modName));
-    }
+
     env$wd <- wd;
     env$compile <- eval(bquote(function(){
         with(.(env), {
@@ -470,9 +470,6 @@ RxODE <- function(model, modName = basename(wd), wd = ifelse(RxODE.cache.directo
     env$calcJac <- (length(mv$dfdy) > 0);
     env$calcSens <- (length(mv$sens) > 0)
     assign(mv$trans["prefix"], env, rxModels);
-    if (do.delete){
-        reg.finalizer(env, rxodeGc, onexit=TRUE);
-    }
     class(env) <- "RxODE"
     return(env);
 }
@@ -1184,8 +1181,13 @@ rxCompile.character <-  function(model,           # Model
     cFile <- file.path(dir, sprintf("%s.c", substr(prefix, 0, nchar(prefix)-1)));
     cDllFile <- file.path(dir, sprintf("%s%s", substr(prefix, 0, nchar(prefix)-1), .Platform$dynlib.ext));
     if (dllCopy){
-        finalDll <- file.path(getwd(), basename(cDllFile));
-        finalC <- file.path(getwd(), basename(cFile));
+        if (!RxODE.tempfiles){
+            finalDll <- file.path(ifelse(RxODE.cache.directory == ".", getwd(), RxODE.cache.directory), basename(cDllFile));
+            finalC <- file.path(ifelse(RxODE.cache.directory == ".", getwd(), RxODE.cache.directory), basename(cFile));
+        } else {
+            finalDll <- file.path(rxTempDir, basename(cDllFile));
+            finalC <- file.path(rxTempDir, basename(cFile))
+        }
     } else {
         finalDll <-  cDllFile;
         finalC <-  cFile;
@@ -1570,22 +1572,6 @@ rxReload <- function(){
     dyn.load(tmp$path);
     ret <- ret && !is.null(getLoadedDLLs()$RxODE)
     return(ret)
-}
-
-##' Garbage Collection for RxODE objects
-##'
-##' When objects are created without a model name/DLL name and RxODE
-##' option RxODE.delete.unnamed is TRUE, remove the associated DLL
-##' when R is done with them (i.e. when the RxODE object is deleted or
-##' R exits normally.)  If R crashes, thes files will still remain.
-##'
-##' @param env RxODE environment for cleanup.
-##' @return Nothing
-##' @author Matthew L. Fidler
-##' @keywords internal
-##' @export
-rxodeGc <- function(env){
-    rxDelete(env$rxDll);
 }
 
 rxModels <- new.env(parent = emptyenv())
