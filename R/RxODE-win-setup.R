@@ -181,7 +181,9 @@ rxWinRtoolsPath <- function(rm.rtools=TRUE, rm.python=TRUE){
     if(.Platform$OS.type == "unix"){
         return(TRUE)
     } else {
-        path <- unique(sapply(gsub("/", "\\\\", strsplit(Sys.getenv("PATH"), ";")[[1]]), function(x){
+        path <- unique(sapply(sub(rex::rex('"', end), "", sub(rex::rex(start,'"'), "",
+                                   gsub("/", "\\\\", strsplit(Sys.getenv("PATH"), ";")[[1]]))),
+                              function(x){
             if (file.exists(x)){
                 return(normalizePath(x));
             } else {
