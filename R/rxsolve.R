@@ -252,7 +252,7 @@ update.rxSolve <- function(object, ...){
     rxSolve(object, ...);
 }
 
-sharedPrint <- function(x){
+sharedPrint <- function(x, n){
     is.dplyr <- requireNamespace("dplyr", quietly = TRUE) && RxODE.display.tbl;
     ## cat(sprintf("Dll: %s\n\n", rxDll(x)))
     df <- x$params.single
@@ -303,7 +303,7 @@ print.rxSolve <- function(x, ...){
         } else {
             width <- NULL;
         }
-        is.dplyr <- sharedPrint(x)
+        is.dplyr <- sharedPrint(x, n, width)
         ## inits <- lst$inits[regexpr(regSens, names(lst$inits)) == -1];
         ## print(inits);
         message(cli::rule(left="First part of data (object):"))
@@ -325,7 +325,18 @@ summary.rxSolve <- function(object, ...){
         message(cli::rule(center="Summary of Solved RxODE object", line="bar2"));
         message(cli::rule(left="Model ($model):"));
         message(rxNorm(object));
-        sharedPrint(object)
+        args <- as.list(match.call(expand.dots = TRUE));
+        if (any(names(args) == "n")){
+            n <- args$n;
+        } else {
+            n <- 6L;
+        }
+        if (any(names(args) == "width")){
+            width <- args$width;
+        } else {
+            width <- NULL;
+        }
+        sharedPrint(object, n, width)
         message(cli::rule(left="Summary of solved data:"));
         print(summary.data.frame(object))
         message(cli::rule(line="bar2"))
