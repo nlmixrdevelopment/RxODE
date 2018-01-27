@@ -106,13 +106,13 @@ BEGIN_RCPP
 END_RCPP
 }
 // rxInits
-NumericVector rxInits(const RObject& obj, Nullable<NumericVector> vec, Nullable<CharacterVector> req, double defaultValue, bool noerror, bool noini);
+NumericVector rxInits(const RObject& obj, RObject vec, Nullable<CharacterVector> req, double defaultValue, bool noerror, bool noini);
 RcppExport SEXP _RxODE_rxInits(SEXP objSEXP, SEXP vecSEXP, SEXP reqSEXP, SEXP defaultValueSEXP, SEXP noerrorSEXP, SEXP noiniSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const RObject& >::type obj(objSEXP);
-    Rcpp::traits::input_parameter< Nullable<NumericVector> >::type vec(vecSEXP);
+    Rcpp::traits::input_parameter< RObject >::type vec(vecSEXP);
     Rcpp::traits::input_parameter< Nullable<CharacterVector> >::type req(reqSEXP);
     Rcpp::traits::input_parameter< double >::type defaultValue(defaultValueSEXP);
     Rcpp::traits::input_parameter< bool >::type noerror(noerrorSEXP);
@@ -122,32 +122,32 @@ BEGIN_RCPP
 END_RCPP
 }
 // rxSetupIni
-NumericVector rxSetupIni(const RObject& obj, Nullable<NumericVector> inits);
+NumericVector rxSetupIni(const RObject& obj, RObject inits);
 RcppExport SEXP _RxODE_rxSetupIni(SEXP objSEXP, SEXP initsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const RObject& >::type obj(objSEXP);
-    Rcpp::traits::input_parameter< Nullable<NumericVector> >::type inits(initsSEXP);
+    Rcpp::traits::input_parameter< RObject >::type inits(initsSEXP);
     rcpp_result_gen = Rcpp::wrap(rxSetupIni(obj, inits));
     return rcpp_result_gen;
 END_RCPP
 }
 // rxSetupScale
-NumericVector rxSetupScale(const RObject& obj, Nullable<NumericVector> scale, Nullable<List> extraArgs);
+NumericVector rxSetupScale(const RObject& obj, RObject scale, Nullable<List> extraArgs);
 RcppExport SEXP _RxODE_rxSetupScale(SEXP objSEXP, SEXP scaleSEXP, SEXP extraArgsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const RObject& >::type obj(objSEXP);
-    Rcpp::traits::input_parameter< Nullable<NumericVector> >::type scale(scaleSEXP);
+    Rcpp::traits::input_parameter< RObject >::type scale(scaleSEXP);
     Rcpp::traits::input_parameter< Nullable<List> >::type extraArgs(extraArgsSEXP);
     rcpp_result_gen = Rcpp::wrap(rxSetupScale(obj, scale, extraArgs));
     return rcpp_result_gen;
 END_RCPP
 }
 // rxDataParSetup
-List rxDataParSetup(const RObject& object, const RObject& params, const RObject& events, const Nullable<NumericVector>& inits, const RObject& covs, const RObject& sigma, const RObject& sigmaDf, const int& sigmaNcores, const bool& sigmaIsChol, const StringVector& amountUnits, const StringVector& timeUnits, const RObject& theta, const RObject& eta, const Nullable<NumericVector>& scale, const Nullable<List>& extraArgs);
+List rxDataParSetup(const RObject& object, const RObject& params, const RObject& events, const RObject& inits, const RObject& covs, const RObject& sigma, const RObject& sigmaDf, const int& sigmaNcores, const bool& sigmaIsChol, const StringVector& amountUnits, const StringVector& timeUnits, const RObject& theta, const RObject& eta, const RObject& scale, const Nullable<List>& extraArgs);
 RcppExport SEXP _RxODE_rxDataParSetup(SEXP objectSEXP, SEXP paramsSEXP, SEXP eventsSEXP, SEXP initsSEXP, SEXP covsSEXP, SEXP sigmaSEXP, SEXP sigmaDfSEXP, SEXP sigmaNcoresSEXP, SEXP sigmaIsCholSEXP, SEXP amountUnitsSEXP, SEXP timeUnitsSEXP, SEXP thetaSEXP, SEXP etaSEXP, SEXP scaleSEXP, SEXP extraArgsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -155,7 +155,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const RObject& >::type object(objectSEXP);
     Rcpp::traits::input_parameter< const RObject& >::type params(paramsSEXP);
     Rcpp::traits::input_parameter< const RObject& >::type events(eventsSEXP);
-    Rcpp::traits::input_parameter< const Nullable<NumericVector>& >::type inits(initsSEXP);
+    Rcpp::traits::input_parameter< const RObject& >::type inits(initsSEXP);
     Rcpp::traits::input_parameter< const RObject& >::type covs(covsSEXP);
     Rcpp::traits::input_parameter< const RObject& >::type sigma(sigmaSEXP);
     Rcpp::traits::input_parameter< const RObject& >::type sigmaDf(sigmaDfSEXP);
@@ -165,14 +165,14 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const StringVector& >::type timeUnits(timeUnitsSEXP);
     Rcpp::traits::input_parameter< const RObject& >::type theta(thetaSEXP);
     Rcpp::traits::input_parameter< const RObject& >::type eta(etaSEXP);
-    Rcpp::traits::input_parameter< const Nullable<NumericVector>& >::type scale(scaleSEXP);
+    Rcpp::traits::input_parameter< const RObject& >::type scale(scaleSEXP);
     Rcpp::traits::input_parameter< const Nullable<List>& >::type extraArgs(extraArgsSEXP);
     rcpp_result_gen = Rcpp::wrap(rxDataParSetup(object, params, events, inits, covs, sigma, sigmaDf, sigmaNcores, sigmaIsChol, amountUnits, timeUnits, theta, eta, scale, extraArgs));
     return rcpp_result_gen;
 END_RCPP
 }
 // rxSolveCsmall
-SEXP rxSolveCsmall(const RObject& object, const Nullable<CharacterVector>& specParams, const Nullable<List>& extraArgs, const RObject& params, const RObject& events, const Nullable<NumericVector>& inits, const Nullable<NumericVector>& scale, const RObject& covs, const Nullable<List>& optsL);
+SEXP rxSolveCsmall(const RObject& object, const Nullable<CharacterVector>& specParams, const Nullable<List>& extraArgs, const RObject& params, const RObject& events, const RObject& inits, const RObject& scale, const RObject& covs, const Nullable<List>& optsL);
 RcppExport SEXP _RxODE_rxSolveCsmall(SEXP objectSEXP, SEXP specParamsSEXP, SEXP extraArgsSEXP, SEXP paramsSEXP, SEXP eventsSEXP, SEXP initsSEXP, SEXP scaleSEXP, SEXP covsSEXP, SEXP optsLSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -182,8 +182,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const Nullable<List>& >::type extraArgs(extraArgsSEXP);
     Rcpp::traits::input_parameter< const RObject& >::type params(paramsSEXP);
     Rcpp::traits::input_parameter< const RObject& >::type events(eventsSEXP);
-    Rcpp::traits::input_parameter< const Nullable<NumericVector>& >::type inits(initsSEXP);
-    Rcpp::traits::input_parameter< const Nullable<NumericVector>& >::type scale(scaleSEXP);
+    Rcpp::traits::input_parameter< const RObject& >::type inits(initsSEXP);
+    Rcpp::traits::input_parameter< const RObject& >::type scale(scaleSEXP);
     Rcpp::traits::input_parameter< const RObject& >::type covs(covsSEXP);
     Rcpp::traits::input_parameter< const Nullable<List>& >::type optsL(optsLSEXP);
     rcpp_result_gen = Rcpp::wrap(rxSolveCsmall(object, specParams, extraArgs, params, events, inits, scale, covs, optsL));

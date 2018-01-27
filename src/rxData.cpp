@@ -849,34 +849,12 @@ CharacterVector rxLhs(const RObject &obj){
   CharacterVector ret = modVar["lhs"];
   return ret;
 }
-
-//' Initial Values and State values for a RxODE object
-//'
-//' Returns the initial values of the rxDll object
-//'
-//' @param obj rxDll, RxODE, or named vector representing default
-//'     initial arguments
-//'
-//' @param vec If supplied, named vector for the model.
-//'
-//' @param req Required names, and the required order for the ODE solver
-//'
-//' @param defaultValue a number or NA representing the default value for
-//'     parameters missing in \code{vec}, but required in \code{req}.
-//'
-//' @param noerror is a boolean specifying if an error should be thrown
-//'     for missing parameter values when \code{default} = \code{NA}
-//'
-//' @keywords internal
-//' @author Matthew L.Fidler
-//' @export
-//[[Rcpp::export]]
-NumericVector rxInits(const RObject &obj,
-		      Nullable<NumericVector> vec = R_NilValue,
-		      Nullable<CharacterVector> req = R_NilValue,
-		      double defaultValue = 0,
-		      bool noerror = false,
-		      bool noini=false){
+NumericVector rxInits0(const RObject &obj,
+		       Nullable<NumericVector> vec = R_NilValue,
+		       Nullable<CharacterVector> req = R_NilValue,
+		       double defaultValue = 0,
+		       bool noerror = false,
+		       bool noini=false){
   NumericVector oini;
   CharacterVector cini;
   List modVar = rxModelVars(obj);
@@ -996,6 +974,53 @@ NumericVector rxInits(const RObject &obj,
   }
   return ret;
 }
+//' Initial Values and State values for a RxODE object
+//'
+//' Returns the initial values of the rxDll object
+//'
+//' @param obj rxDll, RxODE, or named vector representing default
+//'     initial arguments
+//'
+//' @param vec If supplied, named vector for the model.
+//'
+//' @param req Required names, and the required order for the ODE solver
+//'
+//' @param defaultValue a number or NA representing the default value for
+//'     parameters missing in \code{vec}, but required in \code{req}.
+//'
+//' @param noerror is a boolean specifying if an error should be thrown
+//'     for missing parameter values when \code{default} = \code{NA}
+//'
+//' @keywords internal
+//' @author Matthew L.Fidler
+//' @export
+//[[Rcpp::export]]
+NumericVector rxInits(const RObject &obj,
+		      RObject vec = R_NilValue,
+		      Nullable<CharacterVector> req = R_NilValue,
+		      double defaultValue = 0,
+		      bool noerror = false,
+		      bool noini=false){
+  if (vec.isNULL()){
+    return rxInits0(obj, R_NilValue, req, defaultValue, noerror,noini);
+  } else if (rxIs(vec, "list")){
+    List vecL = as<List>(vec);
+    Function unlist("unlist", R_BaseNamespace);
+    NumericVector vec2 = as<NumericVector>(unlist(vec));
+    // if (!vec2.hasAttribute("names")){
+    //   stop("When using a list for inits or scales, the list must be named. list(depot=1)");
+    // }
+    if (vec2.size() != vecL.size()){
+      stop("Only one estimate per named list item; i.e. list(x=1) instead of list(x=1:2).");
+    }
+    return rxInits0(obj, vec2, req, defaultValue, noerror,noini);
+  } else if (rxIs(vec, "integer") || rxIs(vec, "numeric")){
+    return rxInits0(obj, as<NumericVector>(vec), req, defaultValue, noerror,noini);
+  } else {
+    stop("Incompatible initial estimate type.");
+  }
+}
+
 //' Setup the initial conditions.
 //'
 //' @param obj RxODE object
@@ -1005,7 +1030,7 @@ NumericVector rxInits(const RObject &obj,
 //' @export
 //[[Rcpp::export]]
 NumericVector rxSetupIni(const RObject &obj,
-			   Nullable<NumericVector> inits = R_NilValue){
+			   RObject inits = R_NilValue){
   List modVars = rxModelVars(obj);
   CharacterVector state = modVars["state"];
   return rxInits(obj, inits, state, 0.0);
@@ -1021,7 +1046,7 @@ NumericVector rxSetupIni(const RObject &obj,
 //' @export
 //[[Rcpp::export]]
 NumericVector rxSetupScale(const RObject &obj,
-			   Nullable<NumericVector> scale = R_NilValue,
+			   RObject scale = R_NilValue,
 			   Nullable<List> extraArgs = R_NilValue){
   List modVars = rxModelVars(obj);
   CharacterVector state = modVars["state"];
@@ -1253,7 +1278,7 @@ NumericMatrix rxSetupParamsThetaEta(const RObject &params = R_NilValue,
 List rxDataParSetup(const RObject &object,
 		    const RObject &params = R_NilValue,
 		    const RObject &events = R_NilValue,
-		    const Nullable<NumericVector> &inits = R_NilValue,
+		    const RObject &inits = R_NilValue,
 		    const RObject &covs  = R_NilValue,
 		    const RObject &sigma= R_NilValue,
 		    const RObject &sigmaDf= R_NilValue,
@@ -1263,7 +1288,7 @@ List rxDataParSetup(const RObject &object,
 		    const StringVector &timeUnits = "hours",
 		    const RObject &theta = R_NilValue,
                     const RObject &eta = R_NilValue,
-		    const Nullable<NumericVector> &scale = R_NilValue,
+		    const RObject &scale = R_NilValue,
 		    const Nullable<List> &extraArgs = R_NilValue){
   List modVars = rxModelVars(object);
   CharacterVector state = modVars["state"];
@@ -1706,7 +1731,7 @@ extern "C" rx_solve *rxSingle(SEXP object, const int stiff,const int transit_abs
 List rxData(const RObject &object,
             const RObject &params = R_NilValue,
             const RObject &events = R_NilValue,
-            const Nullable<NumericVector> &inits = R_NilValue,
+            const RObject &inits = R_NilValue,
             const RObject &covs  = R_NilValue,
             const std::string &method = "lsoda",
             const Nullable<LogicalVector> &transit_abs = R_NilValue,
@@ -1730,7 +1755,7 @@ List rxData(const RObject &object,
             const StringVector &timeUnits = "hours",
 	    const RObject &theta = R_NilValue,
             const RObject &eta = R_NilValue,
-	    const Nullable<NumericVector> &scale = R_NilValue,
+	    const RObject &scale = R_NilValue,
 	    const Nullable<List> &extraArgs = R_NilValue){
   List parData = rxDataParSetup(object,params, events, inits, covs, sigma, sigmaDf,
 				sigmaNcores, sigmaIsChol, amountUnits, timeUnits,
@@ -1787,8 +1812,8 @@ SEXP rxSolveC(const RObject &object,
 	      const Nullable<List> &extraArgs = R_NilValue,
 	      const RObject &params = R_NilValue,
 	      const RObject &events = R_NilValue,
-	      const Nullable<NumericVector> &inits = R_NilValue,
-	      const Nullable<NumericVector> &scale = R_NilValue,
+	      const RObject &inits = R_NilValue,
+	      const RObject &scale = R_NilValue,
 	      const RObject &covs  = R_NilValue,
 	      const CharacterVector &method = "lsoda",
 	      const Nullable<LogicalVector> &transit_abs = R_NilValue,
@@ -1923,7 +1948,7 @@ SEXP rxSolveC(const RObject &object,
     }
     RObject new_params = update_params ? params : e["args.params"];
     RObject new_events = update_events ? events : e["args.events"];
-    Nullable<NumericVector> new_inits = update_inits ? inits : e["args.inits"];
+    RObject new_inits = update_inits ? inits : e["args.inits"];
     RObject new_covs  = update_covs  ? covs  : e["args.covs"];
     CharacterVector new_method = update_method ? method : e["args.method"];
     Nullable<LogicalVector> new_transit_abs = update_transit_abs ? transit_abs : e["args.transit_abs"];
@@ -1945,7 +1970,7 @@ SEXP rxSolveC(const RObject &object,
     bool new_sigmaIsChol = update_sigmaIsChol ? sigmaIsChol : e["args.sigmaIsChol"];
     CharacterVector new_amountUnits = update_amountUnits ? amountUnits : e["args.amountUnits"];
     CharacterVector new_timeUnits = update_timeUnits ? timeUnits : e["args.timeUnits"];
-    const Nullable<NumericVector> new_scale = update_scale ? scale : e["args.scale"];
+    RObject new_scale = update_scale ? scale : e["args.scale"];
     bool new_addDosing = update_dosing ? addDosing : e["args.addDosing"];
 
     RObject new_object = as<RObject>(e["args.object"]);
@@ -2242,8 +2267,8 @@ SEXP rxSolveCsmall(const RObject &object,
                    const Nullable<List> &extraArgs = R_NilValue,
                    const RObject &params = R_NilValue,
                    const RObject &events = R_NilValue,
-                   const Nullable<NumericVector> &inits = R_NilValue,
-		   const Nullable<NumericVector> &scale = R_NilValue,
+                   const RObject &inits = R_NilValue,
+		   const RObject &scale = R_NilValue,
                    const RObject &covs  = R_NilValue,
                    const Nullable<List> &optsL = R_NilValue){
   if (optsL.isNull()){
@@ -2479,7 +2504,7 @@ RObject rxSolveUpdate(RObject obj,
 			  R_NilValue,
                           defrx_params,
                           defrx_events,
-                          Nullable<NumericVector>(value), //defrx_inits,
+                          as<RObject>(value), //defrx_inits,
 			  R_NilValue, // scale
 			  defrx_covs,
                           defrx_method,

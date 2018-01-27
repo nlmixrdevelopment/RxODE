@@ -122,6 +122,22 @@ rxPermissive({
         expect_equal(out$X, x1 / 2);
         expect_equal(out$Y, y1);
         expect_equal(out$Z, z1);
+        ## Issue #18
+        out <- rxSolve(ode,
+                       params = c(a=-8/3, b=-10),
+                       events = et,
+                       inits = c(X=1, Y=1, Z=1),
+                       covs = cov,
+                       scale=list(X=2));
+        expect_equal(out$X, x1 / 2);
+        expect_equal(out$Y, y1);
+        expect_equal(out$Z, z1);
+        expect_error(rxSolve(ode,
+                             params = c(a=-8/3, b=-10),
+                             events = et,
+                             inits = c(X=1, Y=1, Z=1),
+                             covs = cov,
+                             scale=list(X=1:2)))
         out <- rxSolve(ode,
                        params = c(a=-8/3, b=-10),
                        events = et,
