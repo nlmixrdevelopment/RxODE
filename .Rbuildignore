@@ -16,6 +16,7 @@ RxODE.*\.(zip|pdf)$
 ^/?R/.Rhistory
 ^/?src/.Rhistory
 ^/?src/dparser/.*$
+^/?src/liblsoda/.*$
 LICENSE
 /config.status
 /config.log

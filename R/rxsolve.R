@@ -252,7 +252,7 @@ update.rxSolve <- function(object, ...){
     rxSolve(object, ...);
 }
 
-sharedPrint <- function(x, n){
+sharedPrint <- function(x, n, width){
     is.dplyr <- requireNamespace("dplyr", quietly = TRUE) && RxODE.display.tbl;
     ## cat(sprintf("Dll: %s\n\n", rxDll(x)))
     df <- x$params.single

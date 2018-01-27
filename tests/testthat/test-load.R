@@ -16,10 +16,6 @@ d/dt(y3) = a3*y1*y2
 
     rigid <- RxODE(rigid.txt);
 
-    test_that("rxDll works for each object type",{
-        expect_equal(rxDll(rigid.txt),rxDll(rigid));
-    })
-
     test_that("loading and unloading works.",{
         dll <- rxDll(rigid);
         expect_true(rxDllLoaded(rigid));
