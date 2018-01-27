@@ -585,6 +585,9 @@ List rxDataSetup(const RObject &ro,
     ret["idose"] = idose,
     ret.attr("class") = "RxODE.multi.data";
     return ret;
+  } else if (rxIs(ro,"list")){
+    Function asDf("as.data.frame", R_BaseNamespace);
+    return rxDataSetup(asDf(ro), covNames,sigma, df, ncoresRV, isChol, amountUnits, timeUnits);
   } else {
     stop("Data is not setup appropriately.");
   }
@@ -1106,6 +1109,10 @@ NumericMatrix rxSetupParamsThetaEta(const RObject &params = R_NilValue,
 				    const RObject &theta = R_NilValue,
 				    const RObject &eta = R_NilValue){
   // Now get the parameters as a data.frame
+  if (rxIs(params,"list")) {
+    Function asDf("as.data.frame", R_BaseNamespace);
+    return rxSetupParamsThetaEta(asDf(params), theta, eta);
+  }
   NumericMatrix parMat;
   int i;
   if (params.isNULL()){
