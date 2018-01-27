@@ -2901,7 +2901,7 @@ Nullable<Environment> rxRxODEenv(RObject obj){
 }
 
 //' Get RxODE model from object
-//' @param object RxODE family of objects
+//' @param obj RxODE family of objects
 //' @export
 //[[Rcpp::export]]
 RObject rxGetRxODE(RObject obj){

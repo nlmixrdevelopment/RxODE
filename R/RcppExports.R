@@ -216,7 +216,7 @@ rxRmModelLib_ <- function(str) {
 }
 
 #' Get RxODE model from object
-#' @param object RxODE family of objects
+#' @param obj RxODE family of objects
 #' @export
 rxGetRxODE <- function(obj) {
     .Call(`_RxODE_rxGetRxODE`, obj)
