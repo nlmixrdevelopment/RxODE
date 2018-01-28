@@ -608,68 +608,67 @@ void par_dop(rx_solve *rx, SEXP sd, int ini_updateR){
       //--- inits the system
       for(i=0; i<neq[0]; i++) yp[i] = inits[i];
 
-      for(i=0; i<nx; i++)
-	{
-	  xout = x[i];
-	  if (global_debug){
-	    Rprintf("i=%d xp=%f xout=%f\n", i, xp, xout);
-	  }
-	  if(xout-xp>DBL_EPSILON*max(fabs(xout),fabs(xp)))
-	    {
-	      idid = dop853(neq,       /* dimension of the system <= UINT_MAX-1*/
-			    dydt,       /* function computing the value of f(x,y) */
-			    xp,           /* initial x-value */
-			    yp,           /* initial values for y */
-			    xout,         /* final x-value (xend-x may be positive or negative) */
-			    &rtol,          /* relative error tolerance */
-			    &atol,          /* absolute error tolerance */
-			    itol,         /* switch for rtoler and atoler */
-			    solout,         /* function providing the numerical solution during integration */
-			    iout,         /* switch for calling solout */
-			    NULL,           /* messages stream */
-			    DBL_EPSILON,    /* rounding unit */
-			    0,              /* safety factor */
-			    0,              /* parameters for step size selection */
-			    0,
-			    0,              /* for stabilized step size control */
-			    0,              /* maximal step size */
-			    0,            /* initial step size */
-			    0,            /* maximal number of allowed steps */
-			    1,            /* switch for the choice of the coefficients */
-			    -1,                     /* test for stiffness */
-			    0,                      /* number of components for which dense outpout is required */
-			    NULL,           /* indexes of components for which dense output is required, >= nrdens */
-			    0                       /* declared length of icon */
-			    );
-	      if (idid<0)
-		{
-		  Rprintf("IDID=%d, %s\n", idid, err_msg[-idid-1]);
-		  *rc = idid;
-		  // Bad Solve => NA
-                  for (i = 0; i < nx*neq[0]; i++) ret[i] = NA_REAL;
-		  op->badSolve = 1;
-		  i = nx+42; // Get out of here!
-		}
-	      xp = xRead();
-	      ind->slvr_counter++;
-	      //dadt_counter = 0;
-	    }
-          if (handle_evid(evid[i], neq[0], BadDose, InfusionRate, dose, yp,
-                       op->do_transit_abs, xout, ind)){
-	    xp = xout;
-	  }
-	  for(j=0; j<neq[0]; j++) ret[neq[0]*i+j] = yp[j];
-	  //Rprintf("wh=%d cmt=%d tm=%g rate=%g\n", wh, cmt, xp, InfusionRate[cmt]);
-
-	  if (global_debug){
-	    Rprintf("IDID=%d, ", idid);
-	    for(j=0; j<neq[0]; j++)
-	      {
-		Rprintf("%f ", yp[j]);
-	      }
-	    Rprintf("\n");
-	  }
+      for(i=0; i<nx; i++) {
+	xout = x[i];
+	if (global_debug){
+	  Rprintf("i=%d xp=%f xout=%f\n", i, xp, xout);
 	}
+	if(xout-xp>DBL_EPSILON*max(fabs(xout),fabs(xp)))
+	  {
+	    idid = dop853(neq,       /* dimension of the system <= UINT_MAX-1*/
+			  dydt,       /* function computing the value of f(x,y) */
+			  xp,           /* initial x-value */
+			  yp,           /* initial values for y */
+			  xout,         /* final x-value (xend-x may be positive or negative) */
+			  &rtol,          /* relative error tolerance */
+			  &atol,          /* absolute error tolerance */
+			  itol,         /* switch for rtoler and atoler */
+			  solout,         /* function providing the numerical solution during integration */
+			  iout,         /* switch for calling solout */
+			  NULL,           /* messages stream */
+			  DBL_EPSILON,    /* rounding unit */
+			  0,              /* safety factor */
+			  0,              /* parameters for step size selection */
+			  0,
+			  0,              /* for stabilized step size control */
+			  0,              /* maximal step size */
+			  0,            /* initial step size */
+			  0,            /* maximal number of allowed steps */
+			  1,            /* switch for the choice of the coefficients */
+			  -1,                     /* test for stiffness */
+			  0,                      /* number of components for which dense outpout is required */
+			  NULL,           /* indexes of components for which dense output is required, >= nrdens */
+			  0                       /* declared length of icon */
+			  );
+	    if (idid<0)
+	      {
+		Rprintf("IDID=%d, %s\n", idid, err_msg[-idid-1]);
+		*rc = idid;
+		// Bad Solve => NA
+		for (i = 0; i < nx*neq[0]; i++) ret[i] = NA_REAL;
+		op->badSolve = 1;
+		i = nx+42; // Get out of here!
+	      }
+	    xp = xRead();
+	    ind->slvr_counter++;
+	    //dadt_counter = 0;
+	  }
+	if (handle_evid(evid[i], neq[0], BadDose, InfusionRate, dose, yp,
+			op->do_transit_abs, xout, ind)){
+	  xp = xout;
+	}
+	for(j=0; j<neq[0]; j++) ret[neq[0]*i+j] = yp[j];
+	//Rprintf("wh=%d cmt=%d tm=%g rate=%g\n", wh, cmt, xp, InfusionRate[cmt]);
+
+	if (global_debug){
+	  Rprintf("IDID=%d, ", idid);
+	  for(j=0; j<neq[0]; j++)
+	    {
+	      Rprintf("%f ", yp[j]);
+	    }
+	  Rprintf("\n");
+	}
+      }
       /* if (rc[0]){ */
       /*   Rprintf("Error sovling using dop853\n"); */
       /*   return; */
