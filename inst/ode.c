@@ -301,6 +301,13 @@ extern void __DYDT_LSODA__(int *neq, double *t, double *A, double *DADT)
   __DYDT__(neq, *t, A, DADT);
 }
 
+extern int __DYDT_LIBLSODA__(double t, double *y, double *ydot, void *data)
+{
+  int *neq = (int*)(data);
+  __DYDT__(neq, t, y, ydot);
+  return(0);
+}
+
 extern void __CALC_JAC_LSODA__(int *neq, double *t, double *A,int *ml, int *mu, double *JAC, int *nrowpd){
   // Update all covariate parameters
   __CALC_JAC__(neq, *t, A, JAC, *nrowpd);
@@ -319,6 +326,7 @@ void __R_INIT__ (DllInfo *info){
   R_RegisterCCallable(__LIB_STR__,"__CALC_JAC_LSODA__", (DL_FUNC) __CALC_JAC_LSODA__);
   R_RegisterCCallable(__LIB_STR__,"__ODE_SOLVER_SOLVEDATA__", (DL_FUNC) __ODE_SOLVER_SOLVEDATA__);
   R_RegisterCCallable(__LIB_STR__,"__ODE_SOLVER_GET_SOLVEDATA__", (DL_FUNC) __ODE_SOLVER_GET_SOLVEDATA__);
+  R_RegisterCCallable(__LIB_STR__,"__DYDT_LIBLSODA__", (DL_FUNC) __DYDT_LIBLSODA__);
   
   static const R_CMethodDef cMethods[] = {
     {__ODE_SOLVER_STR__, (DL_FUNC) &__ODE_SOLVER__, 15, __ODE_SOLVER__rx_t},

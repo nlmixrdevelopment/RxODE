@@ -4,7 +4,7 @@ typedef void (*t_calc_lhs)(int cSub, double t, double *A, double *lhs);
 typedef void (*t_update_inis)(int cSub, double *);
 typedef void (*t_dydt_lsoda_dum)(int *neq, double *t, double *A, double *DADT);
 typedef void (*t_jdum_lsoda)(int *neq, double *t, double *A,int *ml, int *mu, double *JAC, int *nrowpd);
-
+typedef int (*t_dydt_liblsoda)(double t, double *y, double *ydot, void *data);
 
 typedef struct {
   // These options should not change based on an individual solve
@@ -36,6 +36,9 @@ typedef struct {
   int is_locf;
   int cores;
   int extraCmt;
+  double hmax2; // Determined by diff
+  double *rtol2;
+  double *atol2;
 } rx_solving_options;
 
 
@@ -112,7 +115,10 @@ SEXP getSolvingOptionsPtr(double ATOL,          //absolute error
 			  double *scale,
                           SEXP stateNames,
                           SEXP lhsNames,
-                          SEXP paramNames);
+                          SEXP paramNames,
+			  double hmax2,
+                          double *atol2,
+                          double *rtol2);
 void getSolvingOptionsIndPtr(double *InfusionRate,
                              int *BadDose,
                              double HMAX, // Determined by diff

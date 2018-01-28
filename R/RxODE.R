@@ -1066,7 +1066,7 @@ rxTransMakevars <- function(rxProps,                                            
                             cFile,
                             compileFlags =c("parsed_md5", "ode_solver", "ode_solver_sexp",
                                             "ode_solver_ptr", "ode_solver_xptr", "inis",
-                                            "model_vars", "calc_lhs", "calc_jac", "dydt",
+                                            "model_vars", "calc_lhs", "calc_jac", "dydt", "dydt_liblsoda",
                                             "dydt_lsoda", "calc_jac_lsoda", "ode_solver_solvedata",
                                             "ode_solver_get_solvedata", "neq", "nlhs"), # List of compile flags
                             debug        = FALSE,                                                                 # Debug compile?
@@ -1097,7 +1097,7 @@ rxTransMakevars <- function(rxProps,                                            
         cat(ret);
         return(ret);
     } else {
-        cat("Needed Variables: %s\n", paste(neededProps, collapse=","));
+        message("Needed Variables: %s", paste(neededProps, collapse=","));
         stop(sprintf("Cannot compile, only found %s.", paste(names(rxProps), collapse=",")));
     }
 } # end function rxTransCompileFlags

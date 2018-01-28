@@ -73,6 +73,12 @@ void dydt_lsoda_dum(int *neq, double *t, double *A, double *DADT){
   g_dydt_lsoda_dum(neq, t, A, DADT);
 }
 
+t_dydt_liblsoda g_dydt_liblsoda = NULL;
+int dydt_liblsoda(double t, double *y, double *ydot, void *data){
+  if (g_dydt_liblsoda == NULL) error("RxODE library not setup correctly.");
+  return g_dydt_liblsoda(t, y, ydot, data);
+}
+
 t_jdum_lsoda g_jdum_lsoda = NULL;
 void jdum_lsoda(int *neq, double *t, double *A,int *ml, int *mu, double *JAC, int *nrowpd){
   if (g_jdum_lsoda == NULL) error("RxODE library not setup correctly.");
@@ -96,7 +102,8 @@ int global_mf = 22;
 int global_debug = 0;
 
 void rxUpdateFuns(SEXP trans){
-  const char *lib, *dydt, *calc_jac, *calc_lhs, *inis, *dydt_lsoda_dum, *dydt_jdum_lsoda, *ode_solver_solvedata, *ode_solver_get_solvedata;
+  const char *lib, *dydt, *calc_jac, *calc_lhs, *inis, *dydt_lsoda_dum, *dydt_jdum_lsoda, 
+    *ode_solver_solvedata, *ode_solver_get_solvedata, *dydt_liblsoda;
   lib = CHAR(STRING_ELT(trans, 0));
   dydt = CHAR(STRING_ELT(trans, 3));
   calc_jac = CHAR(STRING_ELT(trans, 4));
@@ -106,6 +113,7 @@ void rxUpdateFuns(SEXP trans){
   dydt_jdum_lsoda = CHAR(STRING_ELT(trans, 14));
   ode_solver_solvedata = CHAR(STRING_ELT(trans, 15));
   ode_solver_get_solvedata = CHAR(STRING_ELT(trans, 16));
+  dydt_liblsoda = CHAR(STRING_ELT(trans, 17));
   if (strcmp(CHAR(STRING_ELT(trans, 14)),"fulluser") == 0){
     global_jt = 1;
     global_mf = 21;
@@ -131,6 +139,7 @@ void rxUpdateFuns(SEXP trans){
      14 = calc_jac_lsoda 
      15 = ode_solver_solvedata 
      16 = ode_solver_get_solvedata 
+     17 = dydt_liblsoda
   */
   g_dydt =(t_dydt) R_GetCCallable(lib,dydt);
   g_calc_jac =(t_calc_jac) R_GetCCallable(lib,calc_jac);
@@ -140,6 +149,7 @@ void rxUpdateFuns(SEXP trans){
   g_jdum_lsoda =(t_jdum_lsoda) R_GetCCallable(lib,dydt_jdum_lsoda);
   g_set_solve = (t_set_solve)R_GetCCallable(lib,ode_solver_solvedata);
   g_get_solve = (t_get_solve)R_GetCCallable(lib,ode_solver_get_solvedata);
+  g_dydt_liblsoda = (t_dydt_liblsoda)R_GetCCallable(lib,dydt_liblsoda);
   global_jt = 2;
   global_mf = 22;  
   global_debug = 0;
@@ -221,7 +231,10 @@ SEXP getSolvingOptionsPtr(double ATOL,          //absolute error
 			  double *scale,
                           SEXP stateNames,
 			  SEXP lhsNames,
-			  SEXP paramNames){
+			  SEXP paramNames,
+			  double hmax2,
+			  double *atol2,
+			  double *rtol2){
   // This really should not be called very often, so just allocate one for now.
   rx_solving_options *o;
   o = &op_global;
@@ -250,6 +263,9 @@ SEXP getSolvingOptionsPtr(double ATOL,          //absolute error
   o->inits = inits;
   o->scale = scale;
   o->extraCmt = 0;
+  o->hmax2 = hmax2; // Determined by diff
+  o->rtol2 = rtol2;
+  o->atol2 = atol2;
   SEXP ret = PROTECT(R_MakeExternalPtr(o, install("rx_solving_options"), R_NilValue));
   UNPROTECT(1);
   return(ret);
@@ -302,8 +318,89 @@ rx_solving_options_ind *getRxId(rx_solve *rx, unsigned int id){
   return &(rx->subjects[id]);
 }
 
+int handle_evid(int evid, int neq, 
+		int *BadDose,
+		double *InfusionRate,
+		double *dose,
+		double *yp,
+		int do_transit_abs,
+		double xout,
+		rx_solving_options_ind *ind){
+  int wh = evid, wh100, cmt, foundBad, j;
+  if (wh) {
+    wh100 = floor(wh/1e5);
+    wh = wh- wh100*1e5;
+    cmt = (wh%10000)/100 - 1 + 100*wh100;
+    if (cmt >= neq){
+      foundBad = 0;
+      for (j = 0; j < ind->nBadDose; j++){
+	if (BadDose[j] == cmt+1){
+	  foundBad=1;
+	  break;
+	}
+      }
+      if (!foundBad){
+	BadDose[ind->nBadDose]=cmt+1;
+	ind->nBadDose++;
+      }
+    } else {
+      if (wh>10000) {
+	InfusionRate[cmt] += dose[ind->ixds];
+      } else {
+	if (do_transit_abs) {
+	  ind->podo = dose[ind->ixds];
+	  ind->tlast = xout;
+	} else {
+	  ind->podo = 0;
+	  ind->tlast = xout;
+	  yp[cmt] += dose[ind->ixds];     //dosing before obs
+	}
+      }
+      /* istate = 1; */
+      ind->ixds++;
+      /* xp = xout; */
+      return 1;
+    }
+  }
+  return 0;
+}
+
+extern void par_liblsoda(rx_solve *rx, SEXP sd, int ini_updateR){
+  rx_solving_options *op;
+  if(!R_ExternalPtrAddr(rx->op)){
+    error("Cannot get global ode solver options.");
+  }
+  op = (rx_solving_options*)R_ExternalPtrAddr(rx->op);
+  int neq[2];
+  neq[0] = op->neq;
+  neq[1] = 0;
+  struct lsoda_opt_t opt = {0};
+  opt.ixpr = 0; // No extra printing...
+  // Unlike traditional lsoda, these are vectors.
+  /* opt.rtol = rtol;  */
+  /* opt.atol = atol; */
+  opt.itask = 1;
+  opt.mxstep = op->mxstep;
+  opt.mxhnil = 0;
+  opt.mxordn = op->MXORDN;
+  opt.mxords = op->MXORDS;
+  opt.h0 = op->H0;
+  /* opt.hmax = ; ind->HMAX.... Need a HMAX for liblsoda*/
+  opt.hmin = op->HMIN;
+  opt.hmxi = 0.0;
+  
+  struct lsoda_context_t ctx = {
+    .function = dydt_liblsoda,
+    .neq = neq[0],
+    .data = &neq,
+    .state = 1
+  };
+  
+  lsoda_prepare(&ctx, &opt);
+}
+
 extern void par_lsoda(rx_solve *rx, SEXP sd, int ini_updateR){
-  int i, j, foundBad;
+  int i, j;
   double xout;
   double *yp;
   rx_solving_options *op;
@@ -321,7 +418,6 @@ extern void par_lsoda(rx_solve *rx, SEXP sd, int ini_updateR){
   int itask = 1, istate = 1, iopt = 0, lrw=22+neq[0]*max(16, neq[0]+9), liw=20+neq[0], jt = global_jt;
   double *rwork;
   int *iwork;
-  int wh, wh100, cmt;
   
   char *err_msg[]=
     {
@@ -384,7 +480,6 @@ extern void par_lsoda(rx_solve *rx, SEXP sd, int ini_updateR){
       update_inis(neq[1], inits); // Update initial conditions
       for(i=0; i<neq[0]; i++) yp[i] = inits[i];
       for(i=0; i<nx; i++) {
-        wh = evid[i];
         xout = x[i];
         if (global_debug){
           Rprintf("i=%d xp=%f xout=%f\n", i, xp, xout);
@@ -406,46 +501,12 @@ extern void par_lsoda(rx_solve *rx, SEXP sd, int ini_updateR){
             ind->slvr_counter++;
             //dadt_counter = 0;
           }
-        if (wh)
-          {
-	    wh100 = floor(wh/1e5);
-	    wh = wh- wh100*1e5;
-            cmt = (wh%10000)/100 - 1 + 100*wh100;
-            if (cmt >= neq[0]){
-              foundBad = 0;
-              for (j = 0; j < ind->nBadDose; j++){
-                if (BadDose[j] == cmt+1){
-                  foundBad=1;
-                  break;
-                }
-              }
-              if (!foundBad){
-                BadDose[ind->nBadDose]=cmt+1;
-                ind->nBadDose++;
-              }
-            } else {
-              if (wh>10000)
-                {
-                  InfusionRate[cmt] += dose[ind->ixds];
-                }
-              else
-                {
-                  if (op->do_transit_abs) {
-		    ind->podo = dose[ind->ixds];
-		    ind->tlast = xout;
-		  } else {
-		    ind->podo = 0;
-		    ind->tlast = xout;
-                    yp[cmt] += dose[ind->ixds];     //dosing before obs
-		  }
-                }
-            
-              istate = 1;
-
-              ind->ixds++;
-              xp = xout;
-            }
-          }
+        if (handle_evid(evid[i], neq[0], BadDose, InfusionRate, dose, yp,
+			op->do_transit_abs, xout, ind)){
+	  istate = 1;
+          xp = xout;
+        }
+	
         for(j=0; j<neq[0]; j++) ret[neq[0]*i+j] = yp[j];
         //Rprintf("wh=%d cmt=%d tm=%g rate=%g\n", wh, cmt, xp, InfusionRate[cmt]);
 
@@ -482,7 +543,7 @@ extern void par_lsoda_thread(SEXP sd){
 void solout(long int nr, double t_old, double t, double *y, int *nptr, int *irtrn){}
 
 void par_dop(rx_solve *rx, SEXP sd, int ini_updateR){
-  int i, j, foundBad;
+  int i, j;
   double xout;
   double *yp;
   rx_solving_options *op;
@@ -500,7 +561,6 @@ void par_dop(rx_solve *rx, SEXP sd, int ini_updateR){
   int itol=0;           //0: rtol/atol scalars; 1: rtol/atol vectors
   int iout=0;           //iout=0: solout() NEVER called
   int idid=0;
-  int wh, wh100, cmt;
   char *err_msg[]=
     {
       "input is not consistent",
@@ -550,7 +610,6 @@ void par_dop(rx_solve *rx, SEXP sd, int ini_updateR){
 
       for(i=0; i<nx; i++)
 	{
-	  wh = evid[i];
 	  xout = x[i];
 	  if (global_debug){
 	    Rprintf("i=%d xp=%f xout=%f\n", i, xp, xout);
@@ -595,43 +654,10 @@ void par_dop(rx_solve *rx, SEXP sd, int ini_updateR){
 	      ind->slvr_counter++;
 	      //dadt_counter = 0;
 	    }
-	  if (wh)
-	    {
-	      wh100 = floor(wh/1e5);
-              wh = wh - wh100*1e5;
-              cmt = (wh%10000)/100 - 1 + 100*wh100;
-	      if (cmt >= neq[0]){
-		foundBad = 0;
-		for (j = 0; j <ind->nBadDose; j++){
-		  if (BadDose[j] == cmt+1){
-		    foundBad=1;
-		    break;
-		  }
-		}
-		if (!foundBad){
-		  BadDose[ind->nBadDose]=cmt+1;
-		  ind->nBadDose++;
-		}
-	      } else {
-		if (wh>10000)
-		  {
-		    InfusionRate[cmt] += dose[ind->ixds];
-		  }
-		else
-		  {
-		    if (op->do_transit_abs) {
-		      ind->podo = dose[ind->ixds];
-		      ind->tlast = xout;
-		    } else {
-                      ind->podo = 0;
-                      ind->tlast = xout;
-		      yp[cmt] += dose[ind->ixds];     //dosing before obs
-		    }
-		  }
-	      }
-	      ind->ixds++;
-	      xp = xout;
-	    }
+          if (handle_evid(evid[i], neq[0], BadDose, InfusionRate, dose, yp,
+                       op->do_transit_abs, xout, ind)){
+	    xp = xout;
+	  }
 	  for(j=0; j<neq[0]; j++) ret[neq[0]*i+j] = yp[j];
 	  //Rprintf("wh=%d cmt=%d tm=%g rate=%g\n", wh, cmt, xp, InfusionRate[cmt]);
 

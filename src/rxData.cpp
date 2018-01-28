@@ -426,6 +426,7 @@ List rxDataSetup(const RObject &ro,
     double lastTime = 0;
     //hmax <- max(abs(diff(event.table$time)))
     double mdiff = 0;
+    double HmaxA = 0;
     double tmp;
     int m = 0, nEt=0;
     for (i = 0; i < ids; i++){
@@ -458,6 +459,9 @@ List rxDataSetup(const RObject &ro,
       tmp = time0[i]-lastTime;
       if (tmp > mdiff){
 	mdiff = tmp;
+	if (tmp > HmaxA){
+          HmaxA = tmp;
+	}
       }
       lastTime = time0[i];
       if (evid[i]){
@@ -582,7 +586,8 @@ List rxDataSetup(const RObject &ro,
                             );
     // Not sure why, but putting this in above gives errors...
     ret["df"]= df;
-    ret["idose"] = idose,
+    ret["idose"] = idose;
+    ret["Hmax"] = HmaxA;
     ret.attr("class") = "RxODE.multi.data";
     return ret;
   } else if (rxIs(ro,"list")){
@@ -1490,6 +1495,10 @@ List rxDataParSetup(const RObject &object,
   ret["BadDose"] =IntegerVector(state.size()*nSub*nr);
   ret["state.ignore"] = modVars["state.ignore"];
   ret["trans"] = modVars["trans"];
+  NumericVector atol(state.size(), 1e-08);
+  NumericVector rtol(state.size(), 1e-06);
+  ret["atol"] = atol;
+  ret["rtol"] = rtol;
   CharacterVector cls(2);
   cls(1) = "RxODE.par.data";
   cls(0) = "RxODE.multi.data";
@@ -1513,7 +1522,10 @@ SEXP rxSolvingOptions(const RObject &object,
 		      int do_par_cov = 0,
 		      double *inits = NULL,
 		      double *scale = NULL,
-		      std::string covs_interpolation = "linear"){
+		      std::string covs_interpolation = "linear",
+		      double hmax2 = 0,
+                      double *atol2 = NULL,
+                      double *rtol2 = NULL){
   if (maxordn < 1 || maxordn > 12){
     stop("'maxordn' must be >1 and <= 12.");
   }
@@ -1578,7 +1590,7 @@ SEXP rxSolvingOptions(const RObject &object,
 			      st, f1, f2, kind, is_locf, cores,
 			      ncov,par_cov, do_par_cov, &inits[0], &scale[0],
 			      as<SEXP>(state), as<SEXP>(lhs),
-			      as<SEXP>(params));
+			      as<SEXP>(params), hmax2, atol2, rtol2);
 }
 
 SEXP rxSolvingData(const RObject &model,
@@ -1665,8 +1677,16 @@ SEXP rxSolvingData(const RObject &model,
                                 &inds[cid]);
       }
     }
+    NumericVector atol2 = as<NumericVector>(opt["atol"]);
+    NumericVector rtol2 = as<NumericVector>(opt["rtol"]);
+    for (int i = 0; i < atol2.size(); i++){
+      atol2[i]=atol;
+      rtol2[i]=rtol;
+    }
+    double hmax2 = as<double>(opt["Hmax"]);
     SEXP op = rxSolvingOptions(model,method, transit_abs, atol, rtol, maxsteps, hmin, hini, maxordn,
-			       maxords, cores, ncov, &par_cov[0], do_par_cov, &inits[0], &scale[0], covs_interpolation);
+			       maxords, cores, ncov, &par_cov[0], do_par_cov, &inits[0], &scale[0], covs_interpolation,
+			       hmax2,&atol2[0],&rtol2[0]);
     int add_cov = 0;
     if (addCov) add_cov = 1;
     int nobs = as<int>(opt["nObs"]);
