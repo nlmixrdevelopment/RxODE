@@ -2054,7 +2054,6 @@ SEXP rxSolveC(const RObject &object,
     if (!rxDynLoad(object)){
       stop("Cannot load RxODE dlls for this model.");
     }
-    Rprintf("cores0: %d\n",cores);
     List parData = rxData(object, params, events, inits, covs, as<std::string>(method[0]), transit_abs, atol,
                           rtol, maxsteps, hmin,hmax, hini, maxordn, maxords, cores,
                           as<std::string>(covs_interpolation[0]), addCov, matrix, sigma, sigmaDf, sigmaNcores, sigmaIsChol,

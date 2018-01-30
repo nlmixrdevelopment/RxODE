@@ -367,15 +367,15 @@ int handle_evid(int evid, int neq,
 }
 
 extern void par_liblsoda(rx_solve *rx){
-  int i, j;
   rx_solving_options *op;
   if(!R_ExternalPtrAddr(rx->op)){
     error("Cannot get global ode solver options.");
   }
   op = (rx_solving_options*)R_ExternalPtrAddr(rx->op);
-  int neq[2];
-  neq[0] = op->neq;
-  neq[1] = 0;
+  int nsub = rx->nsub;
+  int nsim = rx->nsim;
+  int cores = op->cores;
+  double *yp0 = Calloc((op->neq)*nsim*nsub, double);
   struct lsoda_opt_t opt = {0};
   opt.ixpr = 0; // No extra printing...
   // Unlike traditional lsoda, these are vectors.
@@ -390,32 +390,34 @@ extern void par_liblsoda(rx_solve *rx){
   opt.hmax = op->hmax2;
   opt.hmin = op->HMIN;
   opt.hmxi = 0.0;
-
-  int nx;
-  rx_solving_options_ind *ind;
-  double *inits;
-  int *evid;
-  double *x;
-  int *BadDose;
-  double *InfusionRate;
-  double *dose;
-  double *ret;
-  double *yp, *yp0;
-  double xout;
-  int *rc;
-  int nsub = rx->nsub;
-  int nsim = rx->nsim;
-  int cores = op->cores;
-  inits = op->inits;
-  // This needs to be called per core.
-  yp0 = Calloc(neq[0]*nsim*nsub, double);
 #pragma omp parallel for num_threads(cores)
   for (int solveid = 0; solveid < nsim*nsub; solveid++){
+    int i, j;
     int csim = solveid % nsub;
     int csub = solveid / nsub;
-    neq[1] = csub+csim*nsub;
-    yp = &yp0[neq[0]*neq[1]];
-    printf("csim: %d; csub: %d; id: %d; %d; %d\n",csim,csub,solveid,cores, neq[0]*neq[1]);
+    int neq[2];
+    neq[0] = op->neq;
+    neq[1] = csub+csim*nsub;    
+    double *yp = &yp0[neq[1]*neq[0]];
+    int nx;
+    rx_solving_options_ind *ind;
+    double *inits;
+    int *evid;
+    double *x;
+    int *BadDose;
+    double *InfusionRate;
+    double *dose;
+    double *ret;
+    double xout;
+    int *rc;
+    inits = op->inits;
+    struct lsoda_context_t ctx = {
+      .function = dydt_liblsoda,
+      .neq = neq[0],
+      .data = &neq,
+      .state = 1
+    };
+    lsoda_prepare(&ctx, &opt);
     ind = &(rx->subjects[neq[1]]);
     ind->ixds = 0;
     nx = ind->n_all_times;
@@ -431,18 +433,8 @@ extern void par_liblsoda(rx_solve *rx){
     update_inis(neq[1], inits); // Update initial conditions
 
     for(i=0; i<neq[0]; i++) yp[i] = inits[i];
-    struct lsoda_context_t ctx = {
-      .function = dydt_liblsoda,
-      .neq = neq[0],
-      .data = &neq,
-      .state = 1
-    };
-    lsoda_prepare(&ctx, &opt);
     for(i=0; i<nx; i++) {
       xout = x[i];
-      if (global_debug){
-	Rprintf("i=%d xp=%f xout=%f\n", i, xp, xout);
-      }
       if(xout-xp > DBL_EPSILON*max(fabs(xout),fabs(xp))){
 	lsoda(&ctx, yp, &xp, xout);
 	if (ctx.state <= 0) {
@@ -460,18 +452,8 @@ extern void par_liblsoda(rx_solve *rx){
         xp = xout;
       }
       for(j=0; j<neq[0]; j++) ret[neq[0]*i+j] = yp[j];
-      //Rprintf("wh=%d cmt=%d tm=%g rate=%g\n", wh, cmt, xp, InfusionRate[cmt]);
-
-      if (global_debug){
-	Rprintf("ISTATE=%d, ", ctx.state);
-	for(j=0; j<neq[0]; j++)
-	  {
-	    Rprintf("%f ", yp[j]);
-	  }
-	Rprintf("\n");
-      }
     }
-    lsoda_reset(&ctx);
+    lsoda_free(&ctx);
   }
   Free(yp0);
 }
