@@ -143,10 +143,10 @@ SEXP rxSolveData(rx_solving_options_ind *subjects,
                  int add_cov,
                  int matrix,
                  SEXP op);
-void par_solve(rx_solve *rx, SEXP sd, int ini_updateR);
+void par_solve(rx_solve *rx);
 
 rx_solving_options *getRxOp(rx_solve *rx);
-SEXP RxODE_df(SEXP sd, int doDose);
+SEXP RxODE_df(SEXP sd, int doDose, int ini_updateR);
 SEXP RxODE_par_df(SEXP sd);
 
 rx_solving_options_ind *rxOptionsIniEnsure(int mx);

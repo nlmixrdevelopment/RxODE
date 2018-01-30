@@ -365,7 +365,8 @@ int handle_evid(int evid, int neq,
   return 0;
 }
 
-extern void par_liblsoda(rx_solve *rx, SEXP sd, int ini_updateR){
+extern void par_liblsoda(rx_solve *rx){
+  int i, j;
   rx_solving_options *op;
   if(!R_ExternalPtrAddr(rx->op)){
     error("Cannot get global ode solver options.");
@@ -377,29 +378,102 @@ extern void par_liblsoda(rx_solve *rx, SEXP sd, int ini_updateR){
   struct lsoda_opt_t opt = {0};
   opt.ixpr = 0; // No extra printing...
   // Unlike traditional lsoda, these are vectors.
-  /* opt.rtol = rtol;  */
-  /* opt.atol = atol; */
+  opt.rtol = op->rtol2;
+  opt.atol = op->atol2;
   opt.itask = 1;
   opt.mxstep = op->mxstep;
   opt.mxhnil = 0;
   opt.mxordn = op->MXORDN;
   opt.mxords = op->MXORDS;
   opt.h0 = op->H0;
-  /* opt.hmax = ; ind->HMAX.... Need a HMAX for liblsoda*/
+  opt.hmax = op->hmax2;
   opt.hmin = op->HMIN;
   opt.hmxi = 0.0;
-  
-  struct lsoda_context_t ctx = {
-    .function = dydt_liblsoda,
-    .neq = neq[0],
-    .data = &neq,
-    .state = 1
-  };
-  
-  lsoda_prepare(&ctx, &opt);
+
+  int nx;
+  rx_solving_options_ind *ind;
+  double *inits;
+  int *evid;
+  double *x;
+  int *BadDose;
+  double *InfusionRate;
+  double *dose;
+  double *ret;
+  double *yp;
+  double xout;
+  int *rc;
+  int nsub = rx->nsub;
+  int nsim = rx->nsim;
+  /* int cores = op->cores; */
+  inits = op->inits;
+  for (int csim = 0; csim < nsim; csim++){
+    // This part CAN be parallelized, but the original LSODA is not thread safe.
+    for (int csub = 0; csub < nsub; csub++){
+      neq[1] = csub+csim*nsub;
+      ind = &(rx->subjects[neq[1]]);
+      ind->ixds = 0;
+      nx = ind->n_all_times;
+      evid = ind->evid;
+      BadDose = ind->BadDose;
+      InfusionRate = ind->InfusionRate;
+      dose = ind->dose;
+      ret = ind->solve;
+      x = ind->all_times;
+      rc= ind->rc;
+      double xp = x[0];
+      //--- inits the system
+      update_inis(neq[1], inits); // Update initial conditions
+      
+      // This needs to be called per core.
+      yp = Calloc(neq[0], double);
+
+      for(i=0; i<neq[0]; i++) yp[i] = inits[i];
+      struct lsoda_context_t ctx = {
+        .function = dydt_liblsoda,
+        .neq = neq[0],
+        .data = &neq,
+        .state = 1
+      };
+      lsoda_prepare(&ctx, &opt);
+      for(i=0; i<nx; i++) {
+        xout = x[i];
+        if (global_debug){
+          Rprintf("i=%d xp=%f xout=%f\n", i, xp, xout);
+        }
+        if(xout-xp > DBL_EPSILON*max(fabs(xout),fabs(xp))){
+          lsoda(&ctx, yp, &xp, xout);
+          if (ctx.state <= 0) {
+            /* Rprintf("IDID=%d, %s\n", istate, err_msg[-istate-1]); */
+            *rc = ctx.state;
+            // Bad Solve => NA
+            for (i = 0; i < nx*neq[0]; i++) ret[i] = NA_REAL;
+            op->badSolve = 1;
+            i = nx+42; // Get out of here!
+          }
+          if (handle_evid(evid[i], neq[0], BadDose, InfusionRate, dose, yp,
+                          op->do_transit_abs, xout, ind)){
+            ctx.state = 1;
+            xp = xout;
+          }
+        }
+        for(j=0; j<neq[0]; j++) ret[neq[0]*i+j] = yp[j];
+        //Rprintf("wh=%d cmt=%d tm=%g rate=%g\n", wh, cmt, xp, InfusionRate[cmt]);
+
+        if (global_debug){
+          Rprintf("ISTATE=%d, ", ctx.state);
+          for(j=0; j<neq[0]; j++)
+            {
+              Rprintf("%f ", yp[j]);
+            }
+          Rprintf("\n");
+        }
+      }
+      Free(yp);
+    }
+  }
 }
 
-extern void par_lsoda(rx_solve *rx, SEXP sd, int ini_updateR){
+extern void par_lsoda(rx_solve *rx){
   int i, j;
   double xout;
   double *yp;
@@ -458,7 +532,6 @@ extern void par_lsoda(rx_solve *rx, SEXP sd, int ini_updateR){
   int nsub = rx->nsub;
   int nsim = rx->nsim;
   /* int cores = op->cores; */
-  int updateR = ini_updateR;
   inits = op->inits;
   for (int csim = 0; csim < nsim; csim++){
     // This part CAN be parallelized, but the original LSODA is not thread safe.
@@ -484,7 +557,7 @@ extern void par_lsoda(rx_solve *rx, SEXP sd, int ini_updateR){
         if (global_debug){
           Rprintf("i=%d xp=%f xout=%f\n", i, xp, xout);
         }
-        if(xout-xp> DBL_EPSILON*max(fabs(xout),fabs(xp)))
+        if(xout-xp > DBL_EPSILON*max(fabs(xout),fabs(xp)))
           {
             F77_CALL(dlsoda)(dydt_lsoda_dum, neq, yp, &xp, &xout, &itol, &rtol, &atol, &itask,
                              &istate, &iopt, rwork, &lrw, iwork, &liw, jdum_lsoda, &jt);
@@ -528,8 +601,6 @@ extern void par_lsoda(rx_solve *rx, SEXP sd, int ini_updateR){
     /*   /\* Free(yp); *\/ */
     /*   /\* return; *\/ */
     /* } */
-    if (updateR)
-      updateR=rxUpdateResiduals_(sd);
   }
   Free(rwork);
   Free(iwork);
@@ -542,7 +613,7 @@ extern void par_lsoda_thread(SEXP sd){
 //dummy solout fn
 void solout(long int nr, double t_old, double t, double *y, int *nptr, int *irtrn){}
 
-void par_dop(rx_solve *rx, SEXP sd, int ini_updateR){
+void par_dop(rx_solve *rx){
   int i, j;
   double xout;
   double *yp;
@@ -584,7 +655,6 @@ void par_dop(rx_solve *rx, SEXP sd, int ini_updateR){
     warning("dop853 is not thread safe and is not parallelized.");
   }
   int nx;
-  int updateR = ini_updateR;
   for (int csim = 0; csim < nsim; csim++){
     // This part CAN be parallelized, if dop is thread safe...
     // Therefore you could use https://github.com/jacobwilliams/dop853, but I haven't yet
@@ -674,21 +744,19 @@ void par_dop(rx_solve *rx, SEXP sd, int ini_updateR){
       /*   return; */
       /* } */
     }
-    if (updateR)
-      updateR=rxUpdateResiduals_(sd);
   }
 }
 
-void par_solve(rx_solve *rx, SEXP sd, int ini_updateR){
+void par_solve(rx_solve *rx){
   rx_solving_options *op;
   op = getRxOp(rx);
   if (op->neq > 0){
     if (op->stiff == 1){
       // lsoda
-      par_lsoda(rx, sd, ini_updateR);
+      par_lsoda(rx);
     } else if (op->stiff == 0){
       // dop
-      par_dop(rx, sd, ini_updateR);
+      par_dop(rx);
     }
   }
 }
@@ -1378,7 +1446,7 @@ extern SEXP RxODE_par_df(SEXP sd){
   return ret;
 }
 
-extern SEXP RxODE_df(SEXP sd, int doDose){
+extern SEXP RxODE_df(SEXP sd, int doDose, int ini_updateR){
   rx_solve *rx;
   rx = getRxSolve(sd);
   rx_solving_options *op;
@@ -1453,7 +1521,10 @@ extern SEXP RxODE_df(SEXP sd, int doDose){
   int extraCmt = op->extraCmt;
   double *dose;
   int di = 0;
+  int updateR = ini_updateR;
   for (int csim = 0; csim < nsim; csim++){
+    if (updateR)
+      updateR=rxUpdateResiduals_(sd);
     for (csub = 0; csub < nsub; csub++){
       neq[1] = csub+csim*nsub;
       ind = &(rx->subjects[neq[1]]);

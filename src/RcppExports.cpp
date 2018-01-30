@@ -39,13 +39,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // rxUpdateResiduals
-bool rxUpdateResiduals(List& multiData);
-RcppExport SEXP _RxODE_rxUpdateResiduals(SEXP multiDataSEXP) {
+bool rxUpdateResiduals(List& multiData, bool zero);
+RcppExport SEXP _RxODE_rxUpdateResiduals(SEXP multiDataSEXP, SEXP zeroSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< List& >::type multiData(multiDataSEXP);
-    rcpp_result_gen = Rcpp::wrap(rxUpdateResiduals(multiData));
+    Rcpp::traits::input_parameter< bool >::type zero(zeroSEXP);
+    rcpp_result_gen = Rcpp::wrap(rxUpdateResiduals(multiData, zero));
     return rcpp_result_gen;
 END_RCPP
 }

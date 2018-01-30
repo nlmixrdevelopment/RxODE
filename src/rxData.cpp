@@ -601,6 +601,8 @@ List rxDataSetup(const RObject &ro,
 //' Update RxODE multi-subject data with new residuals (in-place).
 //'
 //' @param multiData The RxODE multi-data object setup from \code{\link{rxDataParSetup}}
+//' 
+//' @param zero instead of simulating, zero out the covariates
 //'
 //' @return An integer indicating if this is object has residuals that are updating (0 for no-residuals; 1 for residuals).
 //'        
@@ -608,7 +610,7 @@ List rxDataSetup(const RObject &ro,
 //' @keywords internal
 //' @export
 //[[Rcpp::export]]
-bool rxUpdateResiduals(List &multiData){
+bool rxUpdateResiduals(List &multiData, bool zero = false){
   if (rxIs(multiData, "RxODE.multi.data")){
     RObject sigma = multiData["sigma"];
     if (!sigma.isNULL()){
@@ -616,7 +618,9 @@ bool rxUpdateResiduals(List &multiData){
       RObject df = multiData["df"];
       int ncores = as<int>(multiData["ncoresRV"]);
       bool isChol = as<bool>(multiData["isChol"]);
-      RObject tmp_ro = rxSimSigma(sigma, df, ncores, isChol, totNObs);
+      RObject tmp_ro = R_NilValue;
+      if (!zero)
+	tmp_ro = rxSimSigma(sigma, df, ncores, isChol, totNObs);
       if (!tmp_ro.isNULL()){
 	// Resimulated; now fill in again...
         NumericMatrix simMat = as<NumericMatrix>(tmp_ro);
@@ -638,6 +642,22 @@ bool rxUpdateResiduals(List &multiData){
 	  }
 	}
 	return true;
+      } else if (zero) {
+        SEXP cov_ = multiData["cov"];
+        NumericVector cov = NumericVector(cov_);
+	DataFrame ids = as<DataFrame>(multiData["ids"]);
+        IntegerVector posCov = ids["posCov"];
+        IntegerVector nCov   = ids["nCov"];
+        IntegerVector nObs   = ids["nObs"];
+        int nObsCov = as<int>(multiData["n.observed.covariates"]);
+        int nSimCov = (as<NumericMatrix>(sigma)).ncol();
+        for (int id = 0; id < posCov.size(); id++){
+	  for (int no = 0; no < nObs[id]; no++){
+	    for (int ns = 0; ns < nSimCov; ns++){
+	      cov[posCov[id]+no+(nObsCov+ns)*nObs[id]] = 0;
+	    }
+	  }
+	}
       }
       return false;
     }
@@ -647,14 +667,15 @@ bool rxUpdateResiduals(List &multiData){
 }
 
 
-int rxUpdateResiduals_(SEXP md){
+extern "C" int rxUpdateResiduals_(SEXP md){
   List mdl = List(md);
-  bool ret = rxUpdateResiduals(mdl);
+  bool ret = rxUpdateResiduals(mdl, false);
   if (ret)
     return 1;
   else
     return 0;
 }
+
 extern "C" void set_solve(rx_solve *rx);
 
 rx_solve *getRxSolve(SEXP ptr){
@@ -2134,14 +2155,15 @@ SEXP rxSolveC(const RObject &object,
     
     rx_solve *rx;
     rx = getRxSolve(parData);
-    par_solve(rx, parData, 1);
+    rxUpdateResiduals(parData, true);
+    par_solve(rx);
     int doDose = 0;
     if (addDosing){
       doDose = 1;
     } else {
       doDose = 0;
     }
-    List dat = RxODE_df(parData, doDose);
+    List dat = RxODE_df(parData, doDose, 1);
     List xtra;
     if (!rx->matrix) xtra = RxODE_par_df(parData);
     int nr = as<NumericVector>(dat[0]).size();

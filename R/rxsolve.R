@@ -117,7 +117,7 @@
 ##'     default it is equivalent to \code{Inf}, or a normal distribution.
 ##'
 ##' @param sigmaNcores Number of cores used for the simulation of the
-##'     sigma covariates.  By default this is 1. This uses the package
+##'     sigma variables.  By default this is 1. This uses the package
 ##'     \code{\link[mvnfast]{rmvn}} and \code{\link[mvnfast]{rmvt}}.
 ##'     To reproduce the results you need to run on the same platform
 ##'     with the same number of cores. This is the reason this is set

@@ -25,14 +25,16 @@ rxDataSetup <- function(ro, covNames = NULL, sigma = NULL, df = NULL, ncoresRV =
 #' Update RxODE multi-subject data with new residuals (in-place).
 #'
 #' @param multiData The RxODE multi-data object setup from \code{\link{rxDataParSetup}}
+#' 
+#' @param zero instead of simulating, zero out the covariates
 #'
 #' @return An integer indicating if this is object has residuals that are updating (0 for no-residuals; 1 for residuals).
 #'        
 #' @author Matthew L. Fidler
 #' @keywords internal
 #' @export
-rxUpdateResiduals <- function(multiData) {
-    .Call(`_RxODE_rxUpdateResiduals`, multiData)
+rxUpdateResiduals <- function(multiData, zero = FALSE) {
+    .Call(`_RxODE_rxUpdateResiduals`, multiData, zero)
 }
 
 #' All model variables for a RxODE object

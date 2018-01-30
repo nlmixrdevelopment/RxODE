@@ -159,8 +159,7 @@ extern void rxSolveOldC(int *neqa,
                 0, 0, 12, 5, 1, 0, par_cov, 0, 0, 0, theta,
                 dosep, retp, lhsp, evidp, rc, cov, *ntime,timep);
   rxode_assign_rx(rx);
-  SEXP sd = R_NilValue;
-  par_solve(rx, sd, 0); // Solve without the option of updating residuals.
+  par_solve(rx); // Solve without the option of updating residuals.
   if (*nlhsa) {
     for (i=0; i<*ntime; i++){
       // 0 = first subject; Calc lhs changed...
@@ -254,8 +253,7 @@ void RxODE_ode_solve_env(SEXP sexp_rho){
 			  hmax, theta, dose, solve, lhs, evid, rce, cov,
 			  length(sexp_time), time);
   rxode_assign_rx(rx);
-  SEXP sd = R_NilValue;
-  par_solve(rx, sd, 0); // Solve without the option of updating residuals.
+  par_solve(rx); // Solve without the option of updating residuals.
   defineVar(install(".lhs"), sexp_lhsV, sexp_rho);
   defineVar(install(".solve"), sexp_solve, sexp_rho);
   UNPROTECT(pro);
