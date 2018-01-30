@@ -206,7 +206,7 @@
 ##' @author Matthew Fidler, Melissa Hallow and  Wenping Wang
 ##' @export
 rxSolve <- function(object, params=NULL, events=NULL, inits = NULL, scale = NULL,
-                    covs = NULL, method = "lsoda", transit_abs = NULL, atol = 1.0e-8, rtol = 1.0e-6,
+                    covs = NULL, method = "liblsoda", transit_abs = NULL, atol = 1.0e-8, rtol = 1.0e-6,
                     maxsteps = 5000L, hmin = 0L, hmax = NULL, hini = 0L, maxordn = 12L, maxords = 5L, ...,
                     cores, covs_interpolation = "linear", add.cov = FALSE, matrix = FALSE, sigma = NULL, sigmaDf = NULL,
                     sigmaNcores = 1L, sigmaIsChol = FALSE, amountUnits = NA_character_, timeUnits = "hours", stiff,

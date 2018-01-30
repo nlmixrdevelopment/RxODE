@@ -1528,7 +1528,7 @@ List rxDataParSetup(const RObject &object,
 }
 
 SEXP rxSolvingOptions(const RObject &object,
-                      const std::string &method = "lsoda",
+                      const std::string &method = "liblsoda",
                       const Nullable<LogicalVector> &transit_abs = R_NilValue,
                       const double atol = 1.0e-8,
                       const double rtol = 1.0e-6,
@@ -1595,7 +1595,9 @@ SEXP rxSolvingOptions(const RObject &object,
     stop("Unknown covariate interpolation specified.");
   }
   int st=0;
-  if (method == "lsoda"){
+  if (method == "liblsoda"){
+    st = 2;
+  } else if (method == "lsoda"){
     st = 1;
   } else if (method == "dop853"){
     st = 0;
@@ -1616,7 +1618,7 @@ SEXP rxSolvingOptions(const RObject &object,
 
 SEXP rxSolvingData(const RObject &model,
                    const RObject &parData,
-                   const std::string &method = "lsoda",
+                   const std::string &method = "liblsoda",
                    const Nullable<LogicalVector> &transit_abs = R_NilValue,
 		   const double atol = 1.0e-8,
 		   const double rtol = 1.0e-6,
@@ -1781,7 +1783,7 @@ List rxData(const RObject &object,
             const RObject &events = R_NilValue,
             const RObject &inits = R_NilValue,
             const RObject &covs  = R_NilValue,
-            const std::string &method = "lsoda",
+            const std::string &method = "liblsoda",
             const Nullable<LogicalVector> &transit_abs = R_NilValue,
             const double atol = 1.0e-8,
             const double rtol = 1.0e-6,
@@ -1824,7 +1826,7 @@ List rxData(const RObject &object,
 #define defrx_events R_NilValue
 #define defrx_inits R_NilValue
 #define defrx_covs R_NilValue
-#define defrx_method "lsoda"
+#define defrx_method "liblsoda"
 #define defrx_transit_abs R_NilValue
 #define defrx_atol 1.0e-8
 #define defrx_rtol 1.0e-8
@@ -1863,7 +1865,7 @@ SEXP rxSolveC(const RObject &object,
 	      const RObject &inits = R_NilValue,
 	      const RObject &scale = R_NilValue,
 	      const RObject &covs  = R_NilValue,
-	      const CharacterVector &method = "lsoda",
+	      const CharacterVector &method = "liblsoda",
 	      const Nullable<LogicalVector> &transit_abs = R_NilValue,
 	      const double atol = 1.0e-8,
 	      const double rtol = 1.0e-6,
@@ -2052,6 +2054,7 @@ SEXP rxSolveC(const RObject &object,
     if (!rxDynLoad(object)){
       stop("Cannot load RxODE dlls for this model.");
     }
+    Rprintf("cores0: %d\n",cores);
     List parData = rxData(object, params, events, inits, covs, as<std::string>(method[0]), transit_abs, atol,
                           rtol, maxsteps, hmin,hmax, hini, maxordn, maxords, cores,
                           as<std::string>(covs_interpolation[0]), addCov, matrix, sigma, sigmaDf, sigmaNcores, sigmaIsChol,
@@ -2060,7 +2063,9 @@ SEXP rxSolveC(const RObject &object,
       // Backwards Compatible; Create solving environment
       if (as<int>(parData["nsim"]) == 1 && as<int>(parData["nSub"]) == 1){
 	int stiff = 0;
-	if (as<std::string>(method[0]) == "lsoda"){
+        if (as<std::string>(method[0]) == "liblsoda"){
+	  stiff = 2;
+	} else if (as<std::string>(method[0]) == "lsoda"){
 	  stiff = 1;
 	} else if (as<std::string>(method[0]) != "dop853") {
 	  stop("Only lsoda or dop853 can be used with do.solve=FALSE");
