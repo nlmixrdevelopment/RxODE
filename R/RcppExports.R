@@ -18,8 +18,8 @@ rxIs <- function(obj, cls) {
     .Call(`_RxODE_rxIs`, obj, cls)
 }
 
-rxDataSetup <- function(ro, covNames = NULL, sigma = NULL, df = NULL, ncoresRV = 1L, isChol = FALSE, amountUnits = NA_character_, timeUnits = "hours") {
-    .Call(`_RxODE_rxDataSetup`, ro, covNames, sigma, df, ncoresRV, isChol, amountUnits, timeUnits)
+rxDataSetup <- function(ro, covNames = NULL, sigma = NULL, df = NULL, ncoresRV = 1L, isChol = FALSE, nDisplayProgress = 10000L, amountUnits = NA_character_, timeUnits = "hours") {
+    .Call(`_RxODE_rxDataSetup`, ro, covNames, sigma, df, ncoresRV, isChol, nDisplayProgress, amountUnits, timeUnits)
 }
 
 #' Update RxODE multi-subject data with new residuals (in-place).
@@ -197,8 +197,8 @@ rxSetupScale <- function(obj, scale = NULL, extraArgs = NULL) {
 #' @author Matthew L. Fidler
 #' @keywords internal
 #' @export
-rxDataParSetup <- function(object, params = NULL, events = NULL, inits = NULL, covs = NULL, sigma = NULL, sigmaDf = NULL, sigmaNcores = 1L, sigmaIsChol = FALSE, amountUnits = NA_character_, timeUnits = "hours", theta = NULL, eta = NULL, scale = NULL, extraArgs = NULL) {
-    .Call(`_RxODE_rxDataParSetup`, object, params, events, inits, covs, sigma, sigmaDf, sigmaNcores, sigmaIsChol, amountUnits, timeUnits, theta, eta, scale, extraArgs)
+rxDataParSetup <- function(object, params = NULL, events = NULL, inits = NULL, covs = NULL, sigma = NULL, sigmaDf = NULL, sigmaNcores = 1L, sigmaIsChol = FALSE, nDisplayProgress = 10000L, amountUnits = NA_character_, timeUnits = "hours", theta = NULL, eta = NULL, scale = NULL, extraArgs = NULL) {
+    .Call(`_RxODE_rxDataParSetup`, object, params, events, inits, covs, sigma, sigmaDf, sigmaNcores, sigmaIsChol, nDisplayProgress, amountUnits, timeUnits, theta, eta, scale, extraArgs)
 }
 
 rxSolveCsmall <- function(object, specParams = NULL, extraArgs = NULL, params = NULL, events = NULL, inits = NULL, scale = NULL, covs = NULL, optsL = NULL) {

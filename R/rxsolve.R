@@ -209,7 +209,8 @@ rxSolve <- function(object, params=NULL, events=NULL, inits = NULL, scale = NULL
                     covs = NULL, method = "liblsoda", transit_abs = NULL, atol = 1.0e-8, rtol = 1.0e-6,
                     maxsteps = 5000L, hmin = 0L, hmax = NULL, hini = 0L, maxordn = 12L, maxords = 5L, ...,
                     cores, covs_interpolation = "linear", add.cov = FALSE, matrix = FALSE, sigma = NULL, sigmaDf = NULL,
-                    sigmaNcores = 1L, sigmaIsChol = FALSE, amountUnits = NA_character_, timeUnits = "hours", stiff,
+                    sigmaNcores = 1L, sigmaIsChol = FALSE, nDisplayProgress=10000L,
+                    amountUnits = NA_character_, timeUnits = "hours", stiff,
                     theta = NULL, eta = NULL, addDosing=FALSE, update.object=FALSE,do.solve=TRUE){
     ## stiff = TRUE, transit_abs = NULL,
     ## atol = 1.0e-8, rtol = 1.0e-6, maxsteps = 5000, hmin = 0, hmax = NULL, hini = 0, maxordn = 12,
@@ -243,7 +244,8 @@ rxSolve <- function(object, params=NULL, events=NULL, inits = NULL, scale = NULL
           params, events, inits, scale, covs, list(method, transit_abs, atol, rtol,
                                                    maxsteps, hmin, hmax, hini, maxordn, maxords, cores,
                                                    covs_interpolation, add.cov, matrix, sigma, sigmaDf,
-                                                   sigmaNcores, sigmaIsChol, amountUnits, timeUnits, addDosing, theta, eta, update.object,
+                                                   sigmaNcores, sigmaIsChol, nDisplayProgress, amountUnits,
+                                                   timeUnits, addDosing, theta, eta, update.object,
                                                    do.solve));
 }
 

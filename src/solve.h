@@ -39,6 +39,7 @@ typedef struct {
   double hmax2; // Determined by diff
   double *rtol2;
   double *atol2;
+  int nDisplayProgress;
 } rx_solving_options;
 
 
@@ -118,7 +119,8 @@ SEXP getSolvingOptionsPtr(double ATOL,          //absolute error
                           SEXP paramNames,
 			  double hmax2,
                           double *atol2,
-                          double *rtol2);
+                          double *rtol2,
+                          int nDisplayProgress);
 void getSolvingOptionsIndPtr(double *InfusionRate,
                              int *BadDose,
                              double HMAX, // Determined by diff

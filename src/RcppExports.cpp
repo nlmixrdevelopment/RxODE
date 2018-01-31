@@ -21,8 +21,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // rxDataSetup
-List rxDataSetup(const RObject& ro, const RObject& covNames, const RObject& sigma, const RObject& df, const int& ncoresRV, const bool& isChol, const StringVector& amountUnits, const StringVector& timeUnits);
-RcppExport SEXP _RxODE_rxDataSetup(SEXP roSEXP, SEXP covNamesSEXP, SEXP sigmaSEXP, SEXP dfSEXP, SEXP ncoresRVSEXP, SEXP isCholSEXP, SEXP amountUnitsSEXP, SEXP timeUnitsSEXP) {
+List rxDataSetup(const RObject& ro, const RObject& covNames, const RObject& sigma, const RObject& df, const int& ncoresRV, const bool& isChol, const int& nDisplayProgress, const StringVector& amountUnits, const StringVector& timeUnits);
+RcppExport SEXP _RxODE_rxDataSetup(SEXP roSEXP, SEXP covNamesSEXP, SEXP sigmaSEXP, SEXP dfSEXP, SEXP ncoresRVSEXP, SEXP isCholSEXP, SEXP nDisplayProgressSEXP, SEXP amountUnitsSEXP, SEXP timeUnitsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -32,9 +32,10 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const RObject& >::type df(dfSEXP);
     Rcpp::traits::input_parameter< const int& >::type ncoresRV(ncoresRVSEXP);
     Rcpp::traits::input_parameter< const bool& >::type isChol(isCholSEXP);
+    Rcpp::traits::input_parameter< const int& >::type nDisplayProgress(nDisplayProgressSEXP);
     Rcpp::traits::input_parameter< const StringVector& >::type amountUnits(amountUnitsSEXP);
     Rcpp::traits::input_parameter< const StringVector& >::type timeUnits(timeUnitsSEXP);
-    rcpp_result_gen = Rcpp::wrap(rxDataSetup(ro, covNames, sigma, df, ncoresRV, isChol, amountUnits, timeUnits));
+    rcpp_result_gen = Rcpp::wrap(rxDataSetup(ro, covNames, sigma, df, ncoresRV, isChol, nDisplayProgress, amountUnits, timeUnits));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -148,8 +149,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // rxDataParSetup
-List rxDataParSetup(const RObject& object, const RObject& params, const RObject& events, const RObject& inits, const RObject& covs, const RObject& sigma, const RObject& sigmaDf, const int& sigmaNcores, const bool& sigmaIsChol, const StringVector& amountUnits, const StringVector& timeUnits, const RObject& theta, const RObject& eta, const RObject& scale, const Nullable<List>& extraArgs);
-RcppExport SEXP _RxODE_rxDataParSetup(SEXP objectSEXP, SEXP paramsSEXP, SEXP eventsSEXP, SEXP initsSEXP, SEXP covsSEXP, SEXP sigmaSEXP, SEXP sigmaDfSEXP, SEXP sigmaNcoresSEXP, SEXP sigmaIsCholSEXP, SEXP amountUnitsSEXP, SEXP timeUnitsSEXP, SEXP thetaSEXP, SEXP etaSEXP, SEXP scaleSEXP, SEXP extraArgsSEXP) {
+List rxDataParSetup(const RObject& object, const RObject& params, const RObject& events, const RObject& inits, const RObject& covs, const RObject& sigma, const RObject& sigmaDf, const int& sigmaNcores, const bool& sigmaIsChol, const int& nDisplayProgress, const StringVector& amountUnits, const StringVector& timeUnits, const RObject& theta, const RObject& eta, const RObject& scale, const Nullable<List>& extraArgs);
+RcppExport SEXP _RxODE_rxDataParSetup(SEXP objectSEXP, SEXP paramsSEXP, SEXP eventsSEXP, SEXP initsSEXP, SEXP covsSEXP, SEXP sigmaSEXP, SEXP sigmaDfSEXP, SEXP sigmaNcoresSEXP, SEXP sigmaIsCholSEXP, SEXP nDisplayProgressSEXP, SEXP amountUnitsSEXP, SEXP timeUnitsSEXP, SEXP thetaSEXP, SEXP etaSEXP, SEXP scaleSEXP, SEXP extraArgsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -162,13 +163,14 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const RObject& >::type sigmaDf(sigmaDfSEXP);
     Rcpp::traits::input_parameter< const int& >::type sigmaNcores(sigmaNcoresSEXP);
     Rcpp::traits::input_parameter< const bool& >::type sigmaIsChol(sigmaIsCholSEXP);
+    Rcpp::traits::input_parameter< const int& >::type nDisplayProgress(nDisplayProgressSEXP);
     Rcpp::traits::input_parameter< const StringVector& >::type amountUnits(amountUnitsSEXP);
     Rcpp::traits::input_parameter< const StringVector& >::type timeUnits(timeUnitsSEXP);
     Rcpp::traits::input_parameter< const RObject& >::type theta(thetaSEXP);
     Rcpp::traits::input_parameter< const RObject& >::type eta(etaSEXP);
     Rcpp::traits::input_parameter< const RObject& >::type scale(scaleSEXP);
     Rcpp::traits::input_parameter< const Nullable<List>& >::type extraArgs(extraArgsSEXP);
-    rcpp_result_gen = Rcpp::wrap(rxDataParSetup(object, params, events, inits, covs, sigma, sigmaDf, sigmaNcores, sigmaIsChol, amountUnits, timeUnits, theta, eta, scale, extraArgs));
+    rcpp_result_gen = Rcpp::wrap(rxDataParSetup(object, params, events, inits, covs, sigma, sigmaDf, sigmaNcores, sigmaIsChol, nDisplayProgress, amountUnits, timeUnits, theta, eta, scale, extraArgs));
     return rcpp_result_gen;
 END_RCPP
 }

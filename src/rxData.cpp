@@ -270,6 +270,7 @@ List rxDataSetup(const RObject &ro,
 		 const RObject &df = R_NilValue,
 		 const int &ncoresRV = 1,
 		 const bool &isChol = false,
+                 const int &nDisplayProgress = 10000,
 		 const StringVector &amountUnits = NA_STRING,
 		 const StringVector &timeUnits = "hours"){
   // Purpose: get positions of each id and the length of each id's observations
@@ -313,7 +314,7 @@ List rxDataSetup(const RObject &ro,
     // }
     CharacterVector amt = (units["dosing"] == NA_STRING) ? StringVector::create(NA_STRING) : as<StringVector>(units["dosing"]);
     CharacterVector time = (units["time"] == NA_STRING) ? StringVector::create(NA_STRING) : as<StringVector>(units["time"]);
-    return rxDataSetup(dataf, covNames, sigma, df, ncoresRV, isChol, amt, time);
+    return rxDataSetup(dataf, covNames, sigma, df, ncoresRV, isChol, nDisplayProgress, amt, time);
   } else if (rxIs(ro,"event.data.frame")||
       rxIs(ro,"event.matrix")){
     DataFrame dataf = as<DataFrame>(ro);
@@ -588,11 +589,12 @@ List rxDataSetup(const RObject &ro,
     ret["df"]= df;
     ret["idose"] = idose;
     ret["Hmax"] = HmaxA;
+    ret["nDisplayProgress"] = nDisplayProgress;
     ret.attr("class") = "RxODE.multi.data";
     return ret;
   } else if (rxIs(ro,"list")){
     Function asDf("as.data.frame", R_BaseNamespace);
-    return rxDataSetup(asDf(ro), covNames,sigma, df, ncoresRV, isChol, amountUnits, timeUnits);
+    return rxDataSetup(asDf(ro), covNames,sigma, df, ncoresRV, isChol, nDisplayProgress, amountUnits, timeUnits);
   } else {
     stop("Data is not setup appropriately.");
   }
@@ -1317,6 +1319,7 @@ List rxDataParSetup(const RObject &object,
 		    const RObject &sigmaDf= R_NilValue,
 		    const int &sigmaNcores= 1,
 		    const bool &sigmaIsChol= false,
+                    const int &nDisplayProgress = 10000,
 		    const StringVector &amountUnits = NA_STRING,
 		    const StringVector &timeUnits = "hours",
 		    const RObject &theta = R_NilValue,
@@ -1379,11 +1382,13 @@ List rxDataParSetup(const RObject &object,
 	}
       }
     }
+    
     ret = rxDataSetup(ev1, (covnames.size() == 0 ? R_NilValue : wrap(covnames)),
-		      sigma, sigmaDf, sigmaNcores, sigmaIsChol, amountUnits, timeUnits);
+		      sigma, sigmaDf, sigmaNcores, sigmaIsChol, nDisplayProgress, 
+		      amountUnits, timeUnits);
   } else {
     ret = rxDataSetup(ev1, covs, sigma, sigmaDf,
-		      sigmaNcores, sigmaIsChol, amountUnits, timeUnits);
+		      sigmaNcores, sigmaIsChol, nDisplayProgress, amountUnits, timeUnits);
     covnames0 = as<Nullable<CharacterVector>>(ret["cov.names"]);
     if (!covnames0.isNull()){
       covnames = CharacterVector(covnames0);
@@ -1546,7 +1551,8 @@ SEXP rxSolvingOptions(const RObject &object,
 		      std::string covs_interpolation = "linear",
 		      double hmax2 = 0,
                       double *atol2 = NULL,
-                      double *rtol2 = NULL){
+                      double *rtol2 = NULL,
+                      int nDisplayProgress = 10000){
   if (maxordn < 1 || maxordn > 12){
     stop("'maxordn' must be >1 and <= 12.");
   }
@@ -1613,7 +1619,7 @@ SEXP rxSolvingOptions(const RObject &object,
 			      st, f1, f2, kind, is_locf, cores,
 			      ncov,par_cov, do_par_cov, &inits[0], &scale[0],
 			      as<SEXP>(state), as<SEXP>(lhs),
-			      as<SEXP>(params), hmax2, atol2, rtol2);
+			      as<SEXP>(params), hmax2, atol2, rtol2, nDisplayProgress);
 }
 
 SEXP rxSolvingData(const RObject &model,
@@ -1709,7 +1715,7 @@ SEXP rxSolvingData(const RObject &model,
     double hmax2 = as<double>(opt["Hmax"]);
     SEXP op = rxSolvingOptions(model,method, transit_abs, atol, rtol, maxsteps, hmin, hini, maxordn,
 			       maxords, cores, ncov, &par_cov[0], do_par_cov, &inits[0], &scale[0], covs_interpolation,
-			       hmax2,&atol2[0],&rtol2[0]);
+			       hmax2,&atol2[0],&rtol2[0], as<int>(opt["nDisplayProgress"]));
     int add_cov = 0;
     if (addCov) add_cov = 1;
     int nobs = as<int>(opt["nObs"]);
@@ -1801,6 +1807,7 @@ List rxData(const RObject &object,
             const RObject &sigmaDf= R_NilValue,
             const int &sigmaNcores= 1,
             const bool &sigmaIsChol= false,
+            const int &nDisplayProgress = 10000,
             const StringVector &amountUnits = NA_STRING,
             const StringVector &timeUnits = "hours",
 	    const RObject &theta = R_NilValue,
@@ -1808,7 +1815,7 @@ List rxData(const RObject &object,
 	    const RObject &scale = R_NilValue,
 	    const Nullable<List> &extraArgs = R_NilValue){
   List parData = rxDataParSetup(object,params, events, inits, covs, sigma, sigmaDf,
-				sigmaNcores, sigmaIsChol, amountUnits, timeUnits,
+				sigmaNcores, sigmaIsChol, nDisplayProgress, amountUnits, timeUnits,
 				theta,eta, scale, extraArgs);
   parData["pointer"] = rxSolvingData(object, parData, method, transit_abs, atol,  rtol, maxsteps,
                                      hmin, hmax,  hini, maxordn, maxords, cores, covs_interpolation,
@@ -1844,6 +1851,7 @@ List rxData(const RObject &object,
 #define defrx_sigmaDf R_NilValue
 #define defrx_sigmaNcores 1
 #define defrx_sigmaIsChol false
+#define defrx_nDisplayProgress 10000
 #define defrx_amountUnits NA_STRING
 #define defrx_timeUnits "hours"
 #define defrx_addDosing false
@@ -1883,6 +1891,7 @@ SEXP rxSolveC(const RObject &object,
 	      const RObject &sigmaDf= R_NilValue,
 	      const int &sigmaNcores= 1,
 	      const bool &sigmaIsChol= false,
+	      const int &nDisplayProgress = 10000,
 	      const CharacterVector &amountUnits = NA_STRING,
 	      const CharacterVector &timeUnits = "hours",
               const bool addDosing = false,
@@ -1895,7 +1904,7 @@ SEXP rxSolveC(const RObject &object,
     return rxSolveC(rxCurObj, specParams, extraArgs, params, events, inits,
                     scale, covs, method, transit_abs, atol, rtol, maxsteps,
                     hmin, hmax, hini, maxordn, maxords, cores,covs_interpolation,
-                    addCov, matrix, sigma, sigmaDf, sigmaNcores, sigmaIsChol,
+                    addCov, matrix, sigma, sigmaDf, sigmaNcores, sigmaIsChol, nDisplayProgress,
                     amountUnits,timeUnits, addDosing, R_NilValue, R_NilValue, updateObject, false);
   } else if (rxIs(object, "rxSolve") || rxIs(object, "environment")){
     // Check to see what parameters were updated by specParams
@@ -2018,6 +2027,7 @@ SEXP rxSolveC(const RObject &object,
     RObject new_sigmaDf = update_sigmaDf ? sigmaDf : e["args.sigmaDf"];
     int new_sigmaNcores = update_sigmaNcores ? sigmaNcores : e["args.sigmaNcores"];
     bool new_sigmaIsChol = update_sigmaIsChol ? sigmaIsChol : e["args.sigmaIsChol"];
+    int new_nDisplayProgress = e["args.nDisplayProgress"];
     CharacterVector new_amountUnits = update_amountUnits ? amountUnits : e["args.amountUnits"];
     CharacterVector new_timeUnits = update_timeUnits ? timeUnits : e["args.timeUnits"];
     RObject new_scale = update_scale ? scale : e["args.scale"];
@@ -2029,7 +2039,7 @@ SEXP rxSolveC(const RObject &object,
 				 new_method, new_transit_abs, new_atol, new_rtol, new_maxsteps, new_hmin,
 				 new_hmax, new_hini,new_maxordn, new_maxords, new_cores, new_covs_interpolation,
 				 new_addCov, new_matrix, new_sigma, new_sigmaDf, new_sigmaNcores, new_sigmaIsChol,
-				 new_amountUnits, new_timeUnits, new_addDosing));
+                                 new_nDisplayProgress, new_amountUnits, new_timeUnits, new_addDosing));
     if (updateObject && as<bool>(e[".real.update"])){
       List old = as<List>(rxCurObj);
       //Should I zero out the List...?
@@ -2057,7 +2067,7 @@ SEXP rxSolveC(const RObject &object,
     List parData = rxData(object, params, events, inits, covs, as<std::string>(method[0]), transit_abs, atol,
                           rtol, maxsteps, hmin,hmax, hini, maxordn, maxords, cores,
                           as<std::string>(covs_interpolation[0]), addCov, matrix, sigma, sigmaDf, sigmaNcores, sigmaIsChol,
-                          amountUnits, timeUnits, theta, eta, scale, extraArgs);
+                          nDisplayProgress, amountUnits, timeUnits, theta, eta, scale, extraArgs);
     if (!doSolve){
       // Backwards Compatible; Create solving environment
       if (as<int>(parData["nsim"]) == 1 && as<int>(parData["nSub"]) == 1){
@@ -2299,6 +2309,7 @@ SEXP rxSolveC(const RObject &object,
       e["args.sigmaDf"] = sigmaDf;
       e["args.sigmaNcores"] = sigmaNcores;
       e["args.sigmaIsChol"] = sigmaIsChol;
+      e["args.nDisplayProgress"] = nDisplayProgress;
       e["args.amountUnits"] = amountUnits;
       e["args.timeUnits"] = timeUnits;
       e["args.addDosing"] = addDosing;
@@ -2347,13 +2358,14 @@ SEXP rxSolveCsmall(const RObject &object,
                   opts[15], //const RObject &sigmaDf= R_NilValue,
                   opts[16], //const int &sigmaNcores= 1,
                   opts[17], //const bool &sigmaIsChol= false,
-                  opts[18], //const CharacterVector &amountUnits = NA_STRING,
-                  opts[19], //const CharacterVector &timeUnits = "hours",
-                  opts[20], //const RObject &theta = R_NilValue,
-                  opts[21], //const RObject &eta = R_NilValue,
-                  opts[22], //const bool addDosing = false
-		  opts[23],
-		  opts[24]);//const bool updateObject = false)
+                  opts[18], // nDisplayProgress
+                  opts[19], //const CharacterVector &amountUnits = NA_STRING,
+                  opts[20], //const CharacterVector &timeUnits = "hours",
+                  opts[21], //const RObject &theta = R_NilValue,
+                  opts[22], //const RObject &eta = R_NilValue,
+                  opts[23], //const bool addDosing = false
+		  opts[24],
+		  opts[25]);//const bool updateObject = false)
 }
 
 //[[Rcpp::export]]
@@ -2519,6 +2531,7 @@ RObject rxSolveUpdate(RObject obj,
                           defrx_sigmaDf,
                           defrx_sigmaNcores,
                           defrx_sigmaIsChol,
+                          defrx_nDisplayProgress,
                           defrx_amountUnits,
                           defrx_timeUnits, defrx_addDosing);
 	} else if (sarg == "events"){
@@ -2548,6 +2561,7 @@ RObject rxSolveUpdate(RObject obj,
 			  defrx_sigmaDf,
 			  defrx_sigmaNcores,
 			  defrx_sigmaIsChol,
+                          defrx_nDisplayProgress,
 			  defrx_amountUnits,
 			  defrx_timeUnits, 
 			  defrx_addDosing);
@@ -2578,6 +2592,7 @@ RObject rxSolveUpdate(RObject obj,
                           defrx_sigmaDf,
                           defrx_sigmaNcores,
                           defrx_sigmaIsChol,
+                          defrx_nDisplayProgress,
                           defrx_amountUnits,
                           defrx_timeUnits, 
 			  defrx_addDosing);
@@ -2608,6 +2623,7 @@ RObject rxSolveUpdate(RObject obj,
                           defrx_sigmaDf,
                           defrx_sigmaNcores,
                           defrx_sigmaIsChol,
+                          defrx_nDisplayProgress,
                           defrx_amountUnits,
                           defrx_timeUnits, 
 			  defrx_addDosing);
@@ -2671,6 +2687,7 @@ RObject rxSolveUpdate(RObject obj,
 				defrx_sigmaDf,
 				defrx_sigmaNcores,
 				defrx_sigmaIsChol,
+                                defrx_nDisplayProgress,
 				defrx_amountUnits,
 				defrx_timeUnits, 
 				defrx_addDosing);
@@ -2726,6 +2743,7 @@ RObject rxSolveUpdate(RObject obj,
 				defrx_sigmaDf,
 				defrx_sigmaNcores,
 				defrx_sigmaIsChol,
+                                defrx_nDisplayProgress,
 				defrx_amountUnits,
 				defrx_timeUnits, 
 				defrx_addDosing);
@@ -2769,6 +2787,7 @@ RObject rxSolveUpdate(RObject obj,
 				defrx_sigmaDf,
 				defrx_sigmaNcores,
 				defrx_sigmaIsChol,
+                                defrx_nDisplayProgress,
 				defrx_amountUnits,
 				defrx_timeUnits, 
 				defrx_addDosing);
@@ -2825,6 +2844,7 @@ RObject rxSolveUpdate(RObject obj,
 				defrx_sigmaDf,
 				defrx_sigmaNcores,
 				defrx_sigmaIsChol,
+                                defrx_nDisplayProgress,
 				defrx_amountUnits,
 				defrx_timeUnits, 
 				defrx_addDosing);
@@ -2898,6 +2918,7 @@ RObject rxSolveUpdate(RObject obj,
 			      defrx_sigmaDf,
 			      defrx_sigmaNcores,
 			      defrx_sigmaIsChol,
+                              defrx_nDisplayProgress,
 			      defrx_amountUnits,
 			      defrx_timeUnits, 
 			      defrx_addDosing);
