@@ -9,10 +9,12 @@ rxSolve(object, params = NULL, events = NULL, inits = NULL,
   atol = 1e-08, rtol = 1e-06, maxsteps = 5000L, hmin = 0L,
   hmax = NULL, hini = 0L, maxordn = 12L, maxords = 5L, ..., cores,
   covs_interpolation = "linear", add.cov = FALSE, matrix = FALSE,
-  sigma = NULL, sigmaDf = NULL, sigmaNcores = 1L, sigmaIsChol = FALSE,
+  sigma = NULL, sigmaDf = NULL, nCoresRV = 1L, sigmaIsChol = FALSE,
   nDisplayProgress = 10000L, amountUnits = NA_character_,
   timeUnits = "hours", stiff, theta = NULL, eta = NULL,
-  addDosing = FALSE, update.object = FALSE, do.solve = TRUE)
+  addDosing = FALSE, update.object = FALSE, do.solve = TRUE,
+  omega = NULL, omegaDf = NULL, omegaIsChol = FALSE, nSub = 1L,
+  thetaMat = NULL, thetaDf = NULL, thetaIsChol = FALSE, nStud = 1L)
 }
 \arguments{
 \item{object}{is a either a RxODE family of objects, or a file-name
@@ -128,7 +130,7 @@ observation in the solved system.}
 \item{sigmaDf}{Degrees of freedom of the sigma t-distribution.  By
 default it is equivalent to \code{Inf}, or a normal distribution.}
 
-\item{sigmaNcores}{Number of cores used for the simulation of the
+\item{nCoresRV}{Number of cores used for the simulation of the
 sigma variables.  By default this is 1. This uses the package
 \code{\link[mvnfast]{rmvn}} and \code{\link[mvnfast]{rmvt}}.
 To reproduce the results you need to run on the same platform
@@ -185,6 +187,32 @@ have unexpected results.}
 
 \item{do.solve}{Internal flag.  By default this is \code{TRUE},
 when \code{FALSE} a list of solving options is returned.}
+
+\item{omega}{Named omega matrix.}
+
+\item{omegaDf}{The degrees of freedom of a t-distribution for
+simulation.  By default this is \code{NULL} which is
+equivalent to \code{Inf} degrees, or to simulate from a normal
+distribution instead of a t-distribution.}
+
+\item{omegaIsChol}{Indicates if the \code{omega} supplied is a
+Cholesky decomposed matrix instead of the traditional
+symmetric matrix.}
+
+\item{nSub}{Number between subject variabilities (ETAs) simulated.}
+
+\item{thetaMat}{Named theta matrix.}
+
+\item{thetaDf}{The degrees of freedom of a t-distribution for
+simulation.  By default this is \code{NULL} which is
+equivalent to \code{Inf} degrees, or to simulate from a normal
+distribution instead of a t-distribution.}
+
+\item{thetaIsChol}{Indicates if the \code{theta} supplied is a
+Cholesky decomposed matrix instead of the traditional
+symmetric matrix.}
+
+\item{nStud}{Number virtual studies to characterize uncertainty in fixed parameters.}
 }
 \value{
 An \dQuote{rxSolve} solve object that stores the solved

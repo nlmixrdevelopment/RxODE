@@ -1,5 +1,6 @@
 context("Test Parallel Solve")
 rxPermissive({
+
     mod <- RxODE({
         d/dt(intestine) = -a*intestine
         d/dt(blood)     = a*intestine - b*blood
@@ -10,7 +11,7 @@ rxPermissive({
     et$add.dosing(dose=2/24,rate=2,strt.time=0,
                   nbr.doses=10,dosing.interval=1)
 
-    p <- data.frame(a=6,b=seq(0.4,0.9,length.out=50));
+    p <- data.frame(a=6,b=seq(0.4,0.9,length.out=50000));
 
     pk1 <- rxSolve(mod,p,et,cores=1)
 

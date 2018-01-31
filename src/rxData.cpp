@@ -3237,6 +3237,7 @@ bool rxDelete(RObject obj){
   }
   return false;
 }
+
 //' Simulate Parameters from a Theta/Omega specification
 //'
 //' @param params Named Vector of RxODE model parameters
@@ -3254,7 +3255,7 @@ bool rxDelete(RObject obj){
 //'
 //' @param nSub Number between subject variabilities (ETAs) simulated.
 //'
-//' @param omegaMat Named omega matrix.
+//' @param omega Named omega matrix.
 //'
 //' @param omegaDf The degrees of freedom of a t-distribution for
 //'     simulation.  By default this is \code{NULL} which is
@@ -3267,8 +3268,7 @@ bool rxDelete(RObject obj){
 //'
 //' @param nStud Number virtual studies to characterize uncertainty in fixed parameters.
 //'
-//' @param rCoresRV Number of cores used in random number generation.  Note this affects the 
-//         result and reproducibility, so by default it is 1.
+//' @inheritParams rxSolve
 //'
 //' @author Matthew L.Fidler
 //'

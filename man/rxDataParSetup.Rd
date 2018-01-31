@@ -5,7 +5,7 @@
 \title{Setup Data and Parameters}
 \usage{
 rxDataParSetup(object, params = NULL, events = NULL, inits = NULL,
-  covs = NULL, sigma = NULL, sigmaDf = NULL, sigmaNcores = 1L,
+  covs = NULL, sigma = NULL, sigmaDf = NULL, nCoresRV = 1L,
   sigmaIsChol = FALSE, nDisplayProgress = 10000L,
   amountUnits = NA_character_, timeUnits = "hours", theta = NULL,
   eta = NULL, scale = NULL, extraArgs = NULL)
@@ -39,7 +39,7 @@ simulation.  By default this is \code{NULL} which is
 equivalent to \code{Inf} degrees, or to simulate from a normal
 distribution instead of a t-distribution.}
 
-\item{sigmaNcores}{Number of cores for residual simulation.  This,
+\item{nCoresRV}{Number of cores for residual simulation.  This,
 along with the seed, affects both the outcome and speed of
 simulation. By default it is one.}
 
