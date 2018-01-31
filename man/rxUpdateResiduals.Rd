@@ -4,10 +4,12 @@
 \alias{rxUpdateResiduals}
 \title{Update RxODE multi-subject data with new residuals (in-place).}
 \usage{
-rxUpdateResiduals(multiData)
+rxUpdateResiduals(multiData, zero = FALSE)
 }
 \arguments{
 \item{multiData}{The RxODE multi-data object setup from \code{\link{rxDataParSetup}}}
+
+\item{zero}{instead of simulating, zero out the covariates}
 }
 \value{
 An integer indicating if this is object has residuals that are updating (0 for no-residuals; 1 for residuals).

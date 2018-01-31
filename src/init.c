@@ -27,7 +27,7 @@ SEXP _rxCholInv(SEXP dms, SEXP theta, SEXP tn);
 SEXP _RxODE_rxSymInvCholEnvCalculate(SEXP, SEXP, SEXP);
 SEXP _RxODE_rxInvWishartVar(SEXP, SEXP);
 SEXP _RxODE_rxSymInvChol(SEXP, SEXP, SEXP, SEXP);
-SEXP _RxODE_rxDataSetup(SEXP,SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP _RxODE_rxDataSetup(SEXP,SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP _RxODE_rxIs(SEXP,SEXP);
 SEXP _RxODE_rxModelVars(SEXP);
 SEXP _RxODE_rxState(SEXP, SEXP);
@@ -40,7 +40,8 @@ SEXP _RxODE_rxSetupIni(SEXP, SEXP);
 SEXP _RxODE_rxSetupScale(SEXP,SEXP,SEXP);
 SEXP _RxODE_rxDataParSetup(SEXP, SEXP, SEXP, SEXP, SEXP,
                            SEXP, SEXP, SEXP, SEXP, SEXP,
-                           SEXP, SEXP, SEXP, SEXP, SEXP);
+                           SEXP, SEXP, SEXP, SEXP, SEXP,
+			   SEXP);
 /* SEXP _RxODE_rxSolvingData(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, */
 /* 			  SEXP, SEXP, SEXP, SEXP, SEXP, SEXP); */
 /* SEXP _RxODE_rxData(SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP, */
@@ -172,7 +173,7 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_rxSymInvCholEnvCalculate", (DL_FUNC) &_RxODE_rxSymInvCholEnvCalculate, 3},
     {"_RxODE_rxInvWishartVar", (DL_FUNC) &_RxODE_rxInvWishartVar, 2},
     {"_RxODE_rxSymInvChol", (DL_FUNC) &_RxODE_rxSymInvChol, 4},
-    {"_RxODE_rxDataSetup", (DL_FUNC) &_RxODE_rxDataSetup, 8},
+    {"_RxODE_rxDataSetup", (DL_FUNC) &_RxODE_rxDataSetup, 9},
     {"_RxODE_rxIs", (DL_FUNC) &_RxODE_rxIs, 2},
     {"_RxODE_rxModelVars", (DL_FUNC) &_RxODE_rxModelVars, 1},
     {"_RxODE_rxState", (DL_FUNC) &_RxODE_rxState, 2},
@@ -183,7 +184,7 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_rxUpdateResiduals", (DL_FUNC) &_RxODE_rxUpdateResiduals, 2},
     {"_RxODE_rxSetupIni", (DL_FUNC) &_RxODE_rxSetupIni, 2},
     {"_RxODE_rxSetupScale", (DL_FUNC) &_RxODE_rxSetupScale, 3},
-    {"_RxODE_rxDataParSetup", (DL_FUNC) &_RxODE_rxDataParSetup, 15},
+    {"_RxODE_rxDataParSetup", (DL_FUNC) &_RxODE_rxDataParSetup, 16},
     // Solaris needs 23 args; fix me...
     /* {"_RxODE_rxSolveC", (DL_FUNC) &_RxODE_rxSolveC, 31}, */
     {"_RxODE_rxSolveCsmall", (DL_FUNC) &_RxODE_rxSolveCsmall, 9},

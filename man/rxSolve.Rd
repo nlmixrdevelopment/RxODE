@@ -5,13 +5,14 @@
 \title{Solves a ODE equation}
 \usage{
 rxSolve(object, params = NULL, events = NULL, inits = NULL,
-  scale = NULL, covs = NULL, method = "lsoda", transit_abs = NULL,
+  scale = NULL, covs = NULL, method = "liblsoda", transit_abs = NULL,
   atol = 1e-08, rtol = 1e-06, maxsteps = 5000L, hmin = 0L,
   hmax = NULL, hini = 0L, maxordn = 12L, maxords = 5L, ..., cores,
   covs_interpolation = "linear", add.cov = FALSE, matrix = FALSE,
   sigma = NULL, sigmaDf = NULL, sigmaNcores = 1L, sigmaIsChol = FALSE,
-  amountUnits = NA_character_, timeUnits = "hours", stiff, theta = NULL,
-  eta = NULL, addDosing = FALSE, update.object = FALSE, do.solve = TRUE)
+  nDisplayProgress = 10000L, amountUnits = NA_character_,
+  timeUnits = "hours", stiff, theta = NULL, eta = NULL,
+  addDosing = FALSE, update.object = FALSE, do.solve = TRUE)
 }
 \arguments{
 \item{object}{is a either a RxODE family of objects, or a file-name
@@ -128,7 +129,7 @@ observation in the solved system.}
 default it is equivalent to \code{Inf}, or a normal distribution.}
 
 \item{sigmaNcores}{Number of cores used for the simulation of the
-sigma covariates.  By default this is 1. This uses the package
+sigma variables.  By default this is 1. This uses the package
 \code{\link[mvnfast]{rmvn}} and \code{\link[mvnfast]{rmvt}}.
 To reproduce the results you need to run on the same platform
 with the same number of cores. This is the reason this is set
@@ -137,6 +138,10 @@ threaded ODE solving.}
 
 \item{sigmaIsChol}{Boolean indicating if the sigma is in the
 Cholesky decomposition instead of a symmetric covariance}
+
+\item{nDisplayProgress}{An integer indicating the minimum number
+of c-based solves before a progress bar is shown.  By default
+this is 10,000.}
 
 \item{amountUnits}{This supplies the dose units of a data frame
 supplied instead of an event table.  This is for importing the

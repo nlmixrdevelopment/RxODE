@@ -31,7 +31,7 @@
 ##'     sampling points defined in the events \code{eventTable}.  This
 ##'     is for time-varying covariates.
 ##'
-##' @param method  The method for solving ODEs.  Currently this supports:
+##' @param method The method for solving ODEs.  Currently this supports:
 ##'
 ##' \itemize{
 ##' \item \code{"liblsoda"} thread safe lsoda.  This supports parallel
@@ -126,6 +126,10 @@
 ##'
 ##' @param sigmaIsChol Boolean indicating if the sigma is in the
 ##'     Cholesky decomposition instead of a symmetric covariance
+##'
+##' @param nDisplayProgress An integer indicating the minimum number
+##'     of c-based solves before a progress bar is shown.  By default
+##'     this is 10,000.
 ##'
 ##' @param amountUnits This supplies the dose units of a data frame
 ##'     supplied instead of an event table.  This is for importing the

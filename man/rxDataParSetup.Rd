@@ -6,8 +6,9 @@
 \usage{
 rxDataParSetup(object, params = NULL, events = NULL, inits = NULL,
   covs = NULL, sigma = NULL, sigmaDf = NULL, sigmaNcores = 1L,
-  sigmaIsChol = FALSE, amountUnits = NA_character_, timeUnits = "hours",
-  theta = NULL, eta = NULL, scale = NULL, extraArgs = NULL)
+  sigmaIsChol = FALSE, nDisplayProgress = 10000L,
+  amountUnits = NA_character_, timeUnits = "hours", theta = NULL,
+  eta = NULL, scale = NULL, extraArgs = NULL)
 }
 \arguments{
 \item{object}{is a either a RxODE family of objects, or a file-name
@@ -45,6 +46,10 @@ simulation. By default it is one.}
 \item{sigmaIsChol}{Indicates if the \code{sigma} supplied is a
 Cholesky decomposed matrix instead of the traditional
 symmetric matrix.}
+
+\item{nDisplayProgress}{An integer indicating the minimum number
+of c-based solves before a progress bar is shown.  By default
+this is 10,000.}
 
 \item{amountUnits}{This supplies the dose units of a data frame
 supplied instead of an event table.  This is for importing the
