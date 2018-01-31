@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #include <R.h>
 #include <Rinternals.h>
 #include <Rmath.h> //Rmath includes math.
@@ -33,30 +34,34 @@ void par_flush_console() {
 #endif
 }
 
-// Adapted from https://github.com/kforner/rcpp_progress/blob/master/inst/include/simple_progress_bar.hpp
-// They used C++; It seems a bit easier in C.
-void par_display(int cores){
-  Rprintf("0%%   10   20   30   40   50   60   70   80   90   100%%; cores=%d\n",cores);
-  par_flush_console();
-}
 
-int par_progress(int c, int n, int d){
+int par_progress(int c, int n, int d, int cores, clock_t t0){
   float progress = (float)(c)/((float)(n));
   if (c <= n){
     int nticks= (int)(progress * 50);
     int curTicks = d;
     if (nticks > curTicks){
-      for (int i = curTicks; i < nticks; i++){
+      Rprintf("\r");
+      int i;
+      for (i = 0; i < nticks; i++){
         if (i == 0) {
-          Rprintf("[");
+          Rprintf("%%[");
 	} else if (i % 5 == 0) {
 	  Rprintf("|");
 	} else {
 	  Rprintf("=");
 	}
       }
+      for (i = nticks; i < 50; i++){
+	Rprintf(" ");
+      }
+      Rprintf("] ");
+      if (nticks < 50) Rprintf(" ");
+      Rprintf("%02.f%%; ncores=%d; ",100*progress,cores);
+      clock_t t = clock() - t0;
+      Rprintf(" %.3f sec ", ((double)t)/CLOCKS_PER_SEC);
       if (nticks >= 50){
-	Rprintf("]\n");
+	Rprintf("\n");
       }
     }
     par_flush_console();
@@ -408,6 +413,7 @@ int handle_evid(int evid, int neq,
 }
 
 extern void par_liblsoda(rx_solve *rx){
+  clock_t t0 = clock();
   rx_solving_options *op;
   if(!R_ExternalPtrAddr(rx->op)){
     error("Cannot get global ode solver options.");
@@ -434,7 +440,6 @@ extern void par_liblsoda(rx_solve *rx){
   int curTick=0;
   int cur=0;
   int displayProgress = (op->nDisplayProgress <= nsim*nsub);
-  if (displayProgress) par_display(cores);
 #pragma omp parallel for num_threads(cores)
   for (int solveid = 0; solveid < nsim*nsub; solveid++){
     int i, j;
@@ -502,13 +507,14 @@ extern void par_liblsoda(rx_solve *rx){
 #pragma omp critical
     cur++;
 #pragma omp critical
-    if (displayProgress) curTick = par_progress(cur, nsim*nsub, curTick);
+    if (displayProgress) curTick = par_progress(cur, nsim*nsub, curTick, cores, t0);
   }
-  if (displayProgress && curTick < 50) par_progress(nsim*nsub, nsim*nsub, curTick);
+  if (displayProgress && curTick < 50) par_progress(nsim*nsub, nsim*nsub, curTick, cores, t0);
   Free(yp0);
 }
 
 extern void par_lsoda(rx_solve *rx){
+  clock_t t0 = clock();
   int i, j;
   double xout;
   double *yp;
@@ -569,7 +575,6 @@ extern void par_lsoda(rx_solve *rx){
   /* int cores = op->cores; */
   inits = op->inits;
   int displayProgress = (op->nDisplayProgress <= nsim*nsub);
-  if (displayProgress) par_display(1);
   int curTick = 0;
   for (int solveid = 0; solveid < nsim*nsub; solveid++){
     int csim = solveid %  nsim;
@@ -630,9 +635,9 @@ extern void par_lsoda(rx_solve *rx){
 	Rprintf("\n");
       }
     }
-    if (displayProgress) curTick = par_progress(solveid, nsim*nsub, curTick);
+    if (displayProgress) curTick = par_progress(solveid, nsim*nsub, curTick, 1, t0);
   }
-  if (displayProgress && curTick < 50) par_progress(nsim*nsub, nsim*nsub, curTick);
+  if (displayProgress && curTick < 50) par_progress(nsim*nsub, nsim*nsub, curTick, 1, t0);
   /* if (rc[0]){ */
   /*   /\* Rprintf("Error solving using LSODA\n"); *\/ */
   /*   /\* Free(rwork); *\/ */
@@ -645,13 +650,11 @@ extern void par_lsoda(rx_solve *rx){
   Free(yp);
 }
 
-extern void par_lsoda_thread(SEXP sd){
-}
-
 //dummy solout fn
 void solout(long int nr, double t_old, double t, double *y, int *nptr, int *irtrn){}
 
 void par_dop(rx_solve *rx){
+  clock_t t0 = clock();
   int i, j;
   double xout;
   double *yp;
@@ -692,7 +695,6 @@ void par_dop(rx_solve *rx){
   // This part CAN be parallelized, if dop is thread safe...
   // Therefore you could use https://github.com/jacobwilliams/dop853, but I haven't yet
   int displayProgress = (op->nDisplayProgress <= nsim*nsub);
-  if (displayProgress) par_display(1);
   int curTick = 0;
   for (int solveid = 0; solveid < nsim*nsub; solveid++){
     int csim = solveid %  nsim;
@@ -781,9 +783,9 @@ void par_dop(rx_solve *rx){
       /*   return; */
       /* } */
     }
-    if (displayProgress) curTick = par_progress(solveid, nsim*nsub, curTick);
+    if (displayProgress) curTick = par_progress(solveid, nsim*nsub, curTick, 1, t0);
   }
-  if (displayProgress && curTick < 50) par_progress(nsim*nsub, nsim*nsub, curTick);
+  if (displayProgress && curTick < 50) par_progress(nsim*nsub, nsim*nsub, curTick, 1, t0);
 }
 
 void par_solve(rx_solve *rx){
