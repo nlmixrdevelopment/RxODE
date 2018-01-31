@@ -155,6 +155,9 @@ extern SEXP _RxODE_rxDelete(SEXP);
 extern SEXP _RxODE_rxGetRxODE(SEXP);
 extern SEXP _RxODE_rxC(SEXP);
 
+extern SEXP _RxODE_rxSimThetaOmega(SEXP, SEXP, SEXP, SEXP, SEXP, 
+				   SEXP, SEXP, SEXP, SEXP, SEXP);
+
 
 // Remove these functions later...
 
@@ -200,6 +203,7 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_rxDynLoad", (DL_FUNC) &_RxODE_rxDynLoad, 1},
     {"_RxODE_rxDelete", (DL_FUNC) &_RxODE_rxDelete, 1},
     {"_RxODE_rxGetRxODE", (DL_FUNC) &_RxODE_rxGetRxODE, 1},
+    {"_RxODE_rxSimThetaOmega", (DL_FUNC) &_RxODE_rxSimThetaOmega, 10},
     {NULL, NULL, 0}
   };
   // C callable to assign environments.

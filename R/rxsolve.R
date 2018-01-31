@@ -116,7 +116,7 @@
 ##' @param sigmaDf Degrees of freedom of the sigma t-distribution.  By
 ##'     default it is equivalent to \code{Inf}, or a normal distribution.
 ##'
-##' @param sigmaNcores Number of cores used for the simulation of the
+##' @param nCoresRV Number of cores used for the simulation of the
 ##'     sigma variables.  By default this is 1. This uses the package
 ##'     \code{\link[mvnfast]{rmvn}} and \code{\link[mvnfast]{rmvt}}.
 ##'     To reproduce the results you need to run on the same platform
@@ -170,8 +170,12 @@
 ##'     well as returning a new object.  You probably should not
 ##'     modify it's \code{FALSE} default unless you are willing to
 ##'     have unexpected results.
+##'
 ##' @param do.solve Internal flag.  By default this is \code{TRUE},
 ##'     when \code{FALSE} a list of solving options is returned.
+##'
+##' @inheritParams rxSimThetaOmega
+##'
 ##' @return An \dQuote{rxSolve} solve object that stores the solved
 ##'     value in a matrix with as many rows as there are sampled time
 ##'     points and as many columns as system variables (as defined by
@@ -213,9 +217,12 @@ rxSolve <- function(object, params=NULL, events=NULL, inits = NULL, scale = NULL
                     covs = NULL, method = "liblsoda", transit_abs = NULL, atol = 1.0e-8, rtol = 1.0e-6,
                     maxsteps = 5000L, hmin = 0L, hmax = NULL, hini = 0L, maxordn = 12L, maxords = 5L, ...,
                     cores, covs_interpolation = "linear", add.cov = FALSE, matrix = FALSE, sigma = NULL, sigmaDf = NULL,
-                    sigmaNcores = 1L, sigmaIsChol = FALSE, nDisplayProgress=10000L,
+                    nCoresRV = 1L, sigmaIsChol = FALSE, nDisplayProgress=10000L,
                     amountUnits = NA_character_, timeUnits = "hours", stiff,
-                    theta = NULL, eta = NULL, addDosing=FALSE, update.object=FALSE,do.solve=TRUE){
+                    theta = NULL, eta = NULL, addDosing=FALSE, update.object=FALSE,do.solve=TRUE,
+                    omega = NULL, omegaDf = NULL, omegaIsChol = FALSE,
+                    nSub = 1L, thetaMat = NULL, thetaDf = NULL, thetaIsChol = FALSE,
+                    nStud = 1L){
     ## stiff = TRUE, transit_abs = NULL,
     ## atol = 1.0e-8, rtol = 1.0e-6, maxsteps = 5000, hmin = 0, hmax = NULL, hini = 0, maxordn = 12,
     ## maxords = 5, ..., covs_interpolation = c("linear", "constant", "NOCB", "midpoint"),
@@ -231,6 +238,11 @@ rxSolve <- function(object, params=NULL, events=NULL, inits = NULL, scale = NULL
                 warning("stiff=FALSE has been replaced with method = \"dop853\".")
             }
         }
+    }
+    if (!is.null(thetaMat) || !is.null(omega)){
+        params <- rxSimThetaOmega(params = params, omega = omega, omegaDf = omegaDf, omegaIsChol = omegaIsChol,
+                                  nSub = nSub, thetaMat = thetaMat, thetaDf = thetaDf, thetaIsChol = thetaIsChol,
+                                  nStud = nStud, nCoresRV = nCoresRV);
     }
     extra <- list(...);
 
@@ -248,7 +260,7 @@ rxSolve <- function(object, params=NULL, events=NULL, inits = NULL, scale = NULL
           params, events, inits, scale, covs, list(method, transit_abs, atol, rtol,
                                                    maxsteps, hmin, hmax, hini, maxordn, maxords, cores,
                                                    covs_interpolation, add.cov, matrix, sigma, sigmaDf,
-                                                   sigmaNcores, sigmaIsChol, nDisplayProgress, amountUnits,
+                                                   nCoresRV, sigmaIsChol, nDisplayProgress, amountUnits,
                                                    timeUnits, addDosing, theta, eta, update.object,
                                                    do.solve));
 }

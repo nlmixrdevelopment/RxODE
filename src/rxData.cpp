@@ -218,9 +218,9 @@ extern "C" int rxIsC(SEXP obj, const char *cls){
 
 RObject rxSimSigma(const RObject &sigma,
 		   const RObject &df,
-		   const int &ncores,
+		   int ncores,
 		   const bool &isChol,
-		   int &nObs){
+		   int nObs){
   if (rxIs(sigma, "numeric.matrix")){
     // FIXME more distributions
     NumericMatrix sigmaM(sigma);
@@ -1299,7 +1299,7 @@ NumericMatrix rxSetupParamsThetaEta(const RObject &params = R_NilValue,
 //'     simulation.  By default this is \code{NULL} which is
 //'     equivalent to \code{Inf} degrees, or to simulate from a normal
 //'     distribution instead of a t-distribution.
-//' @param sigmaNcores Number of cores for residual simulation.  This,
+//' @param nCoresRV Number of cores for residual simulation.  This,
 //'     along with the seed, affects both the outcome and speed of
 //'     simulation. By default it is one.
 //' @param sigmaIsChol Indicates if the \code{sigma} supplied is a
@@ -1317,7 +1317,7 @@ List rxDataParSetup(const RObject &object,
 		    const RObject &covs  = R_NilValue,
 		    const RObject &sigma= R_NilValue,
 		    const RObject &sigmaDf= R_NilValue,
-		    const int &sigmaNcores= 1,
+		    const int &nCoresRV= 1,
 		    const bool &sigmaIsChol= false,
                     const int &nDisplayProgress = 10000,
 		    const StringVector &amountUnits = NA_STRING,
@@ -1384,11 +1384,11 @@ List rxDataParSetup(const RObject &object,
     }
     
     ret = rxDataSetup(ev1, (covnames.size() == 0 ? R_NilValue : wrap(covnames)),
-		      sigma, sigmaDf, sigmaNcores, sigmaIsChol, nDisplayProgress, 
+		      sigma, sigmaDf, nCoresRV, sigmaIsChol, nDisplayProgress, 
 		      amountUnits, timeUnits);
   } else {
     ret = rxDataSetup(ev1, covs, sigma, sigmaDf,
-		      sigmaNcores, sigmaIsChol, nDisplayProgress, amountUnits, timeUnits);
+		      nCoresRV, sigmaIsChol, nDisplayProgress, amountUnits, timeUnits);
     covnames0 = as<Nullable<CharacterVector>>(ret["cov.names"]);
     if (!covnames0.isNull()){
       covnames = CharacterVector(covnames0);
@@ -1805,7 +1805,7 @@ List rxData(const RObject &object,
             bool matrix = false,
             const RObject &sigma= R_NilValue,
             const RObject &sigmaDf= R_NilValue,
-            const int &sigmaNcores= 1,
+            const int &nCoresRV= 1,
             const bool &sigmaIsChol= false,
             const int &nDisplayProgress = 10000,
             const StringVector &amountUnits = NA_STRING,
@@ -1815,7 +1815,7 @@ List rxData(const RObject &object,
 	    const RObject &scale = R_NilValue,
 	    const Nullable<List> &extraArgs = R_NilValue){
   List parData = rxDataParSetup(object,params, events, inits, covs, sigma, sigmaDf,
-				sigmaNcores, sigmaIsChol, nDisplayProgress, amountUnits, timeUnits,
+				nCoresRV, sigmaIsChol, nDisplayProgress, amountUnits, timeUnits,
 				theta,eta, scale, extraArgs);
   parData["pointer"] = rxSolvingData(object, parData, method, transit_abs, atol,  rtol, maxsteps,
                                      hmin, hmax,  hini, maxordn, maxords, cores, covs_interpolation,
@@ -1849,7 +1849,7 @@ List rxData(const RObject &object,
 #define defrx_matrix false
 #define defrx_sigma  R_NilValue
 #define defrx_sigmaDf R_NilValue
-#define defrx_sigmaNcores 1
+#define defrx_nCoresRV 1
 #define defrx_sigmaIsChol false
 #define defrx_nDisplayProgress 10000
 #define defrx_amountUnits NA_STRING
@@ -1889,7 +1889,7 @@ SEXP rxSolveC(const RObject &object,
 	      bool matrix = false,
 	      const RObject &sigma= R_NilValue,
 	      const RObject &sigmaDf= R_NilValue,
-	      const int &sigmaNcores= 1,
+	      const int &nCoresRV= 1,
 	      const bool &sigmaIsChol= false,
 	      const int &nDisplayProgress = 10000,
 	      const CharacterVector &amountUnits = NA_STRING,
@@ -1904,7 +1904,7 @@ SEXP rxSolveC(const RObject &object,
     return rxSolveC(rxCurObj, specParams, extraArgs, params, events, inits,
                     scale, covs, method, transit_abs, atol, rtol, maxsteps,
                     hmin, hmax, hini, maxordn, maxords, cores,covs_interpolation,
-                    addCov, matrix, sigma, sigmaDf, sigmaNcores, sigmaIsChol, nDisplayProgress,
+                    addCov, matrix, sigma, sigmaDf, nCoresRV, sigmaIsChol, nDisplayProgress,
                     amountUnits,timeUnits, addDosing, R_NilValue, R_NilValue, updateObject, false);
   } else if (rxIs(object, "rxSolve") || rxIs(object, "environment")){
     // Check to see what parameters were updated by specParams
@@ -1928,7 +1928,7 @@ SEXP rxSolveC(const RObject &object,
       update_matrix = false,
       update_sigma  = false,
       update_sigmaDf = false,
-      update_sigmaNcores = false,
+      update_nCoresRV = false,
       update_sigmaIsChol = false,
       update_amountUnits = false,
       update_timeUnits = false,
@@ -1979,8 +1979,8 @@ SEXP rxSolveC(const RObject &object,
 	update_sigma  = true;
       else if (as<std::string>(specs[i]) == "sigmaDf")
 	update_sigmaDf = true;
-      else if (as<std::string>(specs[i]) == "sigmaNcores")
-	update_sigmaNcores = true;
+      else if (as<std::string>(specs[i]) == "nCoresRV")
+	update_nCoresRV = true;
       else if (as<std::string>(specs[i]) == "sigmaIsChol")
 	update_sigmaIsChol = true;
       else if (as<std::string>(specs[i]) == "amountUnits")
@@ -2025,7 +2025,7 @@ SEXP rxSolveC(const RObject &object,
     bool new_matrix = update_matrix ? matrix : e["args.matrix"];
     RObject new_sigma = update_sigma ? sigma : e["args.sigma"];
     RObject new_sigmaDf = update_sigmaDf ? sigmaDf : e["args.sigmaDf"];
-    int new_sigmaNcores = update_sigmaNcores ? sigmaNcores : e["args.sigmaNcores"];
+    int new_nCoresRV = update_nCoresRV ? nCoresRV : e["args.nCoresRV"];
     bool new_sigmaIsChol = update_sigmaIsChol ? sigmaIsChol : e["args.sigmaIsChol"];
     int new_nDisplayProgress = e["args.nDisplayProgress"];
     CharacterVector new_amountUnits = update_amountUnits ? amountUnits : e["args.amountUnits"];
@@ -2038,7 +2038,7 @@ SEXP rxSolveC(const RObject &object,
     List dat = as<List>(rxSolveC(new_object, new_specParams, extraArgs, new_params, new_events, new_inits, new_scale, new_covs,
 				 new_method, new_transit_abs, new_atol, new_rtol, new_maxsteps, new_hmin,
 				 new_hmax, new_hini,new_maxordn, new_maxords, new_cores, new_covs_interpolation,
-				 new_addCov, new_matrix, new_sigma, new_sigmaDf, new_sigmaNcores, new_sigmaIsChol,
+				 new_addCov, new_matrix, new_sigma, new_sigmaDf, new_nCoresRV, new_sigmaIsChol,
                                  new_nDisplayProgress, new_amountUnits, new_timeUnits, new_addDosing));
     if (updateObject && as<bool>(e[".real.update"])){
       List old = as<List>(rxCurObj);
@@ -2066,7 +2066,7 @@ SEXP rxSolveC(const RObject &object,
     }
     List parData = rxData(object, params, events, inits, covs, as<std::string>(method[0]), transit_abs, atol,
                           rtol, maxsteps, hmin,hmax, hini, maxordn, maxords, cores,
-                          as<std::string>(covs_interpolation[0]), addCov, matrix, sigma, sigmaDf, sigmaNcores, sigmaIsChol,
+                          as<std::string>(covs_interpolation[0]), addCov, matrix, sigma, sigmaDf, nCoresRV, sigmaIsChol,
                           nDisplayProgress, amountUnits, timeUnits, theta, eta, scale, extraArgs);
     if (!doSolve){
       // Backwards Compatible; Create solving environment
@@ -2307,7 +2307,7 @@ SEXP rxSolveC(const RObject &object,
       e["args.matrix"] = matrix;
       e["args.sigma"] = sigma;
       e["args.sigmaDf"] = sigmaDf;
-      e["args.sigmaNcores"] = sigmaNcores;
+      e["args.nCoresRV"] = nCoresRV;
       e["args.sigmaIsChol"] = sigmaIsChol;
       e["args.nDisplayProgress"] = nDisplayProgress;
       e["args.amountUnits"] = amountUnits;
@@ -2356,7 +2356,7 @@ SEXP rxSolveCsmall(const RObject &object,
                   opts[13], //bool matrix = false,
                   opts[14], //const RObject &sigma= R_NilValue,
                   opts[15], //const RObject &sigmaDf= R_NilValue,
-                  opts[16], //const int &sigmaNcores= 1,
+                  opts[16], //const int &nCoresRV= 1,
                   opts[17], //const bool &sigmaIsChol= false,
                   opts[18], // nDisplayProgress
                   opts[19], //const CharacterVector &amountUnits = NA_STRING,
@@ -2529,7 +2529,7 @@ RObject rxSolveUpdate(RObject obj,
                           defrx_matrix,
                           defrx_sigma,
                           defrx_sigmaDf,
-                          defrx_sigmaNcores,
+                          defrx_nCoresRV,
                           defrx_sigmaIsChol,
                           defrx_nDisplayProgress,
                           defrx_amountUnits,
@@ -2559,7 +2559,7 @@ RObject rxSolveUpdate(RObject obj,
 			  defrx_matrix,
 			  defrx_sigma,
 			  defrx_sigmaDf,
-			  defrx_sigmaNcores,
+			  defrx_nCoresRV,
 			  defrx_sigmaIsChol,
                           defrx_nDisplayProgress,
 			  defrx_amountUnits,
@@ -2590,7 +2590,7 @@ RObject rxSolveUpdate(RObject obj,
                           defrx_matrix,
                           defrx_sigma,
                           defrx_sigmaDf,
-                          defrx_sigmaNcores,
+                          defrx_nCoresRV,
                           defrx_sigmaIsChol,
                           defrx_nDisplayProgress,
                           defrx_amountUnits,
@@ -2621,7 +2621,7 @@ RObject rxSolveUpdate(RObject obj,
                           defrx_matrix,
                           defrx_sigma,
                           defrx_sigmaDf,
-                          defrx_sigmaNcores,
+                          defrx_nCoresRV,
                           defrx_sigmaIsChol,
                           defrx_nDisplayProgress,
                           defrx_amountUnits,
@@ -2685,7 +2685,7 @@ RObject rxSolveUpdate(RObject obj,
 				defrx_matrix,
 				defrx_sigma,
 				defrx_sigmaDf,
-				defrx_sigmaNcores,
+				defrx_nCoresRV,
 				defrx_sigmaIsChol,
                                 defrx_nDisplayProgress,
 				defrx_amountUnits,
@@ -2741,7 +2741,7 @@ RObject rxSolveUpdate(RObject obj,
 				defrx_matrix,
 				defrx_sigma,
 				defrx_sigmaDf,
-				defrx_sigmaNcores,
+				defrx_nCoresRV,
 				defrx_sigmaIsChol,
                                 defrx_nDisplayProgress,
 				defrx_amountUnits,
@@ -2785,7 +2785,7 @@ RObject rxSolveUpdate(RObject obj,
 				defrx_matrix,
 				defrx_sigma,
 				defrx_sigmaDf,
-				defrx_sigmaNcores,
+				defrx_nCoresRV,
 				defrx_sigmaIsChol,
                                 defrx_nDisplayProgress,
 				defrx_amountUnits,
@@ -2842,7 +2842,7 @@ RObject rxSolveUpdate(RObject obj,
 				defrx_matrix,
 				defrx_sigma,
 				defrx_sigmaDf,
-				defrx_sigmaNcores,
+				defrx_nCoresRV,
 				defrx_sigmaIsChol,
                                 defrx_nDisplayProgress,
 				defrx_amountUnits,
@@ -2916,7 +2916,7 @@ RObject rxSolveUpdate(RObject obj,
 			      defrx_matrix,
 			      defrx_sigma,
 			      defrx_sigmaDf,
-			      defrx_sigmaNcores,
+			      defrx_nCoresRV,
 			      defrx_sigmaIsChol,
                               defrx_nDisplayProgress,
 			      defrx_amountUnits,
@@ -3236,4 +3236,114 @@ bool rxDelete(RObject obj){
     if (remove(file.c_str()) == 0) return true;
   }
   return false;
+}
+//' Simulate Parameters from a Theta/Omega specification
+//'
+//' @param params Named Vector of RxODE model parameters
+//'
+//' @param thetaMat Named theta matrix.
+//'
+//' @param thetaDf The degrees of freedom of a t-distribution for
+//'     simulation.  By default this is \code{NULL} which is
+//'     equivalent to \code{Inf} degrees, or to simulate from a normal
+//'     distribution instead of a t-distribution.
+//'
+//' @param thetaIsChol Indicates if the \code{theta} supplied is a
+//'     Cholesky decomposed matrix instead of the traditional
+//'     symmetric matrix.
+//'
+//' @param nSub Number between subject variabilities (ETAs) simulated.
+//'
+//' @param omegaMat Named omega matrix.
+//'
+//' @param omegaDf The degrees of freedom of a t-distribution for
+//'     simulation.  By default this is \code{NULL} which is
+//'     equivalent to \code{Inf} degrees, or to simulate from a normal
+//'     distribution instead of a t-distribution.
+//'
+//' @param omegaIsChol Indicates if the \code{omega} supplied is a
+//'     Cholesky decomposed matrix instead of the traditional
+//'     symmetric matrix.
+//'
+//' @param nStud Number virtual studies to characterize uncertainty in fixed parameters.
+//'
+//' @param rCoresRV Number of cores used in random number generation.  Note this affects the 
+//         result and reproducibility, so by default it is 1.
+//'
+//' @author Matthew L.Fidler
+//'
+//' @export
+//[[Rcpp::export]]
+List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
+		     const Nullable<NumericMatrix> &omega= R_NilValue,
+		     const Nullable<NumericMatrix> &omegaDf= R_NilValue,
+		     const bool &omegaIsChol = false,
+		     int nSub = 1,
+		     const Nullable<NumericMatrix> &thetaMat = R_NilValue,
+		     const Nullable<NumericMatrix> &thetaDf  = R_NilValue,
+		     const bool &thetaIsChol = false,
+		     int nStud = 1,
+		     int nCoresRV = 1){
+  NumericVector par;
+  if (params.isNull()){
+    stop("This function requires overall parameters.");
+  } else {
+    par = NumericVector(params);
+    if (!par.hasAttribute("names")){
+      stop("Parameters must be named.");
+    }
+  }
+  
+  NumericMatrix thetaM;
+  CharacterVector thetaN;
+  if (!thetaMat.isNull() && nStud > 0){
+    thetaM = as<NumericMatrix>(rxSimSigma(as<RObject>(thetaMat), as<RObject>(thetaDf), nCoresRV, thetaIsChol, nStud));
+    thetaN = as<CharacterVector>((as<List>(thetaM.attr("dimnames")))[1]);
+  }
+
+  NumericMatrix omegaM;
+  CharacterVector omegaN;
+  if (!omega.isNull() && nSub*nStud > 0){
+    omegaM = as<NumericMatrix>(rxSimSigma(as<RObject>(omega), as<RObject>(omegaDf), nCoresRV, omegaIsChol, nSub*nStud));
+    omegaN = as<CharacterVector>((as<List>(omegaM.attr("dimnames")))[1]);
+  }
+  // Now create data frame of parameter values
+  List ret;
+  int i, j, k;
+  CharacterVector parN = CharacterVector(par.attr("names"));
+  IntegerVector parI(parN.size());
+  NumericVector tmpNV;
+  int parNum = -1;
+  for (i = 0; i < parN.size(); i++){
+    parNum = -1;
+    for (j = 0; j < thetaN.size(); j++){
+      if (parN[i] == thetaN[j]){
+	parNum = j;
+	break;
+      }
+    }
+    tmpNV = NumericVector(nSub*nStud);
+    if (parNum == -1){
+      for (j = 0; j < nSub*nStud; j++){
+	tmpNV(j) = par(i);
+      }
+    } else {
+      for (j = 0; j < nStud; j++){
+	for (k = 0; k < nSub; k++){
+	  tmpNV(j*nSub+k) = par(i) +  thetaM(j,parNum);
+	}
+      }
+    }
+    ret[as<std::string>(parN[i])] = tmpNV;
+  }
+  for (i = 0; i < omegaN.size(); i++){
+    tmpNV = NumericVector(nSub*nStud);
+    for (j = 0; j < nSub*nStud; j++){
+      tmpNV[j] = omegaM(j,i);
+    }
+    ret[as<std::string>(omegaN[i])] = tmpNV;
+  }
+  ret.attr("class") = "data.frame";
+  ret.attr("row.names") = IntegerVector::create(NA_INTEGER,-nSub*nStud);
+  return ret;
 }
