@@ -123,8 +123,8 @@ typedef void (print_node_fn_t)(int depth, char *token_name, char *token_value, v
 
 int R_get_option(const char *option, int def){
   SEXP s, t;
-  int ret;
-  PROTECT(t = s = allocList(3));
+  int ret, pro=0;
+  PROTECT(t = s = allocList(3));pro++;
   SET_TYPEOF(s, LANGSXP);
   SETCAR(t, install("getOption")); t = CDR(t);
   SETCAR(t, mkString(option)); t = CDR(t);
@@ -134,7 +134,7 @@ int R_get_option(const char *option, int def){
     SETCAR(t, ScalarLogical(0));
   }
   ret = INTEGER(eval(s,R_GlobalEnv))[0];
-  UNPROTECT(1);
+  UNPROTECT(pro);
   return ret;
 }
 
@@ -1239,29 +1239,29 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
     sprintf(s_aux_info+o, "%s)\"));\n",buf);
     o = strlen(s_aux_info);
   }
-  fprintf(outpt,"extern SEXP %smodel_vars0(){\n",model_prefix);
-  fprintf(outpt,"  SEXP lst      = PROTECT(allocVector(VECSXP, 13));\n");
-  fprintf(outpt,"  SEXP names    = PROTECT(allocVector(STRSXP, 13));\n");
-  fprintf(outpt,"  SEXP params   = PROTECT(allocVector(STRSXP, %d));\n",pi);
-  fprintf(outpt,"  SEXP lhs      = PROTECT(allocVector(STRSXP, %d));\n",li);
-  fprintf(outpt,"  SEXP state    = PROTECT(allocVector(STRSXP, %d));\n",statei);
-  fprintf(outpt,"  SEXP stateRmS = PROTECT(allocVector(INTSXP, %d));\n",statei);
+  fprintf(outpt,"extern SEXP %smodel_vars0(){\n  int pro=0;\n",model_prefix);
+  fprintf(outpt,"  SEXP lst      = PROTECT(allocVector(VECSXP, 13));pro++;\n");
+  fprintf(outpt,"  SEXP names    = PROTECT(allocVector(STRSXP, 13));pro++;\n");
+  fprintf(outpt,"  SEXP params   = PROTECT(allocVector(STRSXP, %d));pro++;\n",pi);
+  fprintf(outpt,"  SEXP lhs      = PROTECT(allocVector(STRSXP, %d));pro++;\n",li);
+  fprintf(outpt,"  SEXP state    = PROTECT(allocVector(STRSXP, %d));pro++;\n",statei);
+  fprintf(outpt,"  SEXP stateRmS = PROTECT(allocVector(INTSXP, %d));pro++;\n",statei);
   fprintf(outpt,"  int *stateRm  = INTEGER(stateRmS);\n");
-  fprintf(outpt,"  SEXP sens     = PROTECT(allocVector(STRSXP, %d));\n",sensi);
-  fprintf(outpt,"  SEXP fn_ini   = PROTECT(allocVector(STRSXP, %d));\n",fdi);
-  fprintf(outpt,"  SEXP dfdy     = PROTECT(allocVector(STRSXP, %d));\n",tb.ndfdy);
-  fprintf(outpt,"  SEXP tran     = PROTECT(allocVector(STRSXP, 18));\n");
-  fprintf(outpt,"  SEXP trann    = PROTECT(allocVector(STRSXP, 18));\n");
-  fprintf(outpt,"  SEXP mmd5     = PROTECT(allocVector(STRSXP, 2));\n");
-  fprintf(outpt,"  SEXP mmd5n    = PROTECT(allocVector(STRSXP, 2));\n");
-  fprintf(outpt,"  SEXP model    = PROTECT(allocVector(STRSXP, 4));\n");
-  fprintf(outpt,"  SEXP modeln   = PROTECT(allocVector(STRSXP, 4));\n");
-  fprintf(outpt,"  SEXP solve    = PROTECT(allocVector(VECSXP, 4));\n");
-  fprintf(outpt,"  SEXP solven   = PROTECT(allocVector(STRSXP, 4));\n");
-  fprintf(outpt,"  SEXP initsr   = PROTECT(allocVector(REALSXP, %d));\n",statei);
-  fprintf(outpt,"  SEXP scaler   = PROTECT(allocVector(REALSXP, %d));\n",statei);
-  fprintf(outpt,"  SEXP infusionr= PROTECT(allocVector(REALSXP, %d));\n",statei);
-  fprintf(outpt,"  SEXP badDosei = PROTECT(allocVector(INTSXP, %d));\n",statei);
+  fprintf(outpt,"  SEXP sens     = PROTECT(allocVector(STRSXP, %d));pro++;\n",sensi);
+  fprintf(outpt,"  SEXP fn_ini   = PROTECT(allocVector(STRSXP, %d));pro++;\n",fdi);
+  fprintf(outpt,"  SEXP dfdy     = PROTECT(allocVector(STRSXP, %d));pro++;\n",tb.ndfdy);
+  fprintf(outpt,"  SEXP tran     = PROTECT(allocVector(STRSXP, 18));pro++;\n");
+  fprintf(outpt,"  SEXP trann    = PROTECT(allocVector(STRSXP, 18));pro++;\n");
+  fprintf(outpt,"  SEXP mmd5     = PROTECT(allocVector(STRSXP, 2));pro++;\n");
+  fprintf(outpt,"  SEXP mmd5n    = PROTECT(allocVector(STRSXP, 2));pro++;\n");
+  fprintf(outpt,"  SEXP model    = PROTECT(allocVector(STRSXP, 4));pro++;\n");
+  fprintf(outpt,"  SEXP modeln   = PROTECT(allocVector(STRSXP, 4));pro++;\n");
+  fprintf(outpt,"  SEXP solve    = PROTECT(allocVector(VECSXP, 4));pro++;\n");
+  fprintf(outpt,"  SEXP solven   = PROTECT(allocVector(STRSXP, 4));pro++;\n");
+  fprintf(outpt,"  SEXP initsr   = PROTECT(allocVector(REALSXP, %d));pro++;\n",statei);
+  fprintf(outpt,"  SEXP scaler   = PROTECT(allocVector(REALSXP, %d));pro++;\n",statei);
+  fprintf(outpt,"  SEXP infusionr= PROTECT(allocVector(REALSXP, %d));pro++;\n",statei);
+  fprintf(outpt,"  SEXP badDosei = PROTECT(allocVector(INTSXP, %d));pro++;\n",statei);
   
   fprintf(outpt,"  SET_STRING_ELT(solven,0,mkChar(\"inits\"));\n");
   fprintf(outpt,"  SET_VECTOR_ELT(solve,  0,initsr);\n");
@@ -1430,8 +1430,8 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
     }
   }
   tb.ini_i = ini_i;
-  fprintf(outpt,"  SEXP ini    = PROTECT(allocVector(REALSXP,%d));\n",ini_i);
-  fprintf(outpt,"  SEXP inin   = PROTECT(allocVector(STRSXP, %d));\n",ini_i);
+  fprintf(outpt,"  SEXP ini    = PROTECT(allocVector(REALSXP,%d));pro++;\n",ini_i);
+  fprintf(outpt,"  SEXP inin   = PROTECT(allocVector(STRSXP, %d));pro++;\n",ini_i);
   fprintf(outpt,"%s",s_aux_info);
   // Vector Names
   fprintf(outpt,"  SET_STRING_ELT(names,0,mkChar(\"params\"));\n");
@@ -1543,11 +1543,11 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
   fprintf(outpt,"  setAttrib(model, R_NamesSymbol, modeln);\n");
   fprintf(outpt,"  setAttrib(ini, R_NamesSymbol, inin);\n");
   fprintf(outpt,"  setAttrib(lst, R_NamesSymbol, names);\n");
-  fprintf(outpt, "  SEXP cls = PROTECT(allocVector(STRSXP, 1));\n");
+  fprintf(outpt, "  SEXP cls = PROTECT(allocVector(STRSXP, 1));pro++;\n");
   fprintf(outpt, "  SET_STRING_ELT(cls, 0, mkChar(\"rxModelVars\"));\n");
   fprintf(outpt, "  classgets(lst, cls);\n");
   
-  fprintf(outpt,"  UNPROTECT(24);\n");
+  fprintf(outpt,"  UNPROTECT(pro);\n");
   
   fprintf(outpt,"  return lst;\n");
   fprintf(outpt,"}\n");
@@ -2099,29 +2099,30 @@ SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP pref
     error("Parse model 3 must be specified.");
   }
   trans_internal(orig, in, out);
-  SEXP lst   = PROTECT(allocVector(VECSXP, 11));
-  SEXP names = PROTECT(allocVector(STRSXP, 11));
+  int pro = 0;
+  SEXP lst   = PROTECT(allocVector(VECSXP, 11));pro++;
+  SEXP names = PROTECT(allocVector(STRSXP, 11));pro++;
   
-  SEXP tran  = PROTECT(allocVector(STRSXP, 19));
-  SEXP trann = PROTECT(allocVector(STRSXP, 19));
+  SEXP tran  = PROTECT(allocVector(STRSXP, 19));pro++;
+  SEXP trann = PROTECT(allocVector(STRSXP, 19));pro++;
   
-  SEXP state    = PROTECT(allocVector(STRSXP,tb.statei));
-  SEXP stateRmS = PROTECT(allocVector(INTSXP,tb.statei));
+  SEXP state    = PROTECT(allocVector(STRSXP,tb.statei));pro++;
+  SEXP stateRmS = PROTECT(allocVector(INTSXP,tb.statei));pro++;
   int *stateRm  = INTEGER(stateRmS);
-  SEXP sens     = PROTECT(allocVector(STRSXP,tb.sensi));
-  SEXP fn_ini   = PROTECT(allocVector(STRSXP, tb.fdn));
+  SEXP sens     = PROTECT(allocVector(STRSXP,tb.sensi));pro++;
+  SEXP fn_ini   = PROTECT(allocVector(STRSXP, tb.fdn));pro++;
 
-  SEXP dfdy = PROTECT(allocVector(STRSXP,tb.ndfdy));
+  SEXP dfdy = PROTECT(allocVector(STRSXP,tb.ndfdy));pro++;
   
-  SEXP params = PROTECT(allocVector(STRSXP, tb.pi));
+  SEXP params = PROTECT(allocVector(STRSXP, tb.pi));pro++;
   
-  SEXP lhs    = PROTECT(allocVector(STRSXP, tb.li));
+  SEXP lhs    = PROTECT(allocVector(STRSXP, tb.li));pro++;
 
-  SEXP inin   = PROTECT(allocVector(STRSXP, tb.ini_i));
-  SEXP ini    = PROTECT(allocVector(REALSXP, tb.ini_i));
+  SEXP inin   = PROTECT(allocVector(STRSXP, tb.ini_i));pro++;
+  SEXP ini    = PROTECT(allocVector(REALSXP, tb.ini_i));pro++;
 
-  SEXP model  = PROTECT(allocVector(STRSXP,4));
-  SEXP modeln = PROTECT(allocVector(STRSXP,4));
+  SEXP model  = PROTECT(allocVector(STRSXP,4));pro++;
+  SEXP modeln = PROTECT(allocVector(STRSXP,4));pro++;
 
   k=0;j=0;l=0;
   for (i=0; i<tb.nd; i++) {                     /* name state vars */
@@ -2407,11 +2408,11 @@ SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP pref
   setAttrib(tran,  R_NamesSymbol, trann);
   setAttrib(lst,   R_NamesSymbol, names);
   setAttrib(model, R_NamesSymbol, modeln);
-  SEXP cls = PROTECT(allocVector(STRSXP, 1));
+  SEXP cls = PROTECT(allocVector(STRSXP, 1));pro++;
   SET_STRING_ELT(cls, 0, mkChar("rxModelVars"));
   classgets(lst, cls);
   
-  UNPROTECT(16);
+  UNPROTECT(pro);
   remove(out3);
   if (rx_syntax_error){
     error("Syntax Errors (see above)");
