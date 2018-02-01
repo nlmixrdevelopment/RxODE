@@ -22,21 +22,6 @@ rxDataSetup <- function(ro, covNames = NULL, sigma = NULL, df = NULL, ncoresRV =
     .Call(`_RxODE_rxDataSetup`, ro, covNames, sigma, df, ncoresRV, isChol, nDisplayProgress, amountUnits, timeUnits)
 }
 
-#' Update RxODE multi-subject data with new residuals (in-place).
-#'
-#' @param multiData The RxODE multi-data object setup from \code{\link{rxDataParSetup}}
-#' 
-#' @param zero instead of simulating, zero out the covariates
-#'
-#' @return An integer indicating if this is object has residuals that are updating (0 for no-residuals; 1 for residuals).
-#'        
-#' @author Matthew L. Fidler
-#' @keywords internal
-#' @export
-rxUpdateResiduals <- function(multiData, zero = FALSE) {
-    .Call(`_RxODE_rxUpdateResiduals`, multiData, zero)
-}
-
 #' All model variables for a RxODE object
 #'
 #' Return all the known model variables for a specified RxODE object
@@ -356,13 +341,16 @@ rxDelete <- function(obj) {
 #'
 #' @param nStud Number virtual studies to characterize uncertainty in fixed parameters.
 #'
+#' @param sigma Matrix for residual variation.  Adds a "NA" value for each of the 
+#'     indivdual parameters, residuals are updated after solve is completed. 
+#'
 #' @inheritParams rxSolve
 #'
 #' @author Matthew L.Fidler
 #'
 #' @export
-rxSimThetaOmega <- function(params = NULL, omega = NULL, omegaDf = NULL, omegaIsChol = FALSE, nSub = 1L, thetaMat = NULL, thetaDf = NULL, thetaIsChol = FALSE, nStud = 1L, nCoresRV = 1L) {
-    .Call(`_RxODE_rxSimThetaOmega`, params, omega, omegaDf, omegaIsChol, nSub, thetaMat, thetaDf, thetaIsChol, nStud, nCoresRV)
+rxSimThetaOmega <- function(params = NULL, omega = NULL, omegaDf = NULL, omegaIsChol = FALSE, nSub = 1L, thetaMat = NULL, thetaDf = NULL, thetaIsChol = FALSE, nStud = 1L, sigma = NULL, nCoresRV = 1L) {
+    .Call(`_RxODE_rxSimThetaOmega`, params, omega, omegaDf, omegaIsChol, nSub, thetaMat, thetaDf, thetaIsChol, nStud, sigma, nCoresRV)
 }
 
 #' Invert matrix using Rcpp Armadilo.  

@@ -239,10 +239,10 @@ rxSolve <- function(object, params=NULL, events=NULL, inits = NULL, scale = NULL
             }
         }
     }
-    if (!is.null(thetaMat) || !is.null(omega)){
+    if (!is.null(thetaMat) || !is.null(omega) || !is.null(sigma)){
         params <- rxSimThetaOmega(params = params, omega = omega, omegaDf = omegaDf, omegaIsChol = omegaIsChol,
                                   nSub = nSub, thetaMat = thetaMat, thetaDf = thetaDf, thetaIsChol = thetaIsChol,
-                                  nStud = nStud, nCoresRV = nCoresRV);
+                                  nStud = nStud, sigma=sigma, nCoresRV = nCoresRV);
     }
     extra <- list(...);
 

@@ -40,6 +40,11 @@ typedef struct {
   double *rtol2;
   double *atol2;
   int nDisplayProgress;
+  SEXP sigma;
+  SEXP df;
+  int ncoresRV;
+  int isChol;
+  int *svar;
 } rx_solving_options;
 
 
@@ -120,7 +125,12 @@ SEXP getSolvingOptionsPtr(double ATOL,          //absolute error
 			  double hmax2,
                           double *atol2,
                           double *rtol2,
-                          int nDisplayProgress);
+                          int nDisplayProgress,
+			  SEXP sigma,
+                          SEXP df,
+                          int ncoresRV,
+                          int isChol,
+                          int *svar);
 void getSolvingOptionsIndPtr(double *InfusionRate,
                              int *BadDose,
                              double HMAX, // Determined by diff
@@ -148,7 +158,7 @@ SEXP rxSolveData(rx_solving_options_ind *subjects,
 void par_solve(rx_solve *rx);
 
 rx_solving_options *getRxOp(rx_solve *rx);
-SEXP RxODE_df(SEXP sd, int doDose, int ini_updateR);
+SEXP RxODE_df(SEXP sd, int doDose);
 SEXP RxODE_par_df(SEXP sd);
 
 rx_solving_options_ind *rxOptionsIniEnsure(int mx);

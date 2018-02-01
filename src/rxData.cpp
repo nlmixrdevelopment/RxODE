@@ -263,6 +263,19 @@ RObject rxSimSigma(const RObject &sigma,
   }
 }
 
+extern "C" SEXP rxSimSigmaC(rx_solving_options *op,
+			    int nObs){
+  bool isChol = false;
+  if (op->isChol == 1){
+    isChol=true;
+  }
+  RObject ret = rxSimSigma(as<RObject>(op->sigma),
+                           as<RObject>(op->df),
+                           op->ncoresRV,
+                           isChol,
+                           nObs);
+  return wrap(ret);
+}
 // [[Rcpp::export]]
 List rxDataSetup(const RObject &ro,
 		 const RObject &covNames = R_NilValue,
@@ -598,84 +611,6 @@ List rxDataSetup(const RObject &ro,
   } else {
     stop("Data is not setup appropriately.");
   }
-}
-
-//' Update RxODE multi-subject data with new residuals (in-place).
-//'
-//' @param multiData The RxODE multi-data object setup from \code{\link{rxDataParSetup}}
-//' 
-//' @param zero instead of simulating, zero out the covariates
-//'
-//' @return An integer indicating if this is object has residuals that are updating (0 for no-residuals; 1 for residuals).
-//'        
-//' @author Matthew L. Fidler
-//' @keywords internal
-//' @export
-//[[Rcpp::export]]
-bool rxUpdateResiduals(List &multiData, bool zero = false){
-  if (rxIs(multiData, "RxODE.multi.data")){
-    RObject sigma = multiData["sigma"];
-    if (!sigma.isNULL()){
-      int totNObs = as<int>(multiData["nObs"]);
-      RObject df = multiData["df"];
-      int ncores = as<int>(multiData["ncoresRV"]);
-      bool isChol = as<bool>(multiData["isChol"]);
-      RObject tmp_ro = R_NilValue;
-      if (!zero)
-	tmp_ro = rxSimSigma(sigma, df, ncores, isChol, totNObs);
-      if (!tmp_ro.isNULL()){
-	// Resimulated; now fill in again...
-        NumericMatrix simMat = as<NumericMatrix>(tmp_ro);
-	SEXP cov_ = multiData["cov"];
-        NumericVector cov = NumericVector(cov_);
-	DataFrame ids = as<DataFrame>(multiData["ids"]);
-	IntegerVector posCov = ids["posCov"];
-	IntegerVector nCov   = ids["nCov"];
-	IntegerVector nObs   = ids["nObs"];
-	int nObsCov = as<int>(multiData["n.observed.covariates"]);
-	int nSimCov = simMat.ncol();
-	int nc = 0;
-	for (int id = 0; id < posCov.size(); id++){
-	  for (int no = 0; no < nObs[id]; no++){
-	    for (int ns = 0; ns < nSimCov; ns++){
-              cov[posCov[id]+no+(nObsCov+ns)*nObs[id]] = simMat(nc, ns);
-	    }
-	    nc++;
-	  }
-	}
-	return true;
-      } else if (zero) {
-        SEXP cov_ = multiData["cov"];
-        NumericVector cov = NumericVector(cov_);
-	DataFrame ids = as<DataFrame>(multiData["ids"]);
-        IntegerVector posCov = ids["posCov"];
-        IntegerVector nCov   = ids["nCov"];
-        IntegerVector nObs   = ids["nObs"];
-        int nObsCov = as<int>(multiData["n.observed.covariates"]);
-        int nSimCov = (as<NumericMatrix>(sigma)).ncol();
-        for (int id = 0; id < posCov.size(); id++){
-	  for (int no = 0; no < nObs[id]; no++){
-	    for (int ns = 0; ns < nSimCov; ns++){
-	      cov[posCov[id]+no+(nObsCov+ns)*nObs[id]] = 0;
-	    }
-	  }
-	}
-      }
-      return false;
-    }
-    return false;
-  }
-  return false;
-}
-
-
-extern "C" int rxUpdateResiduals_(SEXP md){
-  List mdl = List(md);
-  bool ret = rxUpdateResiduals(mdl, false);
-  if (ret)
-    return 1;
-  else
-    return 0;
 }
 
 extern "C" void set_solve(rx_solve *rx);
@@ -1396,7 +1331,7 @@ List rxDataParSetup(const RObject &object,
   }
   simnames0 = as<Nullable<CharacterVector>>(ret["simulated.vars"]);
   if (!simnames0.isNull()){
-    simnames = CharacterVector(simnames);
+    simnames = CharacterVector(simnames0);
   }
   NumericMatrix parMat = rxSetupParamsThetaEta(par1, theta, eta);
   int nSub = as<int>(ret["nSub"]);
@@ -1404,7 +1339,8 @@ List rxDataParSetup(const RObject &object,
     stop("The Number of parameters must be a multiple of the number of subjects.");
   }
   k = 0;
-  IntegerVector pcov(covnames.size()+simnames.size());
+  IntegerVector pcov(covnames.size());
+  IntegerVector svar(simnames.size());
   for (i = 0; i < covnames.size(); i++){
     for (j = 0; j < pars.size(); j++){
       if (covnames[i] == pars[j]){
@@ -1416,7 +1352,7 @@ List rxDataParSetup(const RObject &object,
   for (i = 0; i < simnames.size(); i++){
     for (j = 0; j < pars.size(); j++){
       if (simnames[i] == pars[j]){
-        pcov[i] = j + 1;
+        svar[i] = j;
         break;
       }
     }
@@ -1510,6 +1446,7 @@ List rxDataParSetup(const RObject &object,
   // ret["inits.full"] = initsS;
   ret["n.pars"] = (int)(pars.size());
   ret["pcov"] = pcov;
+  ret["svar"] = svar;
   ret["neq"] = state.size();
   DataFrame et      = as<DataFrame>(ret["et"]);
   NumericVector solve(state.size()*et.nrow()*nr);
@@ -1552,7 +1489,12 @@ SEXP rxSolvingOptions(const RObject &object,
 		      double hmax2 = 0,
                       double *atol2 = NULL,
                       double *rtol2 = NULL,
-                      int nDisplayProgress = 10000){
+                      int nDisplayProgress = 10000,
+		      RObject sigma = R_NilValue,
+                      RObject df = R_NilValue,
+                      int ncoresRV = 1,
+                      int isChol = 1,
+                      int *svar =NULL){
   if (maxordn < 1 || maxordn > 12){
     stop("'maxordn' must be >1 and <= 12.");
   }
@@ -1619,7 +1561,9 @@ SEXP rxSolvingOptions(const RObject &object,
 			      st, f1, f2, kind, is_locf, cores,
 			      ncov,par_cov, do_par_cov, &inits[0], &scale[0],
 			      as<SEXP>(state), as<SEXP>(lhs),
-			      as<SEXP>(params), hmax2, atol2, rtol2, nDisplayProgress);
+			      as<SEXP>(params), hmax2, atol2, rtol2, 
+			      nDisplayProgress, as<SEXP>(sigma),
+                              as<SEXP>(df), ncoresRV, isChol,svar);
 }
 
 SEXP rxSolvingData(const RObject &model,
@@ -1694,8 +1638,8 @@ SEXP rxSolvingData(const RObject &model,
           }
         }
 	ncov = par_cov.size();
-        getSolvingOptionsIndPtr(&InfusionRate[cid*neq],&BadDose[cid*neq], hm,&par[cid*nPar],
-                                &amt[posDose[id]],
+        getSolvingOptionsIndPtr(&InfusionRate[cid*neq],&BadDose[cid*neq], hm,
+				&par[cid*nPar], &amt[posDose[id]],
 				&idose[posDose[id]],
                                 // Solve and lhs are written to in the solve...
                                 &solve[cid*totSize*neq],
@@ -1713,9 +1657,16 @@ SEXP rxSolvingData(const RObject &model,
       rtol2[i]=rtol;
     }
     double hmax2 = as<double>(opt["Hmax"]);
+    IntegerVector svar = as<IntegerVector>(opt["svar"]);
+    bool isCholB =  as<bool>(opt["isChol"]);
+    int isChol = 0;
+    if (isCholB) isChol = 1;
     SEXP op = rxSolvingOptions(model,method, transit_abs, atol, rtol, maxsteps, hmin, hini, maxordn,
 			       maxords, cores, ncov, &par_cov[0], do_par_cov, &inits[0], &scale[0], covs_interpolation,
-			       hmax2,&atol2[0],&rtol2[0], as<int>(opt["nDisplayProgress"]));
+			       hmax2,&atol2[0],&rtol2[0], as<int>(opt["nDisplayProgress"]),
+			       as<RObject>(opt["sigma"]), as<RObject>(opt["df"]),
+			       as<int>(opt["ncoresRV"]),isChol, &svar[0]);
+
     int add_cov = 0;
     if (addCov) add_cov = 1;
     int nobs = as<int>(opt["nObs"]);
@@ -2169,7 +2120,6 @@ SEXP rxSolveC(const RObject &object,
     
     rx_solve *rx;
     rx = getRxSolve(parData);
-    rxUpdateResiduals(parData, true);
     par_solve(rx);
     int doDose = 0;
     if (addDosing){
@@ -2177,7 +2127,7 @@ SEXP rxSolveC(const RObject &object,
     } else {
       doDose = 0;
     }
-    List dat = RxODE_df(parData, doDose, 1);
+    List dat = RxODE_df(parData, doDose);
     List xtra;
     if (!rx->matrix) xtra = RxODE_par_df(parData);
     int nr = as<NumericVector>(dat[0]).size();
@@ -3268,6 +3218,9 @@ bool rxDelete(RObject obj){
 //'
 //' @param nStud Number virtual studies to characterize uncertainty in fixed parameters.
 //'
+//' @param sigma Matrix for residual variation.  Adds a "NA" value for each of the 
+//'     indivdual parameters, residuals are updated after solve is completed. 
+//'
 //' @inheritParams rxSolve
 //'
 //' @author Matthew L.Fidler
@@ -3283,6 +3236,7 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
 		     const Nullable<NumericMatrix> &thetaDf  = R_NilValue,
 		     const bool &thetaIsChol = false,
 		     int nStud = 1,
+                     const Nullable<NumericMatrix> &sigma = R_NilValue,
 		     int nCoresRV = 1){
   NumericVector par;
   if (params.isNull()){
@@ -3342,6 +3296,16 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
       tmpNV[j] = omegaM(j,i);
     }
     ret[as<std::string>(omegaN[i])] = tmpNV;
+  }
+  CharacterVector sigmaN;
+  NumericMatrix sigmaM;
+  if (!sigma.isNull()){
+    sigmaM = as<NumericMatrix>(sigma);
+    sigmaN = as<CharacterVector>((as<List>(sigmaM.attr("dimnames")))[1]);
+  }
+  for (i = 0; i < sigmaN.size(); i++){
+    tmpNV = NumericVector(nSub*nStud);
+    ret[as<std::string>(sigmaN[i])] = tmpNV;
   }
   ret.attr("class") = "data.frame";
   ret.attr("row.names") = IntegerVector::create(NA_INTEGER,-nSub*nStud);

@@ -39,18 +39,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// rxUpdateResiduals
-bool rxUpdateResiduals(List& multiData, bool zero);
-RcppExport SEXP _RxODE_rxUpdateResiduals(SEXP multiDataSEXP, SEXP zeroSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< List& >::type multiData(multiDataSEXP);
-    Rcpp::traits::input_parameter< bool >::type zero(zeroSEXP);
-    rcpp_result_gen = Rcpp::wrap(rxUpdateResiduals(multiData, zero));
-    return rcpp_result_gen;
-END_RCPP
-}
 // rxModelVars
 List rxModelVars(const RObject& obj);
 RcppExport SEXP _RxODE_rxModelVars(SEXP objSEXP) {
@@ -327,8 +315,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // rxSimThetaOmega
-List rxSimThetaOmega(const Nullable<NumericVector>& params, const Nullable<NumericMatrix>& omega, const Nullable<NumericMatrix>& omegaDf, const bool& omegaIsChol, int nSub, const Nullable<NumericMatrix>& thetaMat, const Nullable<NumericMatrix>& thetaDf, const bool& thetaIsChol, int nStud, int nCoresRV);
-RcppExport SEXP _RxODE_rxSimThetaOmega(SEXP paramsSEXP, SEXP omegaSEXP, SEXP omegaDfSEXP, SEXP omegaIsCholSEXP, SEXP nSubSEXP, SEXP thetaMatSEXP, SEXP thetaDfSEXP, SEXP thetaIsCholSEXP, SEXP nStudSEXP, SEXP nCoresRVSEXP) {
+List rxSimThetaOmega(const Nullable<NumericVector>& params, const Nullable<NumericMatrix>& omega, const Nullable<NumericMatrix>& omegaDf, const bool& omegaIsChol, int nSub, const Nullable<NumericMatrix>& thetaMat, const Nullable<NumericMatrix>& thetaDf, const bool& thetaIsChol, int nStud, const Nullable<NumericMatrix>& sigma, int nCoresRV);
+RcppExport SEXP _RxODE_rxSimThetaOmega(SEXP paramsSEXP, SEXP omegaSEXP, SEXP omegaDfSEXP, SEXP omegaIsCholSEXP, SEXP nSubSEXP, SEXP thetaMatSEXP, SEXP thetaDfSEXP, SEXP thetaIsCholSEXP, SEXP nStudSEXP, SEXP sigmaSEXP, SEXP nCoresRVSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -341,8 +329,9 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const Nullable<NumericMatrix>& >::type thetaDf(thetaDfSEXP);
     Rcpp::traits::input_parameter< const bool& >::type thetaIsChol(thetaIsCholSEXP);
     Rcpp::traits::input_parameter< int >::type nStud(nStudSEXP);
+    Rcpp::traits::input_parameter< const Nullable<NumericMatrix>& >::type sigma(sigmaSEXP);
     Rcpp::traits::input_parameter< int >::type nCoresRV(nCoresRVSEXP);
-    rcpp_result_gen = Rcpp::wrap(rxSimThetaOmega(params, omega, omegaDf, omegaIsChol, nSub, thetaMat, thetaDf, thetaIsChol, nStud, nCoresRV));
+    rcpp_result_gen = Rcpp::wrap(rxSimThetaOmega(params, omega, omegaDf, omegaIsChol, nSub, thetaMat, thetaDf, thetaIsChol, nStud, sigma, nCoresRV));
     return rcpp_result_gen;
 END_RCPP
 }

@@ -208,8 +208,6 @@ void rxClearFuns(){
   g_jdum_lsoda = NULL;
 }
 
-int rxUpdateResiduals_(SEXP md);
-
 void getSolvingOptionsIndPtr(double *InfusionRate,
                              int *BadDose,
                              double HMAX, // Determined by diff
@@ -279,7 +277,12 @@ SEXP getSolvingOptionsPtr(double ATOL,          //absolute error
 			  double hmax2,
 			  double *atol2,
 			  double *rtol2,
-                          int nDisplayProgress){
+                          int nDisplayProgress,
+                          SEXP sigma,
+                          SEXP df,
+                          int ncoresRV,
+                          int isChol,
+			  int *svar){
   // This really should not be called very often, so just allocate one for now.
   rx_solving_options *o;
   o = &op_global;
@@ -313,6 +316,11 @@ SEXP getSolvingOptionsPtr(double ATOL,          //absolute error
   o->atol2 = atol2;
   o->cores = cores;
   o->nDisplayProgress = nDisplayProgress;
+  o->sigma = sigma;
+  o->df = df;
+  o->ncoresRV = ncoresRV;
+  o->isChol = isChol;
+  o->svar = svar;
   SEXP ret = PROTECT(R_MakeExternalPtr(o, install("rx_solving_options"), R_NilValue));
   UNPROTECT(1);
   return(ret);
@@ -1489,7 +1497,9 @@ extern SEXP RxODE_par_df(SEXP sd){
   return ret;
 }
 
-extern SEXP RxODE_df(SEXP sd, int doDose, int ini_updateR){
+extern SEXP rxSimSigmaC(rx_solving_options *op, int nObs);
+
+extern SEXP RxODE_df(SEXP sd, int doDose){
   rx_solve *rx;
   rx = getRxSolve(sd);
   rx_solving_options *op;
@@ -1545,6 +1555,15 @@ extern SEXP RxODE_df(SEXP sd, int doDose, int ini_updateR){
   for (i = 0; i < nidCols; i++){
     SET_VECTOR_ELT(df, i, PROTECT(allocVector(INTSXP, (doDose == 1 ? nall : nobs)*nsim))); pro++;
   }
+  double *par_ptr;
+  int nrows = (doDose == 1 ? nall : nobs)*nsim;
+  SEXP errs = PROTECT(rxSimSigmaC(op, nrows));pro++;
+  int updateErr = 0;
+  int errNcol=0;
+  if (!isNull(errs)){
+    updateErr = 1;
+    errNcol = INTEGER(getAttrib(errs,R_DimSymbol))[1];
+  }
   if (doDose){
     SET_VECTOR_ELT(df, i++, PROTECT(allocVector(INTSXP, nall*nsim))); pro++;
     SET_VECTOR_ELT(df, i, PROTECT(allocVector(REALSXP, nall*nsim))); pro++;
@@ -1563,11 +1582,10 @@ extern SEXP RxODE_df(SEXP sd, int doDose, int ini_updateR){
   int *BadDose;
   int extraCmt = op->extraCmt;
   double *dose;
+  int *svar = op->svar;
   int di = 0;
-  int updateR = ini_updateR;
+  int kk = 0;
   for (int csim = 0; csim < nsim; csim++){
-    if (updateR)
-      updateR=rxUpdateResiduals_(sd);
     for (csub = 0; csub < nsub; csub++){
       neq[1] = csub+csim*nsub;
       ind = &(rx->subjects[neq[1]]);
@@ -1576,6 +1594,7 @@ extern SEXP RxODE_df(SEXP sd, int doDose, int ini_updateR){
       ntimes = ind->n_all_times;
       solve =  ind->solve;
       cov_ptr = ind->cov_ptr;
+      par_ptr = ind->par_ptr;
       dose = ind->dose;
       di = 0;
       if (nBadDose && csim == 0){
@@ -1586,7 +1605,13 @@ extern SEXP RxODE_df(SEXP sd, int doDose, int ini_updateR){
 	}
       }
       for (i = 0; i < ntimes; i++){
-	jj  = 0 ;
+        if (updateErr){
+          for (j=0; j < errNcol; j++){
+	    par_ptr[svar[j]] = REAL(errs)[nrows*j+kk];
+          }
+	  kk++;
+        }
+        jj  = 0 ;
 	evid = rxEvidP(i,rx,neq[1]);
 	if (evid==0 || doDose){
           // sim.id
@@ -1600,7 +1625,6 @@ extern SEXP RxODE_df(SEXP sd, int doDose, int ini_updateR){
             dfi = INTEGER(VECTOR_ELT(df, jj));
             dfi[ii] = csub+1;
             jj++;
-	
           }
 	  if (doDose){
 	    // evid
@@ -1626,7 +1650,7 @@ extern SEXP RxODE_df(SEXP sd, int doDose, int ini_updateR){
           // LHS
           if (nlhs){
 	    rxCalcLhsP(i, rx, neq[1]);
-             for (j = 0; j < nlhs; j++){
+	    for (j = 0; j < nlhs; j++){
                dfp = REAL(VECTOR_ELT(df, jj));
                dfp[ii] =rxLhsP(j, rx, neq[1]);
 	       jj++;
@@ -1642,6 +1666,11 @@ extern SEXP RxODE_df(SEXP sd, int doDose, int ini_updateR){
 	    }
           }
           ii++;
+        }
+      }
+      if (updateErr){
+        for (j=0; j < errNcol; j++){
+          par_ptr[svar[j]] = NA_REAL;
         }
       }
     }
