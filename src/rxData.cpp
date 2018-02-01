@@ -3250,15 +3250,16 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
   
   NumericMatrix thetaM;
   CharacterVector thetaN;
+  int pro = 0;
   if (!thetaMat.isNull() && nStud > 0){
-    thetaM = as<NumericMatrix>(rxSimSigma(as<RObject>(thetaMat), as<RObject>(thetaDf), nCoresRV, thetaIsChol, nStud));
+    thetaM = as<NumericMatrix>(PROTECT(rxSimSigma(as<RObject>(thetaMat), as<RObject>(thetaDf), nCoresRV, thetaIsChol, nStud))); pro++;
     thetaN = as<CharacterVector>((as<List>(thetaM.attr("dimnames")))[1]);
   }
 
   NumericMatrix omegaM;
   CharacterVector omegaN;
   if (!omega.isNull() && nSub*nStud > 0){
-    omegaM = as<NumericMatrix>(rxSimSigma(as<RObject>(omega), as<RObject>(omegaDf), nCoresRV, omegaIsChol, nSub*nStud));
+    omegaM = as<NumericMatrix>(PROTECT(rxSimSigma(as<RObject>(omega), as<RObject>(omegaDf), nCoresRV, omegaIsChol, nSub*nStud)));pro++;
     omegaN = as<CharacterVector>((as<List>(omegaM.attr("dimnames")))[1]);
   }
   // Now create data frame of parameter values
@@ -3309,5 +3310,6 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
   }
   ret.attr("class") = "data.frame";
   ret.attr("row.names") = IntegerVector::create(NA_INTEGER,-nSub*nStud);
+  UNPROTECT(pro);
   return ret;
 }

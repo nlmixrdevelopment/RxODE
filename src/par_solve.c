@@ -34,8 +34,7 @@ void par_flush_console() {
 #endif
 }
 
-
-int par_progress(int c, int n, int d, int cores, clock_t t0){
+int par_progress(int c, int n, int d, int cores, clock_t t0, int stop){
   float progress = (float)(c)/((float)(n));
   if (c <= n){
     int nticks= (int)(progress * 50);
@@ -60,6 +59,9 @@ int par_progress(int c, int n, int d, int cores, clock_t t0){
       Rprintf("%02.f%%; ncores=%d; ",100*progress,cores);
       clock_t t = clock() - t0;
       Rprintf(" %.3f sec ", ((double)t)/CLOCKS_PER_SEC);
+      if (stop){
+	Rprintf("Stopped Calculation!\n");
+      }
       if (nticks >= 50){
 	Rprintf("\n");
       }
@@ -420,6 +422,14 @@ int handle_evid(int evid, int neq,
   return 0;
 }
 
+static void chkIntFn(void *dummy) {
+  R_CheckUserInterrupt();
+}
+
+int checkInterrupt() {
+  return (R_ToplevelExec(chkIntFn, NULL) == FALSE);
+}
+
 extern void par_liblsoda(rx_solve *rx){
   clock_t t0 = clock();
   rx_solving_options *op;
@@ -430,7 +440,9 @@ extern void par_liblsoda(rx_solve *rx){
   int nsub = rx->nsub;
   int nsim = rx->nsim;
   int cores = op->cores;
-  double *yp0 = Calloc((op->neq)*nsim*nsub, double);
+  int pro = 0;
+  SEXP yps=PROTECT(allocVector(REALSXP, (op->neq)*nsim*nsub));pro++;
+  double *yp0 = REAL(yps);
   struct lsoda_opt_t opt = {0};
   opt.ixpr = 0; // No extra printing...
   // Unlike traditional lsoda, these are vectors.
@@ -448,77 +460,98 @@ extern void par_liblsoda(rx_solve *rx){
   int curTick=0;
   int cur=0;
   int displayProgress = (op->nDisplayProgress <= nsim*nsub);
+  // Breaking of of loop ideas came from http://www.thinkingparallel.com/2007/06/29/breaking-out-of-loops-in-openmp/
+  // http://permalink.gmane.org/gmane.comp.lang.r.devel/27627
+  int userAbort = 0;
 #pragma omp parallel for num_threads(cores)
   for (int solveid = 0; solveid < nsim*nsub; solveid++){
-    int i, j;
-    int csim = solveid % nsub;
-    int csub = solveid / nsub;
-    int neq[2];
-    neq[0] = op->neq;
-    neq[1] = csub+csim*nsub;    
-    double *yp = &yp0[neq[1]*neq[0]];
-    int nx;
-    rx_solving_options_ind *ind;
-    double *inits;
-    int *evid;
-    double *x;
-    int *BadDose;
-    double *InfusionRate;
-    double *dose;
-    double *ret;
-    double xout;
-    int *rc;
-    inits = op->inits;
-    struct lsoda_context_t ctx = {
-      .function = dydt_liblsoda,
-      .neq = neq[0],
-      .data = &neq,
-      .state = 1
-    };
-    lsoda_prepare(&ctx, &opt);
-    ind = &(rx->subjects[neq[1]]);
-    ind->ixds = 0;
-    nx = ind->n_all_times;
-    evid = ind->evid;
-    BadDose = ind->BadDose;
-    InfusionRate = ind->InfusionRate;
-    dose = ind->dose;
-    ret = ind->solve;
-    x = ind->all_times;
-    rc= ind->rc;
-    double xp = x[0];
-    //--- inits the system
-    update_inis(neq[1], inits); // Update initial conditions
+#pragma omp flush (userAbort)
+    if (userAbort == 0){
+      int i, j;
+      int csim = solveid % nsub;
+      int csub = solveid / nsub;
+      int neq[2];
+      neq[0] = op->neq;
+      neq[1] = csub+csim*nsub;    
+      double *yp = &yp0[neq[1]*neq[0]];
+      int nx;
+      rx_solving_options_ind *ind;
+      double *inits;
+      int *evid;
+      double *x;
+      int *BadDose;
+      double *InfusionRate;
+      double *dose;
+      double *ret;
+      double xout;
+      int *rc;
+      inits = op->inits;
+      struct lsoda_context_t ctx = {
+        .function = dydt_liblsoda,
+        .neq = neq[0],
+        .data = &neq,
+        .state = 1
+      };
+      lsoda_prepare(&ctx, &opt);
+      ind = &(rx->subjects[neq[1]]);
+      ind->ixds = 0;
+      nx = ind->n_all_times;
+      evid = ind->evid;
+      BadDose = ind->BadDose;
+      InfusionRate = ind->InfusionRate;
+      dose = ind->dose;
+      ret = ind->solve;
+      x = ind->all_times;
+      rc= ind->rc;
+      double xp = x[0];
+      //--- inits the system
+      update_inis(neq[1], inits); // Update initial conditions
 
-    for(i=0; i<neq[0]; i++) yp[i] = inits[i];
-    for(i=0; i<nx; i++) {
-      xout = x[i];
-      if(xout-xp > DBL_EPSILON*max(fabs(xout),fabs(xp))){
-	lsoda(&ctx, yp, &xp, xout);
-	if (ctx.state <= 0) {
-	  /* Rprintf("IDID=%d, %s\n", istate, err_msg[-istate-1]); */
-	  *rc = ctx.state;
-	  // Bad Solve => NA
-	  for (i = 0; i < nx*neq[0]; i++) ret[i] = NA_REAL;
-	  op->badSolve = 1;
-	  i = nx+42; // Get out of here!
+      for(i=0; i<neq[0]; i++) yp[i] = inits[i];
+      for(i=0; i<nx; i++) {
+        xout = x[i];
+        if(xout-xp > DBL_EPSILON*max(fabs(xout),fabs(xp))){
+          lsoda(&ctx, yp, &xp, xout);
+          if (ctx.state <= 0) {
+            /* Rprintf("IDID=%d, %s\n", istate, err_msg[-istate-1]); */
+            *rc = ctx.state;
+            // Bad Solve => NA
+            for (i = 0; i < nx*neq[0]; i++) ret[i] = NA_REAL;
+            op->badSolve = 1;
+            i = nx+42; // Get out of here!
+          }
+        }
+        if (handle_evid(evid[i], neq[0], BadDose, InfusionRate, dose, yp,
+                        op->do_transit_abs, xout, ind)){
+          ctx.state = 1;
+          xp = xout;
+        }
+        for(j=0; j<neq[0]; j++) ret[neq[0]*i+j] = yp[j];
+      }
+      lsoda_free(&ctx);
+      if (displayProgress){
+#pragma omp critical
+        cur++;
+#pragma omp critical
+	curTick = par_progress(cur, nsim*nsub, curTick, cores, t0, 0);
+      }
+#pragma omp flush (userAbort)
+      if (userAbort == 0){
+#pragma omp critical
+	userAbort = checkInterrupt();
+	if (userAbort == 1){
+	  par_progress(cur, nsim*nsub, curTick, cores, t0, 1);
 	}
       }
-      if (handle_evid(evid[i], neq[0], BadDose, InfusionRate, dose, yp,
-                      op->do_transit_abs, xout, ind)){
-        ctx.state = 1;
-        xp = xout;
-      }
-      for(j=0; j<neq[0]; j++) ret[neq[0]*i+j] = yp[j];
     }
-    lsoda_free(&ctx);
-#pragma omp critical
-    cur++;
-#pragma omp critical
-    if (displayProgress) curTick = par_progress(cur, nsim*nsub, curTick, cores, t0);
   }
-  if (displayProgress && curTick < 50) par_progress(nsim*nsub, nsim*nsub, curTick, cores, t0);
-  Free(yp0);
+  if (userAbort == 1){
+    yp0 = NULL;
+    par_progress(cur, nsim*nsub, curTick, cores, t0, 1);
+  } else {
+    if (displayProgress && curTick < 50) par_progress(nsim*nsub, nsim*nsub, curTick, cores, t0, 0);
+  }
+  UNPROTECT(pro);
 }
 
 extern void par_lsoda(rx_solve *rx){
@@ -643,9 +676,9 @@ extern void par_lsoda(rx_solve *rx){
 	Rprintf("\n");
       }
     }
-    if (displayProgress) curTick = par_progress(solveid, nsim*nsub, curTick, 1, t0);
+    if (displayProgress) curTick = par_progress(solveid, nsim*nsub, curTick, 1, t0, 0);
   }
-  if (displayProgress && curTick < 50) par_progress(nsim*nsub, nsim*nsub, curTick, 1, t0);
+  if (displayProgress && curTick < 50) par_progress(nsim*nsub, nsim*nsub, curTick, 1, t0, 0);
   /* if (rc[0]){ */
   /*   /\* Rprintf("Error solving using LSODA\n"); *\/ */
   /*   /\* Free(rwork); *\/ */
@@ -791,9 +824,9 @@ void par_dop(rx_solve *rx){
       /*   return; */
       /* } */
     }
-    if (displayProgress) curTick = par_progress(solveid, nsim*nsub, curTick, 1, t0);
+    if (displayProgress) curTick = par_progress(solveid, nsim*nsub, curTick, 1, t0, 0);
   }
-  if (displayProgress && curTick < 50) par_progress(nsim*nsub, nsim*nsub, curTick, 1, t0);
+  if (displayProgress && curTick < 50) par_progress(nsim*nsub, nsim*nsub, curTick, 1, t0, 0);
 }
 
 void par_solve(rx_solve *rx){
@@ -1179,7 +1212,7 @@ extern SEXP RxODE_par_df(SEXP sd){
   int nsim = rx->nsim;
   int pro=0, i;
   // paramNames
-  SEXP paramNames = op->paramNames;
+  SEXP paramNames = PROTECT(op->paramNames); pro++;
   int *par_cov = op->par_cov;
   int ncov = op->ncov;
   int npar = length(paramNames);
@@ -1459,7 +1492,6 @@ extern SEXP RxODE_par_df(SEXP sd){
       SET_STRING_ELT(sexp_colnames, jj, STRING_ELT(paramNames,i));
       jj++;
     }
-    
   }
   setAttrib(df, R_NamesSymbol, sexp_colnames);
   setAttrib(countsDf , R_NamesSymbol, sexp_colnamesCount);
@@ -1700,7 +1732,7 @@ extern SEXP RxODE_df(SEXP sd, int doDose){
   jj++;
 
   // Put in state names
-  SEXP stateNames = op->stateNames;
+  SEXP stateNames = PROTECT(op->stateNames); pro++;
   if (nPrnState){
     for (j = 0; j < neq[0]; j++){
       if (!rmState[j]){
@@ -1710,13 +1742,13 @@ extern SEXP RxODE_df(SEXP sd, int doDose){
     }
   }
   // Put in LHS names
-  SEXP lhsNames = op->lhsNames;
+  SEXP lhsNames = PROTECT(op->lhsNames); pro++;
   for (i = 0; i < nlhs; i++){
     SET_STRING_ELT(sexp_colnames, jj, STRING_ELT(lhsNames,i));
     jj++;
   }
   // Put in Cov names
-  SEXP paramNames = op->paramNames;
+  SEXP paramNames = PROTECT(op->paramNames); pro++;
   int *par_cov = op->par_cov;
   for (i = 0; i < ncov*add_cov; i++){
     SET_STRING_ELT(sexp_colnames,jj, STRING_ELT(paramNames, par_cov[i]-1));

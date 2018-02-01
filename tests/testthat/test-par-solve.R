@@ -11,9 +11,11 @@ rxPermissive({
     et$add.dosing(dose=2/24,rate=2,strt.time=0,
                   nbr.doses=10,dosing.interval=1)
 
-    p <- data.frame(a=6,b=seq(0.4,0.9,length.out=50000));
+    p <- data.frame(a=6,b=seq(0.4,0.9,length.out=4));
 
     pk1 <- rxSolve(mod,p,et,cores=1)
+
+    pk1 <- rxSolve(mod,p,et)
 
     pk2 <- rxSolve(mod,p,et, cores=2); # CRAN requirement of at most 2 cores.
     test_that("Parallel Solve gives same results a single threaded solve", {
