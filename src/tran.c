@@ -34,7 +34,6 @@
 #include <stdint.h>
 #endif
 
-
 char *repl_str(const char *str, const char *from, const char *to) {
   // From http://creativeandcritical.net/str-replace-c by Laird Shaw
   /* Adjust each of the below values to suit your needs. */
@@ -202,7 +201,8 @@ extern D_ParserTables parser_tables_RxODE;
 unsigned int found_jac = 0, found_print = 0;
 int rx_syntax_assign = 0, rx_syntax_star_pow = 0,
   rx_syntax_require_semicolon = 0, rx_syntax_allow_dots = 0,
-  rx_syntax_allow_ini0 = 1, rx_syntax_allow_ini = 1, rx_syntax_allow_assign_state = 0;
+  rx_syntax_allow_ini0 = 1, rx_syntax_allow_ini = 1, rx_syntax_allow_assign_state = 0,
+  maxSumProdN = 0, SumProdLD = 0;
 
 char s_aux_info[64*MXSYM];
 
@@ -471,7 +471,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
     sbt.o += 2;
   }
   Free(value);
-  
+
   //depth++;
   if (nch != 0) {
     if (!strcmp("power_expression", name)) {
@@ -539,9 +539,22 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       
       if (tb.fn){
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-        if (!strcmp("prod",v) || !strcmp("sum",v) || !strcmp("sign",v)){
+        if (!strcmp("prod",v) || !strcmp("sum",v) || !strcmp("sign",v) ||
+	    !strcmp("max",v) || !strcmp("min",v)){
 	  ii = d_get_number_of_children(d_get_child(pn,3))+1;
-          sprintf(SBPTR, "_%s(%d, (double) ",v, ii);
+	  if (!strcmp("prod", v)){
+            sprintf(SBPTR, "_prod(_p, _input, _prodType(), %d, (double) ", ii);
+            if (maxSumProdN < ii){
+              maxSumProdN = ii;
+            }
+          } else if (!strcmp("sum", v)){
+	    sprintf(SBPTR, "_sum(_p, _pld, -__MAX_PROD__, _sumType(), %d, (double) ", ii);
+            if (SumProdLD < ii){
+              SumProdLD = ii;
+            }
+	  } else {
+	    sprintf(SBPTR, "_sign(%d, (double) ", ii);
+	  }
           sprintf(SBTPTR, "%s(", v);
           sb.o = strlen(sb.s);
           sbt.o = strlen(sbt.s);
@@ -1603,7 +1616,19 @@ void codegen(FILE *outpt, int show_ode) {
   }
   if ((show_ode == 2 && found_jac == 1) || show_ode != 2){
     prnt_vars(0, outpt, 0, "  double ", "\n",show_ode);     /* declare all used vars */
+    if (maxSumProdN > 0){
+      fprintf(outpt, "  double _p[%d], _input[%d];\n", maxSumProdN, maxSumProdN);
+      if (SumProdLD){
+        fprintf(outpt, "  long double _pld[%d];\n", SumProdLD);
+      }
+    }
     prnt_vars(2, outpt, 0, "  (void)t;\n", "\n",show_ode);     /* declare all used vars */
+    if (maxSumProdN){
+      fprintf(outpt, "  (void)_p;\n  (void)_input;\n");
+      if (SumProdLD){
+        fprintf(outpt, "  (void)_pld;\n");
+      }
+    }
     if (show_ode == 3){
       fprintf(outpt,"  _update_par_ptr(0.0, _solveData, _cSub);\n");
     } else {
@@ -1628,6 +1653,7 @@ void codegen(FILE *outpt, int show_ode) {
     fprintf(outpt,"\n");
     fpIO = fopen(out2, "r");
     err_msg((intptr_t) fpIO, "Error parsing. (Couldn't access out2.txt).\n", -1);
+
     while(fgets(sLine, MXLEN, fpIO)) {  /* parsed eqns */
       char *s;
       s = strstr(sLine,"(__0__)");
@@ -1807,6 +1833,13 @@ void codegen(FILE *outpt, int show_ode) {
       strcpy(sLine, s2);
       Free(s2);
       s2=NULL;
+
+      sprintf(to,"%d", SumProdLD);
+      sprintf(from, "__MAX_PROD__");
+      s2 = repl_str(sLine,from,to);
+      strcpy(sLine, s2);
+      Free(s2);
+      s2=NULL;
       fprintf(outpt, "  %s", sLine);
     }
     fclose(fpIO);
@@ -1937,6 +1970,10 @@ void reset (){
   rx_syntax_allow_dots = 0;
   rx_syntax_allow_ini0 = 1;
   rx_syntax_allow_ini = 1;
+
+  maxSumProdN = 0;
+  SumProdLD = 0;
+
   memset(sb.s,         0, MXBUF);
   memset(sbt.s,        0, MXBUF);
   sb.o = 0;

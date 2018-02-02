@@ -9,8 +9,6 @@
 #define ODE_Rprintf Rprintf
 #define ODE0_Rprintf if (_dadt_counter_val() == 0) Rprintf
 #define LHS_Rprintf Rprintf
-#define max(a,b) (((a)>(b))?(a):(b))
-#define min(a,b) (((a)<(b))?(a):(b))
 #define R_pow Rx_pow
 #define R_pow_di Rx_pow_di
 
@@ -29,7 +27,6 @@ typedef SEXP (*RxODE_ode_solver) (SEXP sexp_theta, SEXP sexp_inits, SEXP sexp_lh
 typedef void (*RxODE_assign_ptr)(SEXP);
 typedef void (*RxODE_ode_solver_old_c)(int *neq,double *theta,double *time,int *evid,int *ntime,double *inits,double *dose,double *ret,double *atol,double *rtol,int *stiff,int *transit_abs,int *nlhs,double *lhs,int *rc);
 typedef double (*RxODE_solveLinB)(rx_solve *rx, unsigned int id, double t, int linCmt, int diff1, int diff2, double A, double alpha, double B, double beta, double C, double gamma, double ka, double tlag);
-typedef double (*RxODE_sum_prod)(double *input, int n);
 
 double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt, int diff1, int diff2, double A, double alpha, double B, double beta, double C, double gamma, double ka, double tlag){
   static RxODE_solveLinB fun = NULL;
@@ -41,18 +38,6 @@ void _assign_ptr(SEXP x){
   static RxODE_assign_ptr fun = NULL;
   if (fun == NULL) fun = (RxODE_assign_ptr) R_GetCCallable("RxODE","RxODE_assign_fn_pointers");
   fun(x);
-} 
-
-double _sum1(double *input, int n){
-  static RxODE_sum_prod fun = NULL;
-  if (fun == NULL) fun = (RxODE_sum_prod) R_GetCCallable("RxODE","RxODE_sum");
-  return fun(input, n);
-}
-
-double _prod1(double *input, int n){
-  static RxODE_sum_prod fun = NULL;
-  if (fun == NULL) fun = (RxODE_sum_prod) R_GetCCallable("RxODE","RxODE_prod");
-  return fun(input, n);
 }
 
 typedef void (*_rxRmModelLibType)(const char *inp);
@@ -203,30 +188,29 @@ SEXP _RxODE_rxAssignPtr(SEXP objectSEXP){
   return fun(objectSEXP);
 }
 
-double _sum(int n, ...){
+double _sum(double *p, long double *pld, int m, int type, int n, ...){
   va_list valist;
   va_start(valist, n);
-  double *p = Calloc(n, double);
   for (unsigned int i = 0; i < n; i++){
     p[i] = va_arg(valist, double);
   }
   va_end(valist);
-  double s = _sum1(p, n);
-  Free(p);
-  return s;
+  static double (*fun)(double *, int, long double *, int, int)=NULL;
+  if (fun == NULL) fun = (double(*)(double *, int, long double *, int, int)) R_GetCCallable("PreciseSums","PreciseSums_sum_r");
+  return fun(p, n, pld, m, type);
 }
 
-double _prod(int n, ...){
+
+extern double _prod(double *input, double *p, int type, int n, ...){
   va_list valist;
   va_start(valist, n);
-  double *p = Calloc(n, double);
   for (unsigned int i = 0; i < n; i++){
-    p[i] = va_arg(valist, double);
+    input[i] = va_arg(valist, double);
   }
   va_end(valist);
-  double s = _prod1(p, n);
-  Free(p);
-  return s;
+  static double (*fun)(double*, double*, int, int)=NULL;
+  if (fun == NULL) fun = (double(*)(double*, double*, int, int)) R_GetCCallable("PreciseSums","PreciseSums_prod_r");
+  return fun(input, p, n, type);
 }
 
 extern double _sign(unsigned int n, ...){
@@ -241,6 +225,38 @@ extern double _sign(unsigned int n, ...){
   }
   va_end(valist);
   return s;
+}
+
+extern double _max(unsigned int n, ...){
+  va_list valist;
+  va_start(valist, n);
+  double mx = NA_REAL;
+  double tmp = 0;
+  if (n > 1){
+    mx = sign(va_arg(valist, double));
+    for (unsigned int i = 1; i < n; i++){
+      tmp = va_arg(valist, double);
+      if (tmp>mx) mx=tmp;
+    }
+    va_end(valist);
+  }
+  return mx;
+}
+
+extern double _min(unsigned int n, ...){
+  va_list valist;
+  va_start(valist, n);
+  double mn = NA_REAL;
+  double tmp = 0;
+  if (n > 1){
+    mn = sign(va_arg(valist, double));
+    for (unsigned int i = 1; i < n; i++){
+      tmp = va_arg(valist, double);
+      if (tmp<mn) mn=tmp;
+    }
+    va_end(valist);
+  }
+  return mn;
 }
 
 SEXP _rxModels;
@@ -258,6 +274,15 @@ extern SEXP __MODEL_VARS__(){
 
 rx_solve *_solveData = NULL;
 extern SEXP __ODE_SOLVER_XPTR__ ();
+
+int _prodType(){
+  // Type 3 = Logify
+  return 3;
+}
+int _sumType(){
+  // Type 1 = PairwiseSum
+  return 1;
+}
 
 extern void __ODE_SOLVER_SOLVEDATA__ (rx_solve *solve){
   _solveData = solve;

@@ -276,6 +276,16 @@ extern double RxODE_sumV(int n, ...){
   return s;
 }
 
+extern double RxODE_sumV_r(double *p, long double *pld, int m, int type, int n, ...){
+  va_list valist;
+  va_start(valist, n);
+  for (unsigned int i = 0; i < n; i++){
+    p[i] = va_arg(valist, double);
+  }
+  va_end(valist);
+  return PreciseSums_sum_r(p, n, pld, m, type);
+}
+
 extern double RxODE_prod(double *input, int len){
   return PreciseSums_prod(input, len);
 }
@@ -291,4 +301,14 @@ extern double RxODE_prodV(int n, ...){
   double s = PreciseSums_prod(p, n);
   Free(p);
   return s;
+}
+
+extern double RxODE_prodV_r(double *input, double *p, int type, int n, ...){
+  va_list valist;
+  va_start(valist, n);
+  for (unsigned int i = 0; i < n; i++){
+    input[i] = va_arg(valist, double);
+  }
+  va_end(valist);
+  return PreciseSums_prod_r(input, p, n, type);
 }
