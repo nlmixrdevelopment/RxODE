@@ -323,6 +323,7 @@ SEXP getSolvingOptionsPtr(double ATOL,          //absolute error
   o->ncoresRV = ncoresRV;
   o->isChol = isChol;
   o->svar = svar;
+  o->abort = 0;
   SEXP ret = PROTECT(R_MakeExternalPtr(o, install("rx_solving_options"), R_NilValue));
   UNPROTECT(1);
   return(ret);
@@ -461,11 +462,11 @@ extern void par_liblsoda(rx_solve *rx){
   // Breaking of of loop ideas came from http://www.thinkingparallel.com/2007/06/29/breaking-out-of-loops-in-openmp/
   // http://permalink.gmane.org/gmane.comp.lang.r.devel/27627
   // It was buggy due to Rprint.  Use REprint instead since Rprint calls the interrupt every so often....
-  int userAbort = 0;
+  op->abort = 0;
 #pragma omp parallel for num_threads(cores)
   for (int solveid = 0; solveid < nsim*nsub; solveid++){
-#pragma omp flush (userAbort)
-    if (userAbort == 0){
+#pragma omp flush (op)
+    if (op->abort == 0){
       int i, j;
       int csim = solveid % nsub;
       int csub = solveid / nsub;
@@ -534,17 +535,18 @@ extern void par_liblsoda(rx_solve *rx){
 #pragma omp critical
 	curTick = par_progress(cur, nsim*nsub, curTick, cores, t0, 0);
       }
-#pragma omp flush (userAbort)
-      if (userAbort == 0){
+#pragma omp flush (op)
+      if (op->abort == 0){
 #pragma omp critical
-	userAbort = checkInterrupt();
-	if (userAbort == 1){
+	op->abort = checkInterrupt();
+#pragma omp critical
+	if (op->abort == 1){
 	  par_progress(cur, nsim*nsub, curTick, cores, t0, 1);
 	}
       }
     }
   }
-  if (userAbort == 1){
+  if (op->abort == 1){
     yp0 = NULL;
     par_progress(cur, nsim*nsub, curTick, cores, t0, 1);
   } else {

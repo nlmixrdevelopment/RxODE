@@ -45,6 +45,7 @@ typedef struct {
   int ncoresRV;
   int isChol;
   int *svar;
+  int abort;
 } rx_solving_options;
 
 

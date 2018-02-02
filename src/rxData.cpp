@@ -630,6 +630,18 @@ rx_solve *getRxSolve(SEXP ptr){
   return o;
 }
 
+
+bool foundEnv = false;
+Environment _rxModels;
+void getRxModels(){
+  if (!foundEnv){ // minimize R call
+    Environment RxODE("package:RxODE");
+    Function f = as<Function>(RxODE["rxModels_"]);
+    _rxModels = f();
+    foundEnv = true;
+  }
+}
+
 //' All model variables for a RxODE object
 //'
 //' Return all the known model variables for a specified RxODE object
@@ -673,6 +685,16 @@ List rxModelVars(const RObject &obj){
     List lobj = (as<List>(obj))["modVars"];
     return lobj;
   } else if (rxIs(obj, "character")){
+    getRxModels();
+    std::string sobj =as<std::string>(obj);
+    if (_rxModels.exists(sobj)){
+      RObject obj1 = _rxModels.get(sobj);
+      if (rxIs(obj1, "rxModelVars")){
+	return as<List>(obj1);
+      } else if (rxIs(obj1, "RxODE")){
+	return rxModelVars(obj1);
+      }
+    }
     Environment RxODE("package:RxODE");
     Function f = as<Function>(RxODE["rxModelVars.character"]);
     return f(obj);
@@ -2121,6 +2143,10 @@ SEXP rxSolveC(const RObject &object,
     rx_solve *rx;
     rx = getRxSolve(parData);
     par_solve(rx);
+    rx_solving_options *op = (rx_solving_options*)R_ExternalPtrAddr(rx->op);
+    if (op->abort){
+      stop("Aborted solve.");
+    }
     int doDose = 0;
     if (addDosing){
       doDose = 1;
@@ -2882,16 +2908,6 @@ RObject rxSolveUpdate(RObject obj,
   return R_NilValue;
 }
 
-bool foundEnv = false;
-Environment _rxModels;
-void getRxModels(){
-  if (!foundEnv){ // minimize R call
-    Environment RxODE("package:RxODE");
-    Function f = as<Function>(RxODE["rxModels_"]);
-    _rxModels = f();
-    foundEnv = true;
-  }
-}
 extern "C" void rxAddModelLib(SEXP mv){
   getRxModels();
   CharacterVector trans = as<List>(mv)["trans"];
@@ -3250,16 +3266,15 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
   
   NumericMatrix thetaM;
   CharacterVector thetaN;
-  int pro = 0;
   if (!thetaMat.isNull() && nStud > 0){
-    thetaM = as<NumericMatrix>(PROTECT(rxSimSigma(as<RObject>(thetaMat), as<RObject>(thetaDf), nCoresRV, thetaIsChol, nStud))); pro++;
+    thetaM = as<NumericMatrix>(rxSimSigma(as<RObject>(thetaMat), as<RObject>(thetaDf), nCoresRV, thetaIsChol, nStud));
     thetaN = as<CharacterVector>((as<List>(thetaM.attr("dimnames")))[1]);
   }
 
   NumericMatrix omegaM;
   CharacterVector omegaN;
   if (!omega.isNull() && nSub*nStud > 0){
-    omegaM = as<NumericMatrix>(PROTECT(rxSimSigma(as<RObject>(omega), as<RObject>(omegaDf), nCoresRV, omegaIsChol, nSub*nStud)));pro++;
+    omegaM = as<NumericMatrix>(rxSimSigma(as<RObject>(omega), as<RObject>(omegaDf), nCoresRV, omegaIsChol, nSub*nStud));
     omegaN = as<CharacterVector>((as<List>(omegaM.attr("dimnames")))[1]);
   }
   // Now create data frame of parameter values
@@ -3310,6 +3325,5 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
   }
   ret.attr("class") = "data.frame";
   ret.attr("row.names") = IntegerVector::create(NA_INTEGER,-nSub*nStud);
-  UNPROTECT(pro);
   return ret;
 }
