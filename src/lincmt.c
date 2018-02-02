@@ -23,7 +23,8 @@ extern double RxODE_solveLinB(rx_solve *rx, unsigned int id, double t, int linCm
 // Type 1 = PairwiseSum
 #define sum(...) RxODE_sumV_r(ps, pld, -6, 1, __VA_ARGS__)
 // Type 3 = Logify
-#define prod(...) RxODE_prodV_r(ps, pi, 3, __VA_ARGS__)
+// Type 2 = product
+#define prod(...) RxODE_prodV_r(ps, pi, 2, __VA_ARGS__)
 #define safe_zero RxODE_safe_zero
 
 
