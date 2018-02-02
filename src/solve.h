@@ -22,9 +22,7 @@ typedef struct {
   int neq;
   int stiff;
   int ncov;
-  SEXP stateNames;
-  SEXP lhsNames;
-  SEXP paramNames;
+  const char *modNamePtr;
   int *par_cov;
   double *inits;
   double *scale;
@@ -41,7 +39,7 @@ typedef struct {
   double *atol2;
   int nDisplayProgress;
   SEXP sigma;
-  SEXP df;
+  double df;
   int ncoresRV;
   int isChol;
   int *svar;
@@ -120,15 +118,13 @@ SEXP getSolvingOptionsPtr(double ATOL,          //absolute error
                           int do_par_cov,
                           double *inits,
 			  double *scale,
-                          SEXP stateNames,
-                          SEXP lhsNames,
-                          SEXP paramNames,
+			  const char *modNamePtr,
 			  double hmax2,
                           double *atol2,
                           double *rtol2,
                           int nDisplayProgress,
 			  SEXP sigma,
-                          SEXP df,
+                          double df,
                           int ncoresRV,
                           int isChol,
                           int *svar);

@@ -269,8 +269,15 @@ extern "C" SEXP rxSimSigmaC(rx_solving_options *op,
   if (op->isChol == 1){
     isChol=true;
   }
+  Nullable<NumericVector> dfN(1);
+  if (op->df < 0){
+    dfN = R_NilValue;
+  } else {
+    NumericVector tmp = NumericVector(1);
+    tmp[0] = op->df;
+  }
   RObject ret = rxSimSigma(as<RObject>(op->sigma),
-                           as<RObject>(op->df),
+                           as<RObject>(dfN),
                            op->ncoresRV,
                            isChol,
                            nObs);
@@ -1577,15 +1584,26 @@ SEXP rxSolvingOptions(const RObject &object,
   CharacterVector lhs = as<CharacterVector>(modVars["lhs"]);
   CharacterVector state = as<CharacterVector>(modVars["state"]);
   CharacterVector params = as<CharacterVector>(modVars["params"]);
+  CharacterVector trans = modVars["trans"];
+  double dfN = -1;
+  if (df.isNULL()){
+    dfN = -1;
+  } else if (rxIs(df,"integer") || rxIs(df,"numeric")){
+    NumericVector df0 = as<NumericVector>(df);
+    dfN = df0[0];
+  }
+  // Make sure the model variables are assigned...
+  getRxModels();
+  std::string ptrS = (as<std::string>(trans["ode_solver_ptr"]));
+  _rxModels[ptrS] = modVars;
   return getSolvingOptionsPtr(atol,rtol,hini, hmin,
 			      maxsteps, maxordn, maxords, transit,
 			      lhs.size(), state.size(),
 			      st, f1, f2, kind, is_locf, cores,
 			      ncov,par_cov, do_par_cov, &inits[0], &scale[0],
-			      as<SEXP>(state), as<SEXP>(lhs),
-			      as<SEXP>(params), hmax2, atol2, rtol2, 
+			      ptrS.c_str(), hmax2, atol2, rtol2, 
 			      nDisplayProgress, as<SEXP>(sigma),
-                              as<SEXP>(df), ncoresRV, isChol,svar);
+                              dfN, ncoresRV, isChol,svar);
 }
 
 SEXP rxSolvingData(const RObject &model,
@@ -3326,4 +3344,24 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
   ret.attr("class") = "data.frame";
   ret.attr("row.names") = IntegerVector::create(NA_INTEGER,-nSub*nStud);
   return ret;
+}
+
+SEXP rxGetFromChar(const char *ptr, std::string var){
+  std::string str(ptr);
+  CharacterVector cv(1);
+  cv[0] = str;
+  List mv = rxModelVars(as<RObject>(cv));
+  return wrap(mv[var]);
+}
+
+extern "C" SEXP rxStateNames(const char *ptr){
+  return rxGetFromChar(ptr, "state");
+}
+
+extern "C" SEXP rxLhsNames(const char *ptr){
+  return rxGetFromChar(ptr, "lhs");
+}
+
+extern "C" SEXP rxParamNames(const char *ptr){
+  return rxGetFromChar(ptr, "params");
 }

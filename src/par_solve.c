@@ -273,15 +273,13 @@ SEXP getSolvingOptionsPtr(double ATOL,          //absolute error
                           int do_par_cov,
                           double *inits,
 			  double *scale,
-                          SEXP stateNames,
-			  SEXP lhsNames,
-			  SEXP paramNames,
+                          const char *modNamePtr,
 			  double hmax2,
 			  double *atol2,
 			  double *rtol2,
                           int nDisplayProgress,
                           SEXP sigma,
-                          SEXP df,
+                          double df,
                           int ncoresRV,
                           int isChol,
 			  int *svar){
@@ -307,9 +305,6 @@ SEXP getSolvingOptionsPtr(double ATOL,          //absolute error
   o->ncov=ncov;
   o->par_cov = par_cov;
   o->do_par_cov = do_par_cov;
-  o->stateNames = stateNames;
-  o->lhsNames = lhsNames;
-  o->paramNames = paramNames;
   o->inits = inits;
   o->scale = scale;
   o->extraCmt = 0;
@@ -324,6 +319,7 @@ SEXP getSolvingOptionsPtr(double ATOL,          //absolute error
   o->isChol = isChol;
   o->svar = svar;
   o->abort = 0;
+  o->modNamePtr = modNamePtr;
   SEXP ret = PROTECT(R_MakeExternalPtr(o, install("rx_solving_options"), R_NilValue));
   UNPROTECT(1);
   return(ret);
@@ -1194,6 +1190,8 @@ double rxDose(int i){
   return(rxDoseP(i, _globalRx, 0));
 }
 
+SEXP rxParamNames(const char *ptr);
+
 extern SEXP RxODE_par_df(SEXP sd){
   rx_solve *rx;
   rx = getRxSolve(sd);
@@ -1212,7 +1210,7 @@ extern SEXP RxODE_par_df(SEXP sd){
   int nsim = rx->nsim;
   int pro=0, i;
   // paramNames
-  SEXP paramNames = PROTECT(op->paramNames); pro++;
+  SEXP paramNames = PROTECT(rxParamNames(op->modNamePtr)); pro++;
   int *par_cov = op->par_cov;
   int ncov = op->ncov;
   int npar = length(paramNames);
@@ -1531,6 +1529,9 @@ extern SEXP RxODE_par_df(SEXP sd){
 
 extern SEXP rxSimSigmaC(rx_solving_options *op, int nObs);
 
+SEXP rxStateNames(const char *ptr);
+SEXP rxLhsNames(const char *ptr);
+
 extern SEXP RxODE_df(SEXP sd, int doDose){
   rx_solve *rx;
   rx = getRxSolve(sd);
@@ -1732,7 +1733,7 @@ extern SEXP RxODE_df(SEXP sd, int doDose){
   jj++;
 
   // Put in state names
-  SEXP stateNames = PROTECT(op->stateNames); pro++;
+  SEXP stateNames = PROTECT(rxStateNames(op->modNamePtr)); pro++;
   if (nPrnState){
     for (j = 0; j < neq[0]; j++){
       if (!rmState[j]){
@@ -1742,13 +1743,13 @@ extern SEXP RxODE_df(SEXP sd, int doDose){
     }
   }
   // Put in LHS names
-  SEXP lhsNames = PROTECT(op->lhsNames); pro++;
+  SEXP lhsNames = PROTECT(rxLhsNames(op->modNamePtr)); pro++;
   for (i = 0; i < nlhs; i++){
     SET_STRING_ELT(sexp_colnames, jj, STRING_ELT(lhsNames,i));
     jj++;
   }
   // Put in Cov names
-  SEXP paramNames = PROTECT(op->paramNames); pro++;
+  SEXP paramNames = PROTECT(rxParamNames(op->modNamePtr)); pro++;
   int *par_cov = op->par_cov;
   for (i = 0; i < ncov*add_cov; i++){
     SET_STRING_ELT(sexp_colnames,jj, STRING_ELT(paramNames, par_cov[i]-1));
