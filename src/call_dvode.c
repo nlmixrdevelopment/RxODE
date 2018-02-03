@@ -97,27 +97,24 @@ extern void RxODE_ode_free(){
 void RxODE_ode_alloc(){
 }
 
-void rxAddModelLib(SEXP);
-
-SEXP __mv;
-extern void RxODE_assign_fn_pointers_(SEXP mv, int addit){
-  __mv = mv;
-  if (addit){
-    rxAddModelLib(mv);
-  }
+char __mv[1000];
+extern void RxODE_assign_fn_pointers_(const char *mv){
+  sprintf(__mv, "%s", mv);
 }
+
+void rxAssignPtrC(SEXP obj);
 
 extern void RxODE_assign_fn_pointers(SEXP mv){
-  RxODE_assign_fn_pointers_(mv, 1);
+  rxAssignPtrC(mv);
 }
 
+SEXP rxModelVarsC(char *ptr);
 
-int rxIsC(SEXP obj, const char *cls);
 extern SEXP RxODE_get_mv(){
   /* if (!rxIsC(__mv,"rxModelVars")){ */
   /*   error("RxODE C functions were not setup correctly."); */
   /* } */
-  return __mv;
+  return rxModelVarsC(__mv);
 }
 
 /* extern void rxode_assign_rx(rx_solve *rx); */

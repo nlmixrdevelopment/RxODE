@@ -23,7 +23,6 @@ typedef double (*RxODE_vec) (int val, rx_solve *rx, unsigned int id);
 typedef long (*RxODE_cnt) (rx_solve *rx, unsigned int id);
 typedef void (*RxODE_inc) (rx_solve *rx, unsigned int id);
 typedef double (*RxODE_val) (rx_solve *rx, unsigned int id);
-typedef SEXP (*RxODE_ode_solver) (SEXP sexp_theta, SEXP sexp_inits, SEXP sexp_lhs, SEXP sexp_time, SEXP sexp_evid,SEXP sexp_dose, SEXP sexp_pcov, SEXP sexp_cov, SEXP sexp_locf, SEXP sexp_atol, SEXP sexp_rtol, SEXP sexp_hmin, SEXP sexp_hmax, SEXP sexp_h0, SEXP sexp_mxordn, SEXP sexp_mxords, SEXP sexp_mx,SEXP sexp_stiff, SEXP sexp_transit_abs, SEXP sexp_object, SEXP sexp_extra_args, SEXP sexp_matrix, SEXP sexp_add_cov);
 typedef void (*RxODE_assign_ptr)(SEXP);
 typedef void (*RxODE_ode_solver_old_c)(int *neq,double *theta,double *time,int *evid,int *ntime,double *inits,double *dose,double *ret,double *atol,double *rtol,int *stiff,int *transit_abs,int *nlhs,double *lhs,int *rc);
 typedef double (*RxODE_solveLinB)(rx_solve *rx, unsigned int id, double t, int linCmt, int diff1, int diff2, double A, double alpha, double B, double beta, double C, double gamma, double ka, double tlag);
@@ -259,15 +258,16 @@ extern double _min(unsigned int n, ...){
   return mn;
 }
 
-SEXP _rxModels;
 SEXP __MODEL_VARS__0();
 extern SEXP __MODEL_VARS__(){
-  SEXP _mv = _rxGetModelLib(__ODE_SOLVER_PTR_STR__);
+  SEXP _mv = PROTECT(_rxGetModelLib(__ODE_SOLVER_PTR_STR__));
   if (isNull(_mv)){
-    _mv = __MODEL_VARS__0();
+    _mv = PROTECT(__MODEL_VARS__0());
     _assign_ptr(_mv);
+    UNPROTECT(2);
     return _mv;
   } else {
+    UNPROTECT(1);
     return _mv;
   }
 }
@@ -368,10 +368,9 @@ void __R_INIT__ (DllInfo *info){
 
 void __R_UNLOAD__ (DllInfo *info){
   // Free resources required for single subject solve.
-  Rprintf("Unloading __ODE_SOLVER__ ....");
-  SEXP _mv = _rxGetModelLib(__ODE_SOLVER_PTR_STR__);
+  SEXP _mv = PROTECT(_rxGetModelLib(__ODE_SOLVER_PTR_STR__));
   if (!isNull(_mv)){
     _rxRmModelLib(__ODE_SOLVER_PTR_STR__);
   }
-  Rprintf("done\\n");
+  UNPROTECT(1);
 }

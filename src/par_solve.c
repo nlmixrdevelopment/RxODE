@@ -251,7 +251,7 @@ void getSolvingOptionsIndPtr(double *InfusionRate,
   o->sim = sim;
 }
 
-SEXP getSolvingOptionsPtr(double ATOL,          //absolute error
+void getSolvingOptionsPtr(double ATOL,          //absolute error
                           double RTOL,          //relative error
                           double H0,
                           double HMIN,
@@ -321,34 +321,25 @@ SEXP getSolvingOptionsPtr(double ATOL,          //absolute error
   o->isChol = isChol;
   o->svar = svar;
   o->abort = 0;
-  o->modNamePtr = modNamePtr;
-  SEXP ret = PROTECT(R_MakeExternalPtr(o, install("rx_solving_options"), R_NilValue));
-  UNPROTECT(1);
-  return(ret);
+  sprintf(o->modNamePtr, "%s", modNamePtr);
 }
 
-SEXP rxSolveData(rx_solving_options_ind *subjects,
+void rxSolveData(rx_solving_options_ind *subjects,
                  int nsub,
                  int nsim,
 		 int *stateIgnore,
 		 int nobs,
                  int add_cov,
-                 int matrix,
-                 SEXP op){
+                 int matrix){
   rx_solve *o;
   o = &rx_global;//(rx_solve*)R_chk_calloc(1,sizeof(*o));
   o->subjects = subjects;
   o->nsub = nsub;
   o->nsim = nsim;
-  o->op = op;
   o->stateIgnore = stateIgnore;
   o->nobs = nobs;
   o->add_cov = add_cov;
   o->matrix = matrix;
-  SEXP ret = PROTECT(R_MakeExternalPtr(o, install("rx_solve"), R_NilValue));
-  /* R_RegisterCFinalizerEx(ret, rxSolveDataFree, TRUE); */
-  UNPROTECT(1);
-  return(ret);
 }
 
 void F77_NAME(dlsoda)(
@@ -364,10 +355,11 @@ extern rx_solve *getRxSolve_(){
 }
 
 rx_solving_options *getRxOp(rx_solve *rx){
-  if(!R_ExternalPtrAddr(rx->op)){
-    error("Cannot get global ode solver options.");
-  }
-  return (rx_solving_options*)(R_ExternalPtrAddr(rx->op));
+  /* if(!R_ExternalPtrAddr(rx->op)){ */
+  /*   error("Cannot get global ode solver options."); */
+  /* } */
+  /* return (rx_solving_options*)(R_ExternalPtrAddr(rx->op)); */
+  return &op_global;
 }
 
 rx_solving_options_ind *getRxId(rx_solve *rx, unsigned int id){
@@ -431,11 +423,7 @@ int checkInterrupt() {
 
 extern void par_liblsoda(rx_solve *rx){
   clock_t t0 = clock();
-  rx_solving_options *op;
-  if(!R_ExternalPtrAddr(rx->op)){
-    error("Cannot get global ode solver options.");
-  }
-  op = (rx_solving_options*)R_ExternalPtrAddr(rx->op);
+  rx_solving_options *op = &op_global;
   int nsub = rx->nsub;
   int nsim = rx->nsim;
   int cores = op->cores;
@@ -460,11 +448,12 @@ extern void par_liblsoda(rx_solve *rx){
   // Breaking of of loop ideas came from http://www.thinkingparallel.com/2007/06/29/breaking-out-of-loops-in-openmp/
   // http://permalink.gmane.org/gmane.comp.lang.r.devel/27627
   // It was buggy due to Rprint.  Use REprint instead since Rprint calls the interrupt every so often....
-  op->abort = 0;
+  int abort = 0;
+#ifdef _OPENMP
 #pragma omp parallel for num_threads(cores)
+#endif
   for (int solveid = 0; solveid < nsim*nsub; solveid++){
-#pragma omp flush (op)
-    if (op->abort == 0){
+    if (abort == 0){
       int i, j;
       int csim = solveid % nsub;
       int csub = solveid / nsub;
@@ -533,18 +522,17 @@ extern void par_liblsoda(rx_solve *rx){
 #pragma omp critical
 	curTick = par_progress(cur, nsim*nsub, curTick, cores, t0, 0);
       }
-#pragma omp flush (op)
-      if (op->abort == 0){
-#pragma omp critical
-	op->abort = checkInterrupt();
-#pragma omp critical
-	if (op->abort == 1){
-	  par_progress(cur, nsim*nsub, curTick, cores, t0, 1);
-	}
+#pragma omp flush (abort)
+      if (abort == 0){
+#ifdef _OPENMP
+        if (omp_get_thread_num() == 0) // only in master thread!
+#endif
+	  if (checkInterrupt()) abort =1;
       }
     }
   }
-  if (op->abort == 1){
+  if (abort == 1){
+    op->abort = 1;
     yp0 = NULL;
     par_progress(cur, nsim*nsub, curTick, cores, t0, 1);
   } else {
@@ -557,11 +545,7 @@ extern void par_lsoda(rx_solve *rx){
   int i, j;
   double xout;
   double *yp;
-  rx_solving_options *op;
-  if(!R_ExternalPtrAddr(rx->op)){
-    error("Cannot get global ode solver options.");
-  }
-  op = (rx_solving_options*)R_ExternalPtrAddr(rx->op);
+  rx_solving_options *op = &op_global;
   int neq[2];
   neq[0] = op->neq;
   neq[1] = 0;
@@ -697,11 +681,7 @@ void par_dop(rx_solve *rx){
   int i, j;
   double xout;
   double *yp;
-  rx_solving_options *op;
-  if(!R_ExternalPtrAddr(rx->op)){
-    error("Cannot get global ode solver options.");
-  }
-  op = (rx_solving_options*)R_ExternalPtrAddr(rx->op);
+  rx_solving_options *op = &op_global;
   int neq[2];
   neq[0] = op->neq;
   neq[1] = 0;
@@ -828,8 +808,7 @@ void par_dop(rx_solve *rx){
 }
 
 void par_solve(rx_solve *rx){
-  rx_solving_options *op;
-  op = getRxOp(rx);
+  rx_solving_options *op = &op_global;
   if (op->neq > 0){
     if (op->stiff == 2){
       par_liblsoda(rx);
@@ -898,8 +877,7 @@ extern void rxode_assign_rx(rx_solve *rx){
 extern void update_par_ptrP(double t, rx_solve *rx, unsigned int id){
   rx_solving_options_ind *ind;
   ind = getRxId(rx, id);
-  rx_solving_options *op;
-  op =getRxOp(rx);
+  rx_solving_options *op = &op_global;
   if (op->neq > 0){
     // Update all covariate parameters
     int k;
@@ -929,8 +907,7 @@ extern void update_par_ptr(double t){
 }
 
 extern int nEqP (rx_solve *rx){
-  rx_solving_options *op;
-  op =getRxOp(rx);
+  rx_solving_options *op = &op_global;
   return op->neq;
 }
 
@@ -984,8 +961,7 @@ extern unsigned int nObs (){
 }
 
 extern unsigned int nLhsP(rx_solve *rx){
-  rx_solving_options *op;
-  op =getRxOp(rx);
+  rx_solving_options *op = &op_global;
   return (unsigned int)(op->nlhs);
 }
 extern unsigned int nLhs(){
@@ -994,12 +970,11 @@ extern unsigned int nLhs(){
 extern double rxLhsP(int i, rx_solve *rx, unsigned int id){
   rx_solving_options_ind *ind;
   ind = getRxId(rx, id);
-  rx_solving_options *op;
-  op =getRxOp(rx);
+  rx_solving_options *op = &op_global;
   if (i < op->nlhs){
     return(ind->lhs[i]);
   } else {
-    error("Trying to access an equation that isn't calculated. lhs(%d)\n",i);
+    error("Trying to access an equation that isn't calculated. lhs(%d/%d)\n",i, op->nlhs);
   }
   return 0;
 }
@@ -1012,8 +987,7 @@ extern double rxLhs(int i, rx_solve *rx, unsigned int id){
 extern void rxCalcLhsP(int i, rx_solve *rx, unsigned int id){
   rx_solving_options_ind *ind;
   ind = getRxId(rx, id);
-  rx_solving_options *op;
-  op =getRxOp(rx);
+  rx_solving_options *op = &op_global;
   double *solve, *lhs;
   solve = ind->solve;
   lhs = ind->lhs;
@@ -1119,8 +1093,7 @@ extern double RxODE_tlast(){
 }
 
 extern void setExtraCmtP(int xtra, rx_solve *rx){
-  rx_solving_options *op;
-  op =getRxOp(rx);
+  rx_solving_options *op = &op_global;
   if (xtra > op->extraCmt){
     op->extraCmt = xtra;
   }
@@ -1192,16 +1165,15 @@ double rxDose(int i){
   return(rxDoseP(i, _globalRx, 0));
 }
 
-SEXP rxParamNames(const char *ptr);
+
+SEXP rxStateNames(char *ptr);
+SEXP rxLhsNames(char *ptr);
+SEXP rxParamNames(char *ptr);
 
 extern SEXP RxODE_par_df(SEXP sd){
   rx_solve *rx;
   rx = getRxSolve(sd);
-  rx_solving_options *op;
-  if(!R_ExternalPtrAddr(rx->op)){
-    error("Cannot get global ode solver options.");
-  }
-  op = (rx_solving_options*)R_ExternalPtrAddr(rx->op);
+  rx_solving_options *op = &op_global;
   // Mutiple ID data?
   int md = 0;
   if (rx->nsub > 1) md = 1;
@@ -1531,17 +1503,10 @@ extern SEXP RxODE_par_df(SEXP sd){
 
 extern SEXP rxSimSigmaC(rx_solving_options *op, int nObs);
 
-SEXP rxStateNames(const char *ptr);
-SEXP rxLhsNames(const char *ptr);
-
 extern SEXP RxODE_df(SEXP sd, int doDose){
   rx_solve *rx;
   rx = getRxSolve(sd);
-  rx_solving_options *op;
-  if(!R_ExternalPtrAddr(rx->op)){
-    error("Cannot get global ode solver options.");
-  }
-  op = (rx_solving_options*)R_ExternalPtrAddr(rx->op);
+  rx_solving_options *op = &op_global;
   int add_cov = rx->add_cov;
   int ncov = op->ncov;
   int nlhs = op->nlhs;

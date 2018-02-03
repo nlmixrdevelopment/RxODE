@@ -22,7 +22,7 @@ typedef struct {
   int neq;
   int stiff;
   int ncov;
-  const char *modNamePtr;
+  char modNamePtr[1000];
   int *par_cov;
   double *inits;
   double *scale;
@@ -85,7 +85,6 @@ typedef struct {
   int add_cov;
   int matrix;
   int *stateIgnore;
-  SEXP op;
 } rx_solve;
 
 typedef void (*t_set_solve)(rx_solve *);
@@ -93,11 +92,9 @@ typedef rx_solve *(*t_get_solve)();
 
 
 rx_solve *getRxSolve_();
-void rxSolveDataFree(SEXP ptr);
-int rxUpdateResiduals_(SEXP md);
 rx_solve *getRxSolve(SEXP ptr);
 
-SEXP getSolvingOptionsPtr(double ATOL,          //absolute error
+void getSolvingOptionsPtr(double ATOL,          //absolute error
                           double RTOL,          //relative error
                           double H0,
                           double HMIN,
@@ -146,17 +143,12 @@ void getSolvingOptionsIndPtr(double *InfusionRate,
                              int id,
                              int sim,
                              rx_solving_options_ind *o);
-SEXP rxSolveData(rx_solving_options_ind *subjects,
-                 int nsub,
-                 int nsim,
-                 int *stateIgnore,
-                 int nobs,
-                 int add_cov,
-                 int matrix,
-                 SEXP op);
+void rxSolveData(rx_solving_options_ind *subjects,
+                 int nsub, int nsim, int *stateIgnore, int nobs, int add_cov, int matrix);
 void par_solve(rx_solve *rx);
 
 rx_solving_options *getRxOp(rx_solve *rx);
+
 SEXP RxODE_df(SEXP sd, int doDose);
 SEXP RxODE_par_df(SEXP sd);
 

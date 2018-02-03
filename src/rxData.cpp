@@ -408,13 +408,11 @@ List rxDataSetup(const RObject &ro,
     StringVector covN, simN;
     bool dataCov = false;
     DataFrame covDf;
-    NumericMatrix simMat;
     StringVector simNames;
     bool simVals = false;
-    RObject tmp_ro = rxSimSigma(sigma, df, ncoresRV, isChol, nObs);
-    if (!tmp_ro.isNULL()){
-      simMat = NumericMatrix(tmp_ro);
-      List dimnames = simMat.attr("dimnames");
+    if (!sigma.isNULL()){
+      NumericMatrix sigma1 = NumericMatrix(sigma);
+      List dimnames = sigma1.attr("dimnames");
       simNames = StringVector(dimnames[1]);
       simVals = true;
     }
@@ -584,7 +582,7 @@ List rxDataSetup(const RObject &ro,
               newCov[k] = (as<NumericVector>(dataf[as<std::string>(covN[n])]))[i];
             }
           } else {
-	    newCov[k] = simMat(nc, n-nCovObs);
+	    newCov[k] = 0;
           }
         }
         nc++;
@@ -686,13 +684,15 @@ rx_solve *getRxSolve(SEXP ptr){
 //' @export
 // [[Rcpp::export]]
 List rxModelVars(const RObject &obj){
+  getRxModels();
   if (rxIs(obj, "rxModelVars")){
     List ret(obj);
     return ret;
   } else if (rxIs(obj,"RxODE")) {
     Environment e = as<Environment>(obj);
     List rxDll = e["rxDll"];
-    return rxDll["modVars"];
+    List ret = rxDll["modVars"];
+    return ret;
   } else if (rxIs(obj,"rxSolve")){
     CharacterVector cls = obj.attr("class");
     Environment e = as<Environment>(cls.attr(".RxODE.env"));
@@ -701,7 +701,6 @@ List rxModelVars(const RObject &obj){
     List lobj = (as<List>(obj))["modVars"];
     return lobj;
   } else if (rxIs(obj, "character")){
-    getRxModels();
     std::string sobj =as<std::string>(obj);
     if (_rxModels.exists(sobj)){
       RObject obj1 = _rxModels.get(sobj);
@@ -740,7 +739,7 @@ List rxModelVars(const RObject &obj){
       } else if (!dfdy && nobj[i] == "dfdy"){
 	dfdy = true;
       } else {
-	return lobj;
+        return lobj;
       }
     }
     stop("Cannot figure out the model variables.");
@@ -1507,7 +1506,7 @@ List rxDataParSetup(const RObject &object,
   return ret;
 }
 
-SEXP rxSolvingOptions(const RObject &object,
+void rxSolvingOptions(const RObject &object,
                       const std::string &method = "liblsoda",
                       const Nullable<LogicalVector> &transit_abs = R_NilValue,
                       const double atol = 1.0e-8,
@@ -1620,17 +1619,17 @@ SEXP rxSolvingOptions(const RObject &object,
   // This fixes random issues on windows where the solves are done and the data set cannot be solved.
   std::string ptrS = (as<std::string>(trans["ode_solver_ptr"]));
   _rxModels[ptrS] = modVars;
-  return getSolvingOptionsPtr(atol,rtol,hini, hmin,
-			      maxsteps, maxordn, maxords, transit,
-			      lhs.size(), state.size(),
-			      st, f1, f2, kind, is_locf, cores,
-			      ncov,par_cov, do_par_cov, &inits[0], &scale[0],
-			      ptrS.c_str(), hmax2, atol2, rtol2, 
-			      nDisplayProgress, sigmaD, sigmaSize,
-                              dfN, ncoresRV, isChol,svar);
+  getSolvingOptionsPtr(atol,rtol,hini, hmin,
+		       maxsteps, maxordn, maxords, transit,
+		       lhs.size(), state.size(),
+		       st, f1, f2, kind, is_locf, cores,
+		       ncov,par_cov, do_par_cov, &inits[0], &scale[0],
+		       ptrS.c_str(), hmax2, atol2, rtol2, 
+		       nDisplayProgress, sigmaD, sigmaSize,
+		       dfN, ncoresRV, isChol,svar);
 }
 
-SEXP rxSolvingData(const RObject &model,
+void rxSolvingData(const RObject &model,
                    const RObject &parData,
                    const std::string &method = "liblsoda",
                    const Nullable<LogicalVector> &transit_abs = R_NilValue,
@@ -1725,22 +1724,21 @@ SEXP rxSolvingData(const RObject &model,
     bool isCholB =  as<bool>(opt["isChol"]);
     int isChol = 0;
     if (isCholB) isChol = 1;
-    SEXP op = rxSolvingOptions(model,method, transit_abs, atol, rtol, maxsteps, hmin, hini, maxordn,
-			       maxords, cores, ncov, &par_cov[0], do_par_cov, &inits[0], &scale[0], covs_interpolation,
-			       hmax2,&atol2[0],&rtol2[0], as<int>(opt["nDisplayProgress"]),
-			       as<RObject>(opt["sigma"]), as<RObject>(opt["df"]),
-			       as<int>(opt["ncoresRV"]),isChol, &svar[0]);
+    rxSolvingOptions(model,method, transit_abs, atol, rtol, maxsteps, hmin, hini, maxordn,
+		     maxords, cores, ncov, &par_cov[0], do_par_cov, &inits[0], &scale[0], covs_interpolation,
+		     hmax2,&atol2[0],&rtol2[0], as<int>(opt["nDisplayProgress"]),
+		     as<RObject>(opt["sigma"]), as<RObject>(opt["df"]),
+		     as<int>(opt["ncoresRV"]),isChol, &svar[0]);
 
     int add_cov = 0;
     if (addCov) add_cov = 1;
     int nobs = as<int>(opt["nObs"]);
     int mat = 0;
     if (matrix) mat = 1;
-    return rxSolveData(inds, nSub, nsim, &siV[0], nobs, add_cov, mat, op);
+    rxSolveData(inds, nSub, nsim, &siV[0], nobs, add_cov, mat);
   } else {
     stop("This requires something setup by 'rxDataParSetup'.");
   }
-  return R_NilValue;
 }
 
 extern "C" rx_solve *rxSingle(SEXP object, const int stiff,const int transit_abs,
@@ -1787,10 +1785,10 @@ extern "C" rx_solve *rxSingle(SEXP object, const int stiff,const int transit_abs
   }  else {
     transit_absLV[0] = false;
   }
-  SEXP op = rxSolvingOptions(object,method, transit_absLV, atol, rtol, maxsteps, hmin, hini, maxordn,
-			     maxords, 1, ncov, par_cov, do_par_cov, &inits[0], &scale[0], covs_interpolation);
+  rxSolvingOptions(object,method, transit_absLV, atol, rtol, maxsteps, hmin, hini, maxordn,
+		   maxords, 1, ncov, par_cov, do_par_cov, &inits[0], &scale[0], covs_interpolation);
   IntegerVector siV = mv["state.ignore"];
-  rxSolveData(inds, 1, 1, &siV[0], -1, 0, 0, op);
+  rxSolveData(inds, 1, 1, &siV[0], -1, 0, 0);
   SEXP trans = mv["trans"];
   rxUpdateFuns(trans);
   rx_solve *ret = getRxSolve_();
@@ -1832,9 +1830,9 @@ List rxData(const RObject &object,
   List parData = rxDataParSetup(object,params, events, inits, covs, sigma, sigmaDf,
 				nCoresRV, sigmaIsChol, nDisplayProgress, amountUnits, timeUnits,
 				theta,eta, scale, extraArgs);
-  parData["pointer"] = rxSolvingData(object, parData, method, transit_abs, atol,  rtol, maxsteps,
-                                     hmin, hmax,  hini, maxordn, maxords, cores, covs_interpolation,
-				     addCov, matrix);
+  rxSolvingData(object, parData, method, transit_abs, atol,  rtol, maxsteps,
+		hmin, hmax,  hini, maxordn, maxords, cores, covs_interpolation,
+		addCov, matrix);
   List modVars = rxModelVars(object);
   StringVector cls(3);
   cls(2) = "RxODE.par.data";
@@ -2184,8 +2182,9 @@ SEXP rxSolveC(const RObject &object,
     
     rx_solve *rx;
     rx = getRxSolve(parData);
+    rxModelVars(object);
     par_solve(rx);
-    rx_solving_options *op = (rx_solving_options*)R_ExternalPtrAddr(rx->op);
+    rx_solving_options *op = getRxOp(rx);
     if (op->abort){
       stop("Aborted solve.");
     }
@@ -2950,13 +2949,6 @@ RObject rxSolveUpdate(RObject obj,
   return R_NilValue;
 }
 
-extern "C" void rxAddModelLib(SEXP mv){
-  getRxModels();
-  CharacterVector trans = as<List>(mv)["trans"];
-  std::string ptr =as<std::string>(trans["ode_solver_ptr"]);
-  _rxModels[ptr]= mv;
-}
-
 extern "C" SEXP rxGetModelLib(const char *s){
   std::string str(s);
   getRxModels();
@@ -3022,14 +3014,14 @@ RObject rxGetRxODE(RObject obj){
     return as<RObject>(e);
   }
 }
-extern "C" void RxODE_assign_fn_pointers_(SEXP mv, int addit);
+extern "C" void RxODE_assign_fn_pointers_(SEXP mv);
 //' Assign pointer based on model variables
 //' @param object RxODE family of objects
 //' @export
 //[[Rcpp::export]]
 void rxAssignPtr(SEXP object = R_NilValue){
   List mv=rxModelVars(as<RObject>(object));
-  RxODE_assign_fn_pointers_(as<SEXP>(mv), 0);
+  RxODE_assign_fn_pointers_(as<SEXP>(mv));
   CharacterVector trans = mv["trans"];
   rxUpdateFuns(as<SEXP>(trans));
   rx_solve *ret = getRxSolve_();
@@ -3048,7 +3040,11 @@ void rxAssignPtr(SEXP object = R_NilValue){
       Environment e = as<Environment>(e1);
       _rxModels[prefix] = e;
     }
-  }      
+  }
+}
+
+extern "C" void rxAssignPtrC(SEXP obj){
+  rxAssignPtr(obj);
 }
 
 //' Get the number of cores in a system
@@ -3370,22 +3366,34 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
   return ret;
 }
 
-SEXP rxGetFromChar(const char *ptr, std::string var){
+SEXP rxGetFromChar(char *ptr, std::string var){
   std::string str(ptr);
+  // Rcout << str << "\n";
   CharacterVector cv(1);
   cv[0] = str;
   List mv = rxModelVars(as<RObject>(cv));
-  return wrap(mv[var]);
+  if (var == ""){
+    return wrap(mv);
+  } else {
+    return wrap(mv[var]);
+  }
 }
 
-extern "C" SEXP rxStateNames(const char *ptr){
+extern "C" SEXP rxModelVarsC(char *ptr){
+  return rxGetFromChar(ptr, "");
+}
+
+extern "C" SEXP rxStateNames(char *ptr){
+  // Rcout << "State: ";
   return rxGetFromChar(ptr, "state");
 }
 
-extern "C" SEXP rxLhsNames(const char *ptr){
+extern "C" SEXP rxLhsNames(char *ptr){
+  // Rcout << "Lhs: ";
   return rxGetFromChar(ptr, "lhs");
 }
 
-extern "C" SEXP rxParamNames(const char *ptr){
+extern "C" SEXP rxParamNames(char *ptr){
+  // Rcout << "Param: ";
   return rxGetFromChar(ptr, "params");
 }
