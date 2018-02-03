@@ -66,7 +66,7 @@ rxForget <- function(){
 ## strict/permissive
 rxOpt <- list(RxODE.prefer.tbl               =c(FALSE, FALSE),
               RxODE.display.tbl              =c(TRUE, TRUE),
-              RxODE.echo.compile             =c(TRUE, TRUE),
+              RxODE.echo.compile             =c(FALSE, FALSE),
               RxODE.warn.on.assign           =c(TRUE, TRUE),
               RxODE.syntax.assign            =c(FALSE, TRUE),
               RxODE.syntax.star.pow          =c(FALSE, TRUE),
@@ -81,7 +81,7 @@ rxOpt <- list(RxODE.prefer.tbl               =c(FALSE, FALSE),
               RxODE.sympy.engine             =c("", ""),
               RxODE.cache.directory          =c(".", "."),
               RxODE.syntax.assign.state      =c(FALSE, FALSE),
-              RxODE.tempfiles                =c(FALSE, FALSE)
+              RxODE.tempfiles                =c(TRUE, TRUE)
               );
 
 RxODE.prefer.tbl <- NULL

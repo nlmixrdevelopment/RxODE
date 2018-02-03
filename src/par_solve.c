@@ -278,7 +278,8 @@ SEXP getSolvingOptionsPtr(double ATOL,          //absolute error
 			  double *atol2,
 			  double *rtol2,
                           int nDisplayProgress,
-                          SEXP sigma,
+                          double *sigma,
+                          int sigmaSize,
                           double df,
                           int ncoresRV,
                           int isChol,
@@ -314,6 +315,7 @@ SEXP getSolvingOptionsPtr(double ATOL,          //absolute error
   o->cores = cores;
   o->nDisplayProgress = nDisplayProgress;
   o->sigma = sigma;
+  o->sigmaSize = sigmaSize;
   o->df = df;
   o->ncoresRV = ncoresRV;
   o->isChol = isChol;

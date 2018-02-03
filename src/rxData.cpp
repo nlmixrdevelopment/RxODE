@@ -225,10 +225,10 @@ RObject rxSimSigma(const RObject &sigma,
     // FIXME more distributions
     NumericMatrix sigmaM(sigma);
     if (sigmaM.nrow() != sigmaM.ncol()){
-      stop("The sigma matrix must be a square matrix.");
+      stop("The matrix must be a square matrix.");
     }
     if (!sigmaM.hasAttribute("dimnames")){
-      stop("The sigma matrix must have named dimensions.");
+      stop("The matrix must have named dimensions.");
     }
     List dimnames = sigmaM.attr("dimnames");
     StringVector simNames = as<StringVector>(dimnames[1]);
@@ -238,9 +238,9 @@ RObject rxSimSigma(const RObject &sigma,
     NumericMatrix simMat(nObs,sigmaM.ncol());
     NumericVector m(sigmaM.ncol());
     // I'm unsure if this for loop is necessary.
-    for (int i = 0; i < m.size(); i++){
-      m[i] = 0;
-    }
+    // for (int i = 0; i < m.size(); i++){
+    //   m[i] = 0;
+    // }
     // Ncores = 1?  Should it be parallelized when it can be...?
     // Note that if so, the number of cores also affects the output.
     if (df.isNULL()){
@@ -263,24 +263,45 @@ RObject rxSimSigma(const RObject &sigma,
   }
 }
 
+
+bool foundEnv = false;
+Environment _rxModels;
+void getRxModels(){
+  if (!foundEnv){ // minimize R call
+    Environment RxODE("package:RxODE");
+    Function f = as<Function>(RxODE["rxModels_"]);
+    _rxModels = f();
+    foundEnv = true;
+  }
+}
+
 extern "C" SEXP rxSimSigmaC(rx_solving_options *op,
 			    int nObs){
   bool isChol = false;
   if (op->isChol == 1){
     isChol=true;
   }
-  Nullable<NumericVector> dfN(1);
-  if (op->df < 0){
-    dfN = R_NilValue;
+  RObject ret;
+  int n = op->sigmaSize;
+  if (n > 0){
+    NumericMatrix sigma = NumericMatrix(n, n);
+    n  = n*n;
+    for (int i = 0; i < n; i++){
+      sigma[i] = op->sigma[i];
+    }
+    getRxModels();
+    sigma.attr("dimnames") = List::create(_rxModels[".simNames"], _rxModels[".simNames"]);
+    Nullable<NumericVector> dfN(1);
+    if (op->df < 0){
+      dfN = R_NilValue;
+    } else {
+      NumericVector tmp = NumericVector(1);
+      tmp[0] = op->df;
+    }
+    ret = rxSimSigma(as<RObject>(sigma), as<RObject>(dfN), op->ncoresRV, isChol, nObs);
   } else {
-    NumericVector tmp = NumericVector(1);
-    tmp[0] = op->df;
+    ret = R_NilValue;
   }
-  RObject ret = rxSimSigma(as<RObject>(op->sigma),
-                           as<RObject>(dfN),
-                           op->ncoresRV,
-                           isChol,
-                           nObs);
   return wrap(ret);
 }
 // [[Rcpp::export]]
@@ -635,18 +656,6 @@ rx_solve *getRxSolve(SEXP ptr){
   }
   rx_solve *o;
   return o;
-}
-
-
-bool foundEnv = false;
-Environment _rxModels;
-void getRxModels(){
-  if (!foundEnv){ // minimize R call
-    Environment RxODE("package:RxODE");
-    Function f = as<Function>(RxODE["rxModels_"]);
-    _rxModels = f();
-    foundEnv = true;
-  }
 }
 
 //' All model variables for a RxODE object
@@ -1592,8 +1601,23 @@ SEXP rxSolvingOptions(const RObject &object,
     NumericVector df0 = as<NumericVector>(df);
     dfN = df0[0];
   }
-  // Make sure the model variables are assigned...
+  double *sigmaD = NULL;
+  int sigmaSize = -1;
+  Nullable<NumericMatrix> sigma1 = as<Nullable<NumericMatrix>>(sigma);
   getRxModels();
+  if (!sigma1.isNull()){
+    NumericMatrix sigma2 = NumericMatrix(sigma1);
+    sigmaD = &sigma2[0];
+    sigmaSize = sigma2.nrow();
+    if (!sigma2.hasAttribute("dimnames")){
+      stop("The sigma matrix must have named dimensions.");
+    }
+    List dimnames = sigma2.attr("dimnames");
+    StringVector simNames = as<StringVector>(dimnames[1]);
+    _rxModels[".simNames"] = simNames;
+  }
+  // Make sure the model variables are assigned...
+  // This fixes random issues on windows where the solves are done and the data set cannot be solved.
   std::string ptrS = (as<std::string>(trans["ode_solver_ptr"]));
   _rxModels[ptrS] = modVars;
   return getSolvingOptionsPtr(atol,rtol,hini, hmin,
@@ -1602,7 +1626,7 @@ SEXP rxSolvingOptions(const RObject &object,
 			      st, f1, f2, kind, is_locf, cores,
 			      ncov,par_cov, do_par_cov, &inits[0], &scale[0],
 			      ptrS.c_str(), hmax2, atol2, rtol2, 
-			      nDisplayProgress, as<SEXP>(sigma),
+			      nDisplayProgress, sigmaD, sigmaSize,
                               dfN, ncoresRV, isChol,svar);
 }
 

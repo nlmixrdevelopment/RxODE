@@ -38,7 +38,8 @@ typedef struct {
   double *rtol2;
   double *atol2;
   int nDisplayProgress;
-  SEXP sigma;
+  double *sigma;
+  int sigmaSize;
   double df;
   int ncoresRV;
   int isChol;
@@ -123,7 +124,8 @@ SEXP getSolvingOptionsPtr(double ATOL,          //absolute error
                           double *atol2,
                           double *rtol2,
                           int nDisplayProgress,
-			  SEXP sigma,
+			  double *sigma,
+			  int sigmaSize,
                           double df,
                           int ncoresRV,
                           int isChol,
