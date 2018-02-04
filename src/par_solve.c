@@ -154,39 +154,19 @@ void rxUpdateFuns(SEXP trans){
   dydt = CHAR(STRING_ELT(trans, 3));
   calc_jac = CHAR(STRING_ELT(trans, 4));
   calc_lhs = CHAR(STRING_ELT(trans, 5));
-  inis = CHAR(STRING_ELT(trans, 11));
-  dydt_lsoda_dum = CHAR(STRING_ELT(trans, 13));
-  dydt_jdum_lsoda = CHAR(STRING_ELT(trans, 14));
-  ode_solver_solvedata = CHAR(STRING_ELT(trans, 15));
-  ode_solver_get_solvedata = CHAR(STRING_ELT(trans, 16));
-  dydt_liblsoda = CHAR(STRING_ELT(trans, 17));
-  if (strcmp(CHAR(STRING_ELT(trans, 14)),"fulluser") == 0){
+  inis = CHAR(STRING_ELT(trans, 8));
+  dydt_lsoda_dum = CHAR(STRING_ELT(trans, 9));
+  dydt_jdum_lsoda = CHAR(STRING_ELT(trans, 10));
+  ode_solver_solvedata = CHAR(STRING_ELT(trans, 11));
+  ode_solver_get_solvedata = CHAR(STRING_ELT(trans, 12));
+  dydt_liblsoda = CHAR(STRING_ELT(trans, 13));
+  if (strcmp(CHAR(STRING_ELT(trans, 1)),"fulluser") == 0){
     global_jt = 1;
     global_mf = 21;
   } else {
     global_jt = 2;
     global_mf = 22;
   }
-  
-  /* 0=lib.name 
-     1 = jac 
-     2 = prefix 
-     3 = dydt 
-     4 = calc_jac 
-     5 = calc_lhs 
-     6 = model_vars 
-     7 = ode_solver 
-     8 = ode_solver_sexp 
-     9 = ode_solver_focei_eta 
-     10 = ode_solver_ptr 
-     11 = inis 
-     12 = ode_solver_xptr 
-     13 = dydt_lsoda 
-     14 = calc_jac_lsoda 
-     15 = ode_solver_solvedata 
-     16 = ode_solver_get_solvedata 
-     17 = dydt_liblsoda
-  */
   g_dydt =(t_dydt) R_GetCCallable(lib,dydt);
   g_calc_jac =(t_calc_jac) R_GetCCallable(lib,calc_jac);
   g_calc_lhs =(t_calc_lhs) R_GetCCallable(lib,calc_lhs);

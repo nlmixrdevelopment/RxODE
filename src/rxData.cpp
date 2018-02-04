@@ -1617,7 +1617,7 @@ void rxSolvingOptions(const RObject &object,
   }
   // Make sure the model variables are assigned...
   // This fixes random issues on windows where the solves are done and the data set cannot be solved.
-  std::string ptrS = (as<std::string>(trans["ode_solver_ptr"]));
+  std::string ptrS = (as<std::string>(trans["model_vars"]));
   _rxModels[ptrS] = modVars;
   getSolvingOptionsPtr(atol,rtol,hini, hmin,
 		       maxsteps, maxordn, maxords, transit,
@@ -3014,22 +3014,23 @@ RObject rxGetRxODE(RObject obj){
     return as<RObject>(e);
   }
 }
-extern "C" void RxODE_assign_fn_pointers_(SEXP mv);
+extern "C" void RxODE_assign_fn_pointers_(const char *mv);
 //' Assign pointer based on model variables
 //' @param object RxODE family of objects
 //' @export
 //[[Rcpp::export]]
 void rxAssignPtr(SEXP object = R_NilValue){
   List mv=rxModelVars(as<RObject>(object));
-  RxODE_assign_fn_pointers_(as<SEXP>(mv));
   CharacterVector trans = mv["trans"];
+  RxODE_assign_fn_pointers_((as<std::string>(trans["model_vars"])).c_str());
   rxUpdateFuns(as<SEXP>(trans));
   rx_solve *ret = getRxSolve_();
   // Also assign it.
   set_solve(ret); 
   // Update rxModels environment.
   getRxModels();
-  std::string ptr = as<std::string>(trans["ode_solver_ptr"]); 
+  
+  std::string ptr = as<std::string>(trans["model_vars"]); 
   if (!_rxModels.exists(ptr)){
     _rxModels[ptr] = mv;
   }
@@ -3209,7 +3210,7 @@ bool rxDynLoad(RObject obj){
 bool rxDynUnload(RObject obj){
   List mv = rxModelVars(obj);
   CharacterVector trans = mv["trans"];
-  std::string ptr = as<std::string>(trans["ode_solver_ptr"]);
+  std::string ptr = as<std::string>(trans["model_vars"]);
   if (rxIsLoaded(obj)){
     Function dynUnload("dyn.unload", R_BaseNamespace);
     std::string file = rxDll(obj);
@@ -3380,6 +3381,7 @@ SEXP rxGetFromChar(char *ptr, std::string var){
 }
 
 extern "C" SEXP rxModelVarsC(char *ptr){
+  // Rcout << "rxModelVars C: ";
   return rxGetFromChar(ptr, "");
 }
 

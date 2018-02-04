@@ -258,22 +258,7 @@ extern double _min(unsigned int n, ...){
   return mn;
 }
 
-SEXP __MODEL_VARS__0();
-extern SEXP __MODEL_VARS__(){
-  SEXP _mv = PROTECT(_rxGetModelLib(__ODE_SOLVER_PTR_STR__));
-  if (isNull(_mv)){
-    _mv = PROTECT(__MODEL_VARS__0());
-    _assign_ptr(_mv);
-    UNPROTECT(2);
-    return _mv;
-  } else {
-    UNPROTECT(1);
-    return _mv;
-  }
-}
-
 rx_solve *_solveData = NULL;
-extern SEXP __ODE_SOLVER_XPTR__ ();
 
 int _prodType(){
   // Type 3 = Logify
@@ -292,7 +277,6 @@ extern rx_solve *__ODE_SOLVER_GET_SOLVEDATA__(){
   return _solveData;
 }
 
-extern void __ODE_SOLVER_PTR__();
 SEXP __MODEL_VARS__();
 extern void __ODE_SOLVER__(int *neq,
 			   double *theta,      //order:
@@ -368,9 +352,9 @@ void __R_INIT__ (DllInfo *info){
 
 void __R_UNLOAD__ (DllInfo *info){
   // Free resources required for single subject solve.
-  SEXP _mv = PROTECT(_rxGetModelLib(__ODE_SOLVER_PTR_STR__));
+  SEXP _mv = PROTECT(_rxGetModelLib(__MODEL_VARS_STR__));
   if (!isNull(_mv)){
-    _rxRmModelLib(__ODE_SOLVER_PTR_STR__);
+    _rxRmModelLib(__MODEL_VARS_STR__);
   }
   UNPROTECT(1);
 }
