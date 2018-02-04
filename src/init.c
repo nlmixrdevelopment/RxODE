@@ -29,7 +29,7 @@ SEXP _RxODE_rxInvWishartVar(SEXP, SEXP);
 SEXP _RxODE_rxSymInvChol(SEXP, SEXP, SEXP, SEXP);
 SEXP _RxODE_rxDataSetup(SEXP,SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP _RxODE_rxIs(SEXP,SEXP);
-SEXP _RxODE_rxModelVars(SEXP);
+SEXP _RxODE_rxModelVars_(SEXP);
 SEXP _RxODE_rxState(SEXP, SEXP);
 SEXP _RxODE_rxParams(SEXP);
 SEXP _RxODE_rxDfdy(SEXP);
@@ -154,9 +154,13 @@ extern SEXP _RxODE_rxDelete(SEXP);
 extern SEXP _RxODE_rxGetRxODE(SEXP);
 extern SEXP _RxODE_rxC(SEXP);
 
+extern SEXP _RxODE_rxIsCurrent(SEXP);
+
 extern SEXP _RxODE_rxSimThetaOmega(SEXP, SEXP, SEXP, SEXP, SEXP, 
 				   SEXP, SEXP, SEXP, SEXP, SEXP,
 				   SEXP);
+
+extern int rxIsCurrentC(SEXP obj);
 
 
 // Remove these functions later...
@@ -178,7 +182,7 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_rxSymInvChol", (DL_FUNC) &_RxODE_rxSymInvChol, 4},
     {"_RxODE_rxDataSetup", (DL_FUNC) &_RxODE_rxDataSetup, 9},
     {"_RxODE_rxIs", (DL_FUNC) &_RxODE_rxIs, 2},
-    {"_RxODE_rxModelVars", (DL_FUNC) &_RxODE_rxModelVars, 1},
+    {"_RxODE_rxModelVars_", (DL_FUNC) &_RxODE_rxModelVars_, 1},
     {"_RxODE_rxState", (DL_FUNC) &_RxODE_rxState, 2},
     {"_RxODE_rxParams", (DL_FUNC) &_RxODE_rxParams, 1},
     {"_RxODE_rxDfdy", (DL_FUNC) &_RxODE_rxDfdy, 1},
@@ -203,6 +207,7 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_rxDelete", (DL_FUNC) &_RxODE_rxDelete, 1},
     {"_RxODE_rxGetRxODE", (DL_FUNC) &_RxODE_rxGetRxODE, 1},
     {"_RxODE_rxSimThetaOmega", (DL_FUNC) &_RxODE_rxSimThetaOmega, 11},
+    {"_RxODE_rxIsCurrent", (DL_FUNC) &_RxODE_rxIsCurrent, 1},
     {NULL, NULL, 0}
   };
   // C callable to assign environments.
@@ -278,6 +283,7 @@ void R_init_RxODE(DllInfo *info){
   R_RegisterCCallable("RxODE","RxODE_assign_fn_pointers", (DL_FUNC) &RxODE_assign_fn_pointers);
 
   R_RegisterCCallable("RxODE","_RxODE_rxAssignPtr",       (DL_FUNC) _RxODE_rxAssignPtr);
+  R_RegisterCCallable("RxODE", "rxIsCurrentC", (DL_FUNC) rxIsCurrentC);
   
   static const R_CMethodDef cMethods[] = {
     {"RxODE_InfusionRate",      (DL_FUNC) &RxODE_InfusionRate, 1, RxODE_one_int_t},

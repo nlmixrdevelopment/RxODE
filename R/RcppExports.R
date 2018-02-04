@@ -22,34 +22,8 @@ rxDataSetup <- function(ro, covNames = NULL, sigma = NULL, df = NULL, ncoresRV =
     .Call(`_RxODE_rxDataSetup`, ro, covNames, sigma, df, ncoresRV, isChol, nDisplayProgress, amountUnits, timeUnits)
 }
 
-#' All model variables for a RxODE object
-#'
-#' Return all the known model variables for a specified RxODE object
-#'
-#' These items are only calculated after compilation; they are
-#' built-into the RxODE compiled DLL.
-#'
-#' @param obj RxODE family of objects
-#'
-#' @return A list of RxODE model properties including:
-#'
-#' \item{params}{ a character vector of names of the model parameters}
-#' \item{lhs}{ a character vector of the names of the model calculated parameters}
-#' \item{state}{ a character vector of the compartments in RxODE object}
-#' \item{trans}{ a named vector of translated model properties
-#'       including what type of jacobian is specified, the \code{C} function prefixes,
-#'       as well as the \code{C} functions names to be called through the compiled model.}
-#' \item{md5}{a named vector that gives the digest of the model (\code{file_md5}) and the parsed model
-#'      (\code{parsed_md5})}
-#' \item{model}{ a named vector giving the input model (\code{model}),
-#'    normalized model (no comments and standard syntax for parsing, \code{normModel}),
-#'    and interim code that is used to generate the final C file \code{parseModel}}
-#'
-#' @keywords internal
-#' @author Matthew L.Fidler
-#' @export
-rxModelVars <- function(obj) {
-    .Call(`_RxODE_rxModelVars`, obj)
+rxModelVars_ <- function(obj) {
+    .Call(`_RxODE_rxModelVars_`, obj)
 }
 
 #' State variables
@@ -207,6 +181,17 @@ rxRmModelLib_ <- function(str) {
 #' @export
 rxGetRxODE <- function(obj) {
     .Call(`_RxODE_rxGetRxODE`, obj)
+}
+
+#' Checks if the RxODE object was built with the current build
+#'
+#' @inheritParams rxModelVars
+#'
+#' @return boolean indicating if this was built with current RxODE
+#'
+#' @export
+rxIsCurrent <- function(obj) {
+    .Call(`_RxODE_rxIsCurrent`, obj)
 }
 
 #' Assign pointer based on model variables

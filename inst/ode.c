@@ -187,6 +187,12 @@ SEXP _RxODE_rxAssignPtr(SEXP objectSEXP){
   return fun(objectSEXP);
 }
 
+int _rxIsCurrentC(SEXP obj){
+  static int(*fun)(SEXP)= NULL;
+  if (fun==NULL) fun = (int(*)(SEXP))R_GetCCallable("RxODE","rxIsCurrentC");
+  return fun(obj);
+}
+
 double _sum(double *p, long double *pld, int m, int type, int n, ...){
   va_list valist;
   va_start(valist, n);

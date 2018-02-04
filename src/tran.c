@@ -1090,6 +1090,8 @@ void err_msg(int chk, const char *msg, int code)
   }
 }
 
+const char *rxVersion(const char *what);
+
 /* when prnt_vars() is called, user defines the behavior in "case" */
 void prnt_vars(int scenario, FILE *outpt, int lhs, const char *pre_str, const char *post_str, int show_ode) {
   int i, j, k;
@@ -1254,9 +1256,9 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
   }
   fprintf(outpt,"extern SEXP %smodel_vars(){\n  int pro=0;\n",model_prefix);
   fprintf(outpt,"  SEXP _mv = PROTECT(_rxGetModelLib(\"rx_5c2c6f8a65d272301b81504c87d75239_x64_model_vars\"));pro++;\n");
-  fprintf(outpt,"  if (isNull(_mv)){\n");
-  fprintf(outpt,"    SEXP lst      = PROTECT(allocVector(VECSXP, 13));pro++;\n");
-  fprintf(outpt,"    SEXP names    = PROTECT(allocVector(STRSXP, 13));pro++;\n");
+  fprintf(outpt,"  if (!_rxIsCurrentC(_mv)){\n");
+  fprintf(outpt,"    SEXP lst      = PROTECT(allocVector(VECSXP, 14));pro++;\n");
+  fprintf(outpt,"    SEXP names    = PROTECT(allocVector(STRSXP, 14));pro++;\n");
   fprintf(outpt,"    SEXP params   = PROTECT(allocVector(STRSXP, %d));pro++;\n",pi);
   fprintf(outpt,"    SEXP lhs      = PROTECT(allocVector(STRSXP, %d));pro++;\n",li);
   fprintf(outpt,"    SEXP state    = PROTECT(allocVector(STRSXP, %d));pro++;\n",statei);
@@ -1277,6 +1279,17 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
   fprintf(outpt,"    SEXP scaler   = PROTECT(allocVector(REALSXP, %d));pro++;\n",statei);
   fprintf(outpt,"    SEXP infusionr= PROTECT(allocVector(REALSXP, %d));pro++;\n",statei);
   fprintf(outpt,"    SEXP badDosei = PROTECT(allocVector(INTSXP, %d));pro++;\n",statei);
+  fprintf(outpt,"    SEXP version    = PROTECT(allocVector(STRSXP, 3));pro++;\n");
+  fprintf(outpt,"    SEXP versionn   = PROTECT(allocVector(STRSXP, 3));pro++;\n");
+
+  fprintf(outpt,"    SET_STRING_ELT(version,0,mkChar(\"%s\"));\n", rxVersion("version"));
+  fprintf(outpt,"    SET_STRING_ELT(version,1,mkChar(\"%s\"));\n", rxVersion("repo"));
+  fprintf(outpt,"    SET_STRING_ELT(version,2,mkChar(\"%s\"));\n", rxVersion("md5"));
+
+  fprintf(outpt,"    SET_STRING_ELT(versionn,0,mkChar(\"version\"));\n");
+  fprintf(outpt,"    SET_STRING_ELT(versionn,1,mkChar(\"repo\"));\n");
+  fprintf(outpt,"    SET_STRING_ELT(versionn,2,mkChar(\"md5\"));\n");
+
   fprintf(outpt,"    SET_STRING_ELT(solven,0,mkChar(\"inits\"));\n");
   fprintf(outpt,"    SET_VECTOR_ELT(solve,  0,initsr);\n");
   fprintf(outpt,"    SET_STRING_ELT(solven,1,mkChar(\"scale\"));\n");
@@ -1485,6 +1498,11 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
   
   fprintf(outpt,"    SET_STRING_ELT(names,12,mkChar(\"solve\"));\n");
   fprintf(outpt,"    SET_VECTOR_ELT(lst,  12,solve);\n");
+
+  fprintf(outpt,"    SET_STRING_ELT(names,13,mkChar(\"version\"));\n");
+  fprintf(outpt,"    SET_VECTOR_ELT(lst,  13,version);\n");
+
+  // const char *rxVersion(const char *what)
   
   // md5 values
   fprintf(outpt,"    SET_STRING_ELT(mmd5n,0,mkChar(\"file_md5\"));\n");
@@ -1542,6 +1560,7 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
   fprintf(outpt,"    setAttrib(mmd5, R_NamesSymbol, mmd5n);\n");
   fprintf(outpt,"    setAttrib(model, R_NamesSymbol, modeln);\n");
   fprintf(outpt,"    setAttrib(ini, R_NamesSymbol, inin);\n");
+  fprintf(outpt,"    setAttrib(version, R_NamesSymbol, versionn);\n");
   fprintf(outpt,"    setAttrib(lst, R_NamesSymbol, names);\n");
   fprintf(outpt,"    SEXP cls = PROTECT(allocVector(STRSXP, 1));pro++;\n");
   fprintf(outpt,"    SET_STRING_ELT(cls, 0, mkChar(\"rxModelVars\"));\n");

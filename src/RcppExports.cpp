@@ -39,14 +39,14 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// rxModelVars
-List rxModelVars(const RObject& obj);
-RcppExport SEXP _RxODE_rxModelVars(SEXP objSEXP) {
+// rxModelVars_
+List rxModelVars_(const RObject& obj);
+RcppExport SEXP _RxODE_rxModelVars_(SEXP objSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const RObject& >::type obj(objSEXP);
-    rcpp_result_gen = Rcpp::wrap(rxModelVars(obj));
+    rcpp_result_gen = Rcpp::wrap(rxModelVars_(obj));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -225,6 +225,17 @@ BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< RObject >::type obj(objSEXP);
     rcpp_result_gen = Rcpp::wrap(rxGetRxODE(obj));
+    return rcpp_result_gen;
+END_RCPP
+}
+// rxIsCurrent
+bool rxIsCurrent(RObject obj);
+RcppExport SEXP _RxODE_rxIsCurrent(SEXP objSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< RObject >::type obj(objSEXP);
+    rcpp_result_gen = Rcpp::wrap(rxIsCurrent(obj));
     return rcpp_result_gen;
 END_RCPP
 }

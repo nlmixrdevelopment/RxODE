@@ -656,34 +656,14 @@ rx_solve *getRxSolve(SEXP ptr){
   return o;
 }
 
-//' All model variables for a RxODE object
-//'
-//' Return all the known model variables for a specified RxODE object
-//'
-//' These items are only calculated after compilation; they are
-//' built-into the RxODE compiled DLL.
-//'
-//' @param obj RxODE family of objects
-//'
-//' @return A list of RxODE model properties including:
-//'
-//' \item{params}{ a character vector of names of the model parameters}
-//' \item{lhs}{ a character vector of the names of the model calculated parameters}
-//' \item{state}{ a character vector of the compartments in RxODE object}
-//' \item{trans}{ a named vector of translated model properties
-//'       including what type of jacobian is specified, the \code{C} function prefixes,
-//'       as well as the \code{C} functions names to be called through the compiled model.}
-//' \item{md5}{a named vector that gives the digest of the model (\code{file_md5}) and the parsed model
-//'      (\code{parsed_md5})}
-//' \item{model}{ a named vector giving the input model (\code{model}),
-//'    normalized model (no comments and standard syntax for parsing, \code{normModel}),
-//'    and interim code that is used to generate the final C file \code{parseModel}}
-//'
-//' @keywords internal
-//' @author Matthew L.Fidler
-//' @export
+// 
+inline bool fileExists(const std::string& name) {
+  struct stat buffer;   
+  return (stat (name.c_str(), &buffer) == 0); 
+}
+
 // [[Rcpp::export]]
-List rxModelVars(const RObject &obj){
+List rxModelVars_(const RObject &obj){
   getRxModels();
   if (rxIs(obj, "rxModelVars")){
     List ret(obj);
@@ -696,7 +676,7 @@ List rxModelVars(const RObject &obj){
   } else if (rxIs(obj,"rxSolve")){
     CharacterVector cls = obj.attr("class");
     Environment e = as<Environment>(cls.attr(".RxODE.env"));
-    return  rxModelVars(as<RObject>(e["args.object"]));
+    return  rxModelVars_(as<RObject>(e["args.object"]));
   } else if (rxIs(obj,"rxDll")){
     List lobj = (as<List>(obj))["modVars"];
     return lobj;
@@ -707,9 +687,43 @@ List rxModelVars(const RObject &obj){
       if (rxIs(obj1, "rxModelVars")){
 	return as<List>(obj1);
       } else if (rxIs(obj1, "RxODE")){
-	return rxModelVars(obj1);
+	return rxModelVars_(obj1);
       }
     }
+    std::string sobj1 = sobj + "_model_vars";
+    if (_rxModels.exists(sobj1)){
+      RObject obj1 = _rxModels.get(sobj1);
+      if (rxIs(obj1, "rxModelVars")){
+        return as<List>(obj1);
+      }
+    }
+    Function get("get",R_BaseNamespace);
+    List platform = get(_["x"]=".Platform", _["envir"] = R_BaseEnv);
+    sobj1 = sobj + "_" + as<std::string>(platform["r_arch"]) + "_model_vars";
+    if (_rxModels.exists(sobj1)){
+      RObject obj1 = _rxModels.get(sobj1);
+      if (rxIs(obj1, "rxModelVars")){
+        return as<List>(obj1);
+      }
+    }
+    Function filePath("file.path", R_BaseNamespace);
+    Function getwd("getwd", R_BaseNamespace);
+    sobj1 = as<std::string>(getwd());
+    std::string sobj2 = sobj + ".d";
+    std::string sobj3 = sobj + "_" + as<std::string>(platform["r_arch"]) +
+      as<std::string>(platform["dynlib.ext"]);
+    sobj1 = as<std::string>(filePath(sobj1,sobj2, sobj3));
+    if (fileExists(sobj1)){
+      Rcout << "Path: " << sobj1 << "\n";
+      Function dynLoad("dyn.load", R_BaseNamespace);
+      dynLoad(sobj1);
+      sobj1 = sobj + "_" + as<std::string>(platform["r_arch"]) +
+	"_model_vars";
+      Function call(".Call", R_BaseNamespace);
+      List ret = as<List>(call(sobj1));
+      return ret;
+    }
+    // fileExists(const std::string& name)
     Environment RxODE("package:RxODE");
     Function f = as<Function>(RxODE["rxModelVars.character"]);
     return f(obj);
@@ -719,7 +733,7 @@ List rxModelVars(const RObject &obj){
     CharacterVector nobj = lobj.names();
     for (int i = 0; i < nobj.size(); i++){
       if (nobj[i] == "modVars"){
-	return(rxModelVars(lobj["modVars"]));
+	return(rxModelVars_(lobj["modVars"]));
       } else if (!params && nobj[i]== "params"){
 	params=true;
       } else if (!lhs && nobj[i] == "lhs"){
@@ -753,6 +767,10 @@ List rxModelVars(const RObject &obj){
     Rprintf("\n");
     stop("Need an RxODE-type object to extract model variables from.");
   }
+}
+
+List rxModelVars(const RObject &obj){
+  return rxModelVars_(obj);
 }
 //' State variables
 //'
@@ -3014,7 +3032,48 @@ RObject rxGetRxODE(RObject obj){
     return as<RObject>(e);
   }
 }
+
+bool rxVersion_b = false;
+CharacterVector rxVersion_;
+
+extern "C" const char *rxVersion(const char *what){
+  std::string str(what);
+  if (!rxVersion_b){
+    Environment RxODE("package:RxODE");
+    Function f = as<Function>(RxODE["rxVersion"]);
+    rxVersion_ = f();
+    rxVersion_b=true;
+  }
+  return (as<std::string>(rxVersion_[str])).c_str();
+}
+
+//' Checks if the RxODE object was built with the current build
+//'
+//' @inheritParams rxModelVars
+//'
+//' @return boolean indicating if this was built with current RxODE
+//'
+//' @export
+//[[Rcpp::export]]
+bool rxIsCurrent(RObject obj){
+  List mv = rxModelVars(obj);
+  if (mv.containsElementNamed("version")){
+    CharacterVector version = mv["version"];
+    const char* cVerC = rxVersion("md5");
+    std::string str(cVerC);
+    std::string str2 = as<std::string>(version["md5"]);
+    if (str2 == str){
+      return true;
+    } else {
+      return false;
+    }
+  } else {
+    return false;
+  }
+}
+
 extern "C" void RxODE_assign_fn_pointers_(const char *mv);
+
 //' Assign pointer based on model variables
 //' @param object RxODE family of objects
 //' @export
@@ -3032,6 +3091,8 @@ void rxAssignPtr(SEXP object = R_NilValue){
   
   std::string ptr = as<std::string>(trans["model_vars"]); 
   if (!_rxModels.exists(ptr)){
+    _rxModels[ptr] = mv;
+  } else if (!rxIsCurrent(as<RObject>(_rxModels[ptr]))) {
     _rxModels[ptr] = mv;
   }
   Nullable<Environment> e1 = rxRxODEenv(object);
@@ -3156,13 +3217,6 @@ bool rxIsLoaded(RObject obj){
   std::string dydt = as<std::string>(trans["ode_solver"]);
   return as<bool>(isLoaded(dydt));
 }
-
-// 
-inline bool fileExists(const std::string& name) {
-  struct stat buffer;   
-  return (stat (name.c_str(), &buffer) == 0); 
-}
-
 
 //' Load RxODE object
 //'
@@ -3399,3 +3453,13 @@ extern "C" SEXP rxParamNames(char *ptr){
   // Rcout << "Param: ";
   return rxGetFromChar(ptr, "params");
 }
+
+extern "C" int rxIsCurrentC(SEXP obj){
+  RObject robj = as<RObject>(obj);
+  if (robj.isNULL()) return 0;
+  bool ret = rxIsCurrent(robj);
+  if (ret) return 1;
+  return 0;
+}
+
+
