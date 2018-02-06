@@ -66,7 +66,9 @@ rxCat <- function(a, ...){
 ##' @export
 ##' @keywords internal
 rxPrint <- function(x, ...){
-    message(invisible(paste(R.utils::captureOutput(x <<- print(x, ...)), collapse="\n")), appendLF=TRUE);
+    this.env <- environment();
+    message(invisible(paste(R.utils::captureOutput(assign("x", print(x, ...), this.env)), collapse="\n")), appendLF=TRUE);
+    invisible(x)
 }
 
 ##' Cleanup anonymous DLLs
