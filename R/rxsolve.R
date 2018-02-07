@@ -240,6 +240,16 @@ rxSolve <- function(object, params=NULL, events=NULL, inits = NULL, scale = NULL
         }
     }
     if (!is.null(thetaMat) || !is.null(omega) || !is.null(sigma)){
+        cur.events <- NULL;
+        if (rxIs(params, "rx.event")){
+            cur.events <- rxDataSetup(params);
+            params <- events;
+            events <- cur.events;
+        } else if (rxIs(events, "rx.event")){
+            events <- rxDataSetup(events);
+        }
+        print(events);
+        stop();
         params <- rxSimThetaOmega(params = params, omega = omega, omegaDf = omegaDf, omegaIsChol = omegaIsChol,
                                   nSub = nSub, thetaMat = thetaMat, thetaDf = thetaDf, thetaIsChol = thetaIsChol,
                                   nStud = nStud, sigma=sigma, nCoresRV = nCoresRV);

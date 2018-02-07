@@ -1,5 +1,6 @@
 // [[Rcpp::depends(RcppArmadillo)]]
 #include <RcppArmadillo.h>
+#include <Rmath.h>
 #include <thread>
 #include <string>
 #include <sys/stat.h>
@@ -3297,6 +3298,157 @@ bool rxDelete(RObject obj){
   return false;
 }
 
+arma::mat rwish5(double nu, int p){
+  GetRNGstate();
+  arma::mat Z(p,p, fill::zeros);
+  double curp = nu;
+  double tmp =sqrt(Rf_rchisq(curp--));
+  Z(0,0) = (tmp < 1e-100) ? 1e-100 : tmp;
+  int i, j;
+  if (p > 1){
+    for (i = 1; i < (int)p; i++){
+      tmp = sqrt(Rf_rchisq(curp--));
+      Z(i,i) = (tmp < 1e-100) ? 1e-100 : tmp;
+      for (j = 0; j < i; j++){
+        // row,col
+        Z(j,i) = norm_rand();
+      }
+    }
+  }
+  PutRNGstate();
+  return Z;
+}
+
+//' Sample A covariance Matrix.
+//'
+//' @inheritparams iwish
+//' @param omegaIsChol is an indicator of if the Omega matrix is in the cholesky decomposition. 
+//'
+//' @author Matthew L.Fidler & Wenping Wang
+//' 
+//' @export
+//[[Rcpp::export]]
+NumericMatrix cvPost(const double &nu, const NumericMatrix &Omega, const bool &omegaIsChol = false){
+  arma::mat S =as<arma::mat>(Omega);
+  int p = S.n_rows;
+  arma::mat Z = rwish5(nu, p);
+  // Backsolve isn't available in armadillo
+  arma::mat Z2 = arma::trans(arma::inv(trimatu(Z)));
+  arma::mat cv5;
+  if (omegaIsChol){
+    cv5 = as<arma::mat>(Omega);
+  } else {
+    cv5 = arma::chol(as<arma::mat>(Omega));
+  }
+  arma::mat mat1 = Z2 * cv5;
+  mat1 = mat1.t() * mat1;
+  mat1 = mat1 * nu;
+  return wrap(mat1);
+ /*
+   cv.5 = chol(cov)
+   p = nrow(cov)
+   Z = rwish.5(df, p)
+   df*crossprod(t(backsolve(Z,diag(p))) %*% cv.5)
+ */
+}
+
+//' Simulate one deviate from the Wishart distribution
+//'
+//' @param nu Degrees of freedom of Wishart distribution.
+//' @param Omega Positive definite Omega Scale matrix.
+//' @return One random deviate (matrix) of Wishart Distribution.
+//' @author Matthew Fidler
+//' @export
+//[[Rcpp::export]]
+NumericMatrix rwish(double nu, NumericMatrix Omega){
+  arma::mat S = as<arma::mat>(Omega);
+  if (S.n_rows != S.n_cols){
+    stop("Omega matrix is required to be positive definite (square) matrix.");
+  }
+  int p = S.n_rows;
+  if (nu < (double)p) {
+    stop("nu is less than the dimension of Omega matrix in rwish().");
+  }
+  arma::mat CC = arma::chol(S);
+  arma::mat Z = rwish5(nu, p);
+  arma::mat p1 = Z*CC;
+  arma::mat retA = p1.t() * p1;
+  NumericMatrix ret = wrap(retA);
+  return ret; 
+}
+
+//' Simulate one deviate from the inverse Wishart distribution
+//'
+//' @param nu Degrees of freedom of inverse Wishart distribution.
+//' @param Omega Positive definite Omega Scale index.
+//' @return One random deviate (matrix) of inverse Wishart Distribution.
+//' @author Matthew Fidler
+//' @export
+//[[Rcpp::export]]
+NumericMatrix riwish(double nu,
+		     NumericMatrix Omega){
+  arma::mat Sa = as<arma::mat>(Omega); 
+  // Is is true that this is a symmetric positive definite matrix (I think so....)
+  arma::mat Sinv = arma::inv_sympd(Sa);
+  arma::mat retA1 = as<arma::mat>(rwish(nu, wrap(Sinv)));
+  arma::mat retA = arma::inv_sympd(retA1);
+  return wrap(retA);
+}
+
+//' Simulate one deviate from the inverse Wishart distribution multiplied by nu
+//'
+//' @param nu Degrees of freedom of inverse Wishart distribution.
+//' @param Omega Positive definite Omega Scale index.
+//' @return One random deviate (matrix) of inverse Wishart Distribution scaled by the degrees of freedom.
+//' @author Matthew Fidler & Wenping Wang
+//' @export
+//[[Rcpp::export]]
+NumericMatrix riwishDf(double nu,
+		       NumericMatrix Omega){
+  arma::mat Sa = as<arma::mat>(Omega); 
+  arma::mat Sinv = arma::inv_sympd(nu*Sa);
+  arma::mat retA1 = as<arma::mat>(rwish(nu, wrap(Sinv)));
+  arma::mat retA = arma::inv_sympd(retA1);
+  return wrap(retA);
+}
+
+
+
+//' Simulate one deviate from the scaled inverse Wishart distribution
+//'
+//' @param nu Degrees of freedom of inverse Wishart distribution.
+//' @param Omega Positive definite Omega Scale index.
+//' @param mu vector of location hyper-parameters.  
+//' @param delta vector of location scale hyper-parameters.
+//' @return One random deviate (matrix) of inverse Wishart Distribution.
+//' @author Matthew Fidler
+//' @reference https://arxiv.org/pdf/1408.4050.pdf
+//' @reference https://dahtah.wordpress.com/2012/03/07/why-an-inverse-wishart-prior-may-not-be-such-a-good-idea/
+//' @export
+//[[Rcpp::export]]
+NumericMatrix rsiwish(double nu,
+		      NumericMatrix Omega,
+		      NumericVector mu,
+		      NumericVector delta){
+  // https://arxiv.org/pdf/1408.4050.pdf
+  if (Omega.nrow() != mu.size()){
+    stop("Need to have the same dimension in mu/delta as the number of rows in Omega");
+  }
+  if (mu.size() != delta.size()){
+    stop("The size of mu and delta need to match.");
+  }
+  NumericMatrix Q = riwish(nu, Omega);
+  arma::mat Qa = as<arma::mat>(Q);
+  arma::mat Zeta(Qa.n_rows,Qa.n_rows,fill::zeros);
+  GetRNGstate();
+  for (unsigned int i = 0; i < Qa.n_rows; i++){
+    Zeta(i,i) = exp(norm_rand()*delta[i]+mu[i]);
+  }
+  PutRNGstate();
+  arma::mat x = Zeta * Qa * Zeta;
+  return wrap(x);
+}
+
 //' Simulate Parameters from a Theta/Omega specification
 //'
 //' @param params Named Vector of RxODE model parameters
@@ -3312,7 +3464,8 @@ bool rxDelete(RObject obj){
 //'     Cholesky decomposed matrix instead of the traditional
 //'     symmetric matrix.
 //'
-//' @param nSub Number between subject variabilities (ETAs) simulated.
+//' @param nSub Number between subject variabilities (ETAs) simulated for every 
+//'        realization of the parameters.
 //'
 //' @param omega Named omega matrix.
 //'
@@ -3325,12 +3478,16 @@ bool rxDelete(RObject obj){
 //'     Cholesky decomposed matrix instead of the traditional
 //'     symmetric matrix.
 //'
-//' @param nStud Number virtual studies to characterize uncertainty in fixed parameters.
+//' @param nStud Number virtual studies to characterize uncertainty in estimated 
+//'        parameters.
 //'
 //' @param sigma Matrix for residual variation.  Adds a "NA" value for each of the 
 //'     indivdual parameters, residuals are updated after solve is completed. 
 //'
 //' @inheritParams rxSolve
+//'
+//' @param simVariability For each study simulate the uncertanty in the Omega and 
+//'       Sigma item
 //'
 //' @author Matthew L.Fidler
 //'
@@ -3345,8 +3502,10 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
 		     const Nullable<NumericMatrix> &thetaDf  = R_NilValue,
 		     const bool &thetaIsChol = false,
 		     int nStud = 1,
-                     const Nullable<NumericMatrix> &sigma = R_NilValue,
-		     int nCoresRV = 1){
+                     const Nullable<NumericVector> sigma = 0,
+		     int nCoresRV = 1,
+		     bool simVariability = true,
+		     int nObs = 0){
   NumericVector par;
   if (params.isNull()){
     stop("This function requires overall parameters.");
@@ -3363,16 +3522,47 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
     thetaM = as<NumericMatrix>(rxSimSigma(as<RObject>(thetaMat), as<RObject>(thetaDf), nCoresRV, thetaIsChol, nStud));
     thetaN = as<CharacterVector>((as<List>(thetaM.attr("dimnames")))[1]);
   }
-
-  NumericMatrix omegaM;
-  CharacterVector omegaN;
+  if (!omega.isNull()){
+    stop("Omega matrix must be specified.");
+  }
+  NumericMatrix omegaM = as<NumericMatrix>(omega);
+  CharacterVector omegaN = as<CharacterVector>((as<List>(omegaM.attr("dimnames")))[1]);
+  // Now create data frame of parameter values
+  List ret;
+  double curSigma = 0;
+  NumericMatrix curOmega;
+  int i, j, k;
+  double nObsD = (double)nObs;
+  CharacterVector sigmaN;
+  double sigmaM;
+  if (!sigma.isNull()){
+    NumericVector sigmaM2 = as<NumericVector>(sigma);
+    if (sigmaM2.size() != 1){
+      stop("Sigma can only be one-dimensional.");
+    } else if (sigmaM2.hasAttribute("names")){
+      sigmaN = sigmaM2.names();
+    } else {
+      stop("Sigma must be named.");
+    }
+    sigmaM = sigmaM2[0];
+  }
+  for (i = 0; i < nStud; i++){
+    if (simVariability){
+      GetRNGstate();
+      // Inverse Chi Squared
+      curSigma = nObsD*sigmaM/(Rf_rgamma((double)(nObs)/2.0,2.0));
+      PutRNGstate();
+      curOmega = riwish(nSub, omegaM)*nSub;
+    } else {
+      curSigma = sigmaM;
+      curOmega = omegaM;
+    }
+  }
   if (!omega.isNull() && nSub*nStud > 0){
     omegaM = as<NumericMatrix>(rxSimSigma(as<RObject>(omega), as<RObject>(omegaDf), nCoresRV, omegaIsChol, nSub*nStud));
     omegaN = as<CharacterVector>((as<List>(omegaM.attr("dimnames")))[1]);
   }
-  // Now create data frame of parameter values
-  List ret;
-  int i, j, k;
+
   CharacterVector parN = CharacterVector(par.attr("names"));
   IntegerVector parI(parN.size());
   NumericVector tmpNV;
@@ -3405,12 +3595,6 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
       tmpNV[j] = omegaM(j,i);
     }
     ret[as<std::string>(omegaN[i])] = tmpNV;
-  }
-  CharacterVector sigmaN;
-  NumericMatrix sigmaM;
-  if (!sigma.isNull()){
-    sigmaM = as<NumericMatrix>(sigma);
-    sigmaN = as<CharacterVector>((as<List>(sigmaM.attr("dimnames")))[1]);
   }
   for (i = 0; i < sigmaN.size(); i++){
     tmpNV = NumericVector(nSub*nStud);

@@ -6,7 +6,8 @@
 \usage{
 rxSimThetaOmega(params = NULL, omega = NULL, omegaDf = NULL,
   omegaIsChol = FALSE, nSub = 1L, thetaMat = NULL, thetaDf = NULL,
-  thetaIsChol = FALSE, nStud = 1L, sigma = NULL, nCoresRV = 1L)
+  thetaIsChol = FALSE, nStud = 1L, sigma = 0L, nCoresRV = 1L,
+  simVariability = TRUE, nObs = 0L)
 }
 \arguments{
 \item{params}{Named Vector of RxODE model parameters}
@@ -22,7 +23,8 @@ distribution instead of a t-distribution.}
 Cholesky decomposed matrix instead of the traditional
 symmetric matrix.}
 
-\item{nSub}{Number between subject variabilities (ETAs) simulated.}
+\item{nSub}{Number between subject variabilities (ETAs) simulated for every 
+realization of the parameters.}
 
 \item{thetaMat}{Named theta matrix.}
 
@@ -35,7 +37,8 @@ distribution instead of a t-distribution.}
 Cholesky decomposed matrix instead of the traditional
 symmetric matrix.}
 
-\item{nStud}{Number virtual studies to characterize uncertainty in fixed parameters.}
+\item{nStud}{Number virtual studies to characterize uncertainty in estimated 
+parameters.}
 
 \item{sigma}{Matrix for residual variation.  Adds a "NA" value for each of the 
 indivdual parameters, residuals are updated after solve is completed.}
@@ -47,6 +50,9 @@ To reproduce the results you need to run on the same platform
 with the same number of cores. This is the reason this is set
 to be one, regardless of what the number of cores are used in
 threaded ODE solving.}
+
+\item{simVariability}{For each study simulate the uncertanty in the Omega and 
+Sigma item}
 }
 \description{
 Simulate Parameters from a Theta/Omega specification

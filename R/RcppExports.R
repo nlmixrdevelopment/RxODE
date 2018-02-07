@@ -296,6 +296,66 @@ rxDelete <- function(obj) {
     .Call(`_RxODE_rxDelete`, obj)
 }
 
+#' Sample A covariance Matrix.
+#'
+#' @inheritparams iwish
+#' @param omegaIsChol is an indicator of if the Omega matrix is in the cholesky decomposition. 
+#'
+#' @author Matthew L.Fidler & Wenping Wang
+#' 
+#' @export
+cvPost <- function(nu, Omega, omegaIsChol = FALSE) {
+    .Call(`_RxODE_cvPost`, nu, Omega, omegaIsChol)
+}
+
+#' Simulate one deviate from the Wishart distribution
+#'
+#' @param nu Degrees of freedom of Wishart distribution.
+#' @param Omega Positive definite Omega Scale matrix.
+#' @return One random deviate (matrix) of Wishart Distribution.
+#' @author Matthew Fidler
+#' @export
+rwish <- function(nu, Omega) {
+    .Call(`_RxODE_rwish`, nu, Omega)
+}
+
+#' Simulate one deviate from the inverse Wishart distribution
+#'
+#' @param nu Degrees of freedom of inverse Wishart distribution.
+#' @param Omega Positive definite Omega Scale index.
+#' @return One random deviate (matrix) of inverse Wishart Distribution.
+#' @author Matthew Fidler
+#' @export
+riwish <- function(nu, Omega) {
+    .Call(`_RxODE_riwish`, nu, Omega)
+}
+
+#' Simulate one deviate from the inverse Wishart distribution multiplied by nu
+#'
+#' @param nu Degrees of freedom of inverse Wishart distribution.
+#' @param Omega Positive definite Omega Scale index.
+#' @return One random deviate (matrix) of inverse Wishart Distribution scaled by the degrees of freedom.
+#' @author Matthew Fidler & Wenping Wang
+#' @export
+riwishDf <- function(nu, Omega) {
+    .Call(`_RxODE_riwishDf`, nu, Omega)
+}
+
+#' Simulate one deviate from the scaled inverse Wishart distribution
+#'
+#' @param nu Degrees of freedom of inverse Wishart distribution.
+#' @param Omega Positive definite Omega Scale index.
+#' @param mu vector of location hyper-parameters.  
+#' @param delta vector of location scale hyper-parameters.
+#' @return One random deviate (matrix) of inverse Wishart Distribution.
+#' @author Matthew Fidler
+#' @reference https://arxiv.org/pdf/1408.4050.pdf
+#' @reference https://dahtah.wordpress.com/2012/03/07/why-an-inverse-wishart-prior-may-not-be-such-a-good-idea/
+#' @export
+rsiwish <- function(nu, Omega, mu, delta) {
+    .Call(`_RxODE_rsiwish`, nu, Omega, mu, delta)
+}
+
 #' Simulate Parameters from a Theta/Omega specification
 #'
 #' @param params Named Vector of RxODE model parameters
@@ -311,7 +371,8 @@ rxDelete <- function(obj) {
 #'     Cholesky decomposed matrix instead of the traditional
 #'     symmetric matrix.
 #'
-#' @param nSub Number between subject variabilities (ETAs) simulated.
+#' @param nSub Number between subject variabilities (ETAs) simulated for every 
+#'        realization of the parameters.
 #'
 #' @param omega Named omega matrix.
 #'
@@ -324,18 +385,22 @@ rxDelete <- function(obj) {
 #'     Cholesky decomposed matrix instead of the traditional
 #'     symmetric matrix.
 #'
-#' @param nStud Number virtual studies to characterize uncertainty in fixed parameters.
+#' @param nStud Number virtual studies to characterize uncertainty in estimated 
+#'        parameters.
 #'
 #' @param sigma Matrix for residual variation.  Adds a "NA" value for each of the 
 #'     indivdual parameters, residuals are updated after solve is completed. 
 #'
 #' @inheritParams rxSolve
 #'
+#' @param simVariability For each study simulate the uncertanty in the Omega and 
+#'       Sigma item
+#'
 #' @author Matthew L.Fidler
 #'
 #' @export
-rxSimThetaOmega <- function(params = NULL, omega = NULL, omegaDf = NULL, omegaIsChol = FALSE, nSub = 1L, thetaMat = NULL, thetaDf = NULL, thetaIsChol = FALSE, nStud = 1L, sigma = NULL, nCoresRV = 1L) {
-    .Call(`_RxODE_rxSimThetaOmega`, params, omega, omegaDf, omegaIsChol, nSub, thetaMat, thetaDf, thetaIsChol, nStud, sigma, nCoresRV)
+rxSimThetaOmega <- function(params = NULL, omega = NULL, omegaDf = NULL, omegaIsChol = FALSE, nSub = 1L, thetaMat = NULL, thetaDf = NULL, thetaIsChol = FALSE, nStud = 1L, sigma = 0L, nCoresRV = 1L, simVariability = TRUE, nObs = 0L) {
+    .Call(`_RxODE_rxSimThetaOmega`, params, omega, omegaDf, omegaIsChol, nSub, thetaMat, thetaDf, thetaIsChol, nStud, sigma, nCoresRV, simVariability, nObs)
 }
 
 #' Invert matrix using Rcpp Armadilo.  
