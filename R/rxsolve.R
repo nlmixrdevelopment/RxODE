@@ -251,6 +251,11 @@ rxSolve <- function(object, params=NULL, events=NULL, inits = NULL, scale = NULL
         if (addDosing){
             nObs <- nObs + cur.events$nDoses;
         }
+        if (nSub == 1L && cur.events$nSub > 1){
+            nSub <- cur.events$nSub;
+        } else if (nSub > 1 && cur.events$nSub > 1 && nSub != cur.events$nSub){
+            stop("You provided multi-subject data and asked to simulate a different number of subjects;  I don't know what to do.")
+        }
         params <- rxSimThetaOmega(params = params,
                                   omega = omega, omegaDf = omegaDf, omegaIsChol = omegaIsChol, nSub = nSub,
                                   thetaMat = thetaMat, thetaDf = thetaDf, thetaIsChol = thetaIsChol, nStud = nStud,

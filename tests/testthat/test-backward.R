@@ -327,4 +327,11 @@ C1=centr/V;
         expect_true(!(all(t1 == t2)))
     })
 
+    x <- rxModelVars(c("tka=THETA[1];", "tcl=THETA[2];", "tv=THETA[3];", "thwt=THETA[4];", "add.err=THETA[5];", "eta.ka=ETA[1];", "eta.cl=ETA[2];", "eta.v=ETA[3];", "ka=exp(tka+eta.ka);", "cl=exp(tcl+eta.cl+thwt*WT);", "v=exp(tv+eta.v);", "d/dt(depot)=-ka*depot;", "d/dt(center)=ka*depot-cl/v*center;", "cp=center/v;", "nlmixr_pred=cp;"))
+
+    test_that("rxModelVars takes character vector.",{
+        expect_equal(class(x), "rxModelVars")
+    })
+
+
 }, silent=TRUE)
