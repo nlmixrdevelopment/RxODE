@@ -296,64 +296,38 @@ rxDelete <- function(obj) {
     .Call(`_RxODE_rxDelete`, obj)
 }
 
-#' Sample A covariance Matrix.
+#' Sample a covariance Matrix from the Posteior Inverse Wishart distribution.
 #'
-#' @inheritparams iwish
-#' @param omegaIsChol is an indicator of if the Omega matrix is in the cholesky decomposition. 
+#' Note this Inverse wishart rescaled to match the original scale of the covariance matrix.
+#'
+#' If your covariance matrix is a 1x1 matrix, this uses an scaled inverse chi-squared which 
+#' is equivalent to the Inverse Wishart distribution in the uni-directional case.
+#'
+#' @param nu Degrees of Freedom (Number of Observations) for 
+#'        covariance matrix simulation.
+#' @param omega Estimate of Covariance matrix.
+#' @param n Number of Matricies to sample.  By default this is 1.
+#' @param omegaIsChol is an indicator of if the omega matrix is in the cholesky decomposition. 
+#'
+#' @return a matrix (n=1) or a list of matricies (n > 1)
 #'
 #' @author Matthew L.Fidler & Wenping Wang
 #' 
 #' @export
-cvPost <- function(nu, Omega, omegaIsChol = FALSE) {
-    .Call(`_RxODE_cvPost`, nu, Omega, omegaIsChol)
+cvPost <- function(nu, omega, n = 1L, omegaIsChol = FALSE, returnChol = FALSE) {
+    .Call(`_RxODE_cvPost`, nu, omega, n, omegaIsChol, returnChol)
 }
 
-#' Simulate one deviate from the Wishart distribution
+#' Scaled Inverse Chi Squared distribution
 #'
-#' @param nu Degrees of freedom of Wishart distribution.
-#' @param Omega Positive definite Omega Scale matrix.
-#' @return One random deviate (matrix) of Wishart Distribution.
-#' @author Matthew Fidler
+#' @param n Number of random samples
+#' @param nu degrees of freedom of inverse chi square
+#' @param scale  Scale of inverse chi squared distribution 
+#'         (default is 1).
+#' @return a vector of inverse chi squared deviates .
 #' @export
-rwish <- function(nu, Omega) {
-    .Call(`_RxODE_rwish`, nu, Omega)
-}
-
-#' Simulate one deviate from the inverse Wishart distribution
-#'
-#' @param nu Degrees of freedom of inverse Wishart distribution.
-#' @param Omega Positive definite Omega Scale index.
-#' @return One random deviate (matrix) of inverse Wishart Distribution.
-#' @author Matthew Fidler
-#' @export
-riwish <- function(nu, Omega) {
-    .Call(`_RxODE_riwish`, nu, Omega)
-}
-
-#' Simulate one deviate from the inverse Wishart distribution multiplied by nu
-#'
-#' @param nu Degrees of freedom of inverse Wishart distribution.
-#' @param Omega Positive definite Omega Scale index.
-#' @return One random deviate (matrix) of inverse Wishart Distribution scaled by the degrees of freedom.
-#' @author Matthew Fidler & Wenping Wang
-#' @export
-riwishDf <- function(nu, Omega) {
-    .Call(`_RxODE_riwishDf`, nu, Omega)
-}
-
-#' Simulate one deviate from the scaled inverse Wishart distribution
-#'
-#' @param nu Degrees of freedom of inverse Wishart distribution.
-#' @param Omega Positive definite Omega Scale index.
-#' @param mu vector of location hyper-parameters.  
-#' @param delta vector of location scale hyper-parameters.
-#' @return One random deviate (matrix) of inverse Wishart Distribution.
-#' @author Matthew Fidler
-#' @reference https://arxiv.org/pdf/1408.4050.pdf
-#' @reference https://dahtah.wordpress.com/2012/03/07/why-an-inverse-wishart-prior-may-not-be-such-a-good-idea/
-#' @export
-rsiwish <- function(nu, Omega, mu, delta) {
-    .Call(`_RxODE_rsiwish`, nu, Omega, mu, delta)
+rinvchisq <- function(n = 1L, nu = 1.0, scale = 1) {
+    .Call(`_RxODE_rinvchisq`, n, nu, scale)
 }
 
 #' Simulate Parameters from a Theta/Omega specification
@@ -399,8 +373,8 @@ rsiwish <- function(nu, Omega, mu, delta) {
 #' @author Matthew L.Fidler
 #'
 #' @export
-rxSimThetaOmega <- function(params = NULL, omega = NULL, omegaDf = NULL, omegaIsChol = FALSE, nSub = 1L, thetaMat = NULL, thetaDf = NULL, thetaIsChol = FALSE, nStud = 1L, sigma = 0L, nCoresRV = 1L, simVariability = TRUE, nObs = 0L) {
-    .Call(`_RxODE_rxSimThetaOmega`, params, omega, omegaDf, omegaIsChol, nSub, thetaMat, thetaDf, thetaIsChol, nStud, sigma, nCoresRV, simVariability, nObs)
+rxSimThetaOmega <- function(params = NULL, omega = NULL, omegaDf = NULL, omegaIsChol = FALSE, nSub = 1L, thetaMat = NULL, thetaDf = NULL, thetaIsChol = FALSE, nStud = 1L, sigma = NULL, sigmaDf = NULL, sigmaIsChol = FALSE, nCoresRV = 1L, nObs = 1L, simVariability = TRUE) {
+    .Call(`_RxODE_rxSimThetaOmega`, params, omega, omegaDf, omegaIsChol, nSub, thetaMat, thetaDf, thetaIsChol, nStud, sigma, sigmaDf, sigmaIsChol, nCoresRV, nObs, simVariability)
 }
 
 #' Invert matrix using Rcpp Armadilo.  

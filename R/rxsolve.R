@@ -222,7 +222,7 @@ rxSolve <- function(object, params=NULL, events=NULL, inits = NULL, scale = NULL
                     theta = NULL, eta = NULL, addDosing=FALSE, update.object=FALSE,do.solve=TRUE,
                     omega = NULL, omegaDf = NULL, omegaIsChol = FALSE,
                     nSub = 1L, thetaMat = NULL, thetaDf = NULL, thetaIsChol = FALSE,
-                    nStud = 1L){
+                    nStud = 1L, simVariability=TRUE){
     ## stiff = TRUE, transit_abs = NULL,
     ## atol = 1.0e-8, rtol = 1.0e-6, maxsteps = 5000, hmin = 0, hmax = NULL, hini = 0, maxordn = 12,
     ## maxords = 5, ..., covs_interpolation = c("linear", "constant", "NOCB", "midpoint"),
@@ -241,18 +241,21 @@ rxSolve <- function(object, params=NULL, events=NULL, inits = NULL, scale = NULL
     }
     if (!is.null(thetaMat) || !is.null(omega) || !is.null(sigma)){
         cur.events <- NULL;
+        ## FIXME allow rxDataSetup object to be passed to solve c routine
         if (rxIs(params, "rx.event")){
             cur.events <- rxDataSetup(params);
-            params <- events;
-            events <- cur.events;
         } else if (rxIs(events, "rx.event")){
-            events <- rxDataSetup(events);
+            cur.events <- rxDataSetup(events);
         }
-        print(events);
-        stop();
-        params <- rxSimThetaOmega(params = params, omega = omega, omegaDf = omegaDf, omegaIsChol = omegaIsChol,
-                                  nSub = nSub, thetaMat = thetaMat, thetaDf = thetaDf, thetaIsChol = thetaIsChol,
-                                  nStud = nStud, sigma=sigma, nCoresRV = nCoresRV);
+        nObs <- cur.events$nObs;
+        if (addDosing){
+            nObs <- nObs + cur.events$nDoses;
+        }
+        params <- rxSimThetaOmega(params = params,
+                                  omega = omega, omegaDf = omegaDf, omegaIsChol = omegaIsChol, nSub = nSub,
+                                  thetaMat = thetaMat, thetaDf = thetaDf, thetaIsChol = thetaIsChol, nStud = nStud,
+                                  sigma=sigma, sigmaDf=sigmaDf, sigmaIsChol=sigmaIsChol, nObs=nObs,
+                                  nCoresRV = nCoresRV, simVariability=simVariability);
     }
     extra <- list(...);
 

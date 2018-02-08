@@ -500,7 +500,10 @@ extern void par_liblsoda(rx_solve *rx){
 #pragma omp critical
 	cur++;
 #pragma omp critical
-	curTick = par_progress(cur, nsim*nsub, curTick, cores, t0, 0);
+#ifdef _OPENMP
+        if (omp_get_thread_num() == 0) // only in master thread!
+#endif
+	  curTick = par_progress(cur, nsim*nsub, curTick, cores, t0, 0);
       }
 #pragma omp flush (abort)
       if (abort == 0){
@@ -1482,6 +1485,8 @@ extern SEXP RxODE_par_df(SEXP sd){
 }
 
 extern SEXP rxSimSigmaC(rx_solving_options *op, int nObs);
+extern double *rxGetErrs();
+extern int rxGetErrsNcol();
 
 extern SEXP RxODE_df(SEXP sd, int doDose){
   rx_solve *rx;
@@ -1536,13 +1541,13 @@ extern SEXP RxODE_df(SEXP sd, int doDose){
     SET_VECTOR_ELT(df, i, PROTECT(allocVector(INTSXP, (doDose == 1 ? nall : nobs)*nsim))); pro++;
   }
   double *par_ptr;
-  int nrows = (doDose == 1 ? nall : nobs)*nsim;
-  SEXP errs = PROTECT(rxSimSigmaC(op, nrows));pro++;
+  int nrow = (doDose == 1 ? nall : nobs)*nsim;
+  
+  double *errs = rxGetErrs();
   int updateErr = 0;
-  int errNcol=0;
-  if (!isNull(errs)){
+  int errNcol = rxGetErrsNcol();
+  if (errNcol > 0){
     updateErr = 1;
-    errNcol = INTEGER(getAttrib(errs,R_DimSymbol))[1];
   }
   if (doDose){
     SET_VECTOR_ELT(df, i++, PROTECT(allocVector(INTSXP, nall*nsim))); pro++;
@@ -1587,7 +1592,7 @@ extern SEXP RxODE_df(SEXP sd, int doDose){
       for (i = 0; i < ntimes; i++){
         if (updateErr){
           for (j=0; j < errNcol; j++){
-	    par_ptr[svar[j]] = REAL(errs)[nrows*j+kk];
+	    par_ptr[svar[j]] = errs[nrow*j+kk];
           }
 	  kk++;
         }

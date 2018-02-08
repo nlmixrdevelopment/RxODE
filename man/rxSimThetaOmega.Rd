@@ -6,8 +6,8 @@
 \usage{
 rxSimThetaOmega(params = NULL, omega = NULL, omegaDf = NULL,
   omegaIsChol = FALSE, nSub = 1L, thetaMat = NULL, thetaDf = NULL,
-  thetaIsChol = FALSE, nStud = 1L, sigma = 0L, nCoresRV = 1L,
-  simVariability = TRUE, nObs = 0L)
+  thetaIsChol = FALSE, nStud = 1L, sigma = NULL, sigmaDf = NULL,
+  sigmaIsChol = FALSE, nCoresRV = 1L, nObs = 1L, simVariability = TRUE)
 }
 \arguments{
 \item{params}{Named Vector of RxODE model parameters}
@@ -42,6 +42,12 @@ parameters.}
 
 \item{sigma}{Matrix for residual variation.  Adds a "NA" value for each of the 
 indivdual parameters, residuals are updated after solve is completed.}
+
+\item{sigmaDf}{Degrees of freedom of the sigma t-distribution.  By
+default it is equivalent to \code{Inf}, or a normal distribution.}
+
+\item{sigmaIsChol}{Boolean indicating if the sigma is in the
+Cholesky decomposition instead of a symmetric covariance}
 
 \item{nCoresRV}{Number of cores used for the simulation of the
 sigma variables.  By default this is 1. This uses the package

@@ -14,7 +14,8 @@ rxSolve(object, params = NULL, events = NULL, inits = NULL,
   timeUnits = "hours", stiff, theta = NULL, eta = NULL,
   addDosing = FALSE, update.object = FALSE, do.solve = TRUE,
   omega = NULL, omegaDf = NULL, omegaIsChol = FALSE, nSub = 1L,
-  thetaMat = NULL, thetaDf = NULL, thetaIsChol = FALSE, nStud = 1L)
+  thetaMat = NULL, thetaDf = NULL, thetaIsChol = FALSE, nStud = 1L,
+  simVariability = TRUE)
 }
 \arguments{
 \item{object}{is a either a RxODE family of objects, or a file-name
@@ -215,6 +216,9 @@ symmetric matrix.}
 
 \item{nStud}{Number virtual studies to characterize uncertainty in estimated 
 parameters.}
+
+\item{simVariability}{For each study simulate the uncertanty in the Omega and 
+Sigma item}
 }
 \value{
 An \dQuote{rxSolve} solve object that stores the solved
