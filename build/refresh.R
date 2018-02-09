@@ -11,9 +11,9 @@ for (file in list.files(devtools::package_file("src/liblsoda/src"), pattern="[.]
     message(sprintf("\tcopy %s", file))
     lines <- suppressWarnings(readLines(file.path(devtools::package_file("src/liblsoda/src"), file)));
     lines <- gsub("#include \"cfode_static.inc\"", "#include \"cfode_static.h\"", lines, fixed=TRUE);
-    lines <- gsub("fprintf[(] *stderr *, *", "Rprintf(", lines);
-    lines <- gsub("([ \t])printf[(] *", "\\1Rprintf(", lines);
-    if (any(regexpr("Rprintf", lines) != -1)){
+    lines <- gsub("fprintf[(] *stderr *, *", "REprintf(", lines);
+    lines <- gsub("([ \t])printf[(] *", "\\1REprintf(", lines);
+    if (any(regexpr("REprintf", lines) != -1)){
         lines <- c("#include <R.h>", "#include <Rinternals.h>", lines);
     }
     if (any(regexpr("#define ERROR", lines, fixed=TRUE) != -1)){
