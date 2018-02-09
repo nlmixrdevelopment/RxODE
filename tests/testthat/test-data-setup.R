@@ -459,38 +459,6 @@ rxPermissive({
                     expect_equal(convert1$simulated.vars, c("s.a", "s.b"))
                     ## Now Update; the simulted variables should all be different.
                     cov1 <- convert1$cov + 0;
-                    rxUpdateResiduals(convert1);
-                    expect_false(all(convert1$cov == cov1));
-                    ##
-                    cn <- c("V", "CL")
-                    ## cov <- dat %>% filter(EVID == 0) %>% select(V, CL)
-                    convert2 <- RxODE:::rxDataSetup(dat, cn, sigma=mcov, df=ifelse(df == 0, Inf, df), ncoresRV=cores, isChol=(ch == 1));
-                    ##
-                    expect_equal(convert2$cov.names, cn)
-                    expect_equal(convert2$simulated.vars, c("s.a", "s.b"))
-                    ##
-                    cov1 <- convert2$cov + 0;
-                    rxUpdateResiduals(convert2);
-                    ## In this case, the covariates should be the same, but the residuals should change.
-                    for (i in unique(dat$ID)){
-                        ## This is what is currently in the dataset
-                        w <- seq(convert2$ids$posCov[i] + 1,
-                                 convert2$ids$posCov[i] + convert2$ids$nCov[i])
-                        mat1 <- matrix(convert2$cov[w], ncol=length(cn) + 2);
-                        mat1.cov <- mat1[, seq_along(cn)];
-                        mat1.sim <- mat1[, -seq_along(cn)];
-                        ## This what was in the dataset before the residuals were updated.
-                        mat2 <- matrix(cov1[w], ncol=length(cn) + 2);
-                        mat2.cov <- mat2[, seq_along(cn)];
-                        mat2.sim <- mat2[, -seq_along(cn)];
-                        ## The covariates should be equal to each other and the data.
-                        expect_equal(as.double(mat1.cov),
-                                     as.double(as.matrix(dat[dat$ID == i & dat$EVID == 0,cn])));
-                        expect_equal(as.double(mat2.cov),
-                                     as.double(as.matrix(dat[dat$ID == i & dat$EVID == 0,cn])));
-                        ## However, the residuals should not be equal.
-                        expect_false(all(as.double(mat1.sim) == as.double(mat2.sim)));
-                    }
                 }}}
     })
 })

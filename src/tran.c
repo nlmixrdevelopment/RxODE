@@ -553,7 +553,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
               SumProdLD = ii;
             }
 	  } else {
-	    sprintf(SBPTR, "_sign(%d, (double) ", ii);
+	    sprintf(SBPTR, "_%s(%d, (double) ", v, ii);
 	  }
           sprintf(SBTPTR, "%s(", v);
           sb.o = strlen(sb.s);

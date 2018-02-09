@@ -237,8 +237,8 @@ extern double _max(unsigned int n, ...){
   va_start(valist, n);
   double mx = NA_REAL;
   double tmp = 0;
-  if (n > 1){
-    mx = sign(va_arg(valist, double));
+  if (n >= 1){
+    mx = va_arg(valist, double);
     for (unsigned int i = 1; i < n; i++){
       tmp = va_arg(valist, double);
       if (tmp>mx) mx=tmp;
@@ -253,8 +253,8 @@ extern double _min(unsigned int n, ...){
   va_start(valist, n);
   double mn = NA_REAL;
   double tmp = 0;
-  if (n > 1){
-    mn = sign(va_arg(valist, double));
+  if (n >= 1){
+    mn = va_arg(valist, double);
     for (unsigned int i = 1; i < n; i++){
       tmp = va_arg(valist, double);
       if (tmp<mn) mn=tmp;
