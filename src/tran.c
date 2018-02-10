@@ -1211,32 +1211,32 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
           sprintf(buf,"ETA[%d]",j);
         }
       }
-      sprintf(s_aux_info+o, "  SET_STRING_ELT(params,%d,mkChar(\"%s\"));\n", pi++, buf);
+      sprintf(s_aux_info+o, "    SET_STRING_ELT(params,%d,mkChar(\"%s\"));\n", pi++, buf);
     }
     o = strlen(s_aux_info);
   }
   for (i=0; i<tb.nd; i++) {                     /* name state vars */
     retieve_var(tb.di[i], buf);
     if (strstr(buf, "rx__sens_")){
-      sprintf(s_aux_info+o, "  SET_STRING_ELT(sens,%d,mkChar(\"%s\"));\n", sensi++, buf);
+      sprintf(s_aux_info+o, "    SET_STRING_ELT(sens,%d,mkChar(\"%s\"));\n", sensi++, buf);
       o = strlen(s_aux_info);
-      sprintf(s_aux_info+o, "  SET_STRING_ELT(state,%d,mkChar(\"%s\"));\n", statei++, buf);
+      sprintf(s_aux_info+o, "    SET_STRING_ELT(state,%d,mkChar(\"%s\"));\n", statei++, buf);
       o = strlen(s_aux_info);
-      sprintf(s_aux_info+o, "  stateRm[%d] = %d;\n", statei-1, tb.idi[i]);
+      sprintf(s_aux_info+o, "    stateRm[%d] = %d;\n", statei-1, tb.idi[i]);
     } else {
-      sprintf(s_aux_info+o, "  SET_STRING_ELT(state,%d,mkChar(\"%s\"));\n", statei++, buf);
+      sprintf(s_aux_info+o, "    SET_STRING_ELT(state,%d,mkChar(\"%s\"));\n", statei++, buf);
       o = strlen(s_aux_info);
-      sprintf(s_aux_info+o, "  stateRm[%d] = %d;\n", statei-1, tb.idi[i]);
+      sprintf(s_aux_info+o, "    stateRm[%d] = %d;\n", statei-1, tb.idi[i]);
     }
     if (tb.fdi[i]){
       o = strlen(s_aux_info);
-      sprintf(s_aux_info+o, "  SET_STRING_ELT(fn_ini,%d,mkChar(\"%s\"));\n", fdi++, buf);
+      sprintf(s_aux_info+o, "    SET_STRING_ELT(fn_ini,%d,mkChar(\"%s\"));\n", fdi++, buf);
     }
     o = strlen(s_aux_info);
   }
   for (i=0; i<tb.ndfdy; i++) {                     /* name state vars */
     retieve_var(tb.df[i], buf);
-    sprintf(s_aux_info+o, "  SET_STRING_ELT(dfdy,%d,mkChar(\"df(%s)/dy(", i, buf);
+    sprintf(s_aux_info+o, "    SET_STRING_ELT(dfdy,%d,mkChar(\"df(%s)/dy(", i, buf);
     o = strlen(s_aux_info);
     retieve_var(tb.dy[i], buf);
     for (j = 1; j <= tb.maxtheta;j++){
