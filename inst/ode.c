@@ -27,171 +27,147 @@ typedef void (*RxODE_assign_ptr)(SEXP);
 typedef void (*RxODE_ode_solver_old_c)(int *neq,double *theta,double *time,int *evid,int *ntime,double *inits,double *dose,double *ret,double *atol,double *rtol,int *stiff,int *transit_abs,int *nlhs,double *lhs,int *rc);
 typedef double (*RxODE_solveLinB)(rx_solve *rx, unsigned int id, double t, int linCmt, int diff1, int diff2, double A, double alpha, double B, double beta, double C, double gamma, double ka, double tlag);
 
+
+RxODE_solveLinB _RxODE_solveLinB = NULL;
 double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt, int diff1, int diff2, double A, double alpha, double B, double beta, double C, double gamma, double ka, double tlag){
-  static RxODE_solveLinB fun = NULL;
-  if (fun == NULL) fun = (RxODE_solveLinB) R_GetCCallable("RxODE","RxODE_solveLinB");
-  return fun(rx, id, t, linCmt, diff1, diff2, A, alpha, B, beta, C, gamma, ka, tlag);
+  return _RxODE_solveLinB(rx, id, t, linCmt, diff1, diff2, A, alpha, B, beta, C, gamma, ka, tlag);
 }
 
+RxODE_assign_ptr _RxODE_assign_ptr = NULL;
 void _assign_ptr(SEXP x){
-  static RxODE_assign_ptr fun = NULL;
-  if (fun == NULL) fun = (RxODE_assign_ptr) R_GetCCallable("RxODE","RxODE_assign_fn_pointers");
-  fun(x);
+  _RxODE_assign_ptr(x);
 }
 
 typedef void (*_rxRmModelLibType)(const char *inp);
+_rxRmModelLibType _rxRmModelLibType_ = NULL;
 void _rxRmModelLib(const char *inp){
-  static _rxRmModelLibType fun = NULL;
-  if (fun == NULL) fun = (_rxRmModelLibType) R_GetCCallable("RxODE","rxRmModelLib");
-  fun(inp);
+  _rxRmModelLibType_(inp);
 }
 
 typedef SEXP (*_rxGetModelLibType)(const char *s);
+_rxGetModelLibType _rxGetModelLibType_ = NULL;
 SEXP _rxGetModelLib(const char *inp){
-  static _rxGetModelLibType fun = NULL;
-  if (fun == NULL) fun = (_rxGetModelLibType) R_GetCCallable("RxODE","rxGetModelLib");
-  return fun(inp);
+  return _rxGetModelLibType_(inp);
 }
 
+RxODE_ode_solver_old_c _RxODE_ode_solver_old_c = NULL;
 void _old_c(int *neq,double *theta,double *time,int *evid,int *ntime,double *inits,double *dose,double *ret,double *atol,double *rtol,int *stiff,int *transit_abs,int *nlhs,double *lhs,int *rc){
-  static RxODE_ode_solver_old_c fun = NULL;
-  if (fun == NULL) fun = (RxODE_ode_solver_old_c) R_GetCCallable("RxODE","rxSolveOldC");
-  return fun(neq, theta, time, evid, ntime, inits, dose, ret, atol, rtol, stiff, 
+  return _RxODE_ode_solver_old_c(neq, theta, time, evid, ntime, inits, dose, ret, atol, rtol, stiff, 
 	     transit_abs, nlhs, lhs, rc);
 }
 
+RxODE_fn2i _Rx_pow_di = NULL;
 double Rx_pow_di(double x, double y){
-  static RxODE_fn2i fun = NULL;
-  if (fun == NULL) fun = (RxODE_fn2i) R_GetCCallable("RxODE","RxODE_pow_di");
-  return fun(x, y);
+  return _Rx_pow_di(x, y);
 }
 
+RxODE_fn2 _Rx_pow = NULL;
 double Rx_pow(double x, double y){
-  static RxODE_fn2 fun = NULL;
-  if (fun == NULL) fun = (RxODE_fn2) R_GetCCallable("RxODE","RxODE_pow");
-  return fun(x, y);
+  return _Rx_pow(x, y);
 }
 
+RxODE_fn2 _sign_exp = NULL;
 double sign_exp(double x, double y){
-  static RxODE_fn2 fun = NULL;
-  if (fun == NULL) fun = (RxODE_fn2) R_GetCCallable("RxODE","RxODE_sign_exp");
-  return fun(x, y);
+  return _sign_exp(x, y);
 }
 
+RxODE_fn _as_zero_ = NULL;
 double _as_zero(double x){
-  static RxODE_fn fun = NULL;
-  if (fun == NULL) fun = (RxODE_fn) R_GetCCallable("RxODE","RxODE_as_zero");
-  return fun(x);
+  return _as_zero_(x);
 }
 
+RxODE_fn _safe_log_ = NULL;
 double _safe_log(double x){
-  static RxODE_fn fun = NULL;
-  if (fun == NULL) fun = (RxODE_fn) R_GetCCallable("RxODE","RxODE_safe_log");
-  return fun(x);
+  return _safe_log_(x);
 }
 
+RxODE_fn _safe_zero_=NULL;
 double safe_zero(double x){
-  static RxODE_fn fun = NULL;
-  if (fun == NULL) fun = (RxODE_fn) R_GetCCallable("RxODE","RxODE_safe_zero");
-  return fun(x);
+  return _safe_zero_(x);
 }
 
+RxODE_fn _abs_log_=NULL;
 double abs_log(double x){
-  static RxODE_fn fun = NULL;
-  if (fun == NULL) fun = (RxODE_fn) R_GetCCallable("RxODE","RxODE_abs_log");
-  return fun(x);
+  return _abs_log_(x);
 }
 
+RxODE_fn _abs_log1p_=NULL;
 double abs_log1p(double x){
-  static RxODE_fn fun = NULL;
-  if (fun == NULL) fun = (RxODE_fn) R_GetCCallable("RxODE","RxODE_abs_log1p");
-  return fun(x);
+  return _abs_log1p_(x);
 }
 
+RxODE_fn _factorial_=NULL;
 double factorial(double x){
-  static RxODE_fn fun = NULL;
-  if (fun == NULL) fun = (RxODE_fn) R_GetCCallable("RxODE","RxODE_factorial");
-  return fun(x);
+  return _factorial_(x);
 }
 
+RxODE_transit4P _transit4P_=NULL;
 double _transit4P(double t, rx_solve *rx, unsigned int id, double n, double mtt, double bio){
-  static RxODE_transit4P fun = NULL;
-  if (fun == NULL) fun = (RxODE_transit4P) R_GetCCallable("RxODE","RxODE_transit4P");
-  return fun(t, rx, id, n, mtt, bio);
+  return _transit4P_(t, rx, id, n, mtt, bio);
 }
 
+RxODE_transit3P _transit3P_=NULL;
 double _transit3P(double t, rx_solve *rx, unsigned int id, double n, double mtt){
-  static RxODE_transit3P fun = NULL;
-  if (fun == NULL) fun = (RxODE_transit3P) R_GetCCallable("RxODE","RxODE_transit3P");
-  return fun(t, rx, id, n, mtt);
+  return _transit3P_(t, rx, id, n, mtt);
 }
 
+RxODE_val _podo_=NULL;
 double podo(rx_solve *rx, unsigned int id){
-  static RxODE_val fun = NULL;
-  if (fun == NULL) fun = (RxODE_val) R_GetCCallable("RxODE","RxODE_podoP");
-  return fun(rx, id);
+  return _podo_(rx, id);
 }
 
+RxODE_val _tlast_=NULL;
 double tlast(rx_solve *rx, unsigned int id){
-  static RxODE_val fun = NULL;
-  if (fun == NULL) fun = (RxODE_val) R_GetCCallable("RxODE","RxODE_tlastP");
-  return fun(rx, id);
+  return _tlast_(rx, id);
 }
 
+RxODE_inc _dadt_counter_inc_=NULL;
 void _dadt_counter_inc(rx_solve *rx, unsigned int id){
-  static RxODE_inc fun = NULL;
-  if (fun == NULL) fun = (RxODE_inc) R_GetCCallable("RxODE","RxODE_dadt_counter_incP");
-  fun(rx, id);
+  _dadt_counter_inc_(rx, id);
 }
 
+RxODE_inc _jac_counter_inc_ = NULL;
 void _jac_counter_inc(rx_solve *rx, unsigned int id){
-  static RxODE_inc fun = NULL;
-  if (fun == NULL) fun = (RxODE_inc) R_GetCCallable("RxODE","RxODE_jac_counter_incP");
-  fun(rx, id);
+  _jac_counter_inc_(rx, id);
 }
 
+RxODE_cnt _dadt_counter_val_=NULL;
 long _dadt_counter_val(rx_solve *rx, unsigned int id){
-  static RxODE_cnt fun = NULL;
-  if (fun == NULL) fun = (RxODE_cnt) R_GetCCallable("RxODE","RxODE_dadt_counter_valP");
-  return fun(rx, id);
+  return _dadt_counter_val_(rx, id);
 }
 
+RxODE_cnt _jac_counter_val_=NULL;
 long _jac_counter_val(rx_solve *rx, unsigned int id){
-  static RxODE_cnt fun = NULL;
-  if (fun == NULL) fun = (RxODE_cnt) R_GetCCallable("RxODE","RxODE_jac_counter_valP");
-  return fun(rx, id);
+  return _jac_counter_val_(rx, id);
 }
 
+RxODE_update_par_ptr _update_par_ptr_=NULL;
 void _update_par_ptr(double t, rx_solve *rx, unsigned int id){
-  static RxODE_update_par_ptr fun = NULL;
-  if (fun == NULL) fun = (RxODE_update_par_ptr) R_GetCCallable("RxODE","RxODE_update_par_ptrP");
-  return fun(t, rx, id);
+  return _update_par_ptr_(t, rx, id);
 }
 
+RxODE_vec _par_ptr_=NULL;
 double _par_ptr(int val, rx_solve *rx, unsigned int id){
-  static RxODE_vec fun = NULL ;
-  if (fun == NULL) fun = (RxODE_vec) R_GetCCallable("RxODE","RxODE_par_ptrP");
-  return fun(val, rx, id);
+  return _par_ptr_(val, rx, id);
 }
 
+RxODE_vec _InfusionRate_=NULL;
 double _InfusionRate(int val, rx_solve *rx, unsigned int id){
-  static RxODE_vec fun = NULL ;
-  if (fun == NULL) fun = (RxODE_vec) R_GetCCallable("RxODE","RxODE_InfusionRateP");
-  return fun(val, rx, id);
+  _InfusionRate_(val, rx, id);
 }
 
 typedef  SEXP (*_rx_asgn) (SEXP objectSEXP);
+_rx_asgn _rx_asgn_ = NULL;
 SEXP _RxODE_rxAssignPtr(SEXP objectSEXP){
-  static _rx_asgn fun = NULL;
-  if (fun==NULL) fun = (_rx_asgn)R_GetCCallable("RxODE","_RxODE_rxAssignPtr");
-  return fun(objectSEXP);
+  return _rx_asgn_(objectSEXP);
 }
 
+int(*_rxIsCurrentC_)(SEXP)= NULL;
 int _rxIsCurrentC(SEXP obj){
-  static int(*fun)(SEXP)= NULL;
-  if (fun==NULL) fun = (int(*)(SEXP))R_GetCCallable("RxODE","rxIsCurrentC");
-  return fun(obj);
+  return _rxIsCurrentC_(obj);
 }
+
+double (*_sum_)(double *, int, long double *, int, int)=NULL;
 
 double _sum(double *p, long double *pld, int m, int type, int n, ...){
   va_list valist;
@@ -200,12 +176,10 @@ double _sum(double *p, long double *pld, int m, int type, int n, ...){
     p[i] = va_arg(valist, double);
   }
   va_end(valist);
-  static double (*fun)(double *, int, long double *, int, int)=NULL;
-  if (fun == NULL) fun = (double(*)(double *, int, long double *, int, int)) R_GetCCallable("PreciseSums","PreciseSums_sum_r");
-  return fun(p, n, pld, m, type);
+  return _sum_(p, n, pld, m, type);
 }
 
-
+static double (*_prod_)(double*, double*, int, int)=NULL;
 extern double _prod(double *input, double *p, int type, int n, ...){
   va_list valist;
   va_start(valist, n);
@@ -213,9 +187,7 @@ extern double _prod(double *input, double *p, int type, int n, ...){
     input[i] = va_arg(valist, double);
   }
   va_end(valist);
-  static double (*fun)(double*, double*, int, int)=NULL;
-  if (fun == NULL) fun = (double(*)(double*, double*, int, int)) R_GetCCallable("PreciseSums","PreciseSums_prod_r");
-  return fun(input, p, n, type);
+  return _prod_(input, p, n, type);
 }
 
 extern double _sign(unsigned int n, ...){
@@ -354,6 +326,36 @@ void __R_INIT__ (DllInfo *info){
   };
   R_registerRoutines(info, cMethods, callMethods, NULL, NULL);
   R_useDynamicSymbols(info,FALSE);
+  // Get calllables on load (So it isn't called in threads).
+  _RxODE_solveLinB = (RxODE_solveLinB) R_GetCCallable("RxODE","RxODE_solveLinB");
+  _RxODE_assign_ptr= (RxODE_assign_ptr) R_GetCCallable("RxODE","RxODE_assign_fn_pointers");
+  _rxRmModelLibType_=(_rxRmModelLibType) R_GetCCallable("RxODE","rxRmModelLib");
+  _rxGetModelLibType_=(_rxGetModelLibType) R_GetCCallable("RxODE","rxGetModelLib");
+  _RxODE_ode_solver_old_c=(RxODE_ode_solver_old_c) R_GetCCallable("RxODE","rxSolveOldC");
+  _Rx_pow_di=(RxODE_fn2i) R_GetCCallable("RxODE","RxODE_pow_di");
+  _Rx_pow=(RxODE_fn2) R_GetCCallable("RxODE","RxODE_pow");
+  _sign_exp=(RxODE_fn2) R_GetCCallable("RxODE","RxODE_sign_exp");
+  _as_zero_=(RxODE_fn) R_GetCCallable("RxODE","RxODE_as_zero");
+  _safe_log_=(RxODE_fn) R_GetCCallable("RxODE","RxODE_safe_log");
+  _safe_zero_ = (RxODE_fn) R_GetCCallable("RxODE","RxODE_safe_zero");
+  _abs_log_=(RxODE_fn) R_GetCCallable("RxODE","RxODE_abs_log");
+  _abs_log1p_=(RxODE_fn) R_GetCCallable("RxODE","RxODE_abs_log1p");
+  _factorial_=(RxODE_fn) R_GetCCallable("RxODE","RxODE_factorial");
+  _transit4P_=(RxODE_transit4P) R_GetCCallable("RxODE","RxODE_transit4P");
+  _transit3P_= (RxODE_transit3P) R_GetCCallable("RxODE","RxODE_transit3P");
+  _podo_=(RxODE_val) R_GetCCallable("RxODE","RxODE_podoP");
+  _tlast_=(RxODE_val) R_GetCCallable("RxODE","RxODE_tlastP");
+  _dadt_counter_inc_=(RxODE_inc) R_GetCCallable("RxODE","RxODE_dadt_counter_incP");
+  _jac_counter_inc_=(RxODE_inc) R_GetCCallable("RxODE","RxODE_jac_counter_incP");
+  _dadt_counter_val_= (RxODE_cnt) R_GetCCallable("RxODE","RxODE_dadt_counter_valP");
+  _jac_counter_val_=(RxODE_cnt) R_GetCCallable("RxODE","RxODE_jac_counter_valP");
+  _update_par_ptr_=(RxODE_update_par_ptr) R_GetCCallable("RxODE","RxODE_update_par_ptrP");
+  _par_ptr_=(RxODE_vec) R_GetCCallable("RxODE","RxODE_par_ptrP");
+  _InfusionRate_=(RxODE_vec) R_GetCCallable("RxODE","RxODE_InfusionRateP");
+  _rx_asgn_=(_rx_asgn)R_GetCCallable("RxODE","_RxODE_rxAssignPtr");
+  _rxIsCurrentC_=(int(*)(SEXP))R_GetCCallable("RxODE","rxIsCurrentC");
+  _sum_= (double(*)(double *, int, long double *, int, int)) R_GetCCallable("PreciseSums","PreciseSums_sum_r");
+  _prod_=(double(*)(double*, double*, int, int)) R_GetCCallable("PreciseSums","PreciseSums_prod_r");
 }
 
 void __R_UNLOAD__ (DllInfo *info){
