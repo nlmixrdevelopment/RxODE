@@ -318,8 +318,6 @@ void R_init_RxODE(DllInfo *info){
 }
 
 void rxOptionsFree();
-void gsolveFree();
 void R_unload_RxODE(DllInfo *info){
   rxOptionsFree();
-  gsolveFree();
 }

@@ -258,6 +258,9 @@ void getSolvingOptionsPtr(double ATOL,          //absolute error
 			  double *atol2,
 			  double *rtol2,
                           int nDisplayProgress,
+                          double *sigma,
+                          int sigmaSize,
+                          double df,
                           int ncoresRV,
                           int isChol,
 			  int *svar){
@@ -291,6 +294,9 @@ void getSolvingOptionsPtr(double ATOL,          //absolute error
   o->atol2 = atol2;
   o->cores = cores;
   o->nDisplayProgress = nDisplayProgress;
+  o->sigma = sigma;
+  o->sigmaSize = sigmaSize;
+  o->df = df;
   o->ncoresRV = ncoresRV;
   o->isChol = isChol;
   o->svar = svar;
@@ -491,28 +497,24 @@ extern void par_liblsoda(rx_solve *rx){
       }
       lsoda_free(&ctx);
       if (displayProgress){
-#ifdef _OPENMP
 #pragma omp critical
-#endif
 	cur++;
-#ifdef _OPENMP
 #pragma omp critical
-#endif
-	curTick = par_progress(cur, nsim*nsub, curTick, cores, t0, 0);
-      }
 #ifdef _OPENMP
-#pragma omp flush (abort)
+        if (omp_get_thread_num() == 0) // only in master thread!
 #endif
+	  curTick = par_progress(cur, nsim*nsub, curTick, cores, t0, 0);
+      }
+#pragma omp flush (abort)
       if (abort == 0){
 #ifdef _OPENMP
-#pragma omp critical
+        if (omp_get_thread_num() == 0) // only in master thread!
 #endif
-	if (checkInterrupt()) abort =1;
+	  if (checkInterrupt()) abort =1;
       }
     }
   }
-#pragma omp barrier
-      if (abort == 1){
+  if (abort == 1){
     op->abort = 1;
     yp0 = NULL;
     par_progress(cur, nsim*nsub, curTick, cores, t0, 1);
@@ -1166,7 +1168,6 @@ extern SEXP RxODE_par_df(SEXP sd){
   int pro=0, i;
   // paramNames
   SEXP paramNames = PROTECT(rxParamNames(op->modNamePtr)); pro++;
-  /* SEXP paramNames = rxParamNames(op->modNamePtr); */
   int *par_cov = op->par_cov;
   int ncov = op->ncov;
   int npar = length(paramNames);
@@ -1473,7 +1474,8 @@ extern SEXP RxODE_par_df(SEXP sd){
   SET_VECTOR_ELT(ret, 3, dfd);
   SET_VECTOR_ELT(ret, 4, isEt);
   if (ncov == 0){
-    SET_VECTOR_ELT(ret, 5, R_NilValue);
+    SEXP covsn2 = PROTECT(R_NilValue);pro++;
+    SET_VECTOR_ELT(ret, 5, covsn2);
   } else {
     SET_VECTOR_ELT(ret, 5, covs);
   }
@@ -1684,7 +1686,6 @@ extern SEXP RxODE_df(SEXP sd, int doDose){
 
   // Put in state names
   SEXP stateNames = PROTECT(rxStateNames(op->modNamePtr)); pro++;
-  /* SEXP stateNames = rxStateNames(op->modNamePtr); */
   if (nPrnState){
     for (j = 0; j < neq[0]; j++){
       if (!rmState[j]){
@@ -1695,14 +1696,12 @@ extern SEXP RxODE_df(SEXP sd, int doDose){
   }
   // Put in LHS names
   SEXP lhsNames = PROTECT(rxLhsNames(op->modNamePtr)); pro++;
-  /* SEXP lhsNames = rxLhsNames(op->modNamePtr); */
   for (i = 0; i < nlhs; i++){
     SET_STRING_ELT(sexp_colnames, jj, STRING_ELT(lhsNames,i));
     jj++;
   }
   // Put in Cov names
   SEXP paramNames = PROTECT(rxParamNames(op->modNamePtr)); pro++;
-  /* SEXP paramNames = rxParamNames(op->modNamePtr); */
   int *par_cov = op->par_cov;
   for (i = 0; i < ncov*add_cov; i++){
     SET_STRING_ELT(sexp_colnames,jj, STRING_ELT(paramNames, par_cov[i]-1));

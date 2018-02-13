@@ -289,319 +289,6 @@ void getRxModels(){
   }
 }
 
-double *gsolve;
-int gsolven = 0;
-
-void gsolveSetup(int n){
-  if (n > gsolven){
-    if (gsolven == 0){
-      gsolve = Calloc(n, double);
-    } else {
-      gsolve = Realloc(gsolve, n, double);
-    }
-    gsolven = n;
-  }
-  for (int i = 0; i < n; i++){
-    gsolve[i] = 0;
-  }
-}
-
-int *gidose;
-int gidosen;
-
-void gidoseSetup(int n){
-  if (n > gidosen){
-    if (gidosen == 0){
-      gidose = Calloc(n, int);
-    } else {
-      gidose = Realloc(gidose, n, int);
-    }
-    gidosen = n;
-  }
-  for (int i = 0; i < n; i++){
-    gidose[i] = 0;
-  }
-}
-
-double *glhs;
-int glhsn = 0;
-
-void glhsSetup(int n){
-  if (n > glhsn){
-    if (glhsn == 0){
-      glhs = Calloc(n, double);
-    } else {
-      glhs = Realloc(glhs, n, double);
-    }
-    glhsn = n;
-  }
-  for (int i = 0; i < n; i++){
-    glhs[i] = 0;
-  }
-}
-
-double *gInfusionRate;
-int gInfusionRaten = 0;
-
-void gInfusionRateSetup(int n){
-  if (n > gInfusionRaten){
-    if (gInfusionRaten == 0){
-      gInfusionRate = Calloc(n, double);
-    } else {
-      gInfusionRate = Realloc(gInfusionRate, n, double);
-    }
-    gInfusionRaten = n;
-  }
-  for (int i = 0; i < n; i++){
-    gInfusionRate[i] = 0;
-  }
-}
-
-int *gBadDose;
-int gBadDosen = 0;
-
-void gBadDoseSetup(int n){
-  if (n > gBadDosen){
-    if (gBadDosen == 0){
-      gBadDose = Calloc(n, int);
-    } else {
-      gBadDose = Realloc(gBadDose, n, int);
-    }
-    gBadDosen = n;
-  }
-  for (int i = 0; i < n; i++){
-    gBadDose[i] = 0;
-  }
-}
-
-double *gparsVec;
-int gparsVecn = 0;
-
-void gparsVecSetup(int n){
-  if (n > gparsVecn){
-    if (gparsVecn == 0){
-      gparsVec = Calloc(n, double);
-    } else {
-      gparsVec = Realloc(gparsVec, n, double);
-    }
-    gparsVecn = n;
-  }
-}
-
-double *gamt;
-int gamtn = 0;
-
-void gamtSetup(int n){
-  if (n > gamtn){
-    if (gamtn == 0){
-      gamt = Calloc(n, double);
-    } else {
-      gamt = Realloc(gamt, n, double);
-    }
-    gamtn = n;
-  }
-}
-
-
-int *gevid;
-int gevidn = 0;
-
-void gevidSetup(int n){
-  if (n > gevidn){
-    if (gevidn == 0){
-      gevid = Calloc(n, int);
-    } else {
-      gevid = Realloc(gevid, n, int);
-    }
-    gevidn = n;
-  }
-}
-
-
-double *gall_times;
-int gall_timesn = 0;
-
-void gall_timesSetup(int n){
-  if (n > gall_timesn){
-    if (gall_timesn == 0){
-      gall_times = Calloc(n, double);
-    } else {
-      gall_times = Realloc(gall_times, n, double);
-    }
-    gall_timesn = n;
-  }
-}
-
-double *gcov;
-int gcovn = 0;
-
-void gcovSetup(int n){
-  if (n > gcovn){
-    if (gcovn == 0){
-      gcov = Calloc(n, double);
-    } else {
-      gcov = Realloc(gcov, n, double);
-    }
-    gcovn = n;
-  }
-}
-
-
-int *grc;
-int grcn = 0;
-
-void grcSetup(int n){
-  if (n > grcn){
-    if (grcn == 0){
-      grc = Calloc(n, int);
-    } else {
-      grc = Realloc(grc, n, int);
-    }
-    grcn = n;
-  }
-}
-
-
-double *gatol2;
-int gatol2n = 0;
-
-void gatol2Setup(int n){
-  if (n > gatol2n){
-    if (gatol2n == 0){
-      gatol2 = Calloc(n, double);
-    } else {
-      gatol2 = Realloc(gatol2, n, double);
-    }
-    gatol2n = n;
-  }
-}
-
-double *grtol2;
-int grtol2n = 0;
-
-void grtol2Setup(int n){
-  if (n > grtol2n){
-    if (grtol2n == 0){
-      grtol2 = Calloc(n, double);
-    } else {
-      grtol2 = Realloc(grtol2, n, double);
-    }
-    grtol2n = n;
-  }
-}
-
-int *gpar_cov;
-int gpar_covn = 0;
-
-void gpar_covSetup(int n){
-  if (n > gpar_covn){
-    if (gpar_covn == 0){
-      gpar_cov = Calloc(n, int);
-    } else {
-      gpar_cov = Realloc(gpar_cov, n, int);
-    }
-    gpar_covn = n;
-  }
-}
-
-double *ginits;
-int ginitsn = 0;
-
-void ginitsSetup(int n){
-  if (n > ginitsn){
-    if (ginitsn == 0){
-      ginits = Calloc(n, double);
-    } else {
-      ginits = Realloc(ginits, n, double);
-    }
-    ginitsn = n;
-  }
-}
-
-
-double *gscale;
-int gscalen = 0;
-
-void gscaleSetup(int n){
-  if (n > gscalen){
-    if (gscalen == 0){
-      gscale = Calloc(n, double);
-    } else {
-      gscale = Realloc(gscale, n, double);
-    }
-    gscalen = n;
-  }
-}
-
-
-int *gsvar;
-int gsvarn = 0;
-
-void gsvarSetup(int n){
-  if (n > gsvarn){
-    if (gsvarn == 0){
-      gsvar = Calloc(n, int);
-    } else {
-      gsvar = Realloc(gsvar, n, int);
-    }
-    gsvarn = n;
-  }
-}
-
-int *gsiV;
-int gsiVn = 0;
-
-void gsiVSetup(int n){
-  if (n > gsiVn){
-    if (gsiVn == 0){
-      gsiV = Calloc(n, int);
-    } else {
-      gsiV = Realloc(gsiV, n, int);
-    }
-    gsiVn = n;
-  }
-}
-
-
-extern "C" void gsolveFree(){
-  gsiVn=0;
-  Free(gsiV);
-  gsvarn=0;
-  Free(gsvar);
-  gscalen=0;
-  Free(gscale);
-  ginitsn=0;
-  Free(ginits);
-  gpar_covn=0;
-  Free(gpar_cov);
-  gatol2n=0;
-  Free(gatol2);
-  grtol2n=0;
-  Free(grtol2);
-  grcn=0;
-  Free(grc);
-  gcovn=0;
-  Free(gcov);
-  gall_timesn=0;
-  Free(gall_times);
-  gevidn=0;
-  Free(gevid);
-  gamtn=0;
-  Free(gamt);
-  gparsVecn=0;
-  Free(gparsVec);
-  gBadDosen=0;
-  Free(gBadDose);
-  glhsn=0;
-  Free(glhs);
-  gInfusionRaten=0;
-  Free(gInfusionRate);
-  gsolven=0;
-  Free(gsolve);
-  gidosen=0;
-  Free(gidose);
-}
-
 // [[Rcpp::export]]
 List rxDataSetup(const RObject &ro,
 		 const RObject &covNames = R_NilValue,
@@ -741,7 +428,7 @@ List rxDataSetup(const RObject &ro,
     NumericVector newCov(nObs*nCovs);
     
     IntegerVector newEvid(nDoses);
-    gidoseSetup(nDoses);
+    IntegerVector idose(nDoses);
     NumericVector newAmt(nDoses);
     NumericVector newTimeA(nDoses);
     lastId = id[0]-1;
@@ -924,6 +611,7 @@ List rxDataSetup(const RObject &ro,
                             );
     // Not sure why, but putting this in above gives errors...
     ret["df"]= df;
+    ret["idose"] = idose;
     ret["Hmax"] = HmaxA;
     ret["nDisplayProgress"] = nDisplayProgress;
     ret.attr("class") = "RxODE.multi.data";
@@ -1581,7 +1269,6 @@ NumericMatrix rxSetupParamsThetaEta(const RObject &params = R_NilValue,
   return parMat;
 }
 
-
 //' Setup Data and Parameters
 //'
 //' @inheritParams rxSolve
@@ -1772,21 +1459,22 @@ List rxDataParSetup(const RObject &object,
   // The parameters are setup in a numeric vector in order of pars
   int nr = parMat.nrow();
   if (nr == 0) nr = 1;
-  gparsVecSetup(pars.size()*nr);
+  NumericVector parsVec(pars.size()*nr);
   j = 0;
-  for (i = 0; i < pars.size()*nr; i++){
+  for (i = 0; i < parsVec.size(); i++){
     j = floor(i / pars.size());
     k = i % pars.size();
     if (posPar[k] == 0){
-      gparsVec[i] = 0;
+      parsVec[i] = 0;
     } else if (posPar[k] > 0){
       // posPar[i] = j + 1;
-      gparsVec[i] = parMat(j, posPar[k]-1);
+      parsVec[i] = parMat(j, posPar[k]-1);
     } else {
       // posPar[i] = -j - 1;
-      gparsVec[i] = modVarsIni[-(posPar[k]+1)];
+      parsVec[i] = modVarsIni[-(posPar[k]+1)];
     }
   }
+  ret["pars"] = parsVec;
   nr = parMat.nrow() / nSub;
   if (nr == 0) nr = 1;
   ret["nsim"] = nr;
@@ -1803,15 +1491,13 @@ List rxDataParSetup(const RObject &object,
   ret["svar"] = svar;
   ret["neq"] = state.size();
   DataFrame et      = as<DataFrame>(ret["et"]);
-  // NumericVector solve(state.size()*et.nrow()*nr);
-  // ret["solve"] = solve;
-  gsolveSetup(state.size()*et.nrow()*nr);
+  NumericVector solve(state.size()*et.nrow()*nr);
+  ret["solve"] = solve;
   CharacterVector lhs = as<CharacterVector>(modVars["lhs"]);
-  glhsSetup(lhs.size()*nSub*nr);
-  // ret["lhs"] = NumericVector();
+  ret["lhs"] = NumericVector(lhs.size()*nSub*nr);
   ret["lhsSize"] = lhs.size();
-  gInfusionRateSetup(state.size()*nSub*nr);
-  gBadDoseSetup(state.size()*nSub*nr);
+  ret["InfusionRate"] =NumericVector(state.size()*nSub*nr);
+  ret["BadDose"] =IntegerVector(state.size()*nSub*nr);
   ret["state.ignore"] = modVars["state.ignore"];
   ret["trans"] = modVars["trans"];
   NumericVector atol(state.size(), 1e-08);
@@ -1846,6 +1532,8 @@ void rxSolvingOptions(const RObject &object,
                       double *atol2 = NULL,
                       double *rtol2 = NULL,
                       int nDisplayProgress = 10000,
+		      RObject sigma = R_NilValue,
+                      RObject df = R_NilValue,
                       int ncoresRV = 1,
                       int isChol = 1,
                       int *svar =NULL){
@@ -1910,6 +1598,28 @@ void rxSolvingOptions(const RObject &object,
   CharacterVector state = as<CharacterVector>(modVars["state"]);
   CharacterVector params = as<CharacterVector>(modVars["params"]);
   CharacterVector trans = modVars["trans"];
+  double dfN = -1;
+  if (df.isNULL()){
+    dfN = -1;
+  } else if (rxIs(df,"integer") || rxIs(df,"numeric")){
+    NumericVector df0 = as<NumericVector>(df);
+    dfN = df0[0];
+  }
+  double *sigmaD = NULL;
+  int sigmaSize = -1;
+  Nullable<NumericMatrix> sigma1 = as<Nullable<NumericMatrix>>(sigma);
+  getRxModels();
+  if (!sigma1.isNull()){
+    NumericMatrix sigma2 = NumericMatrix(sigma1);
+    sigmaD = &sigma2[0];
+    sigmaSize = sigma2.nrow();
+    if (!sigma2.hasAttribute("dimnames")){
+      stop("The sigma matrix must have named dimensions.");
+    }
+    List dimnames = sigma2.attr("dimnames");
+    StringVector simNames = as<StringVector>(dimnames[1]);
+    _rxModels[".simNames"] = simNames;
+  }
   // Make sure the model variables are assigned...
   // This fixes random issues on windows where the solves are done and the data set cannot be solved.
   std::string ptrS = (as<std::string>(trans["model_vars"]));
@@ -1920,7 +1630,8 @@ void rxSolvingOptions(const RObject &object,
 		       st, f1, f2, kind, is_locf, cores,
 		       ncov,par_cov, do_par_cov, &inits[0], &scale[0],
 		       ptrS.c_str(), hmax2, atol2, rtol2, 
-		       nDisplayProgress, ncoresRV, isChol,svar);
+		       nDisplayProgress, sigmaD, sigmaSize,
+		       dfN, ncoresRV, isChol,svar);
 }
 
 void rxSolvingData(const RObject &model,
@@ -1942,50 +1653,32 @@ void rxSolvingData(const RObject &model,
   if (rxIs(parData, "RxODE.par.data")){
     List opt = List(parData);
     DataFrame ids = as<DataFrame>(opt["ids"]);
-    // NumericVector par = as<NumericVector>(opt["pars"]);
+    IntegerVector BadDose = as<IntegerVector>(opt["BadDose"]);
+    NumericVector InfusionRate = as<NumericVector>(opt["InfusionRate"]);
+    NumericVector par = as<NumericVector>(opt["pars"]);
     double hm;
     int nPar = as<int>(opt["n.pars"]);
     int nSub = as<int>(opt["nSub"]);
-    NumericVector inits     = as<NumericVector>(opt["inits"]);
-    NumericVector scale     = as<NumericVector>(opt["scale"]);
-    DataFrame doseDf        = as<DataFrame>(opt["dose"]);
-    NumericVector amt       = as<NumericVector>(doseDf["amt"]);
-    int i;
-    gamtSetup(amt.size());
-    for (i = 0; i < amt.size();i++){
-      gamt[i] = amt[i];
-    }
-    IntegerVector posDose   = as<IntegerVector>(ids["posDose"]);
-    IntegerVector posEvent  = as<IntegerVector>(ids["posEvent"]);
-    IntegerVector posCov    = as<IntegerVector>(ids["posCov"]);
-    IntegerVector nEvent    = as<IntegerVector>(ids["nEvent"]);
-    // NumericVector solve     = as<NumericVector>(opt["solve"]);
-    DataFrame et            = as<DataFrame>(opt["et"]);
-    IntegerVector evid      = as<IntegerVector>(et["evid"]);
-    gevidSetup(evid.size());
-    for (i = 0; i < evid.size(); i++){
-      gevid[i] = evid[i];
-    }
+    NumericVector inits = as<NumericVector>(opt["inits"]);
+    NumericVector scale = as<NumericVector>(opt["scale"]);
+    DataFrame doseDf = as<DataFrame>(opt["dose"]);
+    NumericVector amt = as<NumericVector>(doseDf["amt"]);
+    IntegerVector idose = as<IntegerVector>(opt["idose"]);
+    IntegerVector posDose = as<IntegerVector>(ids["posDose"]);
+    IntegerVector posEvent = as<IntegerVector>(ids["posEvent"]);
+    IntegerVector posCov = as<IntegerVector>(ids["posCov"]);
+    IntegerVector nEvent = as<IntegerVector>(ids["nEvent"]);
+    NumericVector solve  = as<NumericVector>(opt["solve"]);
+    DataFrame et         = as<DataFrame>(opt["et"]);
+    IntegerVector evid   = as<IntegerVector>(et["evid"]);
     NumericVector all_times = as<NumericVector>(et["time"]);
-    gall_timesSetup(all_times.size());
-    for (i = 0; i < all_times.size(); i++){
-      gall_times[i] = all_times[i];
-    }
     int totSize = et.nrow();
-    // NumericVector lhs       = as<NumericVector>(opt["lhs"]);
+    NumericVector lhs = as<NumericVector>(opt["lhs"]);
     int lhsSize = as<int>(opt["lhsSize"]);
-    IntegerVector par_cov   = as<IntegerVector>(opt["pcov"]);
-    NumericVector cov       = as<NumericVector>(opt["cov"]);
-    gcovSetup(cov.size());
-    for (i = 0; i < cov.size();i++){
-      gcov[i]=  cov[i];
-    }
-    IntegerVector rc        = as<IntegerVector>(ids["rc"]);
-    grcSetup(rc.size());
-    for (i = 0; i < rc.size(); i++){
-      grc[i] = rc[i];
-    }
-    IntegerVector siV       = as<IntegerVector>(opt["state.ignore"]);
+    IntegerVector par_cov = as<IntegerVector>(opt["pcov"]);
+    NumericVector cov = as<NumericVector>(opt["cov"]);
+    IntegerVector rc=as<IntegerVector>(ids["rc"]);
+    IntegerVector siV = as<IntegerVector>(opt["state.ignore"]);
     int do_par_cov = 0;
     if (par_cov.size() > 0){
       do_par_cov = 1;
@@ -2013,62 +1706,41 @@ void rxSolvingData(const RObject &model,
           }
         }
 	ncov = par_cov.size();
-        getSolvingOptionsIndPtr(&gInfusionRate[cid*neq],&gBadDose[cid*neq], hm,
-				&gparsVec[cid*nPar], &gamt[posDose[id]],
-				&gidose[posDose[id]],
+        getSolvingOptionsIndPtr(&InfusionRate[cid*neq],&BadDose[cid*neq], hm,
+				&par[cid*nPar], &amt[posDose[id]],
+				&idose[posDose[id]],
                                 // Solve and lhs are written to in the solve...
-                                &gsolve[cid*totSize*neq],
-                                &glhs[cid*lhsSize],
+                                &solve[cid*totSize*neq],
+                                &lhs[cid*lhsSize],
                                 // Doesn't change with the solve.
-				&gevid[posEvent[id]], &grc[id], &gcov[posCov[id]],
-                                nEvent[id], &gall_times[posEvent[id]], id, simNum,
+				&evid[posEvent[id]], &rc[id], &cov[posCov[id]],
+                                nEvent[id], &all_times[posEvent[id]], id, simNum,
                                 &inds[cid]);
       }
     }
     NumericVector atol2 = as<NumericVector>(opt["atol"]);
     NumericVector rtol2 = as<NumericVector>(opt["rtol"]);
-    gatol2Setup(atol2.size());
-    grtol2Setup(atol2.size());
-    for (i = 0; i < atol2.size(); i++){
-      gatol2[i]=atol;
-      grtol2[i]=rtol;
-    }
-    gpar_covSetup(par_cov.size());
-    for (i = 0; i < par_cov.size(); i++){
-      gpar_cov[i] = par_cov[i];
-    }
-    ginitsSetup(inits.size());
-    for (i = 0; i < inits.size(); i++){
-      ginits[i] = inits[i];
-    }
-    gscaleSetup(inits.size());
-    for (i = 0; i < inits.size(); i++){
-      gscale[i] = inits[i];
+    for (int i = 0; i < atol2.size(); i++){
+      atol2[i]=atol;
+      rtol2[i]=rtol;
     }
     double hmax2 = as<double>(opt["Hmax"]);
     IntegerVector svar = as<IntegerVector>(opt["svar"]);
-    gsvarSetup(svar.size());    
-    for (i = 0; i < svar.size(); i++){
-      gsvar[i] = svar[i];
-    }
     bool isCholB =  as<bool>(opt["isChol"]);
     int isChol = 0;
     if (isCholB) isChol = 1;
     rxSolvingOptions(model,method, transit_abs, atol, rtol, maxsteps, hmin, hini, maxordn,
-		     maxords, cores, ncov, &gpar_cov[0], do_par_cov, &ginits[0], &gscale[0], covs_interpolation,
-		     hmax2,&gatol2[0],&grtol2[0], as<int>(opt["nDisplayProgress"]),
-		     as<int>(opt["ncoresRV"]),isChol, &gsvar[0]);
+		     maxords, cores, ncov, &par_cov[0], do_par_cov, &inits[0], &scale[0], covs_interpolation,
+		     hmax2,&atol2[0],&rtol2[0], as<int>(opt["nDisplayProgress"]),
+		     as<RObject>(opt["sigma"]), as<RObject>(opt["df"]),
+		     as<int>(opt["ncoresRV"]),isChol, &svar[0]);
 
     int add_cov = 0;
     if (addCov) add_cov = 1;
     int nobs = as<int>(opt["nObs"]);
     int mat = 0;
     if (matrix) mat = 1;
-    gsiVSetup(siV.size());
-    for (i = 0; i < siV.size();i++){
-      gsiV[i] = siV[i];
-    }
-    rxSolveData(inds, nSub, nsim, &gsiV[0], nobs, add_cov, mat);
+    rxSolveData(inds, nSub, nsim, &siV[0], nobs, add_cov, mat);
   } else {
     stop("This requires something setup by 'rxDataParSetup'.");
   }
@@ -2086,7 +1758,6 @@ extern "C" rx_solve *rxSingle(SEXP object, const int stiff,const int transit_abs
 			      int *evid, int *rc, double *cov,
 			      int nTimes, double *all_times){
   List mv = rxModelVars(object);
-  // FIXME
   // Use the number of each element to speed calculation.
   List solveL = mv["solve"];
   NumericVector inits           = solveL["inits"];
@@ -2096,11 +1767,10 @@ extern "C" rx_solve *rxSingle(SEXP object, const int stiff,const int transit_abs
   // Instead of having the correct length for idose, use idose length = length of ntime
   // Saves an additional for loop at the cost of a little memory.
   /* int *idose; */
-  // IntegerVector idose(nTimes);
-  gidoseSetup(nTimes);
+  IntegerVector idose(nTimes);
   rx_solving_options_ind *inds;
   inds = rxOptionsIniEnsure(1);//(rx_solving_options_ind *)Calloc(1, rx_solving_options_ind);
-  getSolvingOptionsIndPtr(&InfusionRate[0],&BadDose[0], hmax, par, amt, &gidose[0], solve, 
+  getSolvingOptionsIndPtr(&InfusionRate[0],&BadDose[0], hmax, par, amt, &idose[0], solve, 
 			  lhs, evid, rc, cov, nTimes, all_times, 1, 1, &inds[0]);
   std::string method = "lsoda";
   if (stiff == 0) {
@@ -2513,6 +2183,8 @@ SEXP rxSolveC(const RObject &object,
 	stop("do.solve = TRUE only works with single subject data (currently).");
       }
     }
+    DataFrame ret;
+    
     rx_solve *rx;
     rx = getRxSolve(parData);
     rxModelVars(object);
