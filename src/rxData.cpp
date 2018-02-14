@@ -1399,7 +1399,21 @@ void grtol2Setup(int n){
   }
 }
 
+double *gpars = NULL;
+int gparsn = 0;
+void gparsSetup(int n){
+  if (gparsn == 0){
+    gpars=Calloc(n, double);
+    gparsn=n;
+  } else if (n > gparsn){
+    gpars = Realloc(gpars, n, double);
+    gparsn=n;
+  }
+}
+
 void gFree(){
+  if (gpars != NULL) Free(gpars);
+  gparsn=0;
   if (grtol2 != NULL) Free(grtol2);
   grtol2n=0;
   if (gatol2 != NULL) Free(gatol2);
@@ -1810,6 +1824,10 @@ void rxSolvingData(const RObject &model,
     DataFrame ids = as<DataFrame>(opt["ids"]);
     IntegerVector BadDose = as<IntegerVector>(opt["BadDose"]);
     NumericVector par = as<NumericVector>(opt["pars"]);
+    gparsSetup(par.size());
+    for (i = 0; i < par.size();i++){
+      gpars[i] = par[i];
+    }
     double hm;
     int nPar = as<int>(opt["n.pars"]);
     int nSub = as<int>(opt["nSub"]);
@@ -1880,7 +1898,7 @@ void rxSolvingData(const RObject &model,
         }
 	ncov = par_cov.size();
         getSolvingOptionsIndPtr(&gInfusionRate[cid*neq],&BadDose[cid*neq], hm,
-				&par[cid*nPar], &gamt[posDose[id]],
+				&gpars[cid*nPar], &gamt[posDose[id]],
 				&idose[posDose[id]],
                                 // Solve and lhs are written to in the solve...
                                 &gsolve[cid*totSize*neq],
