@@ -1269,6 +1269,19 @@ NumericMatrix rxSetupParamsThetaEta(const RObject &params = R_NilValue,
   return parMat;
 }
 
+double *gsolve = NULL;
+int gsolven = 0;
+void gsolveSetup(int n){
+  if (gsolven == 0){
+    gsolve=Calloc(n, double);
+    gsolven=n;
+  } else if (n > gsolven){
+    gsolve = Realloc(gsolve, n, double);
+    gsolven=n;
+  }
+  for (int i =0;i<n; i++) gsolve[i]=0.0;
+}
+
 //' Setup Data and Parameters
 //'
 //' @inheritParams rxSolve
@@ -1491,8 +1504,7 @@ List rxDataParSetup(const RObject &object,
   ret["svar"] = svar;
   ret["neq"] = state.size();
   DataFrame et      = as<DataFrame>(ret["et"]);
-  NumericVector solve(state.size()*et.nrow()*nr);
-  ret["solve"] = solve;
+  gsolveSetup(state.size()*et.nrow()*nr);
   CharacterVector lhs = as<CharacterVector>(modVars["lhs"]);
   ret["lhs"] = NumericVector(lhs.size()*nSub*nr);
   ret["lhsSize"] = lhs.size();
@@ -1668,7 +1680,6 @@ void rxSolvingData(const RObject &model,
     IntegerVector posEvent = as<IntegerVector>(ids["posEvent"]);
     IntegerVector posCov = as<IntegerVector>(ids["posCov"]);
     IntegerVector nEvent = as<IntegerVector>(ids["nEvent"]);
-    NumericVector solve  = as<NumericVector>(opt["solve"]);
     DataFrame et         = as<DataFrame>(opt["et"]);
     IntegerVector evid   = as<IntegerVector>(et["evid"]);
     NumericVector all_times = as<NumericVector>(et["time"]);
@@ -1710,7 +1721,7 @@ void rxSolvingData(const RObject &model,
 				&par[cid*nPar], &amt[posDose[id]],
 				&idose[posDose[id]],
                                 // Solve and lhs are written to in the solve...
-                                &solve[cid*totSize*neq],
+                                &gsolve[cid*totSize*neq],
                                 &lhs[cid*lhsSize],
                                 // Doesn't change with the solve.
 				&evid[posEvent[id]], &rc[id], &cov[posCov[id]],
