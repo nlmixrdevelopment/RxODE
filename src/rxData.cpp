@@ -1375,7 +1375,35 @@ void gscaleSetup(int n){
   for (int i = 0; i < n; i++) gscale[i]=1.0;
 }
 
+double *gatol2 = NULL;
+int gatol2n = 0;
+void gatol2Setup(int n){
+  if (gatol2n == 0){
+    gatol2=Calloc(n, double);
+    gatol2n=n;
+  } else if (n > gatol2n){
+    gatol2 = Realloc(gatol2, n, double);
+    gatol2n=n;
+  }
+}
+
+double *grtol2 = NULL;
+int grtol2n = 0;
+void grtol2Setup(int n){
+  if (grtol2n == 0){
+    grtol2=Calloc(n, double);
+    grtol2n=n;
+  } else if (n > grtol2n){
+    grtol2 = Realloc(grtol2, n, double);
+    grtol2n=n;
+  }
+}
+
 void gFree(){
+  if (grtol2 != NULL) Free(grtol2);
+  grtol2n=0;
+  if (gatol2 != NULL) Free(gatol2);
+  gatol2n=0;
   if (gscale != NULL) Free(gscale);
   gscalen=0;
   if (ginits != NULL) Free(ginits);
@@ -1865,9 +1893,11 @@ void rxSolvingData(const RObject &model,
     }
     NumericVector atol2 = as<NumericVector>(opt["atol"]);
     NumericVector rtol2 = as<NumericVector>(opt["rtol"]);
+    gatol2Setup(atol2.size());
+    grtol2Setup(rtol2.size());
     for (int i = 0; i < atol2.size(); i++){
-      atol2[i]=atol;
-      rtol2[i]=rtol;
+      gatol2[i]=atol;
+      grtol2[i]=rtol;
     }
     double hmax2 = as<double>(opt["Hmax"]);
     IntegerVector svar = as<IntegerVector>(opt["svar"]);
@@ -1876,7 +1906,7 @@ void rxSolvingData(const RObject &model,
     if (isCholB) isChol = 1;
     rxSolvingOptions(model,method, transit_abs, atol, rtol, maxsteps, hmin, hini, maxordn,
 		     maxords, cores, ncov, &par_cov[0], do_par_cov, &ginits[0], &gscale[0], covs_interpolation,
-		     hmax2,&atol2[0],&rtol2[0], as<int>(opt["nDisplayProgress"]),
+		     hmax2,&gatol2[0],&grtol2[0], as<int>(opt["nDisplayProgress"]),
 		     as<RObject>(opt["sigma"]), as<RObject>(opt["df"]),
 		     as<int>(opt["ncoresRV"]),isChol, &svar[0]);
     int add_cov = 0;
