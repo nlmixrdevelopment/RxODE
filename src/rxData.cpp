@@ -1801,8 +1801,6 @@ void rxSolvingOptions(const RObject &object,
                       double *atol2 = NULL,
                       double *rtol2 = NULL,
                       int nDisplayProgress = 10000,
-		      RObject sigma = R_NilValue,
-                      RObject df = R_NilValue,
                       int ncoresRV = 1,
                       int isChol = 1,
                       int *svar =NULL){
@@ -1867,28 +1865,6 @@ void rxSolvingOptions(const RObject &object,
   CharacterVector state = as<CharacterVector>(modVars["state"]);
   CharacterVector params = as<CharacterVector>(modVars["params"]);
   CharacterVector trans = modVars["trans"];
-  double dfN = -1;
-  if (df.isNULL()){
-    dfN = -1;
-  } else if (rxIs(df,"integer") || rxIs(df,"numeric")){
-    NumericVector df0 = as<NumericVector>(df);
-    dfN = df0[0];
-  }
-  double *sigmaD = NULL;
-  int sigmaSize = -1;
-  Nullable<NumericMatrix> sigma1 = as<Nullable<NumericMatrix>>(sigma);
-  getRxModels();
-  if (!sigma1.isNull()){
-    NumericMatrix sigma2 = NumericMatrix(sigma1);
-    sigmaD = &sigma2[0];
-    sigmaSize = sigma2.nrow();
-    if (!sigma2.hasAttribute("dimnames")){
-      stop("The sigma matrix must have named dimensions.");
-    }
-    List dimnames = sigma2.attr("dimnames");
-    StringVector simNames = as<StringVector>(dimnames[1]);
-    _rxModels[".simNames"] = simNames;
-  }
   // Make sure the model variables are assigned...
   // This fixes random issues on windows where the solves are done and the data set cannot be solved.
   std::string ptrS = (as<std::string>(trans["model_vars"]));
@@ -1899,8 +1875,7 @@ void rxSolvingOptions(const RObject &object,
 		       st, f1, f2, kind, is_locf, cores,
 		       ncov,par_cov, do_par_cov, &inits[0], &scale[0],
 		       ptrS.c_str(), hmax2, atol2, rtol2, 
-		       nDisplayProgress, sigmaD, sigmaSize,
-		       dfN, ncoresRV, isChol,svar);
+		       nDisplayProgress, ncoresRV, isChol,svar);
 }
 
 void rxSolvingData(const RObject &model,
@@ -2054,7 +2029,6 @@ void rxSolvingData(const RObject &model,
     rxSolvingOptions(model,method, transit_abs, atol, rtol, maxsteps, hmin, hini, maxordn,
 		     maxords, cores, ncov, &gpar_cov[0], do_par_cov, &ginits[0], &gscale[0], covs_interpolation,
 		     hmax2,&gatol2[0],&grtol2[0], as<int>(opt["nDisplayProgress"]),
-		     as<RObject>(opt["sigma"]), as<RObject>(opt["df"]),
 		     as<int>(opt["ncoresRV"]),isChol, &gsvar[0]);
     int add_cov = 0;
     if (addCov) add_cov = 1;

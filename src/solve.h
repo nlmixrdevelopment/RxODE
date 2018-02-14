@@ -38,9 +38,6 @@ typedef struct {
   double *rtol2;
   double *atol2;
   int nDisplayProgress;
-  double *sigma;
-  int sigmaSize;
-  double df;
   int ncoresRV;
   int isChol;
   int *svar;
@@ -121,9 +118,6 @@ void getSolvingOptionsPtr(double ATOL,          //absolute error
                           double *atol2,
                           double *rtol2,
                           int nDisplayProgress,
-			  double *sigma,
-			  int sigmaSize,
-                          double df,
                           int ncoresRV,
                           int isChol,
                           int *svar);
