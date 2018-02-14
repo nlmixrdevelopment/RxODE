@@ -44,54 +44,14 @@ RxODE_fn2 sign_exp = NULL;
 
 RxODE_fn _as_zero = NULL;
 RxODE_fn _safe_log = NULL;
-
-double safe_zero(double x){
-  static RxODE_fn fun = NULL;
-  if (fun == NULL) fun = (RxODE_fn) R_GetCCallable("RxODE","RxODE_safe_zero");
-  return fun(x);
-}
-
-double abs_log(double x){
-  static RxODE_fn fun = NULL;
-  if (fun == NULL) fun = (RxODE_fn) R_GetCCallable("RxODE","RxODE_abs_log");
-  return fun(x);
-}
-
-double abs_log1p(double x){
-  static RxODE_fn fun = NULL;
-  if (fun == NULL) fun = (RxODE_fn) R_GetCCallable("RxODE","RxODE_abs_log1p");
-  return fun(x);
-}
-
-double factorial(double x){
-  static RxODE_fn fun = NULL;
-  if (fun == NULL) fun = (RxODE_fn) R_GetCCallable("RxODE","RxODE_factorial");
-  return fun(x);
-}
-
-double _transit4P(double t, rx_solve *rx, unsigned int id, double n, double mtt, double bio){
-  static RxODE_transit4P fun = NULL;
-  if (fun == NULL) fun = (RxODE_transit4P) R_GetCCallable("RxODE","RxODE_transit4P");
-  return fun(t, rx, id, n, mtt, bio);
-}
-
-double _transit3P(double t, rx_solve *rx, unsigned int id, double n, double mtt){
-  static RxODE_transit3P fun = NULL;
-  if (fun == NULL) fun = (RxODE_transit3P) R_GetCCallable("RxODE","RxODE_transit3P");
-  return fun(t, rx, id, n, mtt);
-}
-
-double podo(rx_solve *rx, unsigned int id){
-  static RxODE_val fun = NULL;
-  if (fun == NULL) fun = (RxODE_val) R_GetCCallable("RxODE","RxODE_podoP");
-  return fun(rx, id);
-}
-
-double tlast(rx_solve *rx, unsigned int id){
-  static RxODE_val fun = NULL;
-  if (fun == NULL) fun = (RxODE_val) R_GetCCallable("RxODE","RxODE_tlastP");
-  return fun(rx, id);
-}
+RxODE_fn safe_zero = NULL;
+RxODE_fn abs_log = NULL;
+RxODE_fn abs_log1p = NULL;
+RxODE_fn factorial = NULL;
+RxODE_transit4P _transit4P = NULL;
+RxODE_transit3P _transit3P =NULL;
+RxODE_val podo = NULL;
+RxODE_val tlast = NULL;
 
 void _dadt_counter_inc(rx_solve *rx, unsigned int id){
   static RxODE_inc fun = NULL;
@@ -296,6 +256,14 @@ void __R_INIT__ (DllInfo *info){
   sign_exp = (RxODE_fn2) R_GetCCallable("RxODE","RxODE_sign_exp");
   _as_zero = (RxODE_fn) R_GetCCallable("RxODE","RxODE_as_zero");
   _safe_log=(RxODE_fn) R_GetCCallable("RxODE","RxODE_safe_log");
+  safe_zero=(RxODE_fn) R_GetCCallable("RxODE","RxODE_safe_zero");
+  abs_log = (RxODE_fn) R_GetCCallable("RxODE","RxODE_abs_log");
+  abs_log1p=(RxODE_fn) R_GetCCallable("RxODE","RxODE_abs_log1p");
+  factorial = (RxODE_fn) R_GetCCallable("RxODE","RxODE_factorial");
+  _transit4P= (RxODE_transit4P) R_GetCCallable("RxODE","RxODE_transit4P");
+  _transit3P=(RxODE_transit3P) R_GetCCallable("RxODE","RxODE_transit3P");
+  podo = (RxODE_val) R_GetCCallable("RxODE","RxODE_podoP");
+  tlast = (RxODE_val) R_GetCCallable("RxODE","RxODE_tlastP");
   // Register the outside functions
   R_RegisterCCallable(__LIB_STR__,__ODE_SOLVER_STR__,       (DL_FUNC) __ODE_SOLVER__);
   R_RegisterCCallable(__LIB_STR__,"__INIS__", (DL_FUNC) __INIS__);
