@@ -1448,7 +1448,22 @@ void grcSetup(int n){
   }
 }
 
+int *gidose = NULL;
+int gidosen = 0;
+void gidoseSetup(int n){
+  if (gidosen == 0){
+    gidose=Calloc(n, int);
+    gidosen=n;
+  } else if (n > gidosen){
+    gidose = Realloc(gidose, n, int);
+    gidosen=n;
+  }
+}
+
+
 void gFree(){
+  if (gidose != NULL) Free(gidose);
+  gidosen=0;
   if (grc != NULL) Free(grc);
   grcn=0;
   if (gBadDose != NULL) Free(gBadDose);
@@ -1895,6 +1910,10 @@ void rxSolvingData(const RObject &model,
       gamt[i]= amt[i];
     }
     IntegerVector idose = as<IntegerVector>(opt["idose"]);
+    gidoseSetup(idose.size());
+    for (i = 0; i < idose.size(); i++){
+      gidose[i]= idose[i];
+    }
     IntegerVector posDose = as<IntegerVector>(ids["posDose"]);
     IntegerVector posEvent = as<IntegerVector>(ids["posEvent"]);
     IntegerVector posCov = as<IntegerVector>(ids["posCov"]);
@@ -1954,7 +1973,7 @@ void rxSolvingData(const RObject &model,
 	ncov = par_cov.size();
         getSolvingOptionsIndPtr(&gInfusionRate[cid*neq],&gBadDose[cid*neq], hm,
 				&gpars[cid*nPar], &gamt[posDose[id]],
-				&idose[posDose[id]],
+				&gidose[posDose[id]],
                                 // Solve and lhs are written to in the solve...
                                 &gsolve[cid*totSize*neq],
                                 &glhs[cid*lhsSize],
