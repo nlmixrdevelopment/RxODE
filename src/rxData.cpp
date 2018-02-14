@@ -1411,7 +1411,22 @@ void gparsSetup(int n){
   }
 }
 
+
+int *gevid = NULL;
+int gevidn = 0;
+void gevidSetup(int n){
+  if (gevidn == 0){
+    gevid=Calloc(n, int);
+    gevidn=n;
+  } else if (n > gevidn){
+    gevid = Realloc(gevid, n, int);
+    gevidn=n;
+  }
+}
+
 void gFree(){
+  if (gevid != NULL) Free(gevid);
+  gevidn=0;
   if (gpars != NULL) Free(gpars);
   gparsn=0;
   if (grtol2 != NULL) Free(grtol2);
@@ -1854,6 +1869,10 @@ void rxSolvingData(const RObject &model,
     IntegerVector nEvent = as<IntegerVector>(ids["nEvent"]);
     DataFrame et         = as<DataFrame>(opt["et"]);
     IntegerVector evid   = as<IntegerVector>(et["evid"]);
+    gevidSetup(evid.size());
+    for (i = 0; i < evid.size(); i++){
+      gevid[i] = evid[i];
+    }
     NumericVector all_times = as<NumericVector>(et["time"]);
     gall_timesSetup(all_times.size());
     for (i = 0; i < all_times.size(); i++){
@@ -1904,7 +1923,7 @@ void rxSolvingData(const RObject &model,
                                 &gsolve[cid*totSize*neq],
                                 &glhs[cid*lhsSize],
                                 // Doesn't change with the solve.
-				&evid[posEvent[id]], &rc[id], &gcov[posCov[id]],
+				&gevid[posEvent[id]], &rc[id], &gcov[posCov[id]],
                                 nEvent[id], &gall_times[posEvent[id]], id, simNum,
                                 &inds[cid]);
       }
