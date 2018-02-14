@@ -56,17 +56,18 @@ RxODE_inc _dadt_counter_inc=NULL;
 RxODE_inc _jac_counter_inc =NULL;
 RxODE_cnt _dadt_counter_val = NULL;
 RxODE_cnt _jac_counter_val = NULL;
+RxODE_vec _par_ptr = NULL;
 RxODE_update_par_ptr _update_par_ptr=NULL;
 RxODE_vec _InfusionRate= NULL;
 
 typedef  SEXP (*_rx_asgn) (SEXP objectSEXP);
 _rx_asgn _RxODE_rxAssignPtr =NULL;
 
-int _rxIsCurrentC(SEXP obj){
-  static int(*fun)(SEXP)= NULL;
-  if (fun==NULL) fun = (int(*)(SEXP))R_GetCCallable("RxODE","rxIsCurrentC");
-  return fun(obj);
-}
+typedef int(*_rxIsCurrentC_type)(SEXP);
+_rxIsCurrentC_type _rxIsCurrentC=NULL;
+
+typedef double(*_rxSumType)(double *, int, long double *, int, int);
+_rxSumType _sumPS = NULL;
 
 double _sum(double *p, long double *pld, int m, int type, int n, ...){
   va_list valist;
@@ -75,11 +76,11 @@ double _sum(double *p, long double *pld, int m, int type, int n, ...){
     p[i] = va_arg(valist, double);
   }
   va_end(valist);
-  static double (*fun)(double *, int, long double *, int, int)=NULL;
-  if (fun == NULL) fun = (double(*)(double *, int, long double *, int, int)) R_GetCCallable("PreciseSums","PreciseSums_sum_r");
-  return fun(p, n, pld, m, type);
+  return _sumPS(p, n, pld, m, type);
 }
 
+typedef double(*_rxProdType)(double*, double*, int, int);
+_rxProdType _prodPS = NULL;
 
 extern double _prod(double *input, double *p, int type, int n, ...){
   va_list valist;
@@ -88,9 +89,7 @@ extern double _prod(double *input, double *p, int type, int n, ...){
     input[i] = va_arg(valist, double);
   }
   va_end(valist);
-  static double (*fun)(double*, double*, int, int)=NULL;
-  if (fun == NULL) fun = (double(*)(double*, double*, int, int)) R_GetCCallable("PreciseSums","PreciseSums_prod_r");
-  return fun(input, p, n, type);
+  return _prodPS(input, p, n, type);
 }
 
 extern double _sign(unsigned int n, ...){
@@ -229,8 +228,12 @@ void __R_INIT__ (DllInfo *info){
   _dadt_counter_val= (RxODE_cnt) R_GetCCallable("RxODE","RxODE_dadt_counter_valP");
   _jac_counter_val=(RxODE_cnt) R_GetCCallable("RxODE","RxODE_jac_counter_valP");
   _update_par_ptr=(RxODE_update_par_ptr) R_GetCCallable("RxODE","RxODE_update_par_ptrP");
+  _par_ptr=(RxODE_vec) R_GetCCallable("RxODE","RxODE_par_ptrP");
   _InfusionRate=(RxODE_vec) R_GetCCallable("RxODE","RxODE_InfusionRateP");
   _RxODE_rxAssignPtr=(_rx_asgn)R_GetCCallable("RxODE","_RxODE_rxAssignPtr");
+  _rxIsCurrentC = (_rxIsCurrentC_type)R_GetCCallable("RxODE","rxIsCurrentC");
+  _sumPS  = (_rxSumType) R_GetCCallable("PreciseSums","PreciseSums_sum_r");
+  _prodPS = (_rxProdType) R_GetCCallable("PreciseSums","PreciseSums_prod_r");
   // Register the outside functions
   R_RegisterCCallable(__LIB_STR__,__ODE_SOLVER_STR__,       (DL_FUNC) __ODE_SOLVER__);
   R_RegisterCCallable(__LIB_STR__,"__INIS__", (DL_FUNC) __INIS__);
