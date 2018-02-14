@@ -1322,7 +1322,68 @@ void gamtSetup(int n){
   // for (int i =0;i<n; i++) gamt[i]=0.0;
 }
 
+double *glhs = NULL;
+int glhsn = 0;
+void glhsSetup(int n){
+  if (glhsn == 0){
+    glhs=Calloc(n, double);
+    glhsn=n;
+  } else if (n > glhsn){
+    glhs = Realloc(glhs, n, double);
+    glhsn=n;
+  }
+  for (int i =0;i<n; i++) glhs[i]=0.0;
+}
+
+double *gcov = NULL;
+int gcovn = 0;
+void gcovSetup(int n){
+  if (gcovn == 0){
+    gcov=Calloc(n, double);
+    gcovn=n;
+  } else if (n > gcovn){
+    gcov = Realloc(gcov, n, double);
+    gcovn=n;
+  }
+  for (int i =0;i<n; i++) gcov[i]=0.0;
+}
+
+double *ginits = NULL;
+int ginitsn = 0;
+void ginitsSetup(int n){
+  if (ginitsn == 0){
+    ginits=Calloc(n, double);
+    ginitsn=n;
+  } else if (n > ginitsn){
+    ginits = Realloc(ginits, n, double);
+    ginitsn=n;
+  }
+  for (int i = 0; i < n; i++) ginits[i]=0.0;
+}
+
+
+double *gscale = NULL;
+int gscalen = 0;
+void gscaleSetup(int n){
+  if (gscalen == 0){
+    gscale=Calloc(n, double);
+    gscalen=n;
+  } else if (n > gscalen){
+    gscale = Realloc(gscale, n, double);
+    gscalen=n;
+  }
+  for (int i = 0; i < n; i++) gscale[i]=1.0;
+}
+
 void gFree(){
+  if (gscale != NULL) Free(gscale);
+  gscalen=0;
+  if (ginits != NULL) Free(ginits);
+  ginitsn=0;
+  if (gcov != NULL) Free(gcov);
+  gcovn=0;
+  if (glhs != NULL) Free(glhs);
+  glhsn=0;
   if (gamt != NULL) Free(gamt);
   gamtn=0;
   if (gall_times != NULL) Free(gall_times);
@@ -1558,7 +1619,8 @@ List rxDataParSetup(const RObject &object,
   DataFrame et      = as<DataFrame>(ret["et"]);
   gsolveSetup(state.size()*et.nrow()*nr);
   CharacterVector lhs = as<CharacterVector>(modVars["lhs"]);
-  ret["lhs"] = NumericVector(lhs.size()*nSub*nr);
+  // ret["lhs"] = NumericVector(lhs.size()*nSub*nr);
+  glhsSetup(lhs.size()*nSub*nr);
   ret["lhsSize"] = lhs.size();
   gInfusionRateSetup(state.size()*nSub*nr);
   ret["BadDose"] =IntegerVector(state.size()*nSub*nr);
@@ -1724,7 +1786,15 @@ void rxSolvingData(const RObject &model,
     int nPar = as<int>(opt["n.pars"]);
     int nSub = as<int>(opt["nSub"]);
     NumericVector inits = as<NumericVector>(opt["inits"]);
+    ginitsSetup(inits.size());
+    for (i = 0; i < inits.size(); i++){
+      ginits[i] = inits[i];
+    }
     NumericVector scale = as<NumericVector>(opt["scale"]);
+    gscaleSetup(scale.size());
+    for (i = 0; i < scale.size(); i++){
+      gscale[i] = scale[i];
+    }
     DataFrame doseDf = as<DataFrame>(opt["dose"]);
     NumericVector amt = as<NumericVector>(doseDf["amt"]);
     gamtSetup(amt.size());
@@ -1744,10 +1814,14 @@ void rxSolvingData(const RObject &model,
       gall_times[i] = all_times[i];
     }
     int totSize = et.nrow();
-    NumericVector lhs = as<NumericVector>(opt["lhs"]);
+    // NumericVector lhs = as<NumericVector>(opt["lhs"]);
     int lhsSize = as<int>(opt["lhsSize"]);
     IntegerVector par_cov = as<IntegerVector>(opt["pcov"]);
     NumericVector cov = as<NumericVector>(opt["cov"]);
+    gcovSetup(cov.size());
+    for (i = 0; i < cov.size(); i++){
+      gcov[i] = cov[i];
+    }
     IntegerVector rc=as<IntegerVector>(ids["rc"]);
     IntegerVector siV = as<IntegerVector>(opt["state.ignore"]);
     int do_par_cov = 0;
@@ -1782,9 +1856,9 @@ void rxSolvingData(const RObject &model,
 				&idose[posDose[id]],
                                 // Solve and lhs are written to in the solve...
                                 &gsolve[cid*totSize*neq],
-                                &lhs[cid*lhsSize],
+                                &glhs[cid*lhsSize],
                                 // Doesn't change with the solve.
-				&evid[posEvent[id]], &rc[id], &cov[posCov[id]],
+				&evid[posEvent[id]], &rc[id], &gcov[posCov[id]],
                                 nEvent[id], &gall_times[posEvent[id]], id, simNum,
                                 &inds[cid]);
       }
@@ -1801,11 +1875,10 @@ void rxSolvingData(const RObject &model,
     int isChol = 0;
     if (isCholB) isChol = 1;
     rxSolvingOptions(model,method, transit_abs, atol, rtol, maxsteps, hmin, hini, maxordn,
-		     maxords, cores, ncov, &par_cov[0], do_par_cov, &inits[0], &scale[0], covs_interpolation,
+		     maxords, cores, ncov, &par_cov[0], do_par_cov, &ginits[0], &gscale[0], covs_interpolation,
 		     hmax2,&atol2[0],&rtol2[0], as<int>(opt["nDisplayProgress"]),
 		     as<RObject>(opt["sigma"]), as<RObject>(opt["df"]),
 		     as<int>(opt["ncoresRV"]),isChol, &svar[0]);
-
     int add_cov = 0;
     if (addCov) add_cov = 1;
     int nobs = as<int>(opt["nObs"]);
