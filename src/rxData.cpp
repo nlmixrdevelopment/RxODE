@@ -1436,8 +1436,21 @@ void gBadDoseSetup(int n){
   }
 }
 
+int *grc = NULL;
+int grcn = 0;
+void grcSetup(int n){
+  if (grcn == 0){
+    grc=Calloc(n, int);
+    grcn=n;
+  } else if (n > grcn){
+    grc = Realloc(grc, n, int);
+    grcn=n;
+  }
+}
 
 void gFree(){
+  if (grc != NULL) Free(grc);
+  grcn=0;
   if (gBadDose != NULL) Free(gBadDose);
   gBadDosen=0;
   if (gevid != NULL) Free(gevid);
@@ -1907,6 +1920,10 @@ void rxSolvingData(const RObject &model,
       gcov[i] = cov[i];
     }
     IntegerVector rc=as<IntegerVector>(ids["rc"]);
+    grcSetup(rc.size());
+    for (i = 0; i < rc.size(); i++){
+      grc[i] = rc[i];
+    }
     IntegerVector siV = as<IntegerVector>(opt["state.ignore"]);
     int do_par_cov = 0;
     if (par_cov.size() > 0){
@@ -1942,7 +1959,7 @@ void rxSolvingData(const RObject &model,
                                 &gsolve[cid*totSize*neq],
                                 &glhs[cid*lhsSize],
                                 // Doesn't change with the solve.
-				&gevid[posEvent[id]], &rc[id], &gcov[posCov[id]],
+				&gevid[posEvent[id]], &grc[id], &gcov[posCov[id]],
                                 nEvent[id], &gall_times[posEvent[id]], id, simNum,
                                 &inds[cid]);
       }
