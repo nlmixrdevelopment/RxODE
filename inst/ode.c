@@ -27,68 +27,23 @@ typedef void (*RxODE_assign_ptr)(SEXP);
 typedef void (*RxODE_ode_solver_old_c)(int *neq,double *theta,double *time,int *evid,int *ntime,double *inits,double *dose,double *ret,double *atol,double *rtol,int *stiff,int *transit_abs,int *nlhs,double *lhs,int *rc);
 typedef double (*RxODE_solveLinB)(rx_solve *rx, unsigned int id, double t, int linCmt, int diff1, int diff2, double A, double alpha, double B, double beta, double C, double gamma, double ka, double tlag);
 
-double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt, int diff1, int diff2, double A, double alpha, double B, double beta, double C, double gamma, double ka, double tlag){
-  static RxODE_solveLinB fun = NULL;
-  if (fun == NULL) fun = (RxODE_solveLinB) R_GetCCallable("RxODE","RxODE_solveLinB");
-  return fun(rx, id, t, linCmt, diff1, diff2, A, alpha, B, beta, C, gamma, ka, tlag);
-}
-
-void _assign_ptr(SEXP x){
-  static RxODE_assign_ptr fun = NULL;
-  if (fun == NULL) fun = (RxODE_assign_ptr) R_GetCCallable("RxODE","RxODE_assign_fn_pointers");
-  fun(x);
-}
+RxODE_solveLinB solveLinB    = NULL;
+RxODE_assign_ptr _assign_ptr = NULL;
 
 typedef void (*_rxRmModelLibType)(const char *inp);
-void _rxRmModelLib(const char *inp){
-  static _rxRmModelLibType fun = NULL;
-  if (fun == NULL) fun = (_rxRmModelLibType) R_GetCCallable("RxODE","rxRmModelLib");
-  fun(inp);
-}
+_rxRmModelLibType _rxRmModelLib = NULL;
 
 typedef SEXP (*_rxGetModelLibType)(const char *s);
-SEXP _rxGetModelLib(const char *inp){
-  static _rxGetModelLibType fun = NULL;
-  if (fun == NULL) fun = (_rxGetModelLibType) R_GetCCallable("RxODE","rxGetModelLib");
-  return fun(inp);
-}
+_rxGetModelLibType _rxGetModelLib = NULL;
 
-void _old_c(int *neq,double *theta,double *time,int *evid,int *ntime,double *inits,double *dose,double *ret,double *atol,double *rtol,int *stiff,int *transit_abs,int *nlhs,double *lhs,int *rc){
-  static RxODE_ode_solver_old_c fun = NULL;
-  if (fun == NULL) fun = (RxODE_ode_solver_old_c) R_GetCCallable("RxODE","rxSolveOldC");
-  return fun(neq, theta, time, evid, ntime, inits, dose, ret, atol, rtol, stiff, 
-	     transit_abs, nlhs, lhs, rc);
-}
+RxODE_ode_solver_old_c _old_c = NULL;
 
-double Rx_pow_di(double x, double y){
-  static RxODE_fn2i fun = NULL;
-  if (fun == NULL) fun = (RxODE_fn2i) R_GetCCallable("RxODE","RxODE_pow_di");
-  return fun(x, y);
-}
+RxODE_fn2i Rx_pow_di = NULL;
+RxODE_fn2 Rx_pow = NULL;
+RxODE_fn2 sign_exp = NULL;
 
-double Rx_pow(double x, double y){
-  static RxODE_fn2 fun = NULL;
-  if (fun == NULL) fun = (RxODE_fn2) R_GetCCallable("RxODE","RxODE_pow");
-  return fun(x, y);
-}
-
-double sign_exp(double x, double y){
-  static RxODE_fn2 fun = NULL;
-  if (fun == NULL) fun = (RxODE_fn2) R_GetCCallable("RxODE","RxODE_sign_exp");
-  return fun(x, y);
-}
-
-double _as_zero(double x){
-  static RxODE_fn fun = NULL;
-  if (fun == NULL) fun = (RxODE_fn) R_GetCCallable("RxODE","RxODE_as_zero");
-  return fun(x);
-}
-
-double _safe_log(double x){
-  static RxODE_fn fun = NULL;
-  if (fun == NULL) fun = (RxODE_fn) R_GetCCallable("RxODE","RxODE_safe_log");
-  return fun(x);
-}
+RxODE_fn _as_zero = NULL;
+RxODE_fn _safe_log = NULL;
 
 double safe_zero(double x){
   static RxODE_fn fun = NULL;
@@ -330,6 +285,17 @@ extern void __CALC_JAC_LSODA__(int *neq, double *t, double *A,int *ml, int *mu, 
 
 //Initilize the dll to match RxODE's calls
 void __R_INIT__ (DllInfo *info){
+  // Get C callables on load; Otherwise it isn't thread safe
+  solveLinB = (RxODE_solveLinB) R_GetCCallable("RxODE","RxODE_solveLinB");
+  _assign_ptr=(RxODE_assign_ptr) R_GetCCallable("RxODE","RxODE_assign_fn_pointers");
+  _rxRmModelLib=(_rxRmModelLibType) R_GetCCallable("RxODE","rxRmModelLib");
+  _rxGetModelLib=(_rxGetModelLibType) R_GetCCallable("RxODE","rxGetModelLib");
+  _old_c = (RxODE_ode_solver_old_c) R_GetCCallable("RxODE","rxSolveOldC");
+  Rx_pow_di=(RxODE_fn2i) R_GetCCallable("RxODE","RxODE_pow_di");
+  Rx_pow = (RxODE_fn2) R_GetCCallable("RxODE","RxODE_pow");
+  sign_exp = (RxODE_fn2) R_GetCCallable("RxODE","RxODE_sign_exp");
+  _as_zero = (RxODE_fn) R_GetCCallable("RxODE","RxODE_as_zero");
+  _safe_log=(RxODE_fn) R_GetCCallable("RxODE","RxODE_safe_log");
   // Register the outside functions
   R_RegisterCCallable(__LIB_STR__,__ODE_SOLVER_STR__,       (DL_FUNC) __ODE_SOLVER__);
   R_RegisterCCallable(__LIB_STR__,"__INIS__", (DL_FUNC) __INIS__);
