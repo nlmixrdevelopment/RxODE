@@ -52,55 +52,15 @@ RxODE_transit4P _transit4P = NULL;
 RxODE_transit3P _transit3P =NULL;
 RxODE_val podo = NULL;
 RxODE_val tlast = NULL;
-
-void _dadt_counter_inc(rx_solve *rx, unsigned int id){
-  static RxODE_inc fun = NULL;
-  if (fun == NULL) fun = (RxODE_inc) R_GetCCallable("RxODE","RxODE_dadt_counter_incP");
-  fun(rx, id);
-}
-
-void _jac_counter_inc(rx_solve *rx, unsigned int id){
-  static RxODE_inc fun = NULL;
-  if (fun == NULL) fun = (RxODE_inc) R_GetCCallable("RxODE","RxODE_jac_counter_incP");
-  fun(rx, id);
-}
-
-long _dadt_counter_val(rx_solve *rx, unsigned int id){
-  static RxODE_cnt fun = NULL;
-  if (fun == NULL) fun = (RxODE_cnt) R_GetCCallable("RxODE","RxODE_dadt_counter_valP");
-  return fun(rx, id);
-}
-
-long _jac_counter_val(rx_solve *rx, unsigned int id){
-  static RxODE_cnt fun = NULL;
-  if (fun == NULL) fun = (RxODE_cnt) R_GetCCallable("RxODE","RxODE_jac_counter_valP");
-  return fun(rx, id);
-}
-
-void _update_par_ptr(double t, rx_solve *rx, unsigned int id){
-  static RxODE_update_par_ptr fun = NULL;
-  if (fun == NULL) fun = (RxODE_update_par_ptr) R_GetCCallable("RxODE","RxODE_update_par_ptrP");
-  return fun(t, rx, id);
-}
-
-double _par_ptr(int val, rx_solve *rx, unsigned int id){
-  static RxODE_vec fun = NULL ;
-  if (fun == NULL) fun = (RxODE_vec) R_GetCCallable("RxODE","RxODE_par_ptrP");
-  return fun(val, rx, id);
-}
-
-double _InfusionRate(int val, rx_solve *rx, unsigned int id){
-  static RxODE_vec fun = NULL ;
-  if (fun == NULL) fun = (RxODE_vec) R_GetCCallable("RxODE","RxODE_InfusionRateP");
-  return fun(val, rx, id);
-}
+RxODE_inc _dadt_counter_inc=NULL;
+RxODE_inc _jac_counter_inc =NULL;
+RxODE_cnt _dadt_counter_val = NULL;
+RxODE_cnt _jac_counter_val = NULL;
+RxODE_update_par_ptr _update_par_ptr=NULL;
+RxODE_vec _InfusionRate= NULL;
 
 typedef  SEXP (*_rx_asgn) (SEXP objectSEXP);
-SEXP _RxODE_rxAssignPtr(SEXP objectSEXP){
-  static _rx_asgn fun = NULL;
-  if (fun==NULL) fun = (_rx_asgn)R_GetCCallable("RxODE","_RxODE_rxAssignPtr");
-  return fun(objectSEXP);
-}
+_rx_asgn _RxODE_rxAssignPtr =NULL;
 
 int _rxIsCurrentC(SEXP obj){
   static int(*fun)(SEXP)= NULL;
@@ -264,6 +224,13 @@ void __R_INIT__ (DllInfo *info){
   _transit3P=(RxODE_transit3P) R_GetCCallable("RxODE","RxODE_transit3P");
   podo = (RxODE_val) R_GetCCallable("RxODE","RxODE_podoP");
   tlast = (RxODE_val) R_GetCCallable("RxODE","RxODE_tlastP");
+  _dadt_counter_inc=(RxODE_inc) R_GetCCallable("RxODE","RxODE_dadt_counter_incP");
+  _jac_counter_inc=(RxODE_inc) R_GetCCallable("RxODE","RxODE_jac_counter_incP");
+  _dadt_counter_val= (RxODE_cnt) R_GetCCallable("RxODE","RxODE_dadt_counter_valP");
+  _jac_counter_val=(RxODE_cnt) R_GetCCallable("RxODE","RxODE_jac_counter_valP");
+  _update_par_ptr=(RxODE_update_par_ptr) R_GetCCallable("RxODE","RxODE_update_par_ptrP");
+  _InfusionRate=(RxODE_vec) R_GetCCallable("RxODE","RxODE_InfusionRateP");
+  _RxODE_rxAssignPtr=(_rx_asgn)R_GetCCallable("RxODE","_RxODE_rxAssignPtr");
   // Register the outside functions
   R_RegisterCCallable(__LIB_STR__,__ODE_SOLVER_STR__,       (DL_FUNC) __ODE_SOLVER__);
   R_RegisterCCallable(__LIB_STR__,"__INIS__", (DL_FUNC) __INIS__);
