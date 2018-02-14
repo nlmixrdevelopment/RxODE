@@ -261,8 +261,6 @@ rxSolve <- function(object, params=NULL, events=NULL, inits = NULL, scale = NULL
                                   thetaMat = thetaMat, thetaDf = thetaDf, thetaIsChol = thetaIsChol, nStud = nStud,
                                   sigma=sigma, sigmaDf=sigmaDf, sigmaIsChol=sigmaIsChol, nObs=nObs,
                                   nCoresRV = nCoresRV, simVariability=simVariability);
-        rxModels$.sigma <- params[[2]];
-        params <- params[[1]];
     }
     extra <- list(...);
 

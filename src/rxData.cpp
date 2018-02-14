@@ -2201,9 +2201,9 @@ SEXP rxSolveC(const RObject &object,
     }
     List dat = RxODE_df(parData, doDose);
     getRxModels();
-    // if(_rxModels.exists(".sigma")){
-    //   _rxModels.remove(".sigma");
-    // }
+    if(_rxModels.exists(".sigma")){
+      _rxModels.remove(".sigma");
+    }
     List xtra;
     if (!rx->matrix) xtra = RxODE_par_df(parData);
     int nr = as<NumericVector>(dat[0]).size();
@@ -3620,8 +3620,8 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
   ret0.attr("row.names") = IntegerVector::create(NA_INTEGER,-nSub*nStud);
   ret1.attr("dimnames") = List::create(R_NilValue, sigmaN);
   getRxModels();
-  // _rxModels[".sigma"] = ret1;
-  return List::create(ret0,ret1);
+  _rxModels[".sigma"] = ret1;
+  return ret0;
 }
 
 extern "C" double *rxGetErrs(){
