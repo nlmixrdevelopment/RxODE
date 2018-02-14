@@ -1308,7 +1308,23 @@ void gall_timesSetup(int n){
   // for (int i =0;i<n; i++) gall_times[i]=0.0;
 }
 
+
+double *gamt = NULL;
+int gamtn = 0;
+void gamtSetup(int n){
+  if (gamtn == 0){
+    gamt=Calloc(n, double);
+    gamtn=n;
+  } else if (n > gamtn){
+    gamt = Realloc(gamt, n, double);
+    gamtn=n;
+  }
+  // for (int i =0;i<n; i++) gamt[i]=0.0;
+}
+
 void gFree(){
+  if (gamt != NULL) Free(gamt);
+  gamtn=0;
   if (gall_times != NULL) Free(gall_times);
   gall_timesn=0;
   if (gInfusionRate != NULL) Free(gInfusionRate);
@@ -1711,6 +1727,10 @@ void rxSolvingData(const RObject &model,
     NumericVector scale = as<NumericVector>(opt["scale"]);
     DataFrame doseDf = as<DataFrame>(opt["dose"]);
     NumericVector amt = as<NumericVector>(doseDf["amt"]);
+    gamtSetup(amt.size());
+    for (i = 0; i < amt.size(); i++){
+      gamt[i]= amt[i];
+    }
     IntegerVector idose = as<IntegerVector>(opt["idose"]);
     IntegerVector posDose = as<IntegerVector>(ids["posDose"]);
     IntegerVector posEvent = as<IntegerVector>(ids["posEvent"]);
@@ -1758,7 +1778,7 @@ void rxSolvingData(const RObject &model,
         }
 	ncov = par_cov.size();
         getSolvingOptionsIndPtr(&gInfusionRate[cid*neq],&BadDose[cid*neq], hm,
-				&par[cid*nPar], &amt[posDose[id]],
+				&par[cid*nPar], &gamt[posDose[id]],
 				&idose[posDose[id]],
                                 // Solve and lhs are written to in the solve...
                                 &gsolve[cid*totSize*neq],
