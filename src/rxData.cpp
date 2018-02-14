@@ -1460,8 +1460,21 @@ void gidoseSetup(int n){
   }
 }
 
+int *gpar_cov = NULL;
+int gpar_covn = 0;
+void gpar_covSetup(int n){
+  if (gpar_covn == 0){
+    gpar_cov=Calloc(n, int);
+    gpar_covn=n;
+  } else if (n > gpar_covn){
+    gpar_cov = Realloc(gpar_cov, n, int);
+    gpar_covn=n;
+  }
+}
 
 void gFree(){
+  if (gpar_cov != NULL) Free(gpar_cov);
+  gpar_covn=0;
   if (gidose != NULL) Free(gidose);
   gidosen=0;
   if (grc != NULL) Free(grc);
@@ -1933,6 +1946,10 @@ void rxSolvingData(const RObject &model,
     // NumericVector lhs = as<NumericVector>(opt["lhs"]);
     int lhsSize = as<int>(opt["lhsSize"]);
     IntegerVector par_cov = as<IntegerVector>(opt["pcov"]);
+    gpar_covSetup(par_cov.size());
+    for (i = 0; i < par_cov.size(); i++){
+      gpar_cov[i] = par_cov[i];
+    }
     NumericVector cov = as<NumericVector>(opt["cov"]);
     gcovSetup(cov.size());
     for (i = 0; i < cov.size(); i++){
@@ -1997,7 +2014,7 @@ void rxSolvingData(const RObject &model,
     int isChol = 0;
     if (isCholB) isChol = 1;
     rxSolvingOptions(model,method, transit_abs, atol, rtol, maxsteps, hmin, hini, maxordn,
-		     maxords, cores, ncov, &par_cov[0], do_par_cov, &ginits[0], &gscale[0], covs_interpolation,
+		     maxords, cores, ncov, &gpar_cov[0], do_par_cov, &ginits[0], &gscale[0], covs_interpolation,
 		     hmax2,&gatol2[0],&grtol2[0], as<int>(opt["nDisplayProgress"]),
 		     as<RObject>(opt["sigma"]), as<RObject>(opt["df"]),
 		     as<int>(opt["ncoresRV"]),isChol, &svar[0]);
