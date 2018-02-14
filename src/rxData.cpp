@@ -1282,6 +1282,20 @@ void gsolveSetup(int n){
   for (int i =0;i<n; i++) gsolve[i]=0.0;
 }
 
+double *gInfusionRate = NULL;
+int gInfusionRaten = 0;
+void gInfusionRateSetup(int n){
+  if (gInfusionRaten == 0){
+    gInfusionRate=Calloc(n, double);
+    gInfusionRaten=n;
+  } else if (n > gInfusionRaten){
+    gInfusionRate = Realloc(gInfusionRate, n, double);
+    gInfusionRaten=n;
+  }
+  for (int i =0;i<n; i++) gInfusionRate[i]=0.0;
+}
+
+
 //' Setup Data and Parameters
 //'
 //' @inheritParams rxSolve
@@ -1508,7 +1522,7 @@ List rxDataParSetup(const RObject &object,
   CharacterVector lhs = as<CharacterVector>(modVars["lhs"]);
   ret["lhs"] = NumericVector(lhs.size()*nSub*nr);
   ret["lhsSize"] = lhs.size();
-  ret["InfusionRate"] =NumericVector(state.size()*nSub*nr);
+  gInfusionRateSetup(state.size()*nSub*nr);
   ret["BadDose"] =IntegerVector(state.size()*nSub*nr);
   ret["state.ignore"] = modVars["state.ignore"];
   ret["trans"] = modVars["trans"];
@@ -1666,7 +1680,6 @@ void rxSolvingData(const RObject &model,
     List opt = List(parData);
     DataFrame ids = as<DataFrame>(opt["ids"]);
     IntegerVector BadDose = as<IntegerVector>(opt["BadDose"]);
-    NumericVector InfusionRate = as<NumericVector>(opt["InfusionRate"]);
     NumericVector par = as<NumericVector>(opt["pars"]);
     double hm;
     int nPar = as<int>(opt["n.pars"]);
@@ -1717,7 +1730,7 @@ void rxSolvingData(const RObject &model,
           }
         }
 	ncov = par_cov.size();
-        getSolvingOptionsIndPtr(&InfusionRate[cid*neq],&BadDose[cid*neq], hm,
+        getSolvingOptionsIndPtr(&gInfusionRate[cid*neq],&BadDose[cid*neq], hm,
 				&par[cid*nPar], &amt[posDose[id]],
 				&idose[posDose[id]],
                                 // Solve and lhs are written to in the solve...
