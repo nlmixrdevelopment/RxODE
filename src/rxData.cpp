@@ -1472,7 +1472,37 @@ void gpar_covSetup(int n){
   }
 }
 
+
+int *gsvar = NULL;
+int gsvarn = 0;
+void gsvarSetup(int n){
+  if (gsvarn == 0){
+    gsvar=Calloc(n, int);
+    gsvarn=n;
+  } else if (n > gsvarn){
+    gsvar = Realloc(gsvar, n, int);
+    gsvarn=n;
+  }
+}
+
+int *gsiV = NULL;
+int gsiVn = 0;
+void gsiVSetup(int n){
+  if (gsiVn == 0){
+    gsiV=Calloc(n, int);
+    gsiVn=n;
+  } else if (n > gsiVn){
+    gsiV = Realloc(gsiV, n, int);
+    gsiVn=n;
+  }
+}
+
+
 void gFree(){
+  if (gsiV != NULL) Free(gsiV);
+  gsiVn=0;
+  if (gsvar != NULL) Free(gsvar);
+  gsvarn=0;
   if (gpar_cov != NULL) Free(gpar_cov);
   gpar_covn=0;
   if (gidose != NULL) Free(gidose);
@@ -1961,6 +1991,10 @@ void rxSolvingData(const RObject &model,
       grc[i] = rc[i];
     }
     IntegerVector siV = as<IntegerVector>(opt["state.ignore"]);
+    gsiVSetup(siV.size());
+    for (i = 0; i < siV.size(); i++){
+      gsiV[i] = siV[i];
+    }
     int do_par_cov = 0;
     if (par_cov.size() > 0){
       do_par_cov = 1;
@@ -2004,12 +2038,16 @@ void rxSolvingData(const RObject &model,
     NumericVector rtol2 = as<NumericVector>(opt["rtol"]);
     gatol2Setup(atol2.size());
     grtol2Setup(rtol2.size());
-    for (int i = 0; i < atol2.size(); i++){
+    for (i = 0; i < atol2.size(); i++){
       gatol2[i]=atol;
       grtol2[i]=rtol;
     }
     double hmax2 = as<double>(opt["Hmax"]);
     IntegerVector svar = as<IntegerVector>(opt["svar"]);
+    gsvarSetup(svar.size());
+    for (i = 0; i < svar.size(); i++){
+      gsvar[i] = svar[i];
+    }
     bool isCholB =  as<bool>(opt["isChol"]);
     int isChol = 0;
     if (isCholB) isChol = 1;
@@ -2017,7 +2055,7 @@ void rxSolvingData(const RObject &model,
 		     maxords, cores, ncov, &gpar_cov[0], do_par_cov, &ginits[0], &gscale[0], covs_interpolation,
 		     hmax2,&gatol2[0],&grtol2[0], as<int>(opt["nDisplayProgress"]),
 		     as<RObject>(opt["sigma"]), as<RObject>(opt["df"]),
-		     as<int>(opt["ncoresRV"]),isChol, &svar[0]);
+		     as<int>(opt["ncoresRV"]),isChol, &gsvar[0]);
     int add_cov = 0;
     if (addCov) add_cov = 1;
     int nobs = as<int>(opt["nObs"]);
