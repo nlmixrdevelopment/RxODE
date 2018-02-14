@@ -1295,6 +1295,28 @@ void gInfusionRateSetup(int n){
   for (int i =0;i<n; i++) gInfusionRate[i]=0.0;
 }
 
+double *gall_times = NULL;
+int gall_timesn = 0;
+void gall_timesSetup(int n){
+  if (gall_timesn == 0){
+    gall_times=Calloc(n, double);
+    gall_timesn=n;
+  } else if (n > gall_timesn){
+    gall_times = Realloc(gall_times, n, double);
+    gall_timesn=n;
+  }
+  // for (int i =0;i<n; i++) gall_times[i]=0.0;
+}
+
+void gFree(){
+  if (gall_times != NULL) Free(gall_times);
+  gall_timesn=0;
+  if (gInfusionRate != NULL) Free(gInfusionRate);
+  gInfusionRaten=0;
+  if (gsolve != NULL) Free(gsolve);
+  gsolven=0;
+}
+
 
 //' Setup Data and Parameters
 //'
@@ -1677,6 +1699,7 @@ void rxSolvingData(const RObject &model,
 		   bool addCov = false,
 		   bool matrix = false) {
   if (rxIs(parData, "RxODE.par.data")){
+    int i = 0;
     List opt = List(parData);
     DataFrame ids = as<DataFrame>(opt["ids"]);
     IntegerVector BadDose = as<IntegerVector>(opt["BadDose"]);
@@ -1696,6 +1719,10 @@ void rxSolvingData(const RObject &model,
     DataFrame et         = as<DataFrame>(opt["et"]);
     IntegerVector evid   = as<IntegerVector>(et["evid"]);
     NumericVector all_times = as<NumericVector>(et["time"]);
+    gall_timesSetup(all_times.size());
+    for (i = 0; i < all_times.size(); i++){
+      gall_times[i] = all_times[i];
+    }
     int totSize = et.nrow();
     NumericVector lhs = as<NumericVector>(opt["lhs"]);
     int lhsSize = as<int>(opt["lhsSize"]);
@@ -1738,7 +1765,7 @@ void rxSolvingData(const RObject &model,
                                 &lhs[cid*lhsSize],
                                 // Doesn't change with the solve.
 				&evid[posEvent[id]], &rc[id], &cov[posCov[id]],
-                                nEvent[id], &all_times[posEvent[id]], id, simNum,
+                                nEvent[id], &gall_times[posEvent[id]], id, simNum,
                                 &inds[cid]);
       }
     }
