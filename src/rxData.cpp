@@ -1424,7 +1424,22 @@ void gevidSetup(int n){
   }
 }
 
+int *gBadDose = NULL;
+int gBadDosen = 0;
+void gBadDoseSetup(int n){
+  if (gBadDosen == 0){
+    gBadDose=Calloc(n, int);
+    gBadDosen=n;
+  } else if (n > gBadDosen){
+    gBadDose = Realloc(gBadDose, n, int);
+    gBadDosen=n;
+  }
+}
+
+
 void gFree(){
+  if (gBadDose != NULL) Free(gBadDose);
+  gBadDosen=0;
   if (gevid != NULL) Free(gevid);
   gevidn=0;
   if (gpars != NULL) Free(gpars);
@@ -1838,6 +1853,10 @@ void rxSolvingData(const RObject &model,
     List opt = List(parData);
     DataFrame ids = as<DataFrame>(opt["ids"]);
     IntegerVector BadDose = as<IntegerVector>(opt["BadDose"]);
+    gBadDoseSetup(BadDose.size());
+    for (i = 0; i < BadDose.size(); i++){
+      gBadDose[i] = BadDose[i];
+    }
     NumericVector par = as<NumericVector>(opt["pars"]);
     gparsSetup(par.size());
     for (i = 0; i < par.size();i++){
@@ -1916,7 +1935,7 @@ void rxSolvingData(const RObject &model,
           }
         }
 	ncov = par_cov.size();
-        getSolvingOptionsIndPtr(&gInfusionRate[cid*neq],&BadDose[cid*neq], hm,
+        getSolvingOptionsIndPtr(&gInfusionRate[cid*neq],&gBadDose[cid*neq], hm,
 				&gpars[cid*nPar], &gamt[posDose[id]],
 				&idose[posDose[id]],
                                 // Solve and lhs are written to in the solve...
