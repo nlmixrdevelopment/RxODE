@@ -2318,6 +2318,19 @@ SEXP rxSolveC(const RObject &object,
       e = as<Environment>(object);
       obj = as<List>(e["obj"]);
     }
+    getRxModels();
+    if(e.exists(".sigma")){
+      _rxModels[".sigma"]=as<NumericMatrix>(e[".sigma"]);
+    }
+    if(e.exists(".sigmaL")){
+      _rxModels[".sigmaL"]=as<List>(e[".sigmaL"]);
+    }
+    if(e.exists(".omegaL")){
+      _rxModels[".omegaL"] = as<List>(e[".omegaL"]);
+    }
+    if(e.exists(".theta")){
+      _rxModels[".theta"] = as<NumericMatrix>(e[".theta"]);
+    }
     RObject new_params = update_params ? params : e["args.params"];
     RObject new_events = update_events ? events : e["args.events"];
     RObject new_inits = update_inits ? inits : e["args.inits"];
@@ -2495,15 +2508,24 @@ SEXP rxSolveC(const RObject &object,
       doDose = 0;
     }
     List dat = RxODE_df(parData, doDose);
-    getRxModels();
-    if(_rxModels.exists(".sigma")){
-      _rxModels.remove(".sigma");
-    }
     List xtra;
     if (!rx->matrix) xtra = RxODE_par_df(parData);
     int nr = as<NumericVector>(dat[0]).size();
     int nc = dat.size();
     if (rx->matrix){
+      getRxModels();
+      if(_rxModels.exists(".sigma")){
+        _rxModels.remove(".sigma");
+      }
+      if(_rxModels.exists(".sigmaL")){
+        _rxModels.remove(".sigmaL");
+      }
+      if(_rxModels.exists(".omegaL")){
+        _rxModels.remove(".omegaL");
+      }
+      if(_rxModels.exists(".theta")){
+        _rxModels.remove(".theta");
+      }
       dat.attr("class") = "data.frame";
       NumericMatrix tmpM(nr,nc);
       for (int i = 0; i < dat.size(); i++){
@@ -2515,6 +2537,23 @@ SEXP rxSolveC(const RObject &object,
       Function newEnv("new.env", R_BaseNamespace);
       Environment RxODE("package:RxODE");
       Environment e = newEnv(_["size"] = 29, _["parent"] = RxODE);
+      getRxModels();
+      if(_rxModels.exists(".theta")){
+        e[".theta"] = as<NumericMatrix>(_rxModels[".theta"]);
+        _rxModels.remove(".theta");
+      }
+      if(_rxModels.exists(".sigma")){
+        e[".sigma"] = as<NumericMatrix>(_rxModels[".sigma"]);
+        _rxModels.remove(".sigma");
+      }
+      if(_rxModels.exists(".omegaL")){
+        e[".omegaL"] = as<List>(_rxModels[".omegaL"]);
+        _rxModels.remove(".omegaL");
+      }
+      if(_rxModels.exists(".sigmaL")){
+        e[".sigmaL"] = as<List>(_rxModels[".sigmaL"]);
+        _rxModels.remove(".sigmaL");
+      }
       e["check.nrow"] = nr;
       e["check.ncol"] = nc;
       e["check.names"] = dat.names();
@@ -3927,6 +3966,13 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
   ret1.attr("dimnames") = List::create(R_NilValue, sigmaN);
   getRxModels();
   _rxModels[".sigma"] = ret1;
+  if (simTheta){
+    _rxModels[".theta"] = thetaM;
+  }
+  if (simVariability && nStud > 1){
+    _rxModels[".omegaL"] = omegaList;
+    _rxModels[".sigmaL"] =sigmaList;
+  }
   return ret0;
 }
 
