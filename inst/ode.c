@@ -18,6 +18,7 @@ typedef double (*RxODE_transit3P)(double t, rx_solve *rx, unsigned int id, doubl
 typedef double (*RxODE_fn) (double x);
 typedef double (*RxODE_fn2) (double x, double y);
 typedef double (*RxODE_fn2i) (double x, int i);
+typedef int (*RxODE_fn0i) ();
 typedef double (*RxODE_transit4P)(double t, rx_solve *rx, unsigned int id, double n, double mtt, double bio);
 typedef double (*RxODE_vec) (int val, rx_solve *rx, unsigned int id);
 typedef long (*RxODE_cnt) (rx_solve *rx, unsigned int id);
@@ -66,17 +67,17 @@ _rx_asgn _RxODE_rxAssignPtr =NULL;
 typedef int(*_rxIsCurrentC_type)(SEXP);
 _rxIsCurrentC_type _rxIsCurrentC=NULL;
 
-typedef double(*_rxSumType)(double *, int, long double *, int, int);
+typedef double(*_rxSumType)(double *, int, double *, int, int);
 _rxSumType _sumPS = NULL;
 
-double _sum(double *p, long double *pld, int m, int type, int n, ...){
+double _sum(double *input, double *pld, int m, int type, int n, ...){
   va_list valist;
   va_start(valist, n);
   for (unsigned int i = 0; i < n; i++){
-    p[i] = va_arg(valist, double);
+    input[i] = va_arg(valist, double);
   }
   va_end(valist);
-  return _sumPS(p, n, pld, m, type);
+  return _sumPS(input, n, pld, m, type);
 }
 
 typedef double(*_rxProdType)(double*, double*, int, int);
@@ -140,14 +141,8 @@ extern double _min(unsigned int n, ...){
 
 rx_solve *_solveData = NULL;
 
-int _prodType(){
-  // Type 3 = Logify
-  return 3;
-}
-int _sumType(){
-  // Type 1 = PairwiseSum
-  return 1;
-}
+RxODE_fn0i _prodType = NULL;
+RxODE_fn0i _sumType = NULL;
 
 extern void __ODE_SOLVER_SOLVEDATA__ (rx_solve *solve){
   _solveData = solve;
@@ -234,6 +229,8 @@ void __R_INIT__ (DllInfo *info){
   _rxIsCurrentC = (_rxIsCurrentC_type)R_GetCCallable("RxODE","rxIsCurrentC");
   _sumPS  = (_rxSumType) R_GetCCallable("PreciseSums","PreciseSums_sum_r");
   _prodPS = (_rxProdType) R_GetCCallable("PreciseSums","PreciseSums_prod_r");
+  _prodType=(RxODE_fn0i)R_GetCCallable("PreciseSums", "PreciseSums_prod_get");
+  _sumType=(RxODE_fn0i)R_GetCCallable("PreciseSums", "PreciseSums_sum_get");
   // Register the outside functions
   R_RegisterCCallable(__LIB_STR__,__ODE_SOLVER_STR__,       (DL_FUNC) __ODE_SOLVER__);
   R_RegisterCCallable(__LIB_STR__,"__INIS__", (DL_FUNC) __INIS__);

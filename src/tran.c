@@ -1626,11 +1626,11 @@ void codegen(FILE *outpt, int show_ode) {
   }
   if ((show_ode == 2 && found_jac == 1) || show_ode != 2){
     prnt_vars(0, outpt, 0, "  double ", "\n",show_ode);     /* declare all used vars */
-    if (maxSumProdN > 0){
-      fprintf(outpt, "  double _p[%d], _input[%d];\n", maxSumProdN, maxSumProdN);
-      if (SumProdLD){
-        fprintf(outpt, "  long double _pld[%d];\n", SumProdLD);
-      }
+    if (maxSumProdN > 0 || SumProdLD > 0){
+      int mx = maxSumProdN;
+      if (SumProdLD > mx) mx = SumProdLD;
+      fprintf(outpt, "  double _p[%d], _input[%d];\n", mx, mx);
+      fprintf(outpt, "  double _pld[%d];\n", mx);
     }
     prnt_vars(2, outpt, 0, "  (void)t;\n", "\n",show_ode);     /* declare all used vars */
     if (maxSumProdN){
