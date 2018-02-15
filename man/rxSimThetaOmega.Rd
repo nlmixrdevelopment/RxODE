@@ -57,6 +57,8 @@ with the same number of cores. This is the reason this is set
 to be one, regardless of what the number of cores are used in
 threaded ODE solving.}
 
+\item{nObs}{Number of observations to simulate for sigma.}
+
 \item{simVariability}{For each study simulate the uncertanty in the Omega and 
 Sigma item}
 }

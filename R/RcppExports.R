@@ -308,6 +308,7 @@ rxDelete <- function(obj) {
 #' @param omega Estimate of Covariance matrix.
 #' @param n Number of Matricies to sample.  By default this is 1.
 #' @param omegaIsChol is an indicator of if the omega matrix is in the cholesky decomposition. 
+#' @param returnChol Return the cholesky decomposition of the covariance matrix sample.
 #'
 #' @return a matrix (n=1) or a list of matricies (n > 1)
 #'
@@ -369,6 +370,8 @@ rinvchisq <- function(n = 1L, nu = 1.0, scale = 1) {
 #'
 #' @param simVariability For each study simulate the uncertanty in the Omega and 
 #'       Sigma item
+#'
+#' @param nObs Number of observations to simulate for sigma.
 #'
 #' @author Matthew L.Fidler
 #'
