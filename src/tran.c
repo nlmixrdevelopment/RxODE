@@ -1843,8 +1843,9 @@ void codegen(FILE *outpt, int show_ode) {
       strcpy(sLine, s2);
       Free(s2);
       s2=NULL;
-
-      sprintf(to,"%d", SumProdLD);
+      int mx = maxSumProdN;
+      if (SumProdLD > mx) mx = SumProdLD;
+      sprintf(to,"%d", mx);
       sprintf(from, "__MAX_PROD__");
       s2 = repl_str(sLine,from,to);
       strcpy(sLine, s2);
