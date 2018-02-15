@@ -131,11 +131,21 @@ rxPermissive({
                            Kin=1, Kout=1, EC50=200), omega=matrix(0.2, dimnames=list("eta.Cl", "eta.Cl")),
                    nSub=4, nStud=4, thetaMat=thetaMat, sigma=sigma, nStudy=4, ev, cores=2);
 
+    pk6 <- rxSolve(mod2, c(KA=2.94E-01, TCL=1.86E+01, V2=4.02E+01,  Q=1.05E+01, V3=2.97E+02,
+                           Kin=1, Kout=1, EC50=200), omega=matrix(0.2, dimnames=list("eta.Cl", "eta.Cl")),
+                   nSub=4, nStud=4, thetaMat=thetaMat, sigma=sigma, nStudy=4, ev, cores=1, simVariability=FALSE);
+
+    pk7 <- rxSolve(mod2, c(KA=2.94E-01, TCL=1.86E+01, V2=4.02E+01,  Q=1.05E+01, V3=2.97E+02,
+                           Kin=1, Kout=1, EC50=200), omega=matrix(0.2, dimnames=list("eta.Cl", "eta.Cl")),
+                   nSub=4, nStud=4, thetaMat=thetaMat, sigma=sigma, nStudy=4, ev, cores=2, simVariability=FALSE);
+
     test_that("Can solve the system.", {
         expect_true(rxIs(pk2, "data.frame"))
         expect_true(rxIs(pk3, "data.frame"))
         expect_true(rxIs(pk4, "data.frame"))
         expect_true(rxIs(pk5, "data.frame"))
+        expect_true(rxIs(pk6, "data.frame"))
+        expect_true(rxIs(pk7, "data.frame"))
     })
 
 }, silent=TRUE, cran=TRUE)
