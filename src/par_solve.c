@@ -547,17 +547,8 @@ extern void par_lsoda(rx_solve *rx){
   rwork = (double*)Calloc(lrw+1, double);
   iwork = (int*)Calloc(liw+1, int);
   
-  iopt = 1;
-
-  rwork[4] = op->H0; // H0 -- determined by solver
-  rwork[6] = op->HMIN; // Hmin -- 0
+  /* iopt = 1; */
   
-  iwork[4] = 0; // ixpr  -- No extra printing.
-  iwork[5] = op->mxstep; // mxstep 
-  iwork[6] = 0; // MXHNIL 
-  iwork[7] = op->MXORDN; // MXORDN 
-  iwork[8] = op->MXORDS;  // MXORDS
-
   int nx;
   rx_solving_options_ind *ind;
   double *inits;
@@ -575,6 +566,20 @@ extern void par_lsoda(rx_solve *rx){
   int displayProgress = (op->nDisplayProgress <= nsim*nsub);
   int curTick = 0;
   for (int solveid = 0; solveid < nsim*nsub; solveid++){
+    itask = 1; 
+    istate = 1;
+    iopt = 0;
+    for (i = 0; i < lrw+1; i++) rwork[i]= 0;
+    for (i = 0; i < liw+1; i++) iwork[i]= 0;
+    for (i = 0; i < neq[0]; i++) yp[i]=0;
+    rwork[4] = op->H0; // H0 -- determined by solver
+    rwork[6] = op->HMIN; // Hmin -- 0
+  
+    iwork[4] = 0; // ixpr  -- No extra printing.
+    iwork[5] = op->mxstep; // mxstep 
+    iwork[6] = 0; // MXHNIL 
+    iwork[7] = op->MXORDN; // MXORDN 
+    iwork[8] = op->MXORDS;  // MXORDS
     neq[1] = solveid;
     ind = &(rx->subjects[neq[1]]);
     ind->ixds = 0;
