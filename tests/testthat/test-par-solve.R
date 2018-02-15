@@ -122,13 +122,14 @@ rxPermissive({
     ## "Study" Differences
     thetaMat <- diag(3) * 0.01
     dimnames(thetaMat) <- list(NULL, c("KA", "TCL", "V2"));
+
     pk4 <- rxSolve(mod2, c(KA=2.94E-01, TCL=1.86E+01, V2=4.02E+01,  Q=1.05E+01, V3=2.97E+02,
-                           Kin=1, Kout=1, EC50=200, err1=0, err2=0), omega=matrix(0.2, dimnames=list("eta.Cl", "eta.Cl")),
-                   nSub=4, thetaMat=thetaMat, nStudy=4, ev, cores=1);
+                           Kin=1, Kout=1, EC50=200), omega=matrix(0.2, dimnames=list("eta.Cl", "eta.Cl")),
+                   nSub=4, nStud=4, thetaMat=thetaMat, sigma=sigma, nStudy=4, ev, cores=1);
 
     pk5 <- rxSolve(mod2, c(KA=2.94E-01, TCL=1.86E+01, V2=4.02E+01,  Q=1.05E+01, V3=2.97E+02,
-                           Kin=1, Kout=1, EC50=200, err1=0, err2=0), omega=matrix(0.2, dimnames=list("eta.Cl", "eta.Cl")),
-                   nSub=4, thetaMat=thetaMat, nStudy=4, ev, cores=1);
+                           Kin=1, Kout=1, EC50=200), omega=matrix(0.2, dimnames=list("eta.Cl", "eta.Cl")),
+                   nSub=4, nStud=4, thetaMat=thetaMat, sigma=sigma, nStudy=4, ev, cores=2);
 
     test_that("Can solve the system.", {
         expect_true(rxIs(pk2, "data.frame"))

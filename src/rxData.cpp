@@ -3775,6 +3775,9 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
   NumericMatrix thetaM;
   CharacterVector thetaN;
   bool simTheta = false;
+  CharacterVector parN = CharacterVector(par.attr("names"));
+  IntegerVector thetaPar(parN.size());
+  int i, j, k;
   if (!thetaMat.isNull() && nStud > 1){
     thetaM = as<NumericMatrix>(thetaMat);
     if (!thetaM.hasAttribute("dimnames")){
@@ -3782,6 +3785,15 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
     }
     thetaM = as<NumericMatrix>(rxSimSigma(as<RObject>(thetaMat), as<RObject>(thetaDf), nCoresRV, thetaIsChol, nStud));
     thetaN = as<CharacterVector>((as<List>(thetaM.attr("dimnames")))[1]);
+    for (i = 0; i < parN.size(); i++){
+      thetaPar[i] = -1;
+      for (j = 0; j < thetaN.size(); j++){
+	if (parN[i] == thetaN[j]){
+	  thetaPar[i] = j;
+	  break;
+	}
+      }
+    }
     simTheta = true;
   } else if (!thetaMat.isNull() && nStud <= 1){
     warning("'thetaMat' is ignored since nStud <= 1.");
@@ -3850,27 +3862,24 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
   List ret0(ncol);
   NumericVector nm;
   NumericMatrix nm1;
-  int i, j, k;
   for (i = 0; i < ncol; i++){
     nm = NumericVector(nSub*nStud);
     ret0[i] = nm;
   }
   for (i = 0; i < nStud; i++){
     for (j = 0; j < pcol; j++){
-      if (simTheta){
-        // thetaM;
-        nm = ret0[j];
-	for (k = 0; k < nSub; k++){
-	  nm[nObs*i + k] = thetaM(i, j);
-	}
-        ret0[j] = nm;
-      } else {
-        nm = ret0[j];
-        for (k = 0; k < nSub; k++){
-          nm[nObs*i + k] = par[j];
-        }
-        ret0[j] = nm;
+      nm = ret0[j];
+      for (k = 0; k < nSub; k++){
+	nm[nSub*i + k] = par[j];
       }
+      if (simTheta){
+	if(thetaPar[j] != -1){
+          for (k = 0; k < nSub; k++){
+            nm[nSub*i + k] += thetaM(i, thetaPar[j]);
+          }
+        }
+      }
+      ret0[j] = nm;
     }
     // Now Omega Covariates
     if (ocol > 0){
@@ -3903,7 +3912,6 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
     }
   }
   CharacterVector dfName(ncol);
-  CharacterVector parN = CharacterVector(par.attr("names"));
   for (i = 0; i < pcol; i++){
     dfName[i] = parN[i];
   }
