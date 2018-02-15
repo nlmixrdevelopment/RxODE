@@ -429,11 +429,9 @@ extern void par_liblsoda(rx_solve *rx){
   for (int solveid = 0; solveid < nsim*nsub; solveid++){
     if (abort == 0){
       int i, j;
-      int csim = solveid % nsub;
-      int csub = solveid / nsub;
       int neq[2];
       neq[0] = op->neq;
-      neq[1] = csub+csim*nsub;    
+      neq[1] = solveid;
       double *yp = &yp0[neq[1]*neq[0]];
       int nx;
       rx_solving_options_ind *ind;
@@ -577,9 +575,7 @@ extern void par_lsoda(rx_solve *rx){
   int displayProgress = (op->nDisplayProgress <= nsim*nsub);
   int curTick = 0;
   for (int solveid = 0; solveid < nsim*nsub; solveid++){
-    int csim = solveid %  nsim;
-    int csub = solveid-csim;
-    neq[1] = csub+csim*nsub;
+    neq[1] = solveid;
     ind = &(rx->subjects[neq[1]]);
     ind->ixds = 0;
     nx = ind->n_all_times;
@@ -693,9 +689,7 @@ void par_dop(rx_solve *rx){
   int displayProgress = (op->nDisplayProgress <= nsim*nsub);
   int curTick = 0;
   for (int solveid = 0; solveid < nsim*nsub; solveid++){
-    int csim = solveid %  nsim;
-    int csub = solveid-csim;
-    neq[1] = csub+csim*nsub;
+    neq[1] = solveid;
     ind = &(rx->subjects[neq[1]]);
     ind->ixds = 0;
     nx = ind->n_all_times;

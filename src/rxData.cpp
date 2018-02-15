@@ -1746,6 +1746,7 @@ List rxDataParSetup(const RObject &object,
   ret["pars"] = parsVec;
   nr = parMat.nrow() / nSub;
   if (nr == 0) nr = 1;
+
   ret["nsim"] = nr;
   // NumericVector initsS = NumericVector(initsC.size()*nSub*nr);
   // for (i = 0; i < initsS.size(); i++){
@@ -1760,6 +1761,9 @@ List rxDataParSetup(const RObject &object,
   ret["svar"] = svar;
   ret["neq"] = state.size();
   DataFrame et      = as<DataFrame>(ret["et"]);
+  // et.nrow includes ALL subjects doses/observations
+  // nr is the number of simulations
+  // state.size is the number of states solved for....
   gsolveSetup(state.size()*et.nrow()*nr);
   CharacterVector lhs = as<CharacterVector>(modVars["lhs"]);
   // ret["lhs"] = NumericVector(lhs.size()*nSub*nr);
@@ -1947,7 +1951,6 @@ void rxSolvingData(const RObject &model,
     for (i = 0; i < all_times.size(); i++){
       gall_times[i] = all_times[i];
     }
-    int totSize = et.nrow();
     // NumericVector lhs = as<NumericVector>(opt["lhs"]);
     int lhsSize = as<int>(opt["lhsSize"]);
     IntegerVector par_cov = as<IntegerVector>(opt["pcov"]);
@@ -2001,7 +2004,7 @@ void rxSolvingData(const RObject &model,
 				&gpars[cid*nPar], &gamt[posDose[id]],
 				&gidose[posDose[id]],
                                 // Solve and lhs are written to in the solve...
-                                &gsolve[cid*totSize*neq],
+                                &gsolve[cid*nEvent[id]*neq],
                                 &glhs[cid*lhsSize],
                                 // Doesn't change with the solve.
 				&gevid[posEvent[id]], &grc[id], &gcov[posCov[id]],
