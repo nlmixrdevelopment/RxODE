@@ -670,46 +670,49 @@ List rxModelVars_(const RObject &obj){
     CharacterVector modList = as<CharacterVector>(obj);
     if (modList.size() == 1){
       std::string sobj =as<std::string>(obj);
-      if (_rxModels.exists(sobj)){
-        RObject obj1 = _rxModels.get(sobj);
-        if (rxIs(obj1, "rxModelVars")){
-          return as<List>(obj1);
-        } else if (rxIs(obj1, "RxODE")){
-          return rxModelVars_(obj1);
+      if ((sobj.find("=") == std::string::npos) &&
+	  (sobj.find("<-") == std::string::npos)){
+        if (_rxModels.exists(sobj)){
+          RObject obj1 = _rxModels.get(sobj);
+          if (rxIs(obj1, "rxModelVars")){
+            return as<List>(obj1);
+          } else if (rxIs(obj1, "RxODE")){
+            return rxModelVars_(obj1);
+          }
         }
-      }
-      std::string sobj1 = sobj + "_model_vars";
-      if (_rxModels.exists(sobj1)){
-        RObject obj1 = _rxModels.get(sobj1);
-        if (rxIs(obj1, "rxModelVars")){
-          return as<List>(obj1);
+        std::string sobj1 = sobj + "_model_vars";
+        if (_rxModels.exists(sobj1)){
+          RObject obj1 = _rxModels.get(sobj1);
+          if (rxIs(obj1, "rxModelVars")){
+            return as<List>(obj1);
+          }
         }
-      }
-      Function get("get",R_BaseNamespace);
-      List platform = get(_["x"]=".Platform", _["envir"] = R_BaseEnv);
-      sobj1 = sobj + "_" + as<std::string>(platform["r_arch"]) + "_model_vars";
-      if (_rxModels.exists(sobj1)){
-        RObject obj1 = _rxModels.get(sobj1);
-        if (rxIs(obj1, "rxModelVars")){
-          return as<List>(obj1);
+        Function get("get",R_BaseNamespace);
+        List platform = get(_["x"]=".Platform", _["envir"] = R_BaseEnv);
+        sobj1 = sobj + "_" + as<std::string>(platform["r_arch"]) + "_model_vars";
+        if (_rxModels.exists(sobj1)){
+          RObject obj1 = _rxModels.get(sobj1);
+          if (rxIs(obj1, "rxModelVars")){
+            return as<List>(obj1);
+          }
         }
-      }
-      Function filePath("file.path", R_BaseNamespace);
-      Function getwd("getwd", R_BaseNamespace);
-      sobj1 = as<std::string>(getwd());
-      std::string sobj2 = sobj + ".d";
-      std::string sobj3 = sobj + "_" + as<std::string>(platform["r_arch"]) +
-        as<std::string>(platform["dynlib.ext"]);
-      sobj1 = as<std::string>(filePath(sobj1,sobj2, sobj3));
-      if (fileExists(sobj1)){
-        Rcout << "Path: " << sobj1 << "\n";
-        Function dynLoad("dyn.load", R_BaseNamespace);
-        dynLoad(sobj1);
-        sobj1 = sobj + "_" + as<std::string>(platform["r_arch"]) +
-          "_model_vars";
-        Function call(".Call", R_BaseNamespace);
-        List ret = as<List>(call(sobj1));
-        return ret;
+        Function filePath("file.path", R_BaseNamespace);
+        Function getwd("getwd", R_BaseNamespace);
+        sobj1 = as<std::string>(getwd());
+        std::string sobj2 = sobj + ".d";
+        std::string sobj3 = sobj + "_" + as<std::string>(platform["r_arch"]) +
+          as<std::string>(platform["dynlib.ext"]);
+        sobj1 = as<std::string>(filePath(sobj1,sobj2, sobj3));
+        if (fileExists(sobj1)){
+          Rcout << "Path: " << sobj1 << "\n";
+          Function dynLoad("dyn.load", R_BaseNamespace);
+          dynLoad(sobj1);
+          sobj1 = sobj + "_" + as<std::string>(platform["r_arch"]) +
+            "_model_vars";
+          Function call(".Call", R_BaseNamespace);
+          List ret = as<List>(call(sobj1));
+          return ret;
+        }
       }
     }
     // fileExists(const std::string& name)
