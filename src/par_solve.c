@@ -395,13 +395,27 @@ int checkInterrupt() {
   return (R_ToplevelExec(chkIntFn, NULL) == FALSE);
 }
 
-extern void par_liblsoda(rx_solve *rx){
+
+extern void par_liblsoda1(rx_solve *rx){
   clock_t t0 = clock();
   rx_solving_options *op = &op_global;
   int nsub = rx->nsub;
   int nsim = rx->nsim;
-  int cores = op->cores;
+  int cores = 1;//op->cores;
   double *yp0=(double*) malloc((op->neq)*nsim*nsub*sizeof(double));
+  int curTick=0;
+  int cur=0;
+  int displayProgress = (op->nDisplayProgress <= nsim*nsub);
+  // Breaking of of loop ideas came from http://www.thinkingparallel.com/2007/06/29/breaking-out-of-loops-in-openmp/
+  // http://permalink.gmane.org/gmane.comp.lang.r.devel/27627
+  // It was buggy due to Rprint.  Use REprint instead since Rprint calls the interrupt every so often....
+  int abort = 0;
+
+  /* omp_set_dynamic(0);     // Explicitly disable dynamic teams */
+/*   omp_set_num_threads(cores); */
+/* #pragma omp parallel */
+{
+  // Thread specific variables
   struct lsoda_opt_t opt = {0};
   opt.ixpr = 0; // No extra printing...
   // Unlike traditional lsoda, these are vectors.
@@ -415,43 +429,38 @@ extern void par_liblsoda(rx_solve *rx){
   opt.h0 = op->H0;
   opt.hmax = op->hmax2;
   opt.hmin = op->HMIN;
-  opt.hmxi = 0.0;
-  int curTick=0;
-  int cur=0;
-  int displayProgress = (op->nDisplayProgress <= nsim*nsub);
-  // Breaking of of loop ideas came from http://www.thinkingparallel.com/2007/06/29/breaking-out-of-loops-in-openmp/
-  // http://permalink.gmane.org/gmane.comp.lang.r.devel/27627
-  // It was buggy due to Rprint.  Use REprint instead since Rprint calls the interrupt every so often....
-  int abort = 0;
-#ifdef _OPENMP
-#pragma omp parallel for num_threads(cores)
-#endif
+  opt.hmxi = 0.0;  
+  int i, j;
+  int neq[2];
+  neq[0] = op->neq;
+  int nx;
+  rx_solving_options_ind *ind;
+  double *inits;
+  int *evid;
+  double *x;
+  int *BadDose;
+  double *InfusionRate;
+  double *dose;
+  double *ret;
+  double xout;
+  int *rc;
+  struct lsoda_context_t ctx = {
+    .function = dydt_liblsoda,
+    .neq = neq[0],
+    .data = &neq,
+    .state = 1
+  };
+  lsoda_prepare(&ctx, &opt);
+  double *yp;
+  double xp;
   for (int solveid = 0; solveid < nsim*nsub; solveid++){
     if (abort == 0){
-      int i, j;
-      int neq[2];
-      neq[0] = op->neq;
       neq[1] = solveid;
-      double *yp = &yp0[neq[1]*neq[0]];
-      int nx;
-      rx_solving_options_ind *ind;
-      double *inits;
-      int *evid;
-      double *x;
-      int *BadDose;
-      double *InfusionRate;
-      double *dose;
-      double *ret;
-      double xout;
-      int *rc;
+      yp = &yp0[neq[1]*neq[0]];
       inits = op->inits;
-      struct lsoda_context_t ctx = {
-	.function = dydt_liblsoda,
-	.neq = neq[0],
-	.data = &neq,
-	.state = 1
-      };
-      lsoda_prepare(&ctx, &opt);
+      ctx.state=1;
+      ctx.data=  &neq;
+      lsoda_reset(&ctx);
       ind = &(rx->subjects[neq[1]]);
       ind->ixds = 0;
       nx = ind->n_all_times;
@@ -462,55 +471,171 @@ extern void par_liblsoda(rx_solve *rx){
       ret = ind->solve;
       x = ind->all_times;
       rc= ind->rc;
-      double xp = x[0];
+      xp = x[0];
       //--- inits the system
       update_inis(neq[1], inits); // Update initial conditions
       for(i=0; i<neq[0]; i++) yp[i] = inits[i];
       for(i=0; i<nx; i++) {
-	xout = x[i];
-	if(xout-xp > DBL_EPSILON*max(fabs(xout),fabs(xp))){
-	  lsoda(&ctx, yp, &xp, xout);
-	  if (ctx.state <= 0) {
-	    /* REprintf("IDID=%d, %s\n", istate, err_msg[-istate-1]); */
-	    *rc = ctx.state;
-	    // Bad Solve => NA
-	    for (i = 0; i < nx*neq[0]; i++) ret[i] = NA_REAL;
-	    op->badSolve = 1;
-	    i = nx+42; // Get out of here!
-	  }
-	}
-	if (handle_evid(evid[i], neq[0], BadDose, InfusionRate, dose, yp,
-			op->do_transit_abs, xout, ind)){
-	  ctx.state = 1;
-	  xp = xout;
-	}
-	for(j=0; j<neq[0]; j++) ret[neq[0]*i+j] = yp[j];
+        xout = x[i];
+        if(xout-xp > DBL_EPSILON*max(fabs(xout),fabs(xp))){
+          lsoda(&ctx, yp, &xp, xout);
+          if (ctx.state <= 0) {
+            /* REprintf("IDID=%d, %s\n", istate, err_msg[-istate-1]); */
+            *rc = ctx.state;
+            // Bad Solve => NA
+            for (i = 0; i < nx*neq[0]; i++) ret[i] = NA_REAL;
+            op->badSolve = 1;
+            i = nx+42; // Get out of here!
+          }
+        }
+        if (handle_evid(evid[i], neq[0], BadDose, InfusionRate, dose, yp,
+                        op->do_transit_abs, xout, ind)){
+          ctx.state = 1;
+          xp = xout;
+        }
+        for(j=0; j<neq[0]; j++) ret[neq[0]*i+j] = yp[j];
       }
-      lsoda_free(&ctx);
       if (displayProgress){
-#pragma omp critical
-	cur++;
-#pragma omp critical
-#ifdef _OPENMP
-        if (omp_get_thread_num() == 0) // only in master thread!
-#endif
-	  curTick = par_progress(cur, nsim*nsub, curTick, cores, t0, 0);
+        cur++;
+        curTick = par_progress(cur, nsim*nsub, curTick, cores, t0, 0);
       }
-#pragma omp flush (abort)
       if (abort == 0){
-#ifdef _OPENMP
-        if (omp_get_thread_num() == 0) // only in master thread!
-#endif
-	  if (checkInterrupt()) abort =1;
+        if (checkInterrupt()) abort =1;
       }
     }
   }
+  lsoda_free(&ctx);
+ }
+  /* lsoda_free_opt(&opt); */
   if (abort == 1){
     op->abort = 1;
     yp0 = NULL;
     par_progress(cur, nsim*nsub, curTick, cores, t0, 1);
   } else {
     if (displayProgress && curTick < 50) par_progress(nsim*nsub, nsim*nsub, curTick, cores, t0, 0);
+  }
+}
+
+extern void par_liblsoda(rx_solve *rx){
+  clock_t t0 = clock();
+  rx_solving_options *op = &op_global;
+  int cores = op->cores;
+  if (cores == 1){
+    par_liblsoda1(rx);
+  } else {
+    int nsub = rx->nsub;
+    int nsim = rx->nsim;
+    double *yp0=(double*) malloc((op->neq)*nsim*nsub*sizeof(double));
+    struct lsoda_opt_t opt = {0};
+    opt.ixpr = 0; // No extra printing...
+    // Unlike traditional lsoda, these are vectors.
+    opt.rtol = op->rtol2;
+    opt.atol = op->atol2;
+    opt.itask = 1;
+    opt.mxstep = op->mxstep;
+    opt.mxhnil = 0;
+    opt.mxordn = op->MXORDN;
+    opt.mxords = op->MXORDS;
+    opt.h0 = op->H0;
+    opt.hmax = op->hmax2;
+    opt.hmin = op->HMIN;
+    opt.hmxi = 0.0;
+    int curTick=0;
+    int cur=0;
+    int displayProgress = (op->nDisplayProgress <= nsim*nsub);
+    // Breaking of of loop ideas came from http://www.thinkingparallel.com/2007/06/29/breaking-out-of-loops-in-openmp/
+    // http://permalink.gmane.org/gmane.comp.lang.r.devel/27627
+    // It was buggy due to Rprint.  Use REprint instead since Rprint calls the interrupt every so often....
+    int abort = 0;
+#ifdef _OPENMP
+#pragma omp parallel for num_threads(cores)
+#endif
+    for (int solveid = 0; solveid < nsim*nsub; solveid++){
+      if (abort == 0){
+        int i, j;
+        int neq[2];
+        neq[0] = op->neq;
+        neq[1] = solveid;
+        double *yp = &yp0[neq[1]*neq[0]];
+        int nx;
+        rx_solving_options_ind *ind;
+        double *inits;
+        int *evid;
+        double *x;
+        int *BadDose;
+        double *InfusionRate;
+        double *dose;
+        double *ret;
+        double xout;
+        int *rc;
+        inits = op->inits;
+        struct lsoda_context_t ctx = {
+          .function = dydt_liblsoda,
+          .neq = neq[0],
+          .data = &neq,
+          .state = 1
+        };
+        lsoda_prepare(&ctx, &opt);
+        ind = &(rx->subjects[neq[1]]);
+        ind->ixds = 0;
+        nx = ind->n_all_times;
+        evid = ind->evid;
+        BadDose = ind->BadDose;
+        InfusionRate = ind->InfusionRate;
+        dose = ind->dose;
+        ret = ind->solve;
+        x = ind->all_times;
+        rc= ind->rc;
+        double xp = x[0];
+        //--- inits the system
+        update_inis(neq[1], inits); // Update initial conditions
+        for(i=0; i<neq[0]; i++) yp[i] = inits[i];
+        for(i=0; i<nx; i++) {
+          xout = x[i];
+          if(xout-xp > DBL_EPSILON*max(fabs(xout),fabs(xp))){
+            lsoda(&ctx, yp, &xp, xout);
+            if (ctx.state <= 0) {
+              /* REprintf("IDID=%d, %s\n", istate, err_msg[-istate-1]); */
+              *rc = ctx.state;
+              // Bad Solve => NA
+              for (i = 0; i < nx*neq[0]; i++) ret[i] = NA_REAL;
+              op->badSolve = 1;
+              i = nx+42; // Get out of here!
+            }
+          }
+          if (handle_evid(evid[i], neq[0], BadDose, InfusionRate, dose, yp,
+                          op->do_transit_abs, xout, ind)){
+            ctx.state = 1;
+            xp = xout;
+          }
+          for(j=0; j<neq[0]; j++) ret[neq[0]*i+j] = yp[j];
+        }
+        lsoda_free(&ctx);
+        if (displayProgress){
+#pragma omp critical
+          cur++;
+#pragma omp critical
+#ifdef _OPENMP
+          if (omp_get_thread_num() == 0) // only in master thread!
+#endif
+            curTick = par_progress(cur, nsim*nsub, curTick, cores, t0, 0);
+        }
+#pragma omp flush (abort)
+        if (abort == 0){
+#ifdef _OPENMP
+          if (omp_get_thread_num() == 0) // only in master thread!
+#endif
+            if (checkInterrupt()) abort =1;
+        }
+      }
+    }
+    if (abort == 1){
+      op->abort = 1;
+      yp0 = NULL;
+      par_progress(cur, nsim*nsub, curTick, cores, t0, 1);
+    } else {
+      if (displayProgress && curTick < 50) par_progress(nsim*nsub, nsim*nsub, curTick, cores, t0, 0);
+    }
   }
 }
 
@@ -564,80 +689,90 @@ extern void par_lsoda(rx_solve *rx){
   inits = op->inits;
   int displayProgress = (op->nDisplayProgress <= nsim*nsub);
   int curTick = 0;
+  int abort = 0;
   for (int solveid = 0; solveid < nsim*nsub; solveid++){
-    itask = 1; 
-    istate = 1;
-    iopt = 0;
-    memset(&rwork, 0, sizeof(rwork));
-    memset(&iwork, 0, sizeof(iwork));
-    memset(&yp, 0, sizeof(yp));
-    rwork[4] = op->H0; // H0 -- determined by solver
-    rwork[6] = op->HMIN; // Hmin -- 0
+    if (abort == 0){
+      itask = 1; 
+      istate = 1;
+      iopt = 0;
+      for (i = 0; i < lrw+1; i++) rwork[i]=0;
+      for (i = 0; i < liw+1; i++) iwork[i]=0;
+      for (i = 0; i < neq[0]; i++) yp[i]=0;
+      rwork[4] = op->H0; // H0 -- determined by solver
+      rwork[6] = op->HMIN; // Hmin -- 0
   
-    iwork[4] = 0; // ixpr  -- No extra printing.
-    iwork[5] = op->mxstep; // mxstep 
-    iwork[6] = 0; // MXHNIL 
-    iwork[7] = op->MXORDN; // MXORDN 
-    iwork[8] = op->MXORDS;  // MXORDS
-    neq[1] = solveid;
-    ind = &(rx->subjects[neq[1]]);
-    ind->ixds = 0;
-    nx = ind->n_all_times;
-    evid = ind->evid;
-    BadDose = ind->BadDose;
-    InfusionRate = ind->InfusionRate;
-    dose = ind->dose;
-    ret = ind->solve;
-    x = ind->all_times;
-    rc= ind->rc;
-    rwork[5] = ind->HMAX; // Hmax -- Infinite
-    double xp = x[0];
-    //--- inits the system
-    update_inis(neq[1], inits); // Update initial conditions
-    for(i=0; i<neq[0]; i++) yp[i] = inits[i];
-    for(i=0; i<nx; i++) {
-      xout = x[i];
-      if (global_debug){
-	REprintf("i=%d xp=%f xout=%f\n", i, xp, xout);
-      }
-      if(xout-xp > DBL_EPSILON*max(fabs(xout),fabs(xp)))
-	{
-	  F77_CALL(dlsoda)(dydt_lsoda_dum, neq, yp, &xp, &xout, &itol, &rtol, &atol, &itask,
-			   &istate, &iopt, rwork, &lrw, iwork, &liw, jdum_lsoda, &jt);
-
-	  if (istate<0)
-	    {
-	      REprintf("IDID=%d, %s\n", istate, err_msg[-istate-1]);
-	      *rc = istate;
-	      // Bad Solve => NA
-	      for (i = 0; i < nx*neq[0]; i++) ret[i] = NA_REAL;
-	      op->badSolve = 1;
-	      i = nx+42; // Get out of here!
-	    }
-	  ind->slvr_counter++;
-	  //dadt_counter = 0;
+      iwork[4] = 0; // ixpr  -- No extra printing.
+      iwork[5] = op->mxstep; // mxstep 
+      iwork[6] = 0; // MXHNIL 
+      iwork[7] = op->MXORDN; // MXORDN 
+      iwork[8] = op->MXORDS;  // MXORDS
+      neq[1] = solveid;
+      ind = &(rx->subjects[neq[1]]);
+      ind->ixds = 0;
+      nx = ind->n_all_times;
+      evid = ind->evid;
+      BadDose = ind->BadDose;
+      InfusionRate = ind->InfusionRate;
+      dose = ind->dose;
+      ret = ind->solve;
+      x = ind->all_times;
+      rc= ind->rc;
+      rwork[5] = ind->HMAX; // Hmax -- Infinite
+      double xp = x[0];
+      //--- inits the system
+      update_inis(neq[1], inits); // Update initial conditions
+      for(i=0; i<neq[0]; i++) yp[i] = inits[i];
+      for(i=0; i<nx; i++) {
+	xout = x[i];
+	if (global_debug){
+	  REprintf("i=%d xp=%f xout=%f\n", i, xp, xout);
 	}
-      if (handle_evid(evid[i], neq[0], BadDose, InfusionRate, dose, yp,
-		      op->do_transit_abs, xout, ind)){
-	istate = 1;
-	xp = xout;
-      }
-	
-      for(j=0; j<neq[0]; j++) ret[neq[0]*i+j] = yp[j];
-      //REprintf("wh=%d cmt=%d tm=%g rate=%g\n", wh, cmt, xp, InfusionRate[cmt]);
-
-      if (global_debug){
-	REprintf("ISTATE=%d, ", istate);
-	for(j=0; j<neq[0]; j++)
+	if(xout-xp > DBL_EPSILON*max(fabs(xout),fabs(xp)))
 	  {
-	    REprintf("%f ", yp[j]);
+	    F77_CALL(dlsoda)(dydt_lsoda_dum, neq, yp, &xp, &xout, &itol, &rtol, &atol, &itask,
+			     &istate, &iopt, rwork, &lrw, iwork, &liw, jdum_lsoda, &jt);
+
+	    if (istate<0)
+	      {
+		REprintf("IDID=%d, %s\n", istate, err_msg[-istate-1]);
+		*rc = istate;
+		// Bad Solve => NA
+		for (i = 0; i < nx*neq[0]; i++) ret[i] = NA_REAL;
+		op->badSolve = 1;
+		i = nx+42; // Get out of here!
+	      }
+	    ind->slvr_counter++;
+	    //dadt_counter = 0;
 	  }
-	REprintf("\n");
+	if (handle_evid(evid[i], neq[0], BadDose, InfusionRate, dose, yp,
+			op->do_transit_abs, xout, ind)){
+	  istate = 1;
+	  xp = xout;
+	}
+	
+	for(j=0; j<neq[0]; j++) ret[neq[0]*i+j] = yp[j];
+	//REprintf("wh=%d cmt=%d tm=%g rate=%g\n", wh, cmt, xp, InfusionRate[cmt]);
+
+	if (global_debug){
+	  REprintf("ISTATE=%d, ", istate);
+	  for(j=0; j<neq[0]; j++)
+	    {
+	      REprintf("%f ", yp[j]);
+	    }
+	  REprintf("\n");
+	}
+      }
+      if (displayProgress) curTick = par_progress(solveid, nsim*nsub, curTick, 1, t0, 0);
+      if (abort == 0){
+	if (checkInterrupt()) abort =1;
       }
     }
-    if (displayProgress) curTick = par_progress(solveid, nsim*nsub, curTick, 1, t0, 0);
   }
-  if (displayProgress && curTick < 50) par_progress(nsim*nsub, nsim*nsub, curTick, 1, t0, 0);
+  if (abort == 1){
+    op->abort = 1;
+  } else {
+    if (displayProgress && curTick < 50) par_progress(nsim*nsub, nsim*nsub, curTick, 1, t0, 0);
+  }
   /* if (rc[0]){ */
   /*   /\* REprintf("Error solving using LSODA\n"); *\/ */
   /*   /\* Free(rwork); *\/ */
@@ -692,94 +827,104 @@ void par_dop(rx_solve *rx){
   // Therefore you could use https://github.com/jacobwilliams/dop853, but I haven't yet
   int displayProgress = (op->nDisplayProgress <= nsim*nsub);
   int curTick = 0;
+  int abort = 0;
   for (int solveid = 0; solveid < nsim*nsub; solveid++){
-    neq[1] = solveid;
-    ind = &(rx->subjects[neq[1]]);
-    ind->ixds = 0;
-    nx = ind->n_all_times;
-    inits = op->inits;
-    evid = ind->evid;
-    BadDose = ind->BadDose;
-    InfusionRate = ind->InfusionRate;
-    dose = ind->dose;
-    ret = ind->solve;
-    x = ind->all_times;
-    rc= ind->rc;
-    double xp = x[0];
-    //--- inits the system
-    update_inis(neq[1], inits); // Update initial conditions
+    if (abort == 0){
+      neq[1] = solveid;
+      ind = &(rx->subjects[neq[1]]);
+      ind->ixds = 0;
+      nx = ind->n_all_times;
+      inits = op->inits;
+      evid = ind->evid;
+      BadDose = ind->BadDose;
+      InfusionRate = ind->InfusionRate;
+      dose = ind->dose;
+      ret = ind->solve;
+      x = ind->all_times;
+      rc= ind->rc;
+      double xp = x[0];
+      //--- inits the system
+      update_inis(neq[1], inits); // Update initial conditions
       
-    //--- inits the system
-    for(i=0; i<neq[0]; i++) yp[i] = inits[i];
+      //--- inits the system
+      for(i=0; i<neq[0]; i++) yp[i] = inits[i];
 
-    for(i=0; i<nx; i++) {
-      xout = x[i];
-      if (global_debug){
-	REprintf("i=%d xp=%f xout=%f\n", i, xp, xout);
-      }
-      if(xout-xp>DBL_EPSILON*max(fabs(xout),fabs(xp)))
-	{
-	  idid = dop853(neq,       /* dimension of the system <= UINT_MAX-1*/
-			dydt,       /* function computing the value of f(x,y) */
-			xp,           /* initial x-value */
-			yp,           /* initial values for y */
-			xout,         /* final x-value (xend-x may be positive or negative) */
-			&rtol,          /* relative error tolerance */
-			&atol,          /* absolute error tolerance */
-			itol,         /* switch for rtoler and atoler */
-			solout,         /* function providing the numerical solution during integration */
-			iout,         /* switch for calling solout */
-			NULL,           /* messages stream */
-			DBL_EPSILON,    /* rounding unit */
-			0,              /* safety factor */
-			0,              /* parameters for step size selection */
-			0,
-			0,              /* for stabilized step size control */
-			0,              /* maximal step size */
-			0,            /* initial step size */
-			0,            /* maximal number of allowed steps */
-			1,            /* switch for the choice of the coefficients */
-			-1,                     /* test for stiffness */
-			0,                      /* number of components for which dense outpout is required */
-			NULL,           /* indexes of components for which dense output is required, >= nrdens */
-			0                       /* declared length of icon */
-			);
-	  if (idid<0)
-	    {
-	      REprintf("IDID=%d, %s\n", idid, err_msg[-idid-1]);
-	      *rc = idid;
-	      // Bad Solve => NA
-	      for (i = 0; i < nx*neq[0]; i++) ret[i] = NA_REAL;
-	      op->badSolve = 1;
-	      i = nx+42; // Get out of here!
-	    }
-	  xp = xRead();
-	  ind->slvr_counter++;
-	  //dadt_counter = 0;
+      for(i=0; i<nx; i++) {
+	xout = x[i];
+	if (global_debug){
+	  REprintf("i=%d xp=%f xout=%f\n", i, xp, xout);
 	}
-      if (handle_evid(evid[i], neq[0], BadDose, InfusionRate, dose, yp,
-		      op->do_transit_abs, xout, ind)){
-	xp = xout;
-      }
-      for(j=0; j<neq[0]; j++) ret[neq[0]*i+j] = yp[j];
-      //REprintf("wh=%d cmt=%d tm=%g rate=%g\n", wh, cmt, xp, InfusionRate[cmt]);
-
-      if (global_debug){
-	REprintf("IDID=%d, ", idid);
-	for(j=0; j<neq[0]; j++)
+	if(xout-xp>DBL_EPSILON*max(fabs(xout),fabs(xp)))
 	  {
-	    REprintf("%f ", yp[j]);
+	    idid = dop853(neq,       /* dimension of the system <= UINT_MAX-1*/
+			  dydt,       /* function computing the value of f(x,y) */
+			  xp,           /* initial x-value */
+			  yp,           /* initial values for y */
+			  xout,         /* final x-value (xend-x may be positive or negative) */
+			  &rtol,          /* relative error tolerance */
+			  &atol,          /* absolute error tolerance */
+			  itol,         /* switch for rtoler and atoler */
+			  solout,         /* function providing the numerical solution during integration */
+			  iout,         /* switch for calling solout */
+			  NULL,           /* messages stream */
+			  DBL_EPSILON,    /* rounding unit */
+			  0,              /* safety factor */
+			  0,              /* parameters for step size selection */
+			  0,
+			  0,              /* for stabilized step size control */
+			  0,              /* maximal step size */
+			  0,            /* initial step size */
+			  0,            /* maximal number of allowed steps */
+			  1,            /* switch for the choice of the coefficients */
+			  -1,                     /* test for stiffness */
+			  0,                      /* number of components for which dense outpout is required */
+			  NULL,           /* indexes of components for which dense output is required, >= nrdens */
+			  0                       /* declared length of icon */
+			  );
+	    if (idid<0)
+	      {
+		REprintf("IDID=%d, %s\n", idid, err_msg[-idid-1]);
+		*rc = idid;
+		// Bad Solve => NA
+		for (i = 0; i < nx*neq[0]; i++) ret[i] = NA_REAL;
+		op->badSolve = 1;
+		i = nx+42; // Get out of here!
+	      }
+	    xp = xRead();
+	    ind->slvr_counter++;
+	    //dadt_counter = 0;
 	  }
-	REprintf("\n");
+	if (handle_evid(evid[i], neq[0], BadDose, InfusionRate, dose, yp,
+			op->do_transit_abs, xout, ind)){
+	  xp = xout;
+	}
+	for(j=0; j<neq[0]; j++) ret[neq[0]*i+j] = yp[j];
+	//REprintf("wh=%d cmt=%d tm=%g rate=%g\n", wh, cmt, xp, InfusionRate[cmt]);
+
+	if (global_debug){
+	  REprintf("IDID=%d, ", idid);
+	  for(j=0; j<neq[0]; j++)
+	    {
+	      REprintf("%f ", yp[j]);
+	    }
+	  REprintf("\n");
+	}
+	/* if (rc[0]){ */
+	/*   REprintf("Error sovling using dop853\n"); */
+	/*   return; */
+	/* } */
       }
-      /* if (rc[0]){ */
-      /*   REprintf("Error sovling using dop853\n"); */
-      /*   return; */
-      /* } */
+      if (abort == 0){
+        if (checkInterrupt()) abort =1;
+      }
+      if (displayProgress) curTick = par_progress(solveid, nsim*nsub, curTick, 1, t0, 0);
     }
-    if (displayProgress) curTick = par_progress(solveid, nsim*nsub, curTick, 1, t0, 0);
   }
-  if (displayProgress && curTick < 50) par_progress(nsim*nsub, nsim*nsub, curTick, 1, t0, 0);
+  if (abort == 1){
+    op->abort = 1;
+  } else {
+    if (displayProgress && curTick < 50) par_progress(nsim*nsub, nsim*nsub, curTick, 1, t0, 0);
+  }
 }
 
 void par_solve(rx_solve *rx){

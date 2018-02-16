@@ -50,7 +50,6 @@ rxPermissive({
                                    Kin=1, Kout=1, EC50=200), omega=matrix(0.2, dimnames=list("eta.Cl", "eta.Cl")),
                            nSub=4, ev, sigma=sigma, cores=2, method=meth);
 
-
         pk4 <- rxSolve(mod2, c(KA=2.94E-01, TCL=1.86E+01, V2=4.02E+01,  Q=1.05E+01, V3=2.97E+02,
                                Kin=1, Kout=1, EC50=200), omega=matrix(0.2, dimnames=list("eta.Cl", "eta.Cl")),
                        nSub=4, ev, sigma=sigma, cores=1, method=meth);
@@ -164,6 +163,8 @@ rxPermissive({
                 skip("Can't load test dataset.")
             }
         }
+
+
         pk8 <- rxSolve(mod2, c(KA=2.94E-01, TCL=1.86E+01, V2=4.02E+01,  Q=1.05E+01, V3=2.97E+02,
                                Kin=1, Kout=1, EC50=200), omega=matrix(0.2, dimnames=list("eta.Cl", "eta.Cl")),
                        thetaMat=thetaMat, sigma=sigma, dat, nStud=4, cores=1, method=meth)
