@@ -3839,8 +3839,8 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
   if (simSigma){
     scol = sigmaMC.ncol();
     if (nObs*nStud*nSub*scol < 0){
-      nStud = INT_MAX/(nObs*nSub*scol)*0.75;
-      warning("Sigma Simulation Overflow; Set nStud to %d", nStud);
+      // nStud = INT_MAX/(nObs*nSub*scol)*0.25;
+      stop("Simulation Overflow; Reduce the number of observations, number of subjects or number of studies.");
     }
   }
   NumericMatrix thetaM;
