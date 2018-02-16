@@ -465,7 +465,6 @@ extern void par_liblsoda(rx_solve *rx){
       double xp = x[0];
       //--- inits the system
       update_inis(neq[1], inits); // Update initial conditions
-
       for(i=0; i<neq[0]; i++) yp[i] = inits[i];
       for(i=0; i<nx; i++) {
 	xout = x[i];
@@ -569,9 +568,9 @@ extern void par_lsoda(rx_solve *rx){
     itask = 1; 
     istate = 1;
     iopt = 0;
-    for (i = 0; i < lrw+1; i++) rwork[i]= 0;
-    for (i = 0; i < liw+1; i++) iwork[i]= 0;
-    for (i = 0; i < neq[0]; i++) yp[i]=0;
+    memset(&rwork, 0, sizeof(rwork));
+    memset(&iwork, 0, sizeof(iwork));
+    memset(&yp, 0, sizeof(yp));
     rwork[4] = op->H0; // H0 -- determined by solver
     rwork[6] = op->HMIN; // Hmin -- 0
   
