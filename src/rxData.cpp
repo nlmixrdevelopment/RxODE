@@ -6,6 +6,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <stdio.h>
+#include <climits>
 extern "C" {
 #include "solve.h"
 }
@@ -3814,6 +3815,31 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
       stop("'params' must be a named vector.");
     }
   }
+  bool simSigma = false;
+  NumericMatrix sigmaM;
+  CharacterVector sigmaN;
+  NumericMatrix sigmaMC;
+  if (!sigma.isNull() && nObs > 1){
+    simSigma = true;
+    sigmaM = as<NumericMatrix>(sigma);
+    if (!sigmaM.hasAttribute("dimnames")){
+      stop("'sigma' must be a named Matrix.");
+    }
+    if (sigmaIsChol){
+      sigmaMC = sigmaM;
+    } else {
+      sigmaMC = wrap(arma::chol(as<arma::mat>(sigmaM)));
+    }
+    sigmaN = as<CharacterVector>((as<List>(sigmaM.attr("dimnames")))[1]);
+  }  
+  int scol = 0;
+  if (simSigma){
+    scol = sigmaMC.ncol();
+    if (nObs*nStud*nSub*scol < 0){
+      nStud = INT_MAX/(nObs*nSub*scol)*0.75;
+      warning("Sigma Simulation Overflow; Set nStud to %d", nStud);
+    }
+  }
   NumericMatrix thetaM;
   CharacterVector thetaN;
   bool simTheta = false;
@@ -3859,23 +3885,6 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
   } else if (nSub > 1){
     stop("'omega' is required for multi-subject simulations.");
   }
-  bool simSigma = false;
-  NumericMatrix sigmaM;
-  CharacterVector sigmaN;
-  NumericMatrix sigmaMC;
-  if (!sigma.isNull() && nObs > 1){
-    simSigma = true;
-    sigmaM = as<NumericMatrix>(sigma);
-    if (!sigmaM.hasAttribute("dimnames")){
-      stop("'sigma' must be a named Matrix.");
-    }
-    if (sigmaIsChol){
-      sigmaMC = sigmaM;
-    } else {
-      sigmaMC = wrap(arma::chol(as<arma::mat>(sigmaM)));
-    }
-    sigmaN = as<CharacterVector>((as<List>(sigmaM.attr("dimnames")))[1]);
-  } 
   // Now create data frame of parameter values
   List omegaList;
   List sigmaList;  
@@ -3889,7 +3898,6 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
   }
   int pcol = par.size();
   int ocol = 0;
-  int scol = 0;
   int ncol = pcol;
   if (simOmega){
     ocol = omegaMC.ncol();
@@ -3897,7 +3905,6 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
   }
   NumericMatrix ret1;
   if (simSigma){
-    scol = sigmaMC.ncol();
     ncol += scol;
     ret1 = NumericMatrix(nObs*nStud*nSub, scol);
   }
