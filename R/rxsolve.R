@@ -246,6 +246,9 @@ rxSolve <- function(object, params=NULL, events=NULL, inits = NULL, scale = NULL
             cur.events <- rxDataSetup(params);
         } else if (rxIs(events, "rx.event")){
             cur.events <- rxDataSetup(events);
+            if (rxIs(params, "data.frame") || rxIs(params, "matrix")){
+                stop("When specifying 'thetaMat', 'omega', or 'sigma' the parameters cannot be a data.frame/matrix.");
+            }
         }
         nObs <- cur.events$nObs;
         if (addDosing){
