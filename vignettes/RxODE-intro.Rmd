@@ -847,6 +847,15 @@ specifying the `simVariability = FALSE` option when solving:
 sim  <- rxSolve(mod, theta, ev, omega=omega, nSub=100, sigma=sigma, thetaMat=tMat, nStud=10,
                 simVariability=FALSE);
 
+p <- c(0.05, 0.5, 0.95);
+s <-sim %>% group_by(time) %>%
+    do(data.frame(p=p, eff=quantile(.$e, probs=p), 
+                  eff.n = length(.$e), eff.avg = mean(.$e),
+                  centr=quantile(.$cp, probs=p),
+                  centr.n=length(.$cp),centr.avg = mean(.$cp))) %>%
+    mutate(Percentile=factor(sprintf("%d%%",p*100),levels=c("5%","50%","95%")))
+
+
 p1 <- ggplot(s,aes(time,centr,color=Percentile)) + geom_line(size=1) + coord_trans(y = "log10") + ylab("Central Concentration") +
     xlab("Time (hr)")
 
@@ -861,13 +870,57 @@ Note since realizations of `omega` and `sigma` were not simulated, `$omega.list`
 
 #### RxODE multi-threaded solving and simulation
 
+RxODE now supports multi-threaded solving on OpenMP supported
+compilers, including linux and windows. Mac OSX can also be supported
+but
+takes
+[additional setup](https://github.com/Rdatatable/data.table/wiki/Installation#openmp-enabled-compiler-for-mac).
+By default it uses all your available cores for solving as determined
+by `rxCores()`.  This may be overkill depending on your system, at a
+certain point the speed of solving is limited by things other than
+computing power.
+
+You can also speed up simulation by using the multi-cores to generate
+random deviates with `mvnfast`.  This is controlled by the `nCoresRV`
+parameter.  For example:
+
+```{r}
+sim  <- rxSolve(mod, theta, ev, omega=omega, nSub=100, sigma=sigma, thetaMat=tMat, nStud=10,
+                nCoresRV=rxCores());
+
+p <- c(0.05, 0.5, 0.95);
+s <-sim %>% group_by(time) %>%
+    do(data.frame(p=p, eff=quantile(.$e, probs=p), 
+                  eff.n = length(.$e), eff.avg = mean(.$e),
+                  centr=quantile(.$cp, probs=p),
+                  centr.n=length(.$cp),centr.avg = mean(.$cp))) %>%
+    mutate(Percentile=factor(sprintf("%d%%",p*100),levels=c("5%","50%","95%")))
+
+
+p1 <- ggplot(s,aes(time,centr,color=Percentile)) + geom_line(size=1) + coord_trans(y = "log10") + ylab("Central Concentration") +
+    xlab("Time (hr)")
+
+p2 <-ggplot(s,aes(time,eff,color=Percentile)) + geom_line(size=1) + ylab("Effect") +
+    xlab("Time (hr)") + guides(color=FALSE)
+
+grid.arrange(p1,p2,nrow=2)
+```
+
+The default for this is `1` core since the result depends on the
+number of cores and the random seed you use in your simulation.
+However, you can always speed up this process with more cores if you
+are sure your collaborators have the same number of cores available to
+them and have OpenMP thread-capable compile.
+
+
 #### Facilities for generating R shiny applications
 
-An example of creating an R [shiny application](http://shiny.rstudio.com) to
-interactively explore responses of various complex dosing regimens is available
-at http://qsp.engr.uga.edu:3838/RxODE/RegimenSimulator.  Shiny applications
-like this one may be programmatically created with the experimental function
-`genShinyApp.template()`.
+An example of creating an
+R [shiny application](http://shiny.rstudio.com) to interactively
+explore responses of various complex dosing regimens is available at
+http://qsp.engr.uga.edu:3838/RxODE/RegimenSimulator.  Shiny
+applications like this one may be programmatically created with the
+experimental function `genShinyApp.template()`.
 
 The above application includes widgets for varying the dose, dosing
 regimen, dose cycle, and number of cycles.

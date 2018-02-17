@@ -5,7 +5,7 @@
 [![CRAN total downloads](https://cranlogs.r-pkg.org/badges/grand-total/RxODE)](https://cran.r-project.org/package=RxODE)
 [![Dependency Status](https://dependencyci.com/github/nlmixrdevelopment/RxODE/badge)](https://dependencyci.com/github/nlmixrdevelopment/RxODE)
 
-
+![plot of chunk compileVignette](figure/compileVignette-1.png)
 
 
 ## RxODE: A tool for performing simulations from Ordinary Differential Equation (ODE) models, with applications for pharmacometrics
@@ -395,26 +395,6 @@ by `dpylr`.  For example you could filter it easily.
 
 ```r
 library(dplyr)
-```
-
-```
-## 
-## Attaching package: 'dplyr'
-```
-
-```
-## The following objects are masked from 'package:stats':
-## 
-##     filter, lag
-```
-
-```
-## The following objects are masked from 'package:base':
-## 
-##     intersect, setdiff, setequal, union
-```
-
-```r
 x <- mod1 %>% solve(theta,ev,inits) %>%  filter(time <=3)
 x
 ```
@@ -1395,20 +1375,7 @@ sim  <- rxSolve(mod,theta,ev,omega=omega,nSub=100)
 
 library(ggplot2)
 library(gridExtra)
-```
 
-```
-## 
-## Attaching package: 'gridExtra'
-```
-
-```
-## The following object is masked from 'package:dplyr':
-## 
-##     combine
-```
-
-```r
 p1 <- ggplot(sim,aes(time,centr,color=factor(sim.id))) + geom_line(size=1) + coord_trans(y = "log10") + ylab("Central Concentration") +
     xlab("Time (hr)") + guides(color=FALSE)
 
@@ -1455,12 +1422,12 @@ head(sim$param)
 
 ```
 ##   sim.id   V2  V3  TCl      eta.Cl    KA    Q Kin Kout EC50
-## 1      1 40.2 297 18.6 -0.47517069 0.294 10.5   1    1  200
-## 2      2 40.2 297 18.6  0.39911190 0.294 10.5   1    1  200
-## 3      3 40.2 297 18.6 -0.11419638 0.294 10.5   1    1  200
-## 4      4 40.2 297 18.6  0.07396562 0.294 10.5   1    1  200
-## 5      5 40.2 297 18.6 -0.18877903 0.294 10.5   1    1  200
-## 6      6 40.2 297 18.6  0.30290619 0.294 10.5   1    1  200
+## 1      1 40.2 297 18.6  0.10727008 0.294 10.5   1    1  200
+## 2      2 40.2 297 18.6 -0.31299021 0.294 10.5   1    1  200
+## 3      3 40.2 297 18.6 -0.45254371 0.294 10.5   1    1  200
+## 4      4 40.2 297 18.6 -0.03798536 0.294 10.5   1    1  200
+## 5      5 40.2 297 18.6  0.68160253 0.294 10.5   1    1  200
+## 6      6 40.2 297 18.6  0.46245724 0.294 10.5   1    1  200
 ```
 
 You can also supply a data-frame of parameters to simulate instead of
@@ -1484,12 +1451,12 @@ theta <- sim$param;
 ## # A tibble: 100 x 10
 ##   sim.id    V2    V3   TCl  eta.Cl    KA     Q   Kin  Kout  EC50
 ##    <int> <dbl> <dbl> <dbl>   <dbl> <dbl> <dbl> <dbl> <dbl> <dbl>
-## 1      1  40.2   297  18.6 -0.475  0.294  10.5  1.00  1.00   200
-## 2      2  40.2   297  18.6  0.399  0.294  10.5  1.00  1.00   200
-## 3      3  40.2   297  18.6 -0.114  0.294  10.5  1.00  1.00   200
-## 4      4  40.2   297  18.6  0.0740 0.294  10.5  1.00  1.00   200
-## 5      5  40.2   297  18.6 -0.189  0.294  10.5  1.00  1.00   200
-## 6      6  40.2   297  18.6  0.303  0.294  10.5  1.00  1.00   200
+## 1      1  40.2   297  18.6  0.107  0.294  10.5  1.00  1.00   200
+## 2      2  40.2   297  18.6 -0.313  0.294  10.5  1.00  1.00   200
+## 3      3  40.2   297  18.6 -0.453  0.294  10.5  1.00  1.00   200
+## 4      4  40.2   297  18.6 -0.0380 0.294  10.5  1.00  1.00   200
+## 5      5  40.2   297  18.6  0.682  0.294  10.5  1.00  1.00   200
+## 6      6  40.2   297  18.6  0.462  0.294  10.5  1.00  1.00   200
 ## # ... with 94 more rows
 ```
 
@@ -1510,12 +1477,12 @@ theta <- sim$param;
 ## # A tibble: 10,000 x 9
 ##   sim.id  time depot centr  peri   eff    C2    C3    CL
 ##    <int> <dbl> <dbl> <dbl> <dbl> <dbl> <dbl> <dbl> <dbl>
-## 1      1 0         0 10000     0  1.00 249    0     11.6
-## 2      1 0.485     0  7672  1102  1.22 191    3.71  11.6
-## 3      1 0.970     0  5903  1931  1.37 147    6.50  11.6
-## 4      1 1.45      0  4558  2550  1.44 113    8.59  11.6
-## 5      1 1.94      0  3535  3012  1.45  87.9 10.1   11.6
-## 6      1 2.42      0  2757  3354  1.43  68.6 11.3   11.6
+## 1      1 0         0 10000     0  1.00 249    0     20.7
+## 2      1 0.485     0  6872  1046  1.22 171    3.52  20.7
+## 3      1 0.970     0  4737  1748  1.34 118    5.89  20.7
+## 4      1 1.45      0  3280  2216  1.38  81.6  7.46  20.7
+## 5      1 1.94      0  2285  2523  1.37  56.9  8.50  20.7
+## 6      1 2.42      0  1606  2722  1.32  40.0  9.17  20.7
 ## # ... with 9,994 more rows
 ```
 
@@ -1546,12 +1513,12 @@ sim
 ## # A tibble: 100 x 10
 ##   sim.id    V2    V3   TCl  eta.Cl    KA     Q   Kin  Kout  EC50
 ##    <int> <dbl> <dbl> <dbl>   <dbl> <dbl> <dbl> <dbl> <dbl> <dbl>
-## 1      1  40.2   297  18.6 -0.475  0.294  10.5  1.00  1.00   200
-## 2      2  40.2   297  18.6  0.399  0.294  10.5  1.00  1.00   200
-## 3      3  40.2   297  18.6 -0.114  0.294  10.5  1.00  1.00   200
-## 4      4  40.2   297  18.6  0.0740 0.294  10.5  1.00  1.00   200
-## 5      5  40.2   297  18.6 -0.189  0.294  10.5  1.00  1.00   200
-## 6      6  40.2   297  18.6  0.303  0.294  10.5  1.00  1.00   200
+## 1      1  40.2   297  18.6  0.107  0.294  10.5  1.00  1.00   200
+## 2      2  40.2   297  18.6 -0.313  0.294  10.5  1.00  1.00   200
+## 3      3  40.2   297  18.6 -0.453  0.294  10.5  1.00  1.00   200
+## 4      4  40.2   297  18.6 -0.0380 0.294  10.5  1.00  1.00   200
+## 5      5  40.2   297  18.6  0.682  0.294  10.5  1.00  1.00   200
+## 6      6  40.2   297  18.6  0.462  0.294  10.5  1.00  1.00   200
 ## # ... with 94 more rows
 ```
 
@@ -1572,12 +1539,12 @@ sim
 ## # A tibble: 10,000 x 9
 ##   sim.id  time depot centr  peri   eff    C2    C3    CL
 ##    <int> <dbl> <dbl> <dbl> <dbl> <dbl> <dbl> <dbl> <dbl>
-## 1      1 0         0 10000     0 100   249    0     11.6
-## 2      1 0.485     0  7672  1102  79.7 191    3.71  11.6
-## 3      1 0.970     0  5903  1931  61.7 147    6.50  11.6
-## 4      1 1.45      0  4558  2550  46.3 113    8.59  11.6
-## 5      1 1.94      0  3535  3012  33.9  87.9 10.1   11.6
-## 6      1 2.42      0  2757  3354  24.4  68.6 11.3   11.6
+## 1      1 0         0 10000     0 100   249    0     20.7
+## 2      1 0.485     0  6872  1046  79.2 171    3.52  20.7
+## 3      1 0.970     0  4737  1748  60.1 118    5.89  20.7
+## 4      1 1.45      0  3280  2216  43.8  81.6  7.46  20.7
+## 5      1 1.94      0  2285  2523  30.9  56.9  8.50  20.7
+## 6      1 2.42      0  1606  2722  21.3  40.0  9.17  20.7
 ## # ... with 9,994 more rows
 ```
 
@@ -1667,25 +1634,25 @@ sim %>% select(id, time, e, cp)
 ```
 
 ```
-##    id      time         e          cp
-## 1   1  0.000000 0.9954082 10886.64566
-## 2   1  5.333333 0.9370307   360.94788
-## 3   1 10.666667 0.9885326   204.42167
-## 4   1 16.000000 1.0862525    56.80035
-## 5   1 21.333333 1.1161525   148.45048
-## 6   1 26.666667 1.0134782   112.43199
-## 7   1 32.000000 0.9772703   109.33040
-## 8   1 37.333333 1.4120914    81.66080
-## 9   1 42.666667 1.3421618    70.63212
-## 10  1 48.000000 0.7382258    73.79926
-## 11  2  0.000000 1.5046078    55.01000
-## 12  2  6.857143 0.9799245   493.21208
-## 13  2 13.714286 0.7009406   232.42768
-## 14  2 20.571429 0.6712839   207.32896
-## 15  2 27.428571 0.7596043   153.04042
-## 16  2 34.285714 0.6395034   112.65045
-## 17  2 41.142857 0.9621864   143.42960
-## 18  2 48.000000 1.1009524   101.18957
+##    id      time         e         cp
+## 1   1  0.000000 0.9535163 9528.99177
+## 2   1  5.333333 1.4861544  272.08256
+## 3   1 10.666667 1.0420646  133.72863
+## 4   1 16.000000 0.6934345  152.72653
+## 5   1 21.333333 1.6893281   99.01851
+## 6   1 26.666667 1.1248887  106.69009
+## 7   1 32.000000 1.1206712   65.47170
+## 8   1 37.333333 0.7617760   59.31572
+## 9   1 42.666667 1.4395956   88.50925
+## 10  1 48.000000 1.8518053   32.65828
+## 11  2  0.000000 0.8490924   50.22253
+## 12  2  6.857143 1.2532251   69.67722
+## 13  2 13.714286 1.3533779   52.78852
+## 14  2 20.571429 0.3366061   26.51658
+## 15  2 27.428571 0.9252046   16.18806
+## 16  2 34.285714 0.6990310   26.45354
+## 17  2 41.142857 1.1199925   27.74777
+## 18  2 48.000000 0.9551196   23.69370
 ```
 
 #### Simulation of Clinical Trials
@@ -1768,43 +1735,43 @@ sim$omega.list
 ```
 ## [[1]]
 ##           [,1]
-## [1,] 0.1639042
+## [1,] 0.1905703
 ## 
 ## [[2]]
-##           [,1]
-## [1,] 0.1648696
+##          [,1]
+## [1,] 0.127863
 ## 
 ## [[3]]
 ##           [,1]
-## [1,] 0.1516411
+## [1,] 0.1737607
 ## 
 ## [[4]]
 ##           [,1]
-## [1,] 0.1685381
+## [1,] 0.1536405
 ## 
 ## [[5]]
 ##           [,1]
-## [1,] 0.2101433
+## [1,] 0.1274628
 ## 
 ## [[6]]
 ##           [,1]
-## [1,] 0.1470961
+## [1,] 0.1828741
 ## 
 ## [[7]]
 ##           [,1]
-## [1,] 0.1474987
+## [1,] 0.1672965
 ## 
 ## [[8]]
 ##           [,1]
-## [1,] 0.1298792
+## [1,] 0.1623763
 ## 
 ## [[9]]
 ##           [,1]
-## [1,] 0.1956502
+## [1,] 0.1928968
 ## 
 ## [[10]]
 ##           [,1]
-## [1,] 0.1513526
+## [1,] 0.1743921
 ```
 
 ```r
@@ -1814,53 +1781,53 @@ sim$sigma.list
 ```
 ## [[1]]
 ##              [,1]         [,2]
-## [1,]  0.078945274 -0.006329151
-## [2,] -0.006329151  0.100338367
+## [1,]  0.080849253 -0.006564959
+## [2,] -0.006564959  0.090018817
 ## 
 ## [[2]]
 ##             [,1]        [,2]
-## [1,]  0.11278053 -0.01864487
-## [2,] -0.01864487  0.11003042
+## [1,]  0.11507224 -0.03032975
+## [2,] -0.03032975  0.09632840
 ## 
 ## [[3]]
 ##             [,1]        [,2]
-## [1,]  0.10670188 -0.00465459
-## [2,] -0.00465459  0.10255151
+## [1,] 0.088794911 0.005416909
+## [2,] 0.005416909 0.118953251
 ## 
 ## [[4]]
-##            [,1]       [,2]
-## [1,] 0.09957374 0.01160462
-## [2,] 0.01160462 0.13290783
+##              [,1]         [,2]
+## [1,] 0.0981222199 0.0009379987
+## [2,] 0.0009379987 0.1209050554
 ## 
 ## [[5]]
-##              [,1]         [,2]
-## [1,]  0.071642002 -0.001012221
-## [2,] -0.001012221  0.113363210
+##             [,1]        [,2]
+## [1,]  0.10067776 -0.00346936
+## [2,] -0.00346936  0.09311731
 ## 
 ## [[6]]
-##             [,1]        [,2]
-## [1,]  0.09155750 -0.01239943
-## [2,] -0.01239943  0.10130394
+##              [,1]         [,2]
+## [1,]  0.128471669 -0.008061655
+## [2,] -0.008061655  0.116005773
 ## 
 ## [[7]]
 ##             [,1]        [,2]
-## [1,] 0.123257566 0.002914705
-## [2,] 0.002914705 0.134051465
+## [1,]  0.08591508 -0.01270584
+## [2,] -0.01270584  0.09272691
 ## 
 ## [[8]]
-##              [,1]         [,2]
-## [1,]  0.137224309 -0.001085941
-## [2,] -0.001085941  0.092917570
+##             [,1]        [,2]
+## [1,] 0.077697198 0.006945763
+## [2,] 0.006945763 0.100711162
 ## 
 ## [[9]]
 ##             [,1]        [,2]
-## [1,] 0.095787932 0.008564208
-## [2,] 0.008564208 0.079967694
+## [1,] 0.109227764 0.002805777
+## [2,] 0.002805777 0.137672291
 ## 
 ## [[10]]
-##             [,1]        [,2]
-## [1,] 0.079952134 0.000904492
-## [2,] 0.000904492 0.104027440
+##              [,1]         [,2]
+## [1,]  0.104343258 -0.003215529
+## [2,] -0.003215529  0.091488161
 ```
 
 You can also see the parameter realizations from the `$params` data frame.
@@ -1872,6 +1839,15 @@ specifying the `simVariability = FALSE` option when solving:
 ```r
 sim  <- rxSolve(mod, theta, ev, omega=omega, nSub=100, sigma=sigma, thetaMat=tMat, nStud=10,
                 simVariability=FALSE);
+
+p <- c(0.05, 0.5, 0.95);
+s <-sim %>% group_by(time) %>%
+    do(data.frame(p=p, eff=quantile(.$e, probs=p), 
+                  eff.n = length(.$e), eff.avg = mean(.$e),
+                  centr=quantile(.$cp, probs=p),
+                  centr.n=length(.$cp),centr.avg = mean(.$cp))) %>%
+    mutate(Percentile=factor(sprintf("%d%%",p*100),levels=c("5%","50%","95%")))
+
 
 p1 <- ggplot(s,aes(time,centr,color=Percentile)) + geom_line(size=1) + coord_trans(y = "log10") + ylab("Central Concentration") +
     xlab("Time (hr)")
@@ -1889,13 +1865,59 @@ Note since realizations of `omega` and `sigma` were not simulated, `$omega.list`
 
 #### RxODE multi-threaded solving and simulation
 
+RxODE now supports multi-threaded solving on OpenMP supported
+compilers, including linux and windows. Mac OSX can also be supported
+but
+takes
+[additional setup](https://github.com/Rdatatable/data.table/wiki/Installation#openmp-enabled-compiler-for-mac).
+By default it uses all your available cores for solving as determined
+by `rxCores()`.  This may be overkill depending on your system, at a
+certain point the speed of solving is limited by things other than
+computing power.
+
+You can also speed up simulation by using the multi-cores to generate
+random deviates with `mvnfast`.  This is controlled by the `nCoresRV`
+parameter.  For example:
+
+```r
+sim  <- rxSolve(mod, theta, ev, omega=omega, nSub=100, sigma=sigma, thetaMat=tMat, nStud=10,
+                nCoresRV=rxCores());
+
+p <- c(0.05, 0.5, 0.95);
+s <-sim %>% group_by(time) %>%
+    do(data.frame(p=p, eff=quantile(.$e, probs=p), 
+                  eff.n = length(.$e), eff.avg = mean(.$e),
+                  centr=quantile(.$cp, probs=p),
+                  centr.n=length(.$cp),centr.avg = mean(.$cp))) %>%
+    mutate(Percentile=factor(sprintf("%d%%",p*100),levels=c("5%","50%","95%")))
+
+
+p1 <- ggplot(s,aes(time,centr,color=Percentile)) + geom_line(size=1) + coord_trans(y = "log10") + ylab("Central Concentration") +
+    xlab("Time (hr)")
+
+p2 <-ggplot(s,aes(time,eff,color=Percentile)) + geom_line(size=1) + ylab("Effect") +
+    xlab("Time (hr)") + guides(color=FALSE)
+
+grid.arrange(p1,p2,nrow=2)
+```
+
+![plot of chunk unnamed-chunk-50](vignettes/figure/unnamed-chunk-50-1.png)
+
+The default for this is `1` core since the result depends on the
+number of cores and the random seed you use in your simulation.
+However, you can always speed up this process with more cores if you
+are sure your collaborators have the same number of cores available to
+them and have OpenMP thread-capable compile.
+
+
 #### Facilities for generating R shiny applications
 
-An example of creating an R [shiny application](http://shiny.rstudio.com) to
-interactively explore responses of various complex dosing regimens is available
-at http://qsp.engr.uga.edu:3838/RxODE/RegimenSimulator.  Shiny applications
-like this one may be programmatically created with the experimental function
-`genShinyApp.template()`.
+An example of creating an
+R [shiny application](http://shiny.rstudio.com) to interactively
+explore responses of various complex dosing regimens is available at
+http://qsp.engr.uga.edu:3838/RxODE/RegimenSimulator.  Shiny
+applications like this one may be programmatically created with the
+experimental function `genShinyApp.template()`.
 
 The above application includes widgets for varying the dose, dosing
 regimen, dose cycle, and number of cycles.

@@ -1,5 +1,5 @@
 rxPermissive({
-    for (meth in c("liblsoda", "dop853", "lsoda")){
+    for (meth in c("dop853", "liblsoda", "lsoda")){
         context(sprintf("Test Parallel/Multi-subject Solve (%s)", meth))
 
         mod <- RxODE({
