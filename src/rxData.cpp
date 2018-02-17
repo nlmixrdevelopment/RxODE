@@ -2787,6 +2787,10 @@ RObject rxSolveGet(RObject obj, RObject arg, LogicalVector exact = true){
 	  return e["inits.dat"];
 	} else if (sarg == "t"){
 	  return lst["time"];
+	} else if (sarg == "sigma.list" && e.exists(".sigmaL")){
+	  return e[".sigmaL"];
+	} else if (sarg == "omega.list" && e.exists(".omegaL")){
+          return e[".omegaL"];
 	}
 	// Now parameters
 	List pars = List(e["params.dat"]);
