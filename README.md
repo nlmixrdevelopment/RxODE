@@ -1364,41 +1364,58 @@ of parameter values for use in the simulation. In the example below,
 40% variability in clearance is simulated.
 
 ```r
-nsub <- 100						  #number of subproblems
-CL <- 1.86E+01*exp(rnorm(nsub,0,.4^2))
-theta.all <- 
-	cbind(KA=2.94E-01, CL=CL, V2=4.02E+01,  # central 
-	Q=1.05E+01, V3=2.97E+02,                # peripheral
-	Kin=1, Kout=1, EC50=200)                # effects  
-head(theta.all)
+mod <- RxODE({
+    eff(0) = 1
+    C2 = centr/V2;
+    C3 = peri/V3;
+    CL =  TCl*exp(eta.Cl) ## This is coded as a variable in the model
+    d/dt(depot) =-KA*depot;
+    d/dt(centr) = KA*depot - CL*C2 - Q*C2 + Q*C3;
+    d/dt(peri)  =                    Q*C2 - Q*C3;
+    d/dt(eff)  = Kin - Kout*(1-C2/(EC50+C2))*eff;
+})
+
+theta <- c(KA=2.94E-01, TCl=1.86E+01, V2=4.02E+01,  # central 
+               Q=1.05E+01, V3=2.97E+02,                # peripheral
+               Kin=1, Kout=1, EC50=200)                # effects  
 ```
 
-```
-##         KA       CL   V2    Q  V3 Kin Kout EC50
-## [1,] 0.294 19.98908 40.2 10.5 297   1    1  200
-## [2,] 0.294 17.38814 40.2 10.5 297   1    1  200
-## [3,] 0.294 20.08659 40.2 10.5 297   1    1  200
-## [4,] 0.294 24.47799 40.2 10.5 297   1    1  200
-## [5,] 0.294 15.54964 40.2 10.5 297   1    1  200
-## [6,] 0.294 15.64880 40.2 10.5 297   1    1  200
-```
-
-Each subproblem can be simulated by using an explicit loop (or the `apply()`
-function) to run the simulation for each set of parameters of in the parameter
-matrix. 
+Each subproblem can be simulated by using the rxSolve function to run
+the simulation for each set of parameters of in the parameter matrix.
 
 ```r
-nobs <- ev$get.nobs()
-set.seed(1)
-cp.all <- matrix(NA, nobs, nsub)
-for (i in 1:nsub)
-{
-	theta <- theta.all[i,]
-	x <- mod1$solve(theta, ev, inits=inits)
-	cp.all[, i] <- x[, "C2"]
-}
+## the column names of the omega matrix need to match the parameters specified by RxODE
+omega <- matrix(0.4^2,dimnames=list(NULL,c("eta.Cl")))
 
-matplot(cp.all, type="l", ylab="Central Concentration")
+ev <- eventTable(amount.units="mg", time.units="hours") %>%
+    add.dosing(dose=10000, nbr.doses=1, dosing.to=2) %>%
+    add.sampling(seq(0,48,length.out=100));
+
+sim  <- rxSolve(mod,theta,ev,omega=omega,nSub=100)
+
+library(ggplot2)
+library(gridExtra)
+```
+
+```
+## 
+## Attaching package: 'gridExtra'
+```
+
+```
+## The following object is masked from 'package:dplyr':
+## 
+##     combine
+```
+
+```r
+p1 <- ggplot(sim,aes(time,centr,color=factor(sim.id))) + geom_line(size=1) + coord_trans(y = "log10") + ylab("Central Concentration") +
+    xlab("Time (hr)") + guides(color=FALSE)
+
+p2 <-ggplot(sim,aes(time,eff,color=factor(sim.id))) + geom_line(size=1) + coord_trans(y = "log10") + ylab("Effect") +
+    xlab("Time (hr)") + guides(color=FALSE)
+
+grid.arrange(p1,p2,nrow=2)
 ```
 
 ![plot of chunk unnamed-chunk-39](vignettes/figure/unnamed-chunk-39-1.png)
@@ -1408,11 +1425,469 @@ with the simulated data. Below,  the 5th, 50th, and 95th percentiles
 of the simulated data are plotted. 
 
 ```r
-cp.q <- apply(cp.all, 1, quantile, prob = c(0.05, 0.50, 0.95))
-matplot(t(cp.q), type="l", lty=c(2,1,2), col=c(2,1,2), ylab="Central Concentration")
+library(dplyr)
+
+p <- c(0.05, 0.5, 0.95);
+s <-sim %>% group_by(time) %>%
+    do(data.frame(p=p, eff=quantile(.$eff, probs=p), 
+                  eff.n = length(.$eff), eff.avg = mean(.$eff),
+                  centr=quantile(.$centr, probs=p),
+                  centr.n=length(.$centr),centr.avg = mean(.$centr))) %>%
+    mutate(Percentile=factor(sprintf("%d%%",p*100),levels=c("5%","50%","95%")))
+
+p1 <- ggplot(s,aes(time,centr,color=Percentile)) + geom_line(size=1) + coord_trans(y = "log10") + ylab("Central Concentration") +
+    xlab("Time (hr)")
+
+p2 <-ggplot(s,aes(time,eff,color=Percentile)) + geom_line(size=1) + ylab("Effect") +
+    xlab("Time (hr)") + guides(color=FALSE)
+
+grid.arrange(p1,p2,nrow=2)
 ```
 
 ![plot of chunk unnamed-chunk-40](vignettes/figure/unnamed-chunk-40-1.png)
+
+
+Note that you can see the parameters that were simulated for the example
+
+```r
+head(sim$param)
+```
+
+```
+##   sim.id   V2  V3  TCl      eta.Cl    KA    Q Kin Kout EC50
+## 1      1 40.2 297 18.6 -0.47517069 0.294 10.5   1    1  200
+## 2      2 40.2 297 18.6  0.39911190 0.294 10.5   1    1  200
+## 3      3 40.2 297 18.6 -0.11419638 0.294 10.5   1    1  200
+## 4      4 40.2 297 18.6  0.07396562 0.294 10.5   1    1  200
+## 5      5 40.2 297 18.6 -0.18877903 0.294 10.5   1    1  200
+## 6      6 40.2 297 18.6  0.30290619 0.294 10.5   1    1  200
+```
+
+You can also supply a data-frame of parameters to simulate instead of
+using an omega simulation.  In this contrived example we will use the
+previously simulated data.
+
+```r
+theta <- sim$param;
+(sim  <- rxSolve(mod,theta,ev))
+```
+
+```
+## ___________________________ Solved RxODE object ___________________________
+```
+
+```
+## -- Parameters ($params): --------------------------------------------------
+```
+
+```
+## # A tibble: 100 x 10
+##   sim.id    V2    V3   TCl  eta.Cl    KA     Q   Kin  Kout  EC50
+##    <int> <dbl> <dbl> <dbl>   <dbl> <dbl> <dbl> <dbl> <dbl> <dbl>
+## 1      1  40.2   297  18.6 -0.475  0.294  10.5  1.00  1.00   200
+## 2      2  40.2   297  18.6  0.399  0.294  10.5  1.00  1.00   200
+## 3      3  40.2   297  18.6 -0.114  0.294  10.5  1.00  1.00   200
+## 4      4  40.2   297  18.6  0.0740 0.294  10.5  1.00  1.00   200
+## 5      5  40.2   297  18.6 -0.189  0.294  10.5  1.00  1.00   200
+## 6      6  40.2   297  18.6  0.303  0.294  10.5  1.00  1.00   200
+## # ... with 94 more rows
+```
+
+```
+## -- Initial Conditions ($inits): -------------------------------------------
+```
+
+```
+## depot centr  peri   eff 
+##     0     0     0     1
+```
+
+```
+## -- First part of data (object): -------------------------------------------
+```
+
+```
+## # A tibble: 10,000 x 9
+##   sim.id  time depot centr  peri   eff    C2    C3    CL
+##    <int> <dbl> <dbl> <dbl> <dbl> <dbl> <dbl> <dbl> <dbl>
+## 1      1 0         0 10000     0  1.00 249    0     11.6
+## 2      1 0.485     0  7672  1102  1.22 191    3.71  11.6
+## 3      1 0.970     0  5903  1931  1.37 147    6.50  11.6
+## 4      1 1.45      0  4558  2550  1.44 113    8.59  11.6
+## 5      1 1.94      0  3535  3012  1.45  87.9 10.1   11.6
+## 6      1 2.42      0  2757  3354  1.43  68.6 11.3   11.6
+## # ... with 9,994 more rows
+```
+
+```
+## ___________________________________________________________________________
+```
+
+Even though multiple subjects were simulated, this is still a reactive
+data frame, meaning you can change things about the model on the fly.
+
+For example, if the effect at time 0 should have been 100, you can fix
+this by:
+
+```r
+sim$eff0 <- 100
+sim
+```
+
+```
+## ___________________________ Solved RxODE object ___________________________
+```
+
+```
+## -- Parameters ($params): --------------------------------------------------
+```
+
+```
+## # A tibble: 100 x 10
+##   sim.id    V2    V3   TCl  eta.Cl    KA     Q   Kin  Kout  EC50
+##    <int> <dbl> <dbl> <dbl>   <dbl> <dbl> <dbl> <dbl> <dbl> <dbl>
+## 1      1  40.2   297  18.6 -0.475  0.294  10.5  1.00  1.00   200
+## 2      2  40.2   297  18.6  0.399  0.294  10.5  1.00  1.00   200
+## 3      3  40.2   297  18.6 -0.114  0.294  10.5  1.00  1.00   200
+## 4      4  40.2   297  18.6  0.0740 0.294  10.5  1.00  1.00   200
+## 5      5  40.2   297  18.6 -0.189  0.294  10.5  1.00  1.00   200
+## 6      6  40.2   297  18.6  0.303  0.294  10.5  1.00  1.00   200
+## # ... with 94 more rows
+```
+
+```
+## -- Initial Conditions ($inits): -------------------------------------------
+```
+
+```
+## depot centr  peri   eff 
+##     0     0     0   100
+```
+
+```
+## -- First part of data (object): -------------------------------------------
+```
+
+```
+## # A tibble: 10,000 x 9
+##   sim.id  time depot centr  peri   eff    C2    C3    CL
+##    <int> <dbl> <dbl> <dbl> <dbl> <dbl> <dbl> <dbl> <dbl>
+## 1      1 0         0 10000     0 100   249    0     11.6
+## 2      1 0.485     0  7672  1102  79.7 191    3.71  11.6
+## 3      1 0.970     0  5903  1931  61.7 147    6.50  11.6
+## 4      1 1.45      0  4558  2550  46.3 113    8.59  11.6
+## 5      1 1.94      0  3535  3012  33.9  87.9 10.1   11.6
+## 6      1 2.42      0  2757  3354  24.4  68.6 11.3   11.6
+## # ... with 9,994 more rows
+```
+
+```
+## ___________________________________________________________________________
+```
+
+#### Simulation of unexplained variability 
+
+In addition to conveniently simulating between subject variability,
+you can also easily simulate unexplained variability.
+
+```r
+mod <- RxODE({
+    eff(0) = 1
+    C2 = centr/V2;
+    C3 = peri/V3;
+    CL =  TCl*exp(eta.Cl) ## This is coded as a variable in the model
+    d/dt(depot) =-KA*depot;
+    d/dt(centr) = KA*depot - CL*C2 - Q*C2 + Q*C3;
+    d/dt(peri)  =                    Q*C2 - Q*C3;
+    d/dt(eff)  = Kin - Kout*(1-C2/(EC50+C2))*eff;
+    e = eff+eff.err
+    cp = centr*(1+cp.err)
+})
+
+theta <- c(KA=2.94E-01, TCl=1.86E+01, V2=4.02E+01,  # central 
+           Q=1.05E+01, V3=2.97E+02,                # peripheral
+           Kin=1, Kout=1, EC50=200)                # effects  
+
+sigma <- diag(2)*0.1
+dimnames(sigma) <- list(NULL, c("eff.err","cp.err"))
+
+
+sim  <- rxSolve(mod, theta, ev, omega=omega, nSub=100, sigma=sigma)
+
+p <- c(0.05, 0.5, 0.95);
+s <-sim %>% group_by(time) %>%
+    do(data.frame(p=p, eff=quantile(.$e, probs=p), 
+                  eff.n = length(.$e), eff.avg = mean(.$e),
+                  centr=quantile(.$cp, probs=p),
+                  centr.n=length(.$cp),centr.avg = mean(.$cp))) %>%
+    mutate(Percentile=factor(sprintf("%d%%",p*100),levels=c("5%","50%","95%")))
+
+p1 <- ggplot(s,aes(time,centr,color=Percentile)) + geom_line(size=1) + coord_trans(y = "log10") + ylab("Central Concentration") +
+    xlab("Time (hr)")
+
+p2 <-ggplot(s,aes(time,eff,color=Percentile)) + geom_line(size=1) + ylab("Effect") +
+    xlab("Time (hr)") + guides(color=FALSE)
+
+grid.arrange(p1,p2,nrow=2)
+```
+
+![plot of chunk unnamed-chunk-44](vignettes/figure/unnamed-chunk-44-1.png)
+#### Simulation of Individuals
+
+Sometimes you may want to match the dosing and observations of
+individuals in a clinical trial.  To do this you will have to create a
+data.frame using the `RxODE` event specification as well as an `ID`
+column to indicate an individual. The RxODE event vignette talks more about
+how these datasets should be created.
+
+If you have a NONMEM/Monlix dataset and the package
+`nlmixr`, you can convert the `NONMEM`` dataset to a `RxODE` compatible dataset to
+use for simulation with the `nmDataConvert` function.
+
+Instead of using nlmixr for this simple example, I will combine two
+RxODE event tables.
+
+```r
+ev1 <- eventTable(amount.units="mg", time.units="hours") %>%
+    add.dosing(dose=10000, nbr.doses=1, dosing.to=2) %>%
+    add.sampling(seq(0,48,length.out=10));
+
+ev2 <- eventTable(amount.units="mg", time.units="hours") %>%
+    add.dosing(dose=5000, nbr.doses=1, dosing.to=2) %>%
+    add.sampling(seq(0,48,length.out=8));
+
+dat <- rbind(data.frame(ID=1, ev1$get.EventTable()),
+             data.frame(ID=2, ev2$get.EventTable()))
+
+
+## Note the number of subject is not needed since it is determined by the data
+sim  <- rxSolve(mod, theta, dat, omega=omega, sigma=sigma)
+
+sim %>% select(id, time, e, cp)
+```
+
+```
+##    id      time         e          cp
+## 1   1  0.000000 0.9954082 10886.64566
+## 2   1  5.333333 0.9370307   360.94788
+## 3   1 10.666667 0.9885326   204.42167
+## 4   1 16.000000 1.0862525    56.80035
+## 5   1 21.333333 1.1161525   148.45048
+## 6   1 26.666667 1.0134782   112.43199
+## 7   1 32.000000 0.9772703   109.33040
+## 8   1 37.333333 1.4120914    81.66080
+## 9   1 42.666667 1.3421618    70.63212
+## 10  1 48.000000 0.7382258    73.79926
+## 11  2  0.000000 1.5046078    55.01000
+## 12  2  6.857143 0.9799245   493.21208
+## 13  2 13.714286 0.7009406   232.42768
+## 14  2 20.571429 0.6712839   207.32896
+## 15  2 27.428571 0.7596043   153.04042
+## 16  2 34.285714 0.6395034   112.65045
+## 17  2 41.142857 0.9621864   143.42960
+## 18  2 48.000000 1.1009524   101.18957
+```
+
+#### Simulation of Clinical Trials
+
+By either using a simple single event table, or data from a clinical
+trial as described above, a complete clinical trial simulation can be
+performed.
+
+Typically in clinical trial simulations you want to account for the
+uncertainty in the fixed parameter estimates, and even the uncertainty
+in both your between subject variability as well as the unexplained
+variability.
+
+`RxODE` allows you to account for these uncertainties by simulating
+multiple virtual "studies," specified by the parameter `nStud`.  In a
+single virtual study:
+
+- A Population effect parameter is sampled from a multivariate normal
+  distribution with mean given by the parameter estimates and the
+  variance specified by the named matrix `thetaMat`.
+  
+- A between subject variability/covariance matrix is sampled from
+  either a scaled inverse chi-squared distribution (for the univariate
+  case) or a inverse Wishart that is parameterized to scale to the
+  conjugate prior covariance term, as described by
+  the
+  [wikipedia article](https://en.wikipedia.org/wiki/Scaled_inverse_chi-squared_distribution). (This
+  is not the same as
+  the
+  [scaled inverse Wishart distribution](http://andrewgelman.com/2012/08/22/the-scaled-inverse-wishart-prior-distribution-for-a-covariance-matrix-in-a-hierarchical-model/) ).
+  In the case of the between subject variability, the
+  variance/covariance matrix is given by the 'omega' matrix parameter
+  and the degrees of freedom is the number of subjects in the
+  simulation.
+  
+- Unexplained variability is also simulated from the scaled inverse
+  chi squared distribution or inverse Wishart distribution with the
+  variance/covariance matrix given by the 'sigma' matrix parameter and
+  the degrees of freedom given by the number of observations being
+  simulated.
+  
+The covariance/variance prior is simulated from `RxODE`s `cvPost` function.
+
+An example of this simulation is below:
+
+```r
+## Creating covariance matrix
+tmp <- matrix(rnorm(8^2), 8, 8)
+tMat <- tcrossprod(tmp, tmp) / (8 ^ 2)
+dimnames(tMat) <- list(NULL, names(theta))
+
+sim  <- rxSolve(mod, theta, ev, omega=omega, nSub=100, sigma=sigma, thetaMat=tMat, nStud=10)
+
+p <- c(0.05, 0.5, 0.95);
+s <-sim %>% group_by(time) %>%
+    do(data.frame(p=p, eff=quantile(.$e, probs=p), 
+                  eff.n = length(.$e), eff.avg = mean(.$e),
+                  centr=quantile(.$cp, probs=p),
+                  centr.n=length(.$cp),centr.avg = mean(.$cp))) %>%
+    mutate(Percentile=factor(sprintf("%d%%",p*100),levels=c("5%","50%","95%")))
+
+p1 <- ggplot(s,aes(time,centr,color=Percentile)) + geom_line(size=1) + coord_trans(y = "log10") + ylab("Central Concentration") +
+    xlab("Time (hr)")
+
+p2 <-ggplot(s,aes(time,eff,color=Percentile)) + geom_line(size=1) + ylab("Effect") +
+    xlab("Time (hr)") + guides(color=FALSE)
+
+grid.arrange(p1,p2,nrow=2)
+```
+
+![plot of chunk unnamed-chunk-46](vignettes/figure/unnamed-chunk-46-1.png)
+If you wish you can see what `omega` and `sigma` was used for each
+virtual study by accessing them in the solved data object with
+`$omega.list` and `$sigma.list`:
+
+```r
+sim$omega.list
+```
+
+```
+## [[1]]
+##           [,1]
+## [1,] 0.1639042
+## 
+## [[2]]
+##           [,1]
+## [1,] 0.1648696
+## 
+## [[3]]
+##           [,1]
+## [1,] 0.1516411
+## 
+## [[4]]
+##           [,1]
+## [1,] 0.1685381
+## 
+## [[5]]
+##           [,1]
+## [1,] 0.2101433
+## 
+## [[6]]
+##           [,1]
+## [1,] 0.1470961
+## 
+## [[7]]
+##           [,1]
+## [1,] 0.1474987
+## 
+## [[8]]
+##           [,1]
+## [1,] 0.1298792
+## 
+## [[9]]
+##           [,1]
+## [1,] 0.1956502
+## 
+## [[10]]
+##           [,1]
+## [1,] 0.1513526
+```
+
+```r
+sim$sigma.list
+```
+
+```
+## [[1]]
+##              [,1]         [,2]
+## [1,]  0.078945274 -0.006329151
+## [2,] -0.006329151  0.100338367
+## 
+## [[2]]
+##             [,1]        [,2]
+## [1,]  0.11278053 -0.01864487
+## [2,] -0.01864487  0.11003042
+## 
+## [[3]]
+##             [,1]        [,2]
+## [1,]  0.10670188 -0.00465459
+## [2,] -0.00465459  0.10255151
+## 
+## [[4]]
+##            [,1]       [,2]
+## [1,] 0.09957374 0.01160462
+## [2,] 0.01160462 0.13290783
+## 
+## [[5]]
+##              [,1]         [,2]
+## [1,]  0.071642002 -0.001012221
+## [2,] -0.001012221  0.113363210
+## 
+## [[6]]
+##             [,1]        [,2]
+## [1,]  0.09155750 -0.01239943
+## [2,] -0.01239943  0.10130394
+## 
+## [[7]]
+##             [,1]        [,2]
+## [1,] 0.123257566 0.002914705
+## [2,] 0.002914705 0.134051465
+## 
+## [[8]]
+##              [,1]         [,2]
+## [1,]  0.137224309 -0.001085941
+## [2,] -0.001085941  0.092917570
+## 
+## [[9]]
+##             [,1]        [,2]
+## [1,] 0.095787932 0.008564208
+## [2,] 0.008564208 0.079967694
+## 
+## [[10]]
+##             [,1]        [,2]
+## [1,] 0.079952134 0.000904492
+## [2,] 0.000904492 0.104027440
+```
+
+You can also see the parameter realizations from the `$params` data frame.
+
+If you do not wish to sample from the prior distributions of either
+the `omega` or `sigma` matrices, you can turn off this feature by
+specifying the `simVariability = FALSE` option when solving:
+
+```r
+sim  <- rxSolve(mod, theta, ev, omega=omega, nSub=100, sigma=sigma, thetaMat=tMat, nStud=10,
+                simVariability=FALSE);
+
+p1 <- ggplot(s,aes(time,centr,color=Percentile)) + geom_line(size=1) + coord_trans(y = "log10") + ylab("Central Concentration") +
+    xlab("Time (hr)")
+
+p2 <-ggplot(s,aes(time,eff,color=Percentile)) + geom_line(size=1) + ylab("Effect") +
+    xlab("Time (hr)") + guides(color=FALSE)
+
+grid.arrange(p1,p2,nrow=2)
+```
+
+![plot of chunk unnamed-chunk-49](vignettes/figure/unnamed-chunk-49-1.png)
+
+Note since realizations of `omega` and `sigma` were not simulated, `$omega.list` and
+`$sigma.list` both return `NULL`.
+
+#### RxODE multi-threaded solving and simulation
 
 #### Facilities for generating R shiny applications
 
