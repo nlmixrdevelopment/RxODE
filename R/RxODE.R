@@ -1327,6 +1327,19 @@ rxCompile.rxDll <- function(model, ...){
     return(do.call(getFromNamespace("rxCompile", "RxODE"), args, envir = parent.frame(1)));
 }
 
+##' @export
+print.rxC <- function(x, ...){
+    message(sprintf("C File: %s  (summary for code)", x));
+}
+
+##' @export
+summary.rxC <- function(object, ...){
+    message(sprintf("//C File: %s", x));
+    message("//");
+    message(paste(readLines(x), collapse="\n"));
+}
+
+
 ##' @rdname rxCompile
 ##' @export
 rxCompile.RxODE <- function(model, ...){

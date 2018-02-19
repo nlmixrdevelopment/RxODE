@@ -3509,21 +3509,23 @@ std::string rxDll(RObject obj){
 //' @author Matthew L.Fidler
 //' @export
 //[[Rcpp::export]]
-std::string rxC(RObject obj){
+CharacterVector rxC(RObject obj){
+  std::string rets;
+  CharacterVector ret(1);
   if (rxIs(obj,"RxODE")){
     Environment e = as<Environment>(obj);
-    return as<std::string>((as<List>(e["rxDll"]))["c"]);
+    rets = as<std::string>((as<List>(e["rxDll"]))["c"]);
   } else if (rxIs(obj,"rxSolve")) {
     CharacterVector cls = obj.attr("class");
     Environment e = as<Environment>(cls.attr(".RxODE.env"));
-    return(as<std::string>(e["c"]));
+    rets = as<std::string>(e["c"]);
   } else if (rxIs(obj, "rxDll")){
-    return as<std::string>(as<List>(obj)["c"]);
+    rets = as<std::string>(as<List>(obj)["c"]);
   } else if (rxIs(obj, "character")){
     Environment RxODE("package:RxODE");
     Function f = as<Function>(RxODE["rxCompile.character"]);
     RObject newO = f(as<std::string>(obj));
-    return(rxDll(newO));
+    rets = rxDll(newO);
   } else {
     List mv = rxModelVars(obj);
     Nullable<Environment> en = rxRxODEenv(mv);
@@ -3531,9 +3533,12 @@ std::string rxC(RObject obj){
       stop("Can't figure out the DLL for this object");
     } else {
       Environment e = as<Environment>(en);
-      return as<std::string>((as<List>(e["rxDll"]))["dll"]);
+      rets = as<std::string>((as<List>(e["rxDll"]))["dll"]);
     }
   }
+  ret[0] = rets;
+  ret.attr("class") = "rxC";
+  return ret;
 }
 
 //' Determine if the DLL associated with the RxODE object is loaded
@@ -3625,7 +3630,8 @@ bool rxDynUnload(RObject obj){
 bool rxDelete(RObject obj){
   std::string file = rxDll(obj);
   if (rxDynUnload(obj)){
-    std::string cfile = rxC(obj);
+    CharacterVector cfileV = rxC(obj);
+    std::string cfile = as<std::string>(cfileV[0]);
     if (fileExists(cfile)) remove(cfile.c_str());
     if (!fileExists(file)) return true;
     if (remove(file.c_str()) == 0) return true;

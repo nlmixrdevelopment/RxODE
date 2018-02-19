@@ -271,7 +271,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // rxC
-std::string rxC(RObject obj);
+CharacterVector rxC(RObject obj);
 RcppExport SEXP _RxODE_rxC(SEXP objSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
