@@ -432,7 +432,8 @@ rxSymPyVars <- function(model){
     } else {
         vars <- c(rxParams(model),
                   rxState(model),
-                  "podo", "t", "time", "tlast");
+                  "podo", "t", "time", "tlast",
+                  "rx__PTR__");
     }
     vars <- sapply(vars, function(x){return(rxToSymPy(x))});
     known <- c(rxSymPy.vars, vars);
