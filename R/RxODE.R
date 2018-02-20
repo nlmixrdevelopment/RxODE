@@ -1334,11 +1334,10 @@ print.rxC <- function(x, ...){
 
 ##' @export
 summary.rxC <- function(object, ...){
-    message(sprintf("//C File: %s", x));
+    message(sprintf("//C File: %s", object));
     message("//");
-    message(paste(readLines(x), collapse="\n"));
+    suppressWarnings(message(paste(readLines(object), collapse="\n")));
 }
-
 
 ##' @rdname rxCompile
 ##' @export
