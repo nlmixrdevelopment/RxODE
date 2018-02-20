@@ -855,8 +855,12 @@ rxDefinedDerivatives$solveLinB <- function(fn, var){
         vals <- paste(fn[-seq(1:5)]);
         w <- which(vals == var)
         if (diff1 == "0"){
+            fn[2:3] <- sapply(fn[2:3], function(x){rxFromSymPy(x)})
+            vals <- sapply(vals, function(x){rxFromSymPy(x)});
             ret <- sprintf("solveLinB(rx__PTR__,%s,%s,0,%s)", paste(fn[2:3], collapse=","), w, paste(vals, collapse=","))
         } else {
+            fn[2:4] <- sapply(fn[2:4], function(x){rxFromSymPy(x)})
+            vals <- sapply(vals, function(x){rxFromSymPy(x)});
             ret <- sprintf("solveLinB(rx__PTR__,%s,%s,%s)", paste(fn[2:4], collapse=","), w, paste(vals, collapse=","));
         }
         return(ret);
@@ -864,15 +868,15 @@ rxDefinedDerivatives$solveLinB <- function(fn, var){
 }
 
 changeDerivs <- function(fn, var, var2=NULL){
-    ## Fn is a vector fn[1] == function name,the rest are the argments
+    ## Fn is a vector fn[1] == function name,the rest are the arguments
     if (length(var) > 1){
         env <- rxEnv(var)
         fnl <- as.list(var[-1])
         if (any(names(sympyRxFEnv) == var[1])){
             fne <- sympyRxFEnv[[var[1]]]
-            var <- do.call(fne, fnl)
+            var <- do.call(fne, fnl, envir=rxDefinedDerivatives)
         } else {
-            stop("Cannot figure out how to deparse the deriavative");
+            stop("Cannot figure out how to deparse the derivative.");
         }
     }
     if (!is.null(var2)){
@@ -883,13 +887,13 @@ changeDerivs <- function(fn, var, var2=NULL){
                 fne <- sympyRxFEnv[[var2[1]]]
                 var2 <- do.call(fne, fnl)
             } else {
-                stop("Cannot figure out how to deparse the deriavative");
+                stop("Cannot figure out how to deparse the derivative.");
             }
         }
     }
     if (any(names(rxDefinedDerivatives) == fn[1])){
         fne <- rxDefinedDerivatives[[fn[1]]];
-        ret <- do.call(fne, list(fn, var));
+        ret <- do.call(fne, list(fn, var), envir=rxDefinedDerivatives);
         if (!is.null(var2)){
             ## Send through parser recursively...
             ret <- sprintf("D(%s,%s)", ret, var2);
