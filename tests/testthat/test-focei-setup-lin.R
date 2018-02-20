@@ -43,4 +43,41 @@ rxPermissive({
         expect_equal(class(pk2), "rxFocei")
     })
 
+    pk <- function()
+    {
+        lCl = THETA[1]
+        lVc = THETA[2]
+        lKA = THETA[3]
+        prop.err = THETA[4]
+        eta.Cl = ETA[1]
+        eta.Vc = ETA[2]
+        eta.KA = ETA[3]
+        Cl <- exp(lCl + eta.Cl)
+        Vc <- exp(lVc + eta.Vc)
+        KA <- exp(lKA + eta.KA)
+    }
+
+    mod <- RxODE({
+        rx_ka ~ KA
+        rx_tlag ~ 0
+        rx_v ~ Vc
+        rx_k ~ Cl/Vc
+        rx_alpha ~ rx_k
+        rx_A ~ rx_ka / (rx_ka - rx_alpha) / rx_v
+        rx_beta ~ 0
+        rx_B ~ 0
+        rx_gamma ~ 0
+        rx_C ~ 0
+        Central=solveLinB(rx__PTR__, t, 0, 0, 0, rx_A, rx_alpha, rx_B, rx_beta, rx_C, rx_gamma, rx_ka, rx_tlag);
+    })
+
+    ## 1 compartment oral
+    pk1 <- rxSymPySetupPred(mod, predfn=pred, pkpars=pk, err=err)
+    pk2 <- rxSymPySetupPred(mod, predfn=pred, pkpars=pk, err=err, grad=TRUE)
+
+    test_that("One compartment oral model", {
+        expect_equal(class(pk1), "rxFocei")
+        expect_equal(class(pk2), "rxFocei")
+    })
+
 },  silent=TRUE, on.validate=TRUE)
