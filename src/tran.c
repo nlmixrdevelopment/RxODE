@@ -336,7 +336,7 @@ void wprint_node(int depth, char *name, char *value, void *client_data) {
   } else if (!strcmp("rx__PTR__",value)){
     sprintf(SBPTR, "_solveData, _cSub");
     sb.o += 17;
-    sprintf(SBPTR, "rx__PTR__");
+    sprintf(SBTPTR, "rx__PTR__");
     sbt.o +=9;
   } else if (!strcmp("identifier",name) && !strcmp("gamma",value)){
     sprintf(SBPTR, "lgammafn");
