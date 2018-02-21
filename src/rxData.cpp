@@ -2738,7 +2738,7 @@ SEXP rxSolveCsmall(const RObject &object,
 //[[Rcpp::export]]
 RObject rxSolveGet(RObject obj, RObject arg, LogicalVector exact = true){
   std::string sarg;
-  int i, n;
+  int i, j, n;
   if (rxIs(obj, "data.frame")){
     List lst = as<List>(obj);
     if (rxIs(arg, "character")){
@@ -2801,8 +2801,6 @@ RObject rxSolveGet(RObject obj, RObject arg, LogicalVector exact = true){
 	    return pars[sarg];
 	  }
 	}
-	
-        
 	// // Now inis.
 	// Function sub("sub", R_BaseNamespace);
 	NumericVector ini = NumericVector(e["inits.dat"]);
@@ -2842,15 +2840,46 @@ RObject rxSolveGet(RObject obj, RObject arg, LogicalVector exact = true){
             return as<RObject>(retN);
           }
 	}
-	// // Sensitivities -- last
-	// // This is slower, defer to last.
-	// for (i = 0; i < n; i++){
-	//   // The regular expression came from rex;  It is a it long...
-	//   if (as<std::string>(sub("rx__sens_((?:[a-zA-Z][_a-zA-Z0-9.]*|(?:\\.){1,}[_a-zA-Z][_a-zA-Z0-9.]*))_BY_((?:[a-zA-Z][_a-zA-Z0-9.]*|(?:\\.){1,}[_a-zA-Z][_a-zA-Z0-9.]*))__",
-	//                              "_sens_\\1_\\2", nm[i])) == sarg){
-	//        return lst[i];
-	//   }
-	// }
+	List mv = rxModelVars(obj);
+	CharacterVector normState = mv["normal.state"];
+	CharacterVector parsC = mv["params"];
+        CharacterVector lhsC = mv["lhs"];
+	for (i = 0; i < normState.size(); i++){
+	  for (j = 0; j < parsC.size(); j++){
+	    std::string test = "_sens_" + as<std::string>(normState[i]) + "_" + as<std::string>(parsC[j]);
+	    if (test == sarg){
+	      test = "rx__sens_" + as<std::string>(normState[i]) + "_BY_" + as<std::string>(parsC[j]) + "__";
+	      return lst[test];
+	    }
+            test = as<std::string>(normState[i]) + "_" + as<std::string>(parsC[j]);
+            if (test == sarg){
+              test = "rx__sens_" + as<std::string>(normState[i]) + "_BY_" + as<std::string>(parsC[j]) + "__";
+	      return lst[test];
+	    }
+            test = as<std::string>(normState[i]) + "." + as<std::string>(parsC[j]);
+            if (test == sarg){
+              test = "rx__sens_" + as<std::string>(normState[i]) + "_BY_" + as<std::string>(parsC[j]) + "__";
+              return lst[test];
+            }
+	  }
+          for (j = 0; j < lhsC.size(); j++){
+            std::string test = "_sens_" + as<std::string>(normState[i]) + "_" + as<std::string>(lhsC[j]);
+            if (test == sarg){
+              test = "rx__sens_" + as<std::string>(normState[i]) + "_BY_" + as<std::string>(lhsC[j]) + "__";
+              return lst[test];
+            }
+            test = as<std::string>(normState[i]) + "_" + as<std::string>(lhsC[j]);
+            if (test == sarg){
+              test = "rx__sens_" + as<std::string>(normState[i]) + "_BY_" + as<std::string>(lhsC[j]) + "__";
+              return lst[test];
+            }
+            test = as<std::string>(normState[i]) + "." + as<std::string>(lhsC[j]);
+            if (test == sarg){
+              test = "rx__sens_" + as<std::string>(normState[i]) + "_BY_" + as<std::string>(lhsC[j]) + "__";
+              return lst[test];
+            }
+          }
+	}
       }
     } else {
       if (rxIs(arg, "integer") || rxIs(arg, "numeric")){

@@ -1190,7 +1190,7 @@ void prnt_vars(int scenario, FILE *outpt, int lhs, const char *pre_str, const ch
 }
 
 void print_aux_info(FILE *outpt, char *model, char *orig_model){
-  int i, j, k, islhs,pi = 0,li = 0, o=0, o2=0, statei = 0, ini_i = 0, sensi=0, fdi=0,
+  int i, j, k, islhs,pi = 0,li = 0, o=0, o2=0, statei = 0, ini_i = 0, sensi=0, normi=0,fdi=0,
     in_str=0;
   char *s2;
   char sLine[MXLEN+1];
@@ -1229,6 +1229,8 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
     } else {
       sprintf(s_aux_info+o, "    SET_STRING_ELT(state,%d,mkChar(\"%s\"));\n", statei++, buf);
       o = strlen(s_aux_info);
+      sprintf(s_aux_info+o, "    SET_STRING_ELT(normState,%d,mkChar(\"%s\"));\n", normi++, buf);
+      o = strlen(s_aux_info);
       sprintf(s_aux_info+o, "    stateRm[%d] = %d;\n", statei-1, tb.idi[i]);
     }
     if (tb.fdi[i]){
@@ -1260,14 +1262,15 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
   fprintf(outpt,"extern SEXP %smodel_vars(){\n  int pro=0;\n",model_prefix);
   fprintf(outpt,"  SEXP _mv = PROTECT(_rxGetModelLib(\"rx_5c2c6f8a65d272301b81504c87d75239_x64_model_vars\"));pro++;\n");
   fprintf(outpt,"  if (!_rxIsCurrentC(_mv)){\n");
-  fprintf(outpt,"    SEXP lst      = PROTECT(allocVector(VECSXP, 14));pro++;\n");
-  fprintf(outpt,"    SEXP names    = PROTECT(allocVector(STRSXP, 14));pro++;\n");
+  fprintf(outpt,"    SEXP lst      = PROTECT(allocVector(VECSXP, 15));pro++;\n");
+  fprintf(outpt,"    SEXP names    = PROTECT(allocVector(STRSXP, 15));pro++;\n");
   fprintf(outpt,"    SEXP params   = PROTECT(allocVector(STRSXP, %d));pro++;\n",pi);
   fprintf(outpt,"    SEXP lhs      = PROTECT(allocVector(STRSXP, %d));pro++;\n",li);
   fprintf(outpt,"    SEXP state    = PROTECT(allocVector(STRSXP, %d));pro++;\n",statei);
   fprintf(outpt,"    SEXP stateRmS = PROTECT(allocVector(INTSXP, %d));pro++;\n",statei);
   fprintf(outpt,"    int *stateRm  = INTEGER(stateRmS);\n");
   fprintf(outpt,"    SEXP sens     = PROTECT(allocVector(STRSXP, %d));pro++;\n",sensi);
+  fprintf(outpt,"    SEXP normState= PROTECT(allocVector(STRSXP, %d));pro++;\n",statei-sensi);
   fprintf(outpt,"    SEXP fn_ini   = PROTECT(allocVector(STRSXP, %d));pro++;\n",fdi);
   fprintf(outpt,"    SEXP dfdy     = PROTECT(allocVector(STRSXP, %d));pro++;\n",tb.ndfdy);
   fprintf(outpt,"    SEXP tran     = PROTECT(allocVector(STRSXP, 14));pro++;\n");
@@ -1504,6 +1507,9 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
 
   fprintf(outpt,"    SET_STRING_ELT(names,13,mkChar(\"version\"));\n");
   fprintf(outpt,"    SET_VECTOR_ELT(lst,  13,version);\n");
+
+  fprintf(outpt,"    SET_STRING_ELT(names,14,mkChar(\"normal.state\"));\n");
+  fprintf(outpt,"    SET_VECTOR_ELT(lst,  14,normState);\n");
 
   // const char *rxVersion(const char *what)
   
