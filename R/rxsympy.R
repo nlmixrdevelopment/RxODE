@@ -182,9 +182,6 @@ rxSymPyStart <- function(){
                         .rxSymPy$started <- python;
                     }
                 }
-                if (!is.null(.rxSymPy$started)){
-                    rxSymPyFunctions(names(rxDefinedDerivatives));
-                }
             }
         }
     }
@@ -205,9 +202,6 @@ rxSymPyStart <- function(){
                     .rxSymPy$started <- "rSymPy";
                     try({.Jython$exec("import gc")});
                 }
-            }
-            if (!is.null(.rxSymPy$started)){
-                rxSymPyFunctions(names(rxDefinedDerivatives));
             }
         }
     }
@@ -258,12 +252,6 @@ rxSymPyExec <- function(..., .python, .start=TRUE){
 rxSymPyFix <- function(var){
     ret <- gsub(rex::rex(boundary, "_"), "rx_underscore_", var, perl=TRUE);
     ret <- gsub(rex::rex(",", any_spaces, ")"), ")", ret)
-    if (any(regexpr(rex::rex(boundary, or("D(", "Derivative(", "diff(")), ret) != -1)){
-        ## See if RxODE translation can fix this.
-
-        ret <- rxFromSymPy(ret);
-        ret <- rxToSymPy(ret);
-    }
     return(ret);
 }
 
@@ -433,7 +421,7 @@ rxSymPyVars <- function(model){
         vars <- c(rxParams(model),
                   rxState(model),
                   "podo", "t", "time", "tlast",
-                  "rx__PTR__");
+                  "rx__PTR__", "rx1c");
     }
     vars <- sapply(vars, function(x){return(rxToSymPy(x))});
     known <- c(rxSymPy.vars, vars);
@@ -478,7 +466,6 @@ rxSymPyFunctions <- function(functions){
 ##' @keywords internal
 ##' @export
 rxSymPySetup <- function(model, envir=parent.frame()){
-    rxSymPyFunctions(names(rxDefinedDerivatives));
     setup <- rxToSymPy(model, envir=envir);
     rxSymPyVars(model)
     assignInMyNamespace("rxSymPy.vars", c(rxSymPy.vars, names(setup)))
@@ -909,7 +896,7 @@ rxSymPySensitivity <- function(model, calcSens, calcJac=FALSE, keepState=NULL,
             for (v in rxState(model)){
                 tmp <- rxSymPy(rxToSymPy(sprintf("d/dt(%s)", v)));
                 tmp <- rxFromSymPy(tmp);
-                extraLines[length(extraLines) + 1] <- sprintf("d/dt(%s)=rxRate(%s)+%s", v, v, tmp);
+                extraLines[length(extraLines) + 1] <- sprintf("d/dt(%s)=%s", v, tmp);
                 ini <- sprintf("%s(0)", v);
                 ini <- rxToSymPy(ini)
                 tmp <- try({rxSymPy(ini)}, silent=TRUE);
@@ -945,7 +932,7 @@ rxSymPySensitivity <- function(model, calcSens, calcJac=FALSE, keepState=NULL,
                 for (v in rxState(model)){
                     tmp <- rxSymPy(rxToSymPy(sprintf("d/dt(%s)", v)));
                     tmp <- rxFromSymPy(tmp);
-                    tmpl[length(tmpl) + 1] <- sprintf("d/dt(%s)=rxRate(%s)+%s", v, v, tmp);
+                    tmpl[length(tmpl) + 1] <- sprintf("d/dt(%s)=%s", v, tmp);
                 }
                 for (v in rxLhs(model)){
                     tmp <- rxSymPy(rxToSymPy(sprintf("%s", v)));
@@ -995,7 +982,6 @@ rxSymPyClean <- function(){
     ## rxSymPy("clear_cache()");
     assignInMyNamespace("rxSymPy.vars", c());
     rxGc();
-    rxSymPyFunctions(names(rxDefinedDerivatives))
 }
 
 ##' Add a return statment to a function.
@@ -1025,7 +1011,7 @@ rxSymPySetupDPred <- function(newmod, calcSens, states, prd="rx_pred_", pred.min
     states <- states[regexpr(rex::rex(start, "rx_"), states) == -1]
     extraLines <- c();
     zeroSens <- TRUE;
-    if (is(calcSens,"list")){
+    if (rxIs(calcSens,"list")){
         tmp1 <- rxSymPySetupDPred(newmod, calcSens$eta, states, prd)
         zeroSens <- attr(tmp1, "zeroSens");
         tmp2 <- rxSymPySetupDPred(newmod, calcSens$theta, states, prd)
@@ -1179,6 +1165,98 @@ rxIf__ <- function(x){
         return(sprintf("if (%s) {", paste(x, collapse=" && ")));
     }
 }
+
+
+genCmt0 <- function(ncmt=1, oral=FALSE){
+    ## The lincmt function generates:
+    ## 1 cmt: rx_k
+    ## 2 cmt: rx_k12, rx_k21
+    ## 3 cmt: rx_k13, rx_k31
+    rx0 <- "";
+    rxc <- "d/dt(rx1) = -rx_k*rx1";
+    rxp <- "";
+    rx3 <- ""
+    if (ncmt >= 2){
+        rxc <- paste(rxc, "- rx_k12*rx1 + rx_k21*rx2")
+        rxp <- "d/dt(rx2) = rx_k12*rx1 - rx_k21*rx2";
+    }
+    if (ncmt == 3){
+        rxc <- paste(rxc, "- rx_k13*rx1 + rx_k31*rx3")
+        rx3 <- "d/dt(rx3) = rx_k13*rx1 - rx_k31*rx3";
+    }
+    if (oral){
+        rxc <- paste(rxc, "+ rx_ka*rx0");
+        rx0 <- "d/dt(rx0) = -rx_ka*rx0";
+    }
+    fin <- "rx1c = rx1/rx_v";
+    ret <- c(rx0, rxc, rxp, rx3, fin);
+    ret <- ret[ret != ""];
+    paste(ret, collapse="\n")
+}
+
+genCmtMod <- function(mod){
+    ## Generates based on what is currently on the sympy stack.
+    rxSymPySetup(mod);
+    on.exit(rxSymPyClean());
+    ret <- NULL
+    get.var <- function(v){
+        if (rxSymPyExists(v)){
+            tmp1 <- rxSymPy(v);
+            tmp1 <- rxFromSymPy(tmp1);
+            return(sprintf("%s ~ %s", v, tmp1));
+        } else {
+            return(NULL);
+        }
+    }
+    oral <- rxSymPyExists("rx_ka");
+    if (oral){
+        oral <- (rxSymPy("rx_ka") != "0")
+    }
+    tlag <- rxSymPyExists("rx_tlag");
+    if (tlag){
+        tlag <- (rxSymPy("rx_tlag") != "0")
+    }
+    if (tlag){
+        stop("tlag not supported yet.");
+    }
+    if (rxSymPyExists("rx_k13")){
+        extra <- genCmt0(3, oral);
+    } else if (rxSymPyExists("rx_k12")){
+        extra <- genCmt0(2, oral);
+    } else if (rxSymPyExists("rx_k")){
+        extra <- genCmt0(1, oral);
+    } else {
+        return(mod);
+    }
+    ## Now build model
+    mv.1 <- rxModelVars(mod);
+    orig.state <- mv.1$state
+    orig.state.ignore <- mv.1$state.ignore
+    ka <- NULL;
+    if (oral)
+        ka <- get.var("rx_ka")
+    ret <- paste(c(get.var("rx_v"),
+                   ka,
+                   get.var("rx_k"),
+                   get.var("rx_k13"),
+                   get.var("rx_k31"),
+                   get.var("rx_k12"),
+                   get.var("rx_k21"),
+                   extra,
+                   sapply(seq_along(orig.state), function(i){
+                       cur.state <- orig.state[i];
+                       sep <- ifelse(orig.state.ignore[i] == 1L, "~", "=");
+                       v <- rxSymPy(rxToSymPy(sprintf("d/dt(%s)", cur.state)));
+                       v <- rxFromSymPy(v);
+                       return(sprintf("d/dt(%s) %s %s", cur.state, sep, v));
+                   }),
+                   sapply(mv.1$lhs, function(v){
+                       v1 <- rxSymPy(v);
+                       v1 <- rxFromSymPy(v1);
+                       return(sprintf("%s=%s", v, v1));
+                   })), collapse="\n")
+    ret
+}
 rxSymPySetupPred.warn <- FALSE
 ##' Setup Pred function based on RxODE object.
 ##'
@@ -1228,7 +1306,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
     check.good(predfn);
     check.good(pkpars);
     check.good(errfn);
-
+    ##
     if (!grad.internal && !theta.internal){
         cache.file <- file.path(ifelse(RxODE.cache.directory == ".", getwd(), RxODE.cache.directory),
                                 sprintf("rx_%s%s.prd",
@@ -1299,7 +1377,9 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
         } else {
             assignInMyNamespace("rxSymPyExpThetas", c());
             assignInMyNamespace("rxSymPyExpEtas", c());
-            oobj <- obj;
+            gobj <- obj;
+            oobj <- genCmtMod(obj);
+            obj <- oobj;
             rxModelVars(oobj)
             rxSymPyVars(obj);
             on.exit({rxSymPyClean()});
@@ -1506,7 +1586,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                 outer <- NULL;
                 theta <- NULL;
                 if (grad){
-                    outer <- rxSymPySetupPred(obj=oobj, predfn=predfn, pkpars=pkpars,
+                    outer <- rxSymPySetupPred(obj=gobj, predfn=predfn, pkpars=pkpars,
                                               errfn=errfn, init=init, sum.prod=sum.prod,pred.minus.dv=pred.minus.dv,
                                               run.internal=TRUE, grad.internal=TRUE, theta.internal=FALSE);
                 }
@@ -1538,7 +1618,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                 rxGc();
                 if (!grad && theta.derivs && !only.numeric){
                     rxForget();
-                    theta <- rxSymPySetupPred(obj=oobj, predfn=predfn, pkpars=pkpars,
+                    theta <- rxSymPySetupPred(obj=gobj, predfn=predfn, pkpars=pkpars,
                                               errfn=errfn, init=init, sum.prod=sum.prod,pred.minus.dv=pred.minus.dv,
                                               theta.derivs=TRUE, run.internal=TRUE, grad.internal=FALSE, theta.internal=TRUE);
                     theta <- RxODE(rxNorm(theta));

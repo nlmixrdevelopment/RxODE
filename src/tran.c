@@ -14,7 +14,7 @@
 #define MXSYM 50000
 #define MXDER 5000
 #define MXLEN 12000
-#define MXBUF 24000
+#define MXBUF 48000
 #define SBPTR sb.s+sb.o
 #define SBTPTR sbt.s+sbt.o
 
@@ -393,6 +393,9 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
     sprintf(tb.ss+tb.pos, "%s,", value);
     tb.pos += strlen(value)+1;
     tb.vo[++tb.nv] = tb.pos;
+  }
+  if (sb.o > MXBUF-20 || sbt.o > MXBUF-20){
+    error("The Line is too long for RxODE.");
   }
   if (!strcmp("(", name) ||
       !strcmp(")", name) ||

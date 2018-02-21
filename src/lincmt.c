@@ -6,8 +6,6 @@
 
 /* extern SEXP RxODE_ode_dosing(); */
 // extern "C" double getLinDeriv(int ncmt, int diff1, int diff2, double rate, double tinf, double Dose, double ka, double tlag, double T, double tT, mat par);
-extern double rxSolveLinBdInf(int diff1, int diff2, int dA, int dAlpha, double rate, double tT, double t1, double t2, double tinf, double A, double alpha, double tlag);
-extern double rxSolveLinBDiff(int diff1, int diff2, int dA, int dAlpha, double dose, double tT, double A, double alpha, double ka, double tlag);
 
 extern double RxODE_prodV_r(double *input, double *p, int type, int n, ...);
 extern double RxODE_sumV_r(double *p, long double *pld, int m, int type, int n, ...);
@@ -49,9 +47,10 @@ int locateDoseIndex(const double obs_time, rx_solve *rx, unsigned int id){
   return i;
 }//subscript of dose
 
-#define NUM_PARTIALS  32  /* initial partials array size, on stack */
-
 double RxODE_solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt, int diff1, int diff2, double d_A, double d_alpha, double d_B, double d_beta, double d_C, double d_gamma, double d_ka, double d_tlag){
+  if (diff1 != 0 || diff2 != 0){
+    error("Exact derivtives are no longer calculated.");
+  }
   double ps[6], pi[6];
   long double pld[6];
   unsigned int ncmt = 1;
@@ -84,14 +83,8 @@ double RxODE_solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt, int 
   double thisT = 0.0, tT = 0.0, res, t1, t2, tinf, dose = 0;
   double rate;
   m = locateDoseIndex(t, rx, id);
-  /* unsigned int nsum = 0, np = NUM_PARTIALS; */
-  /* double *sumar = Calloc(np, double); */
   
   for(l=0; l <= m; l++){
-    /* if (nsum >= np){ */
-    /*   np *= np; */
-    /*   sumar = Realloc(sumar, np, double); */
-    /* } */
     //superpostion
     evid = rxDosingEvidP(l, rx, id);
     dose = rxDoseP(l, rx, id);
@@ -133,23 +126,11 @@ double RxODE_solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt, int 
       }
       t1 = ((thisT < tinf) ? thisT : tinf);        //during infusion
       t2 = ((thisT > tinf) ? sum(2, thisT, - tinf) : 0.0);  // after infusion
-      if (diff1 == 0 && diff2 == 0){
-	ret +=  prod(5, rate,A,1.0/safe_zero(alpha),sum(2, 1.0,-exp(prod(2, -alpha, t1))),exp(prod(2, -alpha,t2)));
-      } else {
-	ret +=  rxSolveLinBdInf(diff1, diff2, 1, 2, rate, tT, t1, t2, tinf, A, alpha, tlag);
-      }
+      ret +=  prod(5, rate,A,1.0/safe_zero(alpha),sum(2, 1.0,-exp(prod(2, -alpha, t1))),exp(prod(2, -alpha,t2)));
       if (ncmt >= 2){
-	if (diff1 == 0 && diff2 == 0){
-	  ret +=  prod(5, rate,B , 1.0/safe_zero(beta),sum(2, 1.0,-exp(prod(2, -beta, t1))),exp(prod(2, -beta,t2)));
-	} else {
-	  ret +=  rxSolveLinBdInf(diff1, diff2, 3, 4, rate, tT, t1, t2, tinf, B, beta, tlag);
-	}
+	ret +=  prod(5, rate,B , 1.0/safe_zero(beta),sum(2, 1.0,-exp(prod(2, -beta, t1))),exp(prod(2, -beta,t2)));
 	if (ncmt >= 3){
-	  if (diff1 == 0 && diff2 == 0){
-	    ret +=  prod(5, rate,C , 1.0/safe_zero(gamma),sum(2, 1.0,-exp(prod(2, -gamma, t1))),exp(prod(2, -gamma,t2)));
-          } else {
-	    ret +=  rxSolveLinBdInf(diff1, diff2, 5, 6, rate, tT, t1, t2, tinf, C, gamma, tlag);
-	  }
+	  ret +=  prod(5, rate,C , 1.0/safe_zero(gamma),sum(2, 1.0,-exp(prod(2, -gamma, t1))),exp(prod(2, -gamma,t2)));
 	}
       }
     } else {
@@ -157,34 +138,15 @@ double RxODE_solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt, int 
       thisT = sum(2, tT, -tlag);
       if (thisT < 0) continue;
       res = ((oral == 1) ? exp(prod(2, -ka , thisT)) : 0.0);
-      if (diff1 == 0 && diff2 == 0){
-	ret +=  prod(3, dose, A, sum(2, exp(prod(2, -alpha, thisT)),-res));
-      } else {
-	ret +=  rxSolveLinBDiff(diff1, diff2, 1, 2, dose, tT, A, alpha, ka, tlag);
-      }
+      ret +=  prod(3, dose, A, sum(2, exp(prod(2, -alpha, thisT)),-res));
       if (ncmt >= 2){
-	if (diff1 == 0 && diff2 == 0){
-          ret +=  prod(3, dose, B, sum(2, exp(prod(2, -beta, thisT)),-res));
-	} else {
-	  ret +=  rxSolveLinBDiff(diff1, diff2, 3, 4, dose, tT, B, beta, ka, tlag);
-	}
+	ret +=  prod(3, dose, B, sum(2, exp(prod(2, -beta, thisT)),-res));
         if (ncmt >= 3){
-	  if (diff1 == 0 && diff2 == 0){
-            ret +=  prod(3, dose, C, sum(2, exp(prod(2, -gamma, thisT)),-res));
-	  } else {
-	    ret +=  rxSolveLinBDiff(diff1, diff2, 5, 6, dose, tT, C, gamma, ka, tlag);
-          }
+	  ret +=  prod(3, dose, C, sum(2, exp(prod(2, -gamma, thisT)),-res));
         }
       }
     }
   } //l
-  /* for (m = 0; m < nsum;m++){ */
-  /*   if (ISNAN(sumar[m])){ */
-  /*     error("NaN produced at A(=%f) and alpha (=%f). (@t=%f, d1=%d, d2=%d)", d_A, d_alpha, t, diff1, diff2); */
-  /*   } */
-  /* } */
-  /* ret = RxODE_sum(sumar, nsum); */
-  /* Free(sumar); */
   return ret;
 }
 
