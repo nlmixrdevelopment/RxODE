@@ -496,10 +496,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       }
       if (!strcmp("derivative", name) && i< 2) continue;
       if (!strcmp("der_rhs", name)    && i< 2) continue;
-      if (!strcmp("inf_rhs", name)    && i< 2) continue;
       if (!strcmp("derivative", name) && i==3) continue;
       if (!strcmp("der_rhs", name)    && i==3) continue;
-      if (!strcmp("inf_rhs", name)    && i==3) continue;
       if (!strcmp("derivative", name) && i==4){
 	D_ParseNode *xpn = d_get_child(pn,i);
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
@@ -923,28 +921,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
           sb.o = strlen(sb.s);
           sprintf(SBTPTR, "d/dt(%s)", v);
           sbt.o = strlen(sbt.s);
-        }
-        Free(v);
-        continue;
-      }
-
-      if (!strcmp("inf_rhs", name)) {
-        char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-        if (new_de(v)){
-          sprintf(buf,"Tried to use rxRate(%s) before d/dt(%s) was defined",v,v);
-          trans_syntax_error_report_fn(buf);
-        } else {
-	  if (strcmp(tb.ddt, v)){
-	    sprintf(SBPTR, "_InfusionRate(%d, _solveData, _cSub)", tb.id);
-            sb.o = strlen(sb.s);
-            sprintf(SBTPTR, "rxRate(%s)", v);
-            sbt.o = strlen(sbt.s);
-          } else {
-	    sprintf(SBPTR, "0.0");
-            sb.o = strlen(sb.s);
-            sprintf(SBTPTR, "rxRate(%s)", v);
-            sbt.o = strlen(sbt.s);
-	  }
         }
         Free(v);
         continue;

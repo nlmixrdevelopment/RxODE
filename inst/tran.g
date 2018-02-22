@@ -8,8 +8,12 @@ statement
   | ini0f end_statement
   | assignment end_statement
   | derivative end_statement
+  | fbio end_statement
   | jac end_statement
   | dfdy end_statement
+  | alag end_statement
+  | rate end_statement
+  | dur end_statement
   | compound_statement
   | selection_statement
   | printf_statement end_statement
@@ -45,11 +49,9 @@ ini        : identifier_r ('=' | '<-' ) ini_const;
 
 derivative : 'd/dt' '(' identifier_r_no_output ')' ('=' | '<-' | '~') additive_expression;
 der_rhs    : 'd/dt' '(' identifier_r_no_output ')';
+
 jac        : jac_command '(' identifier_r_no_output ',' (theta0_noout | theta_noout | eta_noout | identifier_r_no_output) ')' ('=' | '<-' ) additive_expression;
 jac_rhs    : jac_command '(' identifier_r_no_output ',' (theta0_noout | theta_noout | eta_noout | identifier_r_no_output) ')';
-
-inf_cmd    : ('rxRate');
-inf_rhs    : inf_cmd '(' identifier_r_no_output ')';
 
 // transit(n,mtt) -> transit3(t,n,mtt)
 transit2   : 'transit' '(' trans_const ',' trans_const ')';
@@ -59,6 +61,19 @@ transit3   : 'transit' '(' trans_const ',' trans_const ',' trans_const ')';
 
 dfdy        : 'df' '(' identifier_r_no_output ')/dy(' (theta0_noout | theta_noout | eta_noout | identifier_r_no_output) ')' ('=' | '<-' ) additive_expression;
 dfdy_rhs    : 'df' '(' identifier_r_no_output ')/dy(' (theta0_noout | theta_noout | eta_noout | identifier_r_no_output) ')';
+
+fbio        : ('f' | 'F')  '(' identifier_r_no_output ')' ('=' | '<-' ) additive_expression;
+fbio_rhs    : ('f' | 'F') '(' identifier_r_no_output ')';
+
+alag        : ('lag' | 'LAG' | 'Lag' | 'alag' | 'ALAG' | 'Alag')  '(' identifier_r_no_output ')' ('=' | '<-' ) additive_expression;
+alag_rhs    : ('lag' | 'LAG' | 'Lag' | 'alag' | 'ALAG' | 'Alag')  '(' identifier_r_no_output ')';
+
+rate        : ('R' | 'Rate' | 'rate' | 'r')  '(' identifier_r_no_output ')' ('=' | '<-' ) additive_expression;
+rate_rhs    : ('R' | 'Rate' | 'rate' | 'r')  '(' identifier_r_no_output ')';
+
+dur        : ('D' | 'd' | 'Dur' | 'dur' | 'DUR')  '(' identifier_r_no_output ')' ('=' | '<-' ) additive_expression;
+dur_rhs    : ('D' | 'd' | 'Dur' | 'dur' | 'DUR')  '(' identifier_r_no_output ')';
+
 
 jac_command : 'jac' | 'df/dy';
 
@@ -105,9 +120,12 @@ primary_expression
   | theta
   | eta
   | der_rhs
-  | inf_rhs
   | jac_rhs
   | dfdy_rhs
+  | fbio_rhs
+  | alag_rhs
+  | rate_rhs
+  | dur_rhs
   | transit2
   | transit3
   | function
