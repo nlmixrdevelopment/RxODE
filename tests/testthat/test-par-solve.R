@@ -189,4 +189,4 @@ rxPermissive({
         })
 
     }
-}, silent=TRUE, cran=TRUE)
+}, silent=TRUE, on.validate=TRUE)
