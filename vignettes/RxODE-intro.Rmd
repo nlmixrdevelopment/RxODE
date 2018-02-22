@@ -582,7 +582,7 @@ of parameter values for use in the simulation. In the example below,
 40% variability in clearance is simulated.
 
 ```{r}
-
+set.seed(42);
 mod <- RxODE({
     eff(0) = 1
     C2 = centr/V2;
@@ -886,7 +886,7 @@ parameter.  For example:
 
 ```{r}
 sim  <- rxSolve(mod, theta, ev, omega=omega, nSub=100, sigma=sigma, thetaMat=tMat, nStud=10,
-                nCoresRV=rxCores());
+                nCoresRV=2);
 
 p <- c(0.05, 0.5, 0.95);
 s <-sim %>% group_by(time) %>%
