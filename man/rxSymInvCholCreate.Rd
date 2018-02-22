@@ -4,17 +4,20 @@
 \alias{rxSymInvCholCreate}
 \title{Creates an object for calculating Omega/Omega^-1 and derivatives}
 \usage{
-rxSymInvCholCreate(mat, diag.xform = c("log", "sqrt", "identity"))
+rxSymInvCholCreate(mat, diag.xform = c("log", "sqrt", "identity"),
+  create.env = TRUE, envir = parent.frame())
 }
 \arguments{
 \item{mat}{Initial Omega matrix}
 
 \item{diag.xform}{transformation to diagonal elements of OMEGA. or chol(Omega^-1)}
 
-\item{chol}{Boolean to state if the parameter values specify the OMEGA matrix or chol(Omega^-1)}
+\item{create.env}{-- Create an environment to calculate the inverses. (By default TRUE)}
+
+\item{envir}{-- Environment to evaluate function, bu default it is the parent frame.}
 }
 \value{
-A rxSymInv object
+A rxSymInv object OR a rxSymInv environment
 }
 \description{
 Creates an object for calculating Omega/Omega^-1 and derivatives

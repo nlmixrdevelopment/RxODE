@@ -1,5 +1,6 @@
 context("Test modelvars");
 rxPermissive({
+
     rigid.txt <- "
 y1(0)    = 1
 y2(0)    = 0
@@ -20,7 +21,6 @@ d/dt(y3) = a3*y1*y2
 
 
     test_that("modelvars", {
-        expect_equal(rxModelVars(rigid), rxModelVars(rigid$cmpMgr))
         expect_equal(rxModelVars(rigid), rxModelVars(rigid$cmpMgr$rxDll()))
         expect_equal(rxModelVars(rigid), rxModelVars(out))
     })

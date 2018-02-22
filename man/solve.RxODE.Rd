@@ -2,21 +2,9 @@
 % Please edit documentation in R/RxODE.R
 \name{solve.RxODE}
 \alias{solve.RxODE}
-\alias{solve.RxCompilationManager}
-\alias{solve.solveRxDll}
-\alias{solve.character}
-\alias{solve.rxDll}
 \title{Solve RxODE objects}
 \usage{
 \method{solve}{RxODE}(...)
-
-\method{solve}{RxCompilationManager}(...)
-
-\method{solve}{solveRxDll}(...)
-
-\method{solve}{character}(...)
-
-\method{solve}{rxDll}(...)
 }
 \arguments{
 \item{...}{Additional arguments sent to \code{rxSolve}}

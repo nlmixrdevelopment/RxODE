@@ -5,98 +5,13 @@
 [![CRAN total downloads](https://cranlogs.r-pkg.org/badges/grand-total/RxODE)](https://cran.r-project.org/package=RxODE)
 [![Dependency Status](https://dependencyci.com/github/nlmixrdevelopment/RxODE/badge)](https://dependencyci.com/github/nlmixrdevelopment/RxODE)
 
+![plot of chunk compileVignette](figure/compileVignette-1.png)
 
 
 ## RxODE: A tool for performing simulations from Ordinary Differential Equation (ODE) models, with applications for pharmacometrics
 ***  
 
 ##### Authors: Matthew L. Fidler, Melissa Hallow, and Wenping Wang
-
-***
-
-`RxODE` installation under R for Windows
-========================================
-
-These notes briefly describe steps to properly install `RxODE` and to
-ensure `Rtools` (https://cran.r-project.org/bin/windows/Rtools/) are properly 
-configured to avoid compilation issues during the use of `RxODE`. 
-
-In a nutshell, installing `RxODE` is very straight forwad, but installing
-and configuring `Rtools` is a bit more delicate and you need to 
-carefully follow the instructions in the "R Installation and Adminstration" 
-manual, in particular Section 6.3, and Appendix D "The Windows Toolset". 
-We point out a couple of details worth extra attention.  Please read on.
-
-Steps:
-------
-
-1. Install the appropriate `Rtools` for your R for Windows version,
-   e.g., `Rtools` 3.2 for R versions 3.1.x through 3.2.x (for full details
-   see http://cran.r-project.org/bin/windows/Rtools/). A couple of 
-   important details:
-
-   * When installing `Rtools`, in the "Select Components" dialog box, 
-     you may select the default "Package authoring installation".
-
-   * In the "Select Additional Tasks" dialog window, check the
-     option "Edit the system PATH".  This is important to be able to
-     locate the C, Fortran compilers and other tools needed during 
-     the use of `RxODE`.
-
-   * A simple way to test whether `Rtools` was properly installed is
-     to compile the `hello.c` program.  Simply open a new MSDOS command 
-     window, create a text file `hello.c` and compile it as follows:
-   
-     ```
-     C:\hello> type hello.c
-     #include<stdio.h>
-     
-     void main(int argc, char **argv)
-     {
-         printf("Hello World!\n");
-     }
-
-     C:\hello> gcc -o hello hello.c
-
-     C:\hello> .\hello
-     Hello World!
-     ```
-
-     If you get the error `gcc: error: CreateProcess: No such file or
-     directory` then you know `Rtools` was not properly installed, in
-     particular, it did not update your system `PATH` variable.
-
-2.  Obtain the `RxODE` package, either from github or CRAN.  The 
-    installation requires use of the gcc compiler, so you'll know if Step 1 
-    was successfully executed.
-
-    * CRAN. Use the usual method for installing pacakges from CRAN.
-
-    * GitHub. First install the `devtools` package (if needed) and 
-      then `RxODE` from GitHub.  You may want to avoid using a library 
-      folder that has spaces in its name (see question 4.1 in the 
-      "R for Windows FAQ" and the pointers therein).  As of `RxODE`
-      version 0.5-1, we've been able to test installations on folder with 
-      spaces in their name, but you may want to be on the safe side.
-      
-      ``` 
-      install.packages("devtools")
-      library("devtools", lib = "C:/Rlib")
-      install_github("nlmixrdevelopment/RxODE")
-      ```
-
-3. Test the `RxODE` installation:
-
-    ``` 
-    library("RxODE", lib = "C:/Rlib")
-    demo("demo1","RxODE")
-    ```
-
-If the demo runs without error, click on the plot window and see if a 
-new plot comes up each time. If so, `RxODE` has been installed correctly.
-
-See `browseVignettes("RxODE")` for an extended example on using 
-`RxODE` for simulations.
 
 #### Introduction
 `RxODE` is an R package that facilitates simulation with ODE models in
@@ -265,30 +180,46 @@ print(x)
 ```
 
 ```
-## Solved RxODE object
-## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpCyGZXE\Rx_intro-2d645938127a/mod1.d/mod1_x64.dll
-## 
-## Parameters:
+## ___________________________ Solved RxODE object ___________________________
+```
+
+```
+## -- Parameters ($params): --------------------------------------------------
+```
+
+```
 ##      V2      V3      KA      CL       Q     Kin    Kout    EC50 
-##  40.200 297.000   0.294  18.600  10.500   1.000   1.000 200.000 
-## 
-## 
-## Initial Conditions:
+##  40.200 297.000   0.294  18.600  10.500   1.000   1.000 200.000
+```
+
+```
+## -- Initial Conditions ($inits): -------------------------------------------
+```
+
+```
 ## depot centr  peri   eff 
-##     0     0     0     1 
-## 
-## 
-## First part of data:
+##     0     0     0     1
+```
+
+```
+## -- First part of data (object): -------------------------------------------
+```
+
+```
 ## # A tibble: 241 x 7
-##    time     depot    centr      peri      eff       C2        C3
-##   <dbl>     <dbl>    <dbl>     <dbl>    <dbl>    <dbl>     <dbl>
-## 1     0 10000.000    0.000    0.0000 1.000000  0.00000 0.0000000
-## 2     1  7452.765 1783.897  273.1895 1.084664 44.37555 0.9198298
-## 3     2  5554.370 2206.295  793.8758 1.180825 54.88296 2.6729825
-## 4     3  4139.542 2086.518 1323.5783 1.228914 51.90343 4.4564927
-## 5     4  3085.103 1788.795 1776.2702 1.234610 44.49738 5.9807076
-## 6     5  2299.255 1466.670 2131.7169 1.214742 36.48434 7.1774981
+##    time depot centr  peri   eff    C2    C3
+##   <dbl> <dbl> <dbl> <dbl> <dbl> <dbl> <dbl>
+## 1  0    10000     0     0  1.00   0   0    
+## 2  1.00  7453  1784   273  1.08  44.4 0.920
+## 3  2.00  5554  2206   794  1.18  54.9 2.67 
+## 4  3.00  4140  2087  1324  1.23  51.9 4.46 
+## 5  4.00  3085  1789  1776  1.23  44.5 5.98 
+## 6  5.00  2299  1467  2132  1.21  36.5 7.18 
 ## # ... with 235 more rows
+```
+
+```
+## ___________________________________________________________________________
 ```
 or
 
@@ -298,30 +229,46 @@ print(x)
 ```
 
 ```
-## Solved RxODE object
-## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpCyGZXE\Rx_intro-2d645938127a/mod1.d/mod1_x64.dll
-## 
-## Parameters:
+## ___________________________ Solved RxODE object ___________________________
+```
+
+```
+## -- Parameters ($params): --------------------------------------------------
+```
+
+```
 ##      V2      V3      KA      CL       Q     Kin    Kout    EC50 
-##  40.200 297.000   0.294  18.600  10.500   1.000   1.000 200.000 
-## 
-## 
-## Initial Conditions:
+##  40.200 297.000   0.294  18.600  10.500   1.000   1.000 200.000
+```
+
+```
+## -- Initial Conditions ($inits): -------------------------------------------
+```
+
+```
 ## depot centr  peri   eff 
-##     0     0     0     1 
-## 
-## 
-## First part of data:
+##     0     0     0     1
+```
+
+```
+## -- First part of data (object): -------------------------------------------
+```
+
+```
 ## # A tibble: 241 x 7
-##    time     depot    centr      peri      eff       C2        C3
-##   <dbl>     <dbl>    <dbl>     <dbl>    <dbl>    <dbl>     <dbl>
-## 1     0 10000.000    0.000    0.0000 1.000000  0.00000 0.0000000
-## 2     1  7452.765 1783.897  273.1895 1.084664 44.37555 0.9198298
-## 3     2  5554.370 2206.295  793.8758 1.180825 54.88296 2.6729825
-## 4     3  4139.542 2086.518 1323.5783 1.228914 51.90343 4.4564927
-## 5     4  3085.103 1788.795 1776.2702 1.234610 44.49738 5.9807076
-## 6     5  2299.255 1466.670 2131.7169 1.214742 36.48434 7.1774981
+##    time depot centr  peri   eff    C2    C3
+##   <dbl> <dbl> <dbl> <dbl> <dbl> <dbl> <dbl>
+## 1  0    10000     0     0  1.00   0   0    
+## 2  1.00  7453  1784   273  1.08  44.4 0.920
+## 3  2.00  5554  2206   794  1.18  54.9 2.67 
+## 4  3.00  4140  2087  1324  1.23  51.9 4.46 
+## 5  4.00  3085  1789  1776  1.23  44.5 5.98 
+## 6  5.00  2299  1467  2132  1.21  36.5 7.18 
 ## # ... with 235 more rows
+```
+
+```
+## ___________________________________________________________________________
 ```
 
 Or with `mattigr`
@@ -332,30 +279,46 @@ print(x)
 ```
 
 ```
-## Solved RxODE object
-## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpCyGZXE\Rx_intro-2d645938127a/mod1.d/mod1_x64.dll
-## 
-## Parameters:
+## ___________________________ Solved RxODE object ___________________________
+```
+
+```
+## -- Parameters ($params): --------------------------------------------------
+```
+
+```
 ##      V2      V3      KA      CL       Q     Kin    Kout    EC50 
-##  40.200 297.000   0.294  18.600  10.500   1.000   1.000 200.000 
-## 
-## 
-## Initial Conditions:
+##  40.200 297.000   0.294  18.600  10.500   1.000   1.000 200.000
+```
+
+```
+## -- Initial Conditions ($inits): -------------------------------------------
+```
+
+```
 ## depot centr  peri   eff 
-##     0     0     0     1 
-## 
-## 
-## First part of data:
+##     0     0     0     1
+```
+
+```
+## -- First part of data (object): -------------------------------------------
+```
+
+```
 ## # A tibble: 241 x 7
-##    time     depot    centr      peri      eff       C2        C3
-##   <dbl>     <dbl>    <dbl>     <dbl>    <dbl>    <dbl>     <dbl>
-## 1     0 10000.000    0.000    0.0000 1.000000  0.00000 0.0000000
-## 2     1  7452.765 1783.897  273.1895 1.084664 44.37555 0.9198298
-## 3     2  5554.370 2206.295  793.8758 1.180825 54.88296 2.6729825
-## 4     3  4139.542 2086.518 1323.5783 1.228914 51.90343 4.4564927
-## 5     4  3085.103 1788.795 1776.2702 1.234610 44.49738 5.9807076
-## 6     5  2299.255 1466.670 2131.7169 1.214742 36.48434 7.1774981
+##    time depot centr  peri   eff    C2    C3
+##   <dbl> <dbl> <dbl> <dbl> <dbl> <dbl> <dbl>
+## 1  0    10000     0     0  1.00   0   0    
+## 2  1.00  7453  1784   273  1.08  44.4 0.920
+## 3  2.00  5554  2206   794  1.18  54.9 2.67 
+## 4  3.00  4140  2087  1324  1.23  51.9 4.46 
+## 5  4.00  3085  1789  1776  1.23  44.5 5.98 
+## 6  5.00  2299  1467  2132  1.21  36.5 7.18 
 ## # ... with 235 more rows
+```
+
+```
+## ___________________________________________________________________________
 ```
 
 The solved object acts as a `data.frame` or `tbl` that can be filtered
@@ -363,26 +326,6 @@ by `dpylr`.  For example you could filter it easily.
 
 ```r
 library(dplyr)
-```
-
-```
-## 
-## Attaching package: 'dplyr'
-```
-
-```
-## The following objects are masked from 'package:stats':
-## 
-##     filter, lag
-```
-
-```
-## The following objects are masked from 'package:base':
-## 
-##     intersect, setdiff, setequal, union
-```
-
-```r
 x <- mod1 %>% solve(theta,ev,inits) %>%  filter(time <=3)
 x
 ```
@@ -415,8 +358,7 @@ x$eff0
 ```
 
 ```
-## eff 
-##   1
+## [1] 1
 ```
 
 which shows the initial condition of the effect compartment.  If you
@@ -425,41 +367,50 @@ by:
 
 ```r
 x$eff0 <- 2
-```
-
-```
-## Updating object with new initial conditions.
-```
-
-```r
 x
 ```
 
 ```
-## Solved RxODE object
-## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpCyGZXE\Rx_intro-2d645938127a/mod1.d/mod1_x64.dll
-## 
-## Parameters:
+## ___________________________ Solved RxODE object ___________________________
+```
+
+```
+## -- Parameters ($params): --------------------------------------------------
+```
+
+```
 ##      V2      V3      KA      CL       Q     Kin    Kout    EC50 
-##  40.200 297.000   0.294  18.600  10.500   1.000   1.000 200.000 
-## 
-## 
-## Initial Conditions:
+##  40.200 297.000   0.294  18.600  10.500   1.000   1.000 200.000
+```
+
+```
+## -- Initial Conditions ($inits): -------------------------------------------
+```
+
+```
 ## depot centr  peri   eff 
-##     0     0     0     2 
-## 
-## 
-## First part of data:
+##     0     0     0     2
+```
+
+```
+## -- First part of data (object): -------------------------------------------
+```
+
+```
 ## # A tibble: 241 x 7
-##    time     depot    centr      peri      eff       C2        C3
-##   <dbl>     <dbl>    <dbl>     <dbl>    <dbl>    <dbl>     <dbl>
-## 1     0 10000.000    0.000    0.0000 2.000000  0.00000 0.0000000
-## 2     1  7452.765 1783.897  273.1895 1.496778 44.37555 0.9198299
-## 3     2  5554.370 2206.295  793.8759 1.366782 54.88295 2.6729829
-## 4     3  4139.542 2086.517 1323.5786 1.313536 51.90341 4.4564937
-## 5     4  3085.103 1788.793 1776.2706 1.272430 44.49735 5.9807092
-## 6     5  2299.255 1466.669 2131.7173 1.231204 36.48431 7.1774995
+##    time depot centr  peri   eff    C2    C3
+##   <dbl> <dbl> <dbl> <dbl> <dbl> <dbl> <dbl>
+## 1  0    10000     0     0  2.00   0   0    
+## 2  1.00  7453  1784   273  1.50  44.4 0.920
+## 3  2.00  5554  2206   794  1.37  54.9 2.67 
+## 4  3.00  4140  2087  1324  1.31  51.9 4.46 
+## 5  4.00  3085  1789  1776  1.27  44.5 5.98 
+## 6  5.00  2299  1467  2132  1.23  36.5 7.18 
 ## # ... with 235 more rows
+```
+
+```
+## ___________________________________________________________________________
 ```
 
 Notice that the inital effect is now `2`.
@@ -469,41 +420,50 @@ changing `t` or `time`.  For example:
 
 ```r
 x$t <- seq(0,5,length.out=20)
-```
-
-```
-## Updating sampling times in the event table updating object.
-```
-
-```r
 x
 ```
 
 ```
-## Solved RxODE object
-## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpCyGZXE\Rx_intro-2d645938127a/mod1.d/mod1_x64.dll
-## 
-## Parameters:
+## ___________________________ Solved RxODE object ___________________________
+```
+
+```
+## -- Parameters ($params): --------------------------------------------------
+```
+
+```
 ##      V2      V3      KA      CL       Q     Kin    Kout    EC50 
-##  40.200 297.000   0.294  18.600  10.500   1.000   1.000 200.000 
-## 
-## 
-## Initial Conditions:
+##  40.200 297.000   0.294  18.600  10.500   1.000   1.000 200.000
+```
+
+```
+## -- Initial Conditions ($inits): -------------------------------------------
+```
+
+```
 ## depot centr  peri   eff 
-##     0     0     0     2 
-## 
-## 
-## First part of data:
+##     0     0     0     2
+```
+
+```
+## -- First part of data (object): -------------------------------------------
+```
+
+```
 ## # A tibble: 20 x 7
-##        time     depot     centr      peri      eff       C2        C3
-##       <dbl>     <dbl>     <dbl>     <dbl>    <dbl>    <dbl>     <dbl>
-## 1 0.0000000 10000.000    0.0000   0.00000 2.000000  0.00000 0.0000000
-## 2 0.2631579  9255.488  677.1371  24.26134 1.787179 16.84421 0.0816880
-## 3 0.5263158  8566.406 1186.8059  88.67937 1.646825 29.52253 0.2985837
-## 4 0.7894737  7928.627 1562.0986 182.59671 1.551517 38.85817 0.6148038
-## 5 1.0526316  7338.331 1830.0078 297.50288 1.485338 45.52258 1.0016932
-## 6 1.3157895  6791.983 2012.5211 426.63581 1.438438 50.06271 1.4364842
+##    time depot centr  peri   eff    C2     C3
+## * <dbl> <dbl> <dbl> <dbl> <dbl> <dbl>  <dbl>
+## 1 0     10000     0   0    2.00   0   0     
+## 2 0.263  9255   677  24.3  1.79  16.8 0.0817
+## 3 0.526  8566  1187  88.7  1.65  29.5 0.299 
+## 4 0.789  7929  1562 183    1.55  38.9 0.615 
+## 5 1.05   7338  1830 298    1.49  45.5 1.00  
+## 6 1.32   6792  2013 427    1.44  50.1 1.44  
 ## # ... with 14 more rows
+```
+
+```
+## ___________________________________________________________________________
 ```
 
 You can also access or change parameters by the `$` operator.  For
@@ -514,49 +474,57 @@ x$KA
 ```
 
 ```
-##    KA 
-## 0.294
+## [1] 0.294
 ```
 
 And you may change it by assigning it to a new value.
 
 ```r
 x$KA <- 1;
-```
-
-```
-## Updating object with new parameter values.
-```
-
-```r
 x
 ```
 
 ```
-## Solved RxODE object
-## Dll: C:\Users\fidlema3\AppData\Local\Temp\ep\RtmpCyGZXE\Rx_intro-2d645938127a/mod1.d/mod1_x64.dll
-## 
-## Parameters:
+## ___________________________ Solved RxODE object ___________________________
+```
+
+```
+## -- Parameters ($params): --------------------------------------------------
+```
+
+```
 ##    V2    V3    KA    CL     Q   Kin  Kout  EC50 
-##  40.2 297.0   1.0  18.6  10.5   1.0   1.0 200.0 
-## 
-## 
-## Initial Conditions:
+##  40.2 297.0   1.0  18.6  10.5   1.0   1.0 200.0
+```
+
+```
+## -- Initial Conditions ($inits): -------------------------------------------
+```
+
+```
 ## depot centr  peri   eff 
-##     0     0     0     2 
-## 
-## 
-## First part of data:
+##     0     0     0     2
+```
+
+```
+## -- First part of data (object): -------------------------------------------
+```
+
+```
 ## # A tibble: 20 x 7
-##        time     depot    centr       peri      eff        C2        C3
-##       <dbl>     <dbl>    <dbl>      <dbl>    <dbl>     <dbl>     <dbl>
-## 1 0.0000000 10000.000    0.000    0.00000 2.000000   0.00000 0.0000000
-## 2 0.2631579  7686.205 2098.224   77.62338 1.822345  52.19463 0.2613582
-## 3 0.5263158  5907.775 3348.269  267.29379 1.737850  83.29027 0.8999791
-## 4 0.7894737  4540.837 4010.290  519.32777 1.692658  99.75845 1.7485784
-## 5 1.0526316  3490.181 4272.980  799.73120 1.665007 106.29303 2.6926976
-## 6 1.3157895  2682.625 4272.092 1085.82977 1.644283 106.27096 3.6559925
+##    time depot centr   peri   eff    C2    C3
+##   <dbl> <dbl> <dbl>  <dbl> <dbl> <dbl> <dbl>
+## 1 0     10000     0    0    2.00   0   0    
+## 2 0.263  7686  2098   77.6  1.82  52.2 0.261
+## 3 0.526  5908  3348  267    1.74  83.3 0.900
+## 4 0.789  4541  4010  519    1.69  99.8 1.75 
+## 5 1.05   3490  4273  800    1.67 106   2.69 
+## 6 1.32   2683  4272 1086    1.64 106   3.66 
 ## # ... with 14 more rows
+```
+
+```
+## ___________________________________________________________________________
 ```
 
 
@@ -631,30 +599,46 @@ This can be solved with the following command:
 ```
 
 ```
-## Solved RxODE object
-## Dll: c:/SVN/Wenping/RxODE/vignettes/rx_f8bd102b5a0c999651b0f2c87f83b147_x64.dll
-## 
-## Parameters:
+## ___________________________ Solved RxODE object ___________________________
+```
+
+```
+## -- Parameters ($params): --------------------------------------------------
+```
+
+```
 ##      KA      V2      CL       Q      V3     Kin    Kout    EC50 
-##   0.294  40.200  18.600  10.500 297.000   1.000   1.000 200.000 
-## 
-## 
-## Initial Conditions:
+##   0.294  40.200  18.600  10.500 297.000   1.000   1.000 200.000
+```
+
+```
+## -- Initial Conditions ($inits): -------------------------------------------
+```
+
+```
 ## eff 
-##   1 
-## 
-## 
-## First part of data:
+##   1
+```
+
+```
+## -- First part of data (object): -------------------------------------------
+```
+
+```
 ## # A tibble: 241 x 3
-##    time      eff       C2
-##   <dbl>    <dbl>    <dbl>
-## 1     0 1.000000  0.00000
-## 2     1 1.084665 44.37555
-## 3     2 1.180826 54.88295
-## 4     3 1.228914 51.90342
-## 5     4 1.234610 44.49737
-## 6     5 1.214743 36.48434
+##    time   eff    C2
+##   <dbl> <dbl> <dbl>
+## 1  0     1.00   0  
+## 2  1.00  1.08  44.4
+## 3  2.00  1.18  54.9
+## 4  3.00  1.23  51.9
+## 5  4.00  1.23  44.5
+## 6  5.00  1.21  36.5
 ## # ... with 235 more rows
+```
+
+```
+## ___________________________________________________________________________
 ```
 
 Note this solving did not require specifying the effect compartment
@@ -667,30 +651,46 @@ This can be solved for different initial conditions easily:
 ```
 
 ```
-## Solved RxODE object
-## Dll: c:/SVN/Wenping/RxODE/vignettes/rx_f8bd102b5a0c999651b0f2c87f83b147_x64.dll
-## 
-## Parameters:
+## ___________________________ Solved RxODE object ___________________________
+```
+
+```
+## -- Parameters ($params): --------------------------------------------------
+```
+
+```
 ##      KA      V2      CL       Q      V3     Kin    Kout    EC50 
-##   0.294  40.200  18.600  10.500 297.000   1.000   1.000 200.000 
-## 
-## 
-## Initial Conditions:
+##   0.294  40.200  18.600  10.500 297.000   1.000   1.000 200.000
+```
+
+```
+## -- Initial Conditions ($inits): -------------------------------------------
+```
+
+```
 ## eff 
-##   2 
-## 
-## 
-## First part of data:
+##   2
+```
+
+```
+## -- First part of data (object): -------------------------------------------
+```
+
+```
 ## # A tibble: 241 x 3
-##    time      eff       C2
-##   <dbl>    <dbl>    <dbl>
-## 1     0 2.000000  0.00000
-## 2     1 1.496778 44.37555
-## 3     2 1.366782 54.88295
-## 4     3 1.313536 51.90342
-## 5     4 1.272430 44.49737
-## 6     5 1.231204 36.48434
+##    time   eff    C2
+##   <dbl> <dbl> <dbl>
+## 1  0     2.00   0  
+## 2  1.00  1.50  44.4
+## 3  2.00  1.37  54.9
+## 4  3.00  1.31  51.9
+## 5  4.00  1.27  44.5
+## 6  5.00  1.23  36.5
 ## # ... with 235 more rows
+```
+
+```
+## ___________________________________________________________________________
 ```
 
 The RxODE detective also does not require you to specify the variables
@@ -719,30 +719,46 @@ mod3 <- RxODE({
 ```
 
 ```
-## Solved RxODE object
-## Dll: c:/SVN/Wenping/RxODE/vignettes/rx_0c83e7bd2b7ec40bbff5c5a943705f34_x64.dll
-## 
-## Parameters:
+## ___________________________ Solved RxODE object ___________________________
+```
+
+```
+## -- Parameters ($params): --------------------------------------------------
+```
+
+```
 ##      KA      CL      V2       Q      V3     Kin    Kout    EC50 
-##   0.294  18.600  40.200  10.500 297.000   1.000   1.000 200.000 
-## 
-## 
-## Initial Conditions:
+##   0.294  18.600  40.200  10.500 297.000   1.000   1.000 200.000
+```
+
+```
+## -- Initial Conditions ($inits): -------------------------------------------
+```
+
+```
 ## eff 
-##   1 
-## 
-## 
-## First part of data:
+##   1
+```
+
+```
+## -- First part of data (object): -------------------------------------------
+```
+
+```
 ## # A tibble: 241 x 3
-##    time      eff       C2
-##   <dbl>    <dbl>    <dbl>
-## 1     0 1.000000  0.00000
-## 2     1 1.084665 44.37555
-## 3     2 1.180826 54.88295
-## 4     3 1.228914 51.90342
-## 5     4 1.234610 44.49737
-## 6     5 1.214743 36.48434
+##    time   eff    C2
+##   <dbl> <dbl> <dbl>
+## 1  0     1.00   0  
+## 2  1.00  1.08  44.4
+## 3  2.00  1.18  54.9
+## 4  3.00  1.23  51.9
+## 5  4.00  1.23  44.5
+## 6  5.00  1.21  36.5
 ## # ... with 235 more rows
+```
+
+```
+## ___________________________________________________________________________
 ```
 
 Note that you do not specify the parameters when solving the system
@@ -753,30 +769,46 @@ since they are built into the model, but you can override the parameters:
 ```
 
 ```
-## Solved RxODE object
-## Dll: c:/SVN/Wenping/RxODE/vignettes/rx_0c83e7bd2b7ec40bbff5c5a943705f34_x64.dll
-## 
-## Parameters:
+## ___________________________ Solved RxODE object ___________________________
+```
+
+```
+## -- Parameters ($params): --------------------------------------------------
+```
+
+```
 ##    KA    CL    V2     Q    V3   Kin  Kout  EC50 
-##  10.0  18.6  40.2  10.5 297.0   1.0   1.0 200.0 
-## 
-## 
-## Initial Conditions:
+##  10.0  18.6  40.2  10.5 297.0   1.0   1.0 200.0
+```
+
+```
+## -- Initial Conditions ($inits): -------------------------------------------
+```
+
+```
 ## eff 
-##   1 
-## 
-## 
-## First part of data:
+##   1
+```
+
+```
+## -- First part of data (object): -------------------------------------------
+```
+
+```
 ## # A tibble: 241 x 3
-##    time      eff        C2
-##   <dbl>    <dbl>     <dbl>
-## 1     0 1.000000   0.00000
-## 2     1 1.340982 130.61937
-## 3     2 1.392185  64.75317
-## 4     3 1.298397  33.17930
-## 5     4 1.191799  18.02218
-## 6     5 1.115887  10.72199
+##    time   eff    C2
+##   <dbl> <dbl> <dbl>
+## 1  0     1.00   0  
+## 2  1.00  1.34 131  
+## 3  2.00  1.39  64.8
+## 4  3.00  1.30  33.2
+## 5  4.00  1.19  18.0
+## 6  5.00  1.12  10.7
 ## # ... with 235 more rows
+```
+
+```
+## ___________________________________________________________________________
 ```
 
 #### ODEs and covariates
@@ -823,10 +855,14 @@ Now there is a covariate present, the system can be solved using the cov option
 ```
 
 ```
-## Solved RxODE object
-## Dll: c:/SVN/Wenping/RxODE/vignettes/rx_14186315b2054d89bb9a12305fd05711_x64.dll
-## 
-## Parameters:
+## ___________________________ Solved RxODE object ___________________________
+```
+
+```
+## -- Parameters ($params): --------------------------------------------------
+```
+
+```
 ##         KA         CL         V2          Q         V3       Kin0 
 ##   0.294000  18.600000  40.200000  10.500000 297.000000   1.000000 
 ##       Kout       EC50         Tz        amp         pi 
@@ -834,33 +870,50 @@ Now there is a covariate present, the system can be solved using the cov option
 ```
 
 ```
-## 
-## Time Varying Covariates
+## -- Covariates ($covs): ----------------------------------------------------
 ```
 
 ```
-## ctime
-```
-
-```
-## 
-## 
-## Initial Conditions:
-## eff 
-##   1 
-## 
-## 
-## First part of data:
-## # A tibble: 100 x 4
-##        time      eff       C2      Kin
-##       <dbl>    <dbl>    <dbl>    <dbl>
-## 1 0.0000000 1.000000  0.00000 1.099195
-## 2 0.4848485 1.067175 27.76574 1.096795
-## 3 0.9696970 1.144556 43.67518 1.092837
-## 4 1.4545455 1.212373 51.75572 1.087385
-## 5 1.9393939 1.263980 54.76289 1.080527
-## 6 2.4242424 1.298023 54.57072 1.072373
+## # A tibble: 100 x 1
+##   ctime
+##   <dbl>
+## 1  8.00
+## 2  8.48
+## 3  8.97
+## 4  9.45
+## 5  9.94
+## 6 10.4 
 ## # ... with 94 more rows
+```
+
+```
+## -- Initial Conditions ($inits): -------------------------------------------
+```
+
+```
+## eff 
+##   1
+```
+
+```
+## -- First part of data (object): -------------------------------------------
+```
+
+```
+## # A tibble: 100 x 4
+##    time   eff    C2   Kin
+##   <dbl> <dbl> <dbl> <dbl>
+## 1 0      1.00   0    1.10
+## 2 0.485  1.07  27.8  1.10
+## 3 0.970  1.14  43.7  1.09
+## 4 1.45   1.21  51.8  1.09
+## 5 1.94   1.26  54.8  1.08
+## 6 2.42   1.30  54.6  1.07
+## # ... with 94 more rows
+```
+
+```
+## ___________________________________________________________________________
 ```
 
 When solving ODE equations, the solver may sample times outside of the
@@ -875,7 +928,7 @@ matplot(r1[,"C2"], type="l", ylab="Central Concentration")
 matplot(r1[,"eff"], type="l", ylab = "Effect")
 ```
 
-![plot of chunk unnamed-chunk-31](vignettes/figure/unnamed-chunk-31-1.png)
+<img src="vignettes/figure/unnamed-chunk-31-1.png" title="plot of chunk unnamed-chunk-31" alt="plot of chunk unnamed-chunk-31" width="100%" />
 
 Note that the linear approximation in this case leads to some kinks in
 the solved system at 24-hours where the covariate has a linear
@@ -890,10 +943,14 @@ carried forward, or constant approximation.  This is equivalent to R's
 ```
 
 ```
-## Solved RxODE object
-## Dll: c:/SVN/Wenping/RxODE/vignettes/rx_14186315b2054d89bb9a12305fd05711_x64.dll
-## 
-## Parameters:
+## ___________________________ Solved RxODE object ___________________________
+```
+
+```
+## -- Parameters ($params): --------------------------------------------------
+```
+
+```
 ##         KA         CL         V2          Q         V3       Kin0 
 ##   0.294000  18.600000  40.200000  10.500000 297.000000   1.000000 
 ##       Kout       EC50         Tz        amp         pi 
@@ -901,36 +958,53 @@ carried forward, or constant approximation.  This is equivalent to R's
 ```
 
 ```
-## 
-## Time Varying Covariates
+## -- Covariates ($covs): ----------------------------------------------------
 ```
 
 ```
-## ctime
-```
-
-```
-## 
-## 
-## Initial Conditions:
-## eff 
-##   1 
-## 
-## 
-## First part of data:
-## # A tibble: 100 x 4
-##        time      eff       C2      Kin
-##       <dbl>    <dbl>    <dbl>    <dbl>
-## 1 0.0000000 1.000000  0.00000 1.099195
-## 2 0.4848485 1.067628 27.76574 1.096795
-## 3 0.9696970 1.145644 43.67518 1.092837
-## 4 1.4545455 1.214226 51.75572 1.087385
-## 5 1.9393939 1.266668 54.76289 1.080527
-## 6 2.4242424 1.301568 54.57072 1.072373
+## # A tibble: 100 x 1
+##   ctime
+##   <dbl>
+## 1  8.00
+## 2  8.48
+## 3  8.97
+## 4  9.45
+## 5  9.94
+## 6 10.4 
 ## # ... with 94 more rows
 ```
 
-which dives the following plots:
+```
+## -- Initial Conditions ($inits): -------------------------------------------
+```
+
+```
+## eff 
+##   1
+```
+
+```
+## -- First part of data (object): -------------------------------------------
+```
+
+```
+## # A tibble: 100 x 4
+##    time   eff    C2   Kin
+##   <dbl> <dbl> <dbl> <dbl>
+## 1 0      1.00   0    1.10
+## 2 0.485  1.07  27.8  1.10
+## 3 0.970  1.15  43.7  1.09
+## 4 1.45   1.21  51.8  1.09
+## 5 1.94   1.27  54.8  1.08
+## 6 2.42   1.30  54.6  1.07
+## # ... with 94 more rows
+```
+
+```
+## ___________________________________________________________________________
+```
+
+which gives the following plots:
 
 ```r
 par(mfrow=c(1,2))
@@ -938,7 +1012,7 @@ matplot(r2[,"C2"], type="l", ylab="Central Concentration")
 matplot(r2[,"eff"], type="l", ylab = "Effect")
 ```
 
-![plot of chunk unnamed-chunk-33](vignettes/figure/unnamed-chunk-33-1.png)
+<img src="vignettes/figure/unnamed-chunk-33-1.png" title="plot of chunk unnamed-chunk-33" alt="plot of chunk unnamed-chunk-33" width="100%" />
 
 In this case, the plots seem to be smoother.
 
@@ -975,7 +1049,7 @@ par(mfrow=c(1,1))
 with(transit,matplot(time,cen, type="l", ylab="Central Concentration", xlab=""))
 ```
 
-![plot of chunk unnamed-chunk-34](vignettes/figure/unnamed-chunk-34-1.png)
+<img src="vignettes/figure/unnamed-chunk-34-1.png" title="plot of chunk unnamed-chunk-34" alt="plot of chunk unnamed-chunk-34" width="100%" />
 
 
 Another option is to specify the transit compartment function `transit` syntax.  This specifies the parameters 
@@ -1007,9 +1081,8 @@ transit <- rxSolve(mod, et)
 ```
 
 ```
-## Warning in object$solve(params, events, inits, scale, covs, stiff,
-## transit_abs, : Assumed transit compartment model since 'podo' is in the
-## model.
+## Warning in rxSolve(mod, et): Assumed transit compartment model since 'podo'
+## is in the model.
 ```
 
 ```r
@@ -1017,7 +1090,7 @@ par(mfrow=c(1,1))
 with(transit,matplot(time,cen, type="l", ylab="Central Concentration", xlab=""))
 ```
 
-![plot of chunk unnamed-chunk-35](vignettes/figure/unnamed-chunk-35-1.png)
+<img src="vignettes/figure/unnamed-chunk-35-1.png" title="plot of chunk unnamed-chunk-35" alt="plot of chunk unnamed-chunk-35" width="100%" />
 
 
 #### Stiff ODEs with Jacobian Specification
@@ -1063,30 +1136,46 @@ et$add.dosing(20, start.time=0);
 ```
 
 ```
-## Solved RxODE object
-## Dll: c:/SVN/Wenping/RxODE/vignettes/rx_764ac3612cf417b90b21de9a7fe9534a_x64.dll
-## 
-## Parameters:
+## ___________________________ Solved RxODE object ___________________________
+```
+
+```
+## -- Parameters ($params): --------------------------------------------------
+```
+
+```
 ## mu 
-##  1 
-## 
-## 
-## Initial Conditions:
+##  1
+```
+
+```
+## -- Initial Conditions ($inits): -------------------------------------------
+```
+
+```
 ##  y dy 
-##  2  0 
-## 
-## 
-## First part of data:
+##  2  0
+```
+
+```
+## -- First part of data (object): -------------------------------------------
+```
+
+```
 ## # A tibble: 200 x 3
-##         time        y          dy
-##        <dbl>    <dbl>       <dbl>
-## 1 0.00000000 22.00000  0.00000000
-## 2 0.05025126 21.99781 -0.04555302
-## 3 0.10050251 21.99552 -0.04555778
-## 4 0.15075377 21.99323 -0.04556254
-## 5 0.20100503 21.99094 -0.04556731
-## 6 0.25125628 21.98865 -0.04557207
+##     time     y      dy
+##    <dbl> <dbl>   <dbl>
+## 1 0       22.0  0     
+## 2 0.0503  22.0 -0.0456
+## 3 0.101   22.0 -0.0456
+## 4 0.151   22.0 -0.0456
+## 5 0.201   22.0 -0.0456
+## 6 0.251   22.0 -0.0456
 ## # ... with 194 more rows
+```
+
+```
+## ___________________________________________________________________________
 ```
 
 While this is not stiff at mu=1, mu=1000 is a stiff system
@@ -1096,30 +1185,46 @@ While this is not stiff at mu=1, mu=1000 is a stiff system
 ```
 
 ```
-## Solved RxODE object
-## Dll: c:/SVN/Wenping/RxODE/vignettes/rx_764ac3612cf417b90b21de9a7fe9534a_x64.dll
-## 
-## Parameters:
+## ___________________________ Solved RxODE object ___________________________
+```
+
+```
+## -- Parameters ($params): --------------------------------------------------
+```
+
+```
 ##   mu 
-## 1000 
-## 
-## 
-## Initial Conditions:
+## 1000
+```
+
+```
+## -- Initial Conditions ($inits): -------------------------------------------
+```
+
+```
 ##  y dy 
-##  2  0 
-## 
-## 
-## First part of data:
+##  2  0
+```
+
+```
+## -- First part of data (object): -------------------------------------------
+```
+
+```
 ## # A tibble: 200 x 3
-##         time        y            dy
-##        <dbl>    <dbl>         <dbl>
-## 1 0.00000000 22.00000  0.000000e+00
-## 2 0.05025126 22.00000 -4.554866e-05
-## 3 0.10050251 22.00000 -4.554866e-05
-## 4 0.15075377 21.99999 -4.554867e-05
-## 5 0.20100503 21.99999 -4.554867e-05
-## 6 0.25125628 21.99999 -4.554868e-05
+##     time     y         dy
+##    <dbl> <dbl>      <dbl>
+## 1 0       22.0  0        
+## 2 0.0503  22.0 -0.0000455
+## 3 0.101   22.0 -0.0000455
+## 4 0.151   22.0 -0.0000455
+## 5 0.201   22.0 -0.0000455
+## 6 0.251   22.0 -0.0000455
 ## # ... with 194 more rows
+```
+
+```
+## ___________________________________________________________________________
 ```
 
 While this is easy enough to do, it is a bit tedious.  If you have
@@ -1170,41 +1275,45 @@ of parameter values for use in the simulation. In the example below,
 40% variability in clearance is simulated.
 
 ```r
-nsub <- 100						  #number of subproblems
-CL <- 1.86E+01*exp(rnorm(nsub,0,.4^2))
-theta.all <- 
-	cbind(KA=2.94E-01, CL=CL, V2=4.02E+01,  # central 
-	Q=1.05E+01, V3=2.97E+02,                # peripheral
-	Kin=1, Kout=1, EC50=200)                # effects  
-head(theta.all)
+mod <- RxODE({
+    eff(0) = 1
+    C2 = centr/V2;
+    C3 = peri/V3;
+    CL =  TCl*exp(eta.Cl) ## This is coded as a variable in the model
+    d/dt(depot) =-KA*depot;
+    d/dt(centr) = KA*depot - CL*C2 - Q*C2 + Q*C3;
+    d/dt(peri)  =                    Q*C2 - Q*C3;
+    d/dt(eff)  = Kin - Kout*(1-C2/(EC50+C2))*eff;
+})
+
+theta <- c(KA=2.94E-01, TCl=1.86E+01, V2=4.02E+01,  # central 
+               Q=1.05E+01, V3=2.97E+02,                # peripheral
+               Kin=1, Kout=1, EC50=200)                # effects  
 ```
 
-```
-##         KA       CL   V2    Q  V3 Kin Kout EC50
-## [1,] 0.294 18.27140 40.2 10.5 297   1    1  200
-## [2,] 0.294 17.03367 40.2 10.5 297   1    1  200
-## [3,] 0.294 13.72314 40.2 10.5 297   1    1  200
-## [4,] 0.294 17.53874 40.2 10.5 297   1    1  200
-## [5,] 0.294 17.09203 40.2 10.5 297   1    1  200
-## [6,] 0.294 19.53438 40.2 10.5 297   1    1  200
-```
-
-Each subproblem can be simulated by using an explicit loop (or the `apply()`
-function) to run the simulation for each set of parameters of in the parameter
-matrix. 
+Each subproblem can be simulated by using the rxSolve function to run
+the simulation for each set of parameters of in the parameter matrix.
 
 ```r
-nobs <- ev$get.nobs()
-set.seed(1)
-cp.all <- matrix(NA, nobs, nsub)
-for (i in 1:nsub)
-{
-	theta <- theta.all[i,]
-	x <- mod1$solve(theta, ev, inits=inits)
-	cp.all[, i] <- x[, "C2"]
-}
+## the column names of the omega matrix need to match the parameters specified by RxODE
+omega <- matrix(0.4^2,dimnames=list(NULL,c("eta.Cl")))
 
-matplot(cp.all, type="l", ylab="Central Concentration")
+ev <- eventTable(amount.units="mg", time.units="hours") %>%
+    add.dosing(dose=10000, nbr.doses=1, dosing.to=2) %>%
+    add.sampling(seq(0,48,length.out=100));
+
+sim  <- rxSolve(mod,theta,ev,omega=omega,nSub=100)
+
+library(ggplot2)
+library(gridExtra)
+
+p1 <- ggplot(sim,aes(time,centr,color=factor(sim.id))) + geom_line(size=1) + coord_trans(y = "log10") + ylab("Central Concentration") +
+    xlab("Time (hr)") + guides(color=FALSE)
+
+p2 <-ggplot(sim,aes(time,eff,color=factor(sim.id))) + geom_line(size=1) + coord_trans(y = "log10") + ylab("Effect") +
+    xlab("Time (hr)") + guides(color=FALSE)
+
+grid.arrange(p1,p2,nrow=2)
 ```
 
 ![plot of chunk unnamed-chunk-39](vignettes/figure/unnamed-chunk-39-1.png)
@@ -1214,19 +1323,532 @@ with the simulated data. Below,  the 5th, 50th, and 95th percentiles
 of the simulated data are plotted. 
 
 ```r
-cp.q <- apply(cp.all, 1, quantile, prob = c(0.05, 0.50, 0.95))
-matplot(t(cp.q), type="l", lty=c(2,1,2), col=c(2,1,2), ylab="Central Concentration")
+library(dplyr)
+
+p <- c(0.05, 0.5, 0.95);
+s <-sim %>% group_by(time) %>%
+    do(data.frame(p=p, eff=quantile(.$eff, probs=p), 
+                  eff.n = length(.$eff), eff.avg = mean(.$eff),
+                  centr=quantile(.$centr, probs=p),
+                  centr.n=length(.$centr),centr.avg = mean(.$centr))) %>%
+    mutate(Percentile=factor(sprintf("%d%%",p*100),levels=c("5%","50%","95%")))
+
+p1 <- ggplot(s,aes(time,centr,color=Percentile)) + geom_line(size=1) + coord_trans(y = "log10") + ylab("Central Concentration") +
+    xlab("Time (hr)")
+
+p2 <-ggplot(s,aes(time,eff,color=Percentile)) + geom_line(size=1) + ylab("Effect") +
+    xlab("Time (hr)") + guides(color=FALSE)
+
+grid.arrange(p1,p2,nrow=2)
 ```
 
 ![plot of chunk unnamed-chunk-40](vignettes/figure/unnamed-chunk-40-1.png)
 
+
+Note that you can see the parameters that were simulated for the example
+
+```r
+head(sim$param)
+```
+
+```
+##   sim.id   V2  V3  TCl      eta.Cl    KA    Q Kin Kout EC50
+## 1      1 40.2 297 18.6  0.10727008 0.294 10.5   1    1  200
+## 2      2 40.2 297 18.6 -0.31299021 0.294 10.5   1    1  200
+## 3      3 40.2 297 18.6 -0.45254371 0.294 10.5   1    1  200
+## 4      4 40.2 297 18.6 -0.03798536 0.294 10.5   1    1  200
+## 5      5 40.2 297 18.6  0.68160253 0.294 10.5   1    1  200
+## 6      6 40.2 297 18.6  0.46245724 0.294 10.5   1    1  200
+```
+
+You can also supply a data-frame of parameters to simulate instead of
+using an omega simulation.  In this contrived example we will use the
+previously simulated data.
+
+```r
+theta <- sim$param;
+(sim  <- rxSolve(mod,theta,ev))
+```
+
+```
+## ___________________________ Solved RxODE object ___________________________
+```
+
+```
+## -- Parameters ($params): --------------------------------------------------
+```
+
+```
+## # A tibble: 100 x 10
+##   sim.id    V2    V3   TCl  eta.Cl    KA     Q   Kin  Kout  EC50
+##    <int> <dbl> <dbl> <dbl>   <dbl> <dbl> <dbl> <dbl> <dbl> <dbl>
+## 1      1  40.2   297  18.6  0.107  0.294  10.5  1.00  1.00   200
+## 2      2  40.2   297  18.6 -0.313  0.294  10.5  1.00  1.00   200
+## 3      3  40.2   297  18.6 -0.453  0.294  10.5  1.00  1.00   200
+## 4      4  40.2   297  18.6 -0.0380 0.294  10.5  1.00  1.00   200
+## 5      5  40.2   297  18.6  0.682  0.294  10.5  1.00  1.00   200
+## 6      6  40.2   297  18.6  0.462  0.294  10.5  1.00  1.00   200
+## # ... with 94 more rows
+```
+
+```
+## -- Initial Conditions ($inits): -------------------------------------------
+```
+
+```
+## depot centr  peri   eff 
+##     0     0     0     1
+```
+
+```
+## -- First part of data (object): -------------------------------------------
+```
+
+```
+## # A tibble: 10,000 x 9
+##   sim.id  time depot centr  peri   eff    C2    C3    CL
+##    <int> <dbl> <dbl> <dbl> <dbl> <dbl> <dbl> <dbl> <dbl>
+## 1      1 0         0 10000     0  1.00 249    0     20.7
+## 2      1 0.485     0  6872  1046  1.22 171    3.52  20.7
+## 3      1 0.970     0  4737  1748  1.34 118    5.89  20.7
+## 4      1 1.45      0  3280  2216  1.38  81.6  7.46  20.7
+## 5      1 1.94      0  2285  2523  1.37  56.9  8.50  20.7
+## 6      1 2.42      0  1606  2722  1.32  40.0  9.17  20.7
+## # ... with 9,994 more rows
+```
+
+```
+## ___________________________________________________________________________
+```
+
+Even though multiple subjects were simulated, this is still a reactive
+data frame, meaning you can change things about the model on the fly.
+
+For example, if the effect at time 0 should have been 100, you can fix
+this by:
+
+```r
+sim$eff0 <- 100
+sim
+```
+
+```
+## ___________________________ Solved RxODE object ___________________________
+```
+
+```
+## -- Parameters ($params): --------------------------------------------------
+```
+
+```
+## # A tibble: 100 x 10
+##   sim.id    V2    V3   TCl  eta.Cl    KA     Q   Kin  Kout  EC50
+##    <int> <dbl> <dbl> <dbl>   <dbl> <dbl> <dbl> <dbl> <dbl> <dbl>
+## 1      1  40.2   297  18.6  0.107  0.294  10.5  1.00  1.00   200
+## 2      2  40.2   297  18.6 -0.313  0.294  10.5  1.00  1.00   200
+## 3      3  40.2   297  18.6 -0.453  0.294  10.5  1.00  1.00   200
+## 4      4  40.2   297  18.6 -0.0380 0.294  10.5  1.00  1.00   200
+## 5      5  40.2   297  18.6  0.682  0.294  10.5  1.00  1.00   200
+## 6      6  40.2   297  18.6  0.462  0.294  10.5  1.00  1.00   200
+## # ... with 94 more rows
+```
+
+```
+## -- Initial Conditions ($inits): -------------------------------------------
+```
+
+```
+## depot centr  peri   eff 
+##     0     0     0   100
+```
+
+```
+## -- First part of data (object): -------------------------------------------
+```
+
+```
+## # A tibble: 10,000 x 9
+##   sim.id  time depot centr  peri   eff    C2    C3    CL
+##    <int> <dbl> <dbl> <dbl> <dbl> <dbl> <dbl> <dbl> <dbl>
+## 1      1 0         0 10000     0 100   249    0     20.7
+## 2      1 0.485     0  6872  1046  79.2 171    3.52  20.7
+## 3      1 0.970     0  4737  1748  60.1 118    5.89  20.7
+## 4      1 1.45      0  3280  2216  43.8  81.6  7.46  20.7
+## 5      1 1.94      0  2285  2523  30.9  56.9  8.50  20.7
+## 6      1 2.42      0  1606  2722  21.3  40.0  9.17  20.7
+## # ... with 9,994 more rows
+```
+
+```
+## ___________________________________________________________________________
+```
+
+#### Simulation of unexplained variability 
+
+In addition to conveniently simulating between subject variability,
+you can also easily simulate unexplained variability.
+
+```r
+mod <- RxODE({
+    eff(0) = 1
+    C2 = centr/V2;
+    C3 = peri/V3;
+    CL =  TCl*exp(eta.Cl) ## This is coded as a variable in the model
+    d/dt(depot) =-KA*depot;
+    d/dt(centr) = KA*depot - CL*C2 - Q*C2 + Q*C3;
+    d/dt(peri)  =                    Q*C2 - Q*C3;
+    d/dt(eff)  = Kin - Kout*(1-C2/(EC50+C2))*eff;
+    e = eff+eff.err
+    cp = centr*(1+cp.err)
+})
+
+theta <- c(KA=2.94E-01, TCl=1.86E+01, V2=4.02E+01,  # central 
+           Q=1.05E+01, V3=2.97E+02,                # peripheral
+           Kin=1, Kout=1, EC50=200)                # effects  
+
+sigma <- diag(2)*0.1
+dimnames(sigma) <- list(NULL, c("eff.err","cp.err"))
+
+
+sim  <- rxSolve(mod, theta, ev, omega=omega, nSub=100, sigma=sigma)
+
+p <- c(0.05, 0.5, 0.95);
+s <-sim %>% group_by(time) %>%
+    do(data.frame(p=p, eff=quantile(.$e, probs=p), 
+                  eff.n = length(.$e), eff.avg = mean(.$e),
+                  centr=quantile(.$cp, probs=p),
+                  centr.n=length(.$cp),centr.avg = mean(.$cp))) %>%
+    mutate(Percentile=factor(sprintf("%d%%",p*100),levels=c("5%","50%","95%")))
+
+p1 <- ggplot(s,aes(time,centr,color=Percentile)) + geom_line(size=1) + coord_trans(y = "log10") + ylab("Central Concentration") +
+    xlab("Time (hr)")
+
+p2 <-ggplot(s,aes(time,eff,color=Percentile)) + geom_line(size=1) + ylab("Effect") +
+    xlab("Time (hr)") + guides(color=FALSE)
+
+grid.arrange(p1,p2,nrow=2)
+```
+
+![plot of chunk unnamed-chunk-44](vignettes/figure/unnamed-chunk-44-1.png)
+#### Simulation of Individuals
+
+Sometimes you may want to match the dosing and observations of
+individuals in a clinical trial.  To do this you will have to create a
+data.frame using the `RxODE` event specification as well as an `ID`
+column to indicate an individual. The RxODE event vignette talks more about
+how these datasets should be created.
+
+If you have a NONMEM/Monlix dataset and the package
+`nlmixr`, you can convert the `NONMEM`` dataset to a `RxODE` compatible dataset to
+use for simulation with the `nmDataConvert` function.
+
+Instead of using nlmixr for this simple example, I will combine two
+RxODE event tables.
+
+```r
+ev1 <- eventTable(amount.units="mg", time.units="hours") %>%
+    add.dosing(dose=10000, nbr.doses=1, dosing.to=2) %>%
+    add.sampling(seq(0,48,length.out=10));
+
+ev2 <- eventTable(amount.units="mg", time.units="hours") %>%
+    add.dosing(dose=5000, nbr.doses=1, dosing.to=2) %>%
+    add.sampling(seq(0,48,length.out=8));
+
+dat <- rbind(data.frame(ID=1, ev1$get.EventTable()),
+             data.frame(ID=2, ev2$get.EventTable()))
+
+
+## Note the number of subject is not needed since it is determined by the data
+sim  <- rxSolve(mod, theta, dat, omega=omega, sigma=sigma)
+
+sim %>% select(id, time, e, cp)
+```
+
+```
+##    id      time         e         cp
+## 1   1  0.000000 0.9535163 9528.99177
+## 2   1  5.333333 1.4861544  272.08256
+## 3   1 10.666667 1.0420646  133.72863
+## 4   1 16.000000 0.6934345  152.72653
+## 5   1 21.333333 1.6893281   99.01851
+## 6   1 26.666667 1.1248887  106.69009
+## 7   1 32.000000 1.1206712   65.47170
+## 8   1 37.333333 0.7617760   59.31572
+## 9   1 42.666667 1.4395956   88.50925
+## 10  1 48.000000 1.8518053   32.65828
+## 11  2  0.000000 0.8490924   50.22253
+## 12  2  6.857143 1.2532251   69.67722
+## 13  2 13.714286 1.3533779   52.78852
+## 14  2 20.571429 0.3366061   26.51658
+## 15  2 27.428571 0.9252046   16.18806
+## 16  2 34.285714 0.6990310   26.45354
+## 17  2 41.142857 1.1199925   27.74777
+## 18  2 48.000000 0.9551196   23.69370
+```
+
+#### Simulation of Clinical Trials
+
+By either using a simple single event table, or data from a clinical
+trial as described above, a complete clinical trial simulation can be
+performed.
+
+Typically in clinical trial simulations you want to account for the
+uncertainty in the fixed parameter estimates, and even the uncertainty
+in both your between subject variability as well as the unexplained
+variability.
+
+`RxODE` allows you to account for these uncertainties by simulating
+multiple virtual "studies," specified by the parameter `nStud`.  In a
+single virtual study:
+
+- A Population effect parameter is sampled from a multivariate normal
+  distribution with mean given by the parameter estimates and the
+  variance specified by the named matrix `thetaMat`.
+  
+- A between subject variability/covariance matrix is sampled from
+  either a scaled inverse chi-squared distribution (for the univariate
+  case) or a inverse Wishart that is parameterized to scale to the
+  conjugate prior covariance term, as described by
+  the
+  [wikipedia article](https://en.wikipedia.org/wiki/Scaled_inverse_chi-squared_distribution). (This
+  is not the same as
+  the
+  [scaled inverse Wishart distribution](http://andrewgelman.com/2012/08/22/the-scaled-inverse-wishart-prior-distribution-for-a-covariance-matrix-in-a-hierarchical-model/) ).
+  In the case of the between subject variability, the
+  variance/covariance matrix is given by the 'omega' matrix parameter
+  and the degrees of freedom is the number of subjects in the
+  simulation.
+  
+- Unexplained variability is also simulated from the scaled inverse
+  chi squared distribution or inverse Wishart distribution with the
+  variance/covariance matrix given by the 'sigma' matrix parameter and
+  the degrees of freedom given by the number of observations being
+  simulated.
+  
+The covariance/variance prior is simulated from `RxODE`s `cvPost` function.
+
+An example of this simulation is below:
+
+```r
+## Creating covariance matrix
+tmp <- matrix(rnorm(8^2), 8, 8)
+tMat <- tcrossprod(tmp, tmp) / (8 ^ 2)
+dimnames(tMat) <- list(NULL, names(theta))
+
+sim  <- rxSolve(mod, theta, ev, omega=omega, nSub=100, sigma=sigma, thetaMat=tMat, nStud=10)
+
+p <- c(0.05, 0.5, 0.95);
+s <-sim %>% group_by(time) %>%
+    do(data.frame(p=p, eff=quantile(.$e, probs=p), 
+                  eff.n = length(.$e), eff.avg = mean(.$e),
+                  centr=quantile(.$cp, probs=p),
+                  centr.n=length(.$cp),centr.avg = mean(.$cp))) %>%
+    mutate(Percentile=factor(sprintf("%d%%",p*100),levels=c("5%","50%","95%")))
+
+p1 <- ggplot(s,aes(time,centr,color=Percentile)) + geom_line(size=1) + coord_trans(y = "log10") + ylab("Central Concentration") +
+    xlab("Time (hr)")
+
+p2 <-ggplot(s,aes(time,eff,color=Percentile)) + geom_line(size=1) + ylab("Effect") +
+    xlab("Time (hr)") + guides(color=FALSE)
+
+grid.arrange(p1,p2,nrow=2)
+```
+
+![plot of chunk unnamed-chunk-46](vignettes/figure/unnamed-chunk-46-1.png)
+If you wish you can see what `omega` and `sigma` was used for each
+virtual study by accessing them in the solved data object with
+`$omega.list` and `$sigma.list`:
+
+```r
+sim$omega.list
+```
+
+```
+## [[1]]
+##           [,1]
+## [1,] 0.1905703
+## 
+## [[2]]
+##          [,1]
+## [1,] 0.127863
+## 
+## [[3]]
+##           [,1]
+## [1,] 0.1737607
+## 
+## [[4]]
+##           [,1]
+## [1,] 0.1536405
+## 
+## [[5]]
+##           [,1]
+## [1,] 0.1274628
+## 
+## [[6]]
+##           [,1]
+## [1,] 0.1828741
+## 
+## [[7]]
+##           [,1]
+## [1,] 0.1672965
+## 
+## [[8]]
+##           [,1]
+## [1,] 0.1623763
+## 
+## [[9]]
+##           [,1]
+## [1,] 0.1928968
+## 
+## [[10]]
+##           [,1]
+## [1,] 0.1743921
+```
+
+```r
+sim$sigma.list
+```
+
+```
+## [[1]]
+##              [,1]         [,2]
+## [1,]  0.080849253 -0.006564959
+## [2,] -0.006564959  0.090018817
+## 
+## [[2]]
+##             [,1]        [,2]
+## [1,]  0.11507224 -0.03032975
+## [2,] -0.03032975  0.09632840
+## 
+## [[3]]
+##             [,1]        [,2]
+## [1,] 0.088794911 0.005416909
+## [2,] 0.005416909 0.118953251
+## 
+## [[4]]
+##              [,1]         [,2]
+## [1,] 0.0981222199 0.0009379987
+## [2,] 0.0009379987 0.1209050554
+## 
+## [[5]]
+##             [,1]        [,2]
+## [1,]  0.10067776 -0.00346936
+## [2,] -0.00346936  0.09311731
+## 
+## [[6]]
+##              [,1]         [,2]
+## [1,]  0.128471669 -0.008061655
+## [2,] -0.008061655  0.116005773
+## 
+## [[7]]
+##             [,1]        [,2]
+## [1,]  0.08591508 -0.01270584
+## [2,] -0.01270584  0.09272691
+## 
+## [[8]]
+##             [,1]        [,2]
+## [1,] 0.077697198 0.006945763
+## [2,] 0.006945763 0.100711162
+## 
+## [[9]]
+##             [,1]        [,2]
+## [1,] 0.109227764 0.002805777
+## [2,] 0.002805777 0.137672291
+## 
+## [[10]]
+##              [,1]         [,2]
+## [1,]  0.104343258 -0.003215529
+## [2,] -0.003215529  0.091488161
+```
+
+You can also see the parameter realizations from the `$params` data frame.
+
+If you do not wish to sample from the prior distributions of either
+the `omega` or `sigma` matrices, you can turn off this feature by
+specifying the `simVariability = FALSE` option when solving:
+
+```r
+sim  <- rxSolve(mod, theta, ev, omega=omega, nSub=100, sigma=sigma, thetaMat=tMat, nStud=10,
+                simVariability=FALSE);
+
+p <- c(0.05, 0.5, 0.95);
+s <-sim %>% group_by(time) %>%
+    do(data.frame(p=p, eff=quantile(.$e, probs=p), 
+                  eff.n = length(.$e), eff.avg = mean(.$e),
+                  centr=quantile(.$cp, probs=p),
+                  centr.n=length(.$cp),centr.avg = mean(.$cp))) %>%
+    mutate(Percentile=factor(sprintf("%d%%",p*100),levels=c("5%","50%","95%")))
+
+
+p1 <- ggplot(s,aes(time,centr,color=Percentile)) + geom_line(size=1) + coord_trans(y = "log10") + ylab("Central Concentration") +
+    xlab("Time (hr)")
+
+p2 <-ggplot(s,aes(time,eff,color=Percentile)) + geom_line(size=1) + ylab("Effect") +
+    xlab("Time (hr)") + guides(color=FALSE)
+
+grid.arrange(p1,p2,nrow=2)
+```
+
+![plot of chunk unnamed-chunk-49](vignettes/figure/unnamed-chunk-49-1.png)
+
+Note since realizations of `omega` and `sigma` were not simulated, `$omega.list` and
+`$sigma.list` both return `NULL`.
+
+#### RxODE multi-threaded solving and simulation
+
+RxODE now supports multi-threaded solving on OpenMP supported
+compilers, including linux and windows. Mac OSX can also be supported
+but
+takes
+[additional setup](https://github.com/Rdatatable/data.table/wiki/Installation#openmp-enabled-compiler-for-mac).
+By default it uses all your available cores for solving as determined
+by `rxCores()`.  This may be overkill depending on your system, at a
+certain point the speed of solving is limited by things other than
+computing power.
+
+You can also speed up simulation by using the multi-cores to generate
+random deviates with `mvnfast`.  This is controlled by the `nCoresRV`
+parameter.  For example:
+
+```r
+sim  <- rxSolve(mod, theta, ev, omega=omega, nSub=100, sigma=sigma, thetaMat=tMat, nStud=10,
+                nCoresRV=rxCores());
+
+p <- c(0.05, 0.5, 0.95);
+s <-sim %>% group_by(time) %>%
+    do(data.frame(p=p, eff=quantile(.$e, probs=p), 
+                  eff.n = length(.$e), eff.avg = mean(.$e),
+                  centr=quantile(.$cp, probs=p),
+                  centr.n=length(.$cp),centr.avg = mean(.$cp))) %>%
+    mutate(Percentile=factor(sprintf("%d%%",p*100),levels=c("5%","50%","95%")))
+
+
+p1 <- ggplot(s,aes(time,centr,color=Percentile)) + geom_line(size=1) + coord_trans(y = "log10") + ylab("Central Concentration") +
+    xlab("Time (hr)")
+
+p2 <-ggplot(s,aes(time,eff,color=Percentile)) + geom_line(size=1) + ylab("Effect") +
+    xlab("Time (hr)") + guides(color=FALSE)
+
+grid.arrange(p1,p2,nrow=2)
+```
+
+![plot of chunk unnamed-chunk-50](vignettes/figure/unnamed-chunk-50-1.png)
+
+The default for this is `1` core since the result depends on the
+number of cores and the random seed you use in your simulation.
+However, you can always speed up this process with more cores if you
+are sure your collaborators have the same number of cores available to
+them and have OpenMP thread-capable compile.
+
+
 #### Facilities for generating R shiny applications
 
-An example of creating an R [shiny application](http://shiny.rstudio.com) to
-interactively explore responses of various complex dosing regimens is available
-at http://qsp.engr.uga.edu:3838/RxODE/RegimenSimulator.  Shiny applications
-like this one may be programmatically created with the experimental function
-`genShinyApp.template()`.
+An example of creating an
+R [shiny application](http://shiny.rstudio.com) to interactively
+explore responses of various complex dosing regimens is available at
+http://qsp.engr.uga.edu:3838/RxODE/RegimenSimulator.  Shiny
+applications like this one may be programmatically created with the
+experimental function `genShinyApp.template()`.
 
 The above application includes widgets for varying the dose, dosing
 regimen, dose cycle, and number of cycles.

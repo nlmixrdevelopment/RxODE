@@ -1,41 +1,27 @@
 .onAttach <- function(libname, pkgname){ ## nocov start
     ## Setup RxODE.prefer.tbl
     rxPermissive(respect=TRUE); ## need to call respect on the first time
-    ## memoise needs to be called at load to use the right package.
-    ## See https://github.com/hadley/r-pkgs/issues/203
-    ## They suggest an environment, but I used the current namespace.
-    rxSetupMemoize()
-    ## Setup the path
     tmp <- try(rxWinRtoolsPath(), silent=TRUE);
+    ## Also create temp dir
+    tmp <- Sys.getenv("rxTempDir")
+    if (tmp == ""){
+        tmp <- tempdir()
+    }
+    if (!file.exists(tmp))
+        dir.create(tmp, recursive = TRUE);
+    Sys.setenv(rxTempDir=tmp);
+    utils::assignInMyNamespace("rxTempDir", tmp)
     if (!rxWinRtoolsPath()){
         packageStartupMessage("Rtools is not set up correctly!\n\nYou need a working Rtools installation for RxODE to work.\nYou can set up Rtools using the command 'rxWinSetup()'.\nThis will also set up Python and SymPy to run a bit faster than rSymPy.\n");
     }
+    tmp <- getLoadedDLLs()$RxODE;
+    class(tmp) <- "list";
+    tmp <- digest::digest(tmp$path,file=TRUE, algo="md5");
+    utils::assignInMyNamespace("RxODE.md5", tmp)
 } ## nocov end
 
-##' This setups the memoized functions.
-##'
-##' To easily create a memozied function by adding a \code{.slow <- NULL}
-##' to the end of a function.
-##'
-##' For example, to memozie the function in the namespace
-##' \code{rxModelVars.character} you would add a line:
-##' \code{rxModelVars.character.slow <- NULL}
-##'
-##' @author Matthew L. Fidler
-rxSetupMemoize <- function(){
-    reSlow <- rex::rex(".slow",end)
-    f <- sys.function(-1)
-    ns <- environment(f)
-    .slow <- ls(pattern=reSlow,envir=ns);
-    for (slow in .slow){
-        fast <- sub(reSlow, "", slow);
-        if (!memoise::is.memoised(get(fast, envir=ns)) && is.null(get(slow, envir=ns))){
-            utils::assignInMyNamespace(slow, get(fast, envir=ns))
-            utils::assignInMyNamespace(fast, memoise::memoise(get(slow, envir=ns)))
-        }
-
-    }
-}
+RxODE.md5 <- NULL
+rxTempDir <- NULL;
 
 ##' Clear memoise cache for RxODE
 ##'
@@ -43,13 +29,10 @@ rxSetupMemoize <- function(){
 ##' @keywords internal
 ##' @export
 rxForget <- function(){
-    reSlow <- rex::rex(".slow",end)
-    f <- sys.function(-1)
-    ns <- environment(f)
-    .slow <- ls(pattern=reSlow,envir=ns);
-    for (slow in .slow){
-        fast <- sub(reSlow, "", slow);
-        memoise::forget(get(fast, envir=ns));
+    for (fn in ls(envir=getNamespace("RxODE"))){
+        if (memoise::is.memoised(getFromNamespace(fn, "RxODE"))){
+            memoise::forget(getFromNamespace(fn, "RxODE"));
+        }
     }
 }
 
@@ -58,7 +41,6 @@ rxOpt <- list(RxODE.prefer.tbl               =c(FALSE, FALSE),
               RxODE.display.tbl              =c(TRUE, TRUE),
               RxODE.echo.compile             =c(FALSE, FALSE),
               RxODE.warn.on.assign           =c(TRUE, TRUE),
-              RxODE.compile.on.load          =c(TRUE, TRUE),
               RxODE.syntax.assign            =c(FALSE, TRUE),
               RxODE.syntax.star.pow          =c(FALSE, TRUE),
               RxODE.syntax.require.semicolon =c(TRUE, FALSE),
@@ -71,15 +53,14 @@ rxOpt <- list(RxODE.prefer.tbl               =c(FALSE, FALSE),
               RxODE.suppress.syntax.info     =c(FALSE, FALSE),
               RxODE.sympy.engine             =c("", ""),
               RxODE.cache.directory          =c(".", "."),
-              RxODE.delete.unnamed           =c(FALSE, FALSE),
-              RxODE.syntax.assign.state      =c(FALSE, FALSE)
+              RxODE.syntax.assign.state      =c(FALSE, FALSE),
+              RxODE.tempfiles                =c(TRUE, TRUE)
               );
 
 RxODE.prefer.tbl <- NULL
 RxODE.display.tbl <- NULL
 RxODE.echo.compile <- NULL
 RxODE.warn.on.assign <- NULL
-RxODE.compile.on.load <- NULL
 RxODE.syntax.assign <- NULL
 RxODE.syntax.star.pow <- NULL
 RxODE.syntax.require.semicolon <- NULL
@@ -94,6 +75,7 @@ RxODE.sympy.engine <- NULL
 RxODE.cache.directory <- NULL
 RxODE.delete.unnamed <- NULL
 RxODE.syntax.assign.state <- NULL
+RxODE.tempfiles <- NULL;
 
 
 ##' Permissive or Strict RxODE sytax options

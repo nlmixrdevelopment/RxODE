@@ -4,7 +4,7 @@
 \alias{rxClean}
 \title{Cleanup anonymous DLLs}
 \usage{
-rxClean(wd = getwd())
+rxClean(wd)
 }
 \arguments{
 \item{wd}{What directory should be cleand

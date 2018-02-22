@@ -33,7 +33,7 @@ Jacobain according to the specified ODEs.}
 sennsitivities according to the specified ODEs.}
 
 \item{collapseModel}{boolean indicating if RxODE will remove all
-LHS variables when calculating sensitivites.}
+LHS variables when calculating sensitivities.}
 
 \item{...}{ignored arguments}
 }

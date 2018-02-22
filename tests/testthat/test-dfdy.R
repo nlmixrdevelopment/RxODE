@@ -88,7 +88,7 @@ mu = 1 ## nonstiff; 10 moderately stiff; 1000 stiff
         rxDelete(sens);
     })
 
-    test_that("Jac/Sens can be caluclated from \"normal\" model", {
+    test_that("Jac/Sens can be calculated from \"normal\" model", {
         norm <- RxODE("
 d/dt(y)  = dy
 d/dt(dy) = mu*(1-y^2)*dy - y
@@ -184,6 +184,7 @@ ktr = (n+1)/mtt
 d/dt(depot) = exp(log(bio*podo)+log(ktr)+n*log(ktr*t)-ktr*t-lgammafn(n+1))-ka*depot
 d/dt(cen) = ka*depot-k*cen
 ")
+
     mod <- RxODE(mod, calcSens=TRUE)
 
     et <- eventTable();
@@ -191,6 +192,7 @@ d/dt(cen) = ka*depot-k*cen
     et$add.dosing(20, start.time=0);
 
     transit <- suppressWarnings({rxSolve(mod, et, transit_abs=TRUE)})
+
     ## Used the log(0) protection since the depot_mtt sensitivity
     ## includes log(t*...) and t=0
     ##
@@ -198,6 +200,10 @@ d/dt(cen) = ka*depot-k*cen
     ## log(sqrt(DOUBLE_EPS)) and DOUBLE_EPS varies by platform, so
     ## just make sure the results are not NA.
     expect_true(all(!is.na(transit[["_sens_depot_mtt"]])));
+    expect_equal(transit$depot.mtt, transit[["_sens_depot_mtt"]]);
+    expect_equal(transit$depot_mtt, transit[["_sens_depot_mtt"]]);
+    expect_equal(transit[["depot_mtt"]], transit[["_sens_depot_mtt"]]);
+    expect_equal(transit[["depot.mtt"]], transit[["_sens_depot_mtt"]]);
 
     mod <- RxODE({
         ## Table 3 from Savic 2007

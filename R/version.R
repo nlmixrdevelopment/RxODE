@@ -15,4 +15,8 @@ rxode.logo <- "  _____         ____  _____  ______
 ##' @author Matthew L. Fidler
 ##' @keywords internal
 ##' @export
-rxVersion <- function(extra="", echo=FALSE, version=sessionInfo()$otherPkgs$RxODE$Version){if (echo) {rxCat(sprintf(rxode.logo, sprintf("%s%s", version, extra)))};return(invisible(c(version=version,repo="https://github.com/nlmixrdevelopment/RxODE")))}
+rxVersion <- function(extra="", echo=FALSE, version=sessionInfo()$otherPkgs$RxODE$Version){
+    if (echo) {
+        rxCat(sprintf(rxode.logo, sprintf("%s%s", version, extra)))
+    };
+    return(invisible(c(version=version,repo="https://github.com/nlmixrdevelopment/RxODE", md5=RxODE.md5)))}

@@ -2,6 +2,12 @@ language: r
 
 cache: packages
 
+sudo: required
+
+env:
+ global:
+   - _R_CHECK_FORCE_SUGGESTS_: FALSE
+
 r:
   - 3.2
   - 3.3
@@ -19,6 +25,8 @@ matrix:
     os: linux
   - r: devel
     os: osx
+  - r: 3.4
+    os: osx
   - r: 3.3
     os: osx
   - r: 3.2
@@ -30,4 +38,4 @@ r_github_packages:
   - nlmixrdevelopment/PreciseSums
 
 after_success:
-  - Rscript -e 'covr::codecov(line_exclusions=c("R/RxODE-win-setup.R", "src/errmsg.f", "src/rprint.c", "R/dsl.R", "R/rxSymInv.R","R/rxValidate.R","R/rxSolve-gen.R","R/rxsympy.R","R/version.R"))'
+  - Rscript -e 'covr::codecov(line_exclusions=c("R/RxODE-win-setup.R", "src/errmsg.f", "src/rprint.c", "R/dsl.R", "R/rxValidate.R","R/rxSolve-gen.R","R/rxsympy.R","R/version.R"))'

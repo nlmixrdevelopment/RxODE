@@ -16,10 +16,6 @@ d/dt(y3) = a3*y1*y2
 
     rigid <- RxODE(rigid.txt);
 
-    test_that("rxDll works for each object type",{
-        expect_equal(rxDll(rigid.txt),rxDll(rigid));
-    })
-
     test_that("loading and unloading works.",{
         dll <- rxDll(rigid);
         expect_true(rxDllLoaded(rigid));
@@ -33,22 +29,14 @@ d/dt(y3) = a3*y1*y2
         rxDelete(rigid);
         expect_false(rxDllLoaded(rigid));
         expect_false(file.exists(dll));
-        options(RxODE.compile.on.load = TRUE);
-        rxSyncOptions();
         rxLoad(rigid);
         expect_true(rxDllLoaded(rigid));
         expect_true(file.exists(dll));
         rxDelete(rigid);
-        options(RxODE.compile.on.load = FALSE);
-        rxSyncOptions();
-        expect_error(rxLoad(rigid),regexp="Error loading DLL file ");
-        options(RxODE.compile.on.load = TRUE);
         rxSyncOptions();
         expect_false(rxDllLoaded(rigid));
         expect_false(file.exists(dll));
         ## Test $ syntax
-        options(RxODE.compile.on.load = TRUE)
-        rxSyncOptions();
         rigid$compile();
         expect_true(rxDllLoaded(rigid));
         expect_true(file.exists(dll));

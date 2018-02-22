@@ -1,5 +1,5 @@
 Package: RxODE
-Version: 0.6-3
+Version: 0.7-0
 Date: 2017-11-15
 Title: Facilities for Simulating from ODE-Based Models
 Authors@R: c(
@@ -38,7 +38,9 @@ Suggests:
     dplyr,
     tidyr,
     tibble,
-    curl
+    curl,
+    ggplot2,
+    gridExtra
 Imports:
     utils,
     methods,
@@ -52,8 +54,9 @@ Imports:
     inline,
     Matrix,
     R.utils,
-    PreciseSums,
-    mvnfast
+    PreciseSums (>= 0.3),
+    mvnfast,
+    cli
 Description: Facilities for running simulations from ordinary
     differential equation (ODE) models, such as pharmacometrics and other
     compartmental models.  A compilation manager translates the ODE model
@@ -68,8 +71,7 @@ Description: Facilities for running simulations from ordinary
     in the inst/COPYRIGHTS.
 NeedsCompilation: yes
 VignetteBuilder: knitr
-SystemRequirements: GNU make
 License: GPL (>= 2) 
 URL: https://www.r-project.org, https://github.com/nlmixrdevelopment/RxODE
 RoxygenNote: 6.0.1
-LinkingTo: dparser(>= 0.1.8), Rcpp (>= 0.12.3), RcppArmadillo(>= 0.5.600.2.0), PreciseSums
+LinkingTo: dparser(>= 0.1.8), Rcpp (>= 0.12.3), RcppArmadillo(>= 0.5.600.2.0), PreciseSums (>= 0.3)

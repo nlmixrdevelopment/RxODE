@@ -2,6 +2,7 @@ require(RxODE);
 context("Test Jacobian specification")
 require(digest)
 rxPermissive({
+
     ## https://cran.r-project.org/web/packages/diffEq/vignettes/ODEinR.pdf p15
     Vtpol <- RxODE("
 d/dt(y) = dy
@@ -35,17 +36,17 @@ mu = 1 ## nonstiff; 10 moderately stiff; 1000 stiff
     stiff <- solve(Vtpol,et);
 
     ## plot(stiff$time,stiff$y,type="l")
-    counts <- data.frame(t(attr(stiff, ".env")$counts),mu=1,digest=digest(round(as.data.frame(stiff),3)));
+    counts <- data.frame(stiff$counts,mu=1,digest=digest(round(as.data.frame(stiff),3)));
 
     for (i in 10^(1:7)){
         stiff$mu <- i;
         ## plot(stiff$time,stiff$y,type="l");
         ## title(sprintf("mu=%s",i));
-        counts <- rbind(counts,data.frame(t(as.matrix(attr(stiff, ".env")$counts)),mu=i,digest=digest(round(as.data.frame(stiff),3))));
+        counts <- rbind(counts, data.frame(stiff$counts,mu=i,digest=digest(round(as.data.frame(stiff),3))));
     }
 
     test_that("No User jacobian are called.",{
-        expect_true(all(counts$user_jac == 0))
+        expect_true(all(counts$jac == 0))
     })
 
     ## Data sets match
@@ -61,13 +62,13 @@ mu = 1 ## nonstiff; 10 moderately stiff; 1000 stiff
 
     stiff <- solve(Vtpol2,et);
     ## plot(stiff$time,stiff$y,type="l")
-    counts <- data.frame(t(attr(stiff, ".env")$counts),mu=1,digest=digest(round(as.data.frame(stiff),3)));
+    counts <- data.frame(stiff$counts,mu=1,digest=digest(round(as.data.frame(stiff),3)));
 
     for (i in 10^(1:7)){
         stiff$mu <- i;
         ## plot(stiff$time,stiff$y,type="l");
         ## title(sprintf("mu=%s",i));
-        counts <- rbind(counts,data.frame(t(attr(stiff, ".env")$counts),mu=i,digest=digest(round(as.data.frame(stiff),3))));
+        counts <- rbind(counts, data.frame(stiff$counts,mu=i,digest=digest(round(as.data.frame(stiff),3))));
     }
 
     ## print(counts)

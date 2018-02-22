@@ -30,12 +30,12 @@ J.Colinge (COLINGE@DIVSUN.UNIGE.CH).
 INPUT PARAMETERS
 ----------------
 
-n        Dimension of the system (n < UINT_MAX).
+n        Dimension of the system (n < INT_MAX).
 
 fcn      A pointer the the function definig the differential equation, this
 	 function must have the following prototype
 
-	   void fcn (unsigned int n, double x, double *y, double *f)
+	   void fcn (int n, double x, double *y, double *f)
 
 	 where the array f will be filled with the function result.
 
@@ -62,7 +62,7 @@ solout   A pointer to the output function called during integration.
 	 pass a pointer equal to NULL. solout must have the following
 	 prototype
 
-	   solout (long int nr, double xold, double x, double* y, unsigned int n, int* irtrn)
+	   solout (long int nr, double xold, double x, double* y, int n, int* irtrn)
 
 	 where y is the solution at the nr-th grid point x, xold is the
 	 previous grid point and irtrn serves to interrupt the integration
@@ -174,12 +174,12 @@ nfcnRead    Number of function calls.
 #include <stdio.h>
 #include <limits.h>
 
-typedef void (*FcnEqDiff)(unsigned int n, double x, double *y, double *f);
-typedef void (*SolTrait)(long int nr, double xold, double x, double* y, unsigned int n, int* irtrn);
+typedef void (*FcnEqDiff)(int *nptr, double x, double *y, double *f);
+typedef void (*SolTrait)(long int nr, double xold, double x, double* y, int *nptr, int* irtrn);
 
 
 extern int dop853
- (unsigned int n,      /* dimension of the system <= UINT_MAX-1*/
+ (int *nptr,      /* dimension of the system <= INT_MAX-1*/
   FcnEqDiff fcn,       /* function computing the value of f(x,y) */
   double x,            /* initial x-value */
   double* y,           /* initial values for y */
@@ -200,13 +200,13 @@ extern int dop853
   long int nmax,       /* maximal number of allowed steps */
   int meth,            /* switch for the choice of the coefficients */
   long int nstiff,     /* test for stiffness */
-  unsigned int nrdens, /* number of components for which dense outpout is required */
-  unsigned int* icont, /* indexes of components for which dense output is required, >= nrdens */
-  unsigned int licont  /* declared length of icon */
+  int nrdens, /* number of components for which dense outpout is required */
+  int* icont, /* indexes of components for which dense output is required, >= nrdens */
+  int licont  /* declared length of icon */
  );
 
 extern double contd8
- (unsigned int ii,     /* index of desired component */
+ (int ii,     /* index of desired component */
   double x             /* approximation at x */
  );
 

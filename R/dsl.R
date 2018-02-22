@@ -154,6 +154,10 @@ functionBrewxy <- function(brew){
 sympyRxFEnv <- new.env(parent = emptyenv())
 rxSymPyFEnv <- new.env(parent = emptyenv())
 
+rxSymPyFEnv$solveLinB <- function(...){
+    return("rx1c")
+}
+
 for (op in c("+", "-", "*")){
     rxSymPyFEnv[[op]] <- binaryOp(paste0(" ", op, " "));
     sympyRxFEnv[[op]] <- binaryOp(paste0(" ", op, " "));
@@ -218,15 +222,15 @@ dsl.to.pow <- function(a, b){
     num <- suppressWarnings({as.numeric(b)});
     if (is.na(num)){
         return(sprintf("Rx_pow(%s, %s)", a, b));
-    ## } else if (num == round(num)){
-    ##     return(sprintf("Rx_pow_di(%s, %s)", a, b));
-    } else
-        if (num == 0.5){
-            return(sprintf("sqrt(%s)", a));
-        } else {
-            return(sprintf("Rx_pow(%s, %s)", a, b));
-        }
+    } else if (abs(num - round(num)) < .Machine$double.eps^0.5){
+        return(sprintf("Rx_pow_di(%s, %s)", a, b));
+    } else if (num == 0.5){
+        return(sprintf("sqrt(%s)", a));
+    } else {
+        return(sprintf("Rx_pow(%s, %s)", a, b));
+    }
 }
+
 
 
 sympyRxFEnv$dt <- function(w) {return(sprintf("dt(%s)", w))}
@@ -247,13 +251,6 @@ for (p in known.print){
 
 rxSymPyFEnv$dt <- function(e1){
     paste0("__dt__", e1, "__");
-}
-
-rxSymPyFEnv$rxRate <- function(e1){
-    sprintf("rxRate(%s,t)", e1);
-}
-sympyRxFEnv$rxRate <- function(e1, ...){
-    sprintf("rxRate(%s)", e1);
 }
 
 rxSymPyFEnv$df <- function(e1){
@@ -680,7 +677,7 @@ rxSymPyFEnv$structure <- function(one, ..., .Names){
 }
 
 sympyRxFEnv$structure <- function(one, ..., .Names){
-    eval(parse(text=sprintf("rxFromSymPy(%s)", deparse(sprintf("%s", one)))));
+    eval(parse(text=sprintf("RxODE::rxFromSymPy(%s)", deparse(sprintf("%s", one)))));
 }
 
 sympyRxFEnv$Subs <- function(expr, what, with){
@@ -693,8 +690,6 @@ sympyRxFEnv$Subs <- function(expr, what, with){
 }
 
 sympyRxFEnv$subs <- sympyRxFEnv$Subs;
-
-rxSymPyAllowDiff <- FALSE;
 
 rxSymPyDiff <- function(name){
     force(name)
@@ -834,74 +829,6 @@ allCalls <- function(x) {
     }
 }
 
-rxDefinedDerivatives <- new.env(parent = emptyenv())
-
-rxDefinedDerivatives$rxRate <- function(fn, var){
-    fn <- fn[-1];
-    if (var == "t"){
-        return("0")
-    } else {
-        warning(sprintf("diff(rxRate(%s,t),%s)"), fn[1], t);
-        return("0")
-    }
-
-}
-rxDefinedDerivatives$solveLinB <- function(fn, var){
-    fn <- fn[-1];
-    diff1 <- fn[3];
-    diff2 <- fn[4];
-    if (diff2 != "0"){
-        stop("Cannot currently take the third order derivitave of solveLinB.")
-    } else{
-        vals <- paste(fn[-seq(1:4)]);
-        w <- which(vals == var)
-        if (diff1 == "0"){
-            ret <- sprintf("solveLinB(%s,%s,0,%s)", paste(fn[1:2], collapse=","), w, paste(vals, collapse=","))
-        } else {
-            ret <- sprintf("solveLinB(%s,%s,%s)", paste(fn[1:3], collapse=","), w, paste(vals, collapse=","));
-        }
-        return(ret);
-    }
-}
-
-changeDerivs <- function(fn, var, var2=NULL){
-    ## Fn is a vector fn[1] == function name,the rest are the argments
-    if (length(var) > 1){
-        env <- rxEnv(var)
-        fnl <- as.list(var[-1])
-        if (any(names(sympyRxFEnv) == var[1])){
-            fne <- sympyRxFEnv[[var[1]]]
-            var <- do.call(fne, fnl)
-        } else {
-            stop("Cannot figure out how to deparse the deriavative");
-        }
-    }
-    if (!is.null(var2)){
-        if (length(var2) > 1){
-            env <- rxEnv(var2)
-            fnl <- as.list(var2[-1])
-            if (any(names(sympyRxFEnv) == var2[1])){
-                fne <- sympyRxFEnv[[var2[1]]]
-                var2 <- do.call(fne, fnl)
-            } else {
-                stop("Cannot figure out how to deparse the deriavative");
-            }
-        }
-    }
-    if (any(names(rxDefinedDerivatives) == fn[1])){
-        fne <- rxDefinedDerivatives[[fn[1]]];
-        ret <- do.call(fne, list(fn, var));
-        if (!is.null(var2)){
-            ## Send through parser recursively...
-            ret <- sprintf("D(%s,%s)", ret, var2);
-            return(rxFromSymPy(ret));
-        }
-        return(ret)
-    } else {
-        stop(sprintf("RxODE does not know how to take a derivative of '%s'.", fn[1]));
-    }
-}
-
 evalPrints <- function(x, envir=parent.frame()){
     if (is.atomic(x) || is.name(x)) {
         ## Leave unchanged
@@ -921,16 +848,6 @@ evalPrints <- function(x, envir=parent.frame()){
             }
             txt <- eval(parse(text=txt))
             return(txt)
-        } else if ((identical(x[[1]], quote(Derivative)) ||
-                    identical(x[[1]], quote(D)) ||
-                    identical(x[[1]], quote(diff))) &&
-                   length(x) == 3){
-            return(changeDerivs(as.character(x[[2]]), as.character(x[[3]])));
-        } else if ((identical(x[[1]], quote(Derivative)) ||
-                    identical(x[[1]], quote(D)) ||
-                    identical(x[[1]], quote(diff))) &&
-                   length(x) == 4){
-            changeDerivs(as.character(x[[2]]), as.character(x[[3]]), as.character(x[[4]]));
         } else {
             as.call(lapply(x, evalPrints, envir=envir));
         }
@@ -941,12 +858,6 @@ evalPrints <- function(x, envir=parent.frame()){
         stop("Don't know how to handle type ", typeof(x),
              call. = FALSE)
     }
-}
-
-for (f in names(rxDefinedDerivatives)){
-    rxSymPyC[[f]] <- functionOp(f);
-    sympyRxFEnv[[f]] <- functionOp(f);
-    rxSymPyFEnv[[f]] <- functionOp(f);
 }
 
 unknownSymPy <- function(op){
@@ -1135,7 +1046,7 @@ rxToSymPy <- function(x, envir=parent.frame(1)) {
         }
     } else if (is(substitute(x),"name")){
         cls <- tryCatch({class(x)}, error=function(e){return("error")});
-        if (any(cls == c("list", "rxDll", "RxCompilationManager", "RxODE", "solveRxDll"))){
+        if (any(cls == c("list", "rxDll", "RxCompilationManager", "RxODE", "solveRxDll", "rxModelVars"))){
             ret <- strsplit(rxNorm(x),"\n")[[1]];
             ret <- rxRmIni(ret);
             txt <- paste0(eval(parse(text=sprintf("RxODE::rxToSymPy(%s)", paste(deparse(paste0(as.vector(ret), collapse="\n")), collapse=""))), envir=envir));
@@ -1710,8 +1621,6 @@ rxSumProdModel <- function(model, expand=FALSE, sum=FALSE, prod=TRUE, logify=FAL
     mod <- paste(lines, collapse="\n")
     return(mod);
 }
-
-
 
 ## rxSplitPlusQ(quote(2*THETA[3]^2*centr*rx__sens_centr_BY_ETA_2__BY_THETA_3___*exp(-2*ETA[2]-2*THETA[2])-
 ##                    4*THETA[3]^2*centr*rx__sens_centr_BY_THETA_3___*exp(-2*ETA[2]-2*THETA[2])+

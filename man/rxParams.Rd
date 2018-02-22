@@ -5,9 +5,9 @@
 \alias{rxParam}
 \title{Parameters specified by the model}
 \usage{
-rxParams(obj = NULL)
+rxParams(obj)
 
-rxParam(obj = NULL)
+rxParam(obj)
 }
 \arguments{
 \item{obj}{RxODE family of objects}

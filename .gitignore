@@ -11,3 +11,8 @@ inst/doc
 /.Rhistory
 /R/.Rhistory
 /src/.Rhistory
+/config.status
+/config.log
+/src/Makevars
+/src/Makevars.win
+/src/liblsoda/

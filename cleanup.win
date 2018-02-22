@@ -1,0 +1,4 @@
+#!/bin/sh
+
+rm -f src/Makevars.win
+rm -f src/Makevars

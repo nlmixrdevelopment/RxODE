@@ -4,7 +4,7 @@
 \alias{rxLhs}
 \title{Left handed Variables}
 \usage{
-rxLhs(obj = NULL)
+rxLhs(obj)
 }
 \arguments{
 \item{obj}{RxODE family of objects}

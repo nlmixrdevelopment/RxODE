@@ -259,7 +259,7 @@ rxLinCmtTrans <- function(modText){
                 lines[length(lines) + 1] <- "rx_C ~ rx_ka / (rx_ka - rx_gamma) * rx_C";
             }
         }
-        solve <- sprintf("solveLinB(t, %s, 0, 0, rx_A, rx_alpha, rx_B, rx_beta, rx_C, rx_gamma, rx_ka, rx_tlag)", linCmt);
+        solve <- sprintf("solveLinB(rx__PTR__, t, %s, 0, 0, rx_A, rx_alpha, rx_B, rx_beta, rx_C, rx_gamma, rx_ka, rx_tlag)", linCmt);
         lines <- paste(lines, collapse="\n");
         txt <- paste(sub(re, sprintf("%s\n\\1%s\\3", lines, solve), txt), collapse="\n");
         return(txt)

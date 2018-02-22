@@ -11,7 +11,7 @@
 
 static long int     nfcn, nstep, naccpt, nrejct;
 static double       hout, xold, xout;
-static unsigned int nrds, *indir;
+static int nrds, *indir;
 static double       *yy1, *k1, *k2, *k3, *k4, *k5, *k6, *k7, *k8, *k9, *k10;
 static double       *rcont1, *rcont2, *rcont3, *rcont4;
 static double       *rcont5, *rcont6, *rcont7, *rcont8;
@@ -80,12 +80,13 @@ static double max_d (double a, double b)
 } /* max_d */
 
 
-static double hinit (unsigned int n, FcnEqDiff fcn, double x, double* y,
-	      double posneg, double* f0, double* f1, double* yy1, int iord,
-	      double hmax, double* atoler, double* rtoler, int itoler)
+static double hinit (int *nptr, FcnEqDiff fcn, double x, double* y,
+                     double posneg, double* f0, double* f1, double* yy1, int iord,
+                     double hmax, double* atoler, double* rtoler, int itoler)
 {
   double   dnf, dny, atoli, rtoli, sk, h, h1, der2, der12, sqr;
-  unsigned int i;
+  int i;
+  int n = nptr[0];
 
   dnf = 0.0;
   dny = 0.0;
@@ -94,22 +95,22 @@ static double hinit (unsigned int n, FcnEqDiff fcn, double x, double* y,
 
   if (!itoler)
     for (i = 0; i < n; i++)
-    {
-      sk = atoli + rtoli * fabs(y[i]);
-      sqr = f0[i] / sk;
-      dnf += sqr*sqr;
-      sqr = y[i] / sk;
-      dny += sqr*sqr;
-    }
+      {
+        sk = atoli + rtoli * fabs(y[i]);
+        sqr = f0[i] / sk;
+        dnf += sqr*sqr;
+        sqr = y[i] / sk;
+        dny += sqr*sqr;
+      }
   else
     for (i = 0; i < n; i++)
-    {
-      sk = atoler[i] + rtoler[i] * fabs(y[i]);
-      sqr = f0[i] / sk;
-      dnf += sqr*sqr;
-      sqr = y[i] / sk;
-      dny += sqr*sqr;
-    }
+      {
+        sk = atoler[i] + rtoler[i] * fabs(y[i]);
+        sqr = f0[i] / sk;
+        dnf += sqr*sqr;
+        sqr = y[i] / sk;
+        dny += sqr*sqr;
+      }
 
   if ((dnf <= 1.0E-10) || (dny <= 1.0E-10))
     h = 1.0E-6;
@@ -122,24 +123,24 @@ static double hinit (unsigned int n, FcnEqDiff fcn, double x, double* y,
   /* perform an explicit Euler step */
   for (i = 0; i < n; i++)
     yy1[i] = y[i] + h * f0[i];
-  fcn (n, x+h, yy1, f1);
+  fcn (nptr, x+h, yy1, f1);
 
   /* estimate the second derivative of the solution */
   der2 = 0.0;
   if (!itoler)
     for (i = 0; i < n; i++)
-    {
-      sk = atoli + rtoli * fabs(y[i]);
-      sqr = (f1[i] - f0[i]) / sk;
-      der2 += sqr*sqr;
-    }
+      {
+        sk = atoli + rtoli * fabs(y[i]);
+        sqr = (f1[i] - f0[i]) / sk;
+        der2 += sqr*sqr;
+      }
   else
     for (i = 0; i < n; i++)
-    {
-      sk = atoler[i] + rtoler[i] * fabs(y[i]);
-      sqr = (f1[i] - f0[i]) / sk;
-      der2 += sqr*sqr;
-    }
+      {
+        sk = atoler[i] + rtoler[i] * fabs(y[i]);
+        sqr = (f1[i] - f0[i]) / sk;
+        der2 += sqr*sqr;
+      }
   der2 = sqrt (der2) / h;
 
   /* step size is computed such that h**iord * max_d(norm(f0),norm(der2)) = 0.01 */
@@ -156,17 +157,18 @@ static double hinit (unsigned int n, FcnEqDiff fcn, double x, double* y,
 
 
 /* core integrator */
-static int dopcor (unsigned int n, FcnEqDiff fcn, double x, double* y, double xend,
-		   double hmax, double h, double* rtoler, double* atoler,
-		   int itoler, FILE* fileout, SolTrait solout, int iout,
-		   long int nmax, double uround, int meth, long int nstiff, double safe,
-		   double beta, double fac1, double fac2, unsigned int* icont)
+static int dopcor (int *nptr, FcnEqDiff fcn, double x, double* y, double xend,
+                   double hmax, double h, double* rtoler, double* atoler,
+                   int itoler, FILE* fileout, SolTrait solout, int iout,
+                   long int nmax, double uround, int meth, long int nstiff, double safe,
+                   double beta, double fac1, double fac2, int* icont)
 {
+  int n = nptr[0];
   double   facold, expo1, fac, facc1, facc2, fac11, posneg, xph;
   double   atoli, rtoli, hlamb, err, sk, hnew, ydiff, bspl;
   double   stnum, stden, sqr, err2, erri, deno;
   int      iasti, iord, irtrn, reject, last, nonsti = 0;
-  unsigned int i, j;
+  int i, j;
   double   c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c14, c15, c16;
   double   b1, b6, b7, b8, b9, b10, b11, b12, bhh1, bhh2, bhh3;
   double   er1, er6, er7, er8, er9, er10, er11, er12;
@@ -185,9 +187,9 @@ static int dopcor (unsigned int n, FcnEqDiff fcn, double x, double* y, double xe
 
   /* initialisations */
   switch (meth)
-  {
+    {
     case 1:
-		default:
+    default:
 
       c2  = 0.526001519587677318785587544488E-01;
       c3  = 0.789002279381515978178381316732E-01;
@@ -357,7 +359,7 @@ static int dopcor (unsigned int n, FcnEqDiff fcn, double x, double* y, double xe
       d716 = -0.14972683625798562581422125276E+03;
 
       break;
-  }
+    }
 
   facold = 1.0E-4;
   expo1 = 1.0/8.0 - beta * 0.2;
@@ -371,340 +373,341 @@ static int dopcor (unsigned int n, FcnEqDiff fcn, double x, double* y, double xe
   last  = 0;
   hlamb = 0.0;
   iasti = 0;
-  fcn (n, x, y, k1);
+  fcn (nptr, x, y, k1);
   hmax = fabs (hmax);
   iord = 8;
   if (h == 0.0)
-    h = hinit (n, fcn, x, y, posneg, k1, k2, k3, iord, hmax, atoler, rtoler, itoler);
+    h = hinit (nptr, fcn, x, y, posneg, k1, k2, k3, iord, hmax, atoler, rtoler, itoler);
   nfcn += 2;
   reject = 0;
   xold = x;
   
   if (iout)
-  {
-    irtrn = 1;
-    hout = 1.0;
-    xout = x;
-    solout (naccpt+1, xold, x, y, n, &irtrn); 
-    if (irtrn < 0)
     {
-      if (fileout)
-	fprintf (fileout, "Exit of dop853 at x = %.16e\r\n", x);
-      return 2;
+      irtrn = 1;
+      hout = 1.0;
+      xout = x;
+      solout (naccpt+1, xold, x, y, nptr, &irtrn); 
+      if (irtrn < 0)
+        {
+          if (fileout)
+            fprintf (fileout, "Exit of dop853 at x = %.16e\r\n", x);
+          return 2;
+        }
     }
-  }
 
   /* basic integration step */
   while (1)
-  {
-    if (nstep > nmax)
     {
-      if (fileout)
-	fprintf (fileout, "Exit of dop853 at x = %.16e, more than nmax = %li are needed\r\n", x, nmax);
-      xout = x;
-      hout = h;
-      return -2;
-    }
+      if (nstep > nmax)
+        {
+          if (fileout)
+            fprintf (fileout, "Exit of dop853 at x = %.16e, more than nmax = %li are needed\r\n", x, nmax);
+          xout = x;
+          hout = h;
+          return -2;
+        }
 
-    if (0.1 * fabs(h) <= fabs(x) * uround)
-    {
-      if (fileout)
-	fprintf (fileout, "Exit of dop853 at x = %.16e, step size too small h = %.16e\r\n", x, h);
-      xout = x;
-      hout = h;
-      return -3;
-    }
+      if (0.1 * fabs(h) <= fabs(x) * uround)
+        {
+          if (fileout)
+            fprintf (fileout, "Exit of dop853 at x = %.16e, step size too small h = %.16e\r\n", x, h);
+          xout = x;
+          hout = h;
+          return -3;
+        }
 
-    if ((x + 1.01*h - xend) * posneg > 0.0)
-    {
-      h = xend - x;
-      last = 1;
-    }
+      if ((x + 1.01*h - xend) * posneg > 0.0)
+        {
+          h = xend - x;
+          last = 1;
+        }
 
-    nstep++;
+      nstep++;
 
-    /* the twelve stages */
-    for (i = 0; i < n; i++)
-      yy1[i] = y[i] + h * a21 * k1[i];
-    fcn (n, x+c2*h, yy1, k2);
-    for (i = 0; i < n; i++)
-      yy1[i] = y[i] + h * (a31*k1[i] + a32*k2[i]);
-    fcn (n, x+c3*h, yy1, k3);
-    for (i = 0; i < n; i++)
-      yy1[i] = y[i] + h * (a41*k1[i] + a43*k3[i]);
-    fcn (n, x+c4*h, yy1, k4);
-    for (i = 0; i <n; i++)
-      yy1[i] = y[i] + h * (a51*k1[i] + a53*k3[i] + a54*k4[i]);
-    fcn (n, x+c5*h, yy1, k5);
-    for (i = 0; i < n; i++)
-      yy1[i] = y[i] + h * (a61*k1[i] + a64*k4[i] + a65*k5[i]);
-    fcn (n, x+c6*h, yy1, k6);
-    for (i = 0; i < n; i++)
-      yy1[i] = y[i] + h * (a71*k1[i] + a74*k4[i] + a75*k5[i] + a76*k6[i]);
-    fcn (n, x+c7*h, yy1, k7);
-    for (i = 0; i < n; i++)
-      yy1[i] = y[i] + h * (a81*k1[i] + a84*k4[i] + a85*k5[i] + a86*k6[i] +
-			  a87*k7[i]);
-    fcn (n, x+c8*h, yy1, k8);
-    for (i = 0; i <n; i++)
-      yy1[i] = y[i] + h * (a91*k1[i] + a94*k4[i] + a95*k5[i] + a96*k6[i] +
-			  a97*k7[i] + a98*k8[i]);
-    fcn (n, x+c9*h, yy1, k9);
-    for (i = 0; i < n; i++)
-      yy1[i] = y[i] + h * (a101*k1[i] + a104*k4[i] + a105*k5[i] + a106*k6[i] +
-			  a107*k7[i] + a108*k8[i] + a109*k9[i]);
-    fcn (n, x+c10*h, yy1, k10);
-    for (i = 0; i < n; i++)
-      yy1[i] = y[i] + h * (a111*k1[i] + a114*k4[i] + a115*k5[i] + a116*k6[i] +
-			  a117*k7[i] + a118*k8[i] + a119*k9[i] + a1110*k10[i]);
-    fcn (n, x+c11*h, yy1, k2);
-    xph = x + h;
-    for (i = 0; i < n; i++)
-      yy1[i] = y[i] + h * (a121*k1[i] + a124*k4[i] + a125*k5[i] + a126*k6[i] +
-			  a127*k7[i] + a128*k8[i] + a129*k9[i] +
-			  a1210*k10[i] + a1211*k2[i]);
-    fcn (n, xph, yy1, k3);
-    nfcn += 11;
-    for (i = 0; i < n; i++)
-    {
-      k4[i] = b1*k1[i] + b6*k6[i] + b7*k7[i] + b8*k8[i] + b9*k9[i] +
-	      b10*k10[i] + b11*k2[i] + b12*k3[i];
-      k5[i] = y[i] + h * k4[i];
-    }
+      /* the twelve stages */
+      for (i = 0; i < n; i++)
+        yy1[i] = y[i] + h * a21 * k1[i];
+      fcn (nptr, x+c2*h, yy1, k2);
+      for (i = 0; i < n; i++)
+        yy1[i] = y[i] + h * (a31*k1[i] + a32*k2[i]);
+      fcn (nptr, x+c3*h, yy1, k3);
+      for (i = 0; i < n; i++)
+        yy1[i] = y[i] + h * (a41*k1[i] + a43*k3[i]);
+      fcn (nptr, x+c4*h, yy1, k4);
+      for (i = 0; i <n; i++)
+        yy1[i] = y[i] + h * (a51*k1[i] + a53*k3[i] + a54*k4[i]);
+      fcn (nptr, x+c5*h, yy1, k5);
+      for (i = 0; i < n; i++)
+        yy1[i] = y[i] + h * (a61*k1[i] + a64*k4[i] + a65*k5[i]);
+      fcn (nptr, x+c6*h, yy1, k6);
+      for (i = 0; i < n; i++)
+        yy1[i] = y[i] + h * (a71*k1[i] + a74*k4[i] + a75*k5[i] + a76*k6[i]);
+      fcn (nptr, x+c7*h, yy1, k7);
+      for (i = 0; i < n; i++)
+        yy1[i] = y[i] + h * (a81*k1[i] + a84*k4[i] + a85*k5[i] + a86*k6[i] +
+                             a87*k7[i]);
+      fcn (nptr, x+c8*h, yy1, k8);
+      for (i = 0; i <n; i++)
+        yy1[i] = y[i] + h * (a91*k1[i] + a94*k4[i] + a95*k5[i] + a96*k6[i] +
+                             a97*k7[i] + a98*k8[i]);
+      fcn (nptr, x+c9*h, yy1, k9);
+      for (i = 0; i < n; i++)
+        yy1[i] = y[i] + h * (a101*k1[i] + a104*k4[i] + a105*k5[i] + a106*k6[i] +
+                             a107*k7[i] + a108*k8[i] + a109*k9[i]);
+      fcn (nptr, x+c10*h, yy1, k10);
+      for (i = 0; i < n; i++)
+        yy1[i] = y[i] + h * (a111*k1[i] + a114*k4[i] + a115*k5[i] + a116*k6[i] +
+                             a117*k7[i] + a118*k8[i] + a119*k9[i] + a1110*k10[i]);
+      fcn (nptr, x+c11*h, yy1, k2);
+      xph = x + h;
+      for (i = 0; i < n; i++)
+        yy1[i] = y[i] + h * (a121*k1[i] + a124*k4[i] + a125*k5[i] + a126*k6[i] +
+                             a127*k7[i] + a128*k8[i] + a129*k9[i] +
+                             a1210*k10[i] + a1211*k2[i]);
+      fcn (nptr, xph, yy1, k3);
+      nfcn += 11;
+      for (i = 0; i < n; i++)
+        {
+          k4[i] = b1*k1[i] + b6*k6[i] + b7*k7[i] + b8*k8[i] + b9*k9[i] +
+            b10*k10[i] + b11*k2[i] + b12*k3[i];
+          k5[i] = y[i] + h * k4[i];
+        }
      
-    /* error estimation */
-    err = 0.0;
-    err2 = 0.0;
-    if (!itoler)
-      for (i = 0; i < n; i++)
-      {
-	sk = atoli + rtoli * max_d (fabs(y[i]), fabs(k5[i]));
-	erri = k4[i] - bhh1*k1[i] - bhh2*k9[i] - bhh3*k3[i];
-	sqr = erri / sk;
-	err2 += sqr*sqr;
-	erri = er1*k1[i] + er6*k6[i] + er7*k7[i] + er8*k8[i] + er9*k9[i] +
-	       er10 * k10[i] + er11*k2[i] + er12*k3[i];
-	sqr = erri / sk;
-	err += sqr*sqr;
-      }
-    else
-      for (i = 0; i < n; i++)
-      {
-	sk = atoler[i] + rtoler[i] * max_d (fabs(y[i]), fabs(k5[i]));
-	erri = k4[i] - bhh1*k1[i] - bhh2*k9[i] - bhh3*k3[i];
-	sqr = erri / sk;
-	err2 += sqr*sqr;
-	erri = er1*k1[i] + er6*k6[i] + er7*k7[i] + er8*k8[i] + er9*k9[i] +
-	       er10 * k10[i] + er11*k2[i] + er12*k3[i];
-	sqr = erri / sk;
-	err += sqr*sqr;
-      }
-    deno = err + 0.01 * err2;
-    if (deno <= 0.0)
-      deno = 1.0;
-    err = fabs(h) * err * sqrt (1.0 / (deno*(double)n));
+      /* error estimation */
+      err = 0.0;
+      err2 = 0.0;
+      if (!itoler)
+        for (i = 0; i < n; i++)
+          {
+            sk = atoli + rtoli * max_d (fabs(y[i]), fabs(k5[i]));
+            erri = k4[i] - bhh1*k1[i] - bhh2*k9[i] - bhh3*k3[i];
+            sqr = erri / sk;
+            err2 += sqr*sqr;
+            erri = er1*k1[i] + er6*k6[i] + er7*k7[i] + er8*k8[i] + er9*k9[i] +
+              er10 * k10[i] + er11*k2[i] + er12*k3[i];
+            sqr = erri / sk;
+            err += sqr*sqr;
+          }
+      else
+        for (i = 0; i < n; i++)
+          {
+            sk = atoler[i] + rtoler[i] * max_d (fabs(y[i]), fabs(k5[i]));
+            erri = k4[i] - bhh1*k1[i] - bhh2*k9[i] - bhh3*k3[i];
+            sqr = erri / sk;
+            err2 += sqr*sqr;
+            erri = er1*k1[i] + er6*k6[i] + er7*k7[i] + er8*k8[i] + er9*k9[i] +
+              er10 * k10[i] + er11*k2[i] + er12*k3[i];
+            sqr = erri / sk;
+            err += sqr*sqr;
+          }
+      deno = err + 0.01 * err2;
+      if (deno <= 0.0)
+        deno = 1.0;
+      err = fabs(h) * err * sqrt (1.0 / (deno*(double)n));
 
-    /* computation of hnew */
-    fac11 = pow (err, expo1);
-    /* Lund-stabilization */
-    fac = fac11 / pow(facold,beta);
-    /* we require fac1 <= hnew/h <= fac2 */
-    fac = max_d (facc2, min_d (facc1, fac/safe));
-    hnew = h / fac;
+      /* computation of hnew */
+      fac11 = pow (err, expo1);
+      /* Lund-stabilization */
+      fac = fac11 / pow(facold,beta);
+      /* we require fac1 <= hnew/h <= fac2 */
+      fac = max_d (facc2, min_d (facc1, fac/safe));
+      hnew = h / fac;
 
-    if (err <= 1.0)
-    {
-      /* step accepted */
+      if (err <= 1.0)
+        {
+          /* step accepted */
 
-      facold = max_d (err, 1.0E-4);
-      naccpt++;
-      fcn (n, xph, k5, k4);
-      nfcn++;
+          facold = max_d (err, 1.0E-4);
+          naccpt++;
+          fcn (nptr, xph, k5, k4);
+          nfcn++;
       
-      /* stiffness detection */
-      if (!(naccpt % nstiff) || (iasti > 0))
-      {
-	stnum = 0.0;
-	stden = 0.0;
-	for (i = 0; i < n; i++)
-	{
-	  sqr = k4[i] - k3[i];
-	  stnum += sqr*sqr;
-	  sqr = k5[i] - yy1[i];
-	  stden += sqr*sqr;
-	}
-	if (stden > 0.0)
-	  hlamb = h * sqrt (stnum / stden);
-	if (hlamb > 6.1)
-	{
-	  nonsti = 0;
-	  iasti++;
-	  if (iasti == 15)
-		{
-	    if (fileout)
-	      fprintf (fileout, "The problem seems to become stiff at x = %.16e\r\n", x);
-	    else
-	    {
-	      xout = x;
-	      hout = h;
-	      return -4;
-	    }
-		}
-	}
-	else
-	{
-	  nonsti++;
-	  if (nonsti == 6)
-	    iasti = 0;
-	}
-      }
+          /* stiffness detection */
+          if (!(naccpt % nstiff) || (iasti > 0))
+            {
+              stnum = 0.0;
+              stden = 0.0;
+              for (i = 0; i < n; i++)
+                {
+                  sqr = k4[i] - k3[i];
+                  stnum += sqr*sqr;
+                  sqr = k5[i] - yy1[i];
+                  stden += sqr*sqr;
+                }
+              if (stden > 0.0)
+                hlamb = h * sqrt (stnum / stden);
+              if (hlamb > 6.1)
+                {
+                  nonsti = 0;
+                  iasti++;
+                  if (iasti == 15)
+                    {
+                      if (fileout)
+                        fprintf (fileout, "The problem seems to become stiff at x = %.16e\r\n", x);
+                      else
+                        {
+                          xout = x;
+                          hout = h;
+                          return -4;
+                        }
+                    }
+                }
+              else
+                {
+                  nonsti++;
+                  if (nonsti == 6)
+                    iasti = 0;
+                }
+            }
        
-      /* final preparation for dense output */
-      if (iout == 2)
-      {
-	/* save the first function evaluations */
-	if (nrds == n)
-	  for (i = 0; i < n; i++)
-	  {
-	    rcont1[i] = y[i];
-	    ydiff = k5[i] - y[i];
-	    rcont2[i] = ydiff;
-	    bspl = h * k1[i] - ydiff;
-	    rcont3[i] = bspl;
-	    rcont4[i] = ydiff - h*k4[i] - bspl;
-	    rcont5[i] = d41*k1[i] + d46*k6[i] + d47*k7[i] + d48*k8[i] +
-			d49*k9[i] + d410*k10[i] + d411*k2[i] + d412*k3[i];
-	    rcont6[i] = d51*k1[i] + d56*k6[i] + d57*k7[i] + d58*k8[i] +
-			d59*k9[i] + d510*k10[i] + d511*k2[i] + d512*k3[i];
-	    rcont7[i] = d61*k1[i] + d66*k6[i] + d67*k7[i] + d68*k8[i] +
-			d69*k9[i] + d610*k10[i] + d611*k2[i] + d612*k3[i];
-	    rcont8[i] = d71*k1[i] + d76*k6[i] + d77*k7[i] + d78*k8[i] +
-			d79*k9[i] + d710*k10[i] + d711*k2[i] + d712*k3[i];
-	  }
-	else
-	  for (j = 0; j < nrds; j++)
-	  {
-	    i = icont[j];
-	    rcont1[j] = y[i];
-	    ydiff = k5[i] - y[i];
-	    rcont2[j] = ydiff;
-	    bspl = h * k1[i] - ydiff;
-	    rcont3[j] = bspl;
-	    rcont4[j] = ydiff - h*k4[i] - bspl;
-	    rcont5[j] = d41*k1[i] + d46*k6[i] + d47*k7[i] + d48*k8[i] +
-			d49*k9[i] + d410*k10[i] + d411*k2[i] + d412*k3[i];
-	    rcont6[j] = d51*k1[i] + d56*k6[i] + d57*k7[i] + d58*k8[i] +
-			d59*k9[i] + d510*k10[i] + d511*k2[i] + d512*k3[i];
-	    rcont7[j] = d61*k1[i] + d66*k6[i] + d67*k7[i] + d68*k8[i] +
-			d69*k9[i] + d610*k10[i] + d611*k2[i] + d612*k3[i];
-	    rcont8[j] = d71*k1[i] + d76*k6[i] + d77*k7[i] + d78*k8[i] +
-			d79*k9[i] + d710*k10[i] + d711*k2[i] + d712*k3[i];
-	  }
+          /* final preparation for dense output */
+          if (iout == 2)
+            {
+              /* save the first function evaluations */
+              if (nrds == n)
+                for (i = 0; i < n; i++)
+                  {
+                    rcont1[i] = y[i];
+                    ydiff = k5[i] - y[i];
+                    rcont2[i] = ydiff;
+                    bspl = h * k1[i] - ydiff;
+                    rcont3[i] = bspl;
+                    rcont4[i] = ydiff - h*k4[i] - bspl;
+                    rcont5[i] = d41*k1[i] + d46*k6[i] + d47*k7[i] + d48*k8[i] +
+                      d49*k9[i] + d410*k10[i] + d411*k2[i] + d412*k3[i];
+                    rcont6[i] = d51*k1[i] + d56*k6[i] + d57*k7[i] + d58*k8[i] +
+                      d59*k9[i] + d510*k10[i] + d511*k2[i] + d512*k3[i];
+                    rcont7[i] = d61*k1[i] + d66*k6[i] + d67*k7[i] + d68*k8[i] +
+                      d69*k9[i] + d610*k10[i] + d611*k2[i] + d612*k3[i];
+                    rcont8[i] = d71*k1[i] + d76*k6[i] + d77*k7[i] + d78*k8[i] +
+                      d79*k9[i] + d710*k10[i] + d711*k2[i] + d712*k3[i];
+                  }
+              else
+                for (j = 0; j < nrds; j++)
+                  {
+                    i = icont[j];
+                    rcont1[j] = y[i];
+                    ydiff = k5[i] - y[i];
+                    rcont2[j] = ydiff;
+                    bspl = h * k1[i] - ydiff;
+                    rcont3[j] = bspl;
+                    rcont4[j] = ydiff - h*k4[i] - bspl;
+                    rcont5[j] = d41*k1[i] + d46*k6[i] + d47*k7[i] + d48*k8[i] +
+                      d49*k9[i] + d410*k10[i] + d411*k2[i] + d412*k3[i];
+                    rcont6[j] = d51*k1[i] + d56*k6[i] + d57*k7[i] + d58*k8[i] +
+                      d59*k9[i] + d510*k10[i] + d511*k2[i] + d512*k3[i];
+                    rcont7[j] = d61*k1[i] + d66*k6[i] + d67*k7[i] + d68*k8[i] +
+                      d69*k9[i] + d610*k10[i] + d611*k2[i] + d612*k3[i];
+                    rcont8[j] = d71*k1[i] + d76*k6[i] + d77*k7[i] + d78*k8[i] +
+                      d79*k9[i] + d710*k10[i] + d711*k2[i] + d712*k3[i];
+                  }
 
-	/* the next three function evaluations */
-	for (i = 0; i < n; i++)
-	  yy1[i] = y[i] + h * (a141*k1[i] + a147*k7[i] + a148*k8[i] +
-			      a149*k9[i] + a1410*k10[i] + a1411*k2[i] +
-			      a1412*k3[i] + a1413*k4[i]);
-	fcn (n, x+c14*h, yy1, k10);
-	for (i = 0; i < n; i++)
-	  yy1[i] = y[i] + h * (a151*k1[i] + a156*k6[i] + a157*k7[i] + a158*k8[i] +
-			      a1511*k2[i] + a1512*k3[i] + a1513*k4[i] +
-			      a1514*k10[i]);
-	fcn (n, x+c15*h, yy1, k2);
-	for (i = 0; i < n; i++)
-	  yy1[i] = y[i] + h * (a161*k1[i] + a166*k6[i] + a167*k7[i] + a168*k8[i] +
-			      a169*k9[i] + a1613*k4[i] + a1614*k10[i] +
-			      a1615*k2[i]);
-	fcn (n, x+c16*h, yy1, k3);
-	nfcn += 3;
+              /* the next three function evaluations */
+              for (i = 0; i < n; i++)
+                yy1[i] = y[i] + h * (a141*k1[i] + a147*k7[i] + a148*k8[i] +
+                                     a149*k9[i] + a1410*k10[i] + a1411*k2[i] +
+                                     a1412*k3[i] + a1413*k4[i]);
+              fcn (nptr, x+c14*h, yy1, k10);
+              for (i = 0; i < n; i++)
+                yy1[i] = y[i] + h * (a151*k1[i] + a156*k6[i] + a157*k7[i] + a158*k8[i] +
+                                     a1511*k2[i] + a1512*k3[i] + a1513*k4[i] +
+                                     a1514*k10[i]);
+              fcn (nptr, x+c15*h, yy1, k2);
+              for (i = 0; i < n; i++)
+                yy1[i] = y[i] + h * (a161*k1[i] + a166*k6[i] + a167*k7[i] + a168*k8[i] +
+                                     a169*k9[i] + a1613*k4[i] + a1614*k10[i] +
+                                     a1615*k2[i]);
+              fcn (nptr, x+c16*h, yy1, k3);
+              nfcn += 3;
 
-	/* final preparation */
-	if (nrds == n)
-	  for (i = 0; i < n; i++)
-	  {
-	    rcont5[i] = h * (rcont5[i] + d413*k4[i] + d414*k10[i] +
-			     d415*k2[i] + d416*k3[i]);
-	    rcont6[i] = h * (rcont6[i] + d513*k4[i] + d514*k10[i] +
-			     d515*k2[i] + d516*k3[i]);
-	    rcont7[i] = h * (rcont7[i] + d613*k4[i] + d614*k10[i] +
-			     d615*k2[i] + d616*k3[i]);
-	    rcont8[i] = h * (rcont8[i] + d713*k4[i] + d714*k10[i] +
-			     d715*k2[i] + d716*k3[i]);
-	  }
-        else
-	  for (j = 0; j < nrds; j++)
-	  {
-	    i = icont[j];
-	    rcont5[j] = h * (rcont5[j] + d413*k4[i] + d414*k10[i] +
-			     d415*k2[i] + d416*k3[i]);
-	    rcont6[j] = h * (rcont6[j] + d513*k4[i] + d514*k10[i] +
-			     d515*k2[i] + d516*k3[i]);
-	    rcont7[j] = h * (rcont7[j] + d613*k4[i] + d614*k10[i] +
-			     d615*k2[i] + d616*k3[i]);
-	    rcont8[j] = h * (rcont8[j] + d713*k4[i] + d714*k10[i] +
-			     d715*k2[i] + d716*k3[i]);
-	  }
-      }
+              /* final preparation */
+              if (nrds == n)
+                for (i = 0; i < n; i++)
+                  {
+                    rcont5[i] = h * (rcont5[i] + d413*k4[i] + d414*k10[i] +
+                                     d415*k2[i] + d416*k3[i]);
+                    rcont6[i] = h * (rcont6[i] + d513*k4[i] + d514*k10[i] +
+                                     d515*k2[i] + d516*k3[i]);
+                    rcont7[i] = h * (rcont7[i] + d613*k4[i] + d614*k10[i] +
+                                     d615*k2[i] + d616*k3[i]);
+                    rcont8[i] = h * (rcont8[i] + d713*k4[i] + d714*k10[i] +
+                                     d715*k2[i] + d716*k3[i]);
+                  }
+              else
+                for (j = 0; j < nrds; j++)
+                  {
+                    i = icont[j];
+                    rcont5[j] = h * (rcont5[j] + d413*k4[i] + d414*k10[i] +
+                                     d415*k2[i] + d416*k3[i]);
+                    rcont6[j] = h * (rcont6[j] + d513*k4[i] + d514*k10[i] +
+                                     d515*k2[i] + d516*k3[i]);
+                    rcont7[j] = h * (rcont7[j] + d613*k4[i] + d614*k10[i] +
+                                     d615*k2[i] + d616*k3[i]);
+                    rcont8[j] = h * (rcont8[j] + d713*k4[i] + d714*k10[i] +
+                                     d715*k2[i] + d716*k3[i]);
+                  }
+            }
 
-      memcpy (k1, k4, n * sizeof(double)); 
-      memcpy (y, k5, n * sizeof(double));
-      xold = x;
-      x = xph;
+          memcpy (k1, k4, n * sizeof(double)); 
+          memcpy (y, k5, n * sizeof(double));
+          xold = x;
+          x = xph;
 
-      if (iout)
-      {
-	hout = h;
-	xout = x;
-	solout (naccpt+1, xold, x, y, n, &irtrn);
-	if (irtrn < 0)
-	{
-	  if (fileout)
-	    fprintf (fileout, "Exit of dop853 at x = %.16e\r\n", x);
-	  return 2;
-	}
-      }
+          if (iout)
+            {
+              hout = h;
+              xout = x;
+              solout (naccpt+1, xold, x, y, nptr, &irtrn);
+              if (irtrn < 0)
+                {
+                  if (fileout)
+                    fprintf (fileout, "Exit of dop853 at x = %.16e\r\n", x);
+                  return 2;
+                }
+            }
 
-      /* normal exit */
-      if (last)
-      {
-	hout=hnew;
-	xout = x;
-	return 1;
-      }
+          /* normal exit */
+          if (last)
+            {
+              hout=hnew;
+              xout = x;
+              return 1;
+            }
 
-      if (fabs(hnew) > hmax)
-	hnew = posneg * hmax;
-      if (reject)
-	hnew = posneg * min_d (fabs(hnew), fabs(h));
+          if (fabs(hnew) > hmax)
+            hnew = posneg * hmax;
+          if (reject)
+            hnew = posneg * min_d (fabs(hnew), fabs(h));
 
-      reject = 0;
+          reject = 0;
+        }
+      else
+        {
+          /* step rejected */
+          hnew = h / min_d (facc1, fac11/safe);
+          reject = 1;
+          if (naccpt >= 1)
+            nrejct=nrejct + 1;
+          last = 0;
+        }
+
+      h = hnew;
     }
-    else
-    {
-      /* step rejected */
-      hnew = h / min_d (facc1, fac11/safe);
-      reject = 1;
-      if (naccpt >= 1)
-	nrejct=nrejct + 1;
-      last = 0;
-    }
-
-    h = hnew;
-  }
 
 } /* dopcor */
 
 
 /* front-end */
 int dop853
- (unsigned int n, FcnEqDiff fcn, double x, double* y, double xend, double* rtoler,
-  double* atoler, int itoler, SolTrait solout, int iout, FILE* fileout, double uround,
-  double safe, double fac1, double fac2, double beta, double hmax, double h,
-  long int nmax, int meth, long int nstiff, unsigned int nrdens, unsigned int* icont, unsigned int licont)
+(int *nptr, FcnEqDiff fcn, double x, double* y, double xend, double* rtoler,
+ double* atoler, int itoler, SolTrait solout, int iout, FILE* fileout, double uround,
+ double safe, double fac1, double fac2, double beta, double hmax, double h,
+ long int nmax, int meth, long int nstiff, int nrdens, int* icont, int licont)
 {
   int          arret, idid;
-  unsigned int i;
+  int i;
+  int n = nptr[0];
 
   /* initialisations */
   nfcn = nstep = naccpt = nrejct = arret = 0;
@@ -712,32 +715,32 @@ int dop853
   indir = NULL;
 
   /* n, the dimension of the system */
-  if (n == UINT_MAX)
-  {
-    if (fileout)
-      fprintf (fileout, "System too big, max. n = %u\r\n", UINT_MAX-1);
-    arret = 1;
-  }
+  if (n == INT_MAX)
+    {
+      if (fileout)
+        fprintf (fileout, "System too big, max. n = %u\r\n", INT_MAX-1);
+      arret = 1;
+    }
 
   /* nmax, the maximal number of steps */
   if (!nmax)
     nmax = 100000;
   else if (nmax <= 0)
-  {
-    if (fileout)
-      fprintf (fileout, "Wrong input, nmax = %li\r\n", nmax);
-    arret = 1;
-  }
+    {
+      if (fileout)
+        fprintf (fileout, "Wrong input, nmax = %li\r\n", nmax);
+      arret = 1;
+    }
 
   /* meth, coefficients of the method */
   if (!meth)
     meth = 1;
   else if ((meth <= 0) || (meth >= 2))
-  {
-    if (fileout)
-      fprintf (fileout, "Curious input, meth = %i\r\n", meth);
-    arret = 1;
-  }
+    {
+      if (fileout)
+        fprintf (fileout, "Curious input, meth = %i\r\n", meth);
+      arret = 1;
+    }
 
   /* nstiff, parameter for stiffness detection */
   if (!nstiff)
@@ -747,85 +750,85 @@ int dop853
 
   /* iout, switch for calling solout */
   if ((iout < 0) || (iout > 2))
-  {
-    if (fileout)
-      fprintf (fileout, "Wrong input, iout = %i\r\n", iout);
-    arret = 1;
-  }
+    {
+      if (fileout)
+        fprintf (fileout, "Wrong input, iout = %i\r\n", iout);
+      arret = 1;
+    }
 
   /* nrdens, number of dense output components */
   if (nrdens > n)
-  {
-    if (fileout)
-      fprintf (fileout, "Curious input, nrdens = %u\r\n", nrdens);
-    arret = 1;
-  }
+    {
+      if (fileout)
+        fprintf (fileout, "Curious input, nrdens = %u\r\n", nrdens);
+      arret = 1;
+    }
   else if (nrdens)
-  {
-    /* is there enough memory to allocate rcont12345678&indir ? */
-    rcont1 = Calloc(nrdens,double);
-    rcont2 = Calloc(nrdens,double);
-    rcont3 = Calloc(nrdens,double);
-    rcont4 = Calloc(nrdens,double);
-    rcont5 = Calloc(nrdens,double);
-    rcont6 = Calloc(nrdens,double);
-    rcont7 = Calloc(nrdens,double);
-    rcont8 = Calloc(nrdens,double);
-    if (nrdens < n)
-      indir = Calloc(n,unsigned int);
+    {
+      /* is there enough memory to allocate rcont12345678&indir ? */
+      rcont1 = Calloc(nrdens,double);
+      rcont2 = Calloc(nrdens,double);
+      rcont3 = Calloc(nrdens,double);
+      rcont4 = Calloc(nrdens,double);
+      rcont5 = Calloc(nrdens,double);
+      rcont6 = Calloc(nrdens,double);
+      rcont7 = Calloc(nrdens,double);
+      rcont8 = Calloc(nrdens,double);
+      if (nrdens < n)
+        indir = Calloc(n,int);
 
-    if (!rcont1 || !rcont2 || !rcont3 || !rcont4 || !rcont5 ||
-	!rcont6 || !rcont7 || !rcont8 || (!indir && (nrdens < n)))
-    {
-      if (fileout)
-	fprintf (fileout, "Not enough free memory for rcont12345678&indir\r\n");
-      arret = 1;
-    }
+      if (!rcont1 || !rcont2 || !rcont3 || !rcont4 || !rcont5 ||
+          !rcont6 || !rcont7 || !rcont8 || (!indir && (nrdens < n)))
+        {
+          if (fileout)
+            fprintf (fileout, "Not enough free memory for rcont12345678&indir\r\n");
+          arret = 1;
+        }
 
-    /* control of length of icont */
-    if (nrdens == n)
-    {
-      if (icont && fileout)
-	fprintf (fileout, "Warning : when nrdens = n there is no need allocating memory for icont\r\n");
-      nrds = n;
+      /* control of length of icont */
+      if (nrdens == n)
+        {
+          if (icont && fileout)
+            fprintf (fileout, "Warning : when nrdens = n there is no need allocating memory for icont\r\n");
+          nrds = n;
+        }
+      else if (licont < nrdens)
+        {
+          if (fileout)
+            fprintf (fileout, "Insufficient storage for icont, min. licont = %u\r\n", nrdens);
+          arret = 1;
+        }
+      else
+        {
+          if ((iout < 2) && fileout)
+            fprintf (fileout, "Warning : put iout = 2 for dense output\r\n");
+          nrds = nrdens;
+          for (i = 0; i < n; i++)
+            indir[i] = INT_MAX;
+          for (i = 0; i < nrdens; i++)
+            indir[icont[i]] = i;
+        }
     }
-    else if (licont < nrdens)
-    {
-      if (fileout)
-	fprintf (fileout, "Insufficient storage for icont, min. licont = %u\r\n", nrdens);
-      arret = 1;
-    }
-    else
-    {
-      if ((iout < 2) && fileout)
-	fprintf (fileout, "Warning : put iout = 2 for dense output\r\n");
-      nrds = nrdens;
-      for (i = 0; i < n; i++)
-	indir[i] = UINT_MAX;
-      for (i = 0; i < nrdens; i++)
-	indir[icont[i]] = i;
-    }
-  }
 
   /* uround, smallest number satisfying 1.0+uround > 1.0 */
   if (uround == 0.0)
     uround = 2.3E-16;
   else if ((uround <= 1.0E-35) || (uround >= 1.0))
-  {
-    if (fileout)
-      fprintf (fileout, "Which machine do you have ? Your uround was : %.16e\r\n", uround);
-    arret = 1;
-  }
+    {
+      if (fileout)
+        fprintf (fileout, "Which machine do you have ? Your uround was : %.16e\r\n", uround);
+      arret = 1;
+    }
 
   /* safety factor */
   if (safe == 0.0)
     safe = 0.9;
   else if ((safe >= 1.0) || (safe <= 1.0E-4))
-  {
-    if (fileout)
-      fprintf (fileout, "Curious input for safety factor, safe = %.16e\r\n", safe);
-    arret = 1;
-  }
+    {
+      if (fileout)
+        fprintf (fileout, "Curious input for safety factor, safe = %.16e\r\n", safe);
+      arret = 1;
+    }
 
   /* fac1, fac2, parameters for step size selection */
   if (fac1 == 0.0)
@@ -839,11 +842,11 @@ int dop853
   else if (beta < 0.0)
     beta = 0.0;
   else if (beta > 0.2)
-  {
-    if (fileout)
-      fprintf (fileout, "Curious input for beta : beta = %.16e\r\n", beta);
-    arret = 1;
-  }
+    {
+      if (fileout)
+        fprintf (fileout, "Curious input for beta : beta = %.16e\r\n", beta);
+      arret = 1;
+    }
 
   /* maximal step size */
   if (hmax == 0.0)
@@ -863,117 +866,116 @@ int dop853
   k10 = Calloc(n,double);
 
   if (!yy1 || !k1 || !k2 || !k3 || !k4 || !k5 || !k6 || !k7 || !k8 || !k9 || !k10)
-  {
-    if (fileout)
-      fprintf (fileout, "Not enough free memory for the method\r\n");
-    arret = 1;
-  }
+    {
+      if (fileout)
+        fprintf (fileout, "Not enough free memory for the method\r\n");
+      arret = 1;
+    }
 
   /* when a failure has occured, we return -1 */
   if (arret)
-  {
-    if (k10)
-      Free (k10);
-    if (k9)
-      Free (k9);
-    if (k8)
-      Free (k8);
-    if (k7)
-      Free (k7);
-    if (k6)
-      Free (k6);
-    if (k5)
-      Free (k5);
-    if (k4)
-      Free (k4);
-    if (k3)
-      Free (k3);
-    if (k2)
-      Free (k2);
-    if (k1)
-      Free (k1);
-    if (yy1)
-      Free (yy1);
-    if (indir)
-      Free (indir);
-    if (rcont8)
-      Free (rcont8);
-    if (rcont7)
-      Free (rcont7);
-    if (rcont6)
-      Free (rcont6);
-    if (rcont5)
-      Free (rcont5);
-    if (rcont4)
-      Free (rcont4);
-    if (rcont3)
-      Free (rcont3);
-    if (rcont2)
-      Free (rcont2);
-    if (rcont1)
-      Free (rcont1);
-
-    return -1;
-  }
-  else
-  {
-    idid = dopcor (n, fcn, x, y, xend, hmax, h, rtoler, atoler, itoler, fileout,
-		   solout, iout, nmax, uround, meth, nstiff, safe, beta, fac1, fac2, icont);
-    Free (k10);
-    Free (k9);
-    Free (k8);
-    Free (k7);
-    Free (k6);
-    Free (k5);    /* reverse order Freeing too increase chances */
-    Free (k4);    /* of efficient dynamic memory managing       */
-    Free (k3);
-    Free (k2);
-    Free (k1);
-    Free (yy1);
-    if (indir)
-      Free (indir);
-    if (rcont8)
     {
-      Free (rcont8);
-      Free (rcont7);
-      Free (rcont6);
-      Free (rcont5);
-      Free (rcont4);
-      Free (rcont3);
-      Free (rcont2);
-      Free (rcont1);
-    }
+      if (k10)
+        Free (k10);
+      if (k9)
+        Free (k9);
+      if (k8)
+        Free (k8);
+      if (k7)
+        Free (k7);
+      if (k6)
+        Free (k6);
+      if (k5)
+        Free (k5);
+      if (k4)
+        Free (k4);
+      if (k3)
+        Free (k3);
+      if (k2)
+        Free (k2);
+      if (k1)
+        Free (k1);
+      if (yy1)
+        Free (yy1);
+      if (indir)
+        Free (indir);
+      if (rcont8)
+        Free (rcont8);
+      if (rcont7)
+        Free (rcont7);
+      if (rcont6)
+        Free (rcont6);
+      if (rcont5)
+        Free (rcont5);
+      if (rcont4)
+        Free (rcont4);
+      if (rcont3)
+        Free (rcont3);
+      if (rcont2)
+        Free (rcont2);
+      if (rcont1)
+        Free (rcont1);
 
-    return idid;
-  }
+      return -1;
+    }
+  else
+    {
+      idid = dopcor (nptr, fcn, x, y, xend, hmax, h, rtoler, atoler, itoler, fileout,
+                     solout, iout, nmax, uround, meth, nstiff, safe, beta, fac1, fac2, icont);
+      Free (k10);
+      Free (k9);
+      Free (k8);
+      Free (k7);
+      Free (k6);
+      Free (k5);    /* reverse order Freeing too increase chances */
+      Free (k4);    /* of efficient dynamic memory managing       */
+      Free (k3);
+      Free (k2);
+      Free (k1);
+      Free (yy1);
+      if (indir)
+        Free (indir);
+      if (rcont8)
+        {
+          Free (rcont8);
+          Free (rcont7);
+          Free (rcont6);
+          Free (rcont5);
+          Free (rcont4);
+          Free (rcont3);
+          Free (rcont2);
+          Free (rcont1);
+        }
+
+      return idid;
+    }
 
 } /* dop853 */
 
 
 /* dense output function */
-double contd8 (unsigned int ii, double x)
+double contd8 (int ii, double x)
 {
-  unsigned int i;
+  int i;
   double       s, s1;
 
-  i = UINT_MAX;
+  i = INT_MAX;
 
   if (!indir)
     i = ii;
   else
     i = indir[ii];
 
-  if (i == UINT_MAX)
-  {
-    Rprintf ("No dense output available for %uth component", ii);
-    return 0.0;
-  }
+  if (i == INT_MAX)
+    {
+      Rprintf ("No dense output available for %uth component", ii);
+      return 0.0;
+    }
 
   s = (x - xold) / hout;
   s1 = 1.0 - s;
 
   return rcont1[i]+s*(rcont2[i]+s1*(rcont3[i]+s*(rcont4[i]+s1*(rcont5[i]+
-	 s*(rcont6[i]+s1*(rcont7[i]+s*rcont8[i]))))));
+							       s*(rcont6[i]+s1*(rcont7[i]+s*rcont8[i]))))));
 
 } /* contd8 */
-

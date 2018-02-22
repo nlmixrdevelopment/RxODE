@@ -1,0 +1,33 @@
+---
+title: "RxODE Events"
+author: "Matthew L. Fidler, Melissa Hallow, and Wenping Wang"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Introduction to RxODE}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+## RxODE: Event coding
+Event coding in RxODE is encoded in a single event number `evid`. For
+compartments under 100, this is coded as:
+
+- This event is `0` for observation events.
+- For a specified compartment a bolus dose is defined as:
+  - 100\*(Compartment Number) + 1
+  - The dose is then captured in the `amt`
+- For IV bolus doses the event is defined as:
+   - 10000 + 100\*(Compartment Number) + 1
+   - The infusion rate is captured in the `amt` column
+   - The infusion is turned off by subtracting `amt` with the same
+     `evid` at the stop of the infusion.
+	 
+	 
+For compartments greater or equal to 100, the 100s place and above
+digits are transfered to the 100,000th place digit. For doses to the
+99th compartment the `evid` for a bolus dose would be `9901` and the
+`evid` for an infusion would be `19901`.  For a bolus dose to the
+`199`th compartment the `evid` for the bolus dose would be
+`109901`. An infusion dosing record for the `199`th compartment would
+be `119901`.

@@ -17,7 +17,7 @@ sennsitivities according to the specified ODEs.}
 Jacobain according to the specified ODEs.}
 
 \item{collapseModel}{boolean indicating if RxODE will remove all
-LHS variables when calculating sensitivites.}
+LHS variables when calculating sensitivities.}
 }
 \value{
 RxODE trans list

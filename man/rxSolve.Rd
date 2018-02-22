@@ -2,30 +2,20 @@
 % Please edit documentation in R/rxsolve.R
 \name{rxSolve}
 \alias{rxSolve}
-\alias{rxSolve.RxODE}
-\alias{rxSolve.solveRxODE}
 \title{Solves a ODE equation}
 \usage{
-rxSolve(object, params = NULL, events = NULL, inits = NULL, scale = c(),
-  covs = NULL, stiff = TRUE, transit_abs = NULL, atol = 1e-06,
-  rtol = 1e-06, maxsteps = 5000, hmin = 0, hmax = NULL, hini = 0,
-  maxordn = 12, maxords = 5, ..., covs_interpolation = c("linear",
-  "constant", "NOCB", "midpoint"), theta = numeric(), eta = numeric(),
-  add.cov = FALSE)
-
-\method{rxSolve}{RxODE}(object, params = NULL, events = NULL,
-  inits = NULL, scale = c(), covs = NULL, stiff = TRUE,
-  transit_abs = NULL, atol = 1e-08, rtol = 1e-06, maxsteps = 5000,
-  hmin = 0, hmax = NULL, hini = 0, maxordn = 12, maxords = 5, ...,
-  covs_interpolation = c("linear", "constant", "NOCB", "midpoint"),
-  theta = numeric(), eta = numeric(), matrix = FALSE, add.cov = FALSE)
-
-\method{rxSolve}{solveRxODE}(object, params = NULL, events = NULL,
-  inits = NULL, scale = c(), covs = NULL, stiff = TRUE,
-  transit_abs = NULL, atol = 1e-08, rtol = 1e-06, maxsteps = 5000,
-  hmin = 0, hmax = NULL, hini = 0, maxordn = 12, maxords = 5, ...,
-  covs_interpolation = c("linear", "constant", "NOCB", "midpoint"),
-  theta = numeric(), eta = numeric(), matrix = FALSE, add.cov = FALSE)
+rxSolve(object, params = NULL, events = NULL, inits = NULL,
+  scale = NULL, covs = NULL, method = "liblsoda", transit_abs = NULL,
+  atol = 1e-08, rtol = 1e-06, maxsteps = 5000L, hmin = 0L,
+  hmax = NULL, hini = 0L, maxordn = 12L, maxords = 5L, ..., cores,
+  covs_interpolation = "linear", add.cov = FALSE, matrix = FALSE,
+  sigma = NULL, sigmaDf = NULL, nCoresRV = 1L, sigmaIsChol = FALSE,
+  nDisplayProgress = 10000L, amountUnits = NA_character_,
+  timeUnits = "hours", stiff, theta = NULL, eta = NULL,
+  addDosing = FALSE, update.object = FALSE, do.solve = TRUE,
+  omega = NULL, omegaDf = NULL, omegaIsChol = FALSE, nSub = 1L,
+  thetaMat = NULL, thetaDf = NULL, thetaIsChol = FALSE, nStud = 1L,
+  simVariability = TRUE)
 }
 \arguments{
 \item{object}{is a either a RxODE family of objects, or a file-name
@@ -56,19 +46,16 @@ variable by 2.}
 sampling points defined in the events \code{eventTable}.  This
 is for time-varying covariates.}
 
-\item{stiff}{a logical (\code{TRUE} by default) indicating whether
-    the ODE system is stiff or not.
+\item{method}{The method for solving ODEs.  Currently this supports:
 
-    For stiff ODE sytems (\code{stiff = TRUE}), \code{RxODE} uses the
-    LSODA (Livermore Solver for Ordinary Differential Equations)
-    Fortran package, which implements an automatic method switching
-    for stiff and non-stiff problems along the integration
-    interval, authored by Hindmarsh and Petzold (2003).
-
-    For non-stiff systems (\code{stiff = FALSE}), \code{RxODE} uses
-    DOP853, an explicit Runge-Kutta method of order 8(5, 3) of
-    Dormand and Prince as implemented in C by Hairer and Wanner
-    (1993).}
+\itemize{
+\item \code{"liblsoda"} thread safe lsoda.  This supports parallel
+           thread-based solving, and ignores user Jacobian specification.
+\item \code{"lsoda"} -- LSODA solver.  Does not support parallel thread-based
+      solving, but allows user Jacobian specification.
+\item \code{"dop853"} -- DOP853 solver.  Does not support parallel thread-based
+        solving nor user Jacobain specification
+}}
 
 \item{transit_abs}{boolean indicating if this is a transit
 compartment absorption}
@@ -107,6 +94,11 @@ compartment.  This includes S# = numeric will scale a compartment
 # by a dividing the compartment amount by the scale factor,
 like NONMEM.}
 
+\item{cores}{Number of cores used in parallel ODE solving.  This
+defaults to the number or system cores determined by
+\code{\link{rxCores}} for methods that support parallel
+solving (ie thread-safe methods like "liblsoda").}
+
 \item{covs_interpolation}{specifies the interpolation method for
     time-varying covariates. When solving ODEs it often samples
     times outside the sampling time specified in \code{events}.
@@ -124,25 +116,116 @@ like NONMEM.}
   carried backward to midpoint.
 }}
 
-\item{theta}{A vector of parameters that will be named THETA[#] and
-added to inits}
-
-\item{eta}{A vector of parameters that will be named ETA[#] and
-added to inits}
-
 \item{add.cov}{A boolean indicating if covariates should be added
 to the output matrix or data frame. By default this is
 disabled.}
 
 \item{matrix}{A boolean inticating if a matrix should be returned
-instead of the RxODE's solved object}
+instead of the RxODE's solved object.}
+
+\item{sigma}{Named sigma covariance or Cholesky decomposition of a
+covariance matrix.  The names of the columns indicate
+parameters that are simulated.  These are simulated for every
+observation in the solved system.}
+
+\item{sigmaDf}{Degrees of freedom of the sigma t-distribution.  By
+default it is equivalent to \code{Inf}, or a normal distribution.}
+
+\item{nCoresRV}{Number of cores used for the simulation of the
+sigma variables.  By default this is 1. This uses the package
+\code{\link[mvnfast]{rmvn}} and \code{\link[mvnfast]{rmvt}}.
+To reproduce the results you need to run on the same platform
+with the same number of cores. This is the reason this is set
+to be one, regardless of what the number of cores are used in
+threaded ODE solving.}
+
+\item{sigmaIsChol}{Boolean indicating if the sigma is in the
+Cholesky decomposition instead of a symmetric covariance}
+
+\item{nDisplayProgress}{An integer indicating the minimum number
+of c-based solves before a progress bar is shown.  By default
+this is 10,000.}
+
+\item{amountUnits}{This supplies the dose units of a data frame
+supplied instead of an event table.  This is for importing the
+data as an RxODE event table.}
+
+\item{timeUnits}{This supplies the time units of a data frame
+supplied instead of an event table.  This is for importing the
+data as an RxODE event table.}
+
+\item{stiff}{a logical (\code{TRUE} by default) indicating whether
+    the ODE system is stiff or not.
+
+    For stiff ODE sytems (\code{stiff = TRUE}), \code{RxODE} uses the
+    LSODA (Livermore Solver for Ordinary Differential Equations)
+    Fortran package, which implements an automatic method switching
+    for stiff and non-stiff problems along the integration
+    interval, authored by Hindmarsh and Petzold (2003).
+
+    For non-stiff systems (\code{stiff = FALSE}), \code{RxODE} uses
+    DOP853, an explicit Runge-Kutta method of order 8(5, 3) of
+    Dormand and Prince as implemented in C by Hairer and Wanner
+    (1993).}
+
+\item{theta}{A vector of parameters that will be named THETA[#] and
+added to parameters}
+
+\item{eta}{A vector of parameters that will be named ETA[#] and
+added to parameters}
+
+\item{addDosing}{Boolean indicating if the solve should add RxODE
+evid and amt columns.  This will also include dosing
+information and estimates at the doses.  Be default, RxODE
+only includes estimates at the observations. (default
+\code{FALSE}).}
+
+\item{update.object}{This is an internally used flag to update the
+RxODE solved object (when supplying an RxODE solved object) as
+well as returning a new object.  You probably should not
+modify it's \code{FALSE} default unless you are willing to
+have unexpected results.}
+
+\item{do.solve}{Internal flag.  By default this is \code{TRUE},
+when \code{FALSE} a list of solving options is returned.}
+
+\item{omega}{Named omega matrix.}
+
+\item{omegaDf}{The degrees of freedom of a t-distribution for
+simulation.  By default this is \code{NULL} which is
+equivalent to \code{Inf} degrees, or to simulate from a normal
+distribution instead of a t-distribution.}
+
+\item{omegaIsChol}{Indicates if the \code{omega} supplied is a
+Cholesky decomposed matrix instead of the traditional
+symmetric matrix.}
+
+\item{nSub}{Number between subject variabilities (ETAs) simulated for every 
+realization of the parameters.}
+
+\item{thetaMat}{Named theta matrix.}
+
+\item{thetaDf}{The degrees of freedom of a t-distribution for
+simulation.  By default this is \code{NULL} which is
+equivalent to \code{Inf} degrees, or to simulate from a normal
+distribution instead of a t-distribution.}
+
+\item{thetaIsChol}{Indicates if the \code{theta} supplied is a
+Cholesky decomposed matrix instead of the traditional
+symmetric matrix.}
+
+\item{nStud}{Number virtual studies to characterize uncertainty in estimated 
+parameters.}
+
+\item{simVariability}{For each study simulate the uncertanty in the Omega and 
+Sigma item}
 }
 \value{
 An \dQuote{rxSolve} solve object that stores the solved
     value in a matrix with as many rows as there are sampled time
     points and as many columns as system variables (as defined by
     the ODEs and additional assignments in the RxODE model code).
-    It also stores information about the call to allow dynmaic
+    It also stores information about the call to allow dynamic
     updating of the solved object.
 
     The operations for the object are simialar to a data-frame, but
@@ -179,5 +262,5 @@ Springer-Verlag (1993).
 \code{\link{RxODE}}
 }
 \author{
-Melissa Hallow, Wenping Wang and Matthew Fidler
+Matthew Fidler, Melissa Hallow and  Wenping Wang
 }

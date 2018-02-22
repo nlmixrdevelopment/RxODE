@@ -62,7 +62,7 @@ Jacobain according to the specified ODEs.}
 sennsitivities according to the specified ODEs.}
 
 \item{collapseModel}{boolean indicating if RxODE will remove all
-LHS variables when calculating sensitivites.}
+LHS variables when calculating sensitivities.}
 
 \item{...}{any other arguments are passed to the function
     \code{\link{readLines}}, (e.g., encoding).
@@ -151,8 +151,6 @@ An object (closure) of class \dQuote{\code{RxODE}} (see Chambers and Temple Lang
           that dynamically loads the object code if needed.}
       \item{dynUnload}{a function with no argument that unloads
           the model object code.}
-      \item{cmpMgr}{a \dQuote{compilation manager} object, see
-          \code{\link{rx.initCmpMgr}}.}
       \item{delete}{removes all created model files, including C and DDL files.
           The model object is no longer valid and should be removed, e.g.,
           \code{rm(m1)}.}

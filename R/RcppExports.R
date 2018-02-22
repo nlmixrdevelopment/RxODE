@@ -18,79 +18,12 @@ rxIs <- function(obj, cls) {
     .Call(`_RxODE_rxIs`, obj, cls)
 }
 
-#' Setup a data frame for solving multiple subjects at once in RxODE.
-#'
-#' @param ro R object to setup; Must be in RxODE compatible format.
-#' @param covNames Covariate names in dataset.
-#' @param sigma Matrix for simulating residual variability for the number of observations.
-#'      This uses the \code{\link[mvnfast]{rmvn}} or \code{\link[mvnfast]{rmvt}} assuming mean 0 and covariance given by this named
-#'      matrix.  The residual-type variability is created for each of the named \"err\" components specified by the sigma matrix's
-#'      column names. This then creates a random deviate that is used in the place of each named variable.  This should
-#'      not really be used in the ODE specification.  If it is, though, it is treated as a time-varying covariate.
-#'
-#'      Also note this does not use R's random numbers, rather it uses a cryptographic parallel random number generator;
-#'
-#'      To allow reproducible research you must both set a random seed with R's \code{\link[base]{set.seed}} function, and keep the
-#'      number of cores constant.  By changing either one of these variables, you will arrive at different random numbers. 
-#' @param df Degrees of freedom for \code{\link[mvnfast]{rmvt}}.  If \code{NULL}, or \code{Inf}, then use a normal distribution.  The
-#'        default is normal.
-#' @param ncores The number of cores for residual simulation.  By default, this is \code{1}.
-#' @param isChol is a boolean indicating that the Cholesky decomposition of the \code{sigma} covariance matrix is supplied instead of
-#'        the  \code{sigma} matrix itself.
-#' @param amountUnits Dosing amount units.
-#' @param timeUnits Time units.
-#'
-#' @return A data structure to allow C-based for loop (ie solving each
-#'       individual in C)
-#'
-#' @author Matthew L. Fidler
-#' @export
-rxDataSetup <- function(ro, covNames = NULL, sigma = NULL, df = NULL, ncores = 1L, isChol = FALSE, amountUnits = NA_character_, timeUnits = "hours") {
-    .Call(`_RxODE_rxDataSetup`, ro, covNames, sigma, df, ncores, isChol, amountUnits, timeUnits)
+rxDataSetup <- function(ro, covNames = NULL, sigma = NULL, df = NULL, ncoresRV = 1L, isChol = FALSE, nDisplayProgress = 10000L, amountUnits = NA_character_, timeUnits = "hours") {
+    .Call(`_RxODE_rxDataSetup`, ro, covNames, sigma, df, ncoresRV, isChol, nDisplayProgress, amountUnits, timeUnits)
 }
 
-#' Update RxODE multi-subject data with new residuals (in-place).
-#'
-#' @param md The RxODE multi-data object setup from \code{\link{rxDataSetup}}
-#'
-#' @return A boolean indicating if this is a compatible object for updating residuals.
-#'        If it isn't compatible nothing is done.  Additionally, if there are no random residual
-#'        variables to update, also nothing is done.
-#' @author Matthew L. Fidler
-#' @keywords internal
-#' @export
-rxUpdateResiduals <- function(md) {
-    .Call(`_RxODE_rxUpdateResiduals`, md)
-}
-
-#' All model variables for a RxODE object
-#'
-#' Return all the known model variables for a specified RxODE object
-#'
-#' These items are only calculated after compilation; they are
-#' built-into the RxODE compiled DLL.
-#'
-#' @param obj RxODE family of objects
-#'
-#' @return A list of RxODE model properties including:
-#'
-#' \item{params}{ a character vector of names of the model parameters}
-#' \item{lhs}{ a character vector of the names of the model calculated parameters}
-#' \item{state}{ a character vector of the compartments in RxODE object}
-#' \item{trans}{ a named vector of translated model properties
-#'       including what type of jacobian is specified, the \code{C} function prefixes,
-#'       as well as the \code{C} functions names to be called through the compiled model.}
-#' \item{md5}{a named vector that gives the digest of the model (\code{file_md5}) and the parsed model
-#'      (\code{parsed_md5})}
-#' \item{model}{ a named vector giving the input model (\code{model}),
-#'    normalized model (no comments and standard syntax for parsing, \code{normModel}),
-#'    and interim code that is used to generate the final C file \code{parseModel}}
-#'
-#' @keywords internal
-#' @author Matthew L.Fidler
-#' @export
-rxModelVars <- function(obj = NULL) {
-    .Call(`_RxODE_rxModelVars`, obj)
+rxModelVars_ <- function(obj) {
+    .Call(`_RxODE_rxModelVars_`, obj)
 }
 
 #' State variables
@@ -125,11 +58,11 @@ rxState <- function(obj = NULL, state = NULL) {
 #'
 #' @author Matthew L.Fidler
 #' @export
-rxParams <- function(obj = NULL) {
+rxParams <- function(obj) {
     .Call(`_RxODE_rxParams`, obj)
 }
 
-#' Jacobain and parameter derivatives
+#' Jacobian and parameter derivatives
 #'
 #' Return Jacobain and parameter derivatives
 #'
@@ -139,7 +72,7 @@ rxParams <- function(obj = NULL) {
 #'     object.
 #' @author Matthew L. Fidler
 #' @export
-rxDfdy <- function(obj = NULL) {
+rxDfdy <- function(obj) {
     .Call(`_RxODE_rxDfdy`, obj)
 }
 
@@ -154,7 +87,7 @@ rxDfdy <- function(obj = NULL) {
 #'
 #' @author Matthew L.Fidler
 #' @export
-rxLhs <- function(obj = NULL) {
+rxLhs <- function(obj) {
     .Call(`_RxODE_rxLhs`, obj)
 }
 
@@ -178,7 +111,7 @@ rxLhs <- function(obj = NULL) {
 #' @keywords internal
 #' @author Matthew L.Fidler
 #' @export
-rxInits <- function(obj = NULL, vec = NULL, req = NULL, defaultValue = 0, noerror = FALSE, noini = FALSE) {
+rxInits <- function(obj, vec = NULL, req = NULL, defaultValue = 0, noerror = FALSE, noini = FALSE) {
     .Call(`_RxODE_rxInits`, obj, vec, req, defaultValue, noerror, noini)
 }
 
@@ -189,8 +122,262 @@ rxInits <- function(obj = NULL, vec = NULL, req = NULL, defaultValue = 0, noerro
 #' @author Matthew L. Fidler
 #' @keywords internal
 #' @export
-rxSetupIni <- function(obj = NULL, inits = NULL) {
+rxSetupIni <- function(obj, inits = NULL) {
     .Call(`_RxODE_rxSetupIni`, obj, inits)
+}
+
+#' Setup the initial conditions.
+#'
+#' @param obj RxODE object
+#' @param inits A numeric vector of initial conditions.
+#' @param extraArgs A list of extra args to parse for initial conditions.
+#' @author Matthew L. Fidler
+#' @keywords internal
+#' @export
+rxSetupScale <- function(obj, scale = NULL, extraArgs = NULL) {
+    .Call(`_RxODE_rxSetupScale`, obj, scale, extraArgs)
+}
+
+#' Setup Data and Parameters
+#'
+#' @inheritParams rxSolve
+#' @param sigma Named sigma matrix.
+#' @param sigmaDf The degrees of freedom of a t-distribution for
+#'     simulation.  By default this is \code{NULL} which is
+#'     equivalent to \code{Inf} degrees, or to simulate from a normal
+#'     distribution instead of a t-distribution.
+#' @param nCoresRV Number of cores for residual simulation.  This,
+#'     along with the seed, affects both the outcome and speed of
+#'     simulation. By default it is one.
+#' @param sigmaIsChol Indicates if the \code{sigma} supplied is a
+#'     Cholesky decomposed matrix instead of the traditional
+#'     symmetric matrix.
+#' @return Data setup for running C-based RxODE runs.
+#' @author Matthew L. Fidler
+#' @keywords internal
+#' @export
+rxDataParSetup <- function(object, params = NULL, events = NULL, inits = NULL, covs = NULL, sigma = NULL, sigmaDf = NULL, nCoresRV = 1L, sigmaIsChol = FALSE, nDisplayProgress = 10000L, amountUnits = NA_character_, timeUnits = "hours", theta = NULL, eta = NULL, scale = NULL, extraArgs = NULL) {
+    .Call(`_RxODE_rxDataParSetup`, object, params, events, inits, covs, sigma, sigmaDf, nCoresRV, sigmaIsChol, nDisplayProgress, amountUnits, timeUnits, theta, eta, scale, extraArgs)
+}
+
+rxSolveCsmall <- function(object, specParams = NULL, extraArgs = NULL, params = NULL, events = NULL, inits = NULL, scale = NULL, covs = NULL, optsL = NULL) {
+    .Call(`_RxODE_rxSolveCsmall`, object, specParams, extraArgs, params, events, inits, scale, covs, optsL)
+}
+
+rxSolveGet <- function(obj, arg, exact = TRUE) {
+    .Call(`_RxODE_rxSolveGet`, obj, arg, exact)
+}
+
+rxSolveUpdate <- function(obj, arg = NULL, value = NULL) {
+    .Call(`_RxODE_rxSolveUpdate`, obj, arg, value)
+}
+
+rxRmModelLib_ <- function(str) {
+    invisible(.Call(`_RxODE_rxRmModelLib_`, str))
+}
+
+#' Get RxODE model from object
+#' @param obj RxODE family of objects
+#' @export
+rxGetRxODE <- function(obj) {
+    .Call(`_RxODE_rxGetRxODE`, obj)
+}
+
+#' Checks if the RxODE object was built with the current build
+#'
+#' @inheritParams rxModelVars
+#'
+#' @return boolean indicating if this was built with current RxODE
+#'
+#' @export
+rxIsCurrent <- function(obj) {
+    .Call(`_RxODE_rxIsCurrent`, obj)
+}
+
+#' Assign pointer based on model variables
+#' @param object RxODE family of objects
+#' @export
+rxAssignPtr <- function(object = NULL) {
+    invisible(.Call(`_RxODE_rxAssignPtr`, object))
+}
+
+#' Get the number of cores in a system
+#' @export
+rxCores <- function() {
+    .Call(`_RxODE_rxCores`)
+}
+
+#' Return the DLL associated with the RxODE object
+#'
+#' This will return the dynamic load library or shared object used to
+#' run the C code for RxODE.
+#'
+#' @param obj A RxODE family of objects or a character string of the
+#'     model specification or location of a file with a model
+#'     specification.
+#'
+#' @return a path of the library
+#'
+#' @keywords internal
+#' @author Matthew L.Fidler
+#' @export
+rxDll <- function(obj) {
+    .Call(`_RxODE_rxDll`, obj)
+}
+
+#' Return the C file associated with the RxODE object
+#'
+#' This will return C code for generating the RxODE DLL.
+#'
+#' @param obj A RxODE family of objects or a character string of the
+#'     model specification or location of a file with a model
+#'     specification.
+#'
+#' @return a path of the library
+#'
+#' @keywords internal
+#' @author Matthew L.Fidler
+#' @export
+rxC <- function(obj) {
+    .Call(`_RxODE_rxC`, obj)
+}
+
+#' Determine if the DLL associated with the RxODE object is loaded
+#'
+#' @param obj A RxODE family of objects 
+#'
+#' @return Boolean returning if the RxODE library is loaded.
+#'
+#' @keywords internal
+#' @author Matthew L.Fidler
+#' @export
+rxIsLoaded <- function(obj) {
+    .Call(`_RxODE_rxIsLoaded`, obj)
+}
+
+#' Load RxODE object
+#'
+#' @param obj A RxODE family of objects 
+#'
+#' @return Boolean returning if the RxODE library is loaded.
+#'
+#' @keywords internal
+#' @author Matthew L.Fidler
+#' @export
+rxDynLoad <- function(obj) {
+    .Call(`_RxODE_rxDynLoad`, obj)
+}
+
+#' Unload RxODE object
+#'
+#' @param obj A RxODE family of objects 
+#'
+#' @return Boolean returning if the RxODE library is loaded.
+#'
+#' @keywords internal
+#' @author Matthew L.Fidler
+#' @export
+rxDynUnload <- function(obj) {
+    .Call(`_RxODE_rxDynUnload`, obj)
+}
+
+#' Delete the DLL for the model
+#'
+#' This function deletes the DLL, but doesn't delete the model
+#' information in the object.
+#'
+#' @param obj RxODE family of objects
+#'
+#' @return A boolean stating if the operation was successful.
+#'
+#' @author Matthew L.Fidler
+#' @export
+rxDelete <- function(obj) {
+    .Call(`_RxODE_rxDelete`, obj)
+}
+
+#' Sample a covariance Matrix from the Posteior Inverse Wishart distribution.
+#'
+#' Note this Inverse wishart rescaled to match the original scale of the covariance matrix.
+#'
+#' If your covariance matrix is a 1x1 matrix, this uses an scaled inverse chi-squared which 
+#' is equivalent to the Inverse Wishart distribution in the uni-directional case.
+#'
+#' @param nu Degrees of Freedom (Number of Observations) for 
+#'        covariance matrix simulation.
+#' @param omega Estimate of Covariance matrix.
+#' @param n Number of Matricies to sample.  By default this is 1.
+#' @param omegaIsChol is an indicator of if the omega matrix is in the cholesky decomposition. 
+#' @param returnChol Return the cholesky decomposition of the covariance matrix sample.
+#'
+#' @return a matrix (n=1) or a list of matricies (n > 1)
+#'
+#' @author Matthew L.Fidler & Wenping Wang
+#' 
+#' @export
+cvPost <- function(nu, omega, n = 1L, omegaIsChol = FALSE, returnChol = FALSE) {
+    .Call(`_RxODE_cvPost`, nu, omega, n, omegaIsChol, returnChol)
+}
+
+#' Scaled Inverse Chi Squared distribution
+#'
+#' @param n Number of random samples
+#' @param nu degrees of freedom of inverse chi square
+#' @param scale  Scale of inverse chi squared distribution 
+#'         (default is 1).
+#' @return a vector of inverse chi squared deviates .
+#' @export
+rinvchisq <- function(n = 1L, nu = 1.0, scale = 1) {
+    .Call(`_RxODE_rinvchisq`, n, nu, scale)
+}
+
+#' Simulate Parameters from a Theta/Omega specification
+#'
+#' @param params Named Vector of RxODE model parameters
+#'
+#' @param thetaMat Named theta matrix.
+#'
+#' @param thetaDf The degrees of freedom of a t-distribution for
+#'     simulation.  By default this is \code{NULL} which is
+#'     equivalent to \code{Inf} degrees, or to simulate from a normal
+#'     distribution instead of a t-distribution.
+#'
+#' @param thetaIsChol Indicates if the \code{theta} supplied is a
+#'     Cholesky decomposed matrix instead of the traditional
+#'     symmetric matrix.
+#'
+#' @param nSub Number between subject variabilities (ETAs) simulated for every 
+#'        realization of the parameters.
+#'
+#' @param omega Named omega matrix.
+#'
+#' @param omegaDf The degrees of freedom of a t-distribution for
+#'     simulation.  By default this is \code{NULL} which is
+#'     equivalent to \code{Inf} degrees, or to simulate from a normal
+#'     distribution instead of a t-distribution.
+#'
+#' @param omegaIsChol Indicates if the \code{omega} supplied is a
+#'     Cholesky decomposed matrix instead of the traditional
+#'     symmetric matrix.
+#'
+#' @param nStud Number virtual studies to characterize uncertainty in estimated 
+#'        parameters.
+#'
+#' @param sigma Matrix for residual variation.  Adds a "NA" value for each of the 
+#'     indivdual parameters, residuals are updated after solve is completed. 
+#'
+#' @inheritParams rxSolve
+#'
+#' @param simVariability For each study simulate the uncertanty in the Omega and 
+#'       Sigma item
+#'
+#' @param nObs Number of observations to simulate for sigma.
+#'
+#' @author Matthew L.Fidler
+#'
+#' @export
+rxSimThetaOmega <- function(params = NULL, omega = NULL, omegaDf = NULL, omegaIsChol = FALSE, nSub = 1L, thetaMat = NULL, thetaDf = NULL, thetaIsChol = FALSE, nStud = 1L, sigma = NULL, sigmaDf = NULL, sigmaIsChol = FALSE, nCoresRV = 1L, nObs = 1L, simVariability = TRUE) {
+    .Call(`_RxODE_rxSimThetaOmega`, params, omega, omegaDf, omegaIsChol, nSub, thetaMat, thetaDf, thetaIsChol, nStud, sigma, sigmaDf, sigmaIsChol, nCoresRV, nObs, simVariability)
 }
 
 #' Invert matrix using Rcpp Armadilo.  

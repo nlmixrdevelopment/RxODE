@@ -126,8 +126,6 @@ rxPermissive({
         expect_false(isTRUE(all.equal(out,out1)));
     })
 
-
-
     cov <- data.frame(c=et$get.sampling()$time+1,a=-et$get.sampling()$time/100);
 
     sink("temp")
