@@ -38,7 +38,8 @@ Suggests:
     dplyr,
     tidyr,
     tibble,
-    curl
+    curl,
+    ggplot2
 Imports:
     utils,
     methods,

@@ -25,6 +25,8 @@ matrix:
     os: linux
   - r: devel
     os: osx
+  - r: 3.4
+    os: osx
   - r: 3.3
     os: osx
   - r: 3.2

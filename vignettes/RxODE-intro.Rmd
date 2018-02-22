@@ -525,7 +525,7 @@ et <- eventTable();
 et$add.sampling(seq(0, 10, length.out=200));
 et$add.dosing(20, start.time=0);
 
-(s1 <- Vtpol2 %>%  solve(et))
+(s1 <- Vtpol2 %>%  solve(et, method="lsoda"))
 ```
 
 While this is not stiff at mu=1, mu=1000 is a stiff system
