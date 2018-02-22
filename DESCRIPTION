@@ -39,7 +39,8 @@ Suggests:
     tidyr,
     tibble,
     curl,
-    ggplot2
+    ggplot2,
+    gridExtra
 Imports:
     utils,
     methods,
