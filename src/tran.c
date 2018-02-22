@@ -494,18 +494,23 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         Free(v);
         continue;
       }
-      if (!strcmp("derivative", name) && i< 2) continue;
-      if (!strcmp("der_rhs", name)    && i< 2) continue;
-      if (!strcmp("derivative", name) && i==3) continue;
-      if (!strcmp("der_rhs", name)    && i==3) continue;
-      if (!strcmp("derivative", name) && i==4){
-	D_ParseNode *xpn = d_get_child(pn,i);
-        char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-        if (!strcmp("~",v)){
-        }
-        Free(v);
-	continue;
-      }
+      if (i< 2 && (!strcmp("derivative", name) || !strcmp("fbio", name) || 
+		   !strcmp("alag", name) || !strcmp("rate", name) || !strcmp("dur", name))) continue;
+
+      if ((i< 2 || i==3) && (!strcmp("der_rhs", name) || !strcmp("fbio_rhs", name) ||
+		   !strcmp("alag_rhs", name) || !strcmp("rate_rhs", name) || !strcmp("dur_rhs", name))) continue;
+
+      if (i==3 && (!strcmp("derivative", name) || !strcmp("fbio", name)  || 
+		   !strcmp("alag", name) || !strcmp("rate", name) ||
+                   !strcmp("dur", name))) continue;
+      /* if (!strcmp("derivative", name) && i==4){ */
+      /* 	D_ParseNode *xpn = d_get_child(pn,i); */
+      /*   char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end); */
+      /*   if (!strcmp("~",v)){ */
+      /*   } */
+      /*   Free(v); */
+      /* 	continue; */
+      /* } */
       
       if (!strcmp("jac", name)     && i< 2)   continue;
       if (!strcmp("jac_rhs", name) && i< 2)   continue;
@@ -867,6 +872,69 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         sbt.o += 8;
         rx_podo = 1;
       }
+      if ((!strcmp("fbio", name) || !strcmp("alag", name) || 
+	   !strcmp("dur", name) || !strcmp("rate", name)) && i==2) {
+        /* sprintf(sb.s, "__DDtStateVar__[%d] = InfusionRate(%d) +", tb.nd, tb.nd); */
+        /* sb.o = strlen(sb.s); */
+        char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+        sprintf(tb.ddt, "%s",v);
+        if (new_de(v)){
+	  if (!strcmp("fbio", name)){
+            sprintf(sb.s, "_f[%d] = ", tb.nd);
+            sb.o = strlen(sb.s);
+            sprintf(sbt.s, "f(%s)=", v);
+            sbt.o = strlen(sbt.s);
+	  } else if (!strcmp("alag", name)){
+            sprintf(sb.s, "_alag[%d] = ", tb.nd);
+            sb.o = strlen(sb.s);
+            sprintf(sbt.s, "alag(%s)=", v);
+            sbt.o = strlen(sbt.s);
+	  } else if (!strcmp("dur", name)){
+            sprintf(sb.s, "_dur[%d] = ", tb.nd);
+            sb.o = strlen(sb.s);
+            sprintf(sbt.s, "dur(%s)=", v);
+            sbt.o = strlen(sbt.s);
+          } else if (!strcmp("rate", name)){
+            sprintf(sb.s, "_rate[%d] = ", tb.nd);
+            sb.o = strlen(sb.s);
+            sprintf(sbt.s, "rate(%s)=", v);
+            sbt.o = strlen(sbt.s);
+          }
+          new_or_ith(v);
+          /* Rprintf("%s; tb.ini = %d; tb.ini0 = %d; tb.lh = %d\n",v,tb.ini[tb.ix],tb.ini0[tb.ix],tb.lh[tb.ix]); */
+          tb.lh[tb.ix] = 9;
+          tb.di[tb.nd] = tb.ix;
+          sprintf(tb.de+tb.pos_de, "%s,", v);
+          tb.pos_de += strlen(v)+1;
+          tb.deo[++tb.nd] = tb.pos_de;
+        } else {
+          new_or_ith(v);
+          /* printf("de[%d]->%s[%d]\n",tb.id,v,tb.ix); */
+          if (!strcmp("fbio", name)){
+            sprintf(sb.s, "_f[%d] = ", tb.nd);
+            sb.o = strlen(sb.s);
+            sprintf(sbt.s, "f(%s)", v);
+            sbt.o = strlen(sbt.s);
+          } else if (!strcmp("alag", name)){
+            sprintf(sb.s, "_alag[%d] = ", tb.nd);
+            sb.o = strlen(sb.s);
+            sprintf(sbt.s, "alag(%s)", v);
+            sbt.o = strlen(sbt.s);
+          } else if (!strcmp("dur", name)){
+            sprintf(sb.s, "_dur[%d] = ", tb.nd);
+            sb.o = strlen(sb.s);
+            sprintf(sbt.s, "dur(%s)", v);
+            sbt.o = strlen(sbt.s);
+          } else if (!strcmp("rate", name)){
+            sprintf(sb.s, "_rate[%d] = ", tb.nd);
+            sb.o = strlen(sb.s);
+            sprintf(sbt.s, "rate(%s)", v);
+            sbt.o = strlen(sbt.s);
+          }
+        }
+        Free(v);
+        continue;
+      }
       if (!strcmp("derivative", name) && i==2) {
         /* sprintf(sb.s, "__DDtStateVar__[%d] = InfusionRate(%d) +", tb.nd, tb.nd); */
         /* sb.o = strlen(sb.s); */
@@ -911,16 +979,49 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         Free(v);
         continue;
       }
-      if (!strcmp("der_rhs", name)) {
+      if ((!strcmp("der_rhs", name) || !strcmp("fbio_rhs", name) ||
+           !strcmp("alag_rhs", name) || !strcmp("rate_rhs", name) || !strcmp("dur_rhs", name))) {
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
         if (new_de(v)){
-          sprintf(buf,"Tried to use d/dt(%s) before it was defined",v);
+	  if (!strcmp("der_rhs", name)){
+            sprintf(buf,"Tried to use d/dt(%s) before it was defined",v);
+	  } else if (!strcmp("fbio_rhs", name)){
+            sprintf(buf,"Tried to use f(%s) before the compartment was defined.",v);
+	  } else if (!strcmp("alag_rhs", name)){
+            sprintf(buf,"Tried to use alag(%s) before the compartment was defined.",v);
+          } else if (!strcmp("rate_rhs", name)){
+            sprintf(buf,"Tried to use rate(%s) before the compartment was defined.",v);
+          } else if (!strcmp("dur_rhs", name)){
+            sprintf(buf,"Tried to use dur(%s) before the compartment was defined.",v);
+          }
           trans_syntax_error_report_fn(buf);
         } else {
-          sprintf(SBPTR, "__DDtStateVar__[%d]", tb.id);
-          sb.o = strlen(sb.s);
-          sprintf(SBTPTR, "d/dt(%s)", v);
-          sbt.o = strlen(sbt.s);
+          if (!strcmp("der_rhs", name)){
+	    sprintf(SBPTR, "__DDtStateVar__[%d]", tb.id);
+	    sb.o = strlen(sb.s);
+	    sprintf(SBTPTR, "d/dt(%s)", v);
+	    sbt.o = strlen(sbt.s);
+	  } else if (!strcmp("fbio_rhs", name)){
+            sprintf(SBPTR, "_f[%d]", tb.id);
+            sb.o = strlen(sb.s);
+            sprintf(SBTPTR, "f(%s)", v);
+            sbt.o = strlen(sbt.s);
+	  } else if (!strcmp("alag_rhs", name)){
+            sprintf(SBPTR, "_alag[%d]", tb.id);
+            sb.o = strlen(sb.s);
+            sprintf(SBTPTR, "alag(%s)", v);
+            sbt.o = strlen(sbt.s);
+          } else if (!strcmp("rate_rhs", name)){
+            sprintf(SBPTR, "_rate[%d]", tb.id);
+            sb.o = strlen(sb.s);
+            sprintf(SBTPTR, "rate(%s)", v);
+            sbt.o = strlen(sbt.s);
+          } else if (!strcmp("dur_rhs", name)){
+            sprintf(SBPTR, "_dur[%d]", tb.id);
+            sb.o = strlen(sb.s);
+            sprintf(SBTPTR, "dur(%s)", v);
+            sbt.o = strlen(sbt.s);
+          }
         }
         Free(v);
         continue;
@@ -1022,7 +1123,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
     }
 
     if (!strcmp("assignment", name) || !strcmp("ini", name) || !strcmp("derivative", name) || !strcmp("jac",name) || !strcmp("dfdy",name) ||
-        !strcmp("ini0",name) || !strcmp("ini0f",name)){
+        !strcmp("ini0",name) || !strcmp("ini0f",name) || !strcmp("fbio", name) || !strcmp("alag", name) || !strcmp("rate", name) || 
+	!strcmp("dur", name)){
       fprintf(fpIO, "%s;\n", sb.s);
       fprintf(fpIO2, "%s;\n", sbt.s);
     }
@@ -1616,6 +1718,9 @@ void codegen(FILE *outpt, int show_ode) {
       if (SumProdLD > mx) mx = SumProdLD;
       fprintf(outpt, "  double _p[%d], _input[%d];\n", mx, mx);
       fprintf(outpt, "  double _pld[%d];\n", mx);
+    }
+    if (tb.nd > 0){
+      fprintf(outpt, "  double _f[%d] = {1}, _alag[%d] = {0}, _rate[%d] = {0}, _dur[%d] = {0};\n",tb.nd,tb.nd,tb.nd,tb.nd);
     }
     prnt_vars(2, outpt, 0, "  (void)t;\n", "\n",show_ode);     /* declare all used vars */
     if (maxSumProdN){
