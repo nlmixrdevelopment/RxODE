@@ -409,9 +409,9 @@ rxSyPyAddVars <- function(txt){
 ##' @export
 rxSymPyVars <- function(model){
     rxSymPyStart();
-    if (is(model,"character") && length(model) > 1){
+    if (rxIs(model,"character") && length(model) > 1){
         vars <- model;
-    } else if (is(model,"character") && length(model) == 1 && regexpr(rex::rex(or("=", "<-", "~")), model) == -1){
+    } else if (rxIs(model,"character") && length(model) == 1 && regexpr(rex::rex(or("=", "<-", "~")), model) == -1){
         vars <- model;
     } else {
         vars <- c(rxParams(model),
@@ -565,7 +565,7 @@ rxSymPyDfDy <- function(model, df, dy, vars=FALSE){
 }
 
 rxSymPyDfDyFull <- memoise::memoise(function(model, vars, cond){
-    if (is(vars,"logical")){
+    if (rxIs(vars,"logical")){
         if (vars){
             jac <- expand.grid(s1=rxState(model), s2=c(rxState(model), rxParams(model)),
                                stringsAsFactors=FALSE);
@@ -573,7 +573,7 @@ rxSymPyDfDyFull <- memoise::memoise(function(model, vars, cond){
             jac <- expand.grid(s1=rxState(model), s2=rxState(model),
                                stringsAsFactors=FALSE);
         }
-    } else if (is(vars,"character")){
+    } else if (rxIs(vars,"character")){
         jac <- expand.grid(s1=rxState(model), s2=c(rxState(model), vars),
                            stringsAsFactors=FALSE)
 
@@ -788,7 +788,7 @@ rxSymPySensitivity.single <- function(model, calcSens, calcJac){
     rxSymPySetupIf(model);
     state <- rxState(model);
     state <- state[regexpr(rex::rex(start, "rx_"), state) == -1];
-    if (is(calcSens,"list") && all(c("eta","theta") %in% names(calcSens))){
+    if (rxIs(calcSens,"list") && all(c("eta","theta") %in% names(calcSens))){
         extraLines <- rxSymPyDfDy(model, vars=c(calcSens$eta, calcSens$theta));
         eta <- calcSens$eta;
         theta <- calcSens$theta;
@@ -869,7 +869,7 @@ rxSymPySensitivity <- memoise::memoise(function(model, calcSens, calcJac=FALSE, 
     if (missing(calcSens)){
         calcSens <- rxParams(model);
     }
-    if (is(calcSens,"logical")){
+    if (rxIs(calcSens,"logical")){
         if (calcSens){
             calcSens <- rxParams(model);
         } else {
@@ -1181,6 +1181,7 @@ genCmt0 <- function(ncmt=1, oral=FALSE){
 }
 
 genCmtMod <- function(mod){
+    if (regexpr(rex::rex("solveLinB("), rxNorm(mod)) == -1) return(mod);
     ## Generates based on what is currently on the sympy stack.
     rxSymPySetup(mod);
     on.exit(rxSymPyClean());

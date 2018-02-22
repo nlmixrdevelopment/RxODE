@@ -882,7 +882,6 @@ cloneEnv <- function(env, parent = parent.env(env)) {
     list2env(as.list(env), parent = parent)
 }
 
-do.underscore <- TRUE;
 sympyEnv <- function(expr){
     ## Known functions
     calls <- allCalls(expr)
@@ -903,9 +902,7 @@ sympyEnv <- function(expr){
     res <- res[res != "pi"];
     w <- which(n2 %in% res);
     n2[w] <- sprintf("rx_SymPy_Res_%s", n2[w]);
-    if (do.underscore){
-        n2 <- gsub(rex::rex("rx_underscore_"), "_", n2);
-    }
+    n2 <- gsub(rex::rex("rx_underscore_"), "_", n2);
     n2[n2 == "M_E"] <- "E";
     n2[n2 == "M_PI"] <- "pi";
     n2[n2 == "M_PI_2"] <- "pi/2";
