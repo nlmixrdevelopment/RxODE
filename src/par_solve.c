@@ -694,7 +694,7 @@ extern void par_lsoda(rx_solve *rx){
     if (abort == 0){
       itask = 1; 
       istate = 1;
-      iopt = 0;
+      iopt = 1;
       for (i = 0; i < lrw+1; i++) rwork[i]=0;
       for (i = 0; i < liw+1; i++) iwork[i]=0;
       for (i = 0; i < neq[0]; i++) yp[i]=0;
