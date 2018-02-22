@@ -1,4 +1,3 @@
-rxPhysicalDrives.slow <- NULL; # memoise.
 ##' Returns a list of physical drives that have been or currently are
 ##' mounted to the computer.
 ##'
@@ -11,7 +10,7 @@ rxPhysicalDrives.slow <- NULL; # memoise.
 ##' @author Matthew L. Fidler
 ##' @keywords internal
 ##' @export
-rxPhysicalDrives <- function(duplicates=FALSE){
+rxPhysicalDrives <- memoise::memoise(function(duplicates=FALSE){
     if(.Platform$OS.type == "unix"){
         return(NULL)
     } else {
@@ -59,7 +58,7 @@ rxPhysicalDrives <- function(duplicates=FALSE){
         }
         return(ret)
     }
-}
+})
 
 rxPythonBaseWin <- function(){
     if(.Platform$OS.type == "unix"){
@@ -95,12 +94,11 @@ rxPythonBaseWin <- function(){
     }
 }
 
-rxRtoolsBaseWin.slow <- NULL ## memoise
 ##' Return Rtools base
 ##'
 ##' @return Rtools base path, or "" on unix-style platforms.
 ##' @author Matthew L. Fidler
-rxRtoolsBaseWin <- function(){
+rxRtoolsBaseWin <- (function(){
     if(.Platform$OS.type == "unix"){
         return("");
     } else {
@@ -169,7 +167,7 @@ rxRtoolsBaseWin <- function(){
             }
         }
     }
-}
+})
 ##' Setup Rtools path
 ##'
 ##' @param rm.rtools Remove the Rtools from the current path specs.

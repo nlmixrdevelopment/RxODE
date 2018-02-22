@@ -308,6 +308,7 @@ rex::register_shortcuts("RxODE");
 ##' @importFrom utils getFromNamespace assignInMyNamespace download.file head sessionInfo
 ##' @importFrom stats setNames update
 ##' @importFrom methods signature is
+##' @importFrom memoise memoise
 ##' @export
 RxODE <- function(model, modName = basename(wd), wd = ifelse(RxODE.cache.directory == ".", getwd(), RxODE.cache.directory),
                   filename = NULL, do.compile = NULL, extraC = NULL,
@@ -470,6 +471,7 @@ RxODE <- function(model, modName = basename(wd), wd = ifelse(RxODE.cache.directo
     env$calcSens <- (length(mv$sens) > 0)
     assign(mv$trans["prefix"], env, rxModels);
     class(env) <- "RxODE"
+    rxForget();
     return(env);
 }
 ##' Get model properties without compiling it.
@@ -479,7 +481,7 @@ RxODE <- function(model, modName = basename(wd), wd = ifelse(RxODE.cache.directo
 ##' @return RxODE trans list
 ##' @author Matthew L. Fidler
 ##' @keywords internal
-rxGetModel <- function(model, calcSens=FALSE, calcJac=FALSE, collapseModel=FALSE){
+rxGetModel <- memoise::memoise(function(model, calcSens=FALSE, calcJac=FALSE, collapseModel=FALSE){
     if (is(substitute(model),"call")){
         model <- model;
     }
@@ -514,10 +516,7 @@ rxGetModel <- function(model, calcSens=FALSE, calcJac=FALSE, collapseModel=FALSE
     cat("\n");
     sink();
     return(rxTrans(parseModel, cFile, calcSens=calcSens, calcJac=calcJac, collapseModel=collapseModel, modVars=TRUE));
-}
-
-rxGetModel.slow <- NULL
-
+})
 rxAdd <- function(rx, pre, post, ...){
     base <- rxNorm(rx);
     if (!missing(pre)){
@@ -688,6 +687,7 @@ summary.RxODE <- function(object, ...)
 ##' \item{RxODE}{ is the referring RxODE object}
 ##' @author Matthew L.Fidler
 ##' @importFrom stats coef
+##'
 ##' @export
 coef.RxODE <- function(object,
                        ...){
@@ -1458,7 +1458,7 @@ rxNorm <- function(obj, condition=NULL, removeInis, removeJac, removeSens){
 
 ##' @rdname rxModelVars
 ##' @export
-rxModelVars.character <- function(obj){
+rxModelVars.character <- memoise::memoise(function(obj){
     if (length(obj) == 1){
         cFile <- tempfile();
         if (file.exists(obj)){
@@ -1476,9 +1476,8 @@ rxModelVars.character <- function(obj){
     } else {
         rxModelVars.character(paste(obj, collapse="\n"));
     }
-}
+})
 
-rxModelVars.character.slow <- NULL;
 
 ##' Print rxDll object
 ##'

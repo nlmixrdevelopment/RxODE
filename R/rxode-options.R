@@ -1,11 +1,6 @@
 .onAttach <- function(libname, pkgname){ ## nocov start
     ## Setup RxODE.prefer.tbl
     rxPermissive(respect=TRUE); ## need to call respect on the first time
-    ## memoise needs to be called at load to use the right package.
-    ## See https://github.com/hadley/r-pkgs/issues/203
-    ## They suggest an environment, but I used the current namespace.
-    rxSetupMemoize()
-    ## Setup the path
     tmp <- try(rxWinRtoolsPath(), silent=TRUE);
     ## Also create temp dir
     tmp <- Sys.getenv("rxTempDir")
@@ -27,30 +22,6 @@
 
 RxODE.md5 <- NULL
 rxTempDir <- NULL;
-##' This setups the memoized functions.
-##'
-##' To easily create a memozied function by adding a \code{.slow <- NULL}
-##' to the end of a function.
-##'
-##' For example, to memozie the function in the namespace
-##' \code{rxModelVars.character} you would add a line:
-##' \code{rxModelVars.character.slow <- NULL}
-##'
-##' @author Matthew L. Fidler
-rxSetupMemoize <- function(){
-    reSlow <- rex::rex(".slow",end)
-    f <- sys.function(-1)
-    ns <- environment(f)
-    .slow <- ls(pattern=reSlow,envir=ns);
-    for (slow in .slow){
-        fast <- sub(reSlow, "", slow);
-        if (!memoise::is.memoised(get(fast, envir=ns)) && is.null(get(slow, envir=ns))){
-            utils::assignInMyNamespace(slow, get(fast, envir=ns))
-            utils::assignInMyNamespace(fast, memoise::memoise(get(slow, envir=ns)))
-        }
-
-    }
-}
 
 ##' Clear memoise cache for RxODE
 ##'
@@ -58,13 +29,10 @@ rxSetupMemoize <- function(){
 ##' @keywords internal
 ##' @export
 rxForget <- function(){
-    reSlow <- rex::rex(".slow",end)
-    f <- sys.function(-1)
-    ns <- environment(f)
-    .slow <- ls(pattern=reSlow,envir=ns);
-    for (slow in .slow){
-        fast <- sub(reSlow, "", slow);
-        memoise::forget(get(fast, envir=ns));
+    for (fn in ls(envir=getNamespace("RxODE"))){
+        if (memoise::is.memoised(getFromNamespace(fn, "RxODE"))){
+            memoise::forget(getFromNamespace(fn, "RxODE"));
+        }
     }
 }
 
