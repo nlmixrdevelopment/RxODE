@@ -494,23 +494,12 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         Free(v);
         continue;
       }
-      if (i< 2 && (!strcmp("derivative", name) || !strcmp("fbio", name) || 
-		   !strcmp("alag", name) || !strcmp("rate", name) || !strcmp("dur", name))) continue;
+      if ((i < 2 || i == 4 || i == 3) && 
+	  (!strcmp("derivative", name) || !strcmp("fbio", name) || 
+	   !strcmp("alag", name) || !strcmp("rate", name) || !strcmp("dur", name))) continue;
 
-      if ((i< 2 || i==3) && (!strcmp("der_rhs", name) || !strcmp("fbio_rhs", name) ||
-		   !strcmp("alag_rhs", name) || !strcmp("rate_rhs", name) || !strcmp("dur_rhs", name))) continue;
-
-      if (i==3 && (!strcmp("derivative", name) || !strcmp("fbio", name)  || 
-		   !strcmp("alag", name) || !strcmp("rate", name) ||
-                   !strcmp("dur", name))) continue;
-      /* if (!strcmp("derivative", name) && i==4){ */
-      /* 	D_ParseNode *xpn = d_get_child(pn,i); */
-      /*   char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end); */
-      /*   if (!strcmp("~",v)){ */
-      /*   } */
-      /*   Free(v); */
-      /* 	continue; */
-      /* } */
+      if ((i < 2 || i == 3) && (!strcmp("der_rhs", name) || !strcmp("fbio_rhs", name) ||
+			     !strcmp("alag_rhs", name) || !strcmp("rate_rhs", name) || !strcmp("dur_rhs", name))) continue;
       
       if (!strcmp("jac", name)     && i< 2)   continue;
       if (!strcmp("jac_rhs", name) && i< 2)   continue;
@@ -880,6 +869,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         sprintf(tb.ddt, "%s",v);
         if (new_de(v)){
 	  if (!strcmp("fbio", name)){
+	    error("f(%s) needs to be defined after d/dt(%s)",v,v);
             sprintf(sb.s, "_f[%d] = ", tb.nd);
             sb.o = strlen(sb.s);
             sprintf(sbt.s, "f(%s)=", v);
@@ -973,8 +963,19 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  /* printf("de[%d]->%s[%d]\n",tb.id,v,tb.ix); */
           sprintf(sb.s, "__DDtStateVar__[%d] = ", tb.id);
           sb.o = strlen(sb.s);
-          sprintf(sbt.s, "d/dt(%s)=", v);
+          sprintf(sbt.s, "d/dt(%s)", v);
           sbt.o = strlen(sbt.s);
+          Free(v);
+          xpn = d_get_child(pn,4);
+          v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+          if (!strcmp("~",v)){
+            tb.idi[tb.id] = 1;
+            sprintf(SBTPTR, "~");
+            sbt.o++;
+          } else {
+            sprintf(SBTPTR, "=");
+            sbt.o++;
+          }
         }
         Free(v);
         continue;
@@ -1721,6 +1722,7 @@ void codegen(FILE *outpt, int show_ode) {
     }
     if (tb.nd > 0){
       fprintf(outpt, "  double _f[%d] = {1}, _alag[%d] = {0}, _rate[%d] = {0}, _dur[%d] = {0};\n",tb.nd,tb.nd,tb.nd,tb.nd);
+      fprintf(outpt, "  (void)_f;\n  (void)_alag;\n  (void)_rate;\n  (void)_dur;\n");
     }
     prnt_vars(2, outpt, 0, "  (void)t;\n", "\n",show_ode);     /* declare all used vars */
     if (maxSumProdN){
