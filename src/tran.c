@@ -25,6 +25,7 @@
 #define NOINI0 "'%s(0)' for initialization not allowed.  To allow set 'options(RxODE.syntax.allow.ini0 = TRUE)'."
 #define NOSTATE "Defined 'df(%s)/dy(%s)', but '%s' is not a state!"
 #define NOSTATEVAR "Defined 'df(%s)/dy(%s)', but '%s' is not a state or variable!"
+#define ODEFIRST "ODEs compartment 'd/dt(%s)' must be defined before changing its properties (f/alag/rate/dur).\nIf you want to change this set 'options(RxODE.syntax.require.ode.first = FALSE).\nBe warned this will RxODE numbers compartments based on first occurance of property or ODE."
 
 #include <string.h>
 #include <stdlib.h>
@@ -188,7 +189,7 @@ char * r_dup_str(const char *s, const char *e) {
   return ss;
 }
 
-int rx_syntax_error = 0, rx_suppress_syntax_info=0, rx_podo = 0;
+int rx_syntax_error = 0, rx_suppress_syntax_info=0, rx_podo = 0, rx_syntax_require_ode_first = 1;
 static void trans_syntax_error_report_fn(char *err) {
   if (!rx_suppress_syntax_info)
     Rprintf("%s\n",err);
@@ -868,8 +869,11 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
         sprintf(tb.ddt, "%s",v);
         if (new_de(v)){
+	  if (rx_syntax_require_ode_first){
+            sprintf(buf,ODEFIRST,v);
+            trans_syntax_error_report_fn(buf);
+	  }
 	  if (!strcmp("fbio", name)){
-	    error("f(%s) needs to be defined after d/dt(%s)",v,v);
             sprintf(sb.s, "_f[%d] = ", tb.nd);
             sb.o = strlen(sb.s);
             sprintf(sbt.s, "f(%s)=", v);
@@ -2064,6 +2068,8 @@ void reset (){
   found_print = 0;
   found_jac = 0;
   rx_syntax_error = 0;
+  
+rx_syntax_require_ode_first=1;
   rx_suppress_syntax_info=0;
   rx_podo = 0;
   memset(s_aux_info,         0, 64*MXSYM);
@@ -2183,6 +2189,7 @@ SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP pref
   rx_syntax_allow_ini0 = R_get_option("RxODE.syntax.allow.ini0",1);
   rx_syntax_allow_ini  = R_get_option("RxODE.syntax.allow.ini",1);
   rx_syntax_allow_assign_state = R_get_option("RxODE.syntax.assign.state",0);
+  rx_syntax_require_ode_first = R_get_option("RxODE.syntax.require.ode.first",1);
   rx_syntax_error = 0;
   set_d_use_r_headers(0);
   set_d_rdebug_grammar_level(0);

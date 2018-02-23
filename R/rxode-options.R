@@ -42,6 +42,7 @@ rxOpt <- list(RxODE.prefer.tbl               =c(FALSE, FALSE),
               RxODE.echo.compile             =c(FALSE, FALSE),
               RxODE.warn.on.assign           =c(TRUE, TRUE),
               RxODE.syntax.assign            =c(FALSE, TRUE),
+              RxODE.syntax.require.ode.first =c(TRUE, TRUE),
               RxODE.syntax.star.pow          =c(FALSE, TRUE),
               RxODE.syntax.require.semicolon =c(TRUE, FALSE),
               RxODE.syntax.allow.dots        =c(FALSE, TRUE),
@@ -67,6 +68,7 @@ RxODE.syntax.require.semicolon <- NULL
 RxODE.syntax.allow.dots <- NULL
 RxODE.syntax.allow.ini0 <- NULL
 RxODE.syntax.allow.ini <- NULL
+RxODE.syntax.require.ode.first <- NULL
 RxODE.calculate.jacobian <- NULL
 RxODE.calculate.sensitivity <- NULL
 RxODE.verbose <- NULL
