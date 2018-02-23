@@ -1187,8 +1187,9 @@ void prnt_vars(int scenario, FILE *outpt, int lhs, const char *pre_str, const ch
     // show_ode = 1 dydt
     // show_ode = 2 Jacobian
     // show_ode = 3 Ini statement
+    // show_ode == 4 is extra_evid
     // show_ode = 0 LHS
-    if (show_ode == 2 || show_ode == 0){
+    if (show_ode == 2 || show_ode == 0 || show_ode == 4){
       //__DDtStateVar_#__
       for (i = 0; i < tb.nd; i++){
 	if (scenario == 0){
@@ -1710,6 +1711,8 @@ void codegen(FILE *outpt, int show_ode) {
     fprintf(outpt, "// Jacobian derived vars\nvoid %scalc_jac(int *_neq, double t, double *__zzStateVar__, double *__PDStateVar__, unsigned int __NROWPD__) {\n  int _cSub=_neq[1];\n",model_prefix);
   } else if (show_ode == 3){
     fprintf(outpt, "// Functional based initial conditions.\nvoid %sinis(int _cSub, double *__zzStateVar__){\n  double t=0;\n",model_prefix);
+  } else if (show_ode == 4){
+    fprintf(outpt, "// Functional based EVID changes.\ndouble %sevid_extra(int _cSub,  int _cmt, int _what, double _amt, double t, double *__zzStateVar__){\n  if (_cmt >= %d){\n    return -1.0;\n  }\n",model_prefix, tb.nd);
   } else {
     fprintf(outpt, "// prj-specific derived vars\nvoid %scalc_lhs(int _cSub, double t, double *__zzStateVar__, double *_lhs) {\n",model_prefix);
   }
@@ -1725,7 +1728,7 @@ void codegen(FILE *outpt, int show_ode) {
       fprintf(outpt, "  double _pld[%d];\n", mx);
     }
     if (tb.nd > 0){
-      fprintf(outpt, "  double _f[%d] = {1}, _alag[%d] = {0}, _rate[%d] = {0}, _dur[%d] = {0};\n",tb.nd,tb.nd,tb.nd,tb.nd);
+      fprintf(outpt, "  double _f[%d] = {1}, _alag[%d] = {-1}, _rate[%d] = {-1}, _dur[%d] = {-1};\n",tb.nd,tb.nd,tb.nd,tb.nd);
       fprintf(outpt, "  (void)_f;\n  (void)_alag;\n  (void)_rate;\n  (void)_dur;\n");
     }
     prnt_vars(2, outpt, 0, "  (void)t;\n", "\n",show_ode);     /* declare all used vars */
@@ -2012,6 +2015,8 @@ void codegen(FILE *outpt, int show_ode) {
       fprintf(outpt, ";\n");
     }
     fprintf(outpt, "}\n");
+  } else if (show_ode == 4){
+    fprintf(outpt, "  // Get the values now.\n  if (_what == 1){//F*amt\n    return _f[_cmt]*_amt;\n  } else if (_what == 2){\n    return _alag[_cmt];\n  } else if (_what == 3 && _dur[_cmt] > 0){//3= duration\n    return _dur[_cmt];\n  } else if (_what == 3 && _rate[_cmt] > 0){\n    return _amt/_rate[_cmt];\n  } else if (_what == 4 && _dur[_cmt] > 0){//4 = rate\n    return _amt/_dur[_cmt];\n  } else if (_what == 4 && _rate[_cmt] > 0) {\n    return _rate[_cmt];\n  }\n  return -1.0;\n}\n");
   } else {
     fprintf(outpt, "\n");
     for (i=0, j=0; i<tb.nv; i++) {
@@ -2162,6 +2167,7 @@ void trans_internal(char *orig_file, char* parse_file, char* c_file){
     codegen(fpIO, 1);
     codegen(fpIO, 2);
     codegen(fpIO, 3);
+    codegen(fpIO, 4);
     codegen(fpIO, 0);
     print_aux_info(fpIO,buf, infile);
     fclose(fpIO);
