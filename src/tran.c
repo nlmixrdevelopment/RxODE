@@ -1262,12 +1262,14 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
   fprintf(outpt,"extern SEXP %smodel_vars(){\n  int pro=0;\n",model_prefix);
   fprintf(outpt,"  SEXP _mv = PROTECT(_rxGetModelLib(\"rx_5c2c6f8a65d272301b81504c87d75239_x64_model_vars\"));pro++;\n");
   fprintf(outpt,"  if (!_rxIsCurrentC(_mv)){\n");
-  fprintf(outpt,"    SEXP lst      = PROTECT(allocVector(VECSXP, 15));pro++;\n");
-  fprintf(outpt,"    SEXP names    = PROTECT(allocVector(STRSXP, 15));pro++;\n");
+  fprintf(outpt,"    SEXP lst      = PROTECT(allocVector(VECSXP, 16));pro++;\n");
+  fprintf(outpt,"    SEXP names    = PROTECT(allocVector(STRSXP, 16));pro++;\n");
   fprintf(outpt,"    SEXP params   = PROTECT(allocVector(STRSXP, %d));pro++;\n",pi);
   fprintf(outpt,"    SEXP lhs      = PROTECT(allocVector(STRSXP, %d));pro++;\n",li);
   fprintf(outpt,"    SEXP state    = PROTECT(allocVector(STRSXP, %d));pro++;\n",statei);
   fprintf(outpt,"    SEXP stateRmS = PROTECT(allocVector(INTSXP, %d));pro++;\n",statei);
+  fprintf(outpt,"    SEXP timeInt = PROTECT(allocVector(INTSXP, 1));pro++;\n");
+  fprintf(outpt,"    INTEGER(timeInt)[0] = %d;",(int)time(NULL));
   fprintf(outpt,"    int *stateRm  = INTEGER(stateRmS);\n");
   fprintf(outpt,"    SEXP sens     = PROTECT(allocVector(STRSXP, %d));pro++;\n",sensi);
   fprintf(outpt,"    SEXP normState= PROTECT(allocVector(STRSXP, %d));pro++;\n",statei-sensi);
@@ -1510,6 +1512,9 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
 
   fprintf(outpt,"    SET_STRING_ELT(names,14,mkChar(\"normal.state\"));\n");
   fprintf(outpt,"    SET_VECTOR_ELT(lst,  14,normState);\n");
+
+  fprintf(outpt,"    SET_STRING_ELT(names,15,mkChar(\"timeId\"));\n");
+  fprintf(outpt,"    SET_VECTOR_ELT(lst,  15,timeInt);\n");
 
   // const char *rxVersion(const char *what)
   

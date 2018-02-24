@@ -3439,34 +3439,39 @@ bool rxIsCurrent(RObject obj){
 
 extern "C" void RxODE_assign_fn_pointers_(const char *mv);
 
+int assignedInt = 0;
 //' Assign pointer based on model variables
 //' @param object RxODE family of objects
 //' @export
 //[[Rcpp::export]]
 void rxAssignPtr(SEXP object = R_NilValue){
   List mv=rxModelVars(as<RObject>(object));
-  CharacterVector trans = mv["trans"];
-  RxODE_assign_fn_pointers_((as<std::string>(trans["model_vars"])).c_str());
-  rxUpdateFuns(as<SEXP>(trans));
-  rx_solve *ret = getRxSolve_();
-  // Also assign it.
-  set_solve(ret); 
-  // Update rxModels environment.
-  getRxModels();
+  int curM = as<int>(mv[15]);
+  if (curM != assignedInt){
+    CharacterVector trans = mv["trans"];
+    RxODE_assign_fn_pointers_((as<std::string>(trans["model_vars"])).c_str());
+    rxUpdateFuns(as<SEXP>(trans));
+    rx_solve *ret = getRxSolve_();
+    // Also assign it.
+    set_solve(ret); 
+    // Update rxModels environment.
+    getRxModels();
   
-  std::string ptr = as<std::string>(trans["model_vars"]); 
-  if (!_rxModels.exists(ptr)){
-    _rxModels[ptr] = mv;
-  } else if (!rxIsCurrent(as<RObject>(_rxModels[ptr]))) {
-    _rxModels[ptr] = mv;
-  }
-  Nullable<Environment> e1 = rxRxODEenv(object);
-  if (!e1.isNull()){
-    std::string prefix = as<std::string>(trans["prefix"]);
-    if (!_rxModels.exists(prefix)){
-      Environment e = as<Environment>(e1);
-      _rxModels[prefix] = e;
+    std::string ptr = as<std::string>(trans["model_vars"]); 
+    if (!_rxModels.exists(ptr)){
+      _rxModels[ptr] = mv;
+    } else if (!rxIsCurrent(as<RObject>(_rxModels[ptr]))) {
+      _rxModels[ptr] = mv;
     }
+    Nullable<Environment> e1 = rxRxODEenv(object);
+    if (!e1.isNull()){
+      std::string prefix = as<std::string>(trans["prefix"]);
+      if (!_rxModels.exists(prefix)){
+        Environment e = as<Environment>(e1);
+        _rxModels[prefix] = e;
+      }
+    }
+    assignedInt = curM;
   }
 }
 
