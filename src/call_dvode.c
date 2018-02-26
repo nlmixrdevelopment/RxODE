@@ -9,6 +9,7 @@
 #include <R_ext/Rdynload.h>
 #include <PreciseSums.h>
 #include "solve.h"
+#include <time.h>
 extern void calc_lhs(int cSub, double t, double *A, double *lhs);
 
 extern double RxODE_as_zero(double x){
@@ -147,6 +148,7 @@ extern void rxSolveOldC(int *neqa,
 			int *nlhsa,
 			double *lhsp,
 			int *rc){
+  clock_t t0 = clock(), ct, tm;
   SEXP mv = RxODE_get_mv();
   rx_solve *rx;
   int par_cov[0];

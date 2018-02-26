@@ -640,11 +640,15 @@ extern void par_liblsoda(rx_solve *rx){
 }
 
 extern void par_lsoda(rx_solve *rx){
-  clock_t t0 = clock();
+  rx_solving_options *op = &op_global;
+  int nsub = rx->nsub, nsim = rx->nsim;
+  int displayProgress = (op->nDisplayProgress <= nsim*nsub);
+  clock_t t0;
+  if (displayProgress)
+    t0 = clock();
   int i, j;
   double xout;
   double *yp;
-  rx_solving_options *op = &op_global;
   int neq[2];
   neq[0] = op->neq;
   neq[1] = 0;
@@ -683,11 +687,9 @@ extern void par_lsoda(rx_solve *rx){
   double *dose;
   double *ret;
   int *rc;
-  int nsub = rx->nsub;
-  int nsim = rx->nsim;
   /* int cores = op->cores; */
   inits = op->inits;
-  int displayProgress = (op->nDisplayProgress <= nsim*nsub);
+
   int curTick = 0;
   int abort = 0;
   for (int solveid = 0; solveid < nsim*nsub; solveid++){
@@ -763,8 +765,10 @@ extern void par_lsoda(rx_solve *rx){
 	}
       }
       if (displayProgress) curTick = par_progress(solveid, nsim*nsub, curTick, 1, t0, 0);
-      if (abort == 0){
-	if (checkInterrupt()) abort =1;
+      if (displayProgress){ // Can only abort if it is long enough to display progress.
+        if (abort == 0){
+          if (checkInterrupt()) abort =1;
+        }
       }
     }
   }
