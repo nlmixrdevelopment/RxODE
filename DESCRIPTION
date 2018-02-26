@@ -56,7 +56,8 @@ Imports:
     R.utils,
     PreciseSums (>= 0.3),
     mvnfast,
-    cli
+    cli,
+    crayon
 Description: Facilities for running simulations from ordinary
     differential equation (ODE) models, such as pharmacometrics and other
     compartmental models.  A compilation manager translates the ODE model
