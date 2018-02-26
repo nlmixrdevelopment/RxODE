@@ -72,21 +72,12 @@ int par_progress(int c, int n, int d, int cores, clock_t t0, int stop){
   return d;
 }
 
-void rxOptionsIni(){
-  inds_global =Calloc(1024, rx_solving_options_ind);
-  max_inds_global = 1024;
-}
-
 rx_solving_options_ind *rxOptionsIniEnsure(int mx){
   if (mx >= max_inds_global){
     max_inds_global = mx+1024;
     inds_global = Realloc(inds_global, max_inds_global, rx_solving_options_ind);
   }
   return inds_global;
-}
-
-void rxOptionsFree(){
-  Free(inds_global);
 }
 
 t_dydt g_dydt = NULL;
@@ -639,6 +630,56 @@ extern void par_liblsoda(rx_solve *rx){
   }
 }
 
+double *global_ypp;
+unsigned int global_ypi = 0;
+double *global_yp(unsigned int mx){
+  if (mx >= max_inds_global){
+    global_ypi = mx+1024;
+    global_ypp = Realloc(global_ypp, global_ypi, double);
+  }
+  return global_ypp;
+}
+
+
+double *global_rworkp;
+unsigned int global_rworki = 0;
+double *global_rwork(unsigned int mx){
+  if (mx >= max_inds_global){
+    global_rworki = mx+1024;
+    global_rworkp = Realloc(global_rworkp, global_rworki, double);
+  }
+  return global_rworkp;
+}
+
+
+int *global_iworkp;
+unsigned int global_iworki = 0;
+int *global_iwork(unsigned int mx){
+  if (mx >= max_inds_global){
+    global_iworki = mx+1024;
+    global_iworkp = Realloc(global_iworkp, global_iworki, int);
+  }
+  return global_iworkp;
+}
+
+void rxOptionsIni(){
+  inds_global =Calloc(1024, rx_solving_options_ind);
+  global_iworkp=Calloc(1024*4, int);
+  global_rworkp=Calloc(1024*4, double);
+  global_ypp=Calloc(1024*4, double);
+  global_iworki=4*1024;
+  global_rworki=4*1024;
+  global_ypi=4*1024;
+  max_inds_global = 1024;
+}
+
+void rxOptionsFree(){
+  Free(global_iworkp);
+  Free(global_rworkp);
+  Free(global_ypp);
+  Free(inds_global);
+}
+
 extern void par_lsoda(rx_solve *rx){
   rx_solving_options *op = &op_global;
   int nsub = rx->nsub, nsim = rx->nsim;
@@ -652,7 +693,7 @@ extern void par_lsoda(rx_solve *rx){
   int neq[2];
   neq[0] = op->neq;
   neq[1] = 0;
-  yp = Calloc(neq[0], double);
+  yp = global_yp(neq[0]);
   int itol = 1;
   double  rtol = op->RTOL, atol = op->ATOL;
   // Set jt to 1 if full is specified.
@@ -672,8 +713,8 @@ extern void par_lsoda(rx_solve *rx){
     };
   if (global_debug)
     REprintf("JT: %d\n",jt);
-  rwork = (double*)Calloc(lrw+1, double);
-  iwork = (int*)Calloc(liw+1, int);
+  rwork = global_rwork(lrw+1);
+  iwork = global_iwork(liw+1);
   
   /* iopt = 1; */
   
@@ -784,9 +825,6 @@ extern void par_lsoda(rx_solve *rx){
   /*   /\* Free(yp); *\/ */
   /*   /\* return; *\/ */
   /* } */
-  Free(rwork);
-  Free(iwork);
-  Free(yp);
 }
 
 //dummy solout fn
@@ -801,7 +839,7 @@ void par_dop(rx_solve *rx){
   int neq[2];
   neq[0] = op->neq;
   neq[1] = 0;
-  yp = Calloc(neq[0], double);
+  yp = global_yp(neq[0]);
   
   //DE solver config vars
   double rtol=op->RTOL, atol=op->ATOL;
