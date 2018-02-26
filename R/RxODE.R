@@ -407,6 +407,8 @@ RxODE <- function(model, modName = basename(wd), wd = ifelse(RxODE.cache.directo
         RxODE::rxSolve(object=get("rxDll", envir=.(env)), ..., matrix=matrix);
     }))
     env$.c <- with(env, function(...){.C(...)});
+    env$dll <- new.env(parent=baseenv())
+    env$dll$.c <- env$.c;
     env$assignPtr <- eval(bquote(function(){
         RxODE::rxAssignPtr(get("rxDll", envir=.(env)));
     }))
