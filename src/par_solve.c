@@ -431,7 +431,7 @@ extern void par_liblsoda(rx_solve *rx){
       /* double *yp = &yp0[neq[1]*neq[0]]; */
       int nx;
       rx_solving_options_ind *ind;
-      /* double *inits; */
+      double *inits;
       int *evid;
       double *x;
       int *BadDose;
@@ -441,7 +441,7 @@ extern void par_liblsoda(rx_solve *rx){
       double xout;
       int *rc;
       double *yp;
-      /* inits = op->inits; */
+      inits = op->inits;
       struct lsoda_context_t ctx = {
 	.function = dydt_liblsoda,
 	.neq = neq[0],
@@ -462,7 +462,7 @@ extern void par_liblsoda(rx_solve *rx){
       double xp = x[0];
       //--- inits the system
       /* memset(ret + neq[0],0.0, (nx-1)*neq[0]); */
-      /* memcpy(ret,inits, neq[0]*sizeof(double)); */
+      memcpy(ret,inits, neq[0]*sizeof(double));
       update_inis(neq[1], ret); // Update initial conditions
       /* for(i=0; i<neq[0]; i++) yp[i] = inits[i]; */
       for(i=0; i<nx; i++) {
