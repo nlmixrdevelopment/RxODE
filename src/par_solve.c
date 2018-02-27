@@ -693,7 +693,7 @@ extern void par_lsoda(rx_solve *rx){
   int neq[2];
   neq[0] = op->neq;
   neq[1] = 0;
-  yp = global_yp(neq[0]);
+  /* yp = global_yp(neq[0]); */
   int itol = 1;
   double  rtol = op->RTOL, atol = op->ATOL;
   // Set jt to 1 if full is specified.
@@ -720,7 +720,7 @@ extern void par_lsoda(rx_solve *rx){
   
   int nx;
   rx_solving_options_ind *ind;
-  double *inits;
+  /* double *inits; */
   int *evid;
   double *x;
   int *BadDose;
@@ -729,7 +729,7 @@ extern void par_lsoda(rx_solve *rx){
   double *ret;
   int *rc;
   /* int cores = op->cores; */
-  inits = op->inits;
+  /* inits = op->inits; */
 
   int curTick = 0;
   int abort = 0;
@@ -743,7 +743,6 @@ extern void par_lsoda(rx_solve *rx){
       memset(iwork,0,liw);
       /* for (i = 0; i < liw+1; i++) iwork[i]=0; */
       /* for (i = 0; i < neq[0]; i++) yp[i]=0; */
-      memset(yp,0.0, neq[0]);
       rwork[4] = op->H0; // H0 -- determined by solver
       rwork[6] = op->HMIN; // Hmin -- 0
   
@@ -766,12 +765,14 @@ extern void par_lsoda(rx_solve *rx){
       rwork[5] = ind->HMAX; // Hmax -- Infinite
       double xp = x[0];
       //--- inits the system
-      update_inis(neq[1], inits); // Update initial conditions
+      update_inis(neq[1], ret); // Update initial conditions
       /* for(i=0; i<neq[0]; i++) yp[i] = inits[i]; */
-      memcpy(yp,inits, neq[0]*sizeof(double));
+      /* memcpy(yp,inits, neq[0]*sizeof(double)); */
       for(i=0; i<nx; i++) {
 	xout = x[i];
-	if (global_debug){
+        yp = &ret[neq[0]*i];
+        memset(yp,0.0, neq[0]);
+        if (global_debug){
 	  REprintf("i=%d xp=%f xout=%f\n", i, xp, xout);
 	}
 	if(xout-xp > DBL_EPSILON*max(fabs(xout),fabs(xp)))
@@ -798,7 +799,7 @@ extern void par_lsoda(rx_solve *rx){
 	  xp = xout;
 	}
 	/* for(j=0; j<neq[0]; j++) ret[neq[0]*i+j] = yp[j]; */
-	memcpy(&ret[neq[0]*i],yp, neq[0]*sizeof(double));
+	/* memcpy(&ret[neq[0]*i],yp, neq[0]*sizeof(double)); */
 	//REprintf("wh=%d cmt=%d tm=%g rate=%g\n", wh, cmt, xp, InfusionRate[cmt]);
 
 	if (global_debug){
