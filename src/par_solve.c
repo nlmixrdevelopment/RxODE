@@ -837,11 +837,15 @@ extern void par_lsoda(rx_solve *rx){
 void solout(long int nr, double t_old, double t, double *y, int *nptr, int *irtrn){}
 
 void par_dop(rx_solve *rx){
-  clock_t t0 = clock();
+  rx_solving_options *op = &op_global;
+  int nsub = rx->nsub, nsim = rx->nsim;
+  int displayProgress = (op->nDisplayProgress <= nsim*nsub);
+  clock_t t0;
+  if (displayProgress)
+    t0 = clock();
   int i, j;
   double xout;
   double *yp;
-  rx_solving_options *op = &op_global;
   int neq[2];
   neq[0] = op->neq;
   neq[1] = 0;
@@ -860,7 +864,6 @@ void par_dop(rx_solve *rx){
       "problem is probably stiff (interrupted)"
     };
   rx_solving_options_ind *ind;
-  double *inits;
   int *evid;
   double *x;
   int *BadDose;
@@ -868,12 +871,10 @@ void par_dop(rx_solve *rx){
   double *dose;
   double *ret;
   int *rc;
-  int nsub = rx->nsub;
-  int nsim = rx->nsim;
   int nx;
   // This part CAN be parallelized, if dop is thread safe...
   // Therefore you could use https://github.com/jacobwilliams/dop853, but I haven't yet
-  int displayProgress = (op->nDisplayProgress <= nsim*nsub);
+  
   int curTick = 0;
   int abort = 0;
   for (int solveid = 0; solveid < nsim*nsub; solveid++){
@@ -892,13 +893,13 @@ void par_dop(rx_solve *rx){
       rc= ind->rc;
       double xp = x[0];
       //--- inits the system
-      update_inis(neq[1], inits); // Update initial conditions
-      
+      update_inis(neq[1], ret); // Update initial conditions
       //--- inits the system
-      for(i=0; i<neq[0]; i++) yp[i] = inits[i];
+      /* for(i=0; i<neq[0]; i++) yp[i] = inits[i]; */
 
       for(i=0; i<nx; i++) {
 	xout = x[i];
+        yp = &ret[neq[0]*i];
 	if (global_debug){
 	  REprintf("i=%d xp=%f xout=%f\n", i, xp, xout);
 	}
@@ -934,7 +935,8 @@ void par_dop(rx_solve *rx){
 		REprintf("IDID=%d, %s\n", idid, err_msg[-idid-1]);
 		*rc = idid;
 		// Bad Solve => NA
-		for (i = 0; i < nx*neq[0]; i++) ret[i] = NA_REAL;
+		/* for (i = 0; i < nx*neq[0]; i++) ret[i] = NA_REAL; */
+                memset(ret,NA_REAL, nx*neq[0]);
 		op->badSolve = 1;
 		i = nx+42; // Get out of here!
 	      }
@@ -946,7 +948,7 @@ void par_dop(rx_solve *rx){
 			op->do_transit_abs, xout, ind)){
 	  xp = xout;
 	}
-	for(j=0; j<neq[0]; j++) ret[neq[0]*i+j] = yp[j];
+	/* for(j=0; j<neq[0]; j++) ret[neq[0]*i+j] = yp[j]; */
 	//REprintf("wh=%d cmt=%d tm=%g rate=%g\n", wh, cmt, xp, InfusionRate[cmt]);
 
 	if (global_debug){
@@ -962,7 +964,7 @@ void par_dop(rx_solve *rx){
 	/*   return; */
 	/* } */
       }
-      if (abort == 0){
+      if (displayProgress && abort == 0){
         if (checkInterrupt()) abort =1;
       }
       if (displayProgress) curTick = par_progress(solveid, nsim*nsub, curTick, 1, t0, 0);
