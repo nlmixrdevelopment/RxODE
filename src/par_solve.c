@@ -611,9 +611,9 @@ extern void par_lsoda(rx_solve *rx){
       itask = 1; 
       istate = 1;
       iopt = 1;
-      memset(rwork,0.0,lrw);
+      memset(rwork,0.0,lrw+1);
       /* for (i = 0; i < lrw+1; i++) rwork[i]=0; */
-      memset(iwork,0,liw);
+      memset(iwork,0,liw+1);
       /* for (i = 0; i < liw+1; i++) iwork[i]=0; */
       /* for (i = 0; i < neq[0]; i++) yp[i]=0; */
       rwork[4] = op->H0; // H0 -- determined by solver
