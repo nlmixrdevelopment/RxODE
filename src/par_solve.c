@@ -133,24 +133,34 @@ rx_solve *get_solve(){
   if (g_get_solve == NULL) error("RxODE library not setup correctly.");
   return g_get_solve();
 }
+t_ode_current g_ode_current = NULL;
+void ode_current(){
+  if (g_ode_current != NULL) g_ode_current();
+}
+t_ode_current g_ode_stale = NULL;
+void ode_stale(){
+  if (g_ode_stale != NULL) g_ode_stale();
+}
 
 int global_jt = 2;
 int global_mf = 22;  
 int global_debug = 0;
 
 void rxUpdateFuns(SEXP trans){
-  const char *lib, *dydt, *calc_jac, *calc_lhs, *inis, *dydt_lsoda_dum, *dydt_jdum_lsoda, 
-    *ode_solver_solvedata, *ode_solver_get_solvedata, *dydt_liblsoda;
+  const char *lib, *s_dydt, *s_calc_jac, *s_calc_lhs, *s_inis, *s_dydt_lsoda_dum, *s_dydt_jdum_lsoda, 
+    *s_ode_solver_solvedata, *s_ode_solver_get_solvedata, *s_dydt_liblsoda, *s_ode_current, *s_ode_stale;
   lib = CHAR(STRING_ELT(trans, 0));
-  dydt = CHAR(STRING_ELT(trans, 3));
-  calc_jac = CHAR(STRING_ELT(trans, 4));
-  calc_lhs = CHAR(STRING_ELT(trans, 5));
-  inis = CHAR(STRING_ELT(trans, 8));
-  dydt_lsoda_dum = CHAR(STRING_ELT(trans, 9));
-  dydt_jdum_lsoda = CHAR(STRING_ELT(trans, 10));
-  ode_solver_solvedata = CHAR(STRING_ELT(trans, 11));
-  ode_solver_get_solvedata = CHAR(STRING_ELT(trans, 12));
-  dydt_liblsoda = CHAR(STRING_ELT(trans, 13));
+  s_dydt = CHAR(STRING_ELT(trans, 3));
+  s_calc_jac = CHAR(STRING_ELT(trans, 4));
+  s_calc_lhs = CHAR(STRING_ELT(trans, 5));
+  s_inis = CHAR(STRING_ELT(trans, 8));
+  s_dydt_lsoda_dum = CHAR(STRING_ELT(trans, 9));
+  s_dydt_jdum_lsoda = CHAR(STRING_ELT(trans, 10));
+  s_ode_solver_solvedata = CHAR(STRING_ELT(trans, 11));
+  s_ode_solver_get_solvedata = CHAR(STRING_ELT(trans, 12));
+  s_dydt_liblsoda = CHAR(STRING_ELT(trans, 13));
+  s_ode_current = CHAR(STRING_ELT(trans, 14));
+  s_ode_stale = CHAR(STRING_ELT(trans, 15));
   if (strcmp(CHAR(STRING_ELT(trans, 1)),"fulluser") == 0){
     global_jt = 1;
     global_mf = 21;
@@ -158,27 +168,34 @@ void rxUpdateFuns(SEXP trans){
     global_jt = 2;
     global_mf = 22;
   }
-  g_dydt =(t_dydt) R_GetCCallable(lib,dydt);
-  g_calc_jac =(t_calc_jac) R_GetCCallable(lib,calc_jac);
-  g_calc_lhs =(t_calc_lhs) R_GetCCallable(lib,calc_lhs);
-  g_update_inis =(t_update_inis) R_GetCCallable(lib,inis);
-  g_dydt_lsoda_dum =(t_dydt_lsoda_dum) R_GetCCallable(lib,dydt_lsoda_dum);
-  g_jdum_lsoda =(t_jdum_lsoda) R_GetCCallable(lib,dydt_jdum_lsoda);
-  g_set_solve = (t_set_solve)R_GetCCallable(lib,ode_solver_solvedata);
-  g_get_solve = (t_get_solve)R_GetCCallable(lib,ode_solver_get_solvedata);
-  g_dydt_liblsoda = (t_dydt_liblsoda)R_GetCCallable(lib,dydt_liblsoda);
+  g_dydt =(t_dydt) R_GetCCallable(lib, s_dydt);
+  g_calc_jac =(t_calc_jac) R_GetCCallable(lib, s_calc_jac);
+  g_calc_lhs =(t_calc_lhs) R_GetCCallable(lib, s_calc_lhs);
+  g_update_inis =(t_update_inis) R_GetCCallable(lib, s_inis);
+  g_dydt_lsoda_dum =(t_dydt_lsoda_dum) R_GetCCallable(lib, s_dydt_lsoda_dum);
+  g_jdum_lsoda =(t_jdum_lsoda) R_GetCCallable(lib, s_dydt_jdum_lsoda);
+  g_set_solve = (t_set_solve)R_GetCCallable(lib, s_ode_solver_solvedata);
+  g_get_solve = (t_get_solve)R_GetCCallable(lib, s_ode_solver_get_solvedata);
+  g_dydt_liblsoda = (t_dydt_liblsoda)R_GetCCallable(lib, s_dydt_liblsoda);
+  g_ode_current = (t_ode_current)R_GetCCallable(lib, s_ode_current);
+  g_ode_stale = (t_ode_current)R_GetCCallable(lib, s_ode_stale);
   global_jt = 2;
   global_mf = 22;  
   global_debug = 0;
 }
 
 void rxClearFuns(){
-  g_dydt = NULL;
-  g_calc_jac = NULL;
-  g_calc_lhs = NULL;
-  g_update_inis = NULL;
-  g_dydt_lsoda_dum = NULL;
-  g_jdum_lsoda = NULL;
+  g_dydt		= NULL;
+  g_calc_jac		= NULL;
+  g_calc_lhs		= NULL;
+  g_update_inis		= NULL;
+  g_dydt_lsoda_dum	= NULL;
+  g_jdum_lsoda		= NULL;
+  g_set_solve		= NULL;
+  g_get_solve		= NULL;
+  g_dydt_liblsoda	= NULL;
+  g_ode_current		= NULL;
+  g_ode_stale		= NULL;
 }
 
 void getSolvingOptionsIndPtr(double *InfusionRate,

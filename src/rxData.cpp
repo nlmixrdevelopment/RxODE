@@ -1561,22 +1561,22 @@ void gFree(){
 //' @keywords internal
 //' @export
 //[[Rcpp::export]]
-List rxDataParSetup(const RObject &object,
-		    const RObject &params = R_NilValue,
-		    const RObject &events = R_NilValue,
-		    const RObject &inits = R_NilValue,
-		    const RObject &covs  = R_NilValue,
-		    const RObject &sigma= R_NilValue,
-		    const RObject &sigmaDf= R_NilValue,
-		    const int &nCoresRV= 1,
-		    const bool &sigmaIsChol= false,
-                    const int &nDisplayProgress = 10000,
-		    const StringVector &amountUnits = NA_STRING,
-		    const StringVector &timeUnits = "hours",
-		    const RObject &theta = R_NilValue,
-                    const RObject &eta = R_NilValue,
-		    const RObject &scale = R_NilValue,
-		    const Nullable<List> &extraArgs = R_NilValue){
+inline List rxDataParSetup(const RObject &object,
+			   const RObject &params = R_NilValue,
+			   const RObject &events = R_NilValue,
+			   const RObject &inits = R_NilValue,
+			   const RObject &covs  = R_NilValue,
+			   const RObject &sigma= R_NilValue,
+			   const RObject &sigmaDf= R_NilValue,
+			   const int &nCoresRV= 1,
+			   const bool &sigmaIsChol= false,
+			   const int &nDisplayProgress = 10000,
+			   const StringVector &amountUnits = NA_STRING,
+			   const StringVector &timeUnits = "hours",
+			   const RObject &theta = R_NilValue,
+			   const RObject &eta = R_NilValue,
+			   const RObject &scale = R_NilValue,
+			   const Nullable<List> &extraArgs = R_NilValue){
   List modVars = rxModelVars(object);
   CharacterVector state = modVars["state"];
   // The initial conditions cannot be changed for each individual; If
@@ -1886,22 +1886,22 @@ void rxSolvingOptions(const RObject &object,
 		       nDisplayProgress, ncoresRV, isChol,svar);
 }
 
-void rxSolvingData(const RObject &model,
-                   const RObject &parData,
-                   const std::string &method = "liblsoda",
-                   const Nullable<LogicalVector> &transit_abs = R_NilValue,
-		   const double atol = 1.0e-8,
-		   const double rtol = 1.0e-6,
-		   const int maxsteps = 5000,
-		   const double hmin = 0,
-		   const Nullable<NumericVector> &hmax = R_NilValue,
-		   const double hini = 0,
-		   const int maxordn = 12,
-		   const int maxords = 5,
-		   const int cores = 1,
-		   std::string covs_interpolation = "linear",
-		   bool addCov = false,
-		   bool matrix = false) {
+inline void rxSolvingData(const RObject &model,
+			  const RObject &parData,
+			  const std::string &method = "liblsoda",
+			  const Nullable<LogicalVector> &transit_abs = R_NilValue,
+			  const double atol = 1.0e-8,
+			  const double rtol = 1.0e-6,
+			  const int maxsteps = 5000,
+			  const double hmin = 0,
+			  const Nullable<NumericVector> &hmax = R_NilValue,
+			  const double hini = 0,
+			  const int maxordn = 12,
+			  const int maxords = 5,
+			  const int cores = 1,
+			  std::string covs_interpolation = "linear",
+			  bool addCov = false,
+			  bool matrix = false) {
   if (rxIs(parData, "RxODE.par.data")){
     int i = 0;
     List opt = List(parData);
@@ -2068,7 +2068,7 @@ extern "C" rx_solve *rxSingle(SEXP object, const int stiff,const int transit_abs
   IntegerVector BadDose         = solveL["badDose"];
   // Instead of having the correct length for idose, use idose length = length of ntime
   // Saves an additional for loop at the cost of a little memory.
-  /* int *idose; */
+  // int *idose;
   IntegerVector idose(nTimes);
   rx_solving_options_ind *inds;
   inds = rxOptionsIniEnsure(1);//(rx_solving_options_ind *)Calloc(1, rx_solving_options_ind);
@@ -3439,16 +3439,13 @@ bool rxIsCurrent(RObject obj){
 
 extern "C" void RxODE_assign_fn_pointers_(const char *mv);
 
-int assignedInt = 0;
 //' Assign pointer based on model variables
 //' @param object RxODE family of objects
 //' @export
 //[[Rcpp::export]]
 void rxAssignPtr(SEXP object = R_NilValue){
   List mv=rxModelVars(as<RObject>(object));
-  int curM = as<int>(mv[15]);
-  if (curM != assignedInt){
-    CharacterVector trans = mv["trans"];
+  CharacterVector trans = mv["trans"];
     RxODE_assign_fn_pointers_((as<std::string>(trans["model_vars"])).c_str());
     rxUpdateFuns(as<SEXP>(trans));
     rx_solve *ret = getRxSolve_();
@@ -3471,8 +3468,6 @@ void rxAssignPtr(SEXP object = R_NilValue){
         _rxModels[prefix] = e;
       }
     }
-    assignedInt = curM;
-  }
 }
 
 extern "C" void rxAssignPtrC(SEXP obj){

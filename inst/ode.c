@@ -83,7 +83,7 @@ double _sum(double *input, double *pld, int m, int type, int n, ...){
 typedef double(*_rxProdType)(double*, double*, int, int);
 _rxProdType _prodPS = NULL;
 
-extern double _prod(double *input, double *p, int type, int n, ...){
+extern inline double _prod(double *input, double *p, int type, int n, ...){
   va_list valist;
   va_start(valist, n);
   for (unsigned int i = 0; i < n; i++){
@@ -93,7 +93,7 @@ extern double _prod(double *input, double *p, int type, int n, ...){
   return _prodPS(input, p, n, type);
 }
 
-extern double _sign(unsigned int n, ...){
+extern inline double _sign(unsigned int n, ...){
   va_list valist;
   va_start(valist, n);
   double s = 1;
@@ -107,7 +107,7 @@ extern double _sign(unsigned int n, ...){
   return s;
 }
 
-extern double _max(unsigned int n, ...){
+extern inline double _max(unsigned int n, ...){
   va_list valist;
   va_start(valist, n);
   double mx = NA_REAL;
@@ -123,7 +123,7 @@ extern double _max(unsigned int n, ...){
   return mx;
 }
 
-extern double _min(unsigned int n, ...){
+extern inline double _min(unsigned int n, ...){
   va_list valist;
   va_start(valist, n);
   double mn = NA_REAL;
@@ -153,6 +153,13 @@ extern rx_solve *__ODE_SOLVER_GET_SOLVEDATA__(){
 }
 
 SEXP __MODEL_VARS__();
+int _do_assign_ptr = 1;
+extern void __ODE_SOLVER_CURRENT__(){
+  _do_assign_ptr = 0;
+}
+extern void __ODE_SOLVER_STALE__(){
+  _do_assign_ptr = 1;
+}
 extern void __ODE_SOLVER__(int *neq,
 			   double *theta,      //order:
 			   double *time,
@@ -169,7 +176,7 @@ extern void __ODE_SOLVER__(int *neq,
 			   double *lhs,
 			   int *rc){
   // Backward compatible ode solver for 0.5* C interface
-  _assign_ptr(__MODEL_VARS__());
+  if (_do_assign_ptr) _assign_ptr(__MODEL_VARS__());
   _old_c(neq, theta, time, evid, ntime, inits, dose, ret, atol, rtol, stiff, transit_abs, nlhs, lhs, rc);
 }
 
@@ -243,6 +250,8 @@ void __R_INIT__ (DllInfo *info){
   R_RegisterCCallable(__LIB_STR__,"__ODE_SOLVER_SOLVEDATA__", (DL_FUNC) __ODE_SOLVER_SOLVEDATA__);
   R_RegisterCCallable(__LIB_STR__,"__ODE_SOLVER_GET_SOLVEDATA__", (DL_FUNC) __ODE_SOLVER_GET_SOLVEDATA__);
   R_RegisterCCallable(__LIB_STR__,"__DYDT_LIBLSODA__", (DL_FUNC) __DYDT_LIBLSODA__);
+  R_RegisterCCallable(__LIB_STR__,"__ODE_SOLVER_CURRENT__", (DL_FUNC) __ODE_SOLVER_CURRENT__);
+  R_RegisterCCallable(__LIB_STR__,"__ODE_SOLVER_STALE__", (DL_FUNC) __ODE_SOLVER_STALE__);
   
   static const R_CMethodDef cMethods[] = {
     {__ODE_SOLVER_STR__, (DL_FUNC) &__ODE_SOLVER__, 15, __ODE_SOLVER__rx_t},
