@@ -386,27 +386,14 @@ int checkInterrupt() {
   return (R_ToplevelExec(chkIntFn, NULL) == FALSE);
 }
 
-
-extern void par_liblsoda1(rx_solve *rx){
-  clock_t t0 = clock();
+extern void par_liblsoda(rx_solve *rx){
   rx_solving_options *op = &op_global;
-  int nsub = rx->nsub;
-  int nsim = rx->nsim;
-  int cores = 1;//op->cores;
-  double *yp0=(double*) malloc((op->neq)*nsim*nsub*sizeof(double));
-  int curTick=0;
-  int cur=0;
+  int cores = op->cores;
+  int nsub = rx->nsub, nsim = rx->nsim;
   int displayProgress = (op->nDisplayProgress <= nsim*nsub);
-  // Breaking of of loop ideas came from http://www.thinkingparallel.com/2007/06/29/breaking-out-of-loops-in-openmp/
-  // http://permalink.gmane.org/gmane.comp.lang.r.devel/27627
-  // It was buggy due to Rprint.  Use REprint instead since Rprint calls the interrupt every so often....
-  int abort = 0;
-
-  /* omp_set_dynamic(0);     // Explicitly disable dynamic teams */
-/*   omp_set_num_threads(cores); */
-/* #pragma omp parallel */
-{
-  // Thread specific variables
+  clock_t t0;
+  if (displayProgress) t0 = clock();
+  /* double *yp0=(double*) malloc((op->neq)*nsim*nsub*sizeof(double)); */
   struct lsoda_opt_t opt = {0};
   opt.ixpr = 0; // No extra printing...
   // Unlike traditional lsoda, these are vectors.
@@ -420,38 +407,42 @@ extern void par_liblsoda1(rx_solve *rx){
   opt.h0 = op->H0;
   opt.hmax = op->hmax2;
   opt.hmin = op->HMIN;
-  opt.hmxi = 0.0;  
-  int i, j;
-  int neq[2];
-  neq[0] = op->neq;
-  int nx;
-  rx_solving_options_ind *ind;
-  double *inits;
-  int *evid;
-  double *x;
-  int *BadDose;
-  double *InfusionRate;
-  double *dose;
-  double *ret;
-  double xout;
-  int *rc;
-  struct lsoda_context_t ctx = {
-    .function = dydt_liblsoda,
-    .neq = neq[0],
-    .data = &neq,
-    .state = 1
-  };
-  lsoda_prepare(&ctx, &opt);
-  double *yp;
-  double xp;
+  opt.hmxi = 0.0;
+  int curTick=0;
+  int cur=0;
+  // Breaking of of loop ideas came from http://www.thinkingparallel.com/2007/06/29/breaking-out-of-loops-in-openmp/
+  // http://permalink.gmane.org/gmane.comp.lang.r.devel/27627
+  // It was buggy due to Rprint.  Use REprint instead since Rprint calls the interrupt every so often....
+  int abort = 0;
+#ifdef _OPENMP
+#pragma omp parallel for num_threads(cores)
+#endif
   for (int solveid = 0; solveid < nsim*nsub; solveid++){
     if (abort == 0){
+      int i, j;
+      int neq[2];
+      neq[0] = op->neq;
       neq[1] = solveid;
-      yp = &yp0[neq[1]*neq[0]];
-      inits = op->inits;
-      ctx.state=1;
-      ctx.data=  &neq;
-      lsoda_reset(&ctx);
+      /* double *yp = &yp0[neq[1]*neq[0]]; */
+      int nx;
+      rx_solving_options_ind *ind;
+      /* double *inits; */
+      int *evid;
+      double *x;
+      int *BadDose;
+      double *InfusionRate;
+      double *dose;
+      double *ret;
+      double xout;
+      int *rc;
+      /* inits = op->inits; */
+      struct lsoda_context_t ctx = {
+	.function = dydt_liblsoda,
+	.neq = neq[0],
+	.data = &neq,
+	.state = 1
+      };
+      lsoda_prepare(&ctx, &opt);
       ind = &(rx->subjects[neq[1]]);
       ind->ixds = 0;
       nx = ind->n_all_times;
@@ -462,171 +453,57 @@ extern void par_liblsoda1(rx_solve *rx){
       ret = ind->solve;
       x = ind->all_times;
       rc= ind->rc;
-      xp = x[0];
+      double xp = x[0];
       //--- inits the system
-      update_inis(neq[1], inits); // Update initial conditions
-      for(i=0; i<neq[0]; i++) yp[i] = inits[i];
+      update_inis(neq[1], ret); // Update initial conditions
+      /* for(i=0; i<neq[0]; i++) yp[i] = inits[i]; */
       for(i=0; i<nx; i++) {
-        xout = x[i];
-        if(xout-xp > DBL_EPSILON*max(fabs(xout),fabs(xp))){
-          lsoda(&ctx, yp, &xp, xout);
-          if (ctx.state <= 0) {
-            /* REprintf("IDID=%d, %s\n", istate, err_msg[-istate-1]); */
-            *rc = ctx.state;
-            // Bad Solve => NA
-            for (i = 0; i < nx*neq[0]; i++) ret[i] = NA_REAL;
-            op->badSolve = 1;
-            i = nx+42; // Get out of here!
-          }
-        }
-        if (handle_evid(evid[i], neq[0], BadDose, InfusionRate, dose, yp,
-                        op->do_transit_abs, xout, ind)){
-          ctx.state = 1;
-          xp = xout;
-        }
-        for(j=0; j<neq[0]; j++) ret[neq[0]*i+j] = yp[j];
+	xout = x[i];
+        double *yp = &ret[neq[0]*i];
+	if(xout-xp > DBL_EPSILON*max(fabs(xout),fabs(xp))){
+	  lsoda(&ctx, yp, &xp, xout);
+	  if (ctx.state <= 0) {
+	    /* REprintf("IDID=%d, %s\n", istate, err_msg[-istate-1]); */
+	    *rc = ctx.state;
+	    // Bad Solve => NA
+            memset(ret,NA_REAL, nx*neq[0]);
+	    /* for (i = 0; i < nx*neq[0]; i++) ret[i] = NA_REAL; */
+	    op->badSolve = 1;
+	    i = nx+42; // Get out of here!
+	  }
+	}
+	if (handle_evid(evid[i], neq[0], BadDose, InfusionRate, dose, yp,
+			op->do_transit_abs, xout, ind)){
+	  ctx.state = 1;
+	  xp = xout;
+	}
+	/* for(j=0; j<neq[0]; j++) ret[neq[0]*i+j] = yp[j]; */
       }
+      lsoda_free(&ctx);
       if (displayProgress){
-        cur++;
-        curTick = par_progress(cur, nsim*nsub, curTick, cores, t0, 0);
+#pragma omp critical
+	cur++;
+#pragma omp critical
+#ifdef _OPENMP
+	if (omp_get_thread_num() == 0) // only in master thread!
+#endif
+	  curTick = par_progress(cur, nsim*nsub, curTick, cores, t0, 0);
       }
+#pragma omp flush (abort)
       if (abort == 0){
-        if (checkInterrupt()) abort =1;
+#ifdef _OPENMP
+	if (omp_get_thread_num() == 0) // only in master thread!
+#endif
+	  if (checkInterrupt()) abort =1;
       }
     }
   }
-  lsoda_free(&ctx);
- }
-  /* lsoda_free_opt(&opt); */
   if (abort == 1){
     op->abort = 1;
-    yp0 = NULL;
+    /* yp0 = NULL; */
     par_progress(cur, nsim*nsub, curTick, cores, t0, 1);
   } else {
     if (displayProgress && curTick < 50) par_progress(nsim*nsub, nsim*nsub, curTick, cores, t0, 0);
-  }
-}
-
-extern void par_liblsoda(rx_solve *rx){
-  clock_t t0 = clock();
-  rx_solving_options *op = &op_global;
-  int cores = op->cores;
-  if (cores == 1){
-    par_liblsoda1(rx);
-  } else {
-    int nsub = rx->nsub;
-    int nsim = rx->nsim;
-    double *yp0=(double*) malloc((op->neq)*nsim*nsub*sizeof(double));
-    struct lsoda_opt_t opt = {0};
-    opt.ixpr = 0; // No extra printing...
-    // Unlike traditional lsoda, these are vectors.
-    opt.rtol = op->rtol2;
-    opt.atol = op->atol2;
-    opt.itask = 1;
-    opt.mxstep = op->mxstep;
-    opt.mxhnil = 0;
-    opt.mxordn = op->MXORDN;
-    opt.mxords = op->MXORDS;
-    opt.h0 = op->H0;
-    opt.hmax = op->hmax2;
-    opt.hmin = op->HMIN;
-    opt.hmxi = 0.0;
-    int curTick=0;
-    int cur=0;
-    int displayProgress = (op->nDisplayProgress <= nsim*nsub);
-    // Breaking of of loop ideas came from http://www.thinkingparallel.com/2007/06/29/breaking-out-of-loops-in-openmp/
-    // http://permalink.gmane.org/gmane.comp.lang.r.devel/27627
-    // It was buggy due to Rprint.  Use REprint instead since Rprint calls the interrupt every so often....
-    int abort = 0;
-#ifdef _OPENMP
-#pragma omp parallel for num_threads(cores)
-#endif
-    for (int solveid = 0; solveid < nsim*nsub; solveid++){
-      if (abort == 0){
-        int i, j;
-        int neq[2];
-        neq[0] = op->neq;
-        neq[1] = solveid;
-        double *yp = &yp0[neq[1]*neq[0]];
-        int nx;
-        rx_solving_options_ind *ind;
-        double *inits;
-        int *evid;
-        double *x;
-        int *BadDose;
-        double *InfusionRate;
-        double *dose;
-        double *ret;
-        double xout;
-        int *rc;
-        inits = op->inits;
-        struct lsoda_context_t ctx = {
-          .function = dydt_liblsoda,
-          .neq = neq[0],
-          .data = &neq,
-          .state = 1
-        };
-        lsoda_prepare(&ctx, &opt);
-        ind = &(rx->subjects[neq[1]]);
-        ind->ixds = 0;
-        nx = ind->n_all_times;
-        evid = ind->evid;
-        BadDose = ind->BadDose;
-        InfusionRate = ind->InfusionRate;
-        dose = ind->dose;
-        ret = ind->solve;
-        x = ind->all_times;
-        rc= ind->rc;
-        double xp = x[0];
-        //--- inits the system
-        update_inis(neq[1], inits); // Update initial conditions
-        for(i=0; i<neq[0]; i++) yp[i] = inits[i];
-        for(i=0; i<nx; i++) {
-          xout = x[i];
-          if(xout-xp > DBL_EPSILON*max(fabs(xout),fabs(xp))){
-            lsoda(&ctx, yp, &xp, xout);
-            if (ctx.state <= 0) {
-              /* REprintf("IDID=%d, %s\n", istate, err_msg[-istate-1]); */
-              *rc = ctx.state;
-              // Bad Solve => NA
-              for (i = 0; i < nx*neq[0]; i++) ret[i] = NA_REAL;
-              op->badSolve = 1;
-              i = nx+42; // Get out of here!
-            }
-          }
-          if (handle_evid(evid[i], neq[0], BadDose, InfusionRate, dose, yp,
-                          op->do_transit_abs, xout, ind)){
-            ctx.state = 1;
-            xp = xout;
-          }
-          for(j=0; j<neq[0]; j++) ret[neq[0]*i+j] = yp[j];
-        }
-        lsoda_free(&ctx);
-        if (displayProgress){
-#pragma omp critical
-          cur++;
-#pragma omp critical
-#ifdef _OPENMP
-          if (omp_get_thread_num() == 0) // only in master thread!
-#endif
-            curTick = par_progress(cur, nsim*nsub, curTick, cores, t0, 0);
-        }
-#pragma omp flush (abort)
-        if (abort == 0){
-#ifdef _OPENMP
-          if (omp_get_thread_num() == 0) // only in master thread!
-#endif
-            if (checkInterrupt()) abort =1;
-        }
-      }
-    }
-    if (abort == 1){
-      op->abort = 1;
-      yp0 = NULL;
-      par_progress(cur, nsim*nsub, curTick, cores, t0, 1);
-    } else {
-      if (displayProgress && curTick < 50) par_progress(nsim*nsub, nsim*nsub, curTick, cores, t0, 0);
-    }
   }
 }
 
@@ -883,7 +760,7 @@ void par_dop(rx_solve *rx){
       ind = &(rx->subjects[neq[1]]);
       ind->ixds = 0;
       nx = ind->n_all_times;
-      inits = op->inits;
+      /* inits = op->inits; */
       evid = ind->evid;
       BadDose = ind->BadDose;
       InfusionRate = ind->InfusionRate;
