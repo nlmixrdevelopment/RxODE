@@ -386,6 +386,7 @@ int checkInterrupt() {
   return (R_ToplevelExec(chkIntFn, NULL) == FALSE);
 }
 
+
 extern void par_liblsoda(rx_solve *rx){
   rx_solving_options *op = &op_global;
 #ifdef _OPENMP
@@ -439,6 +440,7 @@ extern void par_liblsoda(rx_solve *rx){
       double *ret;
       double xout;
       int *rc;
+      double *yp;
       /* inits = op->inits; */
       struct lsoda_context_t ctx = {
 	.function = dydt_liblsoda,
@@ -459,11 +461,13 @@ extern void par_liblsoda(rx_solve *rx){
       rc= ind->rc;
       double xp = x[0];
       //--- inits the system
+      /* memset(ret + neq[0],0.0, (nx-1)*neq[0]); */
+      /* memcpy(ret,inits, neq[0]*sizeof(double)); */
       update_inis(neq[1], ret); // Update initial conditions
       /* for(i=0; i<neq[0]; i++) yp[i] = inits[i]; */
       for(i=0; i<nx; i++) {
 	xout = x[i];
-        double *yp = &ret[neq[0]*i];
+        yp = ret+neq[0]*i;
 	if(xout-xp > DBL_EPSILON*max(fabs(xout),fabs(xp))){
 	  lsoda(&ctx, yp, &xp, xout);
 	  if (ctx.state <= 0) {
@@ -481,6 +485,7 @@ extern void par_liblsoda(rx_solve *rx){
 	  ctx.state = 1;
 	  xp = xout;
 	}
+	if (i+1 != nx) memcpy(ret+neq[0]*(i+1), ret + neq[0]*i, neq[0]*sizeof(double));
 	/* for(j=0; j<neq[0]; j++) ret[neq[0]*i+j] = yp[j]; */
       }
       lsoda_free(&ctx);
@@ -588,7 +593,7 @@ extern void par_lsoda(rx_solve *rx){
   
   int nx;
   rx_solving_options_ind *ind;
-  /* double *inits; */
+  double *inits;
   int *evid;
   double *x;
   int *BadDose;
@@ -597,7 +602,7 @@ extern void par_lsoda(rx_solve *rx){
   double *ret;
   int *rc;
   /* int cores = op->cores; */
-  /* inits = op->inits; */
+  inits = op->inits;
 
   int curTick = 0;
   int abort = 0;
@@ -633,6 +638,7 @@ extern void par_lsoda(rx_solve *rx){
       rwork[5] = ind->HMAX; // Hmax -- Infinite
       double xp = x[0];
       //--- inits the system
+      memcpy(ret,inits, neq[0]*sizeof(double));
       update_inis(neq[1], ret); // Update initial conditions
       /* for(i=0; i<neq[0]; i++) yp[i] = inits[i]; */
       /* memcpy(yp,inits, neq[0]*sizeof(double)); */
@@ -666,6 +672,7 @@ extern void par_lsoda(rx_solve *rx){
 	  istate = 1;
 	  xp = xout;
 	}
+        if (i+1 != nx) memcpy(ret+neq[0]*(i+1), ret + neq[0]*i, neq[0]*sizeof(double));
 	/* for(j=0; j<neq[0]; j++) ret[neq[0]*i+j] = yp[j]; */
 	/* memcpy(&ret[neq[0]*i],yp, neq[0]*sizeof(double)); */
 	//REprintf("wh=%d cmt=%d tm=%g rate=%g\n", wh, cmt, xp, InfusionRate[cmt]);
@@ -736,7 +743,7 @@ void par_dop(rx_solve *rx){
   int *BadDose;
   double *InfusionRate;
   double *dose;
-  double *ret;
+  double *ret, *inits;
   int *rc;
   int nx;
   // This part CAN be parallelized, if dop is thread safe...
@@ -750,7 +757,7 @@ void par_dop(rx_solve *rx){
       ind = &(rx->subjects[neq[1]]);
       ind->ixds = 0;
       nx = ind->n_all_times;
-      /* inits = op->inits; */
+      inits = op->inits;
       evid = ind->evid;
       BadDose = ind->BadDose;
       InfusionRate = ind->InfusionRate;
@@ -760,6 +767,7 @@ void par_dop(rx_solve *rx){
       rc= ind->rc;
       double xp = x[0];
       //--- inits the system
+      memcpy(ret,inits, neq[0]*sizeof(double));
       update_inis(neq[1], ret); // Update initial conditions
       //--- inits the system
       /* for(i=0; i<neq[0]; i++) yp[i] = inits[i]; */
@@ -816,6 +824,7 @@ void par_dop(rx_solve *rx){
 	  xp = xout;
 	}
 	/* for(j=0; j<neq[0]; j++) ret[neq[0]*i+j] = yp[j]; */
+        if (i+1 != nx) memcpy(ret+neq[0]*(i+1), ret + neq[0]*i, neq[0]*sizeof(double));
 	//REprintf("wh=%d cmt=%d tm=%g rate=%g\n", wh, cmt, xp, InfusionRate[cmt]);
 
 	if (global_debug){
