@@ -388,7 +388,11 @@ int checkInterrupt() {
 
 extern void par_liblsoda(rx_solve *rx){
   rx_solving_options *op = &op_global;
+#ifdef _OPENMP
   int cores = op->cores;
+#else
+  int cores = 1;
+#endif
   int nsub = rx->nsub, nsim = rx->nsim;
   int displayProgress = (op->nDisplayProgress <= nsim*nsub);
   clock_t t0;
@@ -419,7 +423,7 @@ extern void par_liblsoda(rx_solve *rx){
 #endif
   for (int solveid = 0; solveid < nsim*nsub; solveid++){
     if (abort == 0){
-      int i, j;
+      int i;
       int neq[2];
       neq[0] = op->neq;
       neq[1] = solveid;
@@ -507,16 +511,6 @@ extern void par_liblsoda(rx_solve *rx){
   }
 }
 
-double *global_ypp;
-unsigned int global_ypi = 0;
-double *global_yp(unsigned int mx){
-  if (mx >= max_inds_global){
-    global_ypi = mx+1024;
-    global_ypp = Realloc(global_ypp, global_ypi, double);
-  }
-  return global_ypp;
-}
-
 
 double *global_rworkp;
 unsigned int global_rworki = 0;
@@ -543,17 +537,14 @@ void rxOptionsIni(){
   inds_global =Calloc(1024, rx_solving_options_ind);
   global_iworkp=Calloc(1024*4, int);
   global_rworkp=Calloc(1024*4, double);
-  global_ypp=Calloc(1024*4, double);
   global_iworki=4*1024;
   global_rworki=4*1024;
-  global_ypi=4*1024;
   max_inds_global = 1024;
 }
 
 void rxOptionsFree(){
   Free(global_iworkp);
   Free(global_rworkp);
-  Free(global_ypp);
   Free(inds_global);
 }
 
@@ -726,7 +717,6 @@ void par_dop(rx_solve *rx){
   int neq[2];
   neq[0] = op->neq;
   neq[1] = 0;
-  yp = global_yp(neq[0]);
   
   //DE solver config vars
   double rtol=op->RTOL, atol=op->ATOL;
