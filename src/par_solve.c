@@ -331,14 +331,14 @@ rx_solving_options_ind *getRxId(rx_solve *rx, unsigned int id){
   return &(rx->subjects[id]);
 }
 
-int handle_evid(int evid, int neq, 
-		int *BadDose,
-		double *InfusionRate,
-		double *dose,
-		double *yp,
-		int do_transit_abs,
-		double xout,
-		rx_solving_options_ind *ind){
+inline int handle_evid(int evid, int neq, 
+		       int *BadDose,
+		       double *InfusionRate,
+		       double *dose,
+		       double *yp,
+		       int do_transit_abs,
+		       double xout,
+		       rx_solving_options_ind *ind){
   int wh = evid, wh100, cmt, foundBad, j;
   if (wh) {
     wh100 = floor(wh/1e5);
@@ -738,9 +738,12 @@ extern void par_lsoda(rx_solve *rx){
       itask = 1; 
       istate = 1;
       iopt = 1;
-      for (i = 0; i < lrw+1; i++) rwork[i]=0;
-      for (i = 0; i < liw+1; i++) iwork[i]=0;
-      for (i = 0; i < neq[0]; i++) yp[i]=0;
+      memset(rwork,0.0,lrw);
+      /* for (i = 0; i < lrw+1; i++) rwork[i]=0; */
+      memset(iwork,0,liw);
+      /* for (i = 0; i < liw+1; i++) iwork[i]=0; */
+      /* for (i = 0; i < neq[0]; i++) yp[i]=0; */
+      memset(yp,0.0, neq[0]);
       rwork[4] = op->H0; // H0 -- determined by solver
       rwork[6] = op->HMIN; // Hmin -- 0
   
@@ -764,7 +767,8 @@ extern void par_lsoda(rx_solve *rx){
       double xp = x[0];
       //--- inits the system
       update_inis(neq[1], inits); // Update initial conditions
-      for(i=0; i<neq[0]; i++) yp[i] = inits[i];
+      /* for(i=0; i<neq[0]; i++) yp[i] = inits[i]; */
+      memcpy(yp,inits, neq[0]*sizeof(double));
       for(i=0; i<nx; i++) {
 	xout = x[i];
 	if (global_debug){
@@ -780,7 +784,8 @@ extern void par_lsoda(rx_solve *rx){
 		REprintf("IDID=%d, %s\n", istate, err_msg[-istate-1]);
 		*rc = istate;
 		// Bad Solve => NA
-		for (i = 0; i < nx*neq[0]; i++) ret[i] = NA_REAL;
+                memset(ret,NA_REAL, nx*neq[0]);
+		/* for (i = 0; i < nx*neq[0]; i++) ret[i] = NA_REAL; */
 		op->badSolve = 1;
 		i = nx+42; // Get out of here!
 	      }
@@ -792,8 +797,8 @@ extern void par_lsoda(rx_solve *rx){
 	  istate = 1;
 	  xp = xout;
 	}
-	
-	for(j=0; j<neq[0]; j++) ret[neq[0]*i+j] = yp[j];
+	/* for(j=0; j<neq[0]; j++) ret[neq[0]*i+j] = yp[j]; */
+	memcpy(&ret[neq[0]*i],yp, neq[0]*sizeof(double));
 	//REprintf("wh=%d cmt=%d tm=%g rate=%g\n", wh, cmt, xp, InfusionRate[cmt]);
 
 	if (global_debug){
