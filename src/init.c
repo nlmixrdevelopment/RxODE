@@ -67,6 +67,7 @@ static R_NativePrimitiveArgType RxODE_Sum_t[] = {
   REALSXP, INTSXP
 };
 
+extern int RxODE_current_fn_pointer_id();
 extern double RxODE_as_zero(double x);
 extern double RxODE_safe_log(double x);
 extern double RxODE_safe_zero(double x);
@@ -290,6 +291,8 @@ void R_init_RxODE(DllInfo *info){
 
   R_RegisterCCallable("RxODE","_RxODE_rxAssignPtr",       (DL_FUNC) _RxODE_rxAssignPtr);
   R_RegisterCCallable("RxODE", "rxIsCurrentC", (DL_FUNC) rxIsCurrentC);
+  R_RegisterCCallable("RxODE","RxODE_current_fn_pointer_id", (DL_FUNC) &RxODE_current_fn_pointer_id);
+
   
   static const R_CMethodDef cMethods[] = {
     {"RxODE_InfusionRate",      (DL_FUNC) &RxODE_InfusionRate, 1, RxODE_one_int_t},

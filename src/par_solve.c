@@ -72,7 +72,7 @@ int par_progress(int c, int n, int d, int cores, clock_t t0, int stop){
   return d;
 }
 
-rx_solving_options_ind *rxOptionsIniEnsure(int mx){
+inline rx_solving_options_ind *rxOptionsIniEnsure(int mx){
   if (mx >= max_inds_global){
     max_inds_global = mx+1024;
     inds_global = Realloc(inds_global, max_inds_global, rx_solving_options_ind);
@@ -106,30 +106,14 @@ extern void set_solve(rx_solve *rx){
 
 t_get_solve get_solve = NULL;
 
-t_ode_current g_ode_current = NULL;
-void ode_current(){
-  if (g_ode_current != NULL) g_ode_current();
-  g_ode_current = NULL;
-}
-
-const char *g_prefix = NULL;
-int rxIsLoadedC(const char *prefix);
-
-t_ode_current g_ode_stale = NULL;
-void ode_stale(){
-  if (g_ode_stale != NULL && rxIsLoadedC(g_prefix)) g_ode_stale();
-  g_ode_stale = NULL;
-}
-
 int global_jt = 2;
 int global_mf = 22;  
 int global_debug = 0;
 
 void rxUpdateFuns(SEXP trans){
   const char *lib, *s_dydt, *s_calc_jac, *s_calc_lhs, *s_inis, *s_dydt_lsoda_dum, *s_dydt_jdum_lsoda, 
-    *s_ode_solver_solvedata, *s_ode_solver_get_solvedata, *s_dydt_liblsoda, *s_ode_current, *s_ode_stale;
+    *s_ode_solver_solvedata, *s_ode_solver_get_solvedata, *s_dydt_liblsoda;
   lib = CHAR(STRING_ELT(trans, 0));
-  g_prefix = CHAR(STRING_ELT(trans, 2));
   s_dydt = CHAR(STRING_ELT(trans, 3));
   s_calc_jac = CHAR(STRING_ELT(trans, 4));
   s_calc_lhs = CHAR(STRING_ELT(trans, 5));
@@ -139,8 +123,6 @@ void rxUpdateFuns(SEXP trans){
   s_ode_solver_solvedata = CHAR(STRING_ELT(trans, 11));
   s_ode_solver_get_solvedata = CHAR(STRING_ELT(trans, 12));
   s_dydt_liblsoda = CHAR(STRING_ELT(trans, 13));
-  s_ode_current = CHAR(STRING_ELT(trans, 14));
-  s_ode_stale = CHAR(STRING_ELT(trans, 15));
   if (strcmp(CHAR(STRING_ELT(trans, 1)),"fulluser") == 0){
     global_jt = 1;
     global_mf = 21;
@@ -157,8 +139,6 @@ void rxUpdateFuns(SEXP trans){
   g_set_solve = (t_set_solve)R_GetCCallable(lib, s_ode_solver_solvedata);
   get_solve = (t_get_solve)R_GetCCallable(lib, s_ode_solver_get_solvedata);
   dydt_liblsoda = (t_dydt_liblsoda)R_GetCCallable(lib, s_dydt_liblsoda);
-  g_ode_current = (t_ode_current)R_GetCCallable(lib, s_ode_current);
-  g_ode_stale = (t_ode_current)R_GetCCallable(lib, s_ode_stale);
   global_jt = 2;
   global_mf = 22;  
   global_debug = 0;
@@ -174,9 +154,6 @@ void rxClearFuns(){
   g_set_solve		= NULL;
   get_solve		= NULL;
   dydt_liblsoda		= NULL;
-  g_ode_current		= NULL;
-  g_ode_stale		= NULL;
-  g_prefix = NULL;
 }
 
 void getSolvingOptionsIndPtr(double *InfusionRate,
@@ -875,7 +852,7 @@ void par_dop(rx_solve *rx){
   }
 }
 
-void par_solve(rx_solve *rx){
+inline void par_solve(rx_solve *rx){
   rx_solving_options *op = &op_global;
   if (op->neq > 0){
     if (op->stiff == 2){

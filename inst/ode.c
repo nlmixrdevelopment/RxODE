@@ -61,6 +61,8 @@ RxODE_vec _par_ptr = NULL;
 RxODE_update_par_ptr _update_par_ptr=NULL;
 RxODE_vec _InfusionRate= NULL;
 
+RxODE_fn0i _ptrid=NULL;
+
 typedef  SEXP (*_rx_asgn) (SEXP objectSEXP);
 _rx_asgn _RxODE_rxAssignPtr =NULL;
 
@@ -153,13 +155,6 @@ extern rx_solve *__ODE_SOLVER_GET_SOLVEDATA__(){
 }
 
 SEXP __MODEL_VARS__();
-int _do_assign_ptr = 1;
-extern void __ODE_SOLVER_CURRENT__(){
-  _do_assign_ptr = 0;
-}
-extern void __ODE_SOLVER_STALE__(){
-  _do_assign_ptr = 1;
-}
 extern void __ODE_SOLVER__(int *neq,
 			   double *theta,      //order:
 			   double *time,
@@ -176,7 +171,7 @@ extern void __ODE_SOLVER__(int *neq,
 			   double *lhs,
 			   int *rc){
   // Backward compatible ode solver for 0.5* C interface
-  if (_do_assign_ptr) _assign_ptr(__MODEL_VARS__());
+  if (_ptrid() != __TIMEID__ ){ _assign_ptr(__MODEL_VARS__());}
   _old_c(neq, theta, time, evid, ntime, inits, dose, ret, atol, rtol, stiff, transit_abs, nlhs, lhs, rc);
 }
 
@@ -238,6 +233,7 @@ void __R_INIT__ (DllInfo *info){
   _prodPS = (_rxProdType) R_GetCCallable("PreciseSums","PreciseSums_prod_r");
   _prodType=(RxODE_fn0i)R_GetCCallable("PreciseSums", "PreciseSums_prod_get");
   _sumType=(RxODE_fn0i)R_GetCCallable("PreciseSums", "PreciseSums_sum_get");
+  _ptrid=(RxODE_fn0i)R_GetCCallable("RxODE", "RxODE_current_fn_pointer_id");
   // Register the outside functions
   R_RegisterCCallable(__LIB_STR__,__ODE_SOLVER_STR__,       (DL_FUNC) __ODE_SOLVER__);
   R_RegisterCCallable(__LIB_STR__,"__INIS__", (DL_FUNC) __INIS__);
@@ -250,8 +246,6 @@ void __R_INIT__ (DllInfo *info){
   R_RegisterCCallable(__LIB_STR__,"__ODE_SOLVER_SOLVEDATA__", (DL_FUNC) __ODE_SOLVER_SOLVEDATA__);
   R_RegisterCCallable(__LIB_STR__,"__ODE_SOLVER_GET_SOLVEDATA__", (DL_FUNC) __ODE_SOLVER_GET_SOLVEDATA__);
   R_RegisterCCallable(__LIB_STR__,"__DYDT_LIBLSODA__", (DL_FUNC) __DYDT_LIBLSODA__);
-  R_RegisterCCallable(__LIB_STR__,"__ODE_SOLVER_CURRENT__", (DL_FUNC) __ODE_SOLVER_CURRENT__);
-  R_RegisterCCallable(__LIB_STR__,"__ODE_SOLVER_STALE__", (DL_FUNC) __ODE_SOLVER_STALE__);
   
   static const R_CMethodDef cMethods[] = {
     {__ODE_SOLVER_STR__, (DL_FUNC) &__ODE_SOLVER__, 15, __ODE_SOLVER__rx_t},

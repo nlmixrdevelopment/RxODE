@@ -104,12 +104,13 @@ extern void RxODE_assign_fn_pointers_(const char *mv){
 }
 
 void rxAssignPtrC(SEXP obj);
-void ode_current();
-void ode_stale();
+int RxODE_current_fn_pointer_id_ = 0;
+extern int RxODE_current_fn_pointer_id(){
+  return RxODE_current_fn_pointer_id_;
+}
 extern void RxODE_assign_fn_pointers(SEXP mv){
-  ode_stale(); // Make last assigned library stale
+  RxODE_current_fn_pointer_id_ = INTEGER(VECTOR_ELT(mv, 15))[0];
   rxAssignPtrC(mv);
-  ode_current(); // Make assigned library current
 }
 
 SEXP rxModelVarsC(char *ptr);

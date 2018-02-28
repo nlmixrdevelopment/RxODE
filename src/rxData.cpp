@@ -3608,16 +3608,6 @@ bool rxIsLoaded(RObject obj){
   return as<bool>(isLoaded(dydt));
 }
 
-extern "C" int rxIsLoadedC(const char *prefix){
-  if (prefix == NULL) return 0;
-  std::string str(prefix);
-  str = str + "model_vars";
-  getRxModels();
-  if (!_rxModels.exists(str)) return 0;
-  if (rxIsLoaded(_rxModels.get(str))) return 1;
-  return 0;
-}
-
 //' Load RxODE object
 //'
 //' @param obj A RxODE family of objects 
