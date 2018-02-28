@@ -714,6 +714,24 @@ List rxModelVars_(const RObject &obj){
           return ret;
         }
       }
+    } else if (modList.hasAttribute("names")){
+      bool containsPrefix = false;
+      CharacterVector modListNames = modList.names();
+      for (int i = 0; i < modListNames.size(); i++){
+	if (modListNames[i] == "prefix"){
+	  containsPrefix=true;
+	  break;
+	}
+      }
+      if (containsPrefix){
+	std::string mvstr = as<std::string>(modList["prefix"]) + "model_vars";
+        if(_rxModels.exists(mvstr)){
+          RObject obj1 = _rxModels.get(mvstr);
+          if (rxIs(obj1, "rxModelVars")){
+            return as<List>(obj1);
+          }
+        }
+      }
     }
     // fileExists(const std::string& name)
     Environment RxODE("package:RxODE");
