@@ -109,10 +109,16 @@ t_get_solve get_solve = NULL;
 t_ode_current g_ode_current = NULL;
 void ode_current(){
   if (g_ode_current != NULL) g_ode_current();
+  g_ode_current = NULL;
 }
+
+const char *g_prefix = NULL;
+int rxIsLoadedC(const char *prefix);
+
 t_ode_current g_ode_stale = NULL;
 void ode_stale(){
-  if (g_ode_stale != NULL) g_ode_stale();
+  if (g_ode_stale != NULL && rxIsLoadedC(g_prefix)) g_ode_stale();
+  g_ode_stale = NULL;
 }
 
 int global_jt = 2;
@@ -123,6 +129,7 @@ void rxUpdateFuns(SEXP trans){
   const char *lib, *s_dydt, *s_calc_jac, *s_calc_lhs, *s_inis, *s_dydt_lsoda_dum, *s_dydt_jdum_lsoda, 
     *s_ode_solver_solvedata, *s_ode_solver_get_solvedata, *s_dydt_liblsoda, *s_ode_current, *s_ode_stale;
   lib = CHAR(STRING_ELT(trans, 0));
+  g_prefix = CHAR(STRING_ELT(trans, 2));
   s_dydt = CHAR(STRING_ELT(trans, 3));
   s_calc_jac = CHAR(STRING_ELT(trans, 4));
   s_calc_lhs = CHAR(STRING_ELT(trans, 5));
@@ -169,6 +176,7 @@ void rxClearFuns(){
   dydt_liblsoda		= NULL;
   g_ode_current		= NULL;
   g_ode_stale		= NULL;
+  g_prefix = NULL;
 }
 
 void getSolvingOptionsIndPtr(double *InfusionRate,
@@ -509,7 +517,7 @@ extern void par_liblsoda(rx_solve *rx){
 
 double *global_rworkp;
 unsigned int global_rworki = 0;
-double *global_rwork(unsigned int mx){
+inline double *global_rwork(unsigned int mx){
   if (mx >= global_rworki){
     global_rworki = mx+1024;
     global_rworkp = Realloc(global_rworkp, global_rworki, double);
@@ -520,7 +528,7 @@ double *global_rwork(unsigned int mx){
 
 int *global_iworkp;
 unsigned int global_iworki = 0;
-int *global_iwork(unsigned int mx){
+inline int *global_iwork(unsigned int mx){
   if (mx >= global_iworki){
     global_iworki = mx+1024;
     global_iworkp = Realloc(global_iworkp, global_iworki, int);
@@ -530,21 +538,21 @@ int *global_iwork(unsigned int mx){
 
 double *global_InfusionRatep;
 unsigned int global_InfusionRatei = 0;
-double *global_InfusionRate(unsigned int mx){
+inline double *global_InfusionRate(unsigned int mx){
   if (mx >= global_InfusionRatei){
     global_InfusionRatei = mx+1024;
-    global_InfusionRatep = Realloc(global_rworkp, global_rworki, double);
+    global_InfusionRatep = Realloc(global_InfusionRatep, global_InfusionRatei, double);
   }
-  return global_rworkp;
+  return global_InfusionRatep;
 }
 
 
 int *global_BadDosep;
 unsigned int global_BadDosei = 0;
-int *global_BadDose(unsigned int mx){
+inline int *global_BadDose(unsigned int mx){
   if (mx >= global_BadDosei){
     global_BadDosei = mx+1024;
-    global_BadDosep = Realloc(global_rworkp, global_rworki, int);
+    global_BadDosep = Realloc(global_BadDosep, global_BadDosei, int);
   }
   return global_BadDosep;
 }
@@ -1809,16 +1817,14 @@ extern void rxSolveOldC(int *neqa,
                         int *nlhsa,
                         double *lhsp,
                         int *rc){
-  rx_solve *rx = getRxSolve_();
-  rx_solving_options *op = getRxOp(rx);
-  rx_solving_options_ind *ind = rxOptionsIniEnsure(1);
+  rx_solve *rx = &rx_global;
+  rx_solving_options *op = &op_global;
+  rx_solving_options_ind *ind = &inds_global[0];
   int i;
-  double *InfusionRate = global_InfusionRate(*neqa);
-  ind->InfusionRate = InfusionRate;
-  int *BadDose=global_BadDose(*neqa);
-  ind->BadDose = BadDose;
-  memset(InfusionRate, 0.0, *neqa);
-  memset(BadDose, 0, *neqa);
+  ind->InfusionRate = global_InfusionRate(*neqa);
+  memset(ind->InfusionRate, 0.0, *neqa);
+  ind->BadDose = global_BadDose(*neqa);
+  memset(ind->BadDose, 0, *neqa);
   ind->ndoses = -1;
   ind->all_times         = timep;
   ind->n_all_times       = *ntime;
@@ -1864,7 +1870,7 @@ extern void rxSolveOldC(int *neqa,
   /* rx = rxSingle(mv, *stiffa,*transit_abs, *atol, *rtol, 5000,//maxsteps */
   /*               0, 0, 12, 5, 1, 0, par_cov, 0, 0, 0, theta, */
   /*               dosep, retp, lhsp, evidp, rc, cov, *ntime,timep); */
-  rxode_assign_rx(rx);
+  _globalRx=rx;
   par_solve(rx); // Solve without the option of updating residuals.
   if (*nlhsa) {
     for (i=0; i<*ntime; i++){

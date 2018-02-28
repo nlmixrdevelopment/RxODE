@@ -3372,9 +3372,10 @@ void rxRmModelLib_(std::string str){
     }
   }  
 }
-
+extern "C" void rxClearFuns();
 extern "C" void rxRmModelLib(const char* s){
   std::string str(s);
+  rxClearFuns();
   rxRmModelLib_(str);
 }
 
@@ -3599,11 +3600,22 @@ CharacterVector rxC(RObject obj){
 //' @export
 //[[Rcpp::export]]
 bool rxIsLoaded(RObject obj){
+  if (obj.isNULL()) return false;
   Function isLoaded("is.loaded", R_BaseNamespace);
   List mv = rxModelVars(obj);
   CharacterVector trans = mv["trans"];
   std::string dydt = as<std::string>(trans["ode_solver"]);
   return as<bool>(isLoaded(dydt));
+}
+
+extern "C" int rxIsLoadedC(const char *prefix){
+  if (prefix == NULL) return 0;
+  std::string str(prefix);
+  str = str + "model_vars";
+  getRxModels();
+  if (!_rxModels.exists(str)) return 0;
+  if (rxIsLoaded(_rxModels.get(str))) return 1;
+  return 0;
 }
 
 //' Load RxODE object
