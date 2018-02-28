@@ -355,7 +355,7 @@ inline int handle_evid(int evid, int neq,
 	ind->nBadDose++;
       }
     } else {
-      if (wh>1e5) {
+      if (wh>10000) {
 	InfusionRate[cmt] += dose[ind->ixds];
       } else {
 	if (do_transit_abs) {
