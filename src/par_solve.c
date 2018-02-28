@@ -556,7 +556,7 @@ extern void par_lsoda(rx_solve *rx){
   rx_solving_options *op = &op_global;
   int nsub = rx->nsub, nsim = rx->nsim;
   int displayProgress = (op->nDisplayProgress <= nsim*nsub);
-  clock_t t0;
+  clock_t t0 = NULL;
   if (displayProgress)
     t0 = clock();
   int i;
@@ -590,106 +590,87 @@ extern void par_lsoda(rx_solve *rx){
   
   /* iopt = 1; */
   
-  int nx;
   rx_solving_options_ind *ind;
-  double *inits;
-  int *evid;
-  double *x;
-  int *BadDose;
-  double *InfusionRate;
-  double *dose;
-  double *ret;
-  int *rc;
   /* int cores = op->cores; */
-  inits = op->inits;
-
+  
   int curTick = 0;
   int abort = 0;
   for (int solveid = 0; solveid < nsim*nsub; solveid++){
-    if (abort == 0){
-      itask = 1; 
-      istate = 1;
-      iopt = 1;
-      memset(rwork,0.0,lrw+1);
-      /* for (i = 0; i < lrw+1; i++) rwork[i]=0; */
-      memset(iwork,0,liw+1);
-      /* for (i = 0; i < liw+1; i++) iwork[i]=0; */
-      /* for (i = 0; i < neq[0]; i++) yp[i]=0; */
-      rwork[4] = op->H0; // H0 -- determined by solver
-      rwork[6] = op->HMIN; // Hmin -- 0
+    itask = 1; 
+    istate = 1;
+    iopt = 1;
+    memset(rwork,0.0,lrw+1);
+    /* for (i = 0; i < lrw+1; i++) rwork[i]=0; */
+    memset(iwork,0,liw+1);
+    /* for (i = 0; i < liw+1; i++) iwork[i]=0; */
+    /* for (i = 0; i < neq[0]; i++) yp[i]=0; */
+    rwork[4] = op->H0; // H0 -- determined by solver
+    rwork[6] = op->HMIN; // Hmin -- 0
   
-      iwork[4] = 0; // ixpr  -- No extra printing.
-      iwork[5] = op->mxstep; // mxstep 
-      iwork[6] = 0; // MXHNIL 
-      iwork[7] = op->MXORDN; // MXORDN 
-      iwork[8] = op->MXORDS;  // MXORDS
-      neq[1] = solveid;
-      ind = &(rx->subjects[neq[1]]);
-      ind->ixds = 0;
-      nx = ind->n_all_times;
-      evid = ind->evid;
-      BadDose = ind->BadDose;
-      InfusionRate = ind->InfusionRate;
-      dose = ind->dose;
-      ret = ind->solve;
-      x = ind->all_times;
-      rc= ind->rc;
-      rwork[5] = ind->HMAX; // Hmax -- Infinite
-      double xp = x[0];
-      //--- inits the system
-      memcpy(ret,inits, neq[0]*sizeof(double));
-      update_inis(neq[1], ret); // Update initial conditions
-      /* for(i=0; i<neq[0]; i++) yp[i] = inits[i]; */
-      /* memcpy(yp,inits, neq[0]*sizeof(double)); */
-      for(i=0; i<nx; i++) {
-	xout = x[i];
-        yp = &ret[neq[0]*i];
-        memset(yp,0.0, neq[0]);
-        /* if (global_debug){ */
-	/*   REprintf("i=%d xp=%f xout=%f\n", i, xp, xout); */
-	/* } */
-	if(xout-xp > DBL_EPSILON*max(fabs(xout),fabs(xp)))
-	  {
-	    F77_CALL(dlsoda)(dydt_lsoda_dum, neq, yp, &xp, &xout, &itol, &rtol, &atol, &itask,
-			     &istate, &iopt, rwork, &lrw, iwork, &liw, jdum_lsoda, &jt);
+    iwork[4] = 0; // ixpr  -- No extra printing.
+    iwork[5] = op->mxstep; // mxstep 
+    iwork[6] = 0; // MXHNIL 
+    iwork[7] = op->MXORDN; // MXORDN 
+    iwork[8] = op->MXORDS;  // MXORDS
+    neq[1] = solveid;
+    ind = &(rx->subjects[neq[1]]);
+    ind->ixds = 0;
+    rwork[5] = ind->HMAX; // Hmax -- Infinite
+    double xp = ind->all_times[0];
+    //--- inits the system
+    memcpy(ind->solve,op->inits, neq[0]*sizeof(double));
+    update_inis(neq[1], ind->solve); // Update initial conditions
+    /* for(i=0; i<neq[0]; i++) yp[i] = inits[i]; */
+    /* memcpy(yp,inits, neq[0]*sizeof(double)); */
+    for(i=0; i<ind->n_all_times; i++) {
+      xout = ind->all_times[i];
+      yp = &ind->solve[neq[0]*i];
+      memset(yp,0.0, neq[0]);
+      /* if (global_debug){ */
+      /*   REprintf("i=%d xp=%f xout=%f\n", i, xp, xout); */
+      /* } */
+      if(xout-xp > DBL_EPSILON*max(fabs(xout),fabs(xp)))
+	{
+	  F77_CALL(dlsoda)(dydt_lsoda_dum, neq, yp, &xp, &xout, &itol, &rtol, &atol, &itask,
+			   &istate, &iopt, rwork, &lrw, iwork, &liw, jdum_lsoda, &jt);
 
-	    if (istate<0)
-	      {
-		REprintf("IDID=%d, %s\n", istate, err_msg[-istate-1]);
-		*rc = istate;
-		// Bad Solve => NA
-                memset(ret,NA_REAL, nx*neq[0]);
-		/* for (i = 0; i < nx*neq[0]; i++) ret[i] = NA_REAL; */
-		op->badSolve = 1;
-		i = nx+42; // Get out of here!
-	      }
-	    ind->slvr_counter++;
-	    //dadt_counter = 0;
-	  }
-	if (handle_evid(evid[i], neq[0], BadDose, InfusionRate, dose, yp,
-			op->do_transit_abs, xout, ind)){
-	  istate = 1;
-	  xp = xout;
+	  if (istate<0)
+	    {
+	      REprintf("IDID=%d, %s\n", istate, err_msg[-istate-1]);
+	      ind->rc[0] = istate;
+	      // Bad Solve => NA
+	      memset(ind->solve,NA_REAL, (ind->n_all_times)*neq[0]);
+	      /* for (i = 0; i < nx*neq[0]; i++) ret[i] = NA_REAL; */
+	      op->badSolve = 1;
+	      i = ind->n_all_times+42; // Get out of here!
+	    }
+	  ind->slvr_counter++;
+	  //dadt_counter = 0;
 	}
-        if (i+1 != nx) memcpy(ret+neq[0]*(i+1), ret + neq[0]*i, neq[0]*sizeof(double));
-	/* for(j=0; j<neq[0]; j++) ret[neq[0]*i+j] = yp[j]; */
-	/* memcpy(&ret[neq[0]*i],yp, neq[0]*sizeof(double)); */
-	//REprintf("wh=%d cmt=%d tm=%g rate=%g\n", wh, cmt, xp, InfusionRate[cmt]);
-
-	/* if (global_debug){ */
-	/*   REprintf("ISTATE=%d, ", istate); */
-	/*   for(j=0; j<neq[0]; j++) */
-	/*     { */
-	/*       REprintf("%f ", yp[j]); */
-	/*     } */
-	/*   REprintf("\n"); */
-	/* } */
+      if (handle_evid(ind->evid[i], neq[0], ind->BadDose, ind->InfusionRate, ind->dose, yp,
+		      op->do_transit_abs, xout, ind)){
+	istate = 1;
+	xp = xout;
       }
-      if (displayProgress){ // Can only abort if it is long enough to display progress.
-        curTick = par_progress(solveid, nsim*nsub, curTick, 1, t0, 0);
-        if (abort == 0){
-          if (checkInterrupt()) abort =1;
-        }
+      if (i+1 != ind->n_all_times) memcpy(ind->solve+neq[0]*(i+1), yp, neq[0]*sizeof(double));
+      /* for(j=0; j<neq[0]; j++) ret[neq[0]*i+j] = yp[j]; */
+      /* memcpy(&ret[neq[0]*i],yp, neq[0]*sizeof(double)); */
+      //REprintf("wh=%d cmt=%d tm=%g rate=%g\n", wh, cmt, xp, InfusionRate[cmt]);
+
+      /* if (global_debug){ */
+      /*   REprintf("ISTATE=%d, ", istate); */
+      /*   for(j=0; j<neq[0]; j++) */
+      /*     { */
+      /*       REprintf("%f ", yp[j]); */
+      /*     } */
+      /*   REprintf("\n"); */
+      /* } */
+    }
+    if (displayProgress){ // Can only abort if it is long enough to display progress.
+      curTick = par_progress(solveid, nsim*nsub, curTick, 1, t0, 0);
+      if (checkInterrupt()){
+	abort =1;
+	break;
       }
     }
   }
