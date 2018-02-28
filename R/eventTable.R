@@ -184,6 +184,13 @@ eventTable <- function(amount.units = NA, time.units = "hours")
                  do.sampling=FALSE,
                  time.units = NA, ...)
         {
+            if(nbr.doses < 1L){
+                stop("Number of Doses must be at least one.");
+            }
+            tmp <- as.integer(nbr.doses)
+            if(nbr.doses != tmp){
+                stop("Number of doses must be a integer >= 1.")
+            }
             if(!is.na(amount.units)){
                 if(is.na(.amount.units))
                     .amount.units <<- as.vector(amount.units)   # initialize
