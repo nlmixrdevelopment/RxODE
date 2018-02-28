@@ -80,17 +80,9 @@ rx_solving_options_ind *rxOptionsIniEnsure(int mx){
   return inds_global;
 }
 
-t_dydt g_dydt = NULL;
-void dydt(int *neq, double t, double *A, double *DADT){
-  if (g_dydt == NULL) error("RxODE library not setup correctly.");
-  g_dydt(neq,t,A,DADT);
-}
+t_dydt dydt = NULL;
 
-t_calc_jac g_calc_jac = NULL;
-void calc_jac(int *neq, double t, double *A, double *JAC, unsigned int __NROWPD__){
-  if (g_calc_jac == NULL) error("RxODE library not setup correctly.");
-  g_calc_jac(neq, t, A, JAC, __NROWPD__);
-}
+t_calc_jac calc_jac = NULL;
 
 t_calc_lhs g_calc_lhs = NULL;
 extern void calc_lhs(int cSub, double t, double *A, double *lhs){
@@ -98,29 +90,13 @@ extern void calc_lhs(int cSub, double t, double *A, double *lhs){
   g_calc_lhs(cSub, t, A, lhs);
 }
 
-t_update_inis g_update_inis = NULL;
-void update_inis(int cSub, double *__zzStateVar__){
-  if (g_update_inis == NULL) error("RxODE library not setup correctly.");
-  g_update_inis(cSub, __zzStateVar__);
-}
+t_update_inis update_inis = NULL;
 
-t_dydt_lsoda_dum g_dydt_lsoda_dum = NULL;
-void dydt_lsoda_dum(int *neq, double *t, double *A, double *DADT){
-  if (g_dydt_lsoda_dum == NULL) error("RxODE library not setup correctly.");
-  g_dydt_lsoda_dum(neq, t, A, DADT);
-}
+t_dydt_lsoda_dum dydt_lsoda_dum = NULL;
 
-t_dydt_liblsoda g_dydt_liblsoda = NULL;
-int dydt_liblsoda(double t, double *y, double *ydot, void *data){
-  if (g_dydt_liblsoda == NULL) error("RxODE library not setup correctly.");
-  return g_dydt_liblsoda(t, y, ydot, data);
-}
+t_dydt_liblsoda dydt_liblsoda = NULL;
 
-t_jdum_lsoda g_jdum_lsoda = NULL;
-void jdum_lsoda(int *neq, double *t, double *A,int *ml, int *mu, double *JAC, int *nrowpd){
-  if (g_jdum_lsoda == NULL) error("RxODE library not setup correctly.");
-  g_jdum_lsoda(neq, t, A,ml, mu, JAC, nrowpd);
-}
+t_jdum_lsoda jdum_lsoda = NULL;
 
 t_set_solve g_set_solve = NULL;
 extern void set_solve(rx_solve *rx){
@@ -128,11 +104,8 @@ extern void set_solve(rx_solve *rx){
   g_set_solve(rx);
 }
 
-t_get_solve g_get_solve = NULL;
-rx_solve *get_solve(){
-  if (g_get_solve == NULL) error("RxODE library not setup correctly.");
-  return g_get_solve();
-}
+t_get_solve get_solve = NULL;
+
 t_ode_current g_ode_current = NULL;
 void ode_current(){
   if (g_ode_current != NULL) g_ode_current();
@@ -168,15 +141,15 @@ void rxUpdateFuns(SEXP trans){
     global_jt = 2;
     global_mf = 22;
   }
-  g_dydt =(t_dydt) R_GetCCallable(lib, s_dydt);
-  g_calc_jac =(t_calc_jac) R_GetCCallable(lib, s_calc_jac);
   g_calc_lhs =(t_calc_lhs) R_GetCCallable(lib, s_calc_lhs);
-  g_update_inis =(t_update_inis) R_GetCCallable(lib, s_inis);
-  g_dydt_lsoda_dum =(t_dydt_lsoda_dum) R_GetCCallable(lib, s_dydt_lsoda_dum);
-  g_jdum_lsoda =(t_jdum_lsoda) R_GetCCallable(lib, s_dydt_jdum_lsoda);
+  dydt =(t_dydt) R_GetCCallable(lib, s_dydt);
+  calc_jac =(t_calc_jac) R_GetCCallable(lib, s_calc_jac);
+  update_inis =(t_update_inis) R_GetCCallable(lib, s_inis);
+  dydt_lsoda_dum =(t_dydt_lsoda_dum) R_GetCCallable(lib, s_dydt_lsoda_dum);
+  jdum_lsoda =(t_jdum_lsoda) R_GetCCallable(lib, s_dydt_jdum_lsoda);
   g_set_solve = (t_set_solve)R_GetCCallable(lib, s_ode_solver_solvedata);
-  g_get_solve = (t_get_solve)R_GetCCallable(lib, s_ode_solver_get_solvedata);
-  g_dydt_liblsoda = (t_dydt_liblsoda)R_GetCCallable(lib, s_dydt_liblsoda);
+  get_solve = (t_get_solve)R_GetCCallable(lib, s_ode_solver_get_solvedata);
+  dydt_liblsoda = (t_dydt_liblsoda)R_GetCCallable(lib, s_dydt_liblsoda);
   g_ode_current = (t_ode_current)R_GetCCallable(lib, s_ode_current);
   g_ode_stale = (t_ode_current)R_GetCCallable(lib, s_ode_stale);
   global_jt = 2;
@@ -185,15 +158,15 @@ void rxUpdateFuns(SEXP trans){
 }
 
 void rxClearFuns(){
-  g_dydt		= NULL;
-  g_calc_jac		= NULL;
   g_calc_lhs		= NULL;
-  g_update_inis		= NULL;
-  g_dydt_lsoda_dum	= NULL;
-  g_jdum_lsoda		= NULL;
+  dydt			= NULL;
+  calc_jac		= NULL;
+  update_inis		= NULL;
+  dydt_lsoda_dum	= NULL;
+  jdum_lsoda		= NULL;
   g_set_solve		= NULL;
-  g_get_solve		= NULL;
-  g_dydt_liblsoda	= NULL;
+  get_solve		= NULL;
+  dydt_liblsoda		= NULL;
   g_ode_current		= NULL;
   g_ode_stale		= NULL;
 }
