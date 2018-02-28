@@ -517,7 +517,7 @@ extern void par_liblsoda(rx_solve *rx){
 
 double *global_rworkp;
 unsigned int global_rworki = 0;
-inline double *global_rwork(unsigned int mx){
+inline double *global_rwork(unsigned int mx){ 
   if (mx >= global_rworki){
     global_rworki = mx+1024;
     global_rworkp = Realloc(global_rworkp, global_rworki, double);
