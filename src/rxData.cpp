@@ -1579,7 +1579,7 @@ void gFree(){
 //' @keywords internal
 //' @export
 //[[Rcpp::export]]
-inline List rxDataParSetup(const RObject &object,
+List rxDataParSetup(const RObject &object,
 			   const RObject &params = R_NilValue,
 			   const RObject &events = R_NilValue,
 			   const RObject &inits = R_NilValue,

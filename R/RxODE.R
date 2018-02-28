@@ -402,6 +402,9 @@ RxODE <- function(model, modName = basename(wd), wd = ifelse(RxODE.cache.directo
             return(ret);
         })
     }))
+    env$state <- rxModelVars(env$rxDll)$state;
+    env$lhs <- rxModelVars(env$rxDll)$lhs;
+    env$params <- rxModelVars(env$rxDll)$params;
     env$version <- rxVersion()["version"];
     env$solve <- eval(bquote(function(..., matrix=TRUE, object=NULL){
         RxODE::rxSolve(object=get("rxDll", envir=.(env)), ..., matrix=matrix);
@@ -616,6 +619,21 @@ rxChain2.EventTable <- function(obj, solvedObject){
     return(do.call("rxSolve", args, envir = parent.frame(1)));
 }
 
+use.utf <- function() {
+    opt <- getOption("cli.unicode", NULL)
+    if (! is.null(opt)) {
+        isTRUE(opt)
+    } else {
+        l10n_info()$`UTF-8` && !is.latex()
+    }
+}
+
+is.latex <- function() {
+    if (!("knitr" %in% loadedNamespaces())) return(FALSE)
+    get("is_latex_output", asNamespace("knitr"))()
+}
+
+
 ##' Print information about the RxODE object.
 ##'
 ##' This prints the model name and its status for being able to be solved
@@ -628,22 +646,44 @@ print.RxODE <-
     function(x, ...)
 {
     valid <- x$isValid()
+    ready <- FALSE
+    .msg2 <- '';
     if (!valid){
-        .msg <- "invalid object, needs to be re-created"
+        .msg <- crayon::red$bold("invalid");
+        .msg2 <- paste0(' needs to be re-created with ', crayon::blue("RxODE::"), crayon::yellow("RxODE"))
+        .ico <- crayon::red(cli::symbol$cross)
     } else {
         loaded <- x$isLoaded();
         if (loaded){
-            .msg <- "ready to run"
+            .msg <- crayon::green$bold("ready")
+            ready <- TRUE;
+            .ico <- crayon::green(cli::symbol$tick)
         } else{
-            .msg <- "invalid object, needs to be re-loaded"
+            .msg <- crayon::yellow$bold("unloaded");
+            .ico <- crayon::yellow(cli::symbol$warning);
+            .msg2 <- paste0(' needs to be re-loaded with ', crayon::blue("RxODE::"), crayon::yellow("rxLoad"));
         }
+    }
+    if (use.utf()){
+        .ico <- paste0(.ico, " ");
+    } else {
+        .ico <- ""
     }
     dll <- basename(rxDll(x));
     dll <- substr(dll, 1, nchar(dll) - nchar(.Platform$dynlib.ext) - nchar(.Platform$r_arch) - 1)
-    cat(sprintf('RxODE model named "%s" (%s).\n', dll, .msg))
+    message(paste0(.ico,
+                   crayon::blue('RxODE '), as.vector(rxVersion()["version"]),' model named ', crayon::yellow$bold(dll), ' model (', .msg,
+                   .msg2, ').'))
     if (!any(names(list(...)) == "rxSuppress") && valid){
-        cat(sprintf('States: %s\n', paste(rxState(x), collapse=", ")))
-        cat(sprintf('Params: %s\n', paste(rxParams(x), collapse=", ")))
+        cur <- rxState(x);
+        if (length(cur) > 0)
+            message(paste0(crayon::blue$bold("$state"), ": ", paste(cur, collapse=", ")))
+        cur <- rxParams(x);
+        if (length(cur) > 0)
+            message(paste0(crayon::blue$bold("$params"), ": ", paste(cur, collapse=", ")))
+        cur <- rxLhs(x);
+        if (length(cur) > 0)
+            message(paste0(crayon::blue$bold("$lhs"), ": ", paste(cur, collapse=", ")))
     }
     invisible(x)
 }
@@ -652,8 +692,15 @@ print.RxODE <-
 print.rxModelVars <- function(x, ...)
 {
     message("RxODE model variables (see str to see all variables)");
-    message(sprintf('States: %s', paste(x$state, collapse=", ")))
-    message(sprintf('Params: %s', paste(x$params, collapse=", ")))
+    cur <- x$state;
+    if (length(cur) > 0)
+        message(paste0(crayon::blue$bold("$state"), ": ", paste(cur, collapse=", ")))
+    cur <- x$params;
+    if (length(cur) > 0)
+        message(paste0(crayon::blue$bold("$params"), ": ", paste(cur, collapse=", ")))
+    cur <- x$lhs;
+    if (length(cur) > 0)
+        message(paste0(crayon::blue$bold("$lhs"), ": ", paste(cur, collapse=", ")))
     invisible(x)
 }
 
