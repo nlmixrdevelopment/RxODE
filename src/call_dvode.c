@@ -136,6 +136,11 @@ extern rx_solve *rxSingle(SEXP object, const int stiff,const int transit_abs,
 			  int *evid, int *rc, double *cov,
 			  int nTimes, double *all_times);
 
+rx_solving_options_ind *rxOptionsIniEnsure(int mx);
+rx_solving_options *getRxOp(rx_solve *rx);
+rx_solve *getRxSolve_();
+int *global_BadDose(unsigned int mx);
+double *global_InfusionRate(unsigned int mx);
 extern void rxSolveOldC(int *neqa,
 			double *theta,  //order:
 			double *timep,
@@ -151,14 +156,61 @@ extern void rxSolveOldC(int *neqa,
 			int *nlhsa,
 			double *lhsp,
 			int *rc){
-  SEXP mv = RxODE_get_mv();
-  rx_solve *rx;
-  int par_cov[0];
-  double cov[0];
-  int i =0;
-  rx = rxSingle(mv, *stiffa,*transit_abs, *atol, *rtol, 5000,//maxsteps
-                0, 0, 12, 5, 1, 0, par_cov, 0, 0, 0, theta,
-                dosep, retp, lhsp, evidp, rc, cov, *ntime,timep);
+  rx_solve *rx = getRxSolve_();
+  rx_solving_options *op = getRxOp(rx);
+  rx_solving_options_ind *ind = rxOptionsIniEnsure(1);
+  int i;
+  double *InfusionRate = global_InfusionRate(*neqa);
+  ind->InfusionRate = InfusionRate;
+  int *BadDose=global_BadDose(*neqa);
+  ind->BadDose = BadDose;
+  memset(InfusionRate, 0.0, *neqa);
+  memset(BadDose, 0, *neqa);
+  ind->ndoses = -1;
+  ind->all_times         = timep;
+  ind->n_all_times       = *ntime;
+  //RxODE_ode_dosing_ = RxODE_ode_get_dosing();
+  // par_cov
+  op->do_par_cov        = 0;
+  // cov_ptr
+  op->ncov              = 0;
+  op->is_locf           = 0;
+  // Solver Options
+  op->ATOL = *atol;
+  op->RTOL = *rtol;
+  // Assign to default LSODA behvior, or 0
+  op->HMIN           = 0;
+  ind->HMAX           = 0;
+  op->H0             = 0;
+  op->MXORDN         = 0;
+  op->MXORDS         = 0;
+  op->mxstep         = 5000; // Not LSODA default but RxODE default
+  // Counters
+  ind->slvr_counter   = 0;
+  ind->dadt_counter   = 0;
+  ind->jac_counter    = 0;
+
+  op->nlhs           = *nlhsa;
+  op->neq            = *neqa;
+  op->stiff          = *stiffa;
+  
+  
+
+  ind->nBadDose = 0;
+  /* int *BadDose; */
+  op->do_transit_abs = *transit_abs;
+  
+  ind->par_ptr = theta;
+  op->inits   = initsp;
+  ind->dose    = dosep;
+  ind->solve   = retp;
+  ind->lhs     = lhsp;
+  ind->evid    = evidp;
+
+  /* int i =0; */
+  /* rx = rxSingle(mv, *stiffa,*transit_abs, *atol, *rtol, 5000,//maxsteps */
+  /*               0, 0, 12, 5, 1, 0, par_cov, 0, 0, 0, theta, */
+  /*               dosep, retp, lhsp, evidp, rc, cov, *ntime,timep); */
   rxode_assign_rx(rx);
   par_solve(rx); // Solve without the option of updating residuals.
   if (*nlhsa) {

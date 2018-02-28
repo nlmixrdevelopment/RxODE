@@ -510,7 +510,7 @@ extern void par_liblsoda(rx_solve *rx){
 double *global_rworkp;
 unsigned int global_rworki = 0;
 double *global_rwork(unsigned int mx){
-  if (mx >= max_inds_global){
+  if (mx >= global_rworki){
     global_rworki = mx+1024;
     global_rworkp = Realloc(global_rworkp, global_rworki, double);
   }
@@ -521,11 +521,32 @@ double *global_rwork(unsigned int mx){
 int *global_iworkp;
 unsigned int global_iworki = 0;
 int *global_iwork(unsigned int mx){
-  if (mx >= max_inds_global){
+  if (mx >= global_iworki){
     global_iworki = mx+1024;
     global_iworkp = Realloc(global_iworkp, global_iworki, int);
   }
   return global_iworkp;
+}
+
+double *global_InfusionRatep;
+unsigned int global_InfusionRatei = 0;
+double *global_InfusionRate(unsigned int mx){
+  if (mx >= global_InfusionRatei){
+    global_InfusionRatei = mx+1024;
+    global_InfusionRatep = Realloc(global_rworkp, global_rworki, double);
+  }
+  return global_rworkp;
+}
+
+
+int *global_BadDosep;
+unsigned int global_BadDosei = 0;
+int *global_BadDose(unsigned int mx){
+  if (mx >= global_BadDosei){
+    global_BadDosei = mx+1024;
+    global_BadDosep = Realloc(global_rworkp, global_rworki, int);
+  }
+  return global_BadDosep;
 }
 
 void rxOptionsIni(){
@@ -535,12 +556,18 @@ void rxOptionsIni(){
   global_iworki=4*1024;
   global_rworki=4*1024;
   max_inds_global = 1024;
+  global_InfusionRatep=Calloc(1024, double);
+  global_InfusionRatei = 1024;
+  global_BadDosep=Calloc(1024, int);
+  global_BadDosei = 1024;
 }
 
 void rxOptionsFree(){
   Free(global_iworkp);
   Free(global_rworkp);
   Free(inds_global);
+  Free(global_InfusionRatep);
+  Free(global_BadDosep);
 }
 
 extern void par_lsoda(rx_solve *rx){
