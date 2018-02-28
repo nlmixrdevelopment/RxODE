@@ -355,7 +355,7 @@ inline int handle_evid(int evid, int neq,
 	ind->nBadDose++;
       }
     } else {
-      if (wh>10000) {
+      if (wh>1e5) {
 	InfusionRate[cmt] += dose[ind->ixds];
       } else {
 	if (do_transit_abs) {
@@ -490,18 +490,15 @@ extern void par_liblsoda(rx_solve *rx){
       if (displayProgress){
 #pragma omp critical
 	cur++;
-#pragma omp critical
 #ifdef _OPENMP
 	if (omp_get_thread_num() == 0) // only in master thread!
 #endif
-	  curTick = par_progress(cur, nsim*nsub, curTick, cores, t0, 0);
-      }
-#pragma omp flush (abort)
-      if (abort == 0){
-#ifdef _OPENMP
-	if (omp_get_thread_num() == 0) // only in master thread!
-#endif
-	  if (checkInterrupt()) abort =1;
+	  {
+            curTick = par_progress(cur, nsim*nsub, curTick, cores, t0, 0);
+            if (abort == 0){
+              if (checkInterrupt()) abort =1;
+	    }
+	  }
       }
     }
   }
@@ -585,7 +582,7 @@ extern void par_lsoda(rx_solve *rx){
   clock_t t0;
   if (displayProgress)
     t0 = clock();
-  int i, j;
+  int i;
   double xout;
   double *yp;
   int neq[2];
@@ -671,9 +668,9 @@ extern void par_lsoda(rx_solve *rx){
 	xout = x[i];
         yp = &ret[neq[0]*i];
         memset(yp,0.0, neq[0]);
-        if (global_debug){
-	  REprintf("i=%d xp=%f xout=%f\n", i, xp, xout);
-	}
+        /* if (global_debug){ */
+	/*   REprintf("i=%d xp=%f xout=%f\n", i, xp, xout); */
+	/* } */
 	if(xout-xp > DBL_EPSILON*max(fabs(xout),fabs(xp)))
 	  {
 	    F77_CALL(dlsoda)(dydt_lsoda_dum, neq, yp, &xp, &xout, &itol, &rtol, &atol, &itask,
@@ -702,17 +699,17 @@ extern void par_lsoda(rx_solve *rx){
 	/* memcpy(&ret[neq[0]*i],yp, neq[0]*sizeof(double)); */
 	//REprintf("wh=%d cmt=%d tm=%g rate=%g\n", wh, cmt, xp, InfusionRate[cmt]);
 
-	if (global_debug){
-	  REprintf("ISTATE=%d, ", istate);
-	  for(j=0; j<neq[0]; j++)
-	    {
-	      REprintf("%f ", yp[j]);
-	    }
-	  REprintf("\n");
-	}
+	/* if (global_debug){ */
+	/*   REprintf("ISTATE=%d, ", istate); */
+	/*   for(j=0; j<neq[0]; j++) */
+	/*     { */
+	/*       REprintf("%f ", yp[j]); */
+	/*     } */
+	/*   REprintf("\n"); */
+	/* } */
       }
-      if (displayProgress) curTick = par_progress(solveid, nsim*nsub, curTick, 1, t0, 0);
       if (displayProgress){ // Can only abort if it is long enough to display progress.
+        curTick = par_progress(solveid, nsim*nsub, curTick, 1, t0, 0);
         if (abort == 0){
           if (checkInterrupt()) abort =1;
         }
