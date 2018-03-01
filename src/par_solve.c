@@ -272,6 +272,7 @@ void rxSolveData(rx_solving_options_ind *subjects,
   o->nobs = nobs;
   o->add_cov = add_cov;
   o->matrix = matrix;
+  o->op = &op_global;
 }
 
 void F77_NAME(dlsoda)(
@@ -292,7 +293,8 @@ rx_solving_options *getRxOp(rx_solve *rx){
   /*   error("Cannot get global ode solver options."); */
   /* } */
   /* return (rx_solving_options*)(R_ExternalPtrAddr(rx->op)); */
-  return &op_global;
+  /* return &op_global; */
+  return rx->op;
 }
 
 inline rx_solving_options_ind *getRxId(rx_solve *rx, unsigned int id){
@@ -853,88 +855,10 @@ inline void par_solve(rx_solve *rx){
   }
 }
 
-
-/* Authors: Robert Gentleman and Ross Ihaka and The R Core Team */
-/* Taken directly from https://github.com/wch/r-source/blob/922777f2a0363fd6fe07e926971547dd8315fc24/src/library/stats/src/approx.c*/
-/* Changed as follows:
-   - Different Name
-   - Use RxODE structure
-*/
-
-static double rx_approxP(double v, double *x, double *y, int n,
-                         rx_solving_options *Meth, rx_solving_options_ind *id)
-{
-  /* Approximate  y(v),  given (x,y)[i], i = 0,..,n-1 */
-  int i, j, ij;
-
-  if(!n) return R_NaN;
-
-  i = 0;
-  j = n - 1;
-
-  /* handle out-of-domain points */
-  if(v < x[i]) return id->ylow;
-  if(v > x[j]) return id->yhigh;
-
-  /* find the correct interval by bisection */
-  while(i < j - 1) { /* x[i] <= v <= x[j] */
-    ij = (i + j)/2; /* i+1 <= ij <= j-1 */
-    if(v < x[ij]) j = ij; else i = ij;
-    /* still i < j */
-  }
-  /* provably have i == j-1 */
-
-  /* interpolation */
-
-  if(v == x[j]) return y[j];
-  if(v == x[i]) return y[i];
-  /* impossible: if(x[j] == x[i]) return y[i]; */
-
-  if(Meth->kind == 1) /* linear */
-    return y[i] + (y[j] - y[i]) * ((v - x[i])/(x[j] - x[i]));
-  else /* 2 : constant */
-    return (Meth->f1 != 0.0 ? y[i] * Meth->f1 : 0.0)
-      + (Meth->f2 != 0.0 ? y[j] * Meth->f2 : 0.0);
-}/* approx1() */
-
-/* End approx from R */
-
 rx_solve *_globalRx = NULL;
 
 extern void rxode_assign_rx(rx_solve *rx){
   _globalRx=rx;
-}
-
-extern void update_par_ptrP(double t, rx_solve *rx, unsigned int id){
-  rx_solving_options_ind *ind;
-  ind = getRxId(rx, id);
-  rx_solving_options *op = &op_global;
-  if (op->neq > 0){
-    // Update all covariate parameters
-    int k;
-    int *par_cov = op->par_cov;
-    double *par_ptr = ind->par_ptr;
-    double *all_times = ind->all_times;
-    double *cov_ptr = ind->cov_ptr;
-    int ncov = op->ncov;
-    if (op->do_par_cov){
-      for (k = 0; k < ncov; k++){
-        if (par_cov[k]){
-          // Use the same methodology as approxfun.
-          // There is some rumor the C function may go away...
-          ind->ylow = cov_ptr[ind->n_all_times*k];
-          ind->yhigh = cov_ptr[ind->n_all_times*k+ind->n_all_times-1];
-          par_ptr[par_cov[k]-1] = rx_approxP(t, all_times, cov_ptr+ind->n_all_times*k, ind->n_all_times, op, ind);
-        }
-        if (global_debug){
-          REprintf("par_ptr[%d] (cov %d/%d) = %f\n",par_cov[k]-1, k,ncov,cov_ptr[par_cov[k]-1]);
-        }
-      }
-    }
-  }
-}
-extern void update_par_ptr(double t){
-  update_par_ptrP(t, _globalRx, 0);
 }
 
 extern int nEqP (rx_solve *rx){
@@ -1814,6 +1738,7 @@ extern void rxSolveOldC(int *neqa,
   /*               0, 0, 12, 5, 1, 0, par_cov, 0, 0, 0, theta, */
   /*               dosep, retp, lhsp, evidp, rc, cov, *ntime,timep); */
   _globalRx=rx;
+  rx->op = &op_global;
   /* rxode_assign_rx(rx); */
   set_solve(rx);
   par_solve(rx); // Solve without the option of updating residuals.
@@ -1951,7 +1876,7 @@ void RxODE_ode_solve_env(SEXP sexp_rho){
   /*                         length(sexp_time), time); */
   /* rxode_assign_rx(rx); */
   _globalRx=rx;
-  rx_global=*rx;
+  rx->op = &op_global;
   par_solve(rx); // Solve without the option of updating residuals.
   if (op->nlhs) {
     for (i=0; i<ind->n_all_times; i++){

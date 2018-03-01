@@ -77,6 +77,7 @@ typedef struct {
 
 typedef struct {
   rx_solving_options_ind *subjects;
+  rx_solving_options *op;
   int nsub;
   int nsim;
   int nobs;

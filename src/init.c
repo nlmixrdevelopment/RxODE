@@ -122,13 +122,11 @@ extern void rxSolveOldC(SEXP object,
 // Need to change to remove global variables
 extern double RxODE_podo();
 extern double RxODE_tlast();
-extern void update_par_ptr(double t);
 extern void RxODE_ode_free();
 
 // Changed for Parallel
 extern double RxODE_podoP(rx_solve *rx, unsigned int id);
 extern double RxODE_tlastP(rx_solve *rx, unsigned int id);
-extern void update_par_ptrP(double t);
 extern void RxODE_ode_freeP(rx_solve *rx, unsigned int id);
 
 extern void rxRmModelLib(const char* s);
@@ -235,9 +233,6 @@ void R_init_RxODE(DllInfo *info){
   //Functions
   R_RegisterCCallable("RxODE","rxSolveOldC",              (DL_FUNC) rxSolveOldC);
   
-  // Parameters
-  R_RegisterCCallable("RxODE","RxODE_update_par_ptr",     (DL_FUNC) update_par_ptr);
-  R_RegisterCCallable("RxODE","RxODE_update_par_ptrP",     (DL_FUNC) update_par_ptrP);
   // podo or tlast
   R_RegisterCCallable("RxODE","RxODE_podo",               (DL_FUNC) RxODE_podo);
   R_RegisterCCallable("RxODE","RxODE_tlast",              (DL_FUNC) RxODE_tlast);

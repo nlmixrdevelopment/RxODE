@@ -13,7 +13,6 @@
 #define R_pow_di Rx_pow_di
 
 // Types for par pointers.r
-typedef void (*RxODE_update_par_ptr)(double t, rx_solve *rx, unsigned int id);
 typedef double (*RxODE_transit3P)(double t, rx_solve *rx, unsigned int id, double n, double mtt);
 typedef double (*RxODE_fn) (double x);
 typedef double (*RxODE_fn2) (double x, double y);
@@ -51,7 +50,6 @@ RxODE_transit4P _transit4P = NULL;
 RxODE_transit3P _transit3P =NULL;
 RxODE_val podo = NULL;
 RxODE_val tlast = NULL;
-RxODE_update_par_ptr _update_par_ptr=NULL;
 
 RxODE_fn0i _ptrid=NULL;
 
@@ -64,7 +62,7 @@ _rxIsCurrentC_type _rxIsCurrentC=NULL;
 typedef double(*_rxSumType)(double *, int, double *, int, int);
 _rxSumType _sumPS = NULL;
 
-double _sum(double *input, double *pld, int m, int type, int n, ...){
+inline double _sum(double *input, double *pld, int m, int type, int n, ...){
   va_list valist;
   va_start(valist, n);
   for (unsigned int i = 0; i < n; i++){
@@ -77,7 +75,7 @@ double _sum(double *input, double *pld, int m, int type, int n, ...){
 typedef double(*_rxProdType)(double*, double*, int, int);
 _rxProdType _prodPS = NULL;
 
-extern inline double _prod(double *input, double *p, int type, int n, ...){
+inline double _prod(double *input, double *p, int type, int n, ...){
   va_list valist;
   va_start(valist, n);
   for (unsigned int i = 0; i < n; i++){
@@ -87,7 +85,7 @@ extern inline double _prod(double *input, double *p, int type, int n, ...){
   return _prodPS(input, p, n, type);
 }
 
-extern inline double _sign(unsigned int n, ...){
+inline double _sign(unsigned int n, ...){
   va_list valist;
   va_start(valist, n);
   double s = 1;
@@ -101,7 +99,7 @@ extern inline double _sign(unsigned int n, ...){
   return s;
 }
 
-extern inline double _max(unsigned int n, ...){
+inline double _max(unsigned int n, ...){
   va_list valist;
   va_start(valist, n);
   double mx = NA_REAL;
@@ -117,7 +115,7 @@ extern inline double _max(unsigned int n, ...){
   return mx;
 }
 
-extern inline double _min(unsigned int n, ...){
+inline double _min(unsigned int n, ...){
   va_list valist;
   va_start(valist, n);
   double mn = NA_REAL;
@@ -134,6 +132,79 @@ extern inline double _min(unsigned int n, ...){
 }
 
 rx_solve *_solveData = NULL;
+
+/* Authors: Robert Gentleman and Ross Ihaka and The R Core Team */
+/* Taken directly from https://github.com/wch/r-source/blob/922777f2a0363fd6fe07e926971547dd8315fc24/src/library/stats/src/approx.c*/
+/* Changed as follows:
+   - Different Name
+   - Use RxODE structure
+   - Make inline
+*/
+inline double rx_approxP(double v, double *x, double *y, int n,
+                         rx_solving_options *Meth, rx_solving_options_ind *id){
+  /* Approximate  y(v),  given (x,y)[i], i = 0,..,n-1 */
+  int i, j, ij;
+
+  if(!n) return R_NaN;
+
+  i = 0;
+  j = n - 1;
+
+  /* handle out-of-domain points */
+  if(v < x[i]) return id->ylow;
+  if(v > x[j]) return id->yhigh;
+
+  /* find the correct interval by bisection */
+  while(i < j - 1) { /* x[i] <= v <= x[j] */
+    ij = (i + j)/2; /* i+1 <= ij <= j-1 */
+    if(v < x[ij]) j = ij; else i = ij;
+    /* still i < j */
+  }
+  /* provably have i == j-1 */
+
+  /* interpolation */
+
+  if(v == x[j]) return y[j];
+  if(v == x[i]) return y[i];
+  /* impossible: if(x[j] == x[i]) return y[i]; */
+
+  if(Meth->kind == 1) /* linear */
+    return y[i] + (y[j] - y[i]) * ((v - x[i])/(x[j] - x[i]));
+  else /* 2 : constant */
+    return (Meth->f1 != 0.0 ? y[i] * Meth->f1 : 0.0)
+      + (Meth->f2 != 0.0 ? y[j] * Meth->f2 : 0.0);
+}/* approx1() */
+
+/* End approx from R */
+
+
+inline void _update_par_ptr(double t, unsigned int id){
+  rx_solving_options_ind *ind;
+  ind = (&_solveData->subjects[id]);
+  rx_solving_options *op = _solveData->op;
+  if (op->neq > 0){
+    // Update all covariate parameters
+    int k;
+    double *par_ptr = ind->par_ptr;
+    double *all_times = ind->all_times;
+    double *cov_ptr = ind->cov_ptr;
+    int ncov = op->ncov;
+    if (op->do_par_cov){
+      for (k = 0; k < ncov; k++){
+        if (op->par_cov[k]){
+          // Use the same methodology as approxfun.
+          // There is some rumor the C function may go away...
+          ind->ylow = cov_ptr[ind->n_all_times*k];
+          ind->yhigh = cov_ptr[ind->n_all_times*k+ind->n_all_times-1];
+          par_ptr[op->par_cov[k]-1] = rx_approxP(t, all_times, cov_ptr+ind->n_all_times*k, ind->n_all_times, op, ind);
+        }
+        /* if (global_debug){ */
+        /*   REprintf("par_ptr[%d] (cov %d/%d) = %f\\n",op->par_cov[k]-1, k,ncov,cov_ptr[op->par_cov[k]-1]); */
+        /* } */
+      }
+    }
+  }
+}
 
 RxODE_fn0i _prodType = NULL;
 RxODE_fn0i _sumType = NULL;
@@ -212,7 +283,6 @@ void __R_INIT__ (DllInfo *info){
   _transit3P=(RxODE_transit3P) R_GetCCallable("RxODE","RxODE_transit3P");
   podo = (RxODE_val) R_GetCCallable("RxODE","RxODE_podoP");
   tlast = (RxODE_val) R_GetCCallable("RxODE","RxODE_tlastP");
-  _update_par_ptr=(RxODE_update_par_ptr) R_GetCCallable("RxODE","RxODE_update_par_ptrP");
   _RxODE_rxAssignPtr=(_rx_asgn)R_GetCCallable("RxODE","_RxODE_rxAssignPtr");
   _rxIsCurrentC = (_rxIsCurrentC_type)R_GetCCallable("RxODE","rxIsCurrentC");
   _sumPS  = (_rxSumType) R_GetCCallable("PreciseSums","PreciseSums_sum_r");
