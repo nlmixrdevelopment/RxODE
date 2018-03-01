@@ -121,10 +121,6 @@ extern void rxSolveOldC(SEXP object,
 
 // Need to change to remove global variables
 extern double RxODE_par_ptr(int val);
-extern long RxODE_jac_counter_val();
-extern long RxODE_dadt_counter_val();
-extern void RxODE_jac_counter_inc();
-extern void RxODE_dadt_counter_inc();
 extern double RxODE_podo();
 extern double RxODE_tlast();
 extern void update_par_ptr(double t);
@@ -132,10 +128,6 @@ extern void RxODE_ode_free();
 
 // Changed for Parallel
 extern double RxODE_par_ptrP(int val, rx_solve *rx, unsigned int id);
-extern long RxODE_jac_counter_valP(rx_solve *rx, unsigned int id);
-extern long RxODE_dadt_counter_valP(rx_solve *rx, unsigned int id);
-extern void RxODE_jac_counter_incP(rx_solve *rx, unsigned int id);
-extern void RxODE_dadt_counter_incP(rx_solve *rx, unsigned int id);
 extern double RxODE_podoP(rx_solve *rx, unsigned int id);
 extern double RxODE_tlastP(rx_solve *rx, unsigned int id);
 extern void update_par_ptrP(double t);
@@ -250,16 +242,6 @@ void R_init_RxODE(DllInfo *info){
   R_RegisterCCallable("RxODE","RxODE_update_par_ptr",     (DL_FUNC) update_par_ptr);
   R_RegisterCCallable("RxODE","RxODE_par_ptrP",            (DL_FUNC) RxODE_par_ptrP);
   R_RegisterCCallable("RxODE","RxODE_update_par_ptrP",     (DL_FUNC) update_par_ptrP);
-  // Counters
-  R_RegisterCCallable("RxODE","RxODE_dadt_counter_val",   (DL_FUNC) RxODE_dadt_counter_val);
-  R_RegisterCCallable("RxODE","RxODE_jac_counter_val",    (DL_FUNC) RxODE_jac_counter_val);
-  R_RegisterCCallable("RxODE","RxODE_dadt_counter_inc",   (DL_FUNC) RxODE_dadt_counter_inc);
-  R_RegisterCCallable("RxODE","RxODE_jac_counter_inc",    (DL_FUNC) RxODE_jac_counter_inc);
-
-  R_RegisterCCallable("RxODE","RxODE_dadt_counter_valP",   (DL_FUNC) RxODE_dadt_counter_valP);
-  R_RegisterCCallable("RxODE","RxODE_jac_counter_valP",    (DL_FUNC) RxODE_jac_counter_valP);
-  R_RegisterCCallable("RxODE","RxODE_dadt_counter_incP",   (DL_FUNC) RxODE_dadt_counter_incP);
-  R_RegisterCCallable("RxODE","RxODE_jac_counter_incP",    (DL_FUNC) RxODE_jac_counter_incP);
   // podo or tlast
   R_RegisterCCallable("RxODE","RxODE_podo",               (DL_FUNC) RxODE_podo);
   R_RegisterCCallable("RxODE","RxODE_tlast",              (DL_FUNC) RxODE_tlast);
@@ -291,10 +273,6 @@ void R_init_RxODE(DllInfo *info){
   
   static const R_CMethodDef cMethods[] = {
     {"RxODE_par_ptr",           (DL_FUNC) &RxODE_par_ptr, 1, RxODE_one_int_t},
-    {"RxODE_jac_counter_val",   (DL_FUNC) &RxODE_jac_counter_val, 0},
-    {"RxODE_dadt_counter_val",  (DL_FUNC) &RxODE_dadt_counter_val, 0},
-    {"RxODE_jac_counter_inc",   (DL_FUNC) &RxODE_jac_counter_inc, 0},
-    {"RxODE_dadt_counter_inc",  (DL_FUNC) &RxODE_dadt_counter_inc, 0},
     {"RxODE_podo",              (DL_FUNC) &RxODE_podo, 0},
     {"RxODE_tlast",             (DL_FUNC) &RxODE_tlast, 0},
     {"RxODE_factorial",         (DL_FUNC) &RxODE_factorial, 1, RxODE_one_dbl_t},

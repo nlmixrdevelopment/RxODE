@@ -1064,45 +1064,6 @@ extern double RxODE_par_ptr(int val){
   return RxODE_par_ptrP(val, _globalRx, 0);
 }
 
-extern long RxODE_jac_counter_valP(rx_solve *rx, unsigned int id){
-  rx_solving_options_ind *ind;
-  ind = getRxId(rx, id);
-  return ind->jac_counter;
-}
-extern long RxODE_jac_counter_val(){
-  return RxODE_jac_counter_valP(_globalRx, 0); // Not sure this function is needed...
-}
-
-extern long RxODE_dadt_counter_valP(rx_solve *rx, unsigned int id){
-  rx_solving_options_ind *ind;
-  ind = getRxId(rx, id);
-  return ind->dadt_counter;
-}
-
-extern long RxODE_dadt_counter_val(){
-  return RxODE_dadt_counter_val(_globalRx, 0);
-}
-
-extern void RxODE_jac_counter_incP(rx_solve *rx, unsigned int id){
-  rx_solving_options_ind *ind;
-  ind = getRxId(rx, id);
-  ind->jac_counter++;
-}
-
-extern void RxODE_jac_counter_inc(){
-  RxODE_jac_counter_incP(_globalRx, 0);
-}
-
-extern void RxODE_dadt_counter_incP(rx_solve *rx, unsigned int id){
-  rx_solving_options_ind *ind;
-  ind = getRxId(rx, id);
-  ind->dadt_counter++;
-}
-
-extern void RxODE_dadt_counter_inc(){
-  RxODE_dadt_counter_incP(_globalRx, 0);
-}
-
 extern double RxODE_podoP(rx_solve *rx, unsigned int id){
   rx_solving_options_ind *ind;
   ind = getRxId(rx, id);

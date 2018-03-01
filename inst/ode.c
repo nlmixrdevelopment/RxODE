@@ -5,9 +5,9 @@
 #include <Rmath.h>
 #include <R_ext/Rdynload.h>
 #define JAC_Rprintf Rprintf
-#define JAC0_Rprintf if (_jac_counter_val() == 0) Rprintf
+#define JAC0_Rprintf if ( (&_solveData->subjects[_cSub])->jac_counter == 0) Rprintf
 #define ODE_Rprintf Rprintf
-#define ODE0_Rprintf if (_dadt_counter_val() == 0) Rprintf
+#define ODE0_Rprintf if ( (&_solveData->subjects[_cSub])->dadt_counter == 0) Rprintf
 #define LHS_Rprintf Rprintf
 #define R_pow Rx_pow
 #define R_pow_di Rx_pow_di
@@ -21,8 +21,6 @@ typedef double (*RxODE_fn2i) (double x, int i);
 typedef int (*RxODE_fn0i) ();
 typedef double (*RxODE_transit4P)(double t, rx_solve *rx, unsigned int id, double n, double mtt, double bio);
 typedef double (*RxODE_vec) (int val, rx_solve *rx, unsigned int id);
-typedef long (*RxODE_cnt) (rx_solve *rx, unsigned int id);
-typedef void (*RxODE_inc) (rx_solve *rx, unsigned int id);
 typedef double (*RxODE_val) (rx_solve *rx, unsigned int id);
 typedef void (*RxODE_assign_ptr)(SEXP);
 typedef void (*RxODE_ode_solver_old_c)(int *neq,double *theta,double *time,int *evid,int *ntime,double *inits,double *dose,double *ret,double *atol,double *rtol,int *stiff,int *transit_abs,int *nlhs,double *lhs,int *rc);
@@ -53,10 +51,6 @@ RxODE_transit4P _transit4P = NULL;
 RxODE_transit3P _transit3P =NULL;
 RxODE_val podo = NULL;
 RxODE_val tlast = NULL;
-RxODE_inc _dadt_counter_inc=NULL;
-RxODE_inc _jac_counter_inc =NULL;
-RxODE_cnt _dadt_counter_val = NULL;
-RxODE_cnt _jac_counter_val = NULL;
 RxODE_vec _par_ptr = NULL;
 RxODE_update_par_ptr _update_par_ptr=NULL;
 
@@ -219,10 +213,6 @@ void __R_INIT__ (DllInfo *info){
   _transit3P=(RxODE_transit3P) R_GetCCallable("RxODE","RxODE_transit3P");
   podo = (RxODE_val) R_GetCCallable("RxODE","RxODE_podoP");
   tlast = (RxODE_val) R_GetCCallable("RxODE","RxODE_tlastP");
-  _dadt_counter_inc=(RxODE_inc) R_GetCCallable("RxODE","RxODE_dadt_counter_incP");
-  _jac_counter_inc=(RxODE_inc) R_GetCCallable("RxODE","RxODE_jac_counter_incP");
-  _dadt_counter_val= (RxODE_cnt) R_GetCCallable("RxODE","RxODE_dadt_counter_valP");
-  _jac_counter_val=(RxODE_cnt) R_GetCCallable("RxODE","RxODE_jac_counter_valP");
   _update_par_ptr=(RxODE_update_par_ptr) R_GetCCallable("RxODE","RxODE_update_par_ptrP");
   _par_ptr=(RxODE_vec) R_GetCCallable("RxODE","RxODE_par_ptrP");
   _RxODE_rxAssignPtr=(_rx_asgn)R_GetCCallable("RxODE","_RxODE_rxAssignPtr");
