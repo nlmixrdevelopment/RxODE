@@ -9,6 +9,10 @@
 #define ODE_Rprintf Rprintf
 #define ODE0_Rprintf if ( (&_solveData->subjects[_cSub])->dadt_counter == 0) Rprintf
 #define LHS_Rprintf Rprintf
+#define _safe_log(a) (((a) <= 0) ? log(DOUBLE_EPS) : log(a))
+#define safe_zero(a) ((a) == 0 ? DOUBLE_EPS : (a))
+#define _as_zero(a) (fabs(a) < sqrt(DOUBLE_EPS) ? 0.0 : a)
+#define factorial(a) exp(lgamma1p(a))
 #define R_pow(a, b) (((a) == 0 && (b) <= 0) ? R_pow(DOUBLE_EPS, b) : R_pow(a, b))
 #define R_pow_di(a, b) (((a) == 0 && (b) <= 0) ? R_pow_di(DOUBLE_EPS, b) : R_pow_di(a, b))
 #define Rx_pow(a, b) (((a) == 0 && (b) <= 0) ? R_pow(DOUBLE_EPS, b) : R_pow(a, b))
@@ -40,12 +44,8 @@ RxODE_ode_solver_old_c _old_c = NULL;
 
 RxODE_fn2 sign_exp = NULL;
 
-RxODE_fn _as_zero = NULL;
-RxODE_fn _safe_log = NULL;
-RxODE_fn safe_zero = NULL;
 RxODE_fn abs_log = NULL;
 RxODE_fn abs_log1p = NULL;
-RxODE_fn factorial = NULL;
 
 RxODE_fn0i _ptrid=NULL;
 
@@ -279,12 +279,8 @@ void __R_INIT__ (DllInfo *info){
   _rxGetModelLib=(_rxGetModelLibType) R_GetCCallable("RxODE","rxGetModelLib");
   _old_c = (RxODE_ode_solver_old_c) R_GetCCallable("RxODE","rxSolveOldC");
   sign_exp = (RxODE_fn2) R_GetCCallable("RxODE","RxODE_sign_exp");
-  _as_zero = (RxODE_fn) R_GetCCallable("RxODE","RxODE_as_zero");
-  _safe_log=(RxODE_fn) R_GetCCallable("RxODE","RxODE_safe_log");
-  safe_zero=(RxODE_fn) R_GetCCallable("RxODE","RxODE_safe_zero");
   abs_log = (RxODE_fn) R_GetCCallable("RxODE","RxODE_abs_log");
   abs_log1p=(RxODE_fn) R_GetCCallable("RxODE","RxODE_abs_log1p");
-  factorial = (RxODE_fn) R_GetCCallable("RxODE","RxODE_factorial");
   _RxODE_rxAssignPtr=(_rx_asgn)R_GetCCallable("RxODE","_RxODE_rxAssignPtr");
   _rxIsCurrentC = (_rxIsCurrentC_type)R_GetCCallable("RxODE","rxIsCurrentC");
   _sumPS  = (_rxSumType) R_GetCCallable("PreciseSums","PreciseSums_sum_r");

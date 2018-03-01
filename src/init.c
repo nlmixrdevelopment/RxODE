@@ -68,20 +68,15 @@ static R_NativePrimitiveArgType RxODE_Sum_t[] = {
 };
 
 extern int RxODE_current_fn_pointer_id();
-extern double RxODE_as_zero(double x);
-extern double RxODE_safe_log(double x);
-extern double RxODE_safe_zero(double x);
 extern double RxODE_sign_exp(double sgn, double x);
 extern double RxODE_abs_log(double x);
 extern double RxODE_abs_log1p(double x);
-extern double RxODE_factorial(double x);
 extern double RxODE_sum(double *input, int len);
 extern double RxODE_prod(double *input, int len);
 extern void RxODE_ode_solve_env(SEXP sexp_rho);
 extern int nEq ();
 extern unsigned int nObs();
 extern unsigned int nLhs ();
-extern double RxODE_as_zero(double x);
 extern double rxLhs(int i);
 extern void rxCalcLhs(int i);
 extern unsigned int nAllTimes ();
@@ -217,8 +212,6 @@ void R_init_RxODE(DllInfo *info){
 
   R_RegisterCCallable("RxODE","RxODE_ode_solve_env",      (DL_FUNC) RxODE_ode_solve_env);
   R_RegisterCCallable("RxODE","RxODE_ode_free",           (DL_FUNC) RxODE_ode_free);
-  R_RegisterCCallable("RxODE","RxODE_safe_zero",          (DL_FUNC) RxODE_safe_zero);
-  R_RegisterCCallable("RxODE","RxODE_safe_log",           (DL_FUNC) RxODE_safe_log);
   R_RegisterCCallable("RxODE","RxODE_sign_exp",           (DL_FUNC) RxODE_sign_exp);
   R_RegisterCCallable("RxODE","RxODE_abs_log",            (DL_FUNC) RxODE_abs_log);
   
@@ -226,10 +219,6 @@ void R_init_RxODE(DllInfo *info){
   R_RegisterCCallable("RxODE","rxSolveOldC",              (DL_FUNC) rxSolveOldC);
   
   // tranit compartment models
-  R_RegisterCCallable("RxODE","RxODE_factorial",          (DL_FUNC) RxODE_factorial);
-  R_RegisterCCallable("RxODE","RxODE_safe_log",           (DL_FUNC) RxODE_safe_log);
-  R_RegisterCCallable("RxODE","RxODE_safe_zero",          (DL_FUNC) RxODE_safe_zero);
-  R_RegisterCCallable("RxODE","RxODE_as_zero",            (DL_FUNC) RxODE_as_zero);
   R_RegisterCCallable("RxODE","RxODE_sign_exp",           (DL_FUNC) RxODE_sign_exp);
   R_RegisterCCallable("RxODE","RxODE_abs_log",            (DL_FUNC) RxODE_abs_log);
   R_RegisterCCallable("RxODE","RxODE_abs_log1p",          (DL_FUNC) RxODE_abs_log1p);
@@ -246,10 +235,6 @@ void R_init_RxODE(DllInfo *info){
 
   
   static const R_CMethodDef cMethods[] = {
-    {"RxODE_factorial",         (DL_FUNC) &RxODE_factorial, 1, RxODE_one_dbl_t},
-    {"RxODE_safe_log",          (DL_FUNC) &RxODE_safe_log, 1, RxODE_one_dbl_t},
-    {"RxODE_safe_zero",         (DL_FUNC) &RxODE_safe_zero, 1, RxODE_one_dbl_t},
-    {"RxODE_as_zero",           (DL_FUNC) &RxODE_as_zero, 1, RxODE_one_dbl_t},
     {"RxODE_sign_exp",          (DL_FUNC) &RxODE_sign_exp, 2, RxODE_sign_exp_t},
     {"RxODE_abs_log",           (DL_FUNC) &RxODE_abs_log, 1, RxODE_one_dbl_t},
     {"RxODE_abs_log1p",         (DL_FUNC) &RxODE_abs_log1p, 1, RxODE_one_dbl_t},

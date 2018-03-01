@@ -10,32 +10,6 @@
 #include <PreciseSums.h>
 #include "solve.h"
 
-extern double RxODE_as_zero(double x){
-  if (fabs(x) < sqrt(DOUBLE_EPS)){
-    return(0.0);
-  } else {
-    return(x);
-  }
-}
-
-extern double RxODE_safe_log(double x){
-  if (x <= 0){
-    // Warning?
-    return log(DOUBLE_EPS);
-  } else {
-    return log(x);
-  }
-}
-
-extern double RxODE_safe_zero(double x){
-  if (x == 0){
-    // Warning?
-    return DOUBLE_EPS;
-  } else {
-    return(x);
-  }
-}
-
 extern double RxODE_sign_exp(double sgn, double x){
   if (sgn > 0.0){
     return(exp(x));
@@ -66,10 +40,6 @@ extern double RxODE_abs_log1p(double x){
   } else {
     return 0.0;
   }
-}
-
-extern double RxODE_factorial(double x){
-  return exp(lgamma1p(x));
 }
 
 //--------------------------------------------------------------------------

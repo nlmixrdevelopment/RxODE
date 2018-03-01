@@ -9,7 +9,8 @@
 
 extern double RxODE_prodV_r(double *input, double *p, int type, int n, ...);
 extern double RxODE_sumV_r(double *p, long double *pld, int m, int type, int n, ...);
-extern double RxODE_safe_zero(double);
+#define safe_zero(a) ((a) == 0 ? DOUBLE_EPS : (a))
+
 
 extern double rxDosingTimeP(int i, rx_solve *rx, unsigned int id);
 extern unsigned int nDosesP(rx_solve *rx, unsigned int id);
@@ -23,7 +24,6 @@ extern double RxODE_solveLinB(rx_solve *rx, unsigned int id, double t, int linCm
 // Type 3 = Logify
 // Type 2 = product
 #define prod(...) RxODE_prodV_r(ps, pi, 2, __VA_ARGS__)
-#define safe_zero RxODE_safe_zero
 
 
 int locateDoseIndex(const double obs_time, rx_solve *rx, unsigned int id){
