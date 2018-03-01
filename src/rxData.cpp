@@ -3464,7 +3464,7 @@ void rxAssignPtr(SEXP object = R_NilValue){
   CharacterVector trans = mv["trans"];
     RxODE_assign_fn_pointers_((as<std::string>(trans["model_vars"])).c_str());
     rxUpdateFuns(as<SEXP>(trans));
-    rx_solve *ret = getRxSolve_();
+    getRxSolve_();
     // Update rxModels environment.
     getRxModels();
   
