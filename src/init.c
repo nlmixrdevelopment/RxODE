@@ -4,18 +4,6 @@
 #include <R_ext/Rdynload.h>
 #include "solve.h"
 
-static R_NativePrimitiveArgType RxODE_sign_exp_t[] = {
-  REALSXP, REALSXP
-};
-
-static R_NativePrimitiveArgType RxODE_one_int_t[] = {
-  INTSXP
-};
-
-static R_NativePrimitiveArgType RxODE_one_dbl_t[] = {
-  REALSXP
-};
-
 SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SEXP parse_model,SEXP parse_model3);
 SEXP _RxODE_linCmtEnv(SEXP rho);
 SEXP _RxODE_rxInv(SEXP matrix);
@@ -68,9 +56,6 @@ static R_NativePrimitiveArgType RxODE_Sum_t[] = {
 };
 
 extern int RxODE_current_fn_pointer_id();
-extern double RxODE_sign_exp(double sgn, double x);
-extern double RxODE_abs_log(double x);
-extern double RxODE_abs_log1p(double x);
 extern double RxODE_sum(double *input, int len);
 extern double RxODE_prod(double *input, int len);
 extern void RxODE_ode_solve_env(SEXP sexp_rho);
@@ -212,16 +197,11 @@ void R_init_RxODE(DllInfo *info){
 
   R_RegisterCCallable("RxODE","RxODE_ode_solve_env",      (DL_FUNC) RxODE_ode_solve_env);
   R_RegisterCCallable("RxODE","RxODE_ode_free",           (DL_FUNC) RxODE_ode_free);
-  R_RegisterCCallable("RxODE","RxODE_sign_exp",           (DL_FUNC) RxODE_sign_exp);
-  R_RegisterCCallable("RxODE","RxODE_abs_log",            (DL_FUNC) RxODE_abs_log);
   
   //Functions
   R_RegisterCCallable("RxODE","rxSolveOldC",              (DL_FUNC) rxSolveOldC);
   
   // tranit compartment models
-  R_RegisterCCallable("RxODE","RxODE_sign_exp",           (DL_FUNC) RxODE_sign_exp);
-  R_RegisterCCallable("RxODE","RxODE_abs_log",            (DL_FUNC) RxODE_abs_log);
-  R_RegisterCCallable("RxODE","RxODE_abs_log1p",          (DL_FUNC) RxODE_abs_log1p);
   R_RegisterCCallable("RxODE","RxODE_solveLinB",          (DL_FUNC) RxODE_solveLinB);
 
   R_RegisterCCallable("RxODE","RxODE_sum",                (DL_FUNC) RxODE_sum);
@@ -235,9 +215,6 @@ void R_init_RxODE(DllInfo *info){
 
   
   static const R_CMethodDef cMethods[] = {
-    {"RxODE_sign_exp",          (DL_FUNC) &RxODE_sign_exp, 2, RxODE_sign_exp_t},
-    {"RxODE_abs_log",           (DL_FUNC) &RxODE_abs_log, 1, RxODE_one_dbl_t},
-    {"RxODE_abs_log1p",         (DL_FUNC) &RxODE_abs_log1p, 1, RxODE_one_dbl_t},
     {"RxODE_sum",               (DL_FUNC) &RxODE_sum, 2, RxODE_Sum_t},
     {"RxODE_prod",              (DL_FUNC) &RxODE_prod, 2, RxODE_Sum_t},
     {NULL, NULL, 0, NULL}

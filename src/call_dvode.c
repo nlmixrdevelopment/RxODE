@@ -10,38 +10,6 @@
 #include <PreciseSums.h>
 #include "solve.h"
 
-extern double RxODE_sign_exp(double sgn, double x){
-  if (sgn > 0.0){
-    return(exp(x));
-  } else if (sgn < 0.0){
-    return(-exp(x));
-  } else {
-    return(0.0);
-  }
-}
-
-extern double RxODE_abs_log(double x){
-  if  (fabs(x) <= sqrt(DOUBLE_EPS)){
-    return log(sqrt(DOUBLE_EPS));
-  } else if (x > 0.0){
-    return log(x);
-  } else if (x < 0.0){
-    return log(-x);
-  } else {
-    return 0.0;
-  }
-}
-
-extern double RxODE_abs_log1p(double x){
-  if (x + 1.0 > 0.0){
-    return(log1p(x));
-  } else if (x + 1.0 > 0.0){
-    return(log1p(-x));
-  } else {
-    return 0.0;
-  }
-}
-
 //--------------------------------------------------------------------------
 
 // These are now allocated via R structures in Rcpp.
