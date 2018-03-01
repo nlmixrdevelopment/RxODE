@@ -59,7 +59,6 @@ RxODE_cnt _dadt_counter_val = NULL;
 RxODE_cnt _jac_counter_val = NULL;
 RxODE_vec _par_ptr = NULL;
 RxODE_update_par_ptr _update_par_ptr=NULL;
-RxODE_vec _InfusionRate= NULL;
 
 RxODE_fn0i _ptrid=NULL;
 
@@ -226,7 +225,6 @@ void __R_INIT__ (DllInfo *info){
   _jac_counter_val=(RxODE_cnt) R_GetCCallable("RxODE","RxODE_jac_counter_valP");
   _update_par_ptr=(RxODE_update_par_ptr) R_GetCCallable("RxODE","RxODE_update_par_ptrP");
   _par_ptr=(RxODE_vec) R_GetCCallable("RxODE","RxODE_par_ptrP");
-  _InfusionRate=(RxODE_vec) R_GetCCallable("RxODE","RxODE_InfusionRateP");
   _RxODE_rxAssignPtr=(_rx_asgn)R_GetCCallable("RxODE","_RxODE_rxAssignPtr");
   _rxIsCurrentC = (_rxIsCurrentC_type)R_GetCCallable("RxODE","rxIsCurrentC");
   _sumPS  = (_rxSumType) R_GetCCallable("PreciseSums","PreciseSums_sum_r");

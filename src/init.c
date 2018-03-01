@@ -120,7 +120,6 @@ extern void rxSolveOldC(SEXP object,
 			int *rc);
 
 // Need to change to remove global variables
-extern double RxODE_InfusionRate(int val);
 extern double RxODE_par_ptr(int val);
 extern long RxODE_jac_counter_val();
 extern long RxODE_dadt_counter_val();
@@ -132,7 +131,6 @@ extern void update_par_ptr(double t);
 extern void RxODE_ode_free();
 
 // Changed for Parallel
-extern double RxODE_InfusionRateP(int val, rx_solve *rx, unsigned int id);
 extern double RxODE_par_ptrP(int val, rx_solve *rx, unsigned int id);
 extern long RxODE_jac_counter_valP(rx_solve *rx, unsigned int id);
 extern long RxODE_dadt_counter_valP(rx_solve *rx, unsigned int id);
@@ -247,9 +245,6 @@ void R_init_RxODE(DllInfo *info){
   //Functions
   R_RegisterCCallable("RxODE","rxSolveOldC",              (DL_FUNC) rxSolveOldC);
   
-  //Infusion
-  R_RegisterCCallable("RxODE","RxODE_InfusionRate",       (DL_FUNC) RxODE_InfusionRate);
-  R_RegisterCCallable("RxODE","RxODE_InfusionRateP",       (DL_FUNC) RxODE_InfusionRateP);
   // Parameters
   R_RegisterCCallable("RxODE","RxODE_par_ptr",            (DL_FUNC) RxODE_par_ptr);
   R_RegisterCCallable("RxODE","RxODE_update_par_ptr",     (DL_FUNC) update_par_ptr);
@@ -295,7 +290,6 @@ void R_init_RxODE(DllInfo *info){
 
   
   static const R_CMethodDef cMethods[] = {
-    {"RxODE_InfusionRate",      (DL_FUNC) &RxODE_InfusionRate, 1, RxODE_one_int_t},
     {"RxODE_par_ptr",           (DL_FUNC) &RxODE_par_ptr, 1, RxODE_one_int_t},
     {"RxODE_jac_counter_val",   (DL_FUNC) &RxODE_jac_counter_val, 0},
     {"RxODE_dadt_counter_val",  (DL_FUNC) &RxODE_dadt_counter_val, 0},
