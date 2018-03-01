@@ -14,10 +14,6 @@
 
 // Types for par pointers.r
 typedef void (*RxODE_update_par_ptr)(double t, rx_solve *rx, unsigned int id);
-typedef double (*RxODE_transit3P)(double t, rx_solve *rx, unsigned int id, double n, double mtt);
-typedef double (*RxODE_fn) (double x);
-typedef double (*RxODE_fn2) (double x, double y);
-typedef double (*RxODE_fn2i) (double x, int i);
 typedef int (*RxODE_fn0i) ();
 typedef double (*RxODE_transit4P)(double t, rx_solve *rx, unsigned int id, double n, double mtt, double bio);
 typedef double (*RxODE_vec) (int val, rx_solve *rx, unsigned int id);
@@ -37,18 +33,96 @@ _rxGetModelLibType _rxGetModelLib = NULL;
 
 RxODE_ode_solver_old_c _old_c = NULL;
 
-RxODE_fn2i Rx_pow_di = NULL;
-RxODE_fn2 Rx_pow = NULL;
-RxODE_fn2 sign_exp = NULL;
+inline double Rx_pow_di(double x, int i){
+  if (x == 0 && i <= 0){
+    return R_pow_di(DOUBLE_EPS, i);
+  } else {
+    return R_pow_di(x, i);
+  }
+}
 
-RxODE_fn _as_zero = NULL;
-RxODE_fn _safe_log = NULL;
-RxODE_fn safe_zero = NULL;
-RxODE_fn abs_log = NULL;
-RxODE_fn abs_log1p = NULL;
-RxODE_fn factorial = NULL;
-RxODE_transit4P _transit4P = NULL;
-RxODE_transit3P _transit3P =NULL;
+inline double Rx_pow(double x, double y){
+  if (x == 0 && y <= 0){
+    return R_pow(DOUBLE_EPS, y);
+  } else {
+    return R_pow(x, y);
+  }
+}
+
+inline double sign_exp(double sgn, double x){
+  if (sgn > 0.0){
+    return(exp(x));
+  } else if (sgn < 0.0){
+    return(-exp(x));
+  } else {
+    return(0.0);
+  }
+}
+
+inline double safe_zero(double x){
+  if (x == 0){
+    // Warning?
+    return DOUBLE_EPS;
+  } else {
+    return(x);
+  }
+}
+
+inline double _as_zero(double x){
+  if (fabs(x) < sqrt(DOUBLE_EPS)){
+    return(0.0);
+  } else {
+    return(x);
+  }
+}
+
+inline double _safe_log(double x){
+  if (x <= 0){
+    // Warning?
+    return log(DOUBLE_EPS);
+  } else {
+    return log(x);
+  }
+}
+
+inline double abs_log(double x){
+  if  (fabs(x) <= sqrt(DOUBLE_EPS)){
+    return log(sqrt(DOUBLE_EPS));
+  } else if (x > 0.0){
+    return log(x);
+  } else if (x < 0.0){
+    return log(-x);
+  } else {
+    return 0.0;
+  }
+}
+
+inline double abs_log1p(double x){
+  if (x + 1.0 > 0.0){
+    return(log1p(x));
+  } else if (x + 1.0 > 0.0){
+    return(log1p(-x));
+  } else {
+    return 0.0;
+  }
+}
+
+inline double factorial(double x){
+  return exp(lgamma1p(x));
+}
+
+inline double _transit4P(double t, rx_solve *rx, unsigned int id, double n, double mtt, double bio){
+  double ktr = (n+1)/mtt;
+  double lktr = log(n+1)-log(mtt);
+  return exp(log(bio*(&rx->subjects[id])->podo)+lktr+n*(lktr+log(t))-ktr*t-lgamma1p(n));
+}
+
+inline double _transit3P(double t, rx_solve *rx, unsigned int id, double n, double mtt){
+  double ktr = (n+1)/mtt;
+  double lktr = log(n+1)-log(mtt);
+  return exp(log((&rx->subjects[id])->podo)+lktr+n*(lktr+log(t))-ktr*t-lgamma1p(n));
+}
+
 RxODE_update_par_ptr _update_par_ptr=NULL;
 
 RxODE_fn0i _ptrid=NULL;
@@ -197,17 +271,6 @@ void __R_INIT__ (DllInfo *info){
   _rxRmModelLib=(_rxRmModelLibType) R_GetCCallable("RxODE","rxRmModelLib");
   _rxGetModelLib=(_rxGetModelLibType) R_GetCCallable("RxODE","rxGetModelLib");
   _old_c = (RxODE_ode_solver_old_c) R_GetCCallable("RxODE","rxSolveOldC");
-  Rx_pow_di=(RxODE_fn2i) R_GetCCallable("RxODE","RxODE_pow_di");
-  Rx_pow = (RxODE_fn2) R_GetCCallable("RxODE","RxODE_pow");
-  sign_exp = (RxODE_fn2) R_GetCCallable("RxODE","RxODE_sign_exp");
-  _as_zero = (RxODE_fn) R_GetCCallable("RxODE","RxODE_as_zero");
-  _safe_log=(RxODE_fn) R_GetCCallable("RxODE","RxODE_safe_log");
-  safe_zero=(RxODE_fn) R_GetCCallable("RxODE","RxODE_safe_zero");
-  abs_log = (RxODE_fn) R_GetCCallable("RxODE","RxODE_abs_log");
-  abs_log1p=(RxODE_fn) R_GetCCallable("RxODE","RxODE_abs_log1p");
-  factorial = (RxODE_fn) R_GetCCallable("RxODE","RxODE_factorial");
-  _transit4P= (RxODE_transit4P) R_GetCCallable("RxODE","RxODE_transit4P");
-  _transit3P=(RxODE_transit3P) R_GetCCallable("RxODE","RxODE_transit3P");
   _update_par_ptr=(RxODE_update_par_ptr) R_GetCCallable("RxODE","RxODE_update_par_ptrP");
   _RxODE_rxAssignPtr=(_rx_asgn)R_GetCCallable("RxODE","_RxODE_rxAssignPtr");
   _rxIsCurrentC = (_rxIsCurrentC_type)R_GetCCallable("RxODE","rxIsCurrentC");
