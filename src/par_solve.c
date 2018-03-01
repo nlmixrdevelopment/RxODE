@@ -1053,17 +1053,6 @@ extern double RxODE_InfusionRate(int val){
   return RxODE_InfusionRateP(val, _globalRx, 0);
 }
 
-extern double RxODE_par_ptrP(int val, rx_solve *rx, unsigned int id){
-  rx_solving_options_ind *ind;
-  ind = getRxId(rx, id);
-  double ret =ind->par_ptr[val];
-  return ret;
-}
-
-extern double RxODE_par_ptr(int val){
-  return RxODE_par_ptrP(val, _globalRx, 0);
-}
-
 extern double RxODE_podoP(rx_solve *rx, unsigned int id){
   rx_solving_options_ind *ind;
   ind = getRxId(rx, id);

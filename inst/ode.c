@@ -51,7 +51,6 @@ RxODE_transit4P _transit4P = NULL;
 RxODE_transit3P _transit3P =NULL;
 RxODE_val podo = NULL;
 RxODE_val tlast = NULL;
-RxODE_vec _par_ptr = NULL;
 RxODE_update_par_ptr _update_par_ptr=NULL;
 
 RxODE_fn0i _ptrid=NULL;
@@ -214,7 +213,6 @@ void __R_INIT__ (DllInfo *info){
   podo = (RxODE_val) R_GetCCallable("RxODE","RxODE_podoP");
   tlast = (RxODE_val) R_GetCCallable("RxODE","RxODE_tlastP");
   _update_par_ptr=(RxODE_update_par_ptr) R_GetCCallable("RxODE","RxODE_update_par_ptrP");
-  _par_ptr=(RxODE_vec) R_GetCCallable("RxODE","RxODE_par_ptrP");
   _RxODE_rxAssignPtr=(_rx_asgn)R_GetCCallable("RxODE","_RxODE_rxAssignPtr");
   _rxIsCurrentC = (_rxIsCurrentC_type)R_GetCCallable("RxODE","rxIsCurrentC");
   _sumPS  = (_rxSumType) R_GetCCallable("PreciseSums","PreciseSums_sum_r");

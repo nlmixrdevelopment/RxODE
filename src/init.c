@@ -120,14 +120,12 @@ extern void rxSolveOldC(SEXP object,
 			int *rc);
 
 // Need to change to remove global variables
-extern double RxODE_par_ptr(int val);
 extern double RxODE_podo();
 extern double RxODE_tlast();
 extern void update_par_ptr(double t);
 extern void RxODE_ode_free();
 
 // Changed for Parallel
-extern double RxODE_par_ptrP(int val, rx_solve *rx, unsigned int id);
 extern double RxODE_podoP(rx_solve *rx, unsigned int id);
 extern double RxODE_tlastP(rx_solve *rx, unsigned int id);
 extern void update_par_ptrP(double t);
@@ -238,9 +236,7 @@ void R_init_RxODE(DllInfo *info){
   R_RegisterCCallable("RxODE","rxSolveOldC",              (DL_FUNC) rxSolveOldC);
   
   // Parameters
-  R_RegisterCCallable("RxODE","RxODE_par_ptr",            (DL_FUNC) RxODE_par_ptr);
   R_RegisterCCallable("RxODE","RxODE_update_par_ptr",     (DL_FUNC) update_par_ptr);
-  R_RegisterCCallable("RxODE","RxODE_par_ptrP",            (DL_FUNC) RxODE_par_ptrP);
   R_RegisterCCallable("RxODE","RxODE_update_par_ptrP",     (DL_FUNC) update_par_ptrP);
   // podo or tlast
   R_RegisterCCallable("RxODE","RxODE_podo",               (DL_FUNC) RxODE_podo);
@@ -272,7 +268,6 @@ void R_init_RxODE(DllInfo *info){
 
   
   static const R_CMethodDef cMethods[] = {
-    {"RxODE_par_ptr",           (DL_FUNC) &RxODE_par_ptr, 1, RxODE_one_int_t},
     {"RxODE_podo",              (DL_FUNC) &RxODE_podo, 0},
     {"RxODE_tlast",             (DL_FUNC) &RxODE_tlast, 0},
     {"RxODE_factorial",         (DL_FUNC) &RxODE_factorial, 1, RxODE_one_dbl_t},

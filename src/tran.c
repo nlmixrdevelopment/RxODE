@@ -1181,7 +1181,7 @@ void prnt_vars(int scenario, FILE *outpt, int lhs, const char *pre_str, const ch
           fprintf(outpt,"%c",buf[k]);
         }
       }
-      fprintf(outpt, " = _par_ptr(%d, _solveData, _cSub);\n", j++);
+      fprintf(outpt, " = _par_ptr[%d];\n", j++);
       break;
     default: break;
     }
@@ -1602,7 +1602,7 @@ void codegen(FILE *outpt, int show_ode) {
   char *hdft[]=
     {
       "\n// prj-specific differential eqns\nvoid ",
-      "dydt(int *_neq, double t, double *__zzStateVar__, double *__DDtStateVar__)\n{\n  int _cSub = _neq[1];\n  double *_InfusionRate = _solveData->subjects[_cSub].InfusionRate;\n",
+      "dydt(int *_neq, double t, double *__zzStateVar__, double *__DDtStateVar__)\n{\n  int _cSub = _neq[1];\n  double *_InfusionRate = _solveData->subjects[_cSub].InfusionRate;\n  double *_par_ptr = _solveData->subjects[_cSub].par_ptr;\n",
       "  (&_solveData->subjects[_cSub])->dadt_counter++;\n}\n\n"
     };
   if (show_ode == 1){
@@ -1629,11 +1629,11 @@ void codegen(FILE *outpt, int show_ode) {
     fprintf(outpt, "%s", model_prefix);
     fprintf(outpt, "%s", hdft[1]);
   } else if (show_ode == 2){
-    fprintf(outpt, "// Jacobian derived vars\nvoid %scalc_jac(int *_neq, double t, double *__zzStateVar__, double *__PDStateVar__, unsigned int __NROWPD__) {\n  int _cSub=_neq[1];\n  double *_InfusionRate = _solveData->subjects[_cSub].InfusionRate;\n",model_prefix);
+    fprintf(outpt, "// Jacobian derived vars\nvoid %scalc_jac(int *_neq, double t, double *__zzStateVar__, double *__PDStateVar__, unsigned int __NROWPD__) {\n  int _cSub=_neq[1];\n  double *_InfusionRate = _solveData->subjects[_cSub].InfusionRate;\n  double *_par_ptr = _solveData->subjects[_cSub].par_ptr;\n",model_prefix);
   } else if (show_ode == 3){
-    fprintf(outpt, "// Functional based initial conditions.\nvoid %sinis(int _cSub, double *__zzStateVar__){\n  double t=0;\n  double *_InfusionRate = _solveData->subjects[_cSub].InfusionRate;\n",model_prefix);
+    fprintf(outpt, "// Functional based initial conditions.\nvoid %sinis(int _cSub, double *__zzStateVar__){\n  double t=0;\n  double *_InfusionRate = _solveData->subjects[_cSub].InfusionRate;\n  double *_par_ptr = _solveData->subjects[_cSub].par_ptr;\n",model_prefix);
   } else {
-    fprintf(outpt, "// prj-specific derived vars\nvoid %scalc_lhs(int _cSub, double t, double *__zzStateVar__, double *_lhs) {\n  double *_InfusionRate = _solveData->subjects[_cSub].InfusionRate;\n",model_prefix);
+    fprintf(outpt, "// prj-specific derived vars\nvoid %scalc_lhs(int _cSub, double t, double *__zzStateVar__, double *_lhs) {\n  double *_InfusionRate = _solveData->subjects[_cSub].InfusionRate;\n  double *_par_ptr = _solveData->subjects[_cSub].par_ptr;\n",model_prefix);
   }
   if (found_print){
     fprintf(outpt,"\n  int __print_ode__ = 0, __print_vars__ = 0,__print_parm__ = 0,__print_jac__ = 0;\n");
@@ -1899,7 +1899,7 @@ void codegen(FILE *outpt, int show_ode) {
       if (tb.lh[i]>0) continue;
       j++;
       retieve_var(i, buf);
-      fprintf(outpt, "    Rprintf(\"%s=%%f\\t_par_ptr(%d, _solveData, _cSub)=%%f\\n\",%s,_par_ptr(%d, _solveData, _cSub));\n", buf, j-1, buf,j-1);
+      fprintf(outpt, "    Rprintf(\"%s=%%f\\t_par_ptr[%d]=%%f\\n\",%s,_par_ptr[%d]);\n", buf, j-1, buf,j-1);
     }
     fprintf(outpt,"  }\n");
   }
