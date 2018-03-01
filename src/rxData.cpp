@@ -625,15 +625,12 @@ List rxDataSetup(const RObject &ro,
   }
 }
 
-extern "C" void set_solve(rx_solve *rx);
-
 rx_solve *getRxSolve(SEXP ptr){
   if (rxIs(ptr,"RxODE.pointer.multi")){
     List lst = List(ptr);
     rxUpdateFuns(lst["trans"]);
     rx_solve *ret = getRxSolve_();
     // Also assign it.
-    set_solve(ret);
     return ret;
   } else {
     stop("Cannot get the solving data (getRxSolve).");
@@ -1472,7 +1469,7 @@ void grcSetup(int n){
 
 int *gidose = NULL;
 int gidosen = 0;
-void gidoseSetup(int n){
+extern "C" int *gidoseSetup(int n){
   if (gidosen == 0){
     gidose=Calloc(n, int);
     gidosen=n;
@@ -1480,6 +1477,7 @@ void gidoseSetup(int n){
     gidose = Realloc(gidose, n, int);
     gidosen=n;
   }
+  return gidose;
 }
 
 int *gpar_cov = NULL;
@@ -1509,7 +1507,7 @@ void gsvarSetup(int n){
 
 int *gsiV = NULL;
 int gsiVn = 0;
-void gsiVSetup(int n){
+extern "C" int *gsiVSetup(int n){
   if (gsiVn == 0){
     gsiV=Calloc(n, int);
     gsiVn=n;
@@ -1517,6 +1515,7 @@ void gsiVSetup(int n){
     gsiV = Realloc(gsiV, n, int);
     gsiVn=n;
   }
+  return gsiV;
 }
 
 
@@ -2117,8 +2116,6 @@ extern "C" rx_solve *rxSingle(SEXP object, const int stiff,const int transit_abs
   SEXP trans = mv["trans"];
   rxUpdateFuns(trans);
   rx_solve *ret = getRxSolve_();
-  // Also assign it.
-  set_solve(ret);
   return ret;
 }
 
@@ -3468,8 +3465,6 @@ void rxAssignPtr(SEXP object = R_NilValue){
     RxODE_assign_fn_pointers_((as<std::string>(trans["model_vars"])).c_str());
     rxUpdateFuns(as<SEXP>(trans));
     rx_solve *ret = getRxSolve_();
-    // Also assign it.
-    set_solve(ret); 
     // Update rxModels environment.
     getRxModels();
   
