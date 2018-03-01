@@ -323,15 +323,15 @@ void wprint_node(int depth, char *name, char *value, void *client_data) {
     sb.o += 1;
     sbt.o += 1;
   } else if (!strcmp("podo",value)){
-    sprintf(SBPTR, "podo(_solveData, _cSub)");
+    sprintf(SBPTR, "_solveData->subjects[_cSub].podo");
     sprintf(SBTPTR, "podo");
-    sb.o  += 23;
+    sb.o  += 32;
     sbt.o += 4;
     rx_podo = 1;
   } else if (!strcmp("tlast",value)){
-    sprintf(SBPTR, "tlast(_solveData, _cSub)");
+    sprintf(SBPTR, "_solveData->subjects[_cSub].tlast");
     sprintf(SBTPTR, "tlast");
-    sb.o  += 24;
+    sb.o  += 33;
     sbt.o += 5;
   } else if (!strcmp("rx__PTR__",value)){
     sprintf(SBPTR, "_solveData, _cSub");
@@ -856,15 +856,15 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         Free(v);
       }
       if (!strcmp("transit2", name) && i == 0){
-        sprintf(SBPTR, "_transit3P(t, _solveData, _cSub, ");
-        sb.o += 33;
+        sprintf(SBPTR, "_transit3P(t, _cSub, ");
+        sb.o += 21;
         sprintf(SBTPTR,"transit(");
         sbt.o += 8;
         rx_podo = 1;
       }
       if (!strcmp("transit3", name) && i == 0){
-        sprintf(SBPTR, "_transit4P(t, _solveData, _cSub, ");
-        sb.o += 33;
+        sprintf(SBPTR, "_transit4P(t, _cSub, ");
+        sb.o += 21;
         sprintf(SBTPTR,"transit(");
         sbt.o += 8;
         rx_podo = 1;

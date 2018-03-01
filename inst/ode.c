@@ -13,12 +13,10 @@
 #define R_pow_di Rx_pow_di
 
 // Types for par pointers.r
-typedef double (*RxODE_transit3P)(double t, rx_solve *rx, unsigned int id, double n, double mtt);
 typedef double (*RxODE_fn) (double x);
 typedef double (*RxODE_fn2) (double x, double y);
 typedef double (*RxODE_fn2i) (double x, int i);
 typedef int (*RxODE_fn0i) ();
-typedef double (*RxODE_transit4P)(double t, rx_solve *rx, unsigned int id, double n, double mtt, double bio);
 typedef double (*RxODE_vec) (int val, rx_solve *rx, unsigned int id);
 typedef double (*RxODE_val) (rx_solve *rx, unsigned int id);
 typedef void (*RxODE_assign_ptr)(SEXP);
@@ -46,10 +44,6 @@ RxODE_fn safe_zero = NULL;
 RxODE_fn abs_log = NULL;
 RxODE_fn abs_log1p = NULL;
 RxODE_fn factorial = NULL;
-RxODE_transit4P _transit4P = NULL;
-RxODE_transit3P _transit3P =NULL;
-RxODE_val podo = NULL;
-RxODE_val tlast = NULL;
 
 RxODE_fn0i _ptrid=NULL;
 
@@ -206,6 +200,18 @@ inline void _update_par_ptr(double t, unsigned int id){
   }
 }
 
+inline double _transit4P(double t, unsigned int id, double n, double mtt, double bio){
+  double ktr = (n+1)/mtt;
+  double lktr = log(n+1)-log(mtt);
+  return exp(log(bio*(_solveData->subjects[id].podo))+lktr+n*(lktr+log(t))-ktr*t-lgamma1p(n));
+}
+
+inline double _transit3P(double t, unsigned int id, double n, double mtt){
+  double ktr = (n+1)/mtt;
+  double lktr = log(n+1)-log(mtt);
+  return exp(log(_solveData->subjects[id].podo)+lktr+n*(lktr+log(t))-ktr*t-lgamma1p(n));
+}
+
 RxODE_fn0i _prodType = NULL;
 RxODE_fn0i _sumType = NULL;
 
@@ -279,10 +285,6 @@ void __R_INIT__ (DllInfo *info){
   abs_log = (RxODE_fn) R_GetCCallable("RxODE","RxODE_abs_log");
   abs_log1p=(RxODE_fn) R_GetCCallable("RxODE","RxODE_abs_log1p");
   factorial = (RxODE_fn) R_GetCCallable("RxODE","RxODE_factorial");
-  _transit4P= (RxODE_transit4P) R_GetCCallable("RxODE","RxODE_transit4P");
-  _transit3P=(RxODE_transit3P) R_GetCCallable("RxODE","RxODE_transit3P");
-  podo = (RxODE_val) R_GetCCallable("RxODE","RxODE_podoP");
-  tlast = (RxODE_val) R_GetCCallable("RxODE","RxODE_tlastP");
   _RxODE_rxAssignPtr=(_rx_asgn)R_GetCCallable("RxODE","_RxODE_rxAssignPtr");
   _rxIsCurrentC = (_rxIsCurrentC_type)R_GetCCallable("RxODE","rxIsCurrentC");
   _sumPS  = (_rxSumType) R_GetCCallable("PreciseSums","PreciseSums_sum_r");

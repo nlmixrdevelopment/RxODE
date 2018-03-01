@@ -977,26 +977,6 @@ extern double RxODE_InfusionRate(int val){
   return RxODE_InfusionRateP(val, _globalRx, 0);
 }
 
-extern double RxODE_podoP(rx_solve *rx, unsigned int id){
-  rx_solving_options_ind *ind;
-  ind = getRxId(rx, id);
-  return ind->podo;
-}
-
-extern double RxODE_podo(){
-  return RxODE_podo(_globalRx, 0);
-}
-
-extern double RxODE_tlastP(rx_solve *rx, unsigned int id){
-  rx_solving_options_ind *ind;
-  ind = getRxId(rx, id);
-  return ind->tlast;
-}
-
-extern double RxODE_tlast(){
-  return RxODE_tlastP(_globalRx, 0);
-}
-
 extern void setExtraCmtP(int xtra, rx_solve *rx){
   rx_solving_options *op = &op_global;
   if (xtra > op->extraCmt){
@@ -1006,24 +986,6 @@ extern void setExtraCmtP(int xtra, rx_solve *rx){
 
 void setExtraCmt(int xtra){
   setExtraCmtP(xtra, _globalRx);
-}
-
-extern double RxODE_transit4P(double t, rx_solve *rx, unsigned int id, double n, double mtt, double bio){
-  double ktr = (n+1)/mtt;
-  double lktr = log(n+1)-log(mtt);
-  return exp(log(bio*RxODE_podoP(rx, id))+lktr+n*(lktr+log(t))-ktr*t-lgamma1p(n));
-}
-
-extern double RxODE_transit4(double t, double n, double mtt, double bio){
-  return RxODE_transit4P(t, _globalRx, 0, n, mtt, bio);
-}
-
-extern double RxODE_transit3P(double t, rx_solve *rx, unsigned int id, double n, double mtt){
-  return RxODE_transit4P(t, rx, id, n,mtt, 1.0);
-}
-
-extern double RxODE_transit3(double t, double n, double mtt, rx_solve *rx, unsigned int id){
-  return RxODE_transit4P(t, _globalRx, 0, n,mtt, 1.0);
 }
 
 double rxDosingTimeP(int i, rx_solve *rx, unsigned int id){

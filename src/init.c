@@ -97,8 +97,6 @@ extern double rxLhsP(int i, rx_solve *rx, unsigned int id);
 extern void rxCalcLhsP(int i, rx_solve *rx, unsigned int id);
 extern unsigned int nAllTimesP (rx_solve *rx, unsigned int id);
 extern int rxEvidP(int i, rx_solve *rx, unsigned int id);
-extern double RxODE_transit4P(double t, rx_solve *rx, unsigned int id, double n, double mtt, double bio);
-extern double RxODE_transit3P(double t, rx_solve *rx, unsigned int id, double n, double mtt);
 
 extern void RxODE_assign_fn_pointers(SEXP mv);
 
@@ -120,13 +118,9 @@ extern void rxSolveOldC(SEXP object,
 			int *rc);
 
 // Need to change to remove global variables
-extern double RxODE_podo();
-extern double RxODE_tlast();
 extern void RxODE_ode_free();
 
 // Changed for Parallel
-extern double RxODE_podoP(rx_solve *rx, unsigned int id);
-extern double RxODE_tlastP(rx_solve *rx, unsigned int id);
 extern void RxODE_ode_freeP(rx_solve *rx, unsigned int id);
 
 extern void rxRmModelLib(const char* s);
@@ -233,14 +227,7 @@ void R_init_RxODE(DllInfo *info){
   //Functions
   R_RegisterCCallable("RxODE","rxSolveOldC",              (DL_FUNC) rxSolveOldC);
   
-  // podo or tlast
-  R_RegisterCCallable("RxODE","RxODE_podo",               (DL_FUNC) RxODE_podo);
-  R_RegisterCCallable("RxODE","RxODE_tlast",              (DL_FUNC) RxODE_tlast);
-  R_RegisterCCallable("RxODE","RxODE_podoP",              (DL_FUNC) RxODE_podoP);
-  R_RegisterCCallable("RxODE","RxODE_tlastP",             (DL_FUNC) RxODE_tlastP);
   // tranit compartment models
-  R_RegisterCCallable("RxODE","RxODE_transit4P",          (DL_FUNC) RxODE_transit4P);
-  R_RegisterCCallable("RxODE","RxODE_transit3P",          (DL_FUNC) RxODE_transit3P);
   R_RegisterCCallable("RxODE","RxODE_factorial",          (DL_FUNC) RxODE_factorial);
   R_RegisterCCallable("RxODE","RxODE_safe_log",           (DL_FUNC) RxODE_safe_log);
   R_RegisterCCallable("RxODE","RxODE_safe_zero",          (DL_FUNC) RxODE_safe_zero);
@@ -263,8 +250,6 @@ void R_init_RxODE(DllInfo *info){
 
   
   static const R_CMethodDef cMethods[] = {
-    {"RxODE_podo",              (DL_FUNC) &RxODE_podo, 0},
-    {"RxODE_tlast",             (DL_FUNC) &RxODE_tlast, 0},
     {"RxODE_factorial",         (DL_FUNC) &RxODE_factorial, 1, RxODE_one_dbl_t},
     {"RxODE_safe_log",          (DL_FUNC) &RxODE_safe_log, 1, RxODE_one_dbl_t},
     {"RxODE_safe_zero",         (DL_FUNC) &RxODE_safe_zero, 1, RxODE_one_dbl_t},
