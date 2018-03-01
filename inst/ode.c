@@ -56,7 +56,7 @@ _rxIsCurrentC_type _rxIsCurrentC=NULL;
 typedef double(*_rxSumType)(double *, int, double *, int, int);
 _rxSumType _sumPS = NULL;
 
-inline double _sum(double *input, double *pld, int m, int type, int n, ...){
+double _sum(double *input, double *pld, int m, int type, int n, ...){
   va_list valist;
   va_start(valist, n);
   for (unsigned int i = 0; i < n; i++){
@@ -69,7 +69,7 @@ inline double _sum(double *input, double *pld, int m, int type, int n, ...){
 typedef double(*_rxProdType)(double*, double*, int, int);
 _rxProdType _prodPS = NULL;
 
-inline double _prod(double *input, double *p, int type, int n, ...){
+double _prod(double *input, double *p, int type, int n, ...){
   va_list valist;
   va_start(valist, n);
   for (unsigned int i = 0; i < n; i++){
@@ -79,7 +79,7 @@ inline double _prod(double *input, double *p, int type, int n, ...){
   return _prodPS(input, p, n, type);
 }
 
-inline double _sign(unsigned int n, ...){
+double _sign(unsigned int n, ...){
   va_list valist;
   va_start(valist, n);
   double s = 1;
@@ -93,7 +93,7 @@ inline double _sign(unsigned int n, ...){
   return s;
 }
 
-inline double _max(unsigned int n, ...){
+double _max(unsigned int n, ...){
   va_list valist;
   va_start(valist, n);
   double mx = NA_REAL;
@@ -109,7 +109,7 @@ inline double _max(unsigned int n, ...){
   return mx;
 }
 
-inline double _min(unsigned int n, ...){
+double _min(unsigned int n, ...){
   va_list valist;
   va_start(valist, n);
   double mn = NA_REAL;
