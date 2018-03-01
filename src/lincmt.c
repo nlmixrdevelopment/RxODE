@@ -9,14 +9,7 @@
 
 extern double RxODE_prodV_r(double *input, double *p, int type, int n, ...);
 extern double RxODE_sumV_r(double *p, long double *pld, int m, int type, int n, ...);
-inline double RxODE_safe_zero(double x){
-  if (x == 0){
-    // Warning?
-    return DOUBLE_EPS;
-  } else {
-    return(x);
-  }
-}
+extern double RxODE_safe_zero(double);
 
 extern double rxDosingTimeP(int i, rx_solve *rx, unsigned int id);
 extern unsigned int nDosesP(rx_solve *rx, unsigned int id);

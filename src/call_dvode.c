@@ -10,6 +10,85 @@
 #include <PreciseSums.h>
 #include "solve.h"
 
+extern void calc_lhs(int cSub, double t, double *A, double *lhs);
+
+extern double RxODE_as_zero(double x){
+  if (fabs(x) < sqrt(DOUBLE_EPS)){
+    return(0.0);
+  } else {
+    return(x);
+  }
+}
+
+extern double RxODE_safe_log(double x){
+  if (x <= 0){
+    // Warning?
+    return log(DOUBLE_EPS);
+  } else {
+    return log(x);
+  }
+}
+
+extern double RxODE_safe_zero(double x){
+  if (x == 0){
+    // Warning?
+    return DOUBLE_EPS;
+  } else {
+    return(x);
+  }
+}
+
+extern double RxODE_pow(double x, double y){
+  if (x == 0 && y <= 0){
+    return R_pow(DOUBLE_EPS, y);
+  } else {
+    return R_pow(x, y);
+  }
+}
+extern double RxODE_pow_di(double x, int i){
+  if (x == 0 && i <= 0){
+    return R_pow_di(DOUBLE_EPS, i);
+  } else {
+    return R_pow_di(x, i);
+  }
+}
+
+extern double RxODE_sign_exp(double sgn, double x){
+  if (sgn > 0.0){
+    return(exp(x));
+  } else if (sgn < 0.0){
+    return(-exp(x));
+  } else {
+    return(0.0);
+  }
+}
+
+extern double RxODE_abs_log(double x){
+  if  (fabs(x) <= sqrt(DOUBLE_EPS)){
+    return log(sqrt(DOUBLE_EPS));
+  } else if (x > 0.0){
+    return log(x);
+  } else if (x < 0.0){
+    return log(-x);
+  } else {
+    return 0.0;
+  }
+}
+
+extern double RxODE_abs_log1p(double x){
+  if (x + 1.0 > 0.0){
+    return(log1p(x));
+  } else if (x + 1.0 > 0.0){
+    return(log1p(-x));
+  } else {
+    return 0.0;
+  }
+}
+
+extern double RxODE_factorial(double x){
+  return exp(lgamma1p(x));
+}
+
 //--------------------------------------------------------------------------
 
 // These are now allocated via R structures in Rcpp.
