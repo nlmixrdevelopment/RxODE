@@ -71,8 +71,6 @@ extern int RxODE_current_fn_pointer_id();
 extern double RxODE_as_zero(double x);
 extern double RxODE_safe_log(double x);
 extern double RxODE_safe_zero(double x);
-extern double RxODE_pow(double x, double y);
-extern double RxODE_pow_di(double x, int i);
 extern double RxODE_sign_exp(double sgn, double x);
 extern double RxODE_abs_log(double x);
 extern double RxODE_abs_log1p(double x);
@@ -240,8 +238,6 @@ void R_init_RxODE(DllInfo *info){
   R_RegisterCCallable("RxODE","RxODE_sum",                (DL_FUNC) RxODE_sum);
   R_RegisterCCallable("RxODE","RxODE_prod",               (DL_FUNC) RxODE_prod);
 
-  R_RegisterCCallable("RxODE","RxODE_pow",                (DL_FUNC) RxODE_pow);
-  R_RegisterCCallable("RxODE","RxODE_pow_di",             (DL_FUNC) RxODE_pow_di);
   R_RegisterCCallable("RxODE","RxODE_assign_fn_pointers", (DL_FUNC) &RxODE_assign_fn_pointers);
 
   R_RegisterCCallable("RxODE","_RxODE_rxAssignPtr",       (DL_FUNC) _RxODE_rxAssignPtr);

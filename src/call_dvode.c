@@ -10,8 +10,6 @@
 #include <PreciseSums.h>
 #include "solve.h"
 
-extern void calc_lhs(int cSub, double t, double *A, double *lhs);
-
 extern double RxODE_as_zero(double x){
   if (fabs(x) < sqrt(DOUBLE_EPS)){
     return(0.0);
@@ -35,21 +33,6 @@ extern double RxODE_safe_zero(double x){
     return DOUBLE_EPS;
   } else {
     return(x);
-  }
-}
-
-extern double RxODE_pow(double x, double y){
-  if (x == 0 && y <= 0){
-    return R_pow(DOUBLE_EPS, y);
-  } else {
-    return R_pow(x, y);
-  }
-}
-extern double RxODE_pow_di(double x, int i){
-  if (x == 0 && i <= 0){
-    return R_pow_di(DOUBLE_EPS, i);
-  } else {
-    return R_pow_di(x, i);
   }
 }
 

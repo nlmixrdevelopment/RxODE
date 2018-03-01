@@ -9,8 +9,11 @@
 #define ODE_Rprintf Rprintf
 #define ODE0_Rprintf if ( (&_solveData->subjects[_cSub])->dadt_counter == 0) Rprintf
 #define LHS_Rprintf Rprintf
-#define R_pow Rx_pow
-#define R_pow_di Rx_pow_di
+#define R_pow(a, b) (((a) == 0 && (b) <= 0) ? R_pow(DOUBLE_EPS, b) : R_pow(a, b))
+#define R_pow_di(a, b) (((a) == 0 && (b) <= 0) ? R_pow_di(DOUBLE_EPS, b) : R_pow_di(a, b))
+#define Rx_pow(a, b) (((a) == 0 && (b) <= 0) ? R_pow(DOUBLE_EPS, b) : R_pow(a, b))
+#define Rx_pow_di(a, b) (((a) == 0 && (b) <= 0) ? R_pow_di(DOUBLE_EPS, b) : R_pow_di(a, b))
+
 
 // Types for par pointers.r
 typedef double (*RxODE_fn) (double x);
@@ -34,8 +37,7 @@ _rxGetModelLibType _rxGetModelLib = NULL;
 
 RxODE_ode_solver_old_c _old_c = NULL;
 
-RxODE_fn2i Rx_pow_di = NULL;
-RxODE_fn2 Rx_pow = NULL;
+
 RxODE_fn2 sign_exp = NULL;
 
 RxODE_fn _as_zero = NULL;
@@ -276,8 +278,6 @@ void __R_INIT__ (DllInfo *info){
   _rxRmModelLib=(_rxRmModelLibType) R_GetCCallable("RxODE","rxRmModelLib");
   _rxGetModelLib=(_rxGetModelLibType) R_GetCCallable("RxODE","rxGetModelLib");
   _old_c = (RxODE_ode_solver_old_c) R_GetCCallable("RxODE","rxSolveOldC");
-  Rx_pow_di=(RxODE_fn2i) R_GetCCallable("RxODE","RxODE_pow_di");
-  Rx_pow = (RxODE_fn2) R_GetCCallable("RxODE","RxODE_pow");
   sign_exp = (RxODE_fn2) R_GetCCallable("RxODE","RxODE_sign_exp");
   _as_zero = (RxODE_fn) R_GetCCallable("RxODE","RxODE_as_zero");
   _safe_log=(RxODE_fn) R_GetCCallable("RxODE","RxODE_safe_log");

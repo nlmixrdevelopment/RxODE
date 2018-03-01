@@ -158,7 +158,7 @@ ode.h <- function(){
     unlink(devtools::package_file("src/rxData.o"))
     odec <- readLines(devtools::package_file("inst/ode.c"));
     solvec <- readLines(devtools::package_file("src/solve.h"));
-    w <- which(regexpr("#define R_pow_di Rx_pow_di", odec, fixed=TRUE) != -1)[1];
+    w <- which(regexpr("#define Rx_pow_di", odec, fixed=TRUE) != -1)[1];
     odec <- c(odec[1:w], solvec, odec[-(1:w)])
     w <- which(regexpr("// CODE HERE", odec) != -1)[1];
     ode <- odec[seq(1, w - 1)];
