@@ -650,7 +650,7 @@ print.RxODE <-
     .msg2 <- '';
     if (!valid){
         .msg <- crayon::red$bold("invalid");
-        .msg2 <- paste0(' needs to be re-created with ', crayon::blue("RxODE::"), crayon::yellow("RxODE"))
+        .msg2 <- paste0(' recreate with ', crayon::blue("RxODE::"), crayon::yellow("RxODE"))
         .ico <- crayon::red(cli::symbol$cross)
     } else {
         loaded <- x$isLoaded();
@@ -661,7 +661,7 @@ print.RxODE <-
         } else{
             .msg <- crayon::yellow$bold("unloaded");
             .ico <- crayon::yellow(cli::symbol$warning);
-            .msg2 <- paste0(' needs to be re-loaded with ', crayon::blue("RxODE::"), crayon::yellow("rxLoad"));
+            .msg2 <- paste0(' reload with ', crayon::blue("RxODE::"), crayon::yellow("rxLoad"));
         }
     }
     if (use.utf()){
@@ -671,8 +671,7 @@ print.RxODE <-
     }
     dll <- basename(rxDll(x));
     dll <- substr(dll, 1, nchar(dll) - nchar(.Platform$dynlib.ext) - nchar(.Platform$r_arch) - 1)
-    message(paste0(.ico,
-                   crayon::blue('RxODE '), as.vector(rxVersion()["version"]),' model named ', crayon::yellow$bold(dll), ' model (', .msg,
+    message(paste0(crayon::bold('RxODE '), as.vector(rxVersion()["version"]),' model named ', crayon::yellow$bold(dll), ' model (', .ico, .msg,
                    .msg2, ').'))
     if (!any(names(list(...)) == "rxSuppress") && valid){
         cur <- rxState(x);
