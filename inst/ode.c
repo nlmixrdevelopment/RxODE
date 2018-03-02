@@ -31,9 +31,7 @@ typedef double (*RxODE_vec) (int val, rx_solve *rx, unsigned int id);
 typedef double (*RxODE_val) (rx_solve *rx, unsigned int id);
 typedef void (*RxODE_assign_ptr)(SEXP);
 typedef void (*RxODE_ode_solver_old_c)(int *neq,double *theta,double *time,int *evid,int *ntime,double *inits,double *dose,double *ret,double *atol,double *rtol,int *stiff,int *transit_abs,int *nlhs,double *lhs,int *rc);
-typedef double (*RxODE_solveLinB)(rx_solve *rx, unsigned int id, double t, int linCmt, int diff1, int diff2, double A, double alpha, double B, double beta, double C, double gamma, double ka, double tlag);
 
-RxODE_solveLinB solveLinB    = NULL;
 RxODE_assign_ptr _assign_ptr = NULL;
 
 typedef void (*_rxRmModelLibType)(const char *inp);
@@ -211,6 +209,148 @@ inline double _transit3P(double t, unsigned int id, double n, double mtt){
   return exp(log(_solveData->subjects[id].podo)+lktr+n*(lktr+log(t))-ktr*t-lgamma1p(n));
 }
 
+// Linear compartment models/functions
+
+inline int _locateDoseIndex(const double obs_time,  rx_solving_options_ind *ind){
+  // Uses bisection for slightly faster lookup of dose index.
+  int i, j, ij;
+  i = 0;
+  j = ind->ndoses - 1;
+  if (obs_time <= ind->all_times[ind->idose[i]]){
+    return i;
+  }
+  if (obs_time >= ind->all_times[ind->idose[j]]){
+    return j;
+  }
+  while(i < j - 1) { /* x[i] <= obs_time <= x[j] */
+    ij = (i + j)/2; /* i+1 <= ij <= j-1 */
+    if(obs_time < ind->all_times[ind->idose[ij]])
+      j = ij;
+    else
+      i = ij;
+  }
+  return i;
+}
+
+inline double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt, int diff1, int diff2, double d_A, double d_alpha, double d_B, double d_beta, double d_C, double d_gamma, double d_ka, double d_tlag){
+  if (diff1 != 0 || diff2 != 0){
+    error("Exact derivtives are no longer calculated.");
+  }
+  unsigned int ncmt = 1;
+  double beta1=0, gamma1=0, alpha1=0;
+  double alpha = d_alpha;
+  double A = d_A;
+  double beta = d_beta;
+  double B = d_B;
+  double gamma = d_gamma;
+  double C = d_C;
+  double ka = d_ka;
+  double tlag = d_tlag;
+  if (d_gamma > 0.){
+    ncmt = 3;
+    gamma1 = 1.0/gamma;
+    beta1 = 1.0/beta;
+    alpha1 = 1.0/alpha;
+  } else if (d_beta > 0.){
+    ncmt = 2;
+    beta1 = 1.0/beta;
+    alpha1 = 1.0/alpha;
+  } else if (d_alpha > 0.){
+    ncmt = 1;
+    alpha1 = 1.0/alpha;
+  } else {
+    return 0.0;
+    //error("You need to specify at least A(=%f) and alpha (=%f). (@t=%f, d1=%d, d2=%d)", d_A, d_alpha, t, diff1, diff2);
+  }
+  rx_solving_options *op = _solveData->op;
+  if (linCmt+1 > op->extraCmt){
+    op->extraCmt = linCmt+1;
+  }
+  
+  int oral, cmt;
+  oral = (ka > 0) ? 1 : 0;
+  double ret = 0;
+  unsigned int m = 0, l = 0, p = 0;
+  int evid, evid100;
+  double thisT = 0.0, tT = 0.0, res, t1, t2, tinf, dose = 0;
+  double rate;
+  rx_solving_options_ind *ind = &(_solveData->subjects[id]);
+  if (ind->ndoses < 0){
+    ind->ndoses=0;
+    for (unsigned int i = 0; i < ind->n_all_times; i++){
+      if (ind->evid[i]){
+        ind->ndoses++;
+        ind->idose[ind->ndoses-1] = i;
+      }
+    }
+  }
+  m = _locateDoseIndex(t, ind);
+  int ndoses = ind->ndoses;
+  for(l=0; l <= m; l++){
+    //superpostion
+    evid = ind->evid[ind->idose[l]];
+    dose = ind->dose[l];
+    // Support 100+ compartments...
+    evid100 = floor(evid/1e5);
+    evid = evid- evid100*1e5;
+    cmt = (evid%10000)/100 - 1 + 100*evid100;
+    if (cmt != linCmt) continue;
+    if (evid > 10000) {
+      if (dose > 0){
+        // During infusion
+        tT = t - ind->all_times[ind->idose[l]];
+        thisT = tT - tlag;
+        p = l+1;
+        while (p < ndoses && ind->dose[p] != -dose){
+          p++;
+        }
+        if (ind->dose[p] != -dose){
+          error("Could not find a error to the infusion.  Check the event table.");
+        }
+        tinf  = ind->all_times[ind->idose[p]] - ind->all_times[ind->idose[l]];
+        rate  = dose;
+        if (tT >= tinf) continue;
+      } else {
+        // After  infusion
+        p = l-1;
+        while (p > 0 && ind->dose[p] != -dose){
+          p--;
+        }
+        if (ind->dose[p] != -dose){
+          error("Could not find a start to the infusion.  Check the event table.");
+        }
+        tinf  = ind->all_times[ind->idose[l]] - ind->all_times[ind->idose[p]] - tlag;
+        
+        tT = t - ind->all_times[ind->idose[p]];
+        thisT = tT -tlag;
+        rate  = -dose;
+      }
+      t1 = ((thisT < tinf) ? thisT : tinf);        //during infusion
+      t2 = ((thisT > tinf) ? thisT - tinf : 0.0);  // after infusion
+      ret +=  rate*A*alpha1*(1.0-exp(-alpha*t1))*exp(-alpha*t2);
+      if (ncmt >= 2){
+        ret +=  rate*B*beta1*(1.0-exp(-beta*t1))*exp(-beta*t2);
+        if (ncmt >= 3){
+          ret +=  rate*C*gamma1*(1.0-exp(-gamma*t1))*exp(-gamma*t2);
+        }
+      }
+    } else {
+      tT = t - ind->all_times[ind->idose[l]];
+      thisT = tT -tlag;
+      if (thisT < 0) continue;
+      res = ((oral == 1) ? exp(-ka*thisT) : 0.0);
+      ret +=  dose*A*(exp(-alpha*thisT)-res);
+      if (ncmt >= 2){
+        ret +=  dose*B*(exp(-beta*thisT)-res);
+        if (ncmt >= 3){
+          ret += dose*C*(exp(-gamma*thisT)-res);
+        }
+      }
+    }
+  } //l
+  return ret;
+}
+
 RxODE_fn0i _prodType = NULL;
 RxODE_fn0i _sumType = NULL;
 
@@ -270,7 +410,6 @@ extern void __CALC_JAC_LSODA__(int *neq, double *t, double *A,int *ml, int *mu, 
 //Initilize the dll to match RxODE's calls
 void __R_INIT__ (DllInfo *info){
   // Get C callables on load; Otherwise it isn't thread safe
-  solveLinB = (RxODE_solveLinB) R_GetCCallable("RxODE","RxODE_solveLinB");
   _assign_ptr=(RxODE_assign_ptr) R_GetCCallable("RxODE","RxODE_assign_fn_pointers");
   _rxRmModelLib=(_rxRmModelLibType) R_GetCCallable("RxODE","rxRmModelLib");
   _rxGetModelLib=(_rxGetModelLibType) R_GetCCallable("RxODE","rxGetModelLib");

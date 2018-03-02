@@ -47,8 +47,6 @@ SEXP _RxODE_rxCores();
 SEXP _RxODE_rxAssignPtr(SEXP objectSEXP);
 SEXP RxODE_get_mv();
 
-double RxODE_solveLinB(rx_solve *rx, unsigned int id,double t, int linCmt, int diff1, int diff2, double A, double alpha, double B, double beta, double C, double gamma, double ka, double tlag);
-
 SEXP _RxODE_rxToOmega(SEXP cholInv);
 
 static R_NativePrimitiveArgType RxODE_Sum_t[] = {
@@ -201,9 +199,6 @@ void R_init_RxODE(DllInfo *info){
   //Functions
   R_RegisterCCallable("RxODE","rxSolveOldC",              (DL_FUNC) rxSolveOldC);
   
-  // tranit compartment models
-  R_RegisterCCallable("RxODE","RxODE_solveLinB",          (DL_FUNC) RxODE_solveLinB);
-
   R_RegisterCCallable("RxODE","RxODE_sum",                (DL_FUNC) RxODE_sum);
   R_RegisterCCallable("RxODE","RxODE_prod",               (DL_FUNC) RxODE_prod);
 
