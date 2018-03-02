@@ -323,15 +323,15 @@ void wprint_node(int depth, char *name, char *value, void *client_data) {
     sb.o += 1;
     sbt.o += 1;
   } else if (!strcmp("podo",value)){
-    sprintf(SBPTR, "podo(_solveData, _cSub)");
+    sprintf(SBPTR, "_solveData->subjects[_cSub].podo");
     sprintf(SBTPTR, "podo");
-    sb.o  += 23;
+    sb.o  += 32;
     sbt.o += 4;
     rx_podo = 1;
   } else if (!strcmp("tlast",value)){
-    sprintf(SBPTR, "tlast(_solveData, _cSub)");
+    sprintf(SBPTR, "_solveData->subjects[_cSub].tlast");
     sprintf(SBTPTR, "tlast");
-    sb.o  += 24;
+    sb.o  += 33;
     sbt.o += 5;
   } else if (!strcmp("rx__PTR__",value)){
     sprintf(SBPTR, "_solveData, _cSub");
@@ -856,15 +856,15 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         Free(v);
       }
       if (!strcmp("transit2", name) && i == 0){
-        sprintf(SBPTR, "_transit3P(t, _solveData, _cSub, ");
-        sb.o += 33;
+        sprintf(SBPTR, "_transit3P(t, _cSub, ");
+        sb.o += 21;
         sprintf(SBTPTR,"transit(");
         sbt.o += 8;
         rx_podo = 1;
       }
       if (!strcmp("transit3", name) && i == 0){
-        sprintf(SBPTR, "_transit4P(t, _solveData, _cSub, ");
-        sb.o += 33;
+        sprintf(SBPTR, "_transit4P(t, _cSub, ");
+        sb.o += 21;
         sprintf(SBTPTR,"transit(");
         sbt.o += 8;
         rx_podo = 1;
@@ -875,7 +875,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
         sprintf(tb.ddt, "%s",v);
         if (new_de(v)){
-          sprintf(sb.s, "__DDtStateVar__[%d] = _InfusionRate(%d, _solveData, _cSub) + ", tb.nd, tb.nd);
+          sprintf(sb.s, "__DDtStateVar__[%d] = _InfusionRate[%d] + ", tb.nd, tb.nd);
           sb.o = strlen(sb.s);
           sprintf(sbt.s, "d/dt(%s)", v);
           sbt.o = strlen(sbt.s);
@@ -935,7 +935,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
           trans_syntax_error_report_fn(buf);
         } else {
 	  if (strcmp(tb.ddt, v)){
-	    sprintf(SBPTR, "_InfusionRate(%d, _solveData, _cSub)", tb.id);
+	    sprintf(SBPTR, "_InfusionRate[%d]", tb.id);
             sb.o = strlen(sb.s);
             sprintf(SBTPTR, "rxRate(%s)", v);
             sbt.o = strlen(sbt.s);
@@ -1181,7 +1181,7 @@ void prnt_vars(int scenario, FILE *outpt, int lhs, const char *pre_str, const ch
           fprintf(outpt,"%c",buf[k]);
         }
       }
-      fprintf(outpt, " = _par_ptr(%d, _solveData, _cSub);\n", j++);
+      fprintf(outpt, " = _par_ptr[%d];\n", j++);
       break;
     default: break;
     }
@@ -1262,12 +1262,14 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
   fprintf(outpt,"extern SEXP %smodel_vars(){\n  int pro=0;\n",model_prefix);
   fprintf(outpt,"  SEXP _mv = PROTECT(_rxGetModelLib(\"rx_5c2c6f8a65d272301b81504c87d75239_x64_model_vars\"));pro++;\n");
   fprintf(outpt,"  if (!_rxIsCurrentC(_mv)){\n");
-  fprintf(outpt,"    SEXP lst      = PROTECT(allocVector(VECSXP, 15));pro++;\n");
-  fprintf(outpt,"    SEXP names    = PROTECT(allocVector(STRSXP, 15));pro++;\n");
+  fprintf(outpt,"    SEXP lst      = PROTECT(allocVector(VECSXP, 16));pro++;\n");
+  fprintf(outpt,"    SEXP names    = PROTECT(allocVector(STRSXP, 16));pro++;\n");
   fprintf(outpt,"    SEXP params   = PROTECT(allocVector(STRSXP, %d));pro++;\n",pi);
   fprintf(outpt,"    SEXP lhs      = PROTECT(allocVector(STRSXP, %d));pro++;\n",li);
   fprintf(outpt,"    SEXP state    = PROTECT(allocVector(STRSXP, %d));pro++;\n",statei);
   fprintf(outpt,"    SEXP stateRmS = PROTECT(allocVector(INTSXP, %d));pro++;\n",statei);
+  fprintf(outpt,"    SEXP timeInt = PROTECT(allocVector(INTSXP, 1));pro++;\n");
+  fprintf(outpt,"    INTEGER(timeInt)[0] = __TIMEID__;\n");
   fprintf(outpt,"    int *stateRm  = INTEGER(stateRmS);\n");
   fprintf(outpt,"    SEXP sens     = PROTECT(allocVector(STRSXP, %d));pro++;\n",sensi);
   fprintf(outpt,"    SEXP normState= PROTECT(allocVector(STRSXP, %d));pro++;\n",statei-sensi);
@@ -1511,6 +1513,9 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
   fprintf(outpt,"    SET_STRING_ELT(names,14,mkChar(\"normal.state\"));\n");
   fprintf(outpt,"    SET_VECTOR_ELT(lst,  14,normState);\n");
 
+  fprintf(outpt,"    SET_STRING_ELT(names,15,mkChar(\"timeId\"));\n");
+  fprintf(outpt,"    SET_VECTOR_ELT(lst,  15,timeInt);\n");
+
   // const char *rxVersion(const char *what)
   
   // md5 values
@@ -1564,7 +1569,7 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
 
   fprintf(outpt,"    SET_STRING_ELT(trann,13,mkChar(\"dydt_liblsoda\"));\n");
   fprintf(outpt,"    SET_STRING_ELT(tran, 13,mkChar(\"%sdydt_liblsoda\"));\n",model_prefix);
-
+  
   fprintf(outpt,"    setAttrib(tran, R_NamesSymbol, trann);\n");
   fprintf(outpt,"    setAttrib(mmd5, R_NamesSymbol, mmd5n);\n");
   fprintf(outpt,"    setAttrib(model, R_NamesSymbol, modeln);\n");
@@ -1584,7 +1589,7 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
   fprintf(outpt,"  }\n");
   fprintf(outpt,"}\n");
   fprintf(outpt, __HD_SOLVE1__);
-  fprintf(outpt, __HD_SOLVE2__);
+  /* fprintf(outpt, __HD_SOLVE2__); */
 }
 
 void codegen(FILE *outpt, int show_ode) {
@@ -1597,8 +1602,8 @@ void codegen(FILE *outpt, int show_ode) {
   char *hdft[]=
     {
       "\n// prj-specific differential eqns\nvoid ",
-      "dydt(int *_neq, double t, double *__zzStateVar__, double *__DDtStateVar__)\n{\n  int _cSub = _neq[1];\n",
-      "    _dadt_counter_inc(_solveData, _cSub);\n}\n\n"
+      "dydt(int *_neq, double t, double *__zzStateVar__, double *__DDtStateVar__)\n{\n  int _cSub = _neq[1];\n  double *_InfusionRate = _solveData->subjects[_cSub].InfusionRate;\n  double *_par_ptr = _solveData->subjects[_cSub].par_ptr;\n",
+      "  (&_solveData->subjects[_cSub])->dadt_counter++;\n}\n\n"
     };
   if (show_ode == 1){
     fprintf(outpt, __HD_ODE__);
@@ -1624,11 +1629,11 @@ void codegen(FILE *outpt, int show_ode) {
     fprintf(outpt, "%s", model_prefix);
     fprintf(outpt, "%s", hdft[1]);
   } else if (show_ode == 2){
-    fprintf(outpt, "// Jacobian derived vars\nvoid %scalc_jac(int *_neq, double t, double *__zzStateVar__, double *__PDStateVar__, unsigned int __NROWPD__) {\n  int _cSub=_neq[1];\n",model_prefix);
+    fprintf(outpt, "// Jacobian derived vars\nvoid %scalc_jac(int *_neq, double t, double *__zzStateVar__, double *__PDStateVar__, unsigned int __NROWPD__) {\n  int _cSub=_neq[1];\n  double *_InfusionRate = _solveData->subjects[_cSub].InfusionRate;\n  double *_par_ptr = _solveData->subjects[_cSub].par_ptr;\n",model_prefix);
   } else if (show_ode == 3){
-    fprintf(outpt, "// Functional based initial conditions.\nvoid %sinis(int _cSub, double *__zzStateVar__){\n  double t=0;\n",model_prefix);
+    fprintf(outpt, "// Functional based initial conditions.\nvoid %sinis(int _cSub, double *__zzStateVar__){\n  double t=0;\n  double *_InfusionRate = _solveData->subjects[_cSub].InfusionRate;\n  double *_par_ptr = _solveData->subjects[_cSub].par_ptr;\n",model_prefix);
   } else {
-    fprintf(outpt, "// prj-specific derived vars\nvoid %scalc_lhs(int _cSub, double t, double *__zzStateVar__, double *_lhs) {\n",model_prefix);
+    fprintf(outpt, "// prj-specific derived vars\nvoid %scalc_lhs(int _cSub, double t, double *__zzStateVar__, double *_lhs) {\n  double *_InfusionRate = _solveData->subjects[_cSub].InfusionRate;\n  double *_par_ptr = _solveData->subjects[_cSub].par_ptr;\n",model_prefix);
   }
   if (found_print){
     fprintf(outpt,"\n  int __print_ode__ = 0, __print_vars__ = 0,__print_parm__ = 0,__print_jac__ = 0;\n");
@@ -1649,9 +1654,9 @@ void codegen(FILE *outpt, int show_ode) {
       }
     }
     if (show_ode == 3){
-      fprintf(outpt,"  _update_par_ptr(0.0, _solveData, _cSub);\n");
+      fprintf(outpt,"  _update_par_ptr(0.0, _cSub);\n");
     } else {
-      fprintf(outpt,"  _update_par_ptr(t, _solveData, _cSub);\n");
+      fprintf(outpt,"  _update_par_ptr(t, _cSub);\n");
     }
     prnt_vars(1, outpt, 1, "", "\n",show_ode);                   /* pass system pars */
     for (i=0; i<tb.nd; i++) {                   /* name state vars */
@@ -1719,7 +1724,7 @@ void codegen(FILE *outpt, int show_ode) {
       if (show_ode != 1 && s) continue;
       else if (s) {
         fprintf(outpt,"  Rprintf(\"================================================================================\\n\");\n");
-        fprintf(outpt,"  Rprintf(\"ODE Count: %%d\\tTime (t): %%f\\n\",_dadt_counter_val(_solveData, _cSub),t);\n");
+        fprintf(outpt,"  Rprintf(\"ODE Count: %%d\\tTime (t): %%f\\n\", (&_solveData->subjects[_cSub])->dadt_counter, t);\n");
         fprintf(outpt,"  Rprintf(\"================================================================================\\n\");\n");
         fprintf(outpt,"  __print_ode__ = 1;\n");
         fprintf(outpt,"  __print_vars__ = 1;\n");
@@ -1761,7 +1766,7 @@ void codegen(FILE *outpt, int show_ode) {
       if (show_ode != 2 && s) continue;
       else if (s) {
         fprintf(outpt,"  Rprintf(\"================================================================================\\n\");\n");
-        fprintf(outpt,"  Rprintf(\"JAC Count: %%d\\tTime (t): %%f\\n\",_jac_counter_val(),t);\n");
+        fprintf(outpt,"  Rprintf(\"JAC Count: %%d\\tTime (t): %%f\\n\",(&_solveData->subjects[_cSub])->jac_counter, t);\n");
         fprintf(outpt,"  Rprintf(\"================================================================================\\n\");\n");
         fprintf(outpt,"  __print_ode__ = 1;\n");
         fprintf(outpt,"  __print_jac__ = 1;\n");
@@ -1894,7 +1899,7 @@ void codegen(FILE *outpt, int show_ode) {
       if (tb.lh[i]>0) continue;
       j++;
       retieve_var(i, buf);
-      fprintf(outpt, "    Rprintf(\"%s=%%f\\t_par_ptr(%d, _solveData, _cSub)=%%f\\n\",%s,_par_ptr(%d, _solveData, _cSub));\n", buf, j-1, buf,j-1);
+      fprintf(outpt, "    Rprintf(\"%s=%%f\\t_par_ptr[%d]=%%f\\n\",%s,_par_ptr[%d]);\n", buf, j-1, buf,j-1);
     }
     fprintf(outpt,"  }\n");
   }
@@ -1906,7 +1911,7 @@ void codegen(FILE *outpt, int show_ode) {
     fprintf(outpt, "%s", hdft[2]);
   } else if (show_ode == 2){
     //fprintf(outpt,"  free(__ld_DDtStateVar__);\n");
-    fprintf(outpt, "  _jac_counter_inc(_solveData, _cSub);\n");
+    fprintf(outpt, "  (&_solveData->subjects[_cSub])->jac_counter++;\n");
     fprintf(outpt, "}\n");
   } else if (show_ode == 3){
     for (i = 0; i < tb.nd; i++){
@@ -2345,7 +2350,7 @@ SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP pref
   sprintf(buf,"%sdydt_liblsoda",model_prefix);
   SET_STRING_ELT(trann,18,mkChar("dydt_liblsoda"));
   SET_STRING_ELT(tran, 18,mkChar(buf));
-
+  
   fpIO2 = fopen(out2, "r");
   err_msg((intptr_t) fpIO2, "Error parsing. (Couldn't access out2.txt).\n", -1);
   while(fgets(sLine, MXLEN, fpIO2)) {

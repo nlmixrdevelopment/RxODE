@@ -5,6 +5,7 @@ typedef void (*t_update_inis)(int cSub, double *);
 typedef void (*t_dydt_lsoda_dum)(int *neq, double *t, double *A, double *DADT);
 typedef void (*t_jdum_lsoda)(int *neq, double *t, double *A,int *ml, int *mu, double *JAC, int *nrowpd);
 typedef int (*t_dydt_liblsoda)(double t, double *y, double *ydot, void *data);
+typedef void (*t_ode_current)();
 
 typedef struct {
   // These options should not change based on an individual solve
@@ -76,6 +77,7 @@ typedef struct {
 
 typedef struct {
   rx_solving_options_ind *subjects;
+  rx_solving_options *op;
   int nsub;
   int nsim;
   int nobs;
