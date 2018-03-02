@@ -46,17 +46,6 @@ extern SEXP RxODE_get_mv(){
 /* extern void rxode_assign_rx(rx_solve *rx); */
 
 extern void rxode_assign_rx(rx_solve *rx);
-extern rx_solve *rxSingle(SEXP object, const int stiff,const int transit_abs,
-			  const double atol, const double rtol, const int maxsteps,
-			  const double hmin, const double hini, const int maxordn,
-			  const int maxords, const int cores, const int ncov,
-			  int *par_cov, int do_par_cov, 
-			  int is_locf,
-			  // Other single solve option
-			  double hmax, double *par,
-			  double *amt, double *solve, double *lhs,
-			  int *evid, int *rc, double *cov,
-			  int nTimes, double *all_times);
 
 rx_solving_options_ind *rxOptionsIniEnsure(int mx);
 rx_solving_options *getRxOp(rx_solve *rx);

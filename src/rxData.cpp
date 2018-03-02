@@ -2065,60 +2065,6 @@ inline void rxSolvingData(const RObject &model,
   }
 }
 
-extern "C" rx_solve *rxSingle(SEXP object, const int stiff,const int transit_abs,
-			      const double atol, const double rtol, const int maxsteps,
-			      const double hmin, const double hini, const int maxordn,
-			      const int maxords, const int cores, const int ncov,
-			      int *par_cov, int do_par_cov, 
-			      int is_locf,
-			      // Other single solve option
-			      double hmax, double *par,
-			      double *amt, double *solve, double *lhs,
-			      int *evid, int *rc, double *cov,
-			      int nTimes, double *all_times){
-  List mv = rxModelVars(object);
-  // Use the number of each element to speed calculation.
-  List solveL = mv["solve"];
-  NumericVector inits           = solveL["inits"];
-  NumericVector scale           = solveL["scale"];
-  NumericVector InfusionRate    = solveL["infusion"];
-  IntegerVector BadDose         = solveL["badDose"];
-  // Instead of having the correct length for idose, use idose length = length of ntime
-  // Saves an additional for loop at the cost of a little memory.
-  // int *idose;
-  IntegerVector idose(nTimes);
-  rx_solving_options_ind *inds;
-  inds = rxOptionsIniEnsure(1);//(rx_solving_options_ind *)Calloc(1, rx_solving_options_ind);
-  getSolvingOptionsIndPtr(&InfusionRate[0],&BadDose[0], hmax, par, amt, &idose[0], solve, 
-			  lhs, evid, rc, cov, nTimes, all_times, 1, 1, &inds[0]);
-  std::string method = "lsoda";
-  if (stiff == 0) {
-    method = "dop853";
-  }
-  std::string covs_interpolation = "linear";
-  if (is_locf == 1){
-    covs_interpolation="constant";
-  } else if (is_locf==2){
-    covs_interpolation="nocb";
-  } else if (is_locf== 3){
-    covs_interpolation="midpoint";
-  }
-  LogicalVector transit_absLV(1);
-  if (transit_abs == 1) {
-    transit_absLV[0] = true;
-  }  else {
-    transit_absLV[0] = false;
-  }
-  rxSolvingOptions(object,method, transit_absLV, atol, rtol, maxsteps, hmin, hini, maxordn,
-		   maxords, 1, ncov, par_cov, do_par_cov, &inits[0], &scale[0], covs_interpolation);
-  IntegerVector siV = mv["state.ignore"];
-  rxSolveData(inds, 1, 1, &siV[0], -1, 0, 0);
-  SEXP trans = mv["trans"];
-  rxUpdateFuns(trans);
-  rx_solve *ret = getRxSolve_();
-  return ret;
-}
-
 List rxData(const RObject &object,
             const RObject &params = R_NilValue,
             const RObject &events = R_NilValue,

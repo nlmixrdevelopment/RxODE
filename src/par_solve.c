@@ -1639,8 +1639,8 @@ extern void rxSolveOldC(int *neqa,
   ind->lhs     = lhsp;
   ind->evid    = evidp;
   ind->rc      = rc;
-  double *cov_ptr;
-  ind->cov_ptr = cov_ptr;
+  /* double *cov_ptr; */
+  /* ind->cov_ptr = cov_ptr; */
   ind->n_all_times       = *ntime;
   ind->ixds = 0;
   ind->ndoses = -1;
@@ -1675,15 +1675,15 @@ extern void rxSolveOldC(int *neqa,
   memset(op->scale, 1.0, *neqa);
   op->extraCmt = 0;
   op->hmax2=0;
-  double *rtol2, *atol2;
-  op->rtol2 = rtol2;
-  op->atol2 = atol2;
+  /* double *rtol2, *atol2; */
+  /* op->rtol2 = rtol2; */
+  /* op->atol2 = atol2; */
   op->cores = 1;
   op->nDisplayProgress = 100;
   op->ncoresRV = 1;
   op->isChol = 0;
-  int *svar;
-  op->svar = svar;
+  /* int *svar; */
+  /* op->svar = svar; */
   op->abort = 0;  
   // FIXME? modNamePtr?
   /* op->modNamePtr */
@@ -1696,9 +1696,6 @@ extern void rxSolveOldC(int *neqa,
   rx->add_cov =0;
   rx->matrix =0;
   /* int i =0; */
-  /* rx = rxSingle(mv, *stiffa,*transit_abs, *atol, *rtol, 5000,//maxsteps */
-  /*               0, 0, 12, 5, 1, 0, par_cov, 0, 0, 0, theta, */
-  /*               dosep, retp, lhsp, evidp, rc, cov, *ntime,timep); */
   _globalRx=rx;
   rx->op = &op_global;
   /* rxode_assign_rx(rx); */
