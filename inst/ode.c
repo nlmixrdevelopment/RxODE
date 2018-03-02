@@ -263,13 +263,14 @@ inline double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt, int
     //error("You need to specify at least A(=%f) and alpha (=%f). (@t=%f, d1=%d, d2=%d)", d_A, d_alpha, t, diff1, diff2);
   }
   rx_solving_options *op = _solveData->op;
+  double ATOL = op->ATOL;          //absolute error
+  double RTOL = op->RTOL;          //relative error
   if (linCmt+1 > op->extraCmt){
     op->extraCmt = linCmt+1;
   }
-  
   int oral, cmt;
   oral = (ka > 0) ? 1 : 0;
-  double ret = 0;
+  double ret = 0,cur=0, tmp=0;
   unsigned int m = 0, l = 0, p = 0;
   int evid, evid100;
   double thisT = 0.0, tT = 0.0, res, t1, t2, tinf, dose = 0;
@@ -286,7 +287,8 @@ inline double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt, int
   }
   m = _locateDoseIndex(t, ind);
   int ndoses = ind->ndoses;
-  for(l=0; l <= m; l++){
+  for(l=m+1; l--;){// Optimized for loop as https://www.thegeekstuff.com/2015/01/c-cpp-code-optimization/
+    cur=0;
     //superpostion
     evid = ind->evid[ind->idose[l]];
     dose = ind->dose[l];
@@ -327,11 +329,11 @@ inline double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt, int
       }
       t1 = ((thisT < tinf) ? thisT : tinf);        //during infusion
       t2 = ((thisT > tinf) ? thisT - tinf : 0.0);  // after infusion
-      ret +=  rate*A*alpha1*(1.0-exp(-alpha*t1))*exp(-alpha*t2);
+      cur +=  rate*A*alpha1*(1.0-exp(-alpha*t1))*exp(-alpha*t2);
       if (ncmt >= 2){
-        ret +=  rate*B*beta1*(1.0-exp(-beta*t1))*exp(-beta*t2);
+        cur +=  rate*B*beta1*(1.0-exp(-beta*t1))*exp(-beta*t2);
         if (ncmt >= 3){
-          ret +=  rate*C*gamma1*(1.0-exp(-gamma*t1))*exp(-gamma*t2);
+          cur +=  rate*C*gamma1*(1.0-exp(-gamma*t1))*exp(-gamma*t2);
         }
       }
     } else {
@@ -339,14 +341,33 @@ inline double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt, int
       thisT = tT -tlag;
       if (thisT < 0) continue;
       res = ((oral == 1) ? exp(-ka*thisT) : 0.0);
-      ret +=  dose*A*(exp(-alpha*thisT)-res);
+      cur +=  dose*A*(exp(-alpha*thisT)-res);
       if (ncmt >= 2){
-        ret +=  dose*B*(exp(-beta*thisT)-res);
+        cur +=  dose*B*(exp(-beta*thisT)-res);
         if (ncmt >= 3){
-          ret += dose*C*(exp(-gamma*thisT)-res);
+          cur += dose*C*(exp(-gamma*thisT)-res);
         }
       }
     }
+    // Since this starts with the most recent dose, and then goes
+    // backward, you can use a tolerance calcuation to exit the loop
+    // early.
+    //
+    // See  http://web.mit.edu/10.001/Web/Tips/Converge.htm
+    //
+    // | True value - Computed value | < RTOL*|True Value| + ATOL 
+    // | (ret+cur) - ret| < RTOL*|ret+cur|+ATOL
+    // | cur | < RTOL*|ret+cur|+ATOL
+    //
+    // For this calcuation all values should be > 0.  If they are less
+    // than 0 then it is approximately zero.
+    if (cur < 0) break;
+    tmp = ret+cur;
+    if (cur < RTOL*tmp+ATOL){ 
+      ret=tmp;
+      break;
+    }
+    ret = tmp;
   } //l
   return ret;
 }
