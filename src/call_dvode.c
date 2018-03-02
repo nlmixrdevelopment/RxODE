@@ -53,8 +53,6 @@ rx_solve *getRxSolve_();
 int *global_BadDose(unsigned int mx);
 double *global_InfusionRate(unsigned int mx);
 
-
-
 extern double RxODE_sum(double *input, int len){
   return PreciseSums_sum(input, len);
 }
