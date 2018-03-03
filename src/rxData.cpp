@@ -57,7 +57,7 @@ bool rxHasEventNames(CharacterVector &nm){
 //' Check the type of an object using Rcpp
 //'
 //' @param obj Object to check
-//' @param cls Type of class.  Only s3 classes for lists and primitive classes are checked.
+//' @param cls Type of class.  Only s3 classes for lists/environments and primitive classes are checked.
 //'    For matrix types they are distinguished as \code{numeric.matrix}, \code{integer.matrix},
 //'    \code{logical.matrix}, and \code{character.matrix} as well as the traditional \code{matrix}
 //'    class. Additionally checks for \code{event.data.frame} which is an \code{data.frame} object
@@ -174,7 +174,17 @@ bool rxIs(const RObject &obj, std::string cls){
       return (cls == "list");
     }
   case 4: // environment
-    return (cls == "environment");
+    if (cls == "environment") return true;
+    hasCls = obj.hasAttribute("class");
+    if (hasCls){
+      CharacterVector classattr = obj.attr("class");
+      std::string cur;
+      for (unsigned int i = classattr.size(); i--; ){
+        cur = as<std::string>(classattr[i]);
+	if (cur == cls) return true;
+      }
+    }
+    return false;
   case 22: // external pointer
     return (cls == "externalptr" || cls == "refObject");
   }
@@ -285,7 +295,7 @@ List rxDataSetup(const RObject &ro,
     if (rxIs(unitsRO, "character")){
       units = as<CharacterVector>(unitsRO);
       n=units.size();
-      for (i =0; i<n; i++){
+      for (i =n; i--;){
 	if (units[i] == "NA"){
 	  units[i] = NA_STRING;
 	}
