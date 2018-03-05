@@ -32,7 +32,7 @@ bool rxHasEventNames(CharacterVector &nm){
     rxcId   = -1;
     rxcDv   = -1;
     rxcLen  = len;
-    for (int i = 0; i < len; i++){
+    for (unsigned int i = len; i--;){
       if (as<std::string>(nm[i]) == "evid" || as<std::string>(nm[i]) == "EVID" || as<std::string>(nm[i]) == "Evid"){
         rxcEvid = i;
       } else if (as<std::string>(nm[i]) == "time" || as<std::string>(nm[i]) == "TIME" || as<std::string>(nm[i]) == "Time"){
@@ -57,7 +57,7 @@ bool rxHasEventNames(CharacterVector &nm){
 //' Check the type of an object using Rcpp
 //'
 //' @param obj Object to check
-//' @param cls Type of class.  Only s3 classes and primitive classes are checked.
+//' @param cls Type of class.  Only s3 classes for lists/environments and primitive classes are checked.
 //'    For matrix types they are distinguished as \code{numeric.matrix}, \code{integer.matrix},
 //'    \code{logical.matrix}, and \code{character.matrix} as well as the traditional \code{matrix}
 //'    class. Additionally checks for \code{event.data.frame} which is an \code{data.frame} object
@@ -69,142 +69,124 @@ bool rxHasEventNames(CharacterVector &nm){
 //' @export
 // [[Rcpp::export]]
 bool rxIs(const RObject &obj, std::string cls){
-  if (cls == "rx.event"){
-    return (rxIs(obj, "EventTable") || rxIs(obj, "event.data.frame") || rxIs(obj, "event.matrix"));
-  } else if (cls == "event.data.frame"){
-    if (rxIs(obj, "data.frame")){
-      CharacterVector cv =as<CharacterVector>((as<DataFrame>(obj)).names());
-      return rxHasEventNames(cv);
-    } else {
-      return false;
-    }
-  } else if (cls == "event.matrix"){
-    if (rxIs(obj,"numeric.matrix") && obj.hasAttribute("dimnames")){
-      List dn = as<List>(obj.attr("dimnames"));
-      if (dn.size() == 2){
-	CharacterVector cv = as<CharacterVector>(dn[1]);
-        return rxHasEventNames(cv);
-      } else {
-	return false; // nocov
-      }
-    } else {
-      return false;
-    }
-  } else if (obj.isObject()){
-    CharacterVector classattr = obj.attr("class");
-    for (int i = 0; i < classattr.size(); i++){
-      if (as<std::string>(classattr[i]) == cls){
-	if (cls == "rxSolve"){
-	  Environment e = as<Environment>(classattr.attr(".RxODE.env"));
-	  List lobj = List(obj);
-	  CharacterVector cls2= CharacterVector::create("data.frame");
-	  if (as<int>(e["check.ncol"]) != lobj.size()){
-	    lobj.attr("class") = cls2;
+  int type = obj.sexp_type();
+  bool hasDim = false;
+  bool hasCls = false;
+  switch (type){
+  case REALSXP: 
+    hasDim = obj.hasAttribute("dim");
+    if (hasDim){
+      if (cls == "event.matrix" || cls ==  "rx.event"){
+	if (obj.hasAttribute("dimnames")){
+	  List dn = as<List>(obj.attr("dimnames"));
+          if (dn.size() == 2){
+            CharacterVector cv = as<CharacterVector>(dn[1]);
+            return rxHasEventNames(cv);
+          } else {
 	    return false;
 	  }
-	  int nrow = (as<NumericVector>(lobj[0])).size();
-	  if (as<int>(e["check.nrow"]) != nrow){
-	    lobj.attr("class") = cls2;
-            return false;
-          }
-	  CharacterVector cn = CharacterVector(e["check.names"]);
-	  if (cn.size() != lobj.size()){
-	    lobj.attr("class") = cls2;
-	    return false;
-	  }
-	  CharacterVector cn2 = CharacterVector(lobj.names());
-	  for (int j = 0; j < cn.size();j++){
-	    if (cn[j] != cn2[j]){
-	      lobj.attr("class") = cls2;
-	      return false;
-	    }
-	  }
-	  return true;
-        } else {
-	  return true;
-        }
-      }
-    }
-  } else {
-    int type = obj.sexp_type();
-    bool hasDim = obj.hasAttribute("dim");
-    if (type == REALSXP){
-      if (hasDim){
-	if (cls == "numeric.matrix" || cls == "matrix"){
-	  return true;
 	} else {
 	  return false;
 	}
       } else {
-	if (cls == "numeric")
-          return true;
-        else 
-          return false;
+	return (cls == "matrix" || cls == "numeric.matrix");
       }
+    } else {
+      return (cls == "numeric");
     }
-    if (type == INTSXP){
-      if (hasDim){
-	if (cls == "integer.matrix" || cls == "matrix"){
-          return true;
-        } else {
-          return false;
-        }
-      } else {
-	if (cls == "integer")
-          return true;
-        else
-          return false;
+  case 13: // integer vectors
+    // An integer vector cannot be an event matrix.
+    hasDim = obj.hasAttribute("dim");
+    if (hasDim){
+      return (cls == "matrix" || cls == "integer.matrix");
+    } else {
+      return (cls == "integer");
+    }
+  case LGLSXP:
+    hasDim = obj.hasAttribute("dim");
+    if (hasDim){
+      return (cls == "matrix" ||  cls == "logical.matrix");
+    } else {
+      return (cls == "logical");
+    }
+  case STRSXP:
+    hasDim = obj.hasAttribute("dim");
+    if (hasDim){
+      return (cls == "matrix" || cls == "character.matrix");
+    } else {
+      return (cls == "character");
+    }
+  case VECSXP:
+    hasCls = obj.hasAttribute("class");
+    if (hasCls){
+      CharacterVector classattr = obj.attr("class");
+      bool hasDf = false;
+      bool hasEt = false;
+      std::string cur;
+      for (unsigned int i = classattr.size(); i--; ){
+	cur = as<std::string>(classattr[i]);
+	if (cur == cls){
+	  if (cls == "rxSolve"){
+	    Environment e = as<Environment>(classattr.attr(".RxODE.env"));
+	    List lobj = List(obj);
+	    CharacterVector cls2= CharacterVector::create("data.frame");
+	    if (as<int>(e["check.ncol"]) != lobj.size()){
+	      lobj.attr("class") = cls2;
+	      return false;
+	    }
+	    int nrow = (as<NumericVector>(lobj[0])).size();
+	    if (as<int>(e["check.nrow"]) != nrow){
+	      lobj.attr("class") = cls2;
+	      return false;
+	    }
+	    CharacterVector cn = CharacterVector(e["check.names"]);
+	    if (cn.size() != lobj.size()){
+	      lobj.attr("class") = cls2;
+	      return false;
+	    }
+	    CharacterVector cn2 = CharacterVector(lobj.names());
+	    for (int j = 0; j < cn.size();j++){
+	      if (cn[j] != cn2[j]){
+		lobj.attr("class") = cls2;
+		return false;
+	      }
+	    }
+	    return true;
+	  } else {
+	    return true;
+	  }
+	} else if (cur == "data.frame"){
+	  hasDf=true;
+        } else if (cur == "EventTable"){
+	  hasEt=true;
+	}
       }
-    }
-    if (type == LGLSXP){
-      if (hasDim){
-        if (cls == "logical.matrix" || cls == "matrix"){
-          return true;
-        } else {
-          return false;
-        }
-      } else {
-	if (cls == "logical")
-          return true;
-        else
-          return false;
-      }
-    }
-    if (type == STRSXP){
-      if (hasDim){
-	if (cls == "character.matrix" || cls == "matrix"){
-          return true;
-        } else {
-          return false;
-        }
-      } else {
-	if (cls == "character")
-          return true;
-        else
-          return false;
-      }
-    }
-    if (type == VECSXP){
-      if (cls == "list"){
-        return true;
-      } else {
-        return false;
-      }
-    }
-    if (type == ENVSXP){
-      if (cls == "environment"){
-	return true;
+      if (hasDf && (cls == "rx.event" || cls == "event.data.frame")){
+	// Check for event.data.frame
+	CharacterVector cv =as<CharacterVector>((as<DataFrame>(obj)).names());
+	return rxHasEventNames(cv);
+      } else if (hasEt) {
+	return (cls == "rx.event");
       } else {
 	return false;
       }
+    } else {
+      return (cls == "list");
     }
-    if (type == EXTPTRSXP){
-      if (cls == "externalptr" || cls == "refObject"){
-	return true;
-      } else {
-	return false;
+  case 4: // environment
+    if (cls == "environment") return true;
+    hasCls = obj.hasAttribute("class");
+    if (hasCls){
+      CharacterVector classattr = obj.attr("class");
+      std::string cur;
+      for (unsigned int i = classattr.size(); i--; ){
+        cur = as<std::string>(classattr[i]);
+	if (cur == cls) return true;
       }
     }
+    return false;
+  case 22: // external pointer
+    return (cls == "externalptr" || cls == "refObject");
   }
   return false;
 }
@@ -313,7 +295,7 @@ List rxDataSetup(const RObject &ro,
     if (rxIs(unitsRO, "character")){
       units = as<CharacterVector>(unitsRO);
       n=units.size();
-      for (i =0; i<n; i++){
+      for (i =n; i--;){
 	if (units[i] == "NA"){
 	  units[i] = NA_STRING;
 	}
