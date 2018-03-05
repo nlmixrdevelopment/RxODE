@@ -269,7 +269,7 @@ List rxDataSetup(const RObject &ro,
 		 const RObject &covNames = R_NilValue,
 		 const RObject &sigma = R_NilValue,
 		 const RObject &df = R_NilValue,
-		 const int &ncoresRV = 1,
+		 const unsigned int &ncoresRV = 1,
 		 const bool &isChol = false,
                  const int &nDisplayProgress = 10000,
 		 const StringVector &amountUnits = NA_STRING,
@@ -1553,7 +1553,7 @@ List rxDataParSetup(const RObject &object,
 			   const RObject &covs  = R_NilValue,
 			   const RObject &sigma= R_NilValue,
 			   const RObject &sigmaDf= R_NilValue,
-			   const int &nCoresRV= 1,
+			   const unsigned int &nCoresRV= 1,
 			   const bool &sigmaIsChol= false,
 			   const int &nDisplayProgress = 10000,
 			   const StringVector &amountUnits = NA_STRING,
@@ -1794,7 +1794,7 @@ void rxSolvingOptions(const RObject &object,
                       double *atol2 = NULL,
                       double *rtol2 = NULL,
                       int nDisplayProgress = 10000,
-                      int ncoresRV = 1,
+                      unsigned int ncoresRV = 1,
                       int isChol = 1,
                       int *svar =NULL){
   if (maxordn < 1 || maxordn > 12){
@@ -2054,7 +2054,7 @@ List rxData(const RObject &object,
             bool matrix = false,
             const RObject &sigma= R_NilValue,
             const RObject &sigmaDf= R_NilValue,
-            const int &nCoresRV= 1,
+            const unsigned int &nCoresRV= 1,
             const bool &sigmaIsChol= false,
             const int &nDisplayProgress = 10000,
             const StringVector &amountUnits = NA_STRING,
@@ -2076,6 +2076,399 @@ List rxData(const RObject &object,
   cls(0) = "RxODE.pointer.multi";
   parData.attr("class") = cls;
   return parData;
+}
+
+
+arma::mat rwish5(double nu, int p){
+  GetRNGstate();
+  arma::mat Z(p,p, fill::zeros);
+  double curp = nu;
+  double tmp =sqrt(Rf_rchisq(curp--));
+  Z(0,0) = (tmp < 1e-100) ? 1e-100 : tmp;
+  int i, j;
+  if (p > 1){
+    for (i = 1; i < (int)p; i++){
+      tmp = sqrt(Rf_rchisq(curp--));
+      Z(i,i) = (tmp < 1e-100) ? 1e-100 : tmp;
+      for (j = 0; j < i; j++){
+        // row,col
+        Z(j,i) = norm_rand();
+      }
+    }
+  }
+  PutRNGstate();
+  return Z;
+}
+
+NumericMatrix cvPost0(double nu, NumericMatrix omega, bool omegaIsChol = false,
+                      bool returnChol = false){
+  arma::mat S =as<arma::mat>(omega);
+  int p = S.n_rows;
+  if (p == 1){
+    GetRNGstate();
+    NumericMatrix ret(1,1);
+    if (omegaIsChol){
+      ret[0] = nu*omega[0]*omega[0]/(Rf_rgamma(nu/2.0,2.0));
+    } else {
+      ret[0] = nu*omega[0]/(Rf_rgamma(nu/2.0,2.0));
+    }
+    if (returnChol) ret[0] = sqrt(ret[0]);
+    PutRNGstate();
+    return ret;
+  } else {
+    arma::mat Z = rwish5(nu, p);
+    // Backsolve isn't available in armadillo
+    arma::mat Z2 = arma::trans(arma::inv(trimatu(Z)));
+    arma::mat cv5;
+    if (omegaIsChol){
+      cv5 = S;
+    } else {
+      cv5 = arma::chol(S);
+    }
+    arma::mat mat1 = Z2 * cv5;
+    mat1 = mat1.t() * mat1;
+    mat1 = mat1 * nu;
+    if (returnChol) mat1 = arma::chol(mat1);
+    return wrap(mat1);
+  }
+}
+
+//' Sample a covariance Matrix from the Posteior Inverse Wishart distribution.
+//'
+//' Note this Inverse wishart rescaled to match the original scale of the covariance matrix.
+//'
+//' If your covariance matrix is a 1x1 matrix, this uses an scaled inverse chi-squared which 
+//' is equivalent to the Inverse Wishart distribution in the uni-directional case.
+//'
+//' @param nu Degrees of Freedom (Number of Observations) for 
+//'        covariance matrix simulation.
+//' @param omega Estimate of Covariance matrix.
+//' @param n Number of Matricies to sample.  By default this is 1.
+//' @param omegaIsChol is an indicator of if the omega matrix is in the cholesky decomposition. 
+//' @param returnChol Return the cholesky decomposition of the covariance matrix sample.
+//'
+//' @return a matrix (n=1) or a list of matricies (n > 1)
+//'
+//' @author Matthew L.Fidler & Wenping Wang
+//' 
+//' @export
+//[[Rcpp::export]]
+RObject cvPost(double nu, RObject omega, int n = 1, bool omegaIsChol = false, bool returnChol = false){
+  if (n == 1){
+    if (rxIs(omega,"numeric.matrix") || rxIs(omega,"integer.matrix")){
+      return as<RObject>(cvPost0(nu, as<NumericMatrix>(omega), omegaIsChol));
+    } else if (rxIs(omega, "numeric") || rxIs(omega, "integer")){
+      NumericVector om1 = as<NumericVector>(omega);
+      if (om1.size() % 2 == 0){
+        int n1 = om1.size()/2;
+        NumericMatrix om2(n1,n1);
+        for (int i = 0; i < om1.size();i++){
+          om2[i] = om1[i];
+        }
+        return as<RObject>(cvPost0(nu, om2, omegaIsChol, returnChol));
+      }
+    }
+  } else {
+    List ret(n);
+    for (int i = 0; i < n; i++){
+      ret[i] = cvPost(nu, omega, 1, omegaIsChol, returnChol);
+    }
+    return(as<RObject>(ret));
+  }
+  stop("omega needs to be a matrix or a numberic vector that can be converted to a matrix.");
+  return R_NilValue;
+}
+
+//' Scaled Inverse Chi Squared distribution
+//'
+//' @param n Number of random samples
+//' @param nu degrees of freedom of inverse chi square
+//' @param scale  Scale of inverse chi squared distribution 
+//'         (default is 1).
+//' @return a vector of inverse chi squared deviates .
+//' @export
+//[[Rcpp::export]]
+NumericVector rinvchisq(const int n = 1, const double &nu = 1.0, const double &scale = 1){
+  NumericVector ret(n);
+  GetRNGstate();
+  for (int i = 0; i < n; i++){
+    ret[i] = nu*scale/(Rf_rgamma(nu/2.0,2.0));
+  }
+  PutRNGstate();
+  return ret;
+}
+
+extern "C" double *rxGetErrs(){
+  getRxModels();
+  if (_rxModels.exists(".sigma")){
+    NumericMatrix sigma = _rxModels[".sigma"];
+    return &sigma[0];
+  }
+  return NULL;
+}
+
+extern "C" int rxGetErrsNcol(){
+  getRxModels();
+  if (_rxModels.exists(".sigma")){
+    NumericMatrix sigma = _rxModels[".sigma"];
+    int ret = sigma.ncol();
+    return ret;
+  } 
+  return 0;
+}
+  
+SEXP rxGetFromChar(char *ptr, std::string var){
+  std::string str(ptr);
+  // Rcout << str << "\n";
+  CharacterVector cv(1);
+  cv[0] = str;
+  List mv = rxModelVars(as<RObject>(cv));
+  if (var == ""){
+    return wrap(mv);
+  } else {
+    return wrap(mv[var]);
+  }
+}
+
+//' Simulate Parameters from a Theta/Omega specification
+//'
+//' @param params Named Vector of RxODE model parameters
+//'
+//' @param thetaMat Named theta matrix.
+//'
+//' @param thetaDf The degrees of freedom of a t-distribution for
+//'     simulation.  By default this is \code{NULL} which is
+//'     equivalent to \code{Inf} degrees, or to simulate from a normal
+//'     distribution instead of a t-distribution.
+//'
+//' @param thetaIsChol Indicates if the \code{theta} supplied is a
+//'     Cholesky decomposed matrix instead of the traditional
+//'     symmetric matrix.
+//'
+//' @param nSub Number between subject variabilities (ETAs) simulated for every 
+//'        realization of the parameters.
+//'
+//' @param omega Named omega matrix.
+//'
+//' @param omegaDf The degrees of freedom of a t-distribution for
+//'     simulation.  By default this is \code{NULL} which is
+//'     equivalent to \code{Inf} degrees, or to simulate from a normal
+//'     distribution instead of a t-distribution.
+//'
+//' @param omegaIsChol Indicates if the \code{omega} supplied is a
+//'     Cholesky decomposed matrix instead of the traditional
+//'     symmetric matrix.
+//'
+//' @param nStud Number virtual studies to characterize uncertainty in estimated 
+//'        parameters.
+//'
+//' @param sigma Matrix for residual variation.  Adds a "NA" value for each of the 
+//'     indivdual parameters, residuals are updated after solve is completed. 
+//'
+//' @inheritParams rxSolve
+//'
+//' @param simVariability For each study simulate the uncertanty in the Omega and 
+//'       Sigma item
+//'
+//' @param nObs Number of observations to simulate for sigma.
+//'
+//' @author Matthew L.Fidler
+//'
+//' @export
+//[[Rcpp::export]]
+List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
+                     const Nullable<NumericMatrix> &omega= R_NilValue,
+                     const Nullable<NumericVector> &omegaDf= R_NilValue,
+                     const bool &omegaIsChol = false,
+                     unsigned int nSub = 1,
+                     const Nullable<NumericMatrix> &thetaMat = R_NilValue,
+                     const Nullable<NumericVector> &thetaDf  = R_NilValue,
+                     const bool &thetaIsChol = false,
+                     unsigned int nStud = 1,
+                     const Nullable<NumericMatrix> sigma = R_NilValue,
+                     const Nullable<NumericVector> &sigmaDf= R_NilValue,
+                     const bool &sigmaIsChol = false,
+                     unsigned int nCoresRV = 1,
+                     unsigned int nObs = 1,
+                     bool simVariability = true){
+  NumericVector par;
+  if (params.isNull()){
+    stop("This function requires overall parameters.");
+  } else {
+    par = NumericVector(params);
+    if (!par.hasAttribute("names")){
+      stop("'params' must be a named vector.");
+    }
+  }
+  bool simSigma = false;
+  NumericMatrix sigmaM;
+  CharacterVector sigmaN;
+  NumericMatrix sigmaMC;
+  if (!sigma.isNull() && nObs > 1){
+    simSigma = true;
+    sigmaM = as<NumericMatrix>(sigma);
+    if (!sigmaM.hasAttribute("dimnames")){
+      stop("'sigma' must be a named Matrix.");
+    }
+    if (sigmaIsChol){
+      sigmaMC = sigmaM;
+    } else {
+      sigmaMC = wrap(arma::chol(as<arma::mat>(sigmaM)));
+    }
+    sigmaN = as<CharacterVector>((as<List>(sigmaM.attr("dimnames")))[1]);
+  }  
+  unsigned int scol = 0;
+  if (simSigma){
+    scol = sigmaMC.ncol();
+    if (nObs*nStud*nSub*scol < 0){
+      // nStud = INT_MAX/(nObs*nSub*scol)*0.25;
+      stop("Simulation Overflow; Reduce the number of observations, number of subjects or number of studies.");
+    }
+  }
+  NumericMatrix thetaM;
+  CharacterVector thetaN;
+  bool simTheta = false;
+  CharacterVector parN = CharacterVector(par.attr("names"));
+  IntegerVector thetaPar(parN.size());
+  unsigned int i, j, k;
+  if (!thetaMat.isNull() && nStud > 1){
+    thetaM = as<NumericMatrix>(thetaMat);
+    if (!thetaM.hasAttribute("dimnames")){
+      stop("'thetaMat' must be a named Matrix.");
+    }
+    thetaM = as<NumericMatrix>(rxSimSigma(as<RObject>(thetaMat), as<RObject>(thetaDf), nCoresRV, thetaIsChol, nStud));
+    thetaN = as<CharacterVector>((as<List>(thetaM.attr("dimnames")))[1]);
+    for (i = 0; i < parN.size(); i++){
+      thetaPar[i] = -1;
+      for (j = 0; j < thetaN.size(); j++){
+        if (parN[i] == thetaN[j]){
+          thetaPar[i] = j;
+          break;
+        }
+      }
+    }
+    simTheta = true;
+  } else if (!thetaMat.isNull() && nStud <= 1){
+    warning("'thetaMat' is ignored since nStud <= 1.");
+  }
+  bool simOmega = false;
+  NumericMatrix omegaM;
+  CharacterVector omegaN;
+  NumericMatrix omegaMC;
+  if (!omega.isNull() && nSub > 1){
+    simOmega = true;
+    omegaM = as<NumericMatrix>(omega);
+    if (!omegaM.hasAttribute("dimnames")){
+      stop("'omega' must be a named Matrix.");
+    }
+    if (omegaIsChol){
+      omegaMC = omegaM;
+    } else {
+      omegaMC = wrap(arma::chol(as<arma::mat>(omegaM)));
+    }
+    omegaN = as<CharacterVector>((as<List>(omegaM.attr("dimnames")))[1]);
+  } else if (nSub > 1){
+    stop("'omega' is required for multi-subject simulations.");
+  }
+  // Now create data frame of parameter values
+  List omegaList;
+  List sigmaList;  
+  if (simVariability && nStud > 1){
+    if (simOmega) {
+      omegaList = cvPost((double)nSub, as<RObject>(omegaMC), nStud,  true, true);
+    }
+    if (simSigma){
+      sigmaList = cvPost((double)nObs, as<RObject>(sigmaMC), nStud,  true, true);
+    }
+  }
+  unsigned int pcol = par.size();
+  unsigned int ocol = 0;
+  unsigned int ncol = pcol;
+  if (simOmega){
+    ocol = omegaMC.ncol();
+    ncol += ocol;
+  }
+  NumericMatrix ret1;
+  if (simSigma){
+    ncol += scol;
+    ret1 = NumericMatrix(nObs*nStud*nSub, scol);
+  }
+  List ret0(ncol);
+  NumericVector nm;
+  NumericMatrix nm1;
+  for (i = 0; i < ncol; i++){
+    nm = NumericVector(nSub*nStud);
+    ret0[i] = nm;
+  }
+  for (i = 0; i < nStud; i++){
+    for (j = 0; j < pcol; j++){
+      nm = ret0[j];
+      for (k = 0; k < nSub; k++){
+        nm[nSub*i + k] = par[j];
+      }
+      if (simTheta){
+        if(thetaPar[j] != -1){
+          for (k = 0; k < nSub; k++){
+            nm[nSub*i + k] += thetaM(i, thetaPar[j]);
+          }
+        }
+      }
+      ret0[j] = nm;
+    }
+    // Now Omega Covariates
+    if (ocol > 0){
+      if (simVariability && nStud > 1){
+        // nm = ret0[j]; // parameter column
+        nm1 = as<NumericMatrix>(rxSimSigma(as<RObject>(omegaList[i]), as<RObject>(omegaDf), nCoresRV, true, nSub,false));
+      } else {
+        nm1 = as<NumericMatrix>(rxSimSigma(as<RObject>(omegaMC), as<RObject>(omegaDf), nCoresRV, true, nSub,false));
+      }
+      for (j=pcol; j < pcol+ocol; j++){
+        nm = ret0[j];
+        for (k = 0; k < nSub; k++){
+          nm[nSub*i + k] = nm1(k, j-pcol);
+        }
+        ret0[j] = nm;
+      }
+    }
+    if (scol > 0){
+      if (simVariability  && nStud > 1){
+        nm1 = as<NumericMatrix>(rxSimSigma(as<RObject>(sigmaList[i]), as<RObject>(sigmaDf), nCoresRV, true, nObs*nSub, false));
+      } else {
+        nm1 = as<NumericMatrix>(rxSimSigma(as<RObject>(sigmaMC), as<RObject>(sigmaDf), nCoresRV, true, nObs*nSub, false));
+      }
+      for (j = 0; j < scol; j++){
+        for (k = 0; k < nObs*nSub; k++){
+          // ret1 = NumericMatrix(nObs*nStud, scol);
+          ret1(nObs*nSub*i+k, j) = nm1(k, j);
+        }
+      }
+    }
+  }
+  CharacterVector dfName(ncol);
+  for (i = 0; i < pcol; i++){
+    dfName[i] = parN[i];
+  }
+  for (i = pcol; i < pcol+ocol; i++){
+    dfName[i] = omegaN[i-pcol];
+  }
+  for (i = pcol+ocol; i < ncol; i++){
+    dfName[i] = sigmaN[i-pcol-ocol];
+  }
+  ret0.attr("names") = dfName;
+  ret0.attr("class") = "data.frame";
+  ret0.attr("row.names") = IntegerVector::create(NA_INTEGER,-nSub*nStud);
+  ret1.attr("dimnames") = List::create(R_NilValue, sigmaN);
+  getRxModels();
+  _rxModels[".sigma"] = ret1;
+  if (simTheta){
+    _rxModels[".theta"] = thetaM;
+  }
+  if (simVariability && nStud > 1){
+    _rxModels[".omegaL"] = omegaList;
+    _rxModels[".sigmaL"] =sigmaList;
+  }
+  return ret0;
 }
 
 #define defrx_params R_NilValue
@@ -2138,9 +2531,9 @@ SEXP rxSolveC(const RObject &object,
 	      const int covs_interpolation = 1,
 	      bool addCov = false,
 	      bool matrix = false,
-	      const RObject &sigma= R_NilValue,
-	      const RObject &sigmaDf= R_NilValue,
-	      const int &nCoresRV= 1,
+	      const Nullable<NumericMatrix> &sigma= R_NilValue,
+	      const Nullable<NumericVector> &sigmaDf= R_NilValue,
+	      const unsigned int &nCoresRV= 1,
 	      const bool &sigmaIsChol= false,
 	      const int &nDisplayProgress = 10000,
 	      const CharacterVector &amountUnits = NA_STRING,
@@ -2150,14 +2543,14 @@ SEXP rxSolveC(const RObject &object,
 	      const RObject &eta = R_NilValue,
 	      const bool updateObject = false,
 	      const bool doSolve = true,
-              const RObject &omega = R_NilValue, 
-	      const RObject &omegaDf = R_NilValue, 
+              const Nullable<NumericMatrix> &omega = R_NilValue, 
+	      const Nullable<NumericVector> &omegaDf = R_NilValue, 
 	      const bool &omegaIsChol = false,
-              const int nSub = 1, 
-	      const RObject &thetaMat = R_NilValue, 
-	      const RObject &thetaDf = R_NilValue, 
+              const unsigned int nSub = 1, 
+	      const Nullable<NumericMatrix> &thetaMat = R_NilValue, 
+	      const Nullable<NumericVector> &thetaDf = R_NilValue, 
 	      const bool &thetaIsChol = false,
-              const int nStud = 1, 
+              const unsigned int nStud = 1, 
 	      const bool simVariability=true){
   if (updateObject){
     if (rxIs(object, "rxSolve")){
@@ -2289,9 +2682,9 @@ SEXP rxSolveC(const RObject &object,
       int new_covs_interpolation = update_covs_interpolation ? covs_interpolation : e["args.covs_interpolation"];
       bool new_addCov = update_addCov ? addCov : e["args.addCov"];
       bool new_matrix = update_matrix ? matrix : e["args.matrix"];
-      RObject new_sigma = update_sigma ? sigma : e["args.sigma"];
-      RObject new_sigmaDf = update_sigmaDf ? sigmaDf : e["args.sigmaDf"];
-      int new_nCoresRV = update_nCoresRV ? nCoresRV : e["args.nCoresRV"];
+      Nullable<NumericMatrix> new_sigma = update_sigma ? sigma : e["args.sigma"];
+      Nullable<NumericVector> new_sigmaDf = update_sigmaDf ? sigmaDf : e["args.sigmaDf"];
+      unsigned int new_nCoresRV = update_nCoresRV ? nCoresRV : e["args.nCoresRV"];
       bool new_sigmaIsChol = update_sigmaIsChol ? sigmaIsChol : e["args.sigmaIsChol"];
       int new_nDisplayProgress = e["args.nDisplayProgress"];
       CharacterVector new_amountUnits = update_amountUnits ? amountUnits : e["args.amountUnits"];
@@ -2538,7 +2931,21 @@ SEXP rxSolveC(const RObject &object,
       stop("single solver only for now.");
     }
     // Now get parameters in the dataset
-    
+    if (!thetaMat.isNull() || !omega.isNull() || !sigma.isNull()){
+      // Simulated Variable
+      if (!rxIs(par1, "numeric")){
+	stop("When specifying 'thetaMat', 'omega', or 'sigma' the parameters cannot be a data.frame/matrix.");
+      }
+      unsigned int nObs = nobs + (addDosing ? ndoses : 0);
+      unsigned int nSub0 = nSub;
+      if (nSub == 1){
+	nSub0 = nsub;
+      } else if (nSub > 1 && nsub > 1 &&  nSub != nsub){
+        stop("You provided multi-subject data and asked to simulate a different number of subjects;  I don't know what to do.");
+      } 
+      par1 =  as<RObject>(rxSimThetaOmega(as<Nullable<NumericVector>>(par1), omega, omegaDf, omegaIsChol, nSub0, thetaMat, thetaDf, thetaIsChol, nStud,
+					  sigma, sigmaDf, sigmaIsChol, nObs, nCoresRV, simVariability));
+    }
     /*
       if (!is.null(thetaMat) || !is.null(omega) || !is.null(sigma)){
         cur.events <- NULL;
@@ -4068,398 +4475,6 @@ bool rxDelete(RObject obj){
     if (remove(file.c_str()) == 0) return true;
   }
   return false;
-}
-
-arma::mat rwish5(double nu, int p){
-  GetRNGstate();
-  arma::mat Z(p,p, fill::zeros);
-  double curp = nu;
-  double tmp =sqrt(Rf_rchisq(curp--));
-  Z(0,0) = (tmp < 1e-100) ? 1e-100 : tmp;
-  int i, j;
-  if (p > 1){
-    for (i = 1; i < (int)p; i++){
-      tmp = sqrt(Rf_rchisq(curp--));
-      Z(i,i) = (tmp < 1e-100) ? 1e-100 : tmp;
-      for (j = 0; j < i; j++){
-        // row,col
-        Z(j,i) = norm_rand();
-      }
-    }
-  }
-  PutRNGstate();
-  return Z;
-}
-
-NumericMatrix cvPost0(double nu, NumericMatrix omega, bool omegaIsChol = false,
-		      bool returnChol = false){
-  arma::mat S =as<arma::mat>(omega);
-  int p = S.n_rows;
-  if (p == 1){
-    GetRNGstate();
-    NumericMatrix ret(1,1);
-    if (omegaIsChol){
-      ret[0] = nu*omega[0]*omega[0]/(Rf_rgamma(nu/2.0,2.0));
-    } else {
-      ret[0] = nu*omega[0]/(Rf_rgamma(nu/2.0,2.0));
-    }
-    if (returnChol) ret[0] = sqrt(ret[0]);
-    PutRNGstate();
-    return ret;
-  } else {
-    arma::mat Z = rwish5(nu, p);
-    // Backsolve isn't available in armadillo
-    arma::mat Z2 = arma::trans(arma::inv(trimatu(Z)));
-    arma::mat cv5;
-    if (omegaIsChol){
-      cv5 = S;
-    } else {
-      cv5 = arma::chol(S);
-    }
-    arma::mat mat1 = Z2 * cv5;
-    mat1 = mat1.t() * mat1;
-    mat1 = mat1 * nu;
-    if (returnChol) mat1 = arma::chol(mat1);
-    return wrap(mat1);
-  }
-}
-
-//' Sample a covariance Matrix from the Posteior Inverse Wishart distribution.
-//'
-//' Note this Inverse wishart rescaled to match the original scale of the covariance matrix.
-//'
-//' If your covariance matrix is a 1x1 matrix, this uses an scaled inverse chi-squared which 
-//' is equivalent to the Inverse Wishart distribution in the uni-directional case.
-//'
-//' @param nu Degrees of Freedom (Number of Observations) for 
-//'        covariance matrix simulation.
-//' @param omega Estimate of Covariance matrix.
-//' @param n Number of Matricies to sample.  By default this is 1.
-//' @param omegaIsChol is an indicator of if the omega matrix is in the cholesky decomposition. 
-//' @param returnChol Return the cholesky decomposition of the covariance matrix sample.
-//'
-//' @return a matrix (n=1) or a list of matricies (n > 1)
-//'
-//' @author Matthew L.Fidler & Wenping Wang
-//' 
-//' @export
-//[[Rcpp::export]]
-RObject cvPost(double nu, RObject omega, int n = 1, bool omegaIsChol = false, bool returnChol = false){
-  if (n == 1){
-    if (rxIs(omega,"numeric.matrix") || rxIs(omega,"integer.matrix")){
-      return as<RObject>(cvPost0(nu, as<NumericMatrix>(omega), omegaIsChol));
-    } else if (rxIs(omega, "numeric") || rxIs(omega, "integer")){
-      NumericVector om1 = as<NumericVector>(omega);
-      if (om1.size() % 2 == 0){
-        int n1 = om1.size()/2;
-        NumericMatrix om2(n1,n1);
-        for (int i = 0; i < om1.size();i++){
-          om2[i] = om1[i];
-        }
-        return as<RObject>(cvPost0(nu, om2, omegaIsChol, returnChol));
-      }
-    }
-  } else {
-    List ret(n);
-    for (int i = 0; i < n; i++){
-      ret[i] = cvPost(nu, omega, 1, omegaIsChol, returnChol);
-    }
-    return(as<RObject>(ret));
-  }
-  stop("omega needs to be a matrix or a numberic vector that can be converted to a matrix.");
-  return R_NilValue;
-}
-
-//' Scaled Inverse Chi Squared distribution
-//'
-//' @param n Number of random samples
-//' @param nu degrees of freedom of inverse chi square
-//' @param scale  Scale of inverse chi squared distribution 
-//'         (default is 1).
-//' @return a vector of inverse chi squared deviates .
-//' @export
-//[[Rcpp::export]]
-NumericVector rinvchisq(const int n = 1, const double &nu = 1.0, const double &scale = 1){
-  NumericVector ret(n);
-  GetRNGstate();
-  for (int i = 0; i < n; i++){
-    ret[i] = nu*scale/(Rf_rgamma(nu/2.0,2.0));
-  }
-  PutRNGstate();
-  return ret;
-}
-
-//' Simulate Parameters from a Theta/Omega specification
-//'
-//' @param params Named Vector of RxODE model parameters
-//'
-//' @param thetaMat Named theta matrix.
-//'
-//' @param thetaDf The degrees of freedom of a t-distribution for
-//'     simulation.  By default this is \code{NULL} which is
-//'     equivalent to \code{Inf} degrees, or to simulate from a normal
-//'     distribution instead of a t-distribution.
-//'
-//' @param thetaIsChol Indicates if the \code{theta} supplied is a
-//'     Cholesky decomposed matrix instead of the traditional
-//'     symmetric matrix.
-//'
-//' @param nSub Number between subject variabilities (ETAs) simulated for every 
-//'        realization of the parameters.
-//'
-//' @param omega Named omega matrix.
-//'
-//' @param omegaDf The degrees of freedom of a t-distribution for
-//'     simulation.  By default this is \code{NULL} which is
-//'     equivalent to \code{Inf} degrees, or to simulate from a normal
-//'     distribution instead of a t-distribution.
-//'
-//' @param omegaIsChol Indicates if the \code{omega} supplied is a
-//'     Cholesky decomposed matrix instead of the traditional
-//'     symmetric matrix.
-//'
-//' @param nStud Number virtual studies to characterize uncertainty in estimated 
-//'        parameters.
-//'
-//' @param sigma Matrix for residual variation.  Adds a "NA" value for each of the 
-//'     indivdual parameters, residuals are updated after solve is completed. 
-//'
-//' @inheritParams rxSolve
-//'
-//' @param simVariability For each study simulate the uncertanty in the Omega and 
-//'       Sigma item
-//'
-//' @param nObs Number of observations to simulate for sigma.
-//'
-//' @author Matthew L.Fidler
-//'
-//' @export
-//[[Rcpp::export]]
-List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
-		     const Nullable<NumericMatrix> &omega= R_NilValue,
-		     const Nullable<NumericMatrix> &omegaDf= R_NilValue,
-		     const bool &omegaIsChol = false,
-		     int nSub = 1,
-		     const Nullable<NumericMatrix> &thetaMat = R_NilValue,
-		     const Nullable<NumericMatrix> &thetaDf  = R_NilValue,
-		     const bool &thetaIsChol = false,
-		     int nStud = 1,
-                     const Nullable<NumericMatrix> sigma = R_NilValue,
-		     const Nullable<NumericMatrix> &sigmaDf= R_NilValue,
-                     const bool &sigmaIsChol = false,
-		     int nCoresRV = 1,
-		     int nObs = 1,
-                     bool simVariability = true){
-  NumericVector par;
-  if (params.isNull()){
-    stop("This function requires overall parameters.");
-  } else {
-    par = NumericVector(params);
-    if (!par.hasAttribute("names")){
-      stop("'params' must be a named vector.");
-    }
-  }
-  bool simSigma = false;
-  NumericMatrix sigmaM;
-  CharacterVector sigmaN;
-  NumericMatrix sigmaMC;
-  if (!sigma.isNull() && nObs > 1){
-    simSigma = true;
-    sigmaM = as<NumericMatrix>(sigma);
-    if (!sigmaM.hasAttribute("dimnames")){
-      stop("'sigma' must be a named Matrix.");
-    }
-    if (sigmaIsChol){
-      sigmaMC = sigmaM;
-    } else {
-      sigmaMC = wrap(arma::chol(as<arma::mat>(sigmaM)));
-    }
-    sigmaN = as<CharacterVector>((as<List>(sigmaM.attr("dimnames")))[1]);
-  }  
-  int scol = 0;
-  if (simSigma){
-    scol = sigmaMC.ncol();
-    if (nObs*nStud*nSub*scol < 0){
-      // nStud = INT_MAX/(nObs*nSub*scol)*0.25;
-      stop("Simulation Overflow; Reduce the number of observations, number of subjects or number of studies.");
-    }
-  }
-  NumericMatrix thetaM;
-  CharacterVector thetaN;
-  bool simTheta = false;
-  CharacterVector parN = CharacterVector(par.attr("names"));
-  IntegerVector thetaPar(parN.size());
-  int i, j, k;
-  if (!thetaMat.isNull() && nStud > 1){
-    thetaM = as<NumericMatrix>(thetaMat);
-    if (!thetaM.hasAttribute("dimnames")){
-      stop("'thetaMat' must be a named Matrix.");
-    }
-    thetaM = as<NumericMatrix>(rxSimSigma(as<RObject>(thetaMat), as<RObject>(thetaDf), nCoresRV, thetaIsChol, nStud));
-    thetaN = as<CharacterVector>((as<List>(thetaM.attr("dimnames")))[1]);
-    for (i = 0; i < parN.size(); i++){
-      thetaPar[i] = -1;
-      for (j = 0; j < thetaN.size(); j++){
-	if (parN[i] == thetaN[j]){
-	  thetaPar[i] = j;
-	  break;
-	}
-      }
-    }
-    simTheta = true;
-  } else if (!thetaMat.isNull() && nStud <= 1){
-    warning("'thetaMat' is ignored since nStud <= 1.");
-  }
-  bool simOmega = false;
-  NumericMatrix omegaM;
-  CharacterVector omegaN;
-  NumericMatrix omegaMC;
-  if (!omega.isNull() && nSub > 1){
-    simOmega = true;
-    omegaM = as<NumericMatrix>(omega);
-    if (!omegaM.hasAttribute("dimnames")){
-      stop("'omega' must be a named Matrix.");
-    }
-    if (omegaIsChol){
-      omegaMC = omegaM;
-    } else {
-      omegaMC = wrap(arma::chol(as<arma::mat>(omegaM)));
-    }
-    omegaN = as<CharacterVector>((as<List>(omegaM.attr("dimnames")))[1]);
-  } else if (nSub > 1){
-    stop("'omega' is required for multi-subject simulations.");
-  }
-  // Now create data frame of parameter values
-  List omegaList;
-  List sigmaList;  
-  if (simVariability && nStud > 1){
-    if (simOmega) {
-      omegaList = cvPost((double)nSub, as<RObject>(omegaMC), nStud,  true, true);
-    }
-    if (simSigma){
-      sigmaList = cvPost((double)nObs, as<RObject>(sigmaMC), nStud,  true, true);
-    }
-  }
-  int pcol = par.size();
-  int ocol = 0;
-  int ncol = pcol;
-  if (simOmega){
-    ocol = omegaMC.ncol();
-    ncol += ocol;
-  }
-  NumericMatrix ret1;
-  if (simSigma){
-    ncol += scol;
-    ret1 = NumericMatrix(nObs*nStud*nSub, scol);
-  }
-  List ret0(ncol);
-  NumericVector nm;
-  NumericMatrix nm1;
-  for (i = 0; i < ncol; i++){
-    nm = NumericVector(nSub*nStud);
-    ret0[i] = nm;
-  }
-  for (i = 0; i < nStud; i++){
-    for (j = 0; j < pcol; j++){
-      nm = ret0[j];
-      for (k = 0; k < nSub; k++){
-	nm[nSub*i + k] = par[j];
-      }
-      if (simTheta){
-	if(thetaPar[j] != -1){
-          for (k = 0; k < nSub; k++){
-            nm[nSub*i + k] += thetaM(i, thetaPar[j]);
-          }
-        }
-      }
-      ret0[j] = nm;
-    }
-    // Now Omega Covariates
-    if (ocol > 0){
-      if (simVariability && nStud > 1){
-        // nm = ret0[j]; // parameter column
-        nm1 = as<NumericMatrix>(rxSimSigma(as<RObject>(omegaList[i]), as<RObject>(omegaDf), nCoresRV, true, nSub,false));
-      } else {
-        nm1 = as<NumericMatrix>(rxSimSigma(as<RObject>(omegaMC), as<RObject>(omegaDf), nCoresRV, true, nSub,false));
-      }
-      for (j=pcol; j < pcol+ocol; j++){
-	nm = ret0[j];
-	for (k = 0; k < nSub; k++){
-	  nm[nSub*i + k] = nm1(k, j-pcol);
-	}
-	ret0[j] = nm;
-      }
-    }
-    if (scol > 0){
-      if (simVariability  && nStud > 1){
-	nm1 = as<NumericMatrix>(rxSimSigma(as<RObject>(sigmaList[i]), as<RObject>(sigmaDf), nCoresRV, true, nObs*nSub, false));
-      } else {
-	nm1 = as<NumericMatrix>(rxSimSigma(as<RObject>(sigmaMC), as<RObject>(sigmaDf), nCoresRV, true, nObs*nSub, false));
-      }
-      for (j = 0; j < scol; j++){
-	for (k = 0; k < nObs*nSub; k++){
-	  // ret1 = NumericMatrix(nObs*nStud, scol);
-	  ret1(nObs*nSub*i+k, j) = nm1(k, j);
-	}
-      }
-    }
-  }
-  CharacterVector dfName(ncol);
-  for (i = 0; i < pcol; i++){
-    dfName[i] = parN[i];
-  }
-  for (i = pcol; i < pcol+ocol; i++){
-    dfName[i] = omegaN[i-pcol];
-  }
-  for (i = pcol+ocol; i < ncol; i++){
-    dfName[i] = sigmaN[i-pcol-ocol];
-  }
-  ret0.attr("names") = dfName;
-  ret0.attr("class") = "data.frame";
-  ret0.attr("row.names") = IntegerVector::create(NA_INTEGER,-nSub*nStud);
-  ret1.attr("dimnames") = List::create(R_NilValue, sigmaN);
-  getRxModels();
-  _rxModels[".sigma"] = ret1;
-  if (simTheta){
-    _rxModels[".theta"] = thetaM;
-  }
-  if (simVariability && nStud > 1){
-    _rxModels[".omegaL"] = omegaList;
-    _rxModels[".sigmaL"] =sigmaList;
-  }
-  return ret0;
-}
-
-extern "C" double *rxGetErrs(){
-  getRxModels();
-  if (_rxModels.exists(".sigma")){
-    NumericMatrix sigma = _rxModels[".sigma"];
-    return &sigma[0];
-  }
-  return NULL;
-}
-
-extern "C" int rxGetErrsNcol(){
-  getRxModels();
-  if (_rxModels.exists(".sigma")){
-    NumericMatrix sigma = _rxModels[".sigma"];
-    int ret = sigma.ncol();
-    return ret;
-  } 
-  return 0;
-}
-  
-SEXP rxGetFromChar(char *ptr, std::string var){
-  std::string str(ptr);
-  // Rcout << str << "\n";
-  CharacterVector cv(1);
-  cv[0] = str;
-  List mv = rxModelVars(as<RObject>(cv));
-  if (var == ""){
-    return wrap(mv);
-  } else {
-    return wrap(mv[var]);
-  }
 }
 
 extern "C" SEXP rxModelVarsC(char *ptr){
