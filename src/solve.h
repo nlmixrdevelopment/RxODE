@@ -62,7 +62,7 @@ typedef struct {
   double *lhs;
   int  *evid;
   int *rc;
-  double *cov_ptr;
+  double **cov_ptr;
   int n_all_times;
   int ixds;
   int ndoses;

@@ -216,9 +216,12 @@
 ##' @author Matthew Fidler, Melissa Hallow and  Wenping Wang
 ##' @export
 rxSolve <- function(object, params=NULL, events=NULL, inits = NULL, scale = NULL,
-                    covs = NULL, method = "liblsoda", transit_abs = NULL, atol = 1.0e-8, rtol = 1.0e-6,
+                    covs = NULL, method = c("liblsoda", "lsoda", "dop853"),
+                    transit_abs = NULL, atol = 1.0e-8, rtol = 1.0e-6,
                     maxsteps = 5000L, hmin = 0L, hmax = NULL, hini = 0L, maxordn = 12L, maxords = 5L, ...,
-                    cores, covs_interpolation = "linear", add.cov = FALSE, matrix = FALSE, sigma = NULL, sigmaDf = NULL,
+                    cores,
+                    covs_interpolation = c("linear", "locf", "nocb", "midpoint"),
+                    add.cov = FALSE, matrix = FALSE, sigma = NULL, sigmaDf = NULL,
                     nCoresRV = 1L, sigmaIsChol = FALSE, nDisplayProgress=10000L,
                     amountUnits = NA_character_, timeUnits = "hours", stiff,
                     theta = NULL, eta = NULL, addDosing=FALSE, update.object=FALSE,do.solve=TRUE,
@@ -240,7 +243,11 @@ rxSolve <- function(object, params=NULL, events=NULL, inits = NULL, scale = NULL
                 warning("stiff=FALSE has been replaced with method = \"dop853\".")
             }
         }
+    } else {
+        method <- match.arg(method);
     }
+    method <- as.integer(which(method == c("lsoda", "dop853", "liblsoda")) - 1)
+    covs_interpolation  <- as.integer(which(match.arg(covs_interpolation) == c("linear", "locf", "nocb", "midpoint")) - 1);
     if (!is.null(thetaMat) || !is.null(omega) || !is.null(sigma)){
         cur.events <- NULL;
         ## FIXME allow rxDataSetup object to be passed to solve c routine
@@ -280,12 +287,13 @@ rxSolve <- function(object, params=NULL, events=NULL, inits = NULL, scale = NULL
     }
     nms <- names(as.list(match.call())[-1]);
     .Call(`_RxODE_rxSolveCsmall`, object, nms, extra,
-          params, events, inits, scale, covs, list(method, transit_abs, atol, rtol,
-                                                   maxsteps, hmin, hmax, hini, maxordn, maxords, cores,
-                                                   covs_interpolation, add.cov, matrix, sigma, sigmaDf,
-                                                   nCoresRV, sigmaIsChol, nDisplayProgress, amountUnits,
-                                                   timeUnits, addDosing, theta, eta, update.object,
-                                                   do.solve));
+          params, events, inits, scale, covs,
+          list(method, transit_abs, atol, rtol,
+               maxsteps, hmin, hmax, hini, maxordn, maxords, cores,
+               covs_interpolation, add.cov, matrix, sigma, sigmaDf,
+               nCoresRV, sigmaIsChol, nDisplayProgress, amountUnits,
+               timeUnits, addDosing, theta, eta, update.object,
+               do.solve));
 }
 
 ##' @export

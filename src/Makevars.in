@@ -4,10 +4,10 @@ CXX_STD     = CXX11
 ## -Wl,--no-as-needed -lprofiler -Wl,--as-needed
 PKG_LIBS    = $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS) @OPENMP_CFLAGS@
 # Add -g for gdb debugging to FLAGS
-PKG_FFLAGS  = $(FPICFLAGS) 
-PKG_FCFLAGS = $(FPICFLAGS)
-PKG_CFLAGS  =  @OPENMP_CFLAGS@
-## PKG_CXXLAGS = -g 
+PKG_FFLAGS  = -g $(FPICFLAGS) 
+PKG_FCFLAGS = -g $(FPICFLAGS)
+PKG_CFLAGS  = -g  @OPENMP_CFLAGS@
+PKG_CXXLAGS = -g 
 
 SOURCES_C = call_dvode.c dop853.c tran.c rprintf.c omegaChol.c init.c par_solve.c cfode.c cfode_static.c common.c corfailure.c correction.c daxpy.c ddot.c dgefa.c dgesl.c dscal.c fnorm.c idamax.c intdy.c lsoda.c methodswitch.c orderswitch.c prja.c scaleh.c solsy.c stoda.c vmnorm.c strdup_printf.c
 SOURCES_CPP = RcppExports.cpp util.cpp WinDrive.cpp rxInv.cpp rxData.cpp

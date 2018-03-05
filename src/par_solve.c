@@ -72,7 +72,7 @@ int par_progress(int c, int n, int d, int cores, clock_t t0, int stop){
   return d;
 }
 
-inline rx_solving_options_ind *rxOptionsIniEnsure(int mx){
+rx_solving_options_ind *rxOptionsIniEnsure(int mx){
   if (mx >= max_inds_global){
     max_inds_global = mx+1024;
     inds_global = Realloc(inds_global, max_inds_global, rx_solving_options_ind);
@@ -282,7 +282,6 @@ void F77_NAME(dlsoda)(
                       void (*)(int *, double *, double *, int *, int *, double *, int *),
                       int *);
 
-rx_solve *getRxSolve(SEXP ptr);
 extern rx_solve *getRxSolve_(){
   set_solve(&rx_global);
   return &rx_global;
@@ -549,6 +548,8 @@ void rxOptionsIni(){
   global_BadDosei = 1024;
   global_scalep=Calloc(1024, double);
   global_scalei = 1024;
+  rx_solve *rx=(&rx_global);
+  rx->op = &op_global;
 }
 
 void rxOptionsFree(){
@@ -1039,7 +1040,7 @@ SEXP rxParamNames(char *ptr);
 
 extern SEXP RxODE_par_df(SEXP sd){
   rx_solve *rx;
-  rx = getRxSolve(sd);
+  rx = &rx_global;
   rx_solving_options *op = &op_global;
   // Mutiple ID data?
   int md = 0;
@@ -1374,7 +1375,7 @@ extern int rxGetErrsNcol();
 
 extern SEXP RxODE_df(SEXP sd, int doDose){
   rx_solve *rx;
-  rx = getRxSolve(sd);
+  rx = &rx_global;
   rx_solving_options *op = &op_global;
   int add_cov = rx->add_cov;
   int ncov = op->ncov;

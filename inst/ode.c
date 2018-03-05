@@ -176,18 +176,19 @@ inline void _update_par_ptr(double t, unsigned int id){
   if (op->neq > 0){
     // Update all covariate parameters
     int k;
-    double *par_ptr = ind->par_ptr;
-    double *all_times = ind->all_times;
-    double *cov_ptr = ind->cov_ptr;
     int ncov = op->ncov;
     if (op->do_par_cov){
-      for (k = 0; k < ncov; k++){
+      for (k = ncov; k--;){
         if (op->par_cov[k]){
+	  double *par_ptr = ind->par_ptr;
+          double *all_times = ind->all_times;
+          double **cov_ptrA = ind->cov_ptr;
+	  double *cov_ptr = cov_ptrA[k];
           // Use the same methodology as approxfun.
           // There is some rumor the C function may go away...
-          ind->ylow = cov_ptr[ind->n_all_times*k];
-          ind->yhigh = cov_ptr[ind->n_all_times*k+ind->n_all_times-1];
-          par_ptr[op->par_cov[k]-1] = rx_approxP(t, all_times, cov_ptr+ind->n_all_times*k, ind->n_all_times, op, ind);
+          ind->ylow = cov_ptr[0];
+          ind->yhigh = cov_ptr[ind->n_all_times-1];
+          par_ptr[op->par_cov[k]-1] = rx_approxP(t, all_times, cov_ptr, ind->n_all_times, op, ind);
         }
         /* if (global_debug){ */
         /*   REprintf("par_ptr[%d] (cov %d/%d) = %f\\n",op->par_cov[k]-1, k,ncov,cov_ptr[op->par_cov[k]-1]); */
