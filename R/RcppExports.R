@@ -4,7 +4,7 @@
 #' Check the type of an object using Rcpp
 #'
 #' @param obj Object to check
-#' @param cls Type of class.  Only s3 classes and primitive classes are checked.
+#' @param cls Type of class.  Only s3 classes for lists/environments and primitive classes are checked.
 #'    For matrix types they are distinguished as \code{numeric.matrix}, \code{integer.matrix},
 #'    \code{logical.matrix}, and \code{character.matrix} as well as the traditional \code{matrix}
 #'    class. Additionally checks for \code{event.data.frame} which is an \code{data.frame} object

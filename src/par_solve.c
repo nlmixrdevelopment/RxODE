@@ -550,6 +550,7 @@ void rxOptionsIni(){
   global_scalei = 1024;
   rx_solve *rx=(&rx_global);
   rx->op = &op_global;
+  rx->subjects = inds_global;
 }
 
 void rxOptionsFree(){
@@ -1369,7 +1370,6 @@ extern SEXP RxODE_par_df(SEXP sd){
   return ret;
 }
 
-extern SEXP rxSimSigmaC(rx_solving_options *op, int nObs);
 extern double *rxGetErrs();
 extern int rxGetErrsNcol();
 

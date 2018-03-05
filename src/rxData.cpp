@@ -10,7 +10,7 @@
 extern "C" {
 #include "solve.h"
 }
-
+#define rxModelVars(a) rxModelVars_(a)
 using namespace Rcpp;
 using namespace arma;
 
@@ -73,6 +73,7 @@ bool rxIs(const RObject &obj, std::string cls){
   bool hasDim = false;
   bool hasCls = false;
   switch (type){
+  case 0: return (cls == "NULL");
   case REALSXP: 
     hasDim = obj.hasAttribute("dim");
     if (hasDim){
@@ -189,15 +190,6 @@ bool rxIs(const RObject &obj, std::string cls){
     return (cls == "externalptr" || cls == "refObject");
   }
   return false;
-}
-
-extern "C" int rxIsC(SEXP obj, const char *cls){
-  std::string str(cls);
-  if (rxIs(as<RObject>(obj),cls)){
-    return 1;
-  } else {
-    return 0;
-  }
 }
 
 RObject rxSimSigma(const RObject &sigma,
@@ -732,6 +724,8 @@ List rxModelVars_(const RObject &obj){
       }
     }
     stop("Cannot figure out the model variables.");
+  } else if (rxIs(obj,"NULL")) {
+      stop("A NULL object does not have any RxODE model variables");
   } else {
     CharacterVector cls = obj.attr("class");
     int i = 0;
@@ -744,9 +738,7 @@ List rxModelVars_(const RObject &obj){
   }
 }
 
-List rxModelVars(const RObject &obj){
-  return rxModelVars_(obj);
-}
+
 //' State variables
 //'
 //' This returns the model's compartments or states.
@@ -2157,8 +2149,16 @@ SEXP rxSolveC(const RObject &object,
 	      const RObject &theta = R_NilValue,
 	      const RObject &eta = R_NilValue,
 	      const bool updateObject = false,
-	      const bool doSolve = true){
-  Rprintf("1\n");
+	      const bool doSolve = true,
+              const RObject &omega = R_NilValue, 
+	      const RObject &omegaDf = R_NilValue, 
+	      const bool &omegaIsChol = false,
+              const int nSub = 1, 
+	      const RObject &thetaMat = R_NilValue, 
+	      const RObject &thetaDf = R_NilValue, 
+	      const bool &thetaIsChol = false,
+              const int nStud = 1, 
+	      const bool simVariability=true){
   if (updateObject){
     if (rxIs(object, "rxSolve")){
       bool update_params = false,
@@ -2333,13 +2333,14 @@ SEXP rxSolveC(const RObject &object,
       stop("Cannot load RxODE dlls for this model.");
     }
     // Get model 
-    List mv = rxModelVars(mv);
+    List mv = rxModelVars(object);
     // Assign Pointers
     RxODE_assign_fn_pointers(as<SEXP>(mv));
     // Get the C solve object
     rx_solve* rx = getRxSolve_();
     rx_solving_options* op = rx->op;
     rx_solving_options_ind* ind;
+    
     rx->matrix = (int)(matrix);
     rx->add_cov = (int)(addCov);
     op->stiff = method;
@@ -2392,6 +2393,16 @@ SEXP rxSolveC(const RObject &object,
     op->mxstep = maxsteps;
     op->MXORDN = maxordn;
     op->MXORDS = maxords;
+    // The initial conditions cannot be changed for each individual; If
+    // they do they need to be a parameter.
+    NumericVector initsC = rxInits(object, inits, state, 0.0);
+    ginitsSetup(initsC.size());
+    memcpy(ginits, &initsC[0], initsC.size()*sizeof(double));
+    op->inits = &ginits[0];
+    NumericVector scaleC = rxSetupScale(object, scale, extraArgs);
+    gscaleSetup(scaleC.size());
+    memcpy(gscale, &scaleC[0], scaleC.size()*sizeof(double));
+    op->scale = &gscale[0];
     //
     // op->do_transit_abs = (int)(transit_abs);
     op->nlhs = lhs.size();
@@ -2428,17 +2439,17 @@ SEXP rxSolveC(const RObject &object,
     op->ncoresRV = nCoresRV;
     op->isChol = (int)(sigmaIsChol);
     unsigned int nsub = 0;
-    unsigned int nobs = 0;
+    unsigned int nobs = 0, ndoses = 0;
     unsigned int i, j, k = 0;
     int ncov =0, curcovi = 0, curcovpi = 0;
     double tmp, hmax1, hmax2, tlast;
-    bool doHmax = hmax.isNull();
     // Covariate options
     // Simulation variabiles
     // int *svar;
     if (rxIs(ev1, "EventTable")){
       rxOptionsIniEnsure(1);
       ind = &(rx->subjects[0]);
+
       ind->slvr_counter   = 0;
       ind->dadt_counter   = 0;
       ind->jac_counter    = 0;
@@ -2458,7 +2469,6 @@ SEXP rxSolveC(const RObject &object,
       gevidSetup(ind->n_all_times);
       memcpy(gevid, &evid[0], ind->n_all_times*sizeof(int));
       ind->evid     = &gevid[0];
-
       j=0;
       gamtSetup(ind->n_all_times);
       ind->dose = &gamt[0];
@@ -2467,6 +2477,7 @@ SEXP rxSolveC(const RObject &object,
       hmax1 = hmax2 = 0;
       for (i =0; i != (unsigned int)(ind->n_all_times); i++){
         if (ind->evid[i]){
+          ndoses++;
           gamt[j++]= amt[i];
 	} else {
 	  nobs++;
@@ -2477,7 +2488,7 @@ SEXP rxSolveC(const RObject &object,
 	  }
 	}
       }
-      if (doHmax){
+      if (!hmax.isNull()){
 	NumericVector hmax0 = NumericVector(hmax);
 	ind->HMAX = hmax0[0];
 	op->hmax2 = hmax0[0];
@@ -2512,17 +2523,54 @@ SEXP rxSolveC(const RObject &object,
 	      }
 	    }
 	  }
-	} else if (rxIs(covs, "matrix")){
-	  
+          op->ncov=ncov;
+        } else if (rxIs(covs, "matrix")){
+	  // FIXME
+	  stop("Covariates must be supplied as a data.frame.");
 	} 
       } else {
 	op->ncov = 0;
         // int *par_cov;
         op->do_par_cov = 0;
       }
-      op->ncov=ncov;
+    } else {
+      // data.frame or matrix
+      stop("single solver only for now.");
     }
+    // Now get parameters in the dataset
+    
+    /*
+      if (!is.null(thetaMat) || !is.null(omega) || !is.null(sigma)){
+        cur.events <- NULL;
+        ## FIXME allow rxDataSetup object to be passed to solve c routine
+        if (rxIs(params, "rx.event")){
+            cur.events <- rxDataSetup(params);
+        } else if (rxIs(events, "rx.event")){
+            cur.events <- rxDataSetup(events);
+            if (rxIs(params, "data.frame") || rxIs(params, "matrix")){
+                stop("When specifying 'thetaMat', 'omega', or 'sigma' the parameters cannot be a data.frame/matrix.");
+            }
+        }
+        nObs <- cur.events$nObs;
+        if (addDosing){
+            nObs <- nObs + cur.events$nDoses;
+        }
+        if (nSub == 1L && cur.events$nSub > 1){
+            nSub <- cur.events$nSub;
+        } else if (nSub > 1 && cur.events$nSub > 1 && nSub != cur.events$nSub){
+            stop("You provided multi-subject data and asked to simulate a different number of subjects;  I don't know what to do.")
+        }
+        params <- rxSimThetaOmega(params = params,
+                                  omega = omega, omegaDf = omegaDf, omegaIsChol = omegaIsChol, nSub = nSub,
+                                  thetaMat = thetaMat, thetaDf = thetaDf, thetaIsChol = thetaIsChol, nStud = nStud,
+                                  sigma=sigma, sigmaDf=sigmaDf, sigmaIsChol=sigmaIsChol, nObs=nObs,
+                                  nCoresRV = nCoresRV, simVariability=simVariability);
+    }    
+
+      */
+
   }
+  
   // double *inits;
   // double *scale;        
   return R_NilValue;
@@ -3051,15 +3099,15 @@ SEXP rxSolveCsmall(const RObject &object,
   }
   List opts = List(optsL);
   return rxSolveC(object, specParams, extraArgs, params, events, inits, scale, covs,
-                  opts[0], // const int method = 2,
-                  opts[1], // const Nullable<LogicalVector> &transit_abs = R_NilValue,
-                  opts[2], //const double atol = 1.0e-8,
-                  opts[3], // const double rtol = 1.0e-6,
-                  opts[4], //const int maxsteps = 5000,
-                  opts[5], //const double hmin = 0,
-                  opts[6], //const Nullable<NumericVector> &hmax = R_NilValue,
-                  opts[7], //const double hini = 0,
-                  opts[8], //const int maxordn = 12,
+                  (int)opts[0], // const int method = 2,
+                  as<Nullable<LogicalVector>>(opts[1]), // const Nullable<LogicalVector> &transit_abs = R_NilValue,
+                  (double)opts[2], //const double atol = 1.0e-8,
+                  (double)opts[3], // const double rtol = 1.0e-6,
+                  (int)opts[4], //const int maxsteps = 5000,
+                  (double)opts[5], //const double hmin = 0,
+                  as<Nullable<NumericVector>>(opts[6]), //const Nullable<NumericVector> &hmax = R_NilValue,
+                  (double)opts[7], //const double hini = 0,
+                  (int)opts[8], //const int maxordn = 12,
                   opts[9], //const int maxords = 5,
                   opts[10], //const int cores = 1,
                   opts[11], //const int covs_interpolation = 0,
@@ -3075,8 +3123,18 @@ SEXP rxSolveCsmall(const RObject &object,
                   opts[21], //const bool updateObject = false
                   opts[22], //const RObject &eta = R_NilValue,
                   opts[23], //const bool addDosing = false
-		  opts[24], //
-		  opts[25]); //const bool doSolve = false
+		  opts[24], // 
+		  opts[25],
+		  opts[26], // const RObject &omega = R_NilValue, 
+		  opts[27], // const RObject &omegaDf = R_NilValue, 
+                  opts[28], // const bool &omegaIsChol = false,
+                  opts[29], // const int nSub = 1, 
+                  opts[30], // const RObject &thetaMat = R_NilValue, 
+                  opts[31], // const RObject &thetaDf = R_NilValue, 
+                  opts[32], // const bool &thetaIsChol = false,
+                  opts[33], // const int nStud = 1, 
+                  opts[34] // const bool simVariability=true
+		  );
 }
 
 //[[Rcpp::export]]
@@ -4377,7 +4435,7 @@ extern "C" double *rxGetErrs(){
   if (_rxModels.exists(".sigma")){
     NumericMatrix sigma = _rxModels[".sigma"];
     return &sigma[0];
-  } 
+  }
   return NULL;
 }
 

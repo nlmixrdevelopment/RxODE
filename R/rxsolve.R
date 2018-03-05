@@ -248,42 +248,12 @@ rxSolve <- function(object, params=NULL, events=NULL, inits = NULL, scale = NULL
     }
     method <- as.integer(which(method == c("lsoda", "dop853", "liblsoda")) - 1)
     covs_interpolation  <- as.integer(which(match.arg(covs_interpolation) == c("linear", "locf", "nocb", "midpoint")) - 1);
-    if (!is.null(thetaMat) || !is.null(omega) || !is.null(sigma)){
-        cur.events <- NULL;
-        ## FIXME allow rxDataSetup object to be passed to solve c routine
-        if (rxIs(params, "rx.event")){
-            cur.events <- rxDataSetup(params);
-        } else if (rxIs(events, "rx.event")){
-            cur.events <- rxDataSetup(events);
-            if (rxIs(params, "data.frame") || rxIs(params, "matrix")){
-                stop("When specifying 'thetaMat', 'omega', or 'sigma' the parameters cannot be a data.frame/matrix.");
-            }
-        }
-        nObs <- cur.events$nObs;
-        if (addDosing){
-            nObs <- nObs + cur.events$nDoses;
-        }
-        if (nSub == 1L && cur.events$nSub > 1){
-            nSub <- cur.events$nSub;
-        } else if (nSub > 1 && cur.events$nSub > 1 && nSub != cur.events$nSub){
-            stop("You provided multi-subject data and asked to simulate a different number of subjects;  I don't know what to do.")
-        }
-        params <- rxSimThetaOmega(params = params,
-                                  omega = omega, omegaDf = omegaDf, omegaIsChol = omegaIsChol, nSub = nSub,
-                                  thetaMat = thetaMat, thetaDf = thetaDf, thetaIsChol = thetaIsChol, nStud = nStud,
-                                  sigma=sigma, sigmaDf=sigmaDf, sigmaIsChol=sigmaIsChol, nObs=nObs,
-                                  nCoresRV = nCoresRV, simVariability=simVariability);
-    }
     extra <- list(...);
-
     if (any(duplicated(names(extra)))){
         stop("Duplicate arguments do not make sense.");
     }
     if (missing(cores)){
         cores <- rxCores();
-    }
-    if (rxIs(object, "RxODE")){
-        object$dynLoad();
     }
     nms <- names(as.list(match.call())[-1]);
     .Call(`_RxODE_rxSolveCsmall`, object, nms, extra,
@@ -293,7 +263,8 @@ rxSolve <- function(object, params=NULL, events=NULL, inits = NULL, scale = NULL
                covs_interpolation, add.cov, matrix, sigma, sigmaDf,
                nCoresRV, sigmaIsChol, nDisplayProgress, amountUnits,
                timeUnits, addDosing, theta, eta, update.object,
-               do.solve));
+               do.solve, omega, omegaDf, omegaIsChol, nSub, thetaMat,
+               thetaDf, thetaIsChol, nStud, simVariability));
 }
 
 ##' @export
