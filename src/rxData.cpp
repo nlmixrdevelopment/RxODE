@@ -2954,7 +2954,7 @@ SEXP rxSolveC(const RObject &object,
 	nSub0 = nsub;
       } else if (nSub > 1 && nsub > 1 &&  nSub != nsub){
         stop("You provided multi-subject data and asked to simulate a different number of subjects;  I don't know what to do.");
-      } 
+      }
       par1 =  as<RObject>(rxSimThetaOmega(as<Nullable<NumericVector>>(par1), omega, omegaDf, omegaIsChol, nSub0, thetaMat, thetaDf, thetaIsChol, nStud,
 					  sigma, sigmaDf, sigmaIsChol, nObs, nCoresRV, simVariability));
       // The parameters are in the same format as they would be if they were specified as part of the original dataset.
@@ -2965,9 +2965,10 @@ SEXP rxSolveC(const RObject &object,
     }
     int parType = 1;
     NumericMatrix parNumeric;
-    DataFrame parDf;
+    List parDf;
     NumericMatrix parMat;
     CharacterVector nmP;
+    int nPopPar = 1;
     if (rxIs(par1, "numeric") || rxIs(par1, "integer")){
       parNumeric = as<NumericMatrix>(par1);
       if (parNumeric.hasAttribute("names")){
@@ -2978,11 +2979,13 @@ SEXP rxSolveC(const RObject &object,
 	stop("If parameters are not named, they must match the order and size of the parameters in the model.");
       }
     } else if (rxIs(par1, "data.frame")){
-      parDf = as<DataFrame>(par1);
+      parDf = as<List>(par1);
       parType = 2;
       nmP = pars.names();
+      nPopPar = (as<NumericVector>(pars[0])).size();
     } else if (rxIs(par1, "matrix")){
       parMat = as<NumericMatrix>(par1);
+      nPopPar = parMat.nrow();
       parType = 3;
       if (parMat.hasAttribute("dimnames")){
 	Nullable<CharacterVector> colnames0 = as<Nullable<CharacterVector>>((as<List>(parMat.attr("dimnames")))[1]);
@@ -3037,6 +3040,7 @@ SEXP rxSolveC(const RObject &object,
           }
         }
       }
+      // last, check for $ini values
       if (!curPar){
         for (j = mvIniN.size(); j--;){
           if (mvIniN[j] == pars[i]){
@@ -3046,14 +3050,25 @@ SEXP rxSolveC(const RObject &object,
           }
         }
       }
+      if (!curPar){
+        if (errStr == ""){
+          errStr = "The following parameter(s) are required for solving: " + pars[i];
+        } else {
+          errStr = errStr + ", " + pars[i];
+        }
+        allPars = false;
+      }
     }
     if (!allPars){
       CharacterVector modSyntax = mv["model"];
       Rcout << "Model:\n\n" + modSyntax[0] + "\n";
       stop(errStr);
     }
+    // Now setup the rest of the rx_solve object
+    if (nPopPar % nsub != 0){
+      stop("The number of parameters solved by RxODE for multi-subject data needs to be a multiple of the number of subjects.");
+    }
   }
-  
   // double *inits;
   // double *scale;        
   return R_NilValue;
