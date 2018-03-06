@@ -252,7 +252,6 @@ RObject rxSimSigma(const RObject &sigma,
   }
 }
 
-
 bool foundEnv = false;
 Environment _rxModels;
 void getRxModels(){
@@ -1460,6 +1459,17 @@ void gpar_covSetup(int n){
   }
 }
 
+int *gParPos = NULL;
+int gParPosn = 0;
+void gParPosSetup(int n){
+  if (gParPosn == 0){
+    gParPos=Calloc(n, int);
+    gParPosn=n;
+  } else if (n > gParPosn){
+    gParPos = Realloc(gParPos, n, int);
+    gParPosn=n;
+  }
+}
 
 int *gsvar = NULL;
 int gsvarn = 0;
@@ -1524,6 +1534,8 @@ void gFree(){
   gInfusionRaten=0;
   if (gsolve != NULL) Free(gsolve);
   gsolven=0;
+  if (gParPos != NULL) Free(gParPos);
+  gParPosn = 0;
 }
 
 
@@ -1547,7 +1559,7 @@ void gFree(){
 //' @export
 //[[Rcpp::export]]
 List rxDataParSetup(const RObject &object,
-			   const RObject &params = R_NilValue,
+		    const RObject &params = R_NilValue,
 			   const RObject &events = R_NilValue,
 			   const RObject &inits = R_NilValue,
 			   const RObject &covs  = R_NilValue,
@@ -2762,7 +2774,7 @@ SEXP rxSolveC(const RObject &object,
     // Now get the parameters (and covariates)
     //
     // Unspecified parameters can be found in the modVars["ini"]
-    // NumericVector modVarsIni = mv["ini"];
+    NumericVector mvIni = mv["ini"];
     // The event table can contain covariate information, if it is acutally a data frame or matrix.
     Nullable<CharacterVector> covnames0, simnames0;
     CharacterVector covnames, simnames;
@@ -2866,18 +2878,18 @@ SEXP rxSolveC(const RObject &object,
       gamtSetup(ind->n_all_times);
       ind->dose = &gamt[0];
       // Slower
-      tlast =time[0];
+      tlast = time[0];
       hmax1 = hmax2 = 0;
       for (i =0; i != (unsigned int)(ind->n_all_times); i++){
         if (ind->evid[i]){
           ndoses++;
-          gamt[j++]= amt[i];
+          gamt[j++] = amt[i];
 	} else {
 	  nobs++;
 	  tmp = time[i]-tlast;
 	  if (tmp < 0) stop("Dataset must be ordered by ID and TIME variables.");
 	  if (tmp > hmax1){
-	    hmax1=tmp;
+	    hmax1 = tmp;
 	  }
 	}
       }
@@ -2930,7 +2942,7 @@ SEXP rxSolveC(const RObject &object,
       // data.frame or matrix
       stop("single solver only for now.");
     }
-    // Now get parameters in the dataset
+    CharacterVector sigmaN;
     if (!thetaMat.isNull() || !omega.isNull() || !sigma.isNull()){
       // Simulated Variable
       if (!rxIs(par1, "numeric")){
@@ -2945,37 +2957,101 @@ SEXP rxSolveC(const RObject &object,
       } 
       par1 =  as<RObject>(rxSimThetaOmega(as<Nullable<NumericVector>>(par1), omega, omegaDf, omegaIsChol, nSub0, thetaMat, thetaDf, thetaIsChol, nStud,
 					  sigma, sigmaDf, sigmaIsChol, nObs, nCoresRV, simVariability));
+      // The parameters are in the same format as they would be if they were specified as part of the original dataset.
     }
-    /*
-      if (!is.null(thetaMat) || !is.null(omega) || !is.null(sigma)){
-        cur.events <- NULL;
-        ## FIXME allow rxDataSetup object to be passed to solve c routine
-        if (rxIs(params, "rx.event")){
-            cur.events <- rxDataSetup(params);
-        } else if (rxIs(events, "rx.event")){
-            cur.events <- rxDataSetup(events);
-            if (rxIs(params, "data.frame") || rxIs(params, "matrix")){
-                stop("When specifying 'thetaMat', 'omega', or 'sigma' the parameters cannot be a data.frame/matrix.");
-            }
+    // .sigma could be reassigned in an update, so check outside simulation function.
+    if (_rxModels.exists(".sigma")){
+      sigmaN = as<CharacterVector>((as<List>((as<NumericMatrix>(_rxModels[".sigma"])).attr("dimnames")))[1]);
+    }
+    int parType = 1;
+    NumericMatrix parNumeric;
+    DataFrame parDf;
+    NumericMatrix parMat;
+    CharacterVector nmP;
+    if (rxIs(par1, "numeric") || rxIs(par1, "integer")){
+      parNumeric = as<NumericMatrix>(par1);
+      if (parNumeric.hasAttribute("names")){
+	nmP = parNumeric.names();
+      } else if (parNumeric.size() == pars.size()) {
+	nmP = pars;
+      } else {
+	stop("If parameters are not named, they must match the order and size of the parameters in the model.");
+      }
+    } else if (rxIs(par1, "data.frame")){
+      parDf = as<DataFrame>(par1);
+      parType = 2;
+      nmP = pars.names();
+    } else if (rxIs(par1, "matrix")){
+      parMat = as<NumericMatrix>(par1);
+      parType = 3;
+      if (parMat.hasAttribute("dimnames")){
+	Nullable<CharacterVector> colnames0 = as<Nullable<CharacterVector>>((as<List>(parMat.attr("dimnames")))[1]);
+	if (colnames0.isNull()){
+	  if (parMat.ncol() == pars.size()){
+	    nmP = pars;
+	  } else {
+            stop("If parameters are not named, they must match the order and size of the parameters in the model.");
+          }
+        } else {
+	  nmP = CharacterVector(colnames0);
+	}
+      } else if (parMat.ncol() == pars.size()) {
+	nmP = pars;
+      } else {
+        stop("If parameters are not named, they must match the order and size of the parameters in the model.");
+      }
+    } 
+    // Make sure the user input all the parmeters.
+    gParPosSetup(npars);
+    std::string errStr = "";
+    bool allPars = true;
+    bool curPar = false;
+    CharacterVector mvIniN = mvIni.names();
+    for (i = npars; i--;){
+      curPar = false;
+      // Check to see if this is a covariate.
+      for (j = op->ncov; j--;){
+	if (gpar_cov[j] == (int)(i + 1)){
+	  gParPos[i] = 0; // These are set at run-time and "dont" matter.
+	  curPar = true;
+	  break;
+	}
+      }
+      // Check for the sigma-style simulated parameters.
+      if (!curPar){
+	for (j = sigmaN.size(); j--;){
+          if (sigmaN[j] == pars[i]){
+	    gParPos[i] = 0; // These are set at run-time and "dont" matter.
+	    curPar = true;
+	    break;
+	  }
+	}
+      }
+      // Next, check to see if this is a user-specified parameter
+      if (!curPar){
+        for (j = nmP.size(); j--;){
+          if (nmP[j] == pars[i]){
+            curPar = true;
+            gParPos[i] = j + 1;
+            break;
+          }
         }
-        nObs <- cur.events$nObs;
-        if (addDosing){
-            nObs <- nObs + cur.events$nDoses;
+      }
+      if (!curPar){
+        for (j = mvIniN.size(); j--;){
+          if (mvIniN[j] == pars[i]){
+            curPar = true;
+            gParPos[i] = -j - 1;
+            break;
+          }
         }
-        if (nSub == 1L && cur.events$nSub > 1){
-            nSub <- cur.events$nSub;
-        } else if (nSub > 1 && cur.events$nSub > 1 && nSub != cur.events$nSub){
-            stop("You provided multi-subject data and asked to simulate a different number of subjects;  I don't know what to do.")
-        }
-        params <- rxSimThetaOmega(params = params,
-                                  omega = omega, omegaDf = omegaDf, omegaIsChol = omegaIsChol, nSub = nSub,
-                                  thetaMat = thetaMat, thetaDf = thetaDf, thetaIsChol = thetaIsChol, nStud = nStud,
-                                  sigma=sigma, sigmaDf=sigmaDf, sigmaIsChol=sigmaIsChol, nObs=nObs,
-                                  nCoresRV = nCoresRV, simVariability=simVariability);
-    }    
-
-      */
-
+      }
+    }
+    if (!allPars){
+      CharacterVector modSyntax = mv["model"];
+      Rcout << "Model:\n\n" + modSyntax[0] + "\n";
+      stop(errStr);
+    }
   }
   
   // double *inits;
