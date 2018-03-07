@@ -1171,7 +1171,7 @@ extern SEXP RxODE_par_df(SEXP sd){
   classgets(dfd, clse1);
   classgets(dfe, clse2);
   
-  double *times, *doses, *cov_ptr;
+  double *times, *doses, **cov_ptrA, *cov_ptr;
   int evid, iie = 0, iis = 0, iid = 0, curdose, ntimes;
   int k, kk;
   for (csub = 0; csub < nsub; csub++){
@@ -1179,7 +1179,7 @@ extern SEXP RxODE_par_df(SEXP sd){
     ntimes = ind->n_all_times;
     times = ind->all_times;
     doses = ind->dose;
-    cov_ptr = ind->cov_ptr;
+    cov_ptrA = ind->cov_ptr;
     curdose=0;
     for (i = 0; i < ntimes; i++){
       evid = rxEvidP(i,rx,csub);
@@ -1199,7 +1199,6 @@ extern SEXP RxODE_par_df(SEXP sd){
 	// amt
 	REAL(VECTOR_ELT(dfe, md+2))[iie] = NA_REAL;
         REAL(VECTOR_ELT(dfs, md+2))[iis] = NA_REAL;
-
 	LOGICAL(isEt)[iie] = 1;
 	kk = 0;
 	for (k = 0; k < npar; k++){
@@ -1213,7 +1212,8 @@ extern SEXP RxODE_par_df(SEXP sd){
           if (is_cov){
 	    /* REprintf("covs[%d, %d]\n", kk,iis); */
 	    dfp = REAL(VECTOR_ELT(covs, kk+md));
-            dfp[iis] = cov_ptr[kk*ntimes+iis];
+	    cov_ptr = cov_ptrA[kk];
+            dfp[iis] = cov_ptr[iis];
             kk++;
           }
 	}
@@ -1373,7 +1373,7 @@ extern SEXP RxODE_par_df(SEXP sd){
 extern double *rxGetErrs();
 extern int rxGetErrsNcol();
 
-extern SEXP RxODE_df(SEXP sd, int doDose){
+extern SEXP RxODE_df(int doDose){
   rx_solve *rx;
   rx = &rx_global;
   rx_solving_options *op = &op_global;
@@ -1447,6 +1447,7 @@ extern SEXP RxODE_df(SEXP sd, int doDose){
   int *dfi;
   int ii=0, jj = 0, ntimes;
   double *solve;
+  double **cov_ptrA;
   double *cov_ptr;
   int nBadDose;
   int *BadDose;
@@ -1463,7 +1464,7 @@ extern SEXP RxODE_df(SEXP sd, int doDose){
       BadDose = ind->BadDose;
       ntimes = ind->n_all_times;
       solve =  ind->solve;
-      cov_ptr = ind->cov_ptr;
+      cov_ptrA = ind->cov_ptr;
       par_ptr = ind->par_ptr;
       dose = ind->dose;
       di = 0;
@@ -1501,17 +1502,20 @@ extern SEXP RxODE_df(SEXP sd, int doDose){
             dfi = INTEGER(VECTOR_ELT(df, jj++));
             dfi[ii] = evid;
             // amt
+	    Rprintf("1\n");
             dfp = REAL(VECTOR_ELT(df, jj++));
             dfp[ii] = (evid == 0 ? NA_REAL : dose[di++]);
 	  }
           // time
+          Rprintf("2; %d; %f\n", jj, ind->all_times[i]);
           dfp = REAL(VECTOR_ELT(df, jj++));
           dfp[ii] = ind->all_times[i];
 	  // States
           if (nPrnState){
             for (j = 0; j < neq[0]; j++){
 	      if (!rmState[j]){
-                 dfp = REAL(VECTOR_ELT(df, jj));
+                Rprintf("3\n");
+		dfp = REAL(VECTOR_ELT(df, jj));
                  dfp[ii] = solve[j+i*neq[0]] / scale[j];
                  jj++;
                }
@@ -1521,7 +1525,8 @@ extern SEXP RxODE_df(SEXP sd, int doDose){
           if (nlhs){
 	    rxCalcLhsP(i, rx, neq[1]);
 	    for (j = 0; j < nlhs; j++){
-               dfp = REAL(VECTOR_ELT(df, jj));
+              Rprintf("4\n");
+	      dfp = REAL(VECTOR_ELT(df, jj));
                dfp[ii] =rxLhsP(j, rx, neq[1]);
 	       jj++;
              }
@@ -1529,9 +1534,11 @@ extern SEXP RxODE_df(SEXP sd, int doDose){
           // Cov
           if (add_cov*ncov > 0){
 	    for (j = 0; j < add_cov*ncov; j++){
-	      dfp = REAL(VECTOR_ELT(df, jj));
+              Rprintf("4\n");
+              dfp = REAL(VECTOR_ELT(df, jj));
 	      // is this ntimes = nAllTimes or nObs time for this subject...?
-	      dfp[ii] = (evid == 0 ? cov_ptr[j*ntimes+i] : NA_REAL);
+	      cov_ptr = cov_ptrA[j];
+	      dfp[ii] = (evid == 0 ? cov_ptr[i] : NA_REAL);
 	      jj++;
 	    }
           }

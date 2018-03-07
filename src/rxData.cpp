@@ -2809,7 +2809,7 @@ SEXP rxSolveC(const RObject &object,
     CharacterVector lhs = mv["lhs"];
     op->neq = state.size();
     op->badSolve = 0;
-    op->abort = 1;
+    op->abort = 0;
     op->ATOL = atol;          //absolute error
     op->RTOL = rtol;          //relative error
     gatol2Setup(op->neq);
@@ -2879,7 +2879,6 @@ SEXP rxSolveC(const RObject &object,
     if (rxIs(ev1, "EventTable")){
       rxOptionsIniEnsure(1);
       ind = &(rx->subjects[0]);
-
       ind->slvr_counter   = 0;
       ind->dadt_counter   = 0;
       ind->jac_counter    = 0;
@@ -2905,9 +2904,11 @@ SEXP rxSolveC(const RObject &object,
       // Slower
       tlast = time[0];
       hmax1 = hmax2 = 0;
+      gidoseSetup(ind->n_all_times);
       for (i =0; i != (unsigned int)(ind->n_all_times); i++){
         if (ind->evid[i]){
           ndoses++;
+	  gidose[j] = i;
           gamt[j++] = amt[i];
 	} else {
 	  nobs++;
@@ -2918,6 +2919,8 @@ SEXP rxSolveC(const RObject &object,
 	  }
 	}
       }
+      ind->idose = &gidose[0];
+      ind->ndoses = ndoses;
       if (!hmax.isNull()){
 	NumericVector hmax0 = NumericVector(hmax);
 	ind->HMAX = hmax0[0];
@@ -2937,7 +2940,7 @@ SEXP rxSolveC(const RObject &object,
 	  CharacterVector dfNames = df.names();
 	  int dfN = dfNames.size();
 	  gcovpSetup(dfN);
-          gcovSetup(dfN *   ind->n_all_times);
+          gcovSetup(dfN * ind->n_all_times);
 	  gpar_covSetup(dfN);
 	  k = 0;
 	  for (i = dfN; i--;){
@@ -3110,11 +3113,12 @@ SEXP rxSolveC(const RObject &object,
     memset(grc,0,nsub*nPopPar);
 
     gsolveSetup((ndoses+nobs)*state.size()*nPopPar);
+    memset(gsolve, 0.0, (ndoses+nobs)*state.size()*nPopPar);
     int curEvent = 0;
     
     switch(parType){
     case 1: // NumericVector
-      if (nPopPar != 1) stop("Something is wrong... nPopPar != 1 but parameters are specified as ");
+      if (nPopPar != 1) stop("Something is wrong... nPopPar != 1 but parameters are specified as a NumericVector.");
       gparsSetup(npars);
       for (i = npars; i--;){
 	if (gParPos[i] == 0){ // Covariate or simulated variable.
@@ -3133,9 +3137,8 @@ SEXP rxSolveC(const RObject &object,
         ind->nBadDose = 0;
 	// Hmas defined above.
 	ind->tlast=0.0;
-	ind->podo = 0;
+	ind->podo = 0.0;
 	ind->ixds =  0;
-	ind->ndoses = 0;
 	ind->sim = i+1;
 	ind->solve = &gsolve[curEvent];
         curEvent += op->neq*ind->n_all_times;
@@ -3162,7 +3165,11 @@ SEXP rxSolveC(const RObject &object,
     } else {
       doDose = 0;
     }
-    // List dat = RxODE_df(parData, doDose);
+    IntegerVector si = mv["state.ignore"];
+    rx->stateIgnore = &si[0];
+    List dat = RxODE_df(doDose);
+    dat.attr("class") = CharacterVector::create("data.frame");
+    return dat;
   //   List xtra;
   //   if (!rx->matrix) xtra = RxODE_par_df(parData);
   //   int nr = as<NumericVector>(dat[0]).size();
