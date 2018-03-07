@@ -506,7 +506,7 @@ inline int *global_iwork(unsigned int mx){
 
 double *global_InfusionRatep;
 unsigned int global_InfusionRatei = 0;
-inline double *global_InfusionRate(unsigned int mx){
+double *global_InfusionRate(unsigned int mx){
   if (mx >= global_InfusionRatei){
     global_InfusionRatei = mx+1024;
     global_InfusionRatep = Realloc(global_InfusionRatep, global_InfusionRatei, double);
@@ -527,7 +527,7 @@ inline double *global_scale(unsigned int mx){
 
 int *global_BadDosep;
 unsigned int global_BadDosei = 0;
-inline int *global_BadDose(unsigned int mx){
+int *global_BadDose(unsigned int mx){
   if (mx >= global_BadDosei){
     global_BadDosei = mx+1024;
     global_BadDosep = Realloc(global_BadDosep, global_BadDosei, int);

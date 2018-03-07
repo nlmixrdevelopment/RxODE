@@ -2505,6 +2505,9 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
   return ret0;
 }
 
+
+extern "C" double *global_InfusionRate(unsigned int mx);
+
 #define defrx_params R_NilValue
 #define defrx_events R_NilValue
 #define defrx_inits R_NilValue
@@ -2865,7 +2868,7 @@ SEXP rxSolveC(const RObject &object,
     op->nDisplayProgress = nDisplayProgress;
     op->ncoresRV = nCoresRV;
     op->isChol = (int)(sigmaIsChol);
-    unsigned int nsub = 0;
+    unsigned int nsub = 0, nsim = 0;
     unsigned int nobs = 0, ndoses = 0;
     unsigned int i, j, k = 0;
     int ncov =0, curcovi = 0, curcovpi = 0;
@@ -2880,7 +2883,7 @@ SEXP rxSolveC(const RObject &object,
       ind->slvr_counter   = 0;
       ind->dadt_counter   = 0;
       ind->jac_counter    = 0;
-      // ind->InfusionRate = global_InfusionRate(*neqa);
+      ind->id=1;
       List et = List(ev1);
       Function f = et["get.EventTable"];
       DataFrame dataf = f();
@@ -2924,6 +2927,7 @@ SEXP rxSolveC(const RObject &object,
 	op->hmax2 = hmax1;
       }
       nsub=1;
+      nsim=1;
       if (!covs.isNULL()){
         // op->do_par_cov = 1;
 	op->do_par_cov = 1;
@@ -2986,13 +2990,13 @@ SEXP rxSolveC(const RObject &object,
       sigmaN = as<CharacterVector>((as<List>((as<NumericMatrix>(_rxModels[".sigma"])).attr("dimnames")))[1]);
     }
     int parType = 1;
-    NumericMatrix parNumeric;
+    NumericVector parNumeric;
     List parDf;
     NumericMatrix parMat;
     CharacterVector nmP;
     int nPopPar = 1;
     if (rxIs(par1, "numeric") || rxIs(par1, "integer")){
-      parNumeric = as<NumericMatrix>(par1);
+      parNumeric = as<NumericVector>(par1);
       if (parNumeric.hasAttribute("names")){
 	nmP = parNumeric.names();
       } else if (parNumeric.size() == pars.size()) {
@@ -3032,6 +3036,7 @@ SEXP rxSolveC(const RObject &object,
     bool allPars = true;
     bool curPar = false;
     CharacterVector mvIniN = mvIni.names();
+    gsvarSetup(sigmaN.size());
     for (i = npars; i--;){
       curPar = false;
       // Check to see if this is a covariate.
@@ -3046,6 +3051,7 @@ SEXP rxSolveC(const RObject &object,
       if (!curPar){
 	for (j = sigmaN.size(); j--;){
           if (sigmaN[j] == pars[i]){
+	    gsvar[j] = i;
 	    gParPos[i] = 0; // These are set at run-time and "dont" matter.
 	    curPar = true;
 	    break;
@@ -3086,11 +3092,250 @@ SEXP rxSolveC(const RObject &object,
       Rcout << "Model:\n\n" + modSyntax[0] + "\n";
       stop(errStr);
     }
+    op->svar = &gsvar[0];
     // Now setup the rest of the rx_solve object
     if (nPopPar != 1 && nPopPar % nsub != 0){
       stop("The number of parameters solved by RxODE for multi-subject data needs to be a multiple of the number of subjects.");
     }
+    //
+    double *gInfusionRate = global_InfusionRate(op->neq*nsub*nPopPar);
+    memset(gInfusionRate, 0.0, op->neq*nsub*nPopPar);
+
+    gBadDoseSetup(op->neq*nsub*nPopPar);
+    memset(gBadDose, 0, op->neq*nsub*nPopPar);
     
+    glhsSetup(lhs.size()*nsub*nPopPar);
+    
+    grcSetup(nsub*nPopPar);
+    memset(grc,0,nsub*nPopPar);
+
+    gsolveSetup((ndoses+nobs)*state.size()*nPopPar);
+    int curEvent = 0;
+    
+    switch(parType){
+    case 1: // NumericVector
+      if (nPopPar != 1) stop("Something is wrong... nPopPar != 1 but parameters are specified as ");
+      gparsSetup(npars);
+      for (i = npars; i--;){
+	if (gParPos[i] == 0){ // Covariate or simulated variable.
+	  gpars[i] = NA_REAL;
+	} else if (gParPos[i] > 0){ // User specified parameter
+	  gpars[i] = parNumeric[gParPos[i]-1];
+	} else { // ini specified parameter.
+	  gpars[i] = mvIni[-gParPos[i]-1];
+	}
+      }
+      for (i = 0; i < nsub; i++){
+	ind = &(rx->subjects[i]);
+	ind->par_ptr = &gpars[0];
+	ind->InfusionRate = &gInfusionRate[op->neq*i];
+        ind->BadDose = &gBadDose[op->neq*i];
+        ind->nBadDose = 0;
+	// Hmas defined above.
+	ind->tlast=0.0;
+	ind->podo = 0;
+	ind->ixds =  0;
+	ind->ndoses = 0;
+	ind->sim = i+1;
+	ind->solve = &gsolve[curEvent];
+        curEvent += op->neq*ind->n_all_times;
+        ind->lhs = &glhs[i*lhs.size()];
+	ind->rc = &grc[i];
+      }
+      rx->nsub= nsub;
+      rx->nsim = nsim;
+      break;
+    case 2: // DataFrame as List object.
+      stop("Single solve only now.");
+    case 3: // NumericMatrix
+      stop("Single solve only now.");
+    default: 
+      stop("Something is wrong here.");
+    }
+    par_solve(rx);
+    if (op->abort){
+      stop("Aborted solve.");
+    }
+    int doDose = 0;
+    if (addDosing){
+      doDose = 1;
+    } else {
+      doDose = 0;
+    }
+    // List dat = RxODE_df(parData, doDose);
+  //   List xtra;
+  //   if (!rx->matrix) xtra = RxODE_par_df(parData);
+  //   int nr = as<NumericVector>(dat[0]).size();
+  //   int nc = dat.size();
+  //   if (rx->matrix){
+  //     getRxModels();
+  //     if(_rxModels.exists(".sigma")){
+  // 	_rxModels.remove(".sigma");
+  //     }
+  //     if(_rxModels.exists(".sigmaL")){
+  // 	_rxModels.remove(".sigmaL");
+  //     }
+  //     if(_rxModels.exists(".omegaL")){
+  // 	_rxModels.remove(".omegaL");
+  //     }
+  //     if(_rxModels.exists(".theta")){
+  // 	_rxModels.remove(".theta");
+  //     }
+  //     dat.attr("class") = "data.frame";
+  //     NumericMatrix tmpM(nr,nc);
+  //     for (int i = 0; i < dat.size(); i++){
+  // 	tmpM(_,i) = as<NumericVector>(dat[i]);
+  //     }
+  //     tmpM.attr("dimnames") = List::create(R_NilValue,dat.names());
+  //     return tmpM;
+  //   } else {
+  //     Function newEnv("new.env", R_BaseNamespace);
+  //     Environment RxODE("package:RxODE");
+  //     Environment e = newEnv(_["size"] = 29, _["parent"] = RxODE);
+  //     getRxModels();
+  //     if(_rxModels.exists(".theta")){
+  // 	e[".theta"] = as<NumericMatrix>(_rxModels[".theta"]);
+  // 	_rxModels.remove(".theta");
+  //     }
+  //     if(_rxModels.exists(".sigma")){
+  // 	e[".sigma"] = as<NumericMatrix>(_rxModels[".sigma"]);
+  // 	_rxModels.remove(".sigma");
+  //     }
+  //     if(_rxModels.exists(".omegaL")){
+  // 	e[".omegaL"] = as<List>(_rxModels[".omegaL"]);
+  // 	_rxModels.remove(".omegaL");
+  //     }
+  //     if(_rxModels.exists(".sigmaL")){
+  // 	e[".sigmaL"] = as<List>(_rxModels[".sigmaL"]);
+  // 	_rxModels.remove(".sigmaL");
+  //     }
+  //     e["check.nrow"] = nr;
+  //     e["check.ncol"] = nc;
+  //     e["check.names"] = dat.names();
+  //     // Save information
+  //     // Remove one final; Just for debug.
+  //     // e["parData"] = parData;
+  //     List pd = as<List>(xtra[0]);
+  //     if (pd.size() == 0){
+  // 	e["params.dat"] = R_NilValue;
+  //     } else {
+  // 	e["params.dat"] = pd;
+  //     }
+  //     if (as<int>(parData["nSub"]) == 1 && as<int>(parData["nsim"]) == 1){
+  // 	int n = pd.size();
+  // 	NumericVector par2(n);
+  // 	for (int i = 0; i <n; i++){
+  // 	  par2[i] = (as<NumericVector>(pd[i]))[0];
+  // 	}
+  // 	par2.names() = pd.names();
+  // 	if (par2.size() == 0){
+  // 	  e["params.single"] = R_NilValue;
+  // 	} else {
+  // 	  e["params.single"] = par2;
+  // 	}
+  //     } else {
+  // 	e["params.single"] = R_NilValue;
+  //     }
+  //     e["EventTable"] = xtra[1];
+  //     e["dosing"] = xtra[3];
+  //     e["sampling"] = xtra[2];
+  //     e["obs.rec"] = xtra[4];
+  //     e["covs"] = xtra[5];
+  //     e["counts"] = xtra[6];
+  //     e["inits.dat"] = parData["inits"];
+  //     CharacterVector units(2);
+  //     units[0] = as<std::string>(parData["amount.units"]);
+  //     units[1] = as<std::string>(parData["time.units"]);
+  //     CharacterVector unitsN(2);
+  //     unitsN[0] = "dosing";
+  //     unitsN[1] = "time";
+  //     units.names() = unitsN;
+  //     e["units"] = units;
+  //     e["nobs"] = parData["nObs"];
+    
+  //     Function eventTable("eventTable",RxODE);
+  //     List et = eventTable(_["amount.units"] = as<std::string>(parData["amount.units"]), _["time.units"] =as<std::string>(parData["time.units"]));
+  //     Function importEt = as<Function>(et["import.EventTable"]);
+  //     importEt(e["EventTable"]);
+  //     e["events.EventTable"] = et;
+  //     Function parse2("parse", R_BaseNamespace);
+  //     Function eval2("eval", R_BaseNamespace);
+  //     // eventTable style methods
+  //     e["get.EventTable"] = eval2(_["expr"]   = parse2(_["text"]="function() EventTable"),
+  // 				  _["envir"]  = e);
+  //     e["get.obs.rec"] = eval2(_["expr"]   = parse2(_["text"]="function() obs.rec"),
+  // 			       _["envir"]  = e);
+  //     e["get.nobs"] = eval2(_["expr"]   = parse2(_["text"]="function() nobs"),
+  // 			    _["envir"]  = e);
+  //     e["add.dosing"] = eval2(_["expr"]   = parse2(_["text"]="function(...) {et <- create.eventTable(); et$add.dosing(...); invisible(rxSolve(args.object,events=et,update.object=TRUE))}"),
+  // 			      _["envir"]  = e);
+  //     e["clear.dosing"] = eval2(_["expr"]   = parse2(_["text"]="function(...) {et <- create.eventTable(); et$clear.dosing(...); invisible(rxSolve(args.object,events=et,update.object=TRUE))}"),
+  // 				_["envir"]  = e);
+  //     e["get.dosing"] = eval2(_["expr"]   = parse2(_["text"]="function() dosing"),
+  // 			      _["envir"]  = e);
+
+  //     e["add.sampling"] = eval2(_["expr"]   = parse2(_["text"]="function(...) {et <- create.eventTable(); et$add.sampling(...); invisible(rxSolve(args.object,events=et,update.object=TRUE))}"),
+  // 				_["envir"]  = e);
+      
+  //     e["clear.sampling"] = eval2(_["expr"]   = parse2(_["text"]="function(...) {et <- create.eventTable(); et$clear.sampling(...); invisible(rxSolve(args.object,events=et,update.object=TRUE))}"),
+  // 				  _["envir"]  = e);
+
+  //     e["replace.sampling"] = eval2(_["expr"]   = parse2(_["text"]="function(...) {et <- create.eventTable(); et$clear.sampling(); et$add.sampling(...); invisible(rxSolve(args.object,events=et,update.object=TRUE))}"),
+  // 				    _["envir"]  = e);
+
+  //     e["get.sampling"] = eval2(_["expr"]   = parse2(_["text"]="function() sampling"),
+  // 				_["envir"]  = e);
+      
+  //     e["get.units"] = eval2(_["expr"]   = parse2(_["text"]="function() units"),
+  // 			     _["envir"]  = e);
+
+  //     e["import.EventTable"] = eval2(_["expr"]   = parse2(_["text"]="function(imp) {et <- create.eventTable(imp); invisible(rxSolve(args.object,events=et,update.object=TRUE))}"),
+  // 				     _["envir"]  = e);
+      
+  //     e["create.eventTable"] = eval2(_["expr"]   = parse2(_["text"]="function(new.event) {et <- eventTable(amount.units=units[1],time.units=units[2]);if (missing(new.event)) {nev <- EventTable; } else {nev <- new.event;}; et$import.EventTable(nev); return(et);}"),
+  // 				     _["envir"]  = e);
+  //     // Note event.copy doesn't really make sense...?  The create.eventTable does basically the same thing.
+  //     e["args.object"] = object;
+  //     e["dll"] = rxDll(object);
+  //     if (rxIs(events, "rx.event")){
+  // 	e["args.params"] = params;    
+  // 	e["args.events"] = events;
+  //     } else {
+  // 	e["args.params"] = events;    
+  // 	e["args.events"] = params;
+  //     }
+  //     e["args.inits"] = inits;
+  //     e["args.covs"] = covs;
+  //     e["args.method"] = method;
+  //     e["args.transit_abs"] = transit_abs;
+  //     e["args.atol"] = atol;
+  //     e["args.rtol"] = rtol;
+  //     e["args.maxsteps"] = maxsteps;
+  //     e["args.hmin"] = hmin;
+  //     e["args.hmax"] = hmax;
+  //     e["args.hini"] = hini;
+  //     e["args.maxordn"] = maxordn;
+  //     e["args.maxords"] = maxords;
+  //     e["args.cores"] = cores;
+  //     e["args.covs_interpolation"] = covs_interpolation;
+  //     e["args.addCov"] = addCov;
+  //     e["args.matrix"] = matrix;
+  //     e["args.sigma"] = sigma;
+  //     e["args.sigmaDf"] = sigmaDf;
+  //     e["args.nCoresRV"] = nCoresRV;
+  //     e["args.sigmaIsChol"] = sigmaIsChol;
+  //     e["args.nDisplayProgress"] = nDisplayProgress;
+  //     e["args.amountUnits"] = amountUnits;
+  //     e["args.timeUnits"] = timeUnits;
+  //     e["args.addDosing"] = addDosing;
+  //     e[".real.update"] = true;
+  //     CharacterVector cls(2);
+  //     cls(0) = "rxSolve";
+  //     cls(1) = "data.frame";
+  //     cls.attr(".RxODE.env") = e;    
+  //     dat.attr("class") = cls;
+  //     return(dat);
+  //   }
   }
   // double *inits;
   // double *scale;        
