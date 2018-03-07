@@ -1247,15 +1247,16 @@ NumericMatrix rxSetupParamsThetaEta(const RObject &params = R_NilValue,
   return parMat;
 }
 
+
 double *gsolve = NULL;
 int gsolven = 0;
 void gsolveSetup(int n){
   if (gsolven == 0){
-    gsolve=Calloc(n, double);
-    gsolven=n;
+    gsolve=Calloc(n+1024, double);
+    gsolven=n+1024;
   } else if (n > gsolven){
-    gsolve = Realloc(gsolve, n, double);
-    gsolven=n;
+    gsolve = Realloc(gsolve, n+1024, double);
+    gsolven=n+1024;
   }
 }
 
@@ -1263,11 +1264,11 @@ double *gInfusionRate = NULL;
 int gInfusionRaten = 0;
 void gInfusionRateSetup(int n){
   if (gInfusionRaten == 0){
-    gInfusionRate=Calloc(n, double);
-    gInfusionRaten=n;
+    gInfusionRate=Calloc(n+1024, double);
+    gInfusionRaten=n+1024;
   } else if (n > gInfusionRaten){
-    gInfusionRate = Realloc(gInfusionRate, n, double);
-    gInfusionRaten=n;
+    gInfusionRate = Realloc(gInfusionRate, n+1024, double);
+    gInfusionRaten=n+1024;
   }
 }
 
@@ -1275,11 +1276,11 @@ double *gall_times = NULL;
 int gall_timesn = 0;
 void gall_timesSetup(int n){
   if (gall_timesn == 0){
-    gall_times=Calloc(n, double);
-    gall_timesn=n;
+    gall_times=Calloc(n+1024, double);
+    gall_timesn=n+1024;
   } else if (n > gall_timesn){
-    gall_times = Realloc(gall_times, n, double);
-    gall_timesn=n;
+    gall_times = Realloc(gall_times, n+1024, double);
+    gall_timesn=n+1024;
   }
 }
 
@@ -1288,11 +1289,11 @@ double *gamt = NULL;
 int gamtn = 0;
 void gamtSetup(int n){
   if (gamtn == 0){
-    gamt=Calloc(n, double);
-    gamtn=n;
+    gamt=Calloc(n+1024, double);
+    gamtn=n+1024;
   } else if (n > gamtn){
-    gamt = Realloc(gamt, n, double);
-    gamtn=n;
+    gamt = Realloc(gamt, n+1024, double);
+    gamtn=n+1024;
   }
 }
 
@@ -1300,11 +1301,11 @@ double *glhs = NULL;
 int glhsn = 0;
 void glhsSetup(int n){
   if (glhsn == 0){
-    glhs=Calloc(n, double);
-    glhsn=n;
+    glhs=Calloc(n+1024, double);
+    glhsn=n+1024;
   } else if (n > glhsn){
-    glhs = Realloc(glhs, n, double);
-    glhsn=n;
+    glhs = Realloc(glhs, n+1024, double);
+    glhsn=n+1024;
   }
 }
 
@@ -1312,11 +1313,11 @@ double *gcov = NULL;
 int gcovn = 0;
 void gcovSetup(int n){
   if (gcovn == 0){
-    gcov=Calloc(n, double);
-    gcovn=n;
+    gcov=Calloc(n+1024, double);
+    gcovn=n+1024;
   } else if (n > gcovn){
-    gcov = Realloc(gcov, n, double);
-    gcovn=n;
+    gcov = Realloc(gcov, n+1024, double);
+    gcovn=n+1024;
   }
 }
 
@@ -1325,11 +1326,11 @@ double **gcovp = NULL;
 int gcovpn = 0;
 void gcovpSetup(int n){
   if (gcovpn == 0){
-    gcovp=(double **) R_chk_calloc(n, sizeof(double*));
-    gcovpn=n;
+    gcovp=(double **) R_chk_calloc(n+100, sizeof(double*));
+    gcovpn=n+100;
   } else if (n > gcovpn){
-    gcovp = (double **) R_chk_realloc(gcovp, n * sizeof(double*));
-    gcovpn=n;
+    gcovp = (double **) R_chk_realloc(gcovp, (n+100) * sizeof(double*));
+    gcovpn=n+100;
   }
 }
 
@@ -1338,13 +1339,12 @@ double *ginits = NULL;
 int ginitsn = 0;
 void ginitsSetup(int n){
   if (ginitsn == 0){
-    ginits=Calloc(n, double);
-    ginitsn=n;
+    ginits=Calloc(n+1024, double);
+    ginitsn=n+1024;
   } else if (n > ginitsn){
-    ginits = Realloc(ginits, n, double);
-    ginitsn=n;
+    ginits = Realloc(ginits, n+1024, double);
+    ginitsn=n+1024;
   }
-  for (int i = 0; i < n; i++) ginits[i]=0.0;
 }
 
 
@@ -1352,24 +1352,23 @@ double *gscale = NULL;
 int gscalen = 0;
 void gscaleSetup(int n){
   if (gscalen == 0){
-    gscale=Calloc(n, double);
-    gscalen=n;
+    gscale=Calloc(n+1024, double);
+    gscalen=n+1024;
   } else if (n > gscalen){
-    gscale = Realloc(gscale, n, double);
-    gscalen=n;
+    gscale = Realloc(gscale, n+1024, double);
+    gscalen=n+1024;
   }
-  for (int i = 0; i < n; i++) gscale[i]=1.0;
 }
 
 double *gatol2 = NULL;
 int gatol2n = 0;
 void gatol2Setup(int n){
   if (gatol2n == 0){
-    gatol2=Calloc(n, double);
-    gatol2n=n;
+    gatol2=Calloc(n+1024, double);
+    gatol2n=n+1024;
   } else if (n > gatol2n){
-    gatol2 = Realloc(gatol2, n, double);
-    gatol2n=n;
+    gatol2 = Realloc(gatol2, n+1024, double);
+    gatol2n=n+1024;
   }
 }
 
@@ -1377,11 +1376,11 @@ double *grtol2 = NULL;
 int grtol2n = 0;
 void grtol2Setup(int n){
   if (grtol2n == 0){
-    grtol2=Calloc(n, double);
-    grtol2n=n;
+    grtol2=Calloc(n+1024, double);
+    grtol2n=n+1024;
   } else if (n > grtol2n){
-    grtol2 = Realloc(grtol2, n, double);
-    grtol2n=n;
+    grtol2 = Realloc(grtol2, n+1024, double);
+    grtol2n=n+1024;
   }
 }
 
@@ -1392,8 +1391,8 @@ void gparsSetup(int n){
     gpars=Calloc(n, double);
     gparsn=n;
   } else if (n > gparsn){
-    gpars = Realloc(gpars, n, double);
-    gparsn=n;
+    gpars = Realloc(gpars, n+1024, double);
+    gparsn=n+1024;
   }
 }
 
@@ -1402,11 +1401,11 @@ int *gevid = NULL;
 int gevidn = 0;
 void gevidSetup(int n){
   if (gevidn == 0){
-    gevid=Calloc(n, int);
-    gevidn=n;
+    gevid=Calloc(n+1024, int);
+    gevidn=n+1024;
   } else if (n > gevidn){
-    gevid = Realloc(gevid, n, int);
-    gevidn=n;
+    gevid = Realloc(gevid, n+1024, int);
+    gevidn=n+1024;
   }
 }
 
@@ -1414,11 +1413,11 @@ int *gBadDose = NULL;
 int gBadDosen = 0;
 void gBadDoseSetup(int n){
   if (gBadDosen == 0){
-    gBadDose=Calloc(n, int);
-    gBadDosen=n;
+    gBadDose=Calloc(n+1024, int);
+    gBadDosen=n+1024;
   } else if (n > gBadDosen){
-    gBadDose = Realloc(gBadDose, n, int);
-    gBadDosen=n;
+    gBadDose = Realloc(gBadDose, n+1024, int);
+    gBadDosen=n+1024;
   }
 }
 
@@ -1426,11 +1425,11 @@ int *grc = NULL;
 int grcn = 0;
 void grcSetup(int n){
   if (grcn == 0){
-    grc=Calloc(n, int);
-    grcn=n;
+    grc=Calloc(n+1024, int);
+    grcn=n+1024;
   } else if (n > grcn){
-    grc = Realloc(grc, n, int);
-    grcn=n;
+    grc = Realloc(grc, n+1024, int);
+    grcn=n+1024;
   }
 }
 
@@ -1438,11 +1437,11 @@ int *gidose = NULL;
 int gidosen = 0;
 extern "C" int *gidoseSetup(int n){
   if (gidosen == 0){
-    gidose=Calloc(n, int);
-    gidosen=n;
+    gidose=Calloc(n+1024, int);
+    gidosen=n+1024;
   } else if (n > gidosen){
-    gidose = Realloc(gidose, n, int);
-    gidosen=n;
+    gidose = Realloc(gidose, n+1024, int);
+    gidosen=n+1024;
   }
   return gidose;
 }
@@ -1451,11 +1450,11 @@ int *gpar_cov = NULL;
 int gpar_covn = 0;
 void gpar_covSetup(int n){
   if (gpar_covn == 0){
-    gpar_cov=Calloc(n, int);
-    gpar_covn=n;
+    gpar_cov=Calloc(n+1024, int);
+    gpar_covn=n+1024;
   } else if (n > gpar_covn){
-    gpar_cov = Realloc(gpar_cov, n, int);
-    gpar_covn=n;
+    gpar_cov = Realloc(gpar_cov+1024, n, int);
+    gpar_covn=n+1024;
   }
 }
 
@@ -1463,11 +1462,11 @@ int *gParPos = NULL;
 int gParPosn = 0;
 void gParPosSetup(int n){
   if (gParPosn == 0){
-    gParPos=Calloc(n, int);
-    gParPosn=n;
+    gParPos=Calloc(n+1024, int);
+    gParPosn=n+1024;
   } else if (n > gParPosn){
-    gParPos = Realloc(gParPos, n, int);
-    gParPosn=n;
+    gParPos = Realloc(gParPos, n+1024, int);
+    gParPosn=n+1024;
   }
 }
 
@@ -1475,11 +1474,11 @@ int *gsvar = NULL;
 int gsvarn = 0;
 void gsvarSetup(int n){
   if (gsvarn == 0){
-    gsvar=Calloc(n, int);
-    gsvarn=n;
+    gsvar=Calloc(n+1024, int);
+    gsvarn=n+1024;
   } else if (n > gsvarn){
-    gsvar = Realloc(gsvar, n, int);
-    gsvarn=n;
+    gsvar = Realloc(gsvar, n+1024, int);
+    gsvarn=n+1024;
   }
 }
 
@@ -1490,14 +1489,37 @@ extern "C" int *gsiVSetup(int n){
     gsiV=Calloc(n, int);
     gsiVn=n;
   } else if (n > gsiVn){
-    gsiV = Realloc(gsiV, n, int);
-    gsiVn=n;
+    gsiV = Realloc(gsiV, n+1024, int);
+    gsiVn=n+1024;
   }
   return gsiV;
 }
 
+extern "C" void rxOptionsIniData(){
+  gsiVSetup(1024);
+  gsvarSetup(1024);
+  gpar_covSetup(1024);
+  gidoseSetup(1024);
+  grcSetup(1024);
+  gBadDoseSetup(1024);
+  gevidSetup(1024);
+  gparsSetup(1024);
+  grtol2Setup(1024);
+  gatol2Setup(1024);
+  gscaleSetup(1024);
+  ginitsSetup(1024);
+  gcovSetup(1024);
+  glhsSetup(1024);
+  gamtSetup(1024);
+  gall_timesSetup(1024);
+  gInfusionRateSetup(1024);
+  gsolveSetup(1024);
+  gParPosSetup(1024);
+}
 
-void gFree(){
+
+
+extern "C" void gFree(){
   if (gsiV != NULL) Free(gsiV);
   gsiVn=0;
   if (gsvar != NULL) Free(gsvar);
@@ -3065,9 +3087,10 @@ SEXP rxSolveC(const RObject &object,
       stop(errStr);
     }
     // Now setup the rest of the rx_solve object
-    if (nPopPar % nsub != 0){
+    if (nPopPar != 1 && nPopPar % nsub != 0){
       stop("The number of parameters solved by RxODE for multi-subject data needs to be a multiple of the number of subjects.");
     }
+    
   }
   // double *inits;
   // double *scale;        

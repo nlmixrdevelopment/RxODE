@@ -127,6 +127,7 @@ extern int rxIsCurrentC(SEXP obj);
 // Remove these functions later...
 
 void rxOptionsIni();
+void rxOptionsIniData();
 void R_init_RxODE(DllInfo *info){
   R_CallMethodDef callMethods[]  = {
     {"trans", (DL_FUNC) &trans, 8},
@@ -218,9 +219,12 @@ void R_init_RxODE(DllInfo *info){
   R_registerRoutines(info, cMethods, callMethods, NULL, NULL);
   R_useDynamicSymbols(info, FALSE);
   rxOptionsIni();
+  rxOptionsIniData();
 }
 
 void rxOptionsFree();
+void gFree();
 void R_unload_RxODE(DllInfo *info){
   rxOptionsFree();
+  gFree();
 }
