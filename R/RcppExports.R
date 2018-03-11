@@ -18,10 +18,6 @@ rxIs <- function(obj, cls) {
     .Call(`_RxODE_rxIs`, obj, cls)
 }
 
-rxDataSetup <- function(ro, covNames = NULL, sigma = NULL, df = NULL, ncoresRV = 1L, isChol = FALSE, nDisplayProgress = 10000L, amountUnits = NA_character_, timeUnits = "hours") {
-    .Call(`_RxODE_rxDataSetup`, ro, covNames, sigma, df, ncoresRV, isChol, nDisplayProgress, amountUnits, timeUnits)
-}
-
 rxModelVars_ <- function(obj) {
     .Call(`_RxODE_rxModelVars_`, obj)
 }
@@ -136,28 +132,6 @@ rxSetupIni <- function(obj, inits = NULL) {
 #' @export
 rxSetupScale <- function(obj, scale = NULL, extraArgs = NULL) {
     .Call(`_RxODE_rxSetupScale`, obj, scale, extraArgs)
-}
-
-#' Setup Data and Parameters
-#'
-#' @inheritParams rxSolve
-#' @param sigma Named sigma matrix.
-#' @param sigmaDf The degrees of freedom of a t-distribution for
-#'     simulation.  By default this is \code{NULL} which is
-#'     equivalent to \code{Inf} degrees, or to simulate from a normal
-#'     distribution instead of a t-distribution.
-#' @param nCoresRV Number of cores for residual simulation.  This,
-#'     along with the seed, affects both the outcome and speed of
-#'     simulation. By default it is one.
-#' @param sigmaIsChol Indicates if the \code{sigma} supplied is a
-#'     Cholesky decomposed matrix instead of the traditional
-#'     symmetric matrix.
-#' @return Data setup for running C-based RxODE runs.
-#' @author Matthew L. Fidler
-#' @keywords internal
-#' @export
-rxDataParSetup <- function(object, params = NULL, events = NULL, inits = NULL, covs = NULL, sigma = NULL, sigmaDf = NULL, nCoresRV = 1L, sigmaIsChol = FALSE, nDisplayProgress = 10000L, amountUnits = NA_character_, timeUnits = "hours", theta = NULL, eta = NULL, scale = NULL, extraArgs = NULL) {
-    .Call(`_RxODE_rxDataParSetup`, object, params, events, inits, covs, sigma, sigmaDf, nCoresRV, sigmaIsChol, nDisplayProgress, amountUnits, timeUnits, theta, eta, scale, extraArgs)
 }
 
 #' Sample a covariance Matrix from the Posteior Inverse Wishart distribution.

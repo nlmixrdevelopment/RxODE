@@ -1146,7 +1146,7 @@ rxTransMakevars <- function(rxProps,                                            
         cat(ret);
         return(ret);
     } else {
-        message("Needed Variables: %s", paste(neededProps, collapse=","));
+        message(sprintf("Needed Variables: %s", paste(neededProps, collapse=",")));
         stop(sprintf("Cannot compile, only found %s.", paste(names(rxProps), collapse=",")));
     }
 } # end function rxTransCompileFlags
