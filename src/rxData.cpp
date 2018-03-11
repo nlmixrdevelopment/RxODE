@@ -1946,7 +1946,19 @@ SEXP rxSolveC(const RObject &object,
     memcpy(gscale, &scaleC[0], scaleC.size()*sizeof(double));
     op->scale = &gscale[0];
     //
-    // op->do_transit_abs = (int)(transit_abs);
+    int transit = 0;
+    if (transit_abs.isNull()){
+      transit = mv["podo"];
+      if (transit){
+        warning("Assumed transit compartment model since 'podo' is in the model.");
+      }
+    }  else {
+      LogicalVector tr = LogicalVector(transit_abs);
+      if (tr[0]){
+        transit=  1;
+      }
+    }
+    op->do_transit_abs = transit;
     op->nlhs = lhs.size();
     CharacterVector trans = mv["trans"];
     // Make sure the model variables are assigned...
