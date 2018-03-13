@@ -1897,6 +1897,7 @@ SEXP rxSolveC(const RObject &object,
     RObject ev1;
     RObject par1;
     bool swappedEvents = false;
+    NumericVector initsC;
     if (rxIs(par0, "rx.event")){
       // Swapped events and parameters
       swappedEvents=true;
@@ -1937,7 +1938,7 @@ SEXP rxSolveC(const RObject &object,
     op->MXORDS = maxords;
     // The initial conditions cannot be changed for each individual; If
     // they do they need to be a parameter.
-    NumericVector initsC = rxInits(object, inits, state, 0.0);
+    initsC = rxInits(object, inits, state, 0.0);
     ginitsSetup(initsC.size());
     std::copy(initsC.begin(), initsC.end(), &ginits[0]);
     op->inits = &ginits[0];
@@ -2295,180 +2296,179 @@ SEXP rxSolveC(const RObject &object,
     rx->stateIgnore = &si[0];
     List dat = RxODE_df(doDose);
     dat.attr("class") = CharacterVector::create("data.frame");
-    return dat;
-    //   List xtra;
-  //   if (!rx->matrix) xtra = RxODE_par_df(parData);
-  //   int nr = as<NumericVector>(dat[0]).size();
-  //   int nc = dat.size();
-  //   if (rx->matrix){
-  //     getRxModels();
-  //     if(_rxModels.exists(".sigma")){
-  // 	_rxModels.remove(".sigma");
-  //     }
-  //     if(_rxModels.exists(".sigmaL")){
-  // 	_rxModels.remove(".sigmaL");
-  //     }
-  //     if(_rxModels.exists(".omegaL")){
-  // 	_rxModels.remove(".omegaL");
-  //     }
-  //     if(_rxModels.exists(".theta")){
-  // 	_rxModels.remove(".theta");
-  //     }
-  //     dat.attr("class") = "data.frame";
-  //     NumericMatrix tmpM(nr,nc);
-  //     for (int i = 0; i < dat.size(); i++){
-  // 	tmpM(_,i) = as<NumericVector>(dat[i]);
-  //     }
-  //     tmpM.attr("dimnames") = List::create(R_NilValue,dat.names());
-  //     return tmpM;
-  //   } else {
-  //     Function newEnv("new.env", R_BaseNamespace);
-  //     Environment RxODE("package:RxODE");
-  //     Environment e = newEnv(_["size"] = 29, _["parent"] = RxODE);
-  //     getRxModels();
-  //     if(_rxModels.exists(".theta")){
-  // 	e[".theta"] = as<NumericMatrix>(_rxModels[".theta"]);
-  // 	_rxModels.remove(".theta");
-  //     }
-  //     if(_rxModels.exists(".sigma")){
-  // 	e[".sigma"] = as<NumericMatrix>(_rxModels[".sigma"]);
-  // 	_rxModels.remove(".sigma");
-  //     }
-  //     if(_rxModels.exists(".omegaL")){
-  // 	e[".omegaL"] = as<List>(_rxModels[".omegaL"]);
-  // 	_rxModels.remove(".omegaL");
-  //     }
-  //     if(_rxModels.exists(".sigmaL")){
-  // 	e[".sigmaL"] = as<List>(_rxModels[".sigmaL"]);
-  // 	_rxModels.remove(".sigmaL");
-  //     }
-  //     e["check.nrow"] = nr;
-  //     e["check.ncol"] = nc;
-  //     e["check.names"] = dat.names();
-  //     // Save information
-  //     // Remove one final; Just for debug.
-  //     // e["parData"] = parData;
-  //     List pd = as<List>(xtra[0]);
-  //     if (pd.size() == 0){
-  // 	e["params.dat"] = R_NilValue;
-  //     } else {
-  // 	e["params.dat"] = pd;
-  //     }
-  //     if (as<int>(parData["nSub"]) == 1 && as<int>(parData["nsim"]) == 1){
-  // 	int n = pd.size();
-  // 	NumericVector par2(n);
-  // 	for (int i = 0; i <n; i++){
-  // 	  par2[i] = (as<NumericVector>(pd[i]))[0];
-  // 	}
-  // 	par2.names() = pd.names();
-  // 	if (par2.size() == 0){
-  // 	  e["params.single"] = R_NilValue;
-  // 	} else {
-  // 	  e["params.single"] = par2;
-  // 	}
-  //     } else {
-  // 	e["params.single"] = R_NilValue;
-  //     }
-  //     e["EventTable"] = xtra[1];
-  //     e["dosing"] = xtra[3];
-  //     e["sampling"] = xtra[2];
-  //     e["obs.rec"] = xtra[4];
-  //     e["covs"] = xtra[5];
-  //     e["counts"] = xtra[6];
-  //     e["inits.dat"] = parData["inits"];
-  //     CharacterVector units(2);
-  //     units[0] = as<std::string>(parData["amount.units"]);
-  //     units[1] = as<std::string>(parData["time.units"]);
-  //     CharacterVector unitsN(2);
-  //     unitsN[0] = "dosing";
-  //     unitsN[1] = "time";
-  //     units.names() = unitsN;
-  //     e["units"] = units;
-  //     e["nobs"] = parData["nObs"];
+    List xtra;
+    if (!rx->matrix) xtra = RxODE_par_df();
+    int nr = as<NumericVector>(dat[0]).size();
+    int nc = dat.size();
+    if (rx->matrix){
+      getRxModels();
+      if(_rxModels.exists(".sigma")){
+  	_rxModels.remove(".sigma");
+      }
+      if(_rxModels.exists(".sigmaL")){
+  	_rxModels.remove(".sigmaL");
+      }
+      if(_rxModels.exists(".omegaL")){
+  	_rxModels.remove(".omegaL");
+      }
+      if(_rxModels.exists(".theta")){
+  	_rxModels.remove(".theta");
+      }
+      dat.attr("class") = "data.frame";
+      NumericMatrix tmpM(nr,nc);
+      for (int i = 0; i < dat.size(); i++){
+  	tmpM(_,i) = as<NumericVector>(dat[i]);
+      }
+      tmpM.attr("dimnames") = List::create(R_NilValue,dat.names());
+      return tmpM;
+    } else {
+      Function newEnv("new.env", R_BaseNamespace);
+      Environment RxODE("package:RxODE");
+      Environment e = newEnv(_["size"] = 29, _["parent"] = RxODE);
+      getRxModels();
+      if(_rxModels.exists(".theta")){
+  	e[".theta"] = as<NumericMatrix>(_rxModels[".theta"]);
+  	_rxModels.remove(".theta");
+      }
+      if(_rxModels.exists(".sigma")){
+  	e[".sigma"] = as<NumericMatrix>(_rxModels[".sigma"]);
+  	_rxModels.remove(".sigma");
+      }
+      if(_rxModels.exists(".omegaL")){
+  	e[".omegaL"] = as<List>(_rxModels[".omegaL"]);
+  	_rxModels.remove(".omegaL");
+      }
+      if(_rxModels.exists(".sigmaL")){
+  	e[".sigmaL"] = as<List>(_rxModels[".sigmaL"]);
+  	_rxModels.remove(".sigmaL");
+      }
+      e["check.nrow"] = nr;
+      e["check.ncol"] = nc;
+      e["check.names"] = dat.names();
+      // Save information
+      // Remove one final; Just for debug.
+      // e["parData"] = parData;
+      List pd = as<List>(xtra[0]);
+      if (pd.size() == 0){
+  	e["params.dat"] = R_NilValue;
+      } else {
+  	e["params.dat"] = pd;
+      }
+      if (rx->nsub == 1 && rx->nsim == 1){
+  	int n = pd.size();
+  	NumericVector par2(n);
+  	for (int i = 0; i <n; i++){
+  	  par2[i] = (as<NumericVector>(pd[i]))[0];
+  	}
+  	par2.names() = pd.names();
+  	if (par2.size() == 0){
+  	  e["params.single"] = R_NilValue;
+  	} else {
+  	  e["params.single"] = par2;
+  	}
+      } else {
+  	e["params.single"] = R_NilValue;
+      }
+      e["EventTable"] = xtra[1];
+      e["dosing"] = xtra[3];
+      e["sampling"] = xtra[2];
+      e["obs.rec"] = xtra[4];
+      e["covs"] = xtra[5];
+      e["counts"] = xtra[6];
+      e["inits.dat"] = initsC;
+      StringVector units(2);
+      units[0] = amountUnits;
+      units[1] = timeUnits;
+      StringVector unitsN(2);
+      unitsN[0] = "dosing";
+      unitsN[1] = "time";
+      units.names() = unitsN;
+      e["units"] = units;
+      e["nobs"] = rx->nobs;
     
-  //     Function eventTable("eventTable",RxODE);
-  //     List et = eventTable(_["amount.units"] = as<std::string>(parData["amount.units"]), _["time.units"] =as<std::string>(parData["time.units"]));
-  //     Function importEt = as<Function>(et["import.EventTable"]);
-  //     importEt(e["EventTable"]);
-  //     e["events.EventTable"] = et;
-  //     Function parse2("parse", R_BaseNamespace);
-  //     Function eval2("eval", R_BaseNamespace);
-  //     // eventTable style methods
-  //     e["get.EventTable"] = eval2(_["expr"]   = parse2(_["text"]="function() EventTable"),
-  // 				  _["envir"]  = e);
-  //     e["get.obs.rec"] = eval2(_["expr"]   = parse2(_["text"]="function() obs.rec"),
-  // 			       _["envir"]  = e);
-  //     e["get.nobs"] = eval2(_["expr"]   = parse2(_["text"]="function() nobs"),
-  // 			    _["envir"]  = e);
-  //     e["add.dosing"] = eval2(_["expr"]   = parse2(_["text"]="function(...) {et <- create.eventTable(); et$add.dosing(...); invisible(rxSolve(args.object,events=et,update.object=TRUE))}"),
-  // 			      _["envir"]  = e);
-  //     e["clear.dosing"] = eval2(_["expr"]   = parse2(_["text"]="function(...) {et <- create.eventTable(); et$clear.dosing(...); invisible(rxSolve(args.object,events=et,update.object=TRUE))}"),
-  // 				_["envir"]  = e);
-  //     e["get.dosing"] = eval2(_["expr"]   = parse2(_["text"]="function() dosing"),
-  // 			      _["envir"]  = e);
+      Function eventTable("eventTable",RxODE);
+      List et = eventTable(_["amount.units"] = amountUnits, _["time.units"] = timeUnits);
+      Function importEt = as<Function>(et["import.EventTable"]);
+      importEt(e["EventTable"]);
+      e["events.EventTable"] = et;
+      Function parse2("parse", R_BaseNamespace);
+      Function eval2("eval", R_BaseNamespace);
+      // eventTable style methods
+      e["get.EventTable"] = eval2(_["expr"]   = parse2(_["text"]="function() EventTable"),
+  				  _["envir"]  = e);
+      e["get.obs.rec"] = eval2(_["expr"]   = parse2(_["text"]="function() obs.rec"),
+  			       _["envir"]  = e);
+      e["get.nobs"] = eval2(_["expr"]   = parse2(_["text"]="function() nobs"),
+  			    _["envir"]  = e);
+      e["add.dosing"] = eval2(_["expr"]   = parse2(_["text"]="function(...) {et <- create.eventTable(); et$add.dosing(...); invisible(rxSolve(args.object,events=et,update.object=TRUE))}"),
+  			      _["envir"]  = e);
+      e["clear.dosing"] = eval2(_["expr"]   = parse2(_["text"]="function(...) {et <- create.eventTable(); et$clear.dosing(...); invisible(rxSolve(args.object,events=et,update.object=TRUE))}"),
+  				_["envir"]  = e);
+      e["get.dosing"] = eval2(_["expr"]   = parse2(_["text"]="function() dosing"),
+  			      _["envir"]  = e);
 
-  //     e["add.sampling"] = eval2(_["expr"]   = parse2(_["text"]="function(...) {et <- create.eventTable(); et$add.sampling(...); invisible(rxSolve(args.object,events=et,update.object=TRUE))}"),
-  // 				_["envir"]  = e);
+      e["add.sampling"] = eval2(_["expr"]   = parse2(_["text"]="function(...) {et <- create.eventTable(); et$add.sampling(...); invisible(rxSolve(args.object,events=et,update.object=TRUE))}"),
+  				_["envir"]  = e);
       
-  //     e["clear.sampling"] = eval2(_["expr"]   = parse2(_["text"]="function(...) {et <- create.eventTable(); et$clear.sampling(...); invisible(rxSolve(args.object,events=et,update.object=TRUE))}"),
-  // 				  _["envir"]  = e);
+      e["clear.sampling"] = eval2(_["expr"]   = parse2(_["text"]="function(...) {et <- create.eventTable(); et$clear.sampling(...); invisible(rxSolve(args.object,events=et,update.object=TRUE))}"),
+  				  _["envir"]  = e);
 
-  //     e["replace.sampling"] = eval2(_["expr"]   = parse2(_["text"]="function(...) {et <- create.eventTable(); et$clear.sampling(); et$add.sampling(...); invisible(rxSolve(args.object,events=et,update.object=TRUE))}"),
-  // 				    _["envir"]  = e);
+      e["replace.sampling"] = eval2(_["expr"]   = parse2(_["text"]="function(...) {et <- create.eventTable(); et$clear.sampling(); et$add.sampling(...); invisible(rxSolve(args.object,events=et,update.object=TRUE))}"),
+  				    _["envir"]  = e);
 
-  //     e["get.sampling"] = eval2(_["expr"]   = parse2(_["text"]="function() sampling"),
-  // 				_["envir"]  = e);
+      e["get.sampling"] = eval2(_["expr"]   = parse2(_["text"]="function() sampling"),
+  				_["envir"]  = e);
       
-  //     e["get.units"] = eval2(_["expr"]   = parse2(_["text"]="function() units"),
-  // 			     _["envir"]  = e);
+      e["get.units"] = eval2(_["expr"]   = parse2(_["text"]="function() units"),
+  			     _["envir"]  = e);
 
-  //     e["import.EventTable"] = eval2(_["expr"]   = parse2(_["text"]="function(imp) {et <- create.eventTable(imp); invisible(rxSolve(args.object,events=et,update.object=TRUE))}"),
-  // 				     _["envir"]  = e);
+      e["import.EventTable"] = eval2(_["expr"]   = parse2(_["text"]="function(imp) {et <- create.eventTable(imp); invisible(rxSolve(args.object,events=et,update.object=TRUE))}"),
+  				     _["envir"]  = e);
       
-  //     e["create.eventTable"] = eval2(_["expr"]   = parse2(_["text"]="function(new.event) {et <- eventTable(amount.units=units[1],time.units=units[2]);if (missing(new.event)) {nev <- EventTable; } else {nev <- new.event;}; et$import.EventTable(nev); return(et);}"),
-  // 				     _["envir"]  = e);
-  //     // Note event.copy doesn't really make sense...?  The create.eventTable does basically the same thing.
-  //     e["args.object"] = object;
-  //     e["dll"] = rxDll(object);
-  //     if (rxIs(events, "rx.event")){
-  // 	e["args.params"] = params;    
-  // 	e["args.events"] = events;
-  //     } else {
-  // 	e["args.params"] = events;    
-  // 	e["args.events"] = params;
-  //     }
-  //     e["args.inits"] = inits;
-  //     e["args.covs"] = covs;
-  //     e["args.method"] = method;
-  //     e["args.transit_abs"] = transit_abs;
-  //     e["args.atol"] = atol;
-  //     e["args.rtol"] = rtol;
-  //     e["args.maxsteps"] = maxsteps;
-  //     e["args.hmin"] = hmin;
-  //     e["args.hmax"] = hmax;
-  //     e["args.hini"] = hini;
-  //     e["args.maxordn"] = maxordn;
-  //     e["args.maxords"] = maxords;
-  //     e["args.cores"] = cores;
-  //     e["args.covs_interpolation"] = covs_interpolation;
-  //     e["args.addCov"] = addCov;
-  //     e["args.matrix"] = matrix;
-  //     e["args.sigma"] = sigma;
-  //     e["args.sigmaDf"] = sigmaDf;
-  //     e["args.nCoresRV"] = nCoresRV;
-  //     e["args.sigmaIsChol"] = sigmaIsChol;
-  //     e["args.nDisplayProgress"] = nDisplayProgress;
-  //     e["args.amountUnits"] = amountUnits;
-  //     e["args.timeUnits"] = timeUnits;
-  //     e["args.addDosing"] = addDosing;
-  //     e[".real.update"] = true;
-  //     CharacterVector cls(2);
-  //     cls(0) = "rxSolve";
-  //     cls(1) = "data.frame";
-  //     cls.attr(".RxODE.env") = e;    
-  //     dat.attr("class") = cls;
-  //     return(dat);
-  //   }
+      e["create.eventTable"] = eval2(_["expr"]   = parse2(_["text"]="function(new.event) {et <- eventTable(amount.units=units[1],time.units=units[2]);if (missing(new.event)) {nev <- EventTable; } else {nev <- new.event;}; et$import.EventTable(nev); return(et);}"),
+  				     _["envir"]  = e);
+      // Note event.copy doesn't really make sense...?  The create.eventTable does basically the same thing.
+      e["args.object"] = object;
+      e["dll"] = rxDll(object);
+      if (!swappedEvents){
+  	e["args.params"] = params;    
+  	e["args.events"] = events;
+      } else {
+  	e["args.params"] = events;    
+  	e["args.events"] = params;
+      }
+      e["args.inits"] = inits;
+      e["args.covs"] = covs;
+      e["args.method"] = method;
+      e["args.transit_abs"] = transit_abs;
+      e["args.atol"] = atol;
+      e["args.rtol"] = rtol;
+      e["args.maxsteps"] = maxsteps;
+      e["args.hmin"] = hmin;
+      e["args.hmax"] = hmax;
+      e["args.hini"] = hini;
+      e["args.maxordn"] = maxordn;
+      e["args.maxords"] = maxords;
+      e["args.cores"] = cores;
+      e["args.covs_interpolation"] = covs_interpolation;
+      e["args.addCov"] = addCov;
+      e["args.matrix"] = matrix;
+      e["args.sigma"] = sigma;
+      e["args.sigmaDf"] = sigmaDf;
+      e["args.nCoresRV"] = nCoresRV;
+      e["args.sigmaIsChol"] = sigmaIsChol;
+      e["args.nDisplayProgress"] = nDisplayProgress;
+      e["args.amountUnits"] = amountUnits;
+      e["args.timeUnits"] = timeUnits;
+      e["args.addDosing"] = addDosing;
+      e[".real.update"] = true;
+      CharacterVector cls(2);
+      cls(0) = "rxSolve";
+      cls(1) = "data.frame";
+      cls.attr(".RxODE.env") = e;    
+      dat.attr("class") = cls;
+      return(dat);
+    }
   }
   // double *inits;
   // double *scale;        

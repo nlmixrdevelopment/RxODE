@@ -912,7 +912,7 @@ SEXP rxStateNames(char *ptr);
 SEXP rxLhsNames(char *ptr);
 SEXP rxParamNames(char *ptr);
 
-extern SEXP RxODE_par_df(SEXP sd){
+extern SEXP RxODE_par_df(){
   rx_solve *rx;
   rx = &rx_global;
   rx_solving_options *op = &op_global;

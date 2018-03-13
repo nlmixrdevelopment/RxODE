@@ -147,7 +147,7 @@ void par_solve(rx_solve *rx);
 rx_solving_options *getRxOp(rx_solve *rx);
 
 SEXP RxODE_df(int doDose);
-SEXP RxODE_par_df(SEXP sd);
+SEXP RxODE_par_df();
 
 rx_solving_options_ind *rxOptionsIniEnsure(int mx);
 
