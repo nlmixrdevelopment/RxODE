@@ -80,6 +80,7 @@ typedef struct {
   rx_solving_options *op;
   int nsub;
   int nsim;
+  int nall;
   int nobs;
   int add_cov;
   int matrix;

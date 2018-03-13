@@ -1255,6 +1255,7 @@ extern SEXP RxODE_df(int doDose){
   int nlhs = op->nlhs;
   int nobs = rx->nobs;
   int nsim = rx->nsim;
+  int nall = rx->nall;
   int *rmState = rx->stateIgnore;
   int nPrnState =0;
   int i, j;
@@ -1289,11 +1290,6 @@ extern SEXP RxODE_df(int doDose){
   int csub = 0, evid;
   int nsub = rx->nsub;
   rx_solving_options_ind *ind;
-  int nall = 0;
-  for (csub = 0; csub < nsub; csub++){
-    ind = &(rx->subjects[csub]);
-    nall+=ind->n_all_times;
-  }
   SEXP df = PROTECT(allocVector(VECSXP,ncols+nidCols+doseCols)); pro++;
   for (i = 0; i < nidCols; i++){
     SET_VECTOR_ELT(df, i, PROTECT(allocVector(INTSXP, (doDose == 1 ? nall : nobs)*nsim))); pro++;
@@ -1386,8 +1382,8 @@ extern SEXP RxODE_df(int doDose){
             for (j = 0; j < neq[0]; j++){
 	      if (!rmState[j]){
 		dfp = REAL(VECTOR_ELT(df, jj));
-                 dfp[ii] = solve[j+i*neq[0]] / scale[j];
-                 jj++;
+		dfp[ii] = solve[j+i*neq[0]] / scale[j];
+		jj++;
                }
              }
           }

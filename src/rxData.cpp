@@ -2045,6 +2045,8 @@ SEXP rxSolveC(const RObject &object,
       }
       ind->idose = &gidose[0];
       ind->ndoses = ndoses;
+      rx->nobs = nobs;
+      rx->nall = nobs+ndoses;
       if (!hmax.isNull()){
 	NumericVector hmax0 = NumericVector(hmax);
 	ind->HMAX = hmax0[0];
