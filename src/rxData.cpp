@@ -1926,8 +1926,8 @@ SEXP rxSolveC(const RObject &object,
     op->RTOL = rtol;          //relative error
     gatol2Setup(op->neq);
     grtol2Setup(op->neq);
-    memset(gatol2, atol, op->neq);
-    memset(grtol2, rtol, op->neq);
+    std::fill_n(&gatol2[0],op->neq, atol);
+    std::fill_n(&grtol2[0],op->neq, rtol);
     op->atol2 = &gatol2[0];
     op->rtol2 = &grtol2[0];
     op->H0 = hini;
@@ -1939,11 +1939,11 @@ SEXP rxSolveC(const RObject &object,
     // they do they need to be a parameter.
     NumericVector initsC = rxInits(object, inits, state, 0.0);
     ginitsSetup(initsC.size());
-    memcpy(ginits, &initsC[0], initsC.size()*sizeof(double));
+    std::copy(initsC.begin(), initsC.end(), &ginits[0]);
     op->inits = &ginits[0];
     NumericVector scaleC = rxSetupScale(object, scale, extraArgs);
     gscaleSetup(scaleC.size());
-    memcpy(gscale, &scaleC[0], scaleC.size()*sizeof(double));
+    std::copy(scaleC.begin(),scaleC.end(),&gscale[0]);
     op->scale = &gscale[0];
     //
     int transit = 0;
@@ -2016,11 +2016,11 @@ SEXP rxSolveC(const RObject &object,
       // Time copy
       ind->n_all_times   = time.size();
       gall_timesSetup(ind->n_all_times);
-      memcpy(gall_times, &time[0], ind->n_all_times*sizeof(double));
+      std::copy(time.begin(), time.end(), &gall_times[0]);
       ind->all_times     = &gall_times[0];
       // EVID copy
       gevidSetup(ind->n_all_times);
-      memcpy(gevid, &evid[0], ind->n_all_times*sizeof(int));
+      std::copy(evid.begin(),evid.end(), &gevid[0]);
       ind->evid     = &gevid[0];
       j=0;
       gamtSetup(ind->n_all_times);
@@ -2073,7 +2073,7 @@ SEXP rxSolveC(const RObject &object,
 		gpar_cov[k] = j+1;
 		// Not clear if this is an integer/real.  Copy the values.
 		NumericVector cur = as<NumericVector>(df[i]);
-		memcpy(gcov + curcovi,  &cur[0], ind->n_all_times*sizeof(double));
+		std::copy(cur.begin(), cur.end(), &(gcov[curcovi]));
                 gcovp[curcovpi++] = &gcov[curcovi];
                 curcovi += ind->n_all_times;
 		ncov++;
@@ -2226,18 +2226,18 @@ SEXP rxSolveC(const RObject &object,
     }
     //
     double *gInfusionRate = global_InfusionRate(op->neq*nsub*nPopPar);
-    memset(gInfusionRate, 0.0, op->neq*nsub*nPopPar);
+    std::fill_n(&gInfusionRate[0], op->neq*nsub*nPopPar, 0.0);
 
     gBadDoseSetup(op->neq*nsub*nPopPar);
-    memset(gBadDose, 0, op->neq*nsub*nPopPar);
+    std::fill_n(&gBadDose[0], op->neq*nsub*nPopPar, 0);
     
     glhsSetup(lhs.size()*nsub*nPopPar);
     
     grcSetup(nsub*nPopPar);
-    memset(grc,0,nsub*nPopPar);
-
+    std::fill_n(&grc[0], nsub*nPopPar, 0);
+    
     gsolveSetup((ndoses+nobs)*state.size()*nPopPar);
-    memset(gsolve, 0.0, (ndoses+nobs)*state.size()*nPopPar);
+    std::fill_n(&gsolve[0],(ndoses+nobs)*state.size()*nPopPar,0.0);
     int curEvent = 0;
     
     switch(parType){
@@ -2294,7 +2294,7 @@ SEXP rxSolveC(const RObject &object,
     List dat = RxODE_df(doDose);
     dat.attr("class") = CharacterVector::create("data.frame");
     return dat;
-  //   List xtra;
+    //   List xtra;
   //   if (!rx->matrix) xtra = RxODE_par_df(parData);
   //   int nr = as<NumericVector>(dat[0]).size();
   //   int nc = dat.size();

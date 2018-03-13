@@ -1375,19 +1375,16 @@ extern SEXP RxODE_df(int doDose){
             dfi = INTEGER(VECTOR_ELT(df, jj++));
             dfi[ii] = evid;
             // amt
-	    Rprintf("1\n");
             dfp = REAL(VECTOR_ELT(df, jj++));
             dfp[ii] = (evid == 0 ? NA_REAL : dose[di++]);
 	  }
           // time
-          Rprintf("2; %d; %f\n", jj, ind->all_times[i]);
           dfp = REAL(VECTOR_ELT(df, jj++));
           dfp[ii] = ind->all_times[i];
 	  // States
           if (nPrnState){
             for (j = 0; j < neq[0]; j++){
 	      if (!rmState[j]){
-                Rprintf("3\n");
 		dfp = REAL(VECTOR_ELT(df, jj));
                  dfp[ii] = solve[j+i*neq[0]] / scale[j];
                  jj++;
@@ -1398,7 +1395,6 @@ extern SEXP RxODE_df(int doDose){
           if (nlhs){
 	    rxCalcLhsP(i, rx, neq[1]);
 	    for (j = 0; j < nlhs; j++){
-              Rprintf("4\n");
 	      dfp = REAL(VECTOR_ELT(df, jj));
                dfp[ii] =rxLhsP(j, rx, neq[1]);
 	       jj++;
@@ -1407,7 +1403,6 @@ extern SEXP RxODE_df(int doDose){
           // Cov
           if (add_cov*ncov > 0){
 	    for (j = 0; j < add_cov*ncov; j++){
-              Rprintf("4\n");
               dfp = REAL(VECTOR_ELT(df, jj));
 	      // is this ntimes = nAllTimes or nObs time for this subject...?
 	      cov_ptr = cov_ptrA[j];
