@@ -247,7 +247,10 @@ rxSolve <- function(object, params=NULL, events=NULL, inits = NULL, scale = NULL
         method <- match.arg(method);
     }
     method <- as.integer(which(method == c("lsoda", "dop853", "liblsoda")) - 1)
-    covs_interpolation  <- as.integer(which(match.arg(covs_interpolation) == c("linear", "locf", "nocb", "midpoint")) - 1);
+    if (length(covs_interpolation) > 1) covs_interpolation <- covs_interpolation[1];
+    covs_interpolation <- tolower(match.arg(covs_interpolation, c("linear", "locf", "LOCF", "constant", "nocb", "NOCB", "midpoint")))
+    if (covs_interpolation == "constant") covs_interpolation <- "locf";
+    covs_interpolation  <- as.integer(which(covs_interpolation == c("linear", "locf", "nocb", "midpoint")) - 1);
     extra <- list(...);
     if (any(duplicated(names(extra)))){
         stop("Duplicate arguments do not make sense.");

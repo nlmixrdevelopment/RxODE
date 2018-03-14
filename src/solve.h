@@ -94,54 +94,6 @@ typedef rx_solve *(*t_get_solve)();
 rx_solve *getRxSolve_();
 rx_solve *getRxSolve(SEXP ptr);
 
-void getSolvingOptionsPtr(double ATOL,          //absolute error
-                          double RTOL,          //relative error
-                          double H0,
-                          double HMIN,
-                          int mxstep,
-                          int MXORDN,
-                          int MXORDS,
-                          // Approx options
-                          int do_transit_abs,
-                          int nlhs,
-                          int neq,
-                          int stiff,
-                          double f1,
-                          double f2,
-                          int kind,
-                          int is_locf,
-                          int cores,
-                          int ncov,
-                          int *par_cov,
-                          int do_par_cov,
-                          double *inits,
-			  double *scale,
-			  const char *modNamePtr,
-			  double hmax2,
-                          double *atol2,
-                          double *rtol2,
-                          int nDisplayProgress,
-                          int ncoresRV,
-                          int isChol,
-                          int *svar);
-void getSolvingOptionsIndPtr(double *InfusionRate,
-                             int *BadDose,
-                             double HMAX, // Determined by diff
-                             double *par_ptr,
-                             double *dose,
-                             int *idose,
-                             double *solve,
-                             double *lhs,
-                             int *evid,
-                             int *rc,
-                             double *cov_ptr,
-                             int n_all_times,
-                             double *all_times,
-                             int id,
-                             int sim,
-                             rx_solving_options_ind *o);
-void rxSolveData(rx_solving_options_ind *subjects,
-                 int nsub, int nsim, int *stateIgnore, int nobs, int add_cov, int matrix);
 void par_solve(rx_solve *rx);
 
 rx_solving_options *getRxOp(rx_solve *rx);

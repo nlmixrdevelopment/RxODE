@@ -2080,11 +2080,14 @@ SEXP rxSolveC(const RObject &object,
                 gcovp[curcovpi++] = &gcov[curcovi];
                 curcovi += ind->n_all_times;
 		ncov++;
+		k++;
 		break;
 	      }
 	    }
 	  }
           op->ncov=ncov;
+          ind->cov_ptr = &(gcovp[0]);
+	  op->par_cov=&(gpar_cov[0]);
         } else if (rxIs(covs, "matrix")){
 	  // FIXME
 	  stop("Covariates must be supplied as a data.frame.");
@@ -2376,13 +2379,8 @@ SEXP rxSolveC(const RObject &object,
       e["covs"] = xtra[5];
       e["counts"] = xtra[6];
       e["inits.dat"] = initsC;
-      StringVector units(2);
-      units[0] = amountUnits;
-      units[1] = timeUnits;
-      StringVector unitsN(2);
-      unitsN[0] = "dosing";
-      unitsN[1] = "time";
-      units.names() = unitsN;
+      CharacterVector units = CharacterVector::create(amountUnits[0], timeUnits[0]);
+      units.names() = CharacterVector::create("dosing","time");
       e["units"] = units;
       e["nobs"] = rx->nobs;
     
