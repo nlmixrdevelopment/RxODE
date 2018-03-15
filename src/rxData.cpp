@@ -1677,7 +1677,7 @@ SEXP rxSolveC(const RObject &object,
 	      const int maxordn = 12,
 	      const int maxords = 5,
 	      const int cores = 1,
-	      const int covs_interpolation = 1,
+	      const int covs_interpolation = 0,
 	      bool addCov = false,
 	      bool matrix = false,
 	      const Nullable<NumericMatrix> &sigma= R_NilValue,
@@ -1701,174 +1701,174 @@ SEXP rxSolveC(const RObject &object,
 	      const bool &thetaIsChol = false,
               const unsigned int nStud = 1, 
 	      const bool simVariability=true){
-  if (updateObject){
-    if (rxIs(object, "rxSolve")){
-      bool update_params = false,
-        update_events = false,
-        update_inits = false,
-        update_covs = false,
-        update_method = false,
-        update_transit_abs = false,
-        update_atol = false,
-        update_rtol = false,
-        update_maxsteps = false,
-        update_hini = false,
-        update_hmin = false,
-        update_hmax = false,
-        update_maxordn = false,
-        update_maxords = false,
-        update_cores = false,
-        update_covs_interpolation = false,
-        update_addCov = false,
-        update_matrix = false,
-        update_sigma  = false,
-        update_sigmaDf = false,
-        update_nCoresRV = false,
-        update_sigmaIsChol = false,
-        update_amountUnits = false,
-        update_timeUnits = false,
-        update_scale = false,
-        update_dosing = false;
-      if (specParams.isNull()){
-        warning("No additional parameters were specified; Returning fit.");
-        return object;
-      }
-      CharacterVector specs = CharacterVector(specParams);
-      int n = specs.size(), i;
-      for (i = 0; i < n; i++){
-        if (as<std::string>(specs[i]) == "params")
-          update_params = true;
-        else if (as<std::string>(specs[i]) == "events")
-          update_events = true;
-        else if (as<std::string>(specs[i]) == "inits")
-          update_inits = true;
-        else if (as<std::string>(specs[i]) == "covs")
-          update_covs = true;
-        else if (as<std::string>(specs[i]) == "method")
-          update_method = true;
-        else if (as<std::string>(specs[i]) == "transit_abs")
-          update_transit_abs = true;
-        else if (as<std::string>(specs[i]) == "atol")
-          update_atol = true;
-        else if (as<std::string>(specs[i]) == "rtol")
-          update_rtol = true;
-        else if (as<std::string>(specs[i]) == "maxsteps")
-          update_maxsteps = true;
-        else if (as<std::string>(specs[i]) == "hmin")
-          update_hmin = true;
-        else if (as<std::string>(specs[i]) == "hmax")
-          update_hmax = true;
-        else if (as<std::string>(specs[i]) == "maxordn")
-          update_maxordn = true;
-        else if (as<std::string>(specs[i]) == "maxords")
-          update_maxords = true;
-        else if (as<std::string>(specs[i]) == "cores")
-          update_cores = true;
-        else if (as<std::string>(specs[i]) == "covs_interpolation")
-          update_covs_interpolation = true;
-        else if (as<std::string>(specs[i]) == "addCov")
-          update_addCov = true;
-        else if (as<std::string>(specs[i]) == "matrix")
-          update_matrix = true;
-        else if (as<std::string>(specs[i]) == "sigma")
-          update_sigma  = true;
-        else if (as<std::string>(specs[i]) == "sigmaDf")
-          update_sigmaDf = true;
-        else if (as<std::string>(specs[i]) == "nCoresRV")
-          update_nCoresRV = true;
-        else if (as<std::string>(specs[i]) == "sigmaIsChol")
-          update_sigmaIsChol = true;
-        else if (as<std::string>(specs[i]) == "amountUnits")
-          update_amountUnits = true;
-        else if (as<std::string>(specs[i]) == "timeUnits")
-          update_timeUnits = true;
-        else if (as<std::string>(specs[i]) == "hini")
-          update_hini = true;
-        else if (as<std::string>(specs[i]) == "scale")
-          update_scale = true;
-        else if (as<std::string>(specs[i]) == "addDosing")
-          update_dosing = true;
-      }
-      // Now update
-      Environment e;
-      List obj;
-      if (rxIs(object, "rxSolve")){
-        obj = as<List>(obj);
-        CharacterVector classattr = object.attr("class");
-        e = as<Environment>(classattr.attr(".RxODE.env"));
-      } else if (rxIs(object, "environment")) {
-        e = as<Environment>(object);
-        obj = as<List>(e["obj"]);
-      }
-      getRxModels();
-      if(e.exists(".sigma")){
-        _rxModels[".sigma"]=as<NumericMatrix>(e[".sigma"]);
-      }
-      if(e.exists(".sigmaL")){
-        _rxModels[".sigmaL"]=as<List>(e[".sigmaL"]);
-      }
-      if(e.exists(".omegaL")){
-        _rxModels[".omegaL"] = as<List>(e[".omegaL"]);
-      }
-      if(e.exists(".theta")){
-        _rxModels[".theta"] = as<NumericMatrix>(e[".theta"]);
-      }
-      RObject new_params = update_params ? params : e["args.params"];
-      RObject new_events = update_events ? events : e["args.events"];
-      RObject new_inits = update_inits ? inits : e["args.inits"];
-      RObject new_covs  = update_covs  ? covs  : e["args.covs"];
-      int new_method = update_method ? method : e["args.method"];
-      Nullable<LogicalVector> new_transit_abs = update_transit_abs ? transit_abs : e["args.transit_abs"];
-      double new_atol = update_atol ? atol : e["args.atol"];
-      double new_rtol = update_rtol ? rtol : e["args.rtol"];
-      int new_maxsteps = update_maxsteps ? maxsteps : e["args.maxsteps"];
-      int new_hmin = update_hmin ? hmin : e["args.hmin"];
-      Nullable<NumericVector> new_hmax = update_hmax ? hmax : e["args.hmax"];
-      int new_hini = update_hini ? hini : e["args.hini"];
-      int new_maxordn = update_maxordn ? maxordn : e["args.maxordn"];
-      int new_maxords = update_maxords ? maxords : e["args.maxords"];
-      int new_cores = update_cores ? cores : e["args.cores"];
-      int new_covs_interpolation = update_covs_interpolation ? covs_interpolation : e["args.covs_interpolation"];
-      bool new_addCov = update_addCov ? addCov : e["args.addCov"];
-      bool new_matrix = update_matrix ? matrix : e["args.matrix"];
-      Nullable<NumericMatrix> new_sigma = update_sigma ? sigma : e["args.sigma"];
-      Nullable<NumericVector> new_sigmaDf = update_sigmaDf ? sigmaDf : e["args.sigmaDf"];
-      unsigned int new_nCoresRV = update_nCoresRV ? nCoresRV : e["args.nCoresRV"];
-      bool new_sigmaIsChol = update_sigmaIsChol ? sigmaIsChol : e["args.sigmaIsChol"];
-      int new_nDisplayProgress = e["args.nDisplayProgress"];
-      CharacterVector new_amountUnits = update_amountUnits ? amountUnits : e["args.amountUnits"];
-      CharacterVector new_timeUnits = update_timeUnits ? timeUnits : e["args.timeUnits"];
-      RObject new_scale = update_scale ? scale : e["args.scale"];
-      bool new_addDosing = update_dosing ? addDosing : e["args.addDosing"];
-
-      RObject new_object = as<RObject>(e["args.object"]);
-      CharacterVector new_specParams(0);
-      List dat = as<List>(rxSolveC(new_object, new_specParams, extraArgs, new_params, new_events, new_inits, new_scale, new_covs,
-                                   new_method, new_transit_abs, new_atol, new_rtol, new_maxsteps, new_hmin,
-                                   new_hmax, new_hini,new_maxordn, new_maxords, new_cores, new_covs_interpolation,
-                                   new_addCov, new_matrix, new_sigma, new_sigmaDf, new_nCoresRV, new_sigmaIsChol,
-                                   new_nDisplayProgress, new_amountUnits, new_timeUnits, new_addDosing));
-      if (updateObject && as<bool>(e[".real.update"])){
-        List old = as<List>(rxCurObj);
-        //Should I zero out the List...?
-        CharacterVector oldNms = old.names();
-        CharacterVector nms = dat.names();
-        if (oldNms.size() == nms.size()){
-          int i;
-          for (i = 0; i < nms.size(); i++){
-            old[as<std::string>(nms[i])] = as<SEXP>(dat[as<std::string>(nms[i])]);
-          }
-          old.attr("class") = dat.attr("class");
-          old.attr("row.names") = dat.attr("row.names");
-          return old;
-        } else {
-          warning("Cannot update object...");
-          return dat;
-        }
-      }
-      e[".real.update"] = true;
-      return dat;
+  bool isRxSolve = rxIs(object, "rxSolve");
+  bool isEnvironment = rxIs(object, "environment") && !rxIs(object, "RxODE");
+  if (isRxSolve || isEnvironment){
+    bool update_params = false,
+      update_events = false,
+      update_inits = false,
+      update_covs = false,
+      update_method = false,
+      update_transit_abs = false,
+      update_atol = false,
+      update_rtol = false,
+      update_maxsteps = false,
+      update_hini = false,
+      update_hmin = false,
+      update_hmax = false,
+      update_maxordn = false,
+      update_maxords = false,
+      update_cores = false,
+      update_covs_interpolation = false,
+      update_addCov = false,
+      update_matrix = false,
+      update_sigma  = false,
+      update_sigmaDf = false,
+      update_nCoresRV = false,
+      update_sigmaIsChol = false,
+      update_amountUnits = false,
+      update_timeUnits = false,
+      update_scale = false,
+      update_dosing = false;
+    if (specParams.isNull()){
+      warning("No additional parameters were specified; Returning fit.");
+      return object;
     }
+    CharacterVector specs = CharacterVector(specParams);
+    int n = specs.size(), i;
+    for (i = n; i--;){
+      if (as<std::string>(specs[i]) == "params")
+	update_params = true;
+      else if (as<std::string>(specs[i]) == "events")
+	update_events = true;
+      else if (as<std::string>(specs[i]) == "inits")
+	update_inits = true;
+      else if (as<std::string>(specs[i]) == "covs")
+	update_covs = true;
+      else if (as<std::string>(specs[i]) == "method")
+	update_method = true;
+      else if (as<std::string>(specs[i]) == "transit_abs")
+	update_transit_abs = true;
+      else if (as<std::string>(specs[i]) == "atol")
+	update_atol = true;
+      else if (as<std::string>(specs[i]) == "rtol")
+	update_rtol = true;
+      else if (as<std::string>(specs[i]) == "maxsteps")
+	update_maxsteps = true;
+      else if (as<std::string>(specs[i]) == "hmin")
+	update_hmin = true;
+      else if (as<std::string>(specs[i]) == "hmax")
+	update_hmax = true;
+      else if (as<std::string>(specs[i]) == "maxordn")
+	update_maxordn = true;
+      else if (as<std::string>(specs[i]) == "maxords")
+	update_maxords = true;
+      else if (as<std::string>(specs[i]) == "cores")
+	update_cores = true;
+      else if (as<std::string>(specs[i]) == "covs_interpolation")
+	update_covs_interpolation = true;
+      else if (as<std::string>(specs[i]) == "addCov")
+	update_addCov = true;
+      else if (as<std::string>(specs[i]) == "matrix")
+	update_matrix = true;
+      else if (as<std::string>(specs[i]) == "sigma")
+	update_sigma  = true;
+      else if (as<std::string>(specs[i]) == "sigmaDf")
+	update_sigmaDf = true;
+      else if (as<std::string>(specs[i]) == "nCoresRV")
+	update_nCoresRV = true;
+      else if (as<std::string>(specs[i]) == "sigmaIsChol")
+	update_sigmaIsChol = true;
+      else if (as<std::string>(specs[i]) == "amountUnits")
+	update_amountUnits = true;
+      else if (as<std::string>(specs[i]) == "timeUnits")
+	update_timeUnits = true;
+      else if (as<std::string>(specs[i]) == "hini")
+	update_hini = true;
+      else if (as<std::string>(specs[i]) == "scale")
+	update_scale = true;
+      else if (as<std::string>(specs[i]) == "addDosing")
+	update_dosing = true;
+    }
+    // Now update
+    Environment e;
+    List obj;
+    if (isRxSolve){
+      obj = as<List>(obj);
+      CharacterVector classattr = object.attr("class");
+      e = as<Environment>(classattr.attr(".RxODE.env"));
+    } else  { // if (rxIs(object, "environment")) 
+      e = as<Environment>(object);
+      obj = as<List>(e["obj"]);
+    }
+    getRxModels();
+    if(e.exists(".sigma")){
+      _rxModels[".sigma"]=as<NumericMatrix>(e[".sigma"]);
+    }
+    if(e.exists(".sigmaL")){
+      _rxModels[".sigmaL"]=as<List>(e[".sigmaL"]);
+    }
+    if(e.exists(".omegaL")){
+      _rxModels[".omegaL"] = as<List>(e[".omegaL"]);
+    }
+    if(e.exists(".theta")){
+      _rxModels[".theta"] = as<NumericMatrix>(e[".theta"]);
+    }
+    RObject new_params = update_params ? params : e["args.params"];
+    RObject new_events = update_events ? events : e["args.events"];
+    RObject new_inits = update_inits ? inits : e["args.inits"];
+    RObject new_covs  = update_covs  ? covs  : e["args.covs"];
+    int new_method = update_method ? method : e["args.method"];
+    Nullable<LogicalVector> new_transit_abs = update_transit_abs ? transit_abs : e["args.transit_abs"];
+    double new_atol = update_atol ? atol : e["args.atol"];
+    double new_rtol = update_rtol ? rtol : e["args.rtol"];
+    int new_maxsteps = update_maxsteps ? maxsteps : e["args.maxsteps"];
+    int new_hmin = update_hmin ? hmin : e["args.hmin"];
+    Nullable<NumericVector> new_hmax = update_hmax ? hmax : e["args.hmax"];
+    int new_hini = update_hini ? hini : e["args.hini"];
+    int new_maxordn = update_maxordn ? maxordn : e["args.maxordn"];
+    int new_maxords = update_maxords ? maxords : e["args.maxords"];
+    int new_cores = update_cores ? cores : e["args.cores"];
+    int new_covs_interpolation = update_covs_interpolation ? covs_interpolation : e["args.covs_interpolation"];
+    bool new_addCov = update_addCov ? addCov : e["args.addCov"];
+    bool new_matrix = update_matrix ? matrix : e["args.matrix"];
+    Nullable<NumericMatrix> new_sigma = update_sigma ? sigma : e["args.sigma"];
+    Nullable<NumericVector> new_sigmaDf = update_sigmaDf ? sigmaDf : e["args.sigmaDf"];
+    unsigned int new_nCoresRV = update_nCoresRV ? nCoresRV : e["args.nCoresRV"];
+    bool new_sigmaIsChol = update_sigmaIsChol ? sigmaIsChol : e["args.sigmaIsChol"];
+    int new_nDisplayProgress = e["args.nDisplayProgress"];
+    CharacterVector new_amountUnits = update_amountUnits ? amountUnits : e["args.amountUnits"];
+    CharacterVector new_timeUnits = update_timeUnits ? timeUnits : e["args.timeUnits"];
+    RObject new_scale = update_scale ? scale : e["args.scale"];
+    bool new_addDosing = update_dosing ? addDosing : e["args.addDosing"];
+
+    RObject new_object = as<RObject>(e["args.object"]);
+    CharacterVector new_specParams(0);
+    List dat = as<List>(rxSolveC(new_object, new_specParams, extraArgs, new_params, new_events, new_inits, new_scale, new_covs,
+				 new_method, new_transit_abs, new_atol, new_rtol, new_maxsteps, new_hmin,
+				 new_hmax, new_hini,new_maxordn, new_maxords, new_cores, new_covs_interpolation,
+				 new_addCov, new_matrix, new_sigma, new_sigmaDf, new_nCoresRV, new_sigmaIsChol,
+				 new_nDisplayProgress, new_amountUnits, new_timeUnits, new_addDosing));
+    if (updateObject && as<bool>(e[".real.update"])){
+      List old = as<List>(rxCurObj);
+      //Should I zero out the List...?
+      CharacterVector oldNms = old.names();
+      CharacterVector nms = dat.names();
+      if (oldNms.size() == nms.size()){
+	int i;
+	for (i = 0; i < nms.size(); i++){
+	  old[as<std::string>(nms[i])] = as<SEXP>(dat[as<std::string>(nms[i])]);
+	}
+	old.attr("class") = dat.attr("class");
+	old.attr("row.names") = dat.attr("row.names");
+	return old;
+      } else {
+	warning("Cannot update object...");
+	return dat;
+      }
+    }
+    e[".real.update"] = true;
+    return dat;
   } else {
     // Load model
     if (!rxDynLoad(object)){
@@ -1907,7 +1907,9 @@ SEXP rxSolveC(const RObject &object,
       ev1 = ev0;
       par1 = par0;
     } else {
-      stop("Need some event information (observation/dosing times) to solve.\nYou can use either 'eventTable' or an RxODE compatible data frame/matrix.");
+      Rcout << "Events:\n";
+      Rcout << "Parameters:\n";
+      stop("Need some event information (observation/dosing times) to solve.\nYou can use either 'eventTable' or an RxODE compatible data.frame/matrix.");
     }
     // Now get the parameters (and covariates)
     //
@@ -3353,7 +3355,7 @@ RObject rxSolveUpdate(RObject obj,
 	  //////////////////////////////////////////////////////////////////////////////
 	  // Update Parameters by name
 	  n = pars.size();
-	  for (i = 0; i < n; i++){
+	  for (i = n; i--; ){
 	    if (nmp[i] == sarg){
 	      // Update solve.
 	      NumericVector val = NumericVector(value);
@@ -3394,7 +3396,7 @@ RObject rxSolveUpdate(RObject obj,
 		// Change parameter -> Covariate
 		List newPars(pars.size()-1);
 		CharacterVector newParNames(pars.size()-1);
-		for (j = 0; j < i; j++){
+		for (j = i; j--;){
 		  newPars[j]     = pars[j];
 		  newParNames[j] = nmp[j];
 		}
@@ -3407,7 +3409,7 @@ RObject rxSolveUpdate(RObject obj,
 		newPars.attr("row.names") = IntegerVector::create(NA_INTEGER,-np);
 		List newCovs(covs.size()+1);
 		CharacterVector newCovsNames(covs.size()+1);
-		for (j = 0; j < covs.size(); j++){
+		for (j = covs.size(); j--;){
 		  newCovs[j]      = covs[j];
 		  newCovsNames[j] = nmc[j];
 		}
@@ -3453,7 +3455,7 @@ RObject rxSolveUpdate(RObject obj,
 	  ///////////////////////////////////////////////////////////////////////////////
 	  // Update Covariates by covariate name
 	  n = covs.size();
-	  for (i = 0; i < n; i++){
+	  for (i = n; i--;){
 	    if (nmc[i] == sarg){
 	      // Update solve.
 	      NumericVector val = NumericVector(value);
