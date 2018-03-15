@@ -1844,8 +1844,7 @@ SEXP rxSolveC(const RObject &object,
     bool new_addDosing = update_dosing ? addDosing : e["args.addDosing"];
 
     RObject new_object = as<RObject>(e["args.object"]);
-    CharacterVector new_specParams(0);
-    List dat = as<List>(rxSolveC(new_object, new_specParams, extraArgs, new_params, new_events, new_inits, new_scale, new_covs,
+    List dat = as<List>(rxSolveC(new_object, R_NilValue, extraArgs, new_params, new_events, new_inits, new_scale, new_covs,
 				 new_method, new_transit_abs, new_atol, new_rtol, new_maxsteps, new_hmin,
 				 new_hmax, new_hini,new_maxordn, new_maxords, new_cores, new_covs_interpolation,
 				 new_addCov, new_matrix, new_sigma, new_sigmaDf, new_nCoresRV, new_sigmaIsChol,
@@ -2065,9 +2064,9 @@ SEXP rxSolveC(const RObject &object,
         // op->do_par_cov = 1;
 	op->do_par_cov = 1;
 	ncov = 0;
-	if (rxIs(covs,"data.frame")){
+        if (rxIs(covs,"data.frame")){
 	  List df = as<List>(covs);
-	  CharacterVector dfNames = df.names();
+          CharacterVector dfNames = df.names();
 	  int dfN = dfNames.size();
 	  gcovpSetup(dfN);
           gcovSetup(dfN * ind->n_all_times);
@@ -2143,8 +2142,8 @@ SEXP rxSolveC(const RObject &object,
     } else if (rxIs(par1, "data.frame")){
       parDf = as<List>(par1);
       parType = 2;
-      nmP = pars.names();
-      nPopPar = (as<NumericVector>(pars[0])).size();
+      nmP = parDf.names();
+      nPopPar = (as<NumericVector>(parDf[0])).size();
     } else if (rxIs(par1, "matrix")){
       parMat = as<NumericMatrix>(par1);
       nPopPar = parMat.nrow();
