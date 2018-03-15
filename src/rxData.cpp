@@ -175,7 +175,6 @@ bool rxIs(const RObject &obj, std::string cls){
       return (cls == "list");
     }
   case 4: // environment
-    if (cls == "environment") return true;
     hasCls = obj.hasAttribute("class");
     if (hasCls){
       CharacterVector classattr = obj.attr("class");
@@ -184,6 +183,8 @@ bool rxIs(const RObject &obj, std::string cls){
         cur = as<std::string>(classattr[i]);
 	if (cur == cls) return true;
       }
+    } else if (cls == "environment"){
+       return true;
     }
     return false;
   case 22: // external pointer
@@ -1702,7 +1703,7 @@ SEXP rxSolveC(const RObject &object,
               const unsigned int nStud = 1, 
 	      const bool simVariability=true){
   bool isRxSolve = rxIs(object, "rxSolve");
-  bool isEnvironment = rxIs(object, "environment") && !rxIs(object, "RxODE");
+  bool isEnvironment = rxIs(object, "environment");
   if (isRxSolve || isEnvironment){
     bool update_params = false,
       update_events = false,
