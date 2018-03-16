@@ -1660,7 +1660,7 @@ bool rxDynLoad(RObject obj);
 
 extern "C" rx_solving_options_ind *rxOptionsIniEnsure(int mx);
 extern "C" void RxODE_assign_fn_pointers(SEXP);
-SEXP rxSolveC(const RObject &object,
+SEXP rxSolveC(const RObject &obj,
 	      const Nullable<CharacterVector> &specParams = R_NilValue,
 	      const Nullable<List> &extraArgs = R_NilValue,
 	      const RObject &params = R_NilValue,
@@ -1703,8 +1703,19 @@ SEXP rxSolveC(const RObject &object,
 	      const bool &thetaIsChol = false,
               const unsigned int nStud = 1, 
 	      const bool simVariability=true){
-  bool isRxSolve = rxIs(object, "rxSolve");
-  bool isEnvironment = rxIs(object, "environment");
+  RObject object;
+  bool isRxSolve = rxIs(obj, "rxSolve");
+  bool isEnvironment = rxIs(obj, "environment");
+  if (updateObject && !isRxSolve && !isEnvironment){
+    if (rxIs(rxCurObj, "rxSolve")){
+      object = rxCurObj;
+      isRxSolve = true;
+    } else {
+      stop("Cannot update this object.");
+    }
+  } else {
+    object =obj;
+  }
   if (isRxSolve || isEnvironment){
     bool update_params = false,
       update_events = false,
@@ -2308,6 +2319,7 @@ SEXP rxSolveC(const RObject &object,
 	while (parDfi--){
 	  parMat(_,parDfi)=NumericVector(parDf[parDfi]);
 	}
+	parMat.attr("dimnames") = List::create(R_NilValue, parDf.names());
       }
     case 3: // NumericMatrix
       gparsSetup(npars*nPopPar);
