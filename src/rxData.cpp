@@ -755,7 +755,7 @@ NumericVector rxSetupScale(const RObject &obj,
   return ret;
 }
 
-NumericMatrix rxSetupParamsThetaEta(const RObject &params = R_NilValue,
+RObject rxSetupParamsThetaEta(const RObject &params = R_NilValue,
 				    const RObject &theta = R_NilValue,
 				    const RObject &eta = R_NilValue){
   // Now get the parameters as a data.frame
@@ -775,12 +775,12 @@ NumericMatrix rxSetupParamsThetaEta(const RObject &params = R_NilValue,
         NumericMatrix thetaM = as<NumericMatrix>(theta);
         if (thetaM.nrow() == 1){
           thetaN = NumericVector(thetaM.ncol());
-          for (i = 0 ; i < thetaM.ncol(); i++){
+          for (i = thetaM.ncol() ; i--;){
             thetaN[i] = thetaM(1,i);
           }
         } else if (thetaM.ncol() == 1){
           thetaN = NumericVector(thetaM.nrow());
-          for (i = 0 ; i < thetaM.ncol(); i++){
+          for (i = thetaM.ncol() ; i-- ;){
             thetaN[i] = thetaM(i, i);
           }
         } else {
@@ -797,12 +797,12 @@ NumericMatrix rxSetupParamsThetaEta(const RObject &params = R_NilValue,
         NumericMatrix etaM = as<NumericMatrix>(eta);
         if (etaM.nrow() == 1){
           etaN = NumericVector(etaM.ncol());
-          for (i = 0 ; i < etaM.ncol(); i++){
+          for (i = etaM.ncol() ; i-- ;){
             etaN[i] = etaM(0, i);
           }
         } else if (etaM.ncol() == 1){
           etaN = NumericVector(etaM.nrow());
-          for (i = 0 ; i < etaM.ncol(); i++){
+          for (i = etaM.ncol() ; i--;){
             etaN[i] = etaM(i, 0);
           }
         } else {
@@ -813,10 +813,11 @@ NumericMatrix rxSetupParamsThetaEta(const RObject &params = R_NilValue,
       }
       NumericMatrix tmp1(1, thetaN.size()+etaN.size());
       CharacterVector tmpN = CharacterVector(tmp1.size());
-      for (i = 0; i < thetaN.size(); i++){
+      for (i = thetaN.size(); i--;){
         tmp1(0, i) = thetaN[i];
         tmpN[i] = "THETA[" + std::to_string(i + 1) + "]";
       }
+      i = thetaN.size();
       for (; i < thetaN.size()+ etaN.size(); i++){
         tmp1(0, i) = etaN[i - thetaN.size()];
         tmpN[i] = "ETA[" + std::to_string(i - thetaN.size() + 1) + "]";
@@ -829,7 +830,7 @@ NumericMatrix rxSetupParamsThetaEta(const RObject &params = R_NilValue,
       DataFrame tmp = as<DataFrame>(params);
       int nr = tmp.nrows();
       NumericMatrix tmpM(nr,tmp.size());
-      for (i = 0; i < tmp.size(); i++){
+      for (i = tmp.size(); i-- ;){
         tmpM(_,i) = NumericVector(tmp[i]);
       }
       tmpM.attr("dimnames") = List::create(R_NilValue,tmp.names());
@@ -846,12 +847,12 @@ NumericMatrix rxSetupParamsThetaEta(const RObject &params = R_NilValue,
       NumericMatrix thetaM = as<NumericMatrix>(theta);
       if (thetaM.nrow() == 1){
         thetaN = NumericVector(thetaM.ncol());
-        for (i = 0 ; i < thetaM.ncol(); i++){
+        for (i = thetaM.ncol() ; i-- ;){
           thetaN[i] = thetaM(1,i);
         }
       } else if (thetaM.ncol() == 1){
         thetaN = NumericVector(thetaM.nrow());
-        for (i = 0 ; i < thetaM.ncol(); i++){
+        for (i = thetaM.ncol(); i--;){
           thetaN[i] = thetaM(i, i);
         }
       } else {
@@ -868,12 +869,12 @@ NumericMatrix rxSetupParamsThetaEta(const RObject &params = R_NilValue,
       NumericMatrix etaM = as<NumericMatrix>(eta);
       if (etaM.nrow() == 1){
         etaN = NumericVector(etaM.ncol());
-        for (i = 0 ; i < etaM.ncol(); i++){
+        for (i = etaM.ncol() ; i-- ;){
           etaN[i] = etaM(0, i);
         }
       } else if (etaM.ncol() == 1){
         etaN = NumericVector(etaM.nrow());
-        for (i = 0 ; i < etaM.ncol(); i++){
+        for (i = etaM.ncol() ; i-- ;){
           etaN[i] = etaM(i, 0);
         }
       } else {
@@ -910,7 +911,7 @@ NumericMatrix rxSetupParamsThetaEta(const RObject &params = R_NilValue,
     tmp1.attr("dimnames") = List::create(R_NilValue, tmpN);
     parMat = tmp1;
   }
-  return parMat;
+  return as<RObject>(parMat);
 }
 
 
@@ -2131,6 +2132,9 @@ SEXP rxSolveC(const RObject &object,
     NumericMatrix parMat;
     CharacterVector nmP;
     int nPopPar = 1;
+    if (!theta.isNULL() || !eta.isNULL()){
+      par1 = rxSetupParamsThetaEta(par1, theta, eta);
+    }
     if (rxIs(par1, "numeric") || rxIs(par1, "integer")){
       parNumeric = as<NumericVector>(par1);
       if (parNumeric.hasAttribute("names")){
