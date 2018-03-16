@@ -301,6 +301,17 @@ rxSolve <- function(object, params=NULL, events=NULL, inits = NULL, scale = NULL
         params <- rxInits(object, params, pars, NA, !is.null(covs));
         if (!is.null(covs)){
             cov <- as.matrix(covs);
+            cov.len <- dim(cov)[1];
+            if (cov.len !=  length(event.table$time)){
+                sampling.time <- events$get.sampling()$time;
+                if (cov.len != length(sampling.time)) stop("Covariate length need to match the sampling times or all the times in the event table.");
+                lst <- as.matrix(do.call("cbind", lapply(seq(1L, dim(cov)[2]), function(i){
+                                                      f <- approxfun(sampling.time, cov[, i])
+                                                      return(f(event.table$time))
+                                                  })))
+                dimnames(lst) <- list(NULL, dimnames(cov)[[2]]);
+                cov <- lst;
+            }
             pcov <- sapply(dimnames(cov)[[2]], function(x){
                 w <- which(x == names(params));
                 if (length(w) == 1){
