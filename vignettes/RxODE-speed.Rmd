@@ -140,9 +140,8 @@ res <- microbenchmark(solved.1c=rxSolve(solve.1c, params=c(V=20, CL=25), events=
 					  solved.3c.ka=rxSolve(solve.3c.ka, params=c(V=20, CL=25, V2=297, Q=10, Q2=7, V3=400, KA=2), events=et), 
                       ode.3c.ka.lsoda=rxSolve(ode.3c.ka, params=c(V=20, CL=25, V2=297, Q=10, Q2=7, V3=400, KA=2), events=et, method="lsoda"),
                       ode.3c.ka.liblsoda=rxSolve(ode.3c.ka, params=c(V=20, CL=25, V2=297, Q=10, Q2=7, V3=400, KA=2), events=et, method="liblsoda"),
-                      ode.3c.ka.dop=rxSolve(ode.3c.ka, params=c(V=20, CL=25, V2=297, Q=10, Q2=7, V3=400, KA=2), events=et, method="dop853"),
-					  data.par.setup=rxDataParSetup(mod, et)
-					  )
+                      ode.3c.ka.dop=rxSolve(ode.3c.ka, params=c(V=20, CL=25, V2=297, Q=10, Q2=7, V3=400, KA=2), events=et, method="dop853")
+                      )
 
 ```
 
