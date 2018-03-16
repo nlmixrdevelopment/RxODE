@@ -2964,6 +2964,7 @@ RObject rxSolveUpdate(RObject obj,
 		  newCovs[j]      = covs[j];
 		  newCovsNames[j] = nmc[j];
 		}
+		j = covs.size();
 		newCovs[j]      = val;
 		newCovsNames[j] = nmp[i];
 		newCovs.attr("names") = newCovsNames;
