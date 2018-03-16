@@ -1639,7 +1639,7 @@ extern "C" double *global_InfusionRate(unsigned int mx);
 #define defrx_cores 1
 #define defrx_covs_interpolation 0
 #define defrx_addCov false
-#define defrx_matrix false
+#define defrx_matrix 0
 #define defrx_sigma  R_NilValue
 #define defrx_sigmaDf R_NilValue
 #define defrx_nCoresRV 1
@@ -1681,7 +1681,7 @@ SEXP rxSolveC(const RObject &object,
 	      const int cores = 1,
 	      const int covs_interpolation = 0,
 	      bool addCov = false,
-	      bool matrix = false,
+	      int matrix = 0,
 	      const Nullable<NumericMatrix> &sigma= R_NilValue,
 	      const Nullable<NumericVector> &sigmaDf= R_NilValue,
 	      const unsigned int &nCoresRV= 1,
@@ -1833,7 +1833,7 @@ SEXP rxSolveC(const RObject &object,
     int new_cores = update_cores ? cores : e["args.cores"];
     int new_covs_interpolation = update_covs_interpolation ? covs_interpolation : e["args.covs_interpolation"];
     bool new_addCov = update_addCov ? addCov : e["args.addCov"];
-    bool new_matrix = update_matrix ? matrix : e["args.matrix"];
+    int new_matrix = update_matrix ? matrix : e["args.matrix"];
     Nullable<NumericMatrix> new_sigma = update_sigma ? sigma : e["args.sigma"];
     Nullable<NumericVector> new_sigmaDf = update_sigmaDf ? sigmaDf : e["args.sigmaDf"];
     unsigned int new_nCoresRV = update_nCoresRV ? nCoresRV : e["args.nCoresRV"];
@@ -1884,7 +1884,7 @@ SEXP rxSolveC(const RObject &object,
     rx_solving_options* op = rx->op;
     rx_solving_options_ind* ind;
     
-    rx->matrix = (int)(matrix);
+    rx->matrix = matrix;
     rx->add_cov = (int)(addCov);
     op->stiff = method;
     if (method != 2){
@@ -2005,7 +2005,77 @@ SEXP rxSolveC(const RObject &object,
     // Covariate options
     // Simulation variabiles
     // int *svar;
+    CharacterVector sigmaN;
+    if (!thetaMat.isNull() || !omega.isNull() || !sigma.isNull()){
+      // Simulated Variable
+      if (!rxIs(par1, "numeric")){
+        stop("When specifying 'thetaMat', 'omega', or 'sigma' the parameters cannot be a data.frame/matrix.");
+      }
+      unsigned int nObs = nobs + (addDosing ? ndoses : 0);
+      unsigned int nSub0 = nSub;
+      if (nSub == 1){
+        nSub0 = nsub;
+      } else if (nSub > 1 && nsub > 1 &&  nSub != nsub){
+        stop("You provided multi-subject data and asked to simulate a different number of subjects;  I don't know what to do.");
+      }
+      par1 =  as<RObject>(rxSimThetaOmega(as<Nullable<NumericVector>>(par1), omega, omegaDf, omegaIsChol, nSub0, thetaMat, thetaDf, thetaIsChol, nStud,
+                                          sigma, sigmaDf, sigmaIsChol, nObs, nCoresRV, simVariability));
+      // The parameters are in the same format as they would be if they were specified as part of the original dataset.
+    }
+    // .sigma could be reassigned in an update, so check outside simulation function.
+    if (_rxModels.exists(".sigma")){
+      sigmaN = as<CharacterVector>((as<List>((as<NumericMatrix>(_rxModels[".sigma"])).attr("dimnames")))[1]);
+    }
+    int parType = 1;
+    NumericVector parNumeric;
+    DataFrame parDf;
+    NumericMatrix parMat;
+    CharacterVector nmP;
+    int nPopPar = 1;
+    if (!theta.isNULL() || !eta.isNULL()){
+      par1 = rxSetupParamsThetaEta(par1, theta, eta);
+    }
+    if (rxIs(par1, "numeric") || rxIs(par1, "integer")){
+      parNumeric = as<NumericVector>(par1);
+      if (parNumeric.hasAttribute("names")){
+        nmP = parNumeric.names();
+      } else if (parNumeric.size() == pars.size()) {
+        nmP = pars;
+      } else {
+        stop("If parameters are not named, they must match the order and size of the parameters in the model.");
+      }
+    } else if (rxIs(par1, "data.frame")){
+      parDf = as<DataFrame>(par1);
+      parType = 2;
+      nmP = parDf.names();
+      nPopPar = parDf.nrows();
+    } else if (rxIs(par1, "matrix")){
+      parMat = as<NumericMatrix>(par1);
+      nPopPar = parMat.nrow();
+      parType = 3;
+      if (parMat.hasAttribute("dimnames")){
+        Nullable<CharacterVector> colnames0 = as<Nullable<CharacterVector>>((as<List>(parMat.attr("dimnames")))[1]);
+        if (colnames0.isNull()){
+          if (parMat.ncol() == pars.size()){
+            nmP = pars;
+          } else {
+            stop("If parameters are not named, they must match the order and size of the parameters in the model.");
+          }
+        } else {
+          nmP = CharacterVector(colnames0);
+        }
+      } else if (parMat.ncol() == pars.size()) {
+        nmP = pars;
+      } else {
+        stop("If parameters are not named, they must match the order and size of the parameters in the model.");
+      }
+    }
+    bool directData=false;
+    if (op->cores == 1) directData = true;
     if (rxIs(ev1, "EventTable")){
+      if (nPopPar == 1){
+	directData=true;
+      }    
       rxOptionsIniEnsure(1);
       ind = &(rx->subjects[0]);
       ind->slvr_counter   = 0;
@@ -2020,17 +2090,22 @@ SEXP rxSolveC(const RObject &object,
       NumericVector amt  = as<NumericVector>(dataf[2]);
       // Time copy
       ind->n_all_times   = time.size();
-      gall_timesSetup(ind->n_all_times);
-      std::copy(time.begin(), time.end(), &gall_times[0]);
-      ind->all_times     = &gall_times[0];
-      // EVID copy
-      gevidSetup(ind->n_all_times);
-      std::copy(evid.begin(),evid.end(), &gevid[0]);
-      ind->evid     = &gevid[0];
+      if (directData){
+	ind->all_times = &time[0];
+	ind->evid     = &evid[0];
+      } else {
+        gall_timesSetup(ind->n_all_times);
+        std::copy(time.begin(), time.end(), &gall_times[0]);
+        ind->all_times     = &gall_times[0];
+        // EVID copy
+        gevidSetup(ind->n_all_times);
+        std::copy(evid.begin(),evid.end(), &gevid[0]);
+        ind->evid     = &gevid[0];
+      }
       j=0;
       gamtSetup(ind->n_all_times);
       ind->dose = &gamt[0];
-      // Slower
+      // Slower; These need to be built.
       tlast = time[0];
       hmax1 = hmax2 = 0;
       gidoseSetup(ind->n_all_times);
@@ -2053,7 +2128,7 @@ SEXP rxSolveC(const RObject &object,
       rx->nobs = nobs;
       rx->nall = nobs+ndoses;
       if (!hmax.isNull()){
-	NumericVector hmax0 = NumericVector(hmax);
+	NumericVector hmax0(hmax);
 	ind->HMAX = hmax0[0];
 	op->hmax2 = hmax0[0];
       } else {
@@ -2071,7 +2146,7 @@ SEXP rxSolveC(const RObject &object,
           CharacterVector dfNames = df.names();
 	  int dfN = dfNames.size();
 	  gcovpSetup(dfN);
-          gcovSetup(dfN * ind->n_all_times);
+	  gcovSetup(dfN * ind->n_all_times);
 	  gpar_covSetup(dfN);
 	  k = 0;
 	  for (i = dfN; i--;){
@@ -2079,16 +2154,21 @@ SEXP rxSolveC(const RObject &object,
 	      if (pars[j] == dfNames[i]){
 		gpar_cov[k] = j+1;
 		// Not clear if this is an integer/real.  Copy the values.
-		NumericVector cur = as<NumericVector>(df[i]);
-		std::copy(cur.begin(), cur.end(), &(gcov[curcovi]));
-                gcovp[curcovpi++] = &gcov[curcovi];
-                curcovi += ind->n_all_times;
-		ncov++;
-		k++;
-		break;
-	      }
-	    }
-	  }
+		if (directData && rxIs(df[i], "numeric")){
+		  NumericVector cur(df[i]);
+		  gcovp[curcovpi++] = &cur[0];
+		} else {
+                  NumericVector cur = as<NumericVector>(df[i]);
+                  std::copy(cur.begin(), cur.end(), &(gcov[curcovi]));
+                  gcovp[curcovpi++] = &gcov[curcovi];
+                  curcovi += ind->n_all_times;
+                }
+                ncov++;
+                k++;                  
+                break;
+              }
+            }
+          }
           op->ncov=ncov;
           ind->cov_ptr = &(gcovp[0]);
 	  op->par_cov=&(gpar_cov[0]);
@@ -2105,71 +2185,6 @@ SEXP rxSolveC(const RObject &object,
       // data.frame or matrix
       stop("single solver only for now.");
     }
-    CharacterVector sigmaN;
-    if (!thetaMat.isNull() || !omega.isNull() || !sigma.isNull()){
-      // Simulated Variable
-      if (!rxIs(par1, "numeric")){
-	stop("When specifying 'thetaMat', 'omega', or 'sigma' the parameters cannot be a data.frame/matrix.");
-      }
-      unsigned int nObs = nobs + (addDosing ? ndoses : 0);
-      unsigned int nSub0 = nSub;
-      if (nSub == 1){
-	nSub0 = nsub;
-      } else if (nSub > 1 && nsub > 1 &&  nSub != nsub){
-        stop("You provided multi-subject data and asked to simulate a different number of subjects;  I don't know what to do.");
-      }
-      par1 =  as<RObject>(rxSimThetaOmega(as<Nullable<NumericVector>>(par1), omega, omegaDf, omegaIsChol, nSub0, thetaMat, thetaDf, thetaIsChol, nStud,
-					  sigma, sigmaDf, sigmaIsChol, nObs, nCoresRV, simVariability));
-      // The parameters are in the same format as they would be if they were specified as part of the original dataset.
-    }
-    // .sigma could be reassigned in an update, so check outside simulation function.
-    if (_rxModels.exists(".sigma")){
-      sigmaN = as<CharacterVector>((as<List>((as<NumericMatrix>(_rxModels[".sigma"])).attr("dimnames")))[1]);
-    }
-    int parType = 1;
-    NumericVector parNumeric;
-    DataFrame parDf;
-    NumericMatrix parMat;
-    CharacterVector nmP;
-    int nPopPar = 1;
-    if (!theta.isNULL() || !eta.isNULL()){
-      par1 = rxSetupParamsThetaEta(par1, theta, eta);
-    }
-    if (rxIs(par1, "numeric") || rxIs(par1, "integer")){
-      parNumeric = as<NumericVector>(par1);
-      if (parNumeric.hasAttribute("names")){
-	nmP = parNumeric.names();
-      } else if (parNumeric.size() == pars.size()) {
-	nmP = pars;
-      } else {
-	stop("If parameters are not named, they must match the order and size of the parameters in the model.");
-      }
-    } else if (rxIs(par1, "data.frame")){
-      parDf = as<DataFrame>(par1);
-      parType = 2;
-      nmP = parDf.names();
-      nPopPar = parDf.nrows();
-    } else if (rxIs(par1, "matrix")){
-      parMat = as<NumericMatrix>(par1);
-      nPopPar = parMat.nrow();
-      parType = 3;
-      if (parMat.hasAttribute("dimnames")){
-	Nullable<CharacterVector> colnames0 = as<Nullable<CharacterVector>>((as<List>(parMat.attr("dimnames")))[1]);
-	if (colnames0.isNull()){
-	  if (parMat.ncol() == pars.size()){
-	    nmP = pars;
-	  } else {
-            stop("If parameters are not named, they must match the order and size of the parameters in the model.");
-          }
-        } else {
-	  nmP = CharacterVector(colnames0);
-	}
-      } else if (parMat.ncol() == pars.size()) {
-	nmP = pars;
-      } else {
-        stop("If parameters are not named, they must match the order and size of the parameters in the model.");
-      }
-    } 
     // Make sure the user input all the parmeters.
     gParPosSetup(npars);
     std::string errStr = "";
@@ -2383,13 +2398,17 @@ SEXP rxSolveC(const RObject &object,
       if(_rxModels.exists(".theta")){
   	_rxModels.remove(".theta");
       }
-      dat.attr("class") = "data.frame";
-      NumericMatrix tmpM(nr,nc);
-      for (int i = 0; i < dat.size(); i++){
-  	tmpM(_,i) = as<NumericVector>(dat[i]);
+      if (rx->matrix == 2){
+        dat.attr("class") = "data.frame";
+	return dat;
+      } else {
+        NumericMatrix tmpM(nr,nc);
+        for (unsigned int i = dat.size(); i--;){
+          tmpM(_,i) = as<NumericVector>(dat[i]);
+        }
+        tmpM.attr("dimnames") = List::create(R_NilValue,dat.names());
+        return tmpM;
       }
-      tmpM.attr("dimnames") = List::create(R_NilValue,dat.names());
-      return tmpM;
     } else {
       Function newEnv("new.env", R_BaseNamespace);
       Environment RxODE("package:RxODE");

@@ -227,7 +227,7 @@ rxSolve <- function(object, params=NULL, events=NULL, inits = NULL, scale = NULL
                     theta = NULL, eta = NULL, addDosing=FALSE, update.object=FALSE,do.solve=TRUE,
                     omega = NULL, omegaDf = NULL, omegaIsChol = FALSE,
                     nSub = 1L, thetaMat = NULL, thetaDf = NULL, thetaIsChol = FALSE,
-                    nStud = 1L, simVariability=TRUE){
+                    nStud = 1L, simVariability=TRUE, return.type=c("rxSolve", "matrix", "data.frame")){
     ## stiff = TRUE, transit_abs = NULL,
     ## atol = 1.0e-8, rtol = 1.0e-6, maxsteps = 5000, hmin = 0, hmax = NULL, hini = 0, maxordn = 12,
     ## maxords = 5, ..., covs_interpolation = c("linear", "constant", "NOCB", "midpoint"),
@@ -245,6 +245,12 @@ rxSolve <- function(object, params=NULL, events=NULL, inits = NULL, scale = NULL
         }
     } else {
         method <- match.arg(method);
+    }
+    if(!missing(return.type)){
+        matrix.idx = c("rxSolve"=0, "matrix"=1, "data.frame"=2);
+        matrix <- matrix.idx[match.arg(return.type)];
+    } else {
+        matrix <- as.integer(matrix);
     }
     method <- as.integer(which(method == c("lsoda", "dop853", "liblsoda")) - 1)
     if (length(covs_interpolation) > 1) covs_interpolation <- covs_interpolation[1];
