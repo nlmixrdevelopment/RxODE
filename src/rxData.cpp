@@ -2261,7 +2261,7 @@ SEXP rxSolveC(const RObject &object,
 	  gpars[i] = mvIni[-gParPos[i]-1];
 	}
       }
-      for (i = 0; i < nsub; i++){
+      for (i = nsub; i--;){
 	ind = &(rx->subjects[i]);
 	ind->par_ptr = &gpars[0];
 	ind->InfusionRate = &gInfusionRate[op->neq*i];
@@ -2391,43 +2391,6 @@ SEXP rxSolveC(const RObject &object,
       Function importEt = as<Function>(et["import.EventTable"]);
       importEt(e["EventTable"]);
       e["events.EventTable"] = et;
-      Function parse2("parse", R_BaseNamespace);
-      Function eval2("eval", R_BaseNamespace);
-      // eventTable style methods
-      e["get.EventTable"] = eval2(_["expr"]   = parse2(_["text"]="function() EventTable"),
-  				  _["envir"]  = e);
-      e["get.obs.rec"] = eval2(_["expr"]   = parse2(_["text"]="function() obs.rec"),
-  			       _["envir"]  = e);
-      e["get.nobs"] = eval2(_["expr"]   = parse2(_["text"]="function() nobs"),
-  			    _["envir"]  = e);
-      e["add.dosing"] = eval2(_["expr"]   = parse2(_["text"]="function(...) {et <- create.eventTable(); et$add.dosing(...); invisible(rxSolve(args.object,events=et,update.object=TRUE))}"),
-  			      _["envir"]  = e);
-      e["clear.dosing"] = eval2(_["expr"]   = parse2(_["text"]="function(...) {et <- create.eventTable(); et$clear.dosing(...); invisible(rxSolve(args.object,events=et,update.object=TRUE))}"),
-  				_["envir"]  = e);
-      e["get.dosing"] = eval2(_["expr"]   = parse2(_["text"]="function() dosing"),
-  			      _["envir"]  = e);
-
-      e["add.sampling"] = eval2(_["expr"]   = parse2(_["text"]="function(...) {et <- create.eventTable(); et$add.sampling(...); invisible(rxSolve(args.object,events=et,update.object=TRUE))}"),
-  				_["envir"]  = e);
-      
-      e["clear.sampling"] = eval2(_["expr"]   = parse2(_["text"]="function(...) {et <- create.eventTable(); et$clear.sampling(...); invisible(rxSolve(args.object,events=et,update.object=TRUE))}"),
-  				  _["envir"]  = e);
-
-      e["replace.sampling"] = eval2(_["expr"]   = parse2(_["text"]="function(...) {et <- create.eventTable(); et$clear.sampling(); et$add.sampling(...); invisible(rxSolve(args.object,events=et,update.object=TRUE))}"),
-  				    _["envir"]  = e);
-
-      e["get.sampling"] = eval2(_["expr"]   = parse2(_["text"]="function() sampling"),
-  				_["envir"]  = e);
-      
-      e["get.units"] = eval2(_["expr"]   = parse2(_["text"]="function() units"),
-  			     _["envir"]  = e);
-
-      e["import.EventTable"] = eval2(_["expr"]   = parse2(_["text"]="function(imp) {et <- create.eventTable(imp); invisible(rxSolve(args.object,events=et,update.object=TRUE))}"),
-  				     _["envir"]  = e);
-      
-      e["create.eventTable"] = eval2(_["expr"]   = parse2(_["text"]="function(new.event) {et <- eventTable(amount.units=units[1],time.units=units[2]);if (missing(new.event)) {nev <- EventTable; } else {nev <- new.event;}; et$import.EventTable(nev); return(et);}"),
-  				     _["envir"]  = e);
-      // Note event.copy doesn't really make sense...?  The create.eventTable does basically the same thing.
       e["args.object"] = object;
       e["dll"] = rxDll(object);
       if (!swappedEvents){
@@ -2462,9 +2425,7 @@ SEXP rxSolveC(const RObject &object,
       e["args.timeUnits"] = timeUnits;
       e["args.addDosing"] = addDosing;
       e[".real.update"] = true;
-      CharacterVector cls(2);
-      cls(0) = "rxSolve";
-      cls(1) = "data.frame";
+      CharacterVector cls= CharacterVector::create("rxSolve", "data.frame");
       cls.attr(".RxODE.env") = e;    
       dat.attr("class") = cls;
       return(dat);
@@ -3079,10 +3040,49 @@ RObject rxSolveGet(RObject obj, RObject arg, LogicalVector exact = true){
 	  retS.attr("class") = "RxODE.modeltext";
 	  return(retS);
 	}
-	if (e.exists(sarg)){
-	  return e[sarg];
+	if (!e.exists("get.EventTable")){
+          Function parse2("parse", R_BaseNamespace);
+          Function eval2("eval", R_BaseNamespace);
+          // eventTable style methods
+          e["get.EventTable"] = eval2(_["expr"]   = parse2(_["text"]="function() EventTable"),
+                                       _["envir"]  = e);
+          e["get.obs.rec"] = eval2(_["expr"]   = parse2(_["text"]="function() obs.rec"),
+                                    _["envir"]  = e);
+          e["get.nobs"] = eval2(_["expr"]   = parse2(_["text"]="function() nobs"),
+                                 _["envir"]  = e);
+          e["add.dosing"] = eval2(_["expr"]   = parse2(_["text"]="function(...) {et <- create.eventTable(); et$add.dosing(...); invisible(rxSolve(args.object,events=et,update.object=TRUE))}"),
+                                   _["envir"]  = e);
+          e["clear.dosing"] = eval2(_["expr"]   = parse2(_["text"]="function(...) {et <- create.eventTable(); et$clear.dosing(...); invisible(rxSolve(args.object,events=et,update.object=TRUE))}"),
+                                     _["envir"]  = e);
+          e["get.dosing"] = eval2(_["expr"]   = parse2(_["text"]="function() dosing"),
+                                   _["envir"]  = e);
+
+          e["add.sampling"] = eval2(_["expr"]   = parse2(_["text"]="function(...) {et <- create.eventTable(); et$add.sampling(...); invisible(rxSolve(args.object,events=et,update.object=TRUE))}"),
+                                     _["envir"]  = e);
+      
+          e["clear.sampling"] = eval2(_["expr"]   = parse2(_["text"]="function(...) {et <- create.eventTable(); et$clear.sampling(...); invisible(rxSolve(args.object,events=et,update.object=TRUE))}"),
+                                       _["envir"]  = e);
+
+          e["replace.sampling"] = eval2(_["expr"]   = parse2(_["text"]="function(...) {et <- create.eventTable(); et$clear.sampling(); et$add.sampling(...); invisible(rxSolve(args.object,events=et,update.object=TRUE))}"),
+                                         _["envir"]  = e);
+
+          e["get.sampling"] = eval2(_["expr"]   = parse2(_["text"]="function() sampling"),
+                                     _["envir"]  = e);
+      
+          e["get.units"] = eval2(_["expr"]   = parse2(_["text"]="function() units"),
+                                  _["envir"]  = e);
+
+          e["import.EventTable"] = eval2(_["expr"]   = parse2(_["text"]="function(imp) {et <- create.eventTable(imp); invisible(rxSolve(args.object,events=et,update.object=TRUE))}"),
+					 _["envir"]  = e);
+      
+          e["create.eventTable"] = eval2(_["expr"]   = parse2(_["text"]="function(new.event) {et <- eventTable(amount.units=units[1],time.units=units[2]);if (missing(new.event)) {nev <- EventTable; } else {nev <- new.event;}; et$import.EventTable(nev); return(et);}"),
+                                          _["envir"]  = e);
+          // Note event.copy doesn't really make sense...?  The create.eventTable does basically the same thing.
 	}
-	if (sarg == "params" || sarg == "par" || sarg == "pars" || sarg == "param"){
+        if (e.exists(sarg)){
+          return e[sarg];
+        }
+        if (sarg == "params" || sarg == "par" || sarg == "pars" || sarg == "param"){
 	  return e["params.dat"];
 	} else if (sarg == "inits" || sarg == "init"){
 	  return e["inits.dat"];
@@ -3097,7 +3097,7 @@ RObject rxSolveGet(RObject obj, RObject arg, LogicalVector exact = true){
 	List pars = List(e["params.dat"]);
 	CharacterVector nmp = pars.names();
 	n = pars.size();
-	for (i = 0; i < n; i++){
+	for (i = n; i--;){
 	  if (nmp[i] == sarg){
 	    return pars[sarg];
 	  }
@@ -3109,7 +3109,7 @@ RObject rxSolveGet(RObject obj, RObject arg, LogicalVector exact = true){
 	n = ini.size();
         std::string cur;
         NumericVector retN(1);
-        for (i = 0; i < n; i++){
+        for (i = n; i--; ){
 	  cur = as<std::string>(nmi[i]) + "0";
 	  if (cur == sarg){
 	    retN = ini[i];
@@ -3145,8 +3145,8 @@ RObject rxSolveGet(RObject obj, RObject arg, LogicalVector exact = true){
 	CharacterVector normState = mv["normal.state"];
 	CharacterVector parsC = mv["params"];
         CharacterVector lhsC = mv["lhs"];
-	for (i = 0; i < normState.size(); i++){
-	  for (j = 0; j < parsC.size(); j++){
+	for (i = normState.size(); i--;){
+	  for (j = parsC.size(); j--; ){
 	    std::string test = "_sens_" + as<std::string>(normState[i]) + "_" + as<std::string>(parsC[j]);
 	    if (test == sarg){
 	      test = "rx__sens_" + as<std::string>(normState[i]) + "_BY_" + as<std::string>(parsC[j]) + "__";
@@ -3163,7 +3163,7 @@ RObject rxSolveGet(RObject obj, RObject arg, LogicalVector exact = true){
               return lst[test];
             }
 	  }
-          for (j = 0; j < lhsC.size(); j++){
+          for (j = lhsC.size(); j--;){
             std::string test = "_sens_" + as<std::string>(normState[i]) + "_" + as<std::string>(lhsC[j]);
             if (test == sarg){
               test = "rx__sens_" + as<std::string>(normState[i]) + "_BY_" + as<std::string>(lhsC[j]) + "__";
