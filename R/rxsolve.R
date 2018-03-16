@@ -228,6 +228,213 @@ rxSolve <- function(object, params=NULL, events=NULL, inits = NULL, scale = NULL
                     omega = NULL, omegaDf = NULL, omegaIsChol = FALSE,
                     nSub = 1L, thetaMat = NULL, thetaDf = NULL, thetaIsChol = FALSE,
                     nStud = 1L, simVariability=TRUE, return.type=c("rxSolve", "matrix", "data.frame")){
+    if (!do.solve){
+        modVars <- rxModelVars(object);
+        trans <- modVars$trans
+        state <- modVars$state;
+        lhs <- modVars$lhs;
+        pars <- modVars$params;
+        state.ignore <- modVars$state.ignore
+        if (!is.null(params)){
+            if (is.null(events) && is(params,"EventTable")){
+                events <- params;
+                params <- c();
+            }
+        }
+        if (is.null(transit_abs)){
+            transit_abs <- modVars$podo;
+            if (transit_abs){
+                warning("Assumed transit compartment model since 'podo' is in the model.")
+            }
+        }
+        if (!is(params, "numeric")){
+            n <- names(params);
+            params <- as.double(params);
+            names(params) <- n;
+        }
+        if (missing(stiff)) stiff <- TRUE;
+        ## Params and inits passed
+        extra.args <- list(events = events$copy(),
+                           covs = covs, stiff = stiff,
+                           transit_abs = transit_abs, atol = atol, rtol = rtol, maxsteps = maxsteps,
+                           hmin = hmin, hmax = hmax, hini = hini, maxordn = maxordn, maxords = maxords,
+                           covs_interpolation = covs_interpolation, add.cov=add.cov, ...);
+        params <- c(params, rxThetaEta(theta, eta));
+        event.table <- events$get.EventTable()
+        if (!is.numeric(maxordn))
+            stop("'maxordn' must be numeric.")
+        if (maxordn < 1 || maxordn > 12)
+            stop("'maxordn' must be >1 and < = 12.")
+        if (!is.numeric(maxords))
+            stop("'maxords' must be numeric.")
+        if (maxords < 1 || maxords > 5)
+            stop("'maxords' must be >1 and < = 5.")
+        if (!is.numeric(rtol))
+            stop("'rtol' must be numeric.")
+        if (!is.numeric(atol))
+            stop("'atol' must be numeric.")
+        if (!is.numeric(hmin))
+            stop("'hmin' must be numeric.")
+        if (hmin < 0)
+            stop("'hmin' must be a non-negative value.")
+        if (is.null(hmax)){
+            if (is.null(event.table$time) || length(event.table$time) == 1){
+                hmax <- 0;
+            } else {
+                hmax <- max(abs(diff(event.table$time)))
+            }
+        }
+        if (!is.numeric(hmax))
+            stop("'hmax' must be numeric.")
+        if (hmax < 0)
+            stop("'hmax' must be a non-negative value.")
+        if (hmax == Inf)
+            hmax <- 0
+        if (!is.null(hini)){
+            if (hini < 0)
+                stop("'hini' must be a non-negative value.")
+        } else {
+            hini <- 0;
+        }
+        ## preserve input arguments.
+        inits <- rxInits(object, inits, state, 0);
+        params <- rxInits(object, params, pars, NA, !is.null(covs));
+        if (!is.null(covs)){
+            cov <- as.matrix(covs);
+            pcov <- sapply(dimnames(cov)[[2]], function(x){
+                w <- which(x == names(params));
+                if (length(w) == 1){
+                    return(w)
+                } else {
+                    return(0);
+                }
+            })
+            n_cov <- length(pcov);
+            ## Now check if there is any unspecified parameters by either covariate or parameter
+            w <- which(is.na(params));
+            if (!all(names(params)[w] %in% dimnames(cov)[[2]])){
+                print(params)
+                stop("Some model specified variables were not specified by either a covariate or parameter");
+            }
+            ## Assign all parameters matching a covariate to zero.
+            for (i in pcov){
+                if (i > 0){
+                    params[i] <- 0;
+                }
+            }
+            covnames <- dimnames(cov)[[2]]
+        } else {
+            ## For now zero out the covariates
+            pcov <- c();
+            cov <- c();
+            n_cov <- 0;
+            covnames <- c();
+        }
+        lhs_vars <- lhs
+        if (is.null(inits)){
+            n <- state;
+            inits <- rep(0.0, length(n));
+            names(inits) <- n;
+        }
+        s <- as.list(match.call(expand.dots = TRUE))
+        wh <- grep(pattern = "[Ss]\\d+$", names(s))
+        if (length(scale) > 0 && length(wh) > 0){
+            stop("Cannot specify both 'scale=c(...)' and S#=, please pick one to scale the ODE compartments.")
+        }
+        ## HACK: fishing scaling variables "S1 S2 S3 ..." from params call
+        ## to solve(). Maybe define a "scale = c(central = 7.6, ...)" argument
+        ## similar to "params = "?
+        scaler.ix <- c()
+        if (length(wh) > 0) {
+            scaler.ix <- as.numeric(substring(names(s)[wh], 2))
+            if (any(duplicated(scaler.ix))){
+                stop("Duplicate scaling factors found.");
+            }
+            scale <- unlist(s[wh]);
+            if (any(length(inits) < scaler.ix)){
+                warning(sprintf("Scaler variable(s) above the number of compartments: %s.",
+                                paste(paste0("S", scaler.ix[scaler.ix > length(inits)]), collapse=", ")))
+                scale <- scale[scaler.ix < length(inits)]
+                scaler.ix <- scaler.ix[scaler.ix < length(inits)];
+            }
+            names(scale) <- state[scaler.ix];
+        }
+        scale <- c(scale);
+        scale <- rxInits(object, scale, state, 1, noini=TRUE);
+        isLocf <- 0L;
+        if (length(covs_interpolation) > 1){
+            isLocf <- 0L;
+        } else if (covs_interpolation == "constant"){
+            isLocf <- 1L;
+        } else if (covs_interpolation == "NOCB"){
+            isLocf <- 2L;
+        } else if (covs_interpolation == "midpoint"){
+            isLocf <- 3L;
+        } else if (covs_interpolation != "linear"){
+            stop("Unknown covariate interpolation specified.");
+        }
+        ## if (event.table$time[1] != 0){
+        ##     warning(sprintf("The initial conditions are at t = %s instead of t = 0.", event.table$time[1]))
+        ## }
+        ## Ensure that inits and params have names.
+        names(inits) <- state
+        names(params) <- pars;
+
+        time <- as.double(event.table$time);
+        evid <- as.integer(event.table$evid);
+        amt <- as.double(event.table$amt[event.table$evid>0]);
+        ## Covariates
+        pcov=as.integer(pcov);
+        cov=as.double(cov);
+        isLocf=as.integer(isLocf);
+        ## Solver options (double)
+        atol=as.double(atol);
+        rtol=as.double(rtol);
+        hmin=as.double(hmin);
+        hmax=as.double(hmax);
+        hini=as.double(hini);
+        ## Solver options ()
+        maxordn=as.integer(maxordn);
+        maxords=as.integer(maxords);
+        maxsteps=as.integer(maxsteps);
+        stiff=as.integer(stiff);
+        transit_abs=as.integer(transit_abs);
+        do.matrix=as.integer(matrix);
+        add.cov = as.integer(add.cov)
+        ret <- list(params=params,
+                    inits=inits,
+                    lhs_vars=lhs_vars,
+                    ## events
+                    time=time,
+                    evid=evid,
+                    amt=amt,
+                    ## Covariates
+                    pcov=pcov,
+                    cov=cov,
+                    isLocf=isLocf,
+                    ## Solver options (double)
+                    atol=atol,
+                    rtol=rtol,
+                    hmin=hmin,
+                    hmax=hmax,
+                    hini=hini,
+                    ## Solver options ()
+                    maxordn=maxordn,
+                    maxords=maxords,
+                    maxsteps=maxsteps,
+                    stiff=stiff,
+                    transit_abs=transit_abs,
+                    ## Passed to build solver object.
+                    object=object,
+                    extra.args=extra.args,
+                    scale=scale,
+                    events=events,
+                    event.table=event.table,
+                    do.matrix=do.matrix,
+                    add.cov=add.cov,
+                    state.ignore=state.ignore);
+        return(ret);
+    }
     ## stiff = TRUE, transit_abs = NULL,
     ## atol = 1.0e-8, rtol = 1.0e-6, maxsteps = 5000, hmin = 0, hmax = NULL, hini = 0, maxordn = 12,
     ## maxords = 5, ..., covs_interpolation = c("linear", "constant", "NOCB", "midpoint"),
