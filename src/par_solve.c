@@ -521,7 +521,7 @@ extern void par_lsoda(rx_solve *rx){
 	      ind->rc[0] = istate;
 	      // Bad Solve => NA
 	      /* memset(ind->solve,NA_REAL, (ind->n_all_times)*neq[0]); */
-	      for (i = nx*neq[0]; i--;) ret[i] = NA_REAL;
+	      for (i = (ind->n_all_times)*neq[0]; i--;) ind->solve[i] = NA_REAL;
 	      op->badSolve = 1;
 	      i = ind->n_all_times+42; // Get out of here!
 	    }
@@ -1496,7 +1496,7 @@ extern void rxSolveOldC(int *neqa,
 
   ind->InfusionRate = global_InfusionRate(*neqa);
   /* memset(ind->InfusionRate, 0.0, *neqa);  not for doubles*/
-  for (unsigned int j = *neq; j--;) ind->InfusionRate[j]=0.0;
+  for (unsigned int j = *neqa; j--;) ind->InfusionRate[j]=0.0;
 
   ind->BadDose = global_BadDose(*neqa);
   memset(ind->BadDose, 0, *neqa); // int ok
