@@ -933,17 +933,17 @@ extern SEXP RxODE_par_df(){
   int n = npar - ncov;
   SEXP df = PROTECT(allocVector(VECSXP,n+md+sm)); pro++;
   SEXP countsDf = PROTECT(allocVector(VECSXP,md+sm+3)); pro++;
-  for (i = 0; i < md+sm; i++){
+  for (i = md+sm; i--;){
     SET_VECTOR_ELT(df, i, PROTECT(allocVector(INTSXP, nsim*nsub))); pro++;
     SET_VECTOR_ELT(countsDf, i, PROTECT(allocVector(INTSXP, nsim*nsub))); pro++;
   }
-  for (i = 0; i < n; i++){
+  for (i = n; i--; ){
     SET_VECTOR_ELT(df, i+md+sm, PROTECT(allocVector(REALSXP, nsim*nsub))); pro++;
   }
   SET_VECTOR_ELT(countsDf, md+sm, PROTECT(allocVector(INTSXP, nsim*nsub))); pro++;
   SET_VECTOR_ELT(countsDf, md+sm+1, PROTECT(allocVector(INTSXP, nsim*nsub))); pro++;
   SET_VECTOR_ELT(countsDf, md+sm+2, PROTECT(allocVector(INTSXP, nsim*nsub))); pro++;
-  int jj = 0, ii = 0, j = 0, nall = 0;
+  int jj = 0, ii = 0, j = 0, nall;
   double *par_ptr;
   rx_solving_options_ind *ind;
   int *dfi;
@@ -951,10 +951,7 @@ extern SEXP RxODE_par_df(){
   int nobs = rx->nobs;
   int csub;
   int is_cov = 0;
-  for (csub = 0; csub < nsub; csub++){
-    ind = &(rx->subjects[csub]);
-    nall+=ind->n_all_times;
-  }
+  nall = rx->nall;
   // Event table information.
   SEXP dfe = PROTECT(allocVector(VECSXP,md+3)); pro++; // Events
   SEXP dfd = PROTECT(allocVector(VECSXP,md+3)); pro++; // Dosing
@@ -1025,7 +1022,6 @@ extern SEXP RxODE_par_df(){
   
   setAttrib(dfs, R_RowNamesSymbol, dfrs);
   setAttrib(covs, R_RowNamesSymbol, dfrs1);
-
 
   setAttrib(dfs, R_NamesSymbol, dfn);
   setAttrib(dfd, R_NamesSymbol, dfn1);
@@ -1291,7 +1287,7 @@ extern SEXP RxODE_df(int doDose){
   int nsub = rx->nsub;
   rx_solving_options_ind *ind;
   SEXP df = PROTECT(allocVector(VECSXP,ncols+nidCols+doseCols)); pro++;
-  for (i = 0; i < nidCols; i++){
+  for (i = nidCols; i--;){
     SET_VECTOR_ELT(df, i, PROTECT(allocVector(INTSXP, (doDose == 1 ? nall : nobs)*nsim))); pro++;
   }
   double *par_ptr;
