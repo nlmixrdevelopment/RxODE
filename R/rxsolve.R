@@ -421,7 +421,7 @@ rxSolve <- function(object, params=NULL, events=NULL, inits = NULL, scale = NULL
                     amt=amt,
                     ## Covariates
                     pcov=pcov,
-                    cov=cov,
+                    covs=cov,
                     isLocf=isLocf,
                     ## Solver options (double)
                     atol=atol,
