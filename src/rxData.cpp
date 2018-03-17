@@ -991,7 +991,7 @@ void gcovSetup(int n){
 
 double **gcovp = NULL;
 int gcovpn = 0;
-void gcovpSetup(int n){
+extern "C" void gcovpSetup(int n){
   if (gcovpn == 0){
     gcovp=(double **) R_chk_calloc(n+100, sizeof(double*));
     gcovpn=n+100;
@@ -999,6 +999,10 @@ void gcovpSetup(int n){
     gcovp = (double **) R_chk_realloc(gcovp, (n+100) * sizeof(double*));
     gcovpn=n+100;
   }
+}
+
+extern "C" double **getCovp(){
+  return gcovp;
 }
 
 

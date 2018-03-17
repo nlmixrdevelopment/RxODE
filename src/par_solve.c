@@ -1578,7 +1578,8 @@ extern void rxSolveOldC(int *neqa,
   }
 }
 
-
+void gcovpSetup(int n);
+double **getCovp();
 #define aexists(a, env) if (Rf_findVarInFrame(env, Rf_install(a)) == R_UnboundValue){ error("need '%s' in environment for solving.",a);}
 void RxODE_ode_solve_env(SEXP sexp_rho){
   if(!isEnvironment(sexp_rho)){
@@ -1659,11 +1660,16 @@ void RxODE_ode_solve_env(SEXP sexp_rho){
   ind->dose    = REAL(sexp_dose);
   /* ind->solve   = retp; */
   ind->evid    = INTEGER(sexp_evid);
-  ind->cov_ptr = REAL(sexp_cov);
-  
   ind->ndoses        = -1;
   ind->all_times     = REAL(sexp_time);
   ind->n_all_times   = length(sexp_time);
+  double *covs = REAL(sexp_cov);
+  gcovpSetup(length(sexp_pcov));
+  double **covPtr = getCovp();
+  for (unsigned int j = 0; j < length(sexp_pcov); j++){
+    covPtr[j] = &covs[0] + ind->n_all_times*j;
+  }
+  ind->cov_ptr = covPtr;
   // Covariates
   op->do_par_cov    = 1;
   op->ncov  = length(sexp_pcov);
