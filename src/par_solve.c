@@ -504,7 +504,6 @@ extern void par_lsoda(rx_solve *rx){
     for(i=0; i<ind->n_all_times; i++) {
       xout = ind->all_times[i];
       yp = &ind->solve[neq[0]*i];
-      for (unsigned int j = neq[0]; j--;) yp[j]=0.0;
       if(xout-xp > DBL_EPSILON*max(fabs(xout),fabs(xp)))
 	{
 	  F77_CALL(dlsoda)(dydt_lsoda_dum, neq, yp, &xp, &xout, &itol, &rtol, &atol, &itask,
@@ -1637,6 +1636,7 @@ void RxODE_ode_solve_env(SEXP sexp_rho){
   ind->ndoses        = -1;
   ind->all_times     = REAL(sexp_time);
   ind->n_all_times   = length(sexp_time);
+  ind->idose = gidoseSetup(ind->n_all_times);
   double *covs = REAL(sexp_cov);
   gcovpSetup(length(sexp_pcov));
   double **covPtr = getCovp();
