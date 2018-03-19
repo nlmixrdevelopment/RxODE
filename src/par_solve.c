@@ -318,6 +318,7 @@ extern void par_liblsoda(rx_solve *rx){
 	    // Bad Solve => NA
             /* memset(ret,NA_REAL, nx*neq[0]); */
 	    /* for (i = 0; i < nx*neq[0]; i++) ret[i] = NA_REAL; */
+	    for (unsigned int j = neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
 	    op->badSolve = 1;
 	    i = nx+42; // Get out of here!
 	  }
