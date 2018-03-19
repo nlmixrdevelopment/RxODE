@@ -303,7 +303,6 @@ extern void par_liblsoda(rx_solve *rx){
       rc= ind->rc;
       double xp = x[0];
       //--- inits the system
-      /* memset(ret + neq[0],0.0, (nx-1)*neq[0]); */
       memcpy(ret,inits, neq[0]*sizeof(double));
       update_inis(neq[1], ret); // Update initial conditions
       /* for(i=0; i<neq[0]; i++) yp[i] = inits[i]; */
@@ -316,8 +315,6 @@ extern void par_liblsoda(rx_solve *rx){
 	    /* REprintf("IDID=%d, %s\n", istate, err_msg[-istate-1]); */
 	    *rc = ctx.state;
 	    // Bad Solve => NA
-            /* memset(ret,NA_REAL, nx*neq[0]); */
-	    /* for (i = 0; i < nx*neq[0]; i++) ret[i] = NA_REAL; */
 	    for (unsigned int j = neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
 	    op->badSolve = 1;
 	    i = nx+42; // Get out of here!
@@ -482,10 +479,9 @@ extern void par_lsoda(rx_solve *rx){
     itask = 1; 
     istate = 1;
     iopt = 1;
-    /* memset(rwork,0.0,lrw+1); */
+    /* memset(rwork,0.0,lrw+1); */ // Does not work since it is a double
     for (i = lrw+1; i--;) rwork[i]=0;
-    /* for (i = 0; i < lrw+1; i++) rwork[i]=0; */
-    memset(iwork,0,liw+1);
+    memset(iwork,0,liw+1); // Works because it is a integer
     /* for (i = 0; i < liw+1; i++) iwork[i]=0; */
     /* for (i = 0; i < neq[0]; i++) yp[i]=0; */
     
@@ -508,7 +504,7 @@ extern void par_lsoda(rx_solve *rx){
     for(i=0; i<ind->n_all_times; i++) {
       xout = ind->all_times[i];
       yp = &ind->solve[neq[0]*i];
-      /* for (unsigned int j = neq[0]; j--;) yp[j]=0.0; */
+      for (unsigned int j = neq[0]; j--;) yp[j]=0.0;
       if(xout-xp > DBL_EPSILON*max(fabs(xout),fabs(xp)))
 	{
 	  F77_CALL(dlsoda)(dydt_lsoda_dum, neq, yp, &xp, &xout, &itol, &rtol, &atol, &itask,
@@ -650,8 +646,6 @@ void par_dop(rx_solve *rx){
 		REprintf("IDID=%d, %s\n", idid, err_msg[-idid-1]);
 		*rc = idid;
 		// Bad Solve => NA
-		/* for (i = 0; i < nx*neq[0]; i++) ret[i] = NA_REAL; */
-                /* memset(ret,NA_REAL, nx*neq[0]); */
 		for (unsigned int j = (ind->n_all_times)*neq[0];j--;) ret[i] = NA_REAL; 
 		op->badSolve = 1;
 		i = nx+42; // Get out of here!
@@ -1471,9 +1465,9 @@ extern void rxSolveOldC(int *neqa,
   ind->jac_counter    = 0;
 
   ind->InfusionRate = global_InfusionRate(*neqa);
-  /* memset(ind->InfusionRate, 0.0, *neqa); */
-  for (unsigned int j = *neqa; j--;) ind->InfusionRate[j] = 0.0;
-
+  /* memset(ind->InfusionRate, 0.0, *neqa);  not for doubles*/
+  for (unsigned int j = *neqa; j--;) ind->InfusionRate[j]=0.0;
+  
   ind->BadDose = global_BadDose(*neqa);
   memset(ind->BadDose, 0, *neqa); // int ok
   ind->nBadDose = 0;
@@ -1520,8 +1514,8 @@ extern void rxSolveOldC(int *neqa,
   //
   op->inits   = initsp;
   op->scale = global_scale(*neqa);
-  for (unsigned int j = *neqa; j--;) op->scale[j] = 1.0;
   /* memset(op->scale, 1.0, *neqa); */
+  for (unsigned int j = *neqa; j--;) op->scale[j] = 1.0;
   op->extraCmt = 0;
   op->hmax2=0;
   /* double *rtol2, *atol2; */
@@ -1540,7 +1534,7 @@ extern void rxSolveOldC(int *neqa,
   rx->nsub =1;
   rx->nsim =1;
   rx->stateIgnore = gsiVSetup(*neqa);
-  memset(rx->stateIgnore, 0, *neqa); // int ok
+  memset(rx->stateIgnore, 0, *neqa); // int OK
   rx->nobs =-1;
   rx->add_cov =0;
   rx->matrix =0;
@@ -1618,11 +1612,11 @@ void RxODE_ode_solve_env(SEXP sexp_rho){
   SEXP sexp_solve = PROTECT(allocVector(REALSXP,length(sexp_time)*length(sexp_inits))); pro++;
   ind->solve = REAL(sexp_solve);
   /* memset(ind->solve,0,length(sexp_solve)); */
-  for (unsigned int j = length(sexp_solve); j--;) ind->solve[j]=0.0;
+  for (unsigned int j = length(sexp_solve); j--;) ind->solve[j] = 0.0;
   SEXP sexp_lhsV = PROTECT(allocVector(REALSXP,length(sexp_time)*length(sexp_lhs))); pro++;
   ind->lhs = REAL(sexp_lhsV);
-  /* memset(ind->lhs,0,length(sexp_time)*length(sexp_lhs)); */
-  for (unsigned int j = length(sexp_time)*length(sexp_lhs); j--;)ind->lhs[j]=0.0;
+  for (unsigned int j = length(sexp_time)*length(sexp_lhs); j--;) ind->lhs[j] = 0.0;
+  /* memset(ind->lhs,0,); */
   op->stiff = INTEGER(sexp_stiff)[0];
   op->do_transit_abs = INTEGER(sexp_transit_abs)[0];
   op->ATOL = REAL(sexp_atol)[0];
@@ -1686,7 +1680,7 @@ void RxODE_ode_solve_env(SEXP sexp_rho){
   /* memset(ind->InfusionRate, 0.0, op->neq); */
   for (unsigned int j =op->neq; j--;) ind->InfusionRate[j]=0.0;
   ind->BadDose = global_BadDose(op->neq);
-  memset(ind->BadDose, 0, op->neq);
+  memset(ind->BadDose, 0, op->neq); // int; this is ok.
   /* rx_solve *rx = rxSingle(mv, stiff, transit_abs, atol, rtol, mx, hmin, h0,  mxordn, */
   /*                         mxords, 1, length(sexp_pcov), pcov, 1,  locf, */
   /*                         hmax, theta, dose, solve, lhs, evid, rce, cov, */
