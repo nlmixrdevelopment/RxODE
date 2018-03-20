@@ -115,6 +115,9 @@ void rxUpdateFuns(SEXP trans){
   s_ode_solver_solvedata = CHAR(STRING_ELT(trans, 11));
   s_ode_solver_get_solvedata = CHAR(STRING_ELT(trans, 12));
   s_dydt_liblsoda = CHAR(STRING_ELT(trans, 13));
+  global_jt = 2;
+  global_mf = 22;  
+  global_debug = 0;
   if (strcmp(CHAR(STRING_ELT(trans, 1)),"fulluser") == 0){
     global_jt = 1;
     global_mf = 21;
@@ -131,9 +134,6 @@ void rxUpdateFuns(SEXP trans){
   set_solve = (t_set_solve)R_GetCCallable(lib, s_ode_solver_solvedata);
   get_solve = (t_get_solve)R_GetCCallable(lib, s_ode_solver_get_solvedata);
   dydt_liblsoda = (t_dydt_liblsoda)R_GetCCallable(lib, s_dydt_liblsoda);
-  global_jt = 2;
-  global_mf = 22;  
-  global_debug = 0;
 }
 
 void rxClearFuns(){
@@ -325,7 +325,7 @@ extern void par_liblsoda(rx_solve *rx){
 	  ctx.state = 1;
 	  xp = xout;
 	}
-	if (i+1 != nx) memcpy(ret+neq[0]*(i+1), ret + neq[0]*i, neq[0]*sizeof(double));
+	if (i+1 != nx) memcpy(ret+neq[0]*(i+1), yp, neq[0]*sizeof(double));
 	/* for(j=0; j<neq[0]; j++) ret[neq[0]*i+j] = yp[j]; */
       }
       lsoda_free(&ctx);
@@ -468,10 +468,8 @@ extern void par_lsoda(rx_solve *rx){
   rwork = global_rwork(lrw+1);
   iwork = global_iwork(liw+1);
   
-  /* iopt = 1; */
   
   rx_solving_options_ind *ind;
-  /* int cores = op->cores; */
   
   int curTick = 0;
   int abort = 0;
@@ -482,39 +480,40 @@ extern void par_lsoda(rx_solve *rx){
     /* memset(rwork,0.0,lrw+1); */ // Does not work since it is a double
     for (i = lrw+1; i--;) rwork[i]=0;
     memset(iwork,0,liw+1); // Works because it is a integer
-    /* for (i = 0; i < liw+1; i++) iwork[i]=0; */
-    /* for (i = 0; i < neq[0]; i++) yp[i]=0; */
-    
-    rwork[4] = op->H0; // H0 -- determined by solver
-    rwork[6] = op->HMIN; // Hmin -- 0
+
+    neq[1] = solveid;
+    ind = &(rx->subjects[neq[1]]);
+
+    rwork[4] = op->H0; // H0
+    rwork[5] = ind->HMAX; // Hmax
+    rwork[6] = op->HMIN; // Hmin
   
-    iwork[4] = 0; // ixpr  -- No extra printing.
+    iwork[4] = 0; // ixpr
     iwork[5] = op->mxstep; // mxstep 
     iwork[6] = 0; // MXHNIL 
     iwork[7] = op->MXORDN; // MXORDN 
     iwork[8] = op->MXORDS;  // MXORDS
-    neq[1] = solveid;
-    ind = &(rx->subjects[neq[1]]);
+    
     ind->ixds = 0;
-    rwork[5] = ind->HMAX; // Hmax -- Infinite
     double xp = ind->all_times[0];
     //--- inits the system
-    memcpy(ind->solve,op->inits, neq[0]*sizeof(double));
+    memcpy(ind->solve, op->inits, neq[0]*sizeof(double));
     update_inis(neq[1], ind->solve); // Update initial conditions
-    for(i=0; i<ind->n_all_times; i++) {
+
+    for(i=0; i < ind->n_all_times; i++) {
       xout = ind->all_times[i];
-      yp = &ind->solve[neq[0]*i];
-      if(xout-xp > DBL_EPSILON*max(fabs(xout),fabs(xp)))
+      yp   = ind->solve+neq[0]*i;
+      if(xout - xp > DBL_EPSILON*max(fabs(xout),fabs(xp)))
 	{
 	  F77_CALL(dlsoda)(dydt_lsoda_dum, neq, yp, &xp, &xout, &itol, &rtol, &atol, &itask,
 			   &istate, &iopt, rwork, &lrw, iwork, &liw, jdum_lsoda, &jt);
 
-	  if (istate<0)
+	  if (istate <= 0)
 	    {
 	      REprintf("IDID=%d, %s\n", istate, err_msg[-istate-1]);
 	      ind->rc[0] = istate;
 	      // Bad Solve => NA
-	      for (unsigned int j=neq[0]*(ind->n_all_times);j--;) ind->solve[j] = NA_REAL;
+	      for (unsigned int j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
 	      op->badSolve = 1;
 	      i = ind->n_all_times+42; // Get out of here!
 	    }
@@ -528,7 +527,6 @@ extern void par_lsoda(rx_solve *rx){
       }
       // Copy to next solve so when assigned to yp=ind->solve[neq[0]*i]; it will be the prior values
       if (i+1 != ind->n_all_times) memcpy(ind->solve+neq[0]*(i+1), yp, neq[0]*sizeof(double));
-      /* memcpy(&ret[neq[0]*i],yp, neq[0]*sizeof(double)); */
     }
     if (displayProgress){ // Can only abort if it is long enough to display progress.
       curTick = par_progress(solveid, nsim*nsub, curTick, 1, t0, 0);
@@ -1012,7 +1010,7 @@ extern SEXP RxODE_par_df(){
   classgets(dfd, clse1);
   classgets(dfe, clse2);
   
-  double *times, *doses, **cov_ptrA, *cov_ptr;
+  double *times, *doses, *cov_ptr;
   int evid, iie = 0, iis = 0, iid = 0, curdose, ntimes;
   int k, kk;
   for (csub = 0; csub < nsub; csub++){
@@ -1020,7 +1018,7 @@ extern SEXP RxODE_par_df(){
     ntimes = ind->n_all_times;
     times = ind->all_times;
     doses = ind->dose;
-    cov_ptrA = ind->cov_ptr;
+    cov_ptr = ind->cov_ptr;
     curdose=0;
     for (i = 0; i < ntimes; i++){
       evid = rxEvidP(i,rx,csub);
@@ -1053,8 +1051,7 @@ extern SEXP RxODE_par_df(){
           if (is_cov){
 	    /* REprintf("covs[%d, %d]\n", kk,iis); */
 	    dfp = REAL(VECTOR_ELT(covs, kk+md));
-	    cov_ptr = cov_ptrA[kk];
-            dfp[iis] = cov_ptr[iis];
+            dfp[iis] = cov_ptr[kk*ntimes+iis];
             kk++;
           }
 	}
@@ -1284,7 +1281,6 @@ extern SEXP RxODE_df(int doDose){
   int *dfi;
   int ii=0, jj = 0, ntimes;
   double *solve;
-  double **cov_ptrA;
   double *cov_ptr;
   int nBadDose;
   int *BadDose;
@@ -1301,7 +1297,7 @@ extern SEXP RxODE_df(int doDose){
       BadDose = ind->BadDose;
       ntimes = ind->n_all_times;
       solve =  ind->solve;
-      cov_ptrA = ind->cov_ptr;
+      cov_ptr = ind->cov_ptr;
       par_ptr = ind->par_ptr;
       dose = ind->dose;
       di = 0;
@@ -1369,8 +1365,7 @@ extern SEXP RxODE_df(int doDose){
 	    for (j = 0; j < add_cov*ncov; j++){
               dfp = REAL(VECTOR_ELT(df, jj));
 	      // is this ntimes = nAllTimes or nObs time for this subject...?
-	      cov_ptr = cov_ptrA[j];
-	      dfp[ii] = (evid == 0 ? cov_ptr[i] : NA_REAL);
+	      dfp[ii] = (evid == 0 ? cov_ptr[j*ntimes+i] : NA_REAL);
 	      jj++;
 	    }
           }
@@ -1551,8 +1546,6 @@ extern void rxSolveOldC(int *neqa,
   }
 }
 
-void gcovpSetup(int n);
-double **getCovp();
 #define aexists(a, env) if (Rf_findVarInFrame(env, Rf_install(a)) == R_UnboundValue){ error("need '%s' in environment for solving.",a);}
 void RxODE_ode_solve_env(SEXP sexp_rho){
   if(!isEnvironment(sexp_rho)){
@@ -1637,13 +1630,7 @@ void RxODE_ode_solve_env(SEXP sexp_rho){
   ind->all_times     = REAL(sexp_time);
   ind->n_all_times   = length(sexp_time);
   ind->idose = gidoseSetup(ind->n_all_times);
-  double *covs = REAL(sexp_cov);
-  gcovpSetup(length(sexp_pcov));
-  double **covPtr = getCovp();
-  for (unsigned int j = 0; j < length(sexp_pcov); j++){
-    covPtr[j] = &covs[0] + ind->n_all_times*j;
-  }
-  ind->cov_ptr = covPtr;
+  ind->cov_ptr = REAL(sexp_cov);
   // Covariates
   op->do_par_cov    = 1;
   op->ncov  = length(sexp_pcov);

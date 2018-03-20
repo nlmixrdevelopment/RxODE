@@ -988,24 +988,6 @@ void gcovSetup(int n){
   }
 }
 
-
-double **gcovp = NULL;
-int gcovpn = 0;
-extern "C" void gcovpSetup(int n){
-  if (gcovpn == 0){
-    gcovp=(double **) R_chk_calloc(n+100, sizeof(double*));
-    gcovpn=n+100;
-  } else if (n > gcovpn){
-    gcovp = (double **) R_chk_realloc(gcovp, (n+100) * sizeof(double*));
-    gcovpn=n+100;
-  }
-}
-
-extern "C" double **getCovp(){
-  return gcovp;
-}
-
-
 double *ginits = NULL;
 int ginitsn = 0;
 void ginitsSetup(int n){
@@ -2015,7 +1997,7 @@ SEXP rxSolveC(const RObject &obj,
     unsigned int nsub = 0, nsim = 0;
     unsigned int nobs = 0, ndoses = 0;
     unsigned int i, j, k = 0;
-    int ncov =0, curcovi = 0, curcovpi = 0;
+    int ncov =0, curcovi = 0;
     double tmp, hmax1, hmax2, tlast;
     // Covariate options
     // Simulation variabiles
@@ -2160,7 +2142,6 @@ SEXP rxSolveC(const RObject &obj,
 	  List df = as<List>(covs);
           CharacterVector dfNames = df.names();
 	  int dfN = dfNames.size();
-	  gcovpSetup(dfN);
 	  gcovSetup(dfN * ind->n_all_times);
 	  gpar_covSetup(dfN);
 	  k = 0;
@@ -2169,15 +2150,9 @@ SEXP rxSolveC(const RObject &obj,
 	      if (pars[j] == dfNames[i]){
 		gpar_cov[k] = j+1;
 		// Not clear if this is an integer/real.  Copy the values.
-		if (directData && rxIs(df[i], "numeric")){
-		  NumericVector cur(df[i]);
-		  gcovp[curcovpi++] = &cur[0];
-		} else {
-                  NumericVector cur = as<NumericVector>(df[i]);
-                  std::copy(cur.begin(), cur.end(), &(gcov[curcovi]));
-                  gcovp[curcovpi++] = &gcov[curcovi];
-                  curcovi += ind->n_all_times;
-                }
+		NumericVector cur = as<NumericVector>(df[i]);
+		std::copy(cur.begin(), cur.end(), gcov+curcovi);
+		curcovi += ind->n_all_times;
                 ncov++;
                 k++;                  
                 break;
@@ -2185,7 +2160,7 @@ SEXP rxSolveC(const RObject &obj,
             }
           }
           op->ncov=ncov;
-          ind->cov_ptr = &(gcovp[0]);
+          ind->cov_ptr = &(gcov[0]);
 	  op->par_cov=&(gpar_cov[0]);
         } else if (rxIs(covs, "matrix")){
 	  // FIXME
