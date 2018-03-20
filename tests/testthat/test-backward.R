@@ -221,9 +221,9 @@ C1=centr/V;
                                            eta = structure(c(0, 0, 0), .Dim = c(1L, 3L)), theta = c(-2.99573227355399,
                                                                                                     -0.693147180559945, 0.693147180559945, 0.1, 0.1), do.solve = FALSE))
 
-    test_that("Can solve covariates produce a list with do.call(object$solve,...) covariate size = nObs",{
+    test_that("Can solve covariates produce a list with do.call(object$solve,...) covariate size = nObs + nDose",{
         expect_equal(class(tmp), "list");
-        expect_equal(length(tmp$cov), 22);
+        expect_equal(length(tmp$cov), 29);
     })
 
     ## Also for backward compatible it needs to take covariate size = nObs+nDose
@@ -234,7 +234,7 @@ C1=centr/V;
                                                                                                     -0.693147180559945, 0.693147180559945, 0.1, 0.1), do.solve = FALSE))
     test_that("Can solve covariates produce a list with do.call(object$solve,...) covariate size = nObs + nDose",{
         expect_equal(class(tmp2), "list");
-        expect_equal(length(tmp2$cov), 22);
+        expect_equal(length(tmp2$cov), 29);
     })
 
     mod1 <- RxODE({
