@@ -54,7 +54,7 @@ rxOpt <- list(RxODE.prefer.tbl               =c(FALSE, FALSE),
               RxODE.sympy.engine             =c("", ""),
               RxODE.cache.directory          =c(".", "."),
               RxODE.syntax.assign.state      =c(FALSE, FALSE),
-              RxODE.tempfiles                =c(TRUE, TRUE)
+              RxODE.tempfiles                =c(FALSE, FALSE)
               );
 
 RxODE.prefer.tbl <- NULL

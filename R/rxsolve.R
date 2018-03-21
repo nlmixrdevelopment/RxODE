@@ -227,7 +227,7 @@ rxSolve <- function(object, params=NULL, events=NULL, inits = NULL, scale = NULL
                     theta = NULL, eta = NULL, addDosing=FALSE, update.object=FALSE,do.solve=TRUE,
                     omega = NULL, omegaDf = NULL, omegaIsChol = FALSE,
                     nSub = 1L, thetaMat = NULL, thetaDf = NULL, thetaIsChol = FALSE,
-                    nStud = 1L, simVariability=TRUE, return.type=c("rxSolve", "matrix", "data.frame")){
+                    nStud = 1L, dfSub=0.0, dfObs=0.0, return.type=c("rxSolve", "matrix", "data.frame")){
     if (!do.solve){
         modVars <- rxModelVars(object);
         trans <- modVars$trans
@@ -485,13 +485,27 @@ rxSolve <- function(object, params=NULL, events=NULL, inits = NULL, scale = NULL
     nms <- names(as.list(match.call())[-1]);
     .Call(`_RxODE_rxSolveCsmall`, object, nms, extra,
           params, events, inits, scale, covs,
-          list(method, transit_abs, atol, rtol,
-               maxsteps, hmin, hmax, hini, maxordn, maxords, cores,
-               covs_interpolation, add.cov, matrix, sigma, sigmaDf,
-               nCoresRV, sigmaIsChol, nDisplayProgress, amountUnits,
+          list(method, #0
+               transit_abs, #1
+               atol, #2
+               rtol, #3
+               maxsteps, #4
+               hmin, #5
+               hmax, #6
+               hini, #7
+               maxordn, #8
+               maxords, #9
+               cores, #10
+               covs_interpolation, #11
+               add.cov, #12
+               matrix, #13
+               sigma, #14
+               sigmaDf, #15
+               nCoresRV, #16
+               sigmaIsChol, nDisplayProgress, amountUnits,
                timeUnits, addDosing, theta, eta, update.object,
                do.solve, omega, omegaDf, omegaIsChol, nSub, thetaMat,
-               thetaDf, thetaIsChol, nStud, simVariability));
+               thetaDf, thetaIsChol, nStud, dfSub, dfObs));
 }
 
 ##' @export

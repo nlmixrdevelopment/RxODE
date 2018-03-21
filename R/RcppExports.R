@@ -206,16 +206,17 @@ rinvchisq <- function(n = 1L, nu = 1.0, scale = 1) {
 #'
 #' @inheritParams rxSolve
 #'
-#' @param simVariability For each study simulate the uncertanty in the Omega and 
-#'       Sigma item
+#' @param dfSub Degrees of freedom to sample the between subject variaiblity matrix from the 
+#'        inverse Wishart distribution (scaled) or scaled inverse chi squared distribution. 
 #'
-#' @param nObs Number of observations to simulate for sigma.
+#' @param dfObs Degrees of freedom to sample the unexplained variaiblity matrix from the 
+#'        inverse Wishart distribution (scaled) or scaled inverse chi squared distribution. 
 #'
 #' @author Matthew L.Fidler
 #'
 #' @export
-rxSimThetaOmega <- function(params = NULL, omega = NULL, omegaDf = NULL, omegaIsChol = FALSE, nSub = 1L, thetaMat = NULL, thetaDf = NULL, thetaIsChol = FALSE, nStud = 1L, sigma = NULL, sigmaDf = NULL, sigmaIsChol = FALSE, nCoresRV = 1L, nObs = 1L, simVariability = TRUE) {
-    .Call(`_RxODE_rxSimThetaOmega`, params, omega, omegaDf, omegaIsChol, nSub, thetaMat, thetaDf, thetaIsChol, nStud, sigma, sigmaDf, sigmaIsChol, nCoresRV, nObs, simVariability)
+rxSimThetaOmega <- function(params = NULL, omega = NULL, omegaDf = NULL, omegaIsChol = FALSE, nSub = 1L, thetaMat = NULL, thetaDf = NULL, thetaIsChol = FALSE, nStud = 1L, sigma = NULL, sigmaDf = NULL, sigmaIsChol = FALSE, nCoresRV = 1L, nObs = 1L, dfSub = 0, dfObs = 0) {
+    .Call(`_RxODE_rxSimThetaOmega`, params, omega, omegaDf, omegaIsChol, nSub, thetaMat, thetaDf, thetaIsChol, nStud, sigma, sigmaDf, sigmaIsChol, nCoresRV, nObs, dfSub, dfObs)
 }
 
 rxSolveCsmall <- function(object, specParams = NULL, extraArgs = NULL, params = NULL, events = NULL, inits = NULL, scale = NULL, covs = NULL, optsL = NULL) {
