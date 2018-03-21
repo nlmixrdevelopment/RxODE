@@ -43,7 +43,7 @@ rxPermissive({
             add.sampling(0:240);
 
         ## Add Residual differences; not working
-        sigma <- diag(2) * 0.1
+        sigma <- diag(2) * 0.05
         dimnames(sigma) <- list(c("err1", "err2"), c("err1", "err2"));
 
         pk3 <- rxSolve(mod2, c(KA=2.94E-01, TCL=1.86E+01, V2=4.02E+01,  Q=1.05E+01, V3=2.97E+02,
@@ -136,11 +136,11 @@ rxPermissive({
 
         pk6 <- rxSolve(mod2, c(KA=2.94E-01, TCL=1.86E+01, V2=4.02E+01,  Q=1.05E+01, V3=2.97E+02,
                                Kin=1, Kout=1, EC50=200), omega=matrix(0.2, dimnames=list("eta.Cl", "eta.Cl")),
-                       nSub=4, nStud=4, thetaMat=thetaMat, sigma=sigma, ev, cores=1, simVariability=FALSE, method=meth);
+                       nSub=4, nStud=4, thetaMat=thetaMat, sigma=sigma, ev, cores=1, dfSub=4, dfStud=4, method=meth);
 
         pk7 <- rxSolve(mod2, c(KA=2.94E-01, TCL=1.86E+01, V2=4.02E+01,  Q=1.05E+01, V3=2.97E+02,
                                Kin=1, Kout=1, EC50=200), omega=matrix(0.2, dimnames=list("eta.Cl", "eta.Cl")),
-                       nSub=4, nStud=4, thetaMat=thetaMat, sigma=sigma, ev, cores=2, simVariability=FALSE, method=meth);
+                       nSub=4, nStud=4, thetaMat=thetaMat, sigma=sigma, ev, cores=2, dfSub=4, dfStud=4, method=meth);
 
         test_that("Can solve the system.", {
             expect_true(rxIs(pk2, "data.frame"))

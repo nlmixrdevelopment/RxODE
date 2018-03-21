@@ -1605,9 +1605,11 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
   ret0.attr("names") = dfName;
   ret0.attr("class") = "data.frame";
   ret0.attr("row.names") = IntegerVector::create(NA_INTEGER,-nSub*nStud);
-  ret1.attr("dimnames") = List::create(R_NilValue, sigmaN);
   getRxModels();
-  _rxModels[".sigma"] = ret1;
+  if (ret1.nrow() > 1){
+    ret1.attr("dimnames") = List::create(R_NilValue, sigmaN);
+    _rxModels[".sigma"] = ret1;
+  }
   if (simTheta){
     _rxModels[".theta"] = thetaM;
   }
@@ -2271,12 +2273,13 @@ SEXP rxSolveC(const RObject &obj,
       op->do_par_cov = (ncov > 0);
       gcovSetup(ncov * amt.size());
       unsigned int ids = id.size();
-      int lastId = id[0]-1;
       // Get the number of subjects
       // Get the number of observations
       // Get the number of doses
       unsigned int nall = 0, nobst=0, covi = 0, lasti =0, ii=0;
+      int lastId = id[0]-1;
       rxOptionsIniEnsure(1);
+      nsub = 0;
       ind = &(rx->subjects[0]);
       for (i = 0; i < ids; i++){
         if (lastId != id[i]){
@@ -2489,10 +2492,11 @@ SEXP rxSolveC(const RObject &obj,
       rx->nsim = nPopPar / nsub;
       if (rx->nsim < 1) rx->nsim=1;
       rx->nsub= nsub;
+      curEvent=0;
       for (unsigned int simNum = rx->nsim; simNum--;){
         for (unsigned int id = rx->nsub; id--;){
           unsigned int cid = id+simNum*nsub;
-	  ind = &(rx->subjects[cid]);
+          ind = &(rx->subjects[cid]);
 	  ind->par_ptr = &_globals.gpars[cid*npars];
 	  ind->InfusionRate = &_globals.gInfusionRate[op->neq*cid];
           ind->BadDose = &_globals.gBadDose[op->neq*cid];
@@ -2503,7 +2507,6 @@ SEXP rxSolveC(const RObject &obj,
           ind->ixds =  0;
           ind->sim = simNum+1;
           ind->solve = &_globals.gsolve[curEvent];
-          curEvent += op->neq*ind->n_all_times;
           ind->lhs = &_globals.glhs[cid*lhsSize];
           ind->rc = &_globals.grc[cid];
 	  if (simNum){
@@ -2524,6 +2527,7 @@ SEXP rxSolveC(const RObject &obj,
             ind->jac_counter    = 0;
             ind->id=id+1;
           }
+          curEvent += op->neq*ind->n_all_times;
         }
       }
       break;
