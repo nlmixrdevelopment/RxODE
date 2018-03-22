@@ -303,6 +303,9 @@ extern void par_liblsoda(rx_solve *rx){
       rc= ind->rc;
       double xp = x[0];
       //--- inits the system
+      /* Rprintf("ID: %d; nsim: %d; nsub: %d\n",neq[1], nsim, nsub); */
+      /* Rprintf("inits[0]: %f\n",inits[0]); */
+      /* Rprintf("ret[0]: %f\n",ret[0]); */
       memcpy(ret,inits, neq[0]*sizeof(double));
       update_inis(neq[1], ret); // Update initial conditions
       /* for(i=0; i<neq[0]; i++) yp[i] = inits[i]; */

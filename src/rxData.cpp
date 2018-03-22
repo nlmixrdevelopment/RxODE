@@ -1,7 +1,7 @@
 // [[Rcpp::depends(RcppArmadillo)]]
 #define NCMT 100
 // NONMEM 7.1 has a max of 50 obesrvations/individual
-#define MAXIDS 1000
+#define MAXIDS 500
 #define NALL 500
 #define NDOSES 50
 // NONMEM nTHETA=20
@@ -209,6 +209,7 @@ RObject rxSimSigma(const RObject &sigma,
 		   const bool &isChol,
 		   int nObs,
 		   const bool checkNames = true){
+  if (nObs < 1) stop("Refusing to simulate %d items",nObs); 
   if (rxIs(sigma, "numeric.matrix")){
     // FIXME more distributions
     NumericMatrix sigmaM(sigma);
@@ -994,8 +995,8 @@ extern "C" void rxOptionsIniData(){
   _globals.gevidn = NALL;
   _globals.gBadDose = Calloc(NCMT, int);
   _globals.gBadDosen = NCMT;
-  _globals.grc = Calloc(1000, int);
-  _globals.grcn = 1000;
+  _globals.grc = Calloc(MAXIDS, int);
+  _globals.grcn = MAXIDS;
   _globals.gidose = Calloc(NALL, int);
   _globals.gidosen = NALL;
   _globals.gpar_cov = Calloc(NCMT, int);
@@ -1011,7 +1012,7 @@ extern "C" void rxOptionsIniData(){
 void gsolveSetup(int n){
   if (_globals.gsolven < n){
     while (_globals.gsolven < n){
-      _globals.gsolven *= 1.5;
+      _globals.gsolven += NCMT*NALL;
     }
     _globals.gsolve = Realloc(_globals.gsolve, _globals.gsolven, double);
   }
@@ -1020,7 +1021,7 @@ void gsolveSetup(int n){
 void gInfusionRateSetup(int n){
   if (_globals.gInfusionRaten < n){
     while (_globals.gInfusionRaten < n){
-      _globals.gInfusionRaten *= 1.5;
+      _globals.gInfusionRaten += NCMT;
     }
     _globals.gInfusionRate = Realloc(_globals.gInfusionRate, _globals.gInfusionRaten, double);
   }
@@ -1029,7 +1030,7 @@ void gInfusionRateSetup(int n){
 void gall_timesSetup(int n){
   if (_globals.gall_timesn < n){
     while (_globals.gall_timesn < n){
-      _globals.gall_timesn *= 1.5;
+      _globals.gall_timesn += NALL;
     }
     _globals.gall_times = Realloc(_globals.gall_times, _globals.gall_timesn, double);
   }
@@ -1038,7 +1039,7 @@ void gall_timesSetup(int n){
 void gamtSetup(int n){
   if (_globals.gamtn < n){
     while (_globals.gamtn < n){
-      _globals.gamtn *= 1.5;
+      _globals.gamtn += NDOSES;
     }
     _globals.gamt = Realloc(_globals.gamt, _globals.gamtn, double);
   }
@@ -1047,7 +1048,7 @@ void gamtSetup(int n){
 void glhsSetup(int n){
   if (_globals.glhsn < n){
     while (_globals.glhsn < n){
-      _globals.glhsn *= 1.5;
+      _globals.glhsn += NPARS;
     }
     _globals.glhs = Realloc(_globals.glhs, _globals.glhsn, double);
   }
@@ -1056,7 +1057,7 @@ void glhsSetup(int n){
 void gcovSetup(int n){
   if (_globals.gcovn < n){
     while (_globals.gcovn < n){
-      _globals.gcovn *= 1.5;
+      _globals.gcovn += NALL*10;
     }
     _globals.gcov = Realloc(_globals.gcov, _globals.gcovn, double);
   }
@@ -1065,7 +1066,7 @@ void gcovSetup(int n){
 void ginitsSetup(int n){
   if (_globals.ginitsn < n){
     while (_globals.ginitsn < n){
-      _globals.ginitsn *= 1.5;
+      _globals.ginitsn += NCMT;
     }
     _globals.ginits = Realloc(_globals.ginits, _globals.ginitsn, double);
   }
@@ -1074,7 +1075,7 @@ void ginitsSetup(int n){
 void gscaleSetup(int n){
   if (_globals.gscalen < n){
     while (_globals.gscalen < n){
-      _globals.gscalen *= 1.5;
+      _globals.gscalen += NCMT;
     }
     _globals.gscale = Realloc(_globals.gscale, _globals.gscalen, double);
   }
@@ -1083,7 +1084,7 @@ void gscaleSetup(int n){
 void gatol2Setup(int n){
   if (_globals.gatol2n < n){
     while (_globals.gatol2n < n){
-      _globals.gatol2n *= 1.5;
+      _globals.gatol2n += NCMT;
     }
     _globals.gatol2 = Realloc(_globals.gatol2, _globals.gatol2n, double);
   }
@@ -1092,7 +1093,7 @@ void gatol2Setup(int n){
 void grtol2Setup(int n){
   if (_globals.grtol2n < n){
     while (_globals.grtol2n < n){
-      _globals.grtol2n *= 1.5;
+      _globals.grtol2n += NCMT;
     }
     _globals.grtol2 = Realloc(_globals.grtol2, _globals.grtol2n, double);
   }
@@ -1102,7 +1103,7 @@ void grtol2Setup(int n){
 void gparsSetup(int n){
   if (_globals.gparsn < n){
     while (_globals.gparsn < n){
-      _globals.gparsn *= 1.5;
+      _globals.gparsn += NPARS;
     }
     _globals.gpars = Realloc(_globals.gpars, _globals.gparsn, double);
   }
@@ -1111,7 +1112,7 @@ void gparsSetup(int n){
 void gevidSetup(int n){
   if (_globals.gevidn < n){
     while (_globals.gevidn < n){
-      _globals.gevidn *= 1.5;
+      _globals.gevidn += NALL;
     }
     _globals.gevid = Realloc(_globals.gevid, _globals.gevidn, int);
   }
@@ -1120,7 +1121,7 @@ void gevidSetup(int n){
 void gBadDoseSetup(int n){
   if (_globals.gBadDosen < n){
     while (_globals.gBadDosen < n){
-      _globals.gBadDosen *= 1.5;
+      _globals.gBadDosen += NCMT;
     }
     _globals.gBadDose = Realloc(_globals.gBadDose, _globals.gBadDosen, int);
   }
@@ -1129,7 +1130,7 @@ void gBadDoseSetup(int n){
 void grcSetup(int n){
   if (_globals.grcn < n){
     while (_globals.grcn < n){
-      _globals.grcn *= 1.5;
+      _globals.grcn += MAXIDS;
     }
     _globals.grc = Realloc(_globals.grc, _globals.grcn, int);
   }
@@ -1138,7 +1139,7 @@ void grcSetup(int n){
 extern "C" int *gidoseSetup(int n){
   if (_globals.gidosen < n){
     while (_globals.gidosen < n){
-      _globals.gidosen *= 1.5;
+      _globals.gidosen += NALL;
     }
     _globals.gidose = Realloc(_globals.gidose, _globals.gidosen, int);
   }
@@ -1148,7 +1149,7 @@ extern "C" int *gidoseSetup(int n){
 void gpar_covSetup(int n){
   if (_globals.gpar_covn < n){
     while (_globals.gpar_covn < n){
-      _globals.gpar_covn *= 1.5;
+      _globals.gpar_covn += NCMT;
     }
     _globals.gpar_cov = Realloc(_globals.gpar_cov, _globals.gpar_covn, int);
   }
@@ -1157,7 +1158,7 @@ void gpar_covSetup(int n){
 void gParPosSetup(int n){
   if (_globals.gParPosn < n){
     while (_globals.gParPosn < n){
-      _globals.gParPosn *= 1.5;
+      _globals.gParPosn += NCMT;
     }
     _globals.gParPos = Realloc(_globals.gParPos, _globals.gParPosn, int);
   }
@@ -1166,7 +1167,7 @@ void gParPosSetup(int n){
 void gsvarSetup(int n){
   if (_globals.gsvarn < n){
     while (_globals.gsvarn < n){
-      _globals.gsvarn *= 1.5;
+      _globals.gsvarn += NPARS;
     }
     _globals.gsvar = Realloc(_globals.gsvar, _globals.gsvarn, int);
   }
@@ -1176,7 +1177,7 @@ void gsvarSetup(int n){
 extern "C" int *gsiVSetup(int n){
   if (_globals.gsiVn < n){
     while (_globals.gsiVn < n){
-      _globals.gsiVn *= 1.5;
+      _globals.gsiVn += NCMT;
     }
     _globals.gsiV = Realloc(_globals.gsiV, _globals.gsiVn, int);
   }
@@ -1437,7 +1438,8 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
                      int nCoresRV = 1,
                      unsigned int nObs = 1,
                      double dfSub = 0,
-                     double dfObs = 0){
+                     double dfObs = 0,
+		     bool simSubjects=true){
   NumericVector par;
   if (params.isNull()){
     stop("This function requires overall parameters.");
@@ -1467,9 +1469,16 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
   unsigned int scol = 0;
   if (simSigma){
     scol = sigmaMC.ncol();
-    if (nObs*nStud*nSub*scol < 0){
-      // nStud = INT_MAX/(nObs*nSub*scol)*0.25;
-      stop("Simulation Overflow; Reduce the number of observations, number of subjects or number of studies.");
+    if (simSubjects){
+      if (nObs*nStud*nSub*scol < 0){
+        // nStud = INT_MAX/(nObs*nSub*scol)*0.25;
+        stop("Simulation Overflow; Reduce the number of observations, number of subjects or number of studies.");
+      }
+    } else {
+      if (nObs*nStud*scol < 0){
+        // nStud = INT_MAX/(nObs*nSub*scol)*0.25;
+        stop("Simulation Overflow; Reduce the number of observations or number of studies.");
+      }
     }
   }
   NumericMatrix thetaM;
@@ -1538,7 +1547,11 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
   NumericMatrix ret1;
   if (simSigma){
     ncol += scol;
-    ret1 = NumericMatrix(nObs*nStud*nSub, scol);
+    if (simSubjects){
+      ret1 = NumericMatrix(nObs*nStud*nSub, scol);
+    } else {
+      ret1 = NumericMatrix(nObs*nStud, scol);
+    }
   }
   List ret0(ncol);
   NumericVector nm;
@@ -1579,15 +1592,29 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
       }
     }
     if (scol > 0){
-      if (dfObs > 0  && nStud > 1){
-        nm1 = as<NumericMatrix>(rxSimSigma(as<RObject>(sigmaList[i]), as<RObject>(sigmaDf), nCoresRV, true, nObs*nSub, false));
+      if (simSubjects){
+        if (dfObs > 0  && nStud > 1){
+          nm1 = as<NumericMatrix>(rxSimSigma(as<RObject>(sigmaList[i]), as<RObject>(sigmaDf), nCoresRV, true, nObs*nSub, false));
+        } else {
+          nm1 = as<NumericMatrix>(rxSimSigma(as<RObject>(sigmaMC), as<RObject>(sigmaDf), nCoresRV, true, nObs*nSub, false));
+        }
+        for (j = 0; j < scol; j++){
+          for (k = 0; k < nObs*nSub; k++){
+            // ret1 = NumericMatrix(nObs*nStud, scol);
+            ret1(nObs*nSub*i+k, j) = nm1(k, j);
+          }
+        }
       } else {
-        nm1 = as<NumericMatrix>(rxSimSigma(as<RObject>(sigmaMC), as<RObject>(sigmaDf), nCoresRV, true, nObs*nSub, false));
-      }
-      for (j = 0; j < scol; j++){
-        for (k = 0; k < nObs*nSub; k++){
-          // ret1 = NumericMatrix(nObs*nStud, scol);
-          ret1(nObs*nSub*i+k, j) = nm1(k, j);
+        if (dfObs > 0  && nStud > 1){
+          nm1 = as<NumericMatrix>(rxSimSigma(as<RObject>(sigmaList[i]), as<RObject>(sigmaDf), nCoresRV, true, nObs, false));
+        } else {
+          nm1 = as<NumericMatrix>(rxSimSigma(as<RObject>(sigmaMC), as<RObject>(sigmaDf), nCoresRV, true, nObs, false));
+        }
+        for (j = 0; j < scol; j++){
+          for (k = 0; k < nObs; k++){
+            // ret1 = NumericMatrix(nObs*nStud, scol);
+            ret1(nObs*i+k, j) = nm1(k, j);
+          }
         }
       }
     }
@@ -2064,19 +2091,60 @@ SEXP rxSolveC(const RObject &obj,
     // int *svar;
     CharacterVector sigmaN;
     if (!thetaMat.isNull() || !omega.isNull() || !sigma.isNull()){
-      // Simulated Variable
+      // Simulated Variable3
       if (!rxIs(par1, "numeric")){
         stop("When specifying 'thetaMat', 'omega', or 'sigma' the parameters cannot be a data.frame/matrix.");
       }
-      unsigned int nSub0 = nSub;
-      if (nSub == 1){
-        nSub0 = nsub;
-      } else if (nSub > 1 && nsub > 1 &&  nSub != nsub){
-        stop("You provided multi-subject data and asked to simulate a different number of subjects;  I don't know what to do.");
+      unsigned int nSub0 = 0;
+      int curObs = 0;
+      rx->nall = 0;
+      rx->nobs = 0;
+      if(rxIs(ev1, "EventTable")){
+	nSub0 = 1;
+	List et = List(ev1);
+	Function f = et["get.EventTable"];
+	DataFrame dataf = f();
+	IntegerVector evid = as<IntegerVector>(dataf[1]);
+	rx->nall = evid.size();
+	for (unsigned int j = rx->nall;j--;){
+	  if (evid[j] == 0) rx->nobs++;
+	}
+      } else if (rxIs(ev1,"event.data.frame")||
+		 rxIs(ev1,"event.matrix")){
+	if (rxcId > -1){
+	  DataFrame dataf = as<DataFrame>(ev1);
+	  IntegerVector id = as<IntegerVector>(dataf[rxcId]);
+	  IntegerVector evid  = as<IntegerVector>(dataf[rxcEvid]);
+	  int lastid= id[id.size()-1]+42;
+	  rx->nall = evid.size();
+	  for (unsigned int j = rx->nall; j--;){
+	    if (lastid != id[j]){
+	      lastid=id[j];
+	      nSub0++;
+	    }
+	    if (evid[j] == 0) rx->nobs++;
+	  }
+	} else {
+	  nSub0 =1;
+	  DataFrame dataf = as<DataFrame>(ev1);
+          IntegerVector evid  = as<IntegerVector>(dataf[rxcEvid]);
+          rx->nall = evid.size();
+          for (unsigned int j =rx->nall; j--;){
+            if (evid[j] == 0) rx->nobs++;
+          }
+	}
       }
-      int curObs = addDosing ? rx->nall : rx->nobs;
+      bool simSubjects = false;
+      if (nSub > 1 && nSub0 > 1 && nSub != nSub0){
+        stop("You provided multi-subject data and asked to simulate a different number of subjects;  I don't know what to do.");
+      } else if (nSub > 1 && nSub0 == 1) {
+	nSub0 = nSub;
+        simSubjects = true;
+      }
+      curObs = addDosing ? rx->nall : rx->nobs;
+      
       par1 =  as<RObject>(rxSimThetaOmega(as<Nullable<NumericVector>>(par1), omega, omegaDf, omegaIsChol, nSub0, thetaMat, thetaDf, thetaIsChol, nStud,
-                                          sigma, sigmaDf, sigmaIsChol, nCoresRV, curObs, dfSub, dfObs));
+                                          sigma, sigmaDf, sigmaIsChol, nCoresRV, curObs, dfSub, dfObs, simSubjects));
       // The parameters are in the same format as they would be if they were specified as part of the original dataset.
     }
     // .sigma could be reassigned in an update, so check outside simulation function.
@@ -2127,12 +2195,7 @@ SEXP rxSolveC(const RObject &obj,
         stop("If parameters are not named, they must match the order and size of the parameters in the model.");
       }
     }
-    bool directData=false;
-    if (op->cores == 1) directData = true;
     if (rxIs(ev1, "EventTable")){
-      if (nPopPar == 1){
-	directData=true;
-      }
       rxOptionsIniEnsure(1);
       ind = &(rx->subjects[0]);
       ind->slvr_counter   = 0;
@@ -2147,18 +2210,13 @@ SEXP rxSolveC(const RObject &obj,
       NumericVector amt  = as<NumericVector>(dataf[2]);
       // Time copy
       ind->n_all_times   = time.size();
-      if (directData){
-	ind->all_times = &time[0];
-	ind->evid     = &evid[0];
-      } else {
-        gall_timesSetup(ind->n_all_times);
-        std::copy(time.begin(), time.end(), &_globals.gall_times[0]);
-        ind->all_times     = &_globals.gall_times[0];
-        // EVID copy
-        gevidSetup(ind->n_all_times);
-        std::copy(evid.begin(),evid.end(), &_globals.gevid[0]);
-        ind->evid     = &_globals.gevid[0];
-      }
+      gall_timesSetup(ind->n_all_times);
+      std::copy(time.begin(), time.end(), &_globals.gall_times[0]);
+      ind->all_times     = &_globals.gall_times[0];
+      // EVID copy
+      gevidSetup(ind->n_all_times);
+      std::copy(evid.begin(),evid.end(), &_globals.gevid[0]);
+      ind->evid     = &_globals.gevid[0];
       j=0;
       gamtSetup(ind->n_all_times);
       ind->dose = &_globals.gamt[0];
@@ -2277,7 +2335,7 @@ SEXP rxSolveC(const RObject &obj,
       // Get the number of observations
       // Get the number of doses
       unsigned int nall = 0, nobst=0, covi = 0, lasti =0, ii=0;
-      int lastId = id[0]-1;
+      int lastId = id[0]-42;
       rxOptionsIniEnsure(1);
       nsub = 0;
       ind = &(rx->subjects[0]);
@@ -2301,7 +2359,7 @@ SEXP rxSolveC(const RObject &obj,
           ind->dadt_counter   = 0;
           ind->jac_counter    = 0;
           ind->id             = nsub+1;
-	  ind->all_times      = &time0[i];
+          ind->all_times      = &time0[i];
           ind->evid           = &evid[i];
           ind->dose           = &_globals.gamt[i];
           ind->ndoses         = ndoses;
@@ -2316,7 +2374,7 @@ SEXP rxSolveC(const RObject &obj,
           lastId=id[i];
 	  j=i;
 	  ndoses=0;
-	  nall=0;
+	  nobs=0;
         }
         if (evid[i]){
           _globals.gidose[j] = i;
@@ -2348,6 +2406,7 @@ SEXP rxSolveC(const RObject &obj,
       } else {
         op->hmax2 = hmax0;
       }
+      nsub++;
     }
     // Make sure the user input all the parmeters.
     gParPosSetup(npars);
@@ -2414,7 +2473,7 @@ SEXP rxSolveC(const RObject &obj,
     op->svar = &_globals.gsvar[0];
     // Now setup the rest of the rx_solve object
     if (nPopPar != 1 && nPopPar % nsub != 0){
-      stop("The number of parameters solved by RxODE for multi-subject data needs to be a multiple of the number of subjects.");
+      stop("The number of parameters (%d) solved by RxODE for multi-subject data needs to be a multiple of the number of subjects (%d).",nPopPar, nsub);
     }
     //
     gInfusionRateSetup(op->neq*nsub*nPopPar);
@@ -2427,9 +2486,9 @@ SEXP rxSolveC(const RObject &obj,
     
     grcSetup(nsub*nPopPar);
     std::fill_n(&_globals.grc[0], nsub*nPopPar, 0);
-    
+
     gsolveSetup(rx->nall*state.size()*nPopPar);
-    std::fill_n(&_globals.gsolve[0],(ndoses+nobs)*state.size()*nPopPar,0.0);
+    std::fill_n(&_globals.gsolve[0],rx->nall*state.size()*nPopPar,0.0);
     int curEvent = 0;
     
     switch(parType){
@@ -2527,6 +2586,7 @@ SEXP rxSolveC(const RObject &obj,
             ind->jac_counter    = 0;
             ind->id=id+1;
           }
+          // Rprintf("curEvent: %d (%d; %d)\n", curEvent, op->neq, ind->n_all_times);
           curEvent += op->neq*ind->n_all_times;
         }
       }
