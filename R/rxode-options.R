@@ -14,13 +14,8 @@
     if (!rxWinRtoolsPath()){
         packageStartupMessage("Rtools is not set up correctly!\n\nYou need a working Rtools installation for RxODE to work.\nYou can set up Rtools using the command 'rxWinSetup()'.\nThis will also set up Python and SymPy to run a bit faster than rSymPy.\n");
     }
-    tmp <- getLoadedDLLs()$RxODE;
-    class(tmp) <- "list";
-    tmp <- digest::digest(tmp$path,file=TRUE, algo="md5");
-    utils::assignInMyNamespace("RxODE.md5", tmp)
 } ## nocov end
 
-RxODE.md5 <- NULL
 rxTempDir <- NULL;
 
 ##' Clear memoise cache for RxODE

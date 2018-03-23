@@ -20,6 +20,7 @@
 extern "C" {
 #include "solve.h"
 }
+#include "ode.h"
 #define rxModelVars(a) rxModelVars_(a)
 using namespace Rcpp;
 using namespace arma;
@@ -3493,8 +3494,7 @@ bool rxIsCurrent(RObject obj){
   List mv = rxModelVars(obj);
   if (mv.containsElementNamed("version")){
     CharacterVector version = mv["version"];
-    const char* cVerC = rxVersion("md5");
-    std::string str(cVerC);
+    std::string str = __VER_md5__;
     std::string str2 = as<std::string>(version["md5"]);
     if (str2 == str){
       return true;

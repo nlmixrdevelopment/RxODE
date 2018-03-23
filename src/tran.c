@@ -1093,8 +1093,6 @@ void err_msg(int chk, const char *msg, int code)
   }
 }
 
-const char *rxVersion(const char *what);
-
 /* when prnt_vars() is called, user defines the behavior in "case" */
 void prnt_vars(int scenario, FILE *outpt, int lhs, const char *pre_str, const char *post_str, int show_ode) {
   int i, j, k;
@@ -1289,10 +1287,10 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
   fprintf(outpt,"    SEXP badDosei = PROTECT(allocVector(INTSXP, %d));pro++;\n",statei);
   fprintf(outpt,"    SEXP version    = PROTECT(allocVector(STRSXP, 3));pro++;\n");
   fprintf(outpt,"    SEXP versionn   = PROTECT(allocVector(STRSXP, 3));pro++;\n");
-
-  fprintf(outpt,"    SET_STRING_ELT(version,0,mkChar(\"%s\"));\n", rxVersion("version"));
-  fprintf(outpt,"    SET_STRING_ELT(version,1,mkChar(\"%s\"));\n", rxVersion("repo"));
-  fprintf(outpt,"    SET_STRING_ELT(version,2,mkChar(\"%s\"));\n", rxVersion("md5"));
+  
+  fprintf(outpt, __VER_0__);
+  fprintf(outpt, __VER_1__);
+  fprintf(outpt, __VER_2__);
 
   fprintf(outpt,"    SET_STRING_ELT(versionn,0,mkChar(\"version\"));\n");
   fprintf(outpt,"    SET_STRING_ELT(versionn,1,mkChar(\"repo\"));\n");
