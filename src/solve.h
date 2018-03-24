@@ -82,6 +82,7 @@ typedef struct {
   int nsim;
   int nall;
   int nobs;
+  int nr;
   int add_cov;
   int matrix;
   int *stateIgnore;

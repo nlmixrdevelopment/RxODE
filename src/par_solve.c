@@ -722,7 +722,7 @@ extern int rxEvidP(int i, rx_solve *rx, unsigned int id){
   rx_solving_options_ind *ind;
   ind = getRxId(rx, id);
   if (i < ind->n_all_times){
-    return(ind->evid[i]);
+    return(ind->evid[i]); // invalid read of size 4
   } else {
     error("Trying to access EVID outside of defined events.\n");
   }
@@ -1024,7 +1024,7 @@ extern SEXP RxODE_par_df(){
     cov_ptr = ind->cov_ptr;
     curdose=0;
     for (i = 0; i < ntimes; i++){
-      evid = rxEvidP(i,rx,csub);
+      evid = ind->evid[i];
       if (evid ==0){
 	// Sampling Record
 	// id
@@ -1211,7 +1211,7 @@ extern SEXP RxODE_par_df(){
   return ret;
 }
 
-extern double *rxGetErrs();
+extern double *rxGetErrs(int ncores);
 extern int rxGetErrsNcol();
 
 extern SEXP RxODE_df(int doDose){
@@ -1224,6 +1224,7 @@ extern SEXP RxODE_df(int doDose){
   int nobs = rx->nobs;
   int nsim = rx->nsim;
   int nall = rx->nall;
+  rx->nr = (doDose == 1 ? nall : nobs)*nsim;
   int *rmState = rx->stateIgnore;
   int nPrnState =0;
   int i, j;
@@ -1260,23 +1261,26 @@ extern SEXP RxODE_df(int doDose){
   rx_solving_options_ind *ind;
   SEXP df = PROTECT(allocVector(VECSXP,ncols+nidCols+doseCols)); pro++;
   for (i = nidCols; i--;){
-    SET_VECTOR_ELT(df, i, PROTECT(allocVector(INTSXP, (doDose == 1 ? nall : nobs)*nsim))); pro++;
+    SET_VECTOR_ELT(df, i, PROTECT(allocVector(INTSXP, rx->nr))); pro++;
   }
   double *par_ptr;
-  int nrow = (doDose == 1 ? nall : nobs)*nsim;
   
-  double *errs = rxGetErrs();
+#ifdef _OPENMP
+  double *errs = rxGetErrs(op->cores);
+#else
+  int cores = 1;
+#endif
   int updateErr = 0;
   int errNcol = rxGetErrsNcol();
   if (errNcol > 0){
     updateErr = 1;
   }
   if (doDose){
-    SET_VECTOR_ELT(df, i++, PROTECT(allocVector(INTSXP, nall*nsim))); pro++;
-    SET_VECTOR_ELT(df, i, PROTECT(allocVector(REALSXP, nall*nsim))); pro++;
+    SET_VECTOR_ELT(df, i++, PROTECT(allocVector(INTSXP, rx->nr))); pro++;
+    SET_VECTOR_ELT(df, i, PROTECT(allocVector(REALSXP, rx->nr))); pro++;
   }
   for (i = md + sm + doseCols; i < ncols + doseCols+nidCols; i++){
-    SET_VECTOR_ELT(df, i, PROTECT(allocVector(REALSXP, (doDose == 1 ? nall : nobs)*nsim))); pro++;
+    SET_VECTOR_ELT(df, i, PROTECT(allocVector(REALSXP, rx->nr))); pro++;
   }
   
   // Now create the data frame
@@ -1314,7 +1318,7 @@ extern SEXP RxODE_df(int doDose){
       for (i = 0; i < ntimes; i++){
         if (updateErr){
           for (j=0; j < errNcol; j++){
-	    par_ptr[svar[j]] = errs[nrow*j+kk];
+	    par_ptr[svar[j]] = errs[rx->nr*j+kk]; // valgrind gives an invalid read of size 8 here. on pk3
           }
 	  kk++;
         }
@@ -1384,7 +1388,7 @@ extern SEXP RxODE_df(int doDose){
   }
   SEXP sexp_rownames = PROTECT(allocVector(INTSXP,2)); pro++;
   INTEGER(sexp_rownames)[0] = NA_INTEGER;
-  INTEGER(sexp_rownames)[1] = -(doDose == 1 ? nall : nobs)*nsim;
+  INTEGER(sexp_rownames)[1] = -rx->nr;
   setAttrib(df, R_RowNamesSymbol, sexp_rownames);
   SEXP sexp_colnames = PROTECT(allocVector(STRSXP,ncols+nidCols+doseCols)); pro++;
   jj = 0;

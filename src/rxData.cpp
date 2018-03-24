@@ -204,6 +204,9 @@ bool rxIs(const RObject &obj, std::string cls){
   return false;
 }
 
+Function loadNamespace("loadNamespace", R_BaseNamespace);
+Environment mvnfast = loadNamespace("mvnfast");
+
 RObject rxSimSigma(const RObject &sigma,
 		   const RObject &df,
 		   int ncores,
@@ -232,9 +235,6 @@ RObject rxSimSigma(const RObject &sigma,
       simNames = as<StringVector>(dimnames[1]);
       addNames = true;
     }
-    Environment base("package:base");
-    Function loadNamespace=base["loadNamespace"];
-    Environment mvnfast = loadNamespace("mvnfast");
     NumericMatrix simMat(nObs,sigmaM.ncol());
     NumericVector m(sigmaM.ncol());
     // Ncores = 1?  Should it be parallelized when it can be...?
@@ -245,10 +245,10 @@ RObject rxSimSigma(const RObject &sigma,
     } else {
       double df2 = as<double>(df);
       if (R_FINITE(df2)){
-	Function rmvt = as<Function>(mvnfast["rmvt"]);
+        Function rmvt = as<Function>(mvnfast["rmvt"]);
         rmvt(_["n"]=nObs, _["mu"]=m, _["sigma"]=sigmaM, _["df"] = df, _["ncores"]=ncores, _["isChol"]=isChol, _["A"] = simMat);
       } else {
-	Function rmvn = as<Function>(mvnfast["rmvn"]);
+        Function rmvn = as<Function>(mvnfast["rmvn"]);
         rmvn(_["n"]=nObs, _["mu"]=m, _["sigma"]=sigmaM, _["ncores"]=ncores, _["isChol"]=isChol, _["A"] = simMat);
       }
     }
@@ -1345,11 +1345,16 @@ NumericVector rinvchisq(const int n = 1, const double &nu = 1.0, const double &s
   return ret;
 }
 
-extern "C" double *rxGetErrs(){
+extern "C" double *rxGetErrs(int ncores){
   getRxModels();
   if (_rxModels.exists(".sigma")){
+    // Sigh; cant use with parallel processing.  need to copy to another data structure when run in parallel.
     NumericMatrix sigma = _rxModels[".sigma"];
-    return &sigma[0];
+    if (ncores == 1){
+      return &sigma[0];
+    } else {
+      // Need to use a thread safe structure.
+    }
   }
   return NULL;
 }
@@ -2218,17 +2223,18 @@ SEXP rxSolveC(const RObject &obj,
       gevidSetup(ind->n_all_times);
       std::copy(evid.begin(),evid.end(), &_globals.gevid[0]);
       ind->evid     = &_globals.gevid[0];
-      j=0;
       gamtSetup(ind->n_all_times);
       ind->dose = &_globals.gamt[0];
       // Slower; These need to be built.
       tlast = time[0];
       // hmax1 = hmax2 = 0;
       gidoseSetup(ind->n_all_times);
+      ind->idose = &_globals.gidose[0];
+      j=0;
       for (i =0; i != (unsigned int)(ind->n_all_times); i++){
         if (ind->evid[i]){
           ndoses++;
-	  _globals.gidose[j] = i;
+	  _globals.gidose[j] = (int)i;
           _globals.gamt[j++] = amt[i];
 	} else {
 	  nobs++;
@@ -2239,7 +2245,6 @@ SEXP rxSolveC(const RObject &obj,
 	  }
 	}
       }
-      ind->idose = &_globals.gidose[0];
       ind->ndoses = ndoses;
       rx->nobs = nobs;
       rx->nall = nobs+ndoses;
@@ -2299,6 +2304,8 @@ SEXP rxSolveC(const RObject &obj,
         hmax0 = hmax00[0];
       }
       DataFrame dataf = as<DataFrame>(ev1);
+      // Copy the information and make sure there is enough room.
+      // - evid
       IntegerVector evid  = as<IntegerVector>(dataf[rxcEvid]);
       gevidSetup(evid.size());
       std::copy(evid.begin(),evid.end(), &_globals.gevid[0]);
@@ -2308,13 +2315,19 @@ SEXP rxSolveC(const RObject &obj,
       }
       NumericVector time0 = dataf[rxcTime];
       tlast = time0[0];
+      // - all_times
       gall_timesSetup(time0.size());
       std::copy(time0.begin(), time0.end(), &_globals.gall_times[0]);
       NumericVector amt   = dataf[rxcAmt];
+      // Make sure that everything can take the correct sizes
+      // - amt
       gamtSetup(amt.size());
+      // - idose
+      gidoseSetup(amt.size());
       // Get covariates
       CharacterVector dfNames = dataf.names();
       int dfN = dfNames.size();
+      // - par cov needs to be at lest the size of the dataframe names.
       gpar_covSetup(dfN);
       k = 0;
       ncov = 0;
@@ -2330,6 +2343,7 @@ SEXP rxSolveC(const RObject &obj,
       }
       op->ncov=ncov;
       op->do_par_cov = (ncov > 0);
+      // Make sure the covariates are a #ncov * all times size
       gcovSetup(ncov * amt.size());
       unsigned int ids = id.size();
       // Get the number of subjects
@@ -2340,6 +2354,7 @@ SEXP rxSolveC(const RObject &obj,
       rxOptionsIniEnsure(1);
       nsub = 0;
       ind = &(rx->subjects[0]);
+      j=0;
       for (i = 0; i < ids; i++){
         if (lastId != id[i]){
 	  if (nall != 0){
@@ -2359,11 +2374,12 @@ SEXP rxSolveC(const RObject &obj,
           ind->slvr_counter   = 0;
           ind->dadt_counter   = 0;
           ind->jac_counter    = 0;
+	  ind->ndoses         = 0;
           ind->id             = nsub+1;
           ind->all_times      = &time0[i];
           ind->evid           = &evid[i];
+	  ind->idose          = &_globals.gidose[i];
           ind->dose           = &_globals.gamt[i];
-          ind->ndoses         = ndoses;
           ind->cov_ptr        = &(_globals.gcov[covi]);
 	  lasti = i;
 	  if (hmax0 == 0.0){
@@ -2378,9 +2394,10 @@ SEXP rxSolveC(const RObject &obj,
 	  nobs=0;
         }
         if (evid[i]){
-          _globals.gidose[j] = i;
-          _globals.gamt[j++] = amt[i];
-          ndoses++; nall++;
+          _globals.gidose[j] = i-lasti;
+          _globals.gamt[j] = amt[i];
+	  ind->ndoses++;
+          ndoses++; nall++; j++;
         } else {
           nobs++; nobst++; nall++;
           tmp = time0[i]-tlast;
@@ -2505,6 +2522,7 @@ SEXP rxSolveC(const RObject &obj,
 	  _globals.gpars[i] = mvIni[-_globals.gParPos[i]-1];
 	}
       }
+      
       for (i = nsub; i--;){
 	ind = &(rx->subjects[i]);
 	ind->par_ptr = &_globals.gpars[0];
@@ -2611,7 +2629,7 @@ SEXP rxSolveC(const RObject &obj,
     dat.attr("class") = CharacterVector::create("data.frame");
     List xtra;
     if (!rx->matrix) xtra = RxODE_par_df();
-    int nr = as<NumericVector>(dat[0]).size();
+    int nr = rx->nr;
     int nc = dat.size();
     if (rx->matrix){
       getRxModels();
@@ -2667,24 +2685,24 @@ SEXP rxSolveC(const RObject &obj,
       // e["parData"] = parData;
       List pd = as<List>(xtra[0]);
       if (pd.size() == 0){
-  	e["params.dat"] = R_NilValue;
+      	e["params.dat"] = R_NilValue;
       } else {
-  	e["params.dat"] = pd;
+      	e["params.dat"] = pd;
       }
       if (rx->nsub == 1 && rx->nsim == 1){
-  	int n = pd.size();
-  	NumericVector par2(n);
-  	for (int i = 0; i <n; i++){
-  	  par2[i] = (as<NumericVector>(pd[i]))[0];
-  	}
-  	par2.names() = pd.names();
-  	if (par2.size() == 0){
-  	  e["params.single"] = R_NilValue;
-  	} else {
-  	  e["params.single"] = par2;
-  	}
+      	int n = pd.size();
+      	NumericVector par2(n);
+      	for (int i = 0; i <n; i++){
+      	  par2[i] = (as<NumericVector>(pd[i]))[0];
+      	}
+      	par2.names() = pd.names();
+      	if (par2.size() == 0){
+      	  e["params.single"] = R_NilValue;
+      	} else {
+      	  e["params.single"] = par2;
+      	}
       } else {
-  	e["params.single"] = R_NilValue;
+      	e["params.single"] = R_NilValue;
       }
       e["EventTable"] = xtra[1];
       e["dosing"] = xtra[3];
@@ -2698,11 +2716,11 @@ SEXP rxSolveC(const RObject &obj,
       e["units"] = units;
       e["nobs"] = rx->nobs;
     
-      Function eventTable("eventTable",RxODE);
-      List et = eventTable(_["amount.units"] = amountUnits, _["time.units"] = timeUnits);
-      Function importEt = as<Function>(et["import.EventTable"]);
-      importEt(e["EventTable"]);
-      e["events.EventTable"] = et;
+      // Function eventTable("eventTable",RxODE);
+      // List et = eventTable(_["amount.units"] = amountUnits, _["time.units"] = timeUnits);
+      // Function importEt = as<Function>(et["import.EventTable"]);
+      // importEt(e["EventTable"]);
+      // e["events.EventTable"] = et;
       e["args.object"] = object;
       e["dll"] = rxDll(object);
       if (!swappedEvents){
@@ -3466,20 +3484,6 @@ RObject rxGetRxODE(RObject obj){
     e.attr("class") = "RxODE";
     return as<RObject>(e);
   }
-}
-
-bool rxVersion_b = false;
-CharacterVector rxVersion_;
-
-extern "C" const char *rxVersion(const char *what){
-  std::string str(what);
-  if (!rxVersion_b){
-    Environment RxODE("package:RxODE");
-    Function f = as<Function>(RxODE["rxVersion"]);
-    rxVersion_ = f();
-    rxVersion_b=true;
-  }
-  return (as<std::string>(rxVersion_[str])).c_str();
 }
 
 //' Checks if the RxODE object was built with the current build

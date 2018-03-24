@@ -42,7 +42,7 @@ rxPermissive({
             add.dosing(dose=20000, nbr.doses=5, start.time=120,dosing.interval=24,dosing.to=2) %>%
             add.sampling(0:240);
 
-        ## Add Residual differences; not working
+        ## Add Residual differences
         sigma <- diag(2) * 0.05
         dimnames(sigma) <- list(c("err1", "err2"), c("err1", "err2"));
 

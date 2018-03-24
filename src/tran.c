@@ -1604,7 +1604,10 @@ void codegen(FILE *outpt, int show_ode) {
       "  (&_solveData->subjects[_cSub])->dadt_counter++;\n}\n\n"
     };
   if (show_ode == 1){
-    fprintf(outpt, __HD_ODE__);
+    fprintf(outpt, __HD_ODE_1__);
+    fprintf(outpt, __HD_ODE_2__);
+    fprintf(outpt, __HD_ODE_3__);
+    fprintf(outpt, __HD_ODE_4__);
     /* if (found_jac == 1){ */
     /*   for (i=0; i<tb.nd; i++) {                   /\* name state vars *\/ */
     /*     retieve_var(tb.di[i], buf); */
@@ -1952,16 +1955,16 @@ void codegen(FILE *outpt, int show_ode) {
 }
 void reset (){
   // Reset Arrays
-  memset(tb.ss,		0, 64*MXSYM);
-  memset(tb.de,		0, 64*MXSYM);
-  memset(tb.deo,	0, MXSYM);
-  memset(tb.vo,		0, MXSYM);
-  memset(tb.lh,		0, MXSYM);
-  memset(tb.ini,	0, MXSYM);
-  memset(tb.di,		0, MXDER);
-  memset(tb.fdi,        0, MXDER);
-  memset(tb.dy,		0, MXSYM);
-  memset(tb.sdfdy,	0, MXSYM);
+  memset(tb.ss,		0, 64*MXSYM*sizeof(char));
+  memset(tb.de,		0, 64*MXSYM*sizeof(char));
+  memset(tb.deo,	0, MXSYM*sizeof(int));
+  memset(tb.vo,		0, MXSYM*sizeof(int));
+  memset(tb.lh,		0, MXSYM*sizeof(int));
+  memset(tb.ini,	0, MXSYM*sizeof(int));
+  memset(tb.di,		0, MXDER*sizeof(int));
+  memset(tb.fdi,        0, MXDER*sizeof(int));
+  memset(tb.dy,		0, MXSYM*sizeof(int));
+  memset(tb.sdfdy,	0, MXSYM*sizeof(int));
   // Reset integers
   tb.nv		= 0;
   tb.ix		= 0;

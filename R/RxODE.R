@@ -1324,9 +1324,9 @@ rxCompile.character <-  function(model,           # Model
             if (dllCopy){
                 file.copy(cDllFile, finalDll);
             }
-            tmp <- try(dyn.load(finalDll, local = FALSE), silent=TRUE);
+            tmp <- try(dyn.load(finalDll, local = FALSE), silent=FALSE);
             if (inherits(tmp, "try-error")){
-                tmp <- try(dyn.load(basename(finalDll), local = FALSE), silent=TRUE);
+                tmp <- try(dyn.load(basename(finalDll), local = FALSE), silent=FALSE);
                 if (inherits(tmp, "try-error")){
                     stop("Error loading model.")
                 }

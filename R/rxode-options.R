@@ -53,6 +53,7 @@ rxOpt <- list(RxODE.prefer.tbl               =c(FALSE, FALSE),
               );
 
 RxODE.prefer.tbl <- NULL
+
 RxODE.display.tbl <- NULL
 RxODE.echo.compile <- NULL
 RxODE.warn.on.assign <- NULL
