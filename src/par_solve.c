@@ -1211,7 +1211,7 @@ extern SEXP RxODE_par_df(){
   return ret;
 }
 
-extern double *rxGetErrs(int ncores);
+extern double *rxGetErrs();
 extern int rxGetErrsNcol();
 
 extern SEXP RxODE_df(int doDose){
@@ -1266,7 +1266,7 @@ extern SEXP RxODE_df(int doDose){
   double *par_ptr;
   
 #ifdef _OPENMP
-  double *errs = rxGetErrs(op->cores);
+  double *errs = rxGetErrs();
 #else
   int cores = 1;
 #endif

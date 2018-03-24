@@ -1345,16 +1345,12 @@ NumericVector rinvchisq(const int n = 1, const double &nu = 1.0, const double &s
   return ret;
 }
 
-extern "C" double *rxGetErrs(int ncores){
+extern "C" double *rxGetErrs(){
   getRxModels();
   if (_rxModels.exists(".sigma")){
     // Sigh; cant use with parallel processing.  need to copy to another data structure when run in parallel.
     NumericMatrix sigma = _rxModels[".sigma"];
-    if (ncores == 1){
-      return &sigma[0];
-    } else {
-      // Need to use a thread safe structure.
-    }
+    return &sigma[0];
   }
   return NULL;
 }
