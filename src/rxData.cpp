@@ -1348,7 +1348,6 @@ NumericVector rinvchisq(const int n = 1, const double &nu = 1.0, const double &s
 extern "C" double *rxGetErrs(){
   getRxModels();
   if (_rxModels.exists(".sigma")){
-    // Sigh; cant use with parallel processing.  need to copy to another data structure when run in parallel.
     NumericMatrix sigma = _rxModels[".sigma"];
     return &sigma[0];
   }

@@ -1263,10 +1263,12 @@ extern SEXP RxODE_df(int doDose){
   for (i = nidCols; i--;){
     SET_VECTOR_ELT(df, i, PROTECT(allocVector(INTSXP, rx->nr))); pro++;
   }
+  i = nidCols;
   double *par_ptr;
+  double *errs = rxGetErrs();
   
 #ifdef _OPENMP
-  double *errs = rxGetErrs();
+  int cores = op->cores;
 #else
   int cores = 1;
 #endif
@@ -1316,14 +1318,18 @@ extern SEXP RxODE_df(int doDose){
 	}
       }
       for (i = 0; i < ntimes; i++){
+        evid = ind->evid[i];
         if (updateErr){
           for (j=0; j < errNcol; j++){
-	    par_ptr[svar[j]] = errs[rx->nr*j+kk]; // valgrind gives an invalid read of size 8 here. on pk3
+	    par_ptr[svar[j]] = errs[rx->nr*j+kk];
           }
-	  kk++;
+	  if (evid == 0 || doDose){
+	    // Only incerement if this is an observation or of this a
+	    // simulation that requests dosing infomration too.
+            kk++;
+	  }
         }
         jj  = 0 ;
-	evid = rxEvidP(i,rx,neq[1]);
 	if (evid==0 || doDose){
           // sim.id
           if (sm){
