@@ -1761,10 +1761,8 @@ void updateSolveEnvPost(Environment e){
       NumericVector   prs(ppos.size()-nrm);
       CharacterVector prsn(ppos.size()-nrm);
       NumericVector parNumeric;
-      bool parIsNull = false;
       if (!rxIs(parso, "NULL")){
         parNumeric= as<NumericVector>(parso);
-        parIsNull = true;
       }
       unsigned int i, j=0;
       for (i = 0; i < prs.size();i++){
@@ -1780,18 +1778,14 @@ void updateSolveEnvPost(Environment e){
       }
       prs.names() = prsn;
       e["params.single"] = prs;
-      if(parIsNull){
-        e["params.dat"] = R_NilValue;
-      } else {
-	List pd(prs.size());
-	for (unsigned j = prs.size();j--;){
-          pd[j] = NumericVector::create(prs[j]);
-	}
-	pd.names() = prsn;
-	pd.attr("class") = "data.frame";
-        pd.attr("row.names") = IntegerVector::create(NA_INTEGER,-1);
-	e["params.dat"] = pd;
+      List pd(prs.size());
+      for (unsigned j = prs.size();j--;){
+	pd[j] = NumericVector::create(prs[j]);
       }
+      pd.names() = prsn;
+      pd.attr("class") = "data.frame";
+      pd.attr("row.names") = IntegerVector::create(NA_INTEGER,-1);
+      e["params.dat"] = pd;
       e["counts"] = DataFrame::create(_["slvr"]=e[".slvr.counter"],
 				      _["dadt"]=e[".dadt.counter"],
 				      _["jac"]=e[".jac.counter"]);
@@ -1848,6 +1842,29 @@ void updateSolveEnvPost(Environment e){
       } else {
 	e["params.single"] = R_NilValue;
       }
+      List cnt(extran+3);
+      CharacterVector cntn(extran+3);
+      j = 0;
+      if (nsim > 1) {
+	cntn[j]="sim.id";
+        cnt[j] = prsl["sim.id"];
+	j++;
+      }
+      if (nsub > 1) {
+        cntn[j]="id";
+        cnt[j] = prsl["id"];
+	j++;
+      }
+      cntn[j] = "slvr";
+      cnt[j++] = e[".slvr.counter"];
+      cntn[j] = "dadt";
+      cnt[j++] = e[".dadt.counter"];
+      cntn[j] = "jac";
+      cnt[j++] = e[".jac.counter"];
+      cnt.names() = cntn;
+      cnt.attr("class") = "data.frame";
+      cnt.attr("row.names") = IntegerVector::create(NA_INTEGER,-parsdf.nrow());
+      e["counts"] = cnt;
     }
   }
   if (!e.exists("EventTable")){
@@ -2064,12 +2081,12 @@ SEXP rxSolveC(const RObject &obj,
       obj = as<List>(e["obj"]);
     }
     getRxModels();
-    if (e.exists("params.dat")){
-      e.remove("params.dat");
-    }
-    if (e.exists("EventTable")){
-      e.remove("EventTable");
-    }
+    // if (e.exists("params.dat")){
+    //   e.remove("params.dat");
+    // }
+    // if (e.exists("EventTable")){
+    //   e.remove("EventTable");
+    // }
     if(e.exists(".sigma")){
       _rxModels[".sigma"]=as<NumericMatrix>(e[".sigma"]);
     }
@@ -3335,7 +3352,9 @@ RObject rxSolveUpdate(RObject obj,
         } else {
 	  CharacterVector classattr = obj.attr("class");
 	  Environment e = as<Environment>(classattr.attr(".RxODE.env"));
-	  List pars = List(e["params.dat"]);
+          updateSolveEnvPost(e);
+          if (rxIs(e["params.dat"], "NULL")) stop("Cannot update nonexistent parameters.");
+          List pars = List(e["params.dat"]);
 	  CharacterVector nmp = pars.names();
 	  int i, n, np, nc, j;
 	  np = (as<NumericVector>(pars[0])).size();
