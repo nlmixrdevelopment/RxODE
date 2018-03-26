@@ -1758,12 +1758,13 @@ void updateSolveEnvPost(Environment e){
     }
     if (rxIs(parso, "numeric") || rxIs(parso, "integer") ||
 	rxIs(parso, "NULL")){
-      e["params.dat"] = R_NilValue;
       NumericVector   prs(ppos.size()-nrm);
       CharacterVector prsn(ppos.size()-nrm);
       NumericVector parNumeric;
+      bool parIsNull = false;
       if (!rxIs(parso, "NULL")){
         parNumeric= as<NumericVector>(parso);
+        parIsNull = true;
       }
       unsigned int i, j=0;
       for (i = 0; i < prs.size();i++){
@@ -1779,6 +1780,18 @@ void updateSolveEnvPost(Environment e){
       }
       prs.names() = prsn;
       e["params.single"] = prs;
+      if(parIsNull){
+        e["params.dat"] = R_NilValue;
+      } else {
+	List pd(prs.size());
+	for (unsigned j = prs.size();j--;){
+          pd[j] = NumericVector::create(prs[j]);
+	}
+	pd.names() = prsn;
+	pd.attr("class") = "data.frame";
+        pd.attr("row.names") = IntegerVector::create(NA_INTEGER,-1);
+	e["params.dat"] = pd;
+      }
       e["counts"] = DataFrame::create(_["slvr"]=e[".slvr.counter"],
 				      _["dadt"]=e[".dadt.counter"],
 				      _["jac"]=e[".jac.counter"]);
@@ -1998,6 +2011,12 @@ SEXP rxSolveC(const RObject &obj,
       obj = as<List>(e["obj"]);
     }
     getRxModels();
+    if (e.exists("params.dat")){
+      e.remove("params.dat");
+    }
+    if (e.exists("EventTable")){
+      e.remove("EventTable");
+    }
     if(e.exists(".sigma")){
       _rxModels[".sigma"]=as<NumericMatrix>(e[".sigma"]);
     }
