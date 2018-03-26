@@ -47,9 +47,9 @@ typedef struct {
 
 
 typedef struct {
-  long slvr_counter;
-  long dadt_counter;
-  long jac_counter;
+  int *slvr_counter;
+  int *dadt_counter;
+  int *jac_counter;
   double *InfusionRate;
   int *BadDose;
   int nBadDose;

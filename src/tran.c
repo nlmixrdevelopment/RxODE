@@ -1601,7 +1601,7 @@ void codegen(FILE *outpt, int show_ode) {
     {
       "\n// prj-specific differential eqns\nvoid ",
       "dydt(int *_neq, double t, double *__zzStateVar__, double *__DDtStateVar__)\n{\n  int _cSub = _neq[1];\n  double *_InfusionRate = _solveData->subjects[_cSub].InfusionRate;\n  double *_par_ptr = _solveData->subjects[_cSub].par_ptr;\n",
-      "  (&_solveData->subjects[_cSub])->dadt_counter++;\n}\n\n"
+      "  (&_solveData->subjects[_cSub])->dadt_counter[0]++;\n}\n\n"
     };
   if (show_ode == 1){
     fprintf(outpt, __HD_ODE_1__);
@@ -1725,7 +1725,7 @@ void codegen(FILE *outpt, int show_ode) {
       if (show_ode != 1 && s) continue;
       else if (s) {
         fprintf(outpt,"  Rprintf(\"================================================================================\\n\");\n");
-        fprintf(outpt,"  Rprintf(\"ODE Count: %%d\\tTime (t): %%f\\n\", (&_solveData->subjects[_cSub])->dadt_counter, t);\n");
+        fprintf(outpt,"  Rprintf(\"ODE Count: %%d\\tTime (t): %%f\\n\", (&_solveData->subjects[_cSub])->dadt_counter[0], t);\n");
         fprintf(outpt,"  Rprintf(\"================================================================================\\n\");\n");
         fprintf(outpt,"  __print_ode__ = 1;\n");
         fprintf(outpt,"  __print_vars__ = 1;\n");
@@ -1767,7 +1767,7 @@ void codegen(FILE *outpt, int show_ode) {
       if (show_ode != 2 && s) continue;
       else if (s) {
         fprintf(outpt,"  Rprintf(\"================================================================================\\n\");\n");
-        fprintf(outpt,"  Rprintf(\"JAC Count: %%d\\tTime (t): %%f\\n\",(&_solveData->subjects[_cSub])->jac_counter, t);\n");
+        fprintf(outpt,"  Rprintf(\"JAC Count: %%d\\tTime (t): %%f\\n\",(&_solveData->subjects[_cSub])->jac_counter[0], t);\n");
         fprintf(outpt,"  Rprintf(\"================================================================================\\n\");\n");
         fprintf(outpt,"  __print_ode__ = 1;\n");
         fprintf(outpt,"  __print_jac__ = 1;\n");
@@ -1912,7 +1912,7 @@ void codegen(FILE *outpt, int show_ode) {
     fprintf(outpt, "%s", hdft[2]);
   } else if (show_ode == 2){
     //fprintf(outpt,"  free(__ld_DDtStateVar__);\n");
-    fprintf(outpt, "  (&_solveData->subjects[_cSub])->jac_counter++;\n");
+    fprintf(outpt, "  (&_solveData->subjects[_cSub])->jac_counter[0]++;\n");
     fprintf(outpt, "}\n");
   } else if (show_ode == 3){
     for (i = 0; i < tb.nd; i++){
