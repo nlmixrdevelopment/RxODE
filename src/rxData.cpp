@@ -1772,7 +1772,7 @@ void updateSolveEnvPost(Environment e){
           prs[j] = parNumeric[ppos[i]-1];
           prsn[j] = pars[i];
 	  j++;
-        } else { // ini specified parameter.
+        } else if (_globals.gParPos[i] < 0) { // ini specified parameter.
           prs[j] = mvIni[-ppos[i]-1];
           prsn[j] = pars[i];
 	  j++;
@@ -1795,6 +1795,59 @@ void updateSolveEnvPost(Environment e){
       e["counts"] = DataFrame::create(_["slvr"]=e[".slvr.counter"],
 				      _["dadt"]=e[".dadt.counter"],
 				      _["jac"]=e[".jac.counter"]);
+    } else {
+      DataFrame parsdf = as<DataFrame>(parso);
+      int extran = 0;
+      int nsub = e[".nsub"], nsim=e[".nsim"];
+      if (nsub > 1) extran++;
+      if (nsim > 1) extran++;
+      CharacterVector prsn(ppos.size()-nrm+extran);
+      List prsl(ppos.size()-nrm+extran);
+      unsigned int i, j=0, m = 0;
+      if (nsim > 1) {
+	IntegerVector tmp(parsdf.nrow());
+	for (unsigned int k = parsdf.nrow(); k--;){
+	  tmp[k] = (k / nsub)+1;
+	}
+        prsn[j]="sim.id";
+	prsl[j] = tmp;
+	j++;
+      }
+      if (nsub > 1) {
+        IntegerVector tmp(parsdf.nrow());
+	for (unsigned int k = parsdf.nrow(); k--;){
+	  tmp[k] = (k % nsub)+1;
+	}
+	prsl[j] = tmp;
+	prsn[j]="id";
+	j++;
+      }
+      for (i = 0; i < prsn.size();i++){
+        if (_globals.gParPos[i] > 0){ // User specified parameter
+          prsl[j] = parsdf[ppos[i]-1];
+          prsn[j] = pars[i];
+          j++;
+        } else if (_globals.gParPos[i] < 0) { // ini specified parameter.
+	  NumericVector tmp(parsdf.nrow(), mvIni[-ppos[i]-1]);
+	  prsl[j] = tmp;
+          prsn[j] = pars[i];
+          j++;
+        }
+      }
+      prsl.names() = prsn;
+      prsl.attr("class") = "data.frame";
+      prsl.attr("row.names") = IntegerVector::create(NA_INTEGER,-parsdf.nrow());
+      e["params.dat"] = prsl;
+      if (parsdf.nrow() == 1){
+	NumericVector prsnv(prsl.size());
+	for (j = prsl.size(); j--;){
+	  prsnv[j] = (as<NumericVector>(prsl[j]))[0];
+	}
+	prsnv.names() = prsn;
+        e["params.single"] = prsnv;
+      } else {
+	e["params.single"] = R_NilValue;
+      }
     }
   }
   if (!e.exists("EventTable")){
@@ -2219,6 +2272,7 @@ SEXP rxSolveC(const RObject &obj,
     // Simulation variabiles
     // int *svar;
     CharacterVector sigmaN;
+    bool usePar1 = false;
     if (!thetaMat.isNull() || !omega.isNull() || !sigma.isNull()){
       // Simulated Variable3
       if (!rxIs(par1, "numeric")){
@@ -2274,6 +2328,8 @@ SEXP rxSolveC(const RObject &obj,
       
       par1 =  as<RObject>(rxSimThetaOmega(as<Nullable<NumericVector>>(par1), omega, omegaDf, omegaIsChol, nSub0, thetaMat, thetaDf, thetaIsChol, nStud,
                                           sigma, sigmaDf, sigmaIsChol, nCoresRV, curObs, dfSub, dfObs, simSubjects));
+      usePar1=true;
+      
       // The parameters are in the same format as they would be if they were specified as part of the original dataset.
     }
     // .sigma could be reassigned in an update, so check outside simulation function.
@@ -2822,6 +2878,8 @@ SEXP rxSolveC(const RObject &obj,
       e[".slvr.counter"] = slvr_counterIv;
       e[".dadt.counter"] = dadt_counterIv;
       e[".jac.counter"] = jac_counterIv;
+      e[".nsub"] = rx->nsub;
+      e[".nsim"] = rx->nsim;
       // IntegerVector eParCov(ncov);
       // Do I even need this?
       // std::copy(&_globals.gpar_cov[0], &_globals.gpar_cov[0]+ncov, eParCov.begin());
@@ -2872,10 +2930,18 @@ SEXP rxSolveC(const RObject &obj,
       e["args.object"] = object;
       e["dll"] = rxDll(object);
       if (!swappedEvents){
-  	e["args.params"] = params;    
+	if (usePar1){
+          e["args.params"] = par1;
+	} else {
+	  e["args.params"] = params;
+	}
   	e["args.events"] = events;
       } else {
-  	e["args.params"] = events;    
+        if (usePar1){
+          e["args.params"] = par1;
+        } else {
+          e["args.params"] = events;
+        }
   	e["args.events"] = params;
       }
       e["args.inits"] = inits;
