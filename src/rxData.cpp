@@ -2739,8 +2739,6 @@ SEXP rxSolveC(const RObject &obj,
         ind->slvr_counter = &_globals.slvr_counter[i];
         ind->dadt_counter = &_globals.dadt_counter[i];
         ind->jac_counter  = &_globals.jac_counter[i];
-        ind->ndoses         = 0;
-	
       }
       rx->nsub= nsub;
       rx->nsim = nsim;
