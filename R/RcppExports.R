@@ -4,7 +4,7 @@
 #' Check the type of an object using Rcpp
 #'
 #' @param obj Object to check
-#' @param cls Type of class.  Only s3 classes and primitive classes are checked.
+#' @param cls Type of class.  Only s3 classes for lists/environments and primitive classes are checked.
 #'    For matrix types they are distinguished as \code{numeric.matrix}, \code{integer.matrix},
 #'    \code{logical.matrix}, and \code{character.matrix} as well as the traditional \code{matrix}
 #'    class. Additionally checks for \code{event.data.frame} which is an \code{data.frame} object
@@ -16,10 +16,6 @@
 #' @export
 rxIs <- function(obj, cls) {
     .Call(`_RxODE_rxIs`, obj, cls)
-}
-
-rxDataSetup <- function(ro, covNames = NULL, sigma = NULL, df = NULL, ncoresRV = 1L, isChol = FALSE, nDisplayProgress = 10000L, amountUnits = NA_character_, timeUnits = "hours") {
-    .Call(`_RxODE_rxDataSetup`, ro, covNames, sigma, df, ncoresRV, isChol, nDisplayProgress, amountUnits, timeUnits)
 }
 
 rxModelVars_ <- function(obj) {
@@ -138,26 +134,89 @@ rxSetupScale <- function(obj, scale = NULL, extraArgs = NULL) {
     .Call(`_RxODE_rxSetupScale`, obj, scale, extraArgs)
 }
 
-#' Setup Data and Parameters
+#' Sample a covariance Matrix from the Posteior Inverse Wishart distribution.
 #'
-#' @inheritParams rxSolve
-#' @param sigma Named sigma matrix.
-#' @param sigmaDf The degrees of freedom of a t-distribution for
+#' Note this Inverse wishart rescaled to match the original scale of the covariance matrix.
+#'
+#' If your covariance matrix is a 1x1 matrix, this uses an scaled inverse chi-squared which 
+#' is equivalent to the Inverse Wishart distribution in the uni-directional case.
+#'
+#' @param nu Degrees of Freedom (Number of Observations) for 
+#'        covariance matrix simulation.
+#' @param omega Estimate of Covariance matrix.
+#' @param n Number of Matricies to sample.  By default this is 1.
+#' @param omegaIsChol is an indicator of if the omega matrix is in the cholesky decomposition. 
+#' @param returnChol Return the cholesky decomposition of the covariance matrix sample.
+#'
+#' @return a matrix (n=1) or a list of matricies (n > 1)
+#'
+#' @author Matthew L.Fidler & Wenping Wang
+#' 
+#' @export
+cvPost <- function(nu, omega, n = 1L, omegaIsChol = FALSE, returnChol = FALSE) {
+    .Call(`_RxODE_cvPost`, nu, omega, n, omegaIsChol, returnChol)
+}
+
+#' Scaled Inverse Chi Squared distribution
+#'
+#' @param n Number of random samples
+#' @param nu degrees of freedom of inverse chi square
+#' @param scale  Scale of inverse chi squared distribution 
+#'         (default is 1).
+#' @return a vector of inverse chi squared deviates .
+#' @export
+rinvchisq <- function(n = 1L, nu = 1.0, scale = 1) {
+    .Call(`_RxODE_rinvchisq`, n, nu, scale)
+}
+
+#' Simulate Parameters from a Theta/Omega specification
+#'
+#' @param params Named Vector of RxODE model parameters
+#'
+#' @param thetaMat Named theta matrix.
+#'
+#' @param thetaDf The degrees of freedom of a t-distribution for
 #'     simulation.  By default this is \code{NULL} which is
 #'     equivalent to \code{Inf} degrees, or to simulate from a normal
 #'     distribution instead of a t-distribution.
-#' @param nCoresRV Number of cores for residual simulation.  This,
-#'     along with the seed, affects both the outcome and speed of
-#'     simulation. By default it is one.
-#' @param sigmaIsChol Indicates if the \code{sigma} supplied is a
+#'
+#' @param thetaIsChol Indicates if the \code{theta} supplied is a
 #'     Cholesky decomposed matrix instead of the traditional
 #'     symmetric matrix.
-#' @return Data setup for running C-based RxODE runs.
-#' @author Matthew L. Fidler
-#' @keywords internal
+#'
+#' @param nSub Number between subject variabilities (ETAs) simulated for every 
+#'        realization of the parameters.
+#'
+#' @param omega Named omega matrix.
+#'
+#' @param omegaDf The degrees of freedom of a t-distribution for
+#'     simulation.  By default this is \code{NULL} which is
+#'     equivalent to \code{Inf} degrees, or to simulate from a normal
+#'     distribution instead of a t-distribution.
+#'
+#' @param omegaIsChol Indicates if the \code{omega} supplied is a
+#'     Cholesky decomposed matrix instead of the traditional
+#'     symmetric matrix.
+#'
+#' @param nStud Number virtual studies to characterize uncertainty in estimated 
+#'        parameters.
+#'
+#' @param sigma Matrix for residual variation.  Adds a "NA" value for each of the 
+#'     indivdual parameters, residuals are updated after solve is completed. 
+#'
+#' @inheritParams rxSolve
+#'
+#' @param dfSub Degrees of freedom to sample the between subject variaiblity matrix from the 
+#'        inverse Wishart distribution (scaled) or scaled inverse chi squared distribution. 
+#'
+#' @param dfObs Degrees of freedom to sample the unexplained variaiblity matrix from the 
+#'        inverse Wishart distribution (scaled) or scaled inverse chi squared distribution. 
+#'
+#' @author Matthew L.Fidler
+#'
 #' @export
-rxDataParSetup <- function(object, params = NULL, events = NULL, inits = NULL, covs = NULL, sigma = NULL, sigmaDf = NULL, nCoresRV = 1L, sigmaIsChol = FALSE, nDisplayProgress = 10000L, amountUnits = NA_character_, timeUnits = "hours", theta = NULL, eta = NULL, scale = NULL, extraArgs = NULL) {
-    .Call(`_RxODE_rxDataParSetup`, object, params, events, inits, covs, sigma, sigmaDf, nCoresRV, sigmaIsChol, nDisplayProgress, amountUnits, timeUnits, theta, eta, scale, extraArgs)
+rxSimThetaOmega <- function(params = NULL, omega = NULL, omegaDf = NULL, omegaIsChol = FALSE, nSub = 1L, thetaMat = NULL, thetaDf = NULL, thetaIsChol = FALSE, nStud = 1L, sigma = NULL, sigmaDf = NULL, sigmaIsChol = FALSE, nCoresRV = 1L, nObs = 1L, dfSub = 0, dfObs = 0, simSubjects = TRUE) {
+    .Call(`_RxODE_rxSimThetaOmega`, params, omega, omegaDf, omegaIsChol, nSub, thetaMat, thetaDf, thetaIsChol, nStud, sigma, sigmaDf, sigmaIsChol, nCoresRV, nObs, dfSub, dfObs, simSubjects)
 }
 
 rxSolveCsmall <- function(object, specParams = NULL, extraArgs = NULL, params = NULL, events = NULL, inits = NULL, scale = NULL, covs = NULL, optsL = NULL) {
@@ -294,90 +353,6 @@ rxDynUnload <- function(obj) {
 #' @export
 rxDelete <- function(obj) {
     .Call(`_RxODE_rxDelete`, obj)
-}
-
-#' Sample a covariance Matrix from the Posteior Inverse Wishart distribution.
-#'
-#' Note this Inverse wishart rescaled to match the original scale of the covariance matrix.
-#'
-#' If your covariance matrix is a 1x1 matrix, this uses an scaled inverse chi-squared which 
-#' is equivalent to the Inverse Wishart distribution in the uni-directional case.
-#'
-#' @param nu Degrees of Freedom (Number of Observations) for 
-#'        covariance matrix simulation.
-#' @param omega Estimate of Covariance matrix.
-#' @param n Number of Matricies to sample.  By default this is 1.
-#' @param omegaIsChol is an indicator of if the omega matrix is in the cholesky decomposition. 
-#' @param returnChol Return the cholesky decomposition of the covariance matrix sample.
-#'
-#' @return a matrix (n=1) or a list of matricies (n > 1)
-#'
-#' @author Matthew L.Fidler & Wenping Wang
-#' 
-#' @export
-cvPost <- function(nu, omega, n = 1L, omegaIsChol = FALSE, returnChol = FALSE) {
-    .Call(`_RxODE_cvPost`, nu, omega, n, omegaIsChol, returnChol)
-}
-
-#' Scaled Inverse Chi Squared distribution
-#'
-#' @param n Number of random samples
-#' @param nu degrees of freedom of inverse chi square
-#' @param scale  Scale of inverse chi squared distribution 
-#'         (default is 1).
-#' @return a vector of inverse chi squared deviates .
-#' @export
-rinvchisq <- function(n = 1L, nu = 1.0, scale = 1) {
-    .Call(`_RxODE_rinvchisq`, n, nu, scale)
-}
-
-#' Simulate Parameters from a Theta/Omega specification
-#'
-#' @param params Named Vector of RxODE model parameters
-#'
-#' @param thetaMat Named theta matrix.
-#'
-#' @param thetaDf The degrees of freedom of a t-distribution for
-#'     simulation.  By default this is \code{NULL} which is
-#'     equivalent to \code{Inf} degrees, or to simulate from a normal
-#'     distribution instead of a t-distribution.
-#'
-#' @param thetaIsChol Indicates if the \code{theta} supplied is a
-#'     Cholesky decomposed matrix instead of the traditional
-#'     symmetric matrix.
-#'
-#' @param nSub Number between subject variabilities (ETAs) simulated for every 
-#'        realization of the parameters.
-#'
-#' @param omega Named omega matrix.
-#'
-#' @param omegaDf The degrees of freedom of a t-distribution for
-#'     simulation.  By default this is \code{NULL} which is
-#'     equivalent to \code{Inf} degrees, or to simulate from a normal
-#'     distribution instead of a t-distribution.
-#'
-#' @param omegaIsChol Indicates if the \code{omega} supplied is a
-#'     Cholesky decomposed matrix instead of the traditional
-#'     symmetric matrix.
-#'
-#' @param nStud Number virtual studies to characterize uncertainty in estimated 
-#'        parameters.
-#'
-#' @param sigma Matrix for residual variation.  Adds a "NA" value for each of the 
-#'     indivdual parameters, residuals are updated after solve is completed. 
-#'
-#' @inheritParams rxSolve
-#'
-#' @param simVariability For each study simulate the uncertanty in the Omega and 
-#'       Sigma item
-#'
-#' @param nObs Number of observations to simulate for sigma.
-#'
-#' @author Matthew L.Fidler
-#'
-#' @export
-rxSimThetaOmega <- function(params = NULL, omega = NULL, omegaDf = NULL, omegaIsChol = FALSE, nSub = 1L, thetaMat = NULL, thetaDf = NULL, thetaIsChol = FALSE, nStud = 1L, sigma = NULL, sigmaDf = NULL, sigmaIsChol = FALSE, nCoresRV = 1L, nObs = 1L, simVariability = TRUE) {
-    .Call(`_RxODE_rxSimThetaOmega`, params, omega, omegaDf, omegaIsChol, nSub, thetaMat, thetaDf, thetaIsChol, nStud, sigma, sigmaDf, sigmaIsChol, nCoresRV, nObs, simVariability)
 }
 
 #' Invert matrix using Rcpp Armadilo.  

@@ -396,6 +396,8 @@ RxODE <- function(model, modName = basename(wd), wd = ifelse(RxODE.cache.directo
         with(.(env), {
             mv <- RxODE::rxModelVars(rxDll);
             ret <- RxODE::rxModelVars(rxDll)[c("params", "state", "lhs")];
+            p <- ret["params"];
+            ini <- names(mv$ini)
             init <- RxODE::rxInit(rxDll);
             ret$params <- ret$params[!(ret$params %in% names(init))]
             class(ret) <- "list"
@@ -1116,7 +1118,7 @@ rxTransMakevars <- function(rxProps,                                            
                                             "ode_solver_ptr", "ode_solver_xptr", "inis",
                                             "model_vars", "calc_lhs", "calc_jac", "dydt", "dydt_liblsoda",
                                             "dydt_lsoda", "calc_jac_lsoda", "ode_solver_solvedata",
-                                            "ode_solver_get_solvedata", "neq", "nlhs"), # List of compile flags
+                                            "ode_solver_get_solvedata", "neq", "nlhs", "fix_inis"), # List of compile flags
                             debug        = FALSE,                                                                 # Debug compile?
                             ...){
     ## rxTransCompileFlags returns a string for the compiler options
@@ -1146,7 +1148,9 @@ rxTransMakevars <- function(rxProps,                                            
         cat(ret);
         return(ret);
     } else {
-        message("Needed Variables: %s", paste(neededProps, collapse=","));
+        message(sprintf("Needed Variables: %s", paste(neededProps, collapse=",")));
+        print(setdiff(neededProps, names(rxProps)));
+        print(setdiff(names(rxProps), neededProps));
         stop(sprintf("Cannot compile, only found %s.", paste(names(rxProps), collapse=",")));
     }
 } # end function rxTransCompileFlags
@@ -1289,8 +1293,30 @@ rxCompile.character <-  function(model,           # Model
                 unlink(Makevars);
             }
             ## Now create C file
-            rxTrans(mFile, cFile = cFile, md5 = md5$digest, extraC = extraC, ...,
-                    modelPrefix = prefix, calcJac=calcJac, calcSens=calcSens, collapseModel=collapseModel)
+            mv <- rxTrans(mFile, cFile = cFile, md5 = md5$digest, extraC = extraC, ...,
+                          modelPrefix = prefix, calcJac=calcJac, calcSens=calcSens, collapseModel=collapseModel,
+                          modVars=TRUE);
+            .j <- 0;
+            .i <- 0;
+            if (length(mv$ini) > 0){
+                fixInis <- sprintf("double _theta[%d];\n%s\n", length(mv$params),
+                                   paste(sapply(mv$params, function(x){
+                                       if (!is.na(mv$ini[x])){
+                                           ret <- sprintf("  _theta[%d] = %.16f;", .i, as.vector(mv$ini[x]));
+                                           .i <<- .i + 1;
+                                           return(ret)
+                                       } else {
+                                           ret <- sprintf("  _theta[%d] = theta[%d];", .i, .j);
+                                           .i <<- .i + 1;
+                                           .j <<- .j + 1;
+                                           return(ret);
+                                       }
+                                   }), collapse="\n"))
+            } else {
+                fixInis <- sprintf("double *_theta = theta;");
+            }
+            trans <- c(mv$trans, mv$md5);
+            trans["fix_inis"] <- fixInis;
             sink(Makevars);
             cat(rxTransMakevars(trans, finalDll, cFile, ...));
             sink();
@@ -1322,9 +1348,9 @@ rxCompile.character <-  function(model,           # Model
             if (dllCopy){
                 file.copy(cDllFile, finalDll);
             }
-            tmp <- try(dyn.load(finalDll, local = FALSE), silent=TRUE);
+            tmp <- try(dyn.load(finalDll, local = FALSE), silent=FALSE);
             if (inherits(tmp, "try-error")){
-                tmp <- try(dyn.load(basename(finalDll), local = FALSE), silent=TRUE);
+                tmp <- try(dyn.load(basename(finalDll), local = FALSE), silent=FALSE);
                 if (inherits(tmp, "try-error")){
                     stop("Error loading model.")
                 }

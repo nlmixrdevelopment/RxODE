@@ -5,14 +5,14 @@
 \title{Solves a ODE equation}
 \usage{
 rxSolve(object, params = NULL, events = NULL, inits = NULL,
-  scale = NULL, covs = NULL, method = "liblsoda", transit_abs = NULL,
-  atol = 1e-08, rtol = 1e-06, maxsteps = 5000L, hmin = 0L,
-  hmax = NULL, hini = 0L, maxordn = 12L, maxords = 5L, ..., cores,
-  covs_interpolation = "linear", add.cov = FALSE, matrix = FALSE,
-  sigma = NULL, sigmaDf = NULL, nCoresRV = 1L, sigmaIsChol = FALSE,
-  nDisplayProgress = 10000L, amountUnits = NA_character_,
-  timeUnits = "hours", stiff, theta = NULL, eta = NULL,
-  addDosing = FALSE, update.object = FALSE, do.solve = TRUE,
+  scale = NULL, covs = NULL, method = c("liblsoda", "lsoda", "dop853"),
+  transit_abs = NULL, atol = 1e-08, rtol = 1e-06, maxsteps = 5000L,
+  hmin = 0L, hmax = NULL, hini = 0L, maxordn = 12L, maxords = 5L, ...,
+  cores, covs_interpolation = c("linear", "locf", "nocb", "midpoint"),
+  add.cov = FALSE, matrix = FALSE, sigma = NULL, sigmaDf = NULL,
+  nCoresRV = 1L, sigmaIsChol = FALSE, nDisplayProgress = 10000L,
+  amountUnits = NA_character_, timeUnits = "hours", stiff, theta = NULL,
+  eta = NULL, addDosing = FALSE, update.object = FALSE, do.solve = TRUE,
   omega = NULL, omegaDf = NULL, omegaIsChol = FALSE, nSub = 1L,
   thetaMat = NULL, thetaDf = NULL, thetaIsChol = FALSE, nStud = 1L,
   simVariability = TRUE)

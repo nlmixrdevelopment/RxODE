@@ -1093,8 +1093,6 @@ void err_msg(int chk, const char *msg, int code)
   }
 }
 
-const char *rxVersion(const char *what);
-
 /* when prnt_vars() is called, user defines the behavior in "case" */
 void prnt_vars(int scenario, FILE *outpt, int lhs, const char *pre_str, const char *post_str, int show_ode) {
   int i, j, k;
@@ -1289,10 +1287,10 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
   fprintf(outpt,"    SEXP badDosei = PROTECT(allocVector(INTSXP, %d));pro++;\n",statei);
   fprintf(outpt,"    SEXP version    = PROTECT(allocVector(STRSXP, 3));pro++;\n");
   fprintf(outpt,"    SEXP versionn   = PROTECT(allocVector(STRSXP, 3));pro++;\n");
-
-  fprintf(outpt,"    SET_STRING_ELT(version,0,mkChar(\"%s\"));\n", rxVersion("version"));
-  fprintf(outpt,"    SET_STRING_ELT(version,1,mkChar(\"%s\"));\n", rxVersion("repo"));
-  fprintf(outpt,"    SET_STRING_ELT(version,2,mkChar(\"%s\"));\n", rxVersion("md5"));
+  
+  fprintf(outpt, __VER_0__);
+  fprintf(outpt, __VER_1__);
+  fprintf(outpt, __VER_2__);
 
   fprintf(outpt,"    SET_STRING_ELT(versionn,0,mkChar(\"version\"));\n");
   fprintf(outpt,"    SET_STRING_ELT(versionn,1,mkChar(\"repo\"));\n");
@@ -1603,10 +1601,13 @@ void codegen(FILE *outpt, int show_ode) {
     {
       "\n// prj-specific differential eqns\nvoid ",
       "dydt(int *_neq, double t, double *__zzStateVar__, double *__DDtStateVar__)\n{\n  int _cSub = _neq[1];\n  double *_InfusionRate = _solveData->subjects[_cSub].InfusionRate;\n  double *_par_ptr = _solveData->subjects[_cSub].par_ptr;\n",
-      "  (&_solveData->subjects[_cSub])->dadt_counter++;\n}\n\n"
+      "  (&_solveData->subjects[_cSub])->dadt_counter[0]++;\n}\n\n"
     };
   if (show_ode == 1){
-    fprintf(outpt, __HD_ODE__);
+    fprintf(outpt, __HD_ODE_1__);
+    fprintf(outpt, __HD_ODE_2__);
+    fprintf(outpt, __HD_ODE_3__);
+    fprintf(outpt, __HD_ODE_4__);
     /* if (found_jac == 1){ */
     /*   for (i=0; i<tb.nd; i++) {                   /\* name state vars *\/ */
     /*     retieve_var(tb.di[i], buf); */
@@ -1724,7 +1725,7 @@ void codegen(FILE *outpt, int show_ode) {
       if (show_ode != 1 && s) continue;
       else if (s) {
         fprintf(outpt,"  Rprintf(\"================================================================================\\n\");\n");
-        fprintf(outpt,"  Rprintf(\"ODE Count: %%d\\tTime (t): %%f\\n\", (&_solveData->subjects[_cSub])->dadt_counter, t);\n");
+        fprintf(outpt,"  Rprintf(\"ODE Count: %%d\\tTime (t): %%f\\n\", (&_solveData->subjects[_cSub])->dadt_counter[0], t);\n");
         fprintf(outpt,"  Rprintf(\"================================================================================\\n\");\n");
         fprintf(outpt,"  __print_ode__ = 1;\n");
         fprintf(outpt,"  __print_vars__ = 1;\n");
@@ -1766,7 +1767,7 @@ void codegen(FILE *outpt, int show_ode) {
       if (show_ode != 2 && s) continue;
       else if (s) {
         fprintf(outpt,"  Rprintf(\"================================================================================\\n\");\n");
-        fprintf(outpt,"  Rprintf(\"JAC Count: %%d\\tTime (t): %%f\\n\",(&_solveData->subjects[_cSub])->jac_counter, t);\n");
+        fprintf(outpt,"  Rprintf(\"JAC Count: %%d\\tTime (t): %%f\\n\",(&_solveData->subjects[_cSub])->jac_counter[0], t);\n");
         fprintf(outpt,"  Rprintf(\"================================================================================\\n\");\n");
         fprintf(outpt,"  __print_ode__ = 1;\n");
         fprintf(outpt,"  __print_jac__ = 1;\n");
@@ -1911,7 +1912,7 @@ void codegen(FILE *outpt, int show_ode) {
     fprintf(outpt, "%s", hdft[2]);
   } else if (show_ode == 2){
     //fprintf(outpt,"  free(__ld_DDtStateVar__);\n");
-    fprintf(outpt, "  (&_solveData->subjects[_cSub])->jac_counter++;\n");
+    fprintf(outpt, "  (&_solveData->subjects[_cSub])->jac_counter[0]++;\n");
     fprintf(outpt, "}\n");
   } else if (show_ode == 3){
     for (i = 0; i < tb.nd; i++){
@@ -1954,16 +1955,16 @@ void codegen(FILE *outpt, int show_ode) {
 }
 void reset (){
   // Reset Arrays
-  memset(tb.ss,		0, 64*MXSYM);
-  memset(tb.de,		0, 64*MXSYM);
-  memset(tb.deo,	0, MXSYM);
-  memset(tb.vo,		0, MXSYM);
-  memset(tb.lh,		0, MXSYM);
-  memset(tb.ini,	0, MXSYM);
-  memset(tb.di,		0, MXDER);
-  memset(tb.fdi,        0, MXDER);
-  memset(tb.dy,		0, MXSYM);
-  memset(tb.sdfdy,	0, MXSYM);
+  memset(tb.ss,		0, 64*MXSYM*sizeof(char));
+  memset(tb.de,		0, 64*MXSYM*sizeof(char));
+  memset(tb.deo,	0, MXSYM*sizeof(int));
+  memset(tb.vo,		0, MXSYM*sizeof(int));
+  memset(tb.lh,		0, MXSYM*sizeof(int));
+  memset(tb.ini,	0, MXSYM*sizeof(int));
+  memset(tb.di,		0, MXDER*sizeof(int));
+  memset(tb.fdi,        0, MXDER*sizeof(int));
+  memset(tb.dy,		0, MXSYM*sizeof(int));
+  memset(tb.sdfdy,	0, MXSYM*sizeof(int));
   // Reset integers
   tb.nv		= 0;
   tb.ix		= 0;

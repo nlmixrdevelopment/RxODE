@@ -72,7 +72,7 @@ int par_progress(int c, int n, int d, int cores, clock_t t0, int stop){
   return d;
 }
 
-inline rx_solving_options_ind *rxOptionsIniEnsure(int mx){
+rx_solving_options_ind *rxOptionsIniEnsure(int mx){
   if (mx >= max_inds_global){
     max_inds_global = mx+1024;
     inds_global = Realloc(inds_global, max_inds_global, rx_solving_options_ind);
@@ -115,6 +115,9 @@ void rxUpdateFuns(SEXP trans){
   s_ode_solver_solvedata = CHAR(STRING_ELT(trans, 11));
   s_ode_solver_get_solvedata = CHAR(STRING_ELT(trans, 12));
   s_dydt_liblsoda = CHAR(STRING_ELT(trans, 13));
+  global_jt = 2;
+  global_mf = 22;  
+  global_debug = 0;
   if (strcmp(CHAR(STRING_ELT(trans, 1)),"fulluser") == 0){
     global_jt = 1;
     global_mf = 21;
@@ -131,9 +134,6 @@ void rxUpdateFuns(SEXP trans){
   set_solve = (t_set_solve)R_GetCCallable(lib, s_ode_solver_solvedata);
   get_solve = (t_get_solve)R_GetCCallable(lib, s_ode_solver_get_solvedata);
   dydt_liblsoda = (t_dydt_liblsoda)R_GetCCallable(lib, s_dydt_liblsoda);
-  global_jt = 2;
-  global_mf = 22;  
-  global_debug = 0;
 }
 
 void rxClearFuns(){
@@ -148,133 +148,6 @@ void rxClearFuns(){
   dydt_liblsoda		= NULL;
 }
 
-void getSolvingOptionsIndPtr(double *InfusionRate,
-                             int *BadDose,
-                             double HMAX, // Determined by diff
-                             double *par_ptr,
-                             double *dose,
-			     int *idose,
-                             double *solve,
-                             double *lhs,
-                             int *evid,
-                             int *rc,
-                             double *cov_ptr,
-                             int n_all_times,
-                             double *all_times,
-                             int id,
-                             int sim,
-                             rx_solving_options_ind *o){
-  o->slvr_counter = 0;
-  o->dadt_counter = 0;
-  o->jac_counter  = 0;
-  o->InfusionRate = InfusionRate;
-  o->BadDose = BadDose;
-  o->nBadDose = 0;
-  o->HMAX = HMAX; // Determined by diff
-  o->tlast = 0.0;
-  o->podo = 0.0;
-  o->par_ptr = par_ptr;
-  o->dose = dose;
-  o->solve = solve;
-  o->lhs = lhs;
-  o->evid = evid;
-  o->rc = rc;
-  o->cov_ptr = cov_ptr;
-  o->n_all_times = n_all_times;
-  o->ixds = 0;
-  o->ndoses = -1;
-  o->all_times = all_times;
-  o->idose = idose;
-  o->id = id;
-  o->sim = sim;
-}
-
-void getSolvingOptionsPtr(double ATOL,          //absolute error
-                          double RTOL,          //relative error
-                          double H0,
-                          double HMIN,
-                          int mxstep,
-                          int MXORDN,
-                          int MXORDS,
-                          // Approx options
-                          int do_transit_abs,
-                          int nlhs,
-                          int neq,
-                          int stiff,
-                          double f1,
-                          double f2,
-                          int kind,
-                          int is_locf,
-			  int cores,
-			  int ncov,
-			  int *par_cov,
-                          int do_par_cov,
-                          double *inits,
-			  double *scale,
-                          const char *modNamePtr,
-			  double hmax2,
-			  double *atol2,
-			  double *rtol2,
-                          int nDisplayProgress,
-                          int ncoresRV,
-                          int isChol,
-			  int *svar){
-  // This really should not be called very often, so just allocate one for now.
-  rx_solving_options *o;
-  o = &op_global;
-  o->badSolve = 0;
-  o->ATOL = ATOL;          //absolute error
-  o->RTOL = RTOL;          //relative error
-  o->H0 = H0;
-  o->HMIN = HMIN;
-  o->mxstep = mxstep;
-  o->MXORDN = MXORDN;
-  o->MXORDS = MXORDS;
-  o->do_transit_abs = do_transit_abs;
-  o->nlhs = nlhs;
-  o->neq = neq;
-  o->stiff = stiff;
-  o->f1 = f1;
-  o->f2 = f2;
-  o->kind = kind;
-  o->is_locf = is_locf;
-  o->ncov=ncov;
-  o->par_cov = par_cov;
-  o->do_par_cov = do_par_cov;
-  o->inits = inits;
-  o->scale = scale;
-  o->extraCmt = 0;
-  o->hmax2 = hmax2; // Determined by diff
-  o->rtol2 = rtol2;
-  o->atol2 = atol2;
-  o->cores = cores;
-  o->nDisplayProgress = nDisplayProgress;
-  o->ncoresRV = ncoresRV;
-  o->isChol = isChol;
-  o->svar = svar;
-  o->abort = 0;
-  sprintf(o->modNamePtr, "%s", modNamePtr);
-}
-
-void rxSolveData(rx_solving_options_ind *subjects,
-                 int nsub,
-                 int nsim,
-		 int *stateIgnore,
-		 int nobs,
-                 int add_cov,
-                 int matrix){
-  rx_solve *o;
-  o = &rx_global;//(rx_solve*)R_chk_calloc(1,sizeof(*o));
-  o->subjects = subjects;
-  o->nsub = nsub;
-  o->nsim = nsim;
-  o->stateIgnore = stateIgnore;
-  o->nobs = nobs;
-  o->add_cov = add_cov;
-  o->matrix = matrix;
-  o->op = &op_global;
-}
-
 void F77_NAME(dlsoda)(
                       void (*)(int *, double *, double *, double *),
                       int *, double *, double *, double *, int *, double *, double *,
@@ -282,7 +155,6 @@ void F77_NAME(dlsoda)(
                       void (*)(int *, double *, double *, int *, int *, double *, int *),
                       int *);
 
-rx_solve *getRxSolve(SEXP ptr);
 extern rx_solve *getRxSolve_(){
   set_solve(&rx_global);
   return &rx_global;
@@ -431,7 +303,9 @@ extern void par_liblsoda(rx_solve *rx){
       rc= ind->rc;
       double xp = x[0];
       //--- inits the system
-      /* memset(ret + neq[0],0.0, (nx-1)*neq[0]); */
+      /* Rprintf("ID: %d; nsim: %d; nsub: %d\n",neq[1], nsim, nsub); */
+      /* Rprintf("inits[0]: %f\n",inits[0]); */
+      /* Rprintf("ret[0]: %f\n",ret[0]); */
       memcpy(ret,inits, neq[0]*sizeof(double));
       update_inis(neq[1], ret); // Update initial conditions
       /* for(i=0; i<neq[0]; i++) yp[i] = inits[i]; */
@@ -444,8 +318,7 @@ extern void par_liblsoda(rx_solve *rx){
 	    /* REprintf("IDID=%d, %s\n", istate, err_msg[-istate-1]); */
 	    *rc = ctx.state;
 	    // Bad Solve => NA
-            memset(ret,NA_REAL, nx*neq[0]);
-	    /* for (i = 0; i < nx*neq[0]; i++) ret[i] = NA_REAL; */
+	    for (unsigned int j = neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
 	    op->badSolve = 1;
 	    i = nx+42; // Get out of here!
 	  }
@@ -455,7 +328,8 @@ extern void par_liblsoda(rx_solve *rx){
 	  ctx.state = 1;
 	  xp = xout;
 	}
-	if (i+1 != nx) memcpy(ret+neq[0]*(i+1), ret + neq[0]*i, neq[0]*sizeof(double));
+	if (i+1 != nx) memcpy(ret+neq[0]*(i+1), yp, neq[0]*sizeof(double));
+        ind->slvr_counter[0]++; // doesn't need do be critical; one subject at a time.
 	/* for(j=0; j<neq[0]; j++) ret[neq[0]*i+j] = yp[j]; */
       }
       lsoda_free(&ctx);
@@ -507,7 +381,7 @@ inline int *global_iwork(unsigned int mx){
 
 double *global_InfusionRatep;
 unsigned int global_InfusionRatei = 0;
-inline double *global_InfusionRate(unsigned int mx){
+double *global_InfusionRate(unsigned int mx){
   if (mx >= global_InfusionRatei){
     global_InfusionRatei = mx+1024;
     global_InfusionRatep = Realloc(global_InfusionRatep, global_InfusionRatei, double);
@@ -528,7 +402,7 @@ inline double *global_scale(unsigned int mx){
 
 int *global_BadDosep;
 unsigned int global_BadDosei = 0;
-inline int *global_BadDose(unsigned int mx){
+int *global_BadDose(unsigned int mx){
   if (mx >= global_BadDosei){
     global_BadDosei = mx+1024;
     global_BadDosep = Realloc(global_BadDosep, global_BadDosei, int);
@@ -549,6 +423,9 @@ void rxOptionsIni(){
   global_BadDosei = 1024;
   global_scalep=Calloc(1024, double);
   global_scalei = 1024;
+  rx_solve *rx=(&rx_global);
+  rx->op = &op_global;
+  rx->subjects = inds_global;
 }
 
 void rxOptionsFree(){
@@ -595,10 +472,8 @@ extern void par_lsoda(rx_solve *rx){
   rwork = global_rwork(lrw+1);
   iwork = global_iwork(liw+1);
   
-  /* iopt = 1; */
   
   rx_solving_options_ind *ind;
-  /* int cores = op->cores; */
   
   int curTick = 0;
   int abort = 0;
@@ -606,52 +481,47 @@ extern void par_lsoda(rx_solve *rx){
     itask = 1; 
     istate = 1;
     iopt = 1;
-    memset(rwork,0.0,lrw+1);
-    /* for (i = 0; i < lrw+1; i++) rwork[i]=0; */
-    memset(iwork,0,liw+1);
-    /* for (i = 0; i < liw+1; i++) iwork[i]=0; */
-    /* for (i = 0; i < neq[0]; i++) yp[i]=0; */
-    rwork[4] = op->H0; // H0 -- determined by solver
-    rwork[6] = op->HMIN; // Hmin -- 0
+    /* memset(rwork,0.0,lrw+1); */ // Does not work since it is a double
+    for (i = lrw+1; i--;) rwork[i]=0;
+    memset(iwork,0,liw+1); // Works because it is a integer
+
+    neq[1] = solveid;
+    ind = &(rx->subjects[neq[1]]);
+
+    rwork[4] = op->H0; // H0
+    rwork[5] = ind->HMAX; // Hmax
+    rwork[6] = op->HMIN; // Hmin
   
-    iwork[4] = 0; // ixpr  -- No extra printing.
+    iwork[4] = 0; // ixpr
     iwork[5] = op->mxstep; // mxstep 
     iwork[6] = 0; // MXHNIL 
     iwork[7] = op->MXORDN; // MXORDN 
     iwork[8] = op->MXORDS;  // MXORDS
-    neq[1] = solveid;
-    ind = &(rx->subjects[neq[1]]);
+    
     ind->ixds = 0;
-    rwork[5] = ind->HMAX; // Hmax -- Infinite
     double xp = ind->all_times[0];
     //--- inits the system
-    memcpy(ind->solve,op->inits, neq[0]*sizeof(double));
+    memcpy(ind->solve, op->inits, neq[0]*sizeof(double));
     update_inis(neq[1], ind->solve); // Update initial conditions
-    /* for(i=0; i<neq[0]; i++) yp[i] = inits[i]; */
-    /* memcpy(yp,inits, neq[0]*sizeof(double)); */
-    for(i=0; i<ind->n_all_times; i++) {
+
+    for(i=0; i < ind->n_all_times; i++) {
       xout = ind->all_times[i];
-      yp = &ind->solve[neq[0]*i];
-      memset(yp,0.0, neq[0]);
-      /* if (global_debug){ */
-      /*   REprintf("i=%d xp=%f xout=%f\n", i, xp, xout); */
-      /* } */
-      if(xout-xp > DBL_EPSILON*max(fabs(xout),fabs(xp)))
+      yp   = ind->solve+neq[0]*i;
+      if(xout - xp > DBL_EPSILON*max(fabs(xout),fabs(xp)))
 	{
 	  F77_CALL(dlsoda)(dydt_lsoda_dum, neq, yp, &xp, &xout, &itol, &rtol, &atol, &itask,
 			   &istate, &iopt, rwork, &lrw, iwork, &liw, jdum_lsoda, &jt);
 
-	  if (istate<0)
+	  if (istate <= 0)
 	    {
 	      REprintf("IDID=%d, %s\n", istate, err_msg[-istate-1]);
 	      ind->rc[0] = istate;
 	      // Bad Solve => NA
-	      memset(ind->solve,NA_REAL, (ind->n_all_times)*neq[0]);
-	      /* for (i = 0; i < nx*neq[0]; i++) ret[i] = NA_REAL; */
+	      for (unsigned int j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
 	      op->badSolve = 1;
 	      i = ind->n_all_times+42; // Get out of here!
 	    }
-	  ind->slvr_counter++;
+	  ind->slvr_counter[0]++;
 	  //dadt_counter = 0;
 	}
       if (handle_evid(ind->evid[i], neq[0], ind->BadDose, ind->InfusionRate, ind->dose, yp,
@@ -659,19 +529,8 @@ extern void par_lsoda(rx_solve *rx){
 	istate = 1;
 	xp = xout;
       }
+      // Copy to next solve so when assigned to yp=ind->solve[neq[0]*i]; it will be the prior values
       if (i+1 != ind->n_all_times) memcpy(ind->solve+neq[0]*(i+1), yp, neq[0]*sizeof(double));
-      /* for(j=0; j<neq[0]; j++) ret[neq[0]*i+j] = yp[j]; */
-      /* memcpy(&ret[neq[0]*i],yp, neq[0]*sizeof(double)); */
-      //REprintf("wh=%d cmt=%d tm=%g rate=%g\n", wh, cmt, xp, InfusionRate[cmt]);
-
-      /* if (global_debug){ */
-      /*   REprintf("ISTATE=%d, ", istate); */
-      /*   for(j=0; j<neq[0]; j++) */
-      /*     { */
-      /*       REprintf("%f ", yp[j]); */
-      /*     } */
-      /*   REprintf("\n"); */
-      /* } */
     }
     if (displayProgress){ // Can only abort if it is long enough to display progress.
       curTick = par_progress(solveid, nsim*nsub, curTick, 1, t0, 0);
@@ -686,13 +545,6 @@ extern void par_lsoda(rx_solve *rx){
   } else {
     if (displayProgress && curTick < 50) par_progress(nsim*nsub, nsim*nsub, curTick, 1, t0, 0);
   }
-  /* if (rc[0]){ */
-  /*   /\* REprintf("Error solving using LSODA\n"); *\/ */
-  /*   /\* Free(rwork); *\/ */
-  /*   /\* Free(iwork); *\/ */
-  /*   /\* Free(yp); *\/ */
-  /*   /\* return; *\/ */
-  /* } */
 }
 
 //dummy solout fn
@@ -757,8 +609,6 @@ void par_dop(rx_solve *rx){
       memcpy(ret,inits, neq[0]*sizeof(double));
       update_inis(neq[1], ret); // Update initial conditions
       //--- inits the system
-      /* for(i=0; i<neq[0]; i++) yp[i] = inits[i]; */
-
       for(i=0; i<nx; i++) {
 	xout = x[i];
         yp = &ret[neq[0]*i];
@@ -797,13 +647,12 @@ void par_dop(rx_solve *rx){
 		REprintf("IDID=%d, %s\n", idid, err_msg[-idid-1]);
 		*rc = idid;
 		// Bad Solve => NA
-		/* for (i = 0; i < nx*neq[0]; i++) ret[i] = NA_REAL; */
-                memset(ret,NA_REAL, nx*neq[0]);
+		for (unsigned int j = (ind->n_all_times)*neq[0];j--;) ret[i] = NA_REAL; 
 		op->badSolve = 1;
 		i = nx+42; // Get out of here!
 	      }
 	    xp = xRead();
-	    ind->slvr_counter++;
+	    ind->slvr_counter[0]++;
 	    //dadt_counter = 0;
 	  }
 	if (handle_evid(evid[i], neq[0], BadDose, InfusionRate, dose, yp,
@@ -874,7 +723,7 @@ extern int rxEvidP(int i, rx_solve *rx, unsigned int id){
   rx_solving_options_ind *ind;
   ind = getRxId(rx, id);
   if (i < ind->n_all_times){
-    return(ind->evid[i]);
+    return(ind->evid[i]); // invalid read of size 4
   } else {
     error("Trying to access EVID outside of defined events.\n");
   }
@@ -1037,350 +886,20 @@ SEXP rxStateNames(char *ptr);
 SEXP rxLhsNames(char *ptr);
 SEXP rxParamNames(char *ptr);
 
-extern SEXP RxODE_par_df(SEXP sd){
-  rx_solve *rx;
-  rx = getRxSolve(sd);
-  rx_solving_options *op = &op_global;
-  // Mutiple ID data?
-  int md = 0;
-  if (rx->nsub > 1) md = 1;
-  // Multiple simulation data?
-  int sm = 0;
-  if (rx->nsim > 1) sm = 1;
-  int nsub = rx->nsub;
-  int nsim = rx->nsim;
-  int pro=0, i;
-  // paramNames
-  SEXP paramNames = PROTECT(rxParamNames(op->modNamePtr)); pro++;
-  int *par_cov = op->par_cov;
-  int ncov = op->ncov;
-  int npar = length(paramNames);
-  int n = npar - ncov;
-  SEXP df = PROTECT(allocVector(VECSXP,n+md+sm)); pro++;
-  SEXP countsDf = PROTECT(allocVector(VECSXP,md+sm+3)); pro++;
-  for (i = 0; i < md+sm; i++){
-    SET_VECTOR_ELT(df, i, PROTECT(allocVector(INTSXP, nsim*nsub))); pro++;
-    SET_VECTOR_ELT(countsDf, i, PROTECT(allocVector(INTSXP, nsim*nsub))); pro++;
-  }
-  for (i = 0; i < n; i++){
-    SET_VECTOR_ELT(df, i+md+sm, PROTECT(allocVector(REALSXP, nsim*nsub))); pro++;
-  }
-  SET_VECTOR_ELT(countsDf, md+sm, PROTECT(allocVector(INTSXP, nsim*nsub))); pro++;
-  SET_VECTOR_ELT(countsDf, md+sm+1, PROTECT(allocVector(INTSXP, nsim*nsub))); pro++;
-  SET_VECTOR_ELT(countsDf, md+sm+2, PROTECT(allocVector(INTSXP, nsim*nsub))); pro++;
-  int jj = 0, ii = 0, j = 0, nall = 0;
-  double *par_ptr;
-  rx_solving_options_ind *ind;
-  int *dfi;
-  double *dfp;
-  int nobs = rx->nobs;
-  int csub;
-  int is_cov = 0;
-  for (csub = 0; csub < nsub; csub++){
-    ind = &(rx->subjects[csub]);
-    nall+=ind->n_all_times;
-  }
-  // Event table information.
-  SEXP dfe = PROTECT(allocVector(VECSXP,md+3)); pro++; // Events
-  SEXP dfd = PROTECT(allocVector(VECSXP,md+3)); pro++; // Dosing
-  SEXP dfs = PROTECT(allocVector(VECSXP,md+3)); pro++; // Sampling
-  SEXP dfn = PROTECT(allocVector(STRSXP,md+3)); pro++;
-  SEXP dfn1 = PROTECT(allocVector(STRSXP,md+3)); pro++;
-  SEXP dfn2 = PROTECT(allocVector(STRSXP,md+3)); pro++;
-  // Covariate Table
-  SEXP covs = PROTECT(allocVector(VECSXP,md+ncov)); pro++;
-  SEXP covsn = PROTECT(allocVector(STRSXP,md+ncov)); pro++;
-  if (md){
-    SET_VECTOR_ELT(dfe, 0, PROTECT(allocVector(INTSXP, nall))); pro++;
-    SET_VECTOR_ELT(dfd, 0, PROTECT(allocVector(INTSXP, nall-nobs))); pro++;
-    SET_VECTOR_ELT(dfs, 0, PROTECT(allocVector(INTSXP, nobs))); pro++;
-    SET_VECTOR_ELT(covs, 0, PROTECT(allocVector(INTSXP, nobs))); pro++;
-    SET_STRING_ELT(dfn, 0, mkChar("id"));
-    SET_STRING_ELT(dfn1, 0, mkChar("id"));
-    SET_STRING_ELT(dfn2, 0, mkChar("id"));
-    SET_STRING_ELT(covsn, 0, mkChar("id"));
-    i++;
-  }
-  for (i = 0; i < ncov; i++){
-    SET_VECTOR_ELT(covs, md+i, PROTECT(allocVector(REALSXP, nobs))); pro++;
-  }
-  SEXP isEt = PROTECT(allocVector(LGLSXP,nall)); pro++;
-  
-  SET_VECTOR_ELT(dfe, md, PROTECT(allocVector(REALSXP, nall))); pro++;
-  SET_VECTOR_ELT(dfd, md, PROTECT(allocVector(REALSXP, nall-nobs))); pro++;
-  SET_VECTOR_ELT(dfs, md, PROTECT(allocVector(REALSXP, nobs))); pro++;
-  SET_STRING_ELT(dfn, md, mkChar("time"));
-  SET_STRING_ELT(dfn1, md, mkChar("time"));
-  SET_STRING_ELT(dfn2, md, mkChar("time"));
-
-
-  SET_VECTOR_ELT(dfe, md+1, PROTECT(allocVector(INTSXP, nall))); pro++;
-  SET_VECTOR_ELT(dfd, md+1, PROTECT(allocVector(INTSXP, nall-nobs))); pro++;
-  SET_VECTOR_ELT(dfs, md+1, PROTECT(allocVector(INTSXP, nobs))); pro++;
-  SET_STRING_ELT(dfn, md+1, mkChar("evid"));
-  SET_STRING_ELT(dfn1, md+1, mkChar("evid"));
-  SET_STRING_ELT(dfn2, md+1, mkChar("evid"));
-
-  SET_VECTOR_ELT(dfe, md+2, PROTECT(allocVector(REALSXP, nall))); pro++;
-  SET_VECTOR_ELT(dfd, md+2, PROTECT(allocVector(REALSXP, nall-nobs))); pro++;
-  SET_VECTOR_ELT(dfs, md+2, PROTECT(allocVector(REALSXP, nobs))); pro++;
-  SET_STRING_ELT(dfn, md+2, mkChar("amt"));
-  SET_STRING_ELT(dfn1, md+2, mkChar("amt"));
-  SET_STRING_ELT(dfn2, md+2, mkChar("amt"));
-
-  i++;
-
-  SEXP dfre = PROTECT(allocVector(INTSXP,2)); pro++;
-  INTEGER(dfre)[0] = NA_INTEGER;
-  INTEGER(dfre)[1] = -nall;
-  setAttrib(dfe, R_RowNamesSymbol, dfre);
-
-  SEXP dfrd = PROTECT(allocVector(INTSXP,2)); pro++;
-  INTEGER(dfrd)[0] = NA_INTEGER;
-  INTEGER(dfrd)[1] = -(nall-nobs);
-  setAttrib(dfd, R_RowNamesSymbol, dfrd);
-
-  SEXP dfrs = PROTECT(allocVector(INTSXP,2)); pro++;
-  INTEGER(dfrs)[0] = NA_INTEGER;
-  INTEGER(dfrs)[1] = -nobs;
-  
-  SEXP dfrs1 = PROTECT(allocVector(INTSXP,2)); pro++;
-  INTEGER(dfrs1)[0] = NA_INTEGER;
-  INTEGER(dfrs1)[1] = -nobs;
-  
-  setAttrib(dfs, R_RowNamesSymbol, dfrs);
-  setAttrib(covs, R_RowNamesSymbol, dfrs1);
-
-
-  setAttrib(dfs, R_NamesSymbol, dfn);
-  setAttrib(dfd, R_NamesSymbol, dfn1);
-  setAttrib(dfe, R_NamesSymbol, dfn2);
-
-  SEXP clse = PROTECT(allocVector(STRSXP, 1)); pro++;
-  SET_STRING_ELT(clse, 0, mkChar("data.frame"));
-
-  SEXP clse1 = PROTECT(allocVector(STRSXP, 1)); pro++;
-  SET_STRING_ELT(clse1, 0, mkChar("data.frame"));
-  
-  SEXP clse2 = PROTECT(allocVector(STRSXP, 1)); pro++;
-  SET_STRING_ELT(clse2, 0, mkChar("data.frame"));
-
-  classgets(dfs, clse);
-  classgets(dfd, clse1);
-  classgets(dfe, clse2);
-  
-  double *times, *doses, *cov_ptr;
-  int evid, iie = 0, iis = 0, iid = 0, curdose, ntimes;
-  int k, kk;
-  for (csub = 0; csub < nsub; csub++){
-    ind = &(rx->subjects[csub]);
-    ntimes = ind->n_all_times;
-    times = ind->all_times;
-    doses = ind->dose;
-    cov_ptr = ind->cov_ptr;
-    curdose=0;
-    for (i = 0; i < ntimes; i++){
-      evid = rxEvidP(i,rx,csub);
-      if (evid ==0){
-	// Sampling Record
-	// id
-	if (md){
-	  INTEGER(VECTOR_ELT(dfe, 0))[iie] = csub+1;
-	  INTEGER(VECTOR_ELT(dfs, 0))[iis] = csub+1;
-	}
-	// time
-	REAL(VECTOR_ELT(dfe, md))[iie] = times[i];
-        REAL(VECTOR_ELT(dfs, md))[iis] = times[i];
-	// evid
-	INTEGER(VECTOR_ELT(dfe, md+1))[iie] = evid;
-        INTEGER(VECTOR_ELT(dfs, md+1))[iis] = evid;
-	// amt
-	REAL(VECTOR_ELT(dfe, md+2))[iie] = NA_REAL;
-        REAL(VECTOR_ELT(dfs, md+2))[iis] = NA_REAL;
-
-	LOGICAL(isEt)[iie] = 1;
-	kk = 0;
-	for (k = 0; k < npar; k++){
-          is_cov=0;
-          for (j = 0; j < ncov; j++){
-            if (par_cov[j]-1 == k){
-              is_cov=1;
-              break;
-            }
-          }
-          if (is_cov){
-	    /* REprintf("covs[%d, %d]\n", kk,iis); */
-	    dfp = REAL(VECTOR_ELT(covs, kk+md));
-            dfp[iis] = cov_ptr[kk*ntimes+iis];
-            kk++;
-          }
-	}
-	iie++;
-        iis++;        
-      } else {
-	// Dosing Record
-	if (md){
-          INTEGER(VECTOR_ELT(dfe, 0))[iie] = csub+1;
-          INTEGER(VECTOR_ELT(dfd, 0))[iid] = csub+1;
-        }
-        // time
-        REAL(VECTOR_ELT(dfe, md))[iie] = times[i];
-        REAL(VECTOR_ELT(dfd, md))[iid] = times[i];
-        // evid
-        INTEGER(VECTOR_ELT(dfe, md+1))[iie] = evid;
-        INTEGER(VECTOR_ELT(dfd, md+1))[iid] = evid;
-        // amt
-        REAL(VECTOR_ELT(dfe, md+2))[iie] = doses[curdose];
-        REAL(VECTOR_ELT(dfd, md+2))[iid] = doses[curdose];
-	
-	LOGICAL(isEt)[iie] = 0;
-	
-	curdose++;
-	iie++;
-        iid++;
-      }
-    }
-  }
-  for (int csim = 0; csim < nsim; csim++){
-    for (csub = 0; csub < nsub; csub++){
-      j = csub+csim*nsub;
-      ind = &(rx->subjects[j]);
-      par_ptr = ind->par_ptr;
-      jj = 0;
-      // sim.id
-      if (sm){
-        dfi = INTEGER(VECTOR_ELT(df, jj));
-        dfi[ii] = csim+1;
-	dfi = INTEGER(VECTOR_ELT(countsDf, jj));
-        dfi[ii] = csim+1;
-        jj++;
-      }
-      // id
-      if (md){
-        dfi = INTEGER(VECTOR_ELT(df, jj));
-        dfi[ii] = csub+1;
-	dfi = INTEGER(VECTOR_ELT(countsDf, jj));
-        dfi[ii] = csub+1;
-        jj++;
-      }
-      INTEGER(VECTOR_ELT(countsDf, sm+md))[ii] = (int)(ind->slvr_counter);
-      INTEGER(VECTOR_ELT(countsDf, sm+md+1))[ii] = (int)(ind->dadt_counter);
-      INTEGER(VECTOR_ELT(countsDf, sm+md+2))[ii] = (int)(ind->jac_counter);
-      for (i = 0; i < npar; i++){
-	is_cov=0;
-	for (j = 0; j < ncov; j++){
-	  if (par_cov[j]-1 == i){
-	    is_cov=1;
-	    break;
-	  }
-	}
-	if (!is_cov){
-	  dfp=REAL(VECTOR_ELT(df, jj));
-          dfp[ii] = par_ptr[i];
-          jj++;
-	}
-      }
-      ii++;
-    }
-  }
-  SEXP sexp_rownames = PROTECT(allocVector(INTSXP,2)); pro++;
-  INTEGER(sexp_rownames)[0] = NA_INTEGER;
-  INTEGER(sexp_rownames)[1] = -nsub*nsim;
-  setAttrib(df, R_RowNamesSymbol, sexp_rownames);
-
-  SEXP sexp_rownamesCount = PROTECT(allocVector(INTSXP,2)); pro++;
-  INTEGER(sexp_rownamesCount)[0] = NA_INTEGER;
-  INTEGER(sexp_rownamesCount)[1] = -nsub*nsim;
-  setAttrib(countsDf , R_RowNamesSymbol, sexp_rownamesCount);
-
-  SEXP sexp_colnames = PROTECT(allocVector(STRSXP,n+sm+md)); pro++;
-  SEXP sexp_colnamesCount = PROTECT(allocVector(STRSXP,3+sm+md)); pro++;
-  jj = 0;
-  if (sm){
-    SET_STRING_ELT(sexp_colnames, jj, mkChar("sim.id"));
-    SET_STRING_ELT(sexp_colnamesCount, jj, mkChar("sim.id"));
-    jj++;
-  }
-  // id
-  kk = 0;
-  if (md){
-    SET_STRING_ELT(sexp_colnames, jj, mkChar("id"));
-    SET_STRING_ELT(sexp_colnamesCount, jj, mkChar("id"));
-    jj++; kk++;
-  }
-
-  SET_STRING_ELT(sexp_colnamesCount, sm+md, mkChar("slvr"));
-  SET_STRING_ELT(sexp_colnamesCount, sm+md+1, mkChar("dadt"));
-  SET_STRING_ELT(sexp_colnamesCount, sm+md+2, mkChar("jac"));
-  
-  kk=0;
-  for (i = 0; i < ncov; i++){
-    SET_STRING_ELT(covsn,kk, STRING_ELT(paramNames, par_cov[i]-1));
-    kk++;
-  }
-  
-  for (i = 0; i < npar; i++){
-    is_cov=0;
-    for (j = 0; j < ncov; j++){
-      if (par_cov[j]-1 == i){
-        is_cov=1;
-        break;
-      }
-    }
-    if (!is_cov){
-      SET_STRING_ELT(sexp_colnames, jj, STRING_ELT(paramNames,i));
-      jj++;
-    }
-  }
-  setAttrib(df, R_NamesSymbol, sexp_colnames);
-  setAttrib(countsDf , R_NamesSymbol, sexp_colnamesCount);
-  setAttrib(covs, R_NamesSymbol, covsn);
-  
-  SEXP cls = PROTECT(allocVector(STRSXP, 1)); pro++;
-  SET_STRING_ELT(cls, 0, mkChar("data.frame"));
-  
-  SEXP cls1 = PROTECT(allocVector(STRSXP, 1)); pro++;
-  SET_STRING_ELT(cls1, 0, mkChar("data.frame"));
-  classgets(df, cls);
-  
-  SEXP cls2 = PROTECT(allocVector(STRSXP, 1)); pro++;
-  SET_STRING_ELT(cls2, 0, mkChar("data.frame"));
-  classgets(covs, cls1);
-
-  SEXP cls3 = PROTECT(allocVector(STRSXP, 1)); pro++;
-  SET_STRING_ELT(cls3, 0, mkChar("data.frame"));
-  classgets(countsDf, cls3);
-  
-  SEXP ret = PROTECT(allocVector(VECSXP,7)); pro++;
-  SET_VECTOR_ELT(ret, 0, df);
-  SET_VECTOR_ELT(ret, 1, dfe);
-  SET_VECTOR_ELT(ret, 2, dfs);
-  SET_VECTOR_ELT(ret, 3, dfd);
-  SET_VECTOR_ELT(ret, 4, isEt);
-  if (ncov == 0){
-    SEXP covsn2 = PROTECT(R_NilValue);pro++;
-    SET_VECTOR_ELT(ret, 5, covsn2);
-  } else {
-    SET_VECTOR_ELT(ret, 5, covs);
-  }
-  SET_VECTOR_ELT(ret, 6, countsDf);
-  UNPROTECT(pro);
-  return ret;
-}
-
-extern SEXP rxSimSigmaC(rx_solving_options *op, int nObs);
 extern double *rxGetErrs();
 extern int rxGetErrsNcol();
 
-extern SEXP RxODE_df(SEXP sd, int doDose){
+extern SEXP RxODE_df(int doDose){
   rx_solve *rx;
-  rx = getRxSolve(sd);
+  rx = &rx_global;
   rx_solving_options *op = &op_global;
   int add_cov = rx->add_cov;
   int ncov = op->ncov;
   int nlhs = op->nlhs;
   int nobs = rx->nobs;
   int nsim = rx->nsim;
+  int nall = rx->nall;
+  rx->nr = (doDose == 1 ? nall : nobs)*nsim;
   int *rmState = rx->stateIgnore;
   int nPrnState =0;
   int i, j;
@@ -1415,30 +934,25 @@ extern SEXP RxODE_df(SEXP sd, int doDose){
   int csub = 0, evid;
   int nsub = rx->nsub;
   rx_solving_options_ind *ind;
-  int nall = 0;
-  for (csub = 0; csub < nsub; csub++){
-    ind = &(rx->subjects[csub]);
-    nall+=ind->n_all_times;
-  }
   SEXP df = PROTECT(allocVector(VECSXP,ncols+nidCols+doseCols)); pro++;
-  for (i = 0; i < nidCols; i++){
-    SET_VECTOR_ELT(df, i, PROTECT(allocVector(INTSXP, (doDose == 1 ? nall : nobs)*nsim))); pro++;
+  for (i = nidCols; i--;){
+    SET_VECTOR_ELT(df, i, PROTECT(allocVector(INTSXP, rx->nr))); pro++;
   }
+  i = nidCols;
   double *par_ptr;
-  int nrow = (doDose == 1 ? nall : nobs)*nsim;
-  
   double *errs = rxGetErrs();
+  
   int updateErr = 0;
   int errNcol = rxGetErrsNcol();
   if (errNcol > 0){
     updateErr = 1;
   }
   if (doDose){
-    SET_VECTOR_ELT(df, i++, PROTECT(allocVector(INTSXP, nall*nsim))); pro++;
-    SET_VECTOR_ELT(df, i, PROTECT(allocVector(REALSXP, nall*nsim))); pro++;
+    SET_VECTOR_ELT(df, i++, PROTECT(allocVector(INTSXP, rx->nr))); pro++;
+    SET_VECTOR_ELT(df, i, PROTECT(allocVector(REALSXP, rx->nr))); pro++;
   }
   for (i = md + sm + doseCols; i < ncols + doseCols+nidCols; i++){
-    SET_VECTOR_ELT(df, i, PROTECT(allocVector(REALSXP, (doDose == 1 ? nall : nobs)*nsim))); pro++;
+    SET_VECTOR_ELT(df, i, PROTECT(allocVector(REALSXP, rx->nr))); pro++;
   }
   
   // Now create the data frame
@@ -1474,14 +988,18 @@ extern SEXP RxODE_df(SEXP sd, int doDose){
 	}
       }
       for (i = 0; i < ntimes; i++){
+        evid = ind->evid[i];
         if (updateErr){
           for (j=0; j < errNcol; j++){
-	    par_ptr[svar[j]] = errs[nrow*j+kk];
+	    par_ptr[svar[j]] = errs[rx->nr*j+kk];
           }
-	  kk++;
+	  if (evid == 0 || doDose){
+	    // Only incerement if this is an observation or of this a
+	    // simulation that requests dosing infomration too.
+            kk++;
+	  }
         }
         jj  = 0 ;
-	evid = rxEvidP(i,rx,neq[1]);
 	if (evid==0 || doDose){
           // sim.id
           if (sm){
@@ -1510,9 +1028,9 @@ extern SEXP RxODE_df(SEXP sd, int doDose){
           if (nPrnState){
             for (j = 0; j < neq[0]; j++){
 	      if (!rmState[j]){
-                 dfp = REAL(VECTOR_ELT(df, jj));
-                 dfp[ii] = solve[j+i*neq[0]] / scale[j];
-                 jj++;
+		dfp = REAL(VECTOR_ELT(df, jj));
+		dfp[ii] = solve[j+i*neq[0]] / scale[j];
+		jj++;
                }
              }
           }
@@ -1520,7 +1038,7 @@ extern SEXP RxODE_df(SEXP sd, int doDose){
           if (nlhs){
 	    rxCalcLhsP(i, rx, neq[1]);
 	    for (j = 0; j < nlhs; j++){
-               dfp = REAL(VECTOR_ELT(df, jj));
+	      dfp = REAL(VECTOR_ELT(df, jj));
                dfp[ii] =rxLhsP(j, rx, neq[1]);
 	       jj++;
              }
@@ -1528,7 +1046,7 @@ extern SEXP RxODE_df(SEXP sd, int doDose){
           // Cov
           if (add_cov*ncov > 0){
 	    for (j = 0; j < add_cov*ncov; j++){
-	      dfp = REAL(VECTOR_ELT(df, jj));
+              dfp = REAL(VECTOR_ELT(df, jj));
 	      // is this ntimes = nAllTimes or nObs time for this subject...?
 	      dfp[ii] = (evid == 0 ? cov_ptr[j*ntimes+i] : NA_REAL);
 	      jj++;
@@ -1546,7 +1064,7 @@ extern SEXP RxODE_df(SEXP sd, int doDose){
   }
   SEXP sexp_rownames = PROTECT(allocVector(INTSXP,2)); pro++;
   INTEGER(sexp_rownames)[0] = NA_INTEGER;
-  INTEGER(sexp_rownames)[1] = -(doDose == 1 ? nall : nobs)*nsim;
+  INTEGER(sexp_rownames)[1] = -rx->nr;
   setAttrib(df, R_RowNamesSymbol, sexp_rownames);
   SEXP sexp_colnames = PROTECT(allocVector(STRSXP,ncols+nidCols+doseCols)); pro++;
   jj = 0;
@@ -1598,6 +1116,9 @@ extern SEXP RxODE_df(SEXP sd, int doDose){
 
 int *gidoseSetup(int n);
 int *gsiVSetup(int n);
+int *gslvr_counterSetup(int n);
+int *gdadt_counterSetup(int n);
+int *gjac_counterSetup(int n);
 // rxSolveOldC
 extern void rxSolveOldC(int *neqa,
                         double *theta,  //order:
@@ -1619,15 +1140,19 @@ extern void rxSolveOldC(int *neqa,
   rx_solving_options_ind *ind = &inds_global[0];
   int i;
   // Counters
-  ind->slvr_counter   = 0;
-  ind->dadt_counter   = 0;
-  ind->jac_counter    = 0;
+  ind->slvr_counter = gslvr_counterSetup(1);
+  ind->dadt_counter = gdadt_counterSetup(1);
+  ind->jac_counter = gjac_counterSetup(1);
+  ind->slvr_counter[0]   = 0;
+  ind->dadt_counter[0]   = 0;
+  ind->jac_counter[0]   = 0;
 
   ind->InfusionRate = global_InfusionRate(*neqa);
-  memset(ind->InfusionRate, 0.0, *neqa);
-
+  /* memset(ind->InfusionRate, 0.0, *neqa);  not for doubles*/
+  for (unsigned int j = *neqa; j--;) ind->InfusionRate[j]=0.0;
+  
   ind->BadDose = global_BadDose(*neqa);
-  memset(ind->BadDose, 0, *neqa);
+  memset(ind->BadDose, 0, *neqa); // int ok
   ind->nBadDose = 0;
 
   ind->HMAX = 0;
@@ -1672,7 +1197,8 @@ extern void rxSolveOldC(int *neqa,
   //
   op->inits   = initsp;
   op->scale = global_scale(*neqa);
-  memset(op->scale, 1.0, *neqa);
+  /* memset(op->scale, 1.0, *neqa); */
+  for (unsigned int j = *neqa; j--;) op->scale[j] = 1.0;
   op->extraCmt = 0;
   op->hmax2=0;
   /* double *rtol2, *atol2; */
@@ -1691,7 +1217,7 @@ extern void rxSolveOldC(int *neqa,
   rx->nsub =1;
   rx->nsim =1;
   rx->stateIgnore = gsiVSetup(*neqa);
-  memset(rx->stateIgnore, 0, *neqa);
+  memset(rx->stateIgnore, 0, *neqa); // int OK
   rx->nobs =-1;
   rx->add_cov =0;
   rx->matrix =0;
@@ -1708,7 +1234,6 @@ extern void rxSolveOldC(int *neqa,
     }
   }
 }
-
 
 #define aexists(a, env) if (Rf_findVarInFrame(env, Rf_install(a)) == R_UnboundValue){ error("need '%s' in environment for solving.",a);}
 void RxODE_ode_solve_env(SEXP sexp_rho){
@@ -1767,10 +1292,12 @@ void RxODE_ode_solve_env(SEXP sexp_rho){
   // Let R handle deallocating the solve and lhs expressions; Should disappear with evironment
   SEXP sexp_solve = PROTECT(allocVector(REALSXP,length(sexp_time)*length(sexp_inits))); pro++;
   ind->solve = REAL(sexp_solve);
-  memset(ind->solve,0,length(sexp_solve));
+  /* memset(ind->solve,0,length(sexp_solve)); */
+  for (unsigned int j = length(sexp_solve); j--;) ind->solve[j] = 0.0;
   SEXP sexp_lhsV = PROTECT(allocVector(REALSXP,length(sexp_time)*length(sexp_lhs))); pro++;
   ind->lhs = REAL(sexp_lhsV);
-  memset(ind->lhs,0,length(sexp_time)*length(sexp_lhs));
+  for (unsigned int j = length(sexp_time)*length(sexp_lhs); j--;) ind->lhs[j] = 0.0;
+  /* memset(ind->lhs,0,); */
   op->stiff = INTEGER(sexp_stiff)[0];
   op->do_transit_abs = INTEGER(sexp_transit_abs)[0];
   op->ATOL = REAL(sexp_atol)[0];
@@ -1788,20 +1315,17 @@ void RxODE_ode_solve_env(SEXP sexp_rho){
   ind->dose    = REAL(sexp_dose);
   /* ind->solve   = retp; */
   ind->evid    = INTEGER(sexp_evid);
-  ind->cov_ptr = REAL(sexp_cov);
-  
   ind->ndoses        = -1;
   ind->all_times     = REAL(sexp_time);
   ind->n_all_times   = length(sexp_time);
+  ind->idose = gidoseSetup(ind->n_all_times);
+  ind->cov_ptr = REAL(sexp_cov);
   // Covariates
   op->do_par_cov    = 1;
   op->ncov  = length(sexp_pcov);
   // Solver options
   op->do_transit_abs = INTEGER(sexp_transit_abs)[0];
   op->stiff          = INTEGER(sexp_stiff)[0];
-  ind->slvr_counter   = 0;
-  ind->dadt_counter   = 0;
-  ind->jac_counter    = 0;
   // LOCF
   if (op->is_locf == 1){
     op->f2 = 0.0; //= f=0 
@@ -1826,9 +1350,16 @@ void RxODE_ode_solve_env(SEXP sexp_rho){
   op->neq           = length(sexp_inits);
   ind->nBadDose = 0;
   ind->InfusionRate = global_InfusionRate(op->neq);
-  memset(ind->InfusionRate, 0.0, op->neq);
+  ind->slvr_counter = gslvr_counterSetup(1);
+  ind->dadt_counter = gdadt_counterSetup(1);
+  ind->jac_counter = gjac_counterSetup(1);
+  ind->slvr_counter[0]   = 0;
+  ind->dadt_counter[0]   = 0;
+  ind->jac_counter[0]   = 0;
+  /* memset(ind->InfusionRate, 0.0, op->neq); */
+  for (unsigned int j =op->neq; j--;) ind->InfusionRate[j]=0.0;
   ind->BadDose = global_BadDose(op->neq);
-  memset(ind->BadDose, 0, op->neq);
+  memset(ind->BadDose, 0, op->neq); // int; this is ok.
   /* rx_solve *rx = rxSingle(mv, stiff, transit_abs, atol, rtol, mx, hmin, h0,  mxordn, */
   /*                         mxords, 1, length(sexp_pcov), pcov, 1,  locf, */
   /*                         hmax, theta, dose, solve, lhs, evid, rce, cov, */

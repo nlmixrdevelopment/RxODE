@@ -162,6 +162,30 @@ ode.h <- function(){
     odec <- c(odec[1:w], solvec, odec[-(1:w)])
     w <- which(regexpr("// CODE HERE", odec) != -1)[1];
     ode <- odec[seq(1, w - 1)];
+    ode <- paste(gsub("%", "%%", gsub("\"", "\\\\\"", ode)), collapse="\\n")
+    if (nchar(ode) > 4095){
+        ode1 <- substr(ode, 1, 4094);
+        ode2 <- substr(ode, 4095, nchar(ode))
+        if (nchar(ode2) > 4095){
+            ode3 <- substr(ode2, 4095, nchar(ode2));
+            ode2 <- substr(ode2, 1, 4094);
+            if (nchar(ode3) > 4095){
+                ode4 <- substr(ode3, 4095, nchar(ode3));
+                ode3 <- substr(ode3, 1, 4094);
+            } else {
+                ode4 <- ""
+            }
+        } else {
+            ode3 <- ""
+            ode4 <- ""
+        }
+
+    } else {
+        ode1 <- ode;
+        ode2 <- ""
+        ode3 <- "";
+        ode4 <- "";
+    }
     solve <- odec[seq(w + 1, length(odec))];
     solve <- paste(gsub("%", "%%", gsub("\"", "\\\\\"", solve)), collapse="\\n")
     if (nchar(solve) > 4095){
@@ -173,8 +197,8 @@ ode.h <- function(){
     }
 
     found <- FALSE
-    hd <- sapply(strsplit(sprintf("#define __HD_ODE__ \"%s\\n\"\n#define __HD_SOLVE1__ \"%s\"\n#define __HD_SOLVE2__ \"%s\"",
-                                  paste(gsub("%", "%%", gsub("\"", "\\\\\"", ode)), collapse="\\n"),
+    hd <- sapply(strsplit(sprintf("#define __HD_ODE_1__ \"%s\"\n#define __HD_ODE_2__ \"%s\"\n#define __HD_ODE_3__ \"%s\"\n#define __HD_ODE_4__ \"%s\"\n#define __HD_SOLVE1__ \"%s\"\n#define __HD_SOLVE2__ \"%s\"",
+                                  ode1,ode2, ode3, ode4,
                                   solve1, solve2), "\n")[[1]],
                  function(s){
         if (found){
@@ -191,7 +215,20 @@ ode.h <- function(){
         }
     });
 
+    r.files <- list.files(devtools::package_file("R"), "[.]R$", full=TRUE);
+    r.files <- r.files[regexpr("RxODE_md5.R", r.files, fixed=TRUE) == -1]
+    md5 <- digest::digest(c(sapply(list.files(devtools::package_file("src"), pattern="[.](c|cpp|h|hpp|f|R|in)$",full=TRUE),function(x){digest::digest(x,file=T)}),
+                            sapply(r.files,function(x){digest::digest(x,file=T)}),
+                            sapply(list.files(devtools::package_file("vignettes"), pattern="[.](Rmd)$",full=TRUE),function(x){digest::digest(x,file=T)}),
+                            sapply(list.files(devtools::package_file("demo"), pattern="(R|index)$",full=TRUE),function(x){digest::digest(x,file=T)}),
+                            sapply(list.files(devtools::package_file(), pattern="(cleanup.*|configure.*|DESCRIPTION|NAMESPACE)",full=TRUE),function(x){digest::digest(x,file=T)})))
+    hd <- c(hd,
+            sprintf("#define __VER_2__ \"    SET_STRING_ELT(version,2,mkChar(\\\"%s\\\"));\\n\"",md5),
+            sprintf("#define __VER_1__ \"    SET_STRING_ELT(version,1,mkChar(\\\"%s\\\"));\\n\"",as.vector(RxODE::rxVersion()["repo"])),
+            sprintf("#define __VER_0__ \"    SET_STRING_ELT(version,0,mkChar(\\\"%s\\\"));\\n\"", sessionInfo()$otherPkgs$RxODE$Version),
+            sprintf("#define __VER_md5__ \"%s\"", md5))
     writeLines(hd, devtools::package_file("src/ode.h"))
+    writeLines(sprintf("RxODE.md5 <- \"%s\"", md5), devtools::package_file("R/RxODE_md5.R"));
 }
 
 

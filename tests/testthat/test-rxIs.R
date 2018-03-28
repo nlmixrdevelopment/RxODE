@@ -97,5 +97,12 @@ rxPermissive({
         expect_false(rxIs(1L, "numeric"))
         expect_false(rxIs(TRUE, "numeric"))
         expect_false(rxIs(list("b"), "numeric"))
+        mod <- RxODE("
+a = 6
+b = 0.6
+d/dt(intestine) = -a*intestine
+d/dt(blood)     = a*intestine - b*blood
+")
+        expect_true(rxIs(mod, "RxODE"))
     })
 }, cran=TRUE)

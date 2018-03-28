@@ -15,7 +15,6 @@ SEXP _rxCholInv(SEXP dms, SEXP theta, SEXP tn);
 SEXP _RxODE_rxSymInvCholEnvCalculate(SEXP, SEXP, SEXP);
 SEXP _RxODE_rxInvWishartVar(SEXP, SEXP);
 SEXP _RxODE_rxSymInvChol(SEXP, SEXP, SEXP, SEXP);
-SEXP _RxODE_rxDataSetup(SEXP,SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP _RxODE_rxIs(SEXP,SEXP);
 SEXP _RxODE_rxModelVars_(SEXP);
 SEXP _RxODE_rxState(SEXP, SEXP);
@@ -25,20 +24,6 @@ SEXP _RxODE_rxLhs(SEXP);
 SEXP _RxODE_rxInits(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP _RxODE_rxSetupIni(SEXP, SEXP);
 SEXP _RxODE_rxSetupScale(SEXP,SEXP,SEXP);
-SEXP _RxODE_rxDataParSetup(SEXP, SEXP, SEXP, SEXP, SEXP,
-                           SEXP, SEXP, SEXP, SEXP, SEXP,
-                           SEXP, SEXP, SEXP, SEXP, SEXP,
-			   SEXP);
-/* SEXP _RxODE_rxSolvingData(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, */
-/* 			  SEXP, SEXP, SEXP, SEXP, SEXP, SEXP); */
-/* SEXP _RxODE_rxData(SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP, */
-/* 		   SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP, */
-/* 		   SEXP,SEXP,SEXP,SEXP,SEXP); */
-/* SEXP _RxODE_rxSolveC(SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP, */
-/* 		     SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP, */
-/* 		     SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP, */
-/* 		     SEXP); */
-
 SEXP _RxODE_rxSolveCsmall(SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP);
 SEXP _RxODE_rxSolveGet(SEXP, SEXP, SEXP);
 SEXP _RxODE_rxSolveUpdate(SEXP, SEXP, SEXP);
@@ -127,6 +112,7 @@ extern int rxIsCurrentC(SEXP obj);
 // Remove these functions later...
 
 void rxOptionsIni();
+void rxOptionsIniData();
 void R_init_RxODE(DllInfo *info){
   R_CallMethodDef callMethods[]  = {
     {"trans", (DL_FUNC) &trans, 8},
@@ -141,7 +127,6 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_rxSymInvCholEnvCalculate", (DL_FUNC) &_RxODE_rxSymInvCholEnvCalculate, 3},
     {"_RxODE_rxInvWishartVar", (DL_FUNC) &_RxODE_rxInvWishartVar, 2},
     {"_RxODE_rxSymInvChol", (DL_FUNC) &_RxODE_rxSymInvChol, 4},
-    {"_RxODE_rxDataSetup", (DL_FUNC) &_RxODE_rxDataSetup, 9},
     {"_RxODE_rxIs", (DL_FUNC) &_RxODE_rxIs, 2},
     {"_RxODE_rxModelVars_", (DL_FUNC) &_RxODE_rxModelVars_, 1},
     {"_RxODE_rxState", (DL_FUNC) &_RxODE_rxState, 2},
@@ -151,7 +136,6 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_rxInits", (DL_FUNC) &_RxODE_rxInits, 6},
     {"_RxODE_rxSetupIni", (DL_FUNC) &_RxODE_rxSetupIni, 2},
     {"_RxODE_rxSetupScale", (DL_FUNC) &_RxODE_rxSetupScale, 3},
-    {"_RxODE_rxDataParSetup", (DL_FUNC) &_RxODE_rxDataParSetup, 16},
     // Solaris needs 23 args; fix me...
     /* {"_RxODE_rxSolveC", (DL_FUNC) &_RxODE_rxSolveC, 31}, */
     {"_RxODE_rxSolveCsmall", (DL_FUNC) &_RxODE_rxSolveCsmall, 9},
@@ -218,9 +202,12 @@ void R_init_RxODE(DllInfo *info){
   R_registerRoutines(info, cMethods, callMethods, NULL, NULL);
   R_useDynamicSymbols(info, FALSE);
   rxOptionsIni();
+  rxOptionsIniData();
 }
 
 void rxOptionsFree();
+void gFree();
 void R_unload_RxODE(DllInfo *info){
   rxOptionsFree();
+  gFree();
 }
