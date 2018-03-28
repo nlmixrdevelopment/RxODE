@@ -14,94 +14,84 @@ vignette: >
 ```{r}
 library(RxODE)
 
-et <- eventTable() %>% add.dosing(dose=3, nbr.doses=6, dosing.interval=8) %>%
-    add.sampling(seq(0, 48, length.out=200))
+ver <- packageVersion("RxODE")
 
-ode.1c <- RxODE({
+ver.no <- ver$minor
+
+et <- eventTable();
+et$add.dosing(dose=3, nbr.doses=6, dosing.interval=8)
+et$add.sampling(seq(0, 48, length.out=200))
+
+if (ver.no > 5){
+    solve.1c <- RxODE({
+        C2 = linCmt(CL, V);
+    })
+    solve.1c.ka <- RxODE({
+        C2 = linCmt(V, CL, KA);
+    })
+    solve.2c <- RxODE({
+        C2=linCmt(V, CL, V2, Q);
+    })
+    solve.2c.ka <- RxODE({
+        C2=linCmt(V, CL, V2, Q, KA);
+    })
+    solve.3c <- RxODE({
+        ## double solvedC(double t, int parameterization, int cmt, unsigned int col, double p1, double p2, double p3, double p4, double p5, double p6, double p7, double p8);
+        C2=linCmt(V, CL, V2, Q, Q2, V3);
+    })
+    solve.3c.ka <- RxODE({
+        ## double solvedC(double t, int parameterization, int cmt, unsigned int col, double p1, double p2, double p3, double p4, double p5, double p6, double p7, double p8);
+        C2=linCmt(V, CL, V2, Q, Q2, V3, KA);
+    })
+}
+
+ode.1c <- RxODE("
+C2 = center/V;
+d/dt(center) = - CL*C2;
+","ode1c")
+
+
+
+ode.1c.ka <- RxODE("
     C2 = center/V;
-    d/dt(center) = - CL*C2
-})
+    d/dt(depot) = -KA * depot;
+    d/dt(center) = KA * depot - CL*C2;
+","ode1cka")
 
-solve.1c <- RxODE({
-    C2 = linCmt(CL, V);
-})
-
-ode.1c.ka <- RxODE({
-    C2 = center/V;
-    d/dt(depot) = -KA * depot
-    d/dt(center) = KA * depot - CL*C2
-})
-
-
-solve.1c.ka <- RxODE({
-    C2 = linCmt(V, CL, KA);
-})
-
-ode.2c <- RxODE({
+ode.2c <- RxODE("
     C2 = centr/V;
     C3 = peri/V2;
     d/dt(centr) = - CL*C2 - Q*C2 + Q*C3;
     d/dt(peri)  = Q*C2 - Q*C3;
-})
+", "ode2c")
 
-solve.2c <- RxODE({
-    C2=linCmt(V, CL, V2, Q);
-})
 
-ode.2c.ka <- RxODE({
+ode.2c.ka <- RxODE("
    C2 = centr/V;
    C3 = peri/V2;
    d/dt(depot) =-KA*depot;
    d/dt(centr) = KA*depot - CL*C2 - Q*C2 + Q*C3;
    d/dt(peri)  =                    Q*C2 - Q*C3;
-})
+","ode2cka")
 
-solve.2c.ka <- RxODE({
-    C2=linCmt(V, CL, V2, Q, KA);
-})
-
-
-ode.3c <- RxODE({
+ode.3c <- RxODE("
      C2 = centr/V;
      C3 = peri/V2;
-     C4 = peri2 / V3
+     C4 = peri2 / V3;
      d/dt(centr) = - CL*C2 - Q*C2 + Q*C3  - Q2*C2 + Q2*C4;
      d/dt(peri)  = Q*C2 - Q*C3;
-     d / dt(peri2) = Q2 * C2 - Q2 * C4
- })
-solve.3c <- RxODE({
-     ## double solvedC(double t, int parameterization, int cmt, unsigned int col, double p1, double p2, double p3, double p4, double p5, double p6, double p7, double p8);
-     C2=linCmt(V, CL, V2, Q, Q2, V3);
- })
+     d/dt(peri2) = Q2 * C2 - Q2 * C4;
+ ","ode3c")
  
- 
- ode.3c.ka <- RxODE({
+ ode.3c.ka <- RxODE("
      C2 = centr/V;
      C3 = peri/V2;
-     C4 = peri2 / V3
+     C4 = peri2 / V3;
 	 d/dt(depot) =-KA*depot;
      d/dt(centr) = KA*depot- CL*C2 - Q*C2 + Q*C3  - Q2*C2 + Q2*C4;
      d/dt(peri)  = Q*C2 - Q*C3;
-     d / dt(peri2) = Q2 * C2 - Q2 * C4
- })
- 
-solve.3c.ka <- RxODE({
-     ## double solvedC(double t, int parameterization, int cmt, unsigned int col, double p1, double p2, double p3, double p4, double p5, double p6, double p7, double p8);
-     C2=linCmt(V, CL, V2, Q, Q2, V3, KA);
- })
- 
-mod <- RxODE({
-     a = 6
-     b = 0.6
-     d/dt(intestine) = -a*intestine
-     d/dt(blood)     = a*intestine - b*blood
-})
-et1 <- eventTable(time.units="days")
-et1$add.sampling(seq(0,10,by=1/24))
-et1$add.dosing(dose=2/24,rate=2,strt.time=0,
-               nbr.doses=10,dosing.interval=1)
- 
-
+     d/dt(peri2) = Q2 * C2 - Q2 * C4;
+ ","ode3cka")
 
 ```
 
@@ -112,66 +102,57 @@ These benchmark the single solve
 
 library(microbenchmark)
 
-res <- microbenchmark(solved.1c=rxSolve(solve.1c, params=c(V=20, CL=25), events=et), 
-                      ode.1c.lsoda=rxSolve(ode.1c, params=c(V=20, CL=25), events=et, method="lsoda"),
-                      ode.1c.liblsoda=rxSolve(ode.1c, params=c(V=20, CL=25), events=et, method="liblsoda"),
-                      ode.1c.dop=rxSolve(ode.1c, params=c(V=20, CL=25), events=et, method="dop853"),
-					  ##
-                      solved.1c.ka=rxSolve(solve.1c.ka, params=c(V=20, CL=25, KA=2), events=et), 
-                      ode.1c.ka.lsoda=rxSolve(ode.1c.ka, params=c(V=20, CL=25, KA=2), events=et, method="lsoda"),
-                      ode.1c.ka.liblsoda=rxSolve(ode.1c.ka, params=c(V=20, CL=25, KA=2), events=et, method="liblsoda"),
-                      ode.1c.ka.dop=rxSolve(ode.1c.ka, params=c(V=20, CL=25, KA=2), events=et, method="dop853"),
-					  ##
-					  solved.2c=rxSolve(solve.2c, params=c(V=20, CL=25, V2=297, Q=10), events=et), 
-                      ode.2c.lsoda=rxSolve(ode.2c, params=c(V=20, CL=25, V2=297, Q=10), events=et, method="lsoda"),
-                      ode.2c.liblsoda=rxSolve(ode.2c, params=c(V=20, CL=25, V2=297, Q=10), events=et, method="liblsoda"),
-                      ode.2c.dop=rxSolve(ode.2c, params=c(V=20, CL=25, V2=297, Q=10), events=et, method="dop853"),
-					  ##
-					  solved.2c.ka=rxSolve(solve.2c.ka, params=c(V=20, CL=25, V2=297, Q=10, KA=2), events=et), 
-                      ode.2c.ka.lsoda=rxSolve(ode.2c.ka, params=c(V=20, CL=25, V2=297, Q=10, KA=2), events=et, method="lsoda"),
-                      ode.2c.ka.liblsoda=rxSolve(ode.2c.ka, params=c(V=20, CL=25, V2=297, Q=10, KA=2), events=et, method="liblsoda"),
-                      ode.2c.ka.dop=rxSolve(ode.2c.ka, params=c(V=20, CL=25, V2=297, Q=10, KA=2), events=et, method="dop853"),
-					  ## 
-					  solved.3c=rxSolve(solve.3c, params=c(V=20, CL=25, V2=297, Q=10, Q2=7, V3=400), events=et), 
-                      ode.3c.lsoda=rxSolve(ode.3c, params=c(V=20, CL=25, V2=297, Q=10, Q2=7, V3=400), events=et, method="lsoda"),
-                      ode.3c.liblsoda=rxSolve(ode.3c, params=c(V=20, CL=25, V2=297, Q=10, Q2=7, V3=400), events=et, method="liblsoda"),
-                      ode.3c.dop=rxSolve(ode.3c, params=c(V=20, CL=25, V2=297, Q=10, Q2=7, V3=400), events=et, method="dop853"),
-					  ##
-					  solved.3c.ka=rxSolve(solve.3c.ka, params=c(V=20, CL=25, V2=297, Q=10, Q2=7, V3=400, KA=2), events=et), 
-                      ode.3c.ka.lsoda=rxSolve(ode.3c.ka, params=c(V=20, CL=25, V2=297, Q=10, Q2=7, V3=400, KA=2), events=et, method="lsoda"),
-                      ode.3c.ka.liblsoda=rxSolve(ode.3c.ka, params=c(V=20, CL=25, V2=297, Q=10, Q2=7, V3=400, KA=2), events=et, method="liblsoda"),
-                      ode.3c.ka.dop=rxSolve(ode.3c.ka, params=c(V=20, CL=25, V2=297, Q=10, Q2=7, V3=400, KA=2), events=et, method="dop853")
-                      )
+if (ver.no > 5){
+    res.rxSolve <- microbenchmark(solved.1c=rxSolve(solve.1c, params=c(V=20, CL=25), events=et),
+                                  solved.1c.ka=rxSolve(solve.1c.ka, params=c(V=20, CL=25, KA=2), events=et),
+                                  solved.2c=rxSolve(solve.2c, params=c(V=20, CL=25, V2=297, Q=10), events=et),
+                                  solved.2c.ka=rxSolve(solve.2c.ka, params=c(V=20, CL=25, V2=297, Q=10, KA=2), events=et),
+                                  solved.3c=rxSolve(solve.3c, params=c(V=20, CL=25, V2=297, Q=10, Q2=7, V3=400), events=et),
+                                  solved.3c.ka=rxSolve(solve.3c.ka, params=c(V=20, CL=25, V2=297, Q=10, Q2=7, V3=400, KA=2), events=et) 
+                                  )
+}
+
+if (ver.no > 7){
+    res7.rxSolve <- microbenchmark(ode.1c.liblsoda=rxSolve(ode.1c, params=c(V=20, CL=25), events=et, method="liblsoda"),
+                                   ode.1c.ka.liblsoda=rxSolve(ode.1c.ka, params=c(V=20, CL=25, KA=2), events=et, method="liblsoda"),
+                                   ode.2c.liblsoda=rxSolve(ode.2c, params=c(V=20, CL=25, V2=297, Q=10), events=et, method="liblsoda"),
+                                   ode.2c.ka.liblsoda=rxSolve(ode.2c.ka, params=c(V=20, CL=25, V2=297, Q=10, KA=2), events=et, method="liblsoda"),
+                                   ode.3c.liblsoda=rxSolve(ode.3c, params=c(V=20, CL=25, V2=297, Q=10, Q2=7, V3=400), events=et, method="liblsoda"),
+                                   ode.3c.ka.liblsoda=rxSolve(ode.3c.ka, params=c(V=20, CL=25, V2=297, Q=10, Q2=7, V3=400, KA=2), events=et, method="liblsoda"),
+                                   )
+}
+
+res.run <- microbenchmark(
+    ode.1c.lsoda=ode.1c$run(params=c(V=20, CL=25), events=et, stiff=TRUE),
+    ode.1c.dop=ode.1c$run(params=c(V=20, CL=25), events=et, stiff=FALSE),
+    ode.1c.ka.lsoda=ode.1c.ka$run(params=c(V=20, CL=25, KA=2), events=et, stiff=TRUE),
+    ode.1c.ka.dop=ode.1c.ka$run(params=c(V=20, CL=25, KA=2), events=et, stiff=FALSE),
+    ode.2c.lsoda=ode.2c$run(params=c(V=20, CL=25, V2=297, Q=10), events=et, stiff=TRUE),
+    ode.2c.dop=ode.2c$run(params=c(V=20, CL=25, V2=297, Q=10), events=et, stiff=FALSE),
+    ode.2c.ka.lsoda=ode.2c.ka$run(params=c(V=20, CL=25, V2=297, Q=10, KA=2), events=et, stiff=TRUE),
+    ode.2c.ka.dop=ode.2c.ka$run(params=c(V=20, CL=25, V2=297, Q=10, KA=2), events=et, stiff=FALSE),
+    ode.3c.lsoda=ode.3c$run(params=c(V=20, CL=25, V2=297, Q=10, Q2=7, V3=400), events=et, stiff=TRUE),
+    ode.3c.dop=ode.3c$run(params=c(V=20, CL=25, V2=297, Q=10, Q2=7, V3=400), events=et, stiff=FALSE),
+    ode.3c.ka.lsoda=ode.3c.ka$run(params=c(V=20, CL=25, V2=297, Q=10, Q2=7, V3=400, KA=2), events=et, stiff=TRUE),
+    ode.3c.ka.dop=ode.3c.ka$run(params=c(V=20, CL=25, V2=297, Q=10, Q2=7, V3=400, KA=2), events=et, stiff=FALSE))
 
 ```
 
-0.6 solve speeds
+0.5.3 solve speeds
 
 Unit: microseconds
-               expr      min        lq      mean    median        uq        max
-          solved.1c  738.986  827.3425 2113.2713  906.5515 1271.5820 104919.876
-       ode.1c.lsoda  478.378  545.0920  762.3067  608.4585  918.1540   4823.488
-    ode.1c.liblsoda  482.839  550.4460 1812.7325  623.6305  914.5845 109069.976
-         ode.1c.dop  477.039  543.0835  750.8649  646.8355  933.7725   1460.568
-       solved.1c.ka  917.931  999.1480 2705.8966 1084.6040 1593.1035 136515.969
-    ode.1c.ka.lsoda  525.233  589.7160  778.9606  665.1320  949.3915   1498.498
- ode.1c.ka.liblsoda  535.943  614.0365  842.6000  747.0185 1052.2515   2097.363
-      ode.1c.ka.dop  526.126  607.1200 2018.6935  703.5090  970.5880 119313.582
-          solved.2c 1112.941 1241.0140 2861.2263 1362.1705 1945.8620 131661.245
-       ode.2c.lsoda  546.207  616.2680  851.7034  713.9955 1009.8575   5453.142
-    ode.2c.liblsoda  541.744  620.0610 1872.2843  723.3670 1026.1460 103915.820
-         ode.2c.dop  542.637  609.3510 2003.3560  711.5415  953.1840 118396.098
-       solved.2c.ka 1269.574 1425.7600 3159.7523 1557.1800 2200.6685 126936.379
-    ode.2c.ka.lsoda  580.122  649.9595  933.2237  774.4625 1108.0325   4628.923
- ode.2c.ka.liblsoda  572.089  670.7095 2320.7093  822.6570 1095.7605 138860.553
-      ode.2c.ka.dop  582.799  633.2250  836.6693  695.2535  993.5700   4266.571
-          solved.3c 1535.984 1699.7560 3176.5000 1873.7925 2632.6360 107678.131
-       ode.3c.lsoda  581.014  673.3880  844.2689  751.0345 1025.7000   1555.172
-    ode.3c.liblsoda  602.435  668.4785 2305.2870  722.6980 1097.3225 136529.803
-         ode.3c.dop  595.294  664.2395  863.1273  740.9940 1000.4870   2966.206
-       solved.3c.ka 1712.697 1869.1075 3690.9294 2067.9105 2939.6540 130059.664
-    ode.3c.ka.lsoda  593.956  665.5785  947.1735  771.3385 1070.9940   6849.450
- ode.3c.ka.liblsoda  597.079  682.0890  927.2531  794.3205 1116.9570   4032.737
-      ode.3c.ka.dop  601.988  687.8905 2239.6395  798.7835 1145.5170 132009.318
+            expr     min       lq     mean   median        uq      max neval
+    ode.1c.lsoda 347.627 390.9135 551.1030 438.6620  715.3360 1004.950   100
+      ode.1c.dop 511.401 595.7410 834.2383 866.6135 1006.0660 1671.645   100
+ ode.1c.ka.lsoda 360.568 409.4325 612.0649 527.9115  770.4475 1848.805   100
+   ode.1c.ka.dop 517.201 601.9885 940.1150 907.4450 1092.6385 4294.690   100
+    ode.2c.lsoda 380.203 425.2745 606.0941 541.9680  791.6435  965.234   100
+      ode.2c.dop 525.680 578.7840 865.9800 709.3110 1047.5675 3695.825   100
+ ode.2c.ka.lsoda 402.515 464.5445 709.5700 730.5075  846.5330 2250.428   100
+   ode.2c.ka.dop 535.051 618.2770 929.9272 995.1330 1110.2645 3730.632   100
+    ode.3c.lsoda 419.919 505.3765 769.5949 781.1570  918.6020 2007.223   100
+      ode.3c.dop 553.348 627.6475 920.1455 799.4530 1068.7640 4702.114   100
+ ode.3c.ka.lsoda 418.135 479.9395 677.4090 539.9600  871.2995 1700.651   100
+   ode.3c.ka.dop 576.998 662.4550 953.7390 911.4620 1166.7150 3182.640   100
 
-
+0.6.3 solve speeds
