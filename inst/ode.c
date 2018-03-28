@@ -402,7 +402,7 @@ extern void __ODE_SOLVER__(int *neq,
   // Backward compatible ode solver for 0.5* C interface
   if (_ptrid() != __TIMEID__ ){ _assign_ptr(__MODEL_VARS__());}
   __FIX_INIS__
-  _old_c(neq, &_theta[0], time, evid, ntime, inits, dose, ret, atol, rtol, stiff, transit_abs, nlhs, lhs, rc);
+  _old_c(neq, _theta, time, evid, ntime, inits, dose, ret, atol, rtol, stiff, transit_abs, nlhs, lhs, rc);
 }
 
 static R_NativePrimitiveArgType __ODE_SOLVER__rx_t[] = {

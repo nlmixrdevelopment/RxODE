@@ -1313,7 +1313,7 @@ rxCompile.character <-  function(model,           # Model
                                        }
                                    }), collapse="\n"))
             } else {
-                fixInis <- sprintf("double *_theta = &theta;");
+                fixInis <- sprintf("double *_theta = theta;");
             }
             trans <- c(mv$trans, mv$md5);
             trans["fix_inis"] <- fixInis;
