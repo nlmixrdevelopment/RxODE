@@ -2730,7 +2730,9 @@ SEXP rxSolveC(const RObject &obj,
 	ind->InfusionRate = &_globals.gInfusionRate[op->neq*i];
         ind->BadDose = &_globals.gBadDose[op->neq*i];
         ind->nBadDose = 0;
-	// Hmax defined above.
+        //dadt_counter = 0;
+	ind->badSolveIndex =-1;
+        // Hmax defined above.
 	ind->tlast=0.0;
 	ind->podo = 0.0;
 	ind->ixds =  0;
@@ -2783,6 +2785,7 @@ SEXP rxSolveC(const RObject &obj,
 	  ind->InfusionRate = &_globals.gInfusionRate[op->neq*cid];
           ind->BadDose = &_globals.gBadDose[op->neq*cid];
           ind->nBadDose = 0;
+          ind->badSolveIndex =-1;
           // Hmax defined above.
           ind->tlast=0.0;
           ind->podo = 0.0;

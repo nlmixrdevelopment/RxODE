@@ -318,8 +318,9 @@ extern void par_liblsoda(rx_solve *rx){
 	    /* REprintf("IDID=%d, %s\n", istate, err_msg[-istate-1]); */
 	    *rc = ctx.state;
 	    // Bad Solve => NA
-	    for (unsigned int j = neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
+	    /* for (unsigned int j = neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL; */
 	    op->badSolve = 1;
+            ind->badSolveIndex=i;
 	    i = nx+42; // Get out of here!
 	  }
 	}
@@ -517,8 +518,9 @@ extern void par_lsoda(rx_solve *rx){
 	      REprintf("IDID=%d, %s\n", istate, err_msg[-istate-1]);
 	      ind->rc[0] = istate;
 	      // Bad Solve => NA
-	      for (unsigned int j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
+	      /* for (unsigned int j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL; */
 	      op->badSolve = 1;
+              ind->badSolveIndex=i;
 	      i = ind->n_all_times+42; // Get out of here!
 	    }
 	  ind->slvr_counter[0]++;
@@ -647,13 +649,13 @@ void par_dop(rx_solve *rx){
 		REprintf("IDID=%d, %s\n", idid, err_msg[-idid-1]);
 		*rc = idid;
 		// Bad Solve => NA
-		for (unsigned int j = (ind->n_all_times)*neq[0];j--;) ret[i] = NA_REAL; 
+		/* for (unsigned int j = (ind->n_all_times)*neq[0];j--;) ret[i] = NA_REAL;  */
 		op->badSolve = 1;
+                ind->badSolveIndex=i;
 		i = nx+42; // Get out of here!
 	      }
 	    xp = xRead();
 	    ind->slvr_counter[0]++;
-	    //dadt_counter = 0;
 	  }
 	if (handle_evid(evid[i], neq[0], BadDose, InfusionRate, dose, yp,
 			op->do_transit_abs, xout, ind)){
@@ -968,6 +970,7 @@ extern SEXP RxODE_df(int doDose){
   int *svar = op->svar;
   int di = 0;
   int kk = 0;
+  int badSolveIndex=0;
   for (int csim = 0; csim < nsim; csim++){
     for (csub = 0; csub < nsub; csub++){
       neq[1] = csub+csim*nsub;
@@ -979,6 +982,7 @@ extern SEXP RxODE_df(int doDose){
       cov_ptr = ind->cov_ptr;
       par_ptr = ind->par_ptr;
       dose = ind->dose;
+      badSolveIndex =  ind->badSolveIndex;
       di = 0;
       if (nBadDose && csim == 0){
 	for (i = 0; i < nBadDose; i++){
@@ -1029,7 +1033,11 @@ extern SEXP RxODE_df(int doDose){
             for (j = 0; j < neq[0]; j++){
 	      if (!rmState[j]){
 		dfp = REAL(VECTOR_ELT(df, jj));
-		dfp[ii] = solve[j+i*neq[0]] / scale[j];
+		if (badSolveIndex != 0 && j >= badSolveIndex){
+                  dfp[ii] = NA_REAL;
+		} else {
+                  dfp[ii] = solve[j+i*neq[0]] / scale[j];
+		}
 		jj++;
                }
              }
@@ -1038,10 +1046,14 @@ extern SEXP RxODE_df(int doDose){
           if (nlhs){
 	    rxCalcLhsP(i, rx, neq[1]);
 	    for (j = 0; j < nlhs; j++){
-	      dfp = REAL(VECTOR_ELT(df, jj));
-               dfp[ii] =rxLhsP(j, rx, neq[1]);
-	       jj++;
-             }
+              dfp = REAL(VECTOR_ELT(df, jj));
+              if (badSolveIndex != 0 && j >= badSolveIndex){
+                dfp[ii] = NA_REAL;
+              } else {
+		dfp[ii] =rxLhsP(j, rx, neq[1]);
+	      }
+	      jj++;
+	    }
           }
           // Cov
           if (add_cov*ncov > 0){
@@ -1356,6 +1368,7 @@ void RxODE_ode_solve_env(SEXP sexp_rho){
   ind->slvr_counter[0]   = 0;
   ind->dadt_counter[0]   = 0;
   ind->jac_counter[0]   = 0;
+  ind->badSolveIndex = 0;
   /* memset(ind->InfusionRate, 0.0, op->neq); */
   for (unsigned int j =op->neq; j--;) ind->InfusionRate[j]=0.0;
   ind->BadDose = global_BadDose(op->neq);
