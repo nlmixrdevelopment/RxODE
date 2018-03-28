@@ -788,6 +788,7 @@ sympyC <- function(x){
 sympyTransit4 <- function(t, n, mtt, bio, podo="podo"){
     ktr <- paste0("((", n, " + 1)/(", mtt, "))");
     lktr <- paste0("(log((", n, ") + 1) - log(", mtt, "))");
+    tc <- paste0("((", t, ")-(", tlast, "))");
     paste0("exp(log((", bio,") * (", podo, ")) + ", lktr, " + (",
            n, ") * ", "(", lktr," + log(", t, ")) - ",
            ktr," * (", t,") - log(gamma(1 + (", n, "))))");

@@ -1164,31 +1164,34 @@ void grcSetup(int n){
   }
 }
 
-void gslvr_counterSetup(int n){
+extern "C" int *gslvr_counterSetup(int n){
   if (_globals.slvr_countern < n){
     while (_globals.slvr_countern < n){
       _globals.slvr_countern += MAXIDS;
     }
     _globals.slvr_counter = Realloc(_globals.slvr_counter, _globals.slvr_countern, int);
   }
+  return _globals.slvr_counter;
 }
 
-void gdadt_counterSetup(int n){
+extern "C" int *gdadt_counterSetup(int n){
   if (_globals.dadt_countern < n){
     while (_globals.dadt_countern < n){
       _globals.dadt_countern += MAXIDS;
     }
     _globals.dadt_counter = Realloc(_globals.dadt_counter, _globals.dadt_countern, int);
   }
+  return _globals.dadt_counter;
 }
 
-void gjac_counterSetup(int n){
+extern "C" int *gjac_counterSetup(int n){
   if (_globals.jac_countern < n){
     while (_globals.jac_countern < n){
       _globals.jac_countern += MAXIDS;
     }
     _globals.jac_counter = Realloc(_globals.jac_counter, _globals.jac_countern, int);
   }
+  return _globals.jac_counter;
 }
 
 extern "C" int *gidoseSetup(int n){

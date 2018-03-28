@@ -1116,6 +1116,9 @@ extern SEXP RxODE_df(int doDose){
 
 int *gidoseSetup(int n);
 int *gsiVSetup(int n);
+int *gslvr_counterSetup(int n);
+int *gdadt_counterSetup(int n);
+int *gjac_counterSetup(int n);
 // rxSolveOldC
 extern void rxSolveOldC(int *neqa,
                         double *theta,  //order:
@@ -1137,6 +1140,9 @@ extern void rxSolveOldC(int *neqa,
   rx_solving_options_ind *ind = &inds_global[0];
   int i;
   // Counters
+  ind->slvr_counter = gslvr_counterSetup(1);
+  ind->dadt_counter = gdadt_counterSetup(1);
+  ind->jac_counter = gjac_counterSetup(1);
   ind->slvr_counter[0]   = 0;
   ind->dadt_counter[0]   = 0;
   ind->jac_counter[0]   = 0;
@@ -1320,9 +1326,6 @@ void RxODE_ode_solve_env(SEXP sexp_rho){
   // Solver options
   op->do_transit_abs = INTEGER(sexp_transit_abs)[0];
   op->stiff          = INTEGER(sexp_stiff)[0];
-  ind->slvr_counter[0]   = 0;
-  ind->dadt_counter[0]   = 0;
-  ind->jac_counter[0]   = 0;
   // LOCF
   if (op->is_locf == 1){
     op->f2 = 0.0; //= f=0 
@@ -1347,6 +1350,12 @@ void RxODE_ode_solve_env(SEXP sexp_rho){
   op->neq           = length(sexp_inits);
   ind->nBadDose = 0;
   ind->InfusionRate = global_InfusionRate(op->neq);
+  ind->slvr_counter = gslvr_counterSetup(1);
+  ind->dadt_counter = gdadt_counterSetup(1);
+  ind->jac_counter = gjac_counterSetup(1);
+  ind->slvr_counter[0]   = 0;
+  ind->dadt_counter[0]   = 0;
+  ind->jac_counter[0]   = 0;
   /* memset(ind->InfusionRate, 0.0, op->neq); */
   for (unsigned int j =op->neq; j--;) ind->InfusionRate[j]=0.0;
   ind->BadDose = global_BadDose(op->neq);
