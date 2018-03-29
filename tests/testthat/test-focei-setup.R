@@ -265,4 +265,29 @@ rxPermissive({
     })
 
 
+    ## Constants
+    m2 <- RxODE({
+        KA = 3
+        d/dt(depot) = -KA*depot;
+        d/dt(centr) = KA*depot - CL / V*centr;
+    })
+
+    pk <- function(){
+        CL = exp(THETA[1] + ETA[1])
+        V = exp(THETA[2] + ETA[2])
+    }
+
+    pred <- function(){
+        return(centr);
+    }
+
+    m <- rxSymPySetupPred(m2, pred, pk)
+
+    test_that("Constants are dropped from the model.", {
+        expect_false(any(rxParams(m$pred.only) == "KA"))
+    })
+
+    ## Now Test conditional statements
+
+
 }, silent=TRUE, on.validate=TRUE)

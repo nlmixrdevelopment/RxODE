@@ -570,7 +570,10 @@ rxSymPyDfDy <- function(model, df, dy, vars=FALSE){
 rxSymPyDfDyFull <- memoise::memoise(function(model, vars, cond){
     if (rxIs(vars,"logical")){
         if (vars){
-            jac <- expand.grid(s1=rxState(model), s2=c(rxState(model), rxParams(model)),
+            calcSens <- rxParams(model)
+            tmp <- names(rxInits(model));
+            calcSens <- calcSens[!(calcSens %in% tmp)];
+            jac <- expand.grid(s1=rxState(model), s2=c(rxState(model), calcSens),
                                stringsAsFactors=FALSE);
         } else  {
             jac <- expand.grid(s1=rxState(model), s2=rxState(model),
@@ -871,10 +874,14 @@ rxSymPySensitivity <- memoise::memoise(function(model, calcSens, calcJac=FALSE, 
                                collapseModel=FALSE){
     if (missing(calcSens)){
         calcSens <- rxParams(model);
+        tmp <- names(rxInits(model));
+        calcSens <- calcSens[!(calcSens %in% tmp)];
     }
     if (rxIs(calcSens,"logical")){
         if (calcSens){
             calcSens <- rxParams(model);
+            tmp <- names(rxInits(model));
+            calcSens <- calcSens[!(calcSens %in% tmp)];
         } else {
             stop("It is pointless to request a sensitivity calculation when calcSens=FALSE.")
         }
@@ -1247,6 +1254,11 @@ genCmtMod <- function(mod){
                    })), collapse="\n")
     ret
 }
+
+constToExpr <- function(mod){
+    ## Hack to take out RxODE constants.
+    return(gsub(rex::rex("=", capture(regNum), ";"), "=\\1+0;", rxNorm(mod), perl=TRUE))
+}
 rxSymPySetupPred.warn <- FALSE
 ##' Setup Pred function based on RxODE object.
 ##'
@@ -1368,7 +1380,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
             assignInMyNamespace("rxSymPyExpThetas", c());
             assignInMyNamespace("rxSymPyExpEtas", c());
             gobj <- obj;
-            oobj <- genCmtMod(obj);
+            oobj <- constToExpr(genCmtMod(obj));
             obj <- oobj;
             rxModelVars(oobj)
             rxSymPyVars(obj);
@@ -1394,6 +1406,8 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                 obj <- newmod;
             } else {
                 calcSens <- rxParams(obj)
+                tmp <- names(rxInits(obj));
+                calcSens <- calcSens[!(calcSens %in% tmp)];
                 newmod <- obj;
             }
             txt <- rxParsePred(predfn, init=init)
@@ -1426,6 +1440,8 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                     calcSens <- etas;
                 } else {
                     calcSens <- rxParams(full);
+                    tmp <- names(rxInits(full));
+                    calcSens <- calcSens[!(calcSens %in% tmp)];
                 }
                 if (grad.internal){
                     rxCat("## Calculate THETA/ETA-based prediction and error 1st and 2nd order derivatives:\n")
