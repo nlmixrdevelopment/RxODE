@@ -416,6 +416,7 @@ rxSymPyVars <- function(model){
     } else {
         vars <- c(rxParams(model),
                   rxState(model),
+                  names(rxInits(model)),
                   "podo", "t", "time", "tlast",
                   "rx__PTR__", "rx1c");
     }
@@ -463,9 +464,11 @@ rxSymPyFunctions <- function(functions){
 ##' @export
 rxSymPySetup <- function(model, envir=parent.frame()){
     setup <- rxToSymPy(model, envir=envir);
+    inits <- rxInit(model)
+    inits.lines <- sprintf("%s=%.16f",names(inits),inits);
     rxSymPyVars(model)
     assignInMyNamespace("rxSymPy.vars", c(rxSymPy.vars, names(setup)))
-    for (line in setup){
+    for (line in c(setup, inits.lines)){
         tmp <- line;
         names(tmp) <- NULL;
         rxSymPyExec(tmp);
