@@ -307,9 +307,7 @@ extern void par_liblsoda(rx_solve *rx){
       /* Rprintf("inits[0]: %f\n",inits[0]); */
       /* Rprintf("ret[0]: %f\n",ret[0]); */
       memcpy(ret,inits, neq[0]*sizeof(double));
-      if (op->fnIni){
-        update_inis(neq[1], ret); // Update initial conditions
-      }
+      update_inis(neq[1], ret); // Update initial conditions
       /* for(i=0; i<neq[0]; i++) yp[i] = inits[i]; */
       for(i=0; i<nx; i++) {
 	xout = x[i];
@@ -504,10 +502,8 @@ extern void par_lsoda(rx_solve *rx){
     double xp = ind->all_times[0];
     //--- inits the system
     memcpy(ind->solve, op->inits, neq[0]*sizeof(double));
-    if (op->fnIni){
-      update_inis(neq[1], ind->solve); // Update initial conditions
-    }
-    
+    update_inis(neq[1], ind->solve); // Update initial conditions
+
     for(i=0; i < ind->n_all_times; i++) {
       xout = ind->all_times[i];
       yp   = ind->solve+neq[0]*i;
@@ -611,9 +607,7 @@ void par_dop(rx_solve *rx){
       double xp = x[0];
       //--- inits the system
       memcpy(ret,inits, neq[0]*sizeof(double));
-      if (op->fnIni){
-        update_inis(neq[1], ret); // Update initial conditions
-      }
+      update_inis(neq[1], ret); // Update initial conditions
       //--- inits the system
       for(i=0; i<nx; i++) {
 	xout = x[i];
@@ -1214,7 +1208,6 @@ extern void rxSolveOldC(int *neqa,
   op->nDisplayProgress = 100;
   op->ncoresRV = 1;
   op->isChol = 0;
-  op->fnIni=1; // Assume true; Should be able to check or assign elsewhere.
   /* int *svar; */
   /* op->svar = svar; */
   op->abort = 0;  

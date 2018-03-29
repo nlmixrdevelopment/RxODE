@@ -43,7 +43,6 @@ typedef struct {
   int isChol;
   int *svar;
   int abort;
-  int fnIni;
 } rx_solving_options;
 
 
