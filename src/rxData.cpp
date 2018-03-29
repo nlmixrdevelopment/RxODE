@@ -1800,7 +1800,7 @@ void updateSolveEnvPost(Environment e){
       if (nsim > 1) extran++;
       CharacterVector prsn(ppos.size()-nrm+extran);
       List prsl(ppos.size()-nrm+extran);
-      unsigned int i, j=0, m = 0;
+      unsigned int i, j=0;
       if (nsim > 1) {
 	IntegerVector tmp(parsdf.nrow());
 	for (unsigned int k = parsdf.nrow(); k--;){
@@ -2173,11 +2173,24 @@ SEXP rxSolveC(const RObject &obj,
     rx->matrix = matrix;
     rx->add_cov = (int)(addCov);
     op->stiff = method;
+    op->ATOL = atol;          //absolute error
+    op->RTOL = rtol;          //relative error
+    bool directGlobal = true;
     if (method != 2){
       op->cores =1;
     } else {
+      gatol2Setup(op->neq);
+      grtol2Setup(op->neq);
+      std::fill_n(&_globals.gatol2[0],op->neq, atol);
+      std::fill_n(&_globals.grtol2[0],op->neq, rtol);
+      op->atol2 = &_globals.gatol2[0];
+      op->rtol2 = &_globals.grtol2[0];
       op->cores=cores;
+      if (cores > 1){
+        directGlobal = false;
+      }
     }
+    op->fnIni = mv["fn.ini"];
     // Now set up events and parameters
     RObject par0 = params;
     RObject ev0  = events;
@@ -2213,14 +2226,6 @@ SEXP rxSolveC(const RObject &obj,
     op->neq = state.size();
     op->badSolve = 0;
     op->abort = 0;
-    op->ATOL = atol;          //absolute error
-    op->RTOL = rtol;          //relative error
-    gatol2Setup(op->neq);
-    grtol2Setup(op->neq);
-    std::fill_n(&_globals.gatol2[0],op->neq, atol);
-    std::fill_n(&_globals.grtol2[0],op->neq, rtol);
-    op->atol2 = &_globals.gatol2[0];
-    op->rtol2 = &_globals.grtol2[0];
     op->H0 = hini;
     op->HMIN = hmin;
     op->mxstep = maxsteps;
@@ -2229,13 +2234,7 @@ SEXP rxSolveC(const RObject &obj,
     // The initial conditions cannot be changed for each individual; If
     // they do they need to be a parameter.
     initsC = rxInits(object, inits, state, 0.0);
-    ginitsSetup(initsC.size());
-    std::copy(initsC.begin(), initsC.end(), &_globals.ginits[0]);
-    op->inits = &_globals.ginits[0];
     NumericVector scaleC = rxSetupScale(object, scale, extraArgs);
-    gscaleSetup(scaleC.size());
-    std::copy(scaleC.begin(),scaleC.end(),&_globals.gscale[0]);
-    op->scale = &_globals.gscale[0];
     //
     int transit = 0;
     if (transit_abs.isNull()){
@@ -2400,6 +2399,18 @@ SEXP rxSolveC(const RObject &obj,
         stop("If parameters are not named, they must match the order and size of the parameters in the model.");
       }
     }
+    if (directGlobal || nPopPar == 1){
+      directGlobal=true;
+      op->inits = initsC.begin();
+      op->scale = scaleC.begin();
+    } else {
+      ginitsSetup(initsC.size());
+      std::copy(initsC.begin(), initsC.end(), &_globals.ginits[0]);
+      op->inits = &_globals.ginits[0];
+      gscaleSetup(scaleC.size());
+      std::copy(scaleC.begin(),scaleC.end(),&_globals.gscale[0]);
+      op->scale = &_globals.gscale[0];
+    }    
     if (rxIs(ev1, "EventTable")){
       rxOptionsIniEnsure(1);
       ind = &(rx->subjects[0]);
@@ -2412,15 +2423,22 @@ SEXP rxSolveC(const RObject &obj,
       NumericVector amt  = as<NumericVector>(dataf[2]);
       // Time copy
       ind->n_all_times   = time.size();
-      gall_timesSetup(ind->n_all_times);
-      std::copy(time.begin(), time.end(), &_globals.gall_times[0]);
-      ind->all_times     = &_globals.gall_times[0];
-      // EVID copy
-      gevidSetup(ind->n_all_times);
-      std::copy(evid.begin(),evid.end(), &_globals.gevid[0]);
-      ind->evid     = &_globals.gevid[0];
+      if (directGlobal){
+        ind->all_times=time.begin();
+        ind->evid     = evid.begin();
+      } else {
+        gall_timesSetup(ind->n_all_times);
+        std::copy(time.begin(), time.end(), &_globals.gall_times[0]);
+        ind->all_times     = &_globals.gall_times[0];
+        // EVID copy
+	gevidSetup(ind->n_all_times);
+        std::copy(evid.begin(),evid.end(), &_globals.gevid[0]);
+        ind->evid     = &_globals.gevid[0];
+      }
+      // This is a constructed vector and cannot be used directly.
       gamtSetup(ind->n_all_times);
-      ind->dose = &_globals.gamt[0];
+      ind->dose = &_globals.gamt[0];      
+
       // Slower; These need to be built.
       tlast = time[0];
       // hmax1 = hmax2 = 0;

@@ -240,6 +240,7 @@ typedef struct symtab {
   int ndfdy;
   int maxtheta;
   int maxeta;
+  int isFnIni;
 } symtab;
 symtab tb;
 
@@ -951,6 +952,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       }
 
       if (!strcmp("ini0f", name) && rx_syntax_allow_ini && i == 0){
+        tb.isFnIni = 1;
 	sprintf(sb.s,"(__0f__)");
 	sb.o = 8;
 	sbt.o = 0;
@@ -1279,14 +1281,14 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
   fprintf(outpt,"    SEXP mmd5n    = PROTECT(allocVector(STRSXP, 2));pro++;\n");
   fprintf(outpt,"    SEXP model    = PROTECT(allocVector(STRSXP, 4));pro++;\n");
   fprintf(outpt,"    SEXP modeln   = PROTECT(allocVector(STRSXP, 4));pro++;\n");
-  fprintf(outpt,"    SEXP solve    = PROTECT(allocVector(VECSXP, 4));pro++;\n");
-  fprintf(outpt,"    SEXP solven   = PROTECT(allocVector(STRSXP, 4));pro++;\n");
   fprintf(outpt,"    SEXP initsr   = PROTECT(allocVector(REALSXP, %d));pro++;\n",statei);
   fprintf(outpt,"    SEXP scaler   = PROTECT(allocVector(REALSXP, %d));pro++;\n",statei);
   fprintf(outpt,"    SEXP infusionr= PROTECT(allocVector(REALSXP, %d));pro++;\n",statei);
-  fprintf(outpt,"    SEXP badDosei = PROTECT(allocVector(INTSXP, %d));pro++;\n",statei);
   fprintf(outpt,"    SEXP version    = PROTECT(allocVector(STRSXP, 3));pro++;\n");
   fprintf(outpt,"    SEXP versionn   = PROTECT(allocVector(STRSXP, 3));pro++;\n");
+  fprintf(outpt,"    SEXP fnIni      = PROTECT(allocVector(INTSXP, 1));pro++;\n");
+  fprintf(outpt,"    INTEGER(fnIni)[0] = %d;\n",tb.isFnIni);
+  
   
   fprintf(outpt, __VER_0__);
   fprintf(outpt, __VER_1__);
@@ -1296,15 +1298,6 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
   fprintf(outpt,"    SET_STRING_ELT(versionn,1,mkChar(\"repo\"));\n");
   fprintf(outpt,"    SET_STRING_ELT(versionn,2,mkChar(\"md5\"));\n");
 
-  fprintf(outpt,"    SET_STRING_ELT(solven,0,mkChar(\"inits\"));\n");
-  fprintf(outpt,"    SET_VECTOR_ELT(solve,  0,initsr);\n");
-  fprintf(outpt,"    SET_STRING_ELT(solven,1,mkChar(\"scale\"));\n");
-  fprintf(outpt,"    SET_VECTOR_ELT(solve,  1,scaler);\n");
-  fprintf(outpt,"    SET_STRING_ELT(solven,2,mkChar(\"infusion\"));\n");
-  fprintf(outpt,"    SET_VECTOR_ELT(solve,  2,infusionr);\n");
-  fprintf(outpt,"    SET_STRING_ELT(solven,3,mkChar(\"badDose\"));\n");
-  fprintf(outpt,"    SET_VECTOR_ELT(solve,  3,badDosei);\n");
-  fprintf(outpt,"    setAttrib(solve, R_NamesSymbol, solven);\n");
   fprintf(outpt,"%s",s_aux_info);
   // Save for outputting in trans
   tb.fdn = fdi;
@@ -1497,13 +1490,13 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
   fprintf(outpt,"    SET_VECTOR_ELT(lst,  9,sens);\n");
   
   fprintf(outpt,"    SET_STRING_ELT(names,10,mkChar(\"fn.ini\"));\n");
-  fprintf(outpt,"    SET_VECTOR_ELT(lst,  10,fn_ini);\n");
+  fprintf(outpt,"    SET_VECTOR_ELT(lst,  10,fnIni);\n");
 
   fprintf(outpt,"    SET_STRING_ELT(names,11,mkChar(\"state.ignore\"));\n");
   fprintf(outpt,"    SET_VECTOR_ELT(lst,  11,stateRmS);\n");
   
-  fprintf(outpt,"    SET_STRING_ELT(names,12,mkChar(\"solve\"));\n");
-  fprintf(outpt,"    SET_VECTOR_ELT(lst,  12,solve);\n");
+  fprintf(outpt,"    SET_STRING_ELT(names,12,mkChar(\"fn.ini\"));\n");
+  fprintf(outpt,"    SET_VECTOR_ELT(lst,  12,fnIni);\n");
 
   fprintf(outpt,"    SET_STRING_ELT(names,13,mkChar(\"version\"));\n");
   fprintf(outpt,"    SET_VECTOR_ELT(lst,  13,version);\n");
@@ -1983,6 +1976,7 @@ void reset (){
   tb.maxtheta   = 0;
   tb.maxeta     = 0;
   tb.fdn        = 0;
+  tb.isFnIni    = 0;
   // reset globals
   found_print = 0;
   found_jac = 0;
