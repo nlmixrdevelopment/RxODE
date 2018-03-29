@@ -74,7 +74,6 @@ typedef struct {
   int sim;
   double ylow;
   double yhigh;
-  int badSolveIndex;
 } rx_solving_options_ind;
 
 typedef struct {
