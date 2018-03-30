@@ -43,19 +43,8 @@ rxState <- function(obj = NULL, state = NULL) {
     .Call(`_RxODE_rxState`, obj, state)
 }
 
-#' Parameters specified by the model
-#'
-#' This return the model's parameters that are required to solve the
-#' ODE system.
-#'
-#' @inheritParams rxModelVars
-#'
-#' @return a character vector listing the parameters in the model.
-#'
-#' @author Matthew L.Fidler
-#' @export
-rxParams <- function(obj) {
-    .Call(`_RxODE_rxParams`, obj)
+rxParams_ <- function(obj) {
+    .Call(`_RxODE_rxParams_`, obj)
 }
 
 #' Jacobian and parameter derivatives

@@ -1420,10 +1420,6 @@ rxCompile.RxODE <- function(model, ...){
     model$compile()
 }
 
-##' @rdname rxParams
-##' @export
-rxParam <- rxParams
-
 ##' @rdname rxDynLoad
 ##' @export
 rxLoad <- rxDynLoad
@@ -1701,3 +1697,33 @@ rxModelVars <- function(obj){
     }
     rxModelVars_(obj);
 }
+
+
+##' Parameters specified by the model
+##'
+##' This return the model's parameters that are required to solve the
+##' ODE system.
+##'
+##' @inheritParams rxModelVars
+##'
+##' @param constants is a boolean indicting if constants should be
+##'     included in the list of parameters. Currently RxODE parses
+##'     constants into variables in case you wish to change them
+##'     without recompiling the RxODE model.
+##'
+##' @return a character vector listing the parameters in the model.
+##'
+##' @author Matthew L.Fidler
+##' @export
+rxParams <- function(obj, constants=TRUE){
+    ret <- rxParams_(obj)
+    if (!constants){
+        init <- RxODE::rxInit(obj);
+        ret <- ret[!(ret %in% names(init))]
+    }
+    return(ret);
+}
+
+##' @rdname rxParams
+##' @export
+rxParam <- rxParams

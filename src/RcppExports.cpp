@@ -43,14 +43,14 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// rxParams
-CharacterVector rxParams(const RObject& obj);
-RcppExport SEXP _RxODE_rxParams(SEXP objSEXP) {
+// rxParams_
+CharacterVector rxParams_(const RObject& obj);
+RcppExport SEXP _RxODE_rxParams_(SEXP objSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const RObject& >::type obj(objSEXP);
-    rcpp_result_gen = Rcpp::wrap(rxParams(obj));
+    rcpp_result_gen = Rcpp::wrap(rxParams_(obj));
     return rcpp_result_gen;
 END_RCPP
 }

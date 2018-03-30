@@ -18,7 +18,7 @@ SEXP _RxODE_rxSymInvChol(SEXP, SEXP, SEXP, SEXP);
 SEXP _RxODE_rxIs(SEXP,SEXP);
 SEXP _RxODE_rxModelVars_(SEXP);
 SEXP _RxODE_rxState(SEXP, SEXP);
-SEXP _RxODE_rxParams(SEXP);
+SEXP _RxODE_rxParams_(SEXP);
 SEXP _RxODE_rxDfdy(SEXP);
 SEXP _RxODE_rxLhs(SEXP);
 SEXP _RxODE_rxInits(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
@@ -130,7 +130,7 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_rxIs", (DL_FUNC) &_RxODE_rxIs, 2},
     {"_RxODE_rxModelVars_", (DL_FUNC) &_RxODE_rxModelVars_, 1},
     {"_RxODE_rxState", (DL_FUNC) &_RxODE_rxState, 2},
-    {"_RxODE_rxParams", (DL_FUNC) &_RxODE_rxParams, 1},
+    {"_RxODE_rxParams_", (DL_FUNC) &_RxODE_rxParams_, 1},
     {"_RxODE_rxDfdy", (DL_FUNC) &_RxODE_rxDfdy, 1},
     {"_RxODE_rxLhs", (DL_FUNC) &_RxODE_rxLhs, 1},
     {"_RxODE_rxInits", (DL_FUNC) &_RxODE_rxInits, 6},

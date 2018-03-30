@@ -416,7 +416,6 @@ rxSymPyVars <- function(model){
     } else {
         vars <- c(rxParams(model),
                   rxState(model),
-                  names(rxInits(model)),
                   "podo", "t", "time", "tlast",
                   "rx__PTR__", "rx1c");
     }
@@ -570,10 +569,7 @@ rxSymPyDfDy <- function(model, df, dy, vars=FALSE){
 rxSymPyDfDyFull <- memoise::memoise(function(model, vars, cond){
     if (rxIs(vars,"logical")){
         if (vars){
-            calcSens <- rxParams(model)
-            tmp <- names(rxInits(model));
-            calcSens <- calcSens[!(calcSens %in% tmp)];
-            jac <- expand.grid(s1=rxState(model), s2=c(rxState(model), calcSens),
+            jac <- expand.grid(s1=rxState(model), s2=c(rxState(model), rxParams(model)),
                                stringsAsFactors=FALSE);
         } else  {
             jac <- expand.grid(s1=rxState(model), s2=rxState(model),
@@ -874,14 +870,10 @@ rxSymPySensitivity <- memoise::memoise(function(model, calcSens, calcJac=FALSE, 
                                collapseModel=FALSE){
     if (missing(calcSens)){
         calcSens <- rxParams(model);
-        tmp <- names(rxInits(model));
-        calcSens <- calcSens[!(calcSens %in% tmp)];
     }
     if (rxIs(calcSens,"logical")){
         if (calcSens){
             calcSens <- rxParams(model);
-            tmp <- names(rxInits(model));
-            calcSens <- calcSens[!(calcSens %in% tmp)];
         } else {
             stop("It is pointless to request a sensitivity calculation when calcSens=FALSE.")
         }
@@ -1255,10 +1247,6 @@ genCmtMod <- function(mod){
     ret
 }
 
-constToExpr <- function(mod){
-    ## Hack to take out RxODE constants.
-    return(gsub(rex::rex("=", capture(regNum), ";"), "=\\1+0;", rxNorm(mod), perl=TRUE))
-}
 rxSymPySetupPred.warn <- FALSE
 ##' Setup Pred function based on RxODE object.
 ##'
@@ -1380,7 +1368,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
             assignInMyNamespace("rxSymPyExpThetas", c());
             assignInMyNamespace("rxSymPyExpEtas", c());
             gobj <- obj;
-            oobj <- constToExpr(genCmtMod(obj));
+            oobj <- genCmtMod(obj);
             obj <- oobj;
             rxModelVars(oobj)
             rxSymPyVars(obj);
@@ -1406,8 +1394,6 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                 obj <- newmod;
             } else {
                 calcSens <- rxParams(obj)
-                tmp <- names(rxInits(obj));
-                calcSens <- calcSens[!(calcSens %in% tmp)];
                 newmod <- obj;
             }
             txt <- rxParsePred(predfn, init=init)

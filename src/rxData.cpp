@@ -471,19 +471,8 @@ RObject rxState(const RObject &obj = R_NilValue, RObject state = R_NilValue){
   return R_NilValue;
 }
 
-//' Parameters specified by the model
-//'
-//' This return the model's parameters that are required to solve the
-//' ODE system.
-//'
-//' @inheritParams rxModelVars
-//'
-//' @return a character vector listing the parameters in the model.
-//'
-//' @author Matthew L.Fidler
-//' @export
 //[[Rcpp::export]]
-CharacterVector rxParams(const RObject &obj){
+CharacterVector rxParams_(const RObject &obj){
   List modVar = rxModelVars(obj);
   CharacterVector ret = modVar["params"];
   return ret;
