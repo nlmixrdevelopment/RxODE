@@ -462,12 +462,13 @@ rxSymPyFunctions <- function(functions){
 ##' @keywords internal
 ##' @export
 rxSymPySetup <- function(model, envir=parent.frame()){
+    if (identical(model, "")) return(invisible());
     setup <- rxToSymPy(model, envir=envir);
-    inits <- rxInit(model)
-    inits.lines <- sprintf("%s=%.16f",names(inits),inits);
+    const <- rxInits(model, rxLines=TRUE);
+    if (!identical(const, "")) setup <- c(rxToSymPy(const, envir=envir), setup);
     rxSymPyVars(model)
-    assignInMyNamespace("rxSymPy.vars", c(rxSymPy.vars, names(setup)))
-    for (line in c(setup, inits.lines)){
+    assignInMyNamespace("rxSymPy.vars", rxSymPy.vars)
+    for (line in c(setup)){
         tmp <- line;
         names(tmp) <- NULL;
         rxSymPyExec(tmp);
@@ -569,7 +570,7 @@ rxSymPyDfDy <- function(model, df, dy, vars=FALSE){
 rxSymPyDfDyFull <- memoise::memoise(function(model, vars, cond){
     if (rxIs(vars,"logical")){
         if (vars){
-            jac <- expand.grid(s1=rxState(model), s2=c(rxState(model), rxParams(model)),
+            jac <- expand.grid(s1=rxState(model), s2=c(rxState(model), rxParams(model, FALSE)),
                                stringsAsFactors=FALSE);
         } else  {
             jac <- expand.grid(s1=rxState(model), s2=rxState(model),
@@ -869,11 +870,11 @@ rxSymPySensitivity.single <- function(model, calcSens, calcJac){
 rxSymPySensitivity <- memoise::memoise(function(model, calcSens, calcJac=FALSE, keepState=NULL,
                                collapseModel=FALSE){
     if (missing(calcSens)){
-        calcSens <- rxParams(model);
+        calcSens <- rxParams(model, FALSE);
     }
     if (rxIs(calcSens,"logical")){
         if (calcSens){
-            calcSens <- rxParams(model);
+            calcSens <- rxParams(model, FALSE);
         } else {
             stop("It is pointless to request a sensitivity calculation when calcSens=FALSE.")
         }
@@ -1393,14 +1394,14 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                 newmod <- rxGetModel(paste0(paste(txt, collapse="\n"), "\n", rxNorm(obj)));
                 obj <- newmod;
             } else {
-                calcSens <- rxParams(obj)
+                calcSens <- rxParams(obj, FALSE)
                 newmod <- obj;
             }
             txt <- rxParsePred(predfn, init=init)
             pred.mod <- rxGetModel(txt);
             extra.pars <- c();
             if (!is.null(errfn)){
-                pars <- rxParams(rxGetModel(paste0(rxNorm(obj), "\n", rxNorm(pred.mod))));
+                pars <- rxParams(rxGetModel(paste0(rxNorm(obj), "\n", rxNorm(pred.mod))), FALSE);
                 w <- which(sapply(pars, function(x){
                     return(substr(x, 0, 2) == "TH")
                 }))
@@ -1416,7 +1417,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                     full <- paste0(full, "\n", rxNorm(err.mod));
                 }
                 full <- rxGetModel(full);
-                etas <- rxParams(full);
+                etas <- rxParams(full, FALSE);
                 thetas <- etas[regexpr(regTheta, etas) != -1];
                 etas <- etas[regexpr(regEta, etas) != -1];
                 if (only.numeric){
@@ -1425,9 +1426,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                     rxCat("## Calculate ETA-based prediction and error derivatives:\n")
                     calcSens <- etas;
                 } else {
-                    calcSens <- rxParams(full);
-                    tmp <- names(rxInits(full));
-                    calcSens <- calcSens[!(calcSens %in% tmp)];
+                    calcSens <- rxParams(full, FALSE);
                 }
                 if (grad.internal){
                     rxCat("## Calculate THETA/ETA-based prediction and error 1st and 2nd order derivatives:\n")
@@ -1621,6 +1620,8 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                 if (only.numeric){
                     mod <- NULL;
                 } else {
+                    ## Inner should hide compartments
+                    mod <- gsub(rex::rex(capture("d/dt(", except_some_of(")"), ")"), "="), "\\1~", rxNorm(mod), perl=TRUE);
                     mod <- RxODE(mod);
                 }
                 ret <- list(obj=oobj,

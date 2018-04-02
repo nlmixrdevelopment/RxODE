@@ -96,8 +96,8 @@ rxLhs <- function(obj) {
 #' @keywords internal
 #' @author Matthew L.Fidler
 #' @export
-rxInits <- function(obj, vec = NULL, req = NULL, defaultValue = 0, noerror = FALSE, noini = FALSE) {
-    .Call(`_RxODE_rxInits`, obj, vec, req, defaultValue, noerror, noini)
+rxInits <- function(obj, vec = NULL, req = NULL, defaultValue = 0, noerror = FALSE, noini = FALSE, rxLines = FALSE) {
+    .Call(`_RxODE_rxInits`, obj, vec, req, defaultValue, noerror, noini, rxLines)
 }
 
 #' Setup the initial conditions.

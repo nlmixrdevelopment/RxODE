@@ -659,14 +659,23 @@ NumericVector rxInits0(const RObject &obj,
 //' @author Matthew L.Fidler
 //' @export
 //[[Rcpp::export]]
-NumericVector rxInits(const RObject &obj,
+SEXP rxInits(const RObject &obj,
 		      RObject vec = R_NilValue,
 		      Nullable<CharacterVector> req = R_NilValue,
 		      double defaultValue = 0,
 		      bool noerror = false,
-		      bool noini=false){
-  if (vec.isNULL()){
-    return rxInits0(obj, R_NilValue, req, defaultValue, noerror,noini);
+		      bool noini=false,
+		      bool rxLines=false){
+  if (rxLines){
+    NumericVector inits = rxInits(obj, vec, req, defaultValue, noerror,noini,false);
+    CharacterVector nms = inits.names();
+    std::string ret="";
+    for (unsigned int j=inits.size(); j--;){
+      ret += as<std::string>(nms[j]) + "=" + std::to_string(inits[j]) + ";\n";
+    }
+    return wrap(ret);
+  } else if (vec.isNULL()){
+    return wrap(rxInits0(obj, R_NilValue, req, defaultValue, noerror,noini));
   } else if (rxIs(vec, "list")){
     List vecL = as<List>(vec);
     Function unlist("unlist", R_BaseNamespace);
@@ -677,9 +686,9 @@ NumericVector rxInits(const RObject &obj,
     if (vec2.size() != vecL.size()){
       stop("Only one estimate per named list item; i.e. list(x=1) instead of list(x=1:2).");
     }
-    return rxInits0(obj, vec2, req, defaultValue, noerror,noini);
+    return wrap(rxInits0(obj, vec2, req, defaultValue, noerror,noini));
   } else if (rxIs(vec, "integer") || rxIs(vec, "numeric")){
-    return rxInits0(obj, as<NumericVector>(vec), req, defaultValue, noerror,noini);
+    return wrap(rxInits0(obj, as<NumericVector>(vec), req, defaultValue, noerror,noini));
   } else {
     stop("Incompatible initial estimate type.");
   }
@@ -2712,7 +2721,6 @@ SEXP rxSolveC(const RObject &obj,
 	  _globals.gpars[i] = mvIni[-_globals.gParPos[i]-1];
 	}
       }
-      
       for (i = nsub; i--;){
 	ind = &(rx->subjects[i]);
 	ind->par_ptr = &_globals.gpars[0];
@@ -2734,6 +2742,7 @@ SEXP rxSolveC(const RObject &obj,
       }
       rx->nsub= nsub;
       rx->nsim = nsim;
+      if (rx->nsim < 1) rx->nsim=1;
       break;
     case 2: // DataFrame
       // Convert to NumericMatrix

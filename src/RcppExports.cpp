@@ -77,8 +77,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // rxInits
-NumericVector rxInits(const RObject& obj, RObject vec, Nullable<CharacterVector> req, double defaultValue, bool noerror, bool noini);
-RcppExport SEXP _RxODE_rxInits(SEXP objSEXP, SEXP vecSEXP, SEXP reqSEXP, SEXP defaultValueSEXP, SEXP noerrorSEXP, SEXP noiniSEXP) {
+SEXP rxInits(const RObject& obj, RObject vec, Nullable<CharacterVector> req, double defaultValue, bool noerror, bool noini, bool rxLines);
+RcppExport SEXP _RxODE_rxInits(SEXP objSEXP, SEXP vecSEXP, SEXP reqSEXP, SEXP defaultValueSEXP, SEXP noerrorSEXP, SEXP noiniSEXP, SEXP rxLinesSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -88,7 +88,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type defaultValue(defaultValueSEXP);
     Rcpp::traits::input_parameter< bool >::type noerror(noerrorSEXP);
     Rcpp::traits::input_parameter< bool >::type noini(noiniSEXP);
-    rcpp_result_gen = Rcpp::wrap(rxInits(obj, vec, req, defaultValue, noerror, noini));
+    Rcpp::traits::input_parameter< bool >::type rxLines(rxLinesSEXP);
+    rcpp_result_gen = Rcpp::wrap(rxInits(obj, vec, req, defaultValue, noerror, noini, rxLines));
     return rcpp_result_gen;
 END_RCPP
 }
