@@ -1374,6 +1374,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
             rxModelVars(oobj)
             rxSymPyVars(obj);
             on.exit({rxSymPyClean()});
+            lhs <- c();
             if (!is.null(pkpars)){
                 txt <- as.vector(unlist(strsplit(rxParsePk(pkpars, init=init), "\n")));
                 re <- rex::rex(start, "init", or("_", ".", ""), or("C", "c"), "ond", or("ition", ""),or("", "s"), any_spaces,
@@ -1393,6 +1394,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                 }
                 newmod <- rxGetModel(paste0(paste(txt, collapse="\n"), "\n", rxNorm(obj)));
                 obj <- newmod;
+                lhs <- c(rxLhs(newmod), rxLhs(oobj));
             } else {
                 calcSens <- rxParams(obj, FALSE)
                 newmod <- obj;
@@ -1581,7 +1583,6 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                                               errfn=errfn, init=init, sum.prod=sum.prod,pred.minus.dv=pred.minus.dv,
                                               run.internal=TRUE, grad.internal=TRUE, theta.internal=FALSE);
                 }
-
                 base <- gsub(rex::rex(or(group(anything, "~", anything), group(or(oLhs), "=", anything, ";"))), "", strsplit(base, "\n")[[1]])
                 base <- paste(base[base != ""], collapse="\n");
                 mod <- rxGetModel(paste0(base, "\n", pred, "\n", err))
@@ -1617,6 +1618,19 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                 keep <- c(sprintf("d/dt(%s)", ostate), sprintf("%s(0)=", ostate), "rx_pred_=", "rx_r_=");
                 pred.only <- strsplit(rxNorm(mod), "\n")[[1]]
                 pred.only <- paste(pred.only[regexpr(rex::rex(start, or(keep)), pred.only) != -1], collapse="\n");
+                keep <- c(sprintf("d/dt(%s)", ostate), sprintf("%s(0)=", ostate));
+                r <- c(do.call(`c`, lapply(baseState, function(x){
+                    ini <- sprintf("%s(0)", x);
+                    ddt <- sprintf("d/dt(%s)", x);
+                    c(rxToSymPy(ini), rxToSymPy(ddt));
+                    })), sapply(lhs, function(x){return(rxToSymPy(x))}))
+                ebe <- paste(do.call(`c`, lapply(r, function(x){
+                                      if (rxSymPyExists(x)){
+                                          v <- rxSymPy(x)
+                                          return(sprintf("%s=%s;", rxFromSymPy(x), rxFromSymPy(v)))
+                                      }
+                                      return(NULL)
+                                      })), collapse="\n")
                 if (only.numeric){
                     mod <- NULL;
                 } else {
@@ -1626,6 +1640,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                 }
                 ret <- list(obj=oobj,
                             pred.only=RxODE(pred.only),
+                            ebe=RxODE(ebe),
                             inner=mod,
                             extra.pars=extra.pars,
                             outer=outer,

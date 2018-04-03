@@ -344,7 +344,7 @@ RxODE <- function(model, modName = basename(wd), wd = ifelse(RxODE.cache.directo
     ## RxODE compilation manager (location of parsed code, generated C,  shared libs, etc.)
     env <- new.env(parent=baseenv())
     env$missing.modName <- missing(modName);
-    wd <- normalizePath(wd, "/", mustWork=F)
+    wd <- suppressWarnings({normalizePath(wd, "/", mustWork=F)})
     if (env$missing.modName){
         if (RxODE.tempfiles){
             env$mdir <- rxTempDir;
@@ -1366,14 +1366,14 @@ rxCompile.character <-  function(model,           # Model
     args <- list(model = model, dir = dir, prefix = prefix,
                  extraC = extraC, force = force, modName = modName,
                  ...);
-    ret <- list(dll     = normalizePath(finalDll, "/"),
-                c       = normalizePath(finalC, "/"),
-                model   = allModVars$model["model"],
-                extra   = extraC,
-                modVars = allModVars,
-                .call   = .call,
-                .c      = .c,
-                args    = args);
+    ret <- suppressWarnings({list(dll     = normalizePath(finalDll, "/"),
+                                  c       = normalizePath(finalC, "/"),
+                                  model   = allModVars$model["model"],
+                                  extra   = extraC,
+                                  modVars = allModVars,
+                                  .call   = .call,
+                                  .c      = .c,
+                                  args    = args)});
     class(ret) <- "rxDll";
     return(ret);
 }
