@@ -30,8 +30,11 @@ extern int RxODE_current_fn_pointer_id(){
   return RxODE_current_fn_pointer_id_;
 }
 extern void RxODE_assign_fn_pointers(SEXP mv){
-  RxODE_current_fn_pointer_id_ = INTEGER(VECTOR_ELT(mv, 15))[0];
-  rxAssignPtrC(mv);
+  int cur = INTEGER(VECTOR_ELT(mv, 15))[0];
+  if (RxODE_current_fn_pointer_id_ != cur){
+    rxAssignPtrC(mv);
+    RxODE_current_fn_pointer_id_ = cur;
+  } 
 }
 
 SEXP rxModelVarsC(char *ptr);
