@@ -2523,18 +2523,20 @@ SEXP rxSolveC(const RObject &obj,
       int dfN = dfNames.size();
       // - par cov needs to be at lest the size of the dataframe names.
       gpar_covSetup(dfN);
-      k = 0;
       ncov = 0;
       std::vector<int> covPos(dfN);
+      curcovi=0;
       for (i = dfN; i--;){
         for (j = npars; j--;){
           if (pars[j] == dfNames[i]){
-            _globals.gpar_cov[k] = j+1;
-	    covPos[k] = i;
-	    ncov++;
+            _globals.gpar_cov[ncov] = j+1;
+	    covPos[ncov] = i;
+            ncov++;
 	  }
 	}
       }
+      Rprintf("Number of Covariates: %d\n",ncov);
+      op->par_cov=&(_globals.gpar_cov[0]);
       op->ncov=ncov;
       op->do_par_cov = (ncov > 0);
       // Make sure the covariates are a #ncov * all times size
@@ -2554,12 +2556,13 @@ SEXP rxSolveC(const RObject &obj,
 	  if (nall != 0){
             // Finalize last solve.
             ind->n_all_times    = ndoses+nobs;
+            ind->cov_ptr = &(_globals.gcov[curcovi]);
 	    for (ii = 0; ii < (unsigned int)ncov; ii++){
 	      NumericVector cur = as<NumericVector>(dataf[covPos[ii]]);
 	      std::copy(cur.begin()+lasti, cur.begin()+lasti+ind->n_all_times,
-                        &_globals.gcov[covi] +ii*(ind->n_all_times));
+                        _globals.gcov+curcovi);
+              curcovi += ind->n_all_times;
 	    }
-	    covi += ncov*(ind->n_all_times);
             nsub++;
             rxOptionsIniEnsure(nsub+1);
             ind = &(rx->subjects[nsub]);
@@ -2570,7 +2573,6 @@ SEXP rxSolveC(const RObject &obj,
           ind->evid           = &evid[i];
 	  ind->idose          = &_globals.gidose[i];
           ind->dose           = &_globals.gamt[i];
-          ind->cov_ptr        = &(_globals.gcov[covi]);
 	  lasti = i;
 	  if (hmax0 == 0.0){
             ind->HMAX = hmax1;
@@ -2608,10 +2610,14 @@ SEXP rxSolveC(const RObject &obj,
       rx->nall = nall;
       // Finalize the prior individual
       ind->n_all_times    = ndoses+nobs;
+      ind->cov_ptr = &(_globals.gcov[curcovi]);
       for (ii = 0; ii < (unsigned int)ncov; ii++){
         NumericVector cur = as<NumericVector>(dataf[covPos[ii]]);
+        Rprintf("\tFrom %d to %d for ii:%d; covPos[%d]: %d ; gpar_cov[ii]: %d\n", lasti, lasti+ind->n_all_times,
+                ii, ii, covPos[ii], _globals.gpar_cov[ii]);              
         std::copy(cur.begin()+lasti, cur.begin()+lasti+ind->n_all_times,
-                  &_globals.gcov[covi] +ii*(ind->n_all_times));
+                  _globals.gcov+curcovi);
+        curcovi += ind->n_all_times;
       }
       if (hmax0 == 0.0){
         op->hmax2 = hmax2;
