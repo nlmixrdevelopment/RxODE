@@ -1780,7 +1780,7 @@ void updateSolveEnvPost(Environment e){
       prs.names() = prsn;
       e["params.single"] = prs;
       List pd(prs.size());
-      for (unsigned j = prs.size();j--;){
+      for (unsigned int j = prs.size();j--;){
 	pd[j] = NumericVector::create(prs[j]);
       }
       pd.names() = prsn;
