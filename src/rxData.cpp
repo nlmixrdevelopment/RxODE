@@ -1766,7 +1766,7 @@ void updateSolveEnvPost(Environment e){
         parNumeric= as<NumericVector>(parso);
       }
       unsigned int i, j=0;
-      for (i = 0; i < prs.size();i++){
+      for (i = 0; i < ppos.size(); i++){
 	if (_globals.gParPos[i] > 0){ // User specified parameter
           prs[j] = parNumeric[ppos[i]-1];
           prsn[j] = pars[i];
@@ -1817,7 +1817,7 @@ void updateSolveEnvPost(Environment e){
 	prsn[j]="id";
 	j++;
       }
-      for (i = 0; i < prsn.size();i++){
+      for (i = 0; i < ppos.size();i++){
         if (_globals.gParPos[i] > 0){ // User specified parameter
           prsl[j] = parsdf[ppos[i]-1];
           prsn[j] = pars[i];
@@ -2535,7 +2535,6 @@ SEXP rxSolveC(const RObject &obj,
 	  }
 	}
       }
-      Rprintf("Number of Covariates: %d\n",ncov);
       op->par_cov=&(_globals.gpar_cov[0]);
       op->ncov=ncov;
       op->do_par_cov = (ncov > 0);
@@ -2545,7 +2544,7 @@ SEXP rxSolveC(const RObject &obj,
       // Get the number of subjects
       // Get the number of observations
       // Get the number of doses
-      unsigned int nall = 0, nobst=0, covi = 0, lasti =0, ii=0;
+      unsigned int nall = 0, nobst=0, lasti =0, ii=0;
       int lastId = id[0]-42;
       rxOptionsIniEnsure(1);
       nsub = 0;
@@ -2613,8 +2612,6 @@ SEXP rxSolveC(const RObject &obj,
       ind->cov_ptr = &(_globals.gcov[curcovi]);
       for (ii = 0; ii < (unsigned int)ncov; ii++){
         NumericVector cur = as<NumericVector>(dataf[covPos[ii]]);
-        Rprintf("\tFrom %d to %d for ii:%d; covPos[%d]: %d ; gpar_cov[ii]: %d\n", lasti, lasti+ind->n_all_times,
-                ii, ii, covPos[ii], _globals.gpar_cov[ii]);              
         std::copy(cur.begin()+lasti, cur.begin()+lasti+ind->n_all_times,
                   _globals.gcov+curcovi);
         curcovi += ind->n_all_times;
@@ -2817,7 +2814,6 @@ SEXP rxSolveC(const RObject &obj,
 	    ind->all_times = indS->all_times;
             ind->id=id+1;
           }
-          // Rprintf("curEvent: %d (%d; %d)\n", curEvent, op->neq, ind->n_all_times);
           curEvent += op->neq*ind->n_all_times;
         }
       }
