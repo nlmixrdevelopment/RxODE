@@ -131,7 +131,7 @@ rx_solve *_solveData = NULL;
    - Use RxODE structure
    - Make inline
 */
-inline double rx_approxP(double v, double *x, double *y, int n,
+static inline double rx_approxP(double v, double *x, double *y, int n,
                          rx_solving_options *Meth, rx_solving_options_ind *id){
   /* Approximate  y(v),  given (x,y)[i], i = 0,..,n-1 */
   int i, j, ij;
@@ -169,7 +169,7 @@ inline double rx_approxP(double v, double *x, double *y, int n,
 /* End approx from R */
 
 
-inline void _update_par_ptr(double t, unsigned int id){
+static inline void _update_par_ptr(double t, unsigned int id){
   rx_solving_options_ind *ind;
   ind = (&_solveData->subjects[id]);
   rx_solving_options *op = _solveData->op;
@@ -194,14 +194,14 @@ inline void _update_par_ptr(double t, unsigned int id){
   }
 }
 
-inline double _transit4P(double t, unsigned int id, double n, double mtt, double bio){
+static inline double _transit4P(double t, unsigned int id, double n, double mtt, double bio){
   double ktr = (n+1)/mtt;
   double lktr = log(n+1)-log(mtt);
   double tc = (t-(_solveData->subjects[id].tlast));
   return exp(log(bio*(_solveData->subjects[id].podo))+lktr+n*(lktr+log(tc))-ktr*(tc)-lgamma1p(n));
 }
 
-inline double _transit3P(double t, unsigned int id, double n, double mtt){
+static inline double _transit3P(double t, unsigned int id, double n, double mtt){
   double ktr = (n+1)/mtt;
   double lktr = log(n+1)-log(mtt);
   double tc = (t-(_solveData->subjects[id].tlast));
@@ -211,7 +211,7 @@ inline double _transit3P(double t, unsigned int id, double n, double mtt){
 
 // Linear compartment models/functions
 
-inline int _locateDoseIndex(const double obs_time,  rx_solving_options_ind *ind){
+static inline int _locateDoseIndex(const double obs_time,  rx_solving_options_ind *ind){
   // Uses bisection for slightly faster lookup of dose index.
   int i, j, ij;
   i = 0;
@@ -232,7 +232,7 @@ inline int _locateDoseIndex(const double obs_time,  rx_solving_options_ind *ind)
   return i;
 }
 
-inline double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt, int diff1, int diff2, double d_A, double d_alpha, double d_B, double d_beta, double d_C, double d_gamma, double d_ka, double d_tlag){
+static inline double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt, int diff1, int diff2, double d_A, double d_alpha, double d_B, double d_beta, double d_C, double d_gamma, double d_ka, double d_tlag){
   if (diff1 != 0 || diff2 != 0){
     error("Exact derivtives are no longer calculated.");
   }

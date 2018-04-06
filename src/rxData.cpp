@@ -1751,16 +1751,11 @@ void updateSolveEnvPost(Environment e){
     CharacterVector pars = mv["params"];
     RObject parso = e["args.params"];
     IntegerVector ppos = e[".par.pos"];
-    int nrm=0;
-    for (unsigned int i = ppos.size(); i--;){
-      if (ppos[i] == 0){ // Covariate or simulated variable.
-        nrm++;
-      }
-    }
     if (rxIs(parso, "numeric") || rxIs(parso, "integer") ||
 	rxIs(parso, "NULL")){
-      NumericVector   prs(ppos.size()-nrm);
-      CharacterVector prsn(ppos.size()-nrm);
+      double *tmp=Calloc(ppos.size(),double);
+      // NumericVector   prs(ppos.size()-nrm);
+      // CharacterVector prsn(ppos.size()-nrm+1);
       NumericVector parNumeric;
       if (!rxIs(parso, "NULL")){
         parNumeric= as<NumericVector>(parso);
@@ -1768,13 +1763,24 @@ void updateSolveEnvPost(Environment e){
       unsigned int i, j=0;
       for (i = 0; i < ppos.size(); i++){
 	if (_globals.gParPos[i] > 0){ // User specified parameter
-          prs[j] = parNumeric[ppos[i]-1];
-          prsn[j] = pars[i];
+          tmp[j] = parNumeric[ppos[i]-1];
+          // prsn[j] = pars[i];
 	  j++;
         } else if (_globals.gParPos[i] < 0) { // ini specified parameter.
-          prs[j] = mvIni[-ppos[i]-1];
-          prsn[j] = pars[i];
+          tmp[j] = mvIni[-ppos[i]-1];
+          // prsn[j] = pars[i];
 	  j++;
+        }
+      }
+      NumericVector prs(j);
+      CharacterVector prsn(j);
+      std::copy(&tmp[0],&tmp[0]+j,prs.begin());
+      Free(tmp);
+      j=0;
+      for (i = 0; i < ppos.size(); i++){
+        if (_globals.gParPos[i] != 0){ // User specified parameter
+          prsn[j] = pars[i];
+          j++;
         }
       }
       prs.names() = prsn;
@@ -1794,6 +1800,12 @@ void updateSolveEnvPost(Environment e){
       DataFrame parsdf = as<DataFrame>(parso);
       int extran = 0;
       int nsub = e[".nsub"], nsim=e[".nsim"];
+      int nrm=0;
+      for (unsigned int i = ppos.size(); i--;){
+	if (ppos[i] == 0){ // Covariate or simulated variable.
+	  nrm++;
+	}
+      }
       if (nsub > 1) extran++;
       if (nsim > 1) extran++;
       CharacterVector prsn(ppos.size()-nrm+extran);
@@ -2291,6 +2303,7 @@ SEXP rxSolveC(const RObject &obj,
     // int *svar;
     CharacterVector sigmaN;
     bool usePar1 = false;
+    bool simSubjects = false;
     if (!thetaMat.isNull() || !omega.isNull() || !sigma.isNull()){
       // Simulated Variable3
       if (!rxIs(par1, "numeric")){
@@ -2335,7 +2348,6 @@ SEXP rxSolveC(const RObject &obj,
           }
 	}
       }
-      bool simSubjects = false;
       if (nSub > 1 && nSub0 > 1 && nSub != nSub0){
         stop("You provided multi-subject data and asked to simulate a different number of subjects;  I don't know what to do.");
       } else if (nSub > 1 && nSub0 == 1) {
@@ -2691,28 +2703,62 @@ SEXP rxSolveC(const RObject &obj,
       stop("The number of parameters (%d) solved by RxODE for multi-subject data needs to be a multiple of the number of subjects (%d).",nPopPar, nsub);
     }
     //
-    gInfusionRateSetup(op->neq*nsub*nPopPar);
-    std::fill_n(&_globals.gInfusionRate[0], op->neq*nsub*nPopPar, 0.0);
+    if (simSubjects){
+      // Here we are simulating subjects, possibly with one population parameter.
+      gInfusionRateSetup(op->neq*nsub);
+      std::fill_n(&_globals.gInfusionRate[0], op->neq*nsub, 0.0);
 
-    gBadDoseSetup(op->neq*nsub*nPopPar);
-    std::fill_n(&_globals.gBadDose[0], op->neq*nsub*nPopPar, 0);
+      gBadDoseSetup(op->neq*nsub);
+      std::fill_n(&_globals.gBadDose[0], op->neq*nsub, 0);
+
+      glhsSetup(lhs.size()*nsub);
+
+      grcSetup(nsub);
+      std::fill_n(&_globals.grc[0], nsub, 0);
+
+      gslvr_counterSetup(nsub);
+      std::fill_n(&_globals.slvr_counter[0], nsub, 0);
     
-    glhsSetup(lhs.size()*nsub*nPopPar);
+      gdadt_counterSetup(nsub);
+      std::fill_n(&_globals.dadt_counter[0], nsub, 0);
+
+      gjac_counterSetup(nsub);
+      std::fill_n(&_globals.jac_counter[0], nsub, 0);
+
+      // Here we need nall which includes the nuber of subjects 
+      gsolveSetup(rx->nall*state.size()*nsub);
+      std::fill_n(&_globals.gsolve[0],rx->nall*state.size()*nsub,0.0);
+      
+    } else {
+      // Here nPopPar includes the number of subjects.  nsim = nPopPar/nsub
+      gInfusionRateSetup(op->neq*nPopPar);
+      std::fill_n(&_globals.gInfusionRate[0], op->neq*nPopPar, 0.0);
+
+      gBadDoseSetup(op->neq*nPopPar);
+      std::fill_n(&_globals.gBadDose[0], op->neq*nPopPar, 0);
+
+      glhsSetup(lhs.size()*nPopPar);
+
+      grcSetup(nPopPar);
+      std::fill_n(&_globals.grc[0], nPopPar, 0);
+
+
+      gslvr_counterSetup(nPopPar);
+      std::fill_n(&_globals.slvr_counter[0], nPopPar, 0);
     
-    grcSetup(nsub*nPopPar);
-    std::fill_n(&_globals.grc[0], nsub*nPopPar, 0);
+      gdadt_counterSetup(nPopPar);
+      std::fill_n(&_globals.dadt_counter[0], nPopPar, 0);
 
-    gslvr_counterSetup(nsub*nPopPar);
-    std::fill_n(&_globals.slvr_counter[0], nsub*nPopPar, 0);
+      gjac_counterSetup(nPopPar);
+      std::fill_n(&_globals.jac_counter[0], nPopPar, 0);
+
+      nsim = nPopPar / nsub;
+      if (nsim < 1) nsim=1;
     
-    gdadt_counterSetup(nsub*nPopPar);
-    std::fill_n(&_globals.dadt_counter[0], nsub*nPopPar, 0);
-
-    gjac_counterSetup(nsub*nPopPar);
-    std::fill_n(&_globals.jac_counter[0], nsub*nPopPar, 0);
-
-    gsolveSetup(rx->nall*state.size()*nPopPar);
-    std::fill_n(&_globals.gsolve[0],rx->nall*state.size()*nPopPar,0.0);
+      // Here we need nall which includes the nuber of subjects 
+      gsolveSetup(rx->nall*state.size()*nPopPar/nsub);
+      std::fill_n(&_globals.gsolve[0],rx->nall*state.size()*nPopPar/nsub,0.0);
+    }
     int curEvent = 0;
     
     switch(parType){
@@ -2842,16 +2888,16 @@ SEXP rxSolveC(const RObject &obj,
     if (rx->matrix){
       getRxModels();
       if(_rxModels.exists(".sigma")){
-  	_rxModels.remove(".sigma");
+      	_rxModels.remove(".sigma");
       }
       if(_rxModels.exists(".sigmaL")){
-  	_rxModels.remove(".sigmaL");
+      	_rxModels.remove(".sigmaL");
       }
       if(_rxModels.exists(".omegaL")){
-  	_rxModels.remove(".omegaL");
+      	_rxModels.remove(".omegaL");
       }
       if(_rxModels.exists(".theta")){
-  	_rxModels.remove(".theta");
+      	_rxModels.remove(".theta");
       }
       if (rx->matrix == 2){
         dat.attr("class") = "data.frame";

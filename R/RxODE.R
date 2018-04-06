@@ -258,7 +258,7 @@ rex::register_shortcuts("RxODE");
 ##' print(m1)
 ##'
 ##' # Step 2 - Create the model input as an EventTable,
-                                        ##' # including dosing and observation (sampling) events
+##' # including dosing and observation (sampling) events
 ##'
 ##' # QD (once daily) dosing for 5 days.
 ##'
