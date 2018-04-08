@@ -74,8 +74,10 @@ int par_progress(int c, int n, int d, int cores, clock_t t0, int stop){
 
 rx_solving_options_ind *rxOptionsIniEnsure(int mx){
   if (mx >= max_inds_global){
+    Free(inds_global);
+    inds_global =Calloc(mx+1024, rx_solving_options_ind);
     max_inds_global = mx+1024;
-    inds_global = Realloc(inds_global, max_inds_global, rx_solving_options_ind);
+    rx_global.subjects = inds_global;
   }
   return inds_global;
 }
@@ -838,7 +840,7 @@ void setExtraCmt(int xtra){
 }
 
 double rxDosingTimeP(int i, rx_solve *rx, unsigned int id){
-  if (i < nDosesP(rx,id)){
+  if ((unsigned int) i < nDosesP(rx,id)){
     rx_solving_options_ind *ind;
     ind = getRxId(rx, id);
     return ind->all_times[ind->idose[i]];
@@ -852,7 +854,7 @@ double rxDosingTime(int i){
 }
 
 int rxDosingEvidP(int i, rx_solve *rx, unsigned int id){
-  if (i < nDosesP(rx, id)){
+  if ((unsigned int)i < nDosesP(rx, id)){
     rx_solving_options_ind *ind;
     ind = getRxId(rx, id);
     return (ind->evid[ind->idose[i]]);
@@ -867,7 +869,7 @@ int rxDosingEvid(int i){
 }
 
 double rxDoseP(int i, rx_solve *rx, unsigned int id){
-  if (i < nDosesP(rx, id)){
+  if ((unsigned int)i < nDosesP(rx, id)){
     rx_solving_options_ind *ind;
     ind = getRxId(rx, id);
     return(ind->dose[i]);
