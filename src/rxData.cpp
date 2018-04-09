@@ -2750,8 +2750,6 @@ SEXP rxSolveC(const RObject &obj,
     gBadDoseSetup(op->neq*nPopPar);
     std::fill_n(&_globals.gBadDose[0], op->neq*nPopPar, 0);
 
-    glhsSetup(lhs.size()*nPopPar);
-
     grcSetup(nPopPar);
     std::fill_n(&_globals.grc[0], nPopPar, 0);
 
@@ -2765,7 +2763,9 @@ SEXP rxSolveC(const RObject &obj,
     std::fill_n(&_globals.jac_counter[0], nPopPar, 0);
 
     rx->nsim = nPopPar / nsub;
-    if (rx->nsim < 1) rx->nsim=1;      
+    if (rx->nsim < 1) rx->nsim=1;
+    glhsSetup(rx->nall*lhs.size()*rx->nsim);
+
     gsolveSetup(rx->nall*state.size()*rx->nsim);
     std::fill_n(&_globals.gsolve[0],rx->nall*state.size()*rx->nsim,0.0);
     int curEvent = 0;
