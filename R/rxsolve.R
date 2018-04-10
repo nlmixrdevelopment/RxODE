@@ -470,7 +470,8 @@ rxSolve <- function(object, params=NULL, events=NULL, inits = NULL, scale = NULL
     } else {
         matrix <- as.integer(matrix);
     }
-    method <- as.integer(which(method == c("lsoda", "dop853", "liblsoda")) - 1)
+    method.idx <- c("lsoda"=1, "dop853"=0, "liblsoda"=2);
+    method <- as.integer(method.idx[method]);
     if (length(covs_interpolation) > 1) covs_interpolation <- covs_interpolation[1];
     covs_interpolation <- tolower(match.arg(covs_interpolation, c("linear", "locf", "LOCF", "constant", "nocb", "NOCB", "midpoint")))
     if (covs_interpolation == "constant") covs_interpolation <- "locf";

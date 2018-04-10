@@ -2463,6 +2463,7 @@ SEXP rxSolveC(const RObject &obj,
       NumericVector amt  = as<NumericVector>(dataf[2]);
       ind = &(rx->subjects[0]);
       ind->id=1;
+      rx->nsub= 1;
       // Time copy
       ind->n_all_times   = time.size();
       gall_timesSetup(ind->n_all_times);
@@ -2674,6 +2675,7 @@ SEXP rxSolveC(const RObject &obj,
         op->hmax2 = hmax0;
       }
       nsub++;
+      rx->nsub= nsub;
     }
     // Make sure the user input all the parmeters.
     gParPosSetup(npars);
@@ -2739,13 +2741,13 @@ SEXP rxSolveC(const RObject &obj,
     }
     op->svar = &_globals.gsvar[0];
     // Now setup the rest of the rx_solve object
-    if (nPopPar != 1 && nPopPar % nsub != 0){
-      stop("The number of parameters (%d) solved by RxODE for multi-subject data needs to be a multiple of the number of subjects (%d).",nPopPar, nsub);
+    if (nPopPar != 1 && nPopPar % rx->nsub != 0){
+      stop("The number of parameters (%d) solved by RxODE for multi-subject data needs to be a multiple of the number of subjects (%d).",nPopPar, rx->nsub);
     }
-    //
+
     gInfusionRateSetup(op->neq*nPopPar);
     std::fill_n(&_globals.gInfusionRate[0], op->neq*nPopPar, 0.0);
-      
+
     gBadDoseSetup(op->neq*nPopPar);
     std::fill_n(&_globals.gBadDose[0], op->neq*nPopPar, 0);
 
@@ -2761,8 +2763,9 @@ SEXP rxSolveC(const RObject &obj,
     gjac_counterSetup(nPopPar);
     std::fill_n(&_globals.jac_counter[0], nPopPar, 0);
 
-    rx->nsim = nPopPar / nsub;
+    rx->nsim = nPopPar / rx->nsub;
     if (rx->nsim < 1) rx->nsim=1;
+
     glhsSetup(rx->nall*lhs.size()*rx->nsim);
     std::fill_n(&_globals.glhs[0],rx->nall*lhs.size()*rx->nsim,0.0);
 
@@ -2783,7 +2786,7 @@ SEXP rxSolveC(const RObject &obj,
 	  _globals.gpars[i] = mvIni[-_globals.gParPos[i]-1];
 	}
       }
-      for (i = nsub; i--;){
+      for (i = rx->nsub; i--;){
 	ind = &(rx->subjects[i]);
 	ind->par_ptr = &_globals.gpars[0];
 	ind->InfusionRate = &_globals.gInfusionRate[op->neq*i];
@@ -2802,7 +2805,6 @@ SEXP rxSolveC(const RObject &obj,
         ind->dadt_counter = &_globals.dadt_counter[i];
         ind->jac_counter  = &_globals.jac_counter[i];
       }
-      rx->nsub= nsub;
       break;
     case 2: // DataFrame
       // Convert to NumericMatrix
@@ -2831,12 +2833,11 @@ SEXP rxSolveC(const RObject &obj,
 	    }
 	  }
 	}
-	rx->nsub= nsub;
 	curEvent=0;
 	rx_solving_options_ind indS;
 	for (unsigned int simNum = rx->nsim; simNum--;){
 	  for (unsigned int id = rx->nsub; id--;){
-	    unsigned int cid = id+simNum*nsub;
+	    unsigned int cid = id+simNum*rx->nsub;
 	    ind = &(rx->subjects[cid]);
 	    ind->par_ptr = &_globals.gpars[cid*npars];
 	    ind->InfusionRate = &_globals.gInfusionRate[op->neq*cid];
@@ -2949,12 +2950,12 @@ SEXP rxSolveC(const RObject &obj,
       IntegerVector eGparPos(npars);
       std::copy(&_globals.gParPos[0], &_globals.gParPos[0]+npars, eGparPos.begin());
       e[".par.pos"] = eGparPos;
-      IntegerVector slvr_counterIv(nsub*nPopPar);
-      IntegerVector dadt_counterIv(nsub*nPopPar);
-      IntegerVector  jac_counterIv(nsub*nPopPar);
-      std::copy(&_globals.slvr_counter[0], &_globals.slvr_counter[0] + nsub*nPopPar, slvr_counterIv.begin());
-      std::copy(&_globals.dadt_counter[0], &_globals.dadt_counter[0] + nsub*nPopPar, dadt_counterIv.begin());
-      std::copy(&_globals.jac_counter[0], &_globals.jac_counter[0] + nsub*nPopPar, jac_counterIv.begin());
+      IntegerVector slvr_counterIv(rx->nsub*nPopPar);
+      IntegerVector dadt_counterIv(rx->nsub*nPopPar);
+      IntegerVector  jac_counterIv(rx->nsub*nPopPar);
+      std::copy(&_globals.slvr_counter[0], &_globals.slvr_counter[0] + rx->nsub*nPopPar, slvr_counterIv.begin());
+      std::copy(&_globals.dadt_counter[0], &_globals.dadt_counter[0] + rx->nsub*nPopPar, dadt_counterIv.begin());
+      std::copy(&_globals.jac_counter[0], &_globals.jac_counter[0] + rx->nsub*nPopPar, jac_counterIv.begin());
       e[".slvr.counter"] = slvr_counterIv;
       e[".dadt.counter"] = dadt_counterIv;
       e[".jac.counter"] = jac_counterIv;
