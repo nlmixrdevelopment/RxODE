@@ -2263,7 +2263,6 @@ SEXP rxSolveC(const RObject &obj,
     int npars = pars.size();
     CharacterVector state = mv["state"];
     CharacterVector lhs = mv["lhs"];
-    int lhsSize = lhs.size();
     op->neq = state.size();
     op->badSolve = 0;
     op->abort = 0;
@@ -2765,6 +2764,7 @@ SEXP rxSolveC(const RObject &obj,
     rx->nsim = nPopPar / nsub;
     if (rx->nsim < 1) rx->nsim=1;
     glhsSetup(rx->nall*lhs.size()*rx->nsim);
+    std::fill_n(&_globals.glhs[0],rx->nall*lhs.size()*rx->nsim,0.0);
 
     gsolveSetup(rx->nall*state.size()*rx->nsim);
     std::fill_n(&_globals.gsolve[0],rx->nall*state.size()*rx->nsim,0.0);
@@ -2815,60 +2815,63 @@ SEXP rxSolveC(const RObject &obj,
 	parMat.attr("dimnames") = List::create(R_NilValue, parDf.names());
       }
     case 3: // NumericMatrix
-      gparsSetup(npars*nPopPar);
-      for (i = npars*nPopPar; i--;){
-	j = floor(i / npars);
-	k = i % npars;
-	if (_globals.gParPos[k] == 0){
-	  _globals.gpars[i] = 0;
-	} else if (_globals.gParPos[k] > 0){
-	  // posPar[i] = j + 1;
-	  _globals.gpars[i] = parMat(j, _globals.gParPos[k]-1);
-	} else {
-	  // posPar[i] = -j - 1;
-	  _globals.gpars[i] = mvIni[-_globals.gParPos[k]-1];
-	}
-      }
-      rx->nsub= nsub;
-      curEvent=0;
-      rx_solving_options_ind indS;
-      for (unsigned int simNum = rx->nsim; simNum--;){
-        for (unsigned int id = rx->nsub; id--;){
-          unsigned int cid = id+simNum*nsub;
-          ind = &(rx->subjects[cid]);
-	  ind->par_ptr = &_globals.gpars[cid*npars];
-	  ind->InfusionRate = &_globals.gInfusionRate[op->neq*cid];
-          ind->BadDose = &_globals.gBadDose[op->neq*cid];
-          ind->nBadDose = 0;
-          // Hmax defined above.
-          ind->tlast=0.0;
-          ind->podo = 0.0;
-          ind->ixds =  0;
-          ind->sim = simNum+1;
-          ind->lhs = &_globals.glhs[cid*lhsSize];
-          ind->rc = &_globals.grc[cid];
-          ind->slvr_counter = &_globals.slvr_counter[cid];
-          ind->dadt_counter = &_globals.dadt_counter[cid];
-          ind->jac_counter = &_globals.jac_counter[cid];
-          if (simNum){
-	    // Assign the pointers to the shared data
-	    indS = rx->subjects[id];
-	    if (op->do_par_cov){
-              ind->cov_ptr = indS.cov_ptr;
+      {
+	gparsSetup(npars*nPopPar);
+        for (unsigned int j = 0; j < (unsigned int)nPopPar; j++){
+	  for (unsigned int k = 0; k < (unsigned int)npars; k++){
+	    i = k+npars*j;
+	    if (_globals.gParPos[k] == 0){
+	      _globals.gpars[i] = 0;
+	    } else if (_globals.gParPos[k] > 0){
+	      // posPar[i] = j + 1;
+	      _globals.gpars[i] = parMat(j, _globals.gParPos[k]-1);
+	    } else {
+	      // posPar[i] = -j - 1;
+	      _globals.gpars[i] = mvIni[-_globals.gParPos[k]-1];
 	    }
-	    ind->n_all_times =indS.n_all_times;
-	    ind->HMAX = indS.HMAX;
-	    ind->idose = &(indS.idose[0]);
-            ind->ndoses = indS.ndoses;
-	    ind->dose = &(indS.dose[0]);
-	    ind->evid =&(indS.evid[0]);
-	    ind->all_times = &(indS.all_times[0]);
-            ind->id=id+1;
-          }
-	  int eLen = op->neq*ind->n_all_times;
-          ind->solve = &_globals.gsolve[curEvent];
-          curEvent += eLen;
-        }
+	  }
+	}
+	rx->nsub= nsub;
+	curEvent=0;
+	rx_solving_options_ind indS;
+	for (unsigned int simNum = rx->nsim; simNum--;){
+	  for (unsigned int id = rx->nsub; id--;){
+	    unsigned int cid = id+simNum*nsub;
+	    ind = &(rx->subjects[cid]);
+	    ind->par_ptr = &_globals.gpars[cid*npars];
+	    ind->InfusionRate = &_globals.gInfusionRate[op->neq*cid];
+	    ind->BadDose = &_globals.gBadDose[op->neq*cid];
+	    ind->nBadDose = 0;
+	    // Hmax defined above.
+	    ind->tlast=0.0;
+	    ind->podo = 0.0;
+	    ind->ixds =  0;
+	    ind->sim = simNum+1;
+	    ind->lhs = &_globals.glhs[cid];
+	    ind->rc = &_globals.grc[cid];
+	    ind->slvr_counter = &_globals.slvr_counter[cid];
+	    ind->dadt_counter = &_globals.dadt_counter[cid];
+	    ind->jac_counter = &_globals.jac_counter[cid];
+	    if (simNum){
+	      // Assign the pointers to the shared data
+	      indS = rx->subjects[id];
+	      if (op->do_par_cov){
+		ind->cov_ptr = indS.cov_ptr;
+	      }
+	      ind->n_all_times =indS.n_all_times;
+	      ind->HMAX = indS.HMAX;
+	      ind->idose = &(indS.idose[0]);
+	      ind->ndoses = indS.ndoses;
+	      ind->dose = &(indS.dose[0]);
+	      ind->evid =&(indS.evid[0]);
+	      ind->all_times = &(indS.all_times[0]);
+	      ind->id=id+1;
+	    }
+	    int eLen = op->neq*ind->n_all_times;
+	    ind->solve = &_globals.gsolve[curEvent];
+	    curEvent += eLen;
+	  }
+	}
       }
       break;
     default: 
