@@ -2744,33 +2744,35 @@ SEXP rxSolveC(const RObject &obj,
     if (nPopPar != 1 && nPopPar % rx->nsub != 0){
       stop("The number of parameters (%d) solved by RxODE for multi-subject data needs to be a multiple of the number of subjects (%d).",nPopPar, rx->nsub);
     }
+    int nSize = nPopPar;
+    if (nPopPar == 1) nSize = rx->nsub;
 
-    gInfusionRateSetup(op->neq*nPopPar);
-    std::fill_n(&_globals.gInfusionRate[0], op->neq*nPopPar, 0.0);
+    gInfusionRateSetup(op->neq*nSize);
+    std::fill_n(&_globals.gInfusionRate[0], op->neq*nSize, 0.0);
 
-    gBadDoseSetup(op->neq*nPopPar);
-    std::fill_n(&_globals.gBadDose[0], op->neq*nPopPar, 0);
+    gBadDoseSetup(op->neq*nSize);
+    std::fill_n(&_globals.gBadDose[0], op->neq*nSize, 0);
 
-    grcSetup(nPopPar);
-    std::fill_n(&_globals.grc[0], nPopPar, 0);
+    grcSetup(nSize);
+    std::fill_n(&_globals.grc[0], nSize, 0);
 
-    gslvr_counterSetup(nPopPar);
-    std::fill_n(&_globals.slvr_counter[0], nPopPar, 0);
+    gslvr_counterSetup(nSize);
+    std::fill_n(&_globals.slvr_counter[0], nSize, 0);
     
-    gdadt_counterSetup(nPopPar);
-    std::fill_n(&_globals.dadt_counter[0], nPopPar, 0);
+    gdadt_counterSetup(nSize);
+    std::fill_n(&_globals.dadt_counter[0], nSize, 0);
 
-    gjac_counterSetup(nPopPar);
-    std::fill_n(&_globals.jac_counter[0], nPopPar, 0);
+    gjac_counterSetup(nSize);
+    std::fill_n(&_globals.jac_counter[0], nSize, 0);
+
+    glhsSetup(lhs.size()*nSize);
+    std::fill_n(&_globals.glhs[0],lhs.size()*nSize,0.0);
 
     rx->nsim = nPopPar / rx->nsub;
     if (rx->nsim < 1) rx->nsim=1;
 
-    glhsSetup(rx->nall*lhs.size()*rx->nsim);
-    std::fill_n(&_globals.glhs[0],rx->nall*lhs.size()*rx->nsim,0.0);
-
     gsolveSetup(rx->nall*state.size()*rx->nsim);
-    std::fill_n(&_globals.gsolve[0],rx->nall*state.size()*rx->nsim,0.0);
+    std::fill_n(&_globals.gsolve[0], rx->nall*state.size()*rx->nsim, 0.0);
     int curEvent = 0;
     
     switch(parType){
