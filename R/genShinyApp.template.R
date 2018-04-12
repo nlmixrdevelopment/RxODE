@@ -57,7 +57,7 @@
 ##' @export genShinyApp.template
 genShinyApp.template <-
 function(appDir = "shinyExample", verbose = TRUE,
-         ODE.config = list(ode="model", params=c(KA=0.294), inits=c(eff=1), stiff=TRUE, atol=1e-8, rtol=1e-6)
+         ODE.config = list(ode="model", params=c(KA=0.294), inits=c(eff=1), method="lsoda", atol=1e-8, rtol=1e-6)
 )
     {
         if (missing(ODE.config)){
@@ -75,7 +75,7 @@ function(appDir = "shinyExample", verbose = TRUE,
          Kin=1.0, Kout=1.0, EC50=200.0),
 
    inits = c(depot=0, centr=0, pari=0, eff=1),
-   stiff = TRUE,
+   method="lsoda",
    atol  = 1e-08,
    rtol  = 1e-06
    )
@@ -114,10 +114,10 @@ function(appDir = "shinyExample", verbose = TRUE,
    # file rx_shiny_data.rda to be loaded by the server.R
 
    fn <- file.path(appDir, "rx_shiny_data.rda")
-   stiff = ODE.config$stiff
+   method = ODE.config$method
    atol  = ODE.config$atol
    rtol  = ODE.config$rtol
-   save(mod1, params, inits, stiff, atol, rtol, file = fn)
+   save(mod1, params, inits, method, atol, rtol, file = fn)
 
    # write the shiny server.R and ui.R files
    write.template.server(appDir)
@@ -157,7 +157,7 @@ function(appDir)
       library(RxODE)
 
       # read objects from "rx_shiny_data.rda" in the  AppDir folder,
-      # objects include, mod1, params, inits, stiff, atol, rtol.]
+      # objects include, mod1, params, inits, method, atol, rtol.]
 
       load(file.path("%s", "rx_shiny_data.rda"))
 
@@ -187,7 +187,7 @@ function(appDir)
           ev$get.EventTable()
           ev$add.sampling(0:(ncyc*lcyc*24))
 
-          mod1$solve(params, ev, inits, stiff=stiff, atol=atol, rtol=rtol)
+          mod1$solve(params, ev, inits, method=method, atol=atol, rtol=rtol)
         })
 
 
