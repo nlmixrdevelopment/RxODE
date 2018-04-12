@@ -1979,6 +1979,7 @@ void updateSolveEnvPost(Environment e){
     // Note event.copy doesn't really make sense...?  The create.eventTable does basically the same thing.
   }
 }
+
 extern "C" void rxOptionsFree();
 extern "C" void rxOptionsIni();
 extern "C" rx_solving_options_ind *rxOptionsIniEnsure(int mx);
@@ -2883,6 +2884,10 @@ SEXP rxSolveC(const RObject &obj,
     }
     par_solve(rx);
     if (op->abort){
+      gFree();
+      rxOptionsFree();
+      rxOptionsIni();
+      rxOptionsIniData();
       stop("Aborted solve.");
     }
     int doDose = 0;
