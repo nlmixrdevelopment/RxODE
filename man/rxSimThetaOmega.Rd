@@ -7,7 +7,8 @@
 rxSimThetaOmega(params = NULL, omega = NULL, omegaDf = NULL,
   omegaIsChol = FALSE, nSub = 1L, thetaMat = NULL, thetaDf = NULL,
   thetaIsChol = FALSE, nStud = 1L, sigma = NULL, sigmaDf = NULL,
-  sigmaIsChol = FALSE, nCoresRV = 1L, nObs = 1L, simVariability = TRUE)
+  sigmaIsChol = FALSE, nCoresRV = 1L, nObs = 1L, dfSub = 0, dfObs = 0,
+  simSubjects = TRUE)
 }
 \arguments{
 \item{params}{Named Vector of RxODE model parameters}
@@ -57,10 +58,11 @@ with the same number of cores. This is the reason this is set
 to be one, regardless of what the number of cores are used in
 threaded ODE solving.}
 
-\item{nObs}{Number of observations to simulate for sigma.}
+\item{dfSub}{Degrees of freedom to sample the between subject variaiblity matrix from the 
+inverse Wishart distribution (scaled) or scaled inverse chi squared distribution.}
 
-\item{simVariability}{For each study simulate the uncertanty in the Omega and 
-Sigma item}
+\item{dfObs}{Degrees of freedom to sample the unexplained variaiblity matrix from the 
+inverse Wishart distribution (scaled) or scaled inverse chi squared distribution.}
 }
 \description{
 Simulate Parameters from a Theta/Omega specification
