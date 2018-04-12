@@ -3436,7 +3436,6 @@ RObject rxSolveUpdate(RObject obj,
           updateSolveEnvPost(e);
           if (rxIs(e["params.dat"], "NULL")) stop("Cannot update nonexistent parameters.");
           List pars = List(e["params.dat"]);
-	  print(pars);
 	  CharacterVector nmp = pars.names();
 	  int i, n, np, nc, j;
 	  np = (as<NumericVector>(pars[0])).size();

@@ -36,13 +36,15 @@ rxPermissive({
         expect_equal(length(et1$get.dosing()[,1]), 5);
     })
 
-    o1.first <-
-        m1$solve(
-               params = c(KA=.291, CL=18.6, V2=40.2, Q=10.5, V3=297.0,
-                          Kin=1.0, Kout=1.0, EC50=200.0),
-               events = et1,
-               inits = c(0, 0, 0, 1)
-           )
+    o1.first <- NULL
+    test_that("warning", {
+        expect_warning({o1.first <<- m1$solve(params = c(KA=.291, CL=18.6, V2=40.2, Q=10.5, V3=297.0,
+                                         Kin=1.0, Kout=1.0, EC50=200.0),
+                              events = et1,
+                              inits = c(0, 0, 0, 1)
+                              )})
+    })
+
 
     test_that("RxODE event 1 solved.",{
         expect_equal(length(o1.first[,1]),et1$get.nobs());
@@ -70,7 +72,7 @@ rxPermissive({
     })
 
     o2.s <-
-        m2$solve(params=c(r=1, K=10), events=et2, inits=c(y=2), stiff = TRUE)
+        m2$solve(params=c(r=1, K=10), events=et2, inits=c(y=2), method="lsoda")
 
     test_that("RxODE instance 2 was solved",{
         expect_equal(length(o2.s[,1]),et2$get.nobs());
@@ -110,13 +112,14 @@ rxPermissive({
     })
 
     ## Now go back to model 1 for (same) integration
-    o1.second <-
-        m1$solve(
-               params = c(KA=.291, CL=18.6, V2=40.2, Q=10.5, V3=297.0,
-                          Kin=1.0, Kout=1.0, EC50=200.0),
-               events = et1,
-               inits = c(0, 0, 0, 1)
-           )
+    o1.second <- NULL
+    test_that("Warning when inits is unnamed", {
+        expect_warning({o1.second <<- m1$solve(
+                                            params = c(KA=.291, CL=18.6, V2=40.2, Q=10.5, V3=297.0,
+                                                       Kin=1.0, Kout=1.0, EC50=200.0),
+                                            events = et1,
+                                            inits = c(0, 0, 0, 1)
+                                        )})})
 
     test_that("Second solve of model 1 gives the same results",{
         expect_equal(o1.first,o1.second);
@@ -124,7 +127,7 @@ rxPermissive({
 
     ## and go back to model 2 for different ode solver
     o2.ns <-
-        m2$solve(params=c(r=1, K=10), events=et2, inits=c(y=12), stiff = FALSE)
+        m2$solve(params=c(r=1, K=10), events=et2, inits=c(y=12), method = "dop853")
 
     test_that("Differnt solve of Model 1 still works",{
         expect_equal(length(o2.ns[,1]),length(o2.s[,1]));
