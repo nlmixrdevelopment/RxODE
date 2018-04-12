@@ -1806,11 +1806,11 @@ void updateSolveEnvPost(Environment e){
       }
       unsigned int i, j=0;
       for (i = 0; i < ppos.size(); i++){
-	if (_globals.gParPos[i] > 0){ // User specified parameter
+	if (ppos[i] > 0){ // User specified parameter
           tmp[j] = parNumeric[ppos[i]-1];
           // prsn[j] = pars[i];
 	  j++;
-        } else if (_globals.gParPos[i] < 0) { // ini specified parameter.
+        } else if (ppos[i] < 0) { // ini specified parameter.
           tmp[j] = mvIni[-ppos[i]-1];
           // prsn[j] = pars[i];
 	  j++;
@@ -1822,7 +1822,7 @@ void updateSolveEnvPost(Environment e){
       Free(tmp);
       j=0;
       for (i = 0; i < ppos.size(); i++){
-        if (_globals.gParPos[i] != 0){ // User specified parameter
+        if (ppos[i] != 0){ // User specified parameter
           prsn[j] = pars[i];
           j++;
         }
@@ -1874,11 +1874,11 @@ void updateSolveEnvPost(Environment e){
 	j++;
       }
       for (i = 0; i < ppos.size();i++){
-        if (_globals.gParPos[i] > 0){ // User specified parameter
+        if (ppos[i] > 0){ // User specified parameter
           prsl[j] = parsdf[ppos[i]-1];
           prsn[j] = pars[i];
           j++;
-        } else if (_globals.gParPos[i] < 0) { // ini specified parameter.
+        } else if (ppos[i] < 0) { // ini specified parameter.
 	  NumericVector tmp(parsdf.nrow(), mvIni[-ppos[i]-1]);
 	  prsl[j] = tmp;
           prsn[j] = pars[i];
@@ -2263,6 +2263,7 @@ SEXP rxSolveC(const RObject &obj,
     CharacterVector covnames, simnames;
     CharacterVector pars = mv["params"];
     int npars = pars.size();
+    IntegerVector eGparPos(npars);
     CharacterVector state = mv["state"];
     CharacterVector lhs = mv["lhs"];
     op->neq = state.size();
@@ -2693,6 +2694,7 @@ SEXP rxSolveC(const RObject &obj,
 	if (_globals.gpar_cov[j] == (int)(i + 1)){
 	  _globals.gParPos[i] = 0; // These are set at run-time and "dont" matter.
 	  curPar = true;
+          eGparPos[i]=_globals.gParPos[i];
 	  break;
 	}
       }
@@ -2703,7 +2705,8 @@ SEXP rxSolveC(const RObject &obj,
 	    _globals.gsvar[j] = i;
 	    _globals.gParPos[i] = 0; // These are set at run-time and "dont" matter.
 	    curPar = true;
-	    break;
+            eGparPos[i]=_globals.gParPos[i];
+            break;
 	  }
 	}
       }
@@ -2713,6 +2716,7 @@ SEXP rxSolveC(const RObject &obj,
           if (nmP[j] == pars[i]){
             curPar = true;
             _globals.gParPos[i] = j + 1;
+            eGparPos[i]=_globals.gParPos[i];
             break;
           }
         }
@@ -2723,6 +2727,7 @@ SEXP rxSolveC(const RObject &obj,
           if (mvIniN[j] == pars[i]){
             curPar = true;
             _globals.gParPos[i] = -j - 1;
+            eGparPos[i]=_globals.gParPos[i];
             break;
           }
         }
@@ -2957,8 +2962,7 @@ SEXP rxSolveC(const RObject &obj,
       e["check.nrow"] = nr;
       e["check.ncol"] = nc;
       e["check.names"] = dat.names();
-      IntegerVector eGparPos(npars);
-      std::copy(&_globals.gParPos[0], &_globals.gParPos[0]+npars, eGparPos.begin());
+      
       e[".par.pos"] = eGparPos;
       IntegerVector slvr_counterIv(rx->nsub*nPopPar);
       IntegerVector dadt_counterIv(rx->nsub*nPopPar);
@@ -3291,6 +3295,9 @@ RObject rxSolveUpdate(RObject obj,
     rxCurObj = obj;
     if (rxIs(arg,"character")){
       CharacterVector what = CharacterVector(arg);
+      // CharacterVector classattr = obj.attr("class");
+      // Environment e = as<Environment>(classattr.attr(".RxODE.env"));
+      // updateSolveEnvPost(e);
       if (what.size() == 1){
 	std::string sarg = as<std::string>(what[0]);
 	// Now check to see if this is something that can be updated...
@@ -3429,6 +3436,7 @@ RObject rxSolveUpdate(RObject obj,
           updateSolveEnvPost(e);
           if (rxIs(e["params.dat"], "NULL")) stop("Cannot update nonexistent parameters.");
           List pars = List(e["params.dat"]);
+	  print(pars);
 	  CharacterVector nmp = pars.names();
 	  int i, n, np, nc, j;
 	  np = (as<NumericVector>(pars[0])).size();
