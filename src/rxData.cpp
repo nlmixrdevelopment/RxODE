@@ -1979,7 +1979,8 @@ void updateSolveEnvPost(Environment e){
     // Note event.copy doesn't really make sense...?  The create.eventTable does basically the same thing.
   }
 }
-
+extern "C" void rxOptionsFree();
+extern "C" void rxOptionsIni();
 extern "C" rx_solving_options_ind *rxOptionsIniEnsure(int mx);
 extern "C" void RxODE_assign_fn_pointers(SEXP);
 SEXP rxSolveC(const RObject &obj,
@@ -2894,6 +2895,8 @@ SEXP rxSolveC(const RObject &obj,
     rx->stateIgnore = &si[0];
     List dat = RxODE_df(doDose);
     gFree();
+    rxOptionsFree();
+    rxOptionsIni();
     rxOptionsIniData();
     dat.attr("class") = CharacterVector::create("data.frame");
     List xtra;
