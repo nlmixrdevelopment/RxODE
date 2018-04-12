@@ -635,6 +635,19 @@ is.latex <- function() {
     get("is_latex_output", asNamespace("knitr"))()
 }
 
+get.bound <- function(x, parent=parent.frame(2)){
+    bound <- do.call("c", lapply(ls(parent), function(cur){
+                              if (identical(parent[[cur]], x)){
+                                  return(cur)
+                              }
+                              return(NULL);
+                          }));
+    if (length(bound) > 1) bound <- bound[1];
+    if (length(bound) == 0){
+        bound  <- ""
+    }
+    return(bound)
+}
 
 ##' Print information about the RxODE object.
 ##'
@@ -647,6 +660,7 @@ is.latex <- function() {
 print.RxODE <-
     function(x, ...)
 {
+    bound <- get.bound(x, parent.frame(2));
     valid <- x$isValid()
     ready <- FALSE
     .msg2 <- '';
@@ -678,13 +692,13 @@ print.RxODE <-
     if (!any(names(list(...)) == "rxSuppress") && valid){
         cur <- rxState(x);
         if (length(cur) > 0)
-            message(paste0(crayon::blue$bold("$state"), ": ", paste(cur, collapse=", ")))
+            message(paste0(crayon::yellow(bound), crayon::blue$bold("$state"), ": ", paste(cur, collapse=", ")))
         cur <- rxParams(x);
         if (length(cur) > 0)
-            message(paste0(crayon::blue$bold("$params"), ": ", paste(cur, collapse=", ")))
+            message(paste0(crayon::yellow(bound), crayon::blue$bold("$params"), ": ", paste(cur, collapse=", ")))
         cur <- rxLhs(x);
         if (length(cur) > 0)
-            message(paste0(crayon::blue$bold("$lhs"), ": ", paste(cur, collapse=", ")))
+            message(paste0(crayon::yellow(bound), crayon::blue$bold("$lhs"), ": ", paste(cur, collapse=", ")))
     }
     invisible(x)
 }
@@ -692,16 +706,17 @@ print.RxODE <-
 ##'@export
 print.rxModelVars <- function(x, ...)
 {
+    bound <- get.bound(x, parent.frame(2));
     message("RxODE model variables (see str to see all variables)");
     cur <- x$state;
     if (length(cur) > 0)
-        message(paste0(crayon::blue$bold("$state"), ": ", paste(cur, collapse=", ")))
+        message(paste0(crayon::yellow(bound), crayon::blue$bold("$state"), ": ", paste(cur, collapse=", ")))
     cur <- x$params;
     if (length(cur) > 0)
-        message(paste0(crayon::blue$bold("$params"), ": ", paste(cur, collapse=", ")))
+        message(paste0(crayon::yellow(bound), crayon::blue$bold("$params"), ": ", paste(cur, collapse=", ")))
     cur <- x$lhs;
     if (length(cur) > 0)
-        message(paste0(crayon::blue$bold("$lhs"), ": ", paste(cur, collapse=", ")))
+        message(paste0(crayon::yellow(bound), crayon::blue$bold("$lhs"), ": ", paste(cur, collapse=", ")))
     invisible(x)
 }
 

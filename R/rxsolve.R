@@ -514,12 +514,12 @@ update.rxSolve <- function(object, ...){
     rxSolve(object, ...);
 }
 
-sharedPrint <- function(x, n, width){
+sharedPrint <- function(x, n, width, bound=""){
     is.dplyr <- requireNamespace("dplyr", quietly = TRUE) && RxODE.display.tbl;
     ## cat(sprintf("Dll: %s\n\n", rxDll(x)))
     df <- x$params.single
     pars.msg <- cli::rule(left=paste0(crayon::bold("Parameters"), " (",
-                                      crayon::bold$blue("$params"), "):"));
+                                      crayon::yellow(bound), crayon::bold$blue("$params"), "):"));
     if (!is.null(df)){
         message(pars.msg);
         print(df)
@@ -539,7 +539,7 @@ sharedPrint <- function(x, n, width){
     df <- x$covs;
     if (!is.null(df)){
         message(cli::rule(left=paste0(crayon::bold("Covariates"), " (",
-                                      crayon::bold$blue("$covs"), "):")));
+                                      crayon::yellow(bound), crayon::bold$blue("$covs"), "):")));
         if (!is.dplyr){
             print(head(as.matrix(df), n = n));
         } else {
@@ -548,7 +548,7 @@ sharedPrint <- function(x, n, width){
     }
 
     message(cli::rule(left=paste0(crayon::bold("Initial Conditions"),
-                                  " (", crayon::bold$blue("$inits"), "):")))
+                                  " (", crayon::yellow(bound), crayon::bold$blue("$inits"), "):")))
     print(x$inits);
     return(invisible(is.dplyr));
 }
@@ -557,6 +557,7 @@ sharedPrint <- function(x, n, width){
 ##' @export
 print.rxSolve <- function(x, ...){
     if (rxIs(x, "rxSolve")){
+        bound <- get.bound(x, parent.frame(2));
         message(cli::rule(center=crayon::bold("Solved RxODE object"), line="bar2"));
         args <- as.list(match.call(expand.dots = TRUE));
         if (any(names(args) == "n")){
@@ -569,7 +570,7 @@ print.rxSolve <- function(x, ...){
         } else {
             width <- NULL;
         }
-        is.dplyr <- sharedPrint(x, n, width)
+        is.dplyr <- sharedPrint(x, n, width, bound)
         ## inits <- lst$inits[regexpr(regSens, names(lst$inits)) == -1];
         ## print(inits);
         message(cli::rule(left=crayon::bold("First part of data (object):")))
@@ -588,9 +589,10 @@ print.rxSolve <- function(x, ...){
 ##' @export
 summary.rxSolve <- function(object, ...){
     if (rxIs(object, "rxSolve")){
+        bound <- get.bound(x, parent.frame(2));
         message(cli::rule(center=crayon::bold("Summary of Solved RxODE object"), line="bar2"));
         message(cli::rule(left=paste0(crayon::bold("Model"),
-                                      " (", crayon::bold$blue("$model"), "):")));
+                                      " (", crayon::yellow(bound), crayon::bold$blue("$model"), "):")));
         message(rxNorm(object));
         args <- as.list(match.call(expand.dots = TRUE));
         if (any(names(args) == "n")){
@@ -603,7 +605,7 @@ summary.rxSolve <- function(object, ...){
         } else {
             width <- NULL;
         }
-        sharedPrint(object, n, width)
+        sharedPrint(object, n, width, bound)
         message(cli::rule(left=crayon::bold("Summary of solved data:")));
         print(summary.data.frame(object))
         message(cli::rule(line="bar2"))
