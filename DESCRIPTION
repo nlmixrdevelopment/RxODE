@@ -10,6 +10,9 @@ Authors@R: c(
    person("Zufar", "Mulyukov", role="aut", email="zufar.mulyukov@novartis.com"),
    person("Wenping", "Wang", 
       role = c("aut", "cre"), email = "wwang8198@gmail.com"),
+   person("Simon", "Frost", role=c("aut","ctb")),
+   person("Heng", "Li", role=c("aut","ctb")),
+   person("Yu", "Feng", role=c("aut","ctb")),	
    person("Alan", "Hindmarsh",role=c("aut","ctb")),
    person("Linda", "Petzold", role=c("aut", "ctb")),
    person("Ernst", "Hairer", role=c("aut","ctb")),
@@ -41,7 +44,9 @@ Suggests:
     tibble,
     curl,
     ggplot2,
-    gridExtra
+    gridExtra,
+    microbenchmark,
+    scales
 Imports:
     utils,
     methods,

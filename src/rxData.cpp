@@ -1508,16 +1508,21 @@ SEXP rxGetFromChar(char *ptr, std::string var){
 //' @param nStud Number virtual studies to characterize uncertainty in estimated 
 //'        parameters.
 //'
+//' @param nObs Number of observations to simulate (with \code{sigma} matrix)
+//'
 //' @param sigma Matrix for residual variation.  Adds a "NA" value for each of the 
 //'     indivdual parameters, residuals are updated after solve is completed. 
 //'
 //' @inheritParams rxSolve
 //'
 //' @param dfSub Degrees of freedom to sample the between subject variaiblity matrix from the 
-//'        inverse Wishart distribution (scaled) or scaled inverse chi squared distribution. 
+//'        inverse Wishart distribution (scaled) or scaled inverse chi squared distribution.
 //'
 //' @param dfObs Degrees of freedom to sample the unexplained variaiblity matrix from the 
 //'        inverse Wishart distribution (scaled) or scaled inverse chi squared distribution. 
+//'
+//' @param simSubjects boolean indicated RxODE should simulate subjects in studies (\code{TRUE}, 
+//'         default) or studies (\code{FALSE})
 //'
 //' @author Matthew L.Fidler
 //'

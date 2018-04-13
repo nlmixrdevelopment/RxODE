@@ -37,6 +37,9 @@ The ODE solvers DVode and LSODA was written at LLNL. DVode is in the
 Public Domain and are freely available from the CASC Software Download
 Site https://computation.llnl.gov/casc/software.html
 
+The liblsoda library is maintained by Simon Frost and has a MIT
+licence which is compatible with GPL. https://github.com/sdwfrost/liblsoda
+
 The files errmsg.f and rprintf.c are taken from the deSovle package
 for R printing in fortran.  These are copyright Karline Soetaert,
 Thomas Petzoldt and R. Woodrow Setzer.

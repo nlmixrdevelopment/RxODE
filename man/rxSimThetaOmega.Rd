@@ -58,11 +58,16 @@ with the same number of cores. This is the reason this is set
 to be one, regardless of what the number of cores are used in
 threaded ODE solving.}
 
+\item{nObs}{Number of observations to simulate (with \code{sigma} matrix)}
+
 \item{dfSub}{Degrees of freedom to sample the between subject variaiblity matrix from the 
 inverse Wishart distribution (scaled) or scaled inverse chi squared distribution.}
 
 \item{dfObs}{Degrees of freedom to sample the unexplained variaiblity matrix from the 
 inverse Wishart distribution (scaled) or scaled inverse chi squared distribution.}
+
+\item{simSubjects}{boolean indicated RxODE should simulate subjects in studies (\code{TRUE}, 
+default) or studies (\code{FALSE})}
 }
 \description{
 Simulate Parameters from a Theta/Omega specification

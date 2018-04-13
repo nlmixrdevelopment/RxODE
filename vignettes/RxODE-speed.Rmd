@@ -171,6 +171,8 @@ if (ver.no < 7){
 ### 0.5 Solve speeds
 0.5.3 solve speeds
 
+(These should be run on the same machine, and were run on my machine;  CRAN machines may give different results)
+
 Unit: microseconds
             expr     min       lq     mean   median        uq      max neval
     ode.1c.lsoda 347.627 390.9135 551.1030 438.6620  715.3360 1004.950   100
@@ -190,6 +192,8 @@ Unit: microseconds
 
    
 ### 0.7 solve speeds
+
+(rxSolve object)
 
 > res.run
 Unit: microseconds
@@ -213,6 +217,7 @@ Unit: microseconds
  ode.3c.ka.liblsoda 668.926 702.8405  950.7582 761.2995 1027.2630  5412.987
       ode.3c.ka.dop 529.696 583.9160  762.1783 676.7350  956.5325  1344.098
 
+Data frame object
 > res.run.df
 Unit: microseconds
                expr     min       lq     mean   median       uq       max neval
@@ -236,7 +241,7 @@ Unit: microseconds
       ode.3c.ka.dop 497.120 545.3155 685.4102 584.5855 804.3615  1288.764   100
 
 ## Backward old-c interface
-This is a measure of how fast the SAEM algorithm will run.
+This is a measure of how fast the SAEM algorithm will run in nlmixr
 ```
 demo <- structure(list(ID = c(1012, 1012, 1012, 1012, 1012, 1012, 1012, 1012), TIME = c(588.5, 600.5, 612.5, 624.5, 636.5, 648.5, 660.5, 672.5), DOSE = c(2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000), AMT = c(1000, 1000, 1000, 1000, 1000, 1000, 1000, 0), TAD = c(0, 0, 0, 0, 0, 0, 0, 12), CL = c(5.851496056, 5.851496056, 5.851496056, 5.851496056, 5.851496056, 5.851496056, 5.851496056, 5.851496056), V = c(49.3930186, 49.3930186, 49.3930186, 49.3930186, 49.3930186, 49.3930186, 49.3930186, 49.3930186), KA = c(3.320205555, 3.320205555, 3.320205555, 3.320205555, 3.320205555, 3.320205555, 3.320205555, 3.320205555), TAD4 = c(0, 12, 24, 36, 48, 60, 72, 84)), .Names = c("ID", "TIME", "DOSE", "AMT", "TAD", "CL", "V", "KA", "TAD4"), row.names = c(NA, -8L), class = c("data.frame"), sorted = c("ID", "TIME"));
 
@@ -343,3 +348,4 @@ Unit: microseconds
         expr     min       lq     mean   median       uq      max neval
  rxode.lsoda  447.14  496.674  632.594  548.439  766.431  4618.22  5000
    rxode.dop 5288.93 5667.348 6113.333 5797.206 6430.432 23199.09  5000
+ 
