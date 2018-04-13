@@ -176,6 +176,21 @@
 ##' @param do.solve Internal flag.  By default this is \code{TRUE},
 ##'     when \code{FALSE} a list of solving options is returned.
 ##'
+##' @param return.type This tells what type of object is returned.  The currently supported types are:
+##' \itemize{
+##' \item \code{"rxSolve"} (default) will return a reactive data frame
+##'      that can change easily change different pieces of the solve and
+##'      update the data frame.  This is the currently standard solving
+##'      method in RxODE,  is used for \code{rxSolve(object, ...)}, \code{solev(object,...)},
+##' \item \code{"data.frame"} -- returns a plain, non-reactive data
+##'      frame; Currently very slightly Faster than \code{return.type=\"matrix\"}
+##' \item \code{"matrix"} -- returns a plain matrix with column names attached
+##'     to the solved object.  This is what is used \code{eobject$run} as well as ob
+##' }
+##If
+##'
+##'     \code{return.type} equals \{matrix\}, rxSolve returns a matrix.
+##'
 ##' @inheritParams rxSimThetaOmega
 ##'
 ##' @return An \dQuote{rxSolve} solve object that stores the solved
@@ -306,7 +321,7 @@ rxSolve <- function(object, params=NULL, events=NULL, inits = NULL, scale = NULL
                 sampling.time <- events$get.sampling()$time;
                 if (cov.len != length(sampling.time)) stop("Covariate length need to match the sampling times or all the times in the event table.");
                 lst <- as.matrix(do.call("cbind", lapply(seq(1L, dim(cov)[2]), function(i){
-                                                      f <- approxfun(sampling.time, cov[, i])
+                                                      f <- stats::approxfun(sampling.time, cov[, i])
                                                       return(f(event.table$time))
                                                   })))
                 dimnames(lst) <- list(NULL, dimnames(cov)[[2]]);
@@ -589,7 +604,7 @@ print.rxSolve <- function(x, ...){
 ##' @export
 summary.rxSolve <- function(object, ...){
     if (rxIs(object, "rxSolve")){
-        bound <- get.bound(x, parent.frame(2));
+        bound <- get.bound(object, parent.frame(2));
         message(cli::rule(center=crayon::bold("Summary of Solved RxODE object"), line="bar2"));
         message(cli::rule(left=paste0(crayon::bold("Model"),
                                       " (", crayon::yellow(bound), crayon::bold$blue("$model"), "):")));

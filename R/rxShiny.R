@@ -1,25 +1,78 @@
+g.y.log10 <-  function(breaks = g.log.breaks.major,minor_breaks=  g.log.breaks.minor,labels=scales::math_format(format=log10),...){
+    g.log.breaks.minor <-  function(y){
+        r1 <- range(log10(y));
+        r <-  r1;
+        r[1] <-  floor(r[1])
+        r[2] <-  ceiling(r[2])+1;
+        breaks <- c()
+        for (i in seq(r[1],r[2])){
+            breaks <-  c(breaks,seq(2*10^(i-1),10^i-10^(i-1),by=10^(i-1)));
+        }
+        breaks <-  breaks[breaks <= 10^r1[2]]
+        breaks <-  breaks[breaks >= 10^r1[1]]
+        return(breaks)
+    }
+    g.log.breaks.major <-  function(y){
+        r1 <- range(log10(y));
+        r <-  r1;
+        r[1] <-  floor(r[1])
+        r[2] <-  ceiling(r[2])+1;
+        breaks <- 10^seq(r[1],r[2])
+        breaks <-  breaks[breaks <= 10^r1[2]]
+        breaks <-  breaks[breaks >= 10^r1[1]]
+        return(breaks)
+    }
+    ggplot2::scale_y_log10(...,labels=labels,breaks=breaks,minor_breaks = minor_breaks)
+}
+
 ##' Use Shiny to help develop an RxODE model
 ##'
 ##' @param object A RxODE family of objects. If not supplied a
 ##'     2-compartment indirect effect model is used.  If it is
 ##'     supplied, use the model associated with the RxODE object for
 ##'     the model exploration.
+##' @param params Initial parameters for model
+##' @param events Event information (currently ignored)
+##' @param inits Initial  estimates for model
 ##' @param ... Other arguments passed to rxShiny.  Currently doesn't
 ##'     do anything.
 ##' @return Nothing; Starts a shiny server
 ##' @author Zufar Mulyukov and Matthew L. Fidler
-rxShiny <- function(object, ...){
+##' @export
+rxShiny <- function(object,params = c(), events = NULL, inits = c(), ...){
     UseMethod("rxShiny");
 }
 ##' @rdname rxShiny
-rxShiny.default <- function(object="
+##' @export
+rxShiny.rxSolve <- function(object,params = NULL, events = NULL, inits = c(), ...){
+    if (is.null(params)){
+        if (dim(object$params)[1] > 1){
+        }
+        params <- setNames(unlist(object$params[1, ]), names(object$params))
+
+    }
+    rxShiny.default(object=object, params=params, events=events, inits=inits);
+}
+##' @rdname rxShiny
+##' @export
+rxShiny.default <- function(object=NULL, params = c(), events = NULL, inits = c(), ...){
+    rxReq("shiny");
+    rxReq("ggplot2");
+    rxReq("scales");
+    if (is.null(object)){
+        object <- "
 C2 = centr/V2
 C3 = peri/V3
 d/dt(depot) =-KA*depot
 d/dt(centr) = KA*depot - CL*C2 - Q*C2 + Q*C3
 d/dt(peri)  =                    Q*C2 - Q*C3
 d/dt(eff)  = Kin - Kout*(1-C2/(EC50+C2))*eff
-", ...){
+"
+        inits <- c(eff=1)
+        params <- c(KA = .291, CL = 18.6,
+                    V2 = 40.2, Q = 10.5, V3 = 297.0,
+                    Kin = 1.0, Kout = 1.0, EC50 = 200.0)
+    }
     ui<- eval(bquote(shiny::shinyUI(shiny::fluidPage(
                                                shiny::tags$style(shiny::HTML("input:invalid {background-color: #FFCCCC;}")),
         shiny::tags$script('
@@ -27,8 +80,7 @@ $(document).on("keyup", function(e) {
   if(e.keyCode == 13){
   shiny::Shiny.onInputChange("EnterPressed", Math.random());
   }});
-  '
-),
+  '),
 shiny::fluidRow(
     shiny::column(12,
            shiny::fluidRow(
@@ -42,6 +94,8 @@ shiny::fluidRow(
                           value=.(rxNorm(object))),
 
 shiny::actionButton("goButton", "Compile", align='right'),
+shiny::actionButton("goPlot", "Update Plots", align='right'),
+shiny::checkboxInput("goLogy", "Log y"),
 shiny::hr(),
 shiny::h4('Time sampling'),
 shiny::tags$div(style="display: inline-block;",shiny::textInput('tmin', 'start', width=60, value = 0)),
@@ -66,17 +120,16 @@ shiny::column(width = 7,
            shiny::h4('Parameters'),
            shiny::uiOutput("pars"),
            shiny::uiOutput('message', placeholder = FALSE),
-           shiny::uiOutput("plotTabs")
-       )))))))))
+           shiny::uiOutput("plotTabs"))))))))))
 
-    server <- function(input, output, session) {
+    server <- eval(bquote(function(input, output, session) {
         values <- reactiveValues()
-        values$m1 = NULL
+        m1 <- NULL
         values$res = NULL
         values$msg = 'NULL'
-
-
+        values$logy = TRUE
         tmp=tempfile()
+
 
         shiny::observeEvent(input$goButton, {
             values$m1=NULL
@@ -86,7 +139,7 @@ shiny::column(width = 7,
                 tryCatch({
 
                     values$m1<-RxODE(model = input$ode, wd = tmp)
-                    values$cmts = values$m1$get.modelVars()$state
+                    values$cmts = rxState(values$m1)
                     values$pars = rxParams(values$m1)
 
                 }, error = function(e) return(e))
@@ -104,7 +157,7 @@ shiny::column(width = 7,
                 return(invisible())
 
             cat('<h3>Message:</h3>')
-            cat(paste(gsub('<|>','',values$msg), collapse = '<br>'))
+                cat(paste(gsub('<|>','',values$msg), collapse = '<br>'))
         })
 
         output$dosing_cmt <- shiny::renderUI({
@@ -119,8 +172,9 @@ shiny::column(width = 7,
             if(length(values$cmts)==0)
                 return('none')
 
+            tmp <- rxInits(values$m1, .(inits), rxState(values$m1), 0, TRUE)
             lapply(values$cmts, function(x) {
-                shiny::div(style="display: inline-block;", shiny::textInput(x, x, value = 0, width=60))
+                shiny::div(style="display: inline-block;", shiny::textInput(x, x, value = tmp[x], width=60))
             })
         })
 
@@ -129,9 +183,9 @@ shiny::column(width = 7,
                 return()
             if(length(values$pars)==0)
                 return('none')
-
+            tmp = rxInits(values$m1,vec=.(params),req=rxParams(values$m1),defaultValue=1)
             lapply(values$pars, function(x) {
-                shiny::div(style="display: inline-block;", shiny::textInput(x, x, value = 1, width=60))
+                shiny::div(style="display: inline-block;", shiny::textInput(x, x, value = tmp[x], width=60))
             })
         })
 
@@ -148,7 +202,12 @@ shiny::column(width = 7,
                 lapply(cmts, function(cmt){
                     plotname <- paste("plot", cmt, sep="")
                     output[[plotname]] <- renderPlot({
-                        ggplot2::ggplot(as.data.frame(dat), ggplot2::aes_(x=as.name("time"), y=as.name(cmt))) + ggplot2::geom_line()
+                        p <- ggplot2::ggplot(as.data.frame(dat), ggplot2::aes_(x=as.name("time"), y=as.name(cmt))) +
+                            ggplot2::geom_line(size=1.2) + ggplot2::theme_bw(base_size=18)
+                        if (values$logy){
+                            p <- p + g.y.log10();
+                        }
+                        p
                     })
 
                     tabPanel(cmt,  plotOutput(plotname))
@@ -156,7 +215,25 @@ shiny::column(width = 7,
             do.call(tabsetPanel, c(tabs, id='plot.tabs', selected = sel.tab))
         })
 
-        observeEvent({input$EnterPressed},{
+
+        shiny::observeEvent(input$goLogy, {
+                   values$logy <- !(values$logy);
+                   values$msg <- capture.output(
+                       tryCatch({
+                           solveODE()
+                       }, error = function(e) return(e))
+                   )
+               })
+
+        shiny::observeEvent(input$goPlot, {
+                   values$msg <- capture.output(
+                       tryCatch({
+                           solveODE()
+                       }, error = function(e) return(e))
+                   )
+               })
+
+        shiny::observeEvent({input$EnterPressed},{
             values$msg <- capture.output(
                 tryCatch({
                     solveODE()
@@ -194,10 +271,8 @@ shiny::column(width = 7,
                           dosing.interval = interval,
                           dosing.to = into)
 
-            params <-
-                c(KA = .291, CL = 18.6,
-                  V2 = 40.2, Q = 10.5, V3 = 297.0,
-                  Kin = 1.0, Kout = 1.0, EC50 = 200.0)
+            params <- .(params);
+
 
             cmts = values$cmts
 
@@ -221,7 +296,7 @@ shiny::column(width = 7,
         }
 
         session$onSessionEnded(stopApp)
-    }
+    }))
 
 
     shiny::shinyApp(ui = ui, server = server)

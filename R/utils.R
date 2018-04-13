@@ -215,13 +215,13 @@ ode.h <- function(){
         }
     });
 
-    r.files <- list.files(devtools::package_file("R"), "[.]R$", full=TRUE);
+    r.files <- list.files(devtools::package_file("R"), "[.]R$", full.names=TRUE);
     r.files <- r.files[regexpr("RxODE_md5.R", r.files, fixed=TRUE) == -1]
-    md5 <- digest::digest(c(sapply(list.files(devtools::package_file("src"), pattern="[.](c|cpp|h|hpp|f|R|in)$",full=TRUE),function(x){digest::digest(x,file=T)}),
+    md5 <- digest::digest(c(sapply(list.files(devtools::package_file("src"), pattern="[.](c|cpp|h|hpp|f|R|in)$",full.names=TRUE),function(x){digest::digest(x,file=T)}),
                             sapply(r.files,function(x){digest::digest(x,file=T)}),
-                            sapply(list.files(devtools::package_file("vignettes"), pattern="[.](Rmd)$",full=TRUE),function(x){digest::digest(x,file=T)}),
-                            sapply(list.files(devtools::package_file("demo"), pattern="(R|index)$",full=TRUE),function(x){digest::digest(x,file=T)}),
-                            sapply(list.files(devtools::package_file(), pattern="(cleanup.*|configure.*|DESCRIPTION|NAMESPACE)",full=TRUE),function(x){digest::digest(x,file=T)})))
+                            sapply(list.files(devtools::package_file("vignettes"), pattern="[.](Rmd)$",full.names=TRUE),function(x){digest::digest(x,file=T)}),
+                            sapply(list.files(devtools::package_file("demo"), pattern="(R|index)$",full.names=TRUE),function(x){digest::digest(x,file=T)}),
+                            sapply(list.files(devtools::package_file(), pattern="(cleanup.*|configure.*|DESCRIPTION|NAMESPACE)",full.names=TRUE),function(x){digest::digest(x,file=T)})))
     hd <- c(hd,
             sprintf("#define __VER_2__ \"    SET_STRING_ELT(version,2,mkChar(\\\"%s\\\"));\\n\"",md5),
             sprintf("#define __VER_1__ \"    SET_STRING_ELT(version,1,mkChar(\\\"%s\\\"));\\n\"",as.vector(RxODE::rxVersion()["repo"])),

@@ -3235,7 +3235,15 @@ RObject rxSolveGet(RObject obj, RObject arg, LogicalVector exact = true){
           }
 	}
 	List mv = rxModelVars(obj);
-	CharacterVector normState = mv["normal.state"];
+	if (sarg == "rx" || sarg == "rxode" || sarg == "RxODE"){
+          CharacterVector trans = mv["trans"];
+	  getRxModels();
+	  std::string pre = as<std::string>(trans["prefix"]);
+          if (_rxModels.exists(pre)){
+	    return as<RObject>(_rxModels[pre]);
+	  }
+	}
+	CharacterVector normState = mv["normal.state"];;
 	CharacterVector parsC = mv["params"];
         CharacterVector lhsC = mv["lhs"];
 	for (i = normState.size(); i--;){

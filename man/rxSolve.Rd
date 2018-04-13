@@ -225,6 +225,20 @@ inverse Wishart distribution (scaled) or scaled inverse chi squared distribution
 
 \item{dfObs}{Degrees of freedom to sample the unexplained variaiblity matrix from the 
 inverse Wishart distribution (scaled) or scaled inverse chi squared distribution.}
+
+\item{return.type}{This tells what type of object is returned.  The currently supported types are:
+\itemize{
+\item \code{"rxSolve"} (default) will return a reactive data frame
+     that can change easily change different pieces of the solve and
+     update the data frame.  This is the currently standard solving
+     method in RxODE,  is used for \code{rxSolve(object, ...)}, \code{solev(object,...)},
+\item \code{"data.frame"} -- returns a plain, non-reactive data
+     frame; Currently very slightly Faster than \code{return.type=\"matrix\"}
+\item \code{"matrix"} -- returns a plain matrix with column names attached
+    to the solved object.  This is what is used \code{eobject$run} as well as ob
+}
+
+    \code{return.type} equals \{matrix\}, rxSolve returns a matrix.}
 }
 \value{
 An \dQuote{rxSolve} solve object that stores the solved

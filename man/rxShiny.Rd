@@ -2,20 +2,29 @@
 % Please edit documentation in R/rxShiny.R
 \name{rxShiny}
 \alias{rxShiny}
+\alias{rxShiny.rxSolve}
 \alias{rxShiny.default}
 \title{Use Shiny to help develop an RxODE model}
 \usage{
-rxShiny(object, ...)
+rxShiny(object, params = c(), events = NULL, inits = c(), ...)
 
+\method{rxShiny}{rxSolve}(object, params = NULL, events = NULL,
+  inits = c(), ...)
 
-  \method{rxShiny}{default}(object = "\\nC2 = centr/V2\\nC3 = peri/V3\\nd/dt(depot) =-KA*depot\\nd/dt(centr) = KA*depot - CL*C2 - Q*C2 + Q*C3\\nd/dt(peri)  =                    Q*C2 - Q*C3\\nd/dt(eff)  = Kin - Kout*(1-C2/(EC50+C2))*eff\\n",
-  ...)
+\method{rxShiny}{default}(object = NULL, params = c(), events = NULL,
+  inits = c(), ...)
 }
 \arguments{
 \item{object}{A RxODE family of objects. If not supplied a
 2-compartment indirect effect model is used.  If it is
 supplied, use the model associated with the RxODE object for
 the model exploration.}
+
+\item{params}{Initial parameters for model}
+
+\item{events}{Event information (currently ignored)}
+
+\item{inits}{Initial  estimates for model}
 
 \item{...}{Other arguments passed to rxShiny.  Currently doesn't
 do anything.}

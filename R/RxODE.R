@@ -328,7 +328,7 @@ RxODE <- function(model, modName = basename(wd), wd = ifelse(RxODE.cache.directo
                 model <- model[-length(model)];
             }
             model <- paste(model, collapse="\n");
-        } else if (is(model,"RxODE")){
+        } else if (rxIs(model,"RxODE")){
             model <- rxModelVars(model)$model["model"];
             if (!is.null(calcJac) && is.null(calcSens)){
                 calcSens <- FALSE;

@@ -785,7 +785,7 @@ sympyC <- function(x){
 
 ## nocov end
 
-sympyTransit4 <- function(t, n, mtt, bio, podo="podo"){
+sympyTransit4 <- function(t, n, mtt, bio, podo="podo", tlast="tlast"){
     ktr <- paste0("((", n, " + 1)/(", mtt, "))");
     lktr <- paste0("(log((", n, ") + 1) - log(", mtt, "))");
     tc <- paste0("((", t, ")-(", tlast, "))");
