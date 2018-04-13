@@ -18,4 +18,4 @@ char * _strdup_printf(char * fmt, ...);
 #ifdef ERROR
 #undef ERROR
 #endif
-#define ERROR(fmt, ...) (ctx->error?free(ctx->error):1, ctx->error=_strdup_printf("EE:" fmt " @(%s:%d)", ## __VA_ARGS__, __FILE__, __LINE__))
+#define ERROR(fmt, ...) (ctx->error? (void)free(ctx->error):(void)1, ctx->error=_strdup_printf("EE:" fmt " @(%s:%d)", ## __VA_ARGS__, __FILE__, __LINE__))

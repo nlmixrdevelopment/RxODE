@@ -13,12 +13,12 @@
   One can use it with threads and OpenMP as long as different instances
   of the solver uses different context.
     All global variables are either
-      (i) moved to a minimal local scope if possile.
+    (i) moved to a minimal local scope if possile.
       (ii) merged into a context variable that is passed around for all
            subroutine calls.
 
   Other differences:
-    (i) this code the input variables follow the C convention
+  (i) this code the input variables follow the C convention
         y, opt->atol, rtol, as well as parameters of context->function
         all indexes from 0.
     (ii) itol is eliminated. rtol and atol all has to be the same length of
@@ -26,7 +26,7 @@
     (iii) number of variables == number of equations is hard coded in the program
     (iv) lsoda also returns istate, and the error message is written to context->error
 
-  The original source code came with an MIT/X11 license. Hereby I release this
+    The original source code came with an MIT/X11 license. Hereby I release this
   code with MIT/X11 license too. Most of original notes are kept with the source
   code, when they are applicable.
 
@@ -79,7 +79,7 @@
  ***********/
 
 /*
-From tam@dragonfly.wri.com Wed Apr 24 01:35:52 1991
+  From tam@dragonfly.wri.com Wed Apr 24 01:35:52 1991
 Return-Path: <tam>
 Date: Wed, 24 Apr 91 03:35:24 CDT
 From: tam@dragonfly.wri.com
@@ -113,12 +113,12 @@ tam@wri.com
 /* Terminate lsoda due to various error conditions. */
 #define softfailure(code, fmt,...) \
 { \
-	int i=0; \
+	int             i; \
 	int neq = ctx->neq; \
  \
 	ERROR(fmt, ## __VA_ARGS__); \
 	for (i = 1; i <= neq; i++) \
-		y[i] = _C(yh)[1][i]; \
+	  y[i] = _C(yh)[1][i];	   \
 	*t = _C(tn); \
 	ctx->state = code; \
 	return ctx->state; \
@@ -133,7 +133,7 @@ tam@wri.com
 
 #define successreturn() \
 { \
-	int i=0; \
+	int             i; \
 	int neq = ctx->neq; \
  \
 	for (i = 1; i <= neq; i++) \
@@ -184,7 +184,7 @@ static int check_opt(struct lsoda_context_t * ctx, struct lsoda_opt_t * opt) {
 	 */
 	if (ctx->state == 1 || ctx->state == 3) {
 		/* c convention starts from 0. converted fortran code expects 1 */
-		int i=0;
+		int i;
 		for (i = 1; i <= ctx->neq; i++) {
 			double rtoli = rtol[i];
 			double atoli = atol[i];
@@ -256,7 +256,7 @@ static int alloc_mem(struct lsoda_context_t * ctx) {
 	int nyh = ctx->neq;
 	int lenyh = 1 + max(ctx->opt->mxordn, ctx->opt->mxords);
 	long offset = 0;
-	int i=0;
+	int i;
 	long yhoff = offset;
 	/* _C(yh) */
 	offset += (1 + lenyh) * sizeof(double *);
@@ -291,18 +291,18 @@ static int alloc_mem(struct lsoda_context_t * ctx) {
 
 	_C(memory) = malloc(offset);
 
-	_C(yh) = _C(memory) + yhoff;
-	_C(wm) =  _C(memory) + wmoff;
-	_C(ewt) = _C(memory) + ewtoff;
-	_C(savf) =_C(memory) + savfoff;
-	_C(acor) =_C(memory) + acoroff;
-	_C(ipvt) =_C(memory) + ipvtoff;
+	_C(yh) = (double **)_C(memory) + yhoff;
+	_C(wm) =  (double **)_C(memory) + wmoff;
+	_C(ewt) = (double *)_C(memory) + ewtoff;
+	_C(savf) =(double *)_C(memory) + savfoff;
+	_C(acor) =(double *)_C(memory) + acoroff;
+	_C(ipvt) =(int *)_C(memory) + ipvtoff;
 
 	for(i = 0; i <= lenyh; i++) {
-		_C(yh)[i] = _C(memory) + yh0off + i * (1 + nyh) * sizeof(double);
+		_C(yh)[i] = (double *)_C(memory) + yh0off + i * (1 + nyh) * sizeof(double);
 	}
 	for(i = 0; i <= nyh; i++) {
-		_C(wm)[i] = _C(memory) + wm0off + i * (1 + nyh) * sizeof(double);
+		_C(wm)[i] = (double *)_C(memory) + wm0off + i * (1 + nyh) * sizeof(double);
 	}
 
 	return _C(memory) != NULL;
@@ -477,7 +477,7 @@ void lsoda_free(struct lsoda_context_t * ctx) {
 
 #define ewset(ycur)  \
 { \
-	int i=0; \
+	int             i; \
  \
 	for (i = 1; i <= neq; i++) \
 		_C(ewt)[i] = rtol[i] * fabs((ycur)[i]) + atol[i]; \
@@ -503,13 +503,13 @@ int lsoda(struct lsoda_context_t * ctx, double *y, double *t, double tout) {
          * in C y[] starts from 0, but the converted fortran code starts from 1 */
 		y--;
 
-		int i=0, ihit;
+		int             i=0, ihit;
 		const int neq = ctx->neq;
 		double          big, h0, hmx, rh, tcrit, tdist, tnext, tol,
 						tolsf, tp, size, sum, w0;
 
 		if(common == NULL) {
-			hardfailure("[lsoda] illegal common block did you call lsoda_prepare?\n");
+		  hardfailure("[lsoda] illegal common block did you call lsoda_prepare?%s\n","");
 		}
 		/*
 		   Block a.
@@ -568,7 +568,7 @@ int lsoda(struct lsoda_context_t * ctx, double *y, double *t, double tout) {
 			if (itask == 4 || itask == 5) {
 				tcrit = opt->tcrit;
 				if ((tcrit - tout) * (tout - *t) < 0.) {
-					hardfailure("[lsoda] itask = 4 or 5 and tcrit behind tout\n");
+					hardfailure("[lsoda] itask = 4 or 5 and tcrit behind tout%s\n","");
 				}
 				if (h0 != 0. && (*t + h0 - tcrit) * h0 > 0.)
 					h0 = tcrit - *t;
@@ -623,7 +623,7 @@ int lsoda(struct lsoda_context_t * ctx, double *y, double *t, double tout) {
 				tdist = fabs(tout - *t);
 				w0 = fmax(fabs(*t), fabs(tout));
 				if (tdist < 2. * ETA * w0) {
-					hardfailure("[lsoda] tout too close to t to start integration\n ");
+					hardfailure("[lsoda] tout too close to t to start integration%s\n","");
 				}
 				tol = 0.;;
 				for (i = 1; i <= neq; i++)
@@ -683,10 +683,10 @@ int lsoda(struct lsoda_context_t * ctx, double *y, double *t, double tout) {
 				case 4:
 					tcrit = opt->tcrit;
 					if ((_C(tn) - tcrit) * _C(h) > 0.) {
-						hardfailure("[lsoda] itask = 4 or 5 and tcrit behind tcur\n");
+						hardfailure("[lsoda] itask = 4 or 5 and tcrit behind tcur%s\n","");
 					}
 					if ((tcrit - tout) * _C(h) < 0.) {
-						hardfailure("[lsoda] itask = 4 or 5 and tcrit behind tout\n");
+						hardfailure("[lsoda] itask = 4 or 5 and tcrit behind tout%s\n","");
 					}
 					if ((_C(tn) - tout) * _C(h) >= 0.) {
 						intdyreturn();
@@ -695,7 +695,7 @@ int lsoda(struct lsoda_context_t * ctx, double *y, double *t, double tout) {
 					if (itask == 5) {
 						tcrit = opt->tcrit;
 						if ((_C(tn) - tcrit) * _C(h) > 0.) {
-							hardfailure("[lsoda] itask = 4 or 5 and tcrit behind tcur\n");
+							hardfailure("[lsoda] itask = 4 or 5 and tcrit behind tcur%s\n","");
 						}
 					}
 					hmx = fabs(_C(tn)) + fabs(_C(h));

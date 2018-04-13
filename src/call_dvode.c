@@ -64,7 +64,7 @@ extern double RxODE_sumV(int n, ...){
   va_list valist;
   va_start(valist, n);
   double *p = Calloc(n, double);
-  for (unsigned int i = 0; i < n; i++){
+  for (unsigned int i = (unsigned int)n; i--;){
     p[i] = va_arg(valist, double);
   }
   va_end(valist);
@@ -76,7 +76,7 @@ extern double RxODE_sumV(int n, ...){
 extern double RxODE_sumV_r(double *p, long double *pld, int m, int type, int n, ...){
   va_list valist;
   va_start(valist, n);
-  for (unsigned int i = 0; i < n; i++){
+  for (unsigned int i = (unsigned int)n; i--;){
     p[i] = va_arg(valist, double);
   }
   va_end(valist);
@@ -91,7 +91,7 @@ extern double RxODE_prodV(int n, ...){
   va_list valist;
   va_start(valist, n);
   double *p = Calloc(n, double);
-  for (unsigned int i = 0; i < n; i++){
+  for (unsigned int i = (unsigned int)n; i--;){
     p[i] = va_arg(valist, double);
   }
   va_end(valist);
@@ -103,7 +103,7 @@ extern double RxODE_prodV(int n, ...){
 extern double RxODE_prodV_r(double *input, double *p, int type, int n, ...){
   va_list valist;
   va_start(valist, n);
-  for (unsigned int i = 0; i < n; i++){
+  for (unsigned int i = (unsigned int)n; i--;){
     input[i] = va_arg(valist, double);
   }
   va_end(valist);
