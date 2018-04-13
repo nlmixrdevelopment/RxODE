@@ -22,9 +22,9 @@ for (file in list.files(devtools::package_file("src/liblsoda/src"), pattern="[.]
     if (file == "solsy.c"){
         lines <- c("#include <R.h>", "#include <Rinternals.h>", gsub("abort[(] *[)]", "error(\"liblsoda does not implement this. (solsy)\")", lines));
     }
-    ## if (file == "lsoda.c"){
-    ##     lines <- gsub("int[ \t]+i[ \t]*([;,])", "int i=0\\1", lines);
-    ## }
+    if (file == "lsoda.c"){
+        lines <- gsub("int[ \t]+i[ \t]*([;,])", "int i=0\\1", lines);
+    }
     writeLines(lines, file.path(devtools::package_file("src"), gsub("[.]inc$", ".h", file)))
 }
 
