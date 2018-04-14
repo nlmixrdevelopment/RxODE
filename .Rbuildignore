@@ -18,8 +18,8 @@ RxODE.*\.(zip|pdf)$
 ^/?src/dparser/.*$
 ^/?src/liblsoda/.*$
 LICENSE
-/config.status
-/config.log
-/src/Makevars
-/src/Makevars.win
-/vignettes/RxODE-speed.Rmd
+/?config.status
+/?config.log
+/?src/Makevars
+/?src/Makevars.win
+/?vignettes/RxODE-speed.Rmd

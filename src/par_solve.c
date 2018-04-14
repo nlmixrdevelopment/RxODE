@@ -240,8 +240,7 @@ extern void par_liblsoda(rx_solve *rx){
 #endif
   int nsub = rx->nsub, nsim = rx->nsim;
   int displayProgress = (op->nDisplayProgress <= nsim*nsub);
-  clock_t t0;
-  if (displayProgress) t0 = clock();
+  clock_t t0 = clock();
   /* double *yp0=(double*) malloc((op->neq)*nsim*nsub*sizeof(double)); */
   struct lsoda_opt_t opt = {0};
   opt.ixpr = 0; // No extra printing...
@@ -442,9 +441,7 @@ extern void par_lsoda(rx_solve *rx){
   rx_solving_options *op = &op_global;
   int nsub = rx->nsub, nsim = rx->nsim;
   int displayProgress = (op->nDisplayProgress <= nsim*nsub);
-  clock_t t0 = NULL;
-  if (displayProgress)
-    t0 = clock();
+  clock_t t0 = clock();
   int i;
   double xout;
   double *yp;
@@ -556,9 +553,7 @@ void par_dop(rx_solve *rx){
   rx_solving_options *op = &op_global;
   int nsub = rx->nsub, nsim = rx->nsim;
   int displayProgress = (op->nDisplayProgress <= nsim*nsub);
-  clock_t t0;
-  if (displayProgress)
-    t0 = clock();
+  clock_t t0 = clock();
   int i, j;
   double xout;
   double *yp;
