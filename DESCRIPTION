@@ -46,7 +46,8 @@ Suggests:
     ggplot2,
     gridExtra,
     microbenchmark,
-    scales
+    scales,
+    stringi
 Imports:
     utils,
     methods,
