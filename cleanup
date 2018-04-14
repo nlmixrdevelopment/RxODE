@@ -1,4 +1,4 @@
 #!/bin/sh
-rm -f config.* 
 rm -f src/Makevars
+rm -f config.* 
 rm -f src/Makevars.win
