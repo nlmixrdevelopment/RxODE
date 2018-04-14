@@ -22,3 +22,4 @@ LICENSE
 /config.log
 /src/Makevars
 /src/Makevars.win
+/vignettes/RxODE-speed.Rmd
