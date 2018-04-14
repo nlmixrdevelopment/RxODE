@@ -12,7 +12,7 @@
 
 <meta name="author" content="Matthew L. Fidler, Melissa Hallow, and Wenping Wang" />
 
-<meta name="date" content="2018-02-22" />
+<meta name="date" content="2018-04-13" />
 
 <title>Introduction to RxODE</title>
 
@@ -70,7 +70,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">Introduction to RxODE</h1>
 <h4 class="author"><em>Matthew L. Fidler, Melissa Hallow, and Wenping Wang</em></h4>
-<h4 class="date"><em>2018-02-22</em></h4>
+<h4 class="date"><em>2018-04-13</em></h4>
 
 
 
@@ -167,69 +167,69 @@ ev<span class="op">$</span><span class="kw">add.sampling</span>(<span class="dv"
 <p>You can also return a solved object that is a modified data-frame. This is done by the <code>predict()</code> or <code>solve()</code> methods:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">x &lt;-<span class="st"> </span><span class="kw">predict</span>(mod1,theta, ev, inits)
 <span class="kw">print</span>(x)</code></pre></div>
-<pre><code>## ___________________________ Solved RxODE object ___________________________</code></pre>
-<pre><code>## -- Parameters ($params): --------------------------------------------------</code></pre>
+<pre><code>## &lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt; [1mSolved RxODE object[22m &lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;</code></pre>
+<pre><code>## -- [1mParameters[22m ([33m[39m[1m[34m$params[39m[22m): --------------------------------------------------</code></pre>
 <pre><code>##      V2      V3      KA      CL       Q     Kin    Kout    EC50 
 ##  40.200 297.000   0.294  18.600  10.500   1.000   1.000 200.000</code></pre>
-<pre><code>## -- Initial Conditions ($inits): -------------------------------------------</code></pre>
+<pre><code>## -- [1mInitial Conditions[22m ([33m[39m[1m[34m$inits[39m[22m): -------------------------------------------</code></pre>
 <pre><code>## depot centr  peri   eff 
 ##     0     0     0     1</code></pre>
-<pre><code>## -- First part of data (object): -------------------------------------------</code></pre>
-<pre><code>## # A tibble: 241 x 7
+<pre><code>## -- [1mFirst part of data (object):[22m -------------------------------------------</code></pre>
+<pre><code>## [90m# A tibble: 241 x 7[39m
 ##    time depot centr  peri   eff    C2    C3
-##   &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
-## 1  0    10000     0     0  1.00   0   0    
-## 2  1.00  7453  1784   273  1.08  44.4 0.920
-## 3  2.00  5554  2206   794  1.18  54.9 2.67 
-## 4  3.00  4140  2087  1324  1.23  51.9 4.46 
-## 5  4.00  3085  1789  1776  1.23  44.5 5.98 
-## 6  5.00  2299  1467  2132  1.21  36.5 7.18 
-## # ... with 235 more rows</code></pre>
-<pre><code>## ___________________________________________________________________________</code></pre>
+##   [3m[90m&lt;dbl&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m
+## [90m1[39m  [90m0[39m    100[90m00[39m     [90m0[39m     [90m0[39m  1.00   [90m0[39m   [90m0[39m    
+## [90m2[39m  1.00  745[90m3[39m  178[90m4[39m   273  1.08  44.4 [90m0[39m[90m.[39m920
+## [90m3[39m  2.00  555[90m4[39m  220[90m6[39m   794  1.18  54.9 2.67 
+## [90m4[39m  3.00  414[90m0[39m  208[90m7[39m  132[90m4[39m  1.23  51.9 4.46 
+## [90m5[39m  4.00  308[90m5[39m  178[90m9[39m  177[90m6[39m  1.23  44.5 5.98 
+## [90m6[39m  5.00  229[90m9[39m  146[90m7[39m  213[90m2[39m  1.21  36.5 7.18 
+## [90m# ... with 235 more rows[39m</code></pre>
+<pre><code>## &lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;</code></pre>
 <p>or</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">x &lt;-<span class="st"> </span><span class="kw">solve</span>(mod1,theta, ev, inits)
 <span class="kw">print</span>(x)</code></pre></div>
-<pre><code>## ___________________________ Solved RxODE object ___________________________</code></pre>
-<pre><code>## -- Parameters ($params): --------------------------------------------------</code></pre>
+<pre><code>## &lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt; [1mSolved RxODE object[22m &lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;</code></pre>
+<pre><code>## -- [1mParameters[22m ([33m[39m[1m[34m$params[39m[22m): --------------------------------------------------</code></pre>
 <pre><code>##      V2      V3      KA      CL       Q     Kin    Kout    EC50 
 ##  40.200 297.000   0.294  18.600  10.500   1.000   1.000 200.000</code></pre>
-<pre><code>## -- Initial Conditions ($inits): -------------------------------------------</code></pre>
+<pre><code>## -- [1mInitial Conditions[22m ([33m[39m[1m[34m$inits[39m[22m): -------------------------------------------</code></pre>
 <pre><code>## depot centr  peri   eff 
 ##     0     0     0     1</code></pre>
-<pre><code>## -- First part of data (object): -------------------------------------------</code></pre>
-<pre><code>## # A tibble: 241 x 7
+<pre><code>## -- [1mFirst part of data (object):[22m -------------------------------------------</code></pre>
+<pre><code>## [90m# A tibble: 241 x 7[39m
 ##    time depot centr  peri   eff    C2    C3
-##   &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
-## 1  0    10000     0     0  1.00   0   0    
-## 2  1.00  7453  1784   273  1.08  44.4 0.920
-## 3  2.00  5554  2206   794  1.18  54.9 2.67 
-## 4  3.00  4140  2087  1324  1.23  51.9 4.46 
-## 5  4.00  3085  1789  1776  1.23  44.5 5.98 
-## 6  5.00  2299  1467  2132  1.21  36.5 7.18 
-## # ... with 235 more rows</code></pre>
-<pre><code>## ___________________________________________________________________________</code></pre>
+##   [3m[90m&lt;dbl&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m
+## [90m1[39m  [90m0[39m    100[90m00[39m     [90m0[39m     [90m0[39m  1.00   [90m0[39m   [90m0[39m    
+## [90m2[39m  1.00  745[90m3[39m  178[90m4[39m   273  1.08  44.4 [90m0[39m[90m.[39m920
+## [90m3[39m  2.00  555[90m4[39m  220[90m6[39m   794  1.18  54.9 2.67 
+## [90m4[39m  3.00  414[90m0[39m  208[90m7[39m  132[90m4[39m  1.23  51.9 4.46 
+## [90m5[39m  4.00  308[90m5[39m  178[90m9[39m  177[90m6[39m  1.23  44.5 5.98 
+## [90m6[39m  5.00  229[90m9[39m  146[90m7[39m  213[90m2[39m  1.21  36.5 7.18 
+## [90m# ... with 235 more rows[39m</code></pre>
+<pre><code>## &lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;</code></pre>
 <p>Or with <code>mattigr</code></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">x &lt;-<span class="st"> </span>mod1 <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">solve</span>(theta, ev, inits)
 <span class="kw">print</span>(x)</code></pre></div>
-<pre><code>## ___________________________ Solved RxODE object ___________________________</code></pre>
-<pre><code>## -- Parameters ($params): --------------------------------------------------</code></pre>
+<pre><code>## &lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt; [1mSolved RxODE object[22m &lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;</code></pre>
+<pre><code>## -- [1mParameters[22m ([33m[39m[1m[34m$params[39m[22m): --------------------------------------------------</code></pre>
 <pre><code>##      V2      V3      KA      CL       Q     Kin    Kout    EC50 
 ##  40.200 297.000   0.294  18.600  10.500   1.000   1.000 200.000</code></pre>
-<pre><code>## -- Initial Conditions ($inits): -------------------------------------------</code></pre>
+<pre><code>## -- [1mInitial Conditions[22m ([33m[39m[1m[34m$inits[39m[22m): -------------------------------------------</code></pre>
 <pre><code>## depot centr  peri   eff 
 ##     0     0     0     1</code></pre>
-<pre><code>## -- First part of data (object): -------------------------------------------</code></pre>
-<pre><code>## # A tibble: 241 x 7
+<pre><code>## -- [1mFirst part of data (object):[22m -------------------------------------------</code></pre>
+<pre><code>## [90m# A tibble: 241 x 7[39m
 ##    time depot centr  peri   eff    C2    C3
-##   &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
-## 1  0    10000     0     0  1.00   0   0    
-## 2  1.00  7453  1784   273  1.08  44.4 0.920
-## 3  2.00  5554  2206   794  1.18  54.9 2.67 
-## 4  3.00  4140  2087  1324  1.23  51.9 4.46 
-## 5  4.00  3085  1789  1776  1.23  44.5 5.98 
-## 6  5.00  2299  1467  2132  1.21  36.5 7.18 
-## # ... with 235 more rows</code></pre>
-<pre><code>## ___________________________________________________________________________</code></pre>
+##   [3m[90m&lt;dbl&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m
+## [90m1[39m  [90m0[39m    100[90m00[39m     [90m0[39m     [90m0[39m  1.00   [90m0[39m   [90m0[39m    
+## [90m2[39m  1.00  745[90m3[39m  178[90m4[39m   273  1.08  44.4 [90m0[39m[90m.[39m920
+## [90m3[39m  2.00  555[90m4[39m  220[90m6[39m   794  1.18  54.9 2.67 
+## [90m4[39m  3.00  414[90m0[39m  208[90m7[39m  132[90m4[39m  1.23  51.9 4.46 
+## [90m5[39m  4.00  308[90m5[39m  178[90m9[39m  177[90m6[39m  1.23  44.5 5.98 
+## [90m6[39m  5.00  229[90m9[39m  146[90m7[39m  213[90m2[39m  1.21  36.5 7.18 
+## [90m# ... with 235 more rows[39m</code></pre>
+<pre><code>## &lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;</code></pre>
 <p>The solved object acts as a <code>data.frame</code> or <code>tbl</code> that can be filtered by <code>dpylr</code>. For example you could filter it easily.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(dplyr)</code></pre></div>
 <pre><code>## 
@@ -256,73 +256,73 @@ x</code></pre></div>
 <p>which shows the initial condition of the effect compartment. If you wished to change this initial condition to 2, this can be done easily by:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">x<span class="op">$</span>eff0 &lt;-<span class="st"> </span><span class="dv">2</span>
 x</code></pre></div>
-<pre><code>## ___________________________ Solved RxODE object ___________________________</code></pre>
-<pre><code>## -- Parameters ($params): --------------------------------------------------</code></pre>
+<pre><code>## &lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt; [1mSolved RxODE object[22m &lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;</code></pre>
+<pre><code>## -- [1mParameters[22m ([33mx[39m[1m[34m$params[39m[22m): -------------------------------------------------</code></pre>
 <pre><code>##      V2      V3      KA      CL       Q     Kin    Kout    EC50 
 ##  40.200 297.000   0.294  18.600  10.500   1.000   1.000 200.000</code></pre>
-<pre><code>## -- Initial Conditions ($inits): -------------------------------------------</code></pre>
+<pre><code>## -- [1mInitial Conditions[22m ([33mx[39m[1m[34m$inits[39m[22m): ------------------------------------------</code></pre>
 <pre><code>## depot centr  peri   eff 
 ##     0     0     0     2</code></pre>
-<pre><code>## -- First part of data (object): -------------------------------------------</code></pre>
-<pre><code>## # A tibble: 241 x 7
+<pre><code>## -- [1mFirst part of data (object):[22m -------------------------------------------</code></pre>
+<pre><code>## [90m# A tibble: 241 x 7[39m
 ##    time depot centr  peri   eff    C2    C3
-##   &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
-## 1  0    10000     0     0  2.00   0   0    
-## 2  1.00  7453  1784   273  1.50  44.4 0.920
-## 3  2.00  5554  2206   794  1.37  54.9 2.67 
-## 4  3.00  4140  2087  1324  1.31  51.9 4.46 
-## 5  4.00  3085  1789  1776  1.27  44.5 5.98 
-## 6  5.00  2299  1467  2132  1.23  36.5 7.18 
-## # ... with 235 more rows</code></pre>
-<pre><code>## ___________________________________________________________________________</code></pre>
+##   [3m[90m&lt;dbl&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m
+## [90m1[39m  [90m0[39m    100[90m00[39m     [90m0[39m     [90m0[39m  2.00   [90m0[39m   [90m0[39m    
+## [90m2[39m  1.00  745[90m3[39m  178[90m4[39m   273  1.50  44.4 [90m0[39m[90m.[39m920
+## [90m3[39m  2.00  555[90m4[39m  220[90m6[39m   794  1.37  54.9 2.67 
+## [90m4[39m  3.00  414[90m0[39m  208[90m7[39m  132[90m4[39m  1.31  51.9 4.46 
+## [90m5[39m  4.00  308[90m5[39m  178[90m9[39m  177[90m6[39m  1.27  44.5 5.98 
+## [90m6[39m  5.00  229[90m9[39m  146[90m7[39m  213[90m2[39m  1.23  36.5 7.18 
+## [90m# ... with 235 more rows[39m</code></pre>
+<pre><code>## &lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;</code></pre>
 <p>Notice that the inital effect is now <code>2</code>.</p>
 <p>You can also change the sampling times easily by this method by changing <code>t</code> or <code>time</code>. For example:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">x<span class="op">$</span>t &lt;-<span class="st"> </span><span class="kw">seq</span>(<span class="dv">0</span>,<span class="dv">5</span>,<span class="dt">length.out=</span><span class="dv">20</span>)
 x</code></pre></div>
-<pre><code>## ___________________________ Solved RxODE object ___________________________</code></pre>
-<pre><code>## -- Parameters ($params): --------------------------------------------------</code></pre>
+<pre><code>## &lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt; [1mSolved RxODE object[22m &lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;</code></pre>
+<pre><code>## -- [1mParameters[22m ([33mx[39m[1m[34m$params[39m[22m): -------------------------------------------------</code></pre>
 <pre><code>##      V2      V3      KA      CL       Q     Kin    Kout    EC50 
 ##  40.200 297.000   0.294  18.600  10.500   1.000   1.000 200.000</code></pre>
-<pre><code>## -- Initial Conditions ($inits): -------------------------------------------</code></pre>
+<pre><code>## -- [1mInitial Conditions[22m ([33mx[39m[1m[34m$inits[39m[22m): ------------------------------------------</code></pre>
 <pre><code>## depot centr  peri   eff 
 ##     0     0     0     2</code></pre>
-<pre><code>## -- First part of data (object): -------------------------------------------</code></pre>
-<pre><code>## # A tibble: 20 x 7
+<pre><code>## -- [1mFirst part of data (object):[22m -------------------------------------------</code></pre>
+<pre><code>## [90m# A tibble: 20 x 7[39m
 ##    time depot centr  peri   eff    C2     C3
-## * &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;
-## 1 0     10000     0   0    2.00   0   0     
-## 2 0.263  9255   677  24.3  1.79  16.8 0.0817
-## 3 0.526  8566  1187  88.7  1.65  29.5 0.299 
-## 4 0.789  7929  1562 183    1.55  38.9 0.615 
-## 5 1.05   7338  1830 298    1.49  45.5 1.00  
-## 6 1.32   6792  2013 427    1.44  50.1 1.44  
-## # ... with 14 more rows</code></pre>
-<pre><code>## ___________________________________________________________________________</code></pre>
+## [90m*[39m [3m[90m&lt;dbl&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m  [3m[90m&lt;dbl&gt;[39m[23m
+## [90m1[39m [90m0[39m     100[90m00[39m     [90m0[39m   [90m0[39m    2.00   [90m0[39m   [90m0[39m     
+## [90m2[39m [90m0[39m[90m.[39m263  925[90m5[39m   677  24.3  1.79  16.8 [90m0[39m[90m.[39m[90m0[39m817
+## [90m3[39m [90m0[39m[90m.[39m526  856[90m6[39m  118[90m7[39m  88.7  1.65  29.5 [90m0[39m[90m.[39m299 
+## [90m4[39m [90m0[39m[90m.[39m789  792[90m9[39m  156[90m2[39m 183    1.55  38.9 [90m0[39m[90m.[39m615 
+## [90m5[39m 1.05   733[90m8[39m  183[90m0[39m 298    1.49  45.5 1.00  
+## [90m6[39m 1.32   679[90m2[39m  201[90m3[39m 427    1.44  50.1 1.44  
+## [90m# ... with 14 more rows[39m</code></pre>
+<pre><code>## &lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;</code></pre>
 <p>You can also access or change parameters by the <code>$</code> operator. For example, accessing <code>KA</code> can be done by:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">x<span class="op">$</span>KA</code></pre></div>
 <pre><code>## [1] 0.294</code></pre>
 <p>And you may change it by assigning it to a new value.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">x<span class="op">$</span>KA &lt;-<span class="st"> </span><span class="dv">1</span>;
 x</code></pre></div>
-<pre><code>## ___________________________ Solved RxODE object ___________________________</code></pre>
-<pre><code>## -- Parameters ($params): --------------------------------------------------</code></pre>
+<pre><code>## &lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt; [1mSolved RxODE object[22m &lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;</code></pre>
+<pre><code>## -- [1mParameters[22m ([33mx[39m[1m[34m$params[39m[22m): -------------------------------------------------</code></pre>
 <pre><code>##    V2    V3    KA    CL     Q   Kin  Kout  EC50 
 ##  40.2 297.0   1.0  18.6  10.5   1.0   1.0 200.0</code></pre>
-<pre><code>## -- Initial Conditions ($inits): -------------------------------------------</code></pre>
+<pre><code>## -- [1mInitial Conditions[22m ([33mx[39m[1m[34m$inits[39m[22m): ------------------------------------------</code></pre>
 <pre><code>## depot centr  peri   eff 
 ##     0     0     0     2</code></pre>
-<pre><code>## -- First part of data (object): -------------------------------------------</code></pre>
-<pre><code>## # A tibble: 20 x 7
+<pre><code>## -- [1mFirst part of data (object):[22m -------------------------------------------</code></pre>
+<pre><code>## [90m# A tibble: 20 x 7[39m
 ##    time depot centr   peri   eff    C2    C3
-##   &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
-## 1 0     10000     0    0    2.00   0   0    
-## 2 0.263  7686  2098   77.6  1.82  52.2 0.261
-## 3 0.526  5908  3348  267    1.74  83.3 0.900
-## 4 0.789  4541  4010  519    1.69  99.8 1.75 
-## 5 1.05   3490  4273  800    1.67 106   2.69 
-## 6 1.32   2683  4272 1086    1.64 106   3.66 
-## # ... with 14 more rows</code></pre>
-<pre><code>## ___________________________________________________________________________</code></pre>
+##   [3m[90m&lt;dbl&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m  [3m[90m&lt;dbl&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m
+## [90m1[39m [90m0[39m     100[90m00[39m     [90m0[39m    [90m0[39m    2.00   [90m0[39m   [90m0[39m    
+## [90m2[39m [90m0[39m[90m.[39m263  768[90m6[39m  209[90m8[39m   77.6  1.82  52.2 [90m0[39m[90m.[39m261
+## [90m3[39m [90m0[39m[90m.[39m526  590[90m8[39m  334[90m8[39m  267    1.74  83.3 [90m0[39m[90m.[39m900
+## [90m4[39m [90m0[39m[90m.[39m789  454[90m1[39m  401[90m0[39m  519    1.69  99.8 1.75 
+## [90m5[39m 1.05   349[90m0[39m  427[90m3[39m  800    1.67 106   2.69 
+## [90m6[39m 1.32   268[90m3[39m  427[90m2[39m 108[90m6[39m    1.64 106   3.66 
+## [90m# ... with 14 more rows[39m</code></pre>
+<pre><code>## &lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;</code></pre>
 <p>You can access/change all the parametrs, initilizations or events with the <code>$params</code>, <code>$inits</code>, <code>$events</code> accessor syntax, similar to what is used above.</p>
 <p>This syntax makes it easy to update and explore the effect of various parameters on the solved object.</p>
 </div>
@@ -351,47 +351,47 @@ x</code></pre></div>
 <span class="st">    </span><span class="kw">add.sampling</span>(<span class="dv">0</span><span class="op">:</span><span class="dv">240</span>);</code></pre></div>
 <p>This can be solved with the following command:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">(x &lt;-<span class="st"> </span>mod2 <span class="op">%&gt;%</span><span class="st">  </span><span class="kw">solve</span>(theta, ev))</code></pre></div>
-<pre><code>## ___________________________ Solved RxODE object ___________________________</code></pre>
-<pre><code>## -- Parameters ($params): --------------------------------------------------</code></pre>
+<pre><code>## &lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt; [1mSolved RxODE object[22m &lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;</code></pre>
+<pre><code>## -- [1mParameters[22m ([33mx[39m[1m[34m$params[39m[22m): -------------------------------------------------</code></pre>
 <pre><code>##      KA      V2      CL       Q      V3     Kin    Kout    EC50 
 ##   0.294  40.200  18.600  10.500 297.000   1.000   1.000 200.000</code></pre>
-<pre><code>## -- Initial Conditions ($inits): -------------------------------------------</code></pre>
+<pre><code>## -- [1mInitial Conditions[22m ([33mx[39m[1m[34m$inits[39m[22m): ------------------------------------------</code></pre>
 <pre><code>## eff 
 ##   1</code></pre>
-<pre><code>## -- First part of data (object): -------------------------------------------</code></pre>
-<pre><code>## # A tibble: 241 x 3
+<pre><code>## -- [1mFirst part of data (object):[22m -------------------------------------------</code></pre>
+<pre><code>## [90m# A tibble: 241 x 3[39m
 ##    time   eff    C2
-##   &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
-## 1  0     1.00   0  
-## 2  1.00  1.08  44.4
-## 3  2.00  1.18  54.9
-## 4  3.00  1.23  51.9
-## 5  4.00  1.23  44.5
-## 6  5.00  1.21  36.5
-## # ... with 235 more rows</code></pre>
-<pre><code>## ___________________________________________________________________________</code></pre>
+##   [3m[90m&lt;dbl&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m
+## [90m1[39m  [90m0[39m     1.00   [90m0[39m  
+## [90m2[39m  1.00  1.08  44.4
+## [90m3[39m  2.00  1.18  54.9
+## [90m4[39m  3.00  1.23  51.9
+## [90m5[39m  4.00  1.23  44.5
+## [90m6[39m  5.00  1.21  36.5
+## [90m# ... with 235 more rows[39m</code></pre>
+<pre><code>## &lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;</code></pre>
 <p>Note this solving did not require specifying the effect compartment initial condition to be <code>1</code>. Rather, this is already pre-specified by <code>eff(0)=1</code>.</p>
 <p>This can be solved for different initial conditions easily:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">(x &lt;-<span class="st"> </span>mod2 <span class="op">%&gt;%</span><span class="st">  </span><span class="kw">solve</span>(theta, ev,<span class="kw">c</span>(<span class="dt">eff=</span><span class="dv">2</span>)))</code></pre></div>
-<pre><code>## ___________________________ Solved RxODE object ___________________________</code></pre>
-<pre><code>## -- Parameters ($params): --------------------------------------------------</code></pre>
+<pre><code>## &lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt; [1mSolved RxODE object[22m &lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;</code></pre>
+<pre><code>## -- [1mParameters[22m ([33mx[39m[1m[34m$params[39m[22m): -------------------------------------------------</code></pre>
 <pre><code>##      KA      V2      CL       Q      V3     Kin    Kout    EC50 
 ##   0.294  40.200  18.600  10.500 297.000   1.000   1.000 200.000</code></pre>
-<pre><code>## -- Initial Conditions ($inits): -------------------------------------------</code></pre>
+<pre><code>## -- [1mInitial Conditions[22m ([33mx[39m[1m[34m$inits[39m[22m): ------------------------------------------</code></pre>
 <pre><code>## eff 
 ##   2</code></pre>
-<pre><code>## -- First part of data (object): -------------------------------------------</code></pre>
-<pre><code>## # A tibble: 241 x 3
+<pre><code>## -- [1mFirst part of data (object):[22m -------------------------------------------</code></pre>
+<pre><code>## [90m# A tibble: 241 x 3[39m
 ##    time   eff    C2
-##   &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
-## 1  0     2.00   0  
-## 2  1.00  1.50  44.4
-## 3  2.00  1.37  54.9
-## 4  3.00  1.31  51.9
-## 5  4.00  1.27  44.5
-## 6  5.00  1.23  36.5
-## # ... with 235 more rows</code></pre>
-<pre><code>## ___________________________________________________________________________</code></pre>
+##   [3m[90m&lt;dbl&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m
+## [90m1[39m  [90m0[39m     2.00   [90m0[39m  
+## [90m2[39m  1.00  1.50  44.4
+## [90m3[39m  2.00  1.37  54.9
+## [90m4[39m  3.00  1.31  51.9
+## [90m5[39m  4.00  1.27  44.5
+## [90m6[39m  5.00  1.23  36.5
+## [90m# ... with 235 more rows[39m</code></pre>
+<pre><code>## &lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;</code></pre>
 <p>The RxODE detective also does not require you to specify the variables in the <code>linCmt()</code> function if they are already defined in the block.</p>
 <p>Therefore, the following function will also work to solve the same system.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">mod3 &lt;-<span class="st"> </span><span class="kw">RxODE</span>({
@@ -410,46 +410,46 @@ x</code></pre></div>
 })
 
 (x &lt;-<span class="st"> </span>mod3 <span class="op">%&gt;%</span><span class="st">  </span><span class="kw">solve</span>(ev))</code></pre></div>
-<pre><code>## ___________________________ Solved RxODE object ___________________________</code></pre>
-<pre><code>## -- Parameters ($params): --------------------------------------------------</code></pre>
+<pre><code>## &lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt; [1mSolved RxODE object[22m &lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;</code></pre>
+<pre><code>## -- [1mParameters[22m ([33mx[39m[1m[34m$params[39m[22m): -------------------------------------------------</code></pre>
 <pre><code>##      KA      CL      V2       Q      V3     Kin    Kout    EC50 
 ##   0.294  18.600  40.200  10.500 297.000   1.000   1.000 200.000</code></pre>
-<pre><code>## -- Initial Conditions ($inits): -------------------------------------------</code></pre>
+<pre><code>## -- [1mInitial Conditions[22m ([33mx[39m[1m[34m$inits[39m[22m): ------------------------------------------</code></pre>
 <pre><code>## eff 
 ##   1</code></pre>
-<pre><code>## -- First part of data (object): -------------------------------------------</code></pre>
-<pre><code>## # A tibble: 241 x 3
+<pre><code>## -- [1mFirst part of data (object):[22m -------------------------------------------</code></pre>
+<pre><code>## [90m# A tibble: 241 x 3[39m
 ##    time   eff    C2
-##   &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
-## 1  0     1.00   0  
-## 2  1.00  1.08  44.4
-## 3  2.00  1.18  54.9
-## 4  3.00  1.23  51.9
-## 5  4.00  1.23  44.5
-## 6  5.00  1.21  36.5
-## # ... with 235 more rows</code></pre>
-<pre><code>## ___________________________________________________________________________</code></pre>
+##   [3m[90m&lt;dbl&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m
+## [90m1[39m  [90m0[39m     1.00   [90m0[39m  
+## [90m2[39m  1.00  1.08  44.4
+## [90m3[39m  2.00  1.18  54.9
+## [90m4[39m  3.00  1.23  51.9
+## [90m5[39m  4.00  1.23  44.5
+## [90m6[39m  5.00  1.21  36.5
+## [90m# ... with 235 more rows[39m</code></pre>
+<pre><code>## &lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;</code></pre>
 <p>Note that you do not specify the parameters when solving the system since they are built into the model, but you can override the parameters:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">(x &lt;-<span class="st"> </span>mod3 <span class="op">%&gt;%</span><span class="st">  </span><span class="kw">solve</span>(<span class="kw">c</span>(<span class="dt">KA=</span><span class="dv">10</span>),ev))</code></pre></div>
-<pre><code>## ___________________________ Solved RxODE object ___________________________</code></pre>
-<pre><code>## -- Parameters ($params): --------------------------------------------------</code></pre>
+<pre><code>## &lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt; [1mSolved RxODE object[22m &lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;</code></pre>
+<pre><code>## -- [1mParameters[22m ([33mx[39m[1m[34m$params[39m[22m): -------------------------------------------------</code></pre>
 <pre><code>##    KA    CL    V2     Q    V3   Kin  Kout  EC50 
 ##  10.0  18.6  40.2  10.5 297.0   1.0   1.0 200.0</code></pre>
-<pre><code>## -- Initial Conditions ($inits): -------------------------------------------</code></pre>
+<pre><code>## -- [1mInitial Conditions[22m ([33mx[39m[1m[34m$inits[39m[22m): ------------------------------------------</code></pre>
 <pre><code>## eff 
 ##   1</code></pre>
-<pre><code>## -- First part of data (object): -------------------------------------------</code></pre>
-<pre><code>## # A tibble: 241 x 3
+<pre><code>## -- [1mFirst part of data (object):[22m -------------------------------------------</code></pre>
+<pre><code>## [90m# A tibble: 241 x 3[39m
 ##    time   eff    C2
-##   &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
-## 1  0     1.00   0  
-## 2  1.00  1.34 131  
-## 3  2.00  1.39  64.8
-## 4  3.00  1.30  33.2
-## 5  4.00  1.19  18.0
-## 6  5.00  1.12  10.7
-## # ... with 235 more rows</code></pre>
-<pre><code>## ___________________________________________________________________________</code></pre>
+##   [3m[90m&lt;dbl&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m
+## [90m1[39m  [90m0[39m     1.00   [90m0[39m  
+## [90m2[39m  1.00  1.34 131  
+## [90m3[39m  2.00  1.39  64.8
+## [90m4[39m  3.00  1.30  33.2
+## [90m5[39m  4.00  1.19  18.0
+## [90m6[39m  5.00  1.12  10.7
+## [90m# ... with 235 more rows[39m</code></pre>
+<pre><code>## &lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;</code></pre>
 </div>
 <div id="odes-and-covariates" class="section level4">
 <h4>ODEs and covariates</h4>
@@ -483,38 +483,38 @@ ev &lt;-<span class="st"> </span><span class="kw">eventTable</span>(<span class=
 cov.df  &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">ctime =</span>(<span class="kw">seq</span>(<span class="dv">0</span>,<span class="dv">48</span>,<span class="dt">length.out=</span><span class="dv">100</span>)<span class="op">+</span><span class="dv">8</span>) <span class="op">%%</span><span class="st"> </span><span class="dv">24</span>);</code></pre></div>
 <p>Now there is a covariate present, the system can be solved using the cov option</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">(r1 &lt;-<span class="st"> </span><span class="kw">solve</span>(mod3, ev, <span class="dt">covs=</span>cov.df,<span class="dt">covs_interpolation=</span><span class="st">&quot;linear&quot;</span>))</code></pre></div>
-<pre><code>## ___________________________ Solved RxODE object ___________________________</code></pre>
-<pre><code>## -- Parameters ($params): --------------------------------------------------</code></pre>
+<pre><code>## &lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt; [1mSolved RxODE object[22m &lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;</code></pre>
+<pre><code>## -- [1mParameters[22m ([33mx[39m[1m[34m$params[39m[22m): -------------------------------------------------</code></pre>
 <pre><code>##         KA         CL         V2          Q         V3       Kin0 
 ##   0.294000  18.600000  40.200000  10.500000 297.000000   1.000000 
 ##       Kout       EC50         Tz        amp         pi 
 ##   1.000000 200.000000   8.000000   0.100000   3.141593</code></pre>
-<pre><code>## -- Covariates ($covs): ----------------------------------------------------</code></pre>
-<pre><code>## # A tibble: 100 x 1
+<pre><code>## -- [1mCovariates[22m ([33mx[39m[1m[34m$covs[39m[22m): ---------------------------------------------------</code></pre>
+<pre><code>## [90m# A tibble: 100 x 1[39m
 ##   ctime
-##   &lt;dbl&gt;
-## 1  8.00
-## 2  8.48
-## 3  8.97
-## 4  9.45
-## 5  9.94
-## 6 10.4 
-## # ... with 94 more rows</code></pre>
-<pre><code>## -- Initial Conditions ($inits): -------------------------------------------</code></pre>
+##   [3m[90m&lt;dbl&gt;[39m[23m
+## [90m1[39m  8.00
+## [90m2[39m  8.48
+## [90m3[39m  8.97
+## [90m4[39m  9.45
+## [90m5[39m  9.94
+## [90m6[39m 10.4 
+## [90m# ... with 94 more rows[39m</code></pre>
+<pre><code>## -- [1mInitial Conditions[22m ([33mx[39m[1m[34m$inits[39m[22m): ------------------------------------------</code></pre>
 <pre><code>## eff 
 ##   1</code></pre>
-<pre><code>## -- First part of data (object): -------------------------------------------</code></pre>
-<pre><code>## # A tibble: 100 x 4
+<pre><code>## -- [1mFirst part of data (object):[22m -------------------------------------------</code></pre>
+<pre><code>## [90m# A tibble: 100 x 4[39m
 ##    time   eff    C2   Kin
-##   &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
-## 1 0      1.00   0    1.10
-## 2 0.485  1.07  27.8  1.10
-## 3 0.970  1.14  43.7  1.09
-## 4 1.45   1.21  51.8  1.09
-## 5 1.94   1.26  54.8  1.08
-## 6 2.42   1.30  54.6  1.07
-## # ... with 94 more rows</code></pre>
-<pre><code>## ___________________________________________________________________________</code></pre>
+##   [3m[90m&lt;dbl&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m
+## [90m1[39m [90m0[39m      1.00   [90m0[39m    1.10
+## [90m2[39m [90m0[39m[90m.[39m485  1.07  27.8  1.10
+## [90m3[39m [90m0[39m[90m.[39m970  1.14  43.7  1.09
+## [90m4[39m 1.45   1.21  51.8  1.09
+## [90m5[39m 1.94   1.26  54.8  1.08
+## [90m6[39m 2.42   1.30  54.6  1.07
+## [90m# ... with 94 more rows[39m</code></pre>
+<pre><code>## &lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;</code></pre>
 <p>When solving ODE equations, the solver may sample times outside of the data. When this happens, this ODE solver uses linear interpolation between the covariate values. This is the default value. It is equivalent to R’s <code>approxfun</code> with <code>method=&quot;linear&quot;</code>, which is the default <code>approxfun</code>.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">par</span>(<span class="dt">mfrow=</span><span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">2</span>))
 <span class="kw">matplot</span>(r1[,<span class="st">&quot;C2&quot;</span>], <span class="dt">type=</span><span class="st">&quot;l&quot;</span>, <span class="dt">ylab=</span><span class="st">&quot;Central Concentration&quot;</span>)
@@ -523,38 +523,38 @@ cov.df  &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span c
 <p>Note that the linear approximation in this case leads to some kinks in the solved system at 24-hours where the covariate has a linear interpolation between near 24 and near 0.</p>
 <p>In RxODE, covariate interpolation can also be the last observation carried forward, or constant approximation. This is equivalent to R’s <code>approxfun</code> with <code>method=&quot;constant&quot;</code>.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">(r2 &lt;-<span class="st"> </span><span class="kw">solve</span>(mod3, ev, <span class="dt">covs=</span>cov.df,<span class="dt">covs_interpolation=</span><span class="st">&quot;constant&quot;</span>))</code></pre></div>
-<pre><code>## ___________________________ Solved RxODE object ___________________________</code></pre>
-<pre><code>## -- Parameters ($params): --------------------------------------------------</code></pre>
+<pre><code>## &lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt; [1mSolved RxODE object[22m &lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;</code></pre>
+<pre><code>## -- [1mParameters[22m ([33mx[39m[1m[34m$params[39m[22m): -------------------------------------------------</code></pre>
 <pre><code>##         KA         CL         V2          Q         V3       Kin0 
 ##   0.294000  18.600000  40.200000  10.500000 297.000000   1.000000 
 ##       Kout       EC50         Tz        amp         pi 
 ##   1.000000 200.000000   8.000000   0.100000   3.141593</code></pre>
-<pre><code>## -- Covariates ($covs): ----------------------------------------------------</code></pre>
-<pre><code>## # A tibble: 100 x 1
+<pre><code>## -- [1mCovariates[22m ([33mx[39m[1m[34m$covs[39m[22m): ---------------------------------------------------</code></pre>
+<pre><code>## [90m# A tibble: 100 x 1[39m
 ##   ctime
-##   &lt;dbl&gt;
-## 1  8.00
-## 2  8.48
-## 3  8.97
-## 4  9.45
-## 5  9.94
-## 6 10.4 
-## # ... with 94 more rows</code></pre>
-<pre><code>## -- Initial Conditions ($inits): -------------------------------------------</code></pre>
+##   [3m[90m&lt;dbl&gt;[39m[23m
+## [90m1[39m  8.00
+## [90m2[39m  8.48
+## [90m3[39m  8.97
+## [90m4[39m  9.45
+## [90m5[39m  9.94
+## [90m6[39m 10.4 
+## [90m# ... with 94 more rows[39m</code></pre>
+<pre><code>## -- [1mInitial Conditions[22m ([33mx[39m[1m[34m$inits[39m[22m): ------------------------------------------</code></pre>
 <pre><code>## eff 
 ##   1</code></pre>
-<pre><code>## -- First part of data (object): -------------------------------------------</code></pre>
-<pre><code>## # A tibble: 100 x 4
+<pre><code>## -- [1mFirst part of data (object):[22m -------------------------------------------</code></pre>
+<pre><code>## [90m# A tibble: 100 x 4[39m
 ##    time   eff    C2   Kin
-##   &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
-## 1 0      1.00   0    1.10
-## 2 0.485  1.07  27.8  1.10
-## 3 0.970  1.15  43.7  1.09
-## 4 1.45   1.21  51.8  1.09
-## 5 1.94   1.27  54.8  1.08
-## 6 2.42   1.30  54.6  1.07
-## # ... with 94 more rows</code></pre>
-<pre><code>## ___________________________________________________________________________</code></pre>
+##   [3m[90m&lt;dbl&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m
+## [90m1[39m [90m0[39m      1.00   [90m0[39m    1.10
+## [90m2[39m [90m0[39m[90m.[39m485  1.07  27.8  1.10
+## [90m3[39m [90m0[39m[90m.[39m970  1.15  43.7  1.09
+## [90m4[39m 1.45   1.21  51.8  1.09
+## [90m5[39m 1.94   1.27  54.8  1.08
+## [90m6[39m 2.42   1.30  54.6  1.07
+## [90m# ... with 94 more rows[39m</code></pre>
+<pre><code>## &lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;</code></pre>
 <p>which gives the following plots:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">par</span>(<span class="dt">mfrow=</span><span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">2</span>))
 <span class="kw">matplot</span>(r2[,<span class="st">&quot;C2&quot;</span>], <span class="dt">type=</span><span class="st">&quot;l&quot;</span>, <span class="dt">ylab=</span><span class="st">&quot;Central Concentration&quot;</span>)
@@ -640,46 +640,46 @@ et<span class="op">$</span><span class="kw">add.sampling</span>(<span class="kw"
 et<span class="op">$</span><span class="kw">add.dosing</span>(<span class="dv">20</span>, <span class="dt">start.time=</span><span class="dv">0</span>);
 
 (s1 &lt;-<span class="st"> </span>Vtpol2 <span class="op">%&gt;%</span><span class="st">  </span><span class="kw">solve</span>(et, <span class="dt">method=</span><span class="st">&quot;lsoda&quot;</span>))</code></pre></div>
-<pre><code>## ___________________________ Solved RxODE object ___________________________</code></pre>
-<pre><code>## -- Parameters ($params): --------------------------------------------------</code></pre>
+<pre><code>## &lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt; [1mSolved RxODE object[22m &lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;</code></pre>
+<pre><code>## -- [1mParameters[22m ([33mx[39m[1m[34m$params[39m[22m): -------------------------------------------------</code></pre>
 <pre><code>## mu 
 ##  1</code></pre>
-<pre><code>## -- Initial Conditions ($inits): -------------------------------------------</code></pre>
+<pre><code>## -- [1mInitial Conditions[22m ([33mx[39m[1m[34m$inits[39m[22m): ------------------------------------------</code></pre>
 <pre><code>##  y dy 
 ##  2  0</code></pre>
-<pre><code>## -- First part of data (object): -------------------------------------------</code></pre>
-<pre><code>## # A tibble: 200 x 3
+<pre><code>## -- [1mFirst part of data (object):[22m -------------------------------------------</code></pre>
+<pre><code>## [90m# A tibble: 200 x 3[39m
 ##     time     y      dy
-##    &lt;dbl&gt; &lt;dbl&gt;   &lt;dbl&gt;
-## 1 0       22.0  0     
-## 2 0.0503  22.0 -0.0456
-## 3 0.101   22.0 -0.0456
-## 4 0.151   22.0 -0.0456
-## 5 0.201   22.0 -0.0456
-## 6 0.251   22.0 -0.0456
-## # ... with 194 more rows</code></pre>
-<pre><code>## ___________________________________________________________________________</code></pre>
+##    [3m[90m&lt;dbl&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m   [3m[90m&lt;dbl&gt;[39m[23m
+## [90m1[39m [90m0[39m       22.0  [90m0[39m     
+## [90m2[39m [90m0[39m[90m.[39m[90m0[39m503  22.0 -[90m0[39m[90m.[39m[90m0[39m[31m456[39m
+## [90m3[39m [90m0[39m[90m.[39m101   22.0 -[90m0[39m[90m.[39m[90m0[39m[31m456[39m
+## [90m4[39m [90m0[39m[90m.[39m151   22.0 -[90m0[39m[90m.[39m[90m0[39m[31m456[39m
+## [90m5[39m [90m0[39m[90m.[39m201   22.0 -[90m0[39m[90m.[39m[90m0[39m[31m456[39m
+## [90m6[39m [90m0[39m[90m.[39m251   22.0 -[90m0[39m[90m.[39m[90m0[39m[31m456[39m
+## [90m# ... with 194 more rows[39m</code></pre>
+<pre><code>## &lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;</code></pre>
 <p>While this is not stiff at mu=1, mu=1000 is a stiff system</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">(s2 &lt;-<span class="st"> </span>Vtpol2 <span class="op">%&gt;%</span><span class="st">  </span><span class="kw">solve</span>(<span class="kw">c</span>(<span class="dt">mu=</span><span class="dv">1000</span>), et))</code></pre></div>
-<pre><code>## ___________________________ Solved RxODE object ___________________________</code></pre>
-<pre><code>## -- Parameters ($params): --------------------------------------------------</code></pre>
+<pre><code>## &lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt; [1mSolved RxODE object[22m &lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;</code></pre>
+<pre><code>## -- [1mParameters[22m ([33mx[39m[1m[34m$params[39m[22m): -------------------------------------------------</code></pre>
 <pre><code>##   mu 
 ## 1000</code></pre>
-<pre><code>## -- Initial Conditions ($inits): -------------------------------------------</code></pre>
+<pre><code>## -- [1mInitial Conditions[22m ([33mx[39m[1m[34m$inits[39m[22m): ------------------------------------------</code></pre>
 <pre><code>##  y dy 
 ##  2  0</code></pre>
-<pre><code>## -- First part of data (object): -------------------------------------------</code></pre>
-<pre><code>## # A tibble: 200 x 3
+<pre><code>## -- [1mFirst part of data (object):[22m -------------------------------------------</code></pre>
+<pre><code>## [90m# A tibble: 200 x 3[39m
 ##     time     y         dy
-##    &lt;dbl&gt; &lt;dbl&gt;      &lt;dbl&gt;
-## 1 0       22.0  0        
-## 2 0.0503  22.0 -0.0000455
-## 3 0.101   22.0 -0.0000455
-## 4 0.151   22.0 -0.0000455
-## 5 0.201   22.0 -0.0000455
-## 6 0.251   22.0 -0.0000455
-## # ... with 194 more rows</code></pre>
-<pre><code>## ___________________________________________________________________________</code></pre>
+##    [3m[90m&lt;dbl&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m      [3m[90m&lt;dbl&gt;[39m[23m
+## [90m1[39m [90m0[39m       22.0  [90m0[39m        
+## [90m2[39m [90m0[39m[90m.[39m[90m0[39m503  22.0 -[90m0[39m[90m.[39m[90m0000[39m[31m455[39m
+## [90m3[39m [90m0[39m[90m.[39m101   22.0 -[90m0[39m[90m.[39m[90m0000[39m[31m455[39m
+## [90m4[39m [90m0[39m[90m.[39m151   22.0 -[90m0[39m[90m.[39m[90m0000[39m[31m455[39m
+## [90m5[39m [90m0[39m[90m.[39m201   22.0 -[90m0[39m[90m.[39m[90m0000[39m[31m455[39m
+## [90m6[39m [90m0[39m[90m.[39m251   22.0 -[90m0[39m[90m.[39m[90m0000[39m[31m455[39m
+## [90m# ... with 194 more rows[39m</code></pre>
+<pre><code>## &lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;</code></pre>
 <p>While this is easy enough to do, it is a bit tedious. If you have RxODE setup appropriately, that is you have:</p>
 <ul>
 <li><strong>Python</strong> installed in your system</li>
@@ -785,64 +785,64 @@ p2 &lt;-<span class="kw">ggplot</span>(s,<span class="kw">aes</span>(time,eff,<s
 <p>You can also supply a data-frame of parameters to simulate instead of using an omega simulation. In this contrived example we will use the previously simulated data.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">theta &lt;-<span class="st"> </span>sim<span class="op">$</span>param;
 (sim  &lt;-<span class="st"> </span><span class="kw">rxSolve</span>(mod,theta,ev))</code></pre></div>
-<pre><code>## ___________________________ Solved RxODE object ___________________________</code></pre>
-<pre><code>## -- Parameters ($params): --------------------------------------------------</code></pre>
-<pre><code>## # A tibble: 100 x 10
+<pre><code>## &lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt; [1mSolved RxODE object[22m &lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;</code></pre>
+<pre><code>## -- [1mParameters[22m ([33mx[39m[1m[34m$params[39m[22m): -------------------------------------------------</code></pre>
+<pre><code>## [90m# A tibble: 100 x 10[39m
 ##   sim.id    V2    V3   TCl  eta.Cl    KA     Q   Kin  Kout  EC50
-##    &lt;int&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
-## 1      1  40.2   297  18.6 -0.239  0.294  10.5  1.00  1.00   200
-## 2      2  40.2   297  18.6  0.372  0.294  10.5  1.00  1.00   200
-## 3      3  40.2   297  18.6 -0.607  0.294  10.5  1.00  1.00   200
-## 4      4  40.2   297  18.6 -0.0829 0.294  10.5  1.00  1.00   200
-## 5      5  40.2   297  18.6 -0.186  0.294  10.5  1.00  1.00   200
-## 6      6  40.2   297  18.6 -0.245  0.294  10.5  1.00  1.00   200
-## # ... with 94 more rows</code></pre>
-<pre><code>## -- Initial Conditions ($inits): -------------------------------------------</code></pre>
+##    [3m[90m&lt;int&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m   [3m[90m&lt;dbl&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m
+## [90m1[39m      1  40.2   297  18.6 -[90m0[39m[90m.[39m[31m239[39m  [90m0[39m[90m.[39m294  10.5  1.00  1.00   200
+## [90m2[39m      2  40.2   297  18.6  [90m0[39m[90m.[39m372  [90m0[39m[90m.[39m294  10.5  1.00  1.00   200
+## [90m3[39m      3  40.2   297  18.6 -[90m0[39m[90m.[39m[31m607[39m  [90m0[39m[90m.[39m294  10.5  1.00  1.00   200
+## [90m4[39m      4  40.2   297  18.6 -[90m0[39m[90m.[39m[90m0[39m[31m829[39m [90m0[39m[90m.[39m294  10.5  1.00  1.00   200
+## [90m5[39m      5  40.2   297  18.6 -[90m0[39m[90m.[39m[31m186[39m  [90m0[39m[90m.[39m294  10.5  1.00  1.00   200
+## [90m6[39m      6  40.2   297  18.6 -[90m0[39m[90m.[39m[31m245[39m  [90m0[39m[90m.[39m294  10.5  1.00  1.00   200
+## [90m# ... with 94 more rows[39m</code></pre>
+<pre><code>## -- [1mInitial Conditions[22m ([33mx[39m[1m[34m$inits[39m[22m): ------------------------------------------</code></pre>
 <pre><code>## depot centr  peri   eff 
 ##     0     0     0     1</code></pre>
-<pre><code>## -- First part of data (object): -------------------------------------------</code></pre>
-<pre><code>## # A tibble: 10,000 x 9
+<pre><code>## -- [1mFirst part of data (object):[22m -------------------------------------------</code></pre>
+<pre><code>## [90m# A tibble: 10,000 x 9[39m
 ##   sim.id  time depot centr  peri   eff    C2    C3    CL
-##    &lt;int&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
-## 1      1 0         0 10000     0  1.00 249    0     14.6
-## 2      1 0.485     0  7393  1083  1.22 184    3.65  14.6
-## 3      1 0.970     0  5481  1866  1.36 136    6.28  14.6
-## 4      1 1.45      0  4079  2430  1.42 101    8.18  14.6
-## 5      1 1.94      0  3051  2833  1.42  75.9  9.54  14.6
-## 6      1 2.42      0  2297  3118  1.39  57.1 10.5   14.6
-## # ... with 9,994 more rows</code></pre>
-<pre><code>## ___________________________________________________________________________</code></pre>
+##    [3m[90m&lt;int&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m
+## [90m1[39m      1 [90m0[39m         [90m0[39m 100[90m00[39m     [90m0[39m  1.00 249    [90m0[39m     14.6
+## [90m2[39m      1 [90m0[39m[90m.[39m485     [90m0[39m  739[90m3[39m  108[90m3[39m  1.22 184    3.65  14.6
+## [90m3[39m      1 [90m0[39m[90m.[39m970     [90m0[39m  548[90m1[39m  186[90m6[39m  1.36 136    6.28  14.6
+## [90m4[39m      1 1.45      [90m0[39m  407[90m9[39m  243[90m0[39m  1.42 101    8.18  14.6
+## [90m5[39m      1 1.94      [90m0[39m  305[90m1[39m  283[90m3[39m  1.42  75.9  9.54  14.6
+## [90m6[39m      1 2.42      [90m0[39m  229[90m7[39m  311[90m8[39m  1.39  57.1 10.5   14.6
+## [90m# ... with 9,994 more rows[39m</code></pre>
+<pre><code>## &lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;</code></pre>
 <p>Even though multiple subjects were simulated, this is still a reactive data frame, meaning you can change things about the model on the fly.</p>
 <p>For example, if the effect at time 0 should have been 100, you can fix this by:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">sim<span class="op">$</span>eff0 &lt;-<span class="st"> </span><span class="dv">100</span>
 sim</code></pre></div>
-<pre><code>## ___________________________ Solved RxODE object ___________________________</code></pre>
-<pre><code>## -- Parameters ($params): --------------------------------------------------</code></pre>
-<pre><code>## # A tibble: 100 x 10
+<pre><code>## &lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt; [1mSolved RxODE object[22m &lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;</code></pre>
+<pre><code>## -- [1mParameters[22m ([33mx[39m[1m[34m$params[39m[22m): -------------------------------------------------</code></pre>
+<pre><code>## [90m# A tibble: 100 x 10[39m
 ##   sim.id    V2    V3   TCl  eta.Cl    KA     Q   Kin  Kout  EC50
-##    &lt;int&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
-## 1      1  40.2   297  18.6 -0.239  0.294  10.5  1.00  1.00   200
-## 2      2  40.2   297  18.6  0.372  0.294  10.5  1.00  1.00   200
-## 3      3  40.2   297  18.6 -0.607  0.294  10.5  1.00  1.00   200
-## 4      4  40.2   297  18.6 -0.0829 0.294  10.5  1.00  1.00   200
-## 5      5  40.2   297  18.6 -0.186  0.294  10.5  1.00  1.00   200
-## 6      6  40.2   297  18.6 -0.245  0.294  10.5  1.00  1.00   200
-## # ... with 94 more rows</code></pre>
-<pre><code>## -- Initial Conditions ($inits): -------------------------------------------</code></pre>
+##    [3m[90m&lt;int&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m   [3m[90m&lt;dbl&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m
+## [90m1[39m      1  40.2   297  18.6 -[90m0[39m[90m.[39m[31m239[39m  [90m0[39m[90m.[39m294  10.5  1.00  1.00   200
+## [90m2[39m      2  40.2   297  18.6  [90m0[39m[90m.[39m372  [90m0[39m[90m.[39m294  10.5  1.00  1.00   200
+## [90m3[39m      3  40.2   297  18.6 -[90m0[39m[90m.[39m[31m607[39m  [90m0[39m[90m.[39m294  10.5  1.00  1.00   200
+## [90m4[39m      4  40.2   297  18.6 -[90m0[39m[90m.[39m[90m0[39m[31m829[39m [90m0[39m[90m.[39m294  10.5  1.00  1.00   200
+## [90m5[39m      5  40.2   297  18.6 -[90m0[39m[90m.[39m[31m186[39m  [90m0[39m[90m.[39m294  10.5  1.00  1.00   200
+## [90m6[39m      6  40.2   297  18.6 -[90m0[39m[90m.[39m[31m245[39m  [90m0[39m[90m.[39m294  10.5  1.00  1.00   200
+## [90m# ... with 94 more rows[39m</code></pre>
+<pre><code>## -- [1mInitial Conditions[22m ([33mx[39m[1m[34m$inits[39m[22m): ------------------------------------------</code></pre>
 <pre><code>## depot centr  peri   eff 
 ##     0     0     0   100</code></pre>
-<pre><code>## -- First part of data (object): -------------------------------------------</code></pre>
-<pre><code>## # A tibble: 10,000 x 9
+<pre><code>## -- [1mFirst part of data (object):[22m -------------------------------------------</code></pre>
+<pre><code>## [90m# A tibble: 10,000 x 9[39m
 ##   sim.id  time depot centr  peri   eff    C2    C3    CL
-##    &lt;int&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
-## 1      1 0         0 10000     0 100   249    0     14.6
-## 2      1 0.485     0  7393  1083  79.5 184    3.65  14.6
-## 3      1 0.970     0  5481  1866  61.1 136    6.28  14.6
-## 4      1 1.45      0  4079  2430  45.4 101    8.18  14.6
-## 5      1 1.94      0  3051  2833  32.9  75.9  9.54  14.6
-## 6      1 2.42      0  2297  3118  23.2  57.1 10.5   14.6
-## # ... with 9,994 more rows</code></pre>
-<pre><code>## ___________________________________________________________________________</code></pre>
+##    [3m[90m&lt;int&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m [3m[90m&lt;dbl&gt;[39m[23m
+## [90m1[39m      1 [90m0[39m         [90m0[39m 100[90m00[39m     [90m0[39m 100   249    [90m0[39m     14.6
+## [90m2[39m      1 [90m0[39m[90m.[39m485     [90m0[39m  739[90m3[39m  108[90m3[39m  79.5 184    3.65  14.6
+## [90m3[39m      1 [90m0[39m[90m.[39m970     [90m0[39m  548[90m1[39m  186[90m6[39m  61.1 136    6.28  14.6
+## [90m4[39m      1 1.45      [90m0[39m  407[90m9[39m  243[90m0[39m  45.4 101    8.18  14.6
+## [90m5[39m      1 1.94      [90m0[39m  305[90m1[39m  283[90m3[39m  32.9  75.9  9.54  14.6
+## [90m6[39m      1 2.42      [90m0[39m  229[90m7[39m  311[90m8[39m  23.2  57.1 10.5   14.6
+## [90m# ... with 9,994 more rows[39m</code></pre>
+<pre><code>## &lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;&lt;U+2582&gt;</code></pre>
 </div>
 <div id="simulation-of-unexplained-variability" class="section level4">
 <h4>Simulation of unexplained variability</h4>
@@ -885,7 +885,7 @@ p2 &lt;-<span class="kw">ggplot</span>(s,<span class="kw">aes</span>(time,eff,<s
 <span class="st">    </span><span class="kw">xlab</span>(<span class="st">&quot;Time (hr)&quot;</span>) <span class="op">+</span><span class="st"> </span><span class="kw">guides</span>(<span class="dt">color=</span><span class="ot">FALSE</span>)
 
 <span class="kw">grid.arrange</span>(p1,p2,<span class="dt">nrow=</span><span class="dv">2</span>)</code></pre></div>
-<p><img src="data:image/png;base64,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" /><!-- --> #### Simulation of Individuals</p>
+<p><img src="data:image/png;base64,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" /><!-- --> #### Simulation of Individuals</p>
 <p>Sometimes you may want to match the dosing and observations of individuals in a clinical trial. To do this you will have to create a data.frame using the <code>RxODE</code> event specification as well as an <code>ID</code> column to indicate an individual. The RxODE event vignette talks more about how these datasets should be created.</p>
 <p>If you have a NONMEM/Monlix dataset and the package <code>nlmixr</code>, you can convert the <code>NONMEM`` dataset to a</code>RxODE<code>compatible dataset to use for simulation with the</code>nmDataConvert` function.</p>
 <p>Instead of using nlmixr for this simple example, I will combine two RxODE event tables.</p>
@@ -906,24 +906,24 @@ sim  &lt;-<span class="st"> </span><span class="kw">rxSolve</span>(mod, theta, d
 
 sim <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">select</span>(id, time, e, cp)</code></pre></div>
 <pre><code>##    id      time         e         cp
-## 1   1  0.000000 0.8114289 6460.14796
-## 2   1  5.333333 0.6014560  300.45208
-## 3   1 10.666667 1.0582253  131.80838
-## 4   1 16.000000 0.3831265   92.69289
-## 5   1 21.333333 0.9927206  101.47790
-## 6   1 26.666667 1.1512884   84.84937
-## 7   1 32.000000 1.0178434   73.75433
-## 8   1 37.333333 1.1434445   64.65268
-## 9   1 42.666667 1.6037173   73.83733
-## 10  1 48.000000 1.1671766   71.77459
-## 11  2  0.000000 1.9868459   42.51513
-## 12  2  6.857143 1.4072379  393.04904
-## 13  2 13.714286 1.7506091   89.01406
-## 14  2 20.571429 1.8330390  128.10174
-## 15  2 27.428571 1.1602998   91.87640
-## 16  2 34.285714 0.9143214  117.90181
-## 17  2 41.142857 1.4053982   55.21662
-## 18  2 48.000000 0.6576067  122.54308</code></pre>
+## 1   1  0.000000 1.3660425 5398.91077
+## 2   1  5.333333 0.8867169  364.43990
+## 3   1 10.666667 0.5426147   75.18183
+## 4   1 16.000000 1.0553477   86.25038
+## 5   1 21.333333 0.3815250   87.23842
+## 6   1 26.666667 0.9913206   80.60138
+## 7   1 32.000000 1.1500524   89.93027
+## 8   1 37.333333 1.0167520   37.81340
+## 9   1 42.666667 1.1424808   80.22026
+## 10  1 48.000000 1.6028663   38.53962
+## 11  2  0.000000 1.1607511 4031.98204
+## 12  2  6.857143 1.1386835  390.67585
+## 13  2 13.714286 2.0015646  188.37673
+## 14  2 20.571429 1.3657123   49.51157
+## 15  2 27.428571 1.7455468   85.96742
+## 16  2 34.285714 1.8294891  118.73381
+## 17  2 41.142857 1.1571467   86.53590
+## 18  2 48.000000 0.9114943  111.60331</code></pre>
 </div>
 <div id="simulation-of-clinical-trials" class="section level4">
 <h4>Simulation of Clinical Trials</h4>
@@ -959,97 +959,11 @@ p2 &lt;-<span class="kw">ggplot</span>(s,<span class="kw">aes</span>(time,eff,<s
 <span class="st">    </span><span class="kw">xlab</span>(<span class="st">&quot;Time (hr)&quot;</span>) <span class="op">+</span><span class="st"> </span><span class="kw">guides</span>(<span class="dt">color=</span><span class="ot">FALSE</span>)
 
 <span class="kw">grid.arrange</span>(p1,p2,<span class="dt">nrow=</span><span class="dv">2</span>)</code></pre></div>
-<p><img src="data:image/png;base64,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" /><!-- --> If you wish you can see what <code>omega</code> and <code>sigma</code> was used for each virtual study by accessing them in the solved data object with <code>$omega.list</code> and <code>$sigma.list</code>:</p>
+<p><img src="data:image/png;base64,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" /><!-- --> If you wish you can see what <code>omega</code> and <code>sigma</code> was used for each virtual study by accessing them in the solved data object with <code>$omega.list</code> and <code>$sigma.list</code>:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">sim<span class="op">$</span>omega.list</code></pre></div>
-<pre><code>## [[1]]
-##           [,1]
-## [1,] 0.1401636
-## 
-## [[2]]
-##           [,1]
-## [1,] 0.1423745
-## 
-## [[3]]
-##           [,1]
-## [1,] 0.1462476
-## 
-## [[4]]
-##           [,1]
-## [1,] 0.1885324
-## 
-## [[5]]
-##           [,1]
-## [1,] 0.1452799
-## 
-## [[6]]
-##           [,1]
-## [1,] 0.1426764
-## 
-## [[7]]
-##           [,1]
-## [1,] 0.1303713
-## 
-## [[8]]
-##           [,1]
-## [1,] 0.1884543
-## 
-## [[9]]
-##           [,1]
-## [1,] 0.1453168
-## 
-## [[10]]
-##           [,1]
-## [1,] 0.1514673</code></pre>
+<pre><code>## NULL</code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">sim<span class="op">$</span>sigma.list</code></pre></div>
-<pre><code>## [[1]]
-##              [,1]         [,2]
-## [1,]  0.115055008 -0.001300522
-## [2,] -0.001300522  0.095544021
-## 
-## [[2]]
-##             [,1]        [,2]
-## [1,] 0.115403508 0.009912083
-## [2,] 0.009912083 0.103826250
-## 
-## [[3]]
-##              [,1]         [,2]
-## [1,]  0.104344964 -0.002497709
-## [2,] -0.002497709  0.104757997
-## 
-## [[4]]
-##             [,1]        [,2]
-## [1,] 0.091556183 0.005414474
-## [2,] 0.005414474 0.087806016
-## 
-## [[5]]
-##             [,1]        [,2]
-## [1,] 0.092347188 0.004894803
-## [2,] 0.004894803 0.091091435
-## 
-## [[6]]
-##               [,1]          [,2]
-## [1,]  0.0906104390 -0.0009193655
-## [2,] -0.0009193655  0.1207593030
-## 
-## [[7]]
-##              [,1]         [,2]
-## [1,]  0.093118386 -0.008685131
-## [2,] -0.008685131  0.086554102
-## 
-## [[8]]
-##              [,1]         [,2]
-## [1,]  0.117127476 -0.001171625
-## [2,] -0.001171625  0.102606451
-## 
-## [[9]]
-##             [,1]        [,2]
-## [1,] 0.107491945 0.003470581
-## [2,] 0.003470581 0.089015197
-## 
-## [[10]]
-##             [,1]        [,2]
-## [1,] 0.085535288 0.005263351
-## [2,] 0.005263351 0.117397338</code></pre>
+<pre><code>## NULL</code></pre>
 <p>You can also see the parameter realizations from the <code>$params</code> data frame.</p>
 <p>If you do not wish to sample from the prior distributions of either the <code>omega</code> or <code>sigma</code> matrices, you can turn off this feature by specifying the <code>simVariability = FALSE</code> option when solving:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">sim  &lt;-<span class="st"> </span><span class="kw">rxSolve</span>(mod, theta, ev, <span class="dt">omega=</span>omega, <span class="dt">nSub=</span><span class="dv">100</span>, <span class="dt">sigma=</span>sigma, <span class="dt">thetaMat=</span>tMat, <span class="dt">nStud=</span><span class="dv">10</span>,
@@ -1071,7 +985,7 @@ p2 &lt;-<span class="kw">ggplot</span>(s,<span class="kw">aes</span>(time,eff,<s
 <span class="st">    </span><span class="kw">xlab</span>(<span class="st">&quot;Time (hr)&quot;</span>) <span class="op">+</span><span class="st"> </span><span class="kw">guides</span>(<span class="dt">color=</span><span class="ot">FALSE</span>)
 
 <span class="kw">grid.arrange</span>(p1,p2,<span class="dt">nrow=</span><span class="dv">2</span>)</code></pre></div>
-<p><img src="data:image/png;base64,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" /><!-- --></p>
+<p><img src="data:image/png;base64,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" /><!-- --></p>
 <p>Note since realizations of <code>omega</code> and <code>sigma</code> were not simulated, <code>$omega.list</code> and <code>$sigma.list</code> both return <code>NULL</code>.</p>
 </div>
 <div id="rxode-multi-threaded-solving-and-simulation" class="section level4">
@@ -1097,7 +1011,7 @@ p2 &lt;-<span class="kw">ggplot</span>(s,<span class="kw">aes</span>(time,eff,<s
 <span class="st">    </span><span class="kw">xlab</span>(<span class="st">&quot;Time (hr)&quot;</span>) <span class="op">+</span><span class="st"> </span><span class="kw">guides</span>(<span class="dt">color=</span><span class="ot">FALSE</span>)
 
 <span class="kw">grid.arrange</span>(p1,p2,<span class="dt">nrow=</span><span class="dv">2</span>)</code></pre></div>
-<p><img src="data:image/png;base64,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" /><!-- --></p>
+<p><img src="data:image/png;base64,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" /><!-- --></p>
 <p>The default for this is <code>1</code> core since the result depends on the number of cores and the random seed you use in your simulation. However, you can always speed up this process with more cores if you are sure your collaborators have the same number of cores available to them and have OpenMP thread-capable compile.</p>
 </div>
 <div id="facilities-for-generating-r-shiny-applications" class="section level4">

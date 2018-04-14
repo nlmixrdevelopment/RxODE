@@ -291,18 +291,18 @@ static int alloc_mem(struct lsoda_context_t * ctx) {
 
 	_C(memory) = malloc(offset);
 
-	_C(yh) = (double **)_C(memory) + yhoff;
-	_C(wm) =  (double **)_C(memory) + wmoff;
-	_C(ewt) = (double *)_C(memory) + ewtoff;
-	_C(savf) =(double *)_C(memory) + savfoff;
-	_C(acor) =(double *)_C(memory) + acoroff;
-	_C(ipvt) =(int *)_C(memory) + ipvtoff;
+	_C(yh) = (double **)((char *)_C(memory) + yhoff);
+	_C(wm) =  (double **)((char *)_C(memory) + wmoff);
+	_C(ewt) = (double *)((char *)_C(memory) + ewtoff);
+	_C(savf) =(double *)((char *)_C(memory) + savfoff);
+	_C(acor) =(double *)((char *)_C(memory) + acoroff);
+	_C(ipvt) =(int *)((char *)_C(memory) + ipvtoff);
 
 	for(i = 0; i <= lenyh; i++) {
-		_C(yh)[i] = (double *)_C(memory) + yh0off + i * (1 + nyh) * sizeof(double);
+		_C(yh)[i] = (double *)((char *)_C(memory) + yh0off + i * (1 + nyh) * sizeof(double));
 	}
 	for(i = 0; i <= nyh; i++) {
-		_C(wm)[i] = (double *)_C(memory) + wm0off + i * (1 + nyh) * sizeof(double);
+		_C(wm)[i] = (double *)((char *)_C(memory) + wm0off + i * (1 + nyh) * sizeof(double));
 	}
 
 	return _C(memory) != NULL;
