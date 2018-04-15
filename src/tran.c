@@ -172,7 +172,7 @@ char * r_sbuf_read(const char *pathname) {
 
 // Taken from dparser and changed to use Calloc
 char * rc_dup_str(const char *s, const char *e) {
-  int l = e ? e-s : strlen(s);
+  int l = e ? e-s : (int)strlen(s);
   char *ss = Calloc(l+1,char);
   memcpy(ss, s, l);
   ss[l] = 0;
@@ -181,7 +181,7 @@ char * rc_dup_str(const char *s, const char *e) {
 
 // Taken from dparser and changed to use R_alloc
 char * r_dup_str(const char *s, const char *e) {
-  int l = e ? e-s : strlen(s);
+  int l = e ? e-s : (int)strlen(s);
   char *ss = (char*)R_alloc(l+1,sizeof(char));
   memcpy(ss, s, l);
   ss[l] = 0;
@@ -257,7 +257,7 @@ static FILE *fpIO, *fpIO2;
 
 /* new symbol? if no, find it's ith */
 int new_or_ith(const char *s) {
-  int i, len, len_s=strlen(s);
+  int i, len, len_s=(int)strlen(s);
 
   if (tb.fn) return 0;
   if (!strcmp("t", s)) return 0;
@@ -304,7 +304,7 @@ int new_or_ith(const char *s) {
 }
 
 int new_de(const char *s){
-  int i, len, len_s=strlen(s);
+  int i, len, len_s=(int)strlen(s);
   for (i=0; i<tb.nd; i++) {
     len = tb.deo[i+1] - tb.deo[i] - 1;
     if (!strncmp(tb.de+tb.deo[i], s, max(len, len_s))) { /* note we need take the max in order not to match a sub-string */
@@ -360,7 +360,7 @@ void wprint_node(int depth, char *name, char *value, void *client_data) {
     sbt.o += 3;
   } else {
     // Apply fix for dot.syntax
-    for (i = 0; i < strlen(value); i++){
+    for (i = 0; i < (int)strlen(value); i++){
       if (value[i] == '.' && !strcmp("identifier_r",name)){
         sprintf(SBPTR, "_DoT_");
         sprintf(SBTPTR, ".");
@@ -391,7 +391,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       new_or_ith(value)) {
     /* printf("[%d]->%s\n",tb.nv,value); */
     sprintf(tb.ss+tb.pos, "%s,", value);
-    tb.pos += strlen(value)+1;
+    tb.pos += (int)strlen(value)+1;
     tb.vo[++tb.nv] = tb.pos;
   }
   if (sb.o > MXBUF-20 || sbt.o > MXBUF-20){
@@ -559,8 +559,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    sprintf(SBPTR, "_%s(%d, (double) ", v, ii);
 	  }
           sprintf(SBTPTR, "%s(", v);
-          sb.o = strlen(sb.s);
-          sbt.o = strlen(sbt.s);
+          sb.o = (int)strlen(sb.s);
+          sbt.o = (int)strlen(sbt.s);
           Free(v);
           i = 1;// Parse next arguments
 	  depth=1;
@@ -578,13 +578,13 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	}
 	if (new_or_ith(buf)){
           sprintf(tb.ss+tb.pos, "%s,", buf);
-          tb.pos += strlen(buf)+1;
+          tb.pos += (int)strlen(buf)+1;
           tb.vo[++tb.nv] = tb.pos;
         }
         sprintf(SBPTR,"_THETA_%s_",v);
         sprintf(SBTPTR,"THETA[%s]",v);
-        sb.o = strlen(sb.s);
-        sbt.o = strlen(sbt.s);
+        sb.o = (int)strlen(sb.s);
+        sbt.o = (int)strlen(sbt.s);
         Free(v);
         continue;
       }
@@ -598,13 +598,13 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         sprintf(buf,"_ETA_%s_",v);
         if (new_or_ith(buf)){
 	  sprintf(tb.ss+tb.pos, "%s,", buf);
-          tb.pos += strlen(buf)+1;
+          tb.pos += (int)strlen(buf)+1;
           tb.vo[++tb.nv] = tb.pos;
         }
         sprintf(SBPTR,"_ETA_%s_",v);
         sprintf(SBTPTR,"ETA[%s]",v);
-        sb.o = strlen(sb.s);
-        sbt.o = strlen(sbt.s);
+        sb.o = (int)strlen(sb.s);
+        sbt.o = (int)strlen(sbt.s);
         Free(v);
         continue;
       }
@@ -686,9 +686,9 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         }
         if (i == 2){
           sprintf(SBPTR,"%s",v);
-          sb.o = strlen(sb.s);
+          sb.o = (int)strlen(sb.s);
           sprintf(SBTPTR,"%s",v);
-          sbt.o = strlen(sbt.s);
+          sbt.o = (int)strlen(sbt.s);
         }
         if (i == 4){
           fprintf(fpIO,  "%s;\n", sb.s);
@@ -715,8 +715,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  new_or_ith(v);
 	  tb.cdf = tb.ix;
         }
-        sb.o = strlen(sb.s);
-        sbt.o = strlen(sbt.s);
+        sb.o = (int)strlen(sb.s);
+        sbt.o = (int)strlen(sbt.s);
         Free(v);
         continue;
       }
@@ -752,8 +752,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
         sprintf(SBPTR, "exp(lgamma1p(%s))",v);
         sprintf(SBTPTR, "%s!",v);
-        sb.o = strlen(sb.s);
-        sbt.o = strlen(sbt.s);
+        sb.o = (int)strlen(sb.s);
+        sbt.o = (int)strlen(sbt.s);
         Free(v);
         continue;
       }
@@ -761,8 +761,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
         sprintf(SBPTR, "lgamma1p(%s)",v);
         sprintf(SBTPTR, "log(%s!)",v);
-        sb.o = strlen(sb.s);
-        sbt.o = strlen(sbt.s);
+        sb.o = (int)strlen(sb.s);
+        sbt.o = (int)strlen(sbt.s);
         Free(v);
         continue;
       }
@@ -773,22 +773,22 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	if (strstr(v,"THETA[") != NULL){
 	  sprintf(buf,"_THETA_%.*s_",(int)(strlen(v))-7,v+6);
 	  sprintf(SBTPTR, "%s)",v);
-          sbt.o = strlen(sbt.s);
+          sbt.o = (int)strlen(sbt.s);
 	  sprintf(SBPTR, "%s]]",buf);
-          sb.o = strlen(sb.s);
+          sb.o = (int)strlen(sb.s);
 	  ii = 1;
 	} else if (strstr(v,"ETA[") != NULL) {
 	  sprintf(buf,"_ETA_%.*s_",(int)(strlen(v))-5,v+4);
           sprintf(SBTPTR, "%s)",v);
-          sbt.o = strlen(sbt.s);
+          sbt.o = (int)strlen(sbt.s);
           sprintf(SBPTR, "%s]]",buf);
-          sb.o = strlen(sb.s);
+          sb.o = (int)strlen(sb.s);
           ii = 1;
         } else {
 	  sprintf(SBPTR, "%s]]",v);
-          sb.o = strlen(sb.s);
+          sb.o = (int)strlen(sb.s);
           sprintf(SBTPTR, "%s)",v);
-          sbt.o = strlen(sbt.s);
+          sbt.o = (int)strlen(sbt.s);
         }
         if (!strcmp("jac",name) ||
             strcmp("dfdy",name) == 0){
@@ -822,9 +822,9 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       //inits
       if (!strcmp("selection_statement", name) && i==1) {
         sprintf(sb.s, "if (");
-        sb.o = strlen(sb.s);
+        sb.o = (int)strlen(sb.s);
         sprintf(sbt.s, "if (");
-        sbt.o = strlen(sbt.s);
+        sbt.o = (int)strlen(sbt.s);
         continue;
       }
       if (!strcmp("selection_statement", name) && i==3) {
@@ -876,9 +876,9 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         sprintf(tb.ddt, "%s",v);
         if (new_de(v)){
           sprintf(sb.s, "__DDtStateVar__[%d] = _InfusionRate[%d] + ", tb.nd, tb.nd);
-          sb.o = strlen(sb.s);
+          sb.o = (int)strlen(sb.s);
           sprintf(sbt.s, "d/dt(%s)", v);
-          sbt.o = strlen(sbt.s);
+          sbt.o = (int)strlen(sbt.s);
 	  new_or_ith(v);
           /* Rprintf("%s; tb.ini = %d; tb.ini0 = %d; tb.lh = %d\n",v,tb.ini[tb.ix],tb.ini0[tb.ix],tb.lh[tb.ix]); */
           if (!rx_syntax_allow_assign_state && ((tb.ini[tb.ix] == 1 && tb.ini0[tb.ix] == 0) || tb.lh[tb.ix] == 1)){
@@ -888,7 +888,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  tb.lh[tb.ix] = 9;
           tb.di[tb.nd] = tb.ix;
           sprintf(tb.de+tb.pos_de, "%s,", v);
-          tb.pos_de += strlen(v)+1;
+          tb.pos_de += (int)strlen(v)+1;
 	  Free(v);
 	  xpn = d_get_child(pn,4);
           v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
@@ -906,9 +906,9 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  new_or_ith(v);
 	  /* printf("de[%d]->%s[%d]\n",tb.id,v,tb.ix); */
           sprintf(sb.s, "__DDtStateVar__[%d] = ", tb.id);
-          sb.o = strlen(sb.s);
+          sb.o = (int)strlen(sb.s);
           sprintf(sbt.s, "d/dt(%s)=", v);
-          sbt.o = strlen(sbt.s);
+          sbt.o = (int)strlen(sbt.s);
         }
         Free(v);
         continue;
@@ -920,9 +920,9 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
           trans_syntax_error_report_fn(buf);
         } else {
           sprintf(SBPTR, "__DDtStateVar__[%d]", tb.id);
-          sb.o = strlen(sb.s);
+          sb.o = (int)strlen(sb.s);
           sprintf(SBTPTR, "d/dt(%s)", v);
-          sbt.o = strlen(sbt.s);
+          sbt.o = (int)strlen(sbt.s);
         }
         Free(v);
         continue;
@@ -936,14 +936,14 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         } else {
 	  if (strcmp(tb.ddt, v)){
 	    sprintf(SBPTR, "_InfusionRate[%d]", tb.id);
-            sb.o = strlen(sb.s);
+            sb.o = (int)strlen(sb.s);
             sprintf(SBTPTR, "rxRate(%s)", v);
-            sbt.o = strlen(sbt.s);
+            sbt.o = (int)strlen(sbt.s);
           } else {
 	    sprintf(SBPTR, "0.0");
-            sb.o = strlen(sb.s);
+            sb.o = (int)strlen(sb.s);
             sprintf(SBTPTR, "rxRate(%s)", v);
-            sbt.o = strlen(sbt.s);
+            sbt.o = (int)strlen(sbt.s);
 	  }
         }
         Free(v);
@@ -956,9 +956,9 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	sbt.o = 0;
 	char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
 	sprintf(SBPTR,"%s",v);
-	sb.o = strlen(sb.s);
+	sb.o = (int)strlen(sb.s);
 	sprintf(SBTPTR,"%s(0)",v);
-	sbt.o = strlen(sbt.s);
+	sbt.o = (int)strlen(sbt.s);
       }
 
       if ((!strcmp("assignment", name) || !strcmp("ini", name) || !strcmp("ini0", name)) && i==0) {
@@ -967,7 +967,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         if ((rx_syntax_allow_ini && !strcmp("ini", name)) || !strcmp("ini0", name)){
           sprintf(sb.s,"(__0__)");
           sb.o = 7;
-          for (k = 0; k < strlen(v); k++){
+          for (k = 0; k < (int)strlen(v); k++){
             if (v[k] == '.'){
               if (rx_syntax_allow_dots){
                 sprintf(SBPTR,"_DoT_");
@@ -990,7 +990,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
           }
         } else {
           sb.o = 0;
-          for (k = 0; k < strlen(v); k++){
+          for (k = 0; k < (int)strlen(v); k++){
             if (v[k] == '.'){
               if (rx_syntax_allow_dots){              
                 sprintf(SBPTR,"_DoT_");
@@ -1012,7 +1012,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	if (!strcmp("ini0",name)){
 	  sprintf(sbt.s,"%s(0)",v);
 	}
-	sbt.o = strlen(sbt.s);
+	sbt.o = (int)strlen(sbt.s);
 	new_or_ith(v);
 	
         if (!strcmp("assignment", name) || (!rx_syntax_allow_ini && !strcmp("ini", name))){
@@ -1135,7 +1135,7 @@ void prnt_vars(int scenario, FILE *outpt, int lhs, const char *pre_str, const ch
     switch(scenario) {
     case 0:   // Case 0 is for declaring the variables
       fprintf(outpt,"  ");
-      for (k = 0; k < strlen(buf); k++){
+      for (k = 0; k < (int)strlen(buf); k++){
         if (buf[k] == '.'){
           fprintf(outpt,"_DoT_");
           if (!rx_syntax_allow_dots){
@@ -1154,7 +1154,7 @@ void prnt_vars(int scenario, FILE *outpt, int lhs, const char *pre_str, const ch
       // See https://stackoverflow.com/questions/1486904/how-do-i-best-silence-a-warning-about-unused-variables
       fprintf(outpt,"  ");
       fprintf(outpt,"(void)");
-      for (k = 0; k < strlen(buf); k++){
+      for (k = 0; k < (int)strlen(buf); k++){
         if (buf[k] == '.'){
           fprintf(outpt,"_DoT_");
           if (!rx_syntax_allow_dots){
@@ -1169,7 +1169,7 @@ void prnt_vars(int scenario, FILE *outpt, int lhs, const char *pre_str, const ch
     case 1:
       // Case 1 is for declaring the par_ptr.
       fprintf(outpt,"  ");
-      for (k = 0; k < strlen(buf); k++){
+      for (k = 0; k < (int)strlen(buf); k++){
         if (buf[k] == '.'){
           fprintf(outpt,"_DoT_");
           if (!rx_syntax_allow_dots){
@@ -1214,33 +1214,33 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
       }
       sprintf(s_aux_info+o, "    SET_STRING_ELT(params,%d,mkChar(\"%s\"));\n", pi++, buf);
     }
-    o = strlen(s_aux_info);
+    o = (int)strlen(s_aux_info);
   }
   for (i=0; i<tb.nd; i++) {                     /* name state vars */
     retieve_var(tb.di[i], buf);
     if (strstr(buf, "rx__sens_")){
       sprintf(s_aux_info+o, "    SET_STRING_ELT(sens,%d,mkChar(\"%s\"));\n", sensi++, buf);
-      o = strlen(s_aux_info);
+      o = (int)strlen(s_aux_info);
       sprintf(s_aux_info+o, "    SET_STRING_ELT(state,%d,mkChar(\"%s\"));\n", statei++, buf);
-      o = strlen(s_aux_info);
+      o = (int)strlen(s_aux_info);
       sprintf(s_aux_info+o, "    stateRm[%d] = %d;\n", statei-1, tb.idi[i]);
     } else {
       sprintf(s_aux_info+o, "    SET_STRING_ELT(state,%d,mkChar(\"%s\"));\n", statei++, buf);
-      o = strlen(s_aux_info);
+      o = (int)strlen(s_aux_info);
       sprintf(s_aux_info+o, "    SET_STRING_ELT(normState,%d,mkChar(\"%s\"));\n", normi++, buf);
-      o = strlen(s_aux_info);
+      o = (int)strlen(s_aux_info);
       sprintf(s_aux_info+o, "    stateRm[%d] = %d;\n", statei-1, tb.idi[i]);
     }
     if (tb.fdi[i]){
-      o = strlen(s_aux_info);
+      o = (int)strlen(s_aux_info);
       sprintf(s_aux_info+o, "    SET_STRING_ELT(fn_ini,%d,mkChar(\"%s\"));\n", fdi++, buf);
     }
-    o = strlen(s_aux_info);
+    o = (int)strlen(s_aux_info);
   }
   for (i=0; i<tb.ndfdy; i++) {                     /* name state vars */
     retieve_var(tb.df[i], buf);
     sprintf(s_aux_info+o, "    SET_STRING_ELT(dfdy,%d,mkChar(\"df(%s)/dy(", i, buf);
-    o = strlen(s_aux_info);
+    o = (int)strlen(s_aux_info);
     retieve_var(tb.dy[i], buf);
     for (j = 1; j <= tb.maxtheta;j++){
       sprintf(buf2,"_THETA_%d_",j);
@@ -1255,7 +1255,7 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
       }
     }
     sprintf(s_aux_info+o, "%s)\"));\n",buf);
-    o = strlen(s_aux_info);
+    o = (int)strlen(s_aux_info);
   }
   fprintf(outpt,"extern SEXP %smodel_vars(){\n  int pro=0;\n",model_prefix);
   fprintf(outpt,"  SEXP _mv = PROTECT(_rxGetModelLib(\"rx_5c2c6f8a65d272301b81504c87d75239_x64_model_vars\"));pro++;\n");
@@ -1314,7 +1314,7 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
   tb.sensi  = sensi;
   fprintf(outpt,"    SET_STRING_ELT(modeln,0,mkChar(\"model\"));\n");
   fprintf(outpt,"    SET_STRING_ELT(model,0,mkChar(\"");
-  for (i = 0; i < strlen(orig_model); i++){
+  for (i = 0; i < (int)strlen(orig_model); i++){
     if (orig_model[i] == '"'){
       fprintf(outpt,"\\\"");
     } else if (orig_model[i] == ' '){
@@ -1336,7 +1336,7 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
   err_msg((intptr_t) fpIO2, "Error parsing. (Couldn't access out3.txt).\n", -1);
   in_str=0;
   while(fgets(sLine, MXLEN, fpIO2)) {  /* Prefered RxODE -- for igraph */
-    for (i = 0; i < strlen(sLine); i++){
+    for (i = 0; i < (int)strlen(sLine); i++){
       if (sLine[i] == '"'){
 	if (in_str==1){
           in_str=0;
@@ -1374,7 +1374,7 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
   fprintf(outpt,"    SET_STRING_ELT(model,2,mkChar(\"");
   err_msg((intptr_t) fpIO2, "Error parsing. (Couldn't access out2.txt).\n", -1);
   while(fgets(sLine, MXLEN, fpIO2)) {  /* Prefered RxODE -- for igraph */
-    for (i = 0; i < strlen(sLine); i++){
+    for (i = 0; i < (int)strlen(sLine); i++){
       if (sLine[i] == '"'){
         fprintf(outpt,"\\\"");
       } else if (sLine[i] == '\n'){
@@ -1392,7 +1392,7 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
   fprintf(outpt,"\"));\n");
   fprintf(outpt,"    SET_STRING_ELT(modeln,3,mkChar(\"expandModel\"));\n");
   fprintf(outpt,"    SET_STRING_ELT(model,3,mkChar(\"");
-  for (i = 0; i < strlen(model); i++){
+  for (i = 0; i < (int)strlen(model); i++){
     if (model[i] == '"'){
       fprintf(outpt,"\\\"");
     } else if (model[i] == '\n'){
@@ -1420,7 +1420,7 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
           retieve_var(i, buf);
           sprintf(buf2,"(__0__)");
           o2 = 7;
-          for (k = 0; k < strlen(buf); k++){
+          for (k = 0; k < (int)strlen(buf); k++){
             if (buf[k] == '.'){
               sprintf(buf2+o2,"_DoT_");
               if (!rx_syntax_allow_dots){
@@ -1436,9 +1436,9 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
           s2 = strstr(sLine,buf2);
           if (s2){
             sprintf(s_aux_info+o,"    SET_STRING_ELT(inin,%d,mkChar(\"%s\"));\n",ini_i, buf);
-            o = strlen(s_aux_info);
+            o = (int)strlen(s_aux_info);
             sprintf(s_aux_info+o,"    REAL(ini)[%d] = %.*s;\n",(int)(ini_i++), (int)(strlen(sLine))-(int)(strlen(buf2))-2,sLine + (int)(strlen(buf2)));
-            o = strlen(s_aux_info);
+            o = (int)strlen(s_aux_info);
             continue;
           }
         }
@@ -1454,10 +1454,10 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
       // Put in constants
       if  (!strcmp("pi",buf)){
         sprintf(s_aux_info+o,"    SET_STRING_ELT(inin,%d,mkChar(\"pi\"));\n",ini_i);
-        o = strlen(s_aux_info);
+        o = (int)strlen(s_aux_info);
         // Use well more digits than double supports
         sprintf(s_aux_info+o,"    REAL(ini)[%d] = M_PI;\n",ini_i++);
-        o = strlen(s_aux_info);
+        o = (int)strlen(s_aux_info);
       }
     }
   }
@@ -1615,7 +1615,7 @@ void codegen(FILE *outpt, int show_ode) {
     /*   } */
     /* } */
     fprintf(outpt,"\n");
-    for (i = 0; i < strlen(extra_buf); i++){
+    for (i = 0; i < (int)strlen(extra_buf); i++){
       if (extra_buf[i] == '"'){
         fprintf(outpt,"\"");
       } else if (extra_buf[i] == '\n'){
@@ -1663,7 +1663,7 @@ void codegen(FILE *outpt, int show_ode) {
     for (i=0; i<tb.nd; i++) {                   /* name state vars */
       retieve_var(tb.di[i], buf);
       fprintf(outpt,"  ");
-      for (k = 0; k < strlen(buf); k++){
+      for (k = 0; k < (int)strlen(buf); k++){
 	if (buf[k] == '.'){
 	  fprintf(outpt,"_DoT_");
 	  if (!rx_syntax_allow_dots){
@@ -1824,12 +1824,12 @@ void codegen(FILE *outpt, int show_ode) {
 	  if (show_ode == 2 && tb.sdfdy[i] == 0){
 	    // __PDStateVar__[__CMT_NUM_y__*(__NROWPD__)+__CMT_NUM_dy__]
 	    sprintf(to,"__PDStateVar__[");
-	    o = strlen(to);
+	    o = (int)strlen(to);
 	    for (j=0; j<tb.nd; j++) {                     /* name state vars */
               retieve_var(tb.di[j], state);
 	      if (!strcmp(state, df)){
 		sprintf(to+o,"%d*(__NROWPD__)+",j);
-		o = strlen(to);
+		o = (int)strlen(to);
 		break;
 	      }
 	    }
@@ -1837,7 +1837,7 @@ void codegen(FILE *outpt, int show_ode) {
 	      retieve_var(tb.di[j], state);
               if (!strcmp(state, dy)){
                 sprintf(to+o,"%d]",j);
-                o = strlen(to);
+                o = (int)strlen(to);
                 break;
               }
 	    }
@@ -1918,7 +1918,7 @@ void codegen(FILE *outpt, int show_ode) {
     for (i = 0; i < tb.nd; i++){
       retieve_var(tb.di[i], buf);
       fprintf(outpt,"  __zzStateVar__[%d]=",i);
-      for (k = 0; k < strlen(buf); k++){
+      for (k = 0; k < (int)strlen(buf); k++){
         if (buf[k] == '.'){
           fprintf(outpt,"_DoT_");
           if (!rx_syntax_allow_dots){
@@ -1937,7 +1937,7 @@ void codegen(FILE *outpt, int show_ode) {
       if (tb.lh[i] != 1) continue;
       retieve_var(i, buf);
       fprintf(outpt, "  _lhs[%d]=", j);
-      for (k = 0; k < strlen(buf); k++){
+      for (k = 0; k < (int)strlen(buf); k++){
         if (buf[k] == '.'){
           fprintf(outpt,"_DoT_");
           if (!rx_syntax_allow_dots){
@@ -2019,7 +2019,7 @@ void trans_internal(char *orig_file, char* parse_file, char* c_file){
   infile = r_sbuf_read(orig_file);
 
   err_msg((intptr_t) buf, "error: empty buf for FILE_to_parse\n", -2);
-  if ((pn=dparse(p, buf, strlen(buf))) && !p->syntax_errors) {
+  if ((pn=dparse(p, buf, (int)strlen(buf))) && !p->syntax_errors) {
     fpIO = fopen( out2, "w" );
     fpIO2 = fopen( out3, "w" );
     err_msg((intptr_t) fpIO, "error opening out2.txt\n", -2);
@@ -2364,7 +2364,7 @@ SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP pref
           retieve_var(i, buf);
           sprintf(buf2,"(__0__)");
           o2 = 7;
-          for (k = 0; k < strlen(buf); k++){
+          for (k = 0; k < (int)strlen(buf); k++){
             if (buf[k] == '.'){
               sprintf(buf2+o2,"_DoT_");
               if (!rx_syntax_allow_dots){
@@ -2404,9 +2404,9 @@ SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP pref
     }
   }
   file = r_sbuf_read(orig);
-  pfile = (char *) R_alloc(strlen(file)+1,sizeof(char));
+  pfile = (char *) R_alloc((int)strlen(file)+1,sizeof(char));
   j=0;
-  for (i = 0; i < strlen(file); i++){
+  for (i = 0; i < (int)strlen(file); i++){
     if (file[i] == '"'  ||
         file[i] == '\n' ||
         file[i] == '\t' ||
@@ -2420,9 +2420,9 @@ SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP pref
   SET_STRING_ELT(modeln,1,mkChar("normModel"));
   file = r_sbuf_read(out3);
   if (file){
-    pfile = (char *) R_alloc(strlen(file)+1,sizeof(char));
+    pfile = (char *) R_alloc((int)strlen(file)+1,sizeof(char));
     j=0;
-    for (i = 0; i < strlen(file); i++){
+    for (i = 0; i < (int)strlen(file); i++){
       if (file[i] == '"'  ||
           file[i] == '\n' ||
           file[i] == '\t' ||
@@ -2438,9 +2438,9 @@ SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP pref
   SET_STRING_ELT(modeln,2,mkChar("parseModel"));
   file = r_sbuf_read(out2);
   if (file){
-    pfile = (char *) R_alloc(strlen(file)+1,sizeof(char));
+    pfile = (char *) R_alloc((int)strlen(file)+1,sizeof(char));
     j=0;
-    for (i = 0; i < strlen(file); i++){
+    for (i = 0; i < (int)strlen(file); i++){
       if (file[i] == '"'  ||
           file[i] == '\n' ||
           file[i] == '\t' ||
@@ -2454,9 +2454,9 @@ SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP pref
   }
 
   file = r_sbuf_read(in);
-  pfile = (char *) R_alloc(strlen(file)+1,sizeof(char));
+  pfile = (char *) R_alloc((int)strlen(file)+1,sizeof(char));
   j=0;
-  for (i = 0; i < strlen(file); i++){
+  for (i = 0; i < (int)strlen(file); i++){
     if (file[i] == '"'  ||
         file[i] == '\n' ||
         file[i] == '\t' ||
