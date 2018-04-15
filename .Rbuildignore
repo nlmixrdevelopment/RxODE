@@ -20,6 +20,4 @@ RxODE.*\.(zip|pdf)$
 LICENSE
 /?config.status
 /?config.log
-/?src/Makevars
-/?src/Makevars.win
 /?vignettes/RxODE-speed.Rmd
