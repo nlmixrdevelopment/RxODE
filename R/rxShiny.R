@@ -47,9 +47,12 @@ rxShiny <- function(object,params = c(), events = NULL, inits = c(), ...){
 rxShiny.rxSolve <- function(object,params = NULL, events = NULL, inits = c(), ...){
     if (is.null(params)){
         if (dim(object$params)[1] > 1){
+            warning("Using the first solved parameters for rxShiny")
         }
         params <- setNames(unlist(object$params[1, ]), names(object$params))
-
+    }
+    if (length(inits) == 0){
+        inits <- object$inits;
     }
     rxShiny.default(object=object, params=params, events=events, inits=inits);
 }
@@ -260,7 +263,7 @@ shiny::column(width = 7,
             start    = as.numeric(input$start)
             interval = as.numeric(input$interval)
 
-            into = ifelse(!is.null(input$into),1,match(input$into, values$cmts))
+            into = ifelse(is.null(input$into),1,match(input$into, values$cmts))
 
             ev <- eventTable()
 
