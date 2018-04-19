@@ -1648,15 +1648,16 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                             warn=rxSymPySetupPred.warn,
                             pred.minus.dv=pred.minus.dv,
                             log.thetas=rxSymPyExpThetas,
-                            log.etas=rxSymPyExpEtas);
+                            log.etas=rxSymPyExpEtas,
+                            cache.file=cache.file);
                 rxSymPySetupPred.warn <- FALSE;
                 class(ret) <- "rxFocei";
 
                 save(ret, file=cache.file);
                 if (only.numeric){
-                    rxCat("The model has been setup to calculate residuals.\nIt will be cached for future runs.\n");
+                    rxCat("The model has been setup to calculate residuals.\n");
                 } else {
-                    rxCat(sprintf("The model-based sensitivities have been calculated%s.\nIt will be cached for future runs.\n", ifelse(grad, " (with FOCEi Global Gradient)", "")));
+                    rxCat(sprintf("The model-based sensitivities have been calculated%s.\n", ifelse(grad, " (with FOCEi Global Gradient)", "")));
                 }
                 if (ret$warn){
                     warning("Some of your prediction function does not depend on the state variables.");
