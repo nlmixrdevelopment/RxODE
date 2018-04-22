@@ -1001,7 +1001,7 @@ C-----------------------------------------------------------------------
      1   TCRIT, TDIST, TNEXT, TOL, TOLSF, TP, SIZE, SUM, W0
       DIMENSION MORD(2)
       LOGICAL IHIT
-      CHARACTER (LEN=60) MSG
+      CHARACTER (LEN=80) MSG
       SAVE MORD, MXSTP0, MXHNL0
 C-----------------------------------------------------------------------
 C The following two internal Common blocks contain
