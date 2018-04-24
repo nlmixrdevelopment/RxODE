@@ -731,7 +731,7 @@ extern int nEqP (rx_solve *rx){
   return op->neq;
 }
 
-extern int nEq (rx_solve *rx){
+extern int nEq (){
   return nEqP(_globalRx);
 }
 
@@ -745,7 +745,7 @@ extern int rxEvidP(int i, rx_solve *rx, unsigned int id){
   }
 }
 
-extern int rxEvid(int i, rx_solve *rx, unsigned int id){
+extern int rxEvid(int i){
   return rxEvidP(i, _globalRx, 0);
 }
 
@@ -799,7 +799,7 @@ extern double rxLhsP(int i, rx_solve *rx, unsigned int id){
   return 0;
 }
 
-extern double rxLhs(int i, rx_solve *rx, unsigned int id){
+extern double rxLhs(int i){
   return rxLhsP(i, _globalRx, 0);
 }
 
@@ -818,7 +818,7 @@ extern void rxCalcLhsP(int i, rx_solve *rx, unsigned int id){
   }
 }
 
-void rxCalcLhs(int i, rx_solve *rx, unsigned int id){
+void rxCalcLhs(int i){
   rxCalcLhsP(i, _globalRx, 0);
 }
 extern unsigned int nAllTimesP(rx_solve *rx, unsigned int id){
