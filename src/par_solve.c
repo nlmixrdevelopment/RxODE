@@ -412,29 +412,48 @@ int *global_BadDose(unsigned int mx){
 }
 
 void rxOptionsIni(){
-  inds_global =Calloc(1024, rx_solving_options_ind);
-  global_iworkp=Calloc(1024*4, int);
-  global_rworkp=Calloc(1024*4, double);
-  global_iworki=4*1024;
-  global_rworki=4*1024;
   max_inds_global = 1024;
-  global_InfusionRatep=Calloc(1024, double);
+  inds_global =Calloc(1024, rx_solving_options_ind);
+
+  global_iworki = 1024*4;
+  global_iworkp=Calloc(1024*4, int);
+  
+  global_rworki=4*1024;
+  global_rworkp=Calloc(1024*4, double);
+  
   global_InfusionRatei = 1024;
-  global_BadDosep=Calloc(1024, int);
+  global_InfusionRatep=Calloc(1024, double);
+
   global_BadDosei = 1024;
-  global_scalep=Calloc(1024, double);
+  global_BadDosep=Calloc(1024, int);
+
   global_scalei = 1024;
+  global_scalep=Calloc(1024, double);
+
   rx_solve *rx=(&rx_global);
+
   rx->op = &op_global;
   rx->subjects = inds_global;
 }
 
 void rxOptionsFree(){
+  global_iworki = 0;
   Free(global_iworkp);
+
+  global_rworki = 0;
   Free(global_rworkp);
+
+  max_inds_global = 0;
   Free(inds_global);
+
+  global_InfusionRatei = 0;
   Free(global_InfusionRatep);
+
+  global_BadDosei = 0;
   Free(global_BadDosep);
+
+  global_scalei = 0;
+  Free(global_scalep);
 }
 
 extern void par_lsoda(rx_solve *rx){
@@ -1283,7 +1302,7 @@ void RxODE_ode_solve_env(SEXP sexp_rho){
   SEXP sexp_rc = PROTECT(findVar(installChar(mkChar("rc")),sexp_rho)); pro++;
   rx_solve *rx = &rx_global;
   rx_solving_options *op = &op_global;
-  rx_solving_options_ind *ind = &inds_global[0];
+  rx_solving_options_ind *ind = &(rx->subjects[0]);
   ind->rc=INTEGER(sexp_rc);
 
   // Let R handle deallocating the solve and lhs expressions; Should disappear with evironment

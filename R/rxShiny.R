@@ -33,18 +33,22 @@ g.y.log10 <-  function(breaks = g.log.breaks.major,minor_breaks=  g.log.breaks.m
 ##'     the model exploration.
 ##' @param params Initial parameters for model
 ##' @param events Event information (currently ignored)
-##' @param inits Initial  estimates for model
+##' @param inits Initial estimates for model
 ##' @param ... Other arguments passed to rxShiny.  Currently doesn't
 ##'     do anything.
+##' @param data Any data that you would like to plot.  If the data has
+##'     a \code{time} variable as well as a compartment or calculated
+##'     variable that matches the RxODE model, the data will be added
+##'     to the plot of a specific compartment or calculated variable.
 ##' @return Nothing; Starts a shiny server
 ##' @author Zufar Mulyukov and Matthew L. Fidler
 ##' @export
-rxShiny <- function(object,params = c(), events = NULL, inits = c(), ...){
+rxShiny <- function(object,params = c(), events = NULL, inits = c(), ..., data=data.frame()){
     UseMethod("rxShiny");
 }
 ##' @rdname rxShiny
 ##' @export
-rxShiny.rxSolve <- function(object,params = NULL, events = NULL, inits = c(), ...){
+rxShiny.rxSolve <- function(object,params = NULL, events = NULL, inits = c(), ..., data=data.frame()){
     if (is.null(params)){
         if (dim(object$params)[1] > 1){
             warning("Using the first solved parameters for rxShiny")
@@ -54,11 +58,12 @@ rxShiny.rxSolve <- function(object,params = NULL, events = NULL, inits = c(), ..
     if (length(inits) == 0){
         inits <- object$inits;
     }
-    rxShiny.default(object=object, params=params, events=events, inits=inits);
+    rxShiny.default(object=object, params=params, events=events, inits=inits, ..., data=data);
 }
 ##' @rdname rxShiny
 ##' @export
-rxShiny.default <- function(object=NULL, params = c(), events = NULL, inits = c(), ...){
+rxShiny.default <- function(object=NULL, params = c(), events = NULL, inits = c(), ...,
+                            data=data.frame()){
     rxReq("shiny");
     rxReq("ggplot2");
     rxReq("scales");
@@ -76,6 +81,14 @@ d/dt(eff)  = Kin - Kout*(1-C2/(EC50+C2))*eff
                     V2 = 40.2, Q = 10.5, V3 = 297.0,
                     Kin = 1.0, Kout = 1.0, EC50 = 200.0)
     }
+    lower.names <- tolower(names(data));
+    w <- which(lower.names == "time");
+    if (length(w) == 1){
+        names(data)[w] <- "time";
+        new.names <- c(rxLhs(object), rxState(object), "time")
+        data <- data[, which(names(data) %in% c(rxLhs(object), rxState(object), "time")), drop = FALSE];
+    }
+
     ui<- eval(bquote(shiny::shinyUI(shiny::fluidPage(
                                                shiny::tags$style(shiny::HTML("input:invalid {background-color: #FFCCCC;}")),
         shiny::tags$script('
@@ -132,8 +145,6 @@ shiny::column(width = 7,
         values$msg = 'NULL'
         values$logy = TRUE
         tmp=tempfile()
-
-
         shiny::observeEvent(input$goButton, {
             values$m1=NULL
             values$res <- NULL
@@ -205,14 +216,17 @@ shiny::column(width = 7,
                 lapply(cmts, function(cmt){
                     plotname <- paste("plot", cmt, sep="")
                     output[[plotname]] <- renderPlot({
+                        tmp <- tolower(cmt)
                         p <- ggplot2::ggplot(as.data.frame(dat), ggplot2::aes_(x=as.name("time"), y=as.name(cmt))) +
                             ggplot2::geom_line(size=1.2) + ggplot2::theme_bw(base_size=18)
                         if (values$logy){
                             p <- p + g.y.log10();
                         }
+                        data <- .(data)
+                        if (any(cmt == names(data)))
+                            p <- p + ggplot2::geom_point(data=data)
                         p
                     })
-
                     tabPanel(cmt,  plotOutput(plotname))
                 })
             do.call(tabsetPanel, c(tabs, id='plot.tabs', selected = sel.tab))
@@ -294,8 +308,7 @@ shiny::column(width = 7,
                 params <- eval(parse(text=param_str))
             }
 
-            values$res =
-                values$m1$solve(params, ev, inits)
+            values$res = values$m1$solve(params, ev, inits)
         }
 
         session$onSessionEnded(stopApp)

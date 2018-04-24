@@ -6,13 +6,14 @@
 \alias{rxShiny.default}
 \title{Use Shiny to help develop an RxODE model}
 \usage{
-rxShiny(object, params = c(), events = NULL, inits = c(), ...)
+rxShiny(object, params = c(), events = NULL, inits = c(), ...,
+  data = data.frame())
 
 \method{rxShiny}{rxSolve}(object, params = NULL, events = NULL,
-  inits = c(), ...)
+  inits = c(), ..., data = data.frame())
 
 \method{rxShiny}{default}(object = NULL, params = c(), events = NULL,
-  inits = c(), ...)
+  inits = c(), ..., data = data.frame())
 }
 \arguments{
 \item{object}{A RxODE family of objects. If not supplied a
@@ -24,10 +25,15 @@ the model exploration.}
 
 \item{events}{Event information (currently ignored)}
 
-\item{inits}{Initial  estimates for model}
+\item{inits}{Initial estimates for model}
 
 \item{...}{Other arguments passed to rxShiny.  Currently doesn't
 do anything.}
+
+\item{data}{Any data that you would like to plot.  If the data has
+a \code{time} variable as well as a compartment or calculated
+variable that matches the RxODE model, the data will be added
+to the plot of a specific compartment or calculated variable.}
 }
 \value{
 Nothing; Starts a shiny server
