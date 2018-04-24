@@ -1383,6 +1383,39 @@ void RxODE_ode_solve_env(SEXP sexp_rho){
   /* rxode_assign_rx(rx); */
   _globalRx=rx;
   rx->op = &op_global;
+  rx->nsub = 1; 
+  rx->nsim = 1;
+  // Start
+  op->scale = global_scale(op->neq);
+  /* memset(op->scale, 1.0, *neqa); */
+  for (unsigned int j = op->neq; j--;) op->scale[j] = 1.0;
+  op->extraCmt = 0;
+  op->hmax2=0;
+  /* double *rtol2, *atol2; */
+  /* op->rtol2 = rtol2; */
+  /* op->atol2 = atol2; */
+  op->cores = 1;
+  op->nDisplayProgress = 100;
+  op->ncoresRV = 1;
+  op->isChol = 0;
+  /* int *svar; */
+  /* op->svar = svar; */
+  op->abort = 0;  
+  // FIXME? modNamePtr?
+  /* op->modNamePtr */
+  rx->subjects = ind;
+  rx->nsub =1;
+  rx->nsim =1;
+  rx->stateIgnore = gsiVSetup(op->neq);
+  memset(rx->stateIgnore, 0, op->neq); // int OK
+  rx->nobs =-1;
+  rx->add_cov =0;
+  rx->matrix =0;
+  /* int i =0; */
+  _globalRx=rx;
+  rx->op = &op_global;
+  /* rxode_assign_rx(rx); */
+  set_solve(rx);
   par_solve(rx); // Solve without the option of updating residuals.
   if (op->nlhs) {
     for (i=0; i<ind->n_all_times; i++){
