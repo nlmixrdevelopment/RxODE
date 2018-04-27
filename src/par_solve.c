@@ -171,11 +171,11 @@ rx_solving_options *getRxOp(rx_solve *rx){
   return rx->op;
 }
 
-inline rx_solving_options_ind *getRxId(rx_solve *rx, unsigned int id){
+rx_solving_options_ind *getRxId(rx_solve *rx, unsigned int id){
   return &(rx->subjects[id]);
 }
 
-inline int handle_evid(int evid, int neq, 
+int handle_evid(int evid, int neq, 
 		       int *BadDose,
 		       double *InfusionRate,
 		       double *dose,
@@ -361,7 +361,7 @@ extern void par_liblsoda(rx_solve *rx){
 
 double *global_rworkp;
 unsigned int global_rworki = 0;
-inline double *global_rwork(unsigned int mx){ 
+double *global_rwork(unsigned int mx){ 
   if (mx >= global_rworki){
     global_rworki = mx+1024;
     global_rworkp = Realloc(global_rworkp, global_rworki, double);
@@ -372,7 +372,7 @@ inline double *global_rwork(unsigned int mx){
 
 int *global_iworkp;
 unsigned int global_iworki = 0;
-inline int *global_iwork(unsigned int mx){
+int *global_iwork(unsigned int mx){
   if (mx >= global_iworki){
     global_iworki = mx+1024;
     global_iworkp = Realloc(global_iworkp, global_iworki, int);
@@ -392,7 +392,7 @@ double *global_InfusionRate(unsigned int mx){
 
 double *global_scalep;
 unsigned int global_scalei = 0;
-inline double *global_scale(unsigned int mx){
+double *global_scale(unsigned int mx){
   if (mx >= global_scalei){
     global_scalei = mx+1024;
     global_scalep = Realloc(global_scalep, global_scalei, double);
