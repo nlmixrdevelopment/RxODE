@@ -43,7 +43,7 @@ ini0f     : identifier_r ('(0)' | '{0}' | '[0]') ('=' | '<-' ) additive_expressi
 
 ini        : identifier_r ('=' | '<-' ) ini_const;
 
-derivative : 'd/dt' '(' identifier_r_no_output ')' ('=' | '<-' | '~') additive_expression;
+derivative : 'd/dt' '(' identifier_r_no_output ')' ('=' | '<-' | '~')  ('+' | '-' | ) additive_expression;
 der_rhs    : 'd/dt' '(' identifier_r_no_output ')';
 jac        : jac_command '(' identifier_r_no_output ',' (theta0_noout | theta_noout | eta_noout | identifier_r_no_output) ')' ('=' | '<-' ) additive_expression;
 jac_rhs    : jac_command '(' identifier_r_no_output ',' (theta0_noout | theta_noout | eta_noout | identifier_r_no_output) ')';

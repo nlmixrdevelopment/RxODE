@@ -483,9 +483,9 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
     }
     for (i = 0; i < nch; i++) {
       if (!rx_syntax_assign  &&
-          ((!strcmp("derivative", name) && i == 4) ||
-           (!strcmp("jac", name) && i == 6) ||
-           (!strcmp("dfdy", name) && i == 6))) {
+          ((i == 4 && !strcmp("derivative", name)) ||
+           (i == 6 && !strcmp("jac", name)) ||
+           (i == 6 && !strcmp("dfdy", name)))) {
         D_ParseNode *xpn = d_get_child(pn,i);
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
         if (!strcmp("<-",v)){
@@ -869,13 +869,32 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         sbt.o += 8;
         rx_podo = 1;
       }
+      if (!strcmp("derivative", name) && i==5) {
+        char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+	if (!strcmp("+", v) || 
+	    !strcmp("-", v)){
+          // = + is output  or = InfusionRate + is outupt.
+          sprintf(SBPTR, " ");
+          sb.o += 1;
+	  if (!strcmp("-", v)){
+            sprintf(SBTPTR,"-");
+            sbt.o += 1;
+	  }
+        } else {
+	  // = + is output  or = InfusionRate + is outupt.
+          sprintf(SBPTR, "+ ");
+          sb.o += 2;
+        }
+	Free(v);
+	continue;
+      }
       if (!strcmp("derivative", name) && i==2) {
         /* sprintf(sb.s, "__DDtStateVar__[%d] = InfusionRate(%d) +", tb.nd, tb.nd); */
         /* sb.o = strlen(sb.s); */
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
         sprintf(tb.ddt, "%s",v);
         if (new_de(v)){
-          sprintf(sb.s, "__DDtStateVar__[%d] = _InfusionRate[%d] + ", tb.nd, tb.nd);
+          sprintf(sb.s, "__DDtStateVar__[%d] = _InfusionRate[%d] ", tb.nd, tb.nd);
           sb.o = (int)strlen(sb.s);
           sprintf(sbt.s, "d/dt(%s)", v);
           sbt.o = (int)strlen(sbt.s);
