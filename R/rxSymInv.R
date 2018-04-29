@@ -912,7 +912,7 @@ print.rxSymInvChol <- function(x, ...){ #nocov start
     rxCat(sprintf("Object to create Omega and Omega^-1 & derivitaves for a %sx%s matrix:\n", d, d))
     rxPrint(x$fmat);
     rxCat("Use `rxSymInvChol' for the matrix.\n");
-} #nocov stop
+} #nocov end
 
 ##'@export
 `$.rxSymInvCholEnv` <- function(obj, arg, exact = TRUE){
