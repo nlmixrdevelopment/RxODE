@@ -1060,7 +1060,12 @@ rxTrans.character <- function(model,
     out3 <- tempfile();
     on.exit(unlink(parseModel));
     rxReq("dparser");
-    ret <- .Call(trans, model, model, cFile, extraC, modelPrefix, md5, parseModel, out3, PACKAGE="RxODE");
+    ret <- try(.Call(trans, model, model, cFile, extraC, modelPrefix, md5, parseModel, out3, PACKAGE="RxODE"));
+    if (inherits(ret, "try-error")){
+        message("Model")
+        message(suppressWarnings(readLines(model)))
+        stop("Cannot Create RxODE model");
+    }
     md5 <- c(file_md5 = md5, parsed_md5 = rxMd5(c(ret$model["normModel"],
                                                   ret$ini,
                                                   ret$state,

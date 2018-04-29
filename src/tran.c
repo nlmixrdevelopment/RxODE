@@ -874,12 +874,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	if (!strcmp("+", v) || 
 	    !strcmp("-", v)){
           // = + is output  or = InfusionRate + is outupt.
-          sprintf(SBPTR, " ");
-          sb.o += 1;
-	  if (!strcmp("-", v)){
-            sprintf(SBTPTR,"-");
-            sbt.o += 1;
-	  }
         } else {
 	  // = + is output  or = InfusionRate + is outupt.
           sprintf(SBPTR, "+ ");
