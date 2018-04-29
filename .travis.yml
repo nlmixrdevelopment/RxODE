@@ -28,7 +28,7 @@ matrix:
     os: osx
   - r: 3.5
     os: osx
-    - r: 3.5
+  - r: 3.5
     os: linux
   - r: 3.4
     os: osx
