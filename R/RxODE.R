@@ -539,34 +539,6 @@ rxAdd <- function(rx, pre, post, ...){
     return(RxODE(paste(c(pre, base, post), collapse="\n"),...));
 }
 
-##' Predict an RxODE object
-##'
-##' \code{predict} solves the odinary differential equations specified by
-##'  RxODE object
-##'
-##' @param object An RxODE object
-##'
-##' @param ... Solve arguments sent to \code{rxSolve}.  See
-##'     \code{\link{rxSolve}}.
-##'
-##' @author Matthew L.Fidler
-##' @export
-predict.RxODE <- function(object, ...){
-    rxSolve(object, ...);
-}
-
-##' Solve RxODE objects
-##'
-##' @param ... Additional arguments sent to \code{rxSolve}
-##'
-##' @seealso \code{\link{rxSolve}}
-##'
-##' @author Matthew L.Fidler
-##' @export
-solve.RxODE <- function(...){
-    rxSolve(...)
-}
-
 ##' Add item to solved system of equations
 ##'
 ##' @title rxChain  Chain or add item to solved system of equations

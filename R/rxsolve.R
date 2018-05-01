@@ -193,6 +193,18 @@
 ##'
 ##' @inheritParams rxSimThetaOmega
 ##'
+##' @inheritParams stats::simulate
+##'
+##' @param a when using \code{solve}, this is equivalent to the
+##'     \code{object} argument.  If you specify \code{object} later in
+##'     the argument list it overwrites this parameter.
+##'
+##' @param b when using \code{solve}, this is equivalent to the
+##'     \code{params} argument.  If you specify \code{params} as a
+##'     named argument, this overwrites the output
+##'
+##' @param nsim represents the number of simulations.  For RxODE, if you supply single subject event tables (created with eventTable)
+##'
 ##' @return An \dQuote{rxSolve} solve object that stores the solved
 ##'     value in a matrix with as many rows as there are sampled time
 ##'     points and as many columns as system variables (as defined by
@@ -242,7 +254,37 @@ rxSolve <- function(object, params=NULL, events=NULL, inits = NULL, scale = NULL
                     theta = NULL, eta = NULL, addDosing=FALSE, update.object=FALSE,do.solve=TRUE,
                     omega = NULL, omegaDf = NULL, omegaIsChol = FALSE,
                     nSub = 1L, thetaMat = NULL, thetaDf = NULL, thetaIsChol = FALSE,
-                    nStud = 1L, dfSub=0.0, dfObs=0.0, return.type=c("rxSolve", "matrix", "data.frame")){
+                    nStud = 1L, dfSub=0.0, dfObs=0.0, return.type=c("rxSolve", "matrix", "data.frame"),
+                    seed=NULL, nsim=NULL){
+    UseMethod("rxSolve")
+}
+##' @rdname rxSolve
+##' @export
+rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, scale = NULL,
+                    covs = NULL, method = c("liblsoda", "lsoda", "dop853"),
+                    transit_abs = NULL, atol = 1.0e-8, rtol = 1.0e-6,
+                    maxsteps = 5000L, hmin = 0L, hmax = NULL, hini = 0L, maxordn = 12L, maxords = 5L, ...,
+                    cores,
+                    covs_interpolation = c("linear", "locf", "nocb", "midpoint"),
+                    add.cov = FALSE, matrix = FALSE, sigma = NULL, sigmaDf = NULL,
+                    nCoresRV = 1L, sigmaIsChol = FALSE, nDisplayProgress=10000L,
+                    amountUnits = NA_character_, timeUnits = "hours", stiff,
+                    theta = NULL, eta = NULL, addDosing=FALSE, update.object=FALSE,do.solve=TRUE,
+                    omega = NULL, omegaDf = NULL, omegaIsChol = FALSE,
+                    nSub = 1L, thetaMat = NULL, thetaDf = NULL, thetaIsChol = FALSE,
+                    nStud = 1L, dfSub=0.0, dfObs=0.0, return.type=c("rxSolve", "matrix", "data.frame"),
+                    seed=NULL, nsim=NULL){
+    if (!is.null(seed)){
+        set.seed(seed);
+    }
+    if (!is.null(nsim)){
+        if (rxIs(params, "eventTable") || rxIs(events, "eventTable") && nSub == 1L){
+            nSub <- nsim;
+        } else if (nStud == 1L){
+            nStud <- nsim;
+        }
+
+    }
     if (!do.solve){
         modVars <- rxModelVars(object);
         trans <- modVars$trans
@@ -524,10 +566,51 @@ rxSolve <- function(object, params=NULL, events=NULL, inits = NULL, scale = NULL
                thetaDf, thetaIsChol, nStud, dfSub, dfObs));
 }
 
+##' @rdname rxSolve
 ##' @export
 update.rxSolve <- function(object, ...){
     rxSolve(object, ...);
 }
+
+##' @rdname rxSolve
+##' @export
+predict.RxODE <- function(object, ...){
+    rxSolve(object, ...);
+}
+
+##' @rdname rxSolve
+##' @export
+predict.rxSolve <- predict.RxODE
+
+##' @importFrom stats simulate
+
+##' @rdname rxSolve
+##' @export
+simulate.RxODE <- function(object, nsim = 1L, seed = NULL, ...){
+    rxSolve(object, ..., seed=seed, nsim=nsim);
+}
+##' @rdname rxSolve
+##' @export
+simulate.rxSolve <- simulate.RxODE
+
+##' @rdname rxSolve
+##' @export
+solve.rxSolve <- function(a, b, ...){
+    lst <- as.list(match.call()[-1])
+    n <- names(lst)
+    if (!missing(a)){
+        n[n == "a"] <- "";
+    }
+    if (!missing(b)){
+        n[n == "b"] <- "";
+    }
+    names(lst) <- n
+    do.call("rxSolve", lst, envir=parent.frame(1))
+}
+
+##' @rdname rxSolve
+##' @export
+solve.RxODE <- solve.rxSolve
 
 sharedPrint <- function(x, n, width, bound=""){
     is.dplyr <- requireNamespace("dplyr", quietly = TRUE) && RxODE.display.tbl;

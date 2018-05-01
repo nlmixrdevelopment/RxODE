@@ -2,6 +2,14 @@
 % Please edit documentation in R/rxsolve.R
 \name{rxSolve}
 \alias{rxSolve}
+\alias{rxSolve.default}
+\alias{update.rxSolve}
+\alias{predict.RxODE}
+\alias{predict.rxSolve}
+\alias{simulate.RxODE}
+\alias{simulate.rxSolve}
+\alias{solve.rxSolve}
+\alias{solve.RxODE}
 \title{Solves a ODE equation}
 \usage{
 rxSolve(object, params = NULL, events = NULL, inits = NULL,
@@ -16,7 +24,36 @@ rxSolve(object, params = NULL, events = NULL, inits = NULL,
   omega = NULL, omegaDf = NULL, omegaIsChol = FALSE, nSub = 1L,
   thetaMat = NULL, thetaDf = NULL, thetaIsChol = FALSE, nStud = 1L,
   dfSub = 0, dfObs = 0, return.type = c("rxSolve", "matrix",
-  "data.frame"))
+  "data.frame"), seed = NULL, nsim = NULL)
+
+\method{rxSolve}{default}(object, params = NULL, events = NULL,
+  inits = NULL, scale = NULL, covs = NULL, method = c("liblsoda",
+  "lsoda", "dop853"), transit_abs = NULL, atol = 1e-08, rtol = 1e-06,
+  maxsteps = 5000L, hmin = 0L, hmax = NULL, hini = 0L, maxordn = 12L,
+  maxords = 5L, ..., cores, covs_interpolation = c("linear", "locf", "nocb",
+  "midpoint"), add.cov = FALSE, matrix = FALSE, sigma = NULL,
+  sigmaDf = NULL, nCoresRV = 1L, sigmaIsChol = FALSE,
+  nDisplayProgress = 10000L, amountUnits = NA_character_,
+  timeUnits = "hours", stiff, theta = NULL, eta = NULL,
+  addDosing = FALSE, update.object = FALSE, do.solve = TRUE,
+  omega = NULL, omegaDf = NULL, omegaIsChol = FALSE, nSub = 1L,
+  thetaMat = NULL, thetaDf = NULL, thetaIsChol = FALSE, nStud = 1L,
+  dfSub = 0, dfObs = 0, return.type = c("rxSolve", "matrix",
+  "data.frame"), seed = NULL, nsim = NULL)
+
+\method{update}{rxSolve}(object, ...)
+
+\method{predict}{RxODE}(object, ...)
+
+\method{predict}{rxSolve}(object, ...)
+
+\method{simulate}{RxODE}(object, nsim = 1L, seed = NULL, ...)
+
+\method{simulate}{rxSolve}(object, nsim = 1L, seed = NULL, ...)
+
+\method{solve}{rxSolve}(a, b, ...)
+
+\method{solve}{RxODE}(a, b, ...)
 }
 \arguments{
 \item{object}{is a either a RxODE family of objects, or a file-name
@@ -239,6 +276,26 @@ inverse Wishart distribution (scaled) or scaled inverse chi squared distribution
 }
 
     \code{return.type} equals \{matrix\}, rxSolve returns a matrix.}
+
+\item{seed}{an object specifying if and how the random number
+    generator should be initialized (\sQuote{seeded}).\cr
+    For the "lm" method, either \code{NULL} or an integer that will be
+    used in a call to \code{set.seed} before simulating the response
+    vectors.  If set, the value is saved as the \code{"seed"} attribute
+    of the returned value.  The default, \code{NULL} will not change the
+    random generator state, and return \code{\link{.Random.seed}} as the
+    \code{"seed"} attribute, see \sQuote{Value}.
+  }
+
+\item{nsim}{represents the number of simulations.  For RxODE, if you supply single subject event tables (created with eventTable)}
+
+\item{a}{when using \code{solve}, this is equivalent to the
+\code{object} argument.  If you specify \code{object} later in
+the argument list it overwrites this parameter.}
+
+\item{b}{when using \code{solve}, this is equivalent to the
+\code{params} argument.  If you specify \code{params} as a
+named argument, this overwrites the output}
 }
 \value{
 An \dQuote{rxSolve} solve object that stores the solved
