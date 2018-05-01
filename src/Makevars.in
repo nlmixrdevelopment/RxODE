@@ -5,10 +5,10 @@ CXX_STD     = CXX11
 ## -Wl,--no-as-needed -lprofiler -Wl,--as-needed
 PKG_LIBS    = $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS) @OPENMP_CFLAGS@
 # Add -g for gdb debugging to FLAGS -- Don't remove I forget some of these
-# PKG_FFLAGS  = -g -ggdb -O0 -fno-inline-functions -Wall -Wextra -Wpedantic $(FPICFLAGS) 
-# PKG_FCFLAGS = -g -ggdb -O0 -fno-inline-functions -Wall -Wextra -Wpedantic $(FPICFLAGS)
-# PKG_CFLAGS  = -g -ggdb -O0 -fno-inline-functions -Wall -Wextra -Wpedantic  @OPENMP_CFLAGS@
-# PKG_CXXLAGS = -g -ggdb -O0 -fno-inline-functions -Wall -Wextra -Wpedantic
+# PKG_FFLAGS  = -g -ggdb -O0 -fno-inline-functions -Wall -Wextra $(FPICFLAGS) 
+# PKG_FCFLAGS = -g -ggdb -O0 -fno-inline-functions -Wall -Wextra $(FPICFLAGS)
+# PKG_CFLAGS  = -g -ggdb -O0 -fno-inline-functions -Wall -Wextra  @OPENMP_CFLAGS@
+# PKG_CXXLAGS = -g -ggdb -O0 -fno-inline-functions -Wall -Wextra
 PKG_FFLAGS  = $(FPICFLAGS) 
 PKG_FCFLAGS = $(FPICFLAGS)
 PKG_CFLAGS  =  @OPENMP_CFLAGS@
