@@ -44,4 +44,4 @@ r_github_packages:
   - nlmixrdevelopment/SnakeCharmR
 
 after_success:
-  - Rscript -e 'covr::codecov(line_exclusions=c("R/RxODE-win-setup.R", "src/errmsg.f", "src/rprint.c", "R/dsl.R", "R/rxValidate.R","R/rxSolve-gen.R","R/rxsympy.R","R/version.R"))'
+  - Rscript -e 'covr::codecov(line_exclusions=c("R/RxODE-win-setup.R", "src/errmsg.f", "src/rprint.c", "R/dsl.R", "R/rxValidate.R","R/rxSolve-gen.R","R/rxsympy.R","R/version.R", "R/rxSolve.c", "R/rxShiny.R"), function_exclusions=c("print\\.","summary\\.","\\.onLoad"))'

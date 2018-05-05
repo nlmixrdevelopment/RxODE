@@ -45,12 +45,12 @@
 ##' @param transit_abs boolean indicating if this is a transit
 ##'     compartment absorption
 ##'
-##' @param atol a numeric absolute tolerance (1e-08 by default) used
+##' @param atol a numeric absolute tolerance (1e-6 by default) used
 ##'     by the ODE solver to determine if a good solution has been
 ##'     achieved;  This is also used in the solved linear model to check
 ##'     if prior doses do not add anything to the solution.
 ##'
-##' @param rtol a numeric relative tolerance (1e-06 by default) used
+##' @param rtol a numeric relative tolerance (1e-4 by default) used
 ##'     by the ODE solver to determine if a good solution has been
 ##'     achieved. This is also used in the solved linear model to check
 ##'      if prior doses do not add anything to the solution.
@@ -244,7 +244,7 @@
 ##' @export
 rxSolve <- function(object, params=NULL, events=NULL, inits = NULL, scale = NULL,
                     covs = NULL, method = c("liblsoda", "lsoda", "dop853"),
-                    transit_abs = NULL, atol = 1.0e-8, rtol = 1.0e-6,
+                    transit_abs = NULL, atol = 1.0e-6, rtol = 1.0e-4,
                     maxsteps = 5000L, hmin = 0L, hmax = NULL, hini = 0L, maxordn = 12L, maxords = 5L, ...,
                     cores,
                     covs_interpolation = c("linear", "locf", "nocb", "midpoint"),
@@ -262,7 +262,7 @@ rxSolve <- function(object, params=NULL, events=NULL, inits = NULL, scale = NULL
 ##' @export
 rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, scale = NULL,
                     covs = NULL, method = c("liblsoda", "lsoda", "dop853"),
-                    transit_abs = NULL, atol = 1.0e-8, rtol = 1.0e-6,
+                    transit_abs = NULL, atol = 1.0e-4, rtol = 1.0e-6,
                     maxsteps = 5000L, hmin = 0L, hmax = NULL, hini = 0L, maxordn = 12L, maxords = 5L, ...,
                     cores,
                     covs_interpolation = c("linear", "locf", "nocb", "midpoint"),

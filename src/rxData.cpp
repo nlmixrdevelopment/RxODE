@@ -1999,8 +1999,8 @@ SEXP rxSolveC(const RObject &obj,
               const RObject &covs  = R_NilValue,
               const int method = 2, // 0
 	      const Nullable<LogicalVector> &transit_abs = R_NilValue, //1
-	      const double atol = 1.0e-8, //2
-	      const double rtol = 1.0e-6, //3
+	      const double atol = 1.0e-6, //2
+	      const double rtol = 1.0e-4, //3
 	      const int maxsteps = 5000, //4
 	      const double hmin = 0, //5
 	      const Nullable<NumericVector> &hmax = R_NilValue, //6
