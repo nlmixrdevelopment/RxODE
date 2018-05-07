@@ -35,6 +35,8 @@ be added at the dosing times? Defaults to \code{FALSE}.}
 
 \item{time.units}{optional string indicating the time units.
 Defaults to \code{"hours"} to indicate as per the original \code{EventTable} definition.}
+
+\item{...}{Other parameters (ignored)}
 }
 \value{
 eventTable with updated dosing (note the event table will be updated anyway)

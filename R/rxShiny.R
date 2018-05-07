@@ -279,14 +279,12 @@ shiny::column(width = 7,
 
             into = ifelse(is.null(input$into),1,match(input$into, values$cmts))
 
-            ev <- eventTable()
-
-            ev$add.sampling(seq(stime, etime, tstep ))
-
-            ev$add.dosing(dose = dose, start.time=start,
-                          nbr.doses= ndoses, rate=rate,
-                          dosing.interval = interval,
-                          dosing.to = into)
+            ev <- eventTable() %>%
+                add.sampling(seq(stime, etime, tstep )) %>%
+                add.dosing(dose = dose, start.time=start,
+                           nbr.doses= ndoses, rate=rate,
+                           dosing.interval = interval,
+                           dosing.to = into)
 
             params <- .(params);
 

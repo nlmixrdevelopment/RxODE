@@ -385,6 +385,7 @@ function(x, ...)
 ##'            be added at the dosing times? Defaults to \code{FALSE}.
 ##' @param time.units optional string indicating the time units.
 ##'           Defaults to \code{"hours"} to indicate as per the original \code{EventTable} definition.
+##' @param ... Other parameters (ignored)
 ##' @return eventTable with updated dosing (note the event table will be updated anyway)
 ##' @author Matthew L. Fidler
 ##' @seealso \code{\link{eventTable}}, \code{\link{RxODE}}
@@ -402,6 +403,7 @@ add.dosing <- function(eventTable, dose, nbr.doses = 1L, dosing.interval = 24, d
 ##' @param time.units an optional string specifying the time
 ##'     units. Defaults to the units specified when the
 ##'     \code{EventTable} was initialized.
+##' @param ... Other parameters (ignored)
 ##' @return eventTable with updated sampling.  (Note the event table
 ##'     will be updated even if you don't reassign the eventTable)
 ##' @author Matthew L. Fidler

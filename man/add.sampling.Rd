@@ -14,6 +14,8 @@ add.sampling(eventTable, time, time.units = NA, ...)
 \item{time.units}{an optional string specifying the time
 units. Defaults to the units specified when the
 \code{EventTable} was initialized.}
+
+\item{...}{Other parameters (ignored)}
 }
 \value{
 eventTable with updated sampling.  (Note the event table
