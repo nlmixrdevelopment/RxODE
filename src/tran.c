@@ -383,7 +383,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
   char *name = (char*)pt.symbols[pn->symbol].name;
   int nch = d_get_number_of_children(pn), i, k, ii, found, safe_zero = 0;
   char *value = (char*)rc_dup_str(pn->start_loc.s, pn->end);
-  char buf[512];
+  char buf[1024];
   if ((!strcmp("identifier", name) || !strcmp("identifier_r", name) ||
        !strcmp("identifier_r_no_output",name)  ||
        !strcmp("theta0_noout", name) || 
@@ -1607,7 +1607,7 @@ void codegen(FILE *outpt, int show_ode) {
   int i, j, k, print_ode=0, print_vars = 0, print_parm = 0, print_jac=0, o;
   char sLine[MXLEN+1];
   char buf[64];
-  char from[512], to[512], df[512], dy[512], state[512];
+  char from[1536], to[1536], df[512], dy[512], state[512];
   char *s2;
   FILE *fpIO;
   char *hdft[]=
@@ -2021,7 +2021,7 @@ void reset (){
 
 void trans_internal(char *orig_file, char* parse_file, char* c_file){
   char *buf, *infile;
-  char buf1[512], buf2[512], bufe[512];
+  char buf1[512], buf2[512], bufe[2048];
   int i,j,found,islhs;
   D_ParseNode *pn;
   /* any number greater than sizeof(D_ParseNode_User) will do;
@@ -2104,8 +2104,8 @@ void trans_internal(char *orig_file, char* parse_file, char* c_file){
 SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_md5,
            SEXP parse_model,SEXP parse_model3){
   char *in, *orig, *out, *file, *pfile;
-  char buf[512], buf2[512], df[512], dy[512];
-  char snum[512];
+  char buf[1024], buf2[1024], df[512], dy[512];
+  char snum[1024];
   char *s2;
   char sLine[MXLEN+1];
   int i, j, islhs, pi=0, li=0, ini_i = 0,o2=0,k=0, l=0;
