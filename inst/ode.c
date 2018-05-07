@@ -217,6 +217,9 @@ static inline int _locateDoseIndex(const double obs_time,  rx_solving_options_in
   i = 0;
   j = ind->ndoses - 1;
   if (obs_time <= ind->all_times[ind->idose[i]]){
+    while(obs_time == ind->all_times[ind->idose[i+1]]){
+      i++;
+    }
     return i;
   }
   if (obs_time >= ind->all_times[ind->idose[j]]){
@@ -228,6 +231,9 @@ static inline int _locateDoseIndex(const double obs_time,  rx_solving_options_in
       j = ij;
     else
       i = ij;
+  }
+  while(obs_time == ind->all_times[ind->idose[i+1]]){
+    i++;
   }
   return i;
 }
@@ -300,7 +306,7 @@ static inline double solveLinB(rx_solve *rx, unsigned int id, double t, int linC
     if (evid > 10000) {
       if (dose > 0){
         // During infusion
-        tT = t - ind->all_times[ind->idose[l]];
+        tT = t - ind->all_times[ind->idose[l]] ;
         thisT = tT - tlag;
         p = l+1;
         while (p < ndoses && ind->dose[p] != -dose){
@@ -400,7 +406,7 @@ extern void __ODE_SOLVER__(int *neq,
 			   double *lhs,
 			   int *rc){
   // Backward compatible ode solver for 0.5* C interface
-  if (_ptrid() != __TIMEID__ ){ _assign_ptr(__MODEL_VARS__());}
+  //if (_ptrid() != __TIMEID__ ){ _assign_ptr(__MODEL_VARS__());}
   __FIX_INIS__
   _old_c(neq, _theta, time, evid, ntime, inits, dose, ret, atol, rtol, stiff, transit_abs, nlhs, lhs, rc);
 }

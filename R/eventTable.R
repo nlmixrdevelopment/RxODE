@@ -369,24 +369,28 @@ function(x, ...)
 ##' piping syntax through magrittr
 ##'
 ##' @param eventTable eventTable object
-##' @param ... arguments sent to eventTable$add.dosing.
+##' @param dose numeric scalar, dose amount in \code{amount.units};
+##' @param nbr.doses integer, number of doses;
+##' @param dosing.interval required numeric scalar, time between doses
+##'      in \code{time.units}, defaults to 24 of \code{time.units="hours"};
+##' @param dosing.to integer, compartment the dose goes into
+##'        (first compartment by default);
+##' @param rate for infusions, the rate of infusion (default
+##'            is \code{NULL}, for bolus dosing;
+##' @param amount.units optional string indicating the dosing units.
+##'           Defaults to \code{NA} to indicate as per the original \code{EventTable}
+##'           definition.
+##' @param start.time required dosing start time;
+##' @param do.sampling logical, should observation sampling records
+##'            be added at the dosing times? Defaults to \code{FALSE}.
+##' @param time.units optional string indicating the time units.
+##'           Defaults to \code{"hours"} to indicate as per the original \code{EventTable} definition.
 ##' @return eventTable with updated dosing (note the event table will be updated anyway)
 ##' @author Matthew L. Fidler
 ##' @seealso \code{\link{eventTable}}, \code{\link{RxODE}}
 ##' @export
-add.dosing <- function(eventTable, ...) {
-    rxs <- rxIs(eventTable, "rxSolve")
-    if (rxs){
-        tmp <- eventTable$env;
-        tmp$.real.update <- FALSE;
-    }
-    args <- as.list(match.call())[-(1:2)];
-    ret <- do.call(eventTable$add.dosing, args)
-    if (rxs){
-        return(ret);
-    } else {
-        return(eventTable)
-    }
+add.dosing <- function(eventTable, dose, nbr.doses = 1L, dosing.interval = 24, dosing.to = 1L, rate = NULL, amount.units = NA_character_, start.time = 0.0, do.sampling = FALSE, time.units = NA_character_, ...) {
+    .Call(`_RxODE_add_dosing_`, eventTable, dose, nbr.doses, dosing.interval, dosing.to, rate, amount.units, start.time, do.sampling, time.units)
 }
 ##' Add sampling to eventTable
 ##'
@@ -403,18 +407,8 @@ add.dosing <- function(eventTable, ...) {
 ##' @author Matthew L. Fidler
 ##' @seealso \code{\link{eventTable}}, \code{\link{RxODE}}
 ##' @export
-add.sampling <- function(eventTable, time, time.units = NA){
-    rxs <- rxIs(eventTable, "rxSolve")
-    if (rxs){
-        tmp <- eventTable$env;
-        tmp$.real.update <- FALSE;
-    }
-    tmp <- eventTable$add.sampling(time=time, time.units=time.units)
-    if (rxs){
-        return(tmp);
-    } else {
-        return(eventTable)
-    }
+add.sampling <- function(eventTable, time, time.units = NA, ...){
+    .Call(`_RxODE_add_sampling_`, eventTable, time, time.units)
 }
 
 

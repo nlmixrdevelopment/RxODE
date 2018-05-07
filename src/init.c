@@ -106,6 +106,9 @@ extern SEXP _RxODE_rxSimThetaOmega(SEXP, SEXP, SEXP, SEXP, SEXP,
 SEXP _RxODE_cvPost(SEXP, SEXP, SEXP, SEXP, SEXP);
 
 SEXP _RxODE_rinvchisq(SEXP, SEXP, SEXP);
+SEXP _RxODE_add_dosing_(SEXP, SEXP, SEXP, SEXP, SEXP,
+                        SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP _RxODE_add_sampling_(SEXP, SEXP, SEXP);
 
 extern int rxIsCurrentC(SEXP obj);
 
@@ -156,6 +159,8 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_rxIsCurrent", (DL_FUNC) &_RxODE_rxIsCurrent, 1},
     {"_RxODE_cvPost", (DL_FUNC) &_RxODE_cvPost, 5},
     {"_RxODE_rinvchisq", (DL_FUNC) &_RxODE_rinvchisq, 3},
+    {"_RxODE_add_dosing_", (DL_FUNC) &_RxODE_add_dosing_,10},
+    {"_RxODE_add_sampling_", (DL_FUNC) &_RxODE_add_sampling_, 3},
     {NULL, NULL, 0}
   };
   // C callable to assign environments.

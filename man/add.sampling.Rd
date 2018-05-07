@@ -4,7 +4,7 @@
 \alias{add.sampling}
 \title{Add sampling to eventTable}
 \usage{
-add.sampling(eventTable, time, time.units = NA)
+add.sampling(eventTable, time, time.units = NA, ...)
 }
 \arguments{
 \item{eventTable}{An eventTable object}
