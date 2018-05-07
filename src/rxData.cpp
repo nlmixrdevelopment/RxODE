@@ -2756,7 +2756,7 @@ SEXP rxSolveC(const RObject &obj,
     if (nPopPar != 1 && nPopPar % rx->nsub != 0){
       stop("The number of parameters (%d) solved by RxODE for multi-subject data needs to be a multiple of the number of subjects (%d).",nPopPar, rx->nsub);
     }
-    int nSize = nPopPar;
+    int nSize = nPopPar*rx->nsub;
     if (nPopPar == 1) nSize = rx->nsub;
 
     gInfusionRateSetup(op->neq*nSize);

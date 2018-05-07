@@ -217,7 +217,7 @@ static inline int _locateDoseIndex(const double obs_time,  rx_solving_options_in
   i = 0;
   j = ind->ndoses - 1;
   if (obs_time <= ind->all_times[ind->idose[i]]){
-    while(obs_time == ind->all_times[ind->idose[i+1]]){
+    while(i < ind->ndoses-2 && obs_time == ind->all_times[ind->idose[i+1]]){
       i++;
     }
     return i;
@@ -232,7 +232,7 @@ static inline int _locateDoseIndex(const double obs_time,  rx_solving_options_in
     else
       i = ij;
   }
-  while(obs_time == ind->all_times[ind->idose[i+1]]){
+  while(i < ind->ndoses-2 && obs_time == ind->all_times[ind->idose[i+1]]){
     i++;
   }
   return i;
