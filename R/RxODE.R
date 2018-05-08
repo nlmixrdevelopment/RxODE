@@ -1222,8 +1222,13 @@ rxCompile.character <-  function(model,           # Model
             dir <- getwd();
             rm.rx <- TRUE;
         }
+    } else {
+        if (.Platform$OS.type == "windows"){
+            dir <- suppressMessages(normalizePath(dir, mustWork=FALSE));
+        } else {
+            dir <- file.path(getwd(), dir);
+        }
     }
-    dir <- file.path(getwd(), dir);
     if (!file.exists(dir))
         dir.create(dir, recursive = TRUE)
     if (is.null(prefix)){
