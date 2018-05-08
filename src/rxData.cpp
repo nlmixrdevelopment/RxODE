@@ -282,7 +282,7 @@ inline bool fileExists(const std::string& name) {
 //[[Rcpp::export]]
 SEXP dynLoad(std::string dll){
   Function dl("dyn.load", R_BaseNamespace);
-  return dl(dll, _["local"]=true,_["now"]=true);
+  return dl(dll, _["local"]=false, _["now"]=true);
 }
 
 
