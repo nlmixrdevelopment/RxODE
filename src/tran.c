@@ -1236,13 +1236,13 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
       o = (int)strlen(s_aux_info);
       sprintf(s_aux_info+o, "    SET_STRING_ELT(state,%d,mkChar(\"%s\"));\n", statei++, buf);
       o = (int)strlen(s_aux_info);
-      sprintf(s_aux_info+o, "    stateRm[%d] = %d;\n", statei-1, tb.idi[i]);
+      sprintf(s_aux_info+o, "    _SR[%d] = %d;\n", statei-1, tb.idi[i]);
     } else {
       sprintf(s_aux_info+o, "    SET_STRING_ELT(state,%d,mkChar(\"%s\"));\n", statei++, buf);
       o = (int)strlen(s_aux_info);
       sprintf(s_aux_info+o, "    SET_STRING_ELT(normState,%d,mkChar(\"%s\"));\n", normi++, buf);
       o = (int)strlen(s_aux_info);
-      sprintf(s_aux_info+o, "    stateRm[%d] = %d;\n", statei-1, tb.idi[i]);
+      sprintf(s_aux_info+o, "    _SR[%d] = %d;\n", statei-1, tb.idi[i]);
     }
     if (tb.fdi[i]){
       o = (int)strlen(s_aux_info);
@@ -1281,7 +1281,6 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
   fprintf(outpt,"    SEXP stateRmS = PROTECT(allocVector(INTSXP, %d));pro++;\n",statei);
   fprintf(outpt,"    SEXP timeInt = PROTECT(allocVector(INTSXP, 1));pro++;\n");
   fprintf(outpt,"    INTEGER(timeInt)[0] = __TIMEID__;\n");
-  fprintf(outpt,"    int *stateRm  = INTEGER(stateRmS);\n");
   fprintf(outpt,"    SEXP sens     = PROTECT(allocVector(STRSXP, %d));pro++;\n",sensi);
   fprintf(outpt,"    SEXP normState= PROTECT(allocVector(STRSXP, %d));pro++;\n",statei-sensi);
   fprintf(outpt,"    SEXP fn_ini   = PROTECT(allocVector(STRSXP, %d));pro++;\n",fdi);

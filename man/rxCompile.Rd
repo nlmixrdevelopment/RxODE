@@ -11,9 +11,9 @@ rxCompile(model, dir, prefix, extraC = NULL, force = FALSE,
   modName = NULL, calcJac = NULL, calcSens = NULL,
   collapseModel = FALSE, ...)
 
-\method{rxCompile}{character}(model, dir, prefix = NULL, extraC = NULL,
-  force = FALSE, modName = NULL, calcJac = NULL, calcSens = NULL,
-  collapseModel = FALSE, ...)
+\method{rxCompile}{character}(model, dir = NULL, prefix = NULL,
+  extraC = NULL, force = FALSE, modName = NULL, calcJac = NULL,
+  calcSens = NULL, collapseModel = FALSE, ...)
 
 \method{rxCompile}{rxDll}(model, ...)
 

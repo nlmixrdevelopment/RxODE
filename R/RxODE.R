@@ -1223,15 +1223,16 @@ rxCompile.character <-  function(model,           # Model
             rm.rx <- TRUE;
         }
     }
+    dir <- suppressWarnings({normalizePath(dir, mustWork=FALSE)});
+    if (!file.exists(dir))
+        dir.create(dir, recursive = TRUE)
     if (is.null(prefix)){
         prefix <- rxPrefix(model, modName, calcJac=calcJac, calcSens=calcSens, collapseModel=collapseModel);
     }
-    if (!file.exists(dir))
-        dir.create(dir, recursive = TRUE)
     cFile <- file.path(dir, sprintf("%s.c", substr(prefix, 0, nchar(prefix)-1)));
     cDllFile <- file.path(dir, sprintf("%s%s", substr(prefix, 0, nchar(prefix)-1), .Platform$dynlib.ext));
     if (file.exists(model)){
-        mFile <- model
+        mFile <- suppressWarnings({normalizePath(model)});
     } else {
         mFile <- sprintf("%s.rx", substr(cFile, 0, nchar(cFile)-2));
         sink(mFile);
@@ -1266,7 +1267,7 @@ rxCompile.character <-  function(model,           # Model
                 on.exit({if (file.exists(Makevars)){unlink(Makevars)}}, add=TRUE);
             } else {
                 file.rename(Makevars, paste0(Makevars, ".bakrx"));
-                on.exit({if (file.exists(Makevars)){unlink(Makevars)};file.reanme(paste0(Makevars, ".bakrx"), Makevars)}, add=TRUE)
+                on.exit({if (file.exists(Makevars)){unlink(Makevars)};file.rename(paste0(Makevars, ".bakrx"), Makevars)}, add=TRUE)
             }
         } else {
             on.exit({if (file.exists(Makevars)){unlink(Makevars)}}, add=TRUE);

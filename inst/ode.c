@@ -22,6 +22,7 @@
 #define abs_log(x) ((fabs(x) <= sqrt(DOUBLE_EPS)) ? log(sqrt(DOUBLE_EPS)) : (((x) > 0.0) ? log(x) ? (((x) == 0) ? 0.0 : log(-x))))
 #define _IR (_solveData->subjects[_cSub].InfusionRate)
 #define _PP (_solveData->subjects[_cSub].par_ptr)
+#define _SR (INTEGER(stateRmS))
 
 // Types for par pointers.r
 typedef double (*RxODE_fn) (double x);
