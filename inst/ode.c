@@ -20,7 +20,8 @@
 #define Rx_pow_di(a, b) (((a) == 0 && (b) <= 0) ? R_pow_di(DOUBLE_EPS, b) : R_pow_di(a, b))
 #define abs_log1p(x) (((x) + 1.0 > 0.0) ? log1p(x) : (((x) + 1.0 > 0.0) ? log1p(-x) : 0.0))
 #define abs_log(x) ((fabs(x) <= sqrt(DOUBLE_EPS)) ? log(sqrt(DOUBLE_EPS)) : (((x) > 0.0) ? log(x) ? (((x) == 0) ? 0.0 : log(-x))))
-
+#define _IR (_solveData->subjects[_cSub].InfusionRate)
+#define _PP (_solveData->subjects[_cSub].par_ptr)
 
 // Types for par pointers.r
 typedef double (*RxODE_fn) (double x);
