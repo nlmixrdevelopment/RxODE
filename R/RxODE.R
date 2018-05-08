@@ -1202,55 +1202,49 @@ rxCompile <- function(model, dir, prefix, extraC = NULL, force = FALSE, modName 
 ##' @rdname rxCompile
 ##' @export
 rxCompile.character <-  function(model,           # Model
-                                 dir,             # Directory
+                                 dir=NULL,             # Directory
                                  prefix=NULL,     # Prefix
                                  extraC  = NULL,  # Extra C File.
                                  force   = FALSE, # Force compile
                                  modName = NULL,  # Model Name
                                  calcJac=NULL, # Calculate Jacobian
-                                  calcSens=NULL, # Calculate Sensitivity
+                                 calcSens=NULL, # Calculate Sensitivity
                                  collapseModel=FALSE,
                                  ...){
     ## rxCompile returns the DLL name that was created.
-    dllCopy <- FALSE;
-    if (missing(dir)){
-        dir <- tempfile();
-        dllCopy <-  TRUE;
-        on.exit(unlink(dir, recursive = TRUE))
+    rm.rx <- FALSE
+    if (is.null(dir)){
+        if (RxODE.cache.directory != "."){
+            dir <- RxODE.cache.directory;
+        } else if (RxODE.tempfiles){
+            dir <- rxTempDir
+        } else {
+            dir <- getwd();
+            rm.rx <- TRUE;
+        }
     }
-    if (missing(prefix)){
+    if (is.null(prefix)){
         prefix <- rxPrefix(model, modName, calcJac=calcJac, calcSens=calcSens, collapseModel=collapseModel);
     }
     if (!file.exists(dir))
         dir.create(dir, recursive = TRUE)
     cFile <- file.path(dir, sprintf("%s.c", substr(prefix, 0, nchar(prefix)-1)));
     cDllFile <- file.path(dir, sprintf("%s%s", substr(prefix, 0, nchar(prefix)-1), .Platform$dynlib.ext));
-    if (dllCopy){
-        if (!RxODE.tempfiles){
-            finalDll <- file.path(ifelse(RxODE.cache.directory == ".", getwd(), RxODE.cache.directory), basename(cDllFile));
-            finalC <- file.path(ifelse(RxODE.cache.directory == ".", getwd(), RxODE.cache.directory), basename(cFile));
-        } else {
-            finalDll <- file.path(rxTempDir, basename(cDllFile));
-            finalC <- file.path(rxTempDir, basename(cFile))
-        }
+    if (file.exists(model)){
+        mFile <- model
     } else {
-        finalDll <-  cDllFile;
-        finalC <-  cFile;
-    }
-    if (!file.exists(model)){
         mFile <- sprintf("%s.rx", substr(cFile, 0, nchar(cFile)-2));
         sink(mFile);
         cat(model);
         cat("\n");
         sink();
-    } else {
-        mFile <- model;
     }
+    on.exit(unlink(mFile));
     md5 <- rxMd5(mFile, extraC, calcJac, calcSens, collapseModel);
     allModVars <- NULL;
     needCompile <- TRUE
-    if (file.exists(finalDll)){
-        try(dyn.load(finalDll, local = FALSE), silent = TRUE);
+    if (file.exists(cDllFile)){
+        try(dyn.load(cDllFile, local = FALSE), silent = TRUE);
         modVars <- sprintf("%smodel_vars", prefix);
         if (is.loaded(modVars)){
             allModVars <- eval(parse(text = sprintf(".Call(\"%s\")", modVars)), envir = .GlobalEnv)
@@ -1266,9 +1260,20 @@ rxCompile.character <-  function(model,           # Model
     }
     if (force || needCompile){
         Makevars <- file.path(dir, "Makevars");
+        if (file.exists(Makevars)){
+            if ("#RxODE Makevars" == readLines(Makevars, 1)){
+                unlink(Makevars)
+                on.exit({if (file.exists(Makevars)){unlink(Makevars)}}, add=TRUE);
+            } else {
+                file.rename(Makevars, paste0(Makevars, ".bakrx"));
+                on.exit({if (file.exists(Makevars)){unlink(Makevars)};file.reanme(paste0(Makevars, ".bakrx"), Makevars)}, add=TRUE)
+            }
+        } else {
+            on.exit({if (file.exists(Makevars)){unlink(Makevars)}}, add=TRUE);
+        }
         trans <- rxTrans(mFile, cFile = cFile, md5 = md5$digest, extraC = extraC, ..., modelPrefix = prefix,
                          calcJac=calcJac, calcSens=calcSens, collapseModel=collapseModel);
-        if (file.exists(finalDll)){
+        if (file.exists(cDllFile)){
             if (modVars["parsed_md5"] == trans["parsed_md5"]){
                 rxCat("Don't need to recompile, minimal change to model detected.\n");
                 needCompile <- FALSE;
@@ -1277,14 +1282,7 @@ rxCompile.character <-  function(model,           # Model
         if (force || needCompile){
             ## Setup Makevars
             owd <- getwd();
-            on.exit({if (file.exists(Makevars)){
-                         unlink(Makevars);
-                     };
-                         setwd(owd);
-            });
-            if (file.exists(Makevars)){
-                unlink(Makevars);
-            }
+            on.exit(setwd(owd), add=TRUE);
             ## Now create C file
             mv <- rxTrans(mFile, cFile = cFile, md5 = md5$digest, extraC = extraC, ...,
                           modelPrefix = prefix, calcJac=calcJac, calcSens=calcSens, collapseModel=collapseModel,
@@ -1311,16 +1309,13 @@ rxCompile.character <-  function(model,           # Model
             trans <- c(mv$trans, mv$md5);
             trans["fix_inis"] <- fixInis;
             sink(Makevars);
-            cat(rxTransMakevars(trans, finalDll, cFile, ...));
+            cat(rxTransMakevars(trans, cDllFile, cFile, ...));
             sink();
-            if (dllCopy){
-                file.copy(cFile, finalC);
-            }
             sh <- "system"   # windows's default shell COMSPEC does not handle UNC paths
             ## Change working directory
             setwd(dir);
-            try(dyn.unload(finalDll), silent = TRUE);
-            try(unlink(finalDll));
+            try(dyn.unload(cDllFile), silent = TRUE);
+            try(unlink(cDllFile));
             cmd <- sprintf("%s/bin/R CMD SHLIB %s",
                            Sys.getenv("R_HOME"), basename(cFile));
             if (RxODE.echo.compile){
@@ -1338,15 +1333,9 @@ rxCompile.character <-  function(model,           # Model
                 rxCat(sprintf("wd: %s\n", dir))
                 stop(sprintf("error compiling %s", cFile));
             }
-            if (dllCopy){
-                file.copy(cDllFile, finalDll);
-            }
-            tmp <- try(dyn.load(finalDll, local = FALSE), silent=FALSE);
+            tmp <- try(dyn.load(cDllFile, local = FALSE));
             if (inherits(tmp, "try-error")){
-                tmp <- try(dyn.load(basename(finalDll), local = FALSE), silent=FALSE);
-                if (inherits(tmp, "try-error")){
-                    stop("Error loading model.")
-                }
+                stop("Error loading model.")
             }
             modVars <- sprintf("%smodel_vars", prefix);
             if (is.loaded(modVars)){
@@ -1359,8 +1348,8 @@ rxCompile.character <-  function(model,           # Model
     args <- list(model = model, dir = dir, prefix = prefix,
                  extraC = extraC, force = force, modName = modName,
                  ...);
-    ret <- suppressWarnings({list(dll     = normalizePath(finalDll, "/"),
-                                  c       = normalizePath(finalC, "/"),
+    ret <- suppressWarnings({list(dll     = normalizePath(cDllFile, "/"),
+                                  c       = normalizePath(cFile, "/"),
                                   model   = allModVars$model["model"],
                                   extra   = extraC,
                                   modVars = allModVars,
