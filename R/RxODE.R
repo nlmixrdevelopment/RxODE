@@ -1223,7 +1223,7 @@ rxCompile.character <-  function(model,           # Model
             rm.rx <- TRUE;
         }
     }
-    dir <- suppressWarnings({normalizePath(dir, mustWork=FALSE)});
+    dir <- file.path(getwd(), dir);
     if (!file.exists(dir))
         dir.create(dir, recursive = TRUE)
     if (is.null(prefix)){
@@ -1349,8 +1349,8 @@ rxCompile.character <-  function(model,           # Model
     args <- list(model = model, dir = dir, prefix = prefix,
                  extraC = extraC, force = force, modName = modName,
                  ...);
-    ret <- suppressWarnings({list(dll     = normalizePath(cDllFile, "/"),
-                                  c       = normalizePath(cFile, "/"),
+    ret <- suppressWarnings({list(dll     = cDllFile,
+                                  c       = cFile,
                                   model   = allModVars$model["model"],
                                   extra   = extraC,
                                   modVars = allModVars,
