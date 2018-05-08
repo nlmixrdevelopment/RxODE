@@ -53,6 +53,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// dynLoad
+SEXP dynLoad(std::string dll);
+RcppExport SEXP _RxODE_dynLoad(SEXP dllSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< std::string >::type dll(dllSEXP);
+    rcpp_result_gen = Rcpp::wrap(dynLoad(dll));
+    return rcpp_result_gen;
+END_RCPP
+}
 // rxModelVars_
 List rxModelVars_(const RObject& obj);
 RcppExport SEXP _RxODE_rxModelVars_(SEXP objSEXP) {

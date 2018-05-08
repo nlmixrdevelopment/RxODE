@@ -1250,7 +1250,7 @@ rxCompile.character <-  function(model,           # Model
     allModVars <- NULL;
     needCompile <- TRUE
     if (file.exists(cDllFile)){
-        try(dyn.load(cDllFile, local = FALSE), silent = TRUE);
+        try(dynLoad(cDllFile), silent = TRUE);
         modVars <- sprintf("%smodel_vars", prefix);
         if (is.loaded(modVars)){
             allModVars <- eval(parse(text = sprintf(".Call(\"%s\")", modVars)), envir = .GlobalEnv)
@@ -1339,7 +1339,7 @@ rxCompile.character <-  function(model,           # Model
                 rxCat(sprintf("wd: %s\n", dir))
                 stop(sprintf("error compiling %s", cFile));
             }
-            tmp <- try(dyn.load(cDllFile, local = FALSE));
+            tmp <- try(dynLoad(cDllFile));
             if (inherits(tmp, "try-error")){
                 stop("Error loading model.")
             }
@@ -1639,7 +1639,7 @@ rxReload <- function(){
     class(tmp) <- "list";
     dyn.unload(tmp$path);
     ret <- is.null(getLoadedDLLs()$RxODE)
-    dyn.load(tmp$path);
+    dynLoad(tmp$path);
     ret <- ret && !is.null(getLoadedDLLs()$RxODE)
     return(ret)
 }

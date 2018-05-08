@@ -278,6 +278,14 @@ inline bool fileExists(const std::string& name) {
   return (stat (name.c_str(), &buffer) == 0); 
 }
 
+// Use this function to keep dynLoad options consistent.
+//[[Rcpp::export]]
+SEXP dynLoad(std::string dll){
+  Function dl("dyn.load", R_BaseNamespace);
+  return dl(dll, _["local"]=true,_["now"]=true);
+}
+
+
 // [[Rcpp::export]]
 List rxModelVars_(const RObject &obj){
   getRxModels();
@@ -349,7 +357,6 @@ List rxModelVars_(const RObject &obj){
         sobj1 = as<std::string>(filePath(sobj1,sobj2, sobj3));
         if (fileExists(sobj1)){
           Rcout << "Path: " << sobj1 << "\n";
-          Function dynLoad("dyn.load", R_BaseNamespace);
           dynLoad(sobj1);
           sobj1 = sobj + "_" + as<std::string>(platform["r_arch"]) +
             "_model_vars";
@@ -4001,7 +4008,6 @@ bool rxDynLoad(RObject obj){
   if (!rxIsLoaded(obj)){
     std::string file = rxDll(obj);
     if (fileExists(file)){
-      Function dynLoad("dyn.load", R_BaseNamespace);
       dynLoad(file);
     } else {
       Nullable<Environment> e1 = rxRxODEenv(obj);

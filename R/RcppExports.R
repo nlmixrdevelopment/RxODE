@@ -26,6 +26,10 @@ rxIs <- function(obj, cls) {
     .Call(`_RxODE_rxIs`, obj, cls)
 }
 
+dynLoad <- function(dll) {
+    .Call(`_RxODE_dynLoad`, dll)
+}
+
 rxModelVars_ <- function(obj) {
     .Call(`_RxODE_rxModelVars_`, obj)
 }

@@ -30,6 +30,7 @@ SEXP _RxODE_rxSolveUpdate(SEXP, SEXP, SEXP);
 SEXP _RxODE_rxAssignPtr(SEXP);
 SEXP _RxODE_rxCores();
 SEXP _RxODE_rxAssignPtr(SEXP objectSEXP);
+SEXP _RxODE_dynLoad(SEXP dllSEXP);
 SEXP RxODE_get_mv();
 
 SEXP _RxODE_rxToOmega(SEXP cholInv);
@@ -161,6 +162,7 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_rinvchisq", (DL_FUNC) &_RxODE_rinvchisq, 3},
     {"_RxODE_add_dosing_", (DL_FUNC) &_RxODE_add_dosing_,10},
     {"_RxODE_add_sampling_", (DL_FUNC) &_RxODE_add_sampling_, 3},
+    {"_RxODE_dynLoad", (DL_FUNC) &_RxODE_dynLoad, 1},
     {NULL, NULL, 0}
   };
   // C callable to assign environments.
