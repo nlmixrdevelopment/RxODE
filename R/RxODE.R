@@ -487,6 +487,7 @@ RxODE <- function(model, modName = basename(wd), wd = ifelse(RxODE.cache.directo
 ##' @inheritParams RxODE
 ##' @return RxODE trans list
 ##' @author Matthew L. Fidler
+##' @export
 ##' @keywords internal
 rxGetModel <- memoise::memoise(function(model, calcSens=FALSE, calcJac=FALSE, collapseModel=FALSE){
     if (is(substitute(model),"call")){
