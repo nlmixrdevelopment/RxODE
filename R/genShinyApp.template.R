@@ -1,3 +1,4 @@
+## nocov start
 ##' Generate an example (template) of a dosing regimen shiny app
 ##'
 ##' Create a complete shiny application for exploring dosing regimens
@@ -277,3 +278,4 @@ function(appDir, statevars)
 
     writeLines(ui.code, con = ui)
 }
+## nocov end

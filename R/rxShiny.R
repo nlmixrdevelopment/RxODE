@@ -1,3 +1,4 @@
+##nocov start
 g.y.log10 <-  function(breaks = g.log.breaks.major,minor_breaks=  g.log.breaks.minor,labels=scales::math_format(format=log10),...){
     g.log.breaks.minor <-  function(y){
         r1 <- range(log10(y));
@@ -315,3 +316,4 @@ shiny::column(width = 7,
 
     shiny::shinyApp(ui = ui, server = server)
 }
+## nocov end

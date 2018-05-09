@@ -429,18 +429,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// rxInvWishartVar
-arma::mat rxInvWishartVar(arma::mat Omega, double nu);
-RcppExport SEXP _RxODE_rxInvWishartVar(SEXP OmegaSEXP, SEXP nuSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat >::type Omega(OmegaSEXP);
-    Rcpp::traits::input_parameter< double >::type nu(nuSEXP);
-    rcpp_result_gen = Rcpp::wrap(rxInvWishartVar(Omega, nu));
-    return rcpp_result_gen;
-END_RCPP
-}
 // RxODE_finalize_focei_omega
 void RxODE_finalize_focei_omega(RObject rho);
 RcppExport SEXP _RxODE_RxODE_finalize_focei_omega(SEXP rhoSEXP) {
@@ -460,16 +448,6 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< SEXP >::type rho(rhoSEXP);
     rcpp_result_gen = Rcpp::wrap(RxODE_finalize_log_det_OMGAinv_5(rho));
     return rcpp_result_gen;
-END_RCPP
-}
-// rxCoutEcho
-void rxCoutEcho(NumericVector number);
-RcppExport SEXP _RxODE_rxCoutEcho(SEXP numberSEXP) {
-BEGIN_RCPP
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericVector >::type number(numberSEXP);
-    rxCoutEcho(number);
-    return R_NilValue;
 END_RCPP
 }
 // removableDrive

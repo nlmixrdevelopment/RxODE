@@ -503,7 +503,7 @@ int lsoda(struct lsoda_context_t * ctx, double *y, double *t, double tout) {
          * in C y[] starts from 0, but the converted fortran code starts from 1 */
 		y--;
 
-		int             i=0, ihit;
+		int             i=0, ihit=0;
 		const int neq = ctx->neq;
 		double          big, h0, hmx, rh, tcrit, tdist, tnext, tol,
 						tolsf, tp, size, sum, w0;

@@ -8,12 +8,10 @@ SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP pref
 SEXP _RxODE_linCmtEnv(SEXP rho);
 SEXP _RxODE_rxInv(SEXP matrix);
 SEXP _RxODE_removableDrive(SEXP letter);
-SEXP _RxODE_rxCoutEcho(SEXP number);
 SEXP _RxODE_RxODE_finalize_focei_omega(SEXP);
 SEXP _RxODE_RxODE_finalize_log_det_OMGAinv_5(SEXP);
 SEXP _rxCholInv(SEXP dms, SEXP theta, SEXP tn);
 SEXP _RxODE_rxSymInvCholEnvCalculate(SEXP, SEXP, SEXP);
-SEXP _RxODE_rxInvWishartVar(SEXP, SEXP);
 SEXP _RxODE_rxSymInvChol(SEXP, SEXP, SEXP, SEXP);
 SEXP _RxODE_rxIs(SEXP,SEXP);
 SEXP _RxODE_rxModelVars_(SEXP);
@@ -125,12 +123,10 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_rxInv", (DL_FUNC) &_RxODE_rxInv, 1},
     {"_RxODE_RxODE_finalize_focei_omega",(DL_FUNC) &_RxODE_RxODE_finalize_focei_omega, 1},
     {"_RxODE_RxODE_finalize_log_det_OMGAinv_5",(DL_FUNC) &_RxODE_RxODE_finalize_log_det_OMGAinv_5, 1},
-    {"_RxODE_rxCoutEcho", (DL_FUNC) &_RxODE_rxCoutEcho, 1},
     {"_RxODE_removableDrive", (DL_FUNC) &_RxODE_removableDrive, 1},
     {"_rxCholInv", (DL_FUNC) &_rxCholInv, 3},
     {"_RxODE_rxToOmega", (DL_FUNC) &_RxODE_rxToOmega, 1},
     {"_RxODE_rxSymInvCholEnvCalculate", (DL_FUNC) &_RxODE_rxSymInvCholEnvCalculate, 3},
-    {"_RxODE_rxInvWishartVar", (DL_FUNC) &_RxODE_rxInvWishartVar, 2},
     {"_RxODE_rxSymInvChol", (DL_FUNC) &_RxODE_rxSymInvChol, 4},
     {"_RxODE_rxIs", (DL_FUNC) &_RxODE_rxIs, 2},
     {"_RxODE_rxModelVars_", (DL_FUNC) &_RxODE_rxModelVars_, 1},

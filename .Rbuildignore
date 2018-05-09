@@ -2,6 +2,7 @@
 ^README(\.md|\.Rmd)$
 ^.git.*$
 ^\.gitignore$
+^\.covrignore$
 ^vignettes/figure/.*$
 ^appveyor\.yml$
 rx_.*\.(so|dll)$
