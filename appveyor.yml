@@ -16,8 +16,8 @@ cache:
 # Adapt as necessary starting from here
 environment:
   global:
-  APPVEYOR_CACHE_SKIP_RESTORE: true
-  APPVEYOR_CACHE_SKIP_SAVE: true
+   APPVEYOR_CACHE_SKIP_RESTORE: true
+   APPVEYOR_CACHE_SKIP_SAVE: true
    USE_RTOOLS: true
    _R_CHECK_FORCE_SUGGESTS_: false
    
