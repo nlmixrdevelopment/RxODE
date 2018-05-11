@@ -347,7 +347,7 @@ RxODE <- function(model, modName = basename(wd), wd = ifelse(RxODE.cache.directo
     wd <- suppressWarnings({normalizePath(wd, "/", mustWork=F)})
     if (env$missing.modName){
         if (RxODE.tempfiles){
-            env$mdir <- rxTempDir;
+            env$mdir <- rxTempDir();
         } else {
             env$mdir <- wd
         }
@@ -1217,7 +1217,7 @@ rxCompile.character <-  function(model,           # Model
         if (RxODE.cache.directory != "."){
             dir <- RxODE.cache.directory;
         } else if (RxODE.tempfiles){
-            dir <- rxTempDir
+            dir <- rxTempDir()
         } else {
             dir <- getwd();
             rm.rx <- TRUE;

@@ -265,7 +265,8 @@ bool foundEnv = false;
 Environment _rxModels;
 void getRxModels(){
   if (!foundEnv){ // minimize R call
-    Environment RxODE("package:RxODE");
+    Function loadNamespace("loadNamespace", R_BaseNamespace);
+    Environment RxODE = loadNamespace("RxODE");
     Function f = as<Function>(RxODE["rxModels_"]);
     _rxModels = f();
     foundEnv = true;
