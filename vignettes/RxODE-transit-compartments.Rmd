@@ -1,0 +1,88 @@
+---
+title: "RxODE Transit Compartment Models"
+author: "Matthew L. Fidler, Melissa Hallow, and Wenping Wang"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+fig_width: 850px
+fig_height: 250px
+vignette: >
+  %\VignetteIndexEntry{RxODE Transit Compartment Models}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, echo=FALSE}
+options(cli.unicode=FALSE, crayon.enabled=FALSE);
+options(knitr.table.format = "html")
+htmltools::img(src = knitr::image_uri("logo.png"), 
+               alt = 'RxODE', 
+               style = 'position:absolute; top:0; right:0; padding:10px; border: 0;')
+```
+
+Savic 2008 first introduced the idea of transit compartments being a
+mechanistic explanation of a a lag-time type phenomena. RxODE has special handling of these models:
+
+You can specify this in a similar manner as the original paper:
+
+```{r out.width="100%"}
+library(RxODE)
+mod <- RxODE({
+    ## Table 3 from Savic 2007
+    cl = 17.2 # (L/hr)
+    vc = 45.1 # L
+    ka = 0.38 # 1/hr
+    mtt = 0.37 # hr
+    bio=1
+    n = 20.1
+    k = cl/vc
+    ktr = (n+1)/mtt
+    ## note that lgammafn is the same as lgamma in R.
+    d/dt(depot) = exp(log(bio*podo)+log(ktr)+n*log(ktr*t)-ktr*t-lgammafn(n+1))-ka*depot
+    d/dt(cen) = ka*depot-k*cen
+})
+
+et <- eventTable();
+et$add.sampling(seq(0, 7, length.out=200));
+et$add.dosing(20, start.time=0);
+
+transit <- rxSolve(mod, et, transit_abs=TRUE)
+
+par(mfrow=c(1,1))
+with(transit,matplot(time,cen, type="l", ylab="Central Concentration", xlab=""))
+
+```
+
+
+Another option is to specify the transit compartment function `transit` syntax.  This specifies the parameters
+`transit(number of transit compartments, mean transit time, bioavailibility)`.  The bioavailibity term is optional.
+
+Using the `transit` code also automatically turns on the `transit_abs`
+option.  Therefore, the same model can be specified by:
+
+
+```{r out.width="100%"}
+
+mod <- RxODE({
+    ## Table 3 from Savic 2007
+    cl = 17.2 # (L/hr)
+    vc = 45.1 # L
+    ka = 0.38 # 1/hr
+    mtt = 0.37 # hr
+    bio=1
+    n = 20.1
+    k = cl/vc
+    ktr = (n+1)/mtt
+    d/dt(depot) = transit(n,mtt,bio)-ka*depot
+    d/dt(cen) = ka*depot-k*cen
+})
+
+et <- eventTable();
+et$add.sampling(seq(0, 7, length.out=200));
+et$add.dosing(20, start.time=0);
+
+transit <- rxSolve(mod, et)
+
+par(mfrow=c(1,1))
+with(transit,matplot(time,cen, type="l", ylab="Central Concentration", xlab=""))
+```
+

@@ -1,12 +1,23 @@
-<!--
-%\VignetteEngine{knitr::knitr}
-%\VignetteIndexEntry{RxODE Modeling Syntax}
--->
-```{r setup, include = FALSE}
-library(knitr)
-```
+---
+title: "RxODE ODE solving syntax"
+author: "Matthew L. Fidler, Melissa Hallow, and Wenping Wang"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+fig_width: 850px
+fig_height: 250px
+vignette: >
+  %\VignetteIndexEntry{RxODE ODE solving syntax}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
 
-# RxODE Modeling Syntax
+```{r, echo=FALSE}
+options(cli.unicode=FALSE, crayon.enabled=FALSE);
+options(knitr.table.format = "html")
+htmltools::img(src = knitr::image_uri("logo.png"), 
+               alt = 'RxODE', 
+               style = 'position:absolute; top:0; right:0; padding:10px; border: 0;')
+```
 
 ## Introduction
 

@@ -1,0 +1,113 @@
+---
+title: "RxODE Jacobian specification and Stiff Systems"
+author: "Matthew L. Fidler, Melissa Hallow, and Wenping Wang"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+fig_width: 850px
+fig_height: 250px
+vignette: >
+  %\VignetteIndexEntry{RxODE Jacobian specification and Stiff Systems}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, echo=FALSE}
+options(cli.unicode=FALSE, crayon.enabled=FALSE);
+options(knitr.table.format = "html")
+htmltools::img(src = knitr::image_uri("logo.png"), 
+               alt = 'RxODE', 
+               style = 'position:absolute; top:0; right:0; padding:10px; border: 0;')
+```
+
+# Stiff ODEs with Jacobian Specification
+
+Occasionally, you may come across
+a
+[**stiff** differential equation](https://en.wikipedia.org/wiki/Stiff_equation),
+that is a differential equation that is numerically unstable and small
+variations in parameters cause different solutions to the ODEs.  One
+way to tackle this is to choose a stiff-solver, or hybrid stiff solver
+(like the default LSODA).  Typically this is enough. However exact
+Jacobian solutions may increase the stability of the ODE.  (Note the
+Jacobian is the derivative of the ODE specification with respect to
+each variable). In RxODE you can specify the Jacobian with the
+`df(state)/dy(variable)=` statement.  A classic ODE that has stiff
+properties under various conditions is
+the
+[van dar Pol ](http://www.ece.northwestern.edu/local-apps/matlabhelp/techdoc/math_anal/diffeq6.html) differential
+equations.
+
+In RxODE these can be specified by the following:
+
+```{r,results="asis"}
+library(RxODE)
+
+Vtpol2 <- RxODE({
+    d/dt(y)  = dy
+    d/dt(dy) = mu*(1-y^2)*dy - y
+    ## Jacobian
+    df(y)/dy(dy)  = 1
+    df(dy)/dy(y)  = -2*dy*mu*y - 1
+    df(dy)/dy(dy) = mu*(1-y^2)
+    ## Initial conditions
+    y(0) = 2
+    dy(0) = 0
+    ## mu
+    mu = 1 ## nonstiff; 10 moderately stiff; 1000 stiff
+})
+
+et <- eventTable();
+et$add.sampling(seq(0, 10, length.out=200));
+et$add.dosing(20, start.time=0);
+
+s1 <- Vtpol2 %>%  solve(et, method="lsoda")
+rxHtml(s1)
+```
+
+While this is not stiff at mu=1, mu=1000 is a stiff system
+
+```{r,results="asis"}
+s2 <- Vtpol2 %>%  solve(c(mu=1000), et)
+rxHtml(s2)
+```
+
+While this is easy enough to do, it is a bit tedious.  If you have
+RxODE setup appropriately, that is you have:
+
+- **Python** installed in your system
+- **sympy** installed in your system
+- **SnakeCharmR** installed in R
+
+You can use the computer algebra system sympy to calculate the
+Jacobian automatically.
+
+This is done by the RxODE option `calcJac` option:
+
+```
+Vtpol <- RxODE({
+    d/dt(y)  = dy
+    d/dt(dy) = mu*(1-y^2)*dy - y
+    ## Initial conditions
+    y(0) = 2
+    dy(0) = 0
+    ## mu
+    mu = 1 ## nonstiff; 10 moderately stiff; 1000 stiff
+}, calcJac=TRUE)
+
+```
+To see the generated model, you can use `rxCat`:
+
+```
+> rxCat(Vtpol)
+d/dt(y)=dy;
+d/dt(dy)=mu*(1-y^2)*dy-y;
+y(0)=2;
+dy(0)=0;
+mu=1;
+df(y)/dy(y)=0;
+df(dy)/dy(y)=-2*dy*mu*y-1;
+df(y)/dy(dy)=1;
+df(dy)/dy(dy)=mu*(-Rx_pow_di(y,2)+1);
+
+```
+

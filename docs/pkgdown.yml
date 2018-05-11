@@ -1,0 +1,16 @@
+pandoc: 1.19.2.1
+pkgdown: 1.0.0
+pkgdown_sha: ~
+articles:
+  RxODE-covariates: ../../../../../c:/SVN/Wenping/RxODE/vignettes/RxODE-covariates.html
+  RxODE-data-frame: ../../../../../c:/SVN/Wenping/RxODE/vignettes/RxODE-data-frame.html
+  RxODE-events: ../../../../../c:/SVN/Wenping/RxODE/vignettes/RxODE-events.html
+  RxODE-intro: ../../../../../c:/SVN/Wenping/RxODE/vignettes/RxODE-intro.html
+  RxODE-mix-lin-ode: ../../../../../c:/SVN/Wenping/RxODE/vignettes/RxODE-mix-lin-ode.html
+  RxODE-shiny: ../../../../../c:/SVN/Wenping/RxODE/vignettes/RxODE-shiny.html
+  RxODE-sim-var: ../../../../../c:/SVN/Wenping/RxODE/vignettes/RxODE-sim-var.html
+  RxODE-speed: ../../../../../c:/SVN/Wenping/RxODE/vignettes/RxODE-speed.html
+  RxODE-stiff: ../../../../../c:/SVN/Wenping/RxODE/vignettes/RxODE-stiff.html
+  RxODE-syntax: ../../../../../c:/SVN/Wenping/RxODE/vignettes/RxODE-syntax.html
+  RxODE-transit-compartments: ../../../../../c:/SVN/Wenping/RxODE/vignettes/RxODE-transit-compartments.html
+

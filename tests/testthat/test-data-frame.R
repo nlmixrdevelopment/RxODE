@@ -18,8 +18,7 @@ rxPermissive({
 
     test_that("RxODE instance 1 is created",{
         expect_equal(class(m1),"RxODE");
-    })
-
+    }
     et1 <- eventTable(amount.units="ug", time.units = "hours")
     et1$add.dosing(dose=10000, nbr.doses=5, dosing.interval = 24)
     et1$add.sampling(0:24)

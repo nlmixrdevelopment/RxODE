@@ -7,9 +7,11 @@ Authors@R: c(
       role = "aut", email = "matthew.fidler@gmail.com"),
    person("Melissa", "Hallow",
       role = "aut", email = "hallowkm@uga.edu"),
-   person("Zufar", "Mulyukov", role="ctb", email="zufar.mulyukov@novartis.com"),
    person("Wenping", "Wang", 
       role = c("aut", "cre"), email = "wwang8198@gmail.com"),
+   person("Zufar", "Mulyukov", role="ctb", email="zufar.mulyukov@novartis.com"),
+   person("Justin", "Wilkins", 
+      role = "ctb", email = "justin.wilkins@occams.com"),
    person("Simon", "Frost", role="ctb"),
    person("Heng", "Li", role="ctb"),
    person("Yu", "Feng", role="ctb"),	
@@ -77,6 +79,7 @@ Description: Facilities for running simulations from ordinary
     Installation" manual. Also the code is mostly released under GPL.  The
     VODE and LSODA are in the public domain.  The information is available
     in the inst/COPYRIGHTS.
+BugReports: https://github.com/nlmixrdevelopment/RxODE/issues
 NeedsCompilation: yes
 VignetteBuilder: knitr
 License: GPL (>= 2) 

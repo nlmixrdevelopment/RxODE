@@ -1,0 +1,139 @@
+---
+title: "RxODE Data Frames"
+author: "Matthew L. Fidler, Melissa Hallow, and Wenping Wang"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+fig_width: 850px
+fig_height: 250px
+vignette: >
+  %\VignetteIndexEntry{RxODE data frames}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+```{r, echo=FALSE}
+options(cli.unicode=FALSE, crayon.enabled=FALSE);
+options(knitr.table.format = "html")
+htmltools::img(src = knitr::image_uri("logo.png"), 
+               alt = 'RxODE', 
+               style = 'position:absolute; top:0; right:0; padding:10px; border: 0;')
+```
+
+# Using RxODE data frames
+
+RxODE supports returning a solved object that is a modified data-frame.
+This is done by the `predict()`, `solve()`, or `rxSolve()` methods.
+
+```{r,results="asis"}
+library(RxODE)
+## Setup example model
+mod1 <-RxODE({
+    C2 = centr/V2;
+    C3 = peri/V3;
+    d/dt(depot) =-KA*depot;
+    d/dt(centr) = KA*depot - CL*C2 - Q*C2 + Q*C3;
+    d/dt(peri)  =                    Q*C2 - Q*C3;
+    d/dt(eff)  = Kin - Kout*(1-C2/(EC50+C2))*eff;
+});
+
+## Seup parameters and initial conditions
+
+theta <- 
+    c(KA=2.94E-01, CL=1.86E+01, V2=4.02E+01, # central 
+      Q=1.05E+01,  V3=2.97E+02,              # peripheral
+      Kin=1, Kout=1, EC50=200)               # effects
+
+inits <- c(eff=1);
+
+## Setup dosing event information
+ev <- eventTable(amount.units="mg", time.units="hours") %>%
+    add.dosing(dose=10000, nbr.doses=10, dosing.interval=12) %>%
+    add.dosing(dose=20000, nbr.doses=5, start.time=120,dosing.interval=24) %>%
+    add.sampling(0:240);
+
+
+## Now solve
+x <- predict(mod1,theta, ev, inits)
+rxHtml(x)
+```
+or
+
+```{r,results="asis"}
+x <- solve(mod1,theta, ev, inits)
+rxHtml(x)
+```
+
+Or with `mattigr`
+
+```{r,results="asis"}
+x <- mod1 %>% solve(theta, ev, inits)
+rxHtml(x)
+```
+
+The solved object acts as a `data.frame` or `tbl` that can be filtered
+by `dpylr`.  For example you could filter it easily.
+
+```{r}
+library(dplyr)
+x <- mod1 %>% solve(theta,ev,inits) %>%  filter(time <=3)
+x
+```
+
+However it isn't just a simple data object.  You can use the solved
+object to update paramters on the fly, or even change the sampling
+time.
+
+
+First we need to recreate the original solved system:
+
+```{r}
+x <- mod1 %>% solve(theta,ev,inits);
+```
+
+To examine or change initial conditions, you can use the syntax
+`cmt.0`, `cmt0`, or `cmt_0`. In the case of the `eff` compartment
+defined by the model, this is:
+
+```{r}
+x$eff0
+```
+
+which shows the initial condition of the effect compartment.  If you
+wished to change this initial condition to 2, this can be done easily
+by:
+
+```{r, results="asis"}
+x$eff0 <- 2
+rxHtml(x)
+```
+
+Notice that the inital effect is now `2`.
+
+You can also change the sampling times easily by this method by
+changing `t` or `time`.  For example:
+
+```{r,results="asis"}
+x$t <- seq(0,5,length.out=20)
+rxHtml(x)
+```
+
+You can also access or change parameters by the `$` operator.  For
+example, accessing `KA` can be done by:
+
+```{r}
+x$KA
+```
+
+And you may change it by assigning it to a new value.
+
+```{r,results="asis"}
+x$KA <- 1;
+rxHtml(x)
+```
+
+
+You can access/change all the parametrs, initilizations or events with
+the `$params`, `$inits`, `$events` accessor syntax, similar to what is
+used above.
+
+This syntax makes it easy to update and explore the effect of various
+parameters on the solved object.

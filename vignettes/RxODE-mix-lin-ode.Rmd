@@ -1,0 +1,154 @@
+---
+title: "RxODE Solved Systems and ODEs"
+author: "Matthew L. Fidler, Melissa Hallow, and Wenping Wang"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+fig_width: 850px
+fig_height: 250px
+vignette: >
+  %\VignetteIndexEntry{RxODE Solved Systems and ODEs}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+```{r, echo=FALSE}
+options(cli.unicode=FALSE, crayon.enabled=FALSE);
+options(knitr.table.format = "html")
+htmltools::img(src = knitr::image_uri("logo.png"),
+               alt = 'RxODE',
+               style = 'position:absolute; top:0; right:0; padding:10px; border: 0;')
+```
+
+# Mixing Solved Systems and ODEs.
+
+In addition to pure ODEs, you may mix solved systems and ODEs.  The
+prior 2-compartment indirect response model can be simplified with a
+`linCmt()` function:
+
+```{r}
+library(RxODE)
+## Setup example model
+mod1 <-RxODE({
+    C2 = centr/V2;
+    C3 = peri/V3;
+    d/dt(depot) =-KA*depot;
+    d/dt(centr) = KA*depot - CL*C2 - Q*C2 + Q*C3;
+    d/dt(peri)  =                    Q*C2 - Q*C3;
+    d/dt(eff)  = Kin - Kout*(1-C2/(EC50+C2))*eff;
+});
+
+## Seup parameters and initial conditions
+
+theta <-
+    c(KA=2.94E-01, CL=1.86E+01, V2=4.02E+01, # central
+      Q=1.05E+01,  V3=2.97E+02,              # peripheral
+      Kin=1, Kout=1, EC50=200)               # effects
+
+inits <- c(eff=1);
+
+## Setup dosing event information
+ev <- eventTable(amount.units="mg", time.units="hours") %>%
+    add.dosing(dose=10000, nbr.doses=10, dosing.interval=12) %>%
+    add.dosing(dose=20000, nbr.doses=5, start.time=120,dosing.interval=24) %>%
+    add.sampling(0:240);
+
+## Setup a mixed solved/ode system:
+mod2 <- RxODE({
+    ## the order of variables do not matter, the type of compartmental
+    ## model is determined by the parameters specified.
+    C2   = linCmt(KA, CL, V2, Q, V3);
+    eff(0) = 1  ## This specifies that the effect compartment starts at 1.
+    d/dt(eff) =  Kin - Kout*(1-C2/(EC50+C2))*eff;
+})
+```
+
+Like a Sherlock Holmes on the case of a mystery, the `linCmt()`
+function figures out the type of model to use based on the parameter
+names specified.
+
+Most often, pharmacometric models are parameterized in terms of volume
+and clearances. Clearances are specified by NONMEM-style names of
+`CL`, `Q`, `Q1`, `Q2`, etc. or distributional clearances `CLD`,
+`CLD2`. Volumes are specified by Central (`VC` or `V`),
+Peripheral/Tissue (`VP`, `VT`).
+
+Another popular parameterization is in terms of micro-constants. RxODE assumes
+compartment `1` is the central compartment.  The elimination constant
+would be specified by `K`, `Ke` or `Kel`.
+
+Once the `linCmt()` sleuthing is complete, the `1`, `2` or `3`
+compartment model solution is used as the value of `linCmt()`.
+
+This allows the indirect response model above to assign the
+2-compartment model to the `C2` variable and the used in the indirect
+response model.
+
+When mixing the solved systems and the ODEs, the solved system's
+compartment is always the last compartment.  This is because the
+solved system technically isn't a compartment to be solved.  Adding
+the dosing compartment to the end will not interfere with the actual
+ODE to be solved.
+
+Therefore,in the two-compartment indirect response model, the effect
+compartment is compartment #1 while the PK dosing compartment for the
+depot is compartment #2.
+
+This compartment model requires a new event table since the
+compartment number changed:
+
+```{r}
+ev <- eventTable(amount.units='mg', time.units='hours') %>%
+    add.dosing(dose=10000, nbr.doses=10, dosing.interval=12,dosing.to=2) %>%
+    add.dosing(dose=20000, nbr.doses=5, start.time=120,dosing.interval=24,dosing.to=2) %>%
+    add.sampling(0:240);
+```
+
+This can be solved with the following command:
+
+```{r,results="asis"}
+x <- mod2 %>%  solve(theta, ev)
+rxHtml(x)
+```
+
+Note this solving did not require specifying the effect compartment
+initial condition to be `1`.  Rather, this is already pre-specified by `eff(0)=1`.
+
+This can be solved for different initial conditions easily:
+
+```{r,results="asis"}
+x <- mod2 %>%  solve(theta, ev,c(eff=2))
+rxHtml(x)
+```
+
+The RxODE detective also does not require you to specify the variables
+in the `linCmt()` function if they are already defined in the block.
+Therefore, the following function will also work to solve the same
+system.
+
+
+```{r,results="asis"}
+mod3 <- RxODE({
+    KA=2.94E-01;
+    CL=1.86E+01;
+    V2=4.02E+01;
+    Q=1.05E+01;
+    V3=2.97E+02;
+    Kin=1;
+    Kout=1;
+    EC50=200;
+    ## The linCmt() picks up the variables from above
+    C2   = linCmt();
+    eff(0) = 1  ## This specifies that the effect compartment starts at 1.
+    d/dt(eff) =  Kin - Kout*(1-C2/(EC50+C2))*eff;
+})
+
+x <- mod3 %>%  solve(ev)
+rxHtml(x)
+```
+
+Note that you do not specify the parameters when solving the system
+since they are built into the model, but you can override the parameters:
+
+```{r,results="asis"}
+x <- mod3 %>%  solve(c(KA=10),ev)
+rxHtml(x)
+```
