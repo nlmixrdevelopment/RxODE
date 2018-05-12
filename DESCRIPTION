@@ -66,7 +66,8 @@ Imports:
     PreciseSums (>= 0.3),
     mvnfast,
     cli,
-    crayon
+    crayon,
+    n1qn1
 Description: Facilities for running simulations from ordinary
     differential equation (ODE) models, such as pharmacometrics and other
     compartmental models.  A compilation manager translates the ODE model
@@ -85,4 +86,4 @@ VignetteBuilder: knitr
 License: GPL (>= 2) 
 URL: https://www.r-project.org, https://github.com/nlmixrdevelopment/RxODE
 RoxygenNote: 6.0.1
-LinkingTo: dparser(>= 0.1.8), Rcpp (>= 0.12.3), RcppArmadillo(>= 0.5.600.2.0), PreciseSums (>= 0.3)
+LinkingTo: dparser(>= 0.1.8), Rcpp (>= 0.12.3), RcppArmadillo(>= 0.5.600.2.0), PreciseSums (>= 0.3), n1qn1 (>= 6.0.1-1)
