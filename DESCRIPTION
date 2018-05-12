@@ -86,4 +86,4 @@ VignetteBuilder: knitr
 License: GPL (>= 2) 
 URL: https://www.r-project.org, https://github.com/nlmixrdevelopment/RxODE
 RoxygenNote: 6.0.1
-LinkingTo: dparser(>= 0.1.8), Rcpp (>= 0.12.3), RcppArmadillo(>= 0.5.600.2.0), PreciseSums (>= 0.3), n1qn1 (>= 6.0.1-1)
+LinkingTo: dparser(>= 0.1.8), Rcpp (>= 0.12.3), RcppArmadillo(>= 0.5.600.2.0), PreciseSums (>= 0.3)
