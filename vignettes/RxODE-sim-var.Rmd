@@ -253,7 +253,8 @@ tmp <- matrix(rnorm(8^2), 8, 8)
 tMat <- tcrossprod(tmp, tmp) / (8 ^ 2)
 dimnames(tMat) <- list(NULL, names(theta))
 
-sim  <- rxSolve(mod, theta, ev, omega=omega, nSub=100, sigma=sigma, thetaMat=tMat, nStud=10)
+sim  <- rxSolve(mod, theta, ev, omega=omega, nSub=100, sigma=sigma, thetaMat=tMat, nStud=10,
+     dfSub=10, dfObs=100)
 
 p <- c(0.05, 0.5, 0.95);
 s <-sim %>% group_by(time) %>%
