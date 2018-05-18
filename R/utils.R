@@ -116,29 +116,6 @@ rxClean <- function(wd){
     }
 }
 
-##' Give the cout string for a number
-##'
-##' @param number Number for converting
-##' @return String of cout << number;
-##' @author Matthew L. Fidler
-##' @keywords internal
-##' @export
-rxCout <- function(number){
-    tmp <- tempfile();
-    orig.sink.number <- sink.number()
-    on.exit({while(sink.number() > orig.sink.number){
-        sink();
-    }
-        unlink(tmp)}
-    );
-    sink(tmp);
-    rxCoutEcho(number);
-    sink();
-    lines <- suppressWarnings({readLines(tmp)});
-    return(lines)
-}
-
-
 refresh <- function(derivs=FALSE){
     ## nocov start
     cat("Dparser Version\n");

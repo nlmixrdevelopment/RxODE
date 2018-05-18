@@ -2103,7 +2103,7 @@ void trans_internal(char *orig_file, char* parse_file, char* c_file){
 SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_md5,
            SEXP parse_model,SEXP parse_model3){
   char *in, *orig, *out, *file, *pfile;
-  char buf[1024], buf2[1024], df[512], dy[512];
+  char buf[2048], buf2[1024], df[512], dy[512];
   char snum[1024];
   char *s2;
   char sLine[MXLEN+1];
