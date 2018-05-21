@@ -63,10 +63,9 @@ rxPhysicalDrives <- memoise::memoise(function(duplicates=FALSE){
 rxPythonBaseWin <- function(){
     if(.Platform$OS.type == "unix"){
     } else {
-        keys <- NULL;
-        keys <- try(utils::readRegistry(sprintf("SOFTWARE\\nlmixr%s", ifelse(.Platform$r_arch == "i386", "32", "")), hive = "HCU", maxdepth = 2), silent = TRUE);
-        if (!inherits(keys, "try-error") && dir.exists(normalizePath(file.path(keys[[1]], "python"), winslash="/"))){
-            python.base <- normalizePath(file.path(keys[[1]], "python"), winslash="/")
+        keys <- rxNlmixr();
+        if (!is.null(keys$python.base)){
+            python.base <- keys$python.base;
         } else {
             keys <- NULL
             keys <- try(utils::readRegistry("SOFTWARE\\Python\\PythonCore", hive = "HCU", ## view = "32-bit",
@@ -94,6 +93,22 @@ rxPythonBaseWin <- function(){
     }
 }
 
+
+rxNlmixr <- memoise::memoise(function(){
+    keys <- NULL
+    keys <- try(utils::readRegistry(sprintf("SOFTWARE\\nlmixr%s", ifelse(.Platform$r_arch == "i386", "32", "")), hive = "HCU", maxdepth = 2), silent = TRUE);
+    if (!inherits(keys, "try-error")){
+        lst <- list(
+            rtools.base = normalizePath(file.path(keys[[1]], "rtools"), winslash="/", mustWork=FALSE),
+            python.base=normalizePath(file.path(keys[[1]], "python"), winslash="/", mustWork=FALSE)
+        );
+        if (dir.exists(lst$rtools.base) && dir.exists(lst$python.base)){
+            return(lst);
+        }
+    }
+    return(list());
+})
+
 ##' Return Rtools base
 ##'
 ##' @return Rtools base path, or "" on unix-style platforms.
@@ -103,10 +118,9 @@ rxRtoolsBaseWin <- (function(){
         return("");
     } else {
         ## Prefer nlmixr rtools over everything
-        keys <- NULL
-        keys <- try(utils::readRegistry(sprintf("SOFTWARE\\nlmixr%s", ifelse(.Platform$r_arch == "i386", "32", "")), hive = "HCU", maxdepth = 2), silent = TRUE);
-        if (!inherits(keys, "try-error")){
-            rtools.base <- normalizePath(file.path(keys[[1]], "rtools"), winslash="/")
+        keys <- rxNlmixr()
+        if (!is.null(keys$rtools.base)){
+            rtools.base <- keys$rtools.base;
         } else {
             ## The grep solution assumes that the path is setup correctly;
             gcc <- Sys.which("gcc.exe")
