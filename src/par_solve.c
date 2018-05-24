@@ -456,26 +456,14 @@ void rxOptionsFree(){
   Free(global_scalep);
 }
 
-extern void par_lsoda(rx_solve *rx){
-  rx_solving_options *op = &op_global;
-  int nsub = rx->nsub, nsim = rx->nsim;
-  int displayProgress = (op->nDisplayProgress <= nsim*nsub);
-  clock_t t0 = clock();
-  int i;
-  double xout;
+extern void ind_lsoda0(rx_solve *rx, rx_solving_options *op, int solveid, int *neq, double *rwork, int lrw, int *iwork, int liw, int jt,
+                       t_dydt_lsoda_dum dydt_lsoda,
+                       t_update_inis u_inis,
+                       t_jdum_lsoda jdum){
+  rx_solving_options_ind *ind;
   double *yp;
-  int neq[2];
-  neq[0] = op->neq;
-  neq[1] = 0;
-  /* yp = global_yp(neq[0]); */
-  int itol = 1;
-  double  rtol = op->RTOL, atol = op->ATOL;
-  // Set jt to 1 if full is specified.
-  int itask = 1, istate = 1, iopt = 0, lrw=22+neq[0]*max(16, neq[0]+9), liw=20+neq[0], jt = global_jt;
-  double *rwork;
-  int *iwork;
   
-  char *err_msg[]=
+  static char *err_msg[]=
     {
       "excess work done on this call (perhaps wrong jt).",
       "excess accuracy requested (tolerances too small).",
@@ -485,71 +473,89 @@ extern void par_lsoda(rx_solve *rx){
       "error weight became zero during problem. (solution component i vanished, and atol or atol(i) = 0.)",
       "work space insufficient to finish (see messages)."
     };
+  int itask = 1, istate = 1, iopt = 0, i = 0, itol = 1;
+
+  /* memset(rwork,0.0,lrw+1); */ // Does not work since it is a double
+  for (i = lrw+1; i--;) rwork[i]=0;
+  memset(iwork,0,liw+1); // Works because it is a integer
+
+  neq[1] = solveid;
+  
+  ind = &(rx->subjects[neq[1]]);
+
+  rwork[4] = op->H0; // H0
+  rwork[5] = ind->HMAX; // Hmax
+  rwork[6] = op->HMIN; // Hmin
+  
+  iwork[4] = 0; // ixpr
+  iwork[5] = op->mxstep; // mxstep 
+  iwork[6] = 0; // MXHNIL 
+  iwork[7] = op->MXORDN; // MXORDN 
+  iwork[8] = op->MXORDS;  // MXORDS
+    
+  ind->ixds = 0;
+  double xp = ind->all_times[0];
+  double xout;
+
+  //--- inits the system
+  memcpy(ind->solve, op->inits, neq[0]*sizeof(double));
+  update_inis(neq[1], ind->solve); // Update initial conditions
+  
+  for(i=0; i < ind->n_all_times; i++) {
+    xout = ind->all_times[i];
+    yp   = ind->solve+neq[0]*i;
+    if(xout - xp > DBL_EPSILON*max(fabs(xout),fabs(xp)))
+      {
+        F77_CALL(dlsoda)(dydt_lsoda, neq, yp, &xp, &xout, &itol, &(op->RTOL), &(op->ATOL), &itask,
+                         &istate, &iopt, rwork, &lrw, iwork, &liw, jdum, &jt);
+
+        if (istate <= 0)
+          {
+            REprintf("IDID=%d, %s\n", istate, err_msg[-istate-1]);
+            ind->rc[0] = istate;
+            // Bad Solve => NA
+            for (unsigned int j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
+            op->badSolve = 1;
+            i = ind->n_all_times+42; // Get out of here!
+          }
+        ind->slvr_counter[0]++;
+        //dadt_counter = 0;
+      }
+    if (handle_evid(ind->evid[i], neq[0], ind->BadDose, ind->InfusionRate, ind->dose, yp,
+                    op->do_transit_abs, xout, ind)){
+      istate = 1;
+      xp = xout;
+    }
+    // Copy to next solve so when assigned to yp=ind->solve[neq[0]*i]; it will be the prior values
+    if (i+1 != ind->n_all_times) memcpy(ind->solve+neq[0]*(i+1), yp, neq[0]*sizeof(double));
+  }
+}
+
+extern void par_lsoda(rx_solve *rx){
+  int nsub = rx->nsub, nsim = rx->nsim;
+  int displayProgress = (op_global.nDisplayProgress <= nsim*nsub);
+  clock_t t0 = clock();
+  int neq[2];
+  neq[0] = op_global.neq;
+  neq[1] = 0;
+  /* yp = global_yp(neq[0]); */
+  
+  // Set jt to 1 if full is specified.
+  int lrw=22+neq[0]*max(16, neq[0]+9), liw=20+neq[0], jt = global_jt;
+  double *rwork;
+  int *iwork;
+  
+  
   if (global_debug)
     REprintf("JT: %d\n",jt);
   rwork = global_rwork(lrw+1);
   iwork = global_iwork(liw+1);
   
-  
-  rx_solving_options_ind *ind;
-  
   int curTick = 0;
   int abort = 0;
   for (int solveid = 0; solveid < nsim*nsub; solveid++){
-    itask = 1; 
-    istate = 1;
-    iopt = 1;
-    /* memset(rwork,0.0,lrw+1); */ // Does not work since it is a double
-    for (i = lrw+1; i--;) rwork[i]=0;
-    memset(iwork,0,liw+1); // Works because it is a integer
-
-    neq[1] = solveid;
-    ind = &(rx->subjects[neq[1]]);
-
-    rwork[4] = op->H0; // H0
-    rwork[5] = ind->HMAX; // Hmax
-    rwork[6] = op->HMIN; // Hmin
-  
-    iwork[4] = 0; // ixpr
-    iwork[5] = op->mxstep; // mxstep 
-    iwork[6] = 0; // MXHNIL 
-    iwork[7] = op->MXORDN; // MXORDN 
-    iwork[8] = op->MXORDS;  // MXORDS
-    
-    ind->ixds = 0;
-    double xp = ind->all_times[0];
-    //--- inits the system
-    memcpy(ind->solve, op->inits, neq[0]*sizeof(double));
-    update_inis(neq[1], ind->solve); // Update initial conditions
-
-    for(i=0; i < ind->n_all_times; i++) {
-      xout = ind->all_times[i];
-      yp   = ind->solve+neq[0]*i;
-      if(xout - xp > DBL_EPSILON*max(fabs(xout),fabs(xp)))
-	{
-	  F77_CALL(dlsoda)(dydt_lsoda_dum, neq, yp, &xp, &xout, &itol, &rtol, &atol, &itask,
-			   &istate, &iopt, rwork, &lrw, iwork, &liw, jdum_lsoda, &jt);
-
-	  if (istate <= 0)
-	    {
-	      REprintf("IDID=%d, %s\n", istate, err_msg[-istate-1]);
-	      ind->rc[0] = istate;
-	      // Bad Solve => NA
-	      for (unsigned int j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
-	      op->badSolve = 1;
-	      i = ind->n_all_times+42; // Get out of here!
-	    }
-	  ind->slvr_counter[0]++;
-	  //dadt_counter = 0;
-	}
-      if (handle_evid(ind->evid[i], neq[0], ind->BadDose, ind->InfusionRate, ind->dose, yp,
-		      op->do_transit_abs, xout, ind)){
-	istate = 1;
-	xp = xout;
-      }
-      // Copy to next solve so when assigned to yp=ind->solve[neq[0]*i]; it will be the prior values
-      if (i+1 != ind->n_all_times) memcpy(ind->solve+neq[0]*(i+1), yp, neq[0]*sizeof(double));
-    }
+    ind_lsoda0(rx, &op_global, solveid, neq, rwork, lrw, iwork, liw, jt,
+	       dydt_lsoda_dum, update_inis, jdum_lsoda);
     if (displayProgress){ // Can only abort if it is long enough to display progress.
       curTick = par_progress(solveid, nsim*nsub, curTick, 1, t0, 0);
       if (checkInterrupt()){
@@ -559,7 +565,7 @@ extern void par_lsoda(rx_solve *rx){
     }
   }
   if (abort == 1){
-    op->abort = 1;
+    op_global.abort = 1;
   } else {
     if (displayProgress && curTick < 50) par_progress(nsim*nsub, nsim*nsub, curTick, 1, t0, 0);
   }
@@ -702,6 +708,21 @@ void par_dop(rx_solve *rx){
     op->abort = 1;
   } else {
     if (displayProgress && curTick < 50) par_progress(nsim*nsub, nsim*nsub, curTick, 1, t0, 0);
+  }
+}
+
+inline void ind_solve(rx_solve *rx, unsigned int cid){
+  rx_solving_options *op = &op_global;
+  if (op->neq > 0){
+    if (op->stiff == 2){
+      par_liblsoda(rx);
+    } else if (op->stiff == 1){
+      // lsoda
+      par_lsoda(rx);
+    } else if (op->stiff == 0){
+      // dop
+      par_dop(rx);
+    }
   }
 }
 

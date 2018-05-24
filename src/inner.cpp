@@ -142,36 +142,3 @@ void updateZm(focei_ind *indF){
     indF->uzm = 1;
   }
 }
-
-// void innerEtaLik(unsigned int cid){
-//   focei_ind *ind = &(inds_focei[cid]);
-//   unsigned int nObs = ind->n_all_times - ind->ndoses;
-
-//   mat fpm = mat(nObs, op_focei.netas); // d(pred)/d(eta#)
-    
-//   mat rp = mat(nObs, op_focei.netas);
-    
-//   mat f(nObs, 1);
-//   mat err = mat(nObs,1);
-//   mat r = mat(nObs,1);
-
-//   mat B = mat(nObs,1);
-//   mat c = mat(nObs, op_focei.netas);
-//   mat a = mat(nObs, op_focei.netas);
-//   double llik =0.0;
-//   mat lp = mat(op_focei.netas, 1);
-
-// }
-
-// typedef void (*S2_fp) (int *, int *, double *, double *, double *, int *, float *, double *);
-// typedef void (*fun_n1qn1) (S2_fp simul, int n[], double x[], double f[], double g[], double var[], double eps[],
-//                         int mode[], int niter[], int nsim[], int imp[], int lp[], double zm[], int izs[], float rzs[], double dzs[]);
-
-// void n1qn1(S2_fp simul, int n[], double x[], double f[], double g[], double var[], double eps[],
-// 	   int mode[], int niter[], int nsim[], int imp[], int lp[], double zm[], int izs[], float rzs[], double dzs[]){
-//   static fun_n1qn1 fun=NULL;
-//   if (fun == NULL) fun = (fun_n1qn1) R_GetCCallable("n1qn1","n1qn1_");
-//   fun(simul, n, x,f, g, var, eps, mode,  niter, nsim, imp, zm, izs, rzs, dzs);
-// }
-
-
