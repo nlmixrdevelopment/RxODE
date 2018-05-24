@@ -7,74 +7,31 @@ extern "C"{
 
 // These are focei inner options
 typedef struct {
-  int badSolve;
-  double ATOL;          //absolute error
-  double RTOL;          //relative error
-  double H0;
-  double HMIN;
-  int mxstep;
-  int MXORDN;
-  int MXORDS;
-  //
-  int do_transit_abs;
-  int nlhs;
-  int neq;
-  int stiff;
-  int ncov;
-  int *par_cov;
-  double *inits;
-  int do_par_cov;
-  // approx fun options
-  double f1;
-  double f2;
-  int kind;
-  int is_locf;
-  int cores;
-  int extraCmt;
-  double hmax2; // Determined by diff
-  double *rtol2;
-  double *atol2;
-  int abort;
   // Integer of ETAs
-  int *etas;
-  unsigned int netas;
+  int *etaTrans;
+  unsigned int neta;
+  unsigned int ntheta;
+  double *theta;
+  int *thetaTrans;
+  double scaleTo;
+  double epsilon;
+  unsigned int max_iterations;
+  unsigned int nzm;
 } focei_options;
 
 focei_options op_focei;
 
 
 typedef struct {
-  int *slvr_counter;
-  int *dadt_counter;
-  int *jac_counter;
-  double *InfusionRate;
-  int *BadDose;
-  int nBadDose;
-  double HMAX; // Determined by diff
-  double tlast;
-  double podo;
-  double *par_ptr; // Includes ETAs
-  double *dose;
-  double *solve;
-  double *lhs;
-  double *nzm; // Saved Hessian information
-  int  *evid;
-  int *rc;
-  double *cov_ptr;
-  int n_all_times;
-  int ixds;
-  int ndoses;
-  double *all_times;
-  int *idose;
-  int idosen;
-  int id;
-  int sim;
-  double ylow;
-  double yhigh;
+  double *eta;
+  double *zm;
+  unsigned int uzm;
 } focei_ind;
 
 focei_ind *inds_focei = NULL;
 int max_inds_focei = 0;
+
+rx_solve *getRxSolve_();
 
 focei_ind *rxFoceiEnsure(int mx){
   if (mx >= max_inds_focei){
@@ -154,28 +111,57 @@ void rxClearInnerFuns(){
   inner_dydt_liblsoda         = NULL;
 }
 
-void innerEtaLik(unsigned int cid){
-  focei_ind *ind = &(inds_focei[cid]);
-  unsigned int nObs = ind->n_all_times - ind->ndoses;
-
-  mat fpm = mat(nObs, op_focei.netas); // d(pred)/d(eta#)
-    
-  mat rp = mat(nObs, op_focei.netas);
-    
-  mat f(nObs, 1);
-  mat err = mat(nObs,1);
-  mat r = mat(nObs,1);
-
-  mat B = mat(nObs,1);
-  // Cant use list...
-  // List c(neta);
-  // List a(neta);
-  mat c = mat(nObs, op_focei.netas);
-  mat a = mat(nObs, op_focei.netas);
-  double llik =0.0;
-  mat lp = mat(op_focei.netas, 1);
-
+uvec lowerTri(mat H, bool diag = false){
+  unsigned int d = H.n_rows;
+  mat o(d, d, fill::ones);
+  if (!diag){
+    return find(trimatl(o,-1));
+  } else {
+    return find(trimatl(o));
+  }
 }
+
+void updateZm(focei_ind *indF){
+  if (!indF->uzm){
+    // Udate the curvature to Hessian to restart n1qn1
+    unsigned int n = op_focei.neta;
+    mat L = eye(n,n);
+    mat D = mat(n,n,fill::zeros);
+    mat H = mat(n,n);
+    unsigned int l_n = n*(n+1)/2;
+    vec zmV(l_n);
+    std::copy(&indF->zm[0], &indf->zm[0]+l_n, zmV.begin());
+    H.elem(lowerTri(H,true)) = zmV;
+    L.elem(lowerTri(H,false)) = H.elem(lowerTri(H,0));
+    D.diag() = H.diag();
+    H = L*D*L.t();
+    // Hessian -> c.hess
+    std::fill(&indF->zm[0], &indF->zm[0]+op_focei.nzm,0.0);
+    vec hessV = H.elem(lowerTri(H,1));
+    std::copy(hessV.begin(),hessV.end(),&indF->zm[0]);
+    indF->uzm = 1;
+  }
+}
+
+// void innerEtaLik(unsigned int cid){
+//   focei_ind *ind = &(inds_focei[cid]);
+//   unsigned int nObs = ind->n_all_times - ind->ndoses;
+
+//   mat fpm = mat(nObs, op_focei.netas); // d(pred)/d(eta#)
+    
+//   mat rp = mat(nObs, op_focei.netas);
+    
+//   mat f(nObs, 1);
+//   mat err = mat(nObs,1);
+//   mat r = mat(nObs,1);
+
+//   mat B = mat(nObs,1);
+//   mat c = mat(nObs, op_focei.netas);
+//   mat a = mat(nObs, op_focei.netas);
+//   double llik =0.0;
+//   mat lp = mat(op_focei.netas, 1);
+
+// }
 
 // typedef void (*S2_fp) (int *, int *, double *, double *, double *, int *, float *, double *);
 // typedef void (*fun_n1qn1) (S2_fp simul, int n[], double x[], double f[], double g[], double var[], double eps[],
