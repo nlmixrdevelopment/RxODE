@@ -130,7 +130,7 @@ void updateZm(focei_ind *indF){
     mat H = mat(n,n);
     unsigned int l_n = n*(n+1)/2;
     vec zmV(l_n);
-    std::copy(&indF->zm[0], &indf->zm[0]+l_n, zmV.begin());
+    std::copy(&indF->zm[0], &indF->zm[0]+l_n, zmV.begin());
     H.elem(lowerTri(H,true)) = zmV;
     L.elem(lowerTri(H,false)) = H.elem(lowerTri(H,0));
     D.diag() = H.diag();
