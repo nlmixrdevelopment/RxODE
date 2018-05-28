@@ -529,6 +529,9 @@ rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, scal
     }
     method.idx <- c("lsoda"=1, "dop853"=0, "liblsoda"=2);
     method <- as.integer(method.idx[method]);
+    if (Sys.info()[["sysname"]] == "SunOS" && method == 2){
+        method <- 1;
+    }
     if (length(covs_interpolation) > 1) covs_interpolation <- covs_interpolation[1];
     covs_interpolation <- tolower(match.arg(covs_interpolation, c("linear", "locf", "LOCF", "constant", "nocb", "NOCB", "midpoint")))
     if (covs_interpolation == "constant") covs_interpolation <- "locf";
