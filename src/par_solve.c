@@ -473,7 +473,7 @@ extern void ind_lsoda0(rx_solve *rx, rx_solving_options *op, int solveid, int *n
       "error weight became zero during problem. (solution component i vanished, and atol or atol(i) = 0.)",
       "work space insufficient to finish (see messages)."
     };
-  int itask = 1, istate = 1, iopt = 0, i = 0, itol = 1;
+  int itask = 1, istate = 1, iopt = 1, i = 0, itol = 1;
 
   /* memset(rwork,0.0,lrw+1); */ // Does not work since it is a double
   for (i = lrw+1; i--;) rwork[i]=0;
