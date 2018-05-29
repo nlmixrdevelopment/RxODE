@@ -98,6 +98,11 @@ rxNlmixr <- memoise::memoise(function(){
     keys <- NULL
     keys <- try(utils::readRegistry(sprintf("SOFTWARE\\nlmixr%s", ifelse(.Platform$r_arch == "i386", "32", "")), hive = "HCU", maxdepth = 2), silent = TRUE);
     if (!inherits(keys, "try-error")){
+        normalizePath(commandArgs()[[1]])
+        if (regexpr(rex::rex(normalizePath(keys[[1]])),
+                    normalizePath(commandArgs()[[1]])) == -1){
+            return(list())
+        }
         lst <- list(
             rtools.base = normalizePath(file.path(keys[[1]], "rtools"), winslash="/", mustWork=FALSE),
             python.base=normalizePath(file.path(keys[[1]], "python"), winslash="/", mustWork=FALSE)
