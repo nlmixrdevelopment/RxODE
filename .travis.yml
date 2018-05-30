@@ -9,7 +9,6 @@ env:
    - _R_CHECK_FORCE_SUGGESTS_: FALSE
 
 r:
-  - 3.2
   - 3.3
   - 3.4
   - 3.5
