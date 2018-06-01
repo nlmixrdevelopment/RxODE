@@ -12,7 +12,7 @@
 
 <meta name="author" content="Matthew L. Fidler, Melissa Hallow, and Wenping Wang" />
 
-<meta name="date" content="2018-05-11" />
+<meta name="date" content="2018-06-01" />
 
 <title>Introduction to RxODE</title>
 
@@ -70,7 +70,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">Introduction to RxODE</h1>
 <h4 class="author"><em>Matthew L. Fidler, Melissa Hallow, and Wenping Wang</em></h4>
-<h4 class="date"><em>2018-05-11</em></h4>
+<h4 class="date"><em>2018-06-01</em></h4>
 
 
 
@@ -309,180 +309,6 @@ NA
 <div id="solving-odes" class="section level1">
 <h1>Solving ODEs</h1>
 <p>The ODE can now be solved by calling the model object’s <code>run</code> or <code>solve</code> function. Simulation results for all variables in the model are stored in the output matrix x.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">x &lt;-<span class="st"> </span>mod1<span class="op">$</span><span class="kw">solve</span>(theta, ev, inits)
-knitr<span class="op">::</span><span class="kw">kable</span>(<span class="kw">head</span>(x))</code></pre></div>
-<table>
-<thead>
-<tr>
-<th style="text-align:right;">
-time
-</th>
-<th style="text-align:right;">
-depot
-</th>
-<th style="text-align:right;">
-centr
-</th>
-<th style="text-align:right;">
-peri
-</th>
-<th style="text-align:right;">
-eff
-</th>
-<th style="text-align:right;">
-C2
-</th>
-<th style="text-align:right;">
-C3
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-10000.000
-</td>
-<td style="text-align:right;">
-0.000
-</td>
-<td style="text-align:right;">
-0.0000
-</td>
-<td style="text-align:right;">
-1.000000
-</td>
-<td style="text-align:right;">
-0.00000
-</td>
-<td style="text-align:right;">
-0.0000000
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-7452.765
-</td>
-<td style="text-align:right;">
-1783.897
-</td>
-<td style="text-align:right;">
-273.1895
-</td>
-<td style="text-align:right;">
-1.084664
-</td>
-<td style="text-align:right;">
-44.37555
-</td>
-<td style="text-align:right;">
-0.9198298
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-2
-</td>
-<td style="text-align:right;">
-5554.370
-</td>
-<td style="text-align:right;">
-2206.295
-</td>
-<td style="text-align:right;">
-793.8758
-</td>
-<td style="text-align:right;">
-1.180825
-</td>
-<td style="text-align:right;">
-54.88296
-</td>
-<td style="text-align:right;">
-2.6729825
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-3
-</td>
-<td style="text-align:right;">
-4139.542
-</td>
-<td style="text-align:right;">
-2086.518
-</td>
-<td style="text-align:right;">
-1323.5783
-</td>
-<td style="text-align:right;">
-1.228914
-</td>
-<td style="text-align:right;">
-51.90343
-</td>
-<td style="text-align:right;">
-4.4564927
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-3085.103
-</td>
-<td style="text-align:right;">
-1788.795
-</td>
-<td style="text-align:right;">
-1776.2702
-</td>
-<td style="text-align:right;">
-1.234610
-</td>
-<td style="text-align:right;">
-44.49738
-</td>
-<td style="text-align:right;">
-5.9807076
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-5
-</td>
-<td style="text-align:right;">
-2299.255
-</td>
-<td style="text-align:right;">
-1466.670
-</td>
-<td style="text-align:right;">
-2131.7169
-</td>
-<td style="text-align:right;">
-1.214742
-</td>
-<td style="text-align:right;">
-36.48434
-</td>
-<td style="text-align:right;">
-7.1774981
-</td>
-</tr>
-</tbody>
-</table>
-<p>This returns a matrix. You can see the compartment values in the plot below:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">par</span>(<span class="dt">mfrow=</span><span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">2</span>))
-<span class="kw">matplot</span>(x[,<span class="st">&quot;C2&quot;</span>], <span class="dt">type=</span><span class="st">&quot;l&quot;</span>, <span class="dt">ylab=</span><span class="st">&quot;Central Concentration&quot;</span>)
-<span class="kw">matplot</span>(x[,<span class="st">&quot;eff&quot;</span>], <span class="dt">type=</span><span class="st">&quot;l&quot;</span>, <span class="dt">ylab =</span> <span class="st">&quot;Effect&quot;</span>)</code></pre></div>
-<p><img src="data:image/png;base64,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" /><!-- --></p>
 <p>You can also solve this and create a RxODE data frame:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">x &lt;-<span class="st"> </span><span class="kw">solve</span>(mod1,theta, ev, inits);
 <span class="kw">rxHtml</span>(x)</code></pre></div>
@@ -775,6 +601,182 @@ C3
 </td>
 </tr>
 </table>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">x &lt;-<span class="st"> </span>mod1<span class="op">$</span><span class="kw">solve</span>(theta, ev, inits)
+knitr<span class="op">::</span><span class="kw">kable</span>(<span class="kw">head</span>(x))</code></pre></div>
+<table>
+<thead>
+<tr>
+<th style="text-align:right;">
+time
+</th>
+<th style="text-align:right;">
+depot
+</th>
+<th style="text-align:right;">
+centr
+</th>
+<th style="text-align:right;">
+peri
+</th>
+<th style="text-align:right;">
+eff
+</th>
+<th style="text-align:right;">
+C2
+</th>
+<th style="text-align:right;">
+C3
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+10000.000
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+<td style="text-align:right;">
+0.0000
+</td>
+<td style="text-align:right;">
+1.000000
+</td>
+<td style="text-align:right;">
+0.00000
+</td>
+<td style="text-align:right;">
+0.0000000
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+7452.765
+</td>
+<td style="text-align:right;">
+1783.897
+</td>
+<td style="text-align:right;">
+273.1895
+</td>
+<td style="text-align:right;">
+1.084664
+</td>
+<td style="text-align:right;">
+44.37555
+</td>
+<td style="text-align:right;">
+0.9198298
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+5554.370
+</td>
+<td style="text-align:right;">
+2206.295
+</td>
+<td style="text-align:right;">
+793.8758
+</td>
+<td style="text-align:right;">
+1.180825
+</td>
+<td style="text-align:right;">
+54.88296
+</td>
+<td style="text-align:right;">
+2.6729825
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+4139.542
+</td>
+<td style="text-align:right;">
+2086.518
+</td>
+<td style="text-align:right;">
+1323.5783
+</td>
+<td style="text-align:right;">
+1.228914
+</td>
+<td style="text-align:right;">
+51.90343
+</td>
+<td style="text-align:right;">
+4.4564927
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:right;">
+3085.103
+</td>
+<td style="text-align:right;">
+1788.795
+</td>
+<td style="text-align:right;">
+1776.2702
+</td>
+<td style="text-align:right;">
+1.234610
+</td>
+<td style="text-align:right;">
+44.49738
+</td>
+<td style="text-align:right;">
+5.9807076
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+2299.255
+</td>
+<td style="text-align:right;">
+1466.670
+</td>
+<td style="text-align:right;">
+2131.7169
+</td>
+<td style="text-align:right;">
+1.214742
+</td>
+<td style="text-align:right;">
+36.48434
+</td>
+<td style="text-align:right;">
+7.1774981
+</td>
+</tr>
+</tbody>
+</table>
+<p>This returns a matrix. You can see the compartment values in the plot below:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(ggplot2)
+x &lt;-<span class="st"> </span><span class="kw">as.data.frame</span>(x)
+<span class="kw">ggplot</span>(x,<span class="kw">aes</span>(time,C2)) <span class="op">+</span><span class="st"> </span><span class="kw">geom_line</span>() <span class="op">+</span><span class="st"> </span><span class="kw">ylab</span>(<span class="st">&quot;Central Concentration&quot;</span>) <span class="op">+</span><span class="st"> </span><span class="kw">xlab</span>(<span class="st">&quot;Time&quot;</span>);</code></pre></div>
+<p><img src="data:image/png;base64,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" /><!-- --></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggplot</span>(x,<span class="kw">aes</span>(time,eff)) <span class="op">+</span><span class="st"> </span><span class="kw">geom_line</span>() <span class="op">+</span><span class="st"> </span><span class="kw">ylab</span>(<span class="st">&quot;Effect&quot;</span>) <span class="op">+</span><span class="st"> </span><span class="kw">xlab</span>(<span class="st">&quot;Time&quot;</span>);</code></pre></div>
+<p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASAAAAEgCAMAAAAjXV6yAAAApVBMVEUAAAAAADoAAGYAOpAAZrYzMzM6AAA6ADo6kNtNTU1NTW5NTY5NbqtNjshmAABmtv9uTU1uTW5uTY5ubo5ubqtuq+SOTU2OTW6OTY6Obk2OyP+QOgCQtpCQ2/+rbk2rbm6rbo6ryKur5OSr5P+2ZgC2///Ijk3I///bkDrb/7bb///kq27k///r6+v/tmb/yI7/25D/5Kv//7b//8j//9v//+T///+dYf9TAAAACXBIWXMAAA7DAAAOwwHHb6hkAAAJG0lEQVR4nO3dCXvUNhAGYBUoJFyhLdA2KdA2QFKCAyGJ//9Pq70+dI31yefK3m+eh2UzCO3MG/nILtgqZwRD7buA1INAIAgEgkAgCASCQCAGAGVtGE+zCbMzTduvBAKBEggESiAQKIFAoAQCgRIIBEogECiBQKAEAoESCARKWB2QIlA4SSCQJBBIEggkCQSSIpCSxqoDBVJSMhpISfOqQAkEygjkJAnUJgnUJgmkmxGBhGObktiUBKQIZCV9IHldVSWMANpPKKlSKamknuKT/qDeAb7VXEGgEwKBTggEOiEQ6IRAoBMCgU4IBDohEOiEQKCTuYByQYhARjcECicJBJIEAkkZKPOTBwpUNB0NJHxEpKR3H1X3R0QEapMEapMEanIEMrIEapshUDBJIJAUgaoOhSSBmiSBdDMECiYJBJIEAkkCgSSBQJJAIEkgkCQQSBIIJAkEkgQCybI9D4NAZjNJAt38elE/u39/miSQv+EtCfTt+FkDdHW8IiBxpM+mMomtLiEG6PPTf5oVdPPbnwQKbGL3H/6tNrGfiwj+jblC5UKtcySlQd3RAF29WdU+aPEVdPP6K4FCQFfHZbwhUOcmtrLD/LJAFRKB4gO0RyDQHoFAewQC7REItEcg0B6BQHsEAu0RCLRHINAegUB7BALtEQi0RyDQHoFAe/MBeX0TyGyGQMFkJ5CUJFCb7ADy1pVqH7wkgZokgdokgdokgXQzBAoldxQE6k4SCCQJBJIEAkkCgSSBQJJAHUmlf08A6MfLk/K36wef9gukG1EEcsp1nwWBdhTLAV2qJh4FfWYCUhMB7b50gZQzr5nsv4JQxDcdkW2LXgNQZMCme2QVAGqeJwJ0d3ZU/AJb2AShX1RfMVuJyWaocv7ebMlArUV8LG2gEFoVeHcsbEOZcZ0SIZnGCpr5KCZuTb2AnBY3BiTvblYFlF+WND9eHgV9UgMSkh6bqksQkt7ZUd2DCJRfl6dBwKcfUPvyeayFccVElaUGFBXmNPLkRhGxQNqCQGsGKn7cOLl8+GUxIMkiZaCPD/97eTLFeZCwj9kCUHGYL4/04w/zkkUeuzURqBeQPoVJACi/LDexCc6DxK0piwcya08KaKrzoGFAbcUJA0WFOY08eQ8g3yJVoHoHNAKo3dvIZzcHD6R6AIUsUgUy3pMedhTbPNDY96S3DjThJibvbrJIi+0CNS+1UaDx+6AFgOxu1rYPkoGMOmYC8pNpniimBSQkXbb++6D6/fqBP6wSKAykAaYFah/WCuTvhHPZog+QXjcE8hbLxoCEk+Z+QJ4FgQgUARSwSBdo0Jm08i0mA7L/ZN9A8TEzkP5/PQcHFLtYCAQsCEQgaXfjf7kBoOZKnDevjjuuJ70wkNXO/oGaC27f/n6e3/xyniqQl1wKqL3g9rcX5VfNEjKnkXY3IpDKsz5Awi5rLiDp1oC9N7F6FfkX3FbtDMbVq/VT1fWAkuIcbr3BpNVYfNKL+KsBN1dLjlpBznc/tIL8xbLGFXT7tvXpAWR2uG2gm1enOjkJUD1+I0CWD4EcoOJXdcl2fBSrqzsgIDEQkPNgABltE4hABJoKqGp2FFBLQSA/2bxGTyA/uS0ge+apgISky5Y0kJHcPJDXdjeQM8nmgOzNg0AEItAegSIstg3kfD0DkNkNgWKB3OSBAWVqEJCXdNlaIEFoBUCZ+z+pPCBNcThA1dMxQJrCSzpAzbMVAGVKBGrL3iaQaxELpDICGX/eHygz0gSKBXKSiQEZDxCow2IWIDfpsBlAvtBUQMbimRzI/GYTSJe9cSCbxdzdECgIpLIQkHM5xTCQyb5pIMtiLJCddGcwgdyk/34AgRIBcramMUDZAQF1WPQBMl7qAIGygUBW0mVbP1AGgCyKkUBO0vtprk5OCbSbPQRUWvQHcsLIGt+XFQIpXV0YKBOBsoFAZtJl2wBQF4WcHQdkJ+UNehSQEdI/IhcvnK28vzPqte1/XG7ONjLZ8VL9wnAOriB7d+OdxrjLAiStrD4suOvKWUHWAWSpFWRMEwuUJQVkJdMD6uw6nLSz7SuuBsg4tq8TyF3ZkwLZBywJKKrrHkMlIGMh51IyPaBsPqB20Q4CMpPyznH9QM1LuuvKAzK2/1xK+j/CVMnVA9UbsLuufCBdXC4l/RPQKrkIUKi/QDZyqADU7PZyKemwCUC6i00AiVkJSFpB0iZmTTsbUMedPJYCmig7NZB1ykMgPQ2BBgBNUd3eswSCJRAIlEAgUMLEQBmBCDQOaNrq9p4lECyBQKAEAoESJgESfQikpyEQgQhEoIElEAiUQCBQAoFACQQCJRAIlEAgUAKBQAkEAiUQCJQQB9Rcy/X27fHzrwTyorki+f370/zqBYHcaK9IfvvHhXFpaT3NoQPpqwG//tpxRfLtRxTQt+cNUBkLfPv2nh28gggkAnXtgwhUq5RX/JeOYgSqr0jedR5EIDEWqG7vWQLBEggESiAQKGEEkI4+J9U9xs407bASCASGEggMJRAYOu6/hR9AEAgEgUAQCASBQAwHsn7CD0V5d7JnFxHjd2+u1MPQ6N3YqJnre8TGzFsPtaYdDGR/0hGK6v6jePzuM5R6GBpdfd4SM3N9j9iYeZvbyVrTDgay32UMxP2H86jx1Wco9TAwuhobNXN9j9iYeeuh9rSDgez3qQNRrNRy4UaM3709Vw2Do+u38eJm1hPCscUf2tMOBrI/6QhEuWiLb0rE+LLpehgcvcOMnLl8xzhy3nKoPe38K2gXn09nWEGRM+/uERs3r76dbDvt/Pug+vUixt9E74MsIDC2ugdq1LzG7VLbaUccxd7EHcXKpXr/90XE+LLyehgc3WyOcOa66Zh566H2tMucBz09jxk/5DwIztzcIzZi3maoNS3PpEEQCASBQBAIBIFAEAgEgUAQCESKQHdnqopH35+823cxKQKVkQBNFQQCkTZQ8fj9yV+PlTr6XjycVFvfg09LFpI+0OOHX/JLVT48+HR39ijPL4vny8UKgIqFUz08eXddrp4fL08WLCR9oPJJ83BZHd2OFixkZUCLbl27WBfQ9U+LH9vWBXR3ViyhZZXWBbQ7zC+7ilIFSiYIBIJAIAgEgkAgCASCQCD+B11OhkXo1SHgAAAAAElFTkSuQmCC" /><!-- --></p>
 </div>
 
 

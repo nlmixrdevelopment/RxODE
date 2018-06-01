@@ -3,8 +3,6 @@ title: "RxODE Solved Systems and ODEs"
 author: "Matthew L. Fidler, Melissa Hallow, and Wenping Wang"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
-fig_width: 850px
-fig_height: 250px
 vignette: >
   %\VignetteIndexEntry{RxODE Solved Systems and ODEs}
   %\VignetteEngine{knitr::rmarkdown}

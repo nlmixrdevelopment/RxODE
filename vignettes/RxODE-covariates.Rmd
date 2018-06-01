@@ -3,8 +3,6 @@ title: "RxODE Covariates"
 author: "Matthew L. Fidler, Melissa Hallow, and Wenping Wang"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
-fig_width: 850px
-fig_height: 250px
 vignette: >
   %\VignetteIndexEntry{RxODE Covariates}
   %\VignetteEngine{knitr::rmarkdown}
@@ -71,10 +69,13 @@ between the covariate values. This is the default value.  It is
 equivalent to R's `approxfun` with `method="linear"`, which is the
 default `approxfun`.
 
-```{r out.width="100%"}
-par(mfrow=c(1,2))
-matplot(r1[,"C2"], type="l", ylab="Central Concentration")
-matplot(r1[,"eff"], type="l", ylab = "Effect")
+```{r}
+library(ggplot2)
+ggplot(r1,aes(time,C2)) + geom_line() + ylab("Central Concentration") + xlab("Time");
+```
+
+```{r}
+ggplot(r1,aes(time,eff)) + geom_line() + ylab("Effect") + xlab("Time");
 ```
 
 Note that the linear approximation in this case leads to some kinks in
@@ -86,17 +87,40 @@ carried forward, or constant approximation.  This is equivalent to R's
 `approxfun` with `method="constant"`.
 
 
-```{r,results="asis"}
+r```{r,results="asis"}
 r2 <- solve(mod3, ev, covs=cov.df,covs_interpolation="constant")
 rxHtml(r2)
 ```
 
 which gives the following plots:
 
-```{r out.width="100%"}
-par(mfrow=c(1,2))
-matplot(r2[,"C2"], type="l", ylab="Central Concentration")
-matplot(r2[,"eff"], type="l", ylab = "Effect")
+```{r}
+ggplot(r1,aes(time,C2)) + geom_line() + ylab("Central Concentration") + xlab("Time");
+```
+
+```{r}
+ggplot(r1,aes(time,eff)) + geom_line() + ylab("Effect") + xlab("Time");
 ```
 
 In this case, the plots seem to be smoother.
+
+
+You can also use NONMEM's preferred interpolation style of next
+observation carried backward (NOCB):
+eeee
+```{r,results="asis"}
+r2 <- solve(mod3, ev, covs=cov.df,covs_interpolation="nocb")
+rxHtml(r2)
+```
+
+which gives the following plots:
+
+```{r}
+ggplot(r1,aes(time,C2)) + geom_line() + ylab("Central Concentration") + xlab("Time");
+```
+
+```{r}
+ggplot(r1,aes(time,eff)) + geom_line() + ylab("Effect") + xlab("Time");
+```
+
+

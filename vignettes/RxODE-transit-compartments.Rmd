@@ -3,8 +3,6 @@ title: "RxODE Transit Compartment Models"
 author: "Matthew L. Fidler, Melissa Hallow, and Wenping Wang"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
-fig_width: 850px
-fig_height: 250px
 vignette: >
   %\VignetteIndexEntry{RxODE Transit Compartment Models}
   %\VignetteEngine{knitr::rmarkdown}
@@ -26,6 +24,7 @@ You can specify this in a similar manner as the original paper:
 
 ```{r out.width="100%"}
 library(RxODE)
+library(ggplot2)
 mod <- RxODE({
     ## Table 3 from Savic 2007
     cl = 17.2 # (L/hr)
@@ -47,9 +46,8 @@ et$add.dosing(20, start.time=0);
 
 transit <- rxSolve(mod, et, transit_abs=TRUE)
 
-par(mfrow=c(1,1))
-with(transit,matplot(time,cen, type="l", ylab="Central Concentration", xlab=""))
-
+transit %>% ggplot(aes(time,cen))+geom_line()+ylab("Central Concentration")+
+xlab("")
 ```
 
 
@@ -60,7 +58,7 @@ Using the `transit` code also automatically turns on the `transit_abs`
 option.  Therefore, the same model can be specified by:
 
 
-```{r out.width="100%"}
+```{r}
 
 mod <- RxODE({
     ## Table 3 from Savic 2007
@@ -82,7 +80,7 @@ et$add.dosing(20, start.time=0);
 
 transit <- rxSolve(mod, et)
 
-par(mfrow=c(1,1))
-with(transit,matplot(time,cen, type="l", ylab="Central Concentration", xlab=""))
+transit %>% ggplot(aes(time,cen))+geom_line()+ylab("Central Concentration") +
+xlab("")
 ```
 

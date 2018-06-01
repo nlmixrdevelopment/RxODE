@@ -3,8 +3,6 @@ title: "RxODE Data Frames"
 author: "Matthew L. Fidler, Melissa Hallow, and Wenping Wang"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
-fig_width: 850px
-fig_height: 250px
 vignette: >
   %\VignetteIndexEntry{RxODE data frames}
   %\VignetteEngine{knitr::rmarkdown}

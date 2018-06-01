@@ -45,16 +45,19 @@ knitr::kable(head(ev$get.dosing()))
 ## ------------------------------------------------------------------------
 knitr::kable(head(ev$get.sampling()))
 
+## ---- results="asis"-----------------------------------------------------
+x <- solve(mod1,theta, ev, inits);
+rxHtml(x)
+
 ## ------------------------------------------------------------------------
 x <- mod1$solve(theta, ev, inits)
 knitr::kable(head(x))
 
 ## ------------------------------------------------------------------------
-par(mfrow=c(1,2))
-matplot(x[,"C2"], type="l", ylab="Central Concentration")
-matplot(x[,"eff"], type="l", ylab = "Effect")
+library(ggplot2)
+x <- as.data.frame(x)
+ggplot(x,aes(time,C2)) + geom_line() + ylab("Central Concentration") + xlab("Time");
 
-## ---- results="asis"-----------------------------------------------------
-x <- solve(mod1,theta, ev, inits);
-rxHtml(x)
+## ------------------------------------------------------------------------
+ggplot(x,aes(time,eff)) + geom_line() + ylab("Effect") + xlab("Time");
 

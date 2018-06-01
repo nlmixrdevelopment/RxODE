@@ -3,8 +3,6 @@ title: "Introduction to RxODE"
 author: "Matthew L. Fidler, Melissa Hallow, and Wenping Wang"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
-fig_width: 850px
-fig_height: 250px
 vignette: >
   %\VignetteIndexEntry{Introduction to RxODE}
   %\VignetteEngine{knitr::rmarkdown}
@@ -117,6 +115,13 @@ The ODE can now be solved by calling the model object's `run` or `solve`
 function. Simulation results for all variables in the model are stored
 in the output matrix x. 
 
+You can also solve this and create a RxODE data frame:
+
+```{r, results="asis"}
+x <- solve(mod1,theta, ev, inits);
+rxHtml(x)
+```
+
 ```{r}
 x <- mod1$solve(theta, ev, inits)
 knitr::kable(head(x))
@@ -126,14 +131,12 @@ This returns a matrix.  You can see the compartment values in the plot
 below:
 
 ```{r}
-par(mfrow=c(1,2))
-matplot(x[,"C2"], type="l", ylab="Central Concentration")
-matplot(x[,"eff"], type="l", ylab = "Effect")
+library(ggplot2)
+x <- as.data.frame(x)
+ggplot(x,aes(time,C2)) + geom_line() + ylab("Central Concentration") + xlab("Time");
 ```
 
-You can also solve this and create a RxODE data frame:
-
-```{r, results="asis"}
-x <- solve(mod1,theta, ev, inits);
-rxHtml(x)
+```{r}
+ggplot(x,aes(time,eff)) + geom_line() + ylab("Effect") + xlab("Time");
 ```
+
