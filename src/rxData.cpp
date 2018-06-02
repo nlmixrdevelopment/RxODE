@@ -2978,12 +2978,12 @@ SEXP rxSolveC(const RObject &obj,
       e["check.names"] = dat.names();
       
       e[".par.pos"] = eGparPos;
-      IntegerVector slvr_counterIv(rx->nsub*nPopPar);
-      IntegerVector dadt_counterIv(rx->nsub*nPopPar);
-      IntegerVector  jac_counterIv(rx->nsub*nPopPar);
-      std::copy(&_globals.slvr_counter[0], &_globals.slvr_counter[0] + rx->nsub*nPopPar, slvr_counterIv.begin());
-      std::copy(&_globals.dadt_counter[0], &_globals.dadt_counter[0] + rx->nsub*nPopPar, dadt_counterIv.begin());
-      std::copy(&_globals.jac_counter[0], &_globals.jac_counter[0] + rx->nsub*nPopPar, jac_counterIv.begin());
+      IntegerVector slvr_counterIv(nSize);
+      IntegerVector dadt_counterIv(nSize);
+      IntegerVector  jac_counterIv(nSize);
+      std::copy(&_globals.slvr_counter[0], &_globals.slvr_counter[0] + nSize, slvr_counterIv.begin());
+      std::copy(&_globals.dadt_counter[0], &_globals.dadt_counter[0] + nSize, dadt_counterIv.begin());
+      std::copy(&_globals.jac_counter[0], &_globals.jac_counter[0] + nSize, jac_counterIv.begin());
       e[".slvr.counter"] = slvr_counterIv;
       e[".dadt.counter"] = dadt_counterIv;
       e[".jac.counter"] = jac_counterIv;
