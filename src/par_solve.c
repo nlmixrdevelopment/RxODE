@@ -230,6 +230,78 @@ int checkInterrupt() {
   return (R_ToplevelExec(chkIntFn, NULL) == FALSE);
 }
 
+extern void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda_opt_t opt, int solveid, 
+			  t_dydt_liblsoda dydt_liblsoda, t_update_inis u_inis){
+  int i;
+  int neq[2];
+  neq[0] = op->neq;
+  neq[1] = solveid;
+  /* double *yp = &yp0[neq[1]*neq[0]]; */
+  int nx;
+  rx_solving_options_ind *ind;
+  double *inits;
+  int *evid;
+  double *x;
+  int *BadDose;
+  double *InfusionRate;
+  double *dose;
+  double *ret;
+  double xout;
+  int *rc;
+  double *yp;
+  inits = op->inits;
+  struct lsoda_context_t ctx = {
+    .function = dydt_liblsoda,
+    .neq = neq[0],
+    .data = &neq,
+    .state = 1
+  };
+  lsoda_prepare(&ctx, &opt);
+  ind = &(rx->subjects[neq[1]]);
+  ind->ixds = 0;
+  nx = ind->n_all_times;
+  evid = ind->evid;
+  BadDose = ind->BadDose;
+  InfusionRate = ind->InfusionRate;
+  dose = ind->dose;
+  ret = ind->solve;
+  x = ind->all_times;
+  rc= ind->rc;
+  double xp = x[0];
+  //--- inits the system
+  /* Rprintf("ID: %d; nsim: %d; nsub: %d\n",neq[1], nsim, nsub); */
+  /* Rprintf("inits[0]: %f\n",inits[0]); */
+  /* Rprintf("ret[0]: %f\n",ret[0]); */
+  memcpy(ret,inits, neq[0]*sizeof(double));
+  u_inis(neq[1], ret); // Update initial conditions
+  /* for(i=0; i<neq[0]; i++) yp[i] = inits[i]; */
+  for(i=0; i<nx; i++) {
+    xout = x[i];
+    yp = ret+neq[0]*i;
+    if(xout-xp > DBL_EPSILON*max(fabs(xout),fabs(xp))){
+      lsoda(&ctx, yp, &xp, xout);
+      if (ctx.state <= 0) {
+        /* REprintf("IDID=%d, %s\n", istate, err_msg[-istate-1]); */
+        *rc = ctx.state;
+        // Bad Solve => NA
+        for (unsigned int j = neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
+        op->badSolve = 1;
+        i = nx+42; // Get out of here!
+      }
+    }
+    if (handle_evid(evid[i], neq[0], BadDose, InfusionRate, dose, yp,
+                    op->do_transit_abs, xout, ind)){
+      ctx.state = 1;
+      xp = xout;
+    }
+    if (i+1 != nx) memcpy(ret+neq[0]*(i+1), yp, neq[0]*sizeof(double));
+    ind->slvr_counter[0]++; // doesn't need do be critical; one subject at a time.
+    /* for(j=0; j<neq[0]; j++) ret[neq[0]*i+j] = yp[j]; */
+  }
+  lsoda_free(&ctx);
+}
+
+
 
 extern void par_liblsoda(rx_solve *rx){
   rx_solving_options *op = &op_global;
@@ -267,85 +339,19 @@ extern void par_liblsoda(rx_solve *rx){
 #endif
   for (int solveid = 0; solveid < nsim*nsub; solveid++){
     if (abort == 0){
-      int i;
-      int neq[2];
-      neq[0] = op->neq;
-      neq[1] = solveid;
-      /* double *yp = &yp0[neq[1]*neq[0]]; */
-      int nx;
-      rx_solving_options_ind *ind;
-      double *inits;
-      int *evid;
-      double *x;
-      int *BadDose;
-      double *InfusionRate;
-      double *dose;
-      double *ret;
-      double xout;
-      int *rc;
-      double *yp;
-      inits = op->inits;
-      struct lsoda_context_t ctx = {
-	.function = dydt_liblsoda,
-	.neq = neq[0],
-	.data = &neq,
-	.state = 1
-      };
-      lsoda_prepare(&ctx, &opt);
-      ind = &(rx->subjects[neq[1]]);
-      ind->ixds = 0;
-      nx = ind->n_all_times;
-      evid = ind->evid;
-      BadDose = ind->BadDose;
-      InfusionRate = ind->InfusionRate;
-      dose = ind->dose;
-      ret = ind->solve;
-      x = ind->all_times;
-      rc= ind->rc;
-      double xp = x[0];
-      //--- inits the system
-      /* Rprintf("ID: %d; nsim: %d; nsub: %d\n",neq[1], nsim, nsub); */
-      /* Rprintf("inits[0]: %f\n",inits[0]); */
-      /* Rprintf("ret[0]: %f\n",ret[0]); */
-      memcpy(ret,inits, neq[0]*sizeof(double));
-      update_inis(neq[1], ret); // Update initial conditions
-      /* for(i=0; i<neq[0]; i++) yp[i] = inits[i]; */
-      for(i=0; i<nx; i++) {
-	xout = x[i];
-        yp = ret+neq[0]*i;
-	if(xout-xp > DBL_EPSILON*max(fabs(xout),fabs(xp))){
-	  lsoda(&ctx, yp, &xp, xout);
-	  if (ctx.state <= 0) {
-	    /* REprintf("IDID=%d, %s\n", istate, err_msg[-istate-1]); */
-	    *rc = ctx.state;
-	    // Bad Solve => NA
-	    for (unsigned int j = neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
-	    op->badSolve = 1;
-	    i = nx+42; // Get out of here!
-	  }
-	}
-	if (handle_evid(evid[i], neq[0], BadDose, InfusionRate, dose, yp,
-			op->do_transit_abs, xout, ind)){
-	  ctx.state = 1;
-	  xp = xout;
-	}
-	if (i+1 != nx) memcpy(ret+neq[0]*(i+1), yp, neq[0]*sizeof(double));
-        ind->slvr_counter[0]++; // doesn't need do be critical; one subject at a time.
-	/* for(j=0; j<neq[0]; j++) ret[neq[0]*i+j] = yp[j]; */
-      }
-      lsoda_free(&ctx);
+      ind_liblsoda0(rx, op, opt, solveid, dydt_liblsoda, update_inis);
       if (displayProgress){
 #pragma omp critical
-	cur++;
+	  cur++;
 #ifdef _OPENMP
-	if (omp_get_thread_num() == 0) // only in master thread!
+	  if (omp_get_thread_num() == 0) // only in master thread!
 #endif
-	  {
-            curTick = par_progress(cur, nsim*nsub, curTick, cores, t0, 0);
-            if (abort == 0){
-              if (checkInterrupt()) abort =1;
+	    {
+	      curTick = par_progress(cur, nsim*nsub, curTick, cores, t0, 0);
+	      if (abort == 0){
+		if (checkInterrupt()) abort =1;
+	      }
 	    }
-	  }
       }
     }
   }
