@@ -301,6 +301,26 @@ extern void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda_opt
   lsoda_free(&ctx);
 }
 
+extern void ind_liblsoda(rx_solve *rx, int solveid, 
+			 t_dydt_liblsoda dydt, t_update_inis u_inis){
+  rx_solving_options *op = &op_global;
+  struct lsoda_opt_t opt = {0};
+  opt.ixpr = 0; // No extra printing...
+  // Unlike traditional lsoda, these are vectors.
+  opt.rtol = op->rtol2;
+  opt.atol = op->atol2;
+  opt.itask = 1;
+  opt.mxstep = op->mxstep;
+  opt.mxhnil = 0;
+  opt.mxordn = op->MXORDN;
+  opt.mxords = op->MXORDS;
+  opt.h0 = op->H0;
+  opt.hmax = op->hmax2;
+  opt.hmin = op->HMIN;
+  opt.hmxi = 0.0;
+  ind_liblsoda0(rx, op, opt, solveid, dydt, u_inis);
+}
+
 
 
 extern void par_liblsoda(rx_solve *rx){
@@ -537,7 +557,8 @@ extern void ind_lsoda0(rx_solve *rx, rx_solving_options *op, int solveid, int *n
   }
 }
 
-extern void ind_lsoda(rx_solve *rx, int solveid){
+extern void ind_lsoda(rx_solve *rx, int solveid,
+                      t_dydt_lsoda_dum dydt_ls, t_update_inis u_inis, t_jdum_lsoda jdum){
   int neq[2];
   neq[0] = op_global.neq;
   neq[1] = 0;
@@ -551,7 +572,7 @@ extern void ind_lsoda(rx_solve *rx, int solveid){
   rwork = global_rwork(lrw+1);
   iwork = global_iwork(liw+1);
   ind_lsoda0(rx, &op_global, solveid, neq, rwork, lrw, iwork, liw, jt,
-             dydt_lsoda_dum, update_inis, jdum_lsoda);
+             dydt_ls, u_inis, jdum);
 }
 
 extern void par_lsoda(rx_solve *rx){
@@ -709,6 +730,15 @@ extern void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int *neq
   }
 }
 
+extern void ind_dop(rx_solve *rx, int solveid,
+		    t_dydt c_dydt, t_update_inis u_inis){
+  rx_solving_options *op = &op_global;
+  int neq[2];
+  neq[0] = op->neq;
+  neq[1] = 0;
+  ind_dop0(rx, &op_global, solveid, neq, c_dydt, u_inis);
+}
+
 void par_dop(rx_solve *rx){
   rx_solving_options *op = &op_global;
   int nsub = rx->nsub, nsim = rx->nsim;
@@ -740,17 +770,20 @@ void par_dop(rx_solve *rx){
   }
 }
 
-inline void ind_solve(rx_solve *rx, unsigned int cid){
+void ind_solve(rx_solve *rx, unsigned int cid,
+		      t_dydt_liblsoda dydt_lls,
+                      t_dydt_lsoda_dum dydt_lsoda, t_jdum_lsoda jdum,
+		      t_dydt c_dydt, t_update_inis u_inis){
   rx_solving_options *op = &op_global;
   if (op->neq > 0){
-    if (op->stiff == 2){
-      par_liblsoda(rx);
-    } else if (op->stiff == 1){
-      // lsoda
-      par_lsoda(rx);
-    } else if (op->stiff == 0){
-      // dop
-      par_dop(rx);
+    switch (op->stiff){
+    case 2: 
+      ind_liblsoda(rx, cid, dydt_lls, u_inis);
+	break;
+    case 1:
+      ind_lsoda(rx,cid, dydt_lsoda, u_inis, jdum);
+    case 0:
+      ind_dop(rx, cid, c_dydt, u_inis);
     }
   }
 }

@@ -23,6 +23,26 @@ focei_options op_focei;
 
 
 typedef struct {
+  // F and varaibility
+  mat f; // can change
+  mat r; // can change
+  //
+  //mat dv; // doesn't change on update.
+  mat err;
+  //
+  unsigned int neta;// = as<unsigned int>(e["neta"]);
+  // Derivatives
+  mat fpm;// = mat(nObs(), neta); or d(pred)/d(eta#)
+  mat rp;// = mat(nObs(),neta);
+    
+  //
+  mat B;// = mat(nObs(),1);
+  mat c;// was List(neta); but should be (nObs(), neta)
+  mat a;// was List(neta); but should be (nObs(), neta)
+  
+  // Likilihood gradient
+  mat lp;// = mat(neta,1);
+    
   double *eta;
   double *zm;
   unsigned int uzm;
