@@ -782,8 +782,10 @@ void ind_solve(rx_solve *rx, unsigned int cid,
 	break;
     case 1:
       ind_lsoda(rx,cid, dydt_lsoda, u_inis, jdum);
+      break;
     case 0:
       ind_dop(rx, cid, c_dydt, u_inis);
+      break;
     }
   }
 }

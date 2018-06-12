@@ -15,7 +15,7 @@
 rxSolve(object, params = NULL, events = NULL, inits = NULL,
   scale = NULL, covs = NULL, method = c("liblsoda", "lsoda", "dop853"),
   transit_abs = NULL, atol = 1e-08, rtol = 1e-06, maxsteps = 5000L,
-  hmin = 0L, hmax = NULL, hini = 0L, maxordn = 12L, maxords = 5L, ...,
+  hmin = 0L, hmax = NULL, hini = 0, maxordn = 12L, maxords = 5L, ...,
   cores, covs_interpolation = c("linear", "locf", "nocb", "midpoint"),
   add.cov = FALSE, matrix = FALSE, sigma = NULL, sigmaDf = NULL,
   nCoresRV = 1L, sigmaIsChol = FALSE, nDisplayProgress = 10000L,
@@ -29,7 +29,7 @@ rxSolve(object, params = NULL, events = NULL, inits = NULL,
 \method{rxSolve}{default}(object, params = NULL, events = NULL,
   inits = NULL, scale = NULL, covs = NULL, method = c("liblsoda",
   "lsoda", "dop853"), transit_abs = NULL, atol = 1e-08, rtol = 1e-06,
-  maxsteps = 5000L, hmin = 0L, hmax = NULL, hini = 0L, maxordn = 12L,
+  maxsteps = 5000L, hmin = 0L, hmax = NULL, hini = 0, maxordn = 12L,
   maxords = 5L, ..., cores, covs_interpolation = c("linear", "locf", "nocb",
   "midpoint"), add.cov = FALSE, matrix = FALSE, sigma = NULL,
   sigmaDf = NULL, nCoresRV = 1L, sigmaIsChol = FALSE,
@@ -39,7 +39,7 @@ rxSolve(object, params = NULL, events = NULL, inits = NULL,
   omega = NULL, omegaDf = NULL, omegaIsChol = FALSE, nSub = 1L,
   thetaMat = NULL, thetaDf = NULL, thetaIsChol = FALSE, nStud = 1L,
   dfSub = 0, dfObs = 0, return.type = c("rxSolve", "matrix",
-  "data.frame"), seed = NULL, nsim = NULL)
+  "data.frame"), seed = NULL, nsim = NULL, setupOnly = FALSE)
 
 \method{update}{rxSolve}(object, ...)
 
@@ -273,9 +273,7 @@ inverse Wishart distribution (scaled) or scaled inverse chi squared distribution
      frame; Currently very slightly Faster than \code{return.type=\"matrix\"}
 \item \code{"matrix"} -- returns a plain matrix with column names attached
     to the solved object.  This is what is used \code{eobject$run} as well as ob
-}
-
-    \code{return.type} equals \{matrix\}, rxSolve returns a matrix.}
+}}
 
 \item{seed}{an object specifying if and how the random number
     generator should be initialized (\sQuote{seeded}).\cr
@@ -287,7 +285,13 @@ inverse Wishart distribution (scaled) or scaled inverse chi squared distribution
     \code{"seed"} attribute, see \sQuote{Value}.
   }
 
-\item{nsim}{represents the number of simulations.  For RxODE, if you supply single subject event tables (created with eventTable)}
+\item{nsim}{represents the number of simulations.  For RxODE, if
+you supply single subject event tables (created with
+eventTable)}
+
+\item{setupOnly}{Only setup the internal C structure, do not
+solve.  After setting it up, and using the structure in C, it
+needs to be freed by \link{\code{rxSolveFree}}.}
 
 \item{a}{when using \code{solve}, this is equivalent to the
 \code{object} argument.  If you specify \code{object} later in

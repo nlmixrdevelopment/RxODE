@@ -67,6 +67,7 @@ typedef struct {
   int ixds;
   int ndoses;
   double *all_times;
+  double *dv;
   int *idose;
   int idosen;
   int id;

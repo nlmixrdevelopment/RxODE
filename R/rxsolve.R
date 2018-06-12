@@ -187,9 +187,6 @@
 ##' \item \code{"matrix"} -- returns a plain matrix with column names attached
 ##'     to the solved object.  This is what is used \code{eobject$run} as well as ob
 ##' }
-##If
-##'
-##'     \code{return.type} equals \{matrix\}, rxSolve returns a matrix.
 ##'
 ##' @inheritParams rxSimThetaOmega
 ##'
@@ -203,7 +200,13 @@
 ##'     \code{params} argument.  If you specify \code{params} as a
 ##'     named argument, this overwrites the output
 ##'
-##' @param nsim represents the number of simulations.  For RxODE, if you supply single subject event tables (created with eventTable)
+##' @param nsim represents the number of simulations.  For RxODE, if
+##'     you supply single subject event tables (created with
+##'     eventTable)
+##'
+##' @param setupOnly Only setup the internal C structure, do not
+##'     solve.  After setting it up, and using the structure in C, it
+##'     needs to be freed by \link{\code{rxSolveFree}}.
 ##'
 ##' @return An \dQuote{rxSolve} solve object that stores the solved
 ##'     value in a matrix with as many rows as there are sampled time
@@ -273,7 +276,7 @@ rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, scal
                     omega = NULL, omegaDf = NULL, omegaIsChol = FALSE,
                     nSub = 1L, thetaMat = NULL, thetaDf = NULL, thetaIsChol = FALSE,
                     nStud = 1L, dfSub=0.0, dfObs=0.0, return.type=c("rxSolve", "matrix", "data.frame"),
-                    seed=NULL, nsim=NULL){
+                    seed=NULL, nsim=NULL, setupOnly=FALSE){
     if (!is.null(seed)){
         set.seed(seed);
     }
@@ -566,7 +569,8 @@ rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, scal
                sigmaIsChol, nDisplayProgress, amountUnits,
                timeUnits, addDosing, theta, eta, update.object,
                do.solve, omega, omegaDf, omegaIsChol, nSub, thetaMat,
-               thetaDf, thetaIsChol, nStud, dfSub, dfObs));
+               thetaDf, thetaIsChol, nStud, dfSub, dfObs,
+               as.integer(setupOnly)));
 }
 
 ##' @rdname rxSolve

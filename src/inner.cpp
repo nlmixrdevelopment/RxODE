@@ -3,6 +3,10 @@ using namespace Rcpp;
 using namespace arma;
 extern "C"{
 #include "solve.h"
+  void ind_solve(rx_solve *rx, unsigned int cid,
+                 t_dydt_liblsoda dydt_lls,
+                 t_dydt_lsoda_dum dydt_lsoda, t_jdum_lsoda jdum,
+                 t_dydt c_dydt, t_update_inis u_inis);
 }
 
 // These are focei inner options

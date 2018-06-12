@@ -109,6 +109,8 @@ SEXP _RxODE_add_dosing_(SEXP, SEXP, SEXP, SEXP, SEXP,
                         SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP _RxODE_add_sampling_(SEXP, SEXP, SEXP);
 
+SEXP _RxODE_rxSolveFree();
+
 extern int rxIsCurrentC(SEXP obj);
 
 
@@ -159,6 +161,7 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_add_dosing_", (DL_FUNC) &_RxODE_add_dosing_,10},
     {"_RxODE_add_sampling_", (DL_FUNC) &_RxODE_add_sampling_, 3},
     {"_RxODE_dynLoad", (DL_FUNC) &_RxODE_dynLoad, 1},
+    {"_RxODE_rxSolveFree", (DL_FUNC) &_RxODE_rxSolveFree, 0},
     {NULL, NULL, 0}
   };
   // C callable to assign environments.
