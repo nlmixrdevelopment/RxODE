@@ -1284,7 +1284,7 @@ rxSymPySetupPred.warn <- FALSE
 rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, grad=FALSE, sum.prod=FALSE, pred.minus.dv=TRUE,
                              theta.derivs=FALSE,only.numeric=FALSE,
                              grad.internal=FALSE, theta.internal=FALSE,
-                             run.internal=FALSE){
+                             run.internal=RxODE.sympy.run.internal){
     good.fns <- c(".GlobalEnv", "package:RxODE", "package:nlmixr")
     check.good <- function(x){
         tmp <- suppressWarnings({find(deparse(substitute(x)))})
