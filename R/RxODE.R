@@ -337,7 +337,7 @@ RxODE <- function(model, modName = basename(wd), wd = ifelse(RxODE.cache.directo
     ## RxODE compilation manager (location of parsed code, generated C,  shared libs, etc.)
     .env <- new.env(parent=baseenv())
     .env$missing.modName <- missing(modName);
-    .wd <- suppressWarnings({normalizePath(.wd, "/", mustWork=F)})
+    .wd <- suppressWarnings({normalizePath(wd, "/", mustWork=F)})
     if (.env$missing.modName){
         if (RxODE.tempfiles){
             .env$mdir <- rxTempDir();
