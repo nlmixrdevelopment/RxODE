@@ -7,7 +7,7 @@
 rxSymPySetupPred(obj, predfn, pkpars = NULL, errfn = NULL, init = NULL,
   grad = FALSE, sum.prod = FALSE, pred.minus.dv = TRUE,
   theta.derivs = FALSE, only.numeric = FALSE, grad.internal = FALSE,
-  theta.internal = FALSE, run.internal = FALSE)
+  theta.internal = FALSE, run.internal = RxODE.sympy.run.internal)
 }
 \arguments{
 \item{obj}{RxODE object}

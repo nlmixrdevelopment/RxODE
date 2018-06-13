@@ -206,7 +206,7 @@
 ##'
 ##' @param setupOnly Only setup the internal C structure, do not
 ##'     solve.  After setting it up, and using the structure in C, it
-##'     needs to be freed by \link{\code{rxSolveFree}}.
+##'     needs to be freed by \code{\link{rxSolveFree}}.
 ##'
 ##' @return An \dQuote{rxSolve} solve object that stores the solved
 ##'     value in a matrix with as many rows as there are sampled time

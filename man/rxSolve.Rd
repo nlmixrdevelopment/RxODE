@@ -291,7 +291,7 @@ eventTable)}
 
 \item{setupOnly}{Only setup the internal C structure, do not
 solve.  After setting it up, and using the structure in C, it
-needs to be freed by \link{\code{rxSolveFree}}.}
+needs to be freed by \code{\link{rxSolveFree}}.}
 
 \item{a}{when using \code{solve}, this is equivalent to the
 \code{object} argument.  If you specify \code{object} later in

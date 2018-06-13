@@ -2824,7 +2824,6 @@ SEXP rxSolveC(const RObject &obj,
     gBadDoseSetup(op->neq*nSize);
     std::fill_n(&_globals.gBadDose[0], op->neq*nSize, 0);
     
-    Rprintf("nSize #1: %d\n",nSize);
     grcSetup(nSize);
     std::fill_n(&_globals.grc[0], nSize, 0);
 
