@@ -337,19 +337,19 @@ RxODE <- function(model, modName = basename(wd), wd = ifelse(RxODE.cache.directo
     ## RxODE compilation manager (location of parsed code, generated C,  shared libs, etc.)
     .env <- new.env(parent=baseenv())
     .env$missing.modName <- missing(modName);
-    wd <- suppressWarnings({normalizePath(wd, "/", mustWork=F)})
+    .wd <- suppressWarnings({normalizePath(.wd, "/", mustWork=F)})
     if (.env$missing.modName){
         if (RxODE.tempfiles){
             .env$mdir <- rxTempDir();
         } else {
-            .env$mdir <- wd
+            .env$mdir <- .wd
         }
     } else {
-        .env$mdir <- file.path(wd, sprintf("%s.d", modName));
+        .env$mdir <- file.path(.wd, sprintf("%s.d", modName));
     }
 
-    if (!file.exists(wd))
-        dir.create(wd, recursive = TRUE);
+    if (!file.exists(.wd))
+        dir.create(.wd, recursive = TRUE);
 
     .env$modName <- modName;
     .env$model <- model;
@@ -359,27 +359,29 @@ RxODE <- function(model, modName = basename(wd), wd = ifelse(RxODE.cache.directo
     .env$calcSens <- calcSens;
     .env$collapseModel <- collapseModel;
 
-    .env$wd <- wd;
+    .env$wd <- .wd;
     .env$compile <- eval(bquote(function(){
         with(.(.env), {
             model <- as.vector(model);
             .lwd <- getwd();
-            if (!file.exists(wd))
-                dir.create(wd, recursive = TRUE)
+            if (!file.exists(.wd))
+                dir.create(.wd, recursive = TRUE)
 
-            if (!file.exists(wd))
-                setwd(wd);
+            if (!file.exists(.wd))
+                setwd(.wd);
             on.exit(setwd(.lwd));
             if (missing.modName){
-                assign("rxDll", RxODE::rxCompile(model, extraC = extraC, debug = debug,
-                                          calcJac=calcJac, calcSens=calcSens,
-                                          collapseModel=collapseModel),
+                assign("rxDll",
+                       RxODE::rxCompile(model, extraC = extraC, debug = debug,
+                                        calcJac=calcJac, calcSens=calcSens,
+                                        collapseModel=collapseModel),
                        envir=.(.env));
             } else {
-                assign("rxDll", RxODE::rxCompile(model, dir=mdir, extraC = extraC,
-                                          debug = debug, modName = modName,
-                                          calcJac=calcJac, calcSens=calcSens,
-                                          collapseModel=collapseModel),
+                assign("rxDll",
+                       RxODE::rxCompile(model, dir=mdir, extraC = extraC,
+                                        debug = debug, modName = modName,
+                                        calcJac=calcJac, calcSens=calcSens,
+                                        collapseModel=collapseModel),
                        envir=.(.env));
             }
         });
@@ -535,9 +537,9 @@ rxGetModel <- memoise::memoise(function(model, calcSens=FALSE, calcJac=FALSE, co
 ##'
 ##' @export
 rxChain <- function(obj1, obj2) {
-    args <- rev(as.list(match.call())[-1]);
-    names(args) <- c("obj", "solvedObject");
-    return(do.call("rxChain2", args, envir = parent.frame(1)));
+    .args <- rev(as.list(match.call())[-1]);
+    names(.args) <- c("obj", "solvedObject");
+    return(do.call("rxChain2", .args, envir = parent.frame(1)));
 }
 
 ##' @rdname rxChain
@@ -562,16 +564,16 @@ rxChain2 <- function(obj, solvedObject){
 ##' @rdname rxChain2
 ##' @export
 rxChain2.default <- function(obj, solvedObject){
-    args <- as.list(match.call());
-    stop(sprintf("Do not know how to add %s to RxODE solved object %s.", toString(args[[2]]), toString(args[[3]])))
+    .args <- as.list(match.call());
+    stop(sprintf("Do not know how to add %s to RxODE solved object %s.", toString(.args[[2]]), toString(.args[[3]])))
 }
 
 ##' @rdname rxChain2
 ##' @export
 rxChain2.EventTable <- function(obj, solvedObject){
-    args <- rev(as.list(match.call())[-1]);
-    names(args) <- c("object", "events");
-    return(do.call("rxSolve", args, envir = parent.frame(1)));
+    .args <- rev(as.list(match.call())[-1]);
+    names(.args) <- c("object", "events");
+    return(do.call("rxSolve", .args, envir = parent.frame(1)));
 }
 
 .useUtf <- function() {
@@ -1306,20 +1308,10 @@ rxCompile.character <-  function(model,           # Model
             try(unlink(.cDllFile));
             .cmd <- sprintf("%s/bin/R CMD SHLIB %s",
                            Sys.getenv("R_HOME"), basename(.cFile));
-            ## if (RxODE.echo.compile){
-                cat(sprintf("%s\n", .cmd));
-            ## }
+            cat(sprintf("%s\n", .cmd));
             .compileFile <- tempfile();
             .stdErrFile <- tempfile();
             .rc <- do.call(.sh, list(.cmd));
-            ## if (any(.rc == c("error", "warning"))){
-            ##     try(do.call(.sh, list(.cmd, ignore.stdout = FALSE, ignore.stderr = FALSE)), silent = FALSE)
-            ##     rxCat("\n\nModel:\n", paste(readLines(.mFile), collapse="\n"), "\n")
-            ##     rxCat(sprintf("cFile: %s\n", .cFile))
-            ##     rxCat(sprintf("cmd: %s\n", .cmd))
-            ##     rxCat(sprintf("wd: %s\n", dir))
-            ##     stop(sprintf("error compiling %s", .cFile));
-            ## }
             .tmp <- try(dynLoad(.cDllFile));
             if (inherits(.tmp, "try-error")){
                 stop("Error loading model.")
