@@ -1306,21 +1306,20 @@ rxCompile.character <-  function(model,           # Model
             try(unlink(.cDllFile));
             .cmd <- sprintf("%s/bin/R CMD SHLIB %s",
                            Sys.getenv("R_HOME"), basename(.cFile));
-            if (RxODE.echo.compile){
+            ## if (RxODE.echo.compile){
                 cat(sprintf("%s\n", .cmd));
-            }
+            ## }
             .compileFile <- tempfile();
             .stdErrFile <- tempfile();
-            .rc <- tryCatch(do.call(.sh, list(.cmd, ignore.stdout = !RxODE.echo.compile, ignore.stderr = !RxODE.echo.compile)),
-                           error = function(e) "error", warning = function(w) "warning");
-            if (any(.rc == c("error", "warning"))){
-                try(do.call(.sh, list(.cmd, ignore.stdout = FALSE, ignore.stderr = FALSE)), silent = FALSE)
-                rxCat("\n\nModel:\n", paste(readLines(.mFile), collapse="\n"), "\n")
-                rxCat(sprintf("cFile: %s\n", .cFile))
-                rxCat(sprintf("cmd: %s\n", .cmd))
-                rxCat(sprintf("wd: %s\n", dir))
-                stop(sprintf("error compiling %s", .cFile));
-            }
+            .rc <- do.call(.sh, list(.cmd));
+            ## if (any(.rc == c("error", "warning"))){
+            ##     try(do.call(.sh, list(.cmd, ignore.stdout = FALSE, ignore.stderr = FALSE)), silent = FALSE)
+            ##     rxCat("\n\nModel:\n", paste(readLines(.mFile), collapse="\n"), "\n")
+            ##     rxCat(sprintf("cFile: %s\n", .cFile))
+            ##     rxCat(sprintf("cmd: %s\n", .cmd))
+            ##     rxCat(sprintf("wd: %s\n", dir))
+            ##     stop(sprintf("error compiling %s", .cFile));
+            ## }
             .tmp <- try(dynLoad(.cDllFile));
             if (inherits(.tmp, "try-error")){
                 stop("Error loading model.")
