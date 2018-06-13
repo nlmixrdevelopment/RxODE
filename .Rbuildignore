@@ -1,4 +1,5 @@
 ^\.travis.yml$
+^\.lintr$
 ^README(\.md|\.Rmd)$
 ^.git.*$
 ^\.gitignore$
