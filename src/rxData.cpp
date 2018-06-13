@@ -2003,20 +2003,20 @@ void updateSolveEnvPost(Environment e){
 			     _["envir"]  = e);
     e["get.nobs"] = eval2(_["expr"]   = parse2(_["text"]="function() nobs"),
 			  _["envir"]  = e);
-    e["add.dosing"] = eval2(_["expr"]   = parse2(_["text"]="function(...) {et <- create.eventTable(); et$add.dosing(...); invisible(rxSolve(args.object,events=et,update.object=TRUE))}"),
+    e["add.dosing"] = eval2(_["expr"]   = parse2(_["text"]="function(...) {.et <- create.eventTable(); .et$add.dosing(...); invisible(rxSolve(args.object,events=.et,updateObject=TRUE))}"),
 			    _["envir"]  = e);
-    e["clear.dosing"] = eval2(_["expr"]   = parse2(_["text"]="function(...) {et <- create.eventTable(); et$clear.dosing(...); invisible(rxSolve(args.object,events=et,update.object=TRUE))}"),
+    e["clear.dosing"] = eval2(_["expr"]   = parse2(_["text"]="function(...) {.et <- create.eventTable(); .et$clear.dosing(...); invisible(rxSolve(args.object,events=.et,updateObject=TRUE))}"),
 			      _["envir"]  = e);
     e["get.dosing"] = eval2(_["expr"]   = parse2(_["text"]="function() dosing"),
 			    _["envir"]  = e);
 
-    e["add.sampling"] = eval2(_["expr"]   = parse2(_["text"]="function(...) {et <- create.eventTable(); et$add.sampling(...); invisible(rxSolve(args.object,events=et,update.object=TRUE))}"),
+    e["add.sampling"] = eval2(_["expr"]   = parse2(_["text"]="function(...) {.et <- create.eventTable(); .et$add.sampling(...); invisible(rxSolve(args.object,events=.et,updateObject=TRUE))}"),
 			      _["envir"]  = e);
       
-    e["clear.sampling"] = eval2(_["expr"]   = parse2(_["text"]="function(...) {et <- create.eventTable(); et$clear.sampling(...); invisible(rxSolve(args.object,events=et,update.object=TRUE))}"),
+    e["clear.sampling"] = eval2(_["expr"]   = parse2(_["text"]="function(...) {.et <- create.eventTable(); .et$clear.sampling(...); invisible(rxSolve(args.object,events=.et,updateObject=TRUE))}"),
 				_["envir"]  = e);
 
-    e["replace.sampling"] = eval2(_["expr"]   = parse2(_["text"]="function(...) {et <- create.eventTable(); et$clear.sampling(); et$add.sampling(...); invisible(rxSolve(args.object,events=et,update.object=TRUE))}"),
+    e["replace.sampling"] = eval2(_["expr"]   = parse2(_["text"]="function(...) {.et <- create.eventTable(); .et$clear.sampling(); .et$add.sampling(...); invisible(rxSolve(args.object,events=.et,updateObject=TRUE))}"),
 				  _["envir"]  = e);
 
     e["get.sampling"] = eval2(_["expr"]   = parse2(_["text"]="function() sampling"),
@@ -2025,10 +2025,10 @@ void updateSolveEnvPost(Environment e){
     e["get.units"] = eval2(_["expr"]   = parse2(_["text"]="function() units"),
 			   _["envir"]  = e);
 
-    e["import.EventTable"] = eval2(_["expr"]   = parse2(_["text"]="function(imp) {et <- create.eventTable(imp); invisible(rxSolve(args.object,events=et,update.object=TRUE))}"),
+    e["import.EventTable"] = eval2(_["expr"]   = parse2(_["text"]="function(imp) {.et <- create.eventTable(imp); invisible(rxSolve(args.object,events=.et,updateObject=TRUE))}"),
 				   _["envir"]  = e);
       
-    e["create.eventTable"] = eval2(_["expr"]   = parse2(_["text"]="function(new.event) {et <- eventTable(amount.units=units[1],time.units=units[2]);if (missing(new.event)) {nev <- EventTable; } else {nev <- new.event;}; et$import.EventTable(nev); return(et);}"),
+    e["create.eventTable"] = eval2(_["expr"]   = parse2(_["text"]="function(new.event) {.et <- eventTable(amount.units=units[1],time.units=units[2]);if (missing(new.event)) {.nev <- EventTable; } else {.nev <- new.event;}; .et$import.EventTable(.nev); return(.et);}"),
 				   _["envir"]  = e);
     // Note event.copy doesn't really make sense...?  The create.eventTable does basically the same thing.
   }

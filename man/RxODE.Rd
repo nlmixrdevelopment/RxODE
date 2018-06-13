@@ -5,9 +5,9 @@
 \title{Create an ODE-based model specification}
 \usage{
 RxODE(model, modName = basename(wd), wd = ifelse(RxODE.cache.directory ==
-  ".", getwd(), RxODE.cache.directory), filename = NULL, do.compile = NULL,
-  extraC = NULL, debug = FALSE, calcJac = NULL, calcSens = NULL,
-  collapseModel = FALSE, ...)
+  ".", getwd(), RxODE.cache.directory), filename = NULL, extraC = NULL,
+  debug = FALSE, calcJac = NULL, calcSens = NULL, collapseModel = FALSE,
+  ...)
 }
 \arguments{
 \item{model}{This is the ODE model specification.  It can be:
@@ -42,10 +42,6 @@ example \code{rx_129f8f97fb94a87ca49ca8dafe691e1e_i386.dll}}
 \item{filename}{A file name or connection object where the
 ODE-based model specification resides. Only one of \code{model}
 or \code{filename} may be specified.}
-
-\item{do.compile}{logical specifying whether to carry out the
-parsing of the ODE into C code and its compilation. Default is
-\code{TRUE}}
 
 \item{extraC}{Extra c code to include in the model.  This can be
 useful to specify functions in the model.  These C functions

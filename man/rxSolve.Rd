@@ -14,32 +14,32 @@
 \usage{
 rxSolve(object, params = NULL, events = NULL, inits = NULL,
   scale = NULL, covs = NULL, method = c("liblsoda", "lsoda", "dop853"),
-  transit_abs = NULL, atol = 1e-08, rtol = 1e-06, maxsteps = 5000L,
+  transitAbs = NULL, atol = 1e-08, rtol = 1e-06, maxsteps = 5000L,
   hmin = 0L, hmax = NULL, hini = 0, maxordn = 12L, maxords = 5L, ...,
   cores, covs_interpolation = c("linear", "locf", "nocb", "midpoint"),
   add.cov = FALSE, matrix = FALSE, sigma = NULL, sigmaDf = NULL,
   nCoresRV = 1L, sigmaIsChol = FALSE, nDisplayProgress = 10000L,
   amountUnits = NA_character_, timeUnits = "hours", stiff, theta = NULL,
-  eta = NULL, addDosing = FALSE, update.object = FALSE, do.solve = TRUE,
+  eta = NULL, addDosing = FALSE, updateObject = FALSE, doSolve = TRUE,
   omega = NULL, omegaDf = NULL, omegaIsChol = FALSE, nSub = 1L,
   thetaMat = NULL, thetaDf = NULL, thetaIsChol = FALSE, nStud = 1L,
-  dfSub = 0, dfObs = 0, return.type = c("rxSolve", "matrix",
-  "data.frame"), seed = NULL, nsim = NULL)
+  dfSub = 0, dfObs = 0, returnType = c("rxSolve", "matrix", "data.frame"),
+  seed = NULL, nsim = NULL)
 
 \method{rxSolve}{default}(object, params = NULL, events = NULL,
   inits = NULL, scale = NULL, covs = NULL, method = c("liblsoda",
-  "lsoda", "dop853"), transit_abs = NULL, atol = 1e-08, rtol = 1e-06,
+  "lsoda", "dop853"), transitAbs = NULL, atol = 1e-08, rtol = 1e-06,
   maxsteps = 5000L, hmin = 0L, hmax = NULL, hini = 0, maxordn = 12L,
   maxords = 5L, ..., cores, covs_interpolation = c("linear", "locf", "nocb",
   "midpoint"), add.cov = FALSE, matrix = FALSE, sigma = NULL,
   sigmaDf = NULL, nCoresRV = 1L, sigmaIsChol = FALSE,
   nDisplayProgress = 10000L, amountUnits = NA_character_,
   timeUnits = "hours", stiff, theta = NULL, eta = NULL,
-  addDosing = FALSE, update.object = FALSE, do.solve = TRUE,
-  omega = NULL, omegaDf = NULL, omegaIsChol = FALSE, nSub = 1L,
-  thetaMat = NULL, thetaDf = NULL, thetaIsChol = FALSE, nStud = 1L,
-  dfSub = 0, dfObs = 0, return.type = c("rxSolve", "matrix",
-  "data.frame"), seed = NULL, nsim = NULL, setupOnly = FALSE)
+  addDosing = FALSE, updateObject = FALSE, doSolve = TRUE, omega = NULL,
+  omegaDf = NULL, omegaIsChol = FALSE, nSub = 1L, thetaMat = NULL,
+  thetaDf = NULL, thetaIsChol = FALSE, nStud = 1L, dfSub = 0,
+  dfObs = 0, returnType = c("rxSolve", "matrix", "data.frame"),
+  seed = NULL, nsim = NULL, setupOnly = FALSE)
 
 \method{update}{rxSolve}(object, ...)
 
@@ -95,7 +95,7 @@ is for time-varying covariates.}
         solving nor user Jacobain specification
 }}
 
-\item{transit_abs}{boolean indicating if this is a transit
+\item{transitAbs}{boolean indicating if this is a transit
 compartment absorption}
 
 \item{atol}{a numeric absolute tolerance (1e-8 by default) used
@@ -220,13 +220,13 @@ information and estimates at the doses.  Be default, RxODE
 only includes estimates at the observations. (default
 \code{FALSE}).}
 
-\item{update.object}{This is an internally used flag to update the
+\item{updateObject}{This is an internally used flag to update the
 RxODE solved object (when supplying an RxODE solved object) as
 well as returning a new object.  You probably should not
 modify it's \code{FALSE} default unless you are willing to
 have unexpected results.}
 
-\item{do.solve}{Internal flag.  By default this is \code{TRUE},
+\item{doSolve}{Internal flag.  By default this is \code{TRUE},
 when \code{FALSE} a list of solving options is returned.}
 
 \item{omega}{Named omega matrix.}
@@ -263,16 +263,16 @@ inverse Wishart distribution (scaled) or scaled inverse chi squared distribution
 \item{dfObs}{Degrees of freedom to sample the unexplained variaiblity matrix from the 
 inverse Wishart distribution (scaled) or scaled inverse chi squared distribution.}
 
-\item{return.type}{This tells what type of object is returned.  The currently supported types are:
+\item{returnType}{This tells what type of object is returned.  The currently supported types are:
 \itemize{
 \item \code{"rxSolve"} (default) will return a reactive data frame
      that can change easily change different pieces of the solve and
      update the data frame.  This is the currently standard solving
      method in RxODE,  is used for \code{rxSolve(object, ...)}, \code{solev(object,...)},
 \item \code{"data.frame"} -- returns a plain, non-reactive data
-     frame; Currently very slightly Faster than \code{return.type=\"matrix\"}
+     frame; Currently very slightly Faster than \code{returnType=\"matrix\"}
 \item \code{"matrix"} -- returns a plain matrix with column names attached
-    to the solved object.  This is what is used \code{eobject$run} as well as ob
+    to the solved object.  This is what is used \code{object$run} as well as \code{object$solve}
 }}
 
 \item{seed}{an object specifying if and how the random number

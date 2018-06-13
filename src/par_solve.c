@@ -1381,8 +1381,8 @@ void RxODE_ode_solve_env(SEXP sexp_rho){
   SEXP sexp_mx = PROTECT(findVar(installChar(mkChar("maxsteps")),sexp_rho)); pro++;
   aexists("stiff",sexp_rho);
   SEXP sexp_stiff = PROTECT(findVar(installChar(mkChar("stiff")),sexp_rho)); pro++;
-  aexists("transit_abs",sexp_rho);
-  SEXP sexp_transit_abs = PROTECT(findVar(installChar(mkChar("transit_abs")),sexp_rho)); pro++;
+  aexists("transitAbs",sexp_rho);
+  SEXP sexp_transit_abs = PROTECT(findVar(installChar(mkChar("transitAbs")),sexp_rho)); pro++;
   aexists("rc",sexp_rho);
   SEXP sexp_rc = PROTECT(findVar(installChar(mkChar("rc")),sexp_rho)); pro++;
   rx_solve *rx = &rx_global;
