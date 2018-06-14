@@ -10,7 +10,7 @@ rxHtml <- function(x, ...){
 ##' @rdname rxHtml
 ##' @export
 rxHtml.rxSolve <- function(x, ...){
-    rxReq("knitr")
+    RxODE::rxReq("knitr")
     bound <- .getBound(x, parent.frame(2));
     cat("<style>
          th,td{
