@@ -254,7 +254,7 @@ rxSolve <- function(object, params=NULL, events=NULL, inits = NULL, scale = NULL
                     addCov = FALSE, matrix = FALSE, sigma = NULL, sigmaDf = NULL,
                     nCoresRV = 1L, sigmaIsChol = FALSE, nDisplayProgress=10000L,
                     amountUnits = NA_character_, timeUnits = "hours", stiff,
-                    theta = NULL, eta = NULL, addDosing=FALSE, updateObject=FALSE,doSolve=TRUE,
+                    theta = NULL, eta = NULL, addDosing=FALSE, updateObject=FALSE, doSolve=TRUE,
                     omega = NULL, omegaDf = NULL, omegaIsChol = FALSE,
                     nSub = 1L, thetaMat = NULL, thetaDf = NULL, thetaIsChol = FALSE,
                     nStud = 1L, dfSub=0.0, dfObs=0.0, returnType=c("rxSolve", "matrix", "data.frame"),
@@ -272,7 +272,7 @@ rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, scal
                     addCov = FALSE, matrix = FALSE, sigma = NULL, sigmaDf = NULL,
                     nCoresRV = 1L, sigmaIsChol = FALSE, nDisplayProgress=10000L,
                     amountUnits = NA_character_, timeUnits = "hours", stiff,
-                    theta = NULL, eta = NULL, addDosing=FALSE, updateObject=FALSE,doSolve=TRUE,
+                    theta = NULL, eta = NULL, addDosing=FALSE, updateObject=FALSE, doSolve=TRUE,
                     omega = NULL, omegaDf = NULL, omegaIsChol = FALSE,
                     nSub = 1L, thetaMat = NULL, thetaDf = NULL, thetaIsChol = FALSE,
                     nStud = 1L, dfSub=0.0, dfObs=0.0, returnType=c("rxSolve", "matrix", "data.frame"),
@@ -312,7 +312,7 @@ rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, scal
         .pars <- .modVars$params;
         .stateIgnore <- .modVars$state.ignore
         if (!is.null(params)){
-            if (is.null(events) && is(params,"EventTable")){
+            if (is.null(events) && is(params, "EventTable")){
                 events <- params;
                 params <- c();
             }
@@ -380,7 +380,8 @@ rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, scal
             .covLen <- dim(.cov)[1];
             if (.covLen !=  length(.eventTable$time)){
                 .samplingTime <- events$get.sampling()$time;
-                if (.covLen != length(.samplingTime)) stop("Covariate length need to match the sampling times or all the times in the event table.");
+                if (.covLen != length(.samplingTime))
+                    stop("Covariate length need to match the sampling times or all the times in the event table.");
                 .lst <- as.matrix(do.call("cbind", lapply(seq(1L, dim(.cov)[2]), function(i){
                                                       f <- stats::approxfun(.samplingTime, .cov[, i])
                                                       return(f(.eventTable$time))
@@ -396,7 +397,6 @@ rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, scal
                     return(0);
                 }
             })
-            .n_cov <- length(.pcov);
             ## Now check if there is any unspecified parameters by either covariate or parameter
             .w <- which(is.na(params));
             if (!all(names(params)[.w] %in% dimnames(.cov)[[2]])){
@@ -409,13 +409,10 @@ rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, scal
                     params[i] <- 0;
                 }
             }
-            .covnames <- dimnames(.cov)[[2]]
         } else {
             ## For now zero out the covariates
             .pcov <- c();
             .cov <- c();
-            .n_cov <- 0;
-            .covnames <- c();
         }
         if (is.null(inits)){
             .n <- .state;
@@ -539,11 +536,11 @@ rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, scal
     } else {
         method <- match.arg(method);
     }
-    if(!missing(returnType)){
-        .matrixIdx = c("rxSolve"=0, "matrix"=1, "data.frame"=2);
+    if (!missing(returnType)){
+        .matrixIdx <- c("rxSolve"=0, "matrix"=1, "data.frame"=2);
         matrix <- .matrixIdx[match.arg(returnType)];
     } else if (!is.null(.xtra$return.type)){
-        .matrixIdx = c("rxSolve"=0, "matrix"=1, "data.frame"=2);
+        .matrixIdx <- c("rxSolve"=0, "matrix"=1, "data.frame"=2);
         matrix <- .matrixIdx[.xtra$return.type];
     } else {
         matrix <- as.integer(matrix);
@@ -554,7 +551,8 @@ rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, scal
         method <- 1;
     }
     if (length(covsInterpolation) > 1) covsInterpolation <- covsInterpolation[1];
-    covsInterpolation <- tolower(match.arg(covsInterpolation, c("linear", "locf", "LOCF", "constant", "nocb", "NOCB", "midpoint")))
+    covsInterpolation <- tolower(match.arg(covsInterpolation,
+                                           c("linear", "locf", "LOCF", "constant", "nocb", "NOCB", "midpoint")))
     if (covsInterpolation == "constant") covsInterpolation <- "locf";
     covsInterpolation  <- as.integer(which(covsInterpolation == c("linear", "locf", "nocb", "midpoint")) - 1);
     if (any(duplicated(names(.xtra)))){
@@ -637,7 +635,7 @@ solve.rxSolve <- function(a, b, ...){
 solve.RxODE <- solve.rxSolve
 
 .sharedPrint <- function(x, n, width, bound=""){
-    is.dplyr <- requireNamespace("dplyr", quietly = TRUE) && RxODE.display.tbl;
+    .isDplyr <- requireNamespace("dplyr", quietly = TRUE) && RxODE.display.tbl;
     ## cat(sprintf("Dll: %s\n\n", rxDll(x)))
     df <- x$params.single
     pars.msg <- cli::rule(left=paste0(crayon::bold("Parameters"), " (",
@@ -650,7 +648,7 @@ solve.RxODE <- solve.rxSolve
         if (!is.null(df)){
             cat(pars.msg, "\n");
             if (rxIs(df, "data.frame")){
-                if (!is.dplyr){
+                if (!.isDplyr){
                     print(head(as.matrix(df), n = n));
                 } else {
                     print(dplyr::as.tbl(df), n = n, width = width);
@@ -662,7 +660,7 @@ solve.RxODE <- solve.rxSolve
     if (!is.null(df)){
         cat(cli::rule(left=paste0(crayon::bold("Covariates"), " (",
                                   crayon::yellow(bound), crayon::bold$blue("$covs"), "):")), "\n");
-        if (!is.dplyr){
+        if (!.isDplyr){
             print(head(as.matrix(df), n = n));
         } else {
             print(dplyr::as.tbl(df), n = n, width = width);
@@ -672,14 +670,14 @@ solve.RxODE <- solve.rxSolve
     cat(cli::rule(left=paste0(crayon::bold("Initial Conditions"),
                               " (", crayon::yellow(bound), crayon::bold$blue("$inits"), "):")), "\n")
     print(x$inits);
-    return(invisible(is.dplyr));
+    return(invisible(.isDplyr));
 }
 
 ##' @author Matthew L.Fidler
 ##' @export
 print.rxSolve <- function(x, ...){
     if (rxIs(x, "rxSolve")){
-        bound <- get.bound(x, parent.frame(2));
+        bound <- .getBound(x, parent.frame(2));
         cat(cli::rule(center=crayon::bold("Solved RxODE object"), line="bar2"), "\n");
         args <- as.list(match.call(expand.dots = TRUE));
         if (any(names(args) == "n")){
@@ -692,11 +690,11 @@ print.rxSolve <- function(x, ...){
         } else {
             width <- NULL;
         }
-        is.dplyr <- .sharedPrint(x, n, width, bound)
+        .isDplyr <- .sharedPrint(x, n, width, bound)
         ## inits <- lst$inits[regexpr(regSens, names(lst$inits)) == -1];
         ## print(inits);
         cat(cli::rule(left=crayon::bold("First part of data (object):")), "\n");
-        if (!is.dplyr){
+        if (!.isDplyr){
             print(head(as.matrix(x), n = n));
         } else {
             print(dplyr::as.tbl(x), n = n, width = width);
@@ -711,7 +709,7 @@ print.rxSolve <- function(x, ...){
 ##' @export
 summary.rxSolve <- function(object, ...){
     if (rxIs(object, "rxSolve")){
-        bound <- get.bound(object, parent.frame(2));
+        bound <- .getBound(object, parent.frame(2));
         cat(cli::rule(center=crayon::bold("Summary of Solved RxODE object"), line="bar2"), "\n");
         cat(cli::rule(left=paste0(crayon::bold("Model"),
                                   " (", crayon::yellow(bound), crayon::bold$blue("$model"), "):")), "\n");
@@ -853,7 +851,7 @@ dimnames.rxSolve <- function(x){
 ##' @export
 ##' @keywords internal
 `+.rxSolve` <- function(solved, new){
-    if (rxIs(new,"rx.event")){
+    if (rxIs(new, "rx.event")){
         return(update(solved, events=new));
     } else {
         return(as.data.frame(solved) + new);
@@ -861,7 +859,7 @@ dimnames.rxSolve <- function(x){
 }
 
 ##'@export
-print.RxODE.modeltext <- function(x, ...){
+print.rxModelText <- function(x, ...){
     cat(cli::rule(center=crayon::bold("RxODE Model Syntax"), line="bar2"), "\n");
     cat(as.vector(x), "\n");
     cat(cli::rule(line="bar2"), "\n");

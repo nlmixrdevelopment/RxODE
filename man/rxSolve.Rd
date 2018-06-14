@@ -16,8 +16,8 @@ rxSolve(object, params = NULL, events = NULL, inits = NULL,
   scale = NULL, covs = NULL, method = c("liblsoda", "lsoda", "dop853"),
   transitAbs = NULL, atol = 1e-08, rtol = 1e-06, maxsteps = 5000L,
   hmin = 0L, hmax = NULL, hini = 0, maxordn = 12L, maxords = 5L, ...,
-  cores, covs_interpolation = c("linear", "locf", "nocb", "midpoint"),
-  add.cov = FALSE, matrix = FALSE, sigma = NULL, sigmaDf = NULL,
+  cores, covsInterpolation = c("linear", "locf", "nocb", "midpoint"),
+  addCov = FALSE, matrix = FALSE, sigma = NULL, sigmaDf = NULL,
   nCoresRV = 1L, sigmaIsChol = FALSE, nDisplayProgress = 10000L,
   amountUnits = NA_character_, timeUnits = "hours", stiff, theta = NULL,
   eta = NULL, addDosing = FALSE, updateObject = FALSE, doSolve = TRUE,
@@ -30,8 +30,8 @@ rxSolve(object, params = NULL, events = NULL, inits = NULL,
   inits = NULL, scale = NULL, covs = NULL, method = c("liblsoda",
   "lsoda", "dop853"), transitAbs = NULL, atol = 1e-08, rtol = 1e-06,
   maxsteps = 5000L, hmin = 0L, hmax = NULL, hini = 0, maxordn = 12L,
-  maxords = 5L, ..., cores, covs_interpolation = c("linear", "locf", "nocb",
-  "midpoint"), add.cov = FALSE, matrix = FALSE, sigma = NULL,
+  maxords = 5L, ..., cores, covsInterpolation = c("linear", "locf", "nocb",
+  "midpoint"), addCov = FALSE, matrix = FALSE, sigma = NULL,
   sigmaDf = NULL, nCoresRV = 1L, sigmaIsChol = FALSE,
   nDisplayProgress = 10000L, amountUnits = NA_character_,
   timeUnits = "hours", stiff, theta = NULL, eta = NULL,
@@ -139,7 +139,7 @@ defaults to the number or system cores determined by
 \code{\link{rxCores}} for methods that support parallel
 solving (ie thread-safe methods like "liblsoda").}
 
-\item{covs_interpolation}{specifies the interpolation method for
+\item{covsInterpolation}{specifies the interpolation method for
     time-varying covariates. When solving ODEs it often samples
     times outside the sampling time specified in \code{events}.
     When this happens, the time varying covariates are
@@ -156,7 +156,7 @@ solving (ie thread-safe methods like "liblsoda").}
   carried backward to midpoint.
 }}
 
-\item{add.cov}{A boolean indicating if covariates should be added
+\item{addCov}{A boolean indicating if covariates should be added
 to the output matrix or data frame. By default this is
 disabled.}
 

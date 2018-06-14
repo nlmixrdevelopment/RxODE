@@ -35,6 +35,6 @@ These items are only calculated after compilation; they are
 built-into the RxODE compiled DLL.
 }
 \author{
-Matthew L.Fidler
+Matthew L. Fidler
 }
 \keyword{internal}
