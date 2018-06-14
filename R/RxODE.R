@@ -337,19 +337,19 @@ RxODE <- function(model, modName = basename(wd), wd = ifelse(RxODE.cache.directo
     ## RxODE compilation manager (location of parsed code, generated C,  shared libs, etc.)
     .env <- new.env(parent=baseenv())
     .env$missing.modName <- missing(modName);
-    .wd <- suppressWarnings({normalizePath(wd, "/", mustWork=F)})
+    wd <- suppressWarnings({normalizePath(wd, "/", mustWork=F)})
     if (.env$missing.modName){
         if (RxODE.tempfiles){
             .env$mdir <- rxTempDir();
         } else {
-            .env$mdir <- .wd
+            .env$mdir <- wd
         }
     } else {
-        .env$mdir <- file.path(.wd, sprintf("%s.d", modName));
+        .env$mdir <- file.path(wd, sprintf("%s.d", modName));
     }
 
-    if (!file.exists(.wd))
-        dir.create(.wd, recursive = TRUE);
+    if (!file.exists(wd))
+        dir.create(wd, recursive = TRUE);
 
     .env$modName <- modName;
     .env$model <- model;
@@ -359,16 +359,16 @@ RxODE <- function(model, modName = basename(wd), wd = ifelse(RxODE.cache.directo
     .env$calcSens <- calcSens;
     .env$collapseModel <- collapseModel;
 
-    .env$wd <- .wd;
+    .env$wd <- wd;
     .env$compile <- eval(bquote(function(){
         with(.(.env), {
             model <- as.vector(model);
             .lwd <- getwd();
-            if (!file.exists(.wd))
-                dir.create(.wd, recursive = TRUE)
+            if (!file.exists(wd))
+                dir.create(wd, recursive = TRUE)
 
-            if (!file.exists(.wd))
-                setwd(.wd);
+            if (!file.exists(wd))
+                setwd(wd);
             on.exit(setwd(.lwd));
             if (missing.modName){
                 assign("rxDll",
