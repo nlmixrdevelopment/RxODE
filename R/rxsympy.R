@@ -39,8 +39,8 @@ regIfOrElse <- rex::rex(or(regIf, regElse))
 ##' @param x RxODE lines to remove
 ##' @return RxODE with print lines removed.
 ##' @author Matthew L. Fidler
-rxRmPrint <- function(x){
-    return(x[regexpr(getFromNameSpace("regPrint", "RxODE"), x) == -1]);
+.rxRmPrint <- function(x){
+    return(x[regexpr(getFromNamespace("regPrint", "RxODE"), x) == -1]);
 }
 
 ##' Expand if/else clauses into mutiple different types of lines.
@@ -66,10 +66,10 @@ rxExpandIfElse <- memoise::memoise(function(model, removeInis=TRUE, removePrint=
     ## expand if/else blocks into a list with lines for conditions that are true
     x <- strsplit(rxNorm(model, FALSE), "\n")[[1]];
     if (removeInis){
-        x <- rxRmIni(x);
+        x <- .rxRmIni(x);
     }
     if (removePrint){
-        x <- rxRmPrint(x);
+        x <- .rxRmPrint(x);
     }
     model <- x;
     w1 <- which(regexpr(regIfOrElse, model) != -1);
@@ -818,7 +818,7 @@ rxSymPySensitivity.single <- function(model, calcSens, calcJac){
         tmp <- rxSymPySensitivity2Full(state, eta, theta, model, rxCondition(model));
         all.sens <- c(all.sens, tmp$all.sens);
         extraLines <- c(extraLines, tmp$extraLines);
-        extraLines <- rxRmJac(extraLines);
+        extraLines <- .rxRmJac(extraLines);
     } else {
         extraLines <- rxSymPyDfDy(model, vars=TRUE);
         tmp <- rxSymPySensitivityFull(state, calcSens, model, rxCondition(model))
@@ -842,7 +842,7 @@ rxSymPySensitivity.single <- function(model, calcSens, calcJac){
         rxCat("\ndone.\n");
         ## extraLines <- extraLines[regexpr(rex::rex("=", any_spaces, "0", end), extraLines) == -1];
     } else {
-        extraLines <- rxRmJac(extraLines);
+        extraLines <- .rxRmJac(extraLines);
     }
     extraLines <- extraLines[regexpr(rex::rex(any_spaces, regJac, any_spaces, or("=", "~"), any_spaces,
                                               "0", any_spaces, or(";", ""), any_spaces), extraLines) == -1];

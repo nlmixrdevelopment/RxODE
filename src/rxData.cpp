@@ -263,11 +263,16 @@ RObject rxSimSigma(const RObject &sigma,
 
 bool foundEnv = false;
 Environment _rxModels;
+
+Function getRxFn(std::string name){
+  Function loadNamespace("loadNamespace", R_BaseNamespace);
+  Environment RxODE = loadNamespace("RxODE");
+  return as<Function>(RxODE[name]);
+}
+
 void getRxModels(){
   if (!foundEnv){ // minimize R call
-    Function loadNamespace("loadNamespace", R_BaseNamespace);
-    Environment RxODE = loadNamespace("RxODE");
-    Function f = as<Function>(RxODE["rxModels_"]);
+    Function f = getRxFn("rxModels_");
     _rxModels = f();
     foundEnv = true;
   }
@@ -325,7 +330,8 @@ List rxModelVars_(const RObject &obj){
     if (modList.size() == 1){
       std::string sobj =as<std::string>(obj);
       if ((sobj.find("=") == std::string::npos) &&
-	  (sobj.find("<-") == std::string::npos)){
+	  (sobj.find("<-") == std::string::npos) &&
+          (sobj.find("~") == std::string::npos)){
         if (_rxModels.exists(sobj)){
           RObject obj1 = _rxModels.get(sobj);
           if (rxIs(obj1, "rxModelVars")){
@@ -387,8 +393,7 @@ List rxModelVars_(const RObject &obj){
       }
     }
     // fileExists(const std::string& name)
-    Environment RxODE("package:RxODE");
-    Function f = as<Function>(RxODE["rxModelVars.character"]);
+    Function f = getRxFn(".rxModelVarsCharacter");
     return f(obj);
   } else if (rxIs(obj,"list")){
     bool params=false, lhs=false, state=false, trans=false, ini=false, model=false, md5=false, podo=false, dfdy=false;
@@ -3990,8 +3995,7 @@ std::string rxDll(RObject obj){
   } else if (rxIs(obj, "rxDll")){
     return as<std::string>(as<List>(obj)["dll"]);
   } else if (rxIs(obj, "character")){
-    Environment RxODE("package:RxODE");
-    Function f = as<Function>(RxODE["rxCompile.character"]);
+    Function f = getRxFn("rxCompile.character");
     RObject newO = f(as<std::string>(obj));
     return(rxDll(newO));
   } else {
@@ -4033,8 +4037,7 @@ CharacterVector rxC(RObject obj){
   } else if (rxIs(obj, "rxDll")){
     rets = as<std::string>(as<List>(obj)["c"]);
   } else if (rxIs(obj, "character")){
-    Environment RxODE("package:RxODE");
-    Function f = as<Function>(RxODE["rxCompile.character"]);
+    Function f = getRxFn("rxCompile.character");
     RObject newO = f(as<std::string>(obj));
     rets = rxDll(newO);
   } else {

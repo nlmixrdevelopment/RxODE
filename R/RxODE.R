@@ -671,7 +671,7 @@ print.rxModelVars <- function(x, ...)
         message(paste0(crayon::yellow(.bound), crayon::blue$bold("$params"), ": ", paste(.cur, collapse=", ")))
     .cur <- x$lhs;
     if (length(.cur) > 0)
-        message(paste0(crayon::yellow(.bound), crayon::blue$bold("$lhs"), ": ", paste(.curr, collapse=", ")))
+        message(paste0(crayon::yellow(.bound), crayon::blue$bold("$lhs"), ": ", paste(.cur, collapse=", ")))
     invisible(x)
 }
 
@@ -933,7 +933,7 @@ rxMd5 <- function(model,         # Model File
 ##'
 ##' @param md5 Is the md5 of the model before parsing, and is used to
 ##'     embed the md5 into DLL, and then provide for functions like
-##'     \code{\link{RxODE::rxModelVars}}.
+##'     \code{\link{rxModelVars}}.
 ##'
 ##' @param ... Ignored parameters.
 ##'
@@ -1436,7 +1436,7 @@ rxCondition <- function(obj, condition=NULL){
 ##'
 ##' This get the syntax prefered model for processing
 ##'
-##' @inheritParams RxODE::rxModelVars
+##' @inheritParams rxModelVars
 ##' @param condition Character string of a logical condition to use
 ##'     for subsetting the normalized model.  When missing, and a
 ##'     condition is not set via \code{rxCondition}, return the whole
@@ -1497,9 +1497,7 @@ rxNorm <- function(obj, condition=NULL, removeInis, removeJac, removeSens){
     }
 }
 
-##' @rdname RxODE::rxModelVars
-##' @export
-rxModelVars.character <- memoise::memoise(function(obj){
+.rxModelVarsCharacter <- memoise::memoise(function(obj){
     if (length(obj) == 1){
         .cFile <- tempfile();
         if (file.exists(obj)){
@@ -1515,7 +1513,7 @@ rxModelVars.character <- memoise::memoise(function(obj){
         .ret <- rxTrans(.parseModel, .cFile, modVars=TRUE);
         return(.ret);
     } else {
-        rxModelVars.character(paste(obj, collapse="\n"));
+        .rxModelVarsCharacter(paste(obj, collapse="\n"));
     }
 })
 
@@ -1681,7 +1679,7 @@ rxModelVars <- function(obj){
 ##' This return the model's parameters that are required to solve the
 ##' ODE system.
 ##'
-##' @inheritParams RxODE::rxModelVars
+##' @inheritParams rxModelVars
 ##'
 ##' @param constants is a boolean indicting if constants should be
 ##'     included in the list of parameters. Currently RxODE parses

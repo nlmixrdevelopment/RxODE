@@ -1049,7 +1049,7 @@ rxToSymPy <- function(x, envir=parent.frame(1)) {
         cls <- tryCatch({class(x)}, error=function(e){return("error")});
         if (any(cls == c("list", "rxDll", "RxCompilationManager", "RxODE", "solveRxDll", "rxModelVars"))){
             ret <- strsplit(rxNorm(x),"\n")[[1]];
-            ret <- rxRmIni(ret);
+            ret <- .rxRmIni(ret);
             txt <- paste0(eval(parse(text=sprintf("RxODE::rxToSymPy(%s)", paste(deparse(paste0(as.vector(ret), collapse="\n")), collapse=""))), envir=envir));
             return(txt);
         } else if (cls == "character" && length(cls) == 1){

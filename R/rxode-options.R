@@ -1,10 +1,14 @@
-.onAttach <- function(libname, pkgname){ ## nocov start
+.onLoad <- function(libname, pkgname){ ## nocov start
     ## Setup RxODE.prefer.tbl
     rxPermissive(respect=TRUE); ## need to call respect on the first time
+    .rxWinRtoolsPath()
+} ## nocov end
+
+.onAttach <- function(libname, pkgname){
     if (!.rxWinRtoolsPath()){
         packageStartupMessage("Rtools is not set up correctly!\n\nYou need a working Rtools installation for RxODE to work.\nYou can set up Rtools using the command 'rxWinSetup()'.\nThis will also set up Python and SymPy to run a bit faster than rSymPy.\n");
     }
-} ## nocov end
+}
 
 rxTempDir0 <- NULL;
 .rxTempDir <- function(){
