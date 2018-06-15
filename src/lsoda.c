@@ -104,11 +104,18 @@ tam@wri.com
 /* Terminate lsoda due to fatal errors*/
 #define hardfailure(fmt,...) \
 { \
-	ERROR(fmt, ## __VA_ARGS__); \
+	ERROR(fmt, __VA_ARGS__); \
 	ctx->state = -3 ; \
 	return ctx->state; \
 }
 
+#define hardfailure0(fmt,...)                    \
+  {                                             \
+    ERROR0(fmt);                    \
+    ctx->state = -3 ;                           \
+    return ctx->state;				\
+  }
+  
 
 /* Terminate lsoda due to various error conditions. */
 #define softfailure(code, fmt,...) \
@@ -116,13 +123,26 @@ tam@wri.com
 	int i=0; \
 	int neq = ctx->neq; \
  \
-	ERROR(fmt, ## __VA_ARGS__); \
+	ERROR(fmt, __VA_ARGS__); \
 	for (i = 1; i <= neq; i++) \
 	  y[i] = _C(yh)[1][i];	   \
 	*t = _C(tn); \
 	ctx->state = code; \
 	return ctx->state; \
 }
+
+#define softfailure0(code, fmt,...)              \
+  {						 \
+    int i=0;				 \
+    int neq = ctx->neq;				 \
+						 \
+    ERROR0(fmt);				 \
+    for (i = 1; i <= neq; i++)			 \
+      y[i] = _C(yh)[1][i];			 \
+    *t = _C(tn);				 \
+    ctx->state = code;				 \
+    return ctx->state;				 \
+  }
 
 /*
    The following block handles all successful returns from lsoda.

@@ -3,6 +3,7 @@
 
 #include "RxODE_types.h"
 #include "../inst/include/RxODE_types.h"
+#include <RcppArmadillo.h>
 #include <Rcpp.h>
 
 using namespace Rcpp;
@@ -201,7 +202,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // rxSimThetaOmega
-List rxSimThetaOmega(const Nullable<NumericVector>& params, const Nullable<NumericMatrix>& omega, const Nullable<NumericVector>& omegaDf, const bool& omegaIsChol, unsigned int nSub, const Nullable<NumericMatrix>& thetaMat, const Nullable<NumericVector>& thetaDf, const bool& thetaIsChol, unsigned int nStud, const Nullable<NumericMatrix> sigma, const Nullable<NumericVector>& sigmaDf, const bool& sigmaIsChol, int nCoresRV, unsigned int nObs, double dfSub, double dfObs, bool simSubjects);
+List rxSimThetaOmega(const Nullable<NumericVector>& params, const Nullable<NumericMatrix>& omega, const Nullable<NumericVector>& omegaDf, const bool& omegaIsChol, int nSub, const Nullable<NumericMatrix>& thetaMat, const Nullable<NumericVector>& thetaDf, const bool& thetaIsChol, int nStud, const Nullable<NumericMatrix> sigma, const Nullable<NumericVector>& sigmaDf, const bool& sigmaIsChol, int nCoresRV, int nObs, double dfSub, double dfObs, bool simSubjects);
 RcppExport SEXP _RxODE_rxSimThetaOmega(SEXP paramsSEXP, SEXP omegaSEXP, SEXP omegaDfSEXP, SEXP omegaIsCholSEXP, SEXP nSubSEXP, SEXP thetaMatSEXP, SEXP thetaDfSEXP, SEXP thetaIsCholSEXP, SEXP nStudSEXP, SEXP sigmaSEXP, SEXP sigmaDfSEXP, SEXP sigmaIsCholSEXP, SEXP nCoresRVSEXP, SEXP nObsSEXP, SEXP dfSubSEXP, SEXP dfObsSEXP, SEXP simSubjectsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -210,16 +211,16 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const Nullable<NumericMatrix>& >::type omega(omegaSEXP);
     Rcpp::traits::input_parameter< const Nullable<NumericVector>& >::type omegaDf(omegaDfSEXP);
     Rcpp::traits::input_parameter< const bool& >::type omegaIsChol(omegaIsCholSEXP);
-    Rcpp::traits::input_parameter< unsigned int >::type nSub(nSubSEXP);
+    Rcpp::traits::input_parameter< int >::type nSub(nSubSEXP);
     Rcpp::traits::input_parameter< const Nullable<NumericMatrix>& >::type thetaMat(thetaMatSEXP);
     Rcpp::traits::input_parameter< const Nullable<NumericVector>& >::type thetaDf(thetaDfSEXP);
     Rcpp::traits::input_parameter< const bool& >::type thetaIsChol(thetaIsCholSEXP);
-    Rcpp::traits::input_parameter< unsigned int >::type nStud(nStudSEXP);
+    Rcpp::traits::input_parameter< int >::type nStud(nStudSEXP);
     Rcpp::traits::input_parameter< const Nullable<NumericMatrix> >::type sigma(sigmaSEXP);
     Rcpp::traits::input_parameter< const Nullable<NumericVector>& >::type sigmaDf(sigmaDfSEXP);
     Rcpp::traits::input_parameter< const bool& >::type sigmaIsChol(sigmaIsCholSEXP);
     Rcpp::traits::input_parameter< int >::type nCoresRV(nCoresRVSEXP);
-    Rcpp::traits::input_parameter< unsigned int >::type nObs(nObsSEXP);
+    Rcpp::traits::input_parameter< int >::type nObs(nObsSEXP);
     Rcpp::traits::input_parameter< double >::type dfSub(dfSubSEXP);
     Rcpp::traits::input_parameter< double >::type dfObs(dfObsSEXP);
     Rcpp::traits::input_parameter< bool >::type simSubjects(simSubjectsSEXP);

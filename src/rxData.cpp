@@ -1586,16 +1586,16 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
                      const Nullable<NumericMatrix> &omega= R_NilValue,
                      const Nullable<NumericVector> &omegaDf= R_NilValue,
                      const bool &omegaIsChol = false,
-                     unsigned int nSub = 1,
+                     int nSub = 1,
                      const Nullable<NumericMatrix> &thetaMat = R_NilValue,
                      const Nullable<NumericVector> &thetaDf  = R_NilValue,
                      const bool &thetaIsChol = false,
-                     unsigned int nStud = 1,
+                     int nStud = 1,
                      const Nullable<NumericMatrix> sigma = R_NilValue,
                      const Nullable<NumericVector> &sigmaDf= R_NilValue,
                      const bool &sigmaIsChol = false,
                      int nCoresRV = 1,
-                     unsigned int nObs = 1,
+                     int nObs = 1,
                      double dfSub = 0,
                      double dfObs = 0,
 		     bool simSubjects=true){
@@ -1625,7 +1625,7 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
     }
     sigmaN = as<CharacterVector>((as<List>(sigmaM.attr("dimnames")))[1]);
   }  
-  unsigned int scol = 0;
+  int scol = 0;
   if (simSigma){
     scol = sigmaMC.ncol();
     if (simSubjects){
@@ -1645,7 +1645,7 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
   bool simTheta = false;
   CharacterVector parN = CharacterVector(par.attr("names"));
   IntegerVector thetaPar(parN.size());
-  unsigned int i, j, k;
+  int i, j, k;
   if (!thetaMat.isNull() && nStud > 1){
     thetaM = as<NumericMatrix>(thetaMat);
     if (!thetaM.hasAttribute("dimnames")){
@@ -1696,9 +1696,9 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
       sigmaList = cvPost(dfObs, as<RObject>(sigmaMC), nStud,  true, true);
     }
   }
-  unsigned int pcol = par.size();
-  unsigned int ocol = 0;
-  unsigned int ncol = pcol;
+  int pcol = par.size();
+  int ocol = 0;
+  int ncol = pcol;
   if (simOmega){
     ocol = omegaMC.ncol();
     ncol += ocol;
