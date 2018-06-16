@@ -86,7 +86,7 @@ rxPhysicalDrives <- memoise::memoise(function(duplicates=FALSE){
             }
         }
         if (!is.null(.pythonBase)){
-            .pythonBase <- gsub("\\", "/", utils::shortPathName(gsub(rex::rex(any_of("/", "\\"), end), "", .pythonBase)), fixed=TRUE);
+            .pythonBase <- gsub("\\", "/", .normalizePath(gsub(rex::rex(any_of("/", "\\"), end), "", .pythonBase)), fixed=TRUE);
         }
         return(.pythonBase)
     }
@@ -117,7 +117,7 @@ rxPhysicalDrives <- memoise::memoise(function(duplicates=FALSE){
 ##'
 ##' @return Rtools base path, or "" on unix-style platforms.
 ##' @author Matthew L. Fidler
-.rxRtoolsBaseWin <- (function(){
+.rxRtoolsBaseWin <- memoise::memoise(function(){
     if (.Platform$OS.type == "unix"){
         return("");
     } else {
