@@ -12,7 +12,7 @@
 
 .rxTempDir0 <- NULL;
 .rxTempDir <- function(){
-    if (is.null(rxTempDir0)){
+    if (is.null(getFromNamespace(".rxTempDir0", "RxODE"))){
         tmp <- Sys.getenv("rxTempDir")
         if (tmp == ""){
             tmp <- tempdir()
@@ -23,7 +23,7 @@
         utils::assignInMyNamespace(".rxTempDir0", tmp)
         return(tmp)
     } else {
-        return(getFromNamespace(".rxTempDir0"));
+        return(getFromNamespace(".rxTempDir0", "RxODE"));
     }
 }
 
