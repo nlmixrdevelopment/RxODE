@@ -8,8 +8,8 @@
 <title>Introduction to RxODE • RxODE</title>
 <!-- jquery --><script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script><!-- Bootstrap --><link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script><!-- Font Awesome icons --><link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-T8Gy5hrqNKT+hzMclPo118YTQO6cYprQmhrYwIiQ/3axmI1hQomh7Ud2hPOy8SP1" crossorigin="anonymous">
-<!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.7.1/clipboard.min.js" integrity="sha384-cV+rhyOuRHc9Ub/91rihWcGmMmCXDeksTtCihMupQHSsi8GIIRDG0ThDc3HGQFJ3" crossorigin="anonymous"></script><!-- pkgdown --><link href="../pkgdown.css" rel="stylesheet">
-<script src="../jquery.sticky-kit.min.js"></script><script src="../pkgdown.js"></script><meta property="og:title" content="Introduction to RxODE">
+<!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.7.1/clipboard.min.js" integrity="sha384-cV+rhyOuRHc9Ub/91rihWcGmMmCXDeksTtCihMupQHSsi8GIIRDG0ThDc3HGQFJ3" crossorigin="anonymous"></script><!-- sticky kit --><script src="https://cdnjs.cloudflare.com/ajax/libs/sticky-kit/1.1.3/sticky-kit.min.js" integrity="sha256-c4Rlo1ZozqTPE2RLuvbusY3+SU1pQaJC0TjuhygMipw=" crossorigin="anonymous"></script><!-- pkgdown --><link href="../pkgdown.css" rel="stylesheet">
+<script src="../pkgdown.js"></script><meta property="og:title" content="Introduction to RxODE">
 <meta property="og:description" content="">
 <meta name="twitter:card" content="summary">
 <!-- mathjax --><script src="https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script><!--[if lt IE 9]>
@@ -29,7 +29,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">RxODE</a>
-        <span class="label label-default" data-toggle="tooltip" data-placement="bottom" title="Released package">0.7.2.0</span>
+        <span class="label label-default" data-toggle="tooltip" data-placement="bottom" title="Released package">0.7.2.4</span>
       </span>
     </div>
 
@@ -109,7 +109,7 @@
       <h1>Introduction to RxODE</h1>
                         <h4 class="author">Matthew L. Fidler, Melissa Hallow, and Wenping Wang</h4>
             
-            <h4 class="date">2018-05-11</h4>
+            <h4 class="date">2018-06-15</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/nlmixrdevelopment/RxODE/blob/master/vignettes/RxODE-intro.Rmd"><code>vignettes/RxODE-intro.Rmd</code></a></small>
       <div class="hidden name"><code>RxODE-intro.Rmd</code></div>
@@ -128,8 +128,15 @@
 <a href="#description-of-rxode-illustrated-through-an-example" class="anchor"></a>Description of RxODE illustrated through an example</h1>
 <p>The model equations can be specified through a text string, a model file or an R expression. Both differential and algebraic equations are permitted. Differential equations are specified by <code>d/dt(var_name) =</code>. Each equation can be separated by a semicolon.</p>
 <p>To load <code>RxODE</code> package and compile the model:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(RxODE)
-mod1 &lt;-<span class="kw"><a href="../reference/RxODE.html">RxODE</a></span>({
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(RxODE)</code></pre></div>
+<pre><code>## Warning in normalizePath(path.expand(path), winslash, mustWork):
+## path[1]="c:/R/nlmixr/R/bin/x64/Rterm": The system cannot find the file
+## specified
+
+## Warning in normalizePath(path.expand(path), winslash, mustWork):
+## path[1]="c:/R/nlmixr/R/bin/x64/Rterm": The system cannot find the file
+## specified</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">mod1 &lt;-<span class="kw"><a href="../reference/RxODE.html">RxODE</a></span>({
     C2 =<span class="st"> </span>centr<span class="op">/</span>V2;
     C3 =<span class="st"> </span>peri<span class="op">/</span>V3;
     d<span class="op">/</span><span class="kw">dt</span>(depot) =<span class="op">-</span>KA<span class="op">*</span>depot;
@@ -353,178 +360,6 @@ NA
 <h1 class="hasAnchor">
 <a href="#solving-odes" class="anchor"></a>Solving ODEs</h1>
 <p>The ODE can now be solved by calling the model object’s <code>run</code> or <code>solve</code> function. Simulation results for all variables in the model are stored in the output matrix x.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">x &lt;-<span class="st"> </span>mod1<span class="op">$</span><span class="kw">solve</span>(theta, ev, inits)
-knitr<span class="op">::</span><span class="kw"><a href="http://www.rdocumentation.org/packages/knitr/topics/kable">kable</a></span>(<span class="kw">head</span>(x))</code></pre></div>
-<table class="table">
-<thead><tr>
-<th style="text-align:right;">
-time
-</th>
-<th style="text-align:right;">
-depot
-</th>
-<th style="text-align:right;">
-centr
-</th>
-<th style="text-align:right;">
-peri
-</th>
-<th style="text-align:right;">
-eff
-</th>
-<th style="text-align:right;">
-C2
-</th>
-<th style="text-align:right;">
-C3
-</th>
-</tr></thead>
-<tbody>
-<tr>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-10000.000
-</td>
-<td style="text-align:right;">
-0.000
-</td>
-<td style="text-align:right;">
-0.0000
-</td>
-<td style="text-align:right;">
-1.000000
-</td>
-<td style="text-align:right;">
-0.00000
-</td>
-<td style="text-align:right;">
-0.0000000
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-7452.765
-</td>
-<td style="text-align:right;">
-1783.897
-</td>
-<td style="text-align:right;">
-273.1895
-</td>
-<td style="text-align:right;">
-1.084664
-</td>
-<td style="text-align:right;">
-44.37555
-</td>
-<td style="text-align:right;">
-0.9198298
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-2
-</td>
-<td style="text-align:right;">
-5554.370
-</td>
-<td style="text-align:right;">
-2206.295
-</td>
-<td style="text-align:right;">
-793.8758
-</td>
-<td style="text-align:right;">
-1.180825
-</td>
-<td style="text-align:right;">
-54.88296
-</td>
-<td style="text-align:right;">
-2.6729825
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-3
-</td>
-<td style="text-align:right;">
-4139.542
-</td>
-<td style="text-align:right;">
-2086.518
-</td>
-<td style="text-align:right;">
-1323.5783
-</td>
-<td style="text-align:right;">
-1.228914
-</td>
-<td style="text-align:right;">
-51.90343
-</td>
-<td style="text-align:right;">
-4.4564927
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-3085.103
-</td>
-<td style="text-align:right;">
-1788.795
-</td>
-<td style="text-align:right;">
-1776.2702
-</td>
-<td style="text-align:right;">
-1.234610
-</td>
-<td style="text-align:right;">
-44.49738
-</td>
-<td style="text-align:right;">
-5.9807076
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-5
-</td>
-<td style="text-align:right;">
-2299.255
-</td>
-<td style="text-align:right;">
-1466.670
-</td>
-<td style="text-align:right;">
-2131.7169
-</td>
-<td style="text-align:right;">
-1.214742
-</td>
-<td style="text-align:right;">
-36.48434
-</td>
-<td style="text-align:right;">
-7.1774981
-</td>
-</tr>
-</tbody>
-</table>
-<p>This returns a matrix. You can see the compartment values in the plot below:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">par</span>(<span class="dt">mfrow=</span><span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">2</span>))
-<span class="kw">matplot</span>(x[,<span class="st">"C2"</span>], <span class="dt">type=</span><span class="st">"l"</span>, <span class="dt">ylab=</span><span class="st">"Central Concentration"</span>)
-<span class="kw">matplot</span>(x[,<span class="st">"eff"</span>], <span class="dt">type=</span><span class="st">"l"</span>, <span class="dt">ylab =</span> <span class="st">"Effect"</span>)</code></pre></div>
-<p><img src="RxODE-intro_files/figure-html/unnamed-chunk-11-1.png" width="700"></p>
 <p>You can also solve this and create a RxODE data frame:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">x &lt;-<span class="st"> </span><span class="kw">solve</span>(mod1,theta, ev, inits);
 <span class="kw"><a href="../reference/rxHtml.html">rxHtml</a></span>(x)</code></pre></div>
@@ -808,6 +643,180 @@ C3
 </td>
 </tr>
 </table>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">x &lt;-<span class="st"> </span>mod1<span class="op">$</span><span class="kw">solve</span>(theta, ev, inits)
+knitr<span class="op">::</span><span class="kw"><a href="http://www.rdocumentation.org/packages/knitr/topics/kable">kable</a></span>(<span class="kw">head</span>(x))</code></pre></div>
+<table class="table">
+<thead><tr>
+<th style="text-align:right;">
+time
+</th>
+<th style="text-align:right;">
+depot
+</th>
+<th style="text-align:right;">
+centr
+</th>
+<th style="text-align:right;">
+peri
+</th>
+<th style="text-align:right;">
+eff
+</th>
+<th style="text-align:right;">
+C2
+</th>
+<th style="text-align:right;">
+C3
+</th>
+</tr></thead>
+<tbody>
+<tr>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+10000.000
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+<td style="text-align:right;">
+0.0000
+</td>
+<td style="text-align:right;">
+1.000000
+</td>
+<td style="text-align:right;">
+0.00000
+</td>
+<td style="text-align:right;">
+0.0000000
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+7452.765
+</td>
+<td style="text-align:right;">
+1783.897
+</td>
+<td style="text-align:right;">
+273.1895
+</td>
+<td style="text-align:right;">
+1.084664
+</td>
+<td style="text-align:right;">
+44.37555
+</td>
+<td style="text-align:right;">
+0.9198298
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+5554.370
+</td>
+<td style="text-align:right;">
+2206.295
+</td>
+<td style="text-align:right;">
+793.8758
+</td>
+<td style="text-align:right;">
+1.180825
+</td>
+<td style="text-align:right;">
+54.88296
+</td>
+<td style="text-align:right;">
+2.6729825
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+4139.542
+</td>
+<td style="text-align:right;">
+2086.518
+</td>
+<td style="text-align:right;">
+1323.5783
+</td>
+<td style="text-align:right;">
+1.228914
+</td>
+<td style="text-align:right;">
+51.90343
+</td>
+<td style="text-align:right;">
+4.4564927
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:right;">
+3085.103
+</td>
+<td style="text-align:right;">
+1788.795
+</td>
+<td style="text-align:right;">
+1776.2702
+</td>
+<td style="text-align:right;">
+1.234610
+</td>
+<td style="text-align:right;">
+44.49738
+</td>
+<td style="text-align:right;">
+5.9807076
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+2299.255
+</td>
+<td style="text-align:right;">
+1466.670
+</td>
+<td style="text-align:right;">
+2131.7169
+</td>
+<td style="text-align:right;">
+1.214742
+</td>
+<td style="text-align:right;">
+36.48434
+</td>
+<td style="text-align:right;">
+7.1774981
+</td>
+</tr>
+</tbody>
+</table>
+<p>This returns a matrix. You can see the compartment values in the plot below:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(ggplot2)
+x &lt;-<span class="st"> </span><span class="kw">as.data.frame</span>(x)
+<span class="kw">ggplot</span>(x,<span class="kw">aes</span>(time,C2)) <span class="op">+</span><span class="st"> </span><span class="kw">geom_line</span>() <span class="op">+</span><span class="st"> </span><span class="kw">ylab</span>(<span class="st">"Central Concentration"</span>) <span class="op">+</span><span class="st"> </span><span class="kw">xlab</span>(<span class="st">"Time"</span>);</code></pre></div>
+<p><img src="RxODE-intro_files/figure-html/unnamed-chunk-12-1.png" width="700"></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggplot</span>(x,<span class="kw">aes</span>(time,eff)) <span class="op">+</span><span class="st"> </span><span class="kw">geom_line</span>() <span class="op">+</span><span class="st"> </span><span class="kw">ylab</span>(<span class="st">"Effect"</span>) <span class="op">+</span><span class="st"> </span><span class="kw">xlab</span>(<span class="st">"Time"</span>);</code></pre></div>
+<p><img src="RxODE-intro_files/figure-html/unnamed-chunk-13-1.png" width="700"></p>
 </div>
   </div>
 

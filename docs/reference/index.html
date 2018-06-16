@@ -21,14 +21,17 @@
 <!-- clipboard.js -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.7.1/clipboard.min.js" integrity="sha384-cV+rhyOuRHc9Ub/91rihWcGmMmCXDeksTtCihMupQHSsi8GIIRDG0ThDc3HGQFJ3" crossorigin="anonymous"></script>
 
+<!-- sticky kit -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sticky-kit/1.1.3/sticky-kit.min.js" integrity="sha256-c4Rlo1ZozqTPE2RLuvbusY3+SU1pQaJC0TjuhygMipw=" crossorigin="anonymous"></script>
+
 <!-- pkgdown -->
 <link href="../pkgdown.css" rel="stylesheet">
-<script src="../jquery.sticky-kit.min.js"></script>
 <script src="../pkgdown.js"></script>
 
 
 
 <meta property="og:title" content="Function reference" />
+
 
 
 <!-- mathjax -->
@@ -55,7 +58,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">RxODE</a>
-        <span class="label label-default" data-toggle="tooltip" data-placement="bottom" title="Released package">0.7.2.0</span>
+        <span class="label label-default" data-toggle="tooltip" data-placement="bottom" title="Released package">0.7.2.4</span>
       </span>
     </div>
 
@@ -139,6 +142,7 @@
     <table class="ref-index">
 
     <colgroup>
+      
       <col class="alias" />
       <col class="title" />
     </colgroup>
@@ -151,320 +155,290 @@
         </th>
       </tr>
       <tr>
-        <!--  -->
+        
         <td>
           <p><code><a href="add.dosing.html">add.dosing()</a></code> </p>
         </td>
         <td><p>Add dosing to eventTable</p></td>
       </tr><tr>
-        <!--  -->
+        
         <td>
           <p><code><a href="add.sampling.html">add.sampling()</a></code> </p>
         </td>
         <td><p>Add sampling to eventTable</p></td>
       </tr><tr>
-        <!--  -->
+        
         <td>
           <p><code><a href="coef.RxODE.html">coef(<i>&lt;RxODE&gt;</i>)</a></code> <code><a href="coef.RxODE.html">coef(<i>&lt;RxCompilationManager&gt;</i>)</a></code> <code><a href="coef.RxODE.html">coef(<i>&lt;solveRxODE&gt;</i>)</a></code> <code><a href="coef.RxODE.html">coef(<i>&lt;rxDll&gt;</i>)</a></code> </p>
         </td>
         <td><p>Return the RxODE coefficients</p></td>
       </tr><tr>
-        <!--  -->
+        
         <td>
           <p><code><a href="cvPost.html">cvPost()</a></code> </p>
         </td>
         <td><p>Sample a covariance Matrix from the Posteior Inverse Wishart distribution.</p></td>
       </tr><tr>
-        <!--  -->
+        
         <td>
           <p><code><a href="eventTable.html">eventTable()</a></code> </p>
         </td>
         <td><p>Create an event table object</p></td>
       </tr><tr>
-        <!--  -->
+        
         <td>
           <p><code><a href="genShinyApp.template.html">genShinyApp.template()</a></code> <code><a href="genShinyApp.template.html">write.template.server()</a></code> <code><a href="genShinyApp.template.html">write.template.ui()</a></code> </p>
         </td>
         <td><p>Generate an example (template) of a dosing regimen shiny app</p></td>
       </tr><tr>
-        <!--  -->
+        
         <td>
           <p><code><a href="is.rxSolve.html">is.rxSolve()</a></code> </p>
         </td>
         <td><p>Check to see if this is an rxSolve object.</p></td>
       </tr><tr>
-        <!--  -->
+        
         <td>
           <p><code><a href="print.rxCoefSolve.html">print(<i>&lt;rxCoefSolve&gt;</i>)</a></code> </p>
         </td>
         <td><p>Print the rxCoefSolve object</p></td>
       </tr><tr>
-        <!--  -->
+        
         <td>
           <p><code><a href="print.RxODE.html">print(<i>&lt;RxODE&gt;</i>)</a></code> </p>
         </td>
         <td><p>Print information about the RxODE object.</p></td>
       </tr><tr>
-        <!--  -->
+        
         <td>
           <p><code><a href="rinvchisq.html">rinvchisq()</a></code> </p>
         </td>
         <td><p>Scaled Inverse Chi Squared distribution</p></td>
       </tr><tr>
-        <!--  -->
+        
         <td>
           <p><code><a href="rxAddReturn.html">rxAddReturn()</a></code> </p>
         </td>
         <td><p>Add a return statment to a function.</p></td>
       </tr><tr>
-        <!--  -->
+        
         <td>
           <p><code><a href="rxAssignPtr.html">rxAssignPtr()</a></code> </p>
         </td>
         <td><p>Assign pointer based on model variables</p></td>
       </tr><tr>
-        <!--  -->
+        
         <td>
           <p><code><a href="rxChain.html">rxChain()</a></code> <code><a href="rxChain.html">`+`(<i>&lt;solveRxDll&gt;</i>)</a></code> </p>
         </td>
         <td><p>rxChain  Chain or add item to solved system of equations</p></td>
       </tr><tr>
-        <!--  -->
+        
         <td>
           <p><code><a href="rxClean.html">rxClean()</a></code> </p>
         </td>
         <td><p>Cleanup anonymous DLLs</p></td>
       </tr><tr>
-        <!--  -->
+        
         <td>
           <p><code><a href="rxCompile.html">rxCompile()</a></code> </p>
         </td>
         <td><p>Compile a model if needed</p></td>
       </tr><tr>
-        <!--  -->
+        
         <td>
           <p><code><a href="rxCores.html">rxCores()</a></code> </p>
         </td>
         <td><p>Get the number of cores in a system</p></td>
       </tr><tr>
-        <!--  -->
+        
         <td>
           <p><code><a href="rxDelete.html">rxDelete()</a></code> </p>
         </td>
         <td><p>Delete the DLL for the model</p></td>
       </tr><tr>
-        <!--  -->
+        
         <td>
           <p><code><a href="rxDfdy.html">rxDfdy()</a></code> </p>
         </td>
         <td><p>Jacobian and parameter derivatives</p></td>
       </tr><tr>
-        <!--  -->
+        
         <td>
           <p><code><a href="rxGetRxODE.html">rxGetRxODE()</a></code> </p>
         </td>
         <td><p>Get RxODE model from object</p></td>
       </tr><tr>
-        <!--  -->
+        
         <td>
           <p><code><a href="rxHtml.html">rxHtml()</a></code> </p>
         </td>
         <td><p>Format rxSolve and related objects as html.</p></td>
       </tr><tr>
-        <!--  -->
+        
         <td>
           <p><code><a href="rxInv.html">rxInv()</a></code> </p>
         </td>
         <td><p>Invert matrix using Rcpp Armadilo.</p></td>
       </tr><tr>
-        <!--  -->
+        
         <td>
           <p><code><a href="rxIsCurrent.html">rxIsCurrent()</a></code> </p>
         </td>
         <td><p>Checks if the RxODE object was built with the current build</p></td>
       </tr><tr>
-        <!--  -->
+        
         <td>
           <p><code><a href="rxLhs.html">rxLhs()</a></code> </p>
         </td>
         <td><p>Left handed Variables</p></td>
       </tr><tr>
-        <!--  -->
+        
         <td>
           <p><code><a href="rxLogifyModel.html">rxLogifyModel()</a></code> </p>
         </td>
         <td><p>Takes a model and expands it to log multiplication</p></td>
       </tr><tr>
-        <!--  -->
+        
         <td>
           <p><code><a href="rxNorm.html">rxNorm()</a></code> </p>
         </td>
         <td><p>Get the normalized model</p></td>
       </tr><tr>
-        <!--  -->
+        
         <td>
           <p><code><a href="RxODE.html">RxODE()</a></code> </p>
         </td>
         <td><p>Create an ODE-based model specification</p></td>
       </tr><tr>
-        <!--  -->
+        
         <td>
           <p><code><a href="rxOptions.html">rxOptions()</a></code> </p>
         </td>
         <td><p>Options for RxODE</p></td>
       </tr><tr>
-        <!--  -->
+        
         <td>
           <p><code><a href="rxParams.html">rxParams()</a></code> <code><a href="rxParams.html">rxParam()</a></code> </p>
         </td>
         <td><p>Parameters specified by the model</p></td>
       </tr><tr>
-        <!--  -->
+        
         <td>
           <p><code><a href="rxPermissive.html">rxPermissive()</a></code> <code><a href="rxPermissive.html">rxStrict()</a></code> </p>
         </td>
         <td><p>Permissive or Strict RxODE sytax options</p></td>
       </tr><tr>
-        <!--  -->
-        <td>
-          <p><code><a href="rxRmPrint.html">rxRmPrint()</a></code> </p>
-        </td>
-        <td><p>Remove print statements</p></td>
-      </tr><tr>
-        <!--  -->
-        <td>
-          <p><code><a href="rxRmSens.html">rxRmSens()</a></code> </p>
-        </td>
-        <td><p>Remove sensitivity equations</p></td>
-      </tr><tr>
-        <!--  -->
-        <td>
-          <p><code><a href="rxRtoolsBaseWin.html">rxRtoolsBaseWin()</a></code> </p>
-        </td>
-        <td><p>Return Rtools base</p></td>
-      </tr><tr>
-        <!--  -->
+        
         <td>
           <p><code><a href="rxSetProd.html">rxSetProd()</a></code> </p>
         </td>
         <td><p>Choose the type of product to use in RxODE.  These are used in the
 RxODE <code>prod</code> blocks</p></td>
       </tr><tr>
-        <!--  -->
+        
         <td>
           <p><code><a href="rxSetSum.html">rxSetSum()</a></code> </p>
         </td>
         <td><p>Choose the type of sums to use for RxODE.</p></td>
       </tr><tr>
-        <!--  -->
+        
         <td>
           <p><code><a href="rxShiny.html">rxShiny()</a></code> </p>
         </td>
         <td><p>Use Shiny to help develop an RxODE model</p></td>
       </tr><tr>
-        <!--  -->
+        
         <td>
           <p><code><a href="rxSimThetaOmega.html">rxSimThetaOmega()</a></code> </p>
         </td>
         <td><p>Simulate Parameters from a Theta/Omega specification</p></td>
       </tr><tr>
-        <!--  -->
+        
         <td>
           <p><code><a href="rxSolve.html">rxSolve()</a></code> <code><a href="rxSolve.html">update(<i>&lt;rxSolve&gt;</i>)</a></code> <code><a href="rxSolve.html">predict(<i>&lt;RxODE&gt;</i>)</a></code> <code><a href="rxSolve.html">predict(<i>&lt;rxSolve&gt;</i>)</a></code> <code><a href="rxSolve.html">simulate(<i>&lt;RxODE&gt;</i>)</a></code> <code><a href="rxSolve.html">simulate(<i>&lt;rxSolve&gt;</i>)</a></code> <code><a href="rxSolve.html">solve(<i>&lt;rxSolve&gt;</i>)</a></code> <code><a href="rxSolve.html">solve(<i>&lt;RxODE&gt;</i>)</a></code> </p>
         </td>
         <td><p>Solves a ODE equation</p></td>
       </tr><tr>
-        <!--  -->
+        
         <td>
           <p><code><a href="rxState.html">rxState()</a></code> </p>
         </td>
         <td><p>State variables</p></td>
       </tr><tr>
-        <!--  -->
+        
         <td>
           <p><code><a href="rxSumProdModel.html">rxSumProdModel()</a></code> </p>
         </td>
         <td><p>Recast model in terms of sum/prod</p></td>
       </tr><tr>
-        <!--  -->
+        
         <td>
           <p><code><a href="rxSymDiag.html">rxSymDiag()</a></code> </p>
         </td>
         <td><p>Get the theta numbers for the diagonal elements.</p></td>
       </tr><tr>
-        <!--  -->
+        
         <td>
           <p><code><a href="rxSymInv.html">rxSymInv()</a></code> </p>
         </td>
         <td><p>Get Omega and Omega^-1 and derivatives</p></td>
       </tr><tr>
-        <!--  -->
+        
         <td>
           <p><code><a href="rxSymInvChol.html">rxSymInvChol()</a></code> </p>
         </td>
         <td><p>Get Omega^-1 and derivatives</p></td>
       </tr><tr>
-        <!--  -->
+        
         <td>
           <p><code><a href="rxSymPyFix.html">rxSymPyFix()</a></code> </p>
         </td>
         <td><p>Fix SymPy expressions to be R parsable expressions</p></td>
       </tr><tr>
-        <!--  -->
-        <td>
-          <p><code><a href="rxSymPyJacobian.html">rxSymPyJacobian()</a></code> </p>
-        </td>
-        <td><p>Calculate the full Jacobian for a model</p></td>
-      </tr><tr>
-        <!--  -->
+        
         <td>
           <p><code><a href="rxSymPySensitivity.html">rxSymPySensitivity()</a></code> </p>
         </td>
         <td><p>Calculate the sensitivity equations for a model</p></td>
       </tr><tr>
-        <!--  -->
+        
         <td>
           <p><code><a href="rxSymPyVersion.html">rxSymPyVersion()</a></code> </p>
         </td>
         <td><p>Return the version of SymPy that is running</p></td>
       </tr><tr>
-        <!--  -->
+        
         <td>
           <p><code><a href="rxSyncOptions.html">rxSyncOptions()</a></code> </p>
         </td>
         <td><p>Sync options with RxODE varaibles</p></td>
       </tr><tr>
-        <!--  -->
+        
         <td>
           <p><code><a href="rxTrans.html">rxTrans()</a></code> </p>
         </td>
         <td><p>Translate the model to C code if needed</p></td>
       </tr><tr>
-        <!--  -->
+        
         <td>
           <p><code><a href="rxValidate.html">rxValidate()</a></code> <code><a href="rxValidate.html">rxTest()</a></code> </p>
         </td>
         <td><p>Validate RxODE</p></td>
       </tr><tr>
-        <!--  -->
+        
         <td>
           <p><code><a href="rxWinPythonSetup.html">rxWinPythonSetup()</a></code> </p>
         </td>
         <td><p>Setup Python and SymPy for windows</p></td>
       </tr><tr>
-        <!--  -->
-        <td>
-          <p><code><a href="rxWinRtoolsPath.html">rxWinRtoolsPath()</a></code> </p>
-        </td>
-        <td><p>Setup Rtools path</p></td>
-      </tr><tr>
-        <!--  -->
+        
         <td>
           <p><code><a href="rxWinSetup.html">rxWinSetup()</a></code> </p>
         </td>
         <td><p>Setup Windows components for RxODE</p></td>
       </tr><tr>
-        <!--  -->
+        
         <td>
           <p><code><a href="summary.RxODE.html">summary(<i>&lt;RxODE&gt;</i>)</a></code> </p>
         </td>

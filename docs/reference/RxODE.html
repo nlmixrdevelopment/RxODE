@@ -21,9 +21,11 @@
 <!-- clipboard.js -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.7.1/clipboard.min.js" integrity="sha384-cV+rhyOuRHc9Ub/91rihWcGmMmCXDeksTtCihMupQHSsi8GIIRDG0ThDc3HGQFJ3" crossorigin="anonymous"></script>
 
+<!-- sticky kit -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sticky-kit/1.1.3/sticky-kit.min.js" integrity="sha256-c4Rlo1ZozqTPE2RLuvbusY3+SU1pQaJC0TjuhygMipw=" crossorigin="anonymous"></script>
+
 <!-- pkgdown -->
 <link href="../pkgdown.css" rel="stylesheet">
-<script src="../jquery.sticky-kit.min.js"></script>
 <script src="../pkgdown.js"></script>
 
 
@@ -33,6 +35,7 @@
 <meta property="og:description" content="Create a dynamic ODE-based model object suitably for translation
 into fast C code" />
 <meta name="twitter:card" content="summary" />
+
 
 
 <!-- mathjax -->
@@ -59,7 +62,7 @@ into fast C code" />
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">RxODE</a>
-        <span class="label label-default" data-toggle="tooltip" data-placement="bottom" title="Released package">0.7.2.0</span>
+        <span class="label label-default" data-toggle="tooltip" data-placement="bottom" title="Released package">0.7.2.4</span>
       </span>
     </div>
 
@@ -150,9 +153,9 @@ into fast C code</p>
     </div>
 
     <pre class="usage"><span class='fu'>RxODE</span>(<span class='no'>model</span>, <span class='kw'>modName</span> <span class='kw'>=</span> <span class='fu'>basename</span>(<span class='no'>wd</span>), <span class='kw'>wd</span> <span class='kw'>=</span> <span class='fu'>ifelse</span>(<span class='no'>RxODE.cache.directory</span> <span class='kw'>==</span>
-  <span class='st'>"."</span>, <span class='fu'>getwd</span>(), <span class='no'>RxODE.cache.directory</span>), <span class='kw'>filename</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>do.compile</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>extraC</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>debug</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>calcJac</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>calcSens</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>collapseModel</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='no'>...</span>)</pre>
+  <span class='st'>"."</span>, <span class='fu'>getwd</span>(), <span class='no'>RxODE.cache.directory</span>), <span class='kw'>filename</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>extraC</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>debug</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>calcJac</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>calcSens</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>collapseModel</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='no'>...</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -196,12 +199,6 @@ example <code>rx_129f8f97fb94a87ca49ca8dafe691e1e_i386.dll</code></p></td>
       <td><p>A file name or connection object where the
 ODE-based model specification resides. Only one of <code>model</code>
 or <code>filename</code> may be specified.</p></td>
-    </tr>
-    <tr>
-      <th>do.compile</th>
-      <td><p>logical specifying whether to carry out the
-parsing of the ODE into C code and its compilation. Default is
-<code>TRUE</code></p></td>
     </tr>
     <tr>
       <th>extraC</th>
@@ -421,7 +418,7 @@ Springer-Verlag (1993).</p>
 "</span>
 
 <span class='no'>m1</span> <span class='kw'>&lt;-</span> <span class='fu'>RxODE</span>(<span class='kw'>model</span> <span class='kw'>=</span> <span class='no'>ode</span>, <span class='kw'>modName</span> <span class='kw'>=</span> <span class='st'>"m1"</span>)
-<span class='fu'>print</span>(<span class='no'>m1</span>)</div><div class='output co'>#&gt; <span class='message'>RxODE 0.7.2-0 model named m1 model (ready).</span></div><div class='output co'>#&gt; <span class='message'>$state: depot, centr, peri, eff</span></div><div class='output co'>#&gt; <span class='message'>$params: V2, V3, KA, CL, Q, Kin, Kout, EC50</span></div><div class='output co'>#&gt; <span class='message'>$lhs: C2, C3</span></div><div class='input'>
+<span class='fu'>print</span>(<span class='no'>m1</span>)</div><div class='output co'>#&gt; <span class='message'>RxODE 0.7.2-4 model named m1 model (ready).</span></div><div class='output co'>#&gt; <span class='message'>$state: depot, centr, peri, eff</span></div><div class='output co'>#&gt; <span class='message'>$params: V2, V3, KA, CL, Q, Kin, Kout, EC50</span></div><div class='output co'>#&gt; <span class='message'>$lhs: C2, C3</span></div><div class='input'>
 <span class='co'># Step 2 - Create the model input as an EventTable,</span>
 <span class='co'># including dosing and observation (sampling) events</span>
 

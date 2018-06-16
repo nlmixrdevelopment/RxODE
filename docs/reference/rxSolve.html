@@ -21,9 +21,11 @@
 <!-- clipboard.js -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.7.1/clipboard.min.js" integrity="sha384-cV+rhyOuRHc9Ub/91rihWcGmMmCXDeksTtCihMupQHSsi8GIIRDG0ThDc3HGQFJ3" crossorigin="anonymous"></script>
 
+<!-- sticky kit -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sticky-kit/1.1.3/sticky-kit.min.js" integrity="sha256-c4Rlo1ZozqTPE2RLuvbusY3+SU1pQaJC0TjuhygMipw=" crossorigin="anonymous"></script>
+
 <!-- pkgdown -->
 <link href="../pkgdown.css" rel="stylesheet">
-<script src="../jquery.sticky-kit.min.js"></script>
 <script src="../pkgdown.js"></script>
 
 
@@ -33,6 +35,7 @@
 <meta property="og:description" content="This uses RxODE family of objects, file, or model specification to
 solve a ODE system." />
 <meta name="twitter:card" content="summary" />
+
 
 
 <!-- mathjax -->
@@ -59,7 +62,7 @@ solve a ODE system." />
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">RxODE</a>
-        <span class="label label-default" data-toggle="tooltip" data-placement="bottom" title="Released package">0.7.2.0</span>
+        <span class="label label-default" data-toggle="tooltip" data-placement="bottom" title="Released package">0.7.2.4</span>
       </span>
     </div>
 
@@ -151,33 +154,33 @@ solve a ODE system.</p>
 
     <pre class="usage"><span class='fu'>rxSolve</span>(<span class='no'>object</span>, <span class='kw'>params</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>events</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>inits</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
   <span class='kw'>scale</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>covs</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>method</span> <span class='kw'>=</span> <span class='fu'>c</span>(<span class='st'>"liblsoda"</span>, <span class='st'>"lsoda"</span>, <span class='st'>"dop853"</span>),
-  <span class='kw'>transit_abs</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>atol</span> <span class='kw'>=</span> <span class='fl'>1e-08</span>, <span class='kw'>rtol</span> <span class='kw'>=</span> <span class='fl'>1e-06</span>, <span class='kw'>maxsteps</span> <span class='kw'>=</span> <span class='fl'>5000L</span>,
-  <span class='kw'>hmin</span> <span class='kw'>=</span> <span class='fl'>0L</span>, <span class='kw'>hmax</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>hini</span> <span class='kw'>=</span> <span class='fl'>0L</span>, <span class='kw'>maxordn</span> <span class='kw'>=</span> <span class='fl'>12L</span>, <span class='kw'>maxords</span> <span class='kw'>=</span> <span class='fl'>5L</span>, <span class='no'>...</span>,
-  <span class='no'>cores</span>, <span class='kw'>covs_interpolation</span> <span class='kw'>=</span> <span class='fu'>c</span>(<span class='st'>"linear"</span>, <span class='st'>"locf"</span>, <span class='st'>"nocb"</span>, <span class='st'>"midpoint"</span>),
-  <span class='kw'>add.cov</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>matrix</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>sigma</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>sigmaDf</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>transitAbs</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>atol</span> <span class='kw'>=</span> <span class='fl'>1e-08</span>, <span class='kw'>rtol</span> <span class='kw'>=</span> <span class='fl'>1e-06</span>, <span class='kw'>maxsteps</span> <span class='kw'>=</span> <span class='fl'>5000L</span>,
+  <span class='kw'>hmin</span> <span class='kw'>=</span> <span class='fl'>0L</span>, <span class='kw'>hmax</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>hini</span> <span class='kw'>=</span> <span class='fl'>0</span>, <span class='kw'>maxordn</span> <span class='kw'>=</span> <span class='fl'>12L</span>, <span class='kw'>maxords</span> <span class='kw'>=</span> <span class='fl'>5L</span>, <span class='no'>...</span>,
+  <span class='no'>cores</span>, <span class='kw'>covsInterpolation</span> <span class='kw'>=</span> <span class='fu'>c</span>(<span class='st'>"linear"</span>, <span class='st'>"locf"</span>, <span class='st'>"nocb"</span>, <span class='st'>"midpoint"</span>),
+  <span class='kw'>addCov</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>matrix</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>sigma</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>sigmaDf</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
   <span class='kw'>nCoresRV</span> <span class='kw'>=</span> <span class='fl'>1L</span>, <span class='kw'>sigmaIsChol</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>nDisplayProgress</span> <span class='kw'>=</span> <span class='fl'>10000L</span>,
   <span class='kw'>amountUnits</span> <span class='kw'>=</span> <span class='fl'>NA_character_</span>, <span class='kw'>timeUnits</span> <span class='kw'>=</span> <span class='st'>"hours"</span>, <span class='no'>stiff</span>, <span class='kw'>theta</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>eta</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>addDosing</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>update.object</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>do.solve</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
+  <span class='kw'>eta</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>addDosing</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>updateObject</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>doSolve</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
   <span class='kw'>omega</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>omegaDf</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>omegaIsChol</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>nSub</span> <span class='kw'>=</span> <span class='fl'>1L</span>,
   <span class='kw'>thetaMat</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>thetaDf</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>thetaIsChol</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>nStud</span> <span class='kw'>=</span> <span class='fl'>1L</span>,
-  <span class='kw'>dfSub</span> <span class='kw'>=</span> <span class='fl'>0</span>, <span class='kw'>dfObs</span> <span class='kw'>=</span> <span class='fl'>0</span>, <span class='kw'>return.type</span> <span class='kw'>=</span> <span class='fu'>c</span>(<span class='st'>"rxSolve"</span>, <span class='st'>"matrix"</span>,
-  <span class='st'>"data.frame"</span>), <span class='kw'>seed</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>nsim</span> <span class='kw'>=</span> <span class='kw'>NULL</span>)
+  <span class='kw'>dfSub</span> <span class='kw'>=</span> <span class='fl'>0</span>, <span class='kw'>dfObs</span> <span class='kw'>=</span> <span class='fl'>0</span>, <span class='kw'>returnType</span> <span class='kw'>=</span> <span class='fu'>c</span>(<span class='st'>"rxSolve"</span>, <span class='st'>"matrix"</span>, <span class='st'>"data.frame"</span>),
+  <span class='kw'>seed</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>nsim</span> <span class='kw'>=</span> <span class='kw'>NULL</span>)
 
 <span class='co'># S3 method for default</span>
 <span class='fu'>rxSolve</span>(<span class='no'>object</span>, <span class='kw'>params</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>events</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
   <span class='kw'>inits</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>scale</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>covs</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>method</span> <span class='kw'>=</span> <span class='fu'>c</span>(<span class='st'>"liblsoda"</span>,
-  <span class='st'>"lsoda"</span>, <span class='st'>"dop853"</span>), <span class='kw'>transit_abs</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>atol</span> <span class='kw'>=</span> <span class='fl'>1e-08</span>, <span class='kw'>rtol</span> <span class='kw'>=</span> <span class='fl'>1e-06</span>,
-  <span class='kw'>maxsteps</span> <span class='kw'>=</span> <span class='fl'>5000L</span>, <span class='kw'>hmin</span> <span class='kw'>=</span> <span class='fl'>0L</span>, <span class='kw'>hmax</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>hini</span> <span class='kw'>=</span> <span class='fl'>0L</span>, <span class='kw'>maxordn</span> <span class='kw'>=</span> <span class='fl'>12L</span>,
-  <span class='kw'>maxords</span> <span class='kw'>=</span> <span class='fl'>5L</span>, <span class='no'>...</span>, <span class='no'>cores</span>, <span class='kw'>covs_interpolation</span> <span class='kw'>=</span> <span class='fu'>c</span>(<span class='st'>"linear"</span>, <span class='st'>"locf"</span>, <span class='st'>"nocb"</span>,
-  <span class='st'>"midpoint"</span>), <span class='kw'>add.cov</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>matrix</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>sigma</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='st'>"lsoda"</span>, <span class='st'>"dop853"</span>), <span class='kw'>transitAbs</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>atol</span> <span class='kw'>=</span> <span class='fl'>1e-08</span>, <span class='kw'>rtol</span> <span class='kw'>=</span> <span class='fl'>1e-06</span>,
+  <span class='kw'>maxsteps</span> <span class='kw'>=</span> <span class='fl'>5000L</span>, <span class='kw'>hmin</span> <span class='kw'>=</span> <span class='fl'>0L</span>, <span class='kw'>hmax</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>hini</span> <span class='kw'>=</span> <span class='fl'>0</span>, <span class='kw'>maxordn</span> <span class='kw'>=</span> <span class='fl'>12L</span>,
+  <span class='kw'>maxords</span> <span class='kw'>=</span> <span class='fl'>5L</span>, <span class='no'>...</span>, <span class='no'>cores</span>, <span class='kw'>covsInterpolation</span> <span class='kw'>=</span> <span class='fu'>c</span>(<span class='st'>"linear"</span>, <span class='st'>"locf"</span>, <span class='st'>"nocb"</span>,
+  <span class='st'>"midpoint"</span>), <span class='kw'>addCov</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>matrix</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>sigma</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
   <span class='kw'>sigmaDf</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>nCoresRV</span> <span class='kw'>=</span> <span class='fl'>1L</span>, <span class='kw'>sigmaIsChol</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
   <span class='kw'>nDisplayProgress</span> <span class='kw'>=</span> <span class='fl'>10000L</span>, <span class='kw'>amountUnits</span> <span class='kw'>=</span> <span class='fl'>NA_character_</span>,
   <span class='kw'>timeUnits</span> <span class='kw'>=</span> <span class='st'>"hours"</span>, <span class='no'>stiff</span>, <span class='kw'>theta</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>eta</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>addDosing</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>update.object</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>do.solve</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
-  <span class='kw'>omega</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>omegaDf</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>omegaIsChol</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>nSub</span> <span class='kw'>=</span> <span class='fl'>1L</span>,
-  <span class='kw'>thetaMat</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>thetaDf</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>thetaIsChol</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>nStud</span> <span class='kw'>=</span> <span class='fl'>1L</span>,
-  <span class='kw'>dfSub</span> <span class='kw'>=</span> <span class='fl'>0</span>, <span class='kw'>dfObs</span> <span class='kw'>=</span> <span class='fl'>0</span>, <span class='kw'>return.type</span> <span class='kw'>=</span> <span class='fu'>c</span>(<span class='st'>"rxSolve"</span>, <span class='st'>"matrix"</span>,
-  <span class='st'>"data.frame"</span>), <span class='kw'>seed</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>nsim</span> <span class='kw'>=</span> <span class='kw'>NULL</span>)
+  <span class='kw'>addDosing</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>updateObject</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>doSolve</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>omega</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>omegaDf</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>omegaIsChol</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>nSub</span> <span class='kw'>=</span> <span class='fl'>1L</span>, <span class='kw'>thetaMat</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>thetaDf</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>thetaIsChol</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>nStud</span> <span class='kw'>=</span> <span class='fl'>1L</span>, <span class='kw'>dfSub</span> <span class='kw'>=</span> <span class='fl'>0</span>,
+  <span class='kw'>dfObs</span> <span class='kw'>=</span> <span class='fl'>0</span>, <span class='kw'>returnType</span> <span class='kw'>=</span> <span class='fu'>c</span>(<span class='st'>"rxSolve"</span>, <span class='st'>"matrix"</span>, <span class='st'>"data.frame"</span>),
+  <span class='kw'>seed</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>nsim</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>setupOnly</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>)
 
 <span class='co'># S3 method for rxSolve</span>
 <span class='fu'>update</span>(<span class='no'>object</span>, <span class='no'>...</span>)
@@ -256,7 +259,7 @@ is for time-varying covariates.</p></td>
 </ul></td>
     </tr>
     <tr>
-      <th>transit_abs</th>
+      <th>transitAbs</th>
       <td><p>boolean indicating if this is a transit
 compartment absorption</p></td>
     </tr>
@@ -322,7 +325,7 @@ defaults to the number or system cores determined by
 solving (ie thread-safe methods like "liblsoda").</p></td>
     </tr>
     <tr>
-      <th>covs_interpolation</th>
+      <th>covsInterpolation</th>
       <td><p>specifies the interpolation method for
     time-varying covariates. When solving ODEs it often samples
     times outside the sampling time specified in <code>events</code>.
@@ -340,7 +343,7 @@ solving (ie thread-safe methods like "liblsoda").</p></td>
 </ul></td>
     </tr>
     <tr>
-      <th>add.cov</th>
+      <th>addCov</th>
       <td><p>A boolean indicating if covariates should be added
 to the output matrix or data frame. By default this is
 disabled.</p></td>
@@ -428,7 +431,7 @@ only includes estimates at the observations. (default
 <code>FALSE</code>).</p></td>
     </tr>
     <tr>
-      <th>update.object</th>
+      <th>updateObject</th>
       <td><p>This is an internally used flag to update the
 RxODE solved object (when supplying an RxODE solved object) as
 well as returning a new object.  You probably should not
@@ -436,7 +439,7 @@ modify it's <code>FALSE</code> default unless you are willing to
 have unexpected results.</p></td>
     </tr>
     <tr>
-      <th>do.solve</th>
+      <th>doSolve</th>
       <td><p>Internal flag.  By default this is <code>TRUE</code>,
 when <code>FALSE</code> a list of solving options is returned.</p></td>
     </tr>
@@ -495,19 +498,17 @@ inverse Wishart distribution (scaled) or scaled inverse chi squared distribution
 inverse Wishart distribution (scaled) or scaled inverse chi squared distribution.</p></td>
     </tr>
     <tr>
-      <th>return.type</th>
+      <th>returnType</th>
       <td><p>This tells what type of object is returned.  The currently supported types are:</p><ul>
 <li><p><code>"rxSolve"</code> (default) will return a reactive data frame
      that can change easily change different pieces of the solve and
      update the data frame.  This is the currently standard solving
      method in RxODE,  is used for <code>rxSolve(object, ...)</code>, <code>solev(object,...)</code>,</p></li>
 <li><p><code>"data.frame"</code> -- returns a plain, non-reactive data
-     frame; Currently very slightly Faster than <code>return.type=\"matrix\"</code></p></li>
+     frame; Currently very slightly Faster than <code>returnType=\"matrix\"</code></p></li>
 <li><p><code>"matrix"</code> -- returns a plain matrix with column names attached
-    to the solved object.  This is what is used <code>eobject$run</code> as well as ob</p></li>
-</ul>
-
-<p><code>return.type</code> equals {matrix}, rxSolve returns a matrix.</p></td>
+    to the solved object.  This is what is used <code>object$run</code> as well as <code>object$solve</code></p></li>
+</ul></td>
     </tr>
     <tr>
       <th>seed</th>
@@ -522,7 +523,15 @@ inverse Wishart distribution (scaled) or scaled inverse chi squared distribution
     </tr>
     <tr>
       <th>nsim</th>
-      <td><p>represents the number of simulations.  For RxODE, if you supply single subject event tables (created with eventTable)</p></td>
+      <td><p>represents the number of simulations.  For RxODE, if
+you supply single subject event tables (created with
+eventTable)</p></td>
+    </tr>
+    <tr>
+      <th>setupOnly</th>
+      <td><p>Only setup the internal C structure, do not
+solve.  After setting it up, and using the structure in C, it
+needs to be freed by <code><a href='rxSolveFree.html'>rxSolveFree</a></code>.</p></td>
     </tr>
     <tr>
       <th>a</th>

@@ -87,6 +87,7 @@ typedef struct {
   int ixds;
   int ndoses;
   double *all_times;
+  double *dv;
   int *idose;
   int idosen;
   int id;
@@ -515,7 +516,7 @@ extern void m1_x64_ode_solver(int *neq,
 			   double *lhs,
 			   int *rc){
   // Backward compatible ode solver for 0.5* C interface
-  //if (_ptrid() != 1526052145 ){ _assign_ptr(m1_x64_model_vars());}
+  //if (_ptrid() != 1529118994 ){ _assign_ptr(m1_x64_model_vars());}
   double *_theta = theta;
   _old_c(neq, _theta, time, evid, ntime, inits, dose, ret, atol, rtol, stiff, transit_abs, nlhs, lhs, rc);
 }
@@ -723,7 +724,7 @@ extern SEXP m1_x64_model_vars(){
     SEXP state    = PROTECT(allocVector(STRSXP, 4));pro++;
     SEXP stateRmS = PROTECT(allocVector(INTSXP, 4));pro++;
     SEXP timeInt = PROTECT(allocVector(INTSXP, 1));pro++;
-    INTEGER(timeInt)[0] = 1526052145;
+    INTEGER(timeInt)[0] = 1529118994;
     SEXP sens     = PROTECT(allocVector(STRSXP, 0));pro++;
     SEXP normState= PROTECT(allocVector(STRSXP, 4));pro++;
     SEXP fn_ini   = PROTECT(allocVector(STRSXP, 0));pro++;
@@ -742,9 +743,9 @@ extern SEXP m1_x64_model_vars(){
     SEXP badDosei = PROTECT(allocVector(INTSXP, 4));pro++;
     SEXP version    = PROTECT(allocVector(STRSXP, 3));pro++;
     SEXP versionn   = PROTECT(allocVector(STRSXP, 3));pro++;
-    SET_STRING_ELT(version,0,mkChar("0.7.2-0"));
+    SET_STRING_ELT(version,0,mkChar("0.7.2-2"));
     SET_STRING_ELT(version,1,mkChar("https://github.com/nlmixrdevelopment/RxODE"));
-    SET_STRING_ELT(version,2,mkChar("46a1db2db1a2043ddc0ea3a0f8c247d9"));
+    SET_STRING_ELT(version,2,mkChar("fc4916a07950ad2bfbf61583bf729db2"));
     SET_STRING_ELT(versionn,0,mkChar("version"));
     SET_STRING_ELT(versionn,1,mkChar("repo"));
     SET_STRING_ELT(versionn,2,mkChar("md5"));
@@ -822,9 +823,9 @@ extern SEXP m1_x64_model_vars(){
     SET_STRING_ELT(names,15,mkChar("timeId"));
     SET_VECTOR_ELT(lst,  15,timeInt);
     SET_STRING_ELT(mmd5n,0,mkChar("file_md5"));
-    SET_STRING_ELT(mmd5,0,mkChar("3510efbf87dd2bcba0d7d59350113949"));
+    SET_STRING_ELT(mmd5,0,mkChar("4f09646f2b75c132ca3444f34bdc3a6e"));
     SET_STRING_ELT(mmd5n,1,mkChar("parsed_md5"));
-    SET_STRING_ELT(mmd5,1,mkChar("fa41787c4e7ff3cd71b5b0250aa9d6b3"));
+    SET_STRING_ELT(mmd5,1,mkChar("1222155014066cc9c85935cfa10adeca"));
     SET_STRING_ELT(trann,0,mkChar("lib.name"));
     SET_STRING_ELT(tran, 0,mkChar("m1_x64"));
     SET_STRING_ELT(trann,1,mkChar("jac"));
