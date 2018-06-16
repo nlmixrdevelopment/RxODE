@@ -1,6 +1,6 @@
 .onLoad <- function(libname, pkgname){ ## nocov start
     ## Setup RxODE.prefer.tbl
-    RxODE::rxPermissive(respect=TRUE); ## need to call respect on the first time
+    rxPermissive(respect=TRUE); ## need to call respect on the first time
     suppressMessages(.rxWinRtoolsPath())
 } ## nocov end
 
@@ -104,9 +104,9 @@ RxODE.sympy.run.internal <- NULL
 ##'     is called.
 ##' @author Matthew L. Fidler
 ##' @export
-rxPermissive <- function(expr, silent=,
+rxPermissive <- function(expr, silent=.isTestthat(),
                          respect=FALSE,
-                         rxclean=(regexpr("/tests/testthat/", getwd(), fixed=TRUE) != -1),
+                         rxclean=.isTestthat(),
                          cran=FALSE, on.validate=FALSE){
     args  <- as.list(match.call())[-1];
     args$op.rx <- 2;

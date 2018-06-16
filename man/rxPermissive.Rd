@@ -5,13 +5,11 @@
 \alias{rxStrict}
 \title{Permissive or Strict RxODE sytax options}
 \usage{
-rxPermissive(expr, silent = (regexpr("/tests/testthat/", getwd(), fixed =
-  TRUE) != -1), respect = FALSE, rxclean = (regexpr("/tests/testthat/",
-  getwd(), fixed = TRUE) != -1), cran = FALSE, on.validate = FALSE)
+rxPermissive(expr, silent = .isTestthat(), respect = FALSE,
+  rxclean = .isTestthat(), cran = FALSE, on.validate = FALSE)
 
-rxStrict(expr, silent = (regexpr("/tests/testthat/", getwd(), fixed = TRUE) !=
-  -1), respect = FALSE, rxclean = (regexpr("/tests/testthat/", getwd(),
-  fixed = TRUE) != -1), cran = FALSE, on.validate = FALSE)
+rxStrict(expr, silent = .isTestthat(), respect = FALSE,
+  rxclean = .isTestthat(), cran = FALSE, on.validate = FALSE)
 }
 \arguments{
 \item{expr}{Expression to evaluate in the permissive/strict

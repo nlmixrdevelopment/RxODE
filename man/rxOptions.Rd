@@ -4,10 +4,8 @@
 \alias{rxOptions}
 \title{Options for RxODE}
 \usage{
-rxOptions(expr, op.rx = NULL, silent = (regexpr("/tests/testthat/", getwd(),
-  fixed = TRUE) != 1), respect = FALSE,
-  rxclean = (regexpr("/tests/testthat/", getwd(), fixed = TRUE) != 1),
-  cran = FALSE, on.validate = FALSE)
+rxOptions(expr, op.rx = NULL, silent = .isTestthat(), respect = FALSE,
+  rxclean = .isTestthat(), cran = FALSE, on.validate = FALSE)
 }
 \arguments{
 \item{expr}{Expression to evaluate in the permissive/strict
