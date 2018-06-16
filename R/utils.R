@@ -1,3 +1,7 @@
+.normalizePath <- function(...){
+    suppressWarnings(normalizePath(...))
+}
+
 ##' Require namespace, otherwise throw error.
 ##'
 ##' @param pkg Package required for function to work.
@@ -87,7 +91,7 @@ rxClean <- function(wd){
                 unlink(f);
             }
         }
-        if (normalizePath(wd) != normalizePath(getFromNamespace("RxODE.cache.directory", "RxODE"))){
+        if (.normalizePath(wd) != .normalizePath(getFromNamespace("RxODE.cache.directory", "RxODE"))){
             ## rxCat("Cleaning cache directory as well.\n");
             rxClean(getFromNamespace("RxODE.cache.directory", "RxODE"));
         }

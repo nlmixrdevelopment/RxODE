@@ -83,7 +83,7 @@ function(appDir = "shinyExample", verbose = TRUE,
         }
    if(!file.exists(appDir))
          dir.create(appDir, recursive = TRUE)
-   #if(.Platform$OS.type=="windows") appDir <- gsub("\\\\", "/", utils::shortPathName(normalizePath(appDir)))  # safe pathname
+   #if(.Platform$OS.type=="windows") appDir <- gsub("\\\\", "/", utils::shortPathName(.normalizePath(appDir)))  # safe pathname
 
    pkpd = ODE.config$ode
 

@@ -339,7 +339,7 @@ RxODE <- function(model, modName = basename(wd),
     ## RxODE compilation manager (location of parsed code, generated C,  shared libs, etc.)
     .env <- new.env(parent=baseenv())
     .env$missing.modName <- missing(modName);
-    wd <- suppressWarnings({normalizePath(wd, "/", mustWork=F)})
+    wd <- .normalizePath(wd, "/", mustWork=F)
     if (.env$missing.modName){
         if (RxODE.tempfiles){
             .env$mdir <- .rxTempDir();
@@ -1214,7 +1214,7 @@ rxCompile.character <-  function(model,           # Model
         }
     } else {
         if (.Platform$OS.type == "windows"){
-            dir <- suppressMessages(normalizePath(dir, mustWork=FALSE));
+            dir <- suppressMessages(.normalizePath(dir, mustWork=FALSE));
         } else {
             dir <- file.path(getwd(), dir);
         }
@@ -1227,7 +1227,7 @@ rxCompile.character <-  function(model,           # Model
     .cFile <- file.path(dir, sprintf("%s.c", substr(prefix, 0, nchar(prefix)-1)));
     .cDllFile <- file.path(dir, sprintf("%s%s", substr(prefix, 0, nchar(prefix)-1), .Platform$dynlib.ext));
     if (file.exists(model)){
-        .mFile <- suppressWarnings({normalizePath(model)});
+        .mFile <- .normalizePath(model);
     } else {
         .mFile <- sprintf("%s.rx", substr(.cFile, 0, nchar(.cFile)-2));
         sink(.mFile);
