@@ -789,8 +789,54 @@ NumericVector rxSetupScale(const RObject &obj,
   return ret;
 }
 
+NumericVector rxSetupParamsThetaEtaThetaN(const RObject &theta = R_NilValue, std::string thetaTxt = "theta"){
+  NumericVector thetaN;
+  if (rxIs(theta,"numeric") || rxIs(theta,"integer")){
+    thetaN = as<NumericVector>(theta);
+  } else if (rxIs(theta, "matrix")){
+    NumericMatrix thetaM = as<NumericMatrix>(theta);
+    if (thetaM.nrow() == 1){
+      thetaN = NumericVector(thetaM.ncol());
+      for (unsigned int i = thetaM.ncol() ; i--;){
+        thetaN[i] = thetaM(1,i);
+      }
+    } else if (thetaM.ncol() == 1){
+      thetaN = NumericVector(thetaM.nrow());
+      for (unsigned int i = thetaM.ncol() ; i-- ;){
+        thetaN[i] = thetaM(i, i);
+      }
+    } else {
+      stop("'%s' is not compatible with params, check dimensions to make sure they are compatible.", thetaTxt.c_str());
+    }
+  } else if (!theta.isNULL()){
+    stop("'%s' is not compatible with params, check dimensions to make sure they are compatible.", thetaTxt.c_str());
+  }
+  return thetaN;
+}
+
+NumericMatrix rxSetupParamsThetaEtaNullParams(const RObject &theta = R_NilValue, const RObject &eta = R_NilValue){
+  // Create the matrix
+  NumericVector thetaN = rxSetupParamsThetaEtaThetaN(theta,"theta");
+  // Now eta
+  NumericVector etaN = rxSetupParamsThetaEtaThetaN(eta, "eta");
+  NumericMatrix tmp1(1, thetaN.size()+etaN.size());
+  CharacterVector tmpN = CharacterVector(tmp1.size());
+  unsigned int i;
+  for (i = thetaN.size(); i--;){
+    tmp1(0, i) = thetaN[i];
+    tmpN[i] = "THETA[" + std::to_string(i + 1) + "]";
+  }
+  i = thetaN.size();
+  for (; i < thetaN.size()+ etaN.size(); i++){
+    tmp1(0, i) = etaN[i - thetaN.size()];
+    tmpN[i] = "ETA[" + std::to_string(i - thetaN.size() + 1) + "]";
+  }
+  tmp1.attr("dimnames") = List::create(R_NilValue, tmpN);
+  return tmp1;
+}
+
 RObject rxSetupParamsThetaEta(const RObject &params = R_NilValue,
-				    const RObject &theta = R_NilValue,
+                                    const RObject &theta = R_NilValue,
 				    const RObject &eta = R_NilValue){
   // Now get the parameters as a data.frame
   if (rxIs(params,"list")) {
@@ -801,63 +847,7 @@ RObject rxSetupParamsThetaEta(const RObject &params = R_NilValue,
   int i;
   if (params.isNULL()){
     if (!theta.isNULL() || !eta.isNULL()){
-      // Create the matrix
-      NumericVector thetaN;
-      if (rxIs(theta,"numeric") || rxIs(theta,"integer")){
-        thetaN = as<NumericVector>(theta);
-      } else if (rxIs(theta, "matrix")){
-        NumericMatrix thetaM = as<NumericMatrix>(theta);
-        if (thetaM.nrow() == 1){
-          thetaN = NumericVector(thetaM.ncol());
-          for (i = thetaM.ncol() ; i--;){
-            thetaN[i] = thetaM(1,i);
-          }
-        } else if (thetaM.ncol() == 1){
-          thetaN = NumericVector(thetaM.nrow());
-          for (i = thetaM.ncol() ; i-- ;){
-            thetaN[i] = thetaM(i, i);
-          }
-        } else {
-          stop("'theta' is not compatible with params, check dimensions to make sure they are compatible.");
-        }
-      } else if (!theta.isNULL()){
-        stop("'theta' is not compatible with params, check dimensions to make sure they are compatible.");
-      }
-      // Now eta
-      NumericVector etaN;
-      if (rxIs(eta,"numeric") || rxIs(eta,"integer")){
-        etaN = as<NumericVector>(eta);
-      } else if (rxIs(eta, "matrix")){
-        NumericMatrix etaM = as<NumericMatrix>(eta);
-        if (etaM.nrow() == 1){
-          etaN = NumericVector(etaM.ncol());
-          for (i = etaM.ncol() ; i-- ;){
-            etaN[i] = etaM(0, i);
-          }
-        } else if (etaM.ncol() == 1){
-          etaN = NumericVector(etaM.nrow());
-          for (i = etaM.ncol() ; i--;){
-            etaN[i] = etaM(i, 0);
-          }
-        } else {
-          stop("'eta' is not compatible with params, check dimensions to make sure they are compatible.");
-        }
-      } else if (!eta.isNULL()){
-        stop("'eta' is not compatible with params, check dimensions to make sure they are compatible.");
-      }
-      NumericMatrix tmp1(1, thetaN.size()+etaN.size());
-      CharacterVector tmpN = CharacterVector(tmp1.size());
-      for (i = thetaN.size(); i--;){
-        tmp1(0, i) = thetaN[i];
-        tmpN[i] = "THETA[" + std::to_string(i + 1) + "]";
-      }
-      i = thetaN.size();
-      for (; i < thetaN.size()+ etaN.size(); i++){
-        tmp1(0, i) = etaN[i - thetaN.size()];
-        tmpN[i] = "ETA[" + std::to_string(i - thetaN.size() + 1) + "]";
-      }
-      tmp1.attr("dimnames") = List::create(R_NilValue, tmpN);
-      parMat = tmp1;
+      parMat = rxSetupParamsThetaEtaNullParams(theta, eta);
     }
   } else if (rxIs(params, "data.frame") || rxIs(params, "matrix")){
     if (rxIs(params,"data.frame")){

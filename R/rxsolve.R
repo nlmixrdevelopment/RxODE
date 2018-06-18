@@ -245,20 +245,7 @@
 ##' @seealso \code{\link{RxODE}}
 ##' @author Matthew Fidler, Melissa Hallow and  Wenping Wang
 ##' @export
-rxSolve <- function(object, params=NULL, events=NULL, inits = NULL, scale = NULL,
-                    covs = NULL, method = c("liblsoda", "lsoda", "dop853"),
-                    transitAbs = NULL, atol = 1.0e-8, rtol = 1.0e-6,
-                    maxsteps = 5000L, hmin = 0L, hmax = NULL, hini = 0, maxordn = 12L, maxords = 5L, ...,
-                    cores,
-                    covsInterpolation = c("linear", "locf", "nocb", "midpoint"),
-                    addCov = FALSE, matrix = FALSE, sigma = NULL, sigmaDf = NULL,
-                    nCoresRV = 1L, sigmaIsChol = FALSE, nDisplayProgress=10000L,
-                    amountUnits = NA_character_, timeUnits = "hours", stiff,
-                    theta = NULL, eta = NULL, addDosing=FALSE, updateObject=FALSE, doSolve=TRUE,
-                    omega = NULL, omegaDf = NULL, omegaIsChol = FALSE,
-                    nSub = 1L, thetaMat = NULL, thetaDf = NULL, thetaIsChol = FALSE,
-                    nStud = 1L, dfSub=0.0, dfObs=0.0, returnType=c("rxSolve", "matrix", "data.frame"),
-                    seed=NULL, nsim=NULL){
+rxSolve <- function(object, ...){
     UseMethod("rxSolve")
 }
 ##' @rdname rxSolve
@@ -305,8 +292,7 @@ rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, scal
 
     }
     if (!doSolve){
-        .modVars <- rxModelVars(object);
-        .trans <- .modVars$.trans
+        .modVars <- RxODE::rxModelVars(object);
         .state <- .modVars$state;
         .lhs <- .modVars$lhs;
         .pars <- .modVars$params;
@@ -335,7 +321,7 @@ rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, scal
                            transitAbs = transitAbs, atol = atol, rtol = rtol, maxsteps = maxsteps,
                            hmin = hmin, hmax = hmax, hini = hini, maxordn = maxordn, maxords = maxords,
                            covsInterpolation = covsInterpolation, addCov=addCov, ...);
-        params <- c(params, rxThetaEta(theta, eta));
+        params <- c(params, RxODE::rxThetaEta(theta, eta));
         .eventTable <- events$get.EventTable()
         if (!is.numeric(maxordn))
             stop("'maxordn' must be numeric.")
@@ -373,8 +359,8 @@ rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, scal
             hini <- 0;
         }
         ## preserve input arguments.
-        inits <- rxInits(object, inits, .state, 0);
-        params <- rxInits(object, params, .pars, NA, !is.null(covs));
+        inits <- RxODE::rxInits(object, inits, .state, 0);
+        params <- RxODE::rxInits(object, params, .pars, NA, !is.null(covs));
         if (!is.null(covs)){
             .cov <- as.matrix(covs);
             .covLen <- dim(.cov)[1];
@@ -443,7 +429,7 @@ rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, scal
             names(scale) <- .state[.scalerIx];
         }
         scale <- c(scale);
-        scale <- rxInits(object, scale, .state, 1, noini=TRUE);
+        scale <- RxODE::rxInits(object, scale, .state, 1, noini=TRUE);
         .isLocf <- 0L;
         if (length(covsInterpolation) > 1){
             .isLocf <- 0L;
@@ -559,7 +545,7 @@ rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, scal
         stop("Duplicate arguments do not make sense.");
     }
     if (missing(cores)){
-        cores <- rxCores();
+        cores <- RxODE::rxCores();
     }
     .nms <- names(as.list(match.call())[-1]);
     .Call(`_RxODE_rxSolveCsmall`, object, .nms, .xtra,

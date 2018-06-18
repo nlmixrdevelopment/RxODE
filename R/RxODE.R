@@ -514,8 +514,8 @@ rxGetModel <- memoise::memoise(function(model, calcSens=FALSE, calcJac=FALSE, co
     } else {
         stop(sprintf("Can't figure out how to handle the model argument (%s).", class(model)));
     }
-    .parseModel <- tempfile();
-    .cFile <- tempfile();
+    .parseModel <- tempfile("parseModel");
+    .cFile <- tempfile("cFile");
     on.exit({unlink(.parseModel); unlink(.cFile)});
     sink(.parseModel);
     cat(model);
@@ -838,8 +838,8 @@ print.rxCoefSolve <- function(x, ...){
     } else if (file.exists(model)){
         .modelPrefix <- sprintf("%s_", gsub("\\W", "_", gsub("[.].*$", "", basename(model))));
     } else {
-        .parseModel <- tempfile();
-        .cFile <- tempfile();
+        .parseModel <- tempfile("parseModel2");
+        .cFile <- tempfile("cFile2");
         on.exit({unlink(.parseModel); unlink(.cFile)});
         sink(.parseModel);
         cat(model);
@@ -1015,8 +1015,8 @@ rxTrans.character <- function(model,
     } else {
         stop("This only translates a file (currently; Try rxCompile).");
     }
-    .parseModel <- tempfile();
-    .out3 <- tempfile();
+    .parseModel <- tempfile("parseModel3");
+    .out3 <- tempfile("out3a");
     on.exit(unlink(.parseModel));
     RxODE::rxReq("dparser");
     .ret <- try(.Call(trans, model, model, cFile, extraC, modelPrefix, md5, .parseModel, .out3, PACKAGE="RxODE"));
@@ -1046,7 +1046,7 @@ rxTrans.character <- function(model,
             }
             .new <- rxSymPySensitivity(RxODE::rxModelVars(rxNorm(.ret)), calcSens=calcSens, calcJac=calcJac,
                                       collapseModel=collapseModel);
-            .expandModel <- tempfile();
+            .expandModel <- tempfile("expandModel");
             sink(.expandModel);
             cat(.new);
             cat("\n");
@@ -1069,7 +1069,7 @@ rxTrans.character <- function(model,
                 stop("Jacobians do not make sense for models without ODEs.")
             }
             .new <- .rxSymPyJacobian(RxODE::rxModelVars(rxNorm(.ret)));
-            .expandModel <- tempfile();
+            .expandModel <- tempfile("expandModel2");
             sink(.expandModel);
             cat(.new);
             cat("\n");
@@ -1499,12 +1499,12 @@ rxNorm <- function(obj, condition=NULL, removeInis, removeJac, removeSens){
 
 .rxModelVarsCharacter <- memoise::memoise(function(obj){
     if (length(obj) == 1){
-        .cFile <- tempfile();
+        .cFile <- tempfile("cFile3");
         if (file.exists(obj)){
             .parseModel <- obj;
             on.exit({unlink(.cFile)});
         } else {
-            .parseModel <- tempfile();
+            .parseModel <- tempfile("parseModel4");
             sink(.parseModel);
             cat(paste(obj, collapse="\n"));
             sink()
