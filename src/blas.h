@@ -6,7 +6,7 @@ void daxpy0(int n, double da, double dx[], int incx, double dy[], int incy);
 int idamax0(int n, double dx[], int incx);
 void dscal0(int n, double da, double dx[], int incx);
 double vmnorm0(int n, double *v, double *w);
-double fnorm(int n, double **a, double *w);
+double fnorm0(int n, double **a, double *w);
 #if 0
 static double vmnorm0(int n, double *v, double *w)
 
