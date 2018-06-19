@@ -3014,7 +3014,8 @@ SEXP rxSolveC(const RObject &obj,
       rxOptionsIniData();
 
       Function newEnv("new.env", R_BaseNamespace);
-      Environment RxODE("package:RxODE");
+      Function loadNamespace("loadNamespace", R_BaseNamespace);
+      Environment RxODE = loadNamespace("RxODE");
       Environment e = newEnv(_["size"] = 29, _["parent"] = RxODE);
       getRxModels();
       if(_rxModels.exists(".theta")){
