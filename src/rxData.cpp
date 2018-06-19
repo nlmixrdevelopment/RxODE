@@ -277,8 +277,8 @@ Environment RxODE(){
   }
 }
 Function getRxFn(std::string name){
-  Environment RxODE = RxODE();
-  return as<Function>(RxODE[name]);
+  Environment rx = RxODE();
+  return as<Function>(rx[name]);
 }
 
 void getRxModels(){
