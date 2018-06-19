@@ -263,10 +263,21 @@ RObject rxSimSigma(const RObject &sigma,
 
 bool foundEnv = false;
 Environment _rxModels;
+bool _RxODE_found = false;
+Environment _RxODE;
 
+Environment RxODE(){
+  if (_RxODE_found){
+    return _RxODE;
+  } else {
+    Function loadNamespace("loadNamespace", R_BaseNamespace);
+    _RxODE = loadNamespace("RxODE");
+    _RxODE_found = true;
+    return _RxODE;
+  }
+}
 Function getRxFn(std::string name){
-  Function loadNamespace("loadNamespace", R_BaseNamespace);
-  Environment RxODE = loadNamespace("RxODE");
+  Environment RxODE = RxODE();
   return as<Function>(RxODE[name]);
 }
 
@@ -3014,9 +3025,7 @@ SEXP rxSolveC(const RObject &obj,
       rxOptionsIniData();
 
       Function newEnv("new.env", R_BaseNamespace);
-      Function loadNamespace("loadNamespace", R_BaseNamespace);
-      Environment RxODE = loadNamespace("RxODE");
-      Environment e = newEnv(_["size"] = 29, _["parent"] = RxODE);
+      Environment e = newEnv(_["size"] = 29, _["parent"] = RxODE());
       getRxModels();
       if(_rxModels.exists(".theta")){
   	e[".theta"] = as<NumericMatrix>(_rxModels[".theta"]);
