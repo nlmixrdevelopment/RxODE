@@ -33,7 +33,7 @@ int prja(struct lsoda_context_t * ctx, double *y)
 		return 0;
 	}
 	if (_C(miter) == 2) {
-		fac = vmnorm(neq, _C(savf), _C(ewt));
+		fac = vmnorm0(neq, _C(savf), _C(ewt));
 		r0 = 1000. * fabs(_C(h)) * ETA * ((double) neq) * fac;
 		if (r0 == 0.)
 			r0 = 1.;
@@ -51,7 +51,7 @@ int prja(struct lsoda_context_t * ctx, double *y)
 /*
    Compute norm of Jacobian.
 */
-		_C(pdnorm) = fnorm(neq, _C(wm), _C(ewt)) / fabs(hl0);
+		_C(pdnorm) = fnorm0(neq, _C(wm), _C(ewt)) / fabs(hl0);
 /*
    Add identity matrix.
 */
@@ -60,7 +60,7 @@ int prja(struct lsoda_context_t * ctx, double *y)
 /*
    Do LU decomposition on P.
 */
-		dgefa(_C(wm), neq, _C(ipvt), &ier);
+		dgefa0(_C(wm), neq, _C(ipvt), &ier);
 		if (ier != 0)
 		return 0;
 	}

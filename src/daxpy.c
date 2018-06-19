@@ -11,7 +11,7 @@ To: whitbeck@sanjuan.wrc.unr.edu
 */
 
 void 
-daxpy(n, da, dx, incx, dy, incy)
+daxpy0(n, da, dx, incx, dy, incy)
 	double          da, *dx, *dy;
 	int             n, incx, incy;
 

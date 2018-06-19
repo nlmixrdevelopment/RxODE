@@ -5,7 +5,7 @@
  ***********/
 
 void 
-dgefa(a, n, ipvt, info)
+dgefa0(a, n, ipvt, info)
 	double        **a;
 	int             n, *ipvt, *info;
 
@@ -60,7 +60,7 @@ dgefa(a, n, ipvt, info)
    Find j = pivot index.  Note that a[k]+k-1 is the address of
    the 0-th element of the row vector whose 1st element is a[k][k].
 */
-		j = idamax(n - k + 1, a[k] + k - 1, 1) + k - 1;
+		j = idamax0(n - k + 1, a[k] + k - 1, 1) + k - 1;
 		ipvt[k] = j;
 /*
    Zero pivot implies this row already triangularized.
@@ -81,7 +81,7 @@ dgefa(a, n, ipvt, info)
    Compute multipliers.
 */
 		t = -1. / a[k][k];
-		dscal(n - k, t, a[k] + k, 1);
+		dscal0(n - k, t, a[k] + k, 1);
 /*
    Column elimination with row indexing.
 */
@@ -91,7 +91,7 @@ dgefa(a, n, ipvt, info)
 				a[i][j] = a[i][k];
 				a[i][k] = t;
 			}
-			daxpy(n - k, t, a[k] + k, 1, a[i] + k, 1);
+			daxpy0(n - k, t, a[k] + k, 1, a[i] + k, 1);
 		}
 	}			/* end k-loop  */
 

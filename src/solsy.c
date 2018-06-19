@@ -26,7 +26,7 @@ int solsy(struct lsoda_context_t * ctx, double *y)
 		error("liblsoda does not implement this. (solsy)");
 	}
 	if (_C(miter) == 2)
-		dgesl(_C(wm), neq, _C(ipvt), y, 0);
+		dgesl0(_C(wm), neq, _C(ipvt), y, 0);
 	return 1;
 
 }

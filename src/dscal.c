@@ -4,7 +4,7 @@
  ***********/
 
 void 
-dscal(n, da, dx, incx)
+dscal0(n, da, dx, incx)
 	double          da, *dx;
 	int             n, incx;
 

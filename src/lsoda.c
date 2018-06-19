@@ -658,7 +658,7 @@ int lsoda(struct lsoda_context_t * ctx, double *y, double *t, double tout) {
 				}
 				tol = fmax(tol, 100. * ETA);
 				tol = fmin(tol, 0.001);
-				sum = vmnorm(neq, _C(yh)[2], _C(ewt));
+				sum = vmnorm0(neq, _C(yh)[2], _C(ewt));
 				sum = 1. / (tol * w0 * w0) + tol * sum * sum;
 				h0 = 1. / sqrt(sum);
 				h0 = fmin(h0, tdist);
@@ -756,7 +756,7 @@ int lsoda(struct lsoda_context_t * ctx, double *y, double *t, double tout) {
 					}
 				}
 			}
-			tolsf = ETA * vmnorm(neq, _C(yh)[1], _C(ewt));
+			tolsf = ETA * vmnorm0(neq, _C(yh)[1], _C(ewt));
 			if (tolsf > 0.01) {
 				tolsf = tolsf * 200.;
 				if (_C(nst) == 0) {

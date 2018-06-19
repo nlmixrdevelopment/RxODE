@@ -177,7 +177,7 @@ int stoda(struct lsoda_context_t * ctx, double *y, int jstart)
 					for (i = 1; i <= neq; i++)
 						_C(yh)[i1][i] += _C(yh)[i1 + 1][i];
 				}
-			pnorm = vmnorm(neq, _C(yh)[1], _C(ewt));
+			pnorm = vmnorm0(neq, _C(yh)[1], _C(ewt));
 
 			int corflag = correction(ctx, y, pnorm, &del, &delp, told, &m);
 			if (corflag == 0)
@@ -200,7 +200,7 @@ int stoda(struct lsoda_context_t * ctx, double *y, int jstart)
 		if (m == 0)
 			dsm = del / _C(tesco)[_C(nq)][2];
 		if (m > 0)
-			dsm = vmnorm(neq, _C(acor), _C(ewt)) / _C(tesco)[_C(nq)][2];
+			dsm = vmnorm0(neq, _C(acor), _C(ewt)) / _C(tesco)[_C(nq)][2];
 		if (dsm <= 1.) {
 /*
    After a successful step, update the _C(yh) array.
@@ -245,7 +245,7 @@ int stoda(struct lsoda_context_t * ctx, double *y, int jstart)
 				if ((_C(nq) + 1) != maxord + 1) {
 					for (i = 1; i <= neq; i++)
 						_C(savf)[i] = _C(acor)[i] - _C(yh)[maxord + 1][i];
-					dup = vmnorm(neq, _C(savf), _C(ewt)) / _C(tesco)[_C(nq)][3];
+					dup = vmnorm0(neq, _C(savf), _C(ewt)) / _C(tesco)[_C(nq)][3];
 					exup = 1. / (double) ((_C(nq) + 1) + 1);
 					rhup = 1. / (1.4 * pow(dup, exup) + 0.0000014);
 				}

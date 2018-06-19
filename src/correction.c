@@ -61,7 +61,7 @@ int correction(struct lsoda_context_t * ctx, double *y, double pnorm, double *de
 				_C(savf)[i] = _C(h) * _C(savf)[i] - _C(yh)[2][i];
 				y[i] = _C(savf)[i] - _C(acor)[i];
 			}
-			*del = vmnorm(neq, y, _C(ewt));
+			*del = vmnorm0(neq, y, _C(ewt));
 			for (i = 1; i <= neq; i++) {
 				y[i] = _C(yh)[1][i] + _C(el)[1] * _C(savf)[i];
 				_C(acor)[i] = _C(savf)[i];
@@ -77,7 +77,7 @@ int correction(struct lsoda_context_t * ctx, double *y, double pnorm, double *de
 			for (i = 1; i <= neq; i++)
 				y[i] = _C(h) * _C(savf)[i] - (_C(yh)[2][i] + _C(acor)[i]);
 			solsy(ctx, y);
-			*del = vmnorm(neq, y, _C(ewt));
+			*del = vmnorm0(neq, y, _C(ewt));
 			for (i = 1; i <= neq; i++) {
 				_C(acor)[i] += y[i];
 				y[i] = _C(yh)[1][i] + _C(el)[1] * _C(acor)[i];

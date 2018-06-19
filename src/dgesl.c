@@ -4,7 +4,7 @@
  ***********/
 
 void 
-dgesl(a, n, ipvt, b, job)
+dgesl0(a, n, ipvt, b, job)
 	double        **a, *b;
 	int             n, *ipvt, job;
 
@@ -58,14 +58,14 @@ dgesl(a, n, ipvt, b, job)
    First solve L * y = b.
 */
 		for (k = 1; k <= n; k++) {
-			t = ddot(k - 1, a[k], 1, b, 1);
+			t = ddot0(k - 1, a[k], 1, b, 1);
 			b[k] = (b[k] - t) / a[k][k];
 		}
 /*
    Now solve U * x = y.
 */
 		for (k = n - 1; k >= 1; k--) {
-			b[k] = b[k] + ddot(n - k, a[k] + k, 1, b + k, 1);
+			b[k] = b[k] + ddot0(n - k, a[k] + k, 1, b + k, 1);
 			j = ipvt[k];
 			if (j != k) {
 				t = b[j];
@@ -87,7 +87,7 @@ dgesl(a, n, ipvt, b, job)
 			b[j] = b[k];
 			b[k] = t;
 		}
-		daxpy(n - k, t, a[k] + k, 1, b + k, 1);
+		daxpy0(n - k, t, a[k] + k, 1, b + k, 1);
 	}
 /*
    Now solve Transpose(L) * x = y.
@@ -95,7 +95,7 @@ dgesl(a, n, ipvt, b, job)
 	for (k = n; k >= 1; k--) {
 		b[k] = b[k] / a[k][k];
 		t = -b[k];
-		daxpy(k - 1, t, a[k], 1, b, 1);
+		daxpy0(k - 1, t, a[k], 1, b, 1);
 	}
 
 }

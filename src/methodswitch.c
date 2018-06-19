@@ -70,7 +70,7 @@ void methodswitch(struct lsoda_context_t * ctx, double dsm, double pnorm, double
 				lm2 = mxords + 1;
 				exm2 = 1. / (double) lm2;
 				lm2p1 = lm2 + 1;
-				dm2 = vmnorm(neq, _C(yh)[lm2p1], _C(ewt)) / cm2[mxords];
+				dm2 = vmnorm0(neq, _C(yh)[lm2p1], _C(ewt)) / cm2[mxords];
 				rh2 = 1. / (1.2 * pow(dm2, exm2) + 0.0000012);
 			} else {
 				dm2 = dsm * (cm1[_C(nq)] / cm2[_C(nq)]);
@@ -107,7 +107,7 @@ void methodswitch(struct lsoda_context_t * ctx, double dsm, double pnorm, double
 		lm1 = mxordn + 1;
 		exm1 = 1. / (double) lm1;
 		lm1p1 = lm1 + 1;
-		dm1 = vmnorm(neq, _C(yh)[lm1p1], _C(ewt)) / cm1[mxordn];
+		dm1 = vmnorm0(neq, _C(yh)[lm1p1], _C(ewt)) / cm1[mxordn];
 		rh1 = 1. / (1.2 * pow(dm1, exm1) + 0.0000012);
 	} else {
 		dm1 = dsm * (cm2[_C(nq)] / cm1[_C(nq)]);

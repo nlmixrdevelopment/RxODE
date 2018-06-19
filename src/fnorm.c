@@ -1,6 +1,6 @@
 #include <math.h>
 
-double fnorm(int n, double **a, double *w)
+double fnorm0(int n, double **a, double *w)
 
 /*
    This subroutine computes the norm of a full n by n matrix,

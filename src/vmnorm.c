@@ -1,6 +1,6 @@
 #include <math.h>
 
-double vmnorm(int n, double *v, double *w)
+double vmnorm0(int n, double *v, double *w)
 
 /*
    This function routine computes the weighted max-norm

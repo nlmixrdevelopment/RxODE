@@ -3,7 +3,7 @@
  **********/
 
 double 
-ddot(n, dx, incx, dy, incy)
+ddot0(n, dx, incx, dy, incy)
 	double         *dx, *dy;
 	int             n, incx, incy;
 

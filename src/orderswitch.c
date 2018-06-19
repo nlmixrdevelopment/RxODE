@@ -31,7 +31,7 @@ int orderswitch(struct lsoda_context_t * ctx, double rhup, double dsm, double *r
 
 	rhdn = 0.;
 	if (_C(nq) != 1) {
-		ddn = vmnorm(neq, _C(yh)[(_C(nq) + 1)], _C(ewt)) / _C(tesco)[_C(nq)][1];
+		ddn = vmnorm0(neq, _C(yh)[(_C(nq) + 1)], _C(ewt)) / _C(tesco)[_C(nq)][1];
 		exdn = 1. / (double) _C(nq);
 		rhdn = 1. / (1.3 * pow(ddn, exdn) + 0.0000013);
 	}

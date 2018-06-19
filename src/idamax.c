@@ -5,7 +5,7 @@
 #include <math.h>
 
 int 
-idamax(n, dx, incx)
+idamax0(n, dx, incx)
 	double         *dx;
 	int             n, incx;
 
