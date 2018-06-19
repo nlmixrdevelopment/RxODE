@@ -29,7 +29,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">RxODE</a>
-        <span class="label label-default" data-toggle="tooltip" data-placement="bottom" title="Released package">0.7.2.4</span>
+        <span class="label label-default" data-toggle="tooltip" data-placement="bottom" title="Released package">0.7.2.5</span>
       </span>
     </div>
 
@@ -109,7 +109,7 @@
       <h1>Introduction to RxODE</h1>
                         <h4 class="author">Matthew L. Fidler, Melissa Hallow, and Wenping Wang</h4>
             
-            <h4 class="date">2018-06-15</h4>
+            <h4 class="date">2018-06-18</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/nlmixrdevelopment/RxODE/blob/master/vignettes/RxODE-intro.Rmd"><code>vignettes/RxODE-intro.Rmd</code></a></small>
       <div class="hidden name"><code>RxODE-intro.Rmd</code></div>
@@ -128,15 +128,8 @@
 <a href="#description-of-rxode-illustrated-through-an-example" class="anchor"></a>Description of RxODE illustrated through an example</h1>
 <p>The model equations can be specified through a text string, a model file or an R expression. Both differential and algebraic equations are permitted. Differential equations are specified by <code>d/dt(var_name) =</code>. Each equation can be separated by a semicolon.</p>
 <p>To load <code>RxODE</code> package and compile the model:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(RxODE)</code></pre></div>
-<pre><code>## Warning in normalizePath(path.expand(path), winslash, mustWork):
-## path[1]="c:/R/nlmixr/R/bin/x64/Rterm": The system cannot find the file
-## specified
-
-## Warning in normalizePath(path.expand(path), winslash, mustWork):
-## path[1]="c:/R/nlmixr/R/bin/x64/Rterm": The system cannot find the file
-## specified</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">mod1 &lt;-<span class="kw"><a href="../reference/RxODE.html">RxODE</a></span>({
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(RxODE)
+mod1 &lt;-<span class="kw"><a href="../reference/RxODE.html">RxODE</a></span>({
     C2 =<span class="st"> </span>centr<span class="op">/</span>V2;
     C3 =<span class="st"> </span>peri<span class="op">/</span>V3;
     d<span class="op">/</span><span class="kw">dt</span>(depot) =<span class="op">-</span>KA<span class="op">*</span>depot;

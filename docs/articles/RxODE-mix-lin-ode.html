@@ -29,7 +29,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">RxODE</a>
-        <span class="label label-default" data-toggle="tooltip" data-placement="bottom" title="Released package">0.7.2.4</span>
+        <span class="label label-default" data-toggle="tooltip" data-placement="bottom" title="Released package">0.7.2.5</span>
       </span>
     </div>
 
@@ -109,7 +109,7 @@
       <h1>RxODE Solved Systems and ODEs</h1>
                         <h4 class="author">Matthew L. Fidler, Melissa Hallow, and Wenping Wang</h4>
             
-            <h4 class="date">2018-06-15</h4>
+            <h4 class="date">2018-06-18</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/nlmixrdevelopment/RxODE/blob/master/vignettes/RxODE-mix-lin-ode.Rmd"><code>vignettes/RxODE-mix-lin-ode.Rmd</code></a></small>
       <div class="hidden name"><code>RxODE-mix-lin-ode.Rmd</code></div>
@@ -122,15 +122,8 @@
 <h1 class="hasAnchor">
 <a href="#mixing-solved-systems-and-odes-" class="anchor"></a>Mixing Solved Systems and ODEs.</h1>
 <p>In addition to pure ODEs, you may mix solved systems and ODEs. The prior 2-compartment indirect response model can be simplified with a <code>linCmt()</code> function:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(RxODE)</code></pre></div>
-<pre><code>## Warning in normalizePath(path.expand(path), winslash, mustWork):
-## path[1]="c:/R/nlmixr/R/bin/x64/Rterm": The system cannot find the file
-## specified
-
-## Warning in normalizePath(path.expand(path), winslash, mustWork):
-## path[1]="c:/R/nlmixr/R/bin/x64/Rterm": The system cannot find the file
-## specified</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">## Setup example model
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(RxODE)
+## Setup example model
 mod1 &lt;-<span class="kw"><a href="../reference/RxODE.html">RxODE</a></span>({
     C2 =<span class="st"> </span>centr<span class="op">/</span>V2;
     C3 =<span class="st"> </span>peri<span class="op">/</span>V3;

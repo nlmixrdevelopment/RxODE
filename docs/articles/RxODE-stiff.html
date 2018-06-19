@@ -29,7 +29,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">RxODE</a>
-        <span class="label label-default" data-toggle="tooltip" data-placement="bottom" title="Released package">0.7.2.4</span>
+        <span class="label label-default" data-toggle="tooltip" data-placement="bottom" title="Released package">0.7.2.5</span>
       </span>
     </div>
 
@@ -109,7 +109,7 @@
       <h1>RxODE Jacobian specification and Stiff Systems</h1>
                         <h4 class="author">Matthew L. Fidler, Melissa Hallow, and Wenping Wang</h4>
             
-            <h4 class="date">2018-06-15</h4>
+            <h4 class="date">2018-06-18</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/nlmixrdevelopment/RxODE/blob/master/vignettes/RxODE-stiff.Rmd"><code>vignettes/RxODE-stiff.Rmd</code></a></small>
       <div class="hidden name"><code>RxODE-stiff.Rmd</code></div>
@@ -123,15 +123,9 @@
 <a href="#stiff-odes-with-jacobian-specification" class="anchor"></a>Stiff ODEs with Jacobian Specification</h1>
 <p>Occasionally, you may come across a <a href="https://en.wikipedia.org/wiki/Stiff_equation"><strong>stiff</strong> differential equation</a>, that is a differential equation that is numerically unstable and small variations in parameters cause different solutions to the ODEs. One way to tackle this is to choose a stiff-solver, or hybrid stiff solver (like the default LSODA). Typically this is enough. However exact Jacobian solutions may increase the stability of the ODE. (Note the Jacobian is the derivative of the ODE specification with respect to each variable). In RxODE you can specify the Jacobian with the <code>df(state)/dy(variable)=</code> statement. A classic ODE that has stiff properties under various conditions is the <a href="http://www.ece.northwestern.edu/local-apps/matlabhelp/techdoc/math_anal/diffeq6.html">van dar Pol</a> differential equations.</p>
 <p>In RxODE these can be specified by the following:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(RxODE)</code></pre></div>
-<pre><code>## Warning in normalizePath(path.expand(path), winslash, mustWork):
-## path[1]="c:/R/nlmixr/R/bin/x64/Rterm": The system cannot find the file
-## specified
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(RxODE)
 
-## Warning in normalizePath(path.expand(path), winslash, mustWork):
-## path[1]="c:/R/nlmixr/R/bin/x64/Rterm": The system cannot find the file
-## specified</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">Vtpol2 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/RxODE.html">RxODE</a></span>({
+Vtpol2 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/RxODE.html">RxODE</a></span>({
     d<span class="op">/</span><span class="kw">dt</span>(y)  =<span class="st"> </span>dy
     d<span class="op">/</span><span class="kw">dt</span>(dy) =<span class="st"> </span>mu<span class="op">*</span>(<span class="dv">1</span><span class="op">-</span>y<span class="op">^</span><span class="dv">2</span>)<span class="op">*</span>dy <span class="op">-</span><span class="st"> </span>y
     ## Jacobian

@@ -516,7 +516,7 @@ extern void m1_x64_ode_solver(int *neq,
 			   double *lhs,
 			   int *rc){
   // Backward compatible ode solver for 0.5* C interface
-  //if (_ptrid() != 1529118994 ){ _assign_ptr(m1_x64_model_vars());}
+  //if (_ptrid() != 1529381656 ){ _assign_ptr(m1_x64_model_vars());}
   double *_theta = theta;
   _old_c(neq, _theta, time, evid, ntime, inits, dose, ret, atol, rtol, stiff, transit_abs, nlhs, lhs, rc);
 }
@@ -724,7 +724,7 @@ extern SEXP m1_x64_model_vars(){
     SEXP state    = PROTECT(allocVector(STRSXP, 4));pro++;
     SEXP stateRmS = PROTECT(allocVector(INTSXP, 4));pro++;
     SEXP timeInt = PROTECT(allocVector(INTSXP, 1));pro++;
-    INTEGER(timeInt)[0] = 1529118994;
+    INTEGER(timeInt)[0] = 1529381656;
     SEXP sens     = PROTECT(allocVector(STRSXP, 0));pro++;
     SEXP normState= PROTECT(allocVector(STRSXP, 4));pro++;
     SEXP fn_ini   = PROTECT(allocVector(STRSXP, 0));pro++;
@@ -823,9 +823,9 @@ extern SEXP m1_x64_model_vars(){
     SET_STRING_ELT(names,15,mkChar("timeId"));
     SET_VECTOR_ELT(lst,  15,timeInt);
     SET_STRING_ELT(mmd5n,0,mkChar("file_md5"));
-    SET_STRING_ELT(mmd5,0,mkChar("4f09646f2b75c132ca3444f34bdc3a6e"));
+    SET_STRING_ELT(mmd5,0,mkChar("b80f177208e0480d2b316fe6f84808df"));
     SET_STRING_ELT(mmd5n,1,mkChar("parsed_md5"));
-    SET_STRING_ELT(mmd5,1,mkChar("1222155014066cc9c85935cfa10adeca"));
+    SET_STRING_ELT(mmd5,1,mkChar("f8c689391cb7896425f1ee1d5e4704ec"));
     SET_STRING_ELT(trann,0,mkChar("lib.name"));
     SET_STRING_ELT(tran, 0,mkChar("m1_x64"));
     SET_STRING_ELT(trann,1,mkChar("jac"));
