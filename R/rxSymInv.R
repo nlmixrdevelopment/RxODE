@@ -761,10 +761,9 @@ rxSymInvCreateC_ <- function(mat, diag.xform=c("log", "sqrt", "identity")){
         block[[length(block) + 1]] <- cur;
     }
     if (length(block) == 0){
-        if (diag.xform == "log" && dim(mat1)[1] <= .Call(`_rxCholInv`,0L,NULL,NULL)){
-            th <- th.unscaled;
+        if (diag.xform == "log" && dim(mat1)[1] <= .Call(`_rxCholInv`, 0L, NULL, NULL)){
             fmat <- mat1;
-            num <- as.vector(mat1[upper.tri(mat1,TRUE)]);
+            num <- as.vector(mat1[upper.tri(mat1, TRUE)]);
             i <- 0;
             num <- sapply(num, function(x){
                 if (x == 1){
@@ -774,7 +773,7 @@ rxSymInvCreateC_ <- function(mat, diag.xform=c("log", "sqrt", "identity")){
                     return(0)
                 }
             })
-            fmat[upper.tri(fmat, TRUE)] <- num -1;
+            fmat[upper.tri(fmat, TRUE)] <- num - 1;
             fmat[lower.tri(fmat)] <- t(fmat)[lower.tri(fmat)];
             d <- dim(fmat)[1];
             fmat <- paste0("t", fmat);
@@ -813,7 +812,8 @@ rxSymInvCreateC_ <- function(mat, diag.xform=c("log", "sqrt", "identity")){
         }
     } else {
         mat <- Matrix::.bdiag(block);
-        matI <- lapply(block, rxSymInvCreateC_, diag.xform=diag.xform, create.env=FALSE);
+        matI <- lapply(block, rxSymInvCreateC_, diag.xform=diag.xform);
+        ini <- unlist(lapply(matI, function(x){x$ini}))
         ntheta <- sum(sapply(matI, function(x){
             return(x$fn(NULL, -2L));
         }))
@@ -873,6 +873,7 @@ rxSymInvCreateC_ <- function(mat, diag.xform=c("log", "sqrt", "identity")){
                 return(unlist(lst));
             }
         }))
+
         ret <- list(fmat=mat,
                     ini=ini,
                     fn=fn);
