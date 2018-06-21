@@ -599,14 +599,22 @@ rxSymInvC2 <- function(mat1, diag.xform=c("log", "sqrt", "identity"),
         rxCat("done\n")
         ## Then take the derivatives
         ## These are used in equations #28 and #47
+        ##
+        ##
+        ## - Omega^-1 %*% dOmega %*% Omega^-1 = d(Omega^-1)
+        ##
         ## In Equation #28
         ##
-        ## Omega^-1 %*% dOmega %*% Omega^1 = -d(Omega^-1)
-        ## Therefore +1/2*t(eta) %*% Omega^-1 %*% dOmega %*% Omega^1  %*% eta =
-        ## -1/2*t(eta)*-d(Omega^-1)*eta
+        ## Therefore:
+        ##  1/2*t(eta) %*% (Omega^-1 %*% dOmega %*% Omega^-1)  %*% eta =
+        ## -1/2*t(eta)*d(Omega^-1)*eta
         ##
-        ## The second part is -1/2*tr(Omega^-1*dOmega) = +1/2*tr(Omega^-1*Omega*d(Omega^-1)*Omega) or
-        ## +1/2*tr(d(Omega^-1)*Omega);  Omega needs to be inverted, but no symbolically.d
+        ## The second part is:
+        ##
+        ##  -1/2*tr(Omega^-1*dOmega) = +1/2*tr(Omega^-1 %*% Omega %*% d(Omega^-1)*Omega) or
+        ## +1/2*tr(d(Omega^-1)*Omega);
+        ##
+        ## Omega needs to be inverted, but not symbolically.
         ##
         ## In fact the whole of dOmega does not need to be calculated,
         ## rather the diff(D_Omega^-1) where the D is the LDL^T
@@ -947,15 +955,17 @@ print.rxSymInvCholEnv <- function(x, ...){ # nocov start
 
 ##'@export
 str.rxSymInvCholEnv <- function(object, ...){ # nocov start
-    message("Derivatives and Inverse of a matrix; Assigning theta will change these values.")
-    message(" $ theta             : Current parameters (on inverse Cholesky)")
-    message(" $ ntheta            : Number of parameters")
-    message(" $ chol.omegaInv     : chol(Omega^-1)")
-    message(" $ omegaInv          : Omega^-1")
-    message(" $ d.omegaInv        : d(Omega^-1)")
-    message(" $ d.D.omegaInv      : gives the d(diagonal(Omega^-1))")
-    message(" $ chol.omega        : chol(Omega)")
-    message(" $ omega             : Omega")
-    message(" $ log.det.OMGAinv.5 : log(det(Omega^-1))")
+    cat("Derivatives and Inverse of a matrix; Assigning theta will change these values.\n")
+    cat(" $ theta             : Current parameters (on inverse Cholesky)\n")
+    cat(" $ ntheta            : Number of parameters\n")
+    cat(" $ chol.omegaInv     : chol(Omega^-1)\n")
+    cat(" $ omegaInv          : Omega^-1\n")
+    cat(" $ d.omegaInv        : d(Omega^-1)\n")
+    cat(" $ d.D.omegaInv      : gives the d(diagonal(Omega^-1))\n")
+    cat(" $ chol.omega        : chol(Omega)\n")
+    cat(" $ omega             : Omega\n")
+    cat(" $ log.det.OMGAinv.5 : log(det(Omega^-1))\n")
+    cat(" $ tr.28             : -0.5*tr(Omega^-1 %*% d(Omega)) = 0.5*tr(d(Omega^-1) %*% Omega); (Almquist 2015 #28)\n")
+    cat(" $ omega.47          : d(Omega^-1)*d(eta) (Almquist 2015 #47)\n")
 } #nocov end
 

@@ -148,13 +148,13 @@ RObject rxSymInvCholEnvCalculate(List obj, std::string what, Nullable<NumericVec
         e["omegaInv"]= as<NumericMatrix>(rxSymInvChol(invObj, theta, "omegaInv",-1));
       } else if (what == "d.omegaInv"){
         List ret(ntheta);
-        for (i =0; i < ntheta; i++){
+        for (i = ntheta; i--; ){
           ret[i] = as<NumericMatrix>(rxSymInvChol(invObj, theta, "d(omegaInv)",i+1));
         }
         e["d.omegaInv"] = ret;
       } else if (what == "d.D.omegaInv"){
         List ret(ntheta);
-        for (i =0; i < ntheta; i++){
+        for (i = ntheta; i--; ){
           ret[i] = as<NumericVector>(rxSymInvChol(invObj, theta, "d(D)",i+1));
         }
         e["d.D.omegaInv"] = ret;
@@ -179,6 +179,42 @@ RObject rxSymInvCholEnvCalculate(List obj, std::string what, Nullable<NumericVec
         arma::vec ldiag = log(diag);
         NumericVector ret = as<NumericVector>(wrap(sum(ldiag)));
         e["log.det.OMGAinv.5"] = ret;
+      } else if (what == "tr.28"){
+	// 1/2*tr(d(Omega^-1)*Omega);
+        rxSymInvCholEnvCalculate(obj,"d.omegaInv", R_NilValue);
+        rxSymInvCholEnvCalculate(obj,"omega", R_NilValue);
+	List dOmegaInv = as<List>(e["d.omegaInv"]);
+	arma::mat omega = as<arma::mat>(e["omega"]);
+	NumericVector tr28(dOmegaInv.size());
+	arma::mat cur;
+        arma::vec diag;
+	for (i = tr28.size();i--;){
+	  cur = as<arma::mat>(dOmegaInv[i]) * omega;
+	  diag = cur.diag();
+	  tr28[i] = 0.5*sum(diag);
+	}
+	e["tr.28"] = tr28;
+      } else if (what == "omega.47"){
+	rxSymInvCholEnvCalculate(obj,"d.omegaInv", R_NilValue);
+        rxSymInvCholEnvCalculate(obj,"chol.omegaInv", R_NilValue);
+	unsigned int j;
+	arma::mat cholO = as<arma::mat>(e["chol.omegaInv"]);
+        int neta = cholO.n_rows;
+        List dOmegaInv = as<List>(e["d.omegaInv"]);
+        arma::mat cEta = zeros(neta,1);
+        arma::mat c;
+        List prod2(ntheta);
+        for (i = dOmegaInv.size(); i--;){
+	  c = as<arma::mat>(dOmegaInv[i]);
+          List prodI(neta);
+          for (j = neta; j--;){
+            cEta(j,0) = 1;
+            prodI[j] = c*cEta;
+            cEta(j,0) = 0;
+          }
+          prod2[i] = prodI;
+        }
+	e["omega.47"] = prod2;
       }
       return e[what];
     }
