@@ -558,20 +558,21 @@ extern void ind_lsoda0(rx_solve *rx, rx_solving_options *op, int solveid, int *n
 }
 
 extern void ind_lsoda(rx_solve *rx, int solveid,
-                      t_dydt_lsoda_dum dydt_ls, t_update_inis u_inis, t_jdum_lsoda jdum){
+                      t_dydt_lsoda_dum dydt_ls, t_update_inis u_inis, t_jdum_lsoda jdum,
+		      int cjt){
   int neq[2];
   neq[0] = op_global.neq;
   neq[1] = 0;
   
   // Set jt to 1 if full is specified.
-  int lrw=22+neq[0]*max(16, neq[0]+9), liw=20+neq[0], jt = global_jt;
+  int lrw=22+neq[0]*max(16, neq[0]+9), liw=20+neq[0];
   double *rwork;
   int *iwork;
   if (global_debug)
-    REprintf("JT: %d\n",jt);
+    REprintf("JT: %d\n",cjt);
   rwork = global_rwork(lrw+1);
   iwork = global_iwork(liw+1);
-  ind_lsoda0(rx, &op_global, solveid, neq, rwork, lrw, iwork, liw, jt,
+  ind_lsoda0(rx, &op_global, solveid, neq, rwork, lrw, iwork, liw, cjt,
              dydt_ls, u_inis, jdum);
 }
 
@@ -771,9 +772,10 @@ void par_dop(rx_solve *rx){
 }
 
 void ind_solve(rx_solve *rx, unsigned int cid,
-		      t_dydt_liblsoda dydt_lls,
-                      t_dydt_lsoda_dum dydt_lsoda, t_jdum_lsoda jdum,
-		      t_dydt c_dydt, t_update_inis u_inis){
+	       t_dydt_liblsoda dydt_lls,
+	       t_dydt_lsoda_dum dydt_lsoda, t_jdum_lsoda jdum,
+	       t_dydt c_dydt, t_update_inis u_inis,
+	       int jt){
   rx_solving_options *op = &op_global;
   if (op->neq > 0){
     switch (op->stiff){
@@ -781,7 +783,7 @@ void ind_solve(rx_solve *rx, unsigned int cid,
       ind_liblsoda(rx, cid, dydt_lls, u_inis);
 	break;
     case 1:
-      ind_lsoda(rx,cid, dydt_lsoda, u_inis, jdum);
+      ind_lsoda(rx,cid, dydt_lsoda, u_inis, jdum, jt);
       break;
     case 0:
       ind_dop(rx, cid, c_dydt, u_inis);

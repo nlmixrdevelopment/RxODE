@@ -2979,7 +2979,6 @@ SEXP rxSolveC(const RObject &obj,
     List dat = RxODE_df(doDose);
     dat.attr("class") = CharacterVector::create("data.frame");
     List xtra;
-    // if (!rx->matrix) xtra = RxODE_par_df();
     int nr = rx->nr;
     int nc = dat.size();
     if (rx->matrix){
@@ -3053,53 +3052,12 @@ SEXP rxSolveC(const RObject &obj,
       e[".jac.counter"] = jac_counterIv;
       e[".nsub"] = rx->nsub;
       e[".nsim"] = rx->nsim;
-      // IntegerVector eParCov(ncov);
-      // Do I even need this?
-      // std::copy(&_globals.gpar_cov[0], &_globals.gpar_cov[0]+ncov, eParCov.begin());
-      // e[".par.cov"] = eParCov;
-      //gpar_cov
-      //IntegerVector (ncov)
-      // Save information
-      // Remove one final; Just for debug.
-      // e["parData"] = parData;
-      // List pd = as<List>(xtra[0]);
-      // if (pd.size() == 0){
-      // 	e["params.dat"] = R_NilValue;
-      // } else {
-      // 	e["params.dat"] = pd;
-      // }
-      // if (rx->nsub == 1 && rx->nsim == 1){
-      // 	int n = pd.size();
-      // 	NumericVector par2(n);
-      // 	for (int i = 0; i <n; i++){
-      // 	  par2[i] = (as<NumericVector>(pd[i]))[0];
-      // 	}
-      // 	par2.names() = pd.names();
-      // 	if (par2.size() == 0){
-      // 	  e["params.single"] = R_NilValue;
-      // 	} else {
-      // 	  e["params.single"] = par2;
-      // 	}
-      // } else {
-      // 	e["params.single"] = R_NilValue;
-      // }
-      // e["EventTable"] = xtra[1]; // done
-      // e["dosing"] = xtra[3]; // done
-      // e["sampling"] = xtra[2]; // done
-      // e["obs.rec"] = xtra[4]; // done
-      // e["covs"] = xtra[5]; // done
-      // e["counts"] = xtra[6];
       e["inits.dat"] = initsC;
       CharacterVector units = CharacterVector::create(amountUnits[0], timeUnits[0]);
       units.names() = CharacterVector::create("dosing","time");
       e["units"] = units;
       e["nobs"] = rx->nobs;
     
-      // Function eventTable("eventTable",RxODE);
-      // List et = eventTable(_["amount.units"] = amountUnits, _["time.units"] = timeUnits);
-      // Function importEt = as<Function>(et["import.EventTable"]);
-      // importEt(e["EventTable"]);
-      // e["events.EventTable"] = et;
       e["args.object"] = object;
       e["dll"] = rxDll(object);
       if (!swappedEvents){
@@ -3935,26 +3893,26 @@ extern "C" void RxODE_assign_fn_pointers_(const char *mv);
 void rxAssignPtr(SEXP object = R_NilValue){
   List mv=rxModelVars(as<RObject>(object));
   CharacterVector trans = mv["trans"];
-    RxODE_assign_fn_pointers_((as<std::string>(trans["model_vars"])).c_str());
-    rxUpdateFuns(as<SEXP>(trans));
-    getRxSolve_();
-    // Update rxModels environment.
-    getRxModels();
+  RxODE_assign_fn_pointers_((as<std::string>(trans["model_vars"])).c_str());
+  rxUpdateFuns(as<SEXP>(trans));
+  getRxSolve_();
+  // Update rxModels environment.
+  getRxModels();
   
-    std::string ptr = as<std::string>(trans["model_vars"]); 
-    if (!_rxModels.exists(ptr)){
-      _rxModels[ptr] = mv;
-    } else if (!rxIsCurrent(as<RObject>(_rxModels[ptr]))) {
-      _rxModels[ptr] = mv;
+  std::string ptr = as<std::string>(trans["model_vars"]); 
+  if (!_rxModels.exists(ptr)){
+    _rxModels[ptr] = mv;
+  } else if (!rxIsCurrent(as<RObject>(_rxModels[ptr]))) {
+    _rxModels[ptr] = mv;
+  }
+  Nullable<Environment> e1 = rxRxODEenv(object);
+  if (!e1.isNull()){
+    std::string prefix = as<std::string>(trans["prefix"]);
+    if (!_rxModels.exists(prefix)){
+      Environment e = as<Environment>(e1);
+      _rxModels[prefix] = e;
     }
-    Nullable<Environment> e1 = rxRxODEenv(object);
-    if (!e1.isNull()){
-      std::string prefix = as<std::string>(trans["prefix"]);
-      if (!_rxModels.exists(prefix)){
-        Environment e = as<Environment>(e1);
-        _rxModels[prefix] = e;
-      }
-    }
+  }
 }
 
 extern "C" void rxAssignPtrC(SEXP obj){

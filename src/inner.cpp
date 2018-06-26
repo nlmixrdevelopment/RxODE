@@ -1,40 +1,95 @@
 #include <RcppArmadillo.h>
+#define NETAs 20
+#define NTHETAs 20
+#define innerOde(id) ind_solve(rx, id, inner_dydt_liblsoda, inner_dydt_lsoda_dum, inner_jdum_lsoda, inner_dydt, inner_update_inis, inner_global_jt)
+#define getOmegaInv() (as<arma::mat>(rxSymInvCholEnvCalculate(_rxInv, "omegaInv", R_NilValue)))
+#define getOmegaDet() (as<arma::mat>(rxSymInvCholEnvCalculate(_rxInv, "log.det.OMGAinv.5", R_NilValue)))
+#define setOmegaTheta(x) rxSymInvCholEnvCalculate(_rxInv, "theta", x)
+
 using namespace Rcpp;
 using namespace arma;
 extern "C"{
 #include "solve.h"
-  void ind_solve(rx_solve *rx, unsigned int cid,
-                 t_dydt_liblsoda dydt_lls,
-                 t_dydt_lsoda_dum dydt_lsoda, t_jdum_lsoda jdum,
-                 t_dydt c_dydt, t_update_inis u_inis);
+  void ind_solve(rx_solve *rx, unsigned int cid, t_dydt_liblsoda dydt_lls, 
+		 t_dydt_lsoda_dum dydt_lsoda, t_jdum_lsoda jdum,
+                 t_dydt c_dydt, t_update_inis u_inis, int jt);
 }
+
+RObject rxSymInvCholEnvCalculate(List obj, std::string what, Nullable<NumericVector> theta = R_NilValue);
+bool rxIs(const RObject &obj, std::string cls);
+
+List _rxInv;
 
 // These are focei inner options
 typedef struct {
   // Integer of ETAs
+  unsigned int etaTransN;
   int *etaTrans;
   unsigned int neta;
   unsigned int ntheta;
   double *theta;
+  unsigned int thetaTransN;
   int *thetaTrans;
   double scaleTo;
   double epsilon;
-  unsigned int max_iterations;
+  unsigned int maxInnerIterations;
+  unsigned int nsim;
   unsigned int nzm;
+  unsigned int imp;
 } focei_options;
 
 focei_options op_focei;
 
+extern "C" void rxOptionsIniFocei(){
+  op_focei.etaTransN = NETAs;
+  op_focei.etaTrans = Calloc(NETAs,int);
+  op_focei.thetaTrans = Calloc(NTHETAs,int);
+  op_focei.thetaTransN = NTHETAs;
+  op_focei.theta = Calloc(NTHETAs,double);
+}
+
+void foceiThetaN(unsigned int n){
+  if (op_focei.thetaTransN < n){
+    unsigned int cur = op_focei.thetaTransN;
+    while (cur < n){
+      cur += NTHETAs;
+    }
+    Free(op_focei.thetaTrans);
+    Free(op_focei.theta);
+    op_focei.thetaTrans = Calloc(cur, int);
+    op_focei.theta = Calloc(cur, double);
+  }
+}
+
+void foceiEtaN(unsigned int n){
+  if (op_focei.etaTransN < n){
+    unsigned int cur = op_focei.etaTransN;
+    while (cur < n){
+      cur += NETAs;
+    }
+    Free(op_focei.etaTrans);
+    op_focei.etaTrans = Calloc(cur, int);
+  }
+}
+
+extern "C" void rxOptionsFreeFocei(){
+  Free(op_focei.etaTrans);
+  Free(op_focei.thetaTrans);
+  Free(op_focei.theta);
+}
 
 typedef struct {
+  double *eta; // Eta includes the ID number for the patient
   // F and varaibility
+  unsigned int nobs;
+  unsigned int setup;
   mat f; // can change
   mat r; // can change
   //
   //mat dv; // doesn't change on update.
   mat err;
   //
-  unsigned int neta;// = as<unsigned int>(e["neta"]);
+  //unsigned int neta;// = as<unsigned int>(e["neta"]);
   // Derivatives
   mat fpm;// = mat(nObs(), neta); or d(pred)/d(eta#)
   mat rp;// = mat(nObs(),neta);
@@ -43,11 +98,13 @@ typedef struct {
   mat B;// = mat(nObs(),1);
   mat c;// was List(neta); but should be (nObs(), neta)
   mat a;// was List(neta); but should be (nObs(), neta)
+  double *oldEta;
   
   // Likilihood gradient
+  double llik;
   mat lp;// = mat(neta,1);
-    
-  double *eta;
+
+  int mode; // 1 = dont use zm, 2 = use zm.
   double *zm;
   unsigned int uzm;
 } focei_ind;
@@ -135,6 +192,8 @@ void rxClearInnerFuns(){
   inner_dydt_liblsoda         = NULL;
 }
 
+rx_solve* rx;
+
 uvec lowerTri(mat H, bool diag = false){
   unsigned int d = H.n_rows;
   mat o(d, d, fill::ones);
@@ -166,3 +225,180 @@ void updateZm(focei_ind *indF){
     indF->uzm = 1;
   }
 }
+
+CharacterVector rxParams_(const RObject &obj);
+List rxModelVars_(const RObject &obj);
+
+void foceiSetupTrans_(CharacterVector pars){
+  unsigned int k, j,  ps = pars.size();
+  k=ps;
+  std::string thetaS;
+  std::string etaS;
+  std::string cur;
+  foceiEtaN(ps);
+  foceiThetaN(ps);
+  op_focei.neta = 0;
+  op_focei.ntheta = 0;
+  for (;k--;){
+    for (j = ps; j--;){
+      // Compare ETAS first since they are smaller strings.
+      cur = as<std::string>(pars[k]);
+      etaS = "ETA[" + std::to_string(j+1) + "]";
+      if (cur == etaS){
+        op_focei.etaTrans[j] = k;
+        op_focei.neta++;
+        break;
+      } else {
+        thetaS = "THETA[" + std::to_string(j+1) + "]";
+        if (cur == thetaS){
+          op_focei.thetaTrans[j] = k;
+          op_focei.ntheta++;
+          break;
+        }
+      }
+    }
+  }
+  op_focei.nzm = op_focei.neta * (op_focei.neta + 13) / 2;
+}
+
+double likInner(double *eta){
+  // id = eta[-1]
+  // eta = eta
+  double *eprev = &eta[0]-1;
+  unsigned int id = (unsigned int)(eprev[0]);
+  rx_solving_options_ind ind = rx->subjects[id];
+  rx_solving_options *op = rx->op;
+  focei_ind fInd = (inds_focei[id]);
+  double *par_ptr = ind.par_ptr;
+  unsigned int i, j;
+  bool recalc = false;
+  if (!fInd.setup){
+    recalc=true;
+    fInd.nobs = ind.n_all_times - ind.ndoses;
+    fInd.fpm = arma::mat(fInd.nobs, op_focei.neta);
+    fInd.rp  = arma::mat(fInd.nobs, op_focei.neta);
+    fInd.B   = arma::mat(fInd.nobs, 1);
+    fInd.c   = arma::mat(fInd.nobs, op_focei.neta);
+    fInd.a   = arma::mat(fInd.nobs, op_focei.neta);
+    fInd.lp  = arma::mat(op_focei.neta, 1);
+    fInd.f   = arma::mat(fInd.nobs, 1);
+    fInd.r   = arma::mat(fInd.nobs, 1);
+    fInd.err = arma::mat(fInd.nobs, 1);
+    fInd.setup = 1;
+  } else {
+    // Check to see if old ETA matches.
+    for (j = op_focei.neta; j--;){
+      if (fInd.oldEta[j] != eta[j]){
+	recalc=true;
+	break;
+      }
+    }
+  }
+  if (recalc){
+    // Update eta.
+    for (j = op_focei.neta; j--;){
+      par_ptr[op_focei.etaTrans[j]] = eta[j];
+    }
+    // Solve ODE
+    innerOde(id);
+    // Calculate matricies
+    unsigned int k = fInd.nobs - 1;
+    std::fill_n(fInd.lp.begin(), fInd.lp.end(), 0.0);
+    fInd.llik=0.0;
+    for (j = ind.n_all_times; j--;){
+      if (!ind.evid[i]){
+	// Observation; Calc LHS.
+	inner_calc_lhs((int)id, ind.all_times[i], ind.solve+i*op->neq, ind.lhs);
+	fInd.f(k, 0) = ind.lhs[0];
+	fInd.err(k, 0) = ind.lhs[0] - ind.dv[k]; // pred-dv
+	fInd.r(k, 0) = ind.lhs[op_focei.neta+1];
+	fInd.B(k, 0) = 2.0/ind.lhs[op_focei.neta+1];
+	// lhs 0 = F
+	// lhs 1-eta = df/deta
+	// FIXME faster initiliaitzation via copy or elim
+	for (i = op_focei.neta; i--; ){
+	  fInd.fpm(k, i) = ind.lhs[i + 1];
+          fInd.a(k, i)   = ind.lhs[i + 1]; // Amquist uses different #15
+	  fInd.rp(k, i)  = ind.lhs[i+ op_focei.neta + 2];
+	  fInd.c(k, i)   = ind.lhs[i+ op_focei.neta + 2]/ind.lhs[op_focei.neta+1];
+	  // lp is eq 12 in Almquist 2015
+	  // // .5*apply(eps*fp*B + .5*eps^2*B*c - c, 2, sum) - OMGAinv %*% ETA
+	  fInd.lp(i, 0)  += 0.25 * fInd.err(k, 0) * fInd.err(k, 0) * fInd.B(k, 0) * fInd.c(k, i)-
+	    0.5*fInd.c(k, i) - 0.5 * fInd.err(k, 0) * fInd.fpm(k, j) * fInd.B(k, 0);
+	}
+	// Eq #10
+	fInd.llik += -0.5*fInd.err(k, 0)*fInd.err(k, 0)/fInd.r(k, 0) - 0.5*log(fInd.r(k, 0));
+      }
+    }
+    // Now finalize lp
+    mat etam = arma::mat(op_focei.neta, 1);
+    std::copy(&eta[0], &eta[0] + op_focei.neta, etam.begin()); // fill in etam
+    mat omegaInv = getOmegaInv();
+    // Finalize eq. #12
+    fInd.lp = -(fInd.lp - omegaInv * etam);
+    // Partially finalize #10
+    mat llikm = -(fInd.llik - 0.5*(etam.t() * omegaInv * etam));
+    fInd.llik = llikm(0,0);
+    std::copy(&eta[0], &eta[0] + op_focei.neta, &fInd.oldEta[0]);
+  }
+  return fInd.llik;
+}
+
+double *lpInner(double *eta){
+  double *eprev = &eta[0]-1;
+  unsigned int id = (unsigned int)(eprev[0]);
+  focei_ind fInd = (inds_focei[id]);
+  likInner(eta);
+  return &fInd.oldEta[0];
+}
+
+// [[Rcpp::export]]
+RObject foceiSetup_(RObject &obj,
+		    RObject data,
+                    NumericVector theta,
+		    RObject rxInv,
+		    Nullable<NumericVector> epsilon = R_NilValue,
+		    unsigned int maxInnerEvals = 100,
+		    Nullable<IntegerVector> nsim = R_NilValue,
+		    bool printInner = false){
+  if (!rxIs(rxInv, "rxSymInvCholEnv")){
+    stop("Omega isn't in the proper format.");
+  } else {
+    _rxInv = as<List>(_rxInv);
+  }
+  // if (thetaFixed.size() ==)
+  rx = getRxSolve_();
+  
+  if (epsilon.isNull()){
+    op_focei.epsilon=DOUBLE_EPS;
+  } else {
+    NumericVector epsilon2 = NumericVector(epsilon);
+    if (epsilon2.size() == 1 && epsilon2[0] > 0){
+      op_focei.epsilon=epsilon2[0];
+    } else {
+      stop("epsilon has to be a positive number.");
+    }
+  }
+  op_focei.maxInnerIterations = maxInnerEvals;
+  if (nsim.isNull()){
+    op_focei.nsim=maxInnerEvals*10;
+  } else {
+    IntegerVector nsim2 = IntegerVector(nsim);
+    if (nsim2.size() == 1 && nsim2[0] > 1){
+      op_focei.nsim=nsim2[0];
+    } else {
+      stop("nsim has to be a positive integer.");
+    }
+  }
+  if (printInner){
+    op_focei.imp=1;
+  } else {
+    op_focei.imp=0;
+  }
+  List mvi = rxModelVars_(obj);
+  rxUpdateInnerFuns(as<SEXP>(mvi["trans"]));
+  foceiSetupTrans_(as<CharacterVector>(mvi["params"]));
+  return as<RObject>(R_NilValue);
+}
+
+

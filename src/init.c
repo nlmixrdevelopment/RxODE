@@ -5,6 +5,7 @@
 #include "solve.h"
 
 SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SEXP parse_model,SEXP parse_model3);
+SEXP _RxODE_foceiSetup_(SEXP obj);
 SEXP _RxODE_linCmtEnv(SEXP rho);
 SEXP _RxODE_rxInv(SEXP matrix);
 SEXP _RxODE_removableDrive(SEXP letter);
@@ -118,6 +119,8 @@ extern int rxIsCurrentC(SEXP obj);
 
 void rxOptionsIni();
 void rxOptionsIniData();
+void rxOptionsIniFocei();
+
 void R_init_RxODE(DllInfo *info){
   R_CallMethodDef callMethods[]  = {
     {"trans", (DL_FUNC) &trans, 8},
@@ -162,6 +165,7 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_add_sampling_", (DL_FUNC) &_RxODE_add_sampling_, 3},
     {"_RxODE_dynLoad", (DL_FUNC) &_RxODE_dynLoad, 1},
     {"_RxODE_rxSolveFree", (DL_FUNC) &_RxODE_rxSolveFree, 0},
+    {"_RxODE_foceiSetup_", (DL_FUNC) &_RxODE_foceiSetup_, 1},
     {NULL, NULL, 0}
   };
   // C callable to assign environments.
@@ -210,11 +214,14 @@ void R_init_RxODE(DllInfo *info){
   R_useDynamicSymbols(info, FALSE);
   rxOptionsIni();
   rxOptionsIniData();
+  rxOptionsIniFocei();
 }
 
 void rxOptionsFree();
 void gFree();
+void rxOptionsFreeFocei();
 void R_unload_RxODE(DllInfo *info){
   rxOptionsFree();
   gFree();
+  rxOptionsFreeFocei();
 }

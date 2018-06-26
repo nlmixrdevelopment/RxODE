@@ -41,6 +41,24 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// foceiSetup_
+RObject foceiSetup_(RObject& obj, RObject data, NumericVector theta, RObject rxInv, Nullable<NumericVector> epsilon, unsigned int maxInnerEvals, Nullable<IntegerVector> nsim, bool printInner);
+RcppExport SEXP _RxODE_foceiSetup_(SEXP objSEXP, SEXP dataSEXP, SEXP thetaSEXP, SEXP rxInvSEXP, SEXP epsilonSEXP, SEXP maxInnerEvalsSEXP, SEXP nsimSEXP, SEXP printInnerSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< RObject& >::type obj(objSEXP);
+    Rcpp::traits::input_parameter< RObject >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type theta(thetaSEXP);
+    Rcpp::traits::input_parameter< RObject >::type rxInv(rxInvSEXP);
+    Rcpp::traits::input_parameter< Nullable<NumericVector> >::type epsilon(epsilonSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type maxInnerEvals(maxInnerEvalsSEXP);
+    Rcpp::traits::input_parameter< Nullable<IntegerVector> >::type nsim(nsimSEXP);
+    Rcpp::traits::input_parameter< bool >::type printInner(printInnerSEXP);
+    rcpp_result_gen = Rcpp::wrap(foceiSetup_(obj, data, theta, rxInv, epsilon, maxInnerEvals, nsim, printInner));
+    return rcpp_result_gen;
+END_RCPP
+}
 // rxIs
 bool rxIs(const RObject& obj, std::string cls);
 RcppExport SEXP _RxODE_rxIs(SEXP objSEXP, SEXP clsSEXP) {
