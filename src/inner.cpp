@@ -83,21 +83,7 @@ typedef struct {
   // F and varaibility
   unsigned int nobs;
   unsigned int setup;
-  mat f; // can change
-  mat r; // can change
-  //
-  //mat dv; // doesn't change on update.
-  mat err;
-  //
-  //unsigned int neta;// = as<unsigned int>(e["neta"]);
-  // Derivatives
-  mat fpm;// = mat(nObs(), neta); or d(pred)/d(eta#)
-  mat rp;// = mat(nObs(),neta);
-    
-  //
-  mat B;// = mat(nObs(),1);
-  mat c;// was List(neta); but should be (nObs(), neta)
-  mat a;// was List(neta); but should be (nObs(), neta)
+  
   double *oldEta;
   
   // Likilihood gradient
@@ -275,15 +261,7 @@ double likInner(double *eta){
   if (!fInd.setup){
     recalc=true;
     fInd.nobs = ind.n_all_times - ind.ndoses;
-    fInd.fpm = arma::mat(fInd.nobs, op_focei.neta);
-    fInd.rp  = arma::mat(fInd.nobs, op_focei.neta);
-    fInd.B   = arma::mat(fInd.nobs, 1);
-    fInd.c   = arma::mat(fInd.nobs, op_focei.neta);
-    fInd.a   = arma::mat(fInd.nobs, op_focei.neta);
     fInd.lp  = arma::mat(op_focei.neta, 1);
-    fInd.f   = arma::mat(fInd.nobs, 1);
-    fInd.r   = arma::mat(fInd.nobs, 1);
-    fInd.err = arma::mat(fInd.nobs, 1);
     fInd.setup = 1;
   } else {
     // Check to see if old ETA matches.
@@ -305,29 +283,33 @@ double likInner(double *eta){
     unsigned int k = fInd.nobs - 1;
     std::fill_n(fInd.lp.begin(), fInd.lp.end(), 0.0);
     fInd.llik=0.0;
+    double f, err, r, B, fpm, a, rp, c;
     for (j = ind.n_all_times; j--;){
-      if (!ind.evid[i]){
+      if (!ind.evid[j]){
 	// Observation; Calc LHS.
-	inner_calc_lhs((int)id, ind.all_times[i], ind.solve+i*op->neq, ind.lhs);
-	fInd.f(k, 0) = ind.lhs[0];
-	fInd.err(k, 0) = ind.lhs[0] - ind.dv[k]; // pred-dv
-	fInd.r(k, 0) = ind.lhs[op_focei.neta+1];
-	fInd.B(k, 0) = 2.0/ind.lhs[op_focei.neta+1];
+	inner_calc_lhs((int)id, ind.all_times[j], ind.solve + j * op->neq, ind.lhs);
+        f = ind.lhs[0];
+	// fInd.f(k, 0) = ind.lhs[0];
+	err = f - ind.dv[k];
+	// fInd.err(k, 0) = ind.lhs[0] - ind.dv[k]; // pred-dv
+        r = ind.lhs[op_focei.neta + 1];
+	// fInd.r(k, 0) = ind.lhs[op_focei.neta+1];
+        B = 2.0/r;
+	// fInd.B(k, 0) = 2.0/ind.lhs[op_focei.neta+1];
 	// lhs 0 = F
 	// lhs 1-eta = df/deta
 	// FIXME faster initiliaitzation via copy or elim
 	for (i = op_focei.neta; i--; ){
-	  fInd.fpm(k, i) = ind.lhs[i + 1];
-          fInd.a(k, i)   = ind.lhs[i + 1]; // Amquist uses different #15
-	  fInd.rp(k, i)  = ind.lhs[i+ op_focei.neta + 2];
-	  fInd.c(k, i)   = ind.lhs[i+ op_focei.neta + 2]/ind.lhs[op_focei.neta+1];
+	  fpm = a = ind.lhs[i + 1]; // Almquist uses different a (see eq #15)
+	  rp  = ind.lhs[i + op_focei.neta + 2];
+	  c   = rp/r;
 	  // lp is eq 12 in Almquist 2015
 	  // // .5*apply(eps*fp*B + .5*eps^2*B*c - c, 2, sum) - OMGAinv %*% ETA
-	  fInd.lp(i, 0)  += 0.25 * fInd.err(k, 0) * fInd.err(k, 0) * fInd.B(k, 0) * fInd.c(k, i)-
-	    0.5*fInd.c(k, i) - 0.5 * fInd.err(k, 0) * fInd.fpm(k, j) * fInd.B(k, 0);
+	  fInd.lp(i, 0)  += 0.25 * err * err * B * c - 0.5 * c - 0.5 * err * fpm * B;
 	}
 	// Eq #10
-	fInd.llik += -0.5*fInd.err(k, 0)*fInd.err(k, 0)/fInd.r(k, 0) - 0.5*log(fInd.r(k, 0));
+	fInd.llik += -0.5 * err * err/r - 0.5*log(r);
+        k--;
       }
     }
     // Now finalize lp
