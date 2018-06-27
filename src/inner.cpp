@@ -33,6 +33,7 @@ typedef struct {
   int *etaTrans;
   unsigned int neta;
   unsigned int ntheta;
+  double *fullTheta;
   double *theta;
   double *initPar;
   unsigned int thetaTransN;
@@ -58,6 +59,7 @@ extern "C" void rxOptionsIniFocei(){
   op_focei.fixedTrans = Calloc(NTHETAs, int);
   op_focei.thetaTransN = NTHETAs;
   op_focei.theta = Calloc(NTHETAs,double);
+  op_focei.fullTheta = Calloc(NTHETAs,double);
   op_focei.initPar = Calloc(NTHETAs,double);
 }
 
@@ -69,12 +71,14 @@ void foceiThetaN(unsigned int n){
     }
     Free(op_focei.thetaTrans);
     Free(op_focei.theta);
+    Free(op_focei.fullTheta);
     Free(op_focei.initPar);
     Free(op_focei.fixedTrans);
-    op_focei.thetaTrans = Calloc(cur, int);
-    op_focei.fixedTrans = Calloc(cur, int);
-    op_focei.theta = Calloc(cur, double);
-    op_focei.initPar = Calloc(cur, double);
+    op_focei.fullTheta   = Calloc(cur, double);
+    op_focei.thetaTrans  = Calloc(cur, int);
+    op_focei.fixedTrans  = Calloc(cur, int);
+    op_focei.theta       = Calloc(cur, double);
+    op_focei.initPar     = Calloc(cur, double);
     op_focei.thetaTransN = cur;
   }
 }
@@ -219,7 +223,7 @@ void updateZm(focei_ind *indF){
     mat L = eye(n, n);
     mat D = mat(n, n, fill::zeros);
     mat H = mat(n, n);
-    unsigned int l_n = n*(n + 1)/2;
+    unsigned int l_n = n * (n + 1)/2;
     vec zmV(l_n);
     std::copy(&indF->zm[0], &indF->zm[0]+l_n, zmV.begin());
     H.elem(lowerTri(H,true)) = zmV;
@@ -402,6 +406,68 @@ void foceiSetupTrans_(CharacterVector pars){
   op_focei.nzm = op_focei.neta * (op_focei.neta + 13) / 2;
 }
 
+void foceiSetupTheta_(RObject &obj,
+		      NumericVector theta,
+                      Nullable<LogicalVector> thetaFixed, 
+                      double lambda,
+		      bool estLambda,
+                      double scaleTo){
+  // Get the fixed thetas
+  op_focei.scaleTo=scaleTo;
+  int thetan = theta.size();
+  int omegan = getOmegaN();
+  NumericVector omegaTheta = getOmegaTheta();
+  int fixedn = 0;
+  int j;
+  LogicalVector thetaFixed2;
+  if (!thetaFixed.isNull()){
+    thetaFixed2 = LogicalVector(thetaFixed);
+    for (j = thetaFixed2.size(); j--;){
+      if (thetaFixed2[j]) fixedn++;
+    }
+  } else {
+    thetaFixed2 =LogicalVector(0);
+  }
+  int npars = thetan+omegan-fixedn;
+  List mvi = rxModelVars_(obj);
+  rxUpdateInnerFuns(as<SEXP>(mvi["trans"]));
+  
+  if (estLambda){
+    npars++;
+    foceiThetaN(npars);
+    foceiSetupTrans_(as<CharacterVector>(mvi["params"]));
+    op_focei.fullTheta[npars-1]=lambda;
+  } else {
+    foceiSetupTrans_(as<CharacterVector>(mvi["params"]));
+    foceiThetaN(npars);
+  }
+  std::copy(&op_focei.fullTheta[0], &op_focei.fullTheta[0]+thetan, theta.begin());  
+  std::copy(&op_focei.fullTheta[0]+thetan, &op_focei.fullTheta[0]+thetan+omegan, omegaTheta.begin());  
+  op_focei.ntheta = npars;
+  int k = 0;
+  for (j = 0; j < npars+fixedn; j++){
+    if (j < thetaFixed2.size() && !thetaFixed2[j]){
+      if (j < theta.size()){
+        op_focei.initPar[k] = theta[j];
+      } else if (j < theta.size() + omegan){
+        op_focei.initPar[k] = omegaTheta[j-theta.size()];
+      } else {
+        op_focei.initPar[k] = lambda;
+      }
+      op_focei.fixedTrans[k++] = j;
+    } else if (j >= thetaFixed2.size()){
+      if (j < theta.size()){
+        op_focei.initPar[k] = theta[j];
+      } else if (j < theta.size() + omegan){
+        op_focei.initPar[k] = omegaTheta[j-theta.size()];
+      } else {
+        op_focei.initPar[k] = lambda;
+      }
+      op_focei.fixedTrans[k++] = j;
+    }
+  }
+}
+
 
 // [[Rcpp::export]]
 RObject foceiSetup_(RObject &obj,
@@ -424,53 +490,14 @@ RObject foceiSetup_(RObject &obj,
   } else {
     _rxInv = as<List>(_rxInv);
   }
-  op_focei.scaleTo=scaleTo;
   if (yjTrans){
     op_focei.yj=1;
   } else {
     op_focei.yj=0;
   }
-  op_focei.lambda = lambda;
   rx = getRxSolve_();
-  // Get the fixed thetas
-  int thetan = theta.size();
-  int omegan = getOmegaN();
-  NumericVector omegaTheta = getOmegaTheta();
-  int fixedn = 0;
-  int j;
-  LogicalVector thetaFixed2;
-  if (!thetaFixed.isNull()){
-    thetaFixed2 = LogicalVector(thetaFixed);
-    for (j = thetaFixed2.size(); j--;){
-      if (thetaFixed2[j]) fixedn++;
-    }
-  } else {
-    thetaFixed2 =LogicalVector(0);
-  }
-  int npars = thetan+omegan-fixedn;
-  if (estLambda){
-    npars++;
-  }
-  foceiThetaN(npars);
-  IntegerVector thetaTrans(npars);
-  NumericVector initPar(npars);
-  NumericVector thetaPar(npars, 0.1);
-  int k = 0;
-  for (j = 0; j < npars+fixedn; j++){
-    if (j < thetaFixed2.size() && !thetaFixed2[j]){
-      if (j < theta.size()){
-        initPar[k] = theta[j];
-      } else if (j < theta.size() + omegan){
-	initPar[k] = omegaTheta[j-theta.size()];
-      } else {
-	initPar[k] = lambda;
-      }
-      thetaTrans[k++] = j;
-    } else if (j >= thetaFixed2.size()){
-
-      thetaTrans[k++] = j;
-    }
-  }
+  foceiSetupTheta_(obj, theta, thetaFixed,  lambda, estLambda, scaleTo);
+  
   if (epsilon.isNull()){
     op_focei.epsilon=DOUBLE_EPS;
   } else {
@@ -497,9 +524,6 @@ RObject foceiSetup_(RObject &obj,
   } else {
     op_focei.imp=0;
   }
-  List mvi = rxModelVars_(obj);
-  rxUpdateInnerFuns(as<SEXP>(mvi["trans"]));
-  foceiSetupTrans_(as<CharacterVector>(mvi["params"]));
   return as<RObject>(R_NilValue);
 }
 
