@@ -277,7 +277,7 @@ double likInner(double *eta){
     innerOde(id);
     // Calculate matricies
     unsigned int k = fInd.nobs - 1;
-    std::fill_n(fInd.lp.begin(), fInd.lp.end(), 0.0);
+    fInd.lp.fill(0.0);
     fInd.llik=0.0;
     double f, err, r, fpm, rp;
     for (j = ind.n_all_times; j--;){
@@ -466,6 +466,7 @@ void foceiSetupTheta_(RObject &obj,
       op_focei.fixedTrans[k++] = j;
     }
   }
+  std::fill(&op_focei.theta[0], &op_focei.theta[0] + op_focei.ntheta, op_focei.scaleTo);
 }
 
 
@@ -483,6 +484,7 @@ RObject foceiSetup_(RObject &obj,
                     bool estLambda = false,
 		    Nullable<NumericVector> epsilon = R_NilValue,
 		    unsigned int maxInnerEvals = 100,
+		    unsigned int maxOuterEvals = 10000,
 		    Nullable<IntegerVector> nsim = R_NilValue,
 		    bool printInner = false){
   if (!rxIs(rxInv, "rxSymInvCholEnv")){
