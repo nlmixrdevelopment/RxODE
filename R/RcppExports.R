@@ -9,8 +9,8 @@ add_sampling_ <- function(eventTable, time, time_units = NA_character_) {
     .Call(`_RxODE_add_sampling_`, eventTable, time, time_units)
 }
 
-foceiSetup_ <- function(obj, data, theta, rxInv, epsilon = NULL, maxInnerEvals = 100L, nsim = NULL, printInner = FALSE) {
-    .Call(`_RxODE_foceiSetup_`, obj, data, theta, rxInv, epsilon, maxInnerEvals, nsim, printInner)
+foceiSetup_ <- function(obj, theta, thetaFixed = NULL, rxInv = NULL, lower = NULL, upper = NULL, etaMat = NULL, lambda = 1.0, yjTrans = FALSE, estLambda = FALSE, epsilon = NULL, maxInnerEvals = 100L, nsim = NULL, printInner = FALSE) {
+    .Call(`_RxODE_foceiSetup_`, obj, theta, thetaFixed, rxInv, lower, upper, etaMat, lambda, yjTrans, estLambda, epsilon, maxInnerEvals, nsim, printInner)
 }
 
 #' Check the type of an object using Rcpp
