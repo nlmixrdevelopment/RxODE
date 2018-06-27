@@ -5,6 +5,7 @@
 #define getOmegaInv() (as<arma::mat>(rxSymInvCholEnvCalculate(_rxInv, "omegaInv", R_NilValue)))
 #define getOmegaDet() trace(as<arma::mat>(rxSymInvCholEnvCalculate(_rxInv, "log.det.OMGAinv.5", R_NilValue)))
 #define getOmegaN() as<int>(rxSymInvCholEnvCalculate(_rxInv, "ntheta", R_NilValue))
+#define getOmegaTheta() as<NumericVector>(rxSymInvCholEnvCalculate(_rxInv, "theta", R_NilValue));
 #define setOmegaTheta(x) rxSymInvCholEnvCalculate(_rxInv, "theta", x)
 #define tbs(x) powerD(x, op_focei.lambda, op_focei.yj)
 #define tbsL(x) powerL(x, op_focei.lambda, op_focei.yj)
@@ -33,7 +34,9 @@ typedef struct {
   unsigned int neta;
   unsigned int ntheta;
   double *theta;
+  double *initPar;
   unsigned int thetaTransN;
+  int *fixedTrans;
   int *thetaTrans;
   double scaleTo;
   double epsilon;
@@ -52,8 +55,10 @@ extern "C" void rxOptionsIniFocei(){
   op_focei.etaTransN = NETAs;
   op_focei.etaTrans = Calloc(NETAs,int);
   op_focei.thetaTrans = Calloc(NTHETAs,int);
+  op_focei.fixedTrans = Calloc(NTHETAs, int);
   op_focei.thetaTransN = NTHETAs;
   op_focei.theta = Calloc(NTHETAs,double);
+  op_focei.initPar = Calloc(NTHETAs,double);
 }
 
 void foceiThetaN(unsigned int n){
@@ -64,8 +69,13 @@ void foceiThetaN(unsigned int n){
     }
     Free(op_focei.thetaTrans);
     Free(op_focei.theta);
+    Free(op_focei.initPar);
+    Free(op_focei.fixedTrans);
     op_focei.thetaTrans = Calloc(cur, int);
+    op_focei.fixedTrans = Calloc(cur, int);
     op_focei.theta = Calloc(cur, double);
+    op_focei.initPar = Calloc(cur, double);
+    op_focei.thetaTransN = cur;
   }
 }
 
@@ -366,8 +376,8 @@ void foceiSetupTrans_(CharacterVector pars){
   std::string thetaS;
   std::string etaS;
   std::string cur;
-  foceiEtaN(ps);
-  foceiThetaN(ps);
+  foceiEtaN(ps+1);
+  foceiThetaN(ps+1);
   op_focei.neta = 0;
   op_focei.ntheta = 0;
   for (;k--;){
@@ -414,6 +424,7 @@ RObject foceiSetup_(RObject &obj,
   } else {
     _rxInv = as<List>(_rxInv);
   }
+  op_focei.scaleTo=scaleTo;
   if (yjTrans){
     op_focei.yj=1;
   } else {
@@ -424,6 +435,7 @@ RObject foceiSetup_(RObject &obj,
   // Get the fixed thetas
   int thetan = theta.size();
   int omegan = getOmegaN();
+  NumericVector omegaTheta = getOmegaTheta();
   int fixedn = 0;
   int j;
   LogicalVector thetaFixed2;
@@ -439,12 +451,23 @@ RObject foceiSetup_(RObject &obj,
   if (estLambda){
     npars++;
   }
+  foceiThetaN(npars);
   IntegerVector thetaTrans(npars);
+  NumericVector initPar(npars);
+  NumericVector thetaPar(npars, 0.1);
   int k = 0;
   for (j = 0; j < npars+fixedn; j++){
     if (j < thetaFixed2.size() && !thetaFixed2[j]){
+      if (j < theta.size()){
+        initPar[k] = theta[j];
+      } else if (j < theta.size() + omegan){
+	initPar[k] = omegaTheta[j-theta.size()];
+      } else {
+	initPar[k] = lambda;
+      }
       thetaTrans[k++] = j;
     } else if (j >= thetaFixed2.size()){
+
       thetaTrans[k++] = j;
     }
   }
