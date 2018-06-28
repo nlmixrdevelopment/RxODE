@@ -114,7 +114,7 @@ function(appDir = "shinyExample", verbose = TRUE,
    # save the model, parameters, init values, etc. in the
    # file rx_shiny_data.rda to be loaded by the server.R
 
-   fn <- file.path(appDir, "rx_shiny_data.rda")
+        fn <- file.path(appDir, "rx_shiny_data.rda")
    method = ODE.config$method
    atol  = ODE.config$atol
    rtol  = ODE.config$rtol
@@ -148,8 +148,8 @@ function(appDir)
       #
 
       debug = TRUE
-      wd = sprintf("%%s/../", getwd())
-      setwd(wd)
+      #wd = sprintf("%%s/../", getwd())
+      #setwd(wd)
 
       # Server inputs: Dose, dosing regimen, dosing frequency,
       # dosing cycle definition, number of dosing cycles
@@ -160,8 +160,8 @@ function(appDir)
       # read objects from "rx_shiny_data.rda" in the  AppDir folder,
       # objects include, mod1, params, inits, method, atol, rtol.]
 
-      load(file.path("%s", "rx_shiny_data.rda"))
-
+      load("./rx_shiny_data.rda")
+      if (!rxDynLoad(mod1)) mod1 <- RxODE(mod1, modName="mod1")
       # Define server logic
       shinyServer(function(input, output) {
 
