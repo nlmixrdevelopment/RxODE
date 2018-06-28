@@ -28,26 +28,44 @@ List _rxInv;
 
 // These are focei inner options
 typedef struct {
+  // 
+  double *geta;
+  double *goldEta;
   // Integer of ETAs
   unsigned int etaTransN;
+  unsigned int gEtaTransN;
+
   int *etaTrans;
+
   unsigned int neta;
   unsigned int ntheta;
+
   double *fullTheta;
   double *theta;
   double *initPar;
+
   unsigned int thetaTransN;
+
   int *fixedTrans;
   int *thetaTrans;
+
   double scaleTo;
   double epsilon;
+
+  unsigned int maxOuterIterations;
   unsigned int maxInnerIterations;
+
   unsigned int nsim;
   unsigned int nzm;
+
   unsigned int imp;
+
   int yj;
   double lambda;
+  int estLambda;
+
   mat omegaInv;
+
 } focei_options;
 
 focei_options op_focei;
@@ -91,13 +109,29 @@ void foceiEtaN(unsigned int n){
     }
     Free(op_focei.etaTrans);
     op_focei.etaTrans = Calloc(cur, int);
+    op_focei.etaTransN=cur;
   }
 }
 
+void foceiGEtaN(unsigned int n){
+  if (op_focei.gEtaTransN < n){
+    unsigned int cur = op_focei.gEtaTransN;
+    while (cur < n){
+      cur += NETAs*NTHETAs;
+    }
+    Free(op_focei.etaTrans);
+    op_focei.etaTrans = Calloc(cur, int);
+  }
+}
+
+
 extern "C" void rxOptionsFreeFocei(){
-  Free(op_focei.etaTrans);
   Free(op_focei.thetaTrans);
   Free(op_focei.theta);
+  Free(op_focei.fullTheta);
+  Free(op_focei.initPar);
+  Free(op_focei.fixedTrans);
+  Free(op_focei.etaTrans);
 }
 
 typedef struct {
@@ -437,9 +471,11 @@ void foceiSetupTheta_(RObject &obj,
     foceiThetaN(npars);
     foceiSetupTrans_(as<CharacterVector>(mvi["params"]));
     op_focei.fullTheta[npars-1]=lambda;
+    op_focei.estLambda = 1;
   } else {
     foceiSetupTrans_(as<CharacterVector>(mvi["params"]));
     foceiThetaN(npars);
+    op_focei.estLambda = 0;
   }
   std::copy(&op_focei.fullTheta[0], &op_focei.fullTheta[0]+thetan, theta.begin());  
   std::copy(&op_focei.fullTheta[0]+thetan, &op_focei.fullTheta[0]+thetan+omegan, omegaTheta.begin());  
@@ -510,6 +546,7 @@ RObject foceiSetup_(RObject &obj,
       stop("epsilon has to be a positive number.");
     }
   }
+  op_focei.maxOuterIterations = maxOuterEvals;
   op_focei.maxInnerIterations = maxInnerEvals;
   if (nsim.isNull()){
     op_focei.nsim=maxInnerEvals*10;
