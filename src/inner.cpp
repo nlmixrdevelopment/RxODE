@@ -60,6 +60,9 @@ typedef struct {
 
   int neta;
   unsigned int ntheta;
+  int npars;
+  int thetan;
+  int omegan;
 
   double *fullTheta;
   double *theta;
@@ -329,6 +332,42 @@ void updateZm(focei_ind *indF){
 
 ////////////////////////////////////////////////////////////////////////////////
 // Likelihood for inner functions
+
+void updateTheta(double *theta){
+  // Theta is the acutal theta
+  unsigned int j, k;
+  if (op_focei.scaleTo > 0){ // Scaling
+    for (k = op_focei.npars; k--;){
+      j=op_focei.fixedTrans[k];
+      op_focei.fullTheta[j] = theta[k] * op_focei.initPar[j] / op_focei.scaleTo; //pars <- pars * inits.vec / con$scale.to
+    }
+  } else { // No scaling.
+    for (k = op_focei.npars; k--;){
+      j=op_focei.fixedTrans[k];
+      op_focei.fullTheta[j] = theta[k]; //pars <- pars * inits.vec / con$scale.to
+    }
+  }
+  // Update theta parameters in each individual
+  rx = getRxSolve_();
+  for (int id = rx->nsub; id--;){
+    rx_solving_options_ind ind = rx->subjects[id];
+    double *par_ptr = ind.par_ptr;
+    for (j = op_focei.ntheta; j--;){
+      par_ptr[op_focei.thetaTrans[j]] = op_focei.fullTheta[j];
+    }
+  }
+  // Update setOmegaTheta
+  NumericVector omegaTheta(op_focei.omegan);
+  std::copy(&op_focei.fullTheta[0] + op_focei.thetan, 
+	    &op_focei.fullTheta[0] + op_focei.thetan + op_focei.omegan, 
+	    omegaTheta.begin());
+  setOmegaTheta(omegaTheta);
+  // Update Lambda, if needed.
+  if (op_focei.estLambda){
+    op_focei.lambda = op_focei.fullTheta[op_focei.npars-1];
+  }
+}
+
 double likInner(double *eta){
   // id = eta[-1]
   // eta = eta
@@ -476,6 +515,7 @@ static inline void innerEval(int id){
   // Use eta
   double *eta = &(fInd.eta[0])+1; // id#, eta
   likInner(eta);
+  LikInner2(eta, 1);
 }
 
 static inline void innerOpt1(int id){
@@ -492,6 +532,7 @@ static inline void innerOpt1(int id){
   // Use saved Hessian on next opimization.
   fInd.mode=1;
   fInd.uzm =0;
+  LikInner2(eta, 1);
 }
 
 void innerOpt(){
@@ -506,7 +547,6 @@ void innerOpt(){
     }
   }
 }
-
 
 ////////////////////////////////////////////////////////////////////////////////
 // Setup FOCEi functions
@@ -584,9 +624,11 @@ static inline void foceiSetupTheta_(RObject &obj,
     foceiThetaN(npars);
     op_focei.estLambda = 0;
   }
-  std::copy(&op_focei.fullTheta[0], &op_focei.fullTheta[0]+thetan, theta.begin());  
-  std::copy(&op_focei.fullTheta[0]+thetan, &op_focei.fullTheta[0]+thetan+omegan, omegaTheta.begin());  
-  op_focei.ntheta = npars;
+  std::copy(theta.begin(), theta.end(), &op_focei.fullTheta[0]);  
+  std::copy(omegaTheta.begin(), omegaTheta.end(), &op_focei.fullTheta[0]+thetan);
+  op_focei.npars = npars;
+  op_focei.thetan = thetan;
+  op_focei.omegan = omegan;
   int k = 0;
   for (j = 0; j < npars+fixedn; j++){
     if (j < thetaFixed2.size() && !thetaFixed2[j]){
@@ -711,5 +753,3 @@ RObject foceiSetup_(RObject &obj,
   }
   return as<RObject>(R_NilValue);
 }
-
-
