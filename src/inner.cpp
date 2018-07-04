@@ -1,6 +1,7 @@
 #include <RcppArmadillo.h>
 #define NETAs 20
 #define NTHETAs 20
+#define NSUBs 100
 #define innerOde(id) ind_solve(rx, id, inner_dydt_liblsoda, inner_dydt_lsoda_dum, inner_jdum_lsoda, inner_dydt, inner_update_inis, inner_global_jt)
 #define getOmegaInv() (as<arma::mat>(rxSymInvCholEnvCalculate(_rxInv, "omegaInv", R_NilValue)))
 #define getOmegaDet() trace(as<arma::mat>(rxSymInvCholEnvCalculate(_rxInv, "log.det.OMGAinv.5", R_NilValue)))
@@ -9,6 +10,7 @@
 #define setOmegaTheta(x) rxSymInvCholEnvCalculate(_rxInv, "theta", x)
 #define tbs(x) powerD(x, op_focei.lambda, op_focei.yj)
 #define tbsL(x) powerL(x, op_focei.lambda, op_focei.yj)
+#define tbsDL(x) powerDL(x, op_focei.lambda, op_focei.yj)
 
 using namespace Rcpp;
 using namespace arma;
@@ -37,6 +39,7 @@ RObject rxSymInvCholEnvCalculate(List obj, std::string what, Nullable<NumericVec
 bool rxIs(const RObject &obj, std::string cls);
 double powerD(double x, double lambda, int yj);
 double powerL(double x, double lambda, int yj);
+double powerDL(double x, double lambda, int yj);
 
 List _rxInv;
 
@@ -45,6 +48,8 @@ typedef struct {
   // 
   double *geta;
   double *goldEta;
+  double *gsaveEta;
+  double *gthetaGrad;
   // n1qn1 specific vectors
   double *gZm;
   double *gG;
@@ -54,7 +59,11 @@ typedef struct {
   unsigned int etaTransN;
   unsigned int gEtaTransN;
   unsigned int gEtaGTransN;
+  unsigned int gThetaGTransN;
   unsigned int gZmN;
+  // Where likelihood is saved.
+  
+  double cEps; // Central difference EPS
   
   int *etaTrans;
 
@@ -66,6 +75,7 @@ typedef struct {
 
   double *fullTheta;
   double *theta;
+  double *thetaGrad;
   double *initPar;
 
   unsigned int thetaTransN;
@@ -95,14 +105,9 @@ typedef struct {
 focei_options op_focei;
 
 extern "C" void rxOptionsIniFocei(){
-  op_focei.etaTransN = NETAs;
-  op_focei.etaTrans = Calloc(NETAs,int);
-  op_focei.thetaTrans = Calloc(NTHETAs,int);
-  op_focei.fixedTrans = Calloc(NTHETAs, int);
-  op_focei.thetaTransN = NTHETAs;
-  op_focei.theta = Calloc(NTHETAs,double);
-  op_focei.fullTheta = Calloc(NTHETAs,double);
-  op_focei.initPar = Calloc(NTHETAs,double);
+  op_focei.etaTransN = 0;
+  op_focei.thetaTransN = 0;
+  op_focei.gEtaGTransN=0;
 }
 
 void foceiThetaN(unsigned int n){
@@ -137,18 +142,32 @@ void foceiEtaN(unsigned int n){
   }
 }
 
+void foceiGThetaN(unsigned int n){
+  if (op_focei.gThetaGTransN < n){
+    unsigned int cur = op_focei.gThetaGTransN;
+    while (cur < n){
+      cur += NSUBs*NTHETAs;
+    }
+    Free(op_focei.gthetaGrad);
+    op_focei.gthetaGrad = Calloc(cur, double);
+    op_focei.gThetaGTransN=cur;
+  }
+}
+
 void foceiGEtaN(unsigned int n){
   if (op_focei.gEtaGTransN < n){
     unsigned int cur = op_focei.gEtaGTransN;
     while (cur < n){
-      cur += NETAs*NTHETAs;
+      cur += NETAs*NSUBs;
     }
     Free(op_focei.geta);
     Free(op_focei.goldEta);
+    Free(op_focei.gsaveEta);
     Free(op_focei.gG);
     Free(op_focei.gVar);
     op_focei.geta = Calloc(cur, double);
     op_focei.goldEta = Calloc(cur, double);
+    op_focei.gsaveEta = Calloc(cur, double);
     op_focei.gG = Calloc(cur, double);
     op_focei.gVar = Calloc(cur, double);
     // Prefill to 0.1 or 10%
@@ -161,7 +180,7 @@ void foceiGgZm(unsigned int n){
   if (op_focei.gZmN < n){
     unsigned int cur = op_focei.gZmN;
     while (cur < n){
-      cur += NETAs*(NETAs+13)/2*NTHETAs;
+      cur += NETAs*(NETAs+13)/2*NSUBs;
     }
     Free(op_focei.gZm);
     op_focei.gZm = Calloc(cur, double);
@@ -180,16 +199,24 @@ extern "C" void rxOptionsFreeFocei(){
   op_focei.etaTransN=0;
   Free(op_focei.geta);
   Free(op_focei.goldEta);
+  Free(op_focei.gsaveEta);
   op_focei.gEtaGTransN=0;
+  Free(op_focei.gthetaGrad);
+  op_focei.gThetaGTransN=0;
 }
 
 typedef struct {
-  double lik;
+  double lik[3]; // lik[0] = liklihood; For central difference: lik[1] = lower lik[2] = upper
   double *eta; // Eta includes the ID number for the patient
+  //
+  double *thetaGrad; // Theta gradient; Calculated on the individual level for S matrix calculation
+  double thVal[2]; // thVal[0] = lower; thVal[2] = upper
+  //
   // F and varaibility
   unsigned int nobs;
   unsigned int setup;
   
+  double *saveEta; // Saved when lik[0] is saved.
   double *oldEta;
   
   // Likilihood gradient
@@ -368,6 +395,35 @@ void updateTheta(double *theta){
   }
 }
 
+void updateTheta1(double newTheta0, int k){
+  // Theta is the acutal theta
+  unsigned int j = op_focei.fixedTrans[k];
+  double newTheta;
+  if (op_focei.scaleTo > 0){ // Scaling
+    newTheta = newTheta0 * op_focei.initPar[j] / op_focei.scaleTo; //pars <- pars * inits.vec / con$scale.to
+  } else { // No scaling.
+    newTheta = newTheta0; 
+  }
+  // Update theta parameters in each individual
+  rx = getRxSolve_();
+  if (j < op_focei.ntheta){
+    for (int id = rx->nsub; id--;){
+      rx_solving_options_ind ind = rx->subjects[id];
+      double *par_ptr = ind.par_ptr;
+      par_ptr[op_focei.thetaTrans[j]] = newTheta;
+    }
+  } else {
+    // Update setOmegaTheta
+    NumericVector omegaTheta(op_focei.omegan);
+    std::copy(&op_focei.fullTheta[0] + op_focei.thetan, 
+              &op_focei.fullTheta[0] + op_focei.thetan + op_focei.omegan, 
+              omegaTheta.begin());
+    omegaTheta[j-op_focei.ntheta] = newTheta;
+    setOmegaTheta(omegaTheta);
+  }
+  // Lambda update is not handled by finite difference, so not handled here.
+}
+
 double likInner(double *eta){
   // id = eta[-1]
   // eta = eta
@@ -476,7 +532,7 @@ mat HInner(double *eta){
   return H;
 }
 
-double LikInner2(double *eta, int updateLik){
+double LikInner2(double *eta, int likId){
   double *eprev = &eta[0]-1;
   unsigned int id = (unsigned int)(eprev[0]);
   focei_ind fInd = (inds_focei[id]);
@@ -487,6 +543,8 @@ double LikInner2(double *eta, int updateLik){
   mat H = -HInner(eta);
   H = chol(H);
   lik += trace(log(H.diag()));
+
+  // Add likelihood contribution based on transform both sides.
   if (op_focei.lambda != 1.0){
     for (unsigned int j = ind.n_all_times; j--;){
       if (!ind.evid[j]){
@@ -494,7 +552,8 @@ double LikInner2(double *eta, int updateLik){
       }
     }
   }
-  if (updateLik) fInd.lik = lik;
+  fInd.lik[likId] = lik;
+  if (likId == 0) std::copy(&fInd.eta[0], &fInd.eta[0] + op_focei.neta, &fInd.saveEta[0]);
   return lik;
 }
 
@@ -515,35 +574,122 @@ static inline void innerEval(int id){
   // Use eta
   double *eta = &(fInd.eta[0])+1; // id#, eta
   likInner(eta);
-  LikInner2(eta, 1);
+  LikInner2(eta, 0);
 }
 
-static inline void innerOpt1(int id){
+static inline void innerOpt1(int id, int likId){
   focei_ind fInd = (inds_focei[id]);
   // Use eta
   double *eta = &(fInd.eta[0])+1; // id#, eta
   // Convert Zm to Hessian, if applicable.
   updateZm(&fInd);
   int lp = 6;
-  n1qn1_(innerCost, &(op_focei.neta), eta, &(fInd.lik), fInd.g,  fInd.var,
+  n1qn1_(innerCost, &(op_focei.neta), eta, &(fInd.llik), fInd.g,  fInd.var,
 	 &(op_focei.epsilon), &(fInd.mode), &(op_focei.maxInnerIterations),
 	 &(op_focei.nsim), &(op_focei.imp), &lp, fInd.zm, &fInd.izs,
 	 &fInd.rzs, &fInd.dzs);
   // Use saved Hessian on next opimization.
   fInd.mode=1;
   fInd.uzm =0;
-  LikInner2(eta, 1);
+  LikInner2(eta, likId);
 }
 
 void innerOpt(){
+#ifdef _OPENMP
+  int cores = rx->op->cores;
+#else
+  int cores = 1;
+#endif
   rx = getRxSolve_();
   if (op_focei.maxInnerIterations <= 0){
-    for (int id = rx->nsub; id--;){
+#ifdef _OPENMP
+#pragma omp parallel for num_threads(cores)
+#endif
+    for (int id = 0; id < rx->nsub; id++){
       innerEval(id);
     }
   } else {
-    for (int id = rx->nsub; id--;){
-      innerOpt1(id);
+#ifdef _OPENMP
+#pragma omp parallel for num_threads(cores)
+#endif    
+    for (int id = 0; id < rx->nsub; id++){
+      innerOpt1(id, 0);
+    }
+  }
+}
+
+double foceiLik(double *theta){
+  updateTheta(theta);
+  innerOpt();
+  double lik = 0.0;
+  for (int id=rx->nsub; id--;){
+    focei_ind fInd = (inds_focei[id]);
+    lik += fInd.lik[0];
+  }
+  return lik;
+}
+
+void numericGrad(double *theta){
+  rx = getRxSolve_();
+#ifdef _OPENMP
+  int cores = rx->op->cores;
+#else
+  int cores = 1;
+#endif
+  int npars = op_focei.npars;
+  if (op_focei.estLambda) npars--;
+  int cpar;
+  for (cpar = npars; cpar--;){
+    // Gradient needs can be parallelized for each parameter then gradient calculated.
+#ifdef _OPENMP
+#pragma omp parallel for num_threads(cores)
+#endif
+    for (int gid=0; gid < rx->nsub*2; gid++){
+      int likId, id;
+      focei_ind fInd;
+      likId = (gid % 2);
+      if (likId){
+        id = (gid-1)/2;
+        fInd = (inds_focei[id]);
+        fInd.thVal[likId]= theta[cpar]+op_focei.cEps*theta[cpar];
+	updateTheta1(fInd.thVal[likId], cpar);
+        // Upper
+        innerOpt1(id, 2);
+      } else {
+        id = gid/2;
+        fInd = (inds_focei[id]);
+        fInd.thVal[likId]= theta[cpar]-op_focei.cEps*theta[cpar];
+        updateTheta1(fInd.thVal[likId], cpar);
+        // Lower
+        innerOpt1(id, 1);
+      }
+    }
+    // Now calculate individual gradient components
+    for (int gid=rx->nsub; gid--;){
+      focei_ind fInd = (inds_focei[gid]);
+      fInd.thetaGrad[cpar] = (fInd.lik[2]-fInd.lik[1])/(fInd.thVal[1]-fInd.thVal[0]);
+      // thetaGrad[cpar] += fInd.thetaGrad[cpar];
+    }
+    // Reset theta
+    updateTheta1(theta[cpar], cpar);
+  }
+  // Calculate Overall gradient based on central differences
+  std::fill_n(&op_focei.thetaGrad[0], npars, 0.0);
+  for (cpar = npars; cpar--;){
+    for (int gid=0; gid < rx->nsub; gid++){
+      focei_ind fInd = (inds_focei[gid]);
+      op_focei.thetaGrad[cpar]+=fInd.thetaGrad[cpar];
+    }
+  }
+  // Calculate exact gradient for Cox-Box Yeo-Johnson
+  if (op_focei.estLambda){
+    for (int id=0; id < rx->nsub; id++){
+      rx_solving_options_ind ind = rx->subjects[id];
+      for (unsigned int j = ind.n_all_times; j--;){
+	if (!ind.evid[j]){
+	  op_focei.thetaGrad[npars] += tbsDL(ind.dv[j]);
+	}
+      }
     }
   }
 }
@@ -668,8 +814,9 @@ static inline void foceiSetupEta_(Nullable<NumericMatrix> etaMat = R_NilValue){
   }
   etaMat0 = transpose(etaMat0);
   foceiGEtaN((op_focei.neta+1)*rx->nsub);
+  foceiGThetaN(op_focei.npars*(rx->nsub + 1));
   foceiGgZm(op_focei.neta*(op_focei.neta+13)/2*rx->nsub);
-  unsigned int i, j = 0, k = 0, ii=0;
+  unsigned int i, j = 0, k = 0, ii=0, jj = 0;
   rxFoceiEnsure(rx->nsub);
   focei_ind fInd;
   for (i = rx->nsub; i--;){
@@ -682,15 +829,21 @@ static inline void foceiSetupEta_(Nullable<NumericMatrix> etaMat = R_NilValue){
     fInd.oldEta = &op_focei.goldEta[0]+k;
     std::copy(&fInd.oldEta[0], &fInd.oldEta[0]+op_focei.neta, 
               &etaMat0[0]+i*op_focei.neta);
+    fInd.saveEta = &op_focei.gsaveEta[0]+k;
+    std::copy(&fInd.saveEta[0], &fInd.saveEta[0]+op_focei.neta, 
+              &etaMat0[0]+i*op_focei.neta);
     fInd.g = &op_focei.gG[0]+k;
     fInd.var = &op_focei.gVar[0]+k;
     fInd.zm = &op_focei.gZm[0] + ii;
     j+=op_focei.neta+1;
     k+=op_focei.neta;
     ii+=op_focei.neta * (op_focei.neta + 13) / 2;
+    fInd.thetaGrad = &op_focei.gthetaGrad[0]+jj;
+    jj+= op_focei.npars;
     fInd.mode = 1;
     fInd.uzm = 1;
   }
+  op_focei.thetaGrad = &op_focei.gthetaGrad[0]+jj;
 }
 
 // [[Rcpp::export]]
@@ -751,5 +904,6 @@ RObject foceiSetup_(RObject &obj,
   } else {
     op_focei.imp=0;
   }
+  op_focei.cEps=sqrt(DOUBLE_EPS);
   return as<RObject>(R_NilValue);
 }
