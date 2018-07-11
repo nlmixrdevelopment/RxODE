@@ -9,6 +9,10 @@ add_sampling_ <- function(eventTable, time, time_units = NA_character_) {
     .Call(`_RxODE_add_sampling_`, eventTable, time, time_units)
 }
 
+foceiInnerLp <- function(eta, id = 1L) {
+    .Call(`_RxODE_foceiInnerLp`, eta, id)
+}
+
 foceiLik <- function(theta) {
     .Call(`_RxODE_foceiLik`, theta)
 }

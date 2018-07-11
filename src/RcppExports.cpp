@@ -41,6 +41,18 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// foceiInnerLp
+NumericVector foceiInnerLp(NumericVector eta, int id);
+RcppExport SEXP _RxODE_foceiInnerLp(SEXP etaSEXP, SEXP idSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type eta(etaSEXP);
+    Rcpp::traits::input_parameter< int >::type id(idSEXP);
+    rcpp_result_gen = Rcpp::wrap(foceiInnerLp(eta, id));
+    return rcpp_result_gen;
+END_RCPP
+}
 // foceiLik
 double foceiLik(NumericVector theta);
 RcppExport SEXP _RxODE_foceiLik(SEXP thetaSEXP) {

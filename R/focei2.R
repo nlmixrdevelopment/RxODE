@@ -33,7 +33,7 @@ foceiControl <- function(epsilon=.Machine$double.eps,
                          covsInterpolation = c("linear", "locf", "nocb", "midpoint"),
                          tbs=c("cox-box", "yeo-johnson"),
                          lambda=1.0,
-                         estLambda=TRUE,
+                         estLambda=FALSE,
                          printInner=FALSE,
                          scaleTo=1.0,
                          ..., stiff){
@@ -104,4 +104,15 @@ foceiControl <- function(epsilon=.Machine$double.eps,
                         odeOpts = RxODE::foceiControl()){
     loadNamespace("n1qn1");
     .Call(`_RxODE_foceiSetup_`, obj, data, theta, thetaFixed, rxInv, lower, upper, etaMat, odeOpts); # nolint
+}
+
+
+.nearPd <- function(mat){
+    if (any(is.na(mat))){
+        cat("Bad matrix:\n");
+        print(mat);
+        return(mat)
+    } else {
+        return(as.matrix(Matrix::nearPD(mat)$mat));
+    }
 }

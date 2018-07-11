@@ -1,4 +1,8 @@
-#include <RcppArmadillo.h>
+#include <stdio.h>
+#include <stdarg.h>
+#include <R.h>
+#include <Rinternals.h>
+#include <Rmath.h>
 
 double powerD(double x, double lambda, int yj){
   if (lambda == 1.0) return x;
@@ -15,7 +19,6 @@ double powerD(double x, double lambda, int yj){
       double l2 = 2.0 - lambda;
       return (1.0 - pow(1.0 - x, l2))/l2;
     }
-
   }
 }
 

@@ -6,6 +6,7 @@
 
 SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SEXP parse_model,SEXP parse_model3);
 SEXP _RxODE_foceiLik(SEXP);
+SEXP _RxODE_foceiInnerLp(SEXP, SEXP);
 SEXP _RxODE_foceiSetup_(SEXP,SEXP, SEXP, SEXP, SEXP,
                         SEXP,SEXP, SEXP, SEXP);
 SEXP _RxODE_linCmtEnv(SEXP rho);
@@ -169,6 +170,7 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_rxSolveFree", (DL_FUNC) &_RxODE_rxSolveFree, 0},
     {"_RxODE_foceiSetup_", (DL_FUNC) &_RxODE_foceiSetup_, 9},
     {"_RxODE_foceiLik", (DL_FUNC) &_RxODE_foceiLik, 1},
+    {"_RxODE_foceiInnerLp", (DL_FUNC) &_RxODE_foceiInnerLp, 2},
     {NULL, NULL, 0}
   };
   // C callable to assign environments.

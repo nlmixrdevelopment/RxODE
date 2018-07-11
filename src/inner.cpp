@@ -33,7 +33,12 @@ extern "C"{
   void ind_solve(rx_solve *rx, unsigned int cid, t_dydt_liblsoda dydt_lls, 
 		 t_dydt_lsoda_dum dydt_lsoda, t_jdum_lsoda jdum,
                  t_dydt c_dydt, t_update_inis u_inis, int jt);
+  double powerD(double x, double lambda, int yj);
+  double powerL(double x, double lambda, int yj);
+  double powerDL(double x, double lambda, int yj);
 }
+
+Function getRxFn(std::string name);
 
 SEXP rxSolveC(const RObject &obj,
               const Nullable<CharacterVector> &specParams = R_NilValue,
@@ -83,9 +88,6 @@ SEXP rxSolveC(const RObject &obj,
 
 RObject rxSymInvCholEnvCalculate(List obj, std::string what, Nullable<NumericVector> theta = R_NilValue);
 bool rxIs(const RObject &obj, std::string cls);
-double powerD(double x, double lambda, int yj);
-double powerL(double x, double lambda, int yj);
-double powerDL(double x, double lambda, int yj);
 
 List _rxInv;
 
@@ -514,7 +516,6 @@ double likInner(double *eta){
     fInd->llik=0.0;
     double f, err, r, fpm, rp;
     for (j = ind->n_all_times; j--;){
-      Rprintf("id: %d, j: %d, time: %f, evid: %d\n", id, j, ind->all_times[j], ind->evid[j]);
       if (!ind->evid[j]){
 	// Observation; Calc LHS.
 	inner_calc_lhs((int)id, ind->all_times[j], &ind->solve[j * op->neq], ind->lhs);
@@ -539,10 +540,16 @@ double likInner(double *eta){
 	    0.5 * err * fpm * fInd->B(k, 0);
 	}
 	// Eq #10
-	fInd->llik += -0.5 * err * err/r - 0.5*log(r);
+        //llik <- -0.5 * sum(err ^ 2 / R + log(R));
+	fInd->llik += err * err/r + log(r);
         k--;
       }
     }
+    fInd->llik = -0.5*fInd->llik;
+    // print(wrap(f));
+    // print(wrap(err)); 
+    // print(wrap(r)); 
+    // print(wrap(fInd->llik));
     // Now finalize lp
     mat etam = arma::mat(op_focei.neta, 1);
     std::copy(&eta[0], &eta[0] + op_focei.neta, etam.begin()); // fill in etam
@@ -550,6 +557,7 @@ double likInner(double *eta){
     fInd->lp = -(fInd->lp - op_focei.omegaInv * etam);
     // Partially finalize #10
     fInd->llik = trace(-(fInd->llik - 0.5*(etam.t() * op_focei.omegaInv * etam)));
+    // print(wrap(fInd->llik));
     std::copy(&eta[0], &eta[0] + op_focei.neta, &fInd->oldEta[0]);
   }
   return fInd->llik;
@@ -559,8 +567,21 @@ double *lpInner(double *eta){
   unsigned int id = (unsigned int)(eta[op_focei.neta]);
   focei_ind *fInd = &(inds_focei[id]);
   likInner(eta);
-  std::copy(&fInd->g[0], &fInd->g[0] + op_focei.neta, fInd->lp.begin());
-  return &fInd->oldEta[0];
+  std::copy(fInd->lp.begin(), fInd->lp.begin() + op_focei.neta,
+	    &fInd->g[0]);
+  return &fInd->g[0];
+}
+
+//[[Rcpp::export]]
+NumericVector foceiInnerLp(NumericVector eta, int id = 1){
+  double *etad = new double[eta.size()+1];
+  std::copy(eta.begin(),eta.end(),&etad[0]);
+  etad[eta.size()]=(double)(id-1);
+  double *lpd = lpInner(etad);
+  NumericVector lp(eta.size());
+  std::copy(&lpd[0], &lpd[0]+op_focei.neta,lp.begin());
+  delete[] etad;
+  return lp;
 }
 
 mat HInner(double *eta){
@@ -572,29 +593,47 @@ mat HInner(double *eta){
   mat tmp;
   // print(wrap(fInd->a));
   // print(wrap(fInd->B));
-  print(wrap(fInd->c));
+  // print(wrap(fInd->c));
+  // print(wrap(op_focei.omegaInv));
   for (k = op_focei.neta; k--;){
-    for (l = k; l--;){
+    for (l = k+1; l--;){
       // tmp = fInd->a.col(l) %  fInd->B % fInd->a.col(k);
-      H(k, l) = -0.5*sum(fInd->a.col(l) %  fInd->B % fInd->a.col(k) - 
+      H(k, l) = -0.5*sum(fInd->a.col(l) %  fInd->B % fInd->a.col(k) + 
       			 fInd->c.col(l) % fInd->c.col(k)) - 
       		      op_focei.omegaInv(k, l);
-      H(k, l) = H(l, k);
+      H(l, k) = H(k, l);
     }
   }
+  // print(wrap(H));
   return H;
 }
 
 double LikInner2(double *eta, int likId){
   unsigned int id = (unsigned int)(eta[op_focei.neta]);
   focei_ind *fInd = &(inds_focei[id]);
+  // print(wrap(-likInner(eta)));
+  // print(wrap(op_focei.logDetOmegaInv5));
   double lik = -likInner(eta) + op_focei.logDetOmegaInv5;
+  // print(wrap(lik));
   rx = getRxSolve_();
   rx_solving_options_ind ind = rx->subjects[id];
   // Calclaute lik first to calculate components for Hessian
   mat H = -HInner(eta);
-  H = chol(H);
-  lik += trace(log(H.diag()));
+  try{
+    H = chol(H);
+  } catch(...){
+    // Try to correct
+    Function nearpd = getRxFn(".nearPd");
+    H = as<mat>(nearpd(H));
+    try {
+      // Warning?  Already complaining by the try/catch.
+      H = chol(H);
+    } catch (...){
+      stop("Cannot correct Inner Hessian Matrix for nlmixr ID:%d to be positive definite.", likId+1);
+    }
+  }
+  lik -= sum(log(H.diag()));
+  // print(wrap(lik));
 
   // Add likelihood contribution based on transform both sides.
   if (op_focei.lambda != 1.0){
@@ -810,7 +849,6 @@ static inline void foceiSetupTheta_(const RObject &obj,
   int npars = thetan+omegan-fixedn;
   List mvi = rxModelVars_(obj);
   rxUpdateInnerFuns(as<SEXP>(mvi["trans"]));
-  
   if (estLambda){
     npars++;
     foceiThetaN(npars);
@@ -824,7 +862,7 @@ static inline void foceiSetupTheta_(const RObject &obj,
   }
   std::copy(theta.begin(), theta.end(), &op_focei.fullTheta[0]);  
   std::copy(omegaTheta.begin(), omegaTheta.end(), &op_focei.fullTheta[0]+thetan);
-  op_focei.npars = npars;
+  op_focei.npars  = npars;
   op_focei.thetan = thetan;
   op_focei.omegan = omegan;
   int k = 0;
@@ -905,6 +943,7 @@ RObject foceiSetup_(const RObject &obj,
   }
   List odeO = as<List>(odeOpts);
   op_focei.yj=odeO["tbs"];
+  op_focei.lambda = as<double>(odeO["lambda"]);
   // This fills in op_focei.neta
   foceiSetupTheta_(obj, theta, thetaFixed,  as<double>(odeO["lambda"]), 
 		   as<int>(odeO["estLambda"]), as<double>(odeO["scaleTo"]));
