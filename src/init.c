@@ -5,10 +5,9 @@
 #include "solve.h"
 
 SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SEXP parse_model,SEXP parse_model3);
+SEXP _RxODE_foceiLik(SEXP);
 SEXP _RxODE_foceiSetup_(SEXP,SEXP, SEXP, SEXP, SEXP,
-                        SEXP,SEXP, SEXP, SEXP, SEXP,
-                        SEXP,SEXP, SEXP, SEXP, SEXP,
-			SEXP);
+                        SEXP,SEXP, SEXP, SEXP);
 SEXP _RxODE_linCmtEnv(SEXP rho);
 SEXP _RxODE_rxInv(SEXP matrix);
 SEXP _RxODE_removableDrive(SEXP letter);
@@ -168,7 +167,8 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_add_sampling_", (DL_FUNC) &_RxODE_add_sampling_, 3},
     {"_RxODE_dynLoad", (DL_FUNC) &_RxODE_dynLoad, 1},
     {"_RxODE_rxSolveFree", (DL_FUNC) &_RxODE_rxSolveFree, 0},
-    {"_RxODE_foceiSetup_", (DL_FUNC) &_RxODE_foceiSetup_, 16},
+    {"_RxODE_foceiSetup_", (DL_FUNC) &_RxODE_foceiSetup_, 9},
+    {"_RxODE_foceiLik", (DL_FUNC) &_RxODE_foceiLik, 1},
     {NULL, NULL, 0}
   };
   // C callable to assign environments.

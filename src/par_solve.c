@@ -318,6 +318,7 @@ extern void ind_liblsoda(rx_solve *rx, int solveid,
   opt.hmax = op->hmax2;
   opt.hmin = op->HMIN;
   opt.hmxi = 0.0;
+  /* ind_liblsoda0(rx, op, opt, solveid, dydt_liblsoda, update_inis); */
   ind_liblsoda0(rx, op, opt, solveid, dydt, u_inis);
 }
 
@@ -781,7 +782,7 @@ void ind_solve(rx_solve *rx, unsigned int cid,
     switch (op->stiff){
     case 2: 
       ind_liblsoda(rx, cid, dydt_lls, u_inis);
-	break;
+      break;
     case 1:
       ind_lsoda(rx,cid, dydt_lsoda, u_inis, jdum, jt);
       break;

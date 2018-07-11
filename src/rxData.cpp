@@ -1213,7 +1213,7 @@ void gevidSetup(int n){
 
 void gBadDoseSetup(int n){
   if (_globals.gBadDosen < n){
-    int cur = _globals.gevidn;
+    int cur = _globals.gBadDosen;
     while (cur < n){
       cur += NCMT;
     }
@@ -1225,7 +1225,7 @@ void gBadDoseSetup(int n){
 
 void grcSetup(int n){
   if (_globals.grcn < n){
-    int cur = _globals.gevidn;
+    int cur = _globals.grcn;
     while (cur < n){
       cur += MAXIDS;
     }
@@ -2695,7 +2695,7 @@ SEXP rxSolveC(const RObject &obj,
 	  if (rxcDv > -1){
 	    ind->dv = &_globals.gdv[i];
 	  }
-          ind->evid           = &evid[i];
+          ind->evid           = &_globals.gevid[i];
 	  ind->idose          = &_globals.gidose[i];
           ind->dose           = &_globals.gamt[i];
 	  lasti = i;
@@ -2711,7 +2711,7 @@ SEXP rxSolveC(const RObject &obj,
 	  nobs=0;
 	  tlast = NA_REAL;
         }
-        if (evid[i]){
+        if (_globals.gevid[i]){
           _globals.gidose[j] = i-lasti;
           _globals.gamt[j] = amt[i];
 	  ind->ndoses++;
@@ -2958,7 +2958,7 @@ SEXP rxSolveC(const RObject &obj,
       stop("Something is wrong here.");
     }
     if (setupOnly){
-      return LogicalVector::create(true);
+      return as<SEXP>(LogicalVector::create(true));
     }
     par_solve(rx);
     if (op->abort){
