@@ -64,6 +64,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// foceiNumericGrad
+NumericVector foceiNumericGrad(NumericVector theta);
+RcppExport SEXP _RxODE_foceiNumericGrad(SEXP thetaSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type theta(thetaSEXP);
+    rcpp_result_gen = Rcpp::wrap(foceiNumericGrad(theta));
+    return rcpp_result_gen;
+END_RCPP
+}
 // foceiSetup_
 RObject foceiSetup_(const RObject& obj, const RObject& data, NumericVector theta, Nullable<LogicalVector> thetaFixed, RObject rxInv, Nullable<NumericVector> lower, Nullable<NumericVector> upper, Nullable<NumericMatrix> etaMat, Nullable<List> odeOpts);
 RcppExport SEXP _RxODE_foceiSetup_(SEXP objSEXP, SEXP dataSEXP, SEXP thetaSEXP, SEXP thetaFixedSEXP, SEXP rxInvSEXP, SEXP lowerSEXP, SEXP upperSEXP, SEXP etaMatSEXP, SEXP odeOptsSEXP) {

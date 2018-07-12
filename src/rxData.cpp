@@ -3109,6 +3109,8 @@ SEXP rxSolveC(const RObject &obj,
   return R_NilValue;
 }
 
+extern "C" void rxOptionsFreeFocei();
+
 //' Free the C solving information.
 //'
 //' Take the ODE C system and free it.
@@ -3121,6 +3123,7 @@ LogicalVector rxSolveFree(){
   rxOptionsFree();
   rxOptionsIni();
   rxOptionsIniData();
+  rxOptionsFreeFocei();
   return LogicalVector::create(true);
 }
 

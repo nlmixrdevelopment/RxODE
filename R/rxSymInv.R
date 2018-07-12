@@ -787,7 +787,13 @@ rxSymInvCreateC_ <- function(mat, diag.xform=c("sqrt", "log", "identity")){
             fmat <- paste0("t", fmat);
             fmat[fmat == "t-1"] <- "0";
             fmat <- matrix(fmat, d);
-            diag(fmat) <- sprintf("exp(%s)", diag(fmat))
+            if (diag.xform == "sqrt"){
+                diag(fmat) <- sprintf("%s^2", diag(fmat))
+            } else if (diag.xform == "log"){
+                diag(fmat) <- sprintf("exp(%s)", diag(fmat))
+            } else {
+                diag(fmat) <- sprintf("(%s)", diag(fmat));
+            }
             w <- which(fmat[upper.tri(fmat, TRUE)] != "0")
             if (length(w) == 0){
                 stop("zero matrix.")

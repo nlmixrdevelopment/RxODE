@@ -17,6 +17,10 @@ foceiLik <- function(theta) {
     .Call(`_RxODE_foceiLik`, theta)
 }
 
+foceiNumericGrad <- function(theta) {
+    .Call(`_RxODE_foceiNumericGrad`, theta)
+}
+
 foceiSetup_ <- function(obj, data, theta, thetaFixed = NULL, rxInv = NULL, lower = NULL, upper = NULL, etaMat = NULL, odeOpts = NULL) {
     .Call(`_RxODE_foceiSetup_`, obj, data, theta, thetaFixed, rxInv, lower, upper, etaMat, odeOpts)
 }

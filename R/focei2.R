@@ -18,6 +18,12 @@
 ##' @param scaleTo Scale the initial parameter estimate to this value.
 ##'     By default this is 1.
 ##'
+##' @param centralEps Central difference tolerances, which is a vector
+##'     of relative difference and absolute difference.  The central
+##'     difference step size h is calculated as:
+##'
+##'         h = abs(x)*centralEps[1]+centralEps[2]
+##'
 ##' @inheritParams rxSolve
 ##'
 ##' @export
@@ -36,6 +42,7 @@ foceiControl <- function(epsilon=.Machine$double.eps,
                          estLambda=FALSE,
                          printInner=FALSE,
                          scaleTo=1.0,
+                         centralEps=c(0.5e-8, 0.5e-3),
                          ..., stiff){
     .xtra <- list(...);
     if (is.null(transitAbs) && !is.null(.xtra$transit_abs)){  # nolint
@@ -96,7 +103,8 @@ foceiControl <- function(epsilon=.Machine$double.eps,
          scaleTo=scaleTo,
          estLambda=as.integer(estLambda),
          lambda=lambda,
-         epsilon=epsilon)
+         epsilon=epsilon,
+         centralEps=centralEps)
 }
 
 .foceiSetup <- function(obj, data, theta, thetaFixed = NULL, rxInv = NULL,

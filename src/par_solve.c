@@ -778,7 +778,7 @@ void ind_solve(rx_solve *rx, unsigned int cid,
 	       t_dydt c_dydt, t_update_inis u_inis,
 	       int jt){
   rx_solving_options *op = &op_global;
-  if (op->neq > 0){
+  if (op->neq !=  0){
     switch (op->stiff){
     case 2: 
       ind_liblsoda(rx, cid, dydt_lls, u_inis);
@@ -795,7 +795,7 @@ void ind_solve(rx_solve *rx, unsigned int cid,
 
 inline void par_solve(rx_solve *rx){
   rx_solving_options *op = &op_global;
-  if (op->neq > 0){
+  if (op->neq != 0){
     if (op->stiff == 2){
       par_liblsoda(rx);
     } else if (op->stiff == 1){

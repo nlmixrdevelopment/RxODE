@@ -5,12 +5,13 @@
 \title{Control Options for FOCEi}
 \usage{
 foceiControl(epsilon = .Machine$double.eps, maxInnerIterations = 100,
-  maxOuterIterations = 5000, n1qn1Nsim = NULL, method = c("liblsoda",
+  maxOuterIterations = 5000, n1qn1nsim = NULL, method = c("liblsoda",
   "lsoda", "dop853"), transitAbs = NULL, atol = 1e-08, rtol = 1e-06,
   maxstepsOde = 5000L, hmin = 0L, hmax = NULL, hini = 0,
   maxordn = 12L, maxords = 5L, cores, covsInterpolation = c("linear",
   "locf", "nocb", "midpoint"), tbs = c("cox-box", "yeo-johnson"),
-  printInner = FALSE, ..., stiff)
+  lambda = 1, estLambda = FALSE, printInner = FALSE, scaleTo = 1, ...,
+  stiff)
 }
 \arguments{
 \item{epsilon}{Precision of estimate for n1qn1 optimization.}
@@ -18,7 +19,7 @@ foceiControl(epsilon = .Machine$double.eps, maxInnerIterations = 100,
 \item{maxInnerIterations}{Number of iterations for n1qn1
 optimization.}
 
-\item{n1qn1Nsim}{Number of function evaluations for n1qn1
+\item{n1qn1nsim}{Number of function evaluations for n1qn1
 optimization.}
 
 \item{method}{The method for solving ODEs.  Currently this supports:
@@ -91,6 +92,9 @@ solving (ie thread-safe methods like "liblsoda").}
 prediction for dynamic transform both sides method.}
 
 \item{printInner}{Print information in the inner optimization}
+
+\item{scaleTo}{Scale the initial parameter estimate to this value.
+By default this is 1.}
 
 \item{...}{Other arguments including scaling factors for each
 compartment.  This includes S# = numeric will scale a compartment

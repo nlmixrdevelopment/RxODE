@@ -111,8 +111,6 @@ typedef struct {
   unsigned int gZmN;
   // Where likelihood is saved.
   
-  double cEps; // Central difference EPS
-  
   int *etaTrans;
 
   int neta;
@@ -149,6 +147,8 @@ typedef struct {
   mat omegaInv;
   double logDetOmegaInv5;
 
+  double rEps;
+  double aEps;
 } focei_options;
 
 focei_options op_focei;
@@ -238,23 +238,6 @@ void foceiGgZm(unsigned int n){
   }
 }
 
-extern "C" void rxOptionsFreeFocei(){
-  Free(op_focei.thetaTrans);
-  Free(op_focei.theta);
-  Free(op_focei.fullTheta);
-  Free(op_focei.initPar);
-  Free(op_focei.fixedTrans);
-  op_focei.thetaTransN=0;
-  Free(op_focei.etaTrans);
-  op_focei.etaTransN=0;
-  Free(op_focei.geta);
-  Free(op_focei.goldEta);
-  Free(op_focei.gsaveEta);
-  op_focei.gEtaGTransN=0;
-  Free(op_focei.gthetaGrad);
-  op_focei.gThetaGTransN=0;
-}
-
 typedef struct {
   double lik[3]; // lik[0] = liklihood; For central difference: lik[1] = lower lik[2] = upper
   double *eta; // Eta includes the ID number for the patient
@@ -290,6 +273,25 @@ typedef struct {
 
 focei_ind *inds_focei = NULL;
 int max_inds_focei = 0;
+
+extern "C" void rxOptionsFreeFocei(){
+  Free(op_focei.thetaTrans);
+  Free(op_focei.theta);
+  Free(op_focei.fullTheta);
+  Free(op_focei.initPar);
+  Free(op_focei.fixedTrans);
+  op_focei.thetaTransN=0;
+  Free(op_focei.etaTrans);
+  op_focei.etaTransN=0;
+  Free(op_focei.geta);
+  Free(op_focei.goldEta);
+  Free(op_focei.gsaveEta);
+  op_focei.gEtaGTransN=0;
+  Free(op_focei.gthetaGrad);
+  op_focei.gThetaGTransN=0;
+  Free(inds_focei);
+  max_inds_focei=0;
+}
 
 rx_solve *getRxSolve_();
 
@@ -396,7 +398,7 @@ void updateZm(focei_ind *indF){
     vec zmV(l_n);
     std::copy(&indF->zm[0], &indF->zm[0]+l_n, zmV.begin());
     H.elem(lowerTri(H,true)) = zmV;
-    L.elem(lowerTri(H,false)) = H.elem(lowerTri(H,0));
+    if (n != 1) L.elem(lowerTri(H,false)) = H.elem(lowerTri(H,0));
     D.diag() = H.diag();
     H = L*D*L.t();
     // Hessian -> c.hess
@@ -556,7 +558,7 @@ double likInner(double *eta){
     // Finalize eq. #12
     fInd->lp = -(fInd->lp - op_focei.omegaInv * etam);
     // Partially finalize #10
-    fInd->llik = trace(-(fInd->llik - 0.5*(etam.t() * op_focei.omegaInv * etam)));
+    fInd->llik = -trace(fInd->llik - 0.5*(etam.t() * op_focei.omegaInv * etam));
     // print(wrap(fInd->llik));
     std::copy(&eta[0], &eta[0] + op_focei.neta, &fInd->oldEta[0]);
   }
@@ -742,14 +744,14 @@ void numericGrad(double *theta){
       if (likId){
         id =  (gid-1)/2;
         fInd = &(inds_focei[id]);
-        fInd->thVal[likId]= theta[cpar]+op_focei.cEps*theta[cpar];
+        fInd->thVal[likId]= theta[cpar] + theta[cpar]*op_focei.rEps + op_focei.aEps;
 	updateTheta1(fInd->thVal[likId], cpar);
         // Upper
         innerOpt1(id, 2);
       } else {
         id = gid/2;
         fInd = &(inds_focei[id]);
-        fInd->thVal[likId]= theta[cpar]-op_focei.cEps*theta[cpar];
+        fInd->thVal[likId]= theta[cpar] - theta[cpar]*op_focei.rEps - op_focei.aEps;
         updateTheta1(fInd->thVal[likId], cpar);
         // Lower
         innerOpt1(id, 1);
@@ -758,7 +760,7 @@ void numericGrad(double *theta){
     // Now calculate individual gradient components
     for (int gid=rx->nsub; gid--;){
       focei_ind *fInd = &(inds_focei[gid]);
-      fInd->thetaGrad[cpar] = (fInd->lik[2]-fInd->lik[1])/(fInd->thVal[1]-fInd->thVal[0]);
+      fInd->thetaGrad[cpar] = (fInd->lik[2] - fInd->lik[1])/(2*(theta[cpar]*op_focei.rEps - op_focei.aEps));
       // thetaGrad[cpar] += fInd->thetaGrad[cpar];
     }
     // Reset theta
@@ -784,6 +786,15 @@ void numericGrad(double *theta){
     }
   }
 }
+
+//[[Rcpp::export]]
+NumericVector foceiNumericGrad(NumericVector theta){
+  numericGrad(&theta[0]);
+  NumericVector ret(theta.size());
+  std::copy(&op_focei.thetaGrad[0], &op_focei.thetaGrad[0]+theta.size(), &ret[0]);
+  return ret;
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // Setup FOCEi functions
@@ -924,15 +935,15 @@ static inline void foceiSetupEta_(NumericMatrix etaMat0){
 }
 
 // [[Rcpp::export]]
-RObject foceiSetup_(const RObject &obj,
-                    const RObject &data,
-                    NumericVector theta,
-		    Nullable<LogicalVector> thetaFixed = R_NilValue,
-		    RObject rxInv = R_NilValue,
-		    Nullable<NumericVector> lower  = R_NilValue,
-                    Nullable<NumericVector> upper  = R_NilValue,
-                    Nullable<NumericMatrix> etaMat = R_NilValue,
-		    Nullable<List> odeOpts = R_NilValue){
+NumericVector foceiSetup_(const RObject &obj,
+			  const RObject &data,
+			  NumericVector theta,
+			  Nullable<LogicalVector> thetaFixed = R_NilValue,
+			  RObject rxInv = R_NilValue,
+			  Nullable<NumericVector> lower  = R_NilValue,
+			  Nullable<NumericVector> upper  = R_NilValue,
+			  Nullable<NumericMatrix> etaMat = R_NilValue,
+			  Nullable<List> odeOpts = R_NilValue){
   if (!rxIs(rxInv, "rxSymInvCholEnv")){
     stop("Omega isn't in the proper format.");
   } else {
@@ -942,6 +953,13 @@ RObject foceiSetup_(const RObject &obj,
     stop("ODE options must be specified.");
   }
   List odeO = as<List>(odeOpts);
+  NumericVector cEps=odeO["centralEps"];
+  if (cEps.size() != 2){
+    stop("centralEps must be 2 elements for determining central difference step size.");
+  }
+  op_focei.rEps=fabs(cEps[0]);
+  op_focei.aEps=fabs(cEps[1]);
+
   op_focei.yj=odeO["tbs"];
   op_focei.lambda = as<double>(odeO["lambda"]);
   // This fills in op_focei.neta
@@ -968,14 +986,13 @@ RObject foceiSetup_(const RObject &obj,
     }
     IntegerVector ids = as<IntegerVector>(df[idn]);
     int last = ids[ids.size()-1]-1;
-    nsub++;
     for (unsigned int j = ids.size(); j--;){
       if (last != ids[j]){
 	last = ids[j];
 	nsub++;
       }
     }
-    etaMat0 = NumericMatrix(nsub, op_focei.neta, 0);    
+    etaMat0 = NumericMatrix(nsub, op_focei.neta);    
   } else {
     etaMat0 = as<NumericMatrix>(etaMat);
     // Assume nsub = ncols
@@ -1066,6 +1083,12 @@ RObject foceiSetup_(const RObject &obj,
   op_focei.maxInnerIterations = as<unsigned int>(odeO["maxInnerIterations"]);
   op_focei.nsim=as<int>(odeO["n1qn1nsim"]);
   op_focei.imp=as<int>(odeO["printInner"]);
-  op_focei.cEps=sqrt(DOUBLE_EPS);
-  return as<RObject>(R_NilValue);
+  NumericVector ret(op_focei.npars, op_focei.scaleTo);
+  if (op_focei.scaleTo <= 0){
+    for (unsigned int k = op_focei.npars; k--;){
+      j=op_focei.fixedTrans[k];
+      ret[k] = op_focei.fullTheta[j];
+    }
+  }
+  return ret;
 }
