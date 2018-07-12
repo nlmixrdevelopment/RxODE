@@ -86,7 +86,7 @@ rxPhysicalDrives <- memoise::memoise(function(duplicates=FALSE){
             }
         }
         if (!is.null(.pythonBase)){
-            .pythonBase <- gsub("\\", "/", .normalizePath(gsub(rex::rex(any_of("/", "\\"), end), "", .pythonBase)), fixed=TRUE);
+            .pythonBase <- gsub("\\", "/", normalizePath(gsub(rex::rex(any_of("/", "\\"), end), "", .pythonBase)), fixed=TRUE);
         }
         return(.pythonBase)
     }
@@ -97,14 +97,13 @@ rxPhysicalDrives <- memoise::memoise(function(duplicates=FALSE){
     .keys <- try(utils::readRegistry(sprintf("SOFTWARE\\nlmixr%s", ifelse(.Platform$r_arch == "i386", "32", "")),
                                     hive = "HCU", maxdepth = 2), silent = TRUE);
     if (!inherits(.keys, "try-error")){
-        .normalizePath(commandArgs()[[1]])
-        if (regexpr(rex::rex(.normalizePath(.keys[[1]])),
-                    .normalizePath(commandArgs()[[1]])) == -1){
+        if (regexpr(rex::rex(substring(normalizePath(.keys[[1]]), 2)),
+                    normalizePath(commandArgs()[[1]])) == -1){
             return(list())
         }
         .lst <- list(
-            rtoolsBase = .normalizePath(file.path(.keys[[1]], "rtools"), winslash="/", mustWork=FALSE),
-            pythonBase=.normalizePath(file.path(.keys[[1]], "python"), winslash="/", mustWork=FALSE)
+            rtoolsBase = normalizePath(file.path(.keys[[1]], "rtools"), winslash="/", mustWork=FALSE),
+            pythonBase=normalizePath(file.path(.keys[[1]], "python"), winslash="/", mustWork=FALSE)
         );
         if (dir.exists(.lst$rtoolsBase) && dir.exists(.lst$pythonBase)){
             return(.lst);
@@ -154,7 +153,7 @@ rxPhysicalDrives <- memoise::memoise(function(duplicates=FALSE){
                             .version <- names(.keys)[[i]]
                             .key <- .keys[[.version]]
                             if (!is.list(.key) || is.null(.key$InstallPath)) next;
-                            install_path <- .normalizePath(.key$InstallPath, mustWork = FALSE,
+                            install_path <- normalizePath(.key$InstallPath, mustWork = FALSE,
                                                           winslash = "/");
                             if (file.exists(install_path)){
                                 .rtoolsBase <- install_path;
@@ -204,7 +203,7 @@ rxPhysicalDrives <- memoise::memoise(function(duplicates=FALSE){
                                    gsub("/", "\\\\", strsplit(Sys.getenv("PATH"), ";")[[1]]))),
                               function(x){
             if (file.exists(x)){
-                return(.normalizePath(x));
+                return(normalizePath(x));
             } else {
                 return("");
             }
@@ -216,7 +215,7 @@ rxPhysicalDrives <- memoise::memoise(function(duplicates=FALSE){
         if (rm.python){
             .path <- .path[regexpr(rex::rex(or("Python", "python", "PYTHON")), .path) == -1]
         }
-        .rPath <- .normalizePath(file.path(Sys.getenv("R_HOME"), paste0("bin", Sys.getenv("R_ARCH"))));
+        .rPath <- normalizePath(file.path(Sys.getenv("R_HOME"), paste0("bin", Sys.getenv("R_ARCH"))));
         .path <- c(.rPath, .path);
 
         ## Look in the registry...
@@ -224,7 +223,7 @@ rxPhysicalDrives <- memoise::memoise(function(duplicates=FALSE){
         .rtoolsBase <- .rxRtoolsBaseWin();
         .x <- file.path(.rtoolsBase, ifelse(.Platform$r_arch == "i386","mingw_32/bin", "mingw_64/bin"));
         if (file.exists(.x)){
-            Sys.setenv(BINPREF=gsub("([^/])$", "\\1/", gsub("\\\\", "/", .normalizePath(.x))));
+            Sys.setenv(BINPREF=gsub("([^/])$", "\\1/", gsub("\\\\", "/", normalizePath(.x))));
         }
         if (file.exists(.rtoolsBase)){
             .gcc <- list.files(.rtoolsBase, "gcc",full.names=TRUE)[1]
@@ -244,30 +243,30 @@ rxPhysicalDrives <- memoise::memoise(function(duplicates=FALSE){
                             ## )
                             ))){
                 if (file.exists(.x)){
-                    .path <- c(.normalizePath(.x), .path);
+                    .path <- c(normalizePath(.x), .path);
                 }
             }
             .pythonBase <- .rxPythonBaseWin();
             if (!is.null(.pythonBase)){
-                python <- .normalizePath(file.path(.pythonBase, "python.exe"));
+                python <- normalizePath(file.path(.pythonBase, "python.exe"));
                 if (file.exists(python)){
                     ## Sometimes there are 2 competing python
                     ## installs.  Make sure to setup everything, just
                     ## in case... Otherwise it can crash R :(
-                    Sys.setenv(PYTHON_EXE=.normalizePath(python)); ## For PythonInR
-                    .path <- c(.normalizePath(.pythonBase), .path);
-                    Sys.setenv(PYTHONHOME=.normalizePath(.pythonBase));
-                    Sys.setenv(PYTHON_INCLUDE=.normalizePath(file.path(.pythonBase, "include")));
-                    .pythonLibBase <- .normalizePath(file.path(.pythonBase, "libs"))
+                    Sys.setenv(PYTHON_EXE=normalizePath(python)); ## For PythonInR
+                    .path <- c(normalizePath(.pythonBase), .path);
+                    Sys.setenv(PYTHONHOME=normalizePath(.pythonBase));
+                    Sys.setenv(PYTHON_INCLUDE=normalizePath(file.path(.pythonBase, "include")));
+                    .pythonLibBase <- normalizePath(file.path(.pythonBase, "libs"))
                     .pythonLibName <- list.files(.pythonLibBase, "[0-9][0-9]+\\.lib$");
                     if (length(.pythonLibName) == 1){
-                        Sys.setenv(PYTHON_LIB=.normalizePath(file.path(.pythonBase, "libs", .pythonLibName)));
+                        Sys.setenv(PYTHON_LIB=normalizePath(file.path(.pythonBase, "libs", .pythonLibName)));
                     } else {
                         Sys.unsetenv("PYTHON_LIB")
                     }
-                    Sys.setenv(PYTHONPATH=paste(c(.normalizePath(file.path(.pythonBase, "DLLs")),
-                                                  .normalizePath(file.path(.pythonBase, "Lib")),
-                                                  .normalizePath(file.path(.pythonBase, "Lib", "site-packages"))),
+                    Sys.setenv(PYTHONPATH=paste(c(normalizePath(file.path(.pythonBase, "DLLs")),
+                                                  normalizePath(file.path(.pythonBase, "Lib")),
+                                                  normalizePath(file.path(.pythonBase, "Lib", "site-packages"))),
                                                 collapse=";"));
                     Sys.unsetenv("PYTHONSTARTUP");
                 }
@@ -283,7 +282,7 @@ rxPhysicalDrives <- memoise::memoise(function(duplicates=FALSE){
             if (!is.null(.keys)){
                 if (any(names(.keys) == "Path")){
                     if (file.exists(.keys$Path)){
-                        .path <- c(.normalizePath(.keys$Path), .path);
+                        .path <- c(normalizePath(.keys$Path), .path);
                     }
                 }
             }
@@ -291,7 +290,7 @@ rxPhysicalDrives <- memoise::memoise(function(duplicates=FALSE){
             .qpdf <- c(paste0(.rtoolsBase, "/qpdf/bin"), paste0(rxPhysicalDrives(), "/qpdf/bin"))
             for (.p in .qpdf){
                 if (file.exists(.p)){
-                    .path <- c(.normalizePath(.p), .path);
+                    .path <- c(normalizePath(.p), .path);
                     break;
                 }
             }
