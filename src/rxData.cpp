@@ -2043,6 +2043,23 @@ void updateSolveEnvPost(Environment e){
 extern "C" void rxOptionsFree();
 extern "C" void rxOptionsIni();
 extern "C" rx_solving_options_ind *rxOptionsIniEnsure(int mx);
+extern "C" void rxOptionsFreeFocei();
+
+//' Free the C solving information.
+//'
+//' Take the ODE C system and free it.
+//'
+//' @keywords internal
+//' @export
+// [[Rcpp::export]]
+LogicalVector rxSolveFree(){
+  gFree();
+  rxOptionsFree();
+  rxOptionsIni();
+  rxOptionsIniData();
+  rxOptionsFreeFocei();
+  return LogicalVector::create(true);
+}
 extern "C" void RxODE_assign_fn_pointers(SEXP);
 SEXP rxSolveC(const RObject &obj,
               const Nullable<CharacterVector> &specParams = R_NilValue,
@@ -2962,10 +2979,7 @@ SEXP rxSolveC(const RObject &obj,
     }
     par_solve(rx);
     if (op->abort){
-      gFree();
-      rxOptionsFree();
-      rxOptionsIni();
-      rxOptionsIniData();
+      rxSolveFree();
       stop("Aborted solve.");
     }
     int doDose = 0;
@@ -2982,11 +2996,7 @@ SEXP rxSolveC(const RObject &obj,
     int nr = rx->nr;
     int nc = dat.size();
     if (rx->matrix){
-      gFree();
-      rxOptionsFree();
-      rxOptionsIni();
-      rxOptionsIniData();
-      getRxModels();
+      rxSolveFree();
       if(_rxModels.exists(".sigma")){
       	_rxModels.remove(".sigma");
       }
@@ -3018,11 +3028,8 @@ SEXP rxSolveC(const RObject &obj,
       std::copy(&_globals.dadt_counter[0], &_globals.dadt_counter[0] + nSize, dadt_counterIv.begin());
       std::copy(&_globals.jac_counter[0], &_globals.jac_counter[0] + nSize, jac_counterIv.begin());
 
-      gFree();
-      rxOptionsFree();
-      rxOptionsIni();
-      rxOptionsIniData();
-
+      rxSolveFree();
+      
       Function newEnv("new.env", R_BaseNamespace);
       Environment e = newEnv(_["size"] = 29, _["parent"] = RxODE());
       getRxModels();
@@ -3108,25 +3115,6 @@ SEXP rxSolveC(const RObject &obj,
   }
   return R_NilValue;
 }
-
-extern "C" void rxOptionsFreeFocei();
-
-//' Free the C solving information.
-//'
-//' Take the ODE C system and free it.
-//'
-//' @keywords internal
-//' @export
-// [[Rcpp::export]]
-LogicalVector rxSolveFree(){
-  gFree();
-  rxOptionsFree();
-  rxOptionsIni();
-  rxOptionsIniData();
-  rxOptionsFreeFocei();
-  return LogicalVector::create(true);
-}
-
 
 //[[Rcpp::export]]
 SEXP rxSolveCsmall(const RObject &object,

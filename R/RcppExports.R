@@ -25,6 +25,10 @@ foceiSetup_ <- function(obj, data, theta, thetaFixed = NULL, rxInv = NULL, lower
     .Call(`_RxODE_foceiSetup_`, obj, data, theta, thetaFixed, rxInv, lower, upper, etaMat, odeOpts)
 }
 
+foceiPrint_ <- function() {
+    .Call(`_RxODE_foceiPrint_`)
+}
+
 #' Check the type of an object using Rcpp
 #'
 #' @param obj Object to check

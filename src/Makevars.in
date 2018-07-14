@@ -37,7 +37,7 @@ PKG_FCFLAGS = $(FPICFLAGS)
 PKG_CFLAGS  =  @OPENMP_CFLAGS@
 PKG_CPPFLAGS = @OPENMP_CFLAGS@
 
-SOURCES_C = call_dvode.c dop853.c tran.c omegaChol.c init.c par_solve.c cfode.c common.c corfailure.c correction.c daxpy.c ddot.c dgefa.c dgesl.c dscal.c fnorm.c idamax.c intdy.c lsoda.c methodswitch.c orderswitch.c prja.c scaleh.c solsy.c stoda.c vmnorm.c strdup_printf.c rprintf.c box.c
+SOURCES_C = call_dvode.c dop853.c tran.c omegaChol.c init.c par_solve.c cfode.c common.c corfailure.c correction.c daxpy.c ddot.c dgefa.c dgesl.c dscal.c fnorm.c idamax.c intdy.c lsoda.c methodswitch.c orderswitch.c prja.c scaleh.c solsy.c stoda.c vmnorm.c strdup_printf.c rprintf.c box.c lbfgsR.c
 SOURCES_CPP = RcppExports.cpp WinDrive.cpp rxInv.cpp rxData.cpp eventTable.cpp inner.cpp
 SOURCES_FORTAN = dlsoda.f opkda1_abbr.f opkda2.f errmsg.f
 

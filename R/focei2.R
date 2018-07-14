@@ -42,7 +42,7 @@ foceiControl <- function(epsilon=.Machine$double.eps,
                          estLambda=FALSE,
                          printInner=FALSE,
                          scaleTo=1.0,
-                         centralEps=c(0.5e-8, 0.5e-3),
+                         centralEps=c(0.5e-6, 0.5e-6),
                          ..., stiff){
     .xtra <- list(...);
     if (is.null(transitAbs) && !is.null(.xtra$transit_abs)){  # nolint

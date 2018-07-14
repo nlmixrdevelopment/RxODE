@@ -10,8 +10,8 @@ foceiControl(epsilon = .Machine$double.eps, maxInnerIterations = 100,
   maxstepsOde = 5000L, hmin = 0L, hmax = NULL, hini = 0,
   maxordn = 12L, maxords = 5L, cores, covsInterpolation = c("linear",
   "locf", "nocb", "midpoint"), tbs = c("cox-box", "yeo-johnson"),
-  lambda = 1, estLambda = FALSE, printInner = FALSE, scaleTo = 1, ...,
-  stiff)
+  lambda = 1, estLambda = FALSE, printInner = FALSE, scaleTo = 1,
+  centralEps = c(5e-07, 5e-07), ..., stiff)
 }
 \arguments{
 \item{epsilon}{Precision of estimate for n1qn1 optimization.}
@@ -95,6 +95,12 @@ prediction for dynamic transform both sides method.}
 
 \item{scaleTo}{Scale the initial parameter estimate to this value.
 By default this is 1.}
+
+\item{centralEps}{Central difference tolerances, which is a vector
+    of relative difference and absolute difference.  The central
+    difference step size h is calculated as:
+
+        h = abs(x)*centralEps[1]+centralEps[2]}
 
 \item{...}{Other arguments including scaling factors for each
 compartment.  This includes S# = numeric will scale a compartment

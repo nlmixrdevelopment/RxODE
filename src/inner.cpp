@@ -30,6 +30,33 @@ extern "C"{
     fun(simul, n, x, f, g, var, eps, mode, niter, nsim, imp, lp, zm, izs, rzs, dzs);
   }
 
+
+  typedef void (*qnbd_fp)(int* indqn, S2_fp simul, int* n, double* x, double* f, double* g, int* iprint, double* zero, int* napmax, 
+			  int* itmax, double* epsf, double* epsg, double* epsx, double* df0, 
+			  double* binf, double* binsup, int* nfac, double* trav, int* ntrav, int* itrav, int* nitrav, 
+			  int* izs, float* rzs, double* dzs);
+
+  void qnbd_(int* indqn, S2_fp simul, int* n, double* x, double* f, double* g, int* iprint, double* zero, int* napmax, 
+             int* itmax, double* epsf, double* epsg, double* epsx, double* df0, 
+             double* binf, double* binsup, int* nfac, double* trav, int* ntrav, int* itrav, int* nitrav, 
+             int* izs, float* rzs, double* dzs) {
+    static qnbd_fp fun=NULL;
+    if (fun == NULL) fun = (qnbd_fp) R_GetCCallable("n1qn1","qnbdF");
+    fun(indqn, simul, n, x, f, g, iprint, zero, napmax, itmax, epsf, epsg, epsx, df0, binf, binsup, nfac, trav, ntrav, itrav, nitrav, 
+        izs, rzs, dzs);
+  }
+
+  typedef double optimfn(int n, double *par, void *ex);
+
+  typedef void optimgr(int n, double *par, double *gr, void *ex);
+
+  void lbfgsbRX(int n, int lmm, double *x, double *lower,
+                double *upper, int *nbd, double *Fmin, optimfn fn,
+                optimgr gr, int *fail, void *ex, double factr,
+                double pgtol, int *fncount, int *grcount,
+                int maxit, char *msg, int trace, int nREPORT);
+  
+
   void ind_solve(rx_solve *rx, unsigned int cid, t_dydt_liblsoda dydt_lls, 
 		 t_dydt_lsoda_dum dydt_lsoda, t_jdum_lsoda jdum,
                  t_dydt c_dydt, t_update_inis u_inis, int jt);
@@ -93,6 +120,10 @@ List _rxInv;
 
 // These are focei inner options
 typedef struct {
+  // 
+  std::string estStr;
+  std::string gradStr;
+  std::string digStr;
   // 
   double *geta;
   double *goldEta;
@@ -397,13 +428,14 @@ void updateZm(focei_ind *indF){
     unsigned int l_n = n * (n + 1)/2;
     vec zmV(l_n);
     std::copy(&indF->zm[0], &indF->zm[0]+l_n, zmV.begin());
-    H.elem(lowerTri(H,true)) = zmV;
-    if (n != 1) L.elem(lowerTri(H,false)) = H.elem(lowerTri(H,0));
+    H.elem(lowerTri(H, true)) = zmV;
+    if (n == 1) L(0, 0) = 1;
+    else L.elem(lowerTri(H, false)) = H.elem(lowerTri(H,0));
     D.diag() = H.diag();
     H = L*D*L.t();
     // Hessian -> c.hess
     std::fill(&indF->zm[0], &indF->zm[0]+op_focei.nzm,0.0);
-    vec hessV = H.elem(lowerTri(H,1));
+    vec hessV = H.elem(lowerTri(H, true));
     std::copy(hessV.begin(),hessV.end(),&indF->zm[0]);
     indF->uzm = 1;
   }
@@ -415,17 +447,37 @@ void updateZm(focei_ind *indF){
 void updateTheta(double *theta){
   // Theta is the acutal theta
   unsigned int j, k;
+  char buff[10];
+  std::string sc = "";
+  std::string un = "";
+  std::string ex = "";
   if (op_focei.scaleTo > 0){ // Scaling
     for (k = op_focei.npars; k--;){
       j=op_focei.fixedTrans[k];
       op_focei.fullTheta[j] = theta[k] * op_focei.initPar[j] / op_focei.scaleTo; //pars <- pars * inits.vec / con$scale.to
+      snprintf(buff, sizeof(buff), "%#8g ", theta[k]);
+      sc = buff + sc;
+      snprintf(buff, sizeof(buff), "%#8g ", op_focei.fullTheta[j]);
+      un = buff + un;
+      snprintf(buff, sizeof(buff), "%#8g ", exp(op_focei.fullTheta[j]));
+      ex = buff + ex;
     }
+    sc = " S: " + sc + "\n";
+    un = " U: " + un + "\n";
+    ex = " X: " + ex + "\n";
   } else { // No scaling.
     for (k = op_focei.npars; k--;){
       j=op_focei.fixedTrans[k];
       op_focei.fullTheta[j] = theta[k]; //pars <- pars * inits.vec / con$scale.to
+      snprintf(buff, sizeof(buff), "%#8g ", op_focei.fullTheta[j]);
+      un = buff + un;
+      snprintf(buff, sizeof(buff), "%#8g ", exp(op_focei.fullTheta[j]));
+      ex = buff + ex;
     }
+    un = " U: " + un + "\n";
+    ex = " X: " + ex + "\n";
   }
+  op_focei.estStr=sc + un + ex;
   // Update theta parameters in each individual
   rx = getRxSolve_();
   for (int id = rx->nsub; id--;){
@@ -686,22 +738,22 @@ static inline void innerOpt1(int id, int likId){
 }
 
 void innerOpt(){
-#ifdef _OPENMP
-  int cores = rx->op->cores;
-#endif
+// #ifdef _OPENMP
+//   int cores = rx->op->cores;
+// #endif
   rx = getRxSolve_();
   op_focei.omegaInv=getOmegaInv();    
   if (op_focei.maxInnerIterations <= 0){
-#ifdef _OPENMP
-#pragma omp parallel for num_threads(cores)
-#endif
+// #ifdef _OPENMP
+// #pragma omp parallel for num_threads(cores)
+// #endif
     for (int id = 0; id < rx->nsub; id++){
       innerEval(id);
     }
   } else {
-#ifdef _OPENMP
-#pragma omp parallel for num_threads(cores)
-#endif    
+// #ifdef _OPENMP
+// #pragma omp parallel for num_threads(cores)
+// #endif    
     for (int id = 0; id < rx->nsub; id++){
       innerOpt1(id, 0);
     }
@@ -726,17 +778,13 @@ double foceiLik(NumericVector theta){
 
 void numericGrad(double *theta){
   rx = getRxSolve_();
-#ifdef _OPENMP
-  int cores = rx->op->cores;
-#endif
   int npars = op_focei.npars;
   if (op_focei.estLambda) npars--;
   int cpar;
+  char buff[10];
+  op_focei.gradStr="";
   for (cpar = npars; cpar--;){
-    // Gradient needs can be parallelized for each parameter then gradient calculated.
-#ifdef _OPENMP
-#pragma omp parallel for num_threads(cores)
-#endif
+    // Gradient can be parallelized for each parameter then gradient calculated, but then the n1qn1 can't be parallized?
     for (int gid=0; gid < rx->nsub*2; gid++){
       int likId, id;
       focei_ind *fInd;
@@ -773,6 +821,8 @@ void numericGrad(double *theta){
       focei_ind *fInd = &(inds_focei[gid]);
       op_focei.thetaGrad[cpar]+=fInd->thetaGrad[cpar];
     }
+    snprintf(buff, sizeof(buff), "%#8g ", op_focei.thetaGrad[cpar]);
+    op_focei.gradStr = buff + op_focei.gradStr;
   }
   // Calculate exact gradient for Cox-Box Yeo-Johnson
   if (op_focei.estLambda){
@@ -784,7 +834,10 @@ void numericGrad(double *theta){
 	}
       }
     }
+    snprintf(buff, sizeof(buff), "%#8g ", op_focei.thetaGrad[npars]);
+    op_focei.gradStr = buff + op_focei.gradStr ;
   }
+  op_focei.gradStr = " G: " + op_focei.gradStr + "\n";
 }
 
 //[[Rcpp::export]]
@@ -1090,5 +1143,14 @@ NumericVector foceiSetup_(const RObject &obj,
       ret[k] = op_focei.fullTheta[j];
     }
   }
+  op_focei.estStr="";
+  op_focei.gradStr="";
+  op_focei.digStr="";
   return ret;
+}
+
+//[[Rcpp::export]]
+RObject foceiPrint_(){
+  REprintf("%s%s%s", op_focei.estStr.c_str(), op_focei.gradStr.c_str(), op_focei.digStr.c_str());
+  return R_NilValue;
 }

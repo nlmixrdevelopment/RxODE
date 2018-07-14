@@ -76,7 +76,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // foceiSetup_
-RObject foceiSetup_(const RObject& obj, const RObject& data, NumericVector theta, Nullable<LogicalVector> thetaFixed, RObject rxInv, Nullable<NumericVector> lower, Nullable<NumericVector> upper, Nullable<NumericMatrix> etaMat, Nullable<List> odeOpts);
+NumericVector foceiSetup_(const RObject& obj, const RObject& data, NumericVector theta, Nullable<LogicalVector> thetaFixed, RObject rxInv, Nullable<NumericVector> lower, Nullable<NumericVector> upper, Nullable<NumericMatrix> etaMat, Nullable<List> odeOpts);
 RcppExport SEXP _RxODE_foceiSetup_(SEXP objSEXP, SEXP dataSEXP, SEXP thetaSEXP, SEXP thetaFixedSEXP, SEXP rxInvSEXP, SEXP lowerSEXP, SEXP upperSEXP, SEXP etaMatSEXP, SEXP odeOptsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -91,6 +91,16 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< Nullable<NumericMatrix> >::type etaMat(etaMatSEXP);
     Rcpp::traits::input_parameter< Nullable<List> >::type odeOpts(odeOptsSEXP);
     rcpp_result_gen = Rcpp::wrap(foceiSetup_(obj, data, theta, thetaFixed, rxInv, lower, upper, etaMat, odeOpts));
+    return rcpp_result_gen;
+END_RCPP
+}
+// foceiPrint_
+RObject foceiPrint_();
+RcppExport SEXP _RxODE_foceiPrint_() {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    rcpp_result_gen = Rcpp::wrap(foceiPrint_());
     return rcpp_result_gen;
 END_RCPP
 }
