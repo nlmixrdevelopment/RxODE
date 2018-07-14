@@ -776,6 +776,11 @@ double foceiLik(NumericVector theta){
   return foceiLik0(&theta[0]);
 }
 
+// R style optimfn 
+extern "C" outerLikOpim(int n, double *par, void *ex){
+  return(foceiLik0(par));
+}
+
 void numericGrad(double *theta){
   rx = getRxSolve_();
   int npars = op_focei.npars;
@@ -847,6 +852,25 @@ NumericVector foceiNumericGrad(NumericVector theta){
   std::copy(&op_focei.thetaGrad[0], &op_focei.thetaGrad[0]+theta.size(), &ret[0]);
   return ret;
 }
+
+// R optim style outer gradient
+extern "C" outerGradNumOpim(int n, double *par, double *gr, void *ex){
+  numericGrad(par);
+  std::copy(&op_focei.thetaGrad[0], &op_focei.thetaGrad[0]+theta.size(), &gr[0]);
+}
+
+void outerCostNum(int *ind, int *n, double *x, double *f, double *g, int *ti, float *tr, double *td){
+  if (*ind==2 || *ind==4) {
+    // Function
+    f[0] = foceiLik0(x);
+  }
+  if (*ind==3 || *ind==4) {
+    // Gradient
+    numericGrad(x);
+    std::copy(&op_focei.thetaGrad[0], &op_focei.thetaGrad[0]+theta.size(), &g[0]);
+  }
+}
+
 
 
 ////////////////////////////////////////////////////////////////////////////////
