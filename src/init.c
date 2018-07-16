@@ -5,9 +5,12 @@
 #include "solve.h"
 
 SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SEXP parse_model,SEXP parse_model3);
+SEXP _RxODE_foceiEtas();
 SEXP _RxODE_foceiPrint_();
 SEXP _RxODE_foceiNumericGrad(SEXP);
 SEXP _RxODE_foceiLik(SEXP);
+SEXP _RxODE_foceiOfv(SEXP);
+SEXP _RxODE_likInner(SEXP, SEXP);
 SEXP _RxODE_foceiInnerLp(SEXP, SEXP);
 SEXP _RxODE_foceiSetup_(SEXP,SEXP, SEXP, SEXP, SEXP,
                         SEXP,SEXP, SEXP, SEXP);
@@ -172,9 +175,12 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_rxSolveFree", (DL_FUNC) &_RxODE_rxSolveFree, 0},
     {"_RxODE_foceiSetup_", (DL_FUNC) &_RxODE_foceiSetup_, 9},
     {"_RxODE_foceiLik", (DL_FUNC) &_RxODE_foceiLik, 1},
+    {"_RxODE_foceiOfv", (DL_FUNC) &_RxODE_foceiOfv, 1},
+    {"_RxODE_likInner", (DL_FUNC) &_RxODE_likInner, 2},
     {"_RxODE_foceiInnerLp", (DL_FUNC) &_RxODE_foceiInnerLp, 2},
     {"_RxODE_foceiNumericGrad", (DL_FUNC) &_RxODE_foceiNumericGrad, 1},
     {"_RxODE_foceiPrint_", (DL_FUNC) &_RxODE_foceiPrint_, 0},
+    {"_RxODE_foceiEtas", (DL_FUNC) &_RxODE_foceiEtas, 0},
     {NULL, NULL, 0}
   };
   // C callable to assign environments.

@@ -13,8 +13,20 @@ foceiInnerLp <- function(eta, id = 1L) {
     .Call(`_RxODE_foceiInnerLp`, eta, id)
 }
 
+likInner <- function(eta, id = 1L) {
+    .Call(`_RxODE_likInner`, eta, id)
+}
+
 foceiLik <- function(theta) {
     .Call(`_RxODE_foceiLik`, theta)
+}
+
+foceiOfv <- function(theta) {
+    .Call(`_RxODE_foceiOfv`, theta)
+}
+
+foceiEtas <- function() {
+    .Call(`_RxODE_foceiEtas`)
 }
 
 foceiNumericGrad <- function(theta) {

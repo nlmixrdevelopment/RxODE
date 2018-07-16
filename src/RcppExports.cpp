@@ -53,6 +53,18 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// likInner
+double likInner(NumericVector eta, int id);
+RcppExport SEXP _RxODE_likInner(SEXP etaSEXP, SEXP idSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type eta(etaSEXP);
+    Rcpp::traits::input_parameter< int >::type id(idSEXP);
+    rcpp_result_gen = Rcpp::wrap(likInner(eta, id));
+    return rcpp_result_gen;
+END_RCPP
+}
 // foceiLik
 double foceiLik(NumericVector theta);
 RcppExport SEXP _RxODE_foceiLik(SEXP thetaSEXP) {
@@ -61,6 +73,27 @@ BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< NumericVector >::type theta(thetaSEXP);
     rcpp_result_gen = Rcpp::wrap(foceiLik(theta));
+    return rcpp_result_gen;
+END_RCPP
+}
+// foceiOfv
+double foceiOfv(NumericVector theta);
+RcppExport SEXP _RxODE_foceiOfv(SEXP thetaSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type theta(thetaSEXP);
+    rcpp_result_gen = Rcpp::wrap(foceiOfv(theta));
+    return rcpp_result_gen;
+END_RCPP
+}
+// foceiEtas
+List foceiEtas();
+RcppExport SEXP _RxODE_foceiEtas() {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    rcpp_result_gen = Rcpp::wrap(foceiEtas());
     return rcpp_result_gen;
 END_RCPP
 }

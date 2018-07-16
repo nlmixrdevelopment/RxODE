@@ -13,7 +13,9 @@
 ##' @param tbs Type of transformation used on dependent variable and
 ##'     prediction for dynamic transform both sides method.
 ##'
-##' @param printInner Print information in the inner optimization
+##' @param printInner Integer representing when the inner step is
+##'     printed. By default this is 0 or do not print.  1 is print
+##'     every function evaluation, 5 is print every 5 evaluations.
 ##'
 ##' @param scaleTo Scale the initial parameter estimate to this value.
 ##'     By default this is 1.
@@ -40,7 +42,7 @@ foceiControl <- function(epsilon=.Machine$double.eps,
                          tbs=c("cox-box", "yeo-johnson"),
                          lambda=1.0,
                          estLambda=FALSE,
-                         printInner=FALSE,
+                         printInner=0L,
                          scaleTo=1.0,
                          centralEps=c(0.5e-6, 0.5e-6),
                          ..., stiff){

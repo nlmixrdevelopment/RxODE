@@ -21,15 +21,8 @@ extern "C"{
   typedef void (*n1qn1_fp)(S2_fp simul, int n[], double x[], double f[], double g[], double var[], double eps[],
 			   int mode[], int niter[], int nsim[], int imp[], int lp[], double zm[], int izs[], 
 			   float rzs[], double dzs[]);
-
-  void n1qn1_(S2_fp simul, int n[], double x[], double f[], double g[], double var[], double eps[],
-              int mode[], int niter[], int nsim[], int imp[], int lp[], double zm[], int izs[], 
-              float rzs[], double dzs[]) {
-    static n1qn1_fp fun=NULL;
-    if (fun == NULL) fun = (n1qn1_fp) R_GetCCallable("n1qn1","n1qn1F");
-    fun(simul, n, x, f, g, var, eps, mode, niter, nsim, imp, lp, zm, izs, rzs, dzs);
-  }
-
+  
+  n1qn1_fp n1qn1_;
 
   typedef void (*qnbd_fp)(int* indqn, S2_fp simul, int* n, double* x, double* f, double* g, int* iprint, double* zero, int* napmax, 
 			  int* itmax, double* epsf, double* epsg, double* epsx, double* df0, 
@@ -133,7 +126,7 @@ typedef struct {
   double *gZm;
   double *gG;
   double *gVar;
-
+  
   // Integer of ETAs
   unsigned int etaTransN;
   unsigned int gEtaTransN;
@@ -170,6 +163,7 @@ typedef struct {
   int nzm;
 
   int imp;
+  int printInner;
 
   int yj;
   double lambda;
@@ -270,6 +264,8 @@ void foceiGgZm(unsigned int n){
 }
 
 typedef struct {
+  int nInnerF;
+  int nInnerG;
   double lik[3]; // lik[0] = liklihood; For central difference: lik[1] = lower lik[2] = upper
   double *eta; // Eta includes the ID number for the patient
   //
@@ -291,14 +287,14 @@ typedef struct {
   mat lp;// = mat(neta,1);
 
   double *g;
-  double *var;
-
+  
   int izs;
   float rzs; 
   double dzs;
 
   int mode; // 1 = dont use zm, 2 = use zm.
   double *zm;
+  double *var;
   unsigned int uzm;
 } focei_ind;
 
@@ -419,6 +415,7 @@ uvec lowerTri(mat H, bool diag = false){
 }
 
 void updateZm(focei_ind *indF){
+  std::fill(&indF->zm[0], &indF->zm[0]+op_focei.nzm,0.0);
   if (!indF->uzm){
     // Udate the curvature to Hessian to restart n1qn1
     int n = op_focei.neta;
@@ -429,15 +426,17 @@ void updateZm(focei_ind *indF){
     vec zmV(l_n);
     std::copy(&indF->zm[0], &indF->zm[0]+l_n, zmV.begin());
     H.elem(lowerTri(H, true)) = zmV;
-    if (n == 1) L(0, 0) = 1;
-    else L.elem(lowerTri(H, false)) = H.elem(lowerTri(H,0));
-    D.diag() = H.diag();
-    H = L*D*L.t();
+    if (n == 1) H = D;
+    else{
+      L.elem(lowerTri(H,false)) = H.elem(lowerTri(H,0));
+      D.diag() = H.diag();
+      H = L*D*L.t();
+    }
     // Hessian -> c.hess
-    std::fill(&indF->zm[0], &indF->zm[0]+op_focei.nzm,0.0);
     vec hessV = H.elem(lowerTri(H, true));
     std::copy(hessV.begin(),hessV.end(),&indF->zm[0]);
     indF->uzm = 1;
+    indF->mode=2;
   }
 }
 
@@ -514,8 +513,7 @@ void updateTheta1(double newTheta0, int k){
   if (j < op_focei.ntheta){
     for (int id = rx->nsub; id--;){
       rx_solving_options_ind ind = rx->subjects[id];
-      double *par_ptr = ind.par_ptr;
-      par_ptr[op_focei.thetaTrans[j]] = newTheta;
+      ind.par_ptr[op_focei.thetaTrans[j]] = newTheta;
     }
   } else {
     // Update setOmegaTheta
@@ -529,14 +527,14 @@ void updateTheta1(double newTheta0, int k){
   // Lambda update is not handled by finite difference, so not handled here.
 }
 
-double likInner(double *eta){
+double likInner0(double *eta){
   // id = eta[#neta]
   // eta = eta
+  rx = getRxSolve_();
   unsigned int id = (unsigned int)(eta[op_focei.neta]);
   rx_solving_options_ind *ind = &(rx->subjects[id]);
   rx_solving_options *op = rx->op;
   focei_ind *fInd = &(inds_focei[id]);
-  double *par_ptr = ind->par_ptr;
   int i, j;
   bool recalc = false;
   if (!fInd->setup){
@@ -559,7 +557,7 @@ double likInner(double *eta){
   if (recalc){
     // Update eta.
     for (j = op_focei.neta; j--;){
-      par_ptr[op_focei.etaTrans[j]] = eta[j];
+      ind->par_ptr[op_focei.etaTrans[j]] = eta[j];
     }
     // Solve ODE
     innerOde(id);
@@ -620,7 +618,7 @@ double likInner(double *eta){
 double *lpInner(double *eta){
   unsigned int id = (unsigned int)(eta[op_focei.neta]);
   focei_ind *fInd = &(inds_focei[id]);
-  likInner(eta);
+  likInner0(eta);
   std::copy(fInd->lp.begin(), fInd->lp.begin() + op_focei.neta,
 	    &fInd->g[0]);
   return &fInd->g[0];
@@ -636,6 +634,16 @@ NumericVector foceiInnerLp(NumericVector eta, int id = 1){
   std::copy(&lpd[0], &lpd[0]+op_focei.neta,lp.begin());
   delete[] etad;
   return lp;
+}
+
+//[[Rcpp::export]]
+double likInner(NumericVector eta, int id = 1){
+  double *etad = new double[eta.size()+1];
+  std::copy(eta.begin(),eta.end(),&etad[0]);
+  etad[eta.size()]=(double)(id-1);
+  double llik = likInner0(etad);
+  delete[] etad;
+  return llik;
 }
 
 mat HInner(double *eta){
@@ -665,9 +673,9 @@ mat HInner(double *eta){
 double LikInner2(double *eta, int likId){
   unsigned int id = (unsigned int)(eta[op_focei.neta]);
   focei_ind *fInd = &(inds_focei[id]);
-  // print(wrap(-likInner(eta)));
+  // print(wrap(-likInner0(eta)));
   // print(wrap(op_focei.logDetOmegaInv5));
-  double lik = -likInner(eta) + op_focei.logDetOmegaInv5;
+  double lik = -likInner0(eta) + op_focei.logDetOmegaInv5;
   // print(wrap(lik));
   rx = getRxSolve_();
   rx_solving_options_ind ind = rx->subjects[id];
@@ -697,48 +705,79 @@ double LikInner2(double *eta, int likId){
       }
     }
   }
-  fInd->lik[likId] = lik;
-  if (likId == 0) std::copy(&fInd->eta[0], &fInd->eta[0] + op_focei.neta, &fInd->saveEta[0]);
+  if (likId == 0){
+    fInd->lik[0] = lik;
+    std::copy(&fInd->eta[0], &fInd->eta[0] + op_focei.neta, &fInd->saveEta[0]);
+  } else {
+    // Use Objective function for Numeric Gradient.
+    fInd->lik[likId] = -2*lik;
+  }
   return lik;
 }
 
 // Scli-lab style cost function for inner
 void innerCost(int *ind, int *n, double *x, double *f, double *g, int *ti, float *tr, double *td){
+  int id = (int)(x[op_focei.neta]);
+  focei_ind *fInd = &(inds_focei[id]);
+
   if (*ind==2 || *ind==4) {
     // Function
-    f[0] = likInner(x);
+    // Make sure ID remains installed
+    *f = likInner0(x);
+    fInd->nInnerF++;
+    if (op_focei.printInner != 0 && fInd->nInnerF % op_focei.printInner == 0){
+      Rprintf(" %d(id:%d):%#14.8g:", fInd->nInnerF, id, *f);
+      for (int i = 0; i < *n; i++) Rprintf(" %#8g", x[i]);
+      Rprintf(" (nG: %d)\n", fInd->nInnerG);
+    }
   }
   if (*ind==3 || *ind==4) {
     // Gradient
-    g = lpInner(x);
+    double *lpd = lpInner(x);
+    fInd->nInnerG++;
+    std::copy(&lpd[0], &lpd[0] + op_focei.neta, &g[0]);
+    x[op_focei.neta] = (double)(id);
   }
+  // x[op_focei.neta] = (double)(id);
 }
 
 static inline void innerEval(int id){
   focei_ind *fInd = &(inds_focei[id]);
   // Use eta
-  likInner(fInd->eta);
+  likInner0(fInd->eta);
   LikInner2(fInd->eta, 0);
 }
 
 static inline void innerOpt1(int id, int likId){
   focei_ind *fInd = &(inds_focei[id]);
+  focei_options *fop = &op_focei;
+  fInd->nInnerF=0;
+  fInd->nInnerG=0;
   // Use eta
   // Convert Zm to Hessian, if applicable.
   updateZm(fInd);
   int lp = 6;
-  n1qn1_(innerCost, &(op_focei.neta), fInd->eta, &(fInd->llik), fInd->g,  fInd->var,
-	 &(op_focei.epsilon), &(fInd->mode), &(op_focei.maxInnerIterations),
-	 &(op_focei.nsim), &(op_focei.imp), &lp, fInd->zm, &fInd->izs,
-	 &fInd->rzs, &fInd->dzs);
+
+  std::fill_n(&fInd->var[0], fop->neta, 0.1);
+
+  double lik=0;
+
+  // Rprintf("M: %d %d %d %g\n", fInd->mode, fop->maxInnerIterations, fop->nsim, fop->epsilon);
+  n1qn1_(innerCost, &(fop->neta), fInd->eta, 
+	 &(lik), fInd->g, 
+	 fInd->var, &(fop->epsilon),
+	 &(fInd->mode), &(fop->maxInnerIterations), &(fop->nsim), 
+	 &(fop->imp), &lp, 
+	 fInd->zm, 
+	 &fInd->izs, &fInd->rzs, &fInd->dzs);
   // Use saved Hessian on next opimization.
-  fInd->mode=1;
+  fInd->mode=2;
   fInd->uzm =0;
   LikInner2(fInd->eta, likId);
 }
 
 void innerOpt(){
-// #ifdef _OPENMP
+  // #ifdef _OPENMP
 //   int cores = rx->op->cores;
 // #endif
   rx = getRxSolve_();
@@ -760,7 +799,7 @@ void innerOpt(){
   }
 }
 
-double foceiLik0(double *theta){
+static inline double foceiLik0(double *theta){
   updateTheta(theta);
   innerOpt();
   double lik = 0.0;
@@ -771,14 +810,57 @@ double foceiLik0(double *theta){
   return lik;
 }
 
+
+double foceiOfv0(double *theta){
+  return (-2*foceiLik0(theta));
+}
+
 //[[Rcpp::export]]
 double foceiLik(NumericVector theta){
   return foceiLik0(&theta[0]);
 }
 
+//[[Rcpp::export]]
+double foceiOfv(NumericVector theta){
+  return foceiOfv0(&theta[0]);
+}
+
+//[[Rcpp::export]]
+List foceiEtas(){
+  List ret(op_focei.neta+2);
+  CharacterVector nm(op_focei.neta+2);
+  rx = getRxSolve_();
+  IntegerVector ids(rx->nsub);
+  NumericVector ofv(rx->nsub);
+  int j,eta;
+  for (j = op_focei.neta; j--;){
+    ret[j+1]=NumericVector(rx->nsub);
+    nm[j+1] = "ETA" + std::to_string(j+1);
+  }
+  NumericVector tmp;
+  for (j=rx->nsub; j--;){
+    ids[j] = j+1;
+    focei_ind *fInd = &(inds_focei[j]);
+    ofv[j] = -2*fInd->lik[0];
+    for (eta = op_focei.neta; eta--;){
+      tmp = ret[eta+1];
+      tmp[j] = fInd->eta[eta];
+    }
+  }
+  ret[0] = ids;
+  nm[0] = "ID";
+  ret[op_focei.neta+1]=ofv;
+  nm[op_focei.neta+1] = "OBJI";
+  ret.attr("names") = nm;
+  ret.attr("class") = "data.frame";
+  ret.attr("row.names") = IntegerVector::create(NA_INTEGER,-rx->nsub);
+  return(ret);
+}
+
+
 // R style optimfn 
-extern "C" outerLikOpim(int n, double *par, void *ex){
-  return(foceiLik0(par));
+extern "C" double outerLikOpim(int n, double *par, void *ex){
+  return(foceiOfv0(par));
 }
 
 void numericGrad(double *theta){
@@ -854,9 +936,9 @@ NumericVector foceiNumericGrad(NumericVector theta){
 }
 
 // R optim style outer gradient
-extern "C" outerGradNumOpim(int n, double *par, double *gr, void *ex){
+extern "C" void outerGradNumOpim(int n, double *par, double *gr, void *ex){
   numericGrad(par);
-  std::copy(&op_focei.thetaGrad[0], &op_focei.thetaGrad[0]+theta.size(), &gr[0]);
+  std::copy(&op_focei.thetaGrad[0], &op_focei.thetaGrad[0]+n, &gr[0]);
 }
 
 void outerCostNum(int *ind, int *n, double *x, double *f, double *g, int *ti, float *tr, double *td){
@@ -867,7 +949,7 @@ void outerCostNum(int *ind, int *n, double *x, double *f, double *g, int *ti, fl
   if (*ind==3 || *ind==4) {
     // Gradient
     numericGrad(x);
-    std::copy(&op_focei.thetaGrad[0], &op_focei.thetaGrad[0]+theta.size(), &g[0]);
+    std::copy(&op_focei.thetaGrad[0], &op_focei.thetaGrad[0]+n[0], &g[0]);
   }
 }
 
@@ -990,15 +1072,15 @@ static inline void foceiSetupEta_(NumericMatrix etaMat0){
   for (i = rx->nsub; i--;){
     fInd = &(inds_focei[i]);
     fInd->eta = &op_focei.geta[j];
-    fInd->eta[j+op_focei.neta] = i;
     // Copy in etaMat0 to the inital eta stored (0 if unspecified)
-    std::copy(&etaMat0[i*op_focei.neta], &etaMat0[(i+1)*op_focei.neta], &fInd->eta[0]);
     fInd->oldEta = &op_focei.goldEta[k];
-    std::copy(&etaMat0[i*op_focei.neta], &etaMat0[(i+1)*op_focei.neta], &fInd->oldEta[0]);
-    fInd->saveEta = &op_focei.gsaveEta[k];
-    std::copy(&etaMat0[i*op_focei.neta], &etaMat0[(i+1)*op_focei.neta], &fInd->saveEta[0]);
-    fInd->g = &op_focei.gG[k];
     fInd->var = &op_focei.gVar[k];
+    fInd->saveEta = &op_focei.gsaveEta[k];
+    std::copy(&etaMat0[i*op_focei.neta], &etaMat0[(i+1)*op_focei.neta], &fInd->oldEta[0]);
+    std::copy(&etaMat0[i*op_focei.neta], &etaMat0[(i+1)*op_focei.neta], &fInd->saveEta[0]);
+    std::copy(&etaMat0[i*op_focei.neta], &etaMat0[(i+1)*op_focei.neta], &fInd->eta[0]);
+    fInd->eta[op_focei.neta] = i;    
+    fInd->g = &op_focei.gG[k];
     fInd->zm = &op_focei.gZm[ii];
     j+=op_focei.neta+1;
     k+=op_focei.neta;
@@ -1159,7 +1241,11 @@ NumericVector foceiSetup_(const RObject &obj,
   op_focei.maxOuterIterations = as<unsigned int>(odeO["maxOuterIterations"]);
   op_focei.maxInnerIterations = as<unsigned int>(odeO["maxInnerIterations"]);
   op_focei.nsim=as<int>(odeO["n1qn1nsim"]);
-  op_focei.imp=as<int>(odeO["printInner"]);
+  op_focei.imp=0;
+  op_focei.printInner=abs(as<int>(odeO["printInner"]));
+  if (op_focei.printInner > 0){
+    rx->op->cores=1;
+  }
   NumericVector ret(op_focei.npars, op_focei.scaleTo);
   if (op_focei.scaleTo <= 0){
     for (unsigned int k = op_focei.npars; k--;){
@@ -1170,6 +1256,7 @@ NumericVector foceiSetup_(const RObject &obj,
   op_focei.estStr="";
   op_focei.gradStr="";
   op_focei.digStr="";
+  n1qn1_ = (n1qn1_fp) R_GetCCallable("n1qn1","n1qn1F");
   return ret;
 }
 
