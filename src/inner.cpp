@@ -126,6 +126,7 @@ typedef struct {
   double *gZm;
   double *gG;
   double *gVar;
+  double *gX;
   
   // Integer of ETAs
   unsigned int etaTransN;
@@ -240,11 +241,13 @@ void foceiGEtaN(unsigned int n){
     Free(op_focei.gsaveEta);
     Free(op_focei.gG);
     Free(op_focei.gVar);
+    Free(op_focei.gX);
     op_focei.geta = Calloc(cur, double);
     op_focei.goldEta = Calloc(cur, double);
     op_focei.gsaveEta = Calloc(cur, double);
     op_focei.gG = Calloc(cur, double);
     op_focei.gVar = Calloc(cur, double);
+    op_focei.gX = Calloc(cur, double);
     // Prefill to 0.1 or 10%
     std::fill_n(&op_focei.gVar[0], cur, 0.1);
     op_focei.gEtaGTransN = cur;
@@ -255,7 +258,7 @@ void foceiGgZm(unsigned int n){
   if (op_focei.gZmN < n){
     unsigned int cur = op_focei.gZmN;
     while (cur < n){
-      cur += NETAs*(NETAs+13)/2*NSUBs;
+      cur += (NETAs+1)*(NETAs+14)/2*NSUBs;
     }
     Free(op_focei.gZm);
     op_focei.gZm = Calloc(cur, double);
@@ -288,13 +291,10 @@ typedef struct {
 
   double *g;
   
-  int izs;
-  float rzs; 
-  double dzs;
-
   int mode; // 1 = dont use zm, 2 = use zm.
   double *zm;
   double *var;
+  double *x;
   unsigned int uzm;
 } focei_ind;
 
@@ -313,11 +313,16 @@ extern "C" void rxOptionsFreeFocei(){
   Free(op_focei.geta);
   Free(op_focei.goldEta);
   Free(op_focei.gsaveEta);
+  Free(op_focei.gG);
+  Free(op_focei.gVar);
+  Free(op_focei.gX);
   op_focei.gEtaGTransN=0;
   Free(op_focei.gthetaGrad);
   op_focei.gThetaGTransN=0;
   Free(inds_focei);
   max_inds_focei=0;
+  Free(op_focei.gZm);
+  op_focei.gZmN = 0;
 }
 
 rx_solve *getRxSolve_();
@@ -615,13 +620,13 @@ double likInner0(double *eta){
   return fInd->llik;
 }
 
-double *lpInner(double *eta){
+double *lpInner(double *eta, double *g){
   unsigned int id = (unsigned int)(eta[op_focei.neta]);
   focei_ind *fInd = &(inds_focei[id]);
   likInner0(eta);
   std::copy(fInd->lp.begin(), fInd->lp.begin() + op_focei.neta,
-	    &fInd->g[0]);
-  return &fInd->g[0];
+	    &g[0]);
+  return &g[0];
 }
 
 //[[Rcpp::export]]
@@ -629,9 +634,8 @@ NumericVector foceiInnerLp(NumericVector eta, int id = 1){
   double *etad = new double[eta.size()+1];
   std::copy(eta.begin(),eta.end(),&etad[0]);
   etad[eta.size()]=(double)(id-1);
-  double *lpd = lpInner(etad);
   NumericVector lp(eta.size());
-  std::copy(&lpd[0], &lpd[0]+op_focei.neta,lp.begin());
+  lpInner(etad,&lp[0]);
   delete[] etad;
   return lp;
 }
@@ -733,12 +737,10 @@ void innerCost(int *ind, int *n, double *x, double *f, double *g, int *ti, float
   }
   if (*ind==3 || *ind==4) {
     // Gradient
-    double *lpd = lpInner(x);
+    lpInner(x, g);
+    g[op_focei.neta] = 0; // Id shouldn't change.
     fInd->nInnerG++;
-    std::copy(&lpd[0], &lpd[0] + op_focei.neta, &g[0]);
-    x[op_focei.neta] = (double)(id);
   }
-  // x[op_focei.neta] = (double)(id);
 }
 
 static inline void innerEval(int id){
@@ -757,19 +759,28 @@ static inline void innerOpt1(int id, int likId){
   // Convert Zm to Hessian, if applicable.
   updateZm(fInd);
   int lp = 6;
-
+  
   std::fill_n(&fInd->var[0], fop->neta, 0.1);
+  fInd->var[fop->neta] = 0; // No change; ID.
 
-  double lik=0;
+  int npar = fop->neta+1;
 
-  // Rprintf("M: %d %d %d %g\n", fInd->mode, fop->maxInnerIterations, fop->nsim, fop->epsilon);
-  n1qn1_(innerCost, &(fop->neta), fInd->eta, 
-	 &(lik), fInd->g, 
-	 fInd->var, &(fop->epsilon),
-	 &(fInd->mode), &(fop->maxInnerIterations), &(fop->nsim), 
-	 &(fop->imp), &lp, 
+  std::copy(&fInd->eta[0], &fInd->eta[0]+fop->neta+1,fInd->x);
+  double f, epsilon = fop->epsilon;
+
+  // Since these are pointers, without reassignment they are modified.
+  int mode = fInd->mode, maxInnerIterations=fop->maxInnerIterations,
+    nsim=fop->nsim, imp=fop->imp;
+  int izs; float rzs; double dzs;
+  
+  n1qn1_(innerCost, &npar, fInd->x, &f, fInd->g, 
+	 fInd->var, &epsilon,
+	 &mode, &maxInnerIterations, &nsim, 
+	 &imp, &lp, 
 	 fInd->zm, 
-	 &fInd->izs, &fInd->rzs, &fInd->dzs);
+	 &izs, &rzs, &dzs);
+  std::copy(&fInd->x[0],&fInd->x[0]+fop->neta,&fInd->eta[0]);
+  fInd->llik = f;
   // Use saved Hessian on next opimization.
   fInd->mode=2;
   fInd->uzm =0;
@@ -844,7 +855,8 @@ List foceiEtas(){
     ofv[j] = -2*fInd->lik[0];
     for (eta = op_focei.neta; eta--;){
       tmp = ret[eta+1];
-      tmp[j] = fInd->eta[eta];
+      // Save eta is what the ETAs are saved
+      tmp[j] = fInd->saveEta[eta];
     }
   }
   ret[0] = ids;
@@ -989,7 +1001,7 @@ static inline void foceiSetupTrans_(CharacterVector pars){
       }
     }
   }
-  op_focei.nzm = op_focei.neta * (op_focei.neta + 13) / 2;
+  op_focei.nzm = (op_focei.neta+1) * (op_focei.neta + 14) / 2;
 }
 
 static inline void foceiSetupTheta_(const RObject &obj,
@@ -1066,27 +1078,36 @@ static inline void foceiSetupEta_(NumericMatrix etaMat0){
   etaMat0 = transpose(etaMat0);
   foceiGEtaN((op_focei.neta+1)*rx->nsub);
   foceiGThetaN(op_focei.npars*(rx->nsub + 1));
-  foceiGgZm(op_focei.neta*(op_focei.neta+13)/2*rx->nsub);
+  foceiGgZm((op_focei.neta+1)*(op_focei.neta+14)/2*rx->nsub);
   unsigned int i, j = 0, k = 0, ii=0, jj = 0;
   focei_ind *fInd;
   for (i = rx->nsub; i--;){
     fInd = &(inds_focei[i]);
+    // ETA ini
     fInd->eta = &op_focei.geta[j];
+    fInd->oldEta = &op_focei.goldEta[j];
+    fInd->saveEta = &op_focei.gsaveEta[j];
+    fInd->g = &op_focei.gG[j];
+    fInd->x = &op_focei.gX[j];
+    fInd->var = &op_focei.gVar[j];
+
     // Copy in etaMat0 to the inital eta stored (0 if unspecified)
-    fInd->oldEta = &op_focei.goldEta[k];
-    fInd->var = &op_focei.gVar[k];
-    fInd->saveEta = &op_focei.gsaveEta[k];
     std::copy(&etaMat0[i*op_focei.neta], &etaMat0[(i+1)*op_focei.neta], &fInd->oldEta[0]);
     std::copy(&etaMat0[i*op_focei.neta], &etaMat0[(i+1)*op_focei.neta], &fInd->saveEta[0]);
     std::copy(&etaMat0[i*op_focei.neta], &etaMat0[(i+1)*op_focei.neta], &fInd->eta[0]);
-    fInd->eta[op_focei.neta] = i;    
-    fInd->g = &op_focei.gG[k];
-    fInd->zm = &op_focei.gZm[ii];
+    fInd->eta[op_focei.neta] = i;
+    fInd->saveEta[op_focei.neta] = i;
+    fInd->oldEta[op_focei.neta] = i;
     j+=op_focei.neta+1;
+
     k+=op_focei.neta;
-    ii+=op_focei.neta * (op_focei.neta + 13) / 2;
+
+    fInd->zm = &op_focei.gZm[ii];
+    ii+=(op_focei.neta+1) * (op_focei.neta + 14) / 2;
+
     fInd->thetaGrad = &op_focei.gthetaGrad[jj];
     jj+= op_focei.npars;
+
     fInd->mode = 1;
     fInd->uzm = 1;
   }
