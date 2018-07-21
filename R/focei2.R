@@ -32,7 +32,7 @@
 ##'
 ##' @author Matthew L. Fidler
 foceiControl <- function(epsilon=.Machine$double.eps,
-                         maxInnerIterations=100,
+                         maxInnerIterations=1000,
                          maxOuterIterations=5000,
                          n1qn1nsim=NULL,
                          method = c("liblsoda", "lsoda", "dop853"),

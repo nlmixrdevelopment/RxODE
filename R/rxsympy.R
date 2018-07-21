@@ -419,7 +419,8 @@ rxSymPyVars <- function(model){
         vars <- c(rxParams(model),
                   rxState(model),
                   "podo", "t", "time", "tlast",
-                  "rx__PTR__", "rx1c");
+                  "rx__PTR__", "rx1c",
+                  sprintf("rx_underscore_xi_%s", 1:10));
     }
     vars <- sapply(vars, function(x){return(rxToSymPy(x))});
     known <- c(rxSymPy.vars, vars);
@@ -465,6 +466,7 @@ rxSymPyFunctions <- function(functions){
 ##' @export
 rxSymPySetup <- function(model, envir=parent.frame()){
     if (identical(model, "")) return(invisible());
+    rxSymPyFunctions(c("rxTBS", "rxTBSd"));
     setup <- rxToSymPy(model, envir=envir);
     const <- rxInits(model, rxLines=TRUE);
     if (!identical(const, "")) setup <- c(rxToSymPy(const, envir=envir), setup);

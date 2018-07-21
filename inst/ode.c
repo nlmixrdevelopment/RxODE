@@ -23,16 +23,21 @@
 #define _IR (_solveData->subjects[_cSub].InfusionRate)
 #define _PP (_solveData->subjects[_cSub].par_ptr)
 #define _SR (INTEGER(stateRmS))
+#define rxTBS(x)  _powerD(x,  _solveData->subjects[_cSub].lambda, _solveData->subjects[_cSub].yj)
+#define rxTBSd(x) _powerDD(x, _solveData->subjects[_cSub].lambda, _solveData->subjects[_cSub].yj)
 
 // Types for par pointers.r
 typedef double (*RxODE_fn) (double x);
 typedef double (*RxODE_fn2) (double x, double y);
+typedef double (*RxODE_fn3i) (double x, double y, int i);
 typedef double (*RxODE_fn2i) (double x, int i);
 typedef int (*RxODE_fn0i) ();
 typedef double (*RxODE_vec) (int val, rx_solve *rx, unsigned int id);
 typedef double (*RxODE_val) (rx_solve *rx, unsigned int id);
 typedef void (*RxODE_assign_ptr)(SEXP);
 typedef void (*RxODE_ode_solver_old_c)(int *neq,double *theta,double *time,int *evid,int *ntime,double *inits,double *dose,double *ret,double *atol,double *rtol,int *stiff,int *transit_abs,int *nlhs,double *lhs,int *rc);
+
+RxODE_fn3i _powerD, _powerDD;
 
 RxODE_assign_ptr _assign_ptr = NULL;
 
@@ -451,6 +456,8 @@ void __R_INIT__ (DllInfo *info){
   _prodType=(RxODE_fn0i)R_GetCCallable("PreciseSums", "PreciseSums_prod_get");
   _sumType=(RxODE_fn0i)R_GetCCallable("PreciseSums", "PreciseSums_sum_get");
   _ptrid=(RxODE_fn0i)R_GetCCallable("RxODE", "RxODE_current_fn_pointer_id");
+  _powerD=(RxODE_fn3i)R_GetCCallable("RxODE", "powerD");
+  _powerDD=(RxODE_fn3i)R_GetCCallable("RxODE", "powerDD");
   // Register the outside functions
   R_RegisterCCallable(__LIB_STR__,__ODE_SOLVER_STR__,       (DL_FUNC) __ODE_SOLVER__);
   R_RegisterCCallable(__LIB_STR__,"__INIS__", (DL_FUNC) __INIS__);

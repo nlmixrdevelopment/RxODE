@@ -6,7 +6,7 @@
 
 double powerD(double x, double lambda, int yj){
   if (lambda == 1.0) return x;
-  if (!yj){
+  if (yj == 0){
     if (x < 0) return NA_REAL;
     if (lambda == 0.0) return log(x);
     return (pow(x, lambda) - 1.0)/lambda;
@@ -22,11 +22,29 @@ double powerD(double x, double lambda, int yj){
   }
 }
 
+double powerDD(double x, double lambda, int yj){
+  if (lambda == 1) return 1;
+  if (yj == 0){
+    if (x < 0) return NA_REAL;
+    if (lambda == 0.0) return 1/x;
+    // pow(x,lambda)/lambda - 1/lambda
+    return pow(x, lambda-1);
+  } else {
+    if (x >= 0){
+      if (lambda == 0.0) return 1/(x + 1.0);
+      return pow(x + 1.0, lambda-1.0);
+    } else {
+      if (lambda == 2.0) return -1/(1.0 - x);
+      return pow(1.0 - x, 1.0-lambda);
+    }
+  }
+}
+
 double powerL(double x, double lambda, int yj){
   // logLik addition based on dTBS
   // yj is indicator for yeo-johson
   if (lambda == 1.0) return 0;
-  if (!yj){
+  if (yj == 0){
     if (x > 0) return (lambda - 1.0)*log(x);
     return NA_REAL;
   } else {

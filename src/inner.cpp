@@ -9,9 +9,10 @@
 #define getOmegaN() as<int>(rxSymInvCholEnvCalculate(_rxInv, "ntheta", R_NilValue))
 #define getOmegaTheta() as<NumericVector>(rxSymInvCholEnvCalculate(_rxInv, "theta", R_NilValue));
 #define setOmegaTheta(x) rxSymInvCholEnvCalculate(_rxInv, "theta", x)
-#define tbs(x) powerD(x, op_focei.lambda, op_focei.yj)
-#define tbsL(x) powerL(x, op_focei.lambda, op_focei.yj)
+#define tbs(x) powerD(x,    op_focei.lambda, op_focei.yj)
+#define tbsL(x) powerL(x,   op_focei.lambda, op_focei.yj)
 #define tbsDL(x) powerDL(x, op_focei.lambda, op_focei.yj)
+#define tbsD(x) powerDD(x,  op_focei.lambda, op_focei.yj)
 
 using namespace Rcpp;
 using namespace arma;
@@ -56,6 +57,7 @@ extern "C"{
   double powerD(double x, double lambda, int yj);
   double powerL(double x, double lambda, int yj);
   double powerDL(double x, double lambda, int yj);
+  double powerDD(double x, double lambda, int yj);
 }
 
 Function getRxFn(std::string name);
@@ -564,6 +566,8 @@ double likInner0(double *eta){
     for (j = op_focei.neta; j--;){
       ind->par_ptr[op_focei.etaTrans[j]] = eta[j];
     }
+    ind->lambda = op_focei.lambda;
+    ind->yj = op_focei.yj;
     // Solve ODE
     innerOde(id);
     // Rprintf("ID: %d; Solve #2: %f\n", id, ind->solve[2]);
@@ -574,9 +578,8 @@ double likInner0(double *eta){
     double f, err, r, fpm, rp;
     for (j = ind->n_all_times; j--;){
       if (!ind->evid[j]){
-	// Observation; Calc LHS.
 	inner_calc_lhs((int)id, ind->all_times[j], &ind->solve[j * op->neq], ind->lhs);
-        f = tbs(ind->lhs[0]);
+        f = ind->lhs[0]; // TBS is performed in the RxODE rx_pred_ statement. This allows derivatives of TBS to be propigated
 	// fInd->f(k, 0) = ind->lhs[0];
 	err = f - tbs(ind->dv[j]);
 	// fInd->err(k, 0) = ind->lhs[0] - ind->dv[k]; // pred-dv
@@ -704,8 +707,8 @@ double LikInner2(double *eta, int likId){
   // Add likelihood contribution based on transform both sides.
   if (op_focei.lambda != 1.0){
     for (unsigned int j = ind.n_all_times; j--;){
-      if (!ind.evid[j]){
-	lik +=tbsL(ind.dv[j]);
+      if (ind.evid[j] == 0){
+  	lik +=tbsL(ind.dv[j]);
       }
     }
   }

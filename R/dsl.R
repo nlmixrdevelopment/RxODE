@@ -153,10 +153,21 @@ functionBrewxy <- function(brew){
 
 sympyRxFEnv <- new.env(parent = emptyenv())
 rxSymPyFEnv <- new.env(parent = emptyenv())
-
 rxSymPyFEnv$solveLinB <- function(...){
     return("rx1c")
 }
+sympyRxFEnv$Subs <- function(expr, what, with){
+    what <- strsplit(substring(what, 2, nchar(what) - 1), ",")[[1]];
+    with <- strsplit(substring(with, 2, nchar(with) - 1), ",")[[1]];
+    for (i in 1:length(what)){
+        expr <- gsub(rex::rex(boundary, what[i], boundary), with[i], expr, perl=TRUE);
+    }
+    return(expr);
+}
+
+sympyRxFEnv$subs <- sympyRxFEnv$Subs;
+rxSymPyFEnv$diff <- rxSymPyFEnv$Derivative
+rxSymPyFEnv$D <- rxSymPyFEnv$Derivative;
 
 for (op in c("+", "-", "*")){
     rxSymPyFEnv[[op]] <- binaryOp(paste0(" ", op, " "));
@@ -327,7 +338,7 @@ rxPrintOp <- function(op){
 sympy.equiv.f <- c("abs", "acos", "acosh", "asin", "atan", "atan2", "atanh", "beta",
                    "cos", "cosh", "digamma", "erf", "erfc", "exp", "factorial",
                    "gamma", "log10", "sin", "sinh", "sqrt", "tan",
-                   "tanh", "trigamma", "log")
+                   "tanh", "trigamma", "log", "rxTBS", "rxTBSd")
 for (f in sympy.equiv.f){
     rxSymPyFEnv[[f]] <- functionOp(f);
     sympyRxFEnv[[f]] <- functionOp(f);
@@ -691,17 +702,6 @@ sympyRxFEnv$Subs <- function(expr, what, with){
 
 sympyRxFEnv$subs <- sympyRxFEnv$Subs;
 
-rxSymPyDiff <- function(name){
-    force(name)
-    function(fn, x){
-        stop(sprintf("'%s' is not suported in RxODE.", name));
-    }
-}
-
-rxSymPyFEnv$diff <- rxSymPyDiff("diff");
-rxSymPyFEnv$D <- rxSymPyDiff("D");
-rxSymPyFEnv$Derivative <- rxSymPyDiff("Derivative");
-
 rxSymPyFEnv$psigamma <- function(z, n){
     paste0("polygamma(", n, ", ", z, ")");
 }
@@ -875,6 +875,16 @@ unknownSymPy <- function(op){
 unknownRx <- function(op){
     force(op)
     function(...){
+        if (any(op == c("Derivative", "D", "diff"))){
+            .lst <- list(...)
+            if (length(.lst) == 2){
+                .w <- .lst[[1]];
+                .a <- .lst[[2]];
+                if (sprintf("rxTBS(%s)", .a) == .w){
+                    return(sprintf("rxTBSd(%s)", .a));
+                }
+            }
+        }
         stop(sprintf("RxODE doesn't know how to translate '%s' to a RxODE compatible function.", op));
     }
 }
@@ -903,7 +913,7 @@ sympyEnv <- function(expr){
     res <- res[res != "pi"];
     w <- which(n2 %in% res);
     n2[w] <- sprintf("rx_SymPy_Res_%s", n2[w]);
-    n2 <- gsub(rex::rex("rx_underscore_"), "_", n2);
+    ## n2 <- gsub(rex::rex("rx_underscore_"), "_", n2);
     n2[n2 == "M_E"] <- "E";
     n2[n2 == "M_PI"] <- "pi";
     n2[n2 == "M_PI_2"] <- "pi/2";
@@ -1241,11 +1251,11 @@ rxErrEnvF$prop <- function(est){
     estN <- suppressWarnings(as.numeric(est));
     if (is.na(estN)){
         if (rxErrEnv.diag.xform == "sqrt"){
-            ret <- (sprintf("rx_pred_^2 * (%s)^2", est))
+            ret <- (sprintf("(rxTBS(rx_pred_))^2 * (%s)^2", est))
         } else if (rxErrEnv.diag.xform == "log"){
-            ret <- (sprintf("rx_pred_^2 * exp(%s)", est))
+            ret <- (sprintf("(rxTBS(rx_pred_))^2 * exp(%s)", est))
         } else {
-            ret <- (sprintf("rx_pred_^2 * %s", est))
+            ret <- (sprintf("(rxTBS(rx_pred_))^2 * %s", est))
         }
     } else {
         est <- estN
@@ -1253,11 +1263,11 @@ rxErrEnvF$prop <- function(est){
         theta <- sprintf("THETA[%s]", rxErrEnv.theta);
         theta.est <- theta;
         if (rxErrEnv.diag.xform == "sqrt"){
-            ret <- (sprintf("rx_pred_^2 * (%s)^2", theta.est))
+            ret <- (sprintf("(rxTBS(rx_pred_))^2 * (%s)^2", theta.est))
         } else if (rxErrEnv.diag.xform == "log"){
-            ret <- (sprintf("rx_pred_^2 * exp(%s)", theta.est))
+            ret <- (sprintf("(rxTBS(rx_pred_))^2 * exp(%s)", theta.est))
         } else {
-            ret <- (sprintf("rx_pred_^2 * %s", theta.est))
+            ret <- (sprintf("(rxTBS(rx_pred_))^2 * %s", theta.est))
         }
         tmp <- rxErrEnv.diag.est;
         tmp[sprintf("THETA[%s]", rxErrEnv.theta)] <- as.numeric(est);
@@ -1308,7 +1318,7 @@ rxParsePk <- function(x, init=NULL){
 ##' @keywords internal
 ##' @export
 rxParsePred <- function(x, init=NULL){
-    return(rxParseErr(x, ret="rx_pred_", init=init));
+    return(gsub(rex::rex("rx_pred_ = ",capture(anything), ";"), "rx_pred_ = rxTBS(\\1)", rxParseErr(x, ret="rx_pred_", init=init)));
 }
 ##' Prepare Error function for inclusion in RxODE
 ##'
