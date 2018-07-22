@@ -32,16 +32,13 @@
 ##'
 ##' @author Matthew L. Fidler
 foceiControl <- function(epsilon=.Machine$double.eps,
-                         maxInnerIterations=1000,
+                         maxInnerIterations=10000,
                          maxOuterIterations=5000,
                          n1qn1nsim=NULL,
                          method = c("liblsoda", "lsoda", "dop853"),
                          transitAbs = NULL, atol = 1.0e-8, rtol = 1.0e-6,
                          maxstepsOde = 5000L, hmin = 0L, hmax = NULL, hini = 0, maxordn = 12L, maxords = 5L, cores,
                          covsInterpolation = c("linear", "locf", "nocb", "midpoint"),
-                         tbs=c("cox-box", "yeo-johnson"),
-                         lambda=1.0,
-                         estLambda=FALSE,
                          printInner=0L,
                          scaleTo=1.0,
                          centralEps=c(0.5e-6, 0.5e-6),
@@ -79,9 +76,6 @@ foceiControl <- function(epsilon=.Machine$double.eps,
     if (missing(cores)){
         cores <- RxODE::rxCores();
     }
-    tbs <- match.arg(tbs);
-    .tbsNames <- c("cox-box"=0L, "yeo-johnson"=1L);
-    tbs <- as.vector(.tbsNames[tbs]);
     if (missing(n1qn1nsim)){
         n1qn1nsim <- 10 * maxInnerIterations + 1;
     }
@@ -99,12 +93,9 @@ foceiControl <- function(epsilon=.Machine$double.eps,
          maxords=maxords,
          cores=cores,
          covsInterpolation=covsInterpolation,
-         tbs=tbs,
          n1qn1nsim=as.integer(n1qn1nsim),
          printInner=as.integer(printInner),
          scaleTo=scaleTo,
-         estLambda=as.integer(estLambda),
-         lambda=lambda,
          epsilon=epsilon,
          centralEps=centralEps)
 }

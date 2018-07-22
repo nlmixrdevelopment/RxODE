@@ -23,8 +23,10 @@
 #define _IR (_solveData->subjects[_cSub].InfusionRate)
 #define _PP (_solveData->subjects[_cSub].par_ptr)
 #define _SR (INTEGER(stateRmS))
-#define rxTBS(x)  _powerD(x,  _solveData->subjects[_cSub].lambda, _solveData->subjects[_cSub].yj)
-#define rxTBSd(x) _powerDD(x, _solveData->subjects[_cSub].lambda, _solveData->subjects[_cSub].yj)
+#define rx_lambda_ _solveData->subjects[_cSub].lambda
+#define rx_yj_ _solveData->subjects[_cSub].yj
+#define rxTBS(x, lm, yj)  _powerD(x,  lm, (int)(yj))
+#define rxTBSd(x, lm, yj) _powerDD(x, lm, (int)(yj))
 
 // Types for par pointers.r
 typedef double (*RxODE_fn) (double x);

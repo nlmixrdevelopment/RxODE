@@ -1,11 +1,11 @@
-regIdentifier1 <- rex::rex(one_of("a":"z", "A":"Z"), any_of("_", "a":"z", "A":"Z", "0":"9", "."))
-regIdentifier2 <- rex::rex(at_least(".",1), one_of("_", "a":"z", "A":"Z"), any_of("_", "a":"z", "A":"Z", "0":"9", "."));
-regIdentifier <- rex::rex(or(regIdentifier1, regIdentifier2));
-regSens <- rex::rex("rx__sens_", capture(regIdentifier), "_BY_",  capture(regIdentifier), "__");
-regSensEtaTheta <- rex::rex("rx__sens_", capture(regIdentifier), "_BY_",  capture(regIdentifier),
-                            "_BY_",capture(regIdentifier), "__");
-regToSens1 <- rex::rex( capture(regIdentifier), or("_", ".", ":"),  capture(regIdentifier));
-regToSens2 <- rex::rex( "d/dt(d(", capture(regIdentifier), ")/d(",  capture(regIdentifier), "))");
+.regIdentifier1 <- rex::rex(one_of("a":"z", "A":"Z"), any_of("_", "a":"z", "A":"Z", "0":"9", "."))
+.regIdentifier2 <- rex::rex(at_least(".",1), one_of("_", "a":"z", "A":"Z"), any_of("_", "a":"z", "A":"Z", "0":"9", "."));
+.regIdentifier <- rex::rex(or(.regIdentifier1, .regIdentifier2));
+regSens <- rex::rex("rx__sens_", capture(.regIdentifier), "_BY_",  capture(.regIdentifier), "__");
+regSensEtaTheta <- rex::rex("rx__sens_", capture(.regIdentifier), "_BY_",  capture(.regIdentifier),
+                            "_BY_",capture(.regIdentifier), "__");
+regToSens1 <- rex::rex( capture(.regIdentifier), or("_", ".", ":"),  capture(.regIdentifier));
+regToSens2 <- rex::rex( "d/dt(d(", capture(.regIdentifier), ")/d(",  capture(.regIdentifier), "))");
 regFloat1 <- rex::rex(or(group(some_of("0":"9"), ".", any_of("0":"9")),
                          group(any_of("0":"9"), ".", some_of("0":"9"))),
                       maybe(group(one_of("E", "e"), maybe(one_of("+", "-")), some_of("0":"9"))));
@@ -19,7 +19,7 @@ regThEt <- rex::rex(capture(or("TH", ""), "ETA"), "_",
 regDfDyTh <- rex::rex(start, "rx__df_", capture(anything), "_dy_", regThEt, "__", end);
 regEta <- rex::rex(start, "ETA[", capture("1":"9", any_of("0":"9")), "]")
 regTheta <- rex::rex(start, "THETA[", capture("1":"9", any_of("0":"9")), "]")
-regJac <- rex::rex( "df(", capture(regIdentifier), ")/dy(",  capture(or(regIdentifier, group(or("THETA[", "ETA["), "1":"9", any_of("0":"9"), "]"))), ")");
+regJac <- rex::rex( "df(", capture(.regIdentifier), ")/dy(",  capture(or(.regIdentifier, group(or("THETA[", "ETA["), "1":"9", any_of("0":"9"), "]"))), ")");
 ## regRate <- rex::rex(start, "rx__rate_", capture(anything), "__");
 known.print <- c('printf', 'Rprintf', 'print',
                  'jac_printf', 'jac_Rprintf', 'jac_print',
@@ -880,8 +880,10 @@ unknownRx <- function(op){
             if (length(.lst) == 2){
                 .w <- .lst[[1]];
                 .a <- .lst[[2]];
-                if (sprintf("rxTBS(%s)", .a) == .w){
-                    return(sprintf("rxTBSd(%s)", .a));
+                .reg <- rex::rex("rxTBS(", any_spaces, capture(.a), any_spaces, ",",
+                                 capture(except_some_of(",)")), ",", capture(except_some_of(",)")), ")")
+                if (regexpr(.reg, .w, perl=TRUE) != -1){
+                    return(sub(.reg, "rxTBSd(\\1,\\2,\\3)", .w));
                 }
             }
         }
@@ -1251,11 +1253,11 @@ rxErrEnvF$prop <- function(est){
     estN <- suppressWarnings(as.numeric(est));
     if (is.na(estN)){
         if (rxErrEnv.diag.xform == "sqrt"){
-            ret <- (sprintf("(rxTBS(rx_pred_))^2 * (%s)^2", est))
+            ret <- (sprintf("(rxTBS(rx_pred_, rx_lambda_, rx_yj_))^2 * (%s)^2", est))
         } else if (rxErrEnv.diag.xform == "log"){
-            ret <- (sprintf("(rxTBS(rx_pred_))^2 * exp(%s)", est))
+            ret <- (sprintf("(rxTBS(rx_pred_, rx_lambda_, rx_yj_))^2 * exp(%s)", est))
         } else {
-            ret <- (sprintf("(rxTBS(rx_pred_))^2 * %s", est))
+            ret <- (sprintf("(rxTBS(rx_pred_, rx_lambda_, rx_yj_))^2 * %s", est))
         }
     } else {
         est <- estN
@@ -1263,11 +1265,11 @@ rxErrEnvF$prop <- function(est){
         theta <- sprintf("THETA[%s]", rxErrEnv.theta);
         theta.est <- theta;
         if (rxErrEnv.diag.xform == "sqrt"){
-            ret <- (sprintf("(rxTBS(rx_pred_))^2 * (%s)^2", theta.est))
+            ret <- (sprintf("(rxTBS(rx_pred_, rx_lambda_, rx_yj_))^2 * (%s)^2", theta.est))
         } else if (rxErrEnv.diag.xform == "log"){
-            ret <- (sprintf("(rxTBS(rx_pred_))^2 * exp(%s)", theta.est))
+            ret <- (sprintf("(rxTBS(rx_pred_, rx_lambda_, rx_yj_))^2 * exp(%s)", theta.est))
         } else {
-            ret <- (sprintf("(rxTBS(rx_pred_))^2 * %s", theta.est))
+            ret <- (sprintf("(rxTBS(rx_pred_, rx_lambda_, rx_yj_))^2 * %s", theta.est))
         }
         tmp <- rxErrEnv.diag.est;
         tmp[sprintf("THETA[%s]", rxErrEnv.theta)] <- as.numeric(est);
@@ -1318,7 +1320,7 @@ rxParsePk <- function(x, init=NULL){
 ##' @keywords internal
 ##' @export
 rxParsePred <- function(x, init=NULL){
-    return(gsub(rex::rex("rx_pred_ = ",capture(anything), ";"), "rx_pred_ = rxTBS(\\1)", rxParseErr(x, ret="rx_pred_", init=init)));
+    return(gsub(rex::rex("rx_pred_ = ",capture(anything), ";"), "rx_pred_ = rxTBS(\\1, rx_lambda_, rx_yj_)", rxParseErr(x, ret="rx_pred_", init=init)));
 }
 ##' Prepare Error function for inclusion in RxODE
 ##'

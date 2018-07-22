@@ -2544,6 +2544,8 @@ SEXP rxSolveC(const RObject &obj,
       NumericVector amt  = as<NumericVector>(dataf[2]);
       ind = &(rx->subjects[0]);
       ind->id=1;
+      ind->lambda=1.0;
+      ind->yj = 0;
       rx->nsub= 1;
       // Time copy
       ind->n_all_times   = time.size();
@@ -2708,6 +2710,8 @@ SEXP rxSolveC(const RObject &obj,
           }
 	  // Setup the pointers.
           ind->id             = nsub+1;
+          ind->lambda         =1.0;
+          ind->yj             = 0;
           ind->all_times      = &_globals.gall_times[i];
 	  if (rxcDv > -1){
 	    ind->dv = &_globals.gdv[i];
@@ -2963,6 +2967,8 @@ SEXP rxSolveC(const RObject &obj,
 	      ind->evid =&(indS.evid[0]);
 	      ind->all_times = &(indS.all_times[0]);
 	      ind->id=id+1;
+              ind->lambda=1.0;
+              ind->yj = 0;
 	    }
 	    int eLen = op->neq*ind->n_all_times;
 	    ind->solve = &_globals.gsolve[curEvent];

@@ -75,7 +75,7 @@ typedef struct {
   double ylow;
   double yhigh;
   double lambda;
-  int yj;
+  double yj;
 } rx_solving_options_ind;
 
 typedef struct {

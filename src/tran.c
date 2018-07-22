@@ -392,7 +392,12 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
     /* printf("[%d]->%s\n",tb.nv,value); */
     sprintf(tb.ss+tb.pos, "%s,", value);
     tb.pos += (int)strlen(value)+1;
+    // Ignored variables
+    if (!strcmp("rx_lambda_", value) || !strcmp("rx_yj_", value)){
+      tb.lh[tb.nv] = 11; // Suppress param printout.
+    }
     tb.vo[++tb.nv] = tb.pos;
+    
   }
   if (sb.o > MXBUF-20 || sbt.o > MXBUF-20){
     error("The Line is too long for RxODE.");
@@ -1027,8 +1032,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	}
 	sbt.o = (int)strlen(sbt.s);
 	new_or_ith(v);
-	
-        if (!strcmp("assignment", name) || (!rx_syntax_allow_ini && !strcmp("ini", name))){
+	if (!strcmp("assignment", name)  || (!rx_syntax_allow_ini && !strcmp("ini", name))){
           tb.lh[tb.ix] = 1;
         } else if (!strcmp("ini", name) || !strcmp("ini0",name)){
           if (tb.ini[tb.ix] == 0){
@@ -1158,6 +1162,9 @@ void prnt_vars(int scenario, FILE *outpt, int lhs, const char *pre_str, const ch
           fprintf(outpt,"%c",buf[k]);
         }
       }
+      if (!strcmp("rx_lambda_", buf) || !strcmp("rx_yj_", buf)){
+	fprintf(outpt, "__");
+      }
       if (i <tb.nv-1)
         fprintf(outpt, ",\n");
       else
@@ -1176,6 +1183,9 @@ void prnt_vars(int scenario, FILE *outpt, int lhs, const char *pre_str, const ch
         } else {
           fprintf(outpt,"%c",buf[k]);
         }
+      }
+      if (!strcmp("rx_lambda_", buf) || !strcmp("rx_yj_", buf)){
+        fprintf(outpt, "__");
       }
       fprintf(outpt, ";\n");
       break;

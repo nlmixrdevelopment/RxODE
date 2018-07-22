@@ -9,10 +9,10 @@
 #define getOmegaN() as<int>(rxSymInvCholEnvCalculate(_rxInv, "ntheta", R_NilValue))
 #define getOmegaTheta() as<NumericVector>(rxSymInvCholEnvCalculate(_rxInv, "theta", R_NilValue));
 #define setOmegaTheta(x) rxSymInvCholEnvCalculate(_rxInv, "theta", x)
-#define tbs(x) powerD(x,    op_focei.lambda, op_focei.yj)
-#define tbsL(x) powerL(x,   op_focei.lambda, op_focei.yj)
-#define tbsDL(x) powerDL(x, op_focei.lambda, op_focei.yj)
-#define tbsD(x) powerDD(x,  op_focei.lambda, op_focei.yj)
+#define tbs(x) powerD(x,    ind->lambda, (int)(ind->yj))
+#define tbsL(x) powerL(x,   ind->lambda, (int)(ind->yj))
+#define tbsDL(x) powerDL(x, ind->lambda, (int)(ind->yj))
+#define tbsD(x) powerDD(x,  ind->lambda, (int)(ind->yj))
 
 using namespace Rcpp;
 using namespace arma;
@@ -168,10 +168,6 @@ typedef struct {
   int imp;
   int printInner;
 
-  int yj;
-  double lambda;
-  int estLambda;
-
   mat omegaInv;
   double logDetOmegaInv5;
 
@@ -292,6 +288,8 @@ typedef struct {
   mat lp;// = mat(neta,1);
 
   double *g;
+
+  double tbsLik;
   
   int mode; // 1 = dont use zm, 2 = use zm.
   double *zm;
@@ -500,10 +498,6 @@ void updateTheta(double *theta){
   setOmegaTheta(omegaTheta);
   op_focei.omegaInv = getOmegaInv();
   op_focei.logDetOmegaInv5 = getOmegaDet();
-  // Update Lambda, if needed.
-  if (op_focei.estLambda){
-    op_focei.lambda = op_focei.fullTheta[op_focei.npars-1];
-  }
 }
 
 void updateTheta1(double newTheta0, int k){
@@ -566,8 +560,6 @@ double likInner0(double *eta){
     for (j = op_focei.neta; j--;){
       ind->par_ptr[op_focei.etaTrans[j]] = eta[j];
     }
-    ind->lambda = op_focei.lambda;
-    ind->yj = op_focei.yj;
     // Solve ODE
     innerOde(id);
     // Rprintf("ID: %d; Solve #2: %f\n", id, ind->solve[2]);
@@ -575,6 +567,7 @@ double likInner0(double *eta){
     unsigned int k = fInd->nobs - 1;
     fInd->lp.fill(0.0);
     fInd->llik=0.0;
+    fInd->tbsLik=0.0;
     double f, err, r, fpm, rp;
     for (j = ind->n_all_times; j--;){
       if (!ind->evid[j]){
@@ -582,8 +575,9 @@ double likInner0(double *eta){
         f = ind->lhs[0]; // TBS is performed in the RxODE rx_pred_ statement. This allows derivatives of TBS to be propigated
 	// fInd->f(k, 0) = ind->lhs[0];
 	err = f - tbs(ind->dv[j]);
+	fInd->tbsLik+=tbsL(ind->dv[j]);
 	// fInd->err(k, 0) = ind->lhs[0] - ind->dv[k]; // pred-dv
-        r = ind->lhs[op_focei.neta + 1];
+	  r = ind->lhs[op_focei.neta + 1];
 	// fInd->r(k, 0) = ind->lhs[op_focei.neta+1];
         fInd->B(k, 0) = 2.0/r;
 	// fInd->B(k, 0) = 2.0/ind->lhs[op_focei.neta+1];
@@ -685,7 +679,7 @@ double LikInner2(double *eta, int likId){
   double lik = -likInner0(eta) + op_focei.logDetOmegaInv5;
   // print(wrap(lik));
   rx = getRxSolve_();
-  rx_solving_options_ind ind = rx->subjects[id];
+  // rx_solving_options_ind ind = rx->subjects[id];
   // Calclaute lik first to calculate components for Hessian
   mat H = -HInner(eta);
   try{
@@ -701,17 +695,17 @@ double LikInner2(double *eta, int likId){
       stop("Cannot correct Inner Hessian Matrix for nlmixr ID:%d to be positive definite.", likId+1);
     }
   }
-  lik -= sum(log(H.diag()));
+  lik += fInd->tbsLik - sum(log(H.diag()));
   // print(wrap(lik));
 
   // Add likelihood contribution based on transform both sides.
-  if (op_focei.lambda != 1.0){
-    for (unsigned int j = ind.n_all_times; j--;){
-      if (ind.evid[j] == 0){
-  	lik +=tbsL(ind.dv[j]);
-      }
-    }
-  }
+  // if (op_focei.lambda != 1.0){
+  //   for (unsigned int j = ind.n_all_times; j--;){
+  //     if (ind.evid[j] == 0){
+  // 	lik +=tbsL(ind.dv[j]);
+  //     }
+  //   }
+  // }
   if (likId == 0){
     fInd->lik[0] = lik;
     std::copy(&fInd->eta[0], &fInd->eta[0] + op_focei.neta, &fInd->saveEta[0]);
@@ -881,7 +875,6 @@ extern "C" double outerLikOpim(int n, double *par, void *ex){
 void numericGrad(double *theta){
   rx = getRxSolve_();
   int npars = op_focei.npars;
-  if (op_focei.estLambda) npars--;
   int cpar;
   char buff[10];
   op_focei.gradStr="";
@@ -927,18 +920,6 @@ void numericGrad(double *theta){
     op_focei.gradStr = buff + op_focei.gradStr;
   }
   // Calculate exact gradient for Cox-Box Yeo-Johnson
-  if (op_focei.estLambda){
-    for (int id=0; id < rx->nsub; id++){
-      rx_solving_options_ind ind = rx->subjects[id];
-      for (unsigned int j = ind.n_all_times; j--;){
-	if (!ind.evid[j]){
-	  op_focei.thetaGrad[npars] += tbsDL(ind.dv[j]);
-	}
-      }
-    }
-    snprintf(buff, sizeof(buff), "%#8g ", op_focei.thetaGrad[npars]);
-    op_focei.gradStr = buff + op_focei.gradStr ;
-  }
   op_focei.gradStr = " G: " + op_focei.gradStr + "\n";
 }
 
@@ -1010,8 +991,6 @@ static inline void foceiSetupTrans_(CharacterVector pars){
 static inline void foceiSetupTheta_(const RObject &obj,
 				    NumericVector theta,
 				    Nullable<LogicalVector> thetaFixed, 
-				    double lambda,
-				    int estLambda,
 				    double scaleTo){
   // Get the fixed thetas
   // fixedTrans gives the theta->full theta translation
@@ -1034,17 +1013,8 @@ static inline void foceiSetupTheta_(const RObject &obj,
   int npars = thetan+omegan-fixedn;
   List mvi = rxModelVars_(obj);
   rxUpdateInnerFuns(as<SEXP>(mvi["trans"]));
-  if (estLambda){
-    npars++;
-    foceiThetaN(npars);
-    foceiSetupTrans_(as<CharacterVector>(mvi["params"]));
-    op_focei.fullTheta[npars-1]=lambda;
-    op_focei.estLambda = 1;
-  } else {
-    foceiSetupTrans_(as<CharacterVector>(mvi["params"]));
-    foceiThetaN(npars);
-    op_focei.estLambda = 0;
-  }
+  foceiSetupTrans_(as<CharacterVector>(mvi["params"]));
+  foceiThetaN(npars);
   std::copy(theta.begin(), theta.end(), &op_focei.fullTheta[0]);  
   std::copy(omegaTheta.begin(), omegaTheta.end(), &op_focei.fullTheta[0]+thetan);
   op_focei.npars  = npars;
@@ -1057,18 +1027,14 @@ static inline void foceiSetupTheta_(const RObject &obj,
         op_focei.initPar[k] = theta[j];
       } else if (j < theta.size() + omegan){
         op_focei.initPar[k] = omegaTheta[j-theta.size()];
-      } else {
-        op_focei.initPar[k] = lambda;
-      }
+      } 
       op_focei.fixedTrans[k++] = j;
     } else if (j >= thetaFixed2.size()){
       if (j < theta.size()){
         op_focei.initPar[k] = theta[j];
       } else if (j < theta.size() + omegan){
         op_focei.initPar[k] = omegaTheta[j-theta.size()];
-      } else {
-        op_focei.initPar[k] = lambda;
-      }
+      } 
       op_focei.fixedTrans[k++] = j;
     }
   }
@@ -1143,11 +1109,8 @@ NumericVector foceiSetup_(const RObject &obj,
   op_focei.rEps=fabs(cEps[0]);
   op_focei.aEps=fabs(cEps[1]);
 
-  op_focei.yj=odeO["tbs"];
-  op_focei.lambda = as<double>(odeO["lambda"]);
   // This fills in op_focei.neta
-  foceiSetupTheta_(obj, theta, thetaFixed,  as<double>(odeO["lambda"]), 
-		   as<int>(odeO["estLambda"]), as<double>(odeO["scaleTo"]));
+  foceiSetupTheta_(obj, theta, thetaFixed, as<double>(odeO["scaleTo"]));
   // First see if etaMat is null.
   NumericMatrix etaMat0;
   unsigned int nsub=0;
@@ -1175,11 +1138,12 @@ NumericVector foceiSetup_(const RObject &obj,
 	nsub++;
       }
     }
-    etaMat0 = NumericMatrix(nsub, op_focei.neta);    
+    etaMat0 = NumericMatrix(nsub, op_focei.neta);
   } else {
     etaMat0 = as<NumericMatrix>(etaMat);
-    // Assume nsub = ncols
-    nsub=etaMat0.ncol();
+    // Assume nsub = nrow
+    // print(etaMat0);
+    nsub=etaMat0.nrow();
   }
   List params(theta.size()+op_focei.neta);
   CharacterVector paramsNames(theta.size()+op_focei.neta);
