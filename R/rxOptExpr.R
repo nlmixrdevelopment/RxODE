@@ -46,7 +46,7 @@
 
 .rxOptEnv[["+"]] <- .rxOptBin("+");
 
-.rxOptEnv[["-"]] <- .rxOptBin("+");
+.rxOptEnv[["-"]] <- .rxOptBin("-");
 
 .rxOptEnv$"[" <- function(name, val){
     n <- toupper(name)
@@ -127,6 +127,7 @@ rxOptExpr <- function(x){
     .exprs <- names(.rxOptEnv$.list)[order(nchar(names(.rxOptEnv$.list)))];
     .exprs <- .exprs[regexpr(rex::rex(start, regNum, end), .exprs, perl=TRUE) == -1]
     .exprs <- .exprs[regexpr(rex::rex(start, or("THETA[", "ETA["), any_numbers, "]", end), .exprs, perl=TRUE) == -1]
+
     for (i in seq(1, length(.exprs) - 1)){
         .exprs[-seq(1, i)] <- gsub(rex::rex(.exprs[i]), sprintf("rx_expr_%03d", i), .exprs[-seq(1, i)])
     }
