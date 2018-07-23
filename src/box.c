@@ -40,6 +40,24 @@ double powerDD(double x, double lambda, int yj){
   }
 }
 
+double powerDDD(double x, double lambda, int yj){
+  if (lambda == 1) return 0;
+  if (yj == 0){
+    if (x < 0) return NA_REAL;
+    if (lambda == 0.0) return -1/(x*x);
+    // pow(x,lambda)/lambda - 1/lambda
+    return pow(x, lambda-1);
+  } else {
+    if (x >= 0){
+      if (lambda == 0.0) return -1/((x + 1.0)*(x + 1.0));
+      return (lambda-1.0)*pow(x + 1.0, lambda-2.0);
+    } else {
+      if (lambda == 2.0) return -1/((1.0 - x)*(1.0 - x));
+      return -(1.0-lambda)*pow(1.0 - x, -lambda);
+    }
+  }
+}
+
 double powerL(double x, double lambda, int yj){
   // logLik addition based on dTBS
   // yj is indicator for yeo-johson

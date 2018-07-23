@@ -1731,6 +1731,42 @@ rxSymPyExpand <- function(x, expr="expand"){
     rxSyPyAddVars(x)
     return(rxSymPy(sprintf("%s(%s)", expr, rxToSymPy(x))))
 }
+##' First Order Expansion of ETA
+##'
+##' @param expr RxODE model
+##' @return Return a RxODE model with first order Taylor expansion around ETA
+##' @export
+##' @author Matthew L. Fidler
+rxFoExpandEta <-function(expr){
+    rxSymPySetup(expr);
+    .vars <- rxParams(expr)
+    .etas <- .vars[regexpr(rex::rex(start, "ETA[", any_numbers, "]", end), .vars) != -1]
+    .fn <- function(line, .w="~"){
+        .l2 <- strsplit(line, .w)[[1]]
+        if (length(.l2) == 2){
+            .l2.1 <- .l2[1];
+            .lhs <- rxFromSymPy(.l2.1)
+            for (.e in .etas){
+                .e2 <- rxToSymPy(.e)
+                .tmp <- sprintf("%s = %s.subs(%s, 0) + diff(%s, %s).subs(%s,0)*%s", .lhs, .lhs, .e2, .lhs, .e2, .e2, .e2);
+                rxSymPy(.tmp)
+            }
+            .l3 <- rxSymPy(.lhs)
+            return(sprintf("%s%s%s", .l2.1, .w, rxFromSymPy(.l3)))
+        } else {
+            stop("Malformed RxODE block.")
+        }
+    }
+    .lines <- sapply(strsplit(rxNorm(expr), "\n+")[[1]],
+                     function(line){
+        if (regexpr("~", line) != -1){
+            return(.fn(line, "~"))
+        } else {
+            return(.fn(line, "="))
+        }
+    })
+    return(paste(.lines, collapse="\n"));
+}
 
 
 ##' Takes a model and expands it to log multiplication

@@ -113,6 +113,7 @@ extern SEXP _RxODE_rxSimThetaOmega(SEXP, SEXP, SEXP, SEXP, SEXP,
 
 extern double powerD(double x, double lambda, int yj);
 extern double powerDD(double x, double lambda, int yj);
+extern double powerDDD(double x, double lambda, int yj);
 
 SEXP _RxODE_cvPost(SEXP, SEXP, SEXP, SEXP, SEXP);
 
@@ -222,6 +223,7 @@ void R_init_RxODE(DllInfo *info){
   R_RegisterCCallable("RxODE","RxODE_current_fn_pointer_id", (DL_FUNC) &RxODE_current_fn_pointer_id);
   R_RegisterCCallable("RxODE", "powerD", (DL_FUNC) &powerD);
   R_RegisterCCallable("RxODE", "powerDD", (DL_FUNC) &powerDD);
+  R_RegisterCCallable("RxODE", "powerDDD", (DL_FUNC) &powerDDD);
 
   
   static const R_CMethodDef cMethods[] = {

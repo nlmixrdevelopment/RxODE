@@ -4,13 +4,12 @@
 \alias{foceiControl}
 \title{Control Options for FOCEi}
 \usage{
-foceiControl(epsilon = .Machine$double.eps, maxInnerIterations = 100,
+foceiControl(epsilon = .Machine$double.eps, maxInnerIterations = 10000,
   maxOuterIterations = 5000, n1qn1nsim = NULL, method = c("liblsoda",
   "lsoda", "dop853"), transitAbs = NULL, atol = 1e-08, rtol = 1e-06,
   maxstepsOde = 5000L, hmin = 0L, hmax = NULL, hini = 0,
   maxordn = 12L, maxords = 5L, cores, covsInterpolation = c("linear",
-  "locf", "nocb", "midpoint"), tbs = c("cox-box", "yeo-johnson"),
-  lambda = 1, estLambda = FALSE, printInner = FALSE, scaleTo = 1,
+  "locf", "nocb", "midpoint"), printInner = 0L, scaleTo = 1,
   centralEps = c(5e-07, 5e-07), ..., stiff)
 }
 \arguments{
@@ -88,10 +87,9 @@ solving (ie thread-safe methods like "liblsoda").}
   carried backward to midpoint.
 }}
 
-\item{tbs}{Type of transformation used on dependent variable and
-prediction for dynamic transform both sides method.}
-
-\item{printInner}{Print information in the inner optimization}
+\item{printInner}{Integer representing when the inner step is
+printed. By default this is 0 or do not print.  1 is print
+every function evaluation, 5 is print every 5 evaluations.}
 
 \item{scaleTo}{Scale the initial parameter estimate to this value.
 By default this is 1.}
@@ -120,6 +118,9 @@ like NONMEM.}
     DOP853, an explicit Runge-Kutta method of order 8(5, 3) of
     Dormand and Prince as implemented in C by Hairer and Wanner
     (1993).}
+
+\item{tbs}{Type of transformation used on dependent variable and
+prediction for dynamic transform both sides method.}
 }
 \description{
 Control Options for FOCEi

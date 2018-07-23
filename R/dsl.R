@@ -880,10 +880,17 @@ unknownRx <- function(op){
             if (length(.lst) == 2){
                 .w <- .lst[[1]];
                 .a <- .lst[[2]];
+                ## diff(rxTBS(a,lambda,yj),a)
                 .reg <- rex::rex("rxTBS(", any_spaces, capture(.a), any_spaces, ",",
                                  capture(except_some_of(",)")), ",", capture(except_some_of(",)")), ")")
                 if (regexpr(.reg, .w, perl=TRUE) != -1){
                     return(sub(.reg, "rxTBSd(\\1,\\2,\\3)", .w));
+                }
+                ## diff(rxTBS2d(a,lambda,yj),a)
+                .reg <- rex::rex("rxTBSd(", any_spaces, capture(.a), any_spaces, ",",
+                                 capture(except_some_of(",)")), ",", capture(except_some_of(",)")), ")")
+                if (regexpr(.reg, .w, perl=TRUE) != -1){
+                    return(sub(.reg, "rxTBSd2(\\1,\\2,\\3)", .w));
                 }
             }
         }
