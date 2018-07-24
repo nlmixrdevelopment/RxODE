@@ -647,30 +647,6 @@ double likInner(NumericVector eta, int id = 1){
   return llik;
 }
 
-mat HInner(double *eta){
-  unsigned int id = (unsigned int)(eta[op_focei.neta]);
-  focei_ind *fInd = &(inds_focei[id]);
-  // Hessian 
-  mat H(op_focei.neta, op_focei.neta, fill::zeros);
-  int k, l;
-  mat tmp;
-  // print(wrap(fInd->a));
-  // print(wrap(fInd->B));
-  // print(wrap(fInd->c));
-  // print(wrap(op_focei.omegaInv));
-  for (k = op_focei.neta; k--;){
-    for (l = k+1; l--;){
-      // tmp = fInd->a.col(l) %  fInd->B % fInd->a.col(k);
-      H(k, l) = -0.5*sum(fInd->a.col(l) %  fInd->B % fInd->a.col(k) + 
-      			 fInd->c.col(l) % fInd->c.col(k)) - 
-      		      op_focei.omegaInv(k, l);
-      H(l, k) = H(k, l);
-    }
-  }
-  // print(wrap(H));
-  return H;
-}
-
 double LikInner2(double *eta, int likId){
   unsigned int id = (unsigned int)(eta[op_focei.neta]);
   focei_ind *fInd = &(inds_focei[id]);
@@ -681,7 +657,20 @@ double LikInner2(double *eta, int likId){
   rx = getRxSolve_();
   // rx_solving_options_ind ind = rx->subjects[id];
   // Calclaute lik first to calculate components for Hessian
-  mat H = -HInner(eta);
+  // Hessian 
+  mat H(op_focei.neta, op_focei.neta, fill::zeros);
+  int k, l;
+  mat tmp;
+  // This is actually -H
+  for (k = op_focei.neta; k--;){
+    for (l = k+1; l--;){
+      // tmp = fInd->a.col(l) %  fInd->B % fInd->a.col(k);
+      H(k, l) = 0.5*sum(fInd->a.col(l) %  fInd->B % fInd->a.col(k) + 
+                         fInd->c.col(l) % fInd->c.col(k)) +
+        op_focei.omegaInv(k, l);
+      H(l, k) = H(k, l);
+    }
+  }
   try{
     H = chol(H);
   } catch(...){
@@ -696,16 +685,6 @@ double LikInner2(double *eta, int likId){
     }
   }
   lik += fInd->tbsLik - sum(log(H.diag()));
-  // print(wrap(lik));
-
-  // Add likelihood contribution based on transform both sides.
-  // if (op_focei.lambda != 1.0){
-  //   for (unsigned int j = ind.n_all_times; j--;){
-  //     if (ind.evid[j] == 0){
-  // 	lik +=tbsL(ind.dv[j]);
-  //     }
-  //   }
-  // }
   if (likId == 0){
     fInd->lik[0] = lik;
     std::copy(&fInd->eta[0], &fInd->eta[0] + op_focei.neta, &fInd->saveEta[0]);
@@ -790,6 +769,7 @@ void innerOpt(){
 // #endif
   rx = getRxSolve_();
   op_focei.omegaInv=getOmegaInv();    
+  op_focei.logDetOmegaInv5 = getOmegaDet();
   if (op_focei.maxInnerIterations <= 0){
 // #ifdef _OPENMP
 // #pragma omp parallel for num_threads(cores)
@@ -1027,7 +1007,7 @@ static inline void foceiSetupTheta_(const RObject &obj,
         op_focei.initPar[k] = theta[j];
       } else if (j < theta.size() + omegan){
         op_focei.initPar[k] = omegaTheta[j-theta.size()];
-      } 
+      }
       op_focei.fixedTrans[k++] = j;
     } else if (j >= thetaFixed2.size()){
       if (j < theta.size()){
