@@ -541,10 +541,6 @@ double likInner0(double *eta){
   if (!fInd->setup){
     recalc=true;
     fInd->nobs = ind->n_all_times - ind->ndoses;
-    fInd->lp  = arma::mat(op_focei.neta, 1);
-    fInd->a   = arma::mat(fInd->nobs, op_focei.neta);
-    fInd->B   = arma::mat(fInd->nobs, 1);
-    fInd->c   = arma::mat(fInd->nobs, op_focei.neta);
     fInd->setup = 1;
   } else {
     // Check to see if old ETA matches.
@@ -557,6 +553,10 @@ double likInner0(double *eta){
   }
   if (recalc){
     // Update eta.
+    fInd->lp  = arma::mat(op_focei.neta, 1);
+    fInd->a   = arma::mat(fInd->nobs, op_focei.neta);
+    fInd->B   = arma::mat(fInd->nobs, 1);
+    fInd->c   = arma::mat(fInd->nobs, op_focei.neta);
     for (j = op_focei.neta; j--;){
       ind->par_ptr[op_focei.etaTrans[j]] = eta[j];
     }
