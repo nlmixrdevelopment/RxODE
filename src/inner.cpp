@@ -671,19 +671,20 @@ double LikInner2(double *eta, int likId){
       H(l, k) = H(k, l);
     }
   }
+  arma::mat H0;
   try{
-    H = chol(H);
+    H0 = chol(H);
   } catch(...){
-    // Try to correct
-    Function nearpd = getRxFn(".nearPd");
-    H = as<mat>(nearpd(H));
     try {
       // Warning?  Already complaining by the try/catch.
-      H = chol(H);
+      Function nearpd = getRxFn(".nearPd");
+      H = as<mat>(nearpd(wrap(H)));
+      H0 = chol(H);
     } catch (...){
       stop("Cannot correct Inner Hessian Matrix for nlmixr ID:%d to be positive definite.", likId+1);
     }
   }
+  H = H0;
   lik += fInd->tbsLik - sum(log(H.diag()));
   if (likId == 0){
     fInd->lik[0] = lik;
@@ -1094,36 +1095,41 @@ NumericVector foceiSetup_(const RObject &obj,
   // First see if etaMat is null.
   NumericMatrix etaMat0;
   unsigned int nsub=0;
-  if (etaMat.isNull()){
-    // Find the number of IDs to create an etaMat
-    List df = as<List>(data);
-    CharacterVector dfN = df.names();
-    int idn = -1;
-    std::string cur;
-    for (unsigned int j = dfN.size(); j--;){
-      cur = as<std::string>(dfN[j]);
-      if (cur == "ID" || cur == "id" || cur == "Id" || cur == "iD"){
-	idn=j;
-	break;
-      }
+  // Find the number of IDs to create an etaMat
+  List df = as<List>(data);
+  CharacterVector dfN = df.names();
+  int idn = -1;
+  std::string cur;
+  for (unsigned int j = dfN.size(); j--;){
+    cur = as<std::string>(dfN[j]);
+    if (cur == "ID" || cur == "id" || cur == "Id" || cur == "iD"){
+      idn=j;
+      break;
     }
-    if  (idn == -1){
-      stop("Can't find ID in dataset.");
+  }
+  if  (idn == -1){
+    stop("Can't find ID in dataset.");
+  }
+  IntegerVector ids = as<IntegerVector>(df[idn]);
+  int last = ids[ids.size()-1]-1;
+  for (unsigned int j = ids.size(); j--;){
+    if (last != ids[j]){
+      last = ids[j];
+      nsub++;
     }
-    IntegerVector ids = as<IntegerVector>(df[idn]);
-    int last = ids[ids.size()-1]-1;
-    for (unsigned int j = ids.size(); j--;){
-      if (last != ids[j]){
-	last = ids[j];
-	nsub++;
-      }
+  }
+  etaMat0 = NumericMatrix(nsub, op_focei.neta);
+  if (!etaMat.isNull()){
+    NumericMatrix etaMat1 = NumericMatrix(etaMat);
+    if (etaMat1.nrow() != (int)nsub){
+      print(etaMat1);
+      stop("The etaMat must have the same number of ETAs (rows) as subjects.");
     }
-    etaMat0 = NumericMatrix(nsub, op_focei.neta);
-  } else {
-    etaMat0 = as<NumericMatrix>(etaMat);
-    // Assume nsub = nrow
-    // print(etaMat0);
-    nsub=etaMat0.nrow();
+    if (etaMat1.ncol() != op_focei.neta){
+      print(etaMat1);
+      stop("The etaMat must have the same number of ETAs (cols) as the model.");
+    }
+    std::copy(etaMat1.begin(),etaMat1.end(),etaMat0.begin());
   }
   List params(theta.size()+op_focei.neta);
   CharacterVector paramsNames(theta.size()+op_focei.neta);
