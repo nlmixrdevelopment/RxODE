@@ -458,7 +458,7 @@ void updateTheta(double *theta){
   if (op_focei.scaleTo > 0){ // Scaling
     for (k = op_focei.npars; k--;){
       j=op_focei.fixedTrans[k];
-      op_focei.fullTheta[j] = theta[k] * op_focei.initPar[j] / op_focei.scaleTo; //pars <- pars * inits.vec / con$scale.to
+      op_focei.fullTheta[j] = theta[k] * op_focei.initPar[k] / op_focei.scaleTo; //pars <- pars * inits.vec / con$scale.to
       snprintf(buff, sizeof(buff), "%#8g ", theta[k]);
       sc = buff + sc;
       snprintf(buff, sizeof(buff), "%#8g ", op_focei.fullTheta[j]);
@@ -998,6 +998,9 @@ static inline void foceiSetupTheta_(const RObject &obj,
   foceiThetaN(npars);
   std::copy(theta.begin(), theta.end(), &op_focei.fullTheta[0]);  
   std::copy(omegaTheta.begin(), omegaTheta.end(), &op_focei.fullTheta[0]+thetan);
+  NumericVector test(thetan+omegan);
+  std::copy(&op_focei.fullTheta[0], &op_focei.fullTheta[0] + thetan + omegan, test.begin());
+  print(test);
   op_focei.npars  = npars;
   op_focei.thetan = thetan;
   op_focei.omegan = omegan;
