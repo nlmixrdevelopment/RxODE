@@ -248,6 +248,7 @@ void foceiGEtaN(unsigned int n){
     op_focei.gX = Calloc(cur, double);
     // Prefill to 0.1 or 10%
     std::fill_n(&op_focei.gVar[0], cur, 0.1);
+    std::fill_n(&op_focei.goldEta[0], op_focei.gEtaGTransN, -42.0); // All etas = -42;  Unlikely if normal
     op_focei.gEtaGTransN = cur;
   }
 }
@@ -451,7 +452,7 @@ void updateZm(focei_ind *indF){
 void updateTheta(double *theta){
   // Theta is the acutal theta
   unsigned int j, k;
-  char buff[10];
+  // char buff[10];
   std::string sc = "";
   std::string un = "";
   std::string ex = "";
@@ -459,29 +460,29 @@ void updateTheta(double *theta){
     for (k = op_focei.npars; k--;){
       j=op_focei.fixedTrans[k];
       op_focei.fullTheta[j] = theta[k] * op_focei.initPar[k] / op_focei.scaleTo; //pars <- pars * inits.vec / con$scale.to
-      snprintf(buff, sizeof(buff), "%#8g ", theta[k]);
-      sc = buff + sc;
-      snprintf(buff, sizeof(buff), "%#8g ", op_focei.fullTheta[j]);
-      un = buff + un;
-      snprintf(buff, sizeof(buff), "%#8g ", exp(op_focei.fullTheta[j]));
-      ex = buff + ex;
+      // snprintf(buff, sizeof(buff), "%#8g ", theta[k]);
+      // sc = buff + sc;
+      // snprintf(buff, sizeof(buff), "%#8g ", op_focei.fullTheta[j]);
+      // un = buff + un;
+      // snprintf(buff, sizeof(buff), "%#8g ", exp(op_focei.fullTheta[j]));
+      // ex = buff + ex;
     }
-    sc = " S: " + sc + "\n";
-    un = " U: " + un + "\n";
-    ex = " X: " + ex + "\n";
+    // sc = " S: " + sc + "\n";
+    // un = " U: " + un + "\n";
+    // ex = " X: " + ex + "\n";
   } else { // No scaling.
     for (k = op_focei.npars; k--;){
       j=op_focei.fixedTrans[k];
       op_focei.fullTheta[j] = theta[k]; //pars <- pars * inits.vec / con$scale.to
-      snprintf(buff, sizeof(buff), "%#8g ", op_focei.fullTheta[j]);
-      un = buff + un;
-      snprintf(buff, sizeof(buff), "%#8g ", exp(op_focei.fullTheta[j]));
-      ex = buff + ex;
+      // snprintf(buff, sizeof(buff), "%#8g ", op_focei.fullTheta[j]);
+      // un = buff + un;
+      // snprintf(buff, sizeof(buff), "%#8g ", exp(op_focei.fullTheta[j]));
+      // ex = buff + ex;
     }
-    un = " U: " + un + "\n";
-    ex = " X: " + ex + "\n";
+    // un = " U: " + un + "\n";
+    // ex = " X: " + ex + "\n";
   }
-  op_focei.estStr=sc + un + ex;
+  // op_focei.estStr=sc + un + ex;
   // Update theta parameters in each individual
   rx = getRxSolve_();
   for (int id = rx->nsub; id--;){
@@ -498,34 +499,6 @@ void updateTheta(double *theta){
   setOmegaTheta(omegaTheta);
   op_focei.omegaInv = getOmegaInv();
   op_focei.logDetOmegaInv5 = getOmegaDet();
-}
-
-void updateTheta1(double newTheta0, int k){
-  // Theta is the acutal theta
-  unsigned int j = op_focei.fixedTrans[k];
-  double newTheta;
-  if (op_focei.scaleTo > 0){ // Scaling
-    newTheta = newTheta0 * op_focei.initPar[j] / op_focei.scaleTo; //pars <- pars * inits.vec / con$scale.to
-  } else { // No scaling.
-    newTheta = newTheta0; 
-  }
-  // Update theta parameters in each individual
-  rx = getRxSolve_();
-  if (j < op_focei.ntheta){
-    for (int id = rx->nsub; id--;){
-      rx_solving_options_ind ind = rx->subjects[id];
-      ind.par_ptr[op_focei.thetaTrans[j]] = newTheta;
-    }
-  } else {
-    // Update setOmegaTheta
-    NumericVector omegaTheta(op_focei.omegan);
-    std::copy(&op_focei.fullTheta[0] + op_focei.thetan, 
-              &op_focei.fullTheta[0] + op_focei.thetan + op_focei.omegan, 
-              omegaTheta.begin());
-    omegaTheta[j-op_focei.ntheta] = newTheta;
-    setOmegaTheta(omegaTheta);
-  }
-  // Lambda update is not handled by finite difference, so not handled here.
 }
 
 double likInner0(double *eta){
@@ -796,6 +769,8 @@ static inline double foceiLik0(double *theta){
     focei_ind *fInd = &(inds_focei[id]);
     lik += fInd->lik[0];
   }
+  // Now reset the saved ETAs
+  std::fill_n(&op_focei.goldEta[0], op_focei.gEtaGTransN, -42.0); // All etas = -42;  Unlikely if normal
   return lik;
 }
 
@@ -853,69 +828,49 @@ extern "C" double outerLikOpim(int n, double *par, void *ex){
   return(foceiOfv0(par));
 }
 
-void numericGrad(double *theta){
+void numericGrad(double *theta, double *g){
   rx = getRxSolve_();
   int npars = op_focei.npars;
-  int cpar;
-  char buff[10];
+  int cpar, gid;
+  // char buff[10];
   op_focei.gradStr="";
+  double cur, delta;
+  std::fill_n(g, npars, 0.0);
   for (cpar = npars; cpar--;){
-    // Gradient can be parallelized for each parameter then gradient calculated, but then the n1qn1 can't be parallized?
-    for (int gid=0; gid < rx->nsub*2; gid++){
-      int likId, id;
-      focei_ind *fInd;
-      likId = (gid % 2);
-      if (likId){
-        id =  (gid-1)/2;
-        fInd = &(inds_focei[id]);
-        fInd->thVal[likId]= theta[cpar] + theta[cpar]*op_focei.rEps + op_focei.aEps;
-	updateTheta1(fInd->thVal[likId], cpar);
-        // Upper
-        innerOpt1(id, 2);
-      } else {
-        id = gid/2;
-        fInd = &(inds_focei[id]);
-        fInd->thVal[likId]= theta[cpar] - theta[cpar]*op_focei.rEps - op_focei.aEps;
-        updateTheta1(fInd->thVal[likId], cpar);
-        // Lower
-        innerOpt1(id, 1);
-      }
+    delta = theta[cpar]*op_focei.rEps + op_focei.aEps;
+    std::fill_n(&op_focei.goldEta[0], op_focei.gEtaGTransN, -42.0); // All etas = -42;  Unlikely if normal
+    cur = theta[cpar];
+    theta[cpar] = cur + delta;
+    updateTheta(theta);
+    for (gid = rx->nsub; gid--;){
+      innerOpt1(gid,2);
     }
-    // Now calculate individual gradient components
-    for (int gid=rx->nsub; gid--;){
+    std::fill_n(&op_focei.goldEta[0], op_focei.gEtaGTransN, -42.0);
+    theta[cpar] = cur - delta;
+    updateTheta(theta);
+    for (gid = rx->nsub; gid--;){
+      innerOpt1(gid,1);
       focei_ind *fInd = &(inds_focei[gid]);
-      fInd->thetaGrad[cpar] = (fInd->lik[2] - fInd->lik[1])/(2*(theta[cpar]*op_focei.rEps - op_focei.aEps));
-      // thetaGrad[cpar] += fInd->thetaGrad[cpar];
+      fInd->thetaGrad[cpar] = (fInd->lik[2] - fInd->lik[1])/(2*delta);
+      g[cpar] += fInd->thetaGrad[cpar];
     }
-    // Reset theta
-    updateTheta1(theta[cpar], cpar);
+    theta[cpar] = cur;
+    // snprintf(buff, sizeof(buff), "%#8g ", op_focei.thetaGrad[cpar]);
+    // op_focei.gradStr = buff + op_focei.gradStr;
   }
-  // Calculate Overall gradient based on central differences
-  std::fill_n(&op_focei.thetaGrad[0], npars, 0.0);
-  for (cpar = npars; cpar--;){
-    for (int gid=0; gid < rx->nsub; gid++){
-      focei_ind *fInd = &(inds_focei[gid]);
-      op_focei.thetaGrad[cpar]+=fInd->thetaGrad[cpar];
-    }
-    snprintf(buff, sizeof(buff), "%#8g ", op_focei.thetaGrad[cpar]);
-    op_focei.gradStr = buff + op_focei.gradStr;
-  }
-  // Calculate exact gradient for Cox-Box Yeo-Johnson
-  op_focei.gradStr = " G: " + op_focei.gradStr + "\n";
+  // op_focei.gradStr = " G: " + op_focei.gradStr + "\n";
 }
 
 //[[Rcpp::export]]
 NumericVector foceiNumericGrad(NumericVector theta){
-  numericGrad(&theta[0]);
   NumericVector ret(theta.size());
-  std::copy(&op_focei.thetaGrad[0], &op_focei.thetaGrad[0]+theta.size(), &ret[0]);
+  numericGrad(&theta[0], &ret[0]);
   return ret;
 }
 
 // R optim style outer gradient
 extern "C" void outerGradNumOpim(int n, double *par, double *gr, void *ex){
-  numericGrad(par);
-  std::copy(&op_focei.thetaGrad[0], &op_focei.thetaGrad[0]+n, &gr[0]);
+  numericGrad(par, gr);
 }
 
 void outerCostNum(int *ind, int *n, double *x, double *f, double *g, int *ti, float *tr, double *td){
@@ -925,8 +880,7 @@ void outerCostNum(int *ind, int *n, double *x, double *f, double *g, int *ti, fl
   }
   if (*ind==3 || *ind==4) {
     // Gradient
-    numericGrad(x);
-    std::copy(&op_focei.thetaGrad[0], &op_focei.thetaGrad[0]+n[0], &g[0]);
+    numericGrad(x, g);
   }
 }
 
@@ -1045,7 +999,6 @@ static inline void foceiSetupEta_(NumericMatrix etaMat0){
     fInd->var = &op_focei.gVar[j];
 
     // Copy in etaMat0 to the inital eta stored (0 if unspecified)
-    std::copy(&etaMat0[i*op_focei.neta], &etaMat0[(i+1)*op_focei.neta], &fInd->oldEta[0]);
     std::copy(&etaMat0[i*op_focei.neta], &etaMat0[(i+1)*op_focei.neta], &fInd->saveEta[0]);
     std::copy(&etaMat0[i*op_focei.neta], &etaMat0[(i+1)*op_focei.neta], &fInd->eta[0]);
     fInd->eta[op_focei.neta] = i;
