@@ -1278,6 +1278,7 @@ rxSymPySetupPred.warn <- FALSE
 ##'     recursively called, and this shouldn't be set by the user.
 ##' @param theta.internal Internal theta flag.  This function is
 ##'     recursively called and shouldn't be called by the user.
+##' @param optExpression Optimize the model text for computer evaluation.
 ##' @param run.internal Boolean to see if the function should be run
 ##'     internally.
 ##' @return RxODE object expanded with predfn and with calculated
@@ -1289,7 +1290,7 @@ rxSymPySetupPred.warn <- FALSE
 rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, grad=FALSE, sum.prod=FALSE, pred.minus.dv=TRUE,
                              theta.derivs=FALSE,only.numeric=FALSE,
                              grad.internal=FALSE, theta.internal=FALSE,
-                             run.internal=RxODE.sympy.run.internal){
+                             optExpression=TRUE, run.internal=RxODE.sympy.run.internal){
     good.fns <- c(".GlobalEnv", "package:RxODE", "package:nlmixr")
     check.good <- function(x){
         tmp <- suppressWarnings({find(deparse(substitute(x)))})
@@ -1310,7 +1311,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                                                                           ifelse(is.function(predfn), paste(deparse(body(predfn)), collapse=""), ""),
                                                                           ifelse(is.function(pkpars), paste(deparse(body(pkpars)), collapse=""), ""),
                                                                           ifelse(is.function(errfn), paste(deparse(body(errfn)), collapse=""), ""),
-                                                                          init, grad, sum.prod, pred.minus.dv, theta.derivs, only.numeric)), collapse="")),
+                                                                          init, grad, sum.prod, pred.minus.dv, theta.derivs, only.numeric, optExpression)), collapse="")),
                                         .Platform$dynlib.ext));
     } else {
         cache.file <- "";
@@ -1336,11 +1337,11 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
         if (!run.internal && !grad.internal && !theta.internal){
             rfile <- tempfile(fileext=".R")
             dta <- tempfile(fileext=".rdata")
-            save(obj, predfn, pkpars, errfn, init, grad, sum.prod, pred.minus.dv, theta.derivs, only.numeric, file=dta);
+            save(obj, predfn, pkpars, errfn, init, grad, sum.prod, pred.minus.dv, theta.derivs, only.numeric, optExpression, file=dta);
             ## on.exit({unlink(dta); unlink(rfile)});
             tmp <- options();
             tmp <- tmp[regexpr(rex::rex(start, "RxODE."), names(tmp)) != -1];
-            rf <- sprintf("%s;options(RxODE.delete.unnamed=FALSE);load(%s); require(RxODE);tmp <- rxSymPySetupPred(obj, predfn, pkpars, errfn, init, grad, sum.prod, pred.minus.dv, theta.derivs, only.numeric, run.internal=TRUE);",
+            rf <- sprintf("%s;options(RxODE.delete.unnamed=FALSE);load(%s); require(RxODE);tmp <- rxSymPySetupPred(obj, predfn, pkpars, errfn, init, grad, sum.prod, pred.minus.dv, theta.derivs, only.numeric, optExpression=optExpression, run.internal=TRUE);",
                           sub("options\\(\\)", "", sub(rex::rex(",", any_spaces, ".Names", anything,end),"",sub(rex::rex(start,"structure(list("),"options(",paste0(deparse(tmp),collapse="")))),
                           deparse(dta));
             rf <- gsub("^;", "", rf)
@@ -1615,6 +1616,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                 if (grad){
                     outer <- rxSymPySetupPred(obj=gobj, predfn=predfn, pkpars=pkpars,
                                               errfn=errfn, init=init, sum.prod=sum.prod,pred.minus.dv=pred.minus.dv,
+                                              optExpression=optExpression,
                                               run.internal=TRUE, grad.internal=TRUE, theta.internal=FALSE);
                 }
                 base <- gsub(rex::rex(or(group(anything, "~", anything), group(or(oLhs), "=", anything, ";"))), "", strsplit(base, "\n")[[1]])
@@ -1647,7 +1649,13 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                     theta <- rxSymPySetupPred(obj=gobj, predfn=predfn, pkpars=pkpars,
                                               errfn=errfn, init=init, sum.prod=sum.prod,pred.minus.dv=pred.minus.dv,
                                               theta.derivs=TRUE, run.internal=TRUE, grad.internal=FALSE, theta.internal=TRUE);
-                    theta <- RxODE(rxNorm(theta));
+                    if (optExpression){
+                        .tmp <- rxNorm(theta)
+                        .tmp <- rxOptExpr(.tmp)
+                        theta <- RxODE(.tmp)
+                    } else {
+                        theta <- RxODE(rxNorm(theta));
+                    }
                 }
                 keep <- c(sprintf("d/dt(%s)", ostate), sprintf("%s(0)=", ostate), "rx_pred_=", "rx_r_=");
                 pred.only <- strsplit(rxNorm(mod), "\n")[[1]]
@@ -1670,11 +1678,19 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                 } else {
                     ## Inner should hide compartments
                     mod <- gsub(rex::rex(capture("d/dt(", except_some_of(")"), ")"), "="), "\\1~", rxNorm(mod), perl=TRUE);
-                    mod <- RxODE(paste(rxL, "\n", mod));
+                    if (optExpression){
+                        .tmp <- paste(rxL, "\n", mod);
+                        .tmp <- rxOptExpr(.tmp)
+                        mod <- RxODE(.tmp);
+                    } else {
+                        mod <- RxODE(paste(rxL, "\n", mod));
+                    }
+
                 }
+                toRx <- function(x){RxODE(ifelse(optExpression, rxOptExpr(x), x))}
                 ret <- list(obj=oobj,
-                            pred.only=RxODE(pred.only),
-                            ebe=RxODE(ebe),
+                            pred.only=toRx(pred.only),
+                            ebe=toRx(ebe),
                             inner=mod,
                             extra.pars=extra.pars,
                             outer=outer,
@@ -1705,7 +1721,11 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                     mod <- rxSumProdModel(mod);
                 }
                 mod <- rxNorm(mod);
-                return(RxODE(mod));
+                if (optExpression){
+                    return(RxODE(rxOptExpr(mod)));
+                } else {
+                    return(RxODE(mod));
+                }
             }
         }
     }
