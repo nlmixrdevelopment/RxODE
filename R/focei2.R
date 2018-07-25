@@ -20,11 +20,17 @@
 ##' @param scaleTo Scale the initial parameter estimate to this value.
 ##'     By default this is 1.
 ##'
-##' @param centralEps Central difference tolerances, which is a vector
-##'     of relative difference and absolute difference.  The central
+##' @param derivMethod indicates the method for calculating
+##'     derivatives of the outer problem.  Currently supports
+##'     "central" and "forward" difference methods.
+##'
+##' @param derivEps Central/Forward difference tolerances, which is a vector
+##'     of relative difference and absolute difference.  The central/forward
 ##'     difference step size h is calculated as:
 ##'
-##'         h = abs(x)*centralEps[1]+centralEps[2]
+##'         h = abs(x)*derivEps[1]+derivEps[2]
+##'
+##'
 ##'
 ##' @inheritParams rxSolve
 ##'
@@ -41,7 +47,8 @@ foceiControl <- function(epsilon=.Machine$double.eps,
                          covsInterpolation = c("linear", "locf", "nocb", "midpoint"),
                          printInner=0L,
                          scaleTo=1.0,
-                         centralEps=c(0.5e-6, 0.5e-6),
+                         derivEps=c(1.0e-6, 1.0e-6),
+                         derivMethod=c("forward", "central"),
                          ..., stiff){
     .xtra <- list(...);
     if (is.null(transitAbs) && !is.null(.xtra$transit_abs)){  # nolint
@@ -66,8 +73,11 @@ foceiControl <- function(epsilon=.Machine$double.eps,
     }  else {
         method <- match.arg(method);
     }
-    .methodIdx <- c("lsoda"=1, "dop853"=0, "liblsoda"=2);
+    .methodIdx <- c("lsoda"=1L, "dop853"=0L, "liblsoda"=2L);
     method <- as.integer(.methodIdx[method]);
+    derivMethod <- match.arg(derivMethod);
+    .methodIdx <- c("forward"=0L, "central"=1L);
+    derivMethod <- as.integer(.methodIdx[derivMethod])
     if (length(covsInterpolation) > 1) covsInterpolation <- covsInterpolation[1];
     covsInterpolation <- tolower(match.arg(covsInterpolation,
                                            c("linear", "locf", "LOCF", "constant", "nocb", "NOCB", "midpoint")))
@@ -97,7 +107,8 @@ foceiControl <- function(epsilon=.Machine$double.eps,
          printInner=as.integer(printInner),
          scaleTo=scaleTo,
          epsilon=epsilon,
-         centralEps=centralEps)
+         derivEps=derivEps,
+         derivMethod=derivMethod)
 }
 
 .foceiSetup <- function(obj, data, theta, thetaFixed = NULL, rxInv = NULL,
