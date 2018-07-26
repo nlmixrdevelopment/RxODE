@@ -17,6 +17,11 @@
 ##'     printed. By default this is 0 or do not print.  1 is print
 ##'     every function evaluation, 5 is print every 5 evaluations.
 ##'
+##' @param printOuter Integer representing when the outer step is
+##'     printed. When this is 0 or do not print the iterations.  1 is
+##'     print every function evaluation (default), 5 is print every 5
+##'     evaluations.
+##'
 ##' @param scaleTo Scale the initial parameter estimate to this value.
 ##'     By default this is 1.
 ##'
@@ -46,9 +51,13 @@ foceiControl <- function(epsilon=.Machine$double.eps,
                          maxstepsOde = 5000L, hmin = 0L, hmax = NULL, hini = 0, maxordn = 12L, maxords = 5L, cores,
                          covsInterpolation = c("linear", "locf", "nocb", "midpoint"),
                          printInner=0L,
+                         printOuter=1L,
                          scaleTo=1.0,
                          derivEps=c(1.0e-6, 1.0e-6),
                          derivMethod=c("forward", "central"),
+                         lbfgsLmm=5L,
+                         lbfgsPgtol=0,
+                         lbfgsFactr=1e7,
                          ..., stiff){
     .xtra <- list(...);
     if (is.null(transitAbs) && !is.null(.xtra$transit_abs)){  # nolint
@@ -105,17 +114,22 @@ foceiControl <- function(epsilon=.Machine$double.eps,
          covsInterpolation=covsInterpolation,
          n1qn1nsim=as.integer(n1qn1nsim),
          printInner=as.integer(printInner),
+         printOuter=as.integer(printOuter),
+         lbfgsLmm=as.integer(lbfgsLmm),
+         lbfgsPgtol=as.double(lbfgsPgtol),
+         lbfgsFactr=as.double(lbfgsFactr),
          scaleTo=scaleTo,
          epsilon=epsilon,
          derivEps=derivEps,
          derivMethod=derivMethod)
 }
 
-.foceiSetup <- function(obj, data, theta, thetaFixed = NULL, rxInv = NULL,
+.foceiSetup <- function(obj, data, theta, thetaFixed = NULL,
+                        skipCov=NULL, rxInv = NULL,
                         lower = NULL, upper = NULL, etaMat = NULL,
-                        odeOpts = RxODE::foceiControl()){
+                        control = RxODE::foceiControl()){
     loadNamespace("n1qn1");
-    .Call(`_RxODE_foceiSetup_`, obj, data, theta, thetaFixed, rxInv, lower, upper, etaMat, odeOpts); # nolint
+    .Call(`_RxODE_foceiSetup_`, obj, data, theta, thetaFixed, skipCov, rxInv, lower, upper, etaMat, control); # nolint
 }
 
 

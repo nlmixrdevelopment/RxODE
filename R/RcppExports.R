@@ -33,8 +33,12 @@ foceiNumericGrad <- function(theta) {
     .Call(`_RxODE_foceiNumericGrad`, theta)
 }
 
-foceiSetup_ <- function(obj, data, theta, thetaFixed = NULL, rxInv = NULL, lower = NULL, upper = NULL, etaMat = NULL, odeOpts = NULL) {
-    .Call(`_RxODE_foceiSetup_`, obj, data, theta, thetaFixed, rxInv, lower, upper, etaMat, odeOpts)
+foceiSetup_ <- function(obj, data, theta, thetaFixed = NULL, skipCov = NULL, rxInv = NULL, lower = NULL, upper = NULL, etaMat = NULL, control = NULL) {
+    .Call(`_RxODE_foceiSetup_`, obj, data, theta, thetaFixed, skipCov, rxInv, lower, upper, etaMat, control)
+}
+
+foceiOuter <- function(e) {
+    .Call(`_RxODE_foceiOuter`, e)
 }
 
 foceiPrint_ <- function() {

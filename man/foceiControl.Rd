@@ -9,8 +9,10 @@ foceiControl(epsilon = .Machine$double.eps, maxInnerIterations = 10000,
   "lsoda", "dop853"), transitAbs = NULL, atol = 1e-08, rtol = 1e-06,
   maxstepsOde = 5000L, hmin = 0L, hmax = NULL, hini = 0,
   maxordn = 12L, maxords = 5L, cores, covsInterpolation = c("linear",
-  "locf", "nocb", "midpoint"), printInner = 0L, scaleTo = 1,
-  centralEps = c(5e-07, 5e-07), ..., stiff)
+  "locf", "nocb", "midpoint"), printInner = 0L, printOuter = 1L,
+  scaleTo = 1, derivEps = c(1e-06, 1e-06), derivMethod = c("forward",
+  "central"), lbfgsLmm = 5L, lbfgsPgtol = 0, lbfgsFactr = 1e+07, ...,
+  stiff)
 }
 \arguments{
 \item{epsilon}{Precision of estimate for n1qn1 optimization.}
@@ -91,14 +93,23 @@ solving (ie thread-safe methods like "liblsoda").}
 printed. By default this is 0 or do not print.  1 is print
 every function evaluation, 5 is print every 5 evaluations.}
 
+\item{printOuter}{Integer representing when the outer step is
+printed. When this is 0 or do not print the iterations.  1 is
+print every function evaluation (default), 5 is print every 5
+evaluations.}
+
 \item{scaleTo}{Scale the initial parameter estimate to this value.
 By default this is 1.}
 
-\item{centralEps}{Central difference tolerances, which is a vector
-    of relative difference and absolute difference.  The central
+\item{derivEps}{Central/Forward difference tolerances, which is a vector
+    of relative difference and absolute difference.  The central/forward
     difference step size h is calculated as:
 
-        h = abs(x)*centralEps[1]+centralEps[2]}
+        h = abs(x)*derivEps[1]+derivEps[2]}
+
+\item{derivMethod}{indicates the method for calculating
+derivatives of the outer problem.  Currently supports
+"central" and "forward" difference methods.}
 
 \item{...}{Other arguments including scaling factors for each
 compartment.  This includes S# = numeric will scale a compartment

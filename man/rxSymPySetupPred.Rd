@@ -7,7 +7,8 @@
 rxSymPySetupPred(obj, predfn, pkpars = NULL, errfn = NULL, init = NULL,
   grad = FALSE, sum.prod = FALSE, pred.minus.dv = TRUE,
   theta.derivs = FALSE, only.numeric = FALSE, grad.internal = FALSE,
-  theta.internal = FALSE, run.internal = RxODE.sympy.run.internal)
+  theta.internal = FALSE, optExpression = TRUE,
+  run.internal = RxODE.sympy.run.internal)
 }
 \arguments{
 \item{obj}{RxODE object}
@@ -41,6 +42,8 @@ recursively called, and this shouldn't be set by the user.}
 
 \item{theta.internal}{Internal theta flag.  This function is
 recursively called and shouldn't be called by the user.}
+
+\item{optExpression}{Optimize the model text for computer evaluation.}
 
 \item{run.internal}{Boolean to see if the function should be run
 internally.}
