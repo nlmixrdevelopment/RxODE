@@ -308,6 +308,8 @@ rxSymPyFEnv$tanpi <- functionOp2("tan(pi * (", "))")
 rxSymPyFEnv$logspace_add <- binaryOp2(" + ");
 rxSymPyFEnv$logspace_sub <- binaryOp2(" - ");
 sympyRxFEnv$loggamma <- functionOp("lgamma");
+sympyRxFEnv$Abs <- functionOp("abs")
+
 ## Following R functions are not translated
 ## ftrunc, fround, fprec, fsign, sign, fmin2, fmax2, imin2, imax2, logspace_sum
 ## choose lchoose
@@ -319,6 +321,10 @@ rxSymPyFEnv$Rx_pow_di <- binaryOp2("**");
 rxSymPyFEnv$log1p <- functionOp2("log(1 + (", "))");
 rxSymPyFEnv$log1pmx <- functionBrewx("(log(1 + (<%=x%>))-(<%=x%>))");
 rxSymPyFEnv$expm1 <- functionOp2("(exp(", ")-1)");
+rxSymPyFEnv$abs <- function(e1) {
+    paste0("sqrt((", e1, ")*(", e1, "))")
+}
+
 
 rxSymPyFEnv$choose <- functionBrewxy("(factorial(<%=x%>)/(factorial(<%=y%>)*factorial((<%=x%>)-(<%=y%>))))");
 rxSymPyFEnv$lchoose <- functionBrewxy("(log(gamma((<%=x%>)+1))-log(gamma((<%=y%>)+1))-log(gamma((<%=x%>)-(<%=y%>)+1)))");
@@ -335,7 +341,7 @@ rxPrintOp <- function(op){
 ## rxSymPyFEnv$paste0 <- rxPrintOp("paste0")
 
 ## equivalent functions
-sympy.equiv.f <- c("abs", "acos", "acosh", "asin", "atan", "atan2", "atanh", "beta",
+sympy.equiv.f <- c("acos", "acosh", "asin", "atan", "atan2", "atanh", "beta",
                    "cos", "cosh", "digamma", "erf", "erfc", "exp", "factorial",
                    "gamma", "log10", "sin", "sinh", "sqrt", "tan",
                    "tanh", "trigamma", "log", "rxTBS", "rxTBSd")
