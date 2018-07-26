@@ -506,6 +506,22 @@ void updateTheta(double *theta){
   }  
 }
 
+
+double stablizeNums(double x){
+  if (ISNAN(x)){
+    return 0.0;
+  } else if (ISNA(x)){
+    return 0.0;
+  } else if (!R_FINITE(x)){
+    if (x < 0){
+      return -42e100;
+    } else {
+      return 42e100;
+    }
+  } else {
+    return x;
+  }
+}
 double likInner0(double *eta){
   // id = eta[#neta]
   // eta = eta
@@ -550,21 +566,21 @@ double likInner0(double *eta){
     for (j = ind->n_all_times; j--;){
       if (!ind->evid[j]){
 	inner_calc_lhs((int)id, ind->all_times[j], &ind->solve[j * op->neq], ind->lhs);
-        f = ind->lhs[0]; // TBS is performed in the RxODE rx_pred_ statement. This allows derivatives of TBS to be propigated
+        f = stablizeNums(ind->lhs[0]); // TBS is performed in the RxODE rx_pred_ statement. This allows derivatives of TBS to be propigated
 	// fInd->f(k, 0) = ind->lhs[0];
 	err = f - tbs(ind->dv[j]);
 	fInd->tbsLik+=tbsL(ind->dv[j]);
 	// fInd->err(k, 0) = ind->lhs[0] - ind->dv[k]; // pred-dv
-	  r = ind->lhs[op_focei.neta + 1];
+	r = stablizeNums(ind->lhs[op_focei.neta + 1]);
 	// fInd->r(k, 0) = ind->lhs[op_focei.neta+1];
-        fInd->B(k, 0) = 2.0/r;
+        fInd->B(k, 0) = stablizeNums(2.0/r);
 	// fInd->B(k, 0) = 2.0/ind->lhs[op_focei.neta+1];
 	// lhs 0 = F
 	// lhs 1-eta = df/deta
 	// FIXME faster initiliaitzation via copy or elim
 	for (i = op_focei.neta; i--; ){
-	  fpm = fInd->a(k, i) = ind->lhs[i + 1]; // Almquist uses different a (see eq #15)
-	  rp  = ind->lhs[i + op_focei.neta + 2];
+	  fpm = fInd->a(k, i) = stablizeNums(ind->lhs[i + 1]); // Almquist uses different a (see eq #15)
+	  rp  = stablizeNums(ind->lhs[i + op_focei.neta + 2]);
 	  fInd->c(k, i) = rp/r;
 	  // lp is eq 12 in Almquist 2015
 	  // // .5*apply(eps*fp*B + .5*eps^2*B*c - c, 2, sum) - OMGAinv %*% ETA
@@ -639,9 +655,9 @@ double LikInner2(double *eta, int likId){
   for (k = op_focei.neta; k--;){
     for (l = k+1; l--;){
       // tmp = fInd->a.col(l) %  fInd->B % fInd->a.col(k);
-      H(k, l) = 0.5*sum(fInd->a.col(l) %  fInd->B % fInd->a.col(k) + 
-                         fInd->c.col(l) % fInd->c.col(k)) +
-        op_focei.omegaInv(k, l);
+      H(k, l) = stablizeNums(0.5*sum(fInd->a.col(l) %  fInd->B % fInd->a.col(k) + 
+				     fInd->c.col(l) % fInd->c.col(k)) +
+			     op_focei.omegaInv(k, l));
       H(l, k) = H(k, l);
     }
   }
