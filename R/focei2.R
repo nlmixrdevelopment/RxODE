@@ -35,6 +35,13 @@
 ##'
 ##'         h = abs(x)*derivEps[1]+derivEps[2]
 ##'
+##' @param lbfgsFactr Controls the convergence of the "L-BFGS-B"
+##'     method.  Convergence occurs when the reduction in the
+##'     objective is within this factor of the machine
+##'     tolerance. Default is 1e10, which gives a tolerance of about
+##'     \code{2e-6}, approximately 4 sigdigs.  You can check your
+##'     exact tolerance by multiplying this value by
+##'     \code{.Machine$double.eps}
 ##'
 ##'
 ##' @inheritParams rxSolve
@@ -44,7 +51,7 @@
 ##' @author Matthew L. Fidler
 foceiControl <- function(epsilon=.Machine$double.eps,
                          maxInnerIterations=10000,
-                         maxOuterIterations=5000,
+                         maxOuterIterations=50000,
                          n1qn1nsim=NULL,
                          method = c("liblsoda", "lsoda", "dop853"),
                          transitAbs = NULL, atol = 1.0e-8, rtol = 1.0e-6,
@@ -57,7 +64,13 @@ foceiControl <- function(epsilon=.Machine$double.eps,
                          derivMethod=c("forward", "central"),
                          lbfgsLmm=5L,
                          lbfgsPgtol=0,
-                         lbfgsFactr=1e7,
+                         lbfgsFactr=1e9,
+                         qnbdZero=sqrt(.Machine$double.eps/7e-07),
+                         qnbdEpsf=sqrt(.Machine$double.eps),
+                         qnbdEpsx=sqrt(.Machine$double.eps),
+                         qnbdEpsg=sqrt(.Machine$double.eps),
+                         qnbdMaxFn=50000L,
+                         outerOpt=c("lbfgsb", "qnbd"),
                          ..., stiff){
     .xtra <- list(...);
     if (is.null(transitAbs) && !is.null(.xtra$transit_abs)){  # nolint
@@ -98,30 +111,41 @@ foceiControl <- function(epsilon=.Machine$double.eps,
     if (missing(n1qn1nsim)){
         n1qn1nsim <- 10 * maxInnerIterations + 1;
     }
-    list(maxOuterIterations=as.integer(maxOuterIterations),
-         maxInnerIterations=as.integer(maxInnerIterations),
-         method=method,
-         transitAbs=transitAbs,
-         atol=atol,
-         rtol=rtol,
-         maxstepsOde=maxstepsOde,
-         hmin=hmin,
-         hmax=hmax,
-         hini=hini,
-         maxordn=maxordn,
-         maxords=maxords,
-         cores=cores,
-         covsInterpolation=covsInterpolation,
-         n1qn1nsim=as.integer(n1qn1nsim),
-         printInner=as.integer(printInner),
-         printOuter=as.integer(printOuter),
-         lbfgsLmm=as.integer(lbfgsLmm),
-         lbfgsPgtol=as.double(lbfgsPgtol),
-         lbfgsFactr=as.double(lbfgsFactr),
-         scaleTo=scaleTo,
-         epsilon=epsilon,
-         derivEps=derivEps,
-         derivMethod=derivMethod)
+    outerOpt <- match.arg(outerOpt)
+    .outerIdx <- c("lbfgsb"=0L, "qnbd"=1L)
+    outerOpt <- as.integer(.outerIdx[outerOpt]);
+    .ret <- list(maxOuterIterations=as.integer(maxOuterIterations),
+                 maxInnerIterations=as.integer(maxInnerIterations),
+                 method=method,
+                 transitAbs=transitAbs,
+                 atol=atol,
+                 rtol=rtol,
+                 maxstepsOde=maxstepsOde,
+                 hmin=hmin,
+                 hmax=hmax,
+                 hini=hini,
+                 maxordn=maxordn,
+                 maxords=maxords,
+                 cores=cores,
+                 covsInterpolation=covsInterpolation,
+                 n1qn1nsim=as.integer(n1qn1nsim),
+                 printInner=as.integer(printInner),
+                 printOuter=as.integer(printOuter),
+                 lbfgsLmm=as.integer(lbfgsLmm),
+                 lbfgsPgtol=as.double(lbfgsPgtol),
+                 lbfgsFactr=as.double(lbfgsFactr),
+                 scaleTo=scaleTo,
+                 epsilon=epsilon,
+                 derivEps=derivEps,
+                 derivMethod=derivMethod,
+                 outerOpt=outerOpt,
+                 qnbdZero=as.double(qnbdZero),
+                 qnbdEpsf=as.double(qnbdEpsf),
+                 qnbdEpsx=as.double(qnbdEpsf),
+                 qnbdEpsg=as.double(qnbdEpsg),
+                 qnbdMaxFn=as.integer(qnbdMaxFn))
+    class(.ret) <- "foceiControl"
+    return(.ret);r
 }
 
 .foceiSetup <- function(obj, data, theta, thetaFixed = NULL,

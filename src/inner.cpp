@@ -158,7 +158,9 @@ typedef struct {
   double *theta;
   double *thetaGrad;
   double *initPar;
+  NumericVector lowerIn;
   double *lower;
+  NumericVector upperIn;
   double *upper;
   int *nbd;
 
@@ -192,6 +194,14 @@ typedef struct {
   int lmm;
   LogicalVector thetaFixed;
   LogicalVector skipCov;
+
+  int outerOpt;
+  double qnbdZero;
+  double qnbdEpsf;
+  double qnbdEpsx;
+  double qnbdEpsg;
+
+  int qnbdMaxFn;
 } focei_options;
 
 focei_options op_focei;
@@ -956,25 +966,6 @@ NumericVector foceiNumericGrad(NumericVector theta){
   return ret;
 }
 
-void outerCostNum(int *ind, int *n, double *x, double *f, double *g, int *ti, float *tr, double *td){
-  if (*ind==2 || *ind==4) {
-    // Function
-    f[0] = foceiOfv0(x);
-    op_focei.nF++;
-    if (op_focei.printOuter != 0 && op_focei.nF % op_focei.printOuter == 0){
-      Rprintf("%3d:%#14.8g:", op_focei.nF, *f);
-      for (int i = 0; i < *n; i++){
-        Rprintf(" %#10g", x[i]);
-      }
-      Rprintf("\n");
-    }
-  }
-  if (*ind==3 || *ind==4) {
-    // Gradient
-    numericGrad(x, g);
-  }
-}
-
 ////////////////////////////////////////////////////////////////////////////////
 // Setup FOCEi functions
 CharacterVector rxParams_(const RObject &obj);
@@ -1280,32 +1271,45 @@ NumericVector foceiSetup_(const RObject &obj,
   if (op_focei.printInner > 0){
     rx->op->cores=1;
   }
-  NumericVector ret(op_focei.npars, op_focei.scaleTo);
-  if (op_focei.scaleTo <= 0){
-    for (unsigned int k = op_focei.npars; k--;){
-      j=op_focei.fixedTrans[k];
-      ret[k] = op_focei.fullTheta[j];
-    }
-  }
-  NumericVector lowerIn, upperIn;
+  int totN=op_focei.thetan + op_focei.omegan;
+  NumericVector lowerIn(totN);
+  NumericVector upperIn(totN);
   if (lower.isNull()){
-    lowerIn = NumericVector(op_focei.npars);
-    std::fill_n(lowerIn.begin(), op_focei.npars, R_NegInf);
+    std::fill_n(lowerIn.begin(), totN, R_NegInf);
   } else {
-    lowerIn = as<NumericVector>(lower);
-    if (lowerIn.size() != op_focei.npars){
-      stop("Lower bounds needs to be the same size as the number of parameters.");
+    NumericVector lower1=as<NumericVector>(lower);
+    if (lower1.size() == 1){
+      std::fill_n(lowerIn.begin(), totN, lower1[0]);
+    } else if (lower1.size() < totN){
+      std::copy(lower1.begin(), lower1.end(), lowerIn.begin());
+      std::fill_n(lowerIn.begin()+lower1.size(), totN - lower1.size(), R_NegInf);
+    } else if (lower1.size() > totN){
+      warning("Lower bound is larger than the number of parameters being estimated.");
+      std::copy(lower1.begin(), lower1.begin()+totN, lowerIn.begin());
+    } else {
+      lowerIn = lower1;
     }
   }
   if (upper.isNull()){
-    upperIn = NumericVector(op_focei.npars);
-    std::fill_n(upperIn.begin(), op_focei.npars, R_PosInf);
+    std::fill_n(upperIn.begin(), totN, R_PosInf);
   } else {
-    upperIn = as<NumericVector>(upper);
-    if (upperIn.size() != op_focei.npars){
-      stop("Upper bounds needs to be the same size as the number of parameters.");
+    NumericVector upper1=as<NumericVector>(upper);
+    if (upper1.size() == 1){
+      std::fill_n(upperIn.begin(), totN, upper1[0]);
+    } else if (upper1.size() < totN){
+      std::copy(upper1.begin(), upper1.end(), upperIn.begin());
+      std::fill_n(upperIn.begin()+upper1.size(), totN - upper1.size(), R_PosInf);
+    } else if (upper1.size() > totN){
+      warning("Upper bound is larger than the number of parameters being estimated.");
+      std::copy(upper1.begin(), upper1.begin()+totN, upperIn.begin());
+    } else {
+      upperIn = upper1;
     }
   }
+  op_focei.lowerIn =lowerIn;
+  op_focei.upperIn =upperIn;
+  print(upperIn);
+  print(lowerIn);
   Free(op_focei.likSav);
   Free(op_focei.lower);
   Free(op_focei.upper);
@@ -1313,33 +1317,95 @@ NumericVector foceiSetup_(const RObject &obj,
   op_focei.upper = Calloc(op_focei.npars, double);
   op_focei.nbd   = Calloc(op_focei.npars, int);
   std::fill_n(&op_focei.nbd[0], op_focei.npars, 0);
-  for (int j = op_focei.npars; j--;){
-    if (R_FINITE(lowerIn[j])){
-      op_focei.lower[j] = lowerIn[j];
-      // lower bound only = 1
-      op_focei.nbd[j]=1;
-    } else {
-      op_focei.lower[j] = std::numeric_limits<double>::lowest();
+
+  NumericVector ret(op_focei.npars, op_focei.scaleTo);
+  if (op_focei.scaleTo <= 0){
+    for (unsigned int k = op_focei.npars; k--;){
+      j=op_focei.fixedTrans[k];
+      ret[k] = op_focei.fullTheta[j];
+      if (R_FINITE(lowerIn[j])){
+        op_focei.lower[k] = lowerIn[j];
+        // lower bound only = 1
+        op_focei.nbd[k]=1;
+      } else {
+        op_focei.lower[k] = std::numeric_limits<double>::lowest();
+      }
+      if (R_FINITE(upperIn[j])){
+        op_focei.upper[k] = upperIn[j];
+        // Upper bound only = 3
+        // Upper and lower bound = 2
+        op_focei.nbd[k]= 3 - op_focei.nbd[j];
+      } else {
+        op_focei.upper[k] = std::numeric_limits<double>::max();
+      }
     }
-    if (R_FINITE(upperIn[j])){
-      op_focei.upper[j] = upperIn[j];
-      // Upper bound only = 3
-      // Upper and lower bound = 2
-      op_focei.nbd[j]= 3 - op_focei.nbd[j];
-    } else {
-      op_focei.upper[j] = std::numeric_limits<double>::max();
+  } else {
+    for (unsigned int k = op_focei.npars; k--;){
+      j=op_focei.fixedTrans[k];
+      if (R_FINITE(lowerIn[j])){
+        op_focei.lower[k] = lowerIn[j] * op_focei.scaleTo / op_focei.initPar[j];
+        // lower bound only = 1
+        op_focei.nbd[k]=1;
+      } else {
+        op_focei.lower[k] = std::numeric_limits<double>::lowest();
+      }
+      if (R_FINITE(upperIn[j])){
+        op_focei.upper[k] = upperIn[j] * op_focei.scaleTo / op_focei.initPar[j];
+        // Upper bound only = 3
+        // Upper and lower bound = 2
+        op_focei.nbd[k]= 3 - op_focei.nbd[j];
+      } else {
+        op_focei.upper[k] = std::numeric_limits<double>::max();
+      }
     }
   }
+
   op_focei.calcGrad=0;
   Free(op_focei.likSav);
   op_focei.likSav = Calloc(rx->nsub, double);
   n1qn1_ = (n1qn1_fp) R_GetCCallable("n1qn1","n1qn1F");
-  op_focei.factr = as<double>(odeO["lbfgsFactr"]);
-  op_focei.pgtol = as<double>(odeO["lbfgsPgtol"]);
-  op_focei.lmm = as<int>(odeO["lbfgsLmm"]);
+  
+  // Outer options
+  op_focei.outerOpt	=as<int>(odeO["outerOpt"]);
+  // lbfgsb options
+  op_focei.factr	= as<double>(odeO["lbfgsFactr"]);
+  op_focei.pgtol	= as<double>(odeO["lbfgsPgtol"]);
+  op_focei.lmm		= as<int>(odeO["lbfgsLmm"]);
+  // qnbd options
+  op_focei.qnbdZero	=as<double>(odeO["qnbdZero"]);
+  op_focei.qnbdEpsf	=as<double>(odeO["qnbdEpsf"]);
+  op_focei.qnbdEpsx	=as<double>(odeO["qnbdEpsx"]);
+  op_focei.qnbdEpsg	=as<double>(odeO["qnbdEpsg"]);
+  op_focei.qnbdMaxFn	=as<int>(odeO["qnbdMaxFn"]);
   return ret;
 }
 
+////////////////////////////////////////////////////////////////////////////////
+//
+void foceiOuterFinal(double *x, Environment e){
+  double fmin = foceiOfv0(x);
+  
+  NumericVector theta(op_focei.thetan);
+  std::copy(&op_focei.fullTheta[0],  &op_focei.fullTheta[0] + op_focei.thetan, 
+            theta.begin());
+  LogicalVector thetaFixed(op_focei.thetan);
+  std::copy(&op_focei.thetaFixed[0],  &op_focei.thetaFixed[0] + op_focei.thetan, 
+            thetaFixed.begin());
+  NumericVector lowerIn(op_focei.thetan);
+  NumericVector upperIn(op_focei.thetan);
+  std::copy(&op_focei.lowerIn[0],  &op_focei.lowerIn[0] + op_focei.thetan, 
+            lowerIn.begin());
+  std::copy(&op_focei.upperIn[0],  &op_focei.upperIn[0] + op_focei.thetan, 
+            upperIn.begin());
+  e["theta"] = DataFrame::create(_["lower"]=lowerIn,_["theta"]=theta,_["upper"]=upperIn,
+				 _["fixed"]=thetaFixed);
+  e["omega"] = getOmega();
+  e["etaObf"] = foceiEtas();
+  e["objective"] = fmin;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Outer l-BFGS-b from R
 extern "C" double foceiOfvOptim(int n, double *x, void *ex){
   double ret = foceiOfv0(x);
   op_focei.nF++;
@@ -1353,11 +1419,9 @@ extern "C" double foceiOfvOptim(int n, double *x, void *ex){
   return ret;
 }
 
-
 extern "C" void outerGradNumOptim(int n, double *par, double *gr, void *ex){
   numericGrad(par, gr);
 }
-
 
 void foceiLbfgsb(Environment e){
   void *ex = NULL;
@@ -1378,39 +1442,121 @@ void foceiLbfgsb(Environment e){
   // Recalculate OFV in case the last calculated OFV isn't at the minimum....
   // Otherwise ETAs may be off
   std::fill_n(&op_focei.goldEta[0], op_focei.gEtaGTransN, -42.0); // All etas = -42;  Unlikely if normal
-  foceiOfv0(x.begin());
-  
-  NumericVector theta(op_focei.thetan);
-  std::copy(&op_focei.fullTheta[0],  &op_focei.fullTheta[0] + op_focei.thetan, 
-              theta.begin());
-  LogicalVector thetaFixed(op_focei.thetan);
-  std::copy(&op_focei.thetaFixed[0],  &op_focei.thetaFixed[0] + op_focei.thetan, 
-            thetaFixed.begin());
-  e["theta"] = theta;
-  e["thetaFixed"] = thetaFixed;
-  e["omega"] = getOmega();
-  e["etaObf"] = foceiEtas();
-  e["objective"] = Fmin;
+  // Finalize environment
+  foceiOuterFinal(x.begin(), e);
   e["convergence"] = fail;
   e["message"] = msg;
 }
 
-//[[Rcpp::export]]
-Environment foceiOuter(Environment e){
-  op_focei.nF=0;  
-  foceiLbfgsb(e);
-  return e;
+////////////////////////////////////////////////////////////////////////////////
+// qnbd from scilab
+
+void outerCostNum(int *ind, int *n, double *x, double *f, double *g, int *ti, float *tr, double *td){
+  if (*ind==2 || *ind==4) {
+    // Function
+    f[0] = foceiOfv0(x);
+    op_focei.nF++;
+    if (op_focei.printOuter != 0 && op_focei.nF % op_focei.printOuter == 0){
+      Rprintf("%3d:%#14.8g:", op_focei.nF, *f);
+      for (int i = 0; i < *n; i++){
+        Rprintf(" %#10g", x[i]);
+      }
+      Rprintf("\n");
+    }
+  }
+  if (*ind==3 || *ind==4) {
+    // Gradient
+    numericGrad(x, g);
+  }
 }
 
-// void optQnbd(){
-//   int indqn[1];
-//   indqn[0]=1; // 2 is a restart, not really supported.
-//   int n = op_focei.npars;
-//   int nitrav = 2*n;
-//   int ntrav = n * (n + 1) / 2 + 6*n+1;
-//   double *x = new double[n];
-//   double *g = new double[n];
-// }
+void optQnbd(Environment e){
+  int indqn[1];
+  indqn[0]=1; // 2 is a restart, not really supported.
+  int n = op_focei.npars;
+  int nitrav = 2*n;
+  int ntrav = n * (n + 1) / 2 + 6*n+1;
+  double *x = new double[n];
+  double *g = new double[n];
+  int *itrav = new int[nitrav];
+  double *trav = new double[ntrav];
+  double *epsx = new double[n];
+  int iprint = 0;
+  double zero = op_focei.qnbdZero;
+  // maximum number of function calls
+  int napmax = op_focei.qnbdMaxFn;
+  int itmax = op_focei.maxOuterIterations;
+  double epsf = op_focei.qnbdEpsf;
+  double epsg = op_focei.qnbdEpsg;
+  double epsx0 = op_focei.qnbdEpsx;
+  double df0 = 1.0;
+  int nfac = 0;
+  double f;
+  int izs[1]; float rzs[1]; double dzs[1];
+  std::fill(&epsx[0], &epsx[0]+n, epsx0);
+  qnbd_(indqn, outerCostNum, &n,x, &f, g, &iprint, &zero,
+        &napmax, &itmax, &epsf, &epsg, epsx, &df0,
+        op_focei.lower, op_focei.upper, &nfac, trav, &ntrav, itrav,
+        &nitrav, izs, rzs, dzs);
+  
+  Rcpp::NumericVector par(n);
+  std::copy(&x[0],&x[0]+n,&par[0]);
+  // Finalize environment
+  foceiOuterFinal(&x[0], e);
+  e["fail"] = indqn[0];
+  switch (indqn[0]){
+  case -6: e["message"] = "Stopped when calculating the descent direction on first iteration."; break;
+  case -5: e["message"] = "Stopped when calculating the Hessain approximation on first iteration."; break;
+  case -3: e["message"] = "function call anomaly: negative sign at a point or f and g were previously calculated"; break;
+  case -2: e["message"] = "Failure of the linear search at the first iteration"; break;
+  case -1: e["message"] = "f not defined at initial point"; break;
+  case 1: e["message"] = "stop on epsg"; break;
+  case 2: e["message"] = "stop on epsf"; break;
+  case 3: e["message"] = "stop on epsx"; break;
+  case 4: e["message"] = "stop because of maximum function evaulations"; break;
+  case 5: e["message"] = "stop because of maximum iterations"; break;
+  case 6: e["message"] = "slope in the opposite direction to the gradient too small"; break;
+  case 7: e["message"] = "stop when calculating the descent direction"; break;
+  case 8: e["message"] = "stop when calculating the Hessian approximation"; break;
+  case 10: e["message"] = "stop by failure of the linear search, cause not specified"; break;
+  case 11: e["message"] = "stop by failure of the linear search, cause not specified with indsim <0"; break;
+  case 12: e["message"] = "a step too small close to a step too big this can result from an error in the gradient"; break;
+  case 13: e["message"] = "too many calls in a linear search"; break;
+  default:
+    e["message"] = "success";
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Overall Outer Problem
+
+//[[Rcpp::export]]
+Environment foceiOuter(Environment e){
+  op_focei.nF=0;
+  if (op_focei.maxOuterIterations > 0){
+    if (op_focei.outerOpt == 0){
+      foceiLbfgsb(e);
+    } else {
+      optQnbd(e);
+    }
+  } else {
+    NumericVector x(op_focei.npars);
+    if (op_focei.scaleTo > 0){
+      std::fill_n(&x[0], op_focei.npars, op_focei.scaleTo);
+    } else {
+      std::copy(&op_focei.initPar[0], &op_focei.initPar[0]+op_focei.npars,&x[0]);
+    }
+    foceiOuterFinal(x.begin(), e);
+    if (op_focei.maxInnerIterations == 0){
+      e["fail"] = NA_INTEGER;
+      e["message"] = "Likelihood evaluation with provided ETAs";
+    } else {
+      e["fail"] = 0;
+      e["message"] = "Posthoc prediction with provided THETAs";
+    }
+  }
+  return e;
+}
 
 
 ////////////////////////////////////////////////////////////////////////////////
