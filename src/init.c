@@ -5,6 +5,7 @@
 #include "solve.h"
 
 SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SEXP parse_model,SEXP parse_model3);
+SEXP _RxODE_foceiCalcCov(SEXP);
 SEXP _RxODE_foceiOuter(SEXP);
 SEXP _RxODE_foceiEtas();
 SEXP _RxODE_foceiNumericGrad(SEXP);
@@ -185,6 +186,7 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_foceiNumericGrad", (DL_FUNC) &_RxODE_foceiNumericGrad, 1},
     {"_RxODE_foceiEtas", (DL_FUNC) &_RxODE_foceiEtas, 0},
     {"_RxODE_foceiOuter", (DL_FUNC) &_RxODE_foceiOuter, 1},
+    {"_RxODE_foceiCalcCov", (DL_FUNC) &_RxODE_foceiCalcCov, 1},
     {NULL, NULL, 0}
   };
   // C callable to assign environments.

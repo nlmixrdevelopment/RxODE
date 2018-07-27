@@ -106,6 +106,7 @@ typedef struct {
   // std::string gradStr;
   // std::string obfStr;
   // 
+  List mvi;
   double *geta;
   double *goldEta;
   double *gsaveEta;
@@ -177,8 +178,8 @@ typedef struct {
   double factr;
   double pgtol;
   int lmm;
-  LogicalVector thetaFixed;
-  LogicalVector skipCov;
+  int *skipCov;
+  int skipCovN;
 
   int outerOpt;
 } focei_options;
@@ -333,6 +334,8 @@ extern "C" void rxOptionsFreeFocei(){
   Free(op_focei.gZm);
   op_focei.gZmN = 0;
   Free(op_focei.likSav);
+  op_focei.skipCovN = 0;
+  Free(op_focei.skipCov);
 }
 
 rx_solve *getRxSolve_();
@@ -982,7 +985,7 @@ static inline void foceiSetupTrans_(CharacterVector pars){
   op_focei.nzm = (op_focei.neta+1) * (op_focei.neta + 14) / 2;
 }
 
-static inline void foceiSetupTheta_(const RObject &obj,
+static inline void foceiSetupTheta_(List mvi,
 				    NumericVector theta,
 				    Nullable<LogicalVector> thetaFixed, 
 				    double scaleTo,
@@ -998,7 +1001,7 @@ static inline void foceiSetupTheta_(const RObject &obj,
   int j;
   LogicalVector thetaFixed2;
   if (!thetaFixed.isNull()){
-    thetaFixed2 = LogicalVector(thetaFixed);
+    thetaFixed2 = as<LogicalVector>(thetaFixed);
     for (j = thetaFixed2.size(); j--;){
       if (thetaFixed2[j]) fixedn++;
     }
@@ -1007,10 +1010,9 @@ static inline void foceiSetupTheta_(const RObject &obj,
   }
   int npars = thetan+omegan-fixedn;
   if (alloc){
-    List mvi = rxModelVars_(obj);
     rxUpdateInnerFuns(as<SEXP>(mvi["trans"]));
     foceiSetupTrans_(as<CharacterVector>(mvi["params"]));
-    foceiThetaN(npars);
+    foceiThetaN(thetan);
   }
   std::copy(theta.begin(), theta.end(), &op_focei.fullTheta[0]);  
   std::copy(omegaTheta.begin(), omegaTheta.end(), &op_focei.fullTheta[0]+thetan);
@@ -1030,13 +1032,8 @@ static inline void foceiSetupTheta_(const RObject &obj,
         op_focei.initPar[k] = theta[j];
         op_focei.fixedTrans[k++] = j;
       } else if (j < theta.size() + omegan){
-        op_focei.initPar[k] = omegaTheta[j-theta.size()];
-	if (!alloc){
-	  fixedn++;
-	  npars--;
-	} else {
-          op_focei.fixedTrans[k++] = j;
-	}
+	op_focei.initPar[k] = omegaTheta[j-theta.size()];
+	op_focei.fixedTrans[k++] = j;
       } 
     }
   }
@@ -1118,7 +1115,18 @@ NumericVector foceiSetup_(const RObject &obj,
   }
 
   // This fills in op_focei.neta
-  foceiSetupTheta_(obj, theta, thetaFixed, as<double>(odeO["scaleTo"]), true);
+  List mvi = rxModelVars_(obj);
+  op_focei.mvi = mvi;
+  Free(op_focei.skipCov);
+  if (skipCov.isNull()){
+    op_focei.skipCovN = 0;
+  } else {
+    LogicalVector skipCov1 = as<LogicalVector>(skipCov);
+    op_focei.skipCovN = skipCov1.size();
+    op_focei.skipCov = Calloc(op_focei.skipCov, int);
+    std::copy(skipCov1.begin(),skipCov1.end(),op_focei.skipCov);
+  }
+  foceiSetupTheta_(mvi, theta, thetaFixed, as<double>(odeO["scaleTo"]), true);
   // First see if etaMat is null.
   NumericMatrix etaMat0;
   unsigned int nsub=0;
@@ -1238,8 +1246,6 @@ NumericVector foceiSetup_(const RObject &obj,
            1);//const int setupOnly = 0
   rx = getRxSolve_();
   foceiSetupEta_(etaMat0);
-  op_focei.thetaFixed = thetaFixed;
-  op_focei.skipCov    = skipCov;
   op_focei.epsilon=as<double>(odeO["epsilon"]);
   op_focei.maxOuterIterations = as<int>(odeO["maxOuterIterations"]);
   op_focei.maxInnerIterations = as<int>(odeO["maxInnerIterations"]);
@@ -1354,16 +1360,26 @@ NumericVector foceiSetup_(const RObject &obj,
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-//
+// Outer finalize
 void foceiOuterFinal(double *x, Environment e){
   double fmin = foceiOfv0(x);
   
   NumericVector theta(op_focei.thetan);
   std::copy(&op_focei.fullTheta[0],  &op_focei.fullTheta[0] + op_focei.thetan, 
             theta.begin());
+
+  NumericVector fullTheta(op_focei.thetan+op_focei.omegan);
+  std::copy(&op_focei.fullTheta[0],  &op_focei.fullTheta[0] + op_focei.thetan + op_focei.omegan, 
+            fullTheta.begin());
   LogicalVector thetaFixed(op_focei.thetan);
-  std::copy(&op_focei.thetaFixed[0],  &op_focei.thetaFixed[0] + op_focei.thetan, 
-            thetaFixed.begin());
+  std::fill_n(thetaFixed.begin(),op_focei.thetan, true);
+  unsigned int j;
+  for (unsigned int k = op_focei.npars; k--;){
+    j=op_focei.fixedTrans[k];
+    if (j < thetaFixed.size()) thetaFixed[j]=false;
+  }
+  // std::copy(&op_focei.thetaFixed[0],  &op_focei.thetaFixed[0] + op_focei.thetan, 
+  //           thetaFixed.begin());
   NumericVector lowerIn(op_focei.thetan);
   NumericVector upperIn(op_focei.thetan);
   std::copy(&op_focei.lowerIn[0],  &op_focei.lowerIn[0] + op_focei.thetan, 
@@ -1372,6 +1388,7 @@ void foceiOuterFinal(double *x, Environment e){
             upperIn.begin());
   e["theta"] = DataFrame::create(_["lower"]=lowerIn,_["theta"]=theta,_["upper"]=upperIn,
 				 _["fixed"]=thetaFixed);
+  e["fullTheta"] = fullTheta;
   e["omega"] = getOmega();
   e["etaObf"] = foceiEtas();
   e["objective"] = fmin;
@@ -1453,6 +1470,61 @@ Environment foceiOuter(Environment e){
 
 ////////////////////////////////////////////////////////////////////////////////
 // Covariance functions
+
+void foceiCalcH(Environment e){
+  arma::mat H(op_focei.npars, op_focei.npars);
+  arma::vec dpar(op_focei.npars);
+  unsigned int i, j, k;
+  for (k = op_focei.npars; k--;){
+    j=op_focei.fixedTrans[k];
+    dpar[k] = op_focei.fullTheta[j];
+  }
+  arma::vec df1(op_focei.npars);
+  arma::vec df2(op_focei.npars);
+  double eps;
+  for (i=op_focei.npars; i--;){
+    eps = dpar[i]*op_focei.rEps + op_focei.aEps;
+    dpar[i] = dpar[i]+eps;
+    numericGrad(dpar.begin(), df1.begin());
+    dpar[i] = dpar[i]-2*eps;
+    numericGrad(dpar.begin(), df2.begin());
+    dpar[i] = dpar[i] + eps;
+    for (j = op_focei.npars; j--;){
+      H(i, j) = (df1[j]-df2[j])/(2*eps);
+    }
+  }
+  H = 0.5*H + 0.5*H.t();
+  e["R"] = wrap(H);
+}
+
+
+//[[Rcpp::export]]
+NumericMatrix foceiCalcCov(Environment e){
+  // Fix THETAs before running gradient functions for Hessian/S matrix
+  // Run Hessian on unscaled problem
+  NumericVector fullT = e["fullTheta"];
+  NumericVector fullT2(op_focei.thetan);
+  std::copy(fullT.begin(), fullT.begin()+fullT2.size(), fullT2.begin());
+  LogicalVector skipCov(op_focei.thetan+op_focei.omegan);//skipCovN
+  std::copy(&op_focei.skipCov[0],&op_focei.skipCov[0]+op_focei.skipCovN,skipCov.begin());
+  std::fill_n(skipCov.begin()+op_focei.skipCovN,skipCov.size()-op_focei.skipCovN,true);
+  foceiSetupTheta_(op_focei.mvi, fullT2, skipCov, 0.0, false);
+
+  // R matrix based covariance
+  foceiCalcH(e);
+  arma::mat R = as<arma::mat>(e["R"]);
+  mat Rinv;
+  try{
+    Rinv = inv(R);
+  } catch(...){
+    Rprintf("Warning: Hessian (R) matrix seems singular; Using pseudo-inverse\n");
+    Rinv = pinv(R);
+  }
+  e["Rinv"] = wrap(Rinv);
+  e["covR"] = wrap(2*Rinv);
+  
+  return as<NumericMatrix>(e["covR"]);
+}
 
 
 //[[Rcpp::export]]

@@ -5,13 +5,13 @@
 \title{Control Options for FOCEi}
 \usage{
 foceiControl(epsilon = .Machine$double.eps, maxInnerIterations = 10000,
-  maxOuterIterations = 5000, n1qn1nsim = NULL, method = c("liblsoda",
+  maxOuterIterations = 50000, n1qn1nsim = NULL, method = c("liblsoda",
   "lsoda", "dop853"), transitAbs = NULL, atol = 1e-08, rtol = 1e-06,
   maxstepsOde = 5000L, hmin = 0L, hmax = NULL, hini = 0,
   maxordn = 12L, maxords = 5L, cores, covsInterpolation = c("linear",
   "locf", "nocb", "midpoint"), printInner = 0L, printOuter = 1L,
   scaleTo = 1, derivEps = c(1e-06, 1e-06), derivMethod = c("forward",
-  "central"), lbfgsLmm = 5L, lbfgsPgtol = 0, lbfgsFactr = 1e+07, ...,
+  "central"), lbfgsLmm = 5L, lbfgsPgtol = 0, lbfgsFactr = 1e+09, ...,
   stiff)
 }
 \arguments{
@@ -110,6 +110,14 @@ By default this is 1.}
 \item{derivMethod}{indicates the method for calculating
 derivatives of the outer problem.  Currently supports
 "central" and "forward" difference methods.}
+
+\item{lbfgsFactr}{Controls the convergence of the "L-BFGS-B"
+method.  Convergence occurs when the reduction in the
+objective is within this factor of the machine
+tolerance. Default is 1e10, which gives a tolerance of about
+\code{2e-6}, approximately 4 sigdigs.  You can check your
+exact tolerance by multiplying this value by
+\code{.Machine$double.eps}}
 
 \item{...}{Other arguments including scaling factors for each
 compartment.  This includes S# = numeric will scale a compartment

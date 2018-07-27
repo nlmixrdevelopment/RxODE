@@ -41,6 +41,10 @@ foceiOuter <- function(e) {
     .Call(`_RxODE_foceiOuter`, e)
 }
 
+foceiCalcCov <- function(e) {
+    .Call(`_RxODE_foceiCalcCov`, e)
+}
+
 foceiPrint_ <- function() {
     .Call(`_RxODE_foceiPrint_`)
 }

@@ -135,7 +135,7 @@ foceiControl <- function(epsilon=.Machine$double.eps,
                  derivMethod=derivMethod,
                  outerOpt=0L)
     class(.ret) <- "foceiControl"
-    return(.ret);r
+    return(.ret);
 }
 
 .foceiSetup <- function(obj, data, theta, thetaFixed = NULL,
