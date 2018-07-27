@@ -65,12 +65,7 @@ foceiControl <- function(epsilon=.Machine$double.eps,
                          lbfgsLmm=5L,
                          lbfgsPgtol=0,
                          lbfgsFactr=1e9,
-                         qnbdZero=sqrt(.Machine$double.eps/7e-07),
-                         qnbdEpsf=sqrt(.Machine$double.eps),
-                         qnbdEpsx=sqrt(.Machine$double.eps),
-                         qnbdEpsg=sqrt(.Machine$double.eps),
-                         qnbdMaxFn=50000L,
-                         outerOpt=c("lbfgsb", "qnbd"),
+                         ## outerOpt=c("lbfgsb", "qnbd"),
                          ..., stiff){
     .xtra <- list(...);
     if (is.null(transitAbs) && !is.null(.xtra$transit_abs)){  # nolint
@@ -111,9 +106,9 @@ foceiControl <- function(epsilon=.Machine$double.eps,
     if (missing(n1qn1nsim)){
         n1qn1nsim <- 10 * maxInnerIterations + 1;
     }
-    outerOpt <- match.arg(outerOpt)
-    .outerIdx <- c("lbfgsb"=0L, "qnbd"=1L)
-    outerOpt <- as.integer(.outerIdx[outerOpt]);
+    ## outerOpt <- match.arg(outerOpt)
+    ## .outerIdx <- c("lbfgsb"=0L, "qnbd"=1L)
+    ## outerOpt <- as.integer(.outerIdx[outerOpt]);
     .ret <- list(maxOuterIterations=as.integer(maxOuterIterations),
                  maxInnerIterations=as.integer(maxInnerIterations),
                  method=method,
@@ -138,12 +133,7 @@ foceiControl <- function(epsilon=.Machine$double.eps,
                  epsilon=epsilon,
                  derivEps=derivEps,
                  derivMethod=derivMethod,
-                 outerOpt=outerOpt,
-                 qnbdZero=as.double(qnbdZero),
-                 qnbdEpsf=as.double(qnbdEpsf),
-                 qnbdEpsx=as.double(qnbdEpsf),
-                 qnbdEpsg=as.double(qnbdEpsg),
-                 qnbdMaxFn=as.integer(qnbdMaxFn))
+                 outerOpt=0L)
     class(.ret) <- "foceiControl"
     return(.ret);r
 }

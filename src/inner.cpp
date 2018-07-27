@@ -25,22 +25,7 @@ extern "C"{
 			   float rzs[], double dzs[]);
   
   n1qn1_fp n1qn1_;
-
-  typedef void (*qnbd_fp)(int* indqn, S2_fp simul, int* n, double* x, double* f, double* g, int* iprint, double* zero, int* napmax, 
-			  int* itmax, double* epsf, double* epsg, double* epsx, double* df0, 
-			  double* binf, double* binsup, int* nfac, double* trav, int* ntrav, int* itrav, int* nitrav, 
-			  int* izs, float* rzs, double* dzs);
-
-  void qnbd_(int* indqn, S2_fp simul, int* n, double* x, double* f, double* g, int* iprint, double* zero, int* napmax, 
-             int* itmax, double* epsf, double* epsg, double* epsx, double* df0, 
-             double* binf, double* binsup, int* nfac, double* trav, int* ntrav, int* itrav, int* nitrav, 
-             int* izs, float* rzs, double* dzs) {
-    static qnbd_fp fun=NULL;
-    if (fun == NULL) fun = (qnbd_fp) R_GetCCallable("n1qn1","qnbdF");
-    fun(indqn, simul, n, x, f, g, iprint, zero, napmax, itmax, epsf, epsg, epsx, df0, binf, binsup, nfac, trav, ntrav, itrav, nitrav, 
-        izs, rzs, dzs);
-  }
-
+  
   typedef double optimfn(int n, double *par, void *ex);
 
   typedef void optimgr(int n, double *par, double *gr, void *ex);
@@ -196,12 +181,6 @@ typedef struct {
   LogicalVector skipCov;
 
   int outerOpt;
-  double qnbdZero;
-  double qnbdEpsf;
-  double qnbdEpsx;
-  double qnbdEpsg;
-
-  int qnbdMaxFn;
 } focei_options;
 
 focei_options op_focei;
@@ -1371,12 +1350,6 @@ NumericVector foceiSetup_(const RObject &obj,
   op_focei.factr	= as<double>(odeO["lbfgsFactr"]);
   op_focei.pgtol	= as<double>(odeO["lbfgsPgtol"]);
   op_focei.lmm		= as<int>(odeO["lbfgsLmm"]);
-  // qnbd options
-  op_focei.qnbdZero	=as<double>(odeO["qnbdZero"]);
-  op_focei.qnbdEpsf	=as<double>(odeO["qnbdEpsf"]);
-  op_focei.qnbdEpsx	=as<double>(odeO["qnbdEpsx"]);
-  op_focei.qnbdEpsg	=as<double>(odeO["qnbdEpsg"]);
-  op_focei.qnbdMaxFn	=as<int>(odeO["qnbdMaxFn"]);
   return ret;
 }
 
@@ -1449,85 +1422,6 @@ void foceiLbfgsb(Environment e){
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// qnbd from scilab
-
-void outerCostNum(int *ind, int *n, double *x, double *f, double *g, int *ti, float *tr, double *td){
-  if (*ind==2 || *ind==4) {
-    // Function
-    f[0] = foceiOfv0(x);
-    op_focei.nF++;
-    if (op_focei.printOuter != 0 && op_focei.nF % op_focei.printOuter == 0){
-      Rprintf("%3d:%#14.8g:", op_focei.nF, *f);
-      for (int i = 0; i < *n; i++){
-        Rprintf(" %#10g", x[i]);
-      }
-      Rprintf("\n");
-    }
-  }
-  if (*ind==3 || *ind==4) {
-    // Gradient
-    numericGrad(x, g);
-  }
-}
-
-void optQnbd(Environment e){
-  int indqn[1];
-  indqn[0]=1; // 2 is a restart, not really supported.
-  int n = op_focei.npars;
-  int nitrav = 2*n;
-  int ntrav = n * (n + 1) / 2 + 6*n+1;
-  double *x = new double[n];
-  double *g = new double[n];
-  int *itrav = new int[nitrav];
-  double *trav = new double[ntrav];
-  double *epsx = new double[n];
-  int iprint = 0;
-  double zero = op_focei.qnbdZero;
-  // maximum number of function calls
-  int napmax = op_focei.qnbdMaxFn;
-  int itmax = op_focei.maxOuterIterations;
-  double epsf = op_focei.qnbdEpsf;
-  double epsg = op_focei.qnbdEpsg;
-  double epsx0 = op_focei.qnbdEpsx;
-  double df0 = 1.0;
-  int nfac = 0;
-  double f;
-  int izs[1]; float rzs[1]; double dzs[1];
-  std::fill(&epsx[0], &epsx[0]+n, epsx0);
-  qnbd_(indqn, outerCostNum, &n,x, &f, g, &iprint, &zero,
-        &napmax, &itmax, &epsf, &epsg, epsx, &df0,
-        op_focei.lower, op_focei.upper, &nfac, trav, &ntrav, itrav,
-        &nitrav, izs, rzs, dzs);
-  
-  Rcpp::NumericVector par(n);
-  std::copy(&x[0],&x[0]+n,&par[0]);
-  // Finalize environment
-  foceiOuterFinal(&x[0], e);
-  e["fail"] = indqn[0];
-  switch (indqn[0]){
-  case -6: e["message"] = "Stopped when calculating the descent direction on first iteration."; break;
-  case -5: e["message"] = "Stopped when calculating the Hessain approximation on first iteration."; break;
-  case -3: e["message"] = "function call anomaly: negative sign at a point or f and g were previously calculated"; break;
-  case -2: e["message"] = "Failure of the linear search at the first iteration"; break;
-  case -1: e["message"] = "f not defined at initial point"; break;
-  case 1: e["message"] = "stop on epsg"; break;
-  case 2: e["message"] = "stop on epsf"; break;
-  case 3: e["message"] = "stop on epsx"; break;
-  case 4: e["message"] = "stop because of maximum function evaulations"; break;
-  case 5: e["message"] = "stop because of maximum iterations"; break;
-  case 6: e["message"] = "slope in the opposite direction to the gradient too small"; break;
-  case 7: e["message"] = "stop when calculating the descent direction"; break;
-  case 8: e["message"] = "stop when calculating the Hessian approximation"; break;
-  case 10: e["message"] = "stop by failure of the linear search, cause not specified"; break;
-  case 11: e["message"] = "stop by failure of the linear search, cause not specified with indsim <0"; break;
-  case 12: e["message"] = "a step too small close to a step too big this can result from an error in the gradient"; break;
-  case 13: e["message"] = "too many calls in a linear search"; break;
-  default:
-    e["message"] = "success";
-  }
-}
-
-////////////////////////////////////////////////////////////////////////////////
 // Overall Outer Problem
 
 //[[Rcpp::export]]
@@ -1536,9 +1430,7 @@ Environment foceiOuter(Environment e){
   if (op_focei.maxOuterIterations > 0){
     if (op_focei.outerOpt == 0){
       foceiLbfgsb(e);
-    } else {
-      optQnbd(e);
-    }
+    } 
   } else {
     NumericVector x(op_focei.npars);
     if (op_focei.scaleTo > 0){
