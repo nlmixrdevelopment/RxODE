@@ -420,6 +420,7 @@ rxSymPyVars <- function(model){
                   rxState(model),
                   "podo", "t", "time", "tlast",
                   "rx__PTR__", "rx1c",
+                  "rx_lambda_", "rx_yj",
                   sprintf("rx_underscore_xi_%s", 1:100));
     }
     vars <- sapply(vars, function(x){return(rxToSymPy(x))});
@@ -471,6 +472,8 @@ rxSymPySetup <- function(model, envir=parent.frame()){
     const <- rxInits(model, rxLines=TRUE);
     if (!identical(const, "")) setup <- c(rxToSymPy(const, envir=envir), setup);
     rxSymPyVars(model)
+    rxSymPyExec("rx_lambda_ = 1")
+    rxSymPyExec("rx_yj_ = 0")
     ## rxSymPyVars(c("rx_lambda_", "rx_yj_"))
     assignInMyNamespace("rxSymPy.vars", rxSymPy.vars)
     for (line in c(setup)){
@@ -1421,7 +1424,6 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                 cnd <- rxNorm(txt, TRUE);
                 rxE <- c()
                 if (is.null(cnd)){
-                    print(txt);
                     rxSymPySetupIf(txt);
                     lambda <- rxSymPy("rx_lambda_");
                     yj <- rxSymPy("rx_yj_");

@@ -150,16 +150,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// foceiPrint_
-RObject foceiPrint_();
-RcppExport SEXP _RxODE_foceiPrint_() {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    rcpp_result_gen = Rcpp::wrap(foceiPrint_());
-    return rcpp_result_gen;
-END_RCPP
-}
 // rxIs
 bool rxIs(const RObject& obj, std::string cls);
 RcppExport SEXP _RxODE_rxIs(SEXP objSEXP, SEXP clsSEXP) {

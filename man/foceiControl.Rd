@@ -11,14 +11,19 @@ foceiControl(epsilon = .Machine$double.eps, maxInnerIterations = 10000,
   maxordn = 12L, maxords = 5L, cores, covsInterpolation = c("linear",
   "locf", "nocb", "midpoint"), printInner = 0L, printOuter = 1L,
   scaleTo = 1, derivEps = c(1e-06, 1e-06), derivMethod = c("forward",
-  "central"), lbfgsLmm = 5L, lbfgsPgtol = 0, lbfgsFactr = 1e+09, ...,
-  stiff)
+  "central"), covDerivMethod = c("central", "forward"), covMethod = c("r,s",
+  "r", "s"), lbfgsLmm = 40L, lbfgsPgtol = 0, lbfgsFactr = 1e+09,
+  eigen = TRUE, addPosthoc = TRUE, diagXform = c("sqrt", "log",
+  "identity"), sumProd = FALSE, optExpression = TRUE, ..., stiff)
 }
 \arguments{
 \item{epsilon}{Precision of estimate for n1qn1 optimization.}
 
 \item{maxInnerIterations}{Number of iterations for n1qn1
 optimization.}
+
+\item{maxOuterIterations}{Maximum number of L-BFGS-B optimization
+for outer problem.}
 
 \item{n1qn1nsim}{Number of function evaluations for n1qn1
 optimization.}
@@ -111,6 +116,38 @@ By default this is 1.}
 derivatives of the outer problem.  Currently supports
 "central" and "forward" difference methods.}
 
+\item{covDerivMethod}{indicates the method for calculating the
+derivatives while calculating the covariance components
+(Hessian and S).}
+
+\item{covMethod}{Method for calculating covariance.  In this
+    discussion, R is the Hessian matrix of the objective
+    function. The S matrix is the sum of each individual's
+    gradient cross-product (evaluated at the individual empirical
+    Bayes estimates).
+\itemize{
+\item \code{r,s} Uses the sandwich matrix to calculate the covariance, that is: \code{R^-1 * S * R^-1}
+
+\item \code{r} Uses the Hessian matrix to calculate the
+     covariance as \code{2*R^-1}
+\item \code{s} Uses the crossproduct matrix to calculate the covariance as \code{4*S^-1}
+}}
+
+\item{lbfgsLmm}{An integer giving the number of BFGS updates
+retained in the "L-BFGS-B" method, It defaults to 40.}
+
+\item{lbfgsPgtol}{is a double precision variable.
+
+    On entry pgtol >= 0 is specified by the user.  The iteration
+    will stop when:
+
+       \code{max{|proj g_i | i = 1, ..., n} <= lbfgsPgtol}
+
+    where pg_i is the ith component of the projected gradient.
+
+    On exit pgtol is unchanged.  This defaults to zero, when the
+    check is suppressed.}
+
 \item{lbfgsFactr}{Controls the convergence of the "L-BFGS-B"
 method.  Convergence occurs when the reduction in the
 objective is within this factor of the machine
@@ -119,10 +156,32 @@ tolerance. Default is 1e10, which gives a tolerance of about
 exact tolerance by multiplying this value by
 \code{.Machine$double.eps}}
 
-\item{...}{Other arguments including scaling factors for each
-compartment.  This includes S# = numeric will scale a compartment
-# by a dividing the compartment amount by the scale factor,
-like NONMEM.}
+\item{eigen}{A boolean indicating if eigenvectors are calculated
+to include a condition number calculation.}
+
+\item{addPosthoc}{Boolean indicating if posthoc parameters are
+added to the table output.}
+
+\item{diagXform}{This is the transformation used on the diagonal
+    of the \code{chol(inv(omega))}. This matrix and values are the
+    parameters estimated in FOCEi. The possibilities are:
+
+\itemize{
+\item sqrt Estimates the sqrt of the diagonal elements of \code{chol(inv(omega))}.  This is the default method.
+\item log Estimates the log of the diagonal elements of \code{chol(inv(omega))}
+\item identity Estimates the diagonal elements without any transformations
+}
+
+c("sqrt", "log", "identity"),}
+
+\item{sumProd}{Is a boolean indicating if the model should change
+multiplication to high precision multiplication and sums to
+high precision sums using the PreciseSums package.  By default
+this is \code{FALSE}.}
+
+\item{optExpression}{Optimize the model text for computer evaluation.}
+
+\item{...}{}
 
 \item{stiff}{a logical (\code{TRUE} by default) indicating whether
     the ODE system is stiff or not.
@@ -137,12 +196,20 @@ like NONMEM.}
     DOP853, an explicit Runge-Kutta method of order 8(5, 3) of
     Dormand and Prince as implemented in C by Hairer and Wanner
     (1993).}
-
-\item{tbs}{Type of transformation used on dependent variable and
-prediction for dynamic transform both sides method.}
 }
 \description{
 Control Options for FOCEi
+}
+\details{
+Note this uses the R's L-BFGS-B in \code{\link{optim}} for the
+outer problem and the BFGS \code{\link[n1qn1]{n1qn1}} with that
+allows restoring the prior individual Hessian (for faster
+optimization speed)
+}
+\seealso{
+\code{\link{optim}}
+
+\code{\link[n1qn1]{n1qn1}}
 }
 \author{
 Matthew L. Fidler

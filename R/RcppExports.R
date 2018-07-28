@@ -45,10 +45,6 @@ foceiCalcCov <- function(e) {
     .Call(`_RxODE_foceiCalcCov`, e)
 }
 
-foceiPrint_ <- function() {
-    .Call(`_RxODE_foceiPrint_`)
-}
-
 #' Check the type of an object using Rcpp
 #'
 #' @param obj Object to check

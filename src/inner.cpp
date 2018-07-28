@@ -138,6 +138,8 @@ typedef struct {
   int calcGrad;
   int nF;
   int derivMethod;
+  int covDerivMethod;
+  int covMethod;
   double lastOfv;
   
   double *fullTheta;
@@ -182,6 +184,7 @@ typedef struct {
   int skipCovN;
 
   int outerOpt;
+  int eigen;
 } focei_options;
 
 focei_options op_focei;
@@ -810,7 +813,7 @@ List foceiEtas(){
   int j,eta;
   for (j = op_focei.neta; j--;){
     ret[j+1]=NumericVector(rx->nsub);
-    nm[j+1] = "ETA" + std::to_string(j+1);
+    nm[j+1] = "ETA[" + std::to_string(j+1) + "]";
   }
   NumericVector tmp;
   for (j=rx->nsub; j--;){
@@ -877,64 +880,6 @@ void numericGrad(double *theta, double *g){
       f = foceiOfv0(theta);
       theta[cpar] = cur - delta;
       g[cpar] = (f-foceiOfv0(theta))/(2*delta);
-    }
-    theta[cpar] = cur;
-  }
-  op_focei.calcGrad=0;
-}
-
-// Necessary for S-matrix calculation
-void numericGradS(double *theta, double *g){
-  op_focei.calcGrad=1;
-  rx = getRxSolve_();
-  int npars = op_focei.npars;
-  int cpar, gid;
-  double cur, delta;
-  focei_ind *fInd;
-  std::fill_n(g, npars, 0.0);
-  // Do Forward difference if the OBJF for *theta has already been calculated.
-  bool doForward=false;
-  if (op_focei.derivMethod == 0){
-    doForward=true;
-    // If the first derivative wasn't calculated, then calculate it.
-    for (cpar = npars; cpar--;){
-      if (theta[cpar] != op_focei.theta[cpar]){
-	doForward=false;
-	break;
-      }
-    }
-    if (doForward){
-      // Fill in lik0
-      for (gid = rx->nsub; gid--;){
-	fInd = &(inds_focei[gid]);
-	op_focei.likSav[gid] = -2*fInd->lik[0];
-      }
-    }
-  }
-  for (cpar = npars; cpar--;){
-    delta = theta[cpar]*op_focei.rEps + op_focei.aEps;
-    std::fill_n(&op_focei.goldEta[0], op_focei.gEtaGTransN, -42.0); // All etas = -42;  Unlikely if normal
-    cur = theta[cpar];
-    theta[cpar] = cur + delta;
-    updateTheta(theta);
-    for (gid = rx->nsub; gid--;){
-      innerOpt1(gid,2);
-      if (doForward){
-        fInd = &(inds_focei[gid]);
-        fInd->thetaGrad[cpar] = (fInd->lik[2] - op_focei.likSav[gid])/delta;
-	g[cpar] += fInd->thetaGrad[cpar];
-      }
-    }
-    if (!doForward){
-      std::fill_n(&op_focei.goldEta[0], op_focei.gEtaGTransN, -42.0);
-      theta[cpar] = cur - delta;
-      updateTheta(theta);
-      for (gid = rx->nsub; gid--;){
-	innerOpt1(gid,1);
-	fInd = &(inds_focei[gid]);
-	fInd->thetaGrad[cpar] = (fInd->lik[2] - fInd->lik[1])/(2*delta);
-	g[cpar] += fInd->thetaGrad[cpar];
-      }
     }
     theta[cpar] = cur;
   }
@@ -1356,6 +1301,9 @@ NumericVector foceiSetup_(const RObject &obj,
   op_focei.factr	= as<double>(odeO["lbfgsFactr"]);
   op_focei.pgtol	= as<double>(odeO["lbfgsPgtol"]);
   op_focei.lmm		= as<int>(odeO["lbfgsLmm"]);
+  op_focei.covDerivMethod = as<int>(odeO["covDerivMethod"]);
+  op_focei.covMethod = as<int>(odeO["covMethod"]);
+  op_focei.eigen = as<int>(odeO["eigen"]);
   return ret;
 }
 
@@ -1386,12 +1334,28 @@ void foceiOuterFinal(double *x, Environment e){
             lowerIn.begin());
   std::copy(&op_focei.upperIn[0],  &op_focei.upperIn[0] + op_focei.thetan, 
             upperIn.begin());
-  e["theta"] = DataFrame::create(_["lower"]=lowerIn,_["theta"]=theta,_["upper"]=upperIn,
+  e["theta"] = DataFrame::create(_["lower"]=lowerIn, _["theta"]=theta, _["upper"]=upperIn,
 				 _["fixed"]=thetaFixed);
   e["fullTheta"] = fullTheta;
   e["omega"] = getOmega();
+  // omegaR
+  arma::mat omega = as<arma::mat>(e["omega"]);
+  arma::mat D(omega.n_rows,omega.n_rows,fill::zeros);
+  arma::mat cor(omega.n_rows,omega.n_rows);
+  D.diag() = (sqrt(omega.diag()));
+  arma::vec sd=D.diag();
+  D = inv_sympd(D);
+  cor = D * omega * D;
+  cor.diag()= sd;
+  e["omegaR"] = wrap(cor);
   e["etaObf"] = foceiEtas();
   e["objective"] = fmin;
+  NumericVector logLik(1);
+  logLik[0]=-fmin/2;
+  logLik.attr("df") = op_focei.npars;
+  logLik.attr("class") = "logLik";
+  e["logLik"] = logLik;
+  e["nobs"] = rx->nobs;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1497,6 +1461,68 @@ void foceiCalcH(Environment e){
   e["R"] = wrap(H);
 }
 
+// Necessary for S-matrix calculation
+arma::mat foceiS(double *theta){
+  op_focei.calcGrad=1;
+  rx = getRxSolve_();
+  int npars = op_focei.npars;
+  int cpar, gid;
+  double cur, delta;
+  focei_ind *fInd;
+  // Do Forward difference if the OBJF for *theta has already been calculated.
+  bool doForward=false;
+  if (op_focei.derivMethod == 0){
+    doForward=true;
+    // If the first derivative wasn't calculated, then calculate it.
+    for (cpar = npars; cpar--;){
+      if (theta[cpar] != op_focei.theta[cpar]){
+        doForward=false;
+        break;
+      }
+    }
+    if (doForward){
+      // Fill in lik0
+      for (gid = rx->nsub; gid--;){
+        fInd = &(inds_focei[gid]);
+        op_focei.likSav[gid] = -2*fInd->lik[0];
+      }
+    }
+  }
+  for (cpar = npars; cpar--;){
+    delta = theta[cpar]*op_focei.rEps + op_focei.aEps;
+    std::fill_n(&op_focei.goldEta[0], op_focei.gEtaGTransN, -42.0); // All etas = -42;  Unlikely if normal
+    cur = theta[cpar];
+    theta[cpar] = cur + delta;
+    updateTheta(theta);
+    for (gid = rx->nsub; gid--;){
+      innerOpt1(gid,2);
+      if (doForward){
+        fInd = &(inds_focei[gid]);
+        fInd->thetaGrad[cpar] = (fInd->lik[2] - op_focei.likSav[gid])/delta;
+      }
+    }
+    if (!doForward){
+      std::fill_n(&op_focei.goldEta[0], op_focei.gEtaGTransN, -42.0);
+      theta[cpar] = cur - delta;
+      updateTheta(theta);
+      for (gid = rx->nsub; gid--;){
+        innerOpt1(gid,1);
+        fInd = &(inds_focei[gid]);
+        fInd->thetaGrad[cpar] = (fInd->lik[2] - fInd->lik[1])/(2*delta);
+      }
+    }
+    theta[cpar] = cur;
+  }
+  op_focei.calcGrad=0;
+  // Now calculate S matrix
+  arma::mat m1(1, op_focei.npars), S(op_focei.npars, op_focei.npars, fill::zeros);
+  for (gid = rx->nsub; gid--;){
+    fInd = &(inds_focei[gid]);
+    std::copy(&fInd->thetaGrad[0],&fInd->thetaGrad[0]+op_focei.npars,&m1[0]);
+    S = S + m1.t() * m1;
+  }
+  return S;
+}
 
 //[[Rcpp::export]]
 NumericMatrix foceiCalcCov(Environment e){
@@ -1510,25 +1536,97 @@ NumericMatrix foceiCalcCov(Environment e){
   std::fill_n(skipCov.begin()+op_focei.skipCovN,skipCov.size()-op_focei.skipCovN,true);
   foceiSetupTheta_(op_focei.mvi, fullT2, skipCov, 0.0, false);
 
-  // R matrix based covariance
-  foceiCalcH(e);
-  arma::mat R = as<arma::mat>(e["R"]);
-  mat Rinv;
-  try{
-    Rinv = inv(R);
-  } catch(...){
-    Rprintf("Warning: Hessian (R) matrix seems singular; Using pseudo-inverse\n");
-    Rinv = pinv(R);
+  // Change options to covariance options
+
+  op_focei.derivMethod = op_focei.covDerivMethod;
+
+  arma::mat Rinv;
+
+  if (op_focei.covMethod == 0 || op_focei.covMethod == 1){
+    // R matrix based covariance
+    foceiCalcH(e);
+    arma::mat R = as<arma::mat>(e["R"]);
+    try{
+      Rinv = inv(R);
+    } catch(...){
+      Rprintf("Warning: Hessian (R) matrix seems singular; Using pseudo-inverse\n");
+      Rinv = pinv(R);
+    }
+    e["Rinv"] = wrap(Rinv);
+    e["covR"] = wrap(2*Rinv);
+    if (op_focei.covMethod == 1){
+      e["cov"] = as<NumericMatrix>(e["covR"]);
+    }
   }
-  e["Rinv"] = wrap(Rinv);
-  e["covR"] = wrap(2*Rinv);
-  
-  return as<NumericMatrix>(e["covR"]);
-}
+  arma::mat S;
+  if (op_focei.covMethod == 0 || op_focei.covMethod == 2){
+    arma::vec dpar(op_focei.npars);
+    unsigned int j, k;
+    for (k = op_focei.npars; k--;){
+      j=op_focei.fixedTrans[k];
+      dpar[k] = op_focei.fullTheta[j];
+    }
+    S = foceiS(&dpar[0]);
+    e["S"]= wrap(S);
+    if (op_focei.covMethod == 0){
+      e["cov"] = Rinv * S *Rinv;
+    } else {
+      mat Sinv;
+      try{
+        Sinv = inv(S);
+      } catch(...){
+        Rprintf("Warning: S matrix seems singular; Using pseudo-inverse\n");
+        Sinv = pinv(S);
+      }
+      e["cov"]= 4 * Sinv;
+    }
+  }
+  if (op_focei.eigen){
+    arma::vec eigval;
+    arma::mat eigvec;
 
+    arma::mat cov = as<arma::mat>(e["cov"]);
 
-//[[Rcpp::export]]
-RObject foceiPrint_(){
-  // Rprintf("%s%s%s", op_focei.obfStr.c_str(), op_focei.estStr.c_str(), op_focei.gradStr.c_str());
-  return R_NilValue;
+    eig_sym(eigval, eigvec, cov);
+    e["eigen"] = eigval;
+    e["eigenVec"] = eigvec;
+    unsigned int k=0;
+    double mx=fabs(eigval[0]), mn, cur;
+    mn=mx;
+    for (k = eigval.size(); k--;){
+      cur = fabs(eigval[k]);
+      if (cur > mx){
+        mx=cur;
+      }
+      if (cur < mn){
+        mn=cur;
+      }
+    }
+    e["conditionNumber"] = mx/mn;
+  }
+  arma::mat cov = as<arma::mat>(e["cov"]);
+  arma::vec se1 = sqrt(cov.diag());
+  DataFrame thetaDf = as<DataFrame>(e["theta"]);
+  arma::vec theta = as<arma::vec>(thetaDf["theta"]);
+  NumericVector se(theta.size());
+  NumericVector cv(theta.size());
+  std::fill_n(&se[0], theta.size(), NA_REAL);
+  std::fill_n(&cv[0], theta.size(), NA_REAL);
+  unsigned int j=0;
+  for (unsigned int k = 0; k < se.size(); k++){
+    if (k >= skipCov.size()) break;
+    if (!skipCov[k]){
+      se[k] = se1[j++];
+      cv[k] = abs(se[k]/theta[k])*100;
+    }
+  }
+  e["se"] = se;
+  e["par.data.frame"] = DataFrame::create(_["Estimate"]=thetaDf["theta"], _["SE"]=se, 
+					  _["CV"]=cv);
+  e["fixef"]=thetaDf["theta"];
+  List etas = e["etaObf"];
+  IntegerVector idx = seq_len(etas.length())-1;
+  etas = etas[idx != etas.length()-1];
+  e["ranef"]=etas;
+  return e["cov"];
 }
