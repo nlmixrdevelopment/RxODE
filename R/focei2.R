@@ -1,5 +1,11 @@
 ##' Control Options for FOCEi
 ##'
+##' @param sigdig Optimization significant digits.  This controls
+##'     defaults for optimization and ODE solving, if unspecified.
+##'     The sigdigs move the tolerances of the optimization procedure
+##'     to 10^-sigdig and the tolerances of the ODE solvers to
+##'     10^(-sigdig-1)
+##'
 ##' @param epsilon Precision of estimate for n1qn1 optimization.
 ##'
 ##' @param maxInnerIterations Number of iterations for n1qn1
@@ -115,24 +121,25 @@
 ##' @seealso \code{\link{optim}}
 ##' @seealso \code{\link[n1qn1]{n1qn1}}
 ##' @export
-foceiControl <- function(epsilon=.Machine$double.eps,
+foceiControl <- function(sigdig=3,
+                         epsilon=NULL, #1e-4,
                          maxInnerIterations=10000,
                          maxOuterIterations=50000,
                          n1qn1nsim=NULL,
                          method = c("liblsoda", "lsoda", "dop853"),
-                         transitAbs = NULL, atol = 1.0e-8, rtol = 1.0e-6,
+                         transitAbs = NULL, atol = NULL, rtol = NULL,
                          maxstepsOde = 5000L, hmin = 0L, hmax = NULL, hini = 0, maxordn = 12L, maxords = 5L, cores,
                          covsInterpolation = c("linear", "locf", "nocb", "midpoint"),
                          printInner=0L,
                          printOuter=1L,
                          scaleTo=1.0,
-                         derivEps=c(1.0e-6, 1.0e-6),
+                         derivEps=c(1.0e-5, 1.0e-5),
                          derivMethod=c("forward", "central"),
                          covDerivMethod=c("central", "forward"),
                          covMethod=c("r,s", "r", "s"),
                          lbfgsLmm=40L,
                          lbfgsPgtol=0,
-                         lbfgsFactr=1e9,
+                         lbfgsFactr=NULL, #1e-4 / .Machine$double.eps, ## .Machine$double.eps*x=1e-5
                          eigen=TRUE,
                          addPosthoc=TRUE,
                          diagXform=c("sqrt", "log", "identity"),
@@ -140,6 +147,18 @@ foceiControl <- function(epsilon=.Machine$double.eps,
                          optExpression=TRUE,
                          ## outerOpt=c("lbfgsb", "qnbd"),
                          ..., stiff){
+    if (is.null(epsilon)){
+        epsilon <- 10 ^ (-sigdig)
+    }
+    if (is.null(lbfgsFactr)){
+        lbfgsFactr <- 10 ^ (-sigdig - 1) / .Machine$double.eps;
+    }
+    if (is.null(atol)){
+        atol <- 0.5 * 10 ^ (-sigdig - 1);
+    }
+    if (is.null(rtol)){
+        rtol <- 0.5 * 10 ^ (-sigdig - 1);
+    }
     .xtra <- list(...);
     if (is.null(transitAbs) && !is.null(.xtra$transit_abs)){  # nolint
         transitAbs <- .xtra$transit_abs;  # nolint
@@ -229,6 +248,44 @@ foceiControl <- function(epsilon=.Machine$double.eps,
     .Call(`_RxODE_foceiSetup_`, obj, data, theta, thetaFixed, skipCov, rxInv, lower, upper, etaMat, control); # nolint
 }
 
+.parseOM <- function(OMGA){
+    .re = "\\bETA\\[(\\d+)\\]\\b"
+    .offset = as.integer(0)
+    lapply(1:length(OMGA), function(.k) {
+        .s = OMGA[[.k]]
+        .f = eval(parse(text=(sprintf("y~%s", deparse(.s[[2]])))))
+        .r = unlist(lapply(attr(terms(.f),"variables"), deparse))[-(1:2)]
+        .nr = length(.r)
+
+        .ix = grep(.re, .r)
+        if(.nr-length(.ix)) stop("invalid OMGA specs")
+
+        .ix = as.integer(sub(.re, "\\1", .r))
+        if (any(.ix - (.offset+1:.nr))) stop("invalid OMGA specs")
+        .offset <<- .offset + .nr
+        eval(.s[[3]])
+    })
+}
+
+.genOM <- function(s)
+{
+    .getNR = function(.a) round(sqrt(2 * length(.a) + 0.25) - 0.1)
+    .nr = sum(sapply(s, .getNR))
+    .mat <- matrix(0, .nr, .nr)
+    .offset = as.integer(0)
+    j = lapply(1:length(s), function(k) {
+        .a = s[[k]]
+        .p <- .getNR(.a)
+        .starts = row(.mat) > .offset  & col(.mat) > .offset
+        .mat[col(.mat) >= row(.mat) & col(.mat) <= .offset+.p & .starts] <<- .a
+        .offset <<- .offset+.p
+    })
+    .a = .mat[col(.mat) >= row(.mat)]
+    .mat <- t(.mat)
+    .mat[col(.mat) >= row(.mat)] <- .a
+    .mat
+}
+
 
 ##' FOCEi fit
 ##'
@@ -240,17 +297,49 @@ foceiControl <- function(epsilon=.Machine$double.eps,
 ##' @param err The Error function
 ##' @param lower Lower bounds
 ##' @param upper Upper Bounds
-##' @param fixed Boolean vector indicating what parameters should be fixed.
-##' @param skipCov Boolean vector indicating what parameters should be fixed when calculating covariances
+##' @param fixed Boolean vector indicating what parameters should be
+##'     fixed.
+##' @param skipCov Boolean vector indicating what parameters should be
+##'     fixed when calculating covariances
 ##' @param control FOCEi options Control list
-##' @param thetaNames Names of the thetas to be used in the final object
+##' @param thetaNames Names of the thetas to be used in the final
+##'     object
 ##' @param etaNames Eta names to be used in the final object
+##' @param etaMat Eta matrix for initial estimates or final estimates
+##'     of the ETAs.
 ##' @param ... Ignored parameters
 ##' @return A focei fit object
 ##' @author Matthew L. Fidler and Wenping Wang
 ##' @return FOCEi fit object
-##' @export
 ##' @author Matthew L. Fidler & Wenping Wang
+##' @export
+##' @examples
+##'
+##'
+##' mypar2 <- function ()
+##' {
+##'     ka <- exp(THETA[1] + ETA[1])
+##'     cl <- exp(THETA[2] + ETA[2])
+##'     v  <- exp(THETA[3] + ETA[3])
+##' }
+##'
+##' mod <- RxODE({
+##'     d/dt(depot) <- -ka * depot
+##'     d/dt(center) <- ka * depot - cl / v * center
+##'     cp <- center / v
+##' })
+##'
+##' pred <- function() cp
+##'
+##' err <- function(){
+##'     err <- add(0.1)
+##' }
+##'
+##' inits <- list(THTA=c(0.5, -3.2, -1),
+##'               OMGA=list(ETA[1] ~ 1, ETA[2] ~ 2, ETA[3] ~ 1));
+##'
+##' fit <- foceiFit(theo_sd, inits, mypar2,mod,pred,err)
+##'
 foceiFit <- function(data,
                      inits,
                      PKpars,
@@ -263,7 +352,10 @@ foceiFit <- function(data,
                      skipCov=NULL,
                      control=foceiControl(),
                      thetaNames=NULL,
-                     etaNames=NULL, ...){
+                     etaNames=NULL,
+                     etaMat=NULL,
+                     ...){
+    .pt <- proc.time();
     loadNamespace("n1qn1");
     if (!rxIs(control, "foceiControl")){
         control <- do.call(foceiControl, control);
@@ -274,7 +366,7 @@ foceiFit <- function(data,
     .ret$lower <- lower;
     .ret$upper <- upper;
     .ret$thetaFixed <- fixed;
-    .ret$skipCov <- fixed;
+    .ret$skipCov <- skipCov;
     .ret$control <- control;
     if(is(model, "RxODE") || is(model, "character")) {
         .ret$ODEmodel <- TRUE
@@ -288,7 +380,7 @@ foceiFit <- function(data,
         pred <- eval(parse(text="function(){return(Central);}"))
     }
     .square <- function(x) x*x
-    .ret$diagXformInv = c("sqrt"=".square", "log"="exp", "identity"="identity")[control$diagXformInv]
+    .ret$diagXformInv = c("sqrt"=".square", "log"="exp", "identity"="identity")[control$diagXform]
     if (is.null(err)){
         err <-eval(parse(text=paste0("function(){err",paste(inits$ERROR[[1]],collapse=""),"}")));
     }
@@ -323,6 +415,10 @@ foceiFit <- function(data,
     if (is.null(.ret$model$extra.pars)){
         .nms <- c(sprintf("THETA[%s]", seq_along(inits$THTA)))
     } else {
+        if (is.null(skipCov)){
+            .ret$skipCov <- c(rep(FALSE, length(inits$THTA)),
+                         rep(TRUE, length(.ret$model$extra.pars)))
+        }
         .nms <- c(sprintf("THETA[%s]", seq_along(inits$THTA)),
                   sprintf("ERR[%s]", seq_along(.ret$model$extra.pars)))
     }
@@ -360,23 +456,28 @@ foceiFit <- function(data,
     if (is.null(data$EVID)) data$EVID = 0
     if (is.null(data$AMT)) data$AMT = 0
     ## Make sure they are all double amounts.
-    for (v in c("TIME", "AMT", "DV", cov.names))
-        data[[v]] <- as.double(data[[v]]);
+    for (.v in c("TIME", "AMT", "DV", .covNames))
+        data[[.v]] <- as.double(data[[.v]]);
     .ret$dataSav = data;
     .ds <- data[data$EVID > 0, c("ID", "TIME", "AMT", .covNames)]
     data <- data[data$EVID == 0, c("ID", "TIME", "DV", .covNames)]
     ## keep the covariate names the same as in the model
-    .w <- which(!(names(data.sav) %in% cov.names))
-    names(.ret$dataSav)[w] <- tolower(names(.ret$dataSav[w]))         #needed in ev
+    .w <- which(!(names(.ret$dataSav) %in% .covNames))
+    names(.ret$dataSav)[.w] <- tolower(names(.ret$dataSav[.w]))         #needed in ev
 
-    .lh = parseOM(inits$OMGA)
+    .lh = .parseOM(inits$OMGA)
     .nlh = sapply(.lh, length)
     .osplt = rep(1:length(.lh), .nlh)
     .lini = list(inits$THTA, unlist(.lh));
     .nlini = sapply(.lini, length)
     .nsplt = rep(1:length(.lini), .nlini)
 
-    .om0 = genOM(.lh)
+    .om0 = .genOM(.lh)
+    if (length(etaNames) == dim(.om0)[1]){
+        .ret$etaNames <- ret$etaNames
+    } else {
+        .ret$etaNames <- sprintf("ETA[%d]", seq(1, dim(.om0)[1]))
+    }
     .ret$rxInv <- RxODE::rxSymInvCholCreate(mat=.om0, diag.xform=control$diagXform);
 
     .ret$thetaIni <- inits$THTA
@@ -385,9 +486,59 @@ foceiFit <- function(data,
         warning("Some of the initial conditions were 0, changing to 0.0001");
         .ret$thetaIni[.ret$thetaIni == 0] <- 0.0001;
     }
-    return(.ret)
+    names(.ret$thetaIni) <- sprintf("THETA[%d]", seq_along(.ret$thetaIni))
+    .ret$etaMat <- etaMat
+    .ret$setupTime <- (proc.time() - .pt)["elapsed"];
+    return(foceiFitCpp(.ret))
 }
 
+##'@export
+logLik.foceiFitCore <- function(object, ...){
+    object$logLik
+}
+
+##'@export
+nobs.foceiFitCore <- function(object, ...){
+    object$nobs
+}
+
+##'@export
+vcov.foceiFitCore <- function(object, ...){
+    object$cov
+}
+
+##'@export
+getData.foceiFitCore <- function(object){
+    object$origData
+}
+
+##'@export
+ranef.foceiFitCore <- function(object, ...){
+    object$ranef;
+}
+
+##'@export
+fixef.foceiFitCore <- function(object, ...){
+    object$fixef;
+}
+
+##'@export
+print.foceiFitCore <- function(x, ...){
+    .parent <- parent.frame(2);
+    .bound <- do.call("c", lapply(ls(.parent), function(.cur){
+                               if (identical(.parent[[.cur]], x)){
+                                   return(.cur)
+                               }
+                               return(NULL);
+                           }))
+    message(cli::rule(paste0(crayon::bold$blue("nlmix"), crayon::bold$red("r"), " ", crayon::bold$yellow(x$method), " fit ",
+                             x$extra)))
+    print(x$objDf)
+    message(paste0("\n", cli::rule(paste0(crayon::bold("Time"), " (sec; ", crayon::yellow(.bound), crayon::bold$blue("$time"), "):"))));
+    print(x$time)
+    message(paste0("\n", cli::rule(paste0(crayon::bold("Parameters"), " (", crayon::yellow(.bound), crayon::bold$blue("$parDf"), "):"))));
+    print(x$parDf)
+}
 
 .nearPd <- function(mat){
     if (any(is.na(mat))){

@@ -4,19 +4,25 @@
 \alias{foceiControl}
 \title{Control Options for FOCEi}
 \usage{
-foceiControl(epsilon = .Machine$double.eps, maxInnerIterations = 10000,
+foceiControl(sigdig = 3, epsilon = NULL, maxInnerIterations = 10000,
   maxOuterIterations = 50000, n1qn1nsim = NULL, method = c("liblsoda",
-  "lsoda", "dop853"), transitAbs = NULL, atol = 1e-08, rtol = 1e-06,
+  "lsoda", "dop853"), transitAbs = NULL, atol = NULL, rtol = NULL,
   maxstepsOde = 5000L, hmin = 0L, hmax = NULL, hini = 0,
   maxordn = 12L, maxords = 5L, cores, covsInterpolation = c("linear",
   "locf", "nocb", "midpoint"), printInner = 0L, printOuter = 1L,
-  scaleTo = 1, derivEps = c(1e-06, 1e-06), derivMethod = c("forward",
+  scaleTo = 1, derivEps = c(1e-05, 1e-05), derivMethod = c("forward",
   "central"), covDerivMethod = c("central", "forward"), covMethod = c("r,s",
-  "r", "s"), lbfgsLmm = 40L, lbfgsPgtol = 0, lbfgsFactr = 1e+09,
+  "r", "s"), lbfgsLmm = 40L, lbfgsPgtol = 0, lbfgsFactr = NULL,
   eigen = TRUE, addPosthoc = TRUE, diagXform = c("sqrt", "log",
   "identity"), sumProd = FALSE, optExpression = TRUE, ..., stiff)
 }
 \arguments{
+\item{sigdig}{Optimization significant digits.  This controls
+defaults for optimization and ODE solving, if unspecified.
+The sigdigs move the tolerances of the optimization procedure
+to 10^-sigdig and the tolerances of the ODE solvers to
+10^(-sigdig-1)}
+
 \item{epsilon}{Precision of estimate for n1qn1 optimization.}
 
 \item{maxInnerIterations}{Number of iterations for n1qn1

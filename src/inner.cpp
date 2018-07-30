@@ -1,4 +1,7 @@
 // [[Rcpp::plugins(openmp)]]
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 #include <RcppArmadillo.h>
 #define NETAs 20
 #define NTHETAs 20
@@ -1238,8 +1241,6 @@ NumericVector foceiSetup_(const RObject &obj,
   }
   op_focei.lowerIn =lowerIn;
   op_focei.upperIn =upperIn;
-  print(upperIn);
-  print(lowerIn);
   Free(op_focei.likSav);
   Free(op_focei.lower);
   Free(op_focei.upper);
@@ -1353,9 +1354,12 @@ void foceiOuterFinal(double *x, Environment e){
   NumericVector logLik(1);
   logLik[0]=-fmin/2;
   logLik.attr("df") = op_focei.npars;
+  logLik.attr("nobs") = rx->nobs;
   logLik.attr("class") = "logLik";
   e["logLik"] = logLik;
   e["nobs"] = rx->nobs;
+  e["AIC"] = fmin+2*op_focei.npars;
+  e["BIC"] = fmin + log(rx->nobs)*op_focei.npars;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1527,13 +1531,20 @@ arma::mat foceiS(double *theta){
 //[[Rcpp::export]]
 NumericMatrix foceiCalcCov(Environment e){
   // Fix THETAs before running gradient functions for Hessian/S matrix
-  // Run Hessian on unscaled problem
+  // Run Hessian on rescaled problem
   NumericVector fullT = e["fullTheta"];
   NumericVector fullT2(op_focei.thetan);
   std::copy(fullT.begin(), fullT.begin()+fullT2.size(), fullT2.begin());
   LogicalVector skipCov(op_focei.thetan+op_focei.omegan);//skipCovN
-  std::copy(&op_focei.skipCov[0],&op_focei.skipCov[0]+op_focei.skipCovN,skipCov.begin());
-  std::fill_n(skipCov.begin()+op_focei.skipCovN,skipCov.size()-op_focei.skipCovN,true);
+  if (op_focei.skipCovN == 0){
+    std::fill_n(skipCov.begin(), op_focei.thetan, false);
+    std::fill_n(skipCov.begin()+op_focei.thetan, skipCov.size() - op_focei.thetan, true);
+  } else {
+    std::copy(&op_focei.skipCov[0],&op_focei.skipCov[0]+op_focei.skipCovN,skipCov.begin());
+    std::fill_n(skipCov.begin()+op_focei.skipCovN,skipCov.size()-op_focei.skipCovN,true);
+
+  }
+  e["skipCov"] = skipCov;
   foceiSetupTheta_(op_focei.mvi, fullT2, skipCov, 0.0, false);
 
   // Change options to covariance options
@@ -1581,30 +1592,39 @@ NumericMatrix foceiCalcCov(Environment e){
       e["cov"]= 4 * Sinv;
     }
   }
+  return e["cov"];
+}
+
+void foceiFinalizeTables(Environment e){
+  arma::mat cov = as<arma::mat>(e["cov"]);
+  LogicalVector skipCov = e["skipCov"];
+
   if (op_focei.eigen){
     arma::vec eigval;
     arma::mat eigvec;
 
-    arma::mat cov = as<arma::mat>(e["cov"]);
-
+    
     eig_sym(eigval, eigvec, cov);
     e["eigen"] = eigval;
     e["eigenVec"] = eigvec;
     unsigned int k=0;
-    double mx=fabs(eigval[0]), mn, cur;
-    mn=mx;
-    for (k = eigval.size(); k--;){
-      cur = fabs(eigval[k]);
-      if (cur > mx){
-        mx=cur;
+    if (eigval.size() > 0){
+      double mx=fabs(eigval[0]), mn, cur;
+      mn=mx;
+      for (k = eigval.size(); k--;){
+        cur = fabs(eigval[k]);
+        if (cur > mx){
+          mx=cur;
+        }
+        if (cur < mn){
+          mn=cur;
+        }
       }
-      if (cur < mn){
-        mn=cur;
-      }
+      e["conditionNumber"] = mx/mn;
+    } else {
+      e["conditionNumber"] = NA_REAL;
     }
-    e["conditionNumber"] = mx/mn;
   }
-  arma::mat cov = as<arma::mat>(e["cov"]);
   arma::vec se1 = sqrt(cov.diag());
   DataFrame thetaDf = as<DataFrame>(e["theta"]);
   arma::vec theta = as<arma::vec>(thetaDf["theta"]);
@@ -1617,16 +1637,126 @@ NumericMatrix foceiCalcCov(Environment e){
     if (k >= skipCov.size()) break;
     if (!skipCov[k]){
       se[k] = se1[j++];
-      cv[k] = abs(se[k]/theta[k])*100;
+      cv[k] = fabs(se[k]/theta[k])*100;
     }
   }
   e["se"] = se;
-  e["par.data.frame"] = DataFrame::create(_["Estimate"]=thetaDf["theta"], _["SE"]=se, 
-					  _["CV"]=cv);
+  List parDf = List::create(_["Estimate"]=thetaDf["theta"], _["SE"]=se, 
+                            _["%RSE"]=cv);
+  parDf.attr("class") = "data.frame";
+  parDf.attr("row.names") = IntegerVector::create(NA_INTEGER,-theta.size());
+  e["parDf"] = parDf;
+  
   e["fixef"]=thetaDf["theta"];
   List etas = e["etaObf"];
   IntegerVector idx = seq_len(etas.length())-1;
   etas = etas[idx != etas.length()-1];
   e["ranef"]=etas;
-  return e["cov"];
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// FOCEi fit
+LogicalVector rxSolveFree();
+
+//[[Rcpp::export]]
+Environment foceiFitCpp(Environment e){
+  clock_t t0 = clock();
+  List model = e["model"];
+  foceiSetup_(as<RObject>(model["inner"]), as<RObject>(e["dataSav"]), 
+	      as<NumericVector>(e["thetaIni"]), e["thetaFixed"], e["skipCov"],
+              as<RObject>(e["rxInv"]), e["lower"], e["upper"], e["etaMat"],
+              e["control"]);
+  e["setupTime"] = as<double>(e["setupTime"])+(((double)(clock() - t0))/CLOCKS_PER_SEC);
+  t0 = clock();
+  foceiOuter(e);
+  e["optimTime"] = (((double)(clock() - t0))/CLOCKS_PER_SEC);
+  t0 = clock();
+  Rprintf("Calculate covariance\n");
+  foceiCalcCov(e);
+  foceiFinalizeTables(e);
+  
+  // Now put names on the objects
+  List tmp;
+  CharacterVector thetaNames=as<CharacterVector>(e["thetaNames"]);
+  List tmpL = as<List>(e["theta"]);
+  tmpL.attr("row.names") = thetaNames;
+  e["theta"] = tmpL;
+
+  tmpL=e["parDf"];
+  tmpL.attr("row.names") = thetaNames;
+  e["parDf"]=tmpL;
+
+  NumericVector tmpNV = e["fixef"];
+  tmpNV.names() = thetaNames;
+  e["fixef"] = tmpNV;
+
+  tmpNV = e["se"];
+  tmpNV.names() = thetaNames;
+  e["se"] = tmpNV;
+
+  // Now get covariance names
+  NumericMatrix tmpNM = as<NumericMatrix>(e["cov"]);
+  CharacterVector thetaCovN(tmpNM.nrow());
+  LogicalVector skipCov = e["skipCov"];
+  unsigned int j=0;
+  for (unsigned int k = 0; k < thetaNames.size(); k++){
+    if (k >= skipCov.size()) break;
+    if (j >= thetaCovN.size()) break;
+    if (!skipCov[k]){
+      thetaCovN[j++] = thetaNames[k];
+    }
+  }
+  List thetaDim = List::create(thetaCovN,thetaCovN);
+  tmpNM.attr("dimnames") = thetaDim;
+  e["cov"]=tmpNM;
+  if (e.exists("Rinv")){
+    tmpNM = as<NumericMatrix>(e["Rinv"]);
+    tmpNM.attr("dimnames") = thetaDim;
+  }
+  if (e.exists("Sinv")){
+    tmpNM = as<NumericMatrix>(e["Sinv"]);
+    tmpNM.attr("dimnames") = thetaDim;
+  }
+  if (e.exists("S")){
+    tmpNM = as<NumericMatrix>(e["S"]);
+    tmpNM.attr("dimnames") = thetaDim;
+  }
+  if (e.exists("R")){
+    tmpNM = as<NumericMatrix>(e["R"]);
+    tmpNM.attr("dimnames") = thetaDim;
+  }
+  if (e.exists("covR")){
+    tmpNM = as<NumericMatrix>(e["covR"]);
+    tmpNM.attr("dimnames") = thetaDim;
+  }
+  List objDf;
+  if (e.exists("conditionNumber")){
+    objDf = List::create(_["OBJF"] = as<double>(e["objective"]), _["AIC"]=as<double>(e["AIC"]), 
+			      _["BIC"] = as<double>(e["BIC"]), _["Log-likelihood"]=-as<double>(e["objective"])/2, 
+			      _["Condition Number"]=as<double>(e["conditionNumber"]));
+  } else {
+    objDf = List::create(_["OBJF"] = as<double>(e["objective"]), _["AIC"]=as<double>(e["AIC"]), 
+                              _["BIC"] = as<double>(e["BIC"]), _["Log-likelihood"]=-as<double>(e["objective"])/2);
+  }
+  objDf.attr("row.names") = CharacterVector::create("");
+  objDf.attr("class") = "data.frame";
+  e["objDf"]=objDf;
+  rxSolveFree();
+  e.attr("class") = "foceiFitCore";
+  Rprintf("done\n");
+  e["covTime"] = (((double)(clock() - t0))/CLOCKS_PER_SEC);
+  if (!e.exists("method")){
+    e["method"] = "FOCEi";
+  }
+  if (!e.exists("method")){
+    e["extra"] = "";
+  }
+  List timeDf = List::create(_["setup"]=as<double>(e["setupTime"]),
+			     _["optimize"]=as<double>(e["optimTime"]),
+			     _["covariance"]=as<double>(e["covTime"]));
+  timeDf.attr("class") = "data.frame";
+  timeDf.attr("row.names") = "";
+  e["time"] = timeDf;
+  return e;
 }
