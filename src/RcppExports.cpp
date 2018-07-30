@@ -2,6 +2,7 @@
 // Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 #include "RxODE_types.h"
+#include "../inst/include/RxODE.h"
 #include "../inst/include/RxODE_types.h"
 #include <RcppArmadillo.h>
 #include <Rcpp.h>
@@ -150,14 +151,14 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// foceiFitCpp
-Environment foceiFitCpp(Environment e);
-RcppExport SEXP _RxODE_foceiFitCpp(SEXP eSEXP) {
+// foceiFitCpp_
+Environment foceiFitCpp_(Environment e);
+RcppExport SEXP _RxODE_foceiFitCpp_(SEXP eSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Environment >::type e(eSEXP);
-    rcpp_result_gen = Rcpp::wrap(foceiFitCpp(e));
+    rcpp_result_gen = Rcpp::wrap(foceiFitCpp_(e));
     return rcpp_result_gen;
 END_RCPP
 }

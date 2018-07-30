@@ -21,7 +21,7 @@
 using namespace Rcpp;
 using namespace arma;
 extern "C"{
-#include "solve.h"
+#include "RxODE.h"
   typedef void (*S2_fp) (int *, int *, double *, double *, double *, int *, float *, double *);
   typedef void (*n1qn1_fp)(S2_fp simul, int n[], double x[], double f[], double g[], double var[], double eps[],
 			   int mode[], int niter[], int nsim[], int imp[], int lp[], double zm[], int izs[], 
@@ -1659,8 +1659,16 @@ void foceiFinalizeTables(Environment e){
 // FOCEi fit
 LogicalVector rxSolveFree();
 
+//' Fit/Evaulate FOCEi 
+//'
+//' This shouldn't be called directly.
+//'
+//' @param e Enviornment 
+//'
+//' @keywords internal
+//' @export
 //[[Rcpp::export]]
-Environment foceiFitCpp(Environment e){
+Environment foceiFitCpp_(Environment e){
   clock_t t0 = clock();
   List model = e["model"];
   foceiSetup_(as<RObject>(model["inner"]), as<RObject>(e["dataSav"]), 

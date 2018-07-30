@@ -45,8 +45,16 @@ foceiCalcCov <- function(e) {
     .Call(`_RxODE_foceiCalcCov`, e)
 }
 
-foceiFitCpp <- function(e) {
-    .Call(`_RxODE_foceiFitCpp`, e)
+#' Fit/Evaulate FOCEi 
+#'
+#' This shouldn't be called directly.
+#'
+#' @param e Enviornment 
+#'
+#' @keywords internal
+#' @export
+foceiFitCpp_ <- function(e) {
+    .Call(`_RxODE_foceiFitCpp_`, e)
 }
 
 #' Check the type of an object using Rcpp

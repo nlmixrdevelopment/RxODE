@@ -18,7 +18,7 @@
 #include <stdio.h>
 #include <climits>
 extern "C" {
-#include "solve.h"
+#include "RxODE.h"
 }
 #include "ode.h"
 #define rxModelVars(a) rxModelVars_(a)
