@@ -1685,7 +1685,30 @@ Environment foceiFitCpp_(Environment e){
   foceiFinalizeTables(e);
   
   // Now put names on the objects
-  List tmp;
+  ////////////////////////////////////////////////////////////////////////////////
+  // Eta Names
+  NumericMatrix tmpNM;
+  CharacterVector etaNames=as<CharacterVector>(e["etaNames"]);
+  tmpNM = getOmega();
+  tmpNM.attr("dimnames") = List::create(etaNames, etaNames);
+  e["omega"] = tmpNM;
+
+  tmpNM = as<NumericMatrix>(e["omegaR"]);
+  tmpNM.attr("dimnames") = List::create(etaNames, etaNames);
+  e["omegaR"] = tmpNM;
+
+  ////////////////////////////////////////////////////////////////////////////////
+  // Theta names
+  
+  // omegaR
+  arma::mat omega = as<arma::mat>(e["omega"]);
+  arma::mat D(omega.n_rows,omega.n_rows,fill::zeros);
+  arma::mat cor(omega.n_rows,omega.n_rows);
+  D.diag() = (sqrt(omega.diag()));
+  arma::vec sd=D.diag();
+  D = inv_sympd(D);
+  cor = D * omega * D;
+  cor.diag()= sd;
   CharacterVector thetaNames=as<CharacterVector>(e["thetaNames"]);
   List tmpL = as<List>(e["theta"]);
   tmpL.attr("row.names") = thetaNames;
@@ -1704,7 +1727,7 @@ Environment foceiFitCpp_(Environment e){
   e["se"] = tmpNV;
 
   // Now get covariance names
-  NumericMatrix tmpNM = as<NumericMatrix>(e["cov"]);
+  tmpNM = as<NumericMatrix>(e["cov"]);
   CharacterVector thetaCovN(tmpNM.nrow());
   LogicalVector skipCov = e["skipCov"];
   unsigned int j=0;
@@ -1750,9 +1773,6 @@ Environment foceiFitCpp_(Environment e){
   objDf.attr("row.names") = CharacterVector::create("");
   objDf.attr("class") = "data.frame";
   e["objDf"]=objDf;
-  rxSolveFree();
-  e.attr("class") = "foceiFitCore";
-  Rprintf("done\n");
   e["covTime"] = (((double)(clock() - t0))/CLOCKS_PER_SEC);
   if (!e.exists("method")){
     e["method"] = "FOCEi";
@@ -1765,6 +1785,9 @@ Environment foceiFitCpp_(Environment e){
 			     _["covariance"]=as<double>(e["covTime"]));
   timeDf.attr("class") = "data.frame";
   timeDf.attr("row.names") = "";
+  rxSolveFree();
+  e.attr("class") = "foceiFitCore";
   e["time"] = timeDf;
+  Rprintf("done\n");
   return e;
 }
