@@ -153,19 +153,13 @@ functionBrewxy <- function(brew){
 
 sympyRxFEnv <- new.env(parent = emptyenv())
 rxSymPyFEnv <- new.env(parent = emptyenv())
+
+sympyRxFEnv$"(" <- unaryOp("(", ")")
+rxSymPyFEnv$"(" <- unaryOp("(", ")")
+
 rxSymPyFEnv$solveLinB <- function(...){
     return("rx1c")
 }
-sympyRxFEnv$Subs <- function(expr, what, with){
-    what <- strsplit(substring(what, 2, nchar(what) - 1), ",")[[1]];
-    with <- strsplit(substring(with, 2, nchar(with) - 1), ",")[[1]];
-    for (i in 1:length(what)){
-        expr <- gsub(rex::rex(boundary, what[i], boundary), with[i], expr, perl=TRUE);
-    }
-    return(expr);
-}
-
-sympyRxFEnv$subs <- sympyRxFEnv$Subs;
 rxSymPyFEnv$diff <- rxSymPyFEnv$Derivative
 rxSymPyFEnv$D <- rxSymPyFEnv$Derivative;
 
@@ -234,7 +228,11 @@ dsl.to.pow <- function(a, b){
     if (is.na(num)){
         return(sprintf("Rx_pow(%s, %s)", a, b));
     } else if (abs(num - round(num)) < .Machine$double.eps^0.5){
-        return(sprintf("Rx_pow_di(%s, %s)", a, b));
+        if (round(num) == 2){
+            return(sprintf("(%s)*(%s)", a, a));
+        } else {
+            return(sprintf("Rx_pow_di(%s, %s)", a, b));
+        }
     } else if (num == 0.5){
         return(sprintf("sqrt(%s)", a));
     } else {
@@ -697,13 +695,30 @@ sympyRxFEnv$structure <- function(one, ..., .Names){
     eval(parse(text=sprintf("RxODE::rxFromSymPy(%s)", deparse(sprintf("%s", one)))));
 }
 
-sympyRxFEnv$Subs <- function(expr, what, with){
-    what <- strsplit(substring(what, 2, nchar(what) - 1), ",")[[1]];
-    with <- strsplit(substring(with, 2, nchar(with) - 1), ",")[[1]];
-    for (i in 1:length(what)){
-        expr <- gsub(rex::rex(boundary, what[i], boundary), with[i], expr, perl=TRUE);
+sympyRxFEnv$Subs <- function(...){
+    .lst <- list(...);
+    if (length(.lst) == 3){
+        .what <- dsl.strip.paren(.lst[[2]]);
+        .with <- dsl.strip.paren(.lst[[3]]);
+        .expr <- dsl.strip.paren(.lst[[1]]);
+        if (regexpr("[,]", .what) != -1){
+            stop("Can't handle Subs with multiple replacements (yet)")
+        }
+        .subs <- function(x){
+            if (all(as.character(x) == .what)){
+                return(eval(parse(text=sprintf("quote(%s)", .with))));
+            } else if (is.call(x)) {
+                as.call(lapply(x, .subs))
+            } else if (is.pairlist(x)) {
+                as.pairlist(lapply(x, .subs))
+            } else {
+                return(x);
+            }
+        }
+        .expr <- eval(parse(text=sprintf(".subs(quote(%s))", .expr)))
+        .expr <- paste(deparse(.expr), collapse=" ");
+        return(.expr);
     }
-    return(expr);
 }
 
 sympyRxFEnv$subs <- sympyRxFEnv$Subs;
@@ -890,7 +905,8 @@ unknownRx <- function(op){
                 .reg <- rex::rex("rxTBS(", any_spaces, capture(.a), any_spaces, ",",
                                  capture(except_some_of(",)")), ",", capture(except_some_of(",)")), ")")
                 if (regexpr(.reg, .w, perl=TRUE) != -1){
-                    return(sub(.reg, "rxTBSd(\\1,\\2,\\3)", .w));
+                    .ret <- sub(.reg, "rxTBSd(\\1,\\2,\\3)", .w);
+                    return(.ret);
                 }
                 ## diff(rxTBS2d(a,lambda,yj),a)
                 .reg <- rex::rex("rxTBSd(", any_spaces, capture(.a), any_spaces, ",",

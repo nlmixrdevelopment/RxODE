@@ -1135,7 +1135,6 @@ rxSymPySetupDPred <- function(newmod, calcSens, states, prd="rx_pred_", pred.min
             tmp <- sprintf("-(%s)", tmp);
         }
         tmp <- rxSymPy(tmp);
-        ## print(tmp)
         if (tmp != "0"){
             zeroSens <- FALSE;
         }
@@ -1188,7 +1187,7 @@ genCmt0 <- function(ncmt=1, oral=FALSE){
     fin <- "rx1c = rx1/rx_v";
     ret <- c(rx0, rxc, rxp, rx3, fin);
     ret <- ret[ret != ""];
-    paste(ret, collapse="\n")
+    paste(ret, collapse=";\n")
 }
 
 genCmtMod <- function(mod){
@@ -1201,7 +1200,7 @@ genCmtMod <- function(mod){
         if (rxSymPyExists(v)){
             tmp1 <- rxSymPy(v);
             tmp1 <- rxFromSymPy(tmp1);
-            return(sprintf("%s ~ %s", v, tmp1));
+            return(sprintf("%s ~ %s;", v, tmp1));
         } else {
             return(NULL);
         }
@@ -1246,12 +1245,12 @@ genCmtMod <- function(mod){
                        sep <- ifelse(orig.state.ignore[i] == 1L, "~", "=");
                        v <- rxSymPy(rxToSymPy(sprintf("d/dt(%s)", cur.state)));
                        v <- rxFromSymPy(v);
-                       return(sprintf("d/dt(%s) %s %s", cur.state, sep, v));
+                       return(sprintf("d/dt(%s) %s %s;", cur.state, sep, v));
                    }),
                    sapply(mv.1$lhs, function(v){
                        v1 <- rxSymPy(v);
                        v1 <- rxFromSymPy(v1);
-                       return(sprintf("%s=%s", v, v1));
+                       return(sprintf("%s=%s;", v, v1));
                    })), collapse="\n")
     ret
 }
@@ -1570,6 +1569,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                     rxSymPyClean();
                     rxSymPySetup(paste0(rxL, "\n", rxNorm(obj), "\n", rxNorm(pred.mod), "\n", rxNorm(err.mod)));
                     lines <- rxIf__(c(curr.base, curr.pred, curr.err));
+                    cat(paste(lines, collapse="\n"));
                     return(lines)
                 }
                 err <- paste(apply(grd, 1, function(x){
@@ -1579,6 +1579,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                     lines <- c();
                     lgl <- TRUE
                     lines <- setup.err(curr.base, curr.err, curr.pred);
+                    print(rxSymPy("rx_r_"));
                     if (lines == ""){
                         lgl <- FALSE;
                         lines <- c();
@@ -1612,6 +1613,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
             } else {
                 err <- ""
             }
+
             if (!grad.internal && !theta.internal){
                 outer <- NULL;
                 theta <- NULL;

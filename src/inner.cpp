@@ -188,6 +188,9 @@ typedef struct {
 
   int outerOpt;
   int eigen;
+  int scaleObjective;
+  double scaleObjectiveTo;
+  double initObjective;
 } focei_options;
 
 focei_options op_focei;
@@ -792,6 +795,13 @@ static inline double foceiLik0(double *theta){
 
 static inline double foceiOfv0(double *theta){
   double ret = -2*foceiLik0(theta);
+  if (op_focei.scaleObjective == 1){
+    op_focei.initObjective=ret;
+    op_focei.scaleObjective=2;
+  }
+  if (op_focei.scaleObjective == 2){
+    ret = ret / op_focei.initObjective * op_focei.scaleTo;
+  }
   if (!op_focei.calcGrad) op_focei.lastOfv = ret;
   return ret;
 }
@@ -1305,6 +1315,12 @@ NumericVector foceiSetup_(const RObject &obj,
   op_focei.covDerivMethod = as<int>(odeO["covDerivMethod"]);
   op_focei.covMethod = as<int>(odeO["covMethod"]);
   op_focei.eigen = as<int>(odeO["eigen"]);
+  op_focei.scaleObjectiveTo=as<double>(odeO["scaleObjective"]);
+  if (op_focei.scaleObjectiveTo <= 0){
+    op_focei.scaleObjective=0;
+  } else {
+    op_focei.scaleObjective=1;
+  }
   return ret;
 }
 
@@ -1348,8 +1364,11 @@ void foceiOuterFinal(double *x, Environment e){
   D = inv_sympd(D);
   cor = D * omega * D;
   cor.diag()= sd;
-  e["omegaR"] = wrap(cor);
+  e["omegaR"] = wrap(cor); 
   e["etaObf"] = foceiEtas();
+  if (op_focei.scaleObjective){
+    fmin = fmin * op_focei.initObjective / op_focei.scaleTo;
+  }
   e["objective"] = fmin;
   NumericVector logLik(1);
   logLik[0]=-fmin/2;
@@ -1530,76 +1549,86 @@ arma::mat foceiS(double *theta){
 
 //[[Rcpp::export]]
 NumericMatrix foceiCalcCov(Environment e){
-  // Fix THETAs before running gradient functions for Hessian/S matrix
-  // Run Hessian on rescaled problem
-  NumericVector fullT = e["fullTheta"];
-  NumericVector fullT2(op_focei.thetan);
-  std::copy(fullT.begin(), fullT.begin()+fullT2.size(), fullT2.begin());
-  LogicalVector skipCov(op_focei.thetan+op_focei.omegan);//skipCovN
-  if (op_focei.skipCovN == 0){
-    std::fill_n(skipCov.begin(), op_focei.thetan, false);
-    std::fill_n(skipCov.begin()+op_focei.thetan, skipCov.size() - op_focei.thetan, true);
-  } else {
-    std::copy(&op_focei.skipCov[0],&op_focei.skipCov[0]+op_focei.skipCovN,skipCov.begin());
-    std::fill_n(skipCov.begin()+op_focei.skipCovN,skipCov.size()-op_focei.skipCovN,true);
-
-  }
-  e["skipCov"] = skipCov;
-  foceiSetupTheta_(op_focei.mvi, fullT2, skipCov, 0.0, false);
-
-  // Change options to covariance options
-
-  op_focei.derivMethod = op_focei.covDerivMethod;
-
-  arma::mat Rinv;
-
-  if (op_focei.covMethod == 0 || op_focei.covMethod == 1){
-    // R matrix based covariance
-    foceiCalcH(e);
-    arma::mat R = as<arma::mat>(e["R"]);
-    try{
-      Rinv = inv(R);
-    } catch(...){
-      Rprintf("Warning: Hessian (R) matrix seems singular; Using pseudo-inverse\n");
-      Rinv = pinv(R);
-    }
-    e["Rinv"] = wrap(Rinv);
-    e["covR"] = wrap(2*Rinv);
-    if (op_focei.covMethod == 1){
-      e["cov"] = as<NumericMatrix>(e["covR"]);
-    }
-  }
-  arma::mat S;
-  if (op_focei.covMethod == 0 || op_focei.covMethod == 2){
-    arma::vec dpar(op_focei.npars);
-    unsigned int j, k;
-    for (k = op_focei.npars; k--;){
-      j=op_focei.fixedTrans[k];
-      dpar[k] = op_focei.fullTheta[j];
-    }
-    S = foceiS(&dpar[0]);
-    e["S"]= wrap(S);
-    if (op_focei.covMethod == 0){
-      e["cov"] = Rinv * S *Rinv;
+  if (op_focei.covMethod){
+    // Fix THETAs before running gradient functions for Hessian/S matrix
+    // Run Hessian on rescaled problem
+    NumericVector fullT = e["fullTheta"];
+    NumericVector fullT2(op_focei.thetan);
+    std::copy(fullT.begin(), fullT.begin()+fullT2.size(), fullT2.begin());
+    LogicalVector skipCov(op_focei.thetan+op_focei.omegan);//skipCovN
+    if (op_focei.skipCovN == 0){
+      std::fill_n(skipCov.begin(), op_focei.thetan, false);
+      std::fill_n(skipCov.begin()+op_focei.thetan, skipCov.size() - op_focei.thetan, true);
     } else {
-      mat Sinv;
-      try{
-        Sinv = inv(S);
-      } catch(...){
-        Rprintf("Warning: S matrix seems singular; Using pseudo-inverse\n");
-        Sinv = pinv(S);
-      }
-      e["cov"]= 4 * Sinv;
+      std::copy(&op_focei.skipCov[0],&op_focei.skipCov[0]+op_focei.skipCovN,skipCov.begin());
+      std::fill_n(skipCov.begin()+op_focei.skipCovN,skipCov.size()-op_focei.skipCovN,true);
+
     }
+    e["skipCov"] = skipCov;
+    foceiSetupTheta_(op_focei.mvi, fullT2, skipCov, 0.0, false);
+
+    // Change options to covariance options
+    op_focei.scaleObjective = 0;
+    op_focei.derivMethod = op_focei.covDerivMethod;
+
+    arma::mat Rinv;
+
+    if (op_focei.covMethod == 1 || op_focei.covMethod == 2){
+      // R matrix based covariance
+      foceiCalcH(e);
+      arma::mat R = as<arma::mat>(e["R"]);
+      try{
+        Rinv = inv(R);
+      } catch(...){
+        Rprintf("Warning: Hessian (R) matrix seems singular; Using pseudo-inverse\n");
+        Rinv = pinv(R);
+      }
+      e["Rinv"] = wrap(Rinv);
+      e["covR"] = wrap(2*Rinv);
+      if (op_focei.covMethod == 2){
+        e["cov"] = as<NumericMatrix>(e["covR"]);
+      }
+    }
+    arma::mat S;
+    if (op_focei.covMethod == 1 || op_focei.covMethod == 3){
+      arma::vec dpar(op_focei.npars);
+      unsigned int j, k;
+      for (k = op_focei.npars; k--;){
+        j=op_focei.fixedTrans[k];
+        dpar[k] = op_focei.fullTheta[j];
+      }
+      S = foceiS(&dpar[0]);
+      e["S"]= wrap(S);
+      if (op_focei.covMethod == 1){
+        e["cov"] = Rinv * S *Rinv;
+      } else {
+        mat Sinv;
+        try{
+          Sinv = inv(S);
+        } catch(...){
+          Rprintf("Warning: S matrix seems singular; Using pseudo-inverse\n");
+          Sinv = pinv(S);
+        }
+        e["cov"]= 4 * Sinv;
+      }
+    }
+    return e["cov"];
+  } else {
+    NumericMatrix ret;
+    return ret;
   }
-  return e["cov"];
 }
 
 void foceiFinalizeTables(Environment e){
-  arma::mat cov = as<arma::mat>(e["cov"]);
+
+  arma::mat cov;
+  bool covExists = e.exists("cov");
+  if (covExists){
+    cov= as<arma::mat>(e["cov"]);
+  }
   LogicalVector skipCov = e["skipCov"];
 
-  if (op_focei.eigen){
+  if (covExists && op_focei.eigen){
     arma::vec eigval;
     arma::mat eigvec;
 
@@ -1625,7 +1654,10 @@ void foceiFinalizeTables(Environment e){
       e["conditionNumber"] = NA_REAL;
     }
   }
-  arma::vec se1 = sqrt(cov.diag());
+  arma::vec se1;
+  if (covExists){
+    se1 = sqrt(cov.diag());
+  }
   DataFrame thetaDf = as<DataFrame>(e["theta"]);
   arma::vec theta = as<arma::vec>(thetaDf["theta"]);
   NumericVector se(theta.size());
@@ -1633,11 +1665,13 @@ void foceiFinalizeTables(Environment e){
   std::fill_n(&se[0], theta.size(), NA_REAL);
   std::fill_n(&cv[0], theta.size(), NA_REAL);
   unsigned int j=0;
-  for (unsigned int k = 0; k < se.size(); k++){
-    if (k >= skipCov.size()) break;
-    if (!skipCov[k]){
-      se[k] = se1[j++];
-      cv[k] = fabs(se[k]/theta[k])*100;
+  if (covExists){
+    for (unsigned int k = 0; k < se.size(); k++){
+      if (k >= skipCov.size()) break;
+      if (!skipCov[k]){
+        se[k] = se1[j++];
+        cv[k] = fabs(se[k]/theta[k])*100;
+      }
     }
   }
   e["se"] = se;
@@ -1680,7 +1714,6 @@ Environment foceiFitCpp_(Environment e){
   foceiOuter(e);
   e["optimTime"] = (((double)(clock() - t0))/CLOCKS_PER_SEC);
   t0 = clock();
-  Rprintf("Calculate covariance\n");
   foceiCalcCov(e);
   foceiFinalizeTables(e);
   
@@ -1727,39 +1760,41 @@ Environment foceiFitCpp_(Environment e){
   e["se"] = tmpNV;
 
   // Now get covariance names
-  tmpNM = as<NumericMatrix>(e["cov"]);
-  CharacterVector thetaCovN(tmpNM.nrow());
-  LogicalVector skipCov = e["skipCov"];
-  unsigned int j=0;
-  for (unsigned int k = 0; k < thetaNames.size(); k++){
-    if (k >= skipCov.size()) break;
-    if (j >= thetaCovN.size()) break;
-    if (!skipCov[k]){
-      thetaCovN[j++] = thetaNames[k];
+  if (e.exists("cov")){
+    tmpNM = as<NumericMatrix>(e["cov"]);
+    CharacterVector thetaCovN(tmpNM.nrow());
+    LogicalVector skipCov = e["skipCov"];
+    unsigned int j=0;
+    for (unsigned int k = 0; k < thetaNames.size(); k++){
+      if (k >= skipCov.size()) break;
+      if (j >= thetaCovN.size()) break;
+      if (!skipCov[k]){
+        thetaCovN[j++] = thetaNames[k];
+      }
     }
-  }
-  List thetaDim = List::create(thetaCovN,thetaCovN);
-  tmpNM.attr("dimnames") = thetaDim;
-  e["cov"]=tmpNM;
-  if (e.exists("Rinv")){
-    tmpNM = as<NumericMatrix>(e["Rinv"]);
+    List thetaDim = List::create(thetaCovN,thetaCovN);
     tmpNM.attr("dimnames") = thetaDim;
-  }
-  if (e.exists("Sinv")){
-    tmpNM = as<NumericMatrix>(e["Sinv"]);
-    tmpNM.attr("dimnames") = thetaDim;
-  }
-  if (e.exists("S")){
-    tmpNM = as<NumericMatrix>(e["S"]);
-    tmpNM.attr("dimnames") = thetaDim;
-  }
-  if (e.exists("R")){
-    tmpNM = as<NumericMatrix>(e["R"]);
-    tmpNM.attr("dimnames") = thetaDim;
-  }
-  if (e.exists("covR")){
-    tmpNM = as<NumericMatrix>(e["covR"]);
-    tmpNM.attr("dimnames") = thetaDim;
+    e["cov"]=tmpNM;
+    if (e.exists("Rinv")){
+      tmpNM = as<NumericMatrix>(e["Rinv"]);
+      tmpNM.attr("dimnames") = thetaDim;
+    }
+    if (e.exists("Sinv")){
+      tmpNM = as<NumericMatrix>(e["Sinv"]);
+      tmpNM.attr("dimnames") = thetaDim;
+    }
+    if (e.exists("S")){
+      tmpNM = as<NumericMatrix>(e["S"]);
+      tmpNM.attr("dimnames") = thetaDim;
+    }
+    if (e.exists("R")){
+      tmpNM = as<NumericMatrix>(e["R"]);
+      tmpNM.attr("dimnames") = thetaDim;
+    }
+    if (e.exists("covR")){
+      tmpNM = as<NumericMatrix>(e["covR"]);
+      tmpNM.attr("dimnames") = thetaDim;
+    }
   }
   List objDf;
   if (e.exists("conditionNumber")){
@@ -1777,7 +1812,7 @@ Environment foceiFitCpp_(Environment e){
   if (!e.exists("method")){
     e["method"] = "FOCEi";
   }
-  if (!e.exists("method")){
+  if (!e.exists("extra")){
     e["extra"] = "";
   }
   List timeDf = List::create(_["setup"]=as<double>(e["setupTime"]),
