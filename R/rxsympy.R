@@ -1207,11 +1207,11 @@ genCmtMod <- function(mod){
     }
     oral <- rxSymPyExists("rx_ka");
     if (oral){
-        oral <- (rxSymPy("rx_ka") != "0")
+        oral <- (rxSymPy("rx_ka") != "0") && (rxSymPy("rx_ka") != "rx_ka");
     }
     tlag <- rxSymPyExists("rx_tlag");
     if (tlag){
-        tlag <- (rxSymPy("rx_tlag") != "0")
+        tlag <- (rxSymPy("rx_tlag") != "0") && (rxSymPy("rx_tlag") != "rx_tlag")
     }
     if (tlag){
         stop("tlag not supported yet.");
@@ -1579,7 +1579,6 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                     lines <- c();
                     lgl <- TRUE
                     lines <- setup.err(curr.base, curr.err, curr.pred);
-                    print(rxSymPy("rx_r_"));
                     if (lines == ""){
                         lgl <- FALSE;
                         lines <- c();
