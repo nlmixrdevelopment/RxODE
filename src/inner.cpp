@@ -1730,9 +1730,25 @@ Environment foceiFitCpp_(Environment e){
   tmpNM.attr("dimnames") = List::create(etaNames, etaNames);
   e["omegaR"] = tmpNM;
 
+  List tmpL  = as<List>(e["ranef"]);
+  List tmpL2 = as<List>(e["etaObf"]);
+  CharacterVector tmpN  = tmpL.attr("names");
+  CharacterVector tmpN2 = tmpL2.attr("names");
+  unsigned int i;
+  for (i = 0; i < etaNames.size(); i++){
+    if (i + 1 <  tmpN.size())  tmpN[i+1] = etaNames[i];
+    if (i + 1 < tmpN2.size()) tmpN2[i+1] = etaNames[i];
+  }
+  ////////////////////////////////////////////////////////////////////////////////
+  tmpL.attr("names") = tmpN;
+  tmpL2.attr("names") = tmpN2;
+  e["ranef"] = tmpL;
+  e["etaObf"] = tmpL2;
+
+
   ////////////////////////////////////////////////////////////////////////////////
   // Theta names
-  
+  //
   // omegaR
   arma::mat omega = as<arma::mat>(e["omega"]);
   arma::mat D(omega.n_rows,omega.n_rows,fill::zeros);
@@ -1743,7 +1759,7 @@ Environment foceiFitCpp_(Environment e){
   cor = D * omega * D;
   cor.diag()= sd;
   CharacterVector thetaNames=as<CharacterVector>(e["thetaNames"]);
-  List tmpL = as<List>(e["theta"]);
+  tmpL = as<List>(e["theta"]);
   tmpL.attr("row.names") = thetaNames;
   e["theta"] = tmpL;
 
