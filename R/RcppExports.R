@@ -57,6 +57,10 @@ foceiFitCpp_ <- function(e) {
     .Call(`_RxODE_foceiFitCpp_`, e)
 }
 
+coxBox_ <- function(x = 1L, lambda = 1, yj = 0L) {
+    .Call(`_RxODE_coxBox_`, x, lambda, yj)
+}
+
 #' Check the type of an object using Rcpp
 #'
 #' @param obj Object to check

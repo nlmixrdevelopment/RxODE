@@ -16,3 +16,24 @@
         return(as.matrix(Matrix::nearPD(mat)$mat));
     }
 }
+##' Cox Box transformation
+##'
+##' @param x data to transform
+##' @param lambda Cox-box lambda parameter
+##' @return Cox-Box Transformed Data
+##' @author Matthew L. Fidler
+##' @export
+coxBox <- function(x, lambda=1){
+    .Call(`_RxODE_coxBox_`, x, lambda, 0L)
+}
+
+##' Yeo-Johnson Transformation
+##'
+##' @param x data to transform
+##' @param lambda Cox-box lambda parameter
+##' @return Yeo-Johnson  Transformed Data
+##' @author Matthew L. Fidler
+##' @export
+yeoJohnson <- function(x, lambda=1){
+    .Call(`_RxODE_coxBox_`, x, lambda, 1L)
+}

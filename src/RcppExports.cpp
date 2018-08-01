@@ -162,6 +162,19 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// coxBox_
+NumericVector coxBox_(NumericVector x, double lambda, int yj);
+RcppExport SEXP _RxODE_coxBox_(SEXP xSEXP, SEXP lambdaSEXP, SEXP yjSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
+    Rcpp::traits::input_parameter< double >::type lambda(lambdaSEXP);
+    Rcpp::traits::input_parameter< int >::type yj(yjSEXP);
+    rcpp_result_gen = Rcpp::wrap(coxBox_(x, lambda, yj));
+    return rcpp_result_gen;
+END_RCPP
+}
 // rxIs
 bool rxIs(const RObject& obj, std::string cls);
 RcppExport SEXP _RxODE_rxIs(SEXP objSEXP, SEXP clsSEXP) {

@@ -1932,3 +1932,12 @@ Environment foceiFitCpp_(Environment e){
   Rprintf("done\n");
   return e;
 }
+
+//[[Rcpp::export]]
+NumericVector coxBox_(NumericVector x = 1, double lambda=1, int yj = 0){
+  NumericVector ret(x.size());
+  for (unsigned int i = x.size(); i--;){
+    ret[i] = powerD(x[i], lambda, yj);
+  }
+  return ret;
+}

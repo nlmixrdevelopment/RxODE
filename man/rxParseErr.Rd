@@ -5,7 +5,7 @@
 \title{Prepare Error function for inclusion in RxODE}
 \usage{
 rxParseErr(x, base.theta, diag.xform = c("sqrt", "log", "identity"),
-  ret = "rx_r_", init = NULL)
+  ret = "rx_r_", init = NULL, lambda = FALSE)
 }
 \arguments{
 \item{x}{error function}

@@ -5,6 +5,7 @@
 #include "RxODE.h"
 
 SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SEXP parse_model,SEXP parse_model3);
+SEXP _RxODE_coxBox_(SEXP, SEXP, SEXP);
 SEXP _RxODE_foceiFitCpp_(SEXP);
 SEXP _RxODE_foceiCalcCov(SEXP);
 SEXP _RxODE_foceiOuter(SEXP);
@@ -189,6 +190,7 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_foceiOuter", (DL_FUNC) &_RxODE_foceiOuter, 1},
     {"_RxODE_foceiCalcCov", (DL_FUNC) &_RxODE_foceiCalcCov, 1},
     {"_RxODE_foceiFitCpp_", (DL_FUNC) &_RxODE_foceiFitCpp_, 1},
+    {"_RxODE_coxBox_", (DL_FUNC) &_RxODE_coxBox_, 3},
     {NULL, NULL, 0}
   };
   // C callable to assign environments.
