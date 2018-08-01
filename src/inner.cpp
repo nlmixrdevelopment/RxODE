@@ -1681,11 +1681,11 @@ void foceiFinalizeTables(Environment e){
     }
   }
   e["se"] = se;
-  List fixedDf = List::create(_["Estimate"]=thetaDf["theta"], _["SE"]=se, 
+  List popDf = List::create(_["Estimate"]=thetaDf["theta"], _["SE"]=se, 
 			      _["%RSE"]=cv);
-  fixedDf.attr("class") = "data.frame";
-  fixedDf.attr("row.names") = IntegerVector::create(NA_INTEGER,-theta.size());
-  e["fixedDf"] = fixedDf;
+  popDf.attr("class") = "data.frame";
+  popDf.attr("row.names") = IntegerVector::create(NA_INTEGER,-theta.size());
+  e["popDf"] = popDf;
   
   e["fixef"]=thetaDf["theta"];
   List etas = e["etaObf"];
@@ -1769,7 +1769,7 @@ Environment foceiFitCpp_(Environment e){
   tmpL.attr("row.names") = thetaNames;
   e["theta"] = tmpL;
 
-  tmpL=e["fixedDf"];
+  tmpL=e["popDf"];
   // Add a few columns
   IntegerVector logTheta=  as<IntegerVector>(model["log.thetas"]);
   NumericVector Estimate = tmpL["Estimate"];
@@ -1846,15 +1846,15 @@ Environment foceiFitCpp_(Environment e){
   tmpL["CI Upper"] = EstUpper;
   tmpL.attr("row.names") = thetaNames;
   tmpL.attr("class") = "data.frame";
-  e["fixedDf"]=tmpL;
+  e["popDf"]=tmpL;
   
-  List fixedDfSig = List::create(_["Est."]=EstS, 
+  List popDfSig = List::create(_["Est."]=EstS, 
 				 _["SE"]=SeS, 
 				 _["%RSE"]=rseS,
 				 _["Back-transformed(CI)"]=btCi);
-  fixedDfSig.attr("row.names") = thetaNames;
-  fixedDfSig.attr("class") = "data.frame";
-  e["fixedDfSig"]=fixedDfSig;
+  popDfSig.attr("row.names") = thetaNames;
+  popDfSig.attr("class") = "data.frame";
+  e["popDfSig"]=popDfSig;
 
 
   NumericVector tmpNV = e["fixef"];
