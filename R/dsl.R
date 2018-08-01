@@ -1000,7 +1000,10 @@ rxEnv <- function(expr){
 }
 
 exists2 <- function(x, where){
-    if (nchar(x) < 1000){
+    .nc <- try(nchar(x) < 1000, silent=TRUE);
+    if (inherits(.nc, "try-error")) .nc <- FALSE
+    if (rxIs(.nc, "logical")) .nc <- FALSE
+    if (.nc){
         return(exists(x, where))
     } else {
         return(FALSE);
@@ -1230,10 +1233,17 @@ rxErrEnv.diag.xform <- "sqrt";
 rxErrEnv.diag.est <- c();
 rxErrEnv.ret <- "rx_r_";
 rxErrEnv.init <- NULL;
+rxErrEnv.lambda <- NULL;
+rxErrEnv.yj <- NULL
 
-rxErrEnvF$add <- function(est){
+rxErrEnvF$lnorm <- function(est){
     if (rxErrEnv.ret != "rx_r_"){
-        stop("The add(.) can only be in an error function.")
+        stop("The lnorm(.) can only be in an error function.")
+    }
+    if (!is.null(rxErrEnv.lambda)){
+        if (rxErrEnv.lambda != "0" && rxErrEnv.yj != "0"){
+            stop("The lnorm(.) cannot be used with other data transformations.")
+        }
     }
     estN <- suppressWarnings(as.numeric(est));
     if (is.na(estN)){
@@ -1259,9 +1269,57 @@ rxErrEnvF$add <- function(est){
         tmp[sprintf("THETA[%s]", rxErrEnv.theta)] <- as.numeric(est);
         assignInMyNamespace("rxErrEnv.diag.est", tmp);
         assignInMyNamespace("rxErrEnv.theta", rxErrEnv.theta + 1);
+        assignInMyNamespace("rxErrEnv.lambda", "0");
+        assignInMyNamespace("rxErrEnv.yj", "0");
     }
     return(ret);
 }
+
+rxErrEnvF$dlnorm <- rxErrEnvF$lnorm
+rxErrEnvF$logn <- rxErrEnvF$lnorm
+
+rxErrEnvF$add <- function(est){
+    if (rxErrEnv.ret != "rx_r_"){
+        stop("The add(.) can only be in an error function.")
+    }
+    if (!is.null(rxErrEnv.lambda)){
+        if (rxErrEnv.lambda != "1" && rxErrEnv.yj != "0"){
+            stop("The add(.) cannot be used with other data transformations.")
+        }
+    }
+    estN <- suppressWarnings(as.numeric(est));
+    if (is.na(estN)){
+        if (rxErrEnv.diag.xform == "sqrt"){
+            ret <- (sprintf("(%s)^2", est))
+        } else if (rxErrEnv.diag.xform == "log"){
+            ret <- (sprintf("exp(%s)", est))
+        } else {
+            ret <- (sprintf("%s", est));
+        }
+    } else {
+        theta <- sprintf("THETA[%s]", rxErrEnv.theta);
+        est <- estN;
+        theta.est <- theta;
+        if (rxErrEnv.diag.xform == "sqrt"){
+            ret <- (sprintf("(%s)^2", theta.est))
+        } else if (rxErrEnv.diag.xform == "log"){
+            ret <- (sprintf("exp(%s)", theta.est))
+        } else {
+            ret <- (sprintf("%s", theta.est));
+        }
+        tmp <- rxErrEnv.diag.est;
+        tmp[sprintf("THETA[%s]", rxErrEnv.theta)] <- as.numeric(est);
+        assignInMyNamespace("rxErrEnv.diag.est", tmp);
+        assignInMyNamespace("rxErrEnv.theta", rxErrEnv.theta + 1);
+        assignInMyNamespace("rxErrEnv.lambda", "1");
+        assignInMyNamespace("rxErrEnv.yj", "0");
+    }
+    return(ret);
+}
+
+rxErrEnvF$norm <- rxErrEnvF$add
+rxErrEnvF$dnorm <- rxErrEnvF$add
+
 rxErrEnvF$"for" <- function(...){stop("'for' is not supported (yet).")}
 rxErrEnvF$"return" <- function(est){
     if (rxErrEnv.ret == ""){
@@ -1338,7 +1396,7 @@ rxErrEnv <- function(expr){
 ##' @keywords internal
 ##' @export
 rxParsePk <- function(x, init=NULL){
-    return(rxParseErr(x, init=init, ret=""));
+    return(.rxParseErr(x, init=init, ret=""));
 }
 ##' Prepare Pred function for inclusion in RxODE
 ##'
@@ -1349,7 +1407,26 @@ rxParsePk <- function(x, init=NULL){
 ##' @keywords internal
 ##' @export
 rxParsePred <- function(x, init=NULL){
-    return(gsub(rex::rex("rx_pred_ = ",capture(anything), ";"), "rx_pred_f_~\\1;\nrx_pred_ = rxTBS(\\1, rx_lambda_, rx_yj_)", rxParseErr(x, ret="rx_pred_", init=init)));
+    return(gsub(rex::rex("rx_pred_ = ",capture(anything), ";"), "rx_pred_f_~\\1;\nrx_pred_ = rxTBS(\\1, rx_lambda_, rx_yj_)", .rxParseErr(x, ret="rx_pred_", init=init)));
+}
+.rxAddLambda <- function(){
+    if (all("rx_r_" == rxErrEnv.ret)){
+        if (is.null(rxErrEnv.lambda)){
+            .lambda <- "1"
+        } else {
+            .lambda <- rxErrEnv.lambda
+        }
+        if (is.null(rxErrEnv.yj)){
+            .yj <- "0"
+        } else {
+            .yj <- rxErrEnv.yj
+        }
+        .ret <- sprintf("rx_yj_~%s;\nrx_lambda_~%s;\n", .yj, .lambda);
+        print(.ret);
+        return(.ret);
+    } else {
+        return("");
+    }
 }
 ##' Prepare Error function for inclusion in RxODE
 ##'
@@ -1362,7 +1439,16 @@ rxParsePred <- function(x, init=NULL){
 ##' @keywords internal
 ##' @author Matthew L. Fidler
 ##' @export
-rxParseErr <- function(x, base.theta, diag.xform=c("sqrt", "log", "identity"),
+rxParseErr <- function(x, base.theta, diag.xform=c("sqrt", "log", "identity"), ret="rx_r_", init=NULL,
+                       lambda=FALSE){
+    if (lambda){
+        .ret <- .rxAddLambda()
+    } else {
+        .ret <- .rxParseErr(x, base.theta, diag.xform, ret, init)
+    }
+    return(.ret);
+}
+.rxParseErr <- function(x, base.theta, diag.xform=c("sqrt", "log", "identity"),
                        ret="rx_r_", init=NULL){
     if (!missing(diag.xform)){
         diag.xform <- match.arg(diag.xform)
@@ -1384,7 +1470,7 @@ rxParseErr <- function(x, base.theta, diag.xform=c("sqrt", "log", "identity"),
         x <- rxAddReturn(x, ret != "");
     }
     if (is(substitute(x),"character")){
-        ret <- eval(parse(text=sprintf("RxODE:::rxParseErr(quote({%s}))", x)));
+        ret <- eval(parse(text=sprintf("RxODE:::.rxParseErr(quote({%s}))", x)));
         ret <- substring(ret, 3, nchar(ret) - 2)
         if (regexpr("else if", ret) != -1){
             stop("else if expressions not supported (yet).");
@@ -1396,10 +1482,7 @@ rxParseErr <- function(x, base.theta, diag.xform=c("sqrt", "log", "identity"),
         assignInMyNamespace("rxErrEnv.init", NULL);
         return(ret)
     } else if (is(substitute(x),"name")){
-        ret <- eval(parse(text=sprintf("RxODE:::rxParseErr(%s)", deparse(x))))
-        if (regexpr("else if", ret) != -1){
-            stop("else if expressions not supported (yet).");
-        }
+        ret <- eval(parse(text=sprintf("RxODE:::.rxParseErr(%s)", deparse(x))))
         assignInMyNamespace("rxErrEnv.diag.est", c());
         assignInMyNamespace("rxErrEnv.diag.xform", "sqrt");
         assignInMyNamespace("rxErrEnv.theta", 1)
@@ -1409,7 +1492,7 @@ rxParseErr <- function(x, base.theta, diag.xform=c("sqrt", "log", "identity"),
     } else {
         ret <- c();
         if (is(x,"character")){
-            ret <- eval(parse(text=sprintf("RxODE:::rxParseErr(quote({%s}))", paste(x, collapse="\n"))));
+            ret <- eval(parse(text=sprintf("RxODE:::.rxParseErr(quote({%s}))", paste(x, collapse="\n"))));
             ret <- substring(ret, 3, nchar(ret) - 2);
         } else {
             ret <- eval(x, rxErrEnv(x));

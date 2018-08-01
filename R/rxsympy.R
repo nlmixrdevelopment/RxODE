@@ -420,7 +420,7 @@ rxSymPyVars <- function(model){
                   rxState(model),
                   "podo", "t", "time", "tlast",
                   "rx__PTR__", "rx1c",
-                  "rx_lambda_", "rx_yj",
+                  "rx_lambda_", "rx_yj_",
                   sprintf("rx_underscore_xi_%s", 1:100));
     }
     vars <- sapply(vars, function(x){return(rxToSymPy(x))});
@@ -472,8 +472,6 @@ rxSymPySetup <- function(model, envir=parent.frame()){
     const <- rxInits(model, rxLines=TRUE);
     if (!identical(const, "")) setup <- c(rxToSymPy(const, envir=envir), setup);
     rxSymPyVars(model)
-    rxSymPyExec("rx_lambda_ = 1")
-    rxSymPyExec("rx_yj_ = 0")
     ## rxSymPyVars(c("rx_lambda_", "rx_yj_"))
     assignInMyNamespace("rxSymPy.vars", rxSymPy.vars)
     for (line in c(setup)){
@@ -1374,6 +1372,8 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                 stop("Error Creating expanded function.");
             }
         } else {
+            assignInMyNamespace("rxErrEnv.lambda", NULL);
+            assignInMyNamespace("rxErrEnv.yj", NULL);
             assignInMyNamespace("rxSymPyExpThetas", c());
             assignInMyNamespace("rxSymPyExpEtas", c());
             gobj <- obj;
@@ -1407,44 +1407,48 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                 calcSens <- rxParams(obj, FALSE)
                 newmod <- obj;
             }
+            ## The Lambda/yj needs to bes setup now.
             txt <- rxParsePred(predfn, init=init)
             pred.mod <- rxGetModel(txt);
+            ##
             extra.pars <- c();
-            rxL <- "rx_lambda_=1\nrx_yj_=0\n";
-            if (!is.null(errfn)){
+            if (is.null(errfn)){
+                ## lambda/yj is on the normal scale
+                pred.mod <- rxGetModel(paste0("rx_yj_~=0;\nrx_lambda_~=1;\n", rxNorm(pred.mod)));
+            } else {
+                ## Get maximum theta.
                 pars <- rxParams(rxGetModel(paste0(rxNorm(obj), "\n", rxNorm(pred.mod))), FALSE);
                 w <- which(sapply(pars, function(x){
                     return(substr(x, 0, 2) == "TH")
                 }))
                 pars <- pars[w];
                 mtheta <- max(as.numeric(gsub(rex::rex("THETA[", capture(numbers), "]"), "\\1", pars)))
+                if (!is.null(errfn)){
+                    txtE <- rxParseErr(errfn, base.theta=mtheta + 1, init=init);
+                }
+                ## Add lambdas before preds
+                txt1 <- rxParseErr(errfn, base.theta=mtheta + 1, init=init, lambda=TRUE);
+                pred.mod <- rxGetModel(paste0(txt1, "\n", rxNorm(pred.mod)));
+                ## Now parse the error again.
                 txt <- rxParseErr(errfn, base.theta=mtheta + 1, init=init);
                 extra.pars <- attr(txt, "ini");
                 cnd <- rxNorm(txt, TRUE);
                 rxE <- c()
                 if (is.null(cnd)){
-                    rxSymPySetupIf(txt);
-                    lambda <- rxSymPy("rx_lambda_");
-                    yj <- rxSymPy("rx_yj_");
+                    rxSymPySetup(txt);
+                    ## lambda <- rxSymPy("rx_lambda_");
+                    ## yj <- rxSymPy("rx_yj_");
                     r <- rxSymPy("rx_r_");
-                    rxL <- c(sprintf("rx_lambda_~%s", rxFromSymPy(lambda)),
-                             sprintf("rx_yj_~%s", rxFromSymPy(yj)));
                     rxE <- sprintf("rx_r_=%s", rxFromSymPy(r))
                 } else {
                     for (i in cnd){
                         rxCondition(model, i);
                         rxSymPySetupIf(txt);
-                        rxL <- c(rxL,
-                                 sprintf("if %s {", i),
-                                 sprintf("rx_lambda_~%s", rxFromSymPy(lambda)),
-                                 sprintf("rx_yj_~%s", rxFromSymPy(yj)),
-                                 "}");
                         rxE <- c(rxE,
                                  sprintf("rx_r_=%s", rxFromSympy(r)))
                         r <- rxSymPy("rx_r_");
                     }
                 }
-                rxL <- paste(rxL, collapse="\n");
                 txt <- paste(rxE, collapse="\n");
                 err.mod <- rxGetModel(txt);
             }
@@ -1491,7 +1495,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                 rxCondition(obj, ifelse(curr.base == "", FALSE, curr.base));
                 rxCondition(pred.mod, ifelse(curr.pred == "", FALSE, curr.pred));
                 rxSymPyClean();
-                rxSymPySetup(paste0(rxL, "\n", rxNorm(obj), "\n", rxNorm(pred.mod)));
+                rxSymPySetup(paste0(rxNorm(obj), rxNorm(pred.mod)));
                 lines <- rxIf__(c(curr.base, curr.pred));
                 return(lines)
             }
@@ -1508,12 +1512,13 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                     lgl <- FALSE;
                     lines <- "";
                 }
-                newmod <- rxGetModel(paste0(rxL, "\n", rxNorm(obj), "\n", rxNorm(pred.mod)));
+                newmod <- rxGetModel(paste0(rxNorm(obj), "\n", rxNorm(pred.mod)));
                 if (only.numeric){
                     rxSymPySetup(newmod);
                     tmp <- rxSymPy("rx_pred_");
                     prd <- gsub(rex::rex("rx_pred_=", except_some_of(";"), ";"), sprintf("rx_pred_=%s;", rxFromSymPy(tmp)),
-                                gsub(rex::rex("rx_pred_f_~", except_some_of(";"), ";"), "", rxNorm(pred.mod)));
+                                gsub(rex::rex("rx_pred_f_", "~", except_some_of(";"), ";"), "",
+                                     rxNorm(pred.mod)));
                     lines <- c(lines,
                                prd)
                     states <- rxState(newmod);
@@ -1537,7 +1542,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                     tmp <- rxSymPy("rx_pred_");
                     lines <- c(lines,
                                ## Make sure rx_pred_ is not in terms of LHS components.
-                               gsub(rex::rex("rx_pred_f_~", except_some_of(";"), ";"), "",
+                               gsub(rex::rex("rx_pred_f_", "~", except_some_of(";"), ";"), "",
                                     gsub(rex::rex("rx_pred_=", except_some_of(";"), ";"),
                                          sprintf("rx_pred_=%s;", rxFromSymPy(tmp)), rxNorm(pred.mod))),
                                newlines);
@@ -1570,7 +1575,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                     rxCondition(pred.mod, ifelse(curr.pred == "", FALSE, curr.pred));
                     rxCondition(err.mod, ifelse(curr.err == "", FALSE, curr.err));
                     rxSymPyClean();
-                    rxSymPySetup(paste0(rxL, "\n", rxNorm(obj), "\n", rxNorm(pred.mod), "\n", rxNorm(err.mod)));
+                    rxSymPySetup(paste0(rxNorm(obj), "\n", rxNorm(pred.mod), "\n", rxNorm(err.mod)));
                     lines <- rxIf__(c(curr.base, curr.pred, curr.err));
                     cat(paste(lines, collapse="\n"));
                     return(lines)
@@ -1586,7 +1591,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                         lgl <- FALSE;
                         lines <- c();
                     }
-                    newmod <- rxGetModel(paste0(rxL, rxNorm(obj), "\n", rxNorm(err.mod)));
+                    newmod <- rxGetModel(paste0(rxNorm(obj), "\n", rxNorm(err.mod)));
                     if (only.numeric){
                         rxSymPySetup(newmod);
                         tmp <- rxSymPy("rx_r_");
@@ -1673,24 +1678,24 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                                         c(rxToSymPy(ini), rxToSymPy(ddt));
                                     })),
                        sapply(lhs, function(x){return(rxToSymPy(x))}))
-                ebe <- paste(c(rxL, do.call(`c`, lapply(r, function(x){
-                                      if (rxSymPyExists(x)){
-                                          v <- rxSymPy(x)
-                                          return(sprintf("%s=%s;", rxFromSymPy(x), rxFromSymPy(v)))
-                                      }
-                                      return(NULL)
-                                      }))), collapse="\n")
+                ebe <- paste(c(do.call(`c`, lapply(r, function(x){
+                                                if (rxSymPyExists(x)){
+                                                    v <- rxSymPy(x)
+                                                    return(sprintf("%s=%s;", rxFromSymPy(x), rxFromSymPy(v)))
+                                                }
+                                                return(NULL)
+                                            }))), collapse="\n")
                 if (only.numeric){
                     mod <- NULL;
                 } else {
                     ## Inner should hide compartments
                     mod <- gsub(rex::rex(capture("d/dt(", except_some_of(")"), ")"), "="), "\\1~", rxNorm(mod), perl=TRUE);
                     if (optExpression){
-                        .tmp <- paste(rxL, "\n", mod);
+                        .tmp <- mod;
                         .tmp <- rxOptExpr(.tmp)
                         mod <- RxODE(.tmp);
                     } else {
-                        mod <- RxODE(paste(rxL, "\n", mod));
+                        mod <- RxODE(paste(mod));
                     }
 
                 }

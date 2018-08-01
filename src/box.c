@@ -3,13 +3,15 @@
 #include <R.h>
 #include <Rinternals.h>
 #include <Rmath.h>
+#define X0MIN 1e-5
 
 double powerD(double x, double lambda, int yj){
   if (lambda == 1.0) return x;
   if (yj == 0){
-    if (x < 0) return NA_REAL;
-    if (lambda == 0.0) return log(x);
-    return (pow(x, lambda) - 1.0)/lambda;
+    double x0=x;
+    if (x <= 0) x0= X0MIN;
+    if (lambda == 0.0) return log(x0);
+    return (pow(x0, lambda) - 1.0)/lambda;
   } else {
     if (x >= 0){
       if (lambda == 0.0) return log(x + 1.0);
@@ -25,10 +27,11 @@ double powerD(double x, double lambda, int yj){
 double powerDD(double x, double lambda, int yj){
   if (lambda == 1) return 1;
   if (yj == 0){
-    if (x < 0) return NA_REAL;
-    if (lambda == 0.0) return 1/x;
+    double x0 = x;
+    if (x <= 0) return x0 = X0MIN;
+    if (lambda == 0.0) return 1/x0;
     // pow(x,lambda)/lambda - 1/lambda
-    return pow(x, lambda-1);
+    return pow(x0, lambda-1);
   } else {
     if (x >= 0){
       if (lambda == 0.0) return 1/(x + 1.0);
@@ -43,10 +46,11 @@ double powerDD(double x, double lambda, int yj){
 double powerDDD(double x, double lambda, int yj){
   if (lambda == 1) return 0;
   if (yj == 0){
-    if (x < 0) return NA_REAL;
-    if (lambda == 0.0) return -1/(x*x);
+    double x0 = x;
+    if (x <= 0) return x0 = X0MIN;
+    if (lambda == 0.0) return -1/(x0*x0);
     // pow(x,lambda)/lambda - 1/lambda
-    return pow(x, lambda-1);
+    return pow(x0, lambda-1);
   } else {
     if (x >= 0){
       if (lambda == 0.0) return -1/((x + 1.0)*(x + 1.0));
@@ -63,8 +67,9 @@ double powerL(double x, double lambda, int yj){
   // yj is indicator for yeo-johson
   if (lambda == 1.0) return 0;
   if (yj == 0){
-    if (x > 0) return (lambda - 1.0)*log(x);
-    return NA_REAL;
+    double x0 = x;
+    if (x <= 0) x0 = X0MIN;
+    return (lambda - 1.0)*log(x0);
   } else {
     if (x >= 0) return (lambda - 1.0)*log(x+1.0);
     return (1.0-lambda)*log(1.0-x);
@@ -89,8 +94,9 @@ double powerL(double x, double lambda, int yj){
 double powerDL(double x, double lambda, int yj){
   // d(logLik/dlambda)
   if (!yj){
-    if (x > 0) return log(x);
-    return NA_REAL;
+    double x0 = x;
+    if (x <= 0) x0 = X0MIN;
+    return log(x);
   } else {
     if (x >= 0) return log(x+1.0);
     return -log(1.0-x);
