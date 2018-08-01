@@ -1512,7 +1512,8 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                 if (only.numeric){
                     rxSymPySetup(newmod);
                     tmp <- rxSymPy("rx_pred_");
-                    prd <- gsub(rex::rex("rx_pred_=", anything), sprintf("rx_pred_=%s", rxFromSymPy(tmp)), rxNorm(pred.mod));
+                    prd <- gsub(rex::rex("rx_pred_=", except_some_of(";"), ";"), sprintf("rx_pred_=%s;", rxFromSymPy(tmp)),
+                                gsub(rex::rex("rx_pred_f_~", except_some_of(";"), ";"), "", rxNorm(pred.mod)));
                     lines <- c(lines,
                                prd)
                     states <- rxState(newmod);
@@ -1536,7 +1537,9 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                     tmp <- rxSymPy("rx_pred_");
                     lines <- c(lines,
                                ## Make sure rx_pred_ is not in terms of LHS components.
-                               gsub(rex::rex("rx_pred_=", anything), sprintf("rx_pred_=%s", rxFromSymPy(tmp)), rxNorm(pred.mod)),
+                               gsub(rex::rex("rx_pred_f_~", except_some_of(";"), ";"), "",
+                                    gsub(rex::rex("rx_pred_=", except_some_of(";"), ";"),
+                                         sprintf("rx_pred_=%s;", rxFromSymPy(tmp)), rxNorm(pred.mod))),
                                newlines);
                     if (lgl){
                         lines <- c(lines, "}")
@@ -1665,10 +1668,11 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                 pred.only <- paste(pred.only[regexpr(rex::rex(start, or(keep)), pred.only) != -1], collapse="\n");
                 keep <- c(sprintf("d/dt(%s)", ostate), sprintf("%s(0)=", ostate));
                 r <- c(do.call(`c`, lapply(baseState, function(x){
-                    ini <- sprintf("%s(0)", x);
-                    ddt <- sprintf("d/dt(%s)", x);
-                    c(rxToSymPy(ini), rxToSymPy(ddt));
-                    })), sapply(lhs, function(x){return(rxToSymPy(x))}))
+                                        ini <- sprintf("%s(0)", x);
+                                        ddt <- sprintf("d/dt(%s)", x);
+                                        c(rxToSymPy(ini), rxToSymPy(ddt));
+                                    })),
+                       sapply(lhs, function(x){return(rxToSymPy(x))}))
                 ebe <- paste(c(rxL, do.call(`c`, lapply(r, function(x){
                                       if (rxSymPyExists(x)){
                                           v <- rxSymPy(x)
