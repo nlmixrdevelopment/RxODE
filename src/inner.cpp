@@ -191,6 +191,8 @@ typedef struct {
   int scaleObjective;
   double scaleObjectiveTo;
   double initObjective;
+  // Confidence Interval
+  double ci;
 } focei_options;
 
 focei_options op_focei;
@@ -1321,6 +1323,7 @@ NumericVector foceiSetup_(const RObject &obj,
   } else {
     op_focei.scaleObjective=1;
   }
+  op_focei.ci=0.95;
   return ret;
 }
 
@@ -1734,7 +1737,7 @@ Environment foceiFitCpp_(Environment e){
   List tmpL2 = as<List>(e["etaObf"]);
   CharacterVector tmpN  = tmpL.attr("names");
   CharacterVector tmpN2 = tmpL2.attr("names");
-  unsigned int i;
+  int i;
   for (i = 0; i < etaNames.size(); i++){
     if (i + 1 <  tmpN.size())  tmpN[i+1] = etaNames[i];
     if (i + 1 < tmpN2.size()) tmpN2[i+1] = etaNames[i];
@@ -1764,7 +1767,44 @@ Environment foceiFitCpp_(Environment e){
   e["theta"] = tmpL;
 
   tmpL=e["parDf"];
+  // Add a few columns
+  IntegerVector logTheta=  as<IntegerVector>(model["log.thetas"]);
+  NumericVector Estimate = tmpL["Estimate"];
+  NumericVector SE = tmpL["SE"];
+  NumericVector EstBT(Estimate.size());
+  NumericVector EstLower(Estimate.size());
+  NumericVector EstUpper(Estimate.size());
+  // LogicalVector EstBT(Estimate.size());
+  // Rf_pt(stat[7],(double)n1,1,0)
+  int j = logTheta.size()-1;
+  double qn= Rf_qnorm5(1.0-(1-op_focei.ci)/2, 0.0, 1.0, 1, 0);
+  for (i = Estimate.size(); i--;){
+    if (j >= 0 && logTheta[j]-1==i){
+      if (ISNA(SE[i])){
+        EstLower[i] = NA_REAL;
+        EstUpper[i] = NA_REAL;
+      } else {
+	EstLower[i] = exp(Estimate[i]-SE[i]*qn);
+        EstUpper[i] = exp(Estimate[i]+SE[i]*qn);
+      }
+      EstBT[i] = exp(Estimate[i]);
+      j--;
+    } else {
+      if (ISNA(SE[i])){
+        EstLower[i] = NA_REAL;
+        EstUpper[i] = NA_REAL;
+      } else {
+        EstLower[i] = Estimate[i]-SE[i]*qn;
+        EstUpper[i] = Estimate[i]+SE[i]*qn;
+      }
+      EstBT[i]= Estimate[i];
+    }
+  }
+  tmpL["Back-transformed"] = EstBT;
+  tmpL["CI Lower"] = EstLower;
+  tmpL["CI Upper"] = EstUpper;
   tmpL.attr("row.names") = thetaNames;
+  tmpL.attr("class") = "data.frame";
   e["parDf"]=tmpL;
 
   NumericVector tmpNV = e["fixef"];
