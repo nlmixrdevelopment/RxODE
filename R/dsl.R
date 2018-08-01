@@ -1282,11 +1282,11 @@ rxErrEnvF$prop <- function(est){
     estN <- suppressWarnings(as.numeric(est));
     if (is.na(estN)){
         if (rxErrEnv.diag.xform == "sqrt"){
-            ret <- (sprintf("(rxTBS(rx_pred_, rx_lambda_, rx_yj_))^2 * (%s)^2", est))
+            ret <- (sprintf("(rx_pred_f_)^2 * (%s)^2", est))
         } else if (rxErrEnv.diag.xform == "log"){
-            ret <- (sprintf("(rxTBS(rx_pred_, rx_lambda_, rx_yj_))^2 * exp(%s)", est))
+            ret <- (sprintf("(rx_pred_f_)^2 * exp(%s)", est))
         } else {
-            ret <- (sprintf("(rxTBS(rx_pred_, rx_lambda_, rx_yj_))^2 * %s", est))
+            ret <- (sprintf("(rx_pred_f_)^2 * %s", est))
         }
     } else {
         est <- estN
@@ -1294,11 +1294,11 @@ rxErrEnvF$prop <- function(est){
         theta <- sprintf("THETA[%s]", rxErrEnv.theta);
         theta.est <- theta;
         if (rxErrEnv.diag.xform == "sqrt"){
-            ret <- (sprintf("(rxTBS(rx_pred_, rx_lambda_, rx_yj_))^2 * (%s)^2", theta.est))
+            ret <- (sprintf("(rx_pred_f_)^2 * (%s)^2", theta.est))
         } else if (rxErrEnv.diag.xform == "log"){
-            ret <- (sprintf("(rxTBS(rx_pred_, rx_lambda_, rx_yj_))^2 * exp(%s)", theta.est))
+            ret <- (sprintf("(rx_pred_f_)^2 * exp(%s)", theta.est))
         } else {
-            ret <- (sprintf("(rxTBS(rx_pred_, rx_lambda_, rx_yj_))^2 * %s", theta.est))
+            ret <- (sprintf("(rx_pred_f_)^2 * %s", theta.est))
         }
         tmp <- rxErrEnv.diag.est;
         tmp[sprintf("THETA[%s]", rxErrEnv.theta)] <- as.numeric(est);
@@ -1349,7 +1349,7 @@ rxParsePk <- function(x, init=NULL){
 ##' @keywords internal
 ##' @export
 rxParsePred <- function(x, init=NULL){
-    return(gsub(rex::rex("rx_pred_ = ",capture(anything), ";"), "rx_pred_ = rxTBS(\\1, rx_lambda_, rx_yj_)", rxParseErr(x, ret="rx_pred_", init=init)));
+    return(gsub(rex::rex("rx_pred_ = ",capture(anything), ";"), "rx_pred_f_~\\1;\nrx_pred_ = rxTBS(\\1, rx_lambda_, rx_yj_)", rxParseErr(x, ret="rx_pred_", init=init)));
 }
 ##' Prepare Error function for inclusion in RxODE
 ##'
