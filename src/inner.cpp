@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <Rmath.h>
 #include <RcppArmadillo.h>
 #define NETAs 20
 #define NTHETAs 20
@@ -193,6 +194,7 @@ typedef struct {
   double initObjective;
   // Confidence Interval
   double ci;
+  double sigdig;
 } focei_options;
 
 focei_options op_focei;
@@ -798,11 +800,11 @@ static inline double foceiLik0(double *theta){
 static inline double foceiOfv0(double *theta){
   double ret = -2*foceiLik0(theta);
   if (op_focei.scaleObjective == 1){
-    op_focei.initObjective=ret;
+    op_focei.initObjective=fabs(ret);
     op_focei.scaleObjective=2;
   }
   if (op_focei.scaleObjective == 2){
-    ret = ret / op_focei.initObjective * op_focei.scaleTo;
+    ret = ret / op_focei.initObjective * op_focei.scaleObjectiveTo;
   }
   if (!op_focei.calcGrad) op_focei.lastOfv = ret;
   return ret;
@@ -1324,6 +1326,7 @@ NumericVector foceiSetup_(const RObject &obj,
     op_focei.scaleObjective=1;
   }
   op_focei.ci=0.95;
+  op_focei.sigdig=as<double>(odeO["sigdig"]);
   return ret;
 }
 
@@ -1370,7 +1373,7 @@ void foceiOuterFinal(double *x, Environment e){
   e["omegaR"] = wrap(cor); 
   e["etaObf"] = foceiEtas();
   if (op_focei.scaleObjective){
-    fmin = fmin * op_focei.initObjective / op_focei.scaleTo;
+    fmin = fmin * op_focei.initObjective / op_focei.scaleObjectiveTo;
   }
   e["objective"] = fmin;
   NumericVector logLik(1);
@@ -1678,11 +1681,11 @@ void foceiFinalizeTables(Environment e){
     }
   }
   e["se"] = se;
-  List parDf = List::create(_["Estimate"]=thetaDf["theta"], _["SE"]=se, 
-                            _["%RSE"]=cv);
-  parDf.attr("class") = "data.frame";
-  parDf.attr("row.names") = IntegerVector::create(NA_INTEGER,-theta.size());
-  e["parDf"] = parDf;
+  List fixedDf = List::create(_["Estimate"]=thetaDf["theta"], _["SE"]=se, 
+			      _["%RSE"]=cv);
+  fixedDf.attr("class") = "data.frame";
+  fixedDf.attr("row.names") = IntegerVector::create(NA_INTEGER,-theta.size());
+  e["fixedDf"] = fixedDf;
   
   e["fixef"]=thetaDf["theta"];
   List etas = e["etaObf"];
@@ -1766,38 +1769,76 @@ Environment foceiFitCpp_(Environment e){
   tmpL.attr("row.names") = thetaNames;
   e["theta"] = tmpL;
 
-  tmpL=e["parDf"];
+  tmpL=e["fixedDf"];
   // Add a few columns
   IntegerVector logTheta=  as<IntegerVector>(model["log.thetas"]);
   NumericVector Estimate = tmpL["Estimate"];
   NumericVector SE = tmpL["SE"];
+  NumericVector RSE = tmpL["%RSE"];
   NumericVector EstBT(Estimate.size());
   NumericVector EstLower(Estimate.size());
   NumericVector EstUpper(Estimate.size());
+
+  CharacterVector EstS(Estimate.size());
+  CharacterVector SeS(Estimate.size());
+  CharacterVector rseS(Estimate.size());
+  CharacterVector btCi(Estimate.size());
   // LogicalVector EstBT(Estimate.size());
   // Rf_pt(stat[7],(double)n1,1,0)
   int j = logTheta.size()-1;
   double qn= Rf_qnorm5(1.0-(1-op_focei.ci)/2, 0.0, 1.0, 1, 0);
+  std::string cur;
+  char buff[100];
   for (i = Estimate.size(); i--;){
+    snprintf(buff, sizeof(buff), "%.*g", (int)op_focei.sigdig, Estimate[i]);
+    EstS[i]=buff;
     if (j >= 0 && logTheta[j]-1==i){
+      EstBT[i] = exp(Estimate[i]);
+      snprintf(buff, sizeof(buff), "%.*g", (int)op_focei.sigdig, EstBT[i]);
+      cur = buff;
       if (ISNA(SE[i])){
         EstLower[i] = NA_REAL;
         EstUpper[i] = NA_REAL;
+        SeS[i] = "";
+        rseS[i]="";
       } else {
 	EstLower[i] = exp(Estimate[i]-SE[i]*qn);
         EstUpper[i] = exp(Estimate[i]+SE[i]*qn);
+        snprintf(buff, sizeof(buff), "%.*g", (int)op_focei.sigdig, SE[i]);
+        SeS[i]=buff;
+        snprintf(buff, sizeof(buff), "%.*g", (int)op_focei.sigdig, RSE[i]);
+        rseS[i]=buff;
+        snprintf(buff, sizeof(buff), "%.*g", (int)op_focei.sigdig, EstLower[i]);
+	cur = cur + " (" + buff + ", ";
+        snprintf(buff, sizeof(buff), "%.*g", (int)op_focei.sigdig, EstUpper[i]);  
+	cur = cur + buff + ")";
       }
-      EstBT[i] = exp(Estimate[i]);
+      btCi[i] = cur;
       j--;
     } else {
+      EstBT[i]= Estimate[i];
+      snprintf(buff, sizeof(buff), "%.*g", (int)op_focei.sigdig, Estimate[i]);
+      EstS[i]=buff;
+      snprintf(buff, sizeof(buff), "%.*g", (int)op_focei.sigdig, EstBT[i]);
+      cur = buff;
       if (ISNA(SE[i])){
         EstLower[i] = NA_REAL;
         EstUpper[i] = NA_REAL;
+        SeS[i] = "";
+        rseS[i]="";
       } else {
         EstLower[i] = Estimate[i]-SE[i]*qn;
         EstUpper[i] = Estimate[i]+SE[i]*qn;
+        snprintf(buff, sizeof(buff), "%.*g", (int)op_focei.sigdig, SE[i]);
+        SeS[i]=buff;
+        snprintf(buff, sizeof(buff), "%.*g", (int)op_focei.sigdig, RSE[i]);
+        rseS[i]=buff;
+        snprintf(buff, sizeof(buff), "%.*g", (int)op_focei.sigdig, EstLower[i]);
+        cur = cur + " (" + buff + ", ";
+        snprintf(buff, sizeof(buff), "%.*g", (int)op_focei.sigdig, EstUpper[i]);  
+        cur = cur + buff + ")";
       }
-      EstBT[i]= Estimate[i];
+      btCi[i] = cur;
     }
   }
   tmpL["Back-transformed"] = EstBT;
@@ -1805,7 +1846,16 @@ Environment foceiFitCpp_(Environment e){
   tmpL["CI Upper"] = EstUpper;
   tmpL.attr("row.names") = thetaNames;
   tmpL.attr("class") = "data.frame";
-  e["parDf"]=tmpL;
+  e["fixedDf"]=tmpL;
+  
+  List fixedDfSig = List::create(_["Est."]=EstS, 
+				 _["SE"]=SeS, 
+				 _["%RSE"]=rseS,
+				 _["Back-transformed(CI)"]=btCi);
+  fixedDfSig.attr("row.names") = thetaNames;
+  fixedDfSig.attr("class") = "data.frame";
+  e["fixedDfSig"]=fixedDfSig;
+
 
   NumericVector tmpNV = e["fixef"];
   tmpNV.names() = thetaNames;
