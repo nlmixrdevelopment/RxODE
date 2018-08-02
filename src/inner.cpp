@@ -48,6 +48,7 @@ extern "C"{
   double powerL(double x, double lambda, int yj);
   double powerDL(double x, double lambda, int yj);
   double powerDD(double x, double lambda, int yj);
+  int par_progress(int c, int n, int d, int cores, clock_t t0, int stop);
 }
 
 Function getRxFn(std::string name);
@@ -195,6 +196,11 @@ typedef struct {
   // Confidence Interval
   double ci;
   double sigdig;
+  //
+  clock_t t0;
+  int cur;
+  int curTick;
+  int totTick;
 } focei_options;
 
 focei_options op_focei;
@@ -1465,6 +1471,7 @@ Environment foceiOuter(Environment e){
 // Covariance functions
 
 void foceiCalcH(Environment e){
+  rx = getRxSolve_();
   arma::mat H(op_focei.npars, op_focei.npars);
   arma::vec dpar(op_focei.npars);
   unsigned int i, j, k;
@@ -1479,8 +1486,12 @@ void foceiCalcH(Environment e){
     eps = dpar[i]*op_focei.rEps + op_focei.aEps;
     dpar[i] = dpar[i]+eps;
     numericGrad(dpar.begin(), df1.begin());
+    op_focei.cur++;
+    op_focei.curTick = par_progress(op_focei.cur, op_focei.totTick, op_focei.curTick, rx->op->cores, op_focei.t0, 0);
     dpar[i] = dpar[i]-2*eps;
     numericGrad(dpar.begin(), df2.begin());
+    op_focei.cur++;
+    op_focei.curTick = par_progress(op_focei.cur, op_focei.totTick, op_focei.curTick, rx->op->cores, op_focei.t0, 0);
     dpar[i] = dpar[i] + eps;
     for (j = op_focei.npars; j--;){
       H(i, j) = (df1[j]-df2[j])/(2*eps);
@@ -1492,6 +1503,7 @@ void foceiCalcH(Environment e){
 
 // Necessary for S-matrix calculation
 arma::mat foceiS(double *theta){
+  rx = getRxSolve_();
   op_focei.calcGrad=1;
   rx = getRxSolve_();
   int npars = op_focei.npars;
@@ -1541,6 +1553,8 @@ arma::mat foceiS(double *theta){
       }
     }
     theta[cpar] = cur;
+    op_focei.cur++;
+    op_focei.curTick = par_progress(op_focei.cur, op_focei.totTick, op_focei.curTick, rx->op->cores, op_focei.t0, 0);
   }
   op_focei.calcGrad=0;
   // Now calculate S matrix
@@ -1556,6 +1570,8 @@ arma::mat foceiS(double *theta){
 //[[Rcpp::export]]
 NumericMatrix foceiCalcCov(Environment e){
   if (op_focei.covMethod){
+    op_focei.t0 = clock();
+    rx = getRxSolve_();
     Rprintf("Calculating covariance matrix\n");
     // Fix THETAs before running gradient functions for Hessian/S matrix
     // Run Hessian on rescaled problem
@@ -1579,7 +1595,14 @@ NumericMatrix foceiCalcCov(Environment e){
     op_focei.derivMethod = op_focei.covDerivMethod;
 
     arma::mat Rinv;
-
+    if (op_focei.covMethod == 1){
+      // Rinv * S *Rinv
+      op_focei.totTick = 1 + 3*op_focei.npars;
+    } else if (op_focei.covMethod == 2){
+      op_focei.totTick = 1 + 2*op_focei.npars;
+    } else if (op_focei.covMethod == 3){
+      op_focei.totTick = 1 + op_focei.npars;
+    }
     if (op_focei.covMethod == 1 || op_focei.covMethod == 2){
       // R matrix based covariance
       foceiCalcH(e);
@@ -1590,6 +1613,8 @@ NumericMatrix foceiCalcCov(Environment e){
         Rprintf("Warning: Hessian (R) matrix seems singular; Using pseudo-inverse\n");
         Rinv = pinv(R);
       }
+      op_focei.cur++;
+      op_focei.curTick = par_progress(op_focei.cur, op_focei.totTick, op_focei.curTick, rx->op->cores, op_focei.t0, 0);
       e["Rinv"] = wrap(Rinv);
       e["covR"] = wrap(2*Rinv);
       if (op_focei.covMethod == 2){
@@ -1616,9 +1641,13 @@ NumericMatrix foceiCalcCov(Environment e){
           Rprintf("Warning: S matrix seems singular; Using pseudo-inverse\n");
           Sinv = pinv(S);
         }
+        op_focei.cur++;
+        op_focei.curTick = par_progress(op_focei.cur, op_focei.totTick, op_focei.curTick, rx->op->cores, op_focei.t0, 0);
         e["cov"]= 4 * Sinv;
       }
     }
+    op_focei.cur++;
+    op_focei.curTick = par_progress(op_focei.cur, op_focei.totTick, op_focei.curTick, rx->op->cores, op_focei.t0, 1);
     return e["cov"];
   } else {
     NumericMatrix ret;
@@ -1716,7 +1745,11 @@ Environment foceiFitCpp_(Environment e){
 	      as<NumericVector>(e["thetaIni"]), e["thetaFixed"], e["skipCov"],
               as<RObject>(e["rxInv"]), e["lower"], e["upper"], e["etaMat"],
               e["control"]);
-  e["setupTime"] = as<double>(e["setupTime"])+(((double)(clock() - t0))/CLOCKS_PER_SEC);
+  if (e.exists("setupTime")){
+    e["setupTime"] = as<double>(e["setupTime"])+(((double)(clock() - t0))/CLOCKS_PER_SEC);
+  } else {
+    e["setupTime"] = (((double)(clock() - t0))/CLOCKS_PER_SEC);
+  }
   t0 = clock();
   foceiOuter(e);
   e["optimTime"] = (((double)(clock() - t0))/CLOCKS_PER_SEC);
@@ -1928,7 +1961,7 @@ Environment foceiFitCpp_(Environment e){
   timeDf.attr("class") = "data.frame";
   timeDf.attr("row.names") = "";
   rxSolveFree();
-  e.attr("class") = "foceiFitCore";
+  e.attr("class") = "nlmixrFitCore";
   e["time"] = timeDf;
   Rprintf("done\n");
   return e;
