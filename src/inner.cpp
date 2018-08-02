@@ -1556,6 +1556,7 @@ arma::mat foceiS(double *theta){
 //[[Rcpp::export]]
 NumericMatrix foceiCalcCov(Environment e){
   if (op_focei.covMethod){
+    Rprintf("Calculating covariance matrix\n");
     // Fix THETAs before running gradient functions for Hessian/S matrix
     // Run Hessian on rescaled problem
     NumericVector fullT = e["fullTheta"];
@@ -1905,7 +1906,7 @@ Environment foceiFitCpp_(Environment e){
   List objDf;
   if (e.exists("conditionNumber")){
     objDf = List::create(_["OBJF"] = as<double>(e["objective"]), _["AIC"]=as<double>(e["AIC"]), 
-			      _["BIC"] = as<double>(e["BIC"]), _["Log-likelihood"]=-as<double>(e["objective"])/2, 
+			 _["BIC"] = as<double>(e["BIC"]), _["Log-likelihood"]=-as<double>(e["objective"])/2, 
 			      _["Condition Number"]=as<double>(e["conditionNumber"]));
   } else {
     objDf = List::create(_["OBJF"] = as<double>(e["objective"]), _["AIC"]=as<double>(e["AIC"]), 

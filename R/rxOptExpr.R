@@ -127,12 +127,15 @@ rxOptExpr <- function(x){
     .exprs <- names(.rxOptEnv$.list)[order(nchar(names(.rxOptEnv$.list)))];
     .exprs <- .exprs[regexpr(rex::rex(start, regNum, end), .exprs, perl=TRUE) == -1]
     .exprs <- .exprs[regexpr(rex::rex(start, or("THETA[", "ETA["), any_numbers, "]", end), .exprs, perl=TRUE) == -1]
-
-    for (i in seq(1, length(.exprs) - 1)){
-        .exprs[-seq(1, i)] <- gsub(rex::rex(.exprs[i]), sprintf("rx_expr_%03d", i), .exprs[-seq(1, i)])
+    if (length(.exprs) > 0){
+        for (i in seq(1, length(.exprs) - 1)){
+            .exprs[-seq(1, i)] <- gsub(rex::rex(.exprs[i]), sprintf("rx_expr_%03d", i), .exprs[-seq(1, i)])
+        }
+        .rxOptEnv$.rep <- setNames(as.list(sprintf("rx_expr_%03d", seq_along(.exprs))), .exprs)
+        .ret <- c(paste(sprintf("rx_expr_%03d ~", seq_along(.exprs)), .exprs),
+                  sapply(.lines, .f))
+        return(paste(.ret, collapse="\n"))
+    } else {
+        return(x)
     }
-    .rxOptEnv$.rep <- setNames(as.list(sprintf("rx_expr_%03d", seq_along(.exprs))), .exprs)
-    .ret <- c(paste(sprintf("rx_expr_%03d ~", seq_along(.exprs)), .exprs),
-              sapply(.lines, .f))
-    return(paste(.ret, collapse="\n"))
 }

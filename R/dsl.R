@@ -1422,7 +1422,6 @@ rxParsePred <- function(x, init=NULL){
             .yj <- rxErrEnv.yj
         }
         .ret <- sprintf("rx_yj_~%s;\nrx_lambda_~%s;\n", .yj, .lambda);
-        print(.ret);
         return(.ret);
     } else {
         return("");
