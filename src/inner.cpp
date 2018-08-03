@@ -1345,6 +1345,47 @@ NumericVector foceiSetup_(const RObject &obj,
 
 ////////////////////////////////////////////////////////////////////////////////
 // Outer finalize
+
+//' Setup nlmixr solved object environment
+//'
+//' @param e Environment to setup
+//' @param fmin minimum value of the objective function.
+//'
+//' @keywords internal
+//' @export
+//[[Rcpp::export]]
+LogicalVector nlmixrEnvSetup(Environment e, double fmin){
+  if (e.exists("theta") && rxIs(e["theta"], "data.frame") &&
+      e.exists("omega") && rxIs(e["omega"], "matrix") &&
+      e.exists("etaObf") && rxIs(e["etaObf"], "data.frame")){
+    arma::mat omega = as<arma::mat>(e["omega"]);
+    arma::mat D(omega.n_rows,omega.n_rows,fill::zeros);
+    arma::mat cor(omega.n_rows,omega.n_rows);
+    D.diag() = (sqrt(omega.diag()));
+    arma::vec sd=D.diag();
+    D = inv_sympd(D);
+    cor = D * omega * D;
+    cor.diag()= sd;
+    e["omegaR"] = wrap(cor); 
+    if (op_focei.scaleObjective){
+      fmin = fmin * op_focei.initObjective / op_focei.scaleObjectiveTo;
+    }
+    e["objective"] = fmin;
+    NumericVector logLik(1);
+    logLik[0]=-fmin/2;
+    logLik.attr("df") = op_focei.npars;
+    logLik.attr("nobs") = rx->nobs;
+    logLik.attr("class") = "logLik";
+    e["logLik"] = logLik;
+    e["nobs"] = rx->nobs;
+    e["AIC"] = fmin+2*op_focei.npars;
+    e["BIC"] = fmin + log(rx->nobs)*op_focei.npars;
+    return true;
+  } else {
+    return false;
+  }
+}
+
 void foceiOuterFinal(double *x, Environment e){
   double fmin = foceiOfv0(x);
   
@@ -1374,30 +1415,8 @@ void foceiOuterFinal(double *x, Environment e){
 				 _["fixed"]=thetaFixed);
   e["fullTheta"] = fullTheta;
   e["omega"] = getOmega();
-  // omegaR
-  arma::mat omega = as<arma::mat>(e["omega"]);
-  arma::mat D(omega.n_rows,omega.n_rows,fill::zeros);
-  arma::mat cor(omega.n_rows,omega.n_rows);
-  D.diag() = (sqrt(omega.diag()));
-  arma::vec sd=D.diag();
-  D = inv_sympd(D);
-  cor = D * omega * D;
-  cor.diag()= sd;
-  e["omegaR"] = wrap(cor); 
   e["etaObf"] = foceiEtas();
-  if (op_focei.scaleObjective){
-    fmin = fmin * op_focei.initObjective / op_focei.scaleObjectiveTo;
-  }
-  e["objective"] = fmin;
-  NumericVector logLik(1);
-  logLik[0]=-fmin/2;
-  logLik.attr("df") = op_focei.npars;
-  logLik.attr("nobs") = rx->nobs;
-  logLik.attr("class") = "logLik";
-  e["logLik"] = logLik;
-  e["nobs"] = rx->nobs;
-  e["AIC"] = fmin+2*op_focei.npars;
-  e["BIC"] = fmin + log(rx->nobs)*op_focei.npars;
+  nlmixrEnvSetup(e, fmin);
 }
 
 static inline void foceiPrintLine(){
@@ -1719,8 +1738,10 @@ NumericMatrix foceiCalcCov(Environment e){
   }
 }
 
-void foceiFinalizeTables(Environment e){
+LogicalVector rxSolveFree();
 
+void foceiFinalizeTables(Environment e){
+  CharacterVector thetaNames=as<CharacterVector>(e["thetaNames"]);
   arma::mat cov;
   bool covExists = e.exists("cov");
   if (covExists){
@@ -1786,76 +1807,7 @@ void foceiFinalizeTables(Environment e){
   IntegerVector idx = seq_len(etas.length())-1;
   etas = etas[idx != etas.length()-1];
   e["ranef"]=etas;
-}
 
-
-////////////////////////////////////////////////////////////////////////////////
-// FOCEi fit
-LogicalVector rxSolveFree();
-
-//' Fit/Evaulate FOCEi 
-//'
-//' This shouldn't be called directly.
-//'
-//' @param e Enviornment 
-//'
-//' @keywords internal
-//' @export
-//[[Rcpp::export]]
-Environment foceiFitCpp_(Environment e){
-  clock_t t0 = clock();
-  List model = e["model"];
-  foceiSetup_(as<RObject>(model["inner"]), as<RObject>(e["dataSav"]), 
-	      as<NumericVector>(e["thetaIni"]), e["thetaFixed"], e["skipCov"],
-              as<RObject>(e["rxInv"]), e["lower"], e["upper"], e["etaMat"],
-              e["control"]);
-  if (e.exists("setupTime")){
-    e["setupTime"] = as<double>(e["setupTime"])+(((double)(clock() - t0))/CLOCKS_PER_SEC);
-  } else {
-    e["setupTime"] = (((double)(clock() - t0))/CLOCKS_PER_SEC);
-  }
-  t0 = clock();
-  CharacterVector thetaNames=as<CharacterVector>(e["thetaNames"]);
-  IntegerVector logTheta=  as<IntegerVector>(model["log.thetas"]);
-  int j;
-  // Setup which paramteres are transformed
-  for (unsigned int k = op_focei.npars; k--;){
-    j=op_focei.fixedTrans[k];
-    op_focei.xPar[k] = 0;
-    for (unsigned int m=logTheta.size(); m--;){
-      if (logTheta[m]-1 == j){
-	op_focei.xPar[k] = 1;
-	break;
-      }
-    }
-  }
-  std::string tmpS;
-  if (op_focei.maxOuterIterations > 0){
-    Rprintf("\033[1mKey:\033[0m ");
-    if (op_focei.scaleTo > 0){
-      Rprintf("U: Unscaled Parameters; ");
-    }
-    Rprintf("X: Back-transformed parameters; ");
-    Rprintf("G: Gradient\n");
-    foceiPrintLine();
-    Rprintf("|    #| Objective Fun |");
-    for (unsigned int i = 0; i < (unsigned int)(op_focei.npars); i++){
-      if (i < thetaNames.size()){
-        tmpS = thetaNames[i];
-        Rprintf("%#10s |", tmpS.c_str());
-      } else {
-        Rprintf("           |");
-      }
-    }
-    Rprintf("\n");
-    foceiPrintLine();
-  }
-  foceiOuter(e);
-  e["optimTime"] = (((double)(clock() - t0))/CLOCKS_PER_SEC);
-  t0 = clock();
-  foceiCalcCov(e);
-  foceiFinalizeTables(e);
-  
   // Now put names on the objects
   ////////////////////////////////////////////////////////////////////////////////
   // Eta Names
@@ -1918,6 +1870,12 @@ Environment foceiFitCpp_(Environment e){
   CharacterVector btCi(Estimate.size());
   // LogicalVector EstBT(Estimate.size());
   // Rf_pt(stat[7],(double)n1,1,0)
+  // FIXME figure out log thetas outside of foceisetup.
+  IntegerVector logTheta;
+  if (e.exists("model")){
+    List model = e["model"];
+    logTheta =  as<IntegerVector>(model["log.thetas"]);
+  }
   j = logTheta.size()-1;
   double qn= Rf_qnorm5(1.0-(1-op_focei.ci)/2, 0.0, 1.0, 1, 0);
   std::string cur;
@@ -1935,16 +1893,16 @@ Environment foceiFitCpp_(Environment e){
         SeS[i] = "";
         rseS[i]="";
       } else {
-	EstLower[i] = exp(Estimate[i]-SE[i]*qn);
+        EstLower[i] = exp(Estimate[i]-SE[i]*qn);
         EstUpper[i] = exp(Estimate[i]+SE[i]*qn);
         snprintf(buff, sizeof(buff), "%.*g", (int)op_focei.sigdig, SE[i]);
         SeS[i]=buff;
         snprintf(buff, sizeof(buff), "%.*g", (int)op_focei.sigdig, RSE[i]);
         rseS[i]=buff;
         snprintf(buff, sizeof(buff), "%.*g", (int)op_focei.sigdig, EstLower[i]);
-	cur = cur + " (" + buff + ", ";
+        cur = cur + " (" + buff + ", ";
         snprintf(buff, sizeof(buff), "%.*g", (int)op_focei.sigdig, EstUpper[i]);  
-	cur = cur + buff + ")";
+        cur = cur + buff + ")";
       }
       btCi[i] = cur;
       j--;
@@ -1982,9 +1940,9 @@ Environment foceiFitCpp_(Environment e){
   e["popDf"]=tmpL;
   std::string bt = "Back-transformed(" + std::to_string((int)(op_focei.ci*100)) + "%CI)";
   List popDfSig = List::create(_["Est."]=EstS, 
-			       _["SE"]=SeS, 
-			       _["%RSE"]=rseS,
-			       _[bt]=btCi);
+                               _["SE"]=SeS, 
+                               _["%RSE"]=rseS,
+                               _[bt]=btCi);
   popDfSig.attr("row.names") = thetaNames;
   popDfSig.attr("class") = "data.frame";
   e["popDfSig"]=popDfSig;
@@ -2037,30 +1995,102 @@ Environment foceiFitCpp_(Environment e){
   List objDf;
   if (e.exists("conditionNumber")){
     objDf = List::create(_["OBJF"] = as<double>(e["objective"]), _["AIC"]=as<double>(e["AIC"]), 
-			 _["BIC"] = as<double>(e["BIC"]), _["Log-likelihood"]=-as<double>(e["objective"])/2, 
-			      _["Condition Number"]=as<double>(e["conditionNumber"]));
+                         _["BIC"] = as<double>(e["BIC"]), _["Log-likelihood"]=-as<double>(e["objective"])/2, 
+                         _["Condition Number"]=as<double>(e["conditionNumber"]));
   } else {
     objDf = List::create(_["OBJF"] = as<double>(e["objective"]), _["AIC"]=as<double>(e["AIC"]), 
-                              _["BIC"] = as<double>(e["BIC"]), _["Log-likelihood"]=-as<double>(e["objective"])/2);
+                         _["BIC"] = as<double>(e["BIC"]), _["Log-likelihood"]=-as<double>(e["objective"])/2);
   }
   objDf.attr("row.names") = CharacterVector::create("");
   objDf.attr("class") = "data.frame";
   e["objDf"]=objDf;
-  e["covTime"] = (((double)(clock() - t0))/CLOCKS_PER_SEC);
   if (!e.exists("method")){
     e["method"] = "FOCEi";
   }
   if (!e.exists("extra")){
     e["extra"] = "";
   }
-  List timeDf = List::create(_["setup"]=as<double>(e["setupTime"]),
-			     _["optimize"]=as<double>(e["optimTime"]),
-			     _["covariance"]=as<double>(e["covTime"]));
-  timeDf.attr("class") = "data.frame";
-  timeDf.attr("row.names") = "";
   rxSolveFree();
   e.attr("class") = "nlmixrFitCore";
-  e["time"] = timeDf;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// FOCEi fit
+
+
+
+//' Fit/Evaulate FOCEi 
+//'
+//' This shouldn't be called directly.
+//'
+//' @param e Enviornment 
+//'
+//' @keywords internal
+//' @export
+//[[Rcpp::export]]
+Environment foceiFitCpp_(Environment e){
+  if (!e.exists("noLik")){
+    clock_t t0 = clock();
+    List model = e["model"];
+    foceiSetup_(as<RObject>(model["inner"]), as<RObject>(e["dataSav"]), 
+		as<NumericVector>(e["thetaIni"]), e["thetaFixed"], e["skipCov"],
+		as<RObject>(e["rxInv"]), e["lower"], e["upper"], e["etaMat"],
+		e["control"]);
+    if (e.exists("setupTime")){
+      e["setupTime"] = as<double>(e["setupTime"])+(((double)(clock() - t0))/CLOCKS_PER_SEC);
+    } else {
+      e["setupTime"] = (((double)(clock() - t0))/CLOCKS_PER_SEC);
+    }
+    t0 = clock();
+    CharacterVector thetaNames=as<CharacterVector>(e["thetaNames"]);
+    IntegerVector logTheta=  as<IntegerVector>(model["log.thetas"]);
+    int j;
+    // Setup which paramteres are transformed
+    for (unsigned int k = op_focei.npars; k--;){
+      j=op_focei.fixedTrans[k];
+      op_focei.xPar[k] = 0;
+      for (unsigned int m=logTheta.size(); m--;){
+	if (logTheta[m]-1 == j){
+	  op_focei.xPar[k] = 1;
+	  break;
+	}
+      }
+    }
+    std::string tmpS;
+    if (op_focei.maxOuterIterations > 0){
+      Rprintf("\033[1mKey:\033[0m ");
+      if (op_focei.scaleTo > 0){
+	Rprintf("U: Unscaled Parameters; ");
+      }
+      Rprintf("X: Back-transformed parameters; ");
+      Rprintf("G: Gradient\n");
+      foceiPrintLine();
+      Rprintf("|    #| Objective Fun |");
+      for (unsigned int i = 0; i < (unsigned int)(op_focei.npars); i++){
+	if (i < thetaNames.size()){
+	  tmpS = thetaNames[i];
+	  Rprintf("%#10s |", tmpS.c_str());
+	} else {
+	  Rprintf("           |");
+	}
+      }
+      Rprintf("\n");
+      foceiPrintLine();
+    }
+    foceiOuter(e);
+    e["optimTime"] = (((double)(clock() - t0))/CLOCKS_PER_SEC);
+    t0 = clock();
+    foceiCalcCov(e);
+    e["covTime"] = (((double)(clock() - t0))/CLOCKS_PER_SEC);
+    List timeDf = List::create(_["setup"]=as<double>(e["setupTime"]),
+                               _["optimize"]=as<double>(e["optimTime"]),
+                               _["covariance"]=as<double>(e["covTime"]));
+    timeDf.attr("class") = "data.frame";
+    timeDf.attr("row.names") = "";
+    e["time"] = timeDf;
+  }
+  foceiFinalizeTables(e);
   if (op_focei.maxOuterIterations){
     Rprintf("done\n");
   }
