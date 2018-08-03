@@ -1629,30 +1629,31 @@ arma::mat foceiS(double *theta){
 
 //[[Rcpp::export]]
 NumericMatrix foceiCalcCov(Environment e){
+  rx = getRxSolve_();
+  // Fix THETAs before running gradient functions for Hessian/S matrix
+  // Run Hessian on rescaled problem
+  NumericVector fullT = e["fullTheta"];
+  NumericVector fullT2(op_focei.thetan);
+  std::copy(fullT.begin(), fullT.begin()+fullT2.size(), fullT2.begin());
+  LogicalVector skipCov(op_focei.thetan+op_focei.omegan);//skipCovN
+  if (op_focei.skipCovN == 0){
+    std::fill_n(skipCov.begin(), op_focei.thetan, false);
+    std::fill_n(skipCov.begin()+op_focei.thetan, skipCov.size() - op_focei.thetan, true);
+  } else {
+    std::copy(&op_focei.skipCov[0],&op_focei.skipCov[0]+op_focei.skipCovN,skipCov.begin());
+    std::fill_n(skipCov.begin()+op_focei.skipCovN,skipCov.size()-op_focei.skipCovN,true);
+
+  }
+  e["skipCov"] = skipCov;
+  foceiSetupTheta_(op_focei.mvi, fullT2, skipCov, 0.0, false);
+  
   if (op_focei.covMethod){
     op_focei.t0 = clock();
     op_focei.totTick=0;
     op_focei.cur=0;
     op_focei.curTick=0;
-    rx = getRxSolve_();
     Rprintf("Calculating covariance matrix\n");
-    // Fix THETAs before running gradient functions for Hessian/S matrix
-    // Run Hessian on rescaled problem
-    NumericVector fullT = e["fullTheta"];
-    NumericVector fullT2(op_focei.thetan);
-    std::copy(fullT.begin(), fullT.begin()+fullT2.size(), fullT2.begin());
-    LogicalVector skipCov(op_focei.thetan+op_focei.omegan);//skipCovN
-    if (op_focei.skipCovN == 0){
-      std::fill_n(skipCov.begin(), op_focei.thetan, false);
-      std::fill_n(skipCov.begin()+op_focei.thetan, skipCov.size() - op_focei.thetan, true);
-    } else {
-      std::copy(&op_focei.skipCov[0],&op_focei.skipCov[0]+op_focei.skipCovN,skipCov.begin());
-      std::fill_n(skipCov.begin()+op_focei.skipCovN,skipCov.size()-op_focei.skipCovN,true);
-
-    }
-    e["skipCov"] = skipCov;
-    foceiSetupTheta_(op_focei.mvi, fullT2, skipCov, 0.0, false);
-
+    
     // Change options to covariance options
     op_focei.scaleObjective = 0;
     op_focei.derivMethod = op_focei.covDerivMethod;
@@ -1829,24 +1830,26 @@ Environment foceiFitCpp_(Environment e){
     }
   }
   std::string tmpS;
-  Rprintf("\033[1mKey:\033[0m ");
-  if (op_focei.scaleTo > 0){
-    Rprintf("U: Unscaled Parameters; ");
-  }
-  Rprintf("X: Back-transformed parameters; ");
-  Rprintf("G: Gradient\n");
-  foceiPrintLine();
-  Rprintf("|    #| Objective Fun |");
-  for (unsigned int i = 0; i < (unsigned int)(op_focei.npars); i++){
-    if (i < thetaNames.size()){
-      tmpS = thetaNames[i];
-      Rprintf("%#10s |", tmpS.c_str());
-    } else {
-      Rprintf("           |");
+  if (op_focei.maxOuterIterations > 0){
+    Rprintf("\033[1mKey:\033[0m ");
+    if (op_focei.scaleTo > 0){
+      Rprintf("U: Unscaled Parameters; ");
     }
+    Rprintf("X: Back-transformed parameters; ");
+    Rprintf("G: Gradient\n");
+    foceiPrintLine();
+    Rprintf("|    #| Objective Fun |");
+    for (unsigned int i = 0; i < (unsigned int)(op_focei.npars); i++){
+      if (i < thetaNames.size()){
+        tmpS = thetaNames[i];
+        Rprintf("%#10s |", tmpS.c_str());
+      } else {
+        Rprintf("           |");
+      }
+    }
+    Rprintf("\n");
+    foceiPrintLine();
   }
-  Rprintf("\n");
-  foceiPrintLine();
   foceiOuter(e);
   e["optimTime"] = (((double)(clock() - t0))/CLOCKS_PER_SEC);
   t0 = clock();
@@ -2058,7 +2061,9 @@ Environment foceiFitCpp_(Environment e){
   rxSolveFree();
   e.attr("class") = "nlmixrFitCore";
   e["time"] = timeDf;
-  Rprintf("done\n");
+  if (op_focei.maxOuterIterations){
+    Rprintf("done\n");
+  }
   return e;
 }
 
