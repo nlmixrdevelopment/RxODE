@@ -142,6 +142,7 @@ typedef struct {
 
   int calcGrad;
   int nF;
+  int nG;
   int derivMethod;
   int covDerivMethod;
   int covMethod;
@@ -151,6 +152,7 @@ typedef struct {
   double *theta;
   double *thetaGrad;
   double *initPar;
+  int *xPar;
   NumericVector lowerIn;
   double *lower;
   NumericVector upperIn;
@@ -201,6 +203,7 @@ typedef struct {
   int cur;
   int curTick;
   int totTick;
+  int useColor;
 } focei_options;
 
 focei_options op_focei;
@@ -222,12 +225,14 @@ void foceiThetaN(unsigned int n){
     Free(op_focei.theta);
     Free(op_focei.fullTheta);
     Free(op_focei.initPar);
+    Free(op_focei.xPar);
     Free(op_focei.fixedTrans);
     op_focei.fullTheta   = Calloc(cur, double);
     op_focei.thetaTrans  = Calloc(cur, int);
     op_focei.fixedTrans  = Calloc(cur, int);
     op_focei.theta       = Calloc(cur, double);
     op_focei.initPar     = Calloc(cur, double);
+    op_focei.xPar        = Calloc(cur, int);
     op_focei.thetaTransN = cur;
   }
 }
@@ -335,6 +340,7 @@ extern "C" void rxOptionsFreeFocei(){
   Free(op_focei.theta);
   Free(op_focei.fullTheta);
   Free(op_focei.initPar);
+  Free(op_focei.xPar);
   Free(op_focei.fixedTrans);
   op_focei.thetaTransN=0;
   Free(op_focei.etaTrans);
@@ -1333,6 +1339,7 @@ NumericVector foceiSetup_(const RObject &obj,
   }
   op_focei.ci=0.95;
   op_focei.sigdig=as<double>(odeO["sigdig"]);
+  op_focei.useColor=as<int>(odeO["useColor"]);
   return ret;
 }
 
@@ -1393,23 +1400,76 @@ void foceiOuterFinal(double *x, Environment e){
   e["BIC"] = fmin + log(rx->nobs)*op_focei.npars;
 }
 
+static inline void foceiPrintLine(){
+  Rprintf("|-----+---------------+");
+  for (unsigned int i = 0; i < (unsigned int)(op_focei.npars); i++){
+    if (i == (unsigned int)(op_focei.npars-1))
+      Rprintf("-----------|");
+    else 
+      Rprintf("-----------+");
+  }
+  Rprintf("\n");
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // Outer l-BFGS-b from R
 extern "C" double foceiOfvOptim(int n, double *x, void *ex){
   double ret = foceiOfv0(x);
   op_focei.nF++;
   if (op_focei.printOuter != 0 && op_focei.nF % op_focei.printOuter == 0){
-    Rprintf("%3d:%#14.8g:", op_focei.nF, ret);
+    if (op_focei.useColor)
+      Rprintf("|\033[1m%5d\033[0m|%#14.8g |", op_focei.nF, ret);
+    else 
+      Rprintf("|%5d|%#14.8g |", op_focei.nF, ret);
     for (int i = 0; i < n; i++){
-      Rprintf(" %#10g", x[i]);
+      Rprintf("%#10.4g |", x[i]);
+    }
+    if (op_focei.scaleTo > 0){
+      Rprintf("\n|    U|%14.8g |", op_focei.initObjective * ret / op_focei.scaleObjectiveTo);
+      for (int i = 0; i < n; i++){
+        Rprintf("%#10.4g |", x[i]*op_focei.initPar[i]/op_focei.scaleTo);
+      }
+      if (op_focei.useColor)
+	Rprintf("\n|    X|\033[1m%14.8g\033[0m |", op_focei.initObjective * ret / op_focei.scaleObjectiveTo);
+      else 
+	Rprintf("\n|    X|%14.8g |", op_focei.initObjective * ret / op_focei.scaleObjectiveTo);
+      for (int i = 0; i < n; i++){
+	if (op_focei.xPar[i]){
+          Rprintf("%#10.4g |", exp(x[i]*op_focei.initPar[i]/op_focei.scaleTo));
+        } else {
+          Rprintf("%#10.4g |", x[i]*op_focei.initPar[i]/op_focei.scaleTo);
+	}
+      }
+    } else {
+      if (op_focei.useColor)
+	Rprintf("\n|    X|\033[1m%14.8g \033[0m|", op_focei.initObjective * ret / op_focei.scaleObjectiveTo);
+      else 
+        Rprintf("\n|    X|%14.8g |", op_focei.initObjective * ret / op_focei.scaleObjectiveTo);
+      for (int i = 0; i < n; i++){
+        if (op_focei.xPar[i]){
+          Rprintf("%#10.4g |", exp(x[i]));
+        } else {
+          Rprintf("%#10.4g |", x[i]);
+        }
+      }
     }
     Rprintf("\n");
+    // foceiPrintLine();
   }
   return ret;
 }
 
 extern "C" void outerGradNumOptim(int n, double *par, double *gr, void *ex){
   numericGrad(par, gr);
+  op_focei.nG++;
+  if (op_focei.printOuter != 0 && op_focei.nG % op_focei.printOuter == 0){
+    Rprintf("|    G|               |");
+    for (int i = 0; i < n; i++){
+      Rprintf("%#10.4g |", gr[i]);
+    }
+    Rprintf("\n");
+    foceiPrintLine();
+  }
 }
 
 void foceiLbfgsb(Environment e){
@@ -1443,6 +1503,7 @@ void foceiLbfgsb(Environment e){
 //[[Rcpp::export]]
 Environment foceiOuter(Environment e){
   op_focei.nF=0;
+  op_focei.nG=0;
   if (op_focei.maxOuterIterations > 0){
     if (op_focei.outerOpt == 0){
       foceiLbfgsb(e);
@@ -1469,7 +1530,6 @@ Environment foceiOuter(Environment e){
 
 ////////////////////////////////////////////////////////////////////////////////
 // Covariance functions
-
 void foceiCalcH(Environment e){
   rx = getRxSolve_();
   arma::mat H(op_focei.npars, op_focei.npars);
@@ -1571,6 +1631,9 @@ arma::mat foceiS(double *theta){
 NumericMatrix foceiCalcCov(Environment e){
   if (op_focei.covMethod){
     op_focei.t0 = clock();
+    op_focei.totTick=0;
+    op_focei.cur=0;
+    op_focei.curTick=0;
     rx = getRxSolve_();
     Rprintf("Calculating covariance matrix\n");
     // Fix THETAs before running gradient functions for Hessian/S matrix
@@ -1751,6 +1814,39 @@ Environment foceiFitCpp_(Environment e){
     e["setupTime"] = (((double)(clock() - t0))/CLOCKS_PER_SEC);
   }
   t0 = clock();
+  CharacterVector thetaNames=as<CharacterVector>(e["thetaNames"]);
+  IntegerVector logTheta=  as<IntegerVector>(model["log.thetas"]);
+  int j;
+  // Setup which paramteres are transformed
+  for (unsigned int k = op_focei.npars; k--;){
+    j=op_focei.fixedTrans[k];
+    op_focei.xPar[k] = 0;
+    for (unsigned int m=logTheta.size(); m--;){
+      if (logTheta[m]-1 == j){
+	op_focei.xPar[k] = 1;
+	break;
+      }
+    }
+  }
+  std::string tmpS;
+  Rprintf("\033[1mKey:\033[0m ");
+  if (op_focei.scaleTo > 0){
+    Rprintf("U: Unscaled Parameters; ");
+  }
+  Rprintf("X: Back-transformed parameters; ");
+  Rprintf("G: Gradient\n");
+  foceiPrintLine();
+  Rprintf("|    #| Objective Fun |");
+  for (unsigned int i = 0; i < (unsigned int)(op_focei.npars); i++){
+    if (i < thetaNames.size()){
+      tmpS = thetaNames[i];
+      Rprintf("%#10s |", tmpS.c_str());
+    } else {
+      Rprintf("           |");
+    }
+  }
+  Rprintf("\n");
+  foceiPrintLine();
   foceiOuter(e);
   e["optimTime"] = (((double)(clock() - t0))/CLOCKS_PER_SEC);
   t0 = clock();
@@ -1798,14 +1894,14 @@ Environment foceiFitCpp_(Environment e){
   D = inv_sympd(D);
   cor = D * omega * D;
   cor.diag()= sd;
-  CharacterVector thetaNames=as<CharacterVector>(e["thetaNames"]);
+  
   tmpL = as<List>(e["theta"]);
   tmpL.attr("row.names") = thetaNames;
   e["theta"] = tmpL;
 
   tmpL=e["popDf"];
   // Add a few columns
-  IntegerVector logTheta=  as<IntegerVector>(model["log.thetas"]);
+  
   NumericVector Estimate = tmpL["Estimate"];
   NumericVector SE = tmpL["SE"];
   NumericVector RSE = tmpL["%RSE"];
@@ -1819,7 +1915,7 @@ Environment foceiFitCpp_(Environment e){
   CharacterVector btCi(Estimate.size());
   // LogicalVector EstBT(Estimate.size());
   // Rf_pt(stat[7],(double)n1,1,0)
-  int j = logTheta.size()-1;
+  j = logTheta.size()-1;
   double qn= Rf_qnorm5(1.0-(1-op_focei.ci)/2, 0.0, 1.0, 1, 0);
   std::string cur;
   char buff[100];
@@ -1881,16 +1977,15 @@ Environment foceiFitCpp_(Environment e){
   tmpL.attr("row.names") = thetaNames;
   tmpL.attr("class") = "data.frame";
   e["popDf"]=tmpL;
-  
+  std::string bt = "Back-transformed(" + std::to_string((int)(op_focei.ci*100)) + "%CI)";
   List popDfSig = List::create(_["Est."]=EstS, 
-				 _["SE"]=SeS, 
-				 _["%RSE"]=rseS,
-				 _["Back-transformed(CI)"]=btCi);
+			       _["SE"]=SeS, 
+			       _["%RSE"]=rseS,
+			       _[bt]=btCi);
   popDfSig.attr("row.names") = thetaNames;
   popDfSig.attr("class") = "data.frame";
   e["popDfSig"]=popDfSig;
-
-
+  
   NumericVector tmpNV = e["fixef"];
   tmpNV.names() = thetaNames;
   e["fixef"] = tmpNV;
