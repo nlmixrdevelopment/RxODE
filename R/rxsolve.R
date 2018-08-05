@@ -262,7 +262,7 @@ rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, scal
                     theta = NULL, eta = NULL, addDosing=FALSE, updateObject=FALSE, doSolve=TRUE,
                     omega = NULL, omegaDf = NULL, omegaIsChol = FALSE,
                     nSub = 1L, thetaMat = NULL, thetaDf = NULL, thetaIsChol = FALSE,
-                    nStud = 1L, dfSub=0.0, dfObs=0.0, returnType=c("rxSolve", "matrix", "data.frame"),
+                    nStud = 1L, dfSub=0.0, dfObs=0.0, returnType=c("rxSolve", "matrix", "data.frame", "data.frame.TBS"),
                     seed=NULL, nsim=NULL, setupOnly=FALSE){
     .xtra <- list(...);
     if (is.null(transitAbs) && !is.null(.xtra$transit_abs)){
@@ -524,11 +524,10 @@ rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, scal
             method <- match.arg(method);
         }
     }
+    .matrixIdx <- c("rxSolve"=0, "matrix"=1, "data.frame"=2, "data.frame.TBS"=3);
     if (!missing(returnType)){
-        .matrixIdx <- c("rxSolve"=0, "matrix"=1, "data.frame"=2);
         matrix <- .matrixIdx[match.arg(returnType)];
     } else if (!is.null(.xtra$return.type)){
-        .matrixIdx <- c("rxSolve"=0, "matrix"=1, "data.frame"=2);
         matrix <- .matrixIdx[.xtra$return.type];
     } else {
         matrix <- as.integer(matrix);

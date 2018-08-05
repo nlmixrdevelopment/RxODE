@@ -5,6 +5,23 @@
 #include <Rmath.h>
 #define X0MIN 1e-5
 
+double powerDi(double x, double lambda, int yj){
+  if (lambda == 1) return x;
+  if (yj == 0){
+    if (lambda == 0.0) return exp(x);
+    return pow(x*lambda,1.0/lambda)-1;
+  } else {
+    if (x >= 0){
+      // log(x+1)= y; exp(y)-1=x
+      if (lambda == 0.0) return expm1(x);
+      return pow(x*lambda+1, 1/lambda)-1;
+    } else {
+      if (lambda == 2.0) return -expm1(-x);
+      return 1 - pow(1 - (2-lambda)*x, 1/(2-lambda));
+    }
+  }
+}
+
 double powerD(double x, double lambda, int yj){
   if (lambda == 1.0) return x;
   if (yj == 0){
@@ -14,10 +31,10 @@ double powerD(double x, double lambda, int yj){
     return (pow(x0, lambda) - 1.0)/lambda;
   } else {
     if (x >= 0){
-      if (lambda == 0.0) return log(x + 1.0);
+      if (lambda == 0.0) return log1p(x);
       return (pow(x + 1.0, lambda) - 1.0)/lambda;
     } else {
-      if (lambda == 2.0) return -log(1.0 - x);
+      if (lambda == 2.0) return -log1p(-x);
       double l2 = 2.0 - lambda;
       return (1.0 - pow(1.0 - x, l2))/l2;
     }
@@ -50,7 +67,7 @@ double powerDDD(double x, double lambda, int yj){
     if (x <= 0) return x0 = X0MIN;
     if (lambda == 0.0) return -1/(x0*x0);
     // pow(x,lambda)/lambda - 1/lambda
-    return pow(x0, lambda-1);
+    return (lambda-1)*pow(x0, lambda-2);
   } else {
     if (x >= 0){
       if (lambda == 0.0) return -1/((x + 1.0)*(x + 1.0));
@@ -71,8 +88,8 @@ double powerL(double x, double lambda, int yj){
     if (x <= 0) x0 = X0MIN;
     return (lambda - 1.0)*log(x0);
   } else {
-    if (x >= 0) return (lambda - 1.0)*log(x+1.0);
-    return (1.0-lambda)*log(1.0-x);
+    if (x >= 0) return (lambda - 1.0)*log1p(x);
+    return (1.0-lambda)*log1p(-x);
   }
   // d = 0.0 for cox box
   // d = 1.0 fo  Yeo- Johnson
@@ -98,8 +115,8 @@ double powerDL(double x, double lambda, int yj){
     if (x <= 0) x0 = X0MIN;
     return log(x0);
   } else {
-    if (x >= 0) return log(x+1.0);
-    return -log(1.0-x);
+    if (x >= 0) return log1p(x);
+    return -log1p(x);
   }
   // d = 0.0 for cox box
   // d = 1.0 fo  Yeo- Johnson

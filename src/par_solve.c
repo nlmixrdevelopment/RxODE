@@ -896,7 +896,7 @@ SEXP rxParamNames(char *ptr);
 extern double *rxGetErrs();
 extern int rxGetErrsNcol();
 
-extern SEXP RxODE_df(int doDose){
+extern SEXP RxODE_df(int doDose, int doTBS){
   rx_solve *rx;
   rx = &rx_global;
   rx_solving_options *op = &op_global;
@@ -941,7 +941,7 @@ extern SEXP RxODE_df(int doDose){
   int csub = 0, evid;
   int nsub = rx->nsub;
   rx_solving_options_ind *ind;
-  SEXP df = PROTECT(allocVector(VECSXP,ncols+nidCols+doseCols)); pro++;
+  SEXP df = PROTECT(allocVector(VECSXP,ncols+nidCols+doseCols+doTBS*2)); pro++;
   for (i = nidCols; i--;){
     SET_VECTOR_ELT(df, i, PROTECT(allocVector(INTSXP, rx->nr))); pro++;
   }
@@ -959,6 +959,9 @@ extern SEXP RxODE_df(int doDose){
     SET_VECTOR_ELT(df, i, PROTECT(allocVector(REALSXP, rx->nr))); pro++;
   }
   for (i = md + sm + doseCols; i < ncols + doseCols+nidCols; i++){
+    SET_VECTOR_ELT(df, i, PROTECT(allocVector(REALSXP, rx->nr))); pro++;
+  }
+  for (i = ncols + doseCols+nidCols; i < ncols + doseCols+nidCols + doTBS*2; i++){
     SET_VECTOR_ELT(df, i, PROTECT(allocVector(REALSXP, rx->nr))); pro++;
   }
   
@@ -1059,6 +1062,15 @@ extern SEXP RxODE_df(int doDose){
 	      jj++;
 	    }
           }
+	  // 
+	  if (doTBS){
+	    dfp = REAL(VECTOR_ELT(df, jj));
+	    dfp[ii] = ind->lambda;
+	    jj++;
+            dfp = REAL(VECTOR_ELT(df, jj));
+            dfp[ii] = ind->yj;
+	    jj++;
+	  }
           ii++;
         }
       }
@@ -1073,7 +1085,7 @@ extern SEXP RxODE_df(int doDose){
   INTEGER(sexp_rownames)[0] = NA_INTEGER;
   INTEGER(sexp_rownames)[1] = -rx->nr;
   setAttrib(df, R_RowNamesSymbol, sexp_rownames);
-  SEXP sexp_colnames = PROTECT(allocVector(STRSXP,ncols+nidCols+doseCols)); pro++;
+  SEXP sexp_colnames = PROTECT(allocVector(STRSXP,ncols+nidCols+doseCols+doTBS*2)); pro++;
   jj = 0;
   if (sm){
     SET_STRING_ELT(sexp_colnames, jj, mkChar("sim.id"));
@@ -1114,6 +1126,12 @@ extern SEXP RxODE_df(int doDose){
   int *par_cov = op->par_cov;
   for (i = 0; i < ncov*add_cov; i++){
     SET_STRING_ELT(sexp_colnames,jj, STRING_ELT(paramNames, par_cov[i]-1));
+    jj++;
+  }
+  if (doTBS){
+    SET_STRING_ELT(sexp_colnames, jj, mkChar("rxLambda"));
+    jj++;
+    SET_STRING_ELT(sexp_colnames, jj, mkChar("rxYj"));
     jj++;
   }
   setAttrib(df, R_NamesSymbol, sexp_colnames);
