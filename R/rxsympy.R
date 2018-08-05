@@ -1445,7 +1445,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                         rxCondition(model, i);
                         rxSymPySetupIf(txt);
                         rxE <- c(rxE,
-                                 sprintf("rx_r_=%s", rxFromSympy(r)))
+                                 sprintf("rx_r_=%s", rxFromSymPy(r)))
                         r <- rxSymPy("rx_r_");
                     }
                 }
@@ -1691,7 +1691,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                     ## Inner should hide compartments
                     mod <- gsub(rex::rex(capture("d/dt(", except_some_of(")"), ")"), "="), "\\1~", rxNorm(mod), perl=TRUE);
                     if (optExpression){
-                        .tmp <- mod;
+                        .tmp <- paste(mod);
                         .tmp <- rxOptExpr(.tmp)
                         mod <- RxODE(.tmp);
                     } else {

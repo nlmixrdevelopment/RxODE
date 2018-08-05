@@ -814,15 +814,6 @@ extern void rxode_assign_rx(rx_solve *rx){
   _globalRx=rx;
 }
 
-extern int nEqP (rx_solve *rx){
-  rx_solving_options *op = &op_global;
-  return op->neq;
-}
-
-extern int nEq (){
-  return nEqP(_globalRx);
-}
-
 extern int rxEvidP(int i, rx_solve *rx, unsigned int id){
   rx_solving_options_ind *ind;
   ind = getRxId(rx, id);
@@ -832,11 +823,6 @@ extern int rxEvidP(int i, rx_solve *rx, unsigned int id){
     error("Trying to access EVID outside of defined events.\n");
   }
 }
-
-extern int rxEvid(int i){
-  return rxEvidP(i, _globalRx, 0);
-}
-
 extern unsigned int nDosesP(rx_solve *rx, unsigned int id){
   rx_solving_options_ind *ind;
   ind = getRxId(rx, id);
@@ -853,28 +839,6 @@ extern unsigned int nDosesP(rx_solve *rx, unsigned int id){
     return ind->ndoses;
   }
 }
-
-extern unsigned int nDoses(){
-  return nDosesP(_globalRx, 0);
-}
-
-extern unsigned int nObsP (rx_solve *rx, unsigned int id){
-  rx_solving_options_ind *ind;
-  ind = getRxId(_globalRx, id);
-  return (unsigned int)(ind->n_all_times - nDosesP(rx, id));
-}
-
-extern unsigned int nObs (){
-  return nObsP(_globalRx, 0);
-}
-
-extern unsigned int nLhsP(rx_solve *rx){
-  rx_solving_options *op = &op_global;
-  return (unsigned int)(op->nlhs);
-}
-extern unsigned int nLhs(){
-  return nLhsP(_globalRx);
-}
 extern double rxLhsP(int i, rx_solve *rx, unsigned int id){
   rx_solving_options_ind *ind;
   ind = getRxId(rx, id);
@@ -886,12 +850,6 @@ extern double rxLhsP(int i, rx_solve *rx, unsigned int id){
   }
   return 0;
 }
-
-extern double rxLhs(int i){
-  return rxLhsP(i, _globalRx, 0);
-}
-
-
 extern void rxCalcLhsP(int i, rx_solve *rx, unsigned int id){
   rx_solving_options_ind *ind;
   ind = getRxId(rx, id);
@@ -905,31 +863,6 @@ extern void rxCalcLhsP(int i, rx_solve *rx, unsigned int id){
     error("LHS cannot be calculated (%dth entry).",i);
   }
 }
-
-void rxCalcLhs(int i){
-  rxCalcLhsP(i, _globalRx, 0);
-}
-extern unsigned int nAllTimesP(rx_solve *rx, unsigned int id){
-  rx_solving_options_ind *ind;
-  ind = getRxId(rx, id);
-  return (unsigned int)(ind->n_all_times);
-}
-
-extern unsigned int nAllTimes(){
-  return nAllTimesP(_globalRx, 0);
-}
-
-
-extern double RxODE_InfusionRateP(int val, rx_solve *rx, unsigned int id){
-  rx_solving_options_ind *ind;
-  ind = getRxId(rx, id);
-  return ind->InfusionRate[val];
-}
-
-extern double RxODE_InfusionRate(int val){
-  return RxODE_InfusionRateP(val, _globalRx, 0);
-}
-
 extern void setExtraCmtP(int xtra, rx_solve *rx){
   rx_solving_options *op = &op_global;
   if (xtra > op->extraCmt){
@@ -939,35 +872,6 @@ extern void setExtraCmtP(int xtra, rx_solve *rx){
 
 void setExtraCmt(int xtra){
   setExtraCmtP(xtra, _globalRx);
-}
-
-double rxDosingTimeP(int i, rx_solve *rx, unsigned int id){
-  if ((unsigned int) i < nDosesP(rx,id)){
-    rx_solving_options_ind *ind;
-    ind = getRxId(rx, id);
-    return ind->all_times[ind->idose[i]];
-  } else {
-    error("Dosing cannot retreived (%dth dose).", i);
-  }
-  return 0;
-}
-double rxDosingTime(int i){
-  return rxDosingTimeP(i, _globalRx, 0);
-}
-
-int rxDosingEvidP(int i, rx_solve *rx, unsigned int id){
-  if ((unsigned int)i < nDosesP(rx, id)){
-    rx_solving_options_ind *ind;
-    ind = getRxId(rx, id);
-    return (ind->evid[ind->idose[i]]);
-  } else {
-    error("Dosing cannot retreived (%dth dose).", i);
-  }
-  return 0;
-}
-
-int rxDosingEvid(int i){
-  return rxDosingEvidP(i, _globalRx, 0);
 }
 
 double rxDoseP(int i, rx_solve *rx, unsigned int id){
@@ -980,7 +884,6 @@ double rxDoseP(int i, rx_solve *rx, unsigned int id){
   }
   return 0;
 }
-
 double rxDose(int i){
   return(rxDoseP(i, _globalRx, 0));
 }
@@ -1337,181 +1240,4 @@ extern void rxSolveOldC(int *neqa,
       calc_lhs(0, timep[i], retp+i*(*neqa), lhsp+i*(*nlhsa));
     }
   }
-}
-
-#define aexists(a, env) if (Rf_findVarInFrame(env, Rf_install(a)) == R_UnboundValue){ error("need '%s' in environment for solving.",a);}
-void RxODE_ode_solve_env(SEXP sexp_rho){
-  if(!isEnvironment(sexp_rho)){
-    error("Calling RxODE_ode_solve_env without an environment...");
-  }
-  int pro = 0, i = 0;
-  aexists("params",sexp_rho);
-  SEXP sexp_theta = PROTECT(findVar(installChar(mkChar("params")),sexp_rho));pro++;
-  aexists("inits",sexp_rho);
-  SEXP sexp_inits = PROTECT(findVar(installChar(mkChar("inits")),sexp_rho)); pro++;
-  aexists("lhs_vars",sexp_rho);
-  SEXP sexp_lhs   = PROTECT(findVar(installChar(mkChar("lhs_vars")),sexp_rho)); pro++;
-  // Events
-  aexists("time",sexp_rho);
-  SEXP sexp_time = PROTECT(findVar(installChar(mkChar("time")),sexp_rho)); pro++;
-  aexists("evid",sexp_rho);
-  SEXP sexp_evid = PROTECT(findVar(installChar(mkChar("evid")),sexp_rho)); pro++;
-  aexists("amt",sexp_rho);
-  SEXP sexp_dose = PROTECT(findVar(installChar(mkChar("amt")),sexp_rho)); pro++;
-  // Covariates
-  aexists("pcov",sexp_rho);
-  SEXP sexp_pcov = PROTECT(findVar(installChar(mkChar("pcov")),sexp_rho)); pro++;
-  aexists("covs",sexp_rho);
-  SEXP sexp_cov = PROTECT(findVar(installChar(mkChar("covs")),sexp_rho)); pro++;
-  aexists("isLocf",sexp_rho);
-  SEXP sexp_locf = PROTECT(findVar(installChar(mkChar("isLocf")),sexp_rho)); pro++;
-  // Solver Options
-  aexists("atol",sexp_rho);
-  SEXP sexp_atol = PROTECT(findVar(installChar(mkChar("atol")),sexp_rho)); pro++;
-  aexists("rtol",sexp_rho);
-  SEXP sexp_rtol = PROTECT(findVar(installChar(mkChar("rtol")),sexp_rho)); pro++;
-  aexists("hmin",sexp_rho);
-  SEXP sexp_hmin = PROTECT(findVar(installChar(mkChar("hmin")),sexp_rho)); pro++;
-  aexists("hmax",sexp_rho);
-  SEXP sexp_hmax = PROTECT(findVar(installChar(mkChar("hmax")),sexp_rho)); pro++;
-  aexists("hini",sexp_rho);
-  SEXP sexp_h0 = PROTECT(findVar(installChar(mkChar("hini")),sexp_rho)); pro++;
-  aexists("maxordn",sexp_rho);
-  SEXP sexp_mxordn = PROTECT(findVar(installChar(mkChar("maxordn")),sexp_rho)); pro++;
-  aexists("maxords",sexp_rho);
-  SEXP sexp_mxords = PROTECT(findVar(installChar(mkChar("maxords")),sexp_rho)); pro++;
-  aexists("maxsteps",sexp_rho);
-  SEXP sexp_mx = PROTECT(findVar(installChar(mkChar("maxsteps")),sexp_rho)); pro++;
-  aexists("stiff",sexp_rho);
-  SEXP sexp_stiff = PROTECT(findVar(installChar(mkChar("stiff")),sexp_rho)); pro++;
-  aexists("transitAbs",sexp_rho);
-  SEXP sexp_transit_abs = PROTECT(findVar(installChar(mkChar("transitAbs")),sexp_rho)); pro++;
-  aexists("rc",sexp_rho);
-  SEXP sexp_rc = PROTECT(findVar(installChar(mkChar("rc")),sexp_rho)); pro++;
-  rx_solve *rx = &rx_global;
-  rx_solving_options *op = &op_global;
-  rx_solving_options_ind *ind = &(rx->subjects[0]);
-  ind->rc=INTEGER(sexp_rc);
-
-  // Let R handle deallocating the solve and lhs expressions; Should disappear with evironment
-  SEXP sexp_solve = PROTECT(allocVector(REALSXP,length(sexp_time)*length(sexp_inits))); pro++;
-  ind->solve = REAL(sexp_solve);
-  /* memset(ind->solve,0,length(sexp_solve)); */
-  for (unsigned int j = length(sexp_solve); j--;) ind->solve[j] = 0.0;
-  SEXP sexp_lhsV = PROTECT(allocVector(REALSXP,length(sexp_time)*length(sexp_lhs))); pro++;
-  ind->lhs = REAL(sexp_lhsV);
-  for (unsigned int j = length(sexp_time)*length(sexp_lhs); j--;) ind->lhs[j] = 0.0;
-  /* memset(ind->lhs,0,); */
-  op->stiff = INTEGER(sexp_stiff)[0];
-  op->do_transit_abs = INTEGER(sexp_transit_abs)[0];
-  op->ATOL = REAL(sexp_atol)[0];
-  op->RTOL= REAL(sexp_rtol)[0];
-  op->mxstep=  INTEGER(sexp_mx)[0];
-  op->HMIN = REAL(sexp_hmin)[0];
-  op->H0 = REAL(sexp_h0)[0];
-  op->MXORDN= INTEGER(sexp_mxordn)[0];
-  op->MXORDS = INTEGER(sexp_mxords)[0];
-  op->par_cov = INTEGER(sexp_pcov);
-  op->is_locf = INTEGER(sexp_locf)[0];
-  ind->HMAX = REAL(sexp_hmax)[0];
-  ind->par_ptr = REAL(sexp_theta);
-  op->inits   = REAL(sexp_inits);
-  ind->dose    = REAL(sexp_dose);
-  /* ind->solve   = retp; */
-  ind->evid    = INTEGER(sexp_evid);
-  ind->ndoses        = -1;
-  ind->all_times     = REAL(sexp_time);
-  ind->n_all_times   = length(sexp_time);
-  ind->idose = gidoseSetup(ind->n_all_times);
-  ind->cov_ptr = REAL(sexp_cov);
-  // Covariates
-  op->do_par_cov    = 1;
-  op->ncov  = length(sexp_pcov);
-  // Solver options
-  op->do_transit_abs = INTEGER(sexp_transit_abs)[0];
-  op->stiff          = INTEGER(sexp_stiff)[0];
-  // LOCF
-  if (op->is_locf == 1){
-    op->f2 = 0.0; //= f=0 
-    op->f1 = 1.0; // = 1-f = 1;
-    op->kind = 0;
-  } else if (op->is_locf == 2) {
-    // NOCB
-    op->f2 = 1.0; //= f=1
-    op->f1 = 0.0;
-    op->kind = 0;
-  } else if (op->is_locf == 3){
-    op->f2 = 0.5; //= f=0.5
-    op->f1 = 0.5;
-    op->kind = 0;
-  } else {
-    // Linear
-    op->f2 = 1.0; //= f=0
-    op->f1 = 0.0;
-    op->kind = 1;
-  }
-  op->nlhs          = length(sexp_lhs);
-  op->neq           = length(sexp_inits);
-  ind->nBadDose = 0;
-  ind->InfusionRate = global_InfusionRate(op->neq);
-  ind->slvr_counter = gslvr_counterSetup(1);
-  ind->dadt_counter = gdadt_counterSetup(1);
-  ind->jac_counter = gjac_counterSetup(1);
-  ind->slvr_counter[0]   = 0;
-  ind->dadt_counter[0]   = 0;
-  ind->jac_counter[0]   = 0;
-  /* memset(ind->InfusionRate, 0.0, op->neq); */
-  for (unsigned int j =op->neq; j--;) ind->InfusionRate[j]=0.0;
-  ind->BadDose = global_BadDose(op->neq);
-  memset(ind->BadDose, 0, op->neq); // int; this is ok.
-  /* rx_solve *rx = rxSingle(mv, stiff, transit_abs, atol, rtol, mx, hmin, h0,  mxordn, */
-  /*                         mxords, 1, length(sexp_pcov), pcov, 1,  locf, */
-  /*                         hmax, theta, dose, solve, lhs, evid, rce, cov, */
-  /*                         length(sexp_time), time); */
-  /* rxode_assign_rx(rx); */
-  _globalRx=rx;
-  rx->op = &op_global;
-  rx->nsub = 1; 
-  rx->nsim = 1;
-  // Start
-  op->scale = global_scale(op->neq);
-  /* memset(op->scale, 1.0, *neqa); */
-  for (unsigned int j = op->neq; j--;) op->scale[j] = 1.0;
-  op->extraCmt = 0;
-  op->hmax2=0;
-  /* double *rtol2, *atol2; */
-  /* op->rtol2 = rtol2; */
-  /* op->atol2 = atol2; */
-  op->cores = 1;
-  op->nDisplayProgress = 100;
-  op->ncoresRV = 1;
-  op->isChol = 0;
-  /* int *svar; */
-  /* op->svar = svar; */
-  op->abort = 0;  
-  // FIXME? modNamePtr?
-  /* op->modNamePtr */
-  rx->subjects = ind;
-  rx->nsub =1;
-  rx->nsim =1;
-  rx->stateIgnore = gsiVSetup(op->neq);
-  memset(rx->stateIgnore, 0, op->neq); // int OK
-  rx->nobs =-1;
-  rx->add_cov =0;
-  rx->matrix =0;
-  /* int i =0; */
-  _globalRx=rx;
-  rx->op = &op_global;
-  /* rxode_assign_rx(rx); */
-  set_solve(rx);
-  par_solve(rx); // Solve without the option of updating residuals.
-  if (op->nlhs) {
-    for (i=0; i<ind->n_all_times; i++){
-      // 0 = first subject; Calc lhs changed...
-      calc_lhs(0, ind->all_times[i], ind->solve+i*(op->neq), ind->lhs+i*(op->nlhs));
-    }
-  }
-  defineVar(install(".lhs"), sexp_lhsV, sexp_rho);
-  defineVar(install(".solve"), sexp_solve, sexp_rho);
-  UNPROTECT(pro);
 }

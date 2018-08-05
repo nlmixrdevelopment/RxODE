@@ -956,7 +956,7 @@ static inline void foceiSetupTrans_(CharacterVector pars){
       }
     }
   }
-  op_focei.nzm = (op_focei.neta+1) * (op_focei.neta + 14) / 2;
+  op_focei.nzm = (op_focei.neta + 1) * (op_focei.neta + 14) / 2;
 }
 
 static inline void foceiSetupTheta_(List mvi,
@@ -1226,7 +1226,7 @@ NumericVector foceiSetup_(const RObject &obj,
   op_focei.nsim=as<int>(odeO["n1qn1nsim"]);
   op_focei.imp=0;
   op_focei.printInner=abs(as<int>(odeO["printInner"]));
-  op_focei.printOuter=abs(as<int>(odeO["printOuter"]));
+  op_focei.printOuter=abs(as<int>(odeO["print"]));
   if (op_focei.printInner > 0){
     rx->op->cores=1;
   }
@@ -1343,17 +1343,6 @@ NumericVector foceiSetup_(const RObject &obj,
   return ret;
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// Outer finalize
-
-//' Setup nlmixr solved object environment
-//'
-//' @param e Environment to setup
-//' @param fmin minimum value of the objective function.
-//'
-//' @keywords internal
-//' @export
-//[[Rcpp::export]]
 LogicalVector nlmixrEnvSetup(Environment e, double fmin){
   if (e.exists("theta") && rxIs(e["theta"], "data.frame") &&
       e.exists("omega") && rxIs(e["omega"], "matrix") &&
@@ -1872,14 +1861,18 @@ void foceiFinalizeTables(Environment e){
   // Rf_pt(stat[7],(double)n1,1,0)
   // FIXME figure out log thetas outside of foceisetup.
   IntegerVector logTheta;
-  if (e.exists("model")){
+  if (e.exists("logThetas")){
+    logTheta =  as<IntegerVector>(e["logThetas"]);
+  } else if (e.exists("model")){
     List model = e["model"];
     logTheta =  as<IntegerVector>(model["log.thetas"]);
-  }
+  } 
   j = logTheta.size()-1;
   double qn= Rf_qnorm5(1.0-(1-op_focei.ci)/2, 0.0, 1.0, 1, 0);
   std::string cur;
   char buff[100];
+  LogicalVector thetaFixed =thetaDf["fixed"];
+  
   for (i = Estimate.size(); i--;){
     snprintf(buff, sizeof(buff), "%.*g", (int)op_focei.sigdig, Estimate[i]);
     EstS[i]=buff;
@@ -1890,8 +1883,13 @@ void foceiFinalizeTables(Environment e){
       if (ISNA(SE[i])){
         EstLower[i] = NA_REAL;
         EstUpper[i] = NA_REAL;
-        SeS[i] = "";
-        rseS[i]="";
+	if (thetaFixed[i]){
+          SeS[i]  = "FIXED";
+          rseS[i] = "FIXED";
+	} else {
+          SeS[i] = "";
+          rseS[i]="";
+        }
       } else {
         EstLower[i] = exp(Estimate[i]-SE[i]*qn);
         EstUpper[i] = exp(Estimate[i]+SE[i]*qn);
@@ -1915,8 +1913,13 @@ void foceiFinalizeTables(Environment e){
       if (ISNA(SE[i])){
         EstLower[i] = NA_REAL;
         EstUpper[i] = NA_REAL;
-        SeS[i] = "";
-        rseS[i]="";
+        if (thetaFixed[i]){
+          SeS[i]  = "FIXED";
+          rseS[i] = "FIXED";
+        } else {
+          SeS[i] = "";
+          rseS[i]="";
+        }
       } else {
         EstLower[i] = Estimate[i]-SE[i]*qn;
         EstUpper[i] = Estimate[i]+SE[i]*qn;
@@ -2044,7 +2047,13 @@ Environment foceiFitCpp_(Environment e){
     }
     t0 = clock();
     CharacterVector thetaNames=as<CharacterVector>(e["thetaNames"]);
-    IntegerVector logTheta=  as<IntegerVector>(model["log.thetas"]);
+    IntegerVector logTheta;
+    if (e.exists("logThetas")){
+      logTheta =  as<IntegerVector>(e["logThetas"]);
+    } else if (e.exists("model")){
+      List model = e["model"];
+      logTheta =  as<IntegerVector>(model["log.thetas"]);
+    } 
     int j;
     // Setup which paramteres are transformed
     for (unsigned int k = op_focei.npars; k--;){
@@ -2067,9 +2076,11 @@ Environment foceiFitCpp_(Environment e){
       Rprintf("G: Gradient\n");
       foceiPrintLine();
       Rprintf("|    #| Objective Fun |");
+      int j;
       for (unsigned int i = 0; i < (unsigned int)(op_focei.npars); i++){
-	if (i < thetaNames.size()){
-	  tmpS = thetaNames[i];
+        j=op_focei.fixedTrans[i];
+        if (j < thetaNames.size()){
+	  tmpS = thetaNames[j];
 	  Rprintf("%#10s |", tmpS.c_str());
 	} else {
 	  Rprintf("           |");

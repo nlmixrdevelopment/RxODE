@@ -474,14 +474,6 @@ rxSymInvCholEnvCalculate <- function(obj, what, theta = NULL) {
     .Call(`_RxODE_rxSymInvCholEnvCalculate`, obj, what, theta)
 }
 
-RxODE_finalize_focei_omega <- function(rho) {
-    invisible(.Call(`_RxODE_RxODE_finalize_focei_omega`, rho))
-}
-
-RxODE_finalize_log_det_OMGAinv_5 <- function(rho) {
-    .Call(`_RxODE_RxODE_finalize_log_det_OMGAinv_5`, rho)
-}
-
 removableDrive <- function(driveRoot) {
     .Call(`_RxODE_removableDrive`, driveRoot)
 }

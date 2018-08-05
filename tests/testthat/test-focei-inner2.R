@@ -1,140 +1,102 @@
-## library(RxODE)
-library(testthat)
+rxPermissive({
 
-#rxPermissive({
-devtools::load_all()
+    context("Wang 2007 -- prop -- Inner Test")
 
-context("Wang 2007 -- prop -- Inner Test")
+    ## Another example (pred  Wang2007)
+    Wang2007 <- structure(list(ID = c(1L, 1L, 2L, 2L, 3L, 3L, 4L, 4L, 5L, 5L, 6L, 6L, 7L, 7L, 8L, 8L, 9L, 9L, 10L, 10L), TIME = c(0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1), DV = c(10.68, 3.6837, 10.402, 6.454, 9.8814, 5.8565, 9.3408, 5.6209, 10.082, 6.7583, 9.8938, 6.5049, 9.8908, 6.9557, 10.234, 6.4488, 9.9882, 6.7112, 9.6736, 6.6402)), class = "data.frame", row.names = c(NA, -20L))
+    Wang2007$EVID <- 0
+    Wang2007$AMT <- NA
 
-## Another example (pred  Wang2007)
-Wang2007 <- structure(list(ID = c(1L, 1L, 2L, 2L, 3L, 3L, 4L, 4L, 5L, 5L, 6L, 6L, 7L, 7L, 8L, 8L, 9L, 9L, 10L, 10L), TIME = c(0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1), DV = c(10.68, 3.6837, 10.402, 6.454, 9.8814, 5.8565, 9.3408, 5.6209, 10.082, 6.7583, 9.8938, 6.5049, 9.8908, 6.9557, 10.234, 6.4488, 9.9882, 6.7112, 9.6736, 6.6402)), class = "data.frame", row.names = c(NA, -20L))
-Wang2007$EVID <- 0
-Wang2007$AMT <- NA
+    dat2 <- Wang2007[Wang2007$TIME == 0, ]
+    dat2$EVID <- 101
+    dat2$AMT <- 10;
+    dat2$DV <- NA;
 
-dat2 <- Wang2007[Wang2007$TIME == 0, ]
-dat2$EVID <- 101
-dat2$AMT <- 10;
-dat2$DV <- NA;
+    dat2 <- rbind(dat2, Wang2007)
+    dat2 <- dat2[(order(dat2$ID, -dat2$EVID, dat2$TIME)), ]
 
-dat2 <- rbind(dat2, Wang2007)
-dat2 <- dat2[(order(dat2$ID, -dat2$EVID, dat2$TIME)), ]
-
-write.table(dat2 %>% select(-EVID), "Wang2007amt.txt", row.names=FALSE, na=".")
-
-
-df <- structure(list(ID = 1:10, ETA1 = c(0.0715450734486005, 0.00570452879884164, 0.02494718484644, 0.0319502378033361, -0.00478736927193241, 0.00397892241288246,  -0.0118035085000642, 0.00588012198219381, -0.00313671906679696,  -0.00066641434061578),
+    df <- structure(list(ID = 1:10, ETA1 = c(0.0715450734486005, 0.00570452879884164, 0.02494718484644, 0.0319502378033361, -0.00478736927193241, 0.00397892241288246,  -0.0118035085000642, 0.00588012198219381, -0.00313671906679696,  -0.00066641434061578),
                      OBJI = c(5.20178380742227, 3.77604874005119, 3.72057773742475, 3.79581329127695, 3.84803907890983, 3.7725678919448, 3.92866450763499, 3.76425408681763, 3.83096377569697, 3.81883716853077)),
                 class = "data.frame", row.names = c(NA, -10L))
 
-ofv <- 39.4575500857102
+    ofv <- 39.4575500857102
 
-inner.pred.prop <- RxODE("rx_pred_=10*exp(-THETA[1]*t*exp(ETA[1]));\nrx__sens_rx_pred__BY_ETA_1___=-10*THETA[1]*t*exp(ETA[1])*exp(-THETA[1]*t*exp(ETA[1]));\nrx_r_=100*Rx_pow_di(THETA[2],2)*exp(-2*THETA[1]*t*exp(ETA[1]));\nrx__sens_rx_r__BY_ETA_1___=-200*THETA[1]*Rx_pow_di(THETA[2],2)*t*exp(ETA[1])*exp(-2*THETA[1]*t*exp(ETA[1]));\n")
+    inner.pred.prop <- RxODE("rx_pred_=10*exp(-THETA[1]*t*exp(ETA[1]));\nrx__sens_rx_pred__BY_ETA_1___=-10*THETA[1]*t*exp(ETA[1])*exp(-THETA[1]*t*exp(ETA[1]));\nrx_r_=100*Rx_pow_di(THETA[2],2)*exp(-2*THETA[1]*t*exp(ETA[1]));\nrx__sens_rx_r__BY_ETA_1___=-200*THETA[1]*Rx_pow_di(THETA[2],2)*t*exp(ETA[1])*exp(-2*THETA[1]*t*exp(ETA[1]));\n")
 
-rxInv <- rxSymInvCholCreate(matrix(c(.04)))
+    rxInv <- rxSymInvCholCreate(matrix(c(.04)))
 
-Wang2007a <- Wang2007[Wang2007$ID == 1, ];
+    Wang2007a <- Wang2007[Wang2007$ID == 1, ];
 
-ini <- RxODE:::.foceiSetup(inner.pred.prop, Wang2007a, c(0.5, sqrt(.1)), etaMat=matrix(0.07154500), rxInv = rxInv,
-                           odeOpt=foceiControl(maxOuterIterations=0, maxInnerIterations=0));
+    .odeOpts <- structure(list(maxOuterIterations = 50000L, maxInnerIterations = 10000L,
+                               method = 2L, transitAbs = NULL, atol = 5e-06, rtol = 5e-06,
+                               maxstepsOde = 5000L, hmin = 0L, hmax = NULL, hini = 0, maxordn = 12L,
+                               maxords = 5L, cores = 4L, covsInterpolation = 0L, n1qn1nsim = 100001L,
+                               printInner = 0L, print = 1L, lbfgsLmm = 40L, lbfgsPgtol = 0,
+                               lbfgsFactr = 45035996273.705, scaleTo = 1, epsilon = 1e-04,
+                               derivEps = c(1e-05, 1e-05), derivMethod = 0L, covDerivMethod = c(central = 1L),
+                               covMethod = c("r,s" = 1L), eigen = 1L, addPosthoc = 1L, diagXform = "sqrt",
+                               sumProd = FALSE, optExpression = TRUE, outerOpt = 0L, ci = 0.95,
+                               sigdig = 4, scaleObjective = 1, useColor = 1L), class = "foceiControl")
+    .odeOpts$maxOuterIterations = 0L
+    .odeOpts$scaleObjective = 0
 
-expect_equal(round(RxODE:::foceiOfv(ini), 3), round(5.20178378955669, 3))
+    ini <- RxODE:::.foceiSetup(inner.pred.prop, Wang2007a, c(0.5, sqrt(.1)), etaMat=matrix(0.07154500), rxInv = rxInv,
+                               control=.odeOpts);
 
-rxSolveFree();
+    expect_equal(round(RxODE:::foceiOfv(ini), 3), round(5.20178378955669, 3))
 
-## Use NONMEM's selected ETAs.
-etaMat <- matrix(c(0.07154500, 0.00570450, 0.02494700, 0.03195000, -0.00478740, 0.00397890, -0.01180400, 0.00588010,
-                   -0.00313670,
-                   -0.00066641), ncol=1)
+    rxSolveFree();
 
-ini <- RxODE:::.foceiSetup(inner.pred.prop, Wang2007, c(0.5, sqrt(.1)), etaMat=etaMat, rxInv = rxInv,
-                           odeOpt=foceiControl(maxOuterIterations=0, maxInnerIterations=0));
+    ## Use NONMEM's selected ETAs.
+    etaMat <- matrix(c(0.07154500, 0.00570450, 0.02494700, 0.03195000, -0.00478740, 0.00397890, -0.01180400, 0.00588010,
+                       -0.00313670,
+                       -0.00066641), ncol=1)
 
-df <- structure(list(ID = 1:10,
-                     ETA1 = c(0.071545, 0.0057045, 0.024947, 0.03195, -0.0047874, 0.0039789, -0.011804, 0.0058801, -0.0031367,  -0.00066641),
-                     OBJI = c(5.20178378955669, 3.77604873381688, 3.72057769601626, 3.79581323733943, 3.84803907238135, 3.77256788710782, 3.92866440452002, 3.76425408205748, 3.83096377975989, 3.8188371694598)),
-                class = "data.frame", row.names = c(NA,  -10L));
+    .odeOpts2 <- .odeOpts;
 
-expect_equal(round(RxODE:::foceiOfv(ini), 3), round(ofv, 3));
-expect_equal(round(RxODE:::foceiEtas(), 3), round(df, 3));
+    .odeOpts2$maxInnerIterations <- 0L;
 
-rxSolveFree();
+    ini <- RxODE:::.foceiSetup(inner.pred.prop, Wang2007, c(0.5, sqrt(.1)), etaMat=etaMat, rxInv = rxInv,
+                               control=.odeOpts2);
 
+    df <- structure(list(ID = 1:10,
+                         "ETA[1]" = c(0.071545, 0.0057045, 0.024947, 0.03195, -0.0047874, 0.0039789, -0.011804, 0.0058801, -0.0031367,  -0.00066641),
+                         OBJI = c(5.20178378955669, 3.77604873381688, 3.72057769601626, 3.79581323733943, 3.84803907238135, 3.77256788710782, 3.92866440452002, 3.76425408205748, 3.83096377975989, 3.8188371694598)),
+                    class = "data.frame", row.names = c(NA,  -10L));
 
-ini <- RxODE:::.foceiSetup(inner.pred.prop, Wang2007, c(0.5, sqrt(.1)), rxInv = rxInv);
+    expect_equal(round(RxODE:::foceiOfv(ini), 3), round(ofv, 3));
+    expect_equal(round(RxODE:::foceiEtas(), 3), round(df, 3));
 
-expect_equal(round(RxODE:::foceiOfv(ini), 3), round(ofv, 3));
-
-
-expect_equal(round(RxODE:::foceiEtas(), 3), round(df, 3));
-
-rxSolveFree();
-
-
-## Now Check Additive
-## if (FALSE){
-
-##     mypar1 = function ()
-##     {
-##         ke = theta[1] * exp(eta[1]);
-##     }
-
-##     mypar2 = function ()
-##     {
-##         k = theta[1] * exp(eta[1]);
-##         v = 1
-##     }
-
-##     mod <- RxODE({
-##         ipre = 10 * exp(-ke * t)
-##     })
-
-##     err3 <- function(f){
-##         return(add(0.1));
-##     }
-
-##     pred <- function() ipre
-
-##     m2b <- rxSymPySetupPred(mod, pred, mypar1, err3)
-
-##     ## From inner.add <- m2b$inner
-
-##     err4 <- function(f){
-##         return(add(.1) + prop(0.2));
-##     }
-
-##     m2b <- rxSymPySetupPred(mod, pred, mypar1, err4)
-
-##     err4 <- function(f){
-##         return(add(.1) + prop(0.2));
-##     }
-
-##     err5 <- function(f){
-##         return(2 * (THETA[2] + THETA[3] * ipre) ^ 2)
-##     }
-
-##     m2b <- rxSymPySetupPred(mod, pred, mypar1, err5)
-
-##     ## add+ prop  = a*e +b*f*e
-##     ## linearized fo on e = a+b*f
-## }
-
-context("Wang 2007 -- add -- Inner Test")
-
-inner.add <- RxODE("rx_pred_=10*exp(-THETA[1]*t*exp(ETA[1]));\nrx__sens_rx_pred__BY_ETA_1___=-10*THETA[1]*t*exp(ETA[1])*exp(-THETA[1]*t*exp(ETA[1]));\nrx_r_=Rx_pow_di(THETA[2],2);\nrx__sens_rx_r__BY_ETA_1___=0;\n")
+    rxSolveFree();
 
 
-ini <- RxODE:::.foceiSetup(inner.add, Wang2007, c(0.5, sqrt(.1)), rxInv = rxInv);
+    ini <- RxODE:::.foceiSetup(inner.pred.prop, Wang2007, c(0.5, sqrt(.1)), rxInv = rxInv,
+                               control=.odeOpts);
 
-ofv <- -2.05879522891223
-df <- structure(list(ID = 1:10, ETA1 = c(0.583231076063623, -0.10164742615365, 0.0538695583777434, 0.113993027748088, -0.182309811413365, -0.11507939655624,  -0.235037475634943, -0.100276674118276, -0.169771301855972, -0.150905282267601),
-                     OBJI = c(11.9606738350415, -1.19254345514792, -2.78878510918067, 1.77277064630383, -2.04088896880191, -2.61087183257036, -1.27355910316162,  -2.2689961915846, -2.24616212916238, -1.37043292064807)),
-                class = "data.frame", row.names = c(NA, -10L));
+    expect_equal(round(RxODE:::foceiOfv(ini), 3), round(ofv, 3));
 
-expect_equal(round(RxODE:::foceiOfv(ini), 3), round(ofv, 3));
 
-expect_equal(round(RxODE:::foceiEtas(), 3), round(df, 3));
+    expect_equal(round(RxODE:::foceiEtas(), 3), round(df, 3));
 
-rxSolveFree();
+    rxSolveFree();
+
+    context("Wang 2007 -- add -- Inner Test")
+
+    inner.add <- RxODE("rx_pred_=10*exp(-THETA[1]*t*exp(ETA[1]));\nrx__sens_rx_pred__BY_ETA_1___=-10*THETA[1]*t*exp(ETA[1])*exp(-THETA[1]*t*exp(ETA[1]));\nrx_r_=Rx_pow_di(THETA[2],2);\nrx__sens_rx_r__BY_ETA_1___=0;\n")
+
+
+    ini <- RxODE:::.foceiSetup(inner.add, Wang2007, c(0.5, sqrt(.1)), rxInv = rxInv, control=.odeOpts2);
+
+    ofv <- -2.05879522891223
+    df <- structure(list(ID = 1:10, ETA1 = c(0.583231076063623, -0.10164742615365, 0.0538695583777434, 0.113993027748088, -0.182309811413365, -0.11507939655624,  -0.235037475634943, -0.100276674118276, -0.169771301855972, -0.150905282267601),
+                         OBJI = c(11.9606738350415, -1.19254345514792, -2.78878510918067, 1.77277064630383, -2.04088896880191, -2.61087183257036, -1.27355910316162,  -2.2689961915846, -2.24616212916238, -1.37043292064807)),
+                    class = "data.frame", row.names = c(NA, -10L));
+
+    expect_equal(round(RxODE:::foceiOfv(ini), 3), round(ofv, 3));
+
+    expect_equal(round(RxODE:::foceiEtas(), 3), round(df, 3));
+
+    rxSolveFree();
 
 context("Wang 2007 -- add+prop -- Inner Test")
 

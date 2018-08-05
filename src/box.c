@@ -96,7 +96,7 @@ double powerDL(double x, double lambda, int yj){
   if (!yj){
     double x0 = x;
     if (x <= 0) x0 = X0MIN;
-    return log(x);
+    return log(x0);
   } else {
     if (x >= 0) return log(x+1.0);
     return -log(1.0-x);
