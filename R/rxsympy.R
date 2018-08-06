@@ -346,7 +346,7 @@ rxSymPyReserved <- memoise::memoise(function(){
     rxSymPyExec("import sympy");
     vars <- rxSymPy("dir(sympy)")
     vars <- eval(parse(text=sprintf("c(%s)", substr(vars, 2, nchar(vars) - 1))));
-    return(vars)
+    return(c(vars, "lambda"))
 })
 
 ##' Add undefined variables to SymPy
@@ -1516,9 +1516,11 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                 if (only.numeric){
                     rxSymPySetup(newmod);
                     tmp <- rxSymPy("rx_pred_");
-                    prd <- gsub(rex::rex("rx_pred_=", except_some_of(";"), ";"), sprintf("rx_pred_=%s;", rxFromSymPy(tmp)),
-                                gsub(rex::rex("rx_pred_f_", "~", except_some_of(";"), ";"), "",
-                                     rxNorm(pred.mod)));
+                    tmp2 <- rxSymPy("rx_lambda_");
+                    prd <- gsub(rex::rex("rx_lambda_", or("=", "~"), except_some_of(";\n"), any_of(";\n")),sprintf("rx_lambda_~%s", rxFromSymPy(tmp2)),
+                                gsub(rex::rex("rx_pred_=", except_some_of(";"), ";"), sprintf("rx_pred_=%s;", rxFromSymPy(tmp)),
+                                     gsub(rex::rex("rx_pred_f_", "~", except_some_of(";"), ";"), "",
+                                          rxNorm(pred.mod))));
                     lines <- c(lines,
                                prd)
                     states <- rxState(newmod);
@@ -1540,11 +1542,13 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                     }
                     newmod <- rxGetModel(rxNorm(newmod));
                     tmp <- rxSymPy("rx_pred_");
+                    tmp2 <- rxSymPy("rx_lambda_");
                     lines <- c(lines,
                                ## Make sure rx_pred_ is not in terms of LHS components.
-                               gsub(rex::rex("rx_pred_f_", "~", except_some_of(";"), ";"), "",
-                                    gsub(rex::rex("rx_pred_=", except_some_of(";"), ";"),
-                                         sprintf("rx_pred_=%s;", rxFromSymPy(tmp)), rxNorm(pred.mod))),
+                               gsub(rex::rex("rx_lambda_", or("=", "~"), except_some_of(";\n")), sprintf("rx_lambda_~%s", rxFromSymPy(tmp2)),
+                                    gsub(rex::rex("rx_pred_f_", "~", except_some_of(";"), ";"), "",
+                                         gsub(rex::rex("rx_pred_=", except_some_of(";"), ";"),
+                                              sprintf("rx_pred_=%s;", rxFromSymPy(tmp)), rxNorm(pred.mod)))),
                                newlines);
                     if (lgl){
                         lines <- c(lines, "}")

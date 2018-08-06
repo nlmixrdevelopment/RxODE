@@ -1254,6 +1254,8 @@ rxErrEnvF$lnorm <- function(est){
         } else {
             ret <- (sprintf("%s", est));
         }
+        assignInMyNamespace("rxErrEnv.lambda", "0");
+        assignInMyNamespace("rxErrEnv.yj", "0");
     } else {
         theta <- sprintf("THETA[%s]", rxErrEnv.theta);
         est <- estN;
@@ -1278,14 +1280,13 @@ rxErrEnvF$lnorm <- function(est){
 rxErrEnvF$dlnorm <- rxErrEnvF$lnorm
 rxErrEnvF$logn <- rxErrEnvF$lnorm
 
-
-rxErrEnvF$tbs <- function(sigma, lambda){
+rxErrEnvF$tbs <- function(est, lambda){
     if (rxErrEnv.ret != "rx_r_"){
-        stop("The lnorm(.) can only be in an error function.")
+        stop("The tbs(.) can only be in an error function.")
     }
     if (!is.null(rxErrEnv.lambda)){
-        if (rxErrEnv.lambda != "0" && rxErrEnv.yj != "0"){
-            stop("The lnorm(.) cannot be used with other data transformations.")
+        if (rxErrEnv.yj != "0" & rxErrEnv.lambda != "0" & rxErrEnv.lambda != "1"){
+            stop("The tbs(.) cannot be used with other data transformations.")
         }
     }
     estN <- suppressWarnings(as.numeric(est));
@@ -1297,6 +1298,8 @@ rxErrEnvF$tbs <- function(sigma, lambda){
         } else {
             ret <- (sprintf("%s", est));
         }
+        assignInMyNamespace("rxErrEnv.lambda", lambda);
+        assignInMyNamespace("rxErrEnv.yj", "0");
     } else {
         theta <- sprintf("THETA[%s]", rxErrEnv.theta);
         est <- estN;
@@ -1310,10 +1313,53 @@ rxErrEnvF$tbs <- function(sigma, lambda){
         }
         tmp <- rxErrEnv.diag.est;
         tmp[sprintf("THETA[%s]", rxErrEnv.theta)] <- as.numeric(est);
+        tmp[sprintf("THETA[%s]", rxErrEnv.theta + 1)] <- as.numeric(lambda);
+        assignInMyNamespace("rxErrEnv.lambda", sprintf("THETA[%s]", rxErrEnv.theta + 1));
         assignInMyNamespace("rxErrEnv.diag.est", tmp);
-        assignInMyNamespace("rxErrEnv.theta", rxErrEnv.theta + 1);
-        assignInMyNamespace("rxErrEnv.lambda", "0");
+        assignInMyNamespace("rxErrEnv.theta", rxErrEnv.theta + 2);
         assignInMyNamespace("rxErrEnv.yj", "0");
+    }
+    return(ret);
+}
+
+rxErrEnvF$tbsYj <- function(est, lambda){
+    if (rxErrEnv.ret != "rx_r_"){
+        stop("The tbsYj(.) can only be in an error function.")
+    }
+    if (!is.null(rxErrEnv.lambda)){
+        if (rxErrEnv.yj != "1" & rxErrEnv.lambda != "0" & rxErrEnv.lambda != "1"){
+            stop("The tbsYj(.) cannot be used with other data transformations.")
+        }
+    }
+    estN <- suppressWarnings(as.numeric(est));
+    if (is.na(estN)){
+        if (rxErrEnv.diag.xform == "sqrt"){
+            ret <- (sprintf("(%s)^2", est))
+        } else if (rxErrEnv.diag.xform == "log"){
+            ret <- (sprintf("exp(%s)", est))
+        } else {
+            ret <- (sprintf("%s", est));
+        }
+        assignInMyNamespace("rxErrEnv.lambda", lambda);
+        assignInMyNamespace("rxErrEnv.yj", "1");
+    } else {
+        theta <- sprintf("THETA[%s]", rxErrEnv.theta);
+        est <- estN;
+        theta.est <- theta;
+        if (rxErrEnv.diag.xform == "sqrt"){
+            ret <- (sprintf("(%s)^2", theta.est))
+        } else if (rxErrEnv.diag.xform == "log"){
+            ret <- (sprintf("exp(%s)", theta.est))
+        } else {
+            ret <- (sprintf("%s", theta.est));
+        }
+        tmp <- rxErrEnv.diag.est;
+        tmp[sprintf("THETA[%s]", rxErrEnv.theta)] <- as.numeric(est);
+        tmp[sprintf("THETA[%s]", rxErrEnv.theta + 1)] <- as.numeric(lambda);
+        assignInMyNamespace("rxErrEnv.lambda", sprintf("THETA[%s]", rxErrEnv.theta + 1));
+        assignInMyNamespace("rxErrEnv.diag.est", tmp);
+        assignInMyNamespace("rxErrEnv.theta", rxErrEnv.theta + 2);
+        assignInMyNamespace("rxErrEnv.yj", "1");
     }
     return(ret);
 }
@@ -1402,6 +1448,41 @@ rxErrEnvF$prop <- function(est){
         tmp[sprintf("THETA[%s]", rxErrEnv.theta)] <- as.numeric(est);
         assignInMyNamespace("rxErrEnv.diag.est", tmp);
         assignInMyNamespace("rxErrEnv.theta", rxErrEnv.theta + 1);
+    }
+    return(ret);
+}
+
+rxErrEnvF$pow <- function(est, pow){
+    if (rxErrEnv.ret != "rx_r_"){
+        stop("The pow(.) can only be in an error function.")
+    }
+    estN <- suppressWarnings(as.numeric(est));
+    if (is.na(estN)){
+        if (rxErrEnv.diag.xform == "sqrt"){
+            ret <- (sprintf("(rx_pred_f_)^(2*%s) * (%s)^2", pow, est))
+        } else if (rxErrEnv.diag.xform == "log"){
+            ret <- (sprintf("(rx_pred_f_)^(2*%s) * exp(%s)", pow, est))
+        } else {
+            ret <- (sprintf("(rx_pred_f_)^(2*%s) * %s", pow, est))
+        }
+    } else {
+        est <- estN
+        ret <- ""
+        theta <- sprintf("THETA[%s]", rxErrEnv.theta);
+        theta2 <- sprintf("THETA[%s]", rxErrEnv.theta + 1);
+        theta.est <- theta;
+        if (rxErrEnv.diag.xform == "sqrt"){
+            ret <- (sprintf("(rx_pred_f_)^(2*%s) * (%s)^2", theta2, theta.est))
+        } else if (rxErrEnv.diag.xform == "log"){
+            ret <- (sprintf("(rx_pred_f_)^(2*%s) * exp(%s)", theta2, theta.est))
+        } else {
+            ret <- (sprintf("(rx_pred_f_)^(2*%s) * %s", theta2, theta.est))
+        }
+        tmp <- rxErrEnv.diag.est;
+        tmp[sprintf("THETA[%s]", rxErrEnv.theta)] <- as.numeric(est);
+        tmp[sprintf("THETA[%s]", rxErrEnv.theta + 1)] <- as.numeric(pow);
+        assignInMyNamespace("rxErrEnv.diag.est", tmp);
+        assignInMyNamespace("rxErrEnv.theta", rxErrEnv.theta + 2);
     }
     return(ret);
 }

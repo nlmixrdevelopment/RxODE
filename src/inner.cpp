@@ -217,10 +217,7 @@ extern "C" void rxOptionsIniFocei(){
 
 void foceiThetaN(unsigned int n){
   if (op_focei.thetaTransN < n){
-    unsigned int cur = op_focei.thetaTransN;
-    while (cur < n){
-      cur += NTHETAs;
-    }
+    unsigned int cur = n;
     Free(op_focei.thetaTrans);
     Free(op_focei.theta);
     Free(op_focei.fullTheta);
@@ -239,10 +236,7 @@ void foceiThetaN(unsigned int n){
 
 void foceiEtaN(unsigned int n){
   if (op_focei.etaTransN < n){
-    unsigned int cur = op_focei.etaTransN;
-    while (cur < n){
-      cur += NETAs;
-    }
+    unsigned int cur = n;
     Free(op_focei.etaTrans);
     op_focei.etaTrans = Calloc(cur, int);
     op_focei.etaTransN=cur;
@@ -251,10 +245,7 @@ void foceiEtaN(unsigned int n){
 
 void foceiGThetaN(unsigned int n){
   if (op_focei.gThetaGTransN < n){
-    unsigned int cur = op_focei.gThetaGTransN;
-    while (cur < n){
-      cur += NSUBs*NTHETAs;
-    }
+    unsigned int cur = n;
     Free(op_focei.gthetaGrad);
     op_focei.gthetaGrad = Calloc(cur, double);
     op_focei.gThetaGTransN=cur;
@@ -263,10 +254,7 @@ void foceiGThetaN(unsigned int n){
 
 void foceiGEtaN(unsigned int n){
   if (op_focei.gEtaGTransN < n){
-    unsigned int cur = op_focei.gEtaGTransN;
-    while (cur < n){
-      cur += NETAs*NSUBs;
-    }
+    unsigned int cur = n;
     Free(op_focei.geta);
     Free(op_focei.goldEta);
     Free(op_focei.gsaveEta);
@@ -288,10 +276,7 @@ void foceiGEtaN(unsigned int n){
 
 void foceiGgZm(unsigned int n){
   if (op_focei.gZmN < n){
-    unsigned int cur = op_focei.gZmN;
-    while (cur < n){
-      cur += (NETAs+1)*(NETAs+14)/2*NSUBs;
-    }
+    unsigned int cur = n;
     Free(op_focei.gZm);
     op_focei.gZm = Calloc(cur, double);
     op_focei.gZmN = cur;
