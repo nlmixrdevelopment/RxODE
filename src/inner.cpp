@@ -1927,10 +1927,18 @@ void foceiFinalizeTables(Environment e){
   tmpL.attr("class") = "data.frame";
   e["popDf"]=tmpL;
   std::string bt = "Back-transformed(" + std::to_string((int)(op_focei.ci*100)) + "%CI)";
-  List popDfSig = List::create(_["Est."]=EstS, 
-                               _["SE"]=SeS, 
-                               _["%RSE"]=rseS,
-                               _[bt]=btCi);
+  
+  List popDfSig;
+  if (e.exists("cov")){
+    popDfSig = List::create(_["Est."]=EstS, 
+                   _["SE"]=SeS, 
+                   _["%RSE"]=rseS,
+                   _[bt]=btCi);
+  } else {
+    popDfSig = List::create(_["Est."]=EstS, 
+			    _["Back-transformed"] = btCi);
+  }
+  
   popDfSig.attr("row.names") = thetaNames;
   popDfSig.attr("class") = "data.frame";
   e["popDfSig"]=popDfSig;
