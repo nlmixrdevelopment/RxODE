@@ -1005,61 +1005,58 @@ rx_globals _globals;
 
 
 extern "C" void rxOptionsIniData(){
-  _globals.gsolve = Calloc(NCMT*NALL,double);
-  _globals.gsolven=NCMT*NALL;
-  _globals.gInfusionRate = Calloc(NCMT,double);
-  _globals.gInfusionRaten=NCMT;
-  _globals.gall_times = Calloc(NALL,double);
-  _globals.gall_timesn=NALL;
-  _globals.gdv = Calloc(NALL,double);
-  _globals.gdvn=NALL;
-  _globals.gamt = Calloc(NDOSES,double);
-  _globals.gamtn=NDOSES;
-  _globals.glhs = Calloc(NPARS,double);
-  _globals.glhsn=NPARS;
-  _globals.gcov = Calloc(NALL*10,double);
-  _globals.gcovn=NALL*10;
-  _globals.ginits = Calloc(NCMT,double);
-  _globals.ginitsn=NCMT;
-  _globals.gscale = Calloc(NCMT,double);
-  _globals.gscalen=NCMT;
-  _globals.gatol2 = Calloc(NCMT,double);
-  _globals.gatol2n=NCMT;
-  _globals.grtol2 = Calloc(NCMT,double);
-  _globals.grtol2n=NCMT;
-  _globals.gpars = Calloc(NPARS,double);
-  _globals.gparsn=NPARS;
+  _globals.gsolve = NULL;//Calloc(NCMT*NALL,double);
+  _globals.gsolven=0;//NCMT*NALL;
+  _globals.gInfusionRate = NULL;//Calloc(NCMT,double);
+  _globals.gInfusionRaten=0;//NCMT;
+  _globals.gall_times = NULL;//Calloc(NALL,double);
+  _globals.gall_timesn=0;//NALL;
+  _globals.gdv = NULL;//Calloc(NALL,double);
+  _globals.gdvn=0;//NALL;
+  _globals.gamt = NULL;//Calloc(NDOSES,double);
+  _globals.gamtn=0;//NDOSES;
+  _globals.glhs = NULL;Calloc(NPARS,double);
+  _globals.glhsn=0;//NPARS;
+  _globals.gcov = NULL;//Calloc(NALL*10,double);
+  _globals.gcovn=0;//NALL*10;
+  _globals.ginits = NULL;//Calloc(NCMT,double);
+  _globals.ginitsn=0;//NCMT;
+  _globals.gscale = NULL;//Calloc(NCMT,double);
+  _globals.gscalen=0;//NCMT;
+  _globals.gatol2 = NULL;//Calloc(NCMT,double);
+  _globals.gatol2n=0;//NCMT;
+  _globals.grtol2 = NULL;//Calloc(NCMT,double);
+  _globals.grtol2n=0;//NCMT;
+  _globals.gpars = NULL;//Calloc(NPARS,double);
+  _globals.gparsn=0;//NPARS;
   //ints
-  _globals.gevid = Calloc(NALL, int);
-  _globals.gevidn = NALL;
-  _globals.gBadDose = Calloc(NCMT, int);
-  _globals.gBadDosen = NCMT;
-  _globals.grc = Calloc(MAXIDS, int);
-  _globals.grcn = MAXIDS;
-  _globals.gidose = Calloc(NALL, int);
-  _globals.gidosen = NALL;
-  _globals.gpar_cov = Calloc(NCMT, int);
-  _globals.gpar_covn = NCMT;
-  _globals.gParPos = Calloc(NCMT, int);
-  _globals.gParPosn = NCMT;
-  _globals.gsvar = Calloc(NPARS, int);
-  _globals.gsvarn = NPARS;
-  _globals.gsiV = Calloc(NCMT, int);
-  _globals.gsiVn = NCMT;
-  _globals.slvr_counter = Calloc(MAXIDS, int);
-  _globals.slvr_countern = MAXIDS;
-  _globals.dadt_counter = Calloc(MAXIDS, int);
-  _globals.dadt_countern = MAXIDS;
-  _globals.jac_counter = Calloc(MAXIDS, int);
-  _globals.jac_countern = MAXIDS;
+  _globals.gevid = NULL;//Calloc(NALL, int);
+  _globals.gevidn = 0;//NALL;
+  _globals.gBadDose = NULL;//Calloc(NCMT, int);
+  _globals.gBadDosen = 0;//NCMT;
+  _globals.grc = NULL;//Calloc(MAXIDS, int);
+  _globals.grcn = 0;//MAXIDS;
+  _globals.gidose = NULL;//Calloc(NALL, int);
+  _globals.gidosen = 0;//NALL;
+  _globals.gpar_cov = NULL;//Calloc(NCMT, int);
+  _globals.gpar_covn = 0;//NCMT;
+  _globals.gParPos = NULL;//Calloc(NCMT, int);
+  _globals.gParPosn = 0;//NCMT;
+  _globals.gsvar = NULL;//Calloc(NPARS, int);
+  _globals.gsvarn = 0;//NPARS;
+  _globals.gsiV = NULL;//Calloc(NCMT, int);
+  _globals.gsiVn = 0;//NCMT;
+  _globals.slvr_counter = NULL;//Calloc(MAXIDS, int);
+  _globals.slvr_countern = 0;//MAXIDS;
+  _globals.dadt_counter = NULL;//Calloc(MAXIDS, int);
+  _globals.dadt_countern = 0;//MAXIDS;
+  _globals.jac_counter = NULL;//Calloc(MAXIDS, int);
+  _globals.jac_countern = 0;//MAXIDS;
 }
 
 void gsolveSetup(int n){
   if (_globals.gsolven < n){
-    int cur = _globals.gsolven;
-    while (cur < n){
-      cur += NCMT*NALL;
-    }
+    int cur = n;
     Free( _globals.gsolve);
     _globals.gsolve = Calloc(cur, double);
     _globals.gsolven=cur;
@@ -1068,10 +1065,7 @@ void gsolveSetup(int n){
 
 void gInfusionRateSetup(int n){
   if (_globals.gInfusionRaten < n){
-    int cur = _globals.gInfusionRaten;
-    while (cur < n){
-      cur += NCMT;
-    }
+    int cur = n;
     Free(_globals.gInfusionRate);
     _globals.gInfusionRate = Calloc(cur, double);
     _globals.gInfusionRaten=cur;
@@ -1080,10 +1074,7 @@ void gInfusionRateSetup(int n){
 
 void gall_timesSetup(int n){
   if (_globals.gall_timesn < n){
-    int cur = _globals.gall_timesn; 
-    while (cur < n){
-      cur += NALL;
-    }
+    int cur = n;
     Free(_globals.gall_times);
     _globals.gall_times = Calloc(cur, double);
     _globals.gall_timesn=cur;
@@ -1092,10 +1083,7 @@ void gall_timesSetup(int n){
 
 void gdvSetup(int n){
   if (_globals.gdvn < n){
-    int cur = _globals.gdvn; 
-    while (cur < n){
-      cur += NALL;
-    }
+    int cur = n;
     Free(_globals.gdv);
     _globals.gdv = Calloc(cur, double);
     _globals.gdvn=cur;
@@ -1104,10 +1092,7 @@ void gdvSetup(int n){
 
 void gamtSetup(int n){
   if (_globals.gamtn < n){
-    int cur = _globals.gamtn;
-    while (cur < n){
-      cur += NDOSES;
-    }
+    int cur = n;
     Free(_globals.gamt);
     _globals.gamt = Calloc(cur, double);
     _globals.gamtn = cur;
@@ -1116,10 +1101,7 @@ void gamtSetup(int n){
 
 void glhsSetup(int n){
   if (_globals.glhsn < n){
-    int cur = _globals.glhsn; 
-    while (cur < n){
-      cur += NPARS;
-    }
+    int cur = n;
     Free(_globals.glhs);
     _globals.glhs = Calloc(cur, double);
     _globals.glhsn =cur;
@@ -1128,10 +1110,7 @@ void glhsSetup(int n){
 
 void gcovSetup(int n){
   if (_globals.gcovn < n){
-    int cur =_globals.gcovn;
-    while (cur < n){
-      cur += NALL*10;
-    }
+    int cur = n;
     Free(_globals.gcov);
     _globals.gcov = Calloc(cur, double);
     _globals.gcovn = cur;
@@ -1140,10 +1119,7 @@ void gcovSetup(int n){
 
 void ginitsSetup(int n){
   if (_globals.ginitsn < n){
-    int cur = _globals.ginitsn;
-    while (cur < n){
-      cur += NCMT;
-    }
+    int cur = n;
     Free(_globals.ginits);
     _globals.ginits = Calloc(cur, double);
     _globals.ginitsn = cur;
@@ -1152,10 +1128,7 @@ void ginitsSetup(int n){
 
 void gscaleSetup(int n){
   if (_globals.gscalen < n){
-    int cur = _globals.gscalen;
-    while (cur < n){
-      _globals.gscalen += NCMT;
-    }
+    int cur = n;
     Free(_globals.gscale);
     _globals.gscale = Calloc(cur, double);
     _globals.gscalen = cur;
@@ -1164,10 +1137,7 @@ void gscaleSetup(int n){
 
 void gatol2Setup(int n){
   if (_globals.gatol2n < n){
-    int cur = _globals.gatol2n;
-    while (cur < n){
-      cur += NCMT;
-    }
+    int cur = n;
     Free(_globals.gatol2);
     _globals.gatol2 = Calloc(cur, double);
     _globals.gatol2n = cur;
@@ -1176,10 +1146,7 @@ void gatol2Setup(int n){
 
 void grtol2Setup(int n){
   if (_globals.grtol2n < n){
-    int cur = _globals.grtol2n;
-    while (cur < n){
-      cur += NCMT;
-    }
+    int cur = n;
     Free(_globals.grtol2);
     _globals.grtol2 = Calloc(cur, double);
     _globals.grtol2n = cur;
@@ -1189,10 +1156,7 @@ void grtol2Setup(int n){
 
 void gparsSetup(int n){
   if (_globals.gparsn < n){
-    int cur = _globals.gparsn;
-    while (cur < n){
-      cur += NPARS;
-    }
+    int cur = n;
     Free(_globals.gpars);
     _globals.gpars = Calloc(cur, double);
     cur = _globals.gparsn;
@@ -1201,10 +1165,7 @@ void gparsSetup(int n){
 
 void gevidSetup(int n){
   if (_globals.gevidn < n){
-    int cur = _globals.gevidn;
-    while (cur < n){
-      cur += NALL;
-    }
+    int cur = n;
     Free(_globals.gevid);
     _globals.gevid = Calloc(cur, int);
     _globals.gevidn  = cur;
@@ -1213,10 +1174,7 @@ void gevidSetup(int n){
 
 void gBadDoseSetup(int n){
   if (_globals.gBadDosen < n){
-    int cur = _globals.gBadDosen;
-    while (cur < n){
-      cur += NCMT;
-    }
+    int cur = n;
     Free(_globals.gBadDose);
     _globals.gBadDose = Calloc(cur, int);
     _globals.gBadDosen  = cur;
@@ -1225,10 +1183,7 @@ void gBadDoseSetup(int n){
 
 void grcSetup(int n){
   if (_globals.grcn < n){
-    int cur = _globals.grcn;
-    while (cur < n){
-      cur += MAXIDS;
-    }
+    int cur = n;
     Free(_globals.grc);
     _globals.grc = Calloc(cur, int);
     _globals.grcn  = cur;
@@ -1237,10 +1192,7 @@ void grcSetup(int n){
 
 extern "C" int *gslvr_counterSetup(int n){
   if (_globals.slvr_countern < n){
-    int cur = _globals.slvr_countern;
-    while (cur < n){
-      cur += MAXIDS;
-    }
+    int cur = n;
     Free(_globals.slvr_counter);
     _globals.slvr_counter = Calloc(cur , int);
     _globals.slvr_countern = cur;
@@ -1250,10 +1202,7 @@ extern "C" int *gslvr_counterSetup(int n){
 
 extern "C" int *gdadt_counterSetup(int n){
   if (_globals.dadt_countern < n){
-    int cur = _globals.dadt_countern;
-    while (cur < n){
-      cur += MAXIDS;
-    }
+    int cur = n;
     Free(_globals.dadt_counter);
     _globals.dadt_counter = Calloc(cur, int);
     _globals.dadt_countern = cur;
@@ -1263,10 +1212,7 @@ extern "C" int *gdadt_counterSetup(int n){
 
 extern "C" int *gjac_counterSetup(int n){
   if (_globals.jac_countern < n){
-    int cur = _globals.jac_countern;
-    while (cur < n){
-      cur += MAXIDS;
-    }
+    int cur = n;
     Free(_globals.jac_counter);
     _globals.jac_counter = Calloc(cur, int);
     _globals.jac_countern = cur;
@@ -1276,10 +1222,7 @@ extern "C" int *gjac_counterSetup(int n){
 
 extern "C" int *gidoseSetup(int n){
   if (_globals.gidosen < n){
-    int cur =_globals.gidosen;
-    while (cur < n){
-      cur += NALL;
-    }
+    int cur = n;
     Free(_globals.gidose);
     _globals.gidose = Calloc(cur, int);
     _globals.gidosen = cur;
@@ -1289,10 +1232,7 @@ extern "C" int *gidoseSetup(int n){
 
 void gpar_covSetup(int n){
   if (_globals.gpar_covn < n){
-    int cur = _globals.gpar_covn;
-    while (cur < n){
-      cur += NCMT;
-    }
+    int cur = n;
     Free(_globals.gpar_cov);
     _globals.gpar_cov = Calloc(cur, int);
     _globals.gpar_covn = cur;
@@ -1301,10 +1241,7 @@ void gpar_covSetup(int n){
 
 void gParPosSetup(int n){
   if (_globals.gParPosn < n){
-    int cur =_globals.gParPosn;
-    while (cur < n){
-      cur += NCMT;
-    }
+    int cur = n;
     Free(_globals.gParPos);
     _globals.gParPos = Calloc(cur, int);
     _globals.gParPosn = cur;
@@ -1313,10 +1250,7 @@ void gParPosSetup(int n){
 
 void gsvarSetup(int n){
   if (_globals.gsvarn < n){
-    int cur =_globals.gsvarn;
-    while (cur < n){
-      cur += NPARS;
-    }
+    int cur = n;
     Free(_globals.gsvar);
     _globals.gsvar = Calloc(cur, int);
     _globals.gsvarn = cur;
@@ -1326,10 +1260,7 @@ void gsvarSetup(int n){
 
 extern "C" int *gsiVSetup(int n){
   if (_globals.gsiVn < n){
-    int cur =_globals.gsiVn;
-    while (cur < n){
-      cur += NCMT;
-    }
+    int cur = n;
     Free(_globals.gsiV);
     _globals.gsiV = Calloc(cur, int);
     _globals.gsiVn = cur;
