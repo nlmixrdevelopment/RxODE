@@ -999,7 +999,7 @@ rxEnv <- function(expr){
     symbol.env <- list2env(symbol.list, parent=rxSymPyFEnv);
 }
 
-exists2 <- function(x, where){
+.exists2 <- function(x, where){
     .nc <- try(nchar(x) < 1000, silent=TRUE);
     if (inherits(.nc, "try-error")) .nc <- FALSE
     if (rxIs(.nc, "logical")) .nc <- FALSE
@@ -1051,7 +1051,7 @@ rxToSymPy <- function(x, envir=parent.frame(1)) {
             addNames <- TRUE;
             txt <- unlist(lapply(txt, function(x){
                 tmp <- sub(rex::rex(any_spaces, end), "", sub(rex::rex(start, any_spaces), "", x[1]))
-                if (exists2(tmp, envir)){
+                if (.exists2(tmp, envir)){
                     res <- rxSymPyReserved()
                     if (any(tmp == res)){
                         var <- paste0("rx_SymPy_Res_", tmp)
@@ -1064,7 +1064,7 @@ rxToSymPy <- function(x, envir=parent.frame(1)) {
                 if (length(x) == 2){
                     vars <<- c(vars, var);
                     tmp <- sub(rex::rex(any_spaces, end), "", sub(rex::rex(start, any_spaces), "", x[2]))
-                    if (exists(tmp, envir)){
+                    if (.exists2(tmp, envir)){
                         res <- rxSymPyReserved()
                         if (any(tmp == res)){
                             eq <- paste0("rx_SymPy_Res_", tmp)
@@ -1142,7 +1142,7 @@ rxFromSymPy <- function(x, envir=parent.frame(1)) {
             }
             txt <- unlist(lapply(txt, function(x){
                 tmp <- sub(rex::rex(any_spaces, end), "", sub(rex::rex(start, any_spaces), "", x[1]))
-                if (exists2(tmp, envir)){
+                if (.exists2(tmp, envir)){
                     var <- sub(rex::rex(start, "rx_SymPy_Res_"), "", tmp)
                 } else {
                     var <- paste0(eval(parse(text=sprintf("RxODE::rxFromSymPy(%s)", tmp)), envir=envir));
@@ -1150,7 +1150,7 @@ rxFromSymPy <- function(x, envir=parent.frame(1)) {
                 if (length(x) == 2){
                     vars <<- c(vars, var);
                     tmp <- sub(rex::rex(any_spaces, end), "", sub(rex::rex(start, any_spaces), "", x[2]))
-                    if (exists2(tmp, envir)){
+                    if (.exists2(tmp, envir)){
                         e1 <- sub(rex::rex(start, "rx_SymPy_Res_"), "", tmp)
                     } else {
                         eq <- paste0(eval(parse(text=sprintf("RxODE::rxFromSymPy(%s)", x[2])), envir=envir));
