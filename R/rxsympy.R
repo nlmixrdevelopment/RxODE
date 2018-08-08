@@ -1672,7 +1672,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                         theta <- RxODE(rxNorm(theta));
                     }
                 }
-                keep <- c(sprintf("d/dt(%s)", ostate), sprintf("%s(0)=", ostate), "rx_pred_=", "rx_r_=");
+                keep <- c(sprintf("d/dt(%s)", ostate), sprintf("%s(0)=", ostate), "rx_pred_=", "rx_r_=", "rx_lambda_", "rx_yj_");
                 pred.only <- strsplit(rxNorm(mod), "\n")[[1]]
                 pred.only <- paste(pred.only[regexpr(rex::rex(start, or(keep)), pred.only) != -1], collapse="\n");
                 keep <- c(sprintf("d/dt(%s)", ostate), sprintf("%s(0)=", ostate));

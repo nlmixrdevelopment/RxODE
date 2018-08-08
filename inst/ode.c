@@ -26,6 +26,7 @@
 #define rx_lambda_ _solveData->subjects[_cSub].lambda
 #define rx_yj_ _solveData->subjects[_cSub].yj
 #define rxTBS(x, lm, yj)  _powerD(x,  lm, (int)(yj))
+#define rxTBSi(x, lm, yj) _powerDi(x,  lm, (int)(yj))
 #define rxTBSd(x, lm, yj) _powerDD(x, lm, (int)(yj))
 #define rxTBSd2(x, lm, yj) _powerDDD(x, lm, (int)(yj))
 
@@ -40,7 +41,7 @@ typedef double (*RxODE_val) (rx_solve *rx, unsigned int id);
 typedef void (*RxODE_assign_ptr)(SEXP);
 typedef void (*RxODE_ode_solver_old_c)(int *neq,double *theta,double *time,int *evid,int *ntime,double *inits,double *dose,double *ret,double *atol,double *rtol,int *stiff,int *transit_abs,int *nlhs,double *lhs,int *rc);
 
-RxODE_fn3i _powerD, _powerDD, _powerDDD;
+RxODE_fn3i _powerD, _powerDD, _powerDDD, _powerDi;
 
 RxODE_assign_ptr _assign_ptr = NULL;
 
@@ -460,6 +461,7 @@ void __R_INIT__ (DllInfo *info){
   _sumType=(RxODE_fn0i)R_GetCCallable("PreciseSums", "PreciseSums_sum_get");
   _ptrid=(RxODE_fn0i)R_GetCCallable("RxODE", "RxODE_current_fn_pointer_id");
   _powerD=(RxODE_fn3i)R_GetCCallable("RxODE", "powerD");
+  _powerDi=(RxODE_fn3i)R_GetCCallable("RxODE", "powerDi");
   _powerDD=(RxODE_fn3i)R_GetCCallable("RxODE", "powerDD");
   _powerDDD=(RxODE_fn3i)R_GetCCallable("RxODE", "powerDDD");
   // Register the outside functions

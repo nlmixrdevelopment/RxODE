@@ -1399,14 +1399,14 @@ rxErrEnvF$pow <- function(est, pow){
     }
     estN <- suppressWarnings(as.numeric(est));
     if (is.na(estN)){
-        ret <- (sprintf("(rx_pred_f_*rx_pred_f_)^(%s) * ((%s)*(%s))^2", pow, est, est))
+        ret <- (sprintf("(rx_pred_f_*rx_pred_f_)^(%s) * (%s)*(%s)", pow, est, est))
     } else {
         est <- estN
         ret <- ""
         theta <- sprintf("THETA[%s]", rxErrEnv.theta);
         theta2 <- sprintf("THETA[%s]", rxErrEnv.theta + 1);
         theta.est <- theta;
-        ret <- (sprintf("(rx_pred_f_*rx_pred_f_)^(%s) * (%s*%s)^2", theta2, theta.est, theta.est))
+        ret <- (sprintf("(rx_pred_f_*rx_pred_f_)^(%s) * (%s*%s)", theta2, theta.est, theta.est))
         tmp <- rxErrEnv.diag.est;
         tmp[sprintf("THETA[%s]", rxErrEnv.theta)] <- as.numeric(est);
         tmp[sprintf("THETA[%s]", rxErrEnv.theta + 1)] <- as.numeric(pow);

@@ -12,7 +12,14 @@ double powerDi(double x, double lambda, int yj){
     if (fabs(lambda) <= eps) return exp(x);
     // (x^lambda-1)/lambda=y
     // (lambda*y+1)^(1/lambda)
-    return pow(x*lambda+1.0, 1.0/lambda);
+    double x0 = x*lambda+1.0;
+    if (x0 <= eps) return eps;
+    double ret = pow(x0, 1.0/lambda);
+    if (ISNA(ret)) {
+      // Warning?
+      return eps;
+    }
+    return ret;
   } else {
     if (fabs(lambda-1.0) <= eps) return x;
     if (x >= 0){

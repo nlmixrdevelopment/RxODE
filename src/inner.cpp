@@ -204,6 +204,7 @@ typedef struct {
   int curTick;
   int totTick;
   int useColor;
+  double boundTol;
 } focei_options;
 
 focei_options op_focei;
@@ -321,31 +322,32 @@ focei_ind *inds_focei = NULL;
 int max_inds_focei = 0;
 
 extern "C" void rxOptionsFreeFocei(){
-  Free(op_focei.thetaTrans);
-  Free(op_focei.theta);
-  Free(op_focei.fullTheta);
-  Free(op_focei.initPar);
-  Free(op_focei.xPar);
-  Free(op_focei.fixedTrans);
+  if (op_focei.thetaTrans != NULL) Free(op_focei.thetaTrans);
+  if (op_focei.theta != NULL) Free(op_focei.theta);
+  if (op_focei.fullTheta != NULL) Free(op_focei.fullTheta);
+  if (op_focei.initPar != NULL) Free(op_focei.initPar);
+  if (op_focei.xPar != NULL) Free(op_focei.xPar);
+  if (op_focei.fixedTrans != NULL) Free(op_focei.fixedTrans);
   op_focei.thetaTransN=0;
-  Free(op_focei.etaTrans);
+  if (op_focei.etaTrans != NULL) Free(op_focei.etaTrans);
   op_focei.etaTransN=0;
-  Free(op_focei.geta);
-  Free(op_focei.goldEta);
-  Free(op_focei.gsaveEta);
-  Free(op_focei.gG);
-  Free(op_focei.gVar);
-  Free(op_focei.gX);
+  if (op_focei.geta != NULL) Free(op_focei.geta);
+  if (op_focei.goldEta != NULL) Free(op_focei.goldEta);
+  if (op_focei.gsaveEta != NULL) Free(op_focei.gsaveEta);
+  if (op_focei.gG != NULL) Free(op_focei.gG);
+  if (op_focei.gVar != NULL) Free(op_focei.gVar);
+  if (op_focei.gX != NULL) Free(op_focei.gX);
   op_focei.gEtaGTransN=0;
-  Free(op_focei.gthetaGrad);
+  if (op_focei.gthetaGrad != NULL) Free(op_focei.gthetaGrad);
   op_focei.gThetaGTransN=0;
-  Free(inds_focei);
+  if (inds_focei != NULL) Free(inds_focei);
   max_inds_focei=0;
-  Free(op_focei.gZm);
+  if (op_focei.gZm != NULL) Free(op_focei.gZm);
   op_focei.gZmN = 0;
-  Free(op_focei.likSav);
+  if (op_focei.likSav != NULL) Free(op_focei.likSav);
+  if (op_focei.skipCovN && op_focei.skipCov != NULL) Free(op_focei.skipCov);
   op_focei.skipCovN = 0;
-  Free(op_focei.skipCov);
+
 }
 
 rx_solve *getRxSolve_();
@@ -1076,13 +1078,13 @@ NumericVector foceiSetup_(const RObject &obj,
   // This fills in op_focei.neta
   List mvi = rxModelVars_(obj);
   op_focei.mvi = mvi;
-  Free(op_focei.skipCov);
+  if (op_focei.skipCov != NULL) Free(op_focei.skipCov);
   if (skipCov.isNull()){
     op_focei.skipCovN = 0;
   } else {
-    LogicalVector skipCov1 = as<LogicalVector>(skipCov);
+    IntegerVector skipCov1 = as<IntegerVector>(skipCov);
     op_focei.skipCovN = skipCov1.size();
-    op_focei.skipCov = Calloc(op_focei.skipCov, int);
+    op_focei.skipCov = Calloc(skipCov1.size(), int);
     std::copy(skipCov1.begin(),skipCov1.end(),op_focei.skipCov);
   }
   foceiSetupTheta_(mvi, theta, thetaFixed, as<double>(odeO["scaleTo"]), true);
@@ -1252,9 +1254,9 @@ NumericVector foceiSetup_(const RObject &obj,
   }
   op_focei.lowerIn =lowerIn;
   op_focei.upperIn =upperIn;
-  Free(op_focei.likSav);
-  Free(op_focei.lower);
-  Free(op_focei.upper);
+  if (op_focei.likSav != NULL) Free(op_focei.likSav);
+  if (op_focei.lower != NULL) Free(op_focei.lower);
+  if (op_focei.upper != NULL) Free(op_focei.upper);
   op_focei.lower = Calloc(op_focei.npars, double);
   op_focei.upper = Calloc(op_focei.npars, double);
   op_focei.nbd   = Calloc(op_focei.npars, int);
@@ -1303,7 +1305,7 @@ NumericVector foceiSetup_(const RObject &obj,
   }
 
   op_focei.calcGrad=0;
-  Free(op_focei.likSav);
+  if (op_focei.likSav != NULL) Free(op_focei.likSav);
   op_focei.likSav = Calloc(rx->nsub, double);
   n1qn1_ = (n1qn1_fp) R_GetCCallable("n1qn1","n1qn1F");
   
@@ -1325,6 +1327,7 @@ NumericVector foceiSetup_(const RObject &obj,
   op_focei.ci=0.95;
   op_focei.sigdig=as<double>(odeO["sigdig"]);
   op_focei.useColor=as<int>(odeO["useColor"]);
+  op_focei.boundTol=as<double>(odeO["boundTol"]);
   return ret;
 }
 
@@ -1623,7 +1626,43 @@ arma::mat foceiS(double *theta){
 //[[Rcpp::export]]
 NumericMatrix foceiCalcCov(Environment e){
   rx = getRxSolve_();
-  // Fix THETAs before running gradient functions for Hessian/S matrix
+  // Check boundaries
+  unsigned int j, k;
+  double cur;
+  bool boundary=false;
+  if (op_focei.boundTol > 0){
+    for (k = op_focei.npars; k--;){
+      if (op_focei.nbd[k] != 0){
+        // bounds
+        j=op_focei.fixedTrans[k];
+        cur = (op_focei.scaleTo > 0) ? (op_focei.fullTheta[j] / op_focei.initPar[k]  *op_focei.scaleTo) : op_focei.fullTheta[j];
+        if (op_focei.nbd[k] == 1){
+          // Lower only
+          if ((cur-op_focei.lower[k])/cur < op_focei.boundTol){
+            boundary = true;
+            break;
+          }
+        } else if (op_focei.nbd[k] == 2){
+          // Upper and lower
+          if ((cur-op_focei.lower[k])/cur < op_focei.boundTol){
+            boundary = true;
+            break;
+          }
+          if ((op_focei.upper[k]-cur)/cur < op_focei.boundTol){
+            boundary = true;
+            break;
+          }
+        } else {
+          // Upper only
+          if ((op_focei.upper[k]-cur)/cur < op_focei.boundTol){
+            boundary = true;
+            break;
+          }
+        }
+      }
+    }
+  }
+  
   // Run Hessian on rescaled problem
   NumericVector fullT = e["fullTheta"];
   NumericVector fullT2(op_focei.thetan);
@@ -1635,12 +1674,12 @@ NumericMatrix foceiCalcCov(Environment e){
   } else {
     std::copy(&op_focei.skipCov[0],&op_focei.skipCov[0]+op_focei.skipCovN,skipCov.begin());
     std::fill_n(skipCov.begin()+op_focei.skipCovN,skipCov.size()-op_focei.skipCovN,true);
-
   }
   e["skipCov"] = skipCov;
+  
   foceiSetupTheta_(op_focei.mvi, fullT2, skipCov, 0.0, false);
   
-  if (op_focei.covMethod){
+  if (op_focei.covMethod && !boundary){
     op_focei.t0 = clock();
     op_focei.totTick=0;
     op_focei.cur=0;
@@ -1662,20 +1701,31 @@ NumericMatrix foceiCalcCov(Environment e){
     }
     if (op_focei.covMethod == 1 || op_focei.covMethod == 2){
       // R matrix based covariance
-      foceiCalcH(e);
+      if (!e.exists("R")){
+	foceiCalcH(e);
+      } else {
+	op_focei.cur += op_focei.npars*2;
+	op_focei.curTick = par_progress(op_focei.cur, op_focei.totTick, op_focei.curTick, rx->op->cores, op_focei.t0, 0);
+      }
       arma::mat R = as<arma::mat>(e["R"]);
-      try{
-        Rinv = inv(R);
-      } catch(...){
-        Rprintf("Warning: Hessian (R) matrix seems singular; Using pseudo-inverse\n");
-        Rinv = pinv(R);
+      if (!e.exists("Rinv")){
+	try{
+	  Rinv = inv(R);
+	} catch(...){
+	  Rprintf("Warning: Hessian (R) matrix seems singular; Using pseudo-inverse\n");
+	  Rinv = pinv(R);
+	}
+	e["Rinv"] = wrap(Rinv);
+      } else {
+	Rinv = as<arma::mat>(e["Rinv"]);
       }
       op_focei.cur++;
       op_focei.curTick = par_progress(op_focei.cur, op_focei.totTick, op_focei.curTick, rx->op->cores, op_focei.t0, 0);
-      e["Rinv"] = wrap(Rinv);
-      e["covR"] = wrap(2*Rinv);
+      if (!e.exists("covR")){
+	e["covR"] = wrap(2*Rinv);
+      }
       if (op_focei.covMethod == 2){
-        e["cov"] = as<NumericMatrix>(e["covR"]);
+	e["cov"] = as<NumericMatrix>(e["covR"]);
       }
     }
     arma::mat S;
@@ -1683,30 +1733,40 @@ NumericMatrix foceiCalcCov(Environment e){
       arma::vec dpar(op_focei.npars);
       unsigned int j, k;
       for (k = op_focei.npars; k--;){
-        j=op_focei.fixedTrans[k];
-        dpar[k] = op_focei.fullTheta[j];
+	j=op_focei.fixedTrans[k];
+	dpar[k] = op_focei.fullTheta[j];
       }
-      S = foceiS(&dpar[0]);
-      e["S"]= wrap(S);
-      if (op_focei.covMethod == 1){
-        e["cov"] = Rinv * S *Rinv;
+      if (!e.exists("S")){
+	S = foceiS(&dpar[0]);
+	e["S"]= wrap(S);
       } else {
-        mat Sinv;
-        try{
-          Sinv = inv(S);
-        } catch(...){
-          Rprintf("Warning: S matrix seems singular; Using pseudo-inverse\n");
-          Sinv = pinv(S);
-        }
-        op_focei.cur++;
-        op_focei.curTick = par_progress(op_focei.cur, op_focei.totTick, op_focei.curTick, rx->op->cores, op_focei.t0, 0);
-        e["cov"]= 4 * Sinv;
+	S = as<arma::mat>(e["S"]);
+	op_focei.cur += op_focei.npars;
+	op_focei.curTick = par_progress(op_focei.cur, op_focei.totTick, op_focei.curTick, rx->op->cores, op_focei.t0, 0);
+      }
+      
+      if (op_focei.covMethod == 1){
+	e["cov"] = Rinv * S *Rinv;
+      } else {
+	mat Sinv;
+	try{
+	  Sinv = inv(S);
+	} catch(...){
+	  Rprintf("Warning: S matrix seems singular; Using pseudo-inverse\n");
+	  Sinv = pinv(S);
+	}
+	op_focei.cur++;
+	op_focei.curTick = par_progress(op_focei.cur, op_focei.totTick, op_focei.curTick, rx->op->cores, op_focei.t0, 0);
+	e["cov"]= 4 * Sinv;
       }
     }
     op_focei.cur++;
     op_focei.curTick = par_progress(op_focei.cur, op_focei.totTick, op_focei.curTick, rx->op->cores, op_focei.t0, 1);
     return e["cov"];
   } else {
+    if (boundary){
+      warning("Parameter estimate near boundary; covariance not caculated. Use getVarCov to calculate anyway.");
+    }
     NumericMatrix ret;
     return ret;
   }
@@ -1878,14 +1938,14 @@ void foceiFinalizeTables(Environment e){
       } else {
         EstLower[i] = exp(Estimate[i]-SE[i]*qn);
         EstUpper[i] = exp(Estimate[i]+SE[i]*qn);
-        snprintf(buff, sizeof(buff), "%.*g", (int)op_focei.sigdig, SE[i]);
+	snprintf(buff, sizeof(buff), "%.*g", (int)op_focei.sigdig, SE[i]);
         SeS[i]=buff;
-        snprintf(buff, sizeof(buff), "%.*g", (int)op_focei.sigdig, RSE[i]);
+	snprintf(buff, sizeof(buff), "%.*g", (int)op_focei.sigdig, RSE[i]);
         rseS[i]=buff;
         snprintf(buff, sizeof(buff), "%.*g", (int)op_focei.sigdig, EstLower[i]);
-        cur = cur + " (" + buff + ", ";
+	cur = cur + " (" + buff + ", ";
         snprintf(buff, sizeof(buff), "%.*g", (int)op_focei.sigdig, EstUpper[i]);  
-        cur = cur + buff + ")";
+	cur = cur + buff + ")";
       }
       btCi[i] = cur;
       j--;
@@ -1908,14 +1968,14 @@ void foceiFinalizeTables(Environment e){
       } else {
         EstLower[i] = Estimate[i]-SE[i]*qn;
         EstUpper[i] = Estimate[i]+SE[i]*qn;
-        snprintf(buff, sizeof(buff), "%.*g", (int)op_focei.sigdig, SE[i]);
+	snprintf(buff, sizeof(buff), "%.*g", (int)op_focei.sigdig, SE[i]);
         SeS[i]=buff;
-        snprintf(buff, sizeof(buff), "%.*g", (int)op_focei.sigdig, RSE[i]);
+	snprintf(buff, sizeof(buff), "%.*g", (int)op_focei.sigdig, RSE[i]);
         rseS[i]=buff;
-        snprintf(buff, sizeof(buff), "%.*g", (int)op_focei.sigdig, EstLower[i]);
-        cur = cur + " (" + buff + ", ";
-        snprintf(buff, sizeof(buff), "%.*g", (int)op_focei.sigdig, EstUpper[i]);  
-        cur = cur + buff + ")";
+	snprintf(buff, sizeof(buff), "%.*g", (int)op_focei.sigdig, EstLower[i]);
+	cur = cur + " (" + buff + ", ";
+        snprintf(buff, sizeof(buff), "%.*g", (int)op_focei.sigdig, EstUpper[i]);
+	cur = cur + buff + ")";
       }
       btCi[i] = cur;
     }
@@ -1947,6 +2007,7 @@ void foceiFinalizeTables(Environment e){
   tmpNV.names() = thetaNames;
   e["fixef"] = tmpNV;
 
+  
   tmpNV = e["se"];
   tmpNV.names() = thetaNames;
   e["se"] = tmpNV;
