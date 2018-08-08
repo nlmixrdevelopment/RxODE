@@ -1,16 +1,22 @@
 .rxOptFn <- function(fn){
     force(fn);
     function(...){
-        ret <- paste0(fn, "(", paste(unlist(list(...)), collapse=", "), ")")
-        if (!is.null(.rxOptEnv$.rep[[ret]])){
-            return(.rxOptEnv$.rep[[ret]])
+        .ret <- paste0(fn, "(", paste(unlist(list(...)), collapse=", "), ")")
+        .new <- .rxOptEnv$.rep[[.ret]];
+        if (!is.null(.new)){
+            if (length(.rxOptEnv$.exclude) != 1) .rxOptEnv$.exclude <- ""
+            if (.new == .rxOptEnv$.exclude){
+                return(.ret)
+            } else {
+                return(.new)
+            }
         }
-        if(is.null(.rxOptEnv$.list[[ret]])){
-            .rxOptEnv$.list[[ret]] <- 1L;
+        if(is.null(.rxOptEnv$.list[[.ret]])){
+            .rxOptEnv$.list[[.ret]] <- 1L;
         } else {
-            .rxOptEnv$.list[[ret]] <- .rxOptEnv$.list[[ret]] + 1L;
+            .rxOptEnv$.list[[.ret]] <- .rxOptEnv$.list[[.ret]] + 1L;
         }
-        return(ret)
+        return(.ret)
     }
 }
 .rxOptBin <- function(sep) {
@@ -18,24 +24,31 @@
     function(e1, e2) {
         if (missing(e2)){
             if (sep == "+"){
-                ret <- paste0(e1)
+                .ret <- paste0(e1)
             } else {
-                ret <- paste0(gsub(" ", "", sep), e1)
+                .ret <- paste0(gsub(" ", "", sep), e1)
             }
         } else {
-            ret <- paste0(e1, sep, e2)
+            .ret <- paste0(e1, sep, e2)
         }
-        if (!is.null(.rxOptEnv$.rep[[ret]])){
-            return(.rxOptEnv$.rep[[ret]])
+        .new <- .rxOptEnv$.rep[[.ret]];
+        if (!is.null(.new)){
+            if (length(.rxOptEnv$.exclude) != 1) .rxOptEnv$.exclude <- ""
+            if (.new == .rxOptEnv$.exclude){
+                return(.ret)
+            } else {
+                return(.new)
+            }
         }
-        if(is.null(.rxOptEnv$.list[[ret]])){
-            .rxOptEnv$.list[[ret]] <- 1L;
+        if(is.null(.rxOptEnv$.list[[.ret]])){
+            .rxOptEnv$.list[[.ret]] <- 1L;
         } else {
-            .rxOptEnv$.list[[ret]] <- .rxOptEnv$.list[[ret]] + 1L;
+            .rxOptEnv$.list[[.ret]] <- .rxOptEnv$.list[[.ret]] + 1L;
         }
-        return(ret)
+        return(.ret)
     }
 }
+
 .rxOptEnv <- new.env(parent = emptyenv())
 .rxOptEnv$"^" <- .rxOptBin("^")
 .rxOptEnv$"**" <- .rxOptBin("^")
@@ -49,24 +62,24 @@
 .rxOptEnv[["-"]] <- .rxOptBin("-");
 
 .rxOptEnv$"[" <- function(name, val){
-    n <- toupper(name)
-    err <- "RxODE only supports THETA[#] and ETA[#] numbers."
-    if (any(n == c("THETA", "ETA")) && is.numeric(val)){
+    .n <- toupper(name)
+    .err <- "RxODE only supports THETA[#] and ETA[#] numbers."
+    if (any(.n == c("THETA", "ETA")) && is.numeric(val)){
         if (round(val) == val && val > 0){
-            return(sprintf("%s[%s]", n, val));
+            return(sprintf("%s[%s]", .n, val));
         } else {
-            stop(err);
+            stop(.err);
         }
     } else {
-        stop(err)
+        stop(.err)
     }
 }
 .rxOptEnv$"[" <- function(name, val){
-    n <- toupper(name)
-    err <- "RxODE only supports THETA[#] and ETA[#] numbers."
-    if (any(n == c("THETA", "ETA")) && is.numeric(val)){
+    .n <- toupper(name)
+    .err <- "RxODE only supports THETA[#] and ETA[#] numbers."
+    if (any(.n == c("THETA", "ETA")) && is.numeric(val)){
         if (round(val) == val && val > 0){
-            return(sprintf("%s[%s]", n, val));
+            return(sprintf("%s[%s]", .n, val));
         } else {
             stop(err);
         }
@@ -79,6 +92,7 @@
 
 .rxOptEnv$.list <- list();
 .rxOptEnv$.rep <- list();
+.rxOptEnv$.exclude <- "";
 
 .rxOptGetEnv <- function(expr){
     ## Known functions
@@ -111,15 +125,18 @@
 rxOptExpr <- function(x){
     .rxOptEnv$.list <- list();
     .rxOptEnv$.rep <- list();
+    .rxOptEnv$.exclude <- "";
     .lines <- strsplit(rxNorm(x), "\n")[[1]];
     .f <- function(line){
         .silent <- (regexpr("[~]", line) != -1)
         .l2 <- strsplit(line, "[=~]")[[1]]
+        .l1 <- gsub(" +", "", .l2[1])
+        .rxOptEnv$.exclude <- .l1;
         .ret <- eval(parse(text=sprintf(".rxOptExpr(quote(%s))", gsub(";$", "",.l2[2]))));
         if (.silent){
-            return(paste0(.l2[1], " ~ ", .ret))
+            return(paste0(.l1, " ~ ", .ret))
         } else {
-            return(paste0(.l2[1], " = ", .ret))
+            return(paste0(.l1, " = ", .ret))
         }
     }
     .ret <- sapply(.lines, .f)
@@ -128,12 +145,9 @@ rxOptExpr <- function(x){
     .exprs <- .exprs[regexpr(rex::rex(start, regNum, end), .exprs, perl=TRUE) == -1]
     .exprs <- .exprs[regexpr(rex::rex(start, or("THETA[", "ETA["), any_numbers, "]", end), .exprs, perl=TRUE) == -1]
     if (length(.exprs) > 0){
-        for (i in seq(1, length(.exprs) - 1)){
-            .exprs[-seq(1, i)] <- gsub(rex::rex(.exprs[i]), sprintf("rx_expr_%03d", i), .exprs[-seq(1, i)])
-        }
         .rxOptEnv$.rep <- setNames(as.list(sprintf("rx_expr_%03d", seq_along(.exprs))), .exprs)
-        .ret <- c(paste(sprintf("rx_expr_%03d ~", seq_along(.exprs)), .exprs),
-                  sapply(.lines, .f))
+        .rxOptEnv$.exclude <- ""
+        .ret <- sapply(c(paste(sprintf("rx_expr_%03d ~", seq_along(.exprs)), .exprs), .lines), .f)
         return(paste(.ret, collapse="\n"))
     } else {
         return(x)
