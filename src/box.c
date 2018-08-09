@@ -7,107 +7,142 @@
 #define eps sqrt(DOUBLE_EPS)
 
 double powerDi(double x, double lambda, int yj){
-  if (yj == 0){
-    if (fabs(lambda-1.0) <= eps) return (x+1.0);
-    if (fabs(lambda) <= eps) return exp(x);
+  double x0=x, ret, l2;
+  switch(yj){
+  case 3:
+    return exp(x);
+  case 2: 
+    return x;
+  case 0:
+    if (lambda == 1.0) return (x+1.0);
+    if (lambda == 0) return exp(x);
     // (x^lambda-1)/lambda=y
     // (lambda*y+1)^(1/lambda)
-    double x0 = x*lambda+1.0;
+    x0 = x*lambda+1.0;
     if (x0 <= eps) return eps;
-    double ret = pow(x0, 1.0/lambda);
+    ret = pow(x0, 1.0/lambda);
     if (ISNA(ret)) {
       // Warning?
       return eps;
     }
     return ret;
-  } else {
-    if (fabs(lambda-1.0) <= eps) return x;
+  case 1:
+    if (lambda == 1.0) return x;
     if (x >= 0){
       // log(x+1)= y; exp(y)-1=x
-      if (fabs(lambda) <= eps) return expm1(x);
+      if (lambda == 0) return expm1(x);
       // ((x+1)^lambda-1)/lambda=y
       // (y*lambda+1)^(1/y)-1=y
       return pow(x*lambda+1.0, 1.0/lambda)-1.0;
     } else {
       // (-(1-x)^(2-lambda)-1)/(2-lambda)
-      if (fabs(lambda-2.0) <= eps) return -expm1(-x);
+      if (lambda ==  2.0) return -expm1(-x);
       // (-(1-x)^(2-lambda)-1)/(2-lambda) = y
-      double l2 = (2.0 - lambda);
+      l2 = (2.0 - lambda);
       return 1.0 - pow(1.0 - l2*x, 1.0/l2);
     }
   }
+  return NA_REAL;
 }
 
 double powerD(double x, double lambda, int yj){
-  if (yj == 0){
-    if (fabs(lambda-1.0) <= eps) return x-1.0;
-    double x0=x;
+  double x0=x, l2;
+  switch (yj){
+  case 3:
     if (x <= eps) x0= eps;
-    if (fabs(lambda) <= eps) return log(x0);
+    return log(x0);
+  case 2:
+    return x;
+  case 0:
+    if (lambda == 1.0) return x-1.0;
+    if (x <= eps) x0= eps;
+    if (lambda ==  0.0) return log(x0);
     return (pow(x0, lambda) - 1.0)/lambda;
-  } else {
-    if (fabs(lambda-1.0) <= eps) return x;
+  case 1:
+    if (lambda == 1.0) return x;
     if (x >= 0){
-      if (fabs(lambda) <= eps) return log1p(x);
+      if (lambda == 0) return log1p(x);
       return (pow(x + 1.0, lambda) - 1.0)/lambda;
     } else {
-      if (fabs(lambda-2.0) <= eps) return -log1p(-x);
-      double l2 = 2.0 - lambda;
+      if (lambda == 2.0) return -log1p(-x);
+      l2 = 2.0 - lambda;
       return (1.0 - pow(1.0 - x, l2))/l2;
     }
   }
+  return NA_REAL;
 }
 
 double powerDD(double x, double lambda, int yj){
-  if (fabs(lambda-1.0) <= eps) return 1.0;
-  if (yj == 0){
-    double x0 = x;
+  double x0 = x;
+  switch(yj){
+  case 3:
     if (x <= eps) return x0 = eps;
-    if (fabs(lambda) <= eps) return 1/x0;
+    return 1/x0;
+  case 2:
+    return 1.0;
+  case 0:
+    if (lambda == 1.0) return 1.0;
+    if (x <= eps) return x0 = eps;
+    if (lambda == 0.0) return 1/x0;
     // pow(x,lambda)/lambda - 1/lambda
     return pow(x0, lambda-1);
-  } else {
+  case 1:
+    if (lambda ==  1.0) return 1.0;
     if (x >= 0){
-      if (fabs(lambda) <= eps) return 1.0/(x + 1.0);
+      if (lambda == 0.0) return 1.0/(x + 1.0);
       return pow(x + 1.0, lambda-1.0);
     } else {
-      if (fabs(lambda-2.0) <= eps) return -1/(1.0 - x);
+      if (lambda == 2.0) return -1/(1.0 - x);
       return pow(1.0 - x, 1.0-lambda);
     }
   }
+  return NA_REAL;
 }
 
 double powerDDD(double x, double lambda, int yj){
-  if (fabs(lambda-1.0) <= eps) return 0;
-  if (yj == 0){
-    double x0 = x;
-    if (x <= 0) return x0 = X0MIN;
-    if (fabs(lambda) <= eps) return -1/(x0*x0);
+  double x0 = x;
+  switch(yj){
+  case 3:
+    if (x <= eps) x0 = eps;
+    return -1/(x0*x0);
+  case 2: 
+    return 0;
+  case 0:
+    if (lambda == 1.0) return 0;
+    if (x <= eps) return x0 = eps;
+    if (lambda == 0.0) return -1/(x0*x0);
     // pow(x,lambda)/lambda - 1/lambda
     return (lambda-1)*pow(x0, lambda-2);
-  } else {
+  case 1:
+    if (lambda == 1.0) return 0;
     if (x >= 0){
-      if (fabs(lambda) <= eps) return -1/((x + 1.0)*(x + 1.0));
+      if (lambda ==  0.0) return -1/((x + 1.0)*(x + 1.0));
       return (lambda-1.0)*pow(x + 1.0, lambda-2.0);
     } else {
-      if (fabs(lambda-2.0) <= eps) return -1/((1.0 - x)*(1.0 - x));
+      if (lambda == 2.0) return -1/((1.0 - x)*(1.0 - x));
       return -(1.0-lambda)*pow(1.0 - x, -lambda);
     }
   }
+  return NA_REAL;
 }
 
 double powerL(double x, double lambda, int yj){
-  // logLik addition based on dTBS
-  // yj is indicator for yeo-johson
-  if (fabs(lambda-1.0) <= eps) return 0;
-  if (yj == 0){
-    double x0 = x;
+  double x0 = x;
+  switch(yj){
+  case 3:
+    if (x <= eps) x0 = eps;
+    return -log(x0);
+  case 2:
+    return 0;
+  case 0:
+    if (lambda == 1.0) return 0;
     if (x <= eps) x0 = eps;
     return (lambda - 1.0)*log(x0);
-  } else {
+  case 1:
     if (x >= 0) return (lambda - 1.0)*log1p(x);
     return (1.0-lambda)*log1p(-x);
   }
+  return NA_REAL;
   // d = 0.0 for cox box
   // d = 1.0 fo  Yeo- Johnson
   // logLik approximation
@@ -127,15 +162,23 @@ double powerL(double x, double lambda, int yj){
 
 double powerDL(double x, double lambda, int yj){
   // d(logLik/dlambda)
-  if (fabs(lambda-1.0) <= eps) return 0;
-  if (!yj){
-    double x0 = x;
-    if (x <= 0) x0 = X0MIN;
+  double x0 = x;
+  switch (yj){
+  case 3:
+    if (x <= eps) x0 = eps;
     return log(x0);
-  } else {
+  case 2:
+    return 0;
+  case 0:
+    if (lambda == 1.0) return 0;
+    if (x <= eps) x0 = eps;
+    return log(x0);
+  case 1:
+    if (lambda == 1.0) return 0;
     if (x >= 0) return log1p(x);
     return -log1p(x);
   }
+  return NA_REAL;
   // d = 0.0 for cox box
   // d = 1.0 fo  Yeo- Johnson
   // logLik approximation

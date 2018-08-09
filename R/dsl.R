@@ -1456,8 +1456,15 @@ rxParsePk <- function(x, init=NULL){
 ##' @author Matthew L. Fidler
 ##' @keywords internal
 ##' @export
-rxParsePred <- function(x, init=NULL){
-    return(gsub(rex::rex("rx_pred_ = ",capture(anything), ";"), "rx_pred_f_~\\1;\nrx_pred_ = rxTBS(\\1, rx_lambda_, rx_yj_)", .rxParseErr(x, ret="rx_pred_", init=init)));
+rxParsePred <- function(x, init=NULL, lambdas=""){
+    if (lambdas == "rx_yj_~0;\nrx_lambda_~1;\n"){
+        return(gsub(rex::rex("rx_pred_ = ",capture(anything), ";"), "rx_pred_f_~\\1;\nrx_pred_ = \\1", .rxParseErr(x, ret="rx_pred_", init=init)));
+
+    } else if (lambdas == "rx_yj_~0;\nrx_lambda_~0;\n"){
+        return(gsub(rex::rex("rx_pred_ = ",capture(anything), ";"), "rx_pred_f_~\\1;\nrx_pred_ = log(\\1)", .rxParseErr(x, ret="rx_pred_", init=init)));
+    } else {
+        return(gsub(rex::rex("rx_pred_ = ",capture(anything), ";"), "rx_pred_f_~\\1;\nrx_pred_ = rxTBS(\\1, rx_lambda_, rx_yj_)", .rxParseErr(x, ret="rx_pred_", init=init)));
+    }
 }
 .rxAddLambda <- function(){
     if (all("rx_r_" == rxErrEnv.ret)){

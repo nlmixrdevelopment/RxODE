@@ -1408,7 +1408,13 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                 newmod <- obj;
             }
             ## The Lambda/yj needs to bes setup now.
-            txt <- rxParsePred(predfn, init=init)
+            lambdas <- "rx_yj_~=0;\nrx_lambda_~=1;\n";
+            if (!is.null(errfn)){
+                ## Call to setup the tbs rx_pred_
+                rxParseErr(errfn, base.theta=4242, init=init); ## needs to be parsed first to figure out lambdas
+                lambdas <- rxParseErr(errfn, base.theta=1000, init=init, lambda=TRUE) ## lambda parsing.
+            }
+            txt <- rxParsePred(predfn, init=init, lambdas);
             pred.mod <- rxGetModel(txt);
             ##
             extra.pars <- c();
@@ -1427,8 +1433,9 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                     txtE <- rxParseErr(errfn, base.theta=mtheta + 1, init=init);
                 }
                 ## Add lambdas before preds
-                txt1 <- rxParseErr(errfn, base.theta=mtheta + 1, init=init, lambda=TRUE);
-                pred.mod <- rxGetModel(paste0(txt1, "\n", rxNorm(pred.mod)));
+                if (lambdas == "rx_yj_~0;\nrx_lambda_~1;\n") lambdas <- "rx_yj_~2;\nrx_lambda_~1;\n"
+                if (lambdas == "rx_yj_~0;\nrx_lambda_~0;\n") lambdas <- "rx_yj_~3;\nrx_lambda_~0;\n"
+                pred.mod <- rxGetModel(paste0(lambdas, "\n", rxNorm(pred.mod)));
                 ## Now parse the error again.
                 txt <- rxParseErr(errfn, base.theta=mtheta + 1, init=init);
                 extra.pars <- attr(txt, "ini");
