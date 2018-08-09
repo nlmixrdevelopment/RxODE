@@ -1616,7 +1616,7 @@ void codegen(FILE *outpt, int show_ode) {
   int i, j, k, print_ode=0, print_vars = 0, print_parm = 0, print_jac=0, o;
   char sLine[MXLEN+1];
   char buf[64];
-  char from[1536], to[1536], df[512], dy[512], state[512];
+  char from[512], to[512], df[128], dy[128], state[128];
   char *s2;
   FILE *fpIO;
   char *hdft[]=
@@ -2113,8 +2113,8 @@ void trans_internal(char *orig_file, char* parse_file, char* c_file){
 SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_md5,
            SEXP parse_model,SEXP parse_model3){
   char *in, *orig, *out, *file, *pfile;
-  char buf[2048], buf2[1024], df[512], dy[512];
-  char snum[1024];
+  char buf[1024], buf2[512], df[128], dy[128];
+  char snum[512];
   char *s2;
   char sLine[MXLEN+1];
   int i, j, islhs, pi=0, li=0, ini_i = 0,o2=0,k=0, l=0;
