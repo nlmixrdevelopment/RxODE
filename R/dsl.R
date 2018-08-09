@@ -228,12 +228,8 @@ dsl.to.pow <- function(a, b){
     if (is.na(num)){
         return(sprintf("Rx_pow(%s, %s)", a, b));
     } else if (abs(num - round(num)) < .Machine$double.eps^0.5){
-        if (round(num) == 2){
-            return(sprintf("(%s)*(%s)", a, a));
-        } else {
-            return(sprintf("Rx_pow_di(%s, %s)", a, b));
-        }
-    } else if (num == 0.5){
+        return(sprintf("Rx_pow_di(%s, %s)", a, b));
+    } else if (abs(num - 0.5) < .Machine$double.eps^0.5){
         return(sprintf("sqrt(%s)", a));
     } else {
         return(sprintf("Rx_pow(%s, %s)", a, b));
@@ -1247,26 +1243,14 @@ rxErrEnvF$lnorm <- function(est){
     }
     estN <- suppressWarnings(as.numeric(est));
     if (is.na(estN)){
-        if (rxErrEnv.diag.xform == "sqrt"){
-            ret <- (sprintf("(%s)^2", est))
-        } else if (rxErrEnv.diag.xform == "log"){
-            ret <- (sprintf("exp(%s)", est))
-        } else {
-            ret <- (sprintf("%s", est));
-        }
+        ret <- (sprintf("(%s)^2", est))
         assignInMyNamespace("rxErrEnv.lambda", "0");
         assignInMyNamespace("rxErrEnv.yj", "0");
     } else {
         theta <- sprintf("THETA[%s]", rxErrEnv.theta);
         est <- estN;
         theta.est <- theta;
-        if (rxErrEnv.diag.xform == "sqrt"){
-            ret <- (sprintf("(%s)^2", theta.est))
-        } else if (rxErrEnv.diag.xform == "log"){
-            ret <- (sprintf("exp(%s)", theta.est))
-        } else {
-            ret <- (sprintf("%s", theta.est));
-        }
+        ret <- (sprintf("(%s)^2", theta.est))
         tmp <- rxErrEnv.diag.est;
         tmp[sprintf("THETA[%s]", rxErrEnv.theta)] <- as.numeric(est);
         assignInMyNamespace("rxErrEnv.diag.est", tmp);
@@ -1334,12 +1318,12 @@ rxErrEnvF$add <- function(est){
     }
     estN <- suppressWarnings(as.numeric(est));
     if (is.na(estN)){
-        ret <- (sprintf("(%s)*(%s)", est, est))
+        ret <- (sprintf("(%s)^2", est))
     } else {
         theta <- sprintf("THETA[%s]", rxErrEnv.theta);
         est <- estN;
         theta.est <- theta;
-        ret <- (sprintf("%s*%s", theta.est, theta.est))
+        ret <- (sprintf("(%s)^2", theta.est))
         tmp <- rxErrEnv.diag.est;
         tmp[sprintf("THETA[%s]", rxErrEnv.theta)] <- as.numeric(est);
         assignInMyNamespace("rxErrEnv.diag.est", tmp);
@@ -1372,13 +1356,7 @@ rxErrEnvF$prop <- function(est){
     }
     estN <- suppressWarnings(as.numeric(est));
     if (is.na(estN)){
-        if (rxErrEnv.diag.xform == "sqrt"){
-            ret <- (sprintf("(rx_pred_f_)^2 * (%s)^2", est))
-        } else if (rxErrEnv.diag.xform == "log"){
-            ret <- (sprintf("(rx_pred_f_)^2 * exp(%s)", est))
-        } else {
-            ret <- (sprintf("(rx_pred_f_)^2 * %s", est))
-        }
+        ret <- (sprintf("(rx_pred_f_)^2 * (%s)^2", est))
     } else {
         est <- estN
         ret <- ""
@@ -1399,14 +1377,14 @@ rxErrEnvF$pow <- function(est, pow){
     }
     estN <- suppressWarnings(as.numeric(est));
     if (is.na(estN)){
-        ret <- (sprintf("(rx_pred_f_*rx_pred_f_)^(%s) * (%s)*(%s)", pow, est, est))
+        ret <- (sprintf("(rx_pred_f_)^(2*%s) * (%s)^2", pow, est))
     } else {
         est <- estN
         ret <- ""
         theta <- sprintf("THETA[%s]", rxErrEnv.theta);
         theta2 <- sprintf("THETA[%s]", rxErrEnv.theta + 1);
         theta.est <- theta;
-        ret <- (sprintf("(rx_pred_f_*rx_pred_f_)^(%s) * (%s*%s)", theta2, theta.est, theta.est))
+        ret <- (sprintf("(rx_pred_f_)^(2*%s) * (%s)^2", theta2, theta.est))
         tmp <- rxErrEnv.diag.est;
         tmp[sprintf("THETA[%s]", rxErrEnv.theta)] <- as.numeric(est);
         tmp[sprintf("THETA[%s]", rxErrEnv.theta + 1)] <- as.numeric(pow);
