@@ -694,9 +694,21 @@ SEXP rxInits(const RObject &obj,
   if (rxLines){
     NumericVector inits = rxInits(obj, vec, req, defaultValue, noerror,noini,false);
     CharacterVector nms = inits.names();
+    List mv = rxModelVars(obj);
+    CharacterVector state = mv["state"];
     std::string ret="";
+    bool isState;
     for (unsigned int j=inits.size(); j--;){
-      ret += as<std::string>(nms[j]) + "=" + std::to_string(inits[j]) + ";\n";
+      isState=false;
+      for (unsigned int k=state.size(); k--;){
+	if (nms[j] == state[k]){
+	  isState=true;
+	  break;
+	}
+      }
+      ret += as<std::string>(nms[j]);
+      if (isState) ret += "(0)";
+      ret += "=" + std::to_string(inits[j]) + ";\n";
     }
     return wrap(ret);
   } else if (vec.isNULL()){
