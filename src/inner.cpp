@@ -780,6 +780,7 @@ void innerOpt(){
       innerOpt1(id, 0);
     }
   }
+  Rcpp::checkUserInterrupt();
 }
 
 static inline double foceiLik0(double *theta){
@@ -1421,7 +1422,11 @@ extern "C" double foceiOfvOptim(int n, double *x, void *ex){
       Rprintf("%#10.4g |", x[i]);
     }
     if (op_focei.scaleTo > 0){
-      Rprintf("\n|    U|%14.8g |", op_focei.initObjective * ret / op_focei.scaleObjectiveTo);
+      if (op_focei.scaleObjective){
+        Rprintf("\n|    U|%14.8g |", op_focei.initObjective * ret / op_focei.scaleObjectiveTo);
+      } else {
+        Rprintf("\n|    U|%14.8g |", ret);
+      }
       for (int i = 0; i < n; i++){
         Rprintf("%#10.4g |", x[i]*op_focei.initPar[i]/op_focei.scaleTo);
       }
@@ -1437,10 +1442,19 @@ extern "C" double foceiOfvOptim(int n, double *x, void *ex){
 	}
       }
     } else {
-      if (op_focei.useColor)
-	Rprintf("\n|    X|\033[1m%14.8g \033[0m|", op_focei.initObjective * ret / op_focei.scaleObjectiveTo);
-      else 
-        Rprintf("\n|    X|%14.8g |", op_focei.initObjective * ret / op_focei.scaleObjectiveTo);
+      if (op_focei.useColor){
+	if (op_focei.scaleObjective){
+          Rprintf("\n|    X|\033[1m%14.8g \033[0m|", op_focei.initObjective * ret / op_focei.scaleObjectiveTo);
+	} else {
+	  Rprintf("\n|    X|\033[1m%14.8g \033[0m|", ret);
+	}
+      } else {
+        if (op_focei.scaleObjective){
+	  Rprintf("\n|    X|%14.8g |", op_focei.initObjective * ret / op_focei.scaleObjectiveTo);
+	} else {
+          Rprintf("\n|    X|\033[1m%14.8g \033[0m|", ret);
+        }
+      }
       for (int i = 0; i < n; i++){
         if (op_focei.xPar[i]){
           Rprintf("%#10.4g |", exp(x[i]));
