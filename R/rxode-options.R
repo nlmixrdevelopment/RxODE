@@ -10,6 +10,10 @@
     }
 }
 
+.onUnload <- function (libpath) {
+    library.dynam.unload("RxODE", libpath)
+}
+
 .rxTempDir0 <- NULL;
 .rxTempDir <- function(){
     if (is.null(getFromNamespace(".rxTempDir0", "RxODE"))){

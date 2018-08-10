@@ -2928,7 +2928,7 @@ SEXP rxSolveC(const RObject &obj,
     IntegerVector si = mv["state.ignore"];
     rx->stateIgnore = &si[0];
     int doTBS = (rx->matrix == 3);
-    if (rx->matrix) rx->matrix=2;
+    if (doTBS) rx->matrix=2;
     List dat = RxODE_df(doDose, doTBS);
     dat.attr("class") = CharacterVector::create("data.frame");
     List xtra;
