@@ -11,6 +11,7 @@
 }
 
 .onUnload <- function (libpath) {
+    rxSolveFree();
     library.dynam.unload("RxODE", libpath)
 }
 
