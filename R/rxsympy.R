@@ -1167,20 +1167,20 @@ genCmt0 <- function(ncmt=1, oral=FALSE){
     ## 2 cmt: rx_k12, rx_k21
     ## 3 cmt: rx_k13, rx_k31
     rx0 <- "";
-    rxc <- "d/dt(rx1) = -rx_k*rx1";
+    rxc <- "d/dt(rx1) ~ -rx_k*rx1";
     rxp <- "";
     rx3 <- ""
     if (ncmt >= 2){
         rxc <- paste(rxc, "- rx_k12*rx1 + rx_k21*rx2")
-        rxp <- "d/dt(rx2) = rx_k12*rx1 - rx_k21*rx2";
+        rxp <- "d/dt(rx2) ~ rx_k12*rx1 - rx_k21*rx2";
     }
     if (ncmt == 3){
         rxc <- paste(rxc, "- rx_k13*rx1 + rx_k31*rx3")
-        rx3 <- "d/dt(rx3) = rx_k13*rx1 - rx_k31*rx3";
+        rx3 <- "d/dt(rx3) ~ rx_k13*rx1 - rx_k31*rx3";
     }
     if (oral){
         rxc <- paste(rxc, "+ rx_ka*rx0");
-        rx0 <- "d/dt(rx0) = -rx_ka*rx0";
+        rx0 <- "d/dt(rx0) ~ -rx_ka*rx0";
     }
     fin <- "rx1c = rx1/rx_v";
     ret <- c(rx0, rxc, rxp, rx3, fin);
