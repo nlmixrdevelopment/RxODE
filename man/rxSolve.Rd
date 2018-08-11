@@ -26,8 +26,8 @@ rxSolve(object, ...)
   addDosing = FALSE, updateObject = FALSE, doSolve = TRUE, omega = NULL,
   omegaDf = NULL, omegaIsChol = FALSE, nSub = 1L, thetaMat = NULL,
   thetaDf = NULL, thetaIsChol = FALSE, nStud = 1L, dfSub = 0,
-  dfObs = 0, returnType = c("rxSolve", "matrix", "data.frame"),
-  seed = NULL, nsim = NULL, setupOnly = FALSE)
+  dfObs = 0, returnType = c("rxSolve", "matrix", "data.frame",
+  "data.frame.TBS"), seed = NULL, nsim = NULL, setupOnly = FALSE)
 
 \method{update}{rxSolve}(object, ...)
 

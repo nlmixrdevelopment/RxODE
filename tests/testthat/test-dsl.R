@@ -271,17 +271,5 @@ rxPermissive({
         V = exp(THETA[3] + ETA[2])
     }
 
-    context("Test `logify'")
-    test_that("Test Logify", {
-        expect_equal(rxLogifyModel("rx_r_=ETA[1]*THETA[4]^2"), "rx_r_ = sign_exp(ETA[1], abs_log(ETA[1]) + 2 * abs_log(THETA[4])) \n")
-        expect_equal(rxLogifyModel("rx_r_=THETA[4]^2*ETA[1]"), "rx_r_ = sign_exp(ETA[1], abs_log(ETA[1]) + 2 * abs_log(THETA[4])) \n")
-        expect_equal(rxLogifyModel("rx_r_=THETA[4]^2/ETA[1]"), "rx_r_ = sign_exp(safe_zero(ETA[1]), -abs_log(safe_zero(ETA[1])) + 2 * abs_log(THETA[4])) \n")
-        expect_equal(rxLogifyModel("rx_r_=THETA[4]^2/ETA[1]^2"), "rx_r_ = exp(-2 * abs_log(safe_zero(ETA[1])) + 2 * abs_log(THETA[4])) \n")
-        expect_equal(rxLogifyModel("rx_r_=THETA[4]^2/ETA[1]^3"), "rx_r_ = sign_exp(safe_zero(ETA[1]), -3 * abs_log(safe_zero(ETA[1])) + 2 * abs_log(THETA[4])) \n")
-        expect_equal(rxLogifyModel("rx_r_=center"), "rx_r_ = center \n")
-        expect_equal(rxLogifyModel("rx_r_=-center"), "rx_r_ = -center \n")
-        expect_equal(rxLogifyModel("rx_r_=-center^2"), "rx_r_ = -exp(2 * abs_log(center)) \n")
-    })
-
 }, on.validate=TRUE)
 

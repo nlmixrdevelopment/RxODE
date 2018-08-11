@@ -1114,6 +1114,7 @@ rxToSymPy <- function(x, envir=parent.frame(1)) {
 rxFromSymPy <- function(x, envir=parent.frame(1)) {
     if (is(substitute(x),"character")){
         if (length(x) == 1){
+            names(x) <- NULL;
             txt <- strsplit(x, "\n+")[[1]];
             txt <- strsplit(txt, "[=~]", txt);
             vars <- c();
@@ -1168,6 +1169,7 @@ rxFromSymPy <- function(x, envir=parent.frame(1)) {
     } else if (is(substitute(x),"name")){
         cls <- tryCatch({class(x)}, error=function(e){return("error")});
         if (cls == "character" && length(cls) == 1){
+            names(x) <- NULL
             txt <- paste0(eval(parse(text=sprintf("RxODE::rxFromSymPy(%s)", deparse(x)))));
             return(txt);
         } else {
