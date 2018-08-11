@@ -669,6 +669,12 @@ rxSymPySensitivityFull.text <- "Calculate sensitivities."
 rxSymPySensitivityFull <- memoise::memoise(function(state, calcSens, model, cond){
     rxCat(rxSymPySensitivityFull.text);
     all.sens <- extraLines <- c();
+    if (length(calcSens) == 0L){
+        calcSens <- rxParams(model);
+    }
+    if (length(calcSens) == 0L){
+        stop("Can not calculate sensitivities with no parameters.")
+    }
     for (s1 in state){
         for (sns in calcSens){
             tmp <- c()

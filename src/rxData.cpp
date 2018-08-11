@@ -685,13 +685,17 @@ NumericVector rxInits0(const RObject &obj,
 //' @export
 //[[Rcpp::export]]
 SEXP rxInits(const RObject &obj,
-		      RObject vec = R_NilValue,
-		      Nullable<CharacterVector> req = R_NilValue,
-		      double defaultValue = 0,
-		      bool noerror = false,
-		      bool noini=false,
-		      bool rxLines=false){
+	     RObject vec = R_NilValue,
+	     Nullable<CharacterVector> req = R_NilValue,
+	     double defaultValue = 0,
+	     bool noerror = false,
+	     bool noini=false,
+	     bool rxLines=false){
   if (rxLines){
+    if (rxIs(obj, "NULL")){
+      CharacterVector ret = "";
+      return ret;
+    }
     NumericVector inits = rxInits(obj, vec, req, defaultValue, noerror,noini,false);
     CharacterVector nms = inits.names();
     List mv = rxModelVars(obj);
