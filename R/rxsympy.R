@@ -1415,7 +1415,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                 newmod <- obj;
             }
             ## The Lambda/yj needs to bes setup now.
-            lambdas <- "rx_yj_~=0;\nrx_lambda_~=1;\n";
+            lambdas <- "rx_yj_~0;\nrx_lambda_~1;\n";
             if (!is.null(errfn)){
                 ## Call to setup the tbs rx_pred_
                 rxParseErr(errfn, base.theta=4242, init=init); ## needs to be parsed first to figure out lambdas
