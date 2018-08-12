@@ -1364,7 +1364,7 @@ rxErrEnvF$prop <- function(est){
         ret <- ""
         theta <- sprintf("THETA[%s]", rxErrEnv.theta);
         theta.est <- theta;
-        ret <- (sprintf("rx_pred_f_*rx_pred_f_ *%s*%s", theta.est, theta.est))
+        ret <- (sprintf("(rx_pred_f_)^2*(%s)^2", theta.est))
         tmp <- rxErrEnv.diag.est;
         tmp[sprintf("THETA[%s]", rxErrEnv.theta)] <- as.numeric(est);
         assignInMyNamespace("rxErrEnv.diag.est", tmp);

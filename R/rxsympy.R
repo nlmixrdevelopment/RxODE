@@ -1427,7 +1427,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
             extra.pars <- c();
             if (is.null(errfn)){
                 ## lambda/yj is on the normal scale
-                pred.mod <- rxGetModel(paste0("rx_yj_~=0;\nrx_lambda_~=1;\n", rxNorm(pred.mod)));
+                pred.mod <- rxGetModel(paste0("rx_yj_~0;\nrx_lambda_~1;\n", rxNorm(pred.mod)));
             } else {
                 ## Get maximum theta.
                 pars <- rxParams(rxGetModel(paste0(rxNorm(obj), "\n", rxNorm(pred.mod))), FALSE);
