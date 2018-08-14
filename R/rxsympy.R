@@ -1515,7 +1515,11 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                         if (rxSymPyExists(.iniS)){
                             .iniS <- rxSymPy(.iniS);
                             .iniS <- rxFromSymPy(.iniS);
-                            .iniS <- sprintf("%s=%s;\n", .ini, .iniS);
+                            if (.iniS != "0"){
+                                .iniS <- sprintf("%s=%s;\n", .ini, .iniS);
+                            } else {
+                                .iniS <- "";
+                            }
                         } else {
                             .iniS <- ""
                         }
