@@ -932,7 +932,7 @@ sympyEnv <- function(expr){
     n2 <- names;
     n2[n2 == "time"] <- "t";
     ## Replace f with rx_pred_
-    n2[n2 == "f"] <- "rx_pred_"
+    n2[n2 == "f"] <- "rx_pred_f_"
     n2 <- gsub(rex::rex("."), "__DoT__", n2)
     ## Replace print functions with nothing.
     n2[regexpr(regPrint, n2) != -1] <- "";
@@ -1433,9 +1433,12 @@ rxErrEnv <- function(expr){
     n1 <- names;
     n2 <- names;
     n2[n2 == "time"] <- "t";
-    n2[n2 == "err"] <- "rx_r_";
-    n2[n2 == "error"] <- "rx_r_";
-    n2[n2 == "f"] <- "rx_pred_";
+    if (any(n2 == "err")){stop("Use return() for errors.")}
+    if (any(n2 == "error")){stop("Use return() for errors.")}
+    if (any(n2 == "rx_r")){stop("Use return() for errors.")}
+    ## n2[n2 == "err"] <- "rx_r_";
+    ## n2[n2 == "error"] <- "rx_r_";
+    n2[n2 == "f"] <- "rx_pred_f_";
     symbol.list <- setNames(as.list(n2), n1);
     symbol.env <- list2env(symbol.list, parent=rxErrFEnv);
     return(symbol.env)
@@ -1785,20 +1788,15 @@ rxSumProd <- function(x){
 ##' @param expand Boolean indicating if the expression is expanded.
 ##' @param sum Use sum(...)
 ##' @param prod Use prod(...)
-##' @param logify Use logify
 ##' @return model string with prod(.) and sum(.) for all these
 ##'     operations.
 ##' @author Matthew L. Fidler
 ##' @export
-rxSumProdModel <- function(model, expand=FALSE, sum=FALSE, prod=TRUE, logify=FALSE){
+rxSumProdModel <- function(model, expand=FALSE, sum=TRUE, prod=TRUE){
     ## Sum for pairwise is equivalent to regular sum under 8 elements.
     assignInMyNamespace("rxSumProdSum", sum)
     assignInMyNamespace("rxSumProdProd", prod)
     rxSymPySetup(model);
-    if (logify){
-        model <- rxLogifyModel(model, expand)
-        expand <- FALSE
-    }
     cnd <- rxNorm(model, TRUE);
     lines <- strsplit(rxNorm(model), "\n")[[1]];
     for (i in seq_along(lines)){

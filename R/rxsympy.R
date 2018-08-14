@@ -302,8 +302,8 @@ rxSymPy <- function(...){
 rxSymPy0 <- function(...){
     rxSymPyStart();
     if (.rxSymPy$started == "reticulate"){
-        reticulate::py_run_string("__Rsympy=None",convert=FALSE)
-        ret <- reticulate::py_run_string(paste0("__Rsympy=", ...),convert=FALSE)
+        ## reticulate::py_run_string("__Rsympy=None",convert=FALSE)
+        ret <- reticulate::py_run_string(paste0("__Rsympy=", paste(...)),convert=FALSE)
         ret <- reticulate::py_to_r(ret$`__Rsympy`);
         return(rxSymPyFix(ret));
     }
@@ -1636,6 +1636,11 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                     rxCat("done\n");
                 } else {
                     .mod <- x;
+                }
+                if (sum.prod){
+                    rxCat(sprintf("## Stabilizing round off errors in products & sums in %s model...", what));
+                    .mod <- rxSumProdModel(.mod);
+                    rxCat("done\n");
                 }
                 rxCat(sprintf("## Compiling %s model...", what));
                 .ret <- RxODE(.mod);

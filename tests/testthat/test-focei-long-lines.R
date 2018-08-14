@@ -20,7 +20,7 @@ rxPermissive({
     ##     expect_error(rxSymPySetupPred(mm, pred, par, err=function(){err ~ prop(0.1)}, grad=TRUE));
     ## })
 
-    focei.mm.mod2 <- rxSymPySetupPred(mm, pred, mypar3, err=function(){err ~ prop(0.1)}, grad=TRUE, sum.prod=TRUE);
+    focei.mm.mod2 <- rxSymPySetupPred(mm, pred, mypar3, err=function(){prop(0.1)}, sum.prod=TRUE);
 
     ## FIXME: should the lines be split?  Logify is one approach, but
     ## perhaps just a split...?
