@@ -213,41 +213,41 @@ rxPermissive({
     ##     expect_equal(rxLhs(ode3), rxLhs(ode5))
     ## })
 
-    pred <- function(){
-        if (cmt == 1){
-            return(cntr);
-        } else {
-            return(eff);
-        }
-    }
+    ## pred <- function(){
+    ##     if (cmt == 1){
+    ##         return(cntr);
+    ##     } else {
+    ##         return(eff);
+    ##     }
+    ## }
 
-    err <- function(){
-        if (cmt == 1){
-            return(add(0.1) + prop(0.1))
-        } else {
-            return(add(0.1))
-        }
-    }
+    ## err <- function(){
+    ##     if (cmt == 1){
+    ##         return(add(0.1) + prop(0.1))
+    ##     } else {
+    ##         return(add(0.1))
+    ##     }
+    ## }
 
-    pk <- function(){
-        KA <- theta[1];
-        CL <- exp(theta[2] + eta[1]);
-        V2 <- exp(theta[3] + eta[2]);
-    }
+    ## pk <- function(){
+    ##     KA <- theta[1];
+    ##     CL <- exp(theta[2] + eta[1]);
+    ##     V2 <- exp(theta[3] + eta[2]);
+    ## }
 
-    test_that("Can throw the warning", {
-        expect_warning(rxSymPySetupPred(ode3, pred, pk, err));
-    })
+    ## test_that("Can throw the warning", {
+    ##     expect_warning(rxSymPySetupPred(ode3, pred, pk, err));
+    ## })
 
-    pred <- function(){
-        if (cmt == 1){
-            return(centr);
-        } else {
-            return(eff);
-        }
-    }
+    ## pred <- function(){
+    ##     if (cmt == 1){
+    ##         return(centr);
+    ##     } else {
+    ##         return(eff);
+    ##     }
+    ## }
 
-    tmp <- rxSymPySetupPred(ode3, pred, pk, err)
+    ## tmp <- rxSymPySetupPred(ode3, pred, pk, err)
 
 
 }, silent=TRUE, on.validate=TRUE)

@@ -130,13 +130,17 @@ rxOptExpr <- function(x){
     .f <- function(line){
         .silent <- (regexpr("[~]", line) != -1)
         .l2 <- strsplit(line, "[=~]")[[1]]
-        .l1 <- gsub(" +", "", .l2[1])
-        .rxOptEnv$.exclude <- .l1;
-        .ret <- eval(parse(text=sprintf(".rxOptExpr(quote(%s))", gsub(";$", "",.l2[2]))));
-        if (.silent){
-            return(paste0(.l1, " ~ ", .ret))
+        if (length(.l2) == 2){
+            .l1 <- gsub(" +", "", .l2[1])
+            .rxOptEnv$.exclude <- .l1;
+            .ret <- eval(parse(text=sprintf(".rxOptExpr(quote(%s))", gsub(";$", "",.l2[2]))));
+            if (.silent){
+                return(paste0(.l1, " ~ ", .ret))
+            } else {
+                return(paste0(.l1, " = ", .ret))
+            }
         } else {
-            return(paste0(.l1, " = ", .ret))
+            return(line)
         }
     }
     .ret <- sapply(.lines, .f)
