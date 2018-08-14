@@ -322,10 +322,6 @@ rxWinPythonSetup <- function(){
     message("Attempting to install SymPy. This may take a few seconds...")
     try(system("python -m pip install sympy"))
 
-    if (!requireNamespace("SnakeCharmR", quietly = TRUE)){
-        message("Attempting to install SnakeCharmR. This may take a few seconds...")
-        devtools::install_github("nlmixrdevelopment/SnakeCharmR");
-    }
     message("Please restart your R session before using RxODE.")
 }
 

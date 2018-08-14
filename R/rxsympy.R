@@ -185,6 +185,7 @@ rxSymPyStart <- function(){
             }
         }
     }
+    start("reticulate");
     start("SnakeCharmR");
     ## start("rPython");
     ## start("PythonInR");
@@ -208,9 +209,9 @@ rxSymPyStart <- function(){
 
     if (is.null(.rxSymPy$started)){
         rxCat("RxODE requires SymPy for this function.\n");
-        rxCat("We recommend you install SymPy for Python and then interact with Python using SnakeCharmR.\n");
+        rxCat("We recommend you install SymPy for Python and then interact with Python using reticulate.\n");
         rxCat("In Windows you can have help setting this up by typing: `rxWinPythonSetup()`.\n");
-        rxCat("Another option is to use the package rSymPy, which depends on Java and is a bit slower (and older) version of SymPy.\n");
+        rxCat("Another option is to use either SnakeCharmR or the package rSymPy, which depends on\n\t Java and is a bit slower (and older) version of SymPy.\n");
         stop("Could not start SymPy");
     }
 }
@@ -230,6 +231,12 @@ rxSymPyExec <- function(..., .python, .start=TRUE){
     }
     if (missing(.python)){
         .python <- .rxSymPy$started;
+    }
+    if (.python == "reticulate"){
+        fns <- paste0(...);
+        sapply(fns, function(x){
+            reticulate::py_run_string(code=x, convert=FALSE)
+        });
     }
     if (.python == "SnakeCharmR"){
         SnakeCharmR::py.exec(...);
@@ -286,7 +293,7 @@ rxSymPy <- function(...){
             }
         }
         stop(sprintf("Error running sympy command:\n    %s\n\n%s", cmd, attr(ret, "condition")$message));
-    } else {
+    } else if (.rxSymPy$started != "reticulate"){
         ret <- paste(strsplit(ret, "\n+")[[1]], collapse=" ");
     }
     return(ret)
@@ -294,6 +301,12 @@ rxSymPy <- function(...){
 
 rxSymPy0 <- function(...){
     rxSymPyStart();
+    if (.rxSymPy$started == "reticulate"){
+        reticulate::py_run_string("__Rsympy=None",convert=FALSE)
+        ret <- reticulate::py_run_string(paste0("__Rsympy=", ...),convert=FALSE)
+        ret <- reticulate::py_to_r(ret$`__Rsympy`);
+        return(rxSymPyFix(ret));
+    }
     if (.rxSymPy$started == "SnakeCharmR"){
         SnakeCharmR::py.exec(paste("__Rsympy=None"))
         SnakeCharmR::py.exec(paste("__Rsympy=", ..., sep = ""))
@@ -345,7 +358,9 @@ rxSymPyReserved <- memoise::memoise(function(){
     rxSymPyStart();
     rxSymPyExec("import sympy");
     vars <- rxSymPy("dir(sympy)")
-    vars <- eval(parse(text=sprintf("c(%s)", substr(vars, 2, nchar(vars) - 1))));
+    if (.rxSymPy$started != "reticulate"){
+        vars <- eval(parse(text=sprintf("c(%s)", substr(vars, 2, nchar(vars) - 1))));
+    }
     return(c(vars, "lambda"))
 })
 
@@ -645,7 +660,11 @@ rxSymPyDfDyFull <- memoise::memoise(function(model, vars, cond){
 ##' @keywords internal
 ##' @export
 rxSymPyExists <- function(var){
-    return(regexpr(rex::rex("'", var, "'"), rxSymPy("dir()")) != -1)
+    if (.rxSymPy$started == "reticulate"){
+        return(any(var == rxSymPy("dir()")))
+    } else {
+        return(regexpr(rex::rex("'", var, "'"), rxSymPy("dir()")) != -1)
+    }
 }
 ##' Delete variable if exists.
 ##'
@@ -974,12 +993,25 @@ rxSymPySensitivity <- memoise::memoise(function(model, calcSens, calcJac=FALSE, 
 ##' @keywords internal
 ##' @export
 rxSymPyClean <- function(full=FALSE){
-    tmp <- rxSymPy("dir()");
-    tmp <- eval(parse(text=sprintf("c(%s)", substr(tmp,2,nchar(tmp)-1))))
-    tmp <- tmp[regexpr(rex::rex(start, "rx_"), tmp) != -1]
-    for (v in unique(c(rxSymPy.vars, tmp))){
-        rxSymPyClear(v);
+    if (.rxSymPy$started == "reticulate"){
+        sapply(rxSymPy.vars, function(x){
+            try(rxSymPyExec(sprintf("del %s", x)), silent=TRUE);
+        })
+        tmp <- rxSymPy("dir()");
+        sapply(tmp, function(x){
+            if (nchar(x) > 3 && substr(x, 0, 3) == "rx_"){
+                try(rxSymPyExec(sprintf("del %s", x)), silent=TRUE);
+            }
+        })
+    } else {
+        tmp <- rxSymPy("dir()");
+        tmp <- eval(parse(text=sprintf("c(%s)", substr(tmp,2,nchar(tmp)-1))))
+        tmp <- tmp[regexpr(rex::rex(start, "rx_"), tmp) != -1]
+        for (v in unique(c(rxSymPy.vars, tmp))){
+            rxSymPyClear(v);
+        }
     }
+
     ## rxSymPy("clear_cache()");
     assignInMyNamespace("rxSymPy.vars", c());
     if (full) rxGc();
@@ -1585,6 +1617,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                             }
                             ## FIXME: better branching for lhs conditions
                             ## Currently none.
+                            .extra <- "";
                             return(sprintf("%sif %s {%s\n}", .extra, .ncond[y], .ret[y]));
                         }), collapse="\n");
                     })

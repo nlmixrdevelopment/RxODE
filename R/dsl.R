@@ -1474,8 +1474,7 @@ rxParsePred <- function(x, init=NULL, err=NULL){
                 if (any(is.na(.prd))){
                     stop("The errors and predictions need to have the same conditions (if/then statements).")
                 }
-            }
-            if (length(.errs) != 1){
+            } else if (length(.errs) != 1){
                 stop("Do not know how to handle this error/pred combination")
             }
         }
