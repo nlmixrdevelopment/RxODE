@@ -7,6 +7,7 @@
 #define NETAs 20
 #define NTHETAs 20
 #define NSUBs 100
+#define min( a , b )  ( (a) < (b) ? (a) : (b) )
 #define innerOde(id) ind_solve(rx, id, inner_dydt_liblsoda, inner_dydt_lsoda_dum, inner_jdum_lsoda, inner_dydt, inner_update_inis, inner_global_jt)
 #define getOmega() (as<NumericMatrix>(rxSymInvCholEnvCalculate(_rxInv, "omega", R_NilValue)))
 #define getOmegaInv() (as<arma::mat>(rxSymInvCholEnvCalculate(_rxInv, "omegaInv", R_NilValue)))
@@ -205,6 +206,7 @@ typedef struct {
   int totTick;
   int useColor;
   double boundTol;
+  int printNcol;
 } focei_options;
 
 focei_options op_focei;
@@ -1329,6 +1331,7 @@ NumericVector foceiSetup_(const RObject &obj,
   op_focei.sigdig=as<double>(odeO["sigdig"]);
   op_focei.useColor=as<int>(odeO["useColor"]);
   op_focei.boundTol=as<double>(odeO["boundTol"]);
+  op_focei.printNcol=as<int>(odeO["printNcol"]);
   return ret;
 }
 
@@ -1397,10 +1400,10 @@ void foceiOuterFinal(double *x, Environment e){
   nlmixrEnvSetup(e, fmin);
 }
 
-static inline void foceiPrintLine(){
+static inline void foceiPrintLine(int ncol){
   Rprintf("|-----+---------------+");
-  for (unsigned int i = 0; i < (unsigned int)(op_focei.npars); i++){
-    if (i == (unsigned int)(op_focei.npars-1))
+  for (int i = 0; i < ncol; i++){
+    if (i == ncol-1)
       Rprintf("-----------|");
     else 
       Rprintf("-----------+");
@@ -1414,56 +1417,111 @@ extern "C" double foceiOfvOptim(int n, double *x, void *ex){
   double ret = foceiOfv0(x);
   op_focei.nF++;
   if (op_focei.printOuter != 0 && op_focei.nF % op_focei.printOuter == 0){
+    int finalize = 0, i = 0;
     if (op_focei.useColor)
       Rprintf("|\033[1m%5d\033[0m|%#14.8g |", op_focei.nF, ret);
     else 
       Rprintf("|%5d|%#14.8g |", op_focei.nF, ret);
-    for (int i = 0; i < n; i++){
+    for (i = 0; i < n; i++){
       Rprintf("%#10.4g |", x[i]);
+      if ((i + 1) % op_focei.printNcol == 0){
+        Rprintf("\n|.....................|");
+	finalize=1;
+      }
+    }
+    if (finalize){
+      while(true){
+        if ((i++) % op_focei.printNcol == 0){
+          Rprintf("\n");
+          break;
+        } else if (i % op_focei.printNcol == 0) {
+          Rprintf("...........|");
+        } else {
+          Rprintf("...........+");
+        }
+      }
+    } else {
+      Rprintf("\n");
     }
     if (op_focei.scaleTo > 0){
       if (op_focei.scaleObjective){
-        Rprintf("\n|    U|%14.8g |", op_focei.initObjective * ret / op_focei.scaleObjectiveTo);
+        Rprintf("|    U|%14.8g |", op_focei.initObjective * ret / op_focei.scaleObjectiveTo);
       } else {
-        Rprintf("\n|    U|%14.8g |", ret);
+        Rprintf("|    U|%14.8g |", ret);
       }
-      for (int i = 0; i < n; i++){
+      for (i = 0; i < n; i++){
         Rprintf("%#10.4g |", x[i]*op_focei.initPar[i]/op_focei.scaleTo);
+        if ((i + 1) % op_focei.printNcol == 0){
+          Rprintf("\n|.....................|");
+        }
+      }
+      if (finalize){
+        while(true){
+          if ((i++) % op_focei.printNcol == 0){
+            Rprintf("\n");
+            break;
+          } else if (i % op_focei.printNcol == 0) {
+            Rprintf("...........|");
+          } else {
+            Rprintf("...........+");
+          }
+        }
+      } else {
+        Rprintf("\n");
       }
       if (op_focei.useColor)
-	Rprintf("\n|    X|\033[1m%14.8g\033[0m |", op_focei.initObjective * ret / op_focei.scaleObjectiveTo);
+        Rprintf("|    X|\033[1m%14.8g\033[0m |", op_focei.initObjective * ret / op_focei.scaleObjectiveTo);
       else 
-	Rprintf("\n|    X|%14.8g |", op_focei.initObjective * ret / op_focei.scaleObjectiveTo);
-      for (int i = 0; i < n; i++){
+	Rprintf("|    X|%14.8g |", op_focei.initObjective * ret / op_focei.scaleObjectiveTo);
+      for (i = 0; i < n; i++){
 	if (op_focei.xPar[i]){
           Rprintf("%#10.4g |", exp(x[i]*op_focei.initPar[i]/op_focei.scaleTo));
         } else {
           Rprintf("%#10.4g |", x[i]*op_focei.initPar[i]/op_focei.scaleTo);
 	}
+        if ((i + 1) % op_focei.printNcol == 0){
+          Rprintf("\n|.....................|");
+        }
       }
     } else {
       if (op_focei.useColor){
 	if (op_focei.scaleObjective){
-          Rprintf("\n|    X|\033[1m%14.8g \033[0m|", op_focei.initObjective * ret / op_focei.scaleObjectiveTo);
+          Rprintf("|    X|\033[1m%14.8g \033[0m|", op_focei.initObjective * ret / op_focei.scaleObjectiveTo);
 	} else {
-	  Rprintf("\n|    X|\033[1m%14.8g \033[0m|", ret);
+	  Rprintf("|    X|\033[1m%14.8g \033[0m|", ret);
 	}
       } else {
         if (op_focei.scaleObjective){
-	  Rprintf("\n|    X|%14.8g |", op_focei.initObjective * ret / op_focei.scaleObjectiveTo);
+	  Rprintf("|    X|%14.8g |", op_focei.initObjective * ret / op_focei.scaleObjectiveTo);
 	} else {
-          Rprintf("\n|    X|\033[1m%14.8g \033[0m|", ret);
+          Rprintf("|    X|\033[1m%14.8g \033[0m|", ret);
         }
       }
-      for (int i = 0; i < n; i++){
+      for (i = 0; i < n; i++){
         if (op_focei.xPar[i]){
           Rprintf("%#10.4g |", exp(x[i]));
         } else {
           Rprintf("%#10.4g |", x[i]);
         }
+        if ((i + 1) % op_focei.printNcol == 0){
+          Rprintf("\n|.....................|");
+        }
       }
     }
-    Rprintf("\n");
+    if (finalize){
+      while(true){
+        if ((i++) % op_focei.printNcol == 0){
+          Rprintf("\n");
+          break;
+        } else if (i % op_focei.printNcol == 0) {
+          Rprintf("...........|");
+        } else {
+          Rprintf("...........+");
+        }
+      }
+    } else {
+      Rprintf("\n");
+    }
     // foceiPrintLine();
   }
   return ret;
@@ -1473,12 +1531,30 @@ extern "C" void outerGradNumOptim(int n, double *par, double *gr, void *ex){
   numericGrad(par, gr);
   op_focei.nG++;
   if (op_focei.printOuter != 0 && op_focei.nG % op_focei.printOuter == 0){
+    int finalize=0, i = 0;
     Rprintf("|    G|               |");
-    for (int i = 0; i < n; i++){
+    for (i = 0; i < n; i++){
       Rprintf("%#10.4g |", gr[i]);
+      if ((i + 1) % op_focei.printNcol == 0){
+        Rprintf("\n|.....................|");
+        finalize=1;
+      }
     }
-    Rprintf("\n");
-    foceiPrintLine();
+    if (finalize){
+      while(true){
+        if ((i++) % op_focei.printNcol == 0){
+          Rprintf("\n");
+	  break;
+        } else if (i % op_focei.printNcol == 0) {
+          Rprintf("...........|");
+        } else {
+          Rprintf("...........+");
+	}
+      }
+    } else {
+      Rprintf("\n");
+    }
+    foceiPrintLine(min(op_focei.npars, op_focei.printNcol));
   }
 }
 
@@ -2142,10 +2218,10 @@ Environment foceiFitCpp_(Environment e){
       }
       Rprintf("X: Back-transformed parameters; ");
       Rprintf("G: Gradient\n");
-      foceiPrintLine();
+      foceiPrintLine(min(op_focei.npars, op_focei.printNcol));
       Rprintf("|    #| Objective Fun |");
-      int j;
-      for (unsigned int i = 0; i < (unsigned int)(op_focei.npars); i++){
+      int j,  i=0, finalize=0;
+      for (i = 0; i < op_focei.npars; i++){
         j=op_focei.fixedTrans[i];
         if (j < thetaNames.size()){
 	  tmpS = thetaNames[j];
@@ -2153,9 +2229,26 @@ Environment foceiFitCpp_(Environment e){
 	} else {
 	  Rprintf("           |");
 	}
+	if ((i + 1) % op_focei.printNcol == 0){
+          Rprintf("\n|.....................|");
+          finalize=1;
+	}
       }
-      Rprintf("\n");
-      foceiPrintLine();
+      if (finalize){
+        while(true){
+          if ((i++) % op_focei.printNcol == 0){
+            Rprintf("\n");
+            break;
+          } else if (i % op_focei.printNcol == 0) {
+            Rprintf("...........|");
+          } else {
+            Rprintf("...........+");
+          }
+        }
+      } else {
+        Rprintf("\n");
+      }
+      foceiPrintLine(min(op_focei.npars, op_focei.printNcol));
     }
     foceiOuter(e);
     e["optimTime"] = (((double)(clock() - t0))/CLOCKS_PER_SEC);
