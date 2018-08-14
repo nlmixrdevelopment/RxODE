@@ -1481,12 +1481,13 @@ rxParsePred <- function(x, init=NULL, err=NULL){
         .ret <- sapply(seq(1, max(length(.errs), length(.prd))), function(en){
             .e <- .errs[min(length(.errs), en)];
             .p <- .prd[min(length(.prd), en)];
+            .reg <- rex::rex("rx_pred_", any_spaces, "=",any_spaces, capture(except_any_of(";\n")), any_of(";\n"))
             if (regexpr(rex::rex("rx_yj_~2;\nrx_lambda_~1;\n"), .e) != -1){
-                .p <- gsub(rex::rex("rx_pred_ = ",capture(anything), ";"), "rx_pred_f_~\\1;\nrx_pred_ = \\1", .p)
+                .p <- gsub(.reg, "rx_pred_f_~\\1;\nrx_pred_ = \\1", .p)
             } else if (regexpr(rex::rex("rx_yj_~3;\nrx_lambda_~0;\n"), .e) != -1){
-                .p <- gsub(rex::rex("rx_pred_ = ",capture(anything), ";"), "rx_pred_f_~\\1;\nrx_pred_ = log(\\1)", .p);
+                .p <- gsub(.reg, "rx_pred_f_~\\1;\nrx_pred_ = log(\\1)", .p);
             } else {
-                .p <- gsub(rex::rex("rx_pred_ = ",capture(anything), ";"), "rx_pred_f_~\\1;\nrx_pred_ = rxTBS(\\1, rx_lambda_, rx_yj_)", .p);
+                .p <- gsub(.reg, "rx_pred_f_~\\1;\nrx_pred_ = rxTBS(\\1, rx_lambda_, rx_yj_)", .p);
             }
             return(gsub("rx_r_", sprintf("%s\nrx_r_", .p), .e));
         })
