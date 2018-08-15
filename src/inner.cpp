@@ -1424,9 +1424,9 @@ extern "C" double foceiOfvOptim(int n, double *x, void *ex){
       Rprintf("|%5d|%#14.8g |", op_focei.nF, ret);
     for (i = 0; i < n; i++){
       Rprintf("%#10.4g |", x[i]);
-      if ((i + 1) % op_focei.printNcol == 0){
+      if ((i + 1) != n && (i + 1) % op_focei.printNcol == 0){
         if (op_focei.useColor && op_focei.printNcol + i  > n){
-          Rprintf("\n|\033[4m.....................|");
+          Rprintf("\n\033[4m|.....................|");
         } else {
           Rprintf("\n|.....................|");
         }
@@ -1436,14 +1436,9 @@ extern "C" double foceiOfvOptim(int n, double *x, void *ex){
     if (finalize){
       while(true){
         if ((i++) % op_focei.printNcol == 0){
+          if (op_focei.useColor) Rprintf("\033[0m");
           Rprintf("\n");
           break;
-        } else if (i % op_focei.printNcol == 0) {
-	  if (op_focei.useColor){
-            Rprintf("...........\033[0m|");
-          } else {
-            Rprintf("...........|");
-	  }
         } else {
           Rprintf("...........|");
         }
@@ -1459,9 +1454,9 @@ extern "C" double foceiOfvOptim(int n, double *x, void *ex){
       }
       for (i = 0; i < n; i++){
         Rprintf("%#10.4g |", x[i]*op_focei.initPar[i]/op_focei.scaleTo);
-        if ((i + 1) % op_focei.printNcol == 0){
+        if ((i + 1) != n && (i + 1) % op_focei.printNcol == 0){
           if (op_focei.useColor && op_focei.printNcol + i  > op_focei.npars){
-            Rprintf("\n|\033[4m.....................|");
+            Rprintf("\n\033[4m|.....................|");
           } else {
             Rprintf("\n|.....................|");
           }
@@ -1470,14 +1465,9 @@ extern "C" double foceiOfvOptim(int n, double *x, void *ex){
       if (finalize){
         while(true){
           if ((i++) % op_focei.printNcol == 0){
+            if (op_focei.useColor) Rprintf("\033[0m");
             Rprintf("\n");
             break;
-          } else if (i % op_focei.printNcol == 0) {
-	    if (op_focei.useColor){
-              Rprintf("...........\033[0m|");
-	    } else {
-              Rprintf("...........|");
-            }
           } else {
             Rprintf("...........|");
           }
@@ -1495,9 +1485,9 @@ extern "C" double foceiOfvOptim(int n, double *x, void *ex){
         } else {
           Rprintf("%#10.4g |", x[i]*op_focei.initPar[i]/op_focei.scaleTo);
 	}
-        if ((i + 1) % op_focei.printNcol == 0){
+        if ((i + 1) != n && (i + 1) % op_focei.printNcol == 0){
           if (op_focei.useColor && op_focei.printNcol + i  > op_focei.npars){
-            Rprintf("\n|\033[4m.....................|");
+            Rprintf("\n\033[4m|.....................|");
           } else {
             Rprintf("\n|.....................|");
           }
@@ -1523,9 +1513,9 @@ extern "C" double foceiOfvOptim(int n, double *x, void *ex){
         } else {
           Rprintf("%#10.4g |", x[i]);
         }
-        if ((i + 1) % op_focei.printNcol == 0){
+        if ((i + 1) != n && (i + 1) % op_focei.printNcol == 0){
           if (op_focei.useColor && op_focei.printNcol + i  > op_focei.npars){
-            Rprintf("\n|\033[4m.....................|");
+            Rprintf("\n\033[4m|.....................|");
           } else {
             Rprintf("\n|.....................|");
           }
@@ -1535,14 +1525,9 @@ extern "C" double foceiOfvOptim(int n, double *x, void *ex){
     if (finalize){
       while(true){
         if ((i++) % op_focei.printNcol == 0){
+          if (op_focei.useColor) Rprintf("\033[0m");
           Rprintf("\n");
           break;
-        } else if (i % op_focei.printNcol == 0) {
-	  if (op_focei.useColor){
-            Rprintf("...........\033[0m|");
-	  } else {
-            Rprintf("...........|");
-          }
         } else {
           Rprintf("...........|");
         }
@@ -1560,12 +1545,20 @@ extern "C" void outerGradNumOptim(int n, double *par, double *gr, void *ex){
   op_focei.nG++;
   if (op_focei.printOuter != 0 && op_focei.nG % op_focei.printOuter == 0){
     int finalize=0, i = 0;
-    Rprintf("|    G|               |");
+    if (op_focei.useColor && op_focei.printNcol >= n){
+      Rprintf("|\033[4m    G|               |");
+    } else {
+      Rprintf("|    G|               |");
+    }
     for (i = 0; i < n; i++){
-      Rprintf("%#10.4g |", gr[i]);
-      if ((i + 1) % op_focei.printNcol == 0){
+      Rprintf("%#10.4g ", gr[i]);
+      if (op_focei.useColor && op_focei.printNcol >= n && i == n-1){
+	Rprintf("\033[0m");
+      }
+      Rprintf("|");
+      if ((i + 1) != n && (i + 1) % op_focei.printNcol == 0){
         if (op_focei.useColor && op_focei.printNcol + i  > op_focei.npars){
-          Rprintf("\n|\033[4m.....................|");
+          Rprintf("\n\033[4m|.....................|");
         } else {
           Rprintf("\n|.....................|");
         }
@@ -1575,14 +1568,9 @@ extern "C" void outerGradNumOptim(int n, double *par, double *gr, void *ex){
     if (finalize){
       while(true){
         if ((i++) % op_focei.printNcol == 0){
+          if (op_focei.useColor) Rprintf("\033[0m");
           Rprintf("\n");
 	  break;
-        } else if (i % op_focei.printNcol == 0) {
-          if (op_focei.useColor){
-            Rprintf("...........\033[0m|");
-          } else {
-            Rprintf("...........|");
-          }
         } else {
           Rprintf("...........|");
 	}
@@ -2269,10 +2257,10 @@ Environment foceiFitCpp_(Environment e){
 	  Rprintf("%#10s |", tmpS.c_str());
 	} else {
 	  Rprintf("           |");
-	}
-	if ((i + 1) % op_focei.printNcol == 0){
-	  if (op_focei.useColor && op_focei.printNcol + i  > op_focei.npars){
-	    Rprintf("\n|\033[4m.....................|");
+	} 
+	if ((i + 1) != op_focei.npars && (i + 1) % op_focei.printNcol == 0){
+	  if (op_focei.useColor && op_focei.printNcol + i  >= op_focei.npars){
+	    Rprintf("\n\033[4m|.....................|");
 	  } else {
             Rprintf("\n|.....................|");
           }
@@ -2282,13 +2270,9 @@ Environment foceiFitCpp_(Environment e){
       if (finalize){
         while(true){
           if ((i++) % op_focei.printNcol == 0){
+            if (op_focei.useColor) Rprintf("\033[0m");
             Rprintf("\n");
             break;
-          } else if (i % op_focei.printNcol == 0) {
-            if (op_focei.useColor)
-              Rprintf("...........\033[0m|");
-	    else
-		Rprintf("...........|");
           } else {
             Rprintf("...........|");
           }
