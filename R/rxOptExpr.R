@@ -74,6 +74,9 @@
         stop(.err)
     }
 }
+.rxOptEnv$"{" <- function(...){
+    return(sprintf("{\n%s\n}", paste(unlist(list(...)), collapse="\n")))
+}
 .rxOptEnv$"[" <- function(name, val){
     .n <- toupper(name)
     .err <- "RxODE only supports THETA[#] and ETA[#] numbers."
@@ -123,6 +126,7 @@
 ##' @author Matthew L. Fidler
 ##' @export
 rxOptExpr <- function(x){
+    assign("x", x, globalenv())
     .rxOptEnv$.list <- list();
     .rxOptEnv$.rep <- list();
     .rxOptEnv$.exclude <- "";
@@ -131,6 +135,7 @@ rxOptExpr <- function(x){
         .silent <- (regexpr("[~]", line) != -1)
         .l2 <- strsplit(line, "[=~]")[[1]]
         if (length(.l2) == 2){
+            if (regexpr(rex::rex("if", any_spaces, "("), .l2[1]) != -1) return(line);
             .l1 <- gsub(" +", "", .l2[1])
             .rxOptEnv$.exclude <- .l1;
             .ret <- eval(parse(text=sprintf(".rxOptExpr(quote(%s))", gsub(";$", "",.l2[2]))));

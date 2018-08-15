@@ -289,6 +289,51 @@ rxPermissive({
     })
 
     ## Now Test conditional statements
+    mod <- RxODE({
+        Q1 <- 0
+        if (t >= 2 & t < 4) {
+            Q1 <- 1
+        }
+        d/dt(depot) = -ktr * depot
+        d/dt(gut) = ktr * depot - ka * gut + Q1 * gb
+        d/dt(center) = ka * gut - (cl/v + Q/v) * center + Q/vt *
+            tissue
+        d/dt(tissue) = Q/v * center - Q/vt * tissue
+        d/dt(gb) = (cl/v * fgb * center)
+        cp = center/v
+    })
 
+    pred <- function() cp;
+
+    err <- function(){
+        return(lnorm(lnorm.err) + tbs(lambda))
+    }
+
+    pk <- function(){
+        tktr=THETA[1]
+        tka=THETA[2]
+        tcl=THETA[3]
+        tv=THETA[4]
+        tQ=THETA[5]
+        tvt=THETA[6]
+        tfgb=THETA[7]
+        lnorm.err=THETA[8]
+        lambda = THETA[9]
+        eta.ktr=ETA[1]
+        eta.ka=ETA[2]
+        eta.cl=ETA[3]
+        eta.v=ETA[4]
+        eta.vt=ETA[5]
+        eta.fgb=ETA[6]
+        ktr <- exp(tktr + eta.ktr)
+        ka <- exp(tka + eta.ka)
+        cl <- exp(tcl + eta.cl)
+        v <- exp(tv + eta.v)
+        Q <- exp(tQ)
+        vt <- exp(tvt + eta.vt)
+        fgb <- exp(tfgb + eta.fgb)
+    }
+
+    cond <- rxSymPySetupPred(mod, pred, pk, err)
 
 }, silent=TRUE, on.validate=TRUE)

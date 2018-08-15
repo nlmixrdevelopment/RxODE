@@ -289,7 +289,6 @@ rxSymPy <- function(...){
             } else {
                 stop(sprintf("Error running SymPy command:\n    %s\n    %s: %s\n\n%s",
                              cmd, var, attr(val, "condition")$message, attr(ret, "condition")$message))
-
             }
         }
         stop(sprintf("Error running sympy command:\n    %s\n\n%s", cmd, attr(ret, "condition")$message));
@@ -304,8 +303,14 @@ rxSymPy0 <- function(...){
     if (.rxSymPy$started == "reticulate"){
         ## reticulate::py_run_string("__Rsympy=None",convert=FALSE)
         ret <- reticulate::py_run_string(paste0("__Rsympy=", paste(...)),convert=FALSE)
-        ret <- reticulate::py_to_r(ret$`__Rsympy`);
-        return(rxSymPyFix(ret));
+        ret <- try(reticulate::py_to_r(ret$`__Rsympy`), silent=TRUE);
+        if (inherits(ret, "try-error")){
+            ret <- reticulate::py_run_string(paste0("__Rsympy=str(", paste(...), ")"),convert=FALSE);
+            ret <- reticulate::py_to_r(ret$`__Rsympy`);
+            return(rxSymPyFix(ret));
+        } else {
+            return(rxSymPyFix(ret));
+        }
     }
     if (.rxSymPy$started == "SnakeCharmR"){
         SnakeCharmR::py.exec(paste("__Rsympy=None"))
@@ -1470,25 +1475,26 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
             }
             .baseState <- rxState(obj);
             .oLhs <- rxLhs(obj);
-            if (length(.baseState) > 0){
-                obj <- rxGetModel(rxNorm(obj, removeJac=TRUE, removeSens=TRUE), calcSens=calcSens, collapseModel=TRUE);
-                .full <- paste0(rxNorm(obj), "\n", rxNorm(pred.mod));
-            }
-            .full <- rxGetModel(.full);
-            .fullState <- rxState(.full);
+            ## if (length(.baseState) > 0){
+            ##     obj <- rxGetModel(rxNorm(obj, removeJac=TRUE, removeSens=TRUE), calcSens=calcSens, collapseModel=TRUE);
+            ##     .full <- paste0(rxNorm(obj), "\n", rxNorm(pred.mod));
+            ## }
+            .full <- rxGetModel(paste0(rxNorm(obj), "\n", rxNorm(pred.mod)));
+            ## .fullState <- rxState(.full);
             ## Now everything is setup get conditional statements and move on.
             .cond <- rxExpandIfElse(.full);
             .ncond <- names(.cond);
             .zeroSens <- FALSE;
             .mods <- lapply(seq_along(.cond), function(.i){
-                .full <- rxGetModel(.cond[.i]);
                 if (!is.null(.ncond)){
                     rxCat("################################################################################\n");
-
                     rxCat(sprintf("## %s %s\n", crayon::bold("Condition:"), .ncond[.i]));
                     rxCat("################################################################################\n");
                 }
+                .full <- rxGetModel(.cond[.i], calcSens=calcSens);
+                .fullState <- rxState(.full);
                 rxCat("## Load into sympy...");
+                assign(".full", .full, globalenv());
                 rxSymPySetup(.full);
                 on.exit({rxCat("## Freeing Python/SymPy memory...");rxSymPyClean();rxCat("done\n")});
                 rxCat("done\n");
@@ -1536,6 +1542,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                     .states <- paste0(.states,
                                       "\nrx_yj_~", rxFromSymPy(.yj), ";\n",
                                       "rx_lambda_~", rxFromSymPy(.lambda), ";\n");
+
                     .pred <- rxToSymPy("rx_pred_");
                     .pred <- rxSymPy(.pred);
                     .pred.only <- paste0(.states,
