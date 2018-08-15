@@ -1486,97 +1486,101 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
             .ncond <- names(.cond);
             .zeroSens <- FALSE;
             .mods <- lapply(seq_along(.cond), function(.i){
-                if (!is.null(.ncond)){
-                    rxCat("################################################################################\n");
-                    rxCat(sprintf("## %s %s\n", crayon::bold("Condition:"), .ncond[.i]));
-                    rxCat("################################################################################\n");
-                }
-                .full <- rxGetModel(.cond[.i], calcSens=calcSens);
-                .fullState <- rxState(.full);
-                rxCat("## Load into sympy...");
-                assign(".full", .full, globalenv());
-                rxSymPySetup(.full);
-                on.exit({rxCat("## Freeing Python/SymPy memory...");rxSymPyClean();rxCat("done\n")});
-                rxCat("done\n");
-                if (rxSymPyExists("rx_pred_") & rxSymPyExists("rx_r_")){
-                    if (.useUtf()){
-                        rxCat(sprintf("## Calculate \u2202(f)/\u2202(\u03B7)\n", lines));
-                    } else {
-                        rxCat(sprintf("## Calculate d(f)/d(eta)\n", lines));
-                    }
-                    rxCat(sprintf("## Calculate d(f)/d(eta)\n"));
-                    .newlines <- rxSymPySetupDPred(.full, calcSens, .baseState);
-                    .zeroSens <<- .zeroSens | attr(.newlines, "zeroSens")
-                    if (.useUtf()){
-                        rxCat(sprintf("## Calculate \u2202(R\u00B2)/\u2202(\u03B7)\n", lines));
-                    } else {
-                        rxCat(sprintf("## Calculate d(R^2)/d(eta)\n", lines));
-                    }
-                    .newlinesR <- rxSymPySetupDPred(.full, calcSens, .baseState, prd="rx_r_");
-                    rxCat("## done\n");
-                    .states <- paste(sapply(.fullState, function(x){
-                        .ini <- sprintf("%s(0)", x);
-                        .iniS <- rxToSymPy(.ini);
-                        ## Make sure to get any initial conditions
-                        if (rxSymPyExists(.iniS)){
-                            .iniS <- rxSymPy(.iniS);
-                            .iniS <- rxFromSymPy(.iniS);
-                            if (.iniS != "0"){
-                                .iniS <- sprintf("%s=%s;\n", .ini, .iniS);
-                            } else {
-                                .iniS <- "";
-                            }
-                        } else {
-                            .iniS <- ""
-                        }
-                        .ddt <- sprintf("d/dt(%s)", x);
-                        .sympy <- rxToSymPy(.ddt);
-                        .v <- rxSymPy(.sympy);
-                        .v <- rxFromSymPy(.v);
-                        return(sprintf("%s%s~%s;", .iniS, .ddt, .v));
-                    }), collapse="\n");
-                    .yj <- rxToSymPy("rx_yj_")
-                    .yj <- rxSymPy(.yj);
-                    .lambda <- rxToSymPy("rx_lambda_")
-                    .lambda <- rxSymPy(.lambda);
-                    .states <- paste0(.states,
-                                      "\nrx_yj_~", rxFromSymPy(.yj), ";\n",
-                                      "rx_lambda_~", rxFromSymPy(.lambda), ";\n");
-
-                    .pred <- rxToSymPy("rx_pred_");
-                    .pred <- rxSymPy(.pred);
-                    .pred.only <- paste0(.states,
-                                         "rx_pred_=", rxFromSymPy(.pred), ";");
-                    .r <- rxToSymPy("rx_r_");
-                    .r <- rxSymPy(.r);
-                    .inner <- paste(c(.pred.only, .newlines,
-                                      paste0("rx_r_=", rxFromSymPy(.r), ";"),
-                                      .newlinesR), collapse="\n");
-                    .lhs <- setNames(sapply(.oLhs, function(x){
-                        .lhs <- rxToSymPy(x);
-                        if (rxSymPyExists(.lhs)){
-                            .lhs <- try(rxSymPy(x), silent=TRUE);
-                            if (inherits(.lhs, "try-error"))  return("");
-                            if (x == .lhs){
-                                return("");
-                            } else {
-                                .lhs <- try(rxFromSymPy(.lhs), silent=TRUE);
-                                if (inherits(.lhs, "try-error"))  return("");
-                                return(sprintf("%s=%s;", x, rxFromSymPy(.lhs)));
-                            }
-                        }
-                        return("");
-                    }), .oLhs);
-                    .lhs <- .lhs[(.lhs == "")];
-                    .ebe <- paste(c(.states,.lhs), collapse="\n")
-                    .toLines <- function(x){strsplit(rxNorm(rxGetModel(x)), "\n")[[1]]}
-                    return(list(pred.only=.toLines(.pred.only),
-                                ebe=.toLines(.ebe),
-                                lhs=.lhs,
-                                inner=.toLines(.inner)));
-                } else {
-                    rxCat("## Does not have predictions or errors, skipping.\n");
+                if ((regexpr(rex::rex("rx_pred_="), .cond[.i]) == -1) | (regexpr(rex::rex("rx_r_="), .cond[.i]) == -1)){
                     return(NULL)
+                } else {
+                    if (!is.null(.ncond)){
+                        rxCat("################################################################################\n");
+                        rxCat(sprintf("## %s %s\n", crayon::bold("Condition:"), .ncond[.i]));
+                        rxCat("################################################################################\n");
+                    }
+                    .full <- rxGetModel(.cond[.i], calcSens=calcSens);
+                    .fullState <- rxState(.full);
+                    rxCat("## Load into sympy...");
+                    assign(".full", .full, globalenv());
+                    rxSymPySetup(.full);
+                    on.exit({rxCat("## Freeing Python/SymPy memory...");rxSymPyClean();rxCat("done\n")});
+                    rxCat("done\n");
+                    if (rxSymPyExists("rx_pred_") & rxSymPyExists("rx_r_")){
+                        if (.useUtf()){
+                            rxCat(sprintf("## Calculate \u2202(f)/\u2202(\u03B7)\n", lines));
+                        } else {
+                            rxCat(sprintf("## Calculate d(f)/d(eta)\n", lines));
+                        }
+                        rxCat(sprintf("## Calculate d(f)/d(eta)\n"));
+                        .newlines <- rxSymPySetupDPred(.full, calcSens, .baseState);
+                        .zeroSens <<- .zeroSens | attr(.newlines, "zeroSens")
+                        if (.useUtf()){
+                            rxCat(sprintf("## Calculate \u2202(R\u00B2)/\u2202(\u03B7)\n", lines));
+                        } else {
+                            rxCat(sprintf("## Calculate d(R^2)/d(eta)\n", lines));
+                        }
+                        .newlinesR <- rxSymPySetupDPred(.full, calcSens, .baseState, prd="rx_r_");
+                        rxCat("## done\n");
+                        .states <- paste(sapply(.fullState, function(x){
+                            .ini <- sprintf("%s(0)", x);
+                            .iniS <- rxToSymPy(.ini);
+                            ## Make sure to get any initial conditions
+                            if (rxSymPyExists(.iniS)){
+                                .iniS <- rxSymPy(.iniS);
+                                .iniS <- rxFromSymPy(.iniS);
+                                if (.iniS != "0"){
+                                    .iniS <- sprintf("%s=%s;\n", .ini, .iniS);
+                                } else {
+                                    .iniS <- "";
+                                }
+                            } else {
+                                .iniS <- ""
+                            }
+                            .ddt <- sprintf("d/dt(%s)", x);
+                            .sympy <- rxToSymPy(.ddt);
+                            .v <- rxSymPy(.sympy);
+                            .v <- rxFromSymPy(.v);
+                            return(sprintf("%s%s~%s;", .iniS, .ddt, .v));
+                        }), collapse="\n");
+                        .yj <- rxToSymPy("rx_yj_")
+                        .yj <- rxSymPy(.yj);
+                        .lambda <- rxToSymPy("rx_lambda_")
+                        .lambda <- rxSymPy(.lambda);
+                        .states <- paste0(.states,
+                                          "\nrx_yj_~", rxFromSymPy(.yj), ";\n",
+                                          "rx_lambda_~", rxFromSymPy(.lambda), ";\n");
+
+                        .pred <- rxToSymPy("rx_pred_");
+                        .pred <- rxSymPy(.pred);
+                        .pred.only <- paste0(.states,
+                                             "rx_pred_=", rxFromSymPy(.pred), ";");
+                        .r <- rxToSymPy("rx_r_");
+                        .r <- rxSymPy(.r);
+                        .inner <- paste(c(.pred.only, .newlines,
+                                          paste0("rx_r_=", rxFromSymPy(.r), ";"),
+                                          .newlinesR), collapse="\n");
+                        .lhs <- setNames(sapply(.oLhs, function(x){
+                            .lhs <- rxToSymPy(x);
+                            if (rxSymPyExists(.lhs)){
+                                .lhs <- try(rxSymPy(x), silent=TRUE);
+                                if (inherits(.lhs, "try-error"))  return("");
+                                if (x == .lhs){
+                                    return("");
+                                } else {
+                                    .lhs <- try(rxFromSymPy(.lhs), silent=TRUE);
+                                    if (inherits(.lhs, "try-error"))  return("");
+                                    return(sprintf("%s=%s;", x, rxFromSymPy(.lhs)));
+                                }
+                            }
+                            return("");
+                        }), .oLhs);
+                        .lhs <- .lhs[(.lhs == "")];
+                        .ebe <- paste(c(.states,.lhs), collapse="\n")
+                        .toLines <- function(x){strsplit(rxNorm(rxGetModel(x)), "\n")[[1]]}
+                        return(list(pred.only=.toLines(.pred.only),
+                                    ebe=.toLines(.ebe),
+                                    lhs=.lhs,
+                                    inner=.toLines(.inner)));
+                    } else {
+                        rxCat("## Does not have predictions or errors, skipping.\n");
+                        return(NULL)
+                    }
                 }
             })
             w <- which(sapply(seq_along(.mods), function(x){return(is.null(.mods[[x]]))}));
