@@ -1425,7 +1425,11 @@ extern "C" double foceiOfvOptim(int n, double *x, void *ex){
     for (i = 0; i < n; i++){
       Rprintf("%#10.4g |", x[i]);
       if ((i + 1) % op_focei.printNcol == 0){
-        Rprintf("\n|.....................|");
+        if (op_focei.useColor && op_focei.printNcol + i  > n){
+          Rprintf("\n|\033[4m.....................|");
+        } else {
+          Rprintf("\n|.....................|");
+        }
 	finalize=1;
       }
     }
@@ -1435,9 +1439,13 @@ extern "C" double foceiOfvOptim(int n, double *x, void *ex){
           Rprintf("\n");
           break;
         } else if (i % op_focei.printNcol == 0) {
-          Rprintf("...........|");
+	  if (op_focei.useColor){
+            Rprintf("...........\033[0m|");
+          } else {
+            Rprintf("...........|");
+	  }
         } else {
-          Rprintf("...........+");
+          Rprintf("...........|");
         }
       }
     } else {
@@ -1452,7 +1460,11 @@ extern "C" double foceiOfvOptim(int n, double *x, void *ex){
       for (i = 0; i < n; i++){
         Rprintf("%#10.4g |", x[i]*op_focei.initPar[i]/op_focei.scaleTo);
         if ((i + 1) % op_focei.printNcol == 0){
-          Rprintf("\n|.....................|");
+          if (op_focei.useColor && op_focei.printNcol + i  > op_focei.npars){
+            Rprintf("\n|\033[4m.....................|");
+          } else {
+            Rprintf("\n|.....................|");
+          }
         }
       }
       if (finalize){
@@ -1461,9 +1473,13 @@ extern "C" double foceiOfvOptim(int n, double *x, void *ex){
             Rprintf("\n");
             break;
           } else if (i % op_focei.printNcol == 0) {
-            Rprintf("...........|");
+	    if (op_focei.useColor){
+              Rprintf("...........\033[0m|");
+	    } else {
+              Rprintf("...........|");
+            }
           } else {
-            Rprintf("...........+");
+            Rprintf("...........|");
           }
         }
       } else {
@@ -1480,7 +1496,11 @@ extern "C" double foceiOfvOptim(int n, double *x, void *ex){
           Rprintf("%#10.4g |", x[i]*op_focei.initPar[i]/op_focei.scaleTo);
 	}
         if ((i + 1) % op_focei.printNcol == 0){
-          Rprintf("\n|.....................|");
+          if (op_focei.useColor && op_focei.printNcol + i  > op_focei.npars){
+            Rprintf("\n|\033[4m.....................|");
+          } else {
+            Rprintf("\n|.....................|");
+          }
         }
       }
     } else {
@@ -1504,7 +1524,11 @@ extern "C" double foceiOfvOptim(int n, double *x, void *ex){
           Rprintf("%#10.4g |", x[i]);
         }
         if ((i + 1) % op_focei.printNcol == 0){
-          Rprintf("\n|.....................|");
+          if (op_focei.useColor && op_focei.printNcol + i  > op_focei.npars){
+            Rprintf("\n|\033[4m.....................|");
+          } else {
+            Rprintf("\n|.....................|");
+          }
         }
       }
     }
@@ -1514,9 +1538,13 @@ extern "C" double foceiOfvOptim(int n, double *x, void *ex){
           Rprintf("\n");
           break;
         } else if (i % op_focei.printNcol == 0) {
-          Rprintf("...........|");
+	  if (op_focei.useColor){
+            Rprintf("...........\033[0m|");
+	  } else {
+            Rprintf("...........|");
+          }
         } else {
-          Rprintf("...........+");
+          Rprintf("...........|");
         }
       }
     } else {
@@ -1536,7 +1564,11 @@ extern "C" void outerGradNumOptim(int n, double *par, double *gr, void *ex){
     for (i = 0; i < n; i++){
       Rprintf("%#10.4g |", gr[i]);
       if ((i + 1) % op_focei.printNcol == 0){
-        Rprintf("\n|.....................|");
+        if (op_focei.useColor && op_focei.printNcol + i  > op_focei.npars){
+          Rprintf("\n|\033[4m.....................|");
+        } else {
+          Rprintf("\n|.....................|");
+        }
         finalize=1;
       }
     }
@@ -1546,15 +1578,21 @@ extern "C" void outerGradNumOptim(int n, double *par, double *gr, void *ex){
           Rprintf("\n");
 	  break;
         } else if (i % op_focei.printNcol == 0) {
-          Rprintf("...........|");
+          if (op_focei.useColor){
+            Rprintf("...........\033[0m|");
+          } else {
+            Rprintf("...........|");
+          }
         } else {
-          Rprintf("...........+");
+          Rprintf("...........|");
 	}
       }
     } else {
       Rprintf("\n");
     }
-    foceiPrintLine(min(op_focei.npars, op_focei.printNcol));
+    if (!op_focei.useColor){
+      foceiPrintLine(min(op_focei.npars, op_focei.printNcol));
+    }
   }
 }
 
@@ -2212,7 +2250,10 @@ Environment foceiFitCpp_(Environment e){
     }
     std::string tmpS;
     if (op_focei.maxOuterIterations > 0){
-      Rprintf("\033[1mKey:\033[0m ");
+      if (op_focei.useColor)
+	Rprintf("\033[1mKey:\033[0m ");
+      else 
+        Rprintf("Key: ");
       if (op_focei.scaleTo > 0){
 	Rprintf("U: Unscaled Parameters; ");
       }
@@ -2230,7 +2271,11 @@ Environment foceiFitCpp_(Environment e){
 	  Rprintf("           |");
 	}
 	if ((i + 1) % op_focei.printNcol == 0){
-          Rprintf("\n|.....................|");
+	  if (op_focei.useColor && op_focei.printNcol + i  > op_focei.npars){
+	    Rprintf("\n|\033[4m.....................|");
+	  } else {
+            Rprintf("\n|.....................|");
+          }
           finalize=1;
 	}
       }
@@ -2240,15 +2285,20 @@ Environment foceiFitCpp_(Environment e){
             Rprintf("\n");
             break;
           } else if (i % op_focei.printNcol == 0) {
-            Rprintf("...........|");
+            if (op_focei.useColor)
+              Rprintf("...........\033[0m|");
+	    else
+		Rprintf("...........|");
           } else {
-            Rprintf("...........+");
+            Rprintf("...........|");
           }
         }
       } else {
         Rprintf("\n");
       }
-      foceiPrintLine(min(op_focei.npars, op_focei.printNcol));
+      if (!op_focei.useColor){
+	foceiPrintLine(min(op_focei.npars, op_focei.printNcol));
+      }
     }
     foceiOuter(e);
     e["optimTime"] = (((double)(clock() - t0))/CLOCKS_PER_SEC);
