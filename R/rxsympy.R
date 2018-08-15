@@ -1565,7 +1565,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                                 } else {
                                     .lhs <- try(rxFromSymPy(.lhs), silent=TRUE);
                                     if (inherits(.lhs, "try-error"))  return("");
-                                    return(sprintf("%s=%s;", x, rxFromSymPy(.lhs)));
+                                    return(sprintf("%s=%s;", x, .lhs));
                                 }
                             }
                             return("");
