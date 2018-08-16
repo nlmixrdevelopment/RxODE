@@ -2049,7 +2049,7 @@ void foceiFinalizeTables(Environment e){
   for (i = Estimate.size(); i--;){
     snprintf(buff, sizeof(buff), "%.*g", (int)op_focei.sigdig, Estimate[i]);
     EstS[i]=buff;
-    if (j >= 0 && logTheta[j]-1==i){
+    if (logTheta.size() > 0 && j >= 0 && logTheta[j]-1==i){
       EstBT[i] = exp(Estimate[i]);
       snprintf(buff, sizeof(buff), "%.*g", (int)op_focei.sigdig, EstBT[i]);
       cur = buff;
