@@ -1508,7 +1508,6 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                             } else {
                                 rxCat(sprintf("## Calculate d(f)/d(eta)\n", lines));
                             }
-                            rxCat(sprintf("## Calculate d(f)/d(eta)\n"));
                             .newlines <- rxSymPySetupDPred(.full, calcSens, .baseState);
                             .zeroSens <<- .zeroSens | attr(.newlines, "zeroSens")
                             if (.useUtf()){
