@@ -1077,10 +1077,13 @@ NumericVector foceiSetup_(const RObject &obj,
     op_focei.rEps=fabs(cEps[0]);
     op_focei.aEps=fabs(cEps[1]);
   }
-
   // This fills in op_focei.neta
-  List mvi = rxModelVars_(obj);
+  List mvi;
+  if (!rxIs(obj, "NULL")){
+    mvi = rxModelVars_(obj);
+  }
   op_focei.mvi = mvi;
+  
   if (op_focei.skipCov != NULL) Free(op_focei.skipCov);
   if (skipCov.isNull()){
     op_focei.skipCovN = 0;
@@ -1090,7 +1093,7 @@ NumericVector foceiSetup_(const RObject &obj,
     op_focei.skipCov = Calloc(skipCov1.size(), int);
     std::copy(skipCov1.begin(),skipCov1.end(),op_focei.skipCov);
   }
-  foceiSetupTheta_(mvi, theta, thetaFixed, as<double>(odeO["scaleTo"]), true);
+  foceiSetupTheta_(mvi, theta, thetaFixed, as<double>(odeO["scaleTo"]), !rxIs(obj, "NULL"));
   // First see if etaMat is null.
   NumericMatrix etaMat0;
   unsigned int nsub=0;
@@ -1163,53 +1166,55 @@ NumericVector foceiSetup_(const RObject &obj,
   params.attr("class") = "data.frame";
   params.attr("row.names") = IntegerVector::create(NA_INTEGER,-nsub);
   // Now pre-fill parameters.
-  rxSolveC(obj,
-           R_NilValue,//const Nullable<CharacterVector> &specParams = 
-           R_NilValue,//const Nullable<List> &extraArgs = 
-           as<RObject>(params),//const RObject &params = 
-           data,//const RObject &events = 
-           R_NilValue,//const RObject &inits = 
-           R_NilValue,//const RObject &scale = 
-           R_NilValue,//const RObject &covs  = 
-           as<int>(odeO["method"]), // const int method = 
-           odeO["transitAbs"], //1
-           as<double>(odeO["atol"]),//const double atol = 1.0e-6
-           as<double>(odeO["rtol"]),// const double rtol = 1.0e-4
-           as<double>(odeO["maxstepsOde"]),//const int  = 5000, //4
-           as<double>(odeO["hmin"]),
-           odeO["hmax"], //6
-           as<double>(odeO["hini"]), //7
-           as<int>(odeO["maxordn"]), //8
-           as<int>(odeO["maxords"]), //9
-           as<int>(odeO["cores"]), //10
-           as<int>(odeO["covsInterpolation"]), //11
-           false, // bool addCov = false
-           0,//int matrix = 0, //13
-           R_NilValue,//const Nullable<NumericMatrix> &sigma= R_NilValue, //14
-           R_NilValue,//const Nullable<NumericVector> &sigmaDf= R_NilValue, //15
-           1, //const int &nCoresRV= 1, //16
-           false,//const bool &sigmaIsChol= false,
-           10000,//const int &nDisplayProgress = 10000,
-           NA_STRING,//const CharacterVector &amountUnits = NA_STRING,
-           "hours",//const character_vector &timeUnits = "hours",
-           false,//const bool addDosing = false,
-           R_NilValue,//const RObject &theta = R_NilValue,
-           R_NilValue,//const RObject &eta = R_NilValue,
-           false,//const bool updateObject = false,
-           true,//const bool doSolve = true,
-           R_NilValue,//const Nullable<NumericMatrix> &omega = R_NilValue, 
-           R_NilValue,//const Nullable<NumericVector> &omegaDf = R_NilValue, 
-           false,//const bool &omegaIsChol = false,
-           1,//const unsigned int nSub = 1, 
-           R_NilValue,//const Nullable<NumericMatrix> &thetaMat = R_NilValue, 
-           R_NilValue,//const Nullable<NumericVector> &thetaDf = R_NilValue, 
-           false,//const bool &thetaIsChol = false,
-           1,//const unsigned int nStud = 1, 
-           0.0,//const double dfSub=0.0,
-           0.0,//const double dfObs=0.0,
-           1);//const int setupOnly = 0
-  rx = getRxSolve_();
-  foceiSetupEta_(etaMat0);
+  if (!rxIs(obj, "NULL")){
+    rxSolveC(obj,
+	     R_NilValue,//const Nullable<CharacterVector> &specParams = 
+	     R_NilValue,//const Nullable<List> &extraArgs = 
+	     as<RObject>(params),//const RObject &params = 
+	     data,//const RObject &events = 
+	     R_NilValue,//const RObject &inits = 
+	     R_NilValue,//const RObject &scale = 
+	     R_NilValue,//const RObject &covs  = 
+	     as<int>(odeO["method"]), // const int method = 
+	     odeO["transitAbs"], //1
+	     as<double>(odeO["atol"]),//const double atol = 1.0e-6
+	     as<double>(odeO["rtol"]),// const double rtol = 1.0e-4
+	     as<double>(odeO["maxstepsOde"]),//const int  = 5000, //4
+	     as<double>(odeO["hmin"]),
+	     odeO["hmax"], //6
+	     as<double>(odeO["hini"]), //7
+	     as<int>(odeO["maxordn"]), //8
+	     as<int>(odeO["maxords"]), //9
+	     as<int>(odeO["cores"]), //10
+	     as<int>(odeO["covsInterpolation"]), //11
+	     false, // bool addCov = false
+	     0,//int matrix = 0, //13
+	     R_NilValue,//const Nullable<NumericMatrix> &sigma= R_NilValue, //14
+	     R_NilValue,//const Nullable<NumericVector> &sigmaDf= R_NilValue, //15
+	     1, //const int &nCoresRV= 1, //16
+	     false,//const bool &sigmaIsChol= false,
+	     10000,//const int &nDisplayProgress = 10000,
+	     NA_STRING,//const CharacterVector &amountUnits = NA_STRING,
+	     "hours",//const character_vector &timeUnits = "hours",
+	     false,//const bool addDosing = false,
+	     R_NilValue,//const RObject &theta = R_NilValue,
+	     R_NilValue,//const RObject &eta = R_NilValue,
+	     false,//const bool updateObject = false,
+	     true,//const bool doSolve = true,
+	     R_NilValue,//const Nullable<NumericMatrix> &omega = R_NilValue, 
+	     R_NilValue,//const Nullable<NumericVector> &omegaDf = R_NilValue, 
+	     false,//const bool &omegaIsChol = false,
+	     1,//const unsigned int nSub = 1, 
+	     R_NilValue,//const Nullable<NumericMatrix> &thetaMat = R_NilValue, 
+	     R_NilValue,//const Nullable<NumericVector> &thetaDf = R_NilValue, 
+	     false,//const bool &thetaIsChol = false,
+	     1,//const unsigned int nStud = 1, 
+	     0.0,//const double dfSub=0.0,
+	     0.0,//const double dfObs=0.0,
+	     1);//const int setupOnly = 0
+    rx = getRxSolve_();
+    foceiSetupEta_(etaMat0);
+  }
   op_focei.epsilon=as<double>(odeO["epsilon"]);
   op_focei.maxOuterIterations = as<int>(odeO["maxOuterIterations"]);
   op_focei.maxInnerIterations = as<int>(odeO["maxInnerIterations"]);
@@ -1309,7 +1314,7 @@ NumericVector foceiSetup_(const RObject &obj,
 
   op_focei.calcGrad=0;
   if (op_focei.likSav != NULL) Free(op_focei.likSav);
-  op_focei.likSav = Calloc(rx->nsub, double);
+  if (!rxIs(obj, "NULL")) op_focei.likSav = Calloc(rx->nsub, double);
   n1qn1_ = (n1qn1_fp) R_GetCCallable("n1qn1","n1qn1F");
   
   // Outer options
@@ -1355,12 +1360,18 @@ LogicalVector nlmixrEnvSetup(Environment e, double fmin){
     NumericVector logLik(1);
     logLik[0]=-fmin/2;
     logLik.attr("df") = op_focei.npars;
-    logLik.attr("nobs") = rx->nobs;
+    if (e.exists("nobs")){
+      logLik.attr("nobs") = e["nobs"];
+      e["BIC"] = fmin + log(as<double>(e["nobs"]))*op_focei.npars;
+    } else {
+      logLik.attr("nobs") = rx->nobs;
+      e["BIC"] = fmin + log(rx->nobs)*op_focei.npars;
+      e["nobs"] = rx->nobs;
+    }
     logLik.attr("class") = "logLik";
     e["logLik"] = logLik;
-    e["nobs"] = rx->nobs;
+
     e["AIC"] = fmin+2*op_focei.npars;
-    e["BIC"] = fmin + log(rx->nobs)*op_focei.npars;
     return true;
   } else {
     stop("Not Setup right.........");
@@ -1742,7 +1753,6 @@ arma::mat foceiS(double *theta){
 
 //[[Rcpp::export]]
 NumericMatrix foceiCalcCov(Environment e){
-  rx = getRxSolve_();
   // Check boundaries
   unsigned int j, k;
   double cur;
@@ -1797,6 +1807,7 @@ NumericMatrix foceiCalcCov(Environment e){
   foceiSetupTheta_(op_focei.mvi, fullT2, skipCov, 0.0, false);
   
   if (op_focei.covMethod && !boundary){
+    rx = getRxSolve_();
     op_focei.t0 = clock();
     op_focei.totTick=0;
     op_focei.cur=0;
@@ -2226,10 +2237,22 @@ Environment foceiFitCpp_(Environment e){
 	stop("Cannot run this function.");
       }
     } else {
-      stop("Improper setup.");
+      doPredOnly=true;
+      foceiSetupTrans_(as<CharacterVector>(e[".params"]));
+      foceiThetaN(as<unsigned int>(e[".thetan"]));
+      foceiSetup_(R_NilValue, as<RObject>(e["dataSav"]), 
+                  as<NumericVector>(e["thetaIni"]), e["thetaFixed"], e["skipCov"],
+                  as<RObject>(e["rxInv"]), e["lower"], e["upper"], e["etaMat"],
+                  e["control"]);
     }
   } else {
-    stop("Improper setup.");
+    doPredOnly=true;
+    foceiSetupTrans_(as<CharacterVector>(e[".params"]));
+    foceiThetaN(as<unsigned int>(e[".thetan"]));
+    foceiSetup_(R_NilValue, as<RObject>(e["dataSav"]), 
+                as<NumericVector>(e["thetaIni"]), e["thetaFixed"], e["skipCov"],
+                as<RObject>(e["rxInv"]), e["lower"], e["upper"], e["etaMat"],
+                e["control"]);
   }
   if (e.exists("setupTime")){
     e["setupTime"] = as<double>(e["setupTime"])+(((double)(clock() - t0))/CLOCKS_PER_SEC);

@@ -1458,7 +1458,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
             etas <- rxParams(full, FALSE);
             thetas <- etas[regexpr(regTheta, etas) != -1];
             etas <- etas[regexpr(regEta, etas) != -1];
-            if (length(etas) > 0 && !theta.internal && !grad.internal){
+            if (length(etas) > 0 && !theta.internal && !grad.internal && !only.numeric){
                 rxCat("## Calculate ETA-based prediction and error derivatives:\n")
                 calcSens <- etas;
             } else {
