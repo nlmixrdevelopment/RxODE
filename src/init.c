@@ -118,6 +118,10 @@ void rxOptionsIni();
 void rxOptionsIniData();
 void rxOptionsIniFocei();
 
+double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt, int diff1, int diff2, double d_A, double d_alpha, double d_B, double d_beta, double d_C, double d_gamma, double d_ka, double d_tlag);
+
+void _update_par_ptr(double t, unsigned int id, rx_solve *rx);
+
 void R_init_RxODE(DllInfo *info){
   R_CallMethodDef callMethods[]  = {
     {"trans", (DL_FUNC) &trans, 8},
@@ -174,6 +178,8 @@ void R_init_RxODE(DllInfo *info){
     {NULL, NULL, 0}
   };
   // C callable to assign environments.
+  R_RegisterCCallable("RxODE", "solveLinB", (DL_FUNC) solveLinB);
+  R_RegisterCCallable("RxODE", "_update_par_ptr", (DL_FUNC) _update_par_ptr);
   R_RegisterCCallable("RxODE","rxRmModelLib", (DL_FUNC) rxRmModelLib);
   R_RegisterCCallable("RxODE","rxGetModelLib", (DL_FUNC) rxGetModelLib);
   

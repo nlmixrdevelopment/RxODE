@@ -1498,7 +1498,6 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                     .full <- rxGetModel(.cond[.i], calcSens=calcSens);
                     .fullState <- rxState(.full);
                     rxCat("## Load into sympy...");
-                    assign(".full", .full, globalenv());
                     rxSymPySetup(.full);
                     on.exit({rxCat("## Freeing Python/SymPy memory...");rxSymPyClean();rxCat("done\n")});
                     rxCat("done\n");
@@ -1552,15 +1551,17 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                         .pred <- rxSymPy(.pred);
                         .pred.only <- paste0(.states,
                                              "rx_pred_=", rxFromSymPy(.pred), ";");
+                        .r <- rxToSymPy("rx_r_");
+                        .r <- rxSymPy(.r);
                         if (!only.numeric){
-                            .r <- rxToSymPy("rx_r_");
-                            .r <- rxSymPy(.r);
                             .inner <- paste(c(.pred.only, .newlines,
                                               paste0("rx_r_=", rxFromSymPy(.r), ";"),
                                               .newlinesR), collapse="\n");
                         } else {
                             .inner <- NULL
                         }
+                        .pred.only <- paste0(.pred.only,
+                                             paste0("rx_r_=", rxFromSymPy(.r), ";"));
                         .lhs <- setNames(sapply(.oLhs, function(x){
                             .lhs <- rxToSymPy(x);
                             if (rxSymPyExists(.lhs)){
@@ -1576,14 +1577,13 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                             }
                             return("");
                         }), .oLhs);
-                        .lhs <- .lhs[(.lhs == "")];
-                        .ebe <- paste(c(.states,.lhs), collapse="\n")
+                        .lhs <- .lhs[which(.lhs != "")];
+                        .pred.only  <- paste0(.pred.only, paste(.lhs, collapse="\n"));
                         .toLines <- function(x){
                             if(is.null(x)) return(NULL);
                             strsplit(rxNorm(rxGetModel(x)), "\n")[[1]]
                         }
                         return(list(pred.only=.toLines(.pred.only),
-                                    ebe=.toLines(.ebe),
                                     lhs=.lhs,
                                     inner=.toLines(.inner)));
                     } else {
@@ -1604,9 +1604,10 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                 }
                 .mods <- .mods[[1]]
                 .pred.only <- paste(.mods$pred.only, collapse="\n");
-                .ebe <- paste(.mods$ebe, collapse="\n");
                 if (!only.numeric){
                     .inner <- paste(.mods$inner, collapse="\n");
+                } else {
+                    .inner <- NULL;
                 }
             } else {
                 .ord <- order(sapply(.ncond, nchar));
@@ -1651,7 +1652,6 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                     return(paste(.lines, collapse="\n"));
                 }
                 .pred.only <- .collapseModel("pred.only");
-                .ebe <- .collapseModel("ebe");
                 .inner <- .collapseModel("inner");
             }
             rxCat(paste0(crayon::bold("################################################################################"), "\n"));
@@ -1676,8 +1676,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                 return(.ret);
             }
             ret <- list(obj=oobj,
-                        pred.only=toRx(.pred.only, "Predictions"),
-                        ebe=toRx(.ebe, "Empirical Bayes Estimate"),
+                        pred.only=toRx(.pred.only, "Predictions/EBE"),
                         inner=toRx(.inner, "Inner"),
                         extra.pars=extra.pars,
                         outer=NULL,

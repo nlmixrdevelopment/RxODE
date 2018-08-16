@@ -1363,6 +1363,7 @@ LogicalVector nlmixrEnvSetup(Environment e, double fmin){
     e["BIC"] = fmin + log(rx->nobs)*op_focei.npars;
     return true;
   } else {
+    stop("Not Setup right.........");
     return false;
   }
 }
@@ -2203,99 +2204,127 @@ void foceiFinalizeTables(Environment e){
 //' @export
 //[[Rcpp::export]]
 Environment foceiFitCpp_(Environment e){
-  if (!e.exists("noLik")){
-    clock_t t0 = clock();
-    List model = e["model"];
-    foceiSetup_(as<RObject>(model["inner"]), as<RObject>(e["dataSav"]), 
-		as<NumericVector>(e["thetaIni"]), e["thetaFixed"], e["skipCov"],
-		as<RObject>(e["rxInv"]), e["lower"], e["upper"], e["etaMat"],
-		e["control"]);
-    if (e.exists("setupTime")){
-      e["setupTime"] = as<double>(e["setupTime"])+(((double)(clock() - t0))/CLOCKS_PER_SEC);
-    } else {
-      e["setupTime"] = (((double)(clock() - t0))/CLOCKS_PER_SEC);
-    }
-    t0 = clock();
-    CharacterVector thetaNames=as<CharacterVector>(e["thetaNames"]);
-    IntegerVector logTheta;
-    if (e.exists("logThetas")){
-      logTheta =  as<IntegerVector>(e["logThetas"]);
-    } else if (e.exists("model")){
-      List model = e["model"];
-      logTheta =  as<IntegerVector>(model["log.thetas"]);
-    } 
-    int j;
-    // Setup which paramteres are transformed
-    for (unsigned int k = op_focei.npars; k--;){
-      j=op_focei.fixedTrans[k];
-      op_focei.xPar[k] = 0;
-      for (unsigned int m=logTheta.size(); m--;){
-	if (logTheta[m]-1 == j){
-	  op_focei.xPar[k] = 1;
-	  break;
-	}
-      }
-    }
-    std::string tmpS;
-    if (op_focei.maxOuterIterations > 0){
-      if (op_focei.useColor)
-	Rprintf("\033[1mKey:\033[0m ");
-      else 
-        Rprintf("Key: ");
-      if (op_focei.scaleTo > 0){
-	Rprintf("U: Unscaled Parameters; ");
-      }
-      Rprintf("X: Back-transformed parameters; ");
-      Rprintf("G: Gradient\n");
-      foceiPrintLine(min(op_focei.npars, op_focei.printNcol));
-      Rprintf("|    #| Objective Fun |");
-      int j,  i=0, finalize=0;
-      for (i = 0; i < op_focei.npars; i++){
-        j=op_focei.fixedTrans[i];
-        if (j < thetaNames.size()){
-	  tmpS = thetaNames[j];
-	  Rprintf("%#10s |", tmpS.c_str());
-	} else {
-	  Rprintf("           |");
-	} 
-	if ((i + 1) != op_focei.npars && (i + 1) % op_focei.printNcol == 0){
-	  if (op_focei.useColor && op_focei.printNcol + i  >= op_focei.npars){
-	    Rprintf("\n\033[4m|.....................|");
-	  } else {
-            Rprintf("\n|.....................|");
-          }
-          finalize=1;
-	}
-      }
-      if (finalize){
-        while(true){
-          if ((i++) % op_focei.printNcol == 0){
-            if (op_focei.useColor) Rprintf("\033[0m");
-            Rprintf("\n");
-            break;
-          } else {
-            Rprintf("...........|");
-          }
-        }
+  clock_t t0 = clock();
+  List model = e["model"];
+  bool doPredOnly = false;
+  if (model.containsElementNamed("inner")){
+    RObject inner = model["inner"];
+    if (rxIs(inner, "RxODE")){
+      foceiSetup_(inner, as<RObject>(e["dataSav"]), 
+		  as<NumericVector>(e["thetaIni"]), e["thetaFixed"], e["skipCov"],
+		  as<RObject>(e["rxInv"]), e["lower"], e["upper"], e["etaMat"],
+		  e["control"]);
+    } else if (model.containsElementNamed("pred.only")){
+      inner = model["pred.only"];
+      if (rxIs(inner, "RxODE")){
+	doPredOnly = true;
+	foceiSetup_(inner, as<RObject>(e["dataSav"]), 
+		    as<NumericVector>(e["thetaIni"]), e["thetaFixed"], e["skipCov"],
+		    as<RObject>(e["rxInv"]), e["lower"], e["upper"], e["etaMat"],
+		    e["control"]);
       } else {
-        Rprintf("\n");
+	stop("Cannot run this function.");
       }
-      if (!op_focei.useColor){
-	foceiPrintLine(min(op_focei.npars, op_focei.printNcol));
+    } else {
+      stop("Improper setup.");
+    }
+  } else {
+    stop("Improper setup.");
+  }
+  if (e.exists("setupTime")){
+    e["setupTime"] = as<double>(e["setupTime"])+(((double)(clock() - t0))/CLOCKS_PER_SEC);
+  } else {
+    e["setupTime"] = (((double)(clock() - t0))/CLOCKS_PER_SEC);
+  }
+  t0 = clock();
+  CharacterVector thetaNames=as<CharacterVector>(e["thetaNames"]);
+  IntegerVector logTheta;
+  if (e.exists("logThetas")){
+    logTheta =  as<IntegerVector>(e["logThetas"]);
+  } else if (e.exists("model")){
+    List model = e["model"];
+    logTheta =  as<IntegerVector>(model["log.thetas"]);
+  } 
+  int j;
+  // Setup which paramteres are transformed
+  for (unsigned int k = op_focei.npars; k--;){
+    j=op_focei.fixedTrans[k];
+    op_focei.xPar[k] = 0;
+    for (unsigned int m=logTheta.size(); m--;){
+      if (logTheta[m]-1 == j){
+	op_focei.xPar[k] = 1;
+	break;
       }
     }
-    foceiOuter(e);
-    e["optimTime"] = (((double)(clock() - t0))/CLOCKS_PER_SEC);
-    t0 = clock();
-    foceiCalcCov(e);
-    e["covTime"] = (((double)(clock() - t0))/CLOCKS_PER_SEC);
-    List timeDf = List::create(_["setup"]=as<double>(e["setupTime"]),
-                               _["optimize"]=as<double>(e["optimTime"]),
-                               _["covariance"]=as<double>(e["covTime"]));
-    timeDf.attr("class") = "data.frame";
-    timeDf.attr("row.names") = "";
-    e["time"] = timeDf;
   }
+  std::string tmpS;
+  if (op_focei.maxOuterIterations > 0){
+    if (op_focei.useColor)
+      Rprintf("\033[1mKey:\033[0m ");
+    else 
+      Rprintf("Key: ");
+    if (op_focei.scaleTo > 0){
+      Rprintf("U: Unscaled Parameters; ");
+    }
+    Rprintf("X: Back-transformed parameters; ");
+    Rprintf("G: Gradient\n");
+    foceiPrintLine(min(op_focei.npars, op_focei.printNcol));
+    Rprintf("|    #| Objective Fun |");
+    int j,  i=0, finalize=0;
+    for (i = 0; i < op_focei.npars; i++){
+      j=op_focei.fixedTrans[i];
+      if (j < thetaNames.size()){
+	tmpS = thetaNames[j];
+	Rprintf("%#10s |", tmpS.c_str());
+      } else {
+	Rprintf("           |");
+      } 
+      if ((i + 1) != op_focei.npars && (i + 1) % op_focei.printNcol == 0){
+	if (op_focei.useColor && op_focei.printNcol + i  >= op_focei.npars){
+	  Rprintf("\n\033[4m|.....................|");
+	} else {
+	  Rprintf("\n|.....................|");
+	}
+	finalize=1;
+      }
+    }
+    if (finalize){
+      while(true){
+	if ((i++) % op_focei.printNcol == 0){
+	  if (op_focei.useColor) Rprintf("\033[0m");
+	  Rprintf("\n");
+	  break;
+	} else {
+	  Rprintf("...........|");
+	}
+      }
+    } else {
+      Rprintf("\n");
+    }
+    if (!op_focei.useColor){
+      foceiPrintLine(min(op_focei.npars, op_focei.printNcol));
+    }
+  }
+  if (doPredOnly){
+    if (e.exists("objective")){
+      nlmixrEnvSetup(e, as<double>(e["objective"]));
+    } else {
+      stop("Not setup right.");
+    }
+  } else {
+    foceiOuter(e);
+  }
+  e["optimTime"] = (((double)(clock() - t0))/CLOCKS_PER_SEC);
+  t0 = clock();
+  foceiCalcCov(e);
+    
+  e["covTime"] = (((double)(clock() - t0))/CLOCKS_PER_SEC);
+  List timeDf = List::create(_["setup"]=as<double>(e["setupTime"]),
+			     _["optimize"]=as<double>(e["optimTime"]),
+			     _["covariance"]=as<double>(e["covTime"]));
+  timeDf.attr("class") = "data.frame";
+  timeDf.attr("row.names") = "";
+  e["time"] = timeDf;
   foceiFinalizeTables(e);
   if (op_focei.maxOuterIterations){
     Rprintf("done\n");
