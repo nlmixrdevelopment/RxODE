@@ -294,7 +294,7 @@ extern void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda_opt
       ctx.state = 1;
       xp = xout;
     }
-    if (i+1 != nx) memcpy(ret+neq[0]*(i+1), yp, neq[0]*sizeof(double));
+    if (i+1 < nx) memcpy(ret+neq[0]*(i+1), yp, neq[0]*sizeof(double));
     ind->slvr_counter[0]++; // doesn't need do be critical; one subject at a time.
     /* for(j=0; j<neq[0]; j++) ret[neq[0]*i+j] = yp[j]; */
   }
@@ -554,7 +554,7 @@ extern void ind_lsoda0(rx_solve *rx, rx_solving_options *op, int solveid, int *n
       xp = xout;
     }
     // Copy to next solve so when assigned to yp=ind->solve[neq[0]*i]; it will be the prior values
-    if (i+1 != ind->n_all_times) memcpy(ind->solve+neq[0]*(i+1), yp, neq[0]*sizeof(double));
+    if (i+1 < ind->n_all_times) memcpy(ind->solve+neq[0]*(i+1), yp, neq[0]*sizeof(double));
   }
 }
 
@@ -714,7 +714,7 @@ extern void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int *neq
       xp = xout;
     }
     /* for(j=0; j<neq[0]; j++) ret[neq[0]*i+j] = yp[j]; */
-    if (i+1 != nx) memcpy(ret+neq[0]*(i+1), ret + neq[0]*i, neq[0]*sizeof(double));
+    if (i+1 < nx) memcpy(ret+neq[0]*(i+1), ret + neq[0]*i, neq[0]*sizeof(double));
     //REprintf("wh=%d cmt=%d tm=%g rate=%g\n", wh, cmt, xp, InfusionRate[cmt]);
 
     if (global_debug){
