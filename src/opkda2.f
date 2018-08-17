@@ -652,11 +652,11 @@ C
 C  Get logical unit number and message print flag.
 C
 C***FIRST EXECUTABLE STATEMENT  XERRWD
+      LUNIT = IXSAV (1, 0, .FALSE.)
+      MESFLG = IXSAV (2, 0, .FALSE.)
+      IF (MESFLG .EQ. 0) GO TO 100
       msg = msg(1:(nmes-1))//char(0)
       call rprintf(msg)
-c     LUNIT = IXSAV (1, 0, .FALSE.)
-c     MESFLG = IXSAV (2, 0, .FALSE.)
-c     IF (MESFLG .EQ. 0) GO TO 100
 C
 C  Write the message.
 C
