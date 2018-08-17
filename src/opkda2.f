@@ -654,7 +654,6 @@ C
 C***FIRST EXECUTABLE STATEMENT  XERRWD
       msg = msg(1:(nmes-1))//char(0)
       call rprintf(msg)
-      return
 c     LUNIT = IXSAV (1, 0, .FALSE.)
 c     MESFLG = IXSAV (2, 0, .FALSE.)
 c     IF (MESFLG .EQ. 0) GO TO 100
@@ -674,8 +673,8 @@ c50   FORMAT(6X,'In above,  R1 =',D21.13,3X,'R2 =',D21.13)
 C
 C  Abort the run if LEVEL = 2.
 C
-c100  IF (LEVEL .NE. 2) RETURN
-c     STOP
+100   IF (LEVEL .NE. 2) RETURN
+      STOP
 C----------------------- End of Subroutine XERRWD ----------------------
       END
 *DECK XSETF
