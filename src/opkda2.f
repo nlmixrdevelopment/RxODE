@@ -674,7 +674,8 @@ C
 C  Abort the run if LEVEL = 2.
 C
 100   IF (LEVEL .NE. 2) RETURN
-      STOP
+c     STOP
+      call rexit ("fatal error")
 C----------------------- End of Subroutine XERRWD ----------------------
       END
 *DECK XSETF
