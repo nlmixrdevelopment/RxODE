@@ -1001,7 +1001,7 @@ C-----------------------------------------------------------------------
      1   TCRIT, TDIST, TNEXT, TOL, TOLSF, TP, SIZE, SUM, W0
       DIMENSION MORD(2)
       LOGICAL IHIT
-      CHARACTER (LEN=80) MSG
+      CHARACTER (LEN=60) MSG
       SAVE MORD, MXSTP0, MXHNL0
 C-----------------------------------------------------------------------
 C The following two internal Common blocks contain
@@ -1356,7 +1356,7 @@ C260    RWORK(I+LEWT-1) = 1.0D0/RWORK(I+LEWT-1)
       NHNIL = NHNIL + 1
       IF (NHNIL .GT. MXHNIL) GO TO 290
       MSG = 'DLSODA-  Warning..Internal T (=R1) and H (=R2) are'
-      CALL XERRWD (MSG, 50, 101, 0, 0, 0, 0, 0, 0.0D0, 0.0D0)
+      CALL XERRWD (MSG, 60, 101, 0, 0, 0, 0, 0, 0.0D0, 0.0D0)
       MSG='      such that in the machine, T + H = T on the next step  '
       CALL XERRWD (MSG, 60, 101, 0, 0, 0, 0, 0, 0.0D0, 0.0D0)
       MSG = '     (H = step size). Solver will continue anyway.'
