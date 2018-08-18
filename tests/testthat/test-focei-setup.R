@@ -282,11 +282,13 @@ rxPermissive({
         return(centr);
     }
 
-    m <- rxSymPySetupPred(m2, pred, pk)
+    ## to save time constants are put back into pred.only
+    ##
+    ## m <- rxSymPySetupPred(m2, pred, pk)
 
-    test_that("Constants are dropped from the model.", {
-        expect_false(any(rxParams(m$pred.only) == "KA"))
-    })
+    ## test_that("Constants are dropped from the model.", {
+    ##     expect_false(any(rxParams(m$pred.only) == "KA"))
+    ## })
 
     ## Now Test conditional statements
     mod <- RxODE({
