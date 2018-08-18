@@ -30,8 +30,7 @@ rxPermissive({
         return(f ^ 2* theta[6] ^ 2); ## Theta 4 is residual sd for proportional error.
     }
 
-    finip <- rxSymPySetupPred(fini, pred, pk, err, ## , grad=TRUE
-                              optExpression=FALSE);
+    finip <- rxSymPySetupPred(fini, pred, pk, err, optExpression=FALSE); ## , grad=TRUE
 
     inner <- strsplit(rxNorm(finip$inner), "\n")[[1]];
     inner <- gsub(rex::rex(start, anything, "=", capture(anything), ";", end), "\\1",
