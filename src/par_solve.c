@@ -34,39 +34,51 @@ void par_flush_console() {
 #endif
 }
 
+int Rcat(char *msg);
+
+int rmsg(char *msg, int err){
+  if (err) REprintf(msg);
+  else Rcat(msg);
+  return 1;
+}
+
 int par_progress(int c, int n, int d, int cores, clock_t t0, int stop){
   float progress = (float)(c)/((float)(n));
+  int doErr = (cores > 1);
+  char buf[40];
   if (c <= n){
     int nticks= (int)(progress * 50);
     int curTicks = d;
     if (nticks > curTicks){
-      REprintf("\r");
+      rmsg("\r", doErr);
       int i;
       for (i = 0; i < nticks; i++){
         if (i == 0) {
-          REprintf("%%[");
+          rmsg("%[", doErr);
 	} else if (i % 5 == 0) {
-	  REprintf("|");
+	  rmsg("|",doErr);
 	} else {
-	  REprintf("=");
+	  rmsg("=",doErr);
 	}
       }
       for (i = nticks; i < 50; i++){
-	REprintf(" ");
+	rmsg(" ", doErr);
       }
-      REprintf("] ");
-      if (nticks < 50) REprintf(" ");
+      rmsg("] ", doErr);
+      if (nticks < 50) rmsg(" ", doErr);
       if (cores > 0)
-	REprintf("%02.f%%; ncores=%d; ",100*progress,cores);
+	sprintf(buf, "%02.f%%; ncores=%d; ",100*progress,cores);
       else 
-	REprintf("%02.f%%; ",100*progress);
+	sprintf(buf,"%02.f%%; ",100*progress);
+      rmsg(buf, doErr);
       clock_t t = clock() - t0;
-      REprintf(" %.3f sec ", ((double)t)/CLOCKS_PER_SEC);
+      sprintf(buf," %.3f sec ", ((double)t)/CLOCKS_PER_SEC);
+      rmsg(buf, doErr);
       if (stop){
-	REprintf("Stopped Calculation!\n");
+	rmsg("Stopped Calculation!\n", doErr);
       }
       if (nticks >= 50){
-	REprintf("\n");
+	rmsg("\n", doErr);
       }
     }
     par_flush_console();

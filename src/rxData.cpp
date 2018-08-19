@@ -4085,4 +4085,10 @@ extern "C" int rxIsCurrentC(SEXP obj){
   return 0;
 }
 
+extern "C" int Rcat(char *msg){
+  std::string str(msg);
+  Rcpp::Function msgF("message"); 
+  msgF(str, _["appendLF"]=false);
+  return 1; 
+}
 

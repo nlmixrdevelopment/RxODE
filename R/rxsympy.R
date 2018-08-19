@@ -613,14 +613,16 @@ rxSymPyDfDyFull <- memoise::memoise(function(model, vars, cond){
                                 stringsAsFactors=FALSE))
     rxSymPySetup(model);
     extraLines <- c();
-    rxCat("Calculate Jacobian.");
+    rxCat("## Calculate Jacobian\n");
+    rxProgress(length(jac$rx));
+    on.exit({rxProgressAbort()});
     for (dfdy in jac$rx){
         if (!any(dfdy == rxDfdy(model))){
             extraLines[length(extraLines) + 1] <- with(jac[jac$rx == dfdy, ], rxSymPyDfDy(NULL, s1, s2));
-            rxCat(".")
         }
+        rxTick();
     }
-    rxCat("done.\n");
+    rxProgressStop();
     return(extraLines);
 })
 
@@ -686,12 +688,12 @@ rxSymPyClear <- function(var){
     }
 }
 
-rxSymPySensitivityFull.text <- "Calculate sensitivities."
+rxSymPySensitivityFull.text <- "## Calculate Sensitivities"
 
 ## Note the model and cond are not used in the function BUT are used
 ## to memoise the correct call. Please don't remove them :)
 rxSymPySensitivityFull <- memoise::memoise(function(state, calcSens, model, cond){
-    rxCat(rxSymPySensitivityFull.text);
+    rxCat(rxSymPySensitivityFull.text, "\n");
     all.sens <- extraLines <- c();
     if (length(calcSens) == 0L){
         calcSens <- rxParams(model);
@@ -699,6 +701,8 @@ rxSymPySensitivityFull <- memoise::memoise(function(state, calcSens, model, cond
     if (length(calcSens) == 0L){
         stop("Can not calculate sensitivities with no parameters.")
     }
+    rxProgress(length(state) + length(calcSens));
+    on.exit({rxProgressAbort()});
     for (s1 in state){
         for (sns in calcSens){
             tmp <- c()
@@ -739,10 +743,10 @@ rxSymPySensitivityFull <- memoise::memoise(function(state, calcSens, model, cond
                 if (sprintf("%s(0)", v) != rxFromSymPy(tmp))
                     extraLines[length(extraLines) + 1] <- sprintf("%s(0)=%s", tmp, rxFromSymPy(line));
             }
-            rxCat(".")
+            rxTick();
         }
     }
-    rxCat("\ndone.\n");
+    rxProgressStop()
     return(list(all.sens=all.sens, extraLines=extraLines))
 })
 
@@ -832,7 +836,7 @@ rxSymPySensitivity.single <- function(model, calcSens, calcJac){
         eta <- calcSens$eta;
         theta <- calcSens$theta;
         assignInMyNamespace("rxSymPySensitivityFull.text", "Calculate d/dt(d(state)/d(eta)) .");
-        on.exit({assignInMyNamespace("rxSymPySensitivityFull.text", "Calculate Sensitivites.")})
+        on.exit({assignInMyNamespace("rxSymPySensitivityFull.text", "Calculate Sensitivities.")})
         ## Calculate dx/dn
         tmp <- rxSymPySensitivityFull(state, eta, model, rxCondition(model));
         all.sens <- tmp$all.sens;
@@ -1059,7 +1063,9 @@ rxSymPySetupDPred <- function(newmod, calcSens, states, prd="rx_pred_", pred.min
         extraLines <- c(tmp1, tmp2);
         ## These derivations are given in Equation #37.
         ## Should be dErr^2/(dEtaL dEtaK)
-        rxCat("##   d(.)^2/(d(eta1)d(eta2)) ");
+        rxCat("##   d(.)^2/(d(eta1)d(eta2)) \n");
+        rxProgress(length(calcSens$eta) * 2);
+        on.exit({rxProgressAbort()});
         for (eL in calcSens$eta){
             for (eK in calcSens$eta){
                 tmp2 <- c(eK, eL)
@@ -1108,11 +1114,13 @@ rxSymPySetupDPred <- function(newmod, calcSens, states, prd="rx_pred_", pred.min
                     tmp <- rxSplitLines(sprintf("rx__sens_%s_BY_%s_BY_%s__ ", prd, rxToSymPy(eK), rxToSymPy(eL)),
                                         rxFromSymPy(tmp));
                     extraLines[length(extraLines) + 1] <- tmp;
-                    rxCat(".");
+                    rxTest();
                 }
             }
         }
-        rxCat("\n##   d(.)^2/(d(theta)d(eta))");
+        rxProgressStop()
+        rxCat("\n##   d(.)^2/(d(theta)d(eta))\n");
+        rxProgress(length(calcSens$theta) + length(calcSens$eta));
         for (theta in calcSens$theta){
             for (eta in calcSens$eta){
                 ## dh/d(eta,theta)
@@ -1151,17 +1159,18 @@ rxSymPySetupDPred <- function(newmod, calcSens, states, prd="rx_pred_", pred.min
                 }
                 tmp <- rxSplitLines(sprintf("rx__sens_%s_BY_%s_BY_%s__", prd, rxToSymPy(eta), rxToSymPy(theta)), rxFromSymPy(tmp));
                 extraLines[length(extraLines) + 1] <- tmp;
-                rxCat(".");
+                rxTick();
             }
         }
-        rxCat("\n");
+        rxProgressStop();
         attr(extraLines, "zeroSens") <- zeroSens;
         return(extraLines);
     }
-    rxCat("## ");
+    ## rxCat("## ");
 
     ## Equation #21
     rxSymPyVars(calcSens);
+    rxProgress(length(calcSens));
     for (var in calcSens){
         ##
         newLine2 <- rxSymPy(sprintf("diff(%s,%s)", prd, rxToSymPy(var)));
@@ -1181,9 +1190,9 @@ rxSymPySetupDPred <- function(newmod, calcSens, states, prd="rx_pred_", pred.min
         }
         tmp <- rxSplitLines(sprintf("rx__sens_%s_BY_%s__", prd, rxToSymPy(var)), rxFromSymPy(tmp));
         extraLines[length(extraLines) + 1] <- tmp;
-        rxCat(".");
+        rxTick();
     }
-    rxCat("\n");
+    rxProgressStop();
     attr(extraLines, "zeroSens") <- zeroSens;
     return(extraLines);
 }
@@ -1516,7 +1525,6 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                                 rxCat(sprintf("## Calculate d(R^2)/d(eta)\n", lines));
                             }
                             .newlinesR <- rxSymPySetupDPred(.full, calcSens, .baseState, prd="rx_r_");
-                            rxCat("## done\n");
                         }
                         .states <- paste(sapply(.fullState, function(x){
                             .ini <- sprintf("%s(0)", x);
