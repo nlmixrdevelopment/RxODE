@@ -1356,7 +1356,11 @@ LogicalVector nlmixrEnvSetup(Environment e, double fmin){
     if (op_focei.scaleObjective){
       fmin = fmin * op_focei.initObjective / op_focei.scaleObjectiveTo;
     }
-    e["objective"] = fmin;
+    if (!e.exists("objective")){
+      e["objective"] = fmin;
+    } else {
+      fmin = as<double>(e["objective"]);
+    }
     NumericVector logLik(1);
     logLik[0]=-fmin/2;
     logLik.attr("df") = op_focei.npars;
@@ -1889,7 +1893,7 @@ NumericMatrix foceiCalcCov(Environment e){
       }
     }
     op_focei.cur++;
-    op_focei.curTick = par_progress(op_focei.cur, op_focei.totTick, op_focei.curTick, rx->op->cores, op_focei.t0, 1);
+    op_focei.curTick = par_progress(op_focei.cur, op_focei.totTick, op_focei.curTick, rx->op->cores, op_focei.t0, 0);
     return e["cov"];
   } else {
     if (boundary){

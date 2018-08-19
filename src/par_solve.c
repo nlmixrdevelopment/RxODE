@@ -56,7 +56,10 @@ int par_progress(int c, int n, int d, int cores, clock_t t0, int stop){
       }
       REprintf("] ");
       if (nticks < 50) REprintf(" ");
-      REprintf("%02.f%%; ncores=%d; ",100*progress,cores);
+      if (cores > 0)
+	REprintf("%02.f%%; ncores=%d; ",100*progress,cores);
+      else 
+	REprintf("%02.f%%; ",100*progress);
       clock_t t = clock() - t0;
       REprintf(" %.3f sec ", ((double)t)/CLOCKS_PER_SEC);
       if (stop){
@@ -70,6 +73,49 @@ int par_progress(int c, int n, int d, int cores, clock_t t0, int stop){
     return nticks;
   }
   return d;
+}
+
+typedef struct {
+  int cur;
+  int n;
+  int d;
+  int cores;
+  clock_t t0;
+} rx_tick;
+
+rx_tick rxt;
+
+SEXP _rxTick(){
+  rxt.cur++;
+  SEXP ret = PROTECT(allocVector(INTSXP, 1));
+  rxt.d =par_progress(rxt.cur, rxt.n, rxt.d, rxt.cores, rxt.t0, 0);
+  INTEGER(ret)[0]=rxt.d;
+  UNPROTECT(1);
+  return ret;
+}
+
+SEXP _rxProgress(SEXP num, SEXP core){
+  rxt.t0 = clock();
+  rxt.cores = INTEGER(core)[0];
+  rxt.n = INTEGER(num)[0];
+  rxt.d=0;
+  rxt.cur = 0;
+  return R_NilValue;
+}
+
+SEXP _rxProgressStop(){
+  par_progress(rxt.n, rxt.n, rxt.d, rxt.cores, rxt.t0, 1);
+  rxt.d = rxt.n;
+  rxt.cur = rxt.n;
+  return R_NilValue;
+}
+
+SEXP _rxProgressAbort(){
+  if (rxt.d != rxt.n || rxt.cur != rxt.n){
+    par_progress(rxt.n, rxt.n, rxt.d, rxt.cores, rxt.t0, 0);
+    error("Aborted calculation");
+  }
+  return R_NilValue;
 }
 
 rx_solving_options_ind *rxOptionsIniEnsure(int mx){

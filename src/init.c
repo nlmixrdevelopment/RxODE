@@ -4,6 +4,11 @@
 #include <R_ext/Rdynload.h>
 #include "RxODE.h"
 
+SEXP _rxProgress(SEXP num, SEXP core);
+SEXP _rxTick();
+SEXP _rxProgressStop();
+SEXP _rxProgressAbort();
+
 SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SEXP parse_model,SEXP parse_model3);
 SEXP _RxODE_coxBox_(SEXP, SEXP, SEXP);
 SEXP _RxODE_foceiFitCpp_(SEXP);
@@ -124,6 +129,10 @@ void _update_par_ptr(double t, unsigned int id, rx_solve *rx);
 
 void R_init_RxODE(DllInfo *info){
   R_CallMethodDef callMethods[]  = {
+    {"_rxProgress", (DL_FUNC) &_rxProgress, 2},
+    {"_rxTick", (DL_FUNC) &_rxTick, 0},
+    {"_rxProgressStop", (DL_FUNC) &_rxProgressStop, 0},
+    {"_rxProgressAbort", (DL_FUNC) &_rxProgressAbort, 0},
     {"trans", (DL_FUNC) &trans, 8},
     {"RxODE_get_mv", (DL_FUNC) &RxODE_get_mv, 0},
     {"_RxODE_rxInv", (DL_FUNC) &_RxODE_rxInv, 1},
