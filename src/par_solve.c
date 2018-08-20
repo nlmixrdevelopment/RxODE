@@ -261,7 +261,7 @@ int handle_evid(int evid, int neq,
     wh = wh- wh100*1e5;
     cmt = (wh%10000)/100 - 1 + 100*wh100;
     if (cmt<0) {
-      stop("Supplied an invalid EVID (EVID=%d)", evid);
+      error("Supplied an invalid EVID (EVID=%d)", evid);
     }
     if (cmt >= neq){
       foundBad = 0;
