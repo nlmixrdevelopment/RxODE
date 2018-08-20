@@ -1504,7 +1504,11 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                         rxCat(sprintf("## %s %s\n", crayon::bold("Condition:"), .ncond[.i]));
                         rxCat("################################################################################\n");
                     }
-                    .full <- rxGetModel(.cond[.i], calcSens=calcSens, collapseModel=TRUE);
+                    if (length(rxState(.cond[.i])) > 0){
+                        .full <- rxGetModel(.cond[.i], calcSens=calcSens, collapseModel=TRUE);
+                    } else {
+                        .full <- rxGetModel(.cond[.i]);
+                    }
                     .fullState <- rxState(.full);
                     rxCat("Load into sympy...");
                     rxSymPySetup(.full);
