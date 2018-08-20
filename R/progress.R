@@ -12,6 +12,8 @@
 ##' @param num Tot number of operations to track
 ##' @param core Number of cores to show.  If below 1, don't show
 ##'     number of cores
+##' @param clear Boolean telling if you should clear the progress bar
+##'     after completion (as if it wasn't displayed).  By default this is TRUE
 ##' @return All return NULL invisibly.
 ##' @author Matthew L. Fidler
 ##' @examples
@@ -42,8 +44,8 @@ rxTick <- function(){
 
 ##' @rdname rxProgress
 ##' @export
-rxProgressStop <- function(){
-    invisible(.Call(`_rxProgressStop`));
+rxProgressStop <- function(clear=TRUE){
+    invisible(.Call(`_rxProgressStop`, as.integer(clear)));
 }
 
 ##' @rdname rxProgress

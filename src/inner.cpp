@@ -768,6 +768,7 @@ void innerOpt(){
   op_focei.omegaInv=getOmegaInv();    
   op_focei.logDetOmegaInv5 = getOmegaDet();
   if (op_focei.maxInnerIterations <= 0){
+    std::fill_n(&op_focei.goldEta[0], op_focei.gEtaGTransN, -42.0); // All etas = -42;  Unlikely if normal
 // #ifdef _OPENMP
 // #pragma omp parallel for num_threads(cores)
 // #endif
@@ -1024,8 +1025,9 @@ static inline void foceiSetupEta_(NumericMatrix etaMat0){
     fInd->var = &op_focei.gVar[j];
 
     // Copy in etaMat0 to the inital eta stored (0 if unspecified)
-    std::copy(&etaMat0[i*op_focei.neta], &etaMat0[(i+1)*op_focei.neta], &fInd->saveEta[0]);
+    // std::copy(&etaMat0[i*op_focei.neta], &etaMat0[(i+1)*op_focei.neta], &fInd->saveEta[0]);
     std::copy(&etaMat0[i*op_focei.neta], &etaMat0[(i+1)*op_focei.neta], &fInd->eta[0]);
+    
     fInd->eta[op_focei.neta] = i;
     fInd->saveEta[op_focei.neta] = i;
     fInd->oldEta[op_focei.neta] = i;

@@ -115,8 +115,13 @@ SEXP _rxProgress(SEXP num, SEXP core){
   return R_NilValue;
 }
 
-SEXP _rxProgressStop(){
-  par_progress(rxt.n, rxt.n, rxt.d, rxt.cores, rxt.t0, 1);
+SEXP _rxProgressStop(SEXP clear){
+  int clearB = INTEGER(clear)[0];
+  if (clearB){
+    par_progress(rxt.n, rxt.n, rxt.d, rxt.cores, rxt.t0, 1);
+  } else {
+    Rcat("\r");
+  }
   rxt.d = rxt.n;
   rxt.cur = rxt.n;
   return R_NilValue;
