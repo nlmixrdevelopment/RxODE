@@ -1555,6 +1555,10 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                         .yj <- rxSymPy(.yj);
                         .lambda <- rxToSymPy("rx_lambda_")
                         .lambda <- rxSymPy(.lambda);
+                        .yj <- rxFromSymPy(.yj);
+                        .lambda <- rxFromSymPy(.lambda);
+                        if (.yj == "rx_yj_") .yj <- "2";
+                        if (.lambda == "rx_lambda_") .lambda <- "1";
                         .states <- paste0(.states,
                                           "\nrx_yj_~", rxFromSymPy(.yj), ";\n",
                                           "rx_lambda_~", rxFromSymPy(.lambda), ";\n");

@@ -118,9 +118,9 @@ SEXP _rxProgress(SEXP num, SEXP core){
 SEXP _rxProgressStop(SEXP clear){
   int clearB = INTEGER(clear)[0];
   if (clearB){
-    par_progress(rxt.n, rxt.n, rxt.d, rxt.cores, rxt.t0, 1);
-  } else {
     Rcat("\r");
+  } else {
+    par_progress(rxt.n, rxt.n, rxt.d, rxt.cores, rxt.t0, 1);
   }
   rxt.d = rxt.n;
   rxt.cur = rxt.n;
