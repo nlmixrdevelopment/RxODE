@@ -2190,7 +2190,7 @@ void foceiFinalizeTables(Environment e){
     objDf = List::create(_["OBJF"] = as<double>(e["objective"]), _["AIC"]=as<double>(e["AIC"]), 
                          _["BIC"] = as<double>(e["BIC"]), _["Log-likelihood"]=-as<double>(e["objective"])/2);
   }
-  objDf.attr("row.names") = CharacterVector::create("");
+  objDf.attr("row.names") = CharacterVector::create("FOCEi");
   objDf.attr("class") = "data.frame";
   e["objDf"]=objDf;
   if (!e.exists("method")){

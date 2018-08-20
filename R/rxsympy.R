@@ -613,7 +613,7 @@ rxSymPyDfDyFull <- memoise::memoise(function(model, vars, cond){
                                 stringsAsFactors=FALSE))
     rxSymPySetup(model);
     extraLines <- c();
-    rxCat("## Calculate Jacobian\n");
+    rxCat("Calculate Jacobian\n");
     rxProgress(length(jac$rx));
     on.exit({rxProgressAbort()});
     for (dfdy in jac$rx){
@@ -688,7 +688,7 @@ rxSymPyClear <- function(var){
     }
 }
 
-rxSymPySensitivityFull.text <- "## Calculate Sensitivities"
+rxSymPySensitivityFull.text <- "Calculate Sensitivities"
 
 ## Note the model and cond are not used in the function BUT are used
 ## to memoise the correct call. Please don't remove them :)
@@ -1063,7 +1063,7 @@ rxSymPySetupDPred <- function(newmod, calcSens, states, prd="rx_pred_", pred.min
         extraLines <- c(tmp1, tmp2);
         ## These derivations are given in Equation #37.
         ## Should be dErr^2/(dEtaL dEtaK)
-        rxCat("##   d(.)^2/(d(eta1)d(eta2)) \n");
+        rxCat("   d(.)^2/(d(eta1)d(eta2)) \n");
         rxProgress(length(calcSens$eta) * 2);
         on.exit({rxProgressAbort()});
         for (eL in calcSens$eta){
@@ -1468,18 +1468,18 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
             thetas <- etas[regexpr(regTheta, etas) != -1];
             etas <- etas[regexpr(regEta, etas) != -1];
             if (length(etas) > 0 && !theta.internal && !grad.internal && !only.numeric){
-                rxCat("## Calculate ETA-based prediction and error derivatives:\n")
+                rxCat("Calculate ETA-based prediction and error derivatives:\n")
                 calcSens <- etas;
             } else {
                 calcSens <- rxParams(full, FALSE);
             }
             if (grad.internal){
-                rxCat("## Calculate THETA/ETA-based prediction and error 1st and 2nd order derivatives:\n")
+                rxCat("Calculate THETA/ETA-based prediction and error 1st and 2nd order derivatives:\n")
                 calcSens <- list(eta=etas);
                 calcSens$theta <- thetas;
             }
             if (theta.internal){
-                rxCat("## Calculate THETA-based prediction and error derivatives:\n")
+                rxCat("Calculate THETA-based prediction and error derivatives:\n")
                 calcSens <- thetas;
             }
             .baseState <- rxState(obj);
@@ -1506,23 +1506,23 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                     }
                     .full <- rxGetModel(.cond[.i], calcSens=calcSens, collapseModel=TRUE);
                     .fullState <- rxState(.full);
-                    rxCat("## Load into sympy...");
+                    rxCat("Load into sympy...");
                     rxSymPySetup(.full);
-                    on.exit({rxCat("## Freeing Python/SymPy memory...");rxSymPyClean();rxCat("done\n")});
+                    on.exit({rxCat("Freeing Python/SymPy memory...");rxSymPyClean();rxCat("done\n")});
                     rxCat("done\n");
                     if (rxSymPyExists("rx_pred_") & rxSymPyExists("rx_r_")){
                         if (!only.numeric){
                             if (.useUtf()){
-                                rxCat(sprintf("## Calculate \u2202(f)/\u2202(\u03B7)\n", lines));
+                                rxCat(sprintf("Calculate \u2202(f)/\u2202(\u03B7)\n", lines));
                             } else {
-                                rxCat(sprintf("## Calculate d(f)/d(eta)\n", lines));
+                                rxCat(sprintf("Calculate d(f)/d(eta)\n", lines));
                             }
                             .newlines <- rxSymPySetupDPred(.full, calcSens, .baseState);
                             .zeroSens <<- .zeroSens | attr(.newlines, "zeroSens")
                             if (.useUtf()){
-                                rxCat(sprintf("## Calculate \u2202(R\u00B2)/\u2202(\u03B7)\n", lines));
+                                rxCat(sprintf("Calculate \u2202(R\u00B2)/\u2202(\u03B7)\n", lines));
                             } else {
-                                rxCat(sprintf("## Calculate d(R^2)/d(eta)\n", lines));
+                                rxCat(sprintf("Calculate d(R^2)/d(eta)\n", lines));
                             }
                             .newlinesR <- rxSymPySetupDPred(.full, calcSens, .baseState, prd="rx_r_");
                         }
@@ -1594,7 +1594,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                                     lhs=.lhs,
                                     inner=.toLines(.inner)));
                     } else {
-                        rxCat("## Does not have predictions or errors, skipping.\n");
+                        rxCat("Does not have predictions or errors, skipping.\n");
                         return(NULL)
                     }
                 }
@@ -1666,18 +1666,18 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                 if (is.null(x)) return(NULL);
                 if (x == "") return(NULL);
                 if (optExpression){
-                    rxCat(sprintf("## Optimizing expressions in %s model...", what));
+                    rxCat(sprintf("Optimizing expressions in %s model...", what));
                     .mod <- rxOptExpr(x)
                     rxCat("done\n");
                 } else {
                     .mod <- x;
                 }
                 if (sum.prod){
-                    rxCat(sprintf("## Stabilizing round off errors in products & sums in %s model...", what));
+                    rxCat(sprintf("Stabilizing round off errors in products & sums in %s model...", what));
                     .mod <- rxSumProdModel(.mod);
                     rxCat("done\n");
                 }
-                rxCat(sprintf("## Compiling %s model...", what));
+                rxCat(sprintf("Compiling %s model...", what));
                 .ret <- RxODE(.mod);
                 rxCat("done\n");
                 return(.ret);
