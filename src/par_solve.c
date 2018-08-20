@@ -44,7 +44,7 @@ int rmsg(char *msg, int err){
 
 int par_progress(int c, int n, int d, int cores, clock_t t0, int stop){
   float progress = (float)(c)/((float)(n));
-  int doErr = (cores > 1);
+  int doErr = (cores >= 1);
   char buf[40];
   if (c <= n){
     int nticks= (int)(progress * 50);
@@ -54,7 +54,8 @@ int par_progress(int c, int n, int d, int cores, clock_t t0, int stop){
       int i;
       for (i = 0; i < nticks; i++){
         if (i == 0) {
-          rmsg("%[", doErr);
+	  if (doErr) REprintf("%%[");
+          else Rcat("%[");
 	} else if (i % 5 == 0) {
 	  rmsg("|",doErr);
 	} else {
@@ -66,20 +67,28 @@ int par_progress(int c, int n, int d, int cores, clock_t t0, int stop){
       }
       rmsg("] ", doErr);
       if (nticks < 50) rmsg(" ", doErr);
-      if (cores > 0)
-	sprintf(buf, "%02.f%%; ncores=%d; ",100*progress,cores);
-      else 
-	sprintf(buf,"%02.f%%; ",100*progress);
-      rmsg(buf, doErr);
-      clock_t t = clock() - t0;
-      sprintf(buf," %.3f sec ", ((double)t)/CLOCKS_PER_SEC);
-      rmsg(buf, doErr);
+      if (doErr){
+	REprintf("%02.f%%; ncores=%d; ",100*progress,cores);
+        clock_t t = clock() - t0;
+        REprintf(" %.3f sec ", ((double)t)/CLOCKS_PER_SEC);
+      } else {
+	sprintf(buf, "%02.f%%; ",100*progress);
+        clock_t t = clock() - t0;
+        sprintf(buf," %.3f sec ", ((double)t)/CLOCKS_PER_SEC);
+        Rcat(buf);
+      }
+      /* if (cores > 0) */
+      /* 	sprintf(buf, "%02.f%%; ncores=%d; ",100*progress,cores); */
+      /* else  */
+      /* 	sprintf(buf,"%02.f%%; ",100*progress); */
+      /* rmsg(buf, doErr); */
+      
       if (stop){
 	rmsg("Stopped Calculation!\n", doErr);
       }
-      if (nticks >= 50){
-	rmsg("\n", doErr);
-      }
+      /* if (nticks >= 50 && doErr){ */
+      /* 	rmsg("\n", doErr); */
+      /* } */
     }
     par_flush_console();
     return nticks;
@@ -251,6 +260,9 @@ int handle_evid(int evid, int neq,
     wh100 = floor(wh/1e5);
     wh = wh- wh100*1e5;
     cmt = (wh%10000)/100 - 1 + 100*wh100;
+    if (cmt<0) {
+      stop("Supplied an invalid EVID (EVID=%d)", evid);
+    }
     if (cmt >= neq){
       foundBad = 0;
       for (j = 0; j < ind->nBadDose; j++){
