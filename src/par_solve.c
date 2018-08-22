@@ -1115,16 +1115,6 @@ extern SEXP RxODE_df(int doDose, int doTBS){
           // time
           dfp = REAL(VECTOR_ELT(df, jj++));
           dfp[ii] = ind->all_times[i];
-	  // States
-          if (nPrnState){
-            for (j = 0; j < neq[0]; j++){
-	      if (!rmState[j]){
-		dfp = REAL(VECTOR_ELT(df, jj));
-		dfp[ii] = solve[j+i*neq[0]] / scale[j];
-		jj++;
-               }
-             }
-          }
           // LHS
           if (nlhs){
 	    rxCalcLhsP(i, rx, neq[1]);
@@ -1134,6 +1124,16 @@ extern SEXP RxODE_df(int doDose, int doTBS){
 	       jj++;
              }
           }
+          // States
+          if (nPrnState){
+            for (j = 0; j < neq[0]; j++){
+              if (!rmState[j]){
+                dfp = REAL(VECTOR_ELT(df, jj));
+                dfp[ii] = solve[j+i*neq[0]] / scale[j];
+                jj++;
+              }
+            }
+          }       
           // Cov
           if (add_cov*ncov > 0){
 	    for (j = 0; j < add_cov*ncov; j++){
@@ -1186,22 +1186,22 @@ extern SEXP RxODE_df(int doDose, int doTBS){
   SET_STRING_ELT(sexp_colnames, jj, mkChar("time"));
   jj++;
 
-  // Put in state names
-  SEXP stateNames = PROTECT(rxStateNames(op->modNamePtr)); pro++;
-  if (nPrnState){
-    for (j = 0; j < neq[0]; j++){
-      if (!rmState[j]){
-	SET_STRING_ELT(sexp_colnames, jj, STRING_ELT(stateNames,j));
-        jj++;
-      }
-    }
-  }
   // Put in LHS names
   SEXP lhsNames = PROTECT(rxLhsNames(op->modNamePtr)); pro++;
   for (i = 0; i < nlhs; i++){
     SET_STRING_ELT(sexp_colnames, jj, STRING_ELT(lhsNames,i));
     jj++;
   }
+  // Put in state names
+  SEXP stateNames = PROTECT(rxStateNames(op->modNamePtr)); pro++;
+  if (nPrnState){
+    for (j = 0; j < neq[0]; j++){
+      if (!rmState[j]){
+        SET_STRING_ELT(sexp_colnames, jj, STRING_ELT(stateNames,j));
+        jj++;
+      }
+    }
+  }  
   // Put in Cov names
   SEXP paramNames = PROTECT(rxParamNames(op->modNamePtr)); pro++;
   int *par_cov = op->par_cov;

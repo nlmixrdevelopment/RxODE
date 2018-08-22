@@ -1728,7 +1728,7 @@ void codegen(FILE *outpt, int show_ode) {
 	  // FIXME
 	  for (i = 0; i < tb.nd; i++){
 	    retieve_var(tb.di[i], buf);
-	    sprintf(to,"(__0f__)%s=",buf);
+	    sprintf(to,"(__0f__)%s =",buf);
 	    if (strstr(sLine,to)){
 	      if (!tb.fdi[i]){
 		tb.fdi[i] = 1;

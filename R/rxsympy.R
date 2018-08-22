@@ -1549,7 +1549,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                             .sympy <- rxToSymPy(.ddt);
                             .v <- rxSymPy(.sympy);
                             .v <- rxFromSymPy(.v);
-                            return(sprintf("%s%s~%s;", .iniS, .ddt, .v));
+                            return(sprintf("%s%s=%s;", .iniS, .ddt, .v));
                         }), collapse="\n");
                         .yj <- rxToSymPy("rx_yj_")
                         .yj <- rxSymPy(.yj);
