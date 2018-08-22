@@ -1735,12 +1735,21 @@ void codegen(FILE *outpt, int show_ode) {
 		tb.fdn++;
 	      }
 	      fprintf(outpt, "  //if (ISNA(%s)){ // Always apply; Othersiwse, Since this updates vector, it may cause this to only be updated once.\n    %s  //}\n",buf,sLine+8);
+	    } else {
+              sprintf(to,"(__0f__)%s=",buf);
+              if (strstr(sLine,to)){
+                if (!tb.fdi[i]){
+                  tb.fdi[i] = 1;
+                  tb.fdn++;
+                }
+                fprintf(outpt, "  //if (ISNA(%s)){ // Always apply; Othersiwse, Since this updates vector, it may cause this to only be updated once.\n    %s  //}\n",buf,sLine+8);
+              }
 	    }
-	  }
-	  continue;
-	} else {
-	  continue;
-	}
+          }
+          continue;
+        } else {
+          continue;
+        }
       }
       s = strstr(sLine,"ode_print;");
       if (show_ode == 1 && !s) s = strstr(sLine,"full_print;");

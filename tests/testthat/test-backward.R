@@ -74,7 +74,7 @@ C1=centr/V;
 
     x2 <- cbind(matrix(xx[[8]], ncol=neq, byrow=T),
                 matrix(xx[[14]], ncol = nlhs, byrow = TRUE))
-    colnames(x2) <- c(state_vars, lhs_vars);
+    colnames(x2) <- c(lhs_vars, state_vars);
 
     x2 <- cbind(time=event.table$time, x2)[ev$get.obs.rec(), ];
     x2 <- as.data.frame(x2)
@@ -401,7 +401,7 @@ C1=centr/V;
 
     x2 <- cbind(matrix(xx[[8]], ncol=neq, byrow=T),
                 matrix(xx[[14]], ncol = nlhs, byrow = TRUE))
-    colnames(x2) <- c(state_vars, lhs_vars);
+    colnames(x2) <- c(lhs_vars, state_vars);
 
     x2 <- cbind(time=event.table$time, x2)[ev$get.obs.rec(), ];
     x2 <- as.data.frame(x2)
