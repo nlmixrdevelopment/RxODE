@@ -1,4 +1,4 @@
-utils::globalVariables(c(".Jython"));
+utils::globalVariables(c(".Jython", "add"));
 ## Based on normalized grammar output by parser which has
 ## if (expr) {
 ## }
@@ -1517,16 +1517,16 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                     if (rxSymPyExists("rx_pred_") & rxSymPyExists("rx_r_")){
                         if (!only.numeric){
                             if (.useUtf()){
-                                rxCat(sprintf("Calculate \u2202(f)/\u2202(\u03B7)\n", lines));
+                                rxCat("Calculate \u2202(f)/\u2202(\u03B7)\n");
                             } else {
-                                rxCat(sprintf("Calculate d(f)/d(eta)\n", lines));
+                                rxCat("Calculate d(f)/d(eta)\n");
                             }
                             .newlines <- rxSymPySetupDPred(.full, calcSens, .baseState);
                             .zeroSens <<- .zeroSens | attr(.newlines, "zeroSens")
                             if (.useUtf()){
-                                rxCat(sprintf("Calculate \u2202(R\u00B2)/\u2202(\u03B7)\n", lines));
+                                rxCat("Calculate \u2202(R\u00B2)/\u2202(\u03B7)\n");
                             } else {
-                                rxCat(sprintf("Calculate d(R^2)/d(eta)\n", lines));
+                                rxCat("Calculate d(R^2)/d(eta)\n");
                             }
                             .newlinesR <- rxSymPySetupDPred(.full, calcSens, .baseState, prd="rx_r_");
                         }

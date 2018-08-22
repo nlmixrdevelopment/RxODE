@@ -11,7 +11,7 @@ rxProgress(num, core = 0L)
 
 rxTick()
 
-rxProgressStop()
+rxProgressStop(clear = TRUE)
 
 rxProgressAbort()
 }
@@ -20,6 +20,9 @@ rxProgressAbort()
 
 \item{core}{Number of cores to show.  If below 1, don't show
 number of cores}
+
+\item{clear}{Boolean telling if you should clear the progress bar
+after completion (as if it wasn't displayed).  By default this is TRUE}
 }
 \value{
 All return NULL invisibly.

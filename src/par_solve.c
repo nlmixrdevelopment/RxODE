@@ -127,7 +127,7 @@ SEXP _rxProgress(SEXP num, SEXP core){
 SEXP _rxProgressStop(SEXP clear){
   int clearB = INTEGER(clear)[0];
   if (clearB){
-    Rcat("\r");
+    Rcat("                                                                                \r");
   } else {
     par_progress(rxt.n, rxt.n, rxt.d, rxt.cores, rxt.t0, 1);
   }
@@ -706,7 +706,7 @@ extern void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int *neq
   int itol=0;           //0: rtol/atol scalars; 1: rtol/atol vectors
   int iout=0;           //iout=0: solout() NEVER called
   int idid=0;
-  int i, j;
+  int i;
   double xout;
   double *yp;  
   static char *err_msg[]=
