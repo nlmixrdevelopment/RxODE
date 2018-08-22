@@ -623,7 +623,12 @@ extern void ind_lsoda0(rx_solve *rx, rx_solving_options *op, int solveid, int *n
         ind->slvr_counter[0]++;
         //dadt_counter = 0;
       }
-    if (handle_evid(ind->evid[i], neq[0], ind->BadDose, ind->InfusionRate, ind->dose, yp,
+
+      if (i >= ind->n_all_times) {
+	REprintf("bad solve\n");
+	break;
+      }  
+      if (handle_evid(ind->evid[i], neq[0], ind->BadDose, ind->InfusionRate, ind->dose, yp,
                     op->do_transit_abs, xout, ind)){
       istate = 1;
       xp = xout;
