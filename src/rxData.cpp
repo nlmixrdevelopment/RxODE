@@ -3284,7 +3284,7 @@ RObject rxSolveGet(RObject obj, RObject arg, LogicalVector exact = true){
     } else {
       if (rxIs(arg, "integer") || rxIs(arg, "numeric")){
 	int iarg = as<int>(arg);
-	if (iarg < lst.size()){
+	if (iarg <= lst.size()){
 	  return lst[iarg-1];
 	}
       }
