@@ -127,7 +127,7 @@ SEXP _rxProgress(SEXP num, SEXP core){
 SEXP _rxProgressStop(SEXP clear){
   int clearB = INTEGER(clear)[0];
   if (clearB){
-    Rcat("                                                                                \r");
+    Rcat("\r                                                                                \r");
   } else {
     par_progress(rxt.n, rxt.n, rxt.d, rxt.cores, rxt.t0, 1);
   }
@@ -460,7 +460,7 @@ extern void par_liblsoda(rx_solve *rx){
   } else {
     if (displayProgress && curTick < 50) par_progress(nsim*nsub, nsim*nsub, curTick, cores, t0, 0);
   }
-  if (displayProgress) REprintf("                                                                                \r");
+  if (displayProgress) REprintf("\r                                                                                \r");
 
 }
 
@@ -853,7 +853,7 @@ void par_dop(rx_solve *rx){
   } else {
     if (displayProgress && curTick < 50) par_progress(nsim*nsub, nsim*nsub, curTick, 1, t0, 0);
   }
-  if (displayProgress) REprintf("                                                                                \r");
+  if (displayProgress) REprintf("\r                                                                                \r");
 }
 
 void ind_solve(rx_solve *rx, unsigned int cid,

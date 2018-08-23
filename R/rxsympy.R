@@ -1483,13 +1483,17 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                 calcSens <- thetas;
             }
             .baseState <- rxState(obj);
-            .oLhs <- rxLhs(obj);
-            ## if (length(.baseState) > 0){
-            ##     obj <- rxGetModel(rxNorm(obj, removeJac=TRUE, removeSens=TRUE), calcSens=calcSens, collapseModel=TRUE);
-            ##     .full <- paste0(rxNorm(obj), "\n", rxNorm(pred.mod));
-            ## }
+            .inits <- rxInits(obj);
+            if (length(.inits) > 0){
+                .inits <- paste0(paste(sapply(names(.inits), function(x){
+                    .val <- deparse(as.numeric(.inits[x]));
+                    return(sprintf("%s=%s;", x, .val))
+                }), collapse="\n"), "\n");
+            } else {
+                .inits <- "";
+            }
+            .oLhs <- c(names(.inits),rxLhs(obj));
             .full <- rxGetModel(paste0(rxNorm(obj), "\n", rxNorm(pred.mod)));
-            ## .fullState <- rxState(.full);
             ## Now everything is setup get conditional statements and move on.
             .cond <- rxExpandIfElse(.full);
             .ncond <- names(.cond);
@@ -1570,7 +1574,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                             if (.lambda == "rx_lambda_")  .lambda <- "1"
                             if (.lambda == "rx_yj_")  .yj <- "0"
                         }
-                        .states <- paste0(.states,
+                        .states <- paste0(.inits, .states,
                                           "\nrx_yj_~", rxFromSymPy(.yj), ";\n",
                                           "rx_lambda_~", rxFromSymPy(.lambda), ";\n");
                         .pred <- rxToSymPy("rx_pred_");
