@@ -460,6 +460,8 @@ extern void par_liblsoda(rx_solve *rx){
   } else {
     if (displayProgress && curTick < 50) par_progress(nsim*nsub, nsim*nsub, curTick, cores, t0, 0);
   }
+  if (displayProgress) REprintf("                                                                                \r");
+
 }
 
 
@@ -851,6 +853,7 @@ void par_dop(rx_solve *rx){
   } else {
     if (displayProgress && curTick < 50) par_progress(nsim*nsub, nsim*nsub, curTick, 1, t0, 0);
   }
+  if (displayProgress) REprintf("                                                                                \r");
 }
 
 void ind_solve(rx_solve *rx, unsigned int cid,

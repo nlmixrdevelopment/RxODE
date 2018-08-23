@@ -677,6 +677,7 @@ double LikInner2(double *eta, int likId){
       H = as<mat>(nearpd(wrap(H)));
       H0 = chol(H);
     } catch (...){
+      print(wrap(H));
       stop("Cannot correct Inner Hessian Matrix for nlmixr ID:%d to be positive definite.", likId+1);
     }
   }
@@ -780,7 +781,29 @@ void innerOpt(){
 // #pragma omp parallel for num_threads(cores)
 // #endif    
     for (int id = 0; id < rx->nsub; id++){
-      innerOpt1(id, 0);
+      focei_ind *indF = &(inds_focei[id]);
+      try {
+        innerOpt1(id, 0);
+      } catch (...){
+	// First try resetting Hessian,
+        indF->mode = 1;
+	indF->uzm = 1;
+	try {
+	  innerOpt1(id, 0);
+        } catch (...) {
+	  // Now try resetting Hessian, and ETA
+	  Rprintf("Hessian Reset for ID: %d\n", id+1);
+          indF->mode = 1;
+          indF->uzm = 1;
+          std::fill(&indF->eta[0], &indF->eta[0] + op_focei.neta, 0.0);
+	  try {
+            Rprintf("Hessian Reset & ETA reset for ID: %d\n", id+1);
+            innerOpt1(id, 0);
+          } catch (...){
+	    Rprintf("Could not find the best eta with hessian and eta reset for ID %d, keeping last liklihood.", id+1);
+	  }
+        }
+      }
     }
   }
   Rcpp::checkUserInterrupt();
