@@ -1580,9 +1580,9 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                         .reg2 <- rex::rex(or(.sensState), "(0)", any_of("="), except_any_of("\n;"), any_of("\n;"));
                         .pred.only <- paste0(gsub(.reg2, "", gsub(.reg, "", .states)),
                                              "rx_pred_=", rxFromSymPy(.pred), ";");
+                        .r <- rxToSymPy("rx_r_");
+                        .r <- rxSymPy(.r);
                         if (!only.numeric){
-                            .r <- rxToSymPy("rx_r_");
-                            .r <- rxSymPy(.r);
                             .inner <- paste0(.states,
                                              "rx_pred_=", rxFromSymPy(.pred), ";")
                             .inner <- paste(c(.inner, .newlines,
