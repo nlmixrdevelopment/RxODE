@@ -1504,7 +1504,8 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                         rxCat(sprintf("## %s %s\n", crayon::bold("Condition:"), .ncond[.i]));
                         rxCat("################################################################################\n");
                     }
-                    if (length(rxState(.cond[.i])) > 0){
+                    .origStates <- rxState(.cond[.i])
+                    if (length(.origStates) > 0){
                         .full <- rxGetModel(.cond[.i], calcSens=calcSens, collapseModel=TRUE);
                     } else {
                         .full <- rxGetModel(.cond[.i]);
@@ -1549,7 +1550,11 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                             .sympy <- rxToSymPy(.ddt);
                             .v <- rxSymPy(.sympy);
                             .v <- rxFromSymPy(.v);
-                            return(sprintf("%s%s=%s;", .iniS, .ddt, .v));
+                            if (any(x == .origStates)){
+                                return(sprintf("%s%s=%s;", .iniS, .ddt, .v));
+                            } else {
+                                return(sprintf("%s%s~%s;", .iniS, .ddt, .v));
+                            }
                         }), collapse="\n");
                         .yj <- rxToSymPy("rx_yj_")
                         .yj <- rxSymPy(.yj);
@@ -1570,14 +1575,19 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                                           "rx_lambda_~", rxFromSymPy(.lambda), ";\n");
                         .pred <- rxToSymPy("rx_pred_");
                         .pred <- rxSymPy(.pred);
-                        .pred.only <- paste0(.states,
+                        .sensState <- .fullState[!(.fullState %in% .origStates)]
+                        .reg <- rex::rex("d/dt(", or(.sensState), ")", any_of("=~"), except_any_of("\n;"), any_of("\n;"));
+                        .reg2 <- rex::rex(or(.sensState), "(0)", any_of("="), except_any_of("\n;"), any_of("\n;"));
+                        .pred.only <- paste0(gsub(.reg2, "", gsub(.reg, "", .states)),
                                              "rx_pred_=", rxFromSymPy(.pred), ";");
-                        .r <- rxToSymPy("rx_r_");
-                        .r <- rxSymPy(.r);
                         if (!only.numeric){
-                            .inner <- paste(c(.pred.only, .newlines,
-                                              paste0("rx_r_=", rxFromSymPy(.r), ";"),
-                                              .newlinesR), collapse="\n");
+                            .r <- rxToSymPy("rx_r_");
+                            .r <- rxSymPy(.r);
+                            .inner <- paste0(.states,
+                                             "rx_pred_=", rxFromSymPy(.pred), ";")
+                            .inner <- paste(c(.inner, .newlines,
+                                            paste0("rx_r_=", rxFromSymPy(.r), ";"),
+                                            .newlinesR), collapse="\n");
                         } else {
                             .inner <- NULL
                         }
