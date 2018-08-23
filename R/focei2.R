@@ -9,8 +9,8 @@
 
 .nearPd <- function(mat){
     if (any(is.na(mat))){
-        cat("Bad matrix:\n");
-        print(mat);
+        ## cat("Bad matrix:\n");
+        ## print(mat);
         return(mat)
     } else {
         return(as.matrix(Matrix::nearPD(mat)$mat));

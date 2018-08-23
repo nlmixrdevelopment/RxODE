@@ -19,6 +19,8 @@
 #define tbsL(x) powerL(x,   ind->lambda, (int)(ind->yj))
 #define tbsDL(x) powerDL(x, ind->lambda, (int)(ind->yj))
 #define tbsD(x) powerDD(x,  ind->lambda, (int)(ind->yj))
+#define _safe_log(a) (((a) <= 0) ? log(DOUBLE_EPS) : log(a))
+#define _safe_zero(a) ((a) == 0 ? DOUBLE_EPS : (a))
 
 using namespace Rcpp;
 using namespace arma;
@@ -207,6 +209,7 @@ typedef struct {
   int useColor;
   double boundTol;
   int printNcol;
+  int noabort;
 } focei_options;
 
 focei_options op_focei;
@@ -511,23 +514,6 @@ void updateTheta(double *theta){
     std::copy(&theta[0], &theta[0] + op_focei.npars, &op_focei.theta[0]);
   }  
 }
-
-
-double stablizeNums(double x){
-  if (ISNAN(x)){
-    return 0.0;
-  } else if (ISNA(x)){
-    return 0.0;
-  } else if (!R_FINITE(x)){
-    if (x < 0){
-      return -42e100;
-    } else {
-      return 42e100;
-    }
-  } else {
-    return x;
-  }
-}
 double likInner0(double *eta){
   // id = eta[#neta]
   // eta = eta
@@ -568,25 +554,26 @@ double likInner0(double *eta){
     fInd->lp.fill(0.0);
     fInd->llik=0.0;
     fInd->tbsLik=0.0;
-    double f, err, r, fpm, rp;
+    double f, err, r, fpm, rp,lnr;
     for (j = ind->n_all_times; j--;){
       if (!ind->evid[j]){
 	inner_calc_lhs((int)id, ind->all_times[j], &ind->solve[j * op->neq], ind->lhs);
-        f = stablizeNums(ind->lhs[0]); // TBS is performed in the RxODE rx_pred_ statement. This allows derivatives of TBS to be propigated
+        f = ind->lhs[0]; // TBS is performed in the RxODE rx_pred_ statement. This allows derivatives of TBS to be propigated
 	// fInd->f(k, 0) = ind->lhs[0];
 	err = f - tbs(ind->dv[j]);
 	fInd->tbsLik+=tbsL(ind->dv[j]);
 	// fInd->err(k, 0) = ind->lhs[0] - ind->dv[k]; // pred-dv
-	r = stablizeNums(ind->lhs[op_focei.neta + 1]);
+	r = _safe_zero(ind->lhs[op_focei.neta + 1]);
+	lnr =_safe_log(ind->lhs[op_focei.neta + 1]);
 	// fInd->r(k, 0) = ind->lhs[op_focei.neta+1];
-        fInd->B(k, 0) = stablizeNums(2.0/r);
+        fInd->B(k, 0) = 2.0/r;
 	// fInd->B(k, 0) = 2.0/ind->lhs[op_focei.neta+1];
 	// lhs 0 = F
 	// lhs 1-eta = df/deta
 	// FIXME faster initiliaitzation via copy or elim
 	for (i = op_focei.neta; i--; ){
-	  fpm = fInd->a(k, i) = stablizeNums(ind->lhs[i + 1]); // Almquist uses different a (see eq #15)
-	  rp  = stablizeNums(ind->lhs[i + op_focei.neta + 2]);
+	  fpm = fInd->a(k, i) = ind->lhs[i + 1]; // Almquist uses different a (see eq #15)
+	  rp  = ind->lhs[i + op_focei.neta + 2];
 	  fInd->c(k, i) = rp/r;
 	  // lp is eq 12 in Almquist 2015
 	  // // .5*apply(eps*fp*B + .5*eps^2*B*c - c, 2, sum) - OMGAinv %*% ETA
@@ -595,7 +582,7 @@ double likInner0(double *eta){
 	}
 	// Eq #10
         //llik <- -0.5 * sum(err ^ 2 / R + log(R));
-	fInd->llik += err * err/r + log(r);
+	fInd->llik += err * err/r + lnr;
         k--;
       }
     }
@@ -661,9 +648,9 @@ double LikInner2(double *eta, int likId){
   for (k = op_focei.neta; k--;){
     for (l = k+1; l--;){
       // tmp = fInd->a.col(l) %  fInd->B % fInd->a.col(k);
-      H(k, l) = stablizeNums(0.5*sum(fInd->a.col(l) %  fInd->B % fInd->a.col(k) + 
-				     fInd->c.col(l) % fInd->c.col(k)) +
-			     op_focei.omegaInv(k, l));
+      H(k, l) = 0.5*sum(fInd->a.col(l) %  fInd->B % fInd->a.col(k) + 
+			fInd->c.col(l) % fInd->c.col(k)) +
+			     op_focei.omegaInv(k, l);
       H(l, k) = H(k, l);
     }
   }
@@ -671,18 +658,21 @@ double LikInner2(double *eta, int likId){
   try{
     H0 = chol(H);
   } catch(...){
-    try {
-      // Warning?  Already complaining by the try/catch.
-      Function nearpd = getRxFn(".nearPd");
-      H = as<mat>(nearpd(wrap(H)));
-      H0 = chol(H);
-    } catch (...){
-      print(wrap(H));
-      stop("Cannot correct Inner Hessian Matrix for nlmixr ID:%d to be positive definite.", likId+1);
-    }
+    // try {
+    // Warning?  Already complaining by the try/catch.
+    Function nearpd = getRxFn(".nearPd");
+    H = as<mat>(nearpd(wrap(H)));
+    H0 = chol(H);
+    // } catch (...){
+    //   print(wrap(H));
+    //   stop("Cannot correct Inner Hessian Matrix for nlmixr ID:%d to be positive definite.", likId+1);
+    // }
   }
   H = H0;
-  lik += fInd->tbsLik - sum(log(H.diag()));
+  lik += fInd->tbsLik;// - sum(log(H.diag()));
+  for (unsigned int j = H.n_rows; j--;){
+    lik -= _safe_log(H(j,j));
+  }
   if (likId == 0){
     fInd->lik[0] = lik;
     std::copy(&fInd->eta[0], &fInd->eta[0] + op_focei.neta, &fInd->saveEta[0]);
@@ -792,15 +782,25 @@ void innerOpt(){
 	  innerOpt1(id, 0);
         } catch (...) {
 	  // Now try resetting Hessian, and ETA
-	  Rprintf("Hessian Reset for ID: %d\n", id+1);
+	  // Rprintf("Hessian Reset for ID: %d\n", id+1);
           indF->mode = 1;
           indF->uzm = 1;
           std::fill(&indF->eta[0], &indF->eta[0] + op_focei.neta, 0.0);
 	  try {
-            Rprintf("Hessian Reset & ETA reset for ID: %d\n", id+1);
+            // Rprintf("Hessian Reset & ETA reset for ID: %d\n", id+1);
             innerOpt1(id, 0);
           } catch (...){
-	    Rprintf("Could not find the best eta with hessian and eta reset for ID %d, keeping last liklihood.", id+1);
+            indF->mode = 1;
+            indF->uzm = 1;
+            std::fill(&indF->eta[0], &indF->eta[0] + op_focei.neta, 0.0);
+            if(!op_focei.noabort){
+              stop("Could not find the best eta even hessian reset and eta reset for ID %d.", id+1);
+	    } else {
+              indF->lik[0] -= 100;
+              indF->lik[1] -= 100;
+              indF->lik[2] -= 100;
+	    }
+            // 
 	  }
         }
       }
@@ -1362,6 +1362,7 @@ NumericVector foceiSetup_(const RObject &obj,
   op_focei.useColor=as<int>(odeO["useColor"]);
   op_focei.boundTol=as<double>(odeO["boundTol"]);
   op_focei.printNcol=as<int>(odeO["printNcol"]);
+  op_focei.noabort=as<int>(odeO["noAbort"]);
   return ret;
 }
 
