@@ -316,7 +316,9 @@ rxSymPyFEnv$log1p <- functionOp2("log(1 + (", "))");
 rxSymPyFEnv$log1pmx <- functionBrewx("(log(1 + (<%=x%>))-(<%=x%>))");
 rxSymPyFEnv$expm1 <- functionOp2("(exp(", ")-1)");
 rxSymPyFEnv$abs <- function(e1) {
-    paste0("sqrt((", e1, ")*(", e1, "))")
+    .e1 <- paste(e1);
+    if (.e1 == "0") return("rx_eff_abs_0__");
+    return(paste0("sqrt((", e1, ")*(", e1, "))"))
 }
 
 
