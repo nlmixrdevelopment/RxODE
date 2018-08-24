@@ -1291,6 +1291,8 @@ rxErrEnvF$tbs <- function(lambda){
     return("0");
 }
 
+rxErrEnvF$boxCox <- rxErrEnvF$tbs
+
 rxErrEnvF$tbsYj <- function(lambda){
     if (rxErrEnv.ret != "rx_r_"){
         stop("The tbsYj(.) can only be in an error function.")
@@ -1314,6 +1316,8 @@ rxErrEnvF$tbsYj <- function(lambda){
     }
     return("0");
 }
+
+rxErrEnvF$yeoJohnson <- rxErrEnvF$tbsYj
 
 rxErrEnvF$add <- function(est){
     if (rxErrEnv.ret != "rx_r_"){
