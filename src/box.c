@@ -14,8 +14,8 @@ double powerDi(double x, double lambda, int yj){
   case 2: 
     return x;
   case 0:
-    if (lambda == 1.0) return (x+1.0);
-    if (lambda == 0) return exp(x);
+    if (fabs(lambda-1.0) <= eps) return (x+1.0);
+    if (fabs(lambda) <= eps) return exp(x);
     // (x^lambda-1)/lambda=y
     // (lambda*y+1)^(1/lambda)
     x0 = x*lambda+1.0;
@@ -27,16 +27,16 @@ double powerDi(double x, double lambda, int yj){
     }
     return ret;
   case 1:
-    if (lambda == 1.0) return x;
+    if (fabs(lambda-1.0) <= eps) return x;
     if (x >= 0){
       // log(x+1)= y; exp(y)-1=x
-      if (lambda == 0) return expm1(x);
+      if (fabs(lambda) <= eps) return expm1(x);
       // ((x+1)^lambda-1)/lambda=y
       // (y*lambda+1)^(1/y)-1=y
       return pow(x*lambda+1.0, 1.0/lambda)-1.0;
     } else {
       // (-(1-x)^(2-lambda)-1)/(2-lambda)
-      if (lambda ==  2.0) return -expm1(-x);
+      if (fabs(lambda-2.0) <=  eps) return -expm1(-x);
       // (-(1-x)^(2-lambda)-1)/(2-lambda) = y
       l2 = (2.0 - lambda);
       return 1.0 - pow(1.0 - l2*x, 1.0/l2);
@@ -54,17 +54,17 @@ double powerD(double x, double lambda, int yj){
   case 2:
     return x;
   case 0:
-    if (lambda == 1.0) return x-1.0;
+    if (fabs(lambda -1.0) <= eps) return x-1.0;
     if (x <= eps) x0= eps;
-    if (lambda ==  0.0) return log(x0);
+    if (fabs(lambda) <=  eps) return log(x0);
     return (pow(x0, lambda) - 1.0)/lambda;
   case 1:
-    if (lambda == 1.0) return x;
+    if (fabs(lambda-1.0) <= eps) return x;
     if (x >= 0){
-      if (lambda == 0) return log1p(x);
+      if (fabs(lambda) <= eps) return log1p(x);
       return (pow(x + 1.0, lambda) - 1.0)/lambda;
     } else {
-      if (lambda == 2.0) return -log1p(-x);
+      if (fabs(lambda-2.0) <= 0) return -log1p(-x);
       l2 = 2.0 - lambda;
       return (1.0 - pow(1.0 - x, l2))/l2;
     }
@@ -81,18 +81,18 @@ double powerDD(double x, double lambda, int yj){
   case 2:
     return 1.0;
   case 0:
-    if (lambda == 1.0) return 1.0;
+    if (fabs(lambda-1.0) <= eps) return 1.0;
     if (x <= eps) return x0 = eps;
-    if (lambda == 0.0) return 1/x0;
+    if (fabs(lambda) <= eps) return 1/x0;
     // pow(x,lambda)/lambda - 1/lambda
     return pow(x0, lambda-1);
   case 1:
-    if (lambda ==  1.0) return 1.0;
+    if (fabs(lambda-1.0) <= eps) return 1.0;
     if (x >= 0){
-      if (lambda == 0.0) return 1.0/(x + 1.0);
+      if (fabs(lambda) <= eps) return 1.0/(x + 1.0);
       return pow(x + 1.0, lambda-1.0);
     } else {
-      if (lambda == 2.0) return -1/(1.0 - x);
+      if (fabs(lambda-2.0) <= eps) return -1/(1.0 - x);
       return pow(1.0 - x, 1.0-lambda);
     }
   }
@@ -108,18 +108,18 @@ double powerDDD(double x, double lambda, int yj){
   case 2: 
     return 0;
   case 0:
-    if (lambda == 1.0) return 0;
+    if (fabs(lambda-1.0) <= eps) return 0;
     if (x <= eps) return x0 = eps;
-    if (lambda == 0.0) return -1/(x0*x0);
+    if (fabs(lambda) <= 0.0) return -1/(x0*x0);
     // pow(x,lambda)/lambda - 1/lambda
     return (lambda-1)*pow(x0, lambda-2);
   case 1:
-    if (lambda == 1.0) return 0;
+    if (fabs(lambda-1.0) <= eps) return 0;
     if (x >= 0){
-      if (lambda ==  0.0) return -1/((x + 1.0)*(x + 1.0));
+      if (fabs(lambda) <=  eps) return -1/((x + 1.0)*(x + 1.0));
       return (lambda-1.0)*pow(x + 1.0, lambda-2.0);
     } else {
-      if (lambda == 2.0) return -1/((1.0 - x)*(1.0 - x));
+      if (fabs(lambda-2.0) <= eps) return -1/((1.0 - x)*(1.0 - x));
       return -(1.0-lambda)*pow(1.0 - x, -lambda);
     }
   }
@@ -135,7 +135,7 @@ double powerL(double x, double lambda, int yj){
   case 2:
     return 0;
   case 0:
-    if (lambda == 1.0) return 0;
+    if (fabs(lambda-1.0) <= eps) return 0;
     if (x <= eps) x0 = eps;
     return (lambda - 1.0)*log(x0);
   case 1:
@@ -170,11 +170,11 @@ double powerDL(double x, double lambda, int yj){
   case 2:
     return 0;
   case 0:
-    if (lambda == 1.0) return 0;
+    if (fabs(lambda-1.0) <= eps) return 0;
     if (x <= eps) x0 = eps;
     return log(x0);
   case 1:
-    if (lambda == 1.0) return 0;
+    if (fabs(lambda-1.0) <= eps) return 0;
     if (x >= 0) return log1p(x);
     return -log1p(x);
   }
