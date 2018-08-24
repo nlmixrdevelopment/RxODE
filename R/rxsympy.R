@@ -1483,7 +1483,8 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                 calcSens <- thetas;
             }
             .baseState <- rxState(obj);
-            .inits <- rxInits(obj);
+            .inits0 <- rxInits(obj);
+            .inits <- .inits0
             if (length(.inits) > 0){
                 .inits <- paste0(paste(sapply(names(.inits), function(x){
                     .val <- deparse(as.numeric(.inits[x]));
@@ -1510,9 +1511,11 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                     }
                     .origStates <- rxState(.cond[.i])
                     if (length(.origStates) > 0){
-                        .full <- rxGetModel(.cond[.i], calcSens=calcSens, collapseModel=TRUE);
+                        .cond <- gsub(rex::rex(capture(or("rx_lambda_", "rx_yj_")), "~"), "\\1=", .cond[.i]);
+                        .full <- rxGetModel(.cond, calcSens=calcSens, collapseModel=TRUE);
+                        .full <- rxGetModel(paste0(.inits, gsub(rex::rex(capture(or("rx_lambda_", "rx_yj_")), "="), "\\1~", rxNorm(.full))));
                     } else {
-                        .full <- rxGetModel(.cond[.i]);
+                        .full <- rxGetModel(paste0(.inits, .cond[.i]));
                     }
                     .fullState <- rxState(.full);
                     rxCat("Load into sympy...");
@@ -1564,16 +1567,6 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                         .yj <- rxSymPy(.yj);
                         .lambda <- rxToSymPy("rx_lambda_")
                         .lambda <- rxSymPy(.lambda);
-                        .yj <- rxFromSymPy(.yj);
-                        .lambda <- rxFromSymPy(.lambda);
-                        if (.yj == "rx_yj_" & .lambda == "rx_lambda_"){
-                            .yj <- "2";
-                            .lambda <- "1";
-                        } else {
-                            ## A bit slower but same obj for lambda=1, and yj=0
-                            if (.lambda == "rx_lambda_")  .lambda <- "1"
-                            if (.lambda == "rx_yj_")  .yj <- "0"
-                        }
                         .states <- paste0(.inits, .states,
                                           "\nrx_yj_~", rxFromSymPy(.yj), ";\n",
                                           "rx_lambda_~", rxFromSymPy(.lambda), ";\n");
