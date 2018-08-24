@@ -1234,8 +1234,8 @@ rxCompile.character <-  function(model,           # Model
         cat(model);
         cat("\n");
         sink();
+        on.exit(unlink(.mFile));
     }
-    on.exit(unlink(.mFile));
     .md5 <- RxODE::rxMd5(.mFile, extraC, calcJac, calcSens, collapseModel);
     .allModVars <- NULL;
     .needCompile <- TRUE

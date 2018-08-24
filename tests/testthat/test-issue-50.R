@@ -27,11 +27,12 @@ d/dt(eff)  = Kin - Kout*(1-C2/(EC50+C2))*eff;")
     sink();
 
     expect_true(file.exists("rxodedemo_ode.txt"))
-    m1 <- try(RxODE(filename = 'rxodedemo_ode.txt',modName = 'm1'))
-    expect_true(is(class(m1), "RxODE"))
+    m1 <- RxODE(filename = 'rxodedemo_ode.txt',modName = 'm1')
+    expect_true(is(m1, "RxODE"))
     expect_true(file.exists("rxodedemo_ode.txt"))
 
     rxDelete(m1)
+    unlink("rxodedemo_ode.txt")
     if (dir.exists("m1.d")) unlink("m1.d", recursive=TRUE)
 })
 })
