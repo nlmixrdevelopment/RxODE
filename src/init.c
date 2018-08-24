@@ -2,14 +2,29 @@
 #include <Rinternals.h>
 #include <stdlib.h> // for NULL
 #include <R_ext/Rdynload.h>
-#include "solve.h"
+#include "RxODE.h"
+
+SEXP _rxProgress(SEXP num, SEXP core);
+SEXP _rxTick();
+SEXP _rxProgressStop(SEXP);
+SEXP _rxProgressAbort();
 
 SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SEXP parse_model,SEXP parse_model3);
+SEXP _RxODE_coxBox_(SEXP, SEXP, SEXP);
+SEXP _RxODE_foceiFitCpp_(SEXP);
+SEXP _RxODE_foceiCalcCov(SEXP);
+SEXP _RxODE_foceiOuter(SEXP);
+SEXP _RxODE_foceiEtas();
+SEXP _RxODE_foceiNumericGrad(SEXP);
+SEXP _RxODE_foceiLik(SEXP);
+SEXP _RxODE_foceiOfv(SEXP);
+SEXP _RxODE_likInner(SEXP, SEXP);
+SEXP _RxODE_foceiInnerLp(SEXP, SEXP);
+SEXP _RxODE_foceiSetup_(SEXP,SEXP, SEXP, SEXP, SEXP,
+                        SEXP,SEXP, SEXP, SEXP, SEXP);
 SEXP _RxODE_linCmtEnv(SEXP rho);
 SEXP _RxODE_rxInv(SEXP matrix);
 SEXP _RxODE_removableDrive(SEXP letter);
-SEXP _RxODE_RxODE_finalize_focei_omega(SEXP);
-SEXP _RxODE_RxODE_finalize_log_det_OMGAinv_5(SEXP);
 SEXP _rxCholInv(SEXP dms, SEXP theta, SEXP tn);
 SEXP _RxODE_rxSymInvCholEnvCalculate(SEXP, SEXP, SEXP);
 SEXP _RxODE_rxSymInvChol(SEXP, SEXP, SEXP, SEXP);
@@ -40,23 +55,6 @@ static R_NativePrimitiveArgType RxODE_Sum_t[] = {
 extern int RxODE_current_fn_pointer_id();
 extern double RxODE_sum(double *input, int len);
 extern double RxODE_prod(double *input, int len);
-extern void RxODE_ode_solve_env(SEXP sexp_rho);
-extern int nEq ();
-extern unsigned int nObs();
-extern unsigned int nLhs ();
-extern double rxLhs(int i);
-extern void rxCalcLhs(int i);
-extern unsigned int nAllTimes ();
-extern int rxEvid(int i);
-
-// Changed for Parallel
-extern int nEqP (rx_solve *rx, unsigned int id);
-extern unsigned int nObsP(rx_solve *rx, unsigned int id);
-extern unsigned int nLhsP (rx_solve *rx, unsigned int id);
-extern double rxLhsP(int i, rx_solve *rx, unsigned int id);
-extern void rxCalcLhsP(int i, rx_solve *rx, unsigned int id);
-extern unsigned int nAllTimesP (rx_solve *rx, unsigned int id);
-extern int rxEvidP(int i, rx_solve *rx, unsigned int id);
 
 extern void RxODE_assign_fn_pointers(SEXP mv);
 
@@ -102,6 +100,11 @@ extern SEXP _RxODE_rxSimThetaOmega(SEXP, SEXP, SEXP, SEXP, SEXP,
                                    SEXP, SEXP, SEXP, SEXP, SEXP,
 				   SEXP, SEXP);
 
+extern double powerD(double x, double lambda, int yj);
+extern double powerDD(double x, double lambda, int yj);
+extern double powerDDD(double x, double lambda, int yj);
+extern double powerDi(double x, double lambda, int yj);
+
 SEXP _RxODE_cvPost(SEXP, SEXP, SEXP, SEXP, SEXP);
 
 SEXP _RxODE_rinvchisq(SEXP, SEXP, SEXP);
@@ -118,13 +121,21 @@ extern int rxIsCurrentC(SEXP obj);
 
 void rxOptionsIni();
 void rxOptionsIniData();
+void rxOptionsIniFocei();
+
+double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt, int diff1, int diff2, double d_A, double d_alpha, double d_B, double d_beta, double d_C, double d_gamma, double d_ka, double d_tlag);
+
+void _update_par_ptr(double t, unsigned int id, rx_solve *rx);
+
 void R_init_RxODE(DllInfo *info){
   R_CallMethodDef callMethods[]  = {
+    {"_rxProgress", (DL_FUNC) &_rxProgress, 2},
+    {"_rxTick", (DL_FUNC) &_rxTick, 0},
+    {"_rxProgressStop", (DL_FUNC) &_rxProgressStop, 1},
+    {"_rxProgressAbort", (DL_FUNC) &_rxProgressAbort, 0},
     {"trans", (DL_FUNC) &trans, 8},
     {"RxODE_get_mv", (DL_FUNC) &RxODE_get_mv, 0},
     {"_RxODE_rxInv", (DL_FUNC) &_RxODE_rxInv, 1},
-    {"_RxODE_RxODE_finalize_focei_omega",(DL_FUNC) &_RxODE_RxODE_finalize_focei_omega, 1},
-    {"_RxODE_RxODE_finalize_log_det_OMGAinv_5",(DL_FUNC) &_RxODE_RxODE_finalize_log_det_OMGAinv_5, 1},
     {"_RxODE_removableDrive", (DL_FUNC) &_RxODE_removableDrive, 1},
     {"_rxCholInv", (DL_FUNC) &_rxCholInv, 3},
     {"_RxODE_rxToOmega", (DL_FUNC) &_RxODE_rxToOmega, 1},
@@ -162,29 +173,25 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_add_sampling_", (DL_FUNC) &_RxODE_add_sampling_, 3},
     {"_RxODE_dynLoad", (DL_FUNC) &_RxODE_dynLoad, 1},
     {"_RxODE_rxSolveFree", (DL_FUNC) &_RxODE_rxSolveFree, 0},
+    {"_RxODE_foceiSetup_", (DL_FUNC) &_RxODE_foceiSetup_, 10},
+    {"_RxODE_foceiLik", (DL_FUNC) &_RxODE_foceiLik, 1},
+    {"_RxODE_foceiOfv", (DL_FUNC) &_RxODE_foceiOfv, 1},
+    {"_RxODE_likInner", (DL_FUNC) &_RxODE_likInner, 2},
+    {"_RxODE_foceiInnerLp", (DL_FUNC) &_RxODE_foceiInnerLp, 2},
+    {"_RxODE_foceiNumericGrad", (DL_FUNC) &_RxODE_foceiNumericGrad, 1},
+    {"_RxODE_foceiEtas", (DL_FUNC) &_RxODE_foceiEtas, 0},
+    {"_RxODE_foceiOuter", (DL_FUNC) &_RxODE_foceiOuter, 1},
+    {"_RxODE_foceiCalcCov", (DL_FUNC) &_RxODE_foceiCalcCov, 1},
+    {"_RxODE_foceiFitCpp_", (DL_FUNC) &_RxODE_foceiFitCpp_, 1},
+    {"_RxODE_coxBox_", (DL_FUNC) &_RxODE_coxBox_, 3},
     {NULL, NULL, 0}
   };
   // C callable to assign environments.
+  R_RegisterCCallable("RxODE", "solveLinB", (DL_FUNC) solveLinB);
+  R_RegisterCCallable("RxODE", "_update_par_ptr", (DL_FUNC) _update_par_ptr);
   R_RegisterCCallable("RxODE","rxRmModelLib", (DL_FUNC) rxRmModelLib);
   R_RegisterCCallable("RxODE","rxGetModelLib", (DL_FUNC) rxGetModelLib);
-  // C callables needed in FOCEi
-  R_RegisterCCallable("RxODE","nEq",                      (DL_FUNC) nEq);
-  R_RegisterCCallable("RxODE","nLhs",                     (DL_FUNC) nLhs);
-  R_RegisterCCallable("RxODE","rxLhs",                    (DL_FUNC) rxLhs);
-  R_RegisterCCallable("RxODE","nAllTimes",                (DL_FUNC) nAllTimes);
-  R_RegisterCCallable("RxODE","rxEvid",                   (DL_FUNC) rxEvid);
-  R_RegisterCCallable("RxODE","rxCalcLhs",                (DL_FUNC) rxCalcLhs);
-  R_RegisterCCallable("RxODE","nObs",                     (DL_FUNC) nObs);
-
-  R_RegisterCCallable("RxODE","nEqP",                      (DL_FUNC) nEqP);
-  R_RegisterCCallable("RxODE","nLhsP",                     (DL_FUNC) nLhsP);
-  R_RegisterCCallable("RxODE","rxLhsP",                    (DL_FUNC) rxLhsP);
-  R_RegisterCCallable("RxODE","nAllTimesP",                (DL_FUNC) nAllTimesP);
-  R_RegisterCCallable("RxODE","rxEvidP",                   (DL_FUNC) rxEvidP);
-  R_RegisterCCallable("RxODE","rxCalcLhsP",                (DL_FUNC) rxCalcLhsP);
-  R_RegisterCCallable("RxODE","nObsP",                     (DL_FUNC) nObsP);
-
-  R_RegisterCCallable("RxODE","RxODE_ode_solve_env",      (DL_FUNC) RxODE_ode_solve_env);
+  
   R_RegisterCCallable("RxODE","RxODE_ode_free",           (DL_FUNC) RxODE_ode_free);
   
   //Functions
@@ -198,6 +205,10 @@ void R_init_RxODE(DllInfo *info){
   R_RegisterCCallable("RxODE","_RxODE_rxAssignPtr",       (DL_FUNC) _RxODE_rxAssignPtr);
   R_RegisterCCallable("RxODE", "rxIsCurrentC", (DL_FUNC) rxIsCurrentC);
   R_RegisterCCallable("RxODE","RxODE_current_fn_pointer_id", (DL_FUNC) &RxODE_current_fn_pointer_id);
+  R_RegisterCCallable("RxODE", "powerD", (DL_FUNC) &powerD);
+  R_RegisterCCallable("RxODE", "powerDD", (DL_FUNC) &powerDD);
+  R_RegisterCCallable("RxODE", "powerDDD", (DL_FUNC) &powerDDD);
+  R_RegisterCCallable("RxODE", "powerDi", (DL_FUNC) &powerDi);
 
   
   static const R_CMethodDef cMethods[] = {
@@ -210,11 +221,14 @@ void R_init_RxODE(DllInfo *info){
   R_useDynamicSymbols(info, FALSE);
   rxOptionsIni();
   rxOptionsIniData();
+  rxOptionsIniFocei();
 }
 
 void rxOptionsFree();
 void gFree();
+void rxOptionsFreeFocei();
 void R_unload_RxODE(DllInfo *info){
   rxOptionsFree();
   gFree();
+  rxOptionsFreeFocei();
 }

@@ -1,11 +1,11 @@
-regIdentifier1 <- rex::rex(one_of("a":"z", "A":"Z"), any_of("_", "a":"z", "A":"Z", "0":"9", "."))
-regIdentifier2 <- rex::rex(at_least(".",1), one_of("_", "a":"z", "A":"Z"), any_of("_", "a":"z", "A":"Z", "0":"9", "."));
-regIdentifier <- rex::rex(or(regIdentifier1, regIdentifier2));
-regSens <- rex::rex("rx__sens_", capture(regIdentifier), "_BY_",  capture(regIdentifier), "__");
-regSensEtaTheta <- rex::rex("rx__sens_", capture(regIdentifier), "_BY_",  capture(regIdentifier),
-                            "_BY_",capture(regIdentifier), "__");
-regToSens1 <- rex::rex( capture(regIdentifier), or("_", ".", ":"),  capture(regIdentifier));
-regToSens2 <- rex::rex( "d/dt(d(", capture(regIdentifier), ")/d(",  capture(regIdentifier), "))");
+.regIdentifier1 <- rex::rex(one_of("a":"z", "A":"Z"), any_of("_", "a":"z", "A":"Z", "0":"9", "."))
+.regIdentifier2 <- rex::rex(at_least(".",1), one_of("_", "a":"z", "A":"Z"), any_of("_", "a":"z", "A":"Z", "0":"9", "."));
+.regIdentifier <- rex::rex(or(.regIdentifier1, .regIdentifier2));
+regSens <- rex::rex("rx__sens_", capture(.regIdentifier), "_BY_",  capture(.regIdentifier), "__");
+regSensEtaTheta <- rex::rex("rx__sens_", capture(.regIdentifier), "_BY_",  capture(.regIdentifier),
+                            "_BY_",capture(.regIdentifier), "__");
+regToSens1 <- rex::rex( capture(.regIdentifier), or("_", ".", ":"),  capture(.regIdentifier));
+regToSens2 <- rex::rex( "d/dt(d(", capture(.regIdentifier), ")/d(",  capture(.regIdentifier), "))");
 regFloat1 <- rex::rex(or(group(some_of("0":"9"), ".", any_of("0":"9")),
                          group(any_of("0":"9"), ".", some_of("0":"9"))),
                       maybe(group(one_of("E", "e"), maybe(one_of("+", "-")), some_of("0":"9"))));
@@ -19,7 +19,7 @@ regThEt <- rex::rex(capture(or("TH", ""), "ETA"), "_",
 regDfDyTh <- rex::rex(start, "rx__df_", capture(anything), "_dy_", regThEt, "__", end);
 regEta <- rex::rex(start, "ETA[", capture("1":"9", any_of("0":"9")), "]")
 regTheta <- rex::rex(start, "THETA[", capture("1":"9", any_of("0":"9")), "]")
-regJac <- rex::rex( "df(", capture(regIdentifier), ")/dy(",  capture(or(regIdentifier, group(or("THETA[", "ETA["), "1":"9", any_of("0":"9"), "]"))), ")");
+regJac <- rex::rex( "df(", capture(.regIdentifier), ")/dy(",  capture(or(.regIdentifier, group(or("THETA[", "ETA["), "1":"9", any_of("0":"9"), "]"))), ")");
 ## regRate <- rex::rex(start, "rx__rate_", capture(anything), "__");
 known.print <- c('printf', 'Rprintf', 'print',
                  'jac_printf', 'jac_Rprintf', 'jac_print',
@@ -154,9 +154,14 @@ functionBrewxy <- function(brew){
 sympyRxFEnv <- new.env(parent = emptyenv())
 rxSymPyFEnv <- new.env(parent = emptyenv())
 
+sympyRxFEnv$"(" <- unaryOp("(", ")")
+rxSymPyFEnv$"(" <- unaryOp("(", ")")
+
 rxSymPyFEnv$solveLinB <- function(...){
     return("rx1c")
 }
+rxSymPyFEnv$diff <- rxSymPyFEnv$Derivative
+rxSymPyFEnv$D <- rxSymPyFEnv$Derivative;
 
 for (op in c("+", "-", "*")){
     rxSymPyFEnv[[op]] <- binaryOp(paste0(" ", op, " "));
@@ -224,7 +229,7 @@ dsl.to.pow <- function(a, b){
         return(sprintf("Rx_pow(%s, %s)", a, b));
     } else if (abs(num - round(num)) < .Machine$double.eps^0.5){
         return(sprintf("Rx_pow_di(%s, %s)", a, b));
-    } else if (num == 0.5){
+    } else if (abs(num - 0.5) < .Machine$double.eps^0.5){
         return(sprintf("sqrt(%s)", a));
     } else {
         return(sprintf("Rx_pow(%s, %s)", a, b));
@@ -297,6 +302,8 @@ rxSymPyFEnv$tanpi <- functionOp2("tan(pi * (", "))")
 rxSymPyFEnv$logspace_add <- binaryOp2(" + ");
 rxSymPyFEnv$logspace_sub <- binaryOp2(" - ");
 sympyRxFEnv$loggamma <- functionOp("lgamma");
+sympyRxFEnv$Abs <- functionOp("abs")
+
 ## Following R functions are not translated
 ## ftrunc, fround, fprec, fsign, sign, fmin2, fmax2, imin2, imax2, logspace_sum
 ## choose lchoose
@@ -308,6 +315,12 @@ rxSymPyFEnv$Rx_pow_di <- binaryOp2("**");
 rxSymPyFEnv$log1p <- functionOp2("log(1 + (", "))");
 rxSymPyFEnv$log1pmx <- functionBrewx("(log(1 + (<%=x%>))-(<%=x%>))");
 rxSymPyFEnv$expm1 <- functionOp2("(exp(", ")-1)");
+rxSymPyFEnv$abs <- function(e1) {
+    .e1 <- paste(e1);
+    if (.e1 == "0") return("rx_eff_abs_0__");
+    return(paste0("sqrt((", e1, ")*(", e1, "))"))
+}
+
 
 rxSymPyFEnv$choose <- functionBrewxy("(factorial(<%=x%>)/(factorial(<%=y%>)*factorial((<%=x%>)-(<%=y%>))))");
 rxSymPyFEnv$lchoose <- functionBrewxy("(log(gamma((<%=x%>)+1))-log(gamma((<%=y%>)+1))-log(gamma((<%=x%>)-(<%=y%>)+1)))");
@@ -324,10 +337,10 @@ rxPrintOp <- function(op){
 ## rxSymPyFEnv$paste0 <- rxPrintOp("paste0")
 
 ## equivalent functions
-sympy.equiv.f <- c("abs", "acos", "acosh", "asin", "atan", "atan2", "atanh", "beta",
+sympy.equiv.f <- c("acos", "acosh", "asin", "atan", "atan2", "atanh", "beta",
                    "cos", "cosh", "digamma", "erf", "erfc", "exp", "factorial",
                    "gamma", "log10", "sin", "sinh", "sqrt", "tan",
-                   "tanh", "trigamma", "log")
+                   "tanh", "trigamma", "log", "rxTBS", "rxTBSd")
 for (f in sympy.equiv.f){
     rxSymPyFEnv[[f]] <- functionOp(f);
     sympyRxFEnv[[f]] <- functionOp(f);
@@ -680,27 +693,33 @@ sympyRxFEnv$structure <- function(one, ..., .Names){
     eval(parse(text=sprintf("RxODE::rxFromSymPy(%s)", deparse(sprintf("%s", one)))));
 }
 
-sympyRxFEnv$Subs <- function(expr, what, with){
-    what <- strsplit(substring(what, 2, nchar(what) - 1), ",")[[1]];
-    with <- strsplit(substring(with, 2, nchar(with) - 1), ",")[[1]];
-    for (i in 1:length(what)){
-        expr <- gsub(rex::rex(boundary, what[i], boundary), with[i], expr, perl=TRUE);
+sympyRxFEnv$Subs <- function(...){
+    .lst <- list(...);
+    if (length(.lst) == 3){
+        .what <- dsl.strip.paren(.lst[[2]]);
+        .with <- dsl.strip.paren(.lst[[3]]);
+        .expr <- dsl.strip.paren(.lst[[1]]);
+        if (regexpr("[,]", .what) != -1){
+            stop("Can't handle Subs with multiple replacements (yet)")
+        }
+        .subs <- function(x){
+            if (all(as.character(x) == .what)){
+                return(eval(parse(text=sprintf("quote(%s)", .with))));
+            } else if (is.call(x)) {
+                as.call(lapply(x, .subs))
+            } else if (is.pairlist(x)) {
+                as.pairlist(lapply(x, .subs))
+            } else {
+                return(x);
+            }
+        }
+        .expr <- eval(parse(text=sprintf(".subs(quote(%s))", .expr)))
+        .expr <- paste(deparse(.expr), collapse=" ");
+        return(.expr);
     }
-    return(expr);
 }
 
 sympyRxFEnv$subs <- sympyRxFEnv$Subs;
-
-rxSymPyDiff <- function(name){
-    force(name)
-    function(fn, x){
-        stop(sprintf("'%s' is not suported in RxODE.", name));
-    }
-}
-
-rxSymPyFEnv$diff <- rxSymPyDiff("diff");
-rxSymPyFEnv$D <- rxSymPyDiff("D");
-rxSymPyFEnv$Derivative <- rxSymPyDiff("Derivative");
 
 rxSymPyFEnv$psigamma <- function(z, n){
     paste0("polygamma(", n, ", ", z, ")");
@@ -875,6 +894,26 @@ unknownSymPy <- function(op){
 unknownRx <- function(op){
     force(op)
     function(...){
+        if (any(op == c("Derivative", "D", "diff"))){
+            .lst <- list(...)
+            if (length(.lst) == 2){
+                .w <- .lst[[1]];
+                .a <- .lst[[2]];
+                ## diff(rxTBS(a,lambda,yj),a)
+                .reg <- rex::rex("rxTBS(", any_spaces, capture(.a), any_spaces, ",",
+                                 capture(except_some_of(",)")), ",", capture(except_some_of(",)")), ")")
+                if (regexpr(.reg, .w, perl=TRUE) != -1){
+                    .ret <- sub(.reg, "rxTBSd(\\1,\\2,\\3)", .w);
+                    return(.ret);
+                }
+                ## diff(rxTBS2d(a,lambda,yj),a)
+                .reg <- rex::rex("rxTBSd(", any_spaces, capture(.a), any_spaces, ",",
+                                 capture(except_some_of(",)")), ",", capture(except_some_of(",)")), ")")
+                if (regexpr(.reg, .w, perl=TRUE) != -1){
+                    return(sub(.reg, "rxTBSd2(\\1,\\2,\\3)", .w));
+                }
+            }
+        }
         stop(sprintf("RxODE doesn't know how to translate '%s' to a RxODE compatible function.", op));
     }
 }
@@ -895,7 +934,7 @@ sympyEnv <- function(expr){
     n2 <- names;
     n2[n2 == "time"] <- "t";
     ## Replace f with rx_pred_
-    n2[n2 == "f"] <- "rx_pred_"
+    n2[n2 == "f"] <- "rx_pred_f_"
     n2 <- gsub(rex::rex("."), "__DoT__", n2)
     ## Replace print functions with nothing.
     n2[regexpr(regPrint, n2) != -1] <- "";
@@ -903,7 +942,7 @@ sympyEnv <- function(expr){
     res <- res[res != "pi"];
     w <- which(n2 %in% res);
     n2[w] <- sprintf("rx_SymPy_Res_%s", n2[w]);
-    n2 <- gsub(rex::rex("rx_underscore_"), "_", n2);
+    ## n2 <- gsub(rex::rex("rx_underscore_"), "_", n2);
     n2[n2 == "M_E"] <- "E";
     n2[n2 == "M_PI"] <- "pi";
     n2[n2 == "M_PI_2"] <- "pi/2";
@@ -958,8 +997,11 @@ rxEnv <- function(expr){
     symbol.env <- list2env(symbol.list, parent=rxSymPyFEnv);
 }
 
-exists2 <- function(x, where){
-    if (nchar(x) < 1000){
+.exists2 <- function(x, where){
+    .nc <- try(nchar(x) < 1000, silent=TRUE);
+    if (inherits(.nc, "try-error")) .nc <- FALSE
+    if (rxIs(.nc, "logical")) .nc <- FALSE
+    if (.nc){
         return(exists(x, where))
     } else {
         return(FALSE);
@@ -1007,7 +1049,7 @@ rxToSymPy <- function(x, envir=parent.frame(1)) {
             addNames <- TRUE;
             txt <- unlist(lapply(txt, function(x){
                 tmp <- sub(rex::rex(any_spaces, end), "", sub(rex::rex(start, any_spaces), "", x[1]))
-                if (exists2(tmp, envir)){
+                if (.exists2(tmp, envir)){
                     res <- rxSymPyReserved()
                     if (any(tmp == res)){
                         var <- paste0("rx_SymPy_Res_", tmp)
@@ -1020,7 +1062,7 @@ rxToSymPy <- function(x, envir=parent.frame(1)) {
                 if (length(x) == 2){
                     vars <<- c(vars, var);
                     tmp <- sub(rex::rex(any_spaces, end), "", sub(rex::rex(start, any_spaces), "", x[2]))
-                    if (exists(tmp, envir)){
+                    if (.exists2(tmp, envir)){
                         res <- rxSymPyReserved()
                         if (any(tmp == res)){
                             eq <- paste0("rx_SymPy_Res_", tmp)
@@ -1074,6 +1116,7 @@ rxToSymPy <- function(x, envir=parent.frame(1)) {
 rxFromSymPy <- function(x, envir=parent.frame(1)) {
     if (is(substitute(x),"character")){
         if (length(x) == 1){
+            names(x) <- NULL;
             txt <- strsplit(x, "\n+")[[1]];
             txt <- strsplit(txt, "[=~]", txt);
             vars <- c();
@@ -1098,7 +1141,7 @@ rxFromSymPy <- function(x, envir=parent.frame(1)) {
             }
             txt <- unlist(lapply(txt, function(x){
                 tmp <- sub(rex::rex(any_spaces, end), "", sub(rex::rex(start, any_spaces), "", x[1]))
-                if (exists2(tmp, envir)){
+                if (.exists2(tmp, envir)){
                     var <- sub(rex::rex(start, "rx_SymPy_Res_"), "", tmp)
                 } else {
                     var <- paste0(eval(parse(text=sprintf("RxODE::rxFromSymPy(%s)", tmp)), envir=envir));
@@ -1106,7 +1149,7 @@ rxFromSymPy <- function(x, envir=parent.frame(1)) {
                 if (length(x) == 2){
                     vars <<- c(vars, var);
                     tmp <- sub(rex::rex(any_spaces, end), "", sub(rex::rex(start, any_spaces), "", x[2]))
-                    if (exists2(tmp, envir)){
+                    if (.exists2(tmp, envir)){
                         e1 <- sub(rex::rex(start, "rx_SymPy_Res_"), "", tmp)
                     } else {
                         eq <- paste0(eval(parse(text=sprintf("RxODE::rxFromSymPy(%s)", x[2])), envir=envir));
@@ -1128,6 +1171,7 @@ rxFromSymPy <- function(x, envir=parent.frame(1)) {
     } else if (is(substitute(x),"name")){
         cls <- tryCatch({class(x)}, error=function(e){return("error")});
         if (cls == "character" && length(cls) == 1){
+            names(x) <- NULL
             txt <- paste0(eval(parse(text=sprintf("RxODE::rxFromSymPy(%s)", deparse(x)))));
             return(txt);
         } else {
@@ -1156,7 +1200,7 @@ for (op in c("=", "~", "<-")){
     rxErrEnvF[[op]] <- binaryOp(paste0(" = "));
 }
 rxErrEnvF$"{" <- function(...){
-    return(sprintf("{\n%s;\n}", paste(unlist(list(...)), collapse=";\n")))
+    return(sprintf("{\n%s\n}", paste(unlist(list(...)), collapse="\n")))
 }
 rxErrEnvF$"(" <- unaryOp("(", ")");
 rxErrEnvF$"[" <- function(name, val){
@@ -1185,10 +1229,95 @@ rxErrEnvF$"if" <- function(lg, tr, fl){
     }
 }
 rxErrEnv.theta <- 1;
-rxErrEnv.diag.xform <- "sqrt";
 rxErrEnv.diag.est <- c();
 rxErrEnv.ret <- "rx_r_";
 rxErrEnv.init <- NULL;
+rxErrEnv.lambda <- NULL;
+rxErrEnv.yj <- NULL;
+
+rxErrEnvF$lnorm <- function(est){
+    if (rxErrEnv.ret != "rx_r_"){
+        stop("The lnorm(.) can only be in an error function.")
+    }
+    if (!is.null(rxErrEnv.lambda)){
+        if (rxErrEnv.lambda != "0" && rxErrEnv.yj != "0"){
+            stop("The lnorm(.) cannot be used with other data transformations.")
+        }
+    }
+    estN <- suppressWarnings(as.numeric(est));
+    if (is.na(estN)){
+        ret <- (sprintf("(%s)^2", est))
+        assignInMyNamespace("rxErrEnv.lambda", "0");
+        assignInMyNamespace("rxErrEnv.yj", "0");
+    } else {
+        theta <- sprintf("THETA[%s]", rxErrEnv.theta);
+        est <- estN;
+        theta.est <- theta;
+        ret <- (sprintf("(%s)^2", theta.est))
+        tmp <- rxErrEnv.diag.est;
+        tmp[sprintf("THETA[%s]", rxErrEnv.theta)] <- as.numeric(est);
+        assignInMyNamespace("rxErrEnv.diag.est", tmp);
+        assignInMyNamespace("rxErrEnv.theta", rxErrEnv.theta + 1);
+        assignInMyNamespace("rxErrEnv.lambda", "0");
+        assignInMyNamespace("rxErrEnv.yj", "0");
+    }
+    return(ret);
+}
+
+rxErrEnvF$dlnorm <- rxErrEnvF$lnorm
+rxErrEnvF$logn <- rxErrEnvF$lnorm
+
+rxErrEnvF$tbs <- function(lambda){
+    if (rxErrEnv.ret != "rx_r_"){
+        stop("The tbs(.) can only be in an error function.")
+    }
+    if (!is.null(rxErrEnv.lambda)){
+        if (rxErrEnv.yj != "0" & rxErrEnv.lambda != "0" & rxErrEnv.lambda != "1"){
+            stop("The tbs(.) cannot be used with other data transformations.")
+        }
+    }
+    estN <- suppressWarnings(as.numeric(lambda));
+    if (is.na(estN)){
+        assignInMyNamespace("rxErrEnv.lambda", lambda);
+        assignInMyNamespace("rxErrEnv.yj", "0");
+    } else {
+        tmp <- rxErrEnv.diag.est;
+        tmp[sprintf("THETA[%s]", rxErrEnv.theta)] <- estN;
+        assignInMyNamespace("rxErrEnv.lambda", sprintf("THETA[%s]", rxErrEnv.theta));
+        assignInMyNamespace("rxErrEnv.diag.est", tmp);
+        assignInMyNamespace("rxErrEnv.theta", rxErrEnv.theta + 1);
+        assignInMyNamespace("rxErrEnv.yj", "0");
+    }
+    return("0");
+}
+
+rxErrEnvF$boxCox <- rxErrEnvF$tbs
+
+rxErrEnvF$tbsYj <- function(lambda){
+    if (rxErrEnv.ret != "rx_r_"){
+        stop("The tbsYj(.) can only be in an error function.")
+    }
+    if (!is.null(rxErrEnv.lambda)){
+        if (rxErrEnv.yj != "1" & rxErrEnv.lambda != "0" & rxErrEnv.lambda != "1"){
+            stop("The tbsYj(.) cannot be used with other data transformations.")
+        }
+    }
+    estN <- suppressWarnings(as.numeric(lambda));
+    if (is.na(estN)){
+        assignInMyNamespace("rxErrEnv.lambda", lambda);
+        assignInMyNamespace("rxErrEnv.yj", "1");
+    } else {
+        tmp <- rxErrEnv.diag.est;
+        tmp[sprintf("THETA[%s]", rxErrEnv.theta + 1)] <- estN;
+        assignInMyNamespace("rxErrEnv.lambda", sprintf("THETA[%s]", rxErrEnv.theta + 1));
+        assignInMyNamespace("rxErrEnv.diag.est", tmp);
+        assignInMyNamespace("rxErrEnv.theta", rxErrEnv.theta + 1);
+        assignInMyNamespace("rxErrEnv.yj", "1");
+    }
+    return("0");
+}
+
+rxErrEnvF$yeoJohnson <- rxErrEnvF$tbsYj
 
 rxErrEnvF$add <- function(est){
     if (rxErrEnv.ret != "rx_r_"){
@@ -1196,37 +1325,56 @@ rxErrEnvF$add <- function(est){
     }
     estN <- suppressWarnings(as.numeric(est));
     if (is.na(estN)){
-        if (rxErrEnv.diag.xform == "sqrt"){
-            ret <- (sprintf("(%s)^2", est))
-        } else if (rxErrEnv.diag.xform == "log"){
-            ret <- (sprintf("exp(%s)", est))
-        } else {
-            ret <- (sprintf("%s", est));
-        }
+        ret <- (sprintf("(%s)^2", est))
     } else {
         theta <- sprintf("THETA[%s]", rxErrEnv.theta);
         est <- estN;
         theta.est <- theta;
-        if (rxErrEnv.diag.xform == "sqrt"){
-            ret <- (sprintf("(%s)^2", theta.est))
-        } else if (rxErrEnv.diag.xform == "log"){
-            ret <- (sprintf("exp(%s)", theta.est))
-        } else {
-            ret <- (sprintf("%s", theta.est));
-        }
+        ret <- (sprintf("(%s)^2", theta.est))
         tmp <- rxErrEnv.diag.est;
         tmp[sprintf("THETA[%s]", rxErrEnv.theta)] <- as.numeric(est);
         assignInMyNamespace("rxErrEnv.diag.est", tmp);
         assignInMyNamespace("rxErrEnv.theta", rxErrEnv.theta + 1);
+        assignInMyNamespace("rxErrEnv.lambda", "1");
+        assignInMyNamespace("rxErrEnv.yj", "0");
     }
     return(ret);
 }
+
+rxErrEnvF$norm <- rxErrEnvF$add
+rxErrEnvF$dnorm <- rxErrEnvF$add
+
 rxErrEnvF$"for" <- function(...){stop("'for' is not supported (yet).")}
-rxErrEnvF$"return" <- function(est){
+rxErrEnvF$`return` <- function(est){
     if (rxErrEnv.ret == ""){
         stop("The PK function should not return anything.")
     }
-    return(sprintf("%s = %s", rxErrEnv.ret, est));
+    .extra <- ""
+    force(est)
+    if (rxErrEnv.ret == "rx_r_"){
+        if (is.null(rxErrEnv.lambda)){
+            .lambda <- "1"
+        } else {
+            .lambda <- rxErrEnv.lambda
+        }
+        if (is.null(rxErrEnv.yj)){
+            .yj <- "0"
+        } else {
+            .yj <- rxErrEnv.yj
+        }
+        if (.yj == "0" & .lambda == "1"){
+            .yj <- "2";
+            .lambda <- "1";
+        }
+        if (.yj == "0" & .lambda == "0"){
+            .yj <- "3";
+            .lambda <- "0";
+        }
+        .extra <- sprintf("rx_yj_~%s;\nrx_lambda_~%s;\n", .yj, .lambda);
+        assignInMyNamespace("rxErrEnv.yj", NULL);
+        assignInMyNamespace("rxErrEnv.lambda", NULL);
+    }
+    return(sprintf("%s%s=%s;", .extra, rxErrEnv.ret, est));
 }
 
 ## rxErrEnvF$c <- function(...){
@@ -1240,29 +1388,40 @@ rxErrEnvF$prop <- function(est){
     }
     estN <- suppressWarnings(as.numeric(est));
     if (is.na(estN)){
-        if (rxErrEnv.diag.xform == "sqrt"){
-            ret <- (sprintf("rx_pred_^2 * (%s)^2", est))
-        } else if (rxErrEnv.diag.xform == "log"){
-            ret <- (sprintf("rx_pred_^2 * exp(%s)", est))
-        } else {
-            ret <- (sprintf("rx_pred_^2 * %s", est))
-        }
+        ret <- (sprintf("(rx_pred_f_)^2 * (%s)^2", est))
     } else {
         est <- estN
         ret <- ""
         theta <- sprintf("THETA[%s]", rxErrEnv.theta);
         theta.est <- theta;
-        if (rxErrEnv.diag.xform == "sqrt"){
-            ret <- (sprintf("rx_pred_^2 * (%s)^2", theta.est))
-        } else if (rxErrEnv.diag.xform == "log"){
-            ret <- (sprintf("rx_pred_^2 * exp(%s)", theta.est))
-        } else {
-            ret <- (sprintf("rx_pred_^2 * %s", theta.est))
-        }
+        ret <- (sprintf("(rx_pred_f_)^2*(%s)^2", theta.est))
         tmp <- rxErrEnv.diag.est;
         tmp[sprintf("THETA[%s]", rxErrEnv.theta)] <- as.numeric(est);
         assignInMyNamespace("rxErrEnv.diag.est", tmp);
         assignInMyNamespace("rxErrEnv.theta", rxErrEnv.theta + 1);
+    }
+    return(ret);
+}
+
+rxErrEnvF$pow <- function(est, pow){
+    if (rxErrEnv.ret != "rx_r_"){
+        stop("The pow(.) can only be in an error function.")
+    }
+    estN <- suppressWarnings(as.numeric(est));
+    if (is.na(estN)){
+        ret <- (sprintf("(rx_pred_f_)^(2*%s) * (%s)^2", pow, est))
+    } else {
+        est <- estN
+        ret <- ""
+        theta <- sprintf("THETA[%s]", rxErrEnv.theta);
+        theta2 <- sprintf("THETA[%s]", rxErrEnv.theta + 1);
+        theta.est <- theta;
+        ret <- (sprintf("(rx_pred_f_)^(2*%s) * (%s)^2", theta2, theta.est))
+        tmp <- rxErrEnv.diag.est;
+        tmp[sprintf("THETA[%s]", rxErrEnv.theta)] <- as.numeric(est);
+        tmp[sprintf("THETA[%s]", rxErrEnv.theta + 1)] <- as.numeric(pow);
+        assignInMyNamespace("rxErrEnv.diag.est", tmp);
+        assignInMyNamespace("rxErrEnv.theta", rxErrEnv.theta + 2);
     }
     return(ret);
 }
@@ -1280,9 +1439,12 @@ rxErrEnv <- function(expr){
     n1 <- names;
     n2 <- names;
     n2[n2 == "time"] <- "t";
-    n2[n2 == "err"] <- "rx_r_";
-    n2[n2 == "error"] <- "rx_r_";
-    n2[n2 == "f"] <- "rx_pred_";
+    if (any(n2 == "err")){stop("Use return() for errors.")}
+    if (any(n2 == "error")){stop("Use return() for errors.")}
+    if (any(n2 == "rx_r")){stop("Use return() for errors.")}
+    ## n2[n2 == "err"] <- "rx_r_";
+    ## n2[n2 == "error"] <- "rx_r_";
+    n2[n2 == "f"] <- "rx_pred_f_";
     symbol.list <- setNames(as.list(n2), n1);
     symbol.env <- list2env(symbol.list, parent=rxErrFEnv);
     return(symbol.env)
@@ -1307,26 +1469,74 @@ rxParsePk <- function(x, init=NULL){
 ##' @author Matthew L. Fidler
 ##' @keywords internal
 ##' @export
-rxParsePred <- function(x, init=NULL){
-    return(rxParseErr(x, ret="rx_pred_", init=init));
+rxParsePred <- function(x, init=NULL, err=NULL){
+    if (is.null(err)){
+        return(rxParseErr(x, ret="rx_pred_", init=init));
+    } else {
+        .ini <- attr(err, "ini");
+        .errs <- rxExpandIfElse(rxGetModel(err));
+        .prd <- rxParseErr(x, ret="rx_pred_", init=init)
+        .prd <- rxExpandIfElse(rxGetModel(.prd));
+        if (length(.prd) > 1){
+            if (length(.prd) == length(.errs)){
+                .prd <- .prd[names(.errs)];
+                if (any(is.na(.prd))){
+                    stop("The errors and predictions need to have the same conditions (if/then statements).")
+                }
+            } else if (length(.errs) != 1){
+                stop("Do not know how to handle this error/pred combination")
+            }
+        }
+        .ret <- sapply(seq(1, max(length(.errs), length(.prd))), function(en){
+            .e <- .errs[min(length(.errs), en)];
+            .p <- .prd[min(length(.prd), en)];
+            .reg <- rex::rex("rx_pred_", any_spaces, "=",any_spaces, capture(except_any_of(";\n")), any_of(";\n"))
+            if (regexpr(rex::rex("rx_yj_~2;\nrx_lambda_~1;\n"), .e) != -1){
+                .p <- gsub(.reg, "rx_pred_f_~\\1;\nrx_pred_ = \\1", .p)
+            } else if (regexpr(rex::rex("rx_yj_~3;\nrx_lambda_~0;\n"), .e) != -1){
+                .p <- gsub(.reg, "rx_pred_f_~\\1;\nrx_pred_ = log(\\1)", .p);
+            } else {
+                .p <- gsub(.reg, "rx_pred_f_~\\1;\nrx_pred_ = rxTBS(\\1, rx_lambda_, rx_yj_)", .p);
+            }
+            return(gsub("rx_r_", sprintf("%s\nrx_r_", .p), .e));
+        })
+        if (length(.ret) == 1L){
+            .ret <- setNames(.ret, NULL)
+            attr(.ret, "ini") <- .ini
+            return(.ret);
+        } else {
+            if (length(.errs) >= length(.prd)){
+                .n <- names(.errs);
+            } else {
+                .n <- names(.prd);
+            }
+            .ord <- order(sapply(.n, nchar));
+            .n <- .n[.ord];
+            .ret <- .ret[.ord];
+            .ret <- paste(sapply(seq_along(.n), function(x){
+                if (x > 1){
+                    if (.n[x] == sprintf("(!%s)", .n[x - 1])){
+                        return(sprintf("else {\n%s\n}", .ret[x]));
+                    }
+                }
+                return(sprintf("if %s {\n%s\n}", .n[x], .ret[x]));
+            }), collapse="\n");
+            attr(.ret, "ini") <- .ini
+            return(.ret);
+        }
+    }
 }
 ##' Prepare Error function for inclusion in RxODE
 ##'
 ##' @param x error function
 ##' @param base.theta Base theta to start numbering add(.) and prop(.) from.
-##' @param diag.xform Diagonal form of variance parameters
 ##' @param ret Intenral return type.  Should not be changed by the user...
 ##' @param init Initilization vector
 ##' @return RxODE transformed text
 ##' @keywords internal
 ##' @author Matthew L. Fidler
 ##' @export
-rxParseErr <- function(x, base.theta, diag.xform=c("sqrt", "log", "identity"),
-                       ret="rx_r_", init=NULL){
-    if (!missing(diag.xform)){
-        diag.xform <- match.arg(diag.xform)
-        assignInMyNamespace("rxErrEnv.diag.xform", diag.xform);
-    }
+rxParseErr <- function(x, base.theta, ret="rx_r_", init=NULL){
     if (!missing(base.theta)){
         assignInMyNamespace("rxErrEnv.theta", base.theta);
     }
@@ -1349,18 +1559,13 @@ rxParseErr <- function(x, base.theta, diag.xform=c("sqrt", "log", "identity"),
             stop("else if expressions not supported (yet).");
         }
         assignInMyNamespace("rxErrEnv.diag.est", c());
-        assignInMyNamespace("rxErrEnv.diag.xform", "sqrt");
         assignInMyNamespace("rxErrEnv.theta", 1)
         assignInMyNamespace("rxErrEnv.ret", "rx_r_");
         assignInMyNamespace("rxErrEnv.init", NULL);
         return(ret)
     } else if (is(substitute(x),"name")){
         ret <- eval(parse(text=sprintf("RxODE:::rxParseErr(%s)", deparse(x))))
-        if (regexpr("else if", ret) != -1){
-            stop("else if expressions not supported (yet).");
-        }
         assignInMyNamespace("rxErrEnv.diag.est", c());
-        assignInMyNamespace("rxErrEnv.diag.xform", "sqrt");
         assignInMyNamespace("rxErrEnv.theta", 1)
         assignInMyNamespace("rxErrEnv.ret", "rx_r_");
         assignInMyNamespace("rxErrEnv.init", NULL);
@@ -1375,7 +1580,6 @@ rxParseErr <- function(x, base.theta, diag.xform=c("sqrt", "log", "identity"),
         }
         attr(ret, "ini") = rxErrEnv.diag.est;
         assignInMyNamespace("rxErrEnv.diag.est", c());
-        assignInMyNamespace("rxErrEnv.diag.xform", "sqrt");
         assignInMyNamespace("rxErrEnv.theta", 1)
         assignInMyNamespace("rxErrEnv.ret", "rx_r_");
         assignInMyNamespace("rxErrEnv.init", NULL);
@@ -1590,20 +1794,15 @@ rxSumProd <- function(x){
 ##' @param expand Boolean indicating if the expression is expanded.
 ##' @param sum Use sum(...)
 ##' @param prod Use prod(...)
-##' @param logify Use logify
 ##' @return model string with prod(.) and sum(.) for all these
 ##'     operations.
 ##' @author Matthew L. Fidler
 ##' @export
-rxSumProdModel <- function(model, expand=FALSE, sum=FALSE, prod=TRUE, logify=FALSE){
+rxSumProdModel <- function(model, expand=FALSE, sum=TRUE, prod=TRUE){
     ## Sum for pairwise is equivalent to regular sum under 8 elements.
     assignInMyNamespace("rxSumProdSum", sum)
     assignInMyNamespace("rxSumProdProd", prod)
     rxSymPySetup(model);
-    if (logify){
-        model <- rxLogifyModel(model, expand)
-        expand <- FALSE
-    }
     cnd <- rxNorm(model, TRUE);
     lines <- strsplit(rxNorm(model), "\n")[[1]];
     for (i in seq_along(lines)){

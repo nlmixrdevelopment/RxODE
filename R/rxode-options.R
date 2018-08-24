@@ -10,6 +10,11 @@
     }
 }
 
+.onUnload <- function (libpath) {
+    rxSolveFree();
+    library.dynam.unload("RxODE", libpath)
+}
+
 .rxTempDir0 <- NULL;
 .rxTempDir <- function(){
     if (is.null(getFromNamespace(".rxTempDir0", "RxODE"))){

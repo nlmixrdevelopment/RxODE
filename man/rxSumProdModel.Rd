@@ -4,8 +4,7 @@
 \alias{rxSumProdModel}
 \title{Recast model in terms of sum/prod}
 \usage{
-rxSumProdModel(model, expand = FALSE, sum = FALSE, prod = TRUE,
-  logify = FALSE)
+rxSumProdModel(model, expand = FALSE, sum = TRUE, prod = TRUE)
 }
 \arguments{
 \item{model}{RxODE model}
@@ -15,8 +14,6 @@ rxSumProdModel(model, expand = FALSE, sum = FALSE, prod = TRUE,
 \item{sum}{Use sum(...)}
 
 \item{prod}{Use prod(...)}
-
-\item{logify}{Use logify}
 }
 \value{
 model string with prod(.) and sum(.) for all these

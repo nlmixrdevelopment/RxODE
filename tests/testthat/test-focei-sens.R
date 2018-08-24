@@ -1,5 +1,6 @@
 context("Test Initial conditions -> sensitivity initial conditions")
 rxPermissive({
+
     fini <- RxODE({
         C2 = centr/V2;
         C3 = peri/V3;
@@ -29,7 +30,7 @@ rxPermissive({
         return(f ^ 2* theta[6] ^ 2); ## Theta 4 is residual sd for proportional error.
     }
 
-    finip <- rxSymPySetupPred(fini, pred, pk, err, grad=TRUE);
+    finip <- rxSymPySetupPred(fini, pred, pk, err, optExpression=FALSE); ## , grad=TRUE
 
     inner <- strsplit(rxNorm(finip$inner), "\n")[[1]];
     inner <- gsub(rex::rex(start, anything, "=", capture(anything), ";", end), "\\1",
@@ -41,18 +42,18 @@ rxPermissive({
         expect_true(regexpr(rex::rex("ETA[4]"), inner) != -1);
     })
 
-    out <- strsplit(rxNorm(finip$out), "\n")[[1]];
-    out <- gsub(rex::rex(start, anything, "=", capture(anything), ";", end), "\\1",
-                out[regexpr(rex::rex(or("rx__sens_eff_BY_ETA_4___(0)=",
-                                        "rx__sens_eff_BY_ETA_4__BY_ETA_4___(0)",
-                                        "rx__sens_eff_BY_THETA_5___(0)")), out) != -1]);
+    ## out <- strsplit(rxNorm(finip$out), "\n")[[1]];
+    ## out <- gsub(rex::rex(start, anything, "=", capture(anything), ";", end), "\\1",
+    ##             out[regexpr(rex::rex(or("rx__sens_eff_BY_ETA_4___(0)=",
+    ##                                     "rx__sens_eff_BY_ETA_4__BY_ETA_4___(0)",
+    ##                                     "rx__sens_eff_BY_THETA_5___(0)")), out) != -1]);
 
-    test_that("Out sensitivites initial conditions are calculated appropriately.", {
-        expect_equal(length(out), 3)
-        expect_true(all(regexpr(rex::rex("THETA[5]"), out) != -1));
-        expect_true(all(regexpr(rex::rex("ETA[4]"), out) != -1));
-        expect_true(all(!duplicated(out)));
-    })
+    ## test_that("Out sensitivites initial conditions are calculated appropriately.", {
+    ##     expect_equal(length(out), 3)
+    ##     expect_true(all(regexpr(rex::rex("THETA[5]"), out) != -1));
+    ##     expect_true(all(regexpr(rex::rex("ETA[4]"), out) != -1));
+    ##     expect_true(all(!duplicated(out)));
+    ## })
 
 
     fini <- RxODE({
@@ -78,7 +79,7 @@ rxPermissive({
         return(f ^ 2* theta[6] ^ 2); ## Theta 4 is residual sd for proportional error.
     }
 
-    finip <- rxSymPySetupPred(fini, pred, pk, err, grad=TRUE);
+    finip <- rxSymPySetupPred(fini, pred, pk, err, optExpression=FALSE);
 
     inner <- strsplit(rxNorm(finip$inner), "\n")[[1]];
     inner <- gsub(rex::rex(start, anything, "=", capture(anything), ";", end), "\\1",
@@ -90,53 +91,55 @@ rxPermissive({
         expect_true(regexpr(rex::rex("ETA[4]"), inner) != -1);
     })
 
-    out <- strsplit(rxNorm(finip$out), "\n")[[1]];
-    out <- gsub(rex::rex(start, anything, "=", capture(anything), ";", end), "\\1",
-                out[regexpr(rex::rex(or("rx__sens_eff_BY_ETA_4___(0)=",
-                                        "rx__sens_eff_BY_ETA_4__BY_ETA_4___(0)",
-                                        "rx__sens_eff_BY_THETA_5___(0)")), out) != -1]);
+    ## out <- strsplit(rxNorm(finip$out), "\n")[[1]];
+    ## out <- gsub(rex::rex(start, anything, "=", capture(anything), ";", end), "\\1",
+    ##             out[regexpr(rex::rex(or("rx__sens_eff_BY_ETA_4___(0)=",
+    ##                                     "rx__sens_eff_BY_ETA_4__BY_ETA_4___(0)",
+    ##                                     "rx__sens_eff_BY_THETA_5___(0)")), out) != -1]);
 
-    test_that("Out sensitivites initial conditions are calculated appropriately #2", {
-        expect_equal(length(out), 3)
-        expect_true(all(regexpr(rex::rex("THETA[5]"), out) != -1));
-        expect_true(all(regexpr(rex::rex("ETA[4]"), out) != -1));
-        expect_true(all(!duplicated(out)));
-    })
+    ## test_that("Out sensitivites initial conditions are calculated appropriately #2", {
+    ##     expect_equal(length(out), 3)
+    ##     expect_true(all(regexpr(rex::rex("THETA[5]"), out) != -1));
+    ##     expect_true(all(regexpr(rex::rex("ETA[4]"), out) != -1));
+    ##     expect_true(all(!duplicated(out)));
+    ## })
 
     ## Now use initCondition statement.
 
-    pk <- function(){
-        KA = exp(THETA[1])
-        CL = exp(THETA[2] + ETA[1])
-        V2 = exp(THETA[3] + ETA[2])
-        V3 = exp(THETA[4] + ETA[3])
-        initCondition = c(0, 0, 0, theta[5]  + eta[4] + sqrt(theta[5] * eta[4]));
-    }
+    ## No more support for initCondition in FOCEi
 
-    finip <- rxSymPySetupPred(fini, pred, pk, err, grad=TRUE);
+    ## pk <- function(){
+    ##     KA = exp(THETA[1])
+    ##     CL = exp(THETA[2] + ETA[1])
+    ##     V2 = exp(THETA[3] + ETA[2])
+    ##     V3 = exp(THETA[4] + ETA[3])
+    ##     initCondition = c(0, 0, 0, theta[5]  + eta[4] + sqrt(theta[5] * eta[4]));
+    ## }
 
-    inner <- strsplit(rxNorm(finip$inner), "\n")[[1]];
-    inner <- gsub(rex::rex(start, anything, "=", capture(anything), ";", end), "\\1",
-                  inner[regexpr(rex::rex("rx__sens_eff_BY_ETA_4___(0)="), inner) != -1]);
+    ## finip <- rxSymPySetupPred(fini, pred, pk, err, grad=TRUE);
 
-    test_that("Inner sensitivites initial conditions are calculated appropriately #3", {
-        expect_equal(length(inner), 1)
-        expect_true(regexpr(rex::rex("THETA[5]"), inner) != -1);
-        expect_true(regexpr(rex::rex("ETA[4]"), inner) != -1);
-    })
+    ## inner <- strsplit(rxNorm(finip$inner), "\n")[[1]];
+    ## inner <- gsub(rex::rex(start, anything, "=", capture(anything), ";", end), "\\1",
+    ##               inner[regexpr(rex::rex("rx__sens_eff_BY_ETA_4___(0)="), inner) != -1]);
 
-    out <- strsplit(rxNorm(finip$out), "\n")[[1]];
-    out <- gsub(rex::rex(start, anything, "=", capture(anything), ";", end), "\\1",
-                out[regexpr(rex::rex(or("rx__sens_eff_BY_ETA_4___(0)=",
-                                        "rx__sens_eff_BY_ETA_4__BY_ETA_4___(0)",
-                                        "rx__sens_eff_BY_THETA_5___(0)")), out) != -1]);
+    ## test_that("Inner sensitivites initial conditions are calculated appropriately #3", {
+    ##     expect_equal(length(inner), 1)
+    ##     expect_true(regexpr(rex::rex("THETA[5]"), inner) != -1);
+    ##     expect_true(regexpr(rex::rex("ETA[4]"), inner) != -1);
+    ## })
 
-    test_that("Out sensitivites initial conditions are calculated appropriately #3", {
-        expect_equal(length(out), 3)
-        expect_true(all(regexpr(rex::rex("THETA[5]"), out) != -1));
-        expect_true(all(regexpr(rex::rex("ETA[4]"), out) != -1));
-        expect_true(all(!duplicated(out)));
-    })
+    ## out <- strsplit(rxNorm(finip$out), "\n")[[1]];
+    ## out <- gsub(rex::rex(start, anything, "=", capture(anything), ";", end), "\\1",
+    ##             out[regexpr(rex::rex(or("rx__sens_eff_BY_ETA_4___(0)=",
+    ##                                     "rx__sens_eff_BY_ETA_4__BY_ETA_4___(0)",
+    ##                                     "rx__sens_eff_BY_THETA_5___(0)")), out) != -1]);
+
+    ## test_that("Out sensitivites initial conditions are calculated appropriately #3", {
+    ##     expect_equal(length(out), 3)
+    ##     expect_true(all(regexpr(rex::rex("THETA[5]"), out) != -1));
+    ##     expect_true(all(regexpr(rex::rex("ETA[4]"), out) != -1));
+    ##     expect_true(all(!duplicated(out)));
+    ## })
 
     mod <- RxODE({
         C2 = centr/V2;
@@ -160,10 +163,10 @@ rxPermissive({
 
     focei.mod1 <- rxSymPySetupPred(mod, pred, par, err=function(){return(prop(0.1) + add(0.1))});
 
-    focei.mod2 <- rxSymPySetupPred(mod, pred, par, err=function(){return(prop(0.1) + add(0.1))}, grad=TRUE);
+    ## focei.mod2 <- rxSymPySetupPred(mod, pred, par, err=function(){return(prop(0.1) + add(0.1))}, grad=TRUE);
 
     test_that("Can use a LHS quantity to caluclate PRED.", {
         expect_equal(class(focei.mod1), "rxFocei");
-        expect_equal(class(focei.mod2), "rxFocei");
+        ## expect_equal(class(focei.mod2), "rxFocei");
     })
 }, silent=TRUE, on.validate=TRUE)

@@ -1,5 +1,5 @@
 Package: RxODE
-Version: 0.7.2-5
+Version: 0.8.0-1
 Title: Facilities for Simulating from ODE-Based Models
 Authors@R: c(
    person("Matthew L.","Fidler",
@@ -49,7 +49,8 @@ Suggests:
     microbenchmark,
     scales,
     stringi,
-    htmltools
+    htmltools,
+    reticulate
 Imports:
     utils,
     methods,
@@ -64,6 +65,7 @@ Imports:
     Matrix,
     R.utils,
     PreciseSums (>= 0.3),
+    n1qn1 (>= 6.0.1-2),
     mvnfast,
     cli,
     crayon

@@ -4,7 +4,7 @@
 \alias{rxParsePred}
 \title{Prepare Pred function for inclusion in RxODE}
 \usage{
-rxParsePred(x, init = NULL)
+rxParsePred(x, init = NULL, err = NULL)
 }
 \arguments{
 \item{x}{pred function}

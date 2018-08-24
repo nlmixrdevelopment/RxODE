@@ -38,6 +38,7 @@ matrix:
 
 r_github_packages:
   - r-lib/covr
+  - nlmixrdevelopment/n1qn1
   - nlmixrdevelopment/dparser-R
   - nlmixrdevelopment/PreciseSums
   - nlmixrdevelopment/SnakeCharmR

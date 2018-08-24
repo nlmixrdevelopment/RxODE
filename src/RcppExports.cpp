@@ -2,6 +2,7 @@
 // Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 #include "RxODE_types.h"
+#include "../inst/include/RxODE.h"
 #include "../inst/include/RxODE_types.h"
 #include <RcppArmadillo.h>
 #include <Rcpp.h>
@@ -38,6 +39,139 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< NumericVector >::type time(timeSEXP);
     Rcpp::traits::input_parameter< CharacterVector >::type time_units(time_unitsSEXP);
     rcpp_result_gen = Rcpp::wrap(add_sampling_(eventTable, time, time_units));
+    return rcpp_result_gen;
+END_RCPP
+}
+// foceiInnerLp
+NumericVector foceiInnerLp(NumericVector eta, int id);
+RcppExport SEXP _RxODE_foceiInnerLp(SEXP etaSEXP, SEXP idSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type eta(etaSEXP);
+    Rcpp::traits::input_parameter< int >::type id(idSEXP);
+    rcpp_result_gen = Rcpp::wrap(foceiInnerLp(eta, id));
+    return rcpp_result_gen;
+END_RCPP
+}
+// likInner
+double likInner(NumericVector eta, int id);
+RcppExport SEXP _RxODE_likInner(SEXP etaSEXP, SEXP idSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type eta(etaSEXP);
+    Rcpp::traits::input_parameter< int >::type id(idSEXP);
+    rcpp_result_gen = Rcpp::wrap(likInner(eta, id));
+    return rcpp_result_gen;
+END_RCPP
+}
+// foceiLik
+double foceiLik(NumericVector theta);
+RcppExport SEXP _RxODE_foceiLik(SEXP thetaSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type theta(thetaSEXP);
+    rcpp_result_gen = Rcpp::wrap(foceiLik(theta));
+    return rcpp_result_gen;
+END_RCPP
+}
+// foceiOfv
+double foceiOfv(NumericVector theta);
+RcppExport SEXP _RxODE_foceiOfv(SEXP thetaSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type theta(thetaSEXP);
+    rcpp_result_gen = Rcpp::wrap(foceiOfv(theta));
+    return rcpp_result_gen;
+END_RCPP
+}
+// foceiEtas
+List foceiEtas();
+RcppExport SEXP _RxODE_foceiEtas() {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    rcpp_result_gen = Rcpp::wrap(foceiEtas());
+    return rcpp_result_gen;
+END_RCPP
+}
+// foceiNumericGrad
+NumericVector foceiNumericGrad(NumericVector theta);
+RcppExport SEXP _RxODE_foceiNumericGrad(SEXP thetaSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type theta(thetaSEXP);
+    rcpp_result_gen = Rcpp::wrap(foceiNumericGrad(theta));
+    return rcpp_result_gen;
+END_RCPP
+}
+// foceiSetup_
+NumericVector foceiSetup_(const RObject& obj, const RObject& data, NumericVector theta, Nullable<LogicalVector> thetaFixed, Nullable<LogicalVector> skipCov, RObject rxInv, Nullable<NumericVector> lower, Nullable<NumericVector> upper, Nullable<NumericMatrix> etaMat, Nullable<List> control);
+RcppExport SEXP _RxODE_foceiSetup_(SEXP objSEXP, SEXP dataSEXP, SEXP thetaSEXP, SEXP thetaFixedSEXP, SEXP skipCovSEXP, SEXP rxInvSEXP, SEXP lowerSEXP, SEXP upperSEXP, SEXP etaMatSEXP, SEXP controlSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const RObject& >::type obj(objSEXP);
+    Rcpp::traits::input_parameter< const RObject& >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type theta(thetaSEXP);
+    Rcpp::traits::input_parameter< Nullable<LogicalVector> >::type thetaFixed(thetaFixedSEXP);
+    Rcpp::traits::input_parameter< Nullable<LogicalVector> >::type skipCov(skipCovSEXP);
+    Rcpp::traits::input_parameter< RObject >::type rxInv(rxInvSEXP);
+    Rcpp::traits::input_parameter< Nullable<NumericVector> >::type lower(lowerSEXP);
+    Rcpp::traits::input_parameter< Nullable<NumericVector> >::type upper(upperSEXP);
+    Rcpp::traits::input_parameter< Nullable<NumericMatrix> >::type etaMat(etaMatSEXP);
+    Rcpp::traits::input_parameter< Nullable<List> >::type control(controlSEXP);
+    rcpp_result_gen = Rcpp::wrap(foceiSetup_(obj, data, theta, thetaFixed, skipCov, rxInv, lower, upper, etaMat, control));
+    return rcpp_result_gen;
+END_RCPP
+}
+// foceiOuter
+Environment foceiOuter(Environment e);
+RcppExport SEXP _RxODE_foceiOuter(SEXP eSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Environment >::type e(eSEXP);
+    rcpp_result_gen = Rcpp::wrap(foceiOuter(e));
+    return rcpp_result_gen;
+END_RCPP
+}
+// foceiCalcCov
+NumericMatrix foceiCalcCov(Environment e);
+RcppExport SEXP _RxODE_foceiCalcCov(SEXP eSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Environment >::type e(eSEXP);
+    rcpp_result_gen = Rcpp::wrap(foceiCalcCov(e));
+    return rcpp_result_gen;
+END_RCPP
+}
+// foceiFitCpp_
+Environment foceiFitCpp_(Environment e);
+RcppExport SEXP _RxODE_foceiFitCpp_(SEXP eSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Environment >::type e(eSEXP);
+    rcpp_result_gen = Rcpp::wrap(foceiFitCpp_(e));
+    return rcpp_result_gen;
+END_RCPP
+}
+// coxBox_
+NumericVector coxBox_(NumericVector x, double lambda, int yj);
+RcppExport SEXP _RxODE_coxBox_(SEXP xSEXP, SEXP lambdaSEXP, SEXP yjSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
+    Rcpp::traits::input_parameter< double >::type lambda(lambdaSEXP);
+    Rcpp::traits::input_parameter< int >::type yj(yjSEXP);
+    rcpp_result_gen = Rcpp::wrap(coxBox_(x, lambda, yj));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -436,27 +570,6 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< std::string >::type what(whatSEXP);
     Rcpp::traits::input_parameter< Nullable<NumericVector> >::type theta(thetaSEXP);
     rcpp_result_gen = Rcpp::wrap(rxSymInvCholEnvCalculate(obj, what, theta));
-    return rcpp_result_gen;
-END_RCPP
-}
-// RxODE_finalize_focei_omega
-void RxODE_finalize_focei_omega(RObject rho);
-RcppExport SEXP _RxODE_RxODE_finalize_focei_omega(SEXP rhoSEXP) {
-BEGIN_RCPP
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< RObject >::type rho(rhoSEXP);
-    RxODE_finalize_focei_omega(rho);
-    return R_NilValue;
-END_RCPP
-}
-// RxODE_finalize_log_det_OMGAinv_5
-NumericVector RxODE_finalize_log_det_OMGAinv_5(SEXP rho);
-RcppExport SEXP _RxODE_RxODE_finalize_log_det_OMGAinv_5(SEXP rhoSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< SEXP >::type rho(rhoSEXP);
-    rcpp_result_gen = Rcpp::wrap(RxODE_finalize_log_det_OMGAinv_5(rho));
     return rcpp_result_gen;
 END_RCPP
 }

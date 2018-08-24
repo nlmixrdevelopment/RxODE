@@ -4,7 +4,7 @@
 \alias{rxSymPyClean}
 \title{Remove variables created by RxODE from the SymPy environment.}
 \usage{
-rxSymPyClean()
+rxSymPyClean(full = FALSE)
 }
 \description{
 Remove variables created by RxODE from the SymPy environment.

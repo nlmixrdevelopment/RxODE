@@ -81,7 +81,8 @@ knitr::knit(devtools::package_file("README.Rmd"))
 gen.ome <- function(mx){
     ret <- paste0(sprintf("//Generated from refresh.R for %s dimensions\n#include <R.h>\n#include <Rdefines.h>\n#include <R_ext/Error.h>\n#include <Rmath.h>\nSEXP _rxCholInv(SEXP dms, SEXP theta, SEXP tn){\nint dm=INTEGER(dms)[0];\nif (dm == 0){\n  SEXP ret=  PROTECT(allocVector(INTSXP,1));\n  INTEGER(ret)[0] = %s;\n  UNPROTECT(1);\n  return(ret);\n}", mx, mx),
                   paste(sapply(1:mx, function(x){
-                      sprintf("else if (dm == %s){\n%s\n}\n", x, rxSymInvC2(matrix(rep(1, x * x), x), allow.cache=FALSE));
+                      tmp <- rxSymInvC2(matrix(rep(1, x * x), x), allow.cache=FALSE)[[1]]
+                      sprintf("else if (dm == %s){\n%s\n}\n", x, tmp);
                   }), collapse=""), "\n  return R_NilValue;\n}");
     sink(devtools::package_file("src/omegaChol.c"));
     cat(ret)

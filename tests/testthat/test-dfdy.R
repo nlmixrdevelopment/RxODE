@@ -39,11 +39,13 @@ dy(0) = 0
 ## mu
 mu = 1 ## nonstiff; 10 moderately stiff; 1000 stiff
 ")
+
     test_that("Doubled jacobain will compile correctly", {
         expect_equal(class(tmp), "RxODE");
     })
 
     test_that("Jacobian and sensitivity not specified.", {
+
         norm <- RxODE("
 d/dt(y)  = dy
 d/dt(dy) = mu*(1-y^2)*dy - y
@@ -53,12 +55,15 @@ dy(0) = 0
 ## mu
 mu = 1 ## nonstiff; 10 moderately stiff; 1000 stiff
 ");
+
         expect_false(norm$calcJac);
         expect_false(norm$calcSens);
         rxDelete(norm)
+
     })
 
     test_that("Jacobian specified but sensitivity not specified.", {
+
         jac <- RxODE("
 d/dt(y)  = dy
 d/dt(dy) = mu*(1-y^2)*dy - y
@@ -68,12 +73,14 @@ dy(0) = 0
 ## mu
 mu = 1 ## nonstiff; 10 moderately stiff; 1000 stiff
 ", calcJac=TRUE)
+
         expect_true(jac$calcJac);
         expect_false(jac$calcSens);
         rxDelete(jac);
     })
 
     test_that("Sensitivity specified.", {
+
         sens <- RxODE("
 d/dt(y)  = dy
 d/dt(dy) = mu*(1-y^2)*dy - y
@@ -83,6 +90,7 @@ dy(0) = 0
 ## mu
 mu = 1 ## nonstiff; 10 moderately stiff; 1000 stiff
 ", calcSens=TRUE)
+
         expect_false(sens$calcJac);
         expect_true(sens$calcSens);
         rxDelete(sens);
@@ -115,6 +123,7 @@ mu = 1 ## nonstiff; 10 moderately stiff; 1000 stiff
     })
 
     test_that("Jacobian and sensitivity specified.", {
+
         sens <- RxODE("
 d/dt(y)  = dy
 d/dt(dy) = mu*(1-y^2)*dy - y

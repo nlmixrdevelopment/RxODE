@@ -4,15 +4,12 @@
 \alias{rxParseErr}
 \title{Prepare Error function for inclusion in RxODE}
 \usage{
-rxParseErr(x, base.theta, diag.xform = c("sqrt", "log", "identity"),
-  ret = "rx_r_", init = NULL)
+rxParseErr(x, base.theta, ret = "rx_r_", init = NULL)
 }
 \arguments{
 \item{x}{error function}
 
 \item{base.theta}{Base theta to start numbering add(.) and prop(.) from.}
-
-\item{diag.xform}{Diagonal form of variance parameters}
 
 \item{ret}{Intenral return type.  Should not be changed by the user...}
 

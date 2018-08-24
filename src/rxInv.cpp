@@ -148,13 +148,13 @@ RObject rxSymInvCholEnvCalculate(List obj, std::string what, Nullable<NumericVec
         e["omegaInv"]= as<NumericMatrix>(rxSymInvChol(invObj, theta, "omegaInv",-1));
       } else if (what == "d.omegaInv"){
         List ret(ntheta);
-        for (i =0; i < ntheta; i++){
+        for (i = ntheta; i--; ){
           ret[i] = as<NumericMatrix>(rxSymInvChol(invObj, theta, "d(omegaInv)",i+1));
         }
         e["d.omegaInv"] = ret;
       } else if (what == "d.D.omegaInv"){
         List ret(ntheta);
-        for (i =0; i < ntheta; i++){
+        for (i = ntheta; i--; ){
           ret[i] = as<NumericVector>(rxSymInvChol(invObj, theta, "d(D)",i+1));
         }
         e["d.D.omegaInv"] = ret;
@@ -179,6 +179,42 @@ RObject rxSymInvCholEnvCalculate(List obj, std::string what, Nullable<NumericVec
         arma::vec ldiag = log(diag);
         NumericVector ret = as<NumericVector>(wrap(sum(ldiag)));
         e["log.det.OMGAinv.5"] = ret;
+      } else if (what == "tr.28"){
+	// 1/2*tr(d(Omega^-1)*Omega);
+        rxSymInvCholEnvCalculate(obj,"d.omegaInv", R_NilValue);
+        rxSymInvCholEnvCalculate(obj,"omega", R_NilValue);
+	List dOmegaInv = as<List>(e["d.omegaInv"]);
+	arma::mat omega = as<arma::mat>(e["omega"]);
+	NumericVector tr28(dOmegaInv.size());
+	arma::mat cur;
+        arma::vec diag;
+	for (i = tr28.size();i--;){
+	  cur = as<arma::mat>(dOmegaInv[i]) * omega;
+	  diag = cur.diag();
+	  tr28[i] = 0.5*sum(diag);
+	}
+	e["tr.28"] = tr28;
+      } else if (what == "omega.47"){
+	rxSymInvCholEnvCalculate(obj,"d.omegaInv", R_NilValue);
+        rxSymInvCholEnvCalculate(obj,"chol.omegaInv", R_NilValue);
+	unsigned int j;
+	arma::mat cholO = as<arma::mat>(e["chol.omegaInv"]);
+        int neta = cholO.n_rows;
+        List dOmegaInv = as<List>(e["d.omegaInv"]);
+        arma::mat cEta = zeros(neta,1);
+        arma::mat c;
+        List prod2(ntheta);
+        for (i = dOmegaInv.size(); i--;){
+	  c = as<arma::mat>(dOmegaInv[i]);
+          List prodI(neta);
+          for (j = neta; j--;){
+            cEta(j,0) = 1;
+            prodI[j] = c*cEta;
+            cEta(j,0) = 0;
+          }
+          prod2[i] = prodI;
+        }
+	e["omega.47"] = prod2;
       }
       return e[what];
     }
@@ -206,67 +242,3 @@ RObject rxSymInvCholEnvCalculate(List obj, std::string what, Nullable<NumericVec
   }
   return R_NilValue;
 }
-
-// [[Rcpp::export]]
-void RxODE_finalize_focei_omega(RObject rho){
-  Environment e = as<Environment>(rho);
-  List dOmega = as<List>(e["dOmega"]);
-  mat omegaInv = as<mat>(e["omegaInv"]);
-  mat c;
-  vec diag;
-  int ntheta = dOmega.length();
-  int neta = omegaInv.n_rows;
-  mat cEta = zeros(neta,1);
-  NumericVector trInv(ntheta);
-  List prod1(ntheta);
-  List prod2(ntheta);
-  int i,j;
-  for (i = 0; i < ntheta; i++){
-    c = omegaInv * as<mat>(dOmega[i]);
-    diag = c.diag();
-    trInv[i] = 0.5*sum(diag);
-    c = c * omegaInv;
-    prod1[i] = c;
-    List prodI(neta);
-    for (j = 0; j < neta; j++){
-      cEta(j,0) = 1;
-      prodI[j] = c*cEta;
-      cEta(j,0) = 0;
-    }
-    prod2[i] = prodI;
-  }
-  e["tr.omegaInv.dOmega.0.5"] = trInv;
-  // = tr(omegaInv*dOmega) = tr(omegaInv*omega*d(Omega^-1)*omega) = tr(d(Omega^-1)*omega)
-  // This requires an expensive inverse....
-  //e["tr.omegaInv.dOmega.0.5"] = trInv;
-  // omegaInv.dOmega.omegaInv = d(Omega^-1)
-  e["omegaInv.dOmega.omegaInv"] = prod1;
-  // omegaInv.dOmega.omegaInv.dEta = d(Omega^-1)*dEta
-  e["omegaInv.dOmega.omegaInv.dEta"] = prod2;
-}
-// [[Rcpp::export]]
-NumericVector RxODE_finalize_log_det_OMGAinv_5(SEXP rho){
-  // log(det(omegaInv^1/2)) = 1/2*log(det(omegaInv))
-  Environment e = as<Environment>(rho);
-  NumericVector reset;
-  mat c;
-  try{
-    c = chol(as<mat>(e["omegaInv"]));
-  } catch(...){
-    e["reset"] = 0;
-    c = as<mat>(e["omegaInv"]);
-    Function nearPD = as<Function>(e["nearPD"]);
-    c = as<mat>(nearPD(c, rho));
-    reset = as<NumericVector>(e["reset"]);
-    if (reset[0] != 1){
-      Rprintf("Warning: The Omega^-1 is non-positive definite, correcting with nearPD\n");
-    }
-    c = chol(-as<mat>(e["omegaInv"]));
-  }
-  vec diag = c.diag();
-  vec ldiag = log(diag);
-  NumericVector ret = as<NumericVector>(wrap(sum(ldiag)));
-  e["log.det.OMGAinv.5"] = ret;
-  return ret;
-}
-

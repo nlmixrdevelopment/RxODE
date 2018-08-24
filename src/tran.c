@@ -392,7 +392,12 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
     /* printf("[%d]->%s\n",tb.nv,value); */
     sprintf(tb.ss+tb.pos, "%s,", value);
     tb.pos += (int)strlen(value)+1;
+    // Ignored variables
+    if (!strcmp("rx_lambda_", value) || !strcmp("rx_yj_", value)){
+      tb.lh[tb.nv] = 11; // Suppress param printout.
+    }
     tb.vo[++tb.nv] = tb.pos;
+    
   }
   if (sb.o > MXBUF-20 || sbt.o > MXBUF-20){
     error("The Line is too long for RxODE.");
@@ -1027,8 +1032,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	}
 	sbt.o = (int)strlen(sbt.s);
 	new_or_ith(v);
-	
-        if (!strcmp("assignment", name) || (!rx_syntax_allow_ini && !strcmp("ini", name))){
+	if (!strcmp("assignment", name)  || (!rx_syntax_allow_ini && !strcmp("ini", name))){
           tb.lh[tb.ix] = 1;
         } else if (!strcmp("ini", name) || !strcmp("ini0",name)){
           if (tb.ini[tb.ix] == 0){
@@ -1158,6 +1162,9 @@ void prnt_vars(int scenario, FILE *outpt, int lhs, const char *pre_str, const ch
           fprintf(outpt,"%c",buf[k]);
         }
       }
+      if (!strcmp("rx_lambda_", buf) || !strcmp("rx_yj_", buf)){
+	fprintf(outpt, "__");
+      }
       if (i <tb.nv-1)
         fprintf(outpt, ",\n");
       else
@@ -1176,6 +1183,9 @@ void prnt_vars(int scenario, FILE *outpt, int lhs, const char *pre_str, const ch
         } else {
           fprintf(outpt,"%c",buf[k]);
         }
+      }
+      if (!strcmp("rx_lambda_", buf) || !strcmp("rx_yj_", buf)){
+        fprintf(outpt, "__");
       }
       fprintf(outpt, ";\n");
       break;
@@ -1606,7 +1616,7 @@ void codegen(FILE *outpt, int show_ode) {
   int i, j, k, print_ode=0, print_vars = 0, print_parm = 0, print_jac=0, o;
   char sLine[MXLEN+1];
   char buf[64];
-  char from[1536], to[1536], df[512], dy[512], state[512];
+  char from[512], to[512], df[128], dy[128], state[128];
   char *s2;
   FILE *fpIO;
   char *hdft[]=
@@ -1619,7 +1629,7 @@ void codegen(FILE *outpt, int show_ode) {
     fprintf(outpt, __HD_ODE_1__);
     fprintf(outpt, __HD_ODE_2__);
     fprintf(outpt, __HD_ODE_3__);
-    fprintf(outpt, __HD_ODE_4__);
+    /* fprintf(outpt, __HD_ODE_4__); */
     /* if (found_jac == 1){ */
     /*   for (i=0; i<tb.nd; i++) {                   /\* name state vars *\/ */
     /*     retieve_var(tb.di[i], buf); */
@@ -1667,9 +1677,9 @@ void codegen(FILE *outpt, int show_ode) {
       }
     }
     if (show_ode == 3){
-      fprintf(outpt,"  _update_par_ptr(0.0, _cSub);\n");
+      fprintf(outpt,"  _update_par_ptr(0.0, _cSub, _solveData);\n");
     } else {
-      fprintf(outpt,"  _update_par_ptr(t, _cSub);\n");
+      fprintf(outpt,"  _update_par_ptr(t, _cSub, _solveData);\n");
     }
     prnt_vars(1, outpt, 1, "", "\n",show_ode);                   /* pass system pars */
     for (i=0; i<tb.nd; i++) {                   /* name state vars */
@@ -1718,19 +1728,28 @@ void codegen(FILE *outpt, int show_ode) {
 	  // FIXME
 	  for (i = 0; i < tb.nd; i++){
 	    retieve_var(tb.di[i], buf);
-	    sprintf(to,"(__0f__)%s=",buf);
+	    sprintf(to,"(__0f__)%s =",buf);
 	    if (strstr(sLine,to)){
 	      if (!tb.fdi[i]){
 		tb.fdi[i] = 1;
 		tb.fdn++;
 	      }
 	      fprintf(outpt, "  //if (ISNA(%s)){ // Always apply; Othersiwse, Since this updates vector, it may cause this to only be updated once.\n    %s  //}\n",buf,sLine+8);
+	    } else {
+              sprintf(to,"(__0f__)%s=",buf);
+              if (strstr(sLine,to)){
+                if (!tb.fdi[i]){
+                  tb.fdi[i] = 1;
+                  tb.fdn++;
+                }
+                fprintf(outpt, "  //if (ISNA(%s)){ // Always apply; Othersiwse, Since this updates vector, it may cause this to only be updated once.\n    %s  //}\n",buf,sLine+8);
+              }
 	    }
-	  }
-	  continue;
-	} else {
-	  continue;
-	}
+          }
+          continue;
+        } else {
+          continue;
+        }
       }
       s = strstr(sLine,"ode_print;");
       if (show_ode == 1 && !s) s = strstr(sLine,"full_print;");
@@ -2103,8 +2122,8 @@ void trans_internal(char *orig_file, char* parse_file, char* c_file){
 SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_md5,
            SEXP parse_model,SEXP parse_model3){
   char *in, *orig, *out, *file, *pfile;
-  char buf[2048], buf2[1024], df[512], dy[512];
-  char snum[1024];
+  char buf[1024], buf2[512], df[128], dy[128];
+  char snum[512];
   char *s2;
   char sLine[MXLEN+1];
   int i, j, islhs, pi=0, li=0, ini_i = 0,o2=0,k=0, l=0;

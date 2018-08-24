@@ -1045,7 +1045,7 @@ rxTrans.character <- function(model,
                 stop("Sensitivities do not make sense for models without ODEs.")
             }
             .new <- rxSymPySensitivity(RxODE::rxModelVars(rxNorm(.ret)), calcSens=calcSens, calcJac=calcJac,
-                                      collapseModel=collapseModel);
+                                       collapseModel=collapseModel);
             .expandModel <- tempfile("expandModel");
             sink(.expandModel);
             cat(.new);
@@ -1234,8 +1234,8 @@ rxCompile.character <-  function(model,           # Model
         cat(model);
         cat("\n");
         sink();
+        on.exit(unlink(.mFile));
     }
-    on.exit(unlink(.mFile));
     .md5 <- RxODE::rxMd5(.mFile, extraC, calcJac, calcSens, collapseModel);
     .allModVars <- NULL;
     .needCompile <- TRUE
