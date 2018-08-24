@@ -4092,3 +4092,15 @@ extern "C" int Rcat(char *msg){
   return 1; 
 }
 
+int isRstudioI = 0;
+
+//[[Rcpp::export]]
+SEXP setRstudio(bool isRstudio=false){
+  if (isRstudio) isRstudioI=1; 
+  else isRstudioI=0;
+  return wrap(isRstudioI);
+}
+
+extern "C" int isRstudio(){
+  return isRstudioI;
+}

@@ -524,6 +524,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// setRstudio
+SEXP setRstudio(bool isRstudio);
+RcppExport SEXP _RxODE_setRstudio(SEXP isRstudioSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< bool >::type isRstudio(isRstudioSEXP);
+    rcpp_result_gen = Rcpp::wrap(setRstudio(isRstudio));
+    return rcpp_result_gen;
+END_RCPP
+}
 // rxInv
 NumericVector rxInv(SEXP matrix);
 RcppExport SEXP _RxODE_rxInv(SEXP matrixSEXP) {

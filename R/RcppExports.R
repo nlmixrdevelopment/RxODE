@@ -423,6 +423,10 @@ rxDelete <- function(obj) {
     .Call(`_RxODE_rxDelete`, obj)
 }
 
+setRstudio <- function(isRstudio = FALSE) {
+    .Call(`_RxODE_setRstudio`, isRstudio)
+}
+
 #' Invert matrix using Rcpp Armadilo.  
 #'
 #' @param matrix matrix to be inverted.

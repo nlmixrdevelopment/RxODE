@@ -34,61 +34,71 @@ void par_flush_console() {
 #endif
 }
 
-int Rcat(char *msg);
-
-int rmsg(char *msg, int err){
-  if (err) REprintf(msg);
-  else Rcat(msg);
-  return 1;
-}
+int isRstudio();
 
 int par_progress(int c, int n, int d, int cores, clock_t t0, int stop){
   float progress = (float)(c)/((float)(n));
-  int doErr = (cores >= 1);
-  char buf[40];
   if (c <= n){
     int nticks= (int)(progress * 50);
     int curTicks = d;
-    if (nticks > curTicks){
-      rmsg("\r", doErr);
-      int i;
-      for (i = 0; i < nticks; i++){
-        if (i == 0) {
-	  if (doErr) REprintf("%%[");
-          else Rcat("%[");
-	} else if (i % 5 == 0) {
-	  rmsg("|",doErr);
-	} else {
-	  rmsg("=",doErr);
-	}
+    if (isRstudio()){
+      if (nticks > curTicks){
+	Rprintf("\r");
+        int i;
+        for (i = 0; i < nticks; i++){
+          if (i == 0) {
+            Rprintf("[");
+          } else if (i % 5 == 0) {
+            Rprintf("|");
+          } else {
+            Rprintf("=");
+          }
+        }
+        for (i = nticks; i < 50; i++){
+          Rprintf(" ");
+        }
+        Rprintf("] ");
+        if (nticks < 50) Rprintf(" ");
+        if (cores > 1){
+          Rprintf("%02.f%%; ncores=%d; ",100*progress,cores);
+        } else {
+          Rprintf("%02.f%%; ",100*progress,cores);
+        }
+        clock_t t = clock() - t0;
+        Rprintf(" %.3f sec ", ((double)t)/CLOCKS_PER_SEC);
+        if (stop){
+          Rprintf("Stopped Calculation!\n");
+        }
       }
-      for (i = nticks; i < 50; i++){
-	rmsg(" ", doErr);
-      }
-      rmsg("] ", doErr);
-      if (nticks < 50) rmsg(" ", doErr);
-      if (doErr){
-	REprintf("%02.f%%; ncores=%d; ",100*progress,cores);
+    } else {
+      if (nticks > curTicks){
+        REprintf("\r");
+        int i;
+        for (i = 0; i < nticks; i++){
+          if (i == 0) {
+            REprintf("%%[");
+          } else if (i % 5 == 0) {
+            REprintf("|");
+          } else {
+            REprintf("=");
+          }
+        }
+        for (i = nticks; i < 50; i++){
+          REprintf(" ");
+        }
+        REprintf("] ");
+        if (nticks < 50) Rprintf(" ");
+        if (cores > 1){
+          REprintf("%02.f%%; ncores=%d; ",100*progress,cores);
+        } else {
+          REprintf("%02.f%%; ",100*progress,cores);
+        }
         clock_t t = clock() - t0;
         REprintf(" %.3f sec ", ((double)t)/CLOCKS_PER_SEC);
-      } else {
-	sprintf(buf, "%02.f%%; ",100*progress);
-        clock_t t = clock() - t0;
-        sprintf(buf," %.3f sec ", ((double)t)/CLOCKS_PER_SEC);
-        Rcat(buf);
+        if (stop){
+          REprintf("Stopped Calculation!\n");
+        }
       }
-      /* if (cores > 0) */
-      /* 	sprintf(buf, "%02.f%%; ncores=%d; ",100*progress,cores); */
-      /* else  */
-      /* 	sprintf(buf,"%02.f%%; ",100*progress); */
-      /* rmsg(buf, doErr); */
-      
-      if (stop){
-	rmsg("Stopped Calculation!\n", doErr);
-      }
-      /* if (nticks >= 50 && doErr){ */
-      /* 	rmsg("\n", doErr); */
-      /* } */
     }
     par_flush_console();
     return nticks;
@@ -127,7 +137,11 @@ SEXP _rxProgress(SEXP num, SEXP core){
 SEXP _rxProgressStop(SEXP clear){
   int clearB = INTEGER(clear)[0];
   if (clearB){
-    Rcat("\r                                                                                \r");
+    if (isRstudio()){
+      Rprintf("\r                                                                                \r");
+    } else {
+      REprintf("\r                                                                                \r");
+    }
   } else {
     par_progress(rxt.n, rxt.n, rxt.d, rxt.cores, rxt.t0, 1);
   }
@@ -460,8 +474,13 @@ extern void par_liblsoda(rx_solve *rx){
   } else {
     if (displayProgress && curTick < 50) par_progress(nsim*nsub, nsim*nsub, curTick, cores, t0, 0);
   }
-  if (displayProgress) REprintf("\r                                                                                \r");
-
+  if (displayProgress) {
+    if (isRstudio()){
+      Rprintf("\r                                                                                \r");
+    } else {
+      REprintf("\r                                                                                \r");
+    }
+  }
 }
 
 
@@ -853,7 +872,13 @@ void par_dop(rx_solve *rx){
   } else {
     if (displayProgress && curTick < 50) par_progress(nsim*nsub, nsim*nsub, curTick, 1, t0, 0);
   }
-  if (displayProgress) REprintf("\r                                                                                \r");
+  if (displayProgress){
+    if (isRstudio()){
+      Rprintf("\r                                                                                \r");
+    } else {
+      REprintf("\r                                                                                \r");
+    }
+  }
 }
 
 void ind_solve(rx_solve *rx, unsigned int cid,
