@@ -126,7 +126,6 @@
 ##' @author Matthew L. Fidler
 ##' @export
 rxOptExpr <- function(x){
-    assign("x", x, globalenv())
     .rxOptEnv$.list <- list();
     .rxOptEnv$.rep <- list();
     .rxOptEnv$.exclude <- "";
