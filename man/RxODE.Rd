@@ -4,10 +4,10 @@
 \alias{RxODE}
 \title{Create an ODE-based model specification}
 \usage{
-RxODE(model, modName = basename(wd), wd = ifelse(RxODE.cache.directory ==
-  ".", getwd(), RxODE.cache.directory), filename = NULL, extraC = NULL,
-  debug = FALSE, calcJac = NULL, calcSens = NULL, collapseModel = FALSE,
-  ...)
+RxODE(model, modName = basename(wd), wd = ifelse(RxODE.cache.directory
+  == ".", getwd(), RxODE.cache.directory), filename = NULL,
+  extraC = NULL, debug = FALSE, calcJac = NULL, calcSens = NULL,
+  collapseModel = FALSE, ...)
 }
 \arguments{
 \item{model}{This is the ODE model specification.  It can be:
@@ -305,16 +305,10 @@ Plevyek, J.
 \author{
 Melissa Hallow, Wenping Wang and Matthew Fidler
 }
-\concept{
-Nonlinear regression
-
-ODE models
-
-Ordinary differential equations
-
-Pharmacokinetics (PK)
-
-Pharmacodynamics (PD)
-}
+\concept{Nonlinear regression}
+\concept{ODE models}
+\concept{Ordinary differential equations}
+\concept{Pharmacodynamics (PD)}
+\concept{Pharmacokinetics (PK)}
 \keyword{models}
 \keyword{nonlinear}

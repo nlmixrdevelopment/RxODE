@@ -11,15 +11,15 @@ rxTrans(model, cFile = sprintf("\%s.c", gsub("[.][^.]*$", "", model)),
   modVars = FALSE, calcSens = NULL, calcJac = NULL,
   collapseModel = FALSE, ...)
 
-\method{rxTrans}{default}(model, cFile = sprintf("\%s.c", gsub("[.][^.]*$",
-  "", model)), extraC = NULL, modelPrefix = "", md5 = "",
-  modName = NULL, modVars = FALSE, calcSens = NULL, calcJac = NULL,
-  collapseModel = FALSE, ...)
+\method{rxTrans}{default}(model, cFile = sprintf("\%s.c",
+  gsub("[.][^.]*$", "", model)), extraC = NULL, modelPrefix = "",
+  md5 = "", modName = NULL, modVars = FALSE, calcSens = NULL,
+  calcJac = NULL, collapseModel = FALSE, ...)
 
-\method{rxTrans}{character}(model, cFile = sprintf("\%s.c", gsub("[.][^.]*$",
-  "", model)), extraC = NULL, modelPrefix = "", md5 = "",
-  modName = NULL, modVars = FALSE, calcSens = NULL, calcJac = NULL,
-  collapseModel = FALSE, ...)
+\method{rxTrans}{character}(model, cFile = sprintf("\%s.c",
+  gsub("[.][^.]*$", "", model)), extraC = NULL, modelPrefix = "",
+  md5 = "", modName = NULL, modVars = FALSE, calcSens = NULL,
+  calcJac = NULL, collapseModel = FALSE, ...)
 }
 \arguments{
 \item{model}{This is the ODE model specification.  It can be:

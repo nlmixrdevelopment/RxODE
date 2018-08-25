@@ -210,6 +210,7 @@ typedef struct {
   double boundTol;
   int printNcol;
   int noabort;
+  int interaction;
 } focei_options;
 
 focei_options op_focei;
@@ -542,7 +543,9 @@ double likInner0(double *eta){
     fInd->lp  = arma::mat(op_focei.neta, 1);
     fInd->a   = arma::mat(fInd->nobs, op_focei.neta);
     fInd->B   = arma::mat(fInd->nobs, 1);
-    fInd->c   = arma::mat(fInd->nobs, op_focei.neta);
+    if (op_focei.interaction){
+      fInd->c   = arma::mat(fInd->nobs, op_focei.neta);
+    }
     for (j = op_focei.neta; j--;){
       ind->par_ptr[op_focei.etaTrans[j]] = eta[j];
     }
@@ -566,21 +569,28 @@ double likInner0(double *eta){
 	r = _safe_zero(ind->lhs[op_focei.neta + 1]);
 	lnr =_safe_log(ind->lhs[op_focei.neta + 1]);
 	// fInd->r(k, 0) = ind->lhs[op_focei.neta+1];
-        fInd->B(k, 0) = 2.0/r;
 	// fInd->B(k, 0) = 2.0/ind->lhs[op_focei.neta+1];
 	// lhs 0 = F
 	// lhs 1-eta = df/deta
 	// FIXME faster initiliaitzation via copy or elim
-	for (i = op_focei.neta; i--; ){
-	  fpm = fInd->a(k, i) = ind->lhs[i + 1]; // Almquist uses different a (see eq #15)
-	  rp  = ind->lhs[i + op_focei.neta + 2];
-	  fInd->c(k, i) = rp/r;
-	  // lp is eq 12 in Almquist 2015
-	  // // .5*apply(eps*fp*B + .5*eps^2*B*c - c, 2, sum) - OMGAinv %*% ETA
-	  fInd->lp(i, 0)  += 0.25 * err * err * fInd->B(k, 0) * fInd->c(k, i) - 0.5 * fInd->c(k, i) - 
-	    0.5 * err * fpm * fInd->B(k, 0);
-	}
-	// Eq #10
+        fInd->B(k, 0) = 2.0/r;
+        if (op_focei.interaction){
+	  for (i = op_focei.neta; i--; ){
+	    fpm = fInd->a(k, i) = ind->lhs[i + 1]; // Almquist uses different a (see eq #15)
+            rp  = ind->lhs[i + op_focei.neta + 2];
+            fInd->c(k, i) = rp/r;
+            // lp is eq 12 in Almquist 2015
+            // // .5*apply(eps*fp*B + .5*eps^2*B*c - c, 2, sum) - OMGAinv %*% ETA
+            fInd->lp(i, 0)  += 0.25 * err * err * fInd->B(k, 0) * fInd->c(k, i) - 0.5 * fInd->c(k, i) - 
+              0.5 * err * fpm * fInd->B(k, 0);
+	  }
+	} else {
+          for (i = op_focei.neta; i--; ){
+	    fpm = fInd->a(k, i) = ind->lhs[i + 1]; // Almquist uses different a (see eq #15)
+	    fInd->lp(i, 0)  -= 0.5 * err * fpm * fInd->B(k, 0);
+	  }
+        }
+        // Eq #10
         //llik <- -0.5 * sum(err ^ 2 / R + log(R));
 	fInd->llik += err * err/r + lnr;
         k--;
@@ -645,13 +655,24 @@ double LikInner2(double *eta, int likId){
   int k, l;
   mat tmp;
   // This is actually -H
-  for (k = op_focei.neta; k--;){
-    for (l = k+1; l--;){
-      // tmp = fInd->a.col(l) %  fInd->B % fInd->a.col(k);
-      H(k, l) = 0.5*sum(fInd->a.col(l) %  fInd->B % fInd->a.col(k) + 
-			fInd->c.col(l) % fInd->c.col(k)) +
-			     op_focei.omegaInv(k, l);
-      H(l, k) = H(k, l);
+  if (op_focei.interaction){
+    for (k = op_focei.neta; k--;){
+      for (l = k+1; l--;){
+        // tmp = fInd->a.col(l) %  fInd->B % fInd->a.col(k);
+        H(k, l) = 0.5*sum(fInd->a.col(l) %  fInd->B % fInd->a.col(k) + 
+                          fInd->c.col(l) % fInd->c.col(k)) +
+          op_focei.omegaInv(k, l);
+        H(l, k) = H(k, l);
+      }
+    }
+  } else {
+    for (k = op_focei.neta; k--;){
+      for (l = k+1; l--;){
+        // tmp = fInd->a.col(l) %  fInd->B % fInd->a.col(k);
+        H(k, l) = 0.5*sum(fInd->a.col(l) %  fInd->B % fInd->a.col(k)) +
+          op_focei.omegaInv(k, l);
+        H(l, k) = H(k, l);
+      }
     }
   }
   arma::mat H0;
@@ -1363,6 +1384,7 @@ NumericVector foceiSetup_(const RObject &obj,
   op_focei.boundTol=as<double>(odeO["boundTol"]);
   op_focei.printNcol=as<int>(odeO["printNcol"]);
   op_focei.noabort=as<int>(odeO["noAbort"]);
+  op_focei.interaction=as<int>(odeO["interaction"]);
   return ret;
 }
 
@@ -2216,14 +2238,26 @@ void foceiFinalizeTables(Environment e){
     objDf = List::create(_["OBJF"] = as<double>(e["objective"]), _["AIC"]=as<double>(e["AIC"]), 
                          _["BIC"] = as<double>(e["BIC"]), _["Log-likelihood"]=-as<double>(e["objective"])/2);
   }
-  objDf.attr("row.names") = CharacterVector::create("FOCEi");
+  if (op_focei.interaction){
+    objDf.attr("row.names") = CharacterVector::create("FOCEi");
+  } else {
+    objDf.attr("row.names") = CharacterVector::create("FOCE");
+  }
   objDf.attr("class") = "data.frame";
   e["objDf"]=objDf;
   if (!e.exists("method")){
-    e["method"] = "FOCEi";
+    e["method"] = "FOCE";
   }
   if (!e.exists("extra")){
-    e["extra"] = "";
+    if (op_focei.interaction){
+      if(op_focei.useColor){
+        e["extra"] = "\033[31;1mi\033[0m";
+      } else {
+        e["extra"] = "i";
+      }
+    } else {
+      e["extra"] = "";
+    }
   }
   rxSolveFree();
   e.attr("class") = "nlmixrFitCore";

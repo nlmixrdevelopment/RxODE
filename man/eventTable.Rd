@@ -156,14 +156,9 @@ print(qd3$get.nobs())
 \author{
 Melissa Hallow and Wenping Wang
 }
-\concept{
-ordinary differential equations
-
-Nonlinear regression
-
-Pharmacokinetics (PK)
-
-Pharmacodynamics (PD)
-}
+\concept{Nonlinear regression}
+\concept{Pharmacodynamics (PD)}
+\concept{Pharmacokinetics (PK)}
+\concept{ordinary differential equations}
 \keyword{data}
 \keyword{models}

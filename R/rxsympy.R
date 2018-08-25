@@ -1313,9 +1313,12 @@ genCmtMod <- function(mod){
 ##'     recursively called, and this shouldn't be set by the user.
 ##' @param theta.internal Internal theta flag.  This function is
 ##'     recursively called and shouldn't be called by the user.
-##' @param optExpression Optimize the model text for computer evaluation.
+##' @param optExpression Optimize the model text for computer
+##'     evaluation.
 ##' @param run.internal Boolean to see if the function should be run
 ##'     internally.
+##' @param interaction Boolean to determine if dR^2/deta is calculated
+##'     for FOCEi (not needed for FOCE)
 ##' @return RxODE object expanded with predfn and with calculated
 ##'     sensitivities.
 ##' @author Matthew L. Fidler
@@ -1325,8 +1328,8 @@ genCmtMod <- function(mod){
 rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, grad=FALSE, sum.prod=FALSE, pred.minus.dv=TRUE,
                              theta.derivs=FALSE,only.numeric=FALSE,
                              grad.internal=FALSE, theta.internal=FALSE,
-                             optExpression=TRUE, run.internal=TRUE## RxODE.sympy.run.internal
-                             ){
+                             optExpression=TRUE, run.internal=TRUE, ## RxODE.sympy.run.internal
+                             interaction=TRUE){
     rxSolveFree();
     good.fns <- c(".GlobalEnv", "package:RxODE", "package:nlmixr")
     check.good <- function(x){
@@ -1348,7 +1351,8 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                                                                           ifelse(is.function(predfn), paste(deparse(body(predfn)), collapse=""), ""),
                                                                           ifelse(is.function(pkpars), paste(deparse(body(pkpars)), collapse=""), ""),
                                                                           ifelse(is.function(errfn), paste(deparse(body(errfn)), collapse=""), ""),
-                                                                          init, grad, sum.prod, pred.minus.dv, theta.derivs, only.numeric, optExpression)), collapse="")),
+                                                                          init, grad, sum.prod, pred.minus.dv, theta.derivs, only.numeric, optExpression,
+                                                                          interaction)), collapse="")),
                                         .Platform$dynlib.ext));
     } else {
         cache.file <- "";
@@ -1374,11 +1378,11 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
         if (!run.internal && !grad.internal && !theta.internal){
             rfile <- tempfile(fileext=".R")
             dta <- tempfile(fileext=".rdata")
-            save(obj, predfn, pkpars, errfn, init, grad, sum.prod, pred.minus.dv, theta.derivs, only.numeric, optExpression, file=dta);
+            save(obj, predfn, pkpars, errfn, init, grad, sum.prod, pred.minus.dv, theta.derivs, only.numeric, optExpression, interaction, file=dta);
             ## on.exit({unlink(dta); unlink(rfile)});
             tmp <- options();
             tmp <- tmp[regexpr(rex::rex(start, "RxODE."), names(tmp)) != -1];
-            rf <- sprintf("%s;options(RxODE.delete.unnamed=FALSE);load(%s); require(RxODE);tmp <- rxSymPySetupPred(obj, predfn, pkpars, errfn, init, grad, sum.prod, pred.minus.dv, theta.derivs, only.numeric, optExpression=optExpression, run.internal=TRUE);",
+            rf <- sprintf("%s;options(RxODE.delete.unnamed=FALSE);load(%s); require(RxODE);tmp <- rxSymPySetupPred(obj, predfn, pkpars, errfn, init, grad, sum.prod, pred.minus.dv, theta.derivs, only.numeric, optExpression=optExpression, run.internal=TRUE,interaction=interaction);",
                           sub("options\\(\\)", "", sub(rex::rex(",", any_spaces, ".Names", anything,end),"",sub(rex::rex(start,"structure(list("),"options(",paste0(deparse(tmp),collapse="")))),
                           deparse(dta));
             rf <- gsub("^;", "", rf)
@@ -1531,12 +1535,23 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                             }
                             .newlines <- rxSymPySetupDPred(.full, calcSens, .baseState);
                             .zeroSens <<- .zeroSens | attr(.newlines, "zeroSens")
-                            if (.useUtf()){
-                                rxCat("Calculate \u2202(R\u00B2)/\u2202(\u03B7)\n");
+                            if (interaction){
+                                if (.useUtf()){
+                                    rxCat("Calculate \u2202(R\u00B2)/\u2202(\u03B7)\n");
+                                } else {
+                                    rxCat("Calculate d(R^2)/d(eta)\n");
+                                }
+                                .r0 <- rxSymPy("rx_r_");
+                                .newlinesR <- rxSymPySetupDPred(.full, calcSens, .baseState, prd="rx_r_");
                             } else {
-                                rxCat("Calculate d(R^2)/d(eta)\n");
+                                ## Calculate r(ETAs=0) for FOCE
+                                .sub <- sprintf("rx_r_.subs([%s])",
+                                        paste(sapply(calcSens, function(x){
+                                            sprintf("(%s, 0)", rxToSymPy(x));
+                                        }), collapse=", "))
+                                .r0 <- rxSymPy(.sub);
+                                .newlinesR <- "";
                             }
-                            .newlinesR <- rxSymPySetupDPred(.full, calcSens, .baseState, prd="rx_r_");
                         }
                         .states <- paste(sapply(.fullState, function(x){
                             .ini <- sprintf("%s(0)", x);
@@ -1570,6 +1585,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                         .states <- paste0(.inits, .states,
                                           "\nrx_yj_~", rxFromSymPy(.yj), ";\n",
                                           "rx_lambda_~", rxFromSymPy(.lambda), ";\n");
+
                         .pred <- rxToSymPy("rx_pred_");
                         .pred <- rxSymPy(.pred);
                         .sensState <- .fullState[!(.fullState %in% .origStates)]
@@ -1587,11 +1603,12 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                             .inner <- paste0(.states,
                                              "rx_pred_=", rxFromSymPy(.pred), ";")
                             .inner <- paste(c(.inner, .newlines,
-                                            paste0("rx_r_=", rxFromSymPy(.r), ";"),
+                                            paste0("rx_r_=", rxFromSymPy(.r0), ";"),
                                             .newlinesR), collapse="\n");
                         } else {
                             .inner <- NULL
                         }
+                        ## PRED only R has etas on it.
                         .pred.only <- paste0(.pred.only,
                                              paste0("rx_r_=", rxFromSymPy(.r), ";"));
                         .lhs <- setNames(sapply(.oLhs, function(x){

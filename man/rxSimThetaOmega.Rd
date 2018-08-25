@@ -7,8 +7,8 @@
 rxSimThetaOmega(params = NULL, omega = NULL, omegaDf = NULL,
   omegaIsChol = FALSE, nSub = 1L, thetaMat = NULL, thetaDf = NULL,
   thetaIsChol = FALSE, nStud = 1L, sigma = NULL, sigmaDf = NULL,
-  sigmaIsChol = FALSE, nCoresRV = 1L, nObs = 1L, dfSub = 0, dfObs = 0,
-  simSubjects = TRUE)
+  sigmaIsChol = FALSE, nCoresRV = 1L, nObs = 1L, dfSub = 0,
+  dfObs = 0, simSubjects = TRUE)
 }
 \arguments{
 \item{params}{Named Vector of RxODE model parameters}
