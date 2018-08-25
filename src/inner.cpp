@@ -684,8 +684,8 @@ double LikInner2(double *eta, int likId){
     }
   }
   lik += fInd->tbsLik;// - sum(log(H.diag()));
-  for (unsigned int j = H.n_rows; j--;){
-    lik -= _safe_log(H(j,j));
+  for (unsigned int j = H0.n_rows; j--;){
+    lik -= _safe_log(H0(j,j));
   }
   if (likId == 0){
     fInd->lik[0] = lik;
