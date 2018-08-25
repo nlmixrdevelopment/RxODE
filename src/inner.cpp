@@ -676,20 +676,13 @@ double LikInner2(double *eta, int likId){
     }
   }
   arma::mat H0;
-  try{
-    H0 = chol(H);
-  } catch(...){
-    // try {
-    // Warning?  Already complaining by the try/catch.
-    Function nearpd = getRxFn(".nearPd");
-    H = as<mat>(nearpd(wrap(H)));
-    H0 = chol(H);
-    // } catch (...){
-    //   print(wrap(H));
-    //   stop("Cannot correct Inner Hessian Matrix for nlmixr ID:%d to be positive definite.", likId+1);
-    // }
+  bool success = false;
+  while(success == false) {
+    success = chol(H0, H);
+    if(success == false) {
+      H += eye(H.n_rows,H.n_rows) * 1e-6;
+    }
   }
-  H = H0;
   lik += fInd->tbsLik;// - sum(log(H.diag()));
   for (unsigned int j = H.n_rows; j--;){
     lik -= _safe_log(H(j,j));
@@ -817,9 +810,9 @@ void innerOpt(){
             if(!op_focei.noabort){
               stop("Could not find the best eta even hessian reset and eta reset for ID %d.", id+1);
 	    } else {
-              indF->lik[0] -= 100;
-              indF->lik[1] -= 100;
-              indF->lik[2] -= 100;
+              // indF->lik[0] -= 100;
+              // indF->lik[1] -= 100;
+              // indF->lik[2] -= 100;
 	    }
             // 
 	  }
@@ -1889,11 +1882,10 @@ NumericMatrix foceiCalcCov(Environment e){
       }
       arma::mat R = as<arma::mat>(e["R"]);
       if (!e.exists("Rinv")){
-	try{
-	  Rinv = inv(R);
-	} catch(...){
-	  Rprintf("Warning: Hessian (R) matrix seems singular; Using pseudo-inverse\n");
-	  Rinv = pinv(R);
+	bool success  = inv(Rinv, R);
+	if (!success){
+          Rprintf("Warning: Hessian (R) matrix seems singular; Using pseudo-inverse\n");
+          Rinv = pinv(R);
 	}
 	e["Rinv"] = wrap(Rinv);
       } else {
@@ -1929,11 +1921,10 @@ NumericMatrix foceiCalcCov(Environment e){
 	e["cov"] = Rinv * S *Rinv;
       } else {
 	mat Sinv;
-	try{
-	  Sinv = inv(S);
-	} catch(...){
-	  Rprintf("Warning: S matrix seems singular; Using pseudo-inverse\n");
-	  Sinv = pinv(S);
+	bool success;
+	success = inv(Sinv, S);
+	if (!success){
+          Sinv = pinv(S);
 	}
 	op_focei.cur++;
 	op_focei.curTick = par_progress(op_focei.cur, op_focei.totTick, op_focei.curTick, rx->op->cores, op_focei.t0, 0);

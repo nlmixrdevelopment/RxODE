@@ -16,11 +16,11 @@ extern "C" SEXP _rxCholInv(SEXP dms, SEXP theta, SEXP tn);
 NumericVector rxInv(SEXP matrix){
   mat smatrix= as<mat>(matrix);
   mat imat;
-  try{
-    imat = inv(smatrix);
-  } catch(...){
-    Rprintf("Warning: matrix seems singular; Using pseudo-inverse\n");
+  bool success;
+  success = inv(imat, smatrix);
+  if (!success){
     imat = pinv(smatrix);
+    Rprintf("Warning: matrix seems singular; Using pseudo-inverse\n");
   }
   NumericVector ret;
   ret = wrap(imat);
