@@ -1,4 +1,6 @@
 // [[Rcpp::plugins(openmp)]]
+#define ARMA_DONT_PRINT_ERRORS
+#define ARMA_DONT_USE_OPENMP // Known to cause speed
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
