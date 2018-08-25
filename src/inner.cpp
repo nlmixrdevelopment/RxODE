@@ -1999,7 +1999,7 @@ void foceiFinalizeTables(Environment e){
   NumericVector cv(theta.size());
   std::fill_n(&se[0], theta.size(), NA_REAL);
   std::fill_n(&cv[0], theta.size(), NA_REAL);
-  unsigned int j=0;
+  int j=0;
   if (covExists){
     for (unsigned int k = 0; k < se.size(); k++){
       if (k >= skipCov.size()) break;
