@@ -66,6 +66,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// cholSE
+arma::mat cholSE(arma::mat A);
+RcppExport SEXP _RxODE_cholSE(SEXP ASEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type A(ASEXP);
+    rcpp_result_gen = Rcpp::wrap(cholSE(A));
+    return rcpp_result_gen;
+END_RCPP
+}
 // foceiLik
 double foceiLik(NumericVector theta);
 RcppExport SEXP _RxODE_foceiLik(SEXP thetaSEXP) {

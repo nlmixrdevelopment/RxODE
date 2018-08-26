@@ -9,7 +9,7 @@
 #define NETAs 20
 #define NTHETAs 20
 #define NSUBs 100
-#define min( a , b )  ( (a) < (b) ? (a) : (b) )
+#define min2( a , b )  ( (a) < (b) ? (a) : (b) )
 #define innerOde(id) ind_solve(rx, id, inner_dydt_liblsoda, inner_dydt_lsoda_dum, inner_jdum_lsoda, inner_dydt, inner_update_inis, inner_global_jt)
 #define getOmega() (as<NumericMatrix>(rxSymInvCholEnvCalculate(_rxInv, "omega", R_NilValue)))
 #define getOmegaInv() (as<arma::mat>(rxSymInvCholEnvCalculate(_rxInv, "omegaInv", R_NilValue)))
@@ -23,6 +23,8 @@
 #define tbsD(x) powerDD(x,  ind->lambda, (int)(ind->yj))
 #define _safe_log(a) (((a) <= 0) ? log(DOUBLE_EPS) : log(a))
 #define _safe_zero(a) ((a) == 0 ? DOUBLE_EPS : (a))
+//#define _safe_sqrt(a) ((a) <= 0 ? sqrt(DOUBLE_EPS) : sqrt(a))
+#define _safe_sqrt(a) sqrt(a)
 
 using namespace Rcpp;
 using namespace arma;
@@ -642,6 +644,176 @@ double likInner(NumericVector eta, int id = 1){
   return llik;
 }
 
+double stablizeNums(double x){
+  // if (ISNAN(x)){
+  //   return 0;
+  // } else 
+  if (!R_FINITE(x)){
+    if (x < 0){
+      return -42e100;
+    } else {
+      return 42e100;
+    }
+  } else {
+    return x;
+  }
+  return 0;
+}
+
+arma::mat gershNested(arma::mat A, int j, int n){
+  arma::mat g(n, 1, fill::zeros);
+  double sumToI, sumAfterI;
+  for (int ii = n; ii--;){
+    if (ii == 0){
+      sumToI=0;
+    } else {
+      sumToI=sum(abs(A(ii, span(j, ii-1))));
+    }
+    if (ii == n-1){
+      sumAfterI = 0;
+    } else {
+      sumAfterI = sum(abs(A(span(ii+1, n-1), ii)));
+    }
+    g(ii, 0) = sumToI+sumAfterI-A(ii,ii);
+  }
+  return g;
+}
+// Suggested from https://gking.harvard.edu/files/help.pdf
+// Translated from 
+//http://www.dynare.org/dynare-matlab-m2html/matlab/chol_SE.html
+// Use tau1=sqrt(eps) instead of eps^1/3; In my tests eps^1/3 produces NaNs
+//[[Rcpp::export]]
+arma::mat cholSE(arma::mat A){
+  int n = A.n_rows;
+  double tau1 = sqrt(DOUBLE_EPS);//pow(DOUBLE_EPS, 1/3);
+  double tau2 = sqrt(DOUBLE_EPS);//tau1;
+  bool phase1 = true;
+  double delta = 0;
+  int j;
+  arma::mat P(n,1);
+  // for (j = n; j--;) p(j,0) = j+1;
+  arma::mat g(n,1, fill::zeros);
+  arma::mat E(n,1, fill::zeros);
+  double gamma = A(n-1,n-1);
+  if (gamma < 0) phase1 = false;
+  for (j = 0; j < n-1; j++){
+    if (A(j, j) < 0) phase1 = false;
+    if (A(j, j) > gamma) gamma = A(j,j);
+  }
+  double taugam = tau1*gamma;
+  if (!phase1) g = gershNested(A, 0, n);
+  // N=1 case
+  if (n == 1){
+    delta = tau2*abs(A(0,0)) - A(0,0);
+    if (delta > 0) E(0,0) = delta;
+    if (A(0,0) == 0) E(0,0) = tau2;
+    A(0,0)=_safe_sqrt(A(0,0)+E(0,0));
+    return A;
+  }
+  int jp1, ii, k;
+  double tempjj, temp=1., normj, tmp;
+  for (j = 0; j < n-1;  j++){
+    // Pivoting not included
+    if (phase1){
+      jp1 = j+1;
+      if (A(j,j)>0){
+	arma::mat tmp = (A(span(jp1,n-1),span(jp1,n-1))).diag() - A(span(jp1, n-1),j)%A(span(jp1, n-1),j)/A(j,j);
+	double mintmp = tmp[0];
+	for (ii = 1; ii < (int)tmp.size(); ii++) mintmp = (mintmp < tmp[ii]) ? mintmp : tmp[ii];
+	if (mintmp < taugam) phase1=false;
+      } else phase1 = false;
+
+      if (phase1){
+	// Do the normal cholesky update if still in phase 1
+	A(j,j) = _safe_sqrt(A(j,j));
+	tempjj = A(j,j);
+	for (ii = jp1; ii < n; ii++){
+	  A(ii,j) = A(ii,j)/tempjj;
+	}
+	for (ii=jp1; ii <n; ii++){
+	  temp=A(ii,j);
+	  for (k = jp1; k < ii+1; k++){
+	    A(ii,k) = A(ii,k)-(temp * A(k,j));
+	  }
+	}
+	if (j == n-2){
+	  A(n-1,n-1)=_safe_sqrt(A(n-1,n-1));
+	}
+      } else {
+	// Calculate the negatives of the lower Gershgorin bounds
+	g=gershNested(A,j,n);
+      }
+    }
+
+    if (!phase1){
+      if (j != n-2){
+        // Calculate delta and add to the diagonal. delta=max{0,-A(j,j) + max{normj,taugam},delta_previous}
+	// where normj=sum of |A(i,j)|,for i=1,n, delta_previous is the delta computed at the previous iter and taugam is tau1*gamma.
+	normj=sum(abs(A(span(j+1, n-1),j)));
+	if (delta < 0) delta = 0;
+	tmp  = -A(j,j)+normj;
+	if (delta < tmp) delta = tmp;
+        tmp  = -A(j,j)+taugam;
+        if (delta < tmp) delta = tmp;
+	// get adjustment based on formula on bottom of p. 309 of Eskow/Schnabel (1991)
+	E(j,0) =  delta;
+	A(j,j) = A(j,j) + E(j,0);
+	// Update the Gershgorin bound estimates (note: g(i) is the negative of the Gershgorin lower bound.)
+	if (A(j,j) != normj){
+	  temp = (normj/A(j,j)) - 1;
+	  for (ii = j+1; ii < n; ii++){
+	    g(ii) = g(ii) + abs(A(ii,j)) * temp;
+	  }
+	}
+	for (int ii = j+1; ii < n; ii++){
+	  g(ii,0) = g(ii,0) + abs(A(ii,j)) * temp;
+	}
+	// Do the cholesky update
+	A(j,j) = _safe_sqrt(A(j,j));
+	tempjj = A(j,j);
+	for (ii = j+1; ii < n; ii++){
+	  A(ii,j) = A(ii,j) / tempjj;
+	}
+	for (ii = j+1; ii < n; ii++){
+	  temp = A(ii,j);
+	  for (k = j+1; k < ii+1; k++){
+	    A(ii,k) = A(ii,k) - (temp * A(k,j));
+	  }
+	}
+      } else {
+	// Find eigenvalues of final 2 by 2 submatrix
+        // Find delta such that:
+	// 1.  the l2 condition number of the final 2X2 submatrix + delta*I <= tau2
+	// 2. delta >= previous delta,
+	// 3. min(eigvals) + delta >= tau2 * gamma, where min(eigvals) is the smallest eigenvalue of the final 2X2 submatrix
+	// A(n-2,n-1)=A(n-1,n-2);
+	//set value above diagonal for computation of eigenvalues
+        A(n-2,n-1)=A(n-1,n-2); //set value above diagonal for computation of eigenvalues
+	vec eigvals  = eig_sym(A(span(n-2, n-1),span(n-2, n-1)));
+        // Formula 5.3.2 of Schnabel/Eskow (1990)
+	if (delta < 0) delta = 0;
+	tmp= (max(eigvals)-min(eigvals))/(1-tau1);
+	if (tmp < gamma) tmp = gamma;
+	tmp=tau2*tmp;
+	tmp =tmp - min(eigvals);
+	if (delta < tmp) delta = tmp;
+	if (delta > 0){
+	  A(n-2, n-2) = A(n-2,n-2) + delta;
+	  A(n-1, n-1) = A(n-1,n-1) + delta;
+          E(n-2, 0) = delta;
+          E(n-1, 0) = delta;
+        }
+	// Final update
+	A(n-2,n-2) = _safe_sqrt(A(n-2,n-2));
+        A(n-1,n-2) = A(n-1,n-2)/A(n-2,n-2);
+        A(n-1,n-1) = A(n-1,n-1) - A(n-1,n-2)*A(n-1,n-2);
+        A(n-1,n-1) = _safe_sqrt(A(n-1,n-1));
+      }
+    }
+  }
+  return (trimatl(A)).t();
+}
+
 double LikInner2(double *eta, int likId){
   unsigned int id = (unsigned int)(eta[op_focei.neta]);
   focei_ind *fInd = &(inds_focei[id]);
@@ -662,9 +834,9 @@ double LikInner2(double *eta, int likId){
       for (l = k+1; l--;){
         // tmp = fInd->a.col(l) %  fInd->B % fInd->a.col(k);
         H(k, l) = 0.5*sum(fInd->a.col(l) %  fInd->B % fInd->a.col(k) + 
-                          fInd->c.col(l) % fInd->c.col(k)) +
+			  fInd->c.col(l) % fInd->c.col(k)) +
           op_focei.omegaInv(k, l);
-        H(l, k) = H(k, l);
+	H(l, k) = H(k, l);
       }
     }
   } else {
@@ -673,22 +845,17 @@ double LikInner2(double *eta, int likId){
         // tmp = fInd->a.col(l) %  fInd->B % fInd->a.col(k);
         H(k, l) = 0.5*sum(fInd->a.col(l) %  fInd->B % fInd->a.col(k)) +
           op_focei.omegaInv(k, l);
-        H(l, k) = H(k, l);
+	H(l, k) = H(k, l);
       }
     }
   }
   arma::mat H0;
-  bool success = false;
-  while(success == false) {
-    success = chol(H0, H);
-    if(success == false) {
-      H += eye(H.n_rows,H.n_rows) * 1e-6;
-    }
-  }
-  lik += fInd->tbsLik;// - sum(log(H.diag()));
+  k=0;
+  H0=cholSE(H);
   for (unsigned int j = H0.n_rows; j--;){
     lik -= _safe_log(H0(j,j));
   }
+  lik += fInd->tbsLik;// - sum(log(H.diag()));
   if (likId == 0){
     fInd->lik[0] = lik;
     std::copy(&fInd->eta[0], &fInd->eta[0] + op_focei.neta, &fInd->saveEta[0]);
@@ -812,10 +979,17 @@ void innerOpt(){
             if(!op_focei.noabort){
               stop("Could not find the best eta even hessian reset and eta reset for ID %d.", id+1);
 	    } else {
+              std::fill(&indF->eta[0], &indF->eta[0] + op_focei.neta, 0.0);
+	      try{
+                innerEval(id);
+              } catch(...){
+		stop("Cannot corect.");
+	      }
               // indF->lik[0] -= 100;
               // indF->lik[1] -= 100;
               // indF->lik[2] -= 100;
 	    }
+
             // 
 	  }
         }
@@ -1638,7 +1812,7 @@ extern "C" void outerGradNumOptim(int n, double *par, double *gr, void *ex){
       Rprintf("\n");
     }
     if (!op_focei.useColor){
-      foceiPrintLine(min(op_focei.npars, op_focei.printNcol));
+      foceiPrintLine(min2(op_focei.npars, op_focei.printNcol));
     }
   }
 }
@@ -2348,7 +2522,7 @@ Environment foceiFitCpp_(Environment e){
     }
     Rprintf("X: Back-transformed parameters; ");
     Rprintf("G: Gradient\n");
-    foceiPrintLine(min(op_focei.npars, op_focei.printNcol));
+    foceiPrintLine(min2(op_focei.npars, op_focei.printNcol));
     Rprintf("|    #| Objective Fun |");
     int j,  i=0, finalize=0;
     for (i = 0; i < op_focei.npars; i++){
@@ -2382,7 +2556,7 @@ Environment foceiFitCpp_(Environment e){
       Rprintf("\n");
     }
     if (!op_focei.useColor){
-      foceiPrintLine(min(op_focei.npars, op_focei.printNcol));
+      foceiPrintLine(min2(op_focei.npars, op_focei.printNcol));
     }
   }
   if (doPredOnly){
