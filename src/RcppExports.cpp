@@ -66,14 +66,15 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// cholSE
-arma::mat cholSE(arma::mat A);
-RcppExport SEXP _RxODE_cholSE(SEXP ASEXP) {
+// cholSE_
+arma::mat cholSE_(arma::mat A, double tol);
+RcppExport SEXP _RxODE_cholSE_(SEXP ASEXP, SEXP tolSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< arma::mat >::type A(ASEXP);
-    rcpp_result_gen = Rcpp::wrap(cholSE(A));
+    Rcpp::traits::input_parameter< double >::type tol(tolSEXP);
+    rcpp_result_gen = Rcpp::wrap(cholSE_(A, tol));
     return rcpp_result_gen;
 END_RCPP
 }

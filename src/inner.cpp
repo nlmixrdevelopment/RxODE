@@ -683,10 +683,10 @@ arma::mat gershNested(arma::mat A, int j, int n){
 //http://www.dynare.org/dynare-matlab-m2html/matlab/chol_SE.html
 // Use tau1=sqrt(eps) instead of eps^1/3; In my tests eps^1/3 produces NaNs
 //[[Rcpp::export]]
-arma::mat cholSE(arma::mat A){
+arma::mat cholSE_(arma::mat A, double tol){
   int n = A.n_rows;
-  double tau1 = sqrt(DOUBLE_EPS);//pow(DOUBLE_EPS, 1/3);
-  double tau2 = sqrt(DOUBLE_EPS);//tau1;
+  double tau1 = tol;//pow(DOUBLE_EPS, 1/3);
+  double tau2 = tol;//tau1;
   bool phase1 = true;
   double delta = 0;
   int j;
@@ -851,7 +851,7 @@ double LikInner2(double *eta, int likId){
   }
   arma::mat H0;
   k=0;
-  H0=cholSE(H);
+  H0=cholSE_(H, sqrt(DOUBLE_EPS));
   for (unsigned int j = H0.n_rows; j--;){
     lik -= _safe_log(H0(j,j));
   }
