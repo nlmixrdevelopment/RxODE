@@ -1290,7 +1290,7 @@ NumericVector foceiSetup_(const RObject &obj,
   List mvi;
   if (!rxIs(obj, "NULL")){
     mvi = rxModelVars_(obj);
-  uuuuu}
+  }
   op_focei.mvi = mvi;
   
   if (op_focei.skipCov != NULL) Free(op_focei.skipCov);
