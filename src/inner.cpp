@@ -48,9 +48,9 @@ extern "C"{
                 int maxit, char *msg, int trace, int nREPORT);
   
 
-  int ind_solve(rx_solve *rx, unsigned int cid, t_dydt_liblsoda dydt_lls, 
-		t_dydt_lsoda_dum dydt_lsoda, t_jdum_lsoda jdum,
-		t_dydt c_dydt, t_update_inis u_inis, int jt);
+  void ind_solve(rx_solve *rx, unsigned int cid, t_dydt_liblsoda dydt_lls, 
+		 t_dydt_lsoda_dum dydt_lsoda, t_jdum_lsoda jdum,
+                 t_dydt c_dydt, t_update_inis u_inis, int jt);
   double powerD(double x, double lambda, int yj);
   double powerL(double x, double lambda, int yj);
   double powerDL(double x, double lambda, int yj);
@@ -553,10 +553,8 @@ double likInner0(double *eta){
     for (j = op_focei.neta; j--;){
       ind->par_ptr[op_focei.etaTrans[j]] = eta[j];
     }
-    // Solve ODE 
-    if (innerOde(id)){
-      throw std::runtime_error("Bad Solve");
-    }
+    // Solve ODE
+    innerOde(id);
     // Rprintf("ID: %d; Solve #2: %f\n", id, ind->solve[2]);
     // Calculate matricies
     unsigned int k = fInd->nobs - 1;
@@ -937,35 +935,35 @@ static inline void innerOpt1(int id, int likId){
 }
 
 void innerOpt(){
-#ifdef _OPENMP
-  int cores = rx->op->cores;
-#endif
+  // #ifdef _OPENMP
+//   int cores = rx->op->cores;
+// #endif
   rx = getRxSolve_();
   op_focei.omegaInv=getOmegaInv();    
   op_focei.logDetOmegaInv5 = getOmegaDet();
   if (op_focei.maxInnerIterations <= 0){
     std::fill_n(&op_focei.goldEta[0], op_focei.gEtaGTransN, -42.0); // All etas = -42;  Unlikely if normal
-#ifdef _OPENMP
-#pragma omp parallel for num_threads(cores)
-#endif
+// #ifdef _OPENMP
+// #pragma omp parallel for num_threads(cores)
+// #endif
     for (int id = 0; id < rx->nsub; id++){
       innerEval(id);
     }
   } else {
-#ifdef _OPENMP
-#pragma omp parallel for num_threads(cores)
-#endif
+// #ifdef _OPENMP
+// #pragma omp parallel for num_threads(cores)
+// #endif    
     for (int id = 0; id < rx->nsub; id++){
       focei_ind *indF = &(inds_focei[id]);
       try {
         innerOpt1(id, 0);
-      } catch (std::exception const &e){
+      } catch (...){
 	// First try resetting Hessian,
         indF->mode = 1;
 	indF->uzm = 1;
 	try {
 	  innerOpt1(id, 0);
-        } catch (std::exception const &e) {
+        } catch (...) {
 	  // Now try resetting Hessian, and ETA
 	  // Rprintf("Hessian Reset for ID: %d\n", id+1);
           indF->mode = 1;
@@ -974,17 +972,25 @@ void innerOpt(){
 	  try {
             // Rprintf("Hessian Reset & ETA reset for ID: %d\n", id+1);
             innerOpt1(id, 0);
-          } catch (std::exception const &e){
+          } catch (...){
             indF->mode = 1;
             indF->uzm = 1;
             std::fill(&indF->eta[0], &indF->eta[0] + op_focei.neta, 0.0);
-            try{
-              innerEval(id);
-            } catch(std::exception const &e){
-	      if(!op_focei.noabort){
-                stop("Could not find the best eta even hessian reset and eta reset for ID %d.", id+1);
-              }
-            }
+            if(!op_focei.noabort){
+              stop("Could not find the best eta even hessian reset and eta reset for ID %d.", id+1);
+	    } else {
+              std::fill(&indF->eta[0], &indF->eta[0] + op_focei.neta, 0.0);
+	      try{
+                innerEval(id);
+              } catch(...){
+		stop("Cannot corect.");
+	      }
+              // indF->lik[0] -= 100;
+              // indF->lik[1] -= 100;
+              // indF->lik[2] -= 100;
+	    }
+
+            // 
 	  }
         }
       }
@@ -1290,7 +1296,7 @@ NumericVector foceiSetup_(const RObject &obj,
   List mvi;
   if (!rxIs(obj, "NULL")){
     mvi = rxModelVars_(obj);
-  uuuuu}
+  }
   op_focei.mvi = mvi;
   
   if (op_focei.skipCov != NULL) Free(op_focei.skipCov);
@@ -1485,14 +1491,14 @@ NumericVector foceiSetup_(const RObject &obj,
       j=op_focei.fixedTrans[k];
       ret[k] = op_focei.fullTheta[j];
       if (R_FINITE(lowerIn[j])){
-        op_focei.lower[k] = lowerIn[j]+op_focei.aEps*1.1;
+        op_focei.lower[k] = lowerIn[j];
         // lower bound only = 1
         op_focei.nbd[k]=1;
       } else {
         op_focei.lower[k] = std::numeric_limits<double>::lowest();
       }
       if (R_FINITE(upperIn[j])){
-        op_focei.upper[k] = upperIn[j]-op_focei.aEps*1.1;
+        op_focei.upper[k] = upperIn[j];
         // Upper bound only = 3
         // Upper and lower bound = 2
         op_focei.nbd[k]= 3 - op_focei.nbd[j];
@@ -1504,14 +1510,14 @@ NumericVector foceiSetup_(const RObject &obj,
     for (unsigned int k = op_focei.npars; k--;){
       j=op_focei.fixedTrans[k];
       if (R_FINITE(lowerIn[j])){
-        op_focei.lower[k] = lowerIn[j] * op_focei.scaleTo / op_focei.initPar[j]+op_focei.aEps*1.1;
-        // lower bound only = 11.1
+        op_focei.lower[k] = lowerIn[j] * op_focei.scaleTo / op_focei.initPar[j];
+        // lower bound only = 1
         op_focei.nbd[k]=1;
       } else {
         op_focei.lower[k] = std::numeric_limits<double>::lowest();
       }
       if (R_FINITE(upperIn[j])){
-        op_focei.upper[k] = upperIn[j] * op_focei.scaleTo / op_focei.initPar[j]-op_focei.aEps*1.1;
+        op_focei.upper[k] = upperIn[j] * op_focei.scaleTo / op_focei.initPar[j];
         // Upper bound only = 3
         // Upper and lower bound = 2
         op_focei.nbd[k]= 3 - op_focei.nbd[j];

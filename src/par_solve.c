@@ -364,7 +364,6 @@ extern void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda_opt
   memcpy(ret,inits, neq[0]*sizeof(double));
   u_inis(neq[1], ret); // Update initial conditions
   /* for(i=0; i<neq[0]; i++) yp[i] = inits[i]; */
-  ind->badSolveI=0;
   for(i=0; i<nx; i++) {
     xout = x[i];
     yp = ret+neq[0]*i;
@@ -376,7 +375,6 @@ extern void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda_opt
         // Bad Solve => NA
         for (unsigned int j = neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
         op->badSolve = 1;
-	ind->badSolveI=1;
         i = nx+42; // Get out of here!
       }
     }
@@ -627,7 +625,7 @@ extern void ind_lsoda0(rx_solve *rx, rx_solving_options *op, int solveid, int *n
   //--- inits the system
   memcpy(ind->solve, op->inits, neq[0]*sizeof(double));
   u_inis(neq[1], ind->solve); // Update initial conditions
-  ind->badSolveI=0;
+  
   for(i=0; i < ind->n_all_times; i++) {
     xout = ind->all_times[i];
     yp   = ind->solve+neq[0]*i;
@@ -643,7 +641,6 @@ extern void ind_lsoda0(rx_solve *rx, rx_solving_options *op, int solveid, int *n
             // Bad Solve => NA
             for (unsigned int j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
             op->badSolve = 1;
-            ind->badSolveI=1;
             i = ind->n_all_times+42; // Get out of here!
           }
         ind->slvr_counter[0]++;
@@ -765,7 +762,6 @@ extern void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int *neq
   //--- inits the system
   memcpy(ret,inits, neq[0]*sizeof(double));
   u_inis(neq[1], ret); // Update initial conditions
-  ind->badSolveI=0;
   //--- inits the system
   for(i=0; i<nx; i++) {
     xout = x[i];
@@ -807,7 +803,6 @@ extern void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int *neq
             // Bad Solve => NA
             for (unsigned int j = (ind->n_all_times)*neq[0];j--;) ret[i] = NA_REAL; 
             op->badSolve = 1;
-            ind->badSolveI=1;
             i = nx+42; // Get out of here!
           }
         xp = xRead();
@@ -886,7 +881,7 @@ void par_dop(rx_solve *rx){
   }
 }
 
-int ind_solve(rx_solve *rx, unsigned int cid,
+void ind_solve(rx_solve *rx, unsigned int cid,
 	       t_dydt_liblsoda dydt_lls,
 	       t_dydt_lsoda_dum dydt_lsoda, t_jdum_lsoda jdum,
 	       t_dydt c_dydt, t_update_inis u_inis,
@@ -905,7 +900,6 @@ int ind_solve(rx_solve *rx, unsigned int cid,
       break;
     }
   }
-  return rx->subjects[cid].badSolveI;
 }
 
 inline void par_solve(rx_solve *rx){
