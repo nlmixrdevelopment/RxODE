@@ -76,6 +76,7 @@ typedef struct {
   double yhigh;
   double lambda;
   double yj;
+  int badSolveI;
 } rx_solving_options_ind;
 
 typedef struct {

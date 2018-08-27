@@ -235,6 +235,7 @@ rxSymPyExec <- function(..., .python, .start=TRUE){
     if (.python == "reticulate"){
         fns <- paste0(...);
         sapply(fns, function(x){
+            "import sys"
             reticulate::py_run_string(code=x, convert=FALSE)
         });
     }
