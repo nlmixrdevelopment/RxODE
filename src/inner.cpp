@@ -1492,6 +1492,7 @@ NumericVector foceiSetup_(const RObject &obj,
       ret[k] = op_focei.fullTheta[j];
       if (R_FINITE(lowerIn[j])){
         op_focei.lower[k] = lowerIn[j];
+        op_focei.lower[k] += op_focei.lower[k]*op_focei.rEps + op_focei.aEps;
         // lower bound only = 1
         op_focei.nbd[k]=1;
       } else {
@@ -1499,6 +1500,7 @@ NumericVector foceiSetup_(const RObject &obj,
       }
       if (R_FINITE(upperIn[j])){
         op_focei.upper[k] = upperIn[j];
+        op_focei.upper[k] -= op_focei.upper[k]*op_focei.rEps - op_focei.aEps;
         // Upper bound only = 3
         // Upper and lower bound = 2
         op_focei.nbd[k]= 3 - op_focei.nbd[j];
@@ -1511,6 +1513,7 @@ NumericVector foceiSetup_(const RObject &obj,
       j=op_focei.fixedTrans[k];
       if (R_FINITE(lowerIn[j])){
         op_focei.lower[k] = lowerIn[j] * op_focei.scaleTo / op_focei.initPar[j];
+        op_focei.lower[k] += op_focei.lower[k]*op_focei.rEps + op_focei.aEps;
         // lower bound only = 1
         op_focei.nbd[k]=1;
       } else {
@@ -1518,6 +1521,7 @@ NumericVector foceiSetup_(const RObject &obj,
       }
       if (R_FINITE(upperIn[j])){
         op_focei.upper[k] = upperIn[j] * op_focei.scaleTo / op_focei.initPar[j];
+        op_focei.upper[k] -= op_focei.upper[k]*op_focei.rEps - op_focei.aEps;
         // Upper bound only = 3
         // Upper and lower bound = 2
         op_focei.nbd[k]= 3 - op_focei.nbd[j];
