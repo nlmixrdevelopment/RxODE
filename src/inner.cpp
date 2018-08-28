@@ -935,7 +935,7 @@ static inline void innerOpt1(int id, int likId){
 }
 
 void innerOpt(){
-  // #ifdef _OPENMP
+// #ifdef _OPENMP
 //   int cores = rx->op->cores;
 // #endif
   rx = getRxSolve_();
@@ -1880,6 +1880,7 @@ Environment foceiOuter(Environment e){
 ////////////////////////////////////////////////////////////////////////////////
 // Covariance functions
 void foceiCalcH(Environment e){
+  stop("broken.");
   rx = getRxSolve_();
   arma::mat H(op_focei.npars, op_focei.npars);
   arma::vec dpar(op_focei.npars);
