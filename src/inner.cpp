@@ -648,22 +648,6 @@ double likInner(NumericVector eta, int id = 1){
   return llik;
 }
 
-double stablizeNums(double x){
-  // if (ISNAN(x)){
-  //   return 0;
-  // } else 
-  if (!R_FINITE(x)){
-    if (x < 0){
-      return -42e100;
-    } else {
-      return 42e100;
-    }
-  } else {
-    return x;
-  }
-  return 0;
-}
-
 arma::mat gershNested(arma::mat A, int j, int n){
   arma::mat g(n, 1, fill::zeros);
   double sumToI, sumAfterI;
@@ -1320,7 +1304,20 @@ NumericVector foceiSetup_(const RObject &obj,
     op_focei.skipCov = Calloc(skipCov1.size(), int);
     std::copy(skipCov1.begin(),skipCov1.end(),op_focei.skipCov);
   }
-  foceiSetupTheta_(mvi, theta, thetaFixed, as<double>(odeO["scaleTo"]), !rxIs(obj, "NULL"));
+  op_focei.maxOuterIterations = as<int>(odeO["maxOuterIterations"]);
+  op_focei.maxInnerIterations = as<int>(odeO["maxInnerIterations"]);
+  if (op_focei.maxOuterIterations == 0){
+    foceiSetupTheta_(mvi, theta, thetaFixed, 0.0, !rxIs(obj, "NULL"));
+    op_focei.scaleObjective=0;
+  } else {
+    foceiSetupTheta_(mvi, theta, thetaFixed, as<double>(odeO["scaleTo"]), !rxIs(obj, "NULL"));
+    op_focei.scaleObjectiveTo=as<double>(odeO["scaleObjective"]);
+    if (op_focei.scaleObjectiveTo <= 0){
+      op_focei.scaleObjective=0;
+    } else {
+      op_focei.scaleObjective=1;
+    }
+  }
   // First see if etaMat is null.
   NumericMatrix etaMat0;
   unsigned int nsub=0;
@@ -1443,8 +1440,6 @@ NumericVector foceiSetup_(const RObject &obj,
     foceiSetupEta_(etaMat0);
   }
   op_focei.epsilon=as<double>(odeO["epsilon"]);
-  op_focei.maxOuterIterations = as<int>(odeO["maxOuterIterations"]);
-  op_focei.maxInnerIterations = as<int>(odeO["maxInnerIterations"]);
   op_focei.nsim=as<int>(odeO["n1qn1nsim"]);
   op_focei.imp=0;
   op_focei.printInner=abs(as<int>(odeO["printInner"]));
@@ -1557,12 +1552,6 @@ NumericVector foceiSetup_(const RObject &obj,
   op_focei.covDerivMethod = as<int>(odeO["covDerivMethod"]);
   op_focei.covMethod = as<int>(odeO["covMethod"]);
   op_focei.eigen = as<int>(odeO["eigen"]);
-  op_focei.scaleObjectiveTo=as<double>(odeO["scaleObjective"]);
-  if (op_focei.scaleObjectiveTo <= 0){
-    op_focei.scaleObjective=0;
-  } else {
-    op_focei.scaleObjective=1;
-  }
   op_focei.ci=0.95;
   op_focei.sigdig=as<double>(odeO["sigdig"]);
   op_focei.useColor=as<int>(odeO["useColor"]);
