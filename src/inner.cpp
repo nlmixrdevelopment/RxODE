@@ -190,6 +190,8 @@ typedef struct {
 
   double rEps;
   double aEps;
+  double rEpsC;
+  double aEpsC;
   //
   double factr;
   double pgtol;
@@ -215,6 +217,8 @@ typedef struct {
   int printNcol;
   int noabort;
   int interaction;
+  double cholSEtol;
+  double hessEps;
 } focei_options;
 
 focei_options op_focei;
@@ -851,7 +855,7 @@ double LikInner2(double *eta, int likId){
   }
   arma::mat H0;
   k=0;
-  H0=cholSE_(H, sqrt(DOUBLE_EPS));
+  H0=cholSE_(H, op_focei.cholSEtol);
   for (unsigned int j = H0.n_rows; j--;){
     lik -= _safe_log(H0(j,j));
   }
@@ -1284,13 +1288,21 @@ NumericVector foceiSetup_(const RObject &obj,
   if (cEps.size() != 2){
     stop("derivEps must be 2 elements for determining central or forward difference step size.");
   }
+  NumericVector covDerivEps=odeO["covDerivEps"];
+  if (covDerivEps.size() != 2){
+    stop("covDerivEps must be 2 elements for determining central or forward difference step size.");
+  }
   op_focei.derivMethod = as<int>(odeO["derivMethod"]);
   if (op_focei.derivMethod){
     op_focei.rEps=fabs(cEps[0])/2.0;
     op_focei.aEps=fabs(cEps[1])/2.0;
+    op_focei.rEpsC=fabs(covDerivEps[0])/2.0;
+    op_focei.aEpsC=fabs(covDerivEps[1])/2.0;
   } else {
     op_focei.rEps=fabs(cEps[0]);
     op_focei.aEps=fabs(cEps[1]);
+    op_focei.rEpsC=fabs(covDerivEps[0]);
+    op_focei.aEpsC=fabs(covDerivEps[1]);
   }
   // This fills in op_focei.neta
   List mvi;
@@ -1558,6 +1570,8 @@ NumericVector foceiSetup_(const RObject &obj,
   op_focei.printNcol=as<int>(odeO["printNcol"]);
   op_focei.noabort=as<int>(odeO["noAbort"]);
   op_focei.interaction=as<int>(odeO["interaction"]);
+  op_focei.cholSEtol=as<double>(odeO["cholSEtol"]);
+  op_focei.hessEps=as<double>(odeO["hessEps"]);
   return ret;
 }
 
@@ -1879,21 +1893,35 @@ Environment foceiOuter(Environment e){
 
 ////////////////////////////////////////////////////////////////////////////////
 // Covariance functions
-void foceiCalcH(Environment e){
-  stop("broken.");
+void foceiCalcR(Environment e){
   rx = getRxSolve_();
   arma::mat H(op_focei.npars, op_focei.npars);
   arma::vec dpar(op_focei.npars);
   unsigned int i, j, k;
   for (k = op_focei.npars; k--;){
     j=op_focei.fixedTrans[k];
-    dpar[k] = op_focei.fullTheta[j];
+    if (op_focei.scaleTo > 0){
+      dpar[k] = op_focei.fullTheta[j] / op_focei.initPar[k] * op_focei.scaleTo;
+    } else {
+      dpar[k] = op_focei.fullTheta[j];
+    }
   }
   arma::vec df1(op_focei.npars);
   arma::vec df2(op_focei.npars);
   double eps;
+
+  double fnscale = 1.0;
+  if (op_focei.scaleObjective == 2){
+    fnscale = op_focei.initObjective / op_focei.scaleObjectiveTo;
+  }
+  double parScale1=1.0, parScale2=1.0;
   for (i=op_focei.npars; i--;){
-    eps = dpar[i]*op_focei.rEps + op_focei.aEps;
+    if (op_focei.scaleTo > 0){
+      parScale1=op_focei.initPar[i] / op_focei.scaleTo;
+      eps = op_focei.hessEps / parScale1;
+    } else {
+      eps = op_focei.hessEps;
+    }
     dpar[i] = dpar[i]+eps;
     numericGrad(dpar.begin(), df1.begin());
     op_focei.cur++;
@@ -1904,11 +1932,17 @@ void foceiCalcH(Environment e){
     op_focei.curTick = par_progress(op_focei.cur, op_focei.totTick, op_focei.curTick, rx->op->cores, op_focei.t0, 0);
     dpar[i] = dpar[i] + eps;
     for (j = op_focei.npars; j--;){
-      H(i, j) = (df1[j]-df2[j])/(2*eps);
+      if (op_focei.scaleTo > 0){
+        parScale2=op_focei.initPar[j] / op_focei.scaleTo;
+      }
+      H(i, j) = fnscale*(df1[j]-df2[j])/(2*eps*parScale1*parScale2);
     }
   }
-  H = 0.5*H + 0.5*H.t();
-  e["R"] = wrap(H);
+  // R matrix = Hessian/2
+  // https://github.com/cran/nmw/blob/59478fcc91f368bb3bbc23e55d8d1d5d53726a4b/R/CovStep.R
+  H = 0.25*H + 0.25*H.t();
+  H = cholSE_(H, op_focei.cholSEtol);
+  e["cholR"] = wrap(H);
 }
 
 // Necessary for S-matrix calculation
@@ -1968,12 +2002,16 @@ arma::mat foceiS(double *theta){
   }
   op_focei.calcGrad=0;
   // Now calculate S matrix
-  arma::mat m1(1, op_focei.npars), S(op_focei.npars, op_focei.npars, fill::zeros);
+  arma::mat m1(1, op_focei.npars), S(op_focei.npars, op_focei.npars, fill::zeros), s1(1, op_focei.npars,fill::ones);
   for (gid = rx->nsub; gid--;){
     fInd = &(inds_focei[gid]);
     std::copy(&fInd->thetaGrad[0],&fInd->thetaGrad[0]+op_focei.npars,&m1[0]);
     S = S + m1.t() * m1;
   }
+  // S matrix = S/4
+  // According to https://github.com/cran/nmw/blob/59478fcc91f368bb3bbc23e55d8d1d5d53726a4b/R/Objs.R
+  S=S*0.25; 
+  S=cholSE_(S, op_focei.cholSEtol);
   return S;
 }
 
@@ -2030,7 +2068,9 @@ NumericMatrix foceiCalcCov(Environment e){
   }
   e["skipCov"] = skipCov;
   
-  foceiSetupTheta_(op_focei.mvi, fullT2, skipCov, 0.0, false);
+  foceiSetupTheta_(op_focei.mvi, fullT2, skipCov, op_focei.scaleTo, false);
+  op_focei.rEps=op_focei.rEpsC;
+  op_focei.aEps=op_focei.aEpsC;
   
   if (op_focei.covMethod && !boundary){
     rx = getRxSolve_();
@@ -2055,19 +2095,20 @@ NumericMatrix foceiCalcCov(Environment e){
     }
     if (op_focei.covMethod == 1 || op_focei.covMethod == 2){
       // R matrix based covariance
-      if (!e.exists("R")){
-	foceiCalcH(e);
+      if (!e.exists("cholR")){
+	foceiCalcR(e);
       } else {
 	op_focei.cur += op_focei.npars*2;
 	op_focei.curTick = par_progress(op_focei.cur, op_focei.totTick, op_focei.curTick, rx->op->cores, op_focei.t0, 0);
       }
-      arma::mat R = as<arma::mat>(e["R"]);
+      arma::mat cholR = as<arma::mat>(e["cholR"]);
       if (!e.exists("Rinv")){
-	bool success  = inv(Rinv, R);
+	bool success  = inv(Rinv, trimatu(cholR));
 	if (!success){
-          Rprintf("Warning: Hessian (R) matrix seems singular; Using pseudo-inverse\n");
-          Rinv = pinv(R);
+          warning("Hessian (R) matrix seems singular; Using pseudo-inverse");
+          Rinv = pinv(trimatu(cholR));
 	}
+	Rinv = Rinv * Rinv.t();
 	e["Rinv"] = wrap(Rinv);
       } else {
 	Rinv = as<arma::mat>(e["Rinv"]);
@@ -2081,7 +2122,7 @@ NumericMatrix foceiCalcCov(Environment e){
 	e["cov"] = as<NumericMatrix>(e["covR"]);
       }
     }
-    arma::mat S;
+    arma::mat cholS;
     if (op_focei.covMethod == 1 || op_focei.covMethod == 3){
       arma::vec dpar(op_focei.npars);
       unsigned int j, k;
@@ -2089,24 +2130,33 @@ NumericMatrix foceiCalcCov(Environment e){
 	j=op_focei.fixedTrans[k];
 	dpar[k] = op_focei.fullTheta[j];
       }
-      if (!e.exists("S")){
-	S = foceiS(&dpar[0]);
-	e["S"]= wrap(S);
+      if (!e.exists("cholS")){
+        foceiSetupTheta_(op_focei.mvi, fullT2, skipCov, 0, false);
+	cholS = foceiS(&dpar[0]);
+	e["cholS"]= wrap(cholS);
       } else {
-	S = as<arma::mat>(e["S"]);
+	cholS = as<arma::mat>(e["cholS"]);
 	op_focei.cur += op_focei.npars;
 	op_focei.curTick = par_progress(op_focei.cur, op_focei.totTick, op_focei.curTick, rx->op->cores, op_focei.t0, 0);
       }
-      
+      arma::mat S;
+      if (e.exists("S")){
+        S = as<arma::mat>(e["S"]);
+      } else {
+        S = trans(cholS) * cholS;
+        e["S"] = wrap(S);
+      }
       if (op_focei.covMethod == 1){
 	e["cov"] = Rinv * S *Rinv;
       } else {
 	mat Sinv;
 	bool success;
-	success = inv(Sinv, S);
+	success = inv(Sinv, trimatu(cholS));
 	if (!success){
-          Sinv = pinv(S);
+          warning("Hessian (S) matrix seems singular; Using pseudo-inverse");
+          Sinv = pinv(trimatu(cholS));
 	}
+	Sinv = Sinv * Sinv.t();
 	op_focei.cur++;
 	op_focei.curTick = par_progress(op_focei.cur, op_focei.totTick, op_focei.curTick, rx->op->cores, op_focei.t0, 0);
 	e["cov"]= 4 * Sinv;
@@ -2438,8 +2488,6 @@ void foceiFinalizeTables(Environment e){
 
 ////////////////////////////////////////////////////////////////////////////////
 // FOCEi fit
-
-
 
 //' Fit/Evaulate FOCEi 
 //'
