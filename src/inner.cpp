@@ -2084,76 +2084,102 @@ NumericMatrix foceiCalcCov(Environment e){
     }
     if (op_focei.covMethod == 1 || op_focei.covMethod == 2){
       // R matrix based covariance
-      if (!e.exists("cholR")){
-	foceiCalcR(e);
-      } else {
-	op_focei.cur += op_focei.npars*2;
-	op_focei.curTick = par_progress(op_focei.cur, op_focei.totTick, op_focei.curTick, rx->op->cores, op_focei.t0, 0);
-      }
-      arma::mat cholR = as<arma::mat>(e["cholR"]);
-      if (!e.exists("Rinv")){
-	bool success  = inv(Rinv, trimatu(cholR));
-	if (!success){
-          warning("Hessian (R) matrix seems singular; Using pseudo-inverse");
-          Rinv = pinv(trimatu(cholR));
+      arma::mat cholR;
+      try{
+	if (!e.exists("cholR")){
+	  foceiCalcR(e);
+	} else {
+	  op_focei.cur += op_focei.npars*2;
+	  op_focei.curTick = par_progress(op_focei.cur, op_focei.totTick, op_focei.curTick, rx->op->cores, op_focei.t0, 0);
 	}
-	Rinv = Rinv * Rinv.t();
-	e["Rinv"] = wrap(Rinv);
-      } else {
-	Rinv = as<arma::mat>(e["Rinv"]);
-      }
-      op_focei.cur++;
-      op_focei.curTick = par_progress(op_focei.cur, op_focei.totTick, op_focei.curTick, rx->op->cores, op_focei.t0, 0);
-      if (!e.exists("covR")){
-	e["covR"] = wrap(2*Rinv);
-      }
-      if (op_focei.covMethod == 2){
-	e["cov"] = as<NumericMatrix>(e["covR"]);
+	cholR = as<arma::mat>(e["cholR"]);
+	if (!e.exists("Rinv")){
+          bool success  = inv(Rinv, trimatu(cholR));
+          if (!success){
+            warning("Hessian (R) matrix seems singular; Using pseudo-inverse");
+            Rinv = pinv(trimatu(cholR));
+          }
+          Rinv = Rinv * Rinv.t();
+          e["Rinv"] = wrap(Rinv);
+        } else {
+          Rinv = as<arma::mat>(e["Rinv"]);
+        }
+        op_focei.cur++;
+        op_focei.curTick = par_progress(op_focei.cur, op_focei.totTick, op_focei.curTick, rx->op->cores, op_focei.t0, 0);
+        if (!e.exists("covR")){
+          e["covR"] = wrap(2*Rinv);
+        }
+        if (op_focei.covMethod == 2){
+          e["cov"] = as<NumericMatrix>(e["covR"]);
+        }
+      } catch (...){
+	Rprintf("\rR matrix calculation failed; Switch to S-matrix covariance.\n");
+        op_focei.covMethod = 3;
+        op_focei.cur += op_focei.npars*2;
+        op_focei.curTick = par_progress(op_focei.cur, op_focei.totTick, op_focei.curTick, rx->op->cores, op_focei.t0, 0);
       }
     }
     arma::mat cholS;
     if (op_focei.covMethod == 1 || op_focei.covMethod == 3){
-      arma::vec dpar(op_focei.npars);
-      unsigned int j, k;
-      for (k = op_focei.npars; k--;){
-	j=op_focei.fixedTrans[k];
-	dpar[k] = op_focei.fullTheta[j];
-      }
-      if (!e.exists("cholS")){
-        foceiSetupTheta_(op_focei.mvi, fullT2, skipCov, 0, false);
-	cholS = foceiS(&dpar[0]);
-	e["cholS"]= wrap(cholS);
-      } else {
-	cholS = as<arma::mat>(e["cholS"]);
-	op_focei.cur += op_focei.npars;
-	op_focei.curTick = par_progress(op_focei.cur, op_focei.totTick, op_focei.curTick, rx->op->cores, op_focei.t0, 0);
-      }
-      arma::mat S;
-      if (e.exists("S")){
-        S = as<arma::mat>(e["S"]);
-      } else {
-        S = trans(cholS) * cholS;
-        e["S"] = wrap(S);
-      }
-      if (op_focei.covMethod == 1){
-	e["cov"] = Rinv * S *Rinv;
-      } else {
-	mat Sinv;
-	bool success;
-	success = inv(Sinv, trimatu(cholS));
-	if (!success){
-          warning("Hessian (S) matrix seems singular; Using pseudo-inverse");
-          Sinv = pinv(trimatu(cholS));
+      try{
+        arma::vec dpar(op_focei.npars);
+        unsigned int j, k;
+        for (k = op_focei.npars; k--;){
+          j=op_focei.fixedTrans[k];
+          dpar[k] = op_focei.fullTheta[j];
+        }      
+        if (!e.exists("cholS")){
+	  foceiSetupTheta_(op_focei.mvi, fullT2, skipCov, 0, false);
+	  cholS = foceiS(&dpar[0]);
+	  e["cholS"]= wrap(cholS);
+	} else {
+	  cholS = as<arma::mat>(e["cholS"]);
+	  op_focei.cur += op_focei.npars;
+	  op_focei.curTick = par_progress(op_focei.cur, op_focei.totTick, op_focei.curTick, rx->op->cores, op_focei.t0, 0);
 	}
-	Sinv = Sinv * Sinv.t();
-	op_focei.cur++;
-	op_focei.curTick = par_progress(op_focei.cur, op_focei.totTick, op_focei.curTick, rx->op->cores, op_focei.t0, 0);
-	e["cov"]= 4 * Sinv;
+        arma::mat S;
+        if (e.exists("S")){
+          S = as<arma::mat>(e["S"]);
+        } else {
+          S = trans(cholS) * cholS;
+          e["S"] = wrap(S);
+        }
+        if (op_focei.covMethod == 1){
+          e["cov"] = Rinv * S *Rinv;
+        } else {
+          mat Sinv;
+          bool success;
+          success = inv(Sinv, trimatu(cholS));
+          if (!success){
+            warning("Hessian (S) matrix seems singular; Using pseudo-inverse");
+            Sinv = pinv(trimatu(cholS));
+          }
+          Sinv = Sinv * Sinv.t();
+          op_focei.cur++;
+          op_focei.curTick = par_progress(op_focei.cur, op_focei.totTick, op_focei.curTick, rx->op->cores, op_focei.t0, 0);
+          e["cov"]= 4 * Sinv;
+        }
+      } catch (...){
+	if (op_focei.covMethod == 1){
+          Rprintf("\rS matrix calculation failed; Switch to R-matrix covariance.\n");
+	  e["cov"] = as<NumericMatrix>(e["covR"]);
+          op_focei.covMethod = 2;
+        } else {
+	  op_focei.covMethod=0;
+	  Rprintf("\rCould not calculate covariance matrix.\n");
+	  op_focei.cur++;
+          op_focei.curTick = par_progress(op_focei.cur, op_focei.totTick, op_focei.curTick, rx->op->cores, op_focei.t0, 0);
+	}
       }
     }
     op_focei.cur++;
     op_focei.curTick = par_progress(op_focei.cur, op_focei.totTick, op_focei.curTick, rx->op->cores, op_focei.t0, 0);
-    return e["cov"];
+    if (op_focei.covMethod==0){
+      NumericMatrix ret;
+      return ret;
+    } else {
+      return e["cov"];
+    }
   } else {
     if (boundary){
       warning("Parameter estimate near boundary; covariance not caculated. Use getVarCov to calculate anyway.");
