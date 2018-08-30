@@ -651,9 +651,11 @@ double likInner(NumericVector eta, int id = 1){
 arma::mat gershNested(arma::mat A, int j, int n){
   arma::mat g(n, 1, fill::zeros);
   double sumToI, sumAfterI;
-  for (int ii = n; ii--;){
+  for (int ii = j; ii < n; ++ii){
     if (ii == 0){
-      sumToI=0;
+      sumToI=0.0;
+    } else if (j == ii){
+      sumToI=sum(abs(A(ii, span(ii-1, j))));
     } else {
       sumToI=sum(abs(A(ii, span(j, ii-1))));
     }
@@ -1930,6 +1932,7 @@ void foceiCalcR(Environment e){
   // R matrix = Hessian/2
   // https://github.com/cran/nmw/blob/59478fcc91f368bb3bbc23e55d8d1d5d53726a4b/R/CovStep.R
   H = 0.25*H + 0.25*H.t();
+  e["R0"] = H;
   H = cholSE_(H, op_focei.cholSEtol);
   e["cholR"] = wrap(H);
 }
