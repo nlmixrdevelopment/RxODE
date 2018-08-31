@@ -1728,7 +1728,7 @@ extern "C" double foceiOfvOptim(int n, double *x, void *ex){
       } else {
         Rprintf("\n");
       }
-      if (scaleObjective){
+      if (op_focei.scaleObjective){
         if (op_focei.useColor)
           Rprintf("|    X|\033[1m%14.8g\033[0m |", op_focei.initObjective * ret / op_focei.scaleObjectiveTo);
         else 
