@@ -1160,7 +1160,7 @@ static inline void foceiSetupTrans_(CharacterVector pars){
       }
     }
   }
-  op_focei.nzm = (op_focei.neta + 1) * (op_focei.neta + 14) / 2;
+  op_focei.nzm = (op_focei.neta + 1) * (op_focei.neta + 2) / 2 + (op_focei.neta + 1)*6+1;
 }
 
 static inline void foceiSetupTheta_(List mvi,
@@ -1224,7 +1224,7 @@ static inline void foceiSetupEta_(NumericMatrix etaMat0){
   etaMat0 = transpose(etaMat0);
   foceiGEtaN((op_focei.neta+1)*rx->nsub);
   foceiGThetaN(op_focei.npars*(rx->nsub + 1));
-  foceiGgZm((op_focei.neta+1)*(op_focei.neta+14)/2*rx->nsub);
+  foceiGgZm(((op_focei.neta+1)*(op_focei.neta+2)/2+6*(op_focei.neta+1)+1)*rx->nsub);
   unsigned int i, j = 0, k = 0, ii=0, jj = 0;
   focei_ind *fInd;
   for (i = rx->nsub; i--;){
@@ -1249,7 +1249,7 @@ static inline void foceiSetupEta_(NumericMatrix etaMat0){
     k+=op_focei.neta;
 
     fInd->zm = &op_focei.gZm[ii];
-    ii+=(op_focei.neta+1) * (op_focei.neta + 14) / 2;
+    ii+=(op_focei.neta+1) * (op_focei.neta + 2) / 2 + 6*(op_focei.neta + 1)+1;
 
     fInd->thetaGrad = &op_focei.gthetaGrad[jj];
     jj+= op_focei.npars;
