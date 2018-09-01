@@ -2116,6 +2116,8 @@ NumericMatrix foceiCalcCov(Environment e){
       arma::mat cholR;
       try{
 	if (!e.exists("cholR")){
+          op_focei.scaleObjective=0;
+          foceiSetupTheta_(op_focei.mvi, fullT2, skipCov, 0, false);
 	  foceiCalcR(e);
 	} else {
 	  op_focei.cur += op_focei.npars*2;
