@@ -2033,12 +2033,34 @@ void foceiCalcR(Environment e){
   // R matrix = Hessian/2
   // https://github.com/cran/nmw/blob/59478fcc91f368bb3bbc23e55d8d1d5d53726a4b/R/CovStep.R
   H = 0.25*H + 0.25*H.t();
-  e["R.0"] = H;
-  arma::mat cholR;
-  arma::mat RE;
-  e["R.pd"] =  cholSE0(cholR, RE, H, op_focei.cholSEtol);
-  e["R.E"] =  wrap(RE);
-  e["cholR"] = wrap(cholR);
+  if (e.exists("R.1")){
+    // This is the 2nd attempt
+    arma::mat H2 = 0.5*H + 0.5*as<arma::mat>(e["R.1"]);
+    arma::mat cholR;
+    arma::mat RE;
+    bool rpd = cholSE0(cholR, RE, H2, op_focei.cholSEtol);
+    if (rpd){
+      e["R.pd"] =  rpd;
+      e["R.E"] =  wrap(RE);
+      e["cholR"] = wrap(cholR);
+    } else {
+      e["R.pd2"] = false;
+      e["R.2"] = H2;
+      e["R.E2"] = wrap(RE);
+      e["cholR2"] = wrap(cholR);
+      e["R.pd"] = cholSE0(cholR, RE, H, op_focei.cholSEtol);
+      e["R.E"] =  wrap(RE);
+      e["cholR"] = wrap(cholR);
+    }
+
+  } else {
+    e["R.0"] = H;
+    arma::mat cholR;
+    arma::mat RE;
+    e["R.pd"] =  cholSE0(cholR, RE, H, op_focei.cholSEtol);
+    e["R.E"] =  wrap(RE);
+    e["cholR"] = wrap(cholR);
+  }
 }
 
 // Necessary for S-matrix calculation
@@ -2192,10 +2214,12 @@ NumericMatrix foceiCalcCov(Environment e){
     arma::mat Rinv;
     if (op_focei.covMethod == 1){
       // Rinv * S *Rinv
-      op_focei.totTick = 1 + 3*op_focei.npars;
+      op_focei.totTick = 1 + 5*op_focei.npars;
     } else if (op_focei.covMethod == 2){
-      op_focei.totTick = 1 + 2*op_focei.npars;
+      // R matrix
+      op_focei.totTick = 1 + 4*op_focei.npars;
     } else if (op_focei.covMethod == 3){
+      // S matrix
       op_focei.totTick = 1 + op_focei.npars;
     }
     bool isPd;
@@ -2204,8 +2228,6 @@ NumericMatrix foceiCalcCov(Environment e){
       arma::mat cholR;
       try{
 	if (!e.exists("cholR")){
-          op_focei.scaleObjective=0;
-          foceiSetupTheta_(op_focei.mvi, fullT2, skipCov, 0, false);
 	  foceiCalcR(e);
 	} else {
 	  op_focei.cur += op_focei.npars*2;
@@ -2224,6 +2246,32 @@ NumericMatrix foceiCalcCov(Environment e){
 	  if (isPd){
 	    warning("R matrix non-positive definite but corrected (becuase of cholAccept)");
 	  }
+	}
+	if (!isPd){
+	  e["R.1"] = wrap(e["R.0"]);
+          e["R.E1"] = wrap(e["R.E1"]);
+          e["cholR1"] = wrap(e["cholR1"]);
+	  // Now Try unscaled.
+          op_focei.scaleObjective=0;
+          foceiSetupTheta_(op_focei.mvi, fullT2, skipCov, 0, false);
+	  foceiCalcR(e);
+	  isPd = as<bool>(e["R.pd"]);
+          if (!isPd){
+            isPd = true;
+            arma::vec E = as<arma::vec>(e["R.E"]);
+            for (int j = E.size(); j--;){
+              if (E[j] > op_focei.cholAccept){
+                isPd=false;
+                break;
+              }
+            }
+            if (isPd){
+              warning("R matrix non-positive definite but corrected (becuase of cholAccept)");
+            }
+	  }
+	} else {
+          op_focei.cur += op_focei.npars*2;
+	  op_focei.curTick = par_progress(op_focei.cur, op_focei.totTick, op_focei.curTick, rx->op->cores, op_focei.t0, 0);
 	}
 	if (!isPd){
           warning("R matrix non-positive definite");
