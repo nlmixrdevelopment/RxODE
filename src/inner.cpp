@@ -11,6 +11,7 @@
 #define NSUBs 100
 #define min2( a , b )  ( (a) < (b) ? (a) : (b) )
 #define innerOde(id) ind_solve(rx, id, inner_dydt_liblsoda, inner_dydt_lsoda_dum, inner_jdum_lsoda, inner_dydt, inner_update_inis, inner_global_jt)
+#define getCholOmegaInv() (as<arma::mat>(rxSymInvCholEnvCalculate(_rxInv, "chol.omegaInv", R_NilValue)))
 #define getOmega() (as<NumericMatrix>(rxSymInvCholEnvCalculate(_rxInv, "omega", R_NilValue)))
 #define getOmegaInv() (as<arma::mat>(rxSymInvCholEnvCalculate(_rxInv, "omegaInv", R_NilValue)))
 #define getOmegaDet() (as<double>(rxSymInvCholEnvCalculate(_rxInv, "log.det.OMGAinv.5", R_NilValue)))
@@ -173,7 +174,7 @@ typedef struct {
 
   double scaleTo;
   double epsilon;
-
+  
   int maxOuterIterations;
   int maxInnerIterations;
 
@@ -186,6 +187,11 @@ typedef struct {
   
 
   mat omegaInv;
+  mat cholOmegaInv;
+  mat etaM;
+  mat etaS;
+  mat eta1SD;
+  double n;
   double logDetOmegaInv5;
 
   double rEps;
@@ -220,6 +226,9 @@ typedef struct {
   double cholSEtol;
   double hessEps;
   double cholAccept;
+  double resetEtaSize;
+  int cholSEOpt;
+  int cholSECov;
 } focei_options;
 
 focei_options op_focei;
@@ -331,6 +340,7 @@ typedef struct {
   double *var;
   double *x;
   unsigned int uzm;
+  int doChol;
 } focei_ind;
 
 focei_ind *inds_focei = NULL;
@@ -517,6 +527,7 @@ void updateTheta(double *theta){
 	    omegaTheta.begin());
   setOmegaTheta(omegaTheta);
   op_focei.omegaInv = getOmegaInv();
+  op_focei.cholOmegaInv = getCholOmegaInv();
   op_focei.logDetOmegaInv5 = getOmegaDet();
   //Now Setup Last theta
   if (!op_focei.calcGrad){
@@ -571,10 +582,12 @@ double likInner0(double *eta){
       if (!ind->evid[j]){
 	inner_calc_lhs((int)id, ind->all_times[j], &ind->solve[j * op->neq], ind->lhs);
         f = ind->lhs[0]; // TBS is performed in the RxODE rx_pred_ statement. This allows derivatives of TBS to be propigated
+	if (ISNA(f)) throw std::runtime_error("bad solve");
 	// fInd->f(k, 0) = ind->lhs[0];
 	err = f - tbs(ind->dv[j]);
 	fInd->tbsLik+=tbsL(ind->dv[j]);
 	// fInd->err(k, 0) = ind->lhs[0] - ind->dv[k]; // pred-dv
+        if (ISNA(ind->lhs[op_focei.neta + 1])) throw std::runtime_error("bad solve");
 	r = _safe_zero(ind->lhs[op_focei.neta + 1]);
 	lnr =_safe_log(ind->lhs[op_focei.neta + 1]);
 	// fInd->r(k, 0) = ind->lhs[op_focei.neta+1];
@@ -851,7 +864,11 @@ double LikInner2(double *eta, int likId){
   }
   arma::mat H0;
   k=0;
-  H0=cholSE_(H, op_focei.cholSEtol);
+  if (fInd->doChol){
+    H0=chol(H);
+  } else {
+    H0=cholSE_(H, op_focei.cholSEtol);
+  }
   for (unsigned int j = H0.n_rows; j--;){
     lik -= _safe_log(H0(j,j));
   }
@@ -904,6 +921,38 @@ static inline void innerOpt1(int id, int likId){
   fInd->nInnerG=0;
   // Use eta
   // Convert Zm to Hessian, if applicable.
+  mat etaMat(fop->neta, 1);
+  if (op_focei.resetEtaSize <= 0){
+    fInd->mode = 1;
+    fInd->uzm = 1;
+    std::fill(&fInd->eta[0], &fInd->eta[0] + op_focei.neta, 0.0);
+  } else if (R_FINITE(op_focei.resetEtaSize)) {
+    std::copy(&fInd->eta[0], &fInd->eta[0] + op_focei.neta, etaMat.begin());
+    // Standardized ETAs
+    // chol(omega^-1) %*% eta
+    mat etaRes = op_focei.cholOmegaInv * etaMat;
+    bool doBreak = false;
+    for (unsigned int j = etaRes.n_rows; j--;){
+      if (fabs(etaRes(j, 0)) >= op_focei.resetEtaSize){
+	fInd->mode = 1;
+	fInd->uzm = 1;
+	std::fill(&fInd->eta[0], &fInd->eta[0] + op_focei.neta, 0.0);
+        doBreak=true;
+	break;
+      }
+    }
+    if (!doBreak){
+      etaRes = op_focei.eta1SD % etaMat;
+      for (unsigned int j = etaRes.n_rows; j--;){
+        if (fabs(etaRes(j, 0)) >= op_focei.resetEtaSize){
+          fInd->mode = 1;
+          fInd->uzm = 1;
+          std::fill(&fInd->eta[0], &fInd->eta[0] + op_focei.neta, 0.0);
+          break;
+        }
+      }
+    }
+  }
   updateZm(fInd);
   int lp = 6;
   
@@ -927,6 +976,12 @@ static inline void innerOpt1(int id, int likId){
 	 fInd->zm, 
 	 &izs, &rzs, &dzs);
   std::copy(&fInd->x[0],&fInd->x[0]+fop->neta,&fInd->eta[0]);
+  // Update variances
+  std::copy(&fInd->eta[0], &fInd->eta[0] + op_focei.neta, etaMat.begin());
+  op_focei.n = op_focei.n + 1.0;
+  mat oldM = op_focei.etaM;
+  op_focei.etaM = op_focei.etaM + (etaMat - op_focei.etaM)/op_focei.n;
+  op_focei.etaS = op_focei.etaS + (etaMat - op_focei.etaM) %  (etaMat - oldM);
   fInd->llik = f;
   // Use saved Hessian on next opimization.
   fInd->mode=2;
@@ -958,18 +1013,18 @@ void innerOpt(){
       try {
         innerOpt1(id, 0);
       } catch (...){
-	// First try resetting Hessian,
+      	// First try resetting Hessian,
         indF->mode = 1;
-	indF->uzm = 1;
-	try {
-	  innerOpt1(id, 0);
+      	indF->uzm = 1;
+      	try {
+      	  innerOpt1(id, 0);
         } catch (...) {
-	  // Now try resetting Hessian, and ETA
-	  // Rprintf("Hessian Reset for ID: %d\n", id+1);
+      	  // Now try resetting Hessian, and ETA
+      	  // Rprintf("Hessian Reset for ID: %d\n", id+1);
           indF->mode = 1;
           indF->uzm = 1;
           std::fill(&indF->eta[0], &indF->eta[0] + op_focei.neta, 0.0);
-	  try {
+      	  try {
             // Rprintf("Hessian Reset & ETA reset for ID: %d\n", id+1);
             innerOpt1(id, 0);
           } catch (...){
@@ -978,23 +1033,44 @@ void innerOpt(){
             std::fill(&indF->eta[0], &indF->eta[0] + op_focei.neta, 0.0);
             if(!op_focei.noabort){
               stop("Could not find the best eta even hessian reset and eta reset for ID %d.", id+1);
-	    } else {
+      	    } else if (indF->doChol == 1){
+      	      indF->doChol = 0; // Use generalized cholesky decomposition
+              indF->mode = 1;
+              indF->uzm = 1;
               std::fill(&indF->eta[0], &indF->eta[0] + op_focei.neta, 0.0);
-	      try{
+      	      try {
+      		innerOpt1(id, 0);
+      		indF->doChol = 1; // Use cholesky again.
+      	      } catch (...){
+      		// Just use ETA=0
+                std::fill(&indF->eta[0], &indF->eta[0] + op_focei.neta, 0.0);
+                try{
+                  innerEval(id);
+                } catch(...){
+      		  warning("Bad solve during optimization.");
+      		  // ("Cannot correct.");
+                }
+              }
+      	    } else {
+              // Just use ETA=0
+              std::fill(&indF->eta[0], &indF->eta[0] + op_focei.neta, 0.0);
+              try{
                 innerEval(id);
               } catch(...){
-		stop("Cannot corect.");
-	      }
-              // indF->lik[0] -= 100;
-              // indF->lik[1] -= 100;
-              // indF->lik[2] -= 100;
-	    }
-
+                warning("Bad solve during optimization.");
+                // ("Cannot correct.");
+              }
+            }
             // 
-	  }
+          }
         }
       }
     }
+    //
+    op_focei.eta1SD = 1/sqrt(op_focei.etaS);
+    std::fill(op_focei.etaM.begin(),op_focei.etaM.end(), 0.0);
+    std::fill(op_focei.etaS.begin(),op_focei.etaS.end(), 0.0);
+    op_focei.n = 0.0;
   }
   Rcpp::checkUserInterrupt();
 }
@@ -1160,7 +1236,7 @@ static inline void foceiSetupTrans_(CharacterVector pars){
       }
     }
   }
-  op_focei.nzm = (op_focei.neta + 1) * (op_focei.neta + 14) / 2;
+  op_focei.nzm = (op_focei.neta + 1) * (op_focei.neta + 2) / 2 + (op_focei.neta + 1)*6+1;
 }
 
 static inline void foceiSetupTheta_(List mvi,
@@ -1224,11 +1300,15 @@ static inline void foceiSetupEta_(NumericMatrix etaMat0){
   etaMat0 = transpose(etaMat0);
   foceiGEtaN((op_focei.neta+1)*rx->nsub);
   foceiGThetaN(op_focei.npars*(rx->nsub + 1));
-  foceiGgZm((op_focei.neta+1)*(op_focei.neta+14)/2*rx->nsub);
+  foceiGgZm(((op_focei.neta+1)*(op_focei.neta+2)/2+6*(op_focei.neta+1)+1)*rx->nsub);
+  op_focei.etaM = mat(op_focei.neta, 1, fill::zeros);
+  op_focei.etaS = mat(op_focei.neta, 1, fill::zeros);
+  op_focei.eta1SD = mat(op_focei.neta, 1, fill::zeros);
   unsigned int i, j = 0, k = 0, ii=0, jj = 0;
   focei_ind *fInd;
   for (i = rx->nsub; i--;){
     fInd = &(inds_focei[i]);
+    fInd->doChol=!(op_focei.cholSEOpt);
     // ETA ini
     fInd->eta = &op_focei.geta[j];
     fInd->oldEta = &op_focei.goldEta[j];
@@ -1249,7 +1329,7 @@ static inline void foceiSetupEta_(NumericMatrix etaMat0){
     k+=op_focei.neta;
 
     fInd->zm = &op_focei.gZm[ii];
-    ii+=(op_focei.neta+1) * (op_focei.neta + 14) / 2;
+    ii+=(op_focei.neta+1) * (op_focei.neta + 2) / 2 + 6*(op_focei.neta + 1)+1;
 
     fInd->thetaGrad = &op_focei.gthetaGrad[jj];
     jj+= op_focei.npars;
@@ -1511,7 +1591,7 @@ NumericVector foceiSetup_(const RObject &obj,
       ret[k] = op_focei.fullTheta[j];
       if (R_FINITE(lowerIn[j])){
         op_focei.lower[k] = lowerIn[j];
-        op_focei.lower[k] += op_focei.lower[k]*op_focei.rEps + op_focei.aEps;
+        op_focei.lower[k] += 2*(op_focei.lower[k]*op_focei.rEps + op_focei.aEps);
         // lower bound only = 1
         op_focei.nbd[k]=1;
       } else {
@@ -1519,7 +1599,7 @@ NumericVector foceiSetup_(const RObject &obj,
       }
       if (R_FINITE(upperIn[j])){
         op_focei.upper[k] = upperIn[j];
-        op_focei.upper[k] -= op_focei.upper[k]*op_focei.rEps - op_focei.aEps;
+        op_focei.upper[k] -= 2*(op_focei.upper[k]*op_focei.rEps - op_focei.aEps);
         // Upper bound only = 3
         // Upper and lower bound = 2
         op_focei.nbd[k]= 3 - op_focei.nbd[j];
@@ -1532,7 +1612,7 @@ NumericVector foceiSetup_(const RObject &obj,
       j=op_focei.fixedTrans[k];
       if (R_FINITE(lowerIn[j])){
         op_focei.lower[k] = lowerIn[j] * op_focei.scaleTo / op_focei.initPar[j];
-        op_focei.lower[k] += op_focei.lower[k]*op_focei.rEps + op_focei.aEps;
+        op_focei.lower[k] += 2*(op_focei.lower[k]*op_focei.rEps + op_focei.aEps);
         // lower bound only = 1
         op_focei.nbd[k]=1;
       } else {
@@ -1540,7 +1620,7 @@ NumericVector foceiSetup_(const RObject &obj,
       }
       if (R_FINITE(upperIn[j])){
         op_focei.upper[k] = upperIn[j] * op_focei.scaleTo / op_focei.initPar[j];
-        op_focei.upper[k] -= op_focei.upper[k]*op_focei.rEps - op_focei.aEps;
+        op_focei.upper[k] -= 2*(op_focei.upper[k]*op_focei.rEps - op_focei.aEps);
         // Upper bound only = 3
         // Upper and lower bound = 2
         op_focei.nbd[k]= 3 - op_focei.nbd[j];
@@ -1574,6 +1654,9 @@ NumericVector foceiSetup_(const RObject &obj,
   op_focei.cholSEtol=as<double>(odeO["cholSEtol"]);
   op_focei.hessEps=as<double>(odeO["hessEps"]);
   op_focei.cholAccept=as<double>(odeO["cholAccept"]);
+  op_focei.resetEtaSize=as<double>(odeO["resetEtaSize"]);
+  op_focei.cholSEOpt=as<double>(odeO["cholSEOpt"]);
+  op_focei.cholSECov=as<double>(odeO["cholSECov"]);
   return ret;
 }
 
@@ -1950,12 +2033,34 @@ void foceiCalcR(Environment e){
   // R matrix = Hessian/2
   // https://github.com/cran/nmw/blob/59478fcc91f368bb3bbc23e55d8d1d5d53726a4b/R/CovStep.R
   H = 0.25*H + 0.25*H.t();
-  e["R.0"] = H;
-  arma::mat cholR;
-  arma::mat RE;
-  e["R.pd"] =  cholSE0(cholR, RE, H, op_focei.cholSEtol);
-  e["R.E"] =  wrap(RE);
-  e["cholR"] = wrap(cholR);
+  if (e.exists("R.1")){
+    // This is the 2nd attempt
+    arma::mat H2 = 0.5*H + 0.5*as<arma::mat>(e["R.1"]);
+    arma::mat cholR;
+    arma::mat RE;
+    bool rpd = cholSE0(cholR, RE, H2, op_focei.cholSEtol);
+    if (rpd){
+      e["R.pd"] =  rpd;
+      e["R.E"] =  wrap(RE);
+      e["cholR"] = wrap(cholR);
+    } else {
+      e["R.pd2"] = false;
+      e["R.2"] = H2;
+      e["R.E2"] = wrap(RE);
+      e["cholR2"] = wrap(cholR);
+      e["R.pd"] = cholSE0(cholR, RE, H, op_focei.cholSEtol);
+      e["R.E"] =  wrap(RE);
+      e["cholR"] = wrap(cholR);
+    }
+
+  } else {
+    e["R.0"] = H;
+    arma::mat cholR;
+    arma::mat RE;
+    e["R.pd"] =  cholSE0(cholR, RE, H, op_focei.cholSEtol);
+    e["R.E"] =  wrap(RE);
+    e["cholR"] = wrap(cholR);
+  }
 }
 
 // Necessary for S-matrix calculation
@@ -2070,8 +2175,13 @@ NumericMatrix foceiCalcCov(Environment e){
       }
     }
   }
+  for (unsigned int j = rx->nsub; j--;){
+    focei_ind *fInd = &(inds_focei[j]);
+    fInd->doChol=!(op_focei.cholSECov);
+  }
   
   // Run Hessian on rescaled problem
+  op_focei.resetEtaSize = R_PosInf; // Dont reset ETAs
   NumericVector fullT = e["fullTheta"];
   NumericVector fullT2(op_focei.thetan);
   std::copy(fullT.begin(), fullT.begin()+fullT2.size(), fullT2.begin());
@@ -2104,10 +2214,12 @@ NumericMatrix foceiCalcCov(Environment e){
     arma::mat Rinv;
     if (op_focei.covMethod == 1){
       // Rinv * S *Rinv
-      op_focei.totTick = 1 + 3*op_focei.npars;
+      op_focei.totTick = 1 + 5*op_focei.npars;
     } else if (op_focei.covMethod == 2){
-      op_focei.totTick = 1 + 2*op_focei.npars;
+      // R matrix
+      op_focei.totTick = 1 + 4*op_focei.npars;
     } else if (op_focei.covMethod == 3){
+      // S matrix
       op_focei.totTick = 1 + op_focei.npars;
     }
     bool isPd;
@@ -2116,8 +2228,6 @@ NumericMatrix foceiCalcCov(Environment e){
       arma::mat cholR;
       try{
 	if (!e.exists("cholR")){
-          op_focei.scaleObjective=0;
-          foceiSetupTheta_(op_focei.mvi, fullT2, skipCov, 0, false);
 	  foceiCalcR(e);
 	} else {
 	  op_focei.cur += op_focei.npars*2;
@@ -2125,7 +2235,7 @@ NumericMatrix foceiCalcCov(Environment e){
 	}
 	isPd = as<bool>(e["R.pd"]);
 	if (!isPd){
-	  isPd=true;
+	  isPd = true;
 	  arma::vec E = as<arma::vec>(e["R.E"]);
 	  for (int j = E.size(); j--;){
 	    if (E[j] > op_focei.cholAccept){
@@ -2138,12 +2248,40 @@ NumericMatrix foceiCalcCov(Environment e){
 	  }
 	}
 	if (!isPd){
+	  e["R.1"] = wrap(e["R.0"]);
+          e["R.E1"] = wrap(e["R.E1"]);
+          e["cholR1"] = wrap(e["cholR1"]);
+	  // Now Try unscaled.
+          op_focei.scaleObjective=0;
+          foceiSetupTheta_(op_focei.mvi, fullT2, skipCov, 0, false);
+	  foceiCalcR(e);
+	  isPd = as<bool>(e["R.pd"]);
+          if (!isPd){
+            isPd = true;
+            arma::vec E = as<arma::vec>(e["R.E"]);
+            for (int j = E.size(); j--;){
+              if (E[j] > op_focei.cholAccept){
+                isPd=false;
+                break;
+              }
+            }
+            if (isPd){
+              warning("R matrix non-positive definite but corrected (becuase of cholAccept)");
+            }
+	  }
+	} else {
+          op_focei.cur += op_focei.npars*2;
+	  op_focei.curTick = par_progress(op_focei.cur, op_focei.totTick, op_focei.curTick, rx->op->cores, op_focei.t0, 0);
+	}
+	if (!isPd){
           warning("R matrix non-positive definite");
+	  e["R"] = wrap(e["R.0"]);
           op_focei.covMethod = 3;
           op_focei.cur += op_focei.npars*2;
           op_focei.curTick = par_progress(op_focei.cur, op_focei.totTick, op_focei.curTick, rx->op->cores, op_focei.t0, 0);
         } else {
           cholR = as<arma::mat>(e["cholR"]);
+          e["R"] = wrap(trans(cholR) * cholR);
           if (!e.exists("Rinv")){
             bool success  = inv(Rinv, trimatu(cholR));
             if (!success){
