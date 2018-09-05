@@ -1001,8 +1001,18 @@ void innerOpt(){
 // #ifdef _OPENMP
 // #pragma omp parallel for num_threads(cores)
 // #endif
+    // Since we are evaluating the cholesky may be off
     for (int id = 0; id < rx->nsub; id++){
-      innerEval(id);
+      focei_ind *indF = &(inds_focei[id]);
+      indF->doChol = 1;
+      try{
+        innerEval(id);
+      } catch(...) {
+	indF->doChol = 0; // Use generalized cholesky decomposition
+        innerEval(id);
+	warning("Non-positive definite individual Hessian at solution(ID=%d); FOCEi objective functions may not be comparable.",id);
+        indF->doChol = 1; // Cholesky again.
+      }
     }
   } else {
 // #ifdef _OPENMP
