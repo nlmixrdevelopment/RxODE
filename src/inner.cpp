@@ -229,6 +229,8 @@ typedef struct {
   double resetEtaSize;
   int cholSEOpt;
   int cholSECov;
+  int foCov;
+  int covTryHarder;
 } focei_options;
 
 focei_options op_focei;
@@ -1668,6 +1670,8 @@ NumericVector foceiSetup_(const RObject &obj,
   op_focei.resetEtaSize=as<double>(odeO["resetEtaSize"]);
   op_focei.cholSEOpt=as<double>(odeO["cholSEOpt"]);
   op_focei.cholSECov=as<double>(odeO["cholSECov"]);
+  op_focei.foCov=as<int>(odeO["foCov"]);
+  op_focei.covTryHarder=as<int>(odeO["covTryHarder"]);
   return ret;
 }
 
@@ -2191,8 +2195,13 @@ NumericMatrix foceiCalcCov(Environment e){
     for (unsigned int j = rx->nsub; j--;){
       focei_ind *fInd = &(inds_focei[j]);
       fInd->doChol=!(op_focei.cholSECov);
+      if (op_focei.foCov){
+	std::fill(&fInd->eta[0],&fInd->eta[0]+op_focei.neta,0.0);
+      }
     }
-    // Run Hessian on rescaled problem
+    if (op_focei.foCov){
+      op_focei.maxInnerIterations = 0;
+    }
     op_focei.resetEtaSize = R_PosInf; // Dont reset ETAs
     NumericVector fullT = e["fullTheta"];
     NumericVector fullT2(op_focei.thetan);
@@ -2259,7 +2268,7 @@ NumericMatrix foceiCalcCov(Environment e){
               warning("R matrix non-positive definite but corrected (becuase of cholAccept)");
             }
           }
-          if (!isPd){
+          if (!isPd && op_focei.covTryHarder){
             e["R.1"] = wrap(e["R.0"]);
             e["R.E1"] = wrap(e["R.E1"]);
             e["cholR1"] = wrap(e["cholR1"]);
