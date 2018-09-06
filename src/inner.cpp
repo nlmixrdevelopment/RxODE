@@ -2149,123 +2149,102 @@ void foceiS(double *theta, Environment e){
 
 //[[Rcpp::export]]
 NumericMatrix foceiCalcCov(Environment e){
-  // Check boundaries
-  unsigned int j, k;
-  double cur;
-  bool boundary=false;
-  if (op_focei.boundTol > 0){
-    for (k = op_focei.npars; k--;){
-      if (op_focei.nbd[k] != 0){
-        // bounds
-        j=op_focei.fixedTrans[k];
-        cur = (op_focei.scaleTo > 0) ? (op_focei.fullTheta[j] / op_focei.initPar[k]  *op_focei.scaleTo) : op_focei.fullTheta[j];
-        if (op_focei.nbd[k] == 1){
-          // Lower only
-          if ((cur-op_focei.lower[k])/cur < op_focei.boundTol){
-            boundary = true;
-            break;
-          }
-        } else if (op_focei.nbd[k] == 2){
-          // Upper and lower
-          if ((cur-op_focei.lower[k])/cur < op_focei.boundTol){
-            boundary = true;
-            break;
-          }
-          if ((op_focei.upper[k]-cur)/cur < op_focei.boundTol){
-            boundary = true;
-            break;
-          }
-        } else {
-          // Upper only
-          if ((op_focei.upper[k]-cur)/cur < op_focei.boundTol){
-            boundary = true;
-            break;
+  if (op_focei.covMethod){
+    // Check boundaries
+    unsigned int j, k;
+    double cur;
+    bool boundary=false;
+    rx = getRxSolve_();
+    if (op_focei.boundTol > 0){
+      for (k = op_focei.npars; k--;){
+        if (op_focei.nbd[k] != 0){
+          // bounds
+          j=op_focei.fixedTrans[k];
+          cur = (op_focei.scaleTo > 0) ? (op_focei.fullTheta[j] / op_focei.initPar[k]  *op_focei.scaleTo) : op_focei.fullTheta[j];
+          if (op_focei.nbd[k] == 1){
+            // Lower only
+            if ((cur-op_focei.lower[k])/cur < op_focei.boundTol){
+              boundary = true;
+              break;
+            }
+          } else if (op_focei.nbd[k] == 2){
+            // Upper and lower
+            if ((cur-op_focei.lower[k])/cur < op_focei.boundTol){
+              boundary = true;
+              break;
+            }
+            if ((op_focei.upper[k]-cur)/cur < op_focei.boundTol){
+              boundary = true;
+              break;
+            }
+          } else {
+            // Upper only
+            if ((op_focei.upper[k]-cur)/cur < op_focei.boundTol){
+              boundary = true;
+              break;
+            }
           }
         }
       }
     }
-  }
-  for (unsigned int j = rx->nsub; j--;){
-    focei_ind *fInd = &(inds_focei[j]);
-    fInd->doChol=!(op_focei.cholSECov);
-  }
-  
-  // Run Hessian on rescaled problem
-  op_focei.resetEtaSize = R_PosInf; // Dont reset ETAs
-  NumericVector fullT = e["fullTheta"];
-  NumericVector fullT2(op_focei.thetan);
-  std::copy(fullT.begin(), fullT.begin()+fullT2.size(), fullT2.begin());
-  LogicalVector skipCov(op_focei.thetan+op_focei.omegan);//skipCovN
-  if (op_focei.skipCovN == 0){
-    std::fill_n(skipCov.begin(), op_focei.thetan, false);
-    std::fill_n(skipCov.begin()+op_focei.thetan, skipCov.size() - op_focei.thetan, true);
-  } else {
-    std::copy(&op_focei.skipCov[0],&op_focei.skipCov[0]+op_focei.skipCovN,skipCov.begin());
-    std::fill_n(skipCov.begin()+op_focei.skipCovN,skipCov.size()-op_focei.skipCovN,true);
-  }
-  e["skipCov"] = skipCov;
-  
-  foceiSetupTheta_(op_focei.mvi, fullT2, skipCov, op_focei.scaleTo, false);
-  op_focei.rEps=op_focei.rEpsC;
-  op_focei.aEps=op_focei.aEpsC;
-  
-  if (op_focei.covMethod && !boundary){
-    rx = getRxSolve_();
-    op_focei.t0 = clock();
-    op_focei.totTick=0;
-    op_focei.cur=0;
-    op_focei.curTick=0;
-    Rprintf("Calculating covariance matrix\n");
-    
-    // Change options to covariance options
-    op_focei.scaleObjective = 0;
-    op_focei.derivMethod = op_focei.covDerivMethod;
-
-    arma::mat Rinv;
-    if (op_focei.covMethod == 1){
-      // Rinv * S *Rinv
-      op_focei.totTick = 1 + 5*op_focei.npars;
-    } else if (op_focei.covMethod == 2){
-      // R matrix
-      op_focei.totTick = 1 + 4*op_focei.npars;
-    } else if (op_focei.covMethod == 3){
-      // S matrix
-      op_focei.totTick = 1 + op_focei.npars;
+    for (unsigned int j = rx->nsub; j--;){
+      focei_ind *fInd = &(inds_focei[j]);
+      fInd->doChol=!(op_focei.cholSECov);
     }
-    bool isPd;
-    if (op_focei.covMethod == 1 || op_focei.covMethod == 2){
-      // R matrix based covariance
-      arma::mat cholR;
-      try{
-	if (!e.exists("cholR")){
-	  foceiCalcR(e);
-	} else {
-	  op_focei.cur += op_focei.npars*2;
-	  op_focei.curTick = par_progress(op_focei.cur, op_focei.totTick, op_focei.curTick, rx->op->cores, op_focei.t0, 0);
-	}
-	isPd = as<bool>(e["R.pd"]);
-	if (!isPd){
-	  isPd = true;
-	  arma::vec E = as<arma::vec>(e["R.E"]);
-	  for (int j = E.size(); j--;){
-	    if (E[j] > op_focei.cholAccept){
-              isPd=false;
-	      break;
-	    }
-	  }
-	  if (isPd){
-	    warning("R matrix non-positive definite but corrected (becuase of cholAccept)");
-	  }
-	}
-	if (!isPd){
-	  e["R.1"] = wrap(e["R.0"]);
-          e["R.E1"] = wrap(e["R.E1"]);
-          e["cholR1"] = wrap(e["cholR1"]);
-	  // Now Try unscaled.
-          op_focei.scaleObjective=0;
-          foceiSetupTheta_(op_focei.mvi, fullT2, skipCov, 0, false);
-	  foceiCalcR(e);
-	  isPd = as<bool>(e["R.pd"]);
+    // Run Hessian on rescaled problem
+    op_focei.resetEtaSize = R_PosInf; // Dont reset ETAs
+    NumericVector fullT = e["fullTheta"];
+    NumericVector fullT2(op_focei.thetan);
+    std::copy(fullT.begin(), fullT.begin()+fullT2.size(), fullT2.begin());
+    LogicalVector skipCov(op_focei.thetan+op_focei.omegan);//skipCovN
+    if (op_focei.skipCovN == 0){
+      std::fill_n(skipCov.begin(), op_focei.thetan, false);
+      std::fill_n(skipCov.begin()+op_focei.thetan, skipCov.size() - op_focei.thetan, true);
+    } else {
+      std::copy(&op_focei.skipCov[0],&op_focei.skipCov[0]+op_focei.skipCovN,skipCov.begin());
+      std::fill_n(skipCov.begin()+op_focei.skipCovN,skipCov.size()-op_focei.skipCovN,true);
+    }
+    e["skipCov"] = skipCov;
+  
+    foceiSetupTheta_(op_focei.mvi, fullT2, skipCov, op_focei.scaleTo, false);
+    op_focei.rEps=op_focei.rEpsC;
+    op_focei.aEps=op_focei.aEpsC;
+  
+    if (op_focei.covMethod && !boundary){
+      rx = getRxSolve_();
+      op_focei.t0 = clock();
+      op_focei.totTick=0;
+      op_focei.cur=0;
+      op_focei.curTick=0;
+      Rprintf("Calculating covariance matrix\n");
+    
+      // Change options to covariance options
+      op_focei.scaleObjective = 0;
+      op_focei.derivMethod = op_focei.covDerivMethod;
+
+      arma::mat Rinv;
+      if (op_focei.covMethod == 1){
+        // Rinv * S *Rinv
+        op_focei.totTick = 1 + 5*op_focei.npars;
+      } else if (op_focei.covMethod == 2){
+        // R matrix
+        op_focei.totTick = 1 + 4*op_focei.npars;
+      } else if (op_focei.covMethod == 3){
+        // S matrix
+        op_focei.totTick = 1 + op_focei.npars;
+      }
+      bool isPd;
+      if (op_focei.covMethod == 1 || op_focei.covMethod == 2){
+        // R matrix based covariance
+        arma::mat cholR;
+        try{
+          if (!e.exists("cholR")){
+            foceiCalcR(e);
+          } else {
+            op_focei.cur += op_focei.npars*2;
+            op_focei.curTick = par_progress(op_focei.cur, op_focei.totTick, op_focei.curTick, rx->op->cores, op_focei.t0, 0);
+          }
+          isPd = as<bool>(e["R.pd"]);
           if (!isPd){
             isPd = true;
             arma::vec E = as<arma::vec>(e["R.E"]);
@@ -2278,156 +2257,179 @@ NumericMatrix foceiCalcCov(Environment e){
             if (isPd){
               warning("R matrix non-positive definite but corrected (becuase of cholAccept)");
             }
-	  }
-	} else {
-          op_focei.cur += op_focei.npars*2;
-	  op_focei.curTick = par_progress(op_focei.cur, op_focei.totTick, op_focei.curTick, rx->op->cores, op_focei.t0, 0);
-	}
-	if (!isPd){
-          warning("R matrix non-positive definite");
-	  e["R"] = wrap(e["R.0"]);
+          }
+          if (!isPd){
+            e["R.1"] = wrap(e["R.0"]);
+            e["R.E1"] = wrap(e["R.E1"]);
+            e["cholR1"] = wrap(e["cholR1"]);
+            // Now Try unscaled.
+            op_focei.scaleObjective=0;
+            foceiSetupTheta_(op_focei.mvi, fullT2, skipCov, 0, false);
+            foceiCalcR(e);
+            isPd = as<bool>(e["R.pd"]);
+            if (!isPd){
+              isPd = true;
+              arma::vec E = as<arma::vec>(e["R.E"]);
+              for (int j = E.size(); j--;){
+                if (E[j] > op_focei.cholAccept){
+                  isPd=false;
+                  break;
+                }
+              }
+              if (isPd){
+                warning("R matrix non-positive definite but corrected (becuase of cholAccept)");
+              }
+            }
+          } else {
+            op_focei.cur += op_focei.npars*2;
+            op_focei.curTick = par_progress(op_focei.cur, op_focei.totTick, op_focei.curTick, rx->op->cores, op_focei.t0, 0);
+          }
+          if (!isPd){
+            warning("R matrix non-positive definite");
+            e["R"] = wrap(e["R.0"]);
+            op_focei.covMethod = 3;
+            op_focei.cur += op_focei.npars*2;
+            op_focei.curTick = par_progress(op_focei.cur, op_focei.totTick, op_focei.curTick, rx->op->cores, op_focei.t0, 0);
+          } else {
+            cholR = as<arma::mat>(e["cholR"]);
+            e["R"] = wrap(trans(cholR) * cholR);
+            if (!e.exists("Rinv")){
+              bool success  = inv(Rinv, trimatu(cholR));
+              if (!success){
+                warning("Hessian (R) matrix seems singular; Using pseudo-inverse");
+                Rinv = pinv(trimatu(cholR));
+              }
+              Rinv = Rinv * Rinv.t();
+              e["Rinv"] = wrap(Rinv);
+            } else {
+              Rinv = as<arma::mat>(e["Rinv"]);
+            }
+            op_focei.cur++;
+            op_focei.curTick = par_progress(op_focei.cur, op_focei.totTick, op_focei.curTick, rx->op->cores, op_focei.t0, 0);
+            if (!e.exists("covR")){
+              e["covR"] = wrap(2*Rinv);
+            }
+            if (op_focei.covMethod == 2){
+              e["cov"] = as<NumericMatrix>(e["covR"]);
+            }
+          }
+        } catch (...){
+          Rprintf("\rR matrix calculation failed; Switch to S-matrix covariance.\n");
           op_focei.covMethod = 3;
           op_focei.cur += op_focei.npars*2;
           op_focei.curTick = par_progress(op_focei.cur, op_focei.totTick, op_focei.curTick, rx->op->cores, op_focei.t0, 0);
-        } else {
-          cholR = as<arma::mat>(e["cholR"]);
-          e["R"] = wrap(trans(cholR) * cholR);
-          if (!e.exists("Rinv")){
-            bool success  = inv(Rinv, trimatu(cholR));
-            if (!success){
-              warning("Hessian (R) matrix seems singular; Using pseudo-inverse");
-              Rinv = pinv(trimatu(cholR));
-            }
-            Rinv = Rinv * Rinv.t();
-            e["Rinv"] = wrap(Rinv);
-          } else {
-            Rinv = as<arma::mat>(e["Rinv"]);
-          }
-          op_focei.cur++;
-          op_focei.curTick = par_progress(op_focei.cur, op_focei.totTick, op_focei.curTick, rx->op->cores, op_focei.t0, 0);
-          if (!e.exists("covR")){
-            e["covR"] = wrap(2*Rinv);
-          }
-          if (op_focei.covMethod == 2){
-            e["cov"] = as<NumericMatrix>(e["covR"]);
-          }
         }
-      } catch (...){
-        Rprintf("\rR matrix calculation failed; Switch to S-matrix covariance.\n");
-        op_focei.covMethod = 3;
-        op_focei.cur += op_focei.npars*2;
-        op_focei.curTick = par_progress(op_focei.cur, op_focei.totTick, op_focei.curTick, rx->op->cores, op_focei.t0, 0);
       }
-    }
-    arma::mat cholS;
-    int origCov = op_focei.covMethod;
-    if (op_focei.covMethod == 1 || op_focei.covMethod == 3){
-      try{
-        arma::vec dpar(op_focei.npars);
-        unsigned int j, k;
-        for (k = op_focei.npars; k--;){
-          j=op_focei.fixedTrans[k];
-          dpar[k] = op_focei.fullTheta[j];
-        }      
-        if (!e.exists("cholS")){
-	  foceiSetupTheta_(op_focei.mvi, fullT2, skipCov, 0, false);
-          foceiS(&dpar[0], e);
-	} else {
-	  op_focei.cur += op_focei.npars;
-	  op_focei.curTick = par_progress(op_focei.cur, op_focei.totTick, op_focei.curTick, rx->op->cores, op_focei.t0, 0);
-	}
-        isPd = as<bool>(e["S.pd"]);
-        if (!isPd){
-          isPd=true;
-          arma::vec E = as<arma::vec>(e["S.E"]);
-          for (int j = E.size(); j--;){
-            if (E[j] > op_focei.cholAccept){
-              isPd=false;
-              break;
+      arma::mat cholS;
+      int origCov = op_focei.covMethod;
+      if (op_focei.covMethod == 1 || op_focei.covMethod == 3){
+        try{
+          arma::vec dpar(op_focei.npars);
+          unsigned int j, k;
+          for (k = op_focei.npars; k--;){
+            j=op_focei.fixedTrans[k];
+            dpar[k] = op_focei.fullTheta[j];
+          }      
+          if (!e.exists("cholS")){
+            foceiSetupTheta_(op_focei.mvi, fullT2, skipCov, 0, false);
+            foceiS(&dpar[0], e);
+          } else {
+            op_focei.cur += op_focei.npars;
+            op_focei.curTick = par_progress(op_focei.cur, op_focei.totTick, op_focei.curTick, rx->op->cores, op_focei.t0, 0);
+          }
+          isPd = as<bool>(e["S.pd"]);
+          if (!isPd){
+            isPd=true;
+            arma::vec E = as<arma::vec>(e["S.E"]);
+            for (int j = E.size(); j--;){
+              if (E[j] > op_focei.cholAccept){
+                isPd=false;
+                break;
+              }
+            }
+            if (isPd){
+              warning("S matrix non-positive definite but corrected (becuase of cholAccept)");
             }
           }
-          if (isPd){
-            warning("S matrix non-positive definite but corrected (becuase of cholAccept)");
+          if (!isPd){
+            warning("S matrix non-positive definite");
+            if (op_focei.covMethod == 1){
+              e["cov"] = as<NumericMatrix>(e["covR"]);
+              op_focei.covMethod = 2;
+            } else {
+              Rprintf("Cannot calculate covariance.\n");
+            }
+            op_focei.cur += op_focei.npars*2;
+            op_focei.curTick = par_progress(op_focei.cur, op_focei.totTick, op_focei.curTick, rx->op->cores, op_focei.t0, 0);
+          } else {
+            cholS = as<arma::mat>(e["cholS"]);
+            arma::mat S;
+            if (e.exists("S")){
+              S = as<arma::mat>(e["S"]);
+            } else {
+              S = trans(cholS) * cholS;
+              e["S"] = wrap(S);
+            }
+            if (op_focei.covMethod == 1){
+              e["cov"] = Rinv * S *Rinv;
+            } else {
+              mat Sinv;
+              bool success;
+              success = inv(Sinv, trimatu(cholS));
+              if (!success){
+                warning("Hessian (S) matrix seems singular; Using pseudo-inverse");
+                Sinv = pinv(trimatu(cholS));
+              }
+              Sinv = Sinv * Sinv.t();
+              op_focei.cur++;
+              op_focei.curTick = par_progress(op_focei.cur, op_focei.totTick, op_focei.curTick, rx->op->cores, op_focei.t0, 0);
+              e["cov"]= 4 * Sinv;
+            }
           }
-        }
-        if (!isPd){
-          warning("S matrix non-positive definite");
-	  if (op_focei.covMethod == 1){
-	    e["cov"] = as<NumericMatrix>(e["covR"]);
+        } catch (...){
+          if (op_focei.covMethod == 1){
+            Rprintf("\rS matrix calculation failed; Switch to R-matrix covariance.\n");
+            e["cov"] = as<NumericMatrix>(e["covR"]);
             op_focei.covMethod = 2;
           } else {
-	    Rprintf("Cannot calculate covariance.\n");
-	  }
-          op_focei.cur += op_focei.npars*2;
-          op_focei.curTick = par_progress(op_focei.cur, op_focei.totTick, op_focei.curTick, rx->op->cores, op_focei.t0, 0);
-	} else {
-          cholS = as<arma::mat>(e["cholS"]);
-          arma::mat S;
-          if (e.exists("S")){
-            S = as<arma::mat>(e["S"]);
-          } else {
-            S = trans(cholS) * cholS;
-            e["S"] = wrap(S);
-          }
-          if (op_focei.covMethod == 1){
-            e["cov"] = Rinv * S *Rinv;
-          } else {
-            mat Sinv;
-            bool success;
-            success = inv(Sinv, trimatu(cholS));
-            if (!success){
-              warning("Hessian (S) matrix seems singular; Using pseudo-inverse");
-              Sinv = pinv(trimatu(cholS));
-            }
-            Sinv = Sinv * Sinv.t();
+            op_focei.covMethod=0;
+            Rprintf("\rCould not calculate covariance matrix.\n");
             op_focei.cur++;
             op_focei.curTick = par_progress(op_focei.cur, op_focei.totTick, op_focei.curTick, rx->op->cores, op_focei.t0, 0);
-            e["cov"]= 4 * Sinv;
           }
-	}
-      } catch (...){
-        if (op_focei.covMethod == 1){
-          Rprintf("\rS matrix calculation failed; Switch to R-matrix covariance.\n");
-	  e["cov"] = as<NumericMatrix>(e["covR"]);
-          op_focei.covMethod = 2;
-        } else {
-	  op_focei.covMethod=0;
-	  Rprintf("\rCould not calculate covariance matrix.\n");
-	  op_focei.cur++;
-          op_focei.curTick = par_progress(op_focei.cur, op_focei.totTick, op_focei.curTick, rx->op->cores, op_focei.t0, 0);
-	}
-      }
-    }
-    op_focei.cur=op_focei.totTick;
-    op_focei.curTick = par_progress(op_focei.cur, op_focei.totTick, op_focei.curTick, rx->op->cores, op_focei.t0, 0);
-    if (op_focei.covMethod==0){
-      warning("Covariance step failed");
-      NumericMatrix ret;
-      return ret;
-    } else {
-      if (op_focei.covMethod == 1){
-	e["covMethod"] = "r,s";
-      } else if (op_focei.covMethod == 2){
-        e["covMethod"] = "r";
-        if (origCov != 2){
-	  warning("Using R matrix to calculate covariance");
-	}
-      } else if (op_focei.covMethod == 3){
-	e["covMethod"] = "s";
-        if (origCov != 2){
-          warning("Using S matrix to calculate covariance");
         }
       }
-      return e["cov"];
+      op_focei.cur=op_focei.totTick;
+      op_focei.curTick = par_progress(op_focei.cur, op_focei.totTick, op_focei.curTick, rx->op->cores, op_focei.t0, 0);
+      if (op_focei.covMethod==0){
+        warning("Covariance step failed");
+        NumericMatrix ret;
+        return ret;
+      } else {
+        if (op_focei.covMethod == 1){
+          e["covMethod"] = "r,s";
+        } else if (op_focei.covMethod == 2){
+          e["covMethod"] = "r";
+          if (origCov != 2){
+            warning("Using R matrix to calculate covariance");
+          }
+        } else if (op_focei.covMethod == 3){
+          e["covMethod"] = "s";
+          if (origCov != 2){
+            warning("Using S matrix to calculate covariance");
+          }
+        }
+        return e["cov"];
+      }
+    } else {
+      if (boundary){
+        warning("Parameter estimate near boundary; covariance not caculated. Use getVarCov to calculate anyway.");
+      }
+      op_focei.cur=op_focei.totTick;
+      op_focei.curTick = par_progress(op_focei.cur, op_focei.totTick, op_focei.curTick, rx->op->cores, op_focei.t0, 0);
+      NumericMatrix ret;
+      return ret;
     }
-  } else {
-    if (boundary){
-      warning("Parameter estimate near boundary; covariance not caculated. Use getVarCov to calculate anyway.");
-    }
-    op_focei.cur=op_focei.totTick;
-    op_focei.curTick = par_progress(op_focei.cur, op_focei.totTick, op_focei.curTick, rx->op->cores, op_focei.t0, 0);
-    NumericMatrix ret;
-    return ret;
   }
 }
 
