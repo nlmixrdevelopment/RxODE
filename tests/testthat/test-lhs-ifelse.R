@@ -35,9 +35,9 @@ rxPermissive({
         s <- rxSolve(ode.2c.ka, params=c(V=40, CL=18, V2=297, Q=10, KA= 0.3), df)
 
         expect_equal(sort(unique(s$C4)), c(1, 2, 3))
-        expect_equal(s[c$C4 == 1, "prd"], s[c$C4 == 1, "depot"])
-        expect_equal(s[c$C4 == 2, "prd"], s[c$C4 == 2, "centr"])
-        expect_equal(s[c$C4 == 3, "prd"], s[c$C4 == 3, "peri"])
+        expect_equal(s[s$C4 == 1, "prd"], s[s$C4 == 1, "depot"])
+        expect_equal(s[s$C4 == 2, "prd"], s[s$C4 == 2, "centr"])
+        expect_equal(s[s$C4 == 3, "prd"], s[s$C4 == 3, "peri"])
 
     })
 })

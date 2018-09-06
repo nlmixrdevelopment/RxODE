@@ -26,6 +26,7 @@ rxPermissive({
                        events = et,
                        inits = c(X=1, Y=1, Z=1),
                        covs = cov, add.cov=TRUE,
+                       covsInterpolation="linear",
                        method=meth);
         sink();
         lin.interp <- read.csv("temp.csv");
