@@ -221,7 +221,7 @@ double rx_approxP(double v, double *x, double *y, int n,
 /* End approx from R */
 
 
-void _update_par_ptr(double t, unsigned int id, rx_solve *rx){
+void _update_par_ptr(double t, unsigned int id, rx_solve *rx, int idx){
   rx_solving_options_ind *ind;
   ind = &(rx->subjects[id]);
   rx_solving_options *op = rx->op;
@@ -235,11 +235,14 @@ void _update_par_ptr(double t, unsigned int id, rx_solve *rx){
 	  double *par_ptr = ind->par_ptr;
           double *all_times = ind->all_times;
           double *cov_ptr = ind->cov_ptr;
-          // Use the same methodology as approxfun.
-          // There is some rumor the C function may go away...
-          ind->ylow = cov_ptr[ind->n_all_times*k];
-          ind->yhigh = cov_ptr[ind->n_all_times*k+ind->n_all_times-1];
-          par_ptr[op->par_cov[k]-1] = rx_approxP(t, all_times, cov_ptr+ind->n_all_times*k, ind->n_all_times, op, ind);
+	  if (idx > 0 && idx < ind->n_all_times && t == all_times[idx]){
+	    par_ptr[op->par_cov[k]-1] = cov_ptr[ind->n_all_times*k+idx];
+	  } else {
+            // Use the same methodology as approxfun.
+            ind->ylow = cov_ptr[ind->n_all_times*k];
+            ind->yhigh = cov_ptr[ind->n_all_times*k+ind->n_all_times-1];
+            par_ptr[op->par_cov[k]-1] = rx_approxP(t, all_times, cov_ptr+ind->n_all_times*k, ind->n_all_times, op, ind);
+	  }
         }
       }
     }

@@ -255,7 +255,7 @@ rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, scal
                     transitAbs = NULL, atol = 1.0e-8, rtol = 1.0e-6,
                     maxsteps = 5000L, hmin = 0L, hmax = NULL, hini = 0, maxordn = 12L, maxords = 5L, ...,
                     cores,
-                    covsInterpolation = c("linear", "locf", "nocb", "midpoint"),
+                    covsInterpolation = c("locf", "linear", "nocb", "midpoint"),
                     addCov = FALSE, matrix = FALSE, sigma = NULL, sigmaDf = NULL,
                     nCoresRV = 1L, sigmaIsChol = FALSE, nDisplayProgress=10000L,
                     amountUnits = NA_character_, timeUnits = "hours", stiff,

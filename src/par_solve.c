@@ -368,6 +368,7 @@ extern void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda_opt
     xout = x[i];
     yp = ret+neq[0]*i;
     if(xout-xp > DBL_EPSILON*max(fabs(xout),fabs(xp))){
+      ind->idx=i;
       lsoda(&ctx, yp, &xp, xout);
       if (ctx.state <= 0) {
         /* REprintf("IDID=%d, %s\n", istate, err_msg[-istate-1]); */
@@ -631,6 +632,7 @@ extern void ind_lsoda0(rx_solve *rx, rx_solving_options *op, int solveid, int *n
     yp   = ind->solve+neq[0]*i;
     if(xout - xp > DBL_EPSILON*max(fabs(xout),fabs(xp)))
       {
+        ind->idx=i;
         F77_CALL(dlsoda)(dydt_lsoda, neq, yp, &xp, &xout, &itol, &(op->RTOL), &(op->ATOL), &itask,
                          &istate, &iopt, rwork, &lrw, iwork, &liw, jdum, &jt);
 
@@ -771,6 +773,7 @@ extern void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int *neq
     }
     if(xout-xp>DBL_EPSILON*max(fabs(xout),fabs(xp)))
       {
+        ind->idx=i;
         idid = dop853(neq,       /* dimension of the system <= UINT_MAX-1*/
                       c_dydt,       /* function computing the value of f(x,y) */
                       xp,           /* initial x-value */
@@ -967,6 +970,7 @@ extern void rxCalcLhsP(int i, rx_solve *rx, unsigned int id){
   solve = ind->solve;
   lhs = ind->lhs;
   if (i < ind->n_all_times){
+    ind->idx=i;
     calc_lhs((int)id, ind->all_times[i], solve+i*op->neq, lhs);
   } else {
     error("LHS cannot be calculated (%dth entry).",i);
@@ -1364,6 +1368,7 @@ extern void rxSolveOldC(int *neqa,
   if (*nlhsa) {
     for (i=0; i<*ntime; i++){
       // 0 = first subject; Calc lhs changed...
+      ind->idx = i;
       calc_lhs(0, timep[i], retp+i*(*neqa), lhsp+i*(*nlhsa));
     }
   }

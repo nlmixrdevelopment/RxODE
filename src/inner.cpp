@@ -580,6 +580,7 @@ double likInner0(double *eta){
     double f, err, r, fpm, rp,lnr;
     for (j = ind->n_all_times; j--;){
       if (!ind->evid[j]){
+	ind->idx=j;
 	inner_calc_lhs((int)id, ind->all_times[j], &ind->solve[j * op->neq], ind->lhs);
         f = ind->lhs[0]; // TBS is performed in the RxODE rx_pred_ statement. This allows derivatives of TBS to be propigated
 	if (ISNA(f)) throw std::runtime_error("bad solve");
@@ -2431,6 +2432,8 @@ NumericMatrix foceiCalcCov(Environment e){
       return ret;
     }
   }
+  NumericMatrix ret;
+  return ret;
 }
 
 LogicalVector rxSolveFree();

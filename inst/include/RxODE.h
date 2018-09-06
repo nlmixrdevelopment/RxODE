@@ -72,6 +72,7 @@ typedef struct {
   int idosen;
   int id;
   int sim;
+  int idx;
   double ylow;
   double yhigh;
   double lambda;

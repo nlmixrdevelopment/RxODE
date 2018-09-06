@@ -1677,9 +1677,9 @@ void codegen(FILE *outpt, int show_ode) {
       }
     }
     if (show_ode == 3){
-      fprintf(outpt,"  _update_par_ptr(0.0, _cSub, _solveData);\n");
+      fprintf(outpt,"  _update_par_ptr(0.0, _cSub, _solveData, _idx);\n");
     } else {
-      fprintf(outpt,"  _update_par_ptr(t, _cSub, _solveData);\n");
+      fprintf(outpt,"  _update_par_ptr(t, _cSub, _solveData, _idx);\n");
     }
     prnt_vars(1, outpt, 1, "", "\n",show_ode);                   /* pass system pars */
     for (i=0; i<tb.nd; i++) {                   /* name state vars */

@@ -5,6 +5,7 @@
 #include <Rmath.h>
 #include <R_ext/Rdynload.h>
 #define JAC_Rprintf Rprintf
+#define _idx (&_solveData->subjects[_cSub])->idx
 #define JAC0_Rprintf if ( (&_solveData->subjects[_cSub])->jac_counter == 0) Rprintf
 #define ODE_Rprintf Rprintf
 #define ODE0_Rprintf if ( (&_solveData->subjects[_cSub])->dadt_counter == 0) Rprintf
@@ -153,7 +154,7 @@ typedef double (*solveLinB_p) (rx_solve *rx, unsigned int id, double t, int linC
 
 solveLinB_p solveLinB;
 
-typedef void (*_update_par_ptr_p)(double t, unsigned int id, rx_solve *rx);
+typedef void (*_update_par_ptr_p)(double t, unsigned int id, rx_solve *rx, int idx);
 
 _update_par_ptr_p _update_par_ptr;
 

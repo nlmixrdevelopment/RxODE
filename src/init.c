@@ -127,7 +127,7 @@ void rxOptionsIniFocei();
 
 double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt, int diff1, int diff2, double d_A, double d_alpha, double d_B, double d_beta, double d_C, double d_gamma, double d_ka, double d_tlag);
 
-void _update_par_ptr(double t, unsigned int id, rx_solve *rx);
+void _update_par_ptr(double t, unsigned int id, rx_solve *rx, int idx);
 
 void R_init_RxODE(DllInfo *info){
   R_CallMethodDef callMethods[]  = {
