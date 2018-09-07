@@ -17,6 +17,10 @@ likInner <- function(eta, id = 1L) {
     .Call(`_RxODE_likInner`, eta, id)
 }
 
+cholSE0 <- function(Ao, E, A, tol) {
+    .Call(`_RxODE_cholSE0`, Ao, E, A, tol)
+}
+
 cholSE_ <- function(A, tol) {
     .Call(`_RxODE_cholSE_`, A, tol)
 }

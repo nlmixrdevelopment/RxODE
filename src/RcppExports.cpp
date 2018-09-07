@@ -66,6 +66,20 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// cholSE0
+bool cholSE0(arma::mat& Ao, arma::mat& E, arma::mat A, double tol);
+RcppExport SEXP _RxODE_cholSE0(SEXP AoSEXP, SEXP ESEXP, SEXP ASEXP, SEXP tolSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat& >::type Ao(AoSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type E(ESEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type A(ASEXP);
+    Rcpp::traits::input_parameter< double >::type tol(tolSEXP);
+    rcpp_result_gen = Rcpp::wrap(cholSE0(Ao, E, A, tol));
+    return rcpp_result_gen;
+END_RCPP
+}
 // cholSE_
 arma::mat cholSE_(arma::mat A, double tol);
 RcppExport SEXP _RxODE_cholSE_(SEXP ASEXP, SEXP tolSEXP) {

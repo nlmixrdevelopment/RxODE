@@ -13,6 +13,7 @@
 #define innerOde(id) ind_solve(rx, id, inner_dydt_liblsoda, inner_dydt_lsoda_dum, inner_jdum_lsoda, inner_dydt, inner_update_inis, inner_global_jt)
 #define getCholOmegaInv() (as<arma::mat>(rxSymInvCholEnvCalculate(_rxInv, "chol.omegaInv", R_NilValue)))
 #define getOmega() (as<NumericMatrix>(rxSymInvCholEnvCalculate(_rxInv, "omega", R_NilValue)))
+#define getOmegaMat() (as<arma::mat>(rxSymInvCholEnvCalculate(_rxInv, "omega", R_NilValue)))
 #define getOmegaInv() (as<arma::mat>(rxSymInvCholEnvCalculate(_rxInv, "omegaInv", R_NilValue)))
 #define getOmegaDet() (as<double>(rxSymInvCholEnvCalculate(_rxInv, "log.det.OMGAinv.5", R_NilValue)))
 #define getOmegaN() as<int>(rxSymInvCholEnvCalculate(_rxInv, "ntheta", R_NilValue))
@@ -186,6 +187,7 @@ typedef struct {
   int printOuter;
   
 
+  mat omega;
   mat omegaInv;
   mat cholOmegaInv;
   mat etaM;
@@ -229,7 +231,7 @@ typedef struct {
   double resetEtaSize;
   int cholSEOpt;
   int cholSECov;
-  int foCov;
+  int fo;
   int covTryHarder;
 } focei_options;
 
@@ -528,15 +530,22 @@ void updateTheta(double *theta){
 	    &op_focei.fullTheta[0] + op_focei.thetan + op_focei.omegan, 
 	    omegaTheta.begin());
   setOmegaTheta(omegaTheta);
-  op_focei.omegaInv = getOmegaInv();
-  op_focei.cholOmegaInv = getCholOmegaInv();
-  op_focei.logDetOmegaInv5 = getOmegaDet();
+  if (op_focei.fo){
+    op_focei.omega = getOmegaMat();
+  } else {
+    op_focei.omegaInv = getOmegaInv();
+    op_focei.cholOmegaInv = getCholOmegaInv();
+    op_focei.logDetOmegaInv5 = getOmegaDet();
+  }
   //Now Setup Last theta
   if (!op_focei.calcGrad){
     // op_focei.estStr=sc + un + ex;
     std::copy(&theta[0], &theta[0] + op_focei.npars, &op_focei.theta[0]);
   }  
 }
+
+arma::mat cholSE_(arma::mat A, double tol);
+
 double likInner0(double *eta){
   // id = eta[#neta]
   // eta = eta
@@ -565,7 +574,10 @@ double likInner0(double *eta){
     fInd->lp  = arma::mat(op_focei.neta, 1);
     fInd->a   = arma::mat(fInd->nobs, op_focei.neta);
     fInd->B   = arma::mat(fInd->nobs, 1);
-    if (op_focei.interaction){
+    mat Vid;
+    if (op_focei.fo){
+      Vid = arma::mat(fInd->nobs, fInd->nobs, fill::zeros);
+    } else if (op_focei.interaction){
       fInd->c   = arma::mat(fInd->nobs, op_focei.neta);
     }
     for (j = op_focei.neta; j--;){
@@ -592,45 +604,79 @@ double likInner0(double *eta){
 	// fInd->err(k, 0) = ind->lhs[0] - ind->dv[k]; // pred-dv
         if (ISNA(ind->lhs[op_focei.neta + 1])) throw std::runtime_error("bad solve");
 	r = _safe_zero(ind->lhs[op_focei.neta + 1]);
-	lnr =_safe_log(ind->lhs[op_focei.neta + 1]);
-	// fInd->r(k, 0) = ind->lhs[op_focei.neta+1];
-	// fInd->B(k, 0) = 2.0/ind->lhs[op_focei.neta+1];
-	// lhs 0 = F
-	// lhs 1-eta = df/deta
-	// FIXME faster initiliaitzation via copy or elim
-        fInd->B(k, 0) = 2.0/r;
-        if (op_focei.interaction){
-	  for (i = op_focei.neta; i--; ){
-	    fpm = fInd->a(k, i) = ind->lhs[i + 1]; // Almquist uses different a (see eq #15)
-            rp  = ind->lhs[i + op_focei.neta + 2];
-            fInd->c(k, i) = rp/r;
-            // lp is eq 12 in Almquist 2015
-            // // .5*apply(eps*fp*B + .5*eps^2*B*c - c, 2, sum) - OMGAinv %*% ETA
-            fInd->lp(i, 0)  += 0.25 * err * err * fInd->B(k, 0) * fInd->c(k, i) - 0.5 * fInd->c(k, i) - 
-              0.5 * err * fpm * fInd->B(k, 0);
-	  }
-	} else {
+        if (op_focei.fo){
+          // FO
+          fInd->B(k, 0) = err; // res
+	  Vid(k, k) = r;
           for (i = op_focei.neta; i--; ){
-	    fpm = fInd->a(k, i) = ind->lhs[i + 1]; // Almquist uses different a (see eq #15)
-	    fInd->lp(i, 0)  -= 0.5 * err * fpm * fInd->B(k, 0);
-	  }
+            fInd->a(k, i) = ind->lhs[i+1];
+          }
+          // Ci = fpm %*% omega %*% t(fpm) + Vi; Vi=diag(r)
+        } else {
+          lnr =_safe_log(ind->lhs[op_focei.neta + 1]);
+          // fInd->r(k, 0) = ind->lhs[op_focei.neta+1];
+          // fInd->B(k, 0) = 2.0/ind->lhs[op_focei.neta+1];
+          // lhs 0 = F
+          // lhs 1-eta = df/deta
+          // FIXME faster initiliaitzation via copy or elim	
+          fInd->B(k, 0) = 2.0/r;
+          if (op_focei.interaction == 1){
+            for (i = op_focei.neta; i--; ){
+              fpm = fInd->a(k, i) = ind->lhs[i + 1]; // Almquist uses different a (see eq #15)
+              rp  = ind->lhs[i + op_focei.neta + 2];
+              fInd->c(k, i) = rp/r;
+              // lp is eq 12 in Almquist 2015
+              // // .5*apply(eps*fp*B + .5*eps^2*B*c - c, 2, sum) - OMGAinv %*% ETA
+              fInd->lp(i, 0)  += 0.25 * err * err * fInd->B(k, 0) * fInd->c(k, i) - 0.5 * fInd->c(k, i) - 
+                0.5 * err * fpm * fInd->B(k, 0);
+            }
+            // Eq #10
+            //llik <- -0.5 * sum(err ^ 2 / R + log(R));
+            fInd->llik += err * err/r + lnr;
+          } else if (op_focei.interaction == 0){
+            for (i = op_focei.neta; i--; ){
+              fpm = fInd->a(k, i) = ind->lhs[i + 1]; // Almquist uses different a (see eq #15)
+              fInd->lp(i, 0)  -= 0.5 * err * fpm * fInd->B(k, 0);
+            }
+            // Eq #10
+            //llik <- -0.5 * sum(err ^ 2 / R + log(R));
+            fInd->llik += err * err/r + lnr;
+          }
         }
-        // Eq #10
-        //llik <- -0.5 * sum(err ^ 2 / R + log(R));
-	fInd->llik += err * err/r + lnr;
         k--;
       }
     }
-    fInd->llik = -0.5*fInd->llik;
-    // Now finalize lp
-    mat etam = arma::mat(op_focei.neta, 1);
-    std::copy(&eta[0], &eta[0] + op_focei.neta, etam.begin()); // fill in etam
-    // Finalize eq. #12
-    fInd->lp = -(fInd->lp - op_focei.omegaInv * etam);
-    // Partially finalize #10
-    fInd->llik = -trace(fInd->llik - 0.5*(etam.t() * op_focei.omegaInv * etam));
-    // print(wrap(fInd->llik));
-    std::copy(&eta[0], &eta[0] + op_focei.neta, &fInd->oldEta[0]);
+    if (op_focei.fo){
+      mat Ci = fInd->a * op_focei.omega * trans(fInd->a) + Vid;
+      mat cholCi = cholSE_(Ci, op_focei.cholSEtol);
+      mat CiInv;
+      bool success  = inv(CiInv, trimatu(cholCi));
+      if (!success){
+        CiInv = pinv(trimatu(cholCi));
+      }
+      CiInv = CiInv * CiInv.t();
+      double lik = 0;
+      // 2*sum(log(diag(chol(Ci))))
+      for (unsigned int j = cholCi.n_rows; j--;){
+        lik += 2*_safe_log(cholCi(j,j));
+      }
+      // + t(.$Ri) %*% solve(Ci) %*% .$Ri
+      mat rest =trans(fInd->B) * CiInv * fInd->B;
+      lik += rest(0,0);
+      // lik = -2*ll
+      fInd->llik = -0.5*lik;
+    } else {
+      fInd->llik = -0.5*fInd->llik;
+      // Now finalize lp
+      mat etam = arma::mat(op_focei.neta, 1);
+      std::copy(&eta[0], &eta[0] + op_focei.neta, etam.begin()); // fill in etam
+      // Finalize eq. #12
+      fInd->lp = -(fInd->lp - op_focei.omegaInv * etam);
+      // Partially finalize #10
+      fInd->llik = -trace(fInd->llik - 0.5*(etam.t() * op_focei.omegaInv * etam));
+      // print(wrap(fInd->llik));
+      std::copy(&eta[0], &eta[0] + op_focei.neta, &fInd->oldEta[0]);
+    }
   }
   return fInd->llik;
 }
@@ -835,47 +881,54 @@ double LikInner2(double *eta, int likId){
   focei_ind *fInd = &(inds_focei[id]);
   // print(wrap(-likInner0(eta)));
   // print(wrap(op_focei.logDetOmegaInv5));
-  double lik = -likInner0(eta) + op_focei.logDetOmegaInv5;
-  // print(wrap(lik));
-  rx = getRxSolve_();
-  // rx_solving_options_ind ind = rx->subjects[id];
-  // Calclaute lik first to calculate components for Hessian
-  // Hessian 
-  mat H(op_focei.neta, op_focei.neta, fill::zeros);
-  int k, l;
-  mat tmp;
-  // This is actually -H
-  if (op_focei.interaction){
-    for (k = op_focei.neta; k--;){
-      for (l = k+1; l--;){
-        // tmp = fInd->a.col(l) %  fInd->B % fInd->a.col(k);
-        H(k, l) = 0.5*sum(fInd->a.col(l) %  fInd->B % fInd->a.col(k) + 
-			  fInd->c.col(l) % fInd->c.col(k)) +
-          op_focei.omegaInv(k, l);
-	H(l, k) = H(k, l);
+  double lik=0;
+  if (op_focei.fo){
+    // Already almost completely calculated.
+    lik = fInd->llik;
+  } else {
+    lik = -likInner0(eta) + op_focei.logDetOmegaInv5;
+    // print(wrap(lik));
+    rx = getRxSolve_();
+    // rx_solving_options_ind ind = rx->subjects[id];
+    // Calclaute lik first to calculate components for Hessian
+    // Hessian 
+    mat H(op_focei.neta, op_focei.neta, fill::zeros);
+    int k, l;
+    mat tmp;
+    // This is actually -H
+    if (op_focei.interaction){
+      for (k = op_focei.neta; k--;){
+        for (l = k+1; l--;){
+          // tmp = fInd->a.col(l) %  fInd->B % fInd->a.col(k);
+          H(k, l) = 0.5*sum(fInd->a.col(l) %  fInd->B % fInd->a.col(k) + 
+                            fInd->c.col(l) % fInd->c.col(k)) +
+            op_focei.omegaInv(k, l);
+          H(l, k) = H(k, l);
+        }
+      }
+    } else {
+      for (k = op_focei.neta; k--;){
+        for (l = k+1; l--;){
+          // tmp = fInd->a.col(l) %  fInd->B % fInd->a.col(k);
+          H(k, l) = 0.5*sum(fInd->a.col(l) %  fInd->B % fInd->a.col(k)) +
+            op_focei.omegaInv(k, l);
+          H(l, k) = H(k, l);
+        }
       }
     }
-  } else {
-    for (k = op_focei.neta; k--;){
-      for (l = k+1; l--;){
-        // tmp = fInd->a.col(l) %  fInd->B % fInd->a.col(k);
-        H(k, l) = 0.5*sum(fInd->a.col(l) %  fInd->B % fInd->a.col(k)) +
-          op_focei.omegaInv(k, l);
-	H(l, k) = H(k, l);
-      }
+    arma::mat H0;
+    k=0;
+    if (fInd->doChol){
+      H0=chol(H);
+    } else {
+      H0=cholSE_(H, op_focei.cholSEtol);
+    }
+    // - sum(log(H.diag()));
+    for (unsigned int j = H0.n_rows; j--;){
+      lik -= _safe_log(H0(j,j));
     }
   }
-  arma::mat H0;
-  k=0;
-  if (fInd->doChol){
-    H0=chol(H);
-  } else {
-    H0=cholSE_(H, op_focei.cholSEtol);
-  }
-  for (unsigned int j = H0.n_rows; j--;){
-    lik -= _safe_log(H0(j,j));
-  }
-  lik += fInd->tbsLik;// - sum(log(H.diag()));
+  lik += fInd->tbsLik;
   if (likId == 0){
     fInd->lik[0] = lik;
     std::copy(&fInd->eta[0], &fInd->eta[0] + op_focei.neta, &fInd->saveEta[0]);
@@ -1670,7 +1723,8 @@ NumericVector foceiSetup_(const RObject &obj,
   op_focei.resetEtaSize=as<double>(odeO["resetEtaSize"]);
   op_focei.cholSEOpt=as<double>(odeO["cholSEOpt"]);
   op_focei.cholSECov=as<double>(odeO["cholSECov"]);
-  op_focei.foCov=as<int>(odeO["foCov"]);
+  op_focei.fo=as<int>(odeO["fo"]);
+  if (op_focei.fo) op_focei.maxInnerIterations=0;
   op_focei.covTryHarder=as<int>(odeO["covTryHarder"]);
   return ret;
 }
@@ -2210,12 +2264,6 @@ NumericMatrix foceiCalcCov(Environment e){
     for (unsigned int j = rx->nsub; j--;){
       focei_ind *fInd = &(inds_focei[j]);
       fInd->doChol=!(op_focei.cholSECov);
-      if (op_focei.foCov){
-	std::fill(&fInd->eta[0],&fInd->eta[0]+op_focei.neta,0.0);
-      }
-    }
-    if (op_focei.foCov){
-      op_focei.maxInnerIterations = 0;
     }
     op_focei.resetEtaSize = R_PosInf; // Dont reset ETAs
     NumericVector fullT = e["fullTheta"];
@@ -2746,7 +2794,9 @@ void foceiFinalizeTables(Environment e){
     objDf = List::create(_["OBJF"] = as<double>(e["objective"]), _["AIC"]=as<double>(e["AIC"]), 
                          _["BIC"] = as<double>(e["BIC"]), _["Log-likelihood"]=-as<double>(e["objective"])/2);
   }
-  if (op_focei.interaction){
+  if (op_focei.fo){
+    objDf.attr("row.names") = CharacterVector::create("FO");
+  } else if (op_focei.interaction){
     objDf.attr("row.names") = CharacterVector::create("FOCEi");
   } else {
     objDf.attr("row.names") = CharacterVector::create("FOCE");
@@ -2754,10 +2804,17 @@ void foceiFinalizeTables(Environment e){
   objDf.attr("class") = "data.frame";
   e["objDf"]=objDf;
   if (!e.exists("method")){
-    e["method"] = "FOCE";
+    if (op_focei.fo){
+      e["method"] = "FO";
+    } else {
+      e["method"] = "FOCE";
+    }
   }
   if (!e.exists("extra")){
-    if (op_focei.interaction){
+    if (op_focei.fo){
+      e["extra"] = "";
+      e["skipTable"] = LogicalVector::create(true);
+    } else if (op_focei.interaction){
       if(op_focei.useColor){
         e["extra"] = "\033[31;1mi\033[0m";
       } else {
