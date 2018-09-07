@@ -31,6 +31,7 @@
 using namespace Rcpp;
 using namespace arma;
 extern "C"{
+  int isRstudio();
 #include "RxODE.h"
   typedef void (*S2_fp) (int *, int *, double *, double *, double *, int *, float *, double *);
   typedef void (*n1qn1_fp)(S2_fp simul, int n[], double x[], double f[], double g[], double var[], double eps[],
@@ -1823,7 +1824,7 @@ extern "C" double foceiOfvOptim(int n, double *x, void *ex){
   op_focei.nF++;
   if (op_focei.printOuter != 0 && op_focei.nF % op_focei.printOuter == 0){
     int finalize = 0, i = 0;
-    if (op_focei.useColor)
+    if (op_focei.useColor && !isRstudio())
       Rprintf("|\033[1m%5d\033[0m|%#14.8g |", op_focei.nF, ret);
     else 
       Rprintf("|%5d|%#14.8g |", op_focei.nF, ret);
@@ -1881,12 +1882,12 @@ extern "C" double foceiOfvOptim(int n, double *x, void *ex){
         Rprintf("\n");
       }
       if (op_focei.scaleObjective){
-        if (op_focei.useColor)
+        if (op_focei.useColor && !isRstudio())
           Rprintf("|    X|\033[1m%14.8g\033[0m |", op_focei.initObjective * ret / op_focei.scaleObjectiveTo);
         else 
           Rprintf("|    X|%14.8g |", op_focei.initObjective * ret / op_focei.scaleObjectiveTo);
       } else {
-        if (op_focei.useColor)
+        if (op_focei.useColor && !isRstudio())
           Rprintf("|    X|\033[1m%14.8g\033[0m |", ret);
         else 
           Rprintf("|    X|%14.8g |", ret);
@@ -1906,7 +1907,7 @@ extern "C" double foceiOfvOptim(int n, double *x, void *ex){
         }
       }
     } else {
-      if (op_focei.useColor){
+      if (op_focei.useColor  && !isRstudio()){
 	if (op_focei.scaleObjective){
           Rprintf("|    X|\033[1m%14.8g \033[0m|", op_focei.initObjective * ret / op_focei.scaleObjectiveTo);
 	} else {

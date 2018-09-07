@@ -138,7 +138,8 @@ SEXP _rxProgressStop(SEXP clear){
   int clearB = INTEGER(clear)[0];
   if (clearB){
     if (isRstudio()){
-      Rprintf("\r                                                                                \r");
+      /* Rprintf("\r                                                                                \r"); */
+      Rprintf("\n");
     } else {
       REprintf("\r                                                                                \r");
     }
@@ -477,7 +478,8 @@ extern void par_liblsoda(rx_solve *rx){
   }
   if (displayProgress) {
     if (isRstudio()){
-      Rprintf("\r                                                                                \r");
+      /* Rprintf("\r                                                                                \r"); */
+      Rprintf("\n");
     } else {
       REprintf("\r                                                                                \r");
     }
@@ -877,7 +879,8 @@ void par_dop(rx_solve *rx){
   }
   if (displayProgress){
     if (isRstudio()){
-      Rprintf("\r                                                                                \r");
+      /* Rprintf("\r                                                                                \r"); */
+      Rprintf("\n");
     } else {
       REprintf("\r                                                                                \r");
     }
