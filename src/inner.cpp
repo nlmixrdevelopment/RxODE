@@ -2045,9 +2045,24 @@ void foceiCalcR(Environment e){
       H(i, j) = fnscale*(df1[j]-df2[j])/(2*eps*parScale1*parScale2);
     }
   }
+  // Suggted by https://www.tandfonline.com/doi/pdf/10.1198/106186005X78800
+  mat H0 = H*H.t();
+  cx_mat H1;
+  bool success = sqrtmat(H1,H0);
+  if (!success){
+    H = 0.25*H + 0.25*H.t();
+  } else {
+    mat im = arma::imag(H1);
+    mat re = arma::real(H1);
+    if (arma::any(arma::any(im,0))){
+      H = 0.25*H + 0.25*H.t();
+    } else {
+      H = 0.5*re;
+    }
+  }
   // R matrix = Hessian/2
   // https://github.com/cran/nmw/blob/59478fcc91f368bb3bbc23e55d8d1d5d53726a4b/R/CovStep.R
-  H = 0.25*H + 0.25*H.t();
+  // H = 0.25*H + 0.25*H.t();
   if (e.exists("R.1")){
     // This is the 2nd attempt
     arma::mat H2 = 0.5*H + 0.5*as<arma::mat>(e["R.1"]);
