@@ -10,6 +10,8 @@ SEXP _rxProgressStop(SEXP);
 SEXP _rxProgressAbort();
 
 SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SEXP parse_model,SEXP parse_model3);
+SEXP _RxODE_foceiOuterG(SEXP);
+SEXP _RxODE_foceiOuterF(SEXP);
 SEXP _RxODE_cholSE_(SEXP, SEXP);
 SEXP _RxODE_setRstudio(SEXP);
 SEXP _RxODE_coxBox_(SEXP, SEXP, SEXP);
@@ -188,6 +190,8 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_coxBox_", (DL_FUNC) &_RxODE_coxBox_, 3},
     {"_RxODE_setRstudio", (DL_FUNC) &_RxODE_setRstudio, 1},
     {"_RxODE_cholSE_", (DL_FUNC) &_RxODE_cholSE_, 2},
+    {"_RxODE_foceiOuterG", (DL_FUNC) &_RxODE_foceiOuterG, 1},
+    {"_RxODE_foceiOuterF", (DL_FUNC) &_RxODE_foceiOuterF, 1},
     {NULL, NULL, 0}
   };
   // C callable to assign environments.

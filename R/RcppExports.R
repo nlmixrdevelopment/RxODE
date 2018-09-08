@@ -45,6 +45,14 @@ foceiSetup_ <- function(obj, data, theta, thetaFixed = NULL, skipCov = NULL, rxI
     .Call(`_RxODE_foceiSetup_`, obj, data, theta, thetaFixed, skipCov, rxInv, lower, upper, etaMat, control)
 }
 
+foceiOuterF <- function(theta) {
+    .Call(`_RxODE_foceiOuterF`, theta)
+}
+
+foceiOuterG <- function(theta) {
+    .Call(`_RxODE_foceiOuterG`, theta)
+}
+
 foceiOuter <- function(e) {
     .Call(`_RxODE_foceiOuter`, e)
 }

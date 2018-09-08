@@ -1662,7 +1662,7 @@ NumericVector foceiSetup_(const RObject &obj,
         // lower bound only = 1
         op_focei.nbd[k]=1;
       } else {
-        op_focei.lower[k] = std::numeric_limits<double>::lowest();
+        op_focei.lower[k] = R_NegInf;//std::numeric_limits<double>::lowest();
       }
       if (R_FINITE(upperIn[j])){
         op_focei.upper[k] = upperIn[j];
@@ -1671,7 +1671,7 @@ NumericVector foceiSetup_(const RObject &obj,
         // Upper and lower bound = 2
         op_focei.nbd[k]= 3 - op_focei.nbd[j];
       } else {
-        op_focei.upper[k] = std::numeric_limits<double>::max();
+        op_focei.upper[k] = R_PosInf;//std::numeric_limits<double>::max();
       }
     }
   } else {
@@ -1683,7 +1683,7 @@ NumericVector foceiSetup_(const RObject &obj,
         // lower bound only = 1
         op_focei.nbd[k]=1;
       } else {
-        op_focei.lower[k] = std::numeric_limits<double>::lowest();
+        op_focei.lower[k] = R_NegInf;//std::numeric_limits<double>::lowest();
       }
       if (R_FINITE(upperIn[j])){
         op_focei.upper[k] = upperIn[j] * op_focei.scaleTo / op_focei.initPar[j];
@@ -1692,7 +1692,7 @@ NumericVector foceiSetup_(const RObject &obj,
         // Upper and lower bound = 2
         op_focei.nbd[k]= 3 - op_focei.nbd[j];
       } else {
-        op_focei.upper[k] = std::numeric_limits<double>::max();
+        op_focei.upper[k] = R_PosInf;//std::numeric_limits<double>::max();
       }
     }
   }
@@ -1953,6 +1953,13 @@ extern "C" double foceiOfvOptim(int n, double *x, void *ex){
   return ret;
 }
 
+//[[Rcpp::export]]
+double foceiOuterF(NumericVector &theta){
+  int n = theta.size();
+  void *ex = NULL;
+  return foceiOfvOptim(n, theta.begin(), ex);
+}
+
 extern "C" void outerGradNumOptim(int n, double *par, double *gr, void *ex){
   numericGrad(par, gr);
   op_focei.nG++;
@@ -1997,6 +2004,15 @@ extern "C" void outerGradNumOptim(int n, double *par, double *gr, void *ex){
   }
 }
 
+//[[Rcpp::export]]
+NumericVector foceiOuterG(NumericVector &theta){
+  int n = theta.size();
+  void *ex = NULL;
+  NumericVector gr(n);
+  outerGradNumOptim(n, theta.begin(), gr.begin(), ex);
+  return gr;
+}
+
 void foceiLbfgsb(Environment e){
   void *ex = NULL;
   double Fmin;
@@ -2022,6 +2038,37 @@ void foceiLbfgsb(Environment e){
   e["message"] = msg;
 }
 
+Function getRxFn(std::string name);
+void foceiCustomFun(Environment e){
+  NumericVector x(op_focei.npars);
+  NumericVector lower(op_focei.npars);
+  NumericVector upper(op_focei.npars);
+  if (op_focei.scaleTo > 0){
+    std::fill_n(&x[0], op_focei.npars, op_focei.scaleTo);
+  } else {
+    std::copy(&op_focei.initPar[0], &op_focei.initPar[0]+op_focei.npars,&x[0]);
+  }
+  std::copy(&op_focei.upper[0], &op_focei.upper[0]+op_focei.npars, &upper[0]);
+  std::copy(&op_focei.lower[0], &op_focei.lower[0]+op_focei.npars, &lower[0]);
+  Function f = getRxFn("foceiOuterF");
+  Function g = getRxFn("foceiOuterG");
+  List ctl = e["control"];
+  Function opt = as<Function>(ctl["outerOptFun"]);
+  //.bobyqa <- function(par, fn, gr, lower = -Inf, upper = Inf, control = list(), ...)
+  List ret = as<List>(opt(_["par"]=x, _["fn"]=f, _["gr"]=g, _["lower"]=lower,
+			  _["upper"]=upper,_["control"]=ctl));
+  x = ret["x"];
+  // Recalculate OFV in case the last calculated OFV isn't at the minimum....
+  // Otherwise ETAs may be off
+  std::fill_n(&op_focei.goldEta[0], op_focei.gEtaGTransN, -42.0); // All etas = -42;  Unlikely if normal
+  // Finalize environment
+  foceiOuterFinal(x.begin(), e);
+  e["convergence"] = ret["convergence"];
+  e["message"] = ret["message"];
+  e["optReturn"] = ret;
+}
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // Overall Outer Problem
 
@@ -2030,8 +2077,12 @@ Environment foceiOuter(Environment e){
   op_focei.nF=0;
   op_focei.nG=0;
   if (op_focei.maxOuterIterations > 0){
-    if (op_focei.outerOpt == 0){
+    switch(op_focei.outerOpt){
+    case 0:
       foceiLbfgsb(e);
+      break;
+    case -1:
+      foceiCustomFun(e);
     } 
   } else {
     NumericVector x(op_focei.npars);
