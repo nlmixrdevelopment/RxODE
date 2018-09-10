@@ -13,6 +13,7 @@ SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP pref
 SEXP _RxODE_foceiOuterG(SEXP);
 SEXP _RxODE_foceiOuterF(SEXP);
 SEXP _RxODE_cholSE_(SEXP, SEXP);
+SEXP _RxODE_cholSE0(SEXP, SEXP, SEXP, SEXP);
 SEXP _RxODE_setRstudio(SEXP);
 SEXP _RxODE_coxBox_(SEXP, SEXP, SEXP);
 SEXP _RxODE_foceiFitCpp_(SEXP);
@@ -190,6 +191,7 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_coxBox_", (DL_FUNC) &_RxODE_coxBox_, 3},
     {"_RxODE_setRstudio", (DL_FUNC) &_RxODE_setRstudio, 1},
     {"_RxODE_cholSE_", (DL_FUNC) &_RxODE_cholSE_, 2},
+    {"_RxODE_cholSE0", (DL_FUNC) &_RxODE_cholSE0, 4},
     {"_RxODE_foceiOuterG", (DL_FUNC) &_RxODE_foceiOuterG, 1},
     {"_RxODE_foceiOuterF", (DL_FUNC) &_RxODE_foceiOuterF, 1},
     {NULL, NULL, 0}
