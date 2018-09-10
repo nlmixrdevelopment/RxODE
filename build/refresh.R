@@ -41,7 +41,7 @@ file.copy(devtools::package_file("src/RxODE_types.h"),
           devtools::package_file("inst/include/RxODE_types.h"),
           overwrite=TRUE);
 
-ode.h();
+RxODE:::ode.h();
 
 cat("Update Parser c file\n");
 dparser::mkdparse(devtools::package_file("inst/tran.g"),
@@ -72,11 +72,11 @@ sink();
 ## sink();
 ## ## devtools::load_all();
 
-cat("Update README\n");
-owd <- getwd();
-on.exit({setwd(owd)});
-setwd(devtools::package_file());
-knitr::knit(devtools::package_file("README.Rmd"))
+## cat("Update README\n");
+## owd <- getwd();
+## on.exit({setwd(owd)});
+## setwd(devtools::package_file());
+## knitr::knit(devtools::package_file("README.Rmd"))
 
 gen.ome <- function(mx){
     ret <- paste0(sprintf("//Generated from refresh.R for %s dimensions\n#include <R.h>\n#include <Rdefines.h>\n#include <R_ext/Error.h>\n#include <Rmath.h>\nSEXP _rxCholInv(SEXP dms, SEXP theta, SEXP tn){\nint dm=INTEGER(dms)[0];\nif (dm == 0){\n  SEXP ret=  PROTECT(allocVector(INTSXP,1));\n  INTEGER(ret)[0] = %s;\n  UNPROTECT(1);\n  return(ret);\n}", mx, mx),

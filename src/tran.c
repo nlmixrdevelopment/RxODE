@@ -25,6 +25,8 @@
 #define NOINI0 "'%s(0)' for initialization not allowed.  To allow set 'options(RxODE.syntax.allow.ini0 = TRUE)'."
 #define NOSTATE "Defined 'df(%s)/dy(%s)', but '%s' is not a state!"
 #define NOSTATEVAR "Defined 'df(%s)/dy(%s)', but '%s' is not a state or variable!"
+#define ODEFIRST "ODEs compartment 'd/dt(%s)' must be defined before changing its properties (f/alag/rate/dur).\nIf you want to change this set 'options(RxODE.syntax.require.ode.first = FALSE).\nBe warned this will RxODE numbers compartments based on first occurance of property or ODE."
+
 
 #include <string.h>
 #include <stdlib.h>
@@ -188,7 +190,7 @@ char * r_dup_str(const char *s, const char *e) {
   return ss;
 }
 
-int rx_syntax_error = 0, rx_suppress_syntax_info=0, rx_podo = 0;
+int rx_syntax_error = 0, rx_suppress_syntax_info=0, rx_podo = 0, rx_syntax_require_ode_first = 1;
 static void trans_syntax_error_report_fn(char *err) {
   if (!rx_suppress_syntax_info)
     Rprintf("%s\n",err);
@@ -499,10 +501,12 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         Free(v);
         continue;
       }
-      if (!strcmp("derivative", name) && i< 2) continue;
+      if ((i< 2 || i == 4 || i == 3) && (!strcmp("derivative", name) ||!strcmp("fbio", name) || !strcmp("alag", name) ||
+					 !strcmp("rate", name) || !strcmp("dur", name))) continue;
+      if ((i < 2 || i == 3) && (!strcmp("der_rhs", name) || !strcmp("fbio_rhs", name) ||
+			     !strcmp("alag_rhs", name) || !strcmp("rate_rhs", name) || !strcmp("dur_rhs", name))) continue;
       if (!strcmp("der_rhs", name)    && i< 2) continue;
       if (!strcmp("inf_rhs", name)    && i< 2) continue;
-      if (!strcmp("derivative", name) && i==3) continue;
       if (!strcmp("der_rhs", name)    && i==3) continue;
       if (!strcmp("inf_rhs", name)    && i==3) continue;
       if (!strcmp("derivative", name) && i==4){
@@ -874,6 +878,73 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         sbt.o += 8;
         rx_podo = 1;
       }
+      if ((!strcmp("fbio", name) || !strcmp("alag", name) || 
+	   !strcmp("dur", name) || !strcmp("rate", name)) && i==2) {
+        /* sprintf(sb.s, "__DDtStateVar__[%d] = InfusionRate(%d) +", tb.nd, tb.nd); */
+        /* sb.o = strlen(sb.s); */
+        char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+        sprintf(tb.ddt, "%s",v);
+        if (new_de(v)){
+	  if (rx_syntax_require_ode_first){
+            sprintf(buf,ODEFIRST,v);
+            trans_syntax_error_report_fn(buf);
+	  }
+	  if (!strcmp("fbio", name)){
+            sprintf(sb.s, "_f[%d] = ", tb.nd);
+            sb.o = strlen(sb.s);
+            sprintf(sbt.s, "f(%s)=", v);
+            sbt.o = strlen(sbt.s);
+	  } else if (!strcmp("alag", name)){
+            sprintf(sb.s, "_alag[%d] = ", tb.nd);
+            sb.o = strlen(sb.s);
+            sprintf(sbt.s, "alag(%s)=", v);
+            sbt.o = strlen(sbt.s);
+	  } else if (!strcmp("dur", name)){
+            sprintf(sb.s, "_dur[%d] = ", tb.nd);
+            sb.o = strlen(sb.s);
+            sprintf(sbt.s, "dur(%s)=", v);
+            sbt.o = strlen(sbt.s);
+          } else if (!strcmp("rate", name)){
+            sprintf(sb.s, "_rate[%d] = ", tb.nd);
+            sb.o = strlen(sb.s);
+            sprintf(sbt.s, "rate(%s)=", v);
+            sbt.o = strlen(sbt.s);
+          }
+          new_or_ith(v);
+          /* Rprintf("%s; tb.ini = %d; tb.ini0 = %d; tb.lh = %d\n",v,tb.ini[tb.ix],tb.ini0[tb.ix],tb.lh[tb.ix]); */
+          tb.lh[tb.ix] = 9;
+          tb.di[tb.nd] = tb.ix;
+          sprintf(tb.de+tb.pos_de, "%s,", v);
+          tb.pos_de += strlen(v)+1;
+          tb.deo[++tb.nd] = tb.pos_de;
+        } else {
+          new_or_ith(v);
+          /* printf("de[%d]->%s[%d]\n",tb.id,v,tb.ix); */
+          if (!strcmp("fbio", name)){
+            sprintf(sb.s, "_f[%d] = ", tb.nd);
+            sb.o = strlen(sb.s);
+            sprintf(sbt.s, "f(%s)", v);
+            sbt.o = strlen(sbt.s);
+          } else if (!strcmp("alag", name)){
+            sprintf(sb.s, "_alag[%d] = ", tb.nd);
+            sb.o = strlen(sb.s);
+            sprintf(sbt.s, "alag(%s)", v);
+            sbt.o = strlen(sbt.s);
+          } else if (!strcmp("dur", name)){
+            sprintf(sb.s, "_dur[%d] = ", tb.nd);
+            sb.o = strlen(sb.s);
+            sprintf(sbt.s, "dur(%s)", v);
+            sbt.o = strlen(sbt.s);
+          } else if (!strcmp("rate", name)){
+            sprintf(sb.s, "_rate[%d] = ", tb.nd);
+            sb.o = strlen(sb.s);
+            sprintf(sbt.s, "rate(%s)", v);
+            sbt.o = strlen(sbt.s);
+          }
+        }
+        Free(v);
+        continue;
+      }
       if (!strcmp("derivative", name) && i==5) {
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
 	if (!strcmp("+", v) || 
@@ -927,20 +998,64 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
           sb.o = (int)strlen(sb.s);
           sprintf(sbt.s, "d/dt(%s)=", v);
           sbt.o = (int)strlen(sbt.s);
+	  Free(v);
+          xpn = d_get_child(pn,4);
+          v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+          if (!strcmp("~",v)){
+            tb.idi[tb.id] = 1;
+            sprintf(SBTPTR, "~");
+            sbt.o++;
+          } else {
+            sprintf(SBTPTR, "=");
+            sbt.o++;
+          }
         }
         Free(v);
         continue;
       }
-      if (!strcmp("der_rhs", name)) {
+      if (!strcmp("der_rhs", name) || !strcmp("fbio_rhs", name) ||
+	  !strcmp("alag_rhs", name) || !strcmp("rate_rhs", name) || !strcmp("dur_rhs", name)) {
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
         if (new_de(v)){
-          sprintf(buf,"Tried to use d/dt(%s) before it was defined",v);
+	  if (!strcmp("der_rhs", name)){
+            sprintf(buf,"Tried to use d/dt(%s) before it was defined",v);
+	  } else if (!strcmp("fbio_rhs", name)){
+            sprintf(buf,"Tried to use f(%s) before the compartment was defined.",v);
+	  } else if (!strcmp("alag_rhs", name)){
+            sprintf(buf,"Tried to use alag(%s) before the compartment was defined.",v);
+          } else if (!strcmp("rate_rhs", name)){
+            sprintf(buf,"Tried to use rate(%s) before the compartment was defined.",v);
+          } else if (!strcmp("dur_rhs", name)){
+            sprintf(buf,"Tried to use dur(%s) before the compartment was defined.",v);
+          }
           trans_syntax_error_report_fn(buf);
         } else {
-          sprintf(SBPTR, "__DDtStateVar__[%d]", tb.id);
-          sb.o = (int)strlen(sb.s);
-          sprintf(SBTPTR, "d/dt(%s)", v);
-          sbt.o = (int)strlen(sbt.s);
+	  if (!strcmp("der_rhs", name)){
+	    sprintf(SBPTR, "__DDtStateVar__[%d]", tb.id);
+	    sb.o = (int)strlen(sb.s);
+	    sprintf(SBTPTR, "d/dt(%s)", v);
+	    sbt.o = (int)strlen(sbt.s);
+	  } else if (!strcmp("fbio_rhs", name)){
+            sprintf(SBPTR, "_f[%d]", tb.id);
+            sb.o = (int)strlen(sb.s);
+            sprintf(SBTPTR, "f(%s)", v);
+            sbt.o = (int)strlen(sbt.s);
+	  } else if (!strcmp("alag_rhs", name)){
+            sprintf(SBPTR, "_alag[%d]", tb.id);
+            sb.o = (int)strlen(sb.s);
+            sprintf(SBTPTR, "alag(%s)", v);
+            sbt.o = (int)strlen(sbt.s);
+          } else if (!strcmp("rate_rhs", name)){
+            sprintf(SBPTR, "_rate[%d]", tb.id);
+            sb.o = (int)strlen(sb.s);
+            sprintf(SBTPTR, "rate(%s)", v);
+            sbt.o = (int)strlen(sbt.s);
+          } else if (!strcmp("dur_rhs", name)){
+            sprintf(SBPTR, "_dur[%d]", tb.id);
+            sb.o = (int)strlen(sb.s);
+            sprintf(SBTPTR, "dur(%s)", v);
+            sbt.o = (int)strlen(sbt.s);
+          }
         }
         Free(v);
         continue;
@@ -1063,7 +1178,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
     }
 
     if (!strcmp("assignment", name) || !strcmp("ini", name) || !strcmp("derivative", name) || !strcmp("jac",name) || !strcmp("dfdy",name) ||
-        !strcmp("ini0",name) || !strcmp("ini0f",name)){
+        !strcmp("ini0",name) || !strcmp("ini0f",name) || !strcmp("fbio", name) || !strcmp("alag", name) || !strcmp("rate", name) || 
+	!strcmp("dur", name)){
       fprintf(fpIO, "%s;\n", sb.s);
       fprintf(fpIO2, "%s;\n", sbt.s);
     }
@@ -1119,8 +1235,9 @@ void prnt_vars(int scenario, FILE *outpt, int lhs, const char *pre_str, const ch
     // show_ode = 1 dydt
     // show_ode = 2 Jacobian
     // show_ode = 3 Ini statement
+    // show_ode == 4 is extra_evid
     // show_ode = 0 LHS
-    if (show_ode == 2 || show_ode == 0){
+    if (show_ode == 2 || show_ode == 0 || show_ode == 4){
       //__DDtStateVar_#__
       for (i = 0; i < tb.nd; i++){
 	if (scenario == 0){
@@ -1295,8 +1412,8 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
   fprintf(outpt,"    SEXP normState= PROTECT(allocVector(STRSXP, %d));pro++;\n",statei-sensi);
   fprintf(outpt,"    SEXP fn_ini   = PROTECT(allocVector(STRSXP, %d));pro++;\n",fdi);
   fprintf(outpt,"    SEXP dfdy     = PROTECT(allocVector(STRSXP, %d));pro++;\n",tb.ndfdy);
-  fprintf(outpt,"    SEXP tran     = PROTECT(allocVector(STRSXP, 14));pro++;\n");
-  fprintf(outpt,"    SEXP trann    = PROTECT(allocVector(STRSXP, 14));pro++;\n");
+  fprintf(outpt,"    SEXP tran     = PROTECT(allocVector(STRSXP, 15));pro++;\n");
+  fprintf(outpt,"    SEXP trann    = PROTECT(allocVector(STRSXP, 15));pro++;\n");
   fprintf(outpt,"    SEXP mmd5     = PROTECT(allocVector(STRSXP, 2));pro++;\n");
   fprintf(outpt,"    SEXP mmd5n    = PROTECT(allocVector(STRSXP, 2));pro++;\n");
   fprintf(outpt,"    SEXP model    = PROTECT(allocVector(STRSXP, 4));pro++;\n");
@@ -1589,6 +1706,9 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
 
   fprintf(outpt,"    SET_STRING_ELT(trann,13,mkChar(\"dydt_liblsoda\"));\n");
   fprintf(outpt,"    SET_STRING_ELT(tran, 13,mkChar(\"%sdydt_liblsoda\"));\n",model_prefix);
+
+  fprintf(outpt,"    SET_STRING_ELT(trann,13,mkChar(\"evid_extra\"));\n");
+  fprintf(outpt,"    SET_STRING_ELT(tran, 13,mkChar(\"%sevid_extra\"));\n",model_prefix);
   
   fprintf(outpt,"    setAttrib(tran, R_NamesSymbol, trann);\n");
   fprintf(outpt,"    setAttrib(mmd5, R_NamesSymbol, mmd5n);\n");
@@ -1655,6 +1775,8 @@ void codegen(FILE *outpt, int show_ode) {
     fprintf(outpt, "// Jacobian derived vars\nvoid %scalc_jac(int *_neq, double t, double *__zzStateVar__, double *__PDStateVar__, unsigned int __NROWPD__) {\n  int _cSub=_neq[1];\n",model_prefix);
   } else if (show_ode == 3){
     fprintf(outpt, "// Functional based initial conditions.\nvoid %sinis(int _cSub, double *__zzStateVar__){\n  double t=0;\n",model_prefix);
+  } else if (show_ode == 4){
+    fprintf(outpt, "// Functional based EVID changes.\ndouble %sevid_extra(int _cSub,  int _cmt, int _what, double _amt, double t, double *__zzStateVar__){\n  if (_cmt >= %d){\n    return -1.0;\n  }\n",model_prefix, tb.nd);
   } else {
     fprintf(outpt, "// prj-specific derived vars\nvoid %scalc_lhs(int _cSub, double t, double *__zzStateVar__, double *_lhs) {\n",model_prefix);
   }
@@ -1668,6 +1790,10 @@ void codegen(FILE *outpt, int show_ode) {
       if (SumProdLD > mx) mx = SumProdLD;
       fprintf(outpt, "  double _p[%d], _input[%d];\n", mx, mx);
       fprintf(outpt, "  double _pld[%d];\n", mx);
+    }
+     if (tb.nd > 0){
+      fprintf(outpt, "  double _f[%d] = {1}, _alag[%d] = {0}, _rate[%d] = {0}, _dur[%d] = {0};\n",tb.nd,tb.nd,tb.nd,tb.nd);
+      fprintf(outpt, "  (void)_f;\n  (void)_alag;\n  (void)_rate;\n  (void)_dur;\n");
     }
     prnt_vars(2, outpt, 0, "  (void)t;\n", "\n",show_ode);     /* declare all used vars */
     if (maxSumProdN){
@@ -1962,6 +2088,8 @@ void codegen(FILE *outpt, int show_ode) {
       fprintf(outpt, ";\n");
     }
     fprintf(outpt, "}\n");
+  } else if (show_ode == 4){
+    fprintf(outpt, "  // Get the values now.\n  if (_what == 1){//F*amt\n    return _f[_cmt]*_amt;\n  } else if (_what == 2){\n    return _alag[_cmt];\n  } else if (_what == 3 && _dur[_cmt] > 0){//3= duration\n    return _dur[_cmt];\n  } else if (_what == 3 && _rate[_cmt] > 0){\n    return _amt/_rate[_cmt];\n  } else if (_what == 4 && _dur[_cmt] > 0){//4 = rate\n    return _amt/_dur[_cmt];\n  } else if (_what == 4 && _rate[_cmt] > 0) {\n    return _rate[_cmt];\n  }\n  return -1.0;\n}\n");
   } else {
     fprintf(outpt, "\n");
     for (i=0, j=0; i<tb.nv; i++) {
@@ -2110,6 +2238,7 @@ void trans_internal(char *orig_file, char* parse_file, char* c_file){
     codegen(fpIO, 1);
     codegen(fpIO, 2);
     codegen(fpIO, 3);
+    codegen(fpIO, 4);
     codegen(fpIO, 0);
     print_aux_info(fpIO,buf, infile);
     fclose(fpIO);
@@ -2137,6 +2266,7 @@ SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP pref
   rx_syntax_allow_ini0 = R_get_option("RxODE.syntax.allow.ini0",1);
   rx_syntax_allow_ini  = R_get_option("RxODE.syntax.allow.ini",1);
   rx_syntax_allow_assign_state = R_get_option("RxODE.syntax.assign.state",0);
+  rx_syntax_require_ode_first = R_get_option("RxODE.syntax.require.ode.first",1);
   rx_syntax_error = 0;
   set_d_use_r_headers(0);
   set_d_rdebug_grammar_level(0);
@@ -2197,8 +2327,8 @@ SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP pref
   SEXP lst   = PROTECT(allocVector(VECSXP, 11));pro++;
   SEXP names = PROTECT(allocVector(STRSXP, 11));pro++;
   
-  SEXP tran  = PROTECT(allocVector(STRSXP, 19));pro++;
-  SEXP trann = PROTECT(allocVector(STRSXP, 19));pro++;
+  SEXP tran  = PROTECT(allocVector(STRSXP, 20));pro++;
+  SEXP trann = PROTECT(allocVector(STRSXP, 20));pro++;
   
   SEXP state    = PROTECT(allocVector(STRSXP,tb.statei));pro++;
   SEXP stateRmS = PROTECT(allocVector(INTSXP,tb.statei));pro++;
@@ -2382,6 +2512,10 @@ SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP pref
   sprintf(buf,"%sdydt_liblsoda",model_prefix);
   SET_STRING_ELT(trann,18,mkChar("dydt_liblsoda"));
   SET_STRING_ELT(tran, 18,mkChar(buf));
+
+  sprintf(buf,"%sevid_extra",model_prefix);
+  SET_STRING_ELT(trann,19,mkChar("evid_extra"));
+  SET_STRING_ELT(tran, 19,mkChar(buf));
   
   fpIO2 = fopen(out2, "r");
   err_msg((intptr_t) fpIO2, "Error parsing. (Couldn't access out2.txt).\n", -1);

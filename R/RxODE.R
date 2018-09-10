@@ -1102,7 +1102,7 @@ rxTrans.character <- function(model,
                             compileFlags =c("parsed_md5", "ode_solver", "ode_solver_sexp",
                                             "ode_solver_ptr", "ode_solver_xptr", "inis",
                                             "model_vars", "calc_lhs", "calc_jac", "dydt", "dydt_liblsoda",
-                                            "dydt_lsoda", "calc_jac_lsoda", "ode_solver_solvedata",
+                                            "dydt_lsoda", "calc_jac_lsoda", "ode_solver_solvedata","evid_extra",
                                             "ode_solver_get_solvedata", "neq", "nlhs", "fix_inis"),
                             debug        = FALSE,
                             ...){
@@ -1320,7 +1320,7 @@ rxCompile.character <-  function(model,           # Model
             .cmd <- sprintf("%s/bin/R CMD SHLIB %s",
                            Sys.getenv("R_HOME"), basename(.cFile));
             ## message(.cmd);
-            do.call(.sh, list(.cmd, ignore.stdout=TRUE, ignore.stderr=TRUE));
+            do.call(.sh, list(.cmd, ignore.stdout=FALSE, ignore.stderr=FALSE));
             .tmp <- try(dynLoad(.cDllFile));
             if (inherits(.tmp, "try-error")){
                 stop("Error loading model.")
