@@ -186,6 +186,7 @@ t_jdum_lsoda jdum_lsoda = NULL;
 t_set_solve set_solve = NULL;
 
 t_get_solve get_solve = NULL;
+t_evid_extra evid_extra=NULL;
 
 int global_jt = 2;
 int global_mf = 22;  
@@ -193,7 +194,7 @@ int global_debug = 0;
 
 void rxUpdateFuns(SEXP trans){
   const char *lib, *s_dydt, *s_calc_jac, *s_calc_lhs, *s_inis, *s_dydt_lsoda_dum, *s_dydt_jdum_lsoda, 
-    *s_ode_solver_solvedata, *s_ode_solver_get_solvedata, *s_dydt_liblsoda;
+    *s_ode_solver_solvedata, *s_ode_solver_get_solvedata, *s_dydt_liblsoda, *s_evid_extra;
   lib = CHAR(STRING_ELT(trans, 0));
   s_dydt = CHAR(STRING_ELT(trans, 3));
   s_calc_jac = CHAR(STRING_ELT(trans, 4));
@@ -204,6 +205,7 @@ void rxUpdateFuns(SEXP trans){
   s_ode_solver_solvedata = CHAR(STRING_ELT(trans, 11));
   s_ode_solver_get_solvedata = CHAR(STRING_ELT(trans, 12));
   s_dydt_liblsoda = CHAR(STRING_ELT(trans, 13));
+  s_evid_extra = CHAR(STRING_ELT(trans, 14));
   global_jt = 2;
   global_mf = 22;  
   global_debug = 0;
@@ -223,6 +225,7 @@ void rxUpdateFuns(SEXP trans){
   set_solve = (t_set_solve)R_GetCCallable(lib, s_ode_solver_solvedata);
   get_solve = (t_get_solve)R_GetCCallable(lib, s_ode_solver_get_solvedata);
   dydt_liblsoda = (t_dydt_liblsoda)R_GetCCallable(lib, s_dydt_liblsoda);
+  evid_extra = (t_evid_extra)R_GetCCallable(lib, s_evid_extra);
 }
 
 void rxClearFuns(){
@@ -321,7 +324,7 @@ int checkInterrupt() {
 }
 
 extern void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda_opt_t opt, int solveid, 
-			  t_dydt_liblsoda dydt_liblsoda, t_update_inis u_inis){
+			  t_dydt_liblsoda dydt_liblsoda, t_update_inis u_inis, t_evid_extra u_evid){
   int i;
   int neq[2];
   neq[0] = op->neq;
@@ -395,7 +398,7 @@ extern void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda_opt
 }
 
 extern void ind_liblsoda(rx_solve *rx, int solveid, 
-			 t_dydt_liblsoda dydt, t_update_inis u_inis){
+			 t_dydt_liblsoda dydt, t_update_inis u_inis, t_evid_extra u_evid){
   rx_solving_options *op = &op_global;
   struct lsoda_opt_t opt = {0};
   opt.ixpr = 0; // No extra printing...
@@ -412,7 +415,7 @@ extern void ind_liblsoda(rx_solve *rx, int solveid,
   opt.hmin = op->HMIN;
   opt.hmxi = 0.0;
   /* ind_liblsoda0(rx, op, opt, solveid, dydt_liblsoda, update_inis); */
-  ind_liblsoda0(rx, op, opt, solveid, dydt, u_inis);
+  ind_liblsoda0(rx, op, opt, solveid, dydt, u_inis, u_evid);
 }
 
 
@@ -453,7 +456,7 @@ extern void par_liblsoda(rx_solve *rx){
 #endif
   for (int solveid = 0; solveid < nsim*nsub; solveid++){
     if (abort == 0){
-      ind_liblsoda0(rx, op, opt, solveid, dydt_liblsoda, update_inis);
+      ind_liblsoda0(rx, op, opt, solveid, dydt_liblsoda, update_inis, evid_extra);
       if (displayProgress){
 #pragma omp critical
 	  cur++;
@@ -587,7 +590,7 @@ void rxOptionsFree(){
 extern void ind_lsoda0(rx_solve *rx, rx_solving_options *op, int solveid, int *neq, double *rwork, int lrw, int *iwork, int liw, int jt,
                        t_dydt_lsoda_dum dydt_lsoda,
                        t_update_inis u_inis,
-                       t_jdum_lsoda jdum){
+                       t_jdum_lsoda jdum, t_evid_extra u_evid){
   rx_solving_options_ind *ind;
   double *yp;
   
@@ -664,7 +667,7 @@ extern void ind_lsoda0(rx_solve *rx, rx_solving_options *op, int solveid, int *n
 
 extern void ind_lsoda(rx_solve *rx, int solveid,
                       t_dydt_lsoda_dum dydt_ls, t_update_inis u_inis, t_jdum_lsoda jdum,
-		      int cjt){
+		      int cjt, t_evid_extra u_evid){
   int neq[2];
   neq[0] = op_global.neq;
   neq[1] = 0;
@@ -678,7 +681,7 @@ extern void ind_lsoda(rx_solve *rx, int solveid,
   rwork = global_rwork(lrw+1);
   iwork = global_iwork(liw+1);
   ind_lsoda0(rx, &op_global, solveid, neq, rwork, lrw, iwork, liw, cjt,
-             dydt_ls, u_inis, jdum);
+             dydt_ls, u_inis, jdum, u_evid);
 }
 
 extern void par_lsoda(rx_solve *rx){
@@ -705,7 +708,7 @@ extern void par_lsoda(rx_solve *rx){
   int abort = 0;
   for (int solveid = 0; solveid < nsim*nsub; solveid++){
     ind_lsoda0(rx, &op_global, solveid, neq, rwork, lrw, iwork, liw, jt,
-	       dydt_lsoda_dum, update_inis, jdum_lsoda);
+	       dydt_lsoda_dum, update_inis, jdum_lsoda, evid_extra);
     if (displayProgress){ // Can only abort if it is long enough to display progress.
       curTick = par_progress(solveid, nsim*nsub, curTick, 1, t0, 0);
       if (checkInterrupt()){
@@ -726,7 +729,7 @@ void solout(long int nr, double t_old, double t, double *y, int *nptr, int *irtr
 
 extern void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int *neq, 
                      t_dydt c_dydt,
-                     t_update_inis u_inis){
+                     t_update_inis u_inis, t_evid_extra u_evid){
   double rtol=op->RTOL, atol=op->ATOL;
   int itol=0;           //0: rtol/atol scalars; 1: rtol/atol vectors
   int iout=0;           //iout=0: solout() NEVER called
@@ -840,12 +843,12 @@ extern void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int *neq
 }
 
 extern void ind_dop(rx_solve *rx, int solveid,
-		    t_dydt c_dydt, t_update_inis u_inis){
+		    t_dydt c_dydt, t_update_inis u_inis, t_evid_extra u_evid){
   rx_solving_options *op = &op_global;
   int neq[2];
   neq[0] = op->neq;
   neq[1] = 0;
-  ind_dop0(rx, &op_global, solveid, neq, c_dydt, u_inis);
+  ind_dop0(rx, &op_global, solveid, neq, c_dydt, u_inis, u_evid);
 }
 
 void par_dop(rx_solve *rx){
@@ -865,7 +868,7 @@ void par_dop(rx_solve *rx){
   int abort = 0;
   for (int solveid = 0; solveid < nsim*nsub; solveid++){
     if (abort == 0){
-      ind_dop0(rx, &op_global, solveid, neq, dydt, update_inis);
+      ind_dop0(rx, &op_global, solveid, neq, dydt, update_inis, evid_extra);
       if (displayProgress && abort == 0){
         if (checkInterrupt()) abort =1;
       }
@@ -891,18 +894,18 @@ void ind_solve(rx_solve *rx, unsigned int cid,
 	       t_dydt_liblsoda dydt_lls,
 	       t_dydt_lsoda_dum dydt_lsoda, t_jdum_lsoda jdum,
 	       t_dydt c_dydt, t_update_inis u_inis,
-	       int jt){
+	       int jt, t_evid_extra u_evid){
   rx_solving_options *op = &op_global;
   if (op->neq !=  0){
     switch (op->stiff){
     case 2: 
-      ind_liblsoda(rx, cid, dydt_lls, u_inis);
+      ind_liblsoda(rx, cid, dydt_lls, u_inis, u_evid);
       break;
     case 1:
-      ind_lsoda(rx,cid, dydt_lsoda, u_inis, jdum, jt);
+      ind_lsoda(rx,cid, dydt_lsoda, u_inis, jdum, jt, u_evid);
       break;
     case 0:
-      ind_dop(rx, cid, c_dydt, u_inis);
+      ind_dop(rx, cid, c_dydt, u_inis, u_evid);
       break;
     }
   }

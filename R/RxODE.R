@@ -1320,7 +1320,7 @@ rxCompile.character <-  function(model,           # Model
             .cmd <- sprintf("%s/bin/R CMD SHLIB %s",
                            Sys.getenv("R_HOME"), basename(.cFile));
             ## message(.cmd);
-            do.call(.sh, list(.cmd, ignore.stdout=FALSE, ignore.stderr=FALSE));
+            do.call(.sh, list(.cmd, ignore.stdout=TRUE, ignore.stderr=TRUE));
             .tmp <- try(dynLoad(.cDllFile));
             if (inherits(.tmp, "try-error")){
                 stop("Error loading model.")

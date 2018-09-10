@@ -10,7 +10,7 @@
 #define NTHETAs 20
 #define NSUBs 100
 #define min2( a , b )  ( (a) < (b) ? (a) : (b) )
-#define innerOde(id) ind_solve(rx, id, inner_dydt_liblsoda, inner_dydt_lsoda_dum, inner_jdum_lsoda, inner_dydt, inner_update_inis, inner_global_jt)
+#define innerOde(id) ind_solve(rx, id, inner_dydt_liblsoda, inner_dydt_lsoda_dum, inner_jdum_lsoda, inner_dydt, inner_update_inis, inner_global_jt, inner_evid_extra)
 #define getCholOmegaInv() (as<arma::mat>(rxSymInvCholEnvCalculate(_rxInv, "chol.omegaInv", R_NilValue)))
 #define getOmega() (as<NumericMatrix>(rxSymInvCholEnvCalculate(_rxInv, "omega", R_NilValue)))
 #define getOmegaMat() (as<arma::mat>(rxSymInvCholEnvCalculate(_rxInv, "omega", R_NilValue)))
@@ -53,7 +53,7 @@ extern "C"{
 
   void ind_solve(rx_solve *rx, unsigned int cid, t_dydt_liblsoda dydt_lls, 
 		 t_dydt_lsoda_dum dydt_lsoda, t_jdum_lsoda jdum,
-                 t_dydt c_dydt, t_update_inis u_inis, int jt);
+                 t_dydt c_dydt, t_update_inis u_inis, int jt, t_evid_extra u_evid);
   double powerD(double x, double lambda, int yj);
   double powerL(double x, double lambda, int yj);
   double powerDL(double x, double lambda, int yj);
@@ -409,6 +409,7 @@ t_jdum_lsoda inner_jdum_lsoda = NULL;
 t_set_solve inner_set_solve = NULL;
 
 t_get_solve inner_get_solve = NULL;
+t_evid_extra inner_evid_extra=NULL;
 
 int inner_global_jt = 2;
 int inner_global_mf = 22;  
@@ -416,7 +417,7 @@ int inner_global_debug = 0;
 
 void rxUpdateInnerFuns(SEXP trans){
   const char *lib, *s_dydt, *s_calc_jac, *s_calc_lhs, *s_inis, *s_dydt_lsoda_dum, *s_dydt_jdum_lsoda, 
-    *s_ode_solver_solvedata, *s_ode_solver_get_solvedata, *s_dydt_liblsoda;
+    *s_ode_solver_solvedata, *s_ode_solver_get_solvedata, *s_dydt_liblsoda, *s_evid_extra;
   lib = CHAR(STRING_ELT(trans, 0));
   s_dydt = CHAR(STRING_ELT(trans, 3));
   s_calc_jac = CHAR(STRING_ELT(trans, 4));
@@ -427,6 +428,7 @@ void rxUpdateInnerFuns(SEXP trans){
   s_ode_solver_solvedata = CHAR(STRING_ELT(trans, 11));
   s_ode_solver_get_solvedata = CHAR(STRING_ELT(trans, 12));
   s_dydt_liblsoda = CHAR(STRING_ELT(trans, 13));
+  s_evid_extra = CHAR(STRING_ELT(trans, 14));
   inner_global_jt = 2;
   inner_global_mf = 22;  
   inner_global_debug = 0;
@@ -446,6 +448,7 @@ void rxUpdateInnerFuns(SEXP trans){
   inner_set_solve = (t_set_solve)R_GetCCallable(lib, s_ode_solver_solvedata);
   inner_get_solve = (t_get_solve)R_GetCCallable(lib, s_ode_solver_get_solvedata);
   inner_dydt_liblsoda = (t_dydt_liblsoda)R_GetCCallable(lib, s_dydt_liblsoda);
+  inner_evid_extra = (t_evid_extra)R_GetCCallable(lib, s_evid_extra);
 }
 
 void rxClearInnerFuns(){

@@ -6,6 +6,7 @@ typedef void (*t_dydt_lsoda_dum)(int *neq, double *t, double *A, double *DADT);
 typedef void (*t_jdum_lsoda)(int *neq, double *t, double *A,int *ml, int *mu, double *JAC, int *nrowpd);
 typedef int (*t_dydt_liblsoda)(double t, double *y, double *ydot, void *data);
 typedef void (*t_ode_current)();
+typedef double (*t_evid_extra)(int _cSub,  int _cmt, int _what, double _amt, double t, double *__zzStateVar__);
 
 typedef struct {
   // These options should not change based on an individual solve

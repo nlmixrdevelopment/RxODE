@@ -1707,8 +1707,8 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
   fprintf(outpt,"    SET_STRING_ELT(trann,13,mkChar(\"dydt_liblsoda\"));\n");
   fprintf(outpt,"    SET_STRING_ELT(tran, 13,mkChar(\"%sdydt_liblsoda\"));\n",model_prefix);
 
-  fprintf(outpt,"    SET_STRING_ELT(trann,13,mkChar(\"evid_extra\"));\n");
-  fprintf(outpt,"    SET_STRING_ELT(tran, 13,mkChar(\"%sevid_extra\"));\n",model_prefix);
+  fprintf(outpt,"    SET_STRING_ELT(trann,14,mkChar(\"evid_extra\"));\n");
+  fprintf(outpt,"    SET_STRING_ELT(tran, 14,mkChar(\"%sevid_extra\"));\n",model_prefix);
   
   fprintf(outpt,"    setAttrib(tran, R_NamesSymbol, trann);\n");
   fprintf(outpt,"    setAttrib(mmd5, R_NamesSymbol, mmd5n);\n");
