@@ -3181,9 +3181,11 @@ RObject rxSolveGet(RObject obj, RObject arg, LogicalVector exact = true){
 	  return e["inits.dat"];
 	} else if (sarg == "t"){
 	  return lst["time"];
-	} else if (sarg == "sigma.list" && e.exists(".sigmaL")){
+	} else if ((sarg == "theta.mat" || sarg == "thetaMat") && e.exists(".theta")){
+	  return e[".theta"];
+	} else if ((sarg == "sigma.list" || sarg == "sigmaList") && e.exists(".sigmaL")){
 	  return e[".sigmaL"];
-	} else if (sarg == "omega.list" && e.exists(".omegaL")){
+	} else if ((sarg == "omega.list" || sarg == "omegaList") && e.exists(".omegaL")){
           return e[".omegaL"];
 	}
 	// Now parameters
