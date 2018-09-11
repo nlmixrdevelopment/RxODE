@@ -1504,9 +1504,11 @@ rxNorm <- function(obj, condition=NULL, removeInis, removeJac, removeSens){
             .parseModel <- obj;
             on.exit({unlink(.cFile)});
         } else {
-            .parseModel <- tempfile("parseModel4");
+            .parseModel <- tempfile("parsemodel4");
+            obj <- paste(obj, collapse="\n")
             sink(.parseModel);
-            cat(paste(obj, collapse="\n"));
+            cat(obj);
+            cat("\n");
             sink()
             on.exit({unlink(.parseModel); unlink(.cFile)});
         }

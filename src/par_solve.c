@@ -266,13 +266,15 @@ rx_solving_options_ind *getRxId(rx_solve *rx, unsigned int id){
 }
 
 int handle_evid(int evid, int neq, 
-		       int *BadDose,
-		       double *InfusionRate,
-		       double *dose,
-		       double *yp,
-		       int do_transit_abs,
-		       double xout,
-		       rx_solving_options_ind *ind){
+		int *BadDose,
+		double *InfusionRate,
+		double *dose,
+		double *yp,
+		int do_transit_abs,
+		double xout,
+		rx_solving_options_ind *ind,
+		t_evid_extra evid_extra,
+		int cSub){
   int wh = evid, wh100, cmt, foundBad, j;
   if (wh) {
     wh100 = floor(wh/1e5);
@@ -295,15 +297,16 @@ int handle_evid(int evid, int neq,
       }
     } else {
       if (wh>10000) {
-	InfusionRate[cmt] += dose[ind->ixds];
+	//evid_extra(int _cSub,  int _cmt, int _what, double _amt, double t, double *__zzStateVar__)
+	InfusionRate[cmt] += evid_extra(cSub, cmt, 1, dose[ind->ixds], xout, yp);
       } else {
 	if (do_transit_abs) {
-	  ind->podo = dose[ind->ixds];
+	  ind->podo = evid_extra(cSub, cmt, 1, dose[ind->ixds], xout, yp);
 	  ind->tlast = xout;
 	} else {
 	  ind->podo = 0;
 	  ind->tlast = xout;
-	  yp[cmt] += dose[ind->ixds];     //dosing before obs
+	  yp[cmt] += evid_extra(cSub, cmt, 1, dose[ind->ixds],xout, yp);     //dosing before obs
 	}
       }
       /* istate = 1; */
@@ -330,7 +333,6 @@ extern void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda_opt
   neq[0] = op->neq;
   neq[1] = solveid;
   /* double *yp = &yp0[neq[1]*neq[0]]; */
-  int nx;
   rx_solving_options_ind *ind;
   double *inits;
   int *evid;
@@ -352,7 +354,6 @@ extern void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda_opt
   lsoda_prepare(&ctx, &opt);
   ind = &(rx->subjects[neq[1]]);
   ind->ixds = 0;
-  nx = ind->n_all_times;
   evid = ind->evid;
   BadDose = ind->BadDose;
   InfusionRate = ind->InfusionRate;
@@ -368,7 +369,7 @@ extern void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda_opt
   memcpy(ret,inits, neq[0]*sizeof(double));
   u_inis(neq[1], ret); // Update initial conditions
   /* for(i=0; i<neq[0]; i++) yp[i] = inits[i]; */
-  for(i=0; i<nx; i++) {
+  for(i=0; i< ind->n_all_times; i++) {
     xout = x[i];
     yp = ret+neq[0]*i;
     if(xout-xp > DBL_EPSILON*max(fabs(xout),fabs(xp))){
@@ -380,16 +381,16 @@ extern void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda_opt
         // Bad Solve => NA
         for (unsigned int j = neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
         op->badSolve = 1;
-        i = nx+42; // Get out of here!
+        i = ind->n_all_times+42; // Get out of here!
       }
     }
     if (!op->badSolve){
       if (handle_evid(evid[i], neq[0], BadDose, InfusionRate, dose, yp,
-                      op->do_transit_abs, xout, ind)){
+                      op->do_transit_abs, xout, ind, u_evid, solveid)){
         ctx.state = 1;
         xp = xout;
       }
-      if (i+1 != nx) memcpy(ret+neq[0]*(i+1), yp, neq[0]*sizeof(double));
+      if (i+1 != ind->n_all_times) memcpy(ret+neq[0]*(i+1), yp, neq[0]*sizeof(double));
       ind->slvr_counter[0]++; // doesn't need do be critical; one subject at a time.
       /* for(j=0; j<neq[0]; j++) ret[neq[0]*i+j] = yp[j]; */
     }
@@ -655,7 +656,7 @@ extern void ind_lsoda0(rx_solve *rx, rx_solving_options *op, int solveid, int *n
       }
     if (!op->badSolve){
       if (handle_evid(ind->evid[i], neq[0], ind->BadDose, ind->InfusionRate, ind->dose, yp,
-                      op->do_transit_abs, xout, ind)){
+                      op->do_transit_abs, xout, ind, u_evid, solveid)){
         istate = 1;
         xp = xout;
       }
@@ -752,11 +753,9 @@ extern void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int *neq
   double *dose;
   double *ret, *inits;
   int *rc;
-  int nx;
   neq[1] = solveid;
   ind = &(rx->subjects[neq[1]]);
   ind->ixds = 0;
-  nx = ind->n_all_times;
   inits = op->inits;
   evid = ind->evid;
   BadDose = ind->BadDose;
@@ -770,7 +769,7 @@ extern void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int *neq
   memcpy(ret,inits, neq[0]*sizeof(double));
   u_inis(neq[1], ret); // Update initial conditions
   //--- inits the system
-  for(i=0; i<nx; i++) {
+  for(i=0; i< ind->n_all_times; i++) {
     xout = x[i];
     yp = &ret[neq[0]*i];
     if (global_debug){
@@ -811,7 +810,7 @@ extern void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int *neq
             // Bad Solve => NA
             for (unsigned int j = (ind->n_all_times)*neq[0];j--;) ret[i] = NA_REAL; 
             op->badSolve = 1;
-            i = nx+42; // Get out of here!
+            i = ind->n_all_times+42; // Get out of here!
           }
         xp = xRead();
         ind->slvr_counter[0]++;
@@ -819,11 +818,11 @@ extern void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int *neq
       }
     if (!op->badSolve){
       if (handle_evid(evid[i], neq[0], BadDose, InfusionRate, dose, yp,
-                      op->do_transit_abs, xout, ind)){
+                      op->do_transit_abs, xout, ind, u_evid, solveid)){
         xp = xout;
       }
       /* for(j=0; j<neq[0]; j++) ret[neq[0]*i+j] = yp[j]; */
-      if (i+1 != nx) memcpy(ret+neq[0]*(i+1), ret + neq[0]*i, neq[0]*sizeof(double));
+      if (i+1 != ind->n_all_times) memcpy(ret+neq[0]*(i+1), ret + neq[0]*i, neq[0]*sizeof(double));
     }
     //REprintf("wh=%d cmt=%d tm=%g rate=%g\n", wh, cmt, xp, InfusionRate[cmt]);
 

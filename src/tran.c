@@ -27,6 +27,8 @@
 #define NOSTATEVAR "Defined 'df(%s)/dy(%s)', but '%s' is not a state or variable!"
 #define ODEFIRST "ODEs compartment 'd/dt(%s)' must be defined before changing its properties (f/alag/rate/dur).\nIf you want to change this set 'options(RxODE.syntax.require.ode.first = FALSE).\nBe warned this will RxODE numbers compartments based on first occurance of property or ODE."
 
+#define err_msg(chk, msg, code) if (!(chk)){error("%s @(%s:%d)", msg, __FILE__, __LINE__);}
+
 
 #include <string.h>
 #include <stdlib.h>
@@ -501,22 +503,22 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         Free(v);
         continue;
       }
-      if ((i< 2 || i == 4 || i == 3) && (!strcmp("derivative", name) ||!strcmp("fbio", name) || !strcmp("alag", name) ||
-					 !strcmp("rate", name) || !strcmp("dur", name))) continue;
+      if ((i< 2  || i == 3 || i ==4) && (!strcmp("derivative", name) ||!strcmp("fbio", name) || !strcmp("alag", name) ||
+				!strcmp("rate", name) || !strcmp("dur", name))) continue;
       if ((i < 2 || i == 3) && (!strcmp("der_rhs", name) || !strcmp("fbio_rhs", name) ||
-			     !strcmp("alag_rhs", name) || !strcmp("rate_rhs", name) || !strcmp("dur_rhs", name))) continue;
+				!strcmp("alag_rhs", name) || !strcmp("rate_rhs", name) || !strcmp("dur_rhs", name))) continue;
       if (!strcmp("der_rhs", name)    && i< 2) continue;
       if (!strcmp("inf_rhs", name)    && i< 2) continue;
       if (!strcmp("der_rhs", name)    && i==3) continue;
       if (!strcmp("inf_rhs", name)    && i==3) continue;
-      if (!strcmp("derivative", name) && i==4){
-	D_ParseNode *xpn = d_get_child(pn,i);
-        char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-        if (!strcmp("~",v)){
-        }
-        Free(v);
-	continue;
-      }
+      /* if (!strcmp("derivative", name) && i==4){ */
+      /* 	D_ParseNode *xpn = d_get_child(pn,i); */
+      /*   char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end); */
+      /*   if (!strcmp("~",v)){ */
+      /*   } */
+      /*   Free(v); */
+      /* 	continue; */
+      /* } */
       
       if (!strcmp("jac", name)     && i< 2)   continue;
       if (!strcmp("jac_rhs", name) && i< 2)   continue;
@@ -923,22 +925,22 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
           if (!strcmp("fbio", name)){
             sprintf(sb.s, "_f[%d] = ", tb.nd);
             sb.o = strlen(sb.s);
-            sprintf(sbt.s, "f(%s)", v);
+            sprintf(sbt.s, "f(%s)=", v);
             sbt.o = strlen(sbt.s);
           } else if (!strcmp("alag", name)){
             sprintf(sb.s, "_alag[%d] = ", tb.nd);
             sb.o = strlen(sb.s);
-            sprintf(sbt.s, "alag(%s)", v);
+            sprintf(sbt.s, "alag(%s)=", v);
             sbt.o = strlen(sbt.s);
           } else if (!strcmp("dur", name)){
             sprintf(sb.s, "_dur[%d] = ", tb.nd);
             sb.o = strlen(sb.s);
-            sprintf(sbt.s, "dur(%s)", v);
+            sprintf(sbt.s, "dur(%s)=", v);
             sbt.o = strlen(sbt.s);
           } else if (!strcmp("rate", name)){
             sprintf(sb.s, "_rate[%d] = ", tb.nd);
             sb.o = strlen(sb.s);
-            sprintf(sbt.s, "rate(%s)", v);
+            sprintf(sbt.s, "rate(%s)=", v);
             sbt.o = strlen(sbt.s);
           }
         }
@@ -1219,13 +1221,6 @@ void retieve_var(int i, char *buf) {
   buf[len] = 0;
 }
 
-void err_msg(int chk, const char *msg, int code)
-{
-  if(!chk) {
-    error("%s",msg);
-  }
-}
-
 /* when prnt_vars() is called, user defines the behavior in "case" */
 void prnt_vars(int scenario, FILE *outpt, int lhs, const char *pre_str, const char *post_str, int show_ode) {
   int i, j, k;
@@ -1472,7 +1467,7 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
   fprintf(outpt,"    SET_STRING_ELT(modeln,1,mkChar(\"normModel\"));\n");
   fpIO2 = fopen(out3 , "r");
   fprintf(outpt,"    SET_STRING_ELT(model,1,mkChar(\"");
-  err_msg((intptr_t) fpIO2, "Error parsing. (Couldn't access out3.txt).\n", -1);
+  err_msg((intptr_t) fpIO2, "Error parsing", -1);
   in_str=0;
   while(fgets(sLine, MXLEN, fpIO2)) {  /* Prefered RxODE -- for igraph */
     for (i = 0; i < (int)strlen(sLine); i++){
@@ -1511,7 +1506,7 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
   fpIO2 = fopen(out2, "r");
   fprintf(outpt,"    SET_STRING_ELT(modeln,2,mkChar(\"parseModel\"));\n");
   fprintf(outpt,"    SET_STRING_ELT(model,2,mkChar(\"");
-  err_msg((intptr_t) fpIO2, "Error parsing. (Couldn't access out2.txt).\n", -1);
+  err_msg((intptr_t) fpIO2, "Error parsing", -1);
   while(fgets(sLine, MXLEN, fpIO2)) {  /* Prefered RxODE -- for igraph */
     for (i = 0; i < (int)strlen(sLine); i++){
       if (sLine[i] == '"'){
@@ -1548,7 +1543,7 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
   fpIO2 = fopen(out2, "r");
   s_aux_info[0] = '\0';
   o    = 0;
-  err_msg((intptr_t) fpIO2, "Error parsing. (Couldn't access out2.txt).\n", -1);
+  err_msg((intptr_t) fpIO2, "Error parsing", -1);
   while(fgets(sLine, MXLEN, fpIO2)) { 
     s2 = strstr(sLine,"(__0__)");
     if (s2){
@@ -1789,7 +1784,7 @@ void codegen(FILE *outpt, int show_ode) {
       int mx = maxSumProdN;
       if (SumProdLD > mx) mx = SumProdLD;
       fprintf(outpt, "  double _p[%d], _input[%d];\n", mx, mx);
-      fprintf(outpt, "  double _pld[%d];\n", mx);
+      fprintf(outpt, "  double _pld[%d];\n  (void)_pld;\n  (void)_p;\n  (void)_input;\n", mx);
     }
      if (tb.nd > 0){
       fprintf(outpt, "  double _f[%d] = {1}, _alag[%d] = {0}, _rate[%d] = {0}, _dur[%d] = {0};\n",tb.nd,tb.nd,tb.nd,tb.nd);
@@ -1825,7 +1820,7 @@ void codegen(FILE *outpt, int show_ode) {
     }
     fprintf(outpt,"\n");
     fpIO = fopen(out2, "r");
-    err_msg((intptr_t) fpIO, "Error parsing. (Couldn't access out2.txt).\n", -1);
+    err_msg((intptr_t) fpIO, "Error parsing", -1);
 
     while(fgets(sLine, MXLEN, fpIO)) {  /* parsed eqns */
       char *s;
@@ -1961,7 +1956,7 @@ void codegen(FILE *outpt, int show_ode) {
       
       s = strstr(sLine,"__PDStateVar__");
       if (s){
-	if (show_ode == 3){
+	if (show_ode == 3 || show_ode == 4){
 	  continue;
 	}
 	for (i = 0; i < tb.ndfdy; i++){
@@ -2089,7 +2084,11 @@ void codegen(FILE *outpt, int show_ode) {
     }
     fprintf(outpt, "}\n");
   } else if (show_ode == 4){
-    fprintf(outpt, "  // Get the values now.\n  if (_what == 1){//F*amt\n    return _f[_cmt]*_amt;\n  } else if (_what == 2){\n    return _alag[_cmt];\n  } else if (_what == 3 && _dur[_cmt] > 0){//3= duration\n    return _dur[_cmt];\n  } else if (_what == 3 && _rate[_cmt] > 0){\n    return _amt/_rate[_cmt];\n  } else if (_what == 4 && _dur[_cmt] > 0){//4 = rate\n    return _amt/_dur[_cmt];\n  } else if (_what == 4 && _rate[_cmt] > 0) {\n    return _rate[_cmt];\n  }\n  return -1.0;\n}\n");
+    if (tb.nd > 0){
+    fprintf(outpt, "  // Get the values now.\n  if (_what == 1){//F*amt\n    return _f[_cmt]*_amt;\n  } else if (_what == 2){\n    return _alag[_cmt];\n  } else if (_what == 3 && _dur[_cmt] > 0){//3= duration\n    return _dur[_cmt];\n  } else if (_what == 3 && _rate[_cmt] > 0){\n    return _amt/_rate[_cmt];\n  } else if (_what == 4 && _dur[_cmt] > 0){//4 = rate\n    return _amt/_dur[_cmt];\n  } else if (_what == 4 && _rate[_cmt] > 0) {\n    return _rate[_cmt];\n  }\n  return -1.0;\n}\n");  
+    } else {
+      fprintf(outpt, "  return -1.0;\n}\n");
+    }
   } else {
     fprintf(outpt, "\n");
     for (i=0, j=0; i<tb.nv; i++) {
@@ -2177,12 +2176,12 @@ void trans_internal(char *orig_file, char* parse_file, char* c_file){
   buf = r_sbuf_read(parse_file);
   infile = r_sbuf_read(orig_file);
 
-  err_msg((intptr_t) buf, "error: empty buf for FILE_to_parse\n", -2);
+  err_msg((intptr_t) buf, "error: empty buf for FILE_to_parse", -2);
   if ((pn=dparse(p, buf, (int)strlen(buf))) && !p->syntax_errors) {
     fpIO = fopen( out2, "w" );
     fpIO2 = fopen( out3, "w" );
-    err_msg((intptr_t) fpIO, "error opening out2.txt\n", -2);
-    err_msg((intptr_t) fpIO2, "error opening out3.txt\n", -2);
+    err_msg((intptr_t) fpIO, "error opening out2.txt", -2);
+    err_msg((intptr_t) fpIO2, "error opening out3.txt", -2);
     wprint_parsetree(parser_tables_RxODE, pn, 0, wprint_node, NULL);
     fclose(fpIO);
     fclose(fpIO2);
@@ -2234,7 +2233,7 @@ void trans_internal(char *orig_file, char* parse_file, char* c_file){
       }
     }
     fpIO = fopen(c_file, "w");
-    err_msg((intptr_t) fpIO, "error opening output c file\n", -2);
+    err_msg((intptr_t) fpIO, "error opening output c file", -2);
     codegen(fpIO, 1);
     codegen(fpIO, 2);
     codegen(fpIO, 3);
@@ -2518,7 +2517,7 @@ SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP pref
   SET_STRING_ELT(tran, 19,mkChar(buf));
   
   fpIO2 = fopen(out2, "r");
-  err_msg((intptr_t) fpIO2, "Error parsing. (Couldn't access out2.txt).\n", -1);
+  err_msg((intptr_t) fpIO2, "Error parsing", -1);
   while(fgets(sLine, MXLEN, fpIO2)) {
     s2 = strstr(sLine,"(__0__)");
     if (s2){

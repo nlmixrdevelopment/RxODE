@@ -147,8 +147,8 @@ C1=centr/V;
 
     ## Now try environmental solve
     object <- RxODE({
-        d/dt(depot)=rxRate(depot)+-depot*exp(ETA[1]+THETA[1]);
-        d/dt(center)=rxRate(center)+-center*exp(ETA[2]+THETA[2])*exp(-ETA[3]-THETA[3])+depot*exp(ETA[1]+THETA[1]);
+        d/dt(depot)=-depot*exp(ETA[1]+THETA[1]);
+        d/dt(center)=-center*exp(ETA[2]+THETA[2])*exp(-ETA[3]-THETA[3])+depot*exp(ETA[1]+THETA[1]);
         d/dt(rx__sens_depot_BY_ETA_1___)=-depot*exp(ETA[1]+THETA[1])-rx__sens_depot_BY_ETA_1___*exp(ETA[1]+THETA[1]);
         d/dt(rx__sens_depot_BY_ETA_2___)=-rx__sens_depot_BY_ETA_2___*exp(ETA[1]+THETA[1]);
         d/dt(rx__sens_depot_BY_ETA_3___)=-rx__sens_depot_BY_ETA_3___*exp(ETA[1]+THETA[1]);
@@ -184,8 +184,8 @@ C1=centr/V;
 
 
     object <- RxODE({
-        d/dt(depot)=rxRate(depot)+prod(-depot,exp(ETA[1]+THETA[1]));
-        d/dt(center)=rxRate(center)+prod(-center,exp(-ETA[3]-THETA[3]),exp(ETA[2]+THETA[2]+prod(THETA[4],WT)))+prod(depot,exp(ETA[1]+THETA[1]));
+        d/dt(depot)=prod(-depot,exp(ETA[1]+THETA[1]));
+        d/dt(center)=prod(-center,exp(-ETA[3]-THETA[3]),exp(ETA[2]+THETA[2]+prod(THETA[4],WT)))+prod(depot,exp(ETA[1]+THETA[1]));
         d/dt(rx__sens_depot_BY_ETA_1___)=prod(-depot,exp(ETA[1]+THETA[1]))-prod(rx__sens_depot_BY_ETA_1___,exp(ETA[1]+THETA[1]));
         d/dt(rx__sens_depot_BY_ETA_2___)=prod(-rx__sens_depot_BY_ETA_2___,exp(ETA[1]+THETA[1]));
         d/dt(rx__sens_depot_BY_ETA_3___)=prod(-rx__sens_depot_BY_ETA_3___,exp(ETA[1]+THETA[1]));

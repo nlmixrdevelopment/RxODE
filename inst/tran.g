@@ -8,16 +8,16 @@ statement
   | ini0f end_statement
   | assignment end_statement
   | derivative end_statement
-  | fbio end_statement
-  | alag end_statement
-  | rate end_statement
-  | dur end_statement
   | jac end_statement
   | dfdy end_statement
   | compound_statement
   | selection_statement
   | printf_statement end_statement
   | print_command end_statement
+  | fbio end_statement
+  | alag end_statement
+  | rate end_statement
+  | dur end_statement
   | end_statement ;
 
 
@@ -47,13 +47,11 @@ ini0f     : identifier_r ('(0)' | '{0}' | '[0]') ('=' | '<-' ) additive_expressi
 
 ini        : identifier_r ('=' | '<-' ) ini_const;
 
-derivative : 'd/dt' '(' identifier_r_no_output ')' ('=' | '<-' | '~')  ('+' | '-' | ) additive_expression;
+derivative : 'd/dt' '(' identifier_r_no_output ')' ('=' | '<-' | '~') ('+' | '-' | ) additive_expression;
 der_rhs    : 'd/dt' '(' identifier_r_no_output ')';
+
 jac        : jac_command '(' identifier_r_no_output ',' (theta0_noout | theta_noout | eta_noout | identifier_r_no_output) ')' ('=' | '<-' ) additive_expression;
 jac_rhs    : jac_command '(' identifier_r_no_output ',' (theta0_noout | theta_noout | eta_noout | identifier_r_no_output) ')';
-
-inf_cmd    : ('rxRate');
-inf_rhs    : inf_cmd '(' identifier_r_no_output ')';
 
 // transit(n,mtt) -> transit3(t,n,mtt)
 transit2   : 'transit' '(' trans_const ',' trans_const ')';
@@ -122,12 +120,12 @@ primary_expression
   | theta
   | eta
   | der_rhs
-  | inf_rhs
   | jac_rhs
   | dfdy_rhs
-  | fbio_rhs
-  | alag_rhs
-  | rate_rhs
+// | fbio_rhs
+// | alag_rhs
+// | rate_rhs
+// | dur_rhs
   | transit2
   | transit3
   | function
@@ -175,4 +173,3 @@ identifier_r_no_output_2: "[.]+[a-zA-Z_][a-zA-Z0-9_.]*" $term -4;
 identifier: "[a-zA-Z][a-zA-Z0-9_]*" $term -4;
 whitespace: ( "[ \t\r\n]+" | singleLineComment )*;
 singleLineComment: '#' "[^\n]*" '\n';
-
