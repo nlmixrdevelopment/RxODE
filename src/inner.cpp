@@ -979,34 +979,36 @@ static inline void innerOpt1(int id, int likId){
   // Use eta
   // Convert Zm to Hessian, if applicable.
   mat etaMat(fop->neta, 1);
-  if (op_focei.resetEtaSize <= 0){
-    fInd->mode = 1;
-    fInd->uzm = 1;
-    std::fill(&fInd->eta[0], &fInd->eta[0] + op_focei.neta, 0.0);
-  } else if (R_FINITE(op_focei.resetEtaSize)) {
-    std::copy(&fInd->eta[0], &fInd->eta[0] + op_focei.neta, etaMat.begin());
-    // Standardized ETAs
-    // chol(omega^-1) %*% eta
-    mat etaRes = op_focei.cholOmegaInv * etaMat;
-    bool doBreak = false;
-    for (unsigned int j = etaRes.n_rows; j--;){
-      if (fabs(etaRes(j, 0)) >= op_focei.resetEtaSize){
-	fInd->mode = 1;
-	fInd->uzm = 1;
-	std::fill(&fInd->eta[0], &fInd->eta[0] + op_focei.neta, 0.0);
-        doBreak=true;
-	break;
-      }
-    }
-    if (!doBreak){
-      etaRes = op_focei.eta1SD % etaMat;
+  if (!op_focei.calcGrad){
+    if (op_focei.resetEtaSize <= 0){
+      fInd->mode = 1;
+      fInd->uzm = 1;
+      std::fill(&fInd->eta[0], &fInd->eta[0] + op_focei.neta, 0.0);
+    } else if (R_FINITE(op_focei.resetEtaSize)) {
+      std::copy(&fInd->eta[0], &fInd->eta[0] + op_focei.neta, etaMat.begin());
+      // Standardized ETAs
+      // chol(omega^-1) %*% eta
+      mat etaRes = op_focei.cholOmegaInv * etaMat;
+      bool doBreak = false;
       for (unsigned int j = etaRes.n_rows; j--;){
-        if (fabs(etaRes(j, 0)) >= op_focei.resetEtaSize){
-          fInd->mode = 1;
-          fInd->uzm = 1;
-          std::fill(&fInd->eta[0], &fInd->eta[0] + op_focei.neta, 0.0);
-          break;
-        }
+	if (fabs(etaRes(j, 0)) >= op_focei.resetEtaSize){
+	  fInd->mode = 1;
+	  fInd->uzm = 1;
+	  std::fill(&fInd->eta[0], &fInd->eta[0] + op_focei.neta, 0.0);
+	  doBreak=true;
+	  break;
+	}
+      }
+      if (!doBreak){
+	etaRes = op_focei.eta1SD % etaMat;
+	for (unsigned int j = etaRes.n_rows; j--;){
+	  if (fabs(etaRes(j, 0)) >= op_focei.resetEtaSize){
+	    fInd->mode = 1;
+	    fInd->uzm = 1;
+	    std::fill(&fInd->eta[0], &fInd->eta[0] + op_focei.neta, 0.0);
+	    break;
+	  }
+	}
       }
     }
   }
