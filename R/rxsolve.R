@@ -659,6 +659,25 @@ solve.RxODE <- solve.rxSolve
     cat(cli::rule(left=paste0(crayon::bold("Initial Conditions"),
                               " (", crayon::yellow(bound), crayon::bold$blue("$inits"), "):")), "\n")
     print(x$inits);
+    if (any(names(x) == "sim.id")){
+        .uncert <- character(0)
+        if (!is.null(x$thetaMat)){
+            .uncert <- c(.uncert, paste0("parameters (", crayon::yellow(bound), crayon::bold$blue("$thetaMat"), " for changes)"))
+        }
+        if (!is.null(x$omegaList)){
+            .uncert <- c(.uncert, paste0("omega matrix (", crayon::yellow(bound), crayon::bold$blue("$omegaList"), ")"))
+        }
+        if (!is.null(x$omegaList)){
+            .uncert <- c(.uncert, paste0("sigma matrix (", crayon::yellow(bound), crayon::bold$blue("$sigmaList"), ")"))
+        }
+        if (length(.uncert) == 0L){
+            cat(paste0("\nSiulation ", crayon::bold("without uncertainty"), " in parameters, omega or sigma matricies\n\n"));
+        } else if (length(.uncert) == 1L){
+            cat(paste0("\nSimulation ", crayon::bold("with uncertainty"), " in ", paste(.uncert, collapse=", "), "\n\n"));
+        } else {
+            cat(paste0("\nSimulation ", crayon::bold("with uncertainty"), " in:\n  - ", paste(.uncert, collapse="\n  - "), "\n\n"));
+        }
+    }
     return(invisible(.isDplyr));
 }
 

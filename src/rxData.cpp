@@ -241,15 +241,18 @@ RObject rxSimSigma(const RObject &sigma,
     // Note that if so, the number of cores also affects the output.
     if (df.isNULL()){
       Function rmvn = as<Function>(mvnfast["rmvn"]);
-      rmvn(_["n"]=nObs, _["mu"]=m, _["sigma"]=sigmaM, _["ncores"]=ncores, _["isChol"]=isChol, _["A"] = simMat); // simMat is updated with the random deviates
+      rmvn(_["n"]=nObs, _["mu"]=m, _["sigma"]=sigmaM, _["ncores"]=ncores,
+	   _["isChol"]=isChol, _["A"] = simMat); // simMat is updated with the random deviates
     } else {
       double df2 = as<double>(df);
       if (R_FINITE(df2)){
         Function rmvt = as<Function>(mvnfast["rmvt"]);
-        rmvt(_["n"]=nObs, _["mu"]=m, _["sigma"]=sigmaM, _["df"] = df, _["ncores"]=ncores, _["isChol"]=isChol, _["A"] = simMat);
+        rmvt(_["n"]=nObs, _["mu"]=m, _["sigma"]=sigmaM, _["df"] = df,
+	     _["ncores"]=ncores, _["isChol"]=isChol, _["A"] = simMat);
       } else {
         Function rmvn = as<Function>(mvnfast["rmvn"]);
-        rmvn(_["n"]=nObs, _["mu"]=m, _["sigma"]=sigmaM, _["ncores"]=ncores, _["isChol"]=isChol, _["A"] = simMat);
+        rmvn(_["n"]=nObs, _["mu"]=m, _["sigma"]=sigmaM, _["ncores"]=ncores,
+	     _["isChol"]=isChol, _["A"] = simMat);
       }
     }
     if (addNames){
@@ -1572,7 +1575,7 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
       sigmaMC = wrap(arma::chol(as<arma::mat>(sigmaM)));
     }
     sigmaN = as<CharacterVector>((as<List>(sigmaM.attr("dimnames")))[1]);
-  }  
+  }
   int scol = 0;
   if (simSigma){
     scol = sigmaMC.ncol();
@@ -1638,10 +1641,10 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
   List sigmaList;  
   if (nStud > 1){
     if (dfSub > 0 && simOmega) {
-      omegaList = cvPost(dfSub, as<RObject>(omegaMC), nStud,  true, true);
+      omegaList = cvPost(dfSub, as<RObject>(omegaMC), nStud,  true, false);
     }
     if (dfObs > 0 && simSigma){
-      sigmaList = cvPost(dfObs, as<RObject>(sigmaMC), nStud,  true, true);
+      sigmaList = cvPost(dfObs, as<RObject>(sigmaMC), nStud,  true, false);
     }
   }
   int pcol = par.size();
@@ -1686,7 +1689,7 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
     if (ocol > 0){
       if (dfSub > 0 && nStud > 1){
         // nm = ret0[j]; // parameter column
-        nm1 = as<NumericMatrix>(rxSimSigma(as<RObject>(omegaList[i]), as<RObject>(omegaDf), nCoresRV, true, nSub,false));
+        nm1 = as<NumericMatrix>(rxSimSigma(as<RObject>(omegaList[i]), as<RObject>(omegaDf), nCoresRV, false, nSub,false));
       } else {
         nm1 = as<NumericMatrix>(rxSimSigma(as<RObject>(omegaMC), as<RObject>(omegaDf), nCoresRV, true, nSub,false));
       }
@@ -1701,7 +1704,7 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
     if (scol > 0){
       if (simSubjects){
         if (dfObs > 0  && nStud > 1){
-          nm1 = as<NumericMatrix>(rxSimSigma(as<RObject>(sigmaList[i]), as<RObject>(sigmaDf), nCoresRV, true, nObs*nSub, false));
+          nm1 = as<NumericMatrix>(rxSimSigma(as<RObject>(sigmaList[i]), as<RObject>(sigmaDf), nCoresRV, false, nObs*nSub, false));
         } else {
           nm1 = as<NumericMatrix>(rxSimSigma(as<RObject>(sigmaMC), as<RObject>(sigmaDf), nCoresRV, true, nObs*nSub, false));
         }
@@ -1713,7 +1716,7 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
         }
       } else {
         if (dfObs > 0  && nStud > 1){
-          nm1 = as<NumericMatrix>(rxSimSigma(as<RObject>(sigmaList[i]), as<RObject>(sigmaDf), nCoresRV, true, nObs, false));
+          nm1 = as<NumericMatrix>(rxSimSigma(as<RObject>(sigmaList[i]), as<RObject>(sigmaDf), nCoresRV, false, nObs, false));
         } else {
           nm1 = as<NumericMatrix>(rxSimSigma(as<RObject>(sigmaMC), as<RObject>(sigmaDf), nCoresRV, true, nObs, false));
         }
@@ -2424,9 +2427,8 @@ SEXP rxSolveC(const RObject &obj,
       } else if (nSub > 1 && nSub0 == 1) {
 	nSub0 = nSub;
         simSubjects = true;
-      }
+      } 
       curObs = addDosing ? rx->nall : rx->nobs;
-      
       par1 =  as<RObject>(rxSimThetaOmega(as<Nullable<NumericVector>>(par1), omega, omegaDf, omegaIsChol, nSub0, thetaMat, thetaDf, thetaIsChol, nStud,
                                           sigma, sigmaDf, sigmaIsChol, nCoresRV, curObs, dfSub, dfObs, simSubjects));
       usePar1=true;
@@ -3179,9 +3181,11 @@ RObject rxSolveGet(RObject obj, RObject arg, LogicalVector exact = true){
 	  return e["inits.dat"];
 	} else if (sarg == "t"){
 	  return lst["time"];
-	} else if (sarg == "sigma.list" && e.exists(".sigmaL")){
+	} else if ((sarg == "theta.mat" || sarg == "thetaMat") && e.exists(".theta")){
+	  return e[".theta"];
+	} else if ((sarg == "sigma.list" || sarg == "sigmaList") && e.exists(".sigmaL")){
 	  return e[".sigmaL"];
-	} else if (sarg == "omega.list" && e.exists(".omegaL")){
+	} else if ((sarg == "omega.list" || sarg == "omegaList") && e.exists(".omegaL")){
           return e[".omegaL"];
 	}
 	// Now parameters
