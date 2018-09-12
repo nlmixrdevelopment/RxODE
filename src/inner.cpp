@@ -1274,6 +1274,8 @@ NumericVector foceiNumericGrad(NumericVector theta){
 CharacterVector rxParams_(const RObject &obj);
 List rxModelVars_(const RObject &obj);
 
+bool rxDynLoad(RObject obj);
+
 static inline void foceiSetupTrans_(CharacterVector pars){
   unsigned int k, j,  ps = pars.size();
   k=ps;
@@ -1450,6 +1452,9 @@ NumericVector foceiSetup_(const RObject &obj,
   // This fills in op_focei.neta
   List mvi;
   if (!rxIs(obj, "NULL")){
+    if (!rxDynLoad(obj)){
+      stop("Cannot load RxODE dlls for this model.");
+    }
     mvi = rxModelVars_(obj);
   }
   op_focei.mvi = mvi;

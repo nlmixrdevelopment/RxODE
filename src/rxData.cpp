@@ -3910,7 +3910,7 @@ std::string rxDll(RObject obj){
     List mv = rxModelVars(obj);
     Nullable<Environment> en = rxRxODEenv(mv);
     if (en.isNull()){
-      stop("Can't figure out the DLL for this object");
+      stop("Can't figure out the DLL for this object.");
     } else {
       Environment e = as<Environment>(en);
       return as<std::string>((as<List>(e["rxDll"]))["dll"]);
