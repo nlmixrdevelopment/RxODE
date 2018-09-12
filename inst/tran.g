@@ -1,12 +1,15 @@
 //loop
-
 statement_list : (statement)+ ;
 
 statement 
-  : ini end_statement 
+  :  assignment end_statement
+  | ini end_statement
   | ini0 end_statement
   | ini0f end_statement
-  | assignment end_statement
+  | fbio end_statement
+  | alag end_statement
+  | rate end_statement
+  | dur end_statement 
   | derivative end_statement
   | jac end_statement
   | dfdy end_statement
@@ -14,10 +17,6 @@ statement
   | selection_statement
   | printf_statement end_statement
   | print_command end_statement
-  | fbio end_statement
-  | alag end_statement
-  | rate end_statement
-  | dur end_statement
   | end_statement ;
 
 
@@ -62,24 +61,17 @@ transit3   : 'transit' '(' trans_const ',' trans_const ',' trans_const ')';
 dfdy        : 'df' '(' identifier_r_no_output ')/dy(' (theta0_noout | theta_noout | eta_noout | identifier_r_no_output) ')' ('=' | '<-' ) additive_expression;
 dfdy_rhs    : 'df' '(' identifier_r_no_output ')/dy(' (theta0_noout | theta_noout | eta_noout | identifier_r_no_output) ')';
 
-fbio        : ('f' | 'F')  '(' identifier_r_no_output ')' ('=' | '<-' ) additive_expression;
-fbio_rhs    : ('f' | 'F') '(' identifier_r_no_output ')';
-
-alag        : ('lag' | 'LAG' | 'Lag' | 'alag' | 'ALAG' | 'Alag')  '(' identifier_r_no_output ')' ('=' | '<-' ) additive_expression;
-alag_rhs    : ('lag' | 'LAG' | 'Lag' | 'alag' | 'ALAG' | 'Alag')  '(' identifier_r_no_output ')';
-
-rate        : ('R' | 'Rate' | 'rate' | 'r')  '(' identifier_r_no_output ')' ('=' | '<-' ) additive_expression;
-rate_rhs    : ('R' | 'Rate' | 'rate' | 'r')  '(' identifier_r_no_output ')';
-
-dur        : ('D' | 'd' | 'Dur' | 'dur' | 'DUR')  '(' identifier_r_no_output ')' ('=' | '<-' ) additive_expression;
-dur_rhs    : ('D' | 'd' | 'Dur' | 'dur' | 'DUR')  '(' identifier_r_no_output ')';
+fbio        : 'f'/i  '(' identifier_r_no_output ')' ('=' | '<-' ) additive_expression;
+alag        : ('lag'/i | 'alag'/i )  '(' identifier_r_no_output ')' ('=' | '<-' ) additive_expression;
+rate        : ('r'/i | 'rate'/i)  '(' identifier_r_no_output ')' ('=' | '<-' ) additive_expression;
+dur        : ('d'/i | 'dur'/i)  '(' identifier_r_no_output ')' ('=' | '<-' ) additive_expression;
 
 
 jac_command : 'jac' | 'df/dy';
 
 end_statement : (';')* ;
 
-assignment : identifier_r ('=' | '<-' | '~' ) additive_expression;
+assignment : identifier_r  ('=' | '<-' | '~' ) additive_expression;
 
 logical_or_expression : logical_and_expression 
     (('||' | '|')  logical_and_expression)* ;
@@ -122,10 +114,6 @@ primary_expression
   | der_rhs
   | jac_rhs
   | dfdy_rhs
-// | fbio_rhs
-// | alag_rhs
-// | rate_rhs
-// | dur_rhs
   | transit2
   | transit3
   | function
@@ -149,9 +137,11 @@ trans_const: identifier_r | '-'? constant;
 
 constant : decimalint | float1 | float2;
 
-identifier_r: identifier_r_1 | identifier_r_2 | 'transit';
+identifier_r: identifier_r_1 | identifier_r_2 | identifier_r_extra ;
 
-identifier_r_no_output: identifier_r_no_output_1 | identifier_r_no_output_2 | 'transit';
+identifier_r_no_output: identifier_r_no_output_1 | identifier_r_no_output_2 | identifier_r_extra;
+
+identifier_r_extra: 'transit' | 'lag'/i | 'alag'/i | 'f'/i | 'r'/i | 'rate'/i | 'd'/i | 'dur'/i;
 
 theta: ('THETA' | 'theta') '[' decimalint ']';
 eta: ('ETA' | 'eta') '[' decimalint ']';
