@@ -156,6 +156,8 @@ typedef struct {
   int derivMethod;
   int covDerivMethod;
   int covMethod;
+  int derivMethodSwitch;
+  double derivSwitchTol;
   double lastOfv;
   
   double *fullTheta;
@@ -1167,7 +1169,12 @@ static inline double foceiOfv0(double *theta){
   if (op_focei.scaleObjective == 2){
     ret = ret / op_focei.initObjective * op_focei.scaleObjectiveTo;
   }
-  if (!op_focei.calcGrad) op_focei.lastOfv = ret;
+  if (!op_focei.calcGrad){
+    if (op_focei.derivMethodSwitch && op_focei.derivMethod==0 && fabs(op_focei.lastOfv-ret) <= op_focei.derivSwitchTol){
+      op_focei.derivMethod=1;
+    }
+    op_focei.lastOfv = ret;
+  }
   return ret;
 }
 
@@ -1440,6 +1447,11 @@ NumericVector foceiSetup_(const RObject &obj,
     stop("covDerivEps must be 2 elements for determining central or forward difference step size.");
   }
   op_focei.derivMethod = as<int>(odeO["derivMethod"]);
+  if (op_focei.derivMethod == 3){
+    op_focei.derivMethod=0;
+    op_focei.derivSwitchTol=as<double>(odeO["derivSwitchTol"]);
+    op_focei.derivMethodSwitch=1;
+  }  
   if (op_focei.derivMethod){
     op_focei.rEps=fabs(cEps[0])/2.0;
     op_focei.aEps=fabs(cEps[1])/2.0;
@@ -1906,7 +1918,7 @@ extern "C" double foceiOfvOptim(int n, double *x, void *ex){
           Rprintf("%#10.4g |", x[i]*op_focei.initPar[i]/op_focei.scaleTo);
 	}
         if ((i + 1) != n && (i + 1) % op_focei.printNcol == 0){
-          if (op_focei.useColor && op_focei.printNcol + i  > op_focei.npars){
+          if (op_focei.useColor && op_focei.printNcol + i >= op_focei.npars){
             Rprintf("\n\033[4m|.....................|");
           } else {
             Rprintf("\n|.....................|");
@@ -1934,7 +1946,7 @@ extern "C" double foceiOfvOptim(int n, double *x, void *ex){
           Rprintf("%#10.4g |", x[i]);
         }
         if ((i + 1) != n && (i + 1) % op_focei.printNcol == 0){
-          if (op_focei.useColor && op_focei.printNcol + i  > op_focei.npars){
+          if (op_focei.useColor && op_focei.printNcol + i  >= op_focei.npars){
             Rprintf("\n\033[4m|.....................|");
           } else {
             Rprintf("\n|.....................|");
@@ -1955,7 +1967,6 @@ extern "C" double foceiOfvOptim(int n, double *x, void *ex){
     } else {
       Rprintf("\n");
     }
-    // foceiPrintLine();
   }
   return ret;
 }
@@ -1973,9 +1984,23 @@ extern "C" void outerGradNumOptim(int n, double *par, double *gr, void *ex){
   if (op_focei.printOuter != 0 && op_focei.nG % op_focei.printOuter == 0){
     int finalize=0, i = 0;
     if (op_focei.useColor && op_focei.printNcol >= n){
-      Rprintf("|\033[4m    G|               |");
+      switch(op_focei.derivMethod){
+      case 0:
+	Rprintf("|\033[4m    G| Forward Diff. |");
+	break;
+      case 1:
+	Rprintf("|\033[4m    G| Central Diff. |");
+	break;
+      }
     } else {
-      Rprintf("|    G|               |");
+      switch(op_focei.derivMethod){
+      case 0:
+	Rprintf("|    G| Forward Diff. |");
+	break;
+      case 1:
+	Rprintf("|    G| Central Diff. |");
+	break;
+      }
     }
     for (i = 0; i < n; i++){
       Rprintf("%#10.4g ", gr[i]);
@@ -1984,7 +2009,7 @@ extern "C" void outerGradNumOptim(int n, double *par, double *gr, void *ex){
       }
       Rprintf("|");
       if ((i + 1) != n && (i + 1) % op_focei.printNcol == 0){
-        if (op_focei.useColor && op_focei.printNcol + i  > op_focei.npars){
+        if (op_focei.useColor && op_focei.printNcol + i  >= op_focei.npars){
           Rprintf("\n\033[4m|.....................|");
         } else {
           Rprintf("\n|.....................|");
@@ -2159,7 +2184,8 @@ void foceiCalcR(Environment e){
     }
   }
   // Suggted by https://www.tandfonline.com/doi/pdf/10.1198/106186005X78800
-  mat H0 = H*H.t();
+  mat H0 = 0.5*H+0.5*H.t();
+  H0=H0*H0;
   cx_mat H1;
   bool success = sqrtmat(H1,H0);
   if (!success){
