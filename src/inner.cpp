@@ -232,6 +232,7 @@ typedef struct {
   double hessEps;
   double cholAccept;
   double resetEtaSize;
+  int resetHessianAndEta;
   int cholSEOpt;
   int cholSECov;
   int fo;
@@ -983,8 +984,10 @@ static inline void innerOpt1(int id, int likId){
   mat etaMat(fop->neta, 1);
   if (!op_focei.calcGrad){
     if (op_focei.resetEtaSize <= 0){
-      fInd->mode = 1;
-      fInd->uzm = 1;
+      if (op_focei.resetHessianAndEta){
+	fInd->mode = 1;
+	fInd->uzm = 1;
+      }
       std::fill(&fInd->eta[0], &fInd->eta[0] + op_focei.neta, 0.0);
     } else if (R_FINITE(op_focei.resetEtaSize)) {
       std::copy(&fInd->eta[0], &fInd->eta[0] + op_focei.neta, etaMat.begin());
@@ -994,8 +997,10 @@ static inline void innerOpt1(int id, int likId){
       bool doBreak = false;
       for (unsigned int j = etaRes.n_rows; j--;){
 	if (fabs(etaRes(j, 0)) >= op_focei.resetEtaSize){
-	  fInd->mode = 1;
-	  fInd->uzm = 1;
+	  if (op_focei.resetHessianAndEta){
+	    fInd->mode = 1;
+	    fInd->uzm = 1;
+	  }
 	  std::fill(&fInd->eta[0], &fInd->eta[0] + op_focei.neta, 0.0);
 	  doBreak=true;
 	  break;
@@ -1005,8 +1010,10 @@ static inline void innerOpt1(int id, int likId){
 	etaRes = op_focei.eta1SD % etaMat;
 	for (unsigned int j = etaRes.n_rows; j--;){
 	  if (fabs(etaRes(j, 0)) >= op_focei.resetEtaSize){
-	    fInd->mode = 1;
-	    fInd->uzm = 1;
+	    if (op_focei.resetHessianAndEta){
+	      fInd->mode = 1;
+	      fInd->uzm = 1;
+	    }
 	    std::fill(&fInd->eta[0], &fInd->eta[0] + op_focei.neta, 0.0);
 	    break;
 	  }
@@ -1084,9 +1091,8 @@ void innerOpt(){
       try {
         innerOpt1(id, 0);
       } catch (...){
-      	// First try resetting Hessian,
-        indF->mode = 1;
-      	indF->uzm = 1;
+      	// First try resetting ETA
+	std::fill(&indF->eta[0], &indF->eta[0] + op_focei.neta, 0.0);
       	try {
       	  innerOpt1(id, 0);
         } catch (...) {
@@ -1137,7 +1143,7 @@ void innerOpt(){
         }
       }
     }
-    //
+    // Reset ETA variances for next step
     op_focei.eta1SD = 1/sqrt(op_focei.etaS);
     std::fill(op_focei.etaM.begin(),op_focei.etaM.end(), 0.0);
     std::fill(op_focei.etaS.begin(),op_focei.etaS.end(), 0.0);
@@ -1170,8 +1176,13 @@ static inline double foceiOfv0(double *theta){
     ret = ret / op_focei.initObjective * op_focei.scaleObjectiveTo;
   }
   if (!op_focei.calcGrad){
-    if (op_focei.derivMethodSwitch && op_focei.derivMethod==0 && fabs(op_focei.lastOfv-ret) <= op_focei.derivSwitchTol){
-      op_focei.derivMethod=1;
+    if (op_focei.derivMethodSwitch){
+      double diff = fabs(op_focei.lastOfv-ret);
+      if (op_focei.derivMethod==0 && diff <= op_focei.derivSwitchTol){
+	op_focei.derivMethod=1;
+      } else if (op_focei.derivMethod==1 && diff > op_focei.derivSwitchTol){
+	op_focei.derivMethod=0;
+      }
     }
     op_focei.lastOfv = ret;
   }
@@ -1746,6 +1757,8 @@ NumericVector foceiSetup_(const RObject &obj,
   op_focei.fo=as<int>(odeO["fo"]);
   if (op_focei.fo) op_focei.maxInnerIterations=0;
   op_focei.covTryHarder=as<int>(odeO["covTryHarder"]);
+  op_focei.resetHessianAndEta=as<int>(odeO["resetHessianAndEta"]);
+  op_focei.lastOfv=std::numeric_limits<double>::max();
   return ret;
 }
 
@@ -1997,7 +2010,7 @@ extern "C" void outerGradNumOptim(int n, double *par, double *gr, void *ex){
       case 0:
 	Rprintf("|    G| Forward Diff. |");
 	break;
-      case 1:
+      case 1:\
 	Rprintf("|    G| Central Diff. |");
 	break;
       }
@@ -2183,22 +2196,7 @@ void foceiCalcR(Environment e){
       H(i, j) = fnscale*(df1[j]-df2[j])/(2*eps*parScale1*parScale2);
     }
   }
-  // Suggted by https://www.tandfonline.com/doi/pdf/10.1198/106186005X78800
-  mat H0 = 0.5*H+0.5*H.t();
-  H0=H0*H0;
-  cx_mat H1;
-  bool success = sqrtmat(H1,H0);
-  if (!success){
-    H = 0.25*H + 0.25*H.t();
-  } else {
-    mat im = arma::imag(H1);
-    mat re = arma::real(H1);
-    if (arma::any(arma::any(im,0))){
-      H = 0.25*H + 0.25*H.t();
-    } else {
-      H = 0.5*re;
-    }
-  }
+  H = 0.25*H + 0.25*H.t();
   // R matrix = Hessian/2
   // https://github.com/cran/nmw/blob/59478fcc91f368bb3bbc23e55d8d1d5d53726a4b/R/CovStep.R
   // H = 0.25*H + 0.25*H.t();
@@ -2221,7 +2219,6 @@ void foceiCalcR(Environment e){
       e["R.E"] =  wrap(RE);
       e["cholR"] = wrap(cholR);
     }
-
   } else {
     e["R.0"] = H;
     arma::mat cholR;
@@ -2392,6 +2389,8 @@ NumericMatrix foceiCalcCov(Environment e){
         op_focei.totTick = 1 + op_focei.npars;
       }
       bool isPd;
+      std::string rstr = "r";
+      bool checkSandwich = false;
       if (op_focei.covMethod == 1 || op_focei.covMethod == 2){
         // R matrix based covariance
         arma::mat cholR;
@@ -2413,9 +2412,30 @@ NumericMatrix foceiCalcCov(Environment e){
               }
             }
             if (isPd){
-              warning("R matrix non-positive definite but corrected (becuase of cholAccept)");
+	      rstr = "r+";
+	      checkSandwich = true;
             }
           }
+	  if (!isPd){
+	    // Suggted by https://www.tandfonline.com/doi/pdf/10.1198/106186005X78800
+	    mat H0 = as<arma::mat>(e["R.0"]);
+	    H0 = H0*H0;
+	    cx_mat H1;
+	    bool success = sqrtmat(H1,H0);
+	    if (success){
+	      mat im = arma::imag(H1);
+	      mat re = arma::real(H1);
+	      if (!arma::any(arma::any(im,0))){
+		success= chol(H0,re);
+		if (success){
+		  e["cholR"] = wrap(H0);
+		  rstr = "|r|";
+		  checkSandwich = true;
+		  isPd = true;
+		}
+	      }
+	    }
+	  }
           if (!isPd && op_focei.covTryHarder){
             e["R.1"] = wrap(e["R.0"]);
             e["R.E1"] = wrap(e["R.E1"]);
@@ -2435,9 +2455,30 @@ NumericMatrix foceiCalcCov(Environment e){
                 }
               }
               if (isPd){
-                warning("R matrix non-positive definite but corrected (becuase of cholAccept)");
+		rstr = "r+";
+		checkSandwich = true;
               }
             }
+	    if (!isPd){
+	      // Suggted by https://www.tandfonline.com/doi/pdf/10.1198/106186005X78800
+	      mat H0 = as<arma::mat>(e["R.2"]); // Second attempt Hessian
+	      H0 = H0*H0;
+	      cx_mat H1;
+	      bool success = sqrtmat(H1,H0);
+	      if (success){
+		mat im = arma::imag(H1);
+		mat re = arma::real(H1);
+		if (!arma::any(arma::any(im,0))){
+		  success= chol(H0,re);
+		  if (success){
+		    e["cholR"] = wrap(H0);
+		    rstr = "|r|";
+		    checkSandwich = true;
+		    isPd = true;
+		  }
+		}
+	      }
+	    }
           } else {
             op_focei.cur += op_focei.npars*2;
             op_focei.curTick = par_progress(op_focei.cur, op_focei.totTick, op_focei.curTick, rx->op->cores, op_focei.t0, 0);
@@ -2456,6 +2497,7 @@ NumericMatrix foceiCalcCov(Environment e){
               if (!success){
                 warning("Hessian (R) matrix seems singular; Using pseudo-inverse");
                 Rinv = pinv(trimatu(cholR));
+		checkSandwich = true;
               }
               Rinv = Rinv * Rinv.t();
               e["Rinv"] = wrap(Rinv);
@@ -2480,6 +2522,7 @@ NumericMatrix foceiCalcCov(Environment e){
       }
       arma::mat cholS;
       int origCov = op_focei.covMethod;
+      std::string sstr="s";
       if (op_focei.covMethod == 1 || op_focei.covMethod == 3){
         try{
           arma::vec dpar(op_focei.npars);
@@ -2506,13 +2549,34 @@ NumericMatrix foceiCalcCov(Environment e){
               }
             }
             if (isPd){
-              warning("S matrix non-positive definite but corrected (becuase of cholAccept)");
+	      sstr="s+";
+	      checkSandwich = true;
             }
           }
+	  if (!isPd){
+	    // Suggted by https://www.tandfonline.com/doi/pdf/10.1198/106186005X78800
+	    mat H0 = as<arma::mat>(e["S0"]);
+	    H0 = H0*H0;
+	    cx_mat H1;
+	    bool success = sqrtmat(H1,H0);
+	    if (success){
+	      mat im = arma::imag(H1);
+	      mat re = arma::real(H1);
+	      if (!arma::any(arma::any(im,0))){
+		success= chol(H0,re);
+		if (success){
+		  e["cholS"] = wrap(H0);
+		  sstr = "|s|";
+		  checkSandwich = true;
+		  isPd = true;
+		}
+	      }
+	    }
+	  }
           if (!isPd){
             warning("S matrix non-positive definite");
             if (op_focei.covMethod == 1){
-              e["cov"] = as<NumericMatrix>(e["covR"]);
+	      e["cov"] = as<NumericMatrix>(e["covR"]);
               op_focei.covMethod = 2;
             } else {
               Rprintf("Cannot calculate covariance.\n");
@@ -2529,7 +2593,43 @@ NumericMatrix foceiCalcCov(Environment e){
               e["S"] = wrap(S);
             }
             if (op_focei.covMethod == 1){
-              e["cov"] = Rinv * S *Rinv;
+              e["covRS"] = Rinv * S *Rinv;
+	      arma::mat covRS = as<arma::mat>(e["covRS"]);
+	      if (checkSandwich){
+		mat Sinv;
+		bool success;
+		success = inv(Sinv, trimatu(cholS));
+		if (!success){
+		  warning("Hessian (S) matrix seems singular; Using pseudo-inverse");
+		  Sinv = pinv(trimatu(cholS));
+		}
+		Sinv = Sinv * Sinv.t();
+		e["covS"]= 4 * Sinv;
+		// Now check sandwich matrix against R and S methods
+		arma::vec covRSd= covRS.diag();
+		arma::mat covR = as<arma::mat>(e["covR"]);
+		arma::vec covRd= covR.diag();
+		arma::mat covS = as<arma::mat>(e["covS"]);
+		arma::vec covSd= covS.diag();
+		if (all(covRSd > covRd)){
+		  // SE(RS) > SE(R)
+		  if (all(covRd > covSd)){
+		    // SE(R) > SE(S)
+		    e["cov"] = covS;
+		    op_focei.covMethod=3;
+		  } else {
+		    e["cov"] = covR;
+		    op_focei.covMethod=2;
+		  }
+		} else if (all(covRSd > covS)){
+		  e["cov"] = covS;
+		  op_focei.covMethod=3;
+		} else {
+		  e["cov"] = covRS;
+		}
+	      } else {
+		e["cov"] = covRS;
+	      }
             } else {
               mat Sinv;
               bool success;
@@ -2561,18 +2661,34 @@ NumericMatrix foceiCalcCov(Environment e){
       op_focei.curTick = par_progress(op_focei.cur, op_focei.totTick, op_focei.curTick, rx->op->cores, op_focei.t0, 0);
       if (op_focei.covMethod==0){
         warning("Covariance step failed");
+	e["covMethod"] = "failed";
         NumericMatrix ret;
         return ret;
       } else {
         if (op_focei.covMethod == 1){
-          e["covMethod"] = "r,s";
+	  if (rstr == "|r|"){
+	    warning("R matrix non-positive definite but corrected by R = sqrtm(R%*%R)");
+	  } else if (rstr == "r+"){
+	    warning("R matrix non-positive definite but corrected (because of cholAccept)");
+	  }
+	  if (sstr == "|s|"){
+	    warning("S matrix non-positive definite but corrected by S = sqrtm(S%*%S)");
+	  } else if (sstr == "s+"){
+	    warning("S matrix non-positive definite but corrected (because of cholAccept)");
+	  }
+          e["covMethod"] = rstr + "," + sstr;
         } else if (op_focei.covMethod == 2){
-          e["covMethod"] = "r";
+	  if (rstr == "|r|"){
+	    warning("R matrix non-positive definite but corrected by R = sqrtm(R%*%R)");
+	  } else if (rstr == "r+"){
+	    warning("R matrix non-positive definite but corrected (because of cholAccept)");
+	  }
+          e["covMethod"] = rstr;
           if (origCov != 2){
             warning("Using R matrix to calculate covariance");
           }
         } else if (op_focei.covMethod == 3){
-          e["covMethod"] = "s";
+          e["covMethod"] = sstr;
           if (origCov != 2){
             warning("Using S matrix to calculate covariance");
           }
