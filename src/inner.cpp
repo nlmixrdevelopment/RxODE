@@ -1783,6 +1783,8 @@ LogicalVector nlmixrEnvSetup(Environment e, double fmin){
     } else {
       fmin = as<double>(e["objective"]);
     }
+    e["OBJF"] = fmin;
+    e["objf"] = fmin;
     NumericVector logLik(1);
     logLik[0]=-fmin/2;
     logLik.attr("df") = op_focei.npars;
