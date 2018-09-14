@@ -2306,6 +2306,7 @@ void foceiS(double *theta, Environment e){
 //[[Rcpp::export]]
 NumericMatrix foceiCalcCov(Environment e){
   if (op_focei.covMethod){
+    op_focei.derivMethodSwitch=0;
     // Check boundaries
     unsigned int j, k;
     double cur;
@@ -2647,7 +2648,7 @@ NumericMatrix foceiCalcCov(Environment e){
         } catch (...){
           if (op_focei.covMethod == 1){
             Rprintf("\rS matrix calculation failed; Switch to R-matrix covariance.\n");
-            e["cov"] = as<NumericMatrix>(e["covR"]);
+            e["cov"] = wrap(e["covR"]);
             op_focei.covMethod = 2;
           } else {
             op_focei.covMethod=0;
@@ -2661,39 +2662,40 @@ NumericMatrix foceiCalcCov(Environment e){
       op_focei.curTick = par_progress(op_focei.cur, op_focei.totTick, op_focei.curTick, rx->op->cores, op_focei.t0, 0);
       if (op_focei.covMethod==0){
         warning("Covariance step failed");
-	e["covMethod"] = "failed";
+	e["covMethod"] = CharacterVector::create("failed");
         NumericMatrix ret;
         return ret;
       } else {
         if (op_focei.covMethod == 1){
 	  if (rstr == "|r|"){
-	    warning("R matrix non-positive definite but corrected by R = sqrtm(R%*%R)");
+	    warning("R matrix non-positive definite but corrected by R = sqrtm(R%%*%%R)");
 	  } else if (rstr == "r+"){
 	    warning("R matrix non-positive definite but corrected (because of cholAccept)");
 	  }
 	  if (sstr == "|s|"){
-	    warning("S matrix non-positive definite but corrected by S = sqrtm(S%*%S)");
+	    warning("S matrix non-positive definite but corrected by S = sqrtm(S%%*%%S)");
 	  } else if (sstr == "s+"){
 	    warning("S matrix non-positive definite but corrected (because of cholAccept)");
 	  }
-          e["covMethod"] = rstr + "," + sstr;
+	  rstr =  rstr + "," + sstr;
+          e["covMethod"] = wrap(rstr);
         } else if (op_focei.covMethod == 2){
 	  if (rstr == "|r|"){
-	    warning("R matrix non-positive definite but corrected by R = sqrtm(R%*%R)");
+	    warning("R matrix non-positive definite but corrected by R = sqrtm(R%%*%%R)");
 	  } else if (rstr == "r+"){
 	    warning("R matrix non-positive definite but corrected (because of cholAccept)");
 	  }
-          e["covMethod"] = rstr;
+          e["covMethod"] = wrap(rstr);
           if (origCov != 2){
             warning("Using R matrix to calculate covariance");
           }
         } else if (op_focei.covMethod == 3){
-          e["covMethod"] = sstr;
+          e["covMethod"] = wrap(sstr);
           if (origCov != 2){
             warning("Using S matrix to calculate covariance");
           }
         }
-        return e["cov"];
+        return as<NumericMatrix>(e["cov"]);
       }
     } else {
       if (boundary){

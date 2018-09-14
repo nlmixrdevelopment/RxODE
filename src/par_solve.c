@@ -23,6 +23,7 @@
 
 
 rx_solve rx_global;
+
 rx_solving_options op_global;
 
 rx_solving_options_ind *inds_global;
@@ -559,6 +560,8 @@ void rxOptionsIni(){
   global_scalep=Calloc(1024, double);
 
   rx_solve *rx=(&rx_global);
+  rx->safeFree=1;
+
 
   rx->op = &op_global;
   rx->subjects = inds_global;
@@ -1280,6 +1283,7 @@ extern void rxSolveOldC(int *neqa,
   rx_solving_options *op = &op_global;
   rx_solving_options_ind *ind = &inds_global[0];
   int i;
+  rx->safeFree=0;
   // Counters
   ind->slvr_counter = gslvr_counterSetup(1);
   ind->dadt_counter = gdadt_counterSetup(1);

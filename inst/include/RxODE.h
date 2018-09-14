@@ -90,6 +90,7 @@ typedef struct {
   int add_cov;
   int matrix;
   int *stateIgnore;
+  int safeFree;
 } rx_solve;
 
 typedef void (*t_set_solve)(rx_solve *);

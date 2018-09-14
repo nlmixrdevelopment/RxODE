@@ -2003,12 +2003,17 @@ extern "C" void rxOptionsFreeFocei();
 //' @export
 // [[Rcpp::export]]
 LogicalVector rxSolveFree(){
-  gFree();
-  rxOptionsFree();
-  rxOptionsIni();
-  rxOptionsIniData();
-  rxOptionsFreeFocei();
-  return LogicalVector::create(true);
+  rx_solve* rx = getRxSolve_();
+  if (rx->safeFree){
+    gFree();
+    rxOptionsFree();
+    rxOptionsIni();
+    rxOptionsIniData();
+    rxOptionsFreeFocei();
+    return LogicalVector::create(true);
+  } else {
+    return LogicalVector::create(false);
+  }
 }
 extern "C" void RxODE_assign_fn_pointers(SEXP);
 SEXP rxSolveC(const RObject &obj,
@@ -2251,6 +2256,7 @@ SEXP rxSolveC(const RObject &obj,
     RxODE_assign_fn_pointers(as<SEXP>(mv));
     // Get the C solve object
     rx_solve* rx = getRxSolve_();
+    rx->safeFree=1;
     rx_solving_options* op = rx->op;
     rx_solving_options_ind* ind;
     
