@@ -214,6 +214,7 @@ typedef struct {
   int eigen;
   int scaleObjective;
   double scaleObjectiveTo;
+  int initObj;
   double initObjective;
   // Confidence Interval
   double ci;
@@ -1168,9 +1169,10 @@ static inline double foceiLik0(double *theta){
 
 static inline double foceiOfv0(double *theta){
   double ret = -2*foceiLik0(theta);
-  if (op_focei.scaleObjective == 1){
+  if (!op_focei.initObj){
+    op_focei.initObj=1;
     op_focei.initObjective=fabs(ret);
-    op_focei.scaleObjective=2;
+    if (op_focei.scaleObjective == 1) op_focei.scaleObjective=2;
   }
   if (op_focei.scaleObjective == 2){
     ret = ret / op_focei.initObjective * op_focei.scaleObjectiveTo;
@@ -1267,7 +1269,7 @@ void numericGrad(double *theta, double *g){
     }
   }
   for (cpar = npars; cpar--;){
-    delta = theta[cpar]*op_focei.rEps + op_focei.aEps;
+    delta = (fabs(theta[cpar])*op_focei.rEps + op_focei.aEps)/sqrt(1+fabs(min2(op_focei.initObjective, op_focei.lastOfv)));
     cur = theta[cpar];
     theta[cpar] = cur + delta;
     if (doForward){
@@ -1758,6 +1760,7 @@ NumericVector foceiSetup_(const RObject &obj,
   if (op_focei.fo) op_focei.maxInnerIterations=0;
   op_focei.covTryHarder=as<int>(odeO["covTryHarder"]);
   op_focei.resetHessianAndEta=as<int>(odeO["resetHessianAndEta"]);
+  op_focei.initObj=0;
   op_focei.lastOfv=std::numeric_limits<double>::max();
   return ret;
 }
@@ -2260,7 +2263,7 @@ void foceiS(double *theta, Environment e){
     }
   }
   for (cpar = npars; cpar--;){
-    delta = theta[cpar]*op_focei.rEps + op_focei.aEps;
+    delta = (abs(theta[cpar])*op_focei.rEps + op_focei.aEps);
     std::fill_n(&op_focei.goldEta[0], op_focei.gEtaGTransN, -42.0); // All etas = -42;  Unlikely if normal
     cur = theta[cpar];
     theta[cpar] = cur + delta;
