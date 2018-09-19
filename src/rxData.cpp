@@ -1034,7 +1034,7 @@ extern "C" void rxOptionsIniData(){
   _globals.gdvn=0;//NALL;
   _globals.gamt = NULL;//Calloc(NDOSES,double);
   _globals.gamtn=0;//NDOSES;
-  _globals.glhs = NULL;Calloc(NPARS,double);
+  _globals.glhs = NULL;//Calloc(NPARS,double);
   _globals.glhsn=0;//NPARS;
   _globals.gcov = NULL;//Calloc(NALL*10,double);
   _globals.gcovn=0;//NALL*10;
@@ -1074,6 +1074,10 @@ extern "C" void rxOptionsIniData(){
 }
 
 void gsolveSetup(int n){
+  if (_globals.gsolven < 0){
+    _globals.gsolven=0;
+    _globals.gsolve=NULL;
+  }
   if (_globals.gsolven < n){
     int cur = n;
     Free( _globals.gsolve);
@@ -1092,6 +1096,10 @@ void gInfusionRateSetup(int n){
 }
 
 void gall_timesSetup(int n){
+  if (_globals.gall_timesn < 0){
+    _globals.gall_timesn=0;
+    _globals.gall_times=NULL;
+  }
   if (_globals.gall_timesn < n){
     int cur = n;
     Free(_globals.gall_times);
@@ -1110,6 +1118,10 @@ void gdvSetup(int n){
 }
 
 void gamtSetup(int n){
+  if (_globals.gamtn < 0){
+    _globals.gamtn=0;
+    _globals.gamt=NULL;
+  }
   if (_globals.gamtn < n){
     int cur = n;
     Free(_globals.gamt);
@@ -1119,6 +1131,10 @@ void gamtSetup(int n){
 }
 
 void glhsSetup(int n){
+  if (_globals.glhsn < n){
+    _globals.glhsn=0;
+    _globals.glhs=NULL;
+  }
   if (_globals.glhsn < n){
     int cur = n;
     Free(_globals.glhs);
@@ -1137,6 +1153,10 @@ void gcovSetup(int n){
 }
 
 void ginitsSetup(int n){
+  if (_globals.ginitsn < 0){
+    _globals.ginits = NULL;
+    _globals.ginitsn = 0;
+  }
   if (_globals.ginitsn < n){
     int cur = n;
     Free(_globals.ginits);
@@ -1174,6 +1194,10 @@ void grtol2Setup(int n){
 
 
 void gparsSetup(int n){
+  if (_globals.gparsn < 0){
+    _globals.gparsn=0;
+    _globals.gpars=NULL;
+  }
   if (_globals.gparsn < n){
     int cur = n;
     Free(_globals.gpars);
@@ -1183,6 +1207,10 @@ void gparsSetup(int n){
 }
 
 void gevidSetup(int n){
+  if (_globals.gevidn < 0){
+    _globals.gevidn = 0;
+    _globals.gevid = NULL;
+  }
   if (_globals.gevidn < n){
     int cur = n;
     Free(_globals.gevid);
@@ -1201,6 +1229,10 @@ void gBadDoseSetup(int n){
 }
 
 void grcSetup(int n){
+  if (_globals.grcn < 0){
+    _globals.grcn=0;
+    _globals.grc=NULL;
+  }
   if (_globals.grcn < n){
     int cur = n;
     Free(_globals.grc);
@@ -1276,6 +1308,17 @@ void gsvarSetup(int n){
   }
 }
 
+extern "C" void protectOld(){
+  _globals.gparsn=-1;
+  _globals.gamtn=-1;
+  _globals.gsolven=-1;
+  _globals.glhsn=-1;
+  _globals.gevidn=-1;
+  _globals.grcn=-1;
+  _globals.gall_timesn=-1;
+  _globals.ginitsn=-1;
+}
+
 
 extern "C" int *gsiVSetup(int n){
   if (_globals.gsiVn < n){
@@ -1296,13 +1339,16 @@ extern "C" void gFree(){
   _globals.gpar_covn=0;
   if (_globals.gidose != NULL) Free(_globals.gidose);
   _globals.gidosen=0;
-  if (_globals.grc != NULL) Free(_globals.grc);
+  if (_globals.grc != NULL && _globals.grcn > 0) Free(_globals.grc);
+  _globals.grc=NULL;
   _globals.grcn=0;
   if (_globals.gBadDose != NULL) Free(_globals.gBadDose);
   _globals.gBadDosen=0;
-  if (_globals.gevid != NULL) Free(_globals.gevid);
+  if (_globals.gevid != NULL && _globals.gevidn > 0) Free(_globals.gevid);
+  _globals.gevid=NULL;
   _globals.gevidn=0;
-  if (_globals.gpars != NULL) Free(_globals.gpars);
+  if (_globals.gpars != NULL && _globals.gparsn>0) Free(_globals.gpars);
+  _globals.gpars=NULL;
   _globals.gparsn=0;
   if (_globals.grtol2 != NULL) Free(_globals.grtol2);
   _globals.grtol2n=0;
@@ -1310,21 +1356,26 @@ extern "C" void gFree(){
   _globals.gatol2n=0;
   if (_globals.gscale != NULL) Free(_globals.gscale);
   _globals.gscalen=0;
-  if (_globals.ginits != NULL) Free(_globals.ginits);
+  if (_globals.ginits != NULL && _globals.ginitsn > 0) Free(_globals.ginits);
+  _globals.ginits=NULL;
   _globals.ginitsn=0;
   if (_globals.gcov != NULL) Free(_globals.gcov);
   _globals.gcovn=0;
-  if (_globals.glhs != NULL) Free(_globals.glhs);
+  if (_globals.glhs != NULL && _globals.glhsn > 0) Free(_globals.glhs);
+  _globals.glhs=NULL;
   _globals.glhsn=0;
-  if (_globals.gamt != NULL) Free(_globals.gamt);
+  if (_globals.gamt != NULL && _globals.gamtn > 0) Free(_globals.gamt);
+  _globals.gamt=NULL;
   _globals.gamtn=0;
-  if (_globals.gall_times != NULL) Free(_globals.gall_times);
+  if (_globals.gall_times != NULL && _globals.gall_timesn>0) Free(_globals.gall_times);
+  _globals.gall_times=NULL;
   _globals.gall_timesn=0;
   if (_globals.gdv != NULL) Free(_globals.gdv);
   _globals.gdvn=0;
   if (_globals.gInfusionRate != NULL) Free(_globals.gInfusionRate);
   _globals.gInfusionRaten=0;
-  if (_globals.gsolve != NULL) Free(_globals.gsolve);
+  if (_globals.gsolve != NULL&& _globals.gsolven>0) Free(_globals.gsolve);
+  _globals.gsolve=NULL;
   _globals.gsolven=0;
   if (_globals.gParPos != NULL) Free(_globals.gParPos);
   _globals.gParPosn = 0;

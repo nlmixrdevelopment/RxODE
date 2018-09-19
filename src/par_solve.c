@@ -1275,6 +1275,7 @@ int *gslvr_counterSetup(int n);
 int *gdadt_counterSetup(int n);
 int *gjac_counterSetup(int n);
 // rxSolveOldC
+void protectOld();
 extern void rxSolveOldC(int *neqa,
                         double *theta,  //order:
                         double *timep,
@@ -1290,6 +1291,7 @@ extern void rxSolveOldC(int *neqa,
                         int *nlhsa,
                         double *lhsp,
                         int *rc){
+  protectOld();
   rx_solve *rx = &rx_global;
   rx_solving_options *op = &op_global;
   rx_solving_options_ind *ind = &inds_global[0];
