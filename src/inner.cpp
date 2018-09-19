@@ -2612,14 +2612,14 @@ NumericMatrix foceiCalcCov(Environment e){
 		Sinv = Sinv * Sinv.t();
 		e["covS"]= 4 * Sinv;
 		// Now check sandwich matrix against R and S methods
-		arma::vec covRSd= covRS.diag();
+		double covRSd= sum(covRS.diag());
 		arma::mat covR = as<arma::mat>(e["covR"]);
-		arma::vec covRd= covR.diag();
+		double covRd= sum(covR.diag());
 		arma::mat covS = as<arma::mat>(e["covS"]);
-		arma::vec covSd= covS.diag();
-		if (all(covRSd > covRd)){
+		double  covSd= sum(covS.diag());
+		if (covRSd > covRd){
 		  // SE(RS) > SE(R)
-		  if (all(covRd > covSd)){
+		  if (covRd > covSd){
 		    // SE(R) > SE(S)
 		    e["cov"] = covS;
 		    op_focei.covMethod=3;
@@ -2627,7 +2627,7 @@ NumericMatrix foceiCalcCov(Environment e){
 		    e["cov"] = covR;
 		    op_focei.covMethod=2;
 		  }
-		} else if (all(covRSd > covS)){
+		} else if (covRSd > covSd){
 		  e["cov"] = covS;
 		  op_focei.covMethod=3;
 		} else {
@@ -2692,12 +2692,20 @@ NumericMatrix foceiCalcCov(Environment e){
 	  }
           e["covMethod"] = wrap(rstr);
           if (origCov != 2){
-            warning("Using R matrix to calculate covariance");
+	    if (checkSandwich){
+	      warning("Using R matrix to calculate covariance, can check sandwich or S matrix with $covRS and $covS");
+	    } else {
+	      warning("Using R matrix to calculate covariance");
+	    }
           }
         } else if (op_focei.covMethod == 3){
           e["covMethod"] = wrap(sstr);
           if (origCov != 2){
-            warning("Using S matrix to calculate covariance");
+	    if (checkSandwich){
+	      warning("Using S matrix to calculate covariance, can check sandwich or R matrix with $covRS and $covR");
+	    } else {
+	      warning("Using S matrix to calculate covariance");
+	    }
           }
         }
         return as<NumericMatrix>(e["cov"]);
@@ -2975,22 +2983,62 @@ void foceiFinalizeTables(Environment e){
     if (e.exists("Rinv")){
       tmpNM = as<NumericMatrix>(e["Rinv"]);
       tmpNM.attr("dimnames") = thetaDim;
+      e["Rinv"]=tmpNM;
     }
     if (e.exists("Sinv")){
       tmpNM = as<NumericMatrix>(e["Sinv"]);
       tmpNM.attr("dimnames") = thetaDim;
+      e["Sinv"]=tmpNM;
     }
     if (e.exists("S")){
       tmpNM = as<NumericMatrix>(e["S"]);
       tmpNM.attr("dimnames") = thetaDim;
+      e["S"]=tmpNM;
     }
     if (e.exists("R")){
       tmpNM = as<NumericMatrix>(e["R"]);
       tmpNM.attr("dimnames") = thetaDim;
+      e["R"]=tmpNM;
     }
     if (e.exists("covR")){
       tmpNM = as<NumericMatrix>(e["covR"]);
       tmpNM.attr("dimnames") = thetaDim;
+      e["covR"]=tmpNM;
+    }
+    if (e.exists("covRS")){
+      tmpNM = as<NumericMatrix>(e["covRS"]);
+      tmpNM.attr("dimnames") = thetaDim;
+      e["covRS"]=tmpNM;
+    }
+    if (e.exists("covS")){
+      tmpNM = as<NumericMatrix>(e["covS"]);
+      tmpNM.attr("dimnames") = thetaDim;
+      e["covS"]=tmpNM;
+    }
+    if (e.exists("R.1")){
+      tmpNM = as<NumericMatrix>(e["R.1"]);
+      tmpNM.attr("dimnames") = thetaDim;
+      e["R.1"]=tmpNM;
+    }
+    if (e.exists("R.2")){
+      tmpNM = as<NumericMatrix>(e["R.2"]);
+      tmpNM.attr("dimnames") = thetaDim;
+      e["R.2"]=tmpNM;
+    }
+    if (e.exists("cholR")){
+      tmpNM = as<NumericMatrix>(e["cholR"]);
+      tmpNM.attr("dimnames") = thetaDim;
+      e["cholR"]=tmpNM;
+    }
+    if (e.exists("cholR2")){
+      tmpNM = as<NumericMatrix>(e["cholR2"]);
+      tmpNM.attr("dimnames") = thetaDim;
+      e["cholR2"]=tmpNM;
+    }
+    if (e.exists("cholS")){
+      tmpNM = as<NumericMatrix>(e["cholS"]);
+      tmpNM.attr("dimnames") = thetaDim;
+      e["cholS"]=tmpNM;
     }
   }
   List objDf;
