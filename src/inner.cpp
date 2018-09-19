@@ -2690,7 +2690,7 @@ NumericMatrix foceiCalcCov(Environment e){
 	    doWarn=true;
 	  }
 	  if (doWarn){
-	    warning("Since sandwich matrix is corrected, you may compare to $covR or $covS if you wish.")
+	    warning("Since sandwich matrix is corrected, you may compare to $covR or $covS if you wish.");
 	  }
 	  rstr =  rstr + "," + sstr;
           e["covMethod"] = wrap(rstr);
