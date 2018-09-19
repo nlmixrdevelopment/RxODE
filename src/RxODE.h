@@ -89,6 +89,7 @@ typedef struct {
   int nr;
   int add_cov;
   int matrix;
+  double stateTrim;
   int *stateIgnore;
 } rx_solve;
 

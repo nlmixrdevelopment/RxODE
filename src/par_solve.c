@@ -379,6 +379,11 @@ extern void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda_opt
         for (unsigned int j = neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
         op->badSolve = 1;
         i = nx+42; // Get out of here!
+      } else {
+	if (R_FINITE(rx->stateTrim)){
+	  double top=fabs(rx->stateTrim);
+	  for (unsigned int j = neq[0]; j--;) yp[j]= max(-top, min(top,yp[j]));
+	}
       }
     }
     if (!op->badSolve){
@@ -639,15 +644,19 @@ extern void ind_lsoda0(rx_solve *rx, rx_solving_options *op, int solveid, int *n
         F77_CALL(dlsoda)(dydt_lsoda, neq, yp, &xp, &xout, &itol, &(op->RTOL), &(op->ATOL), &itask,
                          &istate, &iopt, rwork, &lrw, iwork, &liw, jdum, &jt);
 
-        if (istate <= 0)
-          {
-            REprintf("IDID=%d, %s\n", istate, err_msg[-istate-1]);
-            ind->rc[0] = istate;
-            // Bad Solve => NA
-            for (unsigned int j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
-            op->badSolve = 1;
-            i = ind->n_all_times+42; // Get out of here!
-          }
+        if (istate <= 0) {
+	  REprintf("IDID=%d, %s\n", istate, err_msg[-istate-1]);
+	  ind->rc[0] = istate;
+	  // Bad Solve => NA
+	  for (unsigned int j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
+	  op->badSolve = 1;
+	  i = ind->n_all_times+42; // Get out of here!
+	} else {
+	  if (R_FINITE(rx->stateTrim)){
+	    double top=fabs(rx->stateTrim);
+	    for (unsigned int j = neq[0]; j--;) yp[j]= max(-top, min(top,yp[j]));
+	  }
+	}
         ind->slvr_counter[0]++;
         //dadt_counter = 0;
       }
@@ -802,15 +811,19 @@ extern void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int *neq
                       NULL,           /* indexes of components for which dense output is required, >= nrdens */
                       0                       /* declared length of icon */
                       );
-        if (idid<0)
-          {
+        if (idid<0) {
             REprintf("IDID=%d, %s\n", idid, err_msg[-idid-1]);
             *rc = idid;
             // Bad Solve => NA
             for (unsigned int j = (ind->n_all_times)*neq[0];j--;) ret[i] = NA_REAL; 
             op->badSolve = 1;
             i = nx+42; // Get out of here!
-          }
+	} else {
+	  if (R_FINITE(rx->stateTrim)){
+	    double top=fabs(rx->stateTrim);
+	    for (unsigned int j = neq[0]; j--;) yp[j]= max(-top, min(top,yp[j]));
+	  }
+	}
         xp = xRead();
         ind->slvr_counter[0]++;
         //dadt_counter = 0;

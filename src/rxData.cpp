@@ -1788,6 +1788,7 @@ extern "C" double *global_InfusionRate(unsigned int mx);
 #define defrx_amountUnits NA_STRING
 #define defrx_timeUnits "hours"
 #define defrx_addDosing false
+#define defrx_stateTrim R_PosInf
 
 
 RObject rxCurObj;
@@ -2041,6 +2042,7 @@ SEXP rxSolveC(const RObject &obj,
 	      const CharacterVector &amountUnits = NA_STRING,
 	      const CharacterVector &timeUnits = "hours",
 	      const bool addDosing = false,
+	      const double stateTrim = R_PosInf,
 	      const RObject &theta = R_NilValue,
 	      const RObject &eta = R_NilValue,
 	      const bool updateObject = false,
@@ -2095,7 +2097,8 @@ SEXP rxSolveC(const RObject &obj,
       update_amountUnits = false,
       update_timeUnits = false,
       update_scale = false,
-      update_dosing = false;
+      update_dosing = false,
+      update_trim=false;
     if (specParams.isNull()){
       warning("No additional parameters were specified; Returning fit.");
       return object;
@@ -2155,6 +2158,8 @@ SEXP rxSolveC(const RObject &obj,
 	update_scale = true;
       else if (as<std::string>(specs[i]) == "addDosing")
 	update_dosing = true;
+      else if (as<std::string>(specs[i]) == "stateTrim")
+	update_trim = true;
     }
     // Now update
     Environment e;
@@ -2213,13 +2218,13 @@ SEXP rxSolveC(const RObject &obj,
     CharacterVector new_timeUnits = update_timeUnits ? timeUnits : e["args.timeUnits"];
     RObject new_scale = update_scale ? scale : e["args.scale"];
     bool new_addDosing = update_dosing ? addDosing : e["args.addDosing"];
-
+    double new_stateTrim = update_trim ? stateTrim : e["args.stateTrim"];
     RObject new_object = as<RObject>(e["args.object"]);
     List dat = as<List>(rxSolveC(new_object, R_NilValue, extraArgs, new_params, new_events, new_inits, new_scale, new_covs,
 				 new_method, new_transit_abs, new_atol, new_rtol, new_maxsteps, new_hmin,
 				 new_hmax, new_hini,new_maxordn, new_maxords, new_cores, new_covs_interpolation,
 				 new_addCov, new_matrix, new_sigma, new_sigmaDf, new_nCoresRV, new_sigmaIsChol,
-				 new_nDisplayProgress, new_amountUnits, new_timeUnits, new_addDosing));
+				 new_nDisplayProgress, new_amountUnits, new_timeUnits, new_addDosing, new_stateTrim));
     if (updateObject && as<bool>(e[".real.update"])){
       List old = as<List>(rxCurObj);
       //Should I zero out the List...?
@@ -2253,7 +2258,8 @@ SEXP rxSolveC(const RObject &obj,
     rx_solve* rx = getRxSolve_();
     rx_solving_options* op = rx->op;
     rx_solving_options_ind* ind;
-    
+
+    rx->stateTrim = stateTrim;
     rx->matrix = matrix;
     rx->add_cov = (int)(addCov);
     op->stiff = method;
@@ -3063,6 +3069,7 @@ SEXP rxSolveC(const RObject &obj,
       e["args.amountUnits"] = amountUnits;
       e["args.timeUnits"] = timeUnits;
       e["args.addDosing"] = addDosing;
+      e["args.stateTrim"] = stateTrim;
       e[".real.update"] = true;
       CharacterVector cls= CharacterVector::create("rxSolve", "data.frame");
       cls.attr(".RxODE.env") = e;    
@@ -3112,19 +3119,20 @@ SEXP rxSolveCsmall(const RObject &object,
                   opts[21], //const bool updateObject = false
                   opts[22], //const RObject &eta = R_NilValue,
                   opts[23], //const bool addDosing = false
-		  opts[24], // 
-		  opts[25], //
-		  opts[26], // const RObject &omega = R_NilValue, 
-		  opts[27], // const RObject &omegaDf = R_NilValue, 
-                  opts[28], // const bool &omegaIsChol = false,
-                  opts[29], // const int nSub = 1, 
-                  opts[30], // const RObject &thetaMat = R_NilValue, 
-                  opts[31], // const RObject &thetaDf = R_NilValue, 
-                  opts[32], // const bool &thetaIsChol = false,
-                  opts[33], // const int nStud = 1, 
-                  opts[34], // const dfSub
+		  opts[24],//const double stateTrim = R_PosInf
+		  opts[25], // 
+		  opts[26], //
+		  opts[27], // const RObject &omega = R_NilValue, 
+		  opts[28], // const RObject &omegaDf = R_NilValue, 
+                  opts[29], // const bool &omegaIsChol = false,
+                  opts[30], // const int nSub = 1, 
+                  opts[31], // const RObject &thetaMat = R_NilValue, 
+                  opts[32], // const RObject &thetaDf = R_NilValue, 
+                  opts[33], // const bool &thetaIsChol = false,
+                  opts[34], // const int nStud = 1, 
+                  opts[35], // const dfSub
                   opts[35], // dfObs
-		  opts[36] // setupOnly
+		  opts[37] // setupOnly
 		  );
 }
 
@@ -3340,7 +3348,7 @@ RObject rxSolveUpdate(RObject obj,
                           defrx_sigmaIsChol,
                           defrx_nDisplayProgress,
                           defrx_amountUnits,
-                          defrx_timeUnits, defrx_addDosing);
+                          defrx_timeUnits, defrx_addDosing, defrx_stateTrim);
 	} else if (sarg == "events"){
 	  return rxSolveC(obj,
 			  CharacterVector::create("events"),
@@ -3371,7 +3379,7 @@ RObject rxSolveUpdate(RObject obj,
                           defrx_nDisplayProgress,
 			  defrx_amountUnits,
 			  defrx_timeUnits, 
-			  defrx_addDosing);
+			  defrx_addDosing, defrx_stateTrim);
 	} else if (sarg == "inits"){
 	  return rxSolveC(obj,
                           CharacterVector::create("inits"),
@@ -3402,7 +3410,7 @@ RObject rxSolveUpdate(RObject obj,
                           defrx_nDisplayProgress,
                           defrx_amountUnits,
                           defrx_timeUnits, 
-			  defrx_addDosing);
+			  defrx_addDosing, defrx_stateTrim);
 	} else if (sarg == "covs"){
 	  return rxSolveC(obj,
                           CharacterVector::create("covs"),
@@ -3433,7 +3441,7 @@ RObject rxSolveUpdate(RObject obj,
                           defrx_nDisplayProgress,
                           defrx_amountUnits,
                           defrx_timeUnits, 
-			  defrx_addDosing);
+			  defrx_addDosing, defrx_stateTrim);
 	} else if (sarg == "t" || sarg == "time"){
 	  CharacterVector classattr = obj.attr("class");
           Environment e = as<Environment>(classattr.attr(".RxODE.env"));
@@ -3500,7 +3508,7 @@ RObject rxSolveUpdate(RObject obj,
                                 defrx_nDisplayProgress,
 				defrx_amountUnits,
 				defrx_timeUnits, 
-				defrx_addDosing);
+				defrx_addDosing, defrx_stateTrim);
 	      } else if (val.size() == nc){
 		// Change parameter -> Covariate
 		List newPars(pars.size()-1);
@@ -3557,7 +3565,7 @@ RObject rxSolveUpdate(RObject obj,
                                 defrx_nDisplayProgress,
 				defrx_amountUnits,
 				defrx_timeUnits, 
-				defrx_addDosing);
+				defrx_addDosing, defrx_stateTrim);
 	      }
 	      return R_NilValue;
 	    }
@@ -3601,7 +3609,7 @@ RObject rxSolveUpdate(RObject obj,
                                 defrx_nDisplayProgress,
 				defrx_amountUnits,
 				defrx_timeUnits, 
-				defrx_addDosing);
+				defrx_addDosing, defrx_stateTrim);
 	      } else if (val.size() == np){
 		// Change Covariate -> Parameter
 		List newPars(pars.size()+1);
@@ -3658,7 +3666,7 @@ RObject rxSolveUpdate(RObject obj,
                                 defrx_nDisplayProgress,
 				defrx_amountUnits,
 				defrx_timeUnits, 
-				defrx_addDosing);
+				defrx_addDosing, defrx_stateTrim);
 	      }
 	    }
 	  }
@@ -3732,7 +3740,7 @@ RObject rxSolveUpdate(RObject obj,
                               defrx_nDisplayProgress,
 			      defrx_amountUnits,
 			      defrx_timeUnits, 
-			      defrx_addDosing);
+			      defrx_addDosing, defrx_stateTrim);
 	    }
 	  }
 	  return R_NilValue;

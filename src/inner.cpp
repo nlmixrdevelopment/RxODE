@@ -93,6 +93,7 @@ SEXP rxSolveC(const RObject &obj,
               const CharacterVector &amountUnits = NA_STRING,
               const CharacterVector &timeUnits = "hours",
               const bool addDosing = false,
+	      const double stateTrim = R_PosInf,
               const RObject &theta = R_NilValue,
               const RObject &eta = R_NilValue,
               const bool updateObject = false,
@@ -1612,6 +1613,7 @@ NumericVector foceiSetup_(const RObject &obj,
 	     NA_STRING,//const CharacterVector &amountUnits = NA_STRING,
 	     "hours",//const character_vector &timeUnits = "hours",
 	     false,//const bool addDosing = false,
+	     as<double>(odeO["stateTrim"]),//const double stateTrim = R_PosInf,
 	     R_NilValue,//const RObject &theta = R_NilValue,
 	     R_NilValue,//const RObject &eta = R_NilValue,
 	     false,//const bool updateObject = false,
@@ -2672,15 +2674,23 @@ NumericMatrix foceiCalcCov(Environment e){
         return ret;
       } else {
         if (op_focei.covMethod == 1){
+	  bool doWarn=false;
 	  if (rstr == "|r|"){
 	    warning("R matrix non-positive definite but corrected by R = sqrtm(R%%*%%R)");
+	    doWarn=true;
 	  } else if (rstr == "r+"){
 	    warning("R matrix non-positive definite but corrected (because of cholAccept)");
+	    doWarn=true;
 	  }
 	  if (sstr == "|s|"){
 	    warning("S matrix non-positive definite but corrected by S = sqrtm(S%%*%%S)");
+	    doWarn=true;
 	  } else if (sstr == "s+"){
 	    warning("S matrix non-positive definite but corrected (because of cholAccept)");
+	    doWarn=true;
+	  }
+	  if (doWarn){
+	    warning("Since sandwich matrix is corrected, you may compare to $covR or $covS if you wish.")
 	  }
 	  rstr =  rstr + "," + sstr;
           e["covMethod"] = wrap(rstr);
