@@ -3131,7 +3131,7 @@ SEXP rxSolveCsmall(const RObject &object,
                   opts[33], // const bool &thetaIsChol = false,
                   opts[34], // const int nStud = 1, 
                   opts[35], // const dfSub
-                  opts[35], // dfObs
+                  opts[36], // dfObs
 		  opts[37] // setupOnly
 		  );
 }
