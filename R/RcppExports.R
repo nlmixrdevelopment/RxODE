@@ -57,6 +57,14 @@ foceiOuter <- function(e) {
     .Call(`_RxODE_foceiOuter`, e)
 }
 
+#' Return the square root of general square matrix A
+#'
+#' @param m Matrix to take the square root of.
+#' @export
+sqrtm <- function(m) {
+    .Call(`_RxODE_sqrtm`, m)
+}
+
 foceiCalcCov <- function(e) {
     .Call(`_RxODE_foceiCalcCov`, e)
 }

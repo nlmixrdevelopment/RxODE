@@ -23,7 +23,7 @@ rxSolve(object, ...)
   addCov = FALSE, matrix = FALSE, sigma = NULL, sigmaDf = NULL,
   nCoresRV = 1L, sigmaIsChol = FALSE, nDisplayProgress = 10000L,
   amountUnits = NA_character_, timeUnits = "hours", stiff,
-  theta = NULL, eta = NULL, addDosing = FALSE,
+  theta = NULL, eta = NULL, addDosing = FALSE, stateTrim = Inf,
   updateObject = FALSE, doSolve = TRUE, omega = NULL,
   omegaDf = NULL, omegaIsChol = FALSE, nSub = 1L, thetaMat = NULL,
   thetaDf = NULL, thetaIsChol = FALSE, nStud = 1L, dfSub = 0,
@@ -208,6 +208,11 @@ evid and amt columns.  This will also include dosing
 information and estimates at the doses.  Be default, RxODE
 only includes estimates at the observations. (default
 \code{FALSE}).}
+
+\item{stateTrim}{When amounts/concentrations in one of the states
+are above this value, trim them to be this value. By default
+Inf.  Also trims to -stateTrim for lage negative
+amounts/concentrations}
 
 \item{updateObject}{This is an internally used flag to update the
 RxODE solved object (when supplying an RxODE solved object) as

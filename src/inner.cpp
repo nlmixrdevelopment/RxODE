@@ -2309,6 +2309,20 @@ void foceiS(double *theta, Environment e){
   e["S.E"] =  wrap(SE);
   e["cholS"] = wrap(cholS);
 }
+//' Return the square root of general square matrix A
+//'
+//' @param m Matrix to take the square root of.
+//' @export
+//[[Rcpp::export]]
+arma::mat sqrtm(arma::mat m){
+  arma::cx_mat ret = sqrtmat(m);
+  mat im = arma::imag(ret);
+  mat re = arma::real(ret);
+  if (arma::any(arma::any(im,0))){
+    stop("Some components of sqrtm are imaginary.");
+  }
+  return re;
+}
 
 //[[Rcpp::export]]
 NumericMatrix foceiCalcCov(Environment e){
