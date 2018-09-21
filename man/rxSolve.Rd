@@ -262,22 +262,15 @@ inverse Wishart distribution (scaled) or scaled inverse chi squared distribution
 \item \code{"rxSolve"} (default) will return a reactive data frame
      that can change easily change different pieces of the solve and
      update the data frame.  This is the currently standard solving
-     method in RxODE,  is used for \code{rxSolve(object, ...)}, \code{solev(object,...)},
+     method in RxODE,  is used for \code{rxSolve(object, ...)}, \code{solve(object,...)},
 \item \code{"data.frame"} -- returns a plain, non-reactive data
-     frame; Currently very slightly Faster than \code{returnType=\"matrix\"}
+     frame; Currently very slightly Faster than \code{returnType="matrix"}
 \item \code{"matrix"} -- returns a plain matrix with column names attached
     to the solved object.  This is what is used \code{object$run} as well as \code{object$solve}
 }}
 
 \item{seed}{an object specifying if and how the random number
-    generator should be initialized (\sQuote{seeded}).\cr
-    For the "lm" method, either \code{NULL} or an integer that will be
-    used in a call to \code{set.seed} before simulating the response
-    vectors.  If set, the value is saved as the \code{"seed"} attribute
-    of the returned value.  The default, \code{NULL} will not change the
-    random generator state, and return \code{\link{.Random.seed}} as the
-    \code{"seed"} attribute, see \sQuote{Value}.
-  }
+generator should be initialized}
 
 \item{nsim}{represents the number of simulations.  For RxODE, if
 you supply single subject event tables (created with

@@ -186,12 +186,15 @@
 ##' \item \code{"rxSolve"} (default) will return a reactive data frame
 ##'      that can change easily change different pieces of the solve and
 ##'      update the data frame.  This is the currently standard solving
-##'      method in RxODE,  is used for \code{rxSolve(object, ...)}, \code{solev(object,...)},
+##'      method in RxODE,  is used for \code{rxSolve(object, ...)}, \code{solve(object,...)},
 ##' \item \code{"data.frame"} -- returns a plain, non-reactive data
-##'      frame; Currently very slightly Faster than \code{returnType=\"matrix\"}
+##'      frame; Currently very slightly Faster than \code{returnType="matrix"}
 ##' \item \code{"matrix"} -- returns a plain matrix with column names attached
 ##'     to the solved object.  This is what is used \code{object$run} as well as \code{object$solve}
 ##' }
+##'
+##' @param seed an object specifying if and how the random number
+##'    generator should be initialized
 ##'
 ##' @inheritParams rxSimThetaOmega
 ##'
