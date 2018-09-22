@@ -988,6 +988,7 @@ extern void rxCalcLhsP(int i, rx_solve *rx, unsigned int id){
   lhs = ind->lhs;
   if (i < ind->n_all_times){
     ind->idx=i;
+    if (ind->evid[i]) ind->tlast = ind->all_times[i];
     calc_lhs((int)id, ind->all_times[i], solve+i*op->neq, lhs);
   } else {
     error("LHS cannot be calculated (%dth entry).",i);
@@ -1129,6 +1130,7 @@ extern SEXP RxODE_df(int doDose, int doTBS){
       }
       for (i = 0; i < ntimes; i++){
         evid = ind->evid[i];
+	if (evid) ind->tlast = ind->all_times[i];
         if (updateErr){
           for (j=0; j < errNcol; j++){
 	    par_ptr[svar[j]] = errs[rx->nr*j+kk];
@@ -1387,6 +1389,7 @@ extern void rxSolveOldC(int *neqa,
   par_solve(rx); // Solve without the option of updating residuals.
   if (*nlhsa) {
     for (i=0; i<*ntime; i++){
+      if (ind->evid[i]) ind->tlast = timep[i];
       // 0 = first subject; Calc lhs changed...
       ind->idx = i;
       calc_lhs(0, timep[i], retp+i*(*neqa), lhsp+i*(*nlhsa));
