@@ -1034,7 +1034,7 @@ extern "C" void rxOptionsIniData(){
   _globals.gdvn=0;//NALL;
   _globals.gamt = NULL;//Calloc(NDOSES,double);
   _globals.gamtn=0;//NDOSES;
-  _globals.glhs = NULL;Calloc(NPARS,double);
+  _globals.glhs = NULL;//Calloc(NPARS,double);
   _globals.glhsn=0;//NPARS;
   _globals.gcov = NULL;//Calloc(NALL*10,double);
   _globals.gcovn=0;//NALL*10;
@@ -1074,6 +1074,10 @@ extern "C" void rxOptionsIniData(){
 }
 
 void gsolveSetup(int n){
+  if (_globals.gsolven < 0){
+    _globals.gsolven=0;
+    _globals.gsolve=NULL;
+  }
   if (_globals.gsolven < n){
     int cur = n;
     Free( _globals.gsolve);
@@ -1092,6 +1096,10 @@ void gInfusionRateSetup(int n){
 }
 
 void gall_timesSetup(int n){
+  if (_globals.gall_timesn < 0){
+    _globals.gall_timesn=0;
+    _globals.gall_times=NULL;
+  }
   if (_globals.gall_timesn < n){
     int cur = n;
     Free(_globals.gall_times);
@@ -1110,6 +1118,10 @@ void gdvSetup(int n){
 }
 
 void gamtSetup(int n){
+  if (_globals.gamtn < 0){
+    _globals.gamtn=0;
+    _globals.gamt=NULL;
+  }
   if (_globals.gamtn < n){
     int cur = n;
     Free(_globals.gamt);
@@ -1119,6 +1131,10 @@ void gamtSetup(int n){
 }
 
 void glhsSetup(int n){
+  if (_globals.glhsn < n){
+    _globals.glhsn=0;
+    _globals.glhs=NULL;
+  }
   if (_globals.glhsn < n){
     int cur = n;
     Free(_globals.glhs);
@@ -1137,6 +1153,10 @@ void gcovSetup(int n){
 }
 
 void ginitsSetup(int n){
+  if (_globals.ginitsn < 0){
+    _globals.ginits = NULL;
+    _globals.ginitsn = 0;
+  }
   if (_globals.ginitsn < n){
     int cur = n;
     Free(_globals.ginits);
@@ -1174,6 +1194,10 @@ void grtol2Setup(int n){
 
 
 void gparsSetup(int n){
+  if (_globals.gparsn < 0){
+    _globals.gparsn=0;
+    _globals.gpars=NULL;
+  }
   if (_globals.gparsn < n){
     int cur = n;
     Free(_globals.gpars);
@@ -1183,6 +1207,10 @@ void gparsSetup(int n){
 }
 
 void gevidSetup(int n){
+  if (_globals.gevidn < 0){
+    _globals.gevidn = 0;
+    _globals.gevid = NULL;
+  }
   if (_globals.gevidn < n){
     int cur = n;
     Free(_globals.gevid);
@@ -1201,6 +1229,10 @@ void gBadDoseSetup(int n){
 }
 
 void grcSetup(int n){
+  if (_globals.grcn < 0){
+    _globals.grcn=0;
+    _globals.grc=NULL;
+  }
   if (_globals.grcn < n){
     int cur = n;
     Free(_globals.grc);
@@ -1276,6 +1308,17 @@ void gsvarSetup(int n){
   }
 }
 
+extern "C" void protectOld(){
+  _globals.gparsn=-1;
+  _globals.gamtn=-1;
+  _globals.gsolven=-1;
+  _globals.glhsn=-1;
+  _globals.gevidn=-1;
+  _globals.grcn=-1;
+  _globals.gall_timesn=-1;
+  _globals.ginitsn=-1;
+}
+
 
 extern "C" int *gsiVSetup(int n){
   if (_globals.gsiVn < n){
@@ -1296,13 +1339,16 @@ extern "C" void gFree(){
   _globals.gpar_covn=0;
   if (_globals.gidose != NULL) Free(_globals.gidose);
   _globals.gidosen=0;
-  if (_globals.grc != NULL) Free(_globals.grc);
+  if (_globals.grc != NULL && _globals.grcn > 0) Free(_globals.grc);
+  _globals.grc=NULL;
   _globals.grcn=0;
   if (_globals.gBadDose != NULL) Free(_globals.gBadDose);
   _globals.gBadDosen=0;
-  if (_globals.gevid != NULL) Free(_globals.gevid);
+  if (_globals.gevid != NULL && _globals.gevidn > 0) Free(_globals.gevid);
+  _globals.gevid=NULL;
   _globals.gevidn=0;
-  if (_globals.gpars != NULL) Free(_globals.gpars);
+  if (_globals.gpars != NULL && _globals.gparsn>0) Free(_globals.gpars);
+  _globals.gpars=NULL;
   _globals.gparsn=0;
   if (_globals.grtol2 != NULL) Free(_globals.grtol2);
   _globals.grtol2n=0;
@@ -1310,21 +1356,26 @@ extern "C" void gFree(){
   _globals.gatol2n=0;
   if (_globals.gscale != NULL) Free(_globals.gscale);
   _globals.gscalen=0;
-  if (_globals.ginits != NULL) Free(_globals.ginits);
+  if (_globals.ginits != NULL && _globals.ginitsn > 0) Free(_globals.ginits);
+  _globals.ginits=NULL;
   _globals.ginitsn=0;
   if (_globals.gcov != NULL) Free(_globals.gcov);
   _globals.gcovn=0;
-  if (_globals.glhs != NULL) Free(_globals.glhs);
+  if (_globals.glhs != NULL && _globals.glhsn > 0) Free(_globals.glhs);
+  _globals.glhs=NULL;
   _globals.glhsn=0;
-  if (_globals.gamt != NULL) Free(_globals.gamt);
+  if (_globals.gamt != NULL && _globals.gamtn > 0) Free(_globals.gamt);
+  _globals.gamt=NULL;
   _globals.gamtn=0;
-  if (_globals.gall_times != NULL) Free(_globals.gall_times);
+  if (_globals.gall_times != NULL && _globals.gall_timesn>0) Free(_globals.gall_times);
+  _globals.gall_times=NULL;
   _globals.gall_timesn=0;
   if (_globals.gdv != NULL) Free(_globals.gdv);
   _globals.gdvn=0;
   if (_globals.gInfusionRate != NULL) Free(_globals.gInfusionRate);
   _globals.gInfusionRaten=0;
-  if (_globals.gsolve != NULL) Free(_globals.gsolve);
+  if (_globals.gsolve != NULL&& _globals.gsolven>0) Free(_globals.gsolve);
+  _globals.gsolve=NULL;
   _globals.gsolven=0;
   if (_globals.gParPos != NULL) Free(_globals.gParPos);
   _globals.gParPosn = 0;
@@ -1788,6 +1839,7 @@ extern "C" double *global_InfusionRate(unsigned int mx);
 #define defrx_amountUnits NA_STRING
 #define defrx_timeUnits "hours"
 #define defrx_addDosing false
+#define defrx_stateTrim R_PosInf
 
 
 RObject rxCurObj;
@@ -2041,6 +2093,7 @@ SEXP rxSolveC(const RObject &obj,
 	      const CharacterVector &amountUnits = NA_STRING,
 	      const CharacterVector &timeUnits = "hours",
 	      const bool addDosing = false,
+	      const double stateTrim = R_PosInf,
 	      const RObject &theta = R_NilValue,
 	      const RObject &eta = R_NilValue,
 	      const bool updateObject = false,
@@ -2095,7 +2148,8 @@ SEXP rxSolveC(const RObject &obj,
       update_amountUnits = false,
       update_timeUnits = false,
       update_scale = false,
-      update_dosing = false;
+      update_dosing = false,
+      update_trim=false;
     if (specParams.isNull()){
       warning("No additional parameters were specified; Returning fit.");
       return object;
@@ -2155,6 +2209,8 @@ SEXP rxSolveC(const RObject &obj,
 	update_scale = true;
       else if (as<std::string>(specs[i]) == "addDosing")
 	update_dosing = true;
+      else if (as<std::string>(specs[i]) == "stateTrim")
+	update_trim = true;
     }
     // Now update
     Environment e;
@@ -2213,13 +2269,13 @@ SEXP rxSolveC(const RObject &obj,
     CharacterVector new_timeUnits = update_timeUnits ? timeUnits : e["args.timeUnits"];
     RObject new_scale = update_scale ? scale : e["args.scale"];
     bool new_addDosing = update_dosing ? addDosing : e["args.addDosing"];
-
+    double new_stateTrim = update_trim ? stateTrim : e["args.stateTrim"];
     RObject new_object = as<RObject>(e["args.object"]);
     List dat = as<List>(rxSolveC(new_object, R_NilValue, extraArgs, new_params, new_events, new_inits, new_scale, new_covs,
 				 new_method, new_transit_abs, new_atol, new_rtol, new_maxsteps, new_hmin,
 				 new_hmax, new_hini,new_maxordn, new_maxords, new_cores, new_covs_interpolation,
 				 new_addCov, new_matrix, new_sigma, new_sigmaDf, new_nCoresRV, new_sigmaIsChol,
-				 new_nDisplayProgress, new_amountUnits, new_timeUnits, new_addDosing));
+				 new_nDisplayProgress, new_amountUnits, new_timeUnits, new_addDosing, new_stateTrim));
     if (updateObject && as<bool>(e[".real.update"])){
       List old = as<List>(rxCurObj);
       //Should I zero out the List...?
@@ -2253,7 +2309,8 @@ SEXP rxSolveC(const RObject &obj,
     rx_solve* rx = getRxSolve_();
     rx_solving_options* op = rx->op;
     rx_solving_options_ind* ind;
-    
+
+    rx->stateTrim = stateTrim;
     rx->matrix = matrix;
     rx->add_cov = (int)(addCov);
     op->stiff = method;
@@ -3063,6 +3120,7 @@ SEXP rxSolveC(const RObject &obj,
       e["args.amountUnits"] = amountUnits;
       e["args.timeUnits"] = timeUnits;
       e["args.addDosing"] = addDosing;
+      e["args.stateTrim"] = stateTrim;
       e[".real.update"] = true;
       CharacterVector cls= CharacterVector::create("rxSolve", "data.frame");
       cls.attr(".RxODE.env") = e;    
@@ -3112,19 +3170,20 @@ SEXP rxSolveCsmall(const RObject &object,
                   opts[21], //const bool updateObject = false
                   opts[22], //const RObject &eta = R_NilValue,
                   opts[23], //const bool addDosing = false
-		  opts[24], // 
-		  opts[25], //
-		  opts[26], // const RObject &omega = R_NilValue, 
-		  opts[27], // const RObject &omegaDf = R_NilValue, 
-                  opts[28], // const bool &omegaIsChol = false,
-                  opts[29], // const int nSub = 1, 
-                  opts[30], // const RObject &thetaMat = R_NilValue, 
-                  opts[31], // const RObject &thetaDf = R_NilValue, 
-                  opts[32], // const bool &thetaIsChol = false,
-                  opts[33], // const int nStud = 1, 
-                  opts[34], // const dfSub
-                  opts[35], // dfObs
-		  opts[36] // setupOnly
+		  opts[24],//const double stateTrim = R_PosInf
+		  opts[25], // 
+		  opts[26], //
+		  opts[27], // const RObject &omega = R_NilValue, 
+		  opts[28], // const RObject &omegaDf = R_NilValue, 
+                  opts[29], // const bool &omegaIsChol = false,
+                  opts[30], // const int nSub = 1, 
+                  opts[31], // const RObject &thetaMat = R_NilValue, 
+                  opts[32], // const RObject &thetaDf = R_NilValue, 
+                  opts[33], // const bool &thetaIsChol = false,
+                  opts[34], // const int nStud = 1, 
+                  opts[35], // const dfSub
+                  opts[36], // dfObs
+		  opts[37] // setupOnly
 		  );
 }
 
@@ -3340,7 +3399,7 @@ RObject rxSolveUpdate(RObject obj,
                           defrx_sigmaIsChol,
                           defrx_nDisplayProgress,
                           defrx_amountUnits,
-                          defrx_timeUnits, defrx_addDosing);
+                          defrx_timeUnits, defrx_addDosing, defrx_stateTrim);
 	} else if (sarg == "events"){
 	  return rxSolveC(obj,
 			  CharacterVector::create("events"),
@@ -3371,7 +3430,7 @@ RObject rxSolveUpdate(RObject obj,
                           defrx_nDisplayProgress,
 			  defrx_amountUnits,
 			  defrx_timeUnits, 
-			  defrx_addDosing);
+			  defrx_addDosing, defrx_stateTrim);
 	} else if (sarg == "inits"){
 	  return rxSolveC(obj,
                           CharacterVector::create("inits"),
@@ -3402,7 +3461,7 @@ RObject rxSolveUpdate(RObject obj,
                           defrx_nDisplayProgress,
                           defrx_amountUnits,
                           defrx_timeUnits, 
-			  defrx_addDosing);
+			  defrx_addDosing, defrx_stateTrim);
 	} else if (sarg == "covs"){
 	  return rxSolveC(obj,
                           CharacterVector::create("covs"),
@@ -3433,7 +3492,7 @@ RObject rxSolveUpdate(RObject obj,
                           defrx_nDisplayProgress,
                           defrx_amountUnits,
                           defrx_timeUnits, 
-			  defrx_addDosing);
+			  defrx_addDosing, defrx_stateTrim);
 	} else if (sarg == "t" || sarg == "time"){
 	  CharacterVector classattr = obj.attr("class");
           Environment e = as<Environment>(classattr.attr(".RxODE.env"));
@@ -3500,7 +3559,7 @@ RObject rxSolveUpdate(RObject obj,
                                 defrx_nDisplayProgress,
 				defrx_amountUnits,
 				defrx_timeUnits, 
-				defrx_addDosing);
+				defrx_addDosing, defrx_stateTrim);
 	      } else if (val.size() == nc){
 		// Change parameter -> Covariate
 		List newPars(pars.size()-1);
@@ -3557,7 +3616,7 @@ RObject rxSolveUpdate(RObject obj,
                                 defrx_nDisplayProgress,
 				defrx_amountUnits,
 				defrx_timeUnits, 
-				defrx_addDosing);
+				defrx_addDosing, defrx_stateTrim);
 	      }
 	      return R_NilValue;
 	    }
@@ -3601,7 +3660,7 @@ RObject rxSolveUpdate(RObject obj,
                                 defrx_nDisplayProgress,
 				defrx_amountUnits,
 				defrx_timeUnits, 
-				defrx_addDosing);
+				defrx_addDosing, defrx_stateTrim);
 	      } else if (val.size() == np){
 		// Change Covariate -> Parameter
 		List newPars(pars.size()+1);
@@ -3658,7 +3717,7 @@ RObject rxSolveUpdate(RObject obj,
                                 defrx_nDisplayProgress,
 				defrx_amountUnits,
 				defrx_timeUnits, 
-				defrx_addDosing);
+				defrx_addDosing, defrx_stateTrim);
 	      }
 	    }
 	  }
@@ -3732,7 +3791,7 @@ RObject rxSolveUpdate(RObject obj,
                               defrx_nDisplayProgress,
 			      defrx_amountUnits,
 			      defrx_timeUnits, 
-			      defrx_addDosing);
+			      defrx_addDosing, defrx_stateTrim);
 	    }
 	  }
 	  return R_NilValue;

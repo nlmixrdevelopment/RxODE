@@ -188,6 +188,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// sqrtm
+arma::mat sqrtm(arma::mat m);
+RcppExport SEXP _RxODE_sqrtm(SEXP mSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type m(mSEXP);
+    rcpp_result_gen = Rcpp::wrap(sqrtm(m));
+    return rcpp_result_gen;
+END_RCPP
+}
 // foceiCalcCov
 NumericMatrix foceiCalcCov(Environment e);
 RcppExport SEXP _RxODE_foceiCalcCov(SEXP eSEXP) {

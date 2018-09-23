@@ -167,6 +167,11 @@
 ##'     only includes estimates at the observations. (default
 ##'     \code{FALSE}).
 ##'
+##' @param stateTrim When amounts/concentrations in one of the states
+##'     are above this value, trim them to be this value. By default
+##'     Inf.  Also trims to -stateTrim for lage negative
+##'     amounts/concentrations
+##'
 ##' @param updateObject This is an internally used flag to update the
 ##'     RxODE solved object (when supplying an RxODE solved object) as
 ##'     well as returning a new object.  You probably should not
@@ -181,12 +186,15 @@
 ##' \item \code{"rxSolve"} (default) will return a reactive data frame
 ##'      that can change easily change different pieces of the solve and
 ##'      update the data frame.  This is the currently standard solving
-##'      method in RxODE,  is used for \code{rxSolve(object, ...)}, \code{solev(object,...)},
+##'      method in RxODE,  is used for \code{rxSolve(object, ...)}, \code{solve(object,...)},
 ##' \item \code{"data.frame"} -- returns a plain, non-reactive data
-##'      frame; Currently very slightly Faster than \code{returnType=\"matrix\"}
+##'      frame; Currently very slightly Faster than \code{returnType="matrix"}
 ##' \item \code{"matrix"} -- returns a plain matrix with column names attached
 ##'     to the solved object.  This is what is used \code{object$run} as well as \code{object$solve}
 ##' }
+##'
+##' @param seed an object specifying if and how the random number
+##'    generator should be initialized
 ##'
 ##' @inheritParams rxSimThetaOmega
 ##'
@@ -259,7 +267,8 @@ rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, scal
                     addCov = FALSE, matrix = FALSE, sigma = NULL, sigmaDf = NULL,
                     nCoresRV = 1L, sigmaIsChol = FALSE, nDisplayProgress=10000L,
                     amountUnits = NA_character_, timeUnits = "hours", stiff,
-                    theta = NULL, eta = NULL, addDosing=FALSE, updateObject=FALSE, doSolve=TRUE,
+                    theta = NULL, eta = NULL, addDosing=FALSE,
+                    stateTrim=Inf, updateObject=FALSE, doSolve=TRUE,
                     omega = NULL, omegaDf = NULL, omegaIsChol = FALSE,
                     nSub = 1L, thetaMat = NULL, thetaDf = NULL, thetaIsChol = FALSE,
                     nStud = 1L, dfSub=0.0, dfObs=0.0, returnType=c("rxSolve", "matrix", "data.frame", "data.frame.TBS"),
@@ -571,7 +580,7 @@ rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, scal
                sigmaDf, #15
                nCoresRV, #16
                sigmaIsChol, nDisplayProgress, amountUnits,
-               timeUnits, addDosing, theta, eta, updateObject,
+               timeUnits, addDosing, stateTrim, theta, eta, updateObject,
                doSolve, omega, omegaDf, omegaIsChol, nSub, thetaMat,
                thetaDf, thetaIsChol, nStud, dfSub, dfObs,
                as.integer(setupOnly)));
