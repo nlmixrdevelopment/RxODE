@@ -10,6 +10,7 @@
 #define NTHETAs 20
 #define NSUBs 100
 #define min2( a , b )  ( (a) < (b) ? (a) : (b) )
+#define max2( a , b )  ( (a) > (b) ? (a) : (b) )
 #define innerOde(id) ind_solve(rx, id, inner_dydt_liblsoda, inner_dydt_lsoda_dum, inner_jdum_lsoda, inner_dydt, inner_update_inis, inner_global_jt)
 #define getCholOmegaInv() (as<arma::mat>(rxSymInvCholEnvCalculate(_rxInv, "chol.omegaInv", R_NilValue)))
 #define getOmega() (as<NumericMatrix>(rxSymInvCholEnvCalculate(_rxInv, "omega", R_NilValue)))
@@ -1242,6 +1243,189 @@ List foceiEtas(){
 extern "C" double outerLikOpim(int n, double *par, void *ex){
   return(foceiOfv0(par));
 }
+
+// Gill 1983 Chat
+static inline double Chat(double phi, double h, double epsA){
+   if (phi == 0) return pow(10,300);
+  return 2*epsA/(h*fabs(phi));
+}
+
+static inline double ChatP(double phi, double h, double epsA){
+  if (phi == 0) return pow(10,300);
+  return 4*epsA/(h*h*fabs(phi));
+}
+
+static inline double Phi(double fp, double f, double fn, double h){
+  return (fp-2*f+fn)/(h*h);
+}
+static inline double phiC(double fp, double fn, double h){
+  return (fp-fn)/(2*h);
+}
+static inline double phiF(double f, double fp, double h){
+  return (fp-f)/h;
+}
+static inline double phiB(double f, double fn, double h){
+  return (f-fn)/h;
+}
+
+// *hf is the forward difference final estimate
+// *hphif is central difference final estimate (when switching from forward to central differences)
+// *df is the derivative estimate
+// *df2 is the 2nd derivative estimate, useful for pre-conditioning.
+// *ef is the err of the final estimate.
+// *theta is the theta vector
+// cpar is the parameter we are considering
+// epsR is the relative error for the problem
+// K is the maximum number of iterations before giving up on searching for the best interval.
+// Returns 1 -- Success
+//         2 -- Large error; Derivative estimate error 50% or more of the derivative
+//         3 -- Function constant or nearly constant for this parameter
+//         4 -- Function odd or nearly linear, df = K, df2 ~ 0
+//         5 -- df2 increases rapidly as h decreases
+int gill83(double *hf, double *hphif, double *df, double *df2, double *ef,
+	   double *theta, int cpar, double epsR, int K){
+  op_focei.calcGrad=1;
+  double f, x, hbar, h0, fp, fn, phif, phib, phic, phicc = 0, phi, Chf, Chb, Ch, hs, hphi, hk, tmp, ehat;
+  int k = 0;
+  // Relative error should be given by the tolerances, I believe.
+  f=op_focei.lastOfv;
+  double epsA=fabs(f)*epsR;
+  x = theta[cpar];
+  // FD1: // Initialization
+  hbar = 2*(1+fabs(x))*sqrt(epsA/(1+fabs(f)));
+  h0 = 10*hbar;
+  theta[cpar] = x + h0;
+  updateTheta(theta);
+  fp = foceiOfv0(theta);
+  theta[cpar] = x-h0;
+  updateTheta(theta);
+  fn = foceiOfv0(theta);
+  phif = phiF(f, fp, h0);
+  phib = phiB(f, fn, h0);
+  phic = phiC(fp, fn, h0);
+  phi = Phi(fp, f, fn, h0);
+  Chf = Chat(phif, h0, epsA);
+  Chb = Chat(phib, h0, epsA);
+  Ch = ChatP(phi, h0, epsA);
+  hs = -1;
+  hphi=hbar; // Not defined in Gill, but used for central difference switch if there are problems
+  // FD2:  // Decide if to accept the interval
+  hk = h0;
+  if (max2(Chf, Chb) <= 0.1){
+      hs=h0;
+  }
+  if (0.001 <= Ch && Ch <= 0.1){
+    phicc=phic;
+    hphi=h0;
+    goto FD5;
+  }
+  if (Ch < 0.001){
+    goto FD4;
+  }
+ FD3: // Increase h
+  k++;
+  hk=hk*10;
+  // Compute the associated finite difference estimates and their
+  // relative condition errors.
+  theta[cpar] = x + hk;
+  updateTheta(theta);
+  fp = foceiOfv0(theta);
+  theta[cpar] = x-hk;
+  updateTheta(theta);
+  fn = foceiOfv0(theta);
+  phif = phiF(f, fp, hk);
+  phib = phiB(f, fn, hk);
+  phic = phiC(fp, fn, hk);
+  phi = Phi(fp, f, fn, hk);
+  Chf = Chat(phif, hk, epsA);
+  Chb = Chat(phib, hk, epsA);
+  Ch = ChatP(phi, hk, epsA);
+  if (hs < 0 && max2(Chf, Chb) <= 0.1){
+    hs = hk;
+  }
+  if (Ch <= 0.1){
+    phicc=phic;
+    hphi = hk;
+    goto FD5;
+  }
+  if (k == K) goto FD6;
+  goto FD3;
+ FD4: // Decrease h
+  k++;
+  hk=hk/10;
+  // Compute the associated finite difference estimates and their
+  // relative condition errors.
+  theta[cpar] = x + hk;
+  updateTheta(theta);
+  fp = foceiOfv0(theta);
+  theta[cpar] = x-hk;
+  updateTheta(theta);
+  fn = foceiOfv0(theta);
+  phif = phiF(f, fp, hk);
+  phib = phiB(f, fn, hk);
+  tmp=phic;
+  phic = phiC(fp, fn, hk);
+  phi = Phi(fp, f, fn, hk);
+  Chf = Chat(phif, hk, epsA);
+  Chb = Chat(phib, hk, epsA);
+  Ch = ChatP(phi, hk, epsA);  
+  if (Ch > .1){
+    phicc=tmp;
+    hphi=hk*10; // hphi = h_k-1
+    goto FD5;
+  }
+  if (max2(Chf, Chb) <= 0.1){
+    hs = hk;
+  }
+  if (0.001 <= Ch && Ch <= 1){
+    hphi = hk;
+    goto FD5;
+  }
+  if (k == K) goto FD6;
+  goto FD4;
+ FD5: // Compute the estimate of the optimal interval
+  *df2 = phi;
+  *hf = 2*sqrt(epsA/fabs(phi));
+  theta[cpar] = x + *hf;
+  updateTheta(theta);
+  fp = foceiOfv0(theta);
+  // Restore theta
+  theta[cpar] = x;
+  updateTheta(theta);
+  *df = phiF(f, fp, *hf);
+  *ef = (*hf)*fabs(phi)/2+2*epsA/(*hf);
+  *hphif=hphi;
+  ehat = fabs(*df-phicc);
+  if (max2(*ef, ehat) <= 0.5*(*df)){
+    return 1;
+  } else {
+    return 2;
+  }
+ FD6: // Check unsatisfactory cases
+  if (hs < 0){
+    // F nearly constant.
+    *hf = hbar;
+    *df = 0.0; // Doesn't move.
+    *hphif=2*hbar;
+    return 3;
+  }
+  if (Ch > 0.1){ // Odd or nearly linear.
+    *hf = hs;
+    *df = phif;
+    *df2 = 0;
+    *ef = 2*epsA/(*hf);
+    *hphif=hphi;
+    return 4;
+  }
+  // f'' is increasing rapidly as h decreases
+  *hf = hk;
+  *df = phif;
+  *df2 = phi;
+  *hphif=hphi;
+  *ef = (*hf)*fabs(phi)/2+2*epsA/(*hf);
+  return 5;
+}
+
 
 void numericGrad(double *theta, double *g){
   op_focei.calcGrad=1;
