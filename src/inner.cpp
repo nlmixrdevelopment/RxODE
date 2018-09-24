@@ -726,14 +726,14 @@ arma::mat gershNested(arma::mat A, int j, int n){
     if (ii == 0){
       sumToI=0.0;
     } else if (j == ii){
-      sumToI=sum(abs(A(ii, span(ii-1, j))));
+      sumToI=arma::sum(arma::abs(A(ii, span(ii-1, j))));
     } else {
-      sumToI=sum(abs(A(ii, span(j, ii-1))));
+      sumToI=arma::sum(arma::abs(A(ii, span(j, ii-1))));
     }
     if (ii == n-1){
       sumAfterI = 0;
     } else {
-      sumAfterI = sum(abs(A(span(ii+1, n-1), ii)));
+      sumAfterI = arma::sum(arma::abs(A(span(ii+1, n-1), ii)));
     }
     g(ii, 0) = sumToI+sumAfterI-A(ii,ii);
   }
@@ -766,7 +766,7 @@ bool cholSE0(arma::mat &Ao, arma::mat &E, arma::mat A, double tol){
   if (!phase1) g = gershNested(A, 0, n);
   // N=1 case
   if (n == 1){
-    delta = tau2*abs(A(0,0)) - A(0,0);
+    delta = tau2*std::fabs(A(0,0)) - A(0,0);
     if (delta > 0) E(0,0) = delta;
     if (A(0,0) == 0) E(0,0) = tau2;
     A(0,0)=_safe_sqrt(A(0,0)+E(0,0));
@@ -812,7 +812,7 @@ bool cholSE0(arma::mat &Ao, arma::mat &E, arma::mat A, double tol){
       if (j != n-2){
         // Calculate delta and add to the diagonal. delta=max{0,-A(j,j) + max{normj,taugam},delta_previous}
 	// where normj=sum of |A(i,j)|,for i=1,n, delta_previous is the delta computed at the previous iter and taugam is tau1*gamma.
-	normj=sum(abs(A(span(j+1, n-1),j)));
+	normj=arma::sum(arma::abs(A(span(j+1, n-1),j)));
 	if (delta < 0) delta = 0;
 	tmp  = -A(j,j)+normj;
 	if (delta < tmp) delta = tmp;
@@ -825,11 +825,11 @@ bool cholSE0(arma::mat &Ao, arma::mat &E, arma::mat A, double tol){
 	if (A(j,j) != normj){
 	  temp = (normj/A(j,j)) - 1;
 	  for (ii = j+1; ii < n; ii++){
-	    g(ii) = g(ii) + abs(A(ii,j)) * temp;
+	    g(ii) = g(ii) + std::fabs(A(ii,j)) * temp;
 	  }
 	}
 	for (int ii = j+1; ii < n; ii++){
-	  g(ii,0) = g(ii,0) + abs(A(ii,j)) * temp;
+	  g(ii,0) = g(ii,0) + std::fabs(A(ii,j)) * temp;
 	}
 	// Do the cholesky update
 	A(j,j) = _safe_sqrt(A(j,j));
@@ -1000,7 +1000,7 @@ static inline void innerOpt1(int id, int likId){
       mat etaRes = op_focei.cholOmegaInv * etaMat;
       bool doBreak = false;
       for (unsigned int j = etaRes.n_rows; j--;){
-	if (fabs(etaRes(j, 0)) >= op_focei.resetEtaSize){
+	if (std::fabs(etaRes(j, 0)) >= op_focei.resetEtaSize){
 	  if (op_focei.resetHessianAndEta){
 	    fInd->mode = 1;
 	    fInd->uzm = 1;
@@ -1013,7 +1013,7 @@ static inline void innerOpt1(int id, int likId){
       if (!doBreak){
 	etaRes = op_focei.eta1SD % etaMat;
 	for (unsigned int j = etaRes.n_rows; j--;){
-	  if (fabs(etaRes(j, 0)) >= op_focei.resetEtaSize){
+	  if (std::fabs(etaRes(j, 0)) >= op_focei.resetEtaSize){
 	    if (op_focei.resetHessianAndEta){
 	      fInd->mode = 1;
 	      fInd->uzm = 1;
@@ -1174,7 +1174,7 @@ static inline double foceiOfv0(double *theta){
   double ret = -2*foceiLik0(theta);
   if (!op_focei.initObj){
     op_focei.initObj=1;
-    op_focei.initObjective=fabs(ret);
+    op_focei.initObjective=std::fabs(ret);
     if (op_focei.scaleObjective == 1) op_focei.scaleObjective=2;
   }
   if (op_focei.scaleObjective == 2){
@@ -1182,7 +1182,7 @@ static inline double foceiOfv0(double *theta){
   }
   if (!op_focei.calcGrad){
     if (op_focei.derivMethodSwitch){
-      double diff = fabs(op_focei.lastOfv-ret);
+      double diff = std::fabs(op_focei.lastOfv-ret);
       if (op_focei.derivMethod==0 && diff <= op_focei.derivSwitchTol){
 	op_focei.derivMethod=1;
       } else if (op_focei.derivMethod==1 && diff > op_focei.derivSwitchTol){
@@ -1272,7 +1272,7 @@ void numericGrad(double *theta, double *g){
     }
   }
   for (cpar = npars; cpar--;){
-    delta = (fabs(theta[cpar])*op_focei.rEps + op_focei.aEps)/sqrt(1+fabs(min2(op_focei.initObjective, op_focei.lastOfv)));
+    delta = (std::fabs(theta[cpar])*op_focei.rEps + op_focei.aEps)/sqrt(1+std::fabs(min2(op_focei.initObjective, op_focei.lastOfv)));
     cur = theta[cpar];
     theta[cpar] = cur + delta;
     if (doForward){
@@ -1469,15 +1469,15 @@ NumericVector foceiSetup_(const RObject &obj,
     op_focei.derivMethodSwitch=1;
   }  
   if (op_focei.derivMethod){
-    op_focei.rEps=fabs(cEps[0])/2.0;
-    op_focei.aEps=fabs(cEps[1])/2.0;
-    op_focei.rEpsC=fabs(covDerivEps[0])/2.0;
-    op_focei.aEpsC=fabs(covDerivEps[1])/2.0;
+    op_focei.rEps=std::fabs(cEps[0])/2.0;
+    op_focei.aEps=std::fabs(cEps[1])/2.0;
+    op_focei.rEpsC=std::fabs(covDerivEps[0])/2.0;
+    op_focei.aEpsC=std::fabs(covDerivEps[1])/2.0;
   } else {
-    op_focei.rEps=fabs(cEps[0]);
-    op_focei.aEps=fabs(cEps[1]);
-    op_focei.rEpsC=fabs(covDerivEps[0]);
-    op_focei.aEpsC=fabs(covDerivEps[1]);
+    op_focei.rEps=std::fabs(cEps[0]);
+    op_focei.aEps=std::fabs(cEps[1]);
+    op_focei.rEpsC=std::fabs(covDerivEps[0]);
+    op_focei.aEpsC=std::fabs(covDerivEps[1]);
   }
   // This fills in op_focei.neta
   List mvi;
@@ -2269,7 +2269,7 @@ void foceiS(double *theta, Environment e){
     }
   }
   for (cpar = npars; cpar--;){
-    delta = (fabs(theta[cpar])*op_focei.rEps + op_focei.aEps);
+    delta = (std::fabs(theta[cpar])*op_focei.rEps + op_focei.aEps);
     std::fill_n(&op_focei.goldEta[0], op_focei.gEtaGTransN, -42.0); // All etas = -42;  Unlikely if normal
     cur = theta[cpar];
     theta[cpar] = cur + delta;
@@ -2773,10 +2773,10 @@ void foceiFinalizeTables(Environment e){
     e["eigenVec"] = eigvec;
     unsigned int k=0;
     if (eigval.size() > 0){
-      double mx=fabs(eigval[0]), mn, cur;
+      double mx=std::fabs(eigval[0]), mn, cur;
       mn=mx;
       for (k = eigval.size(); k--;){
-        cur = fabs(eigval[k]);
+        cur = std::fabs(eigval[k]);
         if (cur > mx){
           mx=cur;
         }
@@ -2805,7 +2805,7 @@ void foceiFinalizeTables(Environment e){
       if (k >= skipCov.size()) break;
       if (!skipCov[k]){
         se[k] = se1[j++];
-        cv[k] = fabs(se[k]/theta[k])*100;
+        cv[k] = std::fabs(se[k]/theta[k])*100;
       }
     }
   }
