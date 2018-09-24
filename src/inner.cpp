@@ -1637,8 +1637,10 @@ NumericVector foceiSetup_(const RObject &obj,
   op_focei.epsilon=as<double>(odeO["epsilon"]);
   op_focei.nsim=as<int>(odeO["n1qn1nsim"]);
   op_focei.imp=0;
-  op_focei.printInner=abs(as<int>(odeO["printInner"]));
-  op_focei.printOuter=abs(as<int>(odeO["print"]));
+  op_focei.printInner=as<int>(odeO["printInner"]);
+  if (op_focei.printInner < 0) op_focei.printInner = -op_focei.printInner;
+  op_focei.printOuter=as<int>(odeO["print"]);
+  if (op_focei.printOuter < 0) op_focei.printOuter = -op_focei.printOuter;
   if (op_focei.printInner > 0){
     rx->op->cores=1;
   }
@@ -1800,7 +1802,7 @@ LogicalVector nlmixrEnvSetup(Environment e, double fmin){
       e["BIC"] = fmin + log(as<double>(e["nobs"]))*op_focei.npars;
     } else {
       logLik.attr("nobs") = rx->nobs;
-      e["BIC"] = fmin + log(rx->nobs)*op_focei.npars;
+      e["BIC"] = fmin + log((double)rx->nobs)*op_focei.npars;
       e["nobs"] = rx->nobs;
     }
     logLik.attr("class") = "logLik";
@@ -2267,7 +2269,7 @@ void foceiS(double *theta, Environment e){
     }
   }
   for (cpar = npars; cpar--;){
-    delta = (abs(theta[cpar])*op_focei.rEps + op_focei.aEps);
+    delta = (fabs(theta[cpar])*op_focei.rEps + op_focei.aEps);
     std::fill_n(&op_focei.goldEta[0], op_focei.gEtaGTransN, -42.0); // All etas = -42;  Unlikely if normal
     cur = theta[cpar];
     theta[cpar] = cur + delta;
