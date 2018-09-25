@@ -1191,10 +1191,15 @@ static inline double foceiLik0(double *theta){
 
 static inline double foceiOfv0(double *theta){
   double ret = -2*foceiLik0(theta);
+  // print(NumericVector::create(ret,op_focei.initObjective,(double)op_focei.calcGrad));
+  // NumericVector tmp(op_focei.npars);
+  // std::copy(&theta[0], &theta[0]+op_focei.npars, tmp.begin());
+  // print(tmp);
   if (!op_focei.initObj){
     op_focei.initObj=1;
     op_focei.initObjective=std::fabs(ret);
     if (op_focei.scaleObjective == 1) op_focei.scaleObjective=2;
+    
   }
   if (op_focei.scaleObjective == 2){
     ret = ret / op_focei.initObjective * op_focei.scaleObjectiveTo;
@@ -1303,10 +1308,9 @@ static inline double phiB(double f, double fn, double h){
 int gill83(double *hf, double *hphif, double *df, double *df2, double *ef,
 	   double *theta, int cpar, double epsR, int K){
   op_focei.calcGrad=1;
-  double f, x, hbar, h0, fp, fn, phif, phib, phic, phicc = 0, phi, Chf, Chb, Ch, hs, hphi, hk, tmp, ehat;
+  double f= op_focei.lastOfv , x, hbar, h0, fp, fn, phif, phib, phic, phicc = 0, phi, Chf, Chb, Ch, hs, hphi, hk, tmp, ehat;
   int k = 0;
   // Relative error should be given by the tolerances, I believe.
-  f=op_focei.lastOfv;
   double epsA=std::fabs(f)*epsR;
   x = theta[cpar];
   // FD1: // Initialization
@@ -1447,8 +1451,7 @@ int gill83(double *hf, double *hphif, double *df, double *df2, double *ef,
 
 void numericGrad(double *theta, double *g){
   if (op_focei.nF == 1 && op_focei.gillK > 0){
-    double hf, hphif, f, err;
-    f=op_focei.lastOfv;
+    double hf, hphif, err;
     for (int cpar = op_focei.npars; cpar--;){
       op_focei.gillRet[cpar] = gill83(&hf, &hphif, &op_focei.gillDf[cpar], &op_focei.gillDf2[cpar], &op_focei.gillErr[cpar],
 				      theta, cpar, op_focei.gillRtol, op_focei.gillK);
@@ -2453,17 +2456,17 @@ void foceiCalcR(Environment e){
     stop("Not implemented for finite differences.");
   } else {
     //https://pdfs.semanticscholar.org/presentation/e7d5/aff49eb17fd155e75725c295859d983cfda4.pdf
+    // https://v8doc.sas.com/sashtml/ormp/chap5/sect28.htm
     double fnscale = 1.0;
     if (op_focei.scaleObjective == 2){
       fnscale = op_focei.initObjective / op_focei.scaleObjectiveTo;
     }
-    double parScaleI=1.0, parScaleJ=1.0, eps;
+    double parScaleI=1.0, parScaleJ=1.0;
     for (i=op_focei.npars; i--;){
       epsI = (std::fabs(theta[i])*op_focei.rEpsC[i] + op_focei.aEpsC[i]);
       if (op_focei.scaleTo > 0){
 	parScaleI=op_focei.initPar[i] / op_focei.scaleTo;
       }
-      // https://v8doc.sas.com/sashtml/ormp/chap5/sect28.htm
       ti = theta[i];
       theta[i] = ti + 2*epsI;
       updateTheta(theta.begin());
@@ -2486,6 +2489,8 @@ void foceiCalcR(Environment e){
       op_focei.cur++;
       op_focei.curTick = par_progress(op_focei.cur, op_focei.totTick, op_focei.curTick, rx->op->cores, op_focei.t0, 0);
       theta[i] = ti;
+      // Rprintf("-- i:%d, i: %d\n", i, i);
+      // print(NumericVector::create(f1,f2,f3,f4,op_focei.lastOfv));
       H(i,i)=fnscale*(-f1+16*f2-30*op_focei.lastOfv+16*f3-f4)/(12*epsI*epsI*parScaleI*parScaleI);
       for (j = i; j--;){
 	if (op_focei.scaleTo > 0){
@@ -2520,6 +2525,8 @@ void foceiCalcR(Environment e){
 	f4 = foceiOfv0(theta.begin());
 	op_focei.cur++;
 	op_focei.curTick = par_progress(op_focei.cur, op_focei.totTick, op_focei.curTick, rx->op->cores, op_focei.t0, 0);
+	// Rprintf("-- i:%d, j: %d\n", i, j);
+	// print(NumericVector::create(f1,f2,f3,f4));
 	H(i,j)= fnscale*(f1-f2-f3+f4)/(4*epsI*epsJ*parScaleI*parScaleJ);
 	H(j,i) = H(i,j);
 	theta[i] = ti;
@@ -2713,10 +2720,12 @@ NumericMatrix foceiCalcCov(Environment e){
     }
     e["skipCov"] = skipCov;
     // Unscaled objective and parameters.
-    op_focei.scaleObjective=0;
-    op_focei.lastOfv = op_focei.lastOfv * op_focei.initObjective / op_focei.scaleObjectiveTo;
-    foceiSetupTheta_(op_focei.mvi, fullT2, skipCov, op_focei.scaleTo, false);
-        foceiSetupTheta_(op_focei.mvi, fullT2, skipCov, 0, false);
+    if (op_focei.scaleObjective){
+      op_focei.scaleObjective=0;
+      op_focei.lastOfv = op_focei.lastOfv * op_focei.initObjective / op_focei.scaleObjectiveTo;
+    }
+    // foceiSetupTheta_(op_focei.mvi, fullT2, skipCov, op_focei.scaleTo, false);
+    foceiSetupTheta_(op_focei.mvi, fullT2, skipCov, 0, false);
     if (op_focei.covMethod && !boundary){
       rx = getRxSolve_();
       op_focei.t0 = clock();
@@ -2724,7 +2733,6 @@ NumericMatrix foceiCalcCov(Environment e){
       op_focei.cur=0;
       op_focei.curTick=0;
       Rprintf("Calculating covariance matrix\n");
-    
       // Change options to covariance options
       // op_focei.scaleObjective = 0;
       op_focei.derivMethod = op_focei.covDerivMethod;
@@ -2739,8 +2747,8 @@ NumericMatrix foceiCalcCov(Environment e){
       }
       op_focei.totTick += op_focei.npars;
       double hf, hphif, err;
-      arma::vec theta(op_focei.npars);
       unsigned int j, k;
+      arma::vec theta(op_focei.npars);
       for (k = op_focei.npars; k--;){
 	j=op_focei.fixedTrans[k];
 	if (op_focei.scaleTo > 0){
@@ -2748,7 +2756,9 @@ NumericMatrix foceiCalcCov(Environment e){
 	} else {
 	  theta[k] = op_focei.fullTheta[j];
 	}
+	// print(NumericVector::create(_["scaleTo"]=(double)op_focei.scaleTo,_["k"]=(double)k,_["theta"]=theta[k]));
       }
+      std::copy(&theta[0], &theta[0] + op_focei.npars, &op_focei.theta[0]);
       for (int cpar = op_focei.npars; cpar--;){
 	op_focei.gillRetC[cpar] = gill83(&hf, &hphif, &op_focei.gillDf[cpar], &op_focei.gillDf2[cpar], &op_focei.gillErr[cpar],
 					 &theta[0], cpar, op_focei.hessEps, op_focei.gillK);
