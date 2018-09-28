@@ -166,6 +166,7 @@ typedef struct {
   double *theta;
   double *thetaGrad;
   double *initPar;
+  double *scaleC;
   int *xPar;
   NumericVector lowerIn;
   double *lower;
@@ -268,6 +269,7 @@ void foceiThetaN(unsigned int n){
     Free(op_focei.theta);
     Free(op_focei.fullTheta);
     Free(op_focei.initPar);
+    Free(op_focei.scaleC);
     Free(op_focei.xPar);
     Free(op_focei.fixedTrans);
     op_focei.fullTheta   = Calloc(cur, double);
@@ -275,6 +277,7 @@ void foceiThetaN(unsigned int n){
     op_focei.fixedTrans  = Calloc(cur, int);
     op_focei.theta       = Calloc(cur, double);
     op_focei.initPar     = Calloc(cur, double);
+    op_focei.scaleC      = Calloc(cur, double);
     op_focei.xPar        = Calloc(cur, int);
     op_focei.thetaTransN = cur;
   }
@@ -372,6 +375,7 @@ extern "C" void rxOptionsFreeFocei(){
   if (op_focei.theta != NULL) Free(op_focei.theta);
   if (op_focei.fullTheta != NULL) Free(op_focei.fullTheta);
   if (op_focei.initPar != NULL) Free(op_focei.initPar);
+  if (op_focei.scaleC != NULL) Free(op_focei.scaleC);
   if (op_focei.xPar != NULL) Free(op_focei.xPar);
   if (op_focei.fixedTrans != NULL) Free(op_focei.fixedTrans);
   op_focei.thetaTransN=0;
@@ -533,7 +537,7 @@ void updateTheta(double *theta){
   if (op_focei.scaleTo > 0){ // Scaling
     for (k = op_focei.npars; k--;){
       j=op_focei.fixedTrans[k];
-      op_focei.fullTheta[j] = theta[k] * op_focei.initPar[k] / op_focei.scaleTo; //pars <- pars * inits.vec / con$scale.to
+      op_focei.fullTheta[j] = (theta[k] - op_focei.scaleTo)*op_focei.scaleC[k] +  op_focei.initPar[k]; //pars <- pars * inits.vec / con$scale.to
     }
   } else { // No scaling.
     for (k = op_focei.npars; k--;){
@@ -1191,15 +1195,10 @@ static inline double foceiLik0(double *theta){
 
 static inline double foceiOfv0(double *theta){
   double ret = -2*foceiLik0(theta);
-  // print(NumericVector::create(ret,op_focei.initObjective,(double)op_focei.calcGrad));
-  // NumericVector tmp(op_focei.npars);
-  // std::copy(&theta[0], &theta[0]+op_focei.npars, tmp.begin());
-  // print(tmp);
   if (!op_focei.initObj){
     op_focei.initObj=1;
     op_focei.initObjective=std::fabs(ret);
     if (op_focei.scaleObjective == 1) op_focei.scaleObjective=2;
-    
   }
   if (op_focei.scaleObjective == 2){
     ret = ret / op_focei.initObjective * op_focei.scaleObjectiveTo;
@@ -1421,30 +1420,36 @@ int gill83(double *hf, double *hphif, double *df, double *df2, double *ef,
   if (max2(*ef, ehat) <= 0.5*(*df)){
     return 1;
   } else {
+    // warning("The finite difference derivative err more than 50%% of the slope; Consider a different starting point.");
     return 2;
   }
  FD6: // Check unsatisfactory cases
   if (hs < 0){
     // F nearly constant.
-    *hf = hbar;
-    *df = 0.0; // Doesn't move.
-    *hphif=2*hbar;
+    *hf = h0;//hbar;
+    *df=phic;
+    *df2=0;
+    // *df = 0.0; // Doesn't move.
+    *hphif=2*h0;
+    // warning("The surface around the initial estimate is nearly constant in one parameter grad=0.  Consider a different starting point.");
     return 3;
   }
   if (Ch > 0.1){ // Odd or nearly linear.
-    *hf = hs;
-    *df = phif;
+    *hf = h0;
+    *df = phic;
     *df2 = 0;
     *ef = 2*epsA/(*hf);
     *hphif=hphi;
+    // warning("The surface odd or nearly linear for one parameter; Check your function.");
     return 4;
   }
   // f'' is increasing rapidly as h decreases
-  *hf = hk;
-  *df = phif;
+  *hf = h0;
+  *df = phic;
   *df2 = phi;
   *hphif=hphi;
   *ef = (*hf)*fabs(phi)/2+2*epsA/(*hf);
+  // warning("The surface around the initial estimate is highly irregular in at least one parameter.  Consider a different starting point.");
   return 5;
 }
 
@@ -1500,22 +1505,22 @@ void numericGrad(double *theta, double *g){
       }
     }
     for (cpar = npars; cpar--;){
-      if (doForward){
-	delta = (std::fabs(theta[cpar])*op_focei.rEps[cpar] + op_focei.aEps[cpar]);
-      } else {
-	delta = (std::fabs(theta[cpar])*op_focei.rEpsC[cpar] + op_focei.aEpsC[cpar]);
+      	if (doForward){
+	  delta = (std::fabs(theta[cpar])*op_focei.rEps[cpar] + op_focei.aEps[cpar]);
+	} else {
+	  delta = (std::fabs(theta[cpar])*op_focei.rEpsC[cpar] + op_focei.aEpsC[cpar]);
+	}
+	cur = theta[cpar];
+	theta[cpar] = cur + delta;
+	if (doForward){
+	  g[cpar] = (foceiOfv0(theta)-f)/delta;
+	} else {
+	  f = foceiOfv0(theta);
+	  theta[cpar] = cur - delta;
+	  g[cpar] = (f-foceiOfv0(theta))/(2*delta);
+	}
+	theta[cpar] = cur;
       }
-      cur = theta[cpar];
-      theta[cpar] = cur + delta;
-      if (doForward){
-	g[cpar] = (foceiOfv0(theta)-f)/delta;
-      } else {
-	f = foceiOfv0(theta);
-	theta[cpar] = cur - delta;
-	g[cpar] = (f-foceiOfv0(theta))/(2*delta);
-      }
-      theta[cpar] = cur;
-    }
     op_focei.calcGrad=0;
   }
 }
@@ -1667,6 +1672,8 @@ static inline void foceiSetupEta_(NumericMatrix etaMat0){
   op_focei.thetaGrad = &op_focei.gthetaGrad[jj];
 }
 
+extern "C" double foceiOfvOptim(int n, double *x, void *ex);
+extern "C" void outerGradNumOptim(int n, double *par, double *gr, void *ex);
 // [[Rcpp::export]]
 NumericVector foceiSetup_(const RObject &obj,
 			  const RObject &data,
@@ -1708,7 +1715,8 @@ NumericVector foceiSetup_(const RObject &obj,
   }
   op_focei.maxOuterIterations = as<int>(odeO["maxOuterIterations"]);
   op_focei.maxInnerIterations = as<int>(odeO["maxInnerIterations"]);
-  if (op_focei.maxOuterIterations == 0){
+  if (op_focei.maxOuterIterations <= 0){
+    // No scaling.
     foceiSetupTheta_(mvi, theta, thetaFixed, 0.0, !rxIs(obj, "NULL"));
     op_focei.scaleObjective=0;
   } else {
@@ -1899,7 +1907,6 @@ NumericVector foceiSetup_(const RObject &obj,
     std::fill_n(&op_focei.rEpsC[0], totN, std::fabs(covDerivEps[0]));
     std::fill_n(&op_focei.aEpsC[0], totN, std::fabs(covDerivEps[1]));
   }  
-
   NumericVector lowerIn(totN);
   NumericVector upperIn(totN);
   if (lower.isNull()){
@@ -1943,53 +1950,9 @@ NumericVector foceiSetup_(const RObject &obj,
   op_focei.upper = Calloc(op_focei.npars, double);
   op_focei.nbd   = Calloc(op_focei.npars, int);
   std::fill_n(&op_focei.nbd[0], op_focei.npars, 0);
+  std::fill_n(&op_focei.scaleC[0], op_focei.npars, 1.0);
 
-  NumericVector ret(op_focei.npars, op_focei.scaleTo);
-  if (op_focei.scaleTo <= 0){
-    for (unsigned int k = op_focei.npars; k--;){
-      j=op_focei.fixedTrans[k];
-      ret[k] = op_focei.fullTheta[j];
-      if (R_FINITE(lowerIn[j])){
-        op_focei.lower[k] = lowerIn[j];
-        op_focei.lower[k] += 2*(op_focei.lower[k]*op_focei.rEps[k] + op_focei.aEps[k]);
-        // lower bound only = 1
-        op_focei.nbd[k]=1;
-      } else {
-        op_focei.lower[k] = R_NegInf;//std::numeric_limits<double>::lowest();
-      }
-      if (R_FINITE(upperIn[j])){
-        op_focei.upper[k] = upperIn[j];
-        op_focei.upper[k] -= 2*(op_focei.upper[k]*op_focei.rEps[k] - op_focei.aEps[k]);
-        // Upper bound only = 3
-        // Upper and lower bound = 2
-        op_focei.nbd[k]= 3 - op_focei.nbd[j];
-      } else {
-        op_focei.upper[k] = R_PosInf;//std::numeric_limits<double>::max();
-      }
-    }
-  } else {
-    for (unsigned int k = op_focei.npars; k--;){
-      j=op_focei.fixedTrans[k];
-      if (R_FINITE(lowerIn[j])){
-        op_focei.lower[k] = lowerIn[j] * op_focei.scaleTo / op_focei.initPar[j];
-        op_focei.lower[k] += 2*(op_focei.lower[k]*op_focei.rEps[k] + op_focei.aEps[k]);
-        // lower bound only = 1
-        op_focei.nbd[k]=1;
-      } else {
-        op_focei.lower[k] = R_NegInf;//std::numeric_limits<double>::lowest();
-      }
-      if (R_FINITE(upperIn[j])){
-        op_focei.upper[k] = upperIn[j] * op_focei.scaleTo / op_focei.initPar[j];
-        op_focei.upper[k] -= 2*(op_focei.upper[k]*op_focei.rEps[k] - op_focei.aEps[k]);
-        // Upper bound only = 3
-        // Upper and lower bound = 2
-        op_focei.nbd[k]= 3 - op_focei.nbd[j];
-      } else {
-        op_focei.upper[k] = R_PosInf;//std::numeric_limits<double>::max();
-      }
-    }
-  }
-
+  NumericVector ret(op_focei.npars, op_focei.scaleTo);  
   op_focei.calcGrad=0;
   if (op_focei.likSav != NULL) Free(op_focei.likSav);
   if (!rxIs(obj, "NULL")) op_focei.likSav = Calloc(rx->nsub, double);
@@ -2026,6 +1989,27 @@ NumericVector foceiSetup_(const RObject &obj,
   op_focei.gillRtol = as<double>(odeO["gillRtol"]);
   op_focei.initObj=0;
   op_focei.lastOfv=std::numeric_limits<double>::max();
+  for (unsigned int k = op_focei.npars; k--;){
+    j=op_focei.fixedTrans[k];
+    ret[k] = op_focei.fullTheta[j];
+    if (R_FINITE(lowerIn[j])){
+      op_focei.lower[k] = lowerIn[j];
+      op_focei.lower[k] += 2*(op_focei.lower[k]*op_focei.rEps[k] + op_focei.aEps[k]);
+      // lower bound only = 1
+      op_focei.nbd[k]=1;
+    } else {
+      op_focei.lower[k] = R_NegInf;//std::numeric_limits<double>::lowest();
+    }
+    if (R_FINITE(upperIn[j])){
+      op_focei.upper[k] = upperIn[j];
+      op_focei.upper[k] -= 2*(op_focei.upper[k]*op_focei.rEps[k] - op_focei.aEps[k]);
+      // Upper bound only = 3
+      // Upper and lower bound = 2
+      op_focei.nbd[k]= 3 - op_focei.nbd[j];
+    } else {
+      op_focei.upper[k] = R_PosInf;//std::numeric_limits<double>::max();
+    }
+  }
   return ret;
 }
 
@@ -2160,7 +2144,9 @@ extern "C" double foceiOfvOptim(int n, double *x, void *ex){
         Rprintf("|    U|%14.8g |", ret);
       }
       for (i = 0; i < n; i++){
-        Rprintf("%#10.4g |", x[i]*op_focei.initPar[i]/op_focei.scaleTo);
+	// new  = (theta[k] - op_focei.scaleTo)*op_focei.scaleC[k] +  op_focei.initPar[k]
+	// (new-ini)/c+scaleTo = theta[]
+        Rprintf("%#10.4g |", (x[i]-op_focei.scaleTo)/op_focei.scaleC[i] + op_focei.initPar[i]);
         if ((i + 1) != n && (i + 1) % op_focei.printNcol == 0){
           if (op_focei.useColor && op_focei.printNcol + i  > op_focei.npars){
             Rprintf("\n\033[4m|.....................|");
@@ -2195,9 +2181,9 @@ extern "C" double foceiOfvOptim(int n, double *x, void *ex){
       }
       for (i = 0; i < n; i++){
 	if (op_focei.xPar[i]){
-          Rprintf("%#10.4g |", exp(x[i]*op_focei.initPar[i]/op_focei.scaleTo));
+          Rprintf("%#10.4g |", exp((x[i]-op_focei.scaleTo)/op_focei.scaleC[i] + op_focei.initPar[i]));
         } else {
-          Rprintf("%#10.4g |", x[i]*op_focei.initPar[i]/op_focei.scaleTo);
+          Rprintf("%#10.4g |", (x[i]-op_focei.scaleTo)/op_focei.scaleC[i] + op_focei.initPar[i]);
 	}
         if ((i + 1) != n && (i + 1) % op_focei.printNcol == 0){
           if (op_focei.useColor && op_focei.printNcol + i >= op_focei.npars){
@@ -2397,8 +2383,21 @@ void foceiCustomFun(Environment e){
 //[[Rcpp::export]]
 Environment foceiOuter(Environment e){
   op_focei.nF=0;
-  op_focei.nG=0;
+  op_focei.nG=0; 
   if (op_focei.maxOuterIterations > 0){
+    if (op_focei.scaleTo > 0){
+      std::fill_n(&op_focei.scaleC[0], op_focei.npars, 1.0);
+      for (unsigned int k = op_focei.npars; k--;){
+	// op_focei.scaleC[k]=fabs(op_focei.scaleC[k])/(0.01*op_focei.scaleTo);
+	if (R_FINITE(op_focei.lower[k])){
+	  op_focei.lower[k]=(op_focei.lower[k]-op_focei.initPar[k])/op_focei.scaleC[k]+op_focei.scaleTo;
+	}
+	if (R_FINITE(op_focei.upper[k])) {
+	  op_focei.upper[k]=(op_focei.upper[k]-op_focei.initPar[k])/op_focei.scaleC[k]+op_focei.scaleTo;
+	}
+      }
+    }
+ 
     switch(op_focei.outerOpt){
     case 0:
       foceiLbfgsb(e);
@@ -2435,11 +2434,7 @@ void foceiCalcR(Environment e){
   unsigned int i, j, k;
   for (k = op_focei.npars; k--;){
     j=op_focei.fixedTrans[k];
-    if (op_focei.scaleTo > 0){
-      theta[k] = op_focei.fullTheta[j] / op_focei.initPar[k] * op_focei.scaleTo;
-    } else {
-      theta[k] = op_focei.fullTheta[j];
-    }
+    theta[k] = op_focei.fullTheta[j];
   }
   
   // arma::vec df1(op_focei.npars);
@@ -2464,9 +2459,6 @@ void foceiCalcR(Environment e){
     double parScaleI=1.0, parScaleJ=1.0;
     for (i=op_focei.npars; i--;){
       epsI = (std::fabs(theta[i])*op_focei.rEpsC[i] + op_focei.aEpsC[i]);
-      if (op_focei.scaleTo > 0){
-	parScaleI=op_focei.initPar[i] / op_focei.scaleTo;
-      }
       ti = theta[i];
       theta[i] = ti + 2*epsI;
       updateTheta(theta.begin());
@@ -2493,9 +2485,6 @@ void foceiCalcR(Environment e){
       // print(NumericVector::create(f1,f2,f3,f4,op_focei.lastOfv));
       H(i,i)=fnscale*(-f1+16*f2-30*op_focei.lastOfv+16*f3-f4)/(12*epsI*epsI*parScaleI*parScaleI);
       for (j = i; j--;){
-	if (op_focei.scaleTo > 0){
-	  parScaleJ=op_focei.initPar[j] / op_focei.scaleTo;
-	}
 	epsJ = (std::fabs(theta[j])*op_focei.rEpsC[j] + op_focei.aEpsC[j]);
 	// eps = sqrt(epsI*epsJ);// 0.5*epsI+0.5*epsJ;
 	// epsI = eps;
@@ -2669,12 +2658,22 @@ NumericMatrix foceiCalcCov(Environment e){
     double cur;
     bool boundary=false;
     rx = getRxSolve_();
+    if (op_focei.scaleTo > 0){
+      for (unsigned int k = op_focei.npars; k--;){
+	if (R_FINITE(op_focei.lower[k])){
+	  op_focei.lower[k]=(op_focei.lower[k]-op_focei.scaleTo)*op_focei.scaleC[k]+op_focei.initPar[k];
+	}
+	if (R_FINITE(op_focei.upper[k])) {
+	  op_focei.upper[k]=(op_focei.upper[k]-op_focei.scaleTo)/op_focei.scaleC[k]+op_focei.initPar[k];
+	}
+      }
+    }
     if (op_focei.boundTol > 0){
       for (k = op_focei.npars; k--;){
         if (op_focei.nbd[k] != 0){
           // bounds
           j=op_focei.fixedTrans[k];
-          cur = (op_focei.scaleTo > 0) ? (op_focei.fullTheta[j] / op_focei.initPar[k]  *op_focei.scaleTo) : op_focei.fullTheta[j];
+          cur = op_focei.fullTheta[j];
           if (op_focei.nbd[k] == 1){
             // Lower only
             if ((cur-op_focei.lower[k])/cur < op_focei.boundTol){
@@ -2751,12 +2750,7 @@ NumericMatrix foceiCalcCov(Environment e){
       arma::vec theta(op_focei.npars);
       for (k = op_focei.npars; k--;){
 	j=op_focei.fixedTrans[k];
-	if (op_focei.scaleTo > 0){
-	  theta[k] = op_focei.fullTheta[j] / op_focei.initPar[k] * op_focei.scaleTo;
-	} else {
-	  theta[k] = op_focei.fullTheta[j];
-	}
-	// print(NumericVector::create(_["scaleTo"]=(double)op_focei.scaleTo,_["k"]=(double)k,_["theta"]=theta[k]));
+	theta[k] = op_focei.fullTheta[j];
       }
       std::copy(&theta[0], &theta[0] + op_focei.npars, &op_focei.theta[0]);
       for (int cpar = op_focei.npars; cpar--;){
