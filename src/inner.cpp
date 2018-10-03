@@ -3702,10 +3702,30 @@ Environment foceiFitCpp_(Environment e){
   for (unsigned int i =op_focei.ntheta+op_focei.omegan;i--;){
     scaleSave[i] = getScaleC(i);
   }
-  e["scaleC"] = scaleSave;    
-  e["optimTime"] = (((double)(clock() - t0))/CLOCKS_PER_SEC);
+  e["scaleC"] = scaleSave;
+  IntegerVector gillRet(op_focei.ntheta+op_focei.omegan);
+  bool warnGill = false;
+  for (int i = op_focei.ntheta+op_focei.omegan; i--;){
+    gillRet[i] = op_focei.gillRet[i]+1;
+    if (gillRet[i] >= 3) warnGill=true;
+  }
+  CharacterVector gillLvl = CharacterVector::create("Not Assessed","Good","High Grad Error", "Constant Grad","Odd/Linear Grad",
+						    "Grad changes quickly");
+  gillRet.attr("levels") = gillLvl;
+  gillRet.attr("class") = "factor";
+  e["gillRet"] = gillRet;
   t0 = clock();
   foceiCalcCov(e);
+  IntegerVector gillRetC(op_focei.ntheta+op_focei.omegan);
+  bool warnGillC = false;
+  for (int i = op_focei.ntheta+op_focei.omegan; i--;){
+    gillRetC[i] = op_focei.gillRetC[i]+1;
+    if (gillRetC[i] >= 3) warnGillC=true;
+  }
+  gillRetC.attr("levels") = gillLvl;
+  gillRetC.attr("class") = "factor";
+  e["gillRetC"] = gillRetC;
+  e["optimTime"] = (((double)(clock() - t0))/CLOCKS_PER_SEC);  
     
   e["covTime"] = (((double)(clock() - t0))/CLOCKS_PER_SEC);
   List timeDf = List::create(_["setup"]=as<double>(e["setupTime"]),
@@ -3714,6 +3734,20 @@ Environment foceiFitCpp_(Environment e){
   timeDf.attr("class") = "data.frame";
   timeDf.attr("row.names") = "";
   e["time"] = timeDf;
+  List scaleInfo = List::create(as<NumericVector>(e["fullTheta"]),
+				as<NumericVector>(e["scaleC"]), gillRet,
+				gillRetC);
+  scaleInfo.attr("names") = CharacterVector::create("est","scaleC","Initial Gradient","Covariance Gradient");
+  scaleInfo.attr("class") = "data.frame";
+  scaleInfo.attr("row.names") = IntegerVector::create(NA_INTEGER,-gillRet.size());
+  e["scaleInfo"] = scaleInfo;
+  if (warnGillC && warnGill){
+    warning("Gradient problems with initial estimate and covariance; see $scaleInfo");
+  } else if (warnGill){
+    warning("Gradient problems with initial estimate; see $scaleInfo");
+  } else if (warnGillC){
+    warning("Gradient problems with covariance; see $scaleInfo");
+  }
   foceiFinalizeTables(e);
   // NumericVector scaleC(op_focei.ntheta+op_focei.omegan);
   // std::copy(&op_focei.scaleC[0], &op_focei.scaleC[0]+op_focei.ntheta+op_focei.omegan, scaleC.begin());
