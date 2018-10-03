@@ -179,6 +179,11 @@ typedef struct {
   int *fixedTrans;
   int *thetaTrans;
 
+  int scaleType;
+  int normType;
+  double scaleCmin;
+  double c1;
+  double c2;
   double scaleTo;
   double epsilon;
   
@@ -528,23 +533,124 @@ void updateZm(focei_ind *indF){
   }
 }
 
+static inline double getScaleC(int i){
+  if (ISNA(op_focei.scaleC[i])){
+    switch (op_focei.xPar[i]){
+    case 1: // log
+      op_focei.scaleC[i]=1.0;
+      break;
+    case 2: // diag^2
+      op_focei.scaleC[i]=fabs(op_focei.initPar[i]);
+      break;
+    case 3: // exp(diag)
+      op_focei.scaleC[i] = 2.0;
+      break;
+    case 4: // Identity diagonal chol(Omega ^-1)
+    case 5: // off diagonal chol(Omega^-1)
+      op_focei.scaleC[i] = 2.0*fabs(op_focei.initPar[i]);
+      break;
+    default:
+      op_focei.scaleC[i]= fabs(op_focei.initPar[i]);
+      break;
+    }
+  }
+  return min2(op_focei.scaleC[i], op_focei.scaleCmin);
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // Likelihood for inner functions
+static inline double unscalePar(double *x, int i){
+  double scaleTo = op_focei.scaleTo, C=getScaleC(i);
+  switch(op_focei.scaleType){
+  case 1: // normalized
+    return x[i]*op_focei.c2+op_focei.c1;
+    break;
+  case 2: // log vs linear scales and/or range
+    if (op_focei.normType <= 5){
+      scaleTo = (op_focei.initPar[i]-op_focei.c1)/op_focei.c2;
+    } else if (scaleTo == 0){
+      scaleTo=op_focei.initPar[i];
+    }
+    return (x[i]-scaleTo)*C + op_focei.initPar[i];
+    break;
+  case 3: // simple multiplicative scaling
+    if (op_focei.scaleTo != 0){
+      return x[i]*op_focei.initPar[i]/scaleTo;
+    } else {
+      return x[i];
+    }
+    break;
+  case 4: // log non-log multiplicative scaling 
+    if (op_focei.scaleTo > 0){
+      switch (op_focei.xPar[i]){
+      case 1:
+	return (x[i]-scaleTo) + op_focei.initPar[i];
+      default:
+	return x[i]*op_focei.initPar[i]/scaleTo;
+      }
+    } else {
+      return x[i];
+    }
+  default:
+    if (op_focei.scaleTo > 0){
+      return (x[i]-scaleTo)*1 + op_focei.initPar[i];
+    } else {
+      return x[i];
+    }
+  }
+  return 0;
+}
+
+static inline double scalePar(double *x, int i){
+  double scaleTo = op_focei.scaleTo, C=getScaleC(i);
+  switch(op_focei.scaleType){
+  case 1:
+    return (x[i]-op_focei.c1)/op_focei.c2;
+  case 2:
+    if (op_focei.normType <= 5){
+      scaleTo = (op_focei.initPar[i]-op_focei.c1)/op_focei.c2;
+    } else if (scaleTo == 0){
+      scaleTo=op_focei.initPar[i];
+    }
+    return (x[i]-op_focei.initPar[i])/C + scaleTo;
+    break;
+  case 3: // simple multiplicative scaling
+    if (op_focei.scaleTo > 0){
+      return x[i]/op_focei.initPar[i]*op_focei.scaleTo;
+    } else {
+      return x[i];
+    }
+    break;
+  case 4: // log non-log multiplicative scaling 
+    if (op_focei.scaleTo > 0){
+      switch (op_focei.xPar[i]){
+      case 1:
+	return (x[i]-op_focei.initPar[i]) + op_focei.scaleTo;
+      default:
+	return x[i]/op_focei.initPar[i]*op_focei.scaleTo;
+      }
+    } else {
+      return x[i];
+    }
+  default:
+    if (op_focei.scaleTo > 0){
+      return (x[i]-op_focei.initPar[i]) + op_focei.scaleTo;
+    } else {
+      return x[i];
+    }
+  }
+  return 0;
+}
+
 
 void updateTheta(double *theta){
   // Theta is the acutal theta
   unsigned int j, k;
-  if (op_focei.scaleTo > 0){ // Scaling
-    for (k = op_focei.npars; k--;){
-      j=op_focei.fixedTrans[k];
-      op_focei.fullTheta[j] = (theta[k] - op_focei.scaleTo)*op_focei.scaleC[k] +  op_focei.initPar[k]; //pars <- pars * inits.vec / con$scale.to
-    }
-  } else { // No scaling.
-    for (k = op_focei.npars; k--;){
-      j=op_focei.fixedTrans[k];
-      op_focei.fullTheta[j] = theta[k]; //pars <- pars * inits.vec / con$scale.to
-    }
+  for (k = op_focei.npars; k--;){
+    j=op_focei.fixedTrans[k];
+    op_focei.fullTheta[j] = unscalePar(theta, k);
   }
+
   // Update theta parameters in each individual
   rx = getRxSolve_();
   for (int id = rx->nsub; id--;){
@@ -570,7 +676,7 @@ void updateTheta(double *theta){
   if (!op_focei.calcGrad){
     // op_focei.estStr=sc + un + ex;
     std::copy(&theta[0], &theta[0] + op_focei.npars, &op_focei.theta[0]);
-  }  
+  }
 }
 
 arma::mat cholSE_(arma::mat A, double tol);
@@ -1950,7 +2056,6 @@ NumericVector foceiSetup_(const RObject &obj,
   op_focei.upper = Calloc(op_focei.npars, double);
   op_focei.nbd   = Calloc(op_focei.npars, int);
   std::fill_n(&op_focei.nbd[0], op_focei.npars, 0);
-  std::fill_n(&op_focei.scaleC[0], op_focei.npars, 1.0);
 
   NumericVector ret(op_focei.npars, op_focei.scaleTo);  
   op_focei.calcGrad=0;
@@ -1987,6 +2092,9 @@ NumericVector foceiSetup_(const RObject &obj,
   op_focei.gillK = as<int>(odeO["gillK"]);
   op_focei.didGill = 0;
   op_focei.gillRtol = as<double>(odeO["gillRtol"]);
+  op_focei.scaleType = as<int>(odeO["scaleType"]);
+  op_focei.normType = as<int>(odeO["normType"]);
+  op_focei.scaleCmin=as<double>(odeO["scaleCmin"]);
   op_focei.initObj=0;
   op_focei.lastOfv=std::numeric_limits<double>::max();
   for (unsigned int k = op_focei.npars; k--;){
@@ -2010,6 +2118,66 @@ NumericVector foceiSetup_(const RObject &obj,
       op_focei.upper[k] = R_PosInf;//std::numeric_limits<double>::max();
     }
   }
+  double mn = op_focei.initPar[op_focei.npars-1], mx=op_focei.initPar[op_focei.npars-1],mean=0, oN=0, oM=0,s=0;
+  double len=0;
+  unsigned int k;
+  switch (op_focei.normType){
+  case 1:
+    // OptdesX
+    // http://apmonitor.com/me575/uploads/Main/optimization_book.pdf
+    for (k = op_focei.npars-1; k--;){
+      mn = min2(op_focei.initPar[k],mn);
+      mx = max2(op_focei.initPar[k],mx);
+    }
+    op_focei.c1 = (mx+mn)/2;
+    op_focei.c2 = (mx-mn)/2;
+    break;
+  case 2: // Rescaling (min-max normalization)
+    for (k = op_focei.npars-1; k--;){
+      mn = min2(op_focei.initPar[k],mn);
+      mx = max2(op_focei.initPar[k],mx);
+    }
+    op_focei.c1 = mn;
+    op_focei.c2 = (mx-mn);
+    break;
+  case 3: // Mean normalization
+    for (k = op_focei.npars-1; k--;){
+      mn = min2(op_focei.initPar[k],mn);
+      mx = max2(op_focei.initPar[k],mx);
+      oN++;
+      mean += (op_focei.initPar[k]-mean)/oN;
+    }
+    op_focei.c1 = mean;
+    op_focei.c2 = (mx-mn);
+    break;
+  case 4: // Standardization
+    for (k = op_focei.npars-1; k--;){
+      mn = min2(op_focei.initPar[k],mn);
+      mx = max2(op_focei.initPar[k],mx);
+      oM= mean;
+      oN++;
+      mean += (op_focei.initPar[k]-mean)/oN;
+      s += (op_focei.initPar[k]-mean)*(op_focei.initPar[k]-oM);
+    }
+    op_focei.c1 = mean;
+    op_focei.c2 = sqrt(s/(oN-1));
+    break;
+  case 5: // Normalize to length.
+    for (unsigned int k = op_focei.npars-1; k--;){
+      len += op_focei.initPar[k]*op_focei.initPar[k];
+    }
+    op_focei.c1 = mean;
+    op_focei.c2 = sqrt(len);
+    break;
+  case 6:
+    // No Normalization
+    op_focei.c1 = 0;
+    op_focei.c2 = 1;
+    break;
+  default:
+    stop("Unrecognized normalization (normType=%d)",op_focei.normType);
+  }
+  // }
   return ret;
 }
 
@@ -2028,7 +2196,7 @@ LogicalVector nlmixrEnvSetup(Environment e, double fmin){
     e["omegaR"] = wrap(cor); 
     if (op_focei.scaleObjective){
       fmin = fmin * op_focei.initObjective / op_focei.scaleObjectiveTo;
-    }
+    } 
     if (!e.exists("objective")){
       e["objective"] = fmin;
     } else {
@@ -2137,89 +2305,60 @@ extern "C" double foceiOfvOptim(int n, double *x, void *ex){
     } else {
       Rprintf("\n");
     }
-    if (op_focei.scaleTo > 0){
-      if (op_focei.scaleObjective){
-        Rprintf("|    U|%14.8g |", op_focei.initObjective * ret / op_focei.scaleObjectiveTo);
-      } else {
-        Rprintf("|    U|%14.8g |", ret);
-      }
-      for (i = 0; i < n; i++){
-	// new  = (theta[k] - op_focei.scaleTo)*op_focei.scaleC[k] +  op_focei.initPar[k]
-	// (new-ini)/c+scaleTo = theta[]
-        Rprintf("%#10.4g |", (x[i]-op_focei.scaleTo)/op_focei.scaleC[i] + op_focei.initPar[i]);
-        if ((i + 1) != n && (i + 1) % op_focei.printNcol == 0){
-          if (op_focei.useColor && op_focei.printNcol + i  > op_focei.npars){
-            Rprintf("\n\033[4m|.....................|");
-          } else {
-            Rprintf("\n|.....................|");
-          }
-        }
-      }
-      if (finalize){
-        while(true){
-          if ((i++) % op_focei.printNcol == 0){
-            if (op_focei.useColor) Rprintf("\033[0m");
-            Rprintf("\n");
-            break;
-          } else {
-            Rprintf("...........|");
-          }
-        }
-      } else {
-        Rprintf("\n");
-      }
-      if (op_focei.scaleObjective){
-        if (op_focei.useColor && !isRstudio())
-          Rprintf("|    X|\033[1m%14.8g\033[0m |", op_focei.initObjective * ret / op_focei.scaleObjectiveTo);
-        else 
-          Rprintf("|    X|%14.8g |", op_focei.initObjective * ret / op_focei.scaleObjectiveTo);
-      } else {
-        if (op_focei.useColor && !isRstudio())
-          Rprintf("|    X|\033[1m%14.8g\033[0m |", ret);
-        else 
-          Rprintf("|    X|%14.8g |", ret);
-      }
-      for (i = 0; i < n; i++){
-	if (op_focei.xPar[i]){
-          Rprintf("%#10.4g |", exp((x[i]-op_focei.scaleTo)/op_focei.scaleC[i] + op_focei.initPar[i]));
-        } else {
-          Rprintf("%#10.4g |", (x[i]-op_focei.scaleTo)/op_focei.scaleC[i] + op_focei.initPar[i]);
+    if (op_focei.scaleObjective){
+      Rprintf("|    U|%14.8g |", op_focei.initObjective * ret / op_focei.scaleObjectiveTo);
+    } else {
+      Rprintf("|    U|%14.8g |", ret);
+    }
+    for (i = 0; i < n; i++){
+      // new  = (theta[k] - op_focei.scaleTo)*op_focei.scaleC[k] +  op_focei.initPar[k]
+      // (new-ini)/c+scaleTo = theta[]
+      Rprintf("%#10.4g |", unscalePar(x, i));
+      if ((i + 1) != n && (i + 1) % op_focei.printNcol == 0){
+	if (op_focei.useColor && op_focei.printNcol + i  > op_focei.npars){
+	  Rprintf("\n\033[4m|.....................|");
+	} else {
+	  Rprintf("\n|.....................|");
 	}
-        if ((i + 1) != n && (i + 1) % op_focei.printNcol == 0){
-          if (op_focei.useColor && op_focei.printNcol + i >= op_focei.npars){
-            Rprintf("\n\033[4m|.....................|");
-          } else {
-            Rprintf("\n|.....................|");
-          }
-        }
+      }
+    }
+    if (finalize){
+      while(true){
+	if ((i++) % op_focei.printNcol == 0){
+	  if (op_focei.useColor) Rprintf("\033[0m");
+	  Rprintf("\n");
+	  break;
+	} else {
+	  Rprintf("...........|");
+	}
       }
     } else {
-      if (op_focei.useColor  && !isRstudio()){
-	if (op_focei.scaleObjective){
-          Rprintf("|    X|\033[1m%14.8g \033[0m|", op_focei.initObjective * ret / op_focei.scaleObjectiveTo);
-	} else {
-	  Rprintf("|    X|\033[1m%14.8g \033[0m|", ret);
-	}
+      Rprintf("\n");
+    }
+    if (op_focei.scaleObjective){
+      if (op_focei.useColor && !isRstudio()){
+	Rprintf("|    X|\033[1m%14.8g\033[0m |", op_focei.initObjective * ret / op_focei.scaleObjectiveTo);
       } else {
-        if (op_focei.scaleObjective){
-	  Rprintf("|    X|%14.8g |", op_focei.initObjective * ret / op_focei.scaleObjectiveTo);
-	} else {
-          Rprintf("|    X|\033[1m%14.8g \033[0m|", ret);
-        }
+	Rprintf("|    X|%14.8g |", op_focei.initObjective * ret / op_focei.scaleObjectiveTo);
       }
-      for (i = 0; i < n; i++){
-        if (op_focei.xPar[i]){
-          Rprintf("%#10.4g |", exp(x[i]));
-        } else {
-          Rprintf("%#10.4g |", x[i]);
-        }
-        if ((i + 1) != n && (i + 1) % op_focei.printNcol == 0){
-          if (op_focei.useColor && op_focei.printNcol + i  >= op_focei.npars){
-            Rprintf("\n\033[4m|.....................|");
-          } else {
-            Rprintf("\n|.....................|");
-          }
-        }
+    } else {
+      if (op_focei.useColor && !isRstudio())
+	Rprintf("|    X|\033[1m%14.8g\033[0m |", ret);
+      else 
+	Rprintf("|    X|%14.8g |", ret);
+    }
+    for (i = 0; i < n; i++){
+      if (op_focei.xPar[i] == 1){
+	Rprintf("%#10.4g |", exp(unscalePar(x, i)));
+      } else {
+	Rprintf("%#10.4g |", unscalePar(x, i));
+      }
+      if ((i + 1) != n && (i + 1) % op_focei.printNcol == 0){
+	if (op_focei.useColor && op_focei.printNcol + i >= op_focei.npars){
+	  Rprintf("\n\033[4m|.....................|");
+	} else {
+	  Rprintf("\n|.....................|");
+	}
       }
     }
     if (finalize){
@@ -2326,10 +2465,8 @@ void foceiLbfgsb(Environment e){
   double Fmin;
   int fail, fncount=0, grcount=0;
   NumericVector x(op_focei.npars);
-  if (op_focei.scaleTo > 0){
-    std::fill_n(&x[0], op_focei.npars, op_focei.scaleTo);
-  } else {
-    std::copy(&op_focei.initPar[0], &op_focei.initPar[0]+op_focei.npars,&x[0]);
+  for (unsigned int k = op_focei.npars; k--;){
+    x[k]=scalePar(op_focei.initPar, k);
   }
   char msg[100];
   lbfgsbRX(op_focei.npars, op_focei.lmm, x.begin(), op_focei.lower,
@@ -2351,10 +2488,8 @@ void foceiCustomFun(Environment e){
   NumericVector x(op_focei.npars);
   NumericVector lower(op_focei.npars);
   NumericVector upper(op_focei.npars);
-  if (op_focei.scaleTo > 0){
-    std::fill_n(&x[0], op_focei.npars, op_focei.scaleTo);
-  } else {
-    std::copy(&op_focei.initPar[0], &op_focei.initPar[0]+op_focei.npars,&x[0]);
+  for (unsigned int k = op_focei.npars; k--;){
+    x[k]=scalePar(op_focei.initPar, k);
   }
   std::copy(&op_focei.upper[0], &op_focei.upper[0]+op_focei.npars, &upper[0]);
   std::copy(&op_focei.lower[0], &op_focei.lower[0]+op_focei.npars, &lower[0]);
@@ -2385,16 +2520,12 @@ Environment foceiOuter(Environment e){
   op_focei.nF=0;
   op_focei.nG=0; 
   if (op_focei.maxOuterIterations > 0){
-    if (op_focei.scaleTo > 0){
-      std::fill_n(&op_focei.scaleC[0], op_focei.npars, 1.0);
-      for (unsigned int k = op_focei.npars; k--;){
-	// op_focei.scaleC[k]=fabs(op_focei.scaleC[k])/(0.01*op_focei.scaleTo);
-	if (R_FINITE(op_focei.lower[k])){
-	  op_focei.lower[k]=(op_focei.lower[k]-op_focei.initPar[k])/op_focei.scaleC[k]+op_focei.scaleTo;
-	}
-	if (R_FINITE(op_focei.upper[k])) {
-	  op_focei.upper[k]=(op_focei.upper[k]-op_focei.initPar[k])/op_focei.scaleC[k]+op_focei.scaleTo;
-	}
+    for (unsigned int k = op_focei.npars; k--;){
+      if (R_FINITE(op_focei.lower[k])){
+	op_focei.lower[k]=scalePar(op_focei.lower, k);
+      }
+      if (R_FINITE(op_focei.upper[k])) {
+	op_focei.upper[k]=scalePar(op_focei.upper,k);
       }
     }
  
@@ -2407,10 +2538,8 @@ Environment foceiOuter(Environment e){
     } 
   } else {
     NumericVector x(op_focei.npars);
-    if (op_focei.scaleTo > 0){
-      std::fill_n(&x[0], op_focei.npars, op_focei.scaleTo);
-    } else {
-      std::copy(&op_focei.initPar[0], &op_focei.initPar[0]+op_focei.npars,&x[0]);
+    for (unsigned int k = op_focei.npars; k--;){
+      x[k]=scalePar(op_focei.initPar, k);
     }
     foceiOuterFinal(x.begin(), e);
     if (op_focei.maxInnerIterations == 0){
@@ -2658,14 +2787,12 @@ NumericMatrix foceiCalcCov(Environment e){
     double cur;
     bool boundary=false;
     rx = getRxSolve_();
-    if (op_focei.scaleTo > 0){
-      for (unsigned int k = op_focei.npars; k--;){
-	if (R_FINITE(op_focei.lower[k])){
-	  op_focei.lower[k]=(op_focei.lower[k]-op_focei.scaleTo)*op_focei.scaleC[k]+op_focei.initPar[k];
-	}
-	if (R_FINITE(op_focei.upper[k])) {
-	  op_focei.upper[k]=(op_focei.upper[k]-op_focei.scaleTo)/op_focei.scaleC[k]+op_focei.initPar[k];
-	}
+    for (unsigned int k = op_focei.npars; k--;){
+      if (R_FINITE(op_focei.lower[k])){
+	op_focei.lower[k]=unscalePar(op_focei.lower,k);
+      }
+      if (R_FINITE(op_focei.upper[k])) {
+	op_focei.upper[k]=unscalePar(op_focei.upper,k);
       }
     }
     if (op_focei.boundTol > 0){
@@ -3487,6 +3614,12 @@ Environment foceiFitCpp_(Environment e){
   t0 = clock();
   CharacterVector thetaNames=as<CharacterVector>(e["thetaNames"]);
   IntegerVector logTheta;
+  IntegerVector xType = e["xType"];
+  std::fill_n(&op_focei.scaleC[0], op_focei.ntheta+op_focei.omegan, NA_REAL);
+  if (e.exists("scaleC")){
+    arma::vec scaleC = as<arma::vec>(e["scaleC"]);
+    std::copy(scaleC.begin(), scaleC.end(), &op_focei.scaleC[0]);
+  }
   if (e.exists("logThetas")){
     logTheta =  as<IntegerVector>(e["logThetas"]);
   } else if (e.exists("model")){
@@ -3494,14 +3627,18 @@ Environment foceiFitCpp_(Environment e){
     logTheta =  as<IntegerVector>(model["log.thetas"]);
   } 
   int j;
-  // Setup which paramteres are transformed
+  // Setup which parameters are transformed
   for (unsigned int k = op_focei.npars; k--;){
     j=op_focei.fixedTrans[k];
     op_focei.xPar[k] = 0;
-    for (unsigned int m=logTheta.size(); m--;){
-      if (logTheta[m]-1 == j){
-	op_focei.xPar[k] = 1;
-	break;
+    if ((int)op_focei.ntheta < j){
+      op_focei.xPar[k] = xType[j-op_focei.ntheta];
+    } else {
+      for (unsigned int m=logTheta.size(); m--;){
+	if (logTheta[m]-1 == j){
+	  op_focei.xPar[k] = 1;
+	  break;
+	}
       }
     }
   }
@@ -3511,9 +3648,8 @@ Environment foceiFitCpp_(Environment e){
       Rprintf("\033[1mKey:\033[0m ");
     else 
       Rprintf("Key: ");
-    if (op_focei.scaleTo > 0){
-      Rprintf("U: Unscaled Parameters; ");
-    }
+    
+    Rprintf("U: Unscaled Parameters; ");
     Rprintf("X: Back-transformed parameters; ");
     Rprintf("G: Gradient\n");
     foceiPrintLine(min2(op_focei.npars, op_focei.printNcol));
@@ -3574,6 +3710,9 @@ Environment foceiFitCpp_(Environment e){
   timeDf.attr("row.names") = "";
   e["time"] = timeDf;
   foceiFinalizeTables(e);
+  // NumericVector scaleC(op_focei.ntheta+op_focei.omegan);
+  // std::copy(&op_focei.scaleC[0], &op_focei.scaleC[0]+op_focei.ntheta+op_focei.omegan, scaleC.begin());
+  // e["scaleC"]= scaleC;
   if (op_focei.maxOuterIterations){
     Rprintf("done\n");
   }

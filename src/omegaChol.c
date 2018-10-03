@@ -12,7 +12,14 @@ if (dm == 0){
   return(ret);
 }else if (dm == 1){
   int theta_n = INTEGER(tn)[0];
-  if (theta_n == -2){
+  if (theta_n == NA_INTEGER){
+  SEXP ret=  PROTECT(allocVector(INTSXP,1));
+  INTEGER(ret)[0]=2;
+  UNPROTECT(1);
+  return(ret);
+}
+
+if (theta_n == -2){
     SEXP ret = PROTECT(allocVector(INTSXP, 1));
     INTEGER(ret)[0] = 1;
     UNPROTECT(1);
@@ -48,7 +55,16 @@ if (dm == 0){
 }
 else if (dm == 2){
   int theta_n = INTEGER(tn)[0];
-  if (theta_n == -2){
+  if (theta_n == NA_INTEGER){
+  SEXP ret=  PROTECT(allocVector(INTSXP,3));
+  INTEGER(ret)[0]=2;
+  INTEGER(ret)[1]=5;
+  INTEGER(ret)[2]=2;
+  UNPROTECT(1);
+  return(ret);
+}
+
+if (theta_n == -2){
     SEXP ret = PROTECT(allocVector(INTSXP, 1));
     INTEGER(ret)[0] = 3;
     UNPROTECT(1);
@@ -102,7 +118,19 @@ else if (dm == 2){
 }
 else if (dm == 3){
   int theta_n = INTEGER(tn)[0];
-  if (theta_n == -2){
+  if (theta_n == NA_INTEGER){
+  SEXP ret=  PROTECT(allocVector(INTSXP,6));
+  INTEGER(ret)[0]=2;
+  INTEGER(ret)[1]=5;
+  INTEGER(ret)[2]=2;
+  INTEGER(ret)[3]=5;
+  INTEGER(ret)[4]=5;
+  INTEGER(ret)[5]=2;
+  UNPROTECT(1);
+  return(ret);
+}
+
+if (theta_n == -2){
     SEXP ret = PROTECT(allocVector(INTSXP, 1));
     INTEGER(ret)[0] = 6;
     UNPROTECT(1);
@@ -188,7 +216,23 @@ else if (dm == 3){
 }
 else if (dm == 4){
   int theta_n = INTEGER(tn)[0];
-  if (theta_n == -2){
+  if (theta_n == NA_INTEGER){
+  SEXP ret=  PROTECT(allocVector(INTSXP,10));
+  INTEGER(ret)[0]=2;
+  INTEGER(ret)[1]=5;
+  INTEGER(ret)[2]=2;
+  INTEGER(ret)[3]=5;
+  INTEGER(ret)[4]=5;
+  INTEGER(ret)[5]=2;
+  INTEGER(ret)[6]=5;
+  INTEGER(ret)[7]=5;
+  INTEGER(ret)[8]=5;
+  INTEGER(ret)[9]=2;
+  UNPROTECT(1);
+  return(ret);
+}
+
+if (theta_n == -2){
     SEXP ret = PROTECT(allocVector(INTSXP, 1));
     INTEGER(ret)[0] = 10;
     UNPROTECT(1);
@@ -324,7 +368,28 @@ else if (dm == 4){
 }
 else if (dm == 5){
   int theta_n = INTEGER(tn)[0];
-  if (theta_n == -2){
+  if (theta_n == NA_INTEGER){
+  SEXP ret=  PROTECT(allocVector(INTSXP,15));
+  INTEGER(ret)[0]=2;
+  INTEGER(ret)[1]=5;
+  INTEGER(ret)[2]=2;
+  INTEGER(ret)[3]=5;
+  INTEGER(ret)[4]=5;
+  INTEGER(ret)[5]=2;
+  INTEGER(ret)[6]=5;
+  INTEGER(ret)[7]=5;
+  INTEGER(ret)[8]=5;
+  INTEGER(ret)[9]=2;
+  INTEGER(ret)[10]=5;
+  INTEGER(ret)[11]=5;
+  INTEGER(ret)[12]=5;
+  INTEGER(ret)[13]=5;
+  INTEGER(ret)[14]=2;
+  UNPROTECT(1);
+  return(ret);
+}
+
+if (theta_n == -2){
     SEXP ret = PROTECT(allocVector(INTSXP, 1));
     INTEGER(ret)[0] = 15;
     UNPROTECT(1);
@@ -532,7 +597,34 @@ else if (dm == 5){
 }
 else if (dm == 6){
   int theta_n = INTEGER(tn)[0];
-  if (theta_n == -2){
+  if (theta_n == NA_INTEGER){
+  SEXP ret=  PROTECT(allocVector(INTSXP,21));
+  INTEGER(ret)[0]=2;
+  INTEGER(ret)[1]=5;
+  INTEGER(ret)[2]=2;
+  INTEGER(ret)[3]=5;
+  INTEGER(ret)[4]=5;
+  INTEGER(ret)[5]=2;
+  INTEGER(ret)[6]=5;
+  INTEGER(ret)[7]=5;
+  INTEGER(ret)[8]=5;
+  INTEGER(ret)[9]=2;
+  INTEGER(ret)[10]=5;
+  INTEGER(ret)[11]=5;
+  INTEGER(ret)[12]=5;
+  INTEGER(ret)[13]=5;
+  INTEGER(ret)[14]=2;
+  INTEGER(ret)[15]=5;
+  INTEGER(ret)[16]=5;
+  INTEGER(ret)[17]=5;
+  INTEGER(ret)[18]=5;
+  INTEGER(ret)[19]=5;
+  INTEGER(ret)[20]=2;
+  UNPROTECT(1);
+  return(ret);
+}
+
+if (theta_n == -2){
     SEXP ret = PROTECT(allocVector(INTSXP, 1));
     INTEGER(ret)[0] = 21;
     UNPROTECT(1);
@@ -838,7 +930,41 @@ else if (dm == 6){
 }
 else if (dm == 7){
   int theta_n = INTEGER(tn)[0];
-  if (theta_n == -2){
+  if (theta_n == NA_INTEGER){
+  SEXP ret=  PROTECT(allocVector(INTSXP,28));
+  INTEGER(ret)[0]=2;
+  INTEGER(ret)[1]=5;
+  INTEGER(ret)[2]=2;
+  INTEGER(ret)[3]=5;
+  INTEGER(ret)[4]=5;
+  INTEGER(ret)[5]=2;
+  INTEGER(ret)[6]=5;
+  INTEGER(ret)[7]=5;
+  INTEGER(ret)[8]=5;
+  INTEGER(ret)[9]=2;
+  INTEGER(ret)[10]=5;
+  INTEGER(ret)[11]=5;
+  INTEGER(ret)[12]=5;
+  INTEGER(ret)[13]=5;
+  INTEGER(ret)[14]=2;
+  INTEGER(ret)[15]=5;
+  INTEGER(ret)[16]=5;
+  INTEGER(ret)[17]=5;
+  INTEGER(ret)[18]=5;
+  INTEGER(ret)[19]=5;
+  INTEGER(ret)[20]=2;
+  INTEGER(ret)[21]=5;
+  INTEGER(ret)[22]=5;
+  INTEGER(ret)[23]=5;
+  INTEGER(ret)[24]=5;
+  INTEGER(ret)[25]=5;
+  INTEGER(ret)[26]=5;
+  INTEGER(ret)[27]=2;
+  UNPROTECT(1);
+  return(ret);
+}
+
+if (theta_n == -2){
     SEXP ret = PROTECT(allocVector(INTSXP, 1));
     INTEGER(ret)[0] = 28;
     UNPROTECT(1);
@@ -1272,7 +1398,49 @@ else if (dm == 7){
 }
 else if (dm == 8){
   int theta_n = INTEGER(tn)[0];
-  if (theta_n == -2){
+  if (theta_n == NA_INTEGER){
+  SEXP ret=  PROTECT(allocVector(INTSXP,36));
+  INTEGER(ret)[0]=2;
+  INTEGER(ret)[1]=5;
+  INTEGER(ret)[2]=2;
+  INTEGER(ret)[3]=5;
+  INTEGER(ret)[4]=5;
+  INTEGER(ret)[5]=2;
+  INTEGER(ret)[6]=5;
+  INTEGER(ret)[7]=5;
+  INTEGER(ret)[8]=5;
+  INTEGER(ret)[9]=2;
+  INTEGER(ret)[10]=5;
+  INTEGER(ret)[11]=5;
+  INTEGER(ret)[12]=5;
+  INTEGER(ret)[13]=5;
+  INTEGER(ret)[14]=2;
+  INTEGER(ret)[15]=5;
+  INTEGER(ret)[16]=5;
+  INTEGER(ret)[17]=5;
+  INTEGER(ret)[18]=5;
+  INTEGER(ret)[19]=5;
+  INTEGER(ret)[20]=2;
+  INTEGER(ret)[21]=5;
+  INTEGER(ret)[22]=5;
+  INTEGER(ret)[23]=5;
+  INTEGER(ret)[24]=5;
+  INTEGER(ret)[25]=5;
+  INTEGER(ret)[26]=5;
+  INTEGER(ret)[27]=2;
+  INTEGER(ret)[28]=5;
+  INTEGER(ret)[29]=5;
+  INTEGER(ret)[30]=5;
+  INTEGER(ret)[31]=5;
+  INTEGER(ret)[32]=5;
+  INTEGER(ret)[33]=5;
+  INTEGER(ret)[34]=5;
+  INTEGER(ret)[35]=2;
+  UNPROTECT(1);
+  return(ret);
+}
+
+if (theta_n == -2){
     SEXP ret = PROTECT(allocVector(INTSXP, 1));
     INTEGER(ret)[0] = 36;
     UNPROTECT(1);
@@ -1868,7 +2036,58 @@ else if (dm == 8){
 }
 else if (dm == 9){
   int theta_n = INTEGER(tn)[0];
-  if (theta_n == -2){
+  if (theta_n == NA_INTEGER){
+  SEXP ret=  PROTECT(allocVector(INTSXP,45));
+  INTEGER(ret)[0]=2;
+  INTEGER(ret)[1]=5;
+  INTEGER(ret)[2]=2;
+  INTEGER(ret)[3]=5;
+  INTEGER(ret)[4]=5;
+  INTEGER(ret)[5]=2;
+  INTEGER(ret)[6]=5;
+  INTEGER(ret)[7]=5;
+  INTEGER(ret)[8]=5;
+  INTEGER(ret)[9]=2;
+  INTEGER(ret)[10]=5;
+  INTEGER(ret)[11]=5;
+  INTEGER(ret)[12]=5;
+  INTEGER(ret)[13]=5;
+  INTEGER(ret)[14]=2;
+  INTEGER(ret)[15]=5;
+  INTEGER(ret)[16]=5;
+  INTEGER(ret)[17]=5;
+  INTEGER(ret)[18]=5;
+  INTEGER(ret)[19]=5;
+  INTEGER(ret)[20]=2;
+  INTEGER(ret)[21]=5;
+  INTEGER(ret)[22]=5;
+  INTEGER(ret)[23]=5;
+  INTEGER(ret)[24]=5;
+  INTEGER(ret)[25]=5;
+  INTEGER(ret)[26]=5;
+  INTEGER(ret)[27]=2;
+  INTEGER(ret)[28]=5;
+  INTEGER(ret)[29]=5;
+  INTEGER(ret)[30]=5;
+  INTEGER(ret)[31]=5;
+  INTEGER(ret)[32]=5;
+  INTEGER(ret)[33]=5;
+  INTEGER(ret)[34]=5;
+  INTEGER(ret)[35]=2;
+  INTEGER(ret)[36]=5;
+  INTEGER(ret)[37]=5;
+  INTEGER(ret)[38]=5;
+  INTEGER(ret)[39]=5;
+  INTEGER(ret)[40]=5;
+  INTEGER(ret)[41]=5;
+  INTEGER(ret)[42]=5;
+  INTEGER(ret)[43]=5;
+  INTEGER(ret)[44]=2;
+  UNPROTECT(1);
+  return(ret);
+}
+
+if (theta_n == -2){
     SEXP ret = PROTECT(allocVector(INTSXP, 1));
     INTEGER(ret)[0] = 45;
     UNPROTECT(1);
@@ -2664,7 +2883,68 @@ else if (dm == 9){
 }
 else if (dm == 10){
   int theta_n = INTEGER(tn)[0];
-  if (theta_n == -2){
+  if (theta_n == NA_INTEGER){
+  SEXP ret=  PROTECT(allocVector(INTSXP,55));
+  INTEGER(ret)[0]=2;
+  INTEGER(ret)[1]=5;
+  INTEGER(ret)[2]=2;
+  INTEGER(ret)[3]=5;
+  INTEGER(ret)[4]=5;
+  INTEGER(ret)[5]=2;
+  INTEGER(ret)[6]=5;
+  INTEGER(ret)[7]=5;
+  INTEGER(ret)[8]=5;
+  INTEGER(ret)[9]=2;
+  INTEGER(ret)[10]=5;
+  INTEGER(ret)[11]=5;
+  INTEGER(ret)[12]=5;
+  INTEGER(ret)[13]=5;
+  INTEGER(ret)[14]=2;
+  INTEGER(ret)[15]=5;
+  INTEGER(ret)[16]=5;
+  INTEGER(ret)[17]=5;
+  INTEGER(ret)[18]=5;
+  INTEGER(ret)[19]=5;
+  INTEGER(ret)[20]=2;
+  INTEGER(ret)[21]=5;
+  INTEGER(ret)[22]=5;
+  INTEGER(ret)[23]=5;
+  INTEGER(ret)[24]=5;
+  INTEGER(ret)[25]=5;
+  INTEGER(ret)[26]=5;
+  INTEGER(ret)[27]=2;
+  INTEGER(ret)[28]=5;
+  INTEGER(ret)[29]=5;
+  INTEGER(ret)[30]=5;
+  INTEGER(ret)[31]=5;
+  INTEGER(ret)[32]=5;
+  INTEGER(ret)[33]=5;
+  INTEGER(ret)[34]=5;
+  INTEGER(ret)[35]=2;
+  INTEGER(ret)[36]=5;
+  INTEGER(ret)[37]=5;
+  INTEGER(ret)[38]=5;
+  INTEGER(ret)[39]=5;
+  INTEGER(ret)[40]=5;
+  INTEGER(ret)[41]=5;
+  INTEGER(ret)[42]=5;
+  INTEGER(ret)[43]=5;
+  INTEGER(ret)[44]=2;
+  INTEGER(ret)[45]=5;
+  INTEGER(ret)[46]=5;
+  INTEGER(ret)[47]=5;
+  INTEGER(ret)[48]=5;
+  INTEGER(ret)[49]=5;
+  INTEGER(ret)[50]=5;
+  INTEGER(ret)[51]=5;
+  INTEGER(ret)[52]=5;
+  INTEGER(ret)[53]=5;
+  INTEGER(ret)[54]=2;
+  UNPROTECT(1);
+  return(ret);
+}
+
+if (theta_n == -2){
     SEXP ret = PROTECT(allocVector(INTSXP, 1));
     INTEGER(ret)[0] = 55;
     UNPROTECT(1);
@@ -3702,7 +3982,79 @@ else if (dm == 10){
 }
 else if (dm == 11){
   int theta_n = INTEGER(tn)[0];
-  if (theta_n == -2){
+  if (theta_n == NA_INTEGER){
+  SEXP ret=  PROTECT(allocVector(INTSXP,66));
+  INTEGER(ret)[0]=2;
+  INTEGER(ret)[1]=5;
+  INTEGER(ret)[2]=2;
+  INTEGER(ret)[3]=5;
+  INTEGER(ret)[4]=5;
+  INTEGER(ret)[5]=2;
+  INTEGER(ret)[6]=5;
+  INTEGER(ret)[7]=5;
+  INTEGER(ret)[8]=5;
+  INTEGER(ret)[9]=2;
+  INTEGER(ret)[10]=5;
+  INTEGER(ret)[11]=5;
+  INTEGER(ret)[12]=5;
+  INTEGER(ret)[13]=5;
+  INTEGER(ret)[14]=2;
+  INTEGER(ret)[15]=5;
+  INTEGER(ret)[16]=5;
+  INTEGER(ret)[17]=5;
+  INTEGER(ret)[18]=5;
+  INTEGER(ret)[19]=5;
+  INTEGER(ret)[20]=2;
+  INTEGER(ret)[21]=5;
+  INTEGER(ret)[22]=5;
+  INTEGER(ret)[23]=5;
+  INTEGER(ret)[24]=5;
+  INTEGER(ret)[25]=5;
+  INTEGER(ret)[26]=5;
+  INTEGER(ret)[27]=2;
+  INTEGER(ret)[28]=5;
+  INTEGER(ret)[29]=5;
+  INTEGER(ret)[30]=5;
+  INTEGER(ret)[31]=5;
+  INTEGER(ret)[32]=5;
+  INTEGER(ret)[33]=5;
+  INTEGER(ret)[34]=5;
+  INTEGER(ret)[35]=2;
+  INTEGER(ret)[36]=5;
+  INTEGER(ret)[37]=5;
+  INTEGER(ret)[38]=5;
+  INTEGER(ret)[39]=5;
+  INTEGER(ret)[40]=5;
+  INTEGER(ret)[41]=5;
+  INTEGER(ret)[42]=5;
+  INTEGER(ret)[43]=5;
+  INTEGER(ret)[44]=2;
+  INTEGER(ret)[45]=5;
+  INTEGER(ret)[46]=5;
+  INTEGER(ret)[47]=5;
+  INTEGER(ret)[48]=5;
+  INTEGER(ret)[49]=5;
+  INTEGER(ret)[50]=5;
+  INTEGER(ret)[51]=5;
+  INTEGER(ret)[52]=5;
+  INTEGER(ret)[53]=5;
+  INTEGER(ret)[54]=2;
+  INTEGER(ret)[55]=5;
+  INTEGER(ret)[56]=5;
+  INTEGER(ret)[57]=5;
+  INTEGER(ret)[58]=5;
+  INTEGER(ret)[59]=5;
+  INTEGER(ret)[60]=5;
+  INTEGER(ret)[61]=5;
+  INTEGER(ret)[62]=5;
+  INTEGER(ret)[63]=5;
+  INTEGER(ret)[64]=5;
+  INTEGER(ret)[65]=2;
+  UNPROTECT(1);
+  return(ret);
+}
+
+if (theta_n == -2){
     SEXP ret = PROTECT(allocVector(INTSXP, 1));
     INTEGER(ret)[0] = 66;
     UNPROTECT(1);
@@ -5028,7 +5380,91 @@ else if (dm == 11){
 }
 else if (dm == 12){
   int theta_n = INTEGER(tn)[0];
-  if (theta_n == -2){
+  if (theta_n == NA_INTEGER){
+  SEXP ret=  PROTECT(allocVector(INTSXP,78));
+  INTEGER(ret)[0]=2;
+  INTEGER(ret)[1]=5;
+  INTEGER(ret)[2]=2;
+  INTEGER(ret)[3]=5;
+  INTEGER(ret)[4]=5;
+  INTEGER(ret)[5]=2;
+  INTEGER(ret)[6]=5;
+  INTEGER(ret)[7]=5;
+  INTEGER(ret)[8]=5;
+  INTEGER(ret)[9]=2;
+  INTEGER(ret)[10]=5;
+  INTEGER(ret)[11]=5;
+  INTEGER(ret)[12]=5;
+  INTEGER(ret)[13]=5;
+  INTEGER(ret)[14]=2;
+  INTEGER(ret)[15]=5;
+  INTEGER(ret)[16]=5;
+  INTEGER(ret)[17]=5;
+  INTEGER(ret)[18]=5;
+  INTEGER(ret)[19]=5;
+  INTEGER(ret)[20]=2;
+  INTEGER(ret)[21]=5;
+  INTEGER(ret)[22]=5;
+  INTEGER(ret)[23]=5;
+  INTEGER(ret)[24]=5;
+  INTEGER(ret)[25]=5;
+  INTEGER(ret)[26]=5;
+  INTEGER(ret)[27]=2;
+  INTEGER(ret)[28]=5;
+  INTEGER(ret)[29]=5;
+  INTEGER(ret)[30]=5;
+  INTEGER(ret)[31]=5;
+  INTEGER(ret)[32]=5;
+  INTEGER(ret)[33]=5;
+  INTEGER(ret)[34]=5;
+  INTEGER(ret)[35]=2;
+  INTEGER(ret)[36]=5;
+  INTEGER(ret)[37]=5;
+  INTEGER(ret)[38]=5;
+  INTEGER(ret)[39]=5;
+  INTEGER(ret)[40]=5;
+  INTEGER(ret)[41]=5;
+  INTEGER(ret)[42]=5;
+  INTEGER(ret)[43]=5;
+  INTEGER(ret)[44]=2;
+  INTEGER(ret)[45]=5;
+  INTEGER(ret)[46]=5;
+  INTEGER(ret)[47]=5;
+  INTEGER(ret)[48]=5;
+  INTEGER(ret)[49]=5;
+  INTEGER(ret)[50]=5;
+  INTEGER(ret)[51]=5;
+  INTEGER(ret)[52]=5;
+  INTEGER(ret)[53]=5;
+  INTEGER(ret)[54]=2;
+  INTEGER(ret)[55]=5;
+  INTEGER(ret)[56]=5;
+  INTEGER(ret)[57]=5;
+  INTEGER(ret)[58]=5;
+  INTEGER(ret)[59]=5;
+  INTEGER(ret)[60]=5;
+  INTEGER(ret)[61]=5;
+  INTEGER(ret)[62]=5;
+  INTEGER(ret)[63]=5;
+  INTEGER(ret)[64]=5;
+  INTEGER(ret)[65]=2;
+  INTEGER(ret)[66]=5;
+  INTEGER(ret)[67]=5;
+  INTEGER(ret)[68]=5;
+  INTEGER(ret)[69]=5;
+  INTEGER(ret)[70]=5;
+  INTEGER(ret)[71]=5;
+  INTEGER(ret)[72]=5;
+  INTEGER(ret)[73]=5;
+  INTEGER(ret)[74]=5;
+  INTEGER(ret)[75]=5;
+  INTEGER(ret)[76]=5;
+  INTEGER(ret)[77]=2;
+  UNPROTECT(1);
+  return(ret);
+}
+
+if (theta_n == -2){
     SEXP ret = PROTECT(allocVector(INTSXP, 1));
     INTEGER(ret)[0] = 78;
     UNPROTECT(1);
