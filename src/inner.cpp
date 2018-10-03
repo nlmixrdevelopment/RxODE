@@ -3620,11 +3620,6 @@ Environment foceiFitCpp_(Environment e){
     arma::vec scaleC = as<arma::vec>(e["scaleC"]);
     std::copy(scaleC.begin(), scaleC.end(), &op_focei.scaleC[0]);
   }
-  NumericVector scaleSave(op_focei.ntheta+op_focei.omegan);
-  for (unsigned int i =op_focei.ntheta+op_focei.omegan;i--;){
-    scaleSave[i] = getScaleC(i);
-  }
-  e["scaleC"] = scaleSave;
   if (e.exists("logThetas")){
     logTheta =  as<IntegerVector>(e["logThetas"]);
   } else if (e.exists("model")){
@@ -3703,6 +3698,11 @@ Environment foceiFitCpp_(Environment e){
   } else {
     foceiOuter(e);
   }
+  NumericVector scaleSave(op_focei.ntheta+op_focei.omegan);
+  for (unsigned int i =op_focei.ntheta+op_focei.omegan;i--;){
+    scaleSave[i] = getScaleC(i);
+  }
+  e["scaleC"] = scaleSave;    
   e["optimTime"] = (((double)(clock() - t0))/CLOCKS_PER_SEC);
   t0 = clock();
   foceiCalcCov(e);
