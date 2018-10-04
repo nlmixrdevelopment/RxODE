@@ -1722,6 +1722,11 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                 rxCat("done\n");
                 return(.ret);
             }
+           .extraProps <- NULL
+            if (!is.null(.inner)){
+                ## check for power expressions for appropriate scaling.
+                .extraProps <- .rxFindPow(.inner)
+            }
             ret <- list(obj=oobj,
                         pred.only=toRx(.pred.only, "Predictions/EBE"),
                         inner=toRx(.inner, "Inner"),
@@ -1732,6 +1737,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                         pred.minus.dv=pred.minus.dv,
                         log.thetas=rxSymPyExpThetas,
                         log.etas=rxSymPyExpEtas,
+                        extraProps=.extraProps,
                         cache.file=cache.file)
             class(ret) <- "rxFocei";
             save(ret, file=cache.file);

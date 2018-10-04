@@ -161,3 +161,132 @@ rxOptExpr <- function(x){
         return(x)
     }
 }
+
+################################################################################
+
+.rxPowEnv0 <- new.env(parent = emptyenv())
+.rxPowEnv0$.theta <- c()
+.rxPowEnv0$"[" <- function(name, val){
+    .n <- toupper(name)
+    .err <- "RxODE only supports THETA[#] and ETA[#] numbers."
+    if (any(.n == c("THETA", "ETA")) && is.numeric(val)){
+        if (.n == "THETA") .rxPowEnv0$.theta <- sort(unique(c(val, .rxPowEnv0$.theta)))
+        if (round(val) == val && val > 0){
+            return(sprintf("%s[%s]", .n, val));
+        } else {
+            stop(.err);
+        }
+    } else {
+        stop(.err)
+    }
+}
+
+.rxPowGetEnv0 <- function(expr){
+    ## Known functions
+    .calls <- allCalls(expr)
+    .callList <- setNames(lapply(.calls, functionOp), .calls)
+    .callEnv <- list2env(.callList);
+    .currEnv <- cloneEnv(.rxPowEnv0, .callEnv);
+    .names <- allNames(expr)
+    .n1 <- .names;
+    .n2 <- .names;
+    .symbolList <- setNames(as.list(.n2), .n1);
+    .symbolEnv <- list2env(.symbolList, parent=.currEnv);
+    return(.symbolEnv)
+}
+
+.rxPowExpr0 <- function(x){
+    return(eval(x, .rxPowGetEnv0(x)))
+}
+
+.rxGetTheta <- function(x){
+    .rxPowEnv0$.theta <- c()
+    eval(parse(text=sprintf(".rxPowExpr0(quote(%s))", x)))
+    return(.rxPowEnv0$.theta)
+}
+
+.rxPowBin <- function(sep) {
+    force(sep)
+    function(e1, e2) {
+        .rxPowEnv$.powTheta <- sort(unique(c(.rxGetTheta(e2), .rxPowEnv$.powTheta)))
+        .ret <- paste0(e1, sep, e2)
+        return(.ret)
+    }
+}
+
+.rxPowEnv <- new.env(parent = emptyenv())
+.rxPowEnv$.powTheta <- c()
+.rxPowEnv$"^" <- .rxPowBin("^")
+.rxPowEnv$"**" <- .rxPowBin("^")
+.rxPowEnv$Rx_pow <- .rxPowBin("^")
+.rxPowEnv$Rx_pow_di <- .rxPowBin("^")
+.rxPowEnv$pow <- .rxPowBin("^")
+
+.rxPowEnv[["*"]] <- binaryOp("*");
+
+.rxPowEnv[["/"]] <- binaryOp("/");
+
+.rxPowEnv[["+"]] <- binaryOp("+");
+
+.rxPowEnv[["-"]] <- binaryOp("-");
+
+.rxPowEnv$"[" <- function(name, val){
+    .n <- toupper(name)
+    .err <- "RxODE only supports THETA[#] and ETA[#] numbers."
+    if (any(.n == c("THETA", "ETA")) && is.numeric(val)){
+        if (round(val) == val && val > 0){
+            return(sprintf("%s[%s]", .n, val));
+        } else {
+            stop(.err);
+        }
+    } else {
+        stop(.err)
+    }
+}
+
+.rxPowEnv$"{" <- function(...){
+    return(sprintf("{\n%s\n}", paste(unlist(list(...)), collapse="\n")))
+}
+
+.rxPowEnv$"(" <- unaryOp("(", ")")
+
+.rxPowGetEnv <- function(expr){
+    ## Known functions
+    .calls <- allCalls(expr)
+    .callList <- setNames(lapply(.calls, functionOp), .calls)
+    .callEnv <- list2env(.callList);
+    .currEnv <- cloneEnv(.rxPowEnv, .callEnv);
+    .names <- allNames(expr)
+    .n1 <- .names;
+    .n2 <- .names;
+    .symbolList <- setNames(as.list(.n2), .n1);
+    .symbolEnv <- list2env(.symbolList, parent=.currEnv);
+    return(.symbolEnv)
+}
+
+.rxPowExpr <- function(x){
+    return(eval(x, .rxPowGetEnv(x)))
+}
+
+##' Find power THETAs for appropriate scaling
+##'
+##' @param x RxODE model that can be access by rxNorm
+##' @return THETA numbers of x^theta
+##' @author Matthew L. Fidler
+.rxFindPow <- function(x){
+    .rxPowEnv$.powTheta <- c();
+    .lines <- strsplit(rxNorm(x), "\n")[[1]];
+    .f <- function(line){
+        .l2 <- strsplit(line, "[=~]")[[1]]
+        if (length(.l2) == 2){
+            if (regexpr(rex::rex("if", any_spaces, "("), .l2[1]) != -1) return(line);
+            .l1 <- gsub(" +", "", .l2[1])
+            .ret <- eval(parse(text=sprintf(".rxPowExpr(quote(%s))", gsub(";$", "",.l2[2]))));
+            return(paste0(.l1, " = ", .ret))
+        } else {
+            return(line)
+        }
+    }
+    sapply(.lines, .f)
+    return(list(powTheta=.rxPowEnv$.powTheta));
+}
