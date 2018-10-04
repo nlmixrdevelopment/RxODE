@@ -222,6 +222,16 @@ rxOptExpr <- function(x){
 .rxPowEnv$Rx_pow_di <- .rxPowBin("^")
 .rxPowEnv$pow <- .rxPowBin("^")
 
+.rxPowEnv$factorial <- function(x){
+    .rxPowEnv$.factorial <- sort(unique(c(.rxGetTheta(x), .rxPowEnv$.factorial)))
+    return(paste0("factorial(", x, ")"))
+}
+
+.rxPowEnv$gamma <- function(x){
+    .rxPowEnv$.gamma <- sort(unique(c(.rxGetTheta(x), .rxPowEnv$.gamma)))
+    return(paste0("gamma(", x, ")"))
+}
+
 .rxPowEnv[["*"]] <- binaryOp("*");
 
 .rxPowEnv[["/"]] <- binaryOp("/");
@@ -275,6 +285,8 @@ rxOptExpr <- function(x){
 ##' @author Matthew L. Fidler
 .rxFindPow <- function(x){
     .rxPowEnv$.powTheta <- c();
+    .rxPowEnv$.factorial <- c();
+    .rxPowEnv$.gamma <- c();
     .lines <- strsplit(rxNorm(x), "\n")[[1]];
     .f <- function(line){
         .l2 <- strsplit(line, "[=~]")[[1]]
@@ -288,5 +300,7 @@ rxOptExpr <- function(x){
         }
     }
     sapply(.lines, .f)
-    return(list(powTheta=.rxPowEnv$.powTheta));
+    return(list(powTheta=.rxPowEnv$.powTheta,
+                factorial=.rxPowEnv$.factorial,
+                gamma=.rxPowEnv$.gamma));
 }
