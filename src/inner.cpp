@@ -2854,6 +2854,7 @@ NumericMatrix foceiCalcCov(Environment e){
     }
     // foceiSetupTheta_(op_focei.mvi, fullT2, skipCov, op_focei.scaleTo, false);
     foceiSetupTheta_(op_focei.mvi, fullT2, skipCov, 0, false);
+    op_focei.scaleType=10;
     if (op_focei.covMethod && !boundary){
       rx = getRxSolve_();
       op_focei.t0 = clock();
