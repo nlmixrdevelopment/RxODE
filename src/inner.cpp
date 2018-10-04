@@ -182,6 +182,7 @@ typedef struct {
   int scaleType;
   int normType;
   double scaleCmin;
+  double scaleCmax;
   double c1;
   double c2;
   double scaleTo;
@@ -554,7 +555,7 @@ static inline double getScaleC(int i){
       break;
     }
   }
-  return max2(op_focei.scaleC[i], op_focei.scaleCmin);
+  return min2(max2(op_focei.scaleC[i], op_focei.scaleCmin),op_focei.scaleCmax);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -2095,6 +2096,7 @@ NumericVector foceiSetup_(const RObject &obj,
   op_focei.scaleType = as<int>(odeO["scaleType"]);
   op_focei.normType = as<int>(odeO["normType"]);
   op_focei.scaleCmin=as<double>(odeO["scaleCmin"]);
+  op_focei.scaleCmax=as<double>(odeO["scaleCmax"]);
   op_focei.initObj=0;
   op_focei.lastOfv=std::numeric_limits<double>::max();
   for (unsigned int k = op_focei.npars; k--;){

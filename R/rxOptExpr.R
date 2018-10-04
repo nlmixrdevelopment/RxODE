@@ -232,6 +232,26 @@ rxOptExpr <- function(x){
     return(paste0("gamma(", x, ")"))
 }
 
+.rxPowEnv$log <- function(x){
+    .rxPowEnv$.log <- sort(unique(c(.rxGetTheta(x), .rxPowEnv$.log)))
+    return(paste0("log(", x, ")"))
+}
+
+.rxPowEnv$sin <- function(x){
+    .rxPowEnv$.sin <- sort(unique(c(.rxGetTheta(x), .rxPowEnv$.sin)))
+    return(paste0("sin(", x, ")"))
+}
+
+.rxPowEnv$cos <- function(x){
+    .rxPowEnv$.cos <- sort(unique(c(.rxGetTheta(x), .rxPowEnv$.cos)))
+    return(paste0("cos(", x, ")"))
+}
+
+.rxPowEnv$tan <- function(x){
+    .rxPowEnv$.tan <- sort(unique(c(.rxGetTheta(x), .rxPowEnv$.tan)))
+    return(paste0("tan(", x, ")"))
+}
+
 .rxPowEnv[["*"]] <- binaryOp("*");
 
 .rxPowEnv[["/"]] <- binaryOp("/");
@@ -287,6 +307,10 @@ rxOptExpr <- function(x){
     .rxPowEnv$.powTheta <- c();
     .rxPowEnv$.factorial <- c();
     .rxPowEnv$.gamma <- c();
+    .rxPowEnv$.log <- c();
+    .rxPowEnv$.sin <- c();
+    .rxPowEnv$.cos <- c();
+    .rxPowEnv$.tan <- c();
     .lines <- strsplit(rxNorm(x), "\n")[[1]];
     .f <- function(line){
         .l2 <- strsplit(line, "[=~]")[[1]]
@@ -302,5 +326,9 @@ rxOptExpr <- function(x){
     sapply(.lines, .f)
     return(list(powTheta=.rxPowEnv$.powTheta,
                 factorial=.rxPowEnv$.factorial,
-                gamma=.rxPowEnv$.gamma));
+                gamma=.rxPowEnv$.gamma,
+                log=.rxPowEnv$.log,
+                sin=.rxPowEnv$.sin,
+                cos=.rxPowEnv$.cos,
+                tan=.rxPowEnv$.tan));
 }
