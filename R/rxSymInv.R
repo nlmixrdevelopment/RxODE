@@ -290,7 +290,7 @@ rxSymInvCreateC_ <- function(mat, diag.xform=c("log", "sqrt", "identity")){
         block[[length(block) + 1]] <- cur;
     }
     if (length(block) == 0){
-        if (diag.xform == "sqrt" && dim(mat1)[1] <= .Call(`_rxCholInv`, 0L, NULL, NULL)){
+        if (diag.xform == "log" && dim(mat1)[1] <= .Call(`_rxCholInv`, 0L, NULL, NULL)){
             fmat <- mat1;
             num <- as.vector(mat1[upper.tri(mat1, TRUE)]);
             i <- 0;
