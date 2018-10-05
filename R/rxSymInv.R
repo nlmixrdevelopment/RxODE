@@ -27,7 +27,7 @@ rxIsBlock <- function(mat, i){
 }
 
 ## Version #2
-rxSymInvC2 <- function(mat1, diag.xform=c("sqrt", "log", "identity"),
+rxSymInvC2 <- function(mat1, diag.xform=c("log", "sqrt", "identity"),
                        allow.cache=TRUE){
     if (!all(as.vector(mat1) == 1 || as.vector(mat1) == 1)){
         stop("This has to be a matrix of all 1s or 0s.");
@@ -244,7 +244,7 @@ rxSymInvCreate2C <- function(src){
 
 
 ##rxSymInvCreateC_.slow <- NULL
-rxSymInvCreateC_ <- function(mat, diag.xform=c("sqrt", "log", "identity")){
+rxSymInvCreateC_ <- function(mat, diag.xform=c("log", "sqrt", "identity")){
     diag.xform <- match.arg(diag.xform);
     mat2 <- mat;
     mat2 <- rxInv(mat2);
@@ -439,7 +439,7 @@ rxSymInvCreateC_ <- function(mat, diag.xform=c("sqrt", "log", "identity")){
 ##' @keywords internal
 ##' @export
 rxSymInvCholCreate <- function(mat,
-                               diag.xform=c("sqrt", "log", "identity"),
+                               diag.xform=c("log", "sqrt", "identity"),
                                create.env=TRUE, envir=parent.frame()){
     args <- as.list(match.call(expand.dots = TRUE))[-1]
     args <- args[names(args) != "create.env"]
