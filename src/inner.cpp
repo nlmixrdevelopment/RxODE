@@ -6,6 +6,7 @@
 #include <time.h>
 #include <Rmath.h>
 #include <RcppArmadillo.h>
+#include <lbfgsb3c.h>
 #define NETAs 20
 #define NTHETAs 20
 #define NSUBs 100
@@ -221,6 +222,8 @@ typedef struct {
   //
   double factr;
   double pgtol;
+  double abstol;
+  double reltol;
   int lmm;
   int *skipCov;
   int skipCovN;
@@ -2097,6 +2100,8 @@ NumericVector foceiSetup_(const RObject &obj,
   op_focei.normType = as<int>(odeO["normType"]);
   op_focei.scaleCmin=as<double>(odeO["scaleCmin"]);
   op_focei.scaleCmax=as<double>(odeO["scaleCmax"]);
+  op_focei.abstol=as<double>(odeO["abstol"]);
+  op_focei.reltol=as<double>(odeO["reltol"]);
   op_focei.initObj=0;
   op_focei.lastOfv=std::numeric_limits<double>::max();
   for (unsigned int k = op_focei.npars; k--;){
@@ -2462,6 +2467,32 @@ NumericVector foceiOuterG(NumericVector &theta){
   return gr;
 }
 
+void foceiLbfgsb3(Environment e){
+  void *ex = NULL;
+  double Fmin;
+  int fail, fncount=0, grcount=0;
+  NumericVector x(op_focei.npars);
+  NumericVector g(op_focei.npars);
+  for (unsigned int k = op_focei.npars; k--;){
+    x[k]=scalePar(op_focei.initPar, k);
+  }
+  char msg[100];
+  lbfgsb3C(op_focei.npars, op_focei.lmm, x.begin(), op_focei.lower,
+           op_focei.upper, op_focei.nbd, &Fmin, foceiOfvOptim,
+           outerGradNumOptim, &fail, ex, op_focei.factr,
+           op_focei.pgtol, &fncount, &grcount,
+           op_focei.maxOuterIterations, msg, 0, -1,
+	   op_focei.abstol, op_focei.reltol, g.begin());
+  // Recalculate OFV in case the last calculated OFV isn't at the minimum....
+  // Otherwise ETAs may be off
+  std::fill_n(&op_focei.goldEta[0], op_focei.gEtaGTransN, -42.0); // All etas = -42;  Unlikely if normal
+  // Finalize environment
+  foceiOuterFinal(x.begin(), e);
+  e["convergence"] = fail;
+  e["message"] = msg;
+  e["lastGrad"] = g;
+}
+
 void foceiLbfgsb(Environment e){
   void *ex = NULL;
   double Fmin;
@@ -2534,6 +2565,9 @@ Environment foceiOuter(Environment e){
     switch(op_focei.outerOpt){
     case 0:
       foceiLbfgsb(e);
+      break;
+    case 1:
+      foceiLbfgsb3(e);
       break;
     case -1:
       foceiCustomFun(e);

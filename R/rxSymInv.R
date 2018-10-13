@@ -27,7 +27,7 @@ rxIsBlock <- function(mat, i){
 }
 
 ## Version #2
-rxSymInvC2 <- function(mat1, diag.xform=c("log", "sqrt", "identity"),
+rxSymInvC2 <- function(mat1, diag.xform=c("identity", "log", "sqrt"),
                        allow.cache=TRUE){
     if (!all(as.vector(mat1) == 1 || as.vector(mat1) == 1)){
         stop("This has to be a matrix of all 1s or 0s.");
@@ -290,7 +290,7 @@ rxSymInvCreateC_ <- function(mat, diag.xform=c("log", "sqrt", "identity")){
         block[[length(block) + 1]] <- cur;
     }
     if (length(block) == 0){
-        if (diag.xform == "log" && dim(mat1)[1] <= .Call(`_rxCholInv`, 0L, NULL, NULL)){
+        if (diag.xform == "identity" && dim(mat1)[1] <= .Call(`_rxCholInv`, 0L, NULL, NULL)){
             fmat <- mat1;
             num <- as.vector(mat1[upper.tri(mat1, TRUE)]);
             i <- 0;
