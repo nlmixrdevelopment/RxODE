@@ -1725,7 +1725,11 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
            .extraProps <- NULL
             if (!is.null(.inner)){
                 ## check for power expressions for appropriate scaling.
-                .extraProps <- .rxFindPow(.inner)
+                if (.inner == ""){
+                    .inner <- NULL
+                } else {
+                    .extraProps <- .rxFindPow(.inner)
+                }
             }
             ret <- list(obj=oobj,
                         pred.only=toRx(.pred.only, "Predictions/EBE"),

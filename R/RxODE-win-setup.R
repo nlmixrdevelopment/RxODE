@@ -315,7 +315,7 @@ rxPhysicalDrives <- memoise::memoise(function(duplicates=FALSE){
     }
 }
 .installRxPython <- function(dir=R.home("rxPython"),
-                             opt="InstallAllUsers=0 Include_launcher=0 Include_test=0 Include_doc=0 AssociateFiles=0 Include_tcltk=0 Shortcuts=0"){
+                             opt="InstallAllUsers=0 AssociateFiles=0 Shortcuts=0"){
 
     dir <- .normalizePath(dir);
     opt <- sprintf("%s DefaultJustForMeTargetDir=%s", opt, dir, dir)
@@ -324,6 +324,7 @@ rxPhysicalDrives <- memoise::memoise(function(duplicates=FALSE){
     installr::install.python(installer_option=opt, x64=x64)
     system(sprintf("%s/python -m pip install --upgrade pip", R.home("rxPython")))
     system(sprintf("%s/python -m pip install sympy", R.home("rxPython")))
+    system(sprintf("%s/python -m pip install numpy", R.home("rxPython")))
 }
 ##' Setup Python and SymPy for windows
 ##'
