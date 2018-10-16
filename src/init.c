@@ -2,7 +2,7 @@
 #include <Rinternals.h>
 #include <stdlib.h> // for NULL
 #include <R_ext/Rdynload.h>
-#include "RxODE.h"
+#include "../inst/include/RxODE.h"
 
 SEXP _rxProgress(SEXP num, SEXP core);
 SEXP _rxTick();

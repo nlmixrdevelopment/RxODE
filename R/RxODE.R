@@ -1317,8 +1317,8 @@ rxCompile.character <-  function(model,           # Model
             setwd(dir);
             try(dyn.unload(.cDllFile), silent = TRUE);
             try(unlink(.cDllFile));
-            .cmd <- sprintf("%s/bin/R CMD SHLIB %s",
-                           Sys.getenv("R_HOME"), basename(.cFile));
+            .cmd <- sprintf("%s CMD SHLIB %s", R.home("bin/R"),
+                            basename(.cFile));
             ## message(.cmd);
             do.call(.sh, list(.cmd, ignore.stdout=TRUE, ignore.stderr=TRUE));
             .tmp <- try(dynLoad(.cDllFile));

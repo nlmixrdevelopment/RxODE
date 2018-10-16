@@ -1,3 +1,11 @@
+
+#ifndef __RxODE_H__
+#define __RxODE_H__
+
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 typedef void (*t_dydt)(int *neq, double t, double *A, double *DADT);
 typedef void (*t_calc_jac)(int *neq, double t, double *A, double *JAC, unsigned int __NROWPD__);
 typedef void (*t_calc_lhs)(int cSub, double t, double *A, double *lhs);
@@ -110,3 +118,8 @@ SEXP RxODE_par_df();
 rx_solving_options_ind *rxOptionsIniEnsure(int mx);
 
 void rxUpdateFuns(SEXP trans);
+
+#if defined(__cplusplus)
+}
+#endif
+#endif

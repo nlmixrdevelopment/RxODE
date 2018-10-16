@@ -119,8 +119,7 @@ ode.h <- function(){
     unlink(devtools::package_file("src/tran.o"))
     unlink(devtools::package_file("src/rxData.o"))
     odec <- readLines(devtools::package_file("inst/ode.c"));
-    solvec <- readLines(devtools::package_file("src/RxODE.h"));
-    writeLines(solvec, devtools::package_file("inst/include/RxODE.h"))
+    solvec <- readLines(devtools::package_file("inst/include/RxODE.h"));
     w <- which(regexpr("#define Rx_pow_di", odec, fixed=TRUE) != -1)[1];
     odec <- c(odec[1:w], solvec, odec[-c(1:w)])
     w <- which(regexpr("// CODE HERE", odec) != -1)[1];

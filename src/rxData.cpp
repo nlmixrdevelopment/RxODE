@@ -17,9 +17,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <climits>
-extern "C" {
-#include "RxODE.h"
-}
+#include "../inst/include/RxODE.h"
 #include "ode.h"
 #define rxModelVars(a) rxModelVars_(a)
 using namespace Rcpp;

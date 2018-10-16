@@ -8,7 +8,7 @@
 #include <Rmath.h> //Rmath includes math.
 #include <R_ext/Rdynload.h>
 #include <PreciseSums.h>
-#include "RxODE.h"
+#include "../inst/include/RxODE.h"
 
 //--------------------------------------------------------------------------
 
