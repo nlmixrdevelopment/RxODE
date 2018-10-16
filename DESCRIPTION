@@ -42,7 +42,6 @@ Suggests:
     covr,
     rmarkdown,
     SnakeCharmR,
-    rSymPy,
     dplyr,
     tidyr,
     tibble,
