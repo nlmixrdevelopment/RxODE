@@ -2516,7 +2516,6 @@ void foceiLbfgsb(Environment e){
   e["message"] = msg;
 }
 
-Function getRxFn(std::string name);
 void foceiCustomFun(Environment e){
   NumericVector x(op_focei.npars);
   NumericVector lower(op_focei.npars);

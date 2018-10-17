@@ -307,7 +307,7 @@ rex::register_shortcuts("RxODE");
 ##' @importFrom memoise memoise
 ##' @export
 RxODE <- function(model, modName = basename(wd),
-                  wd = ifelse(RxODE.cache.directory == ".", getwd(), RxODE.cache.directory),
+                  wd = getwd(),
                   filename = NULL, extraC = NULL, debug = FALSE, calcJac=NULL, calcSens=NULL,
                   collapseModel=FALSE, ...) {
     if (!missing(model) && !missing(filename))
@@ -1205,9 +1205,7 @@ rxCompile.character <-  function(model,           # Model
                                  ...){
     ## rxCompile returns the DLL name that was created.
     if (is.null(dir)){
-        if (RxODE.cache.directory != "."){
-            dir <- RxODE.cache.directory;
-        } else if (RxODE.tempfiles){
+        if (RxODE.tempfiles){
             dir <- .rxTempDir()
         } else {
             dir <- getwd();

@@ -1345,15 +1345,19 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
     check.good(errfn);
     ##
     if (!grad.internal && !theta.internal){
-        cache.file <- file.path(ifelse(RxODE.cache.directory == ".", getwd(), RxODE.cache.directory),
-                                sprintf("rx_%s%s.prd",
-                                        digest::digest(paste(deparse(list(rxModelVars(obj)$md5["parsed_md5"],
-                                                                          ifelse(is.function(predfn), paste(deparse(body(predfn)), collapse=""), ""),
-                                                                          ifelse(is.function(pkpars), paste(deparse(body(pkpars)), collapse=""), ""),
-                                                                          ifelse(is.function(errfn), paste(deparse(body(errfn)), collapse=""), ""),
-                                                                          init, grad, sum.prod, pred.minus.dv, theta.derivs, only.numeric, optExpression,
-                                                                          interaction)), collapse="")),
-                                        .Platform$dynlib.ext));
+        if (RxODE.cache.directory == "."){
+            cache.file <- "";
+        } else {
+            cache.file <- file.path(RxODE.cache.directory,
+                                    sprintf("rx_%s%s.prd",
+                                            digest::digest(paste(deparse(list(rxModelVars(obj)$md5["parsed_md5"],
+                                                                              ifelse(is.function(predfn), paste(deparse(body(predfn)), collapse=""), ""),
+                                                                              ifelse(is.function(pkpars), paste(deparse(body(pkpars)), collapse=""), ""),
+                                                                              ifelse(is.function(errfn), paste(deparse(body(errfn)), collapse=""), ""),
+                                                                              init, grad, sum.prod, pred.minus.dv, theta.derivs, only.numeric, optExpression,
+                                                                              interaction)), collapse="")),
+                                            .Platform$dynlib.ext))
+        }
     } else {
         cache.file <- "";
     }

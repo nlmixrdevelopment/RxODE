@@ -19,14 +19,20 @@
 }
 
 .rxTempDir0 <- NULL;
+.cacheDefault <- "~/.rxCache";
 .rxTempDir <- function(){
     if (is.null(getFromNamespace(".rxTempDir0", "RxODE"))){
         tmp <- Sys.getenv("rxTempDir")
         if (tmp == ""){
-            tmp <- tempdir()
+            if (getOption("RxODE.cache.directory", .cacheDefault) != "."){
+                tmp <- .cacheDefault;
+            } else {
+                tmp <- tempdir()
+            }
         }
         if (!file.exists(tmp))
             dir.create(tmp, recursive = TRUE);
+        tmp <- .normalizePath(tmp);
         Sys.setenv(rxTempDir=tmp);
         utils::assignInMyNamespace(".rxTempDir0", tmp)
         return(tmp)
@@ -64,7 +70,7 @@ rxOpt <- list(RxODE.prefer.tbl               =c(FALSE, FALSE),
               RxODE.verbose                  =c(TRUE, TRUE),
               RxODE.suppress.syntax.info     =c(FALSE, FALSE),
               RxODE.sympy.engine             =c("", ""),
-              RxODE.cache.directory          =c(".", "."),
+              RxODE.cache.directory          =c(.cacheDefault, .cacheDefault),
               RxODE.syntax.assign.state      =c(FALSE, FALSE),
               RxODE.tempfiles                =c(TRUE, TRUE),
               RxODE.sympy.run.internal       =c(FALSE, FALSE)
