@@ -18,9 +18,6 @@ Authors@R: c(
    person("Linda", "Petzold", role="ctb"),
    person("Ernst", "Hairer", role="ctb"),
    person("Gerhard", "Wanner", role="ctb"),
-   person("Johannes", "Pfeifer",role="ctb"),
-   person("Robert B.", "Schnabel",role="ctb"),
-   person("Elizabeth", "Eskow", role="ctb"),
    person("J", "Colinge", role="ctb"),
    person("Hadley", "Wickham", role="ctb"),
    person("G", "Grothendieck", role="ctb"),
@@ -90,4 +87,4 @@ VignetteBuilder: knitr
 License: GPL (>= 2) 
 URL: https://www.r-project.org, https://github.com/nlmixrdevelopment/RxODE
 RoxygenNote: 6.1.0
-LinkingTo: dparser(>= 0.1.8), Rcpp (>= 0.12.3), RcppArmadillo(>= 0.5.600.2.0), PreciseSums (>= 0.3), lbfgsb3c
+LinkingTo: dparser(>= 0.1.8), Rcpp (>= 0.12.3), RcppArmadillo(>= 0.5.600.2.0), PreciseSums (>= 0.3)
