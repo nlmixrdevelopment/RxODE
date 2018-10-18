@@ -102,6 +102,10 @@ rxIs <- function(obj, cls) {
     .Call(`_RxODE_rxIs`, obj, cls)
 }
 
+getRxFn <- function(name) {
+    .Call(`_RxODE_getRxFn`, name)
+}
+
 dynLoad <- function(dll) {
     .Call(`_RxODE_dynLoad`, dll)
 }
@@ -311,6 +315,10 @@ rxSolveFree <- function() {
     .Call(`_RxODE_rxSolveFree`)
 }
 
+rxSolveC <- function(obj, specParams = NULL, extraArgs = NULL, params = NULL, events = NULL, inits = NULL, scale = NULL, covs = NULL, method = 2L, transit_abs = NULL, atol = 1.0e-6, rtol = 1.0e-4, maxsteps = 5000L, hmin = 0, hmax = NULL, hini = 0, maxordn = 12L, maxords = 5L, cores = 1L, covs_interpolation = 0L, addCov = FALSE, matrix = 0L, sigma = NULL, sigmaDf = NULL, nCoresRV = 1L, sigmaIsChol = FALSE, nDisplayProgress = 10000L, amountUnits = NA_character_, timeUnits = "hours", addDosing = FALSE, stateTrim = NA_real_, theta = NULL, eta = NULL, updateObject = FALSE, doSolve = TRUE, omega = NULL, omegaDf = NULL, omegaIsChol = FALSE, nSub = 1L, thetaMat = NULL, thetaDf = NULL, thetaIsChol = FALSE, nStud = 1L, dfSub = 0.0, dfObs = 0.0, setupOnly = 0L) {
+    .Call(`_RxODE_rxSolveC`, obj, specParams, extraArgs, params, events, inits, scale, covs, method, transit_abs, atol, rtol, maxsteps, hmin, hmax, hini, maxordn, maxords, cores, covs_interpolation, addCov, matrix, sigma, sigmaDf, nCoresRV, sigmaIsChol, nDisplayProgress, amountUnits, timeUnits, addDosing, stateTrim, theta, eta, updateObject, doSolve, omega, omegaDf, omegaIsChol, nSub, thetaMat, thetaDf, thetaIsChol, nStud, dfSub, dfObs, setupOnly)
+}
+
 rxSolveCsmall <- function(object, specParams = NULL, extraArgs = NULL, params = NULL, events = NULL, inits = NULL, scale = NULL, covs = NULL, optsL = NULL) {
     .Call(`_RxODE_rxSolveCsmall`, object, specParams, extraArgs, params, events, inits, scale, covs, optsL)
 }
@@ -506,3 +514,7 @@ removableDrive <- function(driveRoot) {
     .Call(`_RxODE_removableDrive`, driveRoot)
 }
 
+# Register entry points for exported C++ functions
+methods::setLoadAction(function(ns) {
+    .Call('_RxODE_RcppExport_registerCCallable', PACKAGE = 'RxODE')
+})

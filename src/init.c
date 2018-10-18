@@ -10,6 +10,7 @@ SEXP _rxProgressStop(SEXP);
 SEXP _rxProgressAbort();
 
 SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SEXP parse_model,SEXP parse_model3);
+SEXP _RxODE_RcppExport_registerCCallable();
 SEXP _RxODE_sqrtm(SEXP);
 SEXP _RxODE_foceiOuterG(SEXP);
 SEXP _RxODE_foceiOuterF(SEXP);
@@ -196,6 +197,7 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_foceiOuterG", (DL_FUNC) &_RxODE_foceiOuterG, 1},
     {"_RxODE_foceiOuterF", (DL_FUNC) &_RxODE_foceiOuterF, 1},
     {"_RxODE_sqrtm", (DL_FUNC) &_RxODE_sqrtm, 1},
+    {"_RxODE_RcppExport_registerCCallable", (DL_FUNC) &_RxODE_RcppExport_registerCCallable, 0},
     {NULL, NULL, 0}
   };
   // C callable to assign environments.

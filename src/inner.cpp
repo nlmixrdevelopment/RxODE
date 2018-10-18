@@ -13,14 +13,14 @@
 #define min2( a , b )  ( (a) < (b) ? (a) : (b) )
 #define max2( a , b )  ( (a) > (b) ? (a) : (b) )
 #define innerOde(id) ind_solve(rx, id, inner_dydt_liblsoda, inner_dydt_lsoda_dum, inner_jdum_lsoda, inner_dydt, inner_update_inis, inner_global_jt)
-#define getCholOmegaInv() (as<arma::mat>(rxSymInvCholEnvCalculate(_rxInv, "chol.omegaInv", R_NilValue)))
-#define getOmega() (as<NumericMatrix>(rxSymInvCholEnvCalculate(_rxInv, "omega", R_NilValue)))
-#define getOmegaMat() (as<arma::mat>(rxSymInvCholEnvCalculate(_rxInv, "omega", R_NilValue)))
-#define getOmegaInv() (as<arma::mat>(rxSymInvCholEnvCalculate(_rxInv, "omegaInv", R_NilValue)))
-#define getOmegaDet() (as<double>(rxSymInvCholEnvCalculate(_rxInv, "log.det.OMGAinv.5", R_NilValue)))
-#define getOmegaN() as<int>(rxSymInvCholEnvCalculate(_rxInv, "ntheta", R_NilValue))
-#define getOmegaTheta() as<NumericVector>(rxSymInvCholEnvCalculate(_rxInv, "theta", R_NilValue));
-#define setOmegaTheta(x) rxSymInvCholEnvCalculate(_rxInv, "theta", x)
+#define getCholOmegaInv() (as<arma::mat>(RxODE::rxSymInvCholEnvCalculate(_rxInv, "chol.omegaInv", R_NilValue)))
+#define getOmega() (as<NumericMatrix>(RxODE::rxSymInvCholEnvCalculate(_rxInv, "omega", R_NilValue)))
+#define getOmegaMat() (as<arma::mat>(RxODE::rxSymInvCholEnvCalculate(_rxInv, "omega", R_NilValue)))
+#define getOmegaInv() (as<arma::mat>(RxODE::rxSymInvCholEnvCalculate(_rxInv, "omegaInv", R_NilValue)))
+#define getOmegaDet() (as<double>(RxODE::rxSymInvCholEnvCalculate(_rxInv, "log.det.OMGAinv.5", R_NilValue)))
+#define getOmegaN() as<int>(RxODE::rxSymInvCholEnvCalculate(_rxInv, "ntheta", R_NilValue))
+#define getOmegaTheta() as<NumericVector>(RxODE::rxSymInvCholEnvCalculate(_rxInv, "theta", R_NilValue));
+#define setOmegaTheta(x) RxODE::rxSymInvCholEnvCalculate(_rxInv, "theta", x)
 #define tbs(x) powerD(x,    ind->lambda, (int)(ind->yj))
 #define tbsL(x) powerL(x,   ind->lambda, (int)(ind->yj))
 #define tbsDL(x) powerDL(x, ind->lambda, (int)(ind->yj))
@@ -62,58 +62,6 @@ extern "C"{
   double powerDD(double x, double lambda, int yj);
   int par_progress(int c, int n, int d, int cores, clock_t t0, int stop);
 }
-
-Function getRxFn(std::string name);
-
-SEXP rxSolveC(const RObject &obj,
-              const Nullable<CharacterVector> &specParams = R_NilValue,
-              const Nullable<List> &extraArgs = R_NilValue,
-              const RObject &params = R_NilValue,
-              const RObject &events = R_NilValue,
-              const RObject &inits = R_NilValue,
-              const RObject &scale = R_NilValue,
-              const RObject &covs  = R_NilValue,
-              const int method = 2, // 0
-              const Nullable<LogicalVector> &transit_abs = R_NilValue, //1
-              const double atol = 1.0e-6, //2
-              const double rtol = 1.0e-4, //3
-              const int maxsteps = 5000, //4
-              const double hmin = 0, //5
-              const Nullable<NumericVector> &hmax = R_NilValue, //6
-              const double hini = 0, //7
-              const int maxordn = 12, //8
-              const int maxords = 5, //9
-              const unsigned int cores = 1, //10
-              const int covs_interpolation = 0, //11
-              bool addCov = false, //12
-              int matrix = 0, //13
-              const Nullable<NumericMatrix> &sigma= R_NilValue, //14
-              const Nullable<NumericVector> &sigmaDf= R_NilValue, //15
-              const int &nCoresRV= 1, //16
-              const bool &sigmaIsChol= false,
-              const int &nDisplayProgress = 10000,
-              const CharacterVector &amountUnits = NA_STRING,
-              const CharacterVector &timeUnits = "hours",
-              const bool addDosing = false,
-	      const double stateTrim = R_PosInf,
-              const RObject &theta = R_NilValue,
-              const RObject &eta = R_NilValue,
-              const bool updateObject = false,
-              const bool doSolve = true,
-              const Nullable<NumericMatrix> &omega = R_NilValue, 
-              const Nullable<NumericVector> &omegaDf = R_NilValue, 
-              const bool &omegaIsChol = false,
-              const unsigned int nSub = 1, 
-              const Nullable<NumericMatrix> &thetaMat = R_NilValue, 
-              const Nullable<NumericVector> &thetaDf = R_NilValue, 
-              const bool &thetaIsChol = false,
-              const unsigned int nStud = 1, 
-              const double dfSub=0.0,
-              const double dfObs=0.0,
-              const int setupOnly = 0);
-
-RObject rxSymInvCholEnvCalculate(List obj, std::string what, Nullable<NumericVector> theta = R_NilValue);
-bool rxIs(const RObject &obj, std::string cls);
 
 List _rxInv;
 
@@ -1795,7 +1743,7 @@ NumericVector foceiSetup_(const RObject &obj,
 			  Nullable<NumericVector> upper      = R_NilValue,
 			  Nullable<NumericMatrix> etaMat     = R_NilValue,
 			  Nullable<List> control             = R_NilValue){
-  if (!rxIs(rxInv, "rxSymInvCholEnv")){
+  if (!RxODE::rxIs(rxInv, "rxSymInvCholEnv")){
     stop("Omega isn't in the proper format.");
   } else {
     _rxInv = as<List>(rxInv);
@@ -1806,7 +1754,7 @@ NumericVector foceiSetup_(const RObject &obj,
   List odeO = as<List>(control);
   // This fills in op_focei.neta
   List mvi;
-  if (!rxIs(obj, "NULL")){
+  if (!RxODE::rxIs(obj, "NULL")){
     if (!rxDynLoad(obj)){
       stop("Cannot load RxODE dlls for this model.");
     }
@@ -1827,10 +1775,10 @@ NumericVector foceiSetup_(const RObject &obj,
   op_focei.maxInnerIterations = as<int>(odeO["maxInnerIterations"]);
   if (op_focei.maxOuterIterations <= 0){
     // No scaling.
-    foceiSetupTheta_(mvi, theta, thetaFixed, 0.0, !rxIs(obj, "NULL"));
+    foceiSetupTheta_(mvi, theta, thetaFixed, 0.0, !RxODE::rxIs(obj, "NULL"));
     op_focei.scaleObjective=0;
   } else {
-    foceiSetupTheta_(mvi, theta, thetaFixed, as<double>(odeO["scaleTo"]), !rxIs(obj, "NULL"));
+    foceiSetupTheta_(mvi, theta, thetaFixed, as<double>(odeO["scaleTo"]), !RxODE::rxIs(obj, "NULL"));
     op_focei.scaleObjectiveTo=as<double>(odeO["scaleObjective"]);
     if (op_focei.scaleObjectiveTo <= 0){
       op_focei.scaleObjective=0;
@@ -1892,7 +1840,7 @@ NumericVector foceiSetup_(const RObject &obj,
   CharacterVector dims;
   if (hasDimn){
     List diml = etaMat0.attr("dimnames");
-    if (!rxIs(as<RObject>(diml[1]),"NULL")){
+    if (!RxODE::rxIs(as<RObject>(diml[1]),"NULL")){
       dims = as<CharacterVector>(diml[1]);
     } else {
       hasDimn=false;
@@ -1910,8 +1858,8 @@ NumericVector foceiSetup_(const RObject &obj,
   params.attr("class") = "data.frame";
   params.attr("row.names") = IntegerVector::create(NA_INTEGER,-nsub);
   // Now pre-fill parameters.
-  if (!rxIs(obj, "NULL")){
-    rxSolveC(obj,
+  if (!RxODE::rxIs(obj, "NULL")){
+    RxODE::rxSolveC(obj,
 	     R_NilValue,//const Nullable<CharacterVector> &specParams = 
 	     R_NilValue,//const Nullable<List> &extraArgs = 
 	     as<RObject>(params),//const RObject &params = 
@@ -2064,7 +2012,7 @@ NumericVector foceiSetup_(const RObject &obj,
   NumericVector ret(op_focei.npars, op_focei.scaleTo);  
   op_focei.calcGrad=0;
   if (op_focei.likSav != NULL) Free(op_focei.likSav);
-  if (!rxIs(obj, "NULL")) op_focei.likSav = Calloc(rx->nsub, double);
+  if (!RxODE::rxIs(obj, "NULL")) op_focei.likSav = Calloc(rx->nsub, double);
   n1qn1_ = (n1qn1_fp) R_GetCCallable("n1qn1","n1qn1F");
   
   // Outer options
@@ -2189,9 +2137,9 @@ NumericVector foceiSetup_(const RObject &obj,
 }
 
 LogicalVector nlmixrEnvSetup(Environment e, double fmin){
-  if (e.exists("theta") && rxIs(e["theta"], "data.frame") &&
-      e.exists("omega") && rxIs(e["omega"], "matrix") &&
-      e.exists("etaObf") && rxIs(e["etaObf"], "data.frame")){
+  if (e.exists("theta") && RxODE::rxIs(e["theta"], "data.frame") &&
+      e.exists("omega") && RxODE::rxIs(e["omega"], "matrix") &&
+      e.exists("etaObf") && RxODE::rxIs(e["etaObf"], "data.frame")){
     arma::mat omega = as<arma::mat>(e["omega"]);
     arma::mat D(omega.n_rows,omega.n_rows,fill::zeros);
     arma::mat cor(omega.n_rows,omega.n_rows);
@@ -2525,8 +2473,8 @@ void foceiCustomFun(Environment e){
   }
   std::copy(&op_focei.upper[0], &op_focei.upper[0]+op_focei.npars, &upper[0]);
   std::copy(&op_focei.lower[0], &op_focei.lower[0]+op_focei.npars, &lower[0]);
-  Function f = getRxFn("foceiOuterF");
-  Function g = getRxFn("foceiOuterG");
+  Function f = RxODE::getRxFn("foceiOuterF");
+  Function g = RxODE::getRxFn("foceiOuterG");
   List ctl = e["control"];
   Function opt = as<Function>(ctl["outerOptFun"]);
   //.bobyqa <- function(par, fn, gr, lower = -Inf, upper = Inf, control = list(), ...)
@@ -3608,14 +3556,14 @@ Environment foceiFitCpp_(Environment e){
   bool doPredOnly = false;
   if (model.containsElementNamed("inner")){
     RObject inner = model["inner"];
-    if (rxIs(inner, "RxODE")){
+    if (RxODE::rxIs(inner, "RxODE")){
       foceiSetup_(inner, as<RObject>(e["dataSav"]), 
 		  as<NumericVector>(e["thetaIni"]), e["thetaFixed"], e["skipCov"],
 		  as<RObject>(e["rxInv"]), e["lower"], e["upper"], e["etaMat"],
 		  e["control"]);
     } else if (model.containsElementNamed("pred.only")){
       inner = model["pred.only"];
-      if (rxIs(inner, "RxODE")){
+      if (RxODE::rxIs(inner, "RxODE")){
 	doPredOnly = true;
 	foceiSetup_(inner, as<RObject>(e["dataSav"]), 
 		    as<NumericVector>(e["thetaIni"]), e["thetaFixed"], e["skipCov"],

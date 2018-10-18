@@ -1,3 +1,4 @@
+// [[Rcpp::interfaces(r, cpp)]]
 // [[Rcpp::depends(RcppArmadillo)]]
 #include <stdarg.h>
 #include <RcppArmadillo.h>
