@@ -4,8 +4,7 @@
 \alias{RxODE}
 \title{Create an ODE-based model specification}
 \usage{
-RxODE(model, modName = basename(wd), wd = ifelse(RxODE.cache.directory
-  == ".", getwd(), RxODE.cache.directory), filename = NULL,
+RxODE(model, modName = basename(wd), wd = getwd(), filename = NULL,
   extraC = NULL, debug = FALSE, calcJac = NULL, calcSens = NULL,
   collapseModel = FALSE, ...)
 }

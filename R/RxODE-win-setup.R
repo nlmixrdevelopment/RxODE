@@ -61,6 +61,8 @@ rxPhysicalDrives <- memoise::memoise(function(duplicates=FALSE){
 })
 .rxPythonBaseWin <- function(){
     if (.Platform$OS.type == "unix"){
+    } else if (file.exists(R.home("rxPython"))){
+        R.home("rxPython")
     } else {
         .keys <- .rxNlmixr();
         if (!is.null(.keys$pythonBase)){
@@ -120,9 +122,11 @@ rxPhysicalDrives <- memoise::memoise(function(duplicates=FALSE){
 ##'
 ##' @return Rtools base path, or "" on unix-style platforms.
 ##' @author Matthew L. Fidler
-.rxRtoolsBaseWin <- memoise::memoise(function(){
+.rxRtoolsBaseWin <- memoise::memoise(function(retry=FALSE){
     if (.Platform$OS.type == "unix"){
         return("");
+    } else if (file.exists(R.home("rtools"))){
+        return(R.home("rtools"))
     } else {
         ## Prefer nlmixr rtools over everything
         .keys <- .rxNlmixr()
@@ -184,8 +188,11 @@ rxPhysicalDrives <- memoise::memoise(function(duplicates=FALSE){
                     message("gcc available, assuming it comes from rtools...\nRxODE may not work with other compilers.\n")
                     return(.rtools)
                 } else {
-                    message("This package requires Rtools!\nPlease download from http://cran.r-project.org/bin/windows/Rtools/,\ninstall and restart your R session before proceeding.")
-                    return("c:/Rtools")
+                    if (retry){
+                        stop("This package requires Rtools!\nPlease download from http://cran.r-project.org/bin/windows/Rtools/,\ninstall and restart your R session before proceeding.")
+                    }
+                    installr::install.Rtools();
+                    return(.rxRtoolsBaseWin(retry=TRUE))
                 }
             }
         }
@@ -307,6 +314,18 @@ rxPhysicalDrives <- memoise::memoise(function(duplicates=FALSE){
         }
     }
 }
+.installRxPython <- function(dir=R.home("rxPython"),
+                             opt="InstallAllUsers=0 AssociateFiles=0 Shortcuts=0"){
+
+    dir <- .normalizePath(dir);
+    opt <- sprintf("%s DefaultJustForMeTargetDir=%s", opt, dir, dir)
+    x64 <- (regexpr("x64", Sys.info()["release"]) != -1)
+    ## if (x64) opt <- sprintf("/passive %s", opt)
+    installr::install.python(installer_option=opt, x64=x64)
+    system(sprintf("%s/python -m pip install --upgrade pip", R.home("rxPython")))
+    system(sprintf("%s/python -m pip install sympy", R.home("rxPython")))
+    system(sprintf("%s/python -m pip install numpy", R.home("rxPython")))
+}
 ##' Setup Python and SymPy for windows
 ##'
 ##' @author Matthew L. Fidler
@@ -314,15 +333,15 @@ rxPhysicalDrives <- memoise::memoise(function(duplicates=FALSE){
 rxWinPythonSetup <- function(){
     .base <- .rxPythonBaseWin()
     if (is.null(.base)){
-        stop("RxODE requires Python. Please install an appropriate version and add it to the system path.")
+        .installRxPython()
+        .base <- .rxPythonBaseWin()
+        if (is.null(.base)){
+            stop("RxODE requires Python. Please install an appropriate version and add it to the system path.")
+        }
     }
     if (file.access(paste(.base, "/Lib/site-packages", sep=""),2)==-1){
       stop("The Python library path does not appear to be writeable. Please rectify this situation, restart R, and try again.")
     }
-    message("Attempting to install SymPy. This may take a few seconds...")
-    try(system("python -m pip install sympy"))
-
-    message("Please restart your R session before using RxODE.")
 }
 
 ##' Setup Windows components for RxODE

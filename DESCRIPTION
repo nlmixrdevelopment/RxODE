@@ -18,9 +18,6 @@ Authors@R: c(
    person("Linda", "Petzold", role="ctb"),
    person("Ernst", "Hairer", role="ctb"),
    person("Gerhard", "Wanner", role="ctb"),
-   person("Johannes", "Pfeifer",role="ctb"),
-   person("Robert B.", "Schnabel",role="ctb"),
-   person("Elizabeth", "Eskow", role="ctb"),
    person("J", "Colinge", role="ctb"),
    person("Hadley", "Wickham", role="ctb"),
    person("G", "Grothendieck", role="ctb"),
@@ -42,7 +39,6 @@ Suggests:
     covr,
     rmarkdown,
     SnakeCharmR,
-    rSymPy,
     dplyr,
     tidyr,
     tibble,
@@ -53,7 +49,8 @@ Suggests:
     scales,
     stringi,
     htmltools,
-    reticulate
+    reticulate,
+    installr
 Imports:
     utils,
     methods,

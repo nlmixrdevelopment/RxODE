@@ -4,7 +4,7 @@
 #include <Rinternals.h>
 #include <Rmath.h>
 #include <R_ext/Rdynload.h>
-#include "RxODE.h"
+#include "../inst/include/RxODE.h"
 
 // Linear compartment models/functions
 

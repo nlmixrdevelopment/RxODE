@@ -1,3 +1,4 @@
+// [[Rcpp::interfaces(r, cpp)]]
 // [[Rcpp::depends(RcppArmadillo)]]
 #define NCMT 100
 // NONMEM 7.1 has a max of 50 obesrvations/individual
@@ -17,9 +18,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <climits>
-extern "C" {
-#include "RxODE.h"
-}
+#include "../inst/include/RxODE.h"
 #include "ode.h"
 #define rxModelVars(a) rxModelVars_(a)
 using namespace Rcpp;
@@ -269,7 +268,7 @@ Environment _rxModels;
 bool _RxODE_found = false;
 Environment _RxODE;
 
-Environment RxODE(){
+Environment RxODEenv(){
   if (_RxODE_found){
     return _RxODE;
   } else {
@@ -279,8 +278,10 @@ Environment RxODE(){
     return _RxODE;
   }
 }
+// Export for C.
+//[[Rcpp::export]]
 Function getRxFn(std::string name){
-  Environment rx = RxODE();
+  Environment rx = RxODEenv();
   return as<Function>(rx[name]);
 }
 
@@ -2045,7 +2046,7 @@ void updateSolveEnvPost(Environment e){
 extern "C" void rxOptionsFree();
 extern "C" void rxOptionsIni();
 extern "C" rx_solving_options_ind *rxOptionsIniEnsure(int mx);
-extern "C" void rxOptionsFreeFocei();
+// extern "C" void rxOptionsFreeFocei();
 
 //' Free the C solving information.
 //'
@@ -2059,10 +2060,11 @@ LogicalVector rxSolveFree(){
   rxOptionsFree();
   rxOptionsIni();
   rxOptionsIniData();
-  rxOptionsFreeFocei();
+  // rxOptionsFreeFocei();
   return LogicalVector::create(true);
 }
 extern "C" void RxODE_assign_fn_pointers(SEXP);
+//[[Rcpp::export]]
 SEXP rxSolveC(const RObject &obj,
               const Nullable<CharacterVector> &specParams = R_NilValue,
               const Nullable<List> &extraArgs = R_NilValue,
@@ -2093,7 +2095,7 @@ SEXP rxSolveC(const RObject &obj,
 	      const CharacterVector &amountUnits = NA_STRING,
 	      const CharacterVector &timeUnits = "hours",
 	      const bool addDosing = false,
-	      const double stateTrim = R_PosInf,
+	      const double stateTrim = NA_REAL,
 	      const RObject &theta = R_NilValue,
 	      const RObject &eta = R_NilValue,
 	      const bool updateObject = false,
@@ -2309,8 +2311,11 @@ SEXP rxSolveC(const RObject &obj,
     rx_solve* rx = getRxSolve_();
     rx_solving_options* op = rx->op;
     rx_solving_options_ind* ind;
-
-    rx->stateTrim = stateTrim;
+    if (ISNA(stateTrim)){
+      rx->stateTrim = R_PosInf;
+    } else {
+      rx->stateTrim = stateTrim;
+    }
     rx->matrix = matrix;
     rx->add_cov = (int)(addCov);
     op->stiff = method;
@@ -3045,7 +3050,7 @@ SEXP rxSolveC(const RObject &obj,
       rxSolveFree();
       
       Function newEnv("new.env", R_BaseNamespace);
-      Environment e = newEnv(_["size"] = 29, _["parent"] = RxODE());
+      Environment e = newEnv(_["size"] = 29, _["parent"] = RxODEenv());
       getRxModels();
       if(_rxModels.exists(".theta")){
   	e[".theta"] = as<NumericMatrix>(_rxModels[".theta"]);

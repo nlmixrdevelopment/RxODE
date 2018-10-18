@@ -1,3 +1,4 @@
+// [[Rcpp::interfaces(r, cpp)]]
 // [[Rcpp::depends(RcppArmadillo)]]
 #include <stdarg.h>
 #include <RcppArmadillo.h>
@@ -85,7 +86,9 @@ RObject rxSymInvChol(RObject invObjOrMatrix, Nullable<NumericVector> theta = R_N
     } else {
       NumericVector par(theta);
       int tn = thetaNumber;
-      if (type == "cholOmegaInv"){
+      if (type == "xType"){
+	tn = NA_INTEGER;
+      } else if (type == "cholOmegaInv"){
         tn = 0;
       } else if (type == "omegaInv"){
         tn = -1;
@@ -101,12 +104,12 @@ RObject rxSymInvChol(RObject invObjOrMatrix, Nullable<NumericVector> theta = R_N
       } else if (type == "ntheta"){
         tn = -2;
       }
-      try {
+      // try {
         Function fn = as<Function>(invObj["fn"]);
         return fn(par, tn);
-      } catch (...) {
-        stop("Unspported invobj type.");
-      }
+      // } catch (...) {
+      //   stop("Unspported invobj type.");
+      // }
     }
   } else  {
     Environment rxode("package:RxODE");
@@ -130,6 +133,9 @@ RObject rxSymInvCholEnvCalculate(List obj, std::string what, Nullable<NumericVec
         invObj = as<List>(e["invobj"]);
       } else {
         stop("Error in rxSymInvCholEnvCalculate environment.");
+      }
+      if (what == "xType"){
+	e["xType"] = rxSymInvChol(invObj,NumericVector::create(1),"xType",0);
       }
       if (what == "ntheta"){
         e["ntheta"] = rxSymInvChol(invObj,NumericVector::create(1),"ntheta",0);

@@ -9,82 +9,6 @@ add_sampling_ <- function(eventTable, time, time_units = NA_character_) {
     .Call(`_RxODE_add_sampling_`, eventTable, time, time_units)
 }
 
-foceiInnerLp <- function(eta, id = 1L) {
-    .Call(`_RxODE_foceiInnerLp`, eta, id)
-}
-
-likInner <- function(eta, id = 1L) {
-    .Call(`_RxODE_likInner`, eta, id)
-}
-
-cholSE0 <- function(Ao, E, A, tol) {
-    .Call(`_RxODE_cholSE0`, Ao, E, A, tol)
-}
-
-cholSE_ <- function(A, tol) {
-    .Call(`_RxODE_cholSE_`, A, tol)
-}
-
-foceiLik <- function(theta) {
-    .Call(`_RxODE_foceiLik`, theta)
-}
-
-foceiOfv <- function(theta) {
-    .Call(`_RxODE_foceiOfv`, theta)
-}
-
-foceiEtas <- function() {
-    .Call(`_RxODE_foceiEtas`)
-}
-
-foceiNumericGrad <- function(theta) {
-    .Call(`_RxODE_foceiNumericGrad`, theta)
-}
-
-foceiSetup_ <- function(obj, data, theta, thetaFixed = NULL, skipCov = NULL, rxInv = NULL, lower = NULL, upper = NULL, etaMat = NULL, control = NULL) {
-    .Call(`_RxODE_foceiSetup_`, obj, data, theta, thetaFixed, skipCov, rxInv, lower, upper, etaMat, control)
-}
-
-foceiOuterF <- function(theta) {
-    .Call(`_RxODE_foceiOuterF`, theta)
-}
-
-foceiOuterG <- function(theta) {
-    .Call(`_RxODE_foceiOuterG`, theta)
-}
-
-foceiOuter <- function(e) {
-    .Call(`_RxODE_foceiOuter`, e)
-}
-
-#' Return the square root of general square matrix A
-#'
-#' @param m Matrix to take the square root of.
-#' @export
-sqrtm <- function(m) {
-    .Call(`_RxODE_sqrtm`, m)
-}
-
-foceiCalcCov <- function(e) {
-    .Call(`_RxODE_foceiCalcCov`, e)
-}
-
-#' Fit/Evaulate FOCEi 
-#'
-#' This shouldn't be called directly.
-#'
-#' @param e Enviornment 
-#'
-#' @keywords internal
-#' @export
-foceiFitCpp_ <- function(e) {
-    .Call(`_RxODE_foceiFitCpp_`, e)
-}
-
-coxBox_ <- function(x = 1L, lambda = 1, yj = 0L) {
-    .Call(`_RxODE_coxBox_`, x, lambda, yj)
-}
-
 #' Check the type of an object using Rcpp
 #'
 #' @param obj Object to check
@@ -100,6 +24,10 @@ coxBox_ <- function(x = 1L, lambda = 1, yj = 0L) {
 #' @export
 rxIs <- function(obj, cls) {
     .Call(`_RxODE_rxIs`, obj, cls)
+}
+
+getRxFn <- function(name) {
+    .Call(`_RxODE_getRxFn`, name)
 }
 
 dynLoad <- function(dll) {
@@ -311,6 +239,10 @@ rxSolveFree <- function() {
     .Call(`_RxODE_rxSolveFree`)
 }
 
+rxSolveC <- function(obj, specParams = NULL, extraArgs = NULL, params = NULL, events = NULL, inits = NULL, scale = NULL, covs = NULL, method = 2L, transit_abs = NULL, atol = 1.0e-6, rtol = 1.0e-4, maxsteps = 5000L, hmin = 0, hmax = NULL, hini = 0, maxordn = 12L, maxords = 5L, cores = 1L, covs_interpolation = 0L, addCov = FALSE, matrix = 0L, sigma = NULL, sigmaDf = NULL, nCoresRV = 1L, sigmaIsChol = FALSE, nDisplayProgress = 10000L, amountUnits = NA_character_, timeUnits = "hours", addDosing = FALSE, stateTrim = NA_real_, theta = NULL, eta = NULL, updateObject = FALSE, doSolve = TRUE, omega = NULL, omegaDf = NULL, omegaIsChol = FALSE, nSub = 1L, thetaMat = NULL, thetaDf = NULL, thetaIsChol = FALSE, nStud = 1L, dfSub = 0.0, dfObs = 0.0, setupOnly = 0L) {
+    .Call(`_RxODE_rxSolveC`, obj, specParams, extraArgs, params, events, inits, scale, covs, method, transit_abs, atol, rtol, maxsteps, hmin, hmax, hini, maxordn, maxords, cores, covs_interpolation, addCov, matrix, sigma, sigmaDf, nCoresRV, sigmaIsChol, nDisplayProgress, amountUnits, timeUnits, addDosing, stateTrim, theta, eta, updateObject, doSolve, omega, omegaDf, omegaIsChol, nSub, thetaMat, thetaDf, thetaIsChol, nStud, dfSub, dfObs, setupOnly)
+}
+
 rxSolveCsmall <- function(object, specParams = NULL, extraArgs = NULL, params = NULL, events = NULL, inits = NULL, scale = NULL, covs = NULL, optsL = NULL) {
     .Call(`_RxODE_rxSolveCsmall`, object, specParams, extraArgs, params, events, inits, scale, covs, optsL)
 }
@@ -506,3 +438,7 @@ removableDrive <- function(driveRoot) {
     .Call(`_RxODE_removableDrive`, driveRoot)
 }
 
+# Register entry points for exported C++ functions
+methods::setLoadAction(function(ns) {
+    .Call('_RxODE_RcppExport_registerCCallable', PACKAGE = 'RxODE')
+})

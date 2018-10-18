@@ -25,6 +25,7 @@ rxPermissive({
                        params = c(a=-8/3, b=-10),
                        events = et,
                        inits = c(X=1, Y=1, Z=1),
+
                        covs = cov, add.cov=TRUE,
                        covsInterpolation="linear",
                        method=meth);

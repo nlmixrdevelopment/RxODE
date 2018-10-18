@@ -4,7 +4,7 @@
 \alias{.rxRtoolsBaseWin}
 \title{Return Rtools base}
 \usage{
-.rxRtoolsBaseWin()
+.rxRtoolsBaseWin(retry = FALSE)
 }
 \value{
 Rtools base path, or "" on unix-style platforms.
