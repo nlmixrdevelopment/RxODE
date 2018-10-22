@@ -2583,7 +2583,9 @@ SEXP rxSolveC(const RObject &obj,
 	} else {
 	  nobs++;
 	  tmp = time[i]-tlast;
-	  if (tmp < 0) stop("Dataset must be ordered by ID and TIME variables .");
+	  if (tmp < 0){
+	    stop("Dataset must be ordered by ID and TIME variables.");
+	  }
 	  if (tmp > hmax1){
 	    hmax1 = tmp;
 	  }
@@ -2752,7 +2754,9 @@ SEXP rxSolveC(const RObject &obj,
           nobs++; nobst++; nall++;
 	  if (!ISNA(tlast)){
             tmp = time0[i]-tlast;
-            if (tmp < 0) stop("Dataset must be ordered by ID and TIME variables", ind->id, tlast, time0[i]);
+            if (tmp < 0){
+	      stop("Dataset must be ordered by ID and TIME variables");
+	    }
             if (tmp > hmax1){
               hmax1 = tmp;
               if (hmax1 > hmax2){
