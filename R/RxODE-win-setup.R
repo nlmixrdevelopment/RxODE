@@ -323,8 +323,8 @@ rxPhysicalDrives <- memoise::memoise(function(duplicates=FALSE){
     ## if (x64) opt <- sprintf("/passive %s", opt)
     installr::install.python(installer_option=opt, x64=x64)
     system(sprintf("%s/python -m pip install --upgrade pip", R.home("rxPython")))
-    system(sprintf("%s/python -m pip install sympy", R.home("rxPython")))
-    system(sprintf("%s/python -m pip install numpy", R.home("rxPython")))
+    system(sprintf("%s/python -m pip install --upgrade sympy", R.home("rxPython")))
+    system(sprintf("%s/python -m pip install --upgrade numpy", R.home("rxPython")))
 }
 ##' Setup Python and SymPy for windows
 ##'
