@@ -1818,6 +1818,79 @@ rxFoExpandEta <-function(expr){
     })
     return(paste(.lines, collapse="\n"));
 }
+##' This creates the dv/dx RxODE model for a linear solved system
+##'
+##' @param model RxODE pred model
+##' @param ncmt Number of compartments of the solved system
+##' @param parameterization Integer representing parameterization type
+##' @param optExpression boolean indicating if you should optimize the
+##'     expression.
+##' @return RxODE model expressing dvdx
+##' @author Matthew L. Fidler
+##' @keywords internal
+##' @export
+rxSymPyLincmtDvdx <- function(model, ncmt, parameterization, optExpression=TRUE){
+    .mod <- rxGetModel(model)
+    if (RxODE.cache.directory == "."){
+        .file <- "";
+    } else {
+        .file <- file.path(RxODE.cache.directory,
+                           sprintf("rx_%s.dvdx",
+                                   digest::digest(paste(deparse(c(rxModelVars(.mod)$md5["parsed_md5"], ncmt, parameterization, optExpression)),
+                                                        collapse=""))));
+    }
+    if (file.exists(.file)){
+        readRDS(.file);
+    } else {
+        .pm <- list(
+            c("CL", "V", "KA", "TLAG"),
+            c("CL", "V", "CLD", "VT", "KA", "TLAG"),
+            c("CL", "V", "CLD", "VT", "CLD2", "VT2", "KA", "TLAG"),
+            c("KE", "V", "KA", "TLAG"),
+            c("KE", "V", "K12", "K21", "KA", "TLAG"),
+            c("KE", "V", "K12", "K21", "K13", "K31", "KA", "TLAG")
+        )
+        dim(.pm)<-c(3, 2)
+        .pars <- .pm[ncmt, parameterization][[1]];
+
+        .lhs <- rxLhs(.mod)
+        .etas <- rxParams(.mod);
+        .etas <- .etas[regexpr(rex::rex(start, "ETA[",any_numbers, "]"), .etas) != -1]
+        .etas <- max(as.numeric(sub(rex::rex(start, "ETA[",capture(any_numbers), "]"), "\\1", .etas)))
+        rxSymPySetup(model)
+        .len <- .etas * length(.pars);
+        .mat <- character(.len)
+        .i <- 1;
+        message("Calculate d(pred)/d(eta)")
+        rxProgress(.etas * length(.pars))
+        for (.eta in sprintf("ETA[%d]", seq(1, .etas))){
+            for (.p in .pars){
+                if (any(.lhs == .p)){
+                    .line <- sprintf("diff(%s,%s)", rxToSymPy(.p), rxToSymPy(.eta));
+                    .line <- rxSymPy(.line);
+                    .line <- rxFromSymPy(.line)
+                    .mat[.i] <- .line
+                } else {
+                    .mat[.i] <- "0"
+                }
+                .i <- .i + 1
+                rxTick()
+            }
+        }
+        rxProgressStop()
+        .mod <- paste(sprintf("rxMat%d=%s", seq_along(.mat) - 1, .mat), collapse="\n")
+        dim(.mat) <- c(length(.pars), .etas)
+        dimnames(.mat) <- list(.pars, sprintf("ETA[%d]", seq(1, .etas)))
+        print(.mat)
+        if (optExpression){
+            rxCat(sprintf("Optimizing expressions in pred..."));
+            .mod <- rxOptExpr(.mod)
+            rxCat("done\n");
+        }
+        saveRDS(.mod, .file)
+        .mod
+    }
+}
 
 ## Supported SymPy special functions
 ## besseli -> besseli(nu,z) -> bessel_i(z,nu,1)

@@ -316,7 +316,6 @@ rxPhysicalDrives <- memoise::memoise(function(duplicates=FALSE){
 }
 .installRxPython <- function(dir=R.home("rxPython"),
                              opt="InstallAllUsers=0 AssociateFiles=0 Shortcuts=0"){
-
     dir <- .normalizePath(dir);
     opt <- sprintf("%s DefaultJustForMeTargetDir=%s", opt, dir, dir)
     x64 <- (regexpr("x64", Sys.info()["release"]) != -1)

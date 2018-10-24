@@ -80,7 +80,7 @@ rxClean <- function(wd){
         owd <- getwd();
         setwd(wd);
         on.exit(setwd(owd));
-        pat <- "^(Makevars|(rx.*)[.](o|dll|s[ol]|c|rx|prd|inv))$"
+        pat <- "^(Makevars|(rx.*)[.](o|dll|s[ol]|c|rx|prd|inv|dvdx))$"
         files <- list.files(pattern = pat);
         for (f in files){
             if (f == "Makevars"){
