@@ -27,7 +27,7 @@ rxIsBlock <- function(mat, i){
 }
 
 ## Version #2
-rxSymInvC2 <- function(mat1, diag.xform=c("sqrt", "log", "identity"),
+rxSymInvC2 <- function(mat1, diag.xform=c("identity", "log", "sqrt"),
                        allow.cache=TRUE){
     if (!all(as.vector(mat1) == 1 || as.vector(mat1) == 1)){
         stop("This has to be a matrix of all 1s or 0s.");
@@ -69,19 +69,26 @@ rxSymInvC2 <- function(mat1, diag.xform=c("sqrt", "log", "identity"),
         diags <- -2-as.numeric(sapply(diag(mat1), function(x){
                         substring(x, 2)
                     }))
-
+        mat2 <- mat1;
         if (diag.xform == "sqrt"){
             ## The diagonal elements are assumed to be estimated as sqrt
+            diag(mat2) <- sprintf("%s=2", diag(mat2))
             diag(mat1) <- sprintf("%s**2", diag(mat1))
         } else if (diag.xform == "log"){
             ## The diagonal elements are assumed to be estimated as log
+            diag(mat2) <- sprintf("%s=3", diag(mat2))
             diag(mat1) <- sprintf("exp(%s)", diag(mat1))
         } else {
             ## The diagonal elements are assumed to be estimated as identity
+            diag(mat2) <- sprintf("%s=4", diag(mat2))
             diag(mat1) <- sprintf("(%s)", diag(mat1));
         }
         ## Cholesky is upper tri
         mat1[lower.tri(mat1)] <- "0";
+        mat2[lower.tri(mat2)] <- "0";
+        mat2[upper.tri(mat2)] <- sprintf("%s=5", mat2[upper.tri(mat2)]);
+        mat2 <- as.vector(mat2)
+        mat2 <- mat2[mat2 != "0"]
         omat <- fmat <- mat1;
         sdiag <- sprintf("(%s)**2", diag(omat))
         sympy.mat <- sprintf("Matrix([%s])", paste(apply(mat1, 1, function(x){
@@ -195,10 +202,14 @@ rxSymInvC2 <- function(mat1, diag.xform=c("sqrt", "log", "identity"),
                                return(ret);
                            }),
                            collapse="\n")))})), collapse="\n")
+        mat2 <- sprintf("if (theta_n== NA_INTEGER){\n    SEXP ret=  PROTECT(allocVector(INTSXP,%s));\n%s\n    UNPROTECT(1);\n    return(ret);  \n}\n",
+                        length(mat2), paste(paste(gsub(rex::rex("t", capture(any_numbers), "="), "    INTEGER(ret)[\\1]=", mat2), ";", sep=""),
+                                            collapse="\n"));
         matExpr <- sprintf("  if (theta_n >= -1){\n    SEXP ret = PROTECT(allocMatrix(REALSXP, %s, %s));for (int i = 0; i < %s; i++){REAL(ret)[i]=0;}\n", d, d, d * d);
         vecExpr <- sprintf("    UNPROTECT(1);\n    return(ret);\n  } else {\n    SEXP ret = PROTECT(allocVector(REALSXP, %s));for(int i = 0; i < %s; i++){REAL(ret)[i]=0;}\n%s\n    UNPROTECT(1);\n    return(ret);\n  }", d, d, diag, d);
-        src <- sprintf("  int theta_n = INTEGER(tn)[0];\n  if (theta_n == -2){\n    SEXP ret = PROTECT(allocVector(INTSXP, 1));\n    INTEGER(ret)[0] = %s;\n    UNPROTECT(1);\n    return ret;\n  }\n  else if (theta_n < %s || theta_n > %s){\n    error(\"d(Omega^-1) Derivative outside bounds.\");\n  }\n  else if (length(theta) != %s){\n    error(\"Requires vector with %s arguments.\");\n  }\n%s\n%s\n%s",
-                       length(vars), min(diags) - 1, length(vars), length(vars), length(vars), paste0(matExpr, omega0), omega1, paste0(omega1p, "\n", vecExpr))
+        src <- sprintf("  int theta_n = INTEGER(tn)[0];\n  %s\nif (theta_n == -2){\n    SEXP ret = PROTECT(allocVector(INTSXP, 1));\n    INTEGER(ret)[0] = %s;\n    UNPROTECT(1);\n    return ret;\n  }\n  else if (theta_n < %s || theta_n > %s){\n    error(\"d(Omega^-1) Derivative outside bounds.\");\n  }\n  else if (length(theta) != %s){\n    error(\"Requires vector with %s arguments.\");\n  }\n%s\n%s\n%s",
+                       mat2, length(vars), min(diags) - 1, length(vars), length(vars), length(vars),
+                       paste0(matExpr, omega0), omega1, paste0(omega1p, "\n", vecExpr))
         src <- strsplit(src, "\n")[[1]]
         reg <- rex::rex(any_spaces, "REAL(ret)[", any_numbers, "]", any_spaces, "=", any_spaces, "0", any_spaces, ";");
         ## Take out the =0; expressions
@@ -233,7 +244,7 @@ rxSymInvCreate2C <- function(src){
 
 
 ##rxSymInvCreateC_.slow <- NULL
-rxSymInvCreateC_ <- function(mat, diag.xform=c("sqrt", "log", "identity")){
+rxSymInvCreateC_ <- function(mat, diag.xform=c("log", "sqrt", "identity")){
     diag.xform <- match.arg(diag.xform);
     mat2 <- mat;
     mat2 <- rxInv(mat2);
@@ -279,7 +290,7 @@ rxSymInvCreateC_ <- function(mat, diag.xform=c("sqrt", "log", "identity")){
         block[[length(block) + 1]] <- cur;
     }
     if (length(block) == 0){
-        if (diag.xform == "sqrt" && dim(mat1)[1] <= .Call(`_rxCholInv`, 0L, NULL, NULL)){
+        if (diag.xform == "identity" && dim(mat1)[1] <= .Call(`_rxCholInv`, 0L, NULL, NULL)){
             fmat <- mat1;
             num <- as.vector(mat1[upper.tri(mat1, TRUE)]);
             i <- 0;
@@ -311,6 +322,11 @@ rxSymInvCreateC_ <- function(mat, diag.xform=c("sqrt", "log", "identity")){
             ##signature(theta="numeric", tn="integer")
             ## FIXME move these functions to Cpp?
             fn <- eval(bquote(function(theta, tn){
+                if (is.na(tn)){
+                    new.theta <- rep(0.0, .((d + 1) * d / 2));
+                    new.theta[.(w)] <- theta;
+                    return(.Call(`_rxCholInv`, .(as.integer(d)), as.double(new.theta), NA_integer_));
+                }
                 if (tn == -2L){
                     return(.(length(w)));
                 }
@@ -352,8 +368,10 @@ rxSymInvCreateC_ <- function(mat, diag.xform=c("sqrt", "log", "identity")){
         ## Drop the dependency on Matrix (since this is partially run in R)
         fn <- eval(bquote(function(theta, tn){
             force(matI);
-            if (tn == -2L){
-                return(.(ntheta));
+            if (!is.na(tn)){
+                if (tn == -2L){
+                    return(.(ntheta));
+                }
             }
             theta.part <- .(theta.part);
             lst <- lapply(seq_along(theta.part),
@@ -362,7 +380,9 @@ rxSymInvCreateC_ <- function(mat, diag.xform=c("sqrt", "log", "identity")){
                 w <- theta.part[[x]];
                 new.theta <- theta[w];
                 ctn <- as.integer(tn);
-                if (ctn == -1L || ctn == 0L){
+                if (is.na(ctn)){
+                    return(mt$fn(as.double(new.theta), ctn));
+                } else if (ctn == -1L || ctn == 0L){
                     return(mt$fn(as.double(new.theta), ctn));
                 } else {
                     ## the ctn should refer to the theta relative to
@@ -391,7 +411,9 @@ rxSymInvCreateC_ <- function(mat, diag.xform=c("sqrt", "log", "identity")){
                     }
                 }
             })
-            if (tn >= -1){
+            if (is.na(tn)){
+                return(unlist(lst));
+            } else if (tn >= -1){
                 return(as.matrix(Matrix::.bdiag(lst)))
             } else {
                 return(unlist(lst));
@@ -417,7 +439,7 @@ rxSymInvCreateC_ <- function(mat, diag.xform=c("sqrt", "log", "identity")){
 ##' @keywords internal
 ##' @export
 rxSymInvCholCreate <- function(mat,
-                               diag.xform=c("sqrt", "log", "identity"),
+                               diag.xform=c("log", "sqrt", "identity"),
                                create.env=TRUE, envir=parent.frame()){
     args <- as.list(match.call(expand.dots = TRUE))[-1]
     args <- args[names(args) != "create.env"]

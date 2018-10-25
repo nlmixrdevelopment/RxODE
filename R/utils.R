@@ -80,7 +80,7 @@ rxClean <- function(wd){
         owd <- getwd();
         setwd(wd);
         on.exit(setwd(owd));
-        pat <- "^(Makevars|(rx.*)[.](o|dll|s[ol]|c|rx|prd|inv))$"
+        pat <- "^(Makevars|(rx.*)[.](o|dll|s[ol]|c|rx|prd|inv|dvdx))$"
         files <- list.files(pattern = pat);
         for (f in files){
             if (f == "Makevars"){
@@ -119,8 +119,8 @@ ode.h <- function(){
     unlink(devtools::package_file("src/tran.o"))
     unlink(devtools::package_file("src/rxData.o"))
     odec <- readLines(devtools::package_file("inst/ode.c"));
-    solvec <- readLines(devtools::package_file("src/RxODE.h"));
-    writeLines(solvec, devtools::package_file("inst/include/RxODE.h"))
+    solvec <- readLines(devtools::package_file("inst/include/RxODE.h"));
+    solvec <- solvec[regexpr(rex::rex("#include"), solvec) == -1];
     w <- which(regexpr("#define Rx_pow_di", odec, fixed=TRUE) != -1)[1];
     odec <- c(odec[1:w], solvec, odec[-c(1:w)])
     w <- which(regexpr("// CODE HERE", odec) != -1)[1];
@@ -248,37 +248,4 @@ rxSetSum <- function(type=c("pairwise", "fsum", "kahan", "neumaier", "c")){
 rxSetProd <- function(type=c("long double", "double", "logify")){
     PreciseSums::psSetProd(type);
 }
-##' Generalized Cholesky Matrix Decomposition
-##'
-##'  Performs a (modified) Cholesky factorization of the form
-##'
-##'   t(P) \%*\% A \%*\% P  + E = t(R) \%*\% R
-##'
-##'  As detailed in Schnabel/Eskow (1990)
-##'
-##' @param matrix Matrix to be Factorized.
-##' @param tol Tolerance; Algorithm suggests (.Machine$double.eps) ^ (1 / 3), default
-##' @return Generalized Cholesky decomposed matrix.
-##' @author Matthew L. Fidler (translation), Johannes Pfeifer, Robert
-##'     B. Schnabel and Elizabeth Eskow
-##'
-##' @references
-##'
-##' matlab source: http://www.dynare.org/dynare-matlab-m2html/matlab/chol_SE.html; Slightly different return values
-##'
-##' Robert B. Schnabel and Elizabeth
-##' Eskow. 1990. "A New Modified Cholesky Factorization," SIAM Journal
-##' of Scientific Statistical Computing, 11, 6: 1136-58.
-##'
-##' Elizabeth Eskow and Robert B. Schnabel
-##' 1991. "Algorithm 695 - Software for a New Modified Cholesky Factorization,"
-##' ACM Transactions on Mathematical Software, Vol 17, No 3: 306-312
-##'
-##' @note
-##'
-##' This version does not pivot or return the E matrix
-##'
-##' @export
-cholSE <- function(matrix, tol=(.Machine$double.eps) ^ (1 / 3)){
-    .Call(`_RxODE_cholSE_`, matrix, tol);
-}
+

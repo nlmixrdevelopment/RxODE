@@ -165,14 +165,14 @@ rxSymPyStart <- function(){
                         })
                         if (inherits(tmp, "try-error")){
                             rxCat("Could not install sympy in the system python.\n");
-                            if (requireNamespace("rSymPy", quietly = TRUE)){
-                                rxSymPyExec( paste( "sys.path.append(", system.file( "Lib", package = "rSymPy" ), ")", sep = '"' ),
-                                            .python=python, .start=FALSE);
-                                rxSymPyExec( "from sympy import *",
-                                            .python=python, .start=FALSE);
-                                rxCat(sprintf("Using sympy in rSymPy by running it in %s\n", python));
-                                .rxSymPy$started <- python;
-                            }
+                            ## if (requireNamespace("rSymPy", quietly = TRUE)){
+                            ##     rxSymPyExec( paste( "sys.path.append(", system.file( "Lib", package = "rSymPy" ), ")", sep = '"' ),
+                            ##                 .python=python, .start=FALSE);
+                            ##     rxSymPyExec( "from sympy import *",
+                            ##                 .python=python, .start=FALSE);
+                            ##     rxCat(sprintf("Using sympy in rSymPy by running it in %s\n", python));
+                            ##     .rxSymPy$started <- python;
+                            ## }
                         } else {
                             rxCat(sprintf("Successfully installed sympy\nUsing sympy via %s\n", python));
                             .rxSymPy$started <- python;
@@ -189,29 +189,29 @@ rxSymPyStart <- function(){
     start("SnakeCharmR");
     ## start("rPython");
     ## start("PythonInR");
-    if (is.null(.rxSymPy$started)){
-        if (any(RxODE.sympy.engine == c("", "rSymPy"))) {
-            if (requireNamespace("rSymPy", quietly = TRUE)){
-                if (!exists(".Jython", .GlobalEnv)){
-                    rxCat("Using sympy via rSymPy (creating jython process)\n");
-                    rSymPy::sympyStart()
-                    .rxSymPy$started <- "rSymPy";
-                    try({.Jython$exec("import gc")});
-                } else {
-                    rxCat("Using sympy via rSymPy (with exisiting jython)\n");
-                    rSymPy::sympyStart()
-                    .rxSymPy$started <- "rSymPy";
-                    try({.Jython$exec("import gc")});
-                }
-            }
-        }
-    }
+    ## if (is.null(.rxSymPy$started)){
+        ## if (any(RxODE.sympy.engine == c("", "rSymPy"))) {
+        ##     if (requireNamespace("rSymPy", quietly = TRUE)){
+        ##         if (!exists(".Jython", .GlobalEnv)){
+        ##             rxCat("Using sympy via rSymPy (creating jython process)\n");
+        ##             rSymPy::sympyStart()
+        ##             .rxSymPy$started <- "rSymPy";
+        ##             try({.Jython$exec("import gc")});
+        ##         } else {
+        ##             rxCat("Using sympy via rSymPy (with exisiting jython)\n");
+        ##             rSymPy::sympyStart()
+        ##             .rxSymPy$started <- "rSymPy";
+        ##             try({.Jython$exec("import gc")});
+        ##         }
+        ##     }
+        ## }
+    ## }
 
     if (is.null(.rxSymPy$started)){
         rxCat("RxODE requires SymPy for this function.\n");
         rxCat("We recommend you install SymPy for Python and then interact with Python using reticulate.\n");
         rxCat("In Windows you can have help setting this up by typing: `rxWinPythonSetup()`.\n");
-        rxCat("Another option is to use either SnakeCharmR or the package rSymPy, which depends on\n\t Java and is a bit slower (and older) version of SymPy.\n");
+        rxCat("Another option is to use SnakeCharmR\n");
         stop("Could not start SymPy");
     }
 }
@@ -1345,15 +1345,19 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
     check.good(errfn);
     ##
     if (!grad.internal && !theta.internal){
-        cache.file <- file.path(ifelse(RxODE.cache.directory == ".", getwd(), RxODE.cache.directory),
-                                sprintf("rx_%s%s.prd",
-                                        digest::digest(paste(deparse(list(rxModelVars(obj)$md5["parsed_md5"],
-                                                                          ifelse(is.function(predfn), paste(deparse(body(predfn)), collapse=""), ""),
-                                                                          ifelse(is.function(pkpars), paste(deparse(body(pkpars)), collapse=""), ""),
-                                                                          ifelse(is.function(errfn), paste(deparse(body(errfn)), collapse=""), ""),
-                                                                          init, grad, sum.prod, pred.minus.dv, theta.derivs, only.numeric, optExpression,
-                                                                          interaction)), collapse="")),
-                                        .Platform$dynlib.ext));
+        if (RxODE.cache.directory == "."){
+            cache.file <- "";
+        } else {
+            cache.file <- file.path(RxODE.cache.directory,
+                                    sprintf("rx_%s%s.prd",
+                                            digest::digest(paste(deparse(list(rxModelVars(obj)$md5["parsed_md5"],
+                                                                              ifelse(is.function(predfn), paste(deparse(body(predfn)), collapse=""), ""),
+                                                                              ifelse(is.function(pkpars), paste(deparse(body(pkpars)), collapse=""), ""),
+                                                                              ifelse(is.function(errfn), paste(deparse(body(errfn)), collapse=""), ""),
+                                                                              init, grad, sum.prod, pred.minus.dv, theta.derivs, only.numeric, optExpression,
+                                                                              interaction)), collapse="")),
+                                            .Platform$dynlib.ext))
+        }
     } else {
         cache.file <- "";
     }
@@ -1722,6 +1726,15 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                 rxCat("done\n");
                 return(.ret);
             }
+           .extraProps <- NULL
+            if (!is.null(.inner)){
+                ## check for power expressions for appropriate scaling.
+                if (.inner == ""){
+                    .inner <- NULL
+                } else {
+                    .extraProps <- .rxFindPow(.inner)
+                }
+            }
             ret <- list(obj=oobj,
                         pred.only=toRx(.pred.only, "Predictions/EBE"),
                         inner=toRx(.inner, "Inner"),
@@ -1732,6 +1745,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                         pred.minus.dv=pred.minus.dv,
                         log.thetas=rxSymPyExpThetas,
                         log.etas=rxSymPyExpEtas,
+                        extraProps=.extraProps,
                         cache.file=cache.file)
             class(ret) <- "rxFocei";
             save(ret, file=cache.file);
@@ -1803,6 +1817,79 @@ rxFoExpandEta <-function(expr){
         }
     })
     return(paste(.lines, collapse="\n"));
+}
+##' This creates the dv/dx RxODE model for a linear solved system
+##'
+##' @param model RxODE pred model
+##' @param ncmt Number of compartments of the solved system
+##' @param parameterization Integer representing parameterization type
+##' @param optExpression boolean indicating if you should optimize the
+##'     expression.
+##' @return RxODE model expressing dvdx
+##' @author Matthew L. Fidler
+##' @keywords internal
+##' @export
+rxSymPyLincmtDvdx <- function(model, ncmt, parameterization, optExpression=TRUE){
+    .mod <- rxGetModel(model)
+    if (RxODE.cache.directory == "."){
+        .file <- "";
+    } else {
+        .file <- file.path(RxODE.cache.directory,
+                           sprintf("rx_%s.dvdx",
+                                   digest::digest(paste(deparse(c(rxModelVars(.mod)$md5["parsed_md5"], ncmt, parameterization, optExpression)),
+                                                        collapse=""))));
+    }
+    if (file.exists(.file)){
+        readRDS(.file);
+    } else {
+        .pm <- list(
+            c("CL", "V", "KA", "TLAG"),
+            c("CL", "V", "CLD", "VT", "KA", "TLAG"),
+            c("CL", "V", "CLD", "VT", "CLD2", "VT2", "KA", "TLAG"),
+            c("KE", "V", "KA", "TLAG"),
+            c("KE", "V", "K12", "K21", "KA", "TLAG"),
+            c("KE", "V", "K12", "K21", "K13", "K31", "KA", "TLAG")
+        )
+        dim(.pm)<-c(3, 2)
+        .pars <- .pm[ncmt, parameterization][[1]];
+
+        .lhs <- rxLhs(.mod)
+        .etas <- rxParams(.mod);
+        .etas <- .etas[regexpr(rex::rex(start, "ETA[",any_numbers, "]"), .etas) != -1]
+        .etas <- max(as.numeric(sub(rex::rex(start, "ETA[",capture(any_numbers), "]"), "\\1", .etas)))
+        rxSymPySetup(model)
+        .len <- .etas * length(.pars);
+        .mat <- character(.len)
+        .i <- 1;
+        message("Calculate d(pred)/d(eta)")
+        rxProgress(.etas * length(.pars))
+        for (.eta in sprintf("ETA[%d]", seq(1, .etas))){
+            for (.p in .pars){
+                if (any(.lhs == .p)){
+                    .line <- sprintf("diff(%s,%s)", rxToSymPy(.p), rxToSymPy(.eta));
+                    .line <- rxSymPy(.line);
+                    .line <- rxFromSymPy(.line)
+                    .mat[.i] <- .line
+                } else {
+                    .mat[.i] <- "0"
+                }
+                .i <- .i + 1
+                rxTick()
+            }
+        }
+        rxProgressStop()
+        .mod <- paste(sprintf("rxMat%d=%s", seq_along(.mat) - 1, .mat), collapse="\n")
+        dim(.mat) <- c(length(.pars), .etas)
+        dimnames(.mat) <- list(.pars, sprintf("ETA[%d]", seq(1, .etas)))
+        print(.mat)
+        if (optExpression){
+            rxCat(sprintf("Optimizing expressions in pred..."));
+            .mod <- rxOptExpr(.mod)
+            rxCat("done\n");
+        }
+        saveRDS(.mod, .file)
+        .mod
+    }
 }
 
 ## Supported SymPy special functions

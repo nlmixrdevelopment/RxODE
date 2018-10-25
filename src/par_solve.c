@@ -5,7 +5,7 @@
 #include <Rinternals.h>
 #include <Rmath.h> //Rmath includes math.
 #include <R_ext/Rdynload.h>
-#include "RxODE.h"
+#include "../inst/include/RxODE.h"
 #include "dop853.h"
 #include "common.h"
 #include "lsoda.h"
