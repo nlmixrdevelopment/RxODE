@@ -27,6 +27,7 @@ using namespace arma;
 int rxcEvid = -1;
 int rxcTime = -1;
 int rxcAmt  = -1;
+int rxcRate = -1;
 int rxcId   = -1;
 int rxcDv   = -1;
 int rxcLen  = -1;
@@ -39,6 +40,7 @@ bool rxHasEventNames(CharacterVector &nm){
     rxcEvid = -1;
     rxcTime = -1;
     rxcAmt  = -1;
+    rxcRate = -1;
     rxcId   = -1;
     rxcDv   = -1;
     rxcLen  = len;
@@ -49,6 +51,8 @@ bool rxHasEventNames(CharacterVector &nm){
         rxcTime = i;
       } else if (as<std::string>(nm[i]) == "amt" || as<std::string>(nm[i]) == "AMT" || as<std::string>(nm[i]) == "Amt"){
         rxcAmt = i;
+      } else if (as<std::string>(nm[i]) == "rate" || as<std::string>(nm[i]) == "RATE" || as<std::string>(nm[i]) == "Rate"){
+        rxcRate = i;
       } else if (as<std::string>(nm[i]) == "id" || as<std::string>(nm[i]) == "ID" || as<std::string>(nm[i]) == "Id"){
         rxcId = i;
       } else if (as<std::string>(nm[i]) == "dv" || as<std::string>(nm[i]) == "DV" || as<std::string>(nm[i]) == "Dv"){
@@ -981,6 +985,8 @@ typedef struct {
   int gdvn;
   double *gamt;
   int gamtn;
+  double *grate;
+  int graten;
   double *glhs;
   int glhsn;
   double *gcov;
@@ -1035,6 +1041,8 @@ extern "C" void rxOptionsIniData(){
   _globals.gdvn=0;//NALL;
   _globals.gamt = NULL;//Calloc(NDOSES,double);
   _globals.gamtn=0;//NDOSES;
+  _globals.grate = NULL;//Calloc(NDOSES,double);
+  _globals.graten=0;//NDOSES;
   _globals.glhs = NULL;//Calloc(NPARS,double);
   _globals.glhsn=0;//NPARS;
   _globals.gcov = NULL;//Calloc(NALL*10,double);
@@ -1128,6 +1136,19 @@ void gamtSetup(int n){
     Free(_globals.gamt);
     _globals.gamt = Calloc(cur, double);
     _globals.gamtn = cur;
+  }
+}
+
+void grateSetup(int n){
+  if (_globals.graten < 0){
+    _globals.graten=0;
+    _globals.grate=NULL;
+  }
+  if (_globals.graten < n){
+    int cur = n;
+    Free(_globals.grate);
+    _globals.grate = Calloc(cur, double);
+    _globals.graten = cur;
   }
 }
 
@@ -1312,6 +1333,7 @@ void gsvarSetup(int n){
 extern "C" void protectOld(){
   _globals.gparsn=-1;
   _globals.gamtn=-1;
+  _globals.graten=-1;
   _globals.gsolven=-1;
   _globals.glhsn=-1;
   _globals.gevidn=-1;
@@ -1368,6 +1390,9 @@ extern "C" void gFree(){
   if (_globals.gamt != NULL && _globals.gamtn > 0) Free(_globals.gamt);
   _globals.gamt=NULL;
   _globals.gamtn=0;
+  if (_globals.grate != NULL && _globals.graten > 0) Free(_globals.grate);
+  _globals.grate=NULL;
+  _globals.graten=0;
   if (_globals.gall_times != NULL && _globals.gall_timesn>0) Free(_globals.gall_times);
   _globals.gall_times=NULL;
   _globals.gall_timesn=0;
@@ -2553,6 +2578,8 @@ SEXP rxSolveC(const RObject &obj,
       NumericVector time = as<NumericVector>(dataf[0]);
       IntegerVector evid = as<IntegerVector>(dataf[1]);
       NumericVector amt  = as<NumericVector>(dataf[2]);
+      NumericVector rate(amt.size());
+      std::fill_n(rate.begin(),amt.size(),0);
       ind = &(rx->subjects[0]);
       ind->id=1;
       ind->lambda=1.0;
@@ -2568,7 +2595,9 @@ SEXP rxSolveC(const RObject &obj,
       std::copy(evid.begin(),evid.end(), &_globals.gevid[0]);
       ind->evid     = &_globals.gevid[0];
       gamtSetup(ind->n_all_times);
+      grateSetup(ind->n_all_times);
       ind->dose = &_globals.gamt[0];
+      ind->rate = &_globals.grate[0];
       // Slower; These need to be built.
       tlast = time[0];
       // hmax1 = hmax2 = 0;
@@ -2579,7 +2608,8 @@ SEXP rxSolveC(const RObject &obj,
         if (ind->evid[i]){
           ndoses++;
 	  _globals.gidose[j] = (int)i;
-          _globals.gamt[j++] = amt[i];
+          _globals.gamt[j]  = amt[i];
+	  _globals.grate[j++] = rate[i];
 	} else {
 	  nobs++;
 	  tmp = time[i]-tlast;
@@ -2670,9 +2700,16 @@ SEXP rxSolveC(const RObject &obj,
         std::copy(dv.begin(), dv.end(), &_globals.gdv[0]);
       }
       NumericVector amt   = dataf[rxcAmt];
+      NumericVector rate(amt.size());
+      if (rxcRate >= 0){
+	rate = dataf[rxcRate];
+      } else {
+	std::fill_n(rate.begin(),rate.size(),0);
+      }
       // Make sure that everything can take the correct sizes
       // - amt
       gamtSetup(amt.size());
+      grateSetup(rate.size());
       // - idose
       gidoseSetup(amt.size());
       // Get covariates
@@ -2732,6 +2769,7 @@ SEXP rxSolveC(const RObject &obj,
           ind->evid           = &_globals.gevid[i];
 	  ind->idose          = &_globals.gidose[i];
           ind->dose           = &_globals.gamt[i];
+	  ind->rate           = &_globals.grate[i];
 	  lasti = i;
 	  if (hmax0 == 0.0){
             ind->HMAX = hmax1;
@@ -2748,6 +2786,7 @@ SEXP rxSolveC(const RObject &obj,
         if (_globals.gevid[i]){
           _globals.gidose[j] = i-lasti;
           _globals.gamt[j] = amt[i];
+	  _globals.grate[j] = rate[i];
 	  ind->ndoses++;
           ndoses++; nall++; j++;
         } else {

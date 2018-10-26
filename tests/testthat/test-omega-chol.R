@@ -1,8 +1,8 @@
 for (d in seq(1, ifelse(identical(Sys.getenv("RxODE_VALIDATION_FULL"), "true"), 4, rxSymInvCholN()))){
     if (identical(Sys.getenv("RxODE_VALIDATION_FULL"), "true")){
-        dgs <- c("sqrt", "identity")
+        dgs <- c("sqrt", "log")
     } else {
-        dgs <- c("log")
+        dgs <- c("identity")
     }
     for (dg in dgs){
         test_that("omega chol", {

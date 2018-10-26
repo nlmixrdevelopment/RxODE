@@ -68,6 +68,7 @@ typedef struct {
   double podo;
   double *par_ptr;
   double *dose;
+  double *rate;
   double *solve;
   double *lhs;
   int  *evid;
