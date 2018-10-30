@@ -72,14 +72,17 @@ typedef struct {
   double *solve;
   double *lhs;
   int  *evid;
+  int  *cmt;
   int *rc;
   double *cov_ptr;
-  int n_all_times;
   int ixds;
   int ndoses;
   double *all_times;
+  int n_all_times;
+  int *tIdx;
   double *dv;
   int *idose;
+  int *dIdx;
   int idosen;
   int id;
   int sim;

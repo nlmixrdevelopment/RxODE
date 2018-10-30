@@ -9,14 +9,6 @@
 #include "dop853.h"
 #include "common.h"
 #include "lsoda.h"
-// Yay easy parallel support
-// For Mac, see: http://thecoatlessprofessor.com/programming/openmp-in-r-on-os-x/ (as far as I can tell)
-// and https://github.com/Rdatatable/data.table/wiki/Installation#openmp-enabled-compiler-for-mac
-// It may have arrived, though I'm not sure...
-// According to http://dirk.eddelbuettel.com/papers/rcpp_parallel_talk_jan2015.pdf
-// OpenMP is excellent for parallelizing existing loops where the iterations are independent;
-// OpenMP is used by part of the R core, therefore support will come for all platforms at some time in the future.
-// Since these are independent, we will just use Open MP.
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -264,19 +256,49 @@ rx_solving_options_ind *getRxId(rx_solve *rx, unsigned int id){
 }
 
 int handle_evid(int evid, int neq, 
-		       int *BadDose,
-		       double *InfusionRate,
-		       double *dose,
-		       double *yp,
-		       int do_transit_abs,
-		       double xout,
-		       rx_solving_options_ind *ind){
+		int *BadDose,
+		double *InfusionRate,
+		double *dose,
+		double *yp,
+		int do_transit_abs,
+		double xout,
+		rx_solving_options_ind *ind,
+		int inCmt, double rate){
   int wh = evid, wh100, cmt, foundBad, j;
+  double amt, infTime=0.0, f=1;
+  // FIXME get F;
+  amt = dose[ind->ixds]*f;
   if (wh) {
-    wh100 = floor(wh/1e5);
-    wh = wh- wh100*1e5;
-    cmt = (wh%10000)/100 - 1 + 100*wh100;
-    if (cmt<0) {
+    if (wh > 99){
+      wh100 = floor(wh/1e5);
+      wh = wh- wh100*1e5;
+      cmt = (wh%10000)/100 - 1 + 100*wh100;
+      wh = evid;
+      if (cmt<0) {
+	error("Supplied an invalid EVID (EVID=%d)", evid);
+      }
+    } else if (wh <= 4) {
+      if (rate == 0){
+	j     = cmt%100;
+	wh100 = (cmt < 100) ?  0 : floor(cmt/100);
+	wh = 1e5*wh100 + cmt*100 + wh;
+      } else if (rate  > 0) {
+	infTime = rate/amt;
+	// Add dose
+	// d.inf$CMT*100+d.inf$EVID + 10000
+	// RxODE EVID
+	j     = cmt%100;
+	wh100 = (cmt < 100) ?  0 : floor(cmt/100);
+	wh = 1e5*wh100 + 10000 + cmt*100 + wh;
+      } else if (rate == -1){
+	// Rate
+      } else if (rate == -2){
+	// Duration 
+      } else {
+	error("Unsupported rate=%d",rate);
+      }
+      cmt = inCmt - 1;
+    } else {
       error("Supplied an invalid EVID (EVID=%d)", evid);
     }
     if (cmt >= neq){
@@ -293,15 +315,15 @@ int handle_evid(int evid, int neq,
       }
     } else {
       if (wh>10000) {
-	InfusionRate[cmt] += dose[ind->ixds];
+	InfusionRate[cmt] += amt;
       } else {
 	if (do_transit_abs) {
-	  ind->podo = dose[ind->ixds];
+	  ind->podo = amt;
 	  ind->tlast = xout;
 	} else {
 	  ind->podo = 0;
 	  ind->tlast = xout;
-	  yp[cmt] += dose[ind->ixds];     //dosing before obs
+	  yp[cmt] += amt;     //dosing before obs
 	}
       }
       /* istate = 1; */
@@ -331,8 +353,8 @@ extern void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda_opt
   int nx;
   rx_solving_options_ind *ind;
   double *inits;
-  int *evid;
-  double *x;
+  int *evid, *cmt;
+  double *x, *rate;
   int *BadDose;
   double *InfusionRate;
   double *dose;
@@ -352,6 +374,8 @@ extern void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda_opt
   ind->ixds = 0;
   nx = ind->n_all_times;
   evid = ind->evid;
+  cmt = ind->cmt;
+  rate = ind->rate;
   BadDose = ind->BadDose;
   InfusionRate = ind->InfusionRate;
   dose = ind->dose;
@@ -388,7 +412,8 @@ extern void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda_opt
     }
     if (!op->badSolve){
       if (handle_evid(evid[i], neq[0], BadDose, InfusionRate, dose, yp,
-                      op->do_transit_abs, xout, ind)){
+                      op->do_transit_abs, xout, ind,
+		      cmt[i],  rate[i])){
         ctx.state = 1;
         xp = xout;
       }
@@ -662,7 +687,8 @@ extern void ind_lsoda0(rx_solve *rx, rx_solving_options *op, int solveid, int *n
       }
     if (!op->badSolve){
       if (handle_evid(ind->evid[i], neq[0], ind->BadDose, ind->InfusionRate, ind->dose, yp,
-                      op->do_transit_abs, xout, ind)){
+                      op->do_transit_abs, xout, ind,
+		      ind->cmt[i], ind->rate[i])){
         istate = 1;
         xp = xout;
       }
@@ -752,11 +778,11 @@ extern void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int *neq
       "problem is probably stiff (interrupted)"
     };
   rx_solving_options_ind *ind;
-  int *evid;
+  int *evid, *cmt;
   double *x;
   int *BadDose;
   double *InfusionRate;
-  double *dose;
+  double *dose, *rate;
   double *ret, *inits;
   int *rc;
   int nx;
@@ -766,6 +792,8 @@ extern void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int *neq
   nx = ind->n_all_times;
   inits = op->inits;
   evid = ind->evid;
+  cmt = ind->cmt;
+  rate = ind->rate;
   BadDose = ind->BadDose;
   InfusionRate = ind->InfusionRate;
   dose = ind->dose;
@@ -830,7 +858,8 @@ extern void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int *neq
       }
     if (!op->badSolve){
       if (handle_evid(evid[i], neq[0], BadDose, InfusionRate, dose, yp,
-                      op->do_transit_abs, xout, ind)){
+                      op->do_transit_abs, xout, ind,
+		      cmt[i],rate[i])){
         xp = xout;
       }
       /* for(j=0; j<neq[0]; j++) ret[neq[0]*i+j] = yp[j]; */
@@ -1276,6 +1305,8 @@ int *gsiVSetup(int n);
 int *gslvr_counterSetup(int n);
 int *gdadt_counterSetup(int n);
 int *gjac_counterSetup(int n);
+int *gcmtSetup(int n);
+double *grateSetup(int n);
 // rxSolveOldC
 void protectOld();
 extern void rxSolveOldC(int *neqa,
@@ -1326,6 +1357,8 @@ extern void rxSolveOldC(int *neqa,
   ind->rc      = rc;
   /* double *cov_ptr; */
   /* ind->cov_ptr = cov_ptr; */
+  ind->cmt = gcmtSetup(*ntime);
+  ind->rate = grateSetup(*ntime);
   ind->n_all_times       = *ntime;
   ind->ixds = 0;
   ind->ndoses = -1;
