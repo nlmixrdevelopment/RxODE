@@ -264,73 +264,84 @@ int handle_evid(int evid, int neq,
 		double xout,
 		rx_solving_options_ind *ind,
 		int inCmt, double rate){
-  int wh = evid, wh100, cmt, foundBad, j;
-  double amt, infTime=0.0, f=1;
-  // FIXME get F;
-  amt = dose[ind->ixds]*f;
-  if (wh) {
-    if (wh > 99){
-      wh100 = floor(wh/1e5);
-      wh = wh- wh100*1e5;
-      cmt = (wh%10000)/100 - 1 + 100*wh100;
-      wh = evid;
-      if (cmt<0) {
-	error("Supplied an invalid EVID (EVID=%d)", evid);
-      }
-    } else if (wh <= 4) {
-      if (rate == 0){
-	j     = cmt%100;
-	wh100 = (cmt < 100) ?  0 : floor(cmt/100);
-	wh = 1e5*wh100 + cmt*100 + wh;
-      } else if (rate  > 0) {
-	infTime = rate/amt;
-	// Add dose
-	// d.inf$CMT*100+d.inf$EVID + 10000
-	// RxODE EVID
-	j     = cmt%100;
-	wh100 = (cmt < 100) ?  0 : floor(cmt/100);
-	wh = 1e5*wh100 + 10000 + cmt*100 + wh;
-      } else if (rate == -1){
-	// Rate
-      } else if (rate == -2){
-	// Duration 
-      } else {
-	error("Unsupported rate=%d",rate);
-      }
-      cmt = inCmt - 1;
-    } else {
+  if (evid == 0 || evid == 2) return 0;
+  int wh = evid, wh100, cmt, foundBad, j, doReset=0,
+      doDose=0, doInf=0;
+  double amt, f=1;
+  if (wh > 99){
+    wh100 = floor(wh/1e5);
+    wh = wh- wh100*1e5;
+    cmt = (wh%10000)/100 - 1 + 100*wh100;
+    wh = evid;
+    if (wh>10000) wh = -3;
+    else wh = 1;
+    if (cmt<0) {
       error("Supplied an invalid EVID (EVID=%d)", evid);
     }
-    if (cmt >= neq){
-      foundBad = 0;
-      for (j = 0; j < ind->nBadDose; j++){
-	if (BadDose[j] == cmt+1){
-	  foundBad=1;
-	  break;
-	}
-      }
-      if (!foundBad){
-	BadDose[ind->nBadDose]=cmt+1;
-	ind->nBadDose++;
-      }
-    } else {
-      if (wh>10000) {
-	InfusionRate[cmt] += amt;
-      } else {
-	if (do_transit_abs) {
-	  ind->podo = amt;
-	  ind->tlast = xout;
-	} else {
-	  ind->podo = 0;
-	  ind->tlast = xout;
-	  yp[cmt] += amt;     //dosing before obs
-	}
-      }
-      /* istate = 1; */
-      ind->ixds++;
-      /* xp = xout; */
-      return 1;
+  } else {
+    if (inCmt < 0){
+      error("Turning off a compartment is not currently supported.");
     }
+    cmt = inCmt-1;
+  }
+  switch (wh){
+  case 0: // Observation event
+    break;
+  case 2:
+    break;
+  case 3:
+    doReset=1;
+    break;
+  case 4:
+    doReset=1;
+    doDose=1;
+    break;
+  case 1:
+    doDose=1;
+    break;
+  case -1:
+    error("Calculate Rate");
+    break;
+  case  -2:
+    error("Calculate Duration");
+    break;
+  case -3:
+    doDose=1;
+    doInf=1;
+  }
+  if (doReset){
+    error("System reset currently not supported.");
+  }
+  amt = dose[ind->ixds]*f;
+  if (cmt >= neq){
+    foundBad = 0;
+    for (j = 0; j < ind->nBadDose; j++){
+      if (BadDose[j] == cmt+1){
+	foundBad=1;
+	break;
+      }
+    }
+    if (!foundBad){
+      BadDose[ind->nBadDose]=cmt+1;
+      ind->nBadDose++;
+    }
+  } else {
+    if (doInf) {
+      InfusionRate[cmt] += amt;
+    } else {
+      if (do_transit_abs) {
+	ind->podo = amt;
+	ind->tlast = xout;
+      } else {
+	ind->podo = 0;
+	ind->tlast = xout;
+	yp[cmt] += amt;     //dosing before obs
+      }
+    }
+    /* istate = 1; */
+    ind->ixds++;
+    /* xp = xout; */
+    return 1;
   }
   return 0;
 }
