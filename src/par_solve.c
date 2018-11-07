@@ -266,12 +266,12 @@ int handle_evid(int evid, int neq,
 		int inCmt, double rate){
   if (evid == 0 || evid == 2) return 0;
   int wh = evid, wh100, cmt, foundBad, j, doReset=0,
-      doDose=0, doInf=0;
+      doInf=0;
   double amt, f=1;
   if (wh > 99){
     wh100 = floor(wh/1e5);
     wh = wh- wh100*1e5;
-    cmt = (wh%10000)/100 - 1 + 100*wh100;
+    cmt = floor((wh%10000)/100 - 1 + 100*wh100);
     wh = evid;
     if (wh>10000) wh = -3;
     else wh = 1;
@@ -285,19 +285,13 @@ int handle_evid(int evid, int neq,
     cmt = inCmt-1;
   }
   switch (wh){
-  case 0: // Observation event
-    break;
-  case 2:
-    break;
   case 3:
     doReset=1;
     break;
   case 4:
     doReset=1;
-    doDose=1;
     break;
   case 1:
-    doDose=1;
     break;
   case -1:
     error("Calculate Rate");
@@ -306,7 +300,6 @@ int handle_evid(int evid, int neq,
     error("Calculate Duration");
     break;
   case -3:
-    doDose=1;
     doInf=1;
   }
   if (doReset){
