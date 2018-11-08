@@ -985,8 +985,6 @@ typedef struct {
   int gInfusionRaten;
   double *gall_times;
   int gall_timesn;
-  int *gtIdx;
-  int gtIdxn;
   double *gdv;
   int gdvn;
   double *gamt;
@@ -1018,8 +1016,6 @@ typedef struct {
   int grcn;
   int *gidose;
   int gidosen;
-  int *gdIdx;
-  int gdIdxn;
   int *gpar_cov;
   int gpar_covn;
   int *gParPos;
@@ -1047,8 +1043,6 @@ extern "C" void rxOptionsIniData(){
   _globals.gInfusionRaten=0;//NCMT;
   _globals.gall_times = NULL;//Calloc(NALL,double);
   _globals.gall_timesn=0;//NALL;
-  _globals.gtIdx = NULL;//Calloc(NALL,double);
-  _globals.gtIdxn=0;//NALL;
   _globals.gdv = NULL;//Calloc(NALL,double);
   _globals.gdvn=0;//NALL;
   _globals.gamt = NULL;//Calloc(NDOSES,double);
@@ -1080,8 +1074,6 @@ extern "C" void rxOptionsIniData(){
   _globals.grcn = 0;//MAXIDS;
   _globals.gidose = NULL;//Calloc(NALL, int);
   _globals.gidosen = 0;//NALL;
-  _globals.gdIdx = NULL;//Calloc(NALL, int);
-  _globals.gdIdxn = 0;//NALL;
   _globals.gpar_cov = NULL;//Calloc(NCMT, int);
   _globals.gpar_covn = 0;//NCMT;
   _globals.gParPos = NULL;//Calloc(NCMT, int);
@@ -1132,20 +1124,6 @@ void gall_timesSetup(int n){
     _globals.gall_timesn=cur;
   }
 }
-
-void gtIdxSetup(int n){
-  if (_globals.gtIdxn < 0){
-    _globals.gtIdxn=0;
-    _globals.gtIdx=NULL;
-  }
-  if (_globals.gtIdxn < n){
-    int cur = n;
-    Free(_globals.gtIdx);
-    _globals.gtIdx = Calloc(cur, int);
-    _globals.gtIdxn=cur;
-  }
-}
-
 
 void gdvSetup(int n){
   if (_globals.gdvn < n){
@@ -1349,16 +1327,6 @@ extern "C" int *gidoseSetup(int n){
   return _globals.gidose;
 }
 
-extern "C" int *gdIdxSetup(int n){
-  if (_globals.gdIdxn < n){
-    int cur = n;
-    Free(_globals.gdIdx);
-    _globals.gdIdx = Calloc(cur, int);
-    _globals.gdIdxn = cur;
-  }
-  return _globals.gdIdx;
-}
-
 void gpar_covSetup(int n){
   if (_globals.gpar_covn < n){
     int cur = n;
@@ -1396,7 +1364,6 @@ extern "C" void protectOld(){
   _globals.gcmtn=-1;
   _globals.grcn=-1;
   _globals.gall_timesn=-1;
-  _globals.gtIdxn=-1;
   _globals.ginitsn=-1;
 }
 
@@ -1420,8 +1387,6 @@ extern "C" void gFree(){
   _globals.gpar_covn=0;
   if (_globals.gidose != NULL) Free(_globals.gidose);
   _globals.gidosen=0;
-  if (_globals.gdIdx != NULL) Free(_globals.gdIdx);
-  _globals.gdIdxn=0;
   if (_globals.grc != NULL && _globals.grcn > 0) Free(_globals.grc);
   _globals.grc=NULL;
   _globals.grcn=0;
@@ -1459,9 +1424,6 @@ extern "C" void gFree(){
   if (_globals.gall_times != NULL && _globals.gall_timesn>0) Free(_globals.gall_times);
   _globals.gall_times=NULL;
   _globals.gall_timesn=0;
-  if (_globals.gtIdx != NULL && _globals.gtIdxn>0) Free(_globals.gtIdx);
-  _globals.gtIdx=NULL;
-  _globals.gtIdxn=0;
   if (_globals.gdv != NULL) Free(_globals.gdv);
   _globals.gdvn=0;
   if (_globals.gInfusionRate != NULL) Free(_globals.gInfusionRate);
@@ -2673,15 +2635,12 @@ SEXP rxSolveC(const RObject &obj,
       tlast = time[0];
       // hmax1 = hmax2 = 0;
       gidoseSetup(ind->n_all_times);
-      gdIdxSetup(ind->n_all_times);
       ind->idose = &_globals.gidose[0];
-      ind->dIdx = &_globals.gdIdx[0];
       j=0;
       for (i =0; i != (unsigned int)(ind->n_all_times); i++){
         if (ind->evid[i]){
           ndoses++;
 	  _globals.gidose[j] = (int)i;
-	  _globals.gdIdx[j]  = j;
           _globals.gamt[j]   = amt[i];
 	  _globals.grate[j++] = rate[i];
 	} else {
@@ -2792,7 +2751,6 @@ SEXP rxSolveC(const RObject &obj,
       grateSetup(rate.size());
       // - idose
       gidoseSetup(amt.size());
-      gdIdxSetup(amt.size());
       // Get covariates
       CharacterVector dfNames = dataf.names();
       int dfN = dfNames.size();
@@ -2850,7 +2808,6 @@ SEXP rxSolveC(const RObject &obj,
           ind->evid           = &_globals.gevid[i];
 	  ind->cmt           = &_globals.gcmt[i];
 	  ind->idose          = &_globals.gidose[i];
-	  ind->dIdx          = &_globals.gdIdx[i];
           ind->dose           = &_globals.gamt[i];
 	  ind->rate           = &_globals.grate[i];
 	  lasti = i;
@@ -2868,7 +2825,6 @@ SEXP rxSolveC(const RObject &obj,
         }
         if (_globals.gevid[i]){
           _globals.gidose[j] = i-lasti;
-	  _globals.gdIdx[j]  = j;
           _globals.gamt[j]   = amt[i];
 	  _globals.grate[j]  = rate[i];
 	  ind->ndoses++;
@@ -3100,7 +3056,6 @@ SEXP rxSolveC(const RObject &obj,
 	      ind->n_all_times =indS.n_all_times;
 	      ind->HMAX = indS.HMAX;
 	      ind->idose = &(indS.idose[0]);
-	      ind->dIdx = &(indS.dIdx[0]);
 	      ind->ndoses = indS.ndoses;
 	      ind->dose = &(indS.dose[0]);
 	      ind->evid =&(indS.evid[0]);
