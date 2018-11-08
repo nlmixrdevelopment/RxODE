@@ -22,22 +22,25 @@
 .cacheDefault <- "~/.rxCache";
 .rxTempDir <- function(){
     if (is.null(getFromNamespace(".rxTempDir0", "RxODE"))){
-        tmp <- Sys.getenv("rxTempDir")
-        if (tmp == ""){
+        .tmp <- Sys.getenv("rxTempDir")
+        if (.tmp == ""){
             if (getOption("RxODE.cache.directory", .cacheDefault) != "."){
-                tmp <- .cacheDefault;
+                .tmp <- .cacheDefault;
             } else {
-                tmp <- tempdir()
+                .tmp <- tempdir()
             }
         }
-        if (!file.exists(tmp))
-            dir.create(tmp, recursive = TRUE);
-        tmp <- .normalizePath(tmp);
-        Sys.setenv(rxTempDir=tmp);
-        utils::assignInMyNamespace(".rxTempDir0", tmp)
-        return(tmp)
+        if (!file.exists(.tmp))
+            dir.create(.tmp, recursive = TRUE);
+        .tmp <- .normalizePath(.tmp);
+        Sys.setenv(rxTempDir=.tmp);
+        utils::assignInMyNamespace(".rxTempDir0", .tmp)
+        return(.tmp)
     } else {
-        return(getFromNamespace(".rxTempDir0", "RxODE"));
+        .tmp <- getFromNamespace(".rxTempDir0", "RxODE");
+        if (!file.exists(.tmp))
+            dir.create(.tmp, recursive = TRUE);
+        return(.tmp);
     }
 }
 
