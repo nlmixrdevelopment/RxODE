@@ -1255,7 +1255,11 @@ rxCompile.character <-  function(model,           # Model
     if (force || .needCompile){
         .Makevars <- file.path(dir, "Makevars");
         if (file.exists(.Makevars)){
-            if ("#RxODE Makevars" == readLines(.Makevars, 1)){
+            .firstMake <- readLines(.Makevars, 1);
+            if (length(.firstMake) == 0){
+                unlink(.Makevars)
+                on.exit({if (file.exists(.Makevars)){unlink(.Makevars)}}, add=TRUE);
+            } else if ("#RxODE Makevars" == .firstMake){
                 unlink(.Makevars)
                 on.exit({if (file.exists(.Makevars)){unlink(.Makevars)}}, add=TRUE);
             } else {
