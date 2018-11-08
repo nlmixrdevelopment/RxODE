@@ -272,7 +272,6 @@ int handle_evid(int evid, int neq,
     wh100 = floor(wh/1e5);
     wh = wh- wh100*1e5;
     cmt = floor((wh%10000)/100 - 1 + 100*wh100);
-    wh = evid;
     if (wh>10000) wh = -3;
     else wh = 1;
     if (cmt<0) {
