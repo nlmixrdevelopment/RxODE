@@ -127,7 +127,7 @@ void _update_par_ptr(double t, unsigned int id, rx_solve *rx, int idx);
 int par_progress(int c, int n, int d, int cores, clock_t t0, int stop);
 void ind_solve(rx_solve *rx, unsigned int cid, t_dydt_liblsoda dydt_lls, 
 	       t_dydt_lsoda_dum dydt_lsoda, t_jdum_lsoda jdum,
-	       t_dydt c_dydt, t_update_inis u_inis, int jt);
+	       t_dydt c_dydt, t_update_inis u_inis, int jt, t_evid_extra extraFn);
 int isRstudio();
 
 void R_init_RxODE(DllInfo *info){

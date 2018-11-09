@@ -1840,7 +1840,7 @@ void codegen(FILE *outpt, int show_ode) {
         }
         continue;
       }
-      if (show_ode == 3 && strstr(sLine,"full_print;")){
+      if ((show_ode == 3 || show_ode == 4) && strstr(sLine,"full_print;")){
 	continue;
       }
       s = strstr(sLine,"(__0f__)");
