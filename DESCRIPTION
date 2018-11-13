@@ -10,7 +10,7 @@ Authors@R: c(
       role = c("aut", "cre"), email = "wwang8198@gmail.com"),
    person("Zufar", "Mulyukov", role="ctb", email="zufar.mulyukov@novartis.com"),
    person("Justin", "Wilkins", 
-      role = "ctb", email = "justin.wilkins@occams.com"),
+      role = "ctb", email = "justin.wilkins@occams.com", comment=c(ORCID="0000-0002-7099-9396")),
    person("Simon", "Frost", role="ctb"),
    person("Heng", "Li", role="ctb"),
    person("Yu", "Feng", role="ctb"),	
