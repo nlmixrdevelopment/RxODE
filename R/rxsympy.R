@@ -1526,6 +1526,17 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                     .fullState <- rxState(.full);
                     rxCat("Load into sympy...");
                     rxSymPySetup(.full);
+                    if (!is.null(.ncond)){
+                        ## FIXME use parsing to fix these LHS quantities.
+                        for(.v in .oLhs[order(sapply(.oLhs, function(.x){ -nchar(.x)}))]){
+                            .tmp <- rxToSymPy(.v);
+                            if (rxSymPyExists(.tmp)){
+                                .tmp <- rxSymPy(.tmp);
+                                .tmp <- rxFromSymPy(.tmp);
+                                .ncond[.i] <<- gsub(rex::rex(.v), .tmp, .ncond[.i]);
+                            }
+                        }
+                    }
                     on.exit({rxCat("Freeing Python/SymPy memory...");rxSymPyClean();rxCat("done\n")});
                     rxCat("done\n");
                     if (rxSymPyExists("rx_pred_") & rxSymPyExists("rx_r_")){
