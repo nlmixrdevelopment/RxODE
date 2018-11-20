@@ -11,6 +11,17 @@
 
 using namespace Rcpp;
 
+// removableDrive
+bool removableDrive(std::string driveRoot);
+RcppExport SEXP _RxODE_removableDrive(SEXP driveRootSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< std::string >::type driveRoot(driveRootSEXP);
+    rcpp_result_gen = Rcpp::wrap(removableDrive(driveRoot));
+    return rcpp_result_gen;
+END_RCPP
+}
 // add_dosing_
 RObject add_dosing_(RObject eventTable, double dose, int nbr_doses, double dosing_interval, int dosing_to, Nullable<NumericVector> rate, CharacterVector amount_units, double start_time, bool do_sampling, CharacterVector time_units);
 RcppExport SEXP _RxODE_add_dosing_(SEXP eventTableSEXP, SEXP doseSEXP, SEXP nbr_dosesSEXP, SEXP dosing_intervalSEXP, SEXP dosing_toSEXP, SEXP rateSEXP, SEXP amount_unitsSEXP, SEXP start_timeSEXP, SEXP do_samplingSEXP, SEXP time_unitsSEXP) {
@@ -1324,17 +1335,6 @@ RcppExport SEXP _RxODE_rxSymInvCholEnvCalculate(SEXP objSEXP, SEXP whatSEXP, SEX
     }
     UNPROTECT(1);
     return rcpp_result_gen;
-}
-// removableDrive
-bool removableDrive(std::string driveRoot);
-RcppExport SEXP _RxODE_removableDrive(SEXP driveRootSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< std::string >::type driveRoot(driveRootSEXP);
-    rcpp_result_gen = Rcpp::wrap(removableDrive(driveRoot));
-    return rcpp_result_gen;
-END_RCPP
 }
 
 // validate (ensure exported C++ functions exist before calling them)

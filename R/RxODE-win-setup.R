@@ -118,10 +118,6 @@ rxPhysicalDrives <- memoise::memoise(function(duplicates=FALSE){
     return(list());
 })
 
-##' Return Rtools base
-##'
-##' @return Rtools base path, or "" on unix-style platforms.
-##' @author Matthew L. Fidler
 .rxRtoolsBaseWin <- memoise::memoise(function(retry=FALSE){
     if (.Platform$OS.type == "unix"){
         return("");

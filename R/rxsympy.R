@@ -165,14 +165,6 @@ rxSymPyStart <- function(){
                         })
                         if (inherits(tmp, "try-error")){
                             rxCat("Could not install sympy in the system python.\n");
-                            ## if (requireNamespace("rSymPy", quietly = TRUE)){
-                            ##     rxSymPyExec( paste( "sys.path.append(", system.file( "Lib", package = "rSymPy" ), ")", sep = '"' ),
-                            ##                 .python=python, .start=FALSE);
-                            ##     rxSymPyExec( "from sympy import *",
-                            ##                 .python=python, .start=FALSE);
-                            ##     rxCat(sprintf("Using sympy in rSymPy by running it in %s\n", python));
-                            ##     .rxSymPy$started <- python;
-                            ## }
                         } else {
                             rxCat(sprintf("Successfully installed sympy\nUsing sympy via %s\n", python));
                             .rxSymPy$started <- python;
@@ -333,10 +325,6 @@ rxSymPy0 <- function(...){
     ##     ret <- PythonInR::pyGet("__Rsympy");
     ##     return(rxSymPyFix(ret));
     ## }
-    if (.rxSymPy$started == "rSymPy"){
-        ret <- rxSymPyFix(rSymPy::sympy(...))
-        return(ret);
-    }
 }
 ##' Return the version of SymPy that is running
 ##'
