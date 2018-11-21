@@ -3,7 +3,8 @@ Version: 0.8.0-9
 Title: Facilities for Simulating from ODE-Based Models
 Authors@R: c(
    person("Matthew L.","Fidler",
-      role = "aut", email = "matthew.fidler@gmail.com"),
+      role = "aut", email = "matthew.fidler@gmail.com",
+      comment=c(ORCID="0000-0001-8538-6691")),
    person("Melissa", "Hallow",
       role = "aut", email = "hallowkm@uga.edu"),
    person("Wenping", "Wang", 
