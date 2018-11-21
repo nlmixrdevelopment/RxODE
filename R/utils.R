@@ -78,27 +78,31 @@ rxClean <- function(wd){
         }
         return(ret);
     } else {
-        owd <- getwd();
-        setwd(wd);
-        on.exit(setwd(owd));
-        pat <- "^(Makevars|(rx.*)[.](o|dll|s[ol]|c|rx|prd|inv|dvdx))$"
-        files <- list.files(pattern = pat);
-        for (f in files){
-            if (f == "Makevars"){
-                l1 <- readLines("Makevars", n=1L);
-                if (l1 == "#RxODE Makevars"){
+        if (dir.exists(wd)){
+            owd <- getwd();
+            setwd(wd);
+            on.exit(setwd(owd));
+            pat <- "^(Makevars|(rx.*)[.](o|dll|s[ol]|c|rx|prd|inv|dvdx))$"
+            files <- list.files(pattern = pat);
+            for (f in files){
+                if (f == "Makevars"){
+                    l1 <- readLines("Makevars", n=1L);
+                    if (l1 == "#RxODE Makevars"){
+                        unlink(f);
+                    }
+                } else {
+                    try(dyn.unload(f), silent = TRUE);
                     unlink(f);
                 }
-            } else {
-                try(dyn.unload(f), silent = TRUE);
-                unlink(f);
             }
+            if (.normalizePath(wd) != .normalizePath(getFromNamespace("RxODE.cache.directory", "RxODE"))){
+                ## rxCat("Cleaning cache directory as well.\n");
+                rxClean(getFromNamespace("RxODE.cache.directory", "RxODE"));
+            }
+            return(length(list.files(pattern = pat)) == 0);
+        } else {
+            return(TRUE);
         }
-        if (.normalizePath(wd) != .normalizePath(getFromNamespace("RxODE.cache.directory", "RxODE"))){
-            ## rxCat("Cleaning cache directory as well.\n");
-            rxClean(getFromNamespace("RxODE.cache.directory", "RxODE"));
-        }
-        return(length(list.files(pattern = pat)) == 0);
     }
 }
 
