@@ -337,4 +337,37 @@ rxPermissive({
 
     cond <- rxSymPySetupPred(mod, pred, pk, err)
 
+
+    pk <- function(){
+        lCl=THETA[1]
+        lVc=THETA[2]
+        lKA=THETA[3]
+        lt=THETA[4]
+        prop.err=THETA[5]
+        eta.Cl=ETA[1]
+        eta.Vc=ETA[2]
+        eta.KA=ETA[3]
+        eta.t0=ETA[4]
+        Cl <- exp(lCl + eta.Cl)
+        Vc <- exp(lVc + eta.Vc)
+        KA <- exp(lKA + eta.KA)
+        T0 <- exp(lt + eta.t0)
+    }
+    mod <- RxODE({
+        if (t > T0) {
+            kel <- Cl/Vc
+        }
+        else {
+            kel <- 2 * Cl/Vc
+        }
+        d/dt(depot) = -KA * depot
+        d/dt(centr) = KA * depot - kel * centr
+        cp = centr/Vc
+    })
+    cond <- rxSymPySetupPred(mod, pred, pk, err)
+
+    test_that("Issue #57 if/else", {
+        expect_false(any(rxLhs(cond$inner) == "T0"))
+    })
+
 }, silent=TRUE, on.validate=TRUE)

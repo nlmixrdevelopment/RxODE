@@ -118,10 +118,6 @@ rxPhysicalDrives <- memoise::memoise(function(duplicates=FALSE){
     return(list());
 })
 
-##' Return Rtools base
-##'
-##' @return Rtools base path, or "" on unix-style platforms.
-##' @author Matthew L. Fidler
 .rxRtoolsBaseWin <- memoise::memoise(function(retry=FALSE){
     if (.Platform$OS.type == "unix"){
         return("");
@@ -318,9 +314,13 @@ rxPhysicalDrives <- memoise::memoise(function(duplicates=FALSE){
                              opt="InstallAllUsers=0 AssociateFiles=0 Shortcuts=0"){
     dir <- .normalizePath(dir);
     opt <- sprintf("%s DefaultJustForMeTargetDir=%s", opt, dir, dir)
-    x64 <- (regexpr("x64", Sys.info()["release"]) != -1)
+    .x64 <- (regexpr("x64", Sys.info()["release"]) != -1)
     ## if (x64) opt <- sprintf("/passive %s", opt)
-    installr::install.python(installer_option=opt, x64=x64)
+    .tmp <- try({installr::install.python(installer_option=opt, x64=.x64)}, silent=TRUE)
+    if (inherits(.tmp, "try-error")){
+        ## Installr is a bit old in MRAN support that possibility
+        installr::install.python(installer_option=opt)
+    }
     system(sprintf("%s/python -m pip install --upgrade pip", R.home("rxPython")))
     system(sprintf("%s/python -m pip install --upgrade sympy", R.home("rxPython")))
     system(sprintf("%s/python -m pip install --upgrade numpy", R.home("rxPython")))
@@ -340,6 +340,15 @@ rxWinPythonSetup <- function(){
     }
     if (file.access(paste(.base, "/Lib/site-packages", sep=""),2)==-1){
       stop("The Python library path does not appear to be writeable. Please rectify this situation, restart R, and try again.")
+    }
+    .tmp <- try(rxSymPyVersion())
+    if (inherits(.tmp, "try-error")){
+        ## system(sprintf("%s/python -m pip install pip", .rxPythonBaseWin()))
+        ## system(sprintf("%s/python -m pip install sympy", .rxPythonBaseWin()))
+        ## system(sprintf("%s/python -m pip install numpy", .rxPythonBaseWin()))
+        system(sprintf("%s/python -m pip install --upgrade pip", .rxPythonBaseWin()))
+        system(sprintf("%s/python -m pip install --upgrade sympy", .rxPythonBaseWin()))
+        system(sprintf("%s/python -m pip install --upgrade numpy", .rxPythonBaseWin()))
     }
 }
 

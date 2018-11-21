@@ -9,6 +9,14 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
+```{r, echo=FALSE}
+options(cli.unicode=FALSE, crayon.enabled=FALSE);
+options(knitr.table.format = "html")
+htmltools::img(src = knitr::image_uri("logo.png"), 
+               alt = 'RxODE', 
+               style = 'position:absolute; top:0; right:0; padding:10px; border: 0;')
+```
+
 ## RxODE: Event coding
 Event coding in RxODE is encoded in a single event number `evid`. For
 compartments under 100, this is coded as:

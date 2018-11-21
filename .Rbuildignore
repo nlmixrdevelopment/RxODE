@@ -4,15 +4,12 @@
 ^.git.*$
 ^\.gitignore$
 ^\.covrignore$
-^vignettes/figure/.*$
 ^appveyor\.yml$
 rx_.*\.(so|dll)$
 .*\.(o|a|dll)$
 testthat/.*\.(so|dll)$
 BinaryFiles$
 RxODE.*\.(zip|pdf)$
-^/?vignettes/RxODE-intro.md
-^/?vignettes/figure/.*$
 ^/?inst/Install-windows.md
 ^/?.Rhistory
 ^/?R/.Rhistory
@@ -22,5 +19,4 @@ RxODE.*\.(zip|pdf)$
 LICENSE
 /?config.status
 /?config.log
-/?vignettes/RxODE-speed.Rmd
 ^/?docs/*$

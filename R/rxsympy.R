@@ -165,14 +165,6 @@ rxSymPyStart <- function(){
                         })
                         if (inherits(tmp, "try-error")){
                             rxCat("Could not install sympy in the system python.\n");
-                            ## if (requireNamespace("rSymPy", quietly = TRUE)){
-                            ##     rxSymPyExec( paste( "sys.path.append(", system.file( "Lib", package = "rSymPy" ), ")", sep = '"' ),
-                            ##                 .python=python, .start=FALSE);
-                            ##     rxSymPyExec( "from sympy import *",
-                            ##                 .python=python, .start=FALSE);
-                            ##     rxCat(sprintf("Using sympy in rSymPy by running it in %s\n", python));
-                            ##     .rxSymPy$started <- python;
-                            ## }
                         } else {
                             rxCat(sprintf("Successfully installed sympy\nUsing sympy via %s\n", python));
                             .rxSymPy$started <- python;
@@ -333,10 +325,6 @@ rxSymPy0 <- function(...){
     ##     ret <- PythonInR::pyGet("__Rsympy");
     ##     return(rxSymPyFix(ret));
     ## }
-    if (.rxSymPy$started == "rSymPy"){
-        ret <- rxSymPyFix(rSymPy::sympy(...))
-        return(ret);
-    }
 }
 ##' Return the version of SymPy that is running
 ##'
@@ -1526,6 +1514,17 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                     .fullState <- rxState(.full);
                     rxCat("Load into sympy...");
                     rxSymPySetup(.full);
+                    if (!is.null(.ncond)){
+                        ## FIXME use parsing to fix these LHS quantities.
+                        for(.v in .oLhs[order(sapply(.oLhs, function(.x){ -nchar(.x)}))]){
+                            .tmp <- rxToSymPy(.v);
+                            if (rxSymPyExists(.tmp)){
+                                .tmp <- rxSymPy(.tmp);
+                                .tmp <- rxFromSymPy(.tmp);
+                                .ncond[.i] <<- gsub(rex::rex(.v), .tmp, .ncond[.i]);
+                            }
+                        }
+                    }
                     on.exit({rxCat("Freeing Python/SymPy memory...");rxSymPyClean();rxCat("done\n")});
                     rxCat("done\n");
                     if (rxSymPyExists("rx_pred_") & rxSymPyExists("rx_r_")){

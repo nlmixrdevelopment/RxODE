@@ -45,6 +45,16 @@ SEXP _RxODE_rxAssignPtr(SEXP);
 SEXP _RxODE_rxCores();
 SEXP _RxODE_rxAssignPtr(SEXP objectSEXP);
 SEXP _RxODE_dynLoad(SEXP dllSEXP);
+SEXP _RxODE_rxSolveC(SEXP, SEXP, SEXP, SEXP, SEXP, //5
+		      SEXP, SEXP, SEXP, SEXP, SEXP, //10
+		      SEXP, SEXP, SEXP, SEXP, SEXP, //15
+		      SEXP, SEXP, SEXP, SEXP, SEXP, //20
+		      SEXP, SEXP, SEXP, SEXP, SEXP, //25
+		      SEXP, SEXP, SEXP, SEXP, SEXP, //30
+		      SEXP, SEXP, SEXP, SEXP, SEXP, //35
+		      SEXP, SEXP, SEXP, SEXP, SEXP, //40
+		      SEXP, SEXP, SEXP, SEXP, SEXP, //45
+		      SEXP);
 SEXP RxODE_get_mv();
 
 SEXP _RxODE_rxToOmega(SEXP cholInv);
@@ -109,6 +119,7 @@ SEXP _RxODE_add_dosing_(SEXP, SEXP, SEXP, SEXP, SEXP,
 SEXP _RxODE_add_sampling_(SEXP, SEXP, SEXP);
 
 SEXP _RxODE_rxSolveFree();
+SEXP _RxODE_getRxFn(SEXP);
 
 extern int rxIsCurrentC(SEXP obj);
 
@@ -153,8 +164,6 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_rxInits", (DL_FUNC) &_RxODE_rxInits, 7},
     {"_RxODE_rxSetupIni", (DL_FUNC) &_RxODE_rxSetupIni, 2},
     {"_RxODE_rxSetupScale", (DL_FUNC) &_RxODE_rxSetupScale, 3},
-    // Solaris needs 23 args; fix me...
-    /* {"_RxODE_rxSolveC", (DL_FUNC) &_RxODE_rxSolveC, 31}, */
     {"_RxODE_rxSolveCsmall", (DL_FUNC) &_RxODE_rxSolveCsmall, 9},
     {"_RxODE_rxSolveGet", (DL_FUNC) &_RxODE_rxSolveGet, 3},
     {"_RxODE_rxSolveUpdate", (DL_FUNC) &_RxODE_rxSolveUpdate, 3},
@@ -178,6 +187,9 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_rxSolveFree", (DL_FUNC) &_RxODE_rxSolveFree, 0},
     {"_RxODE_setRstudio", (DL_FUNC) &_RxODE_setRstudio, 1},
     {"_RxODE_RcppExport_registerCCallable", (DL_FUNC) &_RxODE_RcppExport_registerCCallable, 0},
+    // Solaris needs 23 args; fix me...
+    {"_RxODE_rxSolveC", (DL_FUNC) &_RxODE_rxSolveC, 46},
+    {"_RxODE_getRxFn", (DL_FUNC) &_RxODE_getRxFn, 1},
     {NULL, NULL, 0}
   };
   // C callable to assign environments.
