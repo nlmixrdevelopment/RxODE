@@ -3060,6 +3060,7 @@ SEXP rxSolveC(const RObject &obj,
 	      ind->dose = &(indS.dose[0]);
 	      ind->evid =&(indS.evid[0]);
 	      ind->cmt =&(indS.cmt[0]);
+	      ind->rate =&(indS.rate[0]);
 	      ind->all_times = &(indS.all_times[0]);
 	      ind->id=id+1;
               ind->lambda=1.0;
