@@ -16,3 +16,5 @@ inst/doc
 /src/Makevars
 /src/Makevars.win
 /src/liblsoda/
+/vignettes/.RData
+/vignettes/.Rhistory
