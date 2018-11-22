@@ -276,41 +276,55 @@ int handle_evid(int evid, int neq,
       doInf=0;
   double amt;
   /* double amt, f=1; */
-  if (wh > 99){
-    wh100 = floor(wh/1e5);
-    wh = wh- wh100*1e5;
-    cmt = floor((wh%10000)/100 - 1 + 100*wh100);
-    if (wh>10000) wh = -3;
-    else wh = 1;
-    if (cmt<0) {
-      error("Supplied an invalid EVID (EVID=%d)", evid);
-    }
-  } else {
-    if (inCmt < 0){
-      error("Turning off a compartment is not currently supported.");
-    }
-    cmt = inCmt-1;
-  }
+  /* if (wh > 99){ */
+    
+  /* } else { */
+  /*   if (inCmt < 0){ */
+  /*     error("Turning off a compartment is not currently supported."); */
+  /*   } */
+  /*   cmt = inCmt-1; */
+  /* } */
   switch (wh){
   case 3:
     doReset=1;
+    cmt = inCmt-1;
+    if (doReset){
+      error("System reset currently not supported.");
+    }  
     break;
   case 4:
     doReset=1;
+    cmt = inCmt-1;
+    if (doReset){
+      error("System reset currently not supported.");
+    }  
     break;
   case 1:
     break;
   case -1:
+    cmt = inCmt-1;
     error("Calculate Rate");
     break;
   case  -2:
+    cmt = inCmt-1;
     error("Calculate Duration");
     break;
   case -3:
+    cmt = inCmt-1;
     doInf=1;
-  }
-  if (doReset){
-    error("System reset currently not supported.");
+    break;
+  default:
+    wh100 = floor(wh/1e5);
+    wh = wh- wh100*1e5;
+    cmt = floor((wh%10000)/100 - 1 + 100*wh100);
+    if (wh>10000){
+      wh = -3;
+      doInf=1;
+    } else wh = 1;
+    if (cmt<0) {
+      error("Supplied an invalid EVID (EVID=%d)", evid);
+    }    
+    break;
   }
   /* amt*f defined in model (if present)*/
   amt = extraFn(id, cmt, 1, dose[ind->ixds], t, yp);
