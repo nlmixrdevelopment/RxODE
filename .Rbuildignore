@@ -1,3 +1,6 @@
+^Meta$
+^doc$
+.Rdata
 ^\.travis.yml$
 ^\.lintr$
 ^README(\.md|\.Rmd)$

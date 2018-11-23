@@ -1,8 +1,7 @@
-.normalizePath <- function(path, ...){
+.normalizePath <- function(...){
     ifelse(.Platform$OS.type=="windows",
            suppressWarnings(utils::shortPathName(normalizePath(path, ...))),
-    ifelse(regexpr("^/", path) != -1, path,
-           suppressWarnings(normalizePath(path, ...))))
+           suppressWarnings(normalizePath(...)))
 }
 
 ##' Require namespace, otherwise throw error.
