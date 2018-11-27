@@ -36,13 +36,29 @@ void par_flush_console() {
 }
 
 int isRstudio();
+int isProgSupported();
 
 int par_progress(int c, int n, int d, int cores, clock_t t0, int stop){
   float progress = (float)(c)/((float)(n));
   if (c <= n){
     int nticks= (int)(progress * 50);
     int curTicks = d;
-    if (isRstudio()){
+    int isSupported = isProgSupported();
+    if (isSupported == -1){
+    } else if (isSupported == 0){
+      if (nticks > curTicks){
+        int i;
+        for (i = curTicks; i < nticks; i++){
+          if (i == 0) {
+            Rprintf("[");
+          } else if (i % 5 == 0) {
+            Rprintf("|");
+          } else {
+            Rprintf("=");
+          }
+        }
+      }
+    } else if (isRstudio()){
       if (nticks > curTicks){
 	Rprintf("\r");
         int i;
@@ -138,7 +154,9 @@ SEXP _rxProgress(SEXP num, SEXP core){
 SEXP _rxProgressStop(SEXP clear){
   int clearB = INTEGER(clear)[0];
   if (clearB){
-    if (isRstudio()){
+    int doIt=isProgSupported();
+    if (doIt == -1){
+    } else if (isRstudio() || doIt==0){
       /* Rprintf("\r                                                                                \r"); */
       Rprintf("\n");
     } else {
@@ -483,7 +501,9 @@ extern void par_liblsoda(rx_solve *rx){
     if (displayProgress && curTick < 50) par_progress(nsim*nsub, nsim*nsub, curTick, cores, t0, 0);
   }
   if (displayProgress) {
-    if (isRstudio()){
+    int doIt = isProgSupported();
+    if (doIt == -1){
+    } else if (isRstudio() || doIt == 0){
       /* Rprintf("\r                                                                                \r"); */
       Rprintf("\n");
     } else {
@@ -892,7 +912,9 @@ void par_dop(rx_solve *rx){
     if (displayProgress && curTick < 50) par_progress(nsim*nsub, nsim*nsub, curTick, 1, t0, 0);
   }
   if (displayProgress){
-    if (isRstudio()){
+    int doIt = isProgSupported();
+    if (doIt == -1){
+    } else if (isRstudio() || doIt == 0){
       /* Rprintf("\r                                                                                \r"); */
       Rprintf("\n");
     } else {

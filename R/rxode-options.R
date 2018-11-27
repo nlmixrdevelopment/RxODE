@@ -204,7 +204,11 @@ rxOptions <- function(expr, op.rx=NULL, silent=.isTestthat(), respect=FALSE,
                     rxClean();
                 }
                 opOld <- options();
-                on.exit({options(opOld); rxSyncOptions(); if (rxclean){rxClean();}});
+                .oldProg <- getProgSupported();
+                if (silent){
+                    setProgSupported(-1);
+                }
+                on.exit({options(opOld); setProgSupported(.oldProg); rxSyncOptions(); if (rxclean){rxClean();}});
             }
             if (respect){
                 op <- options();

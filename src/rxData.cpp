@@ -4176,3 +4176,20 @@ SEXP setRstudio(bool isRstudio=false){
 extern "C" int isRstudio(){
   return isRstudioI;
 }
+
+int isProgSupportedI = 1;
+
+//[[Rcpp::export]]
+SEXP setProgSupported(int isSupported=1){
+  isProgSupportedI=isSupported;
+  return wrap(isProgSupportedI);
+}
+
+extern "C" int isProgSupported(){
+  return isProgSupportedI;
+}
+
+//[[Rcpp::export]]
+SEXP getProgSupported(){
+  return wrap(isProgSupportedI);
+}

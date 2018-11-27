@@ -676,6 +676,48 @@ namespace RxODE {
         return Rcpp::as<SEXP >(rcpp_result_gen);
     }
 
+    inline SEXP setProgSupported(int isSupported = 1) {
+        typedef SEXP(*Ptr_setProgSupported)(SEXP);
+        static Ptr_setProgSupported p_setProgSupported = NULL;
+        if (p_setProgSupported == NULL) {
+            validateSignature("SEXP(*setProgSupported)(int)");
+            p_setProgSupported = (Ptr_setProgSupported)R_GetCCallable("RxODE", "_RxODE_setProgSupported");
+        }
+        RObject rcpp_result_gen;
+        {
+            RNGScope RCPP_rngScope_gen;
+            rcpp_result_gen = p_setProgSupported(Shield<SEXP>(Rcpp::wrap(isSupported)));
+        }
+        if (rcpp_result_gen.inherits("interrupted-error"))
+            throw Rcpp::internal::InterruptedException();
+        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
+            throw Rcpp::LongjumpException(rcpp_result_gen);
+        if (rcpp_result_gen.inherits("try-error"))
+            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
+        return Rcpp::as<SEXP >(rcpp_result_gen);
+    }
+
+    inline SEXP getProgSupported() {
+        typedef SEXP(*Ptr_getProgSupported)();
+        static Ptr_getProgSupported p_getProgSupported = NULL;
+        if (p_getProgSupported == NULL) {
+            validateSignature("SEXP(*getProgSupported)()");
+            p_getProgSupported = (Ptr_getProgSupported)R_GetCCallable("RxODE", "_RxODE_getProgSupported");
+        }
+        RObject rcpp_result_gen;
+        {
+            RNGScope RCPP_rngScope_gen;
+            rcpp_result_gen = p_getProgSupported();
+        }
+        if (rcpp_result_gen.inherits("interrupted-error"))
+            throw Rcpp::internal::InterruptedException();
+        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
+            throw Rcpp::LongjumpException(rcpp_result_gen);
+        if (rcpp_result_gen.inherits("try-error"))
+            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
+        return Rcpp::as<SEXP >(rcpp_result_gen);
+    }
+
     inline NumericVector rxInv(SEXP matrix) {
         typedef SEXP(*Ptr_rxInv)(SEXP);
         static Ptr_rxInv p_rxInv = NULL;

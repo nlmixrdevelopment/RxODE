@@ -118,8 +118,8 @@ SEXP _RxODE_add_dosing_(SEXP, SEXP, SEXP, SEXP, SEXP,
                         SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP _RxODE_add_sampling_(SEXP, SEXP, SEXP);
 
-SEXP _RxODE_rxSolveFree();
 SEXP _RxODE_getRxFn(SEXP);
+SEXP _RxODE_setProgSupported(SEXP);
 
 extern int rxIsCurrentC(SEXP obj);
 
@@ -190,6 +190,7 @@ void R_init_RxODE(DllInfo *info){
     // Solaris needs 23 args; fix me...
     {"_RxODE_rxSolveC", (DL_FUNC) &_RxODE_rxSolveC, 46},
     {"_RxODE_getRxFn", (DL_FUNC) &_RxODE_getRxFn, 1},
+    {"_RxODE_setProgSupported", (DL_FUNC) &_RxODE_setProgSupported, 1},
     {NULL, NULL, 0}
   };
   // C callable to assign environments.
