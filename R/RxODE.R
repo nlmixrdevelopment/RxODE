@@ -368,17 +368,21 @@ RxODE <- function(model, modName = basename(wd),
             .lwd <- getwd();
             if (!file.exists(wd))
                 dir.create(wd, recursive = TRUE)
-
-            if (!file.exists(wd))
-                setwd(wd);
-            on.exit(setwd(.lwd));
             if (missing.modName){
+                if (!file.exists(wd))
+                    setwd(wd);
+                on.exit(setwd(.lwd));
                 assign("rxDll",
                        RxODE::rxCompile(.model, extraC = extraC, debug = debug,
                                         calcJac=calcJac, calcSens=calcSens,
                                         collapseModel=collapseModel),
                        envir=.(.env));
             } else {
+                if (mdir != wd){
+                    if (!file.exists(wd))
+                        setwd(wd);
+                    on.exit(setwd(.lwd));
+                }
                 assign("rxDll",
                        RxODE::rxCompile(.model, dir=mdir, extraC = extraC,
                                         debug = debug, modName = modName,
@@ -1206,20 +1210,20 @@ rxCompile.character <-  function(model,           # Model
     ## rxCompile returns the DLL name that was created.
     if (is.null(dir)){
         if (RxODE.tempfiles){
-            dir <- .rxTempDir()
+            .dir <- .rxTempDir()
         } else {
-            dir <- getwd();
+            .dir <- getwd();
         }
     } else {
-        dir <- suppressMessages(.normalizePath(dir, mustWork=FALSE));
+        .dir <- suppressMessages(.normalizePath(dir, mustWork=FALSE));
     }
-    if (!file.exists(dir))
-        dir.create(dir, recursive = TRUE)
+    if (!file.exists(.dir))
+        dir.create(.dir, recursive = TRUE)
     if (is.null(prefix)){
         prefix <- .rxPrefix(model, modName, calcJac=calcJac, calcSens=calcSens, collapseModel=collapseModel);
     }
-    .cFile <- file.path(dir, sprintf("%s.c", substr(prefix, 0, nchar(prefix)-1)));
-    .cDllFile <- file.path(dir, sprintf("%s%s", substr(prefix, 0, nchar(prefix)-1), .Platform$dynlib.ext));
+    .cFile <- file.path(.dir, sprintf("%s.c", substr(prefix, 0, nchar(prefix)-1)));
+    .cDllFile <- file.path(.dir, sprintf("%s%s", substr(prefix, 0, nchar(prefix)-1), .Platform$dynlib.ext));
     if (file.exists(model)){
         .mFile <- .normalizePath(model);
     } else {
@@ -1249,7 +1253,7 @@ rxCompile.character <-  function(model,           # Model
         }
     }
     if (force || .needCompile){
-        .Makevars <- file.path(dir, "Makevars");
+        .Makevars <- file.path(.dir, "Makevars");
         if (file.exists(.Makevars)){
             .firstMake <- readLines(.Makevars, 1);
             if (length(.firstMake) == 0){
@@ -1312,7 +1316,7 @@ rxCompile.character <-  function(model,           # Model
             sink();
             .sh <- "system"   # windows's default shell COMSPEC does not handle UNC paths
             ## Change working directory
-            setwd(dir);
+            setwd(.dir);
             try(dyn.unload(.cDllFile), silent = TRUE);
             try(unlink(.cDllFile));
             .cmd <- sprintf("%s CMD SHLIB %s", R.home("bin/R"),
@@ -1331,7 +1335,7 @@ rxCompile.character <-  function(model,           # Model
     }
     .call <- function(...){return(.Call(...))};
     .c <- function(...){return(.C(...))};
-    .args <- list(model = model, dir = dir, prefix = prefix,
+    .args <- list(model = model, dir = .dir, prefix = prefix,
                  extraC = extraC, force = force, modName = modName,
                  ...);
     ret <- suppressWarnings({list(dll     = .cDllFile,
