@@ -334,6 +334,9 @@ RxODE <- function(model, modName = basename(wd),
         ##     model <- paste(model[-length(model)], collapse="\n");
         ## }
     }
+    if (file.exists(model)){
+        model <- suppressWarnings(paste(readLines(model), collapse="\n"));
+    }
     model <- RxODE::rxLinCmtTrans(model);
     class(model) <- "rxModelText"
     ## RxODE compilation manager (location of parsed code, generated C,  shared libs, etc.)
