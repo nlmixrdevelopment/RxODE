@@ -339,15 +339,15 @@ RxODE <- function(model, modName = basename(wd),
     ## RxODE compilation manager (location of parsed code, generated C,  shared libs, etc.)
     .env <- new.env(parent=loadNamespace("RxODE"))
     .env$missing.modName <- missing(modName);
-    wd <- .normalizePath(wd, "/", mustWork=F)
+    wd <- .normalizePath(wd, "/", mustWork=FALSE)
     if (.env$missing.modName){
         if (RxODE.tempfiles){
-            .env$mdir <- .rxTempDir();
+            .env$mdir <- suppressMessages(.normalizePath(.rxTempDir(), mustWork=FALSE));
         } else {
-            .env$mdir <- wd
+            .env$mdir <- suppressMessages(.normalizePath(wd, mustWork=FALSE))
         }
     } else {
-        .env$mdir <- file.path(wd, sprintf("%s.d", modName));
+        .env$mdir <- suppressMessages(.normalizePath(file.path(wd, sprintf("%s.d", modName)), mustWork=FALSE));
     }
 
     if (!file.exists(wd))
@@ -368,21 +368,16 @@ RxODE <- function(model, modName = basename(wd),
             .lwd <- getwd();
             if (!file.exists(wd))
                 dir.create(wd, recursive = TRUE)
+            if (file.exists(wd))
+                setwd(wd);
+            on.exit(setwd(.lwd));
             if (missing.modName){
-                if (!file.exists(wd))
-                    setwd(wd);
-                on.exit(setwd(.lwd));
                 assign("rxDll",
                        RxODE::rxCompile(.model, extraC = extraC, debug = debug,
                                         calcJac=calcJac, calcSens=calcSens,
                                         collapseModel=collapseModel),
                        envir=.(.env));
             } else {
-                if (mdir != wd){
-                    if (!file.exists(wd))
-                        setwd(wd);
-                    on.exit(setwd(.lwd));
-                }
                 assign("rxDll",
                        RxODE::rxCompile(.model, dir=mdir, extraC = extraC,
                                         debug = debug, modName = modName,
