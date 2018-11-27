@@ -100,6 +100,8 @@ rxClean <- function(wd){
             rxClean(getFromNamespace("RxODE.cache.directory", "RxODE"));
         }
         return(length(list.files(pattern = pat)) == 0);
+    } else {
+        return(TRUE)
     }
 }
 
