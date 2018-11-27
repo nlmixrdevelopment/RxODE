@@ -273,6 +273,7 @@ rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, scal
                     nSub = 1L, thetaMat = NULL, thetaDf = NULL, thetaIsChol = FALSE,
                     nStud = 1L, dfSub=0.0, dfObs=0.0, returnType=c("rxSolve", "matrix", "data.frame", "data.frame.TBS"),
                     seed=NULL, nsim=NULL, setupOnly=FALSE){
+    on.exit({rxSolveFree()});
     .xtra <- list(...);
     if (is.null(transitAbs) && !is.null(.xtra$transit_abs)){
         transitAbs <- .xtra$transit_abs;
