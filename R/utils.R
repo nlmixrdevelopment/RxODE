@@ -1,6 +1,6 @@
 .normalizePath <- function(...){
     ifelse(.Platform$OS.type=="windows",
-           suppressWarnings(utils::shortPathName(normalizePath(path, ...))),
+           suppressWarnings(utils::shortPathName(normalizePath(...))),
            suppressWarnings(normalizePath(...)))
 }
 
