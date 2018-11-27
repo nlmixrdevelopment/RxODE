@@ -78,7 +78,7 @@ rxClean <- function(wd){
             ret <- ret && rxClean(getFromNamespace("RxODE.cache.directory", "RxODE"))
         }
         return(ret);
-    } else {
+    } else if (dir.exists(wd)){
         owd <- getwd();
         setwd(wd);
         on.exit(setwd(owd));
