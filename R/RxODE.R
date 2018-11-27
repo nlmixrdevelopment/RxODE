@@ -337,7 +337,7 @@ RxODE <- function(model, modName = basename(wd),
     model <- RxODE::rxLinCmtTrans(model);
     class(model) <- "rxModelText"
     ## RxODE compilation manager (location of parsed code, generated C,  shared libs, etc.)
-    .env <- new.env(parent=baseenv())
+    .env <- new.env(parent=loadNamespace("RxODE"))
     .env$missing.modName <- missing(modName);
     wd <- .normalizePath(wd, "/", mustWork=F)
     if (.env$missing.modName){
@@ -364,7 +364,7 @@ RxODE <- function(model, modName = basename(wd),
     .env$wd <- wd;
     .env$compile <- eval(bquote(function(){
         with(.(.env), {
-            model <- as.vector(model);
+            .model <- as.vector(model);
             .lwd <- getwd();
             if (!file.exists(wd))
                 dir.create(wd, recursive = TRUE)
@@ -374,13 +374,13 @@ RxODE <- function(model, modName = basename(wd),
             on.exit(setwd(.lwd));
             if (missing.modName){
                 assign("rxDll",
-                       RxODE::rxCompile(model, extraC = extraC, debug = debug,
+                       RxODE::rxCompile(.model, extraC = extraC, debug = debug,
                                         calcJac=calcJac, calcSens=calcSens,
                                         collapseModel=collapseModel),
                        envir=.(.env));
             } else {
                 assign("rxDll",
-                       RxODE::rxCompile(model, dir=mdir, extraC = extraC,
+                       RxODE::rxCompile(.model, dir=mdir, extraC = extraC,
                                         debug = debug, modName = modName,
                                         calcJac=calcJac, calcSens=calcSens,
                                         collapseModel=collapseModel),

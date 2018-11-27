@@ -4177,6 +4177,7 @@ extern "C" int isRstudio(){
   return isRstudioI;
 }
 
+
 int isProgSupportedI = 1;
 
 //[[Rcpp::export]]

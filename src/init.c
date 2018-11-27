@@ -120,6 +120,7 @@ SEXP _RxODE_add_sampling_(SEXP, SEXP, SEXP);
 
 SEXP _RxODE_getRxFn(SEXP);
 SEXP _RxODE_setProgSupported(SEXP);
+SEXP _RxODE_getProgSupported();
 
 extern int rxIsCurrentC(SEXP obj);
 
@@ -191,6 +192,7 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_rxSolveC", (DL_FUNC) &_RxODE_rxSolveC, 46},
     {"_RxODE_getRxFn", (DL_FUNC) &_RxODE_getRxFn, 1},
     {"_RxODE_setProgSupported", (DL_FUNC) &_RxODE_setProgSupported, 1},
+    {"_RxODE_getProgSupported", (DL_FUNC) &_RxODE_getProgSupported, 0},
     {NULL, NULL, 0}
   };
   // C callable to assign environments.
