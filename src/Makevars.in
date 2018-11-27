@@ -4,36 +4,8 @@ CXX_STD     = CXX11
 ################################################################################
 ## Package library flags.
 PKG_LIBS    = $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS) @OPENMP_CFLAGS@
-## add -lprofiler for access to gperftools;  You also have to have -g
-## https://stackoverflow.com/questions/13224322/profiling-rcpp-code-on-os-x
-## -Wl,--no-as-needed -lprofiler -Wl,--as-needed
-## Clang UBSAN requires -lubsan
-# PKG_LIBS    = $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS) @OPENMP_CFLAGS@ -lubsan
-
-################################################################################
-## Compiling flags
-
-## fsanitize=address = ASAN debugging with gcc
-# PKG_FFLAGS  = -g -ggdb -O0 -fno-inline-functions -fsanitize=address,undefined,bounds-strict -fno-omit-frame-pointer -Wall -Wextra $(FPICFLAGS) 
-# PKG_FCFLAGS = -g -ggdb -O0 -fno-inline-functions -fsanitize=address,undefined,bounds-strict -fno-omit-frame-pointer -Wall -Wextra $(FPICFLAGS)
-# PKG_CFLAGS  = -g -ggdb -O0 -fno-inline-functions -fsanitize=address,undefined,bounds-strict -fno-omit-frame-pointer -Wall -Wextra @OPENMP_CFLAGS@
-# PKG_CPPFLAGS = -g -ggdb -O0 -fno-inline-functions -fsanitize=address,undefined,bounds-strict -fno-omit-frame-pointer -Wall -Wextra @OPENMP_CFLAGS@
-
-# Clang UBSAN debugging
-# PKG_FFLAGS  = -g -fsanitize=address,undefined -fno-sanitize=float-divide-by-zero -fno-omit-frame-pointer $(FPICFLAGS) 
-# PKG_FCFLAGS = -g -fsanitize=address,undefined -fno-sanitize=float-divide-by-zero -fno-omit-frame-pointer -frtti $(FPICFLAGS)
-# PKG_CFLAGS  = -g -fsanitize=address,undefined -fno-sanitize=float-divide-by-zero -fno-omit-frame-pointer -frtti @OPENMP_CFLAGS@
-# PKG_CPPFLAGS = -g -fsanitize=address,undefined -fno-sanitize=float-divide-by-zero -fno-omit-frame-pointer -frtti @OPENMP_CFLAGS@
-
-## Standard debug for gdb and valgrind
-# PKG_FFLAGS  = -g -ggdb -O0 -Wall -Wextra $(FPICFLAGS) 
-# PKG_FCFLAGS = -g -ggdb -O0 -Wall -Wextra $(FPICFLAGS)
-# PKG_CFLAGS  = -g -ggdb -O0 -Wall -Wextra @OPENMP_CFLAGS@
-# PKG_CPPFLAGS = -g -ggdb -O0 -Wall -Wextra @OPENMP_CFLAGS@
 
 # Release options
-PKG_FFLAGS  = $(FPICFLAGS) 
-PKG_FCFLAGS = $(FPICFLAGS)
 PKG_CFLAGS  =  @OPENMP_CFLAGS@
 PKG_CPPFLAGS = @OPENMP_CFLAGS@
 
