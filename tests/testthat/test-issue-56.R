@@ -1,6 +1,7 @@
 rxPermissive({
     context("Absolute Working Directory + Model Name (Issue #56)")
     test_that("Issue #56", {
+        skip_on_os("windows")
         if (!dir.exists("/tmp/")){
             skip()
         }
