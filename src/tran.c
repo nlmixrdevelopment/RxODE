@@ -1627,8 +1627,8 @@ void codegen(FILE *outpt, int show_ode) {
     };
   if (show_ode == 1){
     fprintf(outpt, __HD_ODE_1__);
-    fprintf(outpt, __HD_ODE_2__);
-    fprintf(outpt, __HD_ODE_3__);
+    /* fprintf(outpt, __HD_ODE_2__); */
+    /* fprintf(outpt, __HD_ODE_3__); */
     /* fprintf(outpt, __HD_ODE_4__); */
     /* if (found_jac == 1){ */
     /*   for (i=0; i<tb.nd; i++) {                   /\* name state vars *\/ */

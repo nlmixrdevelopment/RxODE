@@ -1,11 +1,16 @@
-
+#pragma once
+#ifndef __RxODE_H__
+#define __RxODE_H__
 #if defined(__cplusplus)
 #include "RxODE_RcppExports.h"
 extern "C" {
 #endif
-
-#ifndef __RxODE_H__
-#define __RxODE_H__
+#include <stdio.h>
+#include <stdarg.h>
+#include <R.h>
+#include <Rinternals.h>
+#include <Rmath.h>
+#include <R_ext/Rdynload.h>
 
 typedef void (*t_dydt)(int *neq, double t, double *A, double *DADT);
 typedef void (*t_calc_jac)(int *neq, double t, double *A, double *JAC, unsigned int __NROWPD__);

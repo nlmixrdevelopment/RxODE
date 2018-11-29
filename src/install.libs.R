@@ -10,7 +10,7 @@ if(file.exists("symbols.rds"))
 
 ## Add headers
 incl <- file.path(R_PACKAGE_DIR, "include");
-headers <- Sys.glob("*.h");
+headers <- c(Sys.glob("*.h"), Sys.glob("*.h.gch"));
 if (any(file.exists(headers))){
     dir.create(incl,recursive=TRUE,showWarnings = FALSE);
     file.copy(headers,incl,overwrite=TRUE);

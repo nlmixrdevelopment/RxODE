@@ -1130,7 +1130,8 @@ rxTrans.character <- function(model,
         if (debug){
             .ret <- sprintf("%s -D__DEBUG__", .ret);
         }
-        .ret <- sprintf("#RxODE Makevars\nPKG_CFLAGS=%s\nPKG_LIBS=$(BLAS_LIBS) $(LAPACK_LIBS) $(FLIBS)", .ret);
+        .ret <- sprintf("#RxODE Makevars\nPKG_CFLAGS=%s -I\"%s\"\nPKG_LIBS=$(BLAS_LIBS) $(LAPACK_LIBS) $(FLIBS)",
+                        .ret, .normalizePath(system.file("include", package="RxODE")));
         ## .ret <- paste(.ret, "-g");
         cat(.ret);
         return(.ret);
@@ -1320,7 +1321,7 @@ rxCompile.character <-  function(model,           # Model
             .cmd <- sprintf("%s CMD SHLIB %s", R.home("bin/R"),
                             basename(.cFile));
             ## message(.cmd);
-            do.call(.sh, list(.cmd, ignore.stdout=TRUE, ignore.stderr=TRUE));
+            do.call(.sh, list(.cmd, ignore.stdout=FALSE, ignore.stderr=FALSE));
             .tmp <- try(dynLoad(.cDllFile));
             if (inherits(.tmp, "try-error")){
                 stop("Error loading model.")
