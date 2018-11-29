@@ -18,3 +18,4 @@ inst/doc
 /src/liblsoda/
 /vignettes/.RData
 /vignettes/.Rhistory
+*.gch
