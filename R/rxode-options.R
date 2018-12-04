@@ -2,13 +2,13 @@
     ## Setup RxODE.prefer.tbl
     .Call(`_RxODE_setRstudio`, Sys.getenv("RSTUDIO")=="1")
     rxPermissive(respect=TRUE); ## need to call respect on the first time
-    suppressMessages(.rxWinRtoolsPath())
+    suppressMessages(.rxWinRtoolsPath(retry=NA))
 } ## nocov end
 
 .onAttach <- function(libname, pkgname){
     .Call(`_RxODE_setRstudio`, Sys.getenv("RSTUDIO")=="1")
     rxPermissive(respect=TRUE); ## need to call respect on the first time
-    if (!.rxWinRtoolsPath()){
+    if (!.rxWinRtoolsPath(retry=NA)){
         packageStartupMessage("Rtools is not set up correctly!\n\nYou need a working Rtools installation for RxODE to work.\nYou can set up Rtools using the command 'rxWinSetup()'.\n");
     }
 }

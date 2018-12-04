@@ -198,10 +198,14 @@ rxPhysicalDrives <- memoise::memoise(function(duplicates=FALSE){
 ##' Setup Rtools path
 ##'
 ##' @param rm.rtools Remove the Rtools from the current path specs.
+##'
 ##' @param rm.python Remove Python from the current path specs.
 ##'
+##' @param retry Should you retry to find Rtools?  If NA, don't throw
+##'     an error if it isn't found.
+##'
 ##' @author Matthew L. Fidler
-.rxWinRtoolsPath <- function(rm.rtools=TRUE, rm.python=TRUE){
+.rxWinRtoolsPath <- function(rm.rtools=TRUE, rm.python=TRUE, retry=FALSE){
     ## Note that devtools seems to assume that rtools/bin is setup
     ## appropriately, and figures out the c compiler from there.
     if (.Platform$OS.type == "unix"){
@@ -228,7 +232,7 @@ rxPhysicalDrives <- memoise::memoise(function(duplicates=FALSE){
 
         ## Look in the registry...
         ## This is taken from devtools and adapted.
-        .rtoolsBase <- .rxRtoolsBaseWin();
+        .rtoolsBase <- .rxRtoolsBaseWin(retry=retry);
         .x <- file.path(.rtoolsBase, ifelse(.Platform$r_arch == "i386","mingw_32/bin", "mingw_64/bin"));
         if (file.exists(.x)){
             Sys.setenv(BINPREF=gsub("([^/])$", "\\1/", gsub("\\\\", "/", .normalizePath(.x))));
