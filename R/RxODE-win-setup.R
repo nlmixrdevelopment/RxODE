@@ -184,10 +184,11 @@ rxPhysicalDrives <- memoise::memoise(function(duplicates=FALSE){
                     message("gcc available, assuming it comes from rtools...\nRxODE may not work with other compilers.\n")
                     return(.rtools)
                 } else {
+                    if (is.na(retry)) return(FALSE)
                     if (retry){
                         stop("This package requires Rtools!\nPlease download from http://cran.r-project.org/bin/windows/Rtools/,\ninstall and restart your R session before proceeding.")
                     }
-                    installr::install.Rtools();
+                    try({installr::install.Rtools()});
                     return(.rxRtoolsBaseWin(retry=TRUE))
                 }
             }
