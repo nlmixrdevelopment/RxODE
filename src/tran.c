@@ -279,6 +279,7 @@ sbuf sb;                        /* buffer w/ current parsed & translated line */
 sbuf sbt; 
 
 char *extra_buf, *model_prefix, *md5, *parseFile, *normModel;
+int normModelI = 0;
 
 static FILE *fpIO, *normFile;
 
@@ -672,10 +673,12 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
         if  (!strncmp(v,"print",5)){
           fprintf(fpIO,"full_print;\n");
-          fprintf(normFile,"print;\n");
+	  sprintf(normModel+normModelI,"print;\n");
+	  normModelI+=7;
         } else {
           fprintf(fpIO, "%s;\n", v);
-          fprintf(normFile,"%s;\n", v);
+	  sprintf(normModel+normModelI, "%s;\n", v);
+	  normModelI+=strlen(v)+2;
         }
         /* sprintf(sb.s,"%s",v); */
         /* sb.o = str; */
@@ -724,7 +727,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         }
         if (i == 4){
           fprintf(fpIO,  "%s;\n", sb.s);
-          fprintf(normFile, "%s;\n", sbt.s);
+	  sprintf(normModel+normModelI, "%s;\n", sbt.s);
+	  normModelI+=strlen(sbt.s)+2;
         }
         Free(v);
         continue;
@@ -865,12 +869,14 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         sprintf(SBTPTR, "{");
         sbt.o += 1;
         fprintf(fpIO,  "%s\n", sb.s);
-        fprintf(normFile, "%s\n", sbt.s);
+	sprintf(normModel+normModelI, "%s;\n", sbt.s);
+	normModelI+=strlen(sbt.s)+1;
         continue;
       }
       if (!strcmp("selection_statement__8", name) && i==0) {
         fprintf(fpIO,  "}\nelse {\n");
-        fprintf(normFile, "}\nelse {\n");
+	sprintf(normModel+normModelI, "}\nelse {\n");
+	normModelI+=9;
         continue;
       }
 
@@ -1092,7 +1098,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
     if (!strcmp("assignment", name) || !strcmp("ini", name) || !strcmp("derivative", name) || !strcmp("jac",name) || !strcmp("dfdy",name) ||
         !strcmp("ini0",name) || !strcmp("ini0f",name)){
       fprintf(fpIO, "%s;\n", sb.s);
-      fprintf(normFile, "%s;\n", sbt.s);
+      sprintf(normModel+normModelI, "%s;\n", sbt.s);
+      normModelI+=strlen(sbt.s)+2;
     }
 
     if (!rx_syntax_assign && (!strcmp("assignment", name) || !strcmp("ini", name) || !strcmp("ini0",name) || !strcmp("ini0f",name))){
@@ -1111,7 +1118,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
     
     if (!strcmp("selection_statement", name)){
       fprintf(fpIO, "}\n");
-      fprintf(normFile, "}\n");
+      sprintf(normModel+normModelI, "}\n");
+      normModelI+=2;
     }
     
     if (!strcmp("power_expression", name)) {
@@ -1362,42 +1370,37 @@ void print_aux_info(FILE *outpt, char *model){
   tb.statei = statei;
   tb.sensi  = sensi;
   fprintf(outpt,"    SET_STRING_ELT(modeln,0,mkChar(\"normModel\"));\n");
-  normFile = fopen(normModel , "r");
   fprintf(outpt,"    SET_STRING_ELT(model,0,mkChar(\"");
-  err_msg((intptr_t) normFile, "Error parsing. (Couldn't access normModel.txt).\n", -1);
   in_str=0;
-  while(fgets(sLine, MXLEN, normFile)) {  /* Prefered RxODE -- for igraph */
-    for (i = 0; i < (int)strlen(sLine); i++){
-      if (sLine[i] == '"'){
-	if (in_str==1){
-          in_str=0;
-        } else {
-          in_str=1;
-        }
-        fprintf(outpt,"\\\"");
-      } else if (sLine[i] == '\''){
-	if (in_str==1){
-          in_str=0;
-        } else {
-          in_str=1;
-        }
-        fprintf(outpt,"'");
-      } else if (sLine[i] == ' '){
-	if (in_str==1){
-	  fprintf(outpt," ");
-	}
-      } else if (sLine[i] == '\n'){
-        fprintf(outpt,"\\n");
-      } else if (sLine[i] == '\t'){
-        fprintf(outpt,"\\t");
-      } else if (sLine[i] == '\\'){
-	fprintf(outpt,"\\\\");
-      } else if (sLine[i] >= 33  && sLine[i] <= 126){ // ASCII only
-        fprintf(outpt,"%c",sLine[i]);
+  for (i = 0; i < (int)strlen(normModel); i++){
+    if (normModel[i] == '"'){
+      if (in_str==1){
+	in_str=0;
+      } else {
+	in_str=1;
       }
+      fprintf(outpt,"\\\"");
+    } else if (normModel[i] == '\''){
+      if (in_str==1){
+	in_str=0;
+      } else {
+	in_str=1;
+      }
+      fprintf(outpt,"'");
+    } else if (normModel[i] == ' '){
+      if (in_str==1){
+	fprintf(outpt," ");
+      }
+    } else if (normModel[i] == '\n'){
+      fprintf(outpt,"\\n");
+    } else if (normModel[i] == '\t'){
+      fprintf(outpt,"\\t");
+    } else if (normModel[i] == '\\'){
+      fprintf(outpt,"\\\\");
+    } else if (normModel[i] >= 33  && normModel[i] <= 126){ // ASCII only
+      fprintf(outpt,"%c",normModel[i]);
     }
   }
-  fclose(normFile);
   fprintf(outpt,"\"));\n");
   
   normFile = fopen(parseFile, "r");
@@ -2025,11 +2028,11 @@ void trans_internal(char* parse_file, char* c_file, int isStr){
       buf = r_sbuf_read(parse_file);
       err_msg((intptr_t) buf, "error: empty buf for FILE_to_parse\n", -2);
   }
+  normModel = (char *) R_alloc((int)(strlen(buf)*1.1)+1,sizeof(char));
+  normModelI=0;
   if ((pn=dparse(p, buf, (int)strlen(buf))) && !p->syntax_errors) {
     fpIO = fopen( parseFile, "w" );
-    normFile = fopen( normModel, "w" );
     err_msg((intptr_t) fpIO, "error opening parseFile.txt\n", -2);
-    err_msg((intptr_t) normFile, "error opening normModel.txt\n", -2);
     wprint_parsetree(parser_tables_RxODE, pn, 0, wprint_node, NULL);
     fclose(fpIO);
     fclose(normFile);
@@ -2095,7 +2098,7 @@ void trans_internal(char* parse_file, char* c_file, int isStr){
 }
 
 SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_md5,
-           SEXP parse_model,SEXP parse_model3, SEXP parseStr){
+           SEXP parse_model,SEXP parseStr){
   char *in, *out, *file, *pfile;
   char buf[1024], buf2[512], df[128], dy[128];
   char snum[512];
@@ -2155,13 +2158,7 @@ SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_m
   } else {
     error("Parse model must be specified.");
   }
-
-
-  if (isString(parse_model3) && length(parse_model3) == 1){
-    normModel = r_dup_str(CHAR(STRING_ELT(parse_model3,0)),0);
-  } else {
-    error("Parse model 3 must be specified.");
-  }
+  
   trans_internal(in, out, isStr);
   int pro = 0;
   SEXP lst   = PROTECT(allocVector(VECSXP, 11));pro++;
@@ -2405,25 +2402,8 @@ SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_m
     }
   }
   
-  
   SET_STRING_ELT(modeln,0,mkChar("normModel"));
-  file = r_sbuf_read(normModel);
-  if (file){
-    pfile = (char *) R_alloc((int)strlen(file)+1,sizeof(char));
-    j=0;
-    for (i = 0; i < (int)strlen(file); i++){
-      if (file[i] == '"'  ||
-          file[i] == '\n' ||
-          file[i] == '\t' ||
-          (file[i] >= 33 && file[i] <= 126)){
-        sprintf(pfile+(j++),"%c",file[i]);
-      }
-    }
-    SET_STRING_ELT(model,0,mkChar(pfile));
-  } else {
-    SET_STRING_ELT(model,0,mkChar("Syntax Error"));
-  }
-  /* printf("parseModel\n"); */
+  SET_STRING_ELT(model,0,mkChar(normModel));
   
   setAttrib(ini,   R_NamesSymbol, inin);
   setAttrib(tran,  R_NamesSymbol, trann);
@@ -2434,7 +2414,6 @@ SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_m
   classgets(lst, cls);
   
   UNPROTECT(pro);
-  remove(normModel);
   if (rx_syntax_error){
     error("Syntax Errors (see above)");
   }

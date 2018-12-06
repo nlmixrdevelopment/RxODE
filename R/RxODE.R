@@ -1005,10 +1005,9 @@ rxTrans.character <- function(model,
         .isStr <- 1L;
     }
     .parseModel <- tempfile("parseModel3");
-    .out3 <- tempfile("out3a");
     on.exit(unlink(.parseModel));
     RxODE::rxReq("dparser");
-    .ret <- try(.Call(trans, model, cFile, extraC, modelPrefix, md5, .parseModel, .out3, .isStr, PACKAGE="RxODE"));
+    .ret <- try(.Call(trans, model, cFile, extraC, modelPrefix, md5, .parseModel, .isStr, PACKAGE="RxODE"));
     if (inherits(.ret, "try-error")){
         message("Model")
         message(suppressWarnings(readLines(model)))
