@@ -148,7 +148,7 @@ rxPermissive({
 
         }
 
-    test_that("Comilation managere elements make sense.",{
+    test_that("Compilation manager elements make sense.",{
         prt(m1,"inst1")
         prt(m2,"inst2")
         prt(m3,"inst3")

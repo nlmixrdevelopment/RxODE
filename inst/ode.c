@@ -76,16 +76,16 @@ void __R_INIT__ (DllInfo *info){
   _update_par_ptr=(_update_par_ptr_p) R_GetCCallable("RxODE","_update_par_ptr");
   // Register the outside functions
   R_RegisterCCallable(__LIB_STR__,__ODE_SOLVER_STR__,       (DL_FUNC) __ODE_SOLVER__);
-  R_RegisterCCallable(__LIB_STR__,"__INIS__", (DL_FUNC) __INIS__);
-  R_RegisterCCallable(__LIB_STR__,"__INIS__", (DL_FUNC) __INIS__);
-  R_RegisterCCallable(__LIB_STR__,"__DYDT__", (DL_FUNC) __DYDT__);
-  R_RegisterCCallable(__LIB_STR__,"__CALC_LHS__", (DL_FUNC) __CALC_LHS__);
-  R_RegisterCCallable(__LIB_STR__,"__CALC_JAC__", (DL_FUNC) __CALC_JAC__);
-  R_RegisterCCallable(__LIB_STR__,"__DYDT_LSODA__", (DL_FUNC) __DYDT_LSODA__);
-  R_RegisterCCallable(__LIB_STR__,"__CALC_JAC_LSODA__", (DL_FUNC) __CALC_JAC_LSODA__);
-  R_RegisterCCallable(__LIB_STR__,"__ODE_SOLVER_SOLVEDATA__", (DL_FUNC) __ODE_SOLVER_SOLVEDATA__);
-  R_RegisterCCallable(__LIB_STR__,"__ODE_SOLVER_GET_SOLVEDATA__", (DL_FUNC) __ODE_SOLVER_GET_SOLVEDATA__);
-  R_RegisterCCallable(__LIB_STR__,"__DYDT_LIBLSODA__", (DL_FUNC) __DYDT_LIBLSODA__);
+  R_RegisterCCallable(__LIB_STR__,__INIS_STR__, (DL_FUNC) __INIS__);
+  R_RegisterCCallable(__LIB_STR__,__INIS_STR__, (DL_FUNC) __INIS__);
+  R_RegisterCCallable(__LIB_STR__,__DYDT_STR__, (DL_FUNC) __DYDT__);
+  R_RegisterCCallable(__LIB_STR__,__CALC_LHS_STR__, (DL_FUNC) __CALC_LHS__);
+  R_RegisterCCallable(__LIB_STR__,__CALC_JAC_STR__, (DL_FUNC) __CALC_JAC__);
+  R_RegisterCCallable(__LIB_STR__,__DYDT_LSODA_STR__, (DL_FUNC) __DYDT_LSODA__);
+  R_RegisterCCallable(__LIB_STR__,__CALC_JAC_LSODA_STR__, (DL_FUNC) __CALC_JAC_LSODA__);
+  R_RegisterCCallable(__LIB_STR__,__ODE_SOLVER_SOLVEDATA_STR__, (DL_FUNC) __ODE_SOLVER_SOLVEDATA__);
+  R_RegisterCCallable(__LIB_STR__,__ODE_SOLVER_GET_SOLVEDATA_STR__, (DL_FUNC) __ODE_SOLVER_GET_SOLVEDATA__);
+  R_RegisterCCallable(__LIB_STR__,__DYDT_LIBLSODA_STR__, (DL_FUNC) __DYDT_LIBLSODA__);
   
   static const R_CMethodDef cMethods[] = {
     {__ODE_SOLVER_STR__, (DL_FUNC) &__ODE_SOLVER__, 15, __ODE_SOLVER__rx_t},

@@ -34,6 +34,33 @@
 #include <stdint.h>
 #endif
 
+char *sgets( char * str, int num, char **input )
+{
+  // https://stackoverflow.com/questions/2068975/can-cs-fgets-be-coaxed-to-work-with-a-string-not-from-a-file
+  // By Mark Williams
+  char *next = *input;
+  int  numread = 0;
+
+  while ( numread + 1 < num && *next ) {
+    int isnewline = ( *next == '\n' );
+    *str++ = *next++;
+    numread++;
+    // newline terminates the line but is included
+    if ( isnewline )
+      break;
+  }
+
+  if ( numread == 0 )
+    return NULL;  // "eof"
+
+  // must have hit the null terminator or end of line
+  *str = '\0';  // null terminate this string
+  // set up input for next call
+  *input = next;
+  return str;
+}
+
+
 char *repl_str(const char *str, const char *from, const char *to) {
   // From http://creativeandcritical.net/str-replace-c by Laird Shaw
   /* Adjust each of the below values to suit your needs. */
@@ -251,7 +278,7 @@ sbuf sb;                        /* buffer w/ current parsed & translated line */
                                 /* to be stored in a temp file */
 sbuf sbt; 
 
-char *extra_buf, *model_prefix, *md5, *out2, *out3;
+char *extra_buf, *model_prefix, *md5, *parseFile, *normModel;
 
 static FILE *fpIO, *fpIO2;
 
@@ -749,8 +776,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         sb.o--;
         sprintf(SBPTR, ")");
         sb.o++;
-        sprintf(SBTPTR, "!");
-        sbt.o++;
+        /* sprintf(SBTPTR, "!"); */
+        /* sbt.o++; */
         continue;
       }      
       if (!strcmp("factorial",name)){
@@ -1210,7 +1237,7 @@ void prnt_vars(int scenario, FILE *outpt, int lhs, const char *pre_str, const ch
   fprintf(outpt, "%s", post_str);  /* dj: security calls for const format */
 }
 
-void print_aux_info(FILE *outpt, char *model, char *orig_model){
+void print_aux_info(FILE *outpt, char *model){
   int i, j, k, islhs,pi = 0,li = 0, o=0, o2=0, statei = 0, ini_i = 0, sensi=0, normi=0,fdi=0,
     in_str=0;
   char *s2;
@@ -1280,7 +1307,7 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
     sprintf(s_aux_info+o, "%s)\"));\n",buf);
     o = (int)strlen(s_aux_info);
   }
-  fprintf(outpt,"extern SEXP %smodel_vars(){\n  int pro=0;\n",model_prefix);
+  fprintf(outpt,"extern SEXP __MODEL_VARS__(){\n  int pro=0;\n");
   fprintf(outpt,"  SEXP _mv = PROTECT(_rxGetModelLib(\"rx_5c2c6f8a65d272301b81504c87d75239_x64_model_vars\"));pro++;\n");
   fprintf(outpt,"  if (!_rxIsCurrentC(_mv)){\n");
   fprintf(outpt,"    SEXP lst      = PROTECT(allocVector(VECSXP, 16));pro++;\n");
@@ -1299,8 +1326,8 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
   fprintf(outpt,"    SEXP trann    = PROTECT(allocVector(STRSXP, 14));pro++;\n");
   fprintf(outpt,"    SEXP mmd5     = PROTECT(allocVector(STRSXP, 2));pro++;\n");
   fprintf(outpt,"    SEXP mmd5n    = PROTECT(allocVector(STRSXP, 2));pro++;\n");
-  fprintf(outpt,"    SEXP model    = PROTECT(allocVector(STRSXP, 4));pro++;\n");
-  fprintf(outpt,"    SEXP modeln   = PROTECT(allocVector(STRSXP, 4));pro++;\n");
+  fprintf(outpt,"    SEXP model    = PROTECT(allocVector(STRSXP, 2));pro++;\n");
+  fprintf(outpt,"    SEXP modeln   = PROTECT(allocVector(STRSXP, 2));pro++;\n");
   fprintf(outpt,"    SEXP solve    = PROTECT(allocVector(VECSXP, 4));pro++;\n");
   fprintf(outpt,"    SEXP solven   = PROTECT(allocVector(STRSXP, 4));pro++;\n");
   fprintf(outpt,"    SEXP initsr   = PROTECT(allocVector(REALSXP, %d));pro++;\n",statei);
@@ -1334,28 +1361,10 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
   tb.li = li;
   tb.statei = statei;
   tb.sensi  = sensi;
-  fprintf(outpt,"    SET_STRING_ELT(modeln,0,mkChar(\"model\"));\n");
+  fprintf(outpt,"    SET_STRING_ELT(modeln,0,mkChar(\"normModel\"));\n");
+  fpIO2 = fopen(normModel , "r");
   fprintf(outpt,"    SET_STRING_ELT(model,0,mkChar(\"");
-  for (i = 0; i < (int)strlen(orig_model); i++){
-    if (orig_model[i] == '"'){
-      fprintf(outpt,"\\\"");
-    } else if (orig_model[i] == ' '){
-      fprintf(outpt," ");
-    } else if (orig_model[i] == '\n'){
-      fprintf(outpt,"\\n");
-    } else if (orig_model[i] == '\t'){
-      fprintf(outpt,"\\t");
-    } else if (orig_model[i] == '\\'){
-      fprintf(outpt,"\\\\");
-    } else if (orig_model[i] >= 32  && orig_model[i] <= 126){ // ASCII only
-      fprintf(outpt,"%c",orig_model[i]);
-    }
-  }
-  fprintf(outpt,"\"));\n");
-  fprintf(outpt,"    SET_STRING_ELT(modeln,1,mkChar(\"normModel\"));\n");
-  fpIO2 = fopen(out3 , "r");
-  fprintf(outpt,"    SET_STRING_ELT(model,1,mkChar(\"");
-  err_msg((intptr_t) fpIO2, "Error parsing. (Couldn't access out3.txt).\n", -1);
+  err_msg((intptr_t) fpIO2, "Error parsing. (Couldn't access normModel.txt).\n", -1);
   in_str=0;
   while(fgets(sLine, MXLEN, fpIO2)) {  /* Prefered RxODE -- for igraph */
     for (i = 0; i < (int)strlen(sLine); i++){
@@ -1391,10 +1400,10 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
   fclose(fpIO2);
   fprintf(outpt,"\"));\n");
 
-  fpIO2 = fopen(out2, "r");
-  fprintf(outpt,"    SET_STRING_ELT(modeln,2,mkChar(\"parseModel\"));\n");
-  fprintf(outpt,"    SET_STRING_ELT(model,2,mkChar(\"");
-  err_msg((intptr_t) fpIO2, "Error parsing. (Couldn't access out2.txt).\n", -1);
+  fpIO2 = fopen(parseFile, "r");
+  fprintf(outpt,"    SET_STRING_ELT(modeln,1,mkChar(\"parseModel\"));\n");
+  fprintf(outpt,"    SET_STRING_ELT(model,1,mkChar(\"");
+  err_msg((intptr_t) fpIO2, "Error parsing. (Couldn't access parseFile.txt).\n", -1);
   while(fgets(sLine, MXLEN, fpIO2)) {  /* Prefered RxODE -- for igraph */
     for (i = 0; i < (int)strlen(sLine); i++){
       if (sLine[i] == '"'){
@@ -1412,26 +1421,10 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
   }
   fclose(fpIO2);
   fprintf(outpt,"\"));\n");
-  fprintf(outpt,"    SET_STRING_ELT(modeln,3,mkChar(\"expandModel\"));\n");
-  fprintf(outpt,"    SET_STRING_ELT(model,3,mkChar(\"");
-  for (i = 0; i < (int)strlen(model); i++){
-    if (model[i] == '"'){
-      fprintf(outpt,"\\\"");
-    } else if (model[i] == '\n'){
-      fprintf(outpt,"\\n");
-    } else if (model[i] == '\t'){
-      fprintf(outpt,"\\t");
-    } else if (model[i] == '\\'){
-      fprintf(outpt,"\\\\");
-    } else if (model[i] >= 32  && model[i] <= 126){ // ASCII only
-      fprintf(outpt,"%c",model[i]);
-    }
-  }
-  fprintf(outpt,"\"));\n");
-  fpIO2 = fopen(out2, "r");
+  fpIO2 = fopen(parseFile, "r");
   s_aux_info[0] = '\0';
   o    = 0;
-  err_msg((intptr_t) fpIO2, "Error parsing. (Couldn't access out2.txt).\n", -1);
+  err_msg((intptr_t) fpIO2, "Error parsing. (Couldn't access parseFile.txt).\n", -1);
   while(fgets(sLine, MXLEN, fpIO2)) { 
     s2 = strstr(sLine,"(__0__)");
     if (s2){
@@ -1546,7 +1539,7 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
   
   // now trans output
   fprintf(outpt,"    SET_STRING_ELT(trann,0,mkChar(\"lib.name\"));\n");
-  fprintf(outpt,"    SET_STRING_ELT(tran, 0,mkChar(\"%.*s\"));\n",(int)(strlen(model_prefix) - 1),model_prefix);
+  fprintf(outpt,"    SET_STRING_ELT(tran, 0,mkChar(__LIB_STR__));\n");
 
   fprintf(outpt,"    SET_STRING_ELT(trann,1,mkChar(\"jac\"));\n");
   if (found_jac == 1){
@@ -1555,40 +1548,40 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
     fprintf(outpt,"    SET_STRING_ELT(tran,1,mkChar(\"fullint\"));\n"); // Full Internal Matrix
   }
   fprintf(outpt,"    SET_STRING_ELT(trann,2,mkChar(\"prefix\"));\n");
-  fprintf(outpt,"    SET_STRING_ELT(tran, 2,mkChar(\"%s\"));\n",model_prefix);
+  fprintf(outpt,"    SET_STRING_ELT(tran, 2,mkChar(__PREFIX_STR__));\n");
 
   fprintf(outpt,"    SET_STRING_ELT(trann,3,mkChar(\"dydt\"));\n");
-  fprintf(outpt,"    SET_STRING_ELT(tran, 3,mkChar(\"%sdydt\"));\n",model_prefix);
+  fprintf(outpt,"    SET_STRING_ELT(tran, 3,mkChar(__DYDT_STR__));\n");
 
   fprintf(outpt,"    SET_STRING_ELT(trann,4,mkChar(\"calc_jac\"));\n");
-  fprintf(outpt,"    SET_STRING_ELT(tran, 4,mkChar(\"%scalc_jac\"));\n",model_prefix);
+  fprintf(outpt,"    SET_STRING_ELT(tran, 4,mkChar(__CALC_JAC_STR__));\n");
 
   fprintf(outpt,"    SET_STRING_ELT(trann,5,mkChar(\"calc_lhs\"));\n");
-  fprintf(outpt,"    SET_STRING_ELT(tran, 5,mkChar(\"%scalc_lhs\"));\n",model_prefix);
+  fprintf(outpt,"    SET_STRING_ELT(tran, 5,mkChar(__CALC_LHS_STR__));\n");
 
   fprintf(outpt,"    SET_STRING_ELT(trann,6,mkChar(\"model_vars\"));\n");
-  fprintf(outpt,"    SET_STRING_ELT(tran, 6,mkChar(\"%smodel_vars\"));\n",model_prefix);
+  fprintf(outpt,"    SET_STRING_ELT(tran, 6,mkChar(__MODEL_VARS_STR__));\n");
   
   fprintf(outpt,"    SET_STRING_ELT(trann,7,mkChar(\"ode_solver\"));\n");
-  fprintf(outpt,"    SET_STRING_ELT(tran, 7,mkChar(\"%sode_solver\"));\n",model_prefix);
+  fprintf(outpt,"    SET_STRING_ELT(tran, 7,mkChar(__ODE_SOLVER_STR__));\n");
   
   fprintf(outpt,"    SET_STRING_ELT(trann,8,mkChar(\"inis\"));\n");
-  fprintf(outpt,"    SET_STRING_ELT(tran, 8,mkChar(\"%sinis\"));\n",model_prefix);
+  fprintf(outpt,"    SET_STRING_ELT(tran, 8,mkChar(__INIS_STR__));\n");
   
   fprintf(outpt,"    SET_STRING_ELT(trann,  9,mkChar(\"dydt_lsoda\"));\n");
-  fprintf(outpt,"    SET_STRING_ELT(tran,   9,mkChar(\"%sdydt_lsoda\"));\n",model_prefix);
+  fprintf(outpt,"    SET_STRING_ELT(tran,   9,mkChar(__DYDT_LSODA_STR__));\n");
   
   fprintf(outpt,"    SET_STRING_ELT(trann,10,mkChar(\"calc_jac_lsoda\"));\n");
-  fprintf(outpt,"    SET_STRING_ELT(tran, 10,mkChar(\"%scalc_jac_lsoda\"));\n",model_prefix);
+  fprintf(outpt,"    SET_STRING_ELT(tran, 10,mkChar(__CALC_JAC_LSODA_STR__));\n");
   
   fprintf(outpt,"    SET_STRING_ELT(trann,11,mkChar(\"ode_solver_solvedata\"));\n");
-  fprintf(outpt,"    SET_STRING_ELT(tran, 11,mkChar(\"%sode_solver_solvedata\"));\n",model_prefix);
+  fprintf(outpt,"    SET_STRING_ELT(tran, 11,mkChar(__ODE_SOLVER_SOLVEDATA_STR__));\n");
   
   fprintf(outpt,"    SET_STRING_ELT(trann,12,mkChar(\"ode_solver_get_solvedata\"));\n");
-  fprintf(outpt,"    SET_STRING_ELT(tran, 12,mkChar(\"%sode_solver_get_solvedata\"));\n",model_prefix);
+  fprintf(outpt,"    SET_STRING_ELT(tran, 12,mkChar(__ODE_SOLVER_GET_SOLVEDATA_STR__));\n");
 
   fprintf(outpt,"    SET_STRING_ELT(trann,13,mkChar(\"dydt_liblsoda\"));\n");
-  fprintf(outpt,"    SET_STRING_ELT(tran, 13,mkChar(\"%sdydt_liblsoda\"));\n",model_prefix);
+  fprintf(outpt,"    SET_STRING_ELT(tran, 13,mkChar(__DYDT_LIBLSODA_STR__));\n");
   
   fprintf(outpt,"    setAttrib(tran, R_NamesSymbol, trann);\n");
   fprintf(outpt,"    setAttrib(mmd5, R_NamesSymbol, mmd5n);\n");
@@ -1612,6 +1605,7 @@ void print_aux_info(FILE *outpt, char *model, char *orig_model){
   /* fprintf(outpt, __HD_SOLVE2__); */
 }
 
+
 void codegen(FILE *outpt, int show_ode) {
   int i, j, k, print_ode=0, print_vars = 0, print_parm = 0, print_jac=0, o;
   char sLine[MXLEN+1];
@@ -1622,7 +1616,7 @@ void codegen(FILE *outpt, int show_ode) {
   char *hdft[]=
     {
       "\n// prj-specific differential eqns\nvoid ",
-      "dydt(int *_neq, double t, double *__zzStateVar__, double *__DDtStateVar__)\n{\n  int _cSub = _neq[1];\n",
+      "__DYDT__(int *_neq, double t, double *__zzStateVar__, double *__DDtStateVar__)\n{\n  int _cSub = _neq[1];\n",
       "  (&_solveData->subjects[_cSub])->dadt_counter[0]++;\n}\n\n"
     };
   if (show_ode == 1){
@@ -1649,14 +1643,13 @@ void codegen(FILE *outpt, int show_ode) {
       }
     }
     fprintf(outpt, "%s", hdft[0]);
-    fprintf(outpt, "%s", model_prefix);
     fprintf(outpt, "%s", hdft[1]);
   } else if (show_ode == 2){
-    fprintf(outpt, "// Jacobian derived vars\nvoid %scalc_jac(int *_neq, double t, double *__zzStateVar__, double *__PDStateVar__, unsigned int __NROWPD__) {\n  int _cSub=_neq[1];\n",model_prefix);
+    fprintf(outpt, "// Jacobian derived vars\nvoid __CALC_JAC__(int *_neq, double t, double *__zzStateVar__, double *__PDStateVar__, unsigned int __NROWPD__) {\n  int _cSub=_neq[1];\n");
   } else if (show_ode == 3){
-    fprintf(outpt, "// Functional based initial conditions.\nvoid %sinis(int _cSub, double *__zzStateVar__){\n  double t=0;\n",model_prefix);
+    fprintf(outpt, "// Functional based initial conditions.\nvoid __INIS__(int _cSub, double *__zzStateVar__){\n  double t=0;\n");
   } else {
-    fprintf(outpt, "// prj-specific derived vars\nvoid %scalc_lhs(int _cSub, double t, double *__zzStateVar__, double *_lhs) {\n",model_prefix);
+    fprintf(outpt, "// prj-specific derived vars\nvoid __CALC_LHS__(int _cSub, double t, double *__zzStateVar__, double *_lhs) {\n");
   }
   if (found_print){
     fprintf(outpt,"\n  int __print_ode__ = 0, __print_vars__ = 0,__print_parm__ = 0,__print_jac__ = 0;\n");
@@ -1698,8 +1691,8 @@ void codegen(FILE *outpt, int show_ode) {
       fprintf(outpt," = __zzStateVar__[%d];\n", i);
     }
     fprintf(outpt,"\n");
-    fpIO = fopen(out2, "r");
-    err_msg((intptr_t) fpIO, "Error parsing. (Couldn't access out2.txt).\n", -1);
+    fpIO = fopen(parseFile, "r");
+    err_msg((intptr_t) fpIO, "Error parsing. (Couldn't access parseFile.txt).\n", -1);
 
     while(fgets(sLine, MXLEN, fpIO)) {  /* parsed eqns */
       char *s;
@@ -2037,8 +2030,9 @@ void reset (){
   sbt.o = 0;
 }
 
-void trans_internal(char *orig_file, char* parse_file, char* c_file){
-  char *buf, *infile;
+void trans_internal(char* parse_file, char* c_file, int isStr){
+  REprintf("TRANS!!! (%d)\n",isStr);
+  char *buf;
   char buf1[512], buf2[512], bufe[2048];
   int i,j,found,islhs;
   D_ParseNode *pn;
@@ -2046,15 +2040,17 @@ void trans_internal(char *orig_file, char* parse_file, char* c_file){
      below 1024 is used */
   D_Parser *p = new_D_Parser(&parser_tables_RxODE, 1024);
   p->save_parse_tree = 1;
-  buf = r_sbuf_read(parse_file);
-  infile = r_sbuf_read(orig_file);
-
-  err_msg((intptr_t) buf, "error: empty buf for FILE_to_parse\n", -2);
+  if (isStr){
+    buf = parse_file;
+  } else {
+      buf = r_sbuf_read(parse_file);
+      err_msg((intptr_t) buf, "error: empty buf for FILE_to_parse\n", -2);
+  }
   if ((pn=dparse(p, buf, (int)strlen(buf))) && !p->syntax_errors) {
-    fpIO = fopen( out2, "w" );
-    fpIO2 = fopen( out3, "w" );
-    err_msg((intptr_t) fpIO, "error opening out2.txt\n", -2);
-    err_msg((intptr_t) fpIO2, "error opening out3.txt\n", -2);
+    fpIO = fopen( parseFile, "w" );
+    fpIO2 = fopen( normModel, "w" );
+    err_msg((intptr_t) fpIO, "error opening parseFile.txt\n", -2);
+    err_msg((intptr_t) fpIO2, "error opening normModel.txt\n", -2);
     wprint_parsetree(parser_tables_RxODE, pn, 0, wprint_node, NULL);
     fclose(fpIO);
     fclose(fpIO2);
@@ -2111,7 +2107,7 @@ void trans_internal(char *orig_file, char* parse_file, char* c_file){
     codegen(fpIO, 2);
     codegen(fpIO, 3);
     codegen(fpIO, 0);
-    print_aux_info(fpIO,buf, infile);
+    print_aux_info(fpIO,buf);
     fclose(fpIO);
   } else {
     rx_syntax_error = 1;
@@ -2119,15 +2115,16 @@ void trans_internal(char *orig_file, char* parse_file, char* c_file){
   free_D_Parser(p);
 }
 
-SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_md5,
-           SEXP parse_model,SEXP parse_model3){
-  char *in, *orig, *out, *file, *pfile;
+SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_md5,
+           SEXP parse_model,SEXP parse_model3, SEXP parseStr){
+  char *in, *out, *file, *pfile;
   char buf[1024], buf2[512], df[128], dy[128];
   char snum[512];
   char *s2;
   char sLine[MXLEN+1];
   int i, j, islhs, pi=0, li=0, ini_i = 0,o2=0,k=0, l=0;
   double d;
+  int isStr =INTEGER(parseStr)[0];
   reset(); 
   rx_syntax_assign = R_get_option("RxODE.syntax.assign",1);
   rx_syntax_star_pow = R_get_option("RxODE.syntax.star.pow",1);
@@ -2145,9 +2142,6 @@ SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP pref
   if (!isString(parse_file) || length(parse_file) != 1){
     error("parse_file is not a single string");
   }
-  if (!isString(orig_file) || length(orig_file) != 1){
-    error("orig_file is not a single string");
-  }
   if (!isString(c_file) || length(c_file) != 1){
     error("c_file is not a single string");
   }
@@ -2163,7 +2157,7 @@ SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP pref
     extra_buf[0] = '\0';
   }
 
-  orig = r_dup_str(CHAR(STRING_ELT(orig_file,0)),0);
+  /* orig = r_dup_str(CHAR(STRING_ELT(orig_file,0)),0); */
   in = r_dup_str(CHAR(STRING_ELT(parse_file,0)),0);
   out = r_dup_str(CHAR(STRING_ELT(c_file,0)),0);
   
@@ -2181,18 +2175,18 @@ SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP pref
   }
   
   if (isString(parse_model) && length(parse_model) == 1){
-    out2 = r_dup_str(CHAR(STRING_ELT(parse_model,0)),0);
+    parseFile = r_dup_str(CHAR(STRING_ELT(parse_model,0)),0);
   } else {
     error("Parse model must be specified.");
   }
 
 
   if (isString(parse_model3) && length(parse_model3) == 1){
-    out3 = r_dup_str(CHAR(STRING_ELT(parse_model3,0)),0);
+    normModel = r_dup_str(CHAR(STRING_ELT(parse_model3,0)),0);
   } else {
     error("Parse model 3 must be specified.");
   }
-  trans_internal(orig, in, out);
+  trans_internal(in, out, isStr);
   int pro = 0;
   SEXP lst   = PROTECT(allocVector(VECSXP, 11));pro++;
   SEXP names = PROTECT(allocVector(STRSXP, 11));pro++;
@@ -2215,8 +2209,8 @@ SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP pref
   SEXP inin   = PROTECT(allocVector(STRSXP, tb.ini_i));pro++;
   SEXP ini    = PROTECT(allocVector(REALSXP, tb.ini_i));pro++;
 
-  SEXP model  = PROTECT(allocVector(STRSXP,4));pro++;
-  SEXP modeln = PROTECT(allocVector(STRSXP,4));pro++;
+  SEXP model  = PROTECT(allocVector(STRSXP,2));pro++;
+  SEXP modeln = PROTECT(allocVector(STRSXP,2));pro++;
 
   k=0;j=0;l=0;
   for (i=0; i<tb.nd; i++) {                     /* name state vars */
@@ -2383,8 +2377,8 @@ SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP pref
   SET_STRING_ELT(trann,18,mkChar("dydt_liblsoda"));
   SET_STRING_ELT(tran, 18,mkChar(buf));
   
-  fpIO2 = fopen(out2, "r");
-  err_msg((intptr_t) fpIO2, "Error parsing. (Couldn't access out2.txt).\n", -1);
+  fpIO2 = fopen(parseFile, "r");
+  err_msg((intptr_t) fpIO2, "Error parsing. (Couldn't access parseFile.txt).\n", -1);
   while(fgets(sLine, MXLEN, fpIO2)) {
     s2 = strstr(sLine,"(__0__)");
     if (s2){
@@ -2434,22 +2428,10 @@ SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP pref
       }
     }
   }
-  file = r_sbuf_read(orig);
-  pfile = (char *) R_alloc((int)strlen(file)+1,sizeof(char));
-  j=0;
-  for (i = 0; i < (int)strlen(file); i++){
-    if (file[i] == '"'  ||
-        file[i] == '\n' ||
-        file[i] == '\t' ||
-        (file[i] >= 32 && file[i] <= 126)){
-      sprintf(pfile+(j++),"%c",file[i]);
-    }
-  }
-  SET_STRING_ELT(modeln,0,mkChar("model"));
-  SET_STRING_ELT(model,0,mkChar(pfile));
   
-  SET_STRING_ELT(modeln,1,mkChar("normModel"));
-  file = r_sbuf_read(out3);
+  
+  SET_STRING_ELT(modeln,0,mkChar("normModel"));
+  file = r_sbuf_read(normModel);
   if (file){
     pfile = (char *) R_alloc((int)strlen(file)+1,sizeof(char));
     j=0;
@@ -2461,13 +2443,13 @@ SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP pref
         sprintf(pfile+(j++),"%c",file[i]);
       }
     }
-    SET_STRING_ELT(model,1,mkChar(pfile));
+    SET_STRING_ELT(model,0,mkChar(pfile));
   } else {
-    SET_STRING_ELT(model,1,mkChar("Syntax Error"));
+    SET_STRING_ELT(model,0,mkChar("Syntax Error"));
   }
   /* printf("parseModel\n"); */
-  SET_STRING_ELT(modeln,2,mkChar("parseModel"));
-  file = r_sbuf_read(out2);
+  SET_STRING_ELT(modeln,1,mkChar("parseModel"));
+  file = r_sbuf_read(parseFile);
   if (file){
     pfile = (char *) R_alloc((int)strlen(file)+1,sizeof(char));
     j=0;
@@ -2479,24 +2461,11 @@ SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP pref
         sprintf(pfile+(j++),"%c",file[i]);
       }
     }
-    SET_STRING_ELT(model,2,mkChar(pfile));
+    SET_STRING_ELT(model,1,mkChar(pfile));
   } else {
-    SET_STRING_ELT(model,2,mkChar("Syntax Error"));
+    SET_STRING_ELT(model,1,mkChar("Syntax Error"));
   }
 
-  file = r_sbuf_read(in);
-  pfile = (char *) R_alloc((int)strlen(file)+1,sizeof(char));
-  j=0;
-  for (i = 0; i < (int)strlen(file); i++){
-    if (file[i] == '"'  ||
-        file[i] == '\n' ||
-        file[i] == '\t' ||
-        (file[i] >= 32 && file[i] <= 126)){
-      sprintf(pfile+(j++),"%c",file[i]);
-    }
-  }
-  SET_STRING_ELT(modeln,3,mkChar("expandModel"));
-  SET_STRING_ELT(model,3,mkChar(pfile));
   
   setAttrib(ini,   R_NamesSymbol, inin);
   setAttrib(tran,  R_NamesSymbol, trann);
@@ -2507,7 +2476,7 @@ SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP pref
   classgets(lst, cls);
   
   UNPROTECT(pro);
-  remove(out3);
+  remove(normModel);
   if (rx_syntax_error){
     error("Syntax Errors (see above)");
   }

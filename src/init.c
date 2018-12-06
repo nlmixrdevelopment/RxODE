@@ -19,7 +19,7 @@ SEXP _rxTick();
 SEXP _rxProgressStop(SEXP);
 SEXP _rxProgressAbort();
 
-SEXP trans(SEXP orig_file, SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SEXP parse_model,SEXP parse_model3);
+SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SEXP parse_model,SEXP parse_model3, SEXP isStr);
 SEXP _RxODE_RcppExport_registerCCallable();
 SEXP _RxODE_setRstudio(SEXP);
 SEXP _RxODE_rxSolveFree();

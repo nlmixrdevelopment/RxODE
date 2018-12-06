@@ -344,7 +344,10 @@ List rxModelVars_(const RObject &obj){
     CharacterVector modList = as<CharacterVector>(obj);
     if (modList.size() == 1){
       std::string sobj =as<std::string>(obj);
-      if ((sobj.find("=") == std::string::npos) &&
+      if (fileExists(sobj)){
+	Function f = getRxFn(".rxModelVarsCharacter");
+	return f(obj);
+      } else if ((sobj.find("=") == std::string::npos) &&
 	  (sobj.find("<-") == std::string::npos) &&
           (sobj.find("~") == std::string::npos)){
         if (_rxModels.exists(sobj)){
