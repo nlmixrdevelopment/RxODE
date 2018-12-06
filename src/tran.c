@@ -278,8 +278,8 @@ sbuf sb;                        /* buffer w/ current parsed & translated line */
                                 /* to be stored in a temp file */
 sbuf sbt; 
 
-char *extra_buf, *model_prefix, *md5, *parseFile, *normModel;
-int normModelI = 0;
+char *extra_buf, *model_prefix, *md5, *parseModel, *normModel;
+int normModelI = 0, parseModelI;
 
 static FILE *fpIO, *normFile;
 
@@ -672,11 +672,13 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         found_print = 1;
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
         if  (!strncmp(v,"print",5)){
-          fprintf(fpIO,"full_print;\n");
+	  sprintf(parseModel+parseModelI,"full_print;\n");
+	  parseModelI+=12;
 	  sprintf(normModel+normModelI,"print;\n");
 	  normModelI+=7;
         } else {
-          fprintf(fpIO, "%s;\n", v);
+	  sprintf(parseModel+parseModelI, "%s;\n", v);
+	  parseModelI+=strlen(v)+2;
 	  sprintf(normModel+normModelI, "%s;\n", v);
 	  normModelI+=strlen(v)+2;
         }
@@ -726,7 +728,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
           sbt.o = (int)strlen(sbt.s);
         }
         if (i == 4){
-          fprintf(fpIO,  "%s;\n", sb.s);
+	  sprintf(parseModel+parseModelI, "%s;\n", sb.s);
+	  parseModelI+=strlen(sb.s)+2;
 	  sprintf(normModel+normModelI, "%s;\n", sbt.s);
 	  normModelI+=strlen(sbt.s)+2;
         }
@@ -868,13 +871,15 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         sb.o += 2;
         sprintf(SBTPTR, "{");
         sbt.o += 1;
-        fprintf(fpIO,  "%s\n", sb.s);
-	sprintf(normModel+normModelI, "%s;\n", sbt.s);
+	sprintf(parseModel+parseModelI, "%s\n", sb.s);
+	parseModelI+=strlen(sb.s)+1;
+	sprintf(normModel+normModelI, "%s\n", sbt.s);
 	normModelI+=strlen(sbt.s)+1;
         continue;
       }
       if (!strcmp("selection_statement__8", name) && i==0) {
-        fprintf(fpIO,  "}\nelse {\n");
+	sprintf(parseModel+parseModelI, "}\nelse {\n");
+	parseModelI+=9;
 	sprintf(normModel+normModelI, "}\nelse {\n");
 	normModelI+=9;
         continue;
@@ -1097,7 +1102,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 
     if (!strcmp("assignment", name) || !strcmp("ini", name) || !strcmp("derivative", name) || !strcmp("jac",name) || !strcmp("dfdy",name) ||
         !strcmp("ini0",name) || !strcmp("ini0f",name)){
-      fprintf(fpIO, "%s;\n", sb.s);
+      sprintf(parseModel+parseModelI, "%s;\n", sb.s);
+      parseModelI+=strlen(sb.s)+2;
       sprintf(normModel+normModelI, "%s;\n", sbt.s);
       normModelI+=strlen(sbt.s)+2;
     }
@@ -1117,7 +1123,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
     }
     
     if (!strcmp("selection_statement", name)){
-      fprintf(fpIO, "}\n");
+      sprintf(parseModel+parseModelI, "}\n");
+      parseModelI+=2;
       sprintf(normModel+normModelI, "}\n");
       normModelI+=2;
     }
@@ -1403,11 +1410,10 @@ void print_aux_info(FILE *outpt, char *model){
   }
   fprintf(outpt,"\"));\n");
   
-  normFile = fopen(parseFile, "r");
   s_aux_info[0] = '\0';
   o    = 0;
-  err_msg((intptr_t) normFile, "Error parsing. (Couldn't access parseFile.txt).\n", -1);
-  while(fgets(sLine, MXLEN, normFile)) { 
+  char **p = &parseModel;
+  while(sgets(sLine, MXLEN, p)) { 
     s2 = strstr(sLine,"(__0__)");
     if (s2){
       // See if this is a reclaimed initilization variable.
@@ -1594,7 +1600,6 @@ void codegen(FILE *outpt, int show_ode) {
   char buf[64];
   char from[512], to[512], df[128], dy[128], state[128];
   char *s2;
-  FILE *fpIO;
   char *hdft[]=
     {
       "\n// prj-specific differential eqns\nvoid ",
@@ -1673,10 +1678,8 @@ void codegen(FILE *outpt, int show_ode) {
       fprintf(outpt," = __zzStateVar__[%d];\n", i);
     }
     fprintf(outpt,"\n");
-    fpIO = fopen(parseFile, "r");
-    err_msg((intptr_t) fpIO, "Error parsing. (Couldn't access parseFile.txt).\n", -1);
-
-    while(fgets(sLine, MXLEN, fpIO)) {  /* parsed eqns */
+    char **p = &parseModel;
+    while(sgets(sLine, MXLEN, p)) {  /* parsed eqns */
       char *s;
       s = strstr(sLine,"(__0__)");
       if (s){
@@ -1874,7 +1877,6 @@ void codegen(FILE *outpt, int show_ode) {
       s2=NULL;
       fprintf(outpt, "  %s", sLine);
     }
-    fclose(fpIO);
   }
   if (print_ode && show_ode != 0){
     fprintf(outpt,"  if (__print_ode__ == 1){\n");
@@ -2030,12 +2032,10 @@ void trans_internal(char* parse_file, char* c_file, int isStr){
   }
   normModel = (char *) R_alloc((int)(strlen(buf)*1.1)+1,sizeof(char));
   normModelI=0;
+  parseModel = (char *) R_alloc((int)(strlen(buf)*1.1)+1,sizeof(char));
+  parseModelI=0;
   if ((pn=dparse(p, buf, (int)strlen(buf))) && !p->syntax_errors) {
-    fpIO = fopen( parseFile, "w" );
-    err_msg((intptr_t) fpIO, "error opening parseFile.txt\n", -2);
     wprint_parsetree(parser_tables_RxODE, pn, 0, wprint_node, NULL);
-    fclose(fpIO);
-    fclose(normFile);
     // Determine Jacobian vs df/dvar
     for (i=0; i<tb.ndfdy; i++) {                     /* name state vars */
       retieve_var(tb.df[i], buf1);
@@ -2097,9 +2097,8 @@ void trans_internal(char* parse_file, char* c_file, int isStr){
   free_D_Parser(p);
 }
 
-SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_md5,
-           SEXP parse_model,SEXP parseStr){
-  char *in, *out, *file, *pfile;
+SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SEXP parseStr){
+  char *in, *out;
   char buf[1024], buf2[512], df[128], dy[128];
   char snum[512];
   char *s2;
@@ -2151,12 +2150,6 @@ SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_m
   } else {
     md5 = R_alloc(1,sizeof(char));
     md5[0] = '\0';
-  }
-  
-  if (isString(parse_model) && length(parse_model) == 1){
-    parseFile = r_dup_str(CHAR(STRING_ELT(parse_model,0)),0);
-  } else {
-    error("Parse model must be specified.");
   }
   
   trans_internal(in, out, isStr);
@@ -2350,9 +2343,8 @@ SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_m
   SET_STRING_ELT(trann,18,mkChar("dydt_liblsoda"));
   SET_STRING_ELT(tran, 18,mkChar(buf));
   
-  normFile = fopen(parseFile, "r");
-  err_msg((intptr_t) normFile, "Error parsing. (Couldn't access parseFile.txt).\n", -1);
-  while(fgets(sLine, MXLEN, normFile)) {
+  char **p = &parseModel;
+  while(sgets(sLine, MXLEN, p)) {
     s2 = strstr(sLine,"(__0__)");
     if (s2){
       // See if this is a reclaimed initilization variable.

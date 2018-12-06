@@ -334,9 +334,9 @@ RxODE <- function(model, modName = basename(wd),
         ##     model <- paste(model[-length(model)], collapse="\n");
         ## }
     }
-    if (file.exists(model)){
-        model <- suppressWarnings(paste(readLines(model), collapse="\n"));
-    }
+    ## if (file.exists(model)){
+    ##     model <- suppressWarnings(paste(readLines(model), collapse="\n"));
+    ## }
     .env <- new.env(parent=loadNamespace("RxODE"))
     .env$.mv <- rxGetModel(model, calcSens = calcSens, calcJac = calcJac, collapseModel = collapseModel);
     .env$.mv <- rxLinCmtTrans(.env$.mv);
@@ -994,20 +994,18 @@ rxTrans.character <- function(model,
                               ...){
     ## rxTrans returns a list of compiled properties
     if (file.exists(model)){
-        if (missing(md5)){
-            md5 <- rxMd5(model, extraC)$digest
-        }
         .isStr <- 0L;
     } else {
-        if (missing(md5)){
-            md5 <- rxMd5(model, extraC)$digest
-        }
         .isStr <- 1L;
     }
-    .parseModel <- tempfile("parseModel3");
-    on.exit(unlink(.parseModel));
+    if (missing(md5)){
+        md5 <- rxMd5(model, extraC)$digest
+    }
+    print(model)
+    print(.isStr);
+    stop();
     RxODE::rxReq("dparser");
-    .ret <- try(.Call(trans, model, cFile, extraC, modelPrefix, md5, .parseModel, .isStr, PACKAGE="RxODE"));
+    .ret <- try(.Call(trans, model, cFile, extraC, modelPrefix, md5, .isStr, PACKAGE="RxODE"));
     if (inherits(.ret, "try-error")){
         message("Model")
         message(suppressWarnings(readLines(model)))
