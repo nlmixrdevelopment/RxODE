@@ -470,7 +470,6 @@ RxODE <- function(model, modName = basename(wd),
     .env$cmpMgr <- tmp;
     .env$calcJac <- (length(.mv$dfdy) > 0);
     .env$calcSens <- (length(.mv$sens) > 0)
-    print(.mv$trans["prefix"]);
     assign(.mv$trans["prefix"], .env, getFromNamespace(".rxModels", "RxODE"));
     class(.env) <- "RxODE"
     RxODE::rxForget();
@@ -1023,7 +1022,7 @@ rxTrans.character <- function(model,
     .ret$md5 <- md5
     ## dparser::dpReload();
     ## rxReload()
-    if (file.exists(cFile)){
+    if (file.exists(cFile[1])){
         .ret$md5 <- md5
         if (modVars){
             return(.ret)
@@ -1201,7 +1200,7 @@ rxCompile.rxModelVars <-  function(model, # Model
             cat(sprintf("#define __R_INIT__ R_init_%s\n", gsub(.Platform$dynlib.ext, "", basename(.cDllFile))))
             cat(sprintf("#define __R_UNLOAD__ R_unload_%s\n", gsub(.Platform$dynlib.ext, "", basename(.cDllFile))))
             cat(sprintf("#define __TIMEID__ %s\n", as.integer(Sys.time())))
-            cat(sprintf("#include \"%s\"\n", get(.mv$md5["file_md5"], envir=.rxModelVarsCCache)[[1]]));
+            cat(sprintf("#include \"%s\"\n", get(.mv$md5["file_md5"], envir=.rxModelVarsCCache)[[1]][1]));
             sink();
             sink(.Makevars);
             .ret <- ""
@@ -1415,7 +1414,8 @@ rxNorm <- function(obj, condition=NULL, removeInis, removeJac, removeSens){
         } else {
             .parseModel <- paste(obj, collapse="\n");
         }
-        .ret <- rxTrans(.parseModel, modelPrefix=.prefix, .cFile, modVars=TRUE);
+        .cFile <- paste0(.cFile, 1:5);
+        .ret <- rxTrans(.parseModel, modelPrefix=.prefix, cFile=.cFile, modVars=TRUE);
         .cFile <- list(.cFile, .exists, ifelse(.exists, obj, ""), .prefix);
         assign(.ret$md5["parsed_md5"], .cFile, envir=.rxModelVarsCCache);
         assign(.ret$md5["file_md5"], .cFile, envir=.rxModelVarsCCache);

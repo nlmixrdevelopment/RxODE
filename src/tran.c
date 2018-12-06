@@ -280,7 +280,7 @@ sbuf sbt;
 
 char *extra_buf, *model_prefix, *md5, *parseFile, *normModel;
 
-static FILE *fpIO, *fpIO2;
+static FILE *fpIO, *normFile;
 
 /* new symbol? if no, find it's ith */
 int new_or_ith(const char *s) {
@@ -672,10 +672,10 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
         if  (!strncmp(v,"print",5)){
           fprintf(fpIO,"full_print;\n");
-          fprintf(fpIO2,"print;\n");
+          fprintf(normFile,"print;\n");
         } else {
           fprintf(fpIO, "%s;\n", v);
-          fprintf(fpIO2,"%s;\n", v);
+          fprintf(normFile,"%s;\n", v);
         }
         /* sprintf(sb.s,"%s",v); */
         /* sb.o = str; */
@@ -724,7 +724,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         }
         if (i == 4){
           fprintf(fpIO,  "%s;\n", sb.s);
-          fprintf(fpIO2, "%s;\n", sbt.s);
+          fprintf(normFile, "%s;\n", sbt.s);
         }
         Free(v);
         continue;
@@ -865,12 +865,12 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         sprintf(SBTPTR, "{");
         sbt.o += 1;
         fprintf(fpIO,  "%s\n", sb.s);
-        fprintf(fpIO2, "%s\n", sbt.s);
+        fprintf(normFile, "%s\n", sbt.s);
         continue;
       }
       if (!strcmp("selection_statement__8", name) && i==0) {
         fprintf(fpIO,  "}\nelse {\n");
-        fprintf(fpIO2, "}\nelse {\n");
+        fprintf(normFile, "}\nelse {\n");
         continue;
       }
 
@@ -1092,7 +1092,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
     if (!strcmp("assignment", name) || !strcmp("ini", name) || !strcmp("derivative", name) || !strcmp("jac",name) || !strcmp("dfdy",name) ||
         !strcmp("ini0",name) || !strcmp("ini0f",name)){
       fprintf(fpIO, "%s;\n", sb.s);
-      fprintf(fpIO2, "%s;\n", sbt.s);
+      fprintf(normFile, "%s;\n", sbt.s);
     }
 
     if (!rx_syntax_assign && (!strcmp("assignment", name) || !strcmp("ini", name) || !strcmp("ini0",name) || !strcmp("ini0f",name))){
@@ -1111,7 +1111,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
     
     if (!strcmp("selection_statement", name)){
       fprintf(fpIO, "}\n");
-      fprintf(fpIO2, "}\n");
+      fprintf(normFile, "}\n");
     }
     
     if (!strcmp("power_expression", name)) {
@@ -1326,8 +1326,8 @@ void print_aux_info(FILE *outpt, char *model){
   fprintf(outpt,"    SEXP trann    = PROTECT(allocVector(STRSXP, 14));pro++;\n");
   fprintf(outpt,"    SEXP mmd5     = PROTECT(allocVector(STRSXP, 2));pro++;\n");
   fprintf(outpt,"    SEXP mmd5n    = PROTECT(allocVector(STRSXP, 2));pro++;\n");
-  fprintf(outpt,"    SEXP model    = PROTECT(allocVector(STRSXP, 2));pro++;\n");
-  fprintf(outpt,"    SEXP modeln   = PROTECT(allocVector(STRSXP, 2));pro++;\n");
+  fprintf(outpt,"    SEXP model    = PROTECT(allocVector(STRSXP, 1));pro++;\n");
+  fprintf(outpt,"    SEXP modeln   = PROTECT(allocVector(STRSXP, 1));pro++;\n");
   fprintf(outpt,"    SEXP solve    = PROTECT(allocVector(VECSXP, 4));pro++;\n");
   fprintf(outpt,"    SEXP solven   = PROTECT(allocVector(STRSXP, 4));pro++;\n");
   fprintf(outpt,"    SEXP initsr   = PROTECT(allocVector(REALSXP, %d));pro++;\n",statei);
@@ -1362,11 +1362,11 @@ void print_aux_info(FILE *outpt, char *model){
   tb.statei = statei;
   tb.sensi  = sensi;
   fprintf(outpt,"    SET_STRING_ELT(modeln,0,mkChar(\"normModel\"));\n");
-  fpIO2 = fopen(normModel , "r");
+  normFile = fopen(normModel , "r");
   fprintf(outpt,"    SET_STRING_ELT(model,0,mkChar(\"");
-  err_msg((intptr_t) fpIO2, "Error parsing. (Couldn't access normModel.txt).\n", -1);
+  err_msg((intptr_t) normFile, "Error parsing. (Couldn't access normModel.txt).\n", -1);
   in_str=0;
-  while(fgets(sLine, MXLEN, fpIO2)) {  /* Prefered RxODE -- for igraph */
+  while(fgets(sLine, MXLEN, normFile)) {  /* Prefered RxODE -- for igraph */
     for (i = 0; i < (int)strlen(sLine); i++){
       if (sLine[i] == '"'){
 	if (in_str==1){
@@ -1397,35 +1397,14 @@ void print_aux_info(FILE *outpt, char *model){
       }
     }
   }
-  fclose(fpIO2);
+  fclose(normFile);
   fprintf(outpt,"\"));\n");
-
-  fpIO2 = fopen(parseFile, "r");
-  fprintf(outpt,"    SET_STRING_ELT(modeln,1,mkChar(\"parseModel\"));\n");
-  fprintf(outpt,"    SET_STRING_ELT(model,1,mkChar(\"");
-  err_msg((intptr_t) fpIO2, "Error parsing. (Couldn't access parseFile.txt).\n", -1);
-  while(fgets(sLine, MXLEN, fpIO2)) {  /* Prefered RxODE -- for igraph */
-    for (i = 0; i < (int)strlen(sLine); i++){
-      if (sLine[i] == '"'){
-        fprintf(outpt,"\\\"");
-      } else if (sLine[i] == '\n'){
-        fprintf(outpt,"\\n");
-      } else if (sLine[i] == '\t'){
-        fprintf(outpt,"\\t");
-      } else if (sLine[i] == '\\'){
-        fprintf(outpt,"\\\\");
-      } else if (sLine[i] >= 32  && sLine[i] <= 126){ // ASCII only
-        fprintf(outpt,"%c",sLine[i]);
-      }
-    }
-  }
-  fclose(fpIO2);
-  fprintf(outpt,"\"));\n");
-  fpIO2 = fopen(parseFile, "r");
+  
+  normFile = fopen(parseFile, "r");
   s_aux_info[0] = '\0';
   o    = 0;
-  err_msg((intptr_t) fpIO2, "Error parsing. (Couldn't access parseFile.txt).\n", -1);
-  while(fgets(sLine, MXLEN, fpIO2)) { 
+  err_msg((intptr_t) normFile, "Error parsing. (Couldn't access parseFile.txt).\n", -1);
+  while(fgets(sLine, MXLEN, normFile)) { 
     s2 = strstr(sLine,"(__0__)");
     if (s2){
       // See if this is a reclaimed initilization variable.
@@ -1461,7 +1440,7 @@ void print_aux_info(FILE *outpt, char *model){
       continue;
     }
   }
-  fclose(fpIO2);
+  fclose(normFile);
   // putin constants
   for (i=0; i<tb.nv; i++) {
     if (tb.ini[i] == 0 && tb.lh[i] != 1) {
@@ -2048,12 +2027,12 @@ void trans_internal(char* parse_file, char* c_file, int isStr){
   }
   if ((pn=dparse(p, buf, (int)strlen(buf))) && !p->syntax_errors) {
     fpIO = fopen( parseFile, "w" );
-    fpIO2 = fopen( normModel, "w" );
+    normFile = fopen( normModel, "w" );
     err_msg((intptr_t) fpIO, "error opening parseFile.txt\n", -2);
-    err_msg((intptr_t) fpIO2, "error opening normModel.txt\n", -2);
+    err_msg((intptr_t) normFile, "error opening normModel.txt\n", -2);
     wprint_parsetree(parser_tables_RxODE, pn, 0, wprint_node, NULL);
     fclose(fpIO);
-    fclose(fpIO2);
+    fclose(normFile);
     // Determine Jacobian vs df/dvar
     for (i=0; i<tb.ndfdy; i++) {                     /* name state vars */
       retieve_var(tb.df[i], buf1);
@@ -2139,11 +2118,8 @@ SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_m
   set_d_rdebug_grammar_level(0);
   set_d_verbose_level(0);
   rx_podo = 0;
-  if (!isString(parse_file) || length(parse_file) != 1){
-    error("parse_file is not a single string");
-  }
-  if (!isString(c_file) || length(c_file) != 1){
-    error("c_file is not a single string");
+  if (!isString(c_file) || length(c_file) != 5){
+    error("c_file does not contain 5 files");
   }
   if (isString(extra_c) && length(extra_c) == 1){
     in = r_dup_str(CHAR(STRING_ELT(extra_c,0)),0);
@@ -2209,8 +2185,8 @@ SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_m
   SEXP inin   = PROTECT(allocVector(STRSXP, tb.ini_i));pro++;
   SEXP ini    = PROTECT(allocVector(REALSXP, tb.ini_i));pro++;
 
-  SEXP model  = PROTECT(allocVector(STRSXP,2));pro++;
-  SEXP modeln = PROTECT(allocVector(STRSXP,2));pro++;
+  SEXP model  = PROTECT(allocVector(STRSXP,1));pro++;
+  SEXP modeln = PROTECT(allocVector(STRSXP,1));pro++;
 
   k=0;j=0;l=0;
   for (i=0; i<tb.nd; i++) {                     /* name state vars */
@@ -2377,9 +2353,9 @@ SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_m
   SET_STRING_ELT(trann,18,mkChar("dydt_liblsoda"));
   SET_STRING_ELT(tran, 18,mkChar(buf));
   
-  fpIO2 = fopen(parseFile, "r");
-  err_msg((intptr_t) fpIO2, "Error parsing. (Couldn't access parseFile.txt).\n", -1);
-  while(fgets(sLine, MXLEN, fpIO2)) {
+  normFile = fopen(parseFile, "r");
+  err_msg((intptr_t) normFile, "Error parsing. (Couldn't access parseFile.txt).\n", -1);
+  while(fgets(sLine, MXLEN, normFile)) {
     s2 = strstr(sLine,"(__0__)");
     if (s2){
       // See if this is a reclaimed initilization variable.
@@ -2416,7 +2392,7 @@ SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_m
       continue;
     }
   }
-  fclose(fpIO2);
+  fclose(normFile);
   // putin constants
   for (i=0; i<tb.nv; i++) {
     if (tb.ini[i] == 0 && tb.lh[i] != 1) {
@@ -2448,24 +2424,6 @@ SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_m
     SET_STRING_ELT(model,0,mkChar("Syntax Error"));
   }
   /* printf("parseModel\n"); */
-  SET_STRING_ELT(modeln,1,mkChar("parseModel"));
-  file = r_sbuf_read(parseFile);
-  if (file){
-    pfile = (char *) R_alloc((int)strlen(file)+1,sizeof(char));
-    j=0;
-    for (i = 0; i < (int)strlen(file); i++){
-      if (file[i] == '"'  ||
-          file[i] == '\n' ||
-          file[i] == '\t' ||
-          (file[i] >= 32 && file[i] <= 126)){
-        sprintf(pfile+(j++),"%c",file[i]);
-      }
-    }
-    SET_STRING_ELT(model,1,mkChar(pfile));
-  } else {
-    SET_STRING_ELT(model,1,mkChar("Syntax Error"));
-  }
-
   
   setAttrib(ini,   R_NamesSymbol, inin);
   setAttrib(tran,  R_NamesSymbol, trann);
