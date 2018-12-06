@@ -1449,7 +1449,6 @@ void print_aux_info(FILE *outpt, char *model){
       continue;
     }
   }
-  fclose(normFile);
   // putin constants
   for (i=0; i<tb.nv; i++) {
     if (tb.ini[i] == 0 && tb.lh[i] != 1) {
@@ -2381,7 +2380,6 @@ SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_m
       continue;
     }
   }
-  fclose(normFile);
   // putin constants
   for (i=0; i<tb.nv; i++) {
     if (tb.ini[i] == 0 && tb.lh[i] != 1) {

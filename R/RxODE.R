@@ -329,10 +329,10 @@ RxODE <- function(model, modName = basename(wd),
             }
             model <- model$.model
         }
-        ## else if ((is(model,"function") || is(model,"call"))){
-        ##     model <- deparse(body(model))[-1];
-        ##     model <- paste(model[-length(model)], collapse="\n");
-        ## }
+        else if ((is(model,"function") || is(model,"call"))){
+            model <- deparse(body(model))[-1];
+            model <- paste(model[-length(model)], collapse="\n");
+        }
     }
     ## if (file.exists(model)){
     ##     model <- suppressWarnings(paste(readLines(model), collapse="\n"));
@@ -1001,9 +1001,6 @@ rxTrans.character <- function(model,
     if (missing(md5)){
         md5 <- rxMd5(model, extraC)$digest
     }
-    print(model)
-    print(.isStr);
-    stop();
     RxODE::rxReq("dparser");
     .ret <- try(.Call(trans, model, cFile, extraC, modelPrefix, md5, .isStr, PACKAGE="RxODE"));
     if (inherits(.ret, "try-error")){
