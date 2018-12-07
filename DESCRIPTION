@@ -51,7 +51,8 @@ Suggests:
     stringi,
     htmltools,
     reticulate,
-    installr
+    installr,
+    sys
 Imports:
     utils,
     methods,

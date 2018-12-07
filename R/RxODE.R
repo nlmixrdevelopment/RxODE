@@ -1203,25 +1203,33 @@ rxCompile.rxModelVars <-  function(model, # Model
             ## .ret <- paste(.ret, "-g");
             cat(.ret);
             sink();
-            .sh <- "system"   # windows's default shell COMSPEC does not handle UNC paths
             ## Change working directory
             setwd(.dir);
             try(dyn.unload(.cDllFile), silent = TRUE);
             try(unlink(.cDllFile));
-            .cmd <- sprintf("%s CMD SHLIB %s", R.home("bin/R"),
-                            basename(.cFile));
-            ## message(.cmd);
-            do.call(.sh, list(.cmd, ignore.stdout=TRUE,
-                              ignore.stderr=TRUE));
+            .cmd <- file.path(R.home("bin"), "R");
+            .args <- c("CMD", "SHLIB", basename(.cFlag));
+            .out <- sys::exec_internal(.cmd, args=.args, error=FALSE);
+            .badBuild <- function(msg){
+                message(msg);
+                message(cli::rule(left="stdout output"));
+                message(paste(out$stdout,sep="\n"))
+                message(cli::rule(left="stderr output"));
+                message(paste(out$stderr,sep="\n"))
+                stop(msg, call.=FALSE);
+            }
+            if (!(.out$status==0 & file.exists(.cDllFile))){
+                .badBuild("Error building model");
+            }
             .tmp <- try(dynLoad(.cDllFile));
             if (inherits(.tmp, "try-error")){
-                stop("Error loading model.")
+                .badBuild("Error loading model");
             }
             .modVars <- sprintf("%smodel_vars", prefix);
             if (is.loaded(.modVars)){
                 .allModVars <- eval(parse(text = sprintf(".Call(\"%s\")", .modVars)), envir = .GlobalEnv)
             } else {
-                stop("Model not compiled correctly.");
+                .badBuild("Error, model doesn't have correct model variables");
             }
         }
     }

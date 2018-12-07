@@ -286,6 +286,7 @@ void normSetN(int n){
   if (n >= normModelN){
     char *tmp1 = (char*)R_alloc(n+1024,sizeof(char));
     memcpy(tmp1,normModel,normModelN);
+    Free(normModel);
     normModelN=n+1024;
     normModel=tmp1;
   }
@@ -295,6 +296,7 @@ void parseSetN(int n){
   if (n >= parseModelN){
     char *tmp1 = (char*)R_alloc(n+1024,sizeof(char));
     memcpy(tmp1,parseModel,parseModelN);
+    Free(parseModel);
     parseModelN=n+1024;
     parseModel=tmp1;
   }
