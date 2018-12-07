@@ -1208,28 +1208,31 @@ rxCompile.rxModelVars <-  function(model, # Model
             try(dyn.unload(.cDllFile), silent = TRUE);
             try(unlink(.cDllFile));
             .cmd <- file.path(R.home("bin"), "R");
-            .args <- c("CMD", "SHLIB", basename(.cFlag));
-            .out <- sys::exec_internal(.cmd, args=.args, error=FALSE);
+            RxODE::rxReq("sys");
+            ## sys::exec_internal increases execution time, so only use it if it fails...
+            .cmd <- paste0(.cmd, " CMD SHLIB ", basename(.cFile));
+            .out <- sys::exec_internal(.cmd, error=FALSE);
             .badBuild <- function(msg){
                 message(msg);
                 message(cli::rule(left="stdout output"));
-                message(paste(out$stdout,sep="\n"))
+                message(paste(rawToChar(.out$stdout),sep="\n"))
                 message(cli::rule(left="stderr output"));
-                message(paste(out$stderr,sep="\n"))
+                message(paste(rawToChar(.out$stderr),sep="\n"))
                 stop(msg, call.=FALSE);
             }
             if (!(.out$status==0 & file.exists(.cDllFile))){
+                .out <- c(sys::exec_internal(.cmd, args=.args, error=FALSE), list(sys=TRUE));
                 .badBuild("Error building model");
             }
             .tmp <- try(dynLoad(.cDllFile));
             if (inherits(.tmp, "try-error")){
-                .badBuild("Error loading model");
+                .badBuild("Error loading model (though dll exists)");
             }
             .modVars <- sprintf("%smodel_vars", prefix);
             if (is.loaded(.modVars)){
                 .allModVars <- eval(parse(text = sprintf(".Call(\"%s\")", .modVars)), envir = .GlobalEnv)
             } else {
-                .badBuild("Error, model doesn't have correct model variables");
+                .badBuild("Error, model doesn't have correct model variables.");
             }
         }
     }
