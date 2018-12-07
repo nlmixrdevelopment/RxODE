@@ -278,33 +278,25 @@ sbuf sb;                        /* buffer w/ current parsed & translated line */
                                 /* to be stored in a temp file */
 sbuf sbt; 
 
-char *extra_buf, *model_prefix, *md5, *parseModel, *normModel;
+char *extra_buf, *model_prefix, *md5, *parseModel = NULL, *normModel = NULL;
 int normModelI = 0, parseModelI =0, normModelN = 0, parseModelN =0;
 
 
 void normSetN(int n){
-  if (n > normModelN){
+  if (n >= normModelN){
+    char *tmp1 = (char*)R_alloc(n+1024,sizeof(char));
+    memcpy(tmp1,normModel,normModelN);
     normModelN=n+1024;
-    char *tmp=Realloc(normModel, n+1024, char);
-    if (tmp != NULL){
-      normModel=tmp;
-    } else {
-      Free(normModel);Free(parseModel);
-      error("Not enough memory to parse.");
-    }
+    normModel=tmp1;
   }
 }
 
 void parseSetN(int n){
-  if (n > parseModelN){
+  if (n >= parseModelN){
+    char *tmp1 = (char*)R_alloc(n+1024,sizeof(char));
+    memcpy(tmp1,parseModel,parseModelN);
     parseModelN=n+1024;
-    char *tmp=Realloc(parseModel, n+1024, char);
-    if (tmp != NULL){
-      parseModel=tmp;
-    } else {
-      Free(parseModel);Free(parseModel);
-      error("Not enough memory to parse.");
-    }
+    parseModel=tmp1;
   }
 }
 
@@ -456,7 +448,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
     
   }
   if (sb.o > MXBUF-20 || sbt.o > MXBUF-20){
-    Free(parseModel); Free(normModel);
     error("The Line is too long for RxODE.");
   }
   if (!strcmp("(", name) ||
@@ -1198,7 +1189,6 @@ void retieve_var(int i, char *buf) {
 void err_msg(int chk, const char *msg, int code)
 {
   if(!chk) {
-    Free(parseModel); Free(normModel);
     error("%s",msg);
   }
 }
@@ -2079,10 +2069,10 @@ void trans_internal(char* parse_file, char* c_file, int isStr){
       buf = r_sbuf_read(parse_file);
       err_msg((intptr_t) buf, "error: empty buf for FILE_to_parse\n", -2);
   }
-  normModelN=parseModelN=(int)(strlen(buf)*1.2)+1;
-  normModel = Calloc(normModelN,char);
+  normModelN=parseModelN=(int)(strlen(buf)*1.5)+1;
+  normModel = (char*)R_alloc(normModelN,sizeof(char));
   normModelI=0;
-  parseModel = Calloc(parseModelN,char);
+  parseModel = (char*)R_alloc(parseModelN,sizeof(char));
   parseModelI=0;
   if ((pn=dparse(p, buf, (int)strlen(buf))) && !p->syntax_errors) {
     wprint_parsetree(parser_tables_RxODE, pn, 0, wprint_node, NULL);
@@ -2171,7 +2161,6 @@ SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_m
   set_d_verbose_level(0);
   rx_podo = 0;
   if (!isString(c_file) || length(c_file) != 5){
-    Free(parseModel); Free(normModel);
     error("c_file does not contain 5 files");
   }
   if (isString(extra_c) && length(extra_c) == 1){
@@ -2193,7 +2182,6 @@ SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_m
   if (isString(prefix) && length(prefix) == 1){
     model_prefix = r_dup_str(CHAR(STRING_ELT(prefix,0)),0);
   } else {
-    Free(parseModel); Free(normModel);
     error("model prefix must be specified");
   }
 
@@ -2458,10 +2446,9 @@ SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_m
   
   UNPROTECT(pro);
   if (rx_syntax_error){
-    Free(parseModel); Free(normModel);
     error("Syntax Errors (see above)");
   }
-  Free(parseModel); Free(normModel);
+  /* Free(parseModel); Free(normModel); */
   return lst;
 }
 
