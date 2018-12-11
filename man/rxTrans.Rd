@@ -8,18 +8,15 @@
 \usage{
 rxTrans(model, cFile = sprintf("\%s.c", gsub("[.][^.]*$", "", model)),
   extraC = NULL, modelPrefix = "", md5 = "", modName = NULL,
-  modVars = FALSE, calcSens = NULL, calcJac = NULL,
-  collapseModel = FALSE, ...)
+  modVars = FALSE, ...)
 
 \method{rxTrans}{default}(model, cFile = sprintf("\%s.c",
   gsub("[.][^.]*$", "", model)), extraC = NULL, modelPrefix = "",
-  md5 = "", modName = NULL, modVars = FALSE, calcSens = NULL,
-  calcJac = NULL, collapseModel = FALSE, ...)
+  md5 = "", modName = NULL, modVars = FALSE, ...)
 
 \method{rxTrans}{character}(model, cFile = sprintf("\%s.c",
   gsub("[.][^.]*$", "", model)), extraC = NULL, modelPrefix = "",
-  md5 = "", modName = NULL, modVars = FALSE, calcSens = NULL,
-  calcJac = NULL, collapseModel = FALSE, ...)
+  md5 = "", modName = NULL, modVars = FALSE, ...)
 }
 \arguments{
 \item{model}{This is the ODE model specification.  It can be:
@@ -58,15 +55,6 @@ simple ASCII alphanumeric characters starting with a letter.}
 
 \item{modVars}{returns the model variables instead of the named
 vector of translated properties.}
-
-\item{calcSens}{boolean indicating if RxODE will calculate the
-sennsitivities according to the specified ODEs.}
-
-\item{calcJac}{boolean indicating if RxODE will calculate the
-Jacobain according to the specified ODEs.}
-
-\item{collapseModel}{boolean indicating if RxODE will remove all
-LHS variables when calculating sensitivities.}
 
 \item{...}{Ignored parameters.}
 }

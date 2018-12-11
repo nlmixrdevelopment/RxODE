@@ -303,7 +303,7 @@ void parseSetN(int n){
 }
 
 
-static FILE *fpIO, *normFile;
+static FILE *fpIO;
 
 /* new symbol? if no, find it's ith */
 int new_or_ith(const char *s) {
@@ -2139,7 +2139,7 @@ void trans_internal(char* parse_file, char* c_file, int isStr){
   free_D_Parser(p);
 }
 
-SEXP trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SEXP parseStr){
+SEXP _RxODE_trans(SEXP parse_file, SEXP c_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SEXP parseStr){
   char *in, *out;
   char buf[1024], buf2[512], df[128], dy[128];
   char snum[512];

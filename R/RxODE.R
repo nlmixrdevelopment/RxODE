@@ -1002,7 +1002,7 @@ rxTrans.character <- function(model,
         md5 <- rxMd5(model, extraC)$digest
     }
     RxODE::rxReq("dparser");
-    .ret <- try(.Call(trans, model, cFile, extraC, modelPrefix, md5, .isStr, PACKAGE="RxODE"));
+    .ret <- try(.Call(`_RxODE_trans`, model, cFile, extraC, modelPrefix, md5, .isStr, PACKAGE="RxODE"));
     if (inherits(.ret, "try-error")){
         message("Model")
         message(suppressWarnings(readLines(model)))
@@ -1211,13 +1211,25 @@ rxCompile.rxModelVars <-  function(model, # Model
             RxODE::rxReq("sys");
             ## sys::exec_internal increases execution time, so only use it if it fails...
             .cmd <- paste0(.cmd, " CMD SHLIB ", basename(.cFile));
-            .out <- sys::exec_internal(.cmd, error=FALSE);
+            if (!requireNamespace("sys", quietly = TRUE)){
+                .out <- try(system(.cmd, ignore.stdout = TRUE, ignore.sterr = TRUE));
+                if (inherits(.out, "try-error")){
+                    .out <- list(stderr = "", stderr = "Error building", sys = FALSE, status = 1)
+                } else {
+                    .out <- list(stderr = "", stderr = "", sys = FALSE, status = 0)
+
+                }
+            } else {
+                .out <- c(sys::exec_internal(.cmd, error=FALSE), sys = TRUE);
+            }
             .badBuild <- function(msg){
                 message(msg);
-                message(cli::rule(left="stdout output"));
-                message(paste(rawToChar(.out$stdout),sep="\n"))
-                message(cli::rule(left="stderr output"));
-                message(paste(rawToChar(.out$stderr),sep="\n"))
+                if (out$sys){
+                    message(cli::rule(left="stdout output"));
+                    message(paste(rawToChar(.out$stdout),sep="\n"))
+                    message(cli::rule(left="stderr output"));
+                    message(paste(rawToChar(.out$stderr),sep="\n"))
+                }
                 stop(msg, call.=FALSE);
             }
             if (!(.out$status==0 & file.exists(.cDllFile))){
