@@ -1097,8 +1097,9 @@ rxCompile.rxModelVars <-  function(model, # Model
             .dir <- getwd();
         }
     } else {
-        .dir <- suppressMessages(.normalizePath(dir, mustWork=FALSE));
+        .dir <- dir;
     }
+    .dir <- suppressMessages(.normalizePath(.dir, mustWork=FALSE));
     if (!file.exists(.dir))
         dir.create(.dir, recursive = TRUE)
     if (is.null(prefix)){
@@ -1125,26 +1126,26 @@ rxCompile.rxModelVars <-  function(model, # Model
         }
     }
     if (force || .needCompile){
-        .Makevars <- file.path(.dir, "Makevars");
+        .Makevars <- .normalizePath(file.path(.dir, "Makevars"));
         if (file.exists(.Makevars)){
             .firstMake <- readLines(.Makevars, 1);
             if (length(.firstMake) == 0){
                 unlink(.Makevars)
-                on.exit({if (file.exists(.Makevars)){unlink(.Makevars)}}, add=TRUE);
+                ## on.exit({if (file.exists(.Makevars)){unlink(.Makevars)}}, add=TRUE);
             } else if ("#RxODE Makevars" == .firstMake){
                 unlink(.Makevars)
-                on.exit({if (file.exists(.Makevars)){unlink(.Makevars)}}, add=TRUE);
+                ## on.exit({if (file.exists(.Makevars)){unlink(.Makevars)}}, add=TRUE);
             } else {
                 file.rename(.Makevars, paste0(.Makevars, ".bakrx"));
-                on.exit({
-                    if (file.exists(.Makevars)){
-                        unlink(.Makevars)
-                    };
-                    file.rename(paste0(.Makevars, ".bakrx"), .Makevars)
-                }, add=TRUE)
+                ## on.exit({
+                ##     if (file.exists(.Makevars)){
+                ##         unlink(.Makevars)
+                ##     };
+                ##     file.rename(paste0(.Makevars, ".bakrx"), .Makevars)
+                ## }, add=TRUE)
             }
         } else {
-            on.exit({if (file.exists(.Makevars)){unlink(.Makevars)}}, add=TRUE);
+            ## on.exit({if (file.exists(.Makevars)){unlink(.Makevars)}}, add=TRUE);
         }
         .trans <- model
         if (file.exists(.cDllFile)){
@@ -1185,7 +1186,7 @@ rxCompile.rxModelVars <-  function(model, # Model
             .trans <- gsub(substr(.prefix2, 0, nchar(.prefix2)-1),
                            substr(prefix, 0, nchar(prefix)-1), .trans)
             .trans["prefix"] <- prefix;
-            sink(.cFile);
+            sink(.cFile)
             for (.x in names(.trans)){
                 cat(sprintf("#define __%s_STR__ \"%s\"\n", toupper(.x), .trans[.x]));
                 cat(sprintf("#define __%s__ %s\n", toupper(.x), .trans[.x]));
@@ -1196,11 +1197,11 @@ rxCompile.rxModelVars <-  function(model, # Model
             cat(sprintf("#define __TIMEID__ %s\n", as.integer(Sys.time())))
             cat(sprintf("#include \"%s\"\n", get(.mv$md5["file_md5"], envir=.rxModelVarsCCache)[[1]][1]));
             sink();
-            sink(.Makevars);
             .ret <- ""
-            .ret <- sprintf("#RxODE Makevars\nPKG_CFLAGS=%s -I\"%s\"\nPKG_LIBS=$(BLAS_LIBS) $(LAPACK_LIBS) $(FLIBS)",
+            .ret <- sprintf("#RxODE Makevars\nPKG_CFLAGS=%s -I\"%s\"\nPKG_LIBS=$(BLAS_LIBS) $(LAPACK_LIBS) $(FLIBS)\n",
                             .ret, .normalizePath(system.file("include", package="RxODE")));
             ## .ret <- paste(.ret, "-g");
+            sink(.Makevars);
             cat(.ret);
             sink();
             ## Change working directory
@@ -1209,27 +1210,15 @@ rxCompile.rxModelVars <-  function(model, # Model
             try(unlink(.cDllFile));
             .cmd <- file.path(R.home("bin"), "R");
             RxODE::rxReq("sys");
-            ## sys::exec_internal increases execution time, so only use it if it fails...
-            .cmd <- paste0(.cmd, " CMD SHLIB ", basename(.cFile));
-            if (!requireNamespace("sys", quietly = TRUE)){
-                .out <- try(system(.cmd, ignore.stdout = TRUE, ignore.sterr = TRUE));
-                if (inherits(.out, "try-error")){
-                    .out <- list(stderr = "", stderr = "Error building", sys = FALSE, status = 1)
-                } else {
-                    .out <- list(stderr = "", stderr = "", sys = FALSE, status = 0)
-
-                }
-            } else {
-                .out <- c(sys::exec_internal(.cmd, error=FALSE), sys = TRUE);
-            }
+            .args <- c("CMD", "SHLIB", basename(.cFile));
+            message(getwd())
+            .out <- sys::exec_internal(cmd = .cmd, args = .args, error=FALSE);
             .badBuild <- function(msg){
                 message(msg);
-                if (out$sys){
-                    message(cli::rule(left="stdout output"));
-                    message(paste(rawToChar(.out$stdout),sep="\n"))
-                    message(cli::rule(left="stderr output"));
-                    message(paste(rawToChar(.out$stderr),sep="\n"))
-                }
+                message(cli::rule(left="stdout output"));
+                message(paste(rawToChar(.out$stdout),sep="\n"))
+                message(cli::rule(left="stderr output"));
+                message(paste(rawToChar(.out$stderr),sep="\n"))
                 stop(msg, call.=FALSE);
             }
             if (!(.out$status==0 & file.exists(.cDllFile))){

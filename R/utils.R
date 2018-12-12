@@ -1,7 +1,7 @@
 .normalizePath <- function(path, ...){
     ifelse(.Platform$OS.type=="windows",
            suppressWarnings(utils::shortPathName(normalizePath(path, ...))),
-    ifelse(regexpr("^/", path) != -1,
+    ifelse(regexpr("^[/~]", path) != -1,
            suppressWarnings(normalizePath(path, ...)),
            suppressWarnings(normalizePath(file.path(getwd(), path), ...))))
 }
