@@ -990,7 +990,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	tb.ddt[0]='\0';
         if ((rx_syntax_allow_ini && !strcmp("ini", name)) || !strcmp("ini0", name)){
 	  sb.o=0;
-          sAppendN(&sb," (__0__)", 7);
+          sAppendN(&sb,"(__0__)", 7);
           for (k = 0; k < (int)strlen(v); k++){
             if (v[k] == '.'){
               if (rx_syntax_allow_dots){

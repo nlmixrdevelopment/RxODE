@@ -1211,7 +1211,6 @@ rxCompile.rxModelVars <-  function(model, # Model
             .cmd <- file.path(R.home("bin"), "R");
             RxODE::rxReq("sys");
             .args <- c("CMD", "SHLIB", basename(.cFile));
-            message(getwd())
             .out <- sys::exec_internal(cmd = .cmd, args = .args, error=FALSE);
             .badBuild <- function(msg){
                 message(msg);
@@ -1249,7 +1248,8 @@ rxCompile.rxModelVars <-  function(model, # Model
                                   modVars = .allModVars,
                                   .call   = .call,
                                   .c      = .c,
-                                  args    = .args)});
+                                  args    = .args,
+                                  out     = .out)});
     class(ret) <- "rxDll";
     return(ret);
 }
