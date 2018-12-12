@@ -1248,8 +1248,7 @@ rxCompile.rxModelVars <-  function(model, # Model
                                   modVars = .allModVars,
                                   .call   = .call,
                                   .c      = .c,
-                                  args    = .args,
-                                  out     = .out)});
+                                  args    = .args)});
     class(ret) <- "rxDll";
     return(ret);
 }

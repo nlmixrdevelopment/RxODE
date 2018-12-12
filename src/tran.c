@@ -11,6 +11,7 @@
 #include <Rmath.h>
 #include "tran.g.d_parser.c"
 #define max(a,b) (a)>(b) ? (a):(b)
+#define min(a,b) (a)<(b) ? (a):(b)
 #define MXSYM 50000
 #define MXDER 5000
 #define MXLEN 12000
@@ -348,6 +349,8 @@ void sAppend(sbuf *sbb, const char *format, ...){
 
 sbuf sbPm, sbNrm;
 char *extra_buf, *model_prefix, *md5;
+
+sbuf sbOut[5];
 
 static FILE *fpIO;
 
@@ -1113,10 +1116,10 @@ void err_msg(int chk, const char *msg, int code)
 }
 
 /* when prnt_vars() is called, user defines the behavior in "case" */
-void prnt_vars(int scenario, FILE *outpt, int lhs, const char *pre_str, const char *post_str, int show_ode) {
+void prnt_vars(int scenario, int lhs, const char *pre_str, const char *post_str, int show_ode) {
   int i, j, k;
   char buf[64], buf1[64],buf2[64];
-  fprintf(outpt, "%s", pre_str);  /* dj: avoid security vulnerability */
+  sAppend(&sbOut[show_ode], "%s", pre_str);
   if (scenario == 0 || scenario == 2){
     // show_ode = 1 dydt
     // show_ode = 2 Jacobian
@@ -1126,9 +1129,9 @@ void prnt_vars(int scenario, FILE *outpt, int lhs, const char *pre_str, const ch
       //__DDtStateVar_#__
       for (i = 0; i < tb.nd; i++){
 	if (scenario == 0){
-	  fprintf(outpt,"  __DDtStateVar_%d__,\n",i);
+	  sAppend(&sbOut[show_ode],"  __DDtStateVar_%d__,\n",i);
 	} else {
-	  fprintf(outpt,"  (void)__DDtStateVar_%d__;\n",i);
+	  sAppend(&sbOut[show_ode],"  (void)__DDtStateVar_%d__;\n",i);
 	}
       }
     }
@@ -1140,9 +1143,9 @@ void prnt_vars(int scenario, FILE *outpt, int lhs, const char *pre_str, const ch
         // This is for dydt/ LHS/ or jacobian for df(state)/dy(parameter)
         if (show_ode == 1 || show_ode == 0 || tb.sdfdy[i] == 1){
 	  if (scenario == 0){
-	    fprintf(outpt,"  __PDStateVar_%s_SeP_%s__,\n",buf1,buf2);
+	    sAppend(&sbOut[show_ode],"  __PDStateVar_%s_SeP_%s__,\n",buf1,buf2);
           } else {
-	    fprintf(outpt,"  (void)__PDStateVar_%s_SeP_%s__;\n",buf1,buf2);
+	    sAppend(&sbOut[show_ode],"  (void)__PDStateVar_%s_SeP_%s__;\n",buf1,buf2);
 	  }
         }
       }
@@ -1153,66 +1156,66 @@ void prnt_vars(int scenario, FILE *outpt, int lhs, const char *pre_str, const ch
     retieve_var(i, buf);
     switch(scenario) {
     case 0:   // Case 0 is for declaring the variables
-      fprintf(outpt,"  ");
+      sAppendN(&sbOut[show_ode],"  ", 2);
       for (k = 0; k < (int)strlen(buf); k++){
         if (buf[k] == '.'){
-          fprintf(outpt,"_DoT_");
+          sAppend(&sbOut[show_ode],"_DoT_");
           if (!rx_syntax_allow_dots){
             trans_syntax_error_report_fn(NODOT);
           }
         } else {
-          fprintf(outpt,"%c",buf[k]);
+          sPut(&sbOut[show_ode],buf[k]);
         }
       }
       if (!strcmp("rx_lambda_", buf) || !strcmp("rx_yj_", buf)){
-	fprintf(outpt, "__");
+	sAppendN(&sbOut[show_ode], "__", 2);
       }
       if (i <tb.nv-1)
-        fprintf(outpt, ",\n");
+        sAppendN(&sbOut[show_ode], ",\n", 2);
       else
-        fprintf(outpt, ";\n");
+        sAppendN(&sbOut[show_ode], ";\n", 2);
       break;
     case 2: // Case 2 is for suppressing all the warnings for the variables by using (void)var;
       // See https://stackoverflow.com/questions/1486904/how-do-i-best-silence-a-warning-about-unused-variables
-      fprintf(outpt,"  ");
-      fprintf(outpt,"(void)");
+      sAppend(&sbOut[show_ode],"  ");
+      sAppend(&sbOut[show_ode],"(void)");
       for (k = 0; k < (int)strlen(buf); k++){
         if (buf[k] == '.'){
-          fprintf(outpt,"_DoT_");
+          sAppendN(&sbOut[show_ode],"_DoT_", 5);
           if (!rx_syntax_allow_dots){
             trans_syntax_error_report_fn(NODOT);
           }
         } else {
-          fprintf(outpt,"%c",buf[k]);
+          sPut(&sbOut[show_ode],buf[k]);
         }
       }
       if (!strcmp("rx_lambda_", buf) || !strcmp("rx_yj_", buf)){
-        fprintf(outpt, "__");
+        sAppendN(&sbOut[show_ode], "__", 2);
       }
-      fprintf(outpt, ";\n");
+      sAppendN(&sbOut[show_ode], ";\n", 2);
       break;
     case 1:
       // Case 1 is for declaring the par_ptr.
-      fprintf(outpt,"  ");
+      sAppendN(&sbOut[show_ode],"  ", 2);
       for (k = 0; k < (int)strlen(buf); k++){
         if (buf[k] == '.'){
-          fprintf(outpt,"_DoT_");
+          sAppendN(&sbOut[show_ode],"_DoT_", 5);
           if (!rx_syntax_allow_dots){
             trans_syntax_error_report_fn(NODOT);
           }
         } else {
-          fprintf(outpt,"%c",buf[k]);
+          sPut(&sbOut[show_ode], buf[k]);
         }
       }
-      fprintf(outpt, " = _PP[%d];\n", j++);
+      sAppend(&sbOut[show_ode], " = _PP[%d];\n", j++);
       break;
     default: break;
     }
   }
-  fprintf(outpt, "%s", post_str);  /* dj: security calls for const format */
+  sAppend(&sbOut[show_ode], "%s", post_str);
 }
 
-void print_aux_info(FILE *outpt, char *model){
+void print_aux_info(char *model){
   int i, j, k, islhs,pi = 0,li = 0, o=0, o2=0, statei = 0, ini_i = 0, sensi=0, normi=0,fdi=0,
     in_str=0;
   char *s2;
@@ -1282,62 +1285,62 @@ void print_aux_info(FILE *outpt, char *model){
     sprintf(s_aux_info+o, "%s)\"));\n",buf);
     o = (int)strlen(s_aux_info);
   }
-  fprintf(outpt,"extern SEXP __MODEL_VARS__(){\n  int pro=0;\n");
-  fprintf(outpt,"  SEXP _mv = PROTECT(_rxGetModelLib(\"rx_5c2c6f8a65d272301b81504c87d75239_x64_model_vars\"));pro++;\n");
-  fprintf(outpt,"  if (!_rxIsCurrentC(_mv)){\n");
-  fprintf(outpt,"    SEXP lst      = PROTECT(allocVector(VECSXP, 16));pro++;\n");
-  fprintf(outpt,"    SEXP names    = PROTECT(allocVector(STRSXP, 16));pro++;\n");
-  fprintf(outpt,"    SEXP params   = PROTECT(allocVector(STRSXP, %d));pro++;\n",pi);
-  fprintf(outpt,"    SEXP lhs      = PROTECT(allocVector(STRSXP, %d));pro++;\n",li);
-  fprintf(outpt,"    SEXP state    = PROTECT(allocVector(STRSXP, %d));pro++;\n",statei);
-  fprintf(outpt,"    SEXP stateRmS = PROTECT(allocVector(INTSXP, %d));pro++;\n",statei);
-  fprintf(outpt,"    SEXP timeInt = PROTECT(allocVector(INTSXP, 1));pro++;\n");
-  fprintf(outpt,"    INTEGER(timeInt)[0] = __TIMEID__;\n");
-  fprintf(outpt,"    SEXP sens     = PROTECT(allocVector(STRSXP, %d));pro++;\n",sensi);
-  fprintf(outpt,"    SEXP normState= PROTECT(allocVector(STRSXP, %d));pro++;\n",statei-sensi);
-  fprintf(outpt,"    SEXP fn_ini   = PROTECT(allocVector(STRSXP, %d));pro++;\n",fdi);
-  fprintf(outpt,"    SEXP dfdy     = PROTECT(allocVector(STRSXP, %d));pro++;\n",tb.ndfdy);
-  fprintf(outpt,"    SEXP tran     = PROTECT(allocVector(STRSXP, 14));pro++;\n");
-  fprintf(outpt,"    SEXP trann    = PROTECT(allocVector(STRSXP, 14));pro++;\n");
-  fprintf(outpt,"    SEXP mmd5     = PROTECT(allocVector(STRSXP, 2));pro++;\n");
-  fprintf(outpt,"    SEXP mmd5n    = PROTECT(allocVector(STRSXP, 2));pro++;\n");
-  fprintf(outpt,"    SEXP model    = PROTECT(allocVector(STRSXP, 1));pro++;\n");
-  fprintf(outpt,"    SEXP modeln   = PROTECT(allocVector(STRSXP, 1));pro++;\n");
-  fprintf(outpt,"    SEXP solve    = PROTECT(allocVector(VECSXP, 4));pro++;\n");
-  fprintf(outpt,"    SEXP solven   = PROTECT(allocVector(STRSXP, 4));pro++;\n");
-  fprintf(outpt,"    SEXP initsr   = PROTECT(allocVector(REALSXP, %d));pro++;\n",statei);
-  fprintf(outpt,"    SEXP scaler   = PROTECT(allocVector(REALSXP, %d));pro++;\n",statei);
-  fprintf(outpt,"    SEXP infusionr= PROTECT(allocVector(REALSXP, %d));pro++;\n",statei);
-  fprintf(outpt,"    SEXP badDosei = PROTECT(allocVector(INTSXP, %d));pro++;\n",statei);
-  fprintf(outpt,"    SEXP version    = PROTECT(allocVector(STRSXP, 3));pro++;\n");
-  fprintf(outpt,"    SEXP versionn   = PROTECT(allocVector(STRSXP, 3));pro++;\n");
+  sAppendN(&sbOut[4], "extern SEXP __MODEL_VARS__(){\n  int pro=0;\n", 43);
+  sAppendN(&sbOut[4], "  SEXP _mv = PROTECT(_rxGetModelLib(\"rx_5c2c6f8a65d272301b81504c87d75239_x64_model_vars\"));pro++;\n", 98);
+  sAppendN(&sbOut[4], "  if (!_rxIsCurrentC(_mv)){\n", 28);
+  sAppendN(&sbOut[4], "    SEXP lst      = PROTECT(allocVector(VECSXP, 16));pro++;\n", 60);
+  sAppendN(&sbOut[4], "    SEXP names    = PROTECT(allocVector(STRSXP, 16));pro++;\n", 60);
+  sAppend(&sbOut[4], "    SEXP params   = PROTECT(allocVector(STRSXP, %d));pro++;\n",pi);
+  sAppend(&sbOut[4], "    SEXP lhs      = PROTECT(allocVector(STRSXP, %d));pro++;\n",li);
+  sAppend(&sbOut[4], "    SEXP state    = PROTECT(allocVector(STRSXP, %d));pro++;\n",statei);
+  sAppend(&sbOut[4], "    SEXP stateRmS = PROTECT(allocVector(INTSXP, %d));pro++;\n",statei);
+  sAppendN(&sbOut[4], "    SEXP timeInt = PROTECT(allocVector(INTSXP, 1));pro++;\n", 58);
+  sAppendN(&sbOut[4], "    INTEGER(timeInt)[0] = __TIMEID__;\n", 38);
+  sAppend(&sbOut[4], "    SEXP sens     = PROTECT(allocVector(STRSXP, %d));pro++;\n",sensi);
+  sAppend(&sbOut[4], "    SEXP normState= PROTECT(allocVector(STRSXP, %d));pro++;\n",statei-sensi);
+  sAppend(&sbOut[4], "    SEXP fn_ini   = PROTECT(allocVector(STRSXP, %d));pro++;\n",fdi);
+  sAppend(&sbOut[4], "    SEXP dfdy     = PROTECT(allocVector(STRSXP, %d));pro++;\n",tb.ndfdy);
+  sAppendN(&sbOut[4], "    SEXP tran     = PROTECT(allocVector(STRSXP, 14));pro++;\n", 60);
+  sAppendN(&sbOut[4], "    SEXP trann    = PROTECT(allocVector(STRSXP, 14));pro++;\n", 60);
+  sAppendN(&sbOut[4], "    SEXP mmd5     = PROTECT(allocVector(STRSXP, 2));pro++;\n", 59);
+  sAppendN(&sbOut[4], "    SEXP mmd5n    = PROTECT(allocVector(STRSXP, 2));pro++;\n", 59);
+  sAppendN(&sbOut[4], "    SEXP model    = PROTECT(allocVector(STRSXP, 1));pro++;\n", 59);
+  sAppendN(&sbOut[4], "    SEXP modeln   = PROTECT(allocVector(STRSXP, 1));pro++;\n", 59);
+  sAppendN(&sbOut[4], "    SEXP solve    = PROTECT(allocVector(VECSXP, 4));pro++;\n", 59);
+  sAppendN(&sbOut[4], "    SEXP solven   = PROTECT(allocVector(STRSXP, 4));pro++;\n", 59);
+  sAppend(&sbOut[4], "    SEXP initsr   = PROTECT(allocVector(REALSXP, %d));pro++;\n",statei);
+  sAppend(&sbOut[4], "    SEXP scaler   = PROTECT(allocVector(REALSXP, %d));pro++;\n",statei);
+  sAppend(&sbOut[4], "    SEXP infusionr= PROTECT(allocVector(REALSXP, %d));pro++;\n",statei);
+  sAppend(&sbOut[4], "    SEXP badDosei = PROTECT(allocVector(INTSXP, %d));pro++;\n",statei);
+  sAppendN(&sbOut[4], "    SEXP version    = PROTECT(allocVector(STRSXP, 3));pro++;\n", 61);
+  sAppendN(&sbOut[4], "    SEXP versionn   = PROTECT(allocVector(STRSXP, 3));pro++;\n", 61);
   
-  fprintf(outpt, __VER_0__);
-  fprintf(outpt, __VER_1__);
-  fprintf(outpt, __VER_2__);
+  sAppend(&sbOut[4],  __VER_0__);
+  sAppend(&sbOut[4],  __VER_1__);
+  sAppend(&sbOut[4],  __VER_2__);
 
-  fprintf(outpt,"    SET_STRING_ELT(versionn,0,mkChar(\"version\"));\n");
-  fprintf(outpt,"    SET_STRING_ELT(versionn,1,mkChar(\"repo\"));\n");
-  fprintf(outpt,"    SET_STRING_ELT(versionn,2,mkChar(\"md5\"));\n");
+  sAppendN(&sbOut[4], "    SET_STRING_ELT(versionn,0,mkChar(\"version\"));\n", 50);
+  sAppendN(&sbOut[4], "    SET_STRING_ELT(versionn,1,mkChar(\"repo\"));\n", 47);
+  sAppendN(&sbOut[4], "    SET_STRING_ELT(versionn,2,mkChar(\"md5\"));\n", 46);
 
-  fprintf(outpt,"    SET_STRING_ELT(solven,0,mkChar(\"inits\"));\n");
-  fprintf(outpt,"    SET_VECTOR_ELT(solve,  0,initsr);\n");
-  fprintf(outpt,"    SET_STRING_ELT(solven,1,mkChar(\"scale\"));\n");
-  fprintf(outpt,"    SET_VECTOR_ELT(solve,  1,scaler);\n");
-  fprintf(outpt,"    SET_STRING_ELT(solven,2,mkChar(\"infusion\"));\n");
-  fprintf(outpt,"    SET_VECTOR_ELT(solve,  2,infusionr);\n");
-  fprintf(outpt,"    SET_STRING_ELT(solven,3,mkChar(\"badDose\"));\n");
-  fprintf(outpt,"    SET_VECTOR_ELT(solve,  3,badDosei);\n");
-  fprintf(outpt,"    setAttrib(solve, R_NamesSymbol, solven);\n");
-  fprintf(outpt,"%s",s_aux_info);
+  sAppendN(&sbOut[4], "    SET_STRING_ELT(solven,0,mkChar(\"inits\"));\n", 46);
+  sAppendN(&sbOut[4], "    SET_VECTOR_ELT(solve,  0,initsr);\n", 38);
+  sAppendN(&sbOut[4], "    SET_STRING_ELT(solven,1,mkChar(\"scale\"));\n", 46);
+  sAppendN(&sbOut[4], "    SET_VECTOR_ELT(solve,  1,scaler);\n", 38);
+  sAppendN(&sbOut[4], "    SET_STRING_ELT(solven,2,mkChar(\"infusion\"));\n", 49);
+  sAppendN(&sbOut[4], "    SET_VECTOR_ELT(solve,  2,infusionr);\n", 41);
+  sAppendN(&sbOut[4], "    SET_STRING_ELT(solven,3,mkChar(\"badDose\"));\n", 48);
+  sAppendN(&sbOut[4], "    SET_VECTOR_ELT(solve,  3,badDosei);\n", 40);
+  sAppendN(&sbOut[4], "    setAttrib(solve, R_NamesSymbol, solven);\n", 45);
+  sAppend(&sbOut[4], "%s",s_aux_info);
   // Save for outputting in trans
   tb.fdn = fdi;
   tb.pi = pi;
   tb.li = li;
   tb.statei = statei;
   tb.sensi  = sensi;
-  fprintf(outpt,"    SET_STRING_ELT(modeln,0,mkChar(\"normModel\"));\n");
-  fprintf(outpt,"    SET_STRING_ELT(model,0,mkChar(\"");
+  sAppendN(&sbOut[4], "    SET_STRING_ELT(modeln,0,mkChar(\"normModel\"));\n", 50);
+  sAppendN(&sbOut[4], "    SET_STRING_ELT(model,0,mkChar(\"", 35);
   in_str=0;
   for (i = 0; i < sbNrm.o; i++){
     if (sbNrm.s[i] == '"'){
@@ -1346,29 +1349,29 @@ void print_aux_info(FILE *outpt, char *model){
       } else {
 	in_str=1;
       }
-      fprintf(outpt,"\\\"");
+      sAppendN(&sbOut[4], "\\\"", 2);
     } else if (sbNrm.s[i] == '\''){
       if (in_str==1){
 	in_str=0;
       } else {
 	in_str=1;
       }
-      fprintf(outpt,"'");
+      sAppendN(&sbOut[4], "'", 1);
     } else if (sbNrm.s[i] == ' '){
       if (in_str==1){
-	fprintf(outpt," ");
+	sAppendN(&sbOut[4], " ", 1);
       }
     } else if (sbNrm.s[i] == '\n'){
-      fprintf(outpt,"\\n");
+      sAppendN(&sbOut[4], "\\n", 2);
     } else if (sbNrm.s[i] == '\t'){
-      fprintf(outpt,"\\t");
+      sAppendN(&sbOut[4], "\\t", 2);
     } else if (sbNrm.s[i] == '\\'){
-      fprintf(outpt,"\\\\");
+      sAppendN(&sbOut[4], "\\\\", 2);
     } else if (sbNrm.s[i] >= 33  && sbNrm.s[i] <= 126){ // ASCII only
-      fprintf(outpt,"%c",sbNrm.s[i]);
+      sPut(&sbOut[4], sbNrm.s[i]);
     }
   }
-  fprintf(outpt,"\"));\n");
+  sAppendN(&sbOut[4], "\"));\n", 5);
   
   s_aux_info[0] = '\0';
   o    = 0;
@@ -1425,503 +1428,486 @@ void print_aux_info(FILE *outpt, char *model){
     }
   }
   tb.ini_i = ini_i;
-  fprintf(outpt,"    SEXP ini    = PROTECT(allocVector(REALSXP,%d));pro++;\n",ini_i);
-  fprintf(outpt,"    SEXP inin   = PROTECT(allocVector(STRSXP, %d));pro++;\n",ini_i);
-  fprintf(outpt,"%s",s_aux_info);
+  sAppend(&sbOut[4], "    SEXP ini    = PROTECT(allocVector(REALSXP,%d));pro++;\n",ini_i);
+  sAppend(&sbOut[4], "    SEXP inin   = PROTECT(allocVector(STRSXP, %d));pro++;\n",ini_i);
+  sAppend(&sbOut[4], "%s",s_aux_info);
   // Vector Names
-  fprintf(outpt,"    SET_STRING_ELT(names,0,mkChar(\"params\"));\n");
-  fprintf(outpt,"    SET_VECTOR_ELT(lst,  0,params);\n");
+  sAppendN(&sbOut[4], "    SET_STRING_ELT(names,0,mkChar(\"params\"));\n", 46);
+  sAppendN(&sbOut[4], "    SET_VECTOR_ELT(lst,  0,params);\n", 36);
 
-  fprintf(outpt,"    SET_STRING_ELT(names,1,mkChar(\"lhs\"));\n");
-  fprintf(outpt,"    SET_VECTOR_ELT(lst,  1,lhs);\n");
+  sAppendN(&sbOut[4], "    SET_STRING_ELT(names,1,mkChar(\"lhs\"));\n", 43);
+  sAppendN(&sbOut[4], "    SET_VECTOR_ELT(lst,  1,lhs);\n", 33);
   
-  fprintf(outpt,"    SET_STRING_ELT(names,2,mkChar(\"state\"));\n");
-  fprintf(outpt,"    SET_VECTOR_ELT(lst,  2,state);\n");
+  sAppendN(&sbOut[4], "    SET_STRING_ELT(names,2,mkChar(\"state\"));\n", 45);
+  sAppendN(&sbOut[4], "    SET_VECTOR_ELT(lst,  2,state);\n", 35);
   
-  fprintf(outpt,"    SET_STRING_ELT(names,3,mkChar(\"trans\"));\n");
-  fprintf(outpt,"    SET_VECTOR_ELT(lst,  3,tran);\n");
+  sAppendN(&sbOut[4], "    SET_STRING_ELT(names,3,mkChar(\"trans\"));\n", 45);
+  sAppendN(&sbOut[4], "    SET_VECTOR_ELT(lst,  3,tran);\n", 34);
   
-  fprintf(outpt,"    SET_STRING_ELT(names,5,mkChar(\"model\"));\n");
-  fprintf(outpt,"    SET_VECTOR_ELT(lst,  5,model);\n");
+  sAppendN(&sbOut[4], "    SET_STRING_ELT(names,5,mkChar(\"model\"));\n", 45);
+  sAppendN(&sbOut[4], "    SET_VECTOR_ELT(lst,  5,model);\n", 35);
   
-  fprintf(outpt,"    SET_STRING_ELT(names,4,mkChar(\"ini\"));\n");
-  fprintf(outpt,"    SET_VECTOR_ELT(lst,  4,ini);\n");
+  sAppendN(&sbOut[4], "    SET_STRING_ELT(names,4,mkChar(\"ini\"));\n", 43);
+  sAppendN(&sbOut[4], "    SET_VECTOR_ELT(lst,  4,ini);\n", 33);
 
-  fprintf(outpt,"    SET_STRING_ELT(names,6,mkChar(\"md5\"));\n");
-  fprintf(outpt,"    SET_VECTOR_ELT(lst,  6,mmd5);\n");
+  sAppendN(&sbOut[4], "    SET_STRING_ELT(names,6,mkChar(\"md5\"));\n", 43);
+  sAppendN(&sbOut[4], "    SET_VECTOR_ELT(lst,  6,mmd5);\n", 34);
 
-  fprintf(outpt,"    SET_STRING_ELT(names,7,mkChar(\"podo\"));\n");
-  fprintf(outpt,"    SET_VECTOR_ELT(lst,  7,ScalarLogical(%d));\n",rx_podo);
+  sAppendN(&sbOut[4], "    SET_STRING_ELT(names,7,mkChar(\"podo\"));\n", 44);
+  sAppend(&sbOut[4], "    SET_VECTOR_ELT(lst,  7,ScalarLogical(%d));\n",rx_podo);
 
-  fprintf(outpt,"    SET_STRING_ELT(names,8,mkChar(\"dfdy\"));\n");
-  fprintf(outpt,"    SET_VECTOR_ELT(lst,  8,dfdy);\n");
+  sAppendN(&sbOut[4], "    SET_STRING_ELT(names,8,mkChar(\"dfdy\"));\n", 44);
+  sAppendN(&sbOut[4], "    SET_VECTOR_ELT(lst,  8,dfdy);\n", 34);
 
-  fprintf(outpt,"    SET_STRING_ELT(names,9,mkChar(\"sens\"));\n");
-  fprintf(outpt,"    SET_VECTOR_ELT(lst,  9,sens);\n");
+  sAppendN(&sbOut[4], "    SET_STRING_ELT(names,9,mkChar(\"sens\"));\n", 44);
+  sAppendN(&sbOut[4], "    SET_VECTOR_ELT(lst,  9,sens);\n", 34);
   
-  fprintf(outpt,"    SET_STRING_ELT(names,10,mkChar(\"fn.ini\"));\n");
-  fprintf(outpt,"    SET_VECTOR_ELT(lst,  10,fn_ini);\n");
+  sAppendN(&sbOut[4], "    SET_STRING_ELT(names,10,mkChar(\"fn.ini\"));\n", 47);
+  sAppendN(&sbOut[4], "    SET_VECTOR_ELT(lst,  10,fn_ini);\n", 37);
 
-  fprintf(outpt,"    SET_STRING_ELT(names,11,mkChar(\"state.ignore\"));\n");
-  fprintf(outpt,"    SET_VECTOR_ELT(lst,  11,stateRmS);\n");
+  sAppendN(&sbOut[4], "    SET_STRING_ELT(names,11,mkChar(\"state.ignore\"));\n", 53);
+  sAppendN(&sbOut[4], "    SET_VECTOR_ELT(lst,  11,stateRmS);\n", 39);
   
-  fprintf(outpt,"    SET_STRING_ELT(names,12,mkChar(\"solve\"));\n");
-  fprintf(outpt,"    SET_VECTOR_ELT(lst,  12,solve);\n");
+  sAppendN(&sbOut[4], "    SET_STRING_ELT(names,12,mkChar(\"solve\"));\n", 46);
+  sAppendN(&sbOut[4], "    SET_VECTOR_ELT(lst,  12,solve);\n", 36);
 
-  fprintf(outpt,"    SET_STRING_ELT(names,13,mkChar(\"version\"));\n");
-  fprintf(outpt,"    SET_VECTOR_ELT(lst,  13,version);\n");
+  sAppendN(&sbOut[4], "    SET_STRING_ELT(names,13,mkChar(\"version\"));\n", 48);
+  sAppendN(&sbOut[4], "    SET_VECTOR_ELT(lst,  13,version);\n", 38);
 
-  fprintf(outpt,"    SET_STRING_ELT(names,14,mkChar(\"normal.state\"));\n");
-  fprintf(outpt,"    SET_VECTOR_ELT(lst,  14,normState);\n");
+  sAppendN(&sbOut[4], "    SET_STRING_ELT(names,14,mkChar(\"normal.state\"));\n", 53);
+  sAppendN(&sbOut[4], "    SET_VECTOR_ELT(lst,  14,normState);\n", 40);
 
-  fprintf(outpt,"    SET_STRING_ELT(names,15,mkChar(\"timeId\"));\n");
-  fprintf(outpt,"    SET_VECTOR_ELT(lst,  15,timeInt);\n");
+  sAppendN(&sbOut[4], "    SET_STRING_ELT(names,15,mkChar(\"timeId\"));\n", 47);
+  sAppendN(&sbOut[4], "    SET_VECTOR_ELT(lst,  15,timeInt);\n", 38);
 
   // const char *rxVersion(const char *what)
   
   // md5 values
-  fprintf(outpt,"    SET_STRING_ELT(mmd5n,0,mkChar(\"file_md5\"));\n");
-  fprintf(outpt,"    SET_STRING_ELT(mmd5,0,mkChar(\"%s\"));\n",md5);
-  fprintf(outpt,"    SET_STRING_ELT(mmd5n,1,mkChar(\"parsed_md5\"));\n");
-  fprintf(outpt,"    SET_STRING_ELT(mmd5,1,mkChar(__PARSED_MD5_STR__));\n");
+  sAppendN(&sbOut[4], "    SET_STRING_ELT(mmd5n,0,mkChar(\"file_md5\"));\n", 48);
+  sAppend(&sbOut[4], "    SET_STRING_ELT(mmd5,0,mkChar(\"%s\"));\n",md5);
+  sAppendN(&sbOut[4], "    SET_STRING_ELT(mmd5n,1,mkChar(\"parsed_md5\"));\n", 50);
+  sAppendN(&sbOut[4], "    SET_STRING_ELT(mmd5,1,mkChar(__PARSED_MD5_STR__));\n", 55);
   
   // now trans output
-  fprintf(outpt,"    SET_STRING_ELT(trann,0,mkChar(\"lib.name\"));\n");
-  fprintf(outpt,"    SET_STRING_ELT(tran, 0,mkChar(__LIB_STR__));\n");
+  sAppendN(&sbOut[4], "    SET_STRING_ELT(trann,0,mkChar(\"lib.name\"));\n", 48);
+  sAppendN(&sbOut[4], "    SET_STRING_ELT(tran, 0,mkChar(__LIB_STR__));\n", 49);
 
-  fprintf(outpt,"    SET_STRING_ELT(trann,1,mkChar(\"jac\"));\n");
+  sAppendN(&sbOut[4], "    SET_STRING_ELT(trann,1,mkChar(\"jac\"));\n", 43);
   if (found_jac == 1){
-    fprintf(outpt,"    SET_STRING_ELT(tran,1,mkChar(\"fulluser\"));\n"); // Full User Matrix
+    sAppendN(&sbOut[4], "    SET_STRING_ELT(tran,1,mkChar(\"fulluser\"));\n", 47); // Full User Matrix
   } else {
-    fprintf(outpt,"    SET_STRING_ELT(tran,1,mkChar(\"fullint\"));\n"); // Full Internal Matrix
+    sAppendN(&sbOut[4], "    SET_STRING_ELT(tran,1,mkChar(\"fullint\"));\n", 46); // Full Internal Matrix
   }
-  fprintf(outpt,"    SET_STRING_ELT(trann,2,mkChar(\"prefix\"));\n");
-  fprintf(outpt,"    SET_STRING_ELT(tran, 2,mkChar(__PREFIX_STR__));\n");
+  sAppendN(&sbOut[4], "    SET_STRING_ELT(trann,2,mkChar(\"prefix\"));\n", 46);
+  sAppendN(&sbOut[4], "    SET_STRING_ELT(tran, 2,mkChar(__PREFIX_STR__));\n", 52);
 
-  fprintf(outpt,"    SET_STRING_ELT(trann,3,mkChar(\"dydt\"));\n");
-  fprintf(outpt,"    SET_STRING_ELT(tran, 3,mkChar(__DYDT_STR__));\n");
+  sAppendN(&sbOut[4], "    SET_STRING_ELT(trann,3,mkChar(\"dydt\"));\n", 44);
+  sAppendN(&sbOut[4], "    SET_STRING_ELT(tran, 3,mkChar(__DYDT_STR__));\n", 50);
 
-  fprintf(outpt,"    SET_STRING_ELT(trann,4,mkChar(\"calc_jac\"));\n");
-  fprintf(outpt,"    SET_STRING_ELT(tran, 4,mkChar(__CALC_JAC_STR__));\n");
+  sAppendN(&sbOut[4], "    SET_STRING_ELT(trann,4,mkChar(\"calc_jac\"));\n", 48);
+  sAppendN(&sbOut[4], "    SET_STRING_ELT(tran, 4,mkChar(__CALC_JAC_STR__));\n", 54);
 
-  fprintf(outpt,"    SET_STRING_ELT(trann,5,mkChar(\"calc_lhs\"));\n");
-  fprintf(outpt,"    SET_STRING_ELT(tran, 5,mkChar(__CALC_LHS_STR__));\n");
+  sAppendN(&sbOut[4], "    SET_STRING_ELT(trann,5,mkChar(\"calc_lhs\"));\n", 48);
+  sAppendN(&sbOut[4], "    SET_STRING_ELT(tran, 5,mkChar(__CALC_LHS_STR__));\n", 54);
 
-  fprintf(outpt,"    SET_STRING_ELT(trann,6,mkChar(\"model_vars\"));\n");
-  fprintf(outpt,"    SET_STRING_ELT(tran, 6,mkChar(__MODEL_VARS_STR__));\n");
+  sAppendN(&sbOut[4], "    SET_STRING_ELT(trann,6,mkChar(\"model_vars\"));\n", 50);
+  sAppendN(&sbOut[4], "    SET_STRING_ELT(tran, 6,mkChar(__MODEL_VARS_STR__));\n", 56);
   
-  fprintf(outpt,"    SET_STRING_ELT(trann,7,mkChar(\"ode_solver\"));\n");
-  fprintf(outpt,"    SET_STRING_ELT(tran, 7,mkChar(__ODE_SOLVER_STR__));\n");
+  sAppendN(&sbOut[4], "    SET_STRING_ELT(trann,7,mkChar(\"ode_solver\"));\n", 50);
+  sAppendN(&sbOut[4], "    SET_STRING_ELT(tran, 7,mkChar(__ODE_SOLVER_STR__));\n", 56);
   
-  fprintf(outpt,"    SET_STRING_ELT(trann,8,mkChar(\"inis\"));\n");
-  fprintf(outpt,"    SET_STRING_ELT(tran, 8,mkChar(__INIS_STR__));\n");
+  sAppendN(&sbOut[4], "    SET_STRING_ELT(trann,8,mkChar(\"inis\"));\n", 44);
+  sAppendN(&sbOut[4], "    SET_STRING_ELT(tran, 8,mkChar(__INIS_STR__));\n", 50);
   
-  fprintf(outpt,"    SET_STRING_ELT(trann,  9,mkChar(\"dydt_lsoda\"));\n");
-  fprintf(outpt,"    SET_STRING_ELT(tran,   9,mkChar(__DYDT_LSODA_STR__));\n");
+  sAppendN(&sbOut[4], "    SET_STRING_ELT(trann,  9,mkChar(\"dydt_lsoda\"));\n", 52);
+  sAppendN(&sbOut[4], "    SET_STRING_ELT(tran,   9,mkChar(__DYDT_LSODA_STR__));\n", 58);
   
-  fprintf(outpt,"    SET_STRING_ELT(trann,10,mkChar(\"calc_jac_lsoda\"));\n");
-  fprintf(outpt,"    SET_STRING_ELT(tran, 10,mkChar(__CALC_JAC_LSODA_STR__));\n");
+  sAppendN(&sbOut[4], "    SET_STRING_ELT(trann,10,mkChar(\"calc_jac_lsoda\"));\n", 55);
+  sAppendN(&sbOut[4], "    SET_STRING_ELT(tran, 10,mkChar(__CALC_JAC_LSODA_STR__));\n", 61);
   
-  fprintf(outpt,"    SET_STRING_ELT(trann,11,mkChar(\"ode_solver_solvedata\"));\n");
-  fprintf(outpt,"    SET_STRING_ELT(tran, 11,mkChar(__ODE_SOLVER_SOLVEDATA_STR__));\n");
+  sAppendN(&sbOut[4], "    SET_STRING_ELT(trann,11,mkChar(\"ode_solver_solvedata\"));\n", 61);
+  sAppendN(&sbOut[4], "    SET_STRING_ELT(tran, 11,mkChar(__ODE_SOLVER_SOLVEDATA_STR__));\n", 67);
   
-  fprintf(outpt,"    SET_STRING_ELT(trann,12,mkChar(\"ode_solver_get_solvedata\"));\n");
-  fprintf(outpt,"    SET_STRING_ELT(tran, 12,mkChar(__ODE_SOLVER_GET_SOLVEDATA_STR__));\n");
+  sAppendN(&sbOut[4], "    SET_STRING_ELT(trann,12,mkChar(\"ode_solver_get_solvedata\"));\n", 65);
+  sAppendN(&sbOut[4], "    SET_STRING_ELT(tran, 12,mkChar(__ODE_SOLVER_GET_SOLVEDATA_STR__));\n", 71);
 
-  fprintf(outpt,"    SET_STRING_ELT(trann,13,mkChar(\"dydt_liblsoda\"));\n");
-  fprintf(outpt,"    SET_STRING_ELT(tran, 13,mkChar(__DYDT_LIBLSODA_STR__));\n");
+  sAppendN(&sbOut[4], "    SET_STRING_ELT(trann,13,mkChar(\"dydt_liblsoda\"));\n", 54);
+  sAppendN(&sbOut[4], "    SET_STRING_ELT(tran, 13,mkChar(__DYDT_LIBLSODA_STR__));\n", 60);
   
-  fprintf(outpt,"    setAttrib(tran, R_NamesSymbol, trann);\n");
-  fprintf(outpt,"    setAttrib(mmd5, R_NamesSymbol, mmd5n);\n");
-  fprintf(outpt,"    setAttrib(model, R_NamesSymbol, modeln);\n");
-  fprintf(outpt,"    setAttrib(ini, R_NamesSymbol, inin);\n");
-  fprintf(outpt,"    setAttrib(version, R_NamesSymbol, versionn);\n");
-  fprintf(outpt,"    setAttrib(lst, R_NamesSymbol, names);\n");
-  fprintf(outpt,"    SEXP cls = PROTECT(allocVector(STRSXP, 1));pro++;\n");
-  fprintf(outpt,"    SET_STRING_ELT(cls, 0, mkChar(\"rxModelVars\"));\n");
-  fprintf(outpt,"    classgets(lst, cls);\n");
-  fprintf(outpt,"    _assign_ptr(lst);\n");
-  fprintf(outpt,"    UNPROTECT(pro);\n");
+  sAppendN(&sbOut[4], "    setAttrib(tran, R_NamesSymbol, trann);\n", 43);
+  sAppendN(&sbOut[4], "    setAttrib(mmd5, R_NamesSymbol, mmd5n);\n", 43);
+  sAppendN(&sbOut[4], "    setAttrib(model, R_NamesSymbol, modeln);\n", 45);
+  sAppendN(&sbOut[4], "    setAttrib(ini, R_NamesSymbol, inin);\n", 41);
+  sAppendN(&sbOut[4], "    setAttrib(version, R_NamesSymbol, versionn);\n", 49);
+  sAppendN(&sbOut[4], "    setAttrib(lst, R_NamesSymbol, names);\n", 42);
+  sAppendN(&sbOut[4], "    SEXP cls = PROTECT(allocVector(STRSXP, 1));pro++;\n", 54);
+  sAppendN(&sbOut[4], "    SET_STRING_ELT(cls, 0, mkChar(\"rxModelVars\"));\n", 51);
+  sAppendN(&sbOut[4], "    classgets(lst, cls);\n", 25);
+  sAppendN(&sbOut[4], "    _assign_ptr(lst);\n", 22);
+  sAppendN(&sbOut[4], "    UNPROTECT(pro);\n", 20);
   
-  fprintf(outpt,"    return lst;\n");
-  fprintf(outpt,"  } else {\n");
-  fprintf(outpt,"    UNPROTECT(pro);\n");
-  fprintf(outpt,"    return _mv;\n");
-  fprintf(outpt,"  }\n");
-  fprintf(outpt,"}\n");
-  fprintf(outpt, __HD_SOLVE1__);
-  /* fprintf(outpt, __HD_SOLVE2__); */
+  sAppendN(&sbOut[4], "    return lst;\n", 16);
+  sAppendN(&sbOut[4], "  } else {\n", 11);
+  sAppendN(&sbOut[4], "    UNPROTECT(pro);\n", 20);
+  sAppendN(&sbOut[4], "    return _mv;\n", 16);
+  sAppendN(&sbOut[4], "  }\n", 4);
+  sAppendN(&sbOut[4], "}\n", 2);
+  sAppend(&sbOut[4],  __HD_SOLVE1__);
 }
 
 
-void codegen(FILE *outpt, int show_ode) {
-  int i, j, k, print_ode=0, print_vars = 0, print_parm = 0, print_jac=0, o;
-  char sLine[MXLEN+1];
-  char buf[64];
-  char from[512], to[512], df[128], dy[128], state[128];
-  char *s2;
-  char *hdft[]=
-    {
-      "\n// prj-specific differential eqns\nvoid ",
-      "__DYDT__(int *_neq, double t, double *__zzStateVar__, double *__DDtStateVar__)\n{\n  int _cSub = _neq[1];\n",
-      "  (&_solveData->subjects[_cSub])->dadt_counter[0]++;\n}\n\n"
-    };
-  if (show_ode == 1){
-    fprintf(outpt, __HD_ODE_1__);
-    /* fprintf(outpt, __HD_ODE_2__); */
-    /* fprintf(outpt, __HD_ODE_3__); */
-    /* fprintf(outpt, __HD_ODE_4__); */
-    /* if (found_jac == 1){ */
-    /*   for (i=0; i<tb.nd; i++) {                   /\* name state vars *\/ */
-    /*     retieve_var(tb.di[i], buf); */
-    /*     fprintf(outpt, "#define __CMT_NUM_%s__ %d\n", buf, i); */
-    /*   } */
-    /* } */
-    fprintf(outpt,"\n");
-    for (i = 0; i < (int)strlen(extra_buf); i++){
-      if (extra_buf[i] == '"'){
-        fprintf(outpt,"\"");
-      } else if (extra_buf[i] == '\n'){
-        fprintf(outpt,"\n");
-      } else if (extra_buf[i] == '\t'){
-        fprintf(outpt,"\t");
-      } else if (extra_buf[i] >= 32  && extra_buf[i] <= 126){ // ASCII only
-        fprintf(outpt,"%c",extra_buf[i]);
-      }
-    }
-    fprintf(outpt, "%s", hdft[0]);
-    fprintf(outpt, "%s", hdft[1]);
-  } else if (show_ode == 2){
-    fprintf(outpt, "// Jacobian derived vars\nvoid __CALC_JAC__(int *_neq, double t, double *__zzStateVar__, double *__PDStateVar__, unsigned int __NROWPD__) {\n  int _cSub=_neq[1];\n");
-  } else if (show_ode == 3){
-    fprintf(outpt, "// Functional based initial conditions.\nvoid __INIS__(int _cSub, double *__zzStateVar__){\n  double t=0;\n");
+void codegen(char *model, int show_ode) {
+  if (show_ode == 4) {
+    print_aux_info(model);
   } else {
-    fprintf(outpt, "// prj-specific derived vars\nvoid __CALC_LHS__(int _cSub, double t, double *__zzStateVar__, double *_lhs) {\n");
-  }
-  if (found_print){
-    fprintf(outpt,"\n  int __print_ode__ = 0, __print_vars__ = 0,__print_parm__ = 0,__print_jac__ = 0;\n");
-  }
-  if ((show_ode == 2 && found_jac == 1) || show_ode != 2){
-    prnt_vars(0, outpt, 0, "  double ", "\n",show_ode);     /* declare all used vars */
-    if (maxSumProdN > 0 || SumProdLD > 0){
-      int mx = maxSumProdN;
-      if (SumProdLD > mx) mx = SumProdLD;
-      fprintf(outpt, "  double _p[%d], _input[%d];\n", mx, mx);
-      fprintf(outpt, "  double _pld[%d];\n", mx);
-    }
-    prnt_vars(2, outpt, 0, "  (void)t;\n", "\n",show_ode);     /* declare all used vars */
-    if (maxSumProdN){
-      fprintf(outpt, "  (void)_p;\n  (void)_input;\n");
-      if (SumProdLD){
-        fprintf(outpt, "  (void)_pld;\n");
-      }
-    }
-    if (show_ode == 3){
-      fprintf(outpt,"  _update_par_ptr(0.0, _cSub, _solveData, _idx);\n");
-    } else {
-      fprintf(outpt,"  _update_par_ptr(t, _cSub, _solveData, _idx);\n");
-    }
-    prnt_vars(1, outpt, 1, "", "\n",show_ode);                   /* pass system pars */
-    for (i=0; i<tb.nd; i++) {                   /* name state vars */
-      retieve_var(tb.di[i], buf);
-      fprintf(outpt,"  ");
-      for (k = 0; k < (int)strlen(buf); k++){
-	if (buf[k] == '.'){
-	  fprintf(outpt,"_DoT_");
-	  if (!rx_syntax_allow_dots){
-	    trans_syntax_error_report_fn(NODOT);
-	  }
-	} else {
-	  fprintf(outpt,"%c",buf[k]);
+    int i, j, k, print_ode=0, print_vars = 0, print_parm = 0, print_jac=0, o;
+    char sLine[MXLEN+1];
+    char buf[64];
+    char from[512], to[512], df[128], dy[128], state[128];
+    char *s2;
+    char *hdft[]=
+      {
+       "\n// prj-specific differential eqns\nvoid ",
+       "__DYDT__(int *_neq, double t, double *__zzStateVar__, double *__DDtStateVar__)\n{\n  int _cSub = _neq[1];\n",
+       "  (&_solveData->subjects[_cSub])->dadt_counter[0]++;\n}\n\n"
+      };
+    if (show_ode == 1){
+      sAppend(&sbOut[show_ode], __HD_ODE_1__);
+      sAppendN(&sbOut[show_ode],"\n", 1);
+      for (i = 0; i < (int)strlen(extra_buf); i++){
+	if (extra_buf[i] == '"'){
+	  sAppendN(&sbOut[show_ode],"\"", 1);
+	} else if (extra_buf[i] == '\n'){
+	  sAppendN(&sbOut[show_ode],"\n", 1);
+	} else if (extra_buf[i] == '\t'){
+	  sAppendN(&sbOut[show_ode],"\t", 1);
+	} else if (extra_buf[i] >= 32  && extra_buf[i] <= 126){ // ASCII only
+	  sPut(&sbOut[show_ode], extra_buf[i]);//fprintf(outpt,"%c",extra_buf[i]);
 	}
       }
-      fprintf(outpt," = __zzStateVar__[%d];\n", i);
+      sAppend(&sbOut[show_ode], "%s", hdft[0]);
+      sAppend(&sbOut[show_ode], "%s", hdft[1]);
+    } else if (show_ode == 2){
+      sAppendN(&sbOut[show_ode], "// Jacobian derived vars\nvoid __CALC_JAC__(int *_neq, double t, double *__zzStateVar__, double *__PDStateVar__, unsigned int __NROWPD__) {\n  int _cSub=_neq[1];\n", 160);
+    } else if (show_ode == 3){
+      sAppendN(&sbOut[show_ode],  "// Functional based initial conditions.\nvoid __INIS__(int _cSub, double *__zzStateVar__){\n  double t=0;\n", 104);
+    } else {
+      sAppendN(&sbOut[show_ode],  "// prj-specific derived vars\nvoid __CALC_LHS__(int _cSub, double t, double *__zzStateVar__, double *_lhs) {\n", 108);
     }
-    fprintf(outpt,"\n");
-    
-    sbPm.o=0;
-    char *s;
-    while(sgets(sLine, MXLEN, &sbPm)) {  /* parsed eqns */
-      s = strstr(sLine,"(__0__)");
-      if (s){
-        // See if this is a reclaimed initilization variable.
-        for (i=0; i<tb.nv; i++) {
-          if (tb.ini[i] == 1 && tb.lh[i] == 1){
-            //(__0__)V2=
-            retieve_var(i, buf);
-            s = strstr(sLine,buf);
-            if (s){
-              fprintf(outpt,"  %s\n",sLine + 7);
-              continue;
-            }
-          }
-        }
-        continue;
+    if (found_print){
+      sAppendN(&sbOut[show_ode], "\n  int __print_ode__ = 0, __print_vars__ = 0,__print_parm__ = 0,__print_jac__ = 0;\n", 83);
+    }
+    if ((show_ode == 2 && found_jac == 1) || show_ode != 2){
+      prnt_vars(0, 0, "  double ", "\n",show_ode);     /* declare all used vars */
+      if (maxSumProdN > 0 || SumProdLD > 0){
+	int mx = maxSumProdN;
+	if (SumProdLD > mx) mx = SumProdLD;
+	sAppend(&sbOut[show_ode],  "  double _p[%d], _input[%d];\n", mx, mx);
+	sAppend(&sbOut[show_ode],  "  double _pld[%d];\n", mx);
       }
-      if (show_ode == 3 && strstr(sLine,"full_print;")){
-	continue;
+      prnt_vars(2, 0, "  (void)t;\n", "\n",show_ode);     /* declare all used vars */
+      if (maxSumProdN){
+	sAppendN(&sbOut[show_ode],  "  (void)_p;\n  (void)_input;\n", 28);
+	if (SumProdLD){
+	  sAppendN(&sbOut[show_ode],  "  (void)_pld;\n", 14);
+	}
       }
-      s = strstr(sLine,"(__0f__)");
-      if (s){
-	if (show_ode == 3){
-	  // FIXME
-	  for (i = 0; i < tb.nd; i++){
-	    retieve_var(tb.di[i], buf);
-	    sprintf(to,"(__0f__)%s =",buf);
-	    if (strstr(sLine,to)){
-	      if (!tb.fdi[i]){
-		tb.fdi[i] = 1;
-		tb.fdn++;
-	      }
-	      fprintf(outpt, "  //if (ISNA(%s)){ // Always apply; Othersiwse, Since this updates vector, it may cause this to only be updated once.\n    %s  //}\n",buf,sLine+8);
-	    } else {
-              sprintf(to,"(__0f__)%s=",buf);
-              if (strstr(sLine,to)){
-                if (!tb.fdi[i]){
-                  tb.fdi[i] = 1;
-                  tb.fdn++;
-                }
-                fprintf(outpt, "  //if (ISNA(%s)){ // Always apply; Othersiwse, Since this updates vector, it may cause this to only be updated once.\n    %s  //}\n",buf,sLine+8);
-              }
+      if (show_ode == 3){
+	sAppendN(&sbOut[show_ode], "  _update_par_ptr(0.0, _cSub, _solveData, _idx);\n", 49);
+      } else {
+	sAppendN(&sbOut[show_ode], "  _update_par_ptr(t, _cSub, _solveData, _idx);\n", 47);
+      }
+      prnt_vars(1, 1, "", "\n",show_ode);                   /* pass system pars */
+      for (i=0; i<tb.nd; i++) {                   /* name state vars */
+	retieve_var(tb.di[i], buf);
+	sAppendN(&sbOut[show_ode], "  ", 2);
+	for (k = 0; k < (int)strlen(buf); k++){
+	  if (buf[k] == '.'){
+	    sAppendN(&sbOut[show_ode], "_DoT_", 5);
+	    if (!rx_syntax_allow_dots){
+	      trans_syntax_error_report_fn(NODOT);
 	    }
-          }
-          continue;
-        } else {
-          continue;
-        }
+	  } else {
+	    sPut(&sbOut[show_ode], buf[k]);
+	  }
+	}
+	sAppend(&sbOut[show_ode], " = __zzStateVar__[%d];\n", i);
       }
-      s = strstr(sLine,"ode_print;");
-      if (show_ode == 1 && !s) s = strstr(sLine,"full_print;");
-      if (show_ode != 1 && s) continue;
-      else if (s) {
-        fprintf(outpt,"  Rprintf(\"================================================================================\\n\");\n");
-        fprintf(outpt,"  Rprintf(\"ODE Count: %%d\\tTime (t): %%f\\n\", (&_solveData->subjects[_cSub])->dadt_counter[0], t);\n");
-        fprintf(outpt,"  Rprintf(\"================================================================================\\n\");\n");
-        fprintf(outpt,"  __print_ode__ = 1;\n");
-        fprintf(outpt,"  __print_vars__ = 1;\n");
-        fprintf(outpt,"  __print_parm__ = 1;\n");
-        print_ode  = 1;
-        print_vars = 1;
-        print_parm = 1;
-        continue;
-      }      
-      s = strstr(sLine,"ODE_Rprintf");
-      if ((show_ode != 1) && s) continue;
-      
-      s = strstr(sLine,"ODE0_Rprintf");
-      if ((show_ode != 1) && s) continue;
-      
-      s = strstr(sLine, "__DDtStateVar__");
-      if (s){
-	if (show_ode == 3){
+      sAppendN(&sbOut[show_ode], "\n", 1);
+    
+      sbPm.o=0;
+      char *s;
+      while(sgets(sLine, MXLEN, &sbPm)) {  /* parsed eqns */
+	s = strstr(sLine,"(__0__)");
+	if (s){
+	  // See if this is a reclaimed initilization variable.
+	  for (i=0; i<tb.nv; i++) {
+	    if (tb.ini[i] == 1 && tb.lh[i] == 1){
+	      //(__0__)V2=
+	      retieve_var(i, buf);
+	      s = strstr(sLine,buf);
+	      if (s){
+		sAppend(&sbOut[show_ode], "  %s\n",sLine + 7);
+		continue;
+	      }
+	    }
+	  }
 	  continue;
 	}
-	if (show_ode!= 1){
-	  for (i = 0; i < tb.nd; i++){
-	    // Replace __DDtStateVar__[#] -> __DDtStateVar_#__
-	    sprintf(to,"__DDtStateVar_%d__",i);
-	    sprintf(from,"__DDtStateVar__[%d]",i);
+	if (show_ode == 3 && strstr(sLine,"full_print;")){
+	  continue;
+	}
+	s = strstr(sLine,"(__0f__)");
+	if (s){
+	  if (show_ode == 3){
+	    // FIXME
+	    for (i = 0; i < tb.nd; i++){
+	      retieve_var(tb.di[i], buf);
+	      sprintf(to,"(__0f__)%s =",buf);
+	      if (strstr(sLine,to)){
+		if (!tb.fdi[i]){
+		  tb.fdi[i] = 1;
+		  tb.fdn++;
+		}
+		sAppend(&sbOut[show_ode],  "  //if (ISNA(%s)){ // Always apply; Othersiwse, Since this updates vector, it may cause this to only be updated once.\n    %s  //}\n",buf,sLine+8);
+	      } else {
+		sprintf(to,"(__0f__)%s=",buf);
+		if (strstr(sLine,to)){
+		  if (!tb.fdi[i]){
+		    tb.fdi[i] = 1;
+		    tb.fdn++;
+		  }
+		  sAppend(&sbOut[show_ode],  "  //if (ISNA(%s)){ // Always apply; Othersiwse, Since this updates vector, it may cause this to only be updated once.\n    %s  //}\n",buf,sLine+8);
+		}
+	      }
+	    }
+	    continue;
+	  } else {
+	    continue;
+	  }
+	}
+	s = strstr(sLine,"ode_print;");
+	if (show_ode == 1 && !s) s = strstr(sLine,"full_print;");
+	if (show_ode != 1 && s) continue;
+	else if (s) {
+	  sAppendN(&sbOut[show_ode], "  Rprintf(\"================================================================================\\n\");\n", 97);
+	  sAppendN(&sbOut[show_ode], "  Rprintf(\"ODE Count: %%d\\tTime (t): %%f\\n\", (&_solveData->subjects[_cSub])->dadt_counter[0], t);\n", 98);
+	  sAppendN(&sbOut[show_ode], "  Rprintf(\"================================================================================\\n\");\n", 97);
+	  sAppendN(&sbOut[show_ode], "  __print_ode__ = 1;\n", 21);
+	  sAppendN(&sbOut[show_ode], "  __print_vars__ = 1;\n", 22);
+	  sAppendN(&sbOut[show_ode], "  __print_parm__ = 1;\n", 22);
+	  print_ode  = 1;
+	  print_vars = 1;
+	  print_parm = 1;
+	  continue;
+	}      
+	s = strstr(sLine,"ODE_Rprintf");
+	if ((show_ode != 1) && s) continue;
+      
+	s = strstr(sLine,"ODE0_Rprintf");
+	if ((show_ode != 1) && s) continue;
+      
+	s = strstr(sLine, "__DDtStateVar__");
+	if (s){
+	  if (show_ode == 3){
+	    continue;
+	  }
+	  if (show_ode!= 1){
+	    for (i = 0; i < tb.nd; i++){
+	      // Replace __DDtStateVar__[#] -> __DDtStateVar_#__
+	      sprintf(to,"__DDtStateVar_%d__",i);
+	      sprintf(from,"__DDtStateVar__[%d]",i);
+	      s2 = repl_str(sLine,from,to);
+	      strcpy(sLine, s2);
+	      Free(s2);
+	      s2=NULL;
+	    }
+	  }
+	}
+      
+	s = strstr(sLine,"JAC_Rprintf");
+	if ((show_ode != 2) && s) continue;
+
+	s = strstr(sLine,"jac_print;");
+	if (show_ode == 2 && !s) s = strstr(sLine,"full_print;");
+	if (show_ode != 2 && s) continue;
+	else if (s) {
+	  sAppendN(&sbOut[show_ode], "  Rprintf(\"================================================================================\\n\");\n", 97);
+	  sAppendN(&sbOut[show_ode], "  Rprintf(\"JAC Count: %%d\\tTime (t): %%f\\n\",(&_solveData->subjects[_cSub])->jac_counter[0], t);\n", 96);
+	  sAppendN(&sbOut[show_ode], "  Rprintf(\"================================================================================\\n\");\n", 97);
+	  sAppendN(&sbOut[show_ode], "  __print_ode__ = 1;\n", 21);
+	  sAppendN(&sbOut[show_ode], "  __print_jac__ = 1;\n", 21);
+	  sAppendN(&sbOut[show_ode], "  __print_vars__ = 1;\n", 22);
+	  sAppendN(&sbOut[show_ode], "  __print_parm__ = 1;\n", 22);
+	  print_ode  = 1;
+	  print_vars = 1;
+	  print_parm = 1;
+	  print_jac = 1;
+	  continue;
+	}
+
+	s = strstr(sLine,"JAC0_Rprintf");
+	if ((show_ode != 2) && s) continue;
+
+	s = strstr(sLine,"LHS_Rprintf");
+	if ((show_ode != 0) && s) continue;
+
+	s = strstr(sLine,"lhs_print;");
+	if (show_ode == 0 && !s) s = strstr(sLine,"full_print;");
+	if (show_ode != 0 && s) continue;
+	else if (s) {
+	  sAppendN(&sbOut[show_ode], "  Rprintf(\"================================================================================\\n\");\n", 97);
+	  sAppendN(&sbOut[show_ode], "  Rprintf(\"LHS Time (t): %%f\\n\",t);\n", 36);
+	  sAppendN(&sbOut[show_ode], "  Rprintf(\"================================================================================\\n\");\n", 97);
+	  sAppendN(&sbOut[show_ode], "  __print_vars__ = 1;\n", 22);
+	  sAppendN(&sbOut[show_ode], "  __print_parm__ = 1;\n", 22);
+	  print_vars = 1;
+	  print_parm = 1;
+	  continue;
+	}
+      
+	s = strstr(sLine,"__PDStateVar__");
+	if (s){
+	  if (show_ode == 3){
+	    continue;
+	  }
+	  for (i = 0; i < tb.ndfdy; i++){
+	    retieve_var(tb.df[i], df);
+	    retieve_var(tb.dy[i], dy);
+	    sprintf(from,"__PDStateVar__[[%s,%s]]",df,dy);
+	    if (show_ode == 2 && tb.sdfdy[i] == 0){
+	      // __PDStateVar__[__CMT_NUM_y__*(__NROWPD__)+__CMT_NUM_dy__]
+	      sprintf(to,"__PDStateVar__[");
+	      o = (int)strlen(to);
+	      for (j=0; j<tb.nd; j++) {                     /* name state vars */
+		retieve_var(tb.di[j], state);
+		if (!strcmp(state, df)){
+		  sprintf(to+o,"%d*(__NROWPD__)+",j);
+		  o = (int)strlen(to);
+		  break;
+		}
+	      }
+	      for (j=0; j<tb.nd; j++){
+		retieve_var(tb.di[j], state);
+		if (!strcmp(state, dy)){
+		  sprintf(to+o,"%d]",j);
+		  o = (int)strlen(to);
+		  break;
+		}
+	      }
+	    } else {
+	      sprintf(to,"__PDStateVar_%s_SeP_%s__",df,dy);
+	    }
 	    s2 = repl_str(sLine,from,to);
 	    strcpy(sLine, s2);
 	    Free(s2);
 	    s2=NULL;
-	  }
+	  }        
 	}
+	// Replace __DDtStateVar__[#] -> __DDtStateVar_#__
+	/* sprintf(to,""); */
+	to[0]='\0';
+	sprintf(from," ");
+	s2 = repl_str(sLine,from,to);
+	strcpy(sLine, s2);
+	Free(s2);
+	s2=NULL;
+	int mx = maxSumProdN;
+	if (SumProdLD > mx) mx = SumProdLD;
+	sprintf(to,"%d", mx);
+	sprintf(from, "__MAX_PROD__");
+	s2 = repl_str(sLine,from,to);
+	strcpy(sLine, s2);
+	Free(s2);
+	s2=NULL;
+	sAppend(&sbOut[show_ode],  "  %s", sLine);
       }
-      
-      s = strstr(sLine,"JAC_Rprintf");
-      if ((show_ode != 2) && s) continue;
-
-      s = strstr(sLine,"jac_print;");
-      if (show_ode == 2 && !s) s = strstr(sLine,"full_print;");
-      if (show_ode != 2 && s) continue;
-      else if (s) {
-        fprintf(outpt,"  Rprintf(\"================================================================================\\n\");\n");
-        fprintf(outpt,"  Rprintf(\"JAC Count: %%d\\tTime (t): %%f\\n\",(&_solveData->subjects[_cSub])->jac_counter[0], t);\n");
-        fprintf(outpt,"  Rprintf(\"================================================================================\\n\");\n");
-        fprintf(outpt,"  __print_ode__ = 1;\n");
-        fprintf(outpt,"  __print_jac__ = 1;\n");
-        fprintf(outpt,"  __print_vars__ = 1;\n");
-        fprintf(outpt,"  __print_parm__ = 1;\n");
-        print_ode  = 1;
-        print_vars = 1;
-        print_parm = 1;
-        print_jac = 1;
-        continue;
+    }
+    if (print_ode && show_ode != 0){
+      sAppendN(&sbOut[show_ode], "  if (__print_ode__ == 1){\n", 27);
+      for (i=0; i<tb.nd; i++) {                   /* name state vars */
+	retieve_var(tb.di[i], buf);
+	sAppend(&sbOut[show_ode],  "    Rprintf(\"d/dt(%s)[%d]:\\t%%f\\t%s:\\t%%f\\n\", __DDtStateVar__[%d],%s);\n", buf, i,buf,i,buf);
       }
-
-      s = strstr(sLine,"JAC0_Rprintf");
-      if ((show_ode != 2) && s) continue;
-
-      s = strstr(sLine,"LHS_Rprintf");
-      if ((show_ode != 0) && s) continue;
-
-      s = strstr(sLine,"lhs_print;");
-      if (show_ode == 0 && !s) s = strstr(sLine,"full_print;");
-      if (show_ode != 0 && s) continue;
-      else if (s) {
-        fprintf(outpt,"  Rprintf(\"================================================================================\\n\");\n");
-        fprintf(outpt,"  Rprintf(\"LHS Time (t): %%f\\n\",t);\n");
-        fprintf(outpt,"  Rprintf(\"================================================================================\\n\");\n");
-        //fprintf(outpt,"  __print_ode__ = 1;\n");
-        fprintf(outpt,"  __print_vars__ = 1;\n");
-        fprintf(outpt,"  __print_parm__ = 1;\n");
-        //print_ode  = 1;
-        print_vars = 1;
-        print_parm = 1;
-        continue;
+      sAppendN(&sbOut[show_ode], "  }\n", 4);
+    }
+    if (print_jac && show_ode == 2){
+      sAppendN(&sbOut[show_ode], "  if (__print_jac__ == 1){\n", 27);
+      sAppendN(&sbOut[show_ode], "  Rprintf(\"Fixme\\n\");", 21);
+      sAppendN(&sbOut[show_ode], "  }\n", 4);
+    }
+    if (print_vars){
+      sAppendN(&sbOut[show_ode], "  if (__print_vars__ == 1){\n", 28);
+      sAppendN(&sbOut[show_ode], "    Rprintf(\".Left Handed Variables:.........................................................\\n\");\n", 99);
+      for (i=0, j=0; i<tb.nv; i++) {
+	if (tb.lh[i] != 1) continue;
+	retieve_var(i, buf);
+	sAppend(&sbOut[show_ode],  "    Rprintf(\"%s = %%f\\n\", %s);\n", buf, buf);
       }
-      
-      s = strstr(sLine,"__PDStateVar__");
-      if (s){
-	if (show_ode == 3){
-	  continue;
-	}
-	for (i = 0; i < tb.ndfdy; i++){
-          retieve_var(tb.df[i], df);
-          retieve_var(tb.dy[i], dy);
-	  /* for (j = 1; j <= tb.maxtheta;j++){ */
-          /*   sprintf(to,"THETA[%d]",j); */
-	  /*   sprintf(from,"_THETA_%d_",j); */
-	  /*   s2 = repl_str(dy,from,to); */
-          /*   strcpy(sLine, s2); */
-          /*   Free(s2); */
-          /*   if (!strcmp(buf,buf2)){ */
-          /*     sprintf(buf,"THETA[%d]",j); */
-          /*   } */
-          /* } */
-          sprintf(from,"__PDStateVar__[[%s,%s]]",df,dy);
-	  if (show_ode == 2 && tb.sdfdy[i] == 0){
-	    // __PDStateVar__[__CMT_NUM_y__*(__NROWPD__)+__CMT_NUM_dy__]
-	    sprintf(to,"__PDStateVar__[");
-	    o = (int)strlen(to);
-	    for (j=0; j<tb.nd; j++) {                     /* name state vars */
-              retieve_var(tb.di[j], state);
-	      if (!strcmp(state, df)){
-		sprintf(to+o,"%d*(__NROWPD__)+",j);
-		o = (int)strlen(to);
-		break;
-	      }
-	    }
-	    for (j=0; j<tb.nd; j++){
-	      retieve_var(tb.di[j], state);
-              if (!strcmp(state, dy)){
-                sprintf(to+o,"%d]",j);
-                o = (int)strlen(to);
-                break;
-              }
+      sAppendN(&sbOut[show_ode], "  }\n", 4);
+    }
+    if (print_parm){
+      sAppendN(&sbOut[show_ode], "  if (__print_parm__ == 1){\n", 28);
+      sAppendN(&sbOut[show_ode], "    Rprintf(\".User Supplied Variables:.......................................................\\n\");\n", 99);
+      for (i=0, j=0; i<tb.nv; i++) {
+	if (tb.lh[i]>0) continue;
+	j++;
+	retieve_var(i, buf);
+	sAppend(&sbOut[show_ode],  "    Rprintf(\"%s=%%f\\t_par_ptr[%d]=%%f\\n\",%s,_PP[%d]);\n", buf, j-1, buf,j-1);
+      }
+      sAppendN(&sbOut[show_ode], "  }\n", 4);
+    }
+    if (print_jac || print_vars || print_ode || print_parm){
+      sAppendN(&sbOut[show_ode], "  if (__print_jac__ || __print_vars__ || __print_ode__ || __print_parm__){\n", 75);
+      sAppendN(&sbOut[show_ode], "    Rprintf(\"================================================================================\\n\\n\\n\");\n  }\n", 107);
+    }
+    if (show_ode == 1){
+      sAppend(&sbOut[show_ode],  "%s", hdft[2]);
+    } else if (show_ode == 2){
+      //sAppendN(&sbOut[show_ode], "  free(__ld_DDtStateVar__);\n");
+      sAppendN(&sbOut[show_ode],  "  (&_solveData->subjects[_cSub])->jac_counter[0]++;\n", 52);
+      sAppendN(&sbOut[show_ode],  "}\n", 2);
+    } else if (show_ode == 3){
+      for (i = 0; i < tb.nd; i++){
+	retieve_var(tb.di[i], buf);
+	sAppend(&sbOut[show_ode], "  __zzStateVar__[%d]=",i);
+	for (k = 0; k < (int)strlen(buf); k++){
+	  if (buf[k] == '.'){
+	    sAppendN(&sbOut[show_ode], "_DoT_", 5);
+	    if (!rx_syntax_allow_dots){
+	      trans_syntax_error_report_fn(NODOT);
 	    }
 	  } else {
-	    sprintf(to,"__PDStateVar_%s_SeP_%s__",df,dy);
+	    sPut(&sbOut[show_ode], buf[k]);
 	  }
-	  s2 = repl_str(sLine,from,to);
-          strcpy(sLine, s2);
-          Free(s2);
-          s2=NULL;
-        }        
+	}
+	sAppendN(&sbOut[show_ode],  ";\n", 2);
       }
-      // Replace __DDtStateVar__[#] -> __DDtStateVar_#__
-      /* sprintf(to,""); */
-      to[0]='\0';
-      sprintf(from," ");
-      s2 = repl_str(sLine,from,to);
-      strcpy(sLine, s2);
-      Free(s2);
-      s2=NULL;
-      int mx = maxSumProdN;
-      if (SumProdLD > mx) mx = SumProdLD;
-      sprintf(to,"%d", mx);
-      sprintf(from, "__MAX_PROD__");
-      s2 = repl_str(sLine,from,to);
-      strcpy(sLine, s2);
-      Free(s2);
-      s2=NULL;
-      fprintf(outpt, "  %s", sLine);
-    }
-  }
-  if (print_ode && show_ode != 0){
-    fprintf(outpt,"  if (__print_ode__ == 1){\n");
-    for (i=0; i<tb.nd; i++) {                   /* name state vars */
-      retieve_var(tb.di[i], buf);
-      fprintf(outpt, "    Rprintf(\"d/dt(%s)[%d]:\\t%%f\\t%s:\\t%%f\\n\", __DDtStateVar__[%d],%s);\n", buf, i,buf,i,buf);
-    }
-    fprintf(outpt,"  }\n");
-  }
-  if (print_jac && show_ode == 2){
-    fprintf(outpt,"  if (__print_jac__ == 1){\n");
-    fprintf(outpt,"  Rprintf(\"Fixme\\n\");");
-    fprintf(outpt,"  }\n");
-  }
-  if (print_vars){
-    fprintf(outpt,"  if (__print_vars__ == 1){\n");
-    fprintf(outpt,"    Rprintf(\".Left Handed Variables:.........................................................\\n\");\n");      
-    for (i=0, j=0; i<tb.nv; i++) {
-      if (tb.lh[i] != 1) continue;
-      retieve_var(i, buf);
-      fprintf(outpt, "    Rprintf(\"%s = %%f\\n\", %s);\n", buf, buf);
-    }
-    fprintf(outpt,"  }\n");
-  }
-  if (print_parm){
-    fprintf(outpt,"  if (__print_parm__ == 1){\n");
-    fprintf(outpt,"    Rprintf(\".User Supplied Variables:.......................................................\\n\");\n");
-    for (i=0, j=0; i<tb.nv; i++) {
-      if (tb.lh[i]>0) continue;
-      j++;
-      retieve_var(i, buf);
-      fprintf(outpt, "    Rprintf(\"%s=%%f\\t_par_ptr[%d]=%%f\\n\",%s,_PP[%d]);\n", buf, j-1, buf,j-1);
-    }
-    fprintf(outpt,"  }\n");
-  }
-  if (print_jac || print_vars || print_ode || print_parm){
-    fprintf(outpt,"  if (__print_jac__ || __print_vars__ || __print_ode__ || __print_parm__){\n");
-    fprintf(outpt,"    Rprintf(\"================================================================================\\n\\n\\n\");\n  }\n");
-  }
-  if (show_ode == 1){
-    fprintf(outpt, "%s", hdft[2]);
-  } else if (show_ode == 2){
-    //fprintf(outpt,"  free(__ld_DDtStateVar__);\n");
-    fprintf(outpt, "  (&_solveData->subjects[_cSub])->jac_counter[0]++;\n");
-    fprintf(outpt, "}\n");
-  } else if (show_ode == 3){
-    for (i = 0; i < tb.nd; i++){
-      retieve_var(tb.di[i], buf);
-      fprintf(outpt,"  __zzStateVar__[%d]=",i);
-      for (k = 0; k < (int)strlen(buf); k++){
-        if (buf[k] == '.'){
-          fprintf(outpt,"_DoT_");
-          if (!rx_syntax_allow_dots){
-            trans_syntax_error_report_fn(NODOT);
-          }
-        } else {
-          fprintf(outpt,"%c",buf[k]);
-        }
+      sAppendN(&sbOut[show_ode],  "}\n", 2);
+    } else {
+      sAppendN(&sbOut[show_ode],  "\n", 1);
+      for (i=0, j=0; i<tb.nv; i++) {
+	if (tb.lh[i] != 1) continue;
+	retieve_var(i, buf);
+	sAppend(&sbOut[show_ode],  "  _lhs[%d]=", j);
+	for (k = 0; k < (int)strlen(buf); k++){
+	  if (buf[k] == '.'){
+	    sAppendN(&sbOut[show_ode], "_DoT_", 5);
+	    if (!rx_syntax_allow_dots){
+	      trans_syntax_error_report_fn(NODOT);
+	    }
+	  } else {
+	    sPut(&sbOut[show_ode], buf[k]);
+	  }
+	}
+	sAppendN(&sbOut[show_ode],  ";\n", 2);
+	j++;
       }
-      fprintf(outpt, ";\n");
+      sAppendN(&sbOut[show_ode],  "}\n", 2);
     }
-    fprintf(outpt, "}\n");
-  } else {
-    fprintf(outpt, "\n");
-    for (i=0, j=0; i<tb.nv; i++) {
-      if (tb.lh[i] != 1) continue;
-      retieve_var(i, buf);
-      fprintf(outpt, "  _lhs[%d]=", j);
-      for (k = 0; k < (int)strlen(buf); k++){
-        if (buf[k] == '.'){
-          fprintf(outpt,"_DoT_");
-          if (!rx_syntax_allow_dots){
-            trans_syntax_error_report_fn(NODOT);
-          }
-        } else {
-          fprintf(outpt,"%c",buf[k]);
-        }
-      }
-      fprintf(outpt, ";\n");
-      j++;
-    }
-    fprintf(outpt, "}\n");
   }
 }
+  
 void reset (){
   // Reset sb/sbt string buffers
   sIni(&sb);
@@ -1972,6 +1958,27 @@ void reset (){
 
   maxSumProdN = 0;
   SumProdLD = 0;  
+}
+
+void writeSb(sbuf *sbb, FILE *fp){
+  // Adapted from ideas by Christian H
+  // http://forums.codeguru.com/showthread.php?77477-What-is-the-fastest-way-to-write-data-to-a-file
+  unsigned totalWritten=0;
+  const unsigned OS_PAGESIZE = 4*1024;
+  while( totalWritten < sbb->o) {
+    register unsigned toWrite = min( OS_PAGESIZE, sbb->o - totalWritten);
+    register unsigned written = fwrite(sbb->s + totalWritten, 1, toWrite, fp);
+    if( toWrite != written){
+      fclose(fp);
+      error("IO error writing parsed C file.");
+    } else{
+      totalWritten += written; // add the written bytes
+    }
+  }
+  if (totalWritten != sbb->o) {
+    fclose(fp);
+    error("IO error writing parsed C file.");
+  }
 }
 
 void trans_internal(char* parse_file, char* c_file, int isStr){
@@ -2040,13 +2047,16 @@ void trans_internal(char* parse_file, char* c_file, int isStr){
         trans_syntax_error_report_fn(bufe);
       }
     }
-    fpIO = fopen(c_file, "w");
+    for (i = 0; i < 5; i++){
+      codegen(buf, i);
+    }
+    fpIO = fopen(c_file, "wb");
     err_msg((intptr_t) fpIO, "error opening output c file\n", -2);
-    codegen(fpIO, 1);
-    codegen(fpIO, 2);
-    codegen(fpIO, 3);
-    codegen(fpIO, 0);
-    print_aux_info(fpIO,buf);
+    writeSb(&sbOut[1], fpIO);
+    writeSb(&sbOut[2], fpIO);
+    writeSb(&sbOut[3], fpIO);
+    writeSb(&sbOut[0], fpIO);
+    writeSb(&sbOut[4], fpIO);
     fclose(fpIO);
   } else {
     rx_syntax_error = 1;
