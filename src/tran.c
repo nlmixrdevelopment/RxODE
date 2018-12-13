@@ -965,9 +965,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
           sprintf(buf,"Tried to use d/dt(%s) before it was defined",v);
           trans_syntax_error_report_fn(buf);
         } else {
-	  sb.o=0;
           sAppend(&sb, "__DDtStateVar__[%d]", tb.id);
-	  sbt.o = 0;
           sAppend(&sbt, "d/dt(%s)", v);
         }
         Free(v);
