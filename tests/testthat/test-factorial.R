@@ -3,13 +3,13 @@ rxPermissive({
     rxClean()
 
     transTo <- function(model, syntax, match=TRUE){
-        mod <- RxODE(model);
+        mv <- rxModelVars(model);
         if (match){
             test_that(sprintf("%s includes %s", model, syntax),
-                      expect_true(regexpr(syntax,rxModelVars(mod)$model["parseModel"], fixed=TRUE) != -1));
+                      expect_true(regexpr(syntax,.rxGetParseModel(), fixed=TRUE) != -1));
         } else{
             test_that(sprintf("%s dose not include %s", model, syntax),
-                      expect_false(regexpr(syntax,rxModelVars(mod)$model["parseModel"], fixed=TRUE) != -1));
+                      expect_false(regexpr(syntax,.rxGetParseModel(), fixed=TRUE) != -1));
         }
     }
 

@@ -22,6 +22,7 @@ SEXP _rxProgressAbort();
 SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SEXP isStr);
 SEXP _RxODE_codegen(SEXP c_file, SEXP prefix, SEXP libname, SEXP pMd5, SEXP timeId,
 		    SEXP fixInis);
+SEXP _RxODE_parseModel();
 SEXP _RxODE_RcppExport_registerCCallable();
 SEXP _RxODE_setRstudio(SEXP);
 SEXP _RxODE_rxSolveFree();
@@ -152,6 +153,7 @@ void R_init_RxODE(DllInfo *info){
     {"_rxProgressAbort", (DL_FUNC) &_rxProgressAbort, 0},
     {"_RxODE_trans", (DL_FUNC) &_RxODE_trans, 5},
     {"_RxODE_codegen", (DL_FUNC) &_RxODE_codegen, 6},
+    {"_RxODE_parseModel", (DL_FUNC) &_RxODE_parseModel, 0},
     {"RxODE_get_mv", (DL_FUNC) &RxODE_get_mv, 0},
     {"_RxODE_rxInv", (DL_FUNC) &_RxODE_rxInv, 1},
     {"_RxODE_removableDrive", (DL_FUNC) &_RxODE_removableDrive, 1},

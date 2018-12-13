@@ -714,31 +714,37 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    sbt.o=0;
 	    sAppendN(&sb, "ODE0_Rprintf(", 12);
             sAppendN(&sbt,"ode0_printf(", 12);
+	    sb.o--;sbt.o--;
           } else if (!strncmp(v,"jac0",4)) {
 	    sb.o =0;
 	    sbt.o=0;
             sAppendN(&sb,"JAC0_Rprintf(", 12);
             sAppendN(&sbt,"jac0_printf(", 12);
+	    sb.o--;sbt.o--;
           } else if (!strncmp(v,"ode",3)){
 	    sb.o =0;
 	    sbt.o=0;
             sAppendN(&sb,"ODE_Rprintf(", 11);
             sAppendN(&sbt,"ode_printf(", 11);
+	    sb.o--;sbt.o--;
           } else if (!strncmp(v,"jac",3)){
 	    sb.o =0;
 	    sbt.o=0;
             sAppendN(&sb,"JAC_Rprintf(", 11);
             sAppendN(&sbt,"jac_printf(", 11);
+	    sb.o--;sbt.o--;
           } else if (!strncmp(v,"lhs",3)){
 	    sb.o =0;
 	    sbt.o=0;
             sAppendN(&sb,"LHS_Rprintf(", 11);
             sAppendN(&sbt,"lhs_printf(", 11);
+	    sb.o--;sbt.o--;
           } else {
 	    sb.o =0;
 	    sbt.o=0;
-            sAppendN(&sb,"Rprintf(", 7);
+            sAppendN(&sb,"Rprintf(", 8);
             sAppendN(&sbt,"printf(", 7);
+	    sb.o--;sbt.o--;
           }
         }
         if (i == 2){
@@ -1940,6 +1946,8 @@ void reset (){
   // Reset sb/sbt string buffers
   sIni(&sb);
   sIni(&sbt);
+  sIni(&sbPm);
+  sIni(&sbNrm);
 
   // Reset Arrays
   memset(tb.ss,		0, 64*MXSYM*sizeof(char));
@@ -2405,9 +2413,18 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
   return lst;
 }
 
+SEXP _RxODE_parseModel(){
+  if (!sbPm.o){
+    error("Model no longer loaded in memory.");
+  }
+  SEXP pm = PROTECT(allocVector(STRSXP, 1));
+  SET_STRING_ELT(pm, 0, mkChar(sbPm.s));
+  UNPROTECT(1);
+  return pm;
+}
+
 SEXP _RxODE_codegen(SEXP c_file, SEXP prefix, SEXP libname,
 		    SEXP pMd5, SEXP timeId, SEXP fixInis){
-  sbuf *sbb;
   if (!sbPm.o || !sbNrm.o){
     error("Nothing in output queue to write.");
   }
@@ -2430,11 +2447,10 @@ SEXP _RxODE_codegen(SEXP c_file, SEXP prefix, SEXP libname,
   writeSb(&sbOut[4], fpIO);
   fclose(fpIO);
   for (int i = 0; i < 5; i++){
-    sbb = &sbOut[i];
-    sbb->o = 0;
+    sIni(&sbOut[i]);
   }
-  sbPm.o =0;
-  sbNrm.o=0;
+  sIni(&sbPm);
+  sIni(&sbNrm);
   return R_NilValue;
 }
 

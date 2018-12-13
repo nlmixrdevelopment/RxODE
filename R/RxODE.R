@@ -328,16 +328,15 @@ RxODE <- function(model, modName = basename(wd),
                 calcSens <- FALSE;
             }
             model <- model$.model
+            class(model) <- NULL
         }
         else if ((is(model,"function") || is(model,"call"))){
             model <- deparse(body(model))[-1];
             model <- paste(model[-length(model)], collapse="\n");
         }
     }
-    ## if (file.exists(model)){
-    ##     model <- suppressWarnings(paste(readLines(model), collapse="\n"));
-    ## }
     .env <- new.env(parent=loadNamespace("RxODE"))
+    assign(".env", .env, globalenv())
     .env$.mv <- rxGetModel(model, calcSens = calcSens, calcJac = calcJac, collapseModel = collapseModel);
     .env$.mv <- rxLinCmtTrans(.env$.mv);
     model <- rxNorm(.env$.mv);
@@ -506,6 +505,9 @@ rxGetModel <- function(model, calcSens=FALSE, calcJac=FALSE, collapseModel=FALSE
         model <- eval(model);
     } else if (is(model, "character") || is(model, "rxModelText")){
         model <- as.vector(model);
+    } else if (is(model, "RxODE")){
+        model <- model$.model
+        class(model) <- NULL;
     } else if (is(model, "rxModelVars")){
     } else {
         stop(sprintf("Can't figure out how to handle the model argument (%s).", class(model)));
@@ -534,7 +536,9 @@ rxGetModel <- function(model, calcSens=FALSE, calcJac=FALSE, collapseModel=FALSE
         if (length(rxState(.ret)) <= 0){
             stop("Jacobians do not make sense for models without ODEs.")
         }
+        print("there");
         .new <- .rxSymPyJacobian(.ret);
+        print("here");
         .ret <- rxModelVars(.new)
     }
     return(.ret);
@@ -1629,3 +1633,8 @@ rxParams <- function(obj, constants=TRUE){
 ##' @rdname rxParams
 ##' @export
 rxParam <- rxParams
+
+
+.rxGetParseModel <- function(){
+    .Call(`_RxODE_parseModel`)
+}
