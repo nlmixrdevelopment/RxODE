@@ -2407,6 +2407,10 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
 
 SEXP _RxODE_codegen(SEXP c_file, SEXP prefix, SEXP libname,
 		    SEXP pMd5, SEXP timeId, SEXP fixInis){
+  sbuf *sbb;
+  if (!sbPm.o || !sbNrm.o){
+    error("Nothing in output queue to write.");
+  }
   if (!isString(c_file) || length(c_file) != 1){
     error("c_file should only be 1 file");
   }
@@ -2425,6 +2429,12 @@ SEXP _RxODE_codegen(SEXP c_file, SEXP prefix, SEXP libname,
   writeSb(&sbOut[0], fpIO);
   writeSb(&sbOut[4], fpIO);
   fclose(fpIO);
+  for (int i = 0; i < 5; i++){
+    sbb = &sbOut[i];
+    sbb->o = 0;
+  }
+  sbPm.o =0;
+  sbNrm.o=0;
   return R_NilValue;
 }
 
