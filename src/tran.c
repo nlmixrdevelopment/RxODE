@@ -388,6 +388,9 @@ int new_or_ith(const char *s) {
   if (!strcmp("M_LN_SQRT_PI", s)) return 0;
   if (!strcmp("M_LN_SQRT_2PI", s)) return 0;
   if (!strcmp("M_LN_SQRT_PId2", s)) return 0;
+  if (!strcmp("pi", s)){
+    tb.ini_i++;
+  }
   // Ignore THETA[] and ETA
   if (strstr("[", s) != NULL) return 0;
   if (!tb.nv) return 1;
@@ -1004,7 +1007,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         if ((rx_syntax_allow_ini && !strcmp("ini", name)) || !strcmp("ini0", name)){
 	  sb.o=0;
           sAppendN(&sb,"(__0__)", 7);
-	  tb.ini_i++;
           for (k = 0; k < (int)strlen(v); k++){
             if (v[k] == '.'){
               if (rx_syntax_allow_dots){
@@ -1056,6 +1058,9 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
             // If there is only one initialzation call, then assume
             // this is a parameter with an initial value.
             tb.ini[tb.ix] = 1;
+	    if (strcmp("pi", v)){
+	      tb.ini_i++;
+	    }
             if (!strcmp("ini0",name)){
 	      tb.ini0[tb.ix] = 1;
             } else {
@@ -1068,6 +1073,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
             // There is more than one call to this variable, it is a
             // conditional variabile
             tb.lh[tb.ix] = 1;
+	    tb.ini_i--;
             if (!strcmp("ini0", name) && tb.ini0[tb.ix] == 1){
               sprintf(buf,"Cannot have conditional initial conditions for %s",v);
               trans_syntax_error_report_fn(buf);
@@ -2345,6 +2351,7 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
   SET_STRING_ELT(tran, 18,mkChar(buf));
 
   sbPm.o=0;
+  ini_i=0;
   while(sgets(sLine, MXLEN, &sbPm)) {
     s2 = strstr(sLine,"(__0__)");
     if (s2){
@@ -2370,7 +2377,7 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
           sprintf(buf2+o2,"=");
           s2 = strstr(sLine,buf2);
           if (s2){
-            /* Rprintf("%s[%d]->\n",buf,ini_i++); */
+            /* Rprintf("%s[%d]->\n",buf,ini_i); */
             SET_STRING_ELT(inin,ini_i,mkChar(buf));
             sprintf(snum,"%.*s",(int)(strlen(sLine)-strlen(buf2) - 2), sLine + strlen(buf2));
             sscanf(snum, "%lf", &d);
