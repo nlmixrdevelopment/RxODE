@@ -38,7 +38,6 @@
 void setInits(SEXP init);
 SEXP getInits();
 
-
 char *repl_str(const char *str, const char *from, const char *to) {
   // From http://creativeandcritical.net/str-replace-c by Laird Shaw
   /* Adjust each of the below values to suit your needs. */
@@ -1391,58 +1390,6 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
     o = (int)strlen(s_aux_info);
   }
   
-  /* sbPm.o=0; */
-  /* while(sgets(sLine, MXLEN, &sbPm)) { */
-  /*   s2 = strstr(sLine,"(__0__)"); */
-  /*   if (s2){ */
-  /*     // See if this is a reclaimed initilization variable. */
-  /*     for (i=0; i<tb.nv; i++) { */
-  /*       if (tb.ini[i] == 1 && tb.lh[i] != 1){ */
-  /*         //(__0__)V2 = */
-  /*         retieve_var(i, buf); */
-  /*         sprintf(buf2,"(__0__)"); */
-  /*         o2 = 7; */
-  /*         for (k = 0; k < (int)strlen(buf); k++){ */
-  /*           if (buf[k] == '.'){ */
-  /*             sprintf(buf2+o2,"_DoT_"); */
-  /*             if (!rx_syntax_allow_dots){ */
-  /*               trans_syntax_error_report_fn(NODOT); */
-  /*             } */
-  /*             o2+=5; */
-  /*           } else { */
-  /*             sprintf(buf2+o2,"%c",buf[k]); */
-  /*             o2++; */
-  /*           } */
-  /*         } */
-  /*         sprintf(buf2+o2,"="); */
-  /*         s2 = strstr(sLine,buf2); */
-  /*         if (s2){ */
-  /*           sprintf(s_aux_info+o,"    SET_STRING_ELT(inin,%d,mkChar(\"%s\"));\n",ini_i, buf); */
-  /*           o = (int)strlen(s_aux_info); */
-  /*           sprintf(s_aux_info+o,"    REAL(ini)[%d] = %.*s;\n",(int)(ini_i++), (int)(strlen(sLine))-(int)(strlen(buf2))-2,sLine + (int)(strlen(buf2))); */
-  /*           o = (int)strlen(s_aux_info); */
-  /*           continue; */
-  /*         } */
-  /*       } */
-  /*     } */
-  /*     continue; */
-  /*   } */
-  /* } */
-  // putin constants
-  /* for (i=0; i<tb.nv; i++) { */
-  /*   if (tb.ini[i] == 0 && tb.lh[i] != 1) { */
-  /*     retieve_var(i, buf); */
-  /*     // Put in constants */
-  /*     if  (!strcmp("pi",buf)){ */
-  /*       sprintf(s_aux_info+o,"    SET_STRING_ELT(inin,%d,mkChar(\"pi\"));\n",ini_i); */
-  /*       o = (int)strlen(s_aux_info); */
-  /*       // Use well more digits than double supports */
-  /*       sprintf(s_aux_info+o,"    REAL(ini)[%d] = M_PI;\n",ini_i++); */
-  /*       o = (int)strlen(s_aux_info); */
-  /*     } */
-  /*   } */
-  /* } */
-  /* tb.ini_i = ini_i; */
   sAppend(&sbOut[4], "    SEXP ini    = PROTECT(allocVector(REALSXP,%d));pro++;\n",tb.ini_i);
   sAppend(&sbOut[4], "    SEXP inin   = PROTECT(allocVector(STRSXP, %d));pro++;\n",tb.ini_i);
   sAppend(&sbOut[4], "%s",s_aux_info);
@@ -2171,7 +2118,9 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
   SEXP state    = PROTECT(allocVector(STRSXP,tb.statei));pro++;
   SEXP stateRmS = PROTECT(allocVector(INTSXP,tb.statei));pro++;
   int *stateRm  = INTEGER(stateRmS);
+  
   SEXP sens     = PROTECT(allocVector(STRSXP,tb.sensi));pro++;
+  
   SEXP fn_ini   = PROTECT(allocVector(STRSXP, tb.fdn));pro++;
 
   SEXP dfdy = PROTECT(allocVector(STRSXP,tb.ndfdy));pro++;
@@ -2242,8 +2191,6 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
   for (k = tb.ini_i;k--;){
     SET_STRING_ELT(inin, k, STRING_ELT(ini0n, k));
   }
-
-  setInits(ini);
   
   SEXP model  = PROTECT(allocVector(STRSXP,1));pro++;
   SEXP modeln = PROTECT(allocVector(STRSXP,1));pro++;
@@ -2303,6 +2250,8 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
       SET_STRING_ELT(params,pi++,mkChar(buf));
     }
   }
+  setInits(ini);
+  
   SET_STRING_ELT(names,0,mkChar("trans"));
   SET_VECTOR_ELT(lst,  0,tran);
   
