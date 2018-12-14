@@ -154,5 +154,5 @@ identifier_r_2: "[.]+[a-zA-Z_][a-zA-Z0-9_.]*" $term -4;
 identifier_r_no_output_2: "[.]+[a-zA-Z_][a-zA-Z0-9_.]*" $term -4;
 identifier: "[a-zA-Z][a-zA-Z0-9_]*" $term -4;
 whitespace: ( "[ \t\r\n]+" | singleLineComment )*;
-singleLineComment: '#' "[^\n]*" '\n';
+singleLineComment: '#' "[^\n]*";
 
