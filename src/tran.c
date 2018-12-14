@@ -1008,7 +1008,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
           for (k = 0; k < (int)strlen(v); k++){
             if (v[k] == '.'){
                 sAppendN(&sb,"_DoT_", 5);
-		if (rx_syntax_allow_dots){
+		if (!rx_syntax_allow_dots){
 		  trans_syntax_error_report_fn(NODOT);
 		}
             } else {
@@ -1028,7 +1028,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
           for (k = 0; k < (int)strlen(v); k++){
             if (v[k] == '.'){
 	      sAppendN(&sb,"_DoT_", 5);
-	      if (rx_syntax_allow_dots){
+	      if (!rx_syntax_allow_dots){
 		trans_syntax_error_report_fn(NODOT);
 	      }
             } else {

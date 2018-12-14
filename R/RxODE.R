@@ -997,10 +997,14 @@ rxTrans.character <- function(model,
         md5 <- rxMd5(model, extraC)$digest
     }
     RxODE::rxReq("dparser");
-    .ret <- try(.Call(`_RxODE_trans`, model, extraC, modelPrefix, md5, .isStr, PACKAGE="RxODE"));
+    .ret <- .Call(`_RxODE_trans`, model, extraC, modelPrefix, md5, .isStr);
     if (inherits(.ret, "try-error")){
         message("Model")
-        message(suppressWarnings(readLines(model)))
+        if (.isStr == 0L){
+            message(suppressWarnings(readLines(model)))
+        } else {
+            message(model)
+        }
         stop("Cannot Create RxODE model");
     }
     md5 <- c(file_md5 = md5, parsed_md5 = rxMd5(c(.ret$model["normModel"],
@@ -1177,7 +1181,7 @@ rxCompile.rxModelVars <-  function(model, # Model
             .trans <- gsub(substr(.prefix2, 0, nchar(.prefix2)-1),
                            substr(prefix, 0, nchar(prefix)-1), .trans)
             ## Load model into memory if needed
-            if (.Call(`_RxODE_codeLoaded`) == 0) .rxModelVarsCharacter(setNames(.mv$model,NULL))
+            if (.Call(`_RxODE_codeLoaded`) == 0L) .rxModelVarsCharacter(setNames(.mv$model,NULL))
             ## SEXP pMd5, SEXP timeId, SEXP fixInis
             .Call(`_RxODE_codegen`, .cFile, prefix, gsub(.Platform$dynlib.ext, "", basename(.cDllFile)),
                   .trans["parsed_md5"], paste(as.integer(Sys.time())), .fixInis);
