@@ -848,6 +848,7 @@ print.rxCoefSolve <- function(x, ...){
         .modelPrefix <- paste0(gsub("\\W", "_", modName),  "_", .Platform$r_arch, "_");
     } else {
         .mv <- rxModelVars(model);
+        if (.Call(`_RxODE_codeLoaded`) == 0L) .rxModelVarsCharacter(setNames(rxNorm(.mv),NULL));
         .cache <- .rxModelVarsCCache
         if (.cache[[1]]){
             .modelPrefix <- sprintf("%s_", gsub("\\W", "_", gsub("[.].*$", "", basename(.cache[[2]]))));
@@ -1175,12 +1176,11 @@ rxCompile.rxModelVars <-  function(model, # Model
             }
             .trans <- c(.mv$trans, .mv$md5);
             .trans["fix_inis"] <- .fixInis;
-            ##
+            ## Load model into memory if needed
+            if (.Call(`_RxODE_codeLoaded`) == 0L) .rxModelVarsCharacter(setNames(.mv$model,NULL));
             .prefix2 <- .rxModelVarsCCache[[3]];
             .trans <- gsub(substr(.prefix2, 0, nchar(.prefix2)-1),
                            substr(prefix, 0, nchar(prefix)-1), .trans)
-            ## Load model into memory if needed
-            if (.Call(`_RxODE_codeLoaded`) == 0L) .rxModelVarsCharacter(setNames(.mv$model,NULL))
             ## SEXP pMd5, SEXP timeId, SEXP fixInis
             .Call(`_RxODE_codegen`, .cFile, prefix, gsub(.Platform$dynlib.ext, "", basename(.cDllFile)),
                   .trans["parsed_md5"], paste(as.integer(Sys.time())), .fixInis);
