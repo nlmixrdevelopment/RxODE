@@ -241,6 +241,7 @@ rxSyncOptions <- function(){
     for (var in names(rxOpt)){
         assignInMyNamespace(var, getOption(var, rxOpt[[var]][1]));
     }
+    gc();
 }
 
 rxSkipValidate <- function(){

@@ -471,6 +471,7 @@ RxODE <- function(model, modName = basename(wd),
     .env$calcSens <- (length(.mv$sens) > 0)
     assign(.mv$trans["prefix"], .env, getFromNamespace(".rxModels", "RxODE"));
     class(.env) <- "RxODE"
+    reg.finalizer(.env, rxUnload)
     RxODE::rxForget();
     return(.env);
 }
