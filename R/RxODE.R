@@ -335,8 +335,7 @@ RxODE <- function(model, modName = basename(wd),
             model <- paste(model[-length(model)], collapse="\n");
         }
     }
-    .env <- new.env(parent=loadNamespace("RxODE"))
-    assign(".env", .env, globalenv())
+    .env <- new.env(parent=baseenv())
     .env$.mv <- rxGetModel(model, calcSens = calcSens, calcJac = calcJac, collapseModel = collapseModel);
     .env$.mv <- rxLinCmtTrans(.env$.mv);
     model <- rxNorm(.env$.mv);
@@ -469,9 +468,8 @@ RxODE <- function(model, modName = basename(wd),
     .env$cmpMgr <- tmp;
     .env$calcJac <- (length(.mv$dfdy) > 0);
     .env$calcSens <- (length(.mv$sens) > 0)
-    assign(.mv$trans["prefix"], .env, getFromNamespace(".rxModels", "RxODE"));
     class(.env) <- "RxODE"
-    reg.finalizer(.env, rxUnload)
+    reg.finalizer(.env, rxUnload);
     RxODE::rxForget();
     return(.env);
 }
@@ -537,9 +535,7 @@ rxGetModel <- function(model, calcSens=FALSE, calcJac=FALSE, collapseModel=FALSE
         if (length(rxState(.ret)) <= 0){
             stop("Jacobians do not make sense for models without ODEs.")
         }
-        print("there");
         .new <- .rxSymPyJacobian(.ret);
-        print("here");
         .ret <- rxModelVars(.new)
     }
     return(.ret);
@@ -1180,6 +1176,8 @@ rxCompile.rxModelVars <-  function(model, # Model
             .prefix2 <- .rxModelVarsCCache[[3]];
             .trans <- gsub(substr(.prefix2, 0, nchar(.prefix2)-1),
                            substr(prefix, 0, nchar(prefix)-1), .trans)
+            ## Load model into memory if needed
+            if (.Call(`_RxODE_codeLoaded`) == 0) .rxModelVarsCharacter(setNames(.mv$model,NULL))
             ## SEXP pMd5, SEXP timeId, SEXP fixInis
             .Call(`_RxODE_codegen`, .cFile, prefix, gsub(.Platform$dynlib.ext, "", basename(.cDllFile)),
                   .trans["parsed_md5"], paste(as.integer(Sys.time())), .fixInis);

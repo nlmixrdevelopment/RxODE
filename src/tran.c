@@ -1007,11 +1007,10 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
           sAppendN(&sb,"(__0__)", 7);
           for (k = 0; k < (int)strlen(v); k++){
             if (v[k] == '.'){
-              if (rx_syntax_allow_dots){
                 sAppendN(&sb,"_DoT_", 5);
-              } else {
-                trans_syntax_error_report_fn(NODOT);
-              }
+		if (rx_syntax_allow_dots){
+		  trans_syntax_error_report_fn(NODOT);
+		}
             } else {
               sPut(&sb, v[k]);
             }
@@ -1028,11 +1027,10 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
           sb.o = 0;
           for (k = 0; k < (int)strlen(v); k++){
             if (v[k] == '.'){
-              if (rx_syntax_allow_dots){              
-                sAppendN(&sb,"_DoT_", 5);
-              } else {
-                trans_syntax_error_report_fn(NODOT);
-              }
+	      sAppendN(&sb,"_DoT_", 5);
+	      if (rx_syntax_allow_dots){
+		trans_syntax_error_report_fn(NODOT);
+	      }
             } else {
               sPut(&sb, v[k]);
             }
@@ -2428,10 +2426,21 @@ SEXP _RxODE_parseModel(){
   return pm;
 }
 
+SEXP _RxODE_codeLoaded(){
+  SEXP pm = PROTECT(allocVector(INTSXP, 1));
+  if (!sbPm.o || !sbNrm.o){
+    INTEGER(pm)[0]=0;
+  } else {
+    INTEGER(pm)[0]=0;
+  }
+  UNPROTECT(1);
+  return pm;
+}
+
 SEXP _RxODE_codegen(SEXP c_file, SEXP prefix, SEXP libname,
 		    SEXP pMd5, SEXP timeId, SEXP fixInis){
   if (!sbPm.o || !sbNrm.o){
-    error("Nothing in output queue to write.");
+    error("Nothing in output queue to write");
   }
   if (!isString(c_file) || length(c_file) != 1){
     error("c_file should only be 1 file");
