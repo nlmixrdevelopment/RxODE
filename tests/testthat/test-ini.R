@@ -105,4 +105,43 @@ rxPermissive({
     s <- fini %>% solve(theta, ev)
     expect_equal(as.data.frame(s)[1, "eff"], 0.5)
 
+
+
+    ## Now with rxGetModel
+    rxClean();
+
+    m1 <- rxGetModel({C2 = centr/V2;
+        C3 = peri/V3;
+        d/dt(depot) =-KA*depot;
+        d/dt(centr) = KA*depot - CL*C2 - Q*C2 + Q*C3;
+        d/dt(peri)  =                    Q*C2 - Q*C3;
+        d/dt(eff)  = Kin - Kout*(1-C2/(EC50+C2))*eff;})
+
+    test_that("blank names works",
+              expect_equal(suppressWarnings(rxInits(m1, c(0, 0, 0, 1), rxState(m1), 0)),
+                           structure(c(0, 0, 0, 1), .Names = c("depot", "centr", "peri",  "eff"))))
+
+    options(RxODE.syntax.allow.ini=TRUE);
+    out <- rxGetModel("ini = 1; fun_ini = 2; fun = 4; addit = ini + fun_ini + pi + no_ini")
+
+    test_that("Initial constants are correct",{
+        expect_equal(rxInits(out)["pi"],c(pi=pi));
+        expect_equal(rxInits(out)["ini"],c(ini=1));
+        expect_equal(rxInits(out)["fun_ini"],c(fun_ini=2));
+        expect_equal(rxInits(out)["fun"],c(fun=4));
+    })
+
+    test_that("Constants are not included in get.modelVars()",{
+        expect_equal(out$get.modelVars()$params,c("no_ini"));
+    })
+
+    options(RxODE.syntax.allow.ini=FALSE);
+    out2 <- rxGetModel("ini = 1; fun_ini = 2; fun = 4; addit = ini + fun_ini + pi + no_ini")
+
+    test_that("Initial constants only include pi.", {
+        expect_equal(names(rxInits(out2)), "pi");
+        expect_equal(out2$params,c("pi", "no_ini"));
+    })
+
+
 }, silent=TRUE)

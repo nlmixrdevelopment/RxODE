@@ -388,12 +388,16 @@ int new_or_ith(const char *s) {
   if (!strcmp("M_LN_SQRT_PI", s)) return 0;
   if (!strcmp("M_LN_SQRT_2PI", s)) return 0;
   if (!strcmp("M_LN_SQRT_PId2", s)) return 0;
+  int isPi=0;
   if (!strcmp("pi", s)){
-    tb.ini_i++;
+    isPi=1;
   }
   // Ignore THETA[] and ETA
   if (strstr("[", s) != NULL) return 0;
-  if (!tb.nv) return 1;
+  if (!tb.nv) {
+    if (isPi) tb.ini_i++;
+    return 1;
+  }
 
   for (i=0; i<tb.nv; i++) {
     len = tb.vo[i+1] - tb.vo[i] - 1;  /* -1 for added ',' */
@@ -402,6 +406,7 @@ int new_or_ith(const char *s) {
       return 0;
     }
   }
+  if (isPi) tb.ini_i++;
   return 1;
 }
 
@@ -1050,13 +1055,13 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	if (!strcmp("assignment", name)  || (!rx_syntax_allow_ini && !strcmp("ini", name))){
           tb.lh[tb.ix] = 1;
         } else if (!strcmp("ini", name) || !strcmp("ini0",name)){
+	  if (strcmp("pi", v)){
+	      tb.ini_i++;
+	  }	    
           if (tb.ini[tb.ix] == 0){
             // If there is only one initialzation call, then assume
             // this is a parameter with an initial value.
             tb.ini[tb.ix] = 1;
-	    if (strcmp("pi", v)){
-	      tb.ini_i++;
-	    }
             if (!strcmp("ini0",name)){
 	      tb.ini0[tb.ix] = 1;
             } else {
@@ -1067,9 +1072,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
             }
           } else {
             // There is more than one call to this variable, it is a
-            // conditional variabile
+            // conditional variable
             tb.lh[tb.ix] = 1;
-	    tb.ini_i--;
             if (!strcmp("ini0", name) && tb.ini0[tb.ix] == 1){
               sprintf(buf,"Cannot have conditional initial conditions for %s",v);
               trans_syntax_error_report_fn(buf);
