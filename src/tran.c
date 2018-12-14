@@ -1383,6 +1383,7 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   SEXP ini = PROTECT(getInits());
   SEXP inin = PROTECT(getAttrib(ini,   R_NamesSymbol));
 
+  tb.ini_i = length(ini);
   for (i = 0; i < tb.ini_i; i++){
     sprintf(s_aux_info+o,"    SET_STRING_ELT(inin,%d,mkChar(\"%s\"));\n",i, CHAR(STRING_ELT(inin, i)));
     o = (int)strlen(s_aux_info);
@@ -2128,8 +2129,9 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
   SEXP params = PROTECT(allocVector(STRSXP, tb.pi));pro++;
   SEXP lhs    = PROTECT(allocVector(STRSXP, tb.li));pro++;
 
-  SEXP ini0n  = PROTECT(allocVector(STRSXP, tb.pi));pro++;
-  SEXP ini0   = PROTECT(allocVector(REALSXP, tb.pi));pro++;
+
+  SEXP ini0n  = PROTECT(allocVector(STRSXP, tb.pi+tb.statei));pro++;
+  SEXP ini0   = PROTECT(allocVector(REALSXP, tb.pi+tb.statei));pro++;
 
   sbPm.o=0;
   ini_i=0;
