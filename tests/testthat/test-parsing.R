@@ -5,18 +5,22 @@ rxPermissive({
 
     badParse <- function(desc,code){
         test_that(desc,{
-            tmp <- tempfile();
-            sink(tmp)
-            on.exit({sink(); unlink(tmp);});
+            tmp <- normalizePath(tempfile(), mustWork = FALSE);
+            zz <- file(tmp, open = "wt")
+            sink(zz)
+            sink(zz, type = "message")
+            on.exit({sink(); sink(type = "message");close(zz);unlink(tmp);});
             expect_error(RxODE(code));
         })
     }
 
     goodParse <- function(desc,code){
         test_that(desc,{
-            tmp <- tempfile();
-            sink(tmp)
-            on.exit({sink(); unlink(tmp);});
+            tmp <- normalizePath(tempfile(), mustWork = FALSE);
+            zz <- file(tmp, open = "wt")
+            sink(zz)
+            sink(zz, type = "message")
+            on.exit({sink(); sink(type = "message");close(zz);unlink(tmp);});
             rx <- RxODE(code);
             expect_equal(class(rx),"RxODE");
             rxDelete(rx);
@@ -25,9 +29,11 @@ rxPermissive({
 
     equivSyntax <- function(desc,code1,code2){
         test_that(desc,{
-            tmp <- tempfile();
-            sink(tmp);
-            on.exit({sink(); unlink(tmp);});
+            tmp <- normalizePath(tempfile(), mustWork = FALSE);
+            zz <- file(tmp, open = "wt")
+            sink(zz)
+            sink(zz, type = "message")
+            on.exit({sink(); sink(type = "message");close(zz);unlink(tmp);});
             rx1 <- RxODE(code1);
             rx2 <- RxODE(code2);
             expect_equal(rxMd5(rx1)["parsed_md5"],rxMd5(rx2)["parsed_md5"])

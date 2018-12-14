@@ -1442,7 +1442,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
             }
             ##
             extra.pars <- c();
-            if (is.nugll(errfn)){
+            if (is.null(errfn)){
                 errfn <- function(){add(0.1)};
             }
             ## Get maximum theta.
