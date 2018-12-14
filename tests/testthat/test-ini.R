@@ -131,17 +131,17 @@ rxPermissive({
         expect_equal(rxInits(out)["fun"],c(fun=4));
     })
 
-    test_that("Constants are not included in get.modelVars()",{
-        expect_equal(out$get.modelVars()$params,c("no_ini"));
-    })
-
     options(RxODE.syntax.allow.ini=FALSE);
     out2 <- rxGetModel("ini = 1; fun_ini = 2; fun = 4; addit = ini + fun_ini + pi + no_ini")
 
     test_that("Initial constants only include pi.", {
         expect_equal(names(rxInits(out2)), "pi");
-        expect_equal(out2$params,c("pi", "no_ini"));
     })
 
+    test_that("Initial conditions are zero length before and after compile", {
+        expect_equal(rxModelVars("KA=exp(THETA[1]);\nCL=exp(THETA[2]+ETA[1]);\nV=exp(THETA[3]+ETA[2]);\nd/dt(depot)=-KA*depot;\nd/dt(centr)=KA*depot-CL/V*centr;\nrx_yj_=2;\nrx_lambda_=1;\nrx_pred_f_~centr;\nrx_pred_=centr;\nrx_r_=(THETA[4])^2;\n")$ini, structure(numeric(0), .Names = character(0)))
+        tmp <- RxODE("KA=exp(THETA[1]);\nCL=exp(THETA[2]+ETA[1]);\nV=exp(THETA[3]+ETA[2]);\nd/dt(depot)=-KA*depot;\nd/dt(centr)=KA*depot-CL/V*centr;\nrx_yj_=2;\nrx_lambda_=1;\nrx_pred_f_~centr;\nrx_pred_=centr;\nrx_r_=(THETA[4])^2;\n");
+        expect_equal(rxModelVars(tmp)$ini, structure(numeric(0), .Names = character(0)))
+    })
 
 }, silent=TRUE)

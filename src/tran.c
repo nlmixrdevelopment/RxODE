@@ -35,6 +35,10 @@
 #include <stdint.h>
 #endif
 
+void setInits(SEXP init);
+SEXP getInits();
+
+
 char *repl_str(const char *str, const char *from, const char *to) {
   // From http://creativeandcritical.net/str-replace-c by Laird Shaw
   /* Adjust each of the below values to suit your needs. */
@@ -388,16 +392,8 @@ int new_or_ith(const char *s) {
   if (!strcmp("M_LN_SQRT_PI", s)) return 0;
   if (!strcmp("M_LN_SQRT_2PI", s)) return 0;
   if (!strcmp("M_LN_SQRT_PId2", s)) return 0;
-  int isPi=0;
-  if (!strcmp("pi", s)){
-    isPi=1;
-  }
   // Ignore THETA[] and ETA
   if (strstr("[", s) != NULL) return 0;
-  if (!tb.nv) {
-    if (isPi) tb.ini_i++;
-    return 1;
-  }
 
   for (i=0; i<tb.nv; i++) {
     len = tb.vo[i+1] - tb.vo[i] - 1;  /* -1 for added ',' */
@@ -406,7 +402,6 @@ int new_or_ith(const char *s) {
       return 0;
     }
   }
-  if (isPi) tb.ini_i++;
   return 1;
 }
 
@@ -1055,9 +1050,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	if (!strcmp("assignment", name)  || (!rx_syntax_allow_ini && !strcmp("ini", name))){
           tb.lh[tb.ix] = 1;
         } else if (!strcmp("ini", name) || !strcmp("ini0",name)){
-	  if (strcmp("pi", v)){
-	      tb.ini_i++;
-	  }	    
           if (tb.ini[tb.ix] == 0){
             // If there is only one initialzation call, then assume
             // this is a parameter with an initial value.
@@ -1233,10 +1225,8 @@ void prnt_vars(int scenario, int lhs, const char *pre_str, const char *post_str,
 }
 
 void print_aux_info(char *model, const char *prefix, const char *libname, const char *pMd5, const char *timeId){
-  int i, j, k, islhs,pi = 0,li = 0, o=0, o2=0, statei = 0, ini_i = 0, sensi=0, normi=0,fdi=0,
+  int i, j, islhs,pi = 0,li = 0, o=0, statei = 0, sensi=0, normi=0,fdi=0,
     in_str=0;
-  char *s2;
-  char sLine[MXLEN+1];
   char buf[512], buf2[512];
   for (i=0; i<tb.nv; i++) {
     islhs = tb.lh[i];
@@ -1391,61 +1381,70 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   
   s_aux_info[0] = '\0';
   o    = 0;
+  SEXP ini = PROTECT(getInits());
+  SEXP inin = PROTECT(getAttrib(ini,   R_NamesSymbol));
+
+  for (i = 0; i < tb.ini_i; i++){
+    sprintf(s_aux_info+o,"    SET_STRING_ELT(inin,%d,mkChar(\"%s\"));\n",i, CHAR(STRING_ELT(inin, i)));
+    o = (int)strlen(s_aux_info);
+    sprintf(s_aux_info+o,"    REAL(ini)[%d] = %.16f;\n",i, REAL(ini)[i]);
+    o = (int)strlen(s_aux_info);
+  }
   
-  sbPm.o=0;
-  while(sgets(sLine, MXLEN, &sbPm)) {
-    s2 = strstr(sLine,"(__0__)");
-    if (s2){
-      // See if this is a reclaimed initilization variable.
-      for (i=0; i<tb.nv; i++) {
-        if (tb.ini[i] == 1 && tb.lh[i] != 1){
-          //(__0__)V2 =
-          retieve_var(i, buf);
-          sprintf(buf2,"(__0__)");
-          o2 = 7;
-          for (k = 0; k < (int)strlen(buf); k++){
-            if (buf[k] == '.'){
-              sprintf(buf2+o2,"_DoT_");
-              if (!rx_syntax_allow_dots){
-                trans_syntax_error_report_fn(NODOT);
-              }
-              o2+=5;
-            } else {
-              sprintf(buf2+o2,"%c",buf[k]);
-              o2++;
-            }
-          }
-          sprintf(buf2+o2,"=");
-          s2 = strstr(sLine,buf2);
-          if (s2){
-            sprintf(s_aux_info+o,"    SET_STRING_ELT(inin,%d,mkChar(\"%s\"));\n",ini_i, buf);
-            o = (int)strlen(s_aux_info);
-            sprintf(s_aux_info+o,"    REAL(ini)[%d] = %.*s;\n",(int)(ini_i++), (int)(strlen(sLine))-(int)(strlen(buf2))-2,sLine + (int)(strlen(buf2)));
-            o = (int)strlen(s_aux_info);
-            continue;
-          }
-        }
-      }
-      continue;
-    }
-  }
+  /* sbPm.o=0; */
+  /* while(sgets(sLine, MXLEN, &sbPm)) { */
+  /*   s2 = strstr(sLine,"(__0__)"); */
+  /*   if (s2){ */
+  /*     // See if this is a reclaimed initilization variable. */
+  /*     for (i=0; i<tb.nv; i++) { */
+  /*       if (tb.ini[i] == 1 && tb.lh[i] != 1){ */
+  /*         //(__0__)V2 = */
+  /*         retieve_var(i, buf); */
+  /*         sprintf(buf2,"(__0__)"); */
+  /*         o2 = 7; */
+  /*         for (k = 0; k < (int)strlen(buf); k++){ */
+  /*           if (buf[k] == '.'){ */
+  /*             sprintf(buf2+o2,"_DoT_"); */
+  /*             if (!rx_syntax_allow_dots){ */
+  /*               trans_syntax_error_report_fn(NODOT); */
+  /*             } */
+  /*             o2+=5; */
+  /*           } else { */
+  /*             sprintf(buf2+o2,"%c",buf[k]); */
+  /*             o2++; */
+  /*           } */
+  /*         } */
+  /*         sprintf(buf2+o2,"="); */
+  /*         s2 = strstr(sLine,buf2); */
+  /*         if (s2){ */
+  /*           sprintf(s_aux_info+o,"    SET_STRING_ELT(inin,%d,mkChar(\"%s\"));\n",ini_i, buf); */
+  /*           o = (int)strlen(s_aux_info); */
+  /*           sprintf(s_aux_info+o,"    REAL(ini)[%d] = %.*s;\n",(int)(ini_i++), (int)(strlen(sLine))-(int)(strlen(buf2))-2,sLine + (int)(strlen(buf2))); */
+  /*           o = (int)strlen(s_aux_info); */
+  /*           continue; */
+  /*         } */
+  /*       } */
+  /*     } */
+  /*     continue; */
+  /*   } */
+  /* } */
   // putin constants
-  for (i=0; i<tb.nv; i++) {
-    if (tb.ini[i] == 0 && tb.lh[i] != 1) {
-      retieve_var(i, buf);
-      // Put in constants
-      if  (!strcmp("pi",buf)){
-        sprintf(s_aux_info+o,"    SET_STRING_ELT(inin,%d,mkChar(\"pi\"));\n",ini_i);
-        o = (int)strlen(s_aux_info);
-        // Use well more digits than double supports
-        sprintf(s_aux_info+o,"    REAL(ini)[%d] = M_PI;\n",ini_i++);
-        o = (int)strlen(s_aux_info);
-      }
-    }
-  }
-  tb.ini_i = ini_i;
-  sAppend(&sbOut[4], "    SEXP ini    = PROTECT(allocVector(REALSXP,%d));pro++;\n",ini_i);
-  sAppend(&sbOut[4], "    SEXP inin   = PROTECT(allocVector(STRSXP, %d));pro++;\n",ini_i);
+  /* for (i=0; i<tb.nv; i++) { */
+  /*   if (tb.ini[i] == 0 && tb.lh[i] != 1) { */
+  /*     retieve_var(i, buf); */
+  /*     // Put in constants */
+  /*     if  (!strcmp("pi",buf)){ */
+  /*       sprintf(s_aux_info+o,"    SET_STRING_ELT(inin,%d,mkChar(\"pi\"));\n",ini_i); */
+  /*       o = (int)strlen(s_aux_info); */
+  /*       // Use well more digits than double supports */
+  /*       sprintf(s_aux_info+o,"    REAL(ini)[%d] = M_PI;\n",ini_i++); */
+  /*       o = (int)strlen(s_aux_info); */
+  /*     } */
+  /*   } */
+  /* } */
+  /* tb.ini_i = ini_i; */
+  sAppend(&sbOut[4], "    SEXP ini    = PROTECT(allocVector(REALSXP,%d));pro++;\n",tb.ini_i);
+  sAppend(&sbOut[4], "    SEXP inin   = PROTECT(allocVector(STRSXP, %d));pro++;\n",tb.ini_i);
   sAppend(&sbOut[4], "%s",s_aux_info);
   // Vector Names
   sAppendN(&sbOut[4], "    SET_STRING_ELT(names,0,mkChar(\"params\"));\n", 46);
@@ -1593,7 +1592,8 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   sAppendN(&sbOut[4], "\nR_registerRoutines(info, cMethods, callMethods, NULL, NULL);\n  R_useDynamicSymbols(info,FALSE);\n}\n", 99);
   sAppend(&sbOut[4], "\n  void R_unload_%s (DllInfo *info){\n  // Free resources required for single subject solve.\n  SEXP _mv = PROTECT(_rxGetModelLib(\"%smodel_vars\"));\n",
 	  libname, prefix);
-  sAppend(&sbOut[4], "  if (!isNull(_mv)){\n    _rxRmModelLib(\"%smodel_vars\");\n  }\n  UNPROTECT(1);\n}\n", prefix);  
+  sAppend(&sbOut[4], "  if (!isNull(_mv)){\n    _rxRmModelLib(\"%smodel_vars\");\n  }\n  UNPROTECT(1);\n}\n", prefix);
+  UNPROTECT(2);
 }
 
 
@@ -2179,9 +2179,72 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
   SEXP params = PROTECT(allocVector(STRSXP, tb.pi));pro++;
   SEXP lhs    = PROTECT(allocVector(STRSXP, tb.li));pro++;
 
+  SEXP ini0n  = PROTECT(allocVector(STRSXP, tb.pi));pro++;
+  SEXP ini0   = PROTECT(allocVector(REALSXP, tb.pi));pro++;
+
+  sbPm.o=0;
+  ini_i=0;
+  while(sgets(sLine, MXLEN, &sbPm)) {
+    s2 = strstr(sLine,"(__0__)");
+    if (s2){
+      // See if this is a reclaimed initilization variable.
+      for (i=0; i<tb.nv; i++) {
+        if (tb.ini[i] == 1 && tb.lh[i] != 1){
+          //(__0__)V2=
+          retieve_var(i, buf);
+          sprintf(buf2,"(__0__)");
+          o2 = 7;
+          for (k = 0; k < (int)strlen(buf); k++){
+            if (buf[k] == '.'){
+              sprintf(buf2+o2,"_DoT_");
+              if (!rx_syntax_allow_dots){
+                trans_syntax_error_report_fn(NODOT);
+              }
+              o2+=5;
+            } else {
+              sprintf(buf2+o2,"%c",buf[k]);
+              o2++;
+            }
+          }
+          sprintf(buf2+o2,"=");
+          s2 = strstr(sLine,buf2);
+          if (s2){
+            /* Rprintf("%s[%d]->\n",buf,ini_i); */
+            SET_STRING_ELT(ini0n,ini_i,mkChar(buf));
+            sprintf(snum,"%.*s",(int)(strlen(sLine)-strlen(buf2) - 2), sLine + strlen(buf2));
+            sscanf(snum, "%lf", &d);
+            REAL(ini0)[ini_i++] = d;
+            continue;
+          }
+        }
+      }
+      continue;
+    }
+  }
+  // putin constants
+  for (i=0; i<tb.nv; i++) {
+    if (tb.ini[i] == 0 && tb.lh[i] != 1) {
+      retieve_var(i, buf);
+      // Put in constants
+      if  (!strcmp("pi",buf)){
+        SET_STRING_ELT(ini0n,ini_i,mkChar("pi"));
+        REAL(ini0)[ini_i++] = M_PI;
+      }
+    }
+  }
+  tb.ini_i = ini_i;
+
   SEXP inin   = PROTECT(allocVector(STRSXP, tb.ini_i));pro++;
   SEXP ini    = PROTECT(allocVector(REALSXP, tb.ini_i));pro++;
+  setAttrib(ini,   R_NamesSymbol, inin);  
 
+  memcpy(REAL(ini), REAL(ini0), tb.ini_i*sizeof(double));
+  for (k = tb.ini_i;k--;){
+    SET_STRING_ELT(inin, k, STRING_ELT(ini0n, k));
+  }
+
+  setInits(ini);
+  
   SEXP model  = PROTECT(allocVector(STRSXP,1));pro++;
   SEXP modeln = PROTECT(allocVector(STRSXP,1));pro++;
   k=0;j=0;l=0;
@@ -2350,61 +2413,10 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
   SET_STRING_ELT(trann,18,mkChar("dydt_liblsoda"));
   SET_STRING_ELT(tran, 18,mkChar(buf));
 
-  sbPm.o=0;
-  ini_i=0;
-  while(sgets(sLine, MXLEN, &sbPm)) {
-    s2 = strstr(sLine,"(__0__)");
-    if (s2){
-      // See if this is a reclaimed initilization variable.
-      for (i=0; i<tb.nv; i++) {
-        if (tb.ini[i] == 1 && tb.lh[i] != 1){
-          //(__0__)V2=
-          retieve_var(i, buf);
-          sprintf(buf2,"(__0__)");
-          o2 = 7;
-          for (k = 0; k < (int)strlen(buf); k++){
-            if (buf[k] == '.'){
-              sprintf(buf2+o2,"_DoT_");
-              if (!rx_syntax_allow_dots){
-                trans_syntax_error_report_fn(NODOT);
-              }
-              o2+=5;
-            } else {
-              sprintf(buf2+o2,"%c",buf[k]);
-              o2++;
-            }
-          }
-          sprintf(buf2+o2,"=");
-          s2 = strstr(sLine,buf2);
-          if (s2){
-            /* Rprintf("%s[%d]->\n",buf,ini_i); */
-            SET_STRING_ELT(inin,ini_i,mkChar(buf));
-            sprintf(snum,"%.*s",(int)(strlen(sLine)-strlen(buf2) - 2), sLine + strlen(buf2));
-            sscanf(snum, "%lf", &d);
-            REAL(ini)[ini_i++] = d;
-            continue;
-          }
-        }
-      }
-      continue;
-    }
-  }
-  // putin constants
-  for (i=0; i<tb.nv; i++) {
-    if (tb.ini[i] == 0 && tb.lh[i] != 1) {
-      retieve_var(i, buf);
-      // Put in constants
-      if  (!strcmp("pi",buf)){
-        SET_STRING_ELT(inin,ini_i,mkChar("pi"));
-        REAL(ini)[ini_i++] = M_PI;
-      }
-    }
-  }
   
   SET_STRING_ELT(modeln,0,mkChar("normModel"));
   SET_STRING_ELT(model,0,mkChar(sbNrm.s));
   
-  setAttrib(ini,   R_NamesSymbol, inin);
   setAttrib(tran,  R_NamesSymbol, trann);
   setAttrib(lst,   R_NamesSymbol, names);
   setAttrib(model, R_NamesSymbol, modeln);

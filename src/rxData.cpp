@@ -1522,6 +1522,16 @@ extern "C" int rxGetErrsNcol(){
   } 
   return 0;
 }
+
+extern "C" void setInits(SEXP init){
+  getRxModels();
+  _rxModels[".init"] = init;
+}
+
+extern "C" SEXP getInits(){
+  getRxModels();
+  return as<SEXP>(_rxModels[".init"]);
+}
   
 SEXP rxGetFromChar(char *ptr, std::string var){
   std::string str(ptr);
