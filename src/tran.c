@@ -236,6 +236,7 @@ typedef struct symtab {
   int sensi;
   int li; // # lhs
   int pi; // # param
+  int linCmt; // Unparsed linear compartment
   // Save Jacobian information
   int df[MXSYM];
   int dy[MXSYM];
@@ -443,6 +444,10 @@ void wprint_node(int depth, char *name, char *value, void *client_data) {
   } else if (!strcmp("identifier",name) && !strcmp("abs",value)){
     sAppendN(&sb, "fabs", 4);
     sAppendN(&sbt,"abs", 3);
+  } else if (!strcmp("identifier",name) && !strcmp("linCmt",value)) {
+    sAppendN(&sb, "linCmt", 6);
+    sAppendN(&sbt,"linCmt", 6);
+    tb.linCmt=1;
   } else {
     // Apply fix for dot.syntax
     for (i = 0; i < (int)strlen(value); i++){
@@ -1932,6 +1937,7 @@ void reset (){
   tb.maxtheta   = 0;
   tb.maxeta     = 0;
   tb.fdn        = 0;
+  tb.linCmt     = 0;
   // reset globals
   found_print = 0;
   found_jac = 0;
@@ -2402,6 +2408,13 @@ SEXP _RxODE_codeLoaded(){
   }
   UNPROTECT(1);
   return pm;
+}
+
+SEXP _RxODE_isLinCmt(){
+  SEXP ret = PROTECT(allocVector(INTSXP, 1));
+  INTEGER(ret)[0]=tb.linCmt;
+  UNPROTECT(1);
+  return ret;
 }
 
 SEXP _RxODE_codegen(SEXP c_file, SEXP prefix, SEXP libname,

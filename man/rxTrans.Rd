@@ -6,16 +6,13 @@
 \alias{rxTrans.character}
 \title{Translate the model to C code if needed}
 \usage{
-rxTrans(model, cFile = sprintf("\%s.c", gsub("[.][^.]*$", "", model)),
-  extraC = NULL, modelPrefix = "", md5 = "", modName = NULL,
-  modVars = FALSE, ...)
+rxTrans(model, extraC = NULL, modelPrefix = "", md5 = "",
+  modName = NULL, modVars = FALSE, ...)
 
-\method{rxTrans}{default}(model, cFile = sprintf("\%s.c",
-  gsub("[.][^.]*$", "", model)), extraC = NULL, modelPrefix = "",
+\method{rxTrans}{default}(model, extraC = NULL, modelPrefix = "",
   md5 = "", modName = NULL, modVars = FALSE, ...)
 
-\method{rxTrans}{character}(model, cFile = sprintf("\%s.c",
-  gsub("[.][^.]*$", "", model)), extraC = NULL, modelPrefix = "",
+\method{rxTrans}{character}(model, extraC = NULL, modelPrefix = "",
   md5 = "", modName = NULL, modVars = FALSE, ...)
 }
 \arguments{
@@ -31,8 +28,6 @@ rxTrans(model, cFile = sprintf("\%s.c", gsub("[.][^.]*$", "", model)),
 (see also the \code{filename} argument). For
     details, see the sections \dQuote{Details} and
     \dQuote{\code{RxODE Syntax}} below.}
-
-\item{cFile}{The C file where the code should be output}
 
 \item{extraC}{Extra c code to include in the model.  This can be
 useful to specify functions in the model.  These C functions
@@ -57,6 +52,8 @@ simple ASCII alphanumeric characters starting with a letter.}
 vector of translated properties.}
 
 \item{...}{Ignored parameters.}
+
+\item{cFile}{The C file where the code should be output}
 }
 \value{
 a named vector of translated model properties

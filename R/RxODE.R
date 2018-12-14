@@ -336,7 +336,9 @@ RxODE <- function(model, modName = basename(wd),
     }
     .env <- new.env(parent=baseenv())
     .env$.mv <- rxGetModel(model, calcSens = calcSens, calcJac = calcJac, collapseModel = collapseModel);
-    .env$.mv <- rxLinCmtTrans(.env$.mv);
+    if (.Call(`_RxODE_isLinCmt`) == 1L){
+        .env$.mv <- rxLinCmtTrans(.env$.mv);
+    }
     model <- rxNorm(.env$.mv);
     class(model) <- "rxModelText"
     .env$.model <- model;
