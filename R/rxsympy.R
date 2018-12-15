@@ -418,26 +418,28 @@ rxSyPyAddVars <- function(txt){
 ##' @keywords internal
 ##' @export
 rxSymPyVars <- function(model){
-    rxSymPyStart();
-    if (rxIs(model,"character") && length(model) > 1){
-        vars <- model;
-    } else if (rxIs(model,"character") && length(model) == 1 && regexpr(rex::rex(or("=", "<-", "~")), model) == -1){
-        vars <- model;
-    } else {
-        vars <- c(rxParams(model),
-                  rxState(model),
-                  "podo", "t", "time", "tlast",
-                  "rx__PTR__", "rx1c",
-                  "rx_lambda_", "rx_yj_",
-                  sprintf("rx_underscore_xi_%s", 1:100));
-    }
-    vars <- sapply(vars, function(x){return(rxToSymPy(x))});
-    known <- c(rxSymPy.vars, vars);
-    assignInMyNamespace("rxSymPy.vars", known);
-    if (length(vars) == 1){
-        rxSymPyExec(sprintf("%s = Symbol('%s')", vars, vars));
-    } else {
-        rxSymPyExec(sprintf("%s = symbols('%s')", paste(vars, collapse=", "), paste(vars, collapse=" ")));
+    if (!is.null(model)){
+        rxSymPyStart();
+        if (rxIs(model,"character") && length(model) > 1){
+            vars <- model;
+        } else if (rxIs(model,"character") && length(model) == 1 && regexpr(rex::rex(or("=", "<-", "~")), model) == -1){
+            vars <- model;
+        } else {
+            vars <- c(rxParams(model),
+                      rxState(model),
+                      "podo", "t", "time", "tlast",
+                      "rx__PTR__", "rx1c",
+                      "rx_lambda_", "rx_yj_",
+                      sprintf("rx_underscore_xi_%s", 1:100));
+        }
+        vars <- sapply(vars, function(x){return(rxToSymPy(x))});
+        known <- c(rxSymPy.vars, vars);
+        assignInMyNamespace("rxSymPy.vars", known);
+        if (length(vars) == 1){
+            rxSymPyExec(sprintf("%s = Symbol('%s')", vars, vars));
+        } else {
+            rxSymPyExec(sprintf("%s = symbols('%s')", paste(vars, collapse=", "), paste(vars, collapse=" ")));
+        }
     }
     return(invisible());
 }
@@ -498,9 +500,9 @@ rxSymPySetup <- function(model, envir=parent.frame()){
 ##' @return model lines
 ##' @export
 rxSymPySetupIf <- function(model){
-    if (class(model) != "character"){
+    if (any(class(model) == c("RxODE", "rxModelVars", "rxModelText"))){
         return(rxSymPySetup(model));
-    } else {
+    } else if (class(model) == "character") {
         lastLine <- sub(rex::rex(start, any_spaces, capture(anything), any_spaces, end),
                         "\\1", strsplit(model[length(model)], "[=~]")[[1]][1])
         if (!rxSymPyExists(rxToSymPy(lastLine))){
@@ -508,6 +510,8 @@ rxSymPySetupIf <- function(model){
             rxSymPySetup(model.setup)
         }
         return(model)
+    } else {
+        return("");
     }
 }
 ##' Split line into multiple lines at + or - breaks
