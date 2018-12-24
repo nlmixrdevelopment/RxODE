@@ -454,7 +454,7 @@ void wprint_node(int depth, char *name, char *value, void *client_data) {
       if (value[i] == '.' && !strcmp("identifier_r",name)){
 	sAppendN(&sb, "_DoT_", 5);
 	sAppendN(&sbt, ".", 1);
-        if (!rx_syntax_allow_dots){
+        if (rx_syntax_allow_dots == 0){
           trans_syntax_error_report_fn(NODOT);
         }
       } else {
@@ -927,6 +927,9 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  if (strstr(v, "rx__sens_")){
 	    tb.sensi++;
 	  }
+	  if (rx_syntax_allow_dots == 0 && strstr(v, ".")){
+	    trans_syntax_error_report_fn(NODOT);
+	  }
 	  sb.o=0;
           sAppend(&sb, "__DDtStateVar__[%d] = _IR[%d] ", tb.nd, tb.nd);
 	  sbt.o=0;
@@ -1012,7 +1015,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
           for (k = 0; k < (int)strlen(v); k++){
             if (v[k] == '.'){
                 sAppendN(&sb,"_DoT_", 5);
-		if (!rx_syntax_allow_dots){
+		if (rx_syntax_allow_dots == 0){
 		  trans_syntax_error_report_fn(NODOT);
 		}
             } else {
@@ -1032,7 +1035,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
           for (k = 0; k < (int)strlen(v); k++){
             if (v[k] == '.'){
 	      sAppendN(&sb,"_DoT_", 5);
-	      if (!rx_syntax_allow_dots){
+	      if (rx_syntax_allow_dots == 0){
 		trans_syntax_error_report_fn(NODOT);
 	      }
             } else {
@@ -1173,7 +1176,7 @@ void prnt_vars(int scenario, int lhs, const char *pre_str, const char *post_str,
       for (k = 0; k < (int)strlen(buf); k++){
         if (buf[k] == '.'){
           sAppend(&sbOut[show_ode],"_DoT_");
-          if (!rx_syntax_allow_dots){
+          if (rx_syntax_allow_dots == 0){
             trans_syntax_error_report_fn(NODOT);
           }
         } else {
@@ -1195,7 +1198,7 @@ void prnt_vars(int scenario, int lhs, const char *pre_str, const char *post_str,
       for (k = 0; k < (int)strlen(buf); k++){
         if (buf[k] == '.'){
           sAppendN(&sbOut[show_ode],"_DoT_", 5);
-          if (!rx_syntax_allow_dots){
+          if (rx_syntax_allow_dots == 0){
             trans_syntax_error_report_fn(NODOT);
           }
         } else {
@@ -1213,7 +1216,7 @@ void prnt_vars(int scenario, int lhs, const char *pre_str, const char *post_str,
       for (k = 0; k < (int)strlen(buf); k++){
         if (buf[k] == '.'){
           sAppendN(&sbOut[show_ode],"_DoT_", 5);
-          if (!rx_syntax_allow_dots){
+          if (rx_syntax_allow_dots == 0){
             trans_syntax_error_report_fn(NODOT);
           }
         } else {
@@ -1617,7 +1620,7 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 	for (k = 0; k < (int)strlen(buf); k++){
 	  if (buf[k] == '.'){
 	    sAppendN(&sbOut[show_ode], "_DoT_", 5);
-	    if (!rx_syntax_allow_dots){
+	    if (rx_syntax_allow_dots == 0){
 	      trans_syntax_error_report_fn(NODOT);
 	    }
 	  } else {
@@ -1867,7 +1870,7 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 	for (k = 0; k < (int)strlen(buf); k++){
 	  if (buf[k] == '.'){
 	    sAppendN(&sbOut[show_ode], "_DoT_", 5);
-	    if (!rx_syntax_allow_dots){
+	    if (rx_syntax_allow_dots == 0){
 	      trans_syntax_error_report_fn(NODOT);
 	    }
 	  } else {
@@ -1886,7 +1889,7 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 	for (k = 0; k < (int)strlen(buf); k++){
 	  if (buf[k] == '.'){
 	    sAppendN(&sbOut[show_ode], "_DoT_", 5);
-	    if (!rx_syntax_allow_dots){
+	    if (rx_syntax_allow_dots == 0){
 	      trans_syntax_error_report_fn(NODOT);
 	    }
 	  } else {
@@ -2154,7 +2157,7 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
           for (k = 0; k < (int)strlen(buf); k++){
             if (buf[k] == '.'){
               sprintf(buf2+o2,"_DoT_");
-              if (!rx_syntax_allow_dots){
+              if (rx_syntax_allow_dots == 0){
                 trans_syntax_error_report_fn(NODOT);
               }
               o2+=5;
