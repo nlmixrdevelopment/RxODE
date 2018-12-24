@@ -977,8 +977,6 @@ rxMd5 <- function(model,         # Model File
 ##' @inheritParams RxODE
 ##'
 ##'
-##' @param cFile The C file where the code should be output
-##'
 ##' @param modelPrefix Prefix of the model functions that will be
 ##'     compiled to make sure that multiple RxODE objects can coexist
 ##'     in the same R session.

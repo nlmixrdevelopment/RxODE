@@ -52,8 +52,6 @@ simple ASCII alphanumeric characters starting with a letter.}
 vector of translated properties.}
 
 \item{...}{Ignored parameters.}
-
-\item{cFile}{The C file where the code should be output}
 }
 \value{
 a named vector of translated model properties
