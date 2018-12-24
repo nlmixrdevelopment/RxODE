@@ -2287,11 +2287,11 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
   SET_STRING_ELT(names,8,mkChar("sens"));
   SET_VECTOR_ELT(lst,  8,sens);
   
-  SET_STRING_ELT(names,8,mkChar("fn.ini"));
-  SET_VECTOR_ELT(lst,  8,fn_ini);
+  SET_STRING_ELT(names,9,mkChar("fn.ini"));
+  SET_VECTOR_ELT(lst,  9,fn_ini);
 
-  SET_STRING_ELT(names,9,mkChar("state.ignore"));
-  SET_VECTOR_ELT(lst,  9,stateRmS);
+  SET_STRING_ELT(names,10,mkChar("state.ignore"));
+  SET_VECTOR_ELT(lst,  10,stateRmS);
   
   SET_STRING_ELT(trann,0,mkChar("jac"));
   if (found_jac == 1){

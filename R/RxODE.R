@@ -323,9 +323,6 @@ RxODE <- function(model, modName = basename(wd),
             }
             model <- paste(model, collapse="\n");
         } else if (rxIs(model, "RxODE")){
-            if (!is.null(calcJac) && is.null(calcSens)){
-                calcSens <- FALSE;
-            }
             model <- model$.model
             class(model) <- NULL
         }
@@ -483,7 +480,7 @@ RxODE <- function(model, modName = basename(wd),
 ##' @author Matthew L. Fidler
 ##' @export
 ##' @keywords internal
-rxGetModel <- function(model, calcSens=FALSE, calcJac=FALSE, collapseModel=FALSE){
+rxGetModel <- function(model, calcSens=NULL, calcJac=NULL, collapseModel=NULL){
     if (is(substitute(model), "call")){
         model <- model;
     }
@@ -512,32 +509,84 @@ rxGetModel <- function(model, calcSens=FALSE, calcJac=FALSE, collapseModel=FALSE
     } else {
         stop(sprintf("Can't figure out how to handle the model argument (%s).", class(model)));
     }
-    if (is.null(calcSens)){
-        calcSens <- RxODE.calculate.sensitivity
-    }
-    if (is.null(calcJac)){
-        calcJac <- RxODE.calculate.jacobian;
-    }
     .ret <- rxModelVars(model);
-    .calc <- FALSE
     if (!is.null(calcSens)){
-        .calc <- TRUE
-        if (is(calcSens, "logical")) .calc <- calcSens;
-        if (.calc){
-            if (length(rxState(.ret)) <= 0){
+        .calcSens <- TRUE
+        if (is(calcSens, "logical")){
+            if (!calcSens){
+                .calcSens <- FALSE
+            }
+        }
+        if (.calcSens){
+            if (length(rxState(.ret)) == 0L){
                 stop("Sensitivities do not make sense for models without ODEs.")
+            }
+            if (!is(calcJac, "logical")){
+                calcJac <- FALSE
+            }
+            if (is.null(calcJac)) calcJac <- FALSE
+            if (!calcJac & length(.ret$dfdy) != 0L){
+                ## Remove the Jacobian from the cur
+                .new <- setNames(gsub(rex::rex(or(.ret$dfdy), "=", anything, "\n"), "",
+                                      .ret$model["normModel"]), NULL);
+                .ret <- rxModelVars(.new);
             }
             .new <- rxSymPySensitivity(.ret, calcSens=calcSens, calcJac=calcJac,
                                        collapseModel=collapseModel);
             .ret <- rxModelVars(.new);
+        } else {
+            ## calcSens=FALSE removes the sensitivity equations.
+            print(.ret)
+
+            if (length(.ret$sens) != 0){
+                .new <- setNames(gsub(rex::rex("d/dt(", or(.ret$sens), ")=", anything, "\n"), "",
+                                      .ret$model["normModel"]), NULL);
+                .ret <- rxModelVars(.new);
+            }
+            .calcJac <- FALSE;
+            if (!is.null(calcJac)){
+                if (is(calcJac, "logical")){
+                    if (calcJac){
+                        .calcJac <- TRUE
+                    }
+                }
+            }
+            if (.calcJac & length(.ret$dfdy) == 0){
+                ## calcJac=TRUE, calcSens=FALSE
+                .new <- .rxSymPyJacobian(.ret);
+                .ret <- rxModelVars(.new);
+            } else if (!.calcJac & length(.ret$dfdy) != 0){
+                ## calcJac=FALSE, calcSens=FALSE
+                ## Now remove Jacobian too.
+                .new <- setNames(gsub(rex::rex(or(.ret$dfdy), "=", anything, "\n"), "",
+                                      .ret$model["normModel"]), NULL);
+                .ret <- rxModelVars(.new);
+            }
         }
-    }
-    if (!.calc & calcJac){
-        if (length(rxState(.ret)) <= 0){
-            stop("Jacobians do not make sense for models without ODEs.")
+    } else if (!is.null(calcJac)){
+        if (length(.ret$sens) != 0){
+            .new <- setNames(gsub(rex::rex("d/dt(", or(.ret$sens), ")=", anything, "\n"), "",
+                                  .ret$model["normModel"]), NULL);
+            .ret <- rxModelVars(.new);
         }
-        .new <- .rxSymPyJacobian(.ret);
-        .ret <- rxModelVars(.new)
+        .calcJac <- TRUE
+        if (is(calcJac, "logical")){
+            if (!calcJac){
+                .calcJac <- FALSE
+            }
+        }
+        if (.calcJac){
+            if (length(rxState(.ret)) <= 0){
+                stop("Jacobians do not make sense for models without ODEs.")
+            }
+            .new <- .rxSymPyJacobian(.ret);
+            .ret <- rxModelVars(.new);
+        } else {
+            ## remove Jacobian
+            .new <- setNames(gsub(rex::rex(or(.ret$dfdy), "=", anything, "\n"), "",
+                                      .ret$model["normModel"]), NULL);
+            .ret <- rxModelVars(.new);
+        }
     }
     return(.ret);
 }
