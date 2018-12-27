@@ -10,6 +10,7 @@
 #include <R_ext/Rdynload.h>
 #include <Rmath.h>
 #include "tran.g.d_parser.c"
+
 #define max(a,b) (a)>(b) ? (a):(b)
 #define min(a,b) (a)<(b) ? (a):(b)
 #define MXSYM 50000
@@ -2430,13 +2431,14 @@ SEXP _RxODE_codegen(SEXP c_file, SEXP prefix, SEXP libname,
   }
   fpIO = fopen(CHAR(STRING_ELT(c_file,0)), "wb");
   err_msg((intptr_t) fpIO, "error opening output c file\n", -2);
-  for (int i = 0; i < 5; i++){
-    codegen(gBuf, i, CHAR(STRING_ELT(prefix,0)),
-	    CHAR(STRING_ELT(libname, 0)),
-	    CHAR(STRING_ELT(pMd5,0)),
-	    CHAR(STRING_ELT(timeId, 0)),
-	    CHAR(STRING_ELT(fixInis, 0)));
-  }  
+  const char *c1 = CHAR(STRING_ELT(prefix,0)),
+    *c2 = CHAR(STRING_ELT(libname, 0)),
+    *c3 = CHAR(STRING_ELT(pMd5,0)),
+    *c4 = CHAR(STRING_ELT(timeId, 0)),
+    *c5 = CHAR(STRING_ELT(fixInis, 0));
+  for (int i = 5; i--;){
+    codegen(gBuf, i, c1, c2, c3, c4, c5);
+  }
   writeSb(&sbOut[1], fpIO);
   writeSb(&sbOut[2], fpIO);
   writeSb(&sbOut[3], fpIO);
