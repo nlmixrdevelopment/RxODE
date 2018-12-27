@@ -74,10 +74,11 @@ dy(0) = 0
 mu = 1 ## nonstiff; 10 moderately stiff; 1000 stiff
 ", calcJac=TRUE)
 
-        expect_true(jac$calcJac);
-        expect_false(jac$calcSens);
-        rxDelete(jac);
-    })
+    expect_true(jac$calcJac);
+    expect_false(jac$calcSens);
+    rxDelete(jac);
+
+})
 
     test_that("Sensitivity specified.", {
 
@@ -91,12 +92,14 @@ dy(0) = 0
 mu = 1 ## nonstiff; 10 moderately stiff; 1000 stiff
 ", calcSens=TRUE)
 
-        expect_false(sens$calcJac);
-        expect_true(sens$calcSens);
-        rxDelete(sens);
-    })
+    expect_false(sens$calcJac);
+    expect_true(sens$calcSens);
+    rxDelete(sens);
+
+})
 
     test_that("Jac/Sens can be calculated from \"normal\" model", {
+
         norm <- RxODE("
 d/dt(y)  = dy
 d/dt(dy) = mu*(1-y^2)*dy - y
@@ -134,15 +137,15 @@ dy(0) = 0
 mu = 1 ## nonstiff; 10 moderately stiff; 1000 stiff
 ", calcSens=TRUE)
 
-        norm <- RxODE(sens, calcSens=FALSE)
+    norm <- RxODE(sens, calcSens=FALSE)
+    expect_false(norm$calcJac);
+    expect_false(norm$calcSens);
 
-        jac <- RxODE(sens, calcJac=TRUE)
-        expect_false(norm$calcJac);
-        expect_false(norm$calcSens);
-        expect_true(jac$calcJac);
-        expect_false(jac$calcSens);
-        expect_false(sens$calcJac);
-        expect_true(sens$calcSens);
+    jac <- RxODE(sens, calcJac=TRUE)
+    expect_true(jac$calcJac);
+    expect_false(jac$calcSens);
+    expect_false(sens$calcJac);
+    expect_true(sens$calcSens);
 })
 
     test_that("Conditional Sensitivites",{

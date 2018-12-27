@@ -208,7 +208,11 @@ rxOptExpr <- function(x){
 .rxPowBin <- function(sep) {
     force(sep)
     function(e1, e2) {
-        .rxPowEnv$.powTheta <- sort(unique(c(.rxGetTheta(e2), .rxPowEnv$.powTheta)))
+        if (is.null(.rxPowEnv$.powTheta)){
+            .rxPowEnv$.powTheta <- .rxGetTheta(e2);
+        } else {
+            .rxPowEnv$.powTheta <- sort(unique(c(.rxGetTheta(e2), .rxGetTheta(e2))));
+        }
         .ret <- paste0(e1, sep, e2)
         return(.ret)
     }

@@ -344,7 +344,10 @@ List rxModelVars_(const RObject &obj){
     CharacterVector modList = as<CharacterVector>(obj);
     if (modList.size() == 1){
       std::string sobj =as<std::string>(obj);
-      if ((sobj.find("=") == std::string::npos) &&
+      if (fileExists(sobj)){
+	Function f = getRxFn(".rxModelVarsCharacter");
+	return f(obj);
+      } else if ((sobj.find("=") == std::string::npos) &&
 	  (sobj.find("<-") == std::string::npos) &&
           (sobj.find("~") == std::string::npos)){
         if (_rxModels.exists(sobj)){
@@ -1518,6 +1521,16 @@ extern "C" int rxGetErrsNcol(){
     return ret;
   } 
   return 0;
+}
+
+extern "C" void setInits(SEXP init){
+  getRxModels();
+  _rxModels[".init"] = init;
+}
+
+extern "C" SEXP getInits(){
+  getRxModels();
+  return as<SEXP>(_rxModels[".init"]);
 }
   
 SEXP rxGetFromChar(char *ptr, std::string var){

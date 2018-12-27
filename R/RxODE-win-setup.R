@@ -146,7 +146,9 @@ rxPhysicalDrives <- memoise::memoise(function(duplicates=FALSE){
                 ## This is what Rtools installer is supposed to do.
                 ## There is some discussion on devtools if this really occurs...
                 .rtoolsBase <- "C:/Rtools";
-                if (!file.exists(.rtoolsBase)) {
+                .exists <- try(file.exists(.rtoolsBase), silent=TRUE);
+                if (inherits(.exists, "try-error")) .exists <- FALSE
+                if (!.exists) {
                     .keys <- try(utils::readRegistry("SOFTWARE\\R-core\\Rtools", hive = "HCU",
                                                     view = "32-bit", maxdepth = 2), silent = TRUE)
                     if (is.null(.keys) || length(.keys) == 0)
@@ -167,8 +169,10 @@ rxPhysicalDrives <- memoise::memoise(function(duplicates=FALSE){
                 }
                 .ver <- R.Version();
                 .ver <- paste0(.ver$major, ".", gsub(rex::rex(start, capture(except_any_of(".")), ".",
-                                                            anything, end), "\\1", .ver$minor))
-                if (!file.exists(.rtoolsBase)){## Based on Issue #2, Rtools may also be installed to RBuildTools;  This is also reflected on the R-stan website.
+                                                              anything, end), "\\1", .ver$minor))
+                .exists <- try(file.exists(.rtoolsBase), silent=TRUE);
+                if (inherits(.exists, "try-error")) .exists <- FALSE
+                if (!.exists){## Based on Issue #2, Rtools may also be installed to RBuildTools;  This is also reflected on the R-stan website.
                     .rtoolslist <- apply(expand.grid(c("Rtools", paste0("Rtools/", .ver),
                                                       "RBuildTools", paste0("RBuildTools/", .ver)), rxPhysicalDrives()), 1,
                                         function(x){ paste0(x[2], x[1])});
@@ -178,7 +182,9 @@ rxPhysicalDrives <- memoise::memoise(function(duplicates=FALSE){
                         }
                     }
                 }
-                if (file.exists(.rtoolsBase)){
+                .exists <- try(file.exists(.rtoolsBase), silent=TRUE);
+                if (inherits(.exists, "try-error")) .exists <- FALSE
+                if (.exists){
                     return(.rtoolsBase)
                 } else if (file.exists(.rtools)) {
                     message("gcc available, assuming it comes from rtools...\nRxODE may not work with other compilers.\n")
@@ -221,6 +227,8 @@ rxPhysicalDrives <- memoise::memoise(function(duplicates=FALSE){
             }
         }))
         .path <- .path[.path != ""];
+        if (!inherits(rm.rtools, "logical")) rm.rtools <- FALSE
+        if (!inherits(rm.python, "logical")) rm.python <- FALSE
         if (rm.rtools){
             .path <- .path[regexpr(rex::rex(or("Rtools", "RTOOLS", "rtools")), .path) == -1]
         }
@@ -237,7 +245,9 @@ rxPhysicalDrives <- memoise::memoise(function(duplicates=FALSE){
         if (file.exists(.x)){
             Sys.setenv(BINPREF=gsub("([^/])$", "\\1/", gsub("\\\\", "/", .normalizePath(.x))));
         }
-        if (file.exists(.rtoolsBase)){
+        .exists <- try(file.exists(.rtoolsBase));
+        if (inherits(.exists, "try-error")) .exists <- FALSE
+        if (.exists){
             .gcc <- list.files(.rtoolsBase, "gcc",full.names=TRUE)[1]
             if (is.na(.gcc)){
                 .gcc <- "";

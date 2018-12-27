@@ -8,12 +8,10 @@
 \title{Compile a model if needed}
 \usage{
 rxCompile(model, dir, prefix, extraC = NULL, force = FALSE,
-  modName = NULL, calcJac = NULL, calcSens = NULL,
-  collapseModel = FALSE, ...)
+  modName = NULL, ...)
 
 \method{rxCompile}{character}(model, dir = NULL, prefix = NULL,
-  extraC = NULL, force = FALSE, modName = NULL, calcJac = NULL,
-  calcSens = NULL, collapseModel = FALSE, ...)
+  extraC = NULL, force = FALSE, modName = NULL, ...)
 
 \method{rxCompile}{rxDll}(model, ...)
 
@@ -63,15 +61,6 @@ is used for naming various aspects of the computations,
 including generating C symbol names, dynamic libraries,
 etc. Therefore, it is necessary that \code{modName} consists of
 simple ASCII alphanumeric characters starting with a letter.}
-
-\item{calcJac}{boolean indicating if RxODE will calculate the
-Jacobain according to the specified ODEs.}
-
-\item{calcSens}{boolean indicating if RxODE will calculate the
-sennsitivities according to the specified ODEs.}
-
-\item{collapseModel}{boolean indicating if RxODE will remove all
-LHS variables when calculating sensitivities.}
 
 \item{...}{Other arguments sent to the \code{\link{rxTrans}}
 function.}

@@ -62,7 +62,7 @@ regIfOrElse <- rex::rex(or(regIf, regElse))
 ##' @author Matthew L. Fidler
 ##' @keywords internal
 ##' @export
-rxExpandIfElse <- memoise::memoise(function(model, removeInis=TRUE, removePrint=TRUE){
+rxExpandIfElse <- function(model, removeInis=TRUE, removePrint=TRUE){
     ## expand if/else blocks into a list with lines for conditions that are true
     x <- strsplit(rxNorm(model, FALSE), "\n")[[1]];
     if (removeInis){
@@ -133,7 +133,7 @@ rxExpandIfElse <- memoise::memoise(function(model, removeInis=TRUE, removePrint=
     } else {
         return(paste(model, collapse="\n"));
     }
-})
+}
 
 .rxSymPy <- NULL;
 rxSymPy.vars <- c();
@@ -333,13 +333,13 @@ rxSymPy0 <- function(...){
 ##' @return Verson of sympy that is running.
 ##' @author Matthew L. Fidler
 ##' @export
-rxSymPyVersion <- memoise::memoise(function(numeric=TRUE){
+rxSymPyVersion <- function(numeric=TRUE){
     rxSymPyExec("import sympy");
     ret <- rxSymPy("sympy.__version__");
     if (numeric)
         ret <- as.numeric(sub("^([0-9]+[.][0-9]+).*", "\\1", ret))
     return(ret)
-})
+}
 
 ##' Return a list of reserved functions and variables from sympy
 ##'
@@ -347,7 +347,7 @@ rxSymPyVersion <- memoise::memoise(function(numeric=TRUE){
 ##' @author Matthew L. Fidler
 ##' @keywords internal
 ##' @export
-rxSymPyReserved <- memoise::memoise(function(){
+rxSymPyReserved <- function(){
     rxSymPyStart();
     rxSymPyExec("import sympy");
     vars <- rxSymPy("dir(sympy)")
@@ -355,7 +355,7 @@ rxSymPyReserved <- memoise::memoise(function(){
         vars <- eval(parse(text=sprintf("c(%s)", substr(vars, 2, nchar(vars) - 1))));
     }
     return(c(vars, "lambda"))
-})
+}
 
 ##' Add undefined variables to SymPy
 ##'
@@ -418,26 +418,28 @@ rxSyPyAddVars <- function(txt){
 ##' @keywords internal
 ##' @export
 rxSymPyVars <- function(model){
-    rxSymPyStart();
-    if (rxIs(model,"character") && length(model) > 1){
-        vars <- model;
-    } else if (rxIs(model,"character") && length(model) == 1 && regexpr(rex::rex(or("=", "<-", "~")), model) == -1){
-        vars <- model;
-    } else {
-        vars <- c(rxParams(model),
-                  rxState(model),
-                  "podo", "t", "time", "tlast",
-                  "rx__PTR__", "rx1c",
-                  "rx_lambda_", "rx_yj_",
-                  sprintf("rx_underscore_xi_%s", 1:100));
-    }
-    vars <- sapply(vars, function(x){return(rxToSymPy(x))});
-    known <- c(rxSymPy.vars, vars);
-    assignInMyNamespace("rxSymPy.vars", known);
-    if (length(vars) == 1){
-        rxSymPyExec(sprintf("%s = Symbol('%s')", vars, vars));
-    } else {
-        rxSymPyExec(sprintf("%s = symbols('%s')", paste(vars, collapse=", "), paste(vars, collapse=" ")));
+    if (!is.null(model)){
+        rxSymPyStart();
+        if (rxIs(model,"character") && length(model) > 1){
+            vars <- model;
+        } else if (rxIs(model,"character") && length(model) == 1 && regexpr(rex::rex(or("=", "<-", "~")), model) == -1){
+            vars <- model;
+        } else {
+            vars <- c(rxParams(model),
+                      rxState(model),
+                      "podo", "t", "time", "tlast",
+                      "rx__PTR__", "rx1c",
+                      "rx_lambda_", "rx_yj_",
+                      sprintf("rx_underscore_xi_%s", 1:100));
+        }
+        vars <- sapply(vars, function(x){return(rxToSymPy(x))});
+        known <- c(rxSymPy.vars, vars);
+        assignInMyNamespace("rxSymPy.vars", known);
+        if (length(vars) == 1){
+            rxSymPyExec(sprintf("%s = Symbol('%s')", vars, vars));
+        } else {
+            rxSymPyExec(sprintf("%s = symbols('%s')", paste(vars, collapse=", "), paste(vars, collapse=" ")));
+        }
     }
     return(invisible());
 }
@@ -498,9 +500,9 @@ rxSymPySetup <- function(model, envir=parent.frame()){
 ##' @return model lines
 ##' @export
 rxSymPySetupIf <- function(model){
-    if (class(model) != "character"){
+    if (any(class(model) == c("RxODE", "rxModelVars", "rxModelText"))){
         return(rxSymPySetup(model));
-    } else {
+    } else if (class(model) == "character") {
         lastLine <- sub(rex::rex(start, any_spaces, capture(anything), any_spaces, end),
                         "\\1", strsplit(model[length(model)], "[=~]")[[1]][1])
         if (!rxSymPyExists(rxToSymPy(lastLine))){
@@ -508,6 +510,8 @@ rxSymPySetupIf <- function(model){
             rxSymPySetup(model.setup)
         }
         return(model)
+    } else {
+        return("");
     }
 }
 ##' Split line into multiple lines at + or - breaks
@@ -581,7 +585,7 @@ rxSymPyDfDy <- function(model, df, dy, vars=FALSE){
     }
 }
 
-rxSymPyDfDyFull <- memoise::memoise(function(model, vars, cond){
+rxSymPyDfDyFull <- function(model, vars, cond){
     if (rxIs(vars,"logical")){
         if (vars){
             jac <- expand.grid(s1=rxState(model), s2=c(rxState(model), rxParams(model, FALSE)),
@@ -612,7 +616,7 @@ rxSymPyDfDyFull <- memoise::memoise(function(model, vars, cond){
     }
     rxProgressStop();
     return(extraLines);
-})
+}
 
 ##' Calculate the full Jacobian for a model
 ##'
@@ -622,7 +626,7 @@ rxSymPyDfDyFull <- memoise::memoise(function(model, vars, cond){
 ##' @param model RxODE family of objects
 ##' @return RxODE syntax for model with Jacobian specified.
 ##' @author Matthew L. Fidler
-.rxSymPyJacobian <- memoise::memoise(function(model){
+.rxSymPyJacobian <- function(model){
     cnd <- rxNorm(model, TRUE); ## Get the conditional statements
     extraLines <- c();
     if (is.null(cnd)){
@@ -645,7 +649,7 @@ rxSymPyDfDyFull <- memoise::memoise(function(model, vars, cond){
     model <- sprintf("%s\n%s", rxNorm(model), paste(extraLines, collapse="\n"));
     rxSymPyClean();
     return(model);
-})
+}
 
 ##' Does the varaible exist in the SymPy Python environment?
 ##'
@@ -680,7 +684,7 @@ rxSymPySensitivityFull.text <- "Calculate Sensitivities"
 
 ## Note the model and cond are not used in the function BUT are used
 ## to memoise the correct call. Please don't remove them :)
-rxSymPySensitivityFull <- memoise::memoise(function(state, calcSens, model, cond){
+rxSymPySensitivityFull <- function(state, calcSens, model, cond){
     rxCat(rxSymPySensitivityFull.text, "\n");
     all.sens <- extraLines <- c();
     if (length(calcSens) == 0L){
@@ -736,7 +740,7 @@ rxSymPySensitivityFull <- memoise::memoise(function(state, calcSens, model, cond
     }
     rxProgressStop()
     return(list(all.sens=all.sens, extraLines=extraLines))
-})
+}
 
 rxSymPySensitivity2Full_ <- function(state, s1, eta, sns, all.sens){
     v1 <- rxToSymPy(sprintf("d/dt(rx__sens_%s_BY_%s__)", s1, rxToSymPy(sns)));
@@ -778,7 +782,7 @@ rxSymPySensitivity2Full_ <- function(state, s1, eta, sns, all.sens){
 
 ## Note the model and cond are not used in the function BUT are used
 ## to memoise the correct call. Please don't remove them :)
-rxSymPySensitivity2Full <- memoise::memoise(function(state, etas, thetas, model, cond){
+rxSymPySensitivity2Full <- function(state, etas, thetas, model, cond){
     all.sens <- extraLines <- c();
     rxCat(rxSymPySensitivityFull.text);
     for (s1 in state){
@@ -813,7 +817,7 @@ rxSymPySensitivity2Full <- memoise::memoise(function(state, etas, thetas, model,
     }
     rxCat("\ndone.\n");
     return(list(all.sens=all.sens, extraLines=extraLines))
-})
+}
 
 rxSymPySensitivity.single <- function(model, calcSens, calcJac){
     rxSymPySetupIf(model);
@@ -895,7 +899,7 @@ rxSymPySensitivity.single <- function(model, calcSens, calcJac){
 ##' @return Model syntax that includes the sensitivity parameters.
 ##' @author Matthew L. Fidler
 ##' @export
-rxSymPySensitivity <- memoise::memoise(function(model, calcSens, calcJac=FALSE, keepState=NULL,
+rxSymPySensitivity <- function(model, calcSens, calcJac=FALSE, keepState=NULL,
                                collapseModel=FALSE){
     if (missing(calcSens)){
         calcSens <- rxParams(model, FALSE);
@@ -982,7 +986,7 @@ rxSymPySensitivity <- memoise::memoise(function(model, calcSens, calcJac=FALSE, 
         ret <- sprintf("%s\n%s", rxNorm(model), paste(extraLines, collapse="\n"));
     }
     return(ret);
-})
+}
 
 ##' Remove variables created by RxODE from the SymPy environment.
 ##'
@@ -1412,8 +1416,8 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
             gobj <- obj;
             oobj <- genCmtMod(obj);
             obj <- oobj;
-            rxModelVars(oobj)
-            rxSymPyVars(obj);
+            ##rxModelVars(oobj)
+            ##rxSymPyVars(obj);
             on.exit({rxSymPyClean()});
             lhs <- c();
             if (!is.null(pkpars)){

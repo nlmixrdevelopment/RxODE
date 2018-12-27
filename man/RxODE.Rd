@@ -59,8 +59,7 @@ sennsitivities according to the specified ODEs.}
 \item{collapseModel}{boolean indicating if RxODE will remove all
 LHS variables when calculating sensitivities.}
 
-\item{...}{any other arguments are passed to the function
-    \code{\link{readLines}}, (e.g., encoding).
+\item{...}{ignored arguments.
 
 The \dQuote{Rx} in the name \code{RxODE} is meant to suggest the
 abbreviation \emph{Rx} for a medical prescription, and thus to

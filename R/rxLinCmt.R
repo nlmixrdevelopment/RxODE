@@ -34,7 +34,7 @@ findLhs <- function(x) {
 ##' @keywords internal
 rxLinCmtTrans <- function(modText){
     .vars <- c();
-    .txt <- try({strsplit(RxODE::rxNorm(modText), "\n")[[1]]}, silent = TRUE);
+    .txt <- try({strsplit(rxNorm(modText), "\n")[[1]]}, silent = TRUE);
     if (inherits(.txt, "try-error")){
         return(modText);
     }
@@ -45,7 +45,7 @@ rxLinCmtTrans <- function(modText){
     } else if (length(.w) == 1){
         .linCmt <- gsub(.re, "\\2", .txt[.w]);
         if (.linCmt == ""){
-            .linCmt <- length(RxODE::rxState(modText));
+            .linCmt <- length(rxState(modText));
         } else {
             .linCmt <- gsub(rex::rex(any_spaces, capture(anything), any_spaces), "\\1",
                            strsplit(.linCmt, ",")[[1]])
@@ -56,12 +56,12 @@ rxLinCmtTrans <- function(modText){
             if (length(.linCmt) > 1){
                 stop("Can't figure out what compartment the solved system will be put into.")
             } else if (length(.linCmt) == 0){
-                .linCmt <- length(RxODE::rxState(modText));
+                .linCmt <- length(rxState(modText));
             } else {
                 .linCmt <- .linCmt - 1;
             }
         }
-        .vars <- unique(c(.vars, RxODE::rxLhs(modText), RxODE::rxParam(modText)))
+        .vars <- unique(c(.vars, rxLhs(modText), rxParam(modText)))
         .varsUp <- toupper(.vars);
         .reg <- rex::rex(start, "V", capture(number), end);
         .w <- which(regexpr(.reg, .varsUp) != -1);
@@ -257,7 +257,7 @@ rxLinCmtTrans <- function(modText){
         .solve <- sprintf("solveLinB(rx__PTR__, t, %s, 0, 0, rx_A, rx_alpha, rx_B, rx_beta, rx_C, rx_gamma, rx_ka, rx_tlag)", .linCmt);
         .lines <- paste(.lines, collapse="\n");
         .txt <- paste(sub(.re, sprintf("%s\n\\1%s\\3", .lines, .solve), .txt), collapse="\n");
-        return(.txt)
+        return(rxGetModel(.txt))
     } else {
         stop("Can only have one linCmt() function in the model.  Assign it to a variable if you need the concentrations more than once.");
     }

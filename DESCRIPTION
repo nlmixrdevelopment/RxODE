@@ -69,7 +69,8 @@ Imports:
     n1qn1 (>= 6.0.1-2),
     mvnfast,
     cli,
-    crayon
+    crayon,
+    sys
 Description: Facilities for running simulations from ordinary
     differential equation (ODE) models, such as pharmacometrics and other
     compartmental models.  A compilation manager translates the ODE model
