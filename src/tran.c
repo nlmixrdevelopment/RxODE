@@ -1552,12 +1552,12 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   UNPROTECT(2);
 }
 
-int print_ode=0, print_vars = 0, print_parm = 0, print_jac=0;
+
 void codegen(char *model, int show_ode, const char *prefix, const char *libname, const char *pMd5, const char *timeId, const char *fixInis) {
   if (show_ode == 4) {
     print_aux_info(model, prefix, libname, pMd5, timeId);
   } else {
-    int i, j, k, o;
+    int i, j, k, print_ode=0, print_vars = 0, print_parm = 0, print_jac=0, o;
     char sLine[MXLEN+1];
     char buf[64];
     char from[512], to[512], df[128], dy[128], state[128];
@@ -1630,7 +1630,7 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 	sAppend(&sbOut[show_ode], " = __zzStateVar__[%d];\n", i);
       }
       sAppendN(&sbOut[show_ode], "\n", 1);
-      // Parallel
+    
       sbPm.o=0;
       char *s;
       while(sgets(sLine, MXLEN, &sbPm)) {  /* parsed eqns */
@@ -1819,15 +1819,6 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 	sAppend(&sbOut[show_ode],  "  %s", sLine);
       }
     }
-    // End
-  }
-}
-
-void codegen_final(int show_ode){
-  if (show_ode == 4) {
-  } else {
-    int i, j, k;
-    char buf[512];
     if (print_ode && show_ode != 0){
       sAppendN(&sbOut[show_ode], "  if (__print_ode__ == 1){\n", 27);
       for (i=0; i<tb.nd; i++) {                   /* name state vars */
@@ -1912,8 +1903,6 @@ void codegen_final(int show_ode){
     }
   }
 }
-
-
   
 void reset (){
   // Reset sb/sbt string buffers
@@ -1965,10 +1954,6 @@ void reset (){
   rx_syntax_allow_dots = 0;
   rx_syntax_allow_ini0 = 1;
   rx_syntax_allow_ini = 1;
-  print_ode=0;
-  print_vars = 0;
-  print_parm = 0;
-  print_jac=0;
 
   maxSumProdN = 0;
   SumProdLD = 0;  
@@ -2451,10 +2436,7 @@ SEXP _RxODE_codegen(SEXP c_file, SEXP prefix, SEXP libname,
 	    CHAR(STRING_ELT(pMd5,0)),
 	    CHAR(STRING_ELT(timeId, 0)),
 	    CHAR(STRING_ELT(fixInis, 0)));
-  }
-  for (int i = 0; i < 5; i++){
-    codegen_final(i);
-  }
+  }  
   writeSb(&sbOut[1], fpIO);
   writeSb(&sbOut[2], fpIO);
   writeSb(&sbOut[3], fpIO);
