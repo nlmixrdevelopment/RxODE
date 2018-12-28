@@ -886,7 +886,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         }
         if (!strcmp("jac",name) ||
             strcmp("dfdy",name) == 0){
-          sAppendN(&sb ," = ", 3);
+          sAppendN(&sb," = ", 3);
+	  sAppendN(&sbDt," = ", 3);
           sAppendN(&sbt ,"=", 1);
 	  if (ii == 1){
 	    new_or_ith(buf);
