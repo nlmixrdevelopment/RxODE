@@ -924,7 +924,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         sprintf(tb.ddt, "%s",v);
         if (new_de(v)){
 	  tb.statei++;
-	  if (strstr(v, "rx__sens_")){
+	  if (strncmp(v, "rx__sens_", 3) == 0){
 	    tb.sensi++;
 	  }
 	  if (rx_syntax_allow_dots == 0 && strstr(v, ".")){
@@ -1065,7 +1065,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	      tb.ini0[tb.ix] = 1;
             } else {
 	      tb.ini0[tb.ix] = 0;
-              if (strstr(v,"rx_") != NULL){
+              if (strncmp(v,"rx_",3)==0){
                 tb.lh[tb.ix] = 1;
               }
             }
@@ -1260,7 +1260,7 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   }
   for (i=0; i<tb.nd; i++) {                     /* name state vars */
     retieve_var(tb.di[i], buf);
-    if (strstr(buf, "rx__sens_")){
+    if (strncmp(buf, "rx__sens_", 9) == 0){
       sprintf(s_aux_info+o, "    SET_STRING_ELT(sens,%d,mkChar(\"%s\"));\n", sensi++, buf);
       o = (int)strlen(s_aux_info);
       sprintf(s_aux_info+o, "    SET_STRING_ELT(state,%d,mkChar(\"%s\"));\n", statei++, buf);
@@ -1564,6 +1564,9 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
     char *s2;
     if (show_ode == 1){
       sAppendN(&sbOut[show_ode],"#include <RxODE_model.h>\n",25);
+      int mx = maxSumProdN;
+      if (SumProdLD > mx) mx = SumProdLD;
+      sAppend(&sbOut[show_ode],"#define __MAX_PROD__ %d\n", mx);
       sAppend(&sbOut[show_ode], "extern void  %sode_solver_solvedata (rx_solve *solve){\n  _solveData = solve;\n}\n",prefix);
       sAppend(&sbOut[show_ode], "extern rx_solve *%sode_solver_get_solvedata(){\n  return _solveData;\n}\n", prefix);
       sAppend(&sbOut[show_ode], "SEXP %smodel_vars();\n", prefix);
@@ -1634,8 +1637,7 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
       sbPm.o=0;
       char *s;
       while(sgets(sLine, MXLEN, &sbPm)) {  /* parsed eqns */
-	s = strstr(sLine,"(__0__)");
-	if (s){
+	if (strncmp(sLine,"(__0__)", 7) == 0){
 	  // See if this is a reclaimed initilization variable.
 	  for (i=0; i<tb.nv; i++) {
 	    if (tb.ini[i] == 1 && tb.lh[i] == 1){
@@ -1650,11 +1652,10 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 	  }
 	  continue;
 	}
-	if (show_ode == 3 && strstr(sLine,"full_print;")){
+	if (show_ode == 3 && strncmp(sLine,"full_print;", 11) == 0){
 	  continue;
 	}
-	s = strstr(sLine,"(__0f__)");
-	if (s){
+	if (strncmp(sLine,"(__0f__)", 8) == 0){
 	  if (show_ode == 3){
 	    // FIXME
 	    for (i = 0; i < tb.nd; i++){
@@ -1804,14 +1805,6 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 	/* sprintf(to,""); */
 	to[0]='\0';
 	sprintf(from," ");
-	s2 = repl_str(sLine,from,to);
-	strcpy(sLine, s2);
-	Free(s2);
-	s2=NULL;
-	int mx = maxSumProdN;
-	if (SumProdLD > mx) mx = SumProdLD;
-	sprintf(to,"%d", mx);
-	sprintf(from, "__MAX_PROD__");
 	s2 = repl_str(sLine,from,to);
 	strcpy(sLine, s2);
 	Free(s2);
@@ -2145,8 +2138,7 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
   sbPm.o=0;
   ini_i=0;
   while(sgets(sLine, MXLEN, &sbPm)) {
-    s2 = strstr(sLine,"(__0__)");
-    if (s2){
+    if (strncmp(sLine,"(__0__)", 7) == 0){
       // See if this is a reclaimed initilization variable.
       for (i=0; i<tb.nv; i++) {
         if (tb.ini[i] == 1 && tb.lh[i] != 1){
@@ -2208,7 +2200,7 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
   k=0;j=0;l=0;
   for (i=0; i<tb.nd; i++) {                     /* name state vars */
     retieve_var(tb.di[i], buf);
-    if (strstr(buf,"rx__sens_")){
+    if (strncmp(buf,"rx__sens_", 9) == 0){
       SET_STRING_ELT(sens,j++,mkChar(buf));
       SET_STRING_ELT(state,k++,mkChar(buf));
       stateRm[k-1]=tb.idi[i];
