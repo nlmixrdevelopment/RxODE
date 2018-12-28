@@ -1686,6 +1686,10 @@ rxParams <- function(obj, constants=TRUE){
 rxParam <- rxParams
 
 
-.rxGetParseModel <- function(){
-    .Call(`_RxODE_parseModel`)
+.rxGetParseModel <- function(type=c("normal", "dt")){
+    .type.idx <- c("normal"=0L, "dt"=1L);
+    if (is(type, "character")){
+        type <- .type.idx[match.arg(type)];
+    }
+    .Call(`_RxODE_parseModel`, type);
 }

@@ -1058,6 +1058,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 
       if (!strcmp("ini0f", name) && rx_syntax_allow_ini && i == 0){
 	sprintf(sb.s,"(__0f__)");
+	sprintf(sbDt.s,"(__0f__)");
 	sb.o = 8; sbDt.o = 8;
 	sbt.o = 0;
 	char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
@@ -2443,12 +2444,20 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
   return lst;
 }
 
-SEXP _RxODE_parseModel(){
+SEXP _RxODE_parseModel(SEXP type){
   if (!sbPm.o){
     error("Model no longer loaded in memory.");
   }
+  int iT = INTEGER(type)[0];
   SEXP pm = PROTECT(allocVector(STRSXP, 1));
-  SET_STRING_ELT(pm, 0, mkChar(sbPm.s));
+  switch (iT){
+  case 1:
+    SET_STRING_ELT(pm, 0, mkChar(sbPmDt.s));
+    break;
+  default:
+    SET_STRING_ELT(pm, 0, mkChar(sbPm.s));
+    break;
+  }
   UNPROTECT(1);
   return pm;
 }

@@ -23,7 +23,7 @@ SEXP _RxODE_codeLoaded();
 SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SEXP isStr);
 SEXP _RxODE_codegen(SEXP c_file, SEXP prefix, SEXP libname, SEXP pMd5, SEXP timeId,
 		    SEXP fixInis);
-SEXP _RxODE_parseModel();
+SEXP _RxODE_parseModel(SEXP type);
 SEXP _RxODE_isLinCmt();
 SEXP _RxODE_RcppExport_registerCCallable();
 SEXP _RxODE_setRstudio(SEXP);
@@ -156,7 +156,7 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_trans", (DL_FUNC) &_RxODE_trans, 5},
     {"_RxODE_codegen", (DL_FUNC) &_RxODE_codegen, 6},
     {"_RxODE_codeLoaded", (DL_FUNC) &_RxODE_codeLoaded, 0},
-    {"_RxODE_parseModel", (DL_FUNC) &_RxODE_parseModel, 0},
+    {"_RxODE_parseModel", (DL_FUNC) &_RxODE_parseModel, 1},
     {"_RxODE_isLinCmt", (DL_FUNC) &_RxODE_isLinCmt, 0},
     {"RxODE_get_mv", (DL_FUNC) &RxODE_get_mv, 0},
     {"_RxODE_rxInv", (DL_FUNC) &_RxODE_rxInv, 1},
