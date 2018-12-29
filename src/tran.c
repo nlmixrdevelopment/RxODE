@@ -350,8 +350,9 @@ void sAppend(sbuf *sbb, const char *format, ...){
   sbb->o +=n;
 }
 
-sbuf sbPm, sbPmDt,sbNrm;
+sbuf sbPm, sbPmDt,sbNrm, sbPm0f;
 char *extra_buf, *model_prefix, *md5;
+int writeMain=1, writeF0=0;
 
 sbuf sbOut[5];
 
@@ -809,6 +810,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
           // Continuation statement
           sAppend(&sb, "__PDStateVar__[[%s,",v);
 	  sAppend(&sbDt, "__PDStateVar__[[%s,",v);
+	  writeMain=1; writeF0=0;
           sAppend(&sbt,"df(%s)/dy(",v);
         } else {
           // New statment
@@ -816,6 +818,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
           sbt.o = 0;
 	  sAppend(&sb,"__PDStateVar__[[%s,",v);
 	  sAppend(&sbDt,"__PDStateVar__[[%s,",v);
+	  writeMain=1; writeF0=0;
           sAppend(&sbt,"df(%s)/dy(",v);
 	  new_or_ith(v);
 	  tb.cdf = tb.ix;
@@ -988,6 +991,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  sb.o =0; sbDt.o =0;
           sAppend(&sb, "__DDtStateVar__[%d] = _IR[%d] ", tb.nd, tb.nd);
 	  sAppend(&sbDt, "__DDtStateVar_%d__ = _IR[%d] ", tb.nd, tb.nd);
+	  writeMain=1; writeF0=0;
 	  sbt.o=0;
           sAppend(&sbt, "d/dt(%s)", v);
 	  new_or_ith(v);
@@ -1017,6 +1021,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  sb.o =0; sbDt.o =0;
           sAppend(&sb, "__DDtStateVar__[%d] = ", tb.id);
 	  sAppend(&sbDt, "__DDtStateVar_%d__ = ", tb.id);
+	  writeMain=1; writeF0=0;
 	  sbt.o=0;
           sAppend(&sbt, "d/dt(%s)=", v);
         }
@@ -1031,6 +1036,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         } else {
           sAppend(&sb, "__DDtStateVar__[%d]", tb.id);
 	  sAppend(&sbDt, "__DDtStateVar_%d__", tb.id);
+	  writeMain=1; writeF0=0;
           sAppend(&sbt, "d/dt(%s)", v);
         }
         Free(v);
@@ -1058,10 +1064,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       }
 
       if (!strcmp("ini0f", name) && rx_syntax_allow_ini && i == 0){
-	sprintf(sb.s,"(__0f__)");
-	sprintf(sbDt.s,"(__0f__)");
-	sb.o = 8; sbDt.o = 8;
-	sbt.o = 0;
+	writeF0=1;writeMain=0;
+	sb.o =0;  sbDt.o=0; sbt.o = 0;
 	char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
 	sAppend(&sb,"%s",v);
 	sAppend(&sbDt,"%s",v);
@@ -1153,8 +1157,13 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 
     if (!strcmp("assignment", name) || !strcmp("ini", name) || !strcmp("derivative", name) || !strcmp("jac",name) || !strcmp("dfdy",name) ||
         !strcmp("ini0",name) || !strcmp("ini0f",name)){
-      sAppend(&sbPm, "%s;\n", sb.s);
-      sAppend(&sbPmDt, "%s;\n", sbDt.s);
+      if (writeMain){
+	sAppend(&sbPm, "%s;\n", sb.s);
+	sAppend(&sbPmDt, "%s;\n", sbDt.s);
+      }
+      if (writeF0){
+	sAppend(&sbPm0f, "%s;\n", sbDt.s);
+      }
       sAppend(&sbNrm, "%s;\n", sbt.s);
     }
 
@@ -1703,9 +1712,13 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 	sAppend(&sbOut[show_ode], " = __zzStateVar__[%d];\n", i);
       }
       sAppendN(&sbOut[show_ode], "\n", 1);
-      sbuf *cur;
-      if (show_ode!= 1) cur = &sbPmDt;
-      else cur = &sbPm;
+      if (show_ode == 3){
+	sAppend(&sbOut[show_ode], "%s", sbPm0f.s);
+      } else {
+	sbuf *cur;
+      if (show_ode == 1) cur = &sbPm;
+      else if (show_ode == 3) cur = &sbPm0f;
+      else cur = &sbPmDt;
       cur->o=0;
       char *s;
       while(sgets(sLine, MXLEN, cur)) {  /* parsed eqns */
@@ -1726,34 +1739,6 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 	}
 	if (show_ode == 3 && strncmp(sLine,"full_print;", 11) == 0){
 	  continue;
-	}
-	if (strncmp(sLine,"(__0f__)", 8) == 0){
-	  if (show_ode == 3){
-	    // FIXME
-	    for (i = 0; i < tb.nd; i++){
-	      retieve_var(tb.di[i], buf);
-	      sprintf(to,"(__0f__)%s =",buf);
-	      if (strstr(sLine,to)){
-		if (!tb.fdi[i]){
-		  tb.fdi[i] = 1;
-		  tb.fdn++;
-		}
-		sAppend(&sbOut[show_ode],  "  //if (ISNA(%s)){ // Always apply; Othersiwse, Since this updates vector, it may cause this to only be updated once.\n    %s  //}\n",buf,sLine+8);
-	      } else {
-		sprintf(to,"(__0f__)%s=",buf);
-		if (strstr(sLine,to)){
-		  if (!tb.fdi[i]){
-		    tb.fdi[i] = 1;
-		    tb.fdn++;
-		  }
-		  sAppend(&sbOut[show_ode],  "  //if (ISNA(%s)){ // Always apply; Othersiwse, Since this updates vector, it may cause this to only be updated once.\n    %s  //}\n",buf,sLine+8);
-		}
-	      }
-	    }
-	    continue;
-	  } else {
-	    continue;
-	  }
 	}
 	s = strstr(sLine,"ode_print;");
 	if (show_ode == 1 && !s) s = strstr(sLine,"full_print;");
@@ -1868,7 +1853,8 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 	strcpy(sLine, s2);
 	Free(s2);
 	s2=NULL;
-	sAppend(&sbOut[show_ode],  "  %s", sLine);
+	sAppend(&sbOut[show_ode],  "  %s", sLine);      
+      }
       }
     }
     if (print_ode && show_ode != 0){
@@ -1963,6 +1949,7 @@ void reset (){
   sIni(&sbt);
   sIni(&sbPm);
   sIni(&sbPmDt);
+  sIni(&sbPm0f);
   sIni(&sbNrm);
 
   // Reset Arrays
@@ -2010,7 +1997,10 @@ void reset (){
   rx_syntax_allow_ini = 1;
 
   maxSumProdN = 0;
-  SumProdLD = 0;  
+  SumProdLD = 0;
+
+  writeMain=1;
+  writeF0=0;
 }
 
 void writeSb(sbuf *sbb, FILE *fp){
@@ -2454,6 +2444,9 @@ SEXP _RxODE_parseModel(SEXP type){
   switch (iT){
   case 1:
     SET_STRING_ELT(pm, 0, mkChar(sbPmDt.s));
+    break;
+  case 2:
+    SET_STRING_ELT(pm, 0, mkChar(sbPm0f.s));
     break;
   default:
     SET_STRING_ELT(pm, 0, mkChar(sbPm.s));
