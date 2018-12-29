@@ -382,6 +382,7 @@ RxODE <- function(model, modName = basename(wd),
 
         });
     }));
+
     .env$compile();
     .env$get.modelVars <- eval(bquote(function(){
         with(.(.env), {
@@ -536,8 +537,6 @@ rxGetModel <- function(model, calcSens=NULL, calcJac=NULL, collapseModel=NULL){
             .ret <- rxModelVars(.new);
         } else {
             ## calcSens=FALSE removes the sensitivity equations.
-            print(.ret)
-
             if (length(.ret$sens) != 0){
                 .new <- setNames(gsub(rex::rex("d/dt(", or(.ret$sens), ")=", anything, "\n"), "",
                                       .ret$model["normModel"]), NULL);
@@ -1133,6 +1132,7 @@ rxCompile.rxModelVars <-  function(model, # Model
                                    ...){
     ## rxCompile returns the DLL name that was created.
     model <- rxGetModel(model);
+
     if (is.null(prefix)){
         prefix <- .rxPre(model, modName);
     }
@@ -1233,41 +1233,11 @@ rxCompile.rxModelVars <-  function(model, # Model
             ## SEXP pMd5, SEXP timeId, SEXP fixInis
             .Call(`_RxODE_codegen`, .cFile, prefix, gsub(.Platform$dynlib.ext, "", basename(.cDllFile)),
                   .trans["parsed_md5"], paste(as.integer(Sys.time())), .fixInis);
-            ## sink(.cFile)
-            ## .def <- function(.what){
-            ##     ## sprintf("#ifdef %s\n#undef %s\n#endif\n#define %s", .what, .what, .what)
-            ##     paste0("#define ", .what)
-            ## }
-            ## for (.x in names(.trans)){
-            ##     cat(sprintf("%s \"%s\"\n", .def(paste0("__", toupper(.x), "_STR__")), .trans[.x]));
-            ##     cat(sprintf("%s %s\n", .def(paste0("__", toupper(.x), "__")), .trans[.x]));
-            ## }
-            ## cat(sprintf("%s \"%s\"\n", .def("__LIB_STR__"), gsub(.Platform$dynlib.ext, "", basename(.cDllFile))))
-            ## cat(sprintf("%s R_init_%s\n", .def("__R_INIT__"), gsub(.Platform$dynlib.ext, "", basename(.cDllFile))))
-            ## cat(sprintf("%s R_unload_%s\n", .def("__R_UNLOAD__"), ))
-            ## cat(sprintf("%s %s\n", .def("__TIMEID__"), as.integer(Sys.time())))
-            ## cat(sprintf("#include \"%s\"\n", .rxModelVarsCCache[[1]][1]));
-            ## for (.x in names(.trans)){
-            ##     cat(sprintf("#undef __%s_STR__\n", toupper(.x)));
-            ##     cat(sprintf("#undef __%s__ \n", toupper(.x)));
-            ## }
-            ## cat("#undef __LIB_STR__\n")
-            ## cat("#undef __R_INIT__\n")
-            ## cat("#undef __R_UNLOAD__\n")
-            ## cat("#undef __TIMEID__\n")
-            ## sink();
+
             .trans <- .trans[!(names(.trans) %in% c("__LIB_STR__", "__R_INIT__", "__R_UNLOAD__",
                                                   "__TIMEID__"))]
             .trans <- .trans[unique(names(.trans))]
             .defs <- ""
-            ## .defs <- paste(sapply(names(.trans), function(.x){
-            ##     paste0("-D\"__", toupper(.x), "_STR__=\\\"", .trans[.x],
-            ##            "\\\"\" -D\"__", toupper(.x), "__=",.trans[.x], "\"")
-            ## }), collapse = " ")
-            ## .defs <- paste0(.defs, " -D\"__LIB_STR__=", gsub(.Platform$dynlib.ext, "", basename(.cDllFile)),
-            ##                 "\" -D\"__R_INIT__=", gsub(.Platform$dynlib.ext, "", basename(.cDllFile)),
-            ##                 "\" -D\"__R_UNLOAD__=", gsub(.Platform$dynlib.ext, "", basename(.cDllFile)),
-            ##                 "\" -D\"__TIMEID__=", as.integer(Sys.time()), "\"");
             .ret <- sprintf("#RxODE Makevars\nPKG_CFLAGS=%s -I\"%s\"\nPKG_LIBS=$(BLAS_LIBS) $(LAPACK_LIBS) $(FLIBS)\n",
                             .defs, .normalizePath(system.file("include", package="RxODE")));
             ## .ret <- paste(.ret, "-g");
@@ -1648,6 +1618,7 @@ rxModels_ <- function(env=TRUE){
 ##' @author Matthew L. Fidler
 ##' @export
 rxModelVars <- function(obj){
+    if (is(obj, "rxModelVars")) return(obj);
     .tmp <- try(obj, silent=TRUE);
     if (inherits(.tmp, "try-error")){
         obj <- as.character(substitute(obj));

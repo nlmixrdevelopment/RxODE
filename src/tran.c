@@ -2490,7 +2490,7 @@ SEXP _RxODE_codeLoaded(){
   if (!sbPm.o || !sbNrm.o){
     INTEGER(pm)[0]=0;
   } else {
-    INTEGER(pm)[0]=0;
+    INTEGER(pm)[0]=1;
   }
   UNPROTECT(1);
   return pm;
@@ -2520,8 +2520,6 @@ SEXP _RxODE_codegen(SEXP c_file, SEXP prefix, SEXP libname,
   gCode(0);
   gCode(4);
   fclose(fpIO);
-  sIni(&sbPm);
-  sIni(&sbNrm);
   return R_NilValue;
 }
 
