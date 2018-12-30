@@ -504,8 +504,8 @@ rxGetModel <- memoise::memoise(function(model, calcSens=NULL, calcJac=NULL, coll
     } else if (is(model, "character") || is(model, "rxModelText")){
         model <- as.vector(model);
     } else if (is(model, "RxODE")){
-        model <- model$.model
-        class(model) <- NULL;
+        model <- rxModelVars(model)
+        ## class(model) <- NULL;
     } else if (is(model, "rxModelVars")){
     } else {
         stop(sprintf("Can't figure out how to handle the model argument (%s).", class(model)));
@@ -1383,7 +1383,7 @@ rxCondition <- function(obj, condition=NULL){
 ##' Get the normalized model
 ##'
 ##'
-##' This get the syntax prefered model for processing
+##' This get the syntax preferred model for processing
 ##'
 ##' @inheritParams rxModelVars
 ##' @param condition Character string of a logical condition to use

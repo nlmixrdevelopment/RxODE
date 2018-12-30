@@ -326,6 +326,17 @@ void sIni(sbuf *sbb){
   }
 }
 
+void sFree(sbuf *sbb){
+  Free(sbb->s);
+  sbb->sN=0;
+  sbb->o=0;
+}
+
+void sFreeIni(sbuf *sbb){
+  sFree(sbb);
+  sIni(sbb);
+}
+
 void sAppendN(sbuf *sbb, const char *what, int n){
   if (sbb->sN <= n + sbb->o){
     int mx = sbb->o + n + MXBUF;
@@ -1232,6 +1243,14 @@ void retieve_var(int i, char *buf) {
   buf[len] = 0;
 }
 
+void err_msgP(int chk, const char *msg, int code, D_Parser *p)
+{
+  if(!chk) {
+    free_D_Parser(p);
+    error("%s",msg);
+  }
+}
+
 void err_msg(int chk, const char *msg, int code)
 {
   if(!chk) {
@@ -2066,7 +2085,7 @@ void trans_internal(char* parse_file, int isStr){
     gBuf = parse_file;
   } else {
       gBuf = r_sbuf_read(parse_file);
-      err_msg((intptr_t) gBuf, "error: empty buf for FILE_to_parse\n", -2);
+      err_msgP((intptr_t) gBuf, "error: empty buf for FILE_to_parse\n", -2, p);
   }
   sIni(&sbNrm);
   sIni(&sbPm);  
@@ -2120,6 +2139,7 @@ void trans_internal(char* parse_file, int isStr){
       }
     }
   } else {
+    Rprintf("dparsing didn't work\n Possibly missing a line/return at the end of the file.\n");
     rx_syntax_error = 1;
   }
   free_D_Parser(p);
@@ -2522,5 +2542,4 @@ SEXP _RxODE_codegen(SEXP c_file, SEXP prefix, SEXP libname,
   fclose(fpIO);
   return R_NilValue;
 }
-
 
