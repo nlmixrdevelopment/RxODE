@@ -141,7 +141,9 @@ ode.h <- function(){
                     as.vector(RxODE::rxVersion()["repo"])),
             sprintf("#define __VER_0__ \"    SET_STRING_ELT(version,0,mkChar(\\\"%s\\\"));\\n\"",
                     sessionInfo()$otherPkgs$RxODE$Version),
-            sprintf("#define __VER_md5__ \"%s\"", md5))
+            sprintf("#define __VER_md5__ \"%s\"", md5),
+            sprintf("#define __VER_repo__ \"%s\"", as.vector(RxODE::rxVersion()["repo"])),
+            sprintf("#define __VER_ver__ \"%s\"", sessionInfo()$otherPkgs$RxODE$Version))
     writeLines(hd, devtools::package_file("src/ode.h"))
     writeLines(sprintf("RxODE.md5 <- \"%s\"", md5),
                devtools::package_file("R/RxODE_md5.R"));

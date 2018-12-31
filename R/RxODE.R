@@ -481,7 +481,7 @@ RxODE <- function(model, modName = basename(wd),
 ##' @author Matthew L. Fidler
 ##' @export
 ##' @keywords internal
-rxGetModel <- memoise::memoise(function(model, calcSens=NULL, calcJac=NULL, collapseModel=NULL){
+rxGetModel <- function(model, calcSens=NULL, calcJac=NULL, collapseModel=NULL){
     if (is(substitute(model), "call")){
         model <- model;
     }
@@ -588,7 +588,7 @@ rxGetModel <- memoise::memoise(function(model, calcSens=NULL, calcJac=NULL, coll
         }
     }
     return(.ret);
-})
+}
 
 ##' Add item to solved system of equations
 ##'

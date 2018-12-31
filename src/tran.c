@@ -1429,8 +1429,8 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   sAppend(&sbOut, "extern SEXP %smodel_vars(){\n  int pro=0;\n", prefix);
   sAppend(&sbOut, "  SEXP _mv = PROTECT(_rxGetModelLib(\"%smodel_vars\"));pro++;\n", prefix);
   sAppendN(&sbOut, "  if (!_rxIsCurrentC(_mv)){\n", 28);
-  sAppendN(&sbOut, "    SEXP lst      = PROTECT(allocVector(VECSXP, 16));pro++;\n", 60);
-  sAppendN(&sbOut, "    SEXP names    = PROTECT(allocVector(STRSXP, 16));pro++;\n", 60);
+  sAppendN(&sbOut, "    SEXP lst      = PROTECT(allocVector(VECSXP, 15));pro++;\n", 60);
+  sAppendN(&sbOut, "    SEXP names    = PROTECT(allocVector(STRSXP, 15));pro++;\n", 60);
   sAppend(&sbOut, "    SEXP params   = PROTECT(allocVector(STRSXP, %d));pro++;\n",pi);
   sAppend(&sbOut, "    SEXP lhs      = PROTECT(allocVector(STRSXP, %d));pro++;\n",li);
   sAppend(&sbOut, "    SEXP state    = PROTECT(allocVector(STRSXP, %d));pro++;\n",statei);
@@ -1447,12 +1447,6 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   sAppendN(&sbOut, "    SEXP mmd5n    = PROTECT(allocVector(STRSXP, 2));pro++;\n", 59);
   sAppendN(&sbOut, "    SEXP model    = PROTECT(allocVector(STRSXP, 1));pro++;\n", 59);
   sAppendN(&sbOut, "    SEXP modeln   = PROTECT(allocVector(STRSXP, 1));pro++;\n", 59);
-  sAppendN(&sbOut, "    SEXP solve    = PROTECT(allocVector(VECSXP, 4));pro++;\n", 59);
-  sAppendN(&sbOut, "    SEXP solven   = PROTECT(allocVector(STRSXP, 4));pro++;\n", 59);
-  sAppend(&sbOut, "    SEXP initsr   = PROTECT(allocVector(REALSXP, %d));pro++;\n",statei);
-  sAppend(&sbOut, "    SEXP scaler   = PROTECT(allocVector(REALSXP, %d));pro++;\n",statei);
-  sAppend(&sbOut, "    SEXP infusionr= PROTECT(allocVector(REALSXP, %d));pro++;\n",statei);
-  sAppend(&sbOut, "    SEXP badDosei = PROTECT(allocVector(INTSXP, %d));pro++;\n",statei);
   sAppendN(&sbOut, "    SEXP version    = PROTECT(allocVector(STRSXP, 3));pro++;\n", 61);
   sAppendN(&sbOut, "    SEXP versionn   = PROTECT(allocVector(STRSXP, 3));pro++;\n", 61);
   
@@ -1464,15 +1458,6 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   sAppendN(&sbOut, "    SET_STRING_ELT(versionn,1,mkChar(\"repo\"));\n", 47);
   sAppendN(&sbOut, "    SET_STRING_ELT(versionn,2,mkChar(\"md5\"));\n", 46);
 
-  sAppendN(&sbOut, "    SET_STRING_ELT(solven,0,mkChar(\"inits\"));\n", 46);
-  sAppendN(&sbOut, "    SET_VECTOR_ELT(solve,  0,initsr);\n", 38);
-  sAppendN(&sbOut, "    SET_STRING_ELT(solven,1,mkChar(\"scale\"));\n", 46);
-  sAppendN(&sbOut, "    SET_VECTOR_ELT(solve,  1,scaler);\n", 38);
-  sAppendN(&sbOut, "    SET_STRING_ELT(solven,2,mkChar(\"infusion\"));\n", 49);
-  sAppendN(&sbOut, "    SET_VECTOR_ELT(solve,  2,infusionr);\n", 41);
-  sAppendN(&sbOut, "    SET_STRING_ELT(solven,3,mkChar(\"badDose\"));\n", 48);
-  sAppendN(&sbOut, "    SET_VECTOR_ELT(solve,  3,badDosei);\n", 40);
-  sAppendN(&sbOut, "    setAttrib(solve, R_NamesSymbol, solven);\n", 45);
   sAppend(&sbOut, "%s",s_aux_info);
   // Save for outputting in trans
   tb.fdn = fdi;
@@ -1542,41 +1527,38 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   sAppendN(&sbOut, "    SET_STRING_ELT(names,3,mkChar(\"trans\"));\n", 45);
   sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  3,tran);\n", 34);
   
-  sAppendN(&sbOut, "    SET_STRING_ELT(names,5,mkChar(\"model\"));\n", 45);
-  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  5,model);\n", 35);
+  sAppendN(&sbOut, "    SET_STRING_ELT(names,4,mkChar(\"model\"));\n", 45);
+  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  4,model);\n", 35);
   
-  sAppendN(&sbOut, "    SET_STRING_ELT(names,4,mkChar(\"ini\"));\n", 43);
-  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  4,ini);\n", 33);
-
-  sAppendN(&sbOut, "    SET_STRING_ELT(names,6,mkChar(\"md5\"));\n", 43);
-  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  6,mmd5);\n", 34);
-
-  sAppendN(&sbOut, "    SET_STRING_ELT(names,7,mkChar(\"podo\"));\n", 44);
-  sAppend(&sbOut, "    SET_VECTOR_ELT(lst,  7,ScalarLogical(%d));\n",rx_podo);
-
-  sAppendN(&sbOut, "    SET_STRING_ELT(names,8,mkChar(\"dfdy\"));\n", 44);
-  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  8,dfdy);\n", 34);
-
-  sAppendN(&sbOut, "    SET_STRING_ELT(names,9,mkChar(\"sens\"));\n", 44);
-  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  9,sens);\n", 34);
+  sAppendN(&sbOut, "    SET_STRING_ELT(names,5,mkChar(\"ini\"));\n", 43);
+  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  5,ini);\n", 33);
   
-  sAppendN(&sbOut, "    SET_STRING_ELT(names,10,mkChar(\"fn.ini\"));\n", 47);
-  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  10,fn_ini);\n", 37);
+  sAppendN(&sbOut, "    SET_STRING_ELT(names,6,mkChar(\"podo\"));\n", 44);
+  sAppend(&sbOut, "    SET_VECTOR_ELT(lst,   6,ScalarLogical(%d));\n",rx_podo);
 
-  sAppendN(&sbOut, "    SET_STRING_ELT(names,11,mkChar(\"state.ignore\"));\n", 53);
-  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  11,stateRmS);\n", 39);
+  sAppendN(&sbOut, "    SET_STRING_ELT(names,7,mkChar(\"dfdy\"));\n", 44);
+  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  7,dfdy);\n", 34);
+
+  sAppendN(&sbOut, "    SET_STRING_ELT(names,8,mkChar(\"sens\"));\n", 44);
+  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  8,sens);\n", 34);
   
-  sAppendN(&sbOut, "    SET_STRING_ELT(names,12,mkChar(\"solve\"));\n", 46);
-  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  12,solve);\n", 36);
+  sAppendN(&sbOut, "    SET_STRING_ELT(names,9,mkChar(\"fn.ini\"));\n", 47);
+  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  9,fn_ini);\n", 37);
 
-  sAppendN(&sbOut, "    SET_STRING_ELT(names,13,mkChar(\"version\"));\n", 48);
-  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  13,version);\n", 38);
+  sAppendN(&sbOut, "    SET_STRING_ELT(names,10,mkChar(\"state.ignore\"));\n", 53);
+  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  10,stateRmS);\n", 39);
+  
+  sAppendN(&sbOut, "    SET_STRING_ELT(names,11,mkChar(\"version\"));\n", 48);
+  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  11,version);\n", 38);
 
-  sAppendN(&sbOut, "    SET_STRING_ELT(names,14,mkChar(\"normal.state\"));\n", 53);
-  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  14,normState);\n", 40);
+  sAppendN(&sbOut, "    SET_STRING_ELT(names,12,mkChar(\"normal.state\"));\n", 53);
+  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  12,normState);\n", 40);
 
-  sAppendN(&sbOut, "    SET_STRING_ELT(names,15,mkChar(\"timeId\"));\n", 47);
-  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  15,timeInt);\n", 38);
+  sAppendN(&sbOut, "    SET_STRING_ELT(names,13,mkChar(\"timeId\"));\n", 47);
+  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  13,timeInt);\n", 38);
+
+  sAppendN(&sbOut, "    SET_STRING_ELT(names,14,mkChar(\"md5\"));\n", 43);
+  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  14,mmd5);\n", 34);
 
   // const char *rxVersion(const char *what)
   
@@ -2151,7 +2133,7 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
   char snum[512];
   char *s2;
   char sLine[MXLEN+1];
-  int i, j, islhs, pi=0, li=0, ini_i = 0,o2=0,k=0, l=0;
+  int i, j, islhs, pi=0, li=0, ini_i = 0,o2=0,k=0, l=0, m=0;
 
   double d;
   int isStr =INTEGER(parseStr)[0];
@@ -2212,17 +2194,18 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
   tb.li=li;
   
   int pro = 0;
-  SEXP lst   = PROTECT(allocVector(VECSXP, 11));pro++;
-  SEXP names = PROTECT(allocVector(STRSXP, 11));pro++;
+  SEXP lst   = PROTECT(allocVector(VECSXP, 13));pro++;
+  SEXP names = PROTECT(allocVector(STRSXP, 13));pro++;
   
-  SEXP tran  = PROTECT(allocVector(STRSXP, 19));pro++;
-  SEXP trann = PROTECT(allocVector(STRSXP, 19));pro++;
+  SEXP tran  = PROTECT(allocVector(STRSXP, 14));pro++;
+  SEXP trann = PROTECT(allocVector(STRSXP, 14));pro++;
 
   SEXP state    = PROTECT(allocVector(STRSXP,tb.statei));pro++;
   SEXP stateRmS = PROTECT(allocVector(INTSXP,tb.statei));pro++;
   int *stateRm  = INTEGER(stateRmS);
   
   SEXP sens     = PROTECT(allocVector(STRSXP,tb.sensi));pro++;
+  SEXP normState= PROTECT(allocVector(STRSXP,tb.statei-tb.sensi));pro++;
   
   SEXP fn_ini   = PROTECT(allocVector(STRSXP, tb.fdn));pro++;
 
@@ -2234,6 +2217,18 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
 
   SEXP ini0n  = PROTECT(allocVector(STRSXP, tb.pi+tb.statei));pro++;
   SEXP ini0   = PROTECT(allocVector(REALSXP, tb.pi+tb.statei));pro++;
+
+  SEXP version  = PROTECT(allocVector(STRSXP, 3));pro++;
+  SEXP versionn = PROTECT(allocVector(STRSXP, 3)); pro++;
+  
+  SET_STRING_ELT(versionn,0,mkChar("version"));
+  SET_STRING_ELT(versionn,1,mkChar("repo"));
+  SET_STRING_ELT(versionn,2,mkChar("md5"));
+
+  SET_STRING_ELT(version,0,mkChar(__VER_ver__));
+  SET_STRING_ELT(version,1,mkChar(__VER_repo__));
+  SET_STRING_ELT(version,2,mkChar(__VER_md5__));
+  setAttrib(version,   R_NamesSymbol, versionn);
 
   sbPm.o=0;
   ini_i=0;
@@ -2297,7 +2292,7 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
   
   SEXP model  = PROTECT(allocVector(STRSXP,1));pro++;
   SEXP modeln = PROTECT(allocVector(STRSXP,1));pro++;
-  k=0;j=0;l=0;
+  k=0;j=0;l=0;m=0;
   for (i=0; i<tb.nd; i++) {                     /* name state vars */
     retieve_var(tb.di[i], buf);
     if (strncmp(buf,"rx__sens_", 9) == 0){
@@ -2305,6 +2300,7 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
       SET_STRING_ELT(state,k++,mkChar(buf));
       stateRm[k-1]=tb.idi[i];
     } else {
+      SET_STRING_ELT(normState,m++,mkChar(buf));
       SET_STRING_ELT(state,k++,mkChar(buf));
       stateRm[k-1]=tb.idi[i];
     }
@@ -2354,19 +2350,19 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
     }
   }
   setInits(ini);
-  
-  SET_STRING_ELT(names,0,mkChar("trans"));
-  SET_VECTOR_ELT(lst,  0,tran);
-  
-  SET_STRING_ELT(names,3,mkChar("params"));
-  SET_VECTOR_ELT(lst,  3,params);
 
+  SET_STRING_ELT(names,0,mkChar("params"));
+  SET_VECTOR_ELT(lst,  0,params);
+  
   SET_STRING_ELT(names,1,mkChar("lhs"));
   SET_VECTOR_ELT(lst,  1,lhs);
-
+  
   SET_STRING_ELT(names,2,mkChar("state"));
   SET_VECTOR_ELT(lst,  2,state);
-  
+
+  SET_STRING_ELT(names,3,mkChar("trans"));
+  SET_VECTOR_ELT(lst,  3,tran);
+
   SET_STRING_ELT(names,4,mkChar("ini"));
   SET_VECTOR_ELT(lst,  4,ini);
 
@@ -2387,83 +2383,70 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
 
   SET_STRING_ELT(names,10,mkChar("state.ignore"));
   SET_VECTOR_ELT(lst,  10,stateRmS);
+
+  SET_STRING_ELT(names,11,mkChar("version"));
+  SET_VECTOR_ELT(lst,  11,version);
+
+  SET_STRING_ELT(names,12,mkChar("normal.state"));
+  SET_VECTOR_ELT(lst,  12,normState);
+
+  sprintf(buf,"%.*s", (int)strlen(model_prefix)-1, model_prefix);
+  SET_STRING_ELT(trann,0,mkChar("lib.name"));
+  SET_STRING_ELT(tran,0,mkChar(buf));
   
-  SET_STRING_ELT(trann,0,mkChar("jac"));
+  SET_STRING_ELT(trann,1,mkChar("jac"));
   if (found_jac == 1){
-    SET_STRING_ELT(tran,0,mkChar("fulluser")); // Full User Matrix
+    SET_STRING_ELT(tran,1,mkChar("fulluser")); // Full User Matrix
   } else {
-    SET_STRING_ELT(tran,0,mkChar("fullint")); // Full Internal Matrix
+    SET_STRING_ELT(tran,1,mkChar("fullint")); // Full Internal Matrix
   }
-  SET_STRING_ELT(trann,1,mkChar("prefix"));
-  SET_STRING_ELT(tran,1,mkChar(buf));
+  
+  SET_STRING_ELT(trann,2,mkChar("prefix"));
+  SET_STRING_ELT(tran,2,mkChar(buf));
 
   sprintf(buf,"%sdydt",model_prefix);
-  SET_STRING_ELT(trann,2,mkChar("dydt"));
-  SET_STRING_ELT(tran,2,mkChar(buf)) ;
+  SET_STRING_ELT(trann,3,mkChar("dydt"));
+  SET_STRING_ELT(tran,3,mkChar(buf)) ;
 
   sprintf(buf,"%scalc_jac",model_prefix);
-  SET_STRING_ELT(trann,3,mkChar("calc_jac"));
-  SET_STRING_ELT(tran, 3,mkChar(buf));
-
-  sprintf(buf,"%scalc_lhs",model_prefix);
-  SET_STRING_ELT(trann,4,mkChar("calc_lhs"));
+  SET_STRING_ELT(trann,4,mkChar("calc_jac"));
   SET_STRING_ELT(tran, 4,mkChar(buf));
 
-  sprintf(buf,"%smodel_vars",model_prefix);
-  SET_STRING_ELT(trann,5,mkChar("model_vars"));
+  sprintf(buf,"%scalc_lhs",model_prefix);
+  SET_STRING_ELT(trann,5,mkChar("calc_lhs"));
   SET_STRING_ELT(tran, 5,mkChar(buf));
 
-  sprintf(buf,"%sode_solver",model_prefix);
-  SET_STRING_ELT(trann,6,mkChar("ode_solver"));
+  sprintf(buf,"%smodel_vars",model_prefix);
+  SET_STRING_ELT(trann,6,mkChar("model_vars"));
   SET_STRING_ELT(tran, 6,mkChar(buf));
 
-  sprintf(buf,"%sode_solver_sexp",model_prefix);
-  SET_STRING_ELT(trann,7,mkChar("ode_solver_sexp"));
+  sprintf(buf,"%sode_solver",model_prefix);
+  SET_STRING_ELT(trann,7,mkChar("ode_solver"));
   SET_STRING_ELT(tran, 7,mkChar(buf));
-  
-  sprintf(buf,"%sode_solver_focei_eta",model_prefix);
-  SET_STRING_ELT(trann,8,mkChar("ode_solver_focei_eta"));
-  SET_STRING_ELT(tran, 8,mkChar(buf));
-
-  sprintf(buf,"%sode_solver_ptr",model_prefix);
-  SET_STRING_ELT(trann,9,mkChar("ode_solver_ptr"));
-  SET_STRING_ELT(tran, 9,mkChar(buf));
 
   sprintf(buf,"%sinis",model_prefix);
-  SET_STRING_ELT(trann,10,mkChar("inis"));
-  SET_STRING_ELT(tran, 10,mkChar(buf));
-
-  sprintf(buf,"%sode_solver_xptr",model_prefix);
-  SET_STRING_ELT(trann,11,mkChar("ode_solver_xptr"));
-  SET_STRING_ELT(tran, 11,mkChar(buf));
+  SET_STRING_ELT(trann,8,mkChar("inis"));
+  SET_STRING_ELT(tran, 8,mkChar(buf));
 
   sprintf(buf,"%sdydt_lsoda",model_prefix);
-  SET_STRING_ELT(trann,12,mkChar("dydt_lsoda"));
-  SET_STRING_ELT(tran, 12,mkChar(buf));
+  SET_STRING_ELT(trann,9,mkChar("dydt_lsoda"));
+  SET_STRING_ELT(tran, 9,mkChar(buf));
 
   sprintf(buf,"%scalc_jac_lsoda",model_prefix);
-  SET_STRING_ELT(trann,13,mkChar("calc_jac_lsoda"));
-  SET_STRING_ELT(tran, 13,mkChar(buf));
+  SET_STRING_ELT(trann,10,mkChar("calc_jac_lsoda"));
+  SET_STRING_ELT(tran, 10,mkChar(buf));
 
   sprintf(buf,"%sode_solver_solvedata",model_prefix);
-  SET_STRING_ELT(trann,14,mkChar("ode_solver_solvedata"));
-  SET_STRING_ELT(tran, 14,mkChar(buf));
-
+  SET_STRING_ELT(trann,11,mkChar("ode_solver_solvedata"));
+  SET_STRING_ELT(tran, 11,mkChar(buf));
+  
   sprintf(buf,"%sode_solver_get_solvedata",model_prefix);
-  SET_STRING_ELT(trann,15,mkChar("ode_solver_get_solvedata"));
-  SET_STRING_ELT(tran, 15,mkChar(buf));
-
-  sprintf(buf,"%d",tb.statei);
-  SET_STRING_ELT(trann,16,mkChar("neq"));
-  SET_STRING_ELT(tran, 16,mkChar(buf));
-
-  sprintf(buf,"%d", tb.li);
-  SET_STRING_ELT(trann,17,mkChar("nlhs"));
-  SET_STRING_ELT(tran, 17,mkChar(buf));
+  SET_STRING_ELT(trann,12,mkChar("ode_solver_get_solvedata"));
+  SET_STRING_ELT(tran, 12,mkChar(buf));
 
   sprintf(buf,"%sdydt_liblsoda",model_prefix);
-  SET_STRING_ELT(trann,18,mkChar("dydt_liblsoda"));
-  SET_STRING_ELT(tran, 18,mkChar(buf));
+  SET_STRING_ELT(trann,13,mkChar("dydt_liblsoda"));
+  SET_STRING_ELT(tran, 13,mkChar(buf));
 
   
   SET_STRING_ELT(modeln,0,mkChar("normModel"));
