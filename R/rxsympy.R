@@ -732,8 +732,13 @@ rxSymPySensitivityFull <- function(state, calcSens, model, cond){
                 line <- rxFromSymPy(line)
                 line <- rxToSymPy(line)
                 tmp <- sprintf("rx__sens_%s_BY_%s__", s1, rxToSymPy(sns));
-                if (sprintf("%s(0)", v) != rxFromSymPy(tmp))
-                    extraLines[length(extraLines) + 1] <- sprintf("%s(0)=%s", tmp, rxFromSymPy(line));
+                if (sprintf("%s(0)", v) != rxFromSymPy(tmp)){
+                    ## +0 makes everything a conditional initialization
+                    .tmp2 <- rxFromSymPy(line);
+                    if (.tmp2 != "0"){
+                        extraLines[length(extraLines) + 1] <- sprintf("%s(0)=%s+0.0", tmp, rxFromSymPy(line));
+                    }
+                }
             }
             rxTick();
         }
@@ -771,7 +776,10 @@ rxSymPySensitivity2Full_ <- function(state, s1, eta, sns, all.sens){
         line <- rxSymPy(line);
         tmp <- sprintf("rx__sens_%s_BY_%s_BY_%s__", s1, rxToSymPy(eta), rxToSymPy(sns));
         if (paste0(tmp, "(0)") != rxFromSymPy(line)){
-            ini.line <- sprintf("%s(0)=%s", tmp, rxFromSymPy(line));
+            .tmp <- rxFromSymPy(line);
+            if (.tmp != "0"){
+                ini.line <- sprintf("%s(0)=%s+0.0", tmp, rxFromSymPy(line));
+            }
         }
     } else {
         ini.line <- NULL;
@@ -927,12 +935,20 @@ rxSymPySensitivity <- function(model, calcSens, calcJac=FALSE, keepState=NULL,
                     known <- c(rxSymPy.vars, ini);
                     assignInMyNamespace("rxSymPy.vars", known);
                     tmp <- rxSymPy(ini);
-                    if (paste0(v, "(0)") != rxFromSymPy(tmp))
-                        extraLines[length(extraLines) + 1] <- sprintf("%s(0)=%s", v, rxFromSymPy(tmp));
+                    if (paste0(v, "(0)") != rxFromSymPy(tmp)){
+                        .tmp2 <- rxFromSymPy(tmp);
+                        if (.tmp2 != "0"){
+                            extraLines[length(extraLines) + 1] <- sprintf("%s(0)=%s+0.0", v, rxFromSymPy(tmp));
+                        }
+                    }
                 } else if (any(v == names(rxInits(model)))){
                     tmp <- as.vector(rxInits(model)[v]);
-                    if (paste0(v, "(0)") != tmp)
-                        extraLines[length(extraLines) + 1] <- sprintf("%s(0)=%s", v, tmp);
+                    if (paste0(v, "(0)") != tmp){
+                        .tmp2 <- rxFromSymPy(tmp);
+                        if (.tmp2 != "0"){
+                            extraLines[length(extraLines) + 1] <- sprintf("%s(0)=%s+0.0", v, tmp);
+                        }
+                    }
                 }
             }
             for (v in rxLhs(model)){
@@ -1429,7 +1445,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                     inis <- txt[w];
                     inis <- strsplit(gsub(re, "\\1", inis), " *, *")[[1]];
                     if (length(rxState(oobj)) == length(inis)){
-                        inis <- paste(paste0(rxState(oobj), "(0)=", inis, ";"), collapse="\n");
+                        inis <- paste(paste0(rxState(oobj), "(0)=", inis, "+0.0;"), collapse="\n");
                         txt[w] <- inis;
                     } else {
                         stop("Specified %s initial conditions when there are only %s states.", length(inis), length(rxState(oobj)));
