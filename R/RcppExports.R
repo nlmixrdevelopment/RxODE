@@ -395,6 +395,10 @@ getProgSupported <- function() {
     .Call(`_RxODE_getProgSupported`)
 }
 
+rxUpdateTrans_ <- function(ret, prefix, libName) {
+    .Call(`_RxODE_rxUpdateTrans_`, ret, prefix, libName)
+}
+
 #' Invert matrix using Rcpp Armadilo.  
 #'
 #' @param matrix matrix to be inverted.

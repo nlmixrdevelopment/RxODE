@@ -4207,3 +4207,24 @@ extern "C" int isProgSupported(){
 SEXP getProgSupported(){
   return wrap(isProgSupportedI);
 }
+
+//[[Rcpp::export]]
+List rxUpdateTrans_(List ret, std::string prefix, std::string libName){
+  // Updates trans based on md5 calculated.
+  CharacterVector oldTrans = as<CharacterVector>(ret["trans"]);
+  ret[3] = CharacterVector::create(_["lib.name"] = libName,
+					 _["jac"] = oldTrans[1],
+					 _["prefix"] = prefix,
+					 _["dydt"] = prefix + "dydt",
+					 _["calc_jac"] = prefix + "calc_jac",
+					 _["calc_lhs"] = prefix + "calc_lhs",
+					 _["model_vars"] = prefix + "model_vars",
+					 _["ode_solver"] = prefix + "ode_solver",
+					 _["inis"] = prefix + "inis",
+					 _["dydt_lsoda"] = prefix + "dydt_lsoda",
+					 _["calc_jac_lsoda"] = prefix + "calc_jac_lsoda",
+					 _["ode_solver_solvedata"] = prefix + "ode_solver_solvedata",
+					 _["ode_solver_get_solvedata"]= prefix+"ode_solver_get_solvedata",
+					 _["dydt_liblsoda"] = prefix + "dydt_liblsoda");
+  return(ret);
+}

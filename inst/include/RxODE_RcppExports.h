@@ -718,6 +718,27 @@ namespace RxODE {
         return Rcpp::as<SEXP >(rcpp_result_gen);
     }
 
+    inline List rxUpdateTrans_(List ret, std::string prefix, std::string libName) {
+        typedef SEXP(*Ptr_rxUpdateTrans_)(SEXP,SEXP,SEXP);
+        static Ptr_rxUpdateTrans_ p_rxUpdateTrans_ = NULL;
+        if (p_rxUpdateTrans_ == NULL) {
+            validateSignature("List(*rxUpdateTrans_)(List,std::string,std::string)");
+            p_rxUpdateTrans_ = (Ptr_rxUpdateTrans_)R_GetCCallable("RxODE", "_RxODE_rxUpdateTrans_");
+        }
+        RObject rcpp_result_gen;
+        {
+            RNGScope RCPP_rngScope_gen;
+            rcpp_result_gen = p_rxUpdateTrans_(Shield<SEXP>(Rcpp::wrap(ret)), Shield<SEXP>(Rcpp::wrap(prefix)), Shield<SEXP>(Rcpp::wrap(libName)));
+        }
+        if (rcpp_result_gen.inherits("interrupted-error"))
+            throw Rcpp::internal::InterruptedException();
+        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
+            throw Rcpp::LongjumpException(rcpp_result_gen);
+        if (rcpp_result_gen.inherits("try-error"))
+            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
+        return Rcpp::as<List >(rcpp_result_gen);
+    }
+
     inline NumericVector rxInv(SEXP matrix) {
         typedef SEXP(*Ptr_rxInv)(SEXP);
         static Ptr_rxInv p_rxInv = NULL;

@@ -968,6 +968,17 @@ rxMd5 <- function(model,         # Model File
         RxODE::rxModelVars(model)$md5;
     }
 } # end function rxMd5
+
+.rxTimeId <- function(parseMd5){
+    if (exists(parseMd5, envir=.rxModels)){
+        .timeId <- get(parseMd5, envir=.rxModels);
+    } else {
+        .timeId <- as.integer(Sys.time())
+        assign(parseMd5, .timeId, envir=.rxModels);
+    }
+    return(.timeId);
+}
+
 ##' Translate the model to C code if needed
 ##'
 ##' This function translates the model to C code, if needed
@@ -1060,10 +1071,16 @@ rxTrans.character <- function(model,
                                                   .ret$state,
                                                   .ret$params,
                                                   .ret$lhs), extraC, calcJac, calcSens, collapseModel)$digest);
-    .ret$md5 <- md5
+    .ret$timeId <- .rxTimeId(md5["parsed_md5"])
+    .ret$md5 <- md5;
+    if (.isStr == 1L){
+        ## Now update trans.
+        .prefix <- paste0("rx_", md5["parsed_md5"], "_", .Platform$r_arch, "_");
+        .libName <- substr(.prefix, 0, nchar(.prefix) - 1);
+        .ret <- .Call(`_RxODE_rxUpdateTrans_`, .ret, .prefix, .libName);
+    }
     ## dparser::dpReload();
     ## rxReload()
-    .ret$md5 <- md5
     if (modVars){
         return(.ret)
     } else {
@@ -1228,15 +1245,10 @@ rxCompile.rxModelVars <-  function(model, # Model
             ## Load model into memory if needed
             if (.Call(`_RxODE_codeLoaded`) == 0L) .rxModelVarsCharacter(setNames(.mv$model,NULL));
             .prefix2 <- .rxModelVarsCCache[[3]];
-            .trans <- gsub(substr(.prefix2, 0, nchar(.prefix2)-1),
-                           substr(prefix, 0, nchar(prefix)-1), .trans)
             ## SEXP pMd5, SEXP timeId, SEXP fixInis
             .Call(`_RxODE_codegen`, .cFile, prefix, gsub(.Platform$dynlib.ext, "", basename(.cDllFile)),
-                  .trans["parsed_md5"], paste(as.integer(Sys.time())), .fixInis);
+                  .trans["parsed_md5"], paste(.rxTimeId(.trans["parsed_md5"])), .fixInis);
 
-            .trans <- .trans[!(names(.trans) %in% c("__LIB_STR__", "__R_INIT__", "__R_UNLOAD__",
-                                                  "__TIMEID__"))]
-            .trans <- .trans[unique(names(.trans))]
             .defs <- ""
             .ret <- sprintf("#RxODE Makevars\nPKG_CFLAGS=%s -I\"%s\"\nPKG_LIBS=$(BLAS_LIBS) $(LAPACK_LIBS) $(FLIBS)\n",
                             .defs, .normalizePath(system.file("include", package="RxODE")));

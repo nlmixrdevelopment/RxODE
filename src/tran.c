@@ -2363,11 +2363,11 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
   SET_STRING_ELT(names,3,mkChar("trans"));
   SET_VECTOR_ELT(lst,  3,tran);
 
-  SET_STRING_ELT(names,4,mkChar("ini"));
-  SET_VECTOR_ELT(lst,  4,ini);
+  SET_STRING_ELT(names,4,mkChar("model"));
+  SET_VECTOR_ELT(lst,  4,model);
 
-  SET_STRING_ELT(names,5,mkChar("model"));
-  SET_VECTOR_ELT(lst,  5,model);
+  SET_STRING_ELT(names,5,mkChar("ini"));
+  SET_VECTOR_ELT(lst,  5,ini);
 
   SET_STRING_ELT(names,6,mkChar("podo"));
   SET_VECTOR_ELT(lst,  6,ScalarLogical(rx_podo));
