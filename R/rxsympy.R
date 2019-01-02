@@ -659,6 +659,7 @@ rxSymPyDfDyFull <- function(model, vars, cond){
 ##' @keywords internal
 ##' @export
 rxSymPyExists <- function(var){
+    rxSymPyStart();
     if (.rxSymPy$started == "reticulate"){
         return(any(var == rxSymPy("dir()")))
     } else {
@@ -1010,6 +1011,7 @@ rxSymPySensitivity <- function(model, calcSens, calcJac=FALSE, keepState=NULL,
 ##' @keywords internal
 ##' @export
 rxSymPyClean <- function(full=FALSE){
+    rxSymPyStart();
     if (.rxSymPy$started == "reticulate"){
         sapply(rxSymPy.vars, function(x){
             try(rxSymPyExec(sprintf("del %s", x)), silent=TRUE);
