@@ -1,4 +1,4 @@
- context("Linear Model Focei Setup checks");
+context("Linear Model Focei Setup checks");
 rxPermissive({
 
     pred <- function () {return(Central)}
