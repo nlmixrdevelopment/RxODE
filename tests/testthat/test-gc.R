@@ -15,10 +15,14 @@ rxPermissive({
         name <- substr(name, 0, nchar(name) - nchar(.Platform$dynlib.ext))
 
         expect_false(is.null(getLoadedDLLs()[[name]]))
+        Sys.sleep(0.5)
         gc()
+        Sys.sleep(0.5)
         expect_false(is.null(getLoadedDLLs()[[name]]))
         rm(ode)
+        Sys.sleep(0.5)
         gc()
+        Sys.sleep(0.5)
         expect_true(is.null(getLoadedDLLs()[[name]]))
 
     })

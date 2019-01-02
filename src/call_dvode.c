@@ -30,7 +30,7 @@ extern int RxODE_current_fn_pointer_id(){
   return RxODE_current_fn_pointer_id_;
 }
 extern void RxODE_assign_fn_pointers(SEXP mv){
-  int cur = INTEGER(VECTOR_ELT(mv, 15))[0];
+  int cur = INTEGER(VECTOR_ELT(mv, 13))[0];
   if (RxODE_current_fn_pointer_id_ != cur){
     rxAssignPtrC(mv);
     RxODE_current_fn_pointer_id_ = cur;
@@ -40,9 +40,6 @@ extern void RxODE_assign_fn_pointers(SEXP mv){
 SEXP rxModelVarsC(char *ptr);
 
 extern SEXP RxODE_get_mv(){
-  /* if (!rxIsC(__mv,"rxModelVars")){ */
-  /*   error("RxODE C functions were not setup correctly."); */
-  /* } */
   return rxModelVarsC(__mv);
 }
 

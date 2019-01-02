@@ -1023,6 +1023,7 @@ rxEnv <- function(expr){
 ##' @export
 rxToSymPy <- function(x, envir=parent.frame(1)) {
     if (is(substitute(x),"character")){
+        force(x);
         if (length(x) == 1){
             names(x) <- NULL;
             txt <- strsplit(gsub(";", "\n", x), "\n+")[[1]];
@@ -1084,17 +1085,20 @@ rxToSymPy <- function(x, envir=parent.frame(1)) {
             }
             return(txt);
         } else {
+            force(x);
             txt <- paste0(eval(parse(text=sprintf("RxODE::rxToSymPy(%s)", paste(deparse(paste(as.vector(x), collapse="\n")))))), collapse="")
             return(txt);
         }
     } else if (is(substitute(x),"name")){
         cls <- tryCatch({class(x)}, error=function(e){return("error")});
         if (any(cls == c("list", "rxDll", "RxCompilationManager", "RxODE", "solveRxDll", "rxModelVars"))){
+            force(x);
             ret <- strsplit(rxNorm(x),"\n")[[1]];
             ret <- .rxRmIni(ret);
             txt <- paste0(eval(parse(text=sprintf("RxODE::rxToSymPy(%s)", paste(deparse(paste0(as.vector(ret), collapse="\n")), collapse=""))), envir=envir));
             return(txt);
         } else if (cls == "character" && length(cls) == 1){
+            force(x)
             txt <- paste0(eval(parse(text=sprintf("RxODE::rxToSymPy(%s)", paste(deparse(as.vector(x)), collapse="")))));
             return(txt);
         } else {
@@ -1115,6 +1119,7 @@ rxToSymPy <- function(x, envir=parent.frame(1)) {
 ##' @export
 rxFromSymPy <- function(x, envir=parent.frame(1)) {
     if (is(substitute(x),"character")){
+        force(x);
         if (length(x) == 1){
             names(x) <- NULL;
             txt <- strsplit(x, "\n+")[[1]];
@@ -1171,6 +1176,7 @@ rxFromSymPy <- function(x, envir=parent.frame(1)) {
     } else if (is(substitute(x),"name")){
         cls <- tryCatch({class(x)}, error=function(e){return("error")});
         if (cls == "character" && length(cls) == 1){
+            force(x);
             names(x) <- NULL
             txt <- paste0(eval(parse(text=sprintf("RxODE::rxFromSymPy(%s)", deparse(x)))));
             return(txt);

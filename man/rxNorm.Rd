@@ -25,7 +25,7 @@ condition is set with \code{rxCondition}, use that condition.}
 Normalized Normal syntax (no comments)
 }
 \description{
-This get the syntax prefered model for processing
+This get the syntax preferred model for processing
 }
 \author{
 Matthew L. Fidler
