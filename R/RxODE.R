@@ -1070,7 +1070,7 @@ rxTrans.character <- function(model,
                                                   .ret$ini,
                                                   .ret$state,
                                                   .ret$params,
-                                                  .ret$lhs), extraC, calcJac, calcSens, collapseModel)$digest);
+                                                  .ret$lhs), extraC)$digest);
     .ret$timeId <- .rxTimeId(md5["parsed_md5"])
     .ret$md5 <- md5;
     if (.isStr == 1L){
