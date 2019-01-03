@@ -1314,8 +1314,8 @@ rxErrEnvF$tbsYj <- function(lambda){
         assignInMyNamespace("rxErrEnv.yj", "1");
     } else {
         tmp <- rxErrEnv.diag.est;
-        tmp[sprintf("THETA[%s]", rxErrEnv.theta + 1)] <- estN;
-        assignInMyNamespace("rxErrEnv.lambda", sprintf("THETA[%s]", rxErrEnv.theta + 1));
+        tmp[sprintf("THETA[%s]", rxErrEnv.theta)] <- estN;
+        assignInMyNamespace("rxErrEnv.lambda", sprintf("THETA[%s]", rxErrEnv.theta));
         assignInMyNamespace("rxErrEnv.diag.est", tmp);
         assignInMyNamespace("rxErrEnv.theta", rxErrEnv.theta + 1);
         assignInMyNamespace("rxErrEnv.yj", "1");
