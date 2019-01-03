@@ -8,6 +8,8 @@
             if (.new == .rxOptEnv$.exclude){
                 return(.ret)
             } else {
+                ## message(sprintf("%s->%s", .ret, .new))
+                ## print(.rxOptEnv$.rep)
                 return(.new)
             }
         }
@@ -37,6 +39,8 @@
             if (.new == .rxOptEnv$.exclude){
                 return(.ret)
             } else {
+                ## message(sprintf("%s->%s", .ret, .new))
+                ## print(.rxOptEnv$.rep)
                 return(.new)
             }
         }
@@ -130,7 +134,7 @@ rxOptExpr <- function(x){
     .rxOptEnv$.rep <- list();
     .rxOptEnv$.exclude <- "";
     .lines <- strsplit(rxNorm(x), "\n")[[1]];
-    .f <- function(line){
+    .f <- function(line, onlyRet=FALSE){
         .silent <- (regexpr("[~]", line) != -1)
         .l2 <- strsplit(line, "[=~]")[[1]]
         if (length(.l2) == 2){
@@ -141,6 +145,7 @@ rxOptExpr <- function(x){
             if (.silent){
                 return(paste0(.l1, " ~ ", .ret))
             } else {
+                if (onlyRet) return(.ret)
                 return(paste0(.l1, " = ", .ret))
             }
         } else {
@@ -152,10 +157,25 @@ rxOptExpr <- function(x){
     .exprs <- names(.rxOptEnv$.list)[order(nchar(names(.rxOptEnv$.list)))];
     .exprs <- .exprs[regexpr(rex::rex(start, regNum, end), .exprs, perl=TRUE) == -1]
     .exprs <- .exprs[regexpr(rex::rex(start, or("THETA[", "ETA["), any_numbers, "]", end), .exprs, perl=TRUE) == -1]
+    .exprsI <- sprintf("rx_expr_%03d", seq_along(.exprs))
     if (length(.exprs) > 0){
-        .rxOptEnv$.rep <- setNames(as.list(sprintf("rx_expr_%03d", seq_along(.exprs))), .exprs)
+        .rxOptEnv$.rep <- setNames(as.list(.exprsI), .exprs)
         .rxOptEnv$.exclude <- ""
-        .ret <- sapply(c(paste(sprintf("rx_expr_%03d ~", seq_along(.exprs)), .exprs), .lines), .f)
+        .lines0 <- sapply(.lines, .f);
+        while(TRUE){
+            .exprs0 <- sapply(paste("rx_dummy = ", .exprs), .f, onlyRet=TRUE)
+            .w <- which(.exprs0 != .exprsI);
+            .exprs[.w] <- .exprs0[.w]
+            .rxOptEnv$.rep <- setNames(as.list(.exprsI), .exprs)
+            .rxOptEnv$.exclude <- ""
+            .linesf <- sapply(.lines0, .f);
+            if (all(.linesf == .lines0)){
+                break;
+            } else {
+                .lines0 <- .linesf
+            }
+        }
+        .ret <- c(sprintf("rx_expr_%03d ~ %s", seq_along(.exprs), .exprs), .linesf);
         return(paste(.ret, collapse="\n"))
     } else {
         return(x)
