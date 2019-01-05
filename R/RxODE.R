@@ -1669,8 +1669,8 @@ rxParams <- function(obj, constants=TRUE){
 rxParam <- rxParams
 
 
-.rxGetParseModel <- function(type=c("normal", "dt", "f0")){
-    .type.idx <- c("normal"=0L, "dt"=1L, "f0"=2L);
+.rxGetParseModel <- function(type=c("normal", "dt", "f0", "F", "lag", "rate", "dur")){
+    .type.idx <- c("normal"=0L, "dt"=1L, "f0"=2L, "F"=3L, "lag"=4L, "rate"=5L, "dur"=6L);
     if (is(type, "character")){
         type <- .type.idx[match.arg(type)];
     }

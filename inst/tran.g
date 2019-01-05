@@ -1,12 +1,15 @@
 //loop
-
 statement_list : (statement)+ ;
 
 statement 
-  : ini end_statement 
+  :  assignment end_statement
+  | ini end_statement
   | ini0 end_statement
   | ini0f end_statement
-  | assignment end_statement
+  | fbio end_statement
+  | alag end_statement
+  | rate end_statement
+  | dur end_statement 
   | derivative end_statement
   | jac end_statement
   | dfdy end_statement
@@ -43,8 +46,9 @@ ini0f     : identifier_r ('(0)' | '{0}' | '[0]') ('=' | '<-' ) additive_expressi
 
 ini        : identifier_r ('=' | '<-' ) ini_const;
 
-derivative : 'd/dt' '(' identifier_r_no_output ')' ('=' | '<-' | '~')  ('+' | '-' | ) additive_expression;
+derivative : 'd/dt' '(' identifier_r_no_output ')' ('=' | '<-' | '~') ('+' | '-' | ) additive_expression;
 der_rhs    : 'd/dt' '(' identifier_r_no_output ')';
+
 jac        : jac_command '(' identifier_r_no_output ',' (theta0_noout | theta_noout | eta_noout | identifier_r_no_output) ')' ('=' | '<-' ) additive_expression;
 jac_rhs    : jac_command '(' identifier_r_no_output ',' (theta0_noout | theta_noout | eta_noout | identifier_r_no_output) ')';
 
@@ -60,11 +64,17 @@ transit3   : 'transit' '(' trans_const ',' trans_const ',' trans_const ')';
 dfdy        : 'df' '(' identifier_r_no_output ')/dy(' (theta0_noout | theta_noout | eta_noout | identifier_r_no_output) ')' ('=' | '<-' ) additive_expression;
 dfdy_rhs    : 'df' '(' identifier_r_no_output ')/dy(' (theta0_noout | theta_noout | eta_noout | identifier_r_no_output) ')';
 
+fbio        : 'f'/i  '(' identifier_r_no_output ')' ('=' | '<-' ) additive_expression;
+alag        : ('lag'/i | 'alag'/i )  '(' identifier_r_no_output ')' ('=' | '<-' ) additive_expression;
+rate        : ('r'/i | 'rate'/i)  '(' identifier_r_no_output ')' ('=' | '<-' ) additive_expression;
+dur        : ('d'/i | 'dur'/i)  '(' identifier_r_no_output ')' ('=' | '<-' ) additive_expression;
+
+
 jac_command : 'jac' | 'df/dy';
 
 end_statement : (';')* ;
 
-assignment : identifier_r ('=' | '<-' | '~' ) additive_expression;
+assignment : identifier_r  ('=' | '<-' | '~' ) additive_expression;
 
 logical_or_expression : logical_and_expression 
     (('||' | '|')  logical_and_expression)* ;
@@ -131,9 +141,11 @@ trans_const: identifier_r | '-'? constant;
 
 constant : decimalint | float1 | float2;
 
-identifier_r: identifier_r_1 | identifier_r_2 | 'transit';
+identifier_r: identifier_r_extra | identifier_r_1 | identifier_r_2 ;
 
-identifier_r_no_output: identifier_r_no_output_1 | identifier_r_no_output_2 | 'transit';
+identifier_r_no_output: identifier_r_no_output_1 | identifier_r_no_output_2 | identifier_r_extra;
+
+identifier_r_extra: 'transit' | 'lag'/i | 'alag'/i | 'f'/i | 'r'/i | 'rate'/i | 'd'/i | 'dur'/i;
 
 theta: ('THETA' | 'theta') '[' decimalint ']';
 eta: ('ETA' | 'eta') '[' decimalint ']';
