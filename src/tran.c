@@ -942,8 +942,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       }
       if (!strcmp("selection_statement__8", name) && i==0) {
 	sb.o = 0; sbDt.o = 0; sbt.o = 0;
-	aAppendN("}\nelse {\n", 9);
-	sAppendN(&sbNrm, "}\nelse {\n", 9);
+	aAppendN("}\nelse {", 8);
+	sAppendN(&sbt,"}\nelse {", 8);
 	sAppend(&sbPm, "%s\n", sb.s);
 	sAppend(&sbPmDt, "%s\n", sbDt.s);
 	sAppend(&sbPm0f,"%s\n", sbDt.s);
@@ -1298,6 +1298,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       writeMain=0; writeF0=0; writeF=0; writeLag=0; writeRate=0; writeDur=0; writeAll=1;
       sb.o = 0; sbDt.o = 0; sbt.o = 0;
       aAppendN("}\n", 2);
+      sAppendN(&sbt,"}\n", 2);
       sAppend(&sbPm,   "%s", sb.s);
       sAppend(&sbPmDt, "%s", sbDt.s);
       sAppend(&sbPm0f, "%s", sbDt.s);
@@ -1305,7 +1306,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       sAppend(&sbPmLag,"%s", sbDt.s);
       sAppend(&sbPmDur,"%s", sbDt.s);
       sAppend(&sbNrm,  "%s", sbt.s);
-      sAppendN(&sbNrm, "}\n", 2);
     }
     
     if (!strcmp("power_expression", name)) {
@@ -1751,8 +1751,8 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
 	  prefix, prefix, prefix);
   sAppend(&sbOut, "\n  R_CallMethodDef callMethods[]  = {\n    {\"%smodel_vars\", (DL_FUNC) &%smodel_vars, 0},\n    {NULL, NULL, 0}\n  };\n",
 	  prefix, prefix);
-  sAppendN(&sbOut, "\nR_registerRoutines(info, cMethods, callMethods, NULL, NULL);\n  R_useDynamicSymbols(info,FALSE);\n}\n", 99);
-  sAppend(&sbOut, "\n  void R_unload_%s (DllInfo *info){\n  // Free resources required for single subject solve.\n  SEXP _mv = PROTECT(_rxGetModelLib(\"%smodel_vars\"));\n",
+  sAppendN(&sbOut, "\n  R_registerRoutines(info, cMethods, callMethods, NULL, NULL);\n  R_useDynamicSymbols(info,FALSE);\n}\n", 101);
+  sAppend(&sbOut, "\nvoid R_unload_%s (DllInfo *info){\n  // Free resources required for single subject solve.\n  SEXP _mv = PROTECT(_rxGetModelLib(\"%smodel_vars\"));\n",
 	  libname, prefix);
   sAppend(&sbOut, "  if (!isNull(_mv)){\n    _rxRmModelLib(\"%smodel_vars\");\n  }\n  UNPROTECT(1);\n}\n", prefix);
   UNPROTECT(2);
@@ -2293,7 +2293,9 @@ void trans_internal(char* parse_file, int isStr){
       }
     }
   } else {
-    Rprintf("dparsing didn't work\n Possibly missing a line/return at the end of the file.\n");
+    Rprintf("Parsing error, Model:\n================================================================================\n");
+    Rprintf("%s", gBuf);
+    Rprintf("\n================================================================================\n");
     rx_syntax_error = 1;
   }
   free_D_Parser(p);
