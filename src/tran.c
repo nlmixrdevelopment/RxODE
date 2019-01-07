@@ -986,6 +986,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
             sprintf(buf,ODEFIRST,v);
             trans_syntax_error_report_fn(buf);
 	  }
+	  tb.statei++;
 	  if (!strcmp("fbio", name)){
 	    writeMain=0; writeF0=0; writeF=1; writeLag=0; writeRate=0; writeDur=0; writeAll=0;
 	    sb.o=0;sbDt.o=0; sbt.o=0;
