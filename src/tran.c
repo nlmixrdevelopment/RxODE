@@ -1116,8 +1116,18 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
           sAppend(&sb, "__DDtStateVar__[%d] = ", tb.id);
 	  sAppend(&sbDt, "__DDtStateVar_%d__ = ", tb.id);
 	  writeMain=1; writeF0=0; writeF=0; writeLag=0; writeRate=0; writeDur=0; writeAll=0;
+	  Free(v);
+          xpn = d_get_child(pn,4);
+          v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
 	  sbt.o=0;
-          sAppend(&sbt, "d/dt(%s)=", v);
+          if (!strcmp("~",v)){
+            tb.idi[tb.id] = 1;
+	    sAppend(&sbt, "d/dt(%s)~", v);
+          } else {
+	    // Don't switch idi back to 0; Once the state is ignored,
+	    // keep it ignored.
+	    sAppend(&sbt, "d/dt(%s)=", v);
+	  }
         }
         Free(v);
         continue;
