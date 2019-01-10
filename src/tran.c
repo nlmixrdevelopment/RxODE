@@ -404,6 +404,37 @@ typedef struct vLines {
   int *lProp;
 } vLines;
 
+void lineIni(vLines *sbb){
+  if (sbb->sN <= 0){
+    sbb->s = Calloc(MXBUF, char);
+    sbb->sN = MXBUF;
+    sbb->s[0]='\0';
+    sbb->o=0;
+  } else {
+    sbb->s[0]='\0';
+    sbb->o=0;
+  }
+  if (sbb->nL < 1000){
+    Free(sbb->lProp);
+    Free(sbb->line);
+    sbb->lProp = Calloc(1000, int);
+    sbb->line = Calloc(1000, char*);
+    sbb->nL=1000;
+  }
+  sbb->n = 0;
+  sbb->o=0;
+}
+
+void lineFree(vLines *sbb){
+  Free(sbb->s);
+  Free(sbb->lProp);
+  Free(sbb->line);
+  sbb->sN=0;
+  sbb->nL=0;
+}
+
+
+
 void addLine(vLines *sbb, const char *format, ...){
   char what[MXBUF*2];
   int n = 0;
@@ -435,7 +466,7 @@ void addLine(vLines *sbb, const char *format, ...){
     sprintf(sbb->s+sbb->o, "%s", what);
   }
   if (sbb->n + 1 >= sbb->nL){
-    int mx = sbb->n + 101;
+    int mx = sbb->n + 1000;
     sbb->lProp = Realloc(sbb->lProp, mx, int);
     sbb->line = Realloc(sbb->line, mx, char*);
   }
