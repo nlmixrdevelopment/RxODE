@@ -394,6 +394,57 @@ void sAppend(sbuf *sbb, const char *format, ...){
   sbb->o +=n;
 }
 
+typedef struct vLines {
+  char *s;
+  int sN;
+  int o;
+  int n;
+  int nL;
+  char **line;
+  int *lProp;
+} vLines;
+
+void addLine(vLines *sbb, const char *format, ...){
+  char what[MXBUF*2];
+  int n = 0;
+  va_list argptr, copy;
+  va_start(argptr, format);
+  va_copy(copy, argptr);
+  // Try first.
+  n = vsnprintf(what, MXBUF*2, format, argptr);
+  va_end(argptr);
+  char *what2;
+  int use2=0;
+  if (n >= MXBUF*2){
+    // Its too big;  Allocate it.
+    what2 = Calloc(n+1, char);
+    vsnprintf(what2, n, format, copy);
+    use2=1;
+  }
+  va_end(copy);
+  
+  if (sbb->sN <= n + 1 + sbb->o){
+    int mx = sbb->o + n + 1 + MXBUF;
+    sbb->s = Realloc(sbb->s, mx, char);
+    sbb->sN = mx;
+  }
+  if (use2){
+    sprintf(sbb->s+sbb->o, "%s", what2);
+    Free(what2);
+  } else {
+    sprintf(sbb->s+sbb->o, "%s", what);
+  }
+  if (sbb->n + 1 >= sbb->nL){
+    int mx = sbb->n + 101;
+    sbb->lProp = Realloc(sbb->lProp, mx, int);
+    sbb->line = Realloc(sbb->line, mx, char*);
+  }
+  sbb->line[sbb->n]=&(sbb->s[sbb->o]);
+  sbb->o +=n+1; // Add the \0 at the end.
+  sbb->lProp[sbb->n] = -1;
+  sbb->n = sbb->n+1;
+}
+
 sbuf sbPm, sbPmDt, sbNrm, sbPm0f, sbPmF, sbPmLag, sbPmRate, sbPmDur;
 char *extra_buf, *model_prefix, *md5;
 int writeMain=1, writeF0=0, writeF=0, writeLag=0, writeRate=0, writeDur=0, writeAll=0,
@@ -1308,15 +1359,15 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
     if (!strcmp("selection_statement", name)){
       writeMain=0; writeF0=0; writeF=0; writeLag=0; writeRate=0; writeDur=0; writeAll=1;
       sb.o = 0; sbDt.o = 0; sbt.o = 0;
-      aAppendN("}\n", 2);
-      sAppendN(&sbt,"}\n", 2);
-      sAppend(&sbPm,   "%s", sb.s);
-      sAppend(&sbPmDt, "%s", sbDt.s);
-      sAppend(&sbPm0f, "%s", sbDt.s);
-      sAppend(&sbPmF,  "%s", sbDt.s);
-      sAppend(&sbPmLag,"%s", sbDt.s);
-      sAppend(&sbPmDur,"%s", sbDt.s);
-      sAppend(&sbNrm,  "%s", sbt.s);
+      aAppendN("}", 1);
+      sAppendN(&sbt,"}", 1);
+      sAppend(&sbPm,   "%s\n", sb.s);
+      sAppend(&sbPmDt, "%s\n", sbDt.s);
+      sAppend(&sbPm0f, "%s\n", sbDt.s);
+      sAppend(&sbPmF,  "%s\n", sbDt.s);
+      sAppend(&sbPmLag,"%s\n", sbDt.s);
+      sAppend(&sbPmDur,"%s\n", sbDt.s);
+      sAppend(&sbNrm,  "%s\n", sbt.s);
     }
     
     if (!strcmp("power_expression", name)) {
