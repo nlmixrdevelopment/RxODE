@@ -232,6 +232,7 @@ typedef struct symtab {
   int vo[MXSYM];        /* offset of symbols */
   int lh[MXSYM];        /* lhs symbols? =9 if a state var*/
   int ini[MXSYM];        /* initial variable assignment =2 if there are two assignments */
+  double iniv[MXSYM];        /* Initial values */
   int ini0[MXSYM];        /* state initial variable assignment =2 if there are two assignments */
   int di[MXDER];        /* ith of state vars */
   int idi[MXDER];       /* should ith state variable be ignored 0/1 */
@@ -249,6 +250,7 @@ typedef struct symtab {
   int sensi;
   int li; // # lhs
   int pi; // # param
+  int isPi; // # pi?
   int linCmt; // Unparsed linear compartment
   // Save Jacobian information
   int df[MXSYM];
@@ -519,6 +521,7 @@ int new_or_ith(const char *s) {
   if (!strcmp("M_LN_SQRT_PI", s)) return 0;
   if (!strcmp("M_LN_SQRT_2PI", s)) return 0;
   if (!strcmp("M_LN_SQRT_PId2", s)) return 0;
+  if (!strcmp("pi", s)) tb.isPi=1;
   // Ignore THETA[] and ETA
   if (strstr("[", s) != NULL) return 0;
 
@@ -598,6 +601,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
   int nch = d_get_number_of_children(pn), i, k, ii, found, safe_zero = 0;
   char *value = (char*)rc_dup_str(pn->start_loc.s, pn->end);
   char buf[1024];
+  double d;
   if ((!strcmp("identifier", name) || !strcmp("identifier_r", name) ||
        !strcmp("identifier_r_no_output",name)  ||
        !strcmp("theta0_noout", name) || 
@@ -611,7 +615,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       tb.lh[tb.nv] = 11; // Suppress param printout.
     }
     tb.vo[++tb.nv] = tb.pos;
-    
   }
   if (!strcmp("(", name) ||
       !strcmp(")", name) ||
@@ -1249,12 +1252,12 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       }
 
       if (!strcmp("ini0f", name) && rx_syntax_allow_ini && i == 0){
-	writeF0=1;writeMain=0; writeF=0; writeLag=0; writeRate=0; writeDur=0; writeAll=0;
-	sb.o =0;  sbDt.o=0; sbt.o = 0;
+	writeF0=1; writeMain=0; writeF=0; writeLag=0; writeRate=0; writeDur=0; writeAll=0;
+	sb.o =0; sbDt.o=0; sbt.o = 0;
 	char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-	sAppend(&sb,"%s",v);
+	sAppend(&sb,  "%s",v);
 	sAppend(&sbDt,"%s",v);
-	sAppend(&sbt,"%s(0)",v);
+	sAppend(&sbt, "%s(0)",v);
       }
 
       if (i==0 && (!strcmp("assignment", name) || !strcmp("ini", name) || !strcmp("ini0", name))) {
@@ -1318,11 +1321,24 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
             tb.ini[tb.ix] = 1;
             if (!strcmp("ini0",name)){
 	      tb.ini0[tb.ix] = 1;
+	      Free(v);
+	      xpn = d_get_child(pn, 3);
+	      v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+	      sscanf(v, "%lf", &d);
+	      tb.iniv[tb.ix] = d;
+	      tb.ini_i++;
             } else {
 	      tb.ini0[tb.ix] = 0;
               if (strncmp(v,"rx_",3)==0){
                 tb.lh[tb.ix] = 1;
-              }
+              } else {
+		Free(v);
+		xpn = d_get_child(pn, 2);
+		v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+		sscanf(v, "%lf", &d);
+		tb.iniv[tb.ix] = d;
+		tb.ini_i++;
+	      }
             }
           } else {
             // There is more than one call to this variable, it is a
@@ -1331,7 +1347,9 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
             if (!strcmp("ini0", name) && tb.ini0[tb.ix] == 1){
               sprintf(buf,"Cannot have conditional initial conditions for %s",v);
               trans_syntax_error_report_fn(buf);
-            }
+            } else if (tb.ini0[tb.ix] == 1){
+	      tb.ini_i--;
+	    }
 	    tb.ini0[tb.ix] = 0;
           }
         }
@@ -2263,6 +2281,7 @@ void reset (){
   tb.maxeta     = 0;
   tb.fdn        = 0;
   tb.linCmt     = 0;
+  tb.isPi       = 0;
   // reset globals
   found_print = 0;
   found_jac = 0;
@@ -2397,12 +2416,8 @@ void trans_internal(char* parse_file, int isStr){
 SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SEXP parseStr){
   char *in;
   char buf[1024], buf2[512], df[128], dy[128];
-  char snum[512];
-  char *s2;
-  char sLine[MXLEN+1];
-  int i, j, islhs, pi=0, li=0, ini_i = 0,o2=0,k=0, l=0, m=0;
+  int i, j, islhs, pi=0, li=0, ini_i = 0,k=0, l=0, m=0;
 
-  double d;
   int isStr =INTEGER(parseStr)[0];
   reset(); 
   rx_syntax_assign = R_get_option("RxODE.syntax.assign",1);
@@ -2483,8 +2498,8 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
   SEXP lhs    = PROTECT(allocVector(STRSXP, tb.li));pro++;
 
 
-  SEXP ini0n  = PROTECT(allocVector(STRSXP, tb.pi+tb.statei));pro++;
-  SEXP ini0   = PROTECT(allocVector(REALSXP, tb.pi+tb.statei));pro++;
+  SEXP inin  = PROTECT(allocVector(STRSXP, tb.isPi + tb.ini_i));pro++;
+  SEXP ini   = PROTECT(allocVector(REALSXP, tb.isPi + tb.ini_i));pro++;
 
   SEXP version  = PROTECT(allocVector(STRSXP, 3));pro++;
   SEXP versionn = PROTECT(allocVector(STRSXP, 3)); pro++;
@@ -2498,65 +2513,43 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
   SET_STRING_ELT(version,2,mkChar(__VER_md5__));
   setAttrib(version,   R_NamesSymbol, versionn);
 
-  sbPm.o=0;
   ini_i=0;
-  while(sgets(sLine, MXLEN, &sbPm)) {
-    if (strncmp(sLine,"(__0__)", 7) == 0){
-      // See if this is a reclaimed initilization variable.
-      for (i=0; i<tb.nv; i++) {
-        if (tb.ini[i] == 1 && tb.lh[i] != 1){
-          //(__0__)V2=
-          retieve_var(i, buf);
-          sprintf(buf2,"(__0__)");
-          o2 = 7;
-          for (k = 0; k < (int)strlen(buf); k++){
-            if (buf[k] == '.'){
-              sprintf(buf2+o2,"_DoT_");
-              if (rx_syntax_allow_dots == 0){
-                trans_syntax_error_report_fn(NODOT);
-              }
-              o2+=5;
-            } else {
-              sprintf(buf2+o2,"%c",buf[k]);
-              o2++;
-            }
-          }
-          sprintf(buf2+o2,"=");
-          s2 = strstr(sLine,buf2);
-          if (s2){
-            /* Rprintf("%s[%d]->\n",buf,ini_i); */
-            SET_STRING_ELT(ini0n,ini_i,mkChar(buf));
-            sprintf(snum,"%.*s",(int)(strlen(sLine)-strlen(buf2) - 2), sLine + strlen(buf2));
-            sscanf(snum, "%lf", &d);
-            REAL(ini0)[ini_i++] = d;
-            continue;
-          }
-        }
+  int redo = 0;
+  for (i = 0; i < tb.nv; i++){
+    retieve_var(i, buf);
+    if (tb.ini[i] == 1 && tb.lh[i] != 1){
+      if (tb.isPi && !strncmp("pi", buf, 2)) {
+	redo=1;
+	tb.isPi=0;
+	break;
       }
-      continue;
+      SET_STRING_ELT(inin,ini_i,mkChar(buf));
+      REAL(ini)[ini_i++] = tb.iniv[i];
     }
   }
-  // putin constants
-  for (i=0; i<tb.nv; i++) {
-    if (tb.ini[i] == 0 && tb.lh[i] != 1) {
+  if (tb.isPi){
+    SET_STRING_ELT(inin,ini_i,mkChar("pi"));
+    REAL(ini)[ini_i++] = M_PI;
+  } else if (redo){
+    inin  = PROTECT(allocVector(STRSXP, tb.ini_i));pro++;
+    ini   = PROTECT(allocVector(REALSXP, tb.ini_i));pro++;
+    ini_i=0;
+    for (i = 0; i < tb.nv; i++){
       retieve_var(i, buf);
-      // Put in constants
-      if  (!strcmp("pi",buf)){
-        SET_STRING_ELT(ini0n,ini_i,mkChar("pi"));
-        REAL(ini0)[ini_i++] = M_PI;
+      if (tb.ini[i] == 1 && tb.lh[i] != 1){
+	if (tb.isPi && !strncmp("pi", buf, 2)) {
+	  redo=1;
+	  tb.isPi=0;
+	  break;
+	}
+	SET_STRING_ELT(inin,ini_i,mkChar(buf));
+	REAL(ini)[ini_i++] = tb.iniv[i];
       }
     }
   }
   tb.ini_i = ini_i;
 
-  SEXP inin   = PROTECT(allocVector(STRSXP, tb.ini_i));pro++;
-  SEXP ini    = PROTECT(allocVector(REALSXP, tb.ini_i));pro++;
   setAttrib(ini,   R_NamesSymbol, inin);  
-
-  memcpy(REAL(ini), REAL(ini0), tb.ini_i*sizeof(double));
-  for (k = tb.ini_i;k--;){
-    SET_STRING_ELT(inin, k, STRING_ELT(ini0n, k));
-  }
   
   SEXP model  = PROTECT(allocVector(STRSXP,1));pro++;
   SEXP modeln = PROTECT(allocVector(STRSXP,1));pro++;
