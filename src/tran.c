@@ -29,7 +29,26 @@
   writeSb(&sbOut, fpIO);
 
 #define aAppendN(str, len) sAppendN(&sb, str, len); sAppendN(&sbDt, str, len);
+#define aProp(prop) curLineProp(&sbPm, prop); curLineProp(&sbPmDt, prop);
+#define aType(type) curLineType(&sbPm, type); curLineType(&sbPmDt, type); 
 
+#define FBIO 1
+#define ALAG 2
+#define RATE 3
+#define DUR 4
+#define TINI 5
+#define TLOGIC 6
+#define PODE0 7
+#define PJAC 8
+#define PJAC0 9
+#define PODE 10
+#define PPRN 11
+#define TDDT 12
+#define TJAC 13
+#define TF0 14
+#define PLHS 15
+#define PFPRN 16
+#define TASSIGN 17
 
 #define NOASSIGN "'<-' not supported, use '=' instead or set 'options(RxODE.syntax.assign = TRUE)'."
 #define NEEDSEMI "Lines need to end with ';' or to match R's handling of line endings set 'options(RxODE.syntax.require.semicolon = FALSE)'."
@@ -219,7 +238,7 @@ unsigned int found_jac = 0, found_print = 0;
 int rx_syntax_assign = 0, rx_syntax_star_pow = 0,
   rx_syntax_require_semicolon = 0, rx_syntax_allow_dots = 0,
   rx_syntax_allow_ini0 = 1, rx_syntax_allow_ini = 1, rx_syntax_allow_assign_state = 0,
-  maxSumProdN = 0, SumProdLD = 0;
+  maxSumProdN = 0, SumProdLD = 0, good_jac=1;
 
 char s_aux_info[64*MXSYM];
 
@@ -271,34 +290,6 @@ typedef struct sbuf {
 
 sbuf sb, sbDt;                        /* buffer w/ current parsed & translated line */
 sbuf sbt;
-
-char *sgets(char * str, int num, sbuf *sbb){
-  if (sbb->sN == 0) return NULL;
-  // Adapted from
-  // https://stackoverflow.com/questions/2068975/can-cs-fgets-be-coaxed-to-work-with-a-string-not-from-a-file
-  // By Mark Williams
-  // To work with sbufs
-  char *next = sbb->s + sbb->o;
-  int  numread = 0;
-
-  while ( numread + 1 < num && *next ) {
-    int isnewline = ( *next == '\n' );
-    *str++ = *next++;
-    numread++;
-    // newline terminates the line but is included
-    if ( isnewline )
-      break;
-  }
-
-  if ( numread == 0 )
-    return NULL;  // "eof"
-
-  // must have hit the null terminator or*end of line
-  *str = '\0';  // null terminate this string
-  // set up input for next call
-  sbb->o += numread;
-  return str;
-}
 
 void sIniTo(sbuf *sbb, int to){
   if (sbb->sN <= to) {
@@ -404,6 +395,7 @@ typedef struct vLines {
   int nL;
   char **line;
   int *lProp;
+  int *lType;
 } vLines;
 
 void lineIni(vLines *sbb){
@@ -419,10 +411,14 @@ void lineIni(vLines *sbb){
   if (sbb->nL < 1000){
     Free(sbb->lProp);
     Free(sbb->line);
+    Free(sbb->lType);
     sbb->lProp = Calloc(1000, int);
+    sbb->lType = Calloc(1000, int);
     sbb->line = Calloc(1000, char*);
     sbb->nL=1000;
   }
+  sbb->lProp[0] = -1;
+  sbb->lType[0] = 0;
   sbb->n = 0;
   sbb->o=0;
 }
@@ -430,12 +426,11 @@ void lineIni(vLines *sbb){
 void lineFree(vLines *sbb){
   Free(sbb->s);
   Free(sbb->lProp);
+  Free(sbb->lType);
   Free(sbb->line);
   sbb->sN=0;
   sbb->nL=0;
 }
-
-
 
 void addLine(vLines *sbb, const char *format, ...){
   char what[MXBUF*2];
@@ -470,18 +465,31 @@ void addLine(vLines *sbb, const char *format, ...){
   if (sbb->n + 1 >= sbb->nL){
     int mx = sbb->n + 1000;
     sbb->lProp = Realloc(sbb->lProp, mx, int);
+    sbb->lType = Realloc(sbb->lType, mx, int);
     sbb->line = Realloc(sbb->line, mx, char*);
   }
   sbb->line[sbb->n]=&(sbb->s[sbb->o]);
   sbb->o +=n+1; // Add the \0 at the end.
-  sbb->lProp[sbb->n] = -1;
   sbb->n = sbb->n+1;
+  sbb->lProp[sbb->n] = -1;
+  sbb->lType[sbb->n] = 0;  
+
 }
 
-sbuf sbPm, sbPmDt, sbNrm, sbPm0f, sbPmF, sbPmLag, sbPmRate, sbPmDur;
+void curLineProp(vLines *sbb, int propId){
+  sbb->lProp[sbb->n] = propId;
+}
+
+void curLineType(vLines *sbb, int propId){
+  sbb->lType[sbb->n] = propId;
+}
+
+
+vLines sbPm, sbPmDt;
+sbuf sbNrm;
+
 char *extra_buf, *model_prefix, *md5;
-int writeMain=1, writeF0=0, writeF=0, writeLag=0, writeRate=0, writeDur=0, writeAll=0,
-  foundF=0,foundLag=0, foundRate=0, foundDur=0;
+int foundF=0,foundLag=0, foundRate=0, foundDur=0, foundF0=0;
 
 sbuf sbOut;
 
@@ -833,7 +841,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       if (!strcmp("print_command",name)){
         found_print = 1;
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-        if  (!strncmp(v,"print",5)){
+        if  (!strcmp(v,"print")){
+	  aType(PFPRN);
 	  aAppendN("full_print;\n", 12);
 	  sAppendN(&sbNrm, "print;\n", 7);
         } else {
@@ -846,37 +855,43 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       if (!strcmp("printf_statement",name)){
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
         if (i == 0){
-          if (!strncmp(v,"ode0",4)){
+          if (!strcmp(v,"ode0")){
 	    sb.o =0; sbDt.o =0; sbt.o=0;
+	    aType(PODE0);
 	    aAppendN("ODE0_Rprintf(", 12);
             sAppendN(&sbt,"ode0_printf(", 12);
 	    sb.o--;sbDt.o--;sbt.o--;
-          } else if (!strncmp(v,"jac0",4)) {
+          } else if (!strcmp(v,"jac0")) {
+	    aType(PJAC0);
 	    sb.o =0; sbDt.o =0; sbt.o=0;
             aAppendN("JAC0_Rprintf(", 12);
             sAppendN(&sbt,"jac0_printf(", 12);
 	    sb.o--;sbDt.o--;sbt.o--;
-          } else if (!strncmp(v,"ode",3)){
+          } else if (!strcmp(v,"ode")){
 	    sb.o =0; sbDt.o =0;
 	    sbt.o=0;
+	    aType(PODE);
             aAppendN("ODE_Rprintf(", 11);
             sAppendN(&sbt,"ode_printf(", 11);
 	    sb.o--;sbDt.o--;sbt.o--;
-          } else if (!strncmp(v,"jac",3)){
+          } else if (!strcmp(v,"jac")){
 	    sb.o =0; sbDt.o =0;
 	    sbt.o=0;
+	    aType(PJAC);
             aAppendN("JAC_Rprintf(", 11);
             sAppendN(&sbt,"jac_printf(", 11);
 	    sb.o--;sbDt.o--;sbt.o--;
-          } else if (!strncmp(v,"lhs",3)){
+          } else if (!strcmp(v,"lhs")){
 	    sb.o =0; sbDt.o =0;
 	    sbt.o=0;
+	    aType(PLHS);
             aAppendN("LHS_Rprintf(", 11);
             sAppendN(&sbt,"lhs_printf(", 11);
 	    sb.o--;sbDt.o--;sbt.o--;
           } else {
 	    sb.o =0; sbDt.o =0;
 	    sbt.o=0;
+	    aType(PPRN);
             aAppendN("Rprintf(", 8);
             sAppendN(&sbt,"printf(", 7);
 	    sb.o--;sbDt.o--;sbt.o--;
@@ -888,8 +903,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  sAppend(&sbt,"%s",v);
         }
         if (i == 4){
-	  sAppend(&sbPm, "%s;\n", sb.s);
-	  sAppend(&sbPmDt, "%s;\n", sbDt.s);
+	  addLine(&sbPm, "%s;\n", sb.s);
+	  addLine(&sbPmDt, "%s;\n", sbDt.s);
 	  sAppend(&sbNrm, "%s;\n", sbt.s);
         }
         Free(v);
@@ -902,18 +917,28 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
         if (!strcmp("jac_rhs",name) || !strcmp("dfdy_rhs",name)){
           // Continuation statement
-          sAppend(&sb, "__PDStateVar__[[%s,",v);
-	  sAppend(&sbDt, "__PDStateVar__[[%s,",v);
-	  writeMain=1; writeF0=0; writeF=0; writeLag=0; writeRate=0; writeDur=0; writeAll=0;
+	  aType(TJAC);
+          sAppend(&sbDt, "__PDStateVar_%s_SeP_",v);
           sAppend(&sbt,"df(%s)/dy(",v);
+	  if (new_de(v)){
+	    sprintf(buf,"d/dt(%s) needs to be defined before using a Jacobians for this state.",v);
+            trans_syntax_error_report_fn(buf);
+	  } else {
+	    sAppend(&sb, "__PDStateVar__[%d*(__NROWPD__)+",tb.id);
+	  }
         } else {
           // New statement
+	  aType(TJAC);
           sb.o = 0; sbDt.o = 0;
           sbt.o = 0;
-	  sAppend(&sb,"__PDStateVar__[[%s,",v);
-	  sAppend(&sbDt,"__PDStateVar__[[%s,",v);
-	  writeMain=1; writeF0=0; writeF=0;writeLag=0; writeRate=0; writeDur=0; writeAll=0;
-          sAppend(&sbt,"df(%s)/dy(",v);
+	  sAppend(&sbDt,"__PDStateVar_%s_SeP_",v);
+	  sAppend(&sbt,"df(%s)/dy(",v);
+	  if (new_de(v)){
+	    sprintf(buf,"d/dt(%s) needs to be defined before using a Jacobians for this state.",v);
+            trans_syntax_error_report_fn(buf);
+	  } else {
+	    sAppend(&sb,"__PDStateVar__[%d*(__NROWPD__)+",tb.id);
+	  }
 	  new_or_ith(v);
 	  tb.cdf = tb.ix;
         }
@@ -961,21 +986,30 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
 	ii = 0;
 	if (strstr(v,"THETA[") != NULL){
+	  good_jac=0;
 	  sprintf(buf,"_THETA_%.*s_",(int)(strlen(v))-7,v+6);
 	  sAppend(&sbt, "%s)",v);
-	  sAppend(&sb, "%s]]",buf);
-	  sAppend(&sbDt, "%s]]",buf);
+	  sAppendN(&sb, "0]", 2);
+	  sAppend(&sbDt, "%s__",buf);
 	  ii = 1;
 	} else if (strstr(v,"ETA[") != NULL) {
+	  good_jac=0;
 	  sprintf(buf,"_ETA_%.*s_",(int)(strlen(v))-5,v+4);
           sAppend(&sbt, "%s)",v);
-          sAppend(&sb, "%s]]",buf);
-	  sAppend(&sbDt, "%s]]",buf);
+          sAppendN(&sb, "0]",2);
+	  sAppend(&sbDt, "%s__",buf);
           ii = 1;
         } else {
-	  sAppend(&sb, "%s]]",v);
-	  sAppend(&sbDt, "%s]]",v);
+	  sAppend(&sbDt, "%s__",v);
           sAppend(&sbt, "%s)",v);
+	  new_or_ith(v);
+	  if (tb.lh[tb.ix] == 9){
+	    new_de(v);
+	    sAppend(&sb, "%d]",tb.id);
+	  } else {
+	    sAppendN(&sb, "0]",2);
+	    good_jac = 0;
+	  }
         }
         if (!strcmp("jac",name) ||
             strcmp("dfdy",name) == 0){
@@ -1009,32 +1043,25 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	sb.o = 0; sbDt.o = 0; sbt.o = 0;
         aAppendN("if (", 4);
         sAppendN(&sbt,"if (", 4);
-	writeMain=0; writeF0=0; writeF=0; writeLag=0; writeRate=0; writeDur=0; writeAll=1;
         continue;
       }
       if (!strcmp("selection_statement", name) && i==3) {
         sAppend(&sb, " {", 2);
 	sAppend(&sbDt, " {", 2);
         sAppend(&sbt, "{", 1);
-	sAppend(&sbPm, "%s\n", sb.s);
-	sAppend(&sbPmDt, "%s\n", sbDt.s);
-	sAppend(&sbPm0f,"%s\n", sbDt.s);
-	sAppend(&sbPmF,"%s\n", sbDt.s);
-	sAppend(&sbPmLag,"%s\n", sbDt.s);
-	sAppend(&sbPmDur,"%s\n", sbDt.s);
+	aType(TLOGIC);
+	addLine(&sbPm, "%s\n", sb.s);
+	addLine(&sbPmDt, "%s\n", sbDt.s);
 	sAppend(&sbNrm, "%s\n", sbt.s);
         continue;
       }
       if (!strcmp("selection_statement__8", name) && i==0) {
 	sb.o = 0; sbDt.o = 0; sbt.o = 0;
+	aType(TLOGIC);
 	aAppendN("}\nelse {", 8);
 	sAppendN(&sbt,"}\nelse {", 8);
-	sAppend(&sbPm, "%s\n", sb.s);
-	sAppend(&sbPmDt, "%s\n", sbDt.s);
-	sAppend(&sbPm0f,"%s\n", sbDt.s);
-	sAppend(&sbPmF,"%s\n", sbDt.s);
-	sAppend(&sbPmLag,"%s\n", sbDt.s);
-	sAppend(&sbPmDur,"%s\n", sbDt.s);
+	addLine(&sbPm, "%s\n", sb.s);
+	addLine(&sbPmDt, "%s\n", sbDt.s);
 	sAppend(&sbNrm, "%s\n", sbt.s);
         continue;
       }
@@ -1072,36 +1099,38 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
             trans_syntax_error_report_fn(buf);
 	  }
 	  tb.statei++;
+	  aType(TDDT);
 	  if (!strcmp("fbio", name)){
-	    writeMain=0; writeF0=0; writeF=1; writeLag=0; writeRate=0; writeDur=0; writeAll=0;
 	    sb.o=0;sbDt.o=0; sbt.o=0;
 	    sAppend(&sb, "_f[%d] = ", tb.nd);
 	    sAppend(&sbDt, "_f[%d] = ", tb.nd);
 	    sAppend(&sbt, "f(%s)=", v);
 	    foundF=1;
+	    aType(FBIO);
 	  } else if (!strcmp("alag", name)){
-	    writeMain=0; writeF0=0; writeF=0; writeLag=1; writeRate=0; writeDur=0; writeAll=0;
 	    sb.o=0; sbDt.o=0; sbt.o=0;
 	    sAppend(&sb, "_alag[%d] = ", tb.nd);
 	    sAppend(&sbDt, "_alag[%d] = ", tb.nd);
 	    sAppend(&sbt, "alag(%s)=", v);
 	    foundLag=1;
+	    aType(ALAG); 
 	  } else if (!strcmp("dur", name)){
-	    writeMain=0; writeF0=0; writeF=0; writeLag=0; writeRate=0; writeDur=1; writeAll=0;
 	    sb.o=0;sbDt.o=0; sbt.o=0;
 	    sAppend(&sb, "_dur[%d] = ", tb.nd);
 	    sAppend(&sbDt, "_dur[%d] = ", tb.nd);
 	    sAppend(&sbt, "dur(%s)=", v);
 	    foundDur=1;
+	    aType(DUR);
           } else if (!strcmp("rate", name)){
-	    writeMain=0; writeF0=0; writeF=0; writeLag=0; writeRate=1; writeDur=0; writeAll=0;
 	    sb.o=0;sbDt.o=0; sbt.o=0;
 	    sAppend(&sb, "_rate[%d] = ", tb.nd);
 	    sAppend(&sbDt, "_rate[%d] = ", tb.nd);
 	    sAppend(&sbt, "rate(%s)=", v);
 	    foundRate=1;
+	    aType(RATE);
           }
           new_or_ith(v);
+	  aProp(tb.nd);
           /* Rprintf("%s; tb.ini = %d; tb.ini0 = %d; tb.lh = %d\n",v,tb.ini[tb.ix],tb.ini0[tb.ix],tb.lh[tb.ix]); */
           tb.lh[tb.ix] = 9;
           tb.di[tb.nd] = tb.ix;
@@ -1110,35 +1139,37 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
           tb.deo[++tb.nd] = tb.pos_de;
         } else {
           new_or_ith(v);
+	  aProp(tb.ix);
+	  aType(TDDT);
           /* printf("de[%d]->%s[%d]\n",tb.id,v,tb.ix); */
           if (!strcmp("fbio", name)){
-	    writeMain=0; writeF0=0; writeF=1; writeLag=0; writeRate=0; writeDur=0; writeAll=0;
 	    sb.o=0;sbDt.o=0; sbt.o=0;
 	    sAppend(&sb, "_f[%d] = ", tb.id);
 	    sAppend(&sbDt, "_f[%d] = ", tb.id);
 	    sAppend(&sbt, "f(%s)=", v);
 	    foundF=1;
+	    aType(FBIO);
           } else if (!strcmp("alag", name)){
-	    writeMain=0; writeF0=0; writeF=0; writeLag=1; writeRate=0; writeDur=0; writeAll=0;
 	    sb.o=0;sbDt.o=0; sbt.o=0;
 	    sAppend(&sb, "_alag[%d] = ", tb.id);
 	    sAppend(&sbDt, "_alag[%d] = ", tb.id);
 	    sAppend(&sbt, "alag(%s)=", v);
 	    foundLag=1;
+	    aType(ALAG);
           } else if (!strcmp("dur", name)){
-	    writeMain=0; writeF0=0; writeF=0; writeLag=0; writeRate=0; writeDur=1; writeAll=0;
 	    sb.o=0;sbDt.o=0; sbt.o=0;
 	    sAppend(&sb, "_dur[%d] = ", tb.id);
 	    sAppend(&sbDt, "_dur[%d] = ", tb.id);
 	    sAppend(&sbt, "dur(%s)=", v);
 	    foundDur=1;
+	    aType(DUR);
           } else if (!strcmp("rate", name)){
-	    writeMain=0; writeF0=0; writeF=0; writeLag=0; writeRate=1; writeDur=0; writeAll=0;
 	    sb.o=0;sbDt.o=0; sbt.o=0;
 	    sAppend(&sb, "_rate[%d] = ", tb.id);
 	    sAppend(&sbDt, "_rate[%d] = ", tb.id);
 	    sAppend(&sbt, "rate(%s)=", v);
 	    foundRate=1;
+	    aType(RATE);
           }
         }
         Free(v);
@@ -1168,9 +1199,10 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    trans_syntax_error_report_fn(NODOT);
 	  }
 	  sb.o =0; sbDt.o =0;
+	  aType(TDDT);
+	  aProp(tb.nd);
           sAppend(&sb, "__DDtStateVar__[%d] = _IR[%d] ", tb.nd, tb.nd);
 	  sAppend(&sbDt, "__DDtStateVar_%d__ = _IR[%d] ", tb.nd, tb.nd);
-	  writeMain=1; writeF0=0; writeF=0; writeLag=0; writeRate=0; writeDur=0; writeAll=0;
 	  sbt.o=0;
           sAppend(&sbt, "d/dt(%s)", v);
 	  new_or_ith(v);
@@ -1200,7 +1232,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  sb.o =0; sbDt.o =0;
           sAppend(&sb, "__DDtStateVar__[%d] = ", tb.id);
 	  sAppend(&sbDt, "__DDtStateVar_%d__ = ", tb.id);
-	  writeMain=1; writeF0=0; writeF=0; writeLag=0; writeRate=0; writeDur=0; writeAll=0;
+	  aType(TDDT);
+	  aProp(tb.id);
 	  Free(v);
           xpn = d_get_child(pn,4);
           v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
@@ -1225,7 +1258,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         } else {
           sAppend(&sb, "__DDtStateVar__[%d]", tb.id);
 	  sAppend(&sbDt, "__DDtStateVar_%d__", tb.id);
-	  writeMain=1; writeF0=0; writeF=0; writeLag=0; writeRate=0; writeDur=0; writeAll=0;
+	  aType(TDDT);
+	  aProp(tb.id);
           sAppend(&sbt, "d/dt(%s)", v);
         }
         Free(v);
@@ -1252,7 +1286,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       }
 
       if (!strcmp("ini0f", name) && rx_syntax_allow_ini && i == 0){
-	writeF0=1; writeMain=0; writeF=0; writeLag=0; writeRate=0; writeDur=0; writeAll=0;
+	foundF0=1;
+	aType(TF0);
 	sb.o =0; sbDt.o=0; sbt.o = 0;
 	char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
 	sAppend(&sb,  "%s",v);
@@ -1261,13 +1296,12 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       }
 
       if (i==0 && (!strcmp("assignment", name) || !strcmp("ini", name) || !strcmp("ini0", name))) {
-	writeMain=0; writeF0=0; writeF=0; writeLag=0; writeRate=0; writeDur=0; writeAll=1;
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
 	tb.ddt[0]='\0';
         if ((rx_syntax_allow_ini && !strcmp("ini", name)) || !strcmp("ini0", name)){
 	  sb.o =0; sbDt.o =0;
-          aAppendN("(__0__)", 7);
-	  writeMain=1;writeAll=0;
+          /* aAppendN("(__0__)", 7); */
+	  aType(TINI);
           for (k = 0; k < (int)strlen(v); k++){
             if (v[k] == '.'){
                 aAppendN("_DoT_", 5);
@@ -1304,6 +1338,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
             sprintf(buf,"Cannot assign state variable %s; For initial condition assigment use '%s(0) ='.\n",v,v);
             trans_syntax_error_report_fn(buf);
           }
+	  aType(TASSIGN);
         }
 	sbt.o=0;
         sAppend(&sbt, "%s", v);
@@ -1312,6 +1347,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  sAppend(&sbt,"%s(0)",v);
 	}
 	new_or_ith(v);
+	aProp(tb.ix);
 	if (!strcmp("assignment", name)  || (!rx_syntax_allow_ini && !strcmp("ini", name))){
           tb.lh[tb.ix] = 1;
         } else if (!strcmp("ini", name) || !strcmp("ini0",name)){
@@ -1360,34 +1396,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
     if (!strcmp("assignment", name) || !strcmp("ini", name) || !strcmp("derivative", name) || !strcmp("jac",name) || !strcmp("dfdy",name) ||
         !strcmp("ini0",name) || !strcmp("ini0f",name) || !strcmp("fbio", name) || !strcmp("alag", name) || !strcmp("rate", name) || 
 	!strcmp("dur", name)){
-      if (writeAll){
-	sAppend(&sbPm,     "%s;\n", sb.s);
-	sAppend(&sbPmDt,   "%s;\n", sbDt.s);
-	sAppend(&sbPm0f,   "%s;\n", sbDt.s);
-	sAppend(&sbPmF,    "%s;\n", sbDt.s);
-	sAppend(&sbPmLag,  "%s;\n", sbDt.s);
-	sAppend(&sbPmRate, "%s;\n", sbDt.s);
-	sAppend(&sbPmDur,  "%s;\n", sbDt.s);
-      }
-      if (writeMain){
-	sAppend(&sbPm, "%s;\n", sb.s);
-	sAppend(&sbPmDt, "%s;\n", sbDt.s);
-      }
-      if (writeF0){
-	sAppend(&sbPm0f, "%s;\n", sbDt.s);
-      }
-      if (writeF){
-	sAppend(&sbPmF, "%s;\n", sbDt.s);
-      }
-      if (writeLag){
-	sAppend(&sbPmLag, "%s;\n", sbDt.s);
-      }
-      if (writeRate){
-	sAppend(&sbPmRate, "%s;\n", sbDt.s);
-      }
-      if (writeDur){
-	sAppend(&sbPmDur, "%s;\n", sbDt.s);
-      }
+      addLine(&sbPm,     "%s;\n", sb.s);
+      addLine(&sbPmDt,   "%s;\n", sbDt.s);
       sAppend(&sbNrm, "%s;\n", sbt.s);
     }
 
@@ -1406,16 +1416,12 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
     }
     
     if (!strcmp("selection_statement", name)){
-      writeMain=0; writeF0=0; writeF=0; writeLag=0; writeRate=0; writeDur=0; writeAll=1;
       sb.o = 0; sbDt.o = 0; sbt.o = 0;
       aAppendN("}", 1);
       sAppendN(&sbt,"}", 1);
-      sAppend(&sbPm,   "%s\n", sb.s);
-      sAppend(&sbPmDt, "%s\n", sbDt.s);
-      sAppend(&sbPm0f, "%s\n", sbDt.s);
-      sAppend(&sbPmF,  "%s\n", sbDt.s);
-      sAppend(&sbPmLag,"%s\n", sbDt.s);
-      sAppend(&sbPmDur,"%s\n", sbDt.s);
+      aType(TLOGIC);
+      addLine(&sbPm,   "%s\n", sb.s);
+      addLine(&sbPmDt, "%s\n", sbDt.s);
       sAppend(&sbNrm,  "%s\n", sbt.s);
     }
     
@@ -1460,6 +1466,9 @@ void prnt_vars(int scenario, int lhs, const char *pre_str, const char *post_str,
     // show_ode = 3 Ini statement
     // show_ode = 0 LHS
     // show_ode = 5 functional bioavailibility
+    // show_ode == 6 functional lag
+    // show_ode == 7 functional rate
+    // show_ode == 8 functional duration
     if (show_ode == 2 || show_ode == 0){
       //__DDtStateVar_#__
       for (i = 0; i < tb.nd; i++){
@@ -1765,7 +1774,7 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   sAppend(&sbOut, "    SET_STRING_ELT(tran, 0,mkChar(\"%s\"));\n", libname);
 
   sAppendN(&sbOut, "    SET_STRING_ELT(trann,1,mkChar(\"jac\"));\n", 43);
-  if (found_jac == 1){
+  if (found_jac == 1 && good_jac == 1){
     sAppendN(&sbOut, "    SET_STRING_ELT(tran,1,mkChar(\"fulluser\"));\n", 47); // Full User Matrix
   } else {
     sAppendN(&sbOut, "    SET_STRING_ELT(tran,1,mkChar(\"fullint\"));\n", 46); // Full Internal Matrix
@@ -1906,7 +1915,10 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
     } else if (show_ode == 2){
       sAppend(&sbOut, "// Jacobian derived vars\nvoid %scalc_jac(int *_neq, double t, double *__zzStateVar__, double *__PDStateVar__, unsigned int __NROWPD__) {\n  int _cSub=_neq[1];\n", prefix);
     } else if (show_ode == 3){
-      sAppend(&sbOut,  "// Functional based initial conditions.\nvoid %sinis(int _cSub, double *__zzStateVar__){\n  double t=0;\n", prefix);
+      sAppend(&sbOut,  "// Functional based initial conditions.\nvoid %sinis(int _cSub, double *__zzStateVar__){\n", prefix);
+      if (foundF0){
+	sAppendN(&sbOut, "  double t=0;\n", 14);
+      }
     } else if (show_ode == 5){
       if (foundF){
 	sAppend(&sbOut,  "// Functional based bioavailability\ndouble %sF(int _cSub,  int _cmt, double _amt, double t, double *__zzStateVar__){\n  double _f[%d]={1};\n  (void)_f;\n",
@@ -1945,11 +1957,12 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
     if (found_print){
       sAppendN(&sbOut, "\n  int __print_ode__ = 0, __print_vars__ = 0,__print_parm__ = 0,__print_jac__ = 0;\n", 83);
     }
-    if ((show_ode == 2 && found_jac == 1) ||
-	(show_ode != 2 && show_ode != 5 && show_ode != 6 && show_ode != 7 && show_ode != 8) ||
+    if ((show_ode == 2 && found_jac == 1 && good_jac == 1) ||
+	(show_ode != 2 && show_ode != 3 && show_ode != 5 && show_ode != 6 && show_ode != 7 && show_ode != 8) ||
 	(show_ode == 5 && foundF) ||
 	(show_ode == 6 && foundLag) ||
 	(show_ode == 7 && foundRate) ||
+	(show_ode == 3 && foundF0) || 
 	(show_ode == 8 && foundDur)){
       prnt_vars(0, 0, "  double ", "\n",show_ode);     /* declare all used vars */
       if (maxSumProdN > 0 || SumProdLD > 0){
@@ -1987,59 +2000,57 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 	sAppend(&sbOut, " = __zzStateVar__[%d];\n", i);
       }
       sAppendN(&sbOut, "\n", 1);
-      if (show_ode == 8){
-	if (foundDur){
-	  sAppend(&sbOut, "%s", sbPmDur.s);
-	  // RATE = AMT/DUR
-	  sAppendN(&sbOut, "\n  return (_dur[_cmt] == 0.0 ? 0.0 : _amt/_dur[_cmt]);\n", 55);
-	}
-      } else if (show_ode == 7){
-	if (foundRate){
-	  sAppend(&sbOut, "%s", sbPmRate.s);
-	  // DUR = AMT/RATE
-	  sAppendN(&sbOut, "\n  return (_rate[_cmt] == 0.0 ? 0.0 : _amt/_rate[_cmt]);\n", 57);
-	}
-      } else if (show_ode == 6){
-	if (foundLag){
-	  sAppend(&sbOut, "%s", sbPmLag.s);
-	  sAppendN(&sbOut, "\n  return t + _alag[_cmt];\n", 27);
-	}
-      } else if (show_ode == 5){
-	if (foundF){
-	  sAppend(&sbOut, "%s", sbPmF.s);
-	  sAppendN(&sbOut, "\n  return _f[_cmt]*_amt;\n", 25);
-	}
-      } else if (show_ode == 3){
-	sAppend(&sbOut, "%s", sbPm0f.s);
-      } else {
-	sbuf *cur;
-	if (show_ode == 1) cur = &sbPm;
-	else cur = &sbPmDt;
-	cur->o=0;
-	char *s;
-	while(sgets(sLine, MXLEN, cur)) {  /* parsed eqns */
-	  if (strncmp(sLine,"(__0__)", 7) == 0){
-	    // See if this is a reclaimed initilization variable.
-	    for (i=0; i<tb.nv; i++) {
-	      if (tb.ini[i] == 1 && tb.lh[i] == 1){
-		//(__0__)V2=
-		retieve_var(i, buf);
-		s = strstr(sLine,buf);
-		if (s){
-		  sAppend(&sbOut, "  %s\n",sLine + 7);
-		  continue;
-		}
-	      }
+    }
+    if ((foundDur && show_ode == 8) ||
+	(foundRate && show_ode == 7) ||
+	(foundLag && show_ode == 6) ||
+	(foundF && show_ode == 5) ||
+	(foundF0 && show_ode == 3) ||
+	(show_ode == 2 && found_jac == 1 && good_jac == 1) ||
+	(show_ode != 2 && show_ode != 3 && show_ode != 5 && show_ode != 6  && show_ode != 7 && show_ode != 8)){
+      for (i = 0; i < sbPm.n; i++){
+	switch(sbPm.lType[i]){
+	case TASSIGN:
+	  sAppend(&sbOut,"  %s",show_ode == 1 ? sbPm.line[i] : sbPmDt.line[i]);
+	case TINI:
+	  // See if this is an ini or a reclaimed expression.
+	  if (sbPm.lProp[i] >= 0 ){
+	    tb.ix = sbPm.lProp[i];
+	    if (tb.lh[tb.ix] == 1){
+	      sAppend(&sbOut,"  %s",show_ode == 1 ? sbPm.line[i] : sbPmDt.line[i]);
 	    }
-	    continue;
+	  }	  
+	  break;
+	case TF0:
+	  // functional ini
+	  if (show_ode == 3) sAppend(&sbOut,"  %s",sbPmDt.line[i]);
+	  break;	  
+	case FBIO:
+	  if (show_ode == 5) sAppend(&sbOut,"  %s", sbPmDt.line[i]);
+	  break;
+	case ALAG:
+	  if (show_ode == 6) sAppend(&sbOut, "  %s", sbPmDt.line[i]);
+	  break;
+	case RATE:
+	  if (show_ode == 7) sAppend(&sbOut, "  %s", sbPmDt.line[i]);
+	  break;
+	case DUR:
+	  if (show_ode == 8) sAppend(&sbOut,"  %s", sbPmDt.line[i]);
+	  break;
+	case TJAC:
+	  // dfdy
+	  // FIXME this is slow.
+	  break;
+	case TDDT:
+	  // d/dt()
+	  if (show_ode != 3 && show_ode != 5 && show_ode != 6 &&
+	      show_ode != 7 && show_ode != 8){
+	    sAppend(&sbOut, "  %s", show_ode == 1 ? sbPm.line[i] : sbPmDt.line[i]);
 	  }
-	  if (show_ode == 3 && strncmp(sLine,"full_print;", 11) == 0){
-	    continue;
-	  }
-	  s = strstr(sLine,"ode_print;");
-	  if (show_ode == 1 && !s) s = strstr(sLine,"full_print;");
-	  if (show_ode != 1 && s) continue;
-	  else if (s) {
+	  break;
+	case PFPRN:
+	  // full_print
+	  if (show_ode == 1){
 	    sAppendN(&sbOut, "  Rprintf(\"================================================================================\\n\");\n", 97);
 	    sAppendN(&sbOut, "  Rprintf(\"ODE Count: %%d\\tTime (t): %%f\\n\", (&_solveData->subjects[_cSub])->dadt_counter[0], t);\n", 98);
 	    sAppendN(&sbOut, "  Rprintf(\"================================================================================\\n\");\n", 97);
@@ -2049,26 +2060,7 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 	    print_ode  = 1;
 	    print_vars = 1;
 	    print_parm = 1;
-	    continue;
-	  }      
-	  s = strstr(sLine,"ODE_Rprintf");
-	  if ((show_ode != 1) && s) continue;
-      
-	  s = strstr(sLine,"ODE0_Rprintf");
-	  if ((show_ode != 1) && s) continue;
-
-	  if (show_ode == 3){
-	    if (strstr(sLine, "__DDtStateVar_")){
-	      continue;
-	    }
-	  }
-	  s = strstr(sLine,"JAC_Rprintf");
-	  if ((show_ode != 2) && s) continue;
-
-	  s = strstr(sLine,"jac_print;");
-	  if (show_ode == 2 && !s) s = strstr(sLine,"full_print;");
-	  if (show_ode != 2 && s) continue;
-	  else if (s) {
+	  } else if (show_ode == 2){
 	    sAppendN(&sbOut, "  Rprintf(\"================================================================================\\n\");\n", 97);
 	    sAppendN(&sbOut, "  Rprintf(\"JAC Count: %%d\\tTime (t): %%f\\n\",(&_solveData->subjects[_cSub])->jac_counter[0], t);\n", 96);
 	    sAppendN(&sbOut, "  Rprintf(\"================================================================================\\n\");\n", 97);
@@ -2080,19 +2072,7 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 	    print_vars = 1;
 	    print_parm = 1;
 	    print_jac = 1;
-	    continue;
-	  }
-
-	  s = strstr(sLine,"JAC0_Rprintf");
-	  if ((show_ode != 2) && s) continue;
-
-	  s = strstr(sLine,"LHS_Rprintf");
-	  if ((show_ode != 0) && s) continue;
-
-	  s = strstr(sLine,"lhs_print;");
-	  if (show_ode == 0 && !s) s = strstr(sLine,"full_print;");
-	  if (show_ode != 0 && s) continue;
-	  else if (s) {
+	  } else if (show_ode == 0){
 	    sAppendN(&sbOut, "  Rprintf(\"================================================================================\\n\");\n", 97);
 	    sAppendN(&sbOut, "  Rprintf(\"LHS Time (t): %%f\\n\",t);\n", 36);
 	    sAppendN(&sbOut, "  Rprintf(\"================================================================================\\n\");\n", 97);
@@ -2100,57 +2080,86 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 	    sAppendN(&sbOut, "  __print_parm__ = 1;\n", 22);
 	    print_vars = 1;
 	    print_parm = 1;
-	    continue;
 	  }
-      
-	  s = strstr(sLine,"__PDStateVar__");
-	  if (s){
-	    if (show_ode == 3){
-	      continue;
-	    }
-	    for (i = 0; i < tb.ndfdy; i++){
-	      retieve_var(tb.df[i], df);
-	      retieve_var(tb.dy[i], dy);
-	      sprintf(from,"__PDStateVar__[[%s,%s]]",df,dy);
-	      if (show_ode == 2 && tb.sdfdy[i] == 0){
-		// __PDStateVar__[__CMT_NUM_y__*(__NROWPD__)+__CMT_NUM_dy__]
-		sprintf(to,"__PDStateVar__[");
-		o = (int)strlen(to);
-		for (j=0; j<tb.nd; j++) {                     /* name state vars */
-		  retieve_var(tb.di[j], state);
-		  if (!strcmp(state, df)){
-		    sprintf(to+o,"%d*(__NROWPD__)+",j);
-		    o = (int)strlen(to);
-		    break;
-		  }
-		}
-		for (j=0; j<tb.nd; j++){
-		  retieve_var(tb.di[j], state);
-		  if (!strcmp(state, dy)){
-		    sprintf(to+o,"%d]",j);
-		    o = (int)strlen(to);
-		    break;
-		  }
-		}
-	      } else {
-		sprintf(to,"__PDStateVar_%s_SeP_%s__",df,dy);
-	      }
-	      s2 = repl_str(sLine,from,to);
-	      strcpy(sLine, s2);
-	      Free(s2);
-	      s2=NULL;
-	    }        
+	  break;
+	case PLHS:
+	  // print_lhs
+	  if (show_ode == 0){
+	    sAppendN(&sbOut, "  Rprintf(\"================================================================================\\n\");\n", 97);
+	    sAppendN(&sbOut, "  Rprintf(\"LHS Time (t): %%f\\n\",t);\n", 36);
+	    sAppendN(&sbOut, "  Rprintf(\"================================================================================\\n\");\n", 97);
+	    sAppendN(&sbOut, "  __print_vars__ = 1;\n", 22);
+	    sAppendN(&sbOut, "  __print_parm__ = 1;\n", 22);
+	    print_vars = 1;
+	    print_parm = 1;
 	  }
-	  // Replace __DDtStateVar__[#] -> __DDtStateVar_#__
-	  /* sprintf(to,""); */
-	  to[0]='\0';
-	  sprintf(from," ");
-	  s2 = repl_str(sLine,from,to);
-	  strcpy(sLine, s2);
-	  Free(s2);
-	  s2=NULL;
-	  sAppend(&sbOut,  "  %s", sLine);      
+	  break;
+	case PPRN:
+	  // Rprintf
+	  if (show_ode == 1){
+	    sAppend(&sbOut, "  %s", show_ode == 1 ? sbPm.line[i] : sbPmDt.line[i]);
+	  }
+	  break;
+	case PODE:
+	  // Print ODE
+	  if (show_ode == 1){
+	    sAppendN(&sbOut, "  Rprintf(\"================================================================================\\n\");\n", 97);
+	    sAppendN(&sbOut, "  Rprintf(\"ODE Count: %%d\\tTime (t): %%f\\n\", (&_solveData->subjects[_cSub])->dadt_counter[0], t);\n", 98);
+	    sAppendN(&sbOut, "  Rprintf(\"================================================================================\\n\");\n", 97);
+	    sAppendN(&sbOut, "  __print_ode__ = 1;\n", 21);
+	    sAppendN(&sbOut, "  __print_vars__ = 1;\n", 22);
+	    sAppendN(&sbOut, "  __print_parm__ = 1;\n", 22);
+	    print_ode  = 1;
+	    print_vars = 1;
+	    print_parm = 1;
+	  } 
+	  break;
+	case PODE0: // Print ODE at time zero
+	  break;
+	case PJAC:
+	  // Print Jacobian
+	  if (show_ode == 2){
+	    sAppendN(&sbOut, "  Rprintf(\"================================================================================\\n\");\n", 97);
+	    sAppendN(&sbOut, "  Rprintf(\"JAC Count: %%d\\tTime (t): %%f\\n\",(&_solveData->subjects[_cSub])->jac_counter[0], t);\n", 96);
+	    sAppendN(&sbOut, "  Rprintf(\"================================================================================\\n\");\n", 97);
+	    sAppendN(&sbOut, "  __print_ode__ = 1;\n", 21);
+	    sAppendN(&sbOut, "  __print_jac__ = 1;\n", 21);
+	    sAppendN(&sbOut, "  __print_vars__ = 1;\n", 22);
+	    sAppendN(&sbOut, "  __print_parm__ = 1;\n", 22);
+	    print_ode  = 1;
+	    print_vars = 1;
+	    print_parm = 1;
+	    print_jac = 1;
+	  }
+	  break;
+	case PJAC0:
+	  // Print Jacobian at time 0
+	  break;
+	case TLOGIC:
+	  sAppend(&sbOut,"  %s",show_ode == 1 ? sbPm.line[i] : sbPmDt.line[i]);
+	  break;
+	default:
+	  Rprintf("Ignored line: \"%s\"\n\tlProp: %d\tlType: %d\n", sbPm.line[i],
+		  sbPm.lProp[i], sbPm.lType[i]);
 	}
+      }
+      // End statements
+      switch (show_ode){
+      case 8:
+	// RATE = AMT/DUR
+	sAppendN(&sbOut, "\n  return (_dur[_cmt] == 0.0 ? 0.0 : _amt/_dur[_cmt]);\n", 55);
+	break;
+      case 7:
+	// DUR = AMT/RATE
+	sAppendN(&sbOut, "\n  return (_rate[_cmt] == 0.0 ? 0.0 : _amt/_rate[_cmt]);\n", 57);
+	break;
+      case 6:
+	// Alag
+	sAppendN(&sbOut, "\n  return t + _alag[_cmt];\n", 27);
+	break;
+      case 5:
+	sAppendN(&sbOut, "\n  return _f[_cmt]*_amt;\n", 25);
+	break;
       }
     }
     if (print_ode && show_ode != 0){
@@ -2198,20 +2207,22 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
       sAppendN(&sbOut,  "  (&_solveData->subjects[_cSub])->jac_counter[0]++;\n", 52);
       sAppendN(&sbOut,  "}\n", 2);
     } else if (show_ode == 3){
-      for (i = 0; i < tb.nd; i++){
-	retieve_var(tb.di[i], buf);
-	sAppend(&sbOut, "  __zzStateVar__[%d]=",i);
-	for (k = 0; k < (int)strlen(buf); k++){
-	  if (buf[k] == '.'){
-	    sAppendN(&sbOut, "_DoT_", 5);
-	    if (rx_syntax_allow_dots == 0){
-	      trans_syntax_error_report_fn(NODOT);
+      if (foundF0){
+	for (i = 0; i < tb.nd; i++){
+	  retieve_var(tb.di[i], buf);
+	  sAppend(&sbOut, "  __zzStateVar__[%d]=",i);
+	  for (k = 0; k < (int)strlen(buf); k++){
+	    if (buf[k] == '.'){
+	      sAppendN(&sbOut, "_DoT_", 5);
+	      if (rx_syntax_allow_dots == 0){
+		trans_syntax_error_report_fn(NODOT);
+	      }
+	    } else {
+	      sPut(&sbOut, buf[k]);
 	    }
-	  } else {
-	    sPut(&sbOut, buf[k]);
 	  }
+	  sAppendN(&sbOut,  ";\n", 2);
 	}
-	sAppendN(&sbOut,  ";\n", 2);
       }
       sAppendN(&sbOut,  "}\n", 2);
     } else if (show_ode == 5 || show_ode == 6 || show_ode == 7 || show_ode == 8){
@@ -2245,11 +2256,9 @@ void reset (){
   sIni(&sb);
   sIni(&sbDt);
   sIni(&sbt);
-  sIni(&sbPm);
-  sIni(&sbPmDt);
-  sIni(&sbPm0f);
   sIni(&sbNrm);
-  sIni(&sbPmF);
+  lineIni(&sbPm);
+  lineIni(&sbPmDt);
 
   // Reset Arrays
   memset(tb.ss,		0, 64*MXSYM*sizeof(char));
@@ -2283,6 +2292,7 @@ void reset (){
   tb.linCmt     = 0;
   tb.isPi       = 0;
   // reset globals
+  good_jac = 1;
   found_print = 0;
   found_jac = 0;
   rx_syntax_error = 0;
@@ -2299,16 +2309,11 @@ void reset (){
   maxSumProdN = 0;
   SumProdLD = 0;
 
-  writeMain=1;
-  writeF0=0;
-  writeF=0;
-  writeLag=0;
-  writeRate=0;
-  writeDur=0;
   foundLag=0;
   foundRate=0;
   foundDur=0;
   foundF=0;
+  foundF0=0;
 }
 
 void writeSb(sbuf *sbb, FILE *fp){
@@ -2348,13 +2353,9 @@ void trans_internal(char* parse_file, int isStr){
       err_msgP((intptr_t) gBuf, "error: empty buf for FILE_to_parse\n", -2, p);
   }
   sIni(&sbNrm);
-  sIni(&sbPm);
-  sIni(&sbPmDt);
-  sIni(&sbPm0f);
-  sIni(&sbPmF);
-  sIni(&sbPmLag);
-  sIni(&sbPmRate);
-  sIni(&sbPmDur);
+  lineIni(&sbPm);
+  lineIni(&sbPmDt);
+  
   if ((pn=dparse(p, gBuf, (int)strlen(gBuf))) && !p->syntax_errors) {
     wprint_parsetree(parser_tables_RxODE, pn, 0, wprint_node, NULL);
     // Determine Jacobian vs df/dvar
@@ -2518,7 +2519,7 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
   for (i = 0; i < tb.nv; i++){
     retieve_var(i, buf);
     if (tb.ini[i] == 1 && tb.lh[i] != 1){
-      if (tb.isPi && !strncmp("pi", buf, 2)) {
+      if (tb.isPi && !strcmp("pi", buf)) {
 	redo=1;
 	tb.isPi=0;
 	break;
@@ -2537,7 +2538,7 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
     for (i = 0; i < tb.nv; i++){
       retieve_var(i, buf);
       if (tb.ini[i] == 1 && tb.lh[i] != 1){
-	if (tb.isPi && !strncmp("pi", buf, 2)) {
+	if (tb.isPi && !strcmp("pi", buf)) {
 	  redo=1;
 	  tb.isPi=0;
 	  break;
@@ -2656,7 +2657,7 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
   SET_STRING_ELT(tran,0,mkChar(buf));
   
   SET_STRING_ELT(trann,1,mkChar("jac"));
-  if (found_jac == 1){
+  if (found_jac == 1 && good_jac == 1){
     SET_STRING_ELT(tran,1,mkChar("fulluser")); // Full User Matrix
   } else {
     SET_STRING_ELT(tran,1,mkChar("fullint")); // Full Internal Matrix
@@ -2753,21 +2754,6 @@ SEXP _RxODE_parseModel(SEXP type){
   case 1:
     SET_STRING_ELT(pm, 0, mkChar(sbPmDt.s));
     break;
-  case 2:
-    SET_STRING_ELT(pm, 0, mkChar(sbPm0f.s));
-    break;
-  case 3:
-    SET_STRING_ELT(pm, 0, mkChar(sbPmF.s));
-    break;
-  case 4:
-    SET_STRING_ELT(pm, 0, mkChar(sbPmLag.s));
-    break;
-  case 5:
-    SET_STRING_ELT(pm, 0, mkChar(sbPmRate.s));
-    break;
-  case 6:
-    SET_STRING_ELT(pm, 0, mkChar(sbPmDur.s));
-    break;
   default:
     SET_STRING_ELT(pm, 0, mkChar(sbPm.s));
     break;
@@ -2804,11 +2790,18 @@ SEXP _RxODE_codegen(SEXP c_file, SEXP prefix, SEXP libname,
   }
   fpIO = fopen(CHAR(STRING_ELT(c_file,0)), "wb");
   err_msg((intptr_t) fpIO, "error opening output c file\n", -2);
-  sIniTo(&sbOut, (int)((sbPm.sN + sbPm0f.sN+sbPmF.sN+sbPmLag.sN+sbPmRate.sN+sbPmDur.sN)*1.3));
-  gCode(1);
-  gCode(2);
-  gCode(3);
-  gCode(0);
+  sIniTo(&sbOut, (int)((sbPm.sN)*5.3));
+  // show_ode = 1 dydt
+  // show_ode = 2 Jacobian
+  // show_ode = 3 Ini statement
+  // show_ode = 0 LHS
+  // show_ode = 5 functional bioavailibility
+  // show_ode = 6 functional rate
+  
+  gCode(1); // d/dt()
+  gCode(2); // jac
+  gCode(3); // ini()
+  gCode(0); //
   gCode(5);
   gCode(6);
   gCode(7);
