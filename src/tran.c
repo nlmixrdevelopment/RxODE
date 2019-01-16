@@ -2851,13 +2851,19 @@ SEXP _RxODE_parseModel(SEXP type){
     error("Model no longer loaded in memory.");
   }
   int iT = INTEGER(type)[0];
-  SEXP pm = PROTECT(allocVector(STRSXP, 1));
+  SEXP pm;
   switch (iT){
   case 1:
-    SET_STRING_ELT(pm, 0, mkChar(sbPmDt.s));
+    pm = PROTECT(allocVector(STRSXP, sbPmDt.n));
+    for (int i = 0; i < sbPmDt.n; i++){
+      SET_STRING_ELT(pm, i, mkChar(sbPmDt.line[i]));
+    }
     break;
   default:
-    SET_STRING_ELT(pm, 0, mkChar(sbPm.s));
+    pm = PROTECT(allocVector(STRSXP, sbPm.n));
+    for (int i = 0; i < sbPm.n; i++){
+      SET_STRING_ELT(pm, i, mkChar(sbPm.line[i]));
+    }
     break;
   }
   UNPROTECT(1);
