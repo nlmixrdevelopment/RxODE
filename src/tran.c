@@ -1339,17 +1339,18 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  sAppend(&sbDt, "__DDtStateVar_%d__ = ", tb.id);
 	  aType(TDDT);
 	  aProp(tb.id);
+	  sbt.o=0;
+	  sAppend(&sbt, "d/dt(%s)", v);
 	  Free(v);
           xpn = d_get_child(pn,4);
           v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-	  sbt.o=0;
           if (!strcmp("~",v)){
             tb.idi[tb.id] = 1;
-	    sAppend(&sbt, "d/dt(%s)~", v);
+	    sAppendN(&sbt, "~", 1);
           } else {
 	    // Don't switch idi back to 0; Once the state is ignored,
 	    // keep it ignored.
-	    sAppend(&sbt, "d/dt(%s)=", v);
+	    sAppendN(&sbt, "=", 1);
 	  }
         }
         Free(v);
