@@ -281,52 +281,102 @@ rx_solving_options_ind *getRxId(rx_solve *rx, unsigned int id){
   return &(rx->subjects[id]);
 }
 
+
 int handle_evid(int evid, int neq, 
-		       int *BadDose,
-		       double *InfusionRate,
-		       double *dose,
-		       double *yp,
-		       int do_transit_abs,
-		       double xout,
-		       rx_solving_options_ind *ind){
-  int wh = evid, wh100, cmt, foundBad, j;
-  if (wh) {
+		int *BadDose,
+		double *InfusionRate,
+		double *dose,
+		double *yp,
+		int do_transit_abs,
+		double xout,
+		rx_solving_options_ind *ind){
+  if (evid == 0 || evid == 2) return 0;
+  int wh = evid, wh100, cmt, foundBad, j, doReset=0,
+      doInf=0;
+  int inCmt = 0;
+  double amt;
+  /* double amt, f=1; */
+  /* if (wh > 99){ */
+    
+  /* } else { */
+  /*   if (inCmt < 0){ */
+  /*     error("Turning off a compartment is not currently supported."); */
+  /*   } */
+  /*   cmt = inCmt-1; */
+  /* } */
+  switch (wh){
+  case 3:
+    doReset=1;
+    cmt = inCmt-1;
+    if (doReset){
+      error("System reset currently not supported.");
+    }  
+    break;
+  case 4:
+    doReset=1;
+    cmt = inCmt-1;
+    if (doReset){
+      error("System reset currently not supported.");
+    }  
+    break;
+  case 1:
+    break;
+  case -1:
+    cmt = inCmt-1;
+    error("Calculate Rate");
+    break;
+  case  -2:
+    cmt = inCmt-1;
+    error("Calculate Duration");
+    break;
+  case -3:
+    cmt = inCmt-1;
+    doInf=1;
+    break;
+  default:
     wh100 = floor(wh/1e5);
     wh = wh- wh100*1e5;
-    cmt = (wh%10000)/100 - 1 + 100*wh100;
+    cmt = floor((wh%10000)/100 - 1 + 100*wh100);
+    if (wh>10000){
+      wh = -3;
+      doInf=1;
+    } else wh = 1;
     if (cmt<0) {
       error("Supplied an invalid EVID (EVID=%d)", evid);
+    }    
+    break;
+  }
+  /* amt*f defined in model (if present)*/
+  amt = dose[ind->ixds];//extraFn(id, cmt, 1, dose[ind->ixds], t, yp);
+  if (cmt >= neq){
+    foundBad = 0;
+    for (j = 0; j < ind->nBadDose; j++){
+      if (BadDose[j] == cmt+1){
+	foundBad=1;
+	break;
+      }
     }
-    if (cmt >= neq){
-      foundBad = 0;
-      for (j = 0; j < ind->nBadDose; j++){
-	if (BadDose[j] == cmt+1){
-	  foundBad=1;
-	  break;
-	}
-      }
-      if (!foundBad){
-	BadDose[ind->nBadDose]=cmt+1;
-	ind->nBadDose++;
-      }
+    if (!foundBad){
+      BadDose[ind->nBadDose]=cmt+1;
+      ind->nBadDose++;
+    }
+  } else {
+    if (doInf) {
+      InfusionRate[cmt] += amt;
     } else {
-      if (wh>10000) {
-	InfusionRate[cmt] += dose[ind->ixds];
+      if (do_transit_abs) {
+	ind->podo = amt;
+	ind->tlast = xout;
       } else {
-	if (do_transit_abs) {
-	  ind->podo = dose[ind->ixds];
-	  ind->tlast = xout;
-	} else {
-	  ind->podo = 0;
-	  ind->tlast = xout;
-	  yp[cmt] += dose[ind->ixds];     //dosing before obs
-	}
+	ind->podo = 0;
+	ind->tlast = xout;
+	yp[cmt] += amt;     //dosing before obs
       }
-      /* istate = 1; */
-      ind->ixds++;
-      /* xp = xout; */
-      return 1;
     }
+    /* istate = 1; */
+    ind->ixds++;
+    /* xp = xout; */
+    return 1;
   }
   return 0;
 }

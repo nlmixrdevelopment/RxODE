@@ -135,7 +135,7 @@ identifier_r: identifier_r_extra | identifier_r_1 | identifier_r_2 ;
 
 identifier_r_no_output: identifier_r_no_output_1 | identifier_r_no_output_2 | identifier_r_extra;
 
-identifier_r_extra: 'transit' | 'lag'/i | 'alag'/i | 'f'/i | 'r'/i | 'rate'/i | 'd'/i | 'dur'/i;
+identifier_r_extra: 'transit' | 'lag' | 'alag' | 'f'| 'F' | 'r' | 'rate' | 'd' | 'dur';
 
 theta: ('THETA' | 'theta') '[' decimalint ']';
 eta: ('ETA' | 'eta') '[' decimalint ']';
