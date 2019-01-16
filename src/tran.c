@@ -576,7 +576,7 @@ typedef struct nodeInfo {
   int min;
   int mult_part;
   int power_expression;
-  int print_command;
+  /* int print_command; */
   int printf_statement;
   int prod;
   int rate;
@@ -625,7 +625,7 @@ void niReset(nodeInfo *ni){
   ni->min = -1;
   ni->mult_part = -1;
   ni->power_expression = -1;
-  ni->print_command = -1;
+  /* ni->print_command = -1; */
   ni->printf_statement = -1;
   ni->prod = -1;
   ni->rate = -1;
@@ -943,20 +943,20 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	}
 	Free(v);
       }
-      if (nodeHas(print_command)){
-        found_print = 1;
-        char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-        if  (!strcmp(v,"print")){
-	  aType(PFPRN);
-	  aAppendN("full_print;\n", 12);
-	  sAppendN(&sbNrm, "print;\n", 7);
-        } else {
-	  sAppend(&sb,"%s;\n", v);
-	  sAppend(&sbDt,"%s;\n", v);
-	  sAppend(&sbNrm, "%s;\n", v);
-        }
-        Free(v);
-      }
+      /* if (nodeHas(print_command)){ */
+      /*   found_print = 1; */
+      /*   char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end); */
+      /*   if  (!strcmp(v,"print")){ */
+      /* 	  aType(PFPRN); */
+      /* 	  aAppendN("full_print;\n", 12); */
+      /* 	  sAppendN(&sbNrm, "print;\n", 7); */
+      /*   } else { */
+      /* 	  sAppend(&sb,"%s;\n", v); */
+      /* 	  sAppend(&sbDt,"%s;\n", v); */
+      /* 	  sAppend(&sbNrm, "%s;\n", v); */
+      /*   } */
+      /*   Free(v); */
+      /* } */
       if (nodeHas(printf_statement)){
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
         if (i == 0){

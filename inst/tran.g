@@ -16,7 +16,6 @@ statement
   | compound_statement
   | selection_statement
   | printf_statement end_statement
-  | print_command end_statement
   | end_statement ;
 
 
@@ -29,16 +28,7 @@ printf_statement
   : printf_command '(' string (',' additive_expression )* ')';
 
 printf_command
-  : 'printf'      | 'Rprintf'      | 'print'      |
-    'jac_printf'  | 'jac_Rprintf'  | 'jac_print'  |
-    'ode_printf'  | 'ode_Rprintf'  | 'ode_print'  |
-    'jac0_printf' | 'jac0_Rprintf' | 'jac0_print' |
-    'ode_printf'  | 'ode_Rprintf'  | 'ode_print'  |
-    'ode0_printf' | 'ode0_Rprintf' | 'ode0_print' |
-    'lhs_printf'  | 'lhs_Rprintf'  | 'lhs_print'  ;
-
-print_command
-  : 'print' | 'ode_print' | 'jac_print' | 'lhs_print';
+  : 'printf'      | 'Rprintf'      | 'print';
 
 ini0       : identifier_r ('(0)' | '{0}' | '[0]') ('=' | '<-' ) ini_const;
 
@@ -64,10 +54,10 @@ transit3   : 'transit' '(' trans_const ',' trans_const ',' trans_const ')';
 dfdy        : 'df' '(' identifier_r_no_output ')/dy(' (theta0_noout | theta_noout | eta_noout | identifier_r_no_output) ')' ('=' | '<-' ) additive_expression;
 dfdy_rhs    : 'df' '(' identifier_r_no_output ')/dy(' (theta0_noout | theta_noout | eta_noout | identifier_r_no_output) ')';
 
-fbio        : 'f'/i  '(' identifier_r_no_output ')' ('=' | '<-' ) additive_expression;
-alag        : ('lag'/i | 'alag'/i )  '(' identifier_r_no_output ')' ('=' | '<-' ) additive_expression;
-rate        : ('r'/i | 'rate'/i)  '(' identifier_r_no_output ')' ('=' | '<-' ) additive_expression;
-dur        : ('d'/i | 'dur'/i)  '(' identifier_r_no_output ')' ('=' | '<-' ) additive_expression;
+fbio        : ('f' | 'F')  '(' identifier_r_no_output ')' ('=' | '<-' ) additive_expression;
+alag        : ('lag' | 'alag')  '(' identifier_r_no_output ')' ('=' | '<-' ) additive_expression;
+rate        : ('r' | 'rate')  '(' identifier_r_no_output ')' ('=' | '<-' ) additive_expression;
+dur        : ('d' | 'dur')  '(' identifier_r_no_output ')' ('=' | '<-' ) additive_expression;
 
 
 jac_command : 'jac' | 'df/dy';
