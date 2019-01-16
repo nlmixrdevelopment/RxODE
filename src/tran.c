@@ -1484,14 +1484,21 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
           } else {
             // There is more than one call to this variable, it is a
             // conditional variable
-            tb.lh[tb.ix] = 1;
-            if (nodeHas(ini0) && tb.ini0[tb.ix] == 1){
-              sprintf(buf,"Cannot have conditional initial conditions for %s",v);
-              trans_syntax_error_report_fn(buf);
-            } else if (tb.ini0[tb.ix] == 1){
-	      tb.ini_i--;
+	    /* Rprintf("Duplicate %s; %d %d\n", v, tb.lh[tb.ix], tb.ini0[tb.ix]); */
+	    if (tb.lh[tb.ix] != 1){
+	      tb.lh[tb.ix] = 1;
+	      if (nodeHas(ini0) && tb.ini0[tb.ix] == 1){
+		sprintf(buf,"Cannot have conditional initial conditions for %s",v);
+		trans_syntax_error_report_fn(buf);
+	      } else if (tb.ini0[tb.ix] == 1){
+		tb.iniv[tb.ix] = NA_REAL;
+		tb.ini_i--;
+	      } else if (tb.ini[tb.ix] == 1){
+		tb.iniv[tb.ix] = NA_REAL;
+		tb.ini_i--;
+	      }
 	    }
-	    tb.ini0[tb.ix] = 0;
+	    tb.ini0[tb.ix] = 0;	      
           }
         }
         Free(v);
