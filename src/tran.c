@@ -492,7 +492,7 @@ vLines sbPm, sbPmDt;
 sbuf sbNrm;
 
 char *extra_buf, *model_prefix, *md5;
-int foundF=0,foundLag=0, foundRate=0, foundDur=0, foundF0=0;
+int foundF=0,foundLag=0, foundRate=0, foundDur=0, foundF0=0, foundLhs=0;
 
 sbuf sbOut;
 
@@ -1362,9 +1362,14 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
           sprintf(buf,"Tried to use d/dt(%s) before it was defined",v);
           trans_syntax_error_report_fn(buf);
         } else {
-          sAppend(&sb, "__DDtStateVar__[%d]", tb.id);
-	  sAppend(&sbDt, "__DDtStateVar_%d__", tb.id);
-	  aType(TDDT);
+	  if (sbPm.lType[sbPm.n] == TJAC){
+	    sAppend(&sb,   "__DDtStateVar_%d__", tb.id);
+	    sAppend(&sbDt, "__DDtStateVar_%d__", tb.id);
+	  } else {
+	    sAppend(&sb, "__DDtStateVar__[%d]", tb.id);
+	    sAppend(&sbDt, "__DDtStateVar_%d__", tb.id);
+	    aType(TDDT);
+	  }
 	  aProp(tb.id);
           sAppend(&sbt, "d/dt(%s)", v);
         }
@@ -2148,8 +2153,8 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 	  if (show_ode == 8) sAppend(&sbOut,"  %s", sbPmDt.line[i]);
 	  break;
 	case TJAC:
-	  // dfdy
-	  // FIXME this is slow.
+	  if (show_ode == 0) sAppend(&sbOut, "  %s", sbPmDt.line[i]);
+	  else if (show_ode == 2)  sAppend(&sbOut, "  %s", sbPm.line[i]);
 	  break;
 	case TDDT:
 	  // d/dt()
@@ -2158,92 +2163,11 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 	    sAppend(&sbOut, "  %s", show_ode == 1 ? sbPm.line[i] : sbPmDt.line[i]);
 	  }
 	  break;
-	case PFPRN:
-	  // full_print
-	  if (show_ode == 1){
-	    sAppendN(&sbOut, "  Rprintf(\"================================================================================\\n\");\n", 97);
-	    sAppendN(&sbOut, "  Rprintf(\"ODE Count: %%d\\tTime (t): %%f\\n\", (&_solveData->subjects[_cSub])->dadt_counter[0], t);\n", 98);
-	    sAppendN(&sbOut, "  Rprintf(\"================================================================================\\n\");\n", 97);
-	    sAppendN(&sbOut, "  __print_ode__ = 1;\n", 21);
-	    sAppendN(&sbOut, "  __print_vars__ = 1;\n", 22);
-	    sAppendN(&sbOut, "  __print_parm__ = 1;\n", 22);
-	    print_ode  = 1;
-	    print_vars = 1;
-	    print_parm = 1;
-	  } else if (show_ode == 2){
-	    sAppendN(&sbOut, "  Rprintf(\"================================================================================\\n\");\n", 97);
-	    sAppendN(&sbOut, "  Rprintf(\"JAC Count: %%d\\tTime (t): %%f\\n\",(&_solveData->subjects[_cSub])->jac_counter[0], t);\n", 96);
-	    sAppendN(&sbOut, "  Rprintf(\"================================================================================\\n\");\n", 97);
-	    sAppendN(&sbOut, "  __print_ode__ = 1;\n", 21);
-	    sAppendN(&sbOut, "  __print_jac__ = 1;\n", 21);
-	    sAppendN(&sbOut, "  __print_vars__ = 1;\n", 22);
-	    sAppendN(&sbOut, "  __print_parm__ = 1;\n", 22);
-	    print_ode  = 1;
-	    print_vars = 1;
-	    print_parm = 1;
-	    print_jac = 1;
-	  } else if (show_ode == 0){
-	    sAppendN(&sbOut, "  Rprintf(\"================================================================================\\n\");\n", 97);
-	    sAppendN(&sbOut, "  Rprintf(\"LHS Time (t): %%f\\n\",t);\n", 36);
-	    sAppendN(&sbOut, "  Rprintf(\"================================================================================\\n\");\n", 97);
-	    sAppendN(&sbOut, "  __print_vars__ = 1;\n", 22);
-	    sAppendN(&sbOut, "  __print_parm__ = 1;\n", 22);
-	    print_vars = 1;
-	    print_parm = 1;
-	  }
-	  break;
-	case PLHS:
-	  // print_lhs
-	  if (show_ode == 0){
-	    sAppendN(&sbOut, "  Rprintf(\"================================================================================\\n\");\n", 97);
-	    sAppendN(&sbOut, "  Rprintf(\"LHS Time (t): %%f\\n\",t);\n", 36);
-	    sAppendN(&sbOut, "  Rprintf(\"================================================================================\\n\");\n", 97);
-	    sAppendN(&sbOut, "  __print_vars__ = 1;\n", 22);
-	    sAppendN(&sbOut, "  __print_parm__ = 1;\n", 22);
-	    print_vars = 1;
-	    print_parm = 1;
-	  }
-	  break;
 	case PPRN:
 	  // Rprintf
 	  if (show_ode == 1){
 	    sAppend(&sbOut, "  %s", show_ode == 1 ? sbPm.line[i] : sbPmDt.line[i]);
 	  }
-	  break;
-	case PODE:
-	  // Print ODE
-	  if (show_ode == 1){
-	    sAppendN(&sbOut, "  Rprintf(\"================================================================================\\n\");\n", 97);
-	    sAppendN(&sbOut, "  Rprintf(\"ODE Count: %%d\\tTime (t): %%f\\n\", (&_solveData->subjects[_cSub])->dadt_counter[0], t);\n", 98);
-	    sAppendN(&sbOut, "  Rprintf(\"================================================================================\\n\");\n", 97);
-	    sAppendN(&sbOut, "  __print_ode__ = 1;\n", 21);
-	    sAppendN(&sbOut, "  __print_vars__ = 1;\n", 22);
-	    sAppendN(&sbOut, "  __print_parm__ = 1;\n", 22);
-	    print_ode  = 1;
-	    print_vars = 1;
-	    print_parm = 1;
-	  } 
-	  break;
-	case PODE0: // Print ODE at time zero
-	  break;
-	case PJAC:
-	  // Print Jacobian
-	  if (show_ode == 2){
-	    sAppendN(&sbOut, "  Rprintf(\"================================================================================\\n\");\n", 97);
-	    sAppendN(&sbOut, "  Rprintf(\"JAC Count: %%d\\tTime (t): %%f\\n\",(&_solveData->subjects[_cSub])->jac_counter[0], t);\n", 96);
-	    sAppendN(&sbOut, "  Rprintf(\"================================================================================\\n\");\n", 97);
-	    sAppendN(&sbOut, "  __print_ode__ = 1;\n", 21);
-	    sAppendN(&sbOut, "  __print_jac__ = 1;\n", 21);
-	    sAppendN(&sbOut, "  __print_vars__ = 1;\n", 22);
-	    sAppendN(&sbOut, "  __print_parm__ = 1;\n", 22);
-	    print_ode  = 1;
-	    print_vars = 1;
-	    print_parm = 1;
-	    print_jac = 1;
-	  }
-	  break;
-	case PJAC0:
-	  // Print Jacobian at time 0
 	  break;
 	case TLOGIC:
 	  sAppend(&sbOut,"  %s",show_ode == 1 ? sbPm.line[i] : sbPmDt.line[i]);
@@ -2424,6 +2348,7 @@ void reset (){
   foundDur=0;
   foundF=0;
   foundF0=0;
+  foundLhs=0;
 }
 
 void writeSb(sbuf *sbb, FILE *fp){
