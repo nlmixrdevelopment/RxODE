@@ -237,7 +237,7 @@ static void trans_syntax_error_report_fn(char *err) {
 
 extern D_ParserTables parser_tables_RxODE;
 
-unsigned int found_jac = 0, found_print = 0;
+unsigned int found_jac = 0;
 int rx_syntax_assign = 0, rx_syntax_star_pow = 0,
   rx_syntax_require_semicolon = 0, rx_syntax_allow_dots = 0,
   rx_syntax_allow_ini0 = 1, rx_syntax_allow_ini = 1, rx_syntax_allow_assign_state = 0,
@@ -492,7 +492,7 @@ vLines sbPm, sbPmDt;
 sbuf sbNrm;
 
 char *extra_buf, *model_prefix, *md5;
-int foundF=0,foundLag=0, foundRate=0, foundDur=0, foundF0=0, foundLhs=0;
+int foundF=0,foundLag=0, foundRate=0, foundDur=0, foundF0=0;
 
 sbuf sbOut;
 
@@ -943,20 +943,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	}
 	Free(v);
       }
-      /* if (nodeHas(print_command)){ */
-      /*   found_print = 1; */
-      /*   char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end); */
-      /*   if  (!strcmp(v,"print")){ */
-      /* 	  aType(PFPRN); */
-      /* 	  aAppendN("full_print;\n", 12); */
-      /* 	  sAppendN(&sbNrm, "print;\n", 7); */
-      /*   } else { */
-      /* 	  sAppend(&sb,"%s;\n", v); */
-      /* 	  sAppend(&sbDt,"%s;\n", v); */
-      /* 	  sAppend(&sbNrm, "%s;\n", v); */
-      /*   } */
-      /*   Free(v); */
-      /* } */
       if (nodeHas(printf_statement)){
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
         if (i == 0){
@@ -2069,16 +2055,15 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
     } else {
       sAppend(&sbOut,  "// prj-specific derived vars\nvoid %scalc_lhs(int _cSub, double t, double *__zzStateVar__, double *_lhs) {\n", prefix);
     }
-    if (found_print){
-      sAppendN(&sbOut, "\n  int __print_ode__ = 0, __print_vars__ = 0,__print_parm__ = 0,__print_jac__ = 0;\n", 83);
-    }
     if ((show_ode == 2 && found_jac == 1 && good_jac == 1) ||
-	(show_ode != 2 && show_ode != 3 && show_ode != 5 && show_ode != 6 && show_ode != 7 && show_ode != 8) ||
+	(show_ode != 2 && show_ode != 3 && show_ode != 5 && show_ode != 6 && show_ode != 7 && show_ode != 8 &&
+	 show_ode !=0) ||
 	(show_ode == 5 && foundF) ||
 	(show_ode == 6 && foundLag) ||
 	(show_ode == 7 && foundRate) ||
 	(show_ode == 3 && foundF0) || 
-	(show_ode == 8 && foundDur)){
+	(show_ode == 8 && foundDur) ||
+	(show_ode == 0 && tb.li)){
       prnt_vars(0, 0, "  double ", "\n",show_ode);     /* declare all used vars */
       if (maxSumProdN > 0 || SumProdLD > 0){
 	int mx = maxSumProdN;
@@ -2121,8 +2106,9 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 	(foundLag && show_ode == 6) ||
 	(foundF && show_ode == 5) ||
 	(foundF0 && show_ode == 3) ||
+	(show_ode == 0 && tb.li) ||
 	(show_ode == 2 && found_jac == 1 && good_jac == 1) ||
-	(show_ode != 2 && show_ode != 3 && show_ode != 5 && show_ode != 6  && show_ode != 7 && show_ode != 8)){
+	(show_ode != 0 && show_ode != 2 && show_ode != 3 && show_ode != 5 && show_ode != 6  && show_ode != 7 && show_ode != 8)){
       for (i = 0; i < sbPm.n; i++){
 	switch(sbPm.lType[i]){
 	case TASSIGN:
@@ -2261,7 +2247,7 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
       sAppendN(&sbOut,  "}\n", 2);
     } else if (show_ode == 5 || show_ode == 6 || show_ode == 7 || show_ode == 8){
       sAppendN(&sbOut,  "}\n", 2);
-    } else {
+    } else if (show_ode == 0 && tb.li){
       sAppendN(&sbOut,  "\n", 1);
       for (i=0, j=0; i<tb.nv; i++) {
 	if (tb.lh[i] != 1) continue;
@@ -2280,6 +2266,8 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 	sAppendN(&sbOut,  ";\n", 2);
 	j++;
       }
+      sAppendN(&sbOut,  "}\n", 2);
+    } else {
       sAppendN(&sbOut,  "}\n", 2);
     }
   }
@@ -2327,7 +2315,6 @@ void reset (){
   tb.isPi       = 0;
   // reset globals
   good_jac = 1;
-  found_print = 0;
   found_jac = 0;
   rx_syntax_error = 0;
   rx_suppress_syntax_info=0;
@@ -2348,7 +2335,6 @@ void reset (){
   foundDur=0;
   foundF=0;
   foundF0=0;
-  foundLhs=0;
 }
 
 void writeSb(sbuf *sbb, FILE *fp){
