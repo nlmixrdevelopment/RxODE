@@ -61,10 +61,11 @@
 ##' @param hmin The minimum absolute step size allowed. The default
 ##'     value is 0.
 ##'
-##' @param hmax The maximum absolute step size allowed.  The default
-##'     checks for the maximum difference in times in your sampling and
-##'     events, and uses this value.  The value 0 is equivalent to
-##'     infinite maximum absolute step size.
+##' @param hmax The maximum absolute step size allowed.  When
+##'     \code{hmax=NA} (default), uses the avearge difference in times
+##'     and sampling events. When \code{hmax=NULL} RxODE uses the
+##'     maximum difference in times in your sampling and events.  The
+##'     value 0 is equivalent to infinite maximum absolute step size.
 ##'
 ##' @param hini The step size to be attempted on the first step. The
 ##'     default value is determined by the solver (when hini = 0)
@@ -261,7 +262,7 @@ rxSolve <- function(object, ...){
 rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, scale = NULL,
                     covs = NULL, method = c("liblsoda", "lsoda", "dop853"),
                     transitAbs = NULL, atol = 1.0e-8, rtol = 1.0e-6,
-                    maxsteps = 5000L, hmin = 0L, hmax = NULL, hini = 0, maxordn = 12L, maxords = 5L, ...,
+                    maxsteps = 5000L, hmin = 0L, hmax = NA, hini = 0, maxordn = 12L, maxords = 5L, ...,
                     cores,
                     covsInterpolation = c("locf", "linear", "nocb", "midpoint"),
                     addCov = FALSE, matrix = FALSE, sigma = NULL, sigmaDf = NULL,
