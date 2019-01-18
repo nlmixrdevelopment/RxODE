@@ -357,12 +357,16 @@ rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, scal
                 hmax <- max(abs(diff(.eventTable$time)))
             }
         }
-        if (!is.numeric(hmax))
-            stop("'hmax' must be numeric.")
-        if (hmax < 0)
-            stop("'hmax' must be a non-negative value.")
-        if (hmax == Inf)
-            hmax <- 0
+        if (length(hmax) == 1 & !is.na(hmax)){
+            if (!is.numeric(hmax)){
+                stop("'hmax' must be numeric.")
+            }
+            if (hmax < 0)
+                stop("'hmax' must be a non-negative value.")
+            if (hmax == Inf)
+                hmax <- 0
+        }
+
         if (!is.null(hini)){
             if (hini < 0)
                 stop("'hini' must be a non-negative value.")
