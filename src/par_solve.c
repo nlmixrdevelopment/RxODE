@@ -295,7 +295,7 @@ int handle_evid(int evid, int neq,
 		double xout,
 		int id, rx_solving_options_ind *ind){
   if (evid == 0 || evid == 2) return 0;
-  int wh = evid, wh100, cmt, foundBad, j, doReset=0,
+  int wh = evid, wh100, cmt = 0, foundBad, j, doReset=0,
       doInf=0;
   int inCmt = 0;
   double amt;
