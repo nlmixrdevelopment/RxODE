@@ -206,13 +206,15 @@ t_set_solve set_solve = NULL;
 
 t_get_solve get_solve = NULL;
 
+t_F AMT = NULL;
+
 int global_jt = 2;
 int global_mf = 22;  
 int global_debug = 0;
 
 void rxUpdateFuns(SEXP trans){
   const char *lib, *s_dydt, *s_calc_jac, *s_calc_lhs, *s_inis, *s_dydt_lsoda_dum, *s_dydt_jdum_lsoda, 
-    *s_ode_solver_solvedata, *s_ode_solver_get_solvedata, *s_dydt_liblsoda;
+    *s_ode_solver_solvedata, *s_ode_solver_get_solvedata, *s_dydt_liblsoda, *;
   lib = CHAR(STRING_ELT(trans, 0));
   s_dydt = CHAR(STRING_ELT(trans, 3));
   s_calc_jac = CHAR(STRING_ELT(trans, 4));
@@ -223,6 +225,7 @@ void rxUpdateFuns(SEXP trans){
   s_ode_solver_solvedata = CHAR(STRING_ELT(trans, 11));
   s_ode_solver_get_solvedata = CHAR(STRING_ELT(trans, 12));
   s_dydt_liblsoda = CHAR(STRING_ELT(trans, 13));
+  s_AMT=CHAR(STRING_ELT(trans,14));
   global_jt = 2;
   global_mf = 22;  
   global_debug = 0;
@@ -242,6 +245,7 @@ void rxUpdateFuns(SEXP trans){
   set_solve = (t_set_solve)R_GetCCallable(lib, s_ode_solver_solvedata);
   get_solve = (t_get_solve)R_GetCCallable(lib, s_ode_solver_get_solvedata);
   dydt_liblsoda = (t_dydt_liblsoda)R_GetCCallable(lib, s_dydt_liblsoda);
+  AMT = (t_F)R_GetCCallable(lib, s_AMT);
 }
 
 void rxClearFuns(){
@@ -289,7 +293,7 @@ int handle_evid(int evid, int neq,
 		double *yp,
 		int do_transit_abs,
 		double xout,
-		rx_solving_options_ind *ind){
+		int id, rx_solving_options_ind *ind){
   if (evid == 0 || evid == 2) return 0;
   int wh = evid, wh100, cmt, foundBad, j, doReset=0,
       doInf=0;
@@ -347,7 +351,8 @@ int handle_evid(int evid, int neq,
     break;
   }
   /* amt*f defined in model (if present)*/
-  amt = dose[ind->ixds];//extraFn(id, cmt, 1, dose[ind->ixds], t, yp);
+  //(int _cSub,  int _cmt, double _amt, double t, double *__zzStateVar__)
+  amt = AMT(id, cmt, dose[ind->ixds], xout, yp);//extraFn(id, cmt, 1, dose[ind->ixds], t, yp);
   if (cmt >= neq){
     foundBad = 0;
     for (j = 0; j < ind->nBadDose; j++){
@@ -456,7 +461,7 @@ extern void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda_opt
     }
     if (!op->badSolve){
       if (handle_evid(evid[i], neq[0], BadDose, InfusionRate, dose, yp,
-                      op->do_transit_abs, xout, ind)){
+                      op->do_transit_abs, xout, neq[1], ind)){
         ctx.state = 1;
         xp = xout;
       }
@@ -732,7 +737,7 @@ extern void ind_lsoda0(rx_solve *rx, rx_solving_options *op, int solveid, int *n
       }
     if (!op->badSolve){
       if (handle_evid(ind->evid[i], neq[0], ind->BadDose, ind->InfusionRate, ind->dose, yp,
-                      op->do_transit_abs, xout, ind)){
+                      op->do_transit_abs, xout, neq[1], ind)){
         istate = 1;
         xp = xout;
       }
@@ -900,7 +905,7 @@ extern void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int *neq
       }
     if (!op->badSolve){
       if (handle_evid(evid[i], neq[0], BadDose, InfusionRate, dose, yp,
-                      op->do_transit_abs, xout, ind)){
+                      op->do_transit_abs, xout, neq[1], ind)){
         xp = xout;
       }
       /* for(j=0; j<neq[0]; j++) ret[neq[0]*i+j] = yp[j]; */
