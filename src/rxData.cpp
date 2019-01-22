@@ -2343,6 +2343,7 @@ SEXP rxSolveC(const RObject &obj,
     RObject ev1;
     RObject par1;
     bool swappedEvents = false;
+    bool doMean=true;
     NumericVector initsC;
     if (rxIs(par0, "rx.event")){
       // Swapped events and parameters
@@ -2446,7 +2447,9 @@ SEXP rxSolveC(const RObject &obj,
     unsigned int nobs = 0, ndoses = 0;
     unsigned int i, j, k = 0;
     int ncov =0, curcovi = 0;
-    double tmp, hmax1 = 0.0, hmax2 = 0.0, tlast;
+    double tmp, hmax1 = 0.0, hmax1m = 0.0, hmax1mo, hmax1s=0.0,
+      hmax1n=0.0, hmax2 = 0.0, hmax2m = 0.0, hmax2mo, hmax2s=0.0,
+      hmax2n=0.0, tlast;
     // Covariate options
     // Simulation variabiles
     // int *svar;
@@ -2599,6 +2602,14 @@ SEXP rxSolveC(const RObject &obj,
 	  if (tmp < 0){
 	    stop("Dataset must be ordered by ID and TIME variables.");
 	  }
+	  hmax1n++;
+	  hmax1mo = hmax1m;
+	  hmax1m += (tmp-hmax1m)/hmax1n;
+	  hmax1s += (tmp-hmax1m)*(tmp-hmax1mo);
+	  hmax2n++;
+	  hmax2mo = hmax2m;
+	  hmax2m += (tmp-hmax2m)/hmax2n;
+	  hmax2s += (tmp-hmax2m)*(tmp-hmax2mo);
 	  if (tmp > hmax1){
 	    hmax1 = tmp;
 	  }
@@ -2609,8 +2620,21 @@ SEXP rxSolveC(const RObject &obj,
       rx->nall = nobs+ndoses;
       if (!hmax.isNull()){
 	NumericVector hmax0(hmax);
-	ind->HMAX = hmax0[0];
-	op->hmax2 = hmax0[0];
+	if (NumericVector::is_na(hmax0[0])){
+	  doMean = true;
+	  hmax1s = hmax1s/(hmax1n-1);
+	  hmax1  = hmax1m;
+	  ind->HMAX = hmax1;
+	  hmax2s = hmax2s/(hmax2n-1);
+	  hmax2  = hmax2m;
+	  op->hmax2 = hmax2;
+	  hmax1m=0.0;
+	  hmax1s=0.0;
+	  hmax1n=0.0;
+	} else {
+	  ind->HMAX = hmax0[0];
+	  op->hmax2 = hmax0[0];
+	}
       } else {
         ind->HMAX = hmax1;
 	op->hmax2 = hmax1;
@@ -2658,8 +2682,14 @@ SEXP rxSolveC(const RObject &obj,
       // data.frame or matrix
       double hmax0 = 0.0;
       if (!hmax.isNull()){
-        NumericVector hmax00(hmax);
+	NumericVector hmax00(hmax);
         hmax0 = hmax00[0];
+	if (NumericVector::is_na(hmax00[0])){
+	  hmax0 = 0.0;
+	  doMean = true;
+	} else {
+	  hmax0 = hmax00[0];
+	}
       }
       DataFrame dataf = as<DataFrame>(ev1);
       // Copy the information and make sure there is enough room.
@@ -2732,6 +2762,15 @@ SEXP rxSolveC(const RObject &obj,
               curcovi += ind->n_all_times;
 	    }
             nsub++;
+	    if (doMean){
+	      hmax1s = hmax1s/(hmax1n-1);
+	      hmax1  = hmax1m;
+	      ind->HMAX = hmax1;
+	    } else if (hmax0 == 0.0){
+	      ind->HMAX = hmax1;
+	    } else {
+	      ind->HMAX = hmax0;
+	    }
             ind = &(rx->subjects[nsub]);
           }
 	  // Setup the pointers.
@@ -2746,11 +2785,10 @@ SEXP rxSolveC(const RObject &obj,
 	  ind->idose          = &_globals.gidose[i];
           ind->dose           = &_globals.gamt[i];
 	  lasti = i;
-	  if (hmax0 == 0.0){
-            ind->HMAX = hmax1;
-	  } else {
-	    ind->HMAX = hmax0;
-	  }
+
+	  hmax1m=0.0;
+	  hmax1s=0.0;
+	  hmax1n=0.0;
 	  hmax1 = 0.0;
           lastId=id[i];
 	  j=i;
@@ -2770,6 +2808,14 @@ SEXP rxSolveC(const RObject &obj,
             if (tmp < 0){
 	      stop("Dataset must be ordered by ID and TIME variables");
 	    }
+	    hmax1n++;
+	    hmax1mo = hmax1m;
+	    hmax1m += (tmp-hmax1m)/hmax1n;
+	    hmax1s += (tmp-hmax1m)*(tmp-hmax1mo);
+	    hmax2n++;
+	    hmax2mo = hmax2m;
+	    hmax2m += (tmp-hmax2m)/hmax2n;
+	    hmax2s += (tmp-hmax2m)*(tmp-hmax2mo);
             if (tmp > hmax1){
               hmax1 = tmp;
               if (hmax1 > hmax2){
@@ -2779,6 +2825,9 @@ SEXP rxSolveC(const RObject &obj,
 	  }
         }
 	tlast = time0[i];
+      }
+      if (doMean){
+	hmax2  = hmax2m;
       }
       rx->nobs = nobst;
       rx->nall = nall;
@@ -2791,13 +2840,22 @@ SEXP rxSolveC(const RObject &obj,
                   _globals.gcov+curcovi);
         curcovi += ind->n_all_times;
       }
-      if (hmax0 == 0.0){
+      if (doMean || hmax0 == 0.0){
         op->hmax2 = hmax2;
       } else {
         op->hmax2 = hmax0;
       }
       nsub++;
       rx->nsub= nsub;
+      if (doMean){
+	hmax1s = hmax1s/(hmax1n-1);
+	hmax1  = hmax1m;
+	ind->HMAX = hmax1;
+      } else if (hmax0 == 0.0){
+	ind->HMAX = hmax1;
+      } else {
+	ind->HMAX = hmax0;
+      }
     }
     // Make sure the user input all the parmeters.
     gParPosSetup(npars);
