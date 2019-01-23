@@ -1008,15 +1008,32 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
         if (nodeHas(jac_rhs) || nodeHas(dfdy_rhs)){
           // Continuation statement
-	  aType(TJAC);
-          sAppend(&sbDt, "__PDStateVar_%s_SeP_",v);
-          sAppend(&sbt,"df(%s)/dy(",v);
-	  if (new_de(v)){
-	    sprintf(buf,"d/dt(%s) needs to be defined before using a Jacobians for this state.",v);
-            trans_syntax_error_report_fn(buf);
-	  } else {
-	    sAppend(&sb, "__PDStateVar__[%d*(__NROWPD__)+",tb.id);
+	  switch(sbPm.lType[sbPm.n]){
+	  case FBIO:
+	    trans_syntax_error_report_fn("Bioavailability cannot depend on Jacobian values.");
+	    break;
+	  case ALAG:
+	    trans_syntax_error_report_fn("Absorption Lag-time cannot depend on Jacobian values.");
+	    break;
+	  case RATE:
+	    trans_syntax_error_report_fn("Model-based rate cannot depend on Jacobian values.");
+	    break;
+	  case DUR:
+	    trans_syntax_error_report_fn("Model-based duration cannot depend on Jacobian values.");
+	    break;
+	  default: {
+	    aType(TJAC);
+	    sAppend(&sbDt, "__PDStateVar_%s_SeP_",v);
+	    sAppend(&sbt,"df(%s)/dy(",v);
+	    if (new_de(v)){
+	      sprintf(buf,"d/dt(%s) needs to be defined before using a Jacobians for this state.",v);
+	      trans_syntax_error_report_fn(buf);
+	    } else {
+	      sAppend(&sb, "__PDStateVar__[%d*(__NROWPD__)+",tb.id);
+	    }
 	  }
+	  }
+	  
         } else {
           // New statement
 	  aType(TJAC);
@@ -1349,23 +1366,41 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         continue;
       }
       if (nodeHas(der_rhs)) {
-        char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-        if (new_de(v)){
-          sprintf(buf,"Tried to use d/dt(%s) before it was defined",v);
-          trans_syntax_error_report_fn(buf);
-        } else {
-	  if (sbPm.lType[sbPm.n] == TJAC){
-	    sAppend(&sb,   "__DDtStateVar_%d__", tb.id);
-	    sAppend(&sbDt, "__DDtStateVar_%d__", tb.id);
-	  } else {
-	    sAppend(&sb, "__DDtStateVar__[%d]", tb.id);
-	    sAppend(&sbDt, "__DDtStateVar_%d__", tb.id);
-	    aType(TDDT);
-	  }
-	  aProp(tb.id);
-          sAppend(&sbt, "d/dt(%s)", v);
-        }
-        Free(v);
+	switch(sbPm.lType[sbPm.n]){
+	case FBIO:
+	  trans_syntax_error_report_fn("Bioavailability cannot depend on state values.");
+	  break;
+	case ALAG:
+	  trans_syntax_error_report_fn("Absorption Lag-time cannot depend on state values.");
+	  break;
+	case RATE:
+	  trans_syntax_error_report_fn("Model-based rate cannot depend on state values.");
+	  break;
+	case DUR:
+	  trans_syntax_error_report_fn("Model-based duration cannot depend on state values.");
+	  break;
+	default:
+	  {
+	    char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+	    if (new_de(v)){
+	      sprintf(buf,"Tried to use d/dt(%s) before it was defined",v);
+	      trans_syntax_error_report_fn(buf);
+	    } else {
+	      if (sbPm.lType[sbPm.n] == TJAC){
+		sAppend(&sb,   "__DDtStateVar_%d__", tb.id);
+		sAppend(&sbDt, "__DDtStateVar_%d__", tb.id);
+	      } else {
+		sAppend(&sb, "__DDtStateVar__[%d]", tb.id);
+		sAppend(&sbDt, "__DDtStateVar_%d__", tb.id);
+		aType(TDDT);
+	      }
+	      aProp(tb.id);
+	      sAppend(&sbt, "d/dt(%s)", v);
+	    }
+	    Free(v);
+	  } 
+	}
+        
         continue;
       }
 
@@ -2043,26 +2078,26 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
       }
     } else if (show_ode == 6){
       if (foundLag){
-	sAppend(&sbOut,  "// Functional based absorption lag\ndouble %sLag(int _cSub,  int _cmt, double _amt, double t, double *__zzStateVar__){\n  double _alag[%d]={0};\n  (void)_alag;\n",
+	sAppend(&sbOut,  "// Functional based absorption lag\ndouble %sLag(int _cSub,  int _cmt, double _amt, double t){\n  double _alag[%d]={0};\n  (void)_alag;\n",
 		prefix, tb.nd);
       } else {
-	sAppend(&sbOut,  "// Functional based absorption lag\ndouble %sLag(int _cSub,  int _cmt, double _amt, double t, double *__zzStateVar__){\n return t;\n",
+	sAppend(&sbOut,  "// Functional based absorption lag\ndouble %sLag(int _cSub,  int _cmt, double _amt, double t){\n return t;\n",
 		prefix);
       }
     } else if (show_ode == 7){
       if (foundRate){
-	sAppend(&sbOut,  "// Modeled zero-order rate, returns duration\ndouble %sRate(int _cSub,  int _cmt, double _amt, double t, double *__zzStateVar__){\n  double _rate[%d]={0};\n  (void)_rate;\n",
+	sAppend(&sbOut,  "// Modeled zero-order rate, returns duration\ndouble %sRate(int _cSub,  int _cmt, double _amt, double t){\n  double _rate[%d]={0};\n  (void)_rate;\n",
 		prefix, tb.nd);
       } else {
-	sAppend(&sbOut,  "// Modeled zero-order rate, returns duration\ndouble %sRate(int _cSub,  int _cmt, double _amt, double t, double *__zzStateVar__){\n return 0.0;\n",
+	sAppend(&sbOut,  "// Modeled zero-order rate, returns duration\ndouble %sRate(int _cSub,  int _cmt, double _amt, double t){\n return 0.0;\n",
 		prefix);
       }
     } else if (show_ode == 8){
       if (foundDur){
-	sAppend(&sbOut,  "// Modeled zero-order duration, returns rate\ndouble %sDur(int _cSub,  int _cmt, double _amt, double t, double *__zzStateVar__){\n  double _dur[%d]={0};\n  (void)_dur;\n",
+	sAppend(&sbOut,  "// Modeled zero-order duration, returns rate\ndouble %sDur(int _cSub,  int _cmt, double _amt, double t){\n  double _dur[%d]={0};\n  (void)_dur;\n",
 		prefix, tb.nd);
       } else {
-	sAppend(&sbOut,  "// Modeled zero-order duration, returns rate\ndouble %sDur(int _cSub,  int _cmt, double _amt, double t, double *__zzStateVar__){\n return 0.0;\n",
+	sAppend(&sbOut,  "// Modeled zero-order duration, returns rate\ndouble %sDur(int _cSub,  int _cmt, double _amt, double t){\n return 0.0;\n",
 		prefix);
       }
     } else {
@@ -2072,10 +2107,7 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 	(show_ode != 2 && show_ode != 3 && show_ode != 5 && show_ode != 6 && show_ode != 7 && show_ode != 8 &&
 	 show_ode !=0) ||
 	(show_ode == 5 && foundF) ||
-	(show_ode == 6 && foundLag) ||
-	(show_ode == 7 && foundRate) ||
 	(show_ode == 3 && foundF0) || 
-	(show_ode == 8 && foundDur) ||
 	(show_ode == 0 && tb.li)){
       prnt_vars(0, 0, "  double ", "\n",show_ode);     /* declare all used vars */
       if (maxSumProdN > 0 || SumProdLD > 0){
