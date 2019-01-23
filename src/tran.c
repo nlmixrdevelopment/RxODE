@@ -492,7 +492,7 @@ vLines sbPm, sbPmDt;
 sbuf sbNrm;
 
 char *extra_buf, *model_prefix, *md5;
-int foundF=0,foundLag=0, foundRate=0, foundDur=0, foundF0=0;
+int foundF=0,foundLag=0, foundRate=0, foundDur=0, foundF0=0, needSort=0;
 
 sbuf sbOut;
 
@@ -1204,6 +1204,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    sAppend(&sbDt, "_alag[%d] = ", tb.nd);
 	    sAppend(&sbt, "alag(%s)=", v);
 	    foundLag=1;
+	    needSort=1;
 	    aType(ALAG); 
 	  } else if (nodeHas(dur)){
 	    sb.o=0;sbDt.o=0; sbt.o=0;
@@ -1211,6 +1212,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    sAppend(&sbDt, "_dur[%d] = ", tb.nd);
 	    sAppend(&sbt, "dur(%s)=", v);
 	    foundDur=1;
+	    needSort=1;
 	    aType(DUR);
           } else if (nodeHas(rate)){
 	    sb.o=0;sbDt.o=0; sbt.o=0;
@@ -1218,6 +1220,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    sAppend(&sbDt, "_rate[%d] = ", tb.nd);
 	    sAppend(&sbt, "rate(%s)=", v);
 	    foundRate=1;
+	    needSort=1;
 	    aType(RATE);
           }
           new_or_ith(v);
@@ -1246,6 +1249,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    sAppend(&sbDt, "_alag[%d] = ", tb.id);
 	    sAppend(&sbt, "alag(%s)=", v);
 	    foundLag=1;
+	    needSort=1;
 	    aType(ALAG);
           } else if (nodeHas(dur)){
 	    sb.o=0;sbDt.o=0; sbt.o=0;
@@ -1253,6 +1257,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    sAppend(&sbDt, "_dur[%d] = ", tb.id);
 	    sAppend(&sbt, "dur(%s)=", v);
 	    foundDur=1;
+	    needSort=1;
 	    aType(DUR);
           } else if (nodeHas(rate)){
 	    sb.o=0;sbDt.o=0; sbt.o=0;
@@ -1260,6 +1265,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    sAppend(&sbDt, "_rate[%d] = ", tb.id);
 	    sAppend(&sbt, "rate(%s)=", v);
 	    foundRate=1;
+	    needSort=1;
 	    aType(RATE);
           }
         }
@@ -1734,8 +1740,12 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   sAppend(&sbOut, "extern SEXP %smodel_vars(){\n  int pro=0;\n", prefix);
   sAppend(&sbOut, "  SEXP _mv = PROTECT(_rxGetModelLib(\"%smodel_vars\"));pro++;\n", prefix);
   sAppendN(&sbOut, "  if (!_rxIsCurrentC(_mv)){\n", 28);
-  sAppendN(&sbOut, "    SEXP lst      = PROTECT(allocVector(VECSXP, 15));pro++;\n", 60);
-  sAppendN(&sbOut, "    SEXP names    = PROTECT(allocVector(STRSXP, 15));pro++;\n", 60);
+  sAppendN(&sbOut, "    SEXP lst      = PROTECT(allocVector(VECSXP, 16));pro++;\n", 60);
+  sAppendN(&sbOut, "    SEXP names    = PROTECT(allocVector(STRSXP, 16));pro++;\n", 60);
+  sAppendN(&sbOut, "    SEXP sNeedSort = PROTECT(allocVector(INTSXP,1));pro++;\n", 59);
+  sAppendN(&sbOut, "    int *iNeedSort  = INTEGER(sNeedSort);\n", 42);
+  sAppend(&sbOut, "    iNeedSort[0] = %d;\n", needSort);
+  
   sAppend(&sbOut, "    SEXP params   = PROTECT(allocVector(STRSXP, %d));pro++;\n",pi);
   sAppend(&sbOut, "    SEXP lhs      = PROTECT(allocVector(STRSXP, %d));pro++;\n",li);
   sAppend(&sbOut, "    SEXP state    = PROTECT(allocVector(STRSXP, %d));pro++;\n",statei);
@@ -1858,12 +1868,15 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
 
   sAppendN(&sbOut, "    SET_STRING_ELT(names,12,mkChar(\"normal.state\"));\n", 53);
   sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  12,normState);\n", 40);
+  
+  sAppendN(&sbOut, "    SET_STRING_ELT(names,13,mkChar(\"needSort\"));\n", 49);
+  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  13,sNeedSort);\n", 40);
 
-  sAppendN(&sbOut, "    SET_STRING_ELT(names,13,mkChar(\"timeId\"));\n", 47);
-  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  13,timeInt);\n", 38);
+  sAppendN(&sbOut, "    SET_STRING_ELT(names,14,mkChar(\"timeId\"));\n", 47);
+  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  14,timeInt);\n", 38);
 
-  sAppendN(&sbOut, "    SET_STRING_ELT(names,14,mkChar(\"md5\"));\n", 43);
-  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  14,mmd5);\n", 34);
+  sAppendN(&sbOut, "    SET_STRING_ELT(names,15,mkChar(\"md5\"));\n", 43);
+  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  15,mmd5);\n", 34);
 
   // const char *rxVersion(const char *what)
   
@@ -2499,8 +2512,12 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
   tb.li=li;
   
   int pro = 0;
-  SEXP lst   = PROTECT(allocVector(VECSXP, 13));pro++;
-  SEXP names = PROTECT(allocVector(STRSXP, 13));pro++;
+  SEXP lst   = PROTECT(allocVector(VECSXP, 14));pro++;
+  SEXP names = PROTECT(allocVector(STRSXP, 14));pro++;
+
+  SEXP sNeedSort = PROTECT(allocVector(INTSXP,1));pro++;
+  int *iNeedSort  = INTEGER(sNeedSort);
+  iNeedSort[0] = needSort;
   
   SEXP tran  = PROTECT(allocVector(STRSXP, 18));pro++;
   SEXP trann = PROTECT(allocVector(STRSXP, 18));pro++;
@@ -2672,6 +2689,9 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
 
   SET_STRING_ELT(names,12,mkChar("normal.state"));
   SET_VECTOR_ELT(lst,  12,normState);
+  
+  SET_STRING_ELT(names,13,mkChar("needSort"));
+  SET_VECTOR_ELT(lst,  13,sNeedSort);
 
   sprintf(buf,"%.*s", (int)strlen(model_prefix)-1, model_prefix);
   SET_STRING_ELT(trann,0,mkChar("lib.name"));
