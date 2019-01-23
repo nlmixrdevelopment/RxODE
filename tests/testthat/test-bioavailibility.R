@@ -1,4 +1,5 @@
 rxPermissive({
+
     context("Test bioavaibility with IV dosing")
     ## 6.1
     mod <- RxODE({
@@ -38,8 +39,8 @@ rxPermissive({
     solve3 <- solve(mod,et)
 
     test_that("F=2 is equivalent to doubling dosing", {
-        expect_equal(solve1$intestine, solve3$intestine)
-        expect_equal(solve1$blood, solve3$blood)
+        expect_equal(solve2$intestine, solve3$intestine)
+        expect_equal(solve2$blood, solve3$blood)
     })
 
 
