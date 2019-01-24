@@ -979,6 +979,7 @@ typedef struct {
   double *gInfusionRate;
   int gInfusionRaten;
   double *gall_times;
+  int *gix;
   int gall_timesn;
   double *gdv;
   int gdvn;
@@ -1033,6 +1034,7 @@ extern "C" void rxOptionsIniData(){
   _globals.gInfusionRate = NULL;//Calloc(NCMT,double);
   _globals.gInfusionRaten=0;//NCMT;
   _globals.gall_times = NULL;//Calloc(NALL,double);
+  _globals.gix = NULL;//Calloc(NALL,double);
   _globals.gall_timesn=0;//NALL;
   _globals.gdv = NULL;//Calloc(NALL,double);
   _globals.gdvn=0;//NALL;
@@ -1103,11 +1105,13 @@ void gall_timesSetup(int n){
   if (_globals.gall_timesn < 0){
     _globals.gall_timesn=0;
     _globals.gall_times=NULL;
+    _globals.gix=NULL;
   }
   if (_globals.gall_timesn < n){
     int cur = n;
     Free(_globals.gall_times);
     _globals.gall_times = Calloc(cur, double);
+    _globals.gix=Calloc(cur, int);
     _globals.gall_timesn=cur;
   }
 }
@@ -1373,6 +1377,8 @@ extern "C" void gFree(){
   _globals.gamtn=0;
   if (_globals.gall_times != NULL && _globals.gall_timesn>0) Free(_globals.gall_times);
   _globals.gall_times=NULL;
+  if (_globals.gix != NULL && _globals.gall_timesn>0) Free(_globals.gix);
+  _globals.gix=NULL;
   _globals.gall_timesn=0;
   if (_globals.gdv != NULL) Free(_globals.gdv);
   _globals.gdvn=0;
@@ -2330,6 +2336,7 @@ SEXP rxSolveC(const RObject &obj,
       rx->stateTrim = stateTrim;
     }
     rx->matrix = matrix;
+    rx->needSort = as<int>(mv["needSort"]);
     rx->add_cov = (int)(addCov);
     op->stiff = method;
     if (method != 2){
@@ -2579,6 +2586,7 @@ SEXP rxSolveC(const RObject &obj,
       gall_timesSetup(ind->n_all_times);
       std::copy(time.begin(), time.end(), &_globals.gall_times[0]);
       ind->all_times     = &_globals.gall_times[0];
+      ind->ix = &_globals.gix[0];
       // EVID copy
       gevidSetup(ind->n_all_times);
       std::copy(evid.begin(),evid.end(), &_globals.gevid[0]);
@@ -2592,6 +2600,7 @@ SEXP rxSolveC(const RObject &obj,
       ind->idose = &_globals.gidose[0];
       j=0;
       for (i =0; i != (unsigned int)(ind->n_all_times); i++){
+	ind->ix[i]=i;
         if (ind->evid[i]){
           ndoses++;
 	  _globals.gidose[j] = (int)i;
@@ -2749,8 +2758,10 @@ SEXP rxSolveC(const RObject &obj,
       ind = &(rx->subjects[0]);
       j=0;
       int lastId = id[0]-42;
+      int ixi=0;
       for (i = 0; i < ids; i++){
         if (lastId != id[i]){
+	  ixi=0; // Reset index for every new id.
 	  if (nall != 0){
             // Finalize last solve.
             ind->n_all_times    = ndoses+nobs;
@@ -2778,6 +2789,7 @@ SEXP rxSolveC(const RObject &obj,
           ind->lambda         =1.0;
           ind->yj             = 0;
           ind->all_times      = &_globals.gall_times[i];
+	  ind->ix             = &_globals.gix[i];
 	  if (rxcDv > -1){
 	    ind->dv = &_globals.gdv[i];
 	  }
@@ -2796,6 +2808,9 @@ SEXP rxSolveC(const RObject &obj,
 	  nobs=0;
 	  tlast = NA_REAL;
         }
+	// Create index
+	_globals.gix[i] = ixi;
+	ixi++;
         if (_globals.gevid[i]){
           _globals.gidose[j] = i-lasti;
           _globals.gamt[j] = amt[i];
@@ -3051,6 +3066,7 @@ SEXP rxSolveC(const RObject &obj,
 	      ind->ndoses = indS.ndoses;
 	      ind->dose = &(indS.dose[0]);
 	      ind->evid =&(indS.evid[0]);
+	      ind->ix   =&(indS.ix[0]); // Think about simulations changing the order
 	      ind->all_times = &(indS.all_times[0]);
 	      ind->id=id+1;
               ind->lambda=1.0;
@@ -4289,4 +4305,18 @@ List rxUpdateTrans_(List ret, std::string prefix, std::string libName){
 				   _["Rate"] = prefix + "Rate",
 				   _["Dur"] = prefix + "Dur");
   return(ret);
+}
+
+extern "C" {
+  double getTime(int idx, rx_solving_options_ind *ind);
+}
+
+extern "C" void doSort(rx_solving_options_ind *ind){
+  std::sort(&(ind->ix[0]),&(ind->ix[0])+ind->n_all_times,
+	    [&ind](int a, int b){
+	      double ta=getTime(a, ind);
+	      double tb = getTime(b, ind);
+	      if (ta == tb) return a < b;
+	      return ta < tb;
+	    });
 }

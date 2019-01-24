@@ -207,6 +207,7 @@ t_set_solve set_solve = NULL;
 t_get_solve get_solve = NULL;
 
 t_F AMT = NULL;
+t_LAG LAG = NULL;
 
 int global_jt = 2;
 int global_mf = 22;  
@@ -214,7 +215,7 @@ int global_debug = 0;
 
 void rxUpdateFuns(SEXP trans){
   const char *lib, *s_dydt, *s_calc_jac, *s_calc_lhs, *s_inis, *s_dydt_lsoda_dum, *s_dydt_jdum_lsoda, 
-    *s_ode_solver_solvedata, *s_ode_solver_get_solvedata, *s_dydt_liblsoda, *s_AMT;
+    *s_ode_solver_solvedata, *s_ode_solver_get_solvedata, *s_dydt_liblsoda, *s_AMT, *s_LAG;
   lib = CHAR(STRING_ELT(trans, 0));
   s_dydt = CHAR(STRING_ELT(trans, 3));
   s_calc_jac = CHAR(STRING_ELT(trans, 4));
@@ -226,6 +227,7 @@ void rxUpdateFuns(SEXP trans){
   s_ode_solver_get_solvedata = CHAR(STRING_ELT(trans, 12));
   s_dydt_liblsoda = CHAR(STRING_ELT(trans, 13));
   s_AMT=CHAR(STRING_ELT(trans,14));
+  s_LAG=CHAR(STRING_ELT(trans, 15));
   global_jt = 2;
   global_mf = 22;  
   global_debug = 0;
@@ -246,6 +248,7 @@ void rxUpdateFuns(SEXP trans){
   get_solve = (t_get_solve)R_GetCCallable(lib, s_ode_solver_get_solvedata);
   dydt_liblsoda = (t_dydt_liblsoda)R_GetCCallable(lib, s_dydt_liblsoda);
   AMT = (t_F)R_GetCCallable(lib, s_AMT);
+  LAG = (t_LAG) R_GetCCallable(lib, s_LAG);
 }
 
 void rxClearFuns(){
@@ -285,6 +288,20 @@ rx_solving_options_ind *getRxId(rx_solve *rx, unsigned int id){
   return &(rx->subjects[id]);
 }
 
+void doSort(rx_solving_options_ind *ind);
+
+extern double getTime(int idx, rx_solving_options_ind *ind){
+  int evid = ind->evid[idx];
+  if (evid == 0 || evid == 2) return ind->all_times[idx];
+  ind->wh = evid;
+  ind->cmt = 0;
+  ind->wh100 = floor(ind->wh/1e5);
+  ind->wh    = ind->wh - ind->wh100*1e5;
+  ind->cmt = (ind->wh%10000)/100 - 1 + 100*ind->wh100;
+  double t     = ind->all_times[idx];
+  return LAG(ind->id,  ind->cmt, t);
+}
+
 
 int handle_evid(int evid, int neq, 
 		int *BadDose,
@@ -292,96 +309,49 @@ int handle_evid(int evid, int neq,
 		double *dose,
 		double *yp,
 		int do_transit_abs,
-		double xout,
-		int id, rx_solving_options_ind *ind){
+		double xout, int id,
+		rx_solving_options_ind *ind){
   if (evid == 0 || evid == 2) return 0;
-  int wh = evid, wh100, cmt = 0, foundBad, j, doReset=0,
-      doInf=0;
-  int inCmt = 0;
+  int wh = evid, cmt, foundBad, j;
   double amt;
-  /* double amt, f=1; */
-  /* if (wh > 99){ */
-    
-  /* } else { */
-  /*   if (inCmt < 0){ */
-  /*     error("Turning off a compartment is not currently supported."); */
-  /*   } */
-  /*   cmt = inCmt-1; */
-  /* } */
-  switch (wh){
-  case 3:
-    doReset=1;
-    cmt = inCmt-1;
-    if (doReset){
-      error("System reset currently not supported.");
-    }  
-    break;
-  case 4:
-    doReset=1;
-    cmt = inCmt-1;
-    if (doReset){
-      error("System reset currently not supported.");
-    }  
-    break;
-  case 1:
-    break;
-  case -1:
-    cmt = inCmt-1;
-    error("Calculate Rate");
-    break;
-  case  -2:
-    cmt = inCmt-1;
-    error("Calculate Duration");
-    break;
-  case -3:
-    cmt = inCmt-1;
-    doInf=1;
-    break;
-  default:
-    wh100 = floor(wh/1e5);
-    wh = wh- wh100*1e5;
-    cmt = floor((wh%10000)/100 - 1 + 100*wh100);
-    if (wh>10000){
-      wh = -3;
-      doInf=1;
-    } else wh = 1;
+  if (wh) {
+    /* wh100 = ind->wh100; */
+    wh = ind->wh;
+    cmt = ind->cmt;
     if (cmt<0) {
       error("Supplied an invalid EVID (EVID=%d)", evid);
-    }    
-    break;
-  }
-  /* amt*f defined in model (if present)*/
-  //(int _cSub,  int _cmt, double _amt, double t, double *__zzStateVar__)
-  amt = AMT(id, cmt, dose[ind->ixds], xout, yp);//extraFn(id, cmt, 1, dose[ind->ixds], t, yp);
-  if (cmt >= neq){
-    foundBad = 0;
-    for (j = 0; j < ind->nBadDose; j++){
-      if (BadDose[j] == cmt+1){
-	foundBad=1;
-	break;
+    }
+    if (cmt >= neq){
+      foundBad = 0;
+      for (j = 0; j < ind->nBadDose; j++){
+	if (BadDose[j] == cmt+1){
+	  foundBad=1;
+	  break;
+	}
       }
-    }
-    if (!foundBad){
-      BadDose[ind->nBadDose]=cmt+1;
-      ind->nBadDose++;
-    }
-  } else {
-    if (doInf) {
-      InfusionRate[cmt] += amt;
+      if (!foundBad){
+	BadDose[ind->nBadDose]=cmt+1;
+	ind->nBadDose++;
+      }
     } else {
-      if (do_transit_abs) {
-	ind->podo = amt;
-	ind->tlast = xout;
+      amt = AMT(id, cmt, dose[ind->ixds], xout, yp);
+      if (wh>10000) {
+	InfusionRate[cmt] += amt;
       } else {
-	ind->podo = 0;
-	ind->tlast = xout;
-	yp[cmt] += amt;     //dosing before obs
+	if (do_transit_abs) {
+	  ind->podo = amt;
+	  ind->tlast = xout;
+	} else {
+	  ind->podo = 0;
+	  ind->tlast = xout;
+	  yp[cmt] += amt;     //dosing before obs
+	}
       }
+      /* istate = 1; */
+      ind->ixds++;
+      /* xp = xout; */
+      return 1;
     }
-    /* istate = 1; */
-    ind->ixds++;
-    /* xp = xout; */
-    return 1;
   }
   return 0;
 }
@@ -438,9 +408,10 @@ extern void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda_opt
   /* Rprintf("ret[0]: %f\n",ret[0]); */
   memcpy(ret,inits, neq[0]*sizeof(double));
   u_inis(neq[1], ret); // Update initial conditions
+  if (rx->needSort) doSort(ind);
   /* for(i=0; i<neq[0]; i++) yp[i] = inits[i]; */
   for(i=0; i<nx; i++) {
-    xout = x[i];
+    xout = getTime(ind->ix[i], ind);
     yp = ret+neq[0]*i;
     if(xout-xp > DBL_EPSILON*max(fabs(xout),fabs(xp))){
       ind->idx=i;
@@ -460,7 +431,7 @@ extern void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda_opt
       }
     }
     if (!op->badSolve){
-      if (handle_evid(evid[i], neq[0], BadDose, InfusionRate, dose, yp,
+      if (handle_evid(evid[ind->ix[i]], neq[0], BadDose, InfusionRate, dose, yp,
                       op->do_transit_abs, xout, neq[1], ind)){
         ctx.state = 1;
         xp = xout;
@@ -709,9 +680,9 @@ extern void ind_lsoda0(rx_solve *rx, rx_solving_options *op, int solveid, int *n
   //--- inits the system
   memcpy(ind->solve, op->inits, neq[0]*sizeof(double));
   u_inis(neq[1], ind->solve); // Update initial conditions
-  
+  if (rx->needSort) doSort(ind);
   for(i=0; i < ind->n_all_times; i++) {
-    xout = ind->all_times[i];
+    xout = getTime(ind->ix[i], ind);
     yp   = ind->solve+neq[0]*i;
     if(xout - xp > DBL_EPSILON*max(fabs(xout),fabs(xp)))
       {
@@ -736,7 +707,7 @@ extern void ind_lsoda0(rx_solve *rx, rx_solving_options *op, int solveid, int *n
         //dadt_counter = 0;
       }
     if (!op->badSolve){
-      if (handle_evid(ind->evid[i], neq[0], ind->BadDose, ind->InfusionRate, ind->dose, yp,
+      if (handle_evid(ind->evid[ind->ix[i]], neq[0], ind->BadDose, ind->InfusionRate, ind->dose, yp,
                       op->do_transit_abs, xout, neq[1], ind)){
         istate = 1;
         xp = xout;
@@ -851,9 +822,10 @@ extern void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int *neq
   //--- inits the system
   memcpy(ret,inits, neq[0]*sizeof(double));
   u_inis(neq[1], ret); // Update initial conditions
+  if (rx->needSort) doSort(ind);
   //--- inits the system
   for(i=0; i<nx; i++) {
-    xout = x[i];
+    xout = getTime(ind->ix[i], ind);
     yp = &ret[neq[0]*i];
     if (global_debug){
       REprintf("i=%d xp=%f xout=%f\n", i, xp, xout);
@@ -904,7 +876,7 @@ extern void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int *neq
         //dadt_counter = 0;
       }
     if (!op->badSolve){
-      if (handle_evid(evid[i], neq[0], BadDose, InfusionRate, dose, yp,
+      if (handle_evid(evid[ind->ix[i]], neq[0], BadDose, InfusionRate, dose, yp,
                       op->do_transit_abs, xout, neq[1], ind)){
         xp = xout;
       }
@@ -1024,7 +996,7 @@ extern int rxEvidP(int i, rx_solve *rx, unsigned int id){
   rx_solving_options_ind *ind;
   ind = getRxId(rx, id);
   if (i < ind->n_all_times){
-    return(ind->evid[i]); // invalid read of size 4
+    return(ind->evid[ind->ix[i]]); // invalid read of size 4
   } else {
     error("Trying to access EVID outside of defined events.\n");
   }
@@ -1065,8 +1037,8 @@ extern void rxCalcLhsP(int i, rx_solve *rx, unsigned int id){
   lhs = ind->lhs;
   if (i < ind->n_all_times){
     ind->idx=i;
-    if (ind->evid[i]) ind->tlast = ind->all_times[i];
-    calc_lhs((int)id, ind->all_times[i], solve+i*op->neq, lhs);
+    if (ind->evid[ind->ix[i]]) ind->tlast = getTime(ind->ix[i], ind);
+    calc_lhs((int)id, getTime(ind->ix[i], ind), solve+i*op->neq, lhs);
   } else {
     error("LHS cannot be calculated (%dth entry).",i);
   }
@@ -1190,6 +1162,7 @@ extern SEXP RxODE_df(int doDose, int doTBS){
     for (csub = 0; csub < nsub; csub++){
       neq[1] = csub+csim*nsub;
       ind = &(rx->subjects[neq[1]]);
+      if (rx->needSort) doSort(ind);
       nBadDose = ind->nBadDose;
       BadDose = ind->BadDose;
       ntimes = ind->n_all_times;
@@ -1206,8 +1179,8 @@ extern SEXP RxODE_df(int doDose, int doTBS){
 	}
       }
       for (i = 0; i < ntimes; i++){
-        evid = ind->evid[i];
-	if (evid) ind->tlast = ind->all_times[i];
+        evid = ind->evid[ind->ix[i]];
+	if (evid) ind->tlast = getTime(ind->ix[i], ind);
         if (updateErr){
           for (j=0; j < errNcol; j++){
 	    par_ptr[svar[j]] = errs[rx->nr*j+kk];
@@ -1242,7 +1215,7 @@ extern SEXP RxODE_df(int doDose, int doTBS){
 	  }
           // time
           dfp = REAL(VECTOR_ELT(df, jj++));
-          dfp[ii] = ind->all_times[i];
+          dfp[ii] = getTime(ind->ix[i], ind);
           // LHS
           if (nlhs){
 	    rxCalcLhsP(i, rx, neq[1]);
@@ -1353,6 +1326,18 @@ int *gsiVSetup(int n);
 int *gslvr_counterSetup(int n);
 int *gdadt_counterSetup(int n);
 int *gjac_counterSetup(int n);
+
+int *_oldIx;
+int _oldIxN=0;
+void oldIxSetup(int ntimes){
+  if (_oldIxN < ntimes){
+    _oldIx = Calloc(ntimes+1024, int);
+    _oldIxN = ntimes+1024;
+    for (int i = _oldIxN; i--;){
+      _oldIx[i]=i;
+    }
+  }
+}
 // rxSolveOldC
 void protectOld();
 extern void rxSolveOldC(int *neqa,
@@ -1404,6 +1389,8 @@ extern void rxSolveOldC(int *neqa,
   /* double *cov_ptr; */
   /* ind->cov_ptr = cov_ptr; */
   ind->n_all_times       = *ntime;
+  oldIxSetup(*ntime);
+  ind->ix = _oldIx;
   ind->ixds = 0;
   ind->ndoses = -1;
   ind->all_times = timep;
@@ -1464,12 +1451,13 @@ extern void rxSolveOldC(int *neqa,
   /* rxode_assign_rx(rx); */
   set_solve(rx);
   par_solve(rx); // Solve without the option of updating residuals.
+  if (rx->needSort) doSort(ind);
   if (*nlhsa) {
     for (i=0; i<*ntime; i++){
-      if (ind->evid[i]) ind->tlast = timep[i];
+      if (ind->evid[ind->ix[i]]) ind->tlast = getTime(ind->ix[i], ind);
       // 0 = first subject; Calc lhs changed...
       ind->idx = i;
-      calc_lhs(0, timep[i], retp+i*(*neqa), lhsp+i*(*nlhsa));
+      calc_lhs(0, getTime(ind->ix[i], ind), retp+i*(*neqa), lhsp+i*(*nlhsa));
     }
   }
 }

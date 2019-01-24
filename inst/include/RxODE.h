@@ -21,6 +21,7 @@ typedef void (*t_jdum_lsoda)(int *neq, double *t, double *A,int *ml, int *mu, do
 typedef int (*t_dydt_liblsoda)(double t, double *y, double *ydot, void *data);
 typedef void (*t_ode_current)();
 typedef double (*t_F)(int _cSub,  int _cmt, double _amt, double t, double *__zzStateVar__);
+typedef double (*t_LAG)(int _cSub,  int _cmt, double t);
 
 typedef struct {
   // These options should not change based on an individual solve
@@ -82,6 +83,7 @@ typedef struct {
   int ixds;
   int ndoses;
   double *all_times;
+  int *ix;
   double *dv;
   int *idose;
   int idosen;
@@ -92,6 +94,10 @@ typedef struct {
   double yhigh;
   double lambda;
   double yj;
+  // Saved info
+  int wh;
+  int wh100;
+  int cmt;
 } rx_solving_options_ind;
 
 typedef struct {
@@ -104,6 +110,7 @@ typedef struct {
   int nr;
   int add_cov;
   int matrix;
+  int needSort;
   double stateTrim;
   int *stateIgnore;
 } rx_solve;
