@@ -980,6 +980,7 @@ typedef struct {
   int gInfusionRaten;
   double *gall_times;
   int *gix;
+  int gixn;
   int gall_timesn;
   double *gdv;
   int gdvn;
@@ -1101,17 +1102,28 @@ void gInfusionRateSetup(int n){
   }
 }
 
+void gix_Setup(int n){
+  if (_globals.gixn < 0){
+    _globals.gixn=0;
+    _globals.gix=NULL;
+  }
+  if (_globals.gixn < n){
+    int cur = n;
+    Free(_globals.gix);
+    _globals.gix = Calloc(cur, int);
+    _globals.gixn=cur;
+  }
+}
+
 void gall_timesSetup(int n){
   if (_globals.gall_timesn < 0){
     _globals.gall_timesn=0;
     _globals.gall_times=NULL;
-    _globals.gix=NULL;
   }
   if (_globals.gall_timesn < n){
     int cur = n;
     Free(_globals.gall_times);
     _globals.gall_times = Calloc(cur, double);
-    _globals.gix=Calloc(cur, int);
     _globals.gall_timesn=cur;
   }
 }
@@ -1377,9 +1389,10 @@ extern "C" void gFree(){
   _globals.gamtn=0;
   if (_globals.gall_times != NULL && _globals.gall_timesn>0) Free(_globals.gall_times);
   _globals.gall_times=NULL;
-  if (_globals.gix != NULL && _globals.gall_timesn>0) Free(_globals.gix);
-  _globals.gix=NULL;
   _globals.gall_timesn=0;
+  if (_globals.gix != NULL && _globals.gixn>0) Free(_globals.gix);
+  _globals.gix=NULL;
+  _globals.gixn=0;
   if (_globals.gdv != NULL) Free(_globals.gdv);
   _globals.gdvn=0;
   if (_globals.gInfusionRate != NULL) Free(_globals.gInfusionRate);
@@ -2586,7 +2599,6 @@ SEXP rxSolveC(const RObject &obj,
       gall_timesSetup(ind->n_all_times);
       std::copy(time.begin(), time.end(), &_globals.gall_times[0]);
       ind->all_times     = &_globals.gall_times[0];
-      ind->ix = &_globals.gix[0];
       // EVID copy
       gevidSetup(ind->n_all_times);
       std::copy(evid.begin(),evid.end(), &_globals.gevid[0]);
@@ -2600,7 +2612,6 @@ SEXP rxSolveC(const RObject &obj,
       ind->idose = &_globals.gidose[0];
       j=0;
       for (i =0; i != (unsigned int)(ind->n_all_times); i++){
-	ind->ix[i]=i;
         if (ind->evid[i]){
           ndoses++;
 	  _globals.gidose[j] = (int)i;
@@ -2758,10 +2769,8 @@ SEXP rxSolveC(const RObject &obj,
       ind = &(rx->subjects[0]);
       j=0;
       int lastId = id[0]-42;
-      int ixi=0;
       for (i = 0; i < ids; i++){
         if (lastId != id[i]){
-	  ixi=0; // Reset index for every new id.
 	  if (nall != 0){
             // Finalize last solve.
             ind->n_all_times    = ndoses+nobs;
@@ -2789,7 +2798,6 @@ SEXP rxSolveC(const RObject &obj,
           ind->lambda         =1.0;
           ind->yj             = 0;
           ind->all_times      = &_globals.gall_times[i];
-	  ind->ix             = &_globals.gix[i];
 	  if (rxcDv > -1){
 	    ind->dv = &_globals.gdv[i];
 	  }
@@ -2809,8 +2817,6 @@ SEXP rxSolveC(const RObject &obj,
 	  tlast = NA_REAL;
         }
 	// Create index
-	_globals.gix[i] = ixi;
-	ixi++;
         if (_globals.gevid[i]){
           _globals.gidose[j] = i-lasti;
           _globals.gamt[j] = amt[i];
@@ -2972,7 +2978,11 @@ SEXP rxSolveC(const RObject &obj,
 
     gsolveSetup(rx->nall*state.size()*rx->nsim);
     std::fill_n(&_globals.gsolve[0], rx->nall*state.size()*rx->nsim, 0.0);
-    int curEvent = 0;
+
+    gix_Setup(rx->nall*rx->nsim);
+
+
+    int curEvent = 0, curIdx = 0;
     
     switch(parType){
     case 1: // NumericVector
@@ -2999,7 +3009,10 @@ SEXP rxSolveC(const RObject &obj,
 	ind->ixds =  0;
 	ind->sim = i+1;
         ind->solve = &_globals.gsolve[curEvent];
+	ind->ix    = &_globals.gix[curIdx];
+	std::iota(ind->ix,ind->ix+ind->n_all_times,0);
         curEvent += op->neq*ind->n_all_times;
+	curIdx += ind->n_all_times;
         ind->lhs = &_globals.glhs[i*lhs.size()];
 	ind->rc = &_globals.grc[i];
         ind->slvr_counter = &_globals.slvr_counter[i];
@@ -3035,6 +3048,7 @@ SEXP rxSolveC(const RObject &obj,
 	  }
 	}
 	curEvent=0;
+	curIdx=0;
 	rx_solving_options_ind indS;
 	for (unsigned int simNum = rx->nsim; simNum--;){
 	  for (unsigned int id = rx->nsub; id--;){
@@ -3066,7 +3080,6 @@ SEXP rxSolveC(const RObject &obj,
 	      ind->ndoses = indS.ndoses;
 	      ind->dose = &(indS.dose[0]);
 	      ind->evid =&(indS.evid[0]);
-	      ind->ix   =&(indS.ix[0]); // Think about simulations changing the order
 	      ind->all_times = &(indS.all_times[0]);
 	      ind->id=id+1;
               ind->lambda=1.0;
@@ -3074,7 +3087,10 @@ SEXP rxSolveC(const RObject &obj,
 	    }
 	    int eLen = op->neq*ind->n_all_times;
 	    ind->solve = &_globals.gsolve[curEvent];
+	    ind->ix = &_globals.gix[curIdx];
+	    std::iota(ind->ix,ind->ix+ind->n_all_times,0);
 	    curEvent += eLen;
+	    curIdx += ind->n_all_times;
 	  }
 	}
       }
