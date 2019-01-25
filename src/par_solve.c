@@ -409,19 +409,20 @@ extern void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda_opt
   /* Rprintf("ret[0]: %f\n",ret[0]); */
   memcpy(ret,inits, neq[0]*sizeof(double));
   u_inis(neq[1], ret); // Update initial conditions
+  unsigned int j;
   if (rx->needSort) doSort(ind);
   /* for(i=0; i<neq[0]; i++) yp[i] = inits[i]; */
   for(i=0; i<nx; i++) {
     xout = getTime(ind->ix[i], ind);
     yp = ret+neq[0]*i;
-    if(xout-xp > DBL_EPSILON*max(fabs(xout),fabs(xp))){
+    if(ind->evid[ind->ix[i]] != 3 && xout-xp > DBL_EPSILON*max(fabs(xout),fabs(xp))){
       ind->idx=i;
       lsoda(&ctx, yp, &xp, xout);
       if (ctx.state <= 0) {
         /* REprintf("IDID=%d, %s\n", istate, err_msg[-istate-1]); */
         *rc = ctx.state;
         // Bad Solve => NA
-        for (unsigned int j = neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
+        for (j = neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
         op->badSolve = 1;
         i = nx+42; // Get out of here!
       } else {
@@ -432,7 +433,13 @@ extern void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda_opt
       }
     }
     if (!op->badSolve){
-      if (handle_evid(evid[ind->ix[i]], neq[0], BadDose, InfusionRate, dose, yp,
+      if (ind->evid[ind->ix[i]] == 3){
+	for (j = neq[0]; j--;) {
+	  yp[j]= 0;
+	  ind->InfusionRate[j] = 0;
+	}
+	u_inis(neq[1], yp); // Update initial conditions @ current time
+      } else if (handle_evid(evid[ind->ix[i]], neq[0], BadDose, InfusionRate, dose, yp,
                       op->do_transit_abs, xout, neq[1], ind)){
         ctx.state = 1;
         xp = xout;
@@ -682,33 +689,39 @@ extern void ind_lsoda0(rx_solve *rx, rx_solving_options *op, int solveid, int *n
   memcpy(ind->solve, op->inits, neq[0]*sizeof(double));
   u_inis(neq[1], ind->solve); // Update initial conditions
   if (rx->needSort) doSort(ind);
+  unsigned int j;
   for(i=0; i < ind->n_all_times; i++) {
     xout = getTime(ind->ix[i], ind);
     yp   = ind->solve+neq[0]*i;
-    if(xout - xp > DBL_EPSILON*max(fabs(xout),fabs(xp)))
-      {
-        ind->idx=i;
-        F77_CALL(dlsoda)(dydt_lsoda, neq, yp, &xp, &xout, &itol, &(op->RTOL), &(op->ATOL), &itask,
-                         &istate, &iopt, rwork, &lrw, iwork, &liw, jdum, &jt);
+    if(ind->evid[ind->ix[i]] != 3 && xout - xp > DBL_EPSILON*max(fabs(xout),fabs(xp))) {
+      ind->idx=i;
+      F77_CALL(dlsoda)(dydt_lsoda, neq, yp, &xp, &xout, &itol, &(op->RTOL), &(op->ATOL), &itask,
+		       &istate, &iopt, rwork, &lrw, iwork, &liw, jdum, &jt);
 
-        if (istate <= 0) {
-	  REprintf("IDID=%d, %s\n", istate, err_msg[-istate-1]);
-	  ind->rc[0] = istate;
-	  // Bad Solve => NA
-	  for (unsigned int j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
-	  op->badSolve = 1;
-	  i = ind->n_all_times+42; // Get out of here!
-	} else {
-	  if (R_FINITE(rx->stateTrim)){
-	    double top=fabs(rx->stateTrim);
-	    for (unsigned int j = neq[0]; j--;) yp[j]= max(-top, min(top,yp[j]));
-	  }
+      if (istate <= 0) {
+	REprintf("IDID=%d, %s\n", istate, err_msg[-istate-1]);
+	ind->rc[0] = istate;
+	// Bad Solve => NA
+	for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
+	op->badSolve = 1;
+	i = ind->n_all_times+42; // Get out of here!
+      } else {
+	if (R_FINITE(rx->stateTrim)){
+	  double top=fabs(rx->stateTrim);
+	  for (j = neq[0]; j--;) yp[j]= max(-top, min(top,yp[j]));
 	}
-        ind->slvr_counter[0]++;
-        //dadt_counter = 0;
       }
+      ind->slvr_counter[0]++;
+      //dadt_counter = 0;
+    }
     if (!op->badSolve){
-      if (handle_evid(ind->evid[ind->ix[i]], neq[0], ind->BadDose, ind->InfusionRate, ind->dose, yp,
+      if (ind->evid[ind->ix[i]] == 3){
+	for (j = neq[0]; j--;) {
+	  yp[j]= 0;
+	  ind->InfusionRate[j] = 0;
+	}
+	u_inis(neq[1], yp); // Update initial conditions @ current time
+      } else if (handle_evid(ind->evid[ind->ix[i]], neq[0], ind->BadDose, ind->InfusionRate, ind->dose, yp,
                       op->do_transit_abs, xout, neq[1], ind)){
         istate = 1;
         xp = xout;
@@ -825,13 +838,14 @@ extern void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int *neq
   u_inis(neq[1], ret); // Update initial conditions
   if (rx->needSort) doSort(ind);
   //--- inits the system
+  unsigned int j;
   for(i=0; i<nx; i++) {
     xout = getTime(ind->ix[i], ind);
     yp = &ret[neq[0]*i];
     if (global_debug){
       REprintf("i=%d xp=%f xout=%f\n", i, xp, xout);
     }
-    if(xout-xp>DBL_EPSILON*max(fabs(xout),fabs(xp)))
+    if(ind->evid[ind->ix[i]] != 3 && xout-xp>DBL_EPSILON*max(fabs(xout),fabs(xp)))
       {
         ind->idx=i;
         idid = dop853(neq,       /* dimension of the system <= UINT_MAX-1*/
@@ -863,13 +877,13 @@ extern void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int *neq
             REprintf("IDID=%d, %s\n", idid, err_msg[-idid-1]);
             *rc = idid;
             // Bad Solve => NA
-            for (unsigned int j = (ind->n_all_times)*neq[0];j--;) ret[i] = NA_REAL; 
+            for (j = (ind->n_all_times)*neq[0];j--;) ret[i] = NA_REAL; 
             op->badSolve = 1;
             i = nx+42; // Get out of here!
 	} else {
 	  if (R_FINITE(rx->stateTrim)){
 	    double top=fabs(rx->stateTrim);
-	    for (unsigned int j = neq[0]; j--;) yp[j]= max(-top, min(top,yp[j]));
+	    for (j = neq[0]; j--;) yp[j]= max(-top, min(top,yp[j]));
 	  }
 	}
         xp = xRead();
@@ -877,27 +891,19 @@ extern void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int *neq
         //dadt_counter = 0;
       }
     if (!op->badSolve){
-      if (handle_evid(evid[ind->ix[i]], neq[0], BadDose, InfusionRate, dose, yp,
+      if (ind->evid[ind->ix[i]] == 3){
+	for (j = neq[0]; j--;) {
+	  yp[j]= 0;
+	  ind->InfusionRate[j] = 0;
+	}
+	u_inis(neq[1], yp); // Update initial conditions @ current time
+      } else if (handle_evid(evid[ind->ix[i]], neq[0], BadDose, InfusionRate, dose, yp,
                       op->do_transit_abs, xout, neq[1], ind)){
         xp = xout;
       }
       /* for(j=0; j<neq[0]; j++) ret[neq[0]*i+j] = yp[j]; */
       if (i+1 != nx) memcpy(ret+neq[0]*(i+1), ret + neq[0]*i, neq[0]*sizeof(double));
     }
-    //REprintf("wh=%d cmt=%d tm=%g rate=%g\n", wh, cmt, xp, InfusionRate[cmt]);
-
-    /* if (global_debug){ */
-    /*   REprintf("IDID=%d, ", idid); */
-    /*   for(j=0; j<neq[0]; j++) */
-    /*     { */
-    /*       REprintf("%f ", yp[j]); */
-    /*     } */
-    /*   REprintf("\n"); */
-    /* } */
-    /* if (rc[0]){ */
-    /*   REprintf("Error sovling using dop853\n"); */
-    /*   return; */
-    /* } */
   }
 }
 
