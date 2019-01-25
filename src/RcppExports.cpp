@@ -55,6 +55,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// nmData
+List nmData(DataFrame inData);
+RcppExport SEXP _RxODE_nmData(SEXP inDataSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< DataFrame >::type inData(inDataSEXP);
+    rcpp_result_gen = Rcpp::wrap(nmData(inData));
+    return rcpp_result_gen;
+END_RCPP
+}
 // rxIs
 bool rxIs(const RObject& obj, std::string cls);
 static SEXP _RxODE_rxIs_try(SEXP objSEXP, SEXP clsSEXP) {

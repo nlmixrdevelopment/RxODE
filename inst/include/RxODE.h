@@ -98,6 +98,7 @@ typedef struct {
   int wh;
   int wh100;
   int cmt;
+  int whI;
 } rx_solving_options_ind;
 
 typedef struct {

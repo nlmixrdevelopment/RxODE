@@ -295,9 +295,10 @@ extern double getTime(int idx, rx_solving_options_ind *ind){
   if (evid == 0 || evid == 2) return ind->all_times[idx];
   ind->wh = evid;
   ind->cmt = 0;
-  ind->wh100 = floor(ind->wh/1e5);
-  ind->wh    = ind->wh - ind->wh100*1e5;
-  ind->cmt = (ind->wh%10000)/100 - 1 + 100*ind->wh100;
+  ind->wh100 = floor(ind->wh/1e5L);
+  ind->whI   = floor(ind->wh/1e4L-ind->wh100*10);
+  ind->wh    = ind->wh - ind->wh100*1e5 - (ind->whI-1)*1e4;
+  ind->cmt = floor((ind->wh%10000)/100 - 1 + 100*ind->wh100);
   double t     = ind->all_times[idx];
   return LAG(ind->id,  ind->cmt, t);
 }
@@ -335,7 +336,7 @@ int handle_evid(int evid, int neq,
       }
     } else {
       amt = AMT(id, cmt, dose[ind->ixds], xout, yp);
-      if (wh>10000) {
+      if (ind->whI == 1) {
 	InfusionRate[cmt] += amt;
       } else {
 	if (do_transit_abs) {
