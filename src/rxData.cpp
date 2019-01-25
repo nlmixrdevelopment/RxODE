@@ -2612,7 +2612,7 @@ SEXP rxSolveC(const RObject &obj,
       ind->idose = &_globals.gidose[0];
       j=0;
       for (i =0; i != (unsigned int)(ind->n_all_times); i++){
-        if (ind->evid[i]){
+        if (ind->evid[i] >= 100){
           ndoses++;
 	  _globals.gidose[j] = (int)i;
           _globals.gamt[j++] = amt[i];
@@ -2817,7 +2817,7 @@ SEXP rxSolveC(const RObject &obj,
 	  tlast = NA_REAL;
         }
 	// Create index
-        if (_globals.gevid[i]){
+        if (_globals.gevid[i] >= 100){
           _globals.gidose[j] = i-lasti;
           _globals.gamt[j] = amt[i];
 	  ind->ndoses++;
