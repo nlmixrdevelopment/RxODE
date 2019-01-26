@@ -30,6 +30,7 @@ int rxcAmt  = -1;
 int rxcId   = -1;
 int rxcDv   = -1;
 int rxcLen  = -1;
+int rxcIi   = -1;
 bool resetCache = true;
 bool rxHasEventNames(CharacterVector &nm){
   int len = nm.size();
@@ -41,6 +42,7 @@ bool rxHasEventNames(CharacterVector &nm){
     rxcAmt  = -1;
     rxcId   = -1;
     rxcDv   = -1;
+    rxcIi   = -1;
     rxcLen  = len;
     for (unsigned int i = len; i--;){
       if (as<std::string>(nm[i]) == "evid" || as<std::string>(nm[i]) == "EVID" || as<std::string>(nm[i]) == "Evid"){
@@ -53,6 +55,8 @@ bool rxHasEventNames(CharacterVector &nm){
         rxcId = i;
       } else if (as<std::string>(nm[i]) == "dv" || as<std::string>(nm[i]) == "DV" || as<std::string>(nm[i]) == "Dv"){
         rxcDv = i;
+      } else if (as<std::string>(nm[i]) == "ii" || as<std::string>(nm[i]) == "II" || as<std::string>(nm[i]) == "Ii"){
+	rxcIi = i;
       }
     }
   }
@@ -985,6 +989,7 @@ typedef struct {
   double *gdv;
   int gdvn;
   double *gamt;
+  double *gii;
   int gamtn;
   double *glhs;
   int glhsn;
@@ -1139,13 +1144,15 @@ void gdvSetup(int n){
 
 void gamtSetup(int n){
   if (_globals.gamtn < 0){
-    _globals.gamtn=0;
-    _globals.gamt=NULL;
+    _globals.gamtn = 0;
+    _globals.gamt  = NULL;
+    _globals.gii   = NULL;
   }
   if (_globals.gamtn < n){
     int cur = n;
     Free(_globals.gamt);
-    _globals.gamt = Calloc(cur, double);
+    _globals.gamt  = Calloc(cur, double);
+    _globals.gii   = Calloc(cur, double);
     _globals.gamtn = cur;
   }
 }
@@ -1385,7 +1392,9 @@ extern "C" void gFree(){
   _globals.glhs=NULL;
   _globals.glhsn=0;
   if (_globals.gamt != NULL && _globals.gamtn > 0) Free(_globals.gamt);
+  if (_globals.gii != NULL && _globals.gii > 0) Free(_globals.gii);
   _globals.gamt=NULL;
+  _globals.gii=NULL;
   _globals.gamtn=0;
   if (_globals.gall_times != NULL && _globals.gall_timesn>0) Free(_globals.gall_times);
   _globals.gall_times=NULL;
@@ -2590,7 +2599,8 @@ SEXP rxSolveC(const RObject &obj,
       IntegerVector evid = as<IntegerVector>(dataf[1]);
       NumericVector amt  = as<NumericVector>(dataf[2]);
       ind = &(rx->subjects[0]);
-      ind->id=1;
+      ind->id=0;
+      ind->idx=0;
       ind->lambda=1.0;
       ind->yj = 0;
       rx->nsub= 1;
@@ -2605,6 +2615,7 @@ SEXP rxSolveC(const RObject &obj,
       ind->evid     = &_globals.gevid[0];
       gamtSetup(ind->n_all_times);
       ind->dose = &_globals.gamt[0];
+      ind->ii = &_globals.gii[0];
       // Slower; These need to be built.
       tlast = time[0];
       // hmax1 = hmax2 = 0;
@@ -2615,6 +2626,8 @@ SEXP rxSolveC(const RObject &obj,
         if (ind->evid[i] >= 100){
           ndoses++;
 	  _globals.gidose[j] = (int)i;
+	  // FIXME allow EventTable to use II
+	  _globals.gii[j] = 0;
           _globals.gamt[j++] = amt[i];
 	} else {
 	  nobs++;
@@ -2733,6 +2746,12 @@ SEXP rxSolveC(const RObject &obj,
         std::copy(dv.begin(), dv.end(), &_globals.gdv[0]);
       }
       NumericVector amt   = dataf[rxcAmt];
+      NumericVector datIi(amt.size());
+      if (rxcIi > -1){
+	datIi = as<NumericVector>(dataf[rxcIi]);
+      } else {
+	std::fill_n(datIi.begin(), datIi.size(), 0.0);
+      }
       // Make sure that everything can take the correct sizes
       // - amt
       gamtSetup(amt.size());
@@ -2767,6 +2786,7 @@ SEXP rxSolveC(const RObject &obj,
       unsigned int nall = 0, nobst=0, lasti =0, ii=0;
       nsub = 0;
       ind = &(rx->subjects[0]);
+      ind->idx=0;
       j=0;
       int lastId = id[0]-42;
       for (i = 0; i < ids; i++){
@@ -2792,6 +2812,7 @@ SEXP rxSolveC(const RObject &obj,
 	      ind->HMAX = hmax0;
 	    }
             ind = &(rx->subjects[nsub]);
+	    ind->idx=0;
           }
 	  // Setup the pointers.
           ind->id             = nsub+1;
@@ -2804,6 +2825,7 @@ SEXP rxSolveC(const RObject &obj,
           ind->evid           = &_globals.gevid[i];
 	  ind->idose          = &_globals.gidose[i];
           ind->dose           = &_globals.gamt[i];
+	  ind->ii             = &_globals.gii[i];
 	  lasti = i;
 
 	  hmax1m=0.0;
@@ -2819,6 +2841,7 @@ SEXP rxSolveC(const RObject &obj,
 	// Create index
         if (_globals.gevid[i] >= 100){
           _globals.gidose[j] = i-lasti;
+	  _globals.gii[j] = datIi[i];
           _globals.gamt[j] = amt[i];
 	  ind->ndoses++;
           ndoses++; nall++; j++;
@@ -2999,6 +3022,7 @@ SEXP rxSolveC(const RObject &obj,
       }
       for (i = rx->nsub; i--;){
 	ind = &(rx->subjects[i]);
+	ind->idx=0;
 	ind->par_ptr = &_globals.gpars[0];
 	ind->InfusionRate = &_globals.gInfusionRate[op->neq*i];
         ind->BadDose = &_globals.gBadDose[op->neq*i];
@@ -3054,6 +3078,7 @@ SEXP rxSolveC(const RObject &obj,
 	  for (unsigned int id = rx->nsub; id--;){
 	    unsigned int cid = id+simNum*rx->nsub;
 	    ind = &(rx->subjects[cid]);
+	    ind->idx=0;
 	    ind->par_ptr = &_globals.gpars[cid*npars];
 	    ind->InfusionRate = &_globals.gInfusionRate[op->neq*cid];
 	    ind->BadDose = &_globals.gBadDose[op->neq*cid];
@@ -3079,6 +3104,7 @@ SEXP rxSolveC(const RObject &obj,
 	      ind->idose = &(indS.idose[0]);
 	      ind->ndoses = indS.ndoses;
 	      ind->dose = &(indS.dose[0]);
+	      ind->ii   = &(indS.ii[0]);
 	      ind->evid =&(indS.evid[0]);
 	      ind->all_times = &(indS.all_times[0]);
 	      ind->id=id+1;

@@ -29,7 +29,7 @@ List nmData(DataFrame inData){
   // EVID = 2; Non-observation, possibly covariate
   // EVID = 3; Reset ODE states to zero; Non-observation event
   // EVID = 4; Reset and then dose event;  Illegal
-  // EVID = 5-99; mtime events (from ODE system)
+  // EVID = 10-99; mtime events (from ODE system)
   // When EVID > 100
   // EVID: ## # ## ##
   //       c2 I c1 xx
@@ -43,11 +43,13 @@ List nmData(DataFrame inData){
   //      6 = Turn off modeled duration
   // c1 = Compartment numbers below 99
   // xx = 1, regular event
+  // xx = 10, steady state event
   // Steady state events are not yet required, but would need a II data item.
   std::vector<int> id;
   std::vector<int> evid;
   std::vector<double> time;
   std::vector<double> amt;
+  std::vector<double> ii;
   List lst(1);
   lst[0] = lName;
   return lst;

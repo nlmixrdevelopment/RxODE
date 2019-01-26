@@ -2070,10 +2070,10 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
       }
     } else if (show_ode == 5){
       if (foundF){
-	sAppend(&sbOut,  "// Functional based bioavailability (returns amount)\ndouble %sF(int _cSub,  int _cmt, double _amt, double t, double *__zzStateVar__){\n  double _f[%d]={1};\n  (void)_f;\n",
+	sAppend(&sbOut,  "// Functional based bioavailability (returns amount)\ndouble %sF(int _cSub,  int _cmt, double _amt, double t){\n  double _f[%d]={1};\n  (void)_f;\n",
 		prefix, tb.nd);
       } else {
-	sAppend(&sbOut,  "// Functional based bioavailability\ndouble %sF(int _cSub,  int _cmt, double _amt, double t, double *__zzStateVar__){\n return _amt;\n",
+	sAppend(&sbOut,  "// Functional based bioavailability\ndouble %sF(int _cSub,  int _cmt, double _amt, double t){\n return _amt;\n",
 		prefix);
       }
     } else if (show_ode == 6){
@@ -2086,26 +2086,28 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
       }
     } else if (show_ode == 7){
       if (foundRate){
-	sAppend(&sbOut,  "// Modeled zero-order rate, returns duration\ndouble %sRate(int _cSub,  int _cmt, double _amt, double t){\n  double _rate[%d]={0};\n  (void)_rate;\n",
+	sAppend(&sbOut,  "// Modeled zero-order rate\ndouble %sRate(int _cSub,  int _cmt, double _amt, double t){\n  double _rate[%d]={0};\n  (void)_rate;\n",
 		prefix, tb.nd);
       } else {
-	sAppend(&sbOut,  "// Modeled zero-order rate, returns duration\ndouble %sRate(int _cSub,  int _cmt, double _amt, double t){\n return 0.0;\n",
+	sAppend(&sbOut,  "// Modeled zero-order rate\ndouble %sRate(int _cSub,  int _cmt, double _amt, double t){\n return 0.0;\n",
 		prefix);
       }
     } else if (show_ode == 8){
       if (foundDur){
-	sAppend(&sbOut,  "// Modeled zero-order duration, returns rate\ndouble %sDur(int _cSub,  int _cmt, double _amt, double t){\n  double _dur[%d]={0};\n  (void)_dur;\n",
+	sAppend(&sbOut,  "// Modeled zero-order duration\ndouble %sDur(int _cSub,  int _cmt, double _amt, double t){\n  double _dur[%d]={0};\n  (void)_dur;\n",
 		prefix, tb.nd);
       } else {
-	sAppend(&sbOut,  "// Modeled zero-order duration, returns rate\ndouble %sDur(int _cSub,  int _cmt, double _amt, double t){\n return 0.0;\n",
+	sAppend(&sbOut,  "// Modeled zero-order duration\ndouble %sDur(int _cSub,  int _cmt, double _amt, double t){\n return 0.0;\n",
 		prefix);
       }
     } else {
       sAppend(&sbOut,  "// prj-specific derived vars\nvoid %scalc_lhs(int _cSub, double t, double *__zzStateVar__, double *_lhs) {\n", prefix);
     }
     if ((show_ode == 2 && found_jac == 1 && good_jac == 1) ||
-	(show_ode != 2 && show_ode != 3 && show_ode != 5 && show_ode != 6 && show_ode != 7 && show_ode != 8 &&
+	(show_ode != 2 && show_ode != 3 && show_ode != 5  && show_ode != 8 &&
 	 show_ode !=0) ||
+	(show_ode == 7 && foundRate) ||
+	(show_ode == 6 && foundLag) ||
 	(show_ode == 5 && foundF) ||
 	(show_ode == 3 && foundF0) || 
 	(show_ode == 0 && tb.li)){
@@ -2129,22 +2131,25 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 	sAppendN(&sbOut, "  _update_par_ptr(t, _cSub, _solveData, _idx);\n", 47);
       }
       prnt_vars(1, 1, "", "\n",show_ode);                   /* pass system pars */
-      for (i=0; i<tb.nd; i++) {                   /* name state vars */
-	retieve_var(tb.di[i], buf);
-	sAppendN(&sbOut, "  ", 2);
-	for (k = 0; k < (int)strlen(buf); k++){
-	  if (buf[k] == '.'){
-	    sAppendN(&sbOut, "_DoT_", 5);
-	    if (rx_syntax_allow_dots == 0){
-	      trans_syntax_error_report_fn(NODOT);
+      if (show_ode != 7 && show_ode != 5 &&
+	  show_ode != 6){
+	for (i=0; i<tb.nd; i++) {                   /* name state vars */
+	  retieve_var(tb.di[i], buf);
+	  sAppendN(&sbOut, "  ", 2);
+	  for (k = 0; k < (int)strlen(buf); k++){
+	    if (buf[k] == '.'){
+	      sAppendN(&sbOut, "_DoT_", 5);
+	      if (rx_syntax_allow_dots == 0){
+		trans_syntax_error_report_fn(NODOT);
+	      }
+	    } else {
+	      sPut(&sbOut, buf[k]);
 	    }
-	  } else {
-	    sPut(&sbOut, buf[k]);
 	  }
+	  sAppend(&sbOut, " = __zzStateVar__[%d];\n", i);
 	}
-	sAppend(&sbOut, " = __zzStateVar__[%d];\n", i);
+	sAppendN(&sbOut, "\n", 1);
       }
-      sAppendN(&sbOut, "\n", 1);
     }
     if ((foundDur && show_ode == 8) ||
 	(foundRate && show_ode == 7) ||
@@ -2211,12 +2216,12 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
       // End statements
       switch (show_ode){
       case 8:
-	// RATE = AMT/DUR
-	sAppendN(&sbOut, "\n  return (_dur[_cmt] == 0.0 ? 0.0 : _amt/_dur[_cmt]);\n", 55);
+	// RATE
+	sAppendN(&sbOut, "\n  return _dur[_cmt];\n", 22);
 	break;
       case 7:
-	// DUR = AMT/RATE
-	sAppendN(&sbOut, "\n  return (_rate[_cmt] == 0.0 ? 0.0 : _amt/_rate[_cmt]);\n", 57);
+	// DUR
+	sAppendN(&sbOut, "\n  return _rate[_cmt];\n", 23);
 	break;
       case 6:
 	// Alag

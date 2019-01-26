@@ -208,6 +208,8 @@ t_get_solve get_solve = NULL;
 
 t_F AMT = NULL;
 t_LAG LAG = NULL;
+t_RATE RATE = NULL;
+t_DUR DUR = NULL;
 
 int global_jt = 2;
 int global_mf = 22;  
@@ -215,7 +217,8 @@ int global_debug = 0;
 
 void rxUpdateFuns(SEXP trans){
   const char *lib, *s_dydt, *s_calc_jac, *s_calc_lhs, *s_inis, *s_dydt_lsoda_dum, *s_dydt_jdum_lsoda, 
-    *s_ode_solver_solvedata, *s_ode_solver_get_solvedata, *s_dydt_liblsoda, *s_AMT, *s_LAG;
+    *s_ode_solver_solvedata, *s_ode_solver_get_solvedata, *s_dydt_liblsoda, *s_AMT, *s_LAG, *s_RATE,
+    *s_DUR;
   lib = CHAR(STRING_ELT(trans, 0));
   s_dydt = CHAR(STRING_ELT(trans, 3));
   s_calc_jac = CHAR(STRING_ELT(trans, 4));
@@ -228,6 +231,8 @@ void rxUpdateFuns(SEXP trans){
   s_dydt_liblsoda = CHAR(STRING_ELT(trans, 13));
   s_AMT=CHAR(STRING_ELT(trans,14));
   s_LAG=CHAR(STRING_ELT(trans, 15));
+  s_RATE=CHAR(STRING_ELT(trans, 16));
+  s_DUR=CHAR(STRING_ELT(trans, 17));
   global_jt = 2;
   global_mf = 22;  
   global_debug = 0;
@@ -249,6 +254,8 @@ void rxUpdateFuns(SEXP trans){
   dydt_liblsoda = (t_dydt_liblsoda)R_GetCCallable(lib, s_dydt_liblsoda);
   AMT = (t_F)R_GetCCallable(lib, s_AMT);
   LAG = (t_LAG) R_GetCCallable(lib, s_LAG);
+  RATE = (t_RATE) R_GetCCallable(lib, s_RATE);
+  DUR = (t_DUR) R_GetCCallable(lib, s_DUR);
 }
 
 void rxClearFuns(){
@@ -290,17 +297,139 @@ rx_solving_options_ind *getRxId(rx_solve *rx, unsigned int id){
 
 void doSort(rx_solving_options_ind *ind);
 
+void getWh(int evid, int *wh, int *cmt, int *wh100, int *whI, int *wh0){
+  *wh = evid;
+  *cmt = 0;
+  *wh100 = floor(*wh/1e5L);
+  *whI   = floor(*wh/1e4L-*wh100*10);
+  *wh    = *wh - *wh100*1e5 - (*whI-1)*1e4;
+  *wh0 = floor((*wh%10000)/100);
+  *cmt = *wh0 - 1 + *wh100*100;
+  *wh0 = *wh - *wh100*1e5 - *whI*1e4 - *wh0*100;
+}
+
+void updateRate(int idx, rx_solving_options_ind *ind){
+  double t = ind->all_times[idx];
+  int oldIdx = ind->idx;
+  ind->idx=idx;
+  if (ind->all_times[idx+1] == t){
+    // Hasn't been calculated yet.
+    int j;
+    // Find the amount
+    for (j = 0; j < ind->ndoses; j++){
+      if (ind->idose[j] == idx) break;
+    }
+    if (j == ind->ndoses){
+      // error went past the number of doses.
+      error("Went past the # doses\n");
+    } else {
+      double dur, rate, amt;
+      amt  = AMT(ind->id, ind->cmt, ind->dose[j], t);
+      rate  = RATE(ind->id, ind->cmt, amt, t);
+      if (rate > 0){
+	dur = amt/rate;// mg/hr
+	ind->dose[j+1] = -rate;
+	ind->all_times[idx+1]=t+dur;
+	ind->idx=oldIdx;
+      } else {
+	error("Rate is zero/negative");
+	// error rate is zero/negative
+      }
+    }
+  }
+}
+
+void updateDur(int idx, rx_solving_options_ind *ind){
+  double t = ind->all_times[idx];
+  int oldIdx = ind->idx;
+  ind->idx=idx;
+  if (ind->all_times[idx+1] == t){
+    // Hasn't been calculated yet.
+    int j;
+    // Find the amount
+    for (j = 0; j < ind->ndoses; j++){
+      if (ind->idose[j] == idx) break;
+    }
+    if (j == ind->ndoses){
+      // error went past the number of doses.
+      error("Went past the # doses\n");
+    } else {
+      double dur, rate, amt;
+      amt  = AMT(ind->id, ind->cmt, ind->dose[j], t);
+      dur  = DUR(ind->id, ind->cmt, amt, t);
+      if (dur > 0){
+	rate = amt/dur;// mg/hr
+	ind->dose[j+1] = -rate;
+	ind->all_times[idx+1]=t+dur;
+	ind->idx=oldIdx;
+      } else {
+	error("Duration is zero/negative");
+	// error rate is zero/negative
+      }
+    }
+  }
+}
+
 extern double getTime(int idx, rx_solving_options_ind *ind){
   int evid = ind->evid[idx];
   if (evid == 0 || evid == 2) return ind->all_times[idx];
-  ind->wh = evid;
-  ind->cmt = 0;
-  ind->wh100 = floor(ind->wh/1e5L);
-  ind->whI   = floor(ind->wh/1e4L-ind->wh100*10);
-  ind->wh    = ind->wh - ind->wh100*1e5 - (ind->whI-1)*1e4;
-  ind->cmt = floor((ind->wh%10000)/100 - 1 + 100*ind->wh100);
-  double t     = ind->all_times[idx];
-  return LAG(ind->id,  ind->cmt, t);
+  getWh(evid, &(ind->wh), &(ind->cmt), &(ind->wh100), &(ind->whI), &(ind->wh0));
+  switch(ind->whI){
+  case 6:
+    if (idx > 0){
+      int wh, cmt, wh100, whI, wh0;
+      getWh(ind->evid[idx-1], &wh, &cmt, &wh100, &whI, &wh0);
+      if (whI != 8){
+	error("Data error 686 (whI = %d; evid=%d)", whI, ind->evid[idx-1]);
+      }
+      updateDur(idx-1, ind);
+    } else {
+      error("Data Error -6\n");
+    }
+    break;
+  case 8:
+    if (idx >= ind->n_all_times){
+      // error: Last record, can't be used.
+      error("Data Error 8\n");
+    } else {
+      int wh, cmt, wh100, whI, wh0;
+      getWh(ind->evid[idx+1], &wh, &cmt, &wh100, &whI, &wh0);
+      if (whI != 6){
+	error("Data error 886 (whI=%d, evid=%d to %d)\n", whI,
+	      ind->evid[idx], ind->evid[idx+1]);
+      }
+      updateDur(idx, ind);
+    }
+    break;
+  case 7:
+    if (idx > 0){
+      int wh, cmt, wh100, whI, wh0;
+      getWh(ind->evid[idx-1], &wh, &cmt, &wh100, &whI, &wh0);
+      if (whI != 9){
+	error("Data error 797 (whI = %d; evid=%d)", whI, ind->evid[idx-1]);
+      }
+      updateRate(idx-1, ind);
+    } else {
+      error("Data Error -7\n");
+    }
+    break;
+  case 9:
+    // This calculates the rate and the duration and then assigns it to the next record
+    if (idx >= ind->n_all_times){
+      // error: Last record, can't be used.
+      error("Data Error 9\n");
+    } else {
+      int wh, cmt, wh100, whI, wh0;
+      getWh(ind->evid[idx+1], &wh, &cmt, &wh100, &whI, &wh0);
+      if (whI != 7){
+	error("Data error 997 (whI=%d, evid=%d to %d)\n", whI,
+	      ind->evid[idx], ind->evid[idx+1]);
+      }
+      updateRate(idx, ind);
+    }
+    break;
+  }
+  return LAG(ind->id, ind->cmt, ind->all_times[idx]);
 }
 
 
@@ -314,7 +443,6 @@ int handle_evid(int evid, int neq,
 		rx_solving_options_ind *ind){
   if (evid == 0 || evid == 2) return 0;
   int wh = evid, cmt, foundBad, j;
-  double amt;
   if (wh) {
     /* wh100 = ind->wh100; */
     wh = ind->wh;
@@ -335,17 +463,28 @@ int handle_evid(int evid, int neq,
 	ind->nBadDose++;
       }
     } else {
-      amt = AMT(id, cmt, dose[ind->ixds], xout, yp);
-      if (ind->whI == 1) {
-	InfusionRate[cmt] += amt;
-      } else {
+      switch(ind->whI){
+      case 9: // modeled rate.
+      case 8: // modeled duration.
+	// Rate already calculated and saved in the next dose record
+	InfusionRate[cmt] -= dose[ind->ixds+1];
+	break;
+      case 7: // End modeled rate
+      case 6: // end modeled duration
+	InfusionRate[cmt] += dose[ind->ixds];
+	ind->all_times[ind->idx] = ind->all_times[ind->idx-1]; // Reset time for recalculation
+	break;
+      case 1:
+	InfusionRate[cmt] += AMT(id, cmt, dose[ind->ixds], xout);
+	break;
+      case 0:
 	if (do_transit_abs) {
-	  ind->podo = amt;
+	  ind->podo = AMT(id, cmt, dose[ind->ixds], xout);
 	  ind->tlast = xout;
 	} else {
 	  ind->podo = 0;
 	  ind->tlast = xout;
-	  yp[cmt] += amt;     //dosing before obs
+	  yp[cmt] += AMT(id, cmt, dose[ind->ixds], xout);     //dosing before obs
 	}
       }
       /* istate = 1; */
@@ -394,6 +533,7 @@ extern void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda_opt
   lsoda_prepare(&ctx, &opt);
   ind = &(rx->subjects[neq[1]]);
   ind->ixds = 0;
+  ind->id = neq[1];
   nx = ind->n_all_times;
   evid = ind->evid;
   BadDose = ind->BadDose;
@@ -669,6 +809,7 @@ extern void ind_lsoda0(rx_solve *rx, rx_solving_options *op, int solveid, int *n
   neq[1] = solveid;
   
   ind = &(rx->subjects[neq[1]]);
+  ind->id = neq[1];
 
   rwork[4] = op->H0; // H0
   rwork[5] = ind->HMAX; // Hmax
@@ -821,6 +962,7 @@ extern void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int *neq
   int nx;
   neq[1] = solveid;
   ind = &(rx->subjects[neq[1]]);
+  ind->id = neq[1];
   ind->ixds = 0;
   nx = ind->n_all_times;
   inits = op->inits;
@@ -1166,6 +1308,7 @@ extern SEXP RxODE_df(int doDose, int doTBS){
     for (csub = 0; csub < nsub; csub++){
       neq[1] = csub+csim*nsub;
       ind = &(rx->subjects[neq[1]]);
+      ind->id = neq[1];
       if (rx->needSort) doSort(ind);
       nBadDose = ind->nBadDose;
       BadDose = ind->BadDose;

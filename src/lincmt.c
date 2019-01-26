@@ -222,6 +222,7 @@ double rx_approxP(double v, double *x, double *y, int n,
 
 
 void _update_par_ptr(double t, unsigned int id, rx_solve *rx, int idx){
+  if (rx == NULL) error("solve data is not loaded.");
   rx_solving_options_ind *ind;
   ind = &(rx->subjects[id]);
   rx_solving_options *op = rx->op;
