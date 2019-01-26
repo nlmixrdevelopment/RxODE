@@ -28,7 +28,6 @@ rxPermissive({
         x27 <- x2 %>% filter(time==7.5)
 
         zeros <- rep(0,length(x27$blood));
-        print(zeros)
 
         test_that(sprintf("EVID=3 resets the system (%s)", m),{
             expect_true(any(x27$blood==zeros))

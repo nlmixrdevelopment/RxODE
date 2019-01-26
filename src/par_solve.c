@@ -380,6 +380,7 @@ extern double getTime(int idx, rx_solving_options_ind *ind){
       int wh, cmt, wh100, whI, wh0;
       getWh(ind->evid[idx-1], &wh, &cmt, &wh100, &whI, &wh0);
       if (whI != 8){
+	// FIXME can crash parallel runs and cause many issues.  Need to defer to end.
 	error("Data error 686 (whI = %d; evid=%d)", whI, ind->evid[idx-1]);
       }
       updateDur(idx-1, ind);
