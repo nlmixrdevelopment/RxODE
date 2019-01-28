@@ -2364,6 +2364,7 @@ SEXP rxSolveC(const RObject &obj,
     } else {
       rx->stateTrim = stateTrim;
     }
+    rx->checkLagCov = checkLagCov;
     rx->matrix = matrix;
     rx->needSort = as<int>(mv["needSort"]);
     rx->add_cov = (int)(addCov);
@@ -2607,6 +2608,7 @@ SEXP rxSolveC(const RObject &obj,
       NumericVector amt  = as<NumericVector>(dataf[2]);
       ind = &(rx->subjects[0]);
       ind->id=0;
+      ind->allCovWarn=0;
       ind->idx=0;
       ind->lambda=1.0;
       ind->yj = 0;
@@ -2823,6 +2825,7 @@ SEXP rxSolveC(const RObject &obj,
           }
 	  // Setup the pointers.
           ind->id             = nsub+1;
+	  ind->allCovWarn = 0;
           ind->lambda         =1.0;
           ind->yj             = 0;
           ind->all_times      = &_globals.gall_times[i];

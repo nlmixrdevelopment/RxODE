@@ -105,6 +105,7 @@ typedef struct {
   int cmt;
   int whI;
   int wh0;
+  int allCovWarn;
 } rx_solving_options_ind;
 
 typedef struct {

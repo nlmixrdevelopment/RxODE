@@ -1331,6 +1331,9 @@ extern SEXP RxODE_df(int doDose, int doTBS){
 	  }
 	}
       }
+      if (ind->allCovWarn && csim == 0){
+	warning("One or more covariates were all NA for subject id=%d", csub+1);
+      }	
       for (i = 0; i < ntimes; i++){
         evid = ind->evid[ind->ix[i]];
 	if (isDose(evid)) ind->tlast = getTime(ind->ix[i], ind);

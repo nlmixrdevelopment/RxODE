@@ -199,7 +199,7 @@ static inline double getValue(int idx, double *y, rx_solving_options_ind *ind){
       }
       if (ISNA(ret)){
 	// All Covariates values for a single individual are NA.
-	warning("For at least one covariate in id=%d, all values are NA", ind->id);
+	ind->allCovWarn=1;
       }
     }
     /* Rprintf("NA->%f for id=%d\n", ret, ind->id); */

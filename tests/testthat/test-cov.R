@@ -277,6 +277,20 @@ rxPermissive({
             }
         })
 
+        d3na <- structure(list(ID = c(1L, 1L, 1L, 1L, 1L, 1L, 2L, 2L, 2L, 2L),
+                               TIME = c(0, 0, 2.99270072992701, 192, 336, 456, 0, 0, 3.07272727272727, 432),
+                               AMT = c(137L, 0L, -137L, 0L, 0L, 0L, 110L, 0L, -110L, 0L),
+                               V2I = c(909L, NA_integer_, 909L, 909L, 909L, 909L, 942L, 942L, 942L, 942L),
+                               V1I = c(545L, 545L, 545L, 545L, 545L, 545L, NA_integer_, NA_integer_, NA_integer_, NA_integer_),
+                               CLI = c(471L, 471L, 471L, 471L, NA_integer_, 471L, 405L, 405L, 405L, 405L),
+                               EVID = c(10101L, 0L, 10101L, 0L, 0L, 0L, 10101L, 0L, 10101L, 0L)),
+                          class = "data.frame", row.names = c(NA,  -10L),
+                          .Names = c("ID", "TIME", "AMT", "V2I", "V1I", "CLI", "EVID"))
+
+        test_that("All covariates are NA give a warning",{
+                    expect_warning(rxSolve(mod1, d3na, par2, add.cov=TRUE, cores=2, method=meth),"One or more covariates were all NA for subject id=2")
+        })
+
     }
     ## devtools::install();library(RxODE);rxTest("cov")
     rxClean()
