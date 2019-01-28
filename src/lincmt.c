@@ -175,9 +175,36 @@ double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt, int diff1,
 /* Changed as follows:
    - Different Name
    - Use RxODE structure
-   - Make inline
+   - Use getTime to allow model-based changes to dose timing
+   - Use getValue to ignore NA values for time-varying covariates
+
 */
-double rx_approxP(double v, double *x, double *y, int n,
+extern double getTime(int idx, rx_solving_options_ind *ind);
+extern rx_solve *getRxSolve_();
+static inline double getValue(int idx, double *y, rx_solving_options_ind *ind){
+  int i = idx;
+  double ret = y[ind->ix[idx]];
+  rx_solve* rx = getRxSolve_();
+  double t1, t2;
+  if (!ISNA(ret) && rx->checkLagCov && i != 0 && i != ind->n_all_times-2 && i != ind->n_all_times-1){
+    t1 = getTime(ind->ix[i], ind);
+    t2 = ind->all_times[ind->ix[i]];
+    if (t1 != t2){
+      t1 = getTime(ind->ix[i-1], ind);
+      t2 = getTime(ind->ix[i+1], ind);
+      if (t1 == t2){
+	i = i-1; // Get the updated value.
+      }
+    }
+  }
+  while (ISNA(ret) && i != 0){
+    i--; ret = y[ind->ix[i]];
+  }
+  return ret;
+}
+#define T(i) getTime(id->ix[i], id)
+#define V(i) getValue(i, y, id)
+double rx_approxP(double v, double *y, int n,
 		  rx_solving_options *Meth, rx_solving_options_ind *id){
   /* Approximate  y(v),  given (x,y)[i], i = 0,..,n-1 */
   int i, j, ij;
@@ -188,29 +215,33 @@ double rx_approxP(double v, double *x, double *y, int n,
   j = n - 1;
 
   /* handle out-of-domain points */
-  if(v < x[i]) return id->ylow;
-  if(v > x[j]) return id->yhigh;
+  if(v < T(i)) return id->ylow;
+  if(v > T(j)) return id->yhigh;
 
   /* find the correct interval by bisection */
-  while(i < j - 1) { /* x[i] <= v <= x[j] */
+  while(i < j - 1) { /* T(i) <= v <= T(j) */
     ij = (i + j)/2; /* i+1 <= ij <= j-1 */
-    if(v < x[ij]) j = ij; else i = ij;
+    if(v < T(ij)) j = ij; else i = ij;
     /* still i < j */
   }
   /* provably have i == j-1 */
 
   /* interpolation */
 
-  if(v == x[j]) return y[j];
-  if(v == x[i]) return y[i];
-  /* impossible: if(x[j] == x[i]) return y[i]; */
+  if(v == T(j)) return V(j);
+  if(v == T(i)) return V(i);
+  /* impossible: if(T(j) == T(i)) return V(i); */
 
-  if(Meth->kind == 1) /* linear */
-    return y[i] + (y[j] - y[i]) * ((v - x[i])/(x[j] - x[i]));
-  else /* 2 : constant */
-    return (Meth->f1 != 0.0 ? y[i] * Meth->f1 : 0.0)
-      + (Meth->f2 != 0.0 ? y[j] * Meth->f2 : 0.0);
+  if(Meth->kind == 1){ /* linear */
+    return V(i) + (V(j) - V(i)) * ((v - T(i))/(T(j) - T(i)));
+  } else { /* 2 : constant */
+    return (Meth->f1 != 0.0 ? V(i) * Meth->f1 : 0.0)
+      + (Meth->f2 != 0.0 ? V(j) * Meth->f2 : 0.0);
+  }
 }/* approx1() */
+
+#undef T
+#undef V
 
 /* End approx from R */
 
@@ -236,7 +267,7 @@ void _update_par_ptr(double t, unsigned int id, rx_solve *rx, int idx){
             // Use the same methodology as approxfun.
             ind->ylow = cov_ptr[ind->n_all_times*k];
             ind->yhigh = cov_ptr[ind->n_all_times*k+ind->n_all_times-1];
-            par_ptr[op->par_cov[k]-1] = rx_approxP(t, all_times, cov_ptr+ind->n_all_times*k, ind->n_all_times, op, ind);
+            par_ptr[op->par_cov[k]-1] = rx_approxP(t, cov_ptr+ind->n_all_times*k, ind->n_all_times, op, ind);
 	  }
         }
       }

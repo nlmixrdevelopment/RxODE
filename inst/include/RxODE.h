@@ -120,6 +120,7 @@ typedef struct {
   int needSort;
   double stateTrim;
   int *stateIgnore;
+  int checkLagCov;
 } rx_solve;
 
 typedef void (*t_set_solve)(rx_solve *);

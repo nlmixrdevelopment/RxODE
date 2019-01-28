@@ -173,6 +173,16 @@
 ##'     Inf.  Also trims to -stateTrim for lage negative
 ##'     amounts/concentrations
 ##'
+##' @param checkLagCov When dose-times are model-based (like in the
+##'     case of lag times), covariates are checked to see if they
+##'     changed compared to the original dose time.  If they have
+##'     changed, use the new value instead of the original value.  For
+##'     example if a subject had a covariate wt 70 at dose time 0 and
+##'     changes to a wt of 70.5 at time 0.5 hr with a lag time of 1
+##'     hr, the new covariate value would treated as 70.5 instead of
+##'     70 at the lag-timed dose since the covariate changed during
+##'     this time.  By default this check is on, or TRUE.
+##'
 ##' @param updateObject This is an internally used flag to update the
 ##'     RxODE solved object (when supplying an RxODE solved object) as
 ##'     well as returning a new object.  You probably should not
@@ -269,7 +279,7 @@ rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, scal
                     nCoresRV = 1L, sigmaIsChol = FALSE, nDisplayProgress=10000L,
                     amountUnits = NA_character_, timeUnits = "hours", stiff,
                     theta = NULL, eta = NULL, addDosing=FALSE,
-                    stateTrim=Inf, updateObject=FALSE, doSolve=TRUE,
+                    stateTrim=Inf, checkLagCov=TRUE, updateObject=FALSE, doSolve=TRUE,
                     omega = NULL, omegaDf = NULL, omegaIsChol = FALSE,
                     nSub = 1L, thetaMat = NULL, thetaDf = NULL, thetaIsChol = FALSE,
                     nStud = 1L, dfSub=0.0, dfObs=0.0, returnType=c("rxSolve", "matrix", "data.frame", "data.frame.TBS"),
@@ -586,7 +596,7 @@ rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, scal
                sigmaDf, #15
                nCoresRV, #16
                sigmaIsChol, nDisplayProgress, amountUnits,
-               timeUnits, addDosing, stateTrim, theta, eta, updateObject,
+               timeUnits, addDosing, stateTrim, as.integer(checkLagCov), theta, eta, updateObject,
                doSolve, omega, omegaDf, omegaIsChol, nSub, thetaMat,
                thetaDf, thetaIsChol, nStud, dfSub, dfObs,
                as.integer(setupOnly)));
