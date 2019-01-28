@@ -1,6 +1,8 @@
 #pragma once
 #ifndef __RxODE_H__
 #define __RxODE_H__
+#define isDose(evid) ((evid) == 3 || (evid) >= 100)
+#define isObs(evid) ((evid) == 0 || (evid) == 2)
 #if defined(__cplusplus)
 #include "RxODE_RcppExports.h"
 extern "C" {

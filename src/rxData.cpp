@@ -2502,7 +2502,7 @@ SEXP rxSolveC(const RObject &obj,
 	IntegerVector evid = as<IntegerVector>(dataf[1]);
 	rx->nall = evid.size();
 	for (unsigned int j = rx->nall;j--;){
-	  if (evid[j] == 0) rx->nobs++;
+	  if (isObs(evid[j])) rx->nobs++;
 	}
       } else if (rxIs(ev1,"event.data.frame")||
 		 rxIs(ev1,"event.matrix")){
@@ -2517,7 +2517,7 @@ SEXP rxSolveC(const RObject &obj,
 	      lastid=id[j];
 	      nSub0++;
 	    }
-	    if (evid[j] == 0) rx->nobs++;
+	    if (isObs(evid[j])) rx->nobs++;
 	  }
 	} else {
 	  nSub0 =1;
@@ -2525,7 +2525,7 @@ SEXP rxSolveC(const RObject &obj,
           IntegerVector evid  = as<IntegerVector>(dataf[rxcEvid]);
           rx->nall = evid.size();
           for (unsigned int j =rx->nall; j--;){
-            if (evid[j] == 0) rx->nobs++;
+            if (isObs(evid[j])) rx->nobs++;
           }
 	}
       }
@@ -2623,7 +2623,7 @@ SEXP rxSolveC(const RObject &obj,
       ind->idose = &_globals.gidose[0];
       j=0;
       for (i =0; i != (unsigned int)(ind->n_all_times); i++){
-        if (ind->evid[i] >= 100){
+        if (isDose(ind->evid[i])){
           ndoses++;
 	  _globals.gidose[j] = (int)i;
 	  // FIXME allow EventTable to use II
@@ -2839,7 +2839,7 @@ SEXP rxSolveC(const RObject &obj,
 	  tlast = NA_REAL;
         }
 	// Create index
-        if (_globals.gevid[i] >= 100){
+        if (isDose(_globals.gevid[i])){
           _globals.gidose[j] = i-lasti;
 	  _globals.gii[j] = datIi[i];
           _globals.gamt[j] = amt[i];

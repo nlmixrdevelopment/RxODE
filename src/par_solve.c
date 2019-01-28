@@ -579,6 +579,8 @@ extern void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda_opt
 	memcpy(yp,inits, neq[0]*sizeof(double));
 	u_inis(neq[1], yp); // Update initial conditions @ current time
 	ctx.state = 1;
+	xp=xout;
+	ind->ixds++;
       } else if (handle_evid(evid[ind->ix[i]], neq[0], BadDose, InfusionRate, dose, yp,
                       op->do_transit_abs, xout, neq[1], ind)){
         ctx.state = 1;
@@ -861,6 +863,7 @@ extern void ind_lsoda0(rx_solve *rx, rx_solving_options *op, int solveid, int *n
 	memcpy(yp, op->inits, neq[0]*sizeof(double));
 	u_inis(neq[1], yp); // Update initial conditions @ current time
 	istate = 1;
+	ind->ixds++;
 	xp = xout;
       } else if (handle_evid(ind->evid[ind->ix[i]], neq[0], ind->BadDose, ind->InfusionRate, ind->dose, yp,
                       op->do_transit_abs, xout, neq[1], ind)){
@@ -1037,6 +1040,8 @@ extern void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int *neq
 	for (j = neq[0]; j--;) ind->InfusionRate[j] = 0;
 	memcpy(yp, op->inits, neq[0]*sizeof(double));
 	u_inis(neq[1], yp); // Update initial conditions @ current time
+	ind->ixds++;
+	xp=xout;
       } else if (handle_evid(evid[ind->ix[i]], neq[0], BadDose, InfusionRate, dose, yp,
                       op->do_transit_abs, xout, neq[1], ind)){
         xp = xout;
@@ -1328,19 +1333,19 @@ extern SEXP RxODE_df(int doDose, int doTBS){
       }
       for (i = 0; i < ntimes; i++){
         evid = ind->evid[ind->ix[i]];
-	if (evid >= 100) ind->tlast = getTime(ind->ix[i], ind);
+	if (isDose(evid)) ind->tlast = getTime(ind->ix[i], ind);
         if (updateErr){
           for (j=0; j < errNcol; j++){
 	    par_ptr[svar[j]] = errs[rx->nr*j+kk];
           }
-	  if (evid < 100 || doDose){
+	  if ( isObs(evid) || doDose){
 	    // Only incerement if this is an observation or of this a
 	    // simulation that requests dosing infomration too.
             kk++;
 	  }
         }
         jj  = 0 ;
-	if (evid< 100 || doDose){
+	if (isObs(evid) || doDose){
           // sim.id
           if (sm){
             dfi = INTEGER(VECTOR_ELT(df, jj));
@@ -1359,7 +1364,7 @@ extern SEXP RxODE_df(int doDose, int doTBS){
             dfi[ii] = evid;
             // amt
             dfp = REAL(VECTOR_ELT(df, jj++));
-            dfp[ii] = (evid < 100 ? NA_REAL : dose[di++]);
+            dfp[ii] = (isObs(evid) ? NA_REAL : dose[di++]);
 	  }
           // time
           dfp = REAL(VECTOR_ELT(df, jj++));
@@ -1388,7 +1393,7 @@ extern SEXP RxODE_df(int doDose, int doTBS){
 	    for (j = 0; j < add_cov*ncov; j++){
               dfp = REAL(VECTOR_ELT(df, jj));
 	      // is this ntimes = nAllTimes or nObs time for this subject...?
-	      dfp[ii] = (evid < 100 ? cov_ptr[j*ntimes+i] : NA_REAL);
+	      dfp[ii] = (isObs(evid) ? cov_ptr[j*ntimes+i] : NA_REAL);
 	      jj++;
 	    }
           }

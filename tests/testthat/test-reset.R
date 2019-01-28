@@ -36,5 +36,29 @@ rxPermissive({
     }
 
     ## library(ggplot2);x2 %>% ggplot(aes(time,blood)) + geom_line()
+
+    et <- eventTable() %>% add.dosing(dose=3, nbr.doses=6, dosing.interval=8) %>%
+        add.sampling(seq(0, 48, length.out=200))
+
+    sol.1c <- RxODE({
+        V <- 20
+        Cl <- 25
+        blood <- linCmt();
+    })
+
+    x2 <- solve(sol.1c, et)
+
+    x2 <- solve(sol.1c, et$get.EventTable())
+
+    et1 <- rbind(et$get.EventTable(), c(time=9,evid=3,amt=NA_real_)) %>%
+        arrange(time,-evid)
+
+    x2 <- solve(sol.1c, et1)
+
+    test_that("Solved Linear EVID=3",{
+        expect_true(all((x2 %>% filter(time > 9) %>% filter(time < 12))$blood==0))
+    })
+
+    ## library(ggplot2);x2 %>% ggplot(aes(time,blood)) + geom_line()
 })
 

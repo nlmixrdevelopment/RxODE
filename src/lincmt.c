@@ -6,6 +6,8 @@
 #include <R_ext/Rdynload.h>
 #include "../inst/include/RxODE.h"
 
+void getWh(int evid, int *wh, int *cmt, int *wh100, int *whI, int *wh0);
+
 // Linear compartment models/functions
 
 static inline int _locateDoseIndex(const double obs_time,  rx_solving_options_ind *ind){
@@ -75,32 +77,22 @@ double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt, int diff1,
   oral = (ka > 0) ? 1 : 0;
   double ret = 0,cur=0, tmp=0;
   unsigned int m = 0, l = 0, p = 0;
-  int evid, evid100;
+  int evid, wh, wh100, whI, wh0;
   double thisT = 0.0, tT = 0.0, res, t1, t2, tinf, dose = 0;
   double rate;
   rx_solving_options_ind *ind = &(rx->subjects[id]);
-  if (ind->ndoses < 0){
-    ind->ndoses=0;
-    for (unsigned int i = 0; i < ind->n_all_times; i++){
-      if (ind->evid[i]){
-        ind->ndoses++;
-        ind->idose[ind->ndoses-1] = i;
-      }
-    }
-  }
   m = _locateDoseIndex(t, ind);
   int ndoses = ind->ndoses;
   for(l=m+1; l--;){// Optimized for loop as https://www.thegeekstuff.com/2015/01/c-cpp-code-optimization/
     cur=0;
     //superpostion
     evid = ind->evid[ind->idose[l]];
+    if (evid == 3) return ret; // Was a reset event.
+    getWh(evid, &wh, &cmt, &wh100, &whI, &wh0);
     dose = ind->dose[l];
-    // Support 100+ compartments...
-    evid100 = floor(evid/1e5);
-    evid = evid- evid100*1e5;
-    cmt = (evid%10000)/100 - 1 + 100*evid100;
     if (cmt != linCmt) continue;
-    if (evid > 10000) {
+    switch(whI){
+    case 1:
       if (dose > 0){
         // During infusion
         tT = t - ind->all_times[ind->idose[l]] ;
@@ -139,7 +131,8 @@ double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt, int diff1,
           cur +=  rate*C*gamma1*(1.0-exp(-gamma*t1))*exp(-gamma*t2);
         }
       }
-    } else {
+      break;
+    default:
       tT = t - ind->all_times[ind->idose[l]];
       thisT = tT -tlag;
       if (thisT < 0) continue;
@@ -151,6 +144,7 @@ double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt, int diff1,
           cur += dose*C*(exp(-gamma*thisT)-res);
         }
       }
+      break;
     }
     // Since this starts with the most recent dose, and then goes
     // backward, you can use a tolerance calcuation to exit the loop
