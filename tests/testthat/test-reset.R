@@ -23,9 +23,10 @@ rxPermissive({
         arrange(time,evid)
 
     for (m in c("lsoda","liblsoda", "dop853")){
+
         x2 <- solve(mod,et2, method=m)
 
-        x27 <- x2 %>% filter(time==7.5)
+        x27 <- x2 %>% filter(time>=7.5) %>% filter(time < 8)
 
         zeros <- rep(0,length(x27$blood));
 
