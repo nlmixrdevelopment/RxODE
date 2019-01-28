@@ -2127,6 +2127,8 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
       }
       if (show_ode == 3){
 	sAppendN(&sbOut, "  _update_par_ptr(0.0, _cSub, _solveData, _idx);\n", 49);
+      } else if (show_ode == 6 || show_ode == 7 || show_ode == 8){
+	sAppendN(&sbOut, "  _update_par_ptr(NA_REAL, _cSub, _solveData, _idx);\n", 53);
       } else {
 	sAppendN(&sbOut, "  _update_par_ptr(t, _cSub, _solveData, _idx);\n", 47);
       }
