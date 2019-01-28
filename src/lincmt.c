@@ -186,19 +186,35 @@ static inline double getValue(int idx, double *y, rx_solving_options_ind *ind){
   double ret = y[ind->ix[idx]];
   rx_solve* rx = getRxSolve_();
   double t1, t2;
-  if (!ISNA(ret) && rx->checkLagCov && i != 0 && i != ind->n_all_times-2 && i != ind->n_all_times-1){
-    t1 = getTime(ind->ix[i], ind);
-    t2 = ind->all_times[ind->ix[i]];
-    if (t1 != t2){
-      t1 = getTime(ind->ix[i-1], ind);
-      t2 = getTime(ind->ix[i+1], ind);
-      if (t1 == t2){
-	i = i-1; // Get the updated value.
+  if (ISNA(ret)){
+    // Go backward.
+    while (ISNA(ret) && i != 0){
+      i--; ret = y[ind->ix[i]];
+    }
+    if (ISNA(ret)){
+      // Still not found go forward.
+      i = idx;
+      while (ISNA(ret) && i != ind->n_all_times){
+	i++; ret = y[ind->ix[i]];
+      }
+      if (ISNA(ret)){
+	// All Covariates values for a single individual are NA.
+	warning("For at least one covariate in id=%d, all values are NA", ind->id);
       }
     }
-  }
-  while (ISNA(ret) && i != 0){
-    i--; ret = y[ind->ix[i]];
+    /* Rprintf("NA->%f for id=%d\n", ret, ind->id); */
+  } else {
+    if (rx->checkLagCov && i != 0 && i != ind->n_all_times-2 && i != ind->n_all_times-1){
+      t1 = getTime(ind->ix[i], ind);
+      t2 = ind->all_times[ind->ix[i]];
+      if (t1 != t2){
+	t1 = getTime(ind->ix[i-1], ind);
+	t2 = getTime(ind->ix[i+1], ind);
+	if (t1 == t2){
+	  i = i-1; // Get the updated value.
+	}
+      }
+    }  
   }
   return ret;
 }
@@ -241,7 +257,6 @@ double rx_approxP(double v, double *y, int n,
 }/* approx1() */
 
 #undef T
-#undef V
 
 /* End approx from R */
 
@@ -260,17 +275,18 @@ void _update_par_ptr(double t, unsigned int id, rx_solve *rx, int idx){
         if (op->par_cov[k]){
 	  double *par_ptr = ind->par_ptr;
           double *all_times = ind->all_times;
-          double *cov_ptr = ind->cov_ptr;
+	  double *y = ind->cov_ptr + ind->n_all_times*k;
 	  if (idx > 0 && idx < ind->n_all_times && t == all_times[idx]){
-	    par_ptr[op->par_cov[k]-1] = cov_ptr[ind->n_all_times*k+idx];
+	    par_ptr[op->par_cov[k]-1] = getValue(idx, y, ind);
 	  } else {
             // Use the same methodology as approxfun.
-            ind->ylow = cov_ptr[ind->n_all_times*k];
-            ind->yhigh = cov_ptr[ind->n_all_times*k+ind->n_all_times-1];
-            par_ptr[op->par_cov[k]-1] = rx_approxP(t, cov_ptr+ind->n_all_times*k, ind->n_all_times, op, ind);
+            ind->ylow = getValue(0, y, ind);/* cov_ptr[ind->n_all_times*k]; */
+            ind->yhigh = getValue(ind->n_all_times-1, y, ind);/* cov_ptr[ind->n_all_times*k+ind->n_all_times-1]; */
+            par_ptr[op->par_cov[k]-1] = rx_approxP(t, y, ind->n_all_times, op, ind);
 	  }
         }
       }
     }
   }
 }
+#undef V
