@@ -183,7 +183,6 @@ extern double getTime(int idx, rx_solving_options_ind *ind);
 static inline double getValue(int idx, double *y, rx_solving_options_ind *ind){
   int i = idx;
   double ret = y[ind->ix[idx]];
-  double t1, t2;
   if (ISNA(ret)){
     // Go backward.
     while (ISNA(ret) && i != 0){

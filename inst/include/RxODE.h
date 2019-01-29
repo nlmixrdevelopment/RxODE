@@ -63,6 +63,10 @@ typedef struct {
   int isChol;
   int *svar;
   int abort;
+  int minSS;
+  int maxSS;
+  double atolSS;
+  double rtolSS;
 } rx_solving_options;
 
 

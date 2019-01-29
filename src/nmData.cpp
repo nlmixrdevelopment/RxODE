@@ -43,7 +43,8 @@ List nmData(DataFrame inData){
   //      6 = Turn off modeled duration
   // c1 = Compartment numbers below 99
   // xx = 1, regular event
-  // xx = 10, steady state event
+  // xx = 10, steady state event SS=1
+  // xx = 20, steady state event + last observed info.
   // Steady state events are not yet required, but would need a II data item.
   std::vector<int> id;
   std::vector<int> evid;

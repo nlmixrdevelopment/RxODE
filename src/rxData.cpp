@@ -2192,8 +2192,7 @@ SEXP rxSolveC(const RObject &obj,
       update_timeUnits = false,
       update_scale = false,
       update_dosing = false,
-      update_trim=false,
-      update_lagCov = false;
+      update_trim=false;
     if (specParams.isNull()){
       warning("No additional parameters were specified; Returning fit.");
       return object;
@@ -2405,6 +2404,13 @@ SEXP rxSolveC(const RObject &obj,
     op->abort = 0;
     op->ATOL = atol;          //absolute error
     op->RTOL = rtol;          //relative error
+
+    // FIXME allow these values to change.
+    op->minSS = 7;
+    op->maxSS = 1000;    
+    op->atolSS = atol*100;
+    op->rtolSS = rtol*100;
+    
     gatol2Setup(op->neq);
     grtol2Setup(op->neq);
     std::fill_n(&_globals.gatol2[0],op->neq, atol);
