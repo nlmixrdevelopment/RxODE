@@ -110,6 +110,7 @@ typedef struct {
   int whI;
   int wh0;
   int allCovWarn;
+  int wrongSSDur;
 } rx_solving_options_ind;
 
 typedef struct {

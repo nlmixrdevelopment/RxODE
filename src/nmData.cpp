@@ -45,7 +45,7 @@ List nmData(DataFrame inData){
   // xx = 1, regular event
   // xx = 10, steady state event SS=1
   // xx = 20, steady state event + last observed info.
-  // Steady state events are not yet required, but would need a II data item.
+  // Steady state events need a II data item > 0
   std::vector<int> id;
   std::vector<int> evid;
   std::vector<double> time;
