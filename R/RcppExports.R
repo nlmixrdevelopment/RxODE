@@ -13,6 +13,10 @@ add_sampling_ <- function(eventTable, time, time_units = NA_character_) {
     .Call(`_RxODE_add_sampling_`, eventTable, time, time_units)
 }
 
+nmData <- function(inData) {
+    .Call(`_RxODE_nmData`, inData)
+}
+
 #' Check the type of an object using Rcpp
 #'
 #' @param obj Object to check

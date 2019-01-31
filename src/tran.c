@@ -237,7 +237,7 @@ static void trans_syntax_error_report_fn(char *err) {
 
 extern D_ParserTables parser_tables_RxODE;
 
-unsigned int found_jac = 0, found_print = 0;
+unsigned int found_jac = 0;
 int rx_syntax_assign = 0, rx_syntax_star_pow = 0,
   rx_syntax_require_semicolon = 0, rx_syntax_allow_dots = 0,
   rx_syntax_allow_ini0 = 1, rx_syntax_allow_ini = 1, rx_syntax_allow_assign_state = 0,
@@ -492,7 +492,7 @@ vLines sbPm, sbPmDt;
 sbuf sbNrm;
 
 char *extra_buf, *model_prefix, *md5;
-int foundF=0,foundLag=0, foundRate=0, foundDur=0, foundF0=0;
+int foundF=0,foundLag=0, foundRate=0, foundDur=0, foundF0=0, needSort=0;
 
 sbuf sbOut;
 
@@ -576,7 +576,7 @@ typedef struct nodeInfo {
   int min;
   int mult_part;
   int power_expression;
-  int print_command;
+  /* int print_command; */
   int printf_statement;
   int prod;
   int rate;
@@ -625,7 +625,7 @@ void niReset(nodeInfo *ni){
   ni->min = -1;
   ni->mult_part = -1;
   ni->power_expression = -1;
-  ni->print_command = -1;
+  /* ni->print_command = -1; */
   ni->printf_statement = -1;
   ni->prod = -1;
   ni->rate = -1;
@@ -943,20 +943,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	}
 	Free(v);
       }
-      if (nodeHas(print_command)){
-        found_print = 1;
-        char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-        if  (!strcmp(v,"print")){
-	  aType(PFPRN);
-	  aAppendN("full_print;\n", 12);
-	  sAppendN(&sbNrm, "print;\n", 7);
-        } else {
-	  sAppend(&sb,"%s;\n", v);
-	  sAppend(&sbDt,"%s;\n", v);
-	  sAppend(&sbNrm, "%s;\n", v);
-        }
-        Free(v);
-      }
       if (nodeHas(printf_statement)){
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
         if (i == 0){
@@ -1022,15 +1008,32 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
         if (nodeHas(jac_rhs) || nodeHas(dfdy_rhs)){
           // Continuation statement
-	  aType(TJAC);
-          sAppend(&sbDt, "__PDStateVar_%s_SeP_",v);
-          sAppend(&sbt,"df(%s)/dy(",v);
-	  if (new_de(v)){
-	    sprintf(buf,"d/dt(%s) needs to be defined before using a Jacobians for this state.",v);
-            trans_syntax_error_report_fn(buf);
-	  } else {
-	    sAppend(&sb, "__PDStateVar__[%d*(__NROWPD__)+",tb.id);
+	  switch(sbPm.lType[sbPm.n]){
+	  case FBIO:
+	    trans_syntax_error_report_fn("Bioavailability cannot depend on Jacobian values.");
+	    break;
+	  case ALAG:
+	    trans_syntax_error_report_fn("Absorption Lag-time cannot depend on Jacobian values.");
+	    break;
+	  case RATE:
+	    trans_syntax_error_report_fn("Model-based rate cannot depend on Jacobian values.");
+	    break;
+	  case DUR:
+	    trans_syntax_error_report_fn("Model-based duration cannot depend on Jacobian values.");
+	    break;
+	  default: {
+	    aType(TJAC);
+	    sAppend(&sbDt, "__PDStateVar_%s_SeP_",v);
+	    sAppend(&sbt,"df(%s)/dy(",v);
+	    if (new_de(v)){
+	      sprintf(buf,"d/dt(%s) needs to be defined before using a Jacobians for this state.",v);
+	      trans_syntax_error_report_fn(buf);
+	    } else {
+	      sAppend(&sb, "__PDStateVar__[%d*(__NROWPD__)+",tb.id);
+	    }
 	  }
+	  }
+	  
         } else {
           // New statement
 	  aType(TJAC);
@@ -1218,6 +1221,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    sAppend(&sbDt, "_alag[%d] = ", tb.nd);
 	    sAppend(&sbt, "alag(%s)=", v);
 	    foundLag=1;
+	    needSort=1;
 	    aType(ALAG); 
 	  } else if (nodeHas(dur)){
 	    sb.o=0;sbDt.o=0; sbt.o=0;
@@ -1225,6 +1229,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    sAppend(&sbDt, "_dur[%d] = ", tb.nd);
 	    sAppend(&sbt, "dur(%s)=", v);
 	    foundDur=1;
+	    needSort=1;
 	    aType(DUR);
           } else if (nodeHas(rate)){
 	    sb.o=0;sbDt.o=0; sbt.o=0;
@@ -1232,6 +1237,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    sAppend(&sbDt, "_rate[%d] = ", tb.nd);
 	    sAppend(&sbt, "rate(%s)=", v);
 	    foundRate=1;
+	    needSort=1;
 	    aType(RATE);
           }
           new_or_ith(v);
@@ -1260,6 +1266,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    sAppend(&sbDt, "_alag[%d] = ", tb.id);
 	    sAppend(&sbt, "alag(%s)=", v);
 	    foundLag=1;
+	    needSort=1;
 	    aType(ALAG);
           } else if (nodeHas(dur)){
 	    sb.o=0;sbDt.o=0; sbt.o=0;
@@ -1267,6 +1274,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    sAppend(&sbDt, "_dur[%d] = ", tb.id);
 	    sAppend(&sbt, "dur(%s)=", v);
 	    foundDur=1;
+	    needSort=1;
 	    aType(DUR);
           } else if (nodeHas(rate)){
 	    sb.o=0;sbDt.o=0; sbt.o=0;
@@ -1274,6 +1282,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    sAppend(&sbDt, "_rate[%d] = ", tb.id);
 	    sAppend(&sbt, "rate(%s)=", v);
 	    foundRate=1;
+	    needSort=1;
 	    aType(RATE);
           }
         }
@@ -1339,35 +1348,59 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  sAppend(&sbDt, "__DDtStateVar_%d__ = ", tb.id);
 	  aType(TDDT);
 	  aProp(tb.id);
+	  sbt.o=0;
+	  sAppend(&sbt, "d/dt(%s)", v);
 	  Free(v);
           xpn = d_get_child(pn,4);
           v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-	  sbt.o=0;
           if (!strcmp("~",v)){
             tb.idi[tb.id] = 1;
-	    sAppend(&sbt, "d/dt(%s)~", v);
+	    sAppendN(&sbt, "~", 1);
           } else {
 	    // Don't switch idi back to 0; Once the state is ignored,
 	    // keep it ignored.
-	    sAppend(&sbt, "d/dt(%s)=", v);
+	    sAppendN(&sbt, "=", 1);
 	  }
         }
         Free(v);
         continue;
       }
       if (nodeHas(der_rhs)) {
-        char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-        if (new_de(v)){
-          sprintf(buf,"Tried to use d/dt(%s) before it was defined",v);
-          trans_syntax_error_report_fn(buf);
-        } else {
-          sAppend(&sb, "__DDtStateVar__[%d]", tb.id);
-	  sAppend(&sbDt, "__DDtStateVar_%d__", tb.id);
-	  aType(TDDT);
-	  aProp(tb.id);
-          sAppend(&sbt, "d/dt(%s)", v);
-        }
-        Free(v);
+	switch(sbPm.lType[sbPm.n]){
+	case FBIO:
+	  trans_syntax_error_report_fn("Bioavailability cannot depend on state values.");
+	  break;
+	case ALAG:
+	  trans_syntax_error_report_fn("Absorption Lag-time cannot depend on state values.");
+	  break;
+	case RATE:
+	  trans_syntax_error_report_fn("Model-based rate cannot depend on state values.");
+	  break;
+	case DUR:
+	  trans_syntax_error_report_fn("Model-based duration cannot depend on state values.");
+	  break;
+	default:
+	  {
+	    char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+	    if (new_de(v)){
+	      sprintf(buf,"Tried to use d/dt(%s) before it was defined",v);
+	      trans_syntax_error_report_fn(buf);
+	    } else {
+	      if (sbPm.lType[sbPm.n] == TJAC){
+		sAppend(&sb,   "__DDtStateVar_%d__", tb.id);
+		sAppend(&sbDt, "__DDtStateVar_%d__", tb.id);
+	      } else {
+		sAppend(&sb, "__DDtStateVar__[%d]", tb.id);
+		sAppend(&sbDt, "__DDtStateVar_%d__", tb.id);
+		aType(TDDT);
+	      }
+	      aProp(tb.id);
+	      sAppend(&sbt, "d/dt(%s)", v);
+	    }
+	    Free(v);
+	  } 
+	}
+        
         continue;
       }
 
@@ -1742,8 +1775,12 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   sAppend(&sbOut, "extern SEXP %smodel_vars(){\n  int pro=0;\n", prefix);
   sAppend(&sbOut, "  SEXP _mv = PROTECT(_rxGetModelLib(\"%smodel_vars\"));pro++;\n", prefix);
   sAppendN(&sbOut, "  if (!_rxIsCurrentC(_mv)){\n", 28);
-  sAppendN(&sbOut, "    SEXP lst      = PROTECT(allocVector(VECSXP, 15));pro++;\n", 60);
-  sAppendN(&sbOut, "    SEXP names    = PROTECT(allocVector(STRSXP, 15));pro++;\n", 60);
+  sAppendN(&sbOut, "    SEXP lst      = PROTECT(allocVector(VECSXP, 16));pro++;\n", 60);
+  sAppendN(&sbOut, "    SEXP names    = PROTECT(allocVector(STRSXP, 16));pro++;\n", 60);
+  sAppendN(&sbOut, "    SEXP sNeedSort = PROTECT(allocVector(INTSXP,1));pro++;\n", 59);
+  sAppendN(&sbOut, "    int *iNeedSort  = INTEGER(sNeedSort);\n", 42);
+  sAppend(&sbOut, "    iNeedSort[0] = %d;\n", needSort);
+  
   sAppend(&sbOut, "    SEXP params   = PROTECT(allocVector(STRSXP, %d));pro++;\n",pi);
   sAppend(&sbOut, "    SEXP lhs      = PROTECT(allocVector(STRSXP, %d));pro++;\n",li);
   sAppend(&sbOut, "    SEXP state    = PROTECT(allocVector(STRSXP, %d));pro++;\n",statei);
@@ -1866,12 +1903,15 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
 
   sAppendN(&sbOut, "    SET_STRING_ELT(names,12,mkChar(\"normal.state\"));\n", 53);
   sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  12,normState);\n", 40);
+  
+  sAppendN(&sbOut, "    SET_STRING_ELT(names,13,mkChar(\"needSort\"));\n", 49);
+  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  13,sNeedSort);\n", 40);
 
-  sAppendN(&sbOut, "    SET_STRING_ELT(names,13,mkChar(\"timeId\"));\n", 47);
-  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  13,timeInt);\n", 38);
+  sAppendN(&sbOut, "    SET_STRING_ELT(names,14,mkChar(\"timeId\"));\n", 47);
+  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  14,timeInt);\n", 38);
 
-  sAppendN(&sbOut, "    SET_STRING_ELT(names,14,mkChar(\"md5\"));\n", 43);
-  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  14,mmd5);\n", 34);
+  sAppendN(&sbOut, "    SET_STRING_ELT(names,15,mkChar(\"md5\"));\n", 43);
+  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  15,mmd5);\n", 34);
 
   // const char *rxVersion(const char *what)
   
@@ -2030,49 +2070,47 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
       }
     } else if (show_ode == 5){
       if (foundF){
-	sAppend(&sbOut,  "// Functional based bioavailability\ndouble %sF(int _cSub,  int _cmt, double _amt, double t, double *__zzStateVar__){\n  double _f[%d]={1};\n  (void)_f;\n",
+	sAppend(&sbOut,  "// Functional based bioavailability (returns amount)\ndouble %sF(int _cSub,  int _cmt, double _amt, double t){\n  double _f[%d]={1};\n  (void)_f;\n",
 		prefix, tb.nd);
       } else {
-	sAppend(&sbOut,  "// Functional based bioavailability\ndouble %sF(int _cSub,  int _cmt, double _amt, double t, double *__zzStateVar__){\n return _amt;\n",
+	sAppend(&sbOut,  "// Functional based bioavailability\ndouble %sF(int _cSub,  int _cmt, double _amt, double t){\n return _amt;\n",
 		prefix);
       }
     } else if (show_ode == 6){
       if (foundLag){
-	sAppend(&sbOut,  "// Functional based absorption lag\ndouble %sLag(int _cSub,  int _cmt, double _amt, double t, double *__zzStateVar__){\n  double _alag[%d]={0};\n  (void)_alag;\n",
+	sAppend(&sbOut,  "// Functional based absorption lag\ndouble %sLag(int _cSub,  int _cmt, double t){\n  double _alag[%d]={0};\n  (void)_alag;\n",
 		prefix, tb.nd);
       } else {
-	sAppend(&sbOut,  "// Functional based absorption lag\ndouble %sLag(int _cSub,  int _cmt, double _amt, double t, double *__zzStateVar__){\n return t;\n",
+	sAppend(&sbOut,  "// Functional based absorption lag\ndouble %sLag(int _cSub,  int _cmt, double t){\n return t;\n",
 		prefix);
       }
     } else if (show_ode == 7){
       if (foundRate){
-	sAppend(&sbOut,  "// Modeled zero-order rate, returns duration\ndouble %sRate(int _cSub,  int _cmt, double _amt, double t, double *__zzStateVar__){\n  double _rate[%d]={0};\n  (void)_rate;\n",
+	sAppend(&sbOut,  "// Modeled zero-order rate\ndouble %sRate(int _cSub,  int _cmt, double _amt, double t){\n  double _rate[%d]={0};\n  (void)_rate;\n",
 		prefix, tb.nd);
       } else {
-	sAppend(&sbOut,  "// Modeled zero-order rate, returns duration\ndouble %sRate(int _cSub,  int _cmt, double _amt, double t, double *__zzStateVar__){\n return 0.0;\n",
+	sAppend(&sbOut,  "// Modeled zero-order rate\ndouble %sRate(int _cSub,  int _cmt, double _amt, double t){\n return 0.0;\n",
 		prefix);
       }
     } else if (show_ode == 8){
       if (foundDur){
-	sAppend(&sbOut,  "// Modeled zero-order duration, returns rate\ndouble %sDur(int _cSub,  int _cmt, double _amt, double t, double *__zzStateVar__){\n  double _dur[%d]={0};\n  (void)_dur;\n",
+	sAppend(&sbOut,  "// Modeled zero-order duration\ndouble %sDur(int _cSub,  int _cmt, double _amt, double t){\n  double _dur[%d]={0};\n  (void)_dur;\n",
 		prefix, tb.nd);
       } else {
-	sAppend(&sbOut,  "// Modeled zero-order duration, returns rate\ndouble %sDur(int _cSub,  int _cmt, double _amt, double t, double *__zzStateVar__){\n return 0.0;\n",
+	sAppend(&sbOut,  "// Modeled zero-order duration\ndouble %sDur(int _cSub,  int _cmt, double _amt, double t){\n return 0.0;\n",
 		prefix);
       }
     } else {
       sAppend(&sbOut,  "// prj-specific derived vars\nvoid %scalc_lhs(int _cSub, double t, double *__zzStateVar__, double *_lhs) {\n", prefix);
     }
-    if (found_print){
-      sAppendN(&sbOut, "\n  int __print_ode__ = 0, __print_vars__ = 0,__print_parm__ = 0,__print_jac__ = 0;\n", 83);
-    }
     if ((show_ode == 2 && found_jac == 1 && good_jac == 1) ||
-	(show_ode != 2 && show_ode != 3 && show_ode != 5 && show_ode != 6 && show_ode != 7 && show_ode != 8) ||
-	(show_ode == 5 && foundF) ||
-	(show_ode == 6 && foundLag) ||
+	(show_ode != 2 && show_ode != 3 && show_ode != 5  && show_ode != 8 &&
+	 show_ode !=0) ||
 	(show_ode == 7 && foundRate) ||
+	(show_ode == 6 && foundLag) ||
+	(show_ode == 5 && foundF) ||
 	(show_ode == 3 && foundF0) || 
-	(show_ode == 8 && foundDur)){
+	(show_ode == 0 && tb.li)){
       prnt_vars(0, 0, "  double ", "\n",show_ode);     /* declare all used vars */
       if (maxSumProdN > 0 || SumProdLD > 0){
 	int mx = maxSumProdN;
@@ -2089,34 +2127,40 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
       }
       if (show_ode == 3){
 	sAppendN(&sbOut, "  _update_par_ptr(0.0, _cSub, _solveData, _idx);\n", 49);
+      } else if (show_ode == 6 || show_ode == 7 || show_ode == 8){
+	sAppendN(&sbOut, "  _update_par_ptr(NA_REAL, _cSub, _solveData, _idx);\n", 53);
       } else {
 	sAppendN(&sbOut, "  _update_par_ptr(t, _cSub, _solveData, _idx);\n", 47);
       }
       prnt_vars(1, 1, "", "\n",show_ode);                   /* pass system pars */
-      for (i=0; i<tb.nd; i++) {                   /* name state vars */
-	retieve_var(tb.di[i], buf);
-	sAppendN(&sbOut, "  ", 2);
-	for (k = 0; k < (int)strlen(buf); k++){
-	  if (buf[k] == '.'){
-	    sAppendN(&sbOut, "_DoT_", 5);
-	    if (rx_syntax_allow_dots == 0){
-	      trans_syntax_error_report_fn(NODOT);
+      if (show_ode != 7 && show_ode != 5 &&
+	  show_ode != 6){
+	for (i=0; i<tb.nd; i++) {                   /* name state vars */
+	  retieve_var(tb.di[i], buf);
+	  sAppendN(&sbOut, "  ", 2);
+	  for (k = 0; k < (int)strlen(buf); k++){
+	    if (buf[k] == '.'){
+	      sAppendN(&sbOut, "_DoT_", 5);
+	      if (rx_syntax_allow_dots == 0){
+		trans_syntax_error_report_fn(NODOT);
+	      }
+	    } else {
+	      sPut(&sbOut, buf[k]);
 	    }
-	  } else {
-	    sPut(&sbOut, buf[k]);
 	  }
+	  sAppend(&sbOut, " = __zzStateVar__[%d];\n", i);
 	}
-	sAppend(&sbOut, " = __zzStateVar__[%d];\n", i);
+	sAppendN(&sbOut, "\n", 1);
       }
-      sAppendN(&sbOut, "\n", 1);
     }
     if ((foundDur && show_ode == 8) ||
 	(foundRate && show_ode == 7) ||
 	(foundLag && show_ode == 6) ||
 	(foundF && show_ode == 5) ||
 	(foundF0 && show_ode == 3) ||
+	(show_ode == 0 && tb.li) ||
 	(show_ode == 2 && found_jac == 1 && good_jac == 1) ||
-	(show_ode != 2 && show_ode != 3 && show_ode != 5 && show_ode != 6  && show_ode != 7 && show_ode != 8)){
+	(show_ode != 0 && show_ode != 2 && show_ode != 3 && show_ode != 5 && show_ode != 6  && show_ode != 7 && show_ode != 8)){
       for (i = 0; i < sbPm.n; i++){
 	switch(sbPm.lType[i]){
 	case TASSIGN:
@@ -2147,8 +2191,8 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 	  if (show_ode == 8) sAppend(&sbOut,"  %s", sbPmDt.line[i]);
 	  break;
 	case TJAC:
-	  // dfdy
-	  // FIXME this is slow.
+	  if (show_ode == 0) sAppend(&sbOut, "  %s", sbPmDt.line[i]);
+	  else if (show_ode == 2)  sAppend(&sbOut, "  %s", sbPm.line[i]);
 	  break;
 	case TDDT:
 	  // d/dt()
@@ -2157,92 +2201,11 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 	    sAppend(&sbOut, "  %s", show_ode == 1 ? sbPm.line[i] : sbPmDt.line[i]);
 	  }
 	  break;
-	case PFPRN:
-	  // full_print
-	  if (show_ode == 1){
-	    sAppendN(&sbOut, "  Rprintf(\"================================================================================\\n\");\n", 97);
-	    sAppendN(&sbOut, "  Rprintf(\"ODE Count: %%d\\tTime (t): %%f\\n\", (&_solveData->subjects[_cSub])->dadt_counter[0], t);\n", 98);
-	    sAppendN(&sbOut, "  Rprintf(\"================================================================================\\n\");\n", 97);
-	    sAppendN(&sbOut, "  __print_ode__ = 1;\n", 21);
-	    sAppendN(&sbOut, "  __print_vars__ = 1;\n", 22);
-	    sAppendN(&sbOut, "  __print_parm__ = 1;\n", 22);
-	    print_ode  = 1;
-	    print_vars = 1;
-	    print_parm = 1;
-	  } else if (show_ode == 2){
-	    sAppendN(&sbOut, "  Rprintf(\"================================================================================\\n\");\n", 97);
-	    sAppendN(&sbOut, "  Rprintf(\"JAC Count: %%d\\tTime (t): %%f\\n\",(&_solveData->subjects[_cSub])->jac_counter[0], t);\n", 96);
-	    sAppendN(&sbOut, "  Rprintf(\"================================================================================\\n\");\n", 97);
-	    sAppendN(&sbOut, "  __print_ode__ = 1;\n", 21);
-	    sAppendN(&sbOut, "  __print_jac__ = 1;\n", 21);
-	    sAppendN(&sbOut, "  __print_vars__ = 1;\n", 22);
-	    sAppendN(&sbOut, "  __print_parm__ = 1;\n", 22);
-	    print_ode  = 1;
-	    print_vars = 1;
-	    print_parm = 1;
-	    print_jac = 1;
-	  } else if (show_ode == 0){
-	    sAppendN(&sbOut, "  Rprintf(\"================================================================================\\n\");\n", 97);
-	    sAppendN(&sbOut, "  Rprintf(\"LHS Time (t): %%f\\n\",t);\n", 36);
-	    sAppendN(&sbOut, "  Rprintf(\"================================================================================\\n\");\n", 97);
-	    sAppendN(&sbOut, "  __print_vars__ = 1;\n", 22);
-	    sAppendN(&sbOut, "  __print_parm__ = 1;\n", 22);
-	    print_vars = 1;
-	    print_parm = 1;
-	  }
-	  break;
-	case PLHS:
-	  // print_lhs
-	  if (show_ode == 0){
-	    sAppendN(&sbOut, "  Rprintf(\"================================================================================\\n\");\n", 97);
-	    sAppendN(&sbOut, "  Rprintf(\"LHS Time (t): %%f\\n\",t);\n", 36);
-	    sAppendN(&sbOut, "  Rprintf(\"================================================================================\\n\");\n", 97);
-	    sAppendN(&sbOut, "  __print_vars__ = 1;\n", 22);
-	    sAppendN(&sbOut, "  __print_parm__ = 1;\n", 22);
-	    print_vars = 1;
-	    print_parm = 1;
-	  }
-	  break;
 	case PPRN:
 	  // Rprintf
 	  if (show_ode == 1){
 	    sAppend(&sbOut, "  %s", show_ode == 1 ? sbPm.line[i] : sbPmDt.line[i]);
 	  }
-	  break;
-	case PODE:
-	  // Print ODE
-	  if (show_ode == 1){
-	    sAppendN(&sbOut, "  Rprintf(\"================================================================================\\n\");\n", 97);
-	    sAppendN(&sbOut, "  Rprintf(\"ODE Count: %%d\\tTime (t): %%f\\n\", (&_solveData->subjects[_cSub])->dadt_counter[0], t);\n", 98);
-	    sAppendN(&sbOut, "  Rprintf(\"================================================================================\\n\");\n", 97);
-	    sAppendN(&sbOut, "  __print_ode__ = 1;\n", 21);
-	    sAppendN(&sbOut, "  __print_vars__ = 1;\n", 22);
-	    sAppendN(&sbOut, "  __print_parm__ = 1;\n", 22);
-	    print_ode  = 1;
-	    print_vars = 1;
-	    print_parm = 1;
-	  } 
-	  break;
-	case PODE0: // Print ODE at time zero
-	  break;
-	case PJAC:
-	  // Print Jacobian
-	  if (show_ode == 2){
-	    sAppendN(&sbOut, "  Rprintf(\"================================================================================\\n\");\n", 97);
-	    sAppendN(&sbOut, "  Rprintf(\"JAC Count: %%d\\tTime (t): %%f\\n\",(&_solveData->subjects[_cSub])->jac_counter[0], t);\n", 96);
-	    sAppendN(&sbOut, "  Rprintf(\"================================================================================\\n\");\n", 97);
-	    sAppendN(&sbOut, "  __print_ode__ = 1;\n", 21);
-	    sAppendN(&sbOut, "  __print_jac__ = 1;\n", 21);
-	    sAppendN(&sbOut, "  __print_vars__ = 1;\n", 22);
-	    sAppendN(&sbOut, "  __print_parm__ = 1;\n", 22);
-	    print_ode  = 1;
-	    print_vars = 1;
-	    print_parm = 1;
-	    print_jac = 1;
-	  }
-	  break;
-	case PJAC0:
-	  // Print Jacobian at time 0
 	  break;
 	case TLOGIC:
 	  sAppend(&sbOut,"  %s",show_ode == 1 ? sbPm.line[i] : sbPmDt.line[i]);
@@ -2255,12 +2218,12 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
       // End statements
       switch (show_ode){
       case 8:
-	// RATE = AMT/DUR
-	sAppendN(&sbOut, "\n  return (_dur[_cmt] == 0.0 ? 0.0 : _amt/_dur[_cmt]);\n", 55);
+	// RATE
+	sAppendN(&sbOut, "\n  return _dur[_cmt];\n", 22);
 	break;
       case 7:
-	// DUR = AMT/RATE
-	sAppendN(&sbOut, "\n  return (_rate[_cmt] == 0.0 ? 0.0 : _amt/_rate[_cmt]);\n", 57);
+	// DUR
+	sAppendN(&sbOut, "\n  return _rate[_cmt];\n", 23);
 	break;
       case 6:
 	// Alag
@@ -2336,7 +2299,7 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
       sAppendN(&sbOut,  "}\n", 2);
     } else if (show_ode == 5 || show_ode == 6 || show_ode == 7 || show_ode == 8){
       sAppendN(&sbOut,  "}\n", 2);
-    } else {
+    } else if (show_ode == 0 && tb.li){
       sAppendN(&sbOut,  "\n", 1);
       for (i=0, j=0; i<tb.nv; i++) {
 	if (tb.lh[i] != 1) continue;
@@ -2355,6 +2318,8 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 	sAppendN(&sbOut,  ";\n", 2);
 	j++;
       }
+      sAppendN(&sbOut,  "}\n", 2);
+    } else {
       sAppendN(&sbOut,  "}\n", 2);
     }
   }
@@ -2402,7 +2367,6 @@ void reset (){
   tb.isPi       = 0;
   // reset globals
   good_jac = 1;
-  found_print = 0;
   found_jac = 0;
   rx_syntax_error = 0;
   rx_suppress_syntax_info=0;
@@ -2587,8 +2551,12 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
   tb.li=li;
   
   int pro = 0;
-  SEXP lst   = PROTECT(allocVector(VECSXP, 13));pro++;
-  SEXP names = PROTECT(allocVector(STRSXP, 13));pro++;
+  SEXP lst   = PROTECT(allocVector(VECSXP, 14));pro++;
+  SEXP names = PROTECT(allocVector(STRSXP, 14));pro++;
+
+  SEXP sNeedSort = PROTECT(allocVector(INTSXP,1));pro++;
+  int *iNeedSort  = INTEGER(sNeedSort);
+  iNeedSort[0] = needSort;
   
   SEXP tran  = PROTECT(allocVector(STRSXP, 18));pro++;
   SEXP trann = PROTECT(allocVector(STRSXP, 18));pro++;
@@ -2760,6 +2728,9 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
 
   SET_STRING_ELT(names,12,mkChar("normal.state"));
   SET_VECTOR_ELT(lst,  12,normState);
+  
+  SET_STRING_ELT(names,13,mkChar("needSort"));
+  SET_VECTOR_ELT(lst,  13,sNeedSort);
 
   sprintf(buf,"%.*s", (int)strlen(model_prefix)-1, model_prefix);
   SET_STRING_ELT(trann,0,mkChar("lib.name"));

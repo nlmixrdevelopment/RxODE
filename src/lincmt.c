@@ -6,6 +6,8 @@
 #include <R_ext/Rdynload.h>
 #include "../inst/include/RxODE.h"
 
+void getWh(int evid, int *wh, int *cmt, int *wh100, int *whI, int *wh0);
+
 // Linear compartment models/functions
 
 static inline int _locateDoseIndex(const double obs_time,  rx_solving_options_ind *ind){
@@ -75,32 +77,22 @@ double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt, int diff1,
   oral = (ka > 0) ? 1 : 0;
   double ret = 0,cur=0, tmp=0;
   unsigned int m = 0, l = 0, p = 0;
-  int evid, evid100;
+  int evid, wh, wh100, whI, wh0;
   double thisT = 0.0, tT = 0.0, res, t1, t2, tinf, dose = 0;
   double rate;
   rx_solving_options_ind *ind = &(rx->subjects[id]);
-  if (ind->ndoses < 0){
-    ind->ndoses=0;
-    for (unsigned int i = 0; i < ind->n_all_times; i++){
-      if (ind->evid[i]){
-        ind->ndoses++;
-        ind->idose[ind->ndoses-1] = i;
-      }
-    }
-  }
   m = _locateDoseIndex(t, ind);
   int ndoses = ind->ndoses;
   for(l=m+1; l--;){// Optimized for loop as https://www.thegeekstuff.com/2015/01/c-cpp-code-optimization/
     cur=0;
     //superpostion
     evid = ind->evid[ind->idose[l]];
+    if (evid == 3) return ret; // Was a reset event.
+    getWh(evid, &wh, &cmt, &wh100, &whI, &wh0);
     dose = ind->dose[l];
-    // Support 100+ compartments...
-    evid100 = floor(evid/1e5);
-    evid = evid- evid100*1e5;
-    cmt = (evid%10000)/100 - 1 + 100*evid100;
     if (cmt != linCmt) continue;
-    if (evid > 10000) {
+    switch(whI){
+    case 1:
       if (dose > 0){
         // During infusion
         tT = t - ind->all_times[ind->idose[l]] ;
@@ -139,7 +131,8 @@ double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt, int diff1,
           cur +=  rate*C*gamma1*(1.0-exp(-gamma*t1))*exp(-gamma*t2);
         }
       }
-    } else {
+      break;
+    default:
       tT = t - ind->all_times[ind->idose[l]];
       thisT = tT -tlag;
       if (thisT < 0) continue;
@@ -151,6 +144,7 @@ double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt, int diff1,
           cur += dose*C*(exp(-gamma*thisT)-res);
         }
       }
+      break;
     }
     // Since this starts with the most recent dose, and then goes
     // backward, you can use a tolerance calcuation to exit the loop
@@ -181,9 +175,37 @@ double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt, int diff1,
 /* Changed as follows:
    - Different Name
    - Use RxODE structure
-   - Make inline
+   - Use getTime to allow model-based changes to dose timing
+   - Use getValue to ignore NA values for time-varying covariates
+
 */
-double rx_approxP(double v, double *x, double *y, int n,
+extern double getTime(int idx, rx_solving_options_ind *ind);
+static inline double getValue(int idx, double *y, rx_solving_options_ind *ind){
+  int i = idx;
+  double ret = y[ind->ix[idx]];
+  if (ISNA(ret)){
+    // Go backward.
+    while (ISNA(ret) && i != 0){
+      i--; ret = y[ind->ix[i]];
+    }
+    if (ISNA(ret)){
+      // Still not found go forward.
+      i = idx;
+      while (ISNA(ret) && i != ind->n_all_times){
+	i++; ret = y[ind->ix[i]];
+      }
+      if (ISNA(ret)){
+	// All Covariates values for a single individual are NA.
+	ind->allCovWarn=1;
+      }
+    }
+    /* Rprintf("NA->%f for id=%d\n", ret, ind->id); */
+  }
+  return ret;
+}
+#define T(i) getTime(id->ix[i], id)
+#define V(i) getValue(i, y, id)
+double rx_approxP(double v, double *y, int n,
 		  rx_solving_options *Meth, rx_solving_options_ind *id){
   /* Approximate  y(v),  given (x,y)[i], i = 0,..,n-1 */
   int i, j, ij;
@@ -194,57 +216,81 @@ double rx_approxP(double v, double *x, double *y, int n,
   j = n - 1;
 
   /* handle out-of-domain points */
-  if(v < x[i]) return id->ylow;
-  if(v > x[j]) return id->yhigh;
+  if(v < T(i)) return id->ylow;
+  if(v > T(j)) return id->yhigh;
 
   /* find the correct interval by bisection */
-  while(i < j - 1) { /* x[i] <= v <= x[j] */
+  while(i < j - 1) { /* T(i) <= v <= T(j) */
     ij = (i + j)/2; /* i+1 <= ij <= j-1 */
-    if(v < x[ij]) j = ij; else i = ij;
+    if(v < T(ij)) j = ij; else i = ij;
     /* still i < j */
   }
   /* provably have i == j-1 */
 
   /* interpolation */
 
-  if(v == x[j]) return y[j];
-  if(v == x[i]) return y[i];
-  /* impossible: if(x[j] == x[i]) return y[i]; */
+  if(v == T(j)) return V(j);
+  if(v == T(i)) return V(i);
+  /* impossible: if(T(j) == T(i)) return V(i); */
 
-  if(Meth->kind == 1) /* linear */
-    return y[i] + (y[j] - y[i]) * ((v - x[i])/(x[j] - x[i]));
-  else /* 2 : constant */
-    return (Meth->f1 != 0.0 ? y[i] * Meth->f1 : 0.0)
-      + (Meth->f2 != 0.0 ? y[j] * Meth->f2 : 0.0);
+  if(Meth->kind == 1){ /* linear */
+    return V(i) + (V(j) - V(i)) * ((v - T(i))/(T(j) - T(i)));
+  } else { /* 2 : constant */
+    return (Meth->f1 != 0.0 ? V(i) * Meth->f1 : 0.0)
+      + (Meth->f2 != 0.0 ? V(j) * Meth->f2 : 0.0);
+  }
 }/* approx1() */
+
+#undef T
 
 /* End approx from R */
 
 
 void _update_par_ptr(double t, unsigned int id, rx_solve *rx, int idx){
-  rx_solving_options_ind *ind;
-  ind = &(rx->subjects[id]);
-  rx_solving_options *op = rx->op;
-  if (op->neq > 0){
-    // Update all covariate parameters
-    int k;
-    int ncov = op->ncov;
-    if (op->do_par_cov){
-      for (k = ncov; k--;){
-        if (op->par_cov[k]){
-	  double *par_ptr = ind->par_ptr;
-          double *all_times = ind->all_times;
-          double *cov_ptr = ind->cov_ptr;
-	  if (idx > 0 && idx < ind->n_all_times && t == all_times[idx]){
-	    par_ptr[op->par_cov[k]-1] = cov_ptr[ind->n_all_times*k+idx];
-	  } else {
-            // Use the same methodology as approxfun.
-            ind->ylow = cov_ptr[ind->n_all_times*k];
-            ind->yhigh = cov_ptr[ind->n_all_times*k+ind->n_all_times-1];
-            par_ptr[op->par_cov[k]-1] = rx_approxP(t, all_times, cov_ptr+ind->n_all_times*k, ind->n_all_times, op, ind);
+  if (rx == NULL) error("solve data is not loaded.");
+  if (ISNA(t)){
+    rx_solving_options_ind *ind;
+    ind = &(rx->subjects[id]);
+    rx_solving_options *op = rx->op;
+    if (op->neq > 0){
+      // Update all covariate parameters
+      int k;
+      int ncov = op->ncov;
+      if (op->do_par_cov){
+	for (k = ncov; k--;){
+	  if (op->par_cov[k]){
+	    double *y = ind->cov_ptr + ind->n_all_times*k;
+	    ind->par_ptr[op->par_cov[k]-1] = getValue(idx, y, ind);
 	  }
-        }
+	}
+      }
+    }
+  } else {
+    rx_solving_options_ind *ind;
+    ind = &(rx->subjects[id]);
+    rx_solving_options *op = rx->op;
+    if (op->neq > 0){
+      // Update all covariate parameters
+      int k;
+      int ncov = op->ncov;
+      if (op->do_par_cov){
+	for (k = ncov; k--;){
+	  if (op->par_cov[k]){
+	    double *par_ptr = ind->par_ptr;
+	    double *all_times = ind->all_times;
+	    double *y = ind->cov_ptr + ind->n_all_times*k;
+	    if (idx > 0 && idx < ind->n_all_times && t == all_times[idx]){
+	      par_ptr[op->par_cov[k]-1] = getValue(idx, y, ind);
+	    } else {
+	      // Use the same methodology as approxfun.
+	      ind->ylow = getValue(0, y, ind);/* cov_ptr[ind->n_all_times*k]; */
+	      ind->yhigh = getValue(ind->n_all_times-1, y, ind);/* cov_ptr[ind->n_all_times*k+ind->n_all_times-1]; */
+	      par_ptr[op->par_cov[k]-1] = rx_approxP(t, y, ind->n_all_times, op, ind);
+	    }
+	  }
+	}
       }
     }
   }
 }
+#undef V

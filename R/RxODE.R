@@ -1273,7 +1273,6 @@ rxCompile.rxModelVars <-  function(model, # Model
                 stop(msg, call.=FALSE);
             }
             if (!(.out$status==0 & file.exists(.cDllFile))){
-                .out <- c(sys::exec_internal(.cmd, args=.args, error=FALSE), list(sys=TRUE));
                 .badBuild("Error building model");
             }
             .tmp <- try(dynLoad(.cDllFile));
