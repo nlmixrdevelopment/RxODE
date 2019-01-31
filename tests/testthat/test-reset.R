@@ -1,9 +1,10 @@
 rxPermissive({
 
-    library(dplyr)
     context("Test reset event EVID=3")
 
     ## 6.1
+    library(dplyr)
+
     mod <- RxODE({
         a = 6
         b = 0.6

@@ -316,25 +316,30 @@ void updateRate(int idx, rx_solving_options_ind *ind){
     // Hasn't been calculated yet.
     int j;
     // Find the amount
-    for (j = 0; j < ind->ndoses; j++){
-      if (ind->idose[j] == idx) break;
+    // bisection https://en.wikipedia.org/wiki/Binary_search_algorithm
+    int l = 0, r = ind->ndoses-1, m;
+    while(l <= r){
+      m = floor((l+r)/2);
+      if (ind->idose[m] < idx) l = m+1;
+      else if (ind->idose[m] > idx) r = m-1;
+      else break;
     }
-    if (j == ind->ndoses){
-      // error went past the number of doses.
-      error("Went past the # doses\n");
+    if (ind->idose[m] == idx){
+      j=m;
     } else {
-      double dur, rate, amt;
-      amt  = AMT(ind->id, ind->cmt, ind->dose[j], t);
-      rate  = RATE(ind->id, ind->cmt, amt, t);
-      if (rate > 0){
-	dur = amt/rate;// mg/hr
-	ind->dose[j+1] = -rate;
-	ind->all_times[idx+1]=t+dur;
-	ind->idx=oldIdx;
-      } else {
-	error("Rate is zero/negative");
-	// error rate is zero/negative
-      }
+      error("Corrupted event table during sort (1).");
+    }
+    double dur, rate, amt;
+    amt  = AMT(ind->id, ind->cmt, ind->dose[j], t);
+    rate  = RATE(ind->id, ind->cmt, amt, t);
+    if (rate > 0){
+      dur = amt/rate;// mg/hr
+      ind->dose[j+1] = -rate;
+      ind->all_times[idx+1]=t+dur;
+      ind->idx=oldIdx;
+    } else {
+      error("Rate is zero/negative");
+      // error rate is zero/negative
     }
   }
 }
@@ -347,25 +352,31 @@ void updateDur(int idx, rx_solving_options_ind *ind){
     // Hasn't been calculated yet.
     int j;
     // Find the amount
-    for (j = 0; j < ind->ndoses; j++){
-      if (ind->idose[j] == idx) break;
+    // Find the amount
+    // bisection https://en.wikipedia.org/wiki/Binary_search_algorithm
+    int l = 0, r = ind->ndoses-1, m;
+    while(l <= r){
+      m = floor((l+r)/2);
+      if (ind->idose[m] < idx) l = m+1;
+      else if (ind->idose[m] > idx) r = m-1;
+      else break;
     }
-    if (j == ind->ndoses){
-      // error went past the number of doses.
-      error("Went past the # doses\n");
+    if (ind->idose[m] == idx){
+      j=m;
     } else {
-      double dur, rate, amt;
-      amt  = AMT(ind->id, ind->cmt, ind->dose[j], t);
-      dur  = DUR(ind->id, ind->cmt, amt, t);
-      if (dur > 0){
-	rate = amt/dur;// mg/hr
-	ind->dose[j+1] = -rate;
-	ind->all_times[idx+1]=t+dur;
-	ind->idx=oldIdx;
-      } else {
-	error("Duration is zero/negative");
-	// error rate is zero/negative
-      }
+      error("Corrupted event table during sort (2).");
+    }
+    double dur, rate, amt;
+    amt  = AMT(ind->id, ind->cmt, ind->dose[j], t);
+    dur  = DUR(ind->id, ind->cmt, amt, t);
+    if (dur > 0){
+      rate = amt/dur;// mg/hr
+      ind->dose[j+1] = -rate;
+      ind->all_times[idx+1]=t+dur;
+      ind->idx=oldIdx;
+    } else {
+      error("Duration is zero/negative");
+      // error rate is zero/negative
     }
   }
 }
@@ -465,7 +476,21 @@ int handle_evid(int evid, int neq,
       }
     } else {
       if (ind->ix[ind->idx] != ind->idose[ind->ixds]){
-	// Need to adjust ixds
+	// bisection https://en.wikipedia.org/wiki/Binary_search_algorithm
+	int l = 0, r = ind->ndoses-1, m;
+	while(l <= r){
+	  m = floor((l+r)/2);
+	  if (ind->idose[m] < ind->ix[ind->idx]) l = m+1;
+	  else if (ind->idose[m] > ind->ix[ind->idx]) r = m-1;
+	  else break;
+	}
+	if (ind->idose[m] == ind->ix[ind->idx]){
+	  ind->ixds=m;
+	} else {
+	  error("Corrupted event table; EVID=%d: %d %d %d", evid, ind->idose[m], ind->ix[ind->idx],
+		ind->idx);
+	}
+	// Need to adjust ixdsr
 	for(j = ind->ixds; j--;){
 	  if (ind->ix[ind->idx] == ind->idose[j]){
 	    ind->ixds = j;
@@ -596,6 +621,7 @@ extern void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda_opt
       }
     }
     if (!op->badSolve){
+      ind->idx = i;
       if (ind->evid[ind->ix[i]] == 3){
 	for (j = neq[0]; j--;) ind->InfusionRate[j] = 0;
 	memcpy(yp,inits, neq[0]*sizeof(double));
@@ -982,10 +1008,10 @@ extern void ind_lsoda0(rx_solve *rx, rx_solving_options *op, int solveid, int *n
   if (rx->needSort) doSort(ind);
   unsigned int j;
   for(i=0; i < ind->n_all_times; i++) {
+    ind->idx=i;
     xout = getTime(ind->ix[i], ind);
     yp   = ind->solve+neq[0]*i;
     if(ind->evid[ind->ix[i]] != 3 && xout - xp > DBL_EPSILON*max(fabs(xout),fabs(xp))) {
-      ind->idx=i;
       F77_CALL(dlsoda)(dydt_lsoda, neq, yp, &xp, &xout, &itol, &(op->RTOL), &(op->ATOL), &itask,
 		       &istate, &iopt, rwork, &lrw, iwork, &liw, jdum, &jt);
 
@@ -1138,6 +1164,7 @@ extern void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int *neq
   //--- inits the system
   unsigned int j;
   for(i=0; i<nx; i++) {
+    ind->idx=i;
     xout = getTime(ind->ix[i], ind);
     yp = &ret[neq[0]*i];
     if (global_debug){
@@ -1145,7 +1172,6 @@ extern void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int *neq
     }
     if(ind->evid[ind->ix[i]] != 3 && xout-xp>DBL_EPSILON*max(fabs(xout),fabs(xp)))
       {
-        ind->idx=i;
         idid = dop853(neq,       /* dimension of the system <= UINT_MAX-1*/
                       c_dydt,       /* function computing the value of f(x,y) */
                       xp,           /* initial x-value */
@@ -1711,6 +1737,13 @@ extern void rxSolveOldC(int *neqa,
   ind->idose = gidoseSetup(*ntime);
   ind->id = -1;
   ind->sim = -1;
+  ind->ndoses=0;
+  for (unsigned int i = 0; i < ind->n_all_times; i++){
+    if (isDose(ind->evid[i])){
+      ind->ndoses++;
+      ind->idose[ind->ndoses-1] = i;
+    }
+  }
   
   op->badSolve=0;
   op->ATOL = *atol;
@@ -1768,9 +1801,9 @@ extern void rxSolveOldC(int *neqa,
   if (rx->needSort) doSort(ind);
   if (*nlhsa) {
     for (i=0; i<*ntime; i++){
+      ind->idx = i;
       if (ind->evid[ind->ix[i]]) ind->tlast = getTime(ind->ix[i], ind);
       // 0 = first subject; Calc lhs changed...
-      ind->idx = i;
       calc_lhs(0, getTime(ind->ix[i], ind), retp+i*(*neqa), lhsp+i*(*nlhsa));
     }
   }
