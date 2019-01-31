@@ -631,134 +631,98 @@ extern void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda_opt
 	ind->ixds++;
       } else if (handle_evid(evid[ind->ix[i]], neq[0], BadDose, InfusionRate, dose, yp,
 			     op->do_transit_abs, xout, neq[1], ind)){
-	switch (ind->wh0){
-	case 20: //SS=2
-	case 10: //SS=1
-	  if (ind->ii[ind->ixds] != 0){
+	if ((ind->wh0 == 20 || ind->wh0 == 10) &&
+	    ind->ii[ind->ixds-1] > 0){
+	  if (ind->whI == 0){
+	    ind->ixds--; // This dose stays in place
+	    // Oral SS
+	    if (ind->wh0 == 20){
+	      // FIXME
+	      // Save for adding at the end
+	    }
 	    // First Reset
+	    for (j = neq[0]; j--;) ind->InfusionRate[j] = 0;
 	    memcpy(yp,inits, neq[0]*sizeof(double));
 	    u_inis(neq[1], yp); // Update initial conditions @ current time
-	    ind->ixds--; // keep this dose.
-	    double xout2, xp2, curSum, lastSum;
 	    int k;
-	    xp2 = xout;
-	    // yp at the beginning is y0
-	    double dur = -1;
-	    int wh, cmt, wh100, whI, wh0;
-	    switch(ind->whI){
-	    case 0:  // Oral dose
-	      for (j = 0; j < op->maxSS; j++){
-		xout2 = xp2+ind->ii[ind->ixds];
-		// Use "real" xout for handle_evid functions.
-		handle_evid(evid[ind->ix[i]], neq[0], BadDose, InfusionRate, dose, yp,
-			    op->do_transit_abs, xout, neq[1], ind);
-		// yp is last solve or y0
-		lsoda(&ctx, yp, &xp2, xout2);
-		ind->ixds--; // This dose stays in place
-		if (j == op->minSS -1){
-		  lastSum =0.0;
-		  for (k = neq[0]; k--;) lastSum += fabs(yp[k]);
-		} else if (j >= op->minSS){
-		  curSum = 0.0;
-		  for (k = neq[0]; k--;) curSum += fabs(yp[k]);
-		  if (fabs(curSum-lastSum) < op->rtolSS*fabs(curSum) + op->atolSS){
-		    break;
-		  }
-		  lastSum=curSum;
-		}
-		ctx.state=1;
-		xp2 = xout2;
-	      }
+	    double curSum, lastSum, xp2, xout2;
+	    ctx.state=1;
+	    xp2 = xp;
+	    for (j = 0; j < op->maxSS; j++){
+	      xout2 = xp2+ind->ii[ind->ixds];
+	      // Use "real" xout for handle_evid functions.
 	      handle_evid(evid[ind->ix[i]], neq[0], BadDose, InfusionRate, dose, yp,
 			  op->do_transit_abs, xout, neq[1], ind);
+	      // yp is last solve or y0
+	      lsoda(&ctx, yp, &xp2, xout2);
+	      ind->ixds--; // This dose stays in place
+	      if (j == op->minSS -1){
+		lastSum =0.0;
+		for (k = neq[0]; k--;) lastSum += fabs(yp[k]);
+	      } else if (j >= op->minSS){
+		curSum = 0.0;
+		for (k = neq[0]; k--;) curSum += fabs(yp[k]);
+		if (fabs(curSum-lastSum) < op->rtolSS*fabs(curSum) + op->atolSS){
+		  break;
+		}
+		lastSum=curSum;
+	      }
 	      ctx.state=1;
-	      xp = xout;
-	      break;// End Bolus
-	    case 1: // Non modeled Infusion
-	      // Need do find the duration
-	      // Goto the next cases
-	      for (j = ind->ixds; j < ind->ndoses; j++){
-		//
+	      xp2 = xout2;
+	    }
+	    if (ind->wh0 == 20){
+	      // FIXME
+	      // Add at the end
+	    }
+	    handle_evid(evid[ind->ix[i]], neq[0], BadDose, InfusionRate, dose, yp,
+			op->do_transit_abs, xout, neq[1], ind);
+	  } else if (ind->whI == 1 || ind->whI == 9 || ind->whI == 8){
+	    ind->ixds--; // This dose stays in place
+	    int idNow = i, idDur;
+	    // Infusion SS
+	    if (ind->wh0 == 20){
+	      // FIXME
+	      // Save for adding at the end
+	    }
+	    double dur;
+	    if (ind->whI == 1){
+	      // Find the next fixed length infusion that is turned off.
+	      for (j = ind->ixds+1; j < ind->ndoses; j++){
 		if (ind->dose[j] == -ind->dose[ind->ixds]){
 		  getWh(ind->evid[ind->idose[j]], &wh, &cmt, &wh100, &whI, &wh0);
 		  if (whI == 1 && cmt == ind->cmt){
-		    dur = ind->all_times[j] - ind->all_times[ind->ix[i]];
-		    wh = j;
-		    wh0 = ind->ixds;
+		    dur = ind->all_times[ind->idose[j]] - ind->all_times[ind->ix[i]];
+		    idDur = j;
+		    break;
 		  }
 		}
 	      }
-	    default:
-	      break;
-	    case 9: // Modeled rate
-	    case 8: // Modeled duration
-	      if (dur < 0){
-		// Get the duration from the next data item; This was
-		// calculated and stored in getTime()
-		dur = ind->all_times[ind->ix[i]+1] - ind->all_times[ind->ix[i]];
-		wh  = ind->ixds+1;
-		wh0 = ind->ixds;
-	      }
-	      if (dur > ind->ii[ind->ixds]){
+	    } else {
+	      // These are right next to another.
+	      dur = ind->all_times[ind->idose[ind->ixds+1]] - ind->all_times[ind->idose[ind->ixds]];
+	    }
+	    if (dur > ind->ii[ind->ixds]){
 		for (j = neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
 		op->badSolve = 1;
 		i = nx+42; // Get out of here!
 		ind->wrongSSDur=1;
-	      } else {
-		// OK right dur, solve to steady state.
-		Rprintf("matt: %f %f", dur, ind->ii[ind->ixds]);
-		for (j = 0; j < op->maxSS; j++){
-		  xout2 = xp2+dur;//ind->ii[ind->ixds];
-		  ind->idx=ind->idose[wh0];
-		  ind->ixds=wh0;
-		  // Use "real" xout for handle_evid functions.
-		  // Turn on infusion
-		  handle_evid(evid[ind->ix[i]], neq[0], BadDose, InfusionRate, dose, yp,
-			      op->do_transit_abs, xout, neq[1], ind);
-		  // Solve at x+dur
-		  lsoda(&ctx, yp, &xp2, xout2);
-		  ind->idx=ind->idose[wh];
-		  ind->ixds=wh;
-		  xout2 = xp2+ind->ii[ind->ixds];
-		  lsoda(&ctx, yp, &xp2, xout2);
-		  xp2 = xp2 + dur;
-		  ctx.state=1;
-		  // Use xout + dur for time in handling id.
-		  handle_evid(evid[ind->idx], neq[0], BadDose, InfusionRate, dose, yp,
-			      op->do_transit_abs, xout+dur, neq[1], ind);
-
-		  // Solve at x+ii
-		  lsoda(&ctx, yp, &xp2, xout2);
-		  xp2 = xout2;
-		  ctx.state=1;
-		  // Check for SS convergence
-		  if (j == op->minSS -1){
-		    lastSum =0.0;
-		    for (k = neq[0]; k--;) lastSum += fabs(yp[k]);
-		  } else if (j >= op->minSS){
-		    curSum = 0.0;
-		    for (k = neq[0]; k--;) curSum += fabs(yp[k]);
-		    if (fabs(curSum-lastSum) < op->rtolSS*fabs(curSum) + op->atolSS){
-		      break;
-		    }
-		    lastSum=curSum;
-		  }
-		}
+	    } else {
+	      // First Reset
+	      for (j = neq[0]; j--;) ind->InfusionRate[j] = 0;
+	      memcpy(yp,inits, neq[0]*sizeof(double));
+	      u_inis(neq[1], yp); // Update initial conditions @ current time
+	      int k;
+	      double curSum, lastSum, xp2, xout2;
+	      ctx.state=1;
+	      xp2 = xp;
+	      for (j = 0; j < op->maxSS; j++){
+		// x + dur
 	      }
 	    }
-	    ind->idx=ind->idose[wh0];
-	    ind->ixds=wh0;
-	    handle_evid(evid[ind->ix[i]], neq[0], BadDose, InfusionRate, dose, yp,
-			  op->do_transit_abs, xout, neq[1], ind);
-	    ctx.state=1;
-	    xp = xout;
-	    break;
-	  } // End 10 or SS=1
-	  break;
-	default:
-	  ctx.state = 1;
-	  xp = xout;
+	  }
 	}
+	ctx.state = 1;
+	xp = xout;
       }
       if (i+1 != nx) memcpy(ret+neq[0]*(i+1), yp, neq[0]*sizeof(double));
       ind->slvr_counter[0]++; // doesn't need do be critical; one subject at a time.
