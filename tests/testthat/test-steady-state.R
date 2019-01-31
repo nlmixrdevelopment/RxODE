@@ -47,7 +47,7 @@ rxPermissive({
     et <- eventTable(time.units="days")
     et$add.sampling(seq(0,10,by=1/24))
     et$add.dosing(dose=2/24,rate=2,start.time=0,
-                  nbr.doses=2,dosing.interval=1)
+                  nbr.doses=10,dosing.interval=0.4)
 
     mod <- RxODE({
         a = 6
@@ -59,15 +59,18 @@ rxPermissive({
     et <- et$get.EventTable()
 
     x2 <- solve(mod, et)
-
-    w <- with(et,which(evid !=0 & amt==2))[2]
-    et$evid[w] <- 10110
-    et$ii <- 0;
-    et$ii[w] <- 1;
-
-    x2 <- solve(mod, et)
+    library(ggplot2); x2 %>% ggplot(aes(time, intestine)) + geom_line()
 
     library(ggplot2); x2 %>% ggplot(aes(time, blood)) + geom_line()
+
+
+    ## w <- with(et,which(evid !=0 & amt==2))[2]
+    w <- 1;
+    et$evid[w] <- 10110
+    et$ii <- 0;
+    et$ii[w] <- 0.4;
+
+    x2 <- solve(mod, et)
 
     library(ggplot2); x2 %>% ggplot(aes(time, intestine)) + geom_line()
 
