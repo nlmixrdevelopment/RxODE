@@ -555,6 +555,20 @@ int checkInterrupt() {
   return (R_ToplevelExec(chkIntFn, NULL) == FALSE);
 }
 
+static char *err_msg_ls[]=
+    {
+      "excess work done on this call (perhaps wrong jt).",
+      "excess accuracy requested (tolerances too small).",
+      "illegal input detected (see printed message).",
+      "repeated error test failures (check all inputs).",
+      "repeated convergence failures (perhaps bad jacobian supplied or wrong choice of jt or tolerances).",
+      "error weight became zero during problem. (solution component i vanished, and atol or atol(i) = 0.)",
+      "work space insufficient to finish (see messages)."
+    };
+
+//dummy solout fn
+void solout(long int nr, double t_old, double t, double *y, int *nptr, int *irtrn){}
+
 void handleSS(int *neq, 
 	      int *BadDose,
 	      double *InfusionRate,
@@ -568,7 +582,7 @@ void handleSS(int *neq,
 	      rx_solving_options_ind *ind,
 	      t_update_inis u_inis,
 	      void *ctx){
-  int j;
+  int j, idid;
   if ((ind->wh0 == 20 || ind->wh0 == 10) &&
       ind->ii[ind->ixds-1] > 0){
     ind->ixds--; // This dose stays in place
@@ -617,14 +631,68 @@ void handleSS(int *neq,
 	switch(op->stiff){
 	case 2:
 	  lsoda(ctx, yp, &xp2, xout2);
+	  if (*istate <= 0) {
+	    REprintf("IDID=%d, %s\n", *istate, err_msg_ls[-(*istate)-1]);
+	    ind->rc[0] = *istate;
+	    // Bad Solve => NA
+	    for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
+	    op->badSolve = 1;
+	    *i = ind->n_all_times+42; // Get out of here!
+	    j=op->maxSS;
+	    break;
+	  }
 	  break;
 	case 1:
 	  F77_CALL(dlsoda)(dydt_lsoda_dum, neq, yp, &xp2, &xout2,
 			   &gitol, &(op->RTOL), &(op->ATOL), &gitask,
 			   istate, &giopt, global_rworkp,
 			   &glrw, global_iworkp, &gliw, jdum_lsoda, &global_jt);
+	  if (*istate <= 0) {
+	    REprintf("IDID=%d, %s\n", *istate, err_msg_ls[-(*istate)-1]);
+	    ind->rc[0] = *istate;
+	    // Bad Solve => NA
+	    for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
+	    op->badSolve = 1;
+	    *i = ind->n_all_times+42; // Get out of here!
+	    j=op->maxSS;
+	    break;
+	  }
 	  break;
 	case 0:
+	  idid = dop853(neq,       /* dimension of the system <= UINT_MAX-1*/
+			dydt,       /* function computing the value of f(x,y) */
+			xp2,           /* initial x-value */
+			yp,           /* initial values for y */
+			xout2,         /* final x-value (xend-x may be positive or negative) */
+			&(op->RTOL),          /* relative error tolerance */
+			&(op->ATOL),          /* absolute error tolerance */
+			gitol,         /* switch for rtoler and atoler */
+			solout,         /* function providing the numerical solution during integration */
+			0,         /* switch for calling solout */
+			NULL,           /* messages stream */
+			DBL_EPSILON,    /* rounding unit */
+			0,              /* safety factor */
+			0,              /* parameters for step size selection */
+			0,
+			0,              /* for stabilized step size control */
+			0,              /* maximal step size */
+			0,            /* initial step size */
+			0,            /* maximal number of allowed steps */
+			1,            /* switch for the choice of the coefficients */
+			-1,                     /* test for stiffness */
+			0,                      /* number of components for which dense outpout is required */
+			NULL,           /* indexes of components for which dense output is required, >= nrdens */
+			0                       /* declared length of icon */
+			);
+	  if (idid < 0) {
+	    ind->rc[0] = idid;
+	    // Bad Solve => NA
+	    for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
+	    op->badSolve = 1;
+	    *i = ind->n_all_times+42; // Get out of here!
+	    j=op->maxSS;
+	    break;
+	  }
 	  break;
 	}	
 	ind->ixds--; // This dose stays in place
@@ -665,14 +733,68 @@ void handleSS(int *neq,
 	  switch(op->stiff){
 	  case 2:
 	    lsoda(ctx, yp, &xp2, xout2);
+	    if (*istate <= 0) {
+	      REprintf("IDID=%d, %s\n", *istate, err_msg_ls[-(*istate)-1]);
+	      ind->rc[0] = *istate;
+	      // Bad Solve => NA
+	      for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
+	      op->badSolve = 1;
+	      *i = ind->n_all_times+42; // Get out of here!
+	      j=op->maxSS;
+	      break;
+	    }
 	    break;
 	  case 1:
 	    F77_CALL(dlsoda)(dydt_lsoda_dum, neq, yp, &xp2, &xout2,
 			     &gitol, &(op->RTOL), &(op->ATOL), &gitask,
 			     istate, &giopt, global_rworkp,
 			     &glrw, global_iworkp, &gliw, jdum_lsoda, &global_jt);
+	    if (*istate <= 0) {
+	      REprintf("IDID=%d, %s\n", *istate, err_msg_ls[-(*istate)-1]);
+	      ind->rc[0] = *istate;
+	      // Bad Solve => NA
+	      for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
+	      op->badSolve = 1;
+	      *i = ind->n_all_times+42; // Get out of here!
+	      j=op->maxSS;
+	      break;
+	    }
 	    break;
 	  case 0:
+	    idid = dop853(neq,       /* dimension of the system <= UINT_MAX-1*/
+			  dydt,       /* function computing the value of f(x,y) */
+			  xp2,           /* initial x-value */
+			  yp,           /* initial values for y */
+			  xout2,         /* final x-value (xend-x may be positive or negative) */
+			  &(op->RTOL),          /* relative error tolerance */
+			  &(op->ATOL),          /* absolute error tolerance */
+			  gitol,         /* switch for rtoler and atoler */
+			  solout,         /* function providing the numerical solution during integration */
+			  0,         /* switch for calling solout */
+			  NULL,           /* messages stream */
+			  DBL_EPSILON,    /* rounding unit */
+			  0,              /* safety factor */
+			  0,              /* parameters for step size selection */
+			  0,
+			  0,              /* for stabilized step size control */
+			  0,              /* maximal step size */
+			  0,            /* initial step size */
+			  0,            /* maximal number of allowed steps */
+			  1,            /* switch for the choice of the coefficients */
+			  -1,                     /* test for stiffness */
+			  0,                      /* number of components for which dense outpout is required */
+			  NULL,           /* indexes of components for which dense output is required, >= nrdens */
+			  0                       /* declared length of icon */
+			  );
+	    if (idid < 0) {
+	      ind->rc[0] = idid;
+	      // Bad Solve => NA
+	      for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
+	      op->badSolve = 1;
+	      *i = ind->n_all_times+42; // Get out of here!
+	      j=op->maxSS;
+	      break;
+	    }
 	    break;
 	  }
 
@@ -697,14 +819,68 @@ void handleSS(int *neq,
 	  switch(op->stiff){
 	  case 2:
 	    lsoda(ctx, yp, &xp2, xout2);
+	    if (*istate <= 0) {
+	      REprintf("IDID=%d, %s\n", *istate, err_msg_ls[-(*istate)-1]);
+	      ind->rc[0] = *istate;
+	      // Bad Solve => NA
+	      for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
+	      op->badSolve = 1;
+	      *i = ind->n_all_times+42; // Get out of here!
+	      j=op->maxSS;
+	      break;
+	    }
 	    break;
 	  case 1:
 	    F77_CALL(dlsoda)(dydt_lsoda_dum, neq, yp, &xp2, &xout2,
 			     &gitol, &(op->RTOL), &(op->ATOL), &gitask,
 			     istate, &giopt, global_rworkp,
 			     &glrw, global_iworkp, &gliw, jdum_lsoda, &global_jt);
+	    if (*istate <= 0) {
+	      REprintf("IDID=%d, %s\n", *istate, err_msg_ls[-(*istate)-1]);
+	      ind->rc[0] = *istate;
+	      // Bad Solve => NA
+	      for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
+	      op->badSolve = 1;
+	      *i = ind->n_all_times+42; // Get out of here!
+	      j=op->maxSS;
+	      break;
+	    }
 	    break;
 	  case 0:
+	    idid = dop853(neq,       /* dimension of the system <= UINT_MAX-1*/
+			  dydt,       /* function computing the value of f(x,y) */
+			  xp2,           /* initial x-value */
+			  yp,           /* initial values for y */
+			  xout2,         /* final x-value (xend-x may be positive or negative) */
+			  &(op->RTOL),          /* relative error tolerance */
+			  &(op->ATOL),          /* absolute error tolerance */
+			  gitol,         /* switch for rtoler and atoler */
+			  solout,         /* function providing the numerical solution during integration */
+			  0,         /* switch for calling solout */
+			  NULL,           /* messages stream */
+			  DBL_EPSILON,    /* rounding unit */
+			  0,              /* safety factor */
+			  0,              /* parameters for step size selection */
+			  0,
+			  0,              /* for stabilized step size control */
+			  0,              /* maximal step size */
+			  0,            /* initial step size */
+			  0,            /* maximal number of allowed steps */
+			  1,            /* switch for the choice of the coefficients */
+			  -1,                     /* test for stiffness */
+			  0,                      /* number of components for which dense outpout is required */
+			  NULL,           /* indexes of components for which dense output is required, >= nrdens */
+			  0                       /* declared length of icon */
+			  );
+	    if (idid < 0) {
+	      ind->rc[0] = idid;
+	      // Bad Solve => NA
+	      for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
+	      op->badSolve = 1;
+	      *i = ind->n_all_times+42; // Get out of here!
+	      j=op->maxSS;
+	      break;
+	    }
 	    break;
 	  }
 	      
@@ -791,7 +967,7 @@ extern void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda_opt
       ind->idx=i;
       lsoda(&ctx, yp, &xp, xout);
       if (ctx.state <= 0) {
-        /* REprintf("IDID=%d, %s\n", istate, err_msg[-istate-1]); */
+        /* REprintf("IDID=%d, %s\n", istate, err_msg_ls[-*istate-1]); */
         *rc = ctx.state;
         // Bad Solve => NA
         for (j = neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
@@ -1028,16 +1204,7 @@ extern void ind_lsoda0(rx_solve *rx, rx_solving_options *op, int solveid, int *n
   double *yp;
   void *ctx = NULL;
   
-  static char *err_msg[]=
-    {
-      "excess work done on this call (perhaps wrong jt).",
-      "excess accuracy requested (tolerances too small).",
-      "illegal input detected (see printed message).",
-      "repeated error test failures (check all inputs).",
-      "repeated convergence failures (perhaps bad jacobian supplied or wrong choice of jt or tolerances).",
-      "error weight became zero during problem. (solution component i vanished, and atol or atol(i) = 0.)",
-      "work space insufficient to finish (see messages)."
-    };
+  
   int istate = 1, i = 0;
   gitol = 1; gitask = 1; giopt = 1;
   gliw = liw;
@@ -1080,7 +1247,7 @@ extern void ind_lsoda0(rx_solve *rx, rx_solving_options *op, int solveid, int *n
 		       &istate, &giopt, rwork, &lrw, iwork, &liw, jdum, &jt);
 
       if (istate <= 0) {
-	REprintf("IDID=%d, %s\n", istate, err_msg[-istate-1]);
+	REprintf("IDID=%d, %s\n", istate, err_msg_ls[-(istate)-1]);
 	ind->rc[0] = istate;
 	// Bad Solve => NA
 	for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
@@ -1174,9 +1341,6 @@ extern void par_lsoda(rx_solve *rx){
     if (displayProgress && curTick < 50) par_progress(nsim*nsub, nsim*nsub, curTick, 1, t0, 0);
   }
 }
-
-//dummy solout fn
-void solout(long int nr, double t_old, double t, double *y, int *nptr, int *irtrn){}
 
 extern void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int *neq, 
                      t_dydt c_dydt,
