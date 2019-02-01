@@ -84,6 +84,7 @@ typedef struct {
   double *dose;
   double *ii;
   double *solve;
+  double *solveSave;
   double *lhs;
   int  *evid;
   int *rc;
@@ -111,6 +112,7 @@ typedef struct {
   int wh0;
   int allCovWarn;
   int wrongSSDur;
+  int timeReset;
 } rx_solving_options_ind;
 
 typedef struct {
@@ -127,7 +129,7 @@ typedef struct {
   double stateTrim;
   int *stateIgnore;
 } rx_solve;
-
+  
 typedef void (*t_set_solve)(rx_solve *);
 typedef rx_solve *(*t_get_solve)();
 

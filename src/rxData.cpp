@@ -2608,6 +2608,8 @@ SEXP rxSolveC(const RObject &obj,
       ind = &(rx->subjects[0]);
       ind->id=0;
       ind->allCovWarn=0;
+      ind->wrongSSDur=0;
+      ind->timeReset=1;
       ind->idx=0;
       ind->lambda=1.0;
       ind->yj = 0;
@@ -2825,6 +2827,8 @@ SEXP rxSolveC(const RObject &obj,
 	  // Setup the pointers.
           ind->id             = nsub+1;
 	  ind->allCovWarn = 0;
+	  ind->wrongSSDur=0;
+	  ind->timeReset=1;
           ind->lambda         =1.0;
           ind->yj             = 0;
           ind->all_times      = &_globals.gall_times[i];
@@ -3008,7 +3012,7 @@ SEXP rxSolveC(const RObject &obj,
     rx->nsim = nPopPar / rx->nsub;
     if (rx->nsim < 1) rx->nsim=1;
 
-    gsolveSetup(rx->nall*state.size()*rx->nsim);
+    gsolveSetup(rx->nall*(state.size()+1)*rx->nsim);
     std::fill_n(&_globals.gsolve[0], rx->nall*state.size()*rx->nsim, 0.0);
 
     gix_Setup(rx->nall*rx->nsim);
@@ -3045,6 +3049,8 @@ SEXP rxSolveC(const RObject &obj,
 	ind->ix    = &_globals.gix[curIdx];
 	std::iota(ind->ix,ind->ix+ind->n_all_times,0);
         curEvent += op->neq*ind->n_all_times;
+	ind->solveSave=&_globals.gsolve[curEvent];
+	curEvent += op->neq;
 	curIdx += ind->n_all_times;
         ind->lhs = &_globals.glhs[i*lhs.size()];
 	ind->rc = &_globals.grc[i];
@@ -3125,6 +3131,8 @@ SEXP rxSolveC(const RObject &obj,
 	    ind->ix = &_globals.gix[curIdx];
 	    std::iota(ind->ix,ind->ix+ind->n_all_times,0);
 	    curEvent += eLen;
+	    ind->solveSave=&_globals.gsolve[curEvent];
+	    curEvent += op->neq;
 	    curIdx += ind->n_all_times;
 	  }
 	}
