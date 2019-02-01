@@ -2,20 +2,21 @@
 statement_list : (statement)+ ;
 
 statement 
-  :  assignment end_statement
-  | ini end_statement
-  | ini0 end_statement
-  | ini0f end_statement
-  | fbio end_statement
-  | alag end_statement
-  | rate end_statement
-  | dur end_statement 
+  : assignment end_statement
+  | ini        end_statement
+  | ini0       end_statement
+  | ini0f      end_statement
+  | fbio       end_statement
+  | alag       end_statement
+  | rate       end_statement
+  | dur        end_statement 
   | derivative end_statement
-  | jac end_statement
-  | dfdy end_statement
+  | jac        end_statement
+  | dfdy       end_statement
+  | mtime      end_statement
+  | printf_statement end_statement
   | compound_statement
   | selection_statement
-  | printf_statement end_statement
   | end_statement ;
 
 
@@ -28,9 +29,9 @@ printf_statement
   : printf_command '(' string (',' additive_expression )* ')';
 
 printf_command
-  : 'printf'      | 'Rprintf'      | 'print';
+  : 'printf' | 'Rprintf' | 'print';
 
-ini0       : identifier_r ('(0)' | '{0}' | '[0]') ('=' | '<-' ) ini_const;
+ini0      : identifier_r ('(0)' | '{0}' | '[0]') ('=' | '<-' ) ini_const;
 
 ini0f     : identifier_r ('(0)' | '{0}' | '[0]') ('=' | '<-' ) additive_expression;
 
@@ -65,6 +66,8 @@ jac_command : 'jac' | 'df/dy';
 end_statement : (';')* ;
 
 assignment : identifier_r  ('=' | '<-' | '~' ) additive_expression;
+
+mtime     : 'mtime' '(' identifier_r_no_output ')' ('=' | '<-' | '~') additive_expression;
 
 logical_or_expression : logical_and_expression 
     (('||' | '|')  logical_and_expression)* ;

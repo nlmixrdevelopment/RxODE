@@ -1,5 +1,11 @@
 rxPermissive({
 
+    m <- "liblsoda"
+
+    ## m <- "lsoda"
+
+    ## m <- "dop853"
+
     et <- eventTable() %>% add.dosing(dose=3, nbr.doses=6, dosing.interval=8) %>%
         add.sampling(seq(0, 48, length.out=200))
 
@@ -10,13 +16,13 @@ rxPermissive({
         d/dt(center) ~ - Cl*C2
     })
 
-    x2 <- solve(ode.1c, et)
+    x2 <- solve(ode.1c, et, method=m)
     library(ggplot2); x2 %>% ggplot(aes(time, C2)) + geom_line()
 
     et2 <- eventTable() %>% add.dosing(dose=3, nbr.doses=2, dosing.interval=8) %>%
         add.sampling(seq(0, 48, length.out=200))
 
-    x2 <- solve(ode.1c, et2)
+    x2 <- solve(ode.1c, et2, method=m)
 
     library(ggplot2); x2 %>% ggplot(aes(time, C2)) + geom_line()
 
@@ -28,7 +34,7 @@ rxPermissive({
     et3$ii <- 0.0
     et3$ii[1] <- 8
 
-    x2 <- solve(ode.1c, et3)
+    x2 <- solve(ode.1c, et3, method=m)
 
     library(ggplot2); x2 %>% ggplot(aes(time, C2)) + geom_line()
 
@@ -39,7 +45,7 @@ rxPermissive({
     et4$ii <- 0.0
     et4$ii[et4$time == 8] <- 8
 
-    x2 <- solve(ode.1c, et4)
+    x2 <- solve(ode.1c, et4, method=m)
 
 
     library(ggplot2); x2 %>% ggplot(aes(time, C2)) + geom_line()
@@ -58,7 +64,7 @@ rxPermissive({
 
     et <- et$get.EventTable()
 
-    x2 <- solve(mod, et)
+    x2 <- solve(mod, et, method=m)
     library(ggplot2); x2 %>% ggplot(aes(time, intestine)) + geom_line()
 
     library(ggplot2); x2 %>% ggplot(aes(time, blood)) + geom_line()
@@ -70,8 +76,7 @@ rxPermissive({
     et$ii <- 0;
     et$ii[w] <- 0.4;
 
-    x2 <- solve(mod, et)
-
+    x2 <- solve(mod, et, method=m)
     library(ggplot2); x2 %>% ggplot(aes(time, intestine)) + geom_line()
 
 

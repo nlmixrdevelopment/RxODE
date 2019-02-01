@@ -1029,6 +1029,8 @@ typedef struct {
   int dadt_countern;
   int *jac_counter;
   int jac_countern;
+  double *gmtime;
+  int gmtimen;
 } rx_globals;
 
 rx_globals _globals;
@@ -1037,6 +1039,8 @@ rx_globals _globals;
 extern "C" void rxOptionsIniData(){
   _globals.gsolve = NULL;//Calloc(NCMT*NALL,double);
   _globals.gsolven=0;//NCMT*NALL;
+  _globals.gmtime = NULL;//Calloc(NCMT*NALL,double);
+  _globals.gmtimen=0;//NCMT*NALL;
   _globals.gInfusionRate = NULL;//Calloc(NCMT,double);
   _globals.gInfusionRaten=0;//NCMT;
   _globals.gall_times = NULL;//Calloc(NALL,double);
@@ -1095,6 +1099,19 @@ void gsolveSetup(int n){
     Free( _globals.gsolve);
     _globals.gsolve = Calloc(cur, double);
     _globals.gsolven=cur;
+  }
+}
+
+void gmtimeSetup(int n){
+  if (_globals.gmtimen < 0){
+    _globals.gmtimen=0;
+    _globals.gmtime=NULL;
+  }
+  if (_globals.gmtimen < n){
+    int cur = n;
+    Free( _globals.gmtime);
+    _globals.gmtime = Calloc(cur, double);
+    _globals.gmtimen=cur;
   }
 }
 
@@ -1409,6 +1426,9 @@ extern "C" void gFree(){
   if (_globals.gsolve != NULL&& _globals.gsolven>0) Free(_globals.gsolve);
   _globals.gsolve=NULL;
   _globals.gsolven=0;
+  if (_globals.gmtime != NULL&& _globals.gmtimen>0) Free(_globals.gmtime);
+  _globals.gmtime=NULL;
+  _globals.gmtimen=0;
   if (_globals.gParPos != NULL) Free(_globals.gParPos);
   _globals.gParPosn = 0;
 }
@@ -2359,6 +2379,7 @@ SEXP rxSolveC(const RObject &obj,
     }
     rx->matrix = matrix;
     rx->needSort = as<int>(mv["needSort"]);
+    rx->nMtime = as<int>(mv["nMtime"]);
     rx->add_cov = (int)(addCov);
     op->stiff = method;
     if (method != 2){
@@ -3016,6 +3037,8 @@ SEXP rxSolveC(const RObject &obj,
     std::fill_n(&_globals.gsolve[0], rx->nall*state.size()*rx->nsim, 0.0);
 
     gix_Setup(rx->nall*rx->nsim);
+    
+    gmtimeSetup(rx->nMtime*rx->nsub*rx->nsim);
 
 
     int curEvent = 0, curIdx = 0;
@@ -3037,6 +3060,8 @@ SEXP rxSolveC(const RObject &obj,
 	ind = &(rx->subjects[i]);
 	ind->idx=0;
 	ind->par_ptr = &_globals.gpars[0];
+	ind->mtime   = &_globals.gmtime[rx->nMtime*i];
+	if (rx->nMtime > 0) ind->mtime[0]=-1;
 	ind->InfusionRate = &_globals.gInfusionRate[op->neq*i];
         ind->BadDose = &_globals.gBadDose[op->neq*i];
         ind->nBadDose = 0;
@@ -3095,6 +3120,8 @@ SEXP rxSolveC(const RObject &obj,
 	    ind = &(rx->subjects[cid]);
 	    ind->idx=0;
 	    ind->par_ptr = &_globals.gpars[cid*npars];
+	    ind->mtime   = &_globals.gmtime[rx->nMtime*cid];
+	    if (rx->nMtime > 0) ind->mtime[0]=-1;
 	    ind->InfusionRate = &_globals.gInfusionRate[op->neq*cid];
 	    ind->BadDose = &_globals.gBadDose[op->neq*cid];
 	    ind->nBadDose = 0;
@@ -4362,7 +4389,8 @@ List rxUpdateTrans_(List ret, std::string prefix, std::string libName){
 				   _["F"] = prefix + "F",
 				   _["Lag"] = prefix + "Lag",
 				   _["Rate"] = prefix + "Rate",
-				   _["Dur"] = prefix + "Dur");
+				   _["Dur"] = prefix + "Dur",
+				   _["mtime"] = prefix + "mtime");
   return(ret);
 }
 

@@ -25,7 +25,7 @@ List nmData(DataFrame inData){
     else if (tmpS == "ii")   iiCol=-1;
   }
   // EVID = 0; Observations
-  // EVID = 1 is illegal, but converted from NONMEM
+  // EVID = 1; is illegal, but converted from NONMEM
   // EVID = 2; Non-observation, possibly covariate
   // EVID = 3; Reset ODE states to zero; Non-observation event
   // EVID = 4; Reset and then dose event;  Illegal

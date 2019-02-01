@@ -52,6 +52,7 @@
 #define PLHS 15
 #define PFPRN 16
 #define TASSIGN 17
+#define TMTIME 18
 
 #define NOASSIGN "'<-' not supported, use '=' instead or set 'options(RxODE.syntax.assign = TRUE)'."
 #define NEEDSEMI "Lines need to end with ';' or to match R's handling of line endings set 'options(RxODE.syntax.require.semicolon = FALSE)'."
@@ -72,89 +73,6 @@
 
 void setInits(SEXP init);
 SEXP getInits();
-
-char *repl_str(const char *str, const char *from, const char *to) {
-  // From http://creativeandcritical.net/str-replace-c by Laird Shaw
-  /* Adjust each of the below values to suit your needs. */
-
-  /* Increment positions cache size initially by this number. */
-  size_t cache_sz_inc = 16;
-  /* Thereafter, each time capacity needs to be increased,
-   * multiply the increment by this factor. */
-  const size_t cache_sz_inc_factor = 3;
-  /* But never increment capacity by more than this number. */
-  const size_t cache_sz_inc_max = 1048576;
-
-  char *pret, *ret = NULL;
-  const char *pstr2, *pstr = str;
-  size_t i, count = 0;
-#if (__STDC_VERSION__ >= 199901L)
-  uintptr_t *pos_cache_tmp, *pos_cache = NULL;
-#else
-  ptrdiff_t *pos_cache_tmp, *pos_cache = NULL;
-#endif
-  size_t cache_sz = 0;
-  size_t cpylen, orglen, retlen, tolen, fromlen = strlen(from);
-
-  /* Find all matches and cache their positions. */
-  while ((pstr2 = strstr(pstr, from)) != NULL) {
-    count++;
-
-    /* Increase the cache size when necessary. */
-    if (cache_sz < count) {
-      cache_sz += cache_sz_inc;
-      pos_cache_tmp = R_chk_realloc(pos_cache, sizeof(*pos_cache) * cache_sz);
-      if (pos_cache_tmp == NULL) {
-        goto end_repl_str;
-      } else pos_cache = pos_cache_tmp;
-      cache_sz_inc *= cache_sz_inc_factor;
-      if (cache_sz_inc > cache_sz_inc_max) {
-        cache_sz_inc = cache_sz_inc_max;
-      }
-    }
-
-    pos_cache[count-1] = pstr2 - str;
-    pstr = pstr2 + fromlen;
-  }
-
-  orglen = pstr - str + strlen(pstr);
-
-  /* Allocate memory for the post-replacement string. */
-  if (count > 0) {
-    tolen = strlen(to);
-    retlen = orglen + (tolen - fromlen) * count;
-  } else        retlen = orglen;
-  ret = R_chk_calloc(1,retlen + 1);
-  if (ret == NULL) {
-    goto end_repl_str;
-  }
-
-  if (count == 0) {
-    /* If no matches, then just duplicate the string. */
-    strcpy(ret, str);
-  } else {
-    /* Otherwise, duplicate the string whilst performing
-     * the replacements using the position cache. */
-    pret = ret;
-    memcpy(pret, str, pos_cache[0]);
-    pret += pos_cache[0];
-    for (i = 0; i < count; i++) {
-      memcpy(pret, to, tolen);
-      pret += tolen;
-      pstr = str + pos_cache[i] + fromlen;
-      cpylen = (i == count-1 ? orglen : pos_cache[i+1]) - pos_cache[i] - fromlen;
-      memcpy(pret, pstr, cpylen);
-      pret += cpylen;
-    }
-    ret[retlen] = '\0';
-  }
-
- end_repl_str:
-  /* Free the cache and return the post-replacement string,
-   * which will be NULL in the event of an error. */
-  Free(pos_cache);
-  return ret;
-}
 
 // from mkdparse_tree.h
 typedef void (print_node_fn_t)(int depth, char *token_name, char *token_value, void *client_data);
@@ -237,7 +155,7 @@ static void trans_syntax_error_report_fn(char *err) {
 
 extern D_ParserTables parser_tables_RxODE;
 
-unsigned int found_jac = 0;
+unsigned int found_jac = 0, nmtime=0;
 int rx_syntax_assign = 0, rx_syntax_star_pow = 0,
   rx_syntax_require_semicolon = 0, rx_syntax_allow_dots = 0,
   rx_syntax_allow_ini0 = 1, rx_syntax_allow_ini = 1, rx_syntax_allow_assign_state = 0,
@@ -254,6 +172,7 @@ typedef struct symtab {
   int vo[MXSYM];        /* offset of symbols */
   int lh[MXSYM];        /* lhs symbols? =9 if a state var*/
   int ini[MXSYM];        /* initial variable assignment =2 if there are two assignments */
+  int mtime[MXSYM];
   double iniv[MXSYM];        /* Initial values */
   int ini0[MXSYM];        /* state initial variable assignment =2 if there are two assignments */
   int di[MXDER];        /* ith of state vars */
@@ -574,6 +493,7 @@ typedef struct nodeInfo {
   int lfactorial_exp;
   int max;
   int min;
+  int mtime;
   int mult_part;
   int power_expression;
   /* int print_command; */
@@ -596,6 +516,7 @@ typedef struct nodeInfo {
 //#define nodeHas(what) (!strcmp(STRINGIFY(what), name))
 
 void niReset(nodeInfo *ni){
+  ni->mtime = -1;
   ni->alag = -1;
   ni->assignment = -1;
   ni->constant = -1;
@@ -844,6 +765,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       if (nodeHas(factorial) && i != 0) continue;
 
       if ((nodeHas(theta) || nodeHas(eta)) && i != 2) continue;
+      if (nodeHas(mtime) && (i == 0 || i == 1 || i == 3)) continue;
       
       tb.fn = (nodeHas(function) && i==0) ? 1 : 0;
 
@@ -1207,7 +1129,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
             trans_syntax_error_report_fn(buf);
 	  }
 	  tb.statei++;
-	  aType(TDDT);
 	  if (nodeHas(fbio)){
 	    sb.o=0;sbDt.o=0; sbt.o=0;
 	    sAppend(&sb, "_f[%d] = ", tb.nd);
@@ -1251,7 +1172,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         } else {
           new_or_ith(v);
 	  aProp(tb.ix);
-	  aType(TDDT);
           /* printf("de[%d]->%s[%d]\n",tb.id,v,tb.ix); */
           if (nodeHas(fbio)){
 	    sb.o=0;sbDt.o=0; sbt.o=0;
@@ -1367,6 +1287,9 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       }
       if (nodeHas(der_rhs)) {
 	switch(sbPm.lType[sbPm.n]){
+	case TMTIME:
+	  trans_syntax_error_report_fn("Modeling times cannot depend on state values.");
+	  break;
 	case FBIO:
 	  trans_syntax_error_report_fn("Bioavailability cannot depend on state values.");
 	  break;
@@ -1433,7 +1356,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	sAppend(&sbt, "%s(0)",v);
       }
 
-      if (i==0 && (nodeHas(assignment) || nodeHas(ini) || nodeHas(ini0))) {
+      if ((i==0 && (nodeHas(assignment) || nodeHas(ini) || nodeHas(ini0))) ||
+	  (i == 2 && nodeHas(mtime))){
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
 	tb.ddt[0]='\0';
         if ((rx_syntax_allow_ini && nodeHas(ini)) || nodeHas(ini0)){
@@ -1478,15 +1402,25 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
           }
 	  aType(TASSIGN);
         }
-	sbt.o=0;
-        sAppend(&sbt, "%s", v);
 	if (nodeHas(ini0)){
 	  sbt.o=0;
 	  sAppend(&sbt,"%s(0)",v);
+	} else if (nodeHas(mtime)){
+	  sbt.o=0;
+	  sAppend(&sbt, "mtime(%s)", v);
+	  needSort=1;
+	  aType(TMTIME);
+	  nmtime++;
+	} else {
+	  sbt.o=0;
+	  sAppend(&sbt, "%s", v);
 	}
 	new_or_ith(v);
 	aProp(tb.ix);
-	if (nodeHas(assignment)  || (!rx_syntax_allow_ini && nodeHas(ini))){
+	if (nodeHas(mtime)){
+	  tb.lh[tb.ix] = 1;
+	  tb.mtime[tb.ix] = 1;
+	} else if (nodeHas(assignment)  || (!rx_syntax_allow_ini && nodeHas(ini))){
           tb.lh[tb.ix] = 1;
         } else if (nodeHas(ini) || nodeHas(ini0)){
           if (tb.ini[tb.ix] == 0){
@@ -1540,14 +1474,16 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 
     if (nodeHas(assignment) || nodeHas(ini) || nodeHas(derivative) || nodeHas(jac) || nodeHas(dfdy) ||
         nodeHas(ini0) || nodeHas(ini0f) || nodeHas(fbio) || nodeHas(alag) || nodeHas(rate) || 
-	nodeHas(dur)){
+	nodeHas(dur) || nodeHas(mtime)){
       addLine(&sbPm,     "%s;\n", sb.s);
       addLine(&sbPmDt,   "%s;\n", sbDt.s);
       sAppend(&sbNrm, "%s;\n", sbt.s);
     }
 
-    if (!rx_syntax_assign && (nodeHas(assignment) || nodeHas(ini) || nodeHas(ini0) || nodeHas(ini0f))){
-      if (nodeHas(ini0)){
+    if (!rx_syntax_assign && (nodeHas(assignment) || nodeHas(ini) || nodeHas(ini0) || nodeHas(ini0f) || nodeHas(mtime))){
+      if (nodeHas(mtime)){
+	i = 4;
+      } else if (nodeHas(ini0)){
         i = 2;
       } else {
         i = 1;
@@ -1614,6 +1550,7 @@ void prnt_vars(int scenario, int lhs, const char *pre_str, const char *post_str,
     // show_ode == 6 functional lag
     // show_ode == 7 functional rate
     // show_ode == 8 functional duration
+    // show_ode == 9 functional mtimes
     if (show_ode == 2 || show_ode == 0){
       //__DDtStateVar_#__
       for (i = 0; i < tb.nd; i++){
@@ -1775,12 +1712,14 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   sAppend(&sbOut, "extern SEXP %smodel_vars(){\n  int pro=0;\n", prefix);
   sAppend(&sbOut, "  SEXP _mv = PROTECT(_rxGetModelLib(\"%smodel_vars\"));pro++;\n", prefix);
   sAppendN(&sbOut, "  if (!_rxIsCurrentC(_mv)){\n", 28);
-  sAppendN(&sbOut, "    SEXP lst      = PROTECT(allocVector(VECSXP, 16));pro++;\n", 60);
-  sAppendN(&sbOut, "    SEXP names    = PROTECT(allocVector(STRSXP, 16));pro++;\n", 60);
+  sAppendN(&sbOut, "    SEXP lst      = PROTECT(allocVector(VECSXP, 17));pro++;\n", 60);
+  sAppendN(&sbOut, "    SEXP names    = PROTECT(allocVector(STRSXP, 17));pro++;\n", 60);
   sAppendN(&sbOut, "    SEXP sNeedSort = PROTECT(allocVector(INTSXP,1));pro++;\n", 59);
   sAppendN(&sbOut, "    int *iNeedSort  = INTEGER(sNeedSort);\n", 42);
   sAppend(&sbOut, "    iNeedSort[0] = %d;\n", needSort);
-  
+  sAppendN(&sbOut, "    SEXP sMtime = PROTECT(allocVector(INTSXP,1));pro++;\n", 56);
+  sAppendN(&sbOut, "    int *iMtime  = INTEGER(sMtime);\n", 36);
+  sAppend(&sbOut, "    iMtime[0] = %d;\n", nmtime);
   sAppend(&sbOut, "    SEXP params   = PROTECT(allocVector(STRSXP, %d));pro++;\n",pi);
   sAppend(&sbOut, "    SEXP lhs      = PROTECT(allocVector(STRSXP, %d));pro++;\n",li);
   sAppend(&sbOut, "    SEXP state    = PROTECT(allocVector(STRSXP, %d));pro++;\n",statei);
@@ -1791,8 +1730,8 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   sAppend(&sbOut, "    SEXP normState= PROTECT(allocVector(STRSXP, %d));pro++;\n",statei-sensi);
   sAppend(&sbOut, "    SEXP fn_ini   = PROTECT(allocVector(STRSXP, %d));pro++;\n",fdi);
   sAppend(&sbOut, "    SEXP dfdy     = PROTECT(allocVector(STRSXP, %d));pro++;\n",tb.ndfdy);
-  sAppendN(&sbOut, "    SEXP tran     = PROTECT(allocVector(STRSXP, 18));pro++;\n", 60);
-  sAppendN(&sbOut, "    SEXP trann    = PROTECT(allocVector(STRSXP, 18));pro++;\n", 60);
+  sAppendN(&sbOut, "    SEXP tran     = PROTECT(allocVector(STRSXP, 19));pro++;\n", 60);
+  sAppendN(&sbOut, "    SEXP trann    = PROTECT(allocVector(STRSXP, 19));pro++;\n", 60);
   sAppendN(&sbOut, "    SEXP mmd5     = PROTECT(allocVector(STRSXP, 2));pro++;\n", 59);
   sAppendN(&sbOut, "    SEXP mmd5n    = PROTECT(allocVector(STRSXP, 2));pro++;\n", 59);
   sAppendN(&sbOut, "    SEXP model    = PROTECT(allocVector(STRSXP, 1));pro++;\n", 59);
@@ -1907,11 +1846,14 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   sAppendN(&sbOut, "    SET_STRING_ELT(names,13,mkChar(\"needSort\"));\n", 49);
   sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  13,sNeedSort);\n", 40);
 
-  sAppendN(&sbOut, "    SET_STRING_ELT(names,14,mkChar(\"timeId\"));\n", 47);
-  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  14,timeInt);\n", 38);
+  sAppendN(&sbOut, "    SET_STRING_ELT(names,14,mkChar(\"nMtime\"));\n", 47);
+  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  14,sMtime);\n", 37);
 
-  sAppendN(&sbOut, "    SET_STRING_ELT(names,15,mkChar(\"md5\"));\n", 43);
-  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  15,mmd5);\n", 34);
+  sAppendN(&sbOut, "    SET_STRING_ELT(names,15,mkChar(\"timeId\"));\n", 47);
+  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  15,timeInt);\n", 38);
+
+  sAppendN(&sbOut, "    SET_STRING_ELT(names,16,mkChar(\"md5\"));\n", 43);
+  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  16,mmd5);\n", 34);
 
   // const char *rxVersion(const char *what)
   
@@ -1979,6 +1921,9 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   sAppendN(&sbOut, "    SET_STRING_ELT(trann,17,mkChar(\"Dur\"));\n", 44);
   sAppend(&sbOut,  "    SET_STRING_ELT(tran, 17,mkChar(\"%sDur\"));\n", prefix);
 
+  sAppendN(&sbOut, "    SET_STRING_ELT(trann,18,mkChar(\"mtime\"));\n", 46);
+  sAppend(&sbOut,  "    SET_STRING_ELT(tran, 18,mkChar(\"%smtime\"));\n", prefix);
+
   sAppendN(&sbOut, "    setAttrib(tran, R_NamesSymbol, trann);\n", 43);
   sAppendN(&sbOut, "    setAttrib(mmd5, R_NamesSymbol, mmd5n);\n", 43);
   sAppendN(&sbOut, "    setAttrib(model, R_NamesSymbol, modeln);\n", 45);
@@ -2018,6 +1963,7 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   sAppend(&sbOut, "  R_RegisterCCallable(\"%s\",\"%sLag\", (DL_FUNC) %sLag);\n", libname, prefix, prefix);
   sAppend(&sbOut, "  R_RegisterCCallable(\"%s\",\"%sRate\", (DL_FUNC) %sRate);\n", libname, prefix, prefix);
   sAppend(&sbOut, "  R_RegisterCCallable(\"%s\",\"%sDur\", (DL_FUNC) %sDur);\n", libname, prefix, prefix);
+sAppend(&sbOut, "  R_RegisterCCallable(\"%s\",\"%smtime\", (DL_FUNC) %smtime);\n", libname, prefix, prefix);
   sAppend(&sbOut, "  R_RegisterCCallable(\"%s\",\"%sdydt_liblsoda\", (DL_FUNC) %sdydt_liblsoda);\n", libname, prefix, prefix);
   sAppend(&sbOut, "\n  static const R_CMethodDef cMethods[] = {\n    {\"%sode_solver\", (DL_FUNC) &%sode_solver, 15, %sode_solverrx_t},\n    {NULL, NULL, 0, NULL}\n  };\n",
 	  prefix, prefix, prefix);
@@ -2100,17 +2046,27 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 	sAppend(&sbOut,  "// Modeled zero-order duration\ndouble %sDur(int _cSub,  int _cmt, double _amt, double t){\n return 0.0;\n",
 		prefix);
       }
+    } else if (show_ode == 9){
+      if (nmtime){
+	sAppend(&sbOut,  "// Model Times\nvoid %smtime(int _cSub, double *_mtime){\n  double t = 0;\n  ",
+		prefix);
+      } else {
+	sAppend(&sbOut,  "// Model Times\nvoid %smtime(int _cSub, double *_mtime){\n",
+		prefix);
+      }
+      
     } else {
       sAppend(&sbOut,  "// prj-specific derived vars\nvoid %scalc_lhs(int _cSub, double t, double *__zzStateVar__, double *_lhs) {\n", prefix);
     }
     if ((show_ode == 2 && found_jac == 1 && good_jac == 1) ||
 	(show_ode != 2 && show_ode != 3 && show_ode != 5  && show_ode != 8 &&
-	 show_ode !=0) ||
+	 show_ode !=0 && show_ode != 9) ||
 	(show_ode == 7 && foundRate) ||
 	(show_ode == 6 && foundLag) ||
 	(show_ode == 5 && foundF) ||
 	(show_ode == 3 && foundF0) || 
-	(show_ode == 0 && tb.li)){
+	(show_ode == 0 && tb.li) ||
+	(show_ode == 9 && nmtime)){
       prnt_vars(0, 0, "  double ", "\n",show_ode);     /* declare all used vars */
       if (maxSumProdN > 0 || SumProdLD > 0){
 	int mx = maxSumProdN;
@@ -2118,7 +2074,7 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 	sAppend(&sbOut,  "  double _p[%d], _input[%d];\n", mx, mx);
 	sAppend(&sbOut,  "  double _pld[%d];\n", mx);
       }
-      prnt_vars(2, 0, "  (void)t;\n", "\n",show_ode);     /* declare all used vars */
+      else prnt_vars(2, 0, "  (void)t;\n", "\n",show_ode);     /* declare all used vars */
       if (maxSumProdN){
 	sAppendN(&sbOut,  "  (void)_p;\n  (void)_input;\n", 28);
 	if (SumProdLD){
@@ -2127,14 +2083,14 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
       }
       if (show_ode == 3){
 	sAppendN(&sbOut, "  _update_par_ptr(0.0, _cSub, _solveData, _idx);\n", 49);
-      } else if (show_ode == 6 || show_ode == 7 || show_ode == 8){
+      } else if (show_ode == 6 || show_ode == 7 || show_ode == 8 || show_ode == 9){
 	sAppendN(&sbOut, "  _update_par_ptr(NA_REAL, _cSub, _solveData, _idx);\n", 53);
       } else {
 	sAppendN(&sbOut, "  _update_par_ptr(t, _cSub, _solveData, _idx);\n", 47);
       }
       prnt_vars(1, 1, "", "\n",show_ode);                   /* pass system pars */
       if (show_ode != 7 && show_ode != 5 &&
-	  show_ode != 6){
+	  show_ode != 6 && show_ode != 9){
 	for (i=0; i<tb.nd; i++) {                   /* name state vars */
 	  retieve_var(tb.di[i], buf);
 	  sAppendN(&sbOut, "  ", 2);
@@ -2159,12 +2115,15 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 	(foundF && show_ode == 5) ||
 	(foundF0 && show_ode == 3) ||
 	(show_ode == 0 && tb.li) ||
+	(show_ode == 9 && nmtime) ||
 	(show_ode == 2 && found_jac == 1 && good_jac == 1) ||
-	(show_ode != 0 && show_ode != 2 && show_ode != 3 && show_ode != 5 && show_ode != 6  && show_ode != 7 && show_ode != 8)){
+	(show_ode != 9 && show_ode != 0 && show_ode != 2 && show_ode != 3 && show_ode != 5 && show_ode != 6  && show_ode != 7 && show_ode != 8)){
       for (i = 0; i < sbPm.n; i++){
 	switch(sbPm.lType[i]){
+	case TMTIME:
 	case TASSIGN:
 	  sAppend(&sbOut,"  %s",show_ode == 1 ? sbPm.line[i] : sbPmDt.line[i]);
+	  break;
 	case TINI:
 	  // See if this is an ini or a reclaimed expression.
 	  if (sbPm.lProp[i] >= 0 ){
@@ -2197,7 +2156,7 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 	case TDDT:
 	  // d/dt()
 	  if (show_ode != 3 && show_ode != 5 && show_ode != 6 &&
-	      show_ode != 7 && show_ode != 8){
+	      show_ode != 7 && show_ode != 8 && show_ode != 9){
 	    sAppend(&sbOut, "  %s", show_ode == 1 ? sbPm.line[i] : sbPmDt.line[i]);
 	  }
 	  break;
@@ -2234,7 +2193,7 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 	break;
       }
     }
-    if (print_ode && show_ode != 0){
+    if (print_ode && show_ode != 0 && show_ode != 9){
       sAppendN(&sbOut, "  if (__print_ode__ == 1){\n", 27);
       for (i=0; i<tb.nd; i++) {                   /* name state vars */
 	retieve_var(tb.di[i], buf);
@@ -2319,6 +2278,26 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 	j++;
       }
       sAppendN(&sbOut,  "}\n", 2);
+    } else if (show_ode == 9 && nmtime){
+      sAppendN(&sbOut,  "\n", 1);
+      for (i=0, j=0; i<tb.nv; i++) {
+	if (tb.mtime[i] != 1) continue;
+	retieve_var(i, buf);
+	sAppend(&sbOut,  "  _mtime[%d]=", j);
+	for (k = 0; k < (int)strlen(buf); k++){
+	  if (buf[k] == '.'){
+	    sAppendN(&sbOut, "_DoT_", 5);
+	    if (rx_syntax_allow_dots == 0){
+	      trans_syntax_error_report_fn(NODOT);
+	    }
+	  } else {
+	    sPut(&sbOut, buf[k]);
+	  }
+	}
+	sAppendN(&sbOut,  ";\n", 2);
+	j++;
+      }
+      sAppendN(&sbOut,  "}\n", 2);
     } else {
       sAppendN(&sbOut,  "}\n", 2);
     }
@@ -2341,6 +2320,7 @@ void reset (){
   memset(tb.vo,		0, MXSYM*sizeof(int));
   memset(tb.lh,		0, MXSYM*sizeof(int));
   memset(tb.ini,	0, MXSYM*sizeof(int));
+  memset(tb.mtime,	0, MXSYM*sizeof(int));
   memset(tb.di,		0, MXDER*sizeof(int));
   memset(tb.fdi,        0, MXDER*sizeof(int));
   memset(tb.dy,		0, MXSYM*sizeof(int));
@@ -2387,6 +2367,7 @@ void reset (){
   foundDur=0;
   foundF=0;
   foundF0=0;
+  nmtime=0;
 }
 
 void writeSb(sbuf *sbb, FILE *fp){
@@ -2551,15 +2532,19 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
   tb.li=li;
   
   int pro = 0;
-  SEXP lst   = PROTECT(allocVector(VECSXP, 14));pro++;
-  SEXP names = PROTECT(allocVector(STRSXP, 14));pro++;
+  SEXP lst   = PROTECT(allocVector(VECSXP, 15));pro++;
+  SEXP names = PROTECT(allocVector(STRSXP, 15));pro++;
 
   SEXP sNeedSort = PROTECT(allocVector(INTSXP,1));pro++;
   int *iNeedSort  = INTEGER(sNeedSort);
   iNeedSort[0] = needSort;
   
-  SEXP tran  = PROTECT(allocVector(STRSXP, 18));pro++;
-  SEXP trann = PROTECT(allocVector(STRSXP, 18));pro++;
+  SEXP sMtime = PROTECT(allocVector(INTSXP,1));pro++;
+  int *iMtime  = INTEGER(sMtime);
+  iMtime[0] = (int)nmtime;
+  
+  SEXP tran  = PROTECT(allocVector(STRSXP, 19));pro++;
+  SEXP trann = PROTECT(allocVector(STRSXP, 19));pro++;
 
   SEXP state    = PROTECT(allocVector(STRSXP,tb.statei));pro++;
   SEXP stateRmS = PROTECT(allocVector(INTSXP,tb.statei));pro++;
@@ -2732,6 +2717,9 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
   SET_STRING_ELT(names,13,mkChar("needSort"));
   SET_VECTOR_ELT(lst,  13,sNeedSort);
 
+  SET_STRING_ELT(names,14,mkChar("nMtime"));
+  SET_VECTOR_ELT(lst,  14,sMtime);
+
   sprintf(buf,"%.*s", (int)strlen(model_prefix)-1, model_prefix);
   SET_STRING_ELT(trann,0,mkChar("lib.name"));
   SET_STRING_ELT(tran,0,mkChar(buf));
@@ -2805,6 +2793,10 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
   sprintf(buf,"%sDur",model_prefix);
   SET_STRING_ELT(trann,17,mkChar("Dur"));
   SET_STRING_ELT(tran, 17,mkChar(buf));
+
+  sprintf(buf,"%smtime",model_prefix);
+  SET_STRING_ELT(trann,18,mkChar("mtime"));
+  SET_STRING_ELT(tran, 18,mkChar(buf));
 
   SET_STRING_ELT(modeln,0,mkChar("normModel"));
   SET_STRING_ELT(model,0,mkChar(sbNrm.s));
@@ -2892,6 +2884,7 @@ SEXP _RxODE_codegen(SEXP c_file, SEXP prefix, SEXP libname,
   gCode(6);
   gCode(7);
   gCode(8);
+  gCode(9); // mtime
   gCode(4); // Registration
   fclose(fpIO);
   return R_NilValue;

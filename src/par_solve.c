@@ -210,6 +210,7 @@ t_F AMT = NULL;
 t_LAG LAG = NULL;
 t_RATE RATE = NULL;
 t_DUR DUR = NULL;
+t_calc_mtime calc_mtime = NULL;
 
 int global_jt = 2;
 int global_mf = 22;  
@@ -221,7 +222,7 @@ int *global_iworkp;
 void rxUpdateFuns(SEXP trans){
   const char *lib, *s_dydt, *s_calc_jac, *s_calc_lhs, *s_inis, *s_dydt_lsoda_dum, *s_dydt_jdum_lsoda, 
     *s_ode_solver_solvedata, *s_ode_solver_get_solvedata, *s_dydt_liblsoda, *s_AMT, *s_LAG, *s_RATE,
-    *s_DUR;
+    *s_DUR, *s_mtime;
   lib = CHAR(STRING_ELT(trans, 0));
   s_dydt = CHAR(STRING_ELT(trans, 3));
   s_calc_jac = CHAR(STRING_ELT(trans, 4));
@@ -236,6 +237,7 @@ void rxUpdateFuns(SEXP trans){
   s_LAG=CHAR(STRING_ELT(trans, 15));
   s_RATE=CHAR(STRING_ELT(trans, 16));
   s_DUR=CHAR(STRING_ELT(trans, 17));
+  s_mtime=CHAR(STRING_ELT(trans, 18));
   global_jt = 2;
   global_mf = 22;  
   global_debug = 0;
@@ -259,6 +261,7 @@ void rxUpdateFuns(SEXP trans){
   LAG = (t_LAG) R_GetCCallable(lib, s_LAG);
   RATE = (t_RATE) R_GetCCallable(lib, s_RATE);
   DUR = (t_DUR) R_GetCCallable(lib, s_DUR);
+  calc_mtime = (t_calc_mtime) R_GetCCallable(lib, s_mtime);
 }
 
 void rxClearFuns(){
@@ -386,7 +389,8 @@ void updateDur(int idx, rx_solving_options_ind *ind){
 
 extern double getTime(int idx, rx_solving_options_ind *ind){
   int evid = ind->evid[idx];
-  if (evid == 0 || evid == 2) return ind->all_times[idx];
+  if (evid >= 10 && evid <= 99) return ind->mtime[evid-10];
+  if (isObs(evid)) return ind->all_times[idx];
   getWh(evid, &(ind->wh), &(ind->cmt), &(ind->wh100), &(ind->whI), &(ind->wh0));
   switch(ind->whI){
   case 6:
@@ -456,7 +460,7 @@ int handle_evid(int evid, int neq,
 		int do_transit_abs,
 		double xout, int id,
 		rx_solving_options_ind *ind){
-  if (evid == 0 || evid == 2) return 0;
+  if (isObs(evid)) return 0;
   int wh = evid, cmt, foundBad, j;
   if (wh) {
     /* wh100 = ind->wh100; */
@@ -958,6 +962,7 @@ extern void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda_opt
   memcpy(ret,inits, neq[0]*sizeof(double));
   u_inis(neq[1], ret); // Update initial conditions
   unsigned int j;
+  if (rx->nMtime) calc_mtime(neq[1], ind->mtime);
   if (rx->needSort) doSort(ind);
   /* for(i=0; i<neq[0]; i++) yp[i] = inits[i]; */
   for(i=0; i<nx; i++) {
@@ -1236,6 +1241,7 @@ extern void ind_lsoda0(rx_solve *rx, rx_solving_options *op, int solveid, int *n
   //--- inits the system
   memcpy(ind->solve, op->inits, neq[0]*sizeof(double));
   u_inis(neq[1], ind->solve); // Update initial conditions
+  if (rx->nMtime) calc_mtime(neq[1], ind->mtime);
   if (rx->needSort) doSort(ind);
   unsigned int j;
   for(i=0; i < ind->n_all_times; i++) {
@@ -1387,6 +1393,7 @@ extern void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int *neq
   //--- inits the system
   memcpy(ret,inits, neq[0]*sizeof(double));
   u_inis(neq[1], ret); // Update initial conditions
+  if (rx->nMtime) calc_mtime(neq[1], ind->mtime);
   if (rx->needSort) doSort(ind);
   //--- inits the system
   unsigned int j;
@@ -1723,6 +1730,7 @@ extern SEXP RxODE_df(int doDose, int doTBS){
       neq[1] = csub+csim*nsub;
       ind = &(rx->subjects[neq[1]]);
       ind->id = neq[1];
+      if (rx->nMtime) calc_mtime(neq[1], ind->mtime);
       if (rx->needSort) doSort(ind);
       nBadDose = ind->nBadDose;
       BadDose = ind->BadDose;
@@ -2022,6 +2030,7 @@ extern void rxSolveOldC(int *neqa,
   /* rxode_assign_rx(rx); */
   set_solve(rx);
   par_solve(rx); // Solve without the option of updating residuals.
+  if (rx->nMtime) calc_mtime(ind->id, ind->mtime);
   if (rx->needSort) doSort(ind);
   if (*nlhsa) {
     for (i=0; i<*ntime; i++){

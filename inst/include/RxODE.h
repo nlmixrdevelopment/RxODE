@@ -2,7 +2,7 @@
 #ifndef __RxODE_H__
 #define __RxODE_H__
 #define isDose(evid) ((evid) == 3 || (evid) >= 100)
-#define isObs(evid) ((evid) == 0 || (evid) == 2)
+#define isObs(evid) ((evid) == 0 || (evid) == 2 || ((evid) >= 10 && (evid) <= 99))
 #if defined(__cplusplus)
 #include "RxODE_RcppExports.h"
 extern "C" {
@@ -26,6 +26,8 @@ typedef double (*t_F)(int _cSub,  int _cmt, double _amt, double t);
 typedef double (*t_LAG)(int _cSub,  int _cmt, double t);
 typedef double (*t_RATE)(int _cSub,  int _cmt, double _amt, double t);
 typedef double (*t_DUR)(int _cSub,  int _cmt, double _amt, double t);
+
+typedef void (*t_calc_mtime)(int cSub, double *mtime);
 
 typedef struct {
   // These options should not change based on an individual solve
@@ -84,6 +86,7 @@ typedef struct {
   double *dose;
   double *ii;
   double *solve;
+  double *mtime;
   double *solveSave;
   double *lhs;
   int  *evid;
@@ -126,6 +129,7 @@ typedef struct {
   int add_cov;
   int matrix;
   int needSort;
+  int nMtime;
   double stateTrim;
   int *stateIgnore;
 } rx_solve;
