@@ -22,6 +22,18 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// evTrans
+List evTrans(List inData, const RObject& obj);
+RcppExport SEXP _RxODE_evTrans(SEXP inDataSEXP, SEXP objSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< List >::type inData(inDataSEXP);
+    Rcpp::traits::input_parameter< const RObject& >::type obj(objSEXP);
+    rcpp_result_gen = Rcpp::wrap(evTrans(inData, obj));
+    return rcpp_result_gen;
+END_RCPP
+}
 // add_dosing_
 RObject add_dosing_(RObject eventTable, double dose, int nbr_doses, double dosing_interval, int dosing_to, Nullable<NumericVector> rate, CharacterVector amount_units, double start_time, bool do_sampling, CharacterVector time_units);
 RcppExport SEXP _RxODE_add_dosing_(SEXP eventTableSEXP, SEXP doseSEXP, SEXP nbr_dosesSEXP, SEXP dosing_intervalSEXP, SEXP dosing_toSEXP, SEXP rateSEXP, SEXP amount_unitsSEXP, SEXP start_timeSEXP, SEXP do_samplingSEXP, SEXP time_unitsSEXP) {
@@ -52,17 +64,6 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< NumericVector >::type time(timeSEXP);
     Rcpp::traits::input_parameter< CharacterVector >::type time_units(time_unitsSEXP);
     rcpp_result_gen = Rcpp::wrap(add_sampling_(eventTable, time, time_units));
-    return rcpp_result_gen;
-END_RCPP
-}
-// nmData
-List nmData(DataFrame inData);
-RcppExport SEXP _RxODE_nmData(SEXP inDataSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< DataFrame >::type inData(inDataSEXP);
-    rcpp_result_gen = Rcpp::wrap(nmData(inData));
     return rcpp_result_gen;
 END_RCPP
 }

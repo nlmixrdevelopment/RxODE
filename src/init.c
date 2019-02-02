@@ -7,7 +7,7 @@
 #include <R_ext/Rdynload.h>
 #include "../inst/include/RxODE.h"
 
-SEXP _RxODE_nmData(SEXP);
+SEXP _RxODE_evTrans(SEXP, SEXP);
 SEXP _RxODE_rxUpdateTrans_(SEXP, SEXP, SEXP);
 double powerDi(double x, double lambda, int yj);
 double powerD(double x, double lambda, int yj);
@@ -205,7 +205,7 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_setProgSupported", (DL_FUNC) &_RxODE_setProgSupported, 1},
     {"_RxODE_getProgSupported", (DL_FUNC) &_RxODE_getProgSupported, 0},
     {"_RxODE_rxUpdateTrans_", (DL_FUNC) &_RxODE_rxUpdateTrans_, 3},
-    {"_RxODE_nmData", (DL_FUNC) &_RxODE_nmData, 1},
+    {"_RxODE_evTrans", (DL_FUNC) &_RxODE_evTrans, 2},
     {NULL, NULL, 0}
   };
   // C callable to assign environments.
