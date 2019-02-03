@@ -398,6 +398,7 @@ List evTrans(List inData, const RObject &obj){
       }
     }
   }
+  NumericVector fPars = NumericVector(pars.size()*nid, NA_REAL);
   std::sort(idxO.begin(),idxO.end(),
 	    [id,time,evid](int a, int b){
 	      if (id[a] == id[b]){
@@ -494,12 +495,14 @@ List evTrans(List inData, const RObject &obj){
 	if (addId){
 	  nvTmp = as<NumericVector>(lst1[1+j]);
 	  nvTmp[idx1] = nvTmp2[idx[idxO[i]]];
+	  fPars[idx1*pars.size()+covParPos[j]] = nvTmp[idx1];
 	  added = true;
 	} else if (sub1[1+j]) {
 	  nvTmp = as<NumericVector>(lst1[1+j]);
 	  if (nvTmp[idx1] != nvTmp2[idx[idxO[i]]]){
 	    sub0[6+j] = true;
 	    sub1[1+j] = false;
+	    fPars[idx1*pars.size()+covParPos[j]] = NA_REAL;
 	    nTv++;
 	  }
 	}
@@ -510,7 +513,7 @@ List evTrans(List inData, const RObject &obj){
       added=false;
     }
   }
-  // Now subset based on time-varying covarites
+  // Now subset based on time-varying covariates
   List lstF(6+nTv);
   CharacterVector nmeF(6+nTv);
   j=0;
@@ -544,6 +547,9 @@ List evTrans(List inData, const RObject &obj){
   e["nid"]   = nid;
   e["cov1"] = lst1F;
   e["covParPos"]= wrap(covParPos);
+  fPars.attr("dim")= IntegerVector::create(pars.size(), nid);
+  fPars.attr("dimnames") = List::create(pars, R_NilValue);
+  e["pars"] = fPars;
   cls.attr(".RxODE.env") = e;
   lstF.attr("names") = nmeF;
   lstF.attr("class") = cls;
