@@ -177,9 +177,19 @@ bool rxIs(const RObject &obj, std::string cls){
 	}
       }
       if (hasDf && (cls == "rx.event" || cls == "event.data.frame")){
-	// Check for event.data.frame
-	CharacterVector cv =as<CharacterVector>((as<DataFrame>(obj)).names());
-	return rxHasEventNames(cv);
+	if (classattr[0] == "rxEvTran"){
+	  rxcEvid = 2;
+	  rxcTime = 1;
+	  rxcAmt  = 3;
+	  rxcId   = 0;
+	  rxcDv   = 5;
+	  rxcIi   = 4;
+	  return true;
+	} else {
+	  // Check for event.data.frame
+	  CharacterVector cv =as<CharacterVector>((as<DataFrame>(obj)).names());
+	  return rxHasEventNames(cv);
+	}
       } else if (hasEt) {
 	return (cls == "rx.event");
       } else {
@@ -1247,6 +1257,21 @@ void gparsSetup(int n){
     Free(_globals.gpars);
     _globals.gpars = Calloc(cur, double);
     cur = _globals.gparsn;
+  }
+}
+
+void gparsCovSetup(int npars, int nPopPar, RObject ev1,rx_solve* rx){
+  // Fill the parameters with NA.
+  gparsSetup(npars*nPopPar);
+  std::fill_n(&_globals.gpars[0], npars*nPopPar, NA_REAL);
+  if (rxIs(ev1, "rxEvTran")){
+    CharacterVector tmpCls = ev1.attr("class");
+    Environment envCls = tmpCls.attr(".RxODE.env");
+    NumericMatrix iniPars = envCls["pars"];
+    // Copy the pre-filled covariates into the parameter values.
+    for (int j = rx->nsim;j--;){
+      std::copy(iniPars.begin(), iniPars.end(), &_globals.gpars[0]+rx->nsub*npars*j);
+    }
   }
 }
 
@@ -2618,7 +2643,7 @@ SEXP rxSolveC(const RObject &obj,
         stop("If parameters are not named, they must match the order and size of the parameters in the model.");
       }
     }
-    rxOptionsIniEnsure(nPopPar); // 1 simulation per parameter specifcation
+    rxOptionsIniEnsure(nPopPar); // 1 simulation per parameter specification
     if (rxIs(ev1, "EventTable")){
       List et = List(ev1);
       Function f = et["get.EventTable"];
@@ -2941,6 +2966,13 @@ SEXP rxSolveC(const RObject &obj,
     bool allPars = true;
     bool curPar = false;
     CharacterVector mvIniN = mvIni.names();
+    CharacterVector mvCov1N;
+    if (rxIs(ev1, "rxEvTran")){
+      CharacterVector tmpCls = ev1.attr("class");
+      Environment e = tmpCls.attr(".RxODE.env");
+      List tmpCov1 = e["cov1"];
+      mvCov1N = tmpCov1.attr("names");
+    }
     gsvarSetup(sigmaN.size());
     for (i = npars; i--;){
       curPar = false;
@@ -2986,6 +3018,16 @@ SEXP rxSolveC(const RObject &obj,
             break;
           }
         }
+      }
+      if (!curPar){
+	for (j = 1; j < mvCov1N.size(); j++){
+	  if (mvCov1N[j] == pars[i]){
+	    // These are setup once and don't need to be updated
+	    _globals.gParPos[i] = 0; // These are set at run-time and "dont" matter.
+	    curPar = true;
+	    eGparPos[i]=_globals.gParPos[i];
+	  }
+	}
       }
       if (!curPar){
         if (errStr == ""){
@@ -3045,45 +3087,21 @@ SEXP rxSolveC(const RObject &obj,
     
     switch(parType){
     case 1: // NumericVector
-      if (nPopPar != 1) stop("Something is wrong... nPopPar != 1 but parameters are specified as a NumericVector.");
-      gparsSetup(npars);
-      for (i = npars; i--;){
-	if (_globals.gParPos[i] == 0){ // Covariate or simulated variable.
-	  _globals.gpars[i] = 0;//NA_REAL;
-	} else if (_globals.gParPos[i] > 0){ // User specified parameter
-	  _globals.gpars[i] = parNumeric[_globals.gParPos[i]-1];
-	} else { // ini specified parameter.
-	  _globals.gpars[i] = mvIni[-_globals.gParPos[i]-1];
+      {
+	if (nPopPar != 1) stop("Something is wrong... nPopPar != 1 but parameters are specified as a NumericVector.");
+	// Convert to DataFrame to simplify code.
+	List parDfL(parNumeric.size());
+	for (i = parNumeric.size(); i--;){
+	  parDfL[i] = NumericVector(rx->nsub,parNumeric[i]);
 	}
+	parDfL.attr("names") = nmP;
+	parDfL.attr("row.names") = IntegerVector::create(NA_INTEGER,-rx->nsub);
+	parDfL.attr("class") = CharacterVector::create("data.frame");
+	parDf = as<DataFrame>(parDfL);
+	parType = 2;
+	nPopPar = parDf.nrows();
+	rx->nsim=1;
       }
-      for (i = rx->nsub; i--;){
-	ind = &(rx->subjects[i]);
-	ind->idx=0;
-	ind->par_ptr = &_globals.gpars[0];
-	ind->mtime   = &_globals.gmtime[rx->nMtime*i];
-	if (rx->nMtime > 0) ind->mtime[0]=-1;
-	ind->InfusionRate = &_globals.gInfusionRate[op->neq*i];
-        ind->BadDose = &_globals.gBadDose[op->neq*i];
-        ind->nBadDose = 0;
-	// Hmax defined above.
-	ind->tlast=0.0;
-	ind->podo = 0.0;
-	ind->ixds =  0;
-	ind->sim = i+1;
-        ind->solve = &_globals.gsolve[curEvent];
-	ind->ix    = &_globals.gix[curIdx];
-	std::iota(ind->ix,ind->ix+ind->n_all_times,0);
-        curEvent += op->neq*ind->n_all_times;
-	ind->solveSave=&_globals.gsolve[curEvent];
-	curEvent += op->neq;
-	curIdx += ind->n_all_times;
-        ind->lhs = &_globals.glhs[i*lhs.size()];
-	ind->rc = &_globals.grc[i];
-        ind->slvr_counter = &_globals.slvr_counter[i];
-        ind->dadt_counter = &_globals.dadt_counter[i];
-        ind->jac_counter  = &_globals.jac_counter[i];
-      }
-      break;
     case 2: // DataFrame
       // Convert to NumericMatrix
       {
@@ -3096,18 +3114,20 @@ SEXP rxSolveC(const RObject &obj,
       }
     case 3: // NumericMatrix
       {
-	gparsSetup(npars*nPopPar);
+	gparsCovSetup(npars, nPopPar, ev1, rx);
         for (unsigned int j = 0; j < (unsigned int)nPopPar; j++){
 	  for (unsigned int k = 0; k < (unsigned int)npars; k++){
 	    i = k+npars*j;
-	    if (_globals.gParPos[k] == 0){
-	      _globals.gpars[i] = 0;
-	    } else if (_globals.gParPos[k] > 0){
-	      // posPar[i] = j + 1;
-	      _globals.gpars[i] = parMat(j, _globals.gParPos[k]-1);
-	    } else {
-	      // posPar[i] = -j - 1;
-	      _globals.gpars[i] = mvIni[-_globals.gParPos[k]-1];
+	    if (ISNA(_globals.gpars[i])){
+	      if (_globals.gParPos[k] == 0){
+		_globals.gpars[i] = 0;
+	      } else if (_globals.gParPos[k] > 0){
+		// posPar[i] = j + 1;
+		_globals.gpars[i] = parMat(j, _globals.gParPos[k]-1);
+	      } else {
+		// posPar[i] = -j - 1;
+		_globals.gpars[i] = mvIni[-_globals.gParPos[k]-1];
+	      }
 	    }
 	  }
 	}

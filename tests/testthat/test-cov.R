@@ -291,6 +291,75 @@ rxPermissive({
                     expect_warning(rxSolve(mod1, d3na, par2, add.cov=TRUE, cores=2, method=meth),"One or more covariates were all NA for subject id=2")
         })
 
+        ## Now test non time-varying covariates
+
+        mod <- RxODE({
+            tWt = WT
+            k10 = (CL*(WT/70)^0.75)/V2
+            k12 = Q/V2
+            k21 = Q/V3
+            d/dt(depot) =-KA*depot;
+            d/dt(centr) = KA*depot - k10*centr - k12*centr + k21*peri;
+            d/dt(peri)  =                        k12*centr - k21*peri;
+            C2 = centr/V2;
+            C3 = peri/V3;
+            cp = C2 #*(1+cp.err)
+        })
+
+        d <- structure(list(ID = c(1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L,
+                                   1L, 1L, 1L, 1L, 1L, 1L, 1L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L,
+                                   2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 3L, 3L, 3L, 3L, 3L, 3L, 3L, 3L,
+                                   3L, 3L, 3L, 3L, 3L, 3L, 3L, 3L, 3L),
+                            TIME = c(0, 0.302, 2.908,
+                                     3.144, 9.943, 18.021, 24, 48, 72, 96, 120, 144, 168, 168.009,
+                                     169.948, 177.614, 188.3, 0, 0.438, 2.529, 4.904, 7.498, 21.243,
+                                     24, 48, 72, 96, 120, 144, 168, 168.958, 169.062, 171.551, 191.689,
+                                     0, 0.438, 2.529, 4.904, 7.498, 21.243, 24, 48, 72, 96, 120, 144,
+                                     168, 168.958, 169.062, 171.551, 191.689),
+                            DV = c(0, 155.6, 325.2,
+                                   346.4, 166.9, 101, 0, 0, 0, 0, 0, 0, 0, 286, 647.2, 444.5, 354.8,
+                                   0, 203.5, 382.9, 280.6, 167.3, 73.2, 0, 0, 0, 0, 0, 0, 0, 486.8,
+                                   545.1, 523.5, 214, 0, 196.5, 462.9, 394, 247.4, 93.8, 0, 0, 0,
+                                   0, 0, 0, 0, 680.7, 761, 828.2, 449.1),
+                            WT = c(52L, 52L, 52L,
+                                   52L, 52L, 52L, 52L, 52L, 52L, 52L, 52L, 52L, 52L, 52L, 52L, 52L,
+                                   52L, 73L, 73L, 73L, 73L, 73L, 73L, 73L, 73L, 73L, 73L, 73L, 73L,
+                                   73L, 73L, 73L, 73L, 73L, 53L, 53L, 53L, 53L, 53L, 53L, 53L, 53L,
+                                   53L, 53L, 53L, 53L, 53L, 53L, 53L, 53L, 53L),
+                            SEX = c(0L, 0L,
+                                    0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 1L,
+                                    1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L,
+                                    1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L,
+                                    1L),
+                            AMT = c(1200L, 0L, 0L, 0L, 0L, 0L, 1200L, 1200L, 1200L,
+                                    1200L, 1200L, 1200L, 1200L, 0L, 0L, 0L, 0L, 1200L, 0L, 0L, 0L,
+                                    0L, 0L, 1200L, 1200L, 1200L, 1200L, 1200L, 1200L, 1200L, 0L,
+                                    0L, 0L, 0L, 1200L, 0L, 0L, 0L, 0L, 0L, 1200L, 1200L, 1200L, 1200L,
+                                    1200L, 1200L, 1200L, 0L, 0L, 0L, 0L),
+                            EVID = c(101L, 0L, 0L,
+                                     0L, 0L, 0L, 101L, 101L, 101L, 101L, 101L, 101L, 101L, 0L, 0L,
+                                     0L, 0L, 101L, 0L, 0L, 0L, 0L, 0L, 101L, 101L, 101L, 101L, 101L,
+                                     101L, 101L, 0L, 0L, 0L, 0L, 101L, 0L, 0L, 0L, 0L, 0L, 101L, 101L,
+                                     101L, 101L, 101L, 101L, 101L, 0L, 0L, 0L, 0L)),
+                       row.names = c(NA, -51L), class = "data.frame")
+
+        tmp <- RxODE:::evTrans(d, mod)
+
+
+
+        tmp2 <- rxSolve(mod,
+                        c(KA=1.05, CL=0.121, V2=1.939,
+                          Q=0.282, V3=5.65), tmp) %>%
+            as.data.frame
+
+        tmp3 <- rxSolve(mod,
+                        data.frame(KA=1.05, CL=0.121, V2=1.939,
+                                   Q=0.282, V3=5.65,WT=c(52, 73, 53)), d) %>%
+            as.data.frame
+
+        test_that("non time-varying covariates are the same as supplying 1 parameter for each id",{
+            expect_equal(tmp2, tmp3)
+        })
     }
     ## devtools::install();library(RxODE);rxTest("cov")
     rxClean()

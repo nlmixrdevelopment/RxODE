@@ -26,6 +26,7 @@ rxPermissive({
 
     ## Test scaling factor
     test_that("Scaling factors specified by S#= work", {
+
         out <- rxSolve(ode,
                        params = c(a=-8/3, b=-10),
                        events = et,
@@ -58,6 +59,7 @@ rxPermissive({
     })
 
     test_that("Multiple Scaling Factors", {
+
         out <- rxSolve(ode,
                        params = c(a=-8/3, b=-10),
                        events = et,
@@ -67,9 +69,11 @@ rxPermissive({
         expect_equal(out$X, x1 / 2);
         expect_equal(out$Y, y1 / 2);
         expect_equal(out$Z, z1);
+
     })
 
     test_that("Lower Case scaling factor", {
+
         out <- rxSolve(ode,
                        params = c(a=-8/3, b=-10),
                        events = et,
@@ -79,18 +83,22 @@ rxPermissive({
         expect_equal(out$X, x1 / 2);
         expect_equal(out$Y, y1);
         expect_equal(out$Z, z1);
+
     })
 
     test_that("Duplicate Scaling factors raise error", {
+
         expect_error(out <- rxSolve(ode,
                                     params = c(a=-8/3, b=-10),
                                     events = et,
                                     inits = c(X=1, Y=1, Z=1),
                                     covs = cov,
                                     s1=2, s1=4));
+
     })
 
     test_that("Scaling with two methods creates an error", {
+
         expect_error(out <- rxSolve(ode,
                                     params = c(a=-8/3, b=-10),
                                     events = et,
@@ -98,9 +106,11 @@ rxPermissive({
                                     scale=c(X=2),
                                     covs = cov,
                                     s1=2));
+
     })
 
     test_that("Scaling for a unnumbered compartment rases a warning", {
+
         expect_warning(out <- rxSolve(ode,
                                     params = c(a=-8/3, b=-10),
                                     events = et,
@@ -110,9 +120,11 @@ rxPermissive({
         expect_equal(out$X, x1 / 2);
         expect_equal(out$Y, y1);
         expect_equal(out$Z, z1);
+
     })
 
     test_that("Scaling factors specified by scale(X=...) work", {
+
         out <- rxSolve(ode,
                        params = c(a=-8/3, b=-10),
                        events = et,
@@ -122,6 +134,7 @@ rxPermissive({
         expect_equal(out$X, x1 / 2);
         expect_equal(out$Y, y1);
         expect_equal(out$Z, z1);
+
         ## Issue #18
         out <- rxSolve(ode,
                        params = c(a=-8/3, b=-10),
@@ -132,6 +145,7 @@ rxPermissive({
         expect_equal(out$X, x1 / 2);
         expect_equal(out$Y, y1);
         expect_equal(out$Z, z1);
+
         expect_error(rxSolve(ode,
                              params = c(a=-8/3, b=-10),
                              events = et,
@@ -147,6 +161,7 @@ rxPermissive({
         expect_equal(out$X, x1);
         expect_equal(out$Y, y1 / 2);
         expect_equal(out$Z, z1);
+
         out <- rxSolve(ode,
                        params = c(a=-8/3, b=-10),
                        events = et,
@@ -156,6 +171,7 @@ rxPermissive({
         expect_equal(out$X, x1);
         expect_equal(out$Y, y1);
         expect_equal(out$Z, z1 / 2);
+
         out <- rxSolve(ode,
                        params = c(a=-8/3, b=-10),
                        events = et,
@@ -165,5 +181,6 @@ rxPermissive({
         expect_equal(out$X, x1 / 2);
         expect_equal(out$Y, y1);
         expect_equal(out$Z, z1 / 2);
+
     })
 }, silent=TRUE)
