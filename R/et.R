@@ -19,16 +19,17 @@ et.default <- function(...){
 
 ##'@export
 print.rxEt <- function(x,...){
-    cat(sprintf("EventTable with %s records:\n", x$nobs+x$ndose))
-    units <- x$.units;
-    cat(sprintf("   %d dosing%s records\n",
+    cat(sprintf("EventTable with %s records%s:\n", x$nobs+x$ndose,
+                ifelse(x$.maxId==1, "", sprintf(" (%d IDs)", x$.maxId))))
+    .units <- x$.units;
+    cat(sprintf("   %s dosing%s records\n",
                 x$ndose,
-                ifelse(is.na(units["dosing"]), "",
-                       sprintf(" (in %s)", units["dosing"]))))
-    cat(sprintf("   %d observation times%s\n",
+                ifelse(is.na(.units["dosing"]), "",
+                       sprintf(" (in %s)", .units["dosing"]))))
+    cat(sprintf("   %s observation times%s\n",
                 x$nobs,
-                ifelse(is.na(units["time"]), "",
-                       sprintf(" (in %s)", units["time"]))))
+                ifelse(is.na(.units["time"]), "",
+                       sprintf(" (in %s)", .units["time"]))))
     if (x$nobs!=0 | x$ndose!=0){
         print(dplyr::as.tbl(data.frame(x)[, x$.show, drop = FALSE]));
     }
