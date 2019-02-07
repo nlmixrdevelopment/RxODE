@@ -1459,7 +1459,7 @@ extern "C" void gFree(){
 }
 
 arma::mat rwish5(double nu, int p){
-  GetRNGstate();
+  // GetRNGstate();
   arma::mat Z(p,p, fill::zeros);
   double curp = nu;
   double tmp =sqrt(Rf_rchisq(curp--));
@@ -1475,7 +1475,7 @@ arma::mat rwish5(double nu, int p){
       }
     }
   }
-  PutRNGstate();
+  // PutRNGstate();
   return Z;
 }
 
@@ -1484,7 +1484,7 @@ NumericMatrix cvPost0(double nu, NumericMatrix omega, bool omegaIsChol = false,
   arma::mat S =as<arma::mat>(omega);
   int p = S.n_rows;
   if (p == 1){
-    GetRNGstate();
+    // GetRNGstate();
     NumericMatrix ret(1,1);
     if (omegaIsChol){
       ret[0] = nu*omega[0]*omega[0]/(Rf_rgamma(nu/2.0,2.0));
@@ -1492,7 +1492,7 @@ NumericMatrix cvPost0(double nu, NumericMatrix omega, bool omegaIsChol = false,
       ret[0] = nu*omega[0]/(Rf_rgamma(nu/2.0,2.0));
     }
     if (returnChol) ret[0] = sqrt(ret[0]);
-    PutRNGstate();
+    // PutRNGstate();
     return ret;
   } else {
     arma::mat Z = rwish5(nu, p);
@@ -1569,11 +1569,11 @@ RObject cvPost(double nu, RObject omega, int n = 1, bool omegaIsChol = false, bo
 //[[Rcpp::export]]
 NumericVector rinvchisq(const int n = 1, const double &nu = 1.0, const double &scale = 1){
   NumericVector ret(n);
-  GetRNGstate();
+  // GetRNGstate();
   for (int i = 0; i < n; i++){
     ret[i] = nu*scale/(Rf_rgamma(nu/2.0,2.0));
   }
-  PutRNGstate();
+  // PutRNGstate();
   return ret;
 }
 
