@@ -1,5 +1,29 @@
 rxPermissive({
 
+    ## Test case for SS=2
+    ## https://github.com/metrumresearchgroup/mrgsolve/issues/221
+    pk2cmt <- RxODE({
+        ## - Two-compartment PK model
+        ##      - Dual first-order absorption
+        ##      - Optional nonlinear clearance from `CENT`
+        ##  - Source: Translated from mrgsolve to RxODE
+        CL <- 1  # Clearance (volume/time)
+        VC <- 3  # Central volume (volume)
+        Q <- 2  # Inter-compartmental clearance (volume/time)
+        VP <- 100  # Peripheral volume of distribution (volume)
+        KA1 <- 1  # Absorption rate constant 1 (1/time)
+        KA2 <- 1  # Absorption rate constant 2 (1/time)
+        VMAX <- 0  # Maximum velocity (mass/time)
+        KM <- 2  # Michaelis Constant (mass/volume)
+        CP <- (CENT/VC)
+        CT <- (PERIPH/VP)
+        CLNL <- (VMAX/(KM+CP))
+        d/dt(EV1)= -KA1*EV1;
+        d/dt(EV2)= -KA2*EV2;
+        d/dt(CENT)= KA1*EV1 + KA2*EV2 - (CL+CLNL+Q)*CP  + Q*CT;
+        d/dt(PERIPH)= Q*CP - Q*CT;
+    })
+
     m <- "liblsoda"
 
     ## m <- "lsoda"
@@ -15,6 +39,9 @@ rxPermissive({
         C2 = center/V;
         d/dt(center) ~ - Cl*C2
     })
+
+    tmp <- et$get.EventTable()
+    tmp <- tmp[order(tmp$evid),]
 
     x2 <- solve(ode.1c, et, method=m)
     library(ggplot2); x2 %>% ggplot(aes(time, C2)) + geom_line()

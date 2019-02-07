@@ -5,6 +5,14 @@ removableDrive <- function(driveRoot) {
     .Call(`_RxODE_removableDrive`, driveRoot)
 }
 
+etUpdate <- function(obj, arg = NULL, value = NULL) {
+    .Call(`_RxODE_etUpdate`, obj, arg, value)
+}
+
+et_ <- function(input, et__) {
+    .Call(`_RxODE_et_`, input, et__)
+}
+
 evTrans <- function(inData, obj) {
     .Call(`_RxODE_evTrans`, inData, obj)
 }

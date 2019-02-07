@@ -22,6 +22,31 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// etUpdate
+RObject etUpdate(RObject obj, RObject arg, RObject value);
+RcppExport SEXP _RxODE_etUpdate(SEXP objSEXP, SEXP argSEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< RObject >::type obj(objSEXP);
+    Rcpp::traits::input_parameter< RObject >::type arg(argSEXP);
+    Rcpp::traits::input_parameter< RObject >::type value(valueSEXP);
+    rcpp_result_gen = Rcpp::wrap(etUpdate(obj, arg, value));
+    return rcpp_result_gen;
+END_RCPP
+}
+// et_
+RObject et_(List input, List et__);
+RcppExport SEXP _RxODE_et_(SEXP inputSEXP, SEXP et__SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< List >::type input(inputSEXP);
+    Rcpp::traits::input_parameter< List >::type et__(et__SEXP);
+    rcpp_result_gen = Rcpp::wrap(et_(input, et__));
+    return rcpp_result_gen;
+END_RCPP
+}
 // evTrans
 List evTrans(List inData, const RObject& obj);
 RcppExport SEXP _RxODE_evTrans(SEXP inDataSEXP, SEXP objSEXP) {
