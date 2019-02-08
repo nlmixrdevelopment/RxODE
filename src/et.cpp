@@ -61,7 +61,7 @@ List etEmpty(CharacterVector units){
   e["get_units"] = eval2(_["expr"]   = parse2(_["text"]=getUnits),
 			 _["envir"]  = e);
 
-  std::string addDosing= "function(dose, nbr.doses = 1, dosing.interval = 24, dosing.to=1, rate=NULL, amount.units = NA, start.time, do.sampling=FALSE, time.units = NA, ...) {.lst <- as.list(as.list(match.call())[-1]);.lst$dosing.interval = dosing.interval;invisible(.Call(`_RxODE_et_`, .lst ,list('last')));}";
+  std::string addDosing= "function (dose, nbr.doses = 1L, dosing.interval = 24, \n    dosing.to = 1L, rate = NULL, amount.units = NA_character_, \n    start.time = 0, do.sampling = FALSE, time.units = NA_character_, \n    ...) \n{\n    .lst <- list(dose = dose, nbr.doses = nbr.doses, start.time = start.time, \n        do.sampling = do.sampling)\n    if (!is.na(amount.units)) \n        .lst$amount.units <- amount.units\n    if (!is.na(time.units)) \n        .lst$time.units <- time.units\n    if (dosing.to != 1) \n        .lst$dosing.to <- dosing.to\n    if (!is.null(rate)) \n        .lst$rate <- rate\n    .lst$dosing.interval <- dosing.interval\n    invisible(.Call(`_RxODE_et_`, .lst, list('last')))\n}";
 
   e["add.dosing"] = eval2(_["expr"] = parse2(_["text"] = addDosing),
 			  _["envir"]  = e);
@@ -70,7 +70,7 @@ List etEmpty(CharacterVector units){
   e["addDosing"] = eval2(_["expr"] = parse2(_["text"] = addDosing),
 			 _["envir"]  = e);
 
-  std::string addSampling="function(time, time.units = NA) invisible(.Call(`_RxODE_et_`, as.list(match.call())[-1], list('last')))";
+  std::string addSampling="function(time, time.units = NA) {\n  .lst <- list();\n  .lst$time<-time;\n  if(!is.na(time.units)) .lst$time.units<- time.units\n  invisible(.Call(`_RxODE_et_`, .lst, list('last')));\n}";
 
   e["add.sampling"] = eval2(_["expr"] = parse2(_["text"] = addSampling),
 			    _["envir"]  = e);
@@ -591,7 +591,6 @@ List etResizeId(int maxId, List curEt){
   CharacterVector cls = clone(as<CharacterVector>(curEt.attr("class")));
   List eOld = cls.attr(".RxODE.lst");
   List e = clone(eOld);
-  print(e);
   int oldMaxId = as<int>(e["maxId"]);
   if (maxId == oldMaxId) return curEt;
   double c = (double)(maxId)/(double)(oldMaxId);
@@ -1098,9 +1097,13 @@ RObject et_(List input, List et__){
 	CharacterVector nm = input.attr("names");
 	if (nm[0] == "getUnits"){
 	  return(e["units"]);
+	} else if (nm[0] == "get.nobs"){
+	  return e["nobs"];
+	} else if (nm[0] == "get.dose"){
+	  return e["nobs"];
 	} else if (nm[0] == "copy"){
-	  // There is no need to copy any more.
-	  return curEt;
+	  // Make sure that the object is cloned
+	  return etUpdateObj(as<List>(curEt),false);
 	} else if (nm[0] == "get.EventTable"){
 	  e.attr("class") = R_NilValue;
 	  if (as<int>(e["nobs"]) == 0 && as<int>(e["ndose"]) == 0){
@@ -1111,6 +1114,11 @@ RObject et_(List input, List et__){
 	    return as<RObject>(ret);
 	  }
 	} else if (nm[0] == "get.obs.rec"){
+	  List lst = as<List>(curEt);
+	  IntegerVector evid = as<IntegerVector>(lst["evid"]);
+	  LogicalVector ret(evid.size());
+	  for (int i = evid.size(); i--;) ret[i] = (evid[i] == 0);
+	  return as<RObject>(ret);
 	} else if (nm[0] == "get.sampling" || nm[0] == "get.dosing" ||
 		   nm[0] == "clearSampling" || nm[0] == "clearDosing"){
 	  // Need to update
@@ -1357,7 +1365,8 @@ RObject et_(List input, List et__){
 	  }
 	}
 	if (timeIx != -1) {
-	  if (rxIs(input[timeIx], "numeric") || rxIs(input[timeIx], "integer")){
+	  if (rxIs(input[timeIx], "numeric") || rxIs(input[timeIx], "integer") ||
+	      rxIs(input[timeIx], "units")){
 	    NumericVector time = as<NumericVector>(input[timeIx]);
 	    if (rxIs(time, "units")){
 	      CharacterVector cls = clone(as<CharacterVector>(curEt.attr("class")));
@@ -1480,7 +1489,7 @@ RObject et_(List input, List et__){
 	  stop("Steady state (ss) is not supported with dosing windows.");
 	}
 	if (addl[0] < 0){
-	  stop("Additional doses must be positive.");
+	  stop("Additional doses must be positive (addl=%d).", addl[0]);
 	}
 	return etUpdateObj(etAddDose(time, cmt, amt[0], rate[0], ii[0], addl[0], evid[0], ss[0],
 				     id, turnOnShowCmt, as<List>(curEt)),doUpdateObj);
@@ -1503,7 +1512,6 @@ RObject et_(List input, List et__){
       units[1] = "hours";
     } else  {
       CharacterVector tmpS = as<CharacterVector>(input[timeUnitIx]);
-      print(tmpS);
       if (tmpS.size() != 1) stop("Time unit cannot be a vector");
       units[1] = tmpS[0];
       foundArgs++;

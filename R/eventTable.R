@@ -165,7 +165,7 @@
 #' @concept Pharmacokinetics (PK)
 #' @concept Pharmacodynamics (PD)
 #' @export
-eventTable <- function(amount.units = NA, time.units = "hours")
+eventTableOld <- function(amount.units = NA, time.units = "hours")
 {
     .EventTable <- NULL
     .obs.rec <- logical(0)     # flag for observation records
@@ -344,97 +344,4 @@ eventTable <- function(amount.units = NA, time.units = "hours")
             )
     class(out) <- "EventTable"
     out
-}
-
-#' @export
-"print.EventTable" <-
-function(x, ...)
-{
-   nobs <- x$get.nobs()
-   dr <- sum(!x$get.obs.rec())
-   nr <- nrow(x$get.EventTable())
-   nr <- if(is.null(nr)) 0 else nr
-   unts <- x$get.units()
-   cat(
-      sprintf("EventTable with %d records:\n", nr),
-      sprintf("  %d dosing (in %s) records\n", dr, unts[1]),
-      sprintf("  %d observation time (in %s) records\n", nobs, unts[2])
-   )
-   invisible(x)
-}
-
-##' Add dosing to eventTable
-##'
-##' This adds a dosing event to the event table.  This is provided for
-##' piping syntax through magrittr
-##'
-##' @param eventTable eventTable object
-##' @param dose numeric scalar, dose amount in \code{amount.units};
-##' @param nbr.doses integer, number of doses;
-##' @param dosing.interval required numeric scalar, time between doses
-##'      in \code{time.units}, defaults to 24 of \code{time.units="hours"};
-##' @param dosing.to integer, compartment the dose goes into
-##'        (first compartment by default);
-##' @param rate for infusions, the rate of infusion (default
-##'            is \code{NULL}, for bolus dosing;
-##' @param amount.units optional string indicating the dosing units.
-##'           Defaults to \code{NA} to indicate as per the original \code{EventTable}
-##'           definition.
-##' @param start.time required dosing start time;
-##' @param do.sampling logical, should observation sampling records
-##'            be added at the dosing times? Defaults to \code{FALSE}.
-##' @param time.units optional string indicating the time units.
-##'           Defaults to \code{"hours"} to indicate as per the original \code{EventTable} definition.
-##' @param ... Other parameters (ignored)
-##' @return eventTable with updated dosing (note the event table will be updated anyway)
-##' @author Matthew L. Fidler
-##' @seealso \code{\link{eventTable}}, \code{\link{RxODE}}
-##' @export
-add.dosing <- function(eventTable, dose, nbr.doses = 1L, dosing.interval = 24, dosing.to = 1L, rate = NULL, amount.units = NA_character_, start.time = 0.0, do.sampling = FALSE, time.units = NA_character_, ...) {
-    .Call(`_RxODE_add_dosing_`, eventTable, dose, nbr.doses, dosing.interval, dosing.to, rate, amount.units, start.time, do.sampling, time.units)
-}
-##' Add sampling to eventTable
-##'
-##' This adds a dosing event to the event table.  This is provided for
-##' piping syntax through magrittr
-##'
-##' @param eventTable An eventTable object
-##' @param time a vector of time values (in \code{time.units}).
-##' @param time.units an optional string specifying the time
-##'     units. Defaults to the units specified when the
-##'     \code{EventTable} was initialized.
-##' @param ... Other parameters (ignored)
-##' @return eventTable with updated sampling.  (Note the event table
-##'     will be updated even if you don't reassign the eventTable)
-##' @author Matthew L. Fidler
-##' @seealso \code{\link{eventTable}}, \code{\link{RxODE}}
-##' @export
-add.sampling <- function(eventTable, time, time.units = NA, ...){
-    .Call(`_RxODE_add_sampling_`, eventTable, time, time.units)
-}
-
-
-##' @importFrom magrittr %>%
-##' @export
-magrittr::`%>%`
-
-
-##' @export
-print.RxODE.multi.data <- function(x, ...){
-    message("RxODE multi-subject data:")
-    message(sprintf("  Number of Subjects: %s", x$nSub))
-    message(sprintf("  Number of Observations: %s (t=%s to %s%s)", x$nObs, x$min.time, x$max.time, ifelse(is.na(x$time.units), "", paste0(" ", x$time.units))))
-    if (x$nDose == 0){
-        message("  No Dosing Records.")
-    } else {
-        message(sprintf("  Number of Dosing Records: %s%s", x$nDose, ifelse(is.na(x$amount.units), "", paste0(" (in ", x$amount.units, ")"))))
-    }
-    obs.cov <- x$cov.names;
-    sim.cov <- x$simulated.vars;
-    if (!is.null(obs.cov)){
-        message(sprintf("  Covariates: %s", paste(obs.cov, collapse=", ")))
-    }
-    if (!is.null(sim.cov)){
-        message(sprintf("  Simulated Variables: %s", paste(sim.cov, collapse=", ")))
-    }
 }

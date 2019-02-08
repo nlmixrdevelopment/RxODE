@@ -175,8 +175,10 @@ List evTrans(List inData, const RObject &obj){
     }
     
     // SS flag
+    ss=1;
     if (ssCol == -1) ss=1;
     else if (inSs[i] == 0) ss=1;
+    else if (IntegerVector::is_na(inSs[i])) ss=1;
     else if (inSs[i] == 1 && cii > 0) ss=10;
     else if (inSs[i] == 2 && cii > 0) ss=20;
     

@@ -59,39 +59,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// add_dosing_
-RObject add_dosing_(RObject eventTable, double dose, int nbr_doses, double dosing_interval, int dosing_to, Nullable<NumericVector> rate, CharacterVector amount_units, double start_time, bool do_sampling, CharacterVector time_units);
-RcppExport SEXP _RxODE_add_dosing_(SEXP eventTableSEXP, SEXP doseSEXP, SEXP nbr_dosesSEXP, SEXP dosing_intervalSEXP, SEXP dosing_toSEXP, SEXP rateSEXP, SEXP amount_unitsSEXP, SEXP start_timeSEXP, SEXP do_samplingSEXP, SEXP time_unitsSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< RObject >::type eventTable(eventTableSEXP);
-    Rcpp::traits::input_parameter< double >::type dose(doseSEXP);
-    Rcpp::traits::input_parameter< int >::type nbr_doses(nbr_dosesSEXP);
-    Rcpp::traits::input_parameter< double >::type dosing_interval(dosing_intervalSEXP);
-    Rcpp::traits::input_parameter< int >::type dosing_to(dosing_toSEXP);
-    Rcpp::traits::input_parameter< Nullable<NumericVector> >::type rate(rateSEXP);
-    Rcpp::traits::input_parameter< CharacterVector >::type amount_units(amount_unitsSEXP);
-    Rcpp::traits::input_parameter< double >::type start_time(start_timeSEXP);
-    Rcpp::traits::input_parameter< bool >::type do_sampling(do_samplingSEXP);
-    Rcpp::traits::input_parameter< CharacterVector >::type time_units(time_unitsSEXP);
-    rcpp_result_gen = Rcpp::wrap(add_dosing_(eventTable, dose, nbr_doses, dosing_interval, dosing_to, rate, amount_units, start_time, do_sampling, time_units));
-    return rcpp_result_gen;
-END_RCPP
-}
-// add_sampling_
-RObject add_sampling_(RObject eventTable, NumericVector time, CharacterVector time_units);
-RcppExport SEXP _RxODE_add_sampling_(SEXP eventTableSEXP, SEXP timeSEXP, SEXP time_unitsSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< RObject >::type eventTable(eventTableSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type time(timeSEXP);
-    Rcpp::traits::input_parameter< CharacterVector >::type time_units(time_unitsSEXP);
-    rcpp_result_gen = Rcpp::wrap(add_sampling_(eventTable, time, time_units));
-    return rcpp_result_gen;
-END_RCPP
-}
 // rxIs
 bool rxIs(const RObject& obj, std::string cls);
 static SEXP _RxODE_rxIs_try(SEXP objSEXP, SEXP clsSEXP) {

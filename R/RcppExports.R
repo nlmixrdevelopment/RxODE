@@ -17,14 +17,6 @@ evTrans <- function(inData, obj) {
     .Call(`_RxODE_evTrans`, inData, obj)
 }
 
-add_dosing_ <- function(eventTable, dose, nbr_doses = 1L, dosing_interval = 24, dosing_to = 1L, rate = NULL, amount_units = NA_character_, start_time = 0.0, do_sampling = FALSE, time_units = NA_character_) {
-    .Call(`_RxODE_add_dosing_`, eventTable, dose, nbr_doses, dosing_interval, dosing_to, rate, amount_units, start_time, do_sampling, time_units)
-}
-
-add_sampling_ <- function(eventTable, time, time_units = NA_character_) {
-    .Call(`_RxODE_add_sampling_`, eventTable, time, time_units)
-}
-
 #' Check the type of an object using Rcpp
 #'
 #' @param obj Object to check

@@ -9,8 +9,12 @@
     }
     .uniqueCmt <- .uniqueCmt[.uniqueCmt != "(default)"];
     .uniqueCmt <- .uniqueCmt[.uniqueCmt != "(obs)"];
-    .lvlCmt <- setdiff(.uniqueCmt, state);
-    .lvlCmt <- c(state, .lvlCmt, "(obs)");
+    if (length(.uniqueCmt)==0L){
+        .lvlCmt <- c("(default)","(obs)");
+    } else {
+        .lvlCmt <- setdiff(.uniqueCmt, state);
+        .lvlCmt <- c(state, .lvlCmt, "(obs)");
+    }
     .cmt <- paste0(cmt);
     .cmt <- ifelse(.cmt=="(default)",.lvlCmt[1],.cmt);
     .cmt <- as.numeric(factor(.cmt,levels=.lvlCmt));
@@ -28,12 +32,12 @@
 ##' @author Matthew Fidler
 rxEvTrans <- function(data, model){
     .d <- as.data.frame(data)
-    .colNames <- colnames(id)
+    .colNames <- colnames(.d)
     .colNames <- tolower(.colNames)
     .anyCmt <- which(.colNames == "cmt")
     .state <- rxModelVars(model);
     if (length(.anyCmt)==1){
         .d[,.anyCmt] <- .rxConvertCmt(.d[,.anyCmt], .state);
     }
-
+    evTrans(.d,model)
 }
