@@ -262,6 +262,7 @@ List etAddWindow(List windowLst, int idMax, RObject cmt, bool turnOnShowCmt, Lis
   List eOld = cls.attr(".RxODE.lst");
   List e = clone(eOld);  
   CharacterVector units = e["units"];
+  int nobs=0;
   for (int j = idMax; j--;){
     for (int i = windowLst.size(); i--;){
       NumericVector cur = as<NumericVector>(windowLst[i]);
@@ -282,6 +283,7 @@ List etAddWindow(List windowLst, int idMax, RObject cmt, bool turnOnShowCmt, Lis
       c = Rf_runif(cur[0], cur[1]);
       time.push_back(c);
       evid.push_back(0);
+      nobs++;
     }
   }
   std::sort(idx.begin(),idx.end(),
@@ -405,7 +407,7 @@ List etAddWindow(List windowLst, int idMax, RObject cmt, bool turnOnShowCmt, Lis
       }
     }
   }
-  e["nobs"] = as<int>(e["nobs"]) + windowLst.size()*idMax;
+  e["nobs"] = as<int>(e["nobs"]) + nobs;
   LogicalVector show = e["show"];
   if (turnOnShowCmt){
     show["cmt"] = true;
@@ -433,11 +435,13 @@ List etAddTimes(NumericVector newTimes, int idMax, RObject cmt, bool turnOnShowC
   std::vector<int> idx(oldSize+newTimes.size()*idMax);
   std::vector<int> evid = as<std::vector<int>>(curEt["evid"]);
   std::iota(idx.begin(),idx.end(),0);
+  int nobs = 0;
   for (int j = idMax; j--;){
     for (int i = newTimes.size(); i--;){
       id.push_back(j+1);
       time.push_back(newTimes[i]);
       evid.push_back(0);
+      nobs++;
     }
   }
   std::sort(idx.begin(),idx.end(),
@@ -566,7 +570,7 @@ List etAddTimes(NumericVector newTimes, int idMax, RObject cmt, bool turnOnShowC
   CharacterVector cls = clone(as<CharacterVector>(curEt.attr("class")));
   List eOld = cls.attr(".RxODE.lst");
   List e = clone(eOld);
-  e["nobs"] = as<int>(e["nobs"]) + newTimes.size()*idMax;
+  e["nobs"] = as<int>(e["nobs"]) + nobs;
   LogicalVector show = e["show"];
   if (turnOnShowCmt){
     show["cmt"] = true;
@@ -707,6 +711,7 @@ List etAddDose(NumericVector curTime, RObject cmt,  double amt, double rate, dou
   int oldSize = id.size();
   int i, j;
   double a, b, c;
+  int ndose=0;
   for (j = maxId; j--;){
     if (curTime.size() == 1){
       id.push_back(j+1);
@@ -714,6 +719,7 @@ List etAddDose(NumericVector curTime, RObject cmt,  double amt, double rate, dou
       time.push_back(curTime[0]);
       low.push_back(NA_REAL);
       high.push_back(NA_REAL);
+      ndose++;
     } else if (curTime.size() == 2) {
 	if (curTime[0] < curTime[1]){
 	  id.push_back(j+1);
@@ -722,6 +728,7 @@ List etAddDose(NumericVector curTime, RObject cmt,  double amt, double rate, dou
 	  high.push_back(curTime[1]);
 	  c = Rf_runif(curTime[0], curTime[1]);
 	  time.push_back(c);
+	  ndose++;
 	  for (i = addl; i--;){
 	    id.push_back(j+1);
 	    evid.push_back(curEvid);
@@ -731,6 +738,7 @@ List etAddDose(NumericVector curTime, RObject cmt,  double amt, double rate, dou
 	    high.push_back(b);
 	    c = Rf_runif(a, b);
 	    time.push_back(c);
+	    ndose++;
 	  }
 	} else {
 	  stop("For dosing window you need to specify window in order, e.g. et(time=c(0,2),amt=3).");
@@ -883,14 +891,13 @@ List etAddDose(NumericVector curTime, RObject cmt,  double amt, double rate, dou
     show["ss"] = true;
     show["ii"] = true;
   }
+  e["ndose"] = as<int>(e["ndose"])+ndose;
   if (curTime.size() == 2){
     show["low"] = true;
     show["high"] = true;
     if (addl != 0){
-      e["ndose"] = as<int>(e["ndose"]) + maxId*(addl+1);
     }
   } else {
-    e["ndose"] = as<int>(e["ndose"]) + maxId;
     if (ii != 0){
       show["ii"] = true;
     }
