@@ -20,18 +20,14 @@ et.default <- function(...){
 ##'@export
 print.rxEt <- function(x,...){
     cat(sprintf("EventTable with %s records%s:\n", x$nobs+x$ndose,
-                ifelse(x$.maxId==1, "", sprintf(" (%d IDs)", x$.maxId))))
+                ifelse(x$maxId==1, "", sprintf(" (%d IDs)", x$maxId))))
     .units <- x$.units;
-    cat(sprintf("   %s dosing%s records\n",
-                x$ndose,
-                ifelse(is.na(.units["dosing"]), "",
-                       sprintf(" (in %s)", .units["dosing"]))))
-    cat(sprintf("   %s observation times%s\n",
-                x$nobs,
-                ifelse(is.na(.units["time"]), "",
-                       sprintf(" (in %s)", .units["time"]))))
+    cat(sprintf("   %s dosing records\n",
+                x$ndose))
+    cat(sprintf("   %s observation times\n",
+                x$nobs))
     if (x$nobs!=0 | x$ndose!=0){
-        print(dplyr::as.tbl(data.frame(x)[, x$.show, drop = FALSE]));
+        print(dplyr::as.tbl(data.frame(x)[, x$show, drop = FALSE]));
     }
     invisible(x)
 }
@@ -64,3 +60,28 @@ str.rxHidden <- function(object,...){
     cat("\r");
 }
 
+##'@export
+set_units.rxEt <- function(x, value, ..., mode = units::units_options("set_units_mode")){
+    if (missing(value))
+        value <- units::unitless
+    else if (mode == "symbols") {
+        value <- substitute(value)
+        if (is.numeric(value) && !identical(value, 1) && !identical(value, 1L))
+            stop("The only valid number defining a unit is '1', signifying a unitless unit")
+    }
+    if (identical(value, units::unitless)){
+        warning("Clearing both amount and time units; For more precise control use et(amountUnits=\"\") or et(timeUnits=\"\")")
+        return(suppressWarnings({.Call(`_RxODE_et_`, list(amountUnits="", timeUnits=""), x)}))
+    } else {
+        if (!rxIs(value, "character")) value <- deparse(value);
+        .tUnit <- units::set_units(1, "sec", mode="standard");
+        .isTime <- try(units::set_units(units::set_units(1, value, mode="standard"), "sec"), silent=TRUE);
+        if (inherits(.isTime, "try-error")){
+            ## Amount
+            return(.Call(`_RxODE_et_`, list(amountUnits=value), x))
+        } else {
+            ##
+            return(.Call(`_RxODE_et_`, list(timeUnits=value), x));
+        }
+    }
+}

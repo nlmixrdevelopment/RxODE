@@ -11,7 +11,13 @@ Environment unitsPkg = loadNamespace2("units");
 //(x, value, ..., mode = units_options("set_units_mode"))
 NumericVector setUnits(NumericVector obj, std::string unit){
   Function f = as<Function>(unitsPkg["set_units"]);
-  return as<NumericVector>(f(_["x"] = obj, _["value"] = unit, _["mode"] = "standard"));
+  if (unit == ""){
+    obj.attr("class") = R_NilValue;
+    obj.attr("units") = R_NilValue;
+    return obj;
+  } else {
+    return as<NumericVector>(f(_["x"] = obj, _["value"] = unit, _["mode"] = "standard"));
+  }
 }
 
 //[[Rcpp::export]]
@@ -21,7 +27,7 @@ RObject etUpdate(RObject obj,
   if (rxIs(obj,"rxEt")){
     evCur = obj;
     if (rxIs(value, "NULL")){
-      CharacterVector cls = obj.attr("class");
+      CharacterVector cls = clone(as<CharacterVector>(obj.attr("class")));
       List e = clone(as<List>(cls.attr(".RxODE.lst")));
       if (rxIs(arg, "character")){
 	CharacterVector carg = as<CharacterVector>(arg);
@@ -42,19 +48,20 @@ RObject etUpdate(RObject obj,
 List etEmpty(CharacterVector units){
   CharacterVector cls = CharacterVector::create("rxEt","data.frame");
   List e;
-  e[".units"] = units;
+  e["units"] = units;
   Function parse2("parse", R_BaseNamespace);
   Function eval2("eval", R_BaseNamespace);
   // eventTable style methods
-  e["get.units"] = eval2(_["expr"]   = parse2(_["text"]="function() .units"),
+  std::string getUnits= "function() .Call(`_RxODE_et_`, list(getUnits=TRUE) ,list('last'))";
+  e["get.units"] = eval2(_["expr"]   = parse2(_["text"]=getUnits),
 			 _["envir"]  = e);
   
-  e["getUnits"] = eval2(_["expr"]   = parse2(_["text"]="function() .units"),
+  e["getUnits"] = eval2(_["expr"]   = parse2(_["text"]=getUnits),
 			_["envir"]  = e);
-  e["get_units"] = eval2(_["expr"]   = parse2(_["text"]="function() .units"),
+  e["get_units"] = eval2(_["expr"]   = parse2(_["text"]=getUnits),
 			 _["envir"]  = e);
 
-  std::string addDosing= "function(dose, nbr.doses = 1, dosing.interval = 24, dosing.to=1, rate=NULL, amount.units = NA, start.time, do.sampling=FALSE, time.units = NA, ...) {invisible(.Call(`_RxODE_et_`, as.list(match.call())[-1] ,list('last')))}";
+  std::string addDosing= "function(dose, nbr.doses = 1, dosing.interval = 24, dosing.to=1, rate=NULL, amount.units = NA, start.time, do.sampling=FALSE, time.units = NA, ...) {.lst <- as.list(as.list(match.call())[-1]);.lst$dosing.interval = dosing.interval;invisible(.Call(`_RxODE_et_`, .lst ,list('last')));}";
 
   e["add.dosing"] = eval2(_["expr"] = parse2(_["text"] = addDosing),
 			  _["envir"]  = e);
@@ -123,11 +130,11 @@ List etEmpty(CharacterVector units){
 			   _["envir"]  = e);
   e["nobs"] = 0;
   e["ndose"] = 0;
-  e[".show"] = LogicalVector::create(_["id"] = false, _["low"] = false,_["time"] = true, _["high"] = false,
+  e["show"] = LogicalVector::create(_["id"] = false, _["low"] = false,_["time"] = true, _["high"] = false,
 				     _["cmt"] =false, _["amt"]=false, _["rate"] = false,
 				     _["ii"] = false, _["addl"] = false,
 				     _["evid"] = true, _["ss"] = false);
-  e[".maxId"] = 1;
+  e["maxId"] = 1;
 
   // Return an empty data frame.
   List lst(11);
@@ -176,9 +183,17 @@ List etEmpty(CharacterVector units){
     lst["low"]  = setUnits(lst["low"],  as<std::string>(units[1]));
     lst["time"] = setUnits(lst["time"], as<std::string>(units[1]));
     lst["high"] = setUnits(lst["high"], as<std::string>(units[1]));
+    lst["ii"]  = setUnits(lst["ii"],  as<std::string>(units[1]));
+  } else {
+    lst["low"]  = setUnits(lst["low"], "");
+    lst["ii"]  = setUnits(lst["ii"], "");
+    lst["time"] = setUnits(lst["time"],"");
+    lst["high"] = setUnits(lst["high"], "");
   }
   if (!CharacterVector::is_na(units[0])){
     lst["amt"] = setUnits(lst["amt"], as<std::string>(units[0]));
+  } else {
+    lst["amt"] = setUnits(lst["amt"], "");
   }
   return lst;
 }
@@ -227,7 +242,7 @@ List etSort(List curEt){
       } 
     }
   }
-  newEt.attr("class") = curEt.attr("class");
+  newEt.attr("class") = clone(as<CharacterVector>(curEt.attr("class")));
   newEt.attr("names") = curEt.attr("names");
   return newEt;
 }
@@ -243,9 +258,20 @@ List etAddWindow(List windowLst, int idMax, RObject cmt, bool turnOnShowCmt, Lis
   std::vector<int> evid = as<std::vector<int>>(curEt["evid"]);
   std::iota(idx.begin(),idx.end(),0);
   double c = 0;
+  CharacterVector cls = clone(as<CharacterVector>(curEt.attr("class")));
+  List eOld = cls.attr(".RxODE.lst");
+  List e = clone(eOld);  
+  CharacterVector units = e["units"];
   for (int j = idMax; j--;){
     for (int i = windowLst.size(); i--;){
       NumericVector cur = as<NumericVector>(windowLst[i]);
+      if (rxIs(cur, "units")){
+	if (!CharacterVector::is_na(units["time"])){
+	  cur = setUnits(cur, as<std::string>(units["time"]));
+	} else {
+	  cur = setUnits(cur, "");
+	}
+      }
       if (cur.size() != 2)
 	stop("Windows need to be a list of observation windows, each of 2 elements e.g. list(c(0,2), c(2,7)).");
       if (cur[0]> cur[1])
@@ -379,23 +405,20 @@ List etAddWindow(List windowLst, int idMax, RObject cmt, bool turnOnShowCmt, Lis
       }
     }
   }
-  CharacterVector cls = clone(as<CharacterVector>(curEt.attr("class")));
-  List eOld = cls.attr(".RxODE.lst");
-  List e = clone(eOld);
   e["nobs"] = as<int>(e["nobs"]) + windowLst.size()*idMax;
-  LogicalVector show = e[".show"];
+  LogicalVector show = e["show"];
   if (turnOnShowCmt){
     show["cmt"] = true;
   }
   if (idMax > 1){
     show["id"] = true;
-    e[".maxId"] = idMax;
+    e["maxId"] = idMax;
   }
   show["low"] = true;
   show["high"] = true;
-  e[".show"] = show;
+  e["show"] = show;
   e.attr("names") = eOld.attr("names");
-  e.attr("class") = eOld.attr("class");
+  e.attr("class") = "rxHidden";
   cls.attr(".RxODE.lst") = e;
   lst.attr("class") = cls;
   int len = as<int>(e["nobs"]) +as<int>(e["ndose"]);
@@ -544,17 +567,17 @@ List etAddTimes(NumericVector newTimes, int idMax, RObject cmt, bool turnOnShowC
   List eOld = cls.attr(".RxODE.lst");
   List e = clone(eOld);
   e["nobs"] = as<int>(e["nobs"]) + newTimes.size()*idMax;
-  LogicalVector show = e[".show"];
+  LogicalVector show = e["show"];
   if (turnOnShowCmt){
     show["cmt"] = true;
   }
   if (idMax > 1){
     show["id"] = true;
-    e[".maxId"] = idMax;
+    e["maxId"] = idMax;
   }
-  e[".show"] = show;
+  e["show"] = show;
   e.attr("names") = eOld.attr("names");
-  e.attr("class") = eOld.attr("class");
+  e.attr("class") = "rxHidden";//eOld.attr("class");
   cls.attr(".RxODE.lst") = e;
   lst.attr("class") = cls;
   int len = as<int>(e["nobs"]) +as<int>(e["ndose"]);
@@ -568,7 +591,8 @@ List etResizeId(int maxId, List curEt){
   CharacterVector cls = clone(as<CharacterVector>(curEt.attr("class")));
   List eOld = cls.attr(".RxODE.lst");
   List e = clone(eOld);
-  int oldMaxId = as<int>(e[".maxId"]);
+  print(e);
+  int oldMaxId = as<int>(e["maxId"]);
   if (maxId == oldMaxId) return curEt;
   double c = (double)(maxId)/(double)(oldMaxId);
   int oldSize = as<int>(e["nobs"]) + as<int>(e["ndose"]);
@@ -657,15 +681,15 @@ List etResizeId(int maxId, List curEt){
   // Update new windows
   e["nobs"]   = (int)(as<double>(e["nobs"])*c);
   e["ndose"]  = (int)(as<double>(e["ndose"])*c);
-  e[".maxId"] = maxId;
-  LogicalVector show = e[".show"];
+  e["maxId"] = maxId;
+  LogicalVector show = e["show"];
   if (maxId > 1){
     show["id"] = true;
   } else {
     show["id"] = false;
   }
-  e[".maxId"]             = maxId;    
-  e.attr("class")         = eOld.attr("class");
+  e["maxId"]             = maxId;    
+  e.attr("class")         = "rxHidden";
   cls.attr(".RxODE.lst")  = e;
   newEt.attr("class")     = cls;
   int len = as<int>(e["nobs"]) +as<int>(e["ndose"]);
@@ -844,13 +868,13 @@ List etAddDose(NumericVector curTime, RObject cmt,  double amt, double rate, dou
   CharacterVector cls = clone(as<CharacterVector>(curEt.attr("class")));
   List eOld = cls.attr(".RxODE.lst");
   List e = clone(eOld);
-  LogicalVector show = e[".show"];
+  LogicalVector show = e["show"];
   if (turnOnShowCmt){
     show["cmt"] = true;
   }
   if (maxId > 1){
     show["id"] = true;
-    e[".maxId"] = maxId;
+    e["maxId"] = maxId;
   }
   show["amt"] = true;
   if (rate != 0){
@@ -858,6 +882,7 @@ List etAddDose(NumericVector curTime, RObject cmt,  double amt, double rate, dou
   }
   if (ss != 0){
     show["ss"] = true;
+    show["ii"] = true;
   }
   if (curTime.size() == 2){
     show["low"] = true;
@@ -872,9 +897,10 @@ List etAddDose(NumericVector curTime, RObject cmt,  double amt, double rate, dou
     }
     if (addl != 0){
       show["addl"] = true;
+      show["ii"] = true;
     }  
   }
-  e[".show"] = show;
+  e["show"] = show;
   e.attr("names") = eOld.attr("names");
   cls.attr(".RxODE.lst") = e;
   lst.attr("class") = cls;
@@ -884,27 +910,41 @@ List etAddDose(NumericVector curTime, RObject cmt,  double amt, double rate, dou
 }
 
 RObject etUpdateObj(List curEt, bool update){
-  CharacterVector cls=curEt.attr("class");
+  List lst = clone(curEt);
+  CharacterVector cls=clone(as<CharacterVector>(curEt.attr("class")));
   List e = clone(as<List>(cls.attr(".RxODE.lst")));
-  CharacterVector units = e[".units"];
+  CharacterVector units = e["units"];
   if (!CharacterVector::is_na(units[1])){
-    curEt["low"]  = setUnits(curEt["low"],  as<std::string>(units[1]));
-    curEt["time"] = setUnits(curEt["time"], as<std::string>(units[1]));
-    curEt["high"] = setUnits(curEt["high"], as<std::string>(units[1]));
+    lst["ii"]  = setUnits(lst["ii"],  as<std::string>(units[1]));
+    lst["low"]  = setUnits(lst["low"],  as<std::string>(units[1]));
+    lst["time"] = setUnits(lst["time"], as<std::string>(units[1]));
+    lst["high"] = setUnits(lst["high"], as<std::string>(units[1]));
+    if (units[1] == "") units[1] = NA_STRING;
+  } else {
+    lst["ii"]  = setUnits(lst["ii"],  "");
+    lst["low"]  = setUnits(lst["low"],  "");
+    lst["time"] = setUnits(lst["time"], "");
+    lst["high"] = setUnits(lst["high"], "");
   }
   if (!CharacterVector::is_na(units[0])){
-    curEt["amt"] = setUnits(curEt["amt"], as<std::string>(units[0]));
+    lst["amt"] = setUnits(lst["amt"], as<std::string>(units[0]));
+    if (units[0] == "") units[0] = NA_STRING;
+  } else {
+    lst["amt"] = setUnits(lst["amt"], "");
   }
+  e["units"] = units;
+  cls.attr(".RxODE.lst") = e;
+  lst.attr("class") = cls;
   if (update){
     List cmp = as<List>(evCur);
-    for (int j = curEt.size(); j--;){
-      cmp[j] = curEt[j];
+    for (int j = lst.size(); j--;){
+      cmp[j] = lst[j];
     }
-    cmp.attr("class") = curEt.attr("class");
-    cmp.attr("names") = curEt.attr("names");
-    cmp.attr("row.names") = curEt.attr("row.names");
+    cmp.attr("class") = clone(as<CharacterVector>(lst.attr("class")));
+    cmp.attr("names") = lst.attr("names");
+    cmp.attr("row.names") = lst.attr("row.names");
   }
-  return as<RObject>(curEt);
+  return as<RObject>(lst);
 }
 
 RObject etCmtInt(RObject et){
@@ -927,6 +967,37 @@ RObject etCmtInt(RObject et){
   return (as<RObject>(newEt));
 }
 
+RObject etSetUnit(List curEt, CharacterVector units){
+  CharacterVector cls = clone(as<CharacterVector>(curEt.attr("class")));
+  List eOld = cls.attr(".RxODE.lst");
+  List e = clone(eOld);
+  CharacterVector oldUnits = clone(as<CharacterVector>(e["units"]));
+  e["units"] = units;
+  List lst = clone(curEt);
+  if (as<std::string>(oldUnits[1]) != as<std::string>(units[1])){
+    if (!CharacterVector::is_na(units[1])){
+      lst["ii"]  = setUnits(lst["ii"],  as<std::string>(units[1]));
+      lst["low"]  = setUnits(lst["low"],  as<std::string>(units[1]));
+      lst["time"] = setUnits(lst["time"], as<std::string>(units[1]));
+      lst["high"] = setUnits(lst["high"], as<std::string>(units[1]));
+    } else {
+      lst["ii"]  = setUnits(lst["ii"],  "");
+      lst["low"]  = setUnits(lst["low"],  "");
+      lst["time"] = setUnits(lst["time"], "");
+      lst["high"] = setUnits(lst["high"], "");
+    }
+  }
+  if (as<std::string>(oldUnits[0]) != as<std::string>(units[0])){
+    if (!CharacterVector::is_na(units[0])){
+      lst["amt"] = setUnits(lst["amt"], as<std::string>(units[0]));
+    } else {
+      lst["amt"] = setUnits(lst["amt"], "");
+    }
+  }
+  cls.attr(".RxODE.lst") = e;
+  lst.attr("class") = cls;
+  return as<RObject>(lst);
+}
 
 //[[Rcpp::export]]
 RObject et_(List input, List et__){
@@ -963,7 +1034,9 @@ RObject et_(List input, List et__){
     else if (inN[i] == "ID" || inN[i] == "id") idIx=i;
     else if (inN[i] == "cmt" || inN[i] == "dosing.to" || inN[i] == "dosingTo" || inN[i] =="dosing_to" ||
 	     inN[i] == "dose.to" || inN[i] == "doseTo" || inN[i] == "dose_to") cmtIx=i;
-    else if (inN[i] == "amount.units" || inN[i] == "amountUnits" || inN[i] == "amount_units") amtUnitIx=i;
+    else if (inN[i] == "amount.units" || inN[i] == "amountUnits" || inN[i] == "amount_units" ||
+	     inN[i] == "amt.units" || inN[i] == "amtUnits" || inN[i] == "amt_units" ||
+	     inN[i] == "dose.units" || inN[i] == "doseUnits" || inN[i] == "dose_units") amtUnitIx=i;
     else if (inN[i] == "time.units" || inN[i] == "timeUnits" || inN[i] == "time_units") timeUnitIx=i;
     else if (inN[i] == "do.sampling" || inN[i] == "doSampling" || inN[i] == "do_sampling") doSamplingIdx=i;
     else if (inN[i] == "start.time" || inN[i] == "startTime" || inN[i] == "start_time" ||
@@ -992,14 +1065,40 @@ RObject et_(List input, List et__){
     }
   }
   if (rxIs(curEt, "rxEt")){
+    CharacterVector cls = clone(as<CharacterVector>(curEt.attr("class")));
+    List e = cls.attr(".RxODE.lst");
+    CharacterVector oldUnits = e["units"];
+    CharacterVector units(2);
+    bool foundUnits = false;
+    if (amtUnitIx == -1){
+      units[0] = oldUnits[0];
+    } else  {
+      CharacterVector tmpS = as<CharacterVector>(input[amtUnitIx]);
+      if (tmpS.size() != 1) stop("Amount unit cannot be a vector");
+      units[0] = tmpS[0];
+      foundUnits = true;
+    }
+    if (timeUnitIx == -1){
+      units[1] = oldUnits[1];
+    } else  {
+      CharacterVector tmpS = as<CharacterVector>(input[timeUnitIx]);
+      if (tmpS.size() != 1) stop("Time unit cannot be a vector");
+      units[1] = tmpS[0];
+      foundUnits = true;
+    }
+    units.attr("names") = CharacterVector::create("dosing", "time");
+    if (foundUnits){
+      curEt = etSetUnit(as<List>(curEt), units);
+      doRet=true;
+    }
     // This is a modification to an existing event table.
     if (rxIs(input[0], "logical")){
       LogicalVector in0 = as<LogicalVector>(input[0]);
       if (in0[0]){
-	CharacterVector cls = curEt.attr("class");
-	List e = cls.attr(".RxODE.lst");
 	CharacterVector nm = input.attr("names");
-	if (nm[0] == "copy"){
+	if (nm[0] == "getUnits"){
+	  return(e["units"]);
+	} else if (nm[0] == "copy"){
 	  // There is no need to copy any more.
 	  return curEt;
 	} else if (nm[0] == "get.EventTable"){
@@ -1022,8 +1121,8 @@ RObject et_(List input, List et__){
 	  if (n == 0){
 	    if (updateObj){
 	      cmp = as<List>(curEt);
-	      List em =etEmpty(as<CharacterVector>(e[".units"]));
-	      cls = em.attr("class");
+	      List em =etEmpty(as<CharacterVector>(e["units"]));
+	      cls = clone(as<CharacterVector>(em.attr("class")));
 	      for (int j = cmp.size(); j--;){
 		if (rxIs(cmp[j], "numeric")){
 		  cmp[j] = NumericVector(0);
@@ -1108,19 +1207,19 @@ RObject et_(List input, List et__){
       }
     } else {
       // We are updating the event table
-      CharacterVector cls = curEt.attr("class");
+      CharacterVector cls = clone(as<CharacterVector>(curEt.attr("class")));
       List e = cls.attr(".RxODE.lst");
       int id=1;
       if (idIx != -1){
 	id    = as<int>(input[idIx]);
 	if ((int)(e["nobs"]) != 0 || (int)(e["ndose"]) != 0){
-	  if ((int)(e[".maxId"]) != id){
+	  if ((int)(e["maxId"]) != id){
 	    curEt = as<RObject>(etResizeId(id, as<List>(curEt)));
 	    doRet=true;
 	  }
 	}
       } else {
-	id = (int)(e[".maxId"]);
+	id = (int)(e["maxId"]);
       }
       CharacterVector cmtS;
       IntegerVector cmtI;
@@ -1161,7 +1260,7 @@ RObject et_(List input, List et__){
 	  cmtI = as<IntegerVector>(input[cmtIx]);
 	  if (cmtI.size() == 1){
 	    curEt=etCmtInt(curEt);
-	    cls = curEt.attr("class");
+	    cls = clone(as<CharacterVector>(curEt.attr("class")));
 	    e = cls.attr(".RxODE.lst");
 	    cmt = as<RObject>(cmtI);
 	  } else {
@@ -1180,6 +1279,16 @@ RObject et_(List input, List et__){
 	amt = as<NumericVector>(input[amtIx]);
 	if (amt.size() != 1){
 	  stop("Dose amount cannot be a vector.");
+	}
+	if (rxIs(amt, "units")){
+	  CharacterVector cls = clone(as<CharacterVector>(curEt.attr("class")));
+	  List e = clone(as<List>(cls.attr(".RxODE.lst")));
+	  CharacterVector units = e["units"];
+	  if (!CharacterVector::is_na(units["dosing"])){
+	    amt = setUnits(amt, as<std::string>(units["dosing"]));
+	  } else {
+	    amt = setUnits(amt, "");
+	  }
 	}
 	isObs = false;
       }
@@ -1223,6 +1332,9 @@ RObject et_(List input, List et__){
 	  ii = NumericVector(1);
 	  ii[0] = 0.0;
 	}
+	if (addl[0] > 0 && ii[0] <= 0){
+	  stop("A dosing interval of zero makes no sense with multiple dose events.");
+	}
 	IntegerVector evid;
 	if (evidIx != -1){
 	  evid = as<IntegerVector>(input[evidIx]);
@@ -1247,7 +1359,17 @@ RObject et_(List input, List et__){
 	if (timeIx != -1) {
 	  if (rxIs(input[timeIx], "numeric") || rxIs(input[timeIx], "integer")){
 	    NumericVector time = as<NumericVector>(input[timeIx]);
-	    return etUpdateObj(etAddTimes(as<NumericVector>(input[timeIx]), id, cmt, turnOnShowCmt, as<List>(curEt)),
+	    if (rxIs(time, "units")){
+	      CharacterVector cls = clone(as<CharacterVector>(curEt.attr("class")));
+	      List e = clone(as<List>(cls.attr(".RxODE.lst")));
+	      CharacterVector units = e["units"];
+	      if (!CharacterVector::is_na(units["time"])){
+		time = setUnits(time, as<std::string>(units["time"]));
+	      } else {
+		time = setUnits(time, "");
+	      }
+	    }
+	    return etUpdateObj(etAddTimes(time, id, cmt, turnOnShowCmt, as<List>(curEt)),
 			       doUpdateObj);
 	  } else if (rxIs(input[timeIx], "list")){
 	    return etUpdateObj(etAddWindow(as<List>(input[timeIx]), id, cmt, turnOnShowCmt, as<List>(curEt)),
@@ -1313,14 +1435,15 @@ RObject et_(List input, List et__){
 	}
 	IntegerVector addl;//=0;
 	if (addlIx != -1){
-	  addl = as<IntegerVector>(input[addlIx]);
+	  addl = clone(as<IntegerVector>(input[addlIx]));
 	  if (addl.size() != 1) stop("addl cannot be a vector.");
 	} else if (nbrIx != -1){
-	  addl = as<IntegerVector>(input[nbrIx]) - 1;
+	  addl = as<IntegerVector>(input[nbrIx]);
 	  if (addl.size() != 1) stop("Number of doses cannot be a vector.");
-	  if (addl[0] < 0){
+	  if (addl[0] <= 0){
 	    stop("Number of Doses must be at least one.");
 	  }
+	  addl[0] = addl[0]-1;
 	} else if (untilIx != -1){
 	  // Need time for this
 	  NumericVector until = as<NumericVector>(input[untilIx]);
@@ -1343,7 +1466,10 @@ RObject et_(List input, List et__){
 	      addl[0] = 0;
 	    }
 	  }
-	}	
+	} else {
+	  addl = IntegerVector(1);
+	  addl[0]=0;
+	}
 	if (ii[0] > 0 && ss[0] == 0 && addl[0] == 0){
 	  stop("ii requires non zero additional doses (addl/until/nbr.doses) or steady state dosing.");
 	}
@@ -1368,13 +1494,18 @@ RObject et_(List input, List et__){
     if (amtUnitIx == -1){
       units[0] = NA_STRING;
     } else  {
-      units[0] = as<std::string>(input[amtUnitIx]);
+      CharacterVector tmpS = as<CharacterVector>(input[amtUnitIx]);
+      if (tmpS.size() != 1) stop("Amount unit cannot be a vector");
+      units[0] = tmpS[0];
       foundArgs++;
     }
     if (timeUnitIx == -1){
       units[1] = "hours";
     } else  {
-      units[1] = as<std::string>(input[timeUnitIx]);
+      CharacterVector tmpS = as<CharacterVector>(input[timeUnitIx]);
+      print(tmpS);
+      if (tmpS.size() != 1) stop("Time unit cannot be a vector");
+      units[1] = tmpS[0];
       foundArgs++;
     }
     units.attr("names") = CharacterVector::create("dosing", "time");
@@ -1385,7 +1516,7 @@ RObject et_(List input, List et__){
       return et_(input, et);
     }
   }
-  if (doRet) return curEt;
+  if (doRet) return etUpdateObj(as<List>(curEt),doUpdateObj);
   stop("Cannot figure out what type of EventTable you are trying to create.");
   // Should never get here...
   List ret(0);
