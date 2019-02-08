@@ -6,6 +6,14 @@ Environment RxODEenv();
 
 RObject evCur;
 
+Function loadNamespace2("loadNamespace", R_BaseNamespace);
+Environment unitsPkg = loadNamespace2("units");
+//(x, value, ..., mode = units_options("set_units_mode"))
+NumericVector setUnits(NumericVector obj, std::string unit){
+  Function f = as<Function>(unitsPkg["set_units"]);
+  return as<NumericVector>(f(_["x"] = obj, _["value"] = unit, _["mode"] = "standard"));
+}
+
 //[[Rcpp::export]]
 RObject etUpdate(RObject obj,
 		 RObject arg = R_NilValue,
@@ -164,6 +172,14 @@ List etEmpty(CharacterVector units){
   lst.attr("names") = nme;
   lst.attr("class") = cls;
   lst.attr("row.names") = IntegerVector::create(NA_INTEGER, 0);
+  if (!CharacterVector::is_na(units[1])){
+    lst["low"]  = setUnits(lst["low"],  as<std::string>(units[1]));
+    lst["time"] = setUnits(lst["time"], as<std::string>(units[1]));
+    lst["high"] = setUnits(lst["high"], as<std::string>(units[1]));
+  }
+  if (!CharacterVector::is_na(units[0])){
+    lst["amt"] = setUnits(lst["amt"], as<std::string>(units[0]));
+  }
   return lst;
 }
 
@@ -868,6 +884,17 @@ List etAddDose(NumericVector curTime, RObject cmt,  double amt, double rate, dou
 }
 
 RObject etUpdateObj(List curEt, bool update){
+  CharacterVector cls=curEt.attr("class");
+  List e = clone(as<List>(cls.attr(".RxODE.lst")));
+  CharacterVector units = e[".units"];
+  if (!CharacterVector::is_na(units[1])){
+    curEt["low"]  = setUnits(curEt["low"],  as<std::string>(units[1]));
+    curEt["time"] = setUnits(curEt["time"], as<std::string>(units[1]));
+    curEt["high"] = setUnits(curEt["high"], as<std::string>(units[1]));
+  }
+  if (!CharacterVector::is_na(units[0])){
+    curEt["amt"] = setUnits(curEt["amt"], as<std::string>(units[0]));
+  }
   if (update){
     List cmp = as<List>(evCur);
     for (int j = curEt.size(); j--;){
@@ -899,6 +926,7 @@ RObject etCmtInt(RObject et){
   }
   return (as<RObject>(newEt));
 }
+
 
 //[[Rcpp::export]]
 RObject et_(List input, List et__){
@@ -942,6 +970,7 @@ RObject et_(List input, List et__){
 	     inN[i] == "start" || inN[i] == "time") timeIx = i;
     else if (inN[i] == "nbr.doses" || inN[i] == "nbrDoses" || inN[i] == "nbr") nbrIx=i;
     else if (inN[i] == "ss") ssIx = i;
+    else if (inN[i] == "rate") rateIx = i;
   }
   // missing argument name handling.
   for (i = 0; i <(int)inN.size(); i++){
@@ -1143,21 +1172,28 @@ RObject et_(List input, List et__){
 	}
 	turnOnShowCmt=true;
       }
-      double amt;
+      NumericVector amt;
       bool isObs=false;
       if (amtIx == -1){
 	isObs=true;
       } else {
-	amt = as<double>(input[amtIx]);
+	amt = as<NumericVector>(input[amtIx]);
+	if (amt.size() != 1){
+	  stop("Dose amount cannot be a vector.");
+	}
 	isObs = false;
       }
       if (isObs){
-	int addl = 0;
+	IntegerVector addl;// = 0;
 	if (addlIx != -1){
-	  addl = as<int>(input[addlIx]);
-	  if (addl != 0){
+	  addl = as<IntegerVector>(input[addlIx]);
+	  if (addl.size() != 1) stop("addl cannot be a vector.");
+	  if (addl[0] != 0){
 	    stop("addl needs a dose/amt.");
 	  }
+	} else {
+	  addl = IntegerVector(1);
+	  addl[0] = 0;
 	}
 	if (untilIx != -1){
 	  stop("until needs a dose/amt.");
@@ -1165,31 +1201,46 @@ RObject et_(List input, List et__){
 	if (nbrIx != -1){
 	  stop("nbr.doses needs a dose/amt.");
 	}
-	double rate =0.0;
+	NumericVector rate;
 	if (rateIx != -1){
-	  rate = as<double>(input[rateIx]);
-	  if (rate != 0.0){
+	  rate = as<NumericVector>(input[rateIx]);
+	  if (rate.size() != 1) stop("rate cannot be a vector");
+	  if (rate[0] != 0.0){
 	    stop("rate needs a dose/amt.");
 	  }
+	} else {
+	  rate = NumericVector(1);
+	  rate[0]=0.0;
 	}
-	double ii =0.0;
+	NumericVector ii;
 	if (iiIx != -1){
-	  ii = as<double>(input[iiIx]);
-	  if (ii != 0.0){
+	  ii = as<NumericVector>(input[iiIx]);
+	  if (ii.size() != 1) stop("ii cannot be a vector.");
+	  if (ii[0] != 0.0){
 	    stop("ii needs a dose/amt.");
 	  }
+	} else {
+	  ii = NumericVector(1);
+	  ii[0] = 0.0;
 	}
-	int evid =0;
+	IntegerVector evid;
 	if (evidIx != -1){
-	  evid = as<int>(input[evidIx]);
-	  if (evid != 0){
+	  evid = as<IntegerVector>(input[evidIx]);
+	  if (evid.size() != 1){
+	    stop("evid cannot be a vector.");
+	  }
+	  if (evid[0] != 0){
 	    stop("non-zero evid needs a dose/amt.");
 	  }
+	} else {
+	  evid = IntegerVector(1);
+	  evid[0]=0;
 	}
-	int ss = 0;
+	IntegerVector ss;// = 0;
 	if (ssIx != -1){
-	  ss = as<int>(input[ssIx]);
-	  if (ss != 0){
+	  ss = as<IntegerVector>(input[ssIx]);
+	  if (ss.size() != 1) stop("ss cannot be a vector.");
+	  if (ss[0] != 0){
 	    stop("non-zero ss needs a dose/amt.");
 	  }
 	}
@@ -1216,24 +1267,42 @@ RObject et_(List input, List et__){
 	if (nbrIx != -1 && untilIx != -1){
 	  stop("Can only specify nbr.doses or until, not both.");
 	}
-	double rate =0.0;
+	NumericVector rate;
 	if (rateIx != -1){
-	  rate = as<double>(input[rateIx]);
+	  rate = as<NumericVector>(input[rateIx]);
+	  if (rate.size() != 1) stop("rate cannot be a vector.");
+	} else {
+	  rate = NumericVector(1);
+	  rate[0] = 0.0;
 	}
-	double ii =0.0;
+	NumericVector ii;// =0.0;
 	if (iiIx != -1){
-	  ii = as<double>(input[iiIx]);
+	  ii = as<NumericVector>(input[iiIx]);
+	  if (ii.size() != 1) stop("ii cannot be a vector.");
+	} else {
+	  ii = NumericVector(1);
+	  ii[0] = 0.0;
 	}
-	int evid =1;
+	IntegerVector evid;// =1;
 	if (evidIx != -1){
-	  evid = as<int>(input[evidIx]);
-	  if (evid == 0){
+	  evid = as<IntegerVector>(input[evidIx]);
+	  if (evid.size()!= 1){
+	    stop("evid cannot be a vector");
+	  }
+	  if (evid[0] == 0){
 	    stop("zero evid cannot be used with dose/amt.");
 	  }
+	} else {
+	  evid = IntegerVector(1);
+	  evid[0] = 1;
 	}
-	int ss = 0;
+	IntegerVector ss;// = 0;
 	if (ssIx != -1){
-	  ss = as<int>(input[ssIx]);
+	  ss = as<IntegerVector>(input[ssIx]);
+	  if (ss.size() != 1) stop("ss cannot be a vector.");
+	} else {
+	  ss = IntegerVector(1);
+	  ss[0] = 0.0;
 	}
 	NumericVector time;
 	if (timeIx != -1){
@@ -1242,45 +1311,52 @@ RObject et_(List input, List et__){
 	  time = NumericVector(1);
 	  time[0] = 0;
 	}
-	int addl=0;
+	IntegerVector addl;//=0;
 	if (addlIx != -1){
-	  addl = as<int>(input[addlIx]);
+	  addl = as<IntegerVector>(input[addlIx]);
+	  if (addl.size() != 1) stop("addl cannot be a vector.");
 	} else if (nbrIx != -1){
-	  addl = as<int>(input[nbrIx]) - 1;
-	  if (addl < 0){
+	  addl = as<IntegerVector>(input[nbrIx]) - 1;
+	  if (addl.size() != 1) stop("Number of doses cannot be a vector.");
+	  if (addl[0] < 0){
 	    stop("Number of Doses must be at least one.");
 	  }
 	} else if (untilIx != -1){
 	  // Need time for this
-	  double until = as<double>(input[untilIx]);
-	  if (ii < 0){
+	  NumericVector until = as<NumericVector>(input[untilIx]);
+	  if (until.size() != 1) stop("Until cannot be a vector.");
+	  if (ii[0] < 0){
 	    stop("'until' can only be used with positive inter-dose intervals (ii).");
 	  }
 	  if (time.size() == 1){
-	    while (time[0]+(addl++)*ii < until){
+	    double tmp = until[0] - time[0] - ii[0];
+	    if (tmp > 0){
+	      addl[0] = ceil(tmp/ii[0]);
+	    } else {
+	      addl[0] = 0;
 	    }
-	    addl-=2;
-	    if (addl < 0) addl = 0;
 	  } else if (time.size() == 2){
-	    while (time[1]+(addl++)*ii < until){
+	    double tmp = until[0] - time[1] - ii[0];
+	    if (tmp > 0){
+	      addl[0] = ceil(tmp/ii[0]);
+	    } else {
+	      addl[0] = 0;
 	    }
-	    addl-=2;
-	    if (addl < 0) addl = 0;
 	  }
 	}	
-	if (ii > 0 && ss == 0 && addl == 0){
+	if (ii[0] > 0 && ss[0] == 0 && addl[0] == 0){
 	  stop("ii requires non zero additional doses (addl/until/nbr.doses) or steady state dosing.");
 	}
-	if (ss < 0 || ss > 2){
+	if (ss[0] < 0 || ss[0] > 2){
 	  stop("ss must be 0, 1 or 2.");
 	}
-	if (ss > 1 && time.size() > 1){
+	if (ss[0] > 1 && time.size() > 1){
 	  stop("Steady state (ss) is not supported with dosing windows.");
 	}
-	if (addl < 0){
+	if (addl[0] < 0){
 	  stop("Additional doses must be positive.");
 	}
-	return etUpdateObj(etAddDose(time, cmt, amt, rate, ii, addl, evid, ss,
+	return etUpdateObj(etAddDose(time, cmt, amt[0], rate[0], ii[0], addl[0], evid[0], ss[0],
 				     id, turnOnShowCmt, as<List>(curEt)),doUpdateObj);
       }
     }
@@ -1296,7 +1372,7 @@ RObject et_(List input, List et__){
       foundArgs++;
     }
     if (timeUnitIx == -1){
-      units[1] = NA_STRING;
+      units[1] = "hours";
     } else  {
       units[1] = as<std::string>(input[timeUnitIx]);
       foundArgs++;

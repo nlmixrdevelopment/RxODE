@@ -83,12 +83,18 @@ bool rxHasEventNames(CharacterVector &nm){
 //' @export
 // [[Rcpp::export]]
 bool rxIs(const RObject &obj, std::string cls){
+  if (cls == "units"){
+    if (obj.hasAttribute("class")){
+      CharacterVector cls = obj.attr("class");
+      return as<std::string>(cls[0]) == "units";
+    }
+  }
   int type = obj.sexp_type();
   bool hasDim = false;
   bool hasCls = false;
   switch (type){
   case 0: return (cls == "NULL");
-  case REALSXP: 
+  case REALSXP:
     hasDim = obj.hasAttribute("dim");
     if (hasDim){
       if (cls == "event.matrix" || cls ==  "rx.event"){
