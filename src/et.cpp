@@ -20,6 +20,8 @@ NumericVector setUnits(NumericVector obj, std::string unit){
   }
 }
 
+extern "C" void getWh(int evid, int *wh, int *cmt, int *wh100, int *whI, int *wh0);
+
 //[[Rcpp::export]]
 RObject etUpdate(RObject obj,
 		 RObject arg = R_NilValue,
@@ -36,6 +38,10 @@ RObject etUpdate(RObject obj,
 	  return as<RObject>(e);
 	} else if (e.containsElementNamed(sarg.c_str())){
 	  return as<RObject>(e[sarg]);
+	}
+	List lst = as<List>(obj);
+	if (lst.containsElementNamed(sarg.c_str())){
+	  return(as<RObject>(lst[sarg]));
 	}
       }
     } else {
@@ -98,10 +104,12 @@ List etEmpty(CharacterVector units){
   e["clearDosing"] = eval2(_["expr"] = parse2(_["text"] = "function() invisible(.Call(`_RxODE_et_`, list(clearDosing=TRUE),list('last')))"),
 			     _["envir"]  = e);
 
-  e["import.EventTable"] = eval2(_["expr"] = parse2(_["text"] = "function() invisible(.Call(`_RxODE_et_`, list(...),list('last')))"),
+  std::string importET = "function(data) invisible(.Call(`_RxODE_et_`, list(data=data),list('import')))";
+
+  e["import.EventTable"] = eval2(_["expr"] = parse2(_["text"] = importET),
 				 _["envir"]  = e);
 
-  e["importEventTable"] = eval2(_["expr"] = parse2(_["text"] = "function() .Call(`_RxODE_et_`, list(...),list('last'))"),
+  e["importEventTable"] = eval2(_["expr"] = parse2(_["text"] = importET),
 				_["envir"]  = e);
 
   e["copy"] = eval2(_["expr"] = parse2(_["text"] = "function() .Call(`_RxODE_et_`, list(copy=TRUE),list('last'))"),
@@ -589,6 +597,298 @@ List etAddTimes(NumericVector newTimes, int idMax, RObject cmt, bool turnOnShowC
   return lst;
 }
 
+List etImportEventTable(List inData){
+  CharacterVector lName = as<CharacterVector>(inData.attr("names"));
+  int i, idCol = -1, evidCol=-1, timeCol=-1, amtCol=-1, cmtCol=-1,
+    ssCol=-1, rateCol=-1, addlCol=-1, iiCol=-1, j;
+  std::string tmpS;
+  for (i = lName.size(); i--;){
+    tmpS = as<std::string>(lName[i]);
+    std::transform(tmpS.begin(), tmpS.end(), tmpS.begin(), ::tolower);
+    lName[i] = tmpS;
+    if (tmpS == "id") idCol=i;
+    else if (tmpS == "evid") evidCol=i;
+    else if (tmpS == "time") timeCol=i;
+    else if (tmpS == "amt") amtCol=i;
+    else if (tmpS == "cmt" || tmpS == "ytype") cmtCol=i;
+    else if (tmpS == "ss")   ssCol=i;
+    else if (tmpS == "rate") rateCol=i;
+    else if (tmpS == "addl") addlCol=i;
+    else if (tmpS == "ii")   iiCol=i;
+  }
+  if (evidCol == -1) stop("Need evid column.");
+  IntegerVector oldEvid=as<IntegerVector>(inData[evidCol]);
+  std::vector<int> evid;
+  
+  IntegerVector oldId;
+  if (idCol == -1){
+    oldId=IntegerVector(oldEvid.size(), 1);
+  } else {
+    oldId=as<IntegerVector>(inData[idCol]);
+  }
+  std::vector<int> id;
+  
+  std::vector<double> low;
+
+  NumericVector oldTime;
+  if (timeCol == -1){
+    stop("Need a time column");
+  } else {
+    oldTime=as<NumericVector>(inData[timeCol]);
+  }
+  std::vector<double> time;
+  std::vector<double> high;
+  
+  std::vector<double> rate;
+  NumericVector oldRate;
+  if (rateCol == -1){
+    oldRate = NumericVector(oldEvid.size(), 0.0);
+  } else {
+    oldRate = as<NumericVector>(inData[rateCol]);
+  }
+  
+  std::vector<double> ii;
+  NumericVector oldIi;
+  if (iiCol == -1){
+    oldIi = NumericVector(oldEvid.size(), 0.0);
+  } else {
+    oldIi = as<NumericVector>(inData[iiCol]);
+  }
+  
+  std::vector<int> addl;
+  IntegerVector oldAddl;
+  if (addlCol == -1){
+    oldAddl = IntegerVector(oldEvid.size(), 0);
+  } else {
+    oldAddl = as<IntegerVector>(inData[addlCol]);
+  }
+  
+  std::vector<double> ss;
+  IntegerVector oldSs;
+  if (ssCol == -1){
+    oldSs = IntegerVector(oldEvid.size(), 0);
+  } else {
+    oldSs = as<IntegerVector>(inData[ssCol]);
+  }
+  
+  std::vector<double> amt;
+  NumericVector oldAmt;
+  if (amtCol == -1){
+    oldAmt = NumericVector(oldEvid.size(), 0);
+  } else {
+    oldAmt = as<NumericVector>(inData[amtCol]);
+  }
+  
+  std::vector<int> cmt;
+  IntegerVector oldCmt;
+  if (cmtCol == -1){
+    oldCmt = IntegerVector(oldEvid.size(), 0);
+  } else {
+    oldCmt = as<IntegerVector>(inData[cmtCol]);
+  }
+  int wh, cmtI, wh100, whI, wh0, ndose=0, nobs=0;
+  List lst = etEmpty(CharacterVector::create(_["dosing"]=NA_STRING, _["time"]=NA_STRING));
+  CharacterVector cls = lst.attr("class");
+  List e = cls.attr(".RxODE.lst");
+  LogicalVector show = e["show"];
+  show["id"] = true;
+  show["amt"] = true;
+  for (int i = 0; i < oldEvid.size(); i++){
+    if (oldEvid[i] == 0){
+      id.push_back(oldId[i]);
+      low.push_back(NA_REAL);
+      time.push_back(oldTime[i]);
+      high.push_back(NA_REAL);
+      cmt.push_back(oldCmt[i]);
+      if (oldCmt[i] > 1) show["cmt"] = true;
+      amt.push_back(0);
+      rate.push_back(0);
+      ii.push_back(0);
+      addl.push_back(0);
+      evid.push_back(0);
+      ss.push_back(0);
+      nobs++;
+    } else if (oldEvid[i] <= 4){
+      id.push_back(oldId[i]);
+      low.push_back(NA_REAL);
+      time.push_back(oldTime[i]);
+      high.push_back(NA_REAL);
+      cmt.push_back(oldCmt[i]);
+      if (oldCmt[i] > 1) show["cmt"] = true;
+      amt.push_back(oldAmt[i]);
+      rate.push_back(oldRate[i]);
+      if (oldRate[i] > 0) show["rate"] = true;
+      ii.push_back(oldIi[i]);
+      if (oldIi[i] > 0) show["ii"] = true;
+      addl.push_back(oldAddl[i]);
+      if (oldAddl[i] > 0) show["addl"] = true;
+      evid.push_back(oldEvid[i]);
+      ss.push_back(oldSs[i]);
+      if (oldSs[i] > 0) show["ss"] = true;
+      ndose++;
+    } else {
+      // Convert evid
+      getWh(oldEvid[i], &wh, &cmtI, &wh100, &whI, &wh0);
+      cmtI++;
+      if (cmtI != 1) show["cmt"] = true;
+      if (oldIi[i] > 0) show["ii"] = true;
+      switch (whI){
+      case 6:
+	break;
+      case 8:
+	// 8 = Duration is modeled, AMT=dose; Rate = AMT/(Modeled Duration) NONMEM RATE=-2
+	id.push_back(oldId[i]);
+	low.push_back(NA_REAL);
+	time.push_back(oldTime[i]);
+	high.push_back(NA_REAL);
+	cmt.push_back(cmtI);
+	amt.push_back(oldAmt[i]);
+	rate.push_back(-2.0);
+	ii.push_back(oldIi[i]);
+	addl.push_back(0);
+	evid.push_back(1);
+	if (whI == 10){
+	  ss.push_back(1);
+	  show["ss"] = true;
+	} else if (whI == 20){
+	  ss.push_back(2);
+	  show["ss"] = true;
+	} else {
+	  ss.push_back(0);
+	}
+	show["rate"] = true;
+	ndose++;
+	break;
+      case 7:
+	break;
+      case 9:
+	// 9 = Rate is modeled, AMT=dose; Duration = AMT/(Modeled Rate) NONMEM RATE=-1
+	id.push_back(oldId[i]);
+	low.push_back(NA_REAL);
+	time.push_back(oldTime[i]);
+	high.push_back(NA_REAL);
+	cmt.push_back(cmtI);
+	amt.push_back(oldAmt[i]);
+	rate.push_back(-1.0);
+	ii.push_back(oldIi[i]);
+	addl.push_back(0);
+	evid.push_back(1);
+	if (whI == 10){
+	  ss.push_back(1);
+	  show["ss"] = true;
+	} else if (whI == 20){
+	  ss.push_back(2);
+	  show["ss"] = true;
+	} else {
+	  ss.push_back(0);
+	}
+	show["rate"] = true;
+	ndose++;
+	break;
+      case 1:
+	if (oldAmt[i] > 0){
+	  for (j = i; j < oldEvid.size(); j++){
+	    if (oldEvid[i] == oldEvid[j] && oldAmt[i] == -oldAmt[j]){
+	      double dur = oldTime[j] - oldTime[i];
+	      id.push_back(oldId[i]);
+	      low.push_back(NA_REAL);
+	      time.push_back(oldTime[i]);
+	      high.push_back(NA_REAL);
+	      cmt.push_back(cmtI);
+	      amt.push_back(oldAmt[i] * dur);
+	      rate.push_back(oldAmt[i]);
+	      ii.push_back(oldIi[i]);
+	      addl.push_back(0);
+	      evid.push_back(1);
+	      if (whI == 10){
+		ss.push_back(1);
+		show["ss"] = true;
+	      } else if (whI == 20){
+		ss.push_back(2);
+		show["ss"] = true;
+	      } else {
+		ss.push_back(0);
+	      }
+	      show["rate"] = true;
+	      ndose++;
+	      break;
+	    }
+	  }
+	}// else {
+	break;
+	// }
+      case 0:
+	// No infusion
+	id.push_back(oldId[i]);
+	low.push_back(NA_REAL);
+	time.push_back(oldTime[i]);
+	high.push_back(NA_REAL);
+	cmt.push_back(cmtI);
+	amt.push_back(oldAmt[i]);
+	rate.push_back(0);
+	ii.push_back(oldIi[i]);
+	addl.push_back(0);
+	evid.push_back(1);
+	if (whI == 10){
+	  ss.push_back(1);
+	  show["ss"] = true;
+	} else if (whI == 20){
+	  ss.push_back(2);
+	  show["ss"] = true;
+	} else {
+	  ss.push_back(0);
+	}
+	ndose++;
+	break;
+      }
+    }
+  }
+
+  
+  // nme[0] = "id";
+  lst[0] = wrap(id);
+      
+  // nme[2] = "time";
+  lst[2] = wrap(time);
+      
+  // nme[1] = "low";
+  lst[1] = wrap(low);
+      
+  // nme[3] = "high";
+  lst[3] = wrap(high);
+      
+  // nme[4] = "cmt";
+  lst[4] = wrap(cmt);
+      
+  // nme[5] = "amt";
+  lst[5] = wrap(amt);
+
+  // nme[6] = "rate";
+  lst[6] = wrap(rate);
+      
+  // nme[7] = "ii";
+  lst[7] = wrap(ii);
+      
+  // nme[8] = "addl";
+  lst[8] = wrap(addl);
+      
+  // nme[9] = "evid";
+  lst[9] = wrap(evid);
+      
+  // nme[10] = "ss";
+  lst[10] = wrap(ss);
+  
+  e["maxId"] = 1;
+  e["ndose"] = ndose;
+  e["nobs"] = nobs;
+  e["show"]  = show;
+  lst = etSort(lst);
+  cls.attr(".RxODE.lst") = e;
+  lst.attr("class") = cls;
+  lst.attr("row.names") = IntegerVector::create(NA_INTEGER, -(nobs+ndose));  
+  return lst;
+}
+
 
 List etResizeId(int maxId, List curEt){
   // Calculate size
@@ -1017,6 +1317,8 @@ RObject et_(List input, List et__){
       if (as<std::string>(et__[0]) == "last"){
 	doUpdateObj=true;
 	curEt = evCur;
+      } else if (as<std::string>(et__[0]) == "import"){
+	return etUpdateObj(etImportEventTable(as<List>(input["data"])), true);
       }
     } else if (rxIs(et__, "rxEt")) {
       curEt = as<RObject>(et__);

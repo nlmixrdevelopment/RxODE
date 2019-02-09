@@ -2429,15 +2429,25 @@ SEXP rxSolveC(const RObject &obj,
     if (rxIs(par0, "rx.event")){
       // Swapped events and parameters
       swappedEvents=true;
-      ev1 = par0;
+      ev1  = par0;
       par1 = ev0;
     } else if (rxIs(ev0, "rx.event")) {
-      ev1 = ev0;
+      ev1  = ev0;
       par1 = par0;
     } else {
       Rcout << "Events:\n";
       Rcout << "Parameters:\n";
       stop("Need some event information (observation/dosing times) to solve.\nYou can use either 'eventTable' or an RxODE compatible data.frame/matrix.");
+    }
+    if (rxIs(ev1, "data.frame")){
+      Function fTrans = getRxFn("rxEvTrans");
+      ev1 = fTrans(_["data"]=ev1, _["model"]=obj);
+      rxcEvid = 2;
+      rxcTime = 1;
+      rxcAmt  = 3;
+      rxcId   = 0;
+      rxcDv   = 5;
+      rxcIi   = 4;
     }
     // Now get the parameters (and covariates)
     //

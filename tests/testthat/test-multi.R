@@ -31,9 +31,9 @@ rxPermissive({
 
 
     test_that("RxODE event table 1 was created",{
-        expect_equal(class(et1), "EventTable")
+        expect_true(inherits(et1, "rxEt"))
         expect_equal(et1$get.nobs(),37);
-        expect_equal(length(et1$get.dosing()[,1]), 5);
+        expect_equal(length(et1$get.dosing()[,1]), 1);
     })
 
     o1.first <- NULL
@@ -66,7 +66,7 @@ rxPermissive({
     et2$add.sampling(seq(from = 0, to = 20, by = 0.2))
 
     test_that("RxODE event table 2 was created",{
-        expect_equal(class(et1), "EventTable")
+        expect_true(inherits(et1, "rxEt"))
         expect_equal(et2$get.nobs(),101);
         expect_equal(length(et2$get.dosing()[,1]), 0);
     })
@@ -97,8 +97,8 @@ rxPermissive({
     et3$add.sampling(seq(from=0, to=100, by=0.01))
 
     test_that("RxODE instance 3 event table is created",{
-        expect_equal(class(et3),"EventTable");
-        expect_equal(et3$get.nobs(),10001);
+        expect_true(inherits(et3, "rxEt"));
+        expect_equal(et3$get.nobs(), 10001);
     })
 
     o3 <-

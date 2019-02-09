@@ -19,16 +19,20 @@ et.default <- function(...){
 
 ##'@export
 print.rxEt <- function(x,...){
-    cat(sprintf("EventTable with %s records%s:\n", x$nobs+x$ndose,
-                ifelse(x$maxId==1, "", sprintf(" (%d IDs)", x$maxId))))
+    bound <- .getBound(x, parent.frame(2));
+    cat(cli::rule(center=crayon::bold(paste0("EventTable with ",x$nobs+x$ndose, " records"))), "\n");
+    ## sprintf(" with %s records%s:\n", x$nobs+x$ndose,
+    ##                                           ifelse(x$maxId==1, "", sprintf(" (%d IDs)", abs(x$maxId))))
     .units <- x$.units;
-    cat(sprintf("   %s dosing records\n",
-                x$ndose))
-    cat(sprintf("   %s observation times\n",
-                x$nobs))
+    cat(sprintf("   %s dosing records (see %s$%s())\n",
+                x$ndose, crayon::yellow(bound), crayon::blue("get.dosing")))
+    cat(sprintf("   %s observation times (see %s$%s())\n",
+                x$nobs, crayon::yellow(bound), crayon::blue("get.sampling")))
+    cat(cli::rule(crayon::bold(paste0("First part of ",crayon::yellow(bound),":"))), "\n");
     if (x$nobs!=0 | x$ndose!=0){
         print(dplyr::as.tbl(data.frame(x)[, x$show, drop = FALSE]));
     }
+    cat(cli::rule(), "\n");
     invisible(x)
 }
 
