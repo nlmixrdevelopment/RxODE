@@ -132,6 +132,8 @@ typedef struct {
   int nMtime;
   double stateTrim;
   int *stateIgnore;
+  int nCov0;
+  int *cov0;
 } rx_solve;
   
 typedef void (*t_set_solve)(rx_solve *);

@@ -1030,8 +1030,11 @@ typedef struct {
   int gidosen;
   int *gpar_cov;
   int gpar_covn;
+  
   int *gParPos;
   int gParPosn;
+  int *gParPos2;
+  
   int *gsvar;
   int gsvarn;
   int *gsiV;
@@ -1090,6 +1093,7 @@ extern "C" void rxOptionsIniData(){
   _globals.gpar_cov = NULL;//Calloc(NCMT, int);
   _globals.gpar_covn = 0;//NCMT;
   _globals.gParPos = NULL;//Calloc(NCMT, int);
+  _globals.gParPos2 = NULL;//Calloc(NCMT, int);
   _globals.gParPosn = 0;//NCMT;
   _globals.gsvar = NULL;//Calloc(NPARS, int);
   _globals.gsvarn = 0;//NPARS;
@@ -1276,6 +1280,10 @@ void gparsCovSetup(int npars, int nPopPar, RObject ev1,rx_solve* rx){
     for (int j = rx->nsim;j--;){
       std::copy(iniPars.begin(), iniPars.end(), &_globals.gpars[0]+rx->nsub*npars*j);
     }
+    IntegerVector parPos = envCls["covParPos"];
+    std::copy(parPos.begin(),parPos.end(), &_globals.gParPos2[0]);
+    rx->nCov0 = parPos.size();
+    rx->cov0 = _globals.gParPos2;
   }
 }
 
@@ -1367,7 +1375,9 @@ void gParPosSetup(int n){
   if (_globals.gParPosn < n){
     int cur = n;
     Free(_globals.gParPos);
+    Free(_globals.gParPos2);
     _globals.gParPos = Calloc(cur, int);
+    _globals.gParPos2 = Calloc(cur, int);
     _globals.gParPosn = cur;
   }
 }
@@ -1459,6 +1469,7 @@ extern "C" void gFree(){
   _globals.gmtime=NULL;
   _globals.gmtimen=0;
   if (_globals.gParPos != NULL) Free(_globals.gParPos);
+  if (_globals.gParPos2 != NULL) Free(_globals.gParPos2);
   _globals.gParPosn = 0;
 }
 

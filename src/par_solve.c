@@ -1649,6 +1649,7 @@ extern SEXP RxODE_df(int doDose, int doTBS){
   rx_solving_options *op = &op_global;
   int add_cov = rx->add_cov;
   int ncov = op->ncov;
+  int ncov0 = rx->nCov0;
   int nlhs = op->nlhs;
   int nobs = rx->nobs;
   int nsim = rx->nsim;
@@ -1671,7 +1672,7 @@ extern SEXP RxODE_df(int doDose, int doTBS){
   // Multiple simulation data?
   int sm = 0;
   if (rx->nsim > 1) sm = 1;
-  int ncols =add_cov*ncov+1+nPrnState+nlhs;
+  int ncols =add_cov*(ncov+ncov0)+1+nPrnState+nlhs;
   int doseCols = 0;
   if (doDose){
     doseCols = 2;
@@ -1816,6 +1817,14 @@ extern SEXP RxODE_df(int doDose, int doTBS){
 	      jj++;
 	    }
           }
+	  if (add_cov*ncov0 > 0){
+	    for (j = 0; j < add_cov*ncov0; j++){
+              dfp = REAL(VECTOR_ELT(df, jj));
+	      // is this ntimes = nAllTimes or nObs time for this subject...?
+	      dfp[ii] = (isObs(evid) ? ind->par_ptr[rx->cov0[j]] : NA_REAL);
+	      jj++;
+	    }
+	  }
 	  // 
 	  if (doTBS){
 	    dfp = REAL(VECTOR_ELT(df, jj));
@@ -1880,6 +1889,11 @@ extern SEXP RxODE_df(int doDose, int doTBS){
   int *par_cov = op->par_cov;
   for (i = 0; i < ncov*add_cov; i++){
     SET_STRING_ELT(sexp_colnames,jj, STRING_ELT(paramNames, par_cov[i]-1));
+    jj++;
+  }
+  par_cov = rx->cov0;
+  for (i = 0; i < ncov0*add_cov; i++){
+    SET_STRING_ELT(sexp_colnames,jj, STRING_ELT(paramNames, par_cov[i]));
     jj++;
   }
   if (doTBS){
