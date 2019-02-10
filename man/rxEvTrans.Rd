@@ -4,12 +4,14 @@
 \alias{rxEvTrans}
 \title{Translate Data into solving ready data.}
 \usage{
-rxEvTrans(data, model)
+rxEvTrans(data, model, covs = NULL)
 }
 \arguments{
 \item{data}{Data to convert}
 
 \item{model}{Model to use for conversion}
+
+\item{covs}{Covariate suport for backward compatibility}
 }
 \value{
 Converted data frame
