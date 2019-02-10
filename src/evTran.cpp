@@ -144,7 +144,7 @@ List evTrans(List inData, const RObject &obj){
   int caddl;
   double ctime;
   double cii;
-  double dur;
+  double dur =0.0;
   double camt;
   int curIdx=0;
   double cdv;

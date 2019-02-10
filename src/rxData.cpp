@@ -178,9 +178,7 @@ bool rxIs(const RObject &obj, std::string cls){
 	  }
 	} else if (cur == "data.frame"){
 	  hasDf=true;
-        } else if (cur == "EventTable"){
-	  hasEt=true;
-	}
+        }
       }
       if (hasDf && (cls == "rx.event" || cls == "event.data.frame")){
 	if (classattr[0] == "rxEvTran"){
@@ -2439,9 +2437,9 @@ SEXP rxSolveC(const RObject &obj,
       Rcout << "Parameters:\n";
       stop("Need some event information (observation/dosing times) to solve.\nYou can use either 'eventTable' or an RxODE compatible data.frame/matrix.");
     }
-    if (rxIs(ev1, "data.frame")){
+    if (rxIs(ev1, "data.frame") && !rxIs(ev1, "rxEvTrans")){
       Function fTrans = getRxFn("rxEvTrans");
-      ev1 = fTrans(_["data"]=ev1, _["model"]=obj);
+      ev1 = fTrans(_["data"]=ev1, _["model"]=obj, _["cov"]=covs);
       rxcEvid = 2;
       rxcTime = 1;
       rxcAmt  = 3;
@@ -2543,7 +2541,7 @@ SEXP rxSolveC(const RObject &obj,
     op->isChol = (int)(sigmaIsChol);
     unsigned int nsub = 0;
     unsigned int nobs = 0, ndoses = 0;
-    unsigned int i, j, k = 0;
+    unsigned int i, j;
     int ncov =0, curcovi = 0;
     double tmp, hmax1 = 0.0, hmax1m = 0.0, hmax1mo, hmax1s=0.0,
       hmax1n=0.0, hmax2 = 0.0, hmax2m = 0.0, hmax2mo, hmax2s=0.0,
@@ -2660,130 +2658,8 @@ SEXP rxSolveC(const RObject &obj,
       }
     }
     rxOptionsIniEnsure(nPopPar); // 1 simulation per parameter specification
-    if (rxIs(ev1, "EventTable")){
-      List et = List(ev1);
-      Function f = et["get.EventTable"];
-      DataFrame dataf = f();
-      NumericVector time = as<NumericVector>(dataf[0]);
-      IntegerVector evid = as<IntegerVector>(dataf[1]);
-      NumericVector amt  = as<NumericVector>(dataf[2]);
-      ind = &(rx->subjects[0]);
-      ind->id=0;
-      ind->allCovWarn=0;
-      ind->wrongSSDur=0;
-      ind->timeReset=1;
-      ind->idx=0;
-      ind->lambda=1.0;
-      ind->yj = 0;
-      rx->nsub= 1;
-      // Time copy
-      ind->n_all_times   = time.size();
-      gall_timesSetup(ind->n_all_times);
-      std::copy(time.begin(), time.end(), &_globals.gall_times[0]);
-      ind->all_times     = &_globals.gall_times[0];
-      // EVID copy
-      gevidSetup(ind->n_all_times);
-      std::copy(evid.begin(),evid.end(), &_globals.gevid[0]);
-      ind->evid     = &_globals.gevid[0];
-      gamtSetup(ind->n_all_times);
-      ind->dose = &_globals.gamt[0];
-      ind->ii = &_globals.gii[0];
-      // Slower; These need to be built.
-      tlast = time[0];
-      // hmax1 = hmax2 = 0;
-      gidoseSetup(ind->n_all_times);
-      ind->idose = &_globals.gidose[0];
-      j=0;
-      for (i =0; i != (unsigned int)(ind->n_all_times); i++){
-        if (isDose(ind->evid[i])){
-          ndoses++;
-	  _globals.gidose[j] = (int)i;
-	  // FIXME allow EventTable to use II
-	  _globals.gii[j] = 0;
-          _globals.gamt[j++] = amt[i];
-	} else {
-	  nobs++;
-	  tmp = time[i]-tlast;
-	  if (tmp < 0){
-	    stop("Dataset must be ordered by ID and TIME variables.");
-	  }
-	  hmax1n++;
-	  hmax1mo = hmax1m;
-	  hmax1m += (tmp-hmax1m)/hmax1n;
-	  hmax1s += (tmp-hmax1m)*(tmp-hmax1mo);
-	  hmax2n++;
-	  hmax2mo = hmax2m;
-	  hmax2m += (tmp-hmax2m)/hmax2n;
-	  hmax2s += (tmp-hmax2m)*(tmp-hmax2mo);
-	  if (tmp > hmax1){
-	    hmax1 = tmp;
-	  }
-	}
-      }
-      ind->ndoses = ndoses;
-      rx->nobs = nobs;
-      rx->nall = nobs+ndoses;
-      if (!hmax.isNull()){
-	NumericVector hmax0(hmax);
-	if (NumericVector::is_na(hmax0[0])){
-	  doMean = true;
-	  hmax1s = hmax1s/(hmax1n-1);
-	  hmax1  = hmax1m;
-	  ind->HMAX = hmax1;
-	  hmax2s = hmax2s/(hmax2n-1);
-	  hmax2  = hmax2m;
-	  op->hmax2 = hmax2;
-	  hmax1m=0.0;
-	  hmax1s=0.0;
-	  hmax1n=0.0;
-	} else {
-	  ind->HMAX = hmax0[0];
-	  op->hmax2 = hmax0[0];
-	}
-      } else {
-        ind->HMAX = hmax1;
-	op->hmax2 = hmax1;
-      }
-      nsub=1;
-      if (!covs.isNULL()){
-        // op->do_par_cov = 1;
-	op->do_par_cov = 1;
-	ncov = 0;
-        if (rxIs(covs,"data.frame")){
-	  List df = as<List>(covs);
-          CharacterVector dfNames = df.names();
-	  int dfN = dfNames.size();
-	  gcovSetup(dfN * ind->n_all_times);
-	  gpar_covSetup(dfN);
-	  k = 0;
-	  for (i = dfN; i--;){
-	    for (j = npars; j--;){
-	      if (pars[j] == dfNames[i]){
-		_globals.gpar_cov[k] = j+1;
-		// Not clear if this is an integer/real.  Copy the values.
-		NumericVector cur = as<NumericVector>(df[i]);
-		std::copy(cur.begin(), cur.end(), _globals.gcov+curcovi);
-		curcovi += ind->n_all_times;
-                ncov++;
-                k++;
-                break;
-              }
-            }
-          }
-          op->ncov=ncov;
-          ind->cov_ptr = &(_globals.gcov[0]);
-	  op->par_cov=&(_globals.gpar_cov[0]);
-        } else if (rxIs(covs, "matrix")){
-	  // FIXME
-	  stop("Covariates must be supplied as a data.frame.");
-	} 
-      } else {
-	op->ncov = 0;
-        // int *par_cov;
-        op->do_par_cov = 0;
-      }
-    } else if (rxIs(ev1,"event.data.frame")||
-               rxIs(ev1,"event.matrix")){
+    if (rxIs(ev1,"event.data.frame")||
+	rxIs(ev1,"event.matrix")){
       // data.frame or matrix
       double hmax0 = 0.0;
       if (!hmax.isNull()){

@@ -28,10 +28,35 @@
 ##'
 ##' @param data Data to convert
 ##' @param model Model to use for conversion
+##' @param covs Covariate suport for backward compatibility
 ##' @return Converted data frame
 ##' @author Matthew Fidler
-rxEvTrans <- function(data, model){
-    .d <- as.data.frame(data)
+rxEvTrans <- function(data, model, covs){
+    .d <- data
+    if (!is.null(covs)){
+        if (!rxIs(.d, "rxEt")){
+            stop("This only works with RxODE event tables; integrate covariates into a data.frame.")
+        }
+        if (.d$maxId != 1){
+            stop("Covariate interpolation only works with single subject data; Add the covariate information to the data.frame")
+        }
+        .cov <- as.matrix(covs);
+        .covLen <- dim(.cov)[1];
+        if (.covLen !=  length(.d$time)){
+            .samplingTime <- .d$get.sampling()$time;
+            if (.covLen != length(.samplingTime))
+                stop("Covariate length need to match the sampling times or all the times in the event table.");
+            .lst <- as.matrix(do.call("cbind", lapply(seq(1L, dim(.cov)[2]), function(i){
+                                                   f <- stats::approxfun(.samplingTime, .cov[, i])
+                                                   return(f(.d$time))
+                                               })))
+            dimnames(.lst) <- list(NULL, dimnames(.cov)[[2]]);
+            .cov <- .lst;
+        }
+        .d <- cbind(as.data.frame(.d), as.data.frame(.cov));
+    } else {
+        .d <- as.data.frame(data)
+    }
     .colNames <- colnames(.d)
     .colNames <- tolower(.colNames)
     .anyCmt <- which(.colNames == "cmt")

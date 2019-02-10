@@ -484,7 +484,7 @@ int handle_evid(int evid, int neq,
     } else {
       if (ind->ix[ind->idx] != ind->idose[ind->ixds]){
 	// bisection https://en.wikipedia.org/wiki/Binary_search_algorithm
-	int l = 0, r = ind->ndoses-1, m;
+	int l = 0, r = ind->ndoses-1, m=0;
 	while(l <= r){
 	  m = floor((l+r)/2);
 	  if (ind->idose[m] < ind->ix[ind->idx]) l = m+1;
@@ -620,7 +620,7 @@ void handleSS(int *neq,
     memcpy(yp,op->inits, neq[0]*sizeof(double));
     u_inis(neq[1], yp); // Update initial conditions @ current time
     int k;
-    double curSum, lastSum, xp2, xout2;
+    double curSum = 0.0, lastSum=0.0, xp2, xout2;
     /* ctx.state=1; */
     *istate = 1;
     xp2 = xp;
