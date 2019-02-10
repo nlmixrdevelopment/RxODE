@@ -24,7 +24,7 @@ d/dt(blood)     = a*intestine - b*blood
 
     et <- eventTable(time.units="days")
     et$add.sampling(seq(0,10,by=1/24))
-    et$add.dosing(dose=2/24,rate=2,strt.time=0,
+    et$add.dosing(dose=2/24,rate=2,start.time=0,
                   nbr.doses=10,dosing.interval=1)
 
     pk <- solve(mod,et);
