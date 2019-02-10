@@ -31,7 +31,7 @@
 ##' @param covs Covariate suport for backward compatibility
 ##' @return Converted data frame
 ##' @author Matthew Fidler
-rxEvTrans <- function(data, model, covs){
+rxEvTrans <- function(data, model, covs=NULL){
     .d <- data
     if (!is.null(covs)){
         if (!rxIs(.d, "rxEt")){
@@ -65,4 +65,14 @@ rxEvTrans <- function(data, model, covs){
         .d[,.anyCmt] <- .rxConvertCmt(.d[,.anyCmt], .state);
     }
     evTrans(.d,model)
+}
+
+
+##'@export
+print.rxEvTran <- function(x,...){
+    print(as.data.frame(x));
+    .cls <- class(x);
+    .lst <- attr(.cls, ".RxODE.lst")
+    cat("\n Covariates (non time-varying):\n")
+    print(.lst$cov1)
 }

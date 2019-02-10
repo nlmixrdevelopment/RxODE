@@ -542,8 +542,7 @@ List evTrans(List inData, const RObject &obj){
   lst1F.attr("names") = nme1F;
   lst1F.attr("class") = CharacterVector::create("data.frame");
   lst1F.attr("row.names") = IntegerVector::create(NA_INTEGER, -nid);
-  Function newEnv("new.env", R_BaseNamespace);
-  Environment e = newEnv(_["size"] = 29, _["parent"] = RxODEenv());
+  List e;
   e["ndose"] = ndose;
   e["nobs"]  = nobs;
   e["nid"]   = nid;
@@ -552,7 +551,8 @@ List evTrans(List inData, const RObject &obj){
   fPars.attr("dim")= IntegerVector::create(pars.size(), nid);
   fPars.attr("dimnames") = List::create(pars, R_NilValue);
   e["pars"] = fPars;
-  cls.attr(".RxODE.env") = e;
+  e.attr("class") = "rxHidden";
+  cls.attr(".RxODE.lst") = e;
   lstF.attr("names") = nmeF;
   lstF.attr("class") = cls;
   lstF.attr("row.names") = IntegerVector::create(NA_INTEGER,-idxO.size());

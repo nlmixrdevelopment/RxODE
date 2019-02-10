@@ -1270,7 +1270,7 @@ void gparsCovSetup(int npars, int nPopPar, RObject ev1,rx_solve* rx){
   std::fill_n(&_globals.gpars[0], npars*nPopPar, NA_REAL);
   if (rxIs(ev1, "rxEvTran")){
     CharacterVector tmpCls = ev1.attr("class");
-    Environment envCls = tmpCls.attr(".RxODE.env");
+    List envCls = tmpCls.attr(".RxODE.lst");
     NumericMatrix iniPars = envCls["pars"];
     // Copy the pre-filled covariates into the parameter values.
     for (int j = rx->nsim;j--;){
@@ -2861,7 +2861,7 @@ SEXP rxSolveC(const RObject &obj,
     CharacterVector mvCov1N;
     if (rxIs(ev1, "rxEvTran")){
       CharacterVector tmpCls = ev1.attr("class");
-      Environment e = tmpCls.attr(".RxODE.env");
+      List e = tmpCls.attr(".RxODE.lst");
       List tmpCov1 = e["cov1"];
       mvCov1N = tmpCov1.attr("names");
     }
