@@ -1347,8 +1347,8 @@ RObject et_(List input, List et__){
 	     inN[i] == "dose.units" || inN[i] == "doseUnits" || inN[i] == "dose_units") amtUnitIx=i;
     else if (inN[i] == "time.units" || inN[i] == "timeUnits" || inN[i] == "time_units") timeUnitIx=i;
     else if (inN[i] == "do.sampling" || inN[i] == "doSampling" || inN[i] == "do_sampling") doSamplingIdx=i;
-    else if (inN[i] == "start.time" || inN[i] == "startTime" || inN[i] == "start_time" ||
-	     inN[i] == "start" || inN[i] == "time") timeIx = i;
+    else if (inN[i] == "time" || inN[i] == "start.time" || inN[i] == "startTime" || inN[i] == "start_time" ||
+	     inN[i] == "start") timeIx = i;
     else if (inN[i] == "nbr.doses" || inN[i] == "nbrDoses" || inN[i] == "nbr") nbrIx=i;
     else if (inN[i] == "ss") ssIx = i;
     else if (inN[i] == "rate") rateIx = i;
@@ -1717,7 +1717,7 @@ RObject et_(List input, List et__){
 	}
 	NumericVector ii;// =0.0;
 	if (iiIx != -1){
-	  ii = as<NumericVector>(input[iiIx]);
+	  ii = clone(as<NumericVector>(input[iiIx]));
 	  if (ii.size() != 1) stop("ii cannot be a vector.");
 	} else {
 	  ii = NumericVector(1);
@@ -1756,10 +1756,10 @@ RObject et_(List input, List et__){
 	  addl = clone(as<IntegerVector>(input[addlIx]));
 	  if (addl.size() != 1) stop("addl cannot be a vector.");
 	} else if (nbrIx != -1){
-	  addl = as<IntegerVector>(input[nbrIx]);
+	  addl = clone(as<IntegerVector>(input[nbrIx]));
 	  if (addl.size() != 1) stop("Number of doses cannot be a vector.");
-	  if (addl[0] <= 0){
-	    stop("Number of Doses must be at least one.");
+	  if (addl[0] < 1){
+	    stop("Number of Doses must be at least one (addl: %d)", addl[0]);
 	  }
 	  addl[0] = addl[0]-1;
 	} else if (untilIx != -1){
@@ -1789,7 +1789,11 @@ RObject et_(List input, List et__){
 	  addl[0]=0;
 	}
 	if (ii[0] > 0 && ss[0] == 0 && addl[0] == 0){
-	  stop("ii requires non zero additional doses (addl/until/nbr.doses) or steady state dosing.");
+	  if (doUpdateObj && ii[0] == 24){
+	    ii[0]=0;
+	  } else {
+	    stop("ii requires non zero additional doses (addl/until/nbr.doses) or steady state dosing (ii: %f, ss: %d; addl: %d).", ii[0], ss[0], addl[0]);
+	  }
 	}
 	if (ss[0] < 0 || ss[0] > 2){
 	  stop("ss must be 0, 1 or 2.");

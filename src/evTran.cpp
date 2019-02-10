@@ -185,7 +185,8 @@ List evTrans(List inData, const RObject &obj){
     // CMT flag
     if (cmtCol == -1) cmt = 1;
     else cmt = inCmt[i];
-    if (cmt > 99){
+    if (IntegerVector::is_na(inCmt[i])) cmt=1;
+    if (cmt <= 99){
       cmt100=0;
       cmt99=cmt;
     } else {
