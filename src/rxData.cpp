@@ -2563,6 +2563,8 @@ SEXP rxSolveC(const RObject &obj,
     CharacterVector sigmaN;
     bool usePar1 = false;
     bool simSubjects = false;
+    bool addTimeUnits = false;
+    RObject timeUnitsU;
     if (!thetaMat.isNull() || !omega.isNull() || !sigma.isNull()){
       // Simulated Variable3
       if (!rxIs(par1, "numeric")){
@@ -2572,18 +2574,8 @@ SEXP rxSolveC(const RObject &obj,
       int curObs = 0;
       rx->nall = 0;
       rx->nobs = 0;
-      if(rxIs(ev1, "EventTable")){
-	nSub0 = 1;
-	List et = List(ev1);
-	Function f = et["get.EventTable"];
-	DataFrame dataf = f();
-	IntegerVector evid = as<IntegerVector>(dataf[1]);
-	rx->nall = evid.size();
-	for (unsigned int j = rx->nall;j--;){
-	  if (isObs(evid[j])) rx->nobs++;
-	}
-      } else if (rxIs(ev1,"event.data.frame")||
-		 rxIs(ev1,"event.matrix")){
+      if (rxIs(ev1,"event.data.frame")||
+	  rxIs(ev1,"event.matrix")){
 	if (rxcId > -1){
 	  DataFrame dataf = as<DataFrame>(ev1);
           IntegerVector id = as<IntegerVector>(dataf[rxcId]);
@@ -2694,6 +2686,11 @@ SEXP rxSolveC(const RObject &obj,
         id    = as<IntegerVector>(dataf[rxcId]);
       }
       NumericVector time0 = dataf[rxcTime];
+      if (rxIs(time0, "units")){
+	addTimeUnits=true;
+	timeUnitsU=time0.attr("units");
+      }
+
       tlast = time0[0];
       // - all_times
       gall_timesSetup(time0.size());
@@ -3110,6 +3107,11 @@ SEXP rxSolveC(const RObject &obj,
     int doTBS = (rx->matrix == 3);
     if (doTBS) rx->matrix=2;
     List dat = RxODE_df(doDose, doTBS);
+    if (addTimeUnits){
+      NumericVector tmpN = as<NumericVector>(dat["time"]);
+      tmpN.attr("class") = "units";
+      tmpN.attr("units") = timeUnitsU;
+    }
     dat.attr("class") = CharacterVector::create("data.frame");
     List xtra;
     int nr = rx->nr;

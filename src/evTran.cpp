@@ -4,6 +4,7 @@
 using namespace Rcpp;
 
 List rxModelVars_(const RObject &obj);
+bool rxIs(const RObject &obj, std::string cls);
 Environment RxODEenv();
 
 //[[Rcpp::export]]
@@ -94,6 +95,13 @@ List evTrans(List inData, const RObject &obj){
     stop("time is required in dataset.");
   }
   NumericVector inTime = as<NumericVector>(inData[timeCol]);
+  // save units information
+  bool addTimeUnits = false;
+  RObject timeUnits;
+  if (rxIs(inTime, "units")){
+    addTimeUnits=true;
+    timeUnits=inTime.attr("units");
+  }
   IntegerVector inCmt;
   if (cmtCol != -1){
     inCmt = as<IntegerVector>(inData[cmtCol]);
@@ -114,9 +122,16 @@ List evTrans(List inData, const RObject &obj){
   if (rateCol != -1){
     inRate = as<NumericVector>(inData[rateCol]);
   }
+  
+  bool addAmtUnits = false;
+  RObject amtUnits;
   NumericVector inAmt;
   if (amtCol != -1){
     inAmt = as<NumericVector>(inData[amtCol]);
+    if (rxIs(inAmt, "units")){
+      addAmtUnits=true;
+      amtUnits=inAmt.attr("units");
+    }
   }
   NumericVector inIi;
   if (iiCol != -1){
@@ -515,6 +530,16 @@ List evTrans(List inData, const RObject &obj){
       addId=false;
       added=false;
     }
+  }
+  if (addTimeUnits){
+    NumericVector tmpN = as<NumericVector>(lst[1]);
+    tmpN.attr("class") = "units";
+    tmpN.attr("units") = timeUnits;
+  }
+  if (addAmtUnits){
+    NumericVector tmpN = as<NumericVector>(lst[3]);
+    tmpN.attr("class") = "units";
+    tmpN.attr("units") = amtUnits;
   }
   // Now subset based on time-varying covariates
   List lstF(6+nTv);
