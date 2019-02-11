@@ -70,7 +70,7 @@ Imports:
     mvnfast,
     cli,
     crayon,
-    sys, pillar, units
+    sys, pillar, units, ggforce, ggplot
 Description: Facilities for running simulations from ordinary
     differential equation (ODE) models, such as pharmacometrics and other
     compartmental models.  A compilation manager translates the ODE model

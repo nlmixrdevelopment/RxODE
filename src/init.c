@@ -7,6 +7,7 @@
 #include <R_ext/Rdynload.h>
 #include "../inst/include/RxODE.h"
 
+SEXP _RxODE_rxStack(SEXP, SEXP);
 SEXP _RxODE_etUpdate(SEXP, SEXP, SEXP);
 SEXP _RxODE_et_(SEXP, SEXP);
 SEXP _RxODE_evTrans(SEXP, SEXP);
@@ -205,6 +206,7 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_evTrans", (DL_FUNC) &_RxODE_evTrans, 2},
     {"_RxODE_et_", (DL_FUNC) &_RxODE_et_, 2},
     {"_RxODE_etUpdate", (DL_FUNC) &_RxODE_etUpdate, 3},
+    {"_RxODE_rxStack", (DL_FUNC) &_RxODE_rxStack, 2},
     {NULL, NULL, 0}
   };
   // C callable to assign environments.

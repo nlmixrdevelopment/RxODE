@@ -1443,6 +1443,18 @@ RcppExport SEXP _RxODE_rxSymInvCholEnvCalculate(SEXP objSEXP, SEXP whatSEXP, SEX
     UNPROTECT(1);
     return rcpp_result_gen;
 }
+// rxStack
+List rxStack(List Data, Nullable<CharacterVector> vars);
+RcppExport SEXP _RxODE_rxStack(SEXP DataSEXP, SEXP varsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< List >::type Data(DataSEXP);
+    Rcpp::traits::input_parameter< Nullable<CharacterVector> >::type vars(varsSEXP);
+    rcpp_result_gen = Rcpp::wrap(rxStack(Data, vars));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 // validate (ensure exported C++ functions exist before calling them)
 static int _RxODE_RcppExport_validate(const char* sig) { 

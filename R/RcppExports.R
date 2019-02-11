@@ -454,6 +454,21 @@ rxSymInvCholEnvCalculate <- function(obj, what, theta = NULL) {
     .Call(`_RxODE_rxSymInvCholEnvCalculate`, obj, what, theta)
 }
 
+#' Stack a solved object for things like ggplot
+#'
+#' @param Data is a RxODE object to be stacked.
+#'
+#' @param vars Variables to include in stacked data; By default this
+#'   is all the variables when vars is NULL.
+#'
+#' @return Stacked data with value and trt, where value is the values
+#'   and trt is the state and lhs variables.
+#' 
+#' @author Matthew Fidler
+rxStack <- function(Data, vars = NULL) {
+    .Call(`_RxODE_rxStack`, Data, vars)
+}
+
 # Register entry points for exported C++ functions
 methods::setLoadAction(function(ns) {
     .Call('_RxODE_RcppExport_registerCCallable', PACKAGE = 'RxODE')

@@ -888,6 +888,19 @@ print.rxModelText <- function(x, ...){
     cat(cli::rule(line="bar2"), "\n");
 }
 
+##'@export
+plot.rxSolve <- function(x,y,...){
+    .cmts <- c(as.character(substitute(y)),
+               names(sapply(as.character(as.list(match.call()[-(1:3)])),`c`)))
+    if (length(.cmts)==1 &&.cmts[1]==""){
+        .cmts <- NULL
+    }
+    .dat <- rxStack(x,.cmts);
+    time <- value <- NULL
+    ggplot2::ggplot(.dat,ggplot2::aes(time,value))+
+        ggplot2::geom_line() +ggplot2::facet_wrap( ~ trt)
+}
+
 ## dim (gets you nrow and ncol), t, dimnames
 ##
 ## [1] $<-           [             [[<-          [<-           all.equal

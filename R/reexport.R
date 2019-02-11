@@ -32,3 +32,28 @@ function(x, ...) {
   out <- format(x, ...)
   pillar::new_pillar_shaft_simple(out, align = "right", min_width = 6)
 }
+
+
+## Now ggforce
+
+##'@export
+scale_x_unit <- ggforce::scale_x_unit
+
+##'@export
+scale_y_unit <- ggforce::scale_y_unit
+
+##'@export
+ScaleContinuousPositionUnit <- ggforce::ScaleContinuousPositionUnit
+
+##'@export
+scale_type.units <- loadNamespace("ggforce")$scale_type.units
+
+
+#' @importFrom ggforce facet_wrap_paginate
+#' @export
+ggforce::facet_wrap_paginate
+
+
+#' @importFrom ggforce facet_grid_paginate
+#' @export
+ggforce::facet_grid_paginate
