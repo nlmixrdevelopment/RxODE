@@ -1002,7 +1002,7 @@ List etResizeId(int maxId, List curEt){
 
 List etAddDose(NumericVector curTime, RObject cmt,  double amt, double rate, double ii,
 	       int addl, int curEvid, int ss,
-	       int maxId, bool turnOnShowCmt, List curEt){
+	       int maxId, bool turnOnShowCmt, bool doSampling, List curEt){
   std::vector<double> time = as<std::vector<double>>(curEt["time"]);
   std::vector<int> id = as<std::vector<int>>(curEt["id"]);
   std::vector<int> evid = as<std::vector<int>>(curEt["evid"]);
@@ -1011,7 +1011,7 @@ List etAddDose(NumericVector curTime, RObject cmt,  double amt, double rate, dou
   int oldSize = id.size();
   int i, j;
   double a, b, c;
-  int ndose=0;
+  int ndose=0, nobs = 0;
   for (j = maxId; j--;){
     if (curTime.size() == 1){
       id.push_back(j+1);
@@ -1020,8 +1020,27 @@ List etAddDose(NumericVector curTime, RObject cmt,  double amt, double rate, dou
       low.push_back(NA_REAL);
       high.push_back(NA_REAL);
       ndose++;
+      if (doSampling){
+	id.push_back(j+1);
+	evid.push_back(0);
+	time.push_back(curTime[0]);
+	low.push_back(NA_REAL);
+	high.push_back(NA_REAL);
+	nobs++;
+	for (i = addl; i--;){
+	  id.push_back(j+1);
+	  evid.push_back(0);
+	  low.push_back(NA_REAL);
+	  high.push_back(NA_REAL);
+	  time.push_back(curTime[0] + (i+1)*ii);
+	  nobs++;
+	}
+      }
     } else if (curTime.size() == 2) {
 	if (curTime[0] < curTime[1]){
+	  if (doSampling){
+	    stop("do.sampling is not supported with dose windows");
+	  }
 	  id.push_back(j+1);
 	  evid.push_back(curEvid);
 	  low.push_back(curTime[0]);
@@ -1192,6 +1211,7 @@ List etAddDose(NumericVector curTime, RObject cmt,  double amt, double rate, dou
     show["ii"] = true;
   }
   e["ndose"] = as<int>(e["ndose"])+ndose;
+  e["nobs"] = as<int>(e["nobs"])+nobs;
   if (curTime.size() == 2){
     show["low"] = true;
     show["high"] = true;
@@ -1346,12 +1366,14 @@ RObject et_(List input, List et__){
 	     inN[i] == "amt.units" || inN[i] == "amtUnits" || inN[i] == "amt_units" ||
 	     inN[i] == "dose.units" || inN[i] == "doseUnits" || inN[i] == "dose_units") amtUnitIx=i;
     else if (inN[i] == "time.units" || inN[i] == "timeUnits" || inN[i] == "time_units") timeUnitIx=i;
-    else if (inN[i] == "do.sampling" || inN[i] == "doSampling" || inN[i] == "do_sampling") doSamplingIdx=i;
+    else if (inN[i] == "do.sampling" || inN[i] == "doSampling" || inN[i] == "do_sampling" ||
+	     inN[i] == "add.sampling" || inN[i] == "addSampling" || inN[i] == "add_sampling") doSamplingIdx=i;
     else if (inN[i] == "time" || inN[i] == "start.time" || inN[i] == "startTime" || inN[i] == "start_time" ||
 	     inN[i] == "start") timeIx = i;
     else if (inN[i] == "nbr.doses" || inN[i] == "nbrDoses" || inN[i] == "nbr") nbrIx=i;
     else if (inN[i] == "ss") ssIx = i;
     else if (inN[i] == "rate") rateIx = i;
+    else if (inN[i] != "") stop("unused argument '%s'", (as<std::string>(inN[i])).c_str());
   }
   // missing argument name handling.
   for (i = 0; i <(int)inN.size(); i++){
@@ -1705,6 +1727,16 @@ RObject et_(List input, List et__){
 	if (nbrIx != -1 && untilIx != -1){
 	  stop("Can only specify nbr.doses or until, not both.");
 	}
+	bool doSampling = false;
+	if (doSamplingIdx != -1){
+	  if (rxIs(input[doSamplingIdx], "logical")){
+	    LogicalVector tmpL = as<LogicalVector>(input[doSamplingIdx]);
+	    if (tmpL.size() != 1) stop("do.sampling can only be a length one.");
+	    doSampling = tmpL[0];
+	  } else {
+	    stop("do.sampling must be logical.");
+	  }
+	}
 	NumericVector rate;
 	if (rateIx != -1){
 	  rate = as<NumericVector>(input[rateIx]);
@@ -1803,7 +1835,7 @@ RObject et_(List input, List et__){
 	  stop("Additional doses must be positive (addl=%d).", addl[0]);
 	}
 	return etUpdateObj(etAddDose(time, cmt, amt[0], rate[0], ii[0], addl[0], evid[0], ss[0],
-				     id, turnOnShowCmt, as<List>(curEt)),doUpdateObj);
+				     id, turnOnShowCmt, doSampling, as<List>(curEt)),doUpdateObj);
       }
     }
   } else {
