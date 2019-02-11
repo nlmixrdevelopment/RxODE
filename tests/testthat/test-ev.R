@@ -11,11 +11,12 @@ rxPermissive({
 
         expect_equal(et$get.dosing(), NULL);
         expect_equal(et$get.sampling(), NULL);
+
     })
 
     et <- et(1:10);
 
-    test_that("Observation only table check",{
+    test_that("10 sample items",{
 
         expect_equal(et$nobs, 10L);
         expect_equal(et$ndose, 0L);
@@ -23,17 +24,18 @@ rxPermissive({
         expect_equal(class(et$get.EventTable()), "data.frame");
         expect_true(is(et, "rxEt"));
 
-        expect_false(et$.show["id"])
-        expect_false(et$.show["cmt"])
+        expect_false(et$show["id"])
+        expect_false(et$show["cmt"])
 
 
         expect_equal(et$get.dosing(), NULL);
-        expect_equal(et$get.sampling(), NULL);
+        expect_equal(length(et$get.sampling()$time), 10);
+
     })
 
     et <- et(1:10, "matt");
 
-    test_that("Observation only table check",{
+    test_that("compartment check",{
 
         expect_equal(et$nobs, 10L);
         expect_equal(et$ndose, 0L);
@@ -41,11 +43,11 @@ rxPermissive({
         expect_equal(class(et$get.EventTable()), "data.frame");
         expect_true(is(et, "rxEt"));
 
-        expect_false(et$.show["id"])
-        expect_true(et$.show["cmt"])
+        expect_false(et$show["id"])
+        expect_true(et$show["cmt"])
 
         expect_equal(et$get.dosing(), NULL);
-        expect_equal(et$get.sampling(), NULL);
+        expect_equal(length(et$get.sampling()$time), 10);
     })
 
     et1 <- et(1:10,id=10)

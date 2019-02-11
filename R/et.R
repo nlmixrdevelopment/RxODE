@@ -24,6 +24,10 @@ print.rxEt <- function(x,...){
     ## sprintf(" with %s records%s:\n", x$nobs+x$ndose,
     ##                                           ifelse(x$maxId==1, "", sprintf(" (%d IDs)", abs(x$maxId))))
     .units <- x$.units;
+    if (x$maxId !=1){
+        cat(sprintf("   %s individuals\n",
+                x$maxId))
+    }
     cat(sprintf("   %s dosing records (see %s$%s())\n",
                 x$ndose, crayon::yellow(bound), crayon::blue("get.dosing")))
     cat(sprintf("   %s observation times (see %s$%s())\n",

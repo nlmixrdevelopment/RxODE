@@ -1529,11 +1529,9 @@ RObject et_(List input, List et__){
       int id=1;
       if (idIx != -1){
 	id    = as<int>(input[idIx]);
-	if ((int)(e["nobs"]) != 0 || (int)(e["ndose"]) != 0){
-	  if ((int)(e["maxId"]) != id){
-	    curEt = as<RObject>(etResizeId(id, as<List>(curEt)));
-	    doRet=true;
-	  }
+	if ((int)(e["maxId"]) != id){
+	  curEt = as<RObject>(etResizeId(id, as<List>(curEt)));
+	  doRet=true;
 	}
       } else {
 	id = (int)(e["maxId"]);
