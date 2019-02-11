@@ -900,9 +900,13 @@ print.rxCoefSolve <- function(x, ...){
         .mv <- rxModelVars(model);
         if (.Call(`_RxODE_codeLoaded`) == 0L) .rxModelVarsCharacter(setNames(rxNorm(.mv),NULL));
         .cache <- .rxModelVarsCCache
-        if (.cache[[1]]){
-            .modelPrefix <- sprintf("%s_", gsub("\\W", "_", gsub("[.].*$", "", basename(.cache[[2]]))));
-        } else {
+        .modelPrefix <- NULL
+        if (!is.null(.modelPrefix)){
+            if (.cache[[1]]){
+                .modelPrefix <- sprintf("%s_", gsub("\\W", "_", gsub("[.].*$", "", basename(.cache[[2]]))));
+            }
+        }
+        if (is.null(.modelPrefix)) {
             .modelPrefix <- paste0("rx_", .mv$md5["parsed_md5"], "_", .Platform$r_arch, "_");
         }
     }
