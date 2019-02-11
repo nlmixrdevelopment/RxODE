@@ -313,6 +313,23 @@ eventTable <- function(amount.units = NA, time.units = "hours"){
        time.units = ifelse(is.na(time.units), "",time.units))
 }
 
+##' .. content for \description{} (no empty lines) ..
+##'
+##' @param ...
+##' @param clearSampling is a boolean indicating if the sampling
+##'     should be cleared when combining the event tables.
+##' @return
+##' @author
+etSeq <- function(...,clearSampling=FALSE){
+    ## etSeq_(List ets, bool clearSampling=clearSampling);
+    Call(`_RxODE_etSeq_`, list(...), clearSampling);
+}
+
+##'@export
+seq.rxEt <- function(...){
+    do.call(etSeq,list(...));
+}
+
 
 ##' @importFrom magrittr %>%
 ##' @export

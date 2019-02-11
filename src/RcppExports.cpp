@@ -47,6 +47,18 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// etSeq_
+List etSeq_(List ets, bool clearSampling);
+RcppExport SEXP _RxODE_etSeq_(SEXP etsSEXP, SEXP clearSamplingSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< List >::type ets(etsSEXP);
+    Rcpp::traits::input_parameter< bool >::type clearSampling(clearSamplingSEXP);
+    rcpp_result_gen = Rcpp::wrap(etSeq_(ets, clearSampling));
+    return rcpp_result_gen;
+END_RCPP
+}
 // evTrans
 List evTrans(List inData, const RObject& obj);
 RcppExport SEXP _RxODE_evTrans(SEXP inDataSEXP, SEXP objSEXP) {

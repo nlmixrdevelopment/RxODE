@@ -46,6 +46,21 @@ scale_y_unit <- ggforce::scale_y_unit
 ScaleContinuousPositionUnit <- ggforce::ScaleContinuousPositionUnit
 
 ##'@export
+scale_type <- ggplot2::scale_type
+
+##'@export
+ggplot <- ggplot2::ggplot
+
+##'@export
+aes <- ggplot2::aes
+
+##'@export
+geom_line <- ggplot2::geom_line
+
+##'@export
+facet_wrap <- ggplot2::facet_wrap
+
+##'@export
 scale_type.units <- loadNamespace("ggforce")$scale_type.units
 
 

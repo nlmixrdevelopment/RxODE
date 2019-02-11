@@ -897,8 +897,8 @@ plot.rxSolve <- function(x,y,...){
     }
     .dat <- rxStack(x,.cmts);
     time <- value <- NULL
-    ggplot2::ggplot(.dat,ggplot2::aes(time,value))+
-        ggplot2::geom_line() +ggplot2::facet_wrap( ~ trt)
+    ggplot(.dat,ggplot2::aes(time,value))+
+        geom_line() +facet_wrap( ~ trt)
 }
 
 ## dim (gets you nrow and ncol), t, dimnames

@@ -13,6 +13,10 @@ et_ <- function(input, et__) {
     .Call(`_RxODE_et_`, input, et__)
 }
 
+etSeq_ <- function(ets, clearSampling = FALSE) {
+    .Call(`_RxODE_etSeq_`, ets, clearSampling)
+}
+
 evTrans <- function(inData, obj) {
     .Call(`_RxODE_evTrans`, inData, obj)
 }

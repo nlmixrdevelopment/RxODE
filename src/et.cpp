@@ -437,6 +437,10 @@ List etAddWindow(List windowLst, int idMax, RObject cmt, bool turnOnShowCmt, Lis
 }
 
 List etAddTimes(NumericVector newTimes, int idMax, RObject cmt, bool turnOnShowCmt, List curEt){
+  CharacterVector cls = clone(as<CharacterVector>(curEt.attr("class")));
+  List eOld = cls.attr(".RxODE.lst");
+  List e = clone(eOld);
+
   std::vector<double> time = as<std::vector<double>>(curEt["time"]);
   std::vector<int> id = as<std::vector<int>>(curEt["id"]);
   int oldSize =id.size();
@@ -444,6 +448,7 @@ List etAddTimes(NumericVector newTimes, int idMax, RObject cmt, bool turnOnShowC
   std::vector<int> evid = as<std::vector<int>>(curEt["evid"]);
   std::iota(idx.begin(),idx.end(),0);
   int nobs = 0;
+
   for (int j = idMax; j--;){
     for (int i = newTimes.size(); i--;){
       id.push_back(j+1);
@@ -465,6 +470,7 @@ List etAddTimes(NumericVector newTimes, int idMax, RObject cmt, bool turnOnShowC
 	      }
 	      return id[a] < id[b];
 	    });
+
   List lst(curEt.size());
   IntegerVector tmpI = as<IntegerVector>(curEt["id"]), tmpI2;
   NumericVector tmpN, tmpN2;
@@ -575,9 +581,6 @@ List etAddTimes(NumericVector newTimes, int idMax, RObject cmt, bool turnOnShowC
       }
     }
   }
-  CharacterVector cls = clone(as<CharacterVector>(curEt.attr("class")));
-  List eOld = cls.attr(".RxODE.lst");
-  List e = clone(eOld);
   e["nobs"] = as<int>(e["nobs"]) + nobs;
   LogicalVector show = e["show"];
   if (turnOnShowCmt){
@@ -1872,4 +1875,254 @@ RObject et_(List input, List et__){
   // Should never get here...
   List ret(0);
   return ret;
+}
+
+// Sequence event tables
+//[[Rcpp::export]]
+List etSeq_(List ets, bool clearSampling=false){
+  double timeDelta = 0;
+  double maxTime = 0;
+  std::vector<int> id;
+  std::vector<double> time;
+  std::vector<double> low;
+  std::vector<double> high;
+  std::vector<double> ii;
+  std::vector<double> amt;
+  std::vector<int> evid;
+  std::vector<int> addl;
+  std::vector<int> idxEts;
+  std::vector<int> idxEt;
+  std::vector<int> idx;
+  
+  NumericVector curTime, curLow, curHigh, curIi,curAmt;
+  IntegerVector curEvid, curAddl, curId;
+  
+  int i, j, k=0, nobs = 0, ndose=0;
+  List et;
+  bool isCmtInt=false;
+  CharacterVector units;
+  LogicalVector show;
+  bool gotUnits = false;
+  int maxId = 0;
+  List e;
+  
+  CharacterVector cls;
+
+  for (i = 0 ;i < ets.size(); i++){
+    if (rxIs(ets[i], "rxEt")){
+      List et = ets[i];
+      cls = as<CharacterVector>(et.attr("class"));
+      e = cls.attr(".RxODE.lst");
+      if (!gotUnits){
+	units = e["units"];
+	show = e["show"];
+	if (rxIs(et["cmt"], "integer")){
+	  isCmtInt = true;
+	}
+	maxId = as<int>(e["maxId"]);
+      } else {
+	if (isCmtInt && !rxIs(et["cmt"], "integer")){
+	  stop("Cannot event tables with integer and character 'cmt'.");
+	}
+	if (!isCmtInt && rxIs(et["cmt"], "integer")){
+	  stop("Cannot event tables with integer and character 'cmt'.");
+	}
+	if (maxId != as<int>(e["maxId"])){
+	  stop("Cannot mix event tables with different number of individuals");
+	}
+	LogicalVector newShow = e["show"];
+	for (j = show.size(); j--;){
+	  show[j] = show[j] || newShow[j];
+	}
+      }
+      //
+      // Load time, low, high and amt and convert units if needed.
+      curTime = et["time"];
+      if (rxIs(curTime, "units")){
+	if (!CharacterVector::is_na(units["time"])){
+	  curTime = setUnits(curTime, as<std::string>(units["time"]));
+	} else {
+	  curTime = setUnits(curTime, "");
+	}
+      }
+      curLow=et["low"];
+      if (rxIs(curLow, "units")){
+	if (!CharacterVector::is_na(units["time"])){
+	  curLow = setUnits(curLow, as<std::string>(units["time"]));
+	} else {
+	  curLow = setUnits(curLow, "");
+	}
+      }
+      curHigh=et["high"];
+      if (rxIs(curHigh, "units")){
+	if (!CharacterVector::is_na(units["time"])){
+	  curHigh = setUnits(curHigh, as<std::string>(units["time"]));
+	} else {
+	  curHigh = setUnits(curHigh, "");
+	}
+      }
+      curIi=et["ii"];
+      if (rxIs(curIi, "units")){
+	if (!CharacterVector::is_na(units["time"])){
+	  curIi = setUnits(curIi, as<std::string>(units["time"]));
+	} else {
+	  curIi = setUnits(curIi, "");
+	}
+      }
+      curAmt = et["amt"];
+      if (rxIs(curAmt, "units")){
+	if (!CharacterVector::is_na(units[0])){
+	  curAmt = setUnits(curAmt, as<std::string>(units[0]));
+	} else {
+	  curAmt = setUnits(curAmt, "");
+	}
+      }
+      curId = et["id"];
+      curEvid = et["evid"];
+      curAddl = et["addl"];
+      for (j = 0; j < curTime.size(); j++){
+	if (clearSampling && curEvid[j]== 0) continue;
+	if (curEvid[j] == 0) nobs++;
+	else ndose++;
+	id.push_back(curId[j]);
+	addl.push_back(curAddl[j]);
+	if (!ISNA(curHigh[j])){
+	  maxTime = curHigh[j] + (curAddl[j]+1)*curIi[j];
+	  high.push_back(curHigh[j]+timeDelta);
+	  time.push_back(curTime[j]+timeDelta);
+	  low.push_back(curLow[j]+timeDelta);
+	} else {
+	  double tmp = curTime[j] + (curAddl[j]+1) * curIi[j];
+	  if (tmp > maxTime) maxTime = tmp;
+	  high.push_back(NA_REAL);
+	  time.push_back(curTime[j]+timeDelta);
+	  low.push_back(NA_REAL);
+	}
+	ii.push_back(curIi[j]);
+	amt.push_back(curAmt[j]);
+	evid.push_back(curEvid[j]);
+	idxEts.push_back(i);
+	idxEt.push_back(j);
+	idx.push_back(k++);
+      }
+    } else if (rxIs(ets[i], "numeric") || rxIs(ets[i], "integer")){
+      maxTime = as<double>(ets[i]);
+    }
+    timeDelta += maxTime;
+  }
+
+  Rprintf("id: %d time %d evid %d\n", id.size(), time.size(), evid.size());
+  
+  std::sort(idx.begin(),idx.end(),
+	    [id,time,evid](int a, int b){
+	      if (id[a] == id[b]){
+		if (time[a] == time[b]){
+		  if (evid[a] == evid[b]){
+		    return a < b;
+		  }
+		  return evid[a] < evid[b];
+		}
+		return time[a] < time[b];
+	      }
+	      return id[a] < id[b];
+	    });
+  List lst = etEmpty(units);
+  // nme[0] = "id";
+  lst[0] = IntegerVector(id.size());
+      
+  // nme[1] = "time";
+  lst[2] = NumericVector(id.size());
+      
+  // nme[2] = "low";
+  lst[1] = NumericVector(id.size());
+      
+  // nme[3] = "high";
+  lst[3] = NumericVector(id.size());
+      
+  // nme[4] = "cmt";
+  if (!isCmtInt){
+    lst[4] = CharacterVector(id.size());
+  } else {
+    lst[4] = IntegerVector(id.size());
+  }
+  // nme[5] = "amt";
+  lst[5] = NumericVector(id.size());
+
+  // nme[6] = "rate";
+  lst[6] = NumericVector(id.size());
+      
+  // nme[7] = "ii";
+  lst[7] = NumericVector(id.size());
+      
+  // nme[8] = "addl";
+  lst[8] = IntegerVector(id.size());
+  
+  // nme[9] = "evid";
+  lst[9] = IntegerVector(id.size());
+      
+  // nme[10] = "ss";
+  lst[10] = IntegerVector(id.size());
+
+  IntegerVector tmpI, tmpI2;
+  NumericVector tmpN, tmpN2;
+  CharacterVector tmpC, tmpC2;
+  // Now fill everything in.
+  for (i = idx.size(); i--;){
+    et = ets[idxEts[idx[i]]];
+    j = idxEt[idx[i]];    
+
+    tmpI = as<IntegerVector>(lst[0]); // id
+    tmpI[i] = id[idx[i]];
+    
+    tmpN = as<NumericVector>(lst[1]); // low
+    tmpN[i] = low[idx[i]];
+
+    tmpN = as<NumericVector>(lst[2]); // time
+    tmpN[i] = time[idx[i]];
+    
+    tmpN = as<NumericVector>(lst[3]); // high
+    tmpN[i] = high[idx[i]];
+    // 4 is cmt
+    if (!isCmtInt){
+      tmpC = as<CharacterVector>(lst[4]);
+      tmpC2 = as<CharacterVector>(et[4]);
+      tmpC[i] = tmpC2[j];
+    } else {
+      tmpI = as<IntegerVector>(lst[4]); 
+      tmpI2 = as<IntegerVector>(et[4]);
+      tmpI[i] = tmpI2[j];
+    }
+
+    tmpN = as<NumericVector>(lst[5]); //  amt
+    tmpN[i] = amt[idx[i]];
+
+    // 6 is rate
+    tmpN = as<NumericVector>(lst[6]); // rate
+    tmpN2 = as<NumericVector>(et[6]);
+    tmpN[i] = tmpN2[j];    
+
+    tmpN = as<NumericVector>(lst[7]); // ii
+    tmpN[i] = ii[idx[i]];
+
+    // 8 is addl
+    tmpI = as<IntegerVector>(lst[8]); // rate
+    tmpI[i] = addl[idx[i]];
+    
+    tmpI = as<IntegerVector>(lst[9]); // evid
+    tmpI[i] = evid[idx[i]];
+
+    tmpI = as<IntegerVector>(lst[10]); // rate
+    tmpI2 = as<IntegerVector>(et[10]);
+    tmpI[i] = tmpI2[j];
+  }
+  cls = lst.attr("class");
+  e = cls.attr(".RxODE.lst");
+  e["maxId"] = maxId;
+  e["ndose"] = ndose;
+  e["nobs"] = nobs;
+  e["show"]  = show;
+  cls.attr(".RxODE.lst") = e;
+  lst.attr("class") = cls;
+  lst.attr("row.names") = IntegerVector::create(NA_INTEGER, -(nobs+ndose));
+  return lst;
 }

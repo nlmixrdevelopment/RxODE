@@ -53,24 +53,28 @@ Suggests:
     reticulate,
     installr
 Imports:
-    utils,
-    methods,
-    digest,
-    rex,
-    dparser (>= 0.1.8),
-    brew,
-    memoise,
-    magrittr,
-    Rcpp (>= 0.12.3),
-    inline,
     Matrix,
-    R.utils,
     PreciseSums (>= 0.3),
-    n1qn1 (>= 6.0.1-2),
-    mvnfast,
+    R.utils,
+    Rcpp (>= 0.12.3),
+    brew,
     cli,
     crayon,
-    sys, pillar, units, ggforce, ggplot
+    digest,
+    dparser (>= 0.1.8),
+    ggforce,
+    ggplot2,
+    inline,
+    magrittr,
+    memoise,
+    methods,
+    mvnfast,
+    n1qn1 (>= 6.0.1-2),
+    pillar,
+    rex,
+    sys,
+    units,
+    utils
 Description: Facilities for running simulations from ordinary
     differential equation (ODE) models, such as pharmacometrics and other
     compartmental models.  A compilation manager translates the ODE model
