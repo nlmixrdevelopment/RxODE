@@ -1373,7 +1373,7 @@ RObject et_(List input, List et__){
     else if (inN[i] == "nbr.doses" || inN[i] == "nbrDoses" || inN[i] == "nbr") nbrIx=i;
     else if (inN[i] == "ss") ssIx = i;
     else if (inN[i] == "rate") rateIx = i;
-    else if (inN[i] != "") stop("unused argument '%s'", (as<std::string>(inN[i])).c_str());
+    else if (inN[i] != "" &&  !doUpdateObj) stop("unused argument '%s'", (as<std::string>(inN[i])).c_str());
   }
   // missing argument name handling.
   for (i = 0; i <(int)inN.size(); i++){
