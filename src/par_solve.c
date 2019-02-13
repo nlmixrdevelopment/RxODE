@@ -641,7 +641,7 @@ void handleSS(int *neq,
 	    // Bad Solve => NA
 	    for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
 	    op->badSolve = 1;
-	    *i = ind->n_all_times+42; // Get out of here!
+	    *i = ind->n_all_times-1; // Get out of here!
 	    j=op->maxSS;
 	    break;
 	  }
@@ -657,7 +657,7 @@ void handleSS(int *neq,
 	    // Bad Solve => NA
 	    for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
 	    op->badSolve = 1;
-	    *i = ind->n_all_times+42; // Get out of here!
+	    *i = ind->n_all_times-1; // Get out of here!
 	    j=op->maxSS;
 	    break;
 	  }
@@ -693,7 +693,7 @@ void handleSS(int *neq,
 	    // Bad Solve => NA
 	    for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
 	    op->badSolve = 1;
-	    *i = ind->n_all_times+42; // Get out of here!
+	    *i = ind->n_all_times-1; // Get out of here!
 	    j=op->maxSS;
 	    break;
 	  }
@@ -721,7 +721,7 @@ void handleSS(int *neq,
 	// Bad Solve => NA
 	for (j = neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
 	op->badSolve = 1;
-	*i = nx+42; // Get out of here!
+	*i = nx-1; // Get out of here!
       } else {
 	// Infusion
 	ind->timeReset=0; // Don't reset calculated duration time during SS calculation.
@@ -743,7 +743,7 @@ void handleSS(int *neq,
 	      // Bad Solve => NA
 	      for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
 	      op->badSolve = 1;
-	      *i = ind->n_all_times+42; // Get out of here!
+	      *i = ind->n_all_times-1; // Get out of here!
 	      j=op->maxSS;
 	      break;
 	    }
@@ -759,7 +759,7 @@ void handleSS(int *neq,
 	      // Bad Solve => NA
 	      for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
 	      op->badSolve = 1;
-	      *i = ind->n_all_times+42; // Get out of here!
+	      *i = ind->n_all_times-1; // Get out of here!
 	      j=op->maxSS;
 	      break;
 	    }
@@ -795,7 +795,7 @@ void handleSS(int *neq,
 	      // Bad Solve => NA
 	      for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
 	      op->badSolve = 1;
-	      *i = ind->n_all_times+42; // Get out of here!
+	      *i = ind->n_all_times-1; // Get out of here!
 	      j=op->maxSS;
 	      break;
 	    }
@@ -829,7 +829,7 @@ void handleSS(int *neq,
 	      // Bad Solve => NA
 	      for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
 	      op->badSolve = 1;
-	      *i = ind->n_all_times+42; // Get out of here!
+	      *i = ind->n_all_times-1; // Get out of here!
 	      j=op->maxSS;
 	      break;
 	    }
@@ -845,7 +845,7 @@ void handleSS(int *neq,
 	      // Bad Solve => NA
 	      for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
 	      op->badSolve = 1;
-	      *i = ind->n_all_times+42; // Get out of here!
+	      *i = ind->n_all_times-1; // Get out of here!
 	      j=op->maxSS;
 	      break;
 	    }
@@ -881,7 +881,7 @@ void handleSS(int *neq,
 	      // Bad Solve => NA
 	      for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
 	      op->badSolve = 1;
-	      *i = ind->n_all_times+42; // Get out of here!
+	      *i = ind->n_all_times-1; // Get out of here!
 	      j=op->maxSS;
 	      break;
 	    }
@@ -977,7 +977,7 @@ extern void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda_opt
         // Bad Solve => NA
         for (j = neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
         op->badSolve = 1;
-        i = nx+42; // Get out of here!
+        i = nx-1; // Get out of here!
       } else {
 	if (R_FINITE(rx->stateTrim)){
 	  double top=fabs(rx->stateTrim);
@@ -1258,7 +1258,7 @@ extern void ind_lsoda0(rx_solve *rx, rx_solving_options *op, int solveid, int *n
 	// Bad Solve => NA
 	for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
 	op->badSolve = 1;
-	i = ind->n_all_times+42; // Get out of here!
+	i = ind->n_all_times-1; // Get out of here!
       } else {
 	if (R_FINITE(rx->stateTrim)){
 	  double top=fabs(rx->stateTrim);
@@ -1437,7 +1437,7 @@ extern void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int *neq
             // Bad Solve => NA
             for (j = (ind->n_all_times)*neq[0];j--;) ret[i] = NA_REAL; 
             op->badSolve = 1;
-            i = nx+42; // Get out of here!
+            i = nx-1; // Get out of here!
 	} else {
 	  if (R_FINITE(rx->stateTrim)){
 	    double top=fabs(rx->stateTrim);

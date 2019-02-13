@@ -316,13 +316,14 @@ eventTable <- function(amount.units = NA, time.units = "hours"){
 ##' .. content for \description{} (no empty lines) ..
 ##'
 ##' @param ...
-##' @param clearSampling is a boolean indicating if the sampling
+##' @param handleSamples is a boolean indicating if the sampling
 ##'     should be cleared when combining the event tables.
 ##' @return
 ##' @author
-etSeq <- function(...,clearSampling=FALSE){
+etSeq <- function(...,handleSamples=c("clear", "use")){
     ## etSeq_(List ets, bool clearSampling=clearSampling);
-    Call(`_RxODE_etSeq_`, list(...), clearSampling);
+    .sampleIx = c(clear=0L,use=1L);
+    .Call(`_RxODE_etSeq_`, list(...), setNames(.sampleIx[match.arg(handleSamples)],NULL));
 }
 
 ##'@export

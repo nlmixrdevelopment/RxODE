@@ -57,15 +57,15 @@ SEXP _RxODE_rxCores();
 SEXP _RxODE_rxAssignPtr(SEXP objectSEXP);
 SEXP _RxODE_dynLoad(SEXP dllSEXP);
 SEXP _RxODE_rxSolveC(SEXP, SEXP, SEXP, SEXP, SEXP, //5
-		      SEXP, SEXP, SEXP, SEXP, SEXP, //10
-		      SEXP, SEXP, SEXP, SEXP, SEXP, //15
-		      SEXP, SEXP, SEXP, SEXP, SEXP, //20
-		      SEXP, SEXP, SEXP, SEXP, SEXP, //25
-		      SEXP, SEXP, SEXP, SEXP, SEXP, //30
-		      SEXP, SEXP, SEXP, SEXP, SEXP, //35
-		      SEXP, SEXP, SEXP, SEXP, SEXP, //40
-		      SEXP, SEXP, SEXP, SEXP, SEXP, //45
-		      SEXP);
+		     SEXP, SEXP, SEXP, SEXP, SEXP, //10
+		     SEXP, SEXP, SEXP, SEXP, SEXP, //15
+		     SEXP, SEXP, SEXP, SEXP, SEXP, //20
+		     SEXP, SEXP, SEXP, SEXP, SEXP, //25
+		     SEXP, SEXP, SEXP, SEXP, SEXP, //30
+		     SEXP, SEXP, SEXP, SEXP, SEXP, //35
+		     SEXP, SEXP, SEXP, SEXP, SEXP, //40
+		     SEXP, SEXP, SEXP, SEXP, SEXP, //45
+		     SEXP, SEXP);
 SEXP RxODE_get_mv();
 
 SEXP _RxODE_rxToOmega(SEXP cholInv);
@@ -199,7 +199,7 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_setRstudio", (DL_FUNC) &_RxODE_setRstudio, 1},
     {"_RxODE_RcppExport_registerCCallable", (DL_FUNC) &_RxODE_RcppExport_registerCCallable, 0},
     // Solaris needs 23 args; fix me...
-    {"_RxODE_rxSolveC", (DL_FUNC) &_RxODE_rxSolveC, 46},
+    {"_RxODE_rxSolveC", (DL_FUNC) &_RxODE_rxSolveC, 47},
     {"_RxODE_getRxFn", (DL_FUNC) &_RxODE_getRxFn, 1},
     {"_RxODE_setProgSupported", (DL_FUNC) &_RxODE_setProgSupported, 1},
     {"_RxODE_getProgSupported", (DL_FUNC) &_RxODE_getProgSupported, 0},

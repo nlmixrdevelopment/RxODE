@@ -1879,9 +1879,10 @@ RObject et_(List input, List et__){
 
 // Sequence event tables
 //[[Rcpp::export]]
-List etSeq_(List ets, bool clearSampling=false){
+List etSeq_(List ets, int handleSamples=0){
   double timeDelta = 0;
   double maxTime = 0;
+  double lastDose = 0;
   std::vector<int> id;
   std::vector<double> time;
   std::vector<double> low;
@@ -1981,19 +1982,31 @@ List etSeq_(List ets, bool clearSampling=false){
       curEvid = et["evid"];
       curAddl = et["addl"];
       for (j = 0; j < curTime.size(); j++){
-	if (clearSampling && curEvid[j]== 0) continue;
+	if (handleSamples == 0 && curEvid[j]== 0) continue;
 	if (curEvid[j] == 0) nobs++;
 	else ndose++;
 	id.push_back(curId[j]);
 	addl.push_back(curAddl[j]);
 	if (!ISNA(curHigh[j])){
-	  maxTime = curHigh[j] + (curAddl[j]+1)*curIi[j];
+	  if (curAddl[j] > 0){
+	    lastDose = curHigh[j] + curAddl[j]*curIi[j];
+	    maxTime = curHigh[j] + (curAddl[j]+1)*curIi[j];
+	  } else {
+	    maxTime = curHigh[j] + (curHigh[j] - lastDose); //Use last interval
+	    lastDose = curHigh[j];
+	  }
 	  high.push_back(curHigh[j]+timeDelta);
 	  time.push_back(curTime[j]+timeDelta);
 	  low.push_back(curLow[j]+timeDelta);
 	} else {
-	  double tmp = curTime[j] + (curAddl[j]+1) * curIi[j];
-	  if (tmp > maxTime) maxTime = tmp;
+	  if (curAddl[j] > 0){
+	    lastDose = curTime[j] + curAddl[j] * curIi[j];
+	    double tmp = curTime[j] + (curAddl[j]+1) * curIi[j];
+	    if (tmp > maxTime) maxTime = tmp;
+	  } else {
+	    lastDose = curTime[j];
+	    maxTime = curTime[j] + (curTime[j] - lastDose); //Use last interval
+	  }
 	  high.push_back(NA_REAL);
 	  time.push_back(curTime[j]+timeDelta);
 	  low.push_back(NA_REAL);
@@ -2010,8 +2023,6 @@ List etSeq_(List ets, bool clearSampling=false){
     }
     timeDelta += maxTime;
   }
-
-  Rprintf("id: %d time %d evid %d\n", id.size(), time.size(), evid.size());
   
   std::sort(idx.begin(),idx.end(),
 	    [id,time,evid](int a, int b){
@@ -2126,3 +2137,5 @@ List etSeq_(List ets, bool clearSampling=false){
   lst.attr("row.names") = IntegerVector::create(NA_INTEGER, -(nobs+ndose));
   return lst;
 }
+
+

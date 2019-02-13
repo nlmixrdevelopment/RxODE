@@ -18,7 +18,9 @@ List evTrans(List inData, const RObject &obj){
   CharacterVector pars = as<CharacterVector>(mv["params"]);
   std::vector<int> covCol;
   std::vector<int> covParPos;
+  std::string tmpS0;
   for (i = lName.size(); i--;){
+    tmpS0= as<std::string>(lName[i]);
     tmpS = as<std::string>(lName[i]);
     std::transform(tmpS.begin(), tmpS.end(), tmpS.begin(), ::tolower);
     lName[i] = tmpS;
@@ -40,9 +42,7 @@ List evTrans(List inData, const RObject &obj){
 	covParPos.push_back(j);
 	break;
       }
-      // Check exact case
-      tmpS = lName[i];
-      if (tmpS == as<std::string>(pars[j])){
+      if (tmpS0 == as<std::string>(pars[j])){
 	// Covariate found.
 	covCol.push_back(i);
 	covParPos.push_back(j);
