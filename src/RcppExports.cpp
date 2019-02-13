@@ -48,14 +48,34 @@ BEGIN_RCPP
 END_RCPP
 }
 // etSeq_
-List etSeq_(List ets, int handleSamples);
-RcppExport SEXP _RxODE_etSeq_(SEXP etsSEXP, SEXP handleSamplesSEXP) {
+List etSeq_(List ets, int handleSamples, int reserveLen, bool needSort, CharacterVector newUnits, LogicalVector newShow, bool isCmtIntIn);
+RcppExport SEXP _RxODE_etSeq_(SEXP etsSEXP, SEXP handleSamplesSEXP, SEXP reserveLenSEXP, SEXP needSortSEXP, SEXP newUnitsSEXP, SEXP newShowSEXP, SEXP isCmtIntInSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< List >::type ets(etsSEXP);
     Rcpp::traits::input_parameter< int >::type handleSamples(handleSamplesSEXP);
-    rcpp_result_gen = Rcpp::wrap(etSeq_(ets, handleSamples));
+    Rcpp::traits::input_parameter< int >::type reserveLen(reserveLenSEXP);
+    Rcpp::traits::input_parameter< bool >::type needSort(needSortSEXP);
+    Rcpp::traits::input_parameter< CharacterVector >::type newUnits(newUnitsSEXP);
+    Rcpp::traits::input_parameter< LogicalVector >::type newShow(newShowSEXP);
+    Rcpp::traits::input_parameter< bool >::type isCmtIntIn(isCmtIntInSEXP);
+    rcpp_result_gen = Rcpp::wrap(etSeq_(ets, handleSamples, reserveLen, needSort, newUnits, newShow, isCmtIntIn));
+    return rcpp_result_gen;
+END_RCPP
+}
+// etRep_
+List etRep_(RObject curEt, int times, double wait, IntegerVector ids, int handleSamples);
+RcppExport SEXP _RxODE_etRep_(SEXP curEtSEXP, SEXP timesSEXP, SEXP waitSEXP, SEXP idsSEXP, SEXP handleSamplesSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< RObject >::type curEt(curEtSEXP);
+    Rcpp::traits::input_parameter< int >::type times(timesSEXP);
+    Rcpp::traits::input_parameter< double >::type wait(waitSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type ids(idsSEXP);
+    Rcpp::traits::input_parameter< int >::type handleSamples(handleSamplesSEXP);
+    rcpp_result_gen = Rcpp::wrap(etRep_(curEt, times, wait, ids, handleSamples));
     return rcpp_result_gen;
 END_RCPP
 }

@@ -54,7 +54,7 @@ RObject etUpdate(RObject obj,
 List etEmpty(CharacterVector units){
   CharacterVector cls = CharacterVector::create("rxEt","data.frame");
   List e;
-  e["units"] = units;
+  e["units"] = clone(units);
   Function parse2("parse", R_BaseNamespace);
   Function eval2("eval", R_BaseNamespace);
   // eventTable style methods
@@ -143,6 +143,8 @@ List etEmpty(CharacterVector units){
 				     _["ii"] = false, _["addl"] = false,
 				     _["evid"] = true, _["ss"] = false);
   e["IDs"] = IntegerVector::create(1);
+
+  e["canResize"] = true;
 
   // Return an empty data frame.
   List lst(11);
@@ -268,7 +270,7 @@ List etAddWindow(List windowLst, IntegerVector IDs, RObject cmt, bool turnOnShow
   double c = 0;
   CharacterVector cls = clone(as<CharacterVector>(curEt.attr("class")));
   List eOld = cls.attr(".RxODE.lst");
-  List e = clone(eOld);  
+  List e = clone(eOld);
   CharacterVector units = e["units"];
   int nobs=0;
   for (int j = IDs.size(); j--;){
@@ -422,9 +424,14 @@ List etAddWindow(List windowLst, IntegerVector IDs, RObject cmt, bool turnOnShow
   }
   std::vector<double> uIds = as<std::vector<double>>(eOld["IDs"]);
   for (i = IDs.size(); i--;){
-    if (std::find(uIds.begin(), uIds.end(), IDs[i]) != uIds.end()){
+    if (std::find(uIds.begin(), uIds.end(), IDs[i]) == uIds.end()){
       uIds.push_back(IDs[i]);
     }
+  }
+  if ((int)IDs.size() == (int)uIds.size() && as<bool>(eOld["canResize"])){
+    e["canResize"] = true;
+  } else {
+    e["canResize"] = false;
   }
   e["IDs"] = wrap(uIds);
   if (uIds.size() > 1){
@@ -594,12 +601,17 @@ List etAddTimes(NumericVector newTimes, IntegerVector IDs, RObject cmt, bool tur
   }
   std::vector<double> uIds = as<std::vector<double>>(eOld["IDs"]);
   for (i = IDs.size(); i--;){
-    if (std::find(uIds.begin(), uIds.end(), IDs[i]) != uIds.end()){
+    if (std::find(uIds.begin(), uIds.end(), IDs[i]) == uIds.end()){
       uIds.push_back(IDs[i]);
     }
   }
   if (uIds.size() > 1){
     show["id"] = true;
+  }
+  if ((int)IDs.size() == (int)uIds.size() && as<bool>(eOld["canResize"])){
+    e["canResize"] = true;
+  } else {
+    e["canResize"] = false;
   }
   e["IDs"] = wrap(uIds);
   e["show"] = show;
@@ -712,7 +724,7 @@ List etImportEventTable(List inData){
   for (int i = 0; i < oldEvid.size(); i++){
     if (oldEvid[i] == 0){
       id.push_back(oldId[i]);
-      if (std::find(uIds.begin(), uIds.end(), oldId[i]) != uIds.end()){
+      if (std::find(uIds.begin(), uIds.end(), oldId[i]) == uIds.end()){
 	uIds.push_back(oldId[i]);
       }
       low.push_back(NA_REAL);
@@ -743,7 +755,7 @@ List etImportEventTable(List inData){
       }
     } else if (oldEvid[i] <= 4){
       id.push_back(oldId[i]);
-      if (std::find(uIds.begin(), uIds.end(), oldId[i]) != uIds.end()){
+      if (std::find(uIds.begin(), uIds.end(), oldId[i]) == uIds.end()){
 	uIds.push_back(oldId[i]);
       }
       low.push_back(NA_REAL);
@@ -774,7 +786,7 @@ List etImportEventTable(List inData){
       case 8:
 	// 8 = Duration is modeled, AMT=dose; Rate = AMT/(Modeled Duration) NONMEM RATE=-2
 	id.push_back(oldId[i]);
-	if (std::find(uIds.begin(), uIds.end(), oldId[i]) != uIds.end()){
+	if (std::find(uIds.begin(), uIds.end(), oldId[i]) == uIds.end()){
 	  uIds.push_back(oldId[i]);
 	}
 	low.push_back(NA_REAL);
@@ -803,7 +815,7 @@ List etImportEventTable(List inData){
       case 9:
 	// 9 = Rate is modeled, AMT=dose; Duration = AMT/(Modeled Rate) NONMEM RATE=-1
 	id.push_back(oldId[i]);
-	if (std::find(uIds.begin(), uIds.end(), oldId[i]) != uIds.end()){
+	if (std::find(uIds.begin(), uIds.end(), oldId[i]) == uIds.end()){
 	  uIds.push_back(oldId[i]);
 	}
 	low.push_back(NA_REAL);
@@ -833,7 +845,7 @@ List etImportEventTable(List inData){
 	    if (oldEvid[i] == oldEvid[j] && oldAmt[i] == -oldAmt[j]){
 	      double dur = oldTime[j] - oldTime[i];
 	      id.push_back(oldId[i]);
-	      if (std::find(uIds.begin(), uIds.end(), oldId[i]) != uIds.end()){
+	      if (std::find(uIds.begin(), uIds.end(), oldId[i]) == uIds.end()){
 		uIds.push_back(oldId[i]);
 	      }
 	      low.push_back(NA_REAL);
@@ -865,7 +877,7 @@ List etImportEventTable(List inData){
       case 0:
 	// No infusion
 	id.push_back(oldId[i]);
-	if (std::find(uIds.begin(), uIds.end(), oldId[i]) != uIds.end()){
+	if (std::find(uIds.begin(), uIds.end(), oldId[i]) == uIds.end()){
 	  uIds.push_back(oldId[i]);
 	}
 	low.push_back(NA_REAL);
@@ -932,6 +944,7 @@ List etImportEventTable(List inData){
   e["ndose"] = ndose;
   e["nobs"] = nobs;
   e["show"]  = show;
+  e["canResize"] = false;
   e["IDs"] = wrap(uIds);
   lst = etSort(lst);
   cls.attr(".RxODE.lst") = e;
@@ -1140,9 +1153,14 @@ List etAddDose(NumericVector curTime, RObject cmt,  double amt, double rate, dou
   }
   std::vector<double> uIds = as<std::vector<double>>(eOld["IDs"]);
   for (i = IDs.size(); i--;){
-    if (std::find(uIds.begin(), uIds.end(), IDs[i]) != uIds.end()){
+    if (std::find(uIds.begin(), uIds.end(), IDs[i]) == uIds.end()){
       uIds.push_back(IDs[i]);
     }
+  }
+  if ((int)IDs.size() == (int)uIds.size() && as<bool>(eOld["canResize"])){
+    e["canResize"] = true;
+  } else {
+    e["canResize"] = false;
   }
   e["IDs"] = wrap(uIds);
   if (uIds.size() > 1){
@@ -1818,7 +1836,10 @@ RObject et_(List input, List et__){
 
 // Sequence event tables
 //[[Rcpp::export]]
-List etSeq_(List ets, int handleSamples=0){
+List etSeq_(List ets, int handleSamples=0, int reserveLen=0, bool needSort=true,
+	    CharacterVector newUnits = CharacterVector::create(),
+	    LogicalVector newShow = LogicalVector::create(),
+	    bool isCmtIntIn = false){
   double timeDelta = 0;
   double maxTime = 0;
   double lastDose = 0;
@@ -1847,6 +1868,27 @@ List etSeq_(List ets, int handleSamples=0){
   
   CharacterVector cls;
 
+  if (reserveLen != 0){
+    // preallocate vector
+    id.reserve(reserveLen);
+    time.reserve(reserveLen);
+    low.reserve(reserveLen);
+    high.reserve(reserveLen);
+    ii.reserve(reserveLen);
+    amt.reserve(reserveLen);
+    evid.reserve(reserveLen);
+    addl.reserve(reserveLen);
+    idxEts.reserve(reserveLen);
+    idxEt.reserve(reserveLen);
+    idx.reserve(reserveLen);
+    if (newUnits.size() == 2){
+      units = newUnits;
+      show = newShow;
+      isCmtInt = isCmtIntIn;
+      gotUnits=true;
+    }
+  }
+
   for (i = 0 ;i < ets.size(); i++){
     if (rxIs(ets[i], "rxEt")){
       List et = ets[i];
@@ -1858,6 +1900,7 @@ List etSeq_(List ets, int handleSamples=0){
 	if (rxIs(et["cmt"], "integer")){
 	  isCmtInt = true;
 	}
+	gotUnits=true;
       } else {
 	if (isCmtInt && !rxIs(et["cmt"], "integer")){
 	  stop("Cannot event tables with integer and character 'cmt'.");
@@ -1957,20 +2000,24 @@ List etSeq_(List ets, int handleSamples=0){
     }
     timeDelta += maxTime;
   }
-  
-  std::sort(idx.begin(),idx.end(),
-	    [id,time,evid](int a, int b){
-	      if (id[a] == id[b]){
-		if (time[a] == time[b]){
-		  if (evid[a] == evid[b]){
-		    return a < b;
+  if (needSort){
+    std::sort(idx.begin(),idx.end(),
+	      [id,time,evid](int a, int b){
+		if (id[a] == id[b]){
+		  if (time[a] == time[b]){
+		    if (evid[a] == evid[b]){
+		      return a < b;
+		    }
+		    return evid[a] < evid[b];
 		  }
-		  return evid[a] < evid[b];
+		  return time[a] < time[b];
 		}
-		return time[a] < time[b];
-	      }
-	      return id[a] < id[b];
-	    });
+		return id[a] < id[b];
+	      });
+  }
+  if (!gotUnits){
+    stop("No events table found for seq/rep.");
+  }
   List lst = etEmpty(units);
   // nme[0] = "id";
   lst[0] = IntegerVector(id.size());
@@ -2072,3 +2119,129 @@ List etSeq_(List ets, int handleSamples=0){
 }
 
 
+// List etResizeId(List curEt, IntegerVector IDs){
+//   // Calculate size
+//   CharacterVector cls = clone(as<CharacterVector>(curEt.attr("class")));
+//   List eOld = cls.attr(".RxODE.lst");
+//   List e = clone(eOld);
+//   int oldMaxId = as<int>(e["maxId"]);
+//   if (maxId == oldMaxId) return curEt;
+//   double c = (double)(maxId)/(double)(oldMaxId);
+//   int oldSize = as<int>(e["nobs"]) + as<int>(e["ndose"]);
+//   int newSize = (int)(oldSize*c);
+//   List newEt(curEt.size());
+//   IntegerVector tmpI, tmpI2;
+//   CharacterVector tmpC, tmpC2;
+//   NumericVector tmpN, tmpN2;
+//   int i, j;
+//   bool recalcTime=false;
+//   if (maxId < oldMaxId){
+//     // Reducing the number of IDs
+//     for (j = newEt.size(); j--;){
+//       if (rxIs(curEt[j], "integer")) {
+// 	tmpI = IntegerVector(newSize);
+// 	tmpI2 = as<IntegerVector>(curEt[j]);
+// 	std::copy(tmpI2.begin(), tmpI2.begin()+newSize, tmpI.begin());
+// 	newEt[j] = tmpI;
+//       } else if (rxIs(curEt[j], "character")){
+// 	// Char
+// 	tmpC = CharacterVector(newSize);
+// 	tmpC2 = as<CharacterVector>(curEt[j]);
+// 	std::copy(tmpC2.begin(), tmpC2.begin()+newSize, tmpC.begin());
+// 	newEt[j] = tmpC;
+//       } else {
+// 	tmpN = NumericVector(newSize);
+// 	tmpN2 = as<NumericVector>(curEt[j]);
+// 	std::copy(tmpN2.begin(), tmpN2.begin()+newSize, tmpN.begin());
+// 	newEt[j] = tmpN;
+//       }
+//     }
+//   } else {
+//     // Enlarge data-set
+//     int idSize = (int)((double)(oldSize)/(double)(oldMaxId));
+//     for (j = newEt.size(); j--;){
+//       if (rxIs(curEt[j], "integer")) {
+// 	tmpI = IntegerVector(newSize);
+// 	tmpI2 = as<IntegerVector>(curEt[j]);
+// 	std::copy(tmpI2.begin(), tmpI2.end(), tmpI.begin());
+// 	if (j == 0){
+// 	  for (i = oldMaxId+1; i <= maxId; i++){
+// 	    std::fill_n(tmpI.begin() + oldSize + (i-oldMaxId-1)*idSize, idSize, i);
+// 	  }
+// 	} else {
+// 	  for (i = newSize - oldSize; i--;){
+// 	    tmpI[oldSize+i] = tmpI2[i % oldSize];
+// 	  }
+// 	}
+// 	newEt[j] = tmpI;
+//       } else if (rxIs(curEt[j], "character")){
+// 	// Char
+// 	tmpC = CharacterVector(newSize);
+// 	tmpC2 = as<CharacterVector>(curEt[j]);
+// 	std::copy(tmpC2.begin(), tmpC2.end(), tmpC.begin());
+// 	for (i = newSize - oldSize; i--;){
+// 	  tmpC[oldSize+i] = tmpC2[i % oldSize];
+// 	}
+// 	newEt[j] = tmpC;
+//       } else {
+// 	tmpN = NumericVector(newSize);
+// 	tmpN2 = as<NumericVector>(curEt[j]);
+// 	std::copy(tmpN2.begin(), tmpN2.end(), tmpN.begin());
+// 	for (i = newSize - oldSize; i--;){
+// 	  tmpN[oldSize+i] = tmpN2[i % oldSize];
+// 	}
+// 	newEt[j] = tmpN;
+//       }
+//     }
+//     recalcTime=true;
+//   }
+//   newEt.attr("names")     = curEt.attr("names");
+//   if (recalcTime){
+//     tmpN = as<NumericVector>(newEt["time"]);
+//     NumericVector tmpN1 = as<NumericVector>(newEt["low"]);
+//     tmpN2 = as<NumericVector>(newEt["high"]);
+//     // Update new observations with recalculated windows
+//     recalcTime=false;
+//     for (i = newSize - oldSize; i--;){
+//       if (!ISNA(tmpN1[oldSize+i]) && !ISNA(tmpN2[oldSize+i])){
+// 	tmpN[oldSize+i] = Rf_runif(tmpN1[oldSize+i], tmpN2[oldSize+i]);
+// 	recalcTime=true;
+//       }
+//     }
+//     curEt = etSort(curEt);
+//   }
+//   // Update new windows
+//   e["nobs"]   = (int)(as<double>(e["nobs"])*c);
+//   e["ndose"]  = (int)(as<double>(e["ndose"])*c);
+//   e["maxId"] = maxId;
+//   LogicalVector show = e["show"];
+//   if (maxId > 1){
+//     show["id"] = true;
+//   } else {
+//     show["id"] = false;
+//   }
+//   e["maxId"]             = maxId;    
+//   e.attr("class")         = "rxHidden";
+//   cls.attr(".RxODE.lst")  = e;
+//   newEt.attr("class")     = cls;
+//   int len = as<int>(e["nobs"]) +as<int>(e["ndose"]);
+//   newEt.attr("row.names") = IntegerVector::create(NA_INTEGER, -len);
+//   return newEt;
+// }
+
+
+// Sequence event tables
+//[[Rcpp::export]]
+List etRep_(RObject curEt, int times, double wait, IntegerVector ids, int handleSamples){
+  CharacterVector cls = as<CharacterVector>(curEt.attr("class"));
+  List e = cls.attr(".RxODE.lst");
+  int len = as<int>(e["nobs"]) +as<int>(e["ndose"]);
+  IntegerVector IDs = e["IDs"];
+  List seqLst(times*2);
+  for (int i = times; i--;){
+    seqLst[i*2] = curEt;
+    seqLst[i*2+1] = wait;
+  }
+  return etSeq_(seqLst, handleSamples, len*times, (IDs.size() != 1), e["units"],
+		e["show"], rxIs(curEt, "integer"));
+}

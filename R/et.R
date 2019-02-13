@@ -314,22 +314,59 @@ eventTable <- function(amount.units = NA, time.units = "hours"){
        time.units = ifelse(is.na(time.units), "",time.units))
 }
 
-##' .. content for \description{} (no empty lines) ..
+##' Sequence of event tables
 ##'
 ##' @param ...
-##' @param handleSamples is a boolean indicating if the sampling
-##'     should be cleared when combining the event tables.
-##' @return
-##' @author
+##' @param handleSamples can be "clear", "use"
+##' @details
+##'
+##' @return A new event table
+##' @author Matthew L Fidler
+##' @export
 etSeq <- function(...,handleSamples=c("clear", "use")){
     ## etSeq_(List ets, bool clearSampling=clearSampling);
-    .sampleIx = c(clear=0L,use=1L);
-    .Call(`_RxODE_etSeq_`, list(...), setNames(.sampleIx[match.arg(handleSamples)],NULL));
+    .sampleIx <- c(clear=0L,use=1L);
+    .Call(`_RxODE_etSeq_`, list(...), setNames(.sampleIx[match.arg(handleSamples)],NULL),
+          0L, TRUE, character(0),logical(0),FALSE);
 }
 
 ##'@export
 seq.rxEt <- function(...){
     do.call(etSeq,list(...));
+}
+
+##' Repeat an RxODE event table
+##'
+##'
+##' @param times Number of times to repeat the event table
+##' @param length.out Invalid with RxODE event tables, will throw an
+##'     error if used.
+##' @param each Invalid with RxODE event tables, will throw an error
+##'     if used.
+##' @param n The number of times to repeat the event table.  Overrides
+##'     \code{times}.
+##' @param wait Waiting time between each repeated event table.  By
+##'     default there is no waiting, or wait=0
+##' @param id IDs to expand/remove in the event table before repeating.
+##' @inheritParams etSeq
+##' @param ...
+##' @return An event table of repeated events
+##' @author Matthew Fidler
+##' @export
+etRep <- function(x, times=1, length.out=NA, each=NA, n=NULL, wait=0, handleSamples=c("clear", "use"), id=integer(0)){
+    if (!is.null(n)){
+        times <- n;
+    }
+    .sampleIx <- c(clear=0L,use=1L);
+    if (!is.na(length.out)) stop("'length.out' makes no sense with event tables");
+    if (!is.na(each)) stop("'each' makes no sense with event tables");
+    .Call(`_RxODE_etRep_`, x, as.integer(times),
+          as.double(wait), as.integer(id), setNames(.sampleIx[match.arg(handleSamples)],NULL))
+}
+
+##'@export
+rep.rxEt <- function(x, ...){
+    do.call(etRep,list(x=x,...));
 }
 
 
