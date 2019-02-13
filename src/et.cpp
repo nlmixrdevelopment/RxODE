@@ -1498,7 +1498,7 @@ RObject et_(List input, List et__){
       if (idIx != -1){
       	id    = as<IntegerVector>(input[idIx]);
       } else {
-      	id = (int)(e["maxId"]);
+      	id = as<IntegerVector>(e["IDs"]);
       }
       CharacterVector cmtS;
       IntegerVector cmtI;
@@ -1843,7 +1843,6 @@ List etSeq_(List ets, int handleSamples=0){
   CharacterVector units;
   LogicalVector show;
   bool gotUnits = false;
-  int maxId = 0;
   List e;
   
   CharacterVector cls;
@@ -1859,16 +1858,12 @@ List etSeq_(List ets, int handleSamples=0){
 	if (rxIs(et["cmt"], "integer")){
 	  isCmtInt = true;
 	}
-	maxId = as<int>(e["maxId"]);
       } else {
 	if (isCmtInt && !rxIs(et["cmt"], "integer")){
 	  stop("Cannot event tables with integer and character 'cmt'.");
 	}
 	if (!isCmtInt && rxIs(et["cmt"], "integer")){
 	  stop("Cannot event tables with integer and character 'cmt'.");
-	}
-	if (maxId != as<int>(e["maxId"])){
-	  stop("Cannot mix event tables with different number of individuals");
 	}
 	LogicalVector newShow = e["show"];
 	for (j = show.size(); j--;){
@@ -2067,7 +2062,6 @@ List etSeq_(List ets, int handleSamples=0){
   }
   cls = lst.attr("class");
   e = cls.attr(".RxODE.lst");
-  e["maxId"] = maxId;
   e["ndose"] = ndose;
   e["nobs"] = nobs;
   e["show"]  = show;
