@@ -170,6 +170,9 @@ List evTrans(List inData, const RObject &obj){
     if (dvCol == -1) cdv = NA_REAL;
     else cdv = inDv[i];
     ctime=inTime[i];
+    if (std::isinf(ctime)){
+      stop("Infinite times are not allowed");
+    }
     if (iiCol == -1) cii = 0;
     else cii = inIi[i];
     if (std::find(allId.begin(), allId.end(), cid) == allId.end()){
@@ -252,15 +255,27 @@ List evTrans(List inData, const RObject &obj){
 	  warning("ss is ignored with observations.");
 	  ss=1;
 	}
-	id.push_back(cid);
-	evid.push_back(0);
-	time.push_back(ctime);
-	amt.push_back(NA_REAL);
-	ii.push_back(0.0);
-	idx.push_back(i);
-	dv.push_back(cdv);
-	idxO.push_back(curIdx);curIdx++;
-	cevid = -1;
+	if (ISNA(ctime)){
+	  id.push_back(cid);
+	  evid.push_back(2);
+	  time.push_back(ctime);
+	  amt.push_back(NA_REAL);
+	  ii.push_back(0.0);
+	  idx.push_back(i);
+	  dv.push_back(cdv);
+	  idxO.push_back(curIdx);curIdx++;
+	  cevid = -1;
+	} else {
+	  id.push_back(cid);
+	  evid.push_back(0);
+	  time.push_back(ctime);
+	  amt.push_back(NA_REAL);
+	  ii.push_back(0.0);
+	  idx.push_back(i);
+	  dv.push_back(cdv);
+	  idxO.push_back(curIdx);curIdx++;
+	  cevid = -1;
+	}
 	break;
       case 1:
 	cevid = cmt100*100000+rateI*10000+cmt99*100+ss;
