@@ -335,6 +335,11 @@ seq.rxEt <- function(...){
     do.call(etSeq,list(...));
 }
 
+##'@export
+c.rxEt <- function(...){
+    do.call(etSeq,list(...));
+}
+
 ##' Repeat an RxODE event table
 ##'
 ##'
