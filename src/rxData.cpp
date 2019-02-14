@@ -24,6 +24,8 @@
 using namespace Rcpp;
 using namespace arma;
 
+RObject et_(List input, List et__);
+
 int rxcEvid = -1;
 int rxcTime = -1;
 int rxcAmt  = -1;
@@ -2450,6 +2452,24 @@ SEXP rxSolveC(const RObject &obj,
     }
     if (rxIs(par1, "NULL")){
       par1=rxInits(obj);
+    }
+    if (rxIs(ev1, "rxEt")){
+      CharacterVector cls = ev1.attr("class");
+      List etE = cls.attr(".RxODE.lst");
+      int nobs = etE["nobs"];
+      if (nobs == 0){
+	warning("Adding observations, for more control use et/add.sampling.");
+	Function fTrans = getRxFn("rxEvTrans");
+	List ev1a = as<List>(fTrans(_["data"]=ev1, _["model"]=obj, _["cov"]=covs));
+	NumericVector newObs(200);
+	// ((to - from)/(length.out - 1))
+	List et = as<List>(ev1);
+	double by = (max(as<NumericVector>(ev1a["time"]))+24)/199.0;
+	for (int i = 200; i--;){
+	  newObs[i]=by*i;
+	}
+	ev1 = et_(List::create(newObs), as<List>(ev1));
+      }
     }
     if (rxIs(ev1, "data.frame") && !rxIs(ev1, "rxEvTrans")){
       Function fTrans = getRxFn("rxEvTrans");

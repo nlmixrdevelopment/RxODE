@@ -2314,7 +2314,7 @@ List etSeq_(List ets, int handleSamples=0, int waitType = 0, int reserveLen=0, b
     tmpN[i] = ii[idx[i]];
 
     // 8 is addl
-    tmpI = as<IntegerVector>(lst[8]); // rate
+    tmpI = as<IntegerVector>(lst[8]);
     tmpI[i] = addl[idx[i]];
     
     tmpI = as<IntegerVector>(lst[9]); // evid
@@ -2327,7 +2327,7 @@ List etSeq_(List ets, int handleSamples=0, int waitType = 0, int reserveLen=0, b
   cls = lst.attr("class");
   e = cls.attr(".RxODE.lst");
   e["ndose"] = ndose;
-  e["nobs"] = nobs;
+  e["nobs"]  = nobs;
   e["show"]  = show;
   cls.attr(".RxODE.lst") = e;
   lst.attr("class") = cls;
