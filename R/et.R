@@ -323,10 +323,12 @@ eventTable <- function(amount.units = NA, time.units = "hours"){
 ##' @return A new event table
 ##' @author Matthew L Fidler
 ##' @export
-etSeq <- function(...,handleSamples=c("clear", "use")){
+etSeq <- function(...,handleSamples=c("clear", "use"),handleWait=c("smartAddIi", "alwaysAddII")){
     ## etSeq_(List ets, bool clearSampling=clearSampling);
     .sampleIx <- c(clear=0L,use=1L);
+    .waitIx <- c(smartAddIi=0L, alwaysAddII=1L)
     .Call(`_RxODE_etSeq_`, list(...), setNames(.sampleIx[match.arg(handleSamples)],NULL),
+          setNames(.waitIx[match.arg(handleWait)],NULL),
           0L, TRUE, character(0),logical(0),FALSE);
 }
 
@@ -366,7 +368,8 @@ etRep <- function(x, times=1, length.out=NA, each=NA, n=NULL, wait=0, handleSamp
     if (!is.na(length.out)) stop("'length.out' makes no sense with event tables");
     if (!is.na(each)) stop("'each' makes no sense with event tables");
     .Call(`_RxODE_etRep_`, x, as.integer(times),
-          as.double(wait), as.integer(id), setNames(.sampleIx[match.arg(handleSamples)],NULL))
+          as.double(wait), as.integer(id), setNames(.sampleIx[match.arg(handleSamples)],NULL),
+          setNames(.waitIx[match.arg(handleWait)],NULL))
 }
 
 ##'@export

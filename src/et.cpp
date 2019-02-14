@@ -2045,13 +2045,14 @@ RObject et_(List input, List et__){
 
 // Sequence event tables
 //[[Rcpp::export]]
-List etSeq_(List ets, int handleSamples=0, int reserveLen=0, bool needSort=true,
+List etSeq_(List ets, int handleSamples=0, int waitType = 0, int reserveLen=0, bool needSort=true,
 	    CharacterVector newUnits = CharacterVector::create(),
 	    LogicalVector newShow = LogicalVector::create(),
 	    bool isCmtIntIn = false){
   double timeDelta = 0;
   double maxTime = 0;
   double lastDose = 0;
+  double lastIi = 0;
   std::vector<int> id;
   std::vector<double> time;
   std::vector<double> low;
@@ -2175,9 +2176,11 @@ List etSeq_(List ets, int handleSamples=0, int reserveLen=0, bool needSort=true,
 	addl.push_back(curAddl[j]);
 	if (!ISNA(curHigh[j])){
 	  if (curAddl[j] > 0){
+	    lastIi = curIi[j];
 	    lastDose = curHigh[j] + curAddl[j]*curIi[j];
 	    maxTime = curHigh[j] + (curAddl[j]+1)*curIi[j];
 	  } else {
+	    lastIi = (curHigh[j] - lastDose);
 	    maxTime = curHigh[j] + (curHigh[j] - lastDose); //Use last interval
 	    lastDose = curHigh[j];
 	  }
@@ -2186,10 +2189,12 @@ List etSeq_(List ets, int handleSamples=0, int reserveLen=0, bool needSort=true,
 	  low.push_back(curLow[j]+timeDelta);
 	} else {
 	  if (curAddl[j] > 0){
+	    lastIi = curIi[j];
 	    lastDose = curTime[j] + curAddl[j] * curIi[j];
 	    double tmp = curTime[j] + (curAddl[j]+1) * curIi[j];
 	    if (tmp > maxTime) maxTime = tmp;
 	  } else {
+	    lastIi = (curTime[j] - lastDose);
 	    lastDose = curTime[j];
 	    maxTime = curTime[j] + (curTime[j] - lastDose); //Use last interval
 	  }
@@ -2206,6 +2211,9 @@ List etSeq_(List ets, int handleSamples=0, int reserveLen=0, bool needSort=true,
       }
     } else if (rxIs(ets[i], "numeric") || rxIs(ets[i], "integer")){
       maxTime = as<double>(ets[i]);
+      if (waitType == 0 && maxTime > lastIi){
+	maxTime -= lastIi;
+      }
     }
     timeDelta += maxTime;
   }
@@ -2329,7 +2337,7 @@ List etSeq_(List ets, int handleSamples=0, int reserveLen=0, bool needSort=true,
 
 // Sequence event tables
 //[[Rcpp::export]]
-List etRep_(RObject curEt, int times, double wait, IntegerVector ids, int handleSamples){
+List etRep_(RObject curEt, int times, double wait, IntegerVector ids, int handleSamples, int waitType){
   CharacterVector cls = as<CharacterVector>(curEt.attr("class"));
   List e = cls.attr(".RxODE.lst");
   int len = as<int>(e["nobs"]) +as<int>(e["ndose"]);
@@ -2339,6 +2347,6 @@ List etRep_(RObject curEt, int times, double wait, IntegerVector ids, int handle
     seqLst[i*2] = curEt;
     seqLst[i*2+1] = wait;
   }
-  return etSeq_(seqLst, handleSamples, len*times, (IDs.size() != 1), e["units"],
+  return etSeq_(seqLst, handleSamples, waitType, len*times, (IDs.size() != 1), e["units"],
 		e["show"], rxIs(curEt, "integer"));
 }

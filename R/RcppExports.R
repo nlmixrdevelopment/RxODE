@@ -13,12 +13,12 @@ et_ <- function(input, et__) {
     .Call(`_RxODE_et_`, input, et__)
 }
 
-etSeq_ <- function(ets, handleSamples = 0L, reserveLen = 0L, needSort = TRUE, newUnits = as.character( c()), newShow = as.logical( c()), isCmtIntIn = FALSE) {
-    .Call(`_RxODE_etSeq_`, ets, handleSamples, reserveLen, needSort, newUnits, newShow, isCmtIntIn)
+etSeq_ <- function(ets, handleSamples = 0L, waitType = 0L, reserveLen = 0L, needSort = TRUE, newUnits = as.character( c()), newShow = as.logical( c()), isCmtIntIn = FALSE) {
+    .Call(`_RxODE_etSeq_`, ets, handleSamples, waitType, reserveLen, needSort, newUnits, newShow, isCmtIntIn)
 }
 
-etRep_ <- function(curEt, times, wait, ids, handleSamples) {
-    .Call(`_RxODE_etRep_`, curEt, times, wait, ids, handleSamples)
+etRep_ <- function(curEt, times, wait, ids, handleSamples, waitType) {
+    .Call(`_RxODE_etRep_`, curEt, times, wait, ids, handleSamples, waitType)
 }
 
 evTrans <- function(inData, obj) {
