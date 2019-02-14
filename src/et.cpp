@@ -96,13 +96,13 @@ List etEmpty(CharacterVector units){
 
 
   e["clear.dosing"] = eval2(_["expr"] = parse2(_["text"] = "function() invisible(.Call(`_RxODE_et_`, list(clearDosing=TRUE),list('last')))"),
-			      _["envir"]  = e);
+			    _["envir"]  = e);
 
   e["clear_dosing"] = eval2(_["expr"] = parse2(_["text"] = "function() invisible(.Call(`_RxODE_et_`, list(clearDosing=TRUE),list('last')))"),
-			      _["envir"]  = e);
+			    _["envir"]  = e);
 
   e["clearDosing"] = eval2(_["expr"] = parse2(_["text"] = "function() invisible(.Call(`_RxODE_et_`, list(clearDosing=TRUE),list('last')))"),
-			     _["envir"]  = e);
+			   _["envir"]  = e);
 
   std::string importET = "function(data) invisible(.Call(`_RxODE_et_`, list(data=data),list('import')))";
 
@@ -123,7 +123,7 @@ List etEmpty(CharacterVector units){
 			   _["envir"]  = e);
 
   e["get.nobs"] = eval2(_["expr"] = parse2(_["text"] = "function() .Call(`_RxODE_et_`, list(get.nobs=TRUE),list('last'))"),
-			   _["envir"]  = e);
+			_["envir"]  = e);
 
 
   e["get.dosing"] = eval2(_["expr"] = parse2(_["text"] = "function() .Call(`_RxODE_et_`, list(get.dosing=TRUE),list('last'))"),
@@ -139,9 +139,9 @@ List etEmpty(CharacterVector units){
   e["nobs"] = 0;
   e["ndose"] = 0;
   e["show"] = LogicalVector::create(_["id"] = false, _["low"] = false,_["time"] = true, _["high"] = false,
-				     _["cmt"] =false, _["amt"]=false, _["rate"] = false,
-				     _["ii"] = false, _["addl"] = false,
-				     _["evid"] = true, _["ss"] = false);
+				    _["cmt"] =false, _["amt"]=false, _["rate"] = false,
+				    _["ii"] = false, _["addl"] = false,
+				    _["evid"] = true, _["ss"] = false);
   e["IDs"] = IntegerVector::create(1);
 
   e["canResize"] = true;
@@ -990,31 +990,31 @@ List etAddDose(NumericVector curTime, RObject cmt,  double amt, double rate, dou
 	}
       }
     } else if (curTime.size() == 2) {
-	if (curTime[0] < curTime[1]){
-	  if (doSampling){
-	    stop("do.sampling is not supported with dose windows");
-	  }
+      if (curTime[0] < curTime[1]){
+	if (doSampling){
+	  stop("do.sampling is not supported with dose windows");
+	}
+	id.push_back(j+1);
+	evid.push_back(curEvid);
+	low.push_back(curTime[0]);
+	high.push_back(curTime[1]);
+	c = Rf_runif(curTime[0], curTime[1]);
+	time.push_back(c);
+	ndose++;
+	for (i = addl; i--;){
 	  id.push_back(j+1);
 	  evid.push_back(curEvid);
-	  low.push_back(curTime[0]);
-	  high.push_back(curTime[1]);
-	  c = Rf_runif(curTime[0], curTime[1]);
+	  a = curTime[0]+ (i+1)*ii;
+	  b = curTime[1]+ (i+1)*ii;
+	  low.push_back(a);
+	  high.push_back(b);
+	  c = Rf_runif(a, b);
 	  time.push_back(c);
 	  ndose++;
-	  for (i = addl; i--;){
-	    id.push_back(j+1);
-	    evid.push_back(curEvid);
-	    a = curTime[0]+ (i+1)*ii;
-	    b = curTime[1]+ (i+1)*ii;
-	    low.push_back(a);
-	    high.push_back(b);
-	    c = Rf_runif(a, b);
-	    time.push_back(c);
-	    ndose++;
-	  }
-	} else {
-	  stop("For dosing window you need to specify window in order, e.g. et(time=c(0,2),amt=3).");
 	}
+      } else {
+	stop("For dosing window you need to specify window in order, e.g. et(time=c(0,2),amt=3).");
+      }
     } else {
       stop("Time windows must only be 2 elements for dosing.");
     }
@@ -1056,10 +1056,10 @@ List etAddDose(NumericVector curTime, RObject cmt,  double amt, double rate, dou
   // nme[4] = "cmt";
   bool isCmtInt=false;
   if (rxIs(cmt,"integer")){
-      lst[4] = IntegerVector(id.size());
-      isCmtInt=true;
+    lst[4] = IntegerVector(id.size());
+    isCmtInt=true;
   } else {
-      lst[4] = CharacterVector(id.size());
+    lst[4] = CharacterVector(id.size());
   }
       
   // nme[5] = "amt";
@@ -1289,6 +1289,213 @@ RObject etSetUnit(List curEt, CharacterVector units){
   return as<RObject>(lst);
 }
 
+List etResizeId(List curEt, IntegerVector IDs){
+  // Calculate size
+  CharacterVector cls = clone(as<CharacterVector>(curEt.attr("class")));
+  List eOld = cls.attr(".RxODE.lst");
+  List e = clone(eOld);
+  std::vector<int> oldIDs = as<std::vector<int>>(e["IDs"]);
+  // Check IDs to remove
+  int i;
+  std::vector<int> rmIds;
+  std::vector<int> newIds;
+  for (i = IDs.size(); i--;){
+    if (std::find(oldIDs.begin(), oldIDs.end(), IDs[i]) == oldIDs.end()){
+      if (IDs[i] < 0){
+	rmIds.push_back(-IDs[i]);
+      } else {
+	newIds.push_back(IDs[i]);
+      }
+    }
+  }
+  if (rmIds.size() == 0 && newIds.size() == 0){
+    return curEt;
+  }
+  if (rmIds.size() > 0){
+    List newEt(curEt.size());
+    // Remove ids
+    std::vector<int> finalIds;
+    for (i = oldIDs.size(); i--;){
+      if (std::find(rmIds.begin(), rmIds.end(), oldIDs[i]) == rmIds.end()){
+	finalIds.push_back(oldIDs[i]);
+      }
+    }
+    int rmId = NA_INTEGER, newId = NA_INTEGER;
+    if (finalIds.size() == 0 && newIds.size() == 0){
+      return etEmpty(e["units"]);
+    } else if (finalIds.size() == 0 && newIds.size() > 0){
+      if (as<bool>(e["canResize"])){
+	newId = newIds.back();
+	newIds.pop_back();
+	finalIds.push_back(newId);
+	rmId = rmIds.back();
+	rmIds.pop_back();
+      } else {
+	stop("Cannot add more IDs to this event table.");
+      }
+    }
+    int nobs = 0;
+    int ndose = 0;
+    std::vector<int> id = as<std::vector<int>>(curEt["id"]);
+    std::vector<int> evid = as<std::vector<int>>(curEt["evid"]);
+    std::vector<bool> isIn;
+    for (i = 0; i < (int)id.size(); i++){
+      if (std::find(rmIds.begin(), rmIds.end(), id[i]) == rmIds.end()){
+	if (evid[i] == 0){
+	  nobs++;
+	} else {
+	  ndose++;
+	}
+	isIn.push_back(true);
+      } else {
+	isIn.push_back(false);
+      }
+    }
+    int j, newSize = nobs+ndose, k=0;
+    IntegerVector tmpI, tmpI2;
+    CharacterVector tmpC, tmpC2;
+    NumericVector tmpN, tmpN2;
+    for (j = newEt.size(); j--;){
+      k=newSize-1;
+      for (i = (int)id.size();i--;){
+	if (rxIs(curEt[j], "numeric")) {
+	  if (i == (int)id.size()-1) newEt[j] = NumericVector(newSize);
+	  if (isIn[i]){
+	    tmpN=newEt[j];
+	    tmpN2   = curEt[j];
+	    tmpN[k] = tmpN2[i];
+	  }
+	} else if (rxIs(curEt[j], "integer")) {
+	  if (i == (int)id.size()-1) newEt[j] = IntegerVector(newSize);
+	  if (isIn[i]){
+	    tmpI  = newEt[j];
+	    tmpI2 = curEt[j];
+	    // Replace ID if needed
+	    if (j == 0 && tmpI2[i] == rmId){
+	      tmpI[k] = newId;
+	    } else {
+	      tmpI[k] = tmpI2[i];
+	    }
+	  }
+	} else if (rxIs(curEt[j], "character")){
+	  if (i == (int)id.size()-1) newEt[j] = CharacterVector(newSize);
+	  if (isIn[i]){
+	    tmpC=newEt[j];
+	    tmpC2 = curEt[j];
+	    tmpC[k] = tmpC2[i];
+	  }
+	}
+	if (isIn[i]){
+	  k--;
+	}
+      }
+    }
+    CharacterVector cls = clone(as<CharacterVector>(curEt.attr("class")));
+    List e = as<List>(cls.attr(".RxODE.lst"));
+    e["nobs"] = nobs;
+    e["ndose"] = ndose;
+    e["IDs"] = wrap(finalIds);
+    cls.attr(".RxODE.lst") = e;
+    newEt.attr("class") = cls;
+    newEt.attr("names") = curEt.attr("names");
+    newEt.attr("row.names") = IntegerVector::create(NA_INTEGER,-(nobs+ndose));
+    if (newIds.size() > 0){
+      // Need to add ids, call recursively.
+      return etResizeId(newEt, wrap(newIds));
+    } else {
+      // Note that if newId is NA and no more are added, then it is a
+      // simple ID replacement.  Otherwise the event table is sorted;
+      // Overall there is no need to sort here.
+      return newEt;
+    }
+  } else {
+    // Add ids?
+    if (as<bool>(eOld["canResize"])){
+      // Enlarge data-set
+      int oldMaxId = oldIDs.size();
+      int maxId = oldMaxId + newIds.size();
+      double c = (double)(maxId)/(double)(oldMaxId);
+      int oldSize = as<int>(e["nobs"]) + as<int>(e["ndose"]);
+      int newSize = (int)(oldSize*c);
+      int idSize = (int)((double)(oldSize)/(double)(oldMaxId));
+      // Add new ids.
+      for (i = newIds.size(); i--;){
+  	oldIDs.push_back(newIds[i]);
+      }
+      std::sort(oldIDs.begin(),oldIDs.end()); // Less expensive, then whole table doesn't need to be sorted.
+      int j;
+      IntegerVector tmpI, tmpI2;
+      NumericVector tmpN, tmpN2;
+      CharacterVector tmpC, tmpC2;
+      List newEt(curEt.size());
+      for (j = newEt.size(); j--;){
+  	if (rxIs(curEt[j], "integer")) {
+  	  tmpI = IntegerVector(newSize);
+  	  tmpI2 = as<IntegerVector>(curEt[j]);
+  	  std::copy(tmpI2.begin(), tmpI2.end(), tmpI.begin());
+  	  if (j == 0){
+  	    for (i = oldMaxId+1; i <= maxId; i++){
+  	      std::fill_n(tmpI.begin() + oldSize + (i-oldMaxId-1)*idSize, idSize, oldIDs[i-1]);
+  	    }
+  	  } else {
+  	    for (i = newSize - oldSize; i--;){
+  	      tmpI[oldSize+i] = tmpI2[i % oldSize];
+  	    }
+  	  }
+  	  newEt[j] = tmpI;
+  	} else if (rxIs(curEt[j], "character")){
+  	  // Char
+  	  tmpC = CharacterVector(newSize);
+  	  tmpC2 = as<CharacterVector>(curEt[j]);
+  	  std::copy(tmpC2.begin(), tmpC2.end(), tmpC.begin());
+  	  for (i = newSize - oldSize; i--;){
+  	    tmpC[oldSize+i] = tmpC2[i % oldSize];
+  	  }
+  	  newEt[j] = tmpC;
+  	} else {
+  	  tmpN = NumericVector(newSize);
+  	  tmpN2 = as<NumericVector>(curEt[j]);
+  	  std::copy(tmpN2.begin(), tmpN2.end(), tmpN.begin());
+  	  for (i = newSize - oldSize; i--;){
+  	    tmpN[oldSize+i] = tmpN2[i % oldSize];
+  	  }
+  	  newEt[j] = tmpN;
+  	}
+      }
+      newEt.attr("names")     = curEt.attr("names");
+      bool recalcTime = false;
+      tmpN = as<NumericVector>(newEt["time"]);
+      NumericVector tmpN1 = as<NumericVector>(newEt["low"]);
+      tmpN2 = as<NumericVector>(newEt["high"]);
+      // Update new observations with recalculated windows
+      for (i = newSize - oldSize; i--;){
+      	if (!ISNA(tmpN1[oldSize+i]) && !ISNA(tmpN2[oldSize+i])){
+      	  tmpN[oldSize+i] = Rf_runif(tmpN1[oldSize+i], tmpN2[oldSize+i]);
+      	  recalcTime=true;
+      	}
+      }
+      e["nobs"]   = (int)(as<double>(e["nobs"])*c);
+      e["ndose"]  = (int)(as<double>(e["ndose"])*c);
+      LogicalVector show = e["show"];
+      show["id"] = true;
+      e["show"] = show;
+      e["IDs"] = wrap(oldIDs);
+      e.attr("class")         = "rxHidden";
+      cls.attr(".RxODE.lst")  = e;
+      newEt.attr("class")     = cls;
+      int len = as<int>(e["nobs"]) +as<int>(e["ndose"]);
+      newEt.attr("row.names") = IntegerVector::create(NA_INTEGER, -len);
+      if (recalcTime){
+      	// Will have to sort with new times.
+      	newEt = etSort(newEt);
+      }
+      return newEt;
+    } else {
+      stop("Cannot add more IDs to this event table.");
+    }
+  }
+}
+
 //[[Rcpp::export]]
 RObject et_(List input, List et__){
   // Create or modify new event table
@@ -1510,14 +1717,16 @@ RObject et_(List input, List et__){
       }
     } else {
       // We are updating the event table
-      CharacterVector cls = clone(as<CharacterVector>(curEt.attr("class")));
-      List e = cls.attr(".RxODE.lst");
       IntegerVector id; // = e["IDs"];
       if (idIx != -1){
       	id    = as<IntegerVector>(input[idIx]);
+	curEt = as<RObject>(etResizeId(as<List>(curEt), id));
+	doRet=true;
       } else {
       	id = as<IntegerVector>(e["IDs"]);
       }
+      CharacterVector cls = clone(as<CharacterVector>(curEt.attr("class")));
+      List e = cls.attr(".RxODE.lst");      
       CharacterVector cmtS;
       IntegerVector cmtI;
       RObject cmt;
@@ -2117,118 +2326,6 @@ List etSeq_(List ets, int handleSamples=0, int reserveLen=0, bool needSort=true,
   lst.attr("row.names") = IntegerVector::create(NA_INTEGER, -(nobs+ndose));
   return lst;
 }
-
-
-// List etResizeId(List curEt, IntegerVector IDs){
-//   // Calculate size
-//   CharacterVector cls = clone(as<CharacterVector>(curEt.attr("class")));
-//   List eOld = cls.attr(".RxODE.lst");
-//   List e = clone(eOld);
-//   int oldMaxId = as<int>(e["maxId"]);
-//   if (maxId == oldMaxId) return curEt;
-//   double c = (double)(maxId)/(double)(oldMaxId);
-//   int oldSize = as<int>(e["nobs"]) + as<int>(e["ndose"]);
-//   int newSize = (int)(oldSize*c);
-//   List newEt(curEt.size());
-//   IntegerVector tmpI, tmpI2;
-//   CharacterVector tmpC, tmpC2;
-//   NumericVector tmpN, tmpN2;
-//   int i, j;
-//   bool recalcTime=false;
-//   if (maxId < oldMaxId){
-//     // Reducing the number of IDs
-//     for (j = newEt.size(); j--;){
-//       if (rxIs(curEt[j], "integer")) {
-// 	tmpI = IntegerVector(newSize);
-// 	tmpI2 = as<IntegerVector>(curEt[j]);
-// 	std::copy(tmpI2.begin(), tmpI2.begin()+newSize, tmpI.begin());
-// 	newEt[j] = tmpI;
-//       } else if (rxIs(curEt[j], "character")){
-// 	// Char
-// 	tmpC = CharacterVector(newSize);
-// 	tmpC2 = as<CharacterVector>(curEt[j]);
-// 	std::copy(tmpC2.begin(), tmpC2.begin()+newSize, tmpC.begin());
-// 	newEt[j] = tmpC;
-//       } else {
-// 	tmpN = NumericVector(newSize);
-// 	tmpN2 = as<NumericVector>(curEt[j]);
-// 	std::copy(tmpN2.begin(), tmpN2.begin()+newSize, tmpN.begin());
-// 	newEt[j] = tmpN;
-//       }
-//     }
-//   } else {
-//     // Enlarge data-set
-//     int idSize = (int)((double)(oldSize)/(double)(oldMaxId));
-//     for (j = newEt.size(); j--;){
-//       if (rxIs(curEt[j], "integer")) {
-// 	tmpI = IntegerVector(newSize);
-// 	tmpI2 = as<IntegerVector>(curEt[j]);
-// 	std::copy(tmpI2.begin(), tmpI2.end(), tmpI.begin());
-// 	if (j == 0){
-// 	  for (i = oldMaxId+1; i <= maxId; i++){
-// 	    std::fill_n(tmpI.begin() + oldSize + (i-oldMaxId-1)*idSize, idSize, i);
-// 	  }
-// 	} else {
-// 	  for (i = newSize - oldSize; i--;){
-// 	    tmpI[oldSize+i] = tmpI2[i % oldSize];
-// 	  }
-// 	}
-// 	newEt[j] = tmpI;
-//       } else if (rxIs(curEt[j], "character")){
-// 	// Char
-// 	tmpC = CharacterVector(newSize);
-// 	tmpC2 = as<CharacterVector>(curEt[j]);
-// 	std::copy(tmpC2.begin(), tmpC2.end(), tmpC.begin());
-// 	for (i = newSize - oldSize; i--;){
-// 	  tmpC[oldSize+i] = tmpC2[i % oldSize];
-// 	}
-// 	newEt[j] = tmpC;
-//       } else {
-// 	tmpN = NumericVector(newSize);
-// 	tmpN2 = as<NumericVector>(curEt[j]);
-// 	std::copy(tmpN2.begin(), tmpN2.end(), tmpN.begin());
-// 	for (i = newSize - oldSize; i--;){
-// 	  tmpN[oldSize+i] = tmpN2[i % oldSize];
-// 	}
-// 	newEt[j] = tmpN;
-//       }
-//     }
-//     recalcTime=true;
-//   }
-//   newEt.attr("names")     = curEt.attr("names");
-//   if (recalcTime){
-//     tmpN = as<NumericVector>(newEt["time"]);
-//     NumericVector tmpN1 = as<NumericVector>(newEt["low"]);
-//     tmpN2 = as<NumericVector>(newEt["high"]);
-//     // Update new observations with recalculated windows
-//     recalcTime=false;
-//     for (i = newSize - oldSize; i--;){
-//       if (!ISNA(tmpN1[oldSize+i]) && !ISNA(tmpN2[oldSize+i])){
-// 	tmpN[oldSize+i] = Rf_runif(tmpN1[oldSize+i], tmpN2[oldSize+i]);
-// 	recalcTime=true;
-//       }
-//     }
-//     curEt = etSort(curEt);
-//   }
-//   // Update new windows
-//   e["nobs"]   = (int)(as<double>(e["nobs"])*c);
-//   e["ndose"]  = (int)(as<double>(e["ndose"])*c);
-//   e["maxId"] = maxId;
-//   LogicalVector show = e["show"];
-//   if (maxId > 1){
-//     show["id"] = true;
-//   } else {
-//     show["id"] = false;
-//   }
-//   e["maxId"]             = maxId;    
-//   e.attr("class")         = "rxHidden";
-//   cls.attr(".RxODE.lst")  = e;
-//   newEt.attr("class")     = cls;
-//   int len = as<int>(e["nobs"]) +as<int>(e["ndose"]);
-//   newEt.attr("row.names") = IntegerVector::create(NA_INTEGER, -len);
-//   return newEt;
-// }
-
 
 // Sequence event tables
 //[[Rcpp::export]]
