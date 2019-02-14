@@ -2210,7 +2210,11 @@ List etSeq_(List ets, int handleSamples=0, int waitType = 0, int reserveLen=0, b
 	idx.push_back(k++);
       }
     } else if (rxIs(ets[i], "numeric") || rxIs(ets[i], "integer")){
-      maxTime = as<double>(ets[i]);
+      if (rxIs(ets[i], "units")){
+	maxTime = as<double>(setUnits(ets[i], as<std::string>(units["time"])));
+      } else {
+	maxTime = as<double>(ets[i]);
+      }
       if (waitType == 0 && maxTime > lastIi){
 	maxTime -= lastIi;
       }

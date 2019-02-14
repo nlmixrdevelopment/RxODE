@@ -360,11 +360,14 @@ c.rxEt <- function(...){
 ##' @return An event table of repeated events
 ##' @author Matthew Fidler
 ##' @export
-etRep <- function(x, times=1, length.out=NA, each=NA, n=NULL, wait=0, handleSamples=c("clear", "use"), id=integer(0)){
+etRep <- function(x, times=1, length.out=NA, each=NA, n=NULL, wait=0, id=integer(0),
+                  handleSamples=c("clear", "use"),
+                  handleWait=c("smartAddIi", "alwaysAddII")){
     if (!is.null(n)){
         times <- n;
     }
     .sampleIx <- c(clear=0L,use=1L);
+    .waitIx <- c(smartAddIi=0L, alwaysAddII=1L)
     if (!is.na(length.out)) stop("'length.out' makes no sense with event tables");
     if (!is.na(each)) stop("'each' makes no sense with event tables");
     .Call(`_RxODE_etRep_`, x, as.integer(times),
