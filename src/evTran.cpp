@@ -489,6 +489,7 @@ List evTrans(List inData, const RObject &obj){
   int lastId = id[idxO[idxO.size()-1]]+1;
   bool addId = false, added=false;
   int idx1=nid, nTv=0;
+  std::vector<int> covParPosTV;
   for (i =idxO.size(); i--;){
     ivTmp = as<IntegerVector>(lst[0]);
     ivTmp[i] = id[idxO[i]];
@@ -536,6 +537,9 @@ List evTrans(List inData, const RObject &obj){
 	    sub0[6+j] = true;
 	    sub1[1+j] = false;
 	    fPars[idx1*pars.size()+covParPos[j]] = NA_REAL;
+	    if (std::find(covParPosTV.begin(), covParPosTV.end(), covParPos[j]) == covParPosTV.end()){
+	      covParPosTV.push_back(covParPos[j]);
+	    }
 	    nTv++;
 	  }
 	}
@@ -588,7 +592,15 @@ List evTrans(List inData, const RObject &obj){
   e["nobs"]  = nobs;
   e["nid"]   = nid;
   e["cov1"] = lst1F;
-  e["covParPos"]= wrap(covParPos);
+  e["covParPos"]  = wrap(covParPos);
+  e["covParPosTV"] = wrap(covParPosTV); // Time-varying pos
+  std::vector<int> covParPos0;
+  for (j = covParPos.size();j--;){
+    if (std::find(covParPosTV.begin(), covParPosTV.end(), covParPos[j]) == covParPosTV.end()){
+      covParPos0.push_back(covParPos[j]);
+    }
+  }
+  e["covParPos0"] = wrap(covParPos0);
   fPars.attr("dim")= IntegerVector::create(pars.size(), nid);
   fPars.attr("dimnames") = List::create(pars, R_NilValue);
   e["pars"] = fPars;

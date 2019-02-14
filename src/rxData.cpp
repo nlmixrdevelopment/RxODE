@@ -1282,7 +1282,7 @@ void gparsCovSetup(int npars, int nPopPar, RObject ev1,rx_solve* rx){
     for (int j = rx->nsim;j--;){
       std::copy(iniPars.begin(), iniPars.end(), &_globals.gpars[0]+rx->nsub*npars*j);
     }
-    IntegerVector parPos = envCls["covParPos"];
+    IntegerVector parPos = envCls["covParPos0"];
     std::copy(parPos.begin(),parPos.end(), &_globals.gParPos2[0]);
     rx->nCov0 = parPos.size();
     rx->cov0 = _globals.gParPos2;
