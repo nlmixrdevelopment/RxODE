@@ -896,9 +896,14 @@ plot.rxSolve <- function(x,y,...){
         .cmts <- NULL
     }
     .dat <- rxStack(x,.cmts);
-    time <- value <- NULL
-    ggplot(.dat,ggplot2::aes(time,value))+
-        geom_line() +facet_wrap( ~ trt)
+    time <- value <- id <- NULL
+    if (any(names(.dat)=="id")){
+        ggplot(.dat,ggplot2::aes(time,value,color=factor(id)))+
+            geom_line(size=1.2) +facet_wrap( ~ trt)
+    } else {
+        ggplot(.dat,ggplot2::aes(time,value))+
+            geom_line(size=1.2) +facet_wrap(~ trt)
+    }
 }
 
 ## dim (gets you nrow and ncol), t, dimnames

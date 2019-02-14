@@ -2448,6 +2448,9 @@ SEXP rxSolveC(const RObject &obj,
       Rcout << "Parameters:\n";
       stop("Need some event information (observation/dosing times) to solve.\nYou can use either 'eventTable' or an RxODE compatible data.frame/matrix.");
     }
+    if (rxIs(par1, "NULL")){
+      par1=rxInits(obj);
+    }
     if (rxIs(ev1, "data.frame") && !rxIs(ev1, "rxEvTrans")){
       Function fTrans = getRxFn("rxEvTrans");
       ev1 = fTrans(_["data"]=ev1, _["model"]=obj, _["cov"]=covs);

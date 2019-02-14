@@ -15,13 +15,13 @@ static inline int _locateDoseIndex(const double obs_time,  rx_solving_options_in
   int i, j, ij;
   i = 0;
   j = ind->ndoses - 1;
-  if (obs_time <= ind->all_times[ind->idose[i]]){
-    while(i < ind->ndoses-2 && obs_time == ind->all_times[ind->idose[i+1]]){
-      i++;
+  if (obs_time < ind->all_times[ind->idose[i]]){
+    while(i != 0 && obs_time == ind->all_times[ind->idose[i]]){
+      i--;
     }
     return i;
   }
-  if (obs_time >= ind->all_times[ind->idose[j]]){
+  if (obs_time > ind->all_times[ind->idose[j]]){
     return j;
   }
   while(i < j - 1) { /* x[i] <= obs_time <= x[j] */
@@ -31,9 +31,12 @@ static inline int _locateDoseIndex(const double obs_time,  rx_solving_options_in
     else
       i = ij;
   }
-  while(i < ind->ndoses-2 && obs_time == ind->all_times[ind->idose[i+1]]){
-    i++;
+  while(i != 0 && obs_time == ind->all_times[ind->idose[i]]){
+    i--;
   }
+  /* while(i < ind->ndoses-2 && fabs(obs_time  - ind->all_times[ind->idose[i+1]])<= sqrt(DOUBLE_EPS)){ */
+  /*   i++; */
+  /* } */
   return i;
 }
 
@@ -158,13 +161,12 @@ double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt, int diff1,
     //
     // For this calcuation all values should be > 0.  If they are less
     // than 0 then it is approximately zero.
-    if (cur < 0) break;
-    tmp = ret+cur;
-    if (cur < RTOL*tmp+ATOL){ 
-      ret=tmp;
+    tmp = fabs(ret+cur);
+    if (fabs(cur) < RTOL*tmp+ATOL){ 
+      ret=ret+cur;
       break;
     }
-    ret = tmp;
+    ret = ret+cur;
   } //l
   return ret;
 }
