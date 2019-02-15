@@ -938,6 +938,7 @@ List etImportEventTable(List inData){
       
   // nme[4] = "cmt";
   if (cmtC){
+    show["cmt"] = true;
     lst[4] = oldCmtC;
   } else {
     lst[4] = wrap(cmt);

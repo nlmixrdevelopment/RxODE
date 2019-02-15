@@ -379,6 +379,21 @@ etRep <- function(x, times=1, length.out=NA, each=NA, n=NULL, wait=0, id=integer
 rep.rxEt <- function(x, ...){
     do.call(etRep,list(x=x,...));
 }
+##' Coerce object to data.frame
+##'
+##' @param x Object to coerce to et.
+##' @param ... Other parameters
+##'@export
+as.et <- function(x,...){
+    UseMethod("et");
+}
+##'@rdname as.et
+##'@export
+as.et.default <- function(x,...){
+    .e <- et();
+    .e$import.EventTable(as.data.frame(x));
+    return(.e);
+}
 
 
 ##' @importFrom magrittr %>%
