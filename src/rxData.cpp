@@ -2588,6 +2588,13 @@ SEXP rxSolveC(const RObject &obj,
     bool simSubjects = false;
     bool addTimeUnits = false;
     RObject timeUnitsU;
+    List covUnits;
+    if (rxIs(ev1, "rxEvTran")){
+      CharacterVector cls = ev1.attr("class");
+      List evT = cls.attr(".RxODE.lst");
+      evT.attr("class") = R_NilValue;
+      covUnits = evT["covUnits"];
+    }
     if (!thetaMat.isNull() || !omega.isNull() || !sigma.isNull()){
       // Simulated Variable3
       if (!rxIs(par1, "numeric")){
@@ -3139,6 +3146,18 @@ SEXP rxSolveC(const RObject &obj,
     List xtra;
     int nr = rx->nr;
     int nc = dat.size();
+    if (rx->add_cov && (rx->matrix == 2 || rx->matrix == 0) && covUnits.hasAttribute("names")){
+      CharacterVector nmC = covUnits.attr("names");
+      NumericVector tmpN, tmpN2;
+      for (i = nmC.size(); i--;){
+	tmpN = covUnits[i];
+	if (rxIs(tmpN, "units")){
+	  tmpN2 = dat[as<std::string>(nmC[i])];
+	  tmpN2.attr("class") = "units";
+	  tmpN2.attr("units") = tmpN.attr("units");
+	}
+      }
+    }
     if (rx->matrix){
       rxSolveFree();
       if(_rxModels.exists(".sigma")){

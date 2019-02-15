@@ -58,6 +58,20 @@ List evTrans(List inData, const RObject &obj){
       }
     }
   }
+  List covUnits(covCol.size());
+  CharacterVector covUnitsN(covCol.size());
+  NumericVector nvTmp, nvTmp2;
+  for (i = covCol.size(); i--;){
+    covUnitsN[i] = lName[covCol[i]];
+    nvTmp = as<NumericVector>(inData[covCol[i]]);
+    nvTmp2 = NumericVector::create(1.0);
+    if (rxIs(nvTmp, "units")){
+      nvTmp2.attr("class") = "units";
+      nvTmp2.attr("units") = nvTmp.attr("units");
+    }
+    covUnits[i] = nvTmp2;
+  }
+  covUnits.attr("names") = covUnitsN;
   // EVID = 0; Observations
   // EVID = 1; is illegal, but converted from NONMEM
   // EVID = 2; Non-observation, possibly covariate
@@ -485,7 +499,6 @@ List evTrans(List inData, const RObject &obj){
   }
 
   IntegerVector ivTmp;
-  NumericVector nvTmp, nvTmp2;
   int lastId = id[idxO[idxO.size()-1]]+1;
   bool addId = false, added=false;
   int idx1=nid, nTv=0;
@@ -601,6 +614,7 @@ List evTrans(List inData, const RObject &obj){
     }
   }
   e["covParPos0"] = wrap(covParPos0);
+  e["covUnits"] = covUnits;
   fPars.attr("dim")= IntegerVector::create(pars.size(), nid);
   fPars.attr("dimnames") = List::create(pars, R_NilValue);
   e["pars"] = fPars;
