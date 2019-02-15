@@ -205,6 +205,12 @@ List etEmpty(CharacterVector units){
   } else {
     lst["amt"] = setUnits(lst["amt"], "");
   }
+  if (!CharacterVector::is_na(units[1]) && !CharacterVector::is_na(units[0])){
+    std::string rateUnit = as<std::string>(units[0]) + "/" + as<std::string>(units[1]);
+    lst["rate"] = setUnits(lst["rate"], rateUnit);
+  } else {
+    lst["rate"] = setUnits(lst["rate"], "");
+  }
   return lst;
 }
 
@@ -624,6 +630,23 @@ List etAddTimes(NumericVector newTimes, IntegerVector IDs, RObject cmt, bool tur
   return lst;
 }
 
+CharacterVector deparseUnit(NumericVector nv){
+  if (rxIs(nv, "units")){
+    Function f = as<Function>(unitsPkg["deparse_unit"]);
+    NumericVector nv0 = NumericVector::create(0); // Create to fix NA issues.
+    nv0.attr("units") = nv.attr("units");
+    nv0.attr("class") = "units";
+    CharacterVector ret = f(nv0);
+    if (as<std::string>(ret) == "NA"){
+      return CharacterVector::create(NA_STRING);
+    } else {
+      return ret;
+    }
+  } else {
+    return CharacterVector::create(NA_STRING);
+  }
+}
+
 List etImportEventTable(List inData){
   CharacterVector lName = as<CharacterVector>(inData.attr("names"));
   int i, idCol = -1, evidCol=-1, timeCol=-1, amtCol=-1, cmtCol=-1,
@@ -680,6 +703,9 @@ List etImportEventTable(List inData){
     oldIi = NumericVector(oldEvid.size(), 0.0);
   } else {
     oldIi = as<NumericVector>(inData[iiCol]);
+    if (rxIs(oldTime, "units")){
+      oldIi = setUnits(oldIi, as<std::string>(deparseUnit(oldTime)));
+    }
   }
   
   std::vector<int> addl;
@@ -723,7 +749,10 @@ List etImportEventTable(List inData){
     }
   }
   int wh, cmtI, wh100, whI, wh0, ndose=0, nobs=0;
-  List lst = etEmpty(CharacterVector::create(_["dosing"]=NA_STRING, _["time"]=NA_STRING));
+
+  CharacterVector units = CharacterVector::create(_["dosing"]=NA_STRING,
+						 _["time"]=NA_STRING);
+  List lst = etEmpty(units);
   CharacterVector cls = lst.attr("class");
   List e = cls.attr(".RxODE.lst");
   LogicalVector show = e["show"];
@@ -923,18 +952,42 @@ List etImportEventTable(List inData){
   if (uIds.size() > 1){
     show["id"] = true;
   }
+
+  //
+  RObject timeUnitInfo;
+  bool doTime = false;
+  if (rxIs(oldTime, "units")){
+    timeUnitInfo = oldTime.attr("units");
+    doTime = true;
+    oldTime = wrap(time);
+    oldTime.attr("class") = "units";
+    oldTime.attr("units") = timeUnitInfo;
+    units["time"] = as<std::string>(deparseUnit(oldTime));
+  } else {
+    oldTime = wrap(time);
+  }
   
   // nme[0] = "id";
   lst[0] = wrap(id);
       
   // nme[2] = "time";
-  lst[2] = wrap(time);
-      
+  lst[2] = oldTime;
+
+  NumericVector tmpNv = wrap(low);
+  if (doTime){
+    tmpNv.attr("class") = "units";
+    tmpNv.attr("units") = timeUnitInfo;
+  }
   // nme[1] = "low";
-  lst[1] = wrap(low);
-      
+  lst[1] = tmpNv;
+
+  tmpNv = wrap(high);
+  if (doTime){
+    tmpNv.attr("class") = "units";
+    tmpNv.attr("units") = timeUnitInfo;
+  }
   // nme[3] = "high";
-  lst[3] = wrap(high);
+  lst[3] = tmpNv;
       
   // nme[4] = "cmt";
   if (cmtC){
@@ -943,15 +996,39 @@ List etImportEventTable(List inData){
   } else {
     lst[4] = wrap(cmt);
   }
-      
+  
+  RObject amtUnitInfo;
+  bool doAmt = false;
+  if (rxIs(oldAmt, "units")){
+    amtUnitInfo = oldAmt.attr("units");
+    doAmt = true;
+    oldAmt = wrap(amt);
+    oldAmt.attr("class") = "units";
+    oldAmt.attr("units") = amtUnitInfo;
+    units[0] = as<std::string>(deparseUnit(oldAmt));
+  } else {
+    oldAmt = wrap(amt);
+  }  
+
   // nme[5] = "amt";
-  lst[5] = wrap(amt);
+  lst[5] = oldAmt;
+
+  oldRate = wrap(rate);
+  if (doAmt && doTime){
+    std::string rateUnit = as<std::string>(units[0]) + "/" + as<std::string>(units[1]);
+    oldRate = setUnits(oldRate, rateUnit);
+  }
 
   // nme[6] = "rate";
-  lst[6] = wrap(rate);
-      
+  lst[6] = oldRate;
+  
+  tmpNv = wrap(ii);
+  if (doTime){
+    tmpNv.attr("class") = "units";
+    tmpNv.attr("units") = timeUnitInfo;
+  }
   // nme[7] = "ii";
-  lst[7] = wrap(ii);
+  lst[7] = tmpNv;
       
   // nme[8] = "addl";
   lst[8] = wrap(addl);
@@ -961,7 +1038,7 @@ List etImportEventTable(List inData){
       
   // nme[10] = "ss";
   lst[10] = wrap(ss);
-  
+  e["units"] = units;
   e["ndose"] = ndose;
   e["nobs"] = nobs;
   e["show"]  = show;
@@ -1243,6 +1320,12 @@ RObject etUpdateObj(List curEt, bool update){
   } else {
     lst["amt"] = setUnits(lst["amt"], "");
   }
+  if (!CharacterVector::is_na(units[1]) && !CharacterVector::is_na(units[0])){
+    std::string rateUnit = as<std::string>(units[0]) + "/" + as<std::string>(units[1]);
+    lst["rate"] = setUnits(lst["rate"], rateUnit);
+  } else {
+    lst["rate"] = setUnits(lst["rate"], "");
+  }
   e["units"] = units;
   cls.attr(".RxODE.lst") = e;
   lst.attr("class") = cls;
@@ -1304,6 +1387,13 @@ RObject etSetUnit(List curEt, CharacterVector units){
     } else {
       lst["amt"] = setUnits(lst["amt"], "");
     }
+  }
+  if (!CharacterVector::is_na(units[1]) && !CharacterVector::is_na(units[0])){
+    Rprintf("Rate!\n");
+    std::string rateUnit = as<std::string>(units[0]) + "/" + as<std::string>(units[1]);
+    lst["rate"] = setUnits(lst["rate"], rateUnit);
+  } else {
+    lst["rate"] = setUnits(lst["rate"], "");
   }
   cls.attr(".RxODE.lst") = e;
   lst.attr("class") = cls;
@@ -1844,6 +1934,17 @@ RObject et_(List input, List et__){
 	  if (rate[0] != 0.0){
 	    stop("rate needs a dose/amt.");
 	  }
+	  if (rxIs(rate, "units")){
+	    CharacterVector cls = clone(as<CharacterVector>(curEt.attr("class")));
+	    List e = clone(as<List>(cls.attr(".RxODE.lst")));
+	    CharacterVector units = e["units"];
+	    if (!CharacterVector::is_na(units[1]) && !CharacterVector::is_na(units[0])){
+	      std::string rateUnit = as<std::string>(units[0]) + "/" + as<std::string>(units[1]);
+	      rate = setUnits(rate,rateUnit);
+	    } else {
+	      stop("Rate is cannot be converted and added to this table.");
+	    }
+	  }
 	} else {
 	  rate = NumericVector(1);
 	  rate[0]=0.0;
@@ -1931,6 +2032,17 @@ RObject et_(List input, List et__){
 	if (rateIx != -1){
 	  rate = as<NumericVector>(input[rateIx]);
 	  if (rate.size() != 1) stop("rate cannot be a vector.");
+	  if (rxIs(rate, "units")){
+	    CharacterVector cls = clone(as<CharacterVector>(curEt.attr("class")));
+	    List e = clone(as<List>(cls.attr(".RxODE.lst")));
+	    CharacterVector units = e["units"];
+	    if (!CharacterVector::is_na(units[1]) && !CharacterVector::is_na(units[0])){
+	      std::string rateUnit = as<std::string>(units[0]) + "/" + as<std::string>(units[1]);
+	      rate = setUnits(rate,rateUnit);
+	    } else {
+	      stop("Rate is cannot be converted and added to this table.");
+	    }
+	  }
 	} else {
 	  rate = NumericVector(1);
 	  rate[0] = 0.0;
