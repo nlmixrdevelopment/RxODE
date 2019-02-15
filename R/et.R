@@ -385,7 +385,7 @@ rep.rxEt <- function(x, ...){
 ##' @param ... Other parameters
 ##'@export
 as.et <- function(x,...){
-    UseMethod("et");
+    UseMethod("as.et");
 }
 ##'@rdname as.et
 ##'@export
