@@ -12,22 +12,23 @@ rxPermissive({
         d/dt(blood)     = a*intestine - b*blood
     })
 
-    et <- eventTable(time.units="days")
+    et <- eventTable(time.units="day")
+
     et$add.sampling(seq(0,10,by=1/24))
-    et$add.dosing(dose=2/24,strt.time=0,
+    et$add.dosing(dose=2/24,start.time=0,
                   nbr.doses=10,dosing.interval=1)
 
-    et1 <- et$get.EventTable()
+    et <- et %>% et(7.5,evid=3)
 
-
-    et2 <- rbind(et1,data.frame(time=7.5,evid=3, amt=NA)) %>%
-        arrange(time,evid)
+    library(units)
 
     for (m in c("lsoda","liblsoda", "dop853")){
 
-        x2 <- solve(mod,et2, method=m)
+        x2 <- solve(mod,et, method=m)
 
-        x27 <- x2 %>% filter(time>=7.5) %>% filter(time < 8)
+        x2 %>% plot(blood)
+
+        x27 <- x2 %>% filter(time>=set_units(7.5,days)) %>% filter(time < set_units(8, days))
 
         zeros <- rep(0,length(x27$blood));
 
@@ -50,15 +51,12 @@ rxPermissive({
 
     x2 <- solve(sol.1c, et)
 
-    x2 <- solve(sol.1c, et$get.EventTable())
-
-    et1 <- rbind(et$get.EventTable(), c(time=9,evid=3,amt=NA_real_)) %>%
-        arrange(time,-evid)
+    et1 <- et %>% et(time=9,evid=3)
 
     x2 <- solve(sol.1c, et1)
 
     test_that("Solved Linear EVID=3",{
-        expect_true(all((x2 %>% filter(time > 9) %>% filter(time < 12))$blood==0))
+        expect_true(all((x2 %>% filter(time > set_units(9,h)) %>% filter(time < set_units(12,h)))$blood==0))
     })
 
     ## library(ggplot2);x2 %>% ggplot(aes(time,blood)) + geom_line()
