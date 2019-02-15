@@ -1955,7 +1955,26 @@ RObject et_(List input, List et__){
 	}
 	isObs = false;
       }
+      IntegerVector evid;
+      if (evidIx != -1){
+	evid = as<IntegerVector>(input[evidIx]);
+	if (evid.size()!= 1){
+	  stop("evid cannot be a vector");
+	}
+	if (evid[0] == 0 && isObs){
+	  stop("zero evid cannot be used with dose/amt.");
+	}
+	if ((evid[0] == 1 || evid[0] == 4) && !isObs){
+	  stop("This EVID requires an AMT");
+	} else if (evid[0] == 2 || evid[0] == 3) {
+	  amt[0] = NA_REAL;
+	  isObs = false;
+	}
+      } else {
+	evid = IntegerVector(1);
+      }	
       if (isObs){
+	if (evidIx == -1) evid[0]=0;
 	IntegerVector addl;// = 0;
 	if (addlIx != -1){
 	  addl = as<IntegerVector>(input[addlIx]);
@@ -2012,19 +2031,7 @@ RObject et_(List input, List et__){
 	if (addl[0] > 0 && ii[0] <= 0){
 	  stop("A dosing interval of zero makes no sense with multiple dose events.");
 	}
-	IntegerVector evid;
-	if (evidIx != -1){
-	  evid = as<IntegerVector>(input[evidIx]);
-	  if (evid.size() != 1){
-	    stop("evid cannot be a vector.");
-	  }
-	  if (evid[0] != 0){
-	    stop("non-zero evid needs a dose/amt.");
-	  }
-	} else {
-	  evid = IntegerVector(1);
-	  evid[0]=0;
-	}
+	
 	IntegerVector ss;// = 0;
 	if (ssIx != -1){
 	  ss = as<IntegerVector>(input[ssIx]);
@@ -2055,6 +2062,7 @@ RObject et_(List input, List et__){
 	  }
 	}
       } else {
+	if (evidIx == -1) evid[0]=1;
 	////////////////////////////////////////////////////////////////////////////////
 	// Dose
 	////////////////////////////////////////////////////////////////////////////////
@@ -2106,19 +2114,6 @@ RObject et_(List input, List et__){
 	} else {
 	  ii = NumericVector(1);
 	  ii[0] = 0.0;
-	}
-	IntegerVector evid;// =1;
-	if (evidIx != -1){
-	  evid = as<IntegerVector>(input[evidIx]);
-	  if (evid.size()!= 1){
-	    stop("evid cannot be a vector");
-	  }
-	  if (evid[0] == 0){
-	    stop("zero evid cannot be used with dose/amt.");
-	  }
-	} else {
-	  evid = IntegerVector(1);
-	  evid[0] = 1;
 	}
 	IntegerVector ss;// = 0;
 	if (ssIx != -1){
