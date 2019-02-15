@@ -708,10 +708,19 @@ List etImportEventTable(List inData){
   
   std::vector<int> cmt;
   IntegerVector oldCmt;
+  CharacterVector oldCmtC;
+  bool cmtC = false;
   if (cmtCol == -1){
     oldCmt = IntegerVector(oldEvid.size(), 0);
   } else {
-    oldCmt = as<IntegerVector>(inData[cmtCol]);
+    if (rxIs(inData[cmtCol], "integer") || rxIs(inData[cmtCol], "numeric")){
+      oldCmt = as<IntegerVector>(inData[cmtCol]);
+    } else if (rxIs(inData[cmtCol], "character")){
+      oldCmtC = as<CharacterVector>(inData[cmtCol]);
+      cmtC=true;
+    } else {
+      stop("Can't figure out how to import the compartment variable.");
+    }
   }
   int wh, cmtI, wh100, whI, wh0, ndose=0, nobs=0;
   List lst = etEmpty(CharacterVector::create(_["dosing"]=NA_STRING, _["time"]=NA_STRING));
@@ -731,8 +740,10 @@ List etImportEventTable(List inData){
       if (ISNA(oldTime[i])){
 	time.push_back(oldTime[i]);
 	high.push_back(NA_REAL);
-	cmt.push_back(oldCmt[i]);
-	if (oldCmt[i] > 1) show["cmt"] = true;
+	if (!cmtC){
+	  cmt.push_back(oldCmt[i]);
+	  if (oldCmt[i] > 1) show["cmt"] = true;
+	}
 	amt.push_back(0);
 	rate.push_back(0);
 	ii.push_back(0);
@@ -743,8 +754,10 @@ List etImportEventTable(List inData){
       } else {
 	time.push_back(oldTime[i]);
 	high.push_back(NA_REAL);
-	cmt.push_back(oldCmt[i]);
-	if (oldCmt[i] > 1) show["cmt"] = true;
+	if (!cmtC){
+	  cmt.push_back(oldCmt[i]);
+	  if (oldCmt[i] > 1) show["cmt"] = true;
+	}
 	amt.push_back(0);
 	rate.push_back(0);
 	ii.push_back(0);
@@ -761,8 +774,10 @@ List etImportEventTable(List inData){
       low.push_back(NA_REAL);
       time.push_back(oldTime[i]);
       high.push_back(NA_REAL);
-      cmt.push_back(oldCmt[i]);
-      if (oldCmt[i] > 1) show["cmt"] = true;
+      if (!cmtC){
+	cmt.push_back(oldCmt[i]);
+	if (oldCmt[i] > 1) show["cmt"] = true;
+      }
       amt.push_back(oldAmt[i]);
       rate.push_back(oldRate[i]);
       if (oldRate[i] > 0) show["rate"] = true;
@@ -776,6 +791,7 @@ List etImportEventTable(List inData){
       ndose++;
     } else {
       // Convert evid
+      if (cmtC) stop("Old RxODE are not supported with string compartments");
       getWh(oldEvid[i], &wh, &cmtI, &wh100, &whI, &wh0);
       cmtI++;
       if (cmtI != 1) show["cmt"] = true;
@@ -921,7 +937,11 @@ List etImportEventTable(List inData){
   lst[3] = wrap(high);
       
   // nme[4] = "cmt";
-  lst[4] = wrap(cmt);
+  if (cmtC){
+    lst[4] = oldCmtC;
+  } else {
+    lst[4] = wrap(cmt);
+  }
       
   // nme[5] = "amt";
   lst[5] = wrap(amt);
