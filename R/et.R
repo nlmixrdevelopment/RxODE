@@ -13,32 +13,36 @@ et.default <- function(...){
 
 ##' @export
 `$.rxEt` <-  function(obj, arg, exact = FALSE){
-    return(.Call(`_RxODE_etUpdate`, obj, arg, NULL))
+    return(.Call(`_RxODE_etUpdate`, obj, arg, NULL, exact))
 }
 
 
 ##'@export
 print.rxEt <- function(x,...){
-    bound <- .getBound(x, parent.frame(2));
-    cat(cli::rule(center=crayon::bold(paste0("EventTable with ",x$nobs+x$ndose, " records"))), "\n");
-    ## sprintf(" with %s records%s:\n", x$nobs+x$ndose,
-    ##                                           ifelse(x$maxId==1, "", sprintf(" (%d IDs)", abs(x$maxId))))
-    .units <- x$.units;
-    .maxId <- length(x$IDs)
-    if (.maxId !=1){
-        cat(sprintf("   %s individuals\n",
-                .maxId))
+    if (rxIs(x, "rxEt")){
+        bound <- .getBound(x, parent.frame(2));
+        cat(cli::rule(center=crayon::bold(paste0("EventTable with ",x$nobs+x$ndose, " records"))), "\n");
+        ## sprintf(" with %s records%s:\n", x$nobs+x$ndose,
+        ##                                           ifelse(x$maxId==1, "", sprintf(" (%d IDs)", abs(x$maxId))))
+        .units <- x$.units;
+        .maxId <- length(x$IDs)
+        if (.maxId !=1){
+            cat(sprintf("   %s individuals\n",
+                        .maxId))
+        }
+        cat(sprintf("   %s dosing records (see %s$%s())\n",
+                    x$ndose, crayon::yellow(bound), crayon::blue("get.dosing")))
+        cat(sprintf("   %s observation times (see %s$%s())\n",
+                    x$nobs, crayon::yellow(bound), crayon::blue("get.sampling")))
+        if (x$nobs!=0 | x$ndose!=0){
+            cat(cli::rule(crayon::bold(paste0("First part of ",crayon::yellow(bound),":"))), "\n");
+            print(dplyr::as.tbl(data.frame(x)[, x$show, drop = FALSE]));
+        }
+        cat(cli::rule(), "\n");
+        invisible(x)
+    } else {
+        print.data.frame(x)
     }
-    cat(sprintf("   %s dosing records (see %s$%s())\n",
-                x$ndose, crayon::yellow(bound), crayon::blue("get.dosing")))
-    cat(sprintf("   %s observation times (see %s$%s())\n",
-                x$nobs, crayon::yellow(bound), crayon::blue("get.sampling")))
-    if (x$nobs!=0 | x$ndose!=0){
-        cat(cli::rule(crayon::bold(paste0("First part of ",crayon::yellow(bound),":"))), "\n");
-        print(dplyr::as.tbl(data.frame(x)[, x$show, drop = FALSE]));
-    }
-    cat(cli::rule(), "\n");
-    invisible(x)
 }
 
 ##'@export
@@ -393,6 +397,19 @@ as.et.default <- function(x,...){
     .e <- et();
     .e$import.EventTable(as.data.frame(x));
     return(.e);
+}
+
+##' Check to see if this is an rxEt object.
+##'
+##' @param x object to check to see if it is rxEt
+##'
+##' If this is an rxEt object that has expired strip all rxEt
+##' information.
+##'
+##' @author Matthew L.Fidler
+##' @export
+is.rxEt <- function(x){
+    .Call(`_RxODE_rxIs`, x, "rxEt");
 }
 
 

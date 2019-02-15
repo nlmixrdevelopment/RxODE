@@ -25,7 +25,8 @@ extern "C" void getWh(int evid, int *wh, int *cmt, int *wh100, int *whI, int *wh
 //[[Rcpp::export]]
 RObject etUpdate(RObject obj,
 		 RObject arg = R_NilValue,
-		 RObject value = R_NilValue){
+		 RObject value = R_NilValue,
+		 LogicalVector exact = true){
   if (rxIs(obj,"rxEt")){
     evCur = obj;
     if (rxIs(value, "NULL")){
@@ -46,6 +47,39 @@ RObject etUpdate(RObject obj,
       }
     } else {
       // Assign
+    }
+  } else {
+    if (rxIs(value, "NULL")){
+      List lst = List(obj);
+      if (rxIs(arg, "integer") || rxIs(arg, "numeric")){
+	int iarg = as<int>(arg);
+	if (iarg <= lst.size()){
+	  return lst[iarg-1];
+	}
+      } else if (rxIs(arg, "character")){
+	std::string sarg = as<std::string>(arg);
+	CharacterVector nm = lst.names();
+	int n = nm.size(), i;
+	unsigned int slen = strlen(sarg.c_str());
+	int dexact = -1;
+	if (exact[0] == TRUE){
+	  dexact = 1;
+	} else if (exact[0] == FALSE){
+	  dexact = 0;
+	}
+	unsigned int slen2;
+	for (i = 0; i < n; i++){
+	  slen2 = strlen((as<std::string>(nm[i])).c_str());
+	  if (slen <= slen2 &&
+	      (strncmp((as<std::string>(nm[i])).c_str(), sarg.c_str(), slen)  == 0 ) &&
+	      (dexact != 1 || (dexact == 1 && slen == slen2))){
+	    if (dexact == -1){
+	      warning("partial match of '%s' to '%s'",sarg.c_str(), (as<std::string>(nm[i])).c_str());
+	    }
+	    return lst[i];
+	  }
+	}
+      }
     }
   }
   return R_NilValue;
@@ -690,11 +724,17 @@ List etImportEventTable(List inData){
   std::vector<double> high;
   
   std::vector<double> rate;
+  RObject rateUnits;
+  bool haveRateUnits=false;
   NumericVector oldRate;
   if (rateCol == -1){
     oldRate = NumericVector(oldEvid.size(), 0.0);
   } else {
     oldRate = as<NumericVector>(inData[rateCol]);
+    if (rxIs(oldRate, "units")){
+      rateUnits = oldRate.attr("units");
+      haveRateUnits=true;
+    }
   }
   
   std::vector<double> ii;
@@ -773,12 +813,12 @@ List etImportEventTable(List inData){
 	  cmt.push_back(oldCmt[i]);
 	  if (oldCmt[i] > 1) show["cmt"] = true;
 	}
-	amt.push_back(0);
-	rate.push_back(0);
-	ii.push_back(0);
-	addl.push_back(0);
+	amt.push_back(NA_REAL);
+	rate.push_back(NA_REAL);
+	ii.push_back(NA_REAL);
+	addl.push_back(NA_INTEGER);
 	evid.push_back(2);
-	ss.push_back(0);
+	ss.push_back(NA_INTEGER);
 	ndose++;
       } else {
 	time.push_back(oldTime[i]);
@@ -787,12 +827,12 @@ List etImportEventTable(List inData){
 	  cmt.push_back(oldCmt[i]);
 	  if (oldCmt[i] > 1) show["cmt"] = true;
 	}
-	amt.push_back(0);
-	rate.push_back(0);
-	ii.push_back(0);
-	addl.push_back(0);
-	evid.push_back(2);
-	ss.push_back(0);
+	amt.push_back(NA_REAL);
+	rate.push_back(NA_REAL);
+	ii.push_back(NA_REAL);
+	addl.push_back(NA_INTEGER);
+	evid.push_back(0);
+	ss.push_back(NA_INTEGER);
 	nobs++;
       }
     } else if (oldEvid[i] <= 4){
@@ -1016,7 +1056,13 @@ List etImportEventTable(List inData){
   oldRate = wrap(rate);
   if (doAmt && doTime){
     std::string rateUnit = as<std::string>(units[0]) + "/" + as<std::string>(units[1]);
+    if (haveRateUnits){
+      oldRate.attr("class") = "units";
+      oldRate.attr("units") = rateUnits;
+    }
     oldRate = setUnits(oldRate, rateUnit);
+  } else if (haveRateUnits){
+    stop("Amt/time needs units to convert the rate to the right units to import the data.");
   }
 
   // nme[6] = "rate";
@@ -1389,7 +1435,6 @@ RObject etSetUnit(List curEt, CharacterVector units){
     }
   }
   if (!CharacterVector::is_na(units[1]) && !CharacterVector::is_na(units[0])){
-    Rprintf("Rate!\n");
     std::string rateUnit = as<std::string>(units[0]) + "/" + as<std::string>(units[1]);
     lst["rate"] = setUnits(lst["rate"], rateUnit);
   } else {
@@ -1637,7 +1682,8 @@ RObject et_(List input, List et__){
   // Wait should be in sequences and rep
   for (i = (int)inN.size(); i--;){
     if (inN[i] == "amt" || inN[i] == "dose") amtIx=i;
-    else if (inN[i] == "ii" || inN[i] == "dosing.interval" || inN[i] == "dosingInterval" || inN[i] == "dosing_interval") iiIx=i;
+    else if (inN[i] == "ii" || inN[i] == "dosing.interval" || inN[i] == "dosingInterval" || inN[i] == "dosing_interval")
+      iiIx=i;
     else if (inN[i] == "addl") addlIx = i;
     else if (inN[i] == "until") untilIx = i;
     else if (inN[i] == "evid") evidIx = i;
@@ -1956,6 +2002,9 @@ RObject et_(List input, List et__){
 	  if (ii[0] != 0.0){
 	    stop("ii needs a dose/amt.");
 	  }
+	  if (rxIs(ii, "units")){
+	    ii = setUnits(ii, as<std::string>(units[1]));
+	  }
 	} else {
 	  ii = NumericVector(1);
 	  ii[0] = 0.0;
@@ -2051,6 +2100,9 @@ RObject et_(List input, List et__){
 	if (iiIx != -1){
 	  ii = clone(as<NumericVector>(input[iiIx]));
 	  if (ii.size() != 1) stop("ii cannot be a vector.");
+	  if (rxIs(ii, "units")){
+	    ii = setUnits(ii, as<std::string>(units[1]));
+	  }
 	} else {
 	  ii = NumericVector(1);
 	  ii[0] = 0.0;

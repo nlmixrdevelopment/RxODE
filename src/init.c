@@ -11,7 +11,7 @@ SEXP _RxODE_etRep_(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP _RxODE_etSeq_(SEXP, SEXP, SEXP, SEXP, SEXP,
 		   SEXP, SEXP, SEXP);
 SEXP _RxODE_rxStack(SEXP, SEXP);
-SEXP _RxODE_etUpdate(SEXP, SEXP, SEXP);
+SEXP _RxODE_etUpdate(SEXP, SEXP, SEXP, SEXP);
 SEXP _RxODE_et_(SEXP, SEXP);
 SEXP _RxODE_evTrans(SEXP, SEXP);
 SEXP _RxODE_rxUpdateTrans_(SEXP, SEXP, SEXP);
@@ -208,7 +208,7 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_rxUpdateTrans_", (DL_FUNC) &_RxODE_rxUpdateTrans_, 3},
     {"_RxODE_evTrans", (DL_FUNC) &_RxODE_evTrans, 2},
     {"_RxODE_et_", (DL_FUNC) &_RxODE_et_, 2},
-    {"_RxODE_etUpdate", (DL_FUNC) &_RxODE_etUpdate, 3},
+    {"_RxODE_etUpdate", (DL_FUNC) &_RxODE_etUpdate, 4},
     {"_RxODE_rxStack", (DL_FUNC) &_RxODE_rxStack, 2},
     {"_RxODE_etSeq_", (DL_FUNC) &_RxODE_etSeq_, 8},
     {"_RxODE_etRep_", (DL_FUNC) &_RxODE_etRep_, 6},

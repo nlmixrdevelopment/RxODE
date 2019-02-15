@@ -23,15 +23,16 @@ BEGIN_RCPP
 END_RCPP
 }
 // etUpdate
-RObject etUpdate(RObject obj, RObject arg, RObject value);
-RcppExport SEXP _RxODE_etUpdate(SEXP objSEXP, SEXP argSEXP, SEXP valueSEXP) {
+RObject etUpdate(RObject obj, RObject arg, RObject value, LogicalVector exact);
+RcppExport SEXP _RxODE_etUpdate(SEXP objSEXP, SEXP argSEXP, SEXP valueSEXP, SEXP exactSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< RObject >::type obj(objSEXP);
     Rcpp::traits::input_parameter< RObject >::type arg(argSEXP);
     Rcpp::traits::input_parameter< RObject >::type value(valueSEXP);
-    rcpp_result_gen = Rcpp::wrap(etUpdate(obj, arg, value));
+    Rcpp::traits::input_parameter< LogicalVector >::type exact(exactSEXP);
+    rcpp_result_gen = Rcpp::wrap(etUpdate(obj, arg, value, exact));
     return rcpp_result_gen;
 END_RCPP
 }
