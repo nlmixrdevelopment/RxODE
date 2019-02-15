@@ -313,9 +313,11 @@ add.sampling <- function(eventTable, time, time.units = NA){
 ##' @concept Pharmacokinetics (PK)
 #' @concept Pharmacodynamics (PD)
 #' @export
-eventTable <- function(amount.units = NA, time.units = "hours"){
-    et(amount.units = ifelse(is.na(amount.units), "", amount.units),
-       time.units = ifelse(is.na(time.units), "",time.units))
+eventTable <- function(amount.units = NA, time.units = NA){
+    .lst <- list()
+    if (!missing(amount.units)) .lst$amount.units <- amount.units;
+    if (!missing(time.units)) .lst$time.units <- time.units
+    .Call(`_RxODE_et_`, .lst, list())
 }
 
 ##' Sequence of event tables

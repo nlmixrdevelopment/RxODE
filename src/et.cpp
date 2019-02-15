@@ -2201,7 +2201,7 @@ RObject et_(List input, List et__){
       foundArgs++;
     }
     if (timeUnitIx == -1){
-      units[1] = "hours";
+      units[1] = NA_STRING;
     } else  {
       CharacterVector tmpS = as<CharacterVector>(input[timeUnitIx]);
       if (tmpS.size() != 1) stop("Time unit cannot be a vector");

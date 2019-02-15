@@ -118,12 +118,37 @@ rxPermissive({
         et <- et();
         et$import.EventTable(etDf);
 
-        expect_equal(et$ii,e$ii)
-        expect_equal(et$rate,e$rate)
+        expect_equal(et$ii, e$ii)
+        expect_equal(et$rate, e$rate)
 
     })
 
+    test_that("seq works with wait", {
+        e1 <- et(amt=100, ii=24, addl=6)
 
+        e2 <- et(amt = 200, ii = 24, addl = 6)
 
+        e3 <- seq(e1,e2,e1)
+
+        e4 <- seq(e1, wait=72, e2, wait=72, e1) %>% as.data.frame
+
+        expect_equal(structure(list(id = c(1L, 1L, 1L), low = c(NA_real_, NA_real_,
+NA_real_), time = c(0, 216, 432), high = c(NA_real_, NA_real_,
+NA_real_), cmt = c("(default)", "(default)", "(default)"), amt = c(100,
+200, 100), rate = c(0, 0, 0), ii = c(24, 24, 24), addl = c(6L,
+6L, 6L), evid = c(1L, 1L, 1L), ss = c(0L, 0L, 0L)), class = "data.frame", row.names = c(NA,
+-3L)), e4)
+
+        e5 <- etSeq(e1, wait=72, e2, wait=72, e1, handleWait="alwaysAddII") %>%
+            as.data.frame
+
+        expect_equal(structure(list(id = c(1L, 1L, 1L), low = c(NA_real_, NA_real_,
+NA_real_), time = c(0, 240, 480), high = c(NA_real_, NA_real_,
+NA_real_), cmt = c("(default)", "(default)", "(default)"), amt = c(100,
+200, 100), rate = c(0, 0, 0), ii = c(24, 24, 24), addl = c(6L,
+6L, 6L), evid = c(1L, 1L, 1L), ss = c(0L, 0L, 0L)), class = "data.frame", row.names = c(NA,
+-3L)), e5)
+
+    })
 
 })
