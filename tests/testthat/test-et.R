@@ -234,6 +234,20 @@ rxPermissive({
                                class = "data.frame",
                                row.names = c(NA, -2L)),
                      e4)
+
+
+        e1 <- et(amt=100, ii=24, addl=6) %>%
+            et(seq(0, 2*168,by=0.1));
+        e2 <- c(e1,e1,samples="use")
+        expect_equal(range(e2$time), c(0, 672))
+
     })
+
+    e1 <- et(amt=100, ii=24, addl=6) %>%
+        et(seq(0, 2*168,by=0.1));
+
+    e2 <- c(e1,e1,handleSamples="use")
+
+
 
 })
