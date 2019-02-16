@@ -378,8 +378,8 @@ etRep <- function(x, times=1, length.out=NA, each=NA, n=NULL, wait=0, id=integer
     if (!is.na(length.out)) stop("'length.out' makes no sense with event tables");
     if (!is.na(each)) stop("'each' makes no sense with event tables");
     .Call(`_RxODE_etRep_`, x, as.integer(times),
-          as.double(wait), as.double(ii), as.integer(id), setNames(.sampleIx[match.arg(handleSamples)],NULL),
-          setNames(.waitIx[match.arg(handleWait)],NULL))
+          as.double(wait), as.integer(id), setNames(.sampleIx[match.arg(handleSamples)],NULL),
+          setNames(.waitIx[match.arg(handleWait)],NULL), as.double(ii))
 }
 
 ##'@export
