@@ -335,8 +335,30 @@ etSeq <- function(...,samples=c("clear", "use"), waitII=c("smart", "+ii"), ii=24
     .sampleIx <- c(clear=0L,use=1L);
     .waitIx <- c(smart=0L, `+ii`=1L)
     .Call(`_RxODE_etSeq_`, list(...), setNames(.sampleIx[match.arg(samples)],NULL),
-          setNames(.waitIx[match.arg(waitII)],NULL), as.double(ii),
+          setNames(.waitIx[match.arg(waitII)],NULL), as.double(ii), FALSE, 0L,
           0L, TRUE, character(0),logical(0),FALSE);
+}
+##' Combining event tables
+##'
+##' @return A new event table
+##' @inheritParams etSeq
+##' @author
+##' @export
+etRbind <- function(...,samples=c("use", "clear"),waitII=c("smart", "+ii"),
+                    id=c("merge", "unique")){
+    .sampleIx <- c(clear=0L,use=1L);
+    .waitIx <- c(smart=0L, `+ii`=1L);
+    .idIx <- c(merge=0L,unique=1L);
+    .Call(`_RxODE_etSeq_`, list(...), setNames(.sampleIx[match.arg(samples)],NULL),
+          setNames(.waitIx[match.arg(waitII)],NULL), as.double(0), TRUE,
+          setNames(.idIx[match.arg(id)],NULL),
+          0L, TRUE, character(0),logical(0),FALSE);
+}
+
+##'@export
+rbind.rxEt <- function(..., deparse.level = 1){
+    if (!missing(deparse.level)) warning("deparse.level not used with RxODE event tables");
+    do.call(etRbind,list(...));
 }
 
 ##'@export

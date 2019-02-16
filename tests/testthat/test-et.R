@@ -1,4 +1,8 @@
 context("Test event Table et(...)");
+
+library(units)
+library(dplyr)
+
 rxPermissive({
 
     et <- et()
@@ -68,7 +72,6 @@ rxPermissive({
     ## now resize back up
     et3 <- et2 %>% et(id=1:10)
 
-    library(units)
 
     et3 <- et3 %>% set_units(mg);
     ## Make sure units are right.
@@ -147,22 +150,22 @@ rxPermissive({
                                class = "data.frame",
                                row.names = c(NA,-3L)), e4)
 
-        e5 <- etSeq(e1, wait=72, e2, wait=72, e1, handleWait="alwaysAddII") %>%
+        e5 <- etSeq(e1, wait=72, e2, wait=72, e1, waitII="+ii") %>%
             as.data.frame
 
-    expect_equal(structure(list(id = c(1L, 1L, 1L),
-                                low = c(NA_real_, NA_real_,NA_real_),
-                                time = c(0, 240, 480),
-                                high = c(NA_real_, NA_real_,NA_real_),
-                                cmt = c("(default)", "(default)", "(default)"),
-                                amt = c(100,200, 100),
-                                rate = c(0, 0, 0),
-                                ii = c(24, 24, 24),
-                                addl = c(6L,6L, 6L),
-                                evid = c(1L, 1L, 1L),
-                                ss = c(0L, 0L, 0L)),
-                           class = "data.frame",
-                           row.names = c(NA, -3L)), e5)
+        expect_equal(structure(list(id = c(1L, 1L, 1L),
+                                    low = c(NA_real_, NA_real_,NA_real_),
+                                    time = c(0, 240, 480),
+                                    high = c(NA_real_, NA_real_,NA_real_),
+                                    cmt = c("(default)", "(default)", "(default)"),
+                                    amt = c(100,200, 100),
+                                    rate = c(0, 0, 0),
+                                    ii = c(24, 24, 24),
+                                    addl = c(6L,6L, 6L),
+                                    evid = c(1L, 1L, 1L),
+                                    ss = c(0L, 0L, 0L)),
+                               class = "data.frame",
+                               row.names = c(NA, -3L)), e5)
 
         e1 <- et(amt=500)
         e2 <- et(amt=250, ii=24, addl=4)
@@ -241,13 +244,31 @@ rxPermissive({
         e2 <- c(e1,e1,samples="use")
         expect_equal(range(e2$time), c(0, 672))
 
+        ## combine without changing, use rbind
+        e1 <- et(amt=100, ii=24, addl=6,  ID=1:5)
+        e2 <- et(amt=50,  ii=12, addl=13, ID=1:3)
+        e3 <- et(amt=200, ii=24, addl=2,  ID=1:2)
+
+        e4 <- rbind(e1,e2,e3)
+        expect_equal(e4 %>% select(id, time, amt, ii, addl) %>% as.data.frame,
+                     structure(list(id = c(1L, 1L, 1L, 2L, 2L, 2L, 3L, 3L, 4L, 5L),
+                                    time = c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+                                    amt = c(100, 50, 200, 100, 50, 200, 100, 50, 100, 100),
+                                    ii = c(24, 12, 24, 24, 12, 24, 24, 12, 24, 24),
+                                    addl = c(6L, 13L, 2L, 6L, 13L, 2L, 6L, 13L, 6L, 6L)),
+                               class = "data.frame",
+                               row.names = c(NA, -10L)))
+
+        e4 <- rbind(e1, e2, e3, id="unique")
+        expect_equal(e4 %>% select(id, time, amt, ii, addl) %>% as.data.frame,
+                     structure(list(id = 1:10,
+                                    time = c(0, 0, 0, 0, 0, 0, 0, 0, 0,0),
+                                    amt = c(100, 100, 100, 100, 100, 50, 50, 50, 200, 200),
+                                    ii = c(24,24, 24, 24, 24, 12, 12, 12, 24, 24),
+                                    addl = c(6L, 6L, 6L, 6L,6L, 13L, 13L, 13L, 2L, 2L)),
+                               class = "data.frame",
+                               row.names = c(NA, -10L)))
+
     })
-
-    e1 <- et(amt=100, ii=24, addl=6) %>%
-        et(seq(0, 2*168,by=0.1));
-
-    e2 <- c(e1,e1,handleSamples="use")
-
-
 
 })

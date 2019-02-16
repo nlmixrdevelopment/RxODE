@@ -2226,7 +2226,8 @@ RObject et_(List input, List et__){
 // Sequence event tables
 //[[Rcpp::export]]
 List etSeq_(List ets, int handleSamples=0, int waitType = 0,
-	    double defaultIi = 0,
+	    double defaultIi = 0,bool rbind = false,
+	    int uniqueId=0,
 	    int reserveLen=0, bool needSort=true,
 	    CharacterVector newUnits = CharacterVector::create(),
 	    LogicalVector newShow = LogicalVector::create(),
@@ -2258,6 +2259,8 @@ List etSeq_(List ets, int handleSamples=0, int waitType = 0,
   LogicalVector show;
   bool gotUnits = false;
   List e;
+  int lastId = -1;
+  int thisId = 0;
   
   CharacterVector cls;
 
@@ -2282,6 +2285,7 @@ List etSeq_(List ets, int handleSamples=0, int waitType = 0,
     }
   }
   bool firstDoseOfEt=true;
+  lastId=-1;// New id of each event table will trigger id change for unique
   for (i = 0 ;i < ets.size(); i++){
     if (rxIs(ets[i], "rxEt")){
       List et = ets[i];
@@ -2356,7 +2360,15 @@ List etSeq_(List ets, int handleSamples=0, int waitType = 0,
 	if (handleSamples == 0 && curEvid[j]== 0) continue;
 	if (curEvid[j] == 0) nobs++;
 	else ndose++;
-	id.push_back(curId[j]);
+	if (uniqueId==1){
+	  if (lastId != curId[j]){
+	    thisId++;
+	    lastId = curId[j];
+	  }
+	  id.push_back(thisId);
+	} else {
+	  id.push_back(curId[j]);
+	}
 	addl.push_back(curAddl[j]);
 	if (!ISNA(curHigh[j])){
 	  if (curAddl[j] > 0){
@@ -2371,7 +2383,7 @@ List etSeq_(List ets, int handleSamples=0, int waitType = 0,
 	    if (tmp > maxTime) maxTime = tmp;
 	    firstDoseOfEt = false;
 	  } else if (curEvid[j] != 0 && curEvid[j] != 2 && curEvid[j] != 3) {
-	    if (i != 0 && trueLastIi == 0 && firstDoseOfEt && curTime[j] < defaultIi){
+	    if (!rbind && i != 0 && trueLastIi == 0 && firstDoseOfEt && curTime[j] < defaultIi){
 	      warning("Assumed a dose interval of %.1f between event tables; use 'ii' to adjust.", defaultIi);
 	      maxTime += defaultIi;
 	      timeDelta += defaultIi;
@@ -2400,7 +2412,7 @@ List etSeq_(List ets, int handleSamples=0, int waitType = 0,
 	    double tmp = curTime[j] + (curAddl[j]+1) * curIi[j];
 	    if (tmp > maxTime) maxTime = tmp;
 	  } else if (curEvid[j] != 0 && curEvid[j] != 2 && curEvid[j] != 3){
-	    if (i != 0 && trueLastIi == 0 && firstDoseOfEt && curTime[j] < defaultIi){
+	    if (!rbind && i != 0 && trueLastIi == 0 && firstDoseOfEt && curTime[j] < defaultIi){
 	      warning("Assumed a dose interval of %.1f between event tables; use 'ii' to adjust.", defaultIi);
 	      maxTime += defaultIi;
 	      timeDelta += defaultIi;
@@ -2423,6 +2435,9 @@ List etSeq_(List ets, int handleSamples=0, int waitType = 0,
 	idxEts.push_back(i);
 	idxEt.push_back(j);
 	idx.push_back(k++);
+      }
+      if (rbind){
+	maxTime = 0;
       }
     } else if (rxIs(ets[i], "numeric") || rxIs(ets[i], "integer")){
       if (rxIs(ets[i], "units")){
@@ -2567,7 +2582,7 @@ List etRep_(RObject curEt, int times, double wait, IntegerVector ids, int handle
     seqLst[i*2] = curEt;
     seqLst[i*2+1] = wait;
   }
-  return etSeq_(seqLst, handleSamples, waitType, ii,
+  return etSeq_(seqLst, handleSamples, waitType, ii, false,0,
 		len*times, (IDs.size() != 1), e["units"],
 		e["show"], rxIs(curEt, "integer"));
 }
