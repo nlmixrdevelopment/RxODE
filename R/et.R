@@ -121,7 +121,7 @@ set_units.rxEt <- function(x, value, ..., mode = units::units_options("set_units
 ##'            be added at the dosing times? Defaults to \code{FALSE}.
 ##' @param time.units optional string indicating the time units.
 ##'           Defaults to \code{"hours"} to indicate as per the original \code{EventTable} definition.
-##' @param ... Other parameters (ignored)
+##' @param ... Other parameters passed to \code{\link{et}}.
 ##' @return eventTable with updated dosing (note the event table will be updated anyway)
 ##' @author Matthew L. Fidler
 ##' @seealso \code{\link{eventTable}}, \code{\link{RxODE}}
@@ -130,7 +130,8 @@ add.dosing <- function(eventTable, dose, nbr.doses = 1L, dosing.interval = 24, d
     .lst <- list(dose=dose,
                  nbr.doses=nbr.doses,
                  start.time=start.time,
-                 do.sampling=do.sampling);
+                 do.sampling=do.sampling,
+                 ...);
     if (!is.na(amount.units)) .lst$amount.units <- amount.units;
     if (!is.na(time.units)) .lst$time.units <- time.units;
     if (dosing.to != 1) .lst$dosing.to <- dosing.to
@@ -329,12 +330,12 @@ eventTable <- function(amount.units = NA, time.units = NA){
 ##' @return A new event table
 ##' @author Matthew L Fidler
 ##' @export
-etSeq <- function(...,handleSamples=c("clear", "use"),handleWait=c("smartAddIi", "alwaysAddII")){
+etSeq <- function(...,handleSamples=c("clear", "use"), handleWait=c("smartAddIi", "alwaysAddII"), ii=24){
     ## etSeq_(List ets, bool clearSampling=clearSampling);
     .sampleIx <- c(clear=0L,use=1L);
     .waitIx <- c(smartAddIi=0L, alwaysAddII=1L)
     .Call(`_RxODE_etSeq_`, list(...), setNames(.sampleIx[match.arg(handleSamples)],NULL),
-          setNames(.waitIx[match.arg(handleWait)],NULL),
+          setNames(.waitIx[match.arg(handleWait)],NULL), as.double(ii),
           0L, TRUE, character(0),logical(0),FALSE);
 }
 
@@ -368,7 +369,7 @@ c.rxEt <- function(...){
 ##' @export
 etRep <- function(x, times=1, length.out=NA, each=NA, n=NULL, wait=0, id=integer(0),
                   handleSamples=c("clear", "use"),
-                  handleWait=c("smartAddIi", "alwaysAddII")){
+                  handleWait=c("smartAddIi", "alwaysAddII"), ii=24){
     if (!is.null(n)){
         times <- n;
     }
@@ -377,7 +378,7 @@ etRep <- function(x, times=1, length.out=NA, each=NA, n=NULL, wait=0, id=integer
     if (!is.na(length.out)) stop("'length.out' makes no sense with event tables");
     if (!is.na(each)) stop("'each' makes no sense with event tables");
     .Call(`_RxODE_etRep_`, x, as.integer(times),
-          as.double(wait), as.integer(id), setNames(.sampleIx[match.arg(handleSamples)],NULL),
+          as.double(wait), as.double(ii), as.integer(id), setNames(.sampleIx[match.arg(handleSamples)],NULL),
           setNames(.waitIx[match.arg(handleWait)],NULL))
 }
 

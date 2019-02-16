@@ -49,26 +49,27 @@ BEGIN_RCPP
 END_RCPP
 }
 // etSeq_
-List etSeq_(List ets, int handleSamples, int waitType, int reserveLen, bool needSort, CharacterVector newUnits, LogicalVector newShow, bool isCmtIntIn);
-RcppExport SEXP _RxODE_etSeq_(SEXP etsSEXP, SEXP handleSamplesSEXP, SEXP waitTypeSEXP, SEXP reserveLenSEXP, SEXP needSortSEXP, SEXP newUnitsSEXP, SEXP newShowSEXP, SEXP isCmtIntInSEXP) {
+List etSeq_(List ets, int handleSamples, int waitType, double defaultIi, int reserveLen, bool needSort, CharacterVector newUnits, LogicalVector newShow, bool isCmtIntIn);
+RcppExport SEXP _RxODE_etSeq_(SEXP etsSEXP, SEXP handleSamplesSEXP, SEXP waitTypeSEXP, SEXP defaultIiSEXP, SEXP reserveLenSEXP, SEXP needSortSEXP, SEXP newUnitsSEXP, SEXP newShowSEXP, SEXP isCmtIntInSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< List >::type ets(etsSEXP);
     Rcpp::traits::input_parameter< int >::type handleSamples(handleSamplesSEXP);
     Rcpp::traits::input_parameter< int >::type waitType(waitTypeSEXP);
+    Rcpp::traits::input_parameter< double >::type defaultIi(defaultIiSEXP);
     Rcpp::traits::input_parameter< int >::type reserveLen(reserveLenSEXP);
     Rcpp::traits::input_parameter< bool >::type needSort(needSortSEXP);
     Rcpp::traits::input_parameter< CharacterVector >::type newUnits(newUnitsSEXP);
     Rcpp::traits::input_parameter< LogicalVector >::type newShow(newShowSEXP);
     Rcpp::traits::input_parameter< bool >::type isCmtIntIn(isCmtIntInSEXP);
-    rcpp_result_gen = Rcpp::wrap(etSeq_(ets, handleSamples, waitType, reserveLen, needSort, newUnits, newShow, isCmtIntIn));
+    rcpp_result_gen = Rcpp::wrap(etSeq_(ets, handleSamples, waitType, defaultIi, reserveLen, needSort, newUnits, newShow, isCmtIntIn));
     return rcpp_result_gen;
 END_RCPP
 }
 // etRep_
-List etRep_(RObject curEt, int times, double wait, IntegerVector ids, int handleSamples, int waitType);
-RcppExport SEXP _RxODE_etRep_(SEXP curEtSEXP, SEXP timesSEXP, SEXP waitSEXP, SEXP idsSEXP, SEXP handleSamplesSEXP, SEXP waitTypeSEXP) {
+List etRep_(RObject curEt, int times, double wait, IntegerVector ids, int handleSamples, int waitType, double ii);
+RcppExport SEXP _RxODE_etRep_(SEXP curEtSEXP, SEXP timesSEXP, SEXP waitSEXP, SEXP idsSEXP, SEXP handleSamplesSEXP, SEXP waitTypeSEXP, SEXP iiSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -78,7 +79,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< IntegerVector >::type ids(idsSEXP);
     Rcpp::traits::input_parameter< int >::type handleSamples(handleSamplesSEXP);
     Rcpp::traits::input_parameter< int >::type waitType(waitTypeSEXP);
-    rcpp_result_gen = Rcpp::wrap(etRep_(curEt, times, wait, ids, handleSamples, waitType));
+    Rcpp::traits::input_parameter< double >::type ii(iiSEXP);
+    rcpp_result_gen = Rcpp::wrap(etRep_(curEt, times, wait, ids, handleSamples, waitType, ii));
     return rcpp_result_gen;
 END_RCPP
 }

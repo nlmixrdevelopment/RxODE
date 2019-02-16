@@ -2,14 +2,23 @@
 % Please edit documentation in R/et.R
 \name{etSeq}
 \alias{etSeq}
-\title{.. content for \description{} (no empty lines) ..}
+\title{Sequence of event tables}
 \usage{
-etSeq(..., handleSamples = c("clear", "use"))
+etSeq(..., handleSamples = c("clear", "use"),
+  handleWait = c("smartAddIi", "alwaysAddII"))
 }
 \arguments{
-\item{handleSamples}{is a boolean indicating if the sampling
-should be cleared when combining the event tables.}
+\item{handleSamples}{can be "clear", "use"}
+}
+\value{
+A new event table
 }
 \description{
-.. content for \description{} (no empty lines) ..
+Sequence of event tables
+}
+\details{
+
+}
+\author{
+Matthew L Fidler
 }

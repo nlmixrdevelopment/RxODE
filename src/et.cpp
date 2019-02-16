@@ -101,7 +101,7 @@ List etEmpty(CharacterVector units){
   e["get_units"] = eval2(_["expr"]   = parse2(_["text"]=getUnits),
 			 _["envir"]  = e);
 
-  std::string addDosing= "function (dose, nbr.doses = 1L, dosing.interval = 24, \n    dosing.to = 1L, rate = NULL, amount.units = NA_character_, \n    start.time = 0, do.sampling = FALSE, time.units = NA_character_, \n    ...) \n{\n    .lst <- list(dose = dose, nbr.doses = nbr.doses, start.time = start.time, \n        do.sampling = do.sampling)\n    if (!is.na(amount.units)) \n        .lst$amount.units <- amount.units\n    if (!is.na(time.units)) \n        .lst$time.units <- time.units\n    if (dosing.to != 1) \n        .lst$dosing.to <- dosing.to\n    if (!is.null(rate)) \n        .lst$rate <- rate\n    .lst$dosing.interval <- dosing.interval\n    invisible(.Call(`_RxODE_et_`, .lst, list('last')))\n}";
+  std::string addDosing= "function (dose, nbr.doses = 1L, dosing.interval = 24, \n    dosing.to = 1L, rate = NULL, amount.units = NA_character_, \n    start.time = 0, do.sampling = FALSE, time.units = NA_character_, \n    ...) \n{\n    .lst <- list(dose = dose, nbr.doses = nbr.doses, start.time = start.time, \n        do.sampling = do.sampling, ...)\n    if (!is.na(amount.units)) \n        .lst$amount.units <- amount.units\n    if (!is.na(time.units)) \n        .lst$time.units <- time.units\n    if (dosing.to != 1) \n        .lst$dosing.to <- dosing.to\n    if (!is.null(rate)) \n        .lst$rate <- rate\n    .lst$dosing.interval <- dosing.interval\n    invisible(.Call(`_RxODE_et_`, .lst, list('last')))\n}";
 
   e["add.dosing"] = eval2(_["expr"] = parse2(_["text"] = addDosing),
 			  _["envir"]  = e);
@@ -2225,7 +2225,9 @@ RObject et_(List input, List et__){
 
 // Sequence event tables
 //[[Rcpp::export]]
-List etSeq_(List ets, int handleSamples=0, int waitType = 0, int reserveLen=0, bool needSort=true,
+List etSeq_(List ets, int handleSamples=0, int waitType = 0,
+	    double defaultIi = 0,
+	    int reserveLen=0, bool needSort=true,
 	    CharacterVector newUnits = CharacterVector::create(),
 	    LogicalVector newShow = LogicalVector::create(),
 	    bool isCmtIntIn = false){
@@ -2233,6 +2235,7 @@ List etSeq_(List ets, int handleSamples=0, int waitType = 0, int reserveLen=0, b
   double maxTime = 0;
   double lastDose = 0;
   double lastIi = 0;
+  double trueLastIi =0;
   std::vector<int> id;
   std::vector<double> time;
   std::vector<double> low;
@@ -2278,7 +2281,7 @@ List etSeq_(List ets, int handleSamples=0, int waitType = 0, int reserveLen=0, b
       gotUnits=true;
     }
   }
-
+  bool firstDoseOfEt=true;
   for (i = 0 ;i < ets.size(); i++){
     if (rxIs(ets[i], "rxEt")){
       List et = ets[i];
@@ -2348,6 +2351,7 @@ List etSeq_(List ets, int handleSamples=0, int waitType = 0, int reserveLen=0, b
       curId = et["id"];
       curEvid = et["evid"];
       curAddl = et["addl"];
+      firstDoseOfEt = true;
       for (j = 0; j < curTime.size(); j++){
 	if (handleSamples == 0 && curEvid[j]== 0) continue;
 	if (curEvid[j] == 0) nobs++;
@@ -2356,27 +2360,58 @@ List etSeq_(List ets, int handleSamples=0, int waitType = 0, int reserveLen=0, b
 	addl.push_back(curAddl[j]);
 	if (!ISNA(curHigh[j])){
 	  if (curAddl[j] > 0){
+	    if (i != 0 && trueLastIi == 0 && firstDoseOfEt && curTime[j] < curIi[j]){
+		maxTime += curIi[j];
+		timeDelta += curIi[j];
+	    }
 	    lastIi = curIi[j];
+	    trueLastIi=lastIi;
 	    lastDose = curHigh[j] + curAddl[j]*curIi[j];
-	    maxTime = curHigh[j] + (curAddl[j]+1)*curIi[j];
-	  } else {
+	    double tmp = curHigh[j] + (curAddl[j]+1)*curIi[j];
+	    if (tmp > maxTime) maxTime = tmp;
+	    firstDoseOfEt = false;
+	  } else if (curEvid[j] != 0 && curEvid[j] != 2 && curEvid[j] != 3) {
+	    if (i != 0 && trueLastIi == 0 && firstDoseOfEt && curTime[j] < defaultIi){
+	      warning("Assumed a dose interval of %.1f between event tables; use 'ii' to adjust.", defaultIi);
+	      maxTime += defaultIi;
+	      timeDelta += defaultIi;
+	    }
 	    lastIi = (curHigh[j] - lastDose);
+	    trueLastIi=0;
 	    maxTime = curHigh[j] + (curHigh[j] - lastDose); //Use last interval
 	    lastDose = curHigh[j];
+	    firstDoseOfEt = false;
+	  } else {
+	    if (curHigh[j] > maxTime) maxTime = curHigh[j];
 	  }
 	  high.push_back(curHigh[j]+timeDelta);
 	  time.push_back(curTime[j]+timeDelta);
 	  low.push_back(curLow[j]+timeDelta);
 	} else {
 	  if (curAddl[j] > 0){
+	    if (i != 0 && trueLastIi == 0 && firstDoseOfEt && curTime[j] < curIi[j]){
+		maxTime += curIi[j];
+		timeDelta += curIi[j];
+	    }
+	    firstDoseOfEt = false;
 	    lastIi = curIi[j];
+	    trueLastIi=lastIi;
 	    lastDose = curTime[j] + curAddl[j] * curIi[j];
 	    double tmp = curTime[j] + (curAddl[j]+1) * curIi[j];
 	    if (tmp > maxTime) maxTime = tmp;
-	  } else {
+	  } else if (curEvid[j] != 0 && curEvid[j] != 2 && curEvid[j] != 3){
+	    if (i != 0 && trueLastIi == 0 && firstDoseOfEt && curTime[j] < defaultIi){
+	      warning("Assumed a dose interval of %.1f between event tables; use 'ii' to adjust.", defaultIi);
+	      maxTime += defaultIi;
+	      timeDelta += defaultIi;
+	    }
 	    lastIi = (curTime[j] - lastDose);
+	    trueLastIi=0;
 	    lastDose = curTime[j];
 	    maxTime = curTime[j] + (curTime[j] - lastDose); //Use last interval
+	    firstDoseOfEt = false;
+	  } else {
+	    if (curHigh[j] > maxTime) maxTime = curHigh[j];
 	  }
 	  high.push_back(NA_REAL);
 	  time.push_back(curTime[j]+timeDelta);
@@ -2521,7 +2556,8 @@ List etSeq_(List ets, int handleSamples=0, int waitType = 0, int reserveLen=0, b
 
 // Sequence event tables
 //[[Rcpp::export]]
-List etRep_(RObject curEt, int times, double wait, IntegerVector ids, int handleSamples, int waitType){
+List etRep_(RObject curEt, int times, double wait, IntegerVector ids, int handleSamples, int waitType,
+	    double ii){
   CharacterVector cls = as<CharacterVector>(curEt.attr("class"));
   List e = cls.attr(".RxODE.lst");
   int len = as<int>(e["nobs"]) +as<int>(e["ndose"]);
@@ -2531,6 +2567,7 @@ List etRep_(RObject curEt, int times, double wait, IntegerVector ids, int handle
     seqLst[i*2] = curEt;
     seqLst[i*2+1] = wait;
   }
-  return etSeq_(seqLst, handleSamples, waitType, len*times, (IDs.size() != 1), e["units"],
+  return etSeq_(seqLst, handleSamples, waitType, ii,
+		len*times, (IDs.size() != 1), e["units"],
 		e["show"], rxIs(curEt, "integer"));
 }
