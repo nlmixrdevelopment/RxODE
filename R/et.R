@@ -324,18 +324,18 @@ eventTable <- function(amount.units = NA, time.units = NA){
 ##' Sequence of event tables
 ##'
 ##' @param ...
-##' @param handleSamples can be "clear", "use"
+##' @param samples can be "clear", "use"
 ##' @details
 ##'
 ##' @return A new event table
 ##' @author Matthew L Fidler
 ##' @export
-etSeq <- function(...,handleSamples=c("clear", "use"), handleWait=c("smartAddIi", "alwaysAddII"), ii=24){
+etSeq <- function(...,samples=c("clear", "use"), waitII=c("smart", "+ii"), ii=24){
     ## etSeq_(List ets, bool clearSampling=clearSampling);
     .sampleIx <- c(clear=0L,use=1L);
-    .waitIx <- c(smartAddIi=0L, alwaysAddII=1L)
-    .Call(`_RxODE_etSeq_`, list(...), setNames(.sampleIx[match.arg(handleSamples)],NULL),
-          setNames(.waitIx[match.arg(handleWait)],NULL), as.double(ii),
+    .waitIx <- c(smart=0L, `+ii`=1L)
+    .Call(`_RxODE_etSeq_`, list(...), setNames(.sampleIx[match.arg(samples)],NULL),
+          setNames(.waitIx[match.arg(waitII)],NULL), as.double(ii),
           0L, TRUE, character(0),logical(0),FALSE);
 }
 
@@ -368,18 +368,18 @@ c.rxEt <- function(...){
 ##' @author Matthew Fidler
 ##' @export
 etRep <- function(x, times=1, length.out=NA, each=NA, n=NULL, wait=0, id=integer(0),
-                  handleSamples=c("clear", "use"),
-                  handleWait=c("smartAddIi", "alwaysAddII"), ii=24){
+                  samples=c("clear", "use"),
+                  waitII=c("smart", "+ii"), ii=24){
     if (!is.null(n)){
         times <- n;
     }
     .sampleIx <- c(clear=0L,use=1L);
-    .waitIx <- c(smartAddIi=0L, alwaysAddII=1L)
+    .waitIx <- c(smart=0L, `+ii`=1L)
     if (!is.na(length.out)) stop("'length.out' makes no sense with event tables");
     if (!is.na(each)) stop("'each' makes no sense with event tables");
     .Call(`_RxODE_etRep_`, x, as.integer(times),
-          as.double(wait), as.integer(id), setNames(.sampleIx[match.arg(handleSamples)],NULL),
-          setNames(.waitIx[match.arg(handleWait)],NULL), as.double(ii))
+          as.double(wait), as.integer(id), setNames(.sampleIx[match.arg(samples)],NULL),
+          setNames(.waitIx[match.arg(waitII)],NULL), as.double(ii))
 }
 
 ##'@export

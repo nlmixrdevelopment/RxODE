@@ -2411,7 +2411,7 @@ List etSeq_(List ets, int handleSamples=0, int waitType = 0,
 	    maxTime = curTime[j] + (curTime[j] - lastDose); //Use last interval
 	    firstDoseOfEt = false;
 	  } else {
-	    if (curHigh[j] > maxTime) maxTime = curHigh[j];
+	    if (curTime[j] > maxTime) maxTime = curTime[j];
 	  }
 	  high.push_back(NA_REAL);
 	  time.push_back(curTime[j]+timeDelta);
