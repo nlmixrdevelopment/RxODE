@@ -1,7 +1,9 @@
 library(RxODE)
 rxPermissive({
+
     rxClean()
     for (meth in c("liblsoda", "lsoda")){ ## Dop is very close but doesn't match precisely.
+
         context(sprintf("Simple test for time-varying covariates (%s)", meth))
 
         ode <- RxODE({
@@ -12,12 +14,17 @@ rxPermissive({
             printf("%.10f,%.10f\n",t,c);
         })
 
-        et <- eventTable()   # default time units
+        et <- eventTable(time.units="hr")   # default time units
         et$add.sampling(seq(from=0, to=100, by=0.01))
 
-        cov <- data.frame(c=et$get.sampling()$time+1);
+        cov <- data.frame(c=et$get.EventTable()$time+units::set_units(1,h));
 
-        cov.lin <- approxfun(et$get.sampling()$time, cov$c, yleft=cov$c[1], yright=cov$c[length(cov$c)]);
+        et0 <- et;
+
+        et <- cbind(et,cov)
+
+        cov.lin <- approxfun(et$time, et$c, yleft=et$c[1], yright=et$c[length(cov$c)]);
+
 
         sink("temp.csv");
         cat("t,c\n");
@@ -25,7 +32,7 @@ rxPermissive({
                        params = c(a=-8/3, b=-10),
                        events = et,
                        inits = c(X=1, Y=1, Z=1),
-                       covs = cov, add.cov=TRUE,
+                       add.cov=TRUE,
                        covsInterpolation="linear",
                        method=meth);
         sink();
@@ -49,7 +56,6 @@ rxPermissive({
                        params = c(a=-8/3, b=-10),
                        events = et,
                        inits = c(X=1, Y=1, Z=1),
-                       covs = cov,
                        covs_interpolation="NOCB", add.cov=TRUE,
                        method=meth);
         sink()
@@ -72,7 +78,6 @@ rxPermissive({
                        params = c(a=-8/3, b=-10),
                        events = et,
                        inits = c(X=1, Y=1, Z=1),
-                       covs = cov,
                        covs_interpolation="midpoint", add.cov=TRUE,
                        method=meth);
         sink()
@@ -96,7 +101,6 @@ rxPermissive({
                        params = c(a=-8/3, b=-10),
                        events = et,
                        inits = c(X=1, Y=1, Z=1),
-                       covs = cov,
                        covs_interpolation="constant", add.cov=TRUE,
                        method=meth);
         sink()
@@ -132,39 +136,43 @@ rxPermissive({
             expect_false(isTRUE(all.equal(out,out1)));
         })
 
-        cov <- data.frame(c=et$get.sampling()$time+1,a=-et$get.sampling()$time/100);
+        cov <- data.frame(c=et0$get.EventTable()$time+units::set_units(1,hr),
+                          a=-et0$get.EventTable()$time/units::set_units(100,hr));
+
+        et <- cbind(et0,cov)
 
         sink("temp")
         out <- rxSolve(ode,
                        params = c(a=-8/3, b=-10),
                        events = et,
                        inits = c(X=1, Y=1, Z=1),
-                       covs = cov, add.cov=TRUE,
+                       add.cov=TRUE,
                        method=meth)
 
         out3 <- rxSolve(ode,
                         params = c(a=-8/3, b=-10),
                         events = et,
                         inits = c(X=1, Y=1, Z=1),
-                        covs = cov, add.cov=TRUE,
+                        add.cov=TRUE,
                         method=meth)
         sink();
         unlink("temp");
 
         test_that("time varying covariates output covariate in data frame",{
-            expect_equal(cov$c,out$c);
-            expect_equal(cov$a,out$a);
+            expect_equal(cov$c[et0$get.obs.rec()],out$c);
+            expect_equal(cov$a[et0$get.obs.rec()],out$a);
         })
 
 
-        cov <- data.frame(c=et$get.sampling()$time+1);
+        cov <- data.frame(c=et0$get.EventTable()$time+units::set_units(1,hr));
+        et <- cbind(et0, cov);
 
         sink("temp");
         out2 <- rxSolve(ode,
                         params = c(a=-8/3, b=-10),
                         events = et,
                         inits = c(X=1, Y=1, Z=1),
-                        covs = cov, add.cov=TRUE,
+                        add.cov=TRUE,
                         method=meth)
         sink();
         unlink("temp");
