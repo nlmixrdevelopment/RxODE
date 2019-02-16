@@ -1,3 +1,130 @@
+##' @rdname rxSolve
+##' @export
+rxControl <- function(method = c("liblsoda", "lsoda", "dop853"),
+                      transitAbs = NULL, atol = 1.0e-8, rtol = 1.0e-6,
+                      maxsteps = 5000L, hmin = 0L, hmax = NA, hini = 0, maxordn = 12L, maxords = 5L, ...,
+                      cores,
+                      covsInterpolation = c("locf", "linear", "nocb", "midpoint"),
+                      addCov = FALSE, matrix = FALSE, sigma = NULL, sigmaDf = NULL,
+                      nCoresRV = 1L, sigmaIsChol = FALSE, nDisplayProgress=10000L,
+                      amountUnits = NA_character_, timeUnits = "hours", stiff,
+                      theta = NULL, eta = NULL, addDosing=FALSE,
+                      stateTrim=Inf, updateObject=FALSE,
+                      omega = NULL, omegaDf = NULL, omegaIsChol = FALSE,
+                      nSub = 1L, thetaMat = NULL, thetaDf = NULL, thetaIsChol = FALSE,
+                      nStud = 1L, dfSub=0.0, dfObs=0.0, returnType=c("rxSolve", "matrix", "data.frame", "data.frame.TBS"),
+                      seed=NULL, nsim=NULL, setupOnly=FALSE){
+    .xtra <- list(...);
+    if (is.null(transitAbs) && !is.null(.xtra$transit_abs)){
+        transitAbs <- .xtra$transit_abs;
+    }
+    if (missing(updateObject) && !is.null(.xtra$update.object)){
+        updateObject <- .xtra$update.object;
+    }
+    if (missing(covsInterpolation) && !is.null(.xtra$covs_interpolation)){
+        covsInterpolation <- .xtra$covs_interpolation;
+    }
+    if (missing(addCov) && !is.null(.xtra$add.cov)){
+        addCov <- .xtra$add.cov;
+    }
+    if (!is.null(seed)){
+        set.seed(seed);
+    }
+    if (!is.null(nsim)){
+        if (rxIs(params, "eventTable") || rxIs(events, "eventTable") && nSub == 1L){
+            nSub <- nsim;
+        } else if (nStud == 1L){
+            nStud <- nsim;
+        }
+
+    }
+    if (!missing(stiff) && missing(method)){
+        if (rxIs(stiff, "logical")){
+            if (stiff){
+                method <- "lsoda"
+                warning("stiff=TRUE has been replaced with method = \"lsoda\".")
+            } else {
+                method <- "dop853"
+                warning("stiff=FALSE has been replaced with method = \"dop853\".")
+            }
+        }
+    } else {
+        if (!rxIs(method, "integer")){
+            method <- match.arg(method);
+        }
+    }
+    .matrixIdx <- c("rxSolve"=0, "matrix"=1, "data.frame"=2, "data.frame.TBS"=3);
+    if (!missing(returnType)){
+        matrix <- .matrixIdx[match.arg(returnType)];
+    } else if (!is.null(.xtra$return.type)){
+        matrix <- .matrixIdx[.xtra$return.type];
+    } else {
+        matrix <- as.integer(matrix);
+    }
+    if (!rxIs(method, "integer")){
+        .methodIdx <- c("lsoda"=1, "dop853"=0, "liblsoda"=2);
+        method <- as.integer(.methodIdx[method]);
+    }
+    if (Sys.info()[["sysname"]] == "SunOS" && method == 2){
+        method <- 1;
+    }
+    if (length(covsInterpolation) > 1) covsInterpolation <- covsInterpolation[1];
+    covsInterpolation <- tolower(match.arg(covsInterpolation,
+                                           c("linear", "locf", "LOCF", "constant", "nocb", "NOCB", "midpoint")))
+    if (covsInterpolation == "constant") covsInterpolation <- "locf";
+    covsInterpolation  <- as.integer(which(covsInterpolation == c("linear", "locf", "nocb", "midpoint")) - 1);
+    if (any(duplicated(names(.xtra)))){
+        stop("Duplicate arguments do not make sense.");
+    }
+    if (missing(cores)){
+        cores <- RxODE::rxCores();
+    }
+    .nms <- names(as.list(match.call())[-1]);
+
+    .ret <- list(method=method, #0
+                 transitAbs=transitAbs, #1
+                 atol=atol, #2
+                 rtol=rtol, #3
+                 maxsteps=maxsteps, #4
+                 hmin=hmin, #5
+                 hmax=hmax, #6
+                 hini=hini, #7
+                 maxordn=maxordn, #8
+                 maxords=maxords, #9
+                 cores=cores, #10
+                 covsInterpolation=covsInterpolation, #11
+                 addCov=addCov, #12
+                 matrix=matrix, #13
+                 sigma=sigma, #14
+                 sigmaDf=sigmaDf, #15
+                 nCoresRV=nCoresRV, #16
+                 sigmaIsChol=sigmaIsChol,
+                 nDisplayProgress=nDisplayProgress,
+                 amountUnits=amountUnits,
+                 timeUnits=timeUnits,
+                 addDosing=addDosing,
+                 stateTrim=stateTrim,
+                 theta=theta,
+                 eta=eta,
+                 updateObject=updateObject,
+                 doSolve=TRUE,
+                 omega=omega,
+                 omegaDf=omegaDf,
+                 omegaIsChol=omegaIsChol,
+                 nSub=nSub,
+                 thetaMat=thetaMat,
+                 thetaDf=thetaDf,
+                 thetaIsChol=thetaIsChol,
+                 nStud=nStud,
+                 dfSub=dfSub,
+                 dfObs=dfObs,
+                 setupOnly=as.integer(setupOnly),
+                 callNames=.nms,
+                 xtra=.xtra)
+    class(.ret) <- "rxControl";
+    return(.ret)
+}
+
 ##' Solves a ODE equation
 ##'
 ##' This uses RxODE family of objects, file, or model specification to
@@ -26,10 +153,6 @@
 ##'     ODE variables will be divided by the scaling factor.  For
 ##'     example \code{scale=(center=2)} will divide the center ODE
 ##'     variable by 2.
-##'
-##' @param covs a matrix or dataframe the same number of rows as the
-##'     sampling points defined in the events \code{eventTable}.  This
-##'     is for time-varying covariates.
 ##'
 ##' @param method The method for solving ODEs.  Currently this supports:
 ##'
@@ -179,9 +302,6 @@
 ##'     modify it's \code{FALSE} default unless you are willing to
 ##'     have unexpected results.
 ##'
-##' @param doSolve Internal flag.  By default this is \code{TRUE},
-##'     when \code{FALSE} a list of solving options is returned.
-##'
 ##' @param returnType This tells what type of object is returned.  The currently supported types are:
 ##' \itemize{
 ##' \item \code{"rxSolve"} (default) will return a reactive data frame
@@ -260,336 +380,17 @@ rxSolve <- function(object, ...){
 ##' @rdname rxSolve
 ##' @export
 rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, scale = NULL,
-                    covs = NULL, method = c("liblsoda", "lsoda", "dop853"),
-                    transitAbs = NULL, atol = 1.0e-8, rtol = 1.0e-6,
-                    maxsteps = 5000L, hmin = 0L, hmax = NA, hini = 0, maxordn = 12L, maxords = 5L, ...,
-                    cores,
-                    covsInterpolation = c("locf", "linear", "nocb", "midpoint"),
-                    addCov = FALSE, matrix = FALSE, sigma = NULL, sigmaDf = NULL,
-                    nCoresRV = 1L, sigmaIsChol = FALSE, nDisplayProgress=10000L,
-                    amountUnits = NA_character_, timeUnits = "hours", stiff,
-                    theta = NULL, eta = NULL, addDosing=FALSE,
-                    stateTrim=Inf, updateObject=FALSE, doSolve=TRUE,
-                    omega = NULL, omegaDf = NULL, omegaIsChol = FALSE,
-                    nSub = 1L, thetaMat = NULL, thetaDf = NULL, thetaIsChol = FALSE,
-                    nStud = 1L, dfSub=0.0, dfObs=0.0, returnType=c("rxSolve", "matrix", "data.frame", "data.frame.TBS"),
-                    seed=NULL, nsim=NULL, setupOnly=FALSE){
+                            ...,control){
     on.exit({rxSolveFree()});
-    .xtra <- list(...);
-    if (is.null(transitAbs) && !is.null(.xtra$transit_abs)){
-        transitAbs <- .xtra$transit_abs;
-    }
-    if (missing(updateObject) && !is.null(.xtra$update.object)){
-        updateObject <- .xtra$update.object;
-    }
-    if (missing(doSolve) && !is.null(.xtra$do.solve)){
-        doSolve <- .xtra$do.solve;
-    }
-    if (missing(covsInterpolation) && !is.null(.xtra$covs_interpolation)){
-        covsInterpolation <- .xtra$covs_interpolation;
-    }
-    if (missing(addCov) && !is.null(.xtra$add.cov)){
-        addCov <- .xtra$add.cov;
-    }
-    if (!is.null(seed)){
-        set.seed(seed);
-    }
-    if (!is.null(nsim)){
-        if (rxIs(params, "eventTable") || rxIs(events, "eventTable") && nSub == 1L){
-            nSub <- nsim;
-        } else if (nStud == 1L){
-            nStud <- nsim;
-        }
-
-    }
-    if (!doSolve){
-        .modVars <- RxODE::rxModelVars(object);
-        .state <- .modVars$state;
-        .lhs <- .modVars$lhs;
-        .pars <- .modVars$params;
-        .stateIgnore <- .modVars$state.ignore
-        if (!is.null(params)){
-            if (is.null(events) && is(params, "EventTable")){
-                events <- params;
-                params <- c();
-            }
-        }
-        if (is.null(transitAbs)){
-            transitAbs <- .modVars$podo;
-            if (transitAbs){
-                warning("Assumed transit compartment model since 'podo' is in the model.")
-            }
-        }
-        if (!is(params, "numeric")){
-            .n <- names(params);
-            params <- as.double(params);
-            names(params) <- .n;
-        }
-        if (missing(stiff)) stiff <- TRUE;
-        ## Params and inits passed
-        extra.args <- list(events = events$copy(),
-                           covs = covs, stiff = stiff,
-                           transitAbs = transitAbs, atol = atol, rtol = rtol, maxsteps = maxsteps,
-                           hmin = hmin, hmax = hmax, hini = hini, maxordn = maxordn, maxords = maxords,
-                           covsInterpolation = covsInterpolation, addCov=addCov, ...);
-        params <- c(params, RxODE::rxThetaEta(theta, eta));
-        .eventTable <- events$get.EventTable()
-        if (!is.numeric(maxordn))
-            stop("'maxordn' must be numeric.")
-        if (maxordn < 1 || maxordn > 12)
-            stop("'maxordn' must be >1 and < = 12.")
-        if (!is.numeric(maxords))
-            stop("'maxords' must be numeric.")
-        if (maxords < 1 || maxords > 5)
-            stop("'maxords' must be >1 and < = 5.")
-        if (!is.numeric(rtol))
-            stop("'rtol' must be numeric.")
-        if (!is.numeric(atol))
-            stop("'atol' must be numeric.")
-        if (!is.numeric(hmin))
-            stop("'hmin' must be numeric.")
-        if (hmin < 0)
-            stop("'hmin' must be a non-negative value.")
-        if (is.null(hmax)){
-            if (is.null(.eventTable$time) || length(.eventTable$time) == 1){
-                hmax <- 0;
-            } else {
-                hmax <- max(abs(diff(.eventTable$time)))
-            }
-        }
-        if (length(hmax) == 1 & !is.na(hmax)){
-            if (!is.numeric(hmax)){
-                stop("'hmax' must be numeric.")
-            }
-            if (hmax < 0)
-                stop("'hmax' must be a non-negative value.")
-            if (hmax == Inf)
-                hmax <- 0
-        }
-
-        if (!is.null(hini)){
-            if (hini < 0)
-                stop("'hini' must be a non-negative value.")
-        } else {
-            hini <- 0;
-        }
-        ## preserve input arguments.
-        inits <- RxODE::rxInits(object, inits, .state, 0);
-        params <- RxODE::rxInits(object, params, .pars, NA, !is.null(covs));
-        if (!is.null(covs)){
-            .cov <- as.matrix(covs);
-            .covLen <- dim(.cov)[1];
-            if (.covLen !=  length(.eventTable$time)){
-                .samplingTime <- events$get.sampling()$time;
-                if (.covLen != length(.samplingTime))
-                    stop("Covariate length need to match the sampling times or all the times in the event table.");
-                .lst <- as.matrix(do.call("cbind", lapply(seq(1L, dim(.cov)[2]), function(i){
-                                                      f <- stats::approxfun(.samplingTime, .cov[, i])
-                                                      return(f(.eventTable$time))
-                                                  })))
-                dimnames(.lst) <- list(NULL, dimnames(.cov)[[2]]);
-                .cov <- .lst;
-            }
-            .pcov <- sapply(dimnames(.cov)[[2]], function(x){
-                .w <- which(x == names(params));
-                if (length(.w) == 1){
-                    return(.w)
-                } else {
-                    return(0);
-                }
-            })
-            ## Now check if there is any unspecified parameters by either covariate or parameter
-            .w <- which(is.na(params));
-            if (!all(names(params)[.w] %in% dimnames(.cov)[[2]])){
-                print(params)
-                stop("Some model specified variables were not specified by either a covariate or parameter");
-            }
-            ## Assign all parameters matching a covariate to zero.
-            for (i in .pcov){
-                if (i > 0){
-                    params[i] <- 0;
-                }
-            }
-        } else {
-            ## For now zero out the covariates
-            .pcov <- c();
-            .cov <- c();
-        }
-        if (is.null(inits)){
-            .n <- .state;
-            inits <- rep(0.0, length(.n));
-            names(inits) <- .n;
-        }
-        .s <- as.list(match.call(expand.dots = TRUE))
-        .wh <- grep(pattern = "[Ss]\\d+$", names(.s))
-        if (length(scale) > 0 && length(.wh) > 0){
-            stop("Cannot specify both 'scale=c(...)' and S#=, please pick one to scale the ODE compartments.")
-        }
-        ## HACK: fishing scaling variables "S1 S2 S3 ..." from params call
-        ## to solve(). Maybe define a "scale = c(central = 7.6, ...)" argument
-        ## similar to "params = "?
-        .scalerIx <- c()
-        if (length(.wh) > 0) {
-            .scalerIx <- as.numeric(substring(names(.s)[.wh], 2))
-            if (any(duplicated(.scalerIx))){
-                stop("Duplicate scaling factors found.");
-            }
-            scale <- unlist(.s[.wh]);
-            if (any(length(inits) < .scalerIx)){
-                warning(sprintf("Scaler variable(s) above the number of compartments: %s.",
-                                paste(paste0("S", .scalerIx[.scalerIx > length(inits)]), collapse=", ")))
-                scale <- scale[.scalerIx < length(inits)]
-                .scalerIx <- .scalerIx[.scalerIx < length(inits)];
-            }
-            names(scale) <- .state[.scalerIx];
-        }
-        scale <- c(scale);
-        scale <- RxODE::rxInits(object, scale, .state, 1, noini=TRUE);
-        .isLocf <- 0L;
-        if (length(covsInterpolation) > 1){
-            .isLocf <- 0L;
-        } else if (covsInterpolation == "constant"){
-            .isLocf <- 1L;
-        } else if (covsInterpolation == "NOCB"){
-            .isLocf <- 2L;
-        } else if (covsInterpolation == "midpoint"){
-            .isLocf <- 3L;
-        } else if (covsInterpolation != "linear"){
-            stop("Unknown covariate interpolation specified.");
-        }
-        ## if (.eventTable$time[1] != 0){
-        ##     warning(sprintf("The initial conditions are at t = %s instead of t = 0.", .eventTable$time[1]))
-        ## }
-        ## Ensure that inits and params have names.
-        names(inits) <- .state
-        names(params) <- .pars;
-
-        .time <- as.double(.eventTable$time);
-        .evid <- as.integer(.eventTable$evid);
-        .amt <- as.double(.eventTable$amt[.eventTable$evid>0]);
-        ## Covariates
-        .pcov <- as.integer(.pcov);
-        .cov <- as.double(.cov);
-        .isLocf <- as.integer(.isLocf);
-        ## Solver options (double)
-        atol <- as.double(atol);
-        rtol <- as.double(rtol);
-        hmin <- as.double(hmin);
-        hmax <- as.double(hmax);
-        hini <- as.double(hini);
-        ## Solver options ()
-        maxordn <- as.integer(maxordn);
-        maxords <- as.integer(maxords);
-        maxsteps <- as.integer(maxsteps);
-        stiff <- as.integer(stiff);
-        transitAbs <- as.integer(transitAbs);
-        .doMatrix <- as.integer(matrix);
-        addCov <- as.integer(addCov)
-        ret <- list(params=params,
-                    inits=inits,
-                    lhs_vars=.lhs,
-                    ## events
-                    time=.time,
-                    evid=.evid,
-                    amt=.amt,
-                    ## Covariates
-                    pcov=.pcov,
-                    covs=.cov,
-                    isLocf=.isLocf,
-                    ## Solver options (double)
-                    atol=atol,
-                    rtol=rtol,
-                    hmin=hmin,
-                    hmax=hmax,
-                    hini=hini,
-                    ## Solver options ()
-                    maxordn=maxordn,
-                    maxords=maxords,
-                    maxsteps=maxsteps,
-                    stiff=stiff,
-                    transitAbs=transitAbs,
-                    ## Passed to build solver object.
-                    object=object,
-                    extra.args=extra.args,
-                    scale=scale,
-                    events=events,
-                    event.table=.eventTable,
-                    do.matrix=.doMatrix,
-                    addCov=addCov,
-                    state.ignore=.stateIgnore);
-        return(ret);
-    }
-    ## stiff = TRUE, transitAbs = NULL,
-    ## atol = 1.0e-8, rtol = 1.0e-6, maxsteps = 5000, hmin = 0, hmax = NULL, hini = 0, maxordn = 12,
-    ## maxords = 5, ..., covsInterpolation = c("linear", "constant", "NOCB", "midpoint"),
-    ## theta=numeric(), eta=numeric(), matrix=TRUE,addCov=FALSE,
-    ## inC=FALSE, counts=NULL, doSolve=TRUE
-    if (!missing(stiff) && missing(method)){
-        if (rxIs(stiff, "logical")){
-            if (stiff){
-                method <- "lsoda"
-                warning("stiff=TRUE has been replaced with method = \"lsoda\".")
-            } else {
-                method <- "dop853"
-                warning("stiff=FALSE has been replaced with method = \"dop853\".")
-            }
-        }
+    if (!missing(control)){
+        .ctl <- control;
     } else {
-        if (!rxIs(method, "integer")){
-            method <- match.arg(method);
-        }
+        .ctl <- do.call(rxControl, list(...));
     }
-    .matrixIdx <- c("rxSolve"=0, "matrix"=1, "data.frame"=2, "data.frame.TBS"=3);
-    if (!missing(returnType)){
-        matrix <- .matrixIdx[match.arg(returnType)];
-    } else if (!is.null(.xtra$return.type)){
-        matrix <- .matrixIdx[.xtra$return.type];
-    } else {
-        matrix <- as.integer(matrix);
-    }
-    if (!rxIs(method, "integer")){
-        .methodIdx <- c("lsoda"=1, "dop853"=0, "liblsoda"=2);
-        method <- as.integer(.methodIdx[method]);
-    }
-    if (Sys.info()[["sysname"]] == "SunOS" && method == 2){
-        method <- 1;
-    }
-    if (length(covsInterpolation) > 1) covsInterpolation <- covsInterpolation[1];
-    covsInterpolation <- tolower(match.arg(covsInterpolation,
-                                           c("linear", "locf", "LOCF", "constant", "nocb", "NOCB", "midpoint")))
-    if (covsInterpolation == "constant") covsInterpolation <- "locf";
-    covsInterpolation  <- as.integer(which(covsInterpolation == c("linear", "locf", "nocb", "midpoint")) - 1);
-    if (any(duplicated(names(.xtra)))){
-        stop("Duplicate arguments do not make sense.");
-    }
-    if (missing(cores)){
-        cores <- RxODE::rxCores();
-    }
-    .nms <- names(as.list(match.call())[-1]);
-    .Call(`_RxODE_rxSolveCsmall`, object, .nms, .xtra,
-          params, events, inits, scale, covs,
-          list(method, #0
-               transitAbs, #1
-               atol, #2
-               rtol, #3
-               maxsteps, #4
-               hmin, #5
-               hmax, #6
-               hini, #7
-               maxordn, #8
-               maxords, #9
-               cores, #10
-               covsInterpolation, #11
-               addCov, #12
-               matrix, #13
-               sigma, #14
-               sigmaDf, #15
-               nCoresRV, #16
-               sigmaIsChol, nDisplayProgress, amountUnits,
-               timeUnits, addDosing, stateTrim, theta, eta, updateObject,
-               doSolve, omega, omegaDf, omegaIsChol, nSub, thetaMat,
-               thetaDf, thetaIsChol, nStud, dfSub, dfObs,
-               as.integer(setupOnly)));
+    print(.ctl)
+    .Call(`_RxODE_rxSolveCsmall`, object, .ctl$callNames, .ctl$.xtra,
+          params, events, inits, scale, NULL,
+          .ctl);
 }
 
 ##' @rdname rxSolve
