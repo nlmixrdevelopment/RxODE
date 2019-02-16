@@ -18,7 +18,8 @@ rxPermissive({
     et$add.dosing(dose=2/24,start.time=0,
                   nbr.doses=10,dosing.interval=1)
 
-    et <- et %>% et(7.5,evid=3)
+    et$add.dosing(start.time=7.5,evid=3,dose=0)
+
 
     library(units)
 
@@ -45,13 +46,15 @@ rxPermissive({
 
     sol.1c <- RxODE({
         V <- 20
-        Cl <- 25
+        Cl <- 2
         blood <- linCmt();
     })
 
     x2 <- solve(sol.1c, et)
 
     et1 <- et %>% et(time=9,evid=3)
+
+    et1 <- et1 %>% set_units(h)
 
     x2 <- solve(sol.1c, et1)
 
