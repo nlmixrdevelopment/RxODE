@@ -149,7 +149,21 @@ bool rxIs(const RObject &obj, std::string cls){
       for (unsigned int i = classattr.size(); i--; ){
 	cur = as<std::string>(classattr[i]);
 	if (cur == cls){
-	  if (cls == "rxSolve"){
+	  if (cls == "rxEt"){
+	    List ce = as<List>(classattr.attr(".RxODE.lst"));
+	    List lobj = List(obj);
+	    int nobs = ce["nobs"];
+	    int ndose = ce["ndose"];
+	    if (lobj.size() != 11){
+	      lobj.attr("class") = CharacterVector::create("data.frame");
+	      return false;
+	    }
+	    if ( (as<IntegerVector>(lobj[0])).size() != ndose + nobs){
+	      lobj.attr("class") = CharacterVector::create("data.frame");
+	      return false;
+	    }
+	    return true;
+	  } else if (cls == "rxSolve"){
 	    Environment e = as<Environment>(classattr.attr(".RxODE.env"));
 	    List lobj = List(obj);
 	    CharacterVector cls2= CharacterVector::create("data.frame");
