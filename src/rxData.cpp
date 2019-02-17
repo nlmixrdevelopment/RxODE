@@ -24,6 +24,8 @@
 using namespace Rcpp;
 using namespace arma;
 
+List etImportEventTable(List inData);
+
 RObject et_(List input, List et__);
 
 int rxcEvid = -1;
@@ -2104,22 +2106,9 @@ void updateSolveEnvPost(Environment e){
       e["counts"] = cnt;
     }
   }
-  if (!e.exists("EventTable")){
+  if (!e.exists(".et")){
     RObject eventso = e["args.events"];
-    if (rxIs(eventso, "EventTable")){
-      List et = as<List>(eventso);
-      Function f = et["get.EventTable"];
-      e["EventTable"] = f();
-      f = et["get.obs.rec"];
-      e["obs.rec"] = f();
-      f = et["get.dosing"];
-      e["dosing"] = f();
-      f = et["get.sampling"];
-      e["sampling"] = f();
-      f = et["get.units"];
-      e["units"] = f();
-    }
-    e["covs"] = as<RObject>(e["args.covs"]);
+    e[".et"] = etImportEventTable(as<List>(eventso));
     Function parse2("parse", R_BaseNamespace);
     Function eval2("eval", R_BaseNamespace);
     // eventTable style methods
@@ -3603,37 +3592,6 @@ RObject rxSolveUpdate(RObject obj,
                           as<RObject>(value), //defrx_inits,
 			  R_NilValue, // scale
 			  defrx_covs,
-                          defrx_method,
-                          defrx_transit_abs,
-                          defrx_atol,
-                          defrx_rtol,
-                          defrx_maxsteps,
-                          defrx_hmin,
-                          defrx_hmax,
-                          defrx_hini,
-                          defrx_maxordn,
-                          defrx_maxords,
-                          defrx_cores,
-                          defrx_covs_interpolation,
-                          defrx_addCov,
-                          defrx_matrix,
-                          defrx_sigma,
-                          defrx_sigmaDf,
-                          defrx_nCoresRV,
-                          defrx_sigmaIsChol,
-                          defrx_nDisplayProgress,
-                          defrx_amountUnits,
-                          defrx_timeUnits, 
-			  defrx_addDosing, defrx_stateTrim);
-	} else if (sarg == "covs"){
-	  return rxSolveC(obj,
-                          CharacterVector::create("covs"),
-			  R_NilValue,
-                          defrx_params,
-                          defrx_events,
-                          defrx_inits,
-			  R_NilValue,
-                          value,// defrx_covs,
                           defrx_method,
                           defrx_transit_abs,
                           defrx_atol,
