@@ -19,7 +19,8 @@ rxPermissive({
         expect_equal(class(m1),"RxODE");
     })
 
-    et1 <- eventTable(amount.units="ug", time.units = "hours")
+    ## et1 <- eventTable(amount.units="ug", time.units = "hours")
+    et1 <- eventTable()
     et1$add.dosing(dose=10000, nbr.doses=5, dosing.interval = 24)
     et1$add.sampling(0:24)
     et1$add.sampling(24);
@@ -27,15 +28,15 @@ rxPermissive({
 
 
     test_that("RxODE event table 1 was created",{
-        expect_equal(class(et1), "EventTable")
+        expect_true(inherits(et1, "rxEt"))
         expect_equal(et1$get.nobs(),38);
-        expect_equal(length(et1$get.dosing()[,1]), 5);
+        expect_equal(length(et1$get.dosing()[,1]), 1);
     })
 
-    o1.first <- rxSolve(m1, params = c(KA=.291, CL=18.6, V2=40.2, Q=10.5, V3=297.0,
+    o1.first <- suppressWarnings(rxSolve(m1, params = c(KA=.291, CL=18.6, V2=40.2, Q=10.5, V3=297.0,
                                                     Kin=1.0, Kout=1.0, EC50=200.0),
                                      events = et1,
-                                     inits = c(0, 0, 0, 1))
+                                     inits = c(0, 0, 0, 1)))
 
     test_that("filter works",{
         expect_equal((o1.first %>% filter(time <= 5))$time,0:5);
