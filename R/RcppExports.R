@@ -21,8 +21,8 @@ etRep_ <- function(curEt, times, wait, ids, handleSamples, waitType, ii) {
     .Call(`_RxODE_etRep_`, curEt, times, wait, ids, handleSamples, waitType, ii)
 }
 
-evTrans <- function(inData, obj) {
-    .Call(`_RxODE_evTrans`, inData, obj)
+etTrans <- function(inData, obj) {
+    .Call(`_RxODE_etTrans`, inData, obj)
 }
 
 #' Check the type of an object using Rcpp

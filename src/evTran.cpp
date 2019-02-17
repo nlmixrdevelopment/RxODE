@@ -7,8 +7,58 @@ List rxModelVars_(const RObject &obj);
 bool rxIs(const RObject &obj, std::string cls);
 Environment RxODEenv();
 
+IntegerVector toCmt(RObject inCmt, CharacterVector state){
+  if (rxIs(inCmt, "numeric") || rxIs(inCmt, "integer")){
+    if (rxIs(inCmt, "factor")){
+      stop("Fixme");
+    } else {
+      return as<IntegerVector>(inCmt);
+    }
+  } else if (rxIs(inCmt, "character")) {
+    CharacterVector iCmt = as<CharacterVector>(inCmt);
+    std::vector<int> newCmt;
+    newCmt.reserve(iCmt.size());
+    std::string strCmt;
+    bool foundState=false;
+    List extraCmt;
+    int i, j, k = 0;
+    for (i = 0; i < iCmt.size(); i++){
+      strCmt = as<std::string>(iCmt[i]);
+      if (strCmt == "(default)" || strCmt == "(obs)"){
+	newCmt.push_back(1);
+      } else {
+	foundState=false;
+	for (j = state.size(); j--;){
+	  if (as<std::string>(state[j]) == strCmt){
+	    foundState = true;
+	    newCmt.push_back(j+1);
+	    break;
+	  }
+	}
+	if (!foundState){
+	  for (j = k; j--;){
+	    CharacterVector cur = extraCmt[j];
+	    if (as<std::string>(cur) == strCmt){
+	      foundState = true;
+	      newCmt.push_back(state.size()+j+1);
+	      break;
+	    }
+	  }
+	  if (!foundState){
+	    extraCmt[k++] = CharacterVector::create(strCmt);
+	    newCmt.push_back(state.size()+k);
+	  }
+	}
+      }
+    }
+    return wrap(newCmt);
+  }
+  stop("Should not reach here.");
+  return IntegerVector::create(0);
+}
+
 //[[Rcpp::export]]
-List evTrans(List inData, const RObject &obj){
+List etTrans(List inData, const RObject &obj){
   // Translates events + model into translated events
   CharacterVector lName = clone(as<CharacterVector>(inData.attr("names")));
   int i, idCol = -1, evidCol=-1, timeCol=-1, amtCol=-1, cmtCol=-1,
@@ -63,11 +113,13 @@ List evTrans(List inData, const RObject &obj){
   NumericVector nvTmp, nvTmp2;
   for (i = covCol.size(); i--;){
     covUnitsN[i] = lName[covCol[i]];
-    nvTmp = as<NumericVector>(inData[covCol[i]]);
     nvTmp2 = NumericVector::create(1.0);
-    if (rxIs(nvTmp, "units")){
-      nvTmp2.attr("class") = "units";
-      nvTmp2.attr("units") = nvTmp.attr("units");
+    if (as<std::string>(lName[covCol[i]]) != "cmt"){
+      nvTmp = as<NumericVector>(inData[covCol[i]]);
+      if (rxIs(nvTmp, "units")){
+	nvTmp2.attr("class") = "units";
+	nvTmp2.attr("units") = nvTmp.attr("units");
+      }
     }
     covUnits[i] = nvTmp2;
   }
@@ -103,6 +155,7 @@ List evTrans(List inData, const RObject &obj){
   std::vector<double> amt;
   std::vector<double> ii;
   std::vector<int> idx;
+  std::vector<int> cmtF;
   std::vector<double> dv;
   std::vector<int> idxO;
   if (timeCol== -1){
@@ -118,7 +171,7 @@ List evTrans(List inData, const RObject &obj){
   }
   IntegerVector inCmt;
   if (cmtCol != -1){
-    inCmt = as<IntegerVector>(inData[cmtCol]);
+    inCmt = toCmt(inData[cmtCol], mv["state"]);//as<IntegerVector>();
   }
   IntegerVector inId;
   if (idCol != -1){
@@ -196,6 +249,7 @@ List evTrans(List inData, const RObject &obj){
       for (j = nMtime; j--;){
 	id.push_back(cid);
 	evid.push_back(j+10);
+	cmtF.push_back(cmt);
 	time.push_back(0.0);
 	amt.push_back(NA_REAL);
 	ii.push_back(0.0);
@@ -225,7 +279,6 @@ List evTrans(List inData, const RObject &obj){
       cmt100=cmt/100; 
       cmt99=cmt-cmt100*100; 
     }
-
     // Rate
     rateI = 0;
     if (rateCol == -1) rate = 0.0;
@@ -272,6 +325,7 @@ List evTrans(List inData, const RObject &obj){
 	if (ISNA(ctime)){
 	  id.push_back(cid);
 	  evid.push_back(2);
+	  cmtF.push_back(cmt);
 	  time.push_back(ctime);
 	  amt.push_back(NA_REAL);
 	  ii.push_back(0.0);
@@ -282,6 +336,7 @@ List evTrans(List inData, const RObject &obj){
 	} else {
 	  id.push_back(cid);
 	  evid.push_back(0);
+	  cmtF.push_back(cmt);
 	  time.push_back(ctime);
 	  amt.push_back(NA_REAL);
 	  ii.push_back(0.0);
@@ -304,6 +359,7 @@ List evTrans(List inData, const RObject &obj){
 	}
 	id.push_back(cid);
 	evid.push_back(2);
+	cmtF.push_back(cmt);
 	time.push_back(ctime);
 	amt.push_back(NA_REAL);
 	ii.push_back(0.0);
@@ -323,6 +379,7 @@ List evTrans(List inData, const RObject &obj){
 	}
 	id.push_back(cid);
 	evid.push_back(3);
+	cmtF.push_back(cmt);
 	time.push_back(ctime);
 	amt.push_back(NA_REAL);
 	ii.push_back(0.0);
@@ -335,6 +392,7 @@ List evTrans(List inData, const RObject &obj){
       case 4:
 	id.push_back(cid);
 	evid.push_back(3);
+	cmtF.push_back(cmt);
 	time.push_back(ctime);
 	amt.push_back(NA_REAL);
 	ii.push_back(0.0);
@@ -358,6 +416,7 @@ List evTrans(List inData, const RObject &obj){
 
       id.push_back(cid);
       evid.push_back(cevid);
+      cmtF.push_back(cmt);
       time.push_back(ctime);
       if (ss >= 10){
 	ii.push_back(cii);
@@ -377,6 +436,7 @@ List evTrans(List inData, const RObject &obj){
 	// turn off
 	id.push_back(cid);
 	evid.push_back(nevid);
+	cmtF.push_back(cmt);
 	time.push_back(ctime);
 	amt.push_back(camt);
 	ii.push_back(0.0);
@@ -392,6 +452,7 @@ List evTrans(List inData, const RObject &obj){
 	// turn off
 	id.push_back(cid);
 	evid.push_back(cevid);
+	cmtF.push_back(cmt);
 	time.push_back(ctime+dur);
 	amt.push_back(-rate);
 	ii.push_back(0.0);
@@ -407,6 +468,7 @@ List evTrans(List inData, const RObject &obj){
 	  ctime+=cii;
 	  id.push_back(cid);
 	  evid.push_back(cevid);
+	  cmtF.push_back(cmt);
 	  time.push_back(ctime);
 	  ii.push_back(0.0);
 	  idx.push_back(-1);
@@ -419,6 +481,7 @@ List evTrans(List inData, const RObject &obj){
 	    // turn off
 	    id.push_back(cid);
 	    evid.push_back(nevid);
+	    cmtF.push_back(cmt);
 	    time.push_back(ctime);
 	    amt.push_back(camt);
 	    ii.push_back(0.0);
@@ -431,6 +494,7 @@ List evTrans(List inData, const RObject &obj){
 	    // turn off
 	    id.push_back(cid);
 	    evid.push_back(cevid);
+	    cmtF.push_back(cmt);
 	    time.push_back(ctime+dur);
 	    amt.push_back(-rate);
 	    ii.push_back(0.0);
@@ -490,12 +554,21 @@ List evTrans(List inData, const RObject &obj){
   nme1[0] = "id";
   
   for (j = 0; j < (int)(covCol.size()); j++){
-    lst[6+j] = NumericVector(idxO.size());
-    nme[6+j] = pars[covParPos[j]];
-    sub0[6+j] = false;
-    lst1[1+j] = NumericVector(nid);
-    nme1[1+j] = nme[6+j];
-    sub1[1+j] = true;
+    if (as<std::string>(lName[covCol[j]]) == "cmt"){
+      lst[6+j] = IntegerVector(idxO.size());
+      nme[6+j] = pars[covParPos[j]];
+      sub0[6+j] = false;
+      lst1[1+j] = IntegerVector(nid);
+      nme1[1+j] = nme[6+j];
+      sub1[1+j] = true;
+    } else {
+      lst[6+j] = NumericVector(idxO.size());
+      nme[6+j] = pars[covParPos[j]];
+      sub0[6+j] = false;
+      lst1[1+j] = NumericVector(nid);
+      nme1[1+j] = nme[6+j];
+      sub1[1+j] = true;
+    }
   }
 
   IntegerVector ivTmp;
@@ -503,6 +576,7 @@ List evTrans(List inData, const RObject &obj){
   bool addId = false, added=false;
   int idx1=nid, nTv=0;
   std::vector<int> covParPosTV;
+  bool cmtFadd = false;
   for (i =idxO.size(); i--;){
     ivTmp = as<IntegerVector>(lst[0]);
     ivTmp[i] = id[idxO[i]];
@@ -531,29 +605,41 @@ List evTrans(List inData, const RObject &obj){
     // Now add the other items.
     added=false;
     for (j = 0; j < (int)(covCol.size()); j++){
-      nvTmp = as<NumericVector>(lst[6+j]);
-      if (idx[idxO[i]] == -1){
-	// These should be ignored for interpolation.
-	nvTmp[i] = NA_REAL;
+      if (as<std::string>(lName[covCol[j]]) == "cmt"){
+	ivTmp = as<IntegerVector>(lst[6+j]);
+	ivTmp[i] = cmtF[idxO[i]];
+	if (!cmtFadd){
+	  sub0[6+j] = true;
+	  sub1[1+j] = false;
+	  covParPosTV.push_back(covParPos[j]);
+	  cmtFadd=true;
+	  nTv++;
+	}
       } else {
-	// These covariates are added.
-	nvTmp2   = as<NumericVector>(inData[covCol[j]]);
-	nvTmp[i] = nvTmp2[idx[idxO[i]]];
-	if (addId){
-	  nvTmp = as<NumericVector>(lst1[1+j]);
-	  nvTmp[idx1] = nvTmp2[idx[idxO[i]]];
-	  fPars[idx1*pars.size()+covParPos[j]] = nvTmp[idx1];
-	  added = true;
-	} else if (sub1[1+j]) {
-	  nvTmp = as<NumericVector>(lst1[1+j]);
-	  if (nvTmp[idx1] != nvTmp2[idx[idxO[i]]]){
-	    sub0[6+j] = true;
-	    sub1[1+j] = false;
-	    fPars[idx1*pars.size()+covParPos[j]] = NA_REAL;
-	    if (std::find(covParPosTV.begin(), covParPosTV.end(), covParPos[j]) == covParPosTV.end()){
-	      covParPosTV.push_back(covParPos[j]);
+	nvTmp = as<NumericVector>(lst[6+j]);
+	if (idx[idxO[i]] == -1){
+	  // These should be ignored for interpolation.
+	  nvTmp[i] = NA_REAL;
+	} else {
+	  // These covariates are added.
+	  nvTmp2   = as<NumericVector>(inData[covCol[j]]);
+	  nvTmp[i] = nvTmp2[idx[idxO[i]]];
+	  if (addId){
+	    nvTmp = as<NumericVector>(lst1[1+j]);
+	    nvTmp[idx1] = nvTmp2[idx[idxO[i]]];
+	    fPars[idx1*pars.size()+covParPos[j]] = nvTmp[idx1];
+	    added = true;
+	  } else if (sub1[1+j]) {
+	    nvTmp = as<NumericVector>(lst1[1+j]);
+	    if (nvTmp[idx1] != nvTmp2[idx[idxO[i]]]){
+	      sub0[6+j] = true;
+	      sub1[1+j] = false;
+	      fPars[idx1*pars.size()+covParPos[j]] = NA_REAL;
+	      if (std::find(covParPosTV.begin(), covParPosTV.end(), covParPos[j]) == covParPosTV.end()){
+		covParPosTV.push_back(covParPos[j]);
+	      }
+	      nTv++;
 	    }
-	    nTv++;
 	  }
 	}
       }
@@ -595,7 +681,7 @@ List evTrans(List inData, const RObject &obj){
     }
   }
   
-  CharacterVector cls = CharacterVector::create("rxEvTran","data.frame");
+  CharacterVector cls = CharacterVector::create("rxEtTran","data.frame");
   
   lst1F.attr("names") = nme1F;
   lst1F.attr("class") = CharacterVector::create("data.frame");
