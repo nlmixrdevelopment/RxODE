@@ -25,8 +25,8 @@ using namespace Rcpp;
 using namespace arma;
 
 List etImportEventTable(List inData);
-
 RObject et_(List input, List et__);
+void setEvCur(RObject cur);
 
 int rxcEvid = -1;
 int rxcTime = -1;
@@ -2108,7 +2108,11 @@ void updateSolveEnvPost(Environment e){
   }
   if (!e.exists(".et")){
     RObject eventso = e["args.events"];
-    e[".et"] = etImportEventTable(as<List>(eventso));
+    List emptyLst(0);
+    RObject et = et_(emptyLst, emptyLst);
+    setEvCur(et);
+    et_(List::create(_["data"] = eventso), List::create("import"));
+    e[".et"] = et;
     Function parse2("parse", R_BaseNamespace);
     Function eval2("eval", R_BaseNamespace);
     // eventTable style methods

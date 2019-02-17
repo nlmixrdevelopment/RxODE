@@ -6,6 +6,10 @@ Environment RxODEenv();
 
 RObject evCur;
 
+void setEvCur(RObject cur){
+  evCur =cur;
+}
+
 Function loadNamespace2("loadNamespace", R_BaseNamespace);
 Environment unitsPkg = loadNamespace2("units");
 //(x, value, ..., mode = units_options("set_units_mode"))
