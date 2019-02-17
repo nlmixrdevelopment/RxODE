@@ -289,7 +289,7 @@ List etSort(List curEt){
 	tmpC=newEt[j];
 	tmpC2 = curEt[j];
 	tmpC[i] = tmpC2[idx[i]];
-      } 
+      }
     }
   }
   newEt.attr("class") = clone(as<CharacterVector>(curEt.attr("class")));
@@ -756,7 +756,7 @@ List etImportEventTable(List inData){
     oldAddl = as<IntegerVector>(inData[addlCol]);
   }
   
-  std::vector<double> ss;
+  std::vector<int> ss;
   IntegerVector oldSs;
   if (ssCol == -1){
     oldSs = IntegerVector(oldEvid.size(), 0);
