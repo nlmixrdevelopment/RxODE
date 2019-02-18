@@ -2676,6 +2676,7 @@ SEXP rxSolveC(const RObject &obj,
     CharacterVector nmP;
     int nPopPar = 1;
     if (!theta.isNULL() || !eta.isNULL()){
+      usePar1=true;
       par1 = rxSetupParamsThetaEta(par1, theta, eta);
     }
     if (rxIs(par1, "numeric") || rxIs(par1, "integer")){

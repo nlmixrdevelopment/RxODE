@@ -35,6 +35,12 @@ rxPermissive({
 
     s.2c <- ode.1cs %>% solve(theta=c(20, 25), events=et)
 
+    test_that("Gives the correct parameters for THETAs",{
+        expect_equal(s.2c$params,
+                     structure(list("THETA[1]" = 20, "THETA[2]" = 25), class = "data.frame",
+                               row.names = c(NA, -1L)))
+    })
+
     test_that("1 compartment solved models and ODEs same.", {
         expect_equal(round(o.1c$C2,4), round(s.1c$C2,4))
         expect_equal(round(o.1c$C2,4), round(s.2c$C2,4))
