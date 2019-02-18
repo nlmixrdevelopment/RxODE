@@ -49,6 +49,7 @@ mod1 <-RxODE({
 Model parameters can be defined as named vectors. Names of parameters in
 the vector must be a superset of parameters in the ODE model, and the
 order of parameters within the vector is not important. 
+
 ```{r}
 theta <- 
    c(KA=2.94E-01, CL=1.86E+01, V2=4.02E+01, # central 
@@ -109,6 +110,20 @@ knitr::kable(head(ev$get.dosing()))
 knitr::kable(head(ev$get.sampling()))
 ```
 
+You may notice that these are similar to NONMEM event tables; If you
+are more familiar with NONMEM events you could use them directly with
+the event table function `et`
+
+```{r}
+ev  <- et(amountUnits="mg", timeUnits="hours") %>%
+	et(amt=10000, addl=9,ii=12) %>%
+	et(time=120, amt=2000, addl=4, ii=14) %>%
+	et(0:240) # Assumes sampling when there is no dosing information
+```
+
+For more information about creating complex dosing regimens, you can
+see the RxODE events vignette.
+
 # Solving ODEs
 
 The ODE can now be solved by calling the model object's `run` or `solve`
@@ -132,11 +147,12 @@ below:
 
 ```{r}
 library(ggplot2)
-x <- as.data.frame(x)
-ggplot(x,aes(time,C2)) + geom_line() + ylab("Central Concentration") + xlab("Time");
+plot(x,C2) + ylab("Central Concentration") + xlab("Time");
 ```
-
+Or, 
 ```{r}
-ggplot(x,aes(time,eff)) + geom_line() + ylab("Effect") + xlab("Time");
+plot(x,eff)  + ylab("Effect") + xlab("Time");
 ```
+Note that the labels are automatically labeled with the units from the initial event table. This is because 
+RxODE uses the `units` package to handle units and `ggforce` to handle the plotting.
 
