@@ -111,18 +111,25 @@ knitr::kable(head(ev$get.sampling()))
 ```
 
 You may notice that these are similar to NONMEM event tables; If you
-are more familiar with NONMEM events you could use them directly with
-the event table function `et`
+are more familiar with NONMEM data and events you could use them
+directly with the event table function `et`
 
 ```{r}
 ev  <- et(amountUnits="mg", timeUnits="hours") %>%
-	et(amt=10000, addl=9,ii=12) %>%
-	et(time=120, amt=2000, addl=4, ii=14) %>%
+	et(amt=10000, addl=9,ii=12,cmt="depot") %>%
+	et(time=120, amt=2000, addl=4, ii=14, cmt="depot") %>%
 	et(0:240) # Assumes sampling when there is no dosing information
 ```
 
-For more information about creating complex dosing regimens, you can
+You can see from the above code, you can dose to the compartment named
+in the RxODE model.  This slight deviation from NONMEM can reduce the
+need for compartment renumbering.
+
+These events can also be combined and expanded (to multi-subject
+events and complex regimens) with `rbind`, `c`, `seq`, and `rep`. For
+more information about creating complex dosing regimens using RxODE
 see the RxODE events vignette.
+
 
 # Solving ODEs
 
