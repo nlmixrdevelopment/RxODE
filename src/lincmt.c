@@ -28,13 +28,15 @@ static inline int _locateDoseIndex(const double obs_time,  rx_solving_options_in
     else
       i = ij;
   }
-  if (i == 0) return 0;
-  while(i != 1 && obs_time == ind->all_times[ind->idose[i-1]]){
+  /* if (i == 0) return 0; */
+  while(i != 0 && obs_time == ind->all_times[ind->idose[i]]){
     i--;
   }
-  /* while(i < ind->ndoses-2 && fabs(obs_time  - ind->all_times[ind->idose[i+1]])<= sqrt(DOUBLE_EPS)){ */
-  /*   i++; */
-  /* } */
+  if (i == 0){
+    while(i < ind->ndoses-2 && fabs(obs_time  - ind->all_times[ind->idose[i+1]])<= sqrt(DOUBLE_EPS)){
+      i++;
+    }
+  }
   return i;
 }
 
@@ -86,7 +88,7 @@ double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt, int diff1,
   int ndoses = ind->ndoses;
   for(l=m+1; l--;){// Optimized for loop as https://www.thegeekstuff.com/2015/01/c-cpp-code-optimization/
     cur=0;
-    //superpostion
+    //super-position
     evid = ind->evid[ind->idose[l]];
     if (evid == 3) return ret; // Was a reset event.
     getWh(evid, &wh, &cmt, &wh100, &whI, &wh0);
@@ -123,8 +125,8 @@ double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt, int diff1,
         thisT = tT -tlag;
         rate  = -dose;
       }
-      t1 = ((thisT < tinf) ? thisT : tinf);        //during infusion
-      t2 = ((thisT > tinf) ? thisT - tinf : 0.0);  // after infusion
+      t1  = ((thisT < tinf) ? thisT : tinf);        //during infusion
+      t2  = ((thisT > tinf) ? thisT - tinf : 0.0);  // after infusion
       cur +=  rate*A*alpha1*(1.0-exp(-alpha*t1))*exp(-alpha*t2);
       if (ncmt >= 2){
         cur +=  rate*B*beta1*(1.0-exp(-beta*t1))*exp(-beta*t2);
