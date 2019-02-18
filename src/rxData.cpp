@@ -209,7 +209,7 @@ bool rxIs(const RObject &obj, std::string cls){
         }
       }
       if (hasDf && (cls == "rx.event" || cls == "event.data.frame")){
-	if (classattr[0] == "rxEvTran"){
+	if (classattr[0] == "rxEtTran"){
 	  rxcEvid = 2;
 	  rxcTime = 1;
 	  rxcAmt  = 3;
@@ -1300,7 +1300,7 @@ void gparsCovSetup(int npars, int nPopPar, RObject ev1,rx_solve* rx){
   // Fill the parameters with NA.
   gparsSetup(npars*nPopPar);
   std::fill_n(&_globals.gpars[0], npars*nPopPar, NA_REAL);
-  if (rxIs(ev1, "rxEvTran")){
+  if (rxIs(ev1, "rxEtTran")){
     CharacterVector tmpCls = ev1.attr("class");
     List envCls = tmpCls.attr(".RxODE.lst");
     NumericMatrix iniPars = envCls["pars"];
@@ -2485,7 +2485,7 @@ SEXP rxSolveC(const RObject &obj,
 	ev1 = et_(List::create(newObs), as<List>(ev1));
       }
     }
-    if (rxIs(ev1, "data.frame") && !rxIs(ev1, "rxEvTrans")){
+    if (rxIs(ev1, "data.frame") && !rxIs(ev1, "rxEtTrans")){
       ev1 = as<List>(etTrans(as<List>(ev1), obj, false));
       rxcEvid = 2;
       rxcTime = 1;
@@ -2602,7 +2602,7 @@ SEXP rxSolveC(const RObject &obj,
     bool addTimeUnits = false;
     RObject timeUnitsU;
     List covUnits;
-    if (rxIs(ev1, "rxEvTran")){
+    if (rxIs(ev1, "rxEtTran")){
       CharacterVector cls = ev1.attr("class");
       List evT = cls.attr(".RxODE.lst");
       evT.attr("class") = R_NilValue;
@@ -2910,7 +2910,7 @@ SEXP rxSolveC(const RObject &obj,
     bool curPar = false;
     CharacterVector mvIniN = mvIni.names();
     CharacterVector mvCov1N;
-    if (rxIs(ev1, "rxEvTran")){
+    if (rxIs(ev1, "rxEtTran")){
       CharacterVector tmpCls = ev1.attr("class");
       List e = tmpCls.attr(".RxODE.lst");
       List tmpCov1 = e["cov1"];
