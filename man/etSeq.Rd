@@ -4,11 +4,11 @@
 \alias{etSeq}
 \title{Sequence of event tables}
 \usage{
-etSeq(..., handleSamples = c("clear", "use"),
-  handleWait = c("smartAddIi", "alwaysAddII"))
+etSeq(..., samples = c("clear", "use"), waitII = c("smart", "+ii"),
+  ii = 24)
 }
 \arguments{
-\item{handleSamples}{can be "clear", "use"}
+\item{samples}{can be "clear", "use"}
 }
 \value{
 A new event table

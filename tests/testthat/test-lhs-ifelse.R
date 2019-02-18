@@ -35,4 +35,18 @@ rxPermissive({
         expect_equal(s[s$C4 == 3, "prd"], s[s$C4 == 3, "peri"])
     })
 
+    ## Now change cmt to an un-ordered factor.
+    et <- as.data.frame(et);
+    et$cmt <- factor(et$cmt, c("peri", "depot", "centr"), c("peri", "depot", "centr"))
+
+    tmp <- etTrans(et, ode.2c.ka);
+
+    test_that("multi-compartment solves", {
+        s <- rxSolve(ode.2c.ka, params=c(V=40, CL=18, V2=297, Q=10, KA= 0.3), et)
+        expect_equal(sort(unique(s$C4)), c(1, 2, 3))
+        expect_equal(s[s$C4 == 1, "prd"], s[s$C4 == 1, "depot"])
+        expect_equal(s[s$C4 == 2, "prd"], s[s$C4 == 2, "centr"])
+        expect_equal(s[s$C4 == 3, "prd"], s[s$C4 == 3, "peri"])
+    })
+
 })

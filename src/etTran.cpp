@@ -10,7 +10,33 @@ Environment RxODEenv();
 IntegerVector toCmt(RObject inCmt, CharacterVector state){
   if (rxIs(inCmt, "numeric") || rxIs(inCmt, "integer")){
     if (rxIs(inCmt, "factor")){
-      stop("Fixme");
+      CharacterVector lvl = inCmt.attr("levels");
+      IntegerVector lvlI(lvl.size());
+      int i, j, k=0;
+      std::string curLvl, curState;
+      bool foundState = false;
+      for (i = 0; i < lvlI.size(); i++){
+	curLvl = as<std::string>(lvl[i]);
+	foundState=false;
+	for (j = state.size(); j--;){
+	  curState = as<std::string>(state[j]);
+	  if (curState == curLvl){
+	    lvlI[i] = j+1;
+	    foundState = true;
+	    break;
+	  }
+	}
+	if (!foundState){
+	  k++;
+	  lvlI[i] = state.size() + k;
+	}
+      }
+      IntegerVector cmtIn = IntegerVector(inCmt);
+      IntegerVector ret(cmtIn.size());
+      for (j=ret.size(); j--;){
+	ret[j] = lvlI[cmtIn[j]-1];
+      }
+      return ret;
     } else {
       return as<IntegerVector>(inCmt);
     }

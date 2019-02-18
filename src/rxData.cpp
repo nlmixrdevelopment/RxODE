@@ -126,7 +126,16 @@ bool rxIs(const RObject &obj, std::string cls){
     if (hasDim){
       return (cls == "matrix" || cls == "integer.matrix");
     } else {
-      return (cls == "integer");
+      if (cls == "integer") return true;
+      hasCls = obj.hasAttribute("class");
+      if (hasCls){
+	CharacterVector classattr = obj.attr("class");
+	if (as<std::string>(classattr[0]) == cls){
+	  return true;
+	}
+	return false;
+      }
+      return false;
     }
   case LGLSXP:
     hasDim = obj.hasAttribute("dim");
