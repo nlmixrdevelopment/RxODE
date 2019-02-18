@@ -12,13 +12,12 @@ rxPermissive({
     et <- eventTable()   # default time units
     et$add.sampling(seq(from=0, to=100, by=0.01))
 
-    cov <- data.frame(c=et$get.sampling()$time+1);
+    et$c <- et$time+1
 
     out <- rxSolve(ode,
                    params = c(a=-8/3, b=-10),
                    events = et,
-                   inits = c(X=1, Y=1, Z=1),
-                   covs = cov);
+                   inits = c(X=1, Y=1, Z=1));
 
     x1 <- out$X;
     y1 <- out$Y;
@@ -31,7 +30,6 @@ rxPermissive({
                        params = c(a=-8/3, b=-10),
                        events = et,
                        inits = c(X=1, Y=1, Z=1),
-                       covs = cov,
                        S1=2);
         expect_equal(out$X, x1 / 2);
         expect_equal(out$Y, y1);
@@ -41,7 +39,6 @@ rxPermissive({
                        params = c(a=-8/3, b=-10),
                        events = et,
                        inits = c(X=1, Y=1, Z=1),
-                       covs = cov,
                        S2=2);
         expect_equal(out$X, x1);
         expect_equal(out$Y, y1 / 2);
@@ -50,7 +47,6 @@ rxPermissive({
                        params = c(a=-8/3, b=-10),
                        events = et,
                        inits = c(X=1, Y=1, Z=1),
-                       covs = cov,
                        S3=2);
         expect_equal(out$X, x1);
         expect_equal(out$Y, y1);
@@ -64,7 +60,6 @@ rxPermissive({
                        params = c(a=-8/3, b=-10),
                        events = et,
                        inits = c(X=1, Y=1, Z=1),
-                       covs = cov,
                        S1=2, S2=2);
         expect_equal(out$X, x1 / 2);
         expect_equal(out$Y, y1 / 2);
@@ -78,7 +73,6 @@ rxPermissive({
                        params = c(a=-8/3, b=-10),
                        events = et,
                        inits = c(X=1, Y=1, Z=1),
-                       covs = cov,
                        s1=2);
         expect_equal(out$X, x1 / 2);
         expect_equal(out$Y, y1);
@@ -92,7 +86,6 @@ rxPermissive({
                                     params = c(a=-8/3, b=-10),
                                     events = et,
                                     inits = c(X=1, Y=1, Z=1),
-                                    covs = cov,
                                     s1=2, s1=4));
 
     })
@@ -104,7 +97,6 @@ rxPermissive({
                                     events = et,
                                     inits = c(X=1, Y=1, Z=1),
                                     scale=c(X=2),
-                                    covs = cov,
                                     s1=2));
 
     })
@@ -115,7 +107,6 @@ rxPermissive({
                                     params = c(a=-8/3, b=-10),
                                     events = et,
                                     inits = c(X=1, Y=1, Z=1),
-                                    covs = cov,
                                     s1=2, s7= 3));
         expect_equal(out$X, x1 / 2);
         expect_equal(out$Y, y1);
@@ -129,7 +120,6 @@ rxPermissive({
                        params = c(a=-8/3, b=-10),
                        events = et,
                        inits = c(X=1, Y=1, Z=1),
-                       covs = cov,
                        scale=c(X=2));
         expect_equal(out$X, x1 / 2);
         expect_equal(out$Y, y1);
@@ -140,7 +130,6 @@ rxPermissive({
                        params = c(a=-8/3, b=-10),
                        events = et,
                        inits = c(X=1, Y=1, Z=1),
-                       covs = cov,
                        scale=list(X=2));
         expect_equal(out$X, x1 / 2);
         expect_equal(out$Y, y1);
@@ -150,13 +139,11 @@ rxPermissive({
                              params = c(a=-8/3, b=-10),
                              events = et,
                              inits = c(X=1, Y=1, Z=1),
-                             covs = cov,
                              scale=list(X=1:2)))
         out <- rxSolve(ode,
                        params = c(a=-8/3, b=-10),
                        events = et,
                        inits = c(X=1, Y=1, Z=1),
-                       covs = cov,
                        scale=c(Y=2));
         expect_equal(out$X, x1);
         expect_equal(out$Y, y1 / 2);
@@ -166,7 +153,6 @@ rxPermissive({
                        params = c(a=-8/3, b=-10),
                        events = et,
                        inits = c(X=1, Y=1, Z=1),
-                       covs = cov,
                        scale=c(Z=2));
         expect_equal(out$X, x1);
         expect_equal(out$Y, y1);
@@ -176,7 +162,6 @@ rxPermissive({
                        params = c(a=-8/3, b=-10),
                        events = et,
                        inits = c(X=1, Y=1, Z=1),
-                       covs = cov,
                        scale=c(X=2, Z=2));
         expect_equal(out$X, x1 / 2);
         expect_equal(out$Y, y1);

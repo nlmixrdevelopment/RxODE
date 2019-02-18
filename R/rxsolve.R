@@ -335,6 +335,9 @@ rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, scal
     if (any(duplicated(names(.xtra)))){
         stop("Duplicate arguments do not make sense.");
     }
+    if (any(names(.xtra)=="covs")){
+        stop("Covariates can no longer be specified by 'covs' include them in the event dataset.");
+    }
     if (missing(cores)){
         cores <- RxODE::rxCores();
     }
