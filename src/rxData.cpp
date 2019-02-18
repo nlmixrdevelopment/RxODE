@@ -1987,6 +1987,7 @@ void updateSolveEnvPost(Environment e){
     CharacterVector pars = mv["params"];
     RObject parso = e["args.params"];
     IntegerVector ppos = e[".par.pos"];
+    bool IsIni = e[".par.pos.ini"];
     if (rxIs(parso, "numeric") || rxIs(parso, "integer") ||
 	rxIs(parso, "NULL")){
       double *tmp=Calloc(ppos.size(),double);
@@ -1999,7 +2000,11 @@ void updateSolveEnvPost(Environment e){
       unsigned int i, j=0;
       for (i = 0; i < ppos.size(); i++){
 	if (ppos[i] > 0){ // User specified parameter
-          tmp[j] = parNumeric[ppos[i]-1];
+	  if (IsIni){
+	    tmp[j] = mvIni[ppos[i]-1];
+	  } else {
+	    tmp[j] = parNumeric[ppos[i]-1];
+	  }
           // prsn[j] = pars[i];
 	  j++;
         } else if (ppos[i] < 0) { // ini specified parameter.
@@ -2283,8 +2288,6 @@ SEXP rxSolveC(const RObject &obj,
 	update_events = true;
       else if (as<std::string>(specs[i]) == "inits")
 	update_inits = true;
-      else if (as<std::string>(specs[i]) == "covs")
-	update_covs = true;
       else if (as<std::string>(specs[i]) == "method")
 	update_method = true;
       else if (as<std::string>(specs[i]) == "transit_abs")
@@ -2344,12 +2347,12 @@ SEXP rxSolveC(const RObject &obj,
       obj = as<List>(e["obj"]);
     }
     getRxModels();
-    // if (e.exists("params.dat")){
-    //   e.remove("params.dat");
-    // }
-    // if (e.exists("EventTable")){
-    //   e.remove("EventTable");
-    // }
+    if (e.exists("params.dat")){
+      e.remove("params.dat");
+    }
+    if (e.exists(".et")){
+      e.remove(".et");
+    }
     if(e.exists(".sigma")){
       _rxModels[".sigma"]=as<NumericMatrix>(e[".sigma"]);
     }
@@ -2418,6 +2421,7 @@ SEXP rxSolveC(const RObject &obj,
     return dat;
   } else {
     // Load model
+    bool fromIni = false;
     if (!rxDynLoad(object)){
       stop("Cannot load RxODE dlls for this model.");
     }
@@ -2467,6 +2471,7 @@ SEXP rxSolveC(const RObject &obj,
     }
     if (rxIs(par1, "NULL")){
       par1=rxInits(obj);
+      fromIni=true;
     }
     if (rxIs(ev1, "rxEt")){
       CharacterVector cls = ev1.attr("class");
@@ -3230,6 +3235,7 @@ SEXP rxSolveC(const RObject &obj,
       e["check.names"] = dat.names();
       
       e[".par.pos"] = eGparPos;
+      e[".par.pos.ini"] = fromIni;
       e[".slvr.counter"] = slvr_counterIv;
       e[".dadt.counter"] = dadt_counterIv;
       e[".jac.counter"] = jac_counterIv;

@@ -339,6 +339,13 @@ rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, scal
         cores <- RxODE::rxCores();
     }
     .nms <- names(as.list(match.call())[-1]);
+    if (rxIs(object, "rxSolve")){
+        if (rxIs(params, "rx.event") && is.null(events)){
+            .nms <- c("events",.nms);
+            events <- params
+            params <- NULL;
+        }
+    }
     .Call(`_RxODE_rxSolveCsmall`, object, .nms, .xtra,
           params, events, inits, scale, NULL,
           list(method, #0
