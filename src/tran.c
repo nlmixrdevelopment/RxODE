@@ -423,6 +423,30 @@ int new_or_ith(const char *s) {
 
   if (tb.fn) return 0;
   if (!strcmp("t", s)) return 0;
+  if (!strcmp("rate", s)){
+    trans_syntax_error_report_fn("'rate' cannot be a variable in an RxODE model.");
+    return 0;
+  }
+  if (!strcmp("amt", s)){
+    trans_syntax_error_report_fn("'amt' cannot be a variable in an RxODE model.");
+    return 0;
+  }
+  if (!strcmp("ss", s)){
+    trans_syntax_error_report_fn("'ss' cannot be a variable in an RxODE model.");
+    return 0;
+  }
+  if (!strcmp("addl", s)){
+    trans_syntax_error_report_fn("'addl' cannot be a variable in an RxODE model.");
+    return 0;
+  }
+  if (!strcmp("evid", s)){
+    trans_syntax_error_report_fn("'evid' cannot be a variable in an RxODE model.");
+    return 0;
+  }
+  if (!strcmp("ii", s)){
+    trans_syntax_error_report_fn("'ii' cannot be a variable in an RxODE model.");
+    return 0;
+  }
   if (!strcmp("time", s)) return 0;
   if (!strcmp("podo", s)) return 0;
   if (!strcmp("rx__PTR__", s)) return 0;
