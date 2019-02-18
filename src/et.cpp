@@ -5,10 +5,13 @@ bool rxIs(const RObject &obj, std::string cls);
 Environment RxODEenv();
 
 RObject evCur;
+RObject curSolve;
 
 void setEvCur(RObject cur){
   evCur =cur;
 }
+
+List getEtRxsolve(Environment e);
 
 Function loadNamespace2("loadNamespace", R_BaseNamespace);
 Environment unitsPkg = loadNamespace2("units");
@@ -1347,7 +1350,7 @@ List etAddDose(NumericVector curTime, RObject cmt,  double amt, double rate, dou
   return lst;
 }
 
-RObject etUpdateObj(List curEt, bool update){
+RObject etUpdateObj(List curEt, bool update, bool rxSolve){
   List lst = clone(curEt);
   CharacterVector cls=clone(as<CharacterVector>(curEt.attr("class")));
   List e = clone(as<List>(cls.attr(".RxODE.lst")));
@@ -1388,7 +1391,12 @@ RObject etUpdateObj(List curEt, bool update){
     cmp.attr("names") = lst.attr("names");
     cmp.attr("row.names") = lst.attr("row.names");
   }
-  return as<RObject>(lst);
+  if (rxSolve){
+    Function rxs("rxSolve.default", RxODEenv());
+    return rxs(_["object"]=curSolve, _["events"]=lst);
+  } else {
+    return as<RObject>(lst);  
+  }
 }
 
 RObject etCmtInt(RObject et){
@@ -1656,6 +1664,11 @@ List etResizeId(List curEt, IntegerVector IDs){
   }
 }
 
+RObject getEtSolve(List et__){
+  CharacterVector classattr = et__.attr("class");
+  Environment e = as<Environment>(classattr.attr(".RxODE.env"));
+  return as<RObject>(getEtRxsolve(e));
+}
 //[[Rcpp::export]]
 RObject et_(List input, List et__){
   // Create or modify new event table
@@ -1663,16 +1676,25 @@ RObject et_(List input, List et__){
   bool turnOnShowCmt = false;
   bool doUpdateObj = false;
   RObject curEt;
+  bool foundEt = false;
+  bool inputSolve = false;
   if (et__.size() > 0){
     if (rxIs(et__[0],"character")){
       if (as<std::string>(et__[0]) == "last"){
 	doUpdateObj=true;
 	curEt = evCur;
+	foundEt=true;
       } else if (as<std::string>(et__[0]) == "import"){
-	return etUpdateObj(etImportEventTable(as<List>(input["data"])), true);
+	return etUpdateObj(etImportEventTable(as<List>(input["data"])), true, false);
       }
     } else if (rxIs(et__, "rxEt")) {
+      foundEt=true;
       curEt = as<RObject>(et__);
+    } else if (rxIs(et__, "rxSolve")){
+      foundEt=true;
+      curEt = getEtSolve(et__);
+      inputSolve=true;
+      curSolve=et__;
     }
   }
   CharacterVector inN;
@@ -1714,7 +1736,18 @@ RObject et_(List input, List et__){
       if (rxIs(input[i], "numeric") && timeIx == -1) timeIx = i;
       if (rxIs(input[i], "integer") && timeIx == -1) timeIx = i;
       if (rxIs(input[i], "list") && timeIx == -1) timeIx=i;
-      if (rxIs(input[i], "rxEt")) curEt = input[i];
+      if (rxIs(input[i], "rxEt")){
+	if (foundEt) stop("Multiple event tables supplied, not sure what to do; try 'c', 'rbind', 'seq' or 'rep'.");
+	foundEt=true;
+	curEt = input[i];
+      }
+      if (rxIs(input[i], "rxSolve")){
+	if (foundEt) stop("Multiple event tables supplied, not sure what to do; try 'c', 'rbind', 'seq' or 'rep'.");
+	foundEt=true;
+	inputSolve=true;
+	curEt = getEtSolve(input[i]);
+	curSolve=et__;
+      }
     }
   }
   if (inN.size() == 0 && input.size() != 0){
@@ -1723,7 +1756,18 @@ RObject et_(List input, List et__){
       if (rxIs(input[i], "numeric") && timeIx == -1) timeIx = i;
       if (rxIs(input[i], "integer") && timeIx == -1) timeIx = i;
       if (rxIs(input[i], "list") && timeIx == -1) timeIx=i;
-      if (rxIs(input[i], "rxEt")) curEt = input[i];
+      if (rxIs(input[i], "rxEt")){
+	if (foundEt) stop("Multiple event tables supplied, not sure what to do; try 'c', 'rbind', 'seq' or 'rep'.");
+	foundEt=true;
+	curEt = input[i];
+      }
+      if (rxIs(input[i], "rxSolve")){
+	if (foundEt) stop("Multiple event tables supplied, not sure what to do; try 'c', 'rbind', 'seq' or 'rep'.");
+	foundEt=true;
+	inputSolve=true;
+	curEt = getEtSolve(input[i]);
+	curSolve=et__;
+      }
     }
   }
   if (rxIs(curEt, "rxEt")){
@@ -1766,7 +1810,7 @@ RObject et_(List input, List et__){
 	  return e["nobs"];
 	} else if (nm[0] == "copy"){
 	  // Make sure that the object is cloned
-	  return etUpdateObj(as<List>(curEt),false);
+	  return etUpdateObj(as<List>(curEt),false, false);
 	} else if (nm[0] == "get.EventTable"){
 	  e.attr("class") = R_NilValue;
 	  if (as<int>(e["nobs"]) == 0 && as<int>(e["ndose"]) == 0){
@@ -2059,10 +2103,10 @@ RObject et_(List input, List et__){
 	      }
 	    }
 	    return etUpdateObj(etAddTimes(time, id, cmt, turnOnShowCmt, as<List>(curEt)),
-			       doUpdateObj);
+			       doUpdateObj, inputSolve);
 	  } else if (rxIs(input[timeIx], "list")){
 	    return etUpdateObj(etAddWindow(as<List>(input[timeIx]), id, cmt, turnOnShowCmt, as<List>(curEt)),
-			       doUpdateObj);
+			       doUpdateObj, inputSolve);
 	  }
 	}
       } else {
@@ -2188,7 +2232,7 @@ RObject et_(List input, List et__){
 	  stop("Additional doses must be positive (addl=%d).", addl[0]);
 	}
 	return etUpdateObj(etAddDose(time, cmt, amt[0], rate[0], ii[0], addl[0], evid[0], ss[0],
-				     id, turnOnShowCmt, doSampling, as<List>(curEt)),doUpdateObj);
+				     id, turnOnShowCmt, doSampling, as<List>(curEt)),doUpdateObj, inputSolve);
       }
     }
   } else {
@@ -2220,7 +2264,7 @@ RObject et_(List input, List et__){
       return et_(input, et);
     }
   }
-  if (doRet) return etUpdateObj(as<List>(curEt),doUpdateObj);
+  if (doRet) return etUpdateObj(as<List>(curEt),doUpdateObj, inputSolve);
   stop("Cannot figure out what type of EventTable you are trying to create.");
   // Should never get here...
   List ret(0);

@@ -30,7 +30,7 @@ C1=centr/V;
     ev$add.sampling(times)
 
     ## test old solving.
-    event.table <- ev$get.EventTable()
+    event.table <- etTrans(ev$get.EventTable(), mod1KA)
     modelVars <- mod1KA$get.modelVars()
     state_vars <- modelVars$state;
     neq <- length(state_vars);
@@ -176,12 +176,6 @@ C1=centr/V;
                                    ), .Dim = c(1L, 3L)), theta = c(0.261713493062619, -3.18457293837742,
                                                                    -0.824924506160168, 1.01900805433423), do.solve = FALSE)
 
-    test_that("Can produce a list with do.call(object$solve,...)",{
-        expect_equal(class(do.call(object$solve, args)), "list");
-    })
-
-    lst <- list2env(rxSolve(sys1, theta, ev, atol=1e-6, rtol=1e-6, do.solve=F))
-
 
     object <- RxODE({
         d/dt(depot)=rxRate(depot)+prod(-depot,exp(ETA[1]+THETA[1]));
@@ -202,40 +196,7 @@ C1=centr/V;
         rx__sens_rx_r__BY_ETA_3___=0;
     })
 
-
-    et <- eventTable();
-    et$import.EventTable(structure(list(time = c(0, 0, 0.25, 0.57, 1.12, 2.02, 3.82, 5.1,
-                                                 7.03, 9.05, 12.12, 24, 24.37, 48, 72, 96, 120, 144, 144, 144.25,
-                                                 144.57, 145.12, 146.02, 147.82, 149.1, 151.03, 153.05, 156.12,
-                                                 168.37), evid = c(101L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L,
-                                                                   101L, 0L, 101L, 101L, 101L, 101L, 101L, 0L, 0L, 0L, 0L, 0L, 0L,
-                                                                   0L, 0L, 0L, 0L, 0L), amt = c(4.02, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                                                                                                0, 4.02, 0, 4.02, 4.02, 4.02, 4.02, 4.02, 0, 0, 0, 0, 0, 0, 0,
-                                                                                                0, 0, 0, 0)), .Names = c("time", "evid", "amt"), row.names = c(NA,
-                                                                                                                                                               29L), class = "data.frame"));
-
-    ## For Backward Compatible FOCEi covariates this needs to work....
-    tmp <- do.call(what=object$solve, list(object=object, et, invisible = 1, epsilon = 1e-04, covs = data.frame(WT=rep(79.6, 22)),
-                                           atol = 1e-06, rtol = 1e-06, maxsteps = 99999, numDeriv.method = "simple",
-                                           c.hess = NULL, estimate = TRUE, inner.opt = "n1qn1", add.grad = TRUE,
-                                           eta = structure(c(0, 0, 0), .Dim = c(1L, 3L)), theta = c(-2.99573227355399,
-                                                                                                    -0.693147180559945, 0.693147180559945, 0.1, 0.1), do.solve = FALSE))
-
-    test_that("Can solve covariates produce a list with do.call(object$solve,...) covariate size = nObs + nDose",{
-        expect_equal(class(tmp), "list");
-        expect_equal(length(tmp$cov), 29);
-    })
-
     ## Also for backward compatible it needs to take covariate size = nObs+nDose
-    tmp2 <- do.call(what=object$solve, list(object=object, et, invisible = 1, epsilon = 1e-04, covs = data.frame(WT=rep(79.6, 29)),
-                                           atol = 1e-06, rtol = 1e-06, maxsteps = 99999, numDeriv.method = "simple",
-                                           c.hess = NULL, estimate = TRUE, inner.opt = "n1qn1", add.grad = TRUE,
-                                           eta = structure(c(0, 0, 0), .Dim = c(1L, 3L)), theta = c(-2.99573227355399,
-                                                                                                    -0.693147180559945, 0.693147180559945, 0.1, 0.1), do.solve = FALSE))
-    test_that("Can solve covariates produce a list with do.call(object$solve,...) covariate size = nObs + nDose",{
-        expect_equal(class(tmp2), "list");
-        expect_equal(length(tmp2$cov), 29);
-    })
 
     mod1 <- RxODE({
         C2 = centr/V2;
@@ -301,9 +262,9 @@ C1=centr/V;
     test_that("Add dosing makes sense", {
         tmp <- x %>% add.dosing(dose=500,start.time=0.5)
         expect_equal(tmp$get.dosing()$time[2], 0.5);
-        expect_equal(x$get.dosing()$time[2], 12);
+        expect_equal(x$get.dosing()$time[2], 120);
         x$add.dosing(0.5);
-        expect_equal(x$get.dosing()$time[2], 12);
+        expect_equal(x$get.dosing()$time[2], 0);
     })
 
     x <- solve(mod1,theta, ev, inits)
@@ -358,7 +319,7 @@ C1=centr/V;
     ev$add.sampling(times)
 
     ## test old solving.
-    event.table <- ev$get.EventTable()
+    event.table <- etTrans(ev$get.EventTable(),mod1KA)
     modelVars <- mod1KA$get.modelVars()
     state_vars <- modelVars$state;
     neq <- length(state_vars);

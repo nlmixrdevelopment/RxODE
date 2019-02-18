@@ -136,7 +136,12 @@ add.dosing <- function(eventTable, dose, nbr.doses = 1L, dosing.interval = 24, d
     if (!is.na(time.units)) .lst$time.units <- time.units;
     if (dosing.to != 1) .lst$dosing.to <- dosing.to
     if (!is.null(rate)) .lst$rate <- rate;
-    .lst$dosing.interval <- dosing.interval;
+    if (nbr.doses > 1){
+        .lst$dosing.interval <- dosing.interval;
+    } else {
+        .lst$dosing.interval <- 0.0;
+    }
+
     .Call(`_RxODE_et_`, .lst, eventTable);
 }
 
