@@ -16,9 +16,6 @@ static inline int _locateDoseIndex(const double obs_time,  rx_solving_options_in
   i = 0;
   j = ind->ndoses - 1;
   if (obs_time < ind->all_times[ind->idose[i]]){
-    while(i != 0 && obs_time == ind->all_times[ind->idose[i]]){
-      i--;
-    }
     return i;
   }
   if (obs_time > ind->all_times[ind->idose[j]]){
@@ -31,7 +28,8 @@ static inline int _locateDoseIndex(const double obs_time,  rx_solving_options_in
     else
       i = ij;
   }
-  while(i != 0 && obs_time == ind->all_times[ind->idose[i]]){
+  if (i == 0) return 0;
+  while(i != 1 && obs_time == ind->all_times[ind->idose[i-1]]){
     i--;
   }
   /* while(i < ind->ndoses-2 && fabs(obs_time  - ind->all_times[ind->idose[i+1]])<= sqrt(DOUBLE_EPS)){ */
