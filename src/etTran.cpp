@@ -84,7 +84,7 @@ IntegerVector toCmt(RObject inCmt, CharacterVector state){
 }
 
 //[[Rcpp::export]]
-List etTrans(List inData, const RObject &obj){
+List etTrans(List inData, const RObject &obj, bool addCmt=false){
   // Translates events + model into translated events
   CharacterVector lName = clone(as<CharacterVector>(inData.attr("names")));
   int i, idCol = -1, evidCol=-1, timeCol=-1, amtCol=-1, cmtCol=-1,
@@ -137,6 +137,7 @@ List etTrans(List inData, const RObject &obj){
   List covUnits(covCol.size());
   CharacterVector covUnitsN(covCol.size());
   NumericVector nvTmp, nvTmp2;
+  bool hasCmt = false;
   for (i = covCol.size(); i--;){
     covUnitsN[i] = lName[covCol[i]];
     nvTmp2 = NumericVector::create(1.0);
@@ -146,6 +147,8 @@ List etTrans(List inData, const RObject &obj){
 	nvTmp2.attr("class") = "units";
 	nvTmp2.attr("units") = nvTmp.attr("units");
       }
+    } else {
+      hasCmt=true;
     }
     covUnits[i] = nvTmp2;
   }
@@ -550,9 +553,16 @@ List etTrans(List inData, const RObject &obj){
 	      return id[a] < id[b];
 	    });
   // sorted create the vectors/list
-  List lst(6+covCol.size());
-  std::vector<bool> sub0(6+covCol.size(), true);
-  CharacterVector nme(6+covCol.size());
+  int baseSize;
+  if (addCmt && !hasCmt){
+    baseSize = 7;
+  } else {
+    baseSize = 6;
+  }
+  List lst = List(baseSize+covCol.size());
+  std::vector<bool> sub0(baseSize+covCol.size(), true);
+  CharacterVector nme(baseSize+covCol.size());
+  
   lst[0] = IntegerVector(idxO.size());
   nme[0] = "id";
   
@@ -570,6 +580,11 @@ List etTrans(List inData, const RObject &obj){
   
   lst[5] = NumericVector(idxO.size());
   nme[5] = "dv";
+
+  if (baseSize == 7){
+    lst[6] = IntegerVector(idxO.size());
+    nme[6] = "cmt";
+  }
   
 
   List lst1(1+covCol.size());
@@ -581,18 +596,18 @@ List etTrans(List inData, const RObject &obj){
   
   for (j = 0; j < (int)(covCol.size()); j++){
     if (as<std::string>(lName[covCol[j]]) == "cmt"){
-      lst[6+j] = IntegerVector(idxO.size());
-      nme[6+j] = pars[covParPos[j]];
-      sub0[6+j] = false;
+      lst[baseSize+j] = IntegerVector(idxO.size());
+      nme[baseSize+j] = pars[covParPos[j]];
+      sub0[baseSize+j] = false;
       lst1[1+j] = IntegerVector(nid);
-      nme1[1+j] = nme[6+j];
+      nme1[1+j] = nme[baseSize+j];
       sub1[1+j] = true;
     } else {
-      lst[6+j] = NumericVector(idxO.size());
-      nme[6+j] = pars[covParPos[j]];
-      sub0[6+j] = false;
+      lst[baseSize+j] = NumericVector(idxO.size());
+      nme[baseSize+j] = pars[covParPos[j]];
+      sub0[baseSize+j] = false;
       lst1[1+j] = NumericVector(nid);
-      nme1[1+j] = nme[6+j];
+      nme1[1+j] = nme[baseSize+j];
       sub1[1+j] = true;
     }
   }
@@ -628,21 +643,25 @@ List etTrans(List inData, const RObject &obj){
     nvTmp[i]=ii[idxO[i]];
     nvTmp = as<NumericVector>(lst[5]);
     nvTmp[i]=dv[idxO[i]];
+    if (baseSize == 7){
+      ivTmp = as<IntegerVector>(lst[6]);
+      ivTmp[i] = cmtF[idxO[i]];
+    }
     // Now add the other items.
     added=false;
     for (j = 0; j < (int)(covCol.size()); j++){
       if (as<std::string>(lName[covCol[j]]) == "cmt"){
-	ivTmp = as<IntegerVector>(lst[6+j]);
+	ivTmp = as<IntegerVector>(lst[baseSize+j]);
 	ivTmp[i] = cmtF[idxO[i]];
 	if (!cmtFadd){
-	  sub0[6+j] = true;
+	  sub0[baseSize+j] = true;
 	  sub1[1+j] = false;
 	  covParPosTV.push_back(covParPos[j]);
 	  cmtFadd=true;
 	  nTv++;
 	}
       } else {
-	nvTmp = as<NumericVector>(lst[6+j]);
+	nvTmp = as<NumericVector>(lst[baseSize+j]);
 	if (idx[idxO[i]] == -1){
 	  // These should be ignored for interpolation.
 	  nvTmp[i] = NA_REAL;
@@ -658,7 +677,7 @@ List etTrans(List inData, const RObject &obj){
 	  } else if (sub1[1+j]) {
 	    nvTmp = as<NumericVector>(lst1[1+j]);
 	    if (nvTmp[idx1] != nvTmp2[idx[idxO[i]]]){
-	      sub0[6+j] = true;
+	      sub0[baseSize+j] = true;
 	      sub1[1+j] = false;
 	      fPars[idx1*pars.size()+covParPos[j]] = NA_REAL;
 	      if (std::find(covParPosTV.begin(), covParPosTV.end(), covParPos[j]) == covParPosTV.end()){
@@ -686,8 +705,8 @@ List etTrans(List inData, const RObject &obj){
     tmpN.attr("units") = amtUnits;
   }
   // Now subset based on time-varying covariates
-  List lstF(6+nTv);
-  CharacterVector nmeF(6+nTv);
+  List lstF(baseSize+nTv);
+  CharacterVector nmeF(baseSize+nTv);
   j=0;
   for (i = 0; i < lst.size();i++){
     if (sub0[i]){

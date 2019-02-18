@@ -24,7 +24,7 @@
 using namespace Rcpp;
 using namespace arma;
 
-List etTrans(List inData, const RObject &obj);
+List etTrans(List inData, const RObject &obj, bool addCmt);
 List etImportEventTable(List inData);
 RObject et_(List input, List et__);
 void setEvCur(RObject cur);
@@ -2474,7 +2474,7 @@ SEXP rxSolveC(const RObject &obj,
       int nobs = etE["nobs"];
       if (nobs == 0){
 	warning("Adding observations, for more control use et/add.sampling.");
-	List ev1a = etTrans(as<List>(ev1), obj);
+	List ev1a = etTrans(as<List>(ev1), obj, false);
 	NumericVector newObs(200);
 	// ((to - from)/(length.out - 1))
 	List et = as<List>(ev1);
@@ -2486,7 +2486,7 @@ SEXP rxSolveC(const RObject &obj,
       }
     }
     if (rxIs(ev1, "data.frame") && !rxIs(ev1, "rxEvTrans")){
-      ev1 = as<List>(etTrans(as<List>(ev1), obj));
+      ev1 = as<List>(etTrans(as<List>(ev1), obj, false));
       rxcEvid = 2;
       rxcTime = 1;
       rxcAmt  = 3;
