@@ -30,7 +30,7 @@ C1=centr/V;
     ev$add.sampling(times)
 
     ## test old solving.
-    event.table <- etTrans(ev$get.EventTable(), mod1KA)
+    event.table <- RxODE:::etTrans(ev$get.EventTable(), mod1KA)
     modelVars <- mod1KA$get.modelVars()
     state_vars <- modelVars$state;
     neq <- length(state_vars);
@@ -319,7 +319,7 @@ C1=centr/V;
     ev$add.sampling(times)
 
     ## test old solving.
-    event.table <- etTrans(ev$get.EventTable(),mod1KA)
+    event.table <- RxODE:::etTrans(ev$get.EventTable(),mod1KA)
     modelVars <- mod1KA$get.modelVars()
     state_vars <- modelVars$state;
     neq <- length(state_vars);
