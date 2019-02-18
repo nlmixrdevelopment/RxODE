@@ -1,5 +1,6 @@
 rxPermissive({
     context("Solve with all zeros")
+
     evi = structure(list(time = c(0,
 0, 0.5, 0.5, 0.969, 0.9833, 1, 1.5, 1.77253, 1.9333, 2, 2.5,
 3, 3.5, 3.9167, 4, 4.5, 5, 5.5, 5.9, 6, 6.5, 7, 7.5, 7.6667,
@@ -419,7 +420,7 @@ rxPermissive({
 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L,
 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L,
 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L
-), rate = c(100, 100, 100, 100, 100, 100, 100, 100, 100, 100,
+), R = c(100, 100, 100, 100, 100, 100, 100, 100, 100, 100,
 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100,
 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100,
 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100,
@@ -933,8 +934,8 @@ NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA,
 NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA,
 NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA,
 NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA,
-NA, NA, NA, NA, NA, NA, NA, NA, NA)), class = "data.frame", row.names = c(NA,
-                                                                          -2545L))
+NA, NA, NA, NA, NA, NA, NA, NA, NA)), class = "data.frame",
+row.names = c(NA, -2545L))
 
     theta <- structure(list(CL = 19.616, V1 = 105.67, Q = 6.903, V2 = 29.373),
                        class = "data.frame", row.names = c(NA, -1L))
@@ -942,7 +943,7 @@ NA, NA, NA, NA, NA, NA, NA, NA, NA)), class = "data.frame", row.names = c(NA,
     m1 <- RxODE({
         C2 = centr/V1;
         C3 = peri/V2;
-        d/dt(centr) =  - CL*C2 - Q*C2 + Q*C3 + rate * doInf;
+        d/dt(centr) =  - CL*C2 - Q*C2 + Q*C3 + R * doInf;
         d/dt(peri)  =            Q*C2 - Q*C3;
         d/dt(auc)   = C2;
     })
@@ -961,5 +962,6 @@ NA, NA, NA, NA, NA, NA, NA, NA, NA)), class = "data.frame", row.names = c(NA,
         x <- rxSolve(m1,param=theta, events=evi, method = "lsoda", hmax = 0)
         expect_false(all(x$centr == 0))
     })
+
 })
 
