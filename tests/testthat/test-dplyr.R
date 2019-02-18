@@ -81,7 +81,7 @@ rxPermissive({
     });
 
     test_that("summerise each works",{
-        expect_equal(sum(as.data.frame(o1.first %>% group_by(time) %>% summarize_each(funs(first)))$time == 24),1);
+        expect_equal(sum(as.data.frame(o1.first %>% group_by(time) %>% summarize_each(list( ~ first)))$time == 24),1);
     })
 
     test_that("summarize count works",{
@@ -93,7 +93,7 @@ rxPermissive({
     });
 
     test_that("mutate each",{
-        expect_equal((o1.first %>% filter(time==24 | time == 23) %>% mutate_each(funs(max)))$time,rep(24,3))
+        expect_equal((o1.first %>% filter(time==24 | time == 23) %>% mutate_each(list( ~ max)))$time,rep(24,3))
     });
 
     test_that("transmute works",{

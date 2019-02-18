@@ -41,7 +41,7 @@ Suggests:
     covr,
     rmarkdown,
     SnakeCharmR,
-    dplyr,
+    dplyr (>= 0.8.0),
     tidyr,
     tibble,
     curl,
