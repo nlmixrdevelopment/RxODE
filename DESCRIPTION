@@ -36,6 +36,7 @@ Suggests:
     shiny,
     tcltk,
     testthat,
+    usethis,
     devtools,
     covr,
     rmarkdown,
