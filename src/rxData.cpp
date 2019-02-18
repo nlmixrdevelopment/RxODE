@@ -3650,14 +3650,10 @@ RObject rxSolveUpdate(RObject obj,
 	  CharacterVector nmp = pars.names();
 	  int i, n, np, nc, j;
 	  np = (as<NumericVector>(pars[0])).size();
-	  List covs;
+	  List events = List(e["args.events"]);
 	  CharacterVector nmc;
-	  if (covs.hasAttribute("names")){
-	    nmc = covs.names();
-	    nc = (as<NumericVector>(covs[0])).size();
-	  } else {
-	    nc = as<int>(e["nobs"]);
-	  }
+	  nmc = events.names();
+	  nc = (as<NumericVector>(events[0])).size();
 	  //////////////////////////////////////////////////////////////////////////////
 	  // Update Parameters by name
 	  n = pars.size();
@@ -3713,26 +3709,26 @@ RObject rxSolveUpdate(RObject obj,
 		newPars.attr("names") = newParNames;
 		newPars.attr("class") = "data.frame";
 		newPars.attr("row.names") = IntegerVector::create(NA_INTEGER,-np);
-		List newCovs(covs.size()+1);
-		CharacterVector newCovsNames(covs.size()+1);
-		for (j = covs.size(); j--;){
-		  newCovs[j]      = covs[j];
-		  newCovsNames[j] = nmc[j];
+		List newEvents(events.size()+1);
+		CharacterVector newEventsNames(events.size()+1);
+		for (j = events.size(); j--;){
+		  newEvents[j]      = events[j];
+		  newEventsNames[j] = nmc[j];
 		}
-		j = covs.size();
-		newCovs[j]      = val;
-		newCovsNames[j] = nmp[i];
-		newCovs.attr("names") = newCovsNames;
-		newCovs.attr("class") = "data.frame";
-		newCovs.attr("row.names") = IntegerVector::create(NA_INTEGER,-nc);
+		j = events.size();
+		newEvents[j]      = val;
+		newEventsNames[j] = nmp[i];
+		newEvents.attr("names") = newEventsNames;
+		newEvents.attr("class") = "data.frame";
+		newEvents.attr("row.names") = IntegerVector::create(NA_INTEGER,-nc);
 		return rxSolveC(obj,
-				CharacterVector::create("params","covs"),
+				CharacterVector::create("params","events"),
 				R_NilValue,
 				newPars, //defrx_params,
-				defrx_events,
+				newEvents,
 				defrx_inits,
 				R_NilValue,
-				newCovs, //defrx_covs
+				R_NilValue, //defrx_covs
 				defrx_method,
 				defrx_transit_abs,
 				defrx_atol,
@@ -3761,22 +3757,22 @@ RObject rxSolveUpdate(RObject obj,
 	  }
 	  ///////////////////////////////////////////////////////////////////////////////
 	  // Update Covariates by covariate name
-	  n = covs.size();
+	  n = events.size();
 	  for (i = n; i--;){
 	    if (nmc[i] == sarg){
 	      // Update solve.
 	      NumericVector val = NumericVector(value);
 	      if (val.size() == nc){
 		// Update Covariate
-		covs[i]=val;
+		events[i]=val;
 		return rxSolveC(obj,
-				CharacterVector::create("covs"),
+				CharacterVector::create("events"),
 				R_NilValue,
 				defrx_params,
-				defrx_events,
+				events,
 				defrx_inits,
 				R_NilValue,
-				covs, // defrx_covs,
+				R_NilValue, // defrx_covs,
 				defrx_method,
 				defrx_transit_abs,
 				defrx_atol,
@@ -3813,27 +3809,27 @@ RObject rxSolveUpdate(RObject obj,
 		newPars.attr("class") = "data.frame";
 		newPars.attr("row.names") = IntegerVector::create(NA_INTEGER,-np);
 		// if ()
-		List newCovs(covs.size()-1);
-		CharacterVector newCovsNames(covs.size()-1);
+		List newEvents(events.size()-1);
+		CharacterVector newEventsNames(events.size()-1);
 		for (j = 0; j < i; j++){
-		  newCovs[j]      = covs[j];
-		  newCovsNames[j] = nmc[j];
+		  newEvents[j]      = events[j];
+		  newEventsNames[j] = nmc[j];
 		}
-		for (j=i+1; j < covs.size(); j++){
-		  newCovs[j-1]      = covs[j];
-		  newCovsNames[j-1] = nmc[j];
+		for (j=i+1; j < events.size(); j++){
+		  newEvents[j-1]      = events[j];
+		  newEventsNames[j-1] = nmc[j];
 		}
-		newCovs.attr("names") = newCovsNames;
-		newCovs.attr("class") = "data.frame";
-		newCovs.attr("row.names") = IntegerVector::create(NA_INTEGER,-nc);
+		newEvents.attr("names") = newEventsNames;
+		newEvents.attr("class") = "data.frame";
+		newEvents.attr("row.names") = IntegerVector::create(NA_INTEGER,-nc);
 		return rxSolveC(obj,
-				CharacterVector::create("covs", "params"),
+				CharacterVector::create("events", "params"),
 				R_NilValue,
 				newPars,//defrx_params,
-				defrx_events,
+				newEvents,
 				defrx_inits,
 				R_NilValue,
-				newCovs, // defrx_covs,
+				R_NilValue, // defrx_covs,
 				defrx_method,
 				defrx_transit_abs,
 				defrx_atol,
