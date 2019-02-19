@@ -447,6 +447,44 @@ extern double getTime(int idx, rx_solving_options_ind *ind){
       updateRate(idx, ind);
     }
     break;
+  case 1:
+    {
+      int j;
+      // Find the amount
+      // bisection https://en.wikipedia.org/wiki/Binary_search_algorithm
+      int l = 0, r = ind->ndoses-1, m;
+      while(l <= r){
+	m = floor((l+r)/2);
+	if (ind->idose[m] < idx) l = m+1;
+	else if (ind->idose[m] > idx) r = m-1;
+	else break;
+      }
+      if (ind->idose[m] == idx){
+	j=m;
+      } else {
+	error("Corrupted event table during sort (1).");
+      }
+      if (ind->dose[j] > 0){
+	return LAG(ind->id, ind->cmt, ind->all_times[idx]);
+      } else if (ind->dose[j] < 0){
+	double amt = (ind->all_times[idx] - ind->all_times[ind->idose[j-1]])*ind->dose[j-1];
+	double f   = AMT(ind->id, ind->cmt, ind->dose[j-1], ind->all_times[ind->idose[j-1]])/ind->dose[j-1];
+	double dur = f*amt/ind->dose[j-1];
+	double t = ind->all_times[ind->idose[j-1]]+dur;
+	return LAG(ind->id, ind->cmt, t);
+      } else {
+	error("Corrupted events.");
+      }
+    }
+    // return _f[_cmt]*_amt;  amt is rate
+    /* f = AMT(id, cmt, dose[ind->ixds], xout)/dose[ind->ixds]; */
+    // If bio-availability changes, then the duration should change.
+    // dur = amt/rate
+    /* dur = ind->all_times[ind->idose[j]] - ind->all_times[ind->ix[*i]]; */
+    /* amt  = AMT(ind->id, ind->cmt, ind->dose[j], t); */
+    // dur = f*amt/rate
+    // t = t_last + dur
+    break;
   }
   return LAG(ind->id, ind->cmt, ind->all_times[idx]);
 }
@@ -527,10 +565,10 @@ int handle_evid(int evid, int neq,
       case 7: // End modeled rate
       case 6: // end modeled duration
 	InfusionRate[cmt] += dose[ind->ixds];
-	if (ind->timeReset) ind->all_times[ind->idx] = ind->all_times[ind->idx-1]; // Reset time for recalculation
+	/* if (ind->timeReset) ind->all_times[ind->idx] = ind->all_times[ind->idx-1]; */ // Reset time for recalculation
 	break;
       case 1:
-	InfusionRate[cmt] += AMT(id, cmt, dose[ind->ixds], xout);
+	InfusionRate[cmt] += dose[ind->ixds];
 	break;
       case 0:
 	if (do_transit_abs) {
