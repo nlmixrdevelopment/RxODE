@@ -2,8 +2,6 @@
 rxPermissive({
 
     library(dplyr);
-
-    library(RxODE);
     library(testthat);
 
     context("Modeled rate")
@@ -104,11 +102,47 @@ rxPermissive({
 
     f.c <- rxSolve(mod.rate, et3, c(ri=1,f=1,li=0.3))
 
-    test_that("rate=2 makes sense for modeled rate",{
-        expect_equal(seq(0,10,by=1/24),f.a$time)
-        expect_equal(seq(0,10,by=1/24),f.b$time)
+    test_that("rate=0.05, f=2, lag=0.3 makes sense for modeled rate",{
+        expect_equal(seq(0, 10, by=1/24),f.a$time)
+        expect_equal(seq(0, 10, by=1/24),f.b$time)
         expect_equal(as.data.frame(f.a), as.data.frame(f.b));
     })
+
+    test_that("bad rates (zero/negative) throw errors",{
+        expect_error(rxSolve(mod.rate, et, c(ri=-1, f=1, li=0.3)))
+        expect_error(rxSolve(mod.rate, et, c(ri=0, f=1, li=0.3)))
+    })
+
+    mod.dur <- RxODE({
+        a = 6
+        b = 0.6
+        f = 1
+        di = 3
+        li = 0
+        d/dt(intestine) = -a*intestine
+        f(intestine) = f
+        dur(intestine) = di
+        lag(intestine) = li
+        d/dt(blood)     = a*intestine - b*blood
+    })
+
+    test_that("Error when rate is requested but not in table",{
+        expect_error(rxSolve(mod.dur, et, c(ri=1,f=1,li=0.3)))
+    })
+
+
+    context("Modeled duration")
+
+    ## Now model duration
+    et <- et(amt=2/24*2,rate=-2) %>%
+        et(amt=0.2*2, time=2) %>%
+        et(seq(0, 10, by=1/24))
+
+    test_that("Error is thrown without modeled duration",{
+        expect_error({rxSolve(mod.rate, et, c(ri=1,f=1,li=0.3))})
+    })
+
+    f.a <- rxSolve(mod.dur, et, c(di=0.5,f=1,li=0.3))
 
 })
 

@@ -1158,32 +1158,32 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    sAppend(&sb, "_f[%d] = ", tb.nd);
 	    sAppend(&sbDt, "_f[%d] = ", tb.nd);
 	    sAppend(&sbt, "f(%s)=", v);
+	    if (foundF == 0) needSort+=1;// & 1 when F
 	    foundF=1;
-	    needSort=1;// Because of f affecting infusion duration
 	    aType(FBIO);
 	  } else if (nodeHas(alag)){
 	    sb.o=0; sbDt.o=0; sbt.o=0;
 	    sAppend(&sb, "_alag[%d] = ", tb.nd);
 	    sAppend(&sbDt, "_alag[%d] = ", tb.nd);
 	    sAppend(&sbt, "alag(%s)=", v);
+	    if (foundLag == 0) needSort+=2; // & 2 when alag
 	    foundLag=1;
-	    needSort=1;
 	    aType(ALAG); 
 	  } else if (nodeHas(dur)){
 	    sb.o=0;sbDt.o=0; sbt.o=0;
 	    sAppend(&sb, "_dur[%d] = ", tb.nd);
 	    sAppend(&sbDt, "_dur[%d] = ", tb.nd);
 	    sAppend(&sbt, "dur(%s)=", v);
+	    if (foundDur == 0) needSort+=4;// & 4 when dur
 	    foundDur=1;
-	    needSort=1;
 	    aType(DUR);
           } else if (nodeHas(rate)){
 	    sb.o=0;sbDt.o=0; sbt.o=0;
 	    sAppend(&sb, "_rate[%d] = ", tb.nd);
 	    sAppend(&sbDt, "_rate[%d] = ", tb.nd);
 	    sAppend(&sbt, "rate(%s)=", v);
+	    if (foundRate == 0) needSort+=8;// & 8 when rate
 	    foundRate=1;
-	    needSort=1;
 	    aType(RATE);
           }
           new_or_ith(v);
@@ -1203,6 +1203,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    sAppend(&sb, "_f[%d] = ", tb.id);
 	    sAppend(&sbDt, "_f[%d] = ", tb.id);
 	    sAppend(&sbt, "f(%s)=", v);
+	    if (foundF == 0) needSort+=1;// & 1 when F
 	    foundF=1;
 	    aType(FBIO);
           } else if (nodeHas(alag)){
@@ -1210,24 +1211,24 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    sAppend(&sb, "_alag[%d] = ", tb.id);
 	    sAppend(&sbDt, "_alag[%d] = ", tb.id);
 	    sAppend(&sbt, "alag(%s)=", v);
+	    if (foundLag == 0) needSort+=2; // & 2 when alag
 	    foundLag=1;
-	    needSort=1;
 	    aType(ALAG);
           } else if (nodeHas(dur)){
 	    sb.o=0;sbDt.o=0; sbt.o=0;
 	    sAppend(&sb, "_dur[%d] = ", tb.id);
 	    sAppend(&sbDt, "_dur[%d] = ", tb.id);
 	    sAppend(&sbt, "dur(%s)=", v);
+	    if (foundDur == 0) needSort+=4;// & 4 when dur
 	    foundDur=1;
-	    needSort=1;
 	    aType(DUR);
           } else if (nodeHas(rate)){
 	    sb.o=0;sbDt.o=0; sbt.o=0;
 	    sAppend(&sb, "_rate[%d] = ", tb.id);
 	    sAppend(&sbDt, "_rate[%d] = ", tb.id);
 	    sAppend(&sbt, "rate(%s)=", v);
+	    if (foundRate == 0) needSort+=8;// & 8 when rate
 	    foundRate=1;
-	    needSort=1;
 	    aType(RATE);
           }
         }
@@ -2086,6 +2087,7 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
     if ((show_ode == 2 && found_jac == 1 && good_jac == 1) ||
 	(show_ode != 2 && show_ode != 3 && show_ode != 5  && show_ode != 8 &&
 	 show_ode !=0 && show_ode != 9) ||
+	(show_ode == 8 && foundDur) ||
 	(show_ode == 7 && foundRate) ||
 	(show_ode == 6 && foundLag) ||
 	(show_ode == 5 && foundF) ||
@@ -2115,7 +2117,7 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
       }
       prnt_vars(1, 1, "", "\n",show_ode);                   /* pass system pars */
       if (show_ode != 7 && show_ode != 5 &&
-	  show_ode != 6 && show_ode != 9){
+	  show_ode != 6 && show_ode != 8 && show_ode != 9){
 	for (i=0; i<tb.nd; i++) {                   /* name state vars */
 	  retieve_var(tb.di[i], buf);
 	  sAppendN(&sbOut, "  ", 2);

@@ -344,7 +344,13 @@ void updateRate(int idx, rx_solving_options_ind *ind){
       ind->all_times[idx+1]=t+dur;
       ind->idx=oldIdx;
     } else {
-      error("Rate is zero/negative");
+      rx_solve *rx;
+      rx = &rx_global;
+      if (rx->needSort & 8){
+	error("Rate is zero/negative");
+      } else {
+	error("Modeled rate requested in event table, but not in model; use 'rate(cmt) ='");
+      }
       // error rate is zero/negative
     }
   }
@@ -381,7 +387,13 @@ void updateDur(int idx, rx_solving_options_ind *ind){
       ind->all_times[idx+1]=t+dur;
       ind->idx=oldIdx;
     } else {
-      error("Duration is zero/negative");
+      rx_solve *rx;
+      rx = &rx_global;
+      if (rx->needSort & 4){
+	error("Duration is zero/negative");
+      } else {
+	error("Modeled duration requested in event table, but not in model; use 'dur(cmt) ='");
+      }
       // error rate is zero/negative
     }
   }
