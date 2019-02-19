@@ -1159,6 +1159,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    sAppend(&sbDt, "_f[%d] = ", tb.nd);
 	    sAppend(&sbt, "f(%s)=", v);
 	    foundF=1;
+	    needSort=1;// Because of f affecting infusion duration
 	    aType(FBIO);
 	  } else if (nodeHas(alag)){
 	    sb.o=0; sbDt.o=0; sbt.o=0;
