@@ -467,10 +467,19 @@ extern double getTime(int idx, rx_solving_options_ind *ind){
       if (ind->dose[j] > 0){
 	return LAG(ind->id, ind->cmt, ind->all_times[idx]);
       } else if (ind->dose[j] < 0){
-	double amt = (ind->all_times[idx] - ind->all_times[ind->idose[j-1]])*ind->dose[j-1];
-	double f   = AMT(ind->id, ind->cmt, ind->dose[j-1], ind->all_times[ind->idose[j-1]])/ind->dose[j-1];
-	double dur = f*amt/ind->dose[j-1];
-	double t = ind->all_times[ind->idose[j-1]]+dur;
+	// f*amt/rate=dur
+	// amt/rate=durOld
+	// f = dur/durOld
+	// f*durOld = dur
+	int k;
+	for (k = j; k--;){
+	  if (ind->evid[ind->idose[j]] == ind->evid[ind->idose[k]]) break;
+	  if (k == 0) error("corrupted event table");
+	}
+	double f = AMT(ind->id, ind->cmt, 1.0, ind->all_times[ind->idose[j-1]]);
+	double durOld = (ind->all_times[ind->idose[j]] - ind->all_times[ind->idose[k]]); 
+	double dur = f*durOld;
+	double t = ind->all_times[ind->idose[k]]+dur;
 	return LAG(ind->id, ind->cmt, t);
       } else {
 	error("Corrupted events.");
@@ -565,7 +574,6 @@ int handle_evid(int evid, int neq,
       case 7: // End modeled rate
       case 6: // end modeled duration
 	InfusionRate[cmt] += dose[ind->ixds];
-	/* if (ind->timeReset) ind->all_times[ind->idx] = ind->all_times[ind->idx-1]; */ // Reset time for recalculation
 	break;
       case 1:
 	InfusionRate[cmt] += dose[ind->ixds];
