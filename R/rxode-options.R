@@ -25,7 +25,7 @@
         .tmp <- Sys.getenv("rxTempDir")
         if (.tmp == ""){
             if (getOption("RxODE.cache.directory", .cacheDefault) != "."){
-                .tmp <- .cacheDefault;
+                .tmp <- getOption("RxODE.cache.directory", .cacheDefault);
             } else {
                 .tmp <- tempdir()
             }
