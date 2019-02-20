@@ -16,10 +16,42 @@ htmltools::img(src = knitr::image_uri("logo.png"),
                alt = 'RxODE', 
                style = 'position:absolute; top:0; right:0; padding:10px; border: 0;')
 ```
-## RxODE event tables
 
+## RxODE event tables
+In general, RxODE event tables follow NONMEM convention with the exceptions:
+
+ - The compartment data item (`cmt`) can be a string/factor with compartment names
+ - An additional column, `dur` can specify the duration of infusions; 
+    - Bioavailability changes will change the rate of infusion since
+      `dur`/`amt` are fixed in the input data.
+    - Note, when specifying `rate`/`amt` for infusion bioavailability
+      changes will change the duration of infusion.
+ - Some infrequent NONMEM columns are not supported: `pcmt`, `call` are not supported
+ 
+ Here are the legal entries to a data table:
+ 
+| Data Item | Meaning               | Notes                                                 |
+|-----------|-----------------------|-------------------------------------------------------|
+| id        | Individual identifier | Must be an integer > 0, sorted                        |
+| time      | Individual time       | Must be ascending and non-negative                    |
+| amt       | dose amount           | Positive for doses zero/NA for observations           |
+| rate      | infusion rate         | When specified the infusion will be dur=amt/rate      |
+|           |                       | rate = -1, rate modeled; rate = -2, duration modeled  
+| dur       | infusion duration     | When specified the rate will be rate = amt/dur        |
+| evid      | event ID              | 0=Observation; 1=Dose; 2=Other; 3=Reset; 4=Reset+Dose |
+| cmt       | Compartment           | Represents compartment #/name for dose/observation    |
+| ss        | Steady State Flag     | 0 = non-steady-state; 1=steady state; 2=steady state +prior states |
+| ii        | Inter-dose Interval   | Time between doses. |
+| addl      | # of additional doses | Number of doses like the current dose.
+ 
+ Other notes:
+
+ - The `evid` can be the classic RxODE or the NONMEM-style evid described above. 
+ - NONMEM's `DV` is not required; RxODE is a ODE solving framework.
+ - NONMEM's `MDV` is not required, since it is caputred in `EVID`
 
 ## Classic RxODE evid values
+
 Event coding in RxODE is encoded in a single event number `evid`. For
 compartments under 100, this is coded as:
 
