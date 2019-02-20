@@ -26,25 +26,26 @@ In general, RxODE event tables follow NONMEM convention with the exceptions:
       `dur`/`amt` are fixed in the input data.
     - Note, when specifying `rate`/`amt` for infusion bioavailability
       changes will change the duration of infusion.
- - Some infrequent NONMEM columns are not supported: `pcmt`, `call` are not supported
+ - Some infrequent NONMEM columns are not supported: `pcmt`, `call`.
  
  Here are the legal entries to a data table:
  
-| Data Item | Meaning               | Notes                                                 |
-|-----------|-----------------------|-------------------------------------------------------|
-| id        | Individual identifier | Must be an integer > 0, sorted                        |
-| time      | Individual time       | Must be ascending and non-negative                    |
-| amt       | dose amount           | Positive for doses zero/NA for observations           |
-| rate      | infusion rate         | When specified the infusion will be dur=amt/rate      |
-|           |                       | rate = -1, rate modeled; rate = -2, duration modeled  
-| dur       | infusion duration     | When specified the rate will be rate = amt/dur        |
-| evid      | event ID              | 0=Observation; 1=Dose; 2=Other; 3=Reset; 4=Reset+Dose |
-| cmt       | Compartment           | Represents compartment #/name for dose/observation    |
+| Data Item | Meaning               | Notes                                                              |
+|-----------|-----------------------|--------------------------------------------------------------------|
+| id        | Individual identifier | Must be an integer > 0, sorted                                     |
+| time      | Individual time       | Must be ascending and non-negative                                 |
+| amt       | dose amount           | Positive for doses zero/NA for observations                        |
+| rate      | infusion rate         | When specified the infusion will be dur=amt/rate                   |
+|           |                       | rate = -1, rate modeled; rate = -2, duration modeled               |
+| dur       | infusion duration     | When specified the rate will be rate = amt/dur                     |
+| evid      | event ID              | 0=Observation; 1=Dose; 2=Other; 3=Reset; 4=Reset+Dose              |
+| cmt       | Compartment           | Represents compartment #/name for dose/observation                 |
 | ss        | Steady State Flag     | 0 = non-steady-state; 1=steady state; 2=steady state +prior states |
-| ii        | Inter-dose Interval   | Time between doses. |
-| addl      | # of additional doses | Number of doses like the current dose.
- 
- Other notes:
+| ii        | Inter-dose Interval   | Time between doses.                                                |
+| addl      | # of additional doses | Number of doses like the current dose.                             |
+
+
+Other notes:
 
  - The `evid` can be the classic RxODE or the NONMEM-style evid described above. 
  - NONMEM's `DV` is not required; RxODE is a ODE solving framework.
@@ -52,8 +53,113 @@ In general, RxODE event tables follow NONMEM convention with the exceptions:
 
 ## Classic RxODE evid values
 
+While RxODE still supports these values, this is primarily provided
+for historic information, and we recommend using the normal NONMEM
+dataset standard that is used by many modeling tools like NONMEM,
+Monolix and nlmixr, described above.
+
+Classically, RxODE supported event coding in a single event id `evid` described in the following table.
+
+
+| 100+ cmt | Infusion Flag                 | <99 Cmt  | SS flag                                  |
+|----------|-------------------------------|----------|------------------------------------------|
+| 100+ cmt | 0 = bolus dose                | < 99 cmt | 1 = dose                                 |
+|          | 1 = infusion (rate)           |          | 10 = Steady state 1 (equivalent to SS=1) |
+|          | 2 = infusion (dur)            |          | 20 = Steady state 2 (equivalent to SS=2) |
+|          | 6 = turn off modeled duration |          |                                          |
+|          | 7 = turn off modeled rate     |          |                                          |
+|          | 8 = turn on modeled duration  |          |                                          |
+|          | 9 = turn on modeled rate      |          |                                          |
+
+EVID = 0 (observations), EVID=2 (other type event) and EVID=3 are all
+supported.  EVID 10-99 represents modeled time interventions, similar
+to NONMEM's MTIME. This along with amount (amt) and time columns specify the events in the ODE system.  
+
+For infusions, the amt column represents the rate value.  
+
+For Infusion flags 1 and 2 `+amts` turn on the infusion to a specific
+compartment `-amts` turn off the infusion to a specific
+compartment. To specify a dose/duration you place the dosing records
+at the time the duration starts or stops.
+
+For modeled rate/duration infusion flags the on infusion flag must be followed by an off infusion record.
+
+These number are concatenated together to form a full RxODE event ID, as shown in the following examples:
+
+### Bolus Dose Examples
+*A 100 bolus dose to compartment #1 at time 0*
+
+| time | evid | amt |
+|------|------|-----|
+| 0    | 101  | 100 |
+| 0.5  | 0    | 0   |
+| 1    | 0    | 0   |
+
+
+*A 100 bolus dose to compartment #99 at time 0*
+
+| time | evid | amt |
+|------|------|-----|
+| 0    | 9901 | 100 |
+| 0.5  | 0    | 0    |
+| 1    | 0    | 0   |
+
+*A 100 bolus dose to compartment #199 at time 0*
+
+| time | evid   | amt |
+|------|--------|-----|
+| 0    | 109901 | 100 |
+| 0.5  | 0      | 0   |
+| 1    | 0      | 0   |
+
+### Infusion Event Examples
+
+Bolus infusion with rate 50 to compartment 1 for 1.5 hr, (modeled
+	bioavailability changes duration of infusion)
+
+| time | evid  | amt |
+|------|-------|-----|
+| 0    | 10101 | 50  |
+| 0.5  | 0     | 0   |
+| 1    | 0     | 0   |
+| 1.5  | 10101 | -50 |
+
+
+Bolus infusion with rate 50 to compartment 1 for 1.5 hr (modeled
+	bioavailability changes rate of infusion)
+
+| time | evid  | amt |
+|------|-------|-----|
+| 0    | 20101 | 50  |
+| 0.5  | 0     | 0   |
+| 1    | 0     | 0   |
+| 1.5  | 20101 | -50 |
+
+Modeled rate with amount of 50
+
+
+| time | evid  | amt |
+|------|-------|-----|
+| 0    | 90101 | 50  |
+| 0    | 70101 | 50  |
+| 0.5  | 0     | 0   |
+| 1    | 0     | 0   |
+
+
+Modeled duration with amount of 50
+
+| time | evid  | amt |
+|------|-------|-----|
+| 0    | 80101 | 50  |
+| 0    | 60101 | 50  |
+| 0.5  | 0     | 0   |
+| 1    | 0     | 0   |
+
+
+
 Event coding in RxODE is encoded in a single event number `evid`. For
 compartments under 100, this is coded as:
+
 
 - This event is `0` for observation events.
 - For a specified compartment a bolus dose is defined as:
