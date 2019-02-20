@@ -1029,10 +1029,10 @@ extern void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda_opt
   if (rx->needSort) doSort(ind);
   /* for(i=0; i<neq[0]; i++) yp[i] = inits[i]; */
   for(i=0; i<nx; i++) {
+    ind->idx=i;
     xout = getTime(ind->ix[i], ind);
     yp = ret+neq[0]*i;
     if(ind->evid[ind->ix[i]] != 3 && xout-xp > DBL_EPSILON*max(fabs(xout),fabs(xp))){
-      ind->idx=i;
       lsoda(&ctx, yp, &xp, xout);
       if (ctx.state <= 0) {
         /* REprintf("IDID=%d, %s\n", istate, err_msg_ls[-*istate-1]); */
@@ -1332,6 +1332,7 @@ extern void ind_lsoda0(rx_solve *rx, rx_solving_options *op, int solveid, int *n
       //dadt_counter = 0;
     }
     if (!op->badSolve){
+      ind->idx = i;
       if (ind->evid[ind->ix[i]] == 3){
 	for (j = neq[0]; j--;) ind->InfusionRate[j] = 0;
 	memcpy(yp, op->inits, neq[0]*sizeof(double));
@@ -1512,6 +1513,7 @@ extern void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int *neq
         //dadt_counter = 0;
       }
     if (!op->badSolve){
+      ind->idx = i;
       if (ind->evid[ind->ix[i]] == 3){
 	for (j = neq[0]; j--;) ind->InfusionRate[j] = 0;
 	memcpy(yp, op->inits, neq[0]*sizeof(double));

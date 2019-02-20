@@ -4350,7 +4350,18 @@ extern "C" {
   double getTime(int idx, rx_solving_options_ind *ind);
 }
 
+extern "C" void getWh(int evid, int *wh, int *cmt, int *wh100, int *whI, int *wh0);
 extern "C" void doSort(rx_solving_options_ind *ind){
+  // Reset indexes
+  std::iota(&(ind->ix[0]),&(ind->ix[0])+ind->n_all_times, 0);
+  // Reset times for infusion
+  int wh, cmt, wh100, whI, wh0;
+  for (int j = ind->n_all_times; j--;){
+    getWh(ind->evid[j], &wh, &cmt, &wh100, &whI, &wh0);
+    if (whI == 6 || whI == 7){
+      ind->all_times[j] = ind->all_times[j-1];
+    }
+  }
   std::sort(&(ind->ix[0]),&(ind->ix[0])+ind->n_all_times,
 	    [&ind](int a, int b){
 	      double ta=getTime(a, ind);
