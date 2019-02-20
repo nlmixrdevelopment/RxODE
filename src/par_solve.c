@@ -587,6 +587,11 @@ int handle_evid(int evid, int neq,
       case 6: // end modeled duration
 	InfusionRate[cmt] += dose[ind->ixds];
 	break;
+      case 2:
+	// In this case bio-availability changes the rate, but the duration remains constant.
+	// rate = amt/dur
+	InfusionRate[cmt] += AMT(id, cmt, dose[ind->ixds], xout);
+	break;
       case 1:
 	InfusionRate[cmt] += dose[ind->ixds];
 	break;

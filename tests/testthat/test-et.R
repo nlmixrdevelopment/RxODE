@@ -1,9 +1,9 @@
 context("Test event Table et(...)");
-
-library(units)
-library(dplyr)
-
 rxPermissive({
+
+    library(units)
+    library(dplyr)
+
 
     et <- et()
 
@@ -71,6 +71,7 @@ rxPermissive({
 
     ## now resize back up
     et3 <- et2 %>% et(id=1:10)
+
 
 
     et3 <- et3 %>% set_units(mg);
@@ -146,7 +147,8 @@ rxPermissive({
                                     ii = c(24, 24, 24),
                                     addl = c(6L,6L, 6L),
                                     evid = c(1L, 1L, 1L),
-                                    ss = c(0L, 0L, 0L)),
+                                    ss = c(0L, 0L, 0L),
+                                    dur=c(0,0,0)),
                                class = "data.frame",
                                row.names = c(NA,-3L)), e4)
 
@@ -163,7 +165,8 @@ rxPermissive({
                                     ii = c(24, 24, 24),
                                     addl = c(6L,6L, 6L),
                                     evid = c(1L, 1L, 1L),
-                                    ss = c(0L, 0L, 0L)),
+                                    ss = c(0L, 0L, 0L),
+                                    dur=c(0,0,0)),
                                class = "data.frame",
                                row.names = c(NA, -3L)), e5)
 
@@ -180,7 +183,8 @@ rxPermissive({
                                     ii = c(0, 24),
                                     addl = c(0L, 4L),
                                     evid = c(1L, 1L),
-                                    ss = c(0L, 0L)),
+                                    ss = c(0L, 0L),
+                                    dur=c(0,0)),
                                class = "data.frame",
                                row.names = c(NA, -2L)),
                      c(e1, e2) %>% as.data.frame)
@@ -195,7 +199,8 @@ rxPermissive({
                                     ii = c(24, 0, 24),
                                     addl = c(4L, 0L, 4L),
                                     evid = c(1L, 1L, 1L),
-                                    ss = c(0L, 0L, 0L)),
+                                    ss = c(0L, 0L, 0L),
+                                    dur=c(0,0,0)),
                                class = "data.frame",
                                row.names = c(NA, -3L)),
                      c(e2,e1,e2) %>% as.data.frame)
@@ -216,7 +221,8 @@ rxPermissive({
                                     ii = c(0, 0),
                                     addl = c(0L, 0L),
                                     evid = c(1L, 1L),
-                                    ss = c(0L, 0L)),
+                                    ss = c(0L, 0L),
+                                    dur=c(0,0)),
                                class = "data.frame",
                                row.names = c(NA, -2L)),
                      e4)
@@ -233,7 +239,8 @@ rxPermissive({
                                     ii = c(0, 0),
                                     addl = c(0L, 0L),
                                     evid = c(1L, 1L),
-                                    ss = c(0L, 0L)),
+                                    ss = c(0L, 0L),
+                                    dur=c(0,0)),
                                class = "data.frame",
                                row.names = c(NA, -2L)),
                      e4)
@@ -264,11 +271,13 @@ rxPermissive({
                      structure(list(id = 1:10,
                                     time = c(0, 0, 0, 0, 0, 0, 0, 0, 0,0),
                                     amt = c(100, 100, 100, 100, 100, 50, 50, 50, 200, 200),
-                                    ii = c(24,24, 24, 24, 24, 12, 12, 12, 24, 24),
+                                    ii = c(24, 24, 24, 24, 24, 12, 12, 12, 24, 24),
                                     addl = c(6L, 6L, 6L, 6L,6L, 13L, 13L, 13L, 2L, 2L)),
                                class = "data.frame",
                                row.names = c(NA, -10L)))
 
     })
+
+    ## FIXME test windows and dur
 
 })

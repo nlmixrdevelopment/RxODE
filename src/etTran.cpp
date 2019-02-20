@@ -88,7 +88,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false){
   // Translates events + model into translated events
   CharacterVector lName = clone(as<CharacterVector>(inData.attr("names")));
   int i, idCol = -1, evidCol=-1, timeCol=-1, amtCol=-1, cmtCol=-1,
-    dvCol=-1, ssCol=-1, rateCol=-1, addlCol=-1, iiCol=-1, j;
+    dvCol=-1, ssCol=-1, rateCol=-1, addlCol=-1, iiCol=-1, durCol=-1, j;
   std::string tmpS;
   List mv = rxModelVars_(obj);
   CharacterVector pars = as<CharacterVector>(mv["params"]);
@@ -108,6 +108,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false){
     else if (tmpS == "dv" || tmpS == "y") dvCol=i;
     else if (tmpS == "ss")   ssCol=i;
     else if (tmpS == "rate") rateCol=i;
+    else if (tmpS == "dur") durCol=i;
     else if (tmpS == "addl") addlCol=i;
     else if (tmpS == "ii")   iiCol=i;
     for (j = pars.size(); j--;){
@@ -218,6 +219,11 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false){
   if (rateCol != -1){
     inRate = as<NumericVector>(inData[rateCol]);
   }
+
+  NumericVector inDur;
+  if (durCol != -1){
+    inDur = as<NumericVector>(inData[durCol]);
+  }
   
   bool addAmtUnits = false;
   RObject amtUnits;
@@ -308,25 +314,46 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false){
       cmt100=cmt/100; 
       cmt99=cmt-cmt100*100; 
     }
-    // Rate
-    rateI = 0;
-    if (rateCol == -1) rate = 0.0;
-    else rate = inRate[i];
-    if (rate == -1.0){
-      // rate is modeled
-      rateI = 9;
-    } else if (rate == -2.0){
-      // duration is modeled
-      rateI = 8;
-    } else if (rate > 0){
-      // Rate is fixed
-      rateI = 1;
-    }
 
     // Amt
     if (amtCol == -1) camt = 0.0;
     else camt = inAmt[i];
-
+    
+    rateI = 0;
+    // Rate
+    
+    if (durCol == -1 || inDur[i] == 0 || ISNA(inDur[i])){
+      if (rateCol == -1 || inRate[i] == 0 || ISNA(inRate[i])) rate = 0.0;
+      else rate = inRate[i];
+      if (rate == -1.0){
+	// rate is modeled
+	rateI = 9;
+      } else if (rate == -2.0){
+	// duration is modeled
+	rateI = 8;
+      } else if (rate > 0){
+	// Rate is fixed
+	rateI = 1;
+      }
+    } else if (rateCol == -1 || inRate[i] == 0 || ISNA(inRate[i])) {
+      if (durCol == -1) rate = 0.0;
+      if (inDur[i] == 0) rate = 0;
+      // if (inDur[i] > 0)
+      if (inDur[i] == -1.0){
+	// rate is modeled
+	rateI = 9;
+      } else if (inDur[i] == -2.0){
+	// duration is modeled
+	rateI = 8;
+      } else if (inDur[i] > 0){
+	// Duration is fixed
+	rateI = 2;
+	rate = camt/inDur[i];
+      }
+    } else {
+      stop("'rate' and/or 'dur' are not specified correctly.");
+    }
+    
     if (addlCol == -1) caddl=0;
     else caddl = inAddl[i];
 
@@ -459,7 +486,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false){
       dv.push_back(NA_REAL);
       idxO.push_back(curIdx);curIdx++;
       ndose++;
-      if (rateI > 1){
+      if (rateI > 2){
 	amt.push_back(camt);
       
 	// turn off
@@ -473,7 +500,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false){
 	dv.push_back(NA_REAL);
 	idxO.push_back(curIdx);curIdx++;
 	ndose++;
-      } else if (rateI == 1){
+      } else if (rateI == 1 || rateI == 2){
 	// In this case amt needs to be changed.
 	dur = camt/rate;
 	amt.push_back(rate); // turn on
@@ -505,7 +532,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false){
 	  idxO.push_back(curIdx);curIdx++;
 	  ndose++;
 	
-	  if (rateI > 1){
+	  if (rateI > 2){
 	    amt.push_back(camt);
 	    // turn off
 	    id.push_back(cid);
@@ -518,7 +545,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false){
 	    dv.push_back(NA_REAL);
 	    idxO.push_back(curIdx);curIdx++;
 	    ndose++;
-	  } else if (rateI == 1){
+	  } else if (rateI == 1 || rateI == 2){
 	    amt.push_back(rate);
 	    // turn off
 	    id.push_back(cid);

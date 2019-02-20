@@ -130,7 +130,6 @@ rxPermissive({
         expect_error(rxSolve(mod.dur, et, c(ri=1,f=1,li=0.3)))
     })
 
-
     context("Modeled duration")
 
     ## Now model duration
@@ -143,6 +142,38 @@ rxPermissive({
     })
 
     f.a <- rxSolve(mod.dur, et, c(di=0.5,f=1,li=0.3))
+
+    et2 <- et() %>%
+        et(amt=2/24*2,dur=0.5) %>%
+        et(amt=0.2*2,time=2) %>%
+        et(seq(0,10,by=1/24))
+
+    f.b <- rxSolve(mod.dur, et2, c(di=10,f=1,li=0.3))
+
+    test_that("Duration 0.5, F=1, li=0.3", {
+        expect_equal(as.data.frame(f.a),as.data.frame(f.b))
+    })
+
+    et2 <- et() %>%
+        et(amt=2/24*2,dur=0.5) %>%
+        et(amt=0.2*2,time=2) %>%
+        et(seq(0,10,by=1/24))
+
+    f.a <- rxSolve(mod.dur, et, c(di=0.5,f=1,li=0.3))
+
+    f.b <- rxSolve(mod.dur, et2, c(di=10,f=1,li=0.3))
+
+    test_that("Duration 0.5, F=1, li=0.3", {
+        expect_equal(as.data.frame(f.a),as.data.frame(f.b))
+    })
+
+    f.a <- rxSolve(mod.dur, et, c(di=0.5,f=2,li=0.3))
+
+    f.b <- rxSolve(mod.dur, et2, c(di=10,f=2,li=0.3))
+
+    test_that("Duration 0.5, F=1, li=0.3", {
+        expect_equal(as.data.frame(f.a),as.data.frame(f.b))
+    })
 
 })
 

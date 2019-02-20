@@ -182,14 +182,14 @@ List etEmpty(CharacterVector units){
   e["show"] = LogicalVector::create(_["id"] = false, _["low"] = false,_["time"] = true, _["high"] = false,
 				    _["cmt"] =false, _["amt"]=false, _["rate"] = false,
 				    _["ii"] = false, _["addl"] = false,
-				    _["evid"] = true, _["ss"] = false);
+				    _["evid"] = true, _["ss"] = false, _["dur"] = false);
   e["IDs"] = IntegerVector::create(1);
 
   e["canResize"] = true;
 
   // Return an empty data frame.
-  List lst(11);
-  CharacterVector nme(11);
+  List lst(12);
+  CharacterVector nme(12);
   nme[0] = "id";
   lst[0] = IntegerVector(0);
       
@@ -223,6 +223,9 @@ List etEmpty(CharacterVector units){
   nme[10] = "ss";
   lst[10] = IntegerVector(0);
 
+  nme[11] = "dur";
+  lst[11] = IntegerVector(0);
+
   e.attr("class") = "rxHidden";
 
   cls.attr(".RxODE.lst") = e;
@@ -235,9 +238,11 @@ List etEmpty(CharacterVector units){
     lst["time"] = setUnits(lst["time"], as<std::string>(units[1]));
     lst["high"] = setUnits(lst["high"], as<std::string>(units[1]));
     lst["ii"]  = setUnits(lst["ii"],  as<std::string>(units[1]));
+    lst["dur"]  = setUnits(lst["dur"],  as<std::string>(units[1]));
   } else {
     lst["low"]  = setUnits(lst["low"], "");
     lst["ii"]  = setUnits(lst["ii"], "");
+    lst["dur"]  = setUnits(lst["dur"], "");
     lst["time"] = setUnits(lst["time"],"");
     lst["high"] = setUnits(lst["high"], "");
   }
@@ -399,6 +404,9 @@ List etAddWindow(List windowLst, IntegerVector IDs, RObject cmt, bool turnOnShow
       
   // nme[10] = "ss";
   lst[10] = IntegerVector(id.size());
+  
+  // nme[11]= "dur"
+  lst[11] = NumericVector(id.size());
   for (i = idx.size(); i--;){
     tmpI = as<IntegerVector>(lst[0]); // id
     tmpI[i] = id[idx[i]];
@@ -445,8 +453,12 @@ List etAddWindow(List windowLst, IntegerVector IDs, RObject cmt, bool turnOnShow
       // nme[10] = "ss";
       tmpI = as<IntegerVector>(lst[10]); // id
       tmpI[i] = NA_REAL;
+      
+      // nme[11] = "dur";
+      tmpN = as<NumericVector>(lst[11]);
+      tmpN[i] = NA_REAL;
     } else {
-      for (j = 11; j--;){
+      for (j = 12; j--;){
 	if (rxIs(curEt[j], "numeric")){
 	  tmpN = as<NumericVector>(lst[j]);
 	  tmpN2 = as<NumericVector>(curEt[j]);
@@ -575,6 +587,9 @@ List etAddTimes(NumericVector newTimes, IntegerVector IDs, RObject cmt, bool tur
       
   // nme[10] = "ss";
   lst[10] = IntegerVector(id.size());
+
+  // nme[11] = "dur";
+  lst[11] = NumericVector(id.size());
   for (i = idx.size(); i--;){
     tmpI = as<IntegerVector>(lst[0]); // id
     tmpI[i] = id[idx[i]];
@@ -621,9 +636,13 @@ List etAddTimes(NumericVector newTimes, IntegerVector IDs, RObject cmt, bool tur
       // nme[10] = "ss";
       tmpI = as<IntegerVector>(lst[10]); // id
       tmpI[i] = NA_REAL;
+
+      // nme[11] = "dur";
+      tmpN = as<NumericVector>(lst[11]); // id
+      tmpN[i] = NA_REAL;
     } else {
       // low
-      for (j = 11; j--;){
+      for (j = 12; j--;){
 	if (rxIs(curEt[j], "numeric")){
 	  tmpN = as<NumericVector>(lst[j]);
 	  tmpN2 = as<NumericVector>(curEt[j]);
@@ -691,7 +710,7 @@ CharacterVector deparseUnit(NumericVector nv){
 List etImportEventTable(List inData){
   CharacterVector lName = as<CharacterVector>(inData.attr("names"));
   int i, idCol = -1, evidCol=-1, timeCol=-1, amtCol=-1, cmtCol=-1,
-    ssCol=-1, rateCol=-1, addlCol=-1, iiCol=-1, j;
+    ssCol=-1, rateCol=-1, addlCol=-1, iiCol=-1, durCol = -1, j;
   std::string tmpS;
   for (i = lName.size(); i--;){
     tmpS = as<std::string>(lName[i]);
@@ -706,6 +725,7 @@ List etImportEventTable(List inData){
     else if (tmpS == "rate") rateCol=i;
     else if (tmpS == "addl") addlCol=i;
     else if (tmpS == "ii")   iiCol=i;
+    else if (tmpS == "dur" || tmpS == "duration") durCol=i;
   }
   if (evidCol == -1) stop("Need evid column.");
   IntegerVector oldEvid=as<IntegerVector>(inData[evidCol]);
@@ -741,6 +761,17 @@ List etImportEventTable(List inData){
     if (rxIs(oldRate, "units")){
       rateUnits = oldRate.attr("units");
       haveRateUnits=true;
+    }
+  }
+
+  std::vector<double> dur;
+  NumericVector oldDur;
+  if (durCol == -1){
+    oldDur = NumericVector(oldEvid.size(), 0.0);
+  } else {
+    oldDur = as<NumericVector>(inData[durCol]);
+    if (rxIs(oldTime, "units")){
+      oldDur = setUnits(oldDur, as<std::string>(deparseUnit(oldTime)));
     }
   }
   
@@ -822,6 +853,7 @@ List etImportEventTable(List inData){
 	}
 	amt.push_back(NA_REAL);
 	rate.push_back(NA_REAL);
+	dur.push_back(NA_REAL);
 	ii.push_back(NA_REAL);
 	addl.push_back(NA_INTEGER);
 	evid.push_back(2);
@@ -836,6 +868,7 @@ List etImportEventTable(List inData){
 	}
 	amt.push_back(NA_REAL);
 	rate.push_back(NA_REAL);
+	dur.push_back(NA_REAL);
 	ii.push_back(NA_REAL);
 	addl.push_back(NA_INTEGER);
 	evid.push_back(0);
@@ -856,7 +889,9 @@ List etImportEventTable(List inData){
       }
       amt.push_back(oldAmt[i]);
       rate.push_back(oldRate[i]);
+      dur.push_back(oldDur[i]);
       if (oldRate[i] > 0) show["rate"] = true;
+      if (oldDur[i] > 0) show["dur"] = true;
       ii.push_back(oldIi[i]);
       if (oldIi[i] > 0) show["ii"] = true;
       addl.push_back(oldAddl[i]);
@@ -887,6 +922,7 @@ List etImportEventTable(List inData){
 	cmt.push_back(cmtI);
 	amt.push_back(oldAmt[i]);
 	rate.push_back(-2.0);
+	dur.push_back(0.0);
 	ii.push_back(oldIi[i]);
 	addl.push_back(0);
 	evid.push_back(1);
@@ -916,6 +952,7 @@ List etImportEventTable(List inData){
 	cmt.push_back(cmtI);
 	amt.push_back(oldAmt[i]);
 	rate.push_back(-1.0);
+	dur.push_back(0.0);
 	ii.push_back(oldIi[i]);
 	addl.push_back(0);
 	evid.push_back(1);
@@ -931,11 +968,12 @@ List etImportEventTable(List inData){
 	show["rate"] = true;
 	ndose++;
 	break;
+      case 2:
       case 1:
 	if (oldAmt[i] > 0){
 	  for (j = i; j < oldEvid.size(); j++){
 	    if (oldEvid[i] == oldEvid[j] && oldAmt[i] == -oldAmt[j]){
-	      double dur = oldTime[j] - oldTime[i];
+	      double durC = oldTime[j] - oldTime[i];
 	      id.push_back(oldId[i]);
 	      if (std::find(uIds.begin(), uIds.end(), oldId[i]) == uIds.end()){
 		uIds.push_back(oldId[i]);
@@ -944,8 +982,16 @@ List etImportEventTable(List inData){
 	      time.push_back(oldTime[i]);
 	      high.push_back(NA_REAL);
 	      cmt.push_back(cmtI);
-	      amt.push_back(oldAmt[i] * dur);
-	      rate.push_back(oldAmt[i]);
+	      amt.push_back(oldAmt[i] * durC);
+	      if (whI == 1){
+		rate.push_back(oldAmt[i]);
+		dur.push_back(0);
+		show["rate"] = true;
+	      } else {
+		rate.push_back(0);
+		dur.push_back(durC);
+		show["dur"] = true;
+	      }
 	      ii.push_back(oldIi[i]);
 	      addl.push_back(0);
 	      evid.push_back(1);
@@ -958,7 +1004,6 @@ List etImportEventTable(List inData){
 	      } else {
 		ss.push_back(0);
 	      }
-	      show["rate"] = true;
 	      ndose++;
 	      break;
 	    }
@@ -978,6 +1023,7 @@ List etImportEventTable(List inData){
 	cmt.push_back(cmtI);
 	amt.push_back(oldAmt[i]);
 	rate.push_back(0);
+	dur.push_back(0);
 	ii.push_back(oldIi[i]);
 	addl.push_back(0);
 	evid.push_back(1);
@@ -1091,6 +1137,15 @@ List etImportEventTable(List inData){
       
   // nme[10] = "ss";
   lst[10] = wrap(ss);
+  
+  // nme[11] = "dur"
+  tmpNv = wrap(dur);
+  if (doTime){
+    tmpNv.attr("class") = "units";
+    tmpNv.attr("units") = timeUnitInfo;
+  }
+  lst[11] = tmpNv;
+  
   e["units"] = units;
   e["ndose"] = ndose;
   e["nobs"] = nobs;
@@ -1105,7 +1160,7 @@ List etImportEventTable(List inData){
 }
 
 List etAddDose(NumericVector curTime, RObject cmt,  double amt, double rate, double ii,
-	       int addl, int curEvid, int ss,
+	       int addl, int curEvid, int ss, double dur,
 	       IntegerVector IDs, bool turnOnShowCmt, bool doSampling, List curEt){
   std::vector<double> time = as<std::vector<double>>(curEt["time"]);
   std::vector<int> id = as<std::vector<int>>(curEt["id"]);
@@ -1230,6 +1285,10 @@ List etAddDose(NumericVector curTime, RObject cmt,  double amt, double rate, dou
       
   // nme[10] = "ss";
   lst[10] = IntegerVector(id.size());
+
+  //nme[11] = "dur"
+  lst[11] = NumericVector(id.size());
+  
   for (i = idx.size(); i--;){
     tmpI = as<IntegerVector>(lst[0]); // id
     tmpI[i] = id[idx[i]];
@@ -1275,9 +1334,13 @@ List etAddDose(NumericVector curTime, RObject cmt,  double amt, double rate, dou
       // nme[10] = "ss";
       tmpI = as<IntegerVector>(lst[10]); // id
       tmpI[i] = ss;
+
+      // nme[11] = "dur";
+      tmpN = as<NumericVector>(lst[11]);
+      tmpN[i] = dur;
     } else {
       // low
-      for (j = 11; j--;){
+      for (j = 12; j--;){
 	if (rxIs(curEt[j], "numeric")){
 	  tmpN = as<NumericVector>(lst[j]);
 	  tmpN2 = as<NumericVector>(curEt[j]);
@@ -1325,6 +1388,9 @@ List etAddDose(NumericVector curTime, RObject cmt,  double amt, double rate, dou
     show["ss"] = true;
     show["ii"] = true;
   }
+  if (dur != 0){
+    show["dur"] = true;
+  }
   e["ndose"] = as<int>(e["ndose"])+ndose;
   e["nobs"] = as<int>(e["nobs"])+nobs;
   if (curTime.size() == 2){
@@ -1357,12 +1423,14 @@ RObject etUpdateObj(List curEt, bool update, bool rxSolve){
   CharacterVector units = e["units"];
   if (!CharacterVector::is_na(units[1])){
     lst["ii"]  = setUnits(lst["ii"],  as<std::string>(units[1]));
+    lst["dur"]  = setUnits(lst["dur"],  as<std::string>(units[1]));
     lst["low"]  = setUnits(lst["low"],  as<std::string>(units[1]));
     lst["time"] = setUnits(lst["time"], as<std::string>(units[1]));
     lst["high"] = setUnits(lst["high"], as<std::string>(units[1]));
     if (units[1] == "") units[1] = NA_STRING;
   } else {
-    lst["ii"]  = setUnits(lst["ii"],  "");
+    lst["ii"]  = setUnits(lst["ii"], "");
+    lst["dur"]  = setUnits(lst["dur"], "");
     lst["low"]  = setUnits(lst["low"],  "");
     lst["time"] = setUnits(lst["time"], "");
     lst["high"] = setUnits(lst["high"], "");
@@ -1429,11 +1497,13 @@ RObject etSetUnit(List curEt, CharacterVector units){
   if (as<std::string>(oldUnits[1]) != as<std::string>(units[1])){
     if (!CharacterVector::is_na(units[1])){
       lst["ii"]  = setUnits(lst["ii"],  as<std::string>(units[1]));
+      lst["dur"]  = setUnits(lst["dur"],  as<std::string>(units[1]));
       lst["low"]  = setUnits(lst["low"],  as<std::string>(units[1]));
       lst["time"] = setUnits(lst["time"], as<std::string>(units[1]));
       lst["high"] = setUnits(lst["high"], as<std::string>(units[1]));
     } else {
       lst["ii"]  = setUnits(lst["ii"],  "");
+      lst["dur"]  = setUnits(lst["dur"],  "");
       lst["low"]  = setUnits(lst["low"],  "");
       lst["time"] = setUnits(lst["time"], "");
       lst["high"] = setUnits(lst["high"], "");
@@ -1704,7 +1774,7 @@ RObject et_(List input, List et__){
   int i, amtIx = -1, iiIx = -1, addlIx = -1,
     untilIx = -1, evidIx=-1, idIx=-1, cmtIx=-1, 
     amtUnitIx=-1, timeUnitIx=-1, doSamplingIdx=-1, timeIx=-1,
-    rateIx = -1, nbrIx=-1, ssIx=-1;
+    rateIx = -1,  durIx = -1, nbrIx=-1, ssIx=-1;
   // Wait should be in sequences and rep
   for (i = (int)inN.size(); i--;){
     if (inN[i] == "amt" || inN[i] == "dose") amtIx=i;
@@ -1727,6 +1797,7 @@ RObject et_(List input, List et__){
     else if (inN[i] == "nbr.doses" || inN[i] == "nbrDoses" || inN[i] == "nbr") nbrIx=i;
     else if (inN[i] == "ss") ssIx = i;
     else if (inN[i] == "rate") rateIx = i;
+    else if (inN[i] == "dur" || inN[i] == "duration") durIx = i;
     else if (inN[i] != "" &&  !doUpdateObj) stop("unused argument '%s'", (as<std::string>(inN[i])).c_str());
   }
   // missing argument name handling.
@@ -2042,25 +2113,24 @@ RObject et_(List input, List et__){
 	}
 	NumericVector rate;
 	if (rateIx != -1){
+	  if (durIx != -1){
+	    stop("Cannot specify 'dur' AND 'rate' for a dose, please pick one.");
+	  }
 	  rate = as<NumericVector>(input[rateIx]);
 	  if (rate.size() != 1) stop("rate cannot be a vector");
 	  if (rate[0] != 0.0){
 	    stop("rate needs a dose/amt.");
 	  }
-	  if (rxIs(rate, "units")){
-	    CharacterVector cls = clone(as<CharacterVector>(curEt.attr("class")));
-	    List e = clone(as<List>(cls.attr(".RxODE.lst")));
-	    CharacterVector units = e["units"];
-	    if (!CharacterVector::is_na(units[1]) && !CharacterVector::is_na(units[0])){
-	      std::string rateUnit = as<std::string>(units[0]) + "/" + as<std::string>(units[1]);
-	      rate = setUnits(rate,rateUnit);
-	    } else {
-	      stop("Rate is cannot be converted and added to this table.");
+	} else {
+	  if (durIx != -1){
+	    NumericVector dur = as<NumericVector>(input[durIx]);
+	    if (dur.size() != 1) stop("dur cannot be a vector");
+	    if (dur[0] != 0){
+	      stop("dur needs a dose/amt.");
 	    }
 	  }
-	} else {
 	  rate = NumericVector(1);
-	  rate[0]=0.0;
+	  rate[0]=0.0;	  
 	}
 	NumericVector ii;
 	if (iiIx != -1){
@@ -2134,7 +2204,11 @@ RObject et_(List input, List et__){
 	  }
 	}
 	NumericVector rate;
+	NumericVector dur;
 	if (rateIx != -1){
+	  if (durIx != -1){
+	    stop("Cannot specify 'dur' AND 'rate' for a dose, please pick one.");
+	  }
 	  rate = as<NumericVector>(input[rateIx]);
 	  if (rate.size() != 1) stop("rate cannot be a vector.");
 	  if (rxIs(rate, "units")){
@@ -2148,9 +2222,32 @@ RObject et_(List input, List et__){
 	      stop("Rate is cannot be converted and added to this table.");
 	    }
 	  }
+	  dur = NumericVector(1);
+	  dur[0] = 0;
 	} else {
-	  rate = NumericVector(1);
-	  rate[0] = 0.0;
+	  if (durIx != -1){
+	    dur = as<NumericVector>(input[durIx]);
+	    rate = NumericVector(1);
+	    rate[0] = 0;
+	    if (dur.size() != 1) stop("dur cannot be a vector");
+	    if (rxIs(dur, "units")){
+	      CharacterVector cls = clone(as<CharacterVector>(curEt.attr("class")));
+	      List e = clone(as<List>(cls.attr(".RxODE.lst")));
+	      CharacterVector units = e["units"];
+	      if (!CharacterVector::is_na(units[1])){
+		std::string durUnit = as<std::string>(units[0]) + "/" + as<std::string>(units[1]);
+		dur = setUnits(dur,as<std::string>(units[1]));
+		// While units are converted, the units that matter are the rate units.
+	      } else {
+		stop("Dur is cannot be converted and added to this table.");
+	      }
+	    }
+	  } else {
+	    rate = NumericVector(1);
+	    rate[0] = 0.0;
+	    dur = NumericVector(1);
+	    dur[0] = 0.0;
+	  }
 	}
 	NumericVector ii;// =0.0;
 	if (iiIx != -1){
@@ -2231,7 +2328,7 @@ RObject et_(List input, List et__){
 	if (addl[0] < 0){
 	  stop("Additional doses must be positive (addl=%d).", addl[0]);
 	}
-	return etUpdateObj(etAddDose(time, cmt, amt[0], rate[0], ii[0], addl[0], evid[0], ss[0],
+	return etUpdateObj(etAddDose(time, cmt, amt[0], rate[0], ii[0], addl[0], evid[0], ss[0], dur[0],
 				     id, turnOnShowCmt, doSampling, as<List>(curEt)),doUpdateObj, inputSolve);
       }
     }
@@ -2554,6 +2651,9 @@ List etSeq_(List ets, int handleSamples=0, int waitType = 0,
   // nme[10] = "ss";
   lst[10] = IntegerVector(id.size());
 
+  // nme[11] = "dur"
+  lst[11] = NumericVector(id.size());
+
   IntegerVector tmpI, tmpI2;
   NumericVector tmpN, tmpN2;
   CharacterVector tmpC, tmpC2;
@@ -2605,6 +2705,10 @@ List etSeq_(List ets, int handleSamples=0, int waitType = 0,
     tmpI = as<IntegerVector>(lst[10]); // rate
     tmpI2 = as<IntegerVector>(et[10]);
     tmpI[i] = tmpI2[j];
+
+    tmpN = as<NumericVector>(lst[11]); // dur
+    tmpN2 = as<NumericVector>(et[11]);
+    tmpN[i] = tmpN2[j];
   }
   cls = lst.attr("class");
   e = cls.attr(".RxODE.lst");

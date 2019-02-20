@@ -166,7 +166,7 @@ bool rxIs(const RObject &obj, std::string cls){
 	    List lobj = List(obj);
 	    int nobs = ce["nobs"];
 	    int ndose = ce["ndose"];
-	    if (lobj.size() != 11){
+	    if (lobj.size() != 12){
 	      lobj.attr("class") = CharacterVector::create("data.frame");
 	      return false;
 	    }
