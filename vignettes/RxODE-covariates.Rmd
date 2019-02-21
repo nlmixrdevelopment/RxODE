@@ -25,6 +25,8 @@ already discussed, we have:
 
 ```{r}
 library(RxODE)
+library(units)
+
 mod3 <- RxODE({
     KA=2.94E-01;
     CL=1.86E+01; 
@@ -50,8 +52,8 @@ ev <- eventTable(amount.units="mg", time.units="hours") %>%
     add.sampling(seq(0,48,length.out=100));
 
 
- ## Create data frame of  8 am dosing for the first dose
-cov.df  <- data.frame(ctime =(seq(0,48,length.out=100)+8) %% 24);
+## Create data frame of  8 am dosing for the first dose
+ev$ctime <- (ev$time+set_units(8,hr)) %% 24
 
 ```
 
@@ -59,7 +61,7 @@ Now there is a covariate present, the system can be solved using the cov option
 
 ```{r,results="asis"}
 
-r1 <- solve(mod3, ev, covs=cov.df,covs_interpolation="linear")
+r1 <- solve(mod3, ev, covs_interpolation="linear")
 rxHtml(r1)
 ```
 
@@ -71,11 +73,11 @@ default `approxfun`.
 
 ```{r}
 library(ggplot2)
-ggplot(r1,aes(time,C2)) + geom_line() + ylab("Central Concentration") + xlab("Time");
+plot(r1,C2) +ylab("Central Concentration") + xlab("Time");
 ```
 
 ```{r}
-ggplot(r1,aes(time,eff)) + geom_line() + ylab("Effect") + xlab("Time");
+plot(r1,eff) + ylab("Effect") + xlab("Time");
 ```
 
 Note that the linear approximation in this case leads to some kinks in
@@ -87,19 +89,19 @@ carried forward, or constant approximation.  This is equivalent to R's
 `approxfun` with `method="constant"`.
 
 
-r```{r,results="asis"}
-r2 <- solve(mod3, ev, covs=cov.df,covs_interpolation="constant")
-rxHtml(r2)
+```{r,results="asis"}
+r1 <- solve(mod3, ev,covs_interpolation="constant")
+rxHtml(r1)
 ```
 
 which gives the following plots:
 
 ```{r}
-ggplot(r1,aes(time,C2)) + geom_line() + ylab("Central Concentration") + xlab("Time");
+plot(r1,C2) + ylab("Central Concentration") + xlab("Time");
 ```
 
 ```{r}
-ggplot(r1,aes(time,eff)) + geom_line() + ylab("Effect") + xlab("Time");
+plot(r1,eff) + ylab("Effect") + xlab("Time");
 ```
 
 In this case, the plots seem to be smoother.
@@ -107,20 +109,20 @@ In this case, the plots seem to be smoother.
 
 You can also use NONMEM's preferred interpolation style of next
 observation carried backward (NOCB):
-eeee
+
 ```{r,results="asis"}
-r2 <- solve(mod3, ev, covs=cov.df,covs_interpolation="nocb")
-rxHtml(r2)
+r1 <- solve(mod3, ev,covs_interpolation="nocb")
+rxHtml(r1)
 ```
 
 which gives the following plots:
 
 ```{r}
-ggplot(r1,aes(time,C2)) + geom_line() + ylab("Central Concentration") + xlab("Time");
+plot(r1,C2) + ylab("Central Concentration") + xlab("Time");
 ```
 
 ```{r}
-ggplot(r1,aes(time,eff)) + geom_line() + ylab("Effect") + xlab("Time");
+plot(r1,eff) + ylab("Effect") + xlab("Time");
 ```
 
 
