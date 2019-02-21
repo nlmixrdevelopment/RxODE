@@ -22,7 +22,10 @@ RxODE supports returning a solved object that is a modified data-frame.
 This is done by the `predict()`, `solve()`, or `rxSolve()` methods.
 
 ```{r,results="asis"}
+
 library(RxODE)
+library(units)
+
 ## Setup example model
 mod1 <-RxODE({
     C2 = centr/V2;
@@ -72,7 +75,7 @@ by `dpylr`.  For example you could filter it easily.
 
 ```{r}
 library(dplyr)
-x <- mod1 %>% solve(theta,ev,inits) %>%  filter(time <=3)
+x <- mod1 %>% solve(theta,ev,inits) %>%  filter(time <= set_units(3, "hr")) %>% as.tbl
 x
 ```
 
