@@ -72,3 +72,47 @@ ggforce::facet_wrap_paginate
 #' @importFrom ggforce facet_grid_paginate
 #' @export
 ggforce::facet_grid_paginate
+
+#' @importFrom ggforce ScaleContinuousPositionUnit
+#' @export
+ggforce::ScaleContinuousPositionUnit
+
+#' @importFrom ggplot2 aes
+#' @export
+ggplot2::aes
+
+#' @importFrom ggplot2 facet_wrap
+#' @export
+ggplot2::facet_wrap
+
+
+#' @importFrom ggplot2 geom_line
+#' @export
+ggplot2::geom_line
+
+
+#' @importFrom ggplot2 ggplot
+#' @export
+ggplot2::ggplot
+
+#' @importFrom ggplot2 scale_type
+#' @export
+ggplot2::scale_type
+
+#' @importFrom ggforce scale_x_unit
+#' @export
+ggforce::scale_x_unit
+
+
+#' @importFrom ggforce scale_y_unit
+#' @export
+ggforce::scale_y_unit
+
+
+#' @importFrom units set_units
+#' @export
+units::set_units
+
+#' @importFrom units drop_units
+#' @export
+units::drop_units

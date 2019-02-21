@@ -6,6 +6,16 @@
 \alias{\%>\%}
 \alias{facet_wrap_paginate}
 \alias{facet_grid_paginate}
+\alias{ScaleContinuousPositionUnit}
+\alias{aes}
+\alias{facet_wrap}
+\alias{geom_line}
+\alias{ggplot}
+\alias{scale_type}
+\alias{scale_x_unit}
+\alias{scale_y_unit}
+\alias{set_units}
+\alias{drop_units}
 \title{Objects exported from other packages}
 \keyword{internal}
 \description{
@@ -13,8 +23,12 @@ These objects are imported from other packages. Follow the links
 below to see their documentation.
 
 \describe{
-  \item{ggforce}{\code{\link[ggforce]{facet_wrap_paginate}}, \code{\link[ggforce]{facet_grid_paginate}}}
+  \item{ggforce}{\code{\link[ggforce]{facet_wrap_paginate}}, \code{\link[ggforce]{facet_grid_paginate}}, \code{\link[ggforce]{ScaleContinuousPositionUnit}}, \code{\link[ggforce]{scale_x_unit}}, \code{\link[ggforce]{scale_y_unit}}}
+
+  \item{ggplot2}{\code{\link[ggplot2]{aes}}, \code{\link[ggplot2]{facet_wrap}}, \code{\link[ggplot2]{geom_line}}, \code{\link[ggplot2]{ggplot}}, \code{\link[ggplot2]{scale_type}}}
 
   \item{magrittr}{\code{\link[magrittr]{\%>\%}}}
+
+  \item{units}{\code{\link[units]{set_units}}, \code{\link[units]{drop_units}}}
 }}
 

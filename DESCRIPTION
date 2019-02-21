@@ -52,7 +52,7 @@ Suggests:
     stringi,
     htmltools,
     reticulate,
-    installr
+    rlang
 Imports:
     Matrix,
     PreciseSums (>= 0.3),
