@@ -45,14 +45,14 @@ Suggests:
     tidyr,
     tibble,
     curl,
-    ggplot2,
     gridExtra,
     microbenchmark,
     scales,
     stringi,
     htmltools,
     reticulate,
-    rlang
+    rlang,
+    installr
 Imports:
     Matrix,
     PreciseSums (>= 0.3),

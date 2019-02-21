@@ -23,6 +23,8 @@ pillar_shaft.mixed_units(x, ...)
 \item{x}{see \link[pillar]{type_sum}}
 
 \item{...}{see \link[pillar]{type_sum}}
+
+\item{width}{see \link[pillar]{type_sum}}
 }
 \description{
 type_sum function for units

@@ -2,6 +2,7 @@
 #' @name tibble
 #' @param x see \link[pillar]{type_sum}
 #' @param ... see \link[pillar]{type_sum}
+#' @param width see \link[pillar]{type_sum}
 #' @rawNamespace if(getRversion() >= "3.6.0") {
 #'   S3method(pillar::type_sum, units)
 #'   S3method(pillar::type_sum, mixed_units)
