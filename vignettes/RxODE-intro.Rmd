@@ -34,6 +34,8 @@ To load `RxODE` package and compile the model:
 
 ```{r}
 library(RxODE)
+library(units)
+
 mod1 <-RxODE({
     C2 = centr/V2;
     C3 = peri/V3;
@@ -116,9 +118,9 @@ directly with the event table function `et`
 
 ```{r}
 ev  <- et(amountUnits="mg", timeUnits="hours") %>%
-	et(amt=10000, addl=9,ii=12,cmt="depot") %>%
-	et(time=120, amt=2000, addl=4, ii=14, cmt="depot") %>%
-	et(0:240) # Assumes sampling when there is no dosing information
+    et(amt=10000, addl=9,ii=12,cmt="depot") %>%
+    et(time=120, amt=2000, addl=4, ii=14, cmt="depot") %>%
+    et(0:240) # Assumes sampling when there is no dosing information
 ```
 
 You can see from the above code, you can dose to the compartment named
@@ -137,16 +139,17 @@ The ODE can now be solved by calling the model object's `run` or `solve`
 function. Simulation results for all variables in the model are stored
 in the output matrix x. 
 
-You can also solve this and create a RxODE data frame:
-
 ```{r, results="asis"}
-x <- solve(mod1,theta, ev, inits);
-rxHtml(x)
+x <- mod1$solve(theta, ev, inits);
+knitr::kable(head(x))
 ```
 
-```{r}
-x <- mod1$solve(theta, ev, inits)
-knitr::kable(head(x))
+You can also solve this and create a RxODE data frame:
+
+
+```{r, results="asis"}
+x <- mod1 %>% solve(theta, ev, inits);
+rxHtml(x)
 ```
 
 This returns a matrix.  You can see the compartment values in the plot
