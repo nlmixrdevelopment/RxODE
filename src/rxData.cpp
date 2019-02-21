@@ -24,12 +24,18 @@
 using namespace Rcpp;
 using namespace arma;
 
+List etTrans(List inData, const RObject &obj, bool addCmt);
+List etImportEventTable(List inData);
+RObject et_(List input, List et__);
+void setEvCur(RObject cur);
+
 int rxcEvid = -1;
 int rxcTime = -1;
 int rxcAmt  = -1;
 int rxcId   = -1;
 int rxcDv   = -1;
 int rxcLen  = -1;
+int rxcIi   = -1;
 bool resetCache = true;
 bool rxHasEventNames(CharacterVector &nm){
   int len = nm.size();
@@ -41,6 +47,7 @@ bool rxHasEventNames(CharacterVector &nm){
     rxcAmt  = -1;
     rxcId   = -1;
     rxcDv   = -1;
+    rxcIi   = -1;
     rxcLen  = len;
     for (unsigned int i = len; i--;){
       if (as<std::string>(nm[i]) == "evid" || as<std::string>(nm[i]) == "EVID" || as<std::string>(nm[i]) == "Evid"){
@@ -53,6 +60,8 @@ bool rxHasEventNames(CharacterVector &nm){
         rxcId = i;
       } else if (as<std::string>(nm[i]) == "dv" || as<std::string>(nm[i]) == "DV" || as<std::string>(nm[i]) == "Dv"){
         rxcDv = i;
+      } else if (as<std::string>(nm[i]) == "ii" || as<std::string>(nm[i]) == "II" || as<std::string>(nm[i]) == "Ii"){
+	rxcIi = i;
       }
     }
   }
@@ -79,12 +88,18 @@ bool rxHasEventNames(CharacterVector &nm){
 //' @export
 // [[Rcpp::export]]
 bool rxIs(const RObject &obj, std::string cls){
+  if (cls == "units"){
+    if (obj.hasAttribute("class")){
+      CharacterVector cls = obj.attr("class");
+      return as<std::string>(cls[0]) == "units";
+    }
+  }
   int type = obj.sexp_type();
   bool hasDim = false;
   bool hasCls = false;
   switch (type){
   case 0: return (cls == "NULL");
-  case REALSXP: 
+  case REALSXP:
     hasDim = obj.hasAttribute("dim");
     if (hasDim){
       if (cls == "event.matrix" || cls ==  "rx.event"){
@@ -111,7 +126,16 @@ bool rxIs(const RObject &obj, std::string cls){
     if (hasDim){
       return (cls == "matrix" || cls == "integer.matrix");
     } else {
-      return (cls == "integer");
+      if (cls == "integer") return true;
+      hasCls = obj.hasAttribute("class");
+      if (hasCls){
+	CharacterVector classattr = obj.attr("class");
+	if (as<std::string>(classattr[0]) == cls){
+	  return true;
+	}
+	return false;
+      }
+      return false;
     }
   case LGLSXP:
     hasDim = obj.hasAttribute("dim");
@@ -137,7 +161,21 @@ bool rxIs(const RObject &obj, std::string cls){
       for (unsigned int i = classattr.size(); i--; ){
 	cur = as<std::string>(classattr[i]);
 	if (cur == cls){
-	  if (cls == "rxSolve"){
+	  if (cls == "rxEt"){
+	    List ce = as<List>(classattr.attr(".RxODE.lst"));
+	    List lobj = List(obj);
+	    int nobs = ce["nobs"];
+	    int ndose = ce["ndose"];
+	    if (lobj.size() != 12){
+	      lobj.attr("class") = CharacterVector::create("data.frame");
+	      return false;
+	    }
+	    if ( (as<IntegerVector>(lobj[0])).size() != ndose + nobs){
+	      lobj.attr("class") = CharacterVector::create("data.frame");
+	      return false;
+	    }
+	    return true;
+	  } else if (cls == "rxSolve"){
 	    Environment e = as<Environment>(classattr.attr(".RxODE.env"));
 	    List lobj = List(obj);
 	    CharacterVector cls2= CharacterVector::create("data.frame");
@@ -168,14 +206,22 @@ bool rxIs(const RObject &obj, std::string cls){
 	  }
 	} else if (cur == "data.frame"){
 	  hasDf=true;
-        } else if (cur == "EventTable"){
-	  hasEt=true;
-	}
+        }
       }
       if (hasDf && (cls == "rx.event" || cls == "event.data.frame")){
-	// Check for event.data.frame
-	CharacterVector cv =as<CharacterVector>((as<DataFrame>(obj)).names());
-	return rxHasEventNames(cv);
+	if (classattr[0] == "rxEtTran"){
+	  rxcEvid = 2;
+	  rxcTime = 1;
+	  rxcAmt  = 3;
+	  rxcId   = 0;
+	  rxcDv   = 5;
+	  rxcIi   = 4;
+	  return true;
+	} else {
+	  // Check for event.data.frame
+	  CharacterVector cv =as<CharacterVector>((as<DataFrame>(obj)).names());
+	  return rxHasEventNames(cv);
+	}
       } else if (hasEt) {
 	return (cls == "rx.event");
       } else {
@@ -979,10 +1025,13 @@ typedef struct {
   double *gInfusionRate;
   int gInfusionRaten;
   double *gall_times;
+  int *gix;
+  int gixn;
   int gall_timesn;
   double *gdv;
   int gdvn;
   double *gamt;
+  double *gii;
   int gamtn;
   double *glhs;
   int glhsn;
@@ -1009,8 +1058,11 @@ typedef struct {
   int gidosen;
   int *gpar_cov;
   int gpar_covn;
+  
   int *gParPos;
   int gParPosn;
+  int *gParPos2;
+  
   int *gsvar;
   int gsvarn;
   int *gsiV;
@@ -1022,6 +1074,8 @@ typedef struct {
   int dadt_countern;
   int *jac_counter;
   int jac_countern;
+  double *gmtime;
+  int gmtimen;
 } rx_globals;
 
 rx_globals _globals;
@@ -1030,9 +1084,12 @@ rx_globals _globals;
 extern "C" void rxOptionsIniData(){
   _globals.gsolve = NULL;//Calloc(NCMT*NALL,double);
   _globals.gsolven=0;//NCMT*NALL;
+  _globals.gmtime = NULL;//Calloc(NCMT*NALL,double);
+  _globals.gmtimen=0;//NCMT*NALL;
   _globals.gInfusionRate = NULL;//Calloc(NCMT,double);
   _globals.gInfusionRaten=0;//NCMT;
   _globals.gall_times = NULL;//Calloc(NALL,double);
+  _globals.gix = NULL;//Calloc(NALL,double);
   _globals.gall_timesn=0;//NALL;
   _globals.gdv = NULL;//Calloc(NALL,double);
   _globals.gdvn=0;//NALL;
@@ -1064,6 +1121,7 @@ extern "C" void rxOptionsIniData(){
   _globals.gpar_cov = NULL;//Calloc(NCMT, int);
   _globals.gpar_covn = 0;//NCMT;
   _globals.gParPos = NULL;//Calloc(NCMT, int);
+  _globals.gParPos2 = NULL;//Calloc(NCMT, int);
   _globals.gParPosn = 0;//NCMT;
   _globals.gsvar = NULL;//Calloc(NPARS, int);
   _globals.gsvarn = 0;//NPARS;
@@ -1090,12 +1148,38 @@ void gsolveSetup(int n){
   }
 }
 
+void gmtimeSetup(int n){
+  if (_globals.gmtimen < 0){
+    _globals.gmtimen=0;
+    _globals.gmtime=NULL;
+  }
+  if (_globals.gmtimen < n){
+    int cur = n;
+    Free( _globals.gmtime);
+    _globals.gmtime = Calloc(cur, double);
+    _globals.gmtimen=cur;
+  }
+}
+
 void gInfusionRateSetup(int n){
   if (_globals.gInfusionRaten < n){
     int cur = n;
     Free(_globals.gInfusionRate);
     _globals.gInfusionRate = Calloc(cur, double);
     _globals.gInfusionRaten=cur;
+  }
+}
+
+void gix_Setup(int n){
+  if (_globals.gixn < 0){
+    _globals.gixn=0;
+    _globals.gix=NULL;
+  }
+  if (_globals.gixn < n){
+    int cur = n;
+    Free(_globals.gix);
+    _globals.gix = Calloc(cur, int);
+    _globals.gixn=cur;
   }
 }
 
@@ -1123,13 +1207,15 @@ void gdvSetup(int n){
 
 void gamtSetup(int n){
   if (_globals.gamtn < 0){
-    _globals.gamtn=0;
-    _globals.gamt=NULL;
+    _globals.gamtn = 0;
+    _globals.gamt  = NULL;
+    _globals.gii   = NULL;
   }
   if (_globals.gamtn < n){
     int cur = n;
     Free(_globals.gamt);
-    _globals.gamt = Calloc(cur, double);
+    _globals.gamt  = Calloc(cur, double);
+    _globals.gii   = Calloc(cur, double);
     _globals.gamtn = cur;
   }
 }
@@ -1207,6 +1293,25 @@ void gparsSetup(int n){
     Free(_globals.gpars);
     _globals.gpars = Calloc(cur, double);
     cur = _globals.gparsn;
+  }
+}
+
+void gparsCovSetup(int npars, int nPopPar, RObject ev1,rx_solve* rx){
+  // Fill the parameters with NA.
+  gparsSetup(npars*nPopPar);
+  std::fill_n(&_globals.gpars[0], npars*nPopPar, NA_REAL);
+  if (rxIs(ev1, "rxEtTran")){
+    CharacterVector tmpCls = ev1.attr("class");
+    List envCls = tmpCls.attr(".RxODE.lst");
+    NumericMatrix iniPars = envCls["pars"];
+    // Copy the pre-filled covariates into the parameter values.
+    for (int j = rx->nsim;j--;){
+      std::copy(iniPars.begin(), iniPars.end(), &_globals.gpars[0]+rx->nsub*npars*j);
+    }
+    IntegerVector parPos = envCls["covParPos0"];
+    std::copy(parPos.begin(),parPos.end(), &_globals.gParPos2[0]);
+    rx->nCov0 = parPos.size();
+    rx->cov0 = _globals.gParPos2;
   }
 }
 
@@ -1298,7 +1403,9 @@ void gParPosSetup(int n){
   if (_globals.gParPosn < n){
     int cur = n;
     Free(_globals.gParPos);
+    Free(_globals.gParPos2);
     _globals.gParPos = Calloc(cur, int);
+    _globals.gParPos2 = Calloc(cur, int);
     _globals.gParPosn = cur;
   }
 }
@@ -1369,11 +1476,16 @@ extern "C" void gFree(){
   _globals.glhs=NULL;
   _globals.glhsn=0;
   if (_globals.gamt != NULL && _globals.gamtn > 0) Free(_globals.gamt);
+  if (_globals.gii != NULL && _globals.gii > 0) Free(_globals.gii);
   _globals.gamt=NULL;
+  _globals.gii=NULL;
   _globals.gamtn=0;
   if (_globals.gall_times != NULL && _globals.gall_timesn>0) Free(_globals.gall_times);
   _globals.gall_times=NULL;
   _globals.gall_timesn=0;
+  if (_globals.gix != NULL && _globals.gixn>0) Free(_globals.gix);
+  _globals.gix=NULL;
+  _globals.gixn=0;
   if (_globals.gdv != NULL) Free(_globals.gdv);
   _globals.gdvn=0;
   if (_globals.gInfusionRate != NULL) Free(_globals.gInfusionRate);
@@ -1381,12 +1493,16 @@ extern "C" void gFree(){
   if (_globals.gsolve != NULL&& _globals.gsolven>0) Free(_globals.gsolve);
   _globals.gsolve=NULL;
   _globals.gsolven=0;
+  if (_globals.gmtime != NULL&& _globals.gmtimen>0) Free(_globals.gmtime);
+  _globals.gmtime=NULL;
+  _globals.gmtimen=0;
   if (_globals.gParPos != NULL) Free(_globals.gParPos);
+  if (_globals.gParPos2 != NULL) Free(_globals.gParPos2);
   _globals.gParPosn = 0;
 }
 
 arma::mat rwish5(double nu, int p){
-  GetRNGstate();
+  // GetRNGstate();
   arma::mat Z(p,p, fill::zeros);
   double curp = nu;
   double tmp =sqrt(Rf_rchisq(curp--));
@@ -1402,7 +1518,7 @@ arma::mat rwish5(double nu, int p){
       }
     }
   }
-  PutRNGstate();
+  // PutRNGstate();
   return Z;
 }
 
@@ -1411,7 +1527,7 @@ NumericMatrix cvPost0(double nu, NumericMatrix omega, bool omegaIsChol = false,
   arma::mat S =as<arma::mat>(omega);
   int p = S.n_rows;
   if (p == 1){
-    GetRNGstate();
+    // GetRNGstate();
     NumericMatrix ret(1,1);
     if (omegaIsChol){
       ret[0] = nu*omega[0]*omega[0]/(Rf_rgamma(nu/2.0,2.0));
@@ -1419,7 +1535,7 @@ NumericMatrix cvPost0(double nu, NumericMatrix omega, bool omegaIsChol = false,
       ret[0] = nu*omega[0]/(Rf_rgamma(nu/2.0,2.0));
     }
     if (returnChol) ret[0] = sqrt(ret[0]);
-    PutRNGstate();
+    // PutRNGstate();
     return ret;
   } else {
     arma::mat Z = rwish5(nu, p);
@@ -1496,11 +1612,11 @@ RObject cvPost(double nu, RObject omega, int n = 1, bool omegaIsChol = false, bo
 //[[Rcpp::export]]
 NumericVector rinvchisq(const int n = 1, const double &nu = 1.0, const double &scale = 1){
   NumericVector ret(n);
-  GetRNGstate();
+  // GetRNGstate();
   for (int i = 0; i < n; i++){
     ret[i] = nu*scale/(Rf_rgamma(nu/2.0,2.0));
   }
-  PutRNGstate();
+  // PutRNGstate();
   return ret;
 }
 
@@ -1864,6 +1980,53 @@ std::string rxDll(RObject obj);
 
 bool rxDynLoad(RObject obj);
 
+List getEtRxsolve(Environment e){
+  if (!e.exists(".et")){
+    RObject eventso = e["args.events"];
+    List emptyLst(0);
+    RObject et = et_(emptyLst, emptyLst);
+    setEvCur(et);
+    et_(List::create(_["data"] = eventso), List::create("import"));
+    e[".et"] = et;
+    Function parse2("parse", R_BaseNamespace);
+    Function eval2("eval", R_BaseNamespace);
+    // eventTable style methods
+    e["get.EventTable"] = eval2(_["expr"]   = parse2(_["text"]="function() .et$get.EventTable()"),
+				_["envir"]  = e);
+    e["get.obs.rec"] = eval2(_["expr"]   = parse2(_["text"]="function() .et$get.obs.rec()"),
+			     _["envir"]  = e);
+    e["get.nobs"] = eval2(_["expr"]   = parse2(_["text"]="function() .et$get.nobs()"),
+			  _["envir"]  = e);
+    e["add.dosing"] = eval2(_["expr"]   = parse2(_["text"]="function(...) {.newEt <- .et; .newEt$add.dosing(...); invisible(rxSolve(args.object,events=.newEt, updateObject=TRUE))}"),
+			    _["envir"]  = e);
+    e["clear.dosing"] = eval2(_["expr"]   = parse2(_["text"]="function(...) {.newEt <- .et; .newEt$clear.dosing(...); invisible(rxSolve(args.object,events=.newEt, updateObject=TRUE))}"),
+			      _["envir"]  = e);
+    e["get.dosing"] = eval2(_["expr"]   = parse2(_["text"]="function() .et$get.dosing()"),
+			    _["envir"]  = e);
+
+    e["add.sampling"] = eval2(_["expr"]   = parse2(_["text"]="function(...) {.newEt <- .et; .newEt$add.sampling(...); invisible(rxSolve(args.object,events=.et,updateObject=TRUE))}"),
+			      _["envir"]  = e);
+      
+    e["clear.sampling"] = eval2(_["expr"]   = parse2(_["text"]="function(...) {.newEt <- .et; .newEt$clear.sampling(...); invisible(rxSolve(args.object,events=.newEt,updateObject=TRUE))}"),
+				_["envir"]  = e);
+
+    e["replace.sampling"] = eval2(_["expr"]   = parse2(_["text"]="function(...) {.newEt <- .et; .newEt$clear.sampling(); .newEt$add.sampling(...); invisible(rxSolve(args.object,events=.newEt,updateObject=TRUE))}"),
+				  _["envir"]  = e);
+
+    e["get.sampling"] = eval2(_["expr"]   = parse2(_["text"]="function() .et$get.sampling()"),
+			      _["envir"]  = e);
+      
+    e["get.units"] = eval2(_["expr"]   = parse2(_["text"]="function() .et$get.units()"),
+			   _["envir"]  = e);
+
+    e["import.EventTable"] = eval2(_["expr"]   = parse2(_["text"]="function(imp) {.et <- as.et(imp); invisible(rxSolve(args.object,events=.et,updateObject=TRUE))}"),
+				   _["envir"]  = e);
+      
+    // Note event.copy doesn't really make sense...?  The create.eventTable does basically the same thing.
+  }
+  return e[".et"];
+}
+
 void updateSolveEnvPost(Environment e){
   if (!e.exists("params.dat")){
     List mv = rxModelVars(as<RObject>(e));
@@ -1871,6 +2034,7 @@ void updateSolveEnvPost(Environment e){
     CharacterVector pars = mv["params"];
     RObject parso = e["args.params"];
     IntegerVector ppos = e[".par.pos"];
+    bool IsIni = e[".par.pos.ini"];
     if (rxIs(parso, "numeric") || rxIs(parso, "integer") ||
 	rxIs(parso, "NULL")){
       double *tmp=Calloc(ppos.size(),double);
@@ -1883,7 +2047,11 @@ void updateSolveEnvPost(Environment e){
       unsigned int i, j=0;
       for (i = 0; i < ppos.size(); i++){
 	if (ppos[i] > 0){ // User specified parameter
-          tmp[j] = parNumeric[ppos[i]-1];
+	  if (IsIni){
+	    tmp[j] = mvIni[ppos[i]-1];
+	  } else {
+	    tmp[j] = parNumeric[ppos[i]-1];
+	  }
           // prsn[j] = pars[i];
 	  j++;
         } else if (ppos[i] < 0) { // ini specified parameter.
@@ -2000,60 +2168,7 @@ void updateSolveEnvPost(Environment e){
       e["counts"] = cnt;
     }
   }
-  if (!e.exists("EventTable")){
-    RObject eventso = e["args.events"];
-    if (rxIs(eventso, "EventTable")){
-      List et = as<List>(eventso);
-      Function f = et["get.EventTable"];
-      e["EventTable"] = f();
-      f = et["get.obs.rec"];
-      e["obs.rec"] = f();
-      f = et["get.dosing"];
-      e["dosing"] = f();
-      f = et["get.sampling"];
-      e["sampling"] = f();
-      f = et["get.units"];
-      e["units"] = f();
-    }
-    e["covs"] = as<RObject>(e["args.covs"]);
-    Function parse2("parse", R_BaseNamespace);
-    Function eval2("eval", R_BaseNamespace);
-    // eventTable style methods
-    e["get.EventTable"] = eval2(_["expr"]   = parse2(_["text"]="function() EventTable"),
-				_["envir"]  = e);
-    e["get.obs.rec"] = eval2(_["expr"]   = parse2(_["text"]="function() obs.rec"),
-			     _["envir"]  = e);
-    e["get.nobs"] = eval2(_["expr"]   = parse2(_["text"]="function() nobs"),
-			  _["envir"]  = e);
-    e["add.dosing"] = eval2(_["expr"]   = parse2(_["text"]="function(...) {.et <- create.eventTable(); .et$add.dosing(...); invisible(rxSolve(args.object,events=.et,updateObject=TRUE))}"),
-			    _["envir"]  = e);
-    e["clear.dosing"] = eval2(_["expr"]   = parse2(_["text"]="function(...) {.et <- create.eventTable(); .et$clear.dosing(...); invisible(rxSolve(args.object,events=.et,updateObject=TRUE))}"),
-			      _["envir"]  = e);
-    e["get.dosing"] = eval2(_["expr"]   = parse2(_["text"]="function() dosing"),
-			    _["envir"]  = e);
-
-    e["add.sampling"] = eval2(_["expr"]   = parse2(_["text"]="function(...) {.et <- create.eventTable(); .et$add.sampling(...); invisible(rxSolve(args.object,events=.et,updateObject=TRUE))}"),
-			      _["envir"]  = e);
-      
-    e["clear.sampling"] = eval2(_["expr"]   = parse2(_["text"]="function(...) {.et <- create.eventTable(); .et$clear.sampling(...); invisible(rxSolve(args.object,events=.et,updateObject=TRUE))}"),
-				_["envir"]  = e);
-
-    e["replace.sampling"] = eval2(_["expr"]   = parse2(_["text"]="function(...) {.et <- create.eventTable(); .et$clear.sampling(); .et$add.sampling(...); invisible(rxSolve(args.object,events=.et,updateObject=TRUE))}"),
-				  _["envir"]  = e);
-
-    e["get.sampling"] = eval2(_["expr"]   = parse2(_["text"]="function() sampling"),
-			      _["envir"]  = e);
-      
-    e["get.units"] = eval2(_["expr"]   = parse2(_["text"]="function() units"),
-			   _["envir"]  = e);
-
-    e["import.EventTable"] = eval2(_["expr"]   = parse2(_["text"]="function(imp) {.et <- create.eventTable(imp); invisible(rxSolve(args.object,events=.et,updateObject=TRUE))}"),
-				   _["envir"]  = e);
-      
-    e["create.eventTable"] = eval2(_["expr"]   = parse2(_["text"]="function(new.event) {.et <- eventTable(amount.units=units[1],time.units=units[2]);if (missing(new.event)) {.nev <- EventTable; } else {.nev <- new.event;}; .et$import.EventTable(.nev); return(.et);}"),
-				   _["envir"]  = e);
-    // Note event.copy doesn't really make sense...?  The create.eventTable does basically the same thing.
-  }
+  getEtRxsolve(e);
 }
 
 extern "C" void rxOptionsFree();
@@ -2178,8 +2293,6 @@ SEXP rxSolveC(const RObject &obj,
 	update_events = true;
       else if (as<std::string>(specs[i]) == "inits")
 	update_inits = true;
-      else if (as<std::string>(specs[i]) == "covs")
-	update_covs = true;
       else if (as<std::string>(specs[i]) == "method")
 	update_method = true;
       else if (as<std::string>(specs[i]) == "transit_abs")
@@ -2239,12 +2352,12 @@ SEXP rxSolveC(const RObject &obj,
       obj = as<List>(e["obj"]);
     }
     getRxModels();
-    // if (e.exists("params.dat")){
-    //   e.remove("params.dat");
-    // }
-    // if (e.exists("EventTable")){
-    //   e.remove("EventTable");
-    // }
+    if (e.exists("params.dat")){
+      e.remove("params.dat");
+    }
+    if (e.exists(".et")){
+      e.remove(".et");
+    }
     if(e.exists(".sigma")){
       _rxModels[".sigma"]=as<NumericMatrix>(e[".sigma"]);
     }
@@ -2313,6 +2426,7 @@ SEXP rxSolveC(const RObject &obj,
     return dat;
   } else {
     // Load model
+    bool fromIni = false;
     if (!rxDynLoad(object)){
       stop("Cannot load RxODE dlls for this model.");
     }
@@ -2330,6 +2444,8 @@ SEXP rxSolveC(const RObject &obj,
       rx->stateTrim = stateTrim;
     }
     rx->matrix = matrix;
+    rx->needSort = as<int>(mv["needSort"]);
+    rx->nMtime = as<int>(mv["nMtime"]);
     rx->add_cov = (int)(addCov);
     op->stiff = method;
     if (method != 2){
@@ -2348,15 +2464,45 @@ SEXP rxSolveC(const RObject &obj,
     if (rxIs(par0, "rx.event")){
       // Swapped events and parameters
       swappedEvents=true;
-      ev1 = par0;
+      ev1  = par0;
       par1 = ev0;
     } else if (rxIs(ev0, "rx.event")) {
-      ev1 = ev0;
+      ev1  = ev0;
       par1 = par0;
     } else {
       Rcout << "Events:\n";
       Rcout << "Parameters:\n";
       stop("Need some event information (observation/dosing times) to solve.\nYou can use either 'eventTable' or an RxODE compatible data.frame/matrix.");
+    }
+    if (rxIs(par1, "NULL")){
+      par1=rxInits(obj);
+      fromIni=true;
+    }
+    if (rxIs(ev1, "rxEt")){
+      CharacterVector cls = ev1.attr("class");
+      List etE = cls.attr(".RxODE.lst");
+      int nobs = etE["nobs"];
+      if (nobs == 0){
+	warning("Adding observations, for more control use et/add.sampling.");
+	List ev1a = etTrans(as<List>(ev1), obj, false);
+	NumericVector newObs(200);
+	// ((to - from)/(length.out - 1))
+	List et = as<List>(ev1);
+	double by = (max(as<NumericVector>(ev1a["time"]))+24)/199.0;
+	for (int i = 200; i--;){
+	  newObs[i]=by*i;
+	}
+	ev1 = et_(List::create(newObs), as<List>(ev1));
+      }
+    }
+    if (rxIs(ev1, "data.frame") && !rxIs(ev1, "rxEtTrans")){
+      ev1 = as<List>(etTrans(as<List>(ev1), obj, false));
+      rxcEvid = 2;
+      rxcTime = 1;
+      rxcAmt  = 3;
+      rxcId   = 0;
+      rxcDv   = 5;
+      rxcIi   = 4;
     }
     // Now get the parameters (and covariates)
     //
@@ -2375,6 +2521,13 @@ SEXP rxSolveC(const RObject &obj,
     op->abort = 0;
     op->ATOL = atol;          //absolute error
     op->RTOL = rtol;          //relative error
+
+    // FIXME allow these values to change.
+    op->minSS = 7;
+    op->maxSS = 7000;
+    op->atolSS = atol/10000;
+    op->rtolSS = rtol/10000;
+    
     gatol2Setup(op->neq);
     grtol2Setup(op->neq);
     std::fill_n(&_globals.gatol2[0],op->neq, atol);
@@ -2445,7 +2598,7 @@ SEXP rxSolveC(const RObject &obj,
     op->isChol = (int)(sigmaIsChol);
     unsigned int nsub = 0;
     unsigned int nobs = 0, ndoses = 0;
-    unsigned int i, j, k = 0;
+    unsigned int i, j;
     int ncov =0, curcovi = 0;
     double tmp, hmax1 = 0.0, hmax1m = 0.0, hmax1mo, hmax1s=0.0,
       hmax1n=0.0, hmax2 = 0.0, hmax2m = 0.0, hmax2mo, hmax2s=0.0,
@@ -2456,6 +2609,15 @@ SEXP rxSolveC(const RObject &obj,
     CharacterVector sigmaN;
     bool usePar1 = false;
     bool simSubjects = false;
+    bool addTimeUnits = false;
+    RObject timeUnitsU;
+    List covUnits;
+    if (rxIs(ev1, "rxEtTran")){
+      CharacterVector cls = ev1.attr("class");
+      List evT = cls.attr(".RxODE.lst");
+      evT.attr("class") = R_NilValue;
+      covUnits = evT["covUnits"];
+    }
     if (!thetaMat.isNull() || !omega.isNull() || !sigma.isNull()){
       // Simulated Variable3
       if (!rxIs(par1, "numeric")){
@@ -2465,18 +2627,8 @@ SEXP rxSolveC(const RObject &obj,
       int curObs = 0;
       rx->nall = 0;
       rx->nobs = 0;
-      if(rxIs(ev1, "EventTable")){
-	nSub0 = 1;
-	List et = List(ev1);
-	Function f = et["get.EventTable"];
-	DataFrame dataf = f();
-	IntegerVector evid = as<IntegerVector>(dataf[1]);
-	rx->nall = evid.size();
-	for (unsigned int j = rx->nall;j--;){
-	  if (evid[j] == 0) rx->nobs++;
-	}
-      } else if (rxIs(ev1,"event.data.frame")||
-		 rxIs(ev1,"event.matrix")){
+      if (rxIs(ev1,"event.data.frame")||
+	  rxIs(ev1,"event.matrix")){
 	if (rxcId > -1){
 	  DataFrame dataf = as<DataFrame>(ev1);
           IntegerVector id = as<IntegerVector>(dataf[rxcId]);
@@ -2488,7 +2640,7 @@ SEXP rxSolveC(const RObject &obj,
 	      lastid=id[j];
 	      nSub0++;
 	    }
-	    if (evid[j] == 0) rx->nobs++;
+	    if (isObs(evid[j])) rx->nobs++;
 	  }
 	} else {
 	  nSub0 =1;
@@ -2496,7 +2648,7 @@ SEXP rxSolveC(const RObject &obj,
           IntegerVector evid  = as<IntegerVector>(dataf[rxcEvid]);
           rx->nall = evid.size();
           for (unsigned int j =rx->nall; j--;){
-            if (evid[j] == 0) rx->nobs++;
+            if (isObs(evid[j])) rx->nobs++;
           }
 	}
       }
@@ -2524,6 +2676,7 @@ SEXP rxSolveC(const RObject &obj,
     CharacterVector nmP;
     int nPopPar = 1;
     if (!theta.isNULL() || !eta.isNULL()){
+      usePar1=true;
       par1 = rxSetupParamsThetaEta(par1, theta, eta);
     }
     if (rxIs(par1, "numeric") || rxIs(par1, "integer")){
@@ -2561,124 +2714,9 @@ SEXP rxSolveC(const RObject &obj,
         stop("If parameters are not named, they must match the order and size of the parameters in the model.");
       }
     }
-    rxOptionsIniEnsure(nPopPar); // 1 simulation per parameter specifcation
-    if (rxIs(ev1, "EventTable")){
-      List et = List(ev1);
-      Function f = et["get.EventTable"];
-      DataFrame dataf = f();
-      NumericVector time = as<NumericVector>(dataf[0]);
-      IntegerVector evid = as<IntegerVector>(dataf[1]);
-      NumericVector amt  = as<NumericVector>(dataf[2]);
-      ind = &(rx->subjects[0]);
-      ind->id=1;
-      ind->lambda=1.0;
-      ind->yj = 0;
-      rx->nsub= 1;
-      // Time copy
-      ind->n_all_times   = time.size();
-      gall_timesSetup(ind->n_all_times);
-      std::copy(time.begin(), time.end(), &_globals.gall_times[0]);
-      ind->all_times     = &_globals.gall_times[0];
-      // EVID copy
-      gevidSetup(ind->n_all_times);
-      std::copy(evid.begin(),evid.end(), &_globals.gevid[0]);
-      ind->evid     = &_globals.gevid[0];
-      gamtSetup(ind->n_all_times);
-      ind->dose = &_globals.gamt[0];
-      // Slower; These need to be built.
-      tlast = time[0];
-      // hmax1 = hmax2 = 0;
-      gidoseSetup(ind->n_all_times);
-      ind->idose = &_globals.gidose[0];
-      j=0;
-      for (i =0; i != (unsigned int)(ind->n_all_times); i++){
-        if (ind->evid[i]){
-          ndoses++;
-	  _globals.gidose[j] = (int)i;
-          _globals.gamt[j++] = amt[i];
-	} else {
-	  nobs++;
-	  tmp = time[i]-tlast;
-	  if (tmp < 0){
-	    stop("Dataset must be ordered by ID and TIME variables.");
-	  }
-	  hmax1n++;
-	  hmax1mo = hmax1m;
-	  hmax1m += (tmp-hmax1m)/hmax1n;
-	  hmax1s += (tmp-hmax1m)*(tmp-hmax1mo);
-	  hmax2n++;
-	  hmax2mo = hmax2m;
-	  hmax2m += (tmp-hmax2m)/hmax2n;
-	  hmax2s += (tmp-hmax2m)*(tmp-hmax2mo);
-	  if (tmp > hmax1){
-	    hmax1 = tmp;
-	  }
-	}
-      }
-      ind->ndoses = ndoses;
-      rx->nobs = nobs;
-      rx->nall = nobs+ndoses;
-      if (!hmax.isNull()){
-	NumericVector hmax0(hmax);
-	if (NumericVector::is_na(hmax0[0])){
-	  doMean = true;
-	  hmax1s = hmax1s/(hmax1n-1);
-	  hmax1  = hmax1m;
-	  ind->HMAX = hmax1;
-	  hmax2s = hmax2s/(hmax2n-1);
-	  hmax2  = hmax2m;
-	  op->hmax2 = hmax2;
-	  hmax1m=0.0;
-	  hmax1s=0.0;
-	  hmax1n=0.0;
-	} else {
-	  ind->HMAX = hmax0[0];
-	  op->hmax2 = hmax0[0];
-	}
-      } else {
-        ind->HMAX = hmax1;
-	op->hmax2 = hmax1;
-      }
-      nsub=1;
-      if (!covs.isNULL()){
-        // op->do_par_cov = 1;
-	op->do_par_cov = 1;
-	ncov = 0;
-        if (rxIs(covs,"data.frame")){
-	  List df = as<List>(covs);
-          CharacterVector dfNames = df.names();
-	  int dfN = dfNames.size();
-	  gcovSetup(dfN * ind->n_all_times);
-	  gpar_covSetup(dfN);
-	  k = 0;
-	  for (i = dfN; i--;){
-	    for (j = npars; j--;){
-	      if (pars[j] == dfNames[i]){
-		_globals.gpar_cov[k] = j+1;
-		// Not clear if this is an integer/real.  Copy the values.
-		NumericVector cur = as<NumericVector>(df[i]);
-		std::copy(cur.begin(), cur.end(), _globals.gcov+curcovi);
-		curcovi += ind->n_all_times;
-                ncov++;
-                k++;
-                break;
-              }
-            }
-          }
-          op->ncov=ncov;
-          ind->cov_ptr = &(_globals.gcov[0]);
-	  op->par_cov=&(_globals.gpar_cov[0]);
-        } else if (rxIs(covs, "matrix")){
-	  // FIXME
-	  stop("Covariates must be supplied as a data.frame.");
-	} 
-      } else {
-	op->ncov = 0;
-        // int *par_cov;
-        op->do_par_cov = 0;
-      }
-    } else if (rxIs(ev1,"event.data.frame")||
-               rxIs(ev1,"event.matrix")){
+    rxOptionsIniEnsure(nPopPar); // 1 simulation per parameter specification
+    if (rxIs(ev1,"event.data.frame")||
+	rxIs(ev1,"event.matrix")){
       // data.frame or matrix
       double hmax0 = 0.0;
       if (!hmax.isNull()){
@@ -2702,6 +2740,11 @@ SEXP rxSolveC(const RObject &obj,
         id    = as<IntegerVector>(dataf[rxcId]);
       }
       NumericVector time0 = dataf[rxcTime];
+      if (rxIs(time0, "units")){
+	addTimeUnits=true;
+	timeUnitsU=time0.attr("units");
+      }
+
       tlast = time0[0];
       // - all_times
       gall_timesSetup(time0.size());
@@ -2713,6 +2756,12 @@ SEXP rxSolveC(const RObject &obj,
         std::copy(dv.begin(), dv.end(), &_globals.gdv[0]);
       }
       NumericVector amt   = dataf[rxcAmt];
+      NumericVector datIi(amt.size());
+      if (rxcIi > -1){
+	datIi = as<NumericVector>(dataf[rxcIi]);
+      } else {
+	std::fill_n(datIi.begin(), datIi.size(), 0.0);
+      }
       // Make sure that everything can take the correct sizes
       // - amt
       gamtSetup(amt.size());
@@ -2747,6 +2796,7 @@ SEXP rxSolveC(const RObject &obj,
       unsigned int nall = 0, nobst=0, lasti =0, ii=0;
       nsub = 0;
       ind = &(rx->subjects[0]);
+      ind->idx=0;
       j=0;
       int lastId = id[0]-42;
       for (i = 0; i < ids; i++){
@@ -2772,9 +2822,13 @@ SEXP rxSolveC(const RObject &obj,
 	      ind->HMAX = hmax0;
 	    }
             ind = &(rx->subjects[nsub]);
+	    ind->idx=0;
           }
 	  // Setup the pointers.
           ind->id             = nsub+1;
+	  ind->allCovWarn = 0;
+	  ind->wrongSSDur=0;
+	  ind->timeReset=1;
           ind->lambda         =1.0;
           ind->yj             = 0;
           ind->all_times      = &_globals.gall_times[i];
@@ -2784,6 +2838,7 @@ SEXP rxSolveC(const RObject &obj,
           ind->evid           = &_globals.gevid[i];
 	  ind->idose          = &_globals.gidose[i];
           ind->dose           = &_globals.gamt[i];
+	  ind->ii             = &_globals.gii[i];
 	  lasti = i;
 
 	  hmax1m=0.0;
@@ -2796,8 +2851,10 @@ SEXP rxSolveC(const RObject &obj,
 	  nobs=0;
 	  tlast = NA_REAL;
         }
-        if (_globals.gevid[i]){
+	// Create index
+        if (isDose(_globals.gevid[i])){
           _globals.gidose[j] = i-lasti;
+	  _globals.gii[j] = datIi[i];
           _globals.gamt[j] = amt[i];
 	  ind->ndoses++;
           ndoses++; nall++; j++;
@@ -2863,6 +2920,13 @@ SEXP rxSolveC(const RObject &obj,
     bool allPars = true;
     bool curPar = false;
     CharacterVector mvIniN = mvIni.names();
+    CharacterVector mvCov1N;
+    if (rxIs(ev1, "rxEtTran")){
+      CharacterVector tmpCls = ev1.attr("class");
+      List e = tmpCls.attr(".RxODE.lst");
+      List tmpCov1 = e["cov1"];
+      mvCov1N = tmpCov1.attr("names");
+    }
     gsvarSetup(sigmaN.size());
     for (i = npars; i--;){
       curPar = false;
@@ -2910,6 +2974,16 @@ SEXP rxSolveC(const RObject &obj,
         }
       }
       if (!curPar){
+	for (j = 1; j < mvCov1N.size(); j++){
+	  if (mvCov1N[j] == pars[i]){
+	    // These are setup once and don't need to be updated
+	    _globals.gParPos[i] = 0; // These are set at run-time and "dont" matter.
+	    curPar = true;
+	    eGparPos[i]=_globals.gParPos[i];
+	  }
+	}
+      }
+      if (!curPar){
         if (errStr == ""){
           errStr = "The following parameter(s) are required for solving: " + pars[i];
         } else {
@@ -2955,43 +3029,33 @@ SEXP rxSolveC(const RObject &obj,
     rx->nsim = nPopPar / rx->nsub;
     if (rx->nsim < 1) rx->nsim=1;
 
-    gsolveSetup(rx->nall*state.size()*rx->nsim);
+    gsolveSetup(rx->nall*(state.size()+1)*rx->nsim);
     std::fill_n(&_globals.gsolve[0], rx->nall*state.size()*rx->nsim, 0.0);
-    int curEvent = 0;
+
+    gix_Setup(rx->nall*rx->nsim);
+    
+    gmtimeSetup(rx->nMtime*rx->nsub*rx->nsim);
+
+
+    int curEvent = 0, curIdx = 0;
     
     switch(parType){
     case 1: // NumericVector
-      if (nPopPar != 1) stop("Something is wrong... nPopPar != 1 but parameters are specified as a NumericVector.");
-      gparsSetup(npars);
-      for (i = npars; i--;){
-	if (_globals.gParPos[i] == 0){ // Covariate or simulated variable.
-	  _globals.gpars[i] = 0;//NA_REAL;
-	} else if (_globals.gParPos[i] > 0){ // User specified parameter
-	  _globals.gpars[i] = parNumeric[_globals.gParPos[i]-1];
-	} else { // ini specified parameter.
-	  _globals.gpars[i] = mvIni[-_globals.gParPos[i]-1];
+      {
+	if (nPopPar != 1) stop("Something is wrong... nPopPar != 1 but parameters are specified as a NumericVector.");
+	// Convert to DataFrame to simplify code.
+	List parDfL(parNumeric.size());
+	for (i = parNumeric.size(); i--;){
+	  parDfL[i] = NumericVector(rx->nsub,parNumeric[i]);
 	}
+	parDfL.attr("names") = nmP;
+	parDfL.attr("row.names") = IntegerVector::create(NA_INTEGER,-rx->nsub);
+	parDfL.attr("class") = CharacterVector::create("data.frame");
+	parDf = as<DataFrame>(parDfL);
+	parType = 2;
+	nPopPar = parDf.nrows();
+	rx->nsim=1;
       }
-      for (i = rx->nsub; i--;){
-	ind = &(rx->subjects[i]);
-	ind->par_ptr = &_globals.gpars[0];
-	ind->InfusionRate = &_globals.gInfusionRate[op->neq*i];
-        ind->BadDose = &_globals.gBadDose[op->neq*i];
-        ind->nBadDose = 0;
-	// Hmax defined above.
-	ind->tlast=0.0;
-	ind->podo = 0.0;
-	ind->ixds =  0;
-	ind->sim = i+1;
-        ind->solve = &_globals.gsolve[curEvent];
-        curEvent += op->neq*ind->n_all_times;
-        ind->lhs = &_globals.glhs[i*lhs.size()];
-	ind->rc = &_globals.grc[i];
-        ind->slvr_counter = &_globals.slvr_counter[i];
-        ind->dadt_counter = &_globals.dadt_counter[i];
-        ind->jac_counter  = &_globals.jac_counter[i];
-      }
-      break;
     case 2: // DataFrame
       // Convert to NumericMatrix
       {
@@ -3004,28 +3068,34 @@ SEXP rxSolveC(const RObject &obj,
       }
     case 3: // NumericMatrix
       {
-	gparsSetup(npars*nPopPar);
+	gparsCovSetup(npars, nPopPar, ev1, rx);
         for (unsigned int j = 0; j < (unsigned int)nPopPar; j++){
 	  for (unsigned int k = 0; k < (unsigned int)npars; k++){
 	    i = k+npars*j;
-	    if (_globals.gParPos[k] == 0){
-	      _globals.gpars[i] = 0;
-	    } else if (_globals.gParPos[k] > 0){
-	      // posPar[i] = j + 1;
-	      _globals.gpars[i] = parMat(j, _globals.gParPos[k]-1);
-	    } else {
-	      // posPar[i] = -j - 1;
-	      _globals.gpars[i] = mvIni[-_globals.gParPos[k]-1];
+	    if (ISNA(_globals.gpars[i])){
+	      if (_globals.gParPos[k] == 0){
+		_globals.gpars[i] = 0;
+	      } else if (_globals.gParPos[k] > 0){
+		// posPar[i] = j + 1;
+		_globals.gpars[i] = parMat(j, _globals.gParPos[k]-1);
+	      } else {
+		// posPar[i] = -j - 1;
+		_globals.gpars[i] = mvIni[-_globals.gParPos[k]-1];
+	      }
 	    }
 	  }
 	}
 	curEvent=0;
+	curIdx=0;
 	rx_solving_options_ind indS;
 	for (unsigned int simNum = rx->nsim; simNum--;){
 	  for (unsigned int id = rx->nsub; id--;){
 	    unsigned int cid = id+simNum*rx->nsub;
 	    ind = &(rx->subjects[cid]);
+	    ind->idx=0;
 	    ind->par_ptr = &_globals.gpars[cid*npars];
+	    ind->mtime   = &_globals.gmtime[rx->nMtime*cid];
+	    if (rx->nMtime > 0) ind->mtime[0]=-1;
 	    ind->InfusionRate = &_globals.gInfusionRate[op->neq*cid];
 	    ind->BadDose = &_globals.gBadDose[op->neq*cid];
 	    ind->nBadDose = 0;
@@ -3050,6 +3120,7 @@ SEXP rxSolveC(const RObject &obj,
 	      ind->idose = &(indS.idose[0]);
 	      ind->ndoses = indS.ndoses;
 	      ind->dose = &(indS.dose[0]);
+	      ind->ii   = &(indS.ii[0]);
 	      ind->evid =&(indS.evid[0]);
 	      ind->all_times = &(indS.all_times[0]);
 	      ind->id=id+1;
@@ -3058,7 +3129,12 @@ SEXP rxSolveC(const RObject &obj,
 	    }
 	    int eLen = op->neq*ind->n_all_times;
 	    ind->solve = &_globals.gsolve[curEvent];
+	    ind->ix = &_globals.gix[curIdx];
+	    std::iota(ind->ix,ind->ix+ind->n_all_times,0);
 	    curEvent += eLen;
+	    ind->solveSave=&_globals.gsolve[curEvent];
+	    curEvent += op->neq;
+	    curIdx += ind->n_all_times;
 	  }
 	}
       }
@@ -3085,10 +3161,27 @@ SEXP rxSolveC(const RObject &obj,
     int doTBS = (rx->matrix == 3);
     if (doTBS) rx->matrix=2;
     List dat = RxODE_df(doDose, doTBS);
+    if (addTimeUnits){
+      NumericVector tmpN = as<NumericVector>(dat["time"]);
+      tmpN.attr("class") = "units";
+      tmpN.attr("units") = timeUnitsU;
+    }
     dat.attr("class") = CharacterVector::create("data.frame");
     List xtra;
     int nr = rx->nr;
     int nc = dat.size();
+    if (rx->add_cov && (rx->matrix == 2 || rx->matrix == 0) && covUnits.hasAttribute("names")){
+      CharacterVector nmC = covUnits.attr("names");
+      NumericVector tmpN, tmpN2;
+      for (i = nmC.size(); i--;){
+	tmpN = covUnits[i];
+	if (rxIs(tmpN, "units")){
+	  tmpN2 = dat[as<std::string>(nmC[i])];
+	  tmpN2.attr("class") = "units";
+	  tmpN2.attr("units") = tmpN.attr("units");
+	}
+      }
+    }
     if (rx->matrix){
       rxSolveFree();
       if(_rxModels.exists(".sigma")){
@@ -3148,6 +3241,7 @@ SEXP rxSolveC(const RObject &obj,
       e["check.names"] = dat.names();
       
       e[".par.pos"] = eGparPos;
+      e[".par.pos.ini"] = fromIni;
       e[".slvr.counter"] = slvr_counterIv;
       e[".dadt.counter"] = dadt_counterIv;
       e[".jac.counter"] = jac_counterIv;
@@ -3177,7 +3271,6 @@ SEXP rxSolveC(const RObject &obj,
   	e["args.events"] = params;
       }
       e["args.inits"] = inits;
-      e["args.covs"] = covs;
       e["args.method"] = method;
       e["args.transit_abs"] = transit_abs;
       e["args.atol"] = atol;
@@ -3542,37 +3635,6 @@ RObject rxSolveUpdate(RObject obj,
                           defrx_amountUnits,
                           defrx_timeUnits, 
 			  defrx_addDosing, defrx_stateTrim);
-	} else if (sarg == "covs"){
-	  return rxSolveC(obj,
-                          CharacterVector::create("covs"),
-			  R_NilValue,
-                          defrx_params,
-                          defrx_events,
-                          defrx_inits,
-			  R_NilValue,
-                          value,// defrx_covs,
-                          defrx_method,
-                          defrx_transit_abs,
-                          defrx_atol,
-                          defrx_rtol,
-                          defrx_maxsteps,
-                          defrx_hmin,
-                          defrx_hmax,
-                          defrx_hini,
-                          defrx_maxordn,
-                          defrx_maxords,
-                          defrx_cores,
-                          defrx_covs_interpolation,
-                          defrx_addCov,
-                          defrx_matrix,
-                          defrx_sigma,
-                          defrx_sigmaDf,
-                          defrx_nCoresRV,
-                          defrx_sigmaIsChol,
-                          defrx_nDisplayProgress,
-                          defrx_amountUnits,
-                          defrx_timeUnits, 
-			  defrx_addDosing, defrx_stateTrim);
 	} else if (sarg == "t" || sarg == "time"){
 	  CharacterVector classattr = obj.attr("class");
           Environment e = as<Environment>(classattr.attr(".RxODE.env"));
@@ -3588,18 +3650,10 @@ RObject rxSolveUpdate(RObject obj,
 	  CharacterVector nmp = pars.names();
 	  int i, n, np, nc, j;
 	  np = (as<NumericVector>(pars[0])).size();
-	  RObject covsR = e["covs"];
-	  List covs;
-	  if (!covsR.isNULL()){
-	    covs = List(covsR);
-	  }
+	  List events = List(e["args.events"]);
 	  CharacterVector nmc;
-	  if (covs.hasAttribute("names")){
-	    nmc = covs.names();
-	    nc = (as<NumericVector>(covs[0])).size();
-	  } else {
-	    nc = as<int>(e["nobs"]);
-	  }
+	  nmc = events.names();
+	  nc = (as<NumericVector>(events[0])).size();
 	  //////////////////////////////////////////////////////////////////////////////
 	  // Update Parameters by name
 	  n = pars.size();
@@ -3655,26 +3709,26 @@ RObject rxSolveUpdate(RObject obj,
 		newPars.attr("names") = newParNames;
 		newPars.attr("class") = "data.frame";
 		newPars.attr("row.names") = IntegerVector::create(NA_INTEGER,-np);
-		List newCovs(covs.size()+1);
-		CharacterVector newCovsNames(covs.size()+1);
-		for (j = covs.size(); j--;){
-		  newCovs[j]      = covs[j];
-		  newCovsNames[j] = nmc[j];
+		List newEvents(events.size()+1);
+		CharacterVector newEventsNames(events.size()+1);
+		for (j = events.size(); j--;){
+		  newEvents[j]      = events[j];
+		  newEventsNames[j] = nmc[j];
 		}
-		j = covs.size();
-		newCovs[j]      = val;
-		newCovsNames[j] = nmp[i];
-		newCovs.attr("names") = newCovsNames;
-		newCovs.attr("class") = "data.frame";
-		newCovs.attr("row.names") = IntegerVector::create(NA_INTEGER,-nc);
+		j = events.size();
+		newEvents[j]      = val;
+		newEventsNames[j] = nmp[i];
+		newEvents.attr("names") = newEventsNames;
+		newEvents.attr("class") = "data.frame";
+		newEvents.attr("row.names") = IntegerVector::create(NA_INTEGER,-nc);
 		return rxSolveC(obj,
-				CharacterVector::create("params","covs"),
+				CharacterVector::create("params","events"),
 				R_NilValue,
 				newPars, //defrx_params,
-				defrx_events,
+				newEvents,
 				defrx_inits,
 				R_NilValue,
-				newCovs, //defrx_covs
+				R_NilValue, //defrx_covs
 				defrx_method,
 				defrx_transit_abs,
 				defrx_atol,
@@ -3703,22 +3757,22 @@ RObject rxSolveUpdate(RObject obj,
 	  }
 	  ///////////////////////////////////////////////////////////////////////////////
 	  // Update Covariates by covariate name
-	  n = covs.size();
+	  n = events.size();
 	  for (i = n; i--;){
 	    if (nmc[i] == sarg){
 	      // Update solve.
 	      NumericVector val = NumericVector(value);
 	      if (val.size() == nc){
 		// Update Covariate
-		covs[i]=val;
+		events[i]=val;
 		return rxSolveC(obj,
-				CharacterVector::create("covs"),
+				CharacterVector::create("events"),
 				R_NilValue,
 				defrx_params,
-				defrx_events,
+				events,
 				defrx_inits,
 				R_NilValue,
-				covs, // defrx_covs,
+				R_NilValue, // defrx_covs,
 				defrx_method,
 				defrx_transit_abs,
 				defrx_atol,
@@ -3755,27 +3809,27 @@ RObject rxSolveUpdate(RObject obj,
 		newPars.attr("class") = "data.frame";
 		newPars.attr("row.names") = IntegerVector::create(NA_INTEGER,-np);
 		// if ()
-		List newCovs(covs.size()-1);
-		CharacterVector newCovsNames(covs.size()-1);
+		List newEvents(events.size()-1);
+		CharacterVector newEventsNames(events.size()-1);
 		for (j = 0; j < i; j++){
-		  newCovs[j]      = covs[j];
-		  newCovsNames[j] = nmc[j];
+		  newEvents[j]      = events[j];
+		  newEventsNames[j] = nmc[j];
 		}
-		for (j=i+1; j < covs.size(); j++){
-		  newCovs[j-1]      = covs[j];
-		  newCovsNames[j-1] = nmc[j];
+		for (j=i+1; j < events.size(); j++){
+		  newEvents[j-1]      = events[j];
+		  newEventsNames[j-1] = nmc[j];
 		}
-		newCovs.attr("names") = newCovsNames;
-		newCovs.attr("class") = "data.frame";
-		newCovs.attr("row.names") = IntegerVector::create(NA_INTEGER,-nc);
+		newEvents.attr("names") = newEventsNames;
+		newEvents.attr("class") = "data.frame";
+		newEvents.attr("row.names") = IntegerVector::create(NA_INTEGER,-nc);
 		return rxSolveC(obj,
-				CharacterVector::create("covs", "params"),
+				CharacterVector::create("events", "params"),
 				R_NilValue,
 				newPars,//defrx_params,
-				defrx_events,
+				newEvents,
 				defrx_inits,
 				R_NilValue,
-				newCovs, // defrx_covs,
+				R_NilValue, // defrx_covs,
 				defrx_method,
 				defrx_transit_abs,
 				defrx_atol,
@@ -4271,18 +4325,48 @@ List rxUpdateTrans_(List ret, std::string prefix, std::string libName){
   // Updates trans based on md5 calculated.
   CharacterVector oldTrans = as<CharacterVector>(ret["trans"]);
   ret[3] = CharacterVector::create(_["lib.name"] = libName,
-					 _["jac"] = oldTrans[1],
-					 _["prefix"] = prefix,
-					 _["dydt"] = prefix + "dydt",
-					 _["calc_jac"] = prefix + "calc_jac",
-					 _["calc_lhs"] = prefix + "calc_lhs",
-					 _["model_vars"] = prefix + "model_vars",
-					 _["ode_solver"] = prefix + "ode_solver",
-					 _["inis"] = prefix + "inis",
-					 _["dydt_lsoda"] = prefix + "dydt_lsoda",
-					 _["calc_jac_lsoda"] = prefix + "calc_jac_lsoda",
-					 _["ode_solver_solvedata"] = prefix + "ode_solver_solvedata",
-					 _["ode_solver_get_solvedata"]= prefix+"ode_solver_get_solvedata",
-					 _["dydt_liblsoda"] = prefix + "dydt_liblsoda");
+				   _["jac"] = oldTrans[1],
+				   _["prefix"] = prefix,
+				   _["dydt"] = prefix + "dydt",
+				   _["calc_jac"] = prefix + "calc_jac",
+				   _["calc_lhs"] = prefix + "calc_lhs",
+				   _["model_vars"] = prefix + "model_vars",
+				   _["ode_solver"] = prefix + "ode_solver",
+				   _["inis"] = prefix + "inis",
+				   _["dydt_lsoda"] = prefix + "dydt_lsoda",
+				   _["calc_jac_lsoda"] = prefix + "calc_jac_lsoda",
+				   _["ode_solver_solvedata"] = prefix + "ode_solver_solvedata",
+				   _["ode_solver_get_solvedata"]= prefix+"ode_solver_get_solvedata",
+				   _["dydt_liblsoda"] = prefix + "dydt_liblsoda",
+				   _["F"] = prefix + "F",
+				   _["Lag"] = prefix + "Lag",
+				   _["Rate"] = prefix + "Rate",
+				   _["Dur"] = prefix + "Dur",
+				   _["mtime"] = prefix + "mtime");
   return(ret);
+}
+
+extern "C" {
+  double getTime(int idx, rx_solving_options_ind *ind);
+}
+
+extern "C" void getWh(int evid, int *wh, int *cmt, int *wh100, int *whI, int *wh0);
+extern "C" void doSort(rx_solving_options_ind *ind){
+  // Reset indexes
+  std::iota(&(ind->ix[0]),&(ind->ix[0])+ind->n_all_times, 0);
+  // Reset times for infusion
+  int wh, cmt, wh100, whI, wh0;
+  for (int j = ind->n_all_times; j--;){
+    getWh(ind->evid[j], &wh, &cmt, &wh100, &whI, &wh0);
+    if (whI == 6 || whI == 7){
+      ind->all_times[j] = ind->all_times[j-1];
+    }
+  }
+  std::sort(&(ind->ix[0]),&(ind->ix[0])+ind->n_all_times,
+	    [&ind](int a, int b){
+	      double ta=getTime(a, ind);
+	      double tb = getTime(b, ind);
+	      if (ta == tb) return a < b;
+	      return ta < tb;
+	    });
 }

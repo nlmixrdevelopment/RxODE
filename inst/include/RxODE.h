@@ -1,6 +1,8 @@
 #pragma once
 #ifndef __RxODE_H__
 #define __RxODE_H__
+#define isDose(evid) ((evid) == 3 || (evid) >= 100)
+#define isObs(evid) ((evid) == 0 || (evid) == 2 || ((evid) >= 10 && (evid) <= 99))
 #if defined(__cplusplus)
 #include "RxODE_RcppExports.h"
 extern "C" {
@@ -20,6 +22,12 @@ typedef void (*t_dydt_lsoda_dum)(int *neq, double *t, double *A, double *DADT);
 typedef void (*t_jdum_lsoda)(int *neq, double *t, double *A,int *ml, int *mu, double *JAC, int *nrowpd);
 typedef int (*t_dydt_liblsoda)(double t, double *y, double *ydot, void *data);
 typedef void (*t_ode_current)();
+typedef double (*t_F)(int _cSub,  int _cmt, double _amt, double t);
+typedef double (*t_LAG)(int _cSub,  int _cmt, double t);
+typedef double (*t_RATE)(int _cSub,  int _cmt, double _amt, double t);
+typedef double (*t_DUR)(int _cSub,  int _cmt, double _amt, double t);
+
+typedef void (*t_calc_mtime)(int cSub, double *mtime);
 
 typedef struct {
   // These options should not change based on an individual solve
@@ -57,6 +65,10 @@ typedef struct {
   int isChol;
   int *svar;
   int abort;
+  int minSS;
+  int maxSS;
+  double atolSS;
+  double rtolSS;
 } rx_solving_options;
 
 
@@ -72,7 +84,10 @@ typedef struct {
   double podo;
   double *par_ptr;
   double *dose;
+  double *ii;
   double *solve;
+  double *mtime;
+  double *solveSave;
   double *lhs;
   int  *evid;
   int *rc;
@@ -81,6 +96,7 @@ typedef struct {
   int ixds;
   int ndoses;
   double *all_times;
+  int *ix;
   double *dv;
   int *idose;
   int idosen;
@@ -91,6 +107,15 @@ typedef struct {
   double yhigh;
   double lambda;
   double yj;
+  // Saved info
+  int wh;
+  int wh100;
+  int cmt;
+  int whI;
+  int wh0;
+  int allCovWarn;
+  int wrongSSDur;
+  int timeReset;
 } rx_solving_options_ind;
 
 typedef struct {
@@ -103,10 +128,14 @@ typedef struct {
   int nr;
   int add_cov;
   int matrix;
+  int needSort;
+  int nMtime;
   double stateTrim;
   int *stateIgnore;
+  int nCov0;
+  int *cov0;
 } rx_solve;
-
+  
 typedef void (*t_set_solve)(rx_solve *);
 typedef rx_solve *(*t_get_solve)();
 

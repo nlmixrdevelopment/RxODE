@@ -900,9 +900,13 @@ print.rxCoefSolve <- function(x, ...){
         .mv <- rxModelVars(model);
         if (.Call(`_RxODE_codeLoaded`) == 0L) .rxModelVarsCharacter(setNames(rxNorm(.mv),NULL));
         .cache <- .rxModelVarsCCache
-        if (.cache[[1]]){
-            .modelPrefix <- sprintf("%s_", gsub("\\W", "_", gsub("[.].*$", "", basename(.cache[[2]]))));
-        } else {
+        .modelPrefix <- NULL
+        if (!is.null(.modelPrefix)){
+            if (.cache[[1]]){
+                .modelPrefix <- sprintf("%s_", gsub("\\W", "_", gsub("[.].*$", "", basename(.cache[[2]]))));
+            }
+        }
+        if (is.null(.modelPrefix)) {
             .modelPrefix <- paste0("rx_", .mv$md5["parsed_md5"], "_", .Platform$r_arch, "_");
         }
     }
@@ -1250,7 +1254,7 @@ rxCompile.rxModelVars <-  function(model, # Model
                   .trans["parsed_md5"], paste(.rxTimeId(.trans["parsed_md5"])), .fixInis);
 
             .defs <- ""
-            .ret <- sprintf("#RxODE Makevars\nPKG_CFLAGS=%s -I\"%s\"\nPKG_LIBS=$(BLAS_LIBS) $(LAPACK_LIBS) $(FLIBS)\n",
+            .ret <- sprintf("#RxODE Makevars\nPKG_CFLAGS=%s -g -I\"%s\"\nPKG_LIBS=$(BLAS_LIBS) $(LAPACK_LIBS) $(FLIBS)\n",
                             .defs, .normalizePath(system.file("include", package="RxODE")));
             ## .ret <- paste(.ret, "-g");
             sink(.Makevars);
@@ -1273,7 +1277,6 @@ rxCompile.rxModelVars <-  function(model, # Model
                 stop(msg, call.=FALSE);
             }
             if (!(.out$status==0 & file.exists(.cDllFile))){
-                .out <- c(sys::exec_internal(.cmd, args=.args, error=FALSE), list(sys=TRUE));
                 .badBuild("Error building model");
             }
             .tmp <- try(dynLoad(.cDllFile));
@@ -1669,10 +1672,15 @@ rxParams <- function(obj, constants=TRUE){
 rxParam <- rxParams
 
 
-.rxGetParseModel <- function(type=c("normal", "dt", "f0")){
-    .type.idx <- c("normal"=0L, "dt"=1L, "f0"=2L);
+.rxGetParseModel <- function(type=c("normal", "dt"),
+                             collapse = TRUE){
+    .type.idx <- c("normal"=0L, "dt"=1L);
     if (is(type, "character")){
         type <- .type.idx[match.arg(type)];
     }
-    .Call(`_RxODE_parseModel`, type);
+    .ret <- .Call(`_RxODE_parseModel`, type);
+    if (collapse){
+        .ret <- paste(.ret, collapse = "");
+    }
+    return(.ret);
 }

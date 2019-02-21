@@ -7,6 +7,15 @@
 #include <R_ext/Rdynload.h>
 #include "../inst/include/RxODE.h"
 
+SEXP _RxODE_etRep_(SEXP, SEXP, SEXP, SEXP, SEXP,
+		   SEXP, SEXP);
+SEXP _RxODE_etSeq_(SEXP, SEXP, SEXP, SEXP, SEXP,
+		   SEXP, SEXP, SEXP, SEXP, SEXP,
+		   SEXP);
+SEXP _RxODE_rxStack(SEXP, SEXP);
+SEXP _RxODE_etUpdate(SEXP, SEXP, SEXP, SEXP);
+SEXP _RxODE_et_(SEXP, SEXP);
+SEXP _RxODE_etTrans(SEXP, SEXP, SEXP);
 SEXP _RxODE_rxUpdateTrans_(SEXP, SEXP, SEXP);
 double powerDi(double x, double lambda, int yj);
 double powerD(double x, double lambda, int yj);
@@ -52,15 +61,15 @@ SEXP _RxODE_rxCores();
 SEXP _RxODE_rxAssignPtr(SEXP objectSEXP);
 SEXP _RxODE_dynLoad(SEXP dllSEXP);
 SEXP _RxODE_rxSolveC(SEXP, SEXP, SEXP, SEXP, SEXP, //5
-		      SEXP, SEXP, SEXP, SEXP, SEXP, //10
-		      SEXP, SEXP, SEXP, SEXP, SEXP, //15
-		      SEXP, SEXP, SEXP, SEXP, SEXP, //20
-		      SEXP, SEXP, SEXP, SEXP, SEXP, //25
-		      SEXP, SEXP, SEXP, SEXP, SEXP, //30
-		      SEXP, SEXP, SEXP, SEXP, SEXP, //35
-		      SEXP, SEXP, SEXP, SEXP, SEXP, //40
-		      SEXP, SEXP, SEXP, SEXP, SEXP, //45
-		      SEXP);
+		     SEXP, SEXP, SEXP, SEXP, SEXP, //10
+		     SEXP, SEXP, SEXP, SEXP, SEXP, //15
+		     SEXP, SEXP, SEXP, SEXP, SEXP, //20
+		     SEXP, SEXP, SEXP, SEXP, SEXP, //25
+		     SEXP, SEXP, SEXP, SEXP, SEXP, //30
+		     SEXP, SEXP, SEXP, SEXP, SEXP, //35
+		     SEXP, SEXP, SEXP, SEXP, SEXP, //40
+		     SEXP, SEXP, SEXP, SEXP, SEXP, //45
+		     SEXP);
 SEXP RxODE_get_mv();
 
 SEXP _RxODE_rxToOmega(SEXP cholInv);
@@ -120,9 +129,6 @@ extern SEXP _RxODE_rxSimThetaOmega(SEXP, SEXP, SEXP, SEXP, SEXP,
 SEXP _RxODE_cvPost(SEXP, SEXP, SEXP, SEXP, SEXP);
 
 SEXP _RxODE_rinvchisq(SEXP, SEXP, SEXP);
-SEXP _RxODE_add_dosing_(SEXP, SEXP, SEXP, SEXP, SEXP,
-                        SEXP, SEXP, SEXP, SEXP, SEXP);
-SEXP _RxODE_add_sampling_(SEXP, SEXP, SEXP);
 
 SEXP _RxODE_getRxFn(SEXP);
 SEXP _RxODE_setProgSupported(SEXP);
@@ -192,8 +198,6 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_rxIsCurrent", (DL_FUNC) &_RxODE_rxIsCurrent, 1},
     {"_RxODE_cvPost", (DL_FUNC) &_RxODE_cvPost, 5},
     {"_RxODE_rinvchisq", (DL_FUNC) &_RxODE_rinvchisq, 3},
-    {"_RxODE_add_dosing_", (DL_FUNC) &_RxODE_add_dosing_,10},
-    {"_RxODE_add_sampling_", (DL_FUNC) &_RxODE_add_sampling_, 3},
     {"_RxODE_dynLoad", (DL_FUNC) &_RxODE_dynLoad, 1},
     {"_RxODE_rxSolveFree", (DL_FUNC) &_RxODE_rxSolveFree, 0},
     {"_RxODE_setRstudio", (DL_FUNC) &_RxODE_setRstudio, 1},
@@ -204,6 +208,12 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_setProgSupported", (DL_FUNC) &_RxODE_setProgSupported, 1},
     {"_RxODE_getProgSupported", (DL_FUNC) &_RxODE_getProgSupported, 0},
     {"_RxODE_rxUpdateTrans_", (DL_FUNC) &_RxODE_rxUpdateTrans_, 3},
+    {"_RxODE_etTrans", (DL_FUNC) &_RxODE_etTrans, 3},
+    {"_RxODE_et_", (DL_FUNC) &_RxODE_et_, 2},
+    {"_RxODE_etUpdate", (DL_FUNC) &_RxODE_etUpdate, 4},
+    {"_RxODE_rxStack", (DL_FUNC) &_RxODE_rxStack, 2},
+    {"_RxODE_etSeq_", (DL_FUNC) &_RxODE_etSeq_, 11},
+    {"_RxODE_etRep_", (DL_FUNC) &_RxODE_etRep_, 7},
     {NULL, NULL, 0}
   };
   // C callable to assign environments.

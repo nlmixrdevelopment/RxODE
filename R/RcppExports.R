@@ -5,12 +5,24 @@ removableDrive <- function(driveRoot) {
     .Call(`_RxODE_removableDrive`, driveRoot)
 }
 
-add_dosing_ <- function(eventTable, dose, nbr_doses = 1L, dosing_interval = 24, dosing_to = 1L, rate = NULL, amount_units = NA_character_, start_time = 0.0, do_sampling = FALSE, time_units = NA_character_) {
-    .Call(`_RxODE_add_dosing_`, eventTable, dose, nbr_doses, dosing_interval, dosing_to, rate, amount_units, start_time, do_sampling, time_units)
+etUpdate <- function(obj, arg = NULL, value = NULL, exact = TRUE) {
+    .Call(`_RxODE_etUpdate`, obj, arg, value, exact)
 }
 
-add_sampling_ <- function(eventTable, time, time_units = NA_character_) {
-    .Call(`_RxODE_add_sampling_`, eventTable, time, time_units)
+et_ <- function(input, et__) {
+    .Call(`_RxODE_et_`, input, et__)
+}
+
+etSeq_ <- function(ets, handleSamples = 0L, waitType = 0L, defaultIi = 0, rbind = FALSE, uniqueId = 0L, reserveLen = 0L, needSort = TRUE, newUnits = as.character( c()), newShow = as.logical( c()), isCmtIntIn = FALSE) {
+    .Call(`_RxODE_etSeq_`, ets, handleSamples, waitType, defaultIi, rbind, uniqueId, reserveLen, needSort, newUnits, newShow, isCmtIntIn)
+}
+
+etRep_ <- function(curEt, times, wait, ids, handleSamples, waitType, ii) {
+    .Call(`_RxODE_etRep_`, curEt, times, wait, ids, handleSamples, waitType, ii)
+}
+
+etTrans <- function(inData, obj, addCmt = FALSE) {
+    .Call(`_RxODE_etTrans`, inData, obj, addCmt)
 }
 
 #' Check the type of an object using Rcpp
@@ -448,6 +460,21 @@ rxSymInvChol <- function(invObjOrMatrix, theta = NULL, type = "cholOmegaInv", th
 
 rxSymInvCholEnvCalculate <- function(obj, what, theta = NULL) {
     .Call(`_RxODE_rxSymInvCholEnvCalculate`, obj, what, theta)
+}
+
+#' Stack a solved object for things like ggplot
+#'
+#' @param Data is a RxODE object to be stacked.
+#'
+#' @param vars Variables to include in stacked data; By default this
+#'   is all the variables when vars is NULL.
+#'
+#' @return Stacked data with value and trt, where value is the values
+#'   and trt is the state and lhs variables.
+#' 
+#' @author Matthew Fidler
+rxStack <- function(Data, vars = NULL) {
+    .Call(`_RxODE_rxStack`, Data, vars)
 }
 
 # Register entry points for exported C++ functions

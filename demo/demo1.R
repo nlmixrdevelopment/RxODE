@@ -12,7 +12,7 @@ m1 <- RxODE(model = ode)
 # create dosing and observation (sampling) events
 # QD (once daily) dosing, 5 days
 
-qd <- eventTable(amount.units="umg", time.units = "hours")
+qd <- eventTable(amount.units="ug", time.units = "hours")
 qd$add.dosing(dose=10000, nbr.doses=5, dosing.interval = 24)
 
 # hourly sampling during 1st day, every 4 hours afterwards
@@ -22,15 +22,15 @@ qd$add.sampling(seq(from=28, to=96, by=4) )  # every 4 hours
 # BID dosing, 5 days
 
 bid <- eventTable(amount.units="ug", time.units="days")  # only dosing
-bid$add.dosing(dose = 10000, 
-   nbr.doses = 2*5, 
+bid$add.dosing(dose = 10000,
+   nbr.doses = 2*5,
    dosing.interval = 12)
 
 bid$add.sampling(0:24)
 bid$add.sampling(96+0:24)
 
 # init values
-theta <- 
+theta <-
    c(KA=2.94E-01,  CL=1.86E+01,  V2=4.02E+01,  Q=1.05E+01,  V3=2.97E+02,
      Kin=1, Kout=1, EC50=200)
 
@@ -44,8 +44,8 @@ function(cp, xlab = "Time (days)", ...)
    matplot(xtime, cp[,c("depot", "centr", "peri")], type = "l", ...,
       xlab = xlab, ylab = "Drug amount (ug)")
 
-   legend("topright", 
-      legend = c("Depot", "Central", "Peripheral"), 
+   legend("topright",
+      legend = c("Depot", "Central", "Peripheral"),
       title = "Compartment",
       col=1:3, lty = 1:3, bty = "n")
 

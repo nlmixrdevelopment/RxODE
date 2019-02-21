@@ -22,36 +22,80 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// add_dosing_
-RObject add_dosing_(RObject eventTable, double dose, int nbr_doses, double dosing_interval, int dosing_to, Nullable<NumericVector> rate, CharacterVector amount_units, double start_time, bool do_sampling, CharacterVector time_units);
-RcppExport SEXP _RxODE_add_dosing_(SEXP eventTableSEXP, SEXP doseSEXP, SEXP nbr_dosesSEXP, SEXP dosing_intervalSEXP, SEXP dosing_toSEXP, SEXP rateSEXP, SEXP amount_unitsSEXP, SEXP start_timeSEXP, SEXP do_samplingSEXP, SEXP time_unitsSEXP) {
+// etUpdate
+RObject etUpdate(RObject obj, RObject arg, RObject value, LogicalVector exact);
+RcppExport SEXP _RxODE_etUpdate(SEXP objSEXP, SEXP argSEXP, SEXP valueSEXP, SEXP exactSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< RObject >::type eventTable(eventTableSEXP);
-    Rcpp::traits::input_parameter< double >::type dose(doseSEXP);
-    Rcpp::traits::input_parameter< int >::type nbr_doses(nbr_dosesSEXP);
-    Rcpp::traits::input_parameter< double >::type dosing_interval(dosing_intervalSEXP);
-    Rcpp::traits::input_parameter< int >::type dosing_to(dosing_toSEXP);
-    Rcpp::traits::input_parameter< Nullable<NumericVector> >::type rate(rateSEXP);
-    Rcpp::traits::input_parameter< CharacterVector >::type amount_units(amount_unitsSEXP);
-    Rcpp::traits::input_parameter< double >::type start_time(start_timeSEXP);
-    Rcpp::traits::input_parameter< bool >::type do_sampling(do_samplingSEXP);
-    Rcpp::traits::input_parameter< CharacterVector >::type time_units(time_unitsSEXP);
-    rcpp_result_gen = Rcpp::wrap(add_dosing_(eventTable, dose, nbr_doses, dosing_interval, dosing_to, rate, amount_units, start_time, do_sampling, time_units));
+    Rcpp::traits::input_parameter< RObject >::type obj(objSEXP);
+    Rcpp::traits::input_parameter< RObject >::type arg(argSEXP);
+    Rcpp::traits::input_parameter< RObject >::type value(valueSEXP);
+    Rcpp::traits::input_parameter< LogicalVector >::type exact(exactSEXP);
+    rcpp_result_gen = Rcpp::wrap(etUpdate(obj, arg, value, exact));
     return rcpp_result_gen;
 END_RCPP
 }
-// add_sampling_
-RObject add_sampling_(RObject eventTable, NumericVector time, CharacterVector time_units);
-RcppExport SEXP _RxODE_add_sampling_(SEXP eventTableSEXP, SEXP timeSEXP, SEXP time_unitsSEXP) {
+// et_
+RObject et_(List input, List et__);
+RcppExport SEXP _RxODE_et_(SEXP inputSEXP, SEXP et__SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< RObject >::type eventTable(eventTableSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type time(timeSEXP);
-    Rcpp::traits::input_parameter< CharacterVector >::type time_units(time_unitsSEXP);
-    rcpp_result_gen = Rcpp::wrap(add_sampling_(eventTable, time, time_units));
+    Rcpp::traits::input_parameter< List >::type input(inputSEXP);
+    Rcpp::traits::input_parameter< List >::type et__(et__SEXP);
+    rcpp_result_gen = Rcpp::wrap(et_(input, et__));
+    return rcpp_result_gen;
+END_RCPP
+}
+// etSeq_
+List etSeq_(List ets, int handleSamples, int waitType, double defaultIi, bool rbind, int uniqueId, int reserveLen, bool needSort, CharacterVector newUnits, LogicalVector newShow, bool isCmtIntIn);
+RcppExport SEXP _RxODE_etSeq_(SEXP etsSEXP, SEXP handleSamplesSEXP, SEXP waitTypeSEXP, SEXP defaultIiSEXP, SEXP rbindSEXP, SEXP uniqueIdSEXP, SEXP reserveLenSEXP, SEXP needSortSEXP, SEXP newUnitsSEXP, SEXP newShowSEXP, SEXP isCmtIntInSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< List >::type ets(etsSEXP);
+    Rcpp::traits::input_parameter< int >::type handleSamples(handleSamplesSEXP);
+    Rcpp::traits::input_parameter< int >::type waitType(waitTypeSEXP);
+    Rcpp::traits::input_parameter< double >::type defaultIi(defaultIiSEXP);
+    Rcpp::traits::input_parameter< bool >::type rbind(rbindSEXP);
+    Rcpp::traits::input_parameter< int >::type uniqueId(uniqueIdSEXP);
+    Rcpp::traits::input_parameter< int >::type reserveLen(reserveLenSEXP);
+    Rcpp::traits::input_parameter< bool >::type needSort(needSortSEXP);
+    Rcpp::traits::input_parameter< CharacterVector >::type newUnits(newUnitsSEXP);
+    Rcpp::traits::input_parameter< LogicalVector >::type newShow(newShowSEXP);
+    Rcpp::traits::input_parameter< bool >::type isCmtIntIn(isCmtIntInSEXP);
+    rcpp_result_gen = Rcpp::wrap(etSeq_(ets, handleSamples, waitType, defaultIi, rbind, uniqueId, reserveLen, needSort, newUnits, newShow, isCmtIntIn));
+    return rcpp_result_gen;
+END_RCPP
+}
+// etRep_
+List etRep_(RObject curEt, int times, double wait, IntegerVector ids, int handleSamples, int waitType, double ii);
+RcppExport SEXP _RxODE_etRep_(SEXP curEtSEXP, SEXP timesSEXP, SEXP waitSEXP, SEXP idsSEXP, SEXP handleSamplesSEXP, SEXP waitTypeSEXP, SEXP iiSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< RObject >::type curEt(curEtSEXP);
+    Rcpp::traits::input_parameter< int >::type times(timesSEXP);
+    Rcpp::traits::input_parameter< double >::type wait(waitSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type ids(idsSEXP);
+    Rcpp::traits::input_parameter< int >::type handleSamples(handleSamplesSEXP);
+    Rcpp::traits::input_parameter< int >::type waitType(waitTypeSEXP);
+    Rcpp::traits::input_parameter< double >::type ii(iiSEXP);
+    rcpp_result_gen = Rcpp::wrap(etRep_(curEt, times, wait, ids, handleSamples, waitType, ii));
+    return rcpp_result_gen;
+END_RCPP
+}
+// etTrans
+List etTrans(List inData, const RObject& obj, bool addCmt);
+RcppExport SEXP _RxODE_etTrans(SEXP inDataSEXP, SEXP objSEXP, SEXP addCmtSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< List >::type inData(inDataSEXP);
+    Rcpp::traits::input_parameter< const RObject& >::type obj(objSEXP);
+    Rcpp::traits::input_parameter< bool >::type addCmt(addCmtSEXP);
+    rcpp_result_gen = Rcpp::wrap(etTrans(inData, obj, addCmt));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -1438,6 +1482,18 @@ RcppExport SEXP _RxODE_rxSymInvCholEnvCalculate(SEXP objSEXP, SEXP whatSEXP, SEX
     }
     UNPROTECT(1);
     return rcpp_result_gen;
+}
+// rxStack
+List rxStack(List Data, Nullable<CharacterVector> vars);
+RcppExport SEXP _RxODE_rxStack(SEXP DataSEXP, SEXP varsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< List >::type Data(DataSEXP);
+    Rcpp::traits::input_parameter< Nullable<CharacterVector> >::type vars(varsSEXP);
+    rcpp_result_gen = Rcpp::wrap(rxStack(Data, vars));
+    return rcpp_result_gen;
+END_RCPP
 }
 
 // validate (ensure exported C++ functions exist before calling them)

@@ -36,6 +36,11 @@ matrix:
   - r: 3.2
     os: osx
 
+addons:
+  apt:
+    packages:
+      - libudunits2-dev
+
 r_github_packages:
   - r-lib/covr
   - nlmixrdevelopment/n1qn1

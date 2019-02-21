@@ -15,8 +15,8 @@
 rxSolve(object, ...)
 
 \method{rxSolve}{default}(object, params = NULL, events = NULL,
-  inits = NULL, scale = NULL, covs = NULL, method = c("liblsoda",
-  "lsoda", "dop853"), transitAbs = NULL, atol = 1e-08, rtol = 1e-06,
+  inits = NULL, scale = NULL, method = c("liblsoda", "lsoda",
+  "dop853"), transitAbs = NULL, atol = 1e-08, rtol = 1e-06,
   maxsteps = 5000L, hmin = 0L, hmax = NA, hini = 0,
   maxordn = 12L, maxords = 5L, ..., cores,
   covsInterpolation = c("locf", "linear", "nocb", "midpoint"),
@@ -24,11 +24,11 @@ rxSolve(object, ...)
   nCoresRV = 1L, sigmaIsChol = FALSE, nDisplayProgress = 10000L,
   amountUnits = NA_character_, timeUnits = "hours", stiff,
   theta = NULL, eta = NULL, addDosing = FALSE, stateTrim = Inf,
-  updateObject = FALSE, doSolve = TRUE, omega = NULL,
-  omegaDf = NULL, omegaIsChol = FALSE, nSub = 1L, thetaMat = NULL,
-  thetaDf = NULL, thetaIsChol = FALSE, nStud = 1L, dfSub = 0,
-  dfObs = 0, returnType = c("rxSolve", "matrix", "data.frame",
-  "data.frame.TBS"), seed = NULL, nsim = NULL, setupOnly = FALSE)
+  updateObject = FALSE, omega = NULL, omegaDf = NULL,
+  omegaIsChol = FALSE, nSub = 1L, thetaMat = NULL, thetaDf = NULL,
+  thetaIsChol = FALSE, nStud = 1L, dfSub = 0, dfObs = 0,
+  returnType = c("rxSolve", "matrix", "data.frame", "data.frame.TBS"),
+  seed = NULL, nsim = NULL, setupOnly = FALSE)
 
 \method{update}{rxSolve}(object, ...)
 
@@ -73,10 +73,6 @@ parameter identifiers in the ODE specification. Each of the
 ODE variables will be divided by the scaling factor.  For
 example \code{scale=(center=2)} will divide the center ODE
 variable by 2.}
-
-\item{covs}{a matrix or dataframe the same number of rows as the
-sampling points defined in the events \code{eventTable}.  This
-is for time-varying covariates.}
 
 \item{method}{The method for solving ODEs.  Currently this supports:
 
@@ -220,9 +216,6 @@ RxODE solved object (when supplying an RxODE solved object) as
 well as returning a new object.  You probably should not
 modify it's \code{FALSE} default unless you are willing to
 have unexpected results.}
-
-\item{doSolve}{Internal flag.  By default this is \code{TRUE},
-when \code{FALSE} a list of solving options is returned.}
 
 \item{omega}{Named omega matrix.}
 
