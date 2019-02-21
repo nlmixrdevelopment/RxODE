@@ -653,16 +653,18 @@ void handleSS(int *neq,
   if ((ind->wh0 == 20 || ind->wh0 == 10) &&
       ind->ii[ind->ixds-1] > 0){
     ind->ixds--; // This dose stays in place
-    double dur = 0;
-    int infBixds =0, infEixds = 0, wh, cmt, wh100, whI, wh0;
-    if (ind->whI == 1){
+    double dur = 0, dur2=0;
+    int infBixds =0, infEixds = 0, wh, cmt, wh100, whI, wh0, oldI;
+    if (ind->whI == 1 || ind->whI == 2){
+      oldI = ind->whI;
       infBixds = ind->ixds;
       // Find the next fixed length infusion that is turned off.
       for (j = ind->ixds+1; j < ind->ndoses; j++){
 	if (ind->dose[j] == -ind->dose[ind->ixds]){
 	  getWh(ind->evid[ind->idose[j]], &wh, &cmt, &wh100, &whI, &wh0);
-	  if (whI == 1 && cmt == ind->cmt){
-	    dur = ind->all_times[ind->idose[j]] - ind->all_times[ind->ix[*i]];
+	  if (whI == oldI && cmt == ind->cmt){
+	    dur = getTime(ind->idose[j], ind) - getTime(ind->ix[*i], ind);
+	    dur2 = ind->ii[ind->ix[*i]] - dur;
 	    infEixds = j;
 	    break;
 	  }
@@ -672,7 +674,7 @@ void handleSS(int *neq,
       // These are right next to another.
       infBixds = ind->ixds;
       infEixds = ind->ixds+1;
-      dur = ind->all_times[ind->idose[ind->ixds+1]] - ind->all_times[ind->idose[ind->ixds]];
+      dur = getTime(ind->idose[ind->ixds+1], ind) - getTime(ind->idose[ind->ixds],ind);
     }
     if (ind->wh0 == 20){
       // Save for adding at the end
@@ -787,16 +789,15 @@ void handleSS(int *neq,
 	*i = nx-1; // Get out of here!
       } else {
 	// Infusion
-	ind->timeReset=0; // Don't reset calculated duration time during SS calculation.
 	for (j = 0; j < op->maxSS; j++){
-	  xout2 = xp2+dur; //ind->ii[ind->ixds];
-	  ind->ixds = infBixds;
+	  // Turn on Infusion, solve (0-dur)
+	  xout2 = xp2+dur;
 	  ind->idx=*i;
-	  // Use "real" xout for handle_evid functions.
-	  handle_evid(ind->evid[ind->ix[*i]], neq[0], BadDose, InfusionRate, dose, yp,
+	  ind->ixds = infBixds;
+	  handle_evid(ind->evid[infBixds], neq[0], BadDose, InfusionRate, dose, yp,
 		      op->do_transit_abs, xout, neq[1], ind);
 	  // yp is last solve or y0
-	  /* Rprintf("xp2: %f, xout2: %f; %d (%f)\n",xp2, xout2, evid[ind->ix[*i]], yp[0]); */
+	  *istate=1;
 	  switch(op->stiff){
 	  case 2:
 	    lsoda(ctx, yp, &xp2, xout2);
@@ -864,14 +865,13 @@ void handleSS(int *neq,
 	    }
 	    break;
 	  }
-
-	  // Now turn off the infusion
 	  xp2 = xout2;
+	  // Turn off Infusion, solve (dur-ii)
+	  xout2 = xp2+dur2;
 	  ind->ixds = infEixds;
 	  ind->idx=ind->idose[ind->ixds];
-	  handle_evid(ind->evid[ind->idose[ind->ixds]], neq[0], BadDose, InfusionRate, dose, yp,
+	  handle_evid(ind->evid[infBixds], neq[0], BadDose, InfusionRate, dose, yp,
 		      op->do_transit_abs, xout+dur, neq[1], ind);
-
 	  if (j == op->minSS -1){
 	    lastSum =0.0;
 	    for (k = neq[0]; k--;) lastSum += fabs(yp[k]);
@@ -879,10 +879,8 @@ void handleSS(int *neq,
 	    curSum = 0.0;
 	    for (k = neq[0]; k--;) curSum += fabs(yp[k]);
 	  }
-
-	  // Then  solve at II
-	  xout2 = xp2-dur+ind->ii[infBixds];
-	  /* Rprintf("\txp2: %f, xout2: %f %d (%f)\n",xp2, xout2, evid[ind->idose[ind->ixds]], yp[0]); */
+	  // yp is last solve or y0
+	  *istate=1;
 	  switch(op->stiff){
 	  case 2:
 	    lsoda(ctx, yp, &xp2, xout2);
@@ -950,7 +948,6 @@ void handleSS(int *neq,
 	    }
 	    break;
 	  }
-	      
 	  if (j == op->minSS -1){
 	    for (k = neq[0]; k--;) lastSum += fabs(yp[k]);
 	  } else if (j >= op->minSS){
@@ -960,13 +957,11 @@ void handleSS(int *neq,
 	    }
 	    lastSum=curSum;
 	  }
-	  /* ctx.state=1; */
-	  *istate=1;
 	  xp2 = xout2;
 	}
-	ind->ixds = infBixds;
+	*istate=1;
 	ind->idx=*i;
-	ind->timeReset=1; // Restore timeReset
+	ind->ixds = infBixds;
       }
     }
 	  
@@ -974,6 +969,7 @@ void handleSS(int *neq,
       // Add at the end
       for (j = neq[0];j--;) yp[j]+=ind->solveSave[j];
     }
+    ind->idx=*i;
     handle_evid(ind->evid[ind->ix[*i]], neq[0], BadDose, InfusionRate, dose, yp,
 		op->do_transit_abs, xout, neq[1], ind);
   }

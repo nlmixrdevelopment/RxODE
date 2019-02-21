@@ -2321,6 +2321,8 @@ RObject et_(List input, List et__){
 	}
 	if (ss[0] < 0 || ss[0] > 2){
 	  stop("ss must be 0, 1 or 2.");
+	} if (ss[0] > 0 && ii[0] <= 0){
+	  stop("ii required with ss.");
 	}
 	if (ss[0] > 1 && time.size() > 1){
 	  stop("Steady state (ss) is not supported with dosing windows.");
