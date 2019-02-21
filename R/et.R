@@ -172,27 +172,30 @@ add.sampling <- function(eventTable, time, time.units = NA){
 ##' Initializes an object of class \sQuote{EventTable} with methods for
 ##' adding and querying dosing and observation records
 ##'
-##' @param amount.units string denoting the amount dosing units, e.g.,
-##'     \dQuote{mg}, \dQuote{ug}. Default to \code{NA} to denote
-##'     unspecified units.  It could also be a solved RxODE object.  In
-##'     that case, eventTable(obj) returns the eventTable that was used
-##'     to solve the RxODE object.
-##'
-##' @param time.units string denoting the time units, e.g.,
-##'     \dQuote{hours}, \dQuote{days}. Default to \code{"hours"}.
-##'
-##' An \code{eventTable} is an object that consists of a data.frame
-##' storing ordered time-stamped events of an (unspecified) PK/PD
-##' dynamic system, units (strings) for dosing and time records, plus a
-##' list of functions to add and extract event records.
-##'
-##' Currently, events can be of two types: dosing events that represent
-##' inputs to the system and sampling time events that represent
-##' observations of the system with \sQuote{amount.units} and
-##' \sQuote{time.units}, respectively. In the future, additional events
-##' may include resetting of state variables (compartments), for
-##' instance, to indicate time after \dQuote{wash-out}, etc.
-##'
+#' @param eventTable
+#' @param time
+#' @param time.units
+#' @param #amount.units string denoting the amount dosing units, e.g.,
+#'#     \dQuote{mg}, \dQuote{ug}. Default to \code{NA} to denote
+#'#     unspecified units.  It could also be a solved RxODE object.  In
+#'#     that case, eventTable(obj) returns the eventTable that was used
+#'#     to solve the RxODE object.
+#'#
+#' @param #time.units string denoting the time units, e.g.,
+#'#     \dQuote{hours}, \dQuote{days}. Default to \code{"hours"}.
+#'#
+#'# An \code{eventTable} is an object that consists of a data.frame
+#'# storing ordered time-stamped events of an (unspecified) PK/PD
+#'# dynamic system, units (strings) for dosing and time records, plus a
+#'# list of functions to add and extract event records.
+#'#
+#'# Currently, events can be of two types: dosing events that represent
+#'# inputs to the system and sampling time events that represent
+#'# observations of the system with \sQuote{amount.units} and
+#'# \sQuote{time.units}, respectively. In the future, additional events
+#'# may include resetting of state variables (compartments), for
+#'# instance, to indicate time after \dQuote{wash-out}, etc.
+#'#
 ##' @return A modified data.frame with the following accessible functions:
 ##'
 ##' \item{get.EventTable}{returns the current event table.}
@@ -328,9 +331,123 @@ eventTable <- function(amount.units = NA, time.units = NA){
 
 ##' Sequence of event tables
 ##'
-##' @param ...
-##' @param samples can be "clear", "use"
+##' This combines a sequence of event tables.
+##'
+##' @param ... The event tables and optionally time between event
+##'     tables, called waiting times in this help document.
+##'
+##' @param samples How to handle samples when repeating an event
+##'     table.  The options are: \itemize{ \item{"clear"} Clear
+##'     sampling records before combining the datasets \item{"use"}
+##'     Use the sampling records when combining the datasets }
+##'
+##' @param waitII This determines how waiting times between events are
+##'     handled. The options are:
+##'
+##' \itemize{
+##'
+##' \item \code{"smart"} This "smart" handling of waiting times is the
+##' default option.  In this case, if the waiting time is above the
+##' last observed inter-dose interval in the first combined event
+##' table, then the actual time between doses is given by the wait
+##' time.  If it is smaller than the last observed inter-dose
+##' interval, the time between event tables is given by the inter-dose
+##' interval + the waiting time between event tables.
+##'
+##' \item \code{"+ii"} In this case, the wait time is added to the
+##' inter-dose interval no matter the length of the wait time or
+##' inter-dose interval
+##'
+##' }
+##' @param ii If there was no inter-dose intervals found in the event
+##'     table, assume that the interdose interval is given by this
+##'     \code{ii} value.  By default this is \code{24}.
+##'
 ##' @details
+##'
+##' This \code{seq}uences all the event tables in added in the
+##' argument list \code{...}.  By default when combining the event
+##' tables the offset is at least by the last inter-dose interval in
+##' the prior event table (or \code{ii}).  If you separate any of the
+##' event tables by a number, the event tables will be separated at
+##' least the wait time defined by that number or the last inter-dose
+##' interval.
+##'
+##' @examples
+##'
+##' ## Model from RxODE tutorial
+##' mod1 <-RxODE({
+##'     KA=2.94E-01;
+##'     CL=1.86E+01;
+##'     V2=4.02E+01;
+##'     Q=1.05E+01;
+##'     V3=2.97E+02;
+##'     Kin=1;
+##'     Kout=1;
+##'     EC50=200;
+##'     C2 = centr/V2;
+##'     C3 = peri/V3;
+##'     d/dt(depot) =-KA*depot;
+##'     d/dt(centr) = KA*depot - CL*C2 - Q*C2 + Q*C3;
+##'     d/dt(peri)  =                    Q*C2 - Q*C3;
+##'     d/dt(eff)  = Kin - Kout*(1-C2/(EC50+C2))*eff;
+##' });
+##'
+##' ## These are making the more complex regimens of the RxODE tutorial
+##'
+##' ## bid for 5 days
+##' bid <- et(timeUnits="hr") %>%
+##'        et(amt=10000,ii=12,until=set_units(5, "days"))
+##'
+##' ## qd for 5 days
+##' qd <- et(timeUnits="hr") %>%
+##'       et(amt=20000,ii=24,until=set_units(5, "days"))
+##'
+##' ## bid for 5 days followed by qd for 5 days
+##'
+##' et <- seq(bid,qd) %>% et(seq(0,11*24,length.out=100));
+##'
+##' bidQd <- rxSolve(mod1, et)
+##'
+##' plot(bidQd, C2)
+##'
+##'
+##' ## Now Infusion for 5 days followed by oral for 5 days
+##'
+##' ##  note you can dose to a named compartment instead of using the compartment number
+##' infusion <- et(timeUnits = "hr") %>%
+##'       et(amt=10000, rate=5000, ii=24, until=set_units(5, "days"), cmt="centr")
+##'
+##'
+##' qd <- et(timeUnits = "hr") %>% et(amt=10000, ii=24, until=set_units(5, "days"), cmt="depot")
+##'
+##' et <- seq(infusion,qd)
+##'
+##' infusionQd <- rxSolve(mod1, et)
+##'
+##' plot(infusionQd, C2)
+##'
+##' ## 2wk-on, 1wk-off
+##'
+##' qd <- et(timeUnits = "hr") %>% et(amt=10000, ii=24, until=set_units(2, "weeks"), cmt="depot")
+##'
+##' et <- seq(qd, set_units(1,"weeks"), qd) %>%
+##'      add.sampling(set_units(seq(0, 5.5,length.out=200),weeks))
+##'
+##' wkOnOff <- rxSolve(mod1, et)
+##'
+##' plot(wkOnOff, C2)
+##'
+##' ## You can also repeat the cycle easily with the rep function
+##'
+##' qd <-et(timeUnits = "hr") %>% et(amt=10000, ii=24, until=set_units(2, "weeks"), cmt="depot")
+##'
+##' et <- etRep(qd, times=4, wait=set_units(1,"weeks")) %>%
+##'      add.sampling(set_units(seq(0, 12.5,by=0.1),weeks))
+##'
+##' repCycle4 <- rxSolve(mod1, et)
+##'
+##' plot(repCycle4, C2)
 ##'
 ##' @return A new event table
 ##' @author Matthew L Fidler
@@ -366,6 +483,7 @@ rbind.rxEt <- function(..., deparse.level = 1){
     do.call(etRbind,list(...));
 }
 
+##'@rdname etSeq
 ##'@export
 seq.rxEt <- function(...){
     do.call(etSeq,list(...));
@@ -390,7 +508,6 @@ c.rxEt <- function(...){
 ##'     default there is no waiting, or wait=0
 ##' @param id IDs to expand/remove in the event table before repeating.
 ##' @inheritParams etSeq
-##' @param ...
 ##' @return An event table of repeated events
 ##' @author Matthew Fidler
 ##' @export
@@ -405,7 +522,7 @@ etRep <- function(x, times=1, length.out=NA, each=NA, n=NULL, wait=0, id=integer
     if (!is.na(length.out)) stop("'length.out' makes no sense with event tables");
     if (!is.na(each)) stop("'each' makes no sense with event tables");
     .Call(`_RxODE_etRep_`, x, as.integer(times),
-          as.double(wait), as.integer(id), setNames(.sampleIx[match.arg(samples)],NULL),
+          wait, as.integer(id), setNames(.sampleIx[match.arg(samples)],NULL),
           setNames(.waitIx[match.arg(waitII)],NULL), as.double(ii))
 }
 

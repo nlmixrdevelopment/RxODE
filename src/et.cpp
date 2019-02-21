@@ -2293,6 +2293,9 @@ RObject et_(List input, List et__){
 	  if (ii[0] < 0){
 	    stop("'until' can only be used with positive inter-dose intervals (ii).");
 	  }
+	  if (rxIs(until, "units")){
+	    until = setUnits(until, as<std::string>(units[1]));
+	  }
 	  if (time.size() == 1){
 	    double tmp = until[0] - time[0] - ii[0];
 	    if (tmp > 0){
@@ -2725,10 +2728,17 @@ List etSeq_(List ets, int handleSamples=0, int waitType = 0,
 
 // Sequence event tables
 //[[Rcpp::export]]
-List etRep_(RObject curEt, int times, double wait, IntegerVector ids, int handleSamples, int waitType,
+List etRep_(RObject curEt, int times, NumericVector wait, IntegerVector ids, int handleSamples, int waitType,
 	    double ii){
+  if (wait.size() != 1){
+    stop("Wait cannot be a vector.");
+  }
   CharacterVector cls = as<CharacterVector>(curEt.attr("class"));
   List e = cls.attr(".RxODE.lst");
+  CharacterVector units = e["units"];
+  if (rxIs(wait, "units")){
+    wait = setUnits(wait, as<std::string>(units["time"]));
+  }
   int len = as<int>(e["nobs"]) +as<int>(e["ndose"]);
   IntegerVector IDs = e["IDs"];
   List seqLst(times*2);

@@ -70,14 +70,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // etRep_
-List etRep_(RObject curEt, int times, double wait, IntegerVector ids, int handleSamples, int waitType, double ii);
+List etRep_(RObject curEt, int times, NumericVector wait, IntegerVector ids, int handleSamples, int waitType, double ii);
 RcppExport SEXP _RxODE_etRep_(SEXP curEtSEXP, SEXP timesSEXP, SEXP waitSEXP, SEXP idsSEXP, SEXP handleSamplesSEXP, SEXP waitTypeSEXP, SEXP iiSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< RObject >::type curEt(curEtSEXP);
     Rcpp::traits::input_parameter< int >::type times(timesSEXP);
-    Rcpp::traits::input_parameter< double >::type wait(waitSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type wait(waitSEXP);
     Rcpp::traits::input_parameter< IntegerVector >::type ids(idsSEXP);
     Rcpp::traits::input_parameter< int >::type handleSamples(handleSamplesSEXP);
     Rcpp::traits::input_parameter< int >::type waitType(waitTypeSEXP);
