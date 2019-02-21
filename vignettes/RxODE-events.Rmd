@@ -35,9 +35,9 @@ In general, RxODE event tables follow NONMEM convention with the exceptions:
 | id        | Individual identifier | Must be an integer > 0, sorted                                     |
 | time      | Individual time       | Must be ascending and non-negative                                 |
 | amt       | dose amount           | Positive for doses zero/NA for observations                        |
-| rate      | infusion rate         | When specified the infusion will be dur=amt/rate                   |
+| rate      | infusion rate         | When specified the infusion duration will be dur=amt/rate          |
 |           |                       | rate = -1, rate modeled; rate = -2, duration modeled               |
-| dur       | infusion duration     | When specified the rate will be rate = amt/dur                     |
+| dur       | infusion duration     | When specified the infusion rate will be rate = amt/dur            |
 | evid      | event ID              | 0=Observation; 1=Dose; 2=Other; 3=Reset; 4=Reset+Dose              |
 | cmt       | Compartment           | Represents compartment #/name for dose/observation                 |
 | ss        | Steady State Flag     | 0 = non-steady-state; 1=steady state; 2=steady state +prior states |
