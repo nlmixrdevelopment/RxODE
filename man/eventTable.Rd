@@ -7,28 +7,26 @@
 eventTable(amount.units = NA, time.units = NA)
 }
 \arguments{
-\item{#amount.units}{string denoting the amount dosing units, e.g.,
-#     \dQuote{mg}, \dQuote{ug}. Default to \code{NA} to denote
-#     unspecified units.  It could also be a solved RxODE object.  In
-#     that case, eventTable(obj) returns the eventTable that was used
-#     to solve the RxODE object.
-#}
+\item{amount.units}{string denoting the amount dosing units, e.g.,
+\dQuote{mg}, \dQuote{ug}. Default to \code{NA} to denote
+unspecified units.  It could also be a solved RxODE object.  In
+that case, eventTable(obj) returns the eventTable that was used
+to solve the RxODE object.}
 
-\item{#time.units}{string denoting the time units, e.g.,
-#     \dQuote{hours}, \dQuote{days}. Default to \code{"hours"}.
-#
-# An \code{eventTable} is an object that consists of a data.frame
-# storing ordered time-stamped events of an (unspecified) PK/PD
-# dynamic system, units (strings) for dosing and time records, plus a
-# list of functions to add and extract event records.
-#
-# Currently, events can be of two types: dosing events that represent
-# inputs to the system and sampling time events that represent
-# observations of the system with \sQuote{amount.units} and
-# \sQuote{time.units}, respectively. In the future, additional events
-# may include resetting of state variables (compartments), for
-# instance, to indicate time after \dQuote{wash-out}, etc.
-#}
+\item{time.units}{string denoting the time units, e.g.,
+     \dQuote{hours}, \dQuote{days}. Default to \code{"hours"}.
+
+ An \code{eventTable} is an object that consists of a data.frame
+ storing ordered time-stamped events of an (unspecified) PK/PD
+ dynamic system, units (strings) for dosing and time records, plus a
+ list of functions to add and extract event records.
+
+ Currently, events can be of two types: dosing events that represent
+ inputs to the system and sampling time events that represent
+ observations of the system with \sQuote{amount.units} and
+ \sQuote{time.units}, respectively. In the future, additional events
+ may include resetting of state variables (compartments), for
+ instance, to indicate time after \dQuote{wash-out}, etc.}
 }
 \value{
 A modified data.frame with the following accessible functions:

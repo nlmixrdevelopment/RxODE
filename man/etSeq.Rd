@@ -134,6 +134,16 @@ repCycle4 <- rxSolve(mod1, et)
 plot(repCycle4, C2)
 
 }
+\references{
+Wang W, Hallow K, James D (2015). "A Tutorial on RxODE: Simulating
+Differential Equation Pharmacometric Models in R." CPT:
+Pharmacometrics \& Systems Pharmacology, 5(1), 3-10. ISSN 2163-8306,
+<URL: http://www.ncbi.nlm.nih.gov/pmc/articles/PMC4728294/>.
+}
+\seealso{
+\code{\link{eventTable}}, \code{\link{et}}, \code{\link{etRep}}, \code{\link{etRbind}},
+   \code{\link{RxODE}}
+}
 \author{
 Matthew L Fidler
 }

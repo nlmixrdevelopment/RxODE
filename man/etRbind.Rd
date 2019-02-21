@@ -41,3 +41,6 @@ A new event table
 \description{
 Combining event tables
 }
+\author{
+Matthew L Fidler
+}

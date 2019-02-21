@@ -172,30 +172,27 @@ add.sampling <- function(eventTable, time, time.units = NA){
 ##' Initializes an object of class \sQuote{EventTable} with methods for
 ##' adding and querying dosing and observation records
 ##'
-#' @param eventTable
-#' @param time
-#' @param time.units
-#' @param #amount.units string denoting the amount dosing units, e.g.,
-#'#     \dQuote{mg}, \dQuote{ug}. Default to \code{NA} to denote
-#'#     unspecified units.  It could also be a solved RxODE object.  In
-#'#     that case, eventTable(obj) returns the eventTable that was used
-#'#     to solve the RxODE object.
-#'#
-#' @param #time.units string denoting the time units, e.g.,
-#'#     \dQuote{hours}, \dQuote{days}. Default to \code{"hours"}.
-#'#
-#'# An \code{eventTable} is an object that consists of a data.frame
-#'# storing ordered time-stamped events of an (unspecified) PK/PD
-#'# dynamic system, units (strings) for dosing and time records, plus a
-#'# list of functions to add and extract event records.
-#'#
-#'# Currently, events can be of two types: dosing events that represent
-#'# inputs to the system and sampling time events that represent
-#'# observations of the system with \sQuote{amount.units} and
-#'# \sQuote{time.units}, respectively. In the future, additional events
-#'# may include resetting of state variables (compartments), for
-#'# instance, to indicate time after \dQuote{wash-out}, etc.
-#'#
+##' @param amount.units string denoting the amount dosing units, e.g.,
+##'      \dQuote{mg}, \dQuote{ug}. Default to \code{NA} to denote
+##'      unspecified units.  It could also be a solved RxODE object.  In
+##'      that case, eventTable(obj) returns the eventTable that was used
+##'      to solve the RxODE object.
+##'
+##' @param time.units string denoting the time units, e.g.,
+##'      \dQuote{hours}, \dQuote{days}. Default to \code{"hours"}.
+##'
+##'  An \code{eventTable} is an object that consists of a data.frame
+##'  storing ordered time-stamped events of an (unspecified) PK/PD
+##'  dynamic system, units (strings) for dosing and time records, plus a
+##'  list of functions to add and extract event records.
+##'
+##'  Currently, events can be of two types: dosing events that represent
+##'  inputs to the system and sampling time events that represent
+##'  observations of the system with \sQuote{amount.units} and
+##'  \sQuote{time.units}, respectively. In the future, additional events
+##'  may include resetting of state variables (compartments), for
+##'  instance, to indicate time after \dQuote{wash-out}, etc.
+##'
 ##' @return A modified data.frame with the following accessible functions:
 ##'
 ##' \item{get.EventTable}{returns the current event table.}
@@ -450,7 +447,19 @@ eventTable <- function(amount.units = NA, time.units = NA){
 ##' plot(repCycle4, C2)
 ##'
 ##' @return A new event table
+##'
 ##' @author Matthew L Fidler
+##'
+##' @seealso \code{\link{eventTable}}, \code{\link{et}}, \code{\link{etRep}}, \code{\link{etRbind}},
+##'    \code{\link{RxODE}}
+##'
+##' @references
+##'
+##' Wang W, Hallow K, James D (2015). "A Tutorial on RxODE: Simulating
+##' Differential Equation Pharmacometric Models in R." CPT:
+##' Pharmacometrics \& Systems Pharmacology, 5(1), 3-10. ISSN 2163-8306,
+##' <URL: http://www.ncbi.nlm.nih.gov/pmc/articles/PMC4728294/>.
+##'
 ##' @export
 etSeq <- function(...,samples=c("clear", "use"), waitII=c("smart", "+ii"), ii=24){
     ## etSeq_(List ets, bool clearSampling=clearSampling);
@@ -464,7 +473,7 @@ etSeq <- function(...,samples=c("clear", "use"), waitII=c("smart", "+ii"), ii=24
 ##'
 ##' @return A new event table
 ##' @inheritParams etSeq
-##' @author
+##' @author Matthew L Fidler
 ##' @export
 etRbind <- function(...,samples=c("use", "clear"),waitII=c("smart", "+ii"),
                     id=c("merge", "unique")){
