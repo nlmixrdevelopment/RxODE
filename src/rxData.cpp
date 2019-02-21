@@ -2524,9 +2524,9 @@ SEXP rxSolveC(const RObject &obj,
 
     // FIXME allow these values to change.
     op->minSS = 7;
-    op->maxSS = 1000;    
-    op->atolSS = atol*1.1;
-    op->rtolSS = rtol*1.1;
+    op->maxSS = 7000;
+    op->atolSS = atol/10000;
+    op->rtolSS = rtol/10000;
     
     gatol2Setup(op->neq);
     grtol2Setup(op->neq);
