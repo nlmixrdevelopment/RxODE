@@ -3411,9 +3411,11 @@ RObject rxSolveGet(RObject obj, RObject arg, LogicalVector exact = true){
           return e[sarg];
         }
         if (sarg == "params" || sarg == "par" || sarg == "pars" || sarg == "param"){
-          return e["params.dat"];
+	  List ret = clone(as<List>(e["params.dat"]));
+          return ret;
 	} else if (sarg == "inits" || sarg == "init"){
-	  return e["inits.dat"];
+	  List ret = clone(as<List>(e["inits.dat"]));
+          return ret;
 	} else if (sarg == "t"){
 	  return lst["time"];
 	} else if ((sarg == "theta.mat" || sarg == "thetaMat") && e.exists(".theta")){
@@ -3424,7 +3426,7 @@ RObject rxSolveGet(RObject obj, RObject arg, LogicalVector exact = true){
           return e[".omegaL"];
 	}
 	// Now parameters
-	List pars = List(e["params.dat"]);
+	List pars = clone(List(e["params.dat"]));
 	CharacterVector nmp = pars.names();
 	n = pars.size();
 	for (i = n; i--;){
@@ -3434,7 +3436,7 @@ RObject rxSolveGet(RObject obj, RObject arg, LogicalVector exact = true){
 	}
 	// // Now inis.
 	// Function sub("sub", R_BaseNamespace);
-	NumericVector ini = NumericVector(e["inits.dat"]);
+	NumericVector ini = clone(NumericVector(e["inits.dat"]));
 	CharacterVector nmi = ini.names();
 	n = ini.size();
         std::string cur;
