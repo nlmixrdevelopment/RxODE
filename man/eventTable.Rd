@@ -149,6 +149,7 @@ print(qd2$get.nobs())   # number of observation (not dosing) records
 qd3 <- qd2 \%>\% add.sampling(seq(from=5, to=10, by=6 / 24))
 print(qd2$get.nobs())
 print(qd3$get.nobs())
+
 }
 \seealso{
 \code{\link{et}}, \code{\link{RxODE}}

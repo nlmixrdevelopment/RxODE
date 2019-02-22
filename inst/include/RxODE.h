@@ -113,6 +113,7 @@ typedef struct {
   int cmt;
   int whI;
   int wh0;
+  int doSS;
   int allCovWarn;
   int wrongSSDur;
   int timeReset;

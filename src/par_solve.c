@@ -576,6 +576,10 @@ int handle_evid(int evid, int neq,
 		ind->ix[ind->idx], ind->ixds, ind->idose[ind->ixds]);
 	}
       }
+      if (!ind->doSS && ind->wh0 == 20){
+	// Save for adding at the end
+	memcpy(ind->solveSave, yp, neq*sizeof(double));
+      }
       switch(ind->whI){
       case 9: // modeled rate.
       case 8: // modeled duration.
@@ -649,11 +653,15 @@ void handleSS(int *neq,
 	      t_update_inis u_inis,
 	      void *ctx){
   int j, idid;
+  int doSS2=0;
   /* Rprintf("evid: %d\n", ind->evid[ind->ixds-1]); */
   if ((ind->wh0 == 20 || ind->wh0 == 10) &&
       ind->ii[ind->ixds-1] > 0){
+    ind->doSS=1;
     ind->ixds--; // This dose stays in place
-
+    if (ind->wh0 == 20){
+      doSS2=1;
+    }
     double dur = 0, dur2=0;
     int infBixds =0, infEixds = 0, ei, wh, cmt, wh100, whI, wh0, oldI;
     if (ind->whI == 1 || ind->whI == 2){
@@ -687,10 +695,6 @@ void handleSS(int *neq,
       if (ind->ix[ei] != ind->idose[infEixds]){
 	error("Cannot figure out infusion end time.");
       }
-    }
-    if (ind->wh0 == 20){
-      // Save for adding at the end
-      memcpy(ind->solveSave, yp, neq[0]*sizeof(double));
     }
     // First Reset
     for (j = neq[0]; j--;) ind->InfusionRate[j] = 0;
@@ -983,7 +987,7 @@ void handleSS(int *neq,
       }
     }
 	  
-    if (ind->wh0 == 20){
+    if (doSS2){
       // Add at the end
       for (j = neq[0];j--;) yp[j]+=ind->solveSave[j];
     }
@@ -991,6 +995,7 @@ void handleSS(int *neq,
     getWh(ind->evid[ind->ix[*i]], &(ind->wh), &(ind->cmt), &(ind->wh100), &(ind->whI), &(ind->wh0));
     handle_evid(ind->evid[ind->ix[*i]], neq[0], BadDose, InfusionRate, dose, yp,
 		op->do_transit_abs, xout, neq[1], ind);
+    ind->doSS=0;
   }
 }
 

@@ -2525,8 +2525,8 @@ SEXP rxSolveC(const RObject &obj,
     // FIXME allow these values to change.
     op->minSS = 7;
     op->maxSS = 7000;
-    op->atolSS = atol/10000;
-    op->rtolSS = rtol/10000;
+    op->atolSS = atol;
+    op->rtolSS = rtol;
     
     gatol2Setup(op->neq);
     grtol2Setup(op->neq);
@@ -2831,6 +2831,7 @@ SEXP rxSolveC(const RObject &obj,
 	  ind->timeReset=1;
           ind->lambda         =1.0;
           ind->yj             = 0;
+	  ind->doSS = 0;
           ind->all_times      = &_globals.gall_times[i];
 	  if (rxcDv > -1){
 	    ind->dv = &_globals.gdv[i];
@@ -3126,8 +3127,10 @@ SEXP rxSolveC(const RObject &obj,
 	      ind->id=id+1;
               ind->lambda=1.0;
               ind->yj = 0;
+	      ind->doSS = 0;
 	    }
 	    int eLen = op->neq*ind->n_all_times;
+
 	    ind->solve = &_globals.gsolve[curEvent];
 	    ind->ix = &_globals.gix[curIdx];
 	    std::iota(ind->ix,ind->ix+ind->n_all_times,0);

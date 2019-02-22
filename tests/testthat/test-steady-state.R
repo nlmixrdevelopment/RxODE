@@ -163,6 +163,39 @@ rxPermissive({
             }
         }
 
+        ## steady-state = 2 for bolus
+        context("Bolus SS=2")
+        test_that("bolus SS=2",{
+            e2 <- et(amt=20, ii=24, ss=2, time=12) %>%
+                et(seq(0,24,length.out=100))
+
+            s2 <- rxSolve(ode.1c,e2)
+
+            e3 <- et(amt=20, ii=24, ss=1, time=12) %>%
+                et(seq(0,24,length.out=100))
+
+            s3 <- rxSolve(ode.1c,e3)
+
+            expect_equal(as.data.frame(s2), as.data.frame(s3))
+
+            e1 <- et(amt=10, ii=24, ss=1, time=0) %>%
+                et(seq(0,24,length.out=100))
+
+            s1 <- rxSolve(ode.1c,e1)
+
+            e2 <- et(amt=20, ii=24, ss=2, time=12) %>%
+                et(seq(0,24,length.out=100))
+
+            s2 <- rxSolve(ode.1c,e2)
+
+            e3 <- c(e1,e2,ii=0) %>%
+                et(seq(0,24,length.out=100))
+
+            s3 <- rxSolve(ode.1c, e3)
+
+            expect_equal(s1$C2+s2$C2, s3$C2)
+        })
+
 
     }
 })
