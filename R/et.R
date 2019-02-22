@@ -313,12 +313,13 @@ add.sampling <- function(eventTable, time, time.units = NA){
 ##' qd3 <- qd2 %>% add.sampling(seq(from=5, to=10, by=6 / 24))
 ##' print(qd2$get.nobs())
 ##' print(qd3$get.nobs())
+##'
 ##' @keywords models data
 ##' @concept ordinary differential equations
 ##' @concept Nonlinear regression
 ##' @concept Pharmacokinetics (PK)
-#' @concept Pharmacodynamics (PD)
-#' @export
+##' @concept Pharmacodynamics (PD)
+##' @export
 eventTable <- function(amount.units = NA, time.units = NA){
     .lst <- list()
     if (!missing(amount.units)) .lst$amount.units <- amount.units;
