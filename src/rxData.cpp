@@ -1476,7 +1476,7 @@ extern "C" void gFree(){
   _globals.glhs=NULL;
   _globals.glhsn=0;
   if (_globals.gamt != NULL && _globals.gamtn > 0) Free(_globals.gamt);
-  if (_globals.gii != NULL && _globals.gii > 0) Free(_globals.gii);
+  if (_globals.gii != NULL && _globals.gamtn > 0) Free(_globals.gii);
   _globals.gamt=NULL;
   _globals.gii=NULL;
   _globals.gamtn=0;
