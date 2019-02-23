@@ -264,7 +264,9 @@ void rxOptionsFree();
 void gFree();
 /* void rxOptionsFreeFocei(); */
 void R_unload_RxODE(DllInfo *info){
-  rxOptionsFree();
   gFree();
+  rxOptionsFree();
+  rxOptionsIni();
+  rxOptionsIniData();
   /* rxOptionsFreeFocei(); */
 }

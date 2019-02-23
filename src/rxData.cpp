@@ -1142,7 +1142,7 @@ void gsolveSetup(int n){
   }
   if (_globals.gsolven < n){
     int cur = n;
-    Free( _globals.gsolve);
+    if (_globals.gsolve != NULL) Free( _globals.gsolve);
     _globals.gsolve = Calloc(cur, double);
     _globals.gsolven=cur;
   }
@@ -3030,7 +3030,7 @@ SEXP rxSolveC(const RObject &obj,
     rx->nsim = nPopPar / rx->nsub;
     if (rx->nsim < 1) rx->nsim=1;
 
-    gsolveSetup(rx->nall*(state.size()+2)*rx->nsim);
+    gsolveSetup(rx->nall*(state.size()+rx->nsub*state.size())*rx->nsim);
     // Not needed since we use Calloc.
     // std::fill_n(&_globals.gsolve[0], rx->nall*state.size()*rx->nsim, 0.0);
 
