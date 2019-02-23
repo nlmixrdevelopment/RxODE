@@ -1154,7 +1154,7 @@ void gmtimeSetup(int n){
     _globals.gmtime=NULL;
   }
   if (_globals.gmtimen < n){
-    int cur = n;
+    int cur = n+2;
     Free( _globals.gmtime);
     _globals.gmtime = Calloc(cur, double);
     _globals.gmtimen=cur;
@@ -1163,7 +1163,7 @@ void gmtimeSetup(int n){
 
 void gInfusionRateSetup(int n){
   if (_globals.gInfusionRaten < n){
-    int cur = n;
+    int cur = n+2;
     Free(_globals.gInfusionRate);
     _globals.gInfusionRate = Calloc(cur, double);
     _globals.gInfusionRaten=cur;
@@ -1176,7 +1176,7 @@ void gix_Setup(int n){
     _globals.gix=NULL;
   }
   if (_globals.gixn < n){
-    int cur = n;
+    int cur = n+2;
     Free(_globals.gix);
     _globals.gix = Calloc(cur, int);
     _globals.gixn=cur;
@@ -1189,7 +1189,7 @@ void gall_timesSetup(int n){
     _globals.gall_times=NULL;
   }
   if (_globals.gall_timesn < n){
-    int cur = n;
+    int cur = n+2;
     Free(_globals.gall_times);
     _globals.gall_times = Calloc(cur, double);
     _globals.gall_timesn=cur;
@@ -1198,7 +1198,7 @@ void gall_timesSetup(int n){
 
 void gdvSetup(int n){
   if (_globals.gdvn < n){
-    int cur = n;
+    int cur = n+2;
     Free(_globals.gdv);
     _globals.gdv = Calloc(cur, double);
     _globals.gdvn=cur;
@@ -1212,7 +1212,7 @@ void gamtSetup(int n){
     _globals.gii   = NULL;
   }
   if (_globals.gamtn < n){
-    int cur = n;
+    int cur = n+2;
     Free(_globals.gamt);
     _globals.gamt  = Calloc(cur, double);
     _globals.gii   = Calloc(cur, double);
@@ -1235,7 +1235,7 @@ void glhsSetup(int n){
 
 void gcovSetup(int n){
   if (_globals.gcovn < n){
-    int cur = n;
+    int cur = n+2;
     Free(_globals.gcov);
     _globals.gcov = Calloc(cur, double);
     _globals.gcovn = cur;
@@ -1248,7 +1248,7 @@ void ginitsSetup(int n){
     _globals.ginitsn = 0;
   }
   if (_globals.ginitsn < n){
-    int cur = n;
+    int cur = n+2;
     Free(_globals.ginits);
     _globals.ginits = Calloc(cur, double);
     _globals.ginitsn = cur;
@@ -1257,7 +1257,7 @@ void ginitsSetup(int n){
 
 void gscaleSetup(int n){
   if (_globals.gscalen < n){
-    int cur = n;
+    int cur = n+2;
     Free(_globals.gscale);
     _globals.gscale = Calloc(cur, double);
     _globals.gscalen = cur;
@@ -1266,7 +1266,7 @@ void gscaleSetup(int n){
 
 void gatol2Setup(int n){
   if (_globals.gatol2n < n){
-    int cur = n;
+    int cur = n+2;
     Free(_globals.gatol2);
     _globals.gatol2 = Calloc(cur, double);
     _globals.gatol2n = cur;
@@ -1275,7 +1275,7 @@ void gatol2Setup(int n){
 
 void grtol2Setup(int n){
   if (_globals.grtol2n < n){
-    int cur = n;
+    int cur = n+2;
     Free(_globals.grtol2);
     _globals.grtol2 = Calloc(cur, double);
     _globals.grtol2n = cur;
@@ -1289,7 +1289,7 @@ void gparsSetup(int n){
     _globals.gpars=NULL;
   }
   if (_globals.gparsn < n){
-    int cur = n;
+    int cur = n+2;
     Free(_globals.gpars);
     _globals.gpars = Calloc(cur, double);
     cur = _globals.gparsn;
@@ -1321,7 +1321,7 @@ void gevidSetup(int n){
     _globals.gevid = NULL;
   }
   if (_globals.gevidn < n){
-    int cur = n;
+    int cur = n+2;
     Free(_globals.gevid);
     _globals.gevid = Calloc(cur, int);
     _globals.gevidn  = cur;
@@ -1330,7 +1330,7 @@ void gevidSetup(int n){
 
 void gBadDoseSetup(int n){
   if (_globals.gBadDosen < n){
-    int cur = n;
+    int cur = n+2;
     Free(_globals.gBadDose);
     _globals.gBadDose = Calloc(cur, int);
     _globals.gBadDosen  = cur;
@@ -1343,7 +1343,7 @@ void grcSetup(int n){
     _globals.grc=NULL;
   }
   if (_globals.grcn < n){
-    int cur = n;
+    int cur = n+2;
     Free(_globals.grc);
     _globals.grc = Calloc(cur, int);
     _globals.grcn  = cur;
@@ -1352,7 +1352,7 @@ void grcSetup(int n){
 
 extern "C" int *gslvr_counterSetup(int n){
   if (_globals.slvr_countern < n){
-    int cur = n;
+    int cur = n+2;
     Free(_globals.slvr_counter);
     _globals.slvr_counter = Calloc(cur , int);
     _globals.slvr_countern = cur;
@@ -1362,7 +1362,7 @@ extern "C" int *gslvr_counterSetup(int n){
 
 extern "C" int *gdadt_counterSetup(int n){
   if (_globals.dadt_countern < n){
-    int cur = n;
+    int cur = n+2;
     Free(_globals.dadt_counter);
     _globals.dadt_counter = Calloc(cur, int);
     _globals.dadt_countern = cur;
@@ -1372,7 +1372,7 @@ extern "C" int *gdadt_counterSetup(int n){
 
 extern "C" int *gjac_counterSetup(int n){
   if (_globals.jac_countern < n){
-    int cur = n;
+    int cur = n+2;
     Free(_globals.jac_counter);
     _globals.jac_counter = Calloc(cur, int);
     _globals.jac_countern = cur;
@@ -1382,7 +1382,7 @@ extern "C" int *gjac_counterSetup(int n){
 
 extern "C" int *gidoseSetup(int n){
   if (_globals.gidosen < n){
-    int cur = n;
+    int cur = n+2;
     Free(_globals.gidose);
     _globals.gidose = Calloc(cur, int);
     _globals.gidosen = cur;
@@ -1392,7 +1392,7 @@ extern "C" int *gidoseSetup(int n){
 
 void gpar_covSetup(int n){
   if (_globals.gpar_covn < n){
-    int cur = n;
+    int cur = n+2;
     Free(_globals.gpar_cov);
     _globals.gpar_cov = Calloc(cur, int);
     _globals.gpar_covn = cur;
@@ -1401,7 +1401,7 @@ void gpar_covSetup(int n){
 
 void gParPosSetup(int n){
   if (_globals.gParPosn < n){
-    int cur = n;
+    int cur = n+2;
     Free(_globals.gParPos);
     Free(_globals.gParPos2);
     _globals.gParPos = Calloc(cur, int);
@@ -1412,7 +1412,7 @@ void gParPosSetup(int n){
 
 void gsvarSetup(int n){
   if (_globals.gsvarn < n){
-    int cur = n;
+    int cur = n+2;
     Free(_globals.gsvar);
     _globals.gsvar = Calloc(cur, int);
     _globals.gsvarn = cur;
@@ -1433,7 +1433,7 @@ extern "C" void protectOld(){
 
 extern "C" int *gsiVSetup(int n){
   if (_globals.gsiVn < n){
-    int cur = n;
+    int cur = n+2;
     Free(_globals.gsiV);
     _globals.gsiV = Calloc(cur, int);
     _globals.gsiVn = cur;
@@ -3007,31 +3007,32 @@ SEXP rxSolveC(const RObject &obj,
     if (nPopPar == 1) nSize = rx->nsub;
 
     gInfusionRateSetup(op->neq*nSize);
-    std::fill_n(&_globals.gInfusionRate[0], op->neq*nSize, 0.0);
+    // std::fill_n(&_globals.gInfusionRate[0], op->neq*nSize, 0.0);
 
     gBadDoseSetup(op->neq*nSize);
-    std::fill_n(&_globals.gBadDose[0], op->neq*nSize, 0);
+    // std::fill_n(&_globals.gBadDose[0], op->neq*nSize, 0);
     
     grcSetup(nSize);
-    std::fill_n(&_globals.grc[0], nSize, 0);
+    // std::fill_n(&_globals.grc[0], nSize, 0);
 
     gslvr_counterSetup(nSize);
-    std::fill_n(&_globals.slvr_counter[0], nSize, 0);
+    // std::fill_n(&_globals.slvr_counter[0], nSize, 0);
     
     gdadt_counterSetup(nSize);
-    std::fill_n(&_globals.dadt_counter[0], nSize, 0);
+    // std::fill_n(&_globals.dadt_counter[0], nSize, 0);
 
     gjac_counterSetup(nSize);
-    std::fill_n(&_globals.jac_counter[0], nSize, 0);
+    // std::fill_n(&_globals.jac_counter[0], nSize, 0);
 
     glhsSetup(lhs.size()*nSize);
-    std::fill_n(&_globals.glhs[0],lhs.size()*nSize,0.0);
+    // std::fill_n(&_globals.glhs[0],lhs.size()*nSize,0.0);
 
     rx->nsim = nPopPar / rx->nsub;
     if (rx->nsim < 1) rx->nsim=1;
 
-    gsolveSetup(rx->nall*(state.size()+1)*rx->nsim);
-    std::fill_n(&_globals.gsolve[0], rx->nall*state.size()*rx->nsim, 0.0);
+    gsolveSetup(rx->nall*(state.size()+2)*rx->nsim);
+    // Not needed since we use Calloc.
+    // std::fill_n(&_globals.gsolve[0], rx->nall*state.size()*rx->nsim, 0.0);
 
     gix_Setup(rx->nall*rx->nsim);
     

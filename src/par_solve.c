@@ -1039,7 +1039,7 @@ extern void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda_opt
   rc= ind->rc;
   double xp = x[0];
   //--- inits the system
-  /* Rprintf("ID: %d; nsim: %d; nsub: %d\n",neq[1], nsim, nsub); */
+  /* Rprintf("ID: %d;\n",neq[1]); */
   /* Rprintf("inits[0]: %f\n",inits[0]); */
   /* Rprintf("ret[0]: %f\n",ret[0]); */
   memcpy(ret,inits, neq[0]*sizeof(double));
