@@ -1,14 +1,137 @@
-##' Event Table Function
+#' Event Table Function
+##'
+##' @param ... Times or event tables.
+##' @param time Time is the time of the dose or the sampling times.
+##'     This can also be unspecified and is determined by the object
+##'     type (list or numeric/integer).
+##' @param amt Amount of the dose. If specified, this assumes a dosing
+##'     record, instead of a sampling record.
+##' @param evid Event ID; This can be:
+##'
+##' \itemize{
+##'
+##' \item{0} An observation. This can also be specified as
+##'    \code{evid=obs}
+##'
+##' \item{1} A dose observation.  This can also be specified as
+##'    \code{evid=dose}
+##'
+##' \item{2} A non-dose event. This can also be specified as
+##'    \code{evid=other}.
+##'
+##' \item{3} A reset event.  A reset event resets all the compartment
+##' values to zero and turns off all infusions.  This can also be
+##' specified as \code{evid=reset}.
+##'
+##' \item{4} Dose and reset event.  This can also be specified as
+##' \code{evid=doseReset} or \code{evid=resetDose}
+##'
+##' }
+##' @param cmt Compartment name or number.
+##' @param addl
+##' @param ss
+##' @param rate
+##' @param dur
+##' @param until
+##' @param id
+##' @param amountUnits
+##' @param timeUnits,
+##' @param addSampling
+##' @examples
 ##'
 ##' @export
+##' @author Matthew L. Fidler, Wenping Wang
 et <- function(...){
-    UseMethod("et");
+    .lst <- as.list(match.call()[-1]);
+    if (rxIs(.lst[1], "numeric") || rxIs(.lst[1], "integer") ||
+        rxIs(.lst[1], "list") || rxIs(.lst[1], "rxEt")){
+        ## Use do call on a match.call() to preserve lazy evaluation
+        ## By doing this evid=obs will work as well as evid="obs" and evid=1
+        do.call(et.default, .lst)
+    } else {
+        UseMethod("et");
+    }
 }
 
-##'@rdname et
+##'@rdname
 ##'@export
-et.default <- function(...){
-    .Call(`_RxODE_et_`, list(...), list())
+et.default <- function(...,time, amt, evid, cmt, addl, ss, rate, dur, until, id,
+                       amountUnits, timeUnits, addSampling){
+    .lst <- as.list(match.call()[-1]);
+    if (!missing(time)){
+        .lst$time <- time;
+    }
+    if (!missing(amt)){
+        .lst$amt <- amt;
+    }
+    if (!missing(evid)){
+        .evid <- as.character(substitute(evid))
+        if (.evid=="obs" || .evid=="0"){
+            .lst$evid <- 0L;
+        } else if (.evid=="dose" || .evid=="1") {
+            .lst$evid <- 1L;
+        } else if (.evid=="other" || .evid=="2") {
+            .lst$evid <- 2L;
+        } else if (.evid=="reset" || .evid=="3") {
+            .lst$evid <- 3L;
+        } else if (.evid=="doseReset" || .evid=="resetDose" || .evid=="4") {
+            .lst$evid <- 4L;
+        } else {
+            .lst$evid <- as.integer(evid);
+        }
+    }
+    if (!missing(cmt)){
+        .cmt <- as.character(substitute(cmt));
+        .cmt1 <- try(suppressWarnings(as.integer(cmt)), silent=TRUE);
+        if (inherits(.cmt1, "try-error")){
+            .lst$cmt <- .cmt
+        } else {
+            if (is.na(.cmt1)){
+                .lst$cmt <- .cmt
+            } else {
+                .lst$cmt <- .cmt1
+            }
+        }
+    }
+    if (!missing(rate)){
+        .rate <- as.character(substitute(rate));
+        if (.rate=="model" || .rate=="modeled" ||
+            .rate=="modelled" || .rate=="rate"){
+            .lst$rate <- -1.0
+        } else if (.rate=="dur" || .rate=="duration"){
+            .lst$rate <- -2.0;
+        } else {
+            .lst$rate <- rate;
+        }
+    }
+    if (!missing(dur)){
+        .dur <- as.character(substitute(dur));
+        if (.dur=="model" || .dur=="modeled" ||
+            .dur=="modelled" || .dur=="dur" ||
+            .dur=="duration"){
+            .lst$rate <- -2.0
+            .lst <- .lst[names(.lst) != "dur"]
+        } else if (.dur=="rate"){
+            .lst$rate <- -1.0;
+            .lst <- .lst[names(.lst) != "dur"];
+        } else {
+            .lst$dur <- dur;
+        }
+    }
+    ## Undo NSE for all the appropriate functions
+    .lst <- lapply(.lst,function(x) {
+        if (is(x, "call")) {
+            ## See if it is a valid units...
+            .unit <- try(units::set_unit(1,as.character(substitute(x))),silent=TRUE);
+            if (inherits(.unit, "try-error")){
+                return(eval(x,parent.frame(2)));
+            } else {
+                return(as.character(substitute(x)));
+            }
+        } else {
+            return(x);
+        }})
+    .Call(`_RxODE_et_`, .lst, list())
 }
 
 ##' @export
@@ -108,23 +231,29 @@ set_units.rxEt <- function(x, value, ..., mode = units::units_options("set_units
 ##' @param dose numeric scalar, dose amount in \code{amount.units};
 ##' @param nbr.doses integer, number of doses;
 ##' @param dosing.interval required numeric scalar, time between doses
-##'      in \code{time.units}, defaults to 24 of \code{time.units="hours"};
-##' @param dosing.to integer, compartment the dose goes into
-##'        (first compartment by default);
-##' @param rate for infusions, the rate of infusion (default
-##'            is \code{NULL}, for bolus dosing;
+##'     in \code{time.units}, defaults to 24 of
+##'     \code{time.units="hours"};
+##' @param dosing.to integer, compartment the dose goes into (first
+##'     compartment by default);
+##' @param rate for infusions, the rate of infusion (default is
+##'     \code{NULL}, for bolus dosing;
 ##' @param amount.units optional string indicating the dosing units.
-##'           Defaults to \code{NA} to indicate as per the original \code{EventTable}
-##'           definition.
+##'     Defaults to \code{NA} to indicate as per the original
+##'     \code{EventTable} definition.
 ##' @param start.time required dosing start time;
-##' @param do.sampling logical, should observation sampling records
-##'            be added at the dosing times? Defaults to \code{FALSE}.
+##' @param do.sampling logical, should observation sampling records be
+##'     added at the dosing times? Defaults to \code{FALSE}.
 ##' @param time.units optional string indicating the time units.
-##'           Defaults to \code{"hours"} to indicate as per the original \code{EventTable} definition.
+##'     Defaults to \code{"hours"} to indicate as per the original
+##'     \code{EventTable} definition.
 ##' @param ... Other parameters passed to \code{\link{et}}.
-##' @return eventTable with updated dosing (note the event table will be updated anyway)
+##' @return eventTable with updated dosing (note the event table will
+##'     be updated anyway)
 ##' @author Matthew L. Fidler
-##' @seealso \code{\link{eventTable}}, \code{\link{RxODE}}
+##' @seealso \code{\link{eventTable}}, \code{\link{RxODE}},
+##'     \code{\link{et}}, \code{\link{add.sampling}},
+##'     \code{\link{etRep}}, \code{\link{etSeq}},
+##'     \code{\link{etRbind}}
 ##' @export
 add.dosing <- function(eventTable, dose, nbr.doses = 1L, dosing.interval = 24, dosing.to = 1L, rate = NULL, amount.units = NA_character_, start.time = 0.0, do.sampling = FALSE, time.units = NA_character_, ...) {
     .lst <- list(dose=dose,
@@ -152,7 +281,7 @@ add.dosing <- function(eventTable, dose, nbr.doses = 1L, dosing.interval = 24, d
 ##'
 ##' @param eventTable An eventTable object
 ##' @param time a vector of time values (in \code{time.units}).
-###' @param time.units an optional string specifying the time
+##' @param time.units an optional string specifying the time
 ##'     units. Defaults to the units specified when the
 ##'     \code{EventTable} was initialized.
 ##' @return eventTable with updated sampling.  (Note the event table
@@ -451,8 +580,10 @@ eventTable <- function(amount.units = NA, time.units = NA){
 ##'
 ##' @author Matthew L Fidler
 ##'
-##' @seealso \code{\link{eventTable}}, \code{\link{et}}, \code{\link{etRep}}, \code{\link{etRbind}},
-##'    \code{\link{RxODE}}
+##' @seealso \code{\link{eventTable}}, \code{\link{add.sampling}},
+##'     \code{\link{add.dosing}}, \code{\link{et}},
+##'     \code{\link{etRep}}, \code{\link{etRbind}},
+##'     \code{\link{RxODE}}
 ##'
 ##' @references
 ##'
@@ -474,6 +605,8 @@ etSeq <- function(...,samples=c("clear", "use"), waitII=c("smart", "+ii"), ii=24
 ##'
 ##' @return A new event table
 ##' @inheritParams etSeq
+##' @examples
+##'
 ##' @author Matthew L Fidler
 ##' @export
 etRbind <- function(...,samples=c("use", "clear"),waitII=c("smart", "+ii"),
@@ -487,6 +620,7 @@ etRbind <- function(...,samples=c("use", "clear"),waitII=c("smart", "+ii"),
           0L, TRUE, character(0),logical(0),FALSE);
 }
 
+##'@rdname etRbind
 ##'@export
 rbind.rxEt <- function(..., deparse.level = 1){
     if (!missing(deparse.level)) warning("deparse.level not used with RxODE event tables");
