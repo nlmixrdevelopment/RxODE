@@ -118,19 +118,19 @@ et.default <- function(...,time, amt, evid, cmt, addl, ss, rate, dur, until, id,
             .lst$dur <- dur;
         }
     }
-    ## Undo NSE for all the appropriate functions
-    .lst <- lapply(.lst,function(x) {
-        if (is(x, "call")) {
-            ## See if it is a valid units...
-            .unit <- try(units::set_unit(1,as.character(substitute(x))),silent=TRUE);
-            if (inherits(.unit, "try-error")){
-                return(eval(x,parent.frame(2)));
-            } else {
-                return(as.character(substitute(x)));
-            }
-        } else {
-            return(x);
-        }})
+    .unitNames <- names(.lst);
+    .unitNames <- .unitNames[regexpr("^(amount|time)",.unitNames) != -1];
+    .unitNames <- .unitNames[.unitNames != "time"];
+    for (.u in .unitNames){
+        if (class(.lst[[.u]])=="name"){
+            .tmp <- .lst[[.u]];
+            .tmp <- deparse(substitute(.tmp))
+            .lst[[.u]] <- .tmp
+        }
+    }
+    .lst <- lapply(.lst,function(x){
+        eval(x,parent.frame(4L))
+    });
     .Call(`_RxODE_et_`, .lst, list())
 }
 

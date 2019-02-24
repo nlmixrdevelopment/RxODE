@@ -1113,6 +1113,7 @@ List etImportEventTable(List inData){
       oldRate.attr("class") = "units";
       oldRate.attr("units") = rateUnits;
     }
+    // FIXME -1 and -2
     oldRate = setUnits(oldRate, rateUnit);
   } else if (haveRateUnits){
     stop("Amt/time needs units to convert the rate to the right units to import the data.");
@@ -1442,6 +1443,7 @@ RObject etUpdateObj(List curEt, bool update, bool rxSolve){
     lst["amt"] = setUnits(lst["amt"], "");
   }
   if (!CharacterVector::is_na(units[1]) && !CharacterVector::is_na(units[0])){
+    // FIXME -1 and -2
     std::string rateUnit = as<std::string>(units[0]) + "/" + as<std::string>(units[1]);
     lst["rate"] = setUnits(lst["rate"], rateUnit);
   } else {
@@ -1517,6 +1519,7 @@ RObject etSetUnit(List curEt, CharacterVector units){
     }
   }
   if (!CharacterVector::is_na(units[1]) && !CharacterVector::is_na(units[0])){
+    // FIXME -1 and -2
     std::string rateUnit = as<std::string>(units[0]) + "/" + as<std::string>(units[1]);
     lst["rate"] = setUnits(lst["rate"], rateUnit);
   } else {
@@ -2219,6 +2222,7 @@ RObject et_(List input, List et__){
 	    List e = clone(as<List>(cls.attr(".RxODE.lst")));
 	    CharacterVector units = e["units"];
 	    if (!CharacterVector::is_na(units[1]) && !CharacterVector::is_na(units[0])){
+	      // FIXME -1 and -2
 	      std::string rateUnit = as<std::string>(units[0]) + "/" + as<std::string>(units[1]);
 	      rate = setUnits(rate,rateUnit);
 	    } else {
