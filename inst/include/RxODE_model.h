@@ -20,6 +20,7 @@
 #define abs_log1p(x) (((x) + 1.0 > 0.0) ? log1p(x) : (((x) + 1.0 > 0.0) ? log1p(-x) : 0.0))
 #define abs_log(x) ((fabs(x) <= sqrt(DOUBLE_EPS)) ? log(sqrt(DOUBLE_EPS)) : (((x) > 0.0) ? log(x) ? (((x) == 0) ? 0.0 : log(-x))))
 #define _IR (_solveData->subjects[_cSub].InfusionRate)
+#define _ON (_solveData->subjects[_cSub].on)
 #define _PP (_solveData->subjects[_cSub].par_ptr)
 #define _SR (INTEGER(stateRmS))
 #define rx_lambda_ _solveData->subjects[_cSub].lambda

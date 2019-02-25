@@ -576,6 +576,12 @@ int handle_evid(int evid, int neq,
 		ind->ix[ind->idx], ind->ixds, ind->idose[ind->ixds]);
 	}
       }
+      if (ind->wh0 == 30){
+	yp[cmt]=0.0;
+	InfusionRate[cmt] = 0;
+	ind->on[cmt] = 0;
+	return 1;
+      }
       if (!ind->doSS && ind->wh0 == 20){
 	// Save for adding at the end
 	memcpy(ind->solveSave, yp, neq*sizeof(double));
@@ -584,25 +590,32 @@ int handle_evid(int evid, int neq,
       case 9: // modeled rate.
       case 8: // modeled duration.
 	// Rate already calculated and saved in the next dose record
+	ind->on[cmt] = 1;
 	InfusionRate[cmt] -= dose[ind->ixds+1];
 	break;
       case 7: // End modeled rate
       case 6: // end modeled duration
-	InfusionRate[cmt] += dose[ind->ixds];
+	// If cmt is off, don't remove rate....
+	// Probably should throw an error if the infusion rate is on still.
+	InfusionRate[cmt] += dose[ind->ixds]*((double)(ind->on[cmt]));
 	break;
       case 2:
 	// In this case bio-availability changes the rate, but the duration remains constant.
 	// rate = amt/dur
+	ind->on[cmt] = 1;
 	InfusionRate[cmt] += AMT(id, cmt, dose[ind->ixds], xout);
 	break;
       case 1:
+	ind->on[cmt] = 1;
 	InfusionRate[cmt] += dose[ind->ixds];
 	break;
       case 0:
 	if (do_transit_abs) {
+	  ind->on[cmt] = 1;
 	  ind->podo = AMT(id, cmt, dose[ind->ixds], xout);
 	  ind->tlast = xout;
 	} else {
+	  ind->on[cmt] = 1;
 	  ind->podo = 0;
 	  ind->tlast = xout;
 	  yp[cmt] += AMT(id, cmt, dose[ind->ixds], xout);     //dosing before obs
@@ -1081,6 +1094,9 @@ extern void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda_opt
 			     op->do_transit_abs, xout, neq[1], ind)){
 	handleSS(neq, BadDose, InfusionRate, dose, yp, op->do_transit_abs, xout,
 		 xp, ind->id, &i, nx, &ctx.state, op, ind, u_inis, &ctx);
+	if (ind->wh0 == 30){
+	  ret[ind->cmt] = inits[ind->cmt];
+	}
 	ctx.state = 1;
 	xp = xout;
       }
@@ -1364,6 +1380,9 @@ extern void ind_lsoda0(rx_solve *rx, rx_solving_options *op, int solveid, int *n
 			     op->do_transit_abs, xout, neq[1], ind)){
 	handleSS(neq, ind->BadDose, ind->InfusionRate, ind->dose, yp, op->do_transit_abs, xout,
 		 xp, ind->id, &i, ind->n_all_times, &istate, op, ind, u_inis, &ctx);
+	if (ind->wh0 == 30){
+	  ind->solve[ind->cmt] = op->inits[ind->cmt];
+	}
 	istate = 1;
 	xp = xout;
       }
@@ -1544,6 +1563,9 @@ extern void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int *neq
 			     op->do_transit_abs, xout, neq[1], ind)){
 	handleSS(neq, BadDose, InfusionRate, dose, yp, op->do_transit_abs, xout,
 		 xp, ind->id, &i, nx, &istate, op, ind, u_inis, &ctx);
+	if (ind->wh0 == 30){
+	  ret[ind->cmt] = inits[ind->cmt];
+	}
 	xp = xout;
       }
       /* for(j=0; j<neq[0]; j++) ret[neq[0]*i+j] = yp[j]; */

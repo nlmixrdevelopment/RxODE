@@ -1020,6 +1020,8 @@ RObject rxSetupParamsThetaEta(const RObject &params = R_NilValue,
 
 
 typedef struct {
+  int *gon;
+  int gonn;
   double *gsolve;
   int gsolven;
   double *gInfusionRate;
@@ -1084,6 +1086,8 @@ rx_globals _globals;
 extern "C" void rxOptionsIniData(){
   _globals.gsolve = NULL;//Calloc(NCMT*NALL,double);
   _globals.gsolven=0;//NCMT*NALL;
+  _globals.gon = NULL;//Calloc(NCMT*NALL,double);
+  _globals.gonn=0;
   _globals.gmtime = NULL;//Calloc(NCMT*NALL,double);
   _globals.gmtimen=0;//NCMT*NALL;
   _globals.gInfusionRate = NULL;//Calloc(NCMT,double);
@@ -1133,6 +1137,21 @@ extern "C" void rxOptionsIniData(){
   _globals.dadt_countern = 0;//MAXIDS;
   _globals.jac_counter = NULL;//Calloc(MAXIDS, int);
   _globals.jac_countern = 0;//MAXIDS;
+}
+
+void gOnSetup(int n){
+  if (_globals.gonn < 0){
+    _globals.gonn=0;
+    _globals.gon=NULL;
+  }
+  if (_globals.gonn < n){
+    int cur = n;
+    if (_globals.gon != NULL) Free( _globals.gon);
+    _globals.gon = Calloc(cur, int);
+    // Everything is on by default
+    std::fill_n(&_globals.gon[0], cur, 1);
+    _globals.gonn=cur;
+  }
 }
 
 void gsolveSetup(int n){
@@ -1423,6 +1442,7 @@ extern "C" void protectOld(){
   _globals.gparsn=-1;
   _globals.gamtn=-1;
   _globals.gsolven=-1;
+  _globals.gonn=-1;
   _globals.glhsn=-1;
   _globals.gevidn=-1;
   _globals.grcn=-1;
@@ -1493,6 +1513,9 @@ extern "C" void gFree(){
   if (_globals.gsolve != NULL&& _globals.gsolven>0) Free(_globals.gsolve);
   _globals.gsolve=NULL;
   _globals.gsolven=0;
+  if (_globals.gon != NULL&& _globals.gonn>0) Free(_globals.gon);
+  _globals.gon=NULL;
+  _globals.gonn=0;
   if (_globals.gmtime != NULL&& _globals.gmtimen>0) Free(_globals.gmtime);
   _globals.gmtime=NULL;
   _globals.gmtimen=0;
@@ -3033,6 +3056,7 @@ SEXP rxSolveC(const RObject &obj,
     gsolveSetup(rx->nall*(state.size()+rx->nsub*state.size())*rx->nsim);
     // Not needed since we use Calloc.
     // std::fill_n(&_globals.gsolve[0], rx->nall*state.size()*rx->nsim, 0.0);
+    gOnSetup(rx->nsub*state.size());
 
     gix_Setup(rx->nall*rx->nsim);
     
@@ -3089,6 +3113,7 @@ SEXP rxSolveC(const RObject &obj,
 	}
 	curEvent=0;
 	curIdx=0;
+	int curOn=0;
 	rx_solving_options_ind indS;
 	for (unsigned int simNum = rx->nsim; simNum--;){
 	  for (unsigned int id = rx->nsub; id--;){
@@ -3138,6 +3163,8 @@ SEXP rxSolveC(const RObject &obj,
 	    curEvent += eLen;
 	    ind->solveSave=&_globals.gsolve[curEvent];
 	    curEvent += op->neq;
+	    ind->on=&_globals.gon[curOn];
+	    curOn +=op->neq;
 	    curIdx += ind->n_all_times;
 	  }
 	}

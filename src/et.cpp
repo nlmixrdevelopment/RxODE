@@ -902,7 +902,7 @@ List etImportEventTable(List inData){
       ndose++;
     } else {
       // Convert evid
-      if (cmtC) stop("Old RxODE are not supported with string compartments");
+      if (cmtC) stop("Old RxODE EVIDs are not supported with string compartments");
       getWh(oldEvid[i], &wh, &cmtI, &wh100, &whI, &wh0);
       cmtI++;
       if (cmtI != 1) show["cmt"] = true;
@@ -2057,6 +2057,7 @@ RObject et_(List input, List et__){
       CharacterVector cmtS;
       IntegerVector cmtI;
       RObject cmt;
+      bool cmtNeg = false;
       // Dose
       if (cmtIx == -1){
 	List tmp = as<List>(curEt);
@@ -2085,6 +2086,10 @@ RObject et_(List input, List et__){
 	    if (rxIs(tmp[4], "integer")){
 	      stop("Cannot mix named and integer compartments");
 	    }
+	    std::string curCmt = as<std::string>(cmtS[0]);
+	    if (curCmt.substr(0, 1) == "-"){
+	      cmtNeg = true;
+	    }
 	    cmt = as<RObject>(cmtS);
 	  } else {
 	    stop("The compartment cannot be a vector.");
@@ -2095,9 +2100,12 @@ RObject et_(List input, List et__){
 	    curEt=etCmtInt(curEt);
 	    cls = clone(as<CharacterVector>(curEt.attr("class")));
 	    e = cls.attr(".RxODE.lst");
+	    if (cmtI[0] < 0){
+	      cmtNeg = true;
+	    }
 	    cmt = as<RObject>(cmtI);
 	  } else {
-	    stop("The compartment cannot be an integer.");
+	    stop("The compartment cannot be an vector.");
 	  }
 	} else {
 	  stop("The compartment must be an integer or a character.");
@@ -2125,11 +2133,17 @@ RObject et_(List input, List et__){
 	}
 	isObs = false;
       }
+      if (cmtNeg && isObs){
+	isObs = false;
+      }
       IntegerVector evid;
       if (evidIx != -1){
 	evid = as<IntegerVector>(input[evidIx]);
 	if (evid.size()!= 1){
 	  stop("evid cannot be a vector");
+	}
+	if (cmtNeg && evid[0] != 2){
+	  stop("Turning off compartments can only be done when EVID=2.");
 	}
 	if (evid[0] == 0 && isObs){
 	  stop("zero evid cannot be used with dose/amt.");
@@ -2234,7 +2248,11 @@ RObject et_(List input, List et__){
 	  }
 	}
       } else {
-	if (evidIx == -1) evid[0]=1;
+	if (evidIx == -1 && !cmtNeg) evid[0]=1;
+	else if (evidIx == -1 && cmtNeg){
+	  evid[0]=2;
+	  amt[0] = NA_REAL;
+	}
 	////////////////////////////////////////////////////////////////////////////////
 	// Dose
 	////////////////////////////////////////////////////////////////////////////////

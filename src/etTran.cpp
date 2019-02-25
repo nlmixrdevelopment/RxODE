@@ -13,15 +13,27 @@ IntegerVector toCmt(RObject inCmt, CharacterVector state){
       CharacterVector lvl = inCmt.attr("levels");
       IntegerVector lvlI(lvl.size());
       int i, j, k=0;
-      std::string curLvl, curState;
+      std::string curLvl, curState,negSub;
       bool foundState = false;
+      bool isNeg = false;
       for (i = 0; i < lvlI.size(); i++){
 	curLvl = as<std::string>(lvl[i]);
+	negSub = curLvl.substr(0,1);
+	if (negSub == "-"){
+	  isNeg = true;
+	  curLvl = curLvl.substr(1, std::string::npos);
+	} else {
+	  isNeg = false;
+	}
 	foundState=false;
 	for (j = state.size(); j--;){
 	  curState = as<std::string>(state[j]);
 	  if (curState == curLvl){
-	    lvlI[i] = j+1;
+	    if (isNeg){
+	      lvlI[i] = -j-1;
+	    } else {
+	      lvlI[i] = j+1;
+	    }
 	    foundState = true;
 	    break;
 	  }
@@ -44,12 +56,20 @@ IntegerVector toCmt(RObject inCmt, CharacterVector state){
     CharacterVector iCmt = as<CharacterVector>(inCmt);
     std::vector<int> newCmt;
     newCmt.reserve(iCmt.size());
-    std::string strCmt;
+    std::string strCmt, negSub;
     bool foundState=false;
+    bool isNeg = false;
     List extraCmt;
     int i, j, k = 0;
     for (i = 0; i < iCmt.size(); i++){
       strCmt = as<std::string>(iCmt[i]);
+      negSub = strCmt.substr(0,1);
+      if (negSub == "-"){
+	isNeg = true;
+	strCmt = strCmt.substr(1, std::string::npos);
+      } else {
+	isNeg = false;
+      }
       if (strCmt == "(default)" || strCmt == "(obs)"){
 	newCmt.push_back(1);
       } else {
@@ -57,7 +77,11 @@ IntegerVector toCmt(RObject inCmt, CharacterVector state){
 	for (j = state.size(); j--;){
 	  if (as<std::string>(state[j]) == strCmt){
 	    foundState = true;
-	    newCmt.push_back(j+1);
+	    if (isNeg){
+	      newCmt.push_back(-j-1);
+	    } else {
+	      newCmt.push_back(j+1);
+	    }
 	    break;
 	  }
 	}
@@ -66,7 +90,12 @@ IntegerVector toCmt(RObject inCmt, CharacterVector state){
 	    CharacterVector cur = extraCmt[j];
 	    if (as<std::string>(cur) == strCmt){
 	      foundState = true;
-	      newCmt.push_back(state.size()+j+1);
+	      if (isNeg){
+		warning("Negative compartments on non-ode cmt (%s) do not make sense.", strCmt.c_str());
+		newCmt.push_back(-state.size()-j-1);
+	      } else {
+		newCmt.push_back(state.size()+j+1);
+	      }
 	      break;
 	    }
 	  }
@@ -175,6 +204,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false){
   // xx = 1, regular event
   // xx = 10, steady state event SS=1
   // xx = 20, steady state event + last observed info.
+  // xx = 30, Turn off compartment
   // Steady state events need a II data item > 0
   
   CharacterVector state = as<CharacterVector>(mv["state"]);
@@ -203,6 +233,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false){
   if (cmtCol != -1){
     inCmt = toCmt(inData[cmtCol], mv["state"]);//as<IntegerVector>();
   }
+  int tmpCmt;
   IntegerVector inId;
   if (idCol != -1){
     inId = as<IntegerVector>(inData[idCol]);
@@ -302,11 +333,17 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false){
     else if (IntegerVector::is_na(inSs[i])) ss=1;
     else if (inSs[i] == 1 && cii > 0) ss=10;
     else if (inSs[i] == 2 && cii > 0) ss=20;
+    tmpCmt = inCmt[i];
+    if (inCmt[i] < 0){
+      if (ss != 1) stop("Steady state records cannot be on negative compartments.");
+      ss = 30;
+      tmpCmt = -tmpCmt;
+    }
     
     // CMT flag
     if (cmtCol == -1) cmt = 1;
-    else cmt = inCmt[i];
-    if (IntegerVector::is_na(inCmt[i])) cmt=1;
+    else cmt = tmpCmt;
+    if (IntegerVector::is_na(tmpCmt)) cmt=1;
     if (cmt <= 99){
       cmt100=0;
       cmt99=cmt;
@@ -407,23 +444,27 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false){
 	break;
       case 2:
 	cevid = 2;
-	if (caddl > 0){
-	  warning("addl is ignored with EVID=2.");
+	if (ss == 30){
+	  cevid = cmt100*100000+rateI*10000+cmt99*100+ss;
+	} else {
+	  if (caddl > 0){
+	    warning("addl is ignored with EVID=2.");
+	  }
+	  if (ss != 1){
+	    warning("ss is ignored with EVID=2.");
+	  }	
+	  id.push_back(cid);
+	  evid.push_back(2);
+	  cmtF.push_back(cmt);
+	  time.push_back(ctime);
+	  amt.push_back(NA_REAL);
+	  ii.push_back(0.0);
+	  idx.push_back(i);
+	  dv.push_back(NA_REAL);
+	  idxO.push_back(curIdx);curIdx++;
+	  ndose++;
+	  cevid = -1;
 	}
-	if (ss != 1){
-	  warning("ss is ignored with EVID=2.");
-	}
-	id.push_back(cid);
-	evid.push_back(2);
-	cmtF.push_back(cmt);
-	time.push_back(ctime);
-	amt.push_back(NA_REAL);
-	ii.push_back(0.0);
-	idx.push_back(i);
-	dv.push_back(NA_REAL);
-	idxO.push_back(curIdx);curIdx++;
-	ndose++;
-	cevid = -1;
 	break;
       case 3:
 	cevid = 3;
@@ -572,7 +613,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false){
 		if (time[a] == time[b]){
 		  if (evid[a] == evid[b]){
 		    return a < b;
-		  }
+	  }
 		  return evid[a] > evid[b];
 		}
 		return time[a] < time[b];

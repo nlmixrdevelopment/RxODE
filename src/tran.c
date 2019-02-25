@@ -1261,8 +1261,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  sb.o =0; sbDt.o =0;
 	  aType(TDDT);
 	  aProp(tb.nd);
-          sAppend(&sb, "__DDtStateVar__[%d] = _IR[%d] ", tb.nd, tb.nd);
-	  sAppend(&sbDt, "__DDtStateVar_%d__ = _IR[%d] ", tb.nd, tb.nd);
+          sAppend(&sb, "__DDtStateVar__[%d] = ((double)(_ON[%d]))*(_IR[%d] ", tb.nd, tb.nd, tb.nd);
+	  sAppend(&sbDt, "__DDtStateVar_%d__ = ((double)(_ON[%d]))*(_IR[%d] ", tb.nd, tb.nd, tb.nd);
 	  sbt.o=0;
           sAppend(&sbt, "d/dt(%s)", v);
 	  new_or_ith(v);
@@ -1498,12 +1498,16 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       }
     }
 
-    if (nodeHas(assignment) || nodeHas(ini) || nodeHas(derivative) || nodeHas(jac) || nodeHas(dfdy) ||
+    if (nodeHas(assignment) || nodeHas(ini) || nodeHas(jac) || nodeHas(dfdy) ||
         nodeHas(ini0) || nodeHas(ini0f) || nodeHas(fbio) || nodeHas(alag) || nodeHas(rate) || 
 	nodeHas(dur) || nodeHas(mtime)){
       addLine(&sbPm,     "%s;\n", sb.s);
       addLine(&sbPmDt,   "%s;\n", sbDt.s);
       sAppend(&sbNrm, "%s;\n", sbt.s);
+    } else if (nodeHas(derivative)){
+      addLine(&sbPm,     "%s);\n", sb.s);
+      addLine(&sbPmDt,   "%s);\n", sbDt.s);
+      sAppend(&sbNrm, "%s);\n", sbt.s);
     }
 
     if (!rx_syntax_assign && (nodeHas(assignment) || nodeHas(ini) || nodeHas(ini0) || nodeHas(ini0f) || nodeHas(mtime))){
@@ -2131,7 +2135,7 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 	      sPut(&sbOut, buf[k]);
 	    }
 	  }
-	  sAppend(&sbOut, " = __zzStateVar__[%d];\n", i);
+	  sAppend(&sbOut, " = __zzStateVar__[%d]*((double)(_ON[%d]));\n", i, i);
 	}
 	sAppendN(&sbOut, "\n", 1);
       }
@@ -2268,7 +2272,7 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
       if (foundF0){
 	for (i = 0; i < tb.nd; i++){
 	  retieve_var(tb.di[i], buf);
-	  sAppend(&sbOut, "  __zzStateVar__[%d]=",i);
+	  sAppend(&sbOut, "  __zzStateVar__[%d]=((double)(_ON[%d]))*(",i,i);
 	  for (k = 0; k < (int)strlen(buf); k++){
 	    if (buf[k] == '.'){
 	      sAppendN(&sbOut, "_DoT_", 5);
@@ -2279,7 +2283,7 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 	      sPut(&sbOut, buf[k]);
 	    }
 	  }
-	  sAppendN(&sbOut,  ";\n", 2);
+	  sAppendN(&sbOut,  ");\n", 3);
 	}
       }
       sAppendN(&sbOut,  "}\n", 2);

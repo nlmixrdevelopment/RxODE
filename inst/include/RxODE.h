@@ -99,6 +99,7 @@ typedef struct {
   int *ix;
   double *dv;
   int *idose;
+  int *on;
   int idosen;
   int id;
   int sim;
