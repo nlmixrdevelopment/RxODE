@@ -2,10 +2,13 @@
 % Please edit documentation in R/et.R
 \name{etRbind}
 \alias{etRbind}
+\alias{rbind.rxEt}
 \title{Combining event tables}
 \usage{
 etRbind(..., samples = c("use", "clear"), waitII = c("smart", "+ii"),
   id = c("merge", "unique"))
+
+\method{rbind}{rxEt}(..., deparse.level = 1)
 }
 \arguments{
 \item{...}{The event tables and optionally time between event
@@ -40,6 +43,9 @@ A new event table
 }
 \description{
 Combining event tables
+}
+\examples{
+
 }
 \author{
 Matthew L Fidler

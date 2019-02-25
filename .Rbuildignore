@@ -23,3 +23,4 @@ LICENSE
 /?config.status
 /?config.log
 ^/?docs/*$
+^/?man-roxygen/.*$

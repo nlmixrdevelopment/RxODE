@@ -17,37 +17,43 @@ add.dosing(eventTable, dose, nbr.doses = 1L, dosing.interval = 24,
 \item{nbr.doses}{integer, number of doses;}
 
 \item{dosing.interval}{required numeric scalar, time between doses
-in \code{time.units}, defaults to 24 of \code{time.units="hours"};}
+in \code{time.units}, defaults to 24 of
+\code{time.units="hours"};}
 
-\item{dosing.to}{integer, compartment the dose goes into
-(first compartment by default);}
+\item{dosing.to}{integer, compartment the dose goes into (first
+compartment by default);}
 
-\item{rate}{for infusions, the rate of infusion (default
-is \code{NULL}, for bolus dosing;}
+\item{rate}{for infusions, the rate of infusion (default is
+\code{NULL}, for bolus dosing;}
 
 \item{amount.units}{optional string indicating the dosing units.
-Defaults to \code{NA} to indicate as per the original \code{EventTable}
-definition.}
+Defaults to \code{NA} to indicate as per the original
+\code{EventTable} definition.}
 
 \item{start.time}{required dosing start time;}
 
-\item{do.sampling}{logical, should observation sampling records
-be added at the dosing times? Defaults to \code{FALSE}.}
+\item{do.sampling}{logical, should observation sampling records be
+added at the dosing times? Defaults to \code{FALSE}.}
 
 \item{time.units}{optional string indicating the time units.
-Defaults to \code{"hours"} to indicate as per the original \code{EventTable} definition.}
+Defaults to \code{"hours"} to indicate as per the original
+\code{EventTable} definition.}
 
 \item{...}{Other parameters passed to \code{\link{et}}.}
 }
 \value{
-eventTable with updated dosing (note the event table will be updated anyway)
+eventTable with updated dosing (note the event table will
+    be updated anyway)
 }
 \description{
 This adds a dosing event to the event table.  This is provided for
 piping syntax through magrittr
 }
 \seealso{
-\code{\link{eventTable}}, \code{\link{RxODE}}
+\code{\link{eventTable}}, \code{\link{RxODE}},
+    \code{\link{et}}, \code{\link{add.sampling}},
+    \code{\link{etRep}}, \code{\link{etSeq}},
+    \code{\link{etRbind}}
 }
 \author{
 Matthew L. Fidler

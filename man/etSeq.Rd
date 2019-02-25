@@ -116,7 +116,7 @@ plot(infusionQd, C2)
 qd <- et(timeUnits = "hr") \%>\% et(amt=10000, ii=24, until=set_units(2, "weeks"), cmt="depot")
 
 et <- seq(qd, set_units(1,"weeks"), qd) \%>\%
-     add.sampling(set_units(seq(0, 5.5,length.out=200),weeks))
+     add.sampling(set_units(seq(0, 5.5,by=0.005),weeks))
 
 wkOnOff <- rxSolve(mod1, et)
 
@@ -127,7 +127,7 @@ plot(wkOnOff, C2)
 qd <-et(timeUnits = "hr") \%>\% et(amt=10000, ii=24, until=set_units(2, "weeks"), cmt="depot")
 
 et <- etRep(qd, times=4, wait=set_units(1,"weeks")) \%>\%
-     add.sampling(set_units(seq(0, 12.5,by=0.1),weeks))
+     add.sampling(set_units(seq(0, 12.5,by=0.005),weeks))
 
 repCycle4 <- rxSolve(mod1, et)
 
@@ -141,9 +141,11 @@ Pharmacometrics \& Systems Pharmacology, 5(1), 3-10. ISSN 2163-8306,
 <URL: http://www.ncbi.nlm.nih.gov/pmc/articles/PMC4728294/>.
 }
 \seealso{
-\code{\link{eventTable}}, \code{\link{et}}, \code{\link{etRep}}, \code{\link{etRbind}},
-   \code{\link{RxODE}}
+\code{\link{eventTable}}, \code{\link{add.sampling}},
+    \code{\link{add.dosing}}, \code{\link{et}},
+    \code{\link{etRep}}, \code{\link{etRbind}},
+    \code{\link{RxODE}}
 }
 \author{
-Matthew L Fidler
+Matthew L Fidler, Wenping Wang
 }

@@ -1,11 +1,14 @@
-#' Event Table Function
+##' Event Table Function
 ##'
 ##' @param ... Times or event tables.
+##'
 ##' @param time Time is the time of the dose or the sampling times.
 ##'     This can also be unspecified and is determined by the object
 ##'     type (list or numeric/integer).
+##'
 ##' @param amt Amount of the dose. If specified, this assumes a dosing
 ##'     record, instead of a sampling record.
+##'
 ##' @param evid Event ID; This can be:
 ##'
 ##' \itemize{
@@ -27,20 +30,90 @@
 ##' \code{evid=doseReset} or \code{evid=resetDose}
 ##'
 ##' }
-##' @param cmt Compartment name or number.
-##' @param addl
-##' @param ss
-##' @param rate
-##' @param dur
-##' @param until
+##'
+##' @param cmt Compartment name or number.  If a number, this is an
+##'     integer starting at 1.  Negative compartments are not
+##'     supported (there is no way to turn off a compartment
+##'     currently). If the compartment is a name, the compartment name
+##'     is changed to the correct state/compartment number before
+##'     running the simulation.
+##'
+##'     Can also specify \code{cmt} as \code{dosing.to},
+##'     \code{dose.to}, \code{doseTo}, \code{dosingTo}, and
+##'     \code{state}.
+##'
+##' @param ii When specifying a dose, this is the inter-dose interval
+##'     for \code{ss}, \code{addl} and \code{until} options (described below).
+##'
+##' @param addl The number of additional doses at a inter-dose
+##'     interval after one dose.
+##'
+##' @param ss Steady state flag;  It can be one of:
+##' \itemize{
+##'
+##' \item{0} This dose is not a steady state dose
+##'
+##' \item{1} This dose is a steady state dose with the between/inter
+##' dose interval of \code{ii}
+##'
+##' \item{2} This is a steady state dose that uses the super-position
+##' principle to allow more complex steady states, like 10 mg in the
+##' morning and 20 mg at night, or dosing at 8 am 12 pm and 8 pm
+##' instead of every 12 hours.  Since it uses the super positioning
+##' principle, it only makes sense when you know the kinetics are
+##' linear.
+##' }
+##'
+##' All other values of \code{SS} are currently invalid.
+##'
+##' @param rate When positive, this is the rate of infusion.  Otherwise:
+##'
+##' \itemize{
+##'
+##' \item{0} No infusion is on this record.
+##'
+##' \item{-1} Rate of this record is modeled by \code{rate(cmt) =} in
+##' the RxODE model.  You may also specify type or rate by
+##' \code{rate=model}
+##'
+##' \item{-2} Duration of this record is modeled by \code{dur(cmt) =}
+##' in the RxODE model. You may also specify this type of rate by
+##' \code{dur=model} or \code{rate=dur}.
+##'
+##' }
+##'
+##' When a modeled bioavailability is applied to positive rates
+##' (\code{rate} > 0), the duration of infusion is changed. This is
+##' because the data specify the rate and amount, the only think ghat
+##' modeled bioavailability can affect is duration.
+##'
+##' If instead you want the modeled bioavailability to increase the
+##' rate of infusion instead of the duration of infusion, specify the
+##' \code{dur} instead or model the duration with \code{rate=2}.
+##'
+##' @param dur Duration of infusion.  When \code{amt} and \code{dur}
+##'     are specified the rate is calculated from the two data items.
+##'     When \code{dur} is specified instead of \code{rate}, the
+##'     bioavailability changes will increase rate instead of
+##'     duration.
+##'
+##' @param until This is the time until the dosing should end.  It can
+##'     be an easier way to figure out how many additional doses are
+##'     needed over your sampling period.
+##'
 ##' @param id
-##' @param amountUnits
-##' @param timeUnits,
-##' @param addSampling
-##' @examples
+##'
+##' @param amountUnits The units for the dosing records (\code{amt})
+##'
+##' @param timeUnits The units for the time records (\code{time})
+##'
+##' @param addSampling This is a boolean indicating if a sampling time
+##'     should be added at the same time as a dosing time.  By default
+##'     this is \code{FALSE}.
+##'
+##' @template etExamples
 ##'
 ##' @export
-##' @author Matthew L. Fidler, Wenping Wang
 et <- function(...){
     .lst <- as.list(match.call()[-1]);
     if (rxIs(.lst[1], "numeric") || rxIs(.lst[1], "integer") ||
@@ -500,97 +573,7 @@ eventTable <- function(amount.units = NA, time.units = NA){
 ##' least the wait time defined by that number or the last inter-dose
 ##' interval.
 ##'
-##' @examples
-##'
-##' ## Model from RxODE tutorial
-##' mod1 <-RxODE({
-##'     KA=2.94E-01;
-##'     CL=1.86E+01;
-##'     V2=4.02E+01;
-##'     Q=1.05E+01;
-##'     V3=2.97E+02;
-##'     Kin=1;
-##'     Kout=1;
-##'     EC50=200;
-##'     C2 = centr/V2;
-##'     C3 = peri/V3;
-##'     d/dt(depot) =-KA*depot;
-##'     d/dt(centr) = KA*depot - CL*C2 - Q*C2 + Q*C3;
-##'     d/dt(peri)  =                    Q*C2 - Q*C3;
-##'     d/dt(eff)  = Kin - Kout*(1-C2/(EC50+C2))*eff;
-##' });
-##'
-##' ## These are making the more complex regimens of the RxODE tutorial
-##'
-##' ## bid for 5 days
-##' bid <- et(timeUnits="hr") %>%
-##'        et(amt=10000,ii=12,until=set_units(5, "days"))
-##'
-##' ## qd for 5 days
-##' qd <- et(timeUnits="hr") %>%
-##'       et(amt=20000,ii=24,until=set_units(5, "days"))
-##'
-##' ## bid for 5 days followed by qd for 5 days
-##'
-##' et <- seq(bid,qd) %>% et(seq(0,11*24,length.out=100));
-##'
-##' bidQd <- rxSolve(mod1, et)
-##'
-##' plot(bidQd, C2)
-##'
-##'
-##' ## Now Infusion for 5 days followed by oral for 5 days
-##'
-##' ##  note you can dose to a named compartment instead of using the compartment number
-##' infusion <- et(timeUnits = "hr") %>%
-##'       et(amt=10000, rate=5000, ii=24, until=set_units(5, "days"), cmt="centr")
-##'
-##'
-##' qd <- et(timeUnits = "hr") %>% et(amt=10000, ii=24, until=set_units(5, "days"), cmt="depot")
-##'
-##' et <- seq(infusion,qd)
-##'
-##' infusionQd <- rxSolve(mod1, et)
-##'
-##' plot(infusionQd, C2)
-##'
-##' ## 2wk-on, 1wk-off
-##'
-##' qd <- et(timeUnits = "hr") %>% et(amt=10000, ii=24, until=set_units(2, "weeks"), cmt="depot")
-##'
-##' et <- seq(qd, set_units(1,"weeks"), qd) %>%
-##'      add.sampling(set_units(seq(0, 5.5,length.out=200),weeks))
-##'
-##' wkOnOff <- rxSolve(mod1, et)
-##'
-##' plot(wkOnOff, C2)
-##'
-##' ## You can also repeat the cycle easily with the rep function
-##'
-##' qd <-et(timeUnits = "hr") %>% et(amt=10000, ii=24, until=set_units(2, "weeks"), cmt="depot")
-##'
-##' et <- etRep(qd, times=4, wait=set_units(1,"weeks")) %>%
-##'      add.sampling(set_units(seq(0, 12.5,by=0.1),weeks))
-##'
-##' repCycle4 <- rxSolve(mod1, et)
-##'
-##' plot(repCycle4, C2)
-##'
-##' @return A new event table
-##'
-##' @author Matthew L Fidler
-##'
-##' @seealso \code{\link{eventTable}}, \code{\link{add.sampling}},
-##'     \code{\link{add.dosing}}, \code{\link{et}},
-##'     \code{\link{etRep}}, \code{\link{etRbind}},
-##'     \code{\link{RxODE}}
-##'
-##' @references
-##'
-##' Wang W, Hallow K, James D (2015). "A Tutorial on RxODE: Simulating
-##' Differential Equation Pharmacometric Models in R." CPT:
-##' Pharmacometrics \& Systems Pharmacology, 5(1), 3-10. ISSN 2163-8306,
-##' <URL: http://www.ncbi.nlm.nih.gov/pmc/articles/PMC4728294/>.
+##' @template etExamples
 ##'
 ##' @export
 etSeq <- function(...,samples=c("clear", "use"), waitII=c("smart", "+ii"), ii=24){

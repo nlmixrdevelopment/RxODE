@@ -252,6 +252,7 @@ List etEmpty(CharacterVector units){
     lst["amt"] = setUnits(lst["amt"], "");
   }
   if (!CharacterVector::is_na(units[1]) && !CharacterVector::is_na(units[0])){
+    // Empty event table do not need to handle -1 and -2
     std::string rateUnit = as<std::string>(units[0]) + "/" + as<std::string>(units[1]);
     lst["rate"] = setUnits(lst["rate"], rateUnit);
   } else {
@@ -720,7 +721,7 @@ List etImportEventTable(List inData){
     else if (tmpS == "evid") evidCol=i;
     else if (tmpS == "time") timeCol=i;
     else if (tmpS == "amt") amtCol=i;
-    else if (tmpS == "cmt" || tmpS == "ytype") cmtCol=i;
+    else if (tmpS == "cmt" || tmpS == "ytype" || tmpS == "state") cmtCol=i;
     else if (tmpS == "ss")   ssCol=i;
     else if (tmpS == "rate") rateCol=i;
     else if (tmpS == "addl") addlCol=i;
@@ -1109,12 +1110,25 @@ List etImportEventTable(List inData){
   oldRate = wrap(rate);
   if (doAmt && doTime){
     std::string rateUnit = as<std::string>(units[0]) + "/" + as<std::string>(units[1]);
+    NumericVector rateSpecial = NumericVector::create(-1,-2);
     if (haveRateUnits){
       oldRate.attr("class") = "units";
       oldRate.attr("units") = rateUnits;
+      rateSpecial.attr("class") = "units";
+      rateSpecial.attr("units") = rateUnits;
     }
-    // FIXME -1 and -2
+    // Rate conversion of -1 and -2 NEED to be ignored.
     oldRate = setUnits(oldRate, rateUnit);
+    if (haveRateUnits){
+      rateSpecial = setUnits(rateSpecial, rateUnit);
+      for (i = oldRate.size(); i--;){
+	if (oldRate[i] == rateSpecial[0]){
+	  oldRate[i] = -1;
+	} else if (oldRate[i] == rateSpecial[1]){
+	  oldRate[i] = -2;
+	}
+      }
+    }
   } else if (haveRateUnits){
     stop("Amt/time needs units to convert the rate to the right units to import the data.");
   }
@@ -1443,9 +1457,26 @@ RObject etUpdateObj(List curEt, bool update, bool rxSolve){
     lst["amt"] = setUnits(lst["amt"], "");
   }
   if (!CharacterVector::is_na(units[1]) && !CharacterVector::is_na(units[0])){
-    // FIXME -1 and -2
     std::string rateUnit = as<std::string>(units[0]) + "/" + as<std::string>(units[1]);
-    lst["rate"] = setUnits(lst["rate"], rateUnit);
+    NumericVector oldRate = as<NumericVector>(lst["rate"]);
+    if (rxIs(oldRate, "units")){
+      // Preserve -1 and -2, they shouldn't convert.
+      NumericVector rateSpecial = NumericVector::create(-1,-2);
+      rateSpecial.attr("class") = "units";
+      rateSpecial.attr("units") = oldRate.attr("units");
+      oldRate=setUnits(oldRate, rateUnit);
+      rateSpecial = setUnits(rateSpecial, rateUnit);
+      for (int i = oldRate.size(); i--;){
+	if (oldRate[i] == rateSpecial[0]){
+	  oldRate[i] = -1;
+	} else if (oldRate[i] == rateSpecial[1]){
+	  oldRate[i] = -2;
+	}
+      }
+      lst["rate"] = oldRate;
+    } else {
+      lst["rate"] = setUnits(oldRate, rateUnit);
+    }
   } else {
     lst["rate"] = setUnits(lst["rate"], "");
   }
@@ -1521,7 +1552,25 @@ RObject etSetUnit(List curEt, CharacterVector units){
   if (!CharacterVector::is_na(units[1]) && !CharacterVector::is_na(units[0])){
     // FIXME -1 and -2
     std::string rateUnit = as<std::string>(units[0]) + "/" + as<std::string>(units[1]);
-    lst["rate"] = setUnits(lst["rate"], rateUnit);
+    NumericVector oldRate = as<NumericVector>(lst["rate"]);
+    if (rxIs(oldRate, "units")){
+      // Preserve -1 and -2, they shouldn't convert.
+      NumericVector rateSpecial = NumericVector::create(-1,-2);
+      rateSpecial.attr("class") = "units";
+      rateSpecial.attr("units") = oldRate.attr("units");
+      oldRate=setUnits(oldRate, rateUnit);
+      rateSpecial = setUnits(rateSpecial, rateUnit);
+      for (int i = oldRate.size(); i--;){
+	if (oldRate[i] == rateSpecial[0]){
+	  oldRate[i] = -1;
+	} else if (oldRate[i] == rateSpecial[1]){
+	  oldRate[i] = -2;
+	}
+      }
+      lst["rate"] = oldRate;
+    } else {
+      lst["rate"] = setUnits(oldRate, rateUnit);
+    }
   } else {
     lst["rate"] = setUnits(lst["rate"], "");
   }
@@ -1788,7 +1837,7 @@ RObject et_(List input, List et__){
     else if (inN[i] == "evid") evidIx = i;
     else if (inN[i] == "ID" || inN[i] == "id") idIx=i;
     else if (inN[i] == "cmt" || inN[i] == "dosing.to" || inN[i] == "dosingTo" || inN[i] =="dosing_to" ||
-	     inN[i] == "dose.to" || inN[i] == "doseTo" || inN[i] == "dose_to") cmtIx=i;
+	     inN[i] == "dose.to" || inN[i] == "doseTo" || inN[i] == "dose_to" || inN[i] == "state") cmtIx=i;
     else if (inN[i] == "amount.units" || inN[i] == "amountUnits" || inN[i] == "amount_units" ||
 	     inN[i] == "amt.units" || inN[i] == "amtUnits" || inN[i] == "amt_units" ||
 	     inN[i] == "dose.units" || inN[i] == "doseUnits" || inN[i] == "dose_units") amtUnitIx=i;
@@ -2223,6 +2272,9 @@ RObject et_(List input, List et__){
 	    CharacterVector units = e["units"];
 	    if (!CharacterVector::is_na(units[1]) && !CharacterVector::is_na(units[0])){
 	      // FIXME -1 and -2
+	      if (rate[0] < 0){
+		stop("-1 and -2 rates do not make sense with units.");
+	      }
 	      std::string rateUnit = as<std::string>(units[0]) + "/" + as<std::string>(units[1]);
 	      rate = setUnits(rate,rateUnit);
 	    } else {
