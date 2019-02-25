@@ -1,6 +1,6 @@
 ##' Event Table Function
 ##'
-##' @param ... Times or event tables.
+##' @param ... Times or event tables.  They can also be one of the named arguments below.
 ##'
 ##' @param time Time is the time of the dose or the sampling times.
 ##'     This can also be unspecified and is determined by the object
@@ -101,7 +101,10 @@
 ##'     be an easier way to figure out how many additional doses are
 ##'     needed over your sampling period.
 ##'
-##' @param id
+##' @param id A integer vector of IDs to add or remove from the event
+##'     table.  If the event table is identical for each ID, then you
+##'     may expand it to include all the IDs in this vector.  All the
+##'     negative IDs in this vector will be removed.
 ##'
 ##' @param amountUnits The units for the dosing records (\code{amt})
 ##'
@@ -126,9 +129,9 @@ et <- function(...){
     }
 }
 
-##'@rdname
+##'@rdname et
 ##'@export
-et.default <- function(...,time, amt, evid, cmt, addl, ss, rate, dur, until, id,
+et.default <- function(...,time, amt, evid, cmt, ii, addl, ss, rate, dur, until, id,
                        amountUnits, timeUnits, addSampling){
     .lst <- as.list(match.call()[-1]);
     if (!missing(time)){
@@ -537,9 +540,16 @@ eventTable <- function(amount.units = NA, time.units = NA){
 ##'     tables, called waiting times in this help document.
 ##'
 ##' @param samples How to handle samples when repeating an event
-##'     table.  The options are: \itemize{ \item{"clear"} Clear
-##'     sampling records before combining the datasets \item{"use"}
-##'     Use the sampling records when combining the datasets }
+##'     table.  The options are:
+##' \itemize{
+##'
+##' \item{"clear"} Clear
+##'     sampling records before combining the datasets
+##'
+##' \item{"use"}
+##'     Use the sampling records when combining the datasets
+##'
+##' }
 ##'
 ##' @param waitII This determines how waiting times between events are
 ##'     handled. The options are:
@@ -586,9 +596,20 @@ etSeq <- function(...,samples=c("clear", "use"), waitII=c("smart", "+ii"), ii=24
 }
 ##' Combining event tables
 ##'
-##' @return A new event table
 ##' @inheritParams etSeq
-##' @examples
+##' @param id This is how rbind will handle IDs.  There are two different types of options:
+##' \itemize{
+##'
+##' \item{merge} with \code{id="merge"}, the IDs are merged together,
+##' overlapping IDs would be merged into a single event table.
+##'
+##' \item{unique} with \code{id="unique"}, the IDs will be renumbered
+##' so that the IDs in all the event tables are not overlapping.
+##'
+##' }
+##' @param
+##' deparse.level The \code{deparse.level} of a traditional
+##'     \code{rbind} is ignored.
 ##'
 ##' @author Matthew L Fidler
 ##' @export
@@ -623,7 +644,7 @@ c.rxEt <- function(...){
 
 ##' Repeat an RxODE event table
 ##'
-##'
+##' @param x An RxODE event table
 ##' @param times Number of times to repeat the event table
 ##' @param length.out Invalid with RxODE event tables, will throw an
 ##'     error if used.
@@ -633,10 +654,9 @@ c.rxEt <- function(...){
 ##'     \code{times}.
 ##' @param wait Waiting time between each repeated event table.  By
 ##'     default there is no waiting, or wait=0
-##' @param id IDs to expand/remove in the event table before repeating.
+##' @inheritParams et
 ##' @inheritParams etSeq
-##' @return An event table of repeated events
-##' @author Matthew Fidler
+##' @template etExamples
 ##' @export
 etRep <- function(x, times=1, length.out=NA, each=NA, n=NULL, wait=0, id=integer(0),
                   samples=c("clear", "use"),

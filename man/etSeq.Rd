@@ -15,9 +15,16 @@ etSeq(..., samples = c("clear", "use"), waitII = c("smart", "+ii"),
 tables, called waiting times in this help document.}
 
 \item{samples}{How to handle samples when repeating an event
-table.  The options are: \itemize{ \item{"clear"} Clear
-sampling records before combining the datasets \item{"use"}
-Use the sampling records when combining the datasets }}
+    table.  The options are:
+\itemize{
+
+\item{"clear"} Clear
+    sampling records before combining the datasets
+
+\item{"use"}
+    Use the sampling records when combining the datasets
+
+}}
 
 \item{waitII}{This determines how waiting times between events are
     handled. The options are:

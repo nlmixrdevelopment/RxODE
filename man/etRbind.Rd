@@ -15,9 +15,16 @@ etRbind(..., samples = c("use", "clear"), waitII = c("smart", "+ii"),
 tables, called waiting times in this help document.}
 
 \item{samples}{How to handle samples when repeating an event
-table.  The options are: \itemize{ \item{"clear"} Clear
-sampling records before combining the datasets \item{"use"}
-Use the sampling records when combining the datasets }}
+    table.  The options are:
+\itemize{
+
+\item{"clear"} Clear
+    sampling records before combining the datasets
+
+\item{"use"}
+    Use the sampling records when combining the datasets
+
+}}
 
 \item{waitII}{This determines how waiting times between events are
     handled. The options are:
@@ -37,9 +44,20 @@ inter-dose interval no matter the length of the wait time or
 inter-dose interval
 
 }}
-}
-\value{
-A new event table
+
+\item{id}{This is how rbind will handle IDs.  There are two different types of options:
+\itemize{
+
+\item{merge} with \code{id="merge"}, the IDs are merged together,
+overlapping IDs would be merged into a single event table.
+
+\item{unique} with \code{id="unique"}, the IDs will be renumbered
+so that the IDs in all the event tables are not overlapping.
+
+}}
+
+\item{deparse.level}{The \code{deparse.level} of a traditional
+\code{rbind} is ignored.}
 }
 \description{
 Combining event tables

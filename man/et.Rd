@@ -2,12 +2,16 @@
 % Please edit documentation in R/et.R
 \name{et}
 \alias{et}
+\alias{et.default}
 \title{Event Table Function}
 \usage{
 et(...)
+
+\method{et}{default}(..., time, amt, evid, cmt, ii, addl, ss, rate, dur,
+  until, id, amountUnits, timeUnits, addSampling)
 }
 \arguments{
-\item{...}{Times or event tables.}
+\item{...}{Times or event tables.  They can also be one of the named arguments below.}
 
 \item{time}{Time is the time of the dose or the sampling times.
 This can also be unspecified and is determined by the object
@@ -108,7 +112,10 @@ duration.}
 be an easier way to figure out how many additional doses are
 needed over your sampling period.}
 
-\item{id}{}
+\item{id}{A integer vector of IDs to add or remove from the event
+table.  If the event table is identical for each ID, then you
+may expand it to include all the IDs in this vector.  All the
+negative IDs in this vector will be removed.}
 
 \item{amountUnits}{The units for the dosing records (\code{amt})}
 

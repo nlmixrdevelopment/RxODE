@@ -8,6 +8,7 @@ rxPermissive({
     et <- et()
 
     test_that("Empty event table check",{
+        expect_equal(class(et$env),"rxHidden")
         expect_equal(et$nobs, 0L)
         expect_equal(et$ndose, 0L)
         expect_equal(et$get.EventTable(), NULL);
@@ -40,6 +41,21 @@ rxPermissive({
         expect_equal(et$get.dosing(), NULL);
         expect_equal(length(et$get.sampling()$time), 10);
     })
+
+    et <- et(1:10, cmt=1);
+    test_that("compartment check",{
+        expect_equal(et$nobs, 10L);
+        expect_equal(et$ndose, 0L);
+        expect_equal(class(et$get.EventTable()), "data.frame");
+        expect_true(is(et, "rxEt"));
+        expect_false(et$show["id"])
+        expect_true(et$show["cmt"])
+        expect_equal(et$get.dosing(), NULL);
+        expect_equal(length(et$get.sampling()$time), 10);
+        expect_true(all(et$cmt==1L));
+    })
+
+
 
     et1 <- et(1:10, id=1:10)
 
@@ -279,5 +295,49 @@ rxPermissive({
     })
 
     ## FIXME test windows and dur
+    test_that("no ii throws an error with addl",{
+        expect_error(et(c(11,13),amt=10,addl=3));
+    })
+    ## Test Windows
+    et <- et(list(c(0,1),
+                  c(1,4),
+                  c(4,8),
+                  c(8,12),
+                  c(12,24))) %>%
+        et(amt=10) %>%
+        et(c(11,13),amt=10,addl=3,ii=12)
 
-})
+    test_that("Low/High middle tests; i.e windows",{
+        et2 <- et[which(!is.na(et$low)),]
+        expect_true(et$show["low"])
+        expect_true(et$show["high"])
+        expect_true(all(et2$time < et2$high))
+        expect_true(all(et2$time > et2$low))
+    })
+
+    et <- et(list(c(0,1),
+                  c(1,4),
+                  c(4,8),
+                  c(8,12),
+                  c(12,24)), cmt=1) %>%
+        et(amt=10) %>%
+        et(c(11,13),amt=10,addl=3,ii=12)
+
+    test_that("Low/High middle tests; i.e windows",{
+        et2 <- et[which(!is.na(et$low)),]
+        expect_true(et$show["low"])
+        expect_true(et$show["high"])
+        expect_true(all(et2$time < et2$high))
+        expect_true(all(et2$time > et2$low))
+    })
+
+    test_that("Window Errors", {
+        expect_error(et(list(c(1,0))))
+        expect_error(et(list(c(0,1,2))))
+        expect_error(et(c(0,2),amt=30, doSampling=TRUE));
+        expect_error(et(c(0,2,3),amt=30))
+        expect_error(et(c(2,0),amt=30))
+    })
+
+
+}, silent=TRUE, cran=TRUE)

@@ -15,7 +15,6 @@ List getEtRxsolve(Environment e);
 
 Function loadNamespace2("loadNamespace", R_BaseNamespace);
 Environment unitsPkg = loadNamespace2("units");
-//(x, value, ..., mode = units_options("set_units_mode"))
 NumericVector setUnits(NumericVector obj, std::string unit){
   Function f = as<Function>(unitsPkg["set_units"]);
   if (unit == ""){
@@ -1237,7 +1236,7 @@ List etAddDose(NumericVector curTime, RObject cmt,  double amt, double rate, dou
 	stop("For dosing window you need to specify window in order, e.g. et(time=c(0,2),amt=3).");
       }
     } else {
-      stop("Time windows must only be 2 elements for dosing.");
+      stop("Dosing time or time windows must only be 1-2 elements.");
     }
     
   }
@@ -1512,7 +1511,7 @@ RObject etCmtInt(RObject et){
       else if (oldCmt[j] == "(obs)") newCmt[j] = NA_INTEGER;
       else stop("Cannot mix named compartments and integer compartments.");
     }
-    warning("Using numbered compartments is discouraged with RxODE simulations.");
+    // warning("Using numbered compartments is discouraged with RxODE simulations.");
     newEt[4] = newCmt;
   } else {
     newEt = cur;
@@ -2391,6 +2390,9 @@ RObject et_(List input, List et__){
 	}
 	if (addl[0] < 0){
 	  stop("Additional doses must be positive (addl=%d).", addl[0]);
+	}
+	if (addl[0] > 0 && ii[0] <= 0){
+	  stop("Additional doses require an inter-dose interval (ii).");
 	}
 	return etUpdateObj(etAddDose(time, cmt, amt[0], rate[0], ii[0], addl[0], evid[0], ss[0], dur[0],
 				     id, turnOnShowCmt, doSampling, as<List>(curEt)),doUpdateObj, inputSolve);
