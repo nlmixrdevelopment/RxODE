@@ -62,9 +62,6 @@ so that the IDs in all the event tables are not overlapping.
 \description{
 Combining event tables
 }
-\examples{
-
-}
 \author{
 Matthew L Fidler
 }

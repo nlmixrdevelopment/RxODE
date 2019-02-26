@@ -151,7 +151,6 @@ rxPermissive({
                         expect_equal(x2$C2[x2 == dur], infMax, tolerance=tol);
                         expect_equal(x2$C2[1], inf0, tolerance=tol)
                     })
-
                     et3 <- et() %>% et(amt=d, ss=1,ii=ii, rate=-2) %>%
                         et(c(dur,seq(0,  24, length.out=19)))
                     x2 <- rxSolve(ode.1cD, et3, c(fc=f, durIn=dur), method=m, maxsteps=10000)

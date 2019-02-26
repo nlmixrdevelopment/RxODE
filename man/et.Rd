@@ -5,13 +5,17 @@
 \alias{et.default}
 \title{Event Table Function}
 \usage{
-et(...)
+et(..., envir = parent.frame())
 
 \method{et}{default}(..., time, amt, evid, cmt, ii, addl, ss, rate, dur,
-  until, id, amountUnits, timeUnits, addSampling)
+  until, id, amountUnits, timeUnits, addSampling, envir = parent.frame())
 }
 \arguments{
 \item{...}{Times or event tables.  They can also be one of the named arguments below.}
+
+\item{envir}{the \code{\link{environment}} in which \code{expr} is to
+    be evaluated.  May also be \code{NULL}, a list, a data frame,
+    a pairlist or an integer as specified to \code{\link{sys.call}}.}
 
 \item{time}{Time is the time of the dose or the sampling times.
 This can also be unspecified and is determined by the object

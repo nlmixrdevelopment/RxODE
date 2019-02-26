@@ -114,16 +114,18 @@
 ##'     should be added at the same time as a dosing time.  By default
 ##'     this is \code{FALSE}.
 ##'
+##' @inheritParams base::eval
+##'
 ##' @template etExamples
 ##'
 ##' @export
-et <- function(...){
+et <- function(..., envir=parent.frame()){
     .lst <- as.list(match.call()[-1]);
     if (rxIs(.lst[1], "numeric") || rxIs(.lst[1], "integer") ||
         rxIs(.lst[1], "list") || rxIs(.lst[1], "rxEt")){
         ## Use do call on a match.call() to preserve lazy evaluation
         ## By doing this evid=obs will work as well as evid="obs" and evid=1
-        do.call(et.default, .lst)
+        do.call(et.default, .lst, envir=envir);
     } else {
         UseMethod("et");
     }
@@ -132,7 +134,7 @@ et <- function(...){
 ##'@rdname et
 ##'@export
 et.default <- function(...,time, amt, evid, cmt, ii, addl, ss, rate, dur, until, id,
-                       amountUnits, timeUnits, addSampling){
+                       amountUnits, timeUnits, addSampling, envir=parent.frame()){
     .lst <- as.list(match.call()[-1]);
     if (!missing(time)){
         .lst$time <- time;
@@ -143,15 +145,40 @@ et.default <- function(...,time, amt, evid, cmt, ii, addl, ss, rate, dur, until,
     if (!missing(evid)){
         .evid <- as.character(substitute(evid))
         if (.evid=="obs" || .evid=="0"){
-            .lst$evid <- 0L;
+            .tmp <- try(eval(evid, envir=envir), silent=TRUE);
+            if (inherits(.tmp, "try-error")){
+                .lst$evid <- 0L;
+            } else {
+                .lst$evid <- as.integer(.tmp);
+            }
         } else if (.evid=="dose" || .evid=="1") {
-            .lst$evid <- 1L;
+            .tmp <- try(eval(evid, envir=envir), silent=TRUE);
+            if (inherits(.tmp, "try-error")){
+                .lst$evid <- 1L;
+            } else {
+                .lst$evid <- as.integer(.tmp);
+            }
         } else if (.evid=="other" || .evid=="2") {
-            .lst$evid <- 2L;
+            .tmp <- try(eval(evid, envir=envir), silent=TRUE);
+            if (inherits(.tmp, "try-error")){
+                .lst$evid <- 2L;
+            } else {
+                .lst$evid <- as.integer(.tmp);
+            }
         } else if (.evid=="reset" || .evid=="3") {
-            .lst$evid <- 3L;
+            .tmp <- try(eval(evid, envir=envir), silent=TRUE);
+            if (inherits(.tmp, "try-error")){
+                .lst$evid <- 3L;
+            } else {
+                .lst$evid <- as.integer(.tmp);
+            }
         } else if (.evid=="doseReset" || .evid=="resetDose" || .evid=="4") {
-            .lst$evid <- 4L;
+            .tmp <- try(eval(evid, envir=envir), silent=TRUE);
+            if (inherits(.tmp, "try-error")){
+                .lst$evid <- 4L;
+            } else {
+                .lst$evid <- as.integer(.tmp);
+            }
         } else {
             .lst$evid <- as.integer(evid);
         }
@@ -173,9 +200,19 @@ et.default <- function(...,time, amt, evid, cmt, ii, addl, ss, rate, dur, until,
         .rate <- as.character(substitute(rate));
         if (.rate=="model" || .rate=="modeled" ||
             .rate=="modelled" || .rate=="rate"){
-            .lst$rate <- -1.0
+            .rate <- try(eval(rate, envir=envir), silent=TRUE);
+            if (inherits(.rate, "try-error")){
+                .lst$rate <- .rate
+            } else {
+                .lst$rate <- -1.0
+            }
         } else if (.rate=="dur" || .rate=="duration"){
-            .lst$rate <- -2.0;
+            .rate <- try(eval(rate, envir=envir), silent=TRUE);
+            if (inherits(.rate, "try-error")){
+                .lst$rate <- .rate;
+            } else {
+                .lst$rate <- -2.0;
+            }
         } else {
             .lst$rate <- rate;
         }
@@ -185,11 +222,22 @@ et.default <- function(...,time, amt, evid, cmt, ii, addl, ss, rate, dur, until,
         if (.dur=="model" || .dur=="modeled" ||
             .dur=="modelled" || .dur=="dur" ||
             .dur=="duration"){
-            .lst$rate <- -2.0
-            .lst <- .lst[names(.lst) != "dur"]
+            .dur <- try(eval(dur,envir=envir), silent=TRUE);
+            if (inherits(.dur, "try-error")){
+                .lst$rate <- -2.0
+                .lst <- .lst[names(.lst) != "dur"]
+            } else {
+                .lst$dur <- .dur
+            }
         } else if (.dur=="rate"){
-            .lst$rate <- -1.0;
-            .lst <- .lst[names(.lst) != "dur"];
+            .dur <- try(eval(dur,envir=envir), silent=TRUE);
+            if (inherits(.dur, "try-error")){
+                .lst$rate <- -1.0;
+                .lst <- .lst[names(.lst) != "dur"];
+            } else {
+                .lst$dur <- .dur
+            }
+
         } else {
             .lst$dur <- dur;
         }
@@ -205,7 +253,7 @@ et.default <- function(...,time, amt, evid, cmt, ii, addl, ss, rate, dur, until,
         }
     }
     .lst <- lapply(.lst,function(x){
-        eval(x,parent.frame(4L))
+        eval(x,envir)
     });
     .Call(`_RxODE_et_`, .lst, list())
 }
