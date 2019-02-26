@@ -411,9 +411,9 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false){
 	if (caddl > 0){
 	  warning("addl is ignored with observations.");
 	}
-	if (ss != 1){
+	if (ss != 0){
 	  warning("ss is ignored with observations.");
-	  ss=1;
+	  ss=0;
 	}
 	if (ISNA(ctime)){
 	  id.push_back(cid);
