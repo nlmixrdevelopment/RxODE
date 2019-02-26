@@ -1084,7 +1084,10 @@ extern void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda_opt
     if (!op->badSolve){
       ind->idx = i;
       if (ind->evid[ind->ix[i]] == 3){
-	for (j = neq[0]; j--;) ind->InfusionRate[j] = 0;
+	for (j = neq[0]; j--;) {
+	  ind->InfusionRate[j] = 0;
+	  ind->on[j] = 1;
+	}
 	memcpy(yp,inits, neq[0]*sizeof(double));
 	u_inis(neq[1], yp); // Update initial conditions @ current time
 	ctx.state = 1;
@@ -1370,7 +1373,10 @@ extern void ind_lsoda0(rx_solve *rx, rx_solving_options *op, int solveid, int *n
     if (!op->badSolve){
       ind->idx = i;
       if (ind->evid[ind->ix[i]] == 3){
-	for (j = neq[0]; j--;) ind->InfusionRate[j] = 0;
+	for (j = neq[0]; j--;) {
+	  ind->InfusionRate[j] = 0;
+	  ind->on[j] = 1;
+	}
 	memcpy(yp, op->inits, neq[0]*sizeof(double));
 	u_inis(neq[1], yp); // Update initial conditions @ current time
 	istate = 1;
@@ -1554,7 +1560,10 @@ extern void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int *neq
     if (!op->badSolve){
       ind->idx = i;
       if (ind->evid[ind->ix[i]] == 3){
-	for (j = neq[0]; j--;) ind->InfusionRate[j] = 0;
+	for (j = neq[0]; j--;) {
+	  ind->InfusionRate[j] = 0;
+	  ind->on[j] = 1;
+	}
 	memcpy(yp, op->inits, neq[0]*sizeof(double));
 	u_inis(neq[1], yp); // Update initial conditions @ current time
 	ind->ixds++;
