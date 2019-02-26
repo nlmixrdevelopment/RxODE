@@ -476,6 +476,8 @@ int new_or_ith(const char *s) {
   if (!strcmp("M_LN_SQRT_2PI", s)) return 0;
   if (!strcmp("M_LN_SQRT_PId2", s)) return 0;
   if (!strcmp("pi", s)) tb.isPi=1;
+  if (!strcmp("newind", s)) return 0;
+  if (!strcmp("NEWIND", s)) return 0;
   // Ignore THETA[] and ETA
   if (strstr("[", s) != NULL) return 0;
 

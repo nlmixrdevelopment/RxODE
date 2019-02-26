@@ -23,6 +23,8 @@
 #define _ON (_solveData->subjects[_cSub].on)
 #define _PP (_solveData->subjects[_cSub].par_ptr)
 #define _SR (INTEGER(stateRmS))
+#define NEWIND (_solveData->subjects[_cSub].newind)
+#define newind (_solveData->subjects[_cSub].newind)
 #define rx_lambda_ _solveData->subjects[_cSub].lambda
 #define rx_yj_ _solveData->subjects[_cSub].yj
 #define rxTBS(x, lm, yj)  _powerD(x,  lm, (int)(yj))

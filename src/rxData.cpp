@@ -3166,6 +3166,7 @@ SEXP rxSolveC(const RObject &obj,
 	    ind->on=&_globals.gon[curOn];
 	    curOn +=op->neq;
 	    curIdx += ind->n_all_times;
+	    ind->newind = -1;
 	  }
 	}
       }
