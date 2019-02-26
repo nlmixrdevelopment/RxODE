@@ -12,15 +12,20 @@ vignette: >
 ```{r, echo=FALSE}
 options(cli.unicode=FALSE, crayon.enabled=FALSE);
 options(knitr.table.format = "html")
+knitr::opts_chunk$set( comment = "#>")
 htmltools::img(src = knitr::image_uri("logo.png"), 
                alt = 'RxODE', 
                style = 'position:absolute; top:0; right:0; padding:10px; border: 0;')
+options(width=80)
+Sys.setenv(RSTUDIO_CONSOLE_WIDTH=80)
 ```
 
 ## RxODE event tables
 In general, RxODE event tables follow NONMEM convention with the exceptions:
 
  - The compartment data item (`cmt`) can be a string/factor with compartment names
+   - You may turn off a compartment with a negative compartment number
+     or "-cmt" where cmt is the compartment name.
  - An additional column, `dur` can specify the duration of infusions; 
     - Bioavailability changes will change the rate of infusion since
       `dur`/`amt` are fixed in the input data.
@@ -33,7 +38,7 @@ In general, RxODE event tables follow NONMEM convention with the exceptions:
 | Data Item | Meaning               | Notes                                                              |
 |-----------|-----------------------|--------------------------------------------------------------------|
 | id        | Individual identifier | Must be an integer > 0, sorted                                     |
-| time      | Individual time       | Must be ascending and non-negative                                 |
+| time      | Individual time       | For each ID must be ascending and non-negative                     |
 | amt       | dose amount           | Positive for doses zero/NA for observations                        |
 | rate      | infusion rate         | When specified the infusion duration will be dur=amt/rate          |
 |           |                       | rate = -1, rate modeled; rate = -2, duration modeled               |
@@ -47,10 +52,76 @@ In general, RxODE event tables follow NONMEM convention with the exceptions:
 
 Other notes:
 
- - The `evid` can be the classic RxODE or the NONMEM-style evid described above. 
+ - The `evid` can be the classic RxODE (described at the end of this
+   document) or the NONMEM-style evid described above.
  - NONMEM's `DV` is not required; RxODE is a ODE solving framework.
- - NONMEM's `MDV` is not required, since it is caputred in `EVID`
+ - NONMEM's `MDV` is not required, since it is captured in `EVID`
+ 
+## Creating RxODE's event tables
+An event table in RxODE is a specialized data frame that acts as a
+container for all of RxODE's events and observation times.
 
+To create an RxODE event table you may use the code `eventTable()` or `et()`
+
+```{r}
+library(RxODE)
+(ev <- eventTable());
+```
+
+or
+
+```{r}
+(ev <- et());
+```
+
+### Adding doses to the event table
+
+Once created you can add dosing to the event table by the
+`add.dosing`, and `et` functions.
+
+Using the `add.dosing` function you have:
+
+| argument        | meaning                                 |
+|-----------------|-----------------------------------------|
+| dose            | dose amount                             |
+| nbr.doses       | Number of doses;  Should be at least 1. |
+| dosing.interval | Dosing interval; By default this is 24. |
+| dosing.to       | Compartment where dose is administered. |
+| rate            | Infusion rate                           |
+| start.time      | The start time of the dose              |
+
+```{r}
+ev <- eventTable(amount.units="mg", time.units="hr")
+
+## The methods ar attached to the event table, so you can use them
+## directly
+ev$add.dosing(dose=10000, nbr.doses = 3)# loading doses
+
+## You can also pipe the event tables to these methods.
+ev <- ev %>%
+    add.dosing(dose=5000, nbr.doses=14, dosing.interval=12)# maintenance
+
+ev
+```
+
+Notice that the units were specified in the table. When specified, the
+units use the `units` package to keep track of the units and convert
+them if needed.  Additionally, `ggforce` uses them to label the
+`ggplot` axes.  The `set_units` and `drop_units` are useful to set and
+drop the RxODE event table units.
+
+If you are more familiar with the NONMEM/RxODE event records, you can
+also specify dosing using `et` with the dose elements directly:
+
+```{r}
+
+ev <- et(timeUnits="hr") %>%
+    et(amt=10000, until = set_units(3, days), ii=12)# loading doses
+
+ev
+```
+### Adding sampling to 
+## Examples of special events in RxODE
 ## Classic RxODE evid values
 
 While RxODE still supports these values, this is primarily provided
@@ -61,24 +132,27 @@ Monolix and nlmixr, described above.
 Classically, RxODE supported event coding in a single event id `evid` described in the following table.
 
 
-| 100+ cmt | Infusion Flag                 | <99 Cmt  | SS flag                                  |
-|----------|-------------------------------|----------|------------------------------------------|
-| 100+ cmt | 0 = bolus dose                | < 99 cmt | 1 = dose                                 |
-|          | 1 = infusion (rate)           |          | 10 = Steady state 1 (equivalent to SS=1) |
-|          | 2 = infusion (dur)            |          | 20 = Steady state 2 (equivalent to SS=2) |
-|          | 6 = turn off modeled duration |          |                                          |
-|          | 7 = turn off modeled rate     |          |                                          |
-|          | 8 = turn on modeled duration  |          |                                          |
-|          | 9 = turn on modeled rate      |          |                                          |
+| 100+ cmt | Infusion Flag                 | <99 Cmt  | SS flag & Turning of Compartment                          |
+|----------|-------------------------------|----------|-----------------------------------------------------------|
+| 100+ cmt | 0 = bolus dose                | < 99 cmt | 1 = dose                                                  |
+|          | 1 = infusion (rate)           |          | 10 = Steady state 1 (equivalent to SS=1)                  |
+|          | 2 = infusion (dur)            |          | 20 = Steady state 2 (equivalent to SS=2)                  |
+|          | 6 = turn off modeled duration |          | 30 = Turn off a compartment (equivalent to -CMT w/EVID=2) |
+|          | 7 = turn off modeled rate     |          |                                                           |
+|          | 8 = turn on modeled duration  |          |                                                           |
+|          | 9 = turn on modeled rate      |          |                                                           |
+
+The classic EVID concatenate the numbers in the above table, so an
+infusion would to compartment 1 would be `10101` and an infusion to compartment 199 would be `119901`.
 
 EVID = 0 (observations), EVID=2 (other type event) and EVID=3 are all
 supported.  EVID 10-99 represents modeled time interventions, similar
-to NONMEM's MTIME. This along with amount (amt) and time columns specify the events in the ODE system.  
+to NONMEM's MTIME. This along with amount (amt) and time columns specify the events in the ODE system.
 
-For infusions, the amt column represents the rate value.  
+For infusions specified with EVIDs > 100 the amt column represents the rate value.
 
-For Infusion flags 1 and 2 `+amts` turn on the infusion to a specific
-compartment `-amts` turn off the infusion to a specific
+For Infusion flags 1 and 2 `+amt` turn on the infusion to a specific
+compartment `-amt` turn off the infusion to a specific
 compartment. To specify a dose/duration you place the dosing records
 at the time the duration starts or stops.
 
@@ -101,7 +175,7 @@ These number are concatenated together to form a full RxODE event ID, as shown i
 | time | evid | amt |
 |------|------|-----|
 | 0    | 9901 | 100 |
-| 0.5  | 0    | 0    |
+| 0.5  | 0    | 0   |
 | 1    | 0    | 0   |
 
 *A 100 bolus dose to compartment #199 at time 0*
@@ -154,6 +228,31 @@ Modeled duration with amount of 50
 | 0    | 60101 | 50  |
 | 0.5  | 0     | 0   |
 | 1    | 0     | 0   |
+
+### Steady State for classic RxODE EVID example
+
+Steady state dose to cmt 1
+
+| time | evid | amt |
+|------|------|-----|
+| 0    | 110  | 50  |
+
+Steady State with super-positioning principle for am 50 and pm 100 dose
+
+| time | evid | amt |
+|------|------|-----|
+| 0    | 110  | 50  |
+| 12   | 120  | 100 |
+
+## Turning off a compartment with classic RxODE EVID
+
+Turn off the first compartment at time 12
+
+| time | evid | amt |
+|------|------|-----|
+| 0    | 110  | 50  |
+| 12   | 130  | NA  |
+
 
 
 

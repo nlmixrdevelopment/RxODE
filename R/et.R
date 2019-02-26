@@ -323,6 +323,11 @@ str.rxHidden <- function(object,...){
 }
 
 ##'@export
+drop_units.rxEt <- function(x){
+    .Call(`_RxODE_et_`, list(amountUnits=NA_character_, timeUnits=NA_character_), x)
+}
+
+##'@export
 set_units.rxEt <- function(x, value, ..., mode = units::units_options("set_units_mode")){
     if (missing(value))
         value <- units::unitless
