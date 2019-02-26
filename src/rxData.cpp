@@ -3442,7 +3442,7 @@ RObject rxSolveGet(RObject obj, RObject arg, LogicalVector exact = true){
 	  List ret = clone(as<List>(e["params.dat"]));
           return ret;
 	} else if (sarg == "inits" || sarg == "init"){
-	  List ret = clone(as<List>(e["inits.dat"]));
+	  NumericVector ret = clone(as<NumericVector>(e["inits.dat"]));
           return ret;
 	} else if (sarg == "t"){
 	  return lst["time"];
