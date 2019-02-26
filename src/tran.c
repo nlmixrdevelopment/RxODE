@@ -1507,7 +1507,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
     } else if (nodeHas(derivative)){
       addLine(&sbPm,     "%s);\n", sb.s);
       addLine(&sbPmDt,   "%s);\n", sbDt.s);
-      sAppend(&sbNrm, "%s);\n", sbt.s);
+      sAppend(&sbNrm, "%s;\n", sbt.s);
     }
 
     if (!rx_syntax_assign && (nodeHas(assignment) || nodeHas(ini) || nodeHas(ini0) || nodeHas(ini0f) || nodeHas(mtime))){
