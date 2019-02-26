@@ -2031,6 +2031,18 @@ void oldIxSetup(int ntimes){
     }
   }
 }
+
+int *_oldON;
+int _oldONN=0;
+void oldONSetup(int nstate){
+  if (_oldONN < nstate){
+    _oldON = Calloc(nstate+1024, int);
+    _oldONN = nstate+1024;
+    for (int i = _oldONN; i--;){
+      _oldON[i] = 1;
+    }
+  }
+}
 // rxSolveOldC
 void protectOld();
 extern void rxSolveOldC(int *neqa,
@@ -2083,6 +2095,8 @@ extern void rxSolveOldC(int *neqa,
   /* ind->cov_ptr = cov_ptr; */
   ind->n_all_times       = *ntime;
   oldIxSetup(*ntime);
+  oldONSetup(*neqa);
+  ind->on = _oldON;
   ind->ix = _oldIx;
   ind->ixds = 0;
   ind->ndoses = -1;

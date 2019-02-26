@@ -1290,8 +1290,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  new_or_ith(v);
 	  /* printf("de[%d]->%s[%d]\n",tb.id,v,tb.ix); */
 	  sb.o =0; sbDt.o =0;
-          sAppend(&sb, "__DDtStateVar__[%d] = ", tb.id);
-	  sAppend(&sbDt, "__DDtStateVar_%d__ = ", tb.id);
+          sAppend(&sb, "__DDtStateVar__[%d] = ((double)(_ON[%d]))*(", tb.id, tb.id);
+	  sAppend(&sbDt, "__DDtStateVar_%d__ = ((double)(_ON[%d]))*(", tb.id, tb.id);
 	  aType(TDDT);
 	  aProp(tb.id);
 	  sbt.o=0;
