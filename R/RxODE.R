@@ -658,15 +658,24 @@ rxChain2.EventTable <- function(obj, solvedObject){
     }
 }
 .getBound <- function(x, parent=parent.frame(2)){
-    bound <- do.call("c", lapply(ls(parent), function(cur){
+    bound <- do.call("c", lapply(ls(globalenv()), function(cur){
                               if (identical(parent[[cur]], x)){
                                   return(cur)
                               }
                               return(NULL);
-                          }));
+                          }))
     if (length(bound) > 1) bound <- bound[1];
     if (length(bound) == 0){
-        bound  <- ""
+        bound <- do.call("c", lapply(ls(parent), function(cur){
+                                  if (identical(parent[[cur]], x)){
+                                      return(cur)
+                                  }
+                                  return(NULL);
+                              }));
+        if (length(bound) > 1) bound <- bound[1];
+        if (length(bound) == 0){
+            bound  <- ""
+        }
     }
     return(bound)
 }

@@ -1061,14 +1061,13 @@ extern void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda_opt
   if (rx->nMtime) calc_mtime(neq[1], ind->mtime);
   if (rx->needSort) doSort(ind);
   /* for(i=0; i<neq[0]; i++) yp[i] = inits[i]; */
-  ind->newind = 1;
+  ind->_newind = 1;
   for(i=0; i<nx; i++) {
     ind->idx=i;
     xout = getTime(ind->ix[i], ind);
     yp = ret+neq[0]*i;
     if(ind->evid[ind->ix[i]] != 3 && xout-xp > DBL_EPSILON*max(fabs(xout),fabs(xp))){
       lsoda(&ctx, yp, &xp, xout);
-      ind->newind = 2;
       if (ctx.state <= 0) {
         /* REprintf("IDID=%d, %s\n", istate, err_msg_ls[-*istate-1]); */
         *rc = ctx.state;
@@ -1083,6 +1082,7 @@ extern void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda_opt
 	}
       }
     }
+    ind->_newind = 2;
     if (!op->badSolve){
       ind->idx = i;
       if (ind->evid[ind->ix[i]] == 3){
@@ -1348,7 +1348,7 @@ extern void ind_lsoda0(rx_solve *rx, rx_solving_options *op, int solveid, int *n
   if (rx->nMtime) calc_mtime(neq[1], ind->mtime);
   if (rx->needSort) doSort(ind);
   unsigned int j;
-  ind->newind = 1;
+  ind->_newind = 1;
   for(i=0; i < ind->n_all_times; i++) {
     ind->idx=i;
     xout = getTime(ind->ix[i], ind);
@@ -1356,7 +1356,6 @@ extern void ind_lsoda0(rx_solve *rx, rx_solving_options *op, int solveid, int *n
     if(ind->evid[ind->ix[i]] != 3 && xout - xp > DBL_EPSILON*max(fabs(xout),fabs(xp))) {
       F77_CALL(dlsoda)(dydt_lsoda, neq, yp, &xp, &xout, &gitol, &(op->RTOL), &(op->ATOL), &gitask,
 		       &istate, &giopt, rwork, &lrw, iwork, &liw, jdum, &jt);
-      ind->newind = 2;
       if (istate <= 0) {
 	REprintf("IDID=%d, %s\n", istate, err_msg_ls[-(istate)-1]);
 	ind->rc[0] = istate;
@@ -1373,6 +1372,7 @@ extern void ind_lsoda0(rx_solve *rx, rx_solving_options *op, int solveid, int *n
       ind->slvr_counter[0]++;
       //dadt_counter = 0;
     }
+    ind->_newind = 2;
     if (!op->badSolve){
       ind->idx = i;
       if (ind->evid[ind->ix[i]] == 3){
@@ -1509,7 +1509,7 @@ extern void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int *neq
   if (rx->needSort) doSort(ind);
   //--- inits the system
   unsigned int j;
-  ind->newind = 1;
+  ind->_newind = 1;
   for(i=0; i<nx; i++) {
     ind->idx=i;
     xout = getTime(ind->ix[i], ind);
@@ -1544,7 +1544,6 @@ extern void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int *neq
                       NULL,           /* indexes of components for which dense output is required, >= nrdens */
                       0                       /* declared length of icon */
                       );
-	ind->newind = 0;
         if (idid<0) {
             REprintf("IDID=%d, %s\n", idid, err_msg[-idid-1]);
             *rc = idid;
@@ -1562,6 +1561,7 @@ extern void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int *neq
         ind->slvr_counter[0]++;
         //dadt_counter = 0;
       }
+    ind->_newind = 1;
     if (!op->badSolve){
       ind->idx = i;
       if (ind->evid[ind->ix[i]] == 3){
@@ -1852,6 +1852,7 @@ extern SEXP RxODE_df(int doDose, int doTBS){
       neq[1] = csub+csim*nsub;
       ind = &(rx->subjects[neq[1]]);
       ind->id = neq[1];
+      ind->_newind = 1;
       if (rx->nMtime) calc_mtime(neq[1], ind->mtime);
       if (rx->needSort) doSort(ind);
       nBadDose = ind->nBadDose;
@@ -1957,6 +1958,7 @@ extern SEXP RxODE_df(int doDose, int doTBS){
 	  }
           ii++;
         }
+	ind->_newind = 2;
       }
       if (updateErr){
         for (j=0; j < errNcol; j++){
@@ -2182,11 +2184,13 @@ extern void rxSolveOldC(int *neqa,
   if (rx->nMtime) calc_mtime(ind->id, ind->mtime);
   if (rx->needSort) doSort(ind);
   if (*nlhsa) {
+    ind->_newind=1;
     for (i=0; i<*ntime; i++){
       ind->idx = i;
       if (ind->evid[ind->ix[i]]) ind->tlast = getTime(ind->ix[i], ind);
       // 0 = first subject; Calc lhs changed...
       calc_lhs(0, getTime(ind->ix[i], ind), retp+i*(*neqa), lhsp+i*(*nlhsa));
+      ind->_newind=2;
     }
   }
 }

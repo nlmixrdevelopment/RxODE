@@ -231,7 +231,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false){
   }
   IntegerVector inCmt;
   if (cmtCol != -1){
-    inCmt = toCmt(inData[cmtCol], mv["state"]);//as<IntegerVector>();
+    inCmt = as<IntegerVector>(toCmt(inData[cmtCol], mv["state"]));//as<IntegerVector>();
   }
   int tmpCmt;
   IntegerVector inId;
@@ -334,6 +334,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false){
     else if (inSs[i] == 1 && cii > 0) ss=10;
     else if (inSs[i] == 2 && cii > 0) ss=20;
     tmpCmt = inCmt[i];
+    if (inCmt[i] == 0) stop("Compartment cannot be zero");
     if (inCmt[i] < 0){
       if (ss != 1) stop("Steady state records cannot be on negative compartments.");
       ss = 30;

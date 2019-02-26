@@ -277,10 +277,12 @@ print.rxEt <- function(x,...){
             cat(sprintf("   %s individuals\n",
                         .maxId))
         }
-        cat(sprintf("   %s dosing records (see %s$%s())\n",
-                    x$ndose, crayon::yellow(bound), crayon::blue("get.dosing")))
-        cat(sprintf("   %s observation times (see %s$%s())\n",
-                    x$nobs, crayon::yellow(bound), crayon::blue("get.sampling")))
+        cat(sprintf("   %s dosing records (see %s$%s(); add with %s or %s)\n",
+                    x$ndose, crayon::yellow(bound), crayon::blue("get.dosing"),
+                    crayon::blue("add.dosing"), crayon::blue("et")))
+        cat(sprintf("   %s observation times (see %s$%s(); add with %s or %s)\n",
+                    x$nobs, crayon::yellow(bound), crayon::blue("get.sampling"),
+                    crayon::blue("add.sampling"), crayon::blue("et")))
         if (x$nobs!=0 | x$ndose!=0){
             cat(cli::rule(crayon::bold(paste0("First part of ",crayon::yellow(bound),":"))), "\n");
             print(dplyr::as.tbl(data.frame(x)[, x$show, drop = FALSE]));

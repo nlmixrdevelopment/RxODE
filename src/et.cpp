@@ -2103,6 +2103,9 @@ RObject et_(List input, List et__){
 	    if (cmtI[0] < 0){
 	      cmtNeg = true;
 	    }
+	    if (cmtI[0] == 0){
+	      stop("Compartment cannot be zero.");
+	    }
 	    cmt = as<RObject>(cmtI);
 	  } else {
 	    stop("The compartment cannot be an vector.");

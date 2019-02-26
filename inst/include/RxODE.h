@@ -118,7 +118,7 @@ typedef struct {
   int allCovWarn;
   int wrongSSDur;
   int timeReset;
-  int newind;
+  int _newind;
 } rx_solving_options_ind;
 
 typedef struct {
