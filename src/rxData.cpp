@@ -3056,7 +3056,7 @@ SEXP rxSolveC(const RObject &obj,
     gsolveSetup(rx->nall*(state.size()+rx->nsub*state.size())*rx->nsim);
     // Not needed since we use Calloc.
     // std::fill_n(&_globals.gsolve[0], rx->nall*state.size()*rx->nsim, 0.0);
-    gOnSetup(rx->nsub*state.size());
+    gOnSetup(rx->nsub*rx->nsim*state.size());
 
     gix_Setup(rx->nall*rx->nsim);
     
