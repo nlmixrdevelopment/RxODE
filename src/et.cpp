@@ -2167,7 +2167,9 @@ RObject et_(List input, List et__){
 	  stop("This EVID requires an AMT");
 	} else if (evid[0] == 2 || evid[0] == 3) {
 	  if (amtIx == -1){
-	    warning("Dose amount is ignored with EVID=2 or EVID=3");
+	    if (amt[0] != 0 && NumericVector::is_na(amt[0])){
+	      warning("Dose amount is ignored with EVID=2 or EVID=3");
+	    }
 	  }
 	  amt[0] = NA_REAL;
 	  isObs = false;

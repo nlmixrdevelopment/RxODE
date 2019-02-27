@@ -448,6 +448,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false){
 	if (ss == 30){
 	  cevid = cmt100*100000+rateI*10000+cmt99*100+ss;
 	} else {
+	  cevid = cmt100*100000+rateI*10000+cmt99*100+1;
 	  if (caddl > 0){
 	    warning("addl is ignored with EVID=2.");
 	  }
@@ -459,6 +460,17 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false){
 	  cmtF.push_back(cmt);
 	  time.push_back(ctime);
 	  amt.push_back(NA_REAL);
+	  ii.push_back(0.0);
+	  idx.push_back(i);
+	  dv.push_back(NA_REAL);
+	  idxO.push_back(curIdx);curIdx++;
+	  ndose++;
+	  // + cmt needs to turn on cmts.
+	  id.push_back(cid);
+	  evid.push_back(cevid);
+	  cmtF.push_back(cmt);
+	  time.push_back(ctime);
+	  amt.push_back(0.0);
 	  ii.push_back(0.0);
 	  idx.push_back(i);
 	  dv.push_back(NA_REAL);
@@ -609,7 +621,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false){
   }
   NumericVector fPars = NumericVector(pars.size()*nid, NA_REAL);
   std::sort(idxO.begin(),idxO.end(),
-	    [id,time,evid](int a, int b){
+	    [id,time,evid,amt](int a, int b){
 	      if (id[a] == id[b]){
 		if (time[a] == time[b]){
 		  if (evid[a] == evid[b]){
@@ -620,6 +632,13 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false){
 		    return true;
 		  }
 		  if (evid[b] == 3){
+		    return false;
+		  }
+		  // Zero amts turn on and off compartments and should be first.
+		  if (amt[a] == 0){
+		    return true;
+		  }
+		  if (amt[b] == 0){
 		    return false;
 		  }
 		  return evid[a] > evid[b];
