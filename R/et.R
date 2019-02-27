@@ -201,14 +201,14 @@ et.default <- function(...,time, amt, evid, cmt, ii, addl, ss, rate, dur, until,
         if (.rate=="model" || .rate=="modeled" ||
             .rate=="modelled" || .rate=="rate"){
             .rate <- try(eval(rate, envir=envir), silent=TRUE);
-            if (inherits(.rate, "try-error")){
+            if (!inherits(.rate, "try-error")){
                 .lst$rate <- .rate
             } else {
                 .lst$rate <- -1.0
             }
         } else if (.rate=="dur" || .rate=="duration"){
             .rate <- try(eval(rate, envir=envir), silent=TRUE);
-            if (inherits(.rate, "try-error")){
+            if (!inherits(.rate, "try-error")){
                 .lst$rate <- .rate;
             } else {
                 .lst$rate <- -2.0;
