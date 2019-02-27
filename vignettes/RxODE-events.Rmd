@@ -549,7 +549,7 @@ rxSolve(m1, ev, c(durDepot=7)) %>% plot(depot, C2) +
 
 ```
 
-This is similar to modeled duration.  This is equaivlent to NONMEM's
+Similarly, you may also model rate.  This is equaivlent to NONMEM's
 `rate=-1` and is how RxODE's event table specifies the data item as
 well. You can also use `rate=model` as a mnemonic:
 
@@ -569,7 +569,7 @@ rxSolve(m1, ev, c(rateDepot=10000/3)) %>% plot(depot, C2) +
 ### Steady State
 
 Steady state doses; These doses are solved until a steady state is
-reached and that level is
+reached with a constant inter-dose interval.
 
 ```{r}
 ev <- et(timeUnits="hr") %>%
@@ -590,7 +590,7 @@ in linear kinetics to get steady state nonstandard dosing
 (i.e. morning 100 mg vs evening 150 mg). This is done by:
  - Saving all the state values
  - Resetting all the states and solving the system to steady state
- - Adding back all the prior stat values
+ - Adding back all the prior state values
  
 ```{r}
 ev <- et(timeUnits="hr") %>%
@@ -627,9 +627,11 @@ ev
 ```
 
 The solving show what happens in this system when the system is reset at 6 hours post-dose.
+
 ```{r}
 rxSolve(m1, ev) %>% plot(depot,C2, eff)
 ```
+
 You can see all the compartments are reset to their initial values.  The next dose start the dosing cycle over.
 
 ```{r}

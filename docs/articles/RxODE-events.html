@@ -750,7 +750,7 @@ ev</code></pre></div>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/rxSolve.html">rxSolve</a></span>(m1, ev, <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="dt">durDepot=</span><span class="dv">7</span>)) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/graphics/topics/plot">plot</a></span>(depot, C2) <span class="op">+</span>
 <span class="st">    </span><span class="kw"><a href="https://ggplot2.tidyverse.org/reference/labs.html">xlab</a></span>(<span class="st">"Time"</span>)</code></pre></div>
 <p><img src="RxODE-events_files/figure-html/unnamed-chunk-38-1.png" width="700"></p>
-<p>This is similar to modeled duration. This is equaivlent to NONMEM’s <code>rate=-1</code> and is how RxODE’s event table specifies the data item as well. You can also use <code>rate=model</code> as a mnemonic:</p>
+<p>Similarly, you may also model rate. This is equaivlent to NONMEM’s <code>rate=-1</code> and is how RxODE’s event table specifies the data item as well. You can also use <code>rate=model</code> as a mnemonic:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">ev &lt;-<span class="st"> </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="dt">timeUnits=</span><span class="st">"hr"</span>) <span class="op">%&gt;%</span>
 <span class="st">    </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="dt">amt=</span><span class="dv">10000</span>, <span class="dt">ii=</span><span class="dv">12</span>,<span class="dt">until=</span><span class="dv">24</span>, <span class="dt">rate=</span>model) <span class="op">%&gt;%</span>
 <span class="st">    </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/seq">seq</a></span>(<span class="dv">0</span>, <span class="dv">24</span>, <span class="dt">length.out=</span><span class="dv">100</span>))
@@ -782,7 +782,7 @@ ev</code></pre></div>
 <div id="steady-state" class="section level3">
 <h3 class="hasAnchor">
 <a href="#steady-state" class="anchor"></a>Steady State</h3>
-<p>Steady state doses; These doses are solved until a steady state is reached and that level is</p>
+<p>Steady state doses; These doses are solved until a steady state is reached with a constant inter-dose interval.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">ev &lt;-<span class="st"> </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="dt">timeUnits=</span><span class="st">"hr"</span>) <span class="op">%&gt;%</span>
 <span class="st">    </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="dt">amt=</span><span class="dv">10000</span>, <span class="dt">ii=</span><span class="dv">12</span>, <span class="dt">ss=</span><span class="dv">1</span>) <span class="op">%&gt;%</span>
 <span class="st">    </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/seq">seq</a></span>(<span class="dv">0</span>, <span class="dv">24</span>, <span class="dt">length.out=</span><span class="dv">100</span>))
@@ -813,7 +813,7 @@ ev</code></pre></div>
 <div id="steady-state-for-complex-dosing" class="section level3">
 <h3 class="hasAnchor">
 <a href="#steady-state-for-complex-dosing" class="anchor"></a>Steady state for complex dosing</h3>
-<p>By using the <code>ss=2</code> flag, you can use the super-positioning principle in linear kinetics to get steady state nonstandard dosing (i.e. morning 100 mg vs evening 150 mg). This is done by: - Saving all the state values - Resetting all the states and solving the system to steady state - Adding back all the prior stat values</p>
+<p>By using the <code>ss=2</code> flag, you can use the super-positioning principle in linear kinetics to get steady state nonstandard dosing (i.e. morning 100 mg vs evening 150 mg). This is done by: - Saving all the state values - Resetting all the states and solving the system to steady state - Adding back all the prior state values</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">ev &lt;-<span class="st"> </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="dt">timeUnits=</span><span class="st">"hr"</span>) <span class="op">%&gt;%</span>
 <span class="st">    </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="dt">amt=</span><span class="dv">10000</span>, <span class="dt">ii=</span><span class="dv">24</span>, <span class="dt">ss=</span><span class="dv">1</span>) <span class="op">%&gt;%</span>
 <span class="st">    </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="dt">time=</span><span class="dv">12</span>, <span class="dt">amt=</span><span class="dv">15000</span>, <span class="dt">ii=</span><span class="dv">24</span>, <span class="dt">ss=</span><span class="dv">2</span>) <span class="op">%&gt;%</span>
@@ -837,10 +837,9 @@ ev</code></pre></div>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">ev &lt;-<span class="st"> </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="dt">timeUnits=</span><span class="st">"hr"</span>) <span class="op">%&gt;%</span>
 <span class="st">    </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="dt">amt=</span><span class="dv">10000</span>, <span class="dt">ii=</span><span class="dv">12</span>, <span class="dt">addl=</span><span class="dv">3</span>) <span class="op">%&gt;%</span>
 <span class="st">    </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="dt">time=</span><span class="dv">6</span>, <span class="dt">evid=</span>reset) <span class="op">%&gt;%</span>
-<span class="st">    </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/seq">seq</a></span>(<span class="dv">0</span>, <span class="dv">24</span>, <span class="dt">length.out=</span><span class="dv">100</span>))</code></pre></div>
-<pre><code>#&gt; Warning in (function (..., time, amt, evid, cmt, ii, addl, ss, rate, dur, : Dose
-#&gt; amount is ignored with EVID=2 or EVID=3</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">ev</code></pre></div>
+<span class="st">    </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/seq">seq</a></span>(<span class="dv">0</span>, <span class="dv">24</span>, <span class="dt">length.out=</span><span class="dv">100</span>))
+
+ev</code></pre></div>
 <pre><code>#&gt; -------------------------- EventTable with 102 records ------------------------- 
 #&gt;    2 dosing records (see x$get.dosing(); add with add.dosing or et)
 #&gt;    100 observation times (see x$get.sampling(); add with add.sampling or et)
@@ -862,7 +861,8 @@ ev</code></pre></div>
 #&gt; --------------------------------------------------------------------------------</code></pre>
 <p>The solving show what happens in this system when the system is reset at 6 hours post-dose.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/rxSolve.html">rxSolve</a></span>(m1, ev) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/graphics/topics/plot">plot</a></span>(depot,C2, eff)</code></pre></div>
-<p><img src="RxODE-events_files/figure-html/unnamed-chunk-45-1.png" width="700"> You can see all the compartments are reset to their initial values. The next dose start the dosing cycle over.</p>
+<p><img src="RxODE-events_files/figure-html/unnamed-chunk-45-1.png" width="700"></p>
+<p>You can see all the compartments are reset to their initial values. The next dose start the dosing cycle over.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">ev &lt;-<span class="st"> </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="dt">timeUnits=</span><span class="st">"hr"</span>) <span class="op">%&gt;%</span>
 <span class="st">    </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="dt">amt=</span><span class="dv">10000</span>, <span class="dt">ii=</span><span class="dv">12</span>, <span class="dt">addl=</span><span class="dv">3</span>) <span class="op">%&gt;%</span>
 <span class="st">    </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="dt">time=</span><span class="dv">6</span>, <span class="dt">amt=</span><span class="dv">10000</span>, <span class="dt">evid=</span><span class="dv">4</span>) <span class="op">%&gt;%</span>
@@ -898,7 +898,7 @@ ev</code></pre></div>
 <p>You may also turn off a compartment, which is similar to a reset event.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">ev &lt;-<span class="st"> </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="dt">timeUnits=</span><span class="st">"hr"</span>) <span class="op">%&gt;%</span>
 <span class="st">    </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="dt">amt=</span><span class="dv">10000</span>, <span class="dt">ii=</span><span class="dv">12</span>, <span class="dt">addl=</span><span class="dv">3</span>) <span class="op">%&gt;%</span>
-<span class="st">    </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="dt">time=</span><span class="dv">6</span>, <span class="dt">cmt=</span><span class="st">"-depot"</span>) <span class="op">%&gt;%</span>
+<span class="st">    </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="dt">time=</span><span class="dv">6</span>, <span class="dt">cmt=</span><span class="st">"-depot"</span>, <span class="dt">evid=</span><span class="dv">2</span>) <span class="op">%&gt;%</span>
 <span class="st">    </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/seq">seq</a></span>(<span class="dv">0</span>, <span class="dv">24</span>, <span class="dt">length.out=</span><span class="dv">100</span>))
 
 ev</code></pre></div>
@@ -928,16 +928,16 @@ ev</code></pre></div>
 <p>Note that a dose to a compartment only turns back on the compartment that was dosed. Hence if you turn off the effect compartment, it continues to be off after another dose to the depot.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">ev &lt;-<span class="st"> </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="dt">timeUnits=</span><span class="st">"hr"</span>) <span class="op">%&gt;%</span>
 <span class="st">    </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="dt">amt=</span><span class="dv">10000</span>, <span class="dt">ii=</span><span class="dv">12</span>, <span class="dt">addl=</span><span class="dv">3</span>) <span class="op">%&gt;%</span>
-<span class="st">    </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="dt">time=</span><span class="dv">6</span>, <span class="dt">cmt=</span><span class="st">"-eff"</span>) <span class="op">%&gt;%</span>
+<span class="st">    </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="dt">time=</span><span class="dv">6</span>, <span class="dt">cmt=</span><span class="st">"-eff"</span>, <span class="dt">evid=</span><span class="dv">2</span>) <span class="op">%&gt;%</span>
 <span class="st">    </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/seq">seq</a></span>(<span class="dv">0</span>, <span class="dv">24</span>, <span class="dt">length.out=</span><span class="dv">100</span>))
 
 <span class="kw"><a href="../reference/rxSolve.html">rxSolve</a></span>(m1, ev) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/graphics/topics/plot">plot</a></span>(depot,C2, eff)</code></pre></div>
 <p><img src="RxODE-events_files/figure-html/unnamed-chunk-50-1.png" width="700"></p>
-<p>To turn back on the compartment, a zero-dose to the compartment would be needed.</p>
+<p>To turn back on the compartment, a zero-dose to the compartment or a evid=2 with the compartment would be needed.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">ev &lt;-<span class="st"> </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="dt">timeUnits=</span><span class="st">"hr"</span>) <span class="op">%&gt;%</span>
 <span class="st">    </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="dt">amt=</span><span class="dv">10000</span>, <span class="dt">ii=</span><span class="dv">12</span>, <span class="dt">addl=</span><span class="dv">3</span>) <span class="op">%&gt;%</span>
-<span class="st">    </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="dt">time=</span><span class="dv">6</span>, <span class="dt">cmt=</span><span class="st">"-eff"</span>) <span class="op">%&gt;%</span>
-<span class="st">    </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="dt">time=</span><span class="dv">12</span>,<span class="dt">amt=</span><span class="dv">0</span>, <span class="dt">cmt=</span><span class="st">"eff"</span>) <span class="op">%&gt;%</span>
+<span class="st">    </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="dt">time=</span><span class="dv">6</span>, <span class="dt">cmt=</span><span class="st">"-eff"</span>, <span class="dt">evid=</span><span class="dv">2</span>) <span class="op">%&gt;%</span>
+<span class="st">    </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="dt">time=</span><span class="dv">12</span>,<span class="dt">cmt=</span><span class="st">"eff"</span>,<span class="dt">evid=</span><span class="dv">2</span>) <span class="op">%&gt;%</span>
 <span class="st">    </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/seq">seq</a></span>(<span class="dv">0</span>, <span class="dv">24</span>, <span class="dt">length.out=</span><span class="dv">100</span>))
 
 <span class="kw"><a href="../reference/rxSolve.html">rxSolve</a></span>(m1, ev) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/graphics/topics/plot">plot</a></span>(depot,C2, eff)</code></pre></div>
