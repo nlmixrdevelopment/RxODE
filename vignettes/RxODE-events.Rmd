@@ -100,6 +100,7 @@ m1 <-RxODE({
     d/dt(centr) = KA*depot - CL*C2 - Q*C2 + Q*C3;
     d/dt(peri)  =                    Q*C2 - Q*C3;
     d/dt(eff)  = Kin - Kout*(1-C2/(EC50+C2))*eff;
+    eff(0) = 1
 });
 ```
 
@@ -151,7 +152,6 @@ If you are more familiar with the NONMEM/RxODE event records, you can
 also specify dosing using `et` with the dose elements directly:
 
 ```{r}
-
 ev <- et(timeUnits="hr") %>%
     et(amt=10000, until = set_units(3, days), ii=12) # loading doses
 
@@ -537,7 +537,7 @@ You can model the duration, which is equivalent to NONMEM's
 
 ```{r}
 ev <- et(timeUnits="hr") %>%
-    et(amt=10000, ii=12,until=24, rate=-2) %>%
+    et(amt=10000, ii=12,until=24, dur=model) %>%
     et(seq(0, 24, length.out=100))
 
 ev
@@ -551,11 +551,11 @@ rxSolve(m1, ev, c(durDepot=7)) %>% plot(depot, C2) +
 
 This is similar to modeled duration.  This is equaivlent to NONMEM's
 `rate=-1` and is how RxODE's event table specifies the data item as
-well.
+well. You can also use `rate=model` as a mnemonic:
 
 ```{r}
 ev <- et(timeUnits="hr") %>%
-    et(amt=10000, ii=12,until=24, rate=-1) %>%
+    et(amt=10000, ii=12,until=24, rate=model) %>%
     et(seq(0, 24, length.out=100))
 
 ev
@@ -612,6 +612,89 @@ rxSolve(m1, ev,maxsteps=10000) %>% plot(C2) +
 You can see that it takes a full dose cycle to reach the true complex
 steady state dosing.
 
+### Reset Events
+
+Reset events are implemented by `evid=3` or `evid=reset`, for reset
+and `evid=4` for reset and dose.
+
+```{r}
+ev <- et(timeUnits="hr") %>%
+    et(amt=10000, ii=12, addl=3) %>%
+    et(time=6, evid=reset) %>%
+    et(seq(0, 24, length.out=100))
+
+ev
+```
+
+The solving show what happens in this system when the system is reset at 6 hours post-dose.
+```{r}
+rxSolve(m1, ev) %>% plot(depot,C2, eff)
+```
+You can see all the compartments are reset to their initial values.  The next dose start the dosing cycle over.
+
+```{r}
+ev <- et(timeUnits="hr") %>%
+    et(amt=10000, ii=12, addl=3) %>%
+    et(time=6, amt=10000, evid=4) %>%
+    et(seq(0, 24, length.out=100))
+
+ev
+```
+
+In this case, the whole system is reset and the dose is given
+
+```{r}
+rxSolve(m1, ev) %>% plot(depot,C2, eff)
+```
+
+### Turning off compartments
+
+You may also turn off a compartment, which is similar to a reset event.
+```{r}
+ev <- et(timeUnits="hr") %>%
+    et(amt=10000, ii=12, addl=3) %>%
+    et(time=6, cmt="-depot") %>%
+    et(seq(0, 24, length.out=100))
+
+ev
+```
+
+Solving shows what this does in the system:
+
+```{r}
+rxSolve(m1, ev) %>% plot(depot,C2, eff)
+```
+
+In this case, the depot is turned off, and the compartment
+concentrations are set to the initial values but the other compartment
+concentrations/levels are not reset. When another dose to the depot is
+administered the depot compartment is turned back on.
+
+Note that a dose to a compartment only turns back on the compartment
+that was dosed.  Hence if you turn off the effect compartment, it
+continues to be off after another dose to the depot.
+
+```{r}
+ev <- et(timeUnits="hr") %>%
+    et(amt=10000, ii=12, addl=3) %>%
+    et(time=6, cmt="-eff") %>%
+    et(seq(0, 24, length.out=100))
+
+rxSolve(m1, ev) %>% plot(depot,C2, eff)
+```
+
+To turn back on the compartment, a zero-dose to the compartment would be needed.
+
+```{r}
+ev <- et(timeUnits="hr") %>%
+    et(amt=10000, ii=12, addl=3) %>%
+    et(time=6, cmt="-eff") %>%
+    et(time=12,amt=0, cmt="eff") %>%
+    et(seq(0, 24, length.out=100))
+
+rxSolve(m1, ev) %>% plot(depot,C2, eff)
+
+```
 
 ## Classic RxODE evid values
 

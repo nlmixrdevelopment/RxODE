@@ -577,7 +577,7 @@ int handle_evid(int evid, int neq,
 	}
       }
       if (ind->wh0 == 30){
-	yp[cmt]=0.0;
+	yp[cmt]=op_global.inits[cmt];
 	InfusionRate[cmt] = 0;
 	ind->on[cmt] = 0;
 	return 1;

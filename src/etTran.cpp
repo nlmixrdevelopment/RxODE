@@ -614,7 +614,14 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false){
 		if (time[a] == time[b]){
 		  if (evid[a] == evid[b]){
 		    return a < b;
-	  }
+		  }
+		  // Reset should be before all other events.
+		  if (evid[a] == 3){
+		    return true;
+		  }
+		  if (evid[b] == 3){
+		    return false;
+		  }
 		  return evid[a] > evid[b];
 		}
 		return time[a] < time[b];
