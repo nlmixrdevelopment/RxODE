@@ -117,3 +117,11 @@ units::set_units
 #' @importFrom units drop_units
 #' @export
 units::drop_units
+
+##'@importFrom ggplot2 ylab
+##'@export
+ggplot2::ylab
+
+##'@importFrom ggplot2 xlab
+##'@export
+ggplot2::xlab

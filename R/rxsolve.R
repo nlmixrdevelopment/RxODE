@@ -681,11 +681,22 @@ plot.rxSolve <- function(x,y,...){
     .dat <- rxStack(x,.cmts);
     time <- value <- id <- NULL
     if (any(names(.dat)=="id")){
-        ggplot(.dat,ggplot2::aes(time,value,color=factor(id)))+
-            geom_line(size=1.2) +facet_wrap( ~ trt)
+        .dat$id <- factor(.dat$id);
+        if (length(.cmts)==1){
+            ggplot(.dat,ggplot2::aes(time,value,color=id))+
+                geom_line(size=1.2) + ylab(.cmts)
+        } else {
+            ggplot(.dat,ggplot2::aes(time,value,color=id))+
+                geom_line(size=1.2) +facet_wrap( ~ trt, scales="free_y")
+        }
     } else {
-        ggplot(.dat,ggplot2::aes(time,value))+
-            geom_line(size=1.2) +facet_wrap(~ trt)
+        if (length(.cmts)==1){
+            ggplot(.dat,ggplot2::aes(time,value))+
+                geom_line(size=1.2) + ylab(.cmts)
+        } else {
+            ggplot(.dat,ggplot2::aes(time,value))+
+                geom_line(size=1.2) +facet_wrap(~ trt, scales="free_y")
+        }
     }
 }
 

@@ -447,11 +447,11 @@ List etAddWindow(List windowLst, IntegerVector IDs, RObject cmt, bool turnOnShow
       tmpN[i] = NA_REAL;
       
       // nme[8] = "addl";
-      tmpI = as<IntegerVector>(lst[8]); // id
+      tmpI = as<IntegerVector>(lst[8]);
       tmpI[i] = NA_REAL;
   
       // nme[10] = "ss";
-      tmpI = as<IntegerVector>(lst[10]); // id
+      tmpI = as<IntegerVector>(lst[10]);
       tmpI[i] = NA_REAL;
       
       // nme[11] = "dur";
@@ -1185,6 +1185,7 @@ List etAddDose(NumericVector curTime, RObject cmt,  double amt, double rate, dou
   int i, j;
   double a, b, c;
   int ndose=0, nobs = 0;
+  bool unroll=false;
   for (j = IDs.size(); j--;){
     if (curTime.size() == 1){
       id.push_back(j+1);
@@ -1231,6 +1232,7 @@ List etAddDose(NumericVector curTime, RObject cmt,  double amt, double rate, dou
 	  c = Rf_runif(a, b);
 	  time.push_back(c);
 	  ndose++;
+	  unroll=true;
 	}
       } else {
 	stop("For dosing window you need to specify window in order, e.g. et(time=c(0,2),amt=3).");
@@ -1339,11 +1341,18 @@ List etAddDose(NumericVector curTime, RObject cmt,  double amt, double rate, dou
       
       // nme[7] = "ii";
       tmpN = as<NumericVector>(lst[7]);
-      tmpN[i] = ii;
-      
+      if (unroll){
+	tmpN[i] = 0;
+      } else {
+	tmpN[i] = ii;
+      }
       // nme[8] = "addl";
       tmpI = as<IntegerVector>(lst[8]); // id
-      tmpI[i] = addl;
+      if (unroll){
+	tmpI[i] = 0;
+      } else {
+	tmpI[i] = addl;
+      }
   
       // nme[10] = "ss";
       tmpI = as<IntegerVector>(lst[10]); // id
@@ -1482,6 +1491,8 @@ RObject etUpdateObj(List curEt, bool update, bool rxSolve){
   e["units"] = units;
   cls.attr(".RxODE.lst") = e;
   lst.attr("class") = cls;
+  int len = as<int>(e["nobs"]) +as<int>(e["ndose"]);
+  lst.attr("row.names") = IntegerVector::create(NA_INTEGER, -len);
   if (update){
     List cmp = as<List>(evCur);
     for (int j = lst.size(); j--;){
@@ -1490,6 +1501,7 @@ RObject etUpdateObj(List curEt, bool update, bool rxSolve){
     cmp.attr("class") = clone(as<CharacterVector>(lst.attr("class")));
     cmp.attr("names") = lst.attr("names");
     cmp.attr("row.names") = lst.attr("row.names");
+    cmp.attr("row.names") = IntegerVector::create(NA_INTEGER, -len);
   }
   if (rxSolve){
     Function rxs("rxSolve.default", RxODEenv());
@@ -2480,6 +2492,7 @@ List etSeq_(List ets, int handleSamples=0, int waitType = 0,
   std::vector<int> idxEts;
   std::vector<int> idxEt;
   std::vector<int> idx;
+  std::vector<int> IDs;
   
   NumericVector curTime, curLow, curHigh, curIi,curAmt;
   IntegerVector curEvid, curAddl, curId;
@@ -2517,8 +2530,8 @@ List etSeq_(List ets, int handleSamples=0, int waitType = 0,
     }
   }
   bool firstDoseOfEt=true;
-  lastId=-1;// New id of each event table will trigger id change for unique
   for (i = 0 ;i < ets.size(); i++){
+    lastId=-1;// New id of each event table will trigger id change for unique
     if (rxIs(ets[i], "rxEt")){
       List et = ets[i];
       cls = as<CharacterVector>(et.attr("class"));
@@ -2596,10 +2609,14 @@ List etSeq_(List ets, int handleSamples=0, int waitType = 0,
 	  if (lastId != curId[j]){
 	    thisId++;
 	    lastId = curId[j];
+	    IDs.push_back(thisId);
 	  }
 	  id.push_back(thisId);
 	} else {
 	  id.push_back(curId[j]);
+	  if (std::find(IDs.begin(), IDs.end(), curId[j]) == IDs.end()){
+	    IDs.push_back(curId[j]);
+	  }
 	}
 	addl.push_back(curAddl[j]);
 	if (!ISNA(curHigh[j])){
@@ -2699,7 +2716,7 @@ List etSeq_(List ets, int handleSamples=0, int waitType = 0,
 	      });
   }
   if (!gotUnits){
-    stop("No events table found for seq/rep.");
+    stop("No events table found for seq/rep/rbind/c.");
   }
   List lst = etEmpty(units);
   // nme[0] = "id";
@@ -2802,6 +2819,14 @@ List etSeq_(List ets, int handleSamples=0, int waitType = 0,
   e["ndose"] = ndose;
   e["nobs"]  = nobs;
   e["show"]  = show;
+  if (IDs.size() > 1){
+    show["id"] = true;
+    e["IDs"] = wrap(IDs);
+  } else {
+    show["id"] = false;
+    e["IDs"] = wrap(IDs);
+  }
+  
   cls.attr(".RxODE.lst") = e;
   lst.attr("class") = cls;
   lst.attr("row.names") = IntegerVector::create(NA_INTEGER, -(nobs+ndose));
