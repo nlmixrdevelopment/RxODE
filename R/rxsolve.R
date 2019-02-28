@@ -336,10 +336,6 @@ rxControl <- function(scale = NULL,
 ##'     you supply single subject event tables (created with
 ##'     eventTable)
 ##'
-##' @param setupOnly Only setup the internal C structure, do not
-##'     solve.  After setting it up, and using the structure in C, it
-##'     needs to be freed by \code{\link{rxSolveFree}}.
-##'
 ##' @return An \dQuote{rxSolve} solve object that stores the solved
 ##'     value in a matrix with as many rows as there are sampled time
 ##'     points and as many columns as system variables (as defined by
