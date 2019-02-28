@@ -407,6 +407,10 @@ rxUpdateTrans_ <- function(ret, prefix, libName) {
     .Call(`_RxODE_rxUpdateTrans_`, ret, prefix, libName)
 }
 
+dropUnitsRxSolve <- function(x) {
+    .Call(`_RxODE_dropUnitsRxSolve`, x)
+}
+
 #' Invert matrix using Rcpp Armadilo.  
 #'
 #' @param matrix matrix to be inverted.

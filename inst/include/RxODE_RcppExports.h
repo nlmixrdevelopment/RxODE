@@ -718,6 +718,27 @@ namespace RxODE {
         return Rcpp::as<List >(rcpp_result_gen);
     }
 
+    inline List dropUnitsRxSolve(List x) {
+        typedef SEXP(*Ptr_dropUnitsRxSolve)(SEXP);
+        static Ptr_dropUnitsRxSolve p_dropUnitsRxSolve = NULL;
+        if (p_dropUnitsRxSolve == NULL) {
+            validateSignature("List(*dropUnitsRxSolve)(List)");
+            p_dropUnitsRxSolve = (Ptr_dropUnitsRxSolve)R_GetCCallable("RxODE", "_RxODE_dropUnitsRxSolve");
+        }
+        RObject rcpp_result_gen;
+        {
+            RNGScope RCPP_rngScope_gen;
+            rcpp_result_gen = p_dropUnitsRxSolve(Shield<SEXP>(Rcpp::wrap(x)));
+        }
+        if (rcpp_result_gen.inherits("interrupted-error"))
+            throw Rcpp::internal::InterruptedException();
+        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
+            throw Rcpp::LongjumpException(rcpp_result_gen);
+        if (rcpp_result_gen.inherits("try-error"))
+            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
+        return Rcpp::as<List >(rcpp_result_gen);
+    }
+
     inline NumericVector rxInv(SEXP matrix) {
         typedef SEXP(*Ptr_rxInv)(SEXP);
         static Ptr_rxInv p_rxInv = NULL;

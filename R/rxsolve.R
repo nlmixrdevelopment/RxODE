@@ -787,6 +787,11 @@ plot.rxSolve <- function(x,y,...){
     }
 }
 
+##'@export
+drop_units.rxSolve <- function(x){
+    dropUnitsRxSolve(x);
+}
+
 ## dim (gets you nrow and ncol), t, dimnames
 ##
 ## [1] $<-           [             [[<-          [<-           all.equal

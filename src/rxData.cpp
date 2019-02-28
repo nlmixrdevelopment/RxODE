@@ -4052,3 +4052,19 @@ extern "C" void doSort(rx_solving_options_ind *ind){
 	      return ta < tb;
 	    });
 }
+
+//[[Rcpp::export]]
+List dropUnitsRxSolve(List x){
+  List ret;
+  if (rxIs(x, "rxSolve")){
+    ret = clone(x);
+    for (int j = (int)ret.size(); j--;){
+      if (rxIs(ret[j],"units")){
+	RObject cur = ret[j];
+	cur.attr("units") = R_NilValue;
+	cur.attr("class") = R_NilValue;
+      }
+    }
+  }
+  return ret;
+}

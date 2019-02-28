@@ -6,7 +6,7 @@
 #include <stdlib.h> // for NULL
 #include <R_ext/Rdynload.h>
 #include "../inst/include/RxODE.h"
-
+SEXP _RxODE_dropUnitsRxSolve(SEXP);
 SEXP _RxODE_etRep_(SEXP, SEXP, SEXP, SEXP, SEXP,
 		   SEXP, SEXP);
 SEXP _RxODE_etSeq_(SEXP, SEXP, SEXP, SEXP, SEXP,
@@ -203,6 +203,7 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_etSeq_", (DL_FUNC) &_RxODE_etSeq_, 11},
     {"_RxODE_etRep_", (DL_FUNC) &_RxODE_etRep_, 7},
     {"_RxODE_rxSolve_", (DL_FUNC) &_RxODE_rxSolve_, 8},
+    {"_RxODE_dropUnitsRxSolve", (DL_FUNC) &_RxODE_dropUnitsRxSolve, 1},
     {NULL, NULL, 0}
   };
   // C callable to assign environments.
