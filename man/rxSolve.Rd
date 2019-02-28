@@ -15,20 +15,7 @@
 rxSolve(object, ...)
 
 \method{rxSolve}{default}(object, params = NULL, events = NULL,
-  inits = NULL, scale = NULL, method = c("liblsoda", "lsoda",
-  "dop853"), transitAbs = NULL, atol = 1e-08, rtol = 1e-06,
-  maxsteps = 5000L, hmin = 0L, hmax = NA, hini = 0,
-  maxordn = 12L, maxords = 5L, ..., cores,
-  covsInterpolation = c("locf", "linear", "nocb", "midpoint"),
-  addCov = FALSE, matrix = FALSE, sigma = NULL, sigmaDf = NULL,
-  nCoresRV = 1L, sigmaIsChol = FALSE, nDisplayProgress = 10000L,
-  amountUnits = NA_character_, timeUnits = "hours", stiff,
-  theta = NULL, eta = NULL, addDosing = FALSE, stateTrim = Inf,
-  updateObject = FALSE, omega = NULL, omegaDf = NULL,
-  omegaIsChol = FALSE, nSub = 1L, thetaMat = NULL, thetaDf = NULL,
-  thetaIsChol = FALSE, nStud = 1L, dfSub = 0, dfObs = 0,
-  returnType = c("rxSolve", "matrix", "data.frame", "data.frame.TBS"),
-  seed = NULL, nsim = NULL, setupOnly = FALSE)
+  inits = NULL, ...)
 
 \method{update}{rxSolve}(object, ...)
 
@@ -67,11 +54,26 @@ time points (see \code{\link{eventTable}});}
 vector must be the same as the state variables (e.g., PK/PD
 compartments);}
 
+\item{nsim}{represents the number of simulations.  For RxODE, if
+you supply single subject event tables (created with
+eventTable)}
+
+\item{seed}{an object specifying if and how the random number
+generator should be initialized}
+
+\item{a}{when using \code{solve}, this is equivalent to the
+\code{object} argument.  If you specify \code{object} later in
+the argument list it overwrites this parameter.}
+
+\item{b}{when using \code{solve}, this is equivalent to the
+\code{params} argument.  If you specify \code{params} as a
+named argument, this overwrites the output}
+
 \item{scale}{a numeric named vector with scaling for ode
 parameters of the system.  The names must correstond to the
 parameter identifiers in the ODE specification. Each of the
 ODE variables will be divided by the scaling factor.  For
-example \code{scale=(center=2)} will divide the center ODE
+example \code{scale=c(center=2)} will divide the center ODE
 variable by 2.}
 
 \item{method}{The method for solving ODEs.  Currently this supports:
@@ -217,40 +219,6 @@ well as returning a new object.  You probably should not
 modify it's \code{FALSE} default unless you are willing to
 have unexpected results.}
 
-\item{omega}{Named omega matrix.}
-
-\item{omegaDf}{The degrees of freedom of a t-distribution for
-simulation.  By default this is \code{NULL} which is
-equivalent to \code{Inf} degrees, or to simulate from a normal
-distribution instead of a t-distribution.}
-
-\item{omegaIsChol}{Indicates if the \code{omega} supplied is a
-Cholesky decomposed matrix instead of the traditional
-symmetric matrix.}
-
-\item{nSub}{Number between subject variabilities (ETAs) simulated for every 
-realization of the parameters.}
-
-\item{thetaMat}{Named theta matrix.}
-
-\item{thetaDf}{The degrees of freedom of a t-distribution for
-simulation.  By default this is \code{NULL} which is
-equivalent to \code{Inf} degrees, or to simulate from a normal
-distribution instead of a t-distribution.}
-
-\item{thetaIsChol}{Indicates if the \code{theta} supplied is a
-Cholesky decomposed matrix instead of the traditional
-symmetric matrix.}
-
-\item{nStud}{Number virtual studies to characterize uncertainty in estimated 
-parameters.}
-
-\item{dfSub}{Degrees of freedom to sample the between subject variaiblity matrix from the 
-inverse Wishart distribution (scaled) or scaled inverse chi squared distribution.}
-
-\item{dfObs}{Degrees of freedom to sample the unexplained variaiblity matrix from the 
-inverse Wishart distribution (scaled) or scaled inverse chi squared distribution.}
-
 \item{returnType}{This tells what type of object is returned.  The currently supported types are:
 \itemize{
 \item \code{"rxSolve"} (default) will return a reactive data frame
@@ -263,24 +231,9 @@ inverse Wishart distribution (scaled) or scaled inverse chi squared distribution
     to the solved object.  This is what is used \code{object$run} as well as \code{object$solve}
 }}
 
-\item{seed}{an object specifying if and how the random number
-generator should be initialized}
-
-\item{nsim}{represents the number of simulations.  For RxODE, if
-you supply single subject event tables (created with
-eventTable)}
-
 \item{setupOnly}{Only setup the internal C structure, do not
 solve.  After setting it up, and using the structure in C, it
 needs to be freed by \code{\link{rxSolveFree}}.}
-
-\item{a}{when using \code{solve}, this is equivalent to the
-\code{object} argument.  If you specify \code{object} later in
-the argument list it overwrites this parameter.}
-
-\item{b}{when using \code{solve}, this is equivalent to the
-\code{params} argument.  If you specify \code{params} as a
-named argument, this overwrites the output}
 }
 \value{
 An \dQuote{rxSolve} solve object that stores the solved

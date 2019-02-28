@@ -26,6 +26,7 @@ d/dt(y) = -1.0*(d/dt(x)+d/dt(z))
     })
 
     o1$add.sampling(0);
+
     ## print(o1);
     test_that("rxSolve produces the correct results for rhs",{
         expect_equal(round(as.data.frame(o1),4),
