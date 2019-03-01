@@ -129,6 +129,10 @@ void ind_solve(rx_solve *rx, unsigned int cid, t_dydt_liblsoda dydt_lls,
 	       t_dydt c_dydt, t_update_inis u_inis, int jt);
 int isRstudio();
 
+extern void rxSingleSolve(double *_theta, double *timep, int *evidp, int *ntime,
+			  double *initsp, double *dosep, double *ii, double *retp,
+			  double *lhsp, int *rc);
+
 void R_init_RxODE(DllInfo *info){
   R_CallMethodDef callMethods[]  = {
     {"_rxProgress", (DL_FUNC) &_rxProgress, 2},
@@ -218,6 +222,7 @@ void R_init_RxODE(DllInfo *info){
   R_RegisterCCallable("RxODE", "rxIsCurrentC", (DL_FUNC) rxIsCurrentC);
   R_RegisterCCallable("RxODE","RxODE_current_fn_pointer_id", (DL_FUNC) &RxODE_current_fn_pointer_id);
   R_RegisterCCallable("RxODE","getRxSolve_", (DL_FUNC) &getRxSolve_);
+  R_RegisterCCallable("RxODE", "rxSingleSolve", (DL_FUNC) &rxSingleSolve);
   
   static const R_CMethodDef cMethods[] = {
     {"RxODE_sum",               (DL_FUNC) &RxODE_sum, 2, RxODE_Sum_t},

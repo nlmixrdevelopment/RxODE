@@ -263,12 +263,14 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false){
     inId = convId(inData[idCol]);//as<IntegerVector>();
     idLvl = inId.attr("levels");
   } else {
-    warning("ID=1 added to dataset");
+    // warning("ID=1 added to dataset");
     idLvl = CharacterVector::create("1");
   }
   IntegerVector inSs;
   if (ssCol != -1){
-    if (rxIs(inData[ssCol], "integer") || rxIs(inData[ssCol], "numeric")){
+    if (rxIs(inData[ssCol], "integer") || rxIs(inData[ssCol], "numeric") ||
+	rxIs(inData[ssCol], "logical")){
+      // NA by default is NA_logical
       inSs = as<IntegerVector>(inData[ssCol]);
     } else {
       stop("Steady state column (ss) has needs to be an integer");
@@ -276,7 +278,8 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false){
   }
   IntegerVector inEvid;
   if (evidCol != -1){
-    if (rxIs(inData[evidCol], "integer") || rxIs(inData[evidCol], "numeric")){
+    if (rxIs(inData[evidCol], "integer") || rxIs(inData[evidCol], "numeric") ||
+	rxIs(inData[evidCol], "logical")){
       inEvid = as<IntegerVector>(inData[evidCol]);
     } else {
       stop("Event id (evid) needs to be an integer");
@@ -284,7 +287,8 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false){
   }
   NumericVector inRate;
   if (rateCol != -1){
-    if (rxIs(inData[rateCol], "integer") || rxIs(inData[rateCol], "numeric")){
+    if (rxIs(inData[rateCol], "integer") || rxIs(inData[rateCol], "numeric") ||
+	rxIs(inData[rateCol], "logical")){
       inRate = as<NumericVector>(inData[rateCol]);
     } else {
       stop("'rate' needs to be a number");
@@ -293,7 +297,8 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false){
 
   NumericVector inDur;
   if (durCol != -1){
-    if (rxIs(inData[durCol], "integer") || rxIs(inData[durCol], "numeric")){
+    if (rxIs(inData[durCol], "integer") || rxIs(inData[durCol], "numeric") ||
+	rxIs(inData[durCol], "logical")){
       inDur = as<NumericVector>(inData[durCol]);
     } else {
       stop("'dur' needs to be a number");
@@ -304,7 +309,8 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false){
   RObject amtUnits;
   NumericVector inAmt;
   if (amtCol != -1){
-    if (rxIs(inData[amtCol], "integer") || rxIs(inData[amtCol], "numeric")){
+    if (rxIs(inData[amtCol], "integer") || rxIs(inData[amtCol], "numeric") ||
+	rxIs(inData[amtCol], "logical")){
       inAmt = as<NumericVector>(inData[amtCol]);
       if (rxIs(inAmt, "units")){
 	addAmtUnits=true;
@@ -316,7 +322,8 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false){
   }
   NumericVector inIi;
   if (iiCol != -1){
-    if (rxIs(inData[rateCol], "integer") || rxIs(inData[rateCol], "numeric")){
+    if (rxIs(inData[rateCol], "integer") || rxIs(inData[rateCol], "numeric") ||
+	rxIs(inData[rateCol], "logical")){
       inIi = as<NumericVector>(inData[iiCol]);
     } else {
       stop("Inter-dose interval (ii) needs to be a number.");
