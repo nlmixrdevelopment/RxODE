@@ -402,9 +402,7 @@ RxODE <- function(model, modName = basename(wd),
     .env$solve <- eval(bquote(function(..., matrix=TRUE, object=NULL){
         RxODE::rxSolve(object=get("rxDll", envir=.(.env)), ..., matrix=matrix);
     }))
-    .env$.c <- with(.env, function(...){.C(...)});
     .env$dll <- new.env(parent=baseenv())
-    .env$dll$.c <- .env$.c;
     .env$assignPtr <- eval(bquote(function(){
         RxODE::rxAssignPtr(get("rxDll", envir=.(.env)));
     }))
@@ -1305,7 +1303,6 @@ rxCompile.rxModelVars <-  function(model, # Model
         }
     }
     .call <- function(...){return(.Call(...))};
-    .c <- function(...){return(.C(...))};
     .args <- list(model = model, dir = .dir, prefix = prefix,
                  extraC = extraC, force = force, modName = modName,
                  ...);
@@ -1315,7 +1312,6 @@ rxCompile.rxModelVars <-  function(model, # Model
                                   extra   = extraC,
                                   modVars = .allModVars,
                                   .call   = .call,
-                                  .c      = .c,
                                   args    = .args)});
     class(ret) <- "rxDll";
     return(ret);

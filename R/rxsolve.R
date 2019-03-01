@@ -458,8 +458,13 @@ rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, ...)
     ##         params <- NULL;
     ##     }
     ## }
+    .lst <- list(...);
+    .setupOnly <- 0L
+    if (any(names(.lst)==".setupOnly")){
+        .setupOnly <- .lst$.setupOnly;
+    }
     rxSolve_(object, rxControl(...), .nms, .xtra,
-             params, events, inits);
+             params, events, inits,setupOnly=.setupOnly);
 }
 
 ##' @rdname rxSolve

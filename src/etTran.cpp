@@ -322,8 +322,8 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false){
   }
   NumericVector inIi;
   if (iiCol != -1){
-    if (rxIs(inData[rateCol], "integer") || rxIs(inData[rateCol], "numeric") ||
-	rxIs(inData[rateCol], "logical")){
+    if (rxIs(inData[iiCol], "integer") || rxIs(inData[iiCol], "numeric") ||
+	rxIs(inData[iiCol], "logical")){
       inIi = as<NumericVector>(inData[iiCol]);
     } else {
       stop("Inter-dose interval (ii) needs to be a number.");
@@ -331,7 +331,8 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false){
   }
   IntegerVector inAddl;
   if (addlCol != -1){
-    if (rxIs(inData[rateCol], "integer") || rxIs(inData[rateCol], "numeric")){
+    if (rxIs(inData[addlCol], "integer") || rxIs(inData[addlCol], "numeric")||
+	rxIs(inData[addlCol], "level")){
       inAddl = as<IntegerVector>(inData[addlCol]);
     } else {
       stop("Number of additional doses (addl) needs to be an integer");
@@ -339,7 +340,8 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false){
   }
   NumericVector inDv;
   if (dvCol != -1){
-    if (rxIs(inData[rateCol], "integer") || rxIs(inData[rateCol], "numeric")){
+    if (rxIs(inData[dvCol], "integer") || rxIs(inData[dvCol], "numeric") ||
+	rxIs(inData[dvCol], "logical")){
       inDv = as<NumericVector>(inData[dvCol]);
     } else {
       stop("The dependent variable (dv) needs to be a number");

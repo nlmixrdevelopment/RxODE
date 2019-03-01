@@ -2081,6 +2081,7 @@ extern void rxSingleSolve(double *_theta,  //order:
   rx_solving_options *op = &op_global;
   rx_solving_options_ind *ind = &inds_global[0];
   int i;
+
   // Counters
   ind->slvr_counter = gslvr_counterSetup(1);
   ind->dadt_counter = gdadt_counterSetup(1);
@@ -2092,7 +2093,7 @@ extern void rxSingleSolve(double *_theta,  //order:
   ind->InfusionRate = global_InfusionRate(op->neq);
   /* memset(ind->InfusionRate, 0.0, op->neq);  not for doubles*/
   for (unsigned int j = op->neq; j--;) ind->InfusionRate[j]=0.0;
-  
+
   ind->BadDose = global_BadDose(op->neq);
   memset(ind->BadDose, 0, op->neq); // int ok
   ind->nBadDose = 0;
