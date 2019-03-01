@@ -3090,6 +3090,84 @@ SEXP rxSolve_(const RObject &obj,
       stop("Something is wrong here.");
     }
     if (setupOnly){
+      if (setupOnly == 2){
+	// Partial free
+	// mtime needs to be setup and used.
+	if (_globals.gmtime != NULL&& _globals.gmtimen>0) Free(_globals.gmtime);
+	_globals.gmtime=NULL;
+	_globals.gmtimen=0;
+	// par_cov needs to be specified.
+	if (_globals.gpar_cov != NULL) Free(_globals.gpar_cov);
+	_globals.gpar_covn=0;
+
+	if (_globals.gsiV != NULL) Free(_globals.gsiV);
+	_globals.gsiVn=0;
+	if (_globals.gsvar != NULL) Free(_globals.gsvar);
+	_globals.gsvarn=0;
+
+	// idose provided
+	if (_globals.gidose != NULL) Free(_globals.gidose);
+	_globals.gidosen=0;
+	// Rc provided
+	if (_globals.grc != NULL && _globals.grcn > 0) Free(_globals.grc);
+	_globals.grc=NULL;
+	_globals.grcn=0;
+	// Baddose setup on single solve
+	if (_globals.gBadDose != NULL) Free(_globals.gBadDose);
+	_globals.gBadDosen=0;
+	// Evid provided
+	if (_globals.gevid != NULL && _globals.gevidn > 0) Free(_globals.gevid);
+	_globals.gevid=NULL;
+	_globals.gevidn=0;
+	// gpar setup
+	if (_globals.gpars != NULL && _globals.gparsn>0) Free(_globals.gpars);
+	_globals.gpars=NULL;
+	_globals.gparsn=0;
+	// Tolerances need to be saved.
+	// if (_globals.grtol2 != NULL) Free(_globals.grtol2);
+	// _globals.grtol2n=0;
+	// if (_globals.gatol2 != NULL) Free(_globals.gatol2);
+	// _globals.gatol2n=0;
+	if (_globals.gscale != NULL) Free(_globals.gscale);
+	_globals.gscalen=0;
+	// Set initial conditions
+	if (_globals.ginits != NULL && _globals.ginitsn > 0) Free(_globals.ginits);
+	_globals.ginits=NULL;
+	_globals.ginitsn=0;
+	// Cov needs to be provided
+	if (_globals.gcov != NULL) Free(_globals.gcov);
+	_globals.gcovn=0;
+	// lhs needs to be provided
+	if (_globals.glhs != NULL && _globals.glhsn > 0) Free(_globals.glhs);
+	_globals.glhs=NULL;
+	_globals.glhsn=0;
+	// dose needs to be provided.  So does ii
+	if (_globals.gamt != NULL && _globals.gamtn > 0) Free(_globals.gamt);
+	if (_globals.gii != NULL && _globals.gamtn > 0) Free(_globals.gii);
+	_globals.gamt=NULL;
+	_globals.gii=NULL;
+	_globals.gamtn=0;
+	// Times need to be provided.
+	if (_globals.gall_times != NULL && _globals.gall_timesn>0) Free(_globals.gall_times);
+	_globals.gall_times=NULL;
+	_globals.gall_timesn=0;
+	if (_globals.gix != NULL && _globals.gixn>0) Free(_globals.gix);
+	_globals.gix=NULL;
+	_globals.gixn=0;
+	if (_globals.gdv != NULL) Free(_globals.gdv);
+	_globals.gdvn=0;
+	if (_globals.gInfusionRate != NULL) Free(_globals.gInfusionRate);
+	_globals.gInfusionRaten=0;
+	if (_globals.gsolve != NULL&& _globals.gsolven>0) Free(_globals.gsolve);
+	_globals.gsolve=NULL;
+	_globals.gsolven=0;
+	if (_globals.gon != NULL&& _globals.gonn>0) Free(_globals.gon);
+	_globals.gon=NULL;
+	_globals.gonn=0;
+	if (_globals.gParPos != NULL) Free(_globals.gParPos);
+	if (_globals.gParPos2 != NULL) Free(_globals.gParPos2);
+	_globals.gParPosn = 0;
+      }
       return as<SEXP>(LogicalVector::create(true));
     }
     par_solve(rx);

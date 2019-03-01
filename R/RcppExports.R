@@ -21,6 +21,15 @@ etRep_ <- function(curEt, times, wait, ids, handleSamples, waitType, ii) {
     .Call(`_RxODE_etRep_`, curEt, times, wait, ids, handleSamples, waitType, ii)
 }
 
+#' Event translation for RxODE
+#'
+#' @param inData Data frame to translate
+#' @param obj Model to translate data 
+#' @param addCmt Add compartment to data frame
+#' @param addUnits add units to the translated data
+#' @return Object for solving in RxODE
+#' @keywords internal
+#' @export
 etTrans <- function(inData, obj, addCmt = FALSE) {
     .Call(`_RxODE_etTrans`, inData, obj, addCmt)
 }
