@@ -293,7 +293,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false){
 
   NumericVector inDur;
   if (durCol != -1){
-    if (rxIs(inData[rateCol], "integer") || rxIs(inData[rateCol], "numeric")){
+    if (rxIs(inData[durCol], "integer") || rxIs(inData[durCol], "numeric")){
       inDur = as<NumericVector>(inData[durCol]);
     } else {
       stop("'dur' needs to be a number");
@@ -304,7 +304,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false){
   RObject amtUnits;
   NumericVector inAmt;
   if (amtCol != -1){
-    if (rxIs(inData[rateCol], "integer") || rxIs(inData[rateCol], "numeric")){
+    if (rxIs(inData[amtCol], "integer") || rxIs(inData[amtCol], "numeric")){
       inAmt = as<NumericVector>(inData[amtCol]);
       if (rxIs(inAmt, "units")){
 	addAmtUnits=true;

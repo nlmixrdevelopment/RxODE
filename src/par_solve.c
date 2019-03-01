@@ -206,6 +206,8 @@ t_set_solve set_solve = NULL;
 
 t_get_solve get_solve = NULL;
 
+t_get_theta get_theta = NULL;
+
 t_F AMT = NULL;
 t_LAG LAG = NULL;
 t_RATE RATE = NULL;
@@ -222,7 +224,7 @@ int *global_iworkp;
 void rxUpdateFuns(SEXP trans){
   const char *lib, *s_dydt, *s_calc_jac, *s_calc_lhs, *s_inis, *s_dydt_lsoda_dum, *s_dydt_jdum_lsoda, 
     *s_ode_solver_solvedata, *s_ode_solver_get_solvedata, *s_dydt_liblsoda, *s_AMT, *s_LAG, *s_RATE,
-    *s_DUR, *s_mtime;
+    *s_DUR, *s_mtime, *s_theta;
   lib = CHAR(STRING_ELT(trans, 0));
   s_dydt = CHAR(STRING_ELT(trans, 3));
   s_calc_jac = CHAR(STRING_ELT(trans, 4));
@@ -238,6 +240,7 @@ void rxUpdateFuns(SEXP trans){
   s_RATE=CHAR(STRING_ELT(trans, 16));
   s_DUR=CHAR(STRING_ELT(trans, 17));
   s_mtime=CHAR(STRING_ELT(trans, 18));
+  s_theta=CHAR(STRING_ELT(trans, 7));
   global_jt = 2;
   global_mf = 22;  
   global_debug = 0;
@@ -262,6 +265,7 @@ void rxUpdateFuns(SEXP trans){
   RATE = (t_RATE) R_GetCCallable(lib, s_RATE);
   DUR = (t_DUR) R_GetCCallable(lib, s_DUR);
   calc_mtime = (t_calc_mtime) R_GetCCallable(lib, s_mtime);
+  get_theta = (t_get_theta) R_GetCCallable(lib, s_theta);
 }
 
 void rxClearFuns(){
@@ -2061,57 +2065,49 @@ void oldONSetup(int nstate){
 }
 // rxSolveOldC
 void protectOld();
-extern void rxSolveOldC(int *neqa,
-                        double *theta,  //order:
-                        double *timep,
-                        int *evidp,
-                        int *ntime,
-                        double *initsp,
-                        double *dosep,
-                        double *retp,
-                        double *atol,
-                        double *rtol,
-                        int *stiffa,
-                        int *transit_abs,
-                        int *nlhsa,
-                        double *lhsp,
-                        int *rc){
+extern void rxSingleSolve(double *_theta,  //order:
+			  double *timep,
+			  int *evidp,
+			  int *ntime,
+			  double *initsp,
+			  double *dosep,
+			  double *ii,
+			  double *retp,
+			  double *lhsp,
+			  int *rc){
+  double *theta = get_theta(_theta);
   protectOld();
   rx_solve *rx = &rx_global;
   rx_solving_options *op = &op_global;
   rx_solving_options_ind *ind = &inds_global[0];
   int i;
-  rx->stateTrim=R_PosInf;
   // Counters
   ind->slvr_counter = gslvr_counterSetup(1);
   ind->dadt_counter = gdadt_counterSetup(1);
   ind->jac_counter = gjac_counterSetup(1);
   ind->slvr_counter[0]   = 0;
   ind->dadt_counter[0]   = 0;
-  ind->jac_counter[0]   = 0;
+  ind->jac_counter[0]    = 0;
 
-  ind->InfusionRate = global_InfusionRate(*neqa);
-  /* memset(ind->InfusionRate, 0.0, *neqa);  not for doubles*/
-  for (unsigned int j = *neqa; j--;) ind->InfusionRate[j]=0.0;
+  ind->InfusionRate = global_InfusionRate(op->neq);
+  /* memset(ind->InfusionRate, 0.0, op->neq);  not for doubles*/
+  for (unsigned int j = op->neq; j--;) ind->InfusionRate[j]=0.0;
   
-  ind->BadDose = global_BadDose(*neqa);
-  memset(ind->BadDose, 0, *neqa); // int ok
+  ind->BadDose = global_BadDose(op->neq);
+  memset(ind->BadDose, 0, op->neq); // int ok
   ind->nBadDose = 0;
 
-  ind->HMAX = 0;
-  ind->tlast = 0.0;
-  ind->podo = 0;
   ind->par_ptr = theta;
   ind->dose    = dosep;
+  ind->ii      = ii;
   ind->solve   = retp;
   ind->lhs     = lhsp;
   ind->evid    = evidp;
   ind->rc      = rc;
-  /* double *cov_ptr; */
   /* ind->cov_ptr = cov_ptr; */
   ind->n_all_times       = *ntime;
   oldIxSetup(*ntime);
-  oldONSetup(*neqa);
+  oldONSetup(op->neq);
   ind->on = _oldON;
   ind->ix = _oldIx;
   ind->ixds = 0;
@@ -2127,51 +2123,22 @@ extern void rxSolveOldC(int *neqa,
       ind->idose[ind->ndoses-1] = i;
     }
   }
-  
   op->badSolve=0;
-  op->ATOL = *atol;
-  op->RTOL = *rtol;
-  op->H0 = 0;
-  op->HMIN = 0;
-  op->mxstep = 5000; // Not LSODA default but RxODE default
-  op->MXORDN         = 0;
-  op->MXORDS         = 0;
-  op->do_transit_abs = *transit_abs;
-  op->nlhs           = *nlhsa;
-  op->neq            = *neqa;
-  op->stiff          = *stiffa;
   // No covariates not needed.
   // Linear is setup.
-  op->f1 = 1.0;
-  op->f2 = 0.0;
-  op->kind = 1;
-  op->is_locf = 0;
   op->ncov = 0;
   op->do_par_cov=0;
   //
   op->inits   = initsp;
-  op->scale = global_scale(*neqa);
-  /* memset(op->scale, 1.0, *neqa); */
-  for (unsigned int j = *neqa; j--;) op->scale[j] = 1.0;
+  op->scale = global_scale(op->neq);
+  /* memset(op->scale, 1.0, op->neq); */
+  for (unsigned int j = op->neq; j--;) op->scale[j] = 1.0;
   op->extraCmt = 0;
-  op->hmax2=0;
-  /* double *rtol2, *atol2; */
-  /* op->rtol2 = rtol2; */
-  /* op->atol2 = atol2; */
-  op->cores = 1;
-  op->nDisplayProgress = 100;
-  op->ncoresRV = 1;
-  op->isChol = 0;
-  /* int *svar; */
-  /* op->svar = svar; */
-  op->abort = 0;  
-  // FIXME? modNamePtr?
-  /* op->modNamePtr */
   rx->subjects = ind;
   rx->nsub =1;
   rx->nsim =1;
-  rx->stateIgnore = gsiVSetup(*neqa);
-  memset(rx->stateIgnore, 0, *neqa); // int OK
+  rx->stateIgnore = gsiVSetup(op->neq);
+  memset(rx->stateIgnore, 0, op->neq); // int OK
   rx->nobs =-1;
   rx->add_cov =0;
   rx->matrix =0;
@@ -2185,13 +2152,13 @@ extern void rxSolveOldC(int *neqa,
   par_solve(rx); // Solve without the option of updating residuals.
   if (rx->nMtime) calc_mtime(ind->id, ind->mtime);
   if (rx->needSort) doSort(ind);
-  if (*nlhsa) {
+  if (op->nlhs) {
     ind->_newind=1;
     for (i=0; i<*ntime; i++){
       ind->idx = i;
       if (ind->evid[ind->ix[i]]) ind->tlast = getTime(ind->ix[i], ind);
       // 0 = first subject; Calc lhs changed...
-      calc_lhs(0, getTime(ind->ix[i], ind), retp+i*(*neqa), lhsp+i*(*nlhsa));
+      calc_lhs(0, getTime(ind->ix[i], ind), retp+i*(op->neq), lhsp+i*(op->nlhs));
       ind->_newind=2;
     }
   }

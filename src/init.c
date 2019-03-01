@@ -75,22 +75,6 @@ extern double RxODE_prod(double *input, int len);
 
 extern void RxODE_assign_fn_pointers(SEXP mv);
 
-extern void rxSolveOldC(SEXP object, 
-			int *neqa,
-			double *theta,  //order:
-			double *timep,
-			int *evidp,
-			int *ntime,
-			double *initsp,
-			double *dosep,
-			double *retp,
-			double *atol,
-			double *rtol,
-			int *stiffa,
-			int *transit_abs,
-			int *nlhsa,
-			double *lhsp,
-			int *rc);
 
 // Need to change to remove global variables
 extern void RxODE_ode_free();
@@ -224,7 +208,6 @@ void R_init_RxODE(DllInfo *info){
   R_RegisterCCallable("RxODE","RxODE_ode_free",           (DL_FUNC) RxODE_ode_free);
   
   //Functions
-  R_RegisterCCallable("RxODE","rxSolveOldC",              (DL_FUNC) rxSolveOldC);
   
   R_RegisterCCallable("RxODE","RxODE_sum",                (DL_FUNC) RxODE_sum);
   R_RegisterCCallable("RxODE","RxODE_prod",               (DL_FUNC) RxODE_prod);

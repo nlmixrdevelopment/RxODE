@@ -1921,7 +1921,7 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   sAppendN(&sbOut, "    SET_STRING_ELT(trann,6,mkChar(\"model_vars\"));\n", 50);
   sAppend(&sbOut, "    SET_STRING_ELT(tran, 6,mkChar(\"%smodel_vars\"));\n", prefix);
   
-  sAppendN(&sbOut, "    SET_STRING_ELT(trann,7,mkChar(\"theta\"));\n", 50);
+  sAppendN(&sbOut, "    SET_STRING_ELT(trann,7,mkChar(\"theta\"));\n", 45);
   sAppend(&sbOut, "    SET_STRING_ELT(tran, 7,mkChar(\"%stheta\"));\n", prefix);
   
   sAppendN(&sbOut, "    SET_STRING_ELT(trann,8,mkChar(\"inis\"));\n", 44);

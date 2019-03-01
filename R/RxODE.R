@@ -1251,8 +1251,9 @@ rxCompile.rxModelVars <-  function(model, # Model
                                   }
                               }), collapse=" "))
             } else {
-                .fixInis <- c(sprintf("double *_theta[%d];",length(.mv$params)),
-                              sprintf("_theta = theta;"));
+                .fixInis <- c(sprintf("double _theta[%d];",length(.mv$params)),
+                              paste(paste0("_theta[",seq_along(.mv$params)-1,"] = theta[",
+                                           seq_along(.mv$params)-1,"];"),collapse="\n"));
             }
             .trans <- c(.mv$trans, .mv$md5);
             .trans["fix_inis"] <- .fixInis[2];
