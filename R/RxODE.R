@@ -1237,24 +1237,25 @@ rxCompile.rxModelVars <-  function(model, # Model
             .j <- 0;
             .i <- 0;
             if (length(.mv$ini) > 0){
-                .fixInis <- sprintf("double _theta[%d]; %s ", length(.mv$params),
-                                   paste(sapply(.mv$params, function(x){
-                                       if (!is.na(.mv$ini[x])){
-                                           ret <- sprintf("_theta[%d] = %.16f;", .i, as.vector(.mv$ini[x]));
-                                           .i <<- .i + 1;
-                                           return(ret)
-                                       } else {
-                                           ret <- sprintf("_theta[%d] = theta[%d];", .i, .j);
-                                           .i <<- .i + 1;
-                                           .j <<- .j + 1;
-                                           return(ret);
-                                       }
-                                   }), collapse=" "))
+                .fixInis <- c(sprintf("double _theta[%d];", length(.mv$params)),
+                              paste(sapply(.mv$params, function(x){
+                                  if (!is.na(.mv$ini[x])){
+                                      ret <- sprintf("_theta[%d] = %.16f;", .i, as.vector(.mv$ini[x]));
+                                      .i <<- .i + 1;
+                                      return(ret)
+                                  } else {
+                                      ret <- sprintf("_theta[%d] = theta[%d];", .i, .j);
+                                      .i <<- .i + 1;
+                                      .j <<- .j + 1;
+                                      return(ret);
+                                  }
+                              }), collapse=" "))
             } else {
-                .fixInis <- sprintf("double *_theta = theta;");
+                .fixInis <- c(sprintf("double *_theta[%d];",length(.mv$params)),
+                              sprintf("_theta = theta;"));
             }
             .trans <- c(.mv$trans, .mv$md5);
-            .trans["fix_inis"] <- .fixInis;
+            .trans["fix_inis"] <- .fixInis[2];
             ## Load model into memory if needed
             if (.Call(`_RxODE_codeLoaded`) == 0L) .rxModelVarsCharacter(setNames(.mv$model,NULL));
             .prefix2 <- .rxModelVarsCCache[[3]];

@@ -3931,7 +3931,7 @@ bool rxIsLoaded(RObject obj){
   Function isLoaded("is.loaded", R_BaseNamespace);
   List mv = rxModelVars(obj);
   CharacterVector trans = mv["trans"];
-  std::string dydt = as<std::string>(trans["ode_solver"]);
+  std::string dydt = as<std::string>(trans["model_vars"]);
   return as<bool>(isLoaded(dydt));
 }
 
@@ -4091,7 +4091,7 @@ List rxUpdateTrans_(List ret, std::string prefix, std::string libName){
 				   _["calc_jac"] = prefix + "calc_jac",
 				   _["calc_lhs"] = prefix + "calc_lhs",
 				   _["model_vars"] = prefix + "model_vars",
-				   _["ode_solver"] = prefix + "ode_solver",
+				   _["theta"] = prefix + "theta",
 				   _["inis"] = prefix + "inis",
 				   _["dydt_lsoda"] = prefix + "dydt_lsoda",
 				   _["calc_jac_lsoda"] = prefix + "calc_jac_lsoda",

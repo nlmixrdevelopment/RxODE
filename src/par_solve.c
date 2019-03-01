@@ -2042,10 +2042,10 @@ void oldIxSetup(int ntimes){
   if (_oldIxN < ntimes){
     _oldIx = Calloc(ntimes+1024, int);
     _oldIxN = ntimes+1024;
-    for (int i = _oldIxN; i--;){
-      _oldIx[i]=i;
-    }
   }
+  for (int i = _oldIxN; i--;){
+      _oldIx[i]=i;
+  }    
 }
 
 int *_oldON;
@@ -2054,10 +2054,10 @@ void oldONSetup(int nstate){
   if (_oldONN < nstate){
     _oldON = Calloc(nstate+1024, int);
     _oldONN = nstate+1024;
-    for (int i = _oldONN; i--;){
-      _oldON[i] = 1;
-    }
   }
+  for (int i = _oldONN; i--;){
+    _oldON[i] = 1;
+  }    
 }
 // rxSolveOldC
 void protectOld();
@@ -2178,6 +2178,8 @@ extern void rxSolveOldC(int *neqa,
   /* int i =0; */
   _globalRx=rx;
   rx->op = &op_global;
+  double mtime[89];
+  ind->mtime = mtime;
   /* rxode_assign_rx(rx); */
   set_solve(rx);
   par_solve(rx); // Solve without the option of updating residuals.
