@@ -116,8 +116,7 @@ IntegerVector toCmt(RObject inCmt, CharacterVector state){
 //'
 //' @param inData Data frame to translate
 //' @param obj Model to translate data 
-//' @param addCmt Add compartment to data frame
-//' @param addUnits add units to the translated data
+//' @param addCmt Add compartment to data frame, and drop units
 //' @return Object for solving in RxODE
 //' @keywords internal
 //' @export
@@ -183,7 +182,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false){
     nvTmp2 = NumericVector::create(1.0);
     if (as<std::string>(lName[covCol[i]]) != "cmt"){
       nvTmp = as<NumericVector>(inData[covCol[i]]);
-      if (rxIs(nvTmp, "units")){
+      if (!addCmt && rxIs(nvTmp, "units")){
 	nvTmp2.attr("class") = "units";
 	nvTmp2.attr("units") = nvTmp.attr("units");
       }
@@ -860,12 +859,12 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false){
       added=false;
     }
   }
-  if (addTimeUnits){
+  if (!addCmt && addTimeUnits){
     NumericVector tmpN = as<NumericVector>(lst[1]);
     tmpN.attr("class") = "units";
     tmpN.attr("units") = timeUnits;
   }
-  if (addAmtUnits){
+  if (!addCmt && addAmtUnits){
     NumericVector tmpN = as<NumericVector>(lst[3]);
     tmpN.attr("class") = "units";
     tmpN.attr("units") = amtUnits;
@@ -918,8 +917,10 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false){
   e.attr("class") = "rxHidden";
   cls.attr(".RxODE.lst") = e;
   IntegerVector tmp = lstF[0];
-  tmp.attr("class") = "factor";
-  tmp.attr("levels") = idLvl;
+  if (!addCmt){
+    tmp.attr("class") = "factor";
+    tmp.attr("levels") = idLvl;
+  }  
   lstF.attr("names") = nmeF;
   lstF.attr("class") = cls;
   lstF.attr("row.names") = IntegerVector::create(NA_INTEGER,-idxO.size());
