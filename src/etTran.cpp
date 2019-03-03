@@ -112,8 +112,17 @@ IntegerVector toCmt(RObject inCmt, CharacterVector state){
   return IntegerVector::create(0);
 }
 
+//' Event translation for RxODE
+//'
+//' @param inData Data frame to translate
+//' @param obj Model to translate data 
+//' @param addCmt Add compartment to data frame, and drop units
+//' @return Object for solving in RxODE
+//' @keywords internal
+//' @export
 //[[Rcpp::export]]
 List etTrans(List inData, const RObject &obj, bool addCmt=false){
+  Environment rx = RxODEenv();
   // Translates events + model into translated events
   CharacterVector lName = clone(as<CharacterVector>(inData.attr("names")));
   int i, idCol = -1, evidCol=-1, timeCol=-1, amtCol=-1, cmtCol=-1,
@@ -173,7 +182,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false){
     nvTmp2 = NumericVector::create(1.0);
     if (as<std::string>(lName[covCol[i]]) != "cmt"){
       nvTmp = as<NumericVector>(inData[covCol[i]]);
-      if (rxIs(nvTmp, "units")){
+      if (!addCmt && rxIs(nvTmp, "units")){
 	nvTmp2.attr("class") = "units";
 	nvTmp2.attr("units") = nvTmp.attr("units");
       }
@@ -221,7 +230,19 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false){
   if (timeCol== -1){
     stop("time is required in dataset.");
   }
-  NumericVector inTime = as<NumericVector>(inData[timeCol]);
+  NumericVector inTime;
+  if (rxIs(inData[timeCol], "numeric") || rxIs(inData[timeCol], "integer")){
+    inTime = as<NumericVector>(inData[timeCol]);
+  } else {
+    List newInData = clone(inData);
+    Function convDate = rx[".convertExtra"];
+    newInData =  convDate(newInData);
+    if (newInData[timeCol]){
+      return etTrans(newInData, obj, addCmt);
+    } else {
+      stop("Cannot figure out a numeric time.");
+    }
+  }
   // save units information
   bool addTimeUnits = false;
   RObject timeUnits;
@@ -235,48 +256,95 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false){
   }
   int tmpCmt;
   IntegerVector inId;
+  CharacterVector idLvl;
   if (idCol != -1){
-    inId = as<IntegerVector>(inData[idCol]);
+    Function convId = rx[".convertId"];
+    inId = convId(inData[idCol]);//as<IntegerVector>();
+    idLvl = inId.attr("levels");
+  } else {
+    // warning("ID=1 added to dataset");
+    idLvl = CharacterVector::create("1");
   }
   IntegerVector inSs;
   if (ssCol != -1){
-    inSs = as<IntegerVector>(inData[ssCol]);
+    if (rxIs(inData[ssCol], "integer") || rxIs(inData[ssCol], "numeric") ||
+	rxIs(inData[ssCol], "logical")){
+      // NA by default is NA_logical
+      inSs = as<IntegerVector>(inData[ssCol]);
+    } else {
+      stop("Steady state column (ss) has needs to be an integer");
+    }
   }
   IntegerVector inEvid;
   if (evidCol != -1){
-    inEvid = as<IntegerVector>(inData[evidCol]);
+    if (rxIs(inData[evidCol], "integer") || rxIs(inData[evidCol], "numeric") ||
+	rxIs(inData[evidCol], "logical")){
+      inEvid = as<IntegerVector>(inData[evidCol]);
+    } else {
+      stop("Event id (evid) needs to be an integer");
+    }
   }
   NumericVector inRate;
   if (rateCol != -1){
-    inRate = as<NumericVector>(inData[rateCol]);
+    if (rxIs(inData[rateCol], "integer") || rxIs(inData[rateCol], "numeric") ||
+	rxIs(inData[rateCol], "logical")){
+      inRate = as<NumericVector>(inData[rateCol]);
+    } else {
+      stop("'rate' needs to be a number");
+    }
   }
 
   NumericVector inDur;
   if (durCol != -1){
-    inDur = as<NumericVector>(inData[durCol]);
+    if (rxIs(inData[durCol], "integer") || rxIs(inData[durCol], "numeric") ||
+	rxIs(inData[durCol], "logical")){
+      inDur = as<NumericVector>(inData[durCol]);
+    } else {
+      stop("'dur' needs to be a number");
+    }
   }
   
   bool addAmtUnits = false;
   RObject amtUnits;
   NumericVector inAmt;
   if (amtCol != -1){
-    inAmt = as<NumericVector>(inData[amtCol]);
-    if (rxIs(inAmt, "units")){
-      addAmtUnits=true;
-      amtUnits=inAmt.attr("units");
+    if (rxIs(inData[amtCol], "integer") || rxIs(inData[amtCol], "numeric") ||
+	rxIs(inData[amtCol], "logical")){
+      inAmt = as<NumericVector>(inData[amtCol]);
+      if (rxIs(inAmt, "units")){
+	addAmtUnits=true;
+	amtUnits=inAmt.attr("units");
+      }
+    } else {
+      stop("Amount (amt) needs to be a number");
     }
   }
   NumericVector inIi;
   if (iiCol != -1){
-    inIi = as<NumericVector>(inData[iiCol]);
+    if (rxIs(inData[iiCol], "integer") || rxIs(inData[iiCol], "numeric") ||
+	rxIs(inData[iiCol], "logical")){
+      inIi = as<NumericVector>(inData[iiCol]);
+    } else {
+      stop("Inter-dose interval (ii) needs to be a number.");
+    }
   }
   IntegerVector inAddl;
   if (addlCol != -1){
-    inAddl = as<IntegerVector>(inData[addlCol]);
+    if (rxIs(inData[addlCol], "integer") || rxIs(inData[addlCol], "numeric")||
+	rxIs(inData[addlCol], "level")){
+      inAddl = as<IntegerVector>(inData[addlCol]);
+    } else {
+      stop("Number of additional doses (addl) needs to be an integer");
+    }
   }
   NumericVector inDv;
   if (dvCol != -1){
-    inDv = as<NumericVector>(inData[dvCol]);
+    if (rxIs(inData[dvCol], "integer") || rxIs(inData[dvCol], "numeric") ||
+	rxIs(inData[dvCol], "logical")){
+      inDv = as<NumericVector>(inData[dvCol]);
+    } else {
+      stop("The dependent variable (dv) needs to be a number");
+    }
   }
   int ss = 0;
   int cid = 0;
@@ -791,12 +859,12 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false){
       added=false;
     }
   }
-  if (addTimeUnits){
+  if (!addCmt && addTimeUnits){
     NumericVector tmpN = as<NumericVector>(lst[1]);
     tmpN.attr("class") = "units";
     tmpN.attr("units") = timeUnits;
   }
-  if (addAmtUnits){
+  if (!addCmt && addAmtUnits){
     NumericVector tmpN = as<NumericVector>(lst[3]);
     tmpN.attr("class") = "units";
     tmpN.attr("units") = amtUnits;
@@ -848,6 +916,11 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false){
   e["pars"] = fPars;
   e.attr("class") = "rxHidden";
   cls.attr(".RxODE.lst") = e;
+  IntegerVector tmp = lstF[0];
+  if (!addCmt){
+    tmp.attr("class") = "factor";
+    tmp.attr("levels") = idLvl;
+  }  
   lstF.attr("names") = nmeF;
   lstF.attr("class") = cls;
   lstF.attr("row.names") = IntegerVector::create(NA_INTEGER,-idxO.size());

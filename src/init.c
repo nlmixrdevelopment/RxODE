@@ -6,12 +6,14 @@
 #include <stdlib.h> // for NULL
 #include <R_ext/Rdynload.h>
 #include "../inst/include/RxODE.h"
-
+SEXP _RxODE_dropUnitsRxSolve(SEXP);
 SEXP _RxODE_etRep_(SEXP, SEXP, SEXP, SEXP, SEXP,
 		   SEXP, SEXP);
 SEXP _RxODE_etSeq_(SEXP, SEXP, SEXP, SEXP, SEXP,
 		   SEXP, SEXP, SEXP, SEXP, SEXP,
 		   SEXP);
+SEXP _RxODE_rxSolve_(SEXP, SEXP, SEXP, SEXP, SEXP,
+		     SEXP, SEXP, SEXP);
 SEXP _RxODE_rxStack(SEXP, SEXP);
 SEXP _RxODE_etUpdate(SEXP, SEXP, SEXP, SEXP);
 SEXP _RxODE_et_(SEXP, SEXP);
@@ -53,23 +55,12 @@ SEXP _RxODE_rxLhs(SEXP);
 SEXP _RxODE_rxInits(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP _RxODE_rxSetupIni(SEXP, SEXP);
 SEXP _RxODE_rxSetupScale(SEXP,SEXP,SEXP);
-SEXP _RxODE_rxSolveCsmall(SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP);
 SEXP _RxODE_rxSolveGet(SEXP, SEXP, SEXP);
 SEXP _RxODE_rxSolveUpdate(SEXP, SEXP, SEXP);
 SEXP _RxODE_rxAssignPtr(SEXP);
 SEXP _RxODE_rxCores();
 SEXP _RxODE_rxAssignPtr(SEXP objectSEXP);
 SEXP _RxODE_dynLoad(SEXP dllSEXP);
-SEXP _RxODE_rxSolveC(SEXP, SEXP, SEXP, SEXP, SEXP, //5
-		     SEXP, SEXP, SEXP, SEXP, SEXP, //10
-		     SEXP, SEXP, SEXP, SEXP, SEXP, //15
-		     SEXP, SEXP, SEXP, SEXP, SEXP, //20
-		     SEXP, SEXP, SEXP, SEXP, SEXP, //25
-		     SEXP, SEXP, SEXP, SEXP, SEXP, //30
-		     SEXP, SEXP, SEXP, SEXP, SEXP, //35
-		     SEXP, SEXP, SEXP, SEXP, SEXP, //40
-		     SEXP, SEXP, SEXP, SEXP, SEXP, //45
-		     SEXP);
 SEXP RxODE_get_mv();
 
 SEXP _RxODE_rxToOmega(SEXP cholInv);
@@ -84,22 +75,6 @@ extern double RxODE_prod(double *input, int len);
 
 extern void RxODE_assign_fn_pointers(SEXP mv);
 
-extern void rxSolveOldC(SEXP object, 
-			int *neqa,
-			double *theta,  //order:
-			double *timep,
-			int *evidp,
-			int *ntime,
-			double *initsp,
-			double *dosep,
-			double *retp,
-			double *atol,
-			double *rtol,
-			int *stiffa,
-			int *transit_abs,
-			int *nlhsa,
-			double *lhsp,
-			int *rc);
 
 // Need to change to remove global variables
 extern void RxODE_ode_free();
@@ -154,6 +129,10 @@ void ind_solve(rx_solve *rx, unsigned int cid, t_dydt_liblsoda dydt_lls,
 	       t_dydt c_dydt, t_update_inis u_inis, int jt);
 int isRstudio();
 
+extern void rxSingleSolve(double *_theta, double *timep, int *evidp, int *ntime,
+			  double *initsp, double *dosep, double *ii, double *retp,
+			  double *lhsp, int *rc);
+
 void R_init_RxODE(DllInfo *info){
   R_CallMethodDef callMethods[]  = {
     {"_rxProgress", (DL_FUNC) &_rxProgress, 2},
@@ -181,7 +160,6 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_rxInits", (DL_FUNC) &_RxODE_rxInits, 7},
     {"_RxODE_rxSetupIni", (DL_FUNC) &_RxODE_rxSetupIni, 2},
     {"_RxODE_rxSetupScale", (DL_FUNC) &_RxODE_rxSetupScale, 3},
-    {"_RxODE_rxSolveCsmall", (DL_FUNC) &_RxODE_rxSolveCsmall, 9},
     {"_RxODE_rxSolveGet", (DL_FUNC) &_RxODE_rxSolveGet, 3},
     {"_RxODE_rxSolveUpdate", (DL_FUNC) &_RxODE_rxSolveUpdate, 3},
     {"_RxODE_rxCores",(DL_FUNC) &_RxODE_rxCores, 0},
@@ -202,8 +180,6 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_rxSolveFree", (DL_FUNC) &_RxODE_rxSolveFree, 0},
     {"_RxODE_setRstudio", (DL_FUNC) &_RxODE_setRstudio, 1},
     {"_RxODE_RcppExport_registerCCallable", (DL_FUNC) &_RxODE_RcppExport_registerCCallable, 0},
-    // Solaris needs 23 args; fix me...
-    {"_RxODE_rxSolveC", (DL_FUNC) &_RxODE_rxSolveC, 46},
     {"_RxODE_getRxFn", (DL_FUNC) &_RxODE_getRxFn, 1},
     {"_RxODE_setProgSupported", (DL_FUNC) &_RxODE_setProgSupported, 1},
     {"_RxODE_getProgSupported", (DL_FUNC) &_RxODE_getProgSupported, 0},
@@ -214,6 +190,8 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_rxStack", (DL_FUNC) &_RxODE_rxStack, 2},
     {"_RxODE_etSeq_", (DL_FUNC) &_RxODE_etSeq_, 11},
     {"_RxODE_etRep_", (DL_FUNC) &_RxODE_etRep_, 7},
+    {"_RxODE_rxSolve_", (DL_FUNC) &_RxODE_rxSolve_, 8},
+    {"_RxODE_dropUnitsRxSolve", (DL_FUNC) &_RxODE_dropUnitsRxSolve, 1},
     {NULL, NULL, 0}
   };
   // C callable to assign environments.
@@ -234,7 +212,6 @@ void R_init_RxODE(DllInfo *info){
   R_RegisterCCallable("RxODE","RxODE_ode_free",           (DL_FUNC) RxODE_ode_free);
   
   //Functions
-  R_RegisterCCallable("RxODE","rxSolveOldC",              (DL_FUNC) rxSolveOldC);
   
   R_RegisterCCallable("RxODE","RxODE_sum",                (DL_FUNC) RxODE_sum);
   R_RegisterCCallable("RxODE","RxODE_prod",               (DL_FUNC) RxODE_prod);
@@ -245,6 +222,7 @@ void R_init_RxODE(DllInfo *info){
   R_RegisterCCallable("RxODE", "rxIsCurrentC", (DL_FUNC) rxIsCurrentC);
   R_RegisterCCallable("RxODE","RxODE_current_fn_pointer_id", (DL_FUNC) &RxODE_current_fn_pointer_id);
   R_RegisterCCallable("RxODE","getRxSolve_", (DL_FUNC) &getRxSolve_);
+  R_RegisterCCallable("RxODE", "rxSingleSolve", (DL_FUNC) &rxSingleSolve);
   
   static const R_CMethodDef cMethods[] = {
     {"RxODE_sum",               (DL_FUNC) &RxODE_sum, 2, RxODE_Sum_t},

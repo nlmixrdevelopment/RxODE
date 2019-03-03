@@ -21,6 +21,14 @@ etRep_ <- function(curEt, times, wait, ids, handleSamples, waitType, ii) {
     .Call(`_RxODE_etRep_`, curEt, times, wait, ids, handleSamples, waitType, ii)
 }
 
+#' Event translation for RxODE
+#'
+#' @param inData Data frame to translate
+#' @param obj Model to translate data 
+#' @param addCmt Add compartment to data frame, and drop units
+#' @return Object for solving in RxODE
+#' @keywords internal
+#' @export
 etTrans <- function(inData, obj, addCmt = FALSE) {
     .Call(`_RxODE_etTrans`, inData, obj, addCmt)
 }
@@ -255,12 +263,8 @@ rxSolveFree <- function() {
     .Call(`_RxODE_rxSolveFree`)
 }
 
-rxSolveC <- function(obj, specParams = NULL, extraArgs = NULL, params = NULL, events = NULL, inits = NULL, scale = NULL, covs = NULL, method = 2L, transit_abs = NULL, atol = 1.0e-6, rtol = 1.0e-4, maxsteps = 5000L, hmin = 0, hmax = NULL, hini = 0, maxordn = 12L, maxords = 5L, cores = 1L, covs_interpolation = 0L, addCov = FALSE, matrix = 0L, sigma = NULL, sigmaDf = NULL, nCoresRV = 1L, sigmaIsChol = FALSE, nDisplayProgress = 10000L, amountUnits = NA_character_, timeUnits = "hours", addDosing = FALSE, stateTrim = NA_real_, theta = NULL, eta = NULL, updateObject = FALSE, doSolve = TRUE, omega = NULL, omegaDf = NULL, omegaIsChol = FALSE, nSub = 1L, thetaMat = NULL, thetaDf = NULL, thetaIsChol = FALSE, nStud = 1L, dfSub = 0.0, dfObs = 0.0, setupOnly = 0L) {
-    .Call(`_RxODE_rxSolveC`, obj, specParams, extraArgs, params, events, inits, scale, covs, method, transit_abs, atol, rtol, maxsteps, hmin, hmax, hini, maxordn, maxords, cores, covs_interpolation, addCov, matrix, sigma, sigmaDf, nCoresRV, sigmaIsChol, nDisplayProgress, amountUnits, timeUnits, addDosing, stateTrim, theta, eta, updateObject, doSolve, omega, omegaDf, omegaIsChol, nSub, thetaMat, thetaDf, thetaIsChol, nStud, dfSub, dfObs, setupOnly)
-}
-
-rxSolveCsmall <- function(object, specParams = NULL, extraArgs = NULL, params = NULL, events = NULL, inits = NULL, scale = NULL, covs = NULL, optsL = NULL) {
-    .Call(`_RxODE_rxSolveCsmall`, object, specParams, extraArgs, params, events, inits, scale, covs, optsL)
+rxSolve_ <- function(obj, rxControl, specParams = NULL, extraArgs = NULL, params = NULL, events = NULL, inits = NULL, setupOnly = 0L) {
+    .Call(`_RxODE_rxSolve_`, obj, rxControl, specParams, extraArgs, params, events, inits, setupOnly)
 }
 
 rxSolveGet <- function(obj, arg, exact = TRUE) {
@@ -409,6 +413,10 @@ getProgSupported <- function() {
 
 rxUpdateTrans_ <- function(ret, prefix, libName) {
     .Call(`_RxODE_rxUpdateTrans_`, ret, prefix, libName)
+}
+
+dropUnitsRxSolve <- function(x) {
+    .Call(`_RxODE_dropUnitsRxSolve`, x)
 }
 
 #' Invert matrix using Rcpp Armadilo.  

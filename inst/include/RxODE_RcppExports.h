@@ -342,38 +342,17 @@ namespace RxODE {
         return Rcpp::as<LogicalVector >(rcpp_result_gen);
     }
 
-    inline SEXP rxSolveC(const RObject& obj, const Nullable<CharacterVector>& specParams = R_NilValue, const Nullable<List>& extraArgs = R_NilValue, const RObject& params = R_NilValue, const RObject& events = R_NilValue, const RObject& inits = R_NilValue, const RObject& scale = R_NilValue, const RObject& covs = R_NilValue, const int method = 2, const Nullable<LogicalVector>& transit_abs = R_NilValue, const double atol = 1.0e-6, const double rtol = 1.0e-4, const int maxsteps = 5000, const double hmin = 0, const Nullable<NumericVector>& hmax = R_NilValue, const double hini = 0, const int maxordn = 12, const int maxords = 5, const unsigned int cores = 1, const int covs_interpolation = 0, bool addCov = false, int matrix = 0, const Nullable<NumericMatrix>& sigma = R_NilValue, const Nullable<NumericVector>& sigmaDf = R_NilValue, const int& nCoresRV = 1, const bool& sigmaIsChol = false, const int& nDisplayProgress = 10000, const CharacterVector& amountUnits = NA_STRING, const CharacterVector& timeUnits = "hours", const bool addDosing = false, const double stateTrim = NA_REAL, const RObject& theta = R_NilValue, const RObject& eta = R_NilValue, const bool updateObject = false, const bool doSolve = true, const Nullable<NumericMatrix>& omega = R_NilValue, const Nullable<NumericVector>& omegaDf = R_NilValue, const bool& omegaIsChol = false, const unsigned int nSub = 1, const Nullable<NumericMatrix>& thetaMat = R_NilValue, const Nullable<NumericVector>& thetaDf = R_NilValue, const bool& thetaIsChol = false, const unsigned int nStud = 1, const double dfSub = 0.0, const double dfObs = 0.0, const int setupOnly = 0) {
-        typedef SEXP(*Ptr_rxSolveC)(SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP);
-        static Ptr_rxSolveC p_rxSolveC = NULL;
-        if (p_rxSolveC == NULL) {
-            validateSignature("SEXP(*rxSolveC)(const RObject&,const Nullable<CharacterVector>&,const Nullable<List>&,const RObject&,const RObject&,const RObject&,const RObject&,const RObject&,const int,const Nullable<LogicalVector>&,const double,const double,const int,const double,const Nullable<NumericVector>&,const double,const int,const int,const unsigned int,const int,bool,int,const Nullable<NumericMatrix>&,const Nullable<NumericVector>&,const int&,const bool&,const int&,const CharacterVector&,const CharacterVector&,const bool,const double,const RObject&,const RObject&,const bool,const bool,const Nullable<NumericMatrix>&,const Nullable<NumericVector>&,const bool&,const unsigned int,const Nullable<NumericMatrix>&,const Nullable<NumericVector>&,const bool&,const unsigned int,const double,const double,const int)");
-            p_rxSolveC = (Ptr_rxSolveC)R_GetCCallable("RxODE", "_RxODE_rxSolveC");
+    inline SEXP rxSolve_(const RObject& obj, const List& rxControl, const Nullable<CharacterVector>& specParams = R_NilValue, const Nullable<List>& extraArgs = R_NilValue, const RObject& params = R_NilValue, const RObject& events = R_NilValue, const RObject& inits = R_NilValue, const int setupOnly = 0) {
+        typedef SEXP(*Ptr_rxSolve_)(SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP);
+        static Ptr_rxSolve_ p_rxSolve_ = NULL;
+        if (p_rxSolve_ == NULL) {
+            validateSignature("SEXP(*rxSolve_)(const RObject&,const List&,const Nullable<CharacterVector>&,const Nullable<List>&,const RObject&,const RObject&,const RObject&,const int)");
+            p_rxSolve_ = (Ptr_rxSolve_)R_GetCCallable("RxODE", "_RxODE_rxSolve_");
         }
         RObject rcpp_result_gen;
         {
             RNGScope RCPP_rngScope_gen;
-            rcpp_result_gen = p_rxSolveC(Shield<SEXP>(Rcpp::wrap(obj)), Shield<SEXP>(Rcpp::wrap(specParams)), Shield<SEXP>(Rcpp::wrap(extraArgs)), Shield<SEXP>(Rcpp::wrap(params)), Shield<SEXP>(Rcpp::wrap(events)), Shield<SEXP>(Rcpp::wrap(inits)), Shield<SEXP>(Rcpp::wrap(scale)), Shield<SEXP>(Rcpp::wrap(covs)), Shield<SEXP>(Rcpp::wrap(method)), Shield<SEXP>(Rcpp::wrap(transit_abs)), Shield<SEXP>(Rcpp::wrap(atol)), Shield<SEXP>(Rcpp::wrap(rtol)), Shield<SEXP>(Rcpp::wrap(maxsteps)), Shield<SEXP>(Rcpp::wrap(hmin)), Shield<SEXP>(Rcpp::wrap(hmax)), Shield<SEXP>(Rcpp::wrap(hini)), Shield<SEXP>(Rcpp::wrap(maxordn)), Shield<SEXP>(Rcpp::wrap(maxords)), Shield<SEXP>(Rcpp::wrap(cores)), Shield<SEXP>(Rcpp::wrap(covs_interpolation)), Shield<SEXP>(Rcpp::wrap(addCov)), Shield<SEXP>(Rcpp::wrap(matrix)), Shield<SEXP>(Rcpp::wrap(sigma)), Shield<SEXP>(Rcpp::wrap(sigmaDf)), Shield<SEXP>(Rcpp::wrap(nCoresRV)), Shield<SEXP>(Rcpp::wrap(sigmaIsChol)), Shield<SEXP>(Rcpp::wrap(nDisplayProgress)), Shield<SEXP>(Rcpp::wrap(amountUnits)), Shield<SEXP>(Rcpp::wrap(timeUnits)), Shield<SEXP>(Rcpp::wrap(addDosing)), Shield<SEXP>(Rcpp::wrap(stateTrim)), Shield<SEXP>(Rcpp::wrap(theta)), Shield<SEXP>(Rcpp::wrap(eta)), Shield<SEXP>(Rcpp::wrap(updateObject)), Shield<SEXP>(Rcpp::wrap(doSolve)), Shield<SEXP>(Rcpp::wrap(omega)), Shield<SEXP>(Rcpp::wrap(omegaDf)), Shield<SEXP>(Rcpp::wrap(omegaIsChol)), Shield<SEXP>(Rcpp::wrap(nSub)), Shield<SEXP>(Rcpp::wrap(thetaMat)), Shield<SEXP>(Rcpp::wrap(thetaDf)), Shield<SEXP>(Rcpp::wrap(thetaIsChol)), Shield<SEXP>(Rcpp::wrap(nStud)), Shield<SEXP>(Rcpp::wrap(dfSub)), Shield<SEXP>(Rcpp::wrap(dfObs)), Shield<SEXP>(Rcpp::wrap(setupOnly)));
-        }
-        if (rcpp_result_gen.inherits("interrupted-error"))
-            throw Rcpp::internal::InterruptedException();
-        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
-            throw Rcpp::LongjumpException(rcpp_result_gen);
-        if (rcpp_result_gen.inherits("try-error"))
-            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
-        return Rcpp::as<SEXP >(rcpp_result_gen);
-    }
-
-    inline SEXP rxSolveCsmall(const RObject& object, const Nullable<CharacterVector>& specParams = R_NilValue, const Nullable<List>& extraArgs = R_NilValue, const RObject& params = R_NilValue, const RObject& events = R_NilValue, const RObject& inits = R_NilValue, const RObject& scale = R_NilValue, const RObject& covs = R_NilValue, const Nullable<List>& optsL = R_NilValue) {
-        typedef SEXP(*Ptr_rxSolveCsmall)(SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP);
-        static Ptr_rxSolveCsmall p_rxSolveCsmall = NULL;
-        if (p_rxSolveCsmall == NULL) {
-            validateSignature("SEXP(*rxSolveCsmall)(const RObject&,const Nullable<CharacterVector>&,const Nullable<List>&,const RObject&,const RObject&,const RObject&,const RObject&,const RObject&,const Nullable<List>&)");
-            p_rxSolveCsmall = (Ptr_rxSolveCsmall)R_GetCCallable("RxODE", "_RxODE_rxSolveCsmall");
-        }
-        RObject rcpp_result_gen;
-        {
-            RNGScope RCPP_rngScope_gen;
-            rcpp_result_gen = p_rxSolveCsmall(Shield<SEXP>(Rcpp::wrap(object)), Shield<SEXP>(Rcpp::wrap(specParams)), Shield<SEXP>(Rcpp::wrap(extraArgs)), Shield<SEXP>(Rcpp::wrap(params)), Shield<SEXP>(Rcpp::wrap(events)), Shield<SEXP>(Rcpp::wrap(inits)), Shield<SEXP>(Rcpp::wrap(scale)), Shield<SEXP>(Rcpp::wrap(covs)), Shield<SEXP>(Rcpp::wrap(optsL)));
+            rcpp_result_gen = p_rxSolve_(Shield<SEXP>(Rcpp::wrap(obj)), Shield<SEXP>(Rcpp::wrap(rxControl)), Shield<SEXP>(Rcpp::wrap(specParams)), Shield<SEXP>(Rcpp::wrap(extraArgs)), Shield<SEXP>(Rcpp::wrap(params)), Shield<SEXP>(Rcpp::wrap(events)), Shield<SEXP>(Rcpp::wrap(inits)), Shield<SEXP>(Rcpp::wrap(setupOnly)));
         }
         if (rcpp_result_gen.inherits("interrupted-error"))
             throw Rcpp::internal::InterruptedException();
@@ -729,6 +708,27 @@ namespace RxODE {
         {
             RNGScope RCPP_rngScope_gen;
             rcpp_result_gen = p_rxUpdateTrans_(Shield<SEXP>(Rcpp::wrap(ret)), Shield<SEXP>(Rcpp::wrap(prefix)), Shield<SEXP>(Rcpp::wrap(libName)));
+        }
+        if (rcpp_result_gen.inherits("interrupted-error"))
+            throw Rcpp::internal::InterruptedException();
+        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
+            throw Rcpp::LongjumpException(rcpp_result_gen);
+        if (rcpp_result_gen.inherits("try-error"))
+            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
+        return Rcpp::as<List >(rcpp_result_gen);
+    }
+
+    inline List dropUnitsRxSolve(List x) {
+        typedef SEXP(*Ptr_dropUnitsRxSolve)(SEXP);
+        static Ptr_dropUnitsRxSolve p_dropUnitsRxSolve = NULL;
+        if (p_dropUnitsRxSolve == NULL) {
+            validateSignature("List(*dropUnitsRxSolve)(List)");
+            p_dropUnitsRxSolve = (Ptr_dropUnitsRxSolve)R_GetCCallable("RxODE", "_RxODE_dropUnitsRxSolve");
+        }
+        RObject rcpp_result_gen;
+        {
+            RNGScope RCPP_rngScope_gen;
+            rcpp_result_gen = p_dropUnitsRxSolve(Shield<SEXP>(Rcpp::wrap(x)));
         }
         if (rcpp_result_gen.inherits("interrupted-error"))
             throw Rcpp::internal::InterruptedException();

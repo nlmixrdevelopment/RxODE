@@ -46,14 +46,14 @@ rxPermissive({
 
     ## Statements don't require ; now.
     options(RxODE.syntax.require.semicolon=FALSE);rxSyncOptions();
-    goodParse('comments must be outside statements','d/dt(y) = 1   # bad comment;')
+    goodParse('comments must be outside statements #1','d/dt(y) = 1   # bad comment;')
     goodParse('missing end of statement ";" dosen\'t cause errors',
               paste(sep = "\n",
                     'd/dt(depot) = -ka * depot',
                     'd/dt(centr) =  ka * depot - kout * centr;'))
 
     options(RxODE.syntax.require.semicolon=TRUE);rxSyncOptions();
-    badParse('comments must be outside statements','d/dt(y) = 1   # bad comment;')
+    badParse('comments must be outside statements #2','d/dt(y) = 1   # bad comment;')
     badParse('missing end of statement ";"',
              paste(sep = "\n",
                    'd/dt(depot) = -ka * depot',

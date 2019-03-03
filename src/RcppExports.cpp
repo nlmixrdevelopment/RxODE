@@ -641,108 +641,28 @@ RcppExport SEXP _RxODE_rxSolveFree() {
     UNPROTECT(1);
     return rcpp_result_gen;
 }
-// rxSolveC
-SEXP rxSolveC(const RObject& obj, const Nullable<CharacterVector>& specParams, const Nullable<List>& extraArgs, const RObject& params, const RObject& events, const RObject& inits, const RObject& scale, const RObject& covs, const int method, const Nullable<LogicalVector>& transit_abs, const double atol, const double rtol, const int maxsteps, const double hmin, const Nullable<NumericVector>& hmax, const double hini, const int maxordn, const int maxords, const unsigned int cores, const int covs_interpolation, bool addCov, int matrix, const Nullable<NumericMatrix>& sigma, const Nullable<NumericVector>& sigmaDf, const int& nCoresRV, const bool& sigmaIsChol, const int& nDisplayProgress, const CharacterVector& amountUnits, const CharacterVector& timeUnits, const bool addDosing, const double stateTrim, const RObject& theta, const RObject& eta, const bool updateObject, const bool doSolve, const Nullable<NumericMatrix>& omega, const Nullable<NumericVector>& omegaDf, const bool& omegaIsChol, const unsigned int nSub, const Nullable<NumericMatrix>& thetaMat, const Nullable<NumericVector>& thetaDf, const bool& thetaIsChol, const unsigned int nStud, const double dfSub, const double dfObs, const int setupOnly);
-static SEXP _RxODE_rxSolveC_try(SEXP objSEXP, SEXP specParamsSEXP, SEXP extraArgsSEXP, SEXP paramsSEXP, SEXP eventsSEXP, SEXP initsSEXP, SEXP scaleSEXP, SEXP covsSEXP, SEXP methodSEXP, SEXP transit_absSEXP, SEXP atolSEXP, SEXP rtolSEXP, SEXP maxstepsSEXP, SEXP hminSEXP, SEXP hmaxSEXP, SEXP hiniSEXP, SEXP maxordnSEXP, SEXP maxordsSEXP, SEXP coresSEXP, SEXP covs_interpolationSEXP, SEXP addCovSEXP, SEXP matrixSEXP, SEXP sigmaSEXP, SEXP sigmaDfSEXP, SEXP nCoresRVSEXP, SEXP sigmaIsCholSEXP, SEXP nDisplayProgressSEXP, SEXP amountUnitsSEXP, SEXP timeUnitsSEXP, SEXP addDosingSEXP, SEXP stateTrimSEXP, SEXP thetaSEXP, SEXP etaSEXP, SEXP updateObjectSEXP, SEXP doSolveSEXP, SEXP omegaSEXP, SEXP omegaDfSEXP, SEXP omegaIsCholSEXP, SEXP nSubSEXP, SEXP thetaMatSEXP, SEXP thetaDfSEXP, SEXP thetaIsCholSEXP, SEXP nStudSEXP, SEXP dfSubSEXP, SEXP dfObsSEXP, SEXP setupOnlySEXP) {
+// rxSolve_
+SEXP rxSolve_(const RObject& obj, const List& rxControl, const Nullable<CharacterVector>& specParams, const Nullable<List>& extraArgs, const RObject& params, const RObject& events, const RObject& inits, const int setupOnly);
+static SEXP _RxODE_rxSolve__try(SEXP objSEXP, SEXP rxControlSEXP, SEXP specParamsSEXP, SEXP extraArgsSEXP, SEXP paramsSEXP, SEXP eventsSEXP, SEXP initsSEXP, SEXP setupOnlySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::traits::input_parameter< const RObject& >::type obj(objSEXP);
+    Rcpp::traits::input_parameter< const List& >::type rxControl(rxControlSEXP);
     Rcpp::traits::input_parameter< const Nullable<CharacterVector>& >::type specParams(specParamsSEXP);
     Rcpp::traits::input_parameter< const Nullable<List>& >::type extraArgs(extraArgsSEXP);
     Rcpp::traits::input_parameter< const RObject& >::type params(paramsSEXP);
     Rcpp::traits::input_parameter< const RObject& >::type events(eventsSEXP);
     Rcpp::traits::input_parameter< const RObject& >::type inits(initsSEXP);
-    Rcpp::traits::input_parameter< const RObject& >::type scale(scaleSEXP);
-    Rcpp::traits::input_parameter< const RObject& >::type covs(covsSEXP);
-    Rcpp::traits::input_parameter< const int >::type method(methodSEXP);
-    Rcpp::traits::input_parameter< const Nullable<LogicalVector>& >::type transit_abs(transit_absSEXP);
-    Rcpp::traits::input_parameter< const double >::type atol(atolSEXP);
-    Rcpp::traits::input_parameter< const double >::type rtol(rtolSEXP);
-    Rcpp::traits::input_parameter< const int >::type maxsteps(maxstepsSEXP);
-    Rcpp::traits::input_parameter< const double >::type hmin(hminSEXP);
-    Rcpp::traits::input_parameter< const Nullable<NumericVector>& >::type hmax(hmaxSEXP);
-    Rcpp::traits::input_parameter< const double >::type hini(hiniSEXP);
-    Rcpp::traits::input_parameter< const int >::type maxordn(maxordnSEXP);
-    Rcpp::traits::input_parameter< const int >::type maxords(maxordsSEXP);
-    Rcpp::traits::input_parameter< const unsigned int >::type cores(coresSEXP);
-    Rcpp::traits::input_parameter< const int >::type covs_interpolation(covs_interpolationSEXP);
-    Rcpp::traits::input_parameter< bool >::type addCov(addCovSEXP);
-    Rcpp::traits::input_parameter< int >::type matrix(matrixSEXP);
-    Rcpp::traits::input_parameter< const Nullable<NumericMatrix>& >::type sigma(sigmaSEXP);
-    Rcpp::traits::input_parameter< const Nullable<NumericVector>& >::type sigmaDf(sigmaDfSEXP);
-    Rcpp::traits::input_parameter< const int& >::type nCoresRV(nCoresRVSEXP);
-    Rcpp::traits::input_parameter< const bool& >::type sigmaIsChol(sigmaIsCholSEXP);
-    Rcpp::traits::input_parameter< const int& >::type nDisplayProgress(nDisplayProgressSEXP);
-    Rcpp::traits::input_parameter< const CharacterVector& >::type amountUnits(amountUnitsSEXP);
-    Rcpp::traits::input_parameter< const CharacterVector& >::type timeUnits(timeUnitsSEXP);
-    Rcpp::traits::input_parameter< const bool >::type addDosing(addDosingSEXP);
-    Rcpp::traits::input_parameter< const double >::type stateTrim(stateTrimSEXP);
-    Rcpp::traits::input_parameter< const RObject& >::type theta(thetaSEXP);
-    Rcpp::traits::input_parameter< const RObject& >::type eta(etaSEXP);
-    Rcpp::traits::input_parameter< const bool >::type updateObject(updateObjectSEXP);
-    Rcpp::traits::input_parameter< const bool >::type doSolve(doSolveSEXP);
-    Rcpp::traits::input_parameter< const Nullable<NumericMatrix>& >::type omega(omegaSEXP);
-    Rcpp::traits::input_parameter< const Nullable<NumericVector>& >::type omegaDf(omegaDfSEXP);
-    Rcpp::traits::input_parameter< const bool& >::type omegaIsChol(omegaIsCholSEXP);
-    Rcpp::traits::input_parameter< const unsigned int >::type nSub(nSubSEXP);
-    Rcpp::traits::input_parameter< const Nullable<NumericMatrix>& >::type thetaMat(thetaMatSEXP);
-    Rcpp::traits::input_parameter< const Nullable<NumericVector>& >::type thetaDf(thetaDfSEXP);
-    Rcpp::traits::input_parameter< const bool& >::type thetaIsChol(thetaIsCholSEXP);
-    Rcpp::traits::input_parameter< const unsigned int >::type nStud(nStudSEXP);
-    Rcpp::traits::input_parameter< const double >::type dfSub(dfSubSEXP);
-    Rcpp::traits::input_parameter< const double >::type dfObs(dfObsSEXP);
     Rcpp::traits::input_parameter< const int >::type setupOnly(setupOnlySEXP);
-    rcpp_result_gen = Rcpp::wrap(rxSolveC(obj, specParams, extraArgs, params, events, inits, scale, covs, method, transit_abs, atol, rtol, maxsteps, hmin, hmax, hini, maxordn, maxords, cores, covs_interpolation, addCov, matrix, sigma, sigmaDf, nCoresRV, sigmaIsChol, nDisplayProgress, amountUnits, timeUnits, addDosing, stateTrim, theta, eta, updateObject, doSolve, omega, omegaDf, omegaIsChol, nSub, thetaMat, thetaDf, thetaIsChol, nStud, dfSub, dfObs, setupOnly));
+    rcpp_result_gen = Rcpp::wrap(rxSolve_(obj, rxControl, specParams, extraArgs, params, events, inits, setupOnly));
     return rcpp_result_gen;
 END_RCPP_RETURN_ERROR
 }
-RcppExport SEXP _RxODE_rxSolveC(SEXP objSEXP, SEXP specParamsSEXP, SEXP extraArgsSEXP, SEXP paramsSEXP, SEXP eventsSEXP, SEXP initsSEXP, SEXP scaleSEXP, SEXP covsSEXP, SEXP methodSEXP, SEXP transit_absSEXP, SEXP atolSEXP, SEXP rtolSEXP, SEXP maxstepsSEXP, SEXP hminSEXP, SEXP hmaxSEXP, SEXP hiniSEXP, SEXP maxordnSEXP, SEXP maxordsSEXP, SEXP coresSEXP, SEXP covs_interpolationSEXP, SEXP addCovSEXP, SEXP matrixSEXP, SEXP sigmaSEXP, SEXP sigmaDfSEXP, SEXP nCoresRVSEXP, SEXP sigmaIsCholSEXP, SEXP nDisplayProgressSEXP, SEXP amountUnitsSEXP, SEXP timeUnitsSEXP, SEXP addDosingSEXP, SEXP stateTrimSEXP, SEXP thetaSEXP, SEXP etaSEXP, SEXP updateObjectSEXP, SEXP doSolveSEXP, SEXP omegaSEXP, SEXP omegaDfSEXP, SEXP omegaIsCholSEXP, SEXP nSubSEXP, SEXP thetaMatSEXP, SEXP thetaDfSEXP, SEXP thetaIsCholSEXP, SEXP nStudSEXP, SEXP dfSubSEXP, SEXP dfObsSEXP, SEXP setupOnlySEXP) {
+RcppExport SEXP _RxODE_rxSolve_(SEXP objSEXP, SEXP rxControlSEXP, SEXP specParamsSEXP, SEXP extraArgsSEXP, SEXP paramsSEXP, SEXP eventsSEXP, SEXP initsSEXP, SEXP setupOnlySEXP) {
     SEXP rcpp_result_gen;
     {
         Rcpp::RNGScope rcpp_rngScope_gen;
-        rcpp_result_gen = PROTECT(_RxODE_rxSolveC_try(objSEXP, specParamsSEXP, extraArgsSEXP, paramsSEXP, eventsSEXP, initsSEXP, scaleSEXP, covsSEXP, methodSEXP, transit_absSEXP, atolSEXP, rtolSEXP, maxstepsSEXP, hminSEXP, hmaxSEXP, hiniSEXP, maxordnSEXP, maxordsSEXP, coresSEXP, covs_interpolationSEXP, addCovSEXP, matrixSEXP, sigmaSEXP, sigmaDfSEXP, nCoresRVSEXP, sigmaIsCholSEXP, nDisplayProgressSEXP, amountUnitsSEXP, timeUnitsSEXP, addDosingSEXP, stateTrimSEXP, thetaSEXP, etaSEXP, updateObjectSEXP, doSolveSEXP, omegaSEXP, omegaDfSEXP, omegaIsCholSEXP, nSubSEXP, thetaMatSEXP, thetaDfSEXP, thetaIsCholSEXP, nStudSEXP, dfSubSEXP, dfObsSEXP, setupOnlySEXP));
-    }
-    Rboolean rcpp_isInterrupt_gen = Rf_inherits(rcpp_result_gen, "interrupted-error");
-    if (rcpp_isInterrupt_gen) {
-        UNPROTECT(1);
-        Rf_onintr();
-    }
-    bool rcpp_isLongjump_gen = Rcpp::internal::isLongjumpSentinel(rcpp_result_gen);
-    if (rcpp_isLongjump_gen) {
-        Rcpp::internal::resumeJump(rcpp_result_gen);
-    }
-    Rboolean rcpp_isError_gen = Rf_inherits(rcpp_result_gen, "try-error");
-    if (rcpp_isError_gen) {
-        SEXP rcpp_msgSEXP_gen = Rf_asChar(rcpp_result_gen);
-        UNPROTECT(1);
-        Rf_error(CHAR(rcpp_msgSEXP_gen));
-    }
-    UNPROTECT(1);
-    return rcpp_result_gen;
-}
-// rxSolveCsmall
-SEXP rxSolveCsmall(const RObject& object, const Nullable<CharacterVector>& specParams, const Nullable<List>& extraArgs, const RObject& params, const RObject& events, const RObject& inits, const RObject& scale, const RObject& covs, const Nullable<List>& optsL);
-static SEXP _RxODE_rxSolveCsmall_try(SEXP objectSEXP, SEXP specParamsSEXP, SEXP extraArgsSEXP, SEXP paramsSEXP, SEXP eventsSEXP, SEXP initsSEXP, SEXP scaleSEXP, SEXP covsSEXP, SEXP optsLSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::traits::input_parameter< const RObject& >::type object(objectSEXP);
-    Rcpp::traits::input_parameter< const Nullable<CharacterVector>& >::type specParams(specParamsSEXP);
-    Rcpp::traits::input_parameter< const Nullable<List>& >::type extraArgs(extraArgsSEXP);
-    Rcpp::traits::input_parameter< const RObject& >::type params(paramsSEXP);
-    Rcpp::traits::input_parameter< const RObject& >::type events(eventsSEXP);
-    Rcpp::traits::input_parameter< const RObject& >::type inits(initsSEXP);
-    Rcpp::traits::input_parameter< const RObject& >::type scale(scaleSEXP);
-    Rcpp::traits::input_parameter< const RObject& >::type covs(covsSEXP);
-    Rcpp::traits::input_parameter< const Nullable<List>& >::type optsL(optsLSEXP);
-    rcpp_result_gen = Rcpp::wrap(rxSolveCsmall(object, specParams, extraArgs, params, events, inits, scale, covs, optsL));
-    return rcpp_result_gen;
-END_RCPP_RETURN_ERROR
-}
-RcppExport SEXP _RxODE_rxSolveCsmall(SEXP objectSEXP, SEXP specParamsSEXP, SEXP extraArgsSEXP, SEXP paramsSEXP, SEXP eventsSEXP, SEXP initsSEXP, SEXP scaleSEXP, SEXP covsSEXP, SEXP optsLSEXP) {
-    SEXP rcpp_result_gen;
-    {
-        Rcpp::RNGScope rcpp_rngScope_gen;
-        rcpp_result_gen = PROTECT(_RxODE_rxSolveCsmall_try(objectSEXP, specParamsSEXP, extraArgsSEXP, paramsSEXP, eventsSEXP, initsSEXP, scaleSEXP, covsSEXP, optsLSEXP));
+        rcpp_result_gen = PROTECT(_RxODE_rxSolve__try(objSEXP, rxControlSEXP, specParamsSEXP, extraArgsSEXP, paramsSEXP, eventsSEXP, initsSEXP, setupOnlySEXP));
     }
     Rboolean rcpp_isInterrupt_gen = Rf_inherits(rcpp_result_gen, "interrupted-error");
     if (rcpp_isInterrupt_gen) {
@@ -1342,6 +1262,40 @@ RcppExport SEXP _RxODE_rxUpdateTrans_(SEXP retSEXP, SEXP prefixSEXP, SEXP libNam
     UNPROTECT(1);
     return rcpp_result_gen;
 }
+// dropUnitsRxSolve
+List dropUnitsRxSolve(List x);
+static SEXP _RxODE_dropUnitsRxSolve_try(SEXP xSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< List >::type x(xSEXP);
+    rcpp_result_gen = Rcpp::wrap(dropUnitsRxSolve(x));
+    return rcpp_result_gen;
+END_RCPP_RETURN_ERROR
+}
+RcppExport SEXP _RxODE_dropUnitsRxSolve(SEXP xSEXP) {
+    SEXP rcpp_result_gen;
+    {
+        Rcpp::RNGScope rcpp_rngScope_gen;
+        rcpp_result_gen = PROTECT(_RxODE_dropUnitsRxSolve_try(xSEXP));
+    }
+    Rboolean rcpp_isInterrupt_gen = Rf_inherits(rcpp_result_gen, "interrupted-error");
+    if (rcpp_isInterrupt_gen) {
+        UNPROTECT(1);
+        Rf_onintr();
+    }
+    bool rcpp_isLongjump_gen = Rcpp::internal::isLongjumpSentinel(rcpp_result_gen);
+    if (rcpp_isLongjump_gen) {
+        Rcpp::internal::resumeJump(rcpp_result_gen);
+    }
+    Rboolean rcpp_isError_gen = Rf_inherits(rcpp_result_gen, "try-error");
+    if (rcpp_isError_gen) {
+        SEXP rcpp_msgSEXP_gen = Rf_asChar(rcpp_result_gen);
+        UNPROTECT(1);
+        Rf_error(CHAR(rcpp_msgSEXP_gen));
+    }
+    UNPROTECT(1);
+    return rcpp_result_gen;
+}
 // rxInv
 NumericVector rxInv(SEXP matrix);
 static SEXP _RxODE_rxInv_try(SEXP matrixSEXP) {
@@ -1515,8 +1469,7 @@ static int _RxODE_RcppExport_validate(const char* sig) {
         signatures.insert("NumericVector(*rinvchisq)(const int,const double&,const double&)");
         signatures.insert("List(*rxSimThetaOmega)(const Nullable<NumericVector>&,const Nullable<NumericMatrix>&,const Nullable<NumericVector>&,const bool&,int,const Nullable<NumericMatrix>&,const Nullable<NumericVector>&,const bool&,int,const Nullable<NumericMatrix>,const Nullable<NumericVector>&,const bool&,int,int,double,double,bool)");
         signatures.insert("LogicalVector(*rxSolveFree)()");
-        signatures.insert("SEXP(*rxSolveC)(const RObject&,const Nullable<CharacterVector>&,const Nullable<List>&,const RObject&,const RObject&,const RObject&,const RObject&,const RObject&,const int,const Nullable<LogicalVector>&,const double,const double,const int,const double,const Nullable<NumericVector>&,const double,const int,const int,const unsigned int,const int,bool,int,const Nullable<NumericMatrix>&,const Nullable<NumericVector>&,const int&,const bool&,const int&,const CharacterVector&,const CharacterVector&,const bool,const double,const RObject&,const RObject&,const bool,const bool,const Nullable<NumericMatrix>&,const Nullable<NumericVector>&,const bool&,const unsigned int,const Nullable<NumericMatrix>&,const Nullable<NumericVector>&,const bool&,const unsigned int,const double,const double,const int)");
-        signatures.insert("SEXP(*rxSolveCsmall)(const RObject&,const Nullable<CharacterVector>&,const Nullable<List>&,const RObject&,const RObject&,const RObject&,const RObject&,const RObject&,const Nullable<List>&)");
+        signatures.insert("SEXP(*rxSolve_)(const RObject&,const List&,const Nullable<CharacterVector>&,const Nullable<List>&,const RObject&,const RObject&,const RObject&,const int)");
         signatures.insert("RObject(*rxSolveGet)(RObject,RObject,LogicalVector)");
         signatures.insert("RObject(*rxSolveUpdate)(RObject,RObject,RObject)");
         signatures.insert("void(*rxRmModelLib_)(std::string)");
@@ -1534,6 +1487,7 @@ static int _RxODE_RcppExport_validate(const char* sig) {
         signatures.insert("SEXP(*setProgSupported)(int)");
         signatures.insert("SEXP(*getProgSupported)()");
         signatures.insert("List(*rxUpdateTrans_)(List,std::string,std::string)");
+        signatures.insert("List(*dropUnitsRxSolve)(List)");
         signatures.insert("NumericVector(*rxInv)(SEXP)");
         signatures.insert("arma::mat(*rxToOmega)(arma::mat)");
         signatures.insert("RObject(*rxSymInvChol)(RObject,Nullable<NumericVector>,std::string,int)");
@@ -1559,8 +1513,7 @@ RcppExport SEXP _RxODE_RcppExport_registerCCallable() {
     R_RegisterCCallable("RxODE", "_RxODE_rinvchisq", (DL_FUNC)_RxODE_rinvchisq_try);
     R_RegisterCCallable("RxODE", "_RxODE_rxSimThetaOmega", (DL_FUNC)_RxODE_rxSimThetaOmega_try);
     R_RegisterCCallable("RxODE", "_RxODE_rxSolveFree", (DL_FUNC)_RxODE_rxSolveFree_try);
-    R_RegisterCCallable("RxODE", "_RxODE_rxSolveC", (DL_FUNC)_RxODE_rxSolveC_try);
-    R_RegisterCCallable("RxODE", "_RxODE_rxSolveCsmall", (DL_FUNC)_RxODE_rxSolveCsmall_try);
+    R_RegisterCCallable("RxODE", "_RxODE_rxSolve_", (DL_FUNC)_RxODE_rxSolve__try);
     R_RegisterCCallable("RxODE", "_RxODE_rxSolveGet", (DL_FUNC)_RxODE_rxSolveGet_try);
     R_RegisterCCallable("RxODE", "_RxODE_rxSolveUpdate", (DL_FUNC)_RxODE_rxSolveUpdate_try);
     R_RegisterCCallable("RxODE", "_RxODE_rxRmModelLib_", (DL_FUNC)_RxODE_rxRmModelLib__try);
@@ -1578,6 +1531,7 @@ RcppExport SEXP _RxODE_RcppExport_registerCCallable() {
     R_RegisterCCallable("RxODE", "_RxODE_setProgSupported", (DL_FUNC)_RxODE_setProgSupported_try);
     R_RegisterCCallable("RxODE", "_RxODE_getProgSupported", (DL_FUNC)_RxODE_getProgSupported_try);
     R_RegisterCCallable("RxODE", "_RxODE_rxUpdateTrans_", (DL_FUNC)_RxODE_rxUpdateTrans__try);
+    R_RegisterCCallable("RxODE", "_RxODE_dropUnitsRxSolve", (DL_FUNC)_RxODE_dropUnitsRxSolve_try);
     R_RegisterCCallable("RxODE", "_RxODE_rxInv", (DL_FUNC)_RxODE_rxInv_try);
     R_RegisterCCallable("RxODE", "_RxODE_rxToOmega", (DL_FUNC)_RxODE_rxToOmega_try);
     R_RegisterCCallable("RxODE", "_RxODE_rxSymInvChol", (DL_FUNC)_RxODE_rxSymInvChol_try);

@@ -75,7 +75,10 @@ by `dpylr`.  For example you could filter it easily.
 
 ```{r}
 library(dplyr)
-x <- mod1 %>% solve(theta,ev,inits) %>%  filter(time <= set_units(3, "hr")) %>% as.tbl
+## You can  drop units for comparisons and filtering
+x <- mod1 %>% solve(theta,ev,inits) %>% drop_units %>% filter(time <= 3) %>% as.tbl
+## or keep them and compare with the proper units.
+x <- mod1 %>% solve(theta,ev,inits) %>% filter(time <= set_units(3, hr)) %>% as.tbl
 x
 ```
 

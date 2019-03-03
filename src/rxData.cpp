@@ -1302,6 +1302,22 @@ void grtol2Setup(int n){
 }
 
 
+extern "C" double * getAol(int n, double atol){
+  gatol2Setup(n);
+  if (_globals.gatol2[0] != atol){
+    std::fill_n(&_globals.gatol2[0], n, atol);
+  }
+  return _globals.gatol2;
+}
+
+extern "C" double * getRol(int n, double rtol){
+  grtol2Setup(n);
+  if (_globals.grtol2[0] != rtol){
+    std::fill_n(&_globals.grtol2[0], n, rtol);
+  }
+  return _globals.grtol2;
+}
+
 void gparsSetup(int n){
   if (_globals.gparsn < 0){
     _globals.gparsn=0;
@@ -2215,53 +2231,56 @@ LogicalVector rxSolveFree(){
   return LogicalVector::create(true);
 }
 extern "C" void RxODE_assign_fn_pointers(SEXP);
+
 //[[Rcpp::export]]
-SEXP rxSolveC(const RObject &obj,
-              const Nullable<CharacterVector> &specParams = R_NilValue,
-              const Nullable<List> &extraArgs = R_NilValue,
-              const RObject &params = R_NilValue,
-              const RObject &events = R_NilValue,
-              const RObject &inits = R_NilValue,
-              const RObject &scale = R_NilValue,
-              const RObject &covs  = R_NilValue,
-              const int method = 2, // 0
-	      const Nullable<LogicalVector> &transit_abs = R_NilValue, //1
-	      const double atol = 1.0e-6, //2
-	      const double rtol = 1.0e-4, //3
-	      const int maxsteps = 5000, //4
-	      const double hmin = 0, //5
-	      const Nullable<NumericVector> &hmax = R_NilValue, //6
-	      const double hini = 0, //7
-	      const int maxordn = 12, //8
-	      const int maxords = 5, //9
-	      const unsigned int cores = 1, //10
-	      const int covs_interpolation = 0, //11
-	      bool addCov = false, //12
-	      int matrix = 0, //13
-	      const Nullable<NumericMatrix> &sigma= R_NilValue, //14
-	      const Nullable<NumericVector> &sigmaDf= R_NilValue, //15
-	      const int &nCoresRV= 1, //16
-	      const bool &sigmaIsChol= false,
-	      const int &nDisplayProgress = 10000,
-	      const CharacterVector &amountUnits = NA_STRING,
-	      const CharacterVector &timeUnits = "hours",
-	      const bool addDosing = false,
-	      const double stateTrim = NA_REAL,
-	      const RObject &theta = R_NilValue,
-	      const RObject &eta = R_NilValue,
-	      const bool updateObject = false,
-	      const bool doSolve = true,
-              const Nullable<NumericMatrix> &omega = R_NilValue, 
-	      const Nullable<NumericVector> &omegaDf = R_NilValue, 
-	      const bool &omegaIsChol = false,
-              const unsigned int nSub = 1, 
-	      const Nullable<NumericMatrix> &thetaMat = R_NilValue, 
-	      const Nullable<NumericVector> &thetaDf = R_NilValue, 
-	      const bool &thetaIsChol = false,
-              const unsigned int nStud = 1, 
-	      const double dfSub=0.0,
-	      const double dfObs=0.0,
+SEXP rxSolve_(const RObject &obj,
+	      const List &rxControl,
+	      const Nullable<CharacterVector> &specParams = R_NilValue,
+	      const Nullable<List> &extraArgs = R_NilValue,
+	      const RObject &params = R_NilValue,
+	      const RObject &events = R_NilValue,
+	      const RObject &inits = R_NilValue,
 	      const int setupOnly = 0){
+  if (rxIs(rxControl,"rxControl")){
+    stop("Control list not setup correctly.");
+  }
+  RObject scale = rxControl["scale"];
+  int method = as<int>(rxControl["method"]);
+  Nullable<LogicalVector> transit_abs = rxControl["transitAbs"];
+  double atol = as<double>(rxControl["atol"]);
+  double rtol = as<double>(rxControl["rtol"]);
+  int maxsteps = as<int>(rxControl["maxsteps"]);
+  double hmin = as<double>(rxControl["hmin"]);
+  Nullable<NumericVector> hmax = rxControl["hmax"];
+  double hini = as<double>(rxControl["hini"]);
+  int maxordn = as<int>(rxControl["maxordn"]);
+  int maxords = as<int>(rxControl["maxords"]);
+  unsigned int cores = as<unsigned int>(rxControl["cores"]);
+  int covs_interpolation = as<int>(rxControl["covsInterpolation"]);
+  bool addCov = as<bool>(rxControl["addCov"]);
+  int matrix = as<int>(rxControl["matrix"]);
+  Nullable<NumericMatrix> sigma= (rxControl["sigma"]);
+  Nullable<NumericVector> sigmaDf= (rxControl["sigmaDf"]); //15
+  int nCoresRV = as<int>(rxControl["nCoresRV"]);
+  bool sigmaIsChol= as<bool>(rxControl["sigmaIsChol"]);
+  int nDisplayProgress = as<int>(rxControl["nDisplayProgress"]);
+  CharacterVector amountUnits = as<CharacterVector>(rxControl["amountUnits"]);
+  CharacterVector timeUnits = as<CharacterVector>(rxControl["timeUnits"]);
+  bool addDosing = as<bool>(rxControl["addDosing"]);
+  double stateTrim = as<double>(rxControl["stateTrim"]);
+  RObject theta = rxControl["theta"];
+  RObject eta = rxControl["eta"];
+  bool updateObject = as<bool>(rxControl["updateObject"]);
+  Nullable<NumericMatrix> omega = as<Nullable<NumericMatrix>>(rxControl["omega"]);
+  Nullable<NumericVector> omegaDf = as<Nullable<NumericVector>>(rxControl["omegaDf"]);
+  bool omegaIsChol = as<bool>(rxControl["omegaIsChol"]);
+  unsigned int nSub = as<unsigned int>(rxControl["nSub"]);
+  Nullable<NumericMatrix> thetaMat = as<Nullable<NumericMatrix>>(rxControl["thetaMat"]);
+  Nullable<NumericVector> thetaDf = as<Nullable<NumericVector>>(rxControl["thetaDf"]);
+  bool thetaIsChol = as<bool>(rxControl["thetaIsChol"]);
+  unsigned int nStud = as<unsigned int>(rxControl["nStud"]);
+  double dfSub=as<double>(rxControl["dfSub"]);
+  double dfObs=as<double>(rxControl["dfObs"]);
   RObject object;
   bool isRxSolve = rxIs(obj, "rxSolve");
   bool isEnvironment = rxIs(obj, "environment");
@@ -2278,33 +2297,9 @@ SEXP rxSolveC(const RObject &obj,
   if (isRxSolve || isEnvironment){
     bool update_params = false,
       update_events = false,
-      update_inits = false,
-      update_covs = false,
-      update_method = false,
-      update_transit_abs = false,
-      update_atol = false,
-      update_rtol = false,
-      update_maxsteps = false,
-      update_hini = false,
-      update_hmin = false,
-      update_hmax = false,
-      update_maxordn = false,
-      update_maxords = false,
-      update_cores = false,
-      update_covs_interpolation = false,
-      update_addCov = false,
-      update_matrix = false,
-      update_sigma  = false,
-      update_sigmaDf = false,
-      update_nCoresRV = false,
-      update_sigmaIsChol = false,
-      update_amountUnits = false,
-      update_timeUnits = false,
-      update_scale = false,
-      update_dosing = false,
-      update_trim=false;
+      update_inits = false;
     if (specParams.isNull()){
-      warning("No additional parameters were specified; Returning fit.");
+      warning("No additional parameters were specified; Returning fit...");
       return object;
     }
     CharacterVector specs = CharacterVector(specParams);
@@ -2316,52 +2311,6 @@ SEXP rxSolveC(const RObject &obj,
 	update_events = true;
       else if (as<std::string>(specs[i]) == "inits")
 	update_inits = true;
-      else if (as<std::string>(specs[i]) == "method")
-	update_method = true;
-      else if (as<std::string>(specs[i]) == "transit_abs")
-	update_transit_abs = true;
-      else if (as<std::string>(specs[i]) == "atol")
-	update_atol = true;
-      else if (as<std::string>(specs[i]) == "rtol")
-	update_rtol = true;
-      else if (as<std::string>(specs[i]) == "maxsteps")
-	update_maxsteps = true;
-      else if (as<std::string>(specs[i]) == "hmin")
-	update_hmin = true;
-      else if (as<std::string>(specs[i]) == "hmax")
-	update_hmax = true;
-      else if (as<std::string>(specs[i]) == "maxordn")
-	update_maxordn = true;
-      else if (as<std::string>(specs[i]) == "maxords")
-	update_maxords = true;
-      else if (as<std::string>(specs[i]) == "cores")
-	update_cores = true;
-      else if (as<std::string>(specs[i]) == "covs_interpolation")
-	update_covs_interpolation = true;
-      else if (as<std::string>(specs[i]) == "addCov")
-	update_addCov = true;
-      else if (as<std::string>(specs[i]) == "matrix")
-	update_matrix = true;
-      else if (as<std::string>(specs[i]) == "sigma")
-	update_sigma  = true;
-      else if (as<std::string>(specs[i]) == "sigmaDf")
-	update_sigmaDf = true;
-      else if (as<std::string>(specs[i]) == "nCoresRV")
-	update_nCoresRV = true;
-      else if (as<std::string>(specs[i]) == "sigmaIsChol")
-	update_sigmaIsChol = true;
-      else if (as<std::string>(specs[i]) == "amountUnits")
-	update_amountUnits = true;
-      else if (as<std::string>(specs[i]) == "timeUnits")
-	update_timeUnits = true;
-      else if (as<std::string>(specs[i]) == "hini")
-	update_hini = true;
-      else if (as<std::string>(specs[i]) == "scale")
-	update_scale = true;
-      else if (as<std::string>(specs[i]) == "addDosing")
-	update_dosing = true;
-      else if (as<std::string>(specs[i]) == "stateTrim")
-	update_trim = true;
     }
     // Now update
     Environment e;
@@ -2393,40 +2342,22 @@ SEXP rxSolveC(const RObject &obj,
     if(e.exists(".theta")){
       _rxModels[".theta"] = as<NumericMatrix>(e[".theta"]);
     }
-    RObject new_params = update_params ? params : e["args.params"];
-    RObject new_events = update_events ? events : e["args.events"];
+    RObject new_params;
+    RObject new_events;
+    if (rxIs(params, "rx.event")){
+      new_events = params;
+      new_params = events;
+    } else {
+      new_params = update_params ? params : e["args.params"];
+      new_events = update_events ? events : e["args.events"];
+    }
+    
     RObject new_inits = update_inits ? inits : e["args.inits"];
-    RObject new_covs  = update_covs  ? covs  : e["args.covs"];
-    int new_method = update_method ? method : e["args.method"];
-    Nullable<LogicalVector> new_transit_abs = update_transit_abs ? transit_abs : e["args.transit_abs"];
-    double new_atol = update_atol ? atol : e["args.atol"];
-    double new_rtol = update_rtol ? rtol : e["args.rtol"];
-    int new_maxsteps = update_maxsteps ? maxsteps : e["args.maxsteps"];
-    int new_hmin = update_hmin ? hmin : e["args.hmin"];
-    Nullable<NumericVector> new_hmax = update_hmax ? hmax : e["args.hmax"];
-    int new_hini = update_hini ? hini : e["args.hini"];
-    int new_maxordn = update_maxordn ? maxordn : e["args.maxordn"];
-    int new_maxords = update_maxords ? maxords : e["args.maxords"];
-    int new_cores = update_cores ? cores : e["args.cores"];
-    int new_covs_interpolation = update_covs_interpolation ? covs_interpolation : e["args.covs_interpolation"];
-    bool new_addCov = update_addCov ? addCov : e["args.addCov"];
-    int new_matrix = update_matrix ? matrix : e["args.matrix"];
-    Nullable<NumericMatrix> new_sigma = update_sigma ? sigma : e["args.sigma"];
-    Nullable<NumericVector> new_sigmaDf = update_sigmaDf ? sigmaDf : e["args.sigmaDf"];
-    int new_nCoresRV = update_nCoresRV ? nCoresRV : e["args.nCoresRV"];
-    bool new_sigmaIsChol = update_sigmaIsChol ? sigmaIsChol : e["args.sigmaIsChol"];
-    int new_nDisplayProgress = e["args.nDisplayProgress"];
-    CharacterVector new_amountUnits = update_amountUnits ? amountUnits : e["args.amountUnits"];
-    CharacterVector new_timeUnits = update_timeUnits ? timeUnits : e["args.timeUnits"];
-    RObject new_scale = update_scale ? scale : e["args.scale"];
-    bool new_addDosing = update_dosing ? addDosing : e["args.addDosing"];
-    double new_stateTrim = update_trim ? stateTrim : e["args.stateTrim"];
+    List newRxControl = clone(rxControl);
     RObject new_object = as<RObject>(e["args.object"]);
-    List dat = as<List>(rxSolveC(new_object, R_NilValue, extraArgs, new_params, new_events, new_inits, new_scale, new_covs,
-				 new_method, new_transit_abs, new_atol, new_rtol, new_maxsteps, new_hmin,
-				 new_hmax, new_hini,new_maxordn, new_maxords, new_cores, new_covs_interpolation,
-				 new_addCov, new_matrix, new_sigma, new_sigmaDf, new_nCoresRV, new_sigmaIsChol,
-				 new_nDisplayProgress, new_amountUnits, new_timeUnits, new_addDosing, new_stateTrim));
+    newRxControl["updateObject"] = false;
+    List dat = as<List>(rxSolve_(new_object, newRxControl, R_NilValue, extraArgs,
+				 new_params, new_events, new_inits));
     if (updateObject && as<bool>(e[".real.update"])){
       List old = as<List>(rxCurObj);
       //Should I zero out the List...?
@@ -3175,6 +3106,84 @@ SEXP rxSolveC(const RObject &obj,
       stop("Something is wrong here.");
     }
     if (setupOnly){
+      if (setupOnly == 2){
+	// Partial free
+	// mtime needs to be setup and used.
+	if (_globals.gmtime != NULL&& _globals.gmtimen>0) Free(_globals.gmtime);
+	_globals.gmtime=NULL;
+	_globals.gmtimen=0;
+	// par_cov needs to be specified.
+	if (_globals.gpar_cov != NULL) Free(_globals.gpar_cov);
+	_globals.gpar_covn=0;
+
+	if (_globals.gsiV != NULL) Free(_globals.gsiV);
+	_globals.gsiVn=0;
+	if (_globals.gsvar != NULL) Free(_globals.gsvar);
+	_globals.gsvarn=0;
+
+	// idose provided
+	if (_globals.gidose != NULL) Free(_globals.gidose);
+	_globals.gidosen=0;
+	// Rc provided
+	if (_globals.grc != NULL && _globals.grcn > 0) Free(_globals.grc);
+	_globals.grc=NULL;
+	_globals.grcn=0;
+	// Baddose setup on single solve
+	if (_globals.gBadDose != NULL) Free(_globals.gBadDose);
+	_globals.gBadDosen=0;
+	// Evid provided
+	if (_globals.gevid != NULL && _globals.gevidn > 0) Free(_globals.gevid);
+	_globals.gevid=NULL;
+	_globals.gevidn=0;
+	// gpar setup
+	if (_globals.gpars != NULL && _globals.gparsn>0) Free(_globals.gpars);
+	_globals.gpars=NULL;
+	_globals.gparsn=0;
+	// Tolerances need to be saved.
+	// if (_globals.grtol2 != NULL) Free(_globals.grtol2);
+	// _globals.grtol2n=0;
+	// if (_globals.gatol2 != NULL) Free(_globals.gatol2);
+	// _globals.gatol2n=0;
+	if (_globals.gscale != NULL) Free(_globals.gscale);
+	_globals.gscalen=0;
+	// Set initial conditions
+	if (_globals.ginits != NULL && _globals.ginitsn > 0) Free(_globals.ginits);
+	_globals.ginits=NULL;
+	_globals.ginitsn=0;
+	// Cov needs to be provided
+	if (_globals.gcov != NULL) Free(_globals.gcov);
+	_globals.gcovn=0;
+	// lhs needs to be provided
+	if (_globals.glhs != NULL && _globals.glhsn > 0) Free(_globals.glhs);
+	_globals.glhs=NULL;
+	_globals.glhsn=0;
+	// dose needs to be provided.  So does ii
+	if (_globals.gamt != NULL && _globals.gamtn > 0) Free(_globals.gamt);
+	if (_globals.gii != NULL && _globals.gamtn > 0) Free(_globals.gii);
+	_globals.gamt=NULL;
+	_globals.gii=NULL;
+	_globals.gamtn=0;
+	// Times need to be provided.
+	if (_globals.gall_times != NULL && _globals.gall_timesn>0) Free(_globals.gall_times);
+	_globals.gall_times=NULL;
+	_globals.gall_timesn=0;
+	if (_globals.gix != NULL && _globals.gixn>0) Free(_globals.gix);
+	_globals.gix=NULL;
+	_globals.gixn=0;
+	if (_globals.gdv != NULL) Free(_globals.gdv);
+	_globals.gdvn=0;
+	if (_globals.gInfusionRate != NULL) Free(_globals.gInfusionRate);
+	_globals.gInfusionRaten=0;
+	if (_globals.gsolve != NULL&& _globals.gsolven>0) Free(_globals.gsolve);
+	_globals.gsolve=NULL;
+	_globals.gsolven=0;
+	if (_globals.gon != NULL&& _globals.gonn>0) Free(_globals.gon);
+	_globals.gon=NULL;
+	_globals.gonn=0;
+	if (_globals.gParPos != NULL) Free(_globals.gParPos);
+	if (_globals.gParPos2 != NULL) Free(_globals.gParPos2);
+	_globals.gParPosn = 0;
+      }
       return as<SEXP>(LogicalVector::create(true));
     }
     par_solve(rx);
@@ -3284,7 +3293,6 @@ SEXP rxSolveC(const RObject &obj,
       units.names() = CharacterVector::create("dosing","time");
       e["units"] = units;
       e["nobs"] = rx->nobs;
-    
       e["args.object"] = object;
       e["dll"] = rxDll(object);
       if (!swappedEvents){
@@ -3303,29 +3311,7 @@ SEXP rxSolveC(const RObject &obj,
   	e["args.events"] = params;
       }
       e["args.inits"] = inits;
-      e["args.method"] = method;
-      e["args.transit_abs"] = transit_abs;
-      e["args.atol"] = atol;
-      e["args.rtol"] = rtol;
-      e["args.maxsteps"] = maxsteps;
-      e["args.hmin"] = hmin;
-      e["args.hmax"] = hmax;
-      e["args.hini"] = hini;
-      e["args.maxordn"] = maxordn;
-      e["args.maxords"] = maxords;
-      e["args.cores"] = cores;
-      e["args.covs_interpolation"] = covs_interpolation;
-      e["args.addCov"] = addCov;
-      e["args.matrix"] = matrix;
-      e["args.sigma"] = sigma;
-      e["args.sigmaDf"] = sigmaDf;
-      e["args.nCoresRV"] = nCoresRV;
-      e["args.sigmaIsChol"] = sigmaIsChol;
-      e["args.nDisplayProgress"] = nDisplayProgress;
-      e["args.amountUnits"] = amountUnits;
-      e["args.timeUnits"] = timeUnits;
-      e["args.addDosing"] = addDosing;
-      e["args.stateTrim"] = stateTrim;
+      e["args"] = rxControl;
       e[".real.update"] = true;
       CharacterVector cls= CharacterVector::create("rxSolve", "data.frame");
       cls.attr(".RxODE.env") = e;    
@@ -3334,62 +3320,6 @@ SEXP rxSolveC(const RObject &obj,
     }
   }
   return R_NilValue;
-}
-
-//[[Rcpp::export]]
-SEXP rxSolveCsmall(const RObject &object,
-                   const Nullable<CharacterVector> &specParams = R_NilValue,
-                   const Nullable<List> &extraArgs = R_NilValue,
-                   const RObject &params = R_NilValue,
-                   const RObject &events = R_NilValue,
-                   const RObject &inits = R_NilValue,
-		   const RObject &scale = R_NilValue,
-                   const RObject &covs  = R_NilValue,
-                   const Nullable<List> &optsL = R_NilValue){
-  if (optsL.isNull()){
-    stop("Not meant to be called directly.  Needs options setup.");
-  }
-  List opts = List(optsL);
-  return rxSolveC(object, specParams, extraArgs, params, events, inits, scale, covs,
-                  (int)opts[0], // const int method = 2,
-                  as<Nullable<LogicalVector>>(opts[1]), // const Nullable<LogicalVector> &transit_abs = R_NilValue,
-                  (double)opts[2], //const double atol = 1.0e-8,
-                  (double)opts[3], // const double rtol = 1.0e-6,
-                  (int)opts[4], //const int maxsteps = 5000,
-                  (double)opts[5], //const double hmin = 0,
-                  as<Nullable<NumericVector>>(opts[6]), //const Nullable<NumericVector> &hmax = R_NilValue,
-                  (double)opts[7], //const double hini = 0,
-                  (int)opts[8], //const int maxordn = 12,
-                  opts[9], //const int maxords = 5,
-                  (unsigned int)opts[10], //const int cores = 1,
-                  (int)opts[11], //const int covs_interpolation = 0,
-                  opts[12], //bool addCov = false,
-                  opts[13], //bool matrix = false,
-                  opts[14], //const RObject &sigma= R_NilValue,
-                  opts[15], //const RObject &sigmaDf= R_NilValue,
-                  (int)opts[16], //const int &nCoresRV= 1,
-                  opts[17], //const bool &sigmaIsChol= false,
-                  opts[18], // nDisplayProgress
-                  opts[19], //const CharacterVector &amountUnits = NA_STRING,
-                  opts[20], //const CharacterVector &timeUnits = "hours",
-                  opts[21], //const bool updateObject = false
-                  opts[22], //const RObject &eta = R_NilValue,
-                  opts[23], //const bool addDosing = false
-		  opts[24],//const double stateTrim = R_PosInf
-		  opts[25], // 
-		  opts[26], //
-		  opts[27], // const RObject &omega = R_NilValue, 
-		  opts[28], // const RObject &omegaDf = R_NilValue, 
-                  opts[29], // const bool &omegaIsChol = false,
-                  opts[30], // const int nSub = 1, 
-                  opts[31], // const RObject &thetaMat = R_NilValue, 
-                  opts[32], // const RObject &thetaDf = R_NilValue, 
-                  opts[33], // const bool &thetaIsChol = false,
-                  opts[34], // const int nStud = 1, 
-                  opts[35], // const dfSub
-                  opts[36], // dfObs
-		  opts[37] // setupOnly
-		  );
 }
 
 //[[Rcpp::export]]
@@ -3571,104 +3501,36 @@ RObject rxSolveUpdate(RObject obj,
     rxCurObj = obj;
     if (rxIs(arg,"character")){
       CharacterVector what = CharacterVector(arg);
-      // CharacterVector classattr = obj.attr("class");
-      // Environment e = as<Environment>(classattr.attr(".RxODE.env"));
+      CharacterVector classattr = obj.attr("class");
+      Environment e = as<Environment>(classattr.attr(".RxODE.env"));
+      List rxControl = e["args"];
       // updateSolveEnvPost(e);
       if (what.size() == 1){
 	std::string sarg = as<std::string>(what[0]);
 	// Now check to see if this is something that can be updated...
 	if (sarg == "params"){
-	  return rxSolveC(obj,
+	  // rxControl["params"] = value;
+	  return rxSolve_(obj,rxControl,
                           CharacterVector::create("params"),
 			  R_NilValue,
                           value, //defrx_params,
                           defrx_events,
-                          defrx_inits,
-			  R_NilValue, // scale (cannot be updated currently.)
-                          defrx_covs,
-                          defrx_method,
-                          defrx_transit_abs,
-                          defrx_atol,
-                          defrx_rtol,
-                          defrx_maxsteps,
-                          defrx_hmin,
-                          defrx_hmax,
-                          defrx_hini,
-                          defrx_maxordn,
-                          defrx_maxords,
-                          defrx_cores,
-                          defrx_covs_interpolation,
-                          defrx_addCov,
-                          defrx_matrix,
-                          defrx_sigma,
-                          defrx_sigmaDf,
-                          defrx_nCoresRV,
-                          defrx_sigmaIsChol,
-                          defrx_nDisplayProgress,
-                          defrx_amountUnits,
-                          defrx_timeUnits, defrx_addDosing, defrx_stateTrim);
+                          defrx_inits);
 	} else if (sarg == "events"){
-	  return rxSolveC(obj,
+	  return rxSolve_(obj,rxControl,
 			  CharacterVector::create("events"),
 			  R_NilValue,
 			  defrx_params,
 			  value, // defrx_events,
-			  defrx_inits,
-			  R_NilValue, // scale
-			  defrx_covs,
-			  defrx_method,
-			  defrx_transit_abs,
-			  defrx_atol,
-			  defrx_rtol,
-			  defrx_maxsteps,
-			  defrx_hmin,
-			  defrx_hmax,
-			  defrx_hini,
-			  defrx_maxordn,
-			  defrx_maxords,
-			  defrx_cores,
-			  defrx_covs_interpolation,
-			  defrx_addCov,
-			  defrx_matrix,
-			  defrx_sigma,
-			  defrx_sigmaDf,
-			  defrx_nCoresRV,
-			  defrx_sigmaIsChol,
-                          defrx_nDisplayProgress,
-			  defrx_amountUnits,
-			  defrx_timeUnits, 
-			  defrx_addDosing, defrx_stateTrim);
+			  defrx_inits);
 	} else if (sarg == "inits"){
-	  return rxSolveC(obj,
+	  return rxSolve_(obj, rxControl,
                           CharacterVector::create("inits"),
 			  R_NilValue,
                           defrx_params,
                           defrx_events,
-                          as<RObject>(value), //defrx_inits,
-			  R_NilValue, // scale
-			  defrx_covs,
-                          defrx_method,
-                          defrx_transit_abs,
-                          defrx_atol,
-                          defrx_rtol,
-                          defrx_maxsteps,
-                          defrx_hmin,
-                          defrx_hmax,
-                          defrx_hini,
-                          defrx_maxordn,
-                          defrx_maxords,
-                          defrx_cores,
-                          defrx_covs_interpolation,
-                          defrx_addCov,
-                          defrx_matrix,
-                          defrx_sigma,
-                          defrx_sigmaDf,
-                          defrx_nCoresRV,
-                          defrx_sigmaIsChol,
-                          defrx_nDisplayProgress,
-                          defrx_amountUnits,
-                          defrx_timeUnits, 
-			  defrx_addDosing, defrx_stateTrim);
+                          as<RObject>(value) //defrx_inits,
+			  );
 	} else if (sarg == "t" || sarg == "time"){
 	  CharacterVector classattr = obj.attr("class");
           Environment e = as<Environment>(classattr.attr(".RxODE.env"));
@@ -3698,36 +3560,12 @@ RObject rxSolveUpdate(RObject obj,
 	      if (val.size() == np){
 		// Update Parameter
 		pars[i] = val;
-		return rxSolveC(obj,
+		return rxSolve_(obj,rxControl,
 				CharacterVector::create("params"),
 				R_NilValue,
 				pars, //defrx_params,
 				defrx_events,
-				defrx_inits,
-				R_NilValue,
-				defrx_covs,
-				defrx_method,
-				defrx_transit_abs,
-				defrx_atol,
-				defrx_rtol,
-				defrx_maxsteps,
-				defrx_hmin,
-				defrx_hmax,
-				defrx_hini,
-				defrx_maxordn,
-				defrx_maxords,
-				defrx_cores,
-				defrx_covs_interpolation,
-				defrx_addCov,
-				defrx_matrix,
-				defrx_sigma,
-				defrx_sigmaDf,
-				defrx_nCoresRV,
-				defrx_sigmaIsChol,
-                                defrx_nDisplayProgress,
-				defrx_amountUnits,
-				defrx_timeUnits, 
-				defrx_addDosing, defrx_stateTrim);
+				defrx_inits);
 	      } else if (val.size() == nc){
 		// Change parameter -> Covariate
 		List newPars(pars.size()-1);
@@ -3755,36 +3593,12 @@ RObject rxSolveUpdate(RObject obj,
 		newEvents.attr("names") = newEventsNames;
 		newEvents.attr("class") = "data.frame";
 		newEvents.attr("row.names") = IntegerVector::create(NA_INTEGER,-nc);
-		return rxSolveC(obj,
+		return rxSolve_(obj, rxControl,
 				CharacterVector::create("params","events"),
 				R_NilValue,
 				newPars, //defrx_params,
 				newEvents,
-				defrx_inits,
-				R_NilValue,
-				R_NilValue, //defrx_covs
-				defrx_method,
-				defrx_transit_abs,
-				defrx_atol,
-				defrx_rtol,
-				defrx_maxsteps,
-				defrx_hmin,
-				defrx_hmax,
-				defrx_hini,
-				defrx_maxordn,
-				defrx_maxords,
-				defrx_cores,
-				defrx_covs_interpolation,
-				defrx_addCov,
-				defrx_matrix,
-				defrx_sigma,
-				defrx_sigmaDf,
-				defrx_nCoresRV,
-				defrx_sigmaIsChol,
-                                defrx_nDisplayProgress,
-				defrx_amountUnits,
-				defrx_timeUnits, 
-				defrx_addDosing, defrx_stateTrim);
+				defrx_inits);
 	      }
 	      return R_NilValue;
 	    }
@@ -3799,36 +3613,12 @@ RObject rxSolveUpdate(RObject obj,
 	      if (val.size() == nc){
 		// Update Covariate
 		events[i]=val;
-		return rxSolveC(obj,
+		return rxSolve_(obj, rxControl,
 				CharacterVector::create("events"),
 				R_NilValue,
 				defrx_params,
 				events,
-				defrx_inits,
-				R_NilValue,
-				R_NilValue, // defrx_covs,
-				defrx_method,
-				defrx_transit_abs,
-				defrx_atol,
-				defrx_rtol,
-				defrx_maxsteps,
-				defrx_hmin,
-				defrx_hmax,
-				defrx_hini,
-				defrx_maxordn,
-				defrx_maxords,
-				defrx_cores,
-				defrx_covs_interpolation,
-				defrx_addCov,
-				defrx_matrix,
-				defrx_sigma,
-				defrx_sigmaDf,
-				defrx_nCoresRV,
-				defrx_sigmaIsChol,
-                                defrx_nDisplayProgress,
-				defrx_amountUnits,
-				defrx_timeUnits, 
-				defrx_addDosing, defrx_stateTrim);
+				defrx_inits);
 	      } else if (val.size() == np){
 		// Change Covariate -> Parameter
 		List newPars(pars.size()+1);
@@ -3856,36 +3646,12 @@ RObject rxSolveUpdate(RObject obj,
 		newEvents.attr("names") = newEventsNames;
 		newEvents.attr("class") = "data.frame";
 		newEvents.attr("row.names") = IntegerVector::create(NA_INTEGER,-nc);
-		return rxSolveC(obj,
+		return rxSolve_(obj,rxControl,
 				CharacterVector::create("events", "params"),
 				R_NilValue,
 				newPars,//defrx_params,
 				newEvents,
-				defrx_inits,
-				R_NilValue,
-				R_NilValue, // defrx_covs,
-				defrx_method,
-				defrx_transit_abs,
-				defrx_atol,
-				defrx_rtol,
-				defrx_maxsteps,
-				defrx_hmin,
-				defrx_hmax,
-				defrx_hini,
-				defrx_maxordn,
-				defrx_maxords,
-				defrx_cores,
-				defrx_covs_interpolation,
-				defrx_addCov,
-				defrx_matrix,
-				defrx_sigma,
-				defrx_sigmaDf,
-				defrx_nCoresRV,
-				defrx_sigmaIsChol,
-                                defrx_nDisplayProgress,
-				defrx_amountUnits,
-				defrx_timeUnits, 
-				defrx_addDosing, defrx_stateTrim);
+				defrx_inits);
 	      }
 	    }
 	  }
@@ -3930,36 +3696,12 @@ RObject rxSolveUpdate(RObject obj,
 		  ini[j] = v;
 		}
 	      }
-              return rxSolveC(obj,
+              return rxSolve_(obj, rxControl,
 			      CharacterVector::create("inits"),
 			      R_NilValue,
 			      defrx_params,
 			      defrx_events,
-			      ini,
-			      R_NilValue,
-			      defrx_covs,
-			      defrx_method,
-			      defrx_transit_abs,
-			      defrx_atol,
-			      defrx_rtol,
-			      defrx_maxsteps,
-			      defrx_hmin,
-			      defrx_hmax,
-			      defrx_hini,
-			      defrx_maxordn,
-			      defrx_maxords,
-			      defrx_cores,
-			      defrx_covs_interpolation,
-			      defrx_addCov,
-			      defrx_matrix,
-			      defrx_sigma,
-			      defrx_sigmaDf,
-			      defrx_nCoresRV,
-			      defrx_sigmaIsChol,
-                              defrx_nDisplayProgress,
-			      defrx_amountUnits,
-			      defrx_timeUnits, 
-			      defrx_addDosing, defrx_stateTrim);
+			      ini);
 	    }
 	  }
 	  return R_NilValue;
@@ -4205,7 +3947,7 @@ bool rxIsLoaded(RObject obj){
   Function isLoaded("is.loaded", R_BaseNamespace);
   List mv = rxModelVars(obj);
   CharacterVector trans = mv["trans"];
-  std::string dydt = as<std::string>(trans["ode_solver"]);
+  std::string dydt = as<std::string>(trans["model_vars"]);
   return as<bool>(isLoaded(dydt));
 }
 
@@ -4365,7 +4107,7 @@ List rxUpdateTrans_(List ret, std::string prefix, std::string libName){
 				   _["calc_jac"] = prefix + "calc_jac",
 				   _["calc_lhs"] = prefix + "calc_lhs",
 				   _["model_vars"] = prefix + "model_vars",
-				   _["ode_solver"] = prefix + "ode_solver",
+				   _["theta"] = prefix + "theta",
 				   _["inis"] = prefix + "inis",
 				   _["dydt_lsoda"] = prefix + "dydt_lsoda",
 				   _["calc_jac_lsoda"] = prefix + "calc_jac_lsoda",
@@ -4403,4 +4145,20 @@ extern "C" void doSort(rx_solving_options_ind *ind){
 	      if (ta == tb) return a < b;
 	      return ta < tb;
 	    });
+}
+
+//[[Rcpp::export]]
+List dropUnitsRxSolve(List x){
+  List ret;
+  if (rxIs(x, "rxSolve")){
+    ret = clone(x);
+    for (int j = (int)ret.size(); j--;){
+      if (rxIs(ret[j],"units")){
+	RObject cur = ret[j];
+	cur.attr("units") = R_NilValue;
+	cur.attr("class") = R_NilValue;
+      }
+    }
+  }
+  return ret;
 }

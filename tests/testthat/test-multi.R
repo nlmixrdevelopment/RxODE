@@ -144,8 +144,6 @@ rxPermissive({
             ##             ))
             expect_equal(obj$modName,expect);
             expect_match(obj$cmpMgr$dllfile,expect);
-            expect_match(obj$cmpMgr$ode_solver,expect);
-
         }
 
     test_that("Compilation manager elements make sense.",{

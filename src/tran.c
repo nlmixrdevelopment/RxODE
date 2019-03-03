@@ -28,7 +28,8 @@
 	  CHAR(STRING_ELT(libname, 0)),		\
 	  CHAR(STRING_ELT(pMd5,0)),		\
 	  CHAR(STRING_ELT(timeId, 0)),		\
-	  CHAR(STRING_ELT(fixInis, 0)));	\
+	  CHAR(STRING_ELT(fixInis, 0)),         \
+	  CHAR(STRING_ELT(fixInis, 1)));	\
   writeSb(&sbOut, fpIO);
 
 #define aAppendN(str, len) sAppendN(&sb, str, len); sAppendN(&sbDt, str, len);
@@ -1920,8 +1921,8 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   sAppendN(&sbOut, "    SET_STRING_ELT(trann,6,mkChar(\"model_vars\"));\n", 50);
   sAppend(&sbOut, "    SET_STRING_ELT(tran, 6,mkChar(\"%smodel_vars\"));\n", prefix);
   
-  sAppendN(&sbOut, "    SET_STRING_ELT(trann,7,mkChar(\"ode_solver\"));\n", 50);
-  sAppend(&sbOut, "    SET_STRING_ELT(tran, 7,mkChar(\"%sode_solver\"));\n", prefix);
+  sAppendN(&sbOut, "    SET_STRING_ELT(trann,7,mkChar(\"theta\"));\n", 45);
+  sAppend(&sbOut, "    SET_STRING_ELT(tran, 7,mkChar(\"%stheta\"));\n", prefix);
   
   sAppendN(&sbOut, "    SET_STRING_ELT(trann,8,mkChar(\"inis\"));\n", 44);
   sAppend(&sbOut, "    SET_STRING_ELT(tran, 8,mkChar(\"%sinis\"));\n", prefix);
@@ -1981,8 +1982,8 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   sAppend(&sbOut,"extern void %scalc_jac_lsoda(int *neq, double *t, double *A,int *ml, int *mu, double *JAC, int *nrowpd){\n  // Update all covariate parameters\n  %scalc_jac(neq, *t, A, JAC, *nrowpd);\n}\n",
 	  prefix, prefix);
   sAppend(&sbOut,"\n//Initilize the dll to match RxODE's calls\nvoid R_init_%s(DllInfo *info){\n  // Get C callables on load; Otherwise it isn't thread safe\n\n", libname);
-  sAppendN(&sbOut,"  _assign_ptr=(RxODE_assign_ptr) R_GetCCallable(\"RxODE\",\"RxODE_assign_fn_pointers\");\n  _rxRmModelLib=(_rxRmModelLibType) R_GetCCallable(\"RxODE\",\"rxRmModelLib\");\n  _rxGetModelLib=(_rxGetModelLibType) R_GetCCallable(\"RxODE\",\"rxGetModelLib\");\n  _old_c = (RxODE_ode_solver_old_c) R_GetCCallable(\"RxODE\",\"rxSolveOldC\");\n  _RxODE_rxAssignPtr=(_rx_asgn)R_GetCCallable(\"RxODE\",\"_RxODE_rxAssignPtr\");\n  _rxIsCurrentC = (_rxIsCurrentC_type)R_GetCCallable(\"RxODE\",\"rxIsCurrentC\");\n  _sumPS  = (_rxSumType) R_GetCCallable(\"PreciseSums\",\"PreciseSums_sum_r\");\n  _prodPS = (_rxProdType) R_GetCCallable(\"PreciseSums\",\"PreciseSums_prod_r\");\n  _prodType=(RxODE_fn0i)R_GetCCallable(\"PreciseSums\", \"PreciseSums_prod_get\");\n  _sumType=(RxODE_fn0i)R_GetCCallable(\"PreciseSums\", \"PreciseSums_sum_get\");\n  _ptrid=(RxODE_fn0i)R_GetCCallable(\"RxODE\", \"RxODE_current_fn_pointer_id\");\n  _powerD=(RxODE_fn3i)R_GetCCallable(\"RxODE\", \"powerD\");\n  _powerDi=(RxODE_fn3i)R_GetCCallable(\"RxODE\", \"powerDi\");\n  _powerDD=(RxODE_fn3i)R_GetCCallable(\"RxODE\", \"powerDD\");\n  _powerDDD=(RxODE_fn3i)R_GetCCallable(\"RxODE\", \"powerDDD\");\n  solveLinB=(solveLinB_p)R_GetCCallable(\"RxODE\", \"solveLinB\");\n  _update_par_ptr=(_update_par_ptr_p) R_GetCCallable(\"RxODE\",\"_update_par_ptr\");\n  // Register the outside functions\n", 1273);
-  sAppend(&sbOut, "  R_RegisterCCallable(\"%s\",\"%sode_solver\", (DL_FUNC) %sode_solver);\n", libname, prefix, prefix);
+  sAppendN(&sbOut,"  _assign_ptr=(RxODE_assign_ptr) R_GetCCallable(\"RxODE\",\"RxODE_assign_fn_pointers\");\n  _rxRmModelLib=(_rxRmModelLibType) R_GetCCallable(\"RxODE\",\"rxRmModelLib\");\n  _rxGetModelLib=(_rxGetModelLibType) R_GetCCallable(\"RxODE\",\"rxGetModelLib\");\n  _RxODE_rxAssignPtr=(_rx_asgn)R_GetCCallable(\"RxODE\",\"_RxODE_rxAssignPtr\");\n  _rxIsCurrentC = (_rxIsCurrentC_type)R_GetCCallable(\"RxODE\",\"rxIsCurrentC\");\n  _sumPS  = (_rxSumType) R_GetCCallable(\"PreciseSums\",\"PreciseSums_sum_r\");\n  _prodPS = (_rxProdType) R_GetCCallable(\"PreciseSums\",\"PreciseSums_prod_r\");\n  _prodType=(RxODE_fn0i)R_GetCCallable(\"PreciseSums\", \"PreciseSums_prod_get\");\n  _sumType=(RxODE_fn0i)R_GetCCallable(\"PreciseSums\", \"PreciseSums_sum_get\");\n  _ptrid=(RxODE_fn0i)R_GetCCallable(\"RxODE\", \"RxODE_current_fn_pointer_id\");\n  _powerD=(RxODE_fn3i)R_GetCCallable(\"RxODE\", \"powerD\");\n  _powerDi=(RxODE_fn3i)R_GetCCallable(\"RxODE\", \"powerDi\");\n  _powerDD=(RxODE_fn3i)R_GetCCallable(\"RxODE\", \"powerDD\");\n  _powerDDD=(RxODE_fn3i)R_GetCCallable(\"RxODE\", \"powerDDD\");\n  solveLinB=(solveLinB_p)R_GetCCallable(\"RxODE\", \"solveLinB\");\n  _update_par_ptr=(_update_par_ptr_p) R_GetCCallable(\"RxODE\",\"_update_par_ptr\");\n  // Register the outside functions\n", 1198);
+  sAppend(&sbOut, "  R_RegisterCCallable(\"%s\",\"%stheta\", (DL_FUNC) %stheta);\n", libname, prefix, prefix);
   sAppend(&sbOut, "  R_RegisterCCallable(\"%s\",\"%sinis\",(DL_FUNC) %sinis);\n", libname, prefix, prefix);
   sAppend(&sbOut, "  R_RegisterCCallable(\"%s\",\"%sdydt\",(DL_FUNC) %sdydt);\n", libname, prefix, prefix);
   sAppend(&sbOut, "  R_RegisterCCallable(\"%s\",\"%scalc_lhs\",(DL_FUNC) %scalc_lhs);\n", libname, prefix, prefix);
@@ -1997,11 +1998,9 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   sAppend(&sbOut, "  R_RegisterCCallable(\"%s\",\"%sDur\", (DL_FUNC) %sDur);\n", libname, prefix, prefix);
 sAppend(&sbOut, "  R_RegisterCCallable(\"%s\",\"%smtime\", (DL_FUNC) %smtime);\n", libname, prefix, prefix);
   sAppend(&sbOut, "  R_RegisterCCallable(\"%s\",\"%sdydt_liblsoda\", (DL_FUNC) %sdydt_liblsoda);\n", libname, prefix, prefix);
-  sAppend(&sbOut, "\n  static const R_CMethodDef cMethods[] = {\n    {\"%sode_solver\", (DL_FUNC) &%sode_solver, 15, %sode_solverrx_t},\n    {NULL, NULL, 0, NULL}\n  };\n",
-	  prefix, prefix, prefix);
-  sAppend(&sbOut, "\n  R_CallMethodDef callMethods[]  = {\n    {\"%smodel_vars\", (DL_FUNC) &%smodel_vars, 0},\n    {NULL, NULL, 0}\n  };\n",
-	  prefix, prefix);
-  sAppendN(&sbOut, "\n  R_registerRoutines(info, cMethods, callMethods, NULL, NULL);\n  R_useDynamicSymbols(info,FALSE);\n}\n", 101);
+  sAppend(&sbOut, "\n  static const R_CallMethodDef callMethods[]  = {\n    {\"%smodel_vars\", (DL_FUNC) &%smodel_vars, 0},\n    {NULL, NULL, 0}\n  };\n",
+  	  prefix, prefix);
+  sAppendN(&sbOut, "\n  R_registerRoutines(info, NULL, callMethods, NULL, NULL);\n  R_useDynamicSymbols(info,FALSE);\n}\n", 97);
   sAppend(&sbOut, "\nvoid R_unload_%s (DllInfo *info){\n  // Free resources required for single subject solve.\n  SEXP _mv = PROTECT(_rxGetModelLib(\"%smodel_vars\"));\n",
 	  libname, prefix);
   sAppend(&sbOut, "  if (!isNull(_mv)){\n    _rxRmModelLib(\"%smodel_vars\");\n  }\n  UNPROTECT(1);\n}\n", prefix);
@@ -2009,7 +2008,7 @@ sAppend(&sbOut, "  R_RegisterCCallable(\"%s\",\"%smtime\", (DL_FUNC) %smtime);\n
 }
 
 
-void codegen(char *model, int show_ode, const char *prefix, const char *libname, const char *pMd5, const char *timeId, const char *fixInis) {
+void codegen(char *model, int show_ode, const char *prefix, const char *libname, const char *pMd5, const char *timeId, const char *fixInis0, const char *fixInis1) {
   if (show_ode == 4) {
     print_aux_info(model, prefix, libname, pMd5, timeId);
   } else {
@@ -2023,8 +2022,7 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
       sAppend(&sbOut, "extern void  %sode_solver_solvedata (rx_solve *solve){\n  _solveData = solve;\n}\n",prefix);
       sAppend(&sbOut, "extern rx_solve *%sode_solver_get_solvedata(){\n  return _solveData;\n}\n", prefix);
       sAppend(&sbOut, "SEXP %smodel_vars();\n", prefix);
-      sAppend(&sbOut, "extern void %sode_solver(int *neq, double *theta, double *time, int *evid, int *ntime, double *inits, double *dose, double *ret, double *atol, double *rtol, int *stiff, int *transit_abs, int *nlhs, double *lhs, int *rc){\n  %s\n  _old_c(neq, _theta, time, evid, ntime, inits, dose, ret, atol, rtol, stiff, transit_abs, nlhs, lhs, rc);\n}\n", prefix, fixInis);
-      sAppend(&sbOut, "static R_NativePrimitiveArgType %sode_solverrx_t[] = {\n  INTSXP,REALSXP, REALSXP, INTSXP, INTSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, INTSXP, INTSXP, INTSXP, REALSXP, INTSXP\n};\n", prefix);
+      sAppend(&sbOut, "%s\nextern double* %stheta(double *theta){\n  %s\n  return _theta;\n}\n", fixInis0, prefix, fixInis1);
       sAppendN(&sbOut,"\n", 1);
       for (i = 0; i < (int)strlen(extra_buf); i++){
 	if (extra_buf[i] == '"'){
@@ -2783,8 +2781,8 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
   SET_STRING_ELT(trann,6,mkChar("model_vars"));
   SET_STRING_ELT(tran, 6,mkChar(buf));
 
-  sprintf(buf,"%sode_solver",model_prefix);
-  SET_STRING_ELT(trann,7,mkChar("ode_solver"));
+  sprintf(buf,"%stheta",model_prefix);
+  SET_STRING_ELT(trann,7,mkChar("theta"));
   SET_STRING_ELT(tran, 7,mkChar(buf));
 
   sprintf(buf,"%sinis",model_prefix);

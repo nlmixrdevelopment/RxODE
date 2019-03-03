@@ -142,6 +142,8 @@ typedef struct {
 typedef void (*t_set_solve)(rx_solve *);
 typedef rx_solve *(*t_get_solve)();
 
+typedef double *(*t_get_theta)(double *theta);
+
 
 rx_solve *getRxSolve_();
 rx_solve *getRxSolve(SEXP ptr);

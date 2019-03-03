@@ -402,9 +402,7 @@ RxODE <- function(model, modName = basename(wd),
     .env$solve <- eval(bquote(function(..., matrix=TRUE, object=NULL){
         RxODE::rxSolve(object=get("rxDll", envir=.(.env)), ..., matrix=matrix);
     }))
-    .env$.c <- with(.env, function(...){.C(...)});
     .env$dll <- new.env(parent=baseenv())
-    .env$dll$.c <- .env$.c;
     .env$assignPtr <- eval(bquote(function(){
         RxODE::rxAssignPtr(get("rxDll", envir=.(.env)));
     }))
@@ -1237,24 +1235,28 @@ rxCompile.rxModelVars <-  function(model, # Model
             .j <- 0;
             .i <- 0;
             if (length(.mv$ini) > 0){
-                .fixInis <- sprintf("double _theta[%d]; %s ", length(.mv$params),
-                                   paste(sapply(.mv$params, function(x){
-                                       if (!is.na(.mv$ini[x])){
-                                           ret <- sprintf("_theta[%d] = %.16f;", .i, as.vector(.mv$ini[x]));
-                                           .i <<- .i + 1;
-                                           return(ret)
-                                       } else {
-                                           ret <- sprintf("_theta[%d] = theta[%d];", .i, .j);
-                                           .i <<- .i + 1;
-                                           .j <<- .j + 1;
-                                           return(ret);
-                                       }
-                                   }), collapse=" "))
+                .fixInis <- c(sprintf("double _theta[%d];", length(.mv$params)),
+                              paste(sapply(.mv$params, function(x){
+                                  if (!is.na(.mv$ini[x])){
+                                      ret <- sprintf("_theta[%d] = %.16f;", .i, as.vector(.mv$ini[x]));
+                                      .i <<- .i + 1;
+                                      return(ret)
+                                  } else {
+                                      ret <- sprintf("_theta[%d] = theta[%d];", .i, .j);
+                                      .i <<- .i + 1;
+                                      .j <<- .j + 1;
+                                      return(ret);
+                                  }
+                              }), collapse=" "))
             } else {
-                .fixInis <- sprintf("double *_theta = theta;");
+                .fixInis <- c(sprintf("double _theta[%d];",length(.mv$params)),
+                              ifelse(length(.mv$params)==0,
+                                     "",
+                                     paste(paste0("_theta[",seq_along(.mv$params)-1,"] = theta[",
+                                           seq_along(.mv$params)-1,"];"),collapse="\n")));
             }
             .trans <- c(.mv$trans, .mv$md5);
-            .trans["fix_inis"] <- .fixInis;
+            .trans["fix_inis"] <- .fixInis[2];
             ## Load model into memory if needed
             if (.Call(`_RxODE_codeLoaded`) == 0L) .rxModelVarsCharacter(setNames(.mv$model,NULL));
             .prefix2 <- .rxModelVarsCCache[[3]];
@@ -1301,7 +1303,6 @@ rxCompile.rxModelVars <-  function(model, # Model
         }
     }
     .call <- function(...){return(.Call(...))};
-    .c <- function(...){return(.C(...))};
     .args <- list(model = model, dir = .dir, prefix = prefix,
                  extraC = extraC, force = force, modName = modName,
                  ...);
@@ -1311,7 +1312,6 @@ rxCompile.rxModelVars <-  function(model, # Model
                                   extra   = extraC,
                                   modVars = .allModVars,
                                   .call   = .call,
-                                  .c      = .c,
                                   args    = .args)});
     class(ret) <- "rxDll";
     return(ret);
