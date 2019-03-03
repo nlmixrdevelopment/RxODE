@@ -1302,6 +1302,22 @@ void grtol2Setup(int n){
 }
 
 
+extern "C" double * getAol(int n, double atol){
+  gatol2Setup(n);
+  if (_globals.gatol2[0] != atol){
+    std::fill_n(&_globals.gatol2[0], n, atol);
+  }
+  return _globals.gatol2;
+}
+
+extern "C" double * getRol(int n, double rtol){
+  grtol2Setup(n);
+  if (_globals.grtol2[0] != rtol){
+    std::fill_n(&_globals.grtol2[0], n, rtol);
+  }
+  return _globals.grtol2;
+}
+
 void gparsSetup(int n){
   if (_globals.gparsn < 0){
     _globals.gparsn=0;

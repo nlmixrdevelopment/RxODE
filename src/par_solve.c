@@ -2065,6 +2065,8 @@ void oldONSetup(int nstate){
 }
 // rxSolveOldC
 void protectOld();
+double *getAol(int n, double atol);
+double *getRol(int n, double rtol);
 extern void rxSingleSolve(double *_theta,  //order:
 			  double *timep,
 			  int *evidp,
@@ -2150,7 +2152,14 @@ extern void rxSingleSolve(double *_theta,  //order:
   ind->mtime = mtime;
   /* rxode_assign_rx(rx); */
   set_solve(rx);
-  par_solve(rx); // Solve without the option of updating residuals.
+  // Solve without the option of updating residuals.
+  if (op->stiff == 2){
+    // FIXME for some reason not being saved
+    op->rtol2 = getRol(op->neq, op->RTOL);
+    op->atol2 = getAol(op->neq, op->ATOL);
+  }
+  ind_solve(rx, 0, dydt_liblsoda, dydt_lsoda_dum, jdum_lsoda,
+	       dydt, update_inis, global_jt);
   if (rx->nMtime) calc_mtime(ind->id, ind->mtime);
   if (rx->needSort) doSort(ind);
   if (op->nlhs) {

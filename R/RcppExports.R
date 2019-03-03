@@ -25,8 +25,7 @@ etRep_ <- function(curEt, times, wait, ids, handleSamples, waitType, ii) {
 #'
 #' @param inData Data frame to translate
 #' @param obj Model to translate data 
-#' @param addCmt Add compartment to data frame
-#' @param addUnits add units to the translated data
+#' @param addCmt Add compartment to data frame, and drop units
 #' @return Object for solving in RxODE
 #' @keywords internal
 #' @export
