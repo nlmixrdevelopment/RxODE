@@ -14,7 +14,9 @@ rxControl <- function(scale = NULL,
                       omega = NULL, omegaDf = NULL, omegaIsChol = FALSE,
                       nSub = 1L, thetaMat = NULL, thetaDf = NULL, thetaIsChol = FALSE,
                       nStud = 1L, dfSub=0.0, dfObs=0.0, returnType=c("rxSolve", "matrix", "data.frame", "data.frame.TBS"),
-                      seed=NULL, nsim=NULL){
+                      seed=NULL, nsim=NULL,
+                      minSS=7, maxSS=7000,
+                      atolSS=atol, rtolSS=rtol){
     .xtra <- list(...);
     if (is.null(transitAbs) && !is.null(.xtra$transit_abs)){
         transitAbs <- .xtra$transit_abs;
@@ -125,7 +127,9 @@ rxControl <- function(scale = NULL,
                  dfSub=dfSub,
                  dfObs=dfObs,
                  seed=seed,
-                 nsim=nsim)
+                 nsim=nsim,
+                 minSS=minSS, maxSS=maxSS,
+                 atolSS=atolSS, rtolSS=rtolSS);
 }
 
 ##' Solves a ODE equation
@@ -335,6 +339,16 @@ rxControl <- function(scale = NULL,
 ##' @param nsim represents the number of simulations.  For RxODE, if
 ##'     you supply single subject event tables (created with
 ##'     eventTable)
+##'
+##' @param minSS Minimum number of iterations for a steady-state dose
+##'
+##' @param maxSS Maximum number of iterations for a steady-state dose
+##'
+##' @param atolSS Absolute tolerance to check if a solution arrived at
+##'     steady state.
+##'
+##' @param rtolSS Relative tolerance to check if a solution arrived at
+##'     steady state.
 ##'
 ##' @return An \dQuote{rxSolve} solve object that stores the solved
 ##'     value in a matrix with as many rows as there are sampled time

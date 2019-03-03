@@ -2476,11 +2476,10 @@ SEXP rxSolve_(const RObject &obj,
     op->ATOL = atol;          //absolute error
     op->RTOL = rtol;          //relative error
 
-    // FIXME allow these values to change.
-    op->minSS = 7;
-    op->maxSS = 7000;
-    op->atolSS = atol;
-    op->rtolSS = rtol;
+    op->minSS = as<int>(rxControl["minSS"]);
+    op->maxSS = as<int>(rxControl["maxSS"]);
+    op->atolSS = as<double>(rxControl["atolSS"]);
+    op->rtolSS = as<double>(rxControl["rtol"]);
     
     gatol2Setup(op->neq);
     grtol2Setup(op->neq);
