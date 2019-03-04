@@ -1,6 +1,7 @@
 #include <Rcpp.h>
 #include <algorithm>
 #define rxModelVars(a) rxModelVars_(a)
+#define max2( a , b )  ( (a) > (b) ? (a) : (b) )
 using namespace Rcpp;
 
 List rxModelVars_(const RObject &obj);
@@ -122,17 +123,30 @@ IntegerVector toCmt(RObject inCmt, CharacterVector state){
 //' @export
 //[[Rcpp::export]]
 List etTrans(List inData, const RObject &obj, bool addCmt=false){
+  List mv = rxModelVars_(obj);
+  CharacterVector trans = mv["trans"];
+  if (rxIs(inData,"rxEtTran")){
+    CharacterVector cls = inData.attr("class");
+    List e0 = cls.attr(".RxODE.lst");
+    if (as<std::string>(trans["lib.name"]) == as<std::string>(e0["lib.name"])){
+      return inData;
+    }
+    // stop("This dataset was prepared for another model.");
+  }
   Environment rx = RxODEenv();
   // Translates events + model into translated events
   CharacterVector lName = clone(as<CharacterVector>(inData.attr("names")));
   int i, idCol = -1, evidCol=-1, timeCol=-1, amtCol=-1, cmtCol=-1,
     dvCol=-1, ssCol=-1, rateCol=-1, addlCol=-1, iiCol=-1, durCol=-1, j;
   std::string tmpS;
-  List mv = rxModelVars_(obj);
+  
   CharacterVector pars = as<CharacterVector>(mv["params"]);
   std::vector<int> covCol;
   std::vector<int> covParPos;
   std::string tmpS0;
+  bool allBolus = true;
+  bool allInf = true;
+  int mxCmt = 0;
   for (i = lName.size(); i--;){
     tmpS0= as<std::string>(lName[i]);
     tmpS = as<std::string>(lName[i]);
@@ -422,6 +436,8 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false){
       cmt100=cmt/100; 
       cmt99=cmt-cmt100*100; 
     }
+    mxCmt = max2(cmt,mxCmt);
+
 
     // Amt
     if (amtCol == -1) camt = 0.0;
@@ -471,6 +487,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false){
       if (rateI != 0 || !ISNA(camt)){
 	// For Rates and non-zero amts, assume dosing event
 	cevid = cmt100*100000+rateI*10000+cmt99*100+ss;
+	allBolus=false;
       } else {
 	cevid = 0;
       }
@@ -512,13 +529,19 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false){
 	break;
       case 1:
 	cevid = cmt100*100000+rateI*10000+cmt99*100+ss;
+	if (rateI == 0) allInf=false;
+	else allBolus=false;
 	break;
       case 2:
 	cevid = 2;
 	if (ss == 30){
 	  cevid = cmt100*100000+rateI*10000+cmt99*100+ss;
+	  if (rateI == 0) allInf=false;
+	  else allBolus=false;
 	} else {
 	  cevid = cmt100*100000+rateI*10000+cmt99*100+1;
+	  if (rateI == 0) allInf=false;
+	  else allBolus=false;
 	  if (caddl > 0){
 	    warning("addl is ignored with EVID=2.");
 	  }
@@ -582,6 +605,8 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false){
 	ndose++;
 	// Now use the transformed compartment
 	cevid = cmt100*100000+rateI*10000+cmt99*100+ss;
+	if (rateI == 0) allInf=false;
+	else allBolus=false;
 	break;
       default:
 	cevid = inEvid[i];
@@ -593,7 +618,6 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false){
       } else if (rateI == 8) {
 	nevid = cmt100*100000+60001+cmt99*100;
       }
-
       id.push_back(cid);
       evid.push_back(cevid);
       cmtF.push_back(cmt);
@@ -612,7 +636,6 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false){
       ndose++;
       if (rateI > 2){
 	amt.push_back(camt);
-      
 	// turn off
 	id.push_back(cid);
 	evid.push_back(nevid);
@@ -628,7 +651,6 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false){
 	// In this case amt needs to be changed.
 	dur = camt/rate;
 	amt.push_back(rate); // turn on
-
 	// turn off
 	id.push_back(cid);
 	evid.push_back(cevid);
@@ -914,6 +936,11 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false){
   fPars.attr("dim")= IntegerVector::create(pars.size(), nid);
   fPars.attr("dimnames") = List::create(pars, R_NilValue);
   e["pars"] = fPars;
+  e["allBolus"] = allBolus;
+  e["allInf"] = allInf;
+  e["mxCmt"] = mxCmt;
+  e["lib.name"] = trans["lib.name"];
+  e["addCmt"] = addCmt;
   e.attr("class") = "rxHidden";
   cls.attr(".RxODE.lst") = e;
   IntegerVector tmp = lstF[0];
