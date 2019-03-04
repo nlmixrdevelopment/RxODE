@@ -327,7 +327,7 @@ void updateRate(int idx, rx_solving_options_ind *ind){
     int j;
     // Find the amount
     // bisection https://en.wikipedia.org/wiki/Binary_search_algorithm
-    int l = 0, r = ind->ndoses-1, m;
+    int l = 0, r = ind->ndoses-1, m=0;
     while(l <= r){
       m = floor((l+r)/2);
       if (ind->idose[m] < idx) l = m+1;
@@ -370,7 +370,7 @@ void updateDur(int idx, rx_solving_options_ind *ind){
     // Find the amount
     // Find the amount
     // bisection https://en.wikipedia.org/wiki/Binary_search_algorithm
-    int l = 0, r = ind->ndoses-1, m;
+    int l = 0, r = ind->ndoses-1, m=0;
     while(l <= r){
       m = floor((l+r)/2);
       if (ind->idose[m] < idx) l = m+1;
@@ -468,7 +468,7 @@ extern double getTime(int idx, rx_solving_options_ind *ind){
       int j;
       // Find the amount
       // bisection https://en.wikipedia.org/wiki/Binary_search_algorithm
-      int l = 0, r = ind->ndoses-1, m;
+      int l = 0, r = ind->ndoses-1, m=0;
       while(l <= r){
 	m = floor((l+r)/2);
 	if (ind->idose[m] < idx) l = m+1;
@@ -680,7 +680,7 @@ void handleSS(int *neq,
       doSS2=1;
     }
     double dur = 0, dur2=0;
-    int infBixds =0, infEixds = 0, ei, wh, cmt, wh100, whI, wh0, oldI;
+    int infBixds =0, infEixds = 0, ei=0, wh, cmt, wh100, whI, wh0, oldI;
     if (ind->whI == 1 || ind->whI == 2){
       oldI = ind->whI;
       infBixds = ind->ixds;
