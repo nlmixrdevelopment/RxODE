@@ -2067,16 +2067,12 @@ void oldONSetup(int nstate){
 void protectOld();
 double *getAol(int n, double atol);
 double *getRol(int n, double rtol);
-extern void rxSingleSolve(double *_theta,  //order:
-			  double *timep,
-			  int *evidp,
-			  int *ntime,
-			  double *initsp,
-			  double *dosep,
-			  double *ii,
-			  double *retp,
-			  double *lhsp,
-			  int *rc){
+extern void rxSingleSolve(double *_theta, double *timep,
+			  int *evidp, int *ntime,
+			  double *initsp, double *dosep,
+			  double *ii, double *retp,
+			  double *lhsp, int *rc,
+			  double *newTime, int *newEvid){
   double *theta = get_theta(_theta);
   protectOld();
   rx_solve *rx = &rx_global;
@@ -2165,9 +2161,11 @@ extern void rxSingleSolve(double *_theta,  //order:
     ind->_newind=1;
     for (i=0; i<*ntime; i++){
       ind->idx = i;
-      if (ind->evid[ind->ix[i]]) ind->tlast = getTime(ind->ix[i], ind);
+      newEvid[i] = ind->evid[ind->ix[i]];
+      newTime[i] = getTime(ind->ix[i], ind);
+      if (ind->evid[ind->ix[i]]) ind->tlast = newTime[i];
       // 0 = first subject; Calc lhs changed...
-      calc_lhs(0, getTime(ind->ix[i], ind), retp+i*(op->neq), lhsp+i*(op->nlhs));
+      calc_lhs(0, newTime[i], retp+i*(op->neq), lhsp+i*(op->nlhs));
       ind->_newind=2;
     }
   }

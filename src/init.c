@@ -131,7 +131,7 @@ int isRstudio();
 
 extern void rxSingleSolve(double *_theta, double *timep, int *evidp, int *ntime,
 			  double *initsp, double *dosep, double *ii, double *retp,
-			  double *lhsp, int *rc);
+			  double *lhsp, int *rc, double *newTime, int *newEvid);
 
 void R_init_RxODE(DllInfo *info){
   R_CallMethodDef callMethods[]  = {
