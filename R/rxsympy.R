@@ -1593,10 +1593,49 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                             .sympy <- rxToSymPy(.ddt);
                             .v <- rxSymPy(.sympy);
                             .v <- rxFromSymPy(.v);
-                            if (any(x == .origStates)){
-                                return(sprintf("%s%s=%s;", .iniS, .ddt, .v));
+                            ## Now add f/dur/rate/alag
+                            .f <- sprintf("f(%s)", x);
+                            .fS <- rxToSymPy(.f);
+                            if (rxSymPyExists(.fS)){
+                                .fS <- rxSymPy(.fS);
+                                .fS <- rxFromSymPy(.fS);
+                                .fS <- sprintf("%s=%s;\n", .f, .fS);
                             } else {
-                                return(sprintf("%s%s~%s;", .iniS, .ddt, .v));
+                                .fS <- "";
+                            }
+                            .dur <- sprintf("dur(%s)", x);
+                            .durS <- rxToSymPy(.dur);
+                            if (rxSymPyExists(.durS)){
+                                .durS <- rxSymPy(.durS);
+                                .durS <- rxFromSymPy(.durS);
+                                .durS <- sprintf("%s=%s;\n", .dur, .durS);
+                            } else {
+                                .durS <- "";
+                            }
+                            .rate <- sprintf("rate(%s)", x);
+                            .rateS <- rxToSymPy(.rate);
+                            if (rxSymPyExists(.rateS)){
+                                .rateS <- rxSymPy(.rateS);
+                                .rateS <- rxFromSymPy(.rateS);
+                                .rateS <- sprintf("%s=%s;\n", .rate, .rateS);
+                            } else {
+                                .rateS <- "";
+                            }
+                            .lag <- sprintf("alag(%s)", x);
+                            .lagS <- rxToSymPy(.lag);
+                            if (rxSymPyExists(.lagS)){
+                                .lagS <- rxSymPy(.lagS);
+                                .lagS <- rxFromSymPy(.lagS);
+                                .lagS <- sprintf("%s=%s;\n", .lag, .lagS);
+                            } else {
+                                .lagS <- "";
+                            }
+                            if (any(x == .origStates)){
+                                return(paste0(.iniS,.ddt,"=",.v,";",
+                                              .fS,.durS, .rateS, .lagS));
+                            } else {
+                                return(paste0(.iniS,.ddt,"~",.v,";",
+                                              .fS,.durS, .rateS, .lagS));
                             }
                         }), collapse="\n");
                         .yj <- rxToSymPy("rx_yj_")

@@ -20,7 +20,10 @@ regDfDyTh <- rex::rex(start, "rx__df_", capture(anything), "_dy_", regThEt, "__"
 regEta <- rex::rex(start, "ETA[", capture("1":"9", any_of("0":"9")), "]")
 regTheta <- rex::rex(start, "THETA[", capture("1":"9", any_of("0":"9")), "]")
 regJac <- rex::rex( "df(", capture(.regIdentifier), ")/dy(",  capture(or(.regIdentifier, group(or("THETA[", "ETA["), "1":"9", any_of("0":"9"), "]"))), ")");
-## regRate <- rex::rex(start, "rx__rate_", capture(anything), "__");
+.regRate <- rex::rex(start, "rx_rate_",capture(anything),"_");
+.regDur <- rex::rex(start, "rx_dur_",capture(anything),"_");
+.regLag <- rex::rex(start, "rx_lag_",capture(anything),"_");
+.regF <- rex::rex(start, "rx_f_",capture(anything),"_");
 known.print <- c('printf', 'Rprintf', 'print',
                  'jac_printf', 'jac_Rprintf', 'jac_print',
                  'ode_printf', 'ode_Rprintf', 'ode_print',
@@ -265,6 +268,26 @@ rxSymPyFEnv$df <- function(e1){
 rxSymPyFEnv$dy <- function(e1){
     paste0("_dy_", e1, "__")
 }
+
+rxSymPyFEnv$rate <- function(e1){
+    paste0("rx_rate_",e1,"_");
+}
+rxSymPyFEnv$r <- rxSymPyFEnv$rate
+
+rxSymPyFEnv$dur <- function(e1){
+    paste0("rx_dur_",e1,"_");
+}
+rxSymPyFEnv$d <- rxSymPyFEnv$dur
+
+rxSymPyFEnv$f <- function(e1){
+    paste0("rx_f_",e1,"_");
+}
+rxSymPyFEnv$F <- rxSymPyFEnv$f
+
+rxSymPyFEnv$lag <- function(e1){
+    paste0("rx_lag_",e1,"_");
+}
+rxSymPyFEnv$alag <- rxSymPyFEnv$lag
 
 ## rx -> sympy
 rxSymPyFEnv$bessel_i <- besselOp("i");
@@ -982,11 +1005,15 @@ rxEnv <- function(expr){
     names <- allNames(expr)
     ## Replace time with t.
     n1 <- names;
-    n2 <- gsub(regIni0, "\\1(0)",
+    n2 <- gsub(.regRate, "rate(\\1)",
+               gsub(.regDur,"dur(\\1)",
+               gsub(.regLag,"alag(\\1)",
+               gsub(.regF, "f(\\1)",
+               gsub(regIni0, "\\1(0)",
                gsub(regDfDy, "df(\\1)/dy(\\2)",
-                    gsub(regDfDyTh, "df(\\1)/dy(\\2[\\3])",
-                         gsub(regDDt, "d/dt(\\1)",
-                              gsub(rex::rex(start, regThEt, end), "\\1[\\2]", names)))));
+               gsub(regDfDyTh, "df(\\1)/dy(\\2[\\3])",
+               gsub(regDDt, "d/dt(\\1)",
+               gsub(rex::rex(start, regThEt, end), "\\1[\\2]", names)))))))));
     ## n2 <- gsub(regRate, "rate(\\1)", n2);
     n2 <- gsub(rex::rex("rx_SymPy_Res_"), "", n2)
     n2[n2 == "E"] <- "M_E";
