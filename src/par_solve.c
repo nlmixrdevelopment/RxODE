@@ -2081,7 +2081,8 @@ extern void rxSingleSolve(double *_theta,  //order:
   protectOld();
   rx_solve *rx = &rx_global;
   rx_solving_options *op = &op_global;
-  rx_solving_options_ind *ind = &inds_global[0];
+  int subid = 0;
+  rx_solving_options_ind *ind = &inds_global[subid];
   int i;
 
   // Counters
@@ -2158,10 +2159,8 @@ extern void rxSingleSolve(double *_theta,  //order:
     op->rtol2 = getRol(op->neq, op->RTOL);
     op->atol2 = getAol(op->neq, op->ATOL);
   }
-  ind_solve(rx, 0, dydt_liblsoda, dydt_lsoda_dum, jdum_lsoda,
-	       dydt, update_inis, global_jt);
-  if (rx->nMtime) calc_mtime(ind->id, ind->mtime);
-  if (rx->needSort) doSort(ind);
+  ind_solve(rx, subid, dydt_liblsoda, dydt_lsoda_dum, jdum_lsoda,
+	      dydt, update_inis, global_jt);
   if (op->nlhs) {
     ind->_newind=1;
     for (i=0; i<*ntime; i++){
