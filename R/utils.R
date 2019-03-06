@@ -193,3 +193,14 @@ rxSetProd <- function(type=c("long double", "double", "logify")){
     PreciseSums::psSetProd(type);
 }
 
+
+## Required for npde
+.nearPd <- function(mat){
+    if (any(is.na(mat))){
+        ## cat("Bad matrix:\n");
+        ## print(mat);
+        return(mat)
+    } else {
+        return(as.matrix(Matrix::nearPD(mat)$mat));
+    }
+}
