@@ -2052,7 +2052,8 @@ extern void rxSingleSolve(int subid, double *_theta, double *timep,
 			  int *on, int *ix,
 			  int *slvr_counter, int *dadt_counter, int *jac_counter,
 			  double *InfusionRate, int *BadDose, int *idose,
-			  double *scale, int *stateIgnore){
+			  double *scale, int *stateIgnore, double *mtime,
+			  double *solveSave){
   double *theta = get_theta(_theta);
   protectOld();
   rx_solve *rx = &rx_global;
@@ -2119,8 +2120,8 @@ extern void rxSingleSolve(int subid, double *_theta, double *timep,
   /* int i =0; */
   _globalRx=rx;
   rx->op = &op_global;
-  double mtime[89];
   ind->mtime = mtime;
+  ind->solveSave = solveSave;
   /* rxode_assign_rx(rx); */
   set_solve(rx);
   // Solve without the option of updating residuals.

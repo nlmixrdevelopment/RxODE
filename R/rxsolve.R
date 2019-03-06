@@ -130,6 +130,7 @@ rxControl <- function(scale = NULL,
                  nsim=nsim,
                  minSS=minSS, maxSS=maxSS,
                  atolSS=atolSS, rtolSS=rtolSS);
+    return(.ret)
 }
 
 ##' Solves a ODE equation
