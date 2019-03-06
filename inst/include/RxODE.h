@@ -128,6 +128,7 @@ typedef struct {
   int nsim;
   int nall;
   int nobs;
+  int nobs2;
   int nr;
   int add_cov;
   int matrix;
