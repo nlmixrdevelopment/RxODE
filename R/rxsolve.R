@@ -16,7 +16,8 @@ rxControl <- function(scale = NULL,
                       nStud = 1L, dfSub=0.0, dfObs=0.0, returnType=c("rxSolve", "matrix", "data.frame", "data.frame.TBS"),
                       seed=NULL, nsim=NULL,
                       minSS=7, maxSS=7000,
-                      atolSS=atol, rtolSS=rtol){
+                      atolSS=atol, rtolSS=rtol,
+                      params=NULL,events=NULL){
     .xtra <- list(...);
     if (is.null(transitAbs) && !is.null(.xtra$transit_abs)){
         transitAbs <- .xtra$transit_abs;
@@ -33,13 +34,13 @@ rxControl <- function(scale = NULL,
     if (!is.null(seed)){
         set.seed(seed);
     }
-    ## if (!is.null(nsim)){
-    ##     if (rxIs(params, "eventTable") || rxIs(events, "eventTable") && nSub == 1L){
-    ##         nSub <- nsim;
-    ##     } else if (nStud == 1L){
-    ##         nStud <- nsim;
-    ##     }
-    ## }
+    if (!is.null(nsim)){
+        if (rxIs(params, "eventTable") || rxIs(events, "eventTable") && nSub == 1L){
+            nSub <- nsim;
+        } else if (nStud == 1L){
+            nStud <- nsim;
+        }
+    }
     ## stiff = TRUE, transitAbs = NULL,
     ## atol = 1.0e-8, rtol = 1.0e-6, maxsteps = 5000, hmin = 0, hmax = NULL, hini = 0, maxordn = 12,
     ## maxords = 5, ..., covsInterpolation = c("linear", "constant", "NOCB", "midpoint"),
@@ -478,7 +479,7 @@ rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, ...)
     if (any(names(.lst)==".setupOnly")){
         .setupOnly <- .lst$.setupOnly;
     }
-    rxSolve_(object, rxControl(...), .nms, .xtra,
+    rxSolve_(object, rxControl(...,events=events,params=params), .nms, .xtra,
              params, events, inits,setupOnly=.setupOnly);
 }
 
