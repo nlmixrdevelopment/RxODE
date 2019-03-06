@@ -188,6 +188,10 @@ rx_solving_options_ind *rxOptionsIniEnsure(int mx){
   return inds_global;
 }
 
+void rxOptionsIniEnsure0(int mx){
+  rxOptionsIniEnsure(mx);
+}
+
 t_dydt dydt = NULL;
 
 t_calc_jac calc_jac = NULL;
@@ -2034,67 +2038,39 @@ extern SEXP RxODE_df(int doDose, int doTBS){
   return df;
 }
 
-int *gidoseSetup(int n);
-int *gsiVSetup(int n);
-int *gslvr_counterSetup(int n);
-int *gdadt_counterSetup(int n);
-int *gjac_counterSetup(int n);
 
-int *_oldIx;
-int _oldIxN=0;
-void oldIxSetup(int ntimes){
-  if (_oldIxN < ntimes){
-    _oldIx = Calloc(ntimes+1024, int);
-    _oldIxN = ntimes+1024;
-  }
-  for (int i = _oldIxN; i--;){
-      _oldIx[i]=i;
-  }    
-}
-
-int *_oldON;
-int _oldONN=0;
-void oldONSetup(int nstate){
-  if (_oldONN < nstate){
-    _oldON = Calloc(nstate+1024, int);
-    _oldONN = nstate+1024;
-  }
-  for (int i = _oldONN; i--;){
-    _oldON[i] = 1;
-  }    
-}
 // rxSolveOldC
 void protectOld();
 double *getAol(int n, double atol);
 double *getRol(int n, double rtol);
-extern void rxSingleSolve(double *_theta, double *timep,
+extern void rxSingleSolve(int subid, double *_theta, double *timep,
 			  int *evidp, int *ntime,
 			  double *initsp, double *dosep,
 			  double *ii, double *retp,
 			  double *lhsp, int *rc,
-			  double *newTime, int *newEvid){
+			  double *newTime, int *newEvid,
+			  int *on, int *ix,
+			  int *slvr_counter, int *dadt_counter, int *jac_counter,
+			  double *InfusionRate, int *BadDose, int *idose,
+			  double *scale, int *stateIgnore){
   double *theta = get_theta(_theta);
   protectOld();
   rx_solve *rx = &rx_global;
   rx_solving_options *op = &op_global;
-  int subid = 0;
   rx_solving_options_ind *ind = &inds_global[subid];
   int i;
 
+  ind->InfusionRate = InfusionRate;
   // Counters
-  ind->slvr_counter = gslvr_counterSetup(1);
-  ind->dadt_counter = gdadt_counterSetup(1);
-  ind->jac_counter = gjac_counterSetup(1);
-  ind->slvr_counter[0]   = 0;
-  ind->dadt_counter[0]   = 0;
-  ind->jac_counter[0]    = 0;
+  ind->slvr_counter = slvr_counter;
+  ind->dadt_counter = dadt_counter;
+  ind->jac_counter = jac_counter;
 
-  ind->InfusionRate = global_InfusionRate(op->neq);
+  ind->InfusionRate = InfusionRate;
   /* memset(ind->InfusionRate, 0.0, op->neq);  not for doubles*/
-  for (unsigned int j = op->neq; j--;) ind->InfusionRate[j]=0.0;
+  /* for (unsigned int j = op->neq; j--;) ind->InfusionRate[j]=0.0; */
 
-  ind->BadDose = global_BadDose(op->neq);
-  memset(ind->BadDose, 0, op->neq); // int ok
+  ind->BadDose = BadDose;
   ind->nBadDose = 0;
 
   ind->par_ptr = theta;
@@ -2106,14 +2082,12 @@ extern void rxSingleSolve(double *_theta, double *timep,
   ind->rc      = rc;
   /* ind->cov_ptr = cov_ptr; */
   ind->n_all_times       = *ntime;
-  oldIxSetup(*ntime);
-  oldONSetup(op->neq);
-  ind->on = _oldON;
-  ind->ix = _oldIx;
+  ind->on = on;
+  ind->ix = ix;
   ind->ixds = 0;
   ind->ndoses = -1;
   ind->all_times = timep;
-  ind->idose = gidoseSetup(*ntime);
+  ind->idose = idose;
   ind->id = -1;
   ind->sim = -1;
   ind->ndoses=0;
@@ -2130,15 +2104,15 @@ extern void rxSingleSolve(double *_theta, double *timep,
   op->do_par_cov=0;
   //
   op->inits   = initsp;
-  op->scale = global_scale(op->neq);
+  op->scale = scale;
   /* memset(op->scale, 1.0, op->neq); */
-  for (unsigned int j = op->neq; j--;) op->scale[j] = 1.0;
+  /* for (unsigned int j = op->neq; j--;) op->scale[j] = 1.0; */
   op->extraCmt = 0;
-  rx->subjects = ind;
+  rx->subjects = inds_global;
   rx->nsub =1;
   rx->nsim =1;
-  rx->stateIgnore = gsiVSetup(op->neq);
-  memset(rx->stateIgnore, 0, op->neq); // int OK
+  rx->stateIgnore = stateIgnore;//gsiVSetup(op->neq);
+  //memset(rx->stateIgnore, 0, op->neq); // int OK
   rx->nobs =-1;
   rx->add_cov =0;
   rx->matrix =0;
