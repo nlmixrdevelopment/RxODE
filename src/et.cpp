@@ -144,6 +144,8 @@ List etEmpty(CharacterVector units){
   e["clearDosing"] = eval2(_["expr"] = parse2(_["text"] = "function() invisible(.Call(RxODE:::`_RxODE_et_`, list(clearDosing=TRUE),list('last')))"),
 			   _["envir"]  = e);
 
+  e["simulate"] = eval2(_["expr"] = parse2(_["text"] = "function(object, nsim = 1, seed = NULL, ...){if (!missing(nsim)) warning(\"'nsim' is ignored when simulating event tables\");if(!is.null(seed)) set.seed(seed); invisible(.Call(RxODE:::`_RxODE_et_`, list(simulate=TRUE),list('last')))}"));
+
   std::string importET = "function(data) invisible(.Call(RxODE:::`_RxODE_et_`, list(data=data),list('import')))";
 
   e["import.EventTable"] = eval2(_["expr"] = parse2(_["text"] = importET),

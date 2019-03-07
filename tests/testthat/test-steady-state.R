@@ -1,7 +1,5 @@
 rxPermissive({
-
     for (m in c("liblsoda", "lsoda", "dop853")){
-
         et <- eventTable() %>% add.dosing(dose=3, nbr.doses=6, dosing.interval=8) %>%
             add.sampling(seq(0, 48, length.out=200))
 
@@ -257,4 +255,4 @@ rxPermissive({
             }
         }
     }
-})
+}, cran=TRUE, silent=TRUE)

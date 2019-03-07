@@ -15,7 +15,11 @@ d/dt(blood)     = a*intestine - b*blood
     et$add.dosing(dose=2/24,rate=2,start.time=0,
                   nbr.doses=10,dosing.interval=1)
     et <- et %>% et(0.05,evid=2) %>%
-        et(amt=3,time=0.5,cmt="out") %>% as.data.frame
+        et(amt=3,time=0.5,cmt=out) %>%
+        et(amt=3,time=0.1,cmt=intestine,ss=1,ii=3) %>%
+        et(amt=3,time=0.3,cmt=intestine,ss=2,ii=3) %>%
+        et(time=0.2,cmt="-intestine") %>%
+        as.data.frame
 
     tmp1 <- sort(unique(RxODE:::etTrans(et, mod)$evid));
 
@@ -24,7 +28,7 @@ d/dt(blood)     = a*intestine - b*blood
 
     test_that("factor and character give same evids",{
         expect_equal(tmp1,tmp2);
-        expect_equal(tmp1,c(2L, 101L, 301L, 10101L))
+        expect_equal(tmp1,c(2L, 101L, 110L, 120L, 130L, 301L, 10101L))
     })
 
 
@@ -39,5 +43,6 @@ d/dt(blood)     = a*intestine - b*blood
         et$cmt <- factor(et$cmt)
         expect_error(RxODE:::etTrans(et, mod))
     })
+
 
 }, cran=TRUE, silent=TRUE)
