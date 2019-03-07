@@ -1303,17 +1303,17 @@ void grtol2Setup(int n){
 
 
 extern "C" double * getAol(int n, double atol){
-  gatol2Setup(n);
+  gatol2Setup(n+1);
   if (_globals.gatol2[0] != atol){
-    std::fill_n(&_globals.gatol2[0], n, atol);
+    std::fill_n(&_globals.gatol2[0], n+1, atol);
   }
   return _globals.gatol2;
 }
 
 extern "C" double * getRol(int n, double rtol){
-  grtol2Setup(n);
+  grtol2Setup(n+1);
   if (_globals.grtol2[0] != rtol){
-    std::fill_n(&_globals.grtol2[0], n, rtol);
+    std::fill_n(&_globals.grtol2[0], n+1, rtol);
   }
   return _globals.grtol2;
 }
