@@ -11,9 +11,7 @@ etTrans(inData, obj, addCmt = FALSE)
 
 \item{obj}{Model to translate data}
 
-\item{addCmt}{Add compartment to data frame}
-
-\item{addUnits}{add units to the translated data}
+\item{addCmt}{Add compartment to data frame, and drop units}
 }
 \value{
 Object for solving in RxODE

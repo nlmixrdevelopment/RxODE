@@ -25,7 +25,9 @@ rxControl(scale = NULL, method = c("liblsoda", "lsoda", "dop853"),
   omega = NULL, omegaDf = NULL, omegaIsChol = FALSE, nSub = 1L,
   thetaMat = NULL, thetaDf = NULL, thetaIsChol = FALSE, nStud = 1L,
   dfSub = 0, dfObs = 0, returnType = c("rxSolve", "matrix",
-  "data.frame", "data.frame.TBS"), seed = NULL, nsim = NULL)
+  "data.frame", "data.frame.TBS"), seed = NULL, nsim = NULL,
+  minSS = 7, maxSS = 7000, atolSS = atol, rtolSS = rtol,
+  params = NULL, events = NULL)
 
 rxSolve(object, ...)
 
@@ -189,7 +191,8 @@ added to parameters}
 evid and amt columns.  This will also include dosing
 information and estimates at the doses.  Be default, RxODE
 only includes estimates at the observations. (default
-\code{FALSE}).}
+\code{FALSE}). When addDosing is NA, only include EVID=0 on
+solve and exclude any mtimes or EVID=2}
 
 \item{stateTrim}{When amounts/concentrations in one of the states
 are above this value, trim them to be this value. By default
@@ -255,9 +258,15 @@ generator should be initialized}
 you supply single subject event tables (created with
 eventTable)}
 
-\item{object}{is a either a RxODE family of objects, or a file-name
-with a RxODE model specification, or a string with a RxODE
-model specification.}
+\item{minSS}{Minimum number of iterations for a steady-state dose}
+
+\item{maxSS}{Maximum number of iterations for a steady-state dose}
+
+\item{atolSS}{Absolute tolerance to check if a solution arrived at
+steady state.}
+
+\item{rtolSS}{Relative tolerance to check if a solution arrived at
+steady state.}
 
 \item{params}{a numeric named vector with values for every
 parameter in the ODE system; the names must correspond to the
@@ -266,6 +275,10 @@ parameter identifiers used in the ODE specification;}
 \item{events}{an \code{eventTable} object describing the input
 (e.g., doses) to the dynamic system and observation sampling
 time points (see \code{\link{eventTable}});}
+
+\item{object}{is a either a RxODE family of objects, or a file-name
+with a RxODE model specification, or a string with a RxODE
+model specification.}
 
 \item{inits}{a vector of initial values of the state variables
 (e.g., amounts in each compartment), and the order in this
