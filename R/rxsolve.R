@@ -298,7 +298,8 @@ rxControl <- function(scale = NULL,
 ##'     evid and amt columns.  This will also include dosing
 ##'     information and estimates at the doses.  Be default, RxODE
 ##'     only includes estimates at the observations. (default
-##'     \code{FALSE}).
+##'     \code{FALSE}). When addDosing is NA, only include EVID=0 on
+##'     solve and exclude any mtimes or EVID=2
 ##'
 ##' @param stateTrim When amounts/concentrations in one of the states
 ##'     are above this value, trim them to be this value. By default

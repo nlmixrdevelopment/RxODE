@@ -1781,7 +1781,7 @@ SEXP rxParamNames(char *ptr);
 extern double *rxGetErrs();
 extern int rxGetErrsNcol();
 
-extern SEXP RxODE_df(int doDose, int doTBS){
+extern SEXP RxODE_df(int doDose0, int doTBS){
   rx_solve *rx;
   rx = &rx_global;
   rx_solving_options *op = &op_global;
@@ -1792,6 +1792,15 @@ extern SEXP RxODE_df(int doDose, int doTBS){
   int nobs = rx->nobs;
   int nsim = rx->nsim;
   int nall = rx->nall;
+  int doDose;
+  int evid0 = 0;
+  if (doDose0 == -1){
+    nobs = rx->nobs2++;
+    doDose=0;
+    evid0=1;
+  } else {
+    doDose=doDose0;
+  }
   rx->nr = (doDose == 1 ? nall : nobs)*nsim;
   int *rmState = rx->stateIgnore;
   int nPrnState =0;
@@ -1897,14 +1906,14 @@ extern SEXP RxODE_df(int doDose, int doTBS){
           for (j=0; j < errNcol; j++){
 	    par_ptr[svar[j]] = errs[rx->nr*j+kk];
           }
-	  if ( isObs(evid) || doDose){
+	  if ( (evid0 == 0 && isObs(evid)) || (evid0 == 1 && evid==0) || doDose){
 	    // Only incerement if this is an observation or of this a
 	    // simulation that requests dosing infomration too.
             kk++;
 	  }
         }
         jj  = 0 ;
-	if (isObs(evid) || doDose){
+	if ((evid0 == 0 && isObs(evid)) || (evid0 == 1 && evid==0)  || doDose){
           // sim.id
           if (sm){
             dfi = INTEGER(VECTOR_ELT(df, jj));
@@ -1923,7 +1932,7 @@ extern SEXP RxODE_df(int doDose, int doTBS){
             dfi[ii] = evid;
             // amt
             dfp = REAL(VECTOR_ELT(df, jj++));
-            dfp[ii] = (isObs(evid) ? NA_REAL : dose[di++]);
+            dfp[ii] = ((evid0 == 0 && isObs(evid)) || (evid0 == 1 && evid==0) ? NA_REAL : dose[di++]);
 	  }
           // time
           dfp = REAL(VECTOR_ELT(df, jj++));
@@ -1952,7 +1961,7 @@ extern SEXP RxODE_df(int doDose, int doTBS){
 	    for (j = 0; j < add_cov*ncov; j++){
               dfp = REAL(VECTOR_ELT(df, jj));
 	      // is this ntimes = nAllTimes or nObs time for this subject...?
-	      dfp[ii] = (isObs(evid) ? cov_ptr[j*ntimes+i] : NA_REAL);
+	      dfp[ii] = ((evid0 == 0 && isObs(evid)) || (evid0 == 1 && evid==0)  ? cov_ptr[j*ntimes+i] : NA_REAL);
 	      jj++;
 	    }
           }
@@ -1960,7 +1969,7 @@ extern SEXP RxODE_df(int doDose, int doTBS){
 	    for (j = 0; j < add_cov*ncov0; j++){
               dfp = REAL(VECTOR_ELT(df, jj));
 	      // is this ntimes = nAllTimes or nObs time for this subject...?
-	      dfp[ii] = (isObs(evid) ? ind->par_ptr[rx->cov0[j]] : NA_REAL);
+	      dfp[ii] = ((evid0 == 0 && isObs(evid)) || (evid0 == 1 && evid==0) ? ind->par_ptr[rx->cov0[j]] : NA_REAL);
 	      jj++;
 	    }
 	  }
