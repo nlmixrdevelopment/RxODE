@@ -1,5 +1,4 @@
 require(RxODE);
-context("Example 6")
 require(digest)
 rxPermissive({
     context("evid=2 solves");

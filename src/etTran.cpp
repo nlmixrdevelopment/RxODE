@@ -40,8 +40,16 @@ IntegerVector toCmt(RObject inCmt, CharacterVector state){
 	  }
 	}
 	if (!foundState){
-	  k++;
-	  lvlI[i] = state.size() + k;
+	  if (curLvl == "(default)" || curLvl == "(obs)"){
+	    lvlI[i] = 1;
+	  } else {
+	    k++;
+	    if (isNeg){
+	      stop("Negative compartments on non-ode cmt (%s) do not make sense.", curLvl.c_str());
+	    } else {
+	      lvlI[i] = state.size() + k;
+	    }
+	  }
 	}
       }
       IntegerVector cmtIn = IntegerVector(inCmt);
@@ -71,10 +79,11 @@ IntegerVector toCmt(RObject inCmt, CharacterVector state){
       } else {
 	isNeg = false;
       }
+      foundState=false;
       if (strCmt == "(default)" || strCmt == "(obs)"){
+	foundState=true;
 	newCmt.push_back(1);
       } else {
-	foundState=false;
 	for (j = state.size(); j--;){
 	  if (as<std::string>(state[j]) == strCmt){
 	    foundState = true;
@@ -92,7 +101,7 @@ IntegerVector toCmt(RObject inCmt, CharacterVector state){
 	    if (as<std::string>(cur) == strCmt){
 	      foundState = true;
 	      if (isNeg){
-		warning("Negative compartments on non-ode cmt (%s) do not make sense.", strCmt.c_str());
+		stop("Negative compartments on non-ode cmt (%s) do not make sense.", strCmt.c_str());
 		newCmt.push_back(-state.size()-j-1);
 	      } else {
 		newCmt.push_back(state.size()+j+1);
@@ -101,8 +110,15 @@ IntegerVector toCmt(RObject inCmt, CharacterVector state){
 	    }
 	  }
 	  if (!foundState){
-	    extraCmt[k++] = CharacterVector::create(strCmt);
-	    newCmt.push_back(state.size()+k);
+	    List tmpList(extraCmt.size()+1);
+	    for (int i = extraCmt.size(); i--;) tmpList[i] = extraCmt[i];
+	    extraCmt = tmpList;
+	    if (isNeg){
+	      stop("Negative compartments on non-ode cmt (%s) do not make sense.", strCmt.c_str());
+	    } else {
+	      newCmt.push_back(state.size()+k+1);
+	      extraCmt[k++] = strCmt;
+	    }
 	  }
 	}
       }
