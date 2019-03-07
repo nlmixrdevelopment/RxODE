@@ -797,6 +797,15 @@ plot.rxSolve <- function(x,y,...){
             ggplot(.dat,ggplot2::aes(time,value,color=id))+
                 geom_line(size=1.2) +facet_wrap( ~ trt, scales="free_y")
         }
+    } else if (any(names(.dat)=="sim.id")){
+        .dat$sim.id <- factor(.dat$sim.id);
+        if (length(.cmts)==1){
+            ggplot(.dat,ggplot2::aes(time,value,color=sim.id))+
+                geom_line(size=1.2) + ylab(.cmts)
+        } else {
+            ggplot(.dat,ggplot2::aes(time,value,color=sim.id))+
+                geom_line(size=1.2) +facet_wrap( ~ trt, scales="free_y")
+        }
     } else {
         if (length(.cmts)==1){
             ggplot(.dat,ggplot2::aes(time,value))+

@@ -178,6 +178,10 @@ SEXP _rxProgressAbort(){
   return R_NilValue;
 }
 
+double *getAol(int n, double atol);
+double *getRol(int n, double rtol);
+t_set_solve set_solve = NULL;
+
 rx_solving_options_ind *rxOptionsIniEnsure(int mx){
   if (mx >= max_inds_global){
     Free(inds_global);
@@ -185,6 +189,13 @@ rx_solving_options_ind *rxOptionsIniEnsure(int mx){
     max_inds_global = mx+1024;
     rx_global.subjects = inds_global;
   }
+  rx_solving_options *op = &op_global;
+  if (op->stiff == 2){
+    // FIXME for some reason not always being saved
+    op->rtol2 = getRol(op->neq, op->RTOL);
+    op->atol2 = getAol(op->neq, op->ATOL);
+  }
+  set_solve(&rx_global);
   return inds_global;
 }
 
@@ -205,8 +216,6 @@ t_dydt_lsoda_dum dydt_lsoda_dum = NULL;
 t_dydt_liblsoda dydt_liblsoda = NULL;
 
 t_jdum_lsoda jdum_lsoda = NULL;
-
-t_set_solve set_solve = NULL;
 
 t_get_solve get_solve = NULL;
 
@@ -2041,8 +2050,6 @@ extern SEXP RxODE_df(int doDose, int doTBS){
 
 // rxSolveOldC
 void protectOld();
-double *getAol(int n, double atol);
-double *getRol(int n, double rtol);
 extern void rxSingleSolve(int subid, double *_theta, double *timep,
 			  int *evidp, int *ntime,
 			  double *initsp, double *dosep,
@@ -2055,7 +2062,7 @@ extern void rxSingleSolve(int subid, double *_theta, double *timep,
 			  double *scale, int *stateIgnore, double *mtime,
 			  double *solveSave){
   double *theta = get_theta(_theta);
-  protectOld();
+  /* protectOld(); */
   rx_solve *rx = &rx_global;
   rx_solving_options *op = &op_global;
   rx_solving_options_ind *ind = &inds_global[subid];
@@ -2089,8 +2096,8 @@ extern void rxSingleSolve(int subid, double *_theta, double *timep,
   ind->ndoses = -1;
   ind->all_times = timep;
   ind->idose = idose;
-  ind->id = -1;
-  ind->sim = -1;
+  ind->id = subid;
+  ind->sim = 0;
   ind->ndoses=0;
   for (unsigned int i = 0; i < ind->n_all_times; i++){
     if (isDose(ind->evid[i])){
@@ -2109,7 +2116,6 @@ extern void rxSingleSolve(int subid, double *_theta, double *timep,
   /* memset(op->scale, 1.0, op->neq); */
   /* for (unsigned int j = op->neq; j--;) op->scale[j] = 1.0; */
   op->extraCmt = 0;
-  rx->subjects = inds_global;
   rx->nsub =1;
   rx->nsim =1;
   rx->stateIgnore = stateIgnore;//gsiVSetup(op->neq);
@@ -2118,18 +2124,13 @@ extern void rxSingleSolve(int subid, double *_theta, double *timep,
   rx->add_cov =0;
   rx->matrix =0;
   /* int i =0; */
-  _globalRx=rx;
-  rx->op = &op_global;
+  /* _globalRx=rx; */
+  /* rx->op = &op_global; */
   ind->mtime = mtime;
   ind->solveSave = solveSave;
   /* rxode_assign_rx(rx); */
-  set_solve(rx);
+  /* set_solve(rx); */
   // Solve without the option of updating residuals.
-  if (op->stiff == 2){
-    // FIXME for some reason not being saved
-    op->rtol2 = getRol(op->neq, op->RTOL);
-    op->atol2 = getAol(op->neq, op->ATOL);
-  }
   ind_solve(rx, subid, dydt_liblsoda, dydt_lsoda_dum, jdum_lsoda,
 	      dydt, update_inis, global_jt);
   if (op->nlhs) {
