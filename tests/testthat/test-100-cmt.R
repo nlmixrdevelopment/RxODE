@@ -24,7 +24,7 @@ rxPermissive({
 
     dat <- mod %>% rxSolve(et, c(k1=0.1))
 
-    test_that("events work", {
+    test_that("Events work", {
         for (j in seq(3, 106)){
             expect_equal(dat[, 2], dat[, j]);
         }

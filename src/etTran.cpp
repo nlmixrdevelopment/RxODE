@@ -268,7 +268,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false){
   if (cmtCol != -1){
     inCmt = as<IntegerVector>(toCmt(inData[cmtCol], mv["state"]));//as<IntegerVector>();
   }
-  int tmpCmt;
+  int tmpCmt = 1;
   IntegerVector inId;
   CharacterVector idLvl;
   if (idCol != -1){
@@ -424,9 +424,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false){
 	tmpCmt = -tmpCmt;
       }
     }
-    
     // CMT flag
-    tmpCmt=1;
     if (cmtCol == -1) cmt = 1;
     else cmt = tmpCmt;
     if (IntegerVector::is_na(tmpCmt)) cmt=1;
