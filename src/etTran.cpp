@@ -418,7 +418,9 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false){
     if (cmtCol != -1){
       tmpCmt = inCmt[i];
       if (inCmt[i] == 0) stop("Compartment cannot be zero");
-      if (inCmt[i] < 0){
+      if (IntegerVector::is_na(inCmt[i])){
+	tmpCmt = 1;
+      } else if (inCmt[i] < 0){
 	if (ss != 1) stop("Steady state records cannot be on negative compartments.");
 	ss = 30;
 	tmpCmt = -tmpCmt;
@@ -427,7 +429,6 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false){
     // CMT flag
     if (cmtCol == -1) cmt = 1;
     else cmt = tmpCmt;
-    if (IntegerVector::is_na(tmpCmt)) cmt=1;
     if (cmt <= 99){
       cmt100=0;
       cmt99=cmt;
