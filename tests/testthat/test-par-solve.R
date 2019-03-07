@@ -60,8 +60,11 @@ rxPermissive({
 
         test_that("Can solve the system.", {
             expect_true(rxIs(pk3, "data.frame"))
+            expect_false(all(pk3$pk==0))
             expect_true(rxIs(pk3a, "data.frame"))
+            expect_false(all(pk3a$pk==0))
             expect_true(rxIs(pk4, "data.frame"))
+            expect_false(all(pk4$pk==0))
         })
 
         mod3 <- RxODE({
@@ -87,7 +90,9 @@ rxPermissive({
                        nSub=4, ev, sigma=sigma, cores=1, method=meth);
 
         test_that("Can solve the system.", {
+            expect_false(all(pk3$pk==0))
             expect_true(rxIs(pk3, "data.frame"))
+            expect_false(all(pk3$pk==0))
             expect_true(rxIs(pk4, "data.frame"))
         })
 
@@ -115,7 +120,9 @@ rxPermissive({
                        nSub=4, ev, sigma=sigma, cores=1, method=meth);
 
         test_that("Can solve the system.", {
+            expect_false(all(pk3$pk==0))
             expect_true(rxIs(pk3, "data.frame"))
+            expect_false(all(pk4$pk==0))
             expect_true(rxIs(pk4, "data.frame"))
         })
 
@@ -141,19 +148,37 @@ rxPermissive({
 
         pk6 <- rxSolve(mod2, c(KA=2.94E-01, TCL=1.86E+01, V2=4.02E+01,  Q=1.05E+01, V3=2.97E+02,
                                Kin=1, Kout=1, EC50=200), omega=matrix(0.2, dimnames=list("eta.Cl", "eta.Cl")),
-                       nSub=4, nStud=4, thetaMat=thetaMat, sigma=sigma, ev, cores=1, dfSub=4, dfStud=4, method=meth);
+                       nSub=4, nStud=4, thetaMat=thetaMat, sigma=sigma, ev, cores=1, dfSub=4, dfObs=4, method=meth);
 
         pk7 <- rxSolve(mod2, c(KA=2.94E-01, TCL=1.86E+01, V2=4.02E+01,  Q=1.05E+01, V3=2.97E+02,
                                Kin=1, Kout=1, EC50=200), omega=matrix(0.2, dimnames=list("eta.Cl", "eta.Cl")),
-                       nSub=4, nStud=4, thetaMat=thetaMat, sigma=sigma, ev, cores=2, dfSub=4, dfStud=4, method=meth);
+                       nSub=4, nStud=4, thetaMat=thetaMat, sigma=sigma, ev, cores=2, dfSub=4, dfObs=4, method=meth);
 
         test_that("Can solve the system.", {
             expect_true(rxIs(pk2, "data.frame"))
+            expect_equal(class(pk2$thetaMat),"NULL")
+            expect_equal(class(pk2$omegaList),"NULL")
+            expect_equal(class(pk2$sigmaList),"NULL")
             expect_true(rxIs(pk3, "data.frame"))
+            expect_equal(class(pk3$thetaMat),"NULL")
+            expect_equal(class(pk3$omegaList),"NULL")
+            expect_equal(class(pk3$sigmaList),"NULL")
             expect_true(rxIs(pk4, "data.frame"))
+            expect_equal(class(pk4$thetaMat),"matrix")
+            expect_equal(class(pk4$omegaList),"NULL")
+            expect_equal(class(pk4$sigmaList),"NULL")
             expect_true(rxIs(pk5, "data.frame"))
+            expect_equal(class(pk5$thetaMat),"matrix")
+            expect_equal(class(pk5$omegaList),"NULL")
+            expect_equal(class(pk5$sigmaList),"NULL")
             expect_true(rxIs(pk6, "data.frame"))
+            expect_equal(class(pk6$thetaMat),"matrix")
+            expect_equal(class(pk6$omegaList),"list")
+            expect_equal(class(pk6$sigmaList),"list")
             expect_true(rxIs(pk7, "data.frame"))
+            expect_equal(class(pk7$thetaMat),"matrix")
+            expect_equal(class(pk7$omegaList),"list")
+            expect_equal(class(pk7$sigmaList),"list")
         })
 
         ## Now Try multi-subject data.
