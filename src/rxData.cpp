@@ -2266,7 +2266,7 @@ SEXP rxSolve_(const RObject &obj,
   int nDisplayProgress = as<int>(rxControl["nDisplayProgress"]);
   CharacterVector amountUnits = as<CharacterVector>(rxControl["amountUnits"]);
   CharacterVector timeUnits = as<CharacterVector>(rxControl["timeUnits"]);
-  LogicalVector addDosing = as<LogicalVector>(rxControl["addDosing"]);
+  Nullable<LogicalVector> addDosing = as<Nullable<LogicalVector>>(rxControl["addDosing"]);
   double stateTrim = as<double>(rxControl["stateTrim"]);
   RObject theta = rxControl["theta"];
   RObject eta = rxControl["eta"];
@@ -2613,12 +2613,18 @@ SEXP rxSolve_(const RObject &obj,
 	nSub0 = nSub;
         simSubjects = true;
       }
-      if (LogicalVector::is_na(addDosing[0])){
+      if (addDosing.isNull()){
+	// only evid=0
 	curObs= rx->nobs2;
-      } else if (addDosing[0]){
-	curObs = rx->nall;
       } else {
-	curObs = rx->nobs;
+	LogicalVector addDosing1 = as<LogicalVector>(addDosing);
+	if (LogicalVector::is_na(addDosing1[0])){
+	  curObs = rx->nall;
+	} if (addDosing1[0]){
+	  curObs = rx->nall;
+	} else {
+	  curObs = rx->nobs;
+	}
       }
       par1 =  as<RObject>(rxSimThetaOmega(as<Nullable<NumericVector>>(par1), omega, omegaDf, omegaIsChol, nSub0, thetaMat, thetaDf, thetaIsChol, nStud,
                                           sigma, sigmaDf, sigmaIsChol, nCoresRV, curObs, dfSub, dfObs, simSubjects));
@@ -3202,12 +3208,18 @@ SEXP rxSolve_(const RObject &obj,
       stop("Aborted solve.");
     }
     int doDose = 0;
-    if (LogicalVector::is_na(addDosing[0])){
-      doDose = -1;
-    } else if (addDosing[0]){
-      doDose = 1;
+    if (addDosing.isNull()){
+      // only evid=0
+      doDose=-1;
     } else {
-      doDose = 0;
+      LogicalVector addDosing1 = as<LogicalVector>(addDosing);
+      if (LogicalVector::is_na(addDosing1[0])){
+	doDose = 1;
+      } else if (addDosing1[0]){
+	doDose = 2;
+      } else {
+	doDose = 0;
+      }
     }
     IntegerVector si = mv["state.ignore"];
     rx->stateIgnore = &si[0];

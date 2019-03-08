@@ -235,6 +235,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false){
   //  I = Infusion Flag
   //      0 = no Infusion
   //      1 = Infusion, AMT=rate (mg/hr for instance)
+  //      2 = Infusion, duration is fixed
   //      9 = Rate is modeled, AMT=dose; Duration = AMT/(Modeled Rate) NONMEM RATE=-1
   //      8 = Duration is modeled, AMT=dose; Rate = AMT/(Modeled Duration) NONMEM RATE=-2
   //      7 = Turn off modeled rate compartment

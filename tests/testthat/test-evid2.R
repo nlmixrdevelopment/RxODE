@@ -18,7 +18,7 @@ d/dt(blood)     = a*intestine - b*blood
 
     s1 <- solve(mod,et)
 
-    s2 <- solve(mod,et,addDosing=NA)
+    s2 <- solve(mod,et,addDosing=NULL)
 
     test_that("Includes and ignores EVID=2",{
         expect_true(any(s1$time==0.05))
@@ -55,10 +55,11 @@ d/dt(blood)     = a*intestine - b*blood
 
     pk5 <- rxSolve(mod2, c(KA=2.94E-01, TCL=1.86E+01, V2=4.02E+01,  Q=1.05E+01, V3=2.97E+02,
                                Kin=1, Kout=1, EC50=200), omega=matrix(0.2, dimnames=list("eta.Cl", "eta.Cl")),
-                   nSub=4, events=ev, sigma=sigma, cores=1, addDosing=NA);
+                   nSub=4, events=ev, sigma=sigma, cores=1, addDosing=NULL);
 
     test_that("Multi-subject solves keep evid=2",{
         expect_true(any(pk4$time==0.5))
         expect_false(any(pk5$time==0.5))
     })
+
 })
