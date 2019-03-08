@@ -812,7 +812,7 @@ plot.rxSolve <- function(x,y,...){
         .cmts <- NULL
     }
     .dat <- rxStack(x,.cmts);
-    time <- value <- id <- NULL
+    time <- value <- id <- sim.id  <- NULL
     if (any(names(.dat)=="id")){
         .dat$id <- factor(.dat$id);
         if (length(.cmts)==1){

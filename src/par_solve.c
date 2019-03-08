@@ -2321,9 +2321,9 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
   SEXP df2;
   if (nmevid){
     df2 = PROTECT(allocVector(VECSXP,ncols+nidCols+doseCols+doTBS*2+5*nmevid-
-			      dullEvid - dullRate - dullDur-dullSS-dullIi)); pro++;
+			      dullRate - dullDur-dullSS-dullIi)); pro++;
     SEXP sexp_colnames2 = PROTECT(allocVector(STRSXP,ncols+nidCols+doseCols+doTBS*2+5*nmevid-
-			      dullEvid - dullRate - dullDur-dullSS-dullIi)); pro++;
+					      dullRate - dullDur-dullSS-dullIi)); pro++;
     jj = 0;
     kk = 0;
     if (sm){
