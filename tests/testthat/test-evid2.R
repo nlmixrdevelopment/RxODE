@@ -16,9 +16,15 @@ d/dt(blood)     = a*intestine - b*blood
                   nbr.doses=10,dosing.interval=1)
     et <- et %>% et(0.05,evid=2)
 
-    s1 <- solve(mod,et)
+    s1 <- solve(mod,et,addDosing=FALSE)
 
     s2 <- solve(mod,et,addDosing=NULL)
+
+    s3 <- solve(mod,et,addDosing=NA)
+
+    s4 <- solve(mod,et,addDosing=TRUE)
+
+
 
     test_that("Includes and ignores EVID=2",{
         expect_true(any(s1$time==0.05))

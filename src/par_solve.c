@@ -1886,6 +1886,8 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
   int di = 0;
   int kk = 0;
   int wh, cmt, wh100, whI, wh0;
+  int dullEvid = 1, dullRate=1, dullDur=1,
+    dullSS=1, dullIi=1;
   for (int csim = 0; csim < nsim; csim++){
     for (csub = 0; csub < nsub; csub++){
       neq[1] = csub+csim*nsub;
@@ -1946,12 +1948,14 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
 		dfi = INTEGER(VECTOR_ELT(df, jj++));
 		if (evid >= 10){
 		  dfi[ii] = evid+91; // mtime 101 102 103...
+		  dullEvid=0;
 		} else {
+		  if (evid == 2) dullEvid=0;
 		  dfi[ii] = evid;
 		}
 		// cmt
 		dfi = INTEGER(VECTOR_ELT(df, jj++));
-		dfi[ii] = 1;
+		dfi[ii] = NA_INTEGER; // Has all states, cmt makes no sense.
 		// ss
 		dfi = INTEGER(VECTOR_ELT(df, jj++));
 		dfi[ii] = 0;
@@ -1973,23 +1977,31 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
 		double curAmt = dose[di];
 		switch (whI){
 		case 7: // End modeled rate
+		  dullRate=0;
 		  dfi[ii] = -1;
 		case 6: // end modeled duration
+		  dullRate=0;
 		  dfi[ii] = -2; // evid
 		default:
 		  if (curAmt > 0) {
 		    dfi[ii] = 1; // evid
 		  } else {
 		    if (whI == 1){
+		      dullRate=0;
 		      dfi[ii] = -10; // evid
-		    } else {
+		    } else if (whI == 2) {
+		      dullDur=0;
 		      dfi[ii] = -20; // evid
+		    } else {
+		      dfi[ii] = 1;
 		    }
 		  }
 		}
 		// cmt
 		dfi = INTEGER(VECTOR_ELT(df, jj++));
-		if (wh0 == 30){
+		if (evid == 2 || evid == 3){
+		  dfi[ii] = NA_INTEGER;
+		} else if (wh0 == 30){
 		  dfi[ii] = -cmt-1;
 		} else {
 		  dfi[ii] = cmt+1;
@@ -1999,9 +2011,11 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
 		switch (wh0){
 		/* case 30: */
 		case 20:
+		  dullSS=0;
 		  dfi[ii] = 2;
 		  break;
 		case 10:
+		  dullSS=0;
 		  dfi[ii] = 1;
 		  break;
 		default:
@@ -2010,7 +2024,7 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
 		}
 	      }
 	    } else {
-	      //evid
+	      // evid
 	      dfi = INTEGER(VECTOR_ELT(df, jj++));
 	      dfi[ii] = evid;
 	      // amt
@@ -2019,6 +2033,7 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
 	    }
 	    if (nmevid && isDose(evid)){
 	      double curIi = ind->ii[di];
+	      if (curIi != 0) dullIi=0;
 	      double curAmt = dose[di++];
 	      // rate dur ii ss
 	      switch(ind->whI){
@@ -2303,8 +2318,113 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
     jj++;
   }
   setAttrib(df, R_NamesSymbol, sexp_colnames);
+  SEXP df2;
+  if (nmevid){
+    df2 = PROTECT(allocVector(VECSXP,ncols+nidCols+doseCols+doTBS*2+5*nmevid-
+			      dullEvid - dullRate - dullDur-dullSS-dullIi)); pro++;
+    SEXP sexp_colnames2 = PROTECT(allocVector(STRSXP,ncols+nidCols+doseCols+doTBS*2+5*nmevid-
+			      dullEvid - dullRate - dullDur-dullSS-dullIi)); pro++;
+    jj = 0;
+    kk = 0;
+    if (sm){
+      SET_STRING_ELT(sexp_colnames2, jj, mkChar("sim.id"));
+      SET_VECTOR_ELT(df2, jj, VECTOR_ELT(df, kk));
+      jj++;kk++;
+    }
+    // id
+    if (md){
+      SET_STRING_ELT(sexp_colnames2, jj, mkChar("id"));
+      SET_VECTOR_ELT(df2, jj, VECTOR_ELT(df, kk));
+      jj++;kk++;
+    }
+    SET_STRING_ELT(sexp_colnames2, jj, mkChar("evid"));
+    SET_VECTOR_ELT(df2, jj, VECTOR_ELT(df, kk));
+    jj++;kk++;
+    SET_STRING_ELT(sexp_colnames2, jj, mkChar("cmt"));
+    SET_VECTOR_ELT(df2, jj, VECTOR_ELT(df, kk));
+    jj++;kk++;
+    if (dullSS){
+      kk++;
+    } else {
+      SET_STRING_ELT(sexp_colnames2, jj, mkChar("ss"));
+      SET_VECTOR_ELT(df2, jj, VECTOR_ELT(df, kk));
+      jj++;kk++;
+    }
+    SET_STRING_ELT(sexp_colnames2, jj, mkChar("amt"));
+    SET_VECTOR_ELT(df2, jj, VECTOR_ELT(df, kk));
+    jj++;kk++;
+    if (dullRate){
+      kk++;
+    } else {
+      SET_STRING_ELT(sexp_colnames2, jj, mkChar("rate"));
+      SET_VECTOR_ELT(df2, jj, VECTOR_ELT(df, kk));
+      jj++;kk++;
+    }
+    if (dullDur){
+      kk++;
+    } else {
+      SET_STRING_ELT(sexp_colnames2, jj, mkChar("dur"));
+      SET_VECTOR_ELT(df2, jj, VECTOR_ELT(df, kk));
+      jj++;kk++;
+    }
+    if (dullIi){
+      kk++;
+    } else {
+      SET_STRING_ELT(sexp_colnames2, jj, mkChar("ii"));
+      SET_VECTOR_ELT(df2, jj, VECTOR_ELT(df, kk));
+      jj++;kk++;
+    }
+    SET_STRING_ELT(sexp_colnames2, jj, mkChar("time"));
+    SET_VECTOR_ELT(df2, jj, VECTOR_ELT(df, kk));
+    jj++;kk++;
+
+    // Put in LHS names
+    SEXP lhsNames2 = PROTECT(rxLhsNames(op->modNamePtr)); pro++;
+    for (i = 0; i < nlhs; i++){
+      SET_STRING_ELT(sexp_colnames2, jj, STRING_ELT(lhsNames2,i));
+      SET_VECTOR_ELT(df2, jj, VECTOR_ELT(df, kk));
+      jj++;kk++;
+    }
+    // Put in state names
+    SEXP stateNames2 = PROTECT(rxStateNames(op->modNamePtr)); pro++;
+    if (nPrnState){
+      for (j = 0; j < neq[0]; j++){
+	if (!rmState[j]){
+	  SET_STRING_ELT(sexp_colnames2, jj, STRING_ELT(stateNames2,j));
+	  SET_VECTOR_ELT(df2, jj, VECTOR_ELT(df, kk));
+	  jj++;kk++;
+	}
+      }
+    }
+    // Put in Cov names
+    SEXP paramNames2 = PROTECT(rxParamNames(op->modNamePtr)); pro++;
+    int *par_cov = op->par_cov;
+    for (i = 0; i < ncov*add_cov; i++){
+      SET_STRING_ELT(sexp_colnames2,jj, STRING_ELT(paramNames2, par_cov[i]-1));
+      SET_VECTOR_ELT(df2, jj, VECTOR_ELT(df, kk));
+      jj++;kk++;
+    }
+    par_cov = rx->cov0;
+    for (i = 0; i < ncov0*add_cov; i++){
+      SET_STRING_ELT(sexp_colnames2,jj, STRING_ELT(paramNames2, par_cov[i]));
+      SET_VECTOR_ELT(df2, jj, VECTOR_ELT(df, kk));
+      jj++;kk++;
+    }
+    if (doTBS){
+      SET_STRING_ELT(sexp_colnames2, jj, mkChar("rxLambda"));
+      SET_VECTOR_ELT(df2, jj, VECTOR_ELT(df, kk));
+      jj++;kk++;
+      SET_STRING_ELT(sexp_colnames2, jj, mkChar("rxYj"));
+      SET_VECTOR_ELT(df2, jj, VECTOR_ELT(df, kk));
+      jj++;kk++;
+    }
+    setAttrib(df2, R_NamesSymbol, sexp_colnames2);
+    setAttrib(df2, R_RowNamesSymbol, sexp_rownames);
+  } else {
+    df2=df;
+  }
   UNPROTECT(pro);
-  return df;
+  return df2;
 }
 
 
