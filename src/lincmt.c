@@ -82,7 +82,7 @@ double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt, int diff1,
   double ret = 0,cur=0, tmp=0;
   unsigned int m = 0, l = 0, p = 0;
   int evid, wh, wh100, whI, wh0;
-  double thisT = 0.0, tT = 0.0, res, t1, t2, tinf, dose = 0;
+  double thisT = 0.0, tT = 0.0, res, t1, t2, tinf, dose = 0, tau;
   double rate;
   rx_solving_options_ind *ind = &(rx->subjects[id]);
   m = _locateDoseIndex(t, ind);
@@ -106,17 +106,79 @@ double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt, int diff1,
     case 8: // Duration is modeled
       error("Modeled duration not supported with linear solved systems yet");
       break;
+      // infusion
     case 2:
     case 1:
       // What affects this is bioavailability change, which are not implemented yet.
-      switch (wh0){
-      case 10:
-	error("steady state infusion not supported yet");
-      case 20:
-	error("steady state infusion + last observed information not supported yet.");
-      case 30:
+      if (wh0 == 30){
 	error("You cannot turn off a compartment with a solved system.");
-      default:
+      } else if (wh0 == 10 || wh0 == 20){
+	// Steady state
+	if (dose > 0){
+	  // During infusion
+	  tT = t - ind->all_times[ind->idose[l]] ;
+	  thisT = tT - tlag;
+	  p = l+1;
+	  while (p < ndoses && ind->dose[p] != -dose){
+	    p++;
+	  }
+	  if (ind->dose[p] != -dose){
+	    error("Could not find a error to the infusion.  Check the event table.");
+	  }
+	  tinf  = ind->all_times[ind->idose[p]] - ind->all_times[ind->idose[l]];
+	  rate  = dose;
+	  if (tT >= tinf) continue;
+	} else {
+	  // After  infusion
+	  p = l-1;
+	  while (p > 0 && ind->dose[p] != -dose){
+	    p--;
+	  }
+	  if (ind->dose[p] != -dose){
+	    error("Could not find a start to the infusion.  Check the event table.");
+	  }
+	  tinf  = ind->all_times[ind->idose[l]] - ind->all_times[ind->idose[p]] - tlag;
+	  tT = t - ind->all_times[ind->idose[p]];
+	  thisT = tT -tlag;
+	  rate  = -dose;
+	}
+	tau = ind->ii[l];
+	if (thisT < tinf){ // during infusion
+	  res = rate*A*alpha1*((1-exp(-alpha*thisT))+
+				exp(-alpha*tau)*(1-exp(-alpha*tinf))*exp(-alpha*(thisT-tinf))/
+				(1-exp(-alpha*tau)));
+	  if (wh0 == 10){
+	    cur = res;
+	  } else {
+	    cur += res;
+	  }
+	  if (ncmt >= 2){
+	    cur += rate*B*beta1*((1-exp(-beta*thisT))+
+				exp(-beta*tau)*(1-exp(-beta*tinf))*exp(-beta*(thisT-tinf))/
+				(1-exp(-beta*tau)));
+	    if (ncmt >= 3){
+	      cur += rate*B*gamma1*((1-exp(-gamma*thisT))+
+				exp(-gamma*tau)*(1-exp(-gamma*tinf))*exp(-gamma*(thisT-tinf))/
+				(1-exp(-gamma*tau)));
+	    }
+	  }
+	  if (wh0 == 10) return cur;
+	} else { // after infusion
+	  res = rate*A*alpha1*((1-exp(-alpha*tinf))*exp(-alpha*(thisT-tinf))/(1-exp(-alpha*tau)));
+	  if (wh0 == 10){
+	    cur = res;
+	  } else {
+	    cur += res;
+	  }
+	  if (ncmt >= 2){
+	    cur += rate*B*beta1*((1-exp(-beta*tinf))*exp(-beta*(thisT-tinf))/(1-exp(-beta*tau)));
+	    if (ncmt >= 3){
+	      cur += rate*C*gamma1*((1-exp(-gamma*tinf))*exp(-gamma*(thisT-tinf))/(1-exp(-gamma*tau)));
+	    }
+	  }
+	  if (wh0 == 10) return cur;
+	}
+      } else {
 	if (dose > 0){
 	  // During infusion
 	  tT = t - ind->all_times[ind->idose[l]] ;
@@ -158,14 +220,30 @@ double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt, int diff1,
       }
       break;
     case 0:
-      switch (wh0){
-      case 10:
-	error("steady state not supported yet");
-      case 20:
-	error("steady state + last observed information not supported yet.");
-      case 30:
+      if (wh0 == 10 || wh0 == 20){
+	// steady state
+	tT = t - ind->all_times[ind->idose[l]];
+	thisT = tT -tlag;
+	if (thisT < 0) continue;
+	tau = ind->ii[l];
+	res = ((oral == 1) ? exp(-ka*thisT)/(1-exp(-ka*tau)) : 0.0);
+	if (wh0 == 10){
+	  // Prior information not added; ss=1
+	  cur = dose*A*(exp(-alpha*thisT)/(1-exp(-alpha*tau))-res);
+	} else {
+	  // Prior information added; ss=2
+	  cur += dose*A*(exp(-alpha*thisT)/(1-exp(-alpha*tau))-res);
+	}
+	if (ncmt >= 2){
+	  cur +=  dose*B*(exp(-beta*thisT)/(1-exp(-beta*tau))-res);
+	  if (ncmt >= 3){
+	    cur += dose*C*(exp(-gamma*thisT)/(1-exp(-gamma*tau))-res);
+	  }
+	}
+	if (wh0 == 10) return(cur);
+      } else if (wh0 == 30) {
 	error("You cannot turn off a compartment with a solved system.");
-      default:
+      } else {
 	tT = t - ind->all_times[ind->idose[l]];
 	thisT = tT -tlag;
 	if (thisT < 0) continue;
