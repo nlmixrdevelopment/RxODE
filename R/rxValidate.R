@@ -9,15 +9,20 @@
 rxValidate <- function(full=TRUE){
     ## rxVersion(" Validation", TRUE);
     if (is.character(full)){
-        old.wd <- getwd();
-        on.exit({setwd(old.wd); Sys.setenv(RxODE_VALIDATION_FULL="false", NOT_CRAN="")});
-        Sys.setenv(RxODE_VALIDATION_FULL="false", "NOT_CRAN"="true")
-        path <- file.path(system.file("tests", package = "RxODE"),"testthat")
-        setwd(path)
-        testthat::test_dir(path, filter=full);
-        Sys.setenv(RxODE_VALIDATION_FULL="true")
-        Sys.getenv("RxODE_VALIDATION_FULL")
-        testthat::test_dir(path, filter=full);
+        if (full=="covr"){
+            Sys.setenv("NOT_CRAN"="true", "covr"="true");
+            covr::report()
+        } else {
+            old.wd <- getwd();
+            on.exit({setwd(old.wd); Sys.setenv(RxODE_VALIDATION_FULL="false", NOT_CRAN="")});
+            Sys.setenv(RxODE_VALIDATION_FULL="false", "NOT_CRAN"="true")
+            path <- file.path(system.file("tests", package = "RxODE"),"testthat")
+            setwd(path)
+            testthat::test_dir(path, filter=full);
+            Sys.setenv(RxODE_VALIDATION_FULL="true")
+            Sys.getenv("RxODE_VALIDATION_FULL")
+            testthat::test_dir(path, filter=full);
+        }
     } else {
         old.wd <- getwd();
         on.exit({setwd(old.wd)});
