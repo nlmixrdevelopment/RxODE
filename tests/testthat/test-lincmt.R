@@ -46,6 +46,24 @@ rxPermissive({
         expect_equal(round(o.1c$C2,4), round(s.2c$C2,4))
     })
 
+    ## Test steady state doses.
+    etSs  <- et() %>% et(amt=3) %>%
+        et(time=4,amt=3, ss=1, ii=24) %>%
+        et(amt=3, ss=2, ii=24, time=8) %>%
+        et(seq(0,24,length.out=200))
+
+    o.1c <- ode.1c %>% solve(params=c(V=20, CL=1), events=etSs)
+
+    s.1c <- ode.1cs2 %>% solve(params=c(V=20, CL=1), events=etSs)
+
+    s.2c <- ode.1cs %>% solve(theta=c(20, 1), events=etSs)
+
+    test_that("1 compartment solved models and ODEs same.", {
+        expect_equal(round(o.1c$C2,4), round(s.1c$C2,4))
+        expect_equal(round(o.1c$C2,4), round(s.2c$C2,4))
+    })
+
+
     ode.1c.ka <- RxODE({
         C2 = center/V;
         d / dt(depot) = -KA * depot
