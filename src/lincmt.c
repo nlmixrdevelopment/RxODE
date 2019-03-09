@@ -113,6 +113,7 @@ double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt, int diff1,
       if (wh0 == 30){
 	error("You cannot turn off a compartment with a solved system.");
       } else if (wh0 == 10 || wh0 == 20){
+	stop("doesn't work yet");
 	// Steady state
 	if (dose > 0){
 	  // During infusion
@@ -145,15 +146,15 @@ double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt, int diff1,
 	tau = ind->ii[l];
 	if (thisT < tinf){ // during infusion
 	  cur += rate*A*alpha1*((1-exp(-alpha*thisT))+
-				exp(-alpha*tau)*(1-exp(-alpha*tinf))*exp(-alpha*(thisT-tinf))/
-				(1-exp(-alpha*tau)));
+				exp(-alpha*tinf)*(1-exp(-alpha*tinf))*
+				exp(-alpha*(thisT-tinf)))/(1-exp(-alpha*tau));
 	  if (ncmt >= 2){
 	    cur += rate*B*beta1*((1-exp(-beta*thisT))+
-				exp(-beta*tau)*(1-exp(-beta*tinf))*exp(-beta*(thisT-tinf))/
+				exp(-beta*tinf)*(1-exp(-beta*tinf))*exp(-beta*(thisT-tinf))/
 				(1-exp(-beta*tau)));
 	    if (ncmt >= 3){
 	      cur += rate*B*gamma1*((1-exp(-gamma*thisT))+
-				exp(-gamma*tau)*(1-exp(-gamma*tinf))*exp(-gamma*(thisT-tinf))/
+				exp(-gamma*tinf)*(1-exp(-gamma*tinf))*exp(-gamma*(thisT-tinf))/
 				(1-exp(-gamma*tau)));
 	    }
 	  }
@@ -166,7 +167,7 @@ double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt, int diff1,
 	      cur += rate*C*gamma1*((1-exp(-gamma*tinf))*exp(-gamma*(thisT-tinf))/(1-exp(-gamma*tau)));
 	    }
 	  }
-	  if (wh0 == 10) return(ret+cur);
+	  /* if (wh0 == 10) return(ret+cur); */
 	}
       } else {
 	if (dose > 0){

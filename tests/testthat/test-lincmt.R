@@ -58,7 +58,7 @@ rxPermissive({
 
     s.2c <- ode.1cs %>% solve(theta=c(20, 1), events=etSs)
 
-    test_that("1 compartment solved models and ODEs same.", {
+    test_that("1 compartment steady-state solved models and ODEs same.", {
         expect_equal(round(o.1c$C2,4), round(s.1c$C2,4))
         expect_equal(round(o.1c$C2,4), round(s.2c$C2,4))
     })
@@ -80,6 +80,15 @@ rxPermissive({
     s.1c <- sol.1c.ka %>% solve(params=c(V=20, CL=25, KA=2), events=et)
 
     test_that("1 compartment oral solved models and ODEs same.", {
+        expect_equal(round(o.1c$C2,4), round(s.1c$C2,4))
+    })
+
+    ## Note the strange-looking dip at 4 hours.  This is because ss=1 resets the system first.
+    o.1c <- ode.1c.ka %>% solve(params=c(V=20, CL=2, KA=2), events=etSs)
+
+    s.1c <- sol.1c.ka %>% solve(params=c(V=20, CL=2, KA=2), events=etSs)
+
+    test_that("1 compartment oral solved models steady state ODEs same.", {
         expect_equal(round(o.1c$C2,4), round(s.1c$C2,4))
     })
 
@@ -123,6 +132,13 @@ rxPermissive({
         expect_equal(round(o.2c$C2,4), round(s.2c$C2,4))
     })
 
+    o.2c <- ode.2c.ka %>% solve(params=c(V=40, CL=1, V2=297, Q=10, KA= 0.3), events=etSs,maxsteps=100000)
+
+    s.2c <- sol.2c.ka %>% solve(params=c(V=40, CL=1, V2=297, Q=10, KA=0.3), events=etSs)
+
+    test_that("2 compartment oral steady-state solved models and ODEs same.", {
+        expect_equal(round(o.2c$C2,4), round(s.2c$C2,4),tolerance=1e-3)
+    })
 
     ode.3c <- RxODE({
         C2 = centr/V;
@@ -143,6 +159,14 @@ rxPermissive({
     s.3c <- sol.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=et)
 
     test_that("3 compartment solved models and ODEs same.", {
+        expect_equal(round(o.3c$C2,4), round(s.3c$C2,4))
+    })
+
+    o.3c <- ode.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=etSs,maxsteps=10000)
+
+    s.3c <- sol.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=etSs)
+
+    test_that("3 compartment solved models and ODEs same with steady state.", {
         expect_equal(round(o.3c$C2,4), round(s.3c$C2,4))
     })
 
@@ -171,10 +195,24 @@ rxPermissive({
         expect_equal(round(o.3c$C2,4), round(s.3c$C2,4))
     })
 
+    o.3c <- ode.3c.ka %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400, KA=0.3), events=etSs, maxsteps=10000)
+
+    s.3c <- sol.3c.ka %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400, KA=0.3), events=etSs)
+
+    ## Again the 4 hour strange discontinuity because ss=1
+    test_that("3 compartment oral solved models and ODEs same for steady state.", {
+        expect_equal(round(o.3c$C2,4), round(s.3c$C2,4))
+    })
+
     context("Infusion Models")
 
     et <- eventTable() %>% add.dosing(dose=3, rate=1.5, nbr.doses=6, dosing.interval=8) %>%
         add.sampling(seq(0, 48, length.out=200))
+
+    etSs <- et() %>% et(amt=3, rate=1.5) %>%
+        et(time=8,amt=3, rate=1.5, ss=1, ii=24) %>%
+        et(time=12, amt=3, rate=1.5, ss=2, ii=24) %>%
+        et(seq(0,24,length.out=200))
 
     ode.1c <- RxODE({
         C2 = center/V;
@@ -208,6 +246,12 @@ rxPermissive({
         expect_equal(round(o.1c$C2,4), round(s.1c$C2,4))
         expect_equal(round(o.1c$C2,4), round(s.2c$C2,4))
     })
+
+    ## o.1c <- ode.1c %>% solve(params=c(V=20, CL=1), events=etSs, maxsteps=1000000)
+
+    ## s.1c <- ode.1cs2 %>% solve(params=c(V=20, CL=1), events=etSs)
+
+    ## s.2c <- ode.1cs %>% solve(theta=c(20, 1), events=etSs)
 
     ode.2c <- RxODE({
         C2 = centr/V;
