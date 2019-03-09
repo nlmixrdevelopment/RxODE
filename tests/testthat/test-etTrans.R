@@ -1,5 +1,6 @@
+
 require(RxODE);
-require(digest)
+
 rxPermissive({
 
     context("etTrans checks");
@@ -44,5 +45,23 @@ d/dt(blood)     = a*intestine - b*blood
         expect_error(RxODE:::etTrans(et, mod))
     })
 
+    et <- eventTable()
+    et$add.dosing(dose=2/24,rate=2,start.time=0,
+                  nbr.doses=10,dosing.interval=1)
+    et <- et %>% et(0.05,evid=2) %>%
+        et(amt=3,time=0.25,cmt="out") %>%
+        et(amt=3,time=0.5,cmt="-out") %>% as.data.frame
+
+    test_that("error for negative non ODE compartments after defined compartment", {
+        expect_error(RxODE:::etTrans(et, mod))
+        et$cmt <- factor(et$cmt)
+        expect_error(RxODE:::etTrans(et, mod))
+    })
+
+    et <- et() %>% et(amt=3,time=0.24,evid=4)
+
+    test_that("EVID=4 makes sense", {
+        expect_equal(RxODE:::etTrans(et, mod)$evid, c(3L, 101L))
+    })
 
 }, cran=TRUE, silent=TRUE)
