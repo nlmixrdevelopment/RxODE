@@ -1767,6 +1767,24 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
             toRx <- function(x, what){
                 if (is.null(x)) return(NULL);
                 if (x == "") return(NULL);
+                .miss <- rxModelVars(x)$params
+                .missEtas <- .miss[regexpr(regEta, .miss) != -1];
+                if (length(setdiff(.missEtas,etas)) !=0 && length(setdiff(etas, .missEtas))!=0){
+                    stop("Predictions do not depend on all the etas defined")
+                }
+                .miss <- rxModelVars(x)$params
+                .missEtas <- .miss[regexpr(regEta, .miss) != -1];
+                if (length(setdiff(.missEtas,etas)) !=0 && length(setdiff(etas, .missEtas))!=0){
+                    print(setdiff(.missEtas,etas));
+                    print(setdiff(etas, .missEtas));
+                    stop("Predictions do not depend on all the individual deviations (etas) defined")
+                }
+                .missTheta <- .miss[regexpr(regTheta,.miss) != -1];
+                if (length(setdiff(.missTheta,thetas)) !=0 && length(setdiff(thetas, .missTheta))!=0){
+                    print(setdiff(.missTheta,thetas));
+                    print(setdiff(thetas, .missTheta));
+                    stop("Predictions do not depend on all the population parameters (theas) defined")
+                }
                 if (optExpression){
                     rxCat(sprintf("Optimizing expressions in %s model...", what));
                     .mod <- rxOptExpr(x)
