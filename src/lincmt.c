@@ -144,14 +144,9 @@ double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt, int diff1,
 	}
 	tau = ind->ii[l];
 	if (thisT < tinf){ // during infusion
-	  res = rate*A*alpha1*((1-exp(-alpha*thisT))+
+	  cur += rate*A*alpha1*((1-exp(-alpha*thisT))+
 				exp(-alpha*tau)*(1-exp(-alpha*tinf))*exp(-alpha*(thisT-tinf))/
 				(1-exp(-alpha*tau)));
-	  if (wh0 == 10){
-	    cur = res;
-	  } else {
-	    cur += res;
-	  }
 	  if (ncmt >= 2){
 	    cur += rate*B*beta1*((1-exp(-beta*thisT))+
 				exp(-beta*tau)*(1-exp(-beta*tinf))*exp(-beta*(thisT-tinf))/
@@ -162,21 +157,16 @@ double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt, int diff1,
 				(1-exp(-gamma*tau)));
 	    }
 	  }
-	  if (wh0 == 10) return cur;
+	  if (wh0 == 10) return (ret+cur);
 	} else { // after infusion
-	  res = rate*A*alpha1*((1-exp(-alpha*tinf))*exp(-alpha*(thisT-tinf))/(1-exp(-alpha*tau)));
-	  if (wh0 == 10){
-	    cur = res;
-	  } else {
-	    cur += res;
-	  }
+	  cur += rate*A*alpha1*((1-exp(-alpha*tinf))*exp(-alpha*(thisT-tinf))/(1-exp(-alpha*tau)));
 	  if (ncmt >= 2){
 	    cur += rate*B*beta1*((1-exp(-beta*tinf))*exp(-beta*(thisT-tinf))/(1-exp(-beta*tau)));
 	    if (ncmt >= 3){
 	      cur += rate*C*gamma1*((1-exp(-gamma*tinf))*exp(-gamma*(thisT-tinf))/(1-exp(-gamma*tau)));
 	    }
 	  }
-	  if (wh0 == 10) return cur;
+	  if (wh0 == 10) return(ret+cur);
 	}
       } else {
 	if (dose > 0){
@@ -227,20 +217,15 @@ double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt, int diff1,
 	if (thisT < 0) continue;
 	tau = ind->ii[l];
 	res = ((oral == 1) ? exp(-ka*thisT)/(1-exp(-ka*tau)) : 0.0);
-	if (wh0 == 10){
-	  // Prior information not added; ss=1
-	  cur = dose*A*(exp(-alpha*thisT)/(1-exp(-alpha*tau))-res);
-	} else {
-	  // Prior information added; ss=2
-	  cur += dose*A*(exp(-alpha*thisT)/(1-exp(-alpha*tau))-res);
-	}
+	cur += dose*A*(exp(-alpha*thisT)/(1-exp(-alpha*tau))-res);
 	if (ncmt >= 2){
 	  cur +=  dose*B*(exp(-beta*thisT)/(1-exp(-beta*tau))-res);
 	  if (ncmt >= 3){
 	    cur += dose*C*(exp(-gamma*thisT)/(1-exp(-gamma*tau))-res);
 	  }
 	}
-	if (wh0 == 10) return(cur);
+	// ss=1 is equivalent to a reset + ss dose
+	if (wh0 == 10) return(ret+cur);
       } else if (wh0 == 30) {
 	error("You cannot turn off a compartment with a solved system.");
       } else {
