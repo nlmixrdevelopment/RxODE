@@ -1211,7 +1211,7 @@ genCmt0 <- function(ncmt=1, oral=FALSE){
     ## 2 cmt: rx_k12, rx_k21
     ## 3 cmt: rx_k13, rx_k31
     rx0 <- "";
-    rxc <- "d/dt(rx1) ~ -rx_k*rx1";
+    rxc <- "d/dt(central) ~ -rx_k*rx1";
     rxp <- "";
     rx3 <- ""
     if (ncmt >= 2){
@@ -1224,7 +1224,7 @@ genCmt0 <- function(ncmt=1, oral=FALSE){
     }
     if (oral){
         rxc <- paste(rxc, "+ rx_ka*rx0");
-        rx0 <- "d/dt(rx0) ~ -rx_ka*rx0";
+        rx0 <- "d/dt(depot) ~ -rx_ka*rx0";
     }
     fin <- "rx1c = rx1/rx_v";
     ret <- c(rx0, rxc, rxp, rx3, fin);
@@ -1258,6 +1258,14 @@ genCmtMod <- function(mod){
     if (tlag){
         stop("tlag not supported yet.");
     }
+    tlag <- rxSymPyExists("rx_tlag2");
+    if (tlag){
+        tlag <- (rxSymPy("rx_tlag2") != "0") && (rxSymPy("rx_tlag2") != "rx_tlag2")
+    }
+    if (tlag){
+        stop("tlag2 not supported yet.");
+    }
+
     if (rxSymPyExists("rx_k13")){
         extra <- genCmt0(3, oral);
     } else if (rxSymPyExists("rx_k12")){

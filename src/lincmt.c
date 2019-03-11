@@ -41,9 +41,16 @@ static inline int _locateDoseIndex(const double obs_time,  rx_solving_options_in
 }
 extern double getTime(int idx, rx_solving_options_ind *ind);
 
-double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt, int diff1, int diff2, double d_A, double d_alpha, double d_B, double d_beta, double d_C, double d_gamma, double d_ka, double d_tlag){
+double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt, int diff1, int diff2,
+		 double d_A, double d_alpha, double d_B, double d_beta, double d_C, double d_gamma,
+		 double d_ka,
+		 // Lag and F can apply to 2 compartments, depot and/or central
+		 double d_tlag, double d_tlag2, double d_F, double d_F2,
+		 // Rate and dur can only apply to central compartment even w/ oral dosing
+		 // Therefore, only 1 model rate is possible with RxODE
+		 double d_rate, double d_dur){
   if (diff1 != 0 || diff2 != 0){
-    error("Exact derivtives are no longer calculated.");
+    error("Exact derivatives are no longer calculated.");
   }
   unsigned int ncmt = 1;
   double beta1=0, gamma1=0, alpha1=0;
