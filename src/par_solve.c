@@ -669,6 +669,89 @@ static char *err_msg_ls[]=
 //dummy solout fn
 void solout(long int nr, double t_old, double t, double *y, int *nptr, int *irtrn){}
 
+void solveSS_1(int *neq, 
+	       int *BadDose,
+	       double *InfusionRate,
+	       double *dose,
+	       double *yp,
+	       int do_transit_abs,
+	       double xout, double xp, int id,
+	       int *i, int nx,
+	       int *istate,
+	       rx_solving_options *op,
+	       rx_solving_options_ind *ind,
+	       t_update_inis u_inis,
+	       void *ctx){
+  int j=0, idid;
+  switch(op->stiff){
+  case 2:
+    lsoda(ctx, yp, &xp, xout);
+    if (*istate <= 0) {
+      REprintf("IDID=%d, %s\n", *istate, err_msg_ls[-(*istate)-1]);
+      ind->rc[0] = *istate;
+      // Bad Solve => NA
+      for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
+      op->badSolve = 1;
+      *i = ind->n_all_times-1; // Get out of here!
+      j=op->maxSS;
+      break;
+    }
+    break;
+  case 1:
+    F77_CALL(dlsoda)(dydt_lsoda_dum, neq, yp, &xp, &xout,
+		     &gitol, &(op->RTOL), &(op->ATOL), &gitask,
+		     istate, &giopt, global_rworkp,
+		     &glrw, global_iworkp, &gliw, jdum_lsoda, &global_jt);
+    if (*istate <= 0) {
+      REprintf("IDID=%d, %s\n", *istate, err_msg_ls[-(*istate)-1]);
+      ind->rc[0] = *istate;
+      // Bad Solve => NA
+      for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
+      op->badSolve = 1;
+      *i = ind->n_all_times-1; // Get out of here!
+      j=op->maxSS;
+      break;
+    }
+    break;
+  case 0:
+    idid = dop853(neq,       /* dimension of the system <= UINT_MAX-1*/
+		  dydt,       /* function computing the value of f(x,y) */
+		  xp,           /* initial x-value */
+		  yp,           /* initial values for y */
+		  xout,         /* final x-value (xend-x may be positive or negative) */
+		  &(op->RTOL),          /* relative error tolerance */
+		  &(op->ATOL),          /* absolute error tolerance */
+		  gitol,         /* switch for rtoler and atoler */
+		  solout,         /* function providing the numerical solution during integration */
+		  0,         /* switch for calling solout */
+		  NULL,           /* messages stream */
+		  DBL_EPSILON,    /* rounding unit */
+		  0,              /* safety factor */
+		  0,              /* parameters for step size selection */
+		  0,
+		  0,              /* for stabilized step size control */
+		  0,              /* maximal step size */
+		  0,            /* initial step size */
+		  0,            /* maximal number of allowed steps */
+		  1,            /* switch for the choice of the coefficients */
+		  -1,                     /* test for stiffness */
+		  0,                      /* number of components for which dense outpout is required */
+		  NULL,           /* indexes of components for which dense output is required, >= nrdens */
+		  0                       /* declared length of icon */
+		  );
+    if (idid < 0) {
+      ind->rc[0] = idid;
+      // Bad Solve => NA
+      for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
+      op->badSolve = 1;
+      *i = ind->n_all_times-1; // Get out of here!
+      j=op->maxSS;
+      break;
+    }
+    break;
+  }
+}
+
 void handleSS(int *neq, 
 	      int *BadDose,
 	      double *InfusionRate,
@@ -727,7 +810,10 @@ void handleSS(int *neq,
       }
     }
     // First Reset
-    for (j = neq[0]; j--;) ind->InfusionRate[j] = 0;
+    for (j = neq[0]; j--;){
+      ind->on[j]=1;
+      ind->InfusionRate[j] = 0;
+    }
     memcpy(yp,op->inits, neq[0]*sizeof(double));
     u_inis(neq[1], yp); // Update initial conditions @ current time
     int k;
@@ -743,73 +829,8 @@ void handleSS(int *neq,
 	handle_evid(ind->evid[ind->ix[*i]], neq[0], BadDose, InfusionRate, dose, yp,
 		    op->do_transit_abs, xout, neq[1], ind);
 	// yp is last solve or y0
-	switch(op->stiff){
-	case 2:
-	  lsoda(ctx, yp, &xp2, xout2);
-	  if (*istate <= 0) {
-	    REprintf("IDID=%d, %s\n", *istate, err_msg_ls[-(*istate)-1]);
-	    ind->rc[0] = *istate;
-	    // Bad Solve => NA
-	    for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
-	    op->badSolve = 1;
-	    *i = ind->n_all_times-1; // Get out of here!
-	    j=op->maxSS;
-	    break;
-	  }
-	  break;
-	case 1:
-	  F77_CALL(dlsoda)(dydt_lsoda_dum, neq, yp, &xp2, &xout2,
-			   &gitol, &(op->RTOL), &(op->ATOL), &gitask,
-			   istate, &giopt, global_rworkp,
-			   &glrw, global_iworkp, &gliw, jdum_lsoda, &global_jt);
-	  if (*istate <= 0) {
-	    REprintf("IDID=%d, %s\n", *istate, err_msg_ls[-(*istate)-1]);
-	    ind->rc[0] = *istate;
-	    // Bad Solve => NA
-	    for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
-	    op->badSolve = 1;
-	    *i = ind->n_all_times-1; // Get out of here!
-	    j=op->maxSS;
-	    break;
-	  }
-	  break;
-	case 0:
-	  idid = dop853(neq,       /* dimension of the system <= UINT_MAX-1*/
-			dydt,       /* function computing the value of f(x,y) */
-			xp2,           /* initial x-value */
-			yp,           /* initial values for y */
-			xout2,         /* final x-value (xend-x may be positive or negative) */
-			&(op->RTOL),          /* relative error tolerance */
-			&(op->ATOL),          /* absolute error tolerance */
-			gitol,         /* switch for rtoler and atoler */
-			solout,         /* function providing the numerical solution during integration */
-			0,         /* switch for calling solout */
-			NULL,           /* messages stream */
-			DBL_EPSILON,    /* rounding unit */
-			0,              /* safety factor */
-			0,              /* parameters for step size selection */
-			0,
-			0,              /* for stabilized step size control */
-			0,              /* maximal step size */
-			0,            /* initial step size */
-			0,            /* maximal number of allowed steps */
-			1,            /* switch for the choice of the coefficients */
-			-1,                     /* test for stiffness */
-			0,                      /* number of components for which dense outpout is required */
-			NULL,           /* indexes of components for which dense output is required, >= nrdens */
-			0                       /* declared length of icon */
-			);
-	  if (idid < 0) {
-	    ind->rc[0] = idid;
-	    // Bad Solve => NA
-	    for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
-	    op->badSolve = 1;
-	    *i = ind->n_all_times-1; // Get out of here!
-	    j=op->maxSS;
-	    break;
-	  }
-	  break;
-	}	
+	solveSS_1(neq, BadDose, InfusionRate, dose, yp, op->do_transit_abs,
+		  xout2, xp2, id, i, nx, istate, op, ind, u_inis, ctx);
 	ind->ixds--; // This dose stays in place
 	if (j == op->minSS -1){
 	  lastSum =0.0;
@@ -846,73 +867,9 @@ void handleSS(int *neq,
 	  // yp is last solve or y0
 	  /* Rprintf("evid: %d\t y0: %f; inf: %f", ind->evid[ind->idose[infBixds]], yp[0], InfusionRate[0]); */
 	  *istate=1;
-	  switch(op->stiff){
-	  case 2:
-	    lsoda(ctx, yp, &xp2, xout2);
-	    if (*istate <= 0) {
-	      REprintf("IDID=%d, %s\n", *istate, err_msg_ls[-(*istate)-1]);
-	      ind->rc[0] = *istate;
-	      // Bad Solve => NA
-	      for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
-	      op->badSolve = 1;
-	      *i = ind->n_all_times-1; // Get out of here!
-	      j=op->maxSS;
-	      break;
-	    }
-	    break;
-	  case 1:
-	    F77_CALL(dlsoda)(dydt_lsoda_dum, neq, yp, &xp2, &xout2,
-			     &gitol, &(op->RTOL), &(op->ATOL), &gitask,
-			     istate, &giopt, global_rworkp,
-			     &glrw, global_iworkp, &gliw, jdum_lsoda, &global_jt);
-	    if (*istate <= 0) {
-	      REprintf("IDID=%d, %s\n", *istate, err_msg_ls[-(*istate)-1]);
-	      ind->rc[0] = *istate;
-	      // Bad Solve => NA
-	      for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
-	      op->badSolve = 1;
-	      *i = ind->n_all_times-1; // Get out of here!
-	      j=op->maxSS;
-	      break;
-	    }
-	    break;
-	  case 0:
-	    idid = dop853(neq,       /* dimension of the system <= UINT_MAX-1*/
-			  dydt,       /* function computing the value of f(x,y) */
-			  xp2,           /* initial x-value */
-			  yp,           /* initial values for y */
-			  xout2,         /* final x-value (xend-x may be positive or negative) */
-			  &(op->RTOL),          /* relative error tolerance */
-			  &(op->ATOL),          /* absolute error tolerance */
-			  gitol,         /* switch for rtoler and atoler */
-			  solout,         /* function providing the numerical solution during integration */
-			  0,         /* switch for calling solout */
-			  NULL,           /* messages stream */
-			  DBL_EPSILON,    /* rounding unit */
-			  0,              /* safety factor */
-			  0,              /* parameters for step size selection */
-			  0,
-			  0,              /* for stabilized step size control */
-			  0,              /* maximal step size */
-			  0,            /* initial step size */
-			  0,            /* maximal number of allowed steps */
-			  1,            /* switch for the choice of the coefficients */
-			  -1,                     /* test for stiffness */
-			  0,                      /* number of components for which dense outpout is required */
-			  NULL,           /* indexes of components for which dense output is required, >= nrdens */
-			  0                       /* declared length of icon */
-			  );
-	    if (idid < 0) {
-	      ind->rc[0] = idid;
-	      // Bad Solve => NA
-	      for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
-	      op->badSolve = 1;
-	      *i = ind->n_all_times-1; // Get out of here!
-	      j=op->maxSS;
-	      break;
-	    }
-	    break;
-	  }
+	  // yp is last solve or y0
+	  solveSS_1(neq, BadDose, InfusionRate, dose, yp, op->do_transit_abs,
+		    xout2, xp2, id, i, nx, istate, op, ind, u_inis, ctx);
 	  xp2 = xout2;
 	  // Turn off Infusion, solve (dur-ii)
 	  xout2 = xp2+dur2;
@@ -933,73 +890,8 @@ void handleSS(int *neq,
 	  }
 	  // yp is last solve or y0
 	  *istate=1;
-	  switch(op->stiff){
-	  case 2:
-	    lsoda(ctx, yp, &xp2, xout2);
-	    if (*istate <= 0) {
-	      REprintf("IDID=%d, %s\n", *istate, err_msg_ls[-(*istate)-1]);
-	      ind->rc[0] = *istate;
-	      // Bad Solve => NA
-	      for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
-	      op->badSolve = 1;
-	      *i = ind->n_all_times-1; // Get out of here!
-	      j=op->maxSS;
-	      break;
-	    }
-	    break;
-	  case 1:
-	    F77_CALL(dlsoda)(dydt_lsoda_dum, neq, yp, &xp2, &xout2,
-			     &gitol, &(op->RTOL), &(op->ATOL), &gitask,
-			     istate, &giopt, global_rworkp,
-			     &glrw, global_iworkp, &gliw, jdum_lsoda, &global_jt);
-	    if (*istate <= 0) {
-	      REprintf("IDID=%d, %s\n", *istate, err_msg_ls[-(*istate)-1]);
-	      ind->rc[0] = *istate;
-	      // Bad Solve => NA
-	      for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
-	      op->badSolve = 1;
-	      *i = ind->n_all_times-1; // Get out of here!
-	      j=op->maxSS;
-	      break;
-	    }
-	    break;
-	  case 0:
-	    idid = dop853(neq,       /* dimension of the system <= UINT_MAX-1*/
-			  dydt,       /* function computing the value of f(x,y) */
-			  xp2,           /* initial x-value */
-			  yp,           /* initial values for y */
-			  xout2,         /* final x-value (xend-x may be positive or negative) */
-			  &(op->RTOL),          /* relative error tolerance */
-			  &(op->ATOL),          /* absolute error tolerance */
-			  gitol,         /* switch for rtoler and atoler */
-			  solout,         /* function providing the numerical solution during integration */
-			  0,         /* switch for calling solout */
-			  NULL,           /* messages stream */
-			  DBL_EPSILON,    /* rounding unit */
-			  0,              /* safety factor */
-			  0,              /* parameters for step size selection */
-			  0,
-			  0,              /* for stabilized step size control */
-			  0,              /* maximal step size */
-			  0,            /* initial step size */
-			  0,            /* maximal number of allowed steps */
-			  1,            /* switch for the choice of the coefficients */
-			  -1,                     /* test for stiffness */
-			  0,                      /* number of components for which dense outpout is required */
-			  NULL,           /* indexes of components for which dense output is required, >= nrdens */
-			  0                       /* declared length of icon */
-			  );
-	    if (idid < 0) {
-	      ind->rc[0] = idid;
-	      // Bad Solve => NA
-	      for (j=neq[0]*(ind->n_all_times); j--;) ind->solve[j] = NA_REAL;
-	      op->badSolve = 1;
-	      *i = ind->n_all_times-1; // Get out of here!
-	      j=op->maxSS;
-	      break;
-	    }
-	    break;
-	  }
+	  solveSS_1(neq, BadDose, InfusionRate, dose, yp, op->do_transit_abs,
+		    xout2, xp2, id, i, nx, istate, op, ind, u_inis, ctx);
 	  if (j == op->minSS -1){
 	    for (k = neq[0]; k--;) lastSum += fabs(yp[k]);
 	  } else if (j >= op->minSS){
