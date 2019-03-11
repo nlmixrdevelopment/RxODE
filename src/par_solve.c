@@ -776,7 +776,7 @@ void handleSS(int *neq,
       doSS2=1;
     }
     double dur = 0, dur2=0;
-    int infBixds =0, infEixds = 0, ei=0, wh, cmt, wh100, whI, wh0, oldI;
+    int infBixds =0, infEixds = 0, bi=0,ei=0, wh, cmt, wh100, whI, wh0, oldI;
     if (ind->whI == 1 || ind->whI == 2){
       oldI = ind->whI;
       infBixds = ind->ixds;
@@ -798,9 +798,10 @@ void handleSS(int *neq,
       infBixds = ind->ixds;
       infEixds = ind->ixds+1;
       dur = getTime(ind->idose[infEixds], ind) - getTime(ind->idose[infBixds],ind);
-      dur2 = ind->ii[infBixds]-dur;
+      dur2 = ind->ii[ind->ixds] - dur;
       /* Rprintf("dur: %f; dur2: %f\n", dur, dur2); */
     }
+    bi = *i;
     if (ind->whI == 1 || ind->whI == 2 || ind->whI == 8 || ind->whI == 9){
       ei = *i;
       while(ind->ix[ei] != ind->idose[infEixds] && ei < ind->n_all_times){
@@ -821,11 +822,17 @@ void handleSS(int *neq,
     int k;
     double curSum = 0.0, lastSum=0.0, xp2, xout2;
     xp2 = xp;
+    bi=*i;
     if (dur == 0){
       // Oral
       for (j = 0; j < op->maxSS; j++){
 	xout2 = xp2+ind->ii[ind->ixds];
 	// Use "real" xout for handle_evid functions.
+	ind->idx=*i;
+	if (*i == nx-1){
+	  op->badSolve = 1;
+	  break;
+	}
 	handle_evid(ind->evid[ind->ix[*i]], neq[0], BadDose, InfusionRate, dose, yp,
 		    op->do_transit_abs, xout, neq[1], ind);
 	// yp is last solve or y0
@@ -858,6 +865,10 @@ void handleSS(int *neq,
 	// Infusion
 	for (j = 0; j < op->maxSS; j++){
 	  // Turn on Infusion, solve (0-dur)
+	  if (*i == nx-1){
+	    op->badSolve = 1;
+	    break;
+	  }
 	  xout2 = xp2+dur;
 	  ind->idx=*i;
 	  ind->ixds = infBixds;
@@ -878,9 +889,6 @@ void handleSS(int *neq,
 	  getWh(ind->evid[ind->idose[infEixds]], &(ind->wh), &(ind->cmt), &(ind->wh100), &(ind->whI), &(ind->wh0));
 	  handle_evid(ind->evid[ind->idose[infEixds]], neq[0], BadDose, InfusionRate, dose, yp,
 		      op->do_transit_abs, xout+dur, neq[1], ind);
-	  /* Rprintf("\t evid: %d (%d)\t y1: %f; inf: %f\n", */
-	  /* 	  ind->evid[ind->idose[infEixds]], ind->evid[ind->ix[ind->idx]], */
-	  /* 	  yp[0], InfusionRate[0]); */
 	  if (j == op->minSS -1){
 	    lastSum =0.0;
 	    for (k = neq[0]; k--;) lastSum += fabs(yp[k]);
@@ -892,6 +900,10 @@ void handleSS(int *neq,
 	  *istate=1;
 	  solveSS_1(neq, BadDose, InfusionRate, dose, yp, op->do_transit_abs,
 		    xout2, xp2, id, i, nx, istate, op, ind, u_inis, ctx);
+	  if (*i == nx-1){
+	    op->badSolve = 1;
+	    break;
+	  }
 	  if (j == op->minSS -1){
 	    for (k = neq[0]; k--;) lastSum += fabs(yp[k]);
 	  } else if (j >= op->minSS){

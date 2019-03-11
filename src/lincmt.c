@@ -113,7 +113,6 @@ double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt, int diff1,
       if (wh0 == 30){
 	error("You cannot turn off a compartment with a solved system.");
       } else if (wh0 == 10 || wh0 == 20){
-	stop("doesn't work yet");
 	// Steady state
 	if (dose > 0){
 	  // During infusion
@@ -127,6 +126,7 @@ double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt, int diff1,
 	    error("Could not find a error to the infusion.  Check the event table.");
 	  }
 	  tinf  = ind->all_times[ind->idose[p]] - ind->all_times[ind->idose[l]];
+	  tau = ind->ii[l];
 	  rate  = dose;
 	  if (tT >= tinf) continue;
 	} else {
@@ -139,23 +139,25 @@ double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt, int diff1,
 	    error("Could not find a start to the infusion.  Check the event table.");
 	  }
 	  tinf  = ind->all_times[ind->idose[l]] - ind->all_times[ind->idose[p]] - tlag;
+	  tau = ind->ii[p];
 	  tT = t - ind->all_times[ind->idose[p]];
 	  thisT = tT -tlag;
 	  rate  = -dose;
 	}
-	tau = ind->ii[l];
+	if (tinf >= tau){
+	  error("Infusion time greater then inter-dose interval, ss cannot be calculated.");
+	} 
 	if (thisT < tinf){ // during infusion
 	  cur += rate*A*alpha1*((1-exp(-alpha*thisT))+
-				exp(-alpha*tinf)*(1-exp(-alpha*tinf))*
-				exp(-alpha*(thisT-tinf)))/(1-exp(-alpha*tau));
+				exp(-alpha*tau)*(1-exp(-alpha*tinf))*exp(-alpha*(thisT-tinf))/(1-exp(-alpha*tau)));
 	  if (ncmt >= 2){
 	    cur += rate*B*beta1*((1-exp(-beta*thisT))+
-				exp(-beta*tinf)*(1-exp(-beta*tinf))*exp(-beta*(thisT-tinf))/
-				(1-exp(-beta*tau)));
+				 exp(-beta*tau)*(1-exp(-beta*tinf))*exp(-beta*(thisT-tinf))/
+				 (1-exp(-beta*tau)));
 	    if (ncmt >= 3){
-	      cur += rate*B*gamma1*((1-exp(-gamma*thisT))+
-				exp(-gamma*tinf)*(1-exp(-gamma*tinf))*exp(-gamma*(thisT-tinf))/
-				(1-exp(-gamma*tau)));
+	      cur += rate*C*gamma1*((1-exp(-gamma*thisT))+
+				    exp(-gamma*tau)*(1-exp(-gamma*tinf))*exp(-gamma*(thisT-tinf))/
+				    (1-exp(-gamma*tau)));
 	    }
 	  }
 	  if (wh0 == 10) return (ret+cur);
@@ -167,7 +169,7 @@ double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt, int diff1,
 	      cur += rate*C*gamma1*((1-exp(-gamma*tinf))*exp(-gamma*(thisT-tinf))/(1-exp(-gamma*tau)));
 	    }
 	  }
-	  /* if (wh0 == 10) return(ret+cur); */
+	  if (wh0 == 10) return (ret+cur);
 	}
       } else {
 	if (dose > 0){
