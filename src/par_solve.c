@@ -765,7 +765,7 @@ void handleSS(int *neq,
 	      rx_solving_options_ind *ind,
 	      t_update_inis u_inis,
 	      void *ctx){
-  int j, idid;
+  int j;
   int doSS2=0;
   /* Rprintf("evid: %d\n", ind->evid[ind->ixds-1]); */
   if ((ind->wh0 == 20 || ind->wh0 == 10) &&
@@ -786,7 +786,8 @@ void handleSS(int *neq,
 	  getWh(ind->evid[ind->idose[j]], &wh, &cmt, &wh100, &whI, &wh0);
 	  if (whI == oldI && cmt == ind->cmt){
 	    dur = getTime(ind->idose[j], ind) - getTime(ind->ix[*i], ind);
-	    dur2 = ind->ii[ind->ix[*i]] - dur;
+	    dur2 = ind->ii[ind->ixds] - dur;
+	    /* Rprintf("000; dur: %f; dur2: %f; ii: %f;\n", dur, dur2, ind->ii[ind->ixds]); */
 	    infEixds = j;
 	    break;
 	  }
@@ -797,7 +798,7 @@ void handleSS(int *neq,
       infBixds = ind->ixds;
       infEixds = ind->ixds+1;
       dur = getTime(ind->idose[infEixds], ind) - getTime(ind->idose[infBixds],ind);
-      dur2 = ind->ii[ind->ix[*i]] - dur;
+      dur2 = ind->ii[infBixds]-dur;
       /* Rprintf("dur: %f; dur2: %f\n", dur, dur2); */
     }
     if (ind->whI == 1 || ind->whI == 2 || ind->whI == 8 || ind->whI == 9){
@@ -810,16 +811,15 @@ void handleSS(int *neq,
       }
     }
     // First Reset
-    for (j = neq[0]; j--;){
-      ind->on[j]=1;
+    for (j = neq[0]; j--;) {
       ind->InfusionRate[j] = 0;
+      ind->on[j] = 1;
     }
     memcpy(yp,op->inits, neq[0]*sizeof(double));
     u_inis(neq[1], yp); // Update initial conditions @ current time
+    *istate = 1;
     int k;
     double curSum = 0.0, lastSum=0.0, xp2, xout2;
-    /* ctx.state=1; */
-    *istate = 1;
     xp2 = xp;
     if (dur == 0){
       // Oral
