@@ -210,8 +210,8 @@ rxPermissive({
         add.sampling(seq(0, 48, length.out=200))
 
     etSs <- et() %>% et(amt=3, rate=1.5) %>%
-        et(time=8,amt=3, rate=1.5, ss=1, ii=24) %>%
-        et(time=12, amt=3, rate=1.5, ss=2, ii=24) %>%
+        et(time=4,amt=3, rate=1.5, ss=1, ii=24) %>%
+        et(time=8, amt=3, rate=1.5, ss=2, ii=24) %>%
         et(seq(0,24,length.out=200))
 
     ode.1c <- RxODE({
@@ -247,11 +247,16 @@ rxPermissive({
         expect_equal(round(o.1c$C2,4), round(s.2c$C2,4))
     })
 
-    ## o.1c <- ode.1c %>% solve(params=c(V=20, CL=1), events=etSs, maxsteps=1000000)
+    o.1c <- ode.1c %>% solve(params=c(V=20, CL=10), events=etSs)
 
-    ## s.1c <- ode.1cs2 %>% solve(params=c(V=20, CL=1), events=etSs)
+    s.1c <- ode.1cs2 %>% solve(params=c(V=20, CL=10), events=etSs)
 
-    ## s.2c <- ode.1cs %>% solve(theta=c(20, 1), events=etSs)
+    s.2c <- ode.1cs %>% solve(theta=c(20, 10), events=etSs)
+
+    test_that("1 compartment solved models and ODEs same; Steady State", {
+        expect_equal(round(o.1c$C2,4), round(s.1c$C2,4))
+        expect_equal(round(o.1c$C2,4), round(s.2c$C2,4))
+    })
 
     ode.2c <- RxODE({
         C2 = centr/V;
@@ -269,6 +274,14 @@ rxPermissive({
     s.2c <- sol.2c %>% solve(params=c(V=40, CL=18, V2=297, Q=10), events=et)
 
     test_that("2 compartment solved models and ODEs same.", {
+        expect_equal(round(o.2c$C2,4), round(s.2c$C2,4))
+    })
+
+    o.2c <- ode.2c %>% solve(params=c(V=40, CL=18, V2=297, Q=10), events=etSs, maxsteps=10000)
+
+    s.2c <- sol.2c %>% solve(params=c(V=40, CL=18, V2=297, Q=10), events=etSs)
+
+    test_that("2 compartment steady state solved models and ODEs same.", {
         expect_equal(round(o.2c$C2,4), round(s.2c$C2,4))
     })
 
@@ -291,6 +304,14 @@ rxPermissive({
     s.3c <- sol.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=et)
 
     test_that("3 compartment solved models and ODEs same.", {
+        expect_equal(round(o.3c$C2,4), round(s.3c$C2,4))
+    })
+
+    o.3c <- ode.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=etSs, maxsteps=100000)
+
+    s.3c <- sol.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=etSs)
+
+    test_that("3 compartment steady state solved models and ODEs same.", {
         expect_equal(round(o.3c$C2,4), round(s.3c$C2,4))
     })
 
