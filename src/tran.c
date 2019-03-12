@@ -1152,8 +1152,13 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         sprintf(tb.ddt, "%s",v);
         if (new_de(v)){
 	  if (rx_syntax_require_ode_first){
-            sprintf(buf,ODEFIRST,v);
-            trans_syntax_error_report_fn(buf);
+	    if (!strcmp("depot", v) || !strcmp("central", v)){
+	      // FIXME trans_syntax_error when not linCmt...
+	      //...
+	    } else {
+	      sprintf(buf,ODEFIRST,v);
+	      trans_syntax_error_report_fn(buf);
+	    }
 	  }
 	  tb.statei++;
 	  if (nodeHas(fbio)){

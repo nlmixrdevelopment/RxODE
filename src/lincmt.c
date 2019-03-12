@@ -61,6 +61,7 @@ double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt,
   double C = d_C;
   double ka = d_ka;
   double tlag = d_tlag;
+  double F = d_F;
   if (d_gamma > 0.){
     ncmt = 3;
     gamma1 = 1.0/gamma;
@@ -108,6 +109,8 @@ double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt,
     A = d_A;
     B = d_B;
     C = d_C;
+    tlag = d_tlag;
+    F = d_F;
     if (cmt != linCmt){
       if (!oral){
 	continue;
@@ -116,6 +119,8 @@ double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt,
       A = d_A2;
       B = d_B2;
       C = d_C2;
+      tlag = d_tlag2;
+      F = d_F2;
     }
     switch(whI){
     case 7:
@@ -131,7 +136,6 @@ double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt,
       // infusion
     case 2:
     case 1:
-      // What affects this is bioavailability change, which are not implemented yet.
       if (oral) error("Infusions to depot are not possible with the linear solved system");
       if (wh0 == 30){
 	error("You cannot turn off a compartment with a solved system.");
@@ -146,7 +150,7 @@ double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt,
 	    p++;
 	  }
 	  if (ind->dose[p] != -dose){
-	    error("Could not find a error to the infusion.  Check the event table.");
+	    error("Could not find an end to the infusion.  Check the event table.");
 	  }
 	  tinf  = ind->all_times[ind->idose[p]] - ind->all_times[ind->idose[l]];
 	  tau = ind->ii[l];
@@ -166,6 +170,14 @@ double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt,
 	  tT = t - ind->all_times[ind->idose[p]];
 	  thisT = tT -tlag;
 	  rate  = -dose;
+	}
+	if (F <= 0) error("Bioavailability cannot be negative or zero.");
+	if (whI == 1){
+	  // Duration changes
+	  tinf = tinf*F;
+	} else {
+	  // Rate Changes
+	  rate = F*rate;
 	}
 	if (tinf >= tau){
 	  error("Infusion time greater then inter-dose interval, ss cannot be calculated.");
@@ -224,6 +236,14 @@ double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt,
 	  thisT = tT -tlag;
 	  rate  = -dose;
 	}
+	if (F <= 0) error("Bioavailability cannot be negative or zero.");
+	if (whI == 1){
+	  // Duration changes
+	  tinf = tinf*F;
+	} else {
+	  // Rate Changes
+	  rate = F*rate;
+	}
 	t1  = ((thisT < tinf) ? thisT : tinf);        //during infusion
 	t2  = ((thisT > tinf) ? thisT - tinf : 0.0);  // after infusion
 	cur +=  rate*A*alpha1*(1.0-exp(-alpha*t1))*exp(-alpha*t2);
@@ -243,11 +263,11 @@ double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt,
 	if (thisT < 0) continue;
 	tau = ind->ii[l];
 	res = ((oral == 1) ? exp(-ka*thisT)/(1-exp(-ka*tau)) : 0.0);
-	cur += dose*A*(exp(-alpha*thisT)/(1-exp(-alpha*tau))-res);
+	cur += dose*F*A*(exp(-alpha*thisT)/(1-exp(-alpha*tau))-res);
 	if (ncmt >= 2){
-	  cur +=  dose*B*(exp(-beta*thisT)/(1-exp(-beta*tau))-res);
+	  cur +=  dose*F*B*(exp(-beta*thisT)/(1-exp(-beta*tau))-res);
 	  if (ncmt >= 3){
-	    cur += dose*C*(exp(-gamma*thisT)/(1-exp(-gamma*tau))-res);
+	    cur += dose*F*C*(exp(-gamma*thisT)/(1-exp(-gamma*tau))-res);
 	  }
 	}
 	// ss=1 is equivalent to a reset + ss dose
@@ -259,11 +279,11 @@ double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt,
 	thisT = tT -tlag;
 	if (thisT < 0) continue;
 	res = ((oral == 1) ? exp(-ka*thisT) : 0.0);
-	cur +=  dose*A*(exp(-alpha*thisT)-res);
+	cur +=  dose*F*A*(exp(-alpha*thisT)-res);
 	if (ncmt >= 2){
-	  cur +=  dose*B*(exp(-beta*thisT)-res);
+	  cur +=  dose*F*B*(exp(-beta*thisT)-res);
 	  if (ncmt >= 3){
-	    cur += dose*C*(exp(-gamma*thisT)-res);
+	    cur += dose*F*C*(exp(-gamma*thisT)-res);
 	  }
 	}
       }

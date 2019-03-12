@@ -25,6 +25,7 @@ findLhs <- function(x) {
              call. = FALSE)
     }
 }
+
 ##' This translates the parameters specified by the model in the correct type of solving.
 ##'
 ##' @param modText model text
@@ -34,6 +35,14 @@ findLhs <- function(x) {
 ##' @keywords internal
 rxLinCmtTrans <- function(modText){
     .vars <- c();
+    .old  <- getOption("RxODE.syntax.require.ode.first", TRUE)
+    if (.old){
+        options(RxODE.syntax.require.ode.first=FALSE);
+        on.exit(options(RxODE.syntax.require.ode.first=TRUE));
+    }
+    .tmpTxt  <- rex::rex(any_spaces, or("f", "F"),  any_spaces, "(",
+                               any_spaces, "depot", any_spaces,
+                               ")",any_spaces,or("=","<-"),any_spaces,capture(anything))
     .txt <- try({strsplit(rxNorm(modText), "\n")[[1]]}, silent = TRUE);
     if (inherits(.txt, "try-error")){
         return(modText);
@@ -43,9 +52,20 @@ rxLinCmtTrans <- function(modText){
     if (length(.w) == 0){
         return(modText);
     } else if (length(.w) == 1){
+        .regFdepot <- rex::rex(any_spaces, or("f", "F"),  any_spaces, "(",
+                               any_spaces, "depot", any_spaces,
+                               ")",any_spaces,or("=","<-"),any_spaces,capture(anything));
+        .regFcenter <- rex::rex(any_spaces, or("f", "F"),  any_spaces, "(",
+                                any_spaces,"central", any_spaces,
+                                ")",any_spaces,or("=","<-"),any_spaces,capture(anything));
         .linCmt <- gsub(.re, "\\2", .txt[.w]);
         if (.linCmt == ""){
-            .linCmt <- length(rxState(modText));
+            .tmp <- rxState(modText);
+            .w <- which(.tmp=="depot");
+            if (length(.w) > 0) .tmp <- .tmp[-.w];
+            .w <- which(.tmp=="central");
+            if (length(.w) > 0) .tmp <- .tmp[-.w];
+            .linCmt  <- length(.tmp);
         } else {
             .linCmt <- gsub(rex::rex(any_spaces, capture(anything), any_spaces), "\\1",
                            strsplit(.linCmt, ",")[[1]])
@@ -56,7 +76,13 @@ rxLinCmtTrans <- function(modText){
             if (length(.linCmt) > 1){
                 stop("Can't figure out what compartment the solved system will be put into.")
             } else if (length(.linCmt) == 0){
-                .linCmt <- length(rxState(modText));
+                .tmp <- rxState(modText);
+                .w <- which(.tmp=="depot");
+                if (length(.w) > 0) .tmp <- .tmp[-.w];
+                .w <- which(.tmp=="central");
+                if (length(.w) > 0) .tmp <- .tmp[-.w];
+                .linCmt <- length(.tmp);
+
             } else {
                 .linCmt <- .linCmt - 1;
             }
@@ -133,8 +159,42 @@ rxLinCmtTrans <- function(modText){
             .lines[length(.lines) + 1] <- sprintf("rx_tlag ~ 0");
         }
         .lines[length(.lines)+1]  <- sprintf("rx_tlag2 ~ 0")
-        .lines[length(.lines) + 1] <- sprintf("rx_F ~ 1");
-        .lines[length(.lines)+1]  <- sprintf("rx_F2 ~ 1")
+        .fDepot  <- which(regexpr(.regFdepot,.txt)!=-1)
+        if (length(.fDepot)==1L){
+            .tmp <- .txt[.fDepot];
+            .txt <- .txt[-.fDepot];
+            if (.oral){
+                .lines[length(.lines)+1]  <- sub(.regFdepot,"rx_F ~ \\1", .tmp);
+            } else {
+                stop("f(depot) does not exist without a depot compartment, specify a 'ka' parameter");
+            }
+        } else if (length(.fDepot)>1L){
+            stop("f(depot) cannot be duplicated in a model");
+        } else {
+            if (.oral){
+                .lines[length(.lines) + 1]  <- sprintf("rx_F ~ 1")
+            }
+        }
+        .fCenter  <- which(regexpr(.regFcenter, .txt) !=-1)
+        if (length(.fCenter)==1L){
+            .tmp <- .txt[.fCenter];
+            .txt <- .txt[-.fCenter];
+            if (.oral){
+                .lines[length(.lines)+1]  <- sub(.regFcenter,"rx_F2 ~ \\1", .tmp);
+            } else {
+                .lines[length(.lines)+1]  <- sub(.regFcenter,"rx_F ~ \\1", .tmp);
+                .lines[length(.lines) + 1]  <- sprintf("rx_F2 ~ 1")
+            }
+        } else if (length(.fCenter)>1L) {
+            stop("Can only specify f(central) once.");
+        } else {
+            if (.oral){
+                .lines[length(.lines) + 1]  <- sprintf("rx_F2 ~ 1")
+            } else {
+                .lines[length(.lines) + 1]  <- sprintf("rx_F ~ 1")
+                .lines[length(.lines) + 1]  <- sprintf("rx_F2 ~ 1")
+            }
+        }
         .lines[length(.lines)+1]  <- sprintf("rx_rate ~ 0")
         .lines[length(.lines)+1]  <- sprintf("rx_dur ~ 0")
         .ncmt <- 1;
