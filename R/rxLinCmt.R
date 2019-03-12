@@ -219,25 +219,34 @@ rxLinCmtTrans <- function(modText){
             .lines[length(.lines) + 1] <- "rx_alpha ~ rx_k";
             if (.oral){
                 .lines[length(.lines) + 1] <- "rx_A ~ rx_ka / (rx_ka - rx_alpha) / rx_v";
+                .lines[length(.lines) + 1] <- "rx_A2 ~ 1.0 / rx_v";
             } else {
                 .lines[length(.lines) + 1] <- "rx_A ~ 1.0 / rx_v";
+                .lines[length(.lines) + 1] <- "rx_A2 ~ 0.0";
             }
             .lines[length(.lines) + 1] <- "rx_beta ~ 0";
             .lines[length(.lines) + 1] <- "rx_B ~ 0";
+            .lines[length(.lines) + 1] <- "rx_B2 ~ 0";
             .lines[length(.lines) + 1] <- "rx_gamma ~ 0";
             .lines[length(.lines) + 1] <- "rx_C ~ 0";
+            .lines[length(.lines) + 1] <- "rx_C2 ~ 0";
         } else if (.ncmt == 2){
             .lines[length(.lines) + 1] <- "rx_beta  ~ 0.5 * (rx_k12 + rx_k21 + rx_k - sqrt((rx_k12 + rx_k21 + rx_k) * (rx_k12 + rx_k21 + rx_k) - 4.0 * rx_k21 * rx_k))"
             .lines[length(.lines) + 1] <-  "rx_alpha ~ rx_k21 * rx_k / rx_beta"
             if (.oral){
                 .lines[length(.lines) + 1] <-  "rx_A ~ rx_ka / (rx_ka - rx_alpha) * (rx_alpha - rx_k21) / (rx_alpha - rx_beta) / rx_v"
                 .lines[length(.lines) + 1] <- "rx_B ~ rx_ka / (rx_ka - rx_beta) * (rx_beta - rx_k21) / (rx_beta - rx_alpha) / rx_v;"
+                .lines[length(.lines) + 1] <-  "rx_A2 ~ (rx_alpha - rx_k21) / (rx_alpha - rx_beta) / rx_v"
+                .lines[length(.lines) + 1] <- "rx_B2 ~ (rx_beta - rx_k21) / (rx_beta - rx_alpha) / rx_v;"
             } else {
                 .lines[length(.lines) + 1] <-  "rx_A ~ (rx_alpha - rx_k21) / (rx_alpha - rx_beta) / rx_v"
                 .lines[length(.lines) + 1] <- "rx_B ~ (rx_beta - rx_k21) / (rx_beta - rx_alpha) / rx_v;"
+                .lines[length(.lines) + 1] <-  "rx_A2 ~ 0"
+                .lines[length(.lines) + 1] <- "rx_B2 ~ 0";
             }
             .lines[length(.lines) + 1] <- "rx_gamma ~ 0";
             .lines[length(.lines) + 1] <- "rx_C ~ 0";
+            .lines[length(.lines) + 1]  <- "rx_C2 ~ 0";
         } else if (.ncmt == 3){
             .lines[length(.lines) + 1] <- "rx_a0 ~ rx_k * rx_k21 * rx_k31";
             .lines[length(.lines) + 1] <- "rx_a1 ~ rx_k * rx_k31 + rx_k21 * rx_k31 + rx_k21 * rx_k13 + rx_k * rx_k21 + rx_k31 * rx_k12";
@@ -254,12 +263,19 @@ rxLinCmtTrans <- function(modText){
             .lines[length(.lines) + 1] <- "rx_B ~ (rx_k21 - rx_beta) * (rx_k31 - rx_beta) / (rx_beta - rx_alpha) / (rx_beta - rx_gamma) / rx_v;"
             .lines[length(.lines) + 1] <- "rx_C ~ (rx_k21 - rx_gamma) * (rx_k31 - rx_gamma) / (rx_gamma - rx_alpha) / (rx_gamma - rx_beta) / rx_v;"
             if (.oral){
-                .lines[length(.lines) + 1] <- "rx_A ~ rx_ka / (rx_ka - rx_alpha) * rx_A";
+                .lines[length(.lines) + 1] <- "rx_A2 ~ rx_A";
+                .lines[length(.lines) + 1] <- "rx_B2 ~ rx_B";
+                .lines[length(.lines) + 1] <- "rx_C2 ~ rx_C";
+                .lines[length(.lines) + 1] <- "rx_A ~ rx_A";
                 .lines[length(.lines) + 1] <- "rx_B ~ rx_ka / (rx_ka - rx_beta) * rx_B";
                 .lines[length(.lines) + 1] <- "rx_C ~ rx_ka / (rx_ka - rx_gamma) * rx_C";
+            } else {
+                .lines[length(.lines) + 1] <- "rx_A2 ~ 0";
+                .lines[length(.lines) + 1] <- "rx_B2 ~ 0";
+                .lines[length(.lines) + 1] <- "rx_C2 ~ 0";
             }
         }
-        .solve <- sprintf("solveLinB(rx__PTR__, t, %s, 0, 0, rx_A, rx_alpha, rx_B, rx_beta, rx_C, rx_gamma, rx_ka, rx_tlag, rx_tlag2, rx_F, rx_F2, rx_rate, rx_dur)", .linCmt);
+        .solve <- sprintf("solveLinB(rx__PTR__, t, %s, rx_A, rx_A2, rx_alpha, rx_B, rx_B2, rx_beta, rx_C, rx_C2, rx_gamma, rx_ka, rx_tlag, rx_tlag2, rx_F, rx_F2, rx_rate, rx_dur)", .linCmt);
         .lines <- paste(.lines, collapse="\n");
         .txt <- paste(sub(.re, sprintf("%s\n\\1%s\\3", .lines, .solve), .txt), collapse="\n");
         return(rxGetModel(.txt))

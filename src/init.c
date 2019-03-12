@@ -119,9 +119,12 @@ void rxOptionsIni();
 void rxOptionsIniData();
 /* void rxOptionsIniFocei(); */
 
-double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt, int diff1, int diff2,
-		 double d_A, double d_alpha, double d_B, double d_beta, double d_C, double d_gamma,
-		 double d_ka, double d_tlag, double d_tlag2, double d_F, double d_F2,
+double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt,
+		 double d_A, double d_A2, double d_alpha,
+		 double d_B, double d_B2, double d_beta,
+		 double d_C, double d_C2, double d_gamma,
+		 double d_ka, double d_tlag, double d_tlag2,
+		 double d_F, double d_F2,
 		 double d_rate, double d_dur);
 
 void _update_par_ptr(double t, unsigned int id, rx_solve *rx, int idx);

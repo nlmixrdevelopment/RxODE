@@ -41,17 +41,16 @@ static inline int _locateDoseIndex(const double obs_time,  rx_solving_options_in
 }
 extern double getTime(int idx, rx_solving_options_ind *ind);
 
-double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt, int diff1, int diff2,
-		 double d_A, double d_alpha, double d_B, double d_beta, double d_C, double d_gamma,
+double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt,
+		 double d_A, double d_A2, double d_alpha,
+		 double d_B, double d_B2, double d_beta,
+		 double d_C, double d_C2, double d_gamma,
 		 double d_ka,
 		 // Lag and F can apply to 2 compartments, depot and/or central
 		 double d_tlag, double d_tlag2, double d_F, double d_F2,
 		 // Rate and dur can only apply to central compartment even w/ oral dosing
 		 // Therefore, only 1 model rate is possible with RxODE
 		 double d_rate, double d_dur){
-  if (diff1 != 0 || diff2 != 0){
-    error("Exact derivatives are no longer calculated.");
-  }
   unsigned int ncmt = 1;
   double beta1=0, gamma1=0, alpha1=0;
   double alpha = d_alpha;
@@ -81,11 +80,15 @@ double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt, int diff1,
   rx_solving_options *op = rx->op;
   double ATOL = op->ATOL;          //absolute error
   double RTOL = op->RTOL;          //relative error
+  int oral0, oral, cmt;
+  oral0 = (ka > 0) ? 1 : 0;
   if (linCmt+1 > op->extraCmt){
-    op->extraCmt = linCmt+1;
+    if (oral0){
+      op->extraCmt = linCmt+2;
+    } else {
+      op->extraCmt = linCmt+1;
+    }
   }
-  int oral, cmt;
-  oral = (ka > 0) ? 1 : 0;
   double ret = 0,cur=0, tmp=0;
   unsigned int m = 0, l = 0, p = 0;
   int evid, wh, wh100, whI, wh0;
@@ -101,7 +104,19 @@ double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt, int diff1,
     if (evid == 3) return ret; // Was a reset event.
     getWh(evid, &wh, &cmt, &wh100, &whI, &wh0);
     dose = ind->dose[l];
-    if (cmt != linCmt) continue;
+    oral = oral0;
+    A = d_A;
+    B = d_B;
+    C = d_C;
+    if (cmt != linCmt){
+      if (!oral){
+	continue;
+      } else if (cmt != linCmt+1) continue;
+      oral = 0; // Switch to "central" compartment
+      A = d_A2;
+      B = d_B2;
+      C = d_C2;
+    }
     switch(whI){
     case 7:
       continue;
@@ -117,6 +132,7 @@ double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt, int diff1,
     case 2:
     case 1:
       // What affects this is bioavailability change, which are not implemented yet.
+      if (oral) error("Infusions to depot are not possible with the linear solved system");
       if (wh0 == 30){
 	error("You cannot turn off a compartment with a solved system.");
       } else if (wh0 == 10 || wh0 == 20){
