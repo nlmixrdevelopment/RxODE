@@ -160,7 +160,7 @@ unsigned int found_jac = 0, nmtime=0;
 int rx_syntax_assign = 0, rx_syntax_star_pow = 0,
   rx_syntax_require_semicolon = 0, rx_syntax_allow_dots = 0,
   rx_syntax_allow_ini0 = 1, rx_syntax_allow_ini = 1, rx_syntax_allow_assign_state = 0,
-  maxSumProdN = 0, SumProdLD = 0, good_jac=1;
+  maxSumProdN = 0, SumProdLD = 0, good_jac=1, extraCmt=0;
 
 char s_aux_info[64*MXSYM];
 
@@ -204,6 +204,7 @@ typedef struct symtab {
   int maxeta;
   int hasDepot;
   int hasCentral;
+  int hasKa;
 } symtab;
 symtab tb;
 
@@ -479,6 +480,10 @@ int new_or_ith(const char *s) {
   if (!strcmp("M_LN_SQRT_2PI", s)) return 0;
   if (!strcmp("M_LN_SQRT_PId2", s)) return 0;
   if (!strcmp("pi", s)) tb.isPi=1;
+  if (!tb.hasKa && !strcmp("ka", s)) tb.hasKa=1;
+  if (!tb.hasKa && !strcmp("Ka", s)) tb.hasKa=1;
+  if (!tb.hasKa && !strcmp("KA", s)) tb.hasKa=1;
+  if (!tb.hasKa && !strcmp("kA", s)) tb.hasKa=1;
   if (!strcmp("newind", s)) return 0;
   if (!strcmp("NEWIND", s)) return 0;
   // Ignore THETA[] and ETA
@@ -639,6 +644,10 @@ void wprint_node(int depth, char *name, char *value, void *client_data) {
     aAppendN("linCmt", 6);
     sAppendN(&sbt,"linCmt", 6);
     tb.linCmt=1;
+  } else if (nodeHas(identifier) && !strcmp("solveLinB",value)){
+    aAppendN("solveLinB", 9);
+    sAppendN(&sbt,"solveLinB", 9);
+    tb.linCmt=2;
   } else {
     // Apply fix for dot.syntax
     for (i = 0; i < (int)strlen(value); i++){
@@ -1753,14 +1762,17 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   sAppend(&sbOut, "extern SEXP %smodel_vars(){\n  int pro=0;\n", prefix);
   sAppend(&sbOut, "  SEXP _mv = PROTECT(_rxGetModelLib(\"%smodel_vars\"));pro++;\n", prefix);
   sAppendN(&sbOut, "  if (!_rxIsCurrentC(_mv)){\n", 28);
-  sAppendN(&sbOut, "    SEXP lst      = PROTECT(allocVector(VECSXP, 17));pro++;\n", 60);
-  sAppendN(&sbOut, "    SEXP names    = PROTECT(allocVector(STRSXP, 17));pro++;\n", 60);
+  sAppendN(&sbOut, "    SEXP lst      = PROTECT(allocVector(VECSXP, 18));pro++;\n", 60);
+  sAppendN(&sbOut, "    SEXP names    = PROTECT(allocVector(STRSXP, 18));pro++;\n", 60);
   sAppendN(&sbOut, "    SEXP sNeedSort = PROTECT(allocVector(INTSXP,1));pro++;\n", 59);
   sAppendN(&sbOut, "    int *iNeedSort  = INTEGER(sNeedSort);\n", 42);
   sAppend(&sbOut, "    iNeedSort[0] = %d;\n", needSort);
   sAppendN(&sbOut, "    SEXP sMtime = PROTECT(allocVector(INTSXP,1));pro++;\n", 56);
   sAppendN(&sbOut, "    int *iMtime  = INTEGER(sMtime);\n", 36);
-  sAppend(&sbOut, "    iMtime[0] = %d;\n", nmtime);
+  sAppend(&sbOut,  "    iMtime[0] = %d;\n", nmtime);
+  sAppendN(&sbOut, "    SEXP sExtraCmt = PROTECT(allocVector(INTSXP,1));pro++;\n", 59);
+  sAppendN(&sbOut, "    int *iExtraCmt  = INTEGER(sExtraCmt);\n", 42);
+  sAppend(&sbOut,  "    iExtraCmt[0] = %d;\n", extraCmt);
   sAppend(&sbOut, "    SEXP params   = PROTECT(allocVector(STRSXP, %d));pro++;\n",pi);
   sAppend(&sbOut, "    SEXP lhs      = PROTECT(allocVector(STRSXP, %d));pro++;\n",li);
   sAppend(&sbOut, "    SEXP state    = PROTECT(allocVector(STRSXP, %d));pro++;\n",statei);
@@ -1890,11 +1902,14 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   sAppendN(&sbOut, "    SET_STRING_ELT(names,14,mkChar(\"nMtime\"));\n", 47);
   sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  14,sMtime);\n", 37);
 
-  sAppendN(&sbOut, "    SET_STRING_ELT(names,15,mkChar(\"timeId\"));\n", 47);
-  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  15,timeInt);\n", 38);
+  sAppendN(&sbOut, "    SET_STRING_ELT(names,15,mkChar(\"extraCmt\"));\n", 49);
+  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  15,sExtraCmt);\n", 40);
 
-  sAppendN(&sbOut, "    SET_STRING_ELT(names,16,mkChar(\"md5\"));\n", 43);
-  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  16,mmd5);\n", 34);
+  sAppendN(&sbOut, "    SET_STRING_ELT(names,16,mkChar(\"timeId\"));\n", 47);
+  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  16,timeInt);\n", 38);
+
+  sAppendN(&sbOut, "    SET_STRING_ELT(names,17,mkChar(\"md5\"));\n", 43);
+  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  17,mmd5);\n", 34);
 
   // const char *rxVersion(const char *what)
   
@@ -2386,6 +2401,7 @@ void reset (){
   tb.isPi       = 0;
   tb.hasDepot   = 0;
   tb.hasCentral = 0;
+  tb.hasKa      = 0;
   // reset globals
   good_jac = 1;
   found_jac = 0;
@@ -2559,7 +2575,13 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
   }
   
   trans_internal(in, isStr);
-  if (tb.linCmt == 1){
+  extraCmt = 0;
+  if (tb.linCmt){
+    if (tb.hasKa){
+      extraCmt=2;
+    } else {
+      extraCmt=1;
+    }
   } else {
     if (tb.hasDepot && rx_syntax_require_ode_first){
       sprintf(buf,ODEFIRST,"depot");
@@ -2582,8 +2604,8 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
   tb.li=li;
   
   int pro = 0;
-  SEXP lst   = PROTECT(allocVector(VECSXP, 15));pro++;
-  SEXP names = PROTECT(allocVector(STRSXP, 15));pro++;
+  SEXP lst   = PROTECT(allocVector(VECSXP, 16));pro++;
+  SEXP names = PROTECT(allocVector(STRSXP, 16));pro++;
 
   SEXP sNeedSort = PROTECT(allocVector(INTSXP,1));pro++;
   int *iNeedSort  = INTEGER(sNeedSort);
@@ -2769,6 +2791,11 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
 
   SET_STRING_ELT(names,14,mkChar("nMtime"));
   SET_VECTOR_ELT(lst,  14,sMtime);
+
+  SET_STRING_ELT(names, 15, mkChar("extraCmt"));
+  SEXP sExtraCmt = PROTECT(allocVector(INTSXP,1));pro++;
+  INTEGER(sExtraCmt)[0] = extraCmt;
+  SET_VECTOR_ELT(lst, 15, sExtraCmt);
 
   sprintf(buf,"%.*s", (int)strlen(model_prefix)-1, model_prefix);
   SET_STRING_ELT(trann,0,mkChar("lib.name"));

@@ -12,6 +12,10 @@ rxPermissive({
         d/dt(center) = - CL*C2
     })
 
+    test_that("ode model gives extraCmt=0",{
+        expect_equal(rxModelVars(ode.1c)$extraCmt,0L);
+    })
+
     ## Solved systems can check the variables in the RxODE statement
     ## to figure out what type of solved system is being requested
     ode.1cs <- RxODE({
@@ -24,6 +28,9 @@ rxPermissive({
     ## specify them in the linCmt variable.
     ode.1cs2 <- RxODE({
         C2 = linCmt(CL, V);
+    })
+    test_that("linear compartment model gives extraCmt=1",{
+        expect_equal(rxModelVars(ode.1cs2)$extraCmt,1L);
     })
 
     ## The solved systems can be mixed with ODE solving routines (to
@@ -73,6 +80,10 @@ rxPermissive({
 
     sol.1c.ka <- RxODE({
         C2 = linCmt(V, CL, KA);
+    })
+
+    test_that("linear oral model gives extraCmt=2",{
+        expect_equal(rxModelVars(sol.1c.ka)$extraCmt,2L);
     })
 
     o.1c <- ode.1c.ka %>% solve(params=c(V=20, CL=25, KA=2), events=et)
@@ -803,5 +814,4 @@ rxPermissive({
             alag(depot) = matt
         }))
     })
-
-})
+}, silent=TRUE)
