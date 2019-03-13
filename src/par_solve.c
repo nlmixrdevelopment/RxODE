@@ -366,7 +366,8 @@ void updateRate(int idx, rx_solving_options_ind *ind){
       if (rx->needSort & 8){
 	error("Rate is zero/negative");
       } else {
-	error("Modeled rate requested in event table, but not in model; use 'rate(cmt) ='");
+	// FIXME don't error out with linear compartmental model
+	/* error("Modeled rate requested in event table, but not in model; use 'rate(cmt) ='"); */
       }
       // error rate is zero/negative
     }

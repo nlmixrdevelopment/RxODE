@@ -59,12 +59,20 @@ rxLinCmtTrans <- function(modText){
                                 any_spaces,"central", any_spaces,
                                 ")",any_spaces,or("=","<-"),any_spaces,capture(anything));
 
-        .regLagDepot <- rex::rex(any_spaces, or("alag", "lag"),  any_spaces, "(",
+        .regLagDepot <- rex::rex(any_spaces, or("lag", "alag"),  any_spaces, "(",
                                any_spaces, "depot", any_spaces,
                                ")",any_spaces,or("=","<-"),any_spaces,capture(anything));
-        .regLagCenter <- rex::rex(any_spaces, or("alag", "lag"),  any_spaces, "(",
+        .regLagCenter <- rex::rex(any_spaces, or("lag", "alag"),  any_spaces, "(",
+                                   any_spaces,"central", any_spaces,
+                                  ")",any_spaces,or("=","<-"),any_spaces,capture(anything));
+
+        .regRateDepot <- rex::rex(any_spaces, or("rate", "r"),  any_spaces, "(",
+                               any_spaces, "depot", any_spaces,
+                               ")",any_spaces,or("=","<-"),any_spaces,capture(anything));
+        .regRateCenter <- rex::rex(any_spaces, or("rate", "r"),  any_spaces, "(",
                                    any_spaces,"central", any_spaces,
                                    ")",any_spaces,or("=","<-"),any_spaces,capture(anything));
+
         .linCmt <- gsub(.re, "\\2", .txt[.w]);
         if (.linCmt == ""){
             .tmp <- rxState(modText);
@@ -158,6 +166,20 @@ rxLinCmtTrans <- function(modText){
         } else {
             .lines[length(.lines) + 1] <- sprintf("rx_ka ~ 0");
         }
+        .rateDepot  <- which(regexpr(.regRateDepot,.txt)!=-1)
+        if (length(.rateDepot)>=1L){
+            stop("rate(depot) does not work with a solved linear system.");
+        }
+        .rateCenter  <- which(regexpr(.regRateCenter, .txt) !=-1)
+        if (length(.rateCenter)==1L){
+            .tmp <- .txt[.rateCenter];
+            .txt <- .txt[-.rateCenter];
+            .lines[length(.lines)+1]  <- sub(.regRateCenter,"rx_rate ~ \\1", .tmp);
+        } else if (length(.rateCenter)>1L) {
+            stop("Can only specify rate(central) once.");
+        } else {
+            .lines[length(.lines) + 1]  <- sprintf("rx_rate ~ 0")
+        }
         .lagDepot  <- which(regexpr(.regLagDepot,.txt)!=-1)
         if (length(.lagDepot)==1L){
             .tmp <- .txt[.lagDepot];
@@ -230,7 +252,6 @@ rxLinCmtTrans <- function(modText){
                 .lines[length(.lines) + 1]  <- sprintf("rx_F2 ~ 1")
             }
         }
-        .lines[length(.lines)+1]  <- sprintf("rx_rate ~ 0")
         .lines[length(.lines)+1]  <- sprintf("rx_dur ~ 0")
         .ncmt <- 1;
         if (any(.varsUp == "CL")){
