@@ -58,6 +58,13 @@ rxLinCmtTrans <- function(modText){
         .regFcenter <- rex::rex(any_spaces, or("f", "F"),  any_spaces, "(",
                                 any_spaces,"central", any_spaces,
                                 ")",any_spaces,or("=","<-"),any_spaces,capture(anything));
+
+        .regLagDepot <- rex::rex(any_spaces, or("alag", "lag"),  any_spaces, "(",
+                               any_spaces, "depot", any_spaces,
+                               ")",any_spaces,or("=","<-"),any_spaces,capture(anything));
+        .regLagCenter <- rex::rex(any_spaces, or("alag", "lag"),  any_spaces, "(",
+                                   any_spaces,"central", any_spaces,
+                                   ")",any_spaces,or("=","<-"),any_spaces,capture(anything));
         .linCmt <- gsub(.re, "\\2", .txt[.w]);
         if (.linCmt == ""){
             .tmp <- rxState(modText);
@@ -148,17 +155,45 @@ rxLinCmtTrans <- function(modText){
         if (.oral){
             ka <- .getVar("KA");
             .lines[length(.lines) + 1] <- sprintf("rx_ka ~ %s", ka);
-            if (any(.varsUp == "TLAG")){
-                tlag <- .getVar("TLAG");
-                .lines[length(.lines) + 1] <- sprintf("rx_tlag ~ %s", tlag);
-            } else {
-                .lines[length(.lines) + 1] <- "rx_tlag ~ 0"
-            }
         } else {
             .lines[length(.lines) + 1] <- sprintf("rx_ka ~ 0");
-            .lines[length(.lines) + 1] <- sprintf("rx_tlag ~ 0");
         }
-        .lines[length(.lines)+1]  <- sprintf("rx_tlag2 ~ 0")
+        .lagDepot  <- which(regexpr(.regLagDepot,.txt)!=-1)
+        if (length(.lagDepot)==1L){
+            .tmp <- .txt[.lagDepot];
+            .txt <- .txt[-.lagDepot];
+            if (.oral){
+                .lines[length(.lines)+1]  <- sub(.regLagDepot,"rx_tlag ~ \\1", .tmp);
+            } else {
+                stop("lag(depot) does not exist without a depot compartment, specify a 'ka' parameter");
+            }
+        } else if (length(.lagDepot)>1L){
+            stop("lag(depot) cannot be duplicated in a model");
+        } else {
+            if (.oral){
+                .lines[length(.lines) + 1]  <- sprintf("rx_tlag ~ 0")
+            }
+        }
+        .lagCenter  <- which(regexpr(.regLagCenter, .txt) !=-1)
+        if (length(.lagCenter)==1L){
+            .tmp <- .txt[.lagCenter];
+            .txt <- .txt[-.lagCenter];
+            if (.oral){
+                .lines[length(.lines)+1]  <- sub(.regLagCenter,"rx_tlag2 ~ \\1", .tmp);
+            } else {
+                .lines[length(.lines)+1]  <- sub(.regLagCenter,"rx_tlag ~ \\1", .tmp);
+                .lines[length(.lines) + 1]  <- sprintf("rx_tlag2 ~ 0")
+            }
+        } else if (length(.lagCenter)>1L) {
+            stop("Can only specify lag(central) once.");
+        } else {
+            if (.oral){
+                .lines[length(.lines) + 1]  <- sprintf("rx_tlag2 ~ 0")
+            } else {
+                .lines[length(.lines) + 1]  <- sprintf("rx_tlag ~ 0")
+                .lines[length(.lines) + 1]  <- sprintf("rx_tlag2 ~ 0")
+            }
+        }
         .fDepot  <- which(regexpr(.regFdepot,.txt)!=-1)
         if (length(.fDepot)==1L){
             .tmp <- .txt[.fDepot];

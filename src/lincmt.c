@@ -91,11 +91,13 @@ double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt,
     }
   }
   double ret = 0,cur=0, tmp=0;
-  unsigned int m = 0, l = 0, p = 0;
+  unsigned int m=0, l = 0, p = 0;
   int evid, wh, wh100, whI, wh0;
   double thisT = 0.0, tT = 0.0, res, t1, t2, tinf, dose = 0, tau;
   double rate;
   rx_solving_options_ind *ind = &(rx->subjects[id]);
+  // don't need to adjust based on tlag t is the most conservative.
+  // When tadr - tlag < 0 ignore the dose.
   m = _locateDoseIndex(t, ind);
   int ndoses = ind->ndoses;
   for(l=m+1; l--;){// Optimized for loop as https://www.thegeekstuff.com/2015/01/c-cpp-code-optimization/
@@ -165,12 +167,13 @@ double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt,
 	  if (ind->dose[p] != -dose){
 	    error("Could not find a start to the infusion.  Check the event table.");
 	  }
-	  tinf  = ind->all_times[ind->idose[l]] - ind->all_times[ind->idose[p]] - tlag;
+	  tinf  = ind->all_times[ind->idose[l]] - ind->all_times[ind->idose[p]];
 	  tau = ind->ii[p];
 	  tT = t - ind->all_times[ind->idose[p]];
 	  thisT = tT -tlag;
 	  rate  = -dose;
 	}
+	if (thisT < 0) continue;
 	if (F <= 0) error("Bioavailability cannot be negative or zero.");
 	if (whI == 1){
 	  // Duration changes
@@ -230,12 +233,12 @@ double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt,
 	  if (ind->dose[p] != -dose){
 	    error("Could not find a start to the infusion.  Check the event table.");
 	  }
-	  tinf  = ind->all_times[ind->idose[l]] - ind->all_times[ind->idose[p]] - tlag;
-        
+	  tinf  = ind->all_times[ind->idose[l]] - ind->all_times[ind->idose[p]];
 	  tT = t - ind->all_times[ind->idose[p]];
 	  thisT = tT -tlag;
 	  rate  = -dose;
 	}
+	if (thisT < 0) continue;
 	if (F <= 0) error("Bioavailability cannot be negative or zero.");
 	if (whI == 1){
 	  // Duration changes
