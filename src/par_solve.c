@@ -408,9 +408,9 @@ void updateDur(int idx, rx_solving_options_ind *ind){
       rx_solve *rx;
       rx = &rx_global;
       if (rx->needSort & 4){
-	error("Duration is zero/negative");
+	error("Duration is zero/negative (dur=%f; cmt=%d; amt=%f)", dur, ind->cmt+1, amt);
       } else {
-	error("Modeled duration requested in event table, but not in model; use 'dur(cmt) ='");
+	/* error("Modeled duration requested in event table, but not in model; use 'dur(cmt) ='"); */
       }
       // error rate is zero/negative
     }

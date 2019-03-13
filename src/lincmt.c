@@ -129,59 +129,65 @@ double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt,
       continue;
     case 6:
       continue;
-    case 9: // Rate is modeled
-      error("Modeled rate not supported with linear solved systems yet");
-      break;
     case 8: // Duration is modeled
-      error("Modeled duration not supported with linear solved systems yet");
-      break;
-      // infusion
+    case 9: // Rate is modeled
+      tT = t - ind->all_times[ind->idose[l]] ;
+      thisT = tT - tlag;
+      tau = ind->ii[l];
+      if (whI == 9){
+	tinf  = dose/d_rate;
+	rate  = d_rate;
+      } else {
+	tinf  = d_dur;
+	rate  = dose/d_dur;
+      }
+      dose=NA_REAL;
     case 2:
     case 1:
       if (oral) error("Infusions to depot are not possible with the linear solved system");
       if (wh0 == 30){
 	error("You cannot turn off a compartment with a solved system.");
-      } else if (wh0 == 10 || wh0 == 20){
-	// Steady state
-	if (dose > 0){
-	  // During infusion
-	  tT = t - ind->all_times[ind->idose[l]] ;
-	  thisT = tT - tlag;
-	  p = l+1;
-	  while (p < ndoses && ind->dose[p] != -dose){
-	    p++;
-	  }
-	  if (ind->dose[p] != -dose){
-	    error("Could not find an end to the infusion.  Check the event table.");
-	  }
-	  tinf  = ind->all_times[ind->idose[p]] - ind->all_times[ind->idose[l]];
-	  tau = ind->ii[l];
-	  rate  = dose;
-	  if (tT >= tinf) continue;
-	} else {
-	  // After  infusion
-	  p = l-1;
-	  while (p > 0 && ind->dose[p] != -dose){
-	    p--;
-	  }
-	  if (ind->dose[p] != -dose){
-	    error("Could not find a start to the infusion.  Check the event table.");
-	  }
-	  tinf  = ind->all_times[ind->idose[l]] - ind->all_times[ind->idose[p]];
-	  tau = ind->ii[p];
-	  tT = t - ind->all_times[ind->idose[p]];
-	  thisT = tT -tlag;
-	  rate  = -dose;
+      }
+      // Steady state
+      if (ISNA(dose)){
+      } else if (dose > 0){
+	// During infusion
+	tT = t - ind->all_times[ind->idose[l]] ;
+	thisT = tT - tlag;
+	p = l+1;
+	while (p < ndoses && ind->dose[p] != -dose){
+	  p++;
 	}
-	if (thisT < 0) continue;
-	if (F <= 0) error("Bioavailability cannot be negative or zero.");
-	if (whI == 1){
-	  // Duration changes
-	  tinf = tinf*F;
-	} else {
-	  // Rate Changes
-	  rate = F*rate;
+	if (ind->dose[p] != -dose){
+	  error("Could not find an end to the infusion.  Check the event table.");
 	}
+	tinf  = ind->all_times[ind->idose[p]] - ind->all_times[ind->idose[l]];
+	tau = ind->ii[l];
+	rate  = dose;
+	if (tT >= tinf) continue;
+      } else {
+	// After  infusion
+	p = l-1;
+	while (p > 0 && ind->dose[p] != -dose){
+	  p--;
+	}
+	if (ind->dose[p] != -dose){
+	  error("Could not find a start to the infusion.  Check the event table.");
+	}
+	tinf  = ind->all_times[ind->idose[l]] - ind->all_times[ind->idose[p]];
+	tau = ind->ii[p];
+	tT = t - ind->all_times[ind->idose[p]];
+	thisT = tT -tlag;
+	rate  = -dose;
+      }
+      if (thisT < 0) continue;
+      if (F <= 0) error("Bioavailability cannot be negative or zero.");
+      if (whI == 1){ // Duration changes
+	tinf = tinf*F;
+      } else { // Rate Changes
+	rate = F*rate;
+      }
+      if (wh0 == 10 || wh0 == 20){
 	if (tinf >= tau){
 	  error("Infusion time greater then inter-dose interval, ss cannot be calculated.");
 	} 
@@ -210,43 +216,6 @@ double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt,
 	  if (wh0 == 10) return (ret+cur);
 	}
       } else {
-	if (dose > 0){
-	  // During infusion
-	  tT = t - ind->all_times[ind->idose[l]] ;
-	  thisT = tT - tlag;
-	  p = l+1;
-	  while (p < ndoses && ind->dose[p] != -dose){
-	    p++;
-	  }
-	  if (ind->dose[p] != -dose){
-	    error("Could not find a error to the infusion.  Check the event table.");
-	  }
-	  tinf  = ind->all_times[ind->idose[p]] - ind->all_times[ind->idose[l]];
-	  rate  = dose;
-	  if (tT >= tinf) continue;
-	} else {
-	  // After  infusion
-	  p = l-1;
-	  while (p > 0 && ind->dose[p] != -dose){
-	    p--;
-	  }
-	  if (ind->dose[p] != -dose){
-	    error("Could not find a start to the infusion.  Check the event table.");
-	  }
-	  tinf  = ind->all_times[ind->idose[l]] - ind->all_times[ind->idose[p]];
-	  tT = t - ind->all_times[ind->idose[p]];
-	  thisT = tT -tlag;
-	  rate  = -dose;
-	}
-	if (thisT < 0) continue;
-	if (F <= 0) error("Bioavailability cannot be negative or zero.");
-	if (whI == 1){
-	  // Duration changes
-	  tinf = tinf*F;
-	} else {
-	  // Rate Changes
-	  rate = F*rate;
-	}
 	t1  = ((thisT < tinf) ? thisT : tinf);        //during infusion
 	t2  = ((thisT > tinf) ? thisT - tinf : 0.0);  // after infusion
 	cur +=  rate*A*alpha1*(1.0-exp(-alpha*t1))*exp(-alpha*t2);

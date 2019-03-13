@@ -52,24 +52,31 @@ rxLinCmtTrans <- function(modText){
     if (length(.w) == 0){
         return(modText);
     } else if (length(.w) == 1){
-        .regFdepot <- rex::rex(any_spaces, or("f", "F"),  any_spaces, "(",
+        .regFdepot <- rex::rex(start, any_spaces, or("f", "F"),  any_spaces, "(",
                                any_spaces, "depot", any_spaces,
                                ")",any_spaces,or("=","<-"),any_spaces,capture(anything));
-        .regFcenter <- rex::rex(any_spaces, or("f", "F"),  any_spaces, "(",
+        .regFcenter <- rex::rex(start, any_spaces, or("f", "F"),  any_spaces, "(",
                                 any_spaces,"central", any_spaces,
                                 ")",any_spaces,or("=","<-"),any_spaces,capture(anything));
 
-        .regLagDepot <- rex::rex(any_spaces, or("lag", "alag"),  any_spaces, "(",
+        .regLagDepot <- rex::rex(start, any_spaces, or("lag", "alag"),  any_spaces, "(",
                                any_spaces, "depot", any_spaces,
                                ")",any_spaces,or("=","<-"),any_spaces,capture(anything));
-        .regLagCenter <- rex::rex(any_spaces, or("lag", "alag"),  any_spaces, "(",
+        .regLagCenter <- rex::rex(start, any_spaces, or("lag", "alag"),  any_spaces, "(",
                                    any_spaces,"central", any_spaces,
                                   ")",any_spaces,or("=","<-"),any_spaces,capture(anything));
 
-        .regRateDepot <- rex::rex(any_spaces, or("rate", "r"),  any_spaces, "(",
+        .regRateDepot <- rex::rex(start, any_spaces, or("rate", "r"),  any_spaces, "(",
                                any_spaces, "depot", any_spaces,
                                ")",any_spaces,or("=","<-"),any_spaces,capture(anything));
-        .regRateCenter <- rex::rex(any_spaces, or("rate", "r"),  any_spaces, "(",
+        .regRateCenter <- rex::rex(start, any_spaces, or("rate", "r"),  any_spaces, "(",
+                                   any_spaces,"central", any_spaces,
+                                   ")",any_spaces,or("=","<-"),any_spaces,capture(anything));
+
+        .regDurDepot <- rex::rex(start, any_spaces, or("dur", "d"),  any_spaces, "(",
+                               any_spaces, "depot", any_spaces,
+                               ")",any_spaces,or("=","<-"),any_spaces,capture(anything));
+        .regDurCenter <- rex::rex(start, any_spaces, or("dur", "d"),  any_spaces, "(",
                                    any_spaces,"central", any_spaces,
                                    ")",any_spaces,or("=","<-"),any_spaces,capture(anything));
 
@@ -97,7 +104,6 @@ rxLinCmtTrans <- function(modText){
                 .w <- which(.tmp=="central");
                 if (length(.w) > 0) .tmp <- .tmp[-.w];
                 .linCmt <- length(.tmp);
-
             } else {
                 .linCmt <- .linCmt - 1;
             }
@@ -168,7 +174,7 @@ rxLinCmtTrans <- function(modText){
         }
         .rateDepot  <- which(regexpr(.regRateDepot,.txt)!=-1)
         if (length(.rateDepot)>=1L){
-            stop("rate(depot) does not work with a solved linear system.");
+            stop("rate(depot) does not work with a solved linear system");
         }
         .rateCenter  <- which(regexpr(.regRateCenter, .txt) !=-1)
         if (length(.rateCenter)==1L){
@@ -176,9 +182,23 @@ rxLinCmtTrans <- function(modText){
             .txt <- .txt[-.rateCenter];
             .lines[length(.lines)+1]  <- sub(.regRateCenter,"rx_rate ~ \\1", .tmp);
         } else if (length(.rateCenter)>1L) {
-            stop("Can only specify rate(central) once.");
+            stop("Can only specify rate(central) once");
         } else {
             .lines[length(.lines) + 1]  <- sprintf("rx_rate ~ 0")
+        }
+        .durDepot  <- which(regexpr(.regDurDepot,.txt)!=-1)
+        if (length(.durDepot)>=1L){
+            stop("dur(depot) does not work with a solved linear system");
+        }
+        .durCenter  <- which(regexpr(.regDurCenter, .txt) !=-1)
+        if (length(.durCenter)==1L){
+            .tmp <- .txt[.durCenter];
+            .txt <- .txt[-.durCenter];
+            .lines[length(.lines)+1]  <- sub(.regDurCenter,"rx_dur ~ \\1", .tmp);
+        } else if (length(.durCenter)>1L) {
+            stop("Can only specify dur(central) once");
+        } else {
+            .lines[length(.lines) + 1]  <- sprintf("rx_dur ~ 0")
         }
         .lagDepot  <- which(regexpr(.regLagDepot,.txt)!=-1)
         if (length(.lagDepot)==1L){
@@ -252,7 +272,6 @@ rxLinCmtTrans <- function(modText){
                 .lines[length(.lines) + 1]  <- sprintf("rx_F2 ~ 1")
             }
         }
-        .lines[length(.lines)+1]  <- sprintf("rx_dur ~ 0")
         .ncmt <- 1;
         if (any(.varsUp == "CL")){
             .cl <- .getVar("CL");
