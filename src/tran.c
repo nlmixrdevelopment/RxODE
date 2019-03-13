@@ -202,6 +202,8 @@ typedef struct symtab {
   int ndfdy;
   int maxtheta;
   int maxeta;
+  int hasDepot;
+  int hasCentral;
 } symtab;
 symtab tb;
 
@@ -1152,9 +1154,10 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         sprintf(tb.ddt, "%s",v);
         if (new_de(v)){
 	  if (rx_syntax_require_ode_first){
-	    if (!strcmp("depot", v) || !strcmp("central", v)){
-	      // FIXME trans_syntax_error when not linCmt...
-	      //...
+	    if (!strcmp("depot", v)){
+	      tb.hasDepot = 1;
+	    } else if (!strcmp("central", v)){
+	      tb.hasCentral = 1;
 	    } else {
 	      sprintf(buf,ODEFIRST,v);
 	      trans_syntax_error_report_fn(buf);
@@ -2381,6 +2384,8 @@ void reset (){
   tb.fdn        = 0;
   tb.linCmt     = 0;
   tb.isPi       = 0;
+  tb.hasDepot   = 0;
+  tb.hasCentral = 0;
   // reset globals
   good_jac = 1;
   found_jac = 0;
@@ -2554,7 +2559,16 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
   }
   
   trans_internal(in, isStr);
-  
+  if (tb.linCmt == 1){
+  } else {
+    if (tb.hasDepot && rx_syntax_require_ode_first){
+      sprintf(buf,ODEFIRST,"depot");
+      trans_syntax_error_report_fn(buf);
+    } else if (tb.hasCentral && rx_syntax_require_ode_first){
+      sprintf(buf,ODEFIRST,"central");
+      trans_syntax_error_report_fn(buf);
+    }
+  }
   for (i=0; i<tb.nv; i++) {
     islhs = tb.lh[i];
     if (islhs>1) continue;      /* is a state var */
