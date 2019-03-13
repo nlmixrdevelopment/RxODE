@@ -9,6 +9,8 @@ bool rxIs(const RObject &obj, std::string cls);
 Environment RxODEenv();
 
 IntegerVector toCmt(RObject inCmt, CharacterVector state){
+  RObject cmtInfo = R_NilValue;
+  List extraCmt;
   if (rxIs(inCmt, "numeric") || rxIs(inCmt, "integer")){
     if (rxIs(inCmt, "factor")){
       CharacterVector lvl = inCmt.attr("levels");
@@ -47,6 +49,10 @@ IntegerVector toCmt(RObject inCmt, CharacterVector state){
 	    if (isNeg){
 	      stop("Negative compartments on non-ode cmt (%s) do not make sense.", curLvl.c_str());
 	    } else {
+	      List tmpList(extraCmt.size()+1);
+	      for (int i = extraCmt.size(); i--;) tmpList[i] = extraCmt[i];
+	      tmpList[extraCmt.size()]= curLvl;
+	      extraCmt = curLvl;
 	      lvlI[i] = state.size() + k;
 	    }
 	  }
@@ -57,6 +63,10 @@ IntegerVector toCmt(RObject inCmt, CharacterVector state){
       for (j=ret.size(); j--;){
 	ret[j] = lvlI[cmtIn[j]-1];
       }
+      CharacterVector newCmt(state.size()+extraCmt.size());
+      for (int j = state.size(); j--;) newCmt[j]=state[j];
+      for (int j = extraCmt.size(); j--;) newCmt[j+state.size()] = as<std::string>(extraCmt[j]);
+      ret.attr("cmtNames") = newCmt;
       return ret;
     } else {
       return as<IntegerVector>(inCmt);
@@ -68,7 +78,6 @@ IntegerVector toCmt(RObject inCmt, CharacterVector state){
     std::string strCmt, negSub;
     bool foundState=false;
     bool isNeg = false;
-    List extraCmt;
     int i, j, k = 0;
     for (i = 0; i < iCmt.size(); i++){
       strCmt = as<std::string>(iCmt[i]);
@@ -110,20 +119,26 @@ IntegerVector toCmt(RObject inCmt, CharacterVector state){
 	    }
 	  }
 	  if (!foundState){
-	    List tmpList(extraCmt.size()+1);
-	    for (int i = extraCmt.size(); i--;) tmpList[i] = extraCmt[i];
-	    extraCmt = tmpList;
 	    if (isNeg){
 	      stop("Negative compartments on non-ode cmt (%s) do not make sense.", strCmt.c_str());
 	    } else {
+	      List tmpList(extraCmt.size()+1);
+	      for (int i = extraCmt.size(); i--;) tmpList[i] = extraCmt[i];
+	      extraCmt = tmpList;	    
 	      newCmt.push_back(state.size()+k+1);
 	      extraCmt[k++] = strCmt;
 	    }
 	  }
 	}
       }
+      CharacterVector newCmt(state.size()+extraCmt.size());
+      for (int j = state.size(); j--;) newCmt[j]=state[j];
+      for (int j = extraCmt.size(); j--;) newCmt[j+state.size()] = as<std::string>(extraCmt[j]);
+      cmtInfo = as<RObject>(newCmt);
     }
-    return wrap(newCmt);
+    IntegerVector ret = wrap(newCmt);
+    ret.attr("cmtNames") = cmtInfo;
+    return ret;
   }
   stop("Should not reach here.");
   return IntegerVector::create(0);
@@ -248,6 +263,20 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false){
   // Steady state events need a II data item > 0
   
   CharacterVector state = as<CharacterVector>(mv["state"]);
+  int extraCmt  = as<int>(mv["extraCmt"]);
+  // Enlarge compartments
+  if (extraCmt == 2){
+    CharacterVector newState(state.size()+2);
+    for (int j = state.size();j--;) newState[j] = state[j];
+    newState[state.size()] = "depot";
+    newState[state.size()+1] = "central";
+    state = newState;
+  } else if (extraCmt==1){
+    CharacterVector newState(state.size()+1);
+    for (int j = state.size();j--;) newState[j] = state[j];
+    newState[state.size()] = "central";
+    state = newState;
+  }
   std::vector<int> id;
   std::vector<int> allId;
   std::vector<int> evid;
@@ -282,8 +311,11 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false){
     timeUnits=inTime.attr("units");
   }
   IntegerVector inCmt;
+  RObject cmtInfo = R_NilValue;
   if (cmtCol != -1){
     inCmt = as<IntegerVector>(toCmt(inData[cmtCol], mv["state"]));//as<IntegerVector>();
+    cmtInfo = inCmt.attr("cmtNames");
+    inCmt.attr("cmtNames") = R_NilValue;
   }
   int tmpCmt = 1;
   IntegerVector inId;
@@ -958,6 +990,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false){
   e["mxCmt"] = mxCmt;
   e["lib.name"] = trans["lib.name"];
   e["addCmt"] = addCmt;
+  e["cmtInfo"] = cmtInfo;
   e.attr("class") = "rxHidden";
   cls.attr(".RxODE.lst") = e;
   IntegerVector tmp = lstF[0];

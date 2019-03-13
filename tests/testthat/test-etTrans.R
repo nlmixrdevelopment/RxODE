@@ -22,14 +22,22 @@ d/dt(blood)     = a*intestine - b*blood
         et(time=0.2,cmt="-intestine") %>%
         as.data.frame
 
-    tmp1 <- sort(unique(RxODE:::etTrans(et, mod)$evid));
+    ett1 <- RxODE:::etTrans(et, mod)
+    tmp1 <- sort(unique(ett1$evid));
 
     et$cmt <- factor(et$cmt)
-    tmp2 <- sort(unique(RxODE:::etTrans(et, mod)$evid));
+    ett2 <- RxODE:::etTrans(et, mod);
+
+    tmp2 <- sort(unique(ett2$evid));
+
+    test_that("factor and character give same compartment information",{
+        expect_equal(attr(class(ett2), ".RxODE.lst")$cmtInfo, attr(class(ett1), ".RxODE.lst")$cmtInfo);
+        expect_equal(attr(class(ett2), ".RxODE.lst")$cmtInfo, c("intestine", "blood", "out"))
+    })
 
     test_that("factor and character give same evids",{
         expect_equal(tmp1,tmp2);
-        expect_equal(tmp1,c(2L, 101L, 110L, 120L, 130L, 301L, 10101L))
+        expect_equal(tmp1, c(2L, 101L, 110L, 120L, 130L, 301L, 10101L))
     })
 
 

@@ -113,6 +113,9 @@ print.rxEtTran <- function(x,...){
     print(as.data.frame(x));
     .cls <- class(x);
     .lst <- attr(.cls, ".RxODE.lst")
-    cat("\n Covariates (non time-varying):\n")
+    cat("\nCovariates (non time-varying):\n")
     print(.lst$cov1)
+    cat("\nCompartment translation:\n");
+    print(data.frame("Compartment Name"=.lst$cmtInfo,"Compartment Number"=seq_along(.lst$cmtInfo),
+                     check.names=FALSE))
 }
