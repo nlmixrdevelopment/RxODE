@@ -83,13 +83,6 @@ double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt,
   double RTOL = op->RTOL;          //relative error
   int oral0, oral, cmt;
   oral0 = (ka > 0) ? 1 : 0;
-  if (linCmt+1 > op->extraCmt){
-    if (oral0){
-      op->extraCmt = linCmt+2;
-    } else {
-      op->extraCmt = linCmt+1;
-    }
-  }
   double ret = 0,cur=0, tmp=0;
   unsigned int m=0, l = 0, p = 0;
   int evid, wh, wh100, whI, wh0;

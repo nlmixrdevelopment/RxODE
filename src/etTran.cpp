@@ -659,6 +659,9 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false){
 	break;
       default:
 	cevid = inEvid[i];
+	if (cevid > 10 && cevid < 99){
+	  continue;
+	}
       }
     }
     if (cevid != -1){

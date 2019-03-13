@@ -515,14 +515,6 @@ extern double getTime(int idx, rx_solving_options_ind *ind){
 	error("Corrupted events.");
       }
     }
-    // return _f[_cmt]*_amt;  amt is rate
-    /* f = AMT(id, cmt, dose[ind->ixds], xout)/dose[ind->ixds]; */
-    // If bio-availability changes, then the duration should change.
-    // dur = amt/rate
-    /* dur = ind->all_times[ind->idose[j]] - ind->all_times[ind->ix[*i]]; */
-    /* amt  = AMT(ind->id, ind->cmt, ind->dose[j], t); */
-    // dur = f*amt/rate
-    // t = t_last + dur
     break;
   }
   return LAG(ind->id, ind->cmt, ind->all_times[idx]);
@@ -777,7 +769,7 @@ void handleSS(int *neq,
       doSS2=1;
     }
     double dur = 0, dur2=0;
-    int infBixds =0, infEixds = 0, bi=0,ei=0, wh, cmt, wh100, whI, wh0, oldI;
+    int infBixds =0, infEixds = 0, ei=0, wh, cmt, wh100, whI, wh0, oldI;
     if (ind->whI == 1 || ind->whI == 2){
       oldI = ind->whI;
       infBixds = ind->ixds;
@@ -800,9 +792,8 @@ void handleSS(int *neq,
       infEixds = ind->ixds+1;
       dur = getTime(ind->idose[infEixds], ind) - getTime(ind->idose[infBixds],ind);
       dur2 = ind->ii[ind->ixds] - dur;
-      /* Rprintf("dur: %f; dur2: %f\n", dur, dur2); */
     }
-    bi = *i;
+    /* bi = *i; */
     if (ind->whI == 1 || ind->whI == 2 || ind->whI == 8 || ind->whI == 9){
       ei = *i;
       while(ind->ix[ei] != ind->idose[infEixds] && ei < ind->n_all_times){
@@ -823,7 +814,6 @@ void handleSS(int *neq,
     int k;
     double curSum = 0.0, lastSum=0.0, xp2, xout2;
     xp2 = xp;
-    bi=*i;
     if (dur == 0){
       // Oral
       for (j = 0; j < op->maxSS; j++){
@@ -851,7 +841,6 @@ void handleSS(int *neq,
 	  }
 	  lastSum=curSum;
 	}
-	/* ctx.state=1; */
 	*istate=1;
 	xp2 = xout2;
       }
@@ -877,7 +866,6 @@ void handleSS(int *neq,
 	  handle_evid(ind->evid[ind->idose[infBixds]], neq[0], BadDose, InfusionRate, dose, yp,
 		      op->do_transit_abs, xout, neq[1], ind);
 	  // yp is last solve or y0
-	  /* Rprintf("evid: %d\t y0: %f; inf: %f", ind->evid[ind->idose[infBixds]], yp[0], InfusionRate[0]); */
 	  *istate=1;
 	  // yp is last solve or y0
 	  solveSS_1(neq, BadDose, InfusionRate, dose, yp, op->do_transit_abs,
@@ -974,9 +962,6 @@ extern void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda_opt
   rc= ind->rc;
   double xp = x[0];
   //--- inits the system
-  /* Rprintf("ID: %d;\n",neq[1]); */
-  /* Rprintf("inits[0]: %f\n",inits[0]); */
-  /* Rprintf("ret[0]: %f\n",ret[0]); */
   memcpy(ret,inits, neq[0]*sizeof(double));
   u_inis(neq[1], ret); // Update initial conditions
   unsigned int j;
@@ -2360,8 +2345,6 @@ extern void rxSingleSolve(int subid, double *_theta, double *timep,
   ind->jac_counter = jac_counter;
 
   ind->InfusionRate = InfusionRate;
-  /* memset(ind->InfusionRate, 0.0, op->neq);  not for doubles*/
-  /* for (unsigned int j = op->neq; j--;) ind->InfusionRate[j]=0.0; */
 
   ind->BadDose = BadDose;
   ind->nBadDose = 0;
@@ -2373,7 +2356,6 @@ extern void rxSingleSolve(int subid, double *_theta, double *timep,
   ind->lhs     = lhsp;
   ind->evid    = evidp;
   ind->rc      = rc;
-  /* ind->cov_ptr = cov_ptr; */
   ind->n_all_times       = *ntime;
   ind->on = on;
   ind->ix = ix;
@@ -2398,23 +2380,15 @@ extern void rxSingleSolve(int subid, double *_theta, double *timep,
   //
   op->inits   = initsp;
   op->scale = scale;
-  /* memset(op->scale, 1.0, op->neq); */
-  /* for (unsigned int j = op->neq; j--;) op->scale[j] = 1.0; */
   op->extraCmt = 0;
   rx->nsub =1;
   rx->nsim =1;
   rx->stateIgnore = stateIgnore;//gsiVSetup(op->neq);
-  //memset(rx->stateIgnore, 0, op->neq); // int OK
   rx->nobs =-1;
   rx->add_cov =0;
   rx->matrix =0;
-  /* int i =0; */
-  /* _globalRx=rx; */
-  /* rx->op = &op_global; */
   ind->mtime = mtime;
   ind->solveSave = solveSave;
-  /* rxode_assign_rx(rx); */
-  /* set_solve(rx); */
   // Solve without the option of updating residuals.
   ind_solve(rx, subid, dydt_liblsoda, dydt_lsoda_dum, jdum_lsoda,
 	      dydt, update_inis, global_jt);

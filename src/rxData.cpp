@@ -2545,7 +2545,7 @@ SEXP rxSolve_(const RObject &obj,
     } else {
       stop("Unknown covariate interpolation specified.");
     }
-    op->extraCmt=0;
+    op->extraCmt=op->neq+as<int>(mv["extraCmt"]);
     op->nDisplayProgress = nDisplayProgress;
     op->ncoresRV = nCoresRV;
     op->isChol = (int)(sigmaIsChol);

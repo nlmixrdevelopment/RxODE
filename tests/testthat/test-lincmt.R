@@ -814,4 +814,22 @@ rxPermissive({
             alag(depot) = matt
         }))
     })
+
+    ode.1cs2 <- RxODE({
+        C2 = linCmt(CL, V);
+        mtime(t1) = mt1
+        mtime(t2) = mt2
+    })
+
+    et <- eventTable() %>%
+        add.dosing(dose=3, nbr.doses=6, dosing.interval=8) %>%
+        add.sampling(0:48)
+
+    s.1c <- ode.1cs2 %>% solve(params=c(V=20, CL=25,mt1=0.5, mt2=1.75),
+                               events=et)
+
+    test_that("mtime with solved systems work",{
+        expect_equal(s.1c$time[1:4], c(0, 0.5, 1, 1.75))
+    })
+
 }, silent=TRUE)
