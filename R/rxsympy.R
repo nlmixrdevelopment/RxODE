@@ -1216,11 +1216,11 @@ genCmt0 <- function(ncmt=1, oral=FALSE){
     rx3 <- ""
     if (ncmt >= 2){
         rxc <- paste(rxc, "- rx_k12*rx1 + rx_k21*rx2")
-        rxp <- "d/dt(rx2) ~ rx_k12*rx1 - rx_k21*rx2";
+        rxp <- "d/dt(peripheral) ~ rx_k12*rx1 - rx_k21*rx2";
     }
     if (ncmt == 3){
         rxc <- paste(rxc, "- rx_k13*rx1 + rx_k31*rx3")
-        rx3 <- "d/dt(rx3) ~ rx_k13*rx1 - rx_k31*rx3";
+        rx3 <- "d/dt(peripheral2) ~ rx_k13*rx1 - rx_k31*rx3";
     }
     if (oral){
         rxc <- paste(rxc, "+ rx_ka*rx0");
@@ -1695,6 +1695,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                             return("");
                         }), .oLhs);
                         .lhs <- .lhs[which(.lhs != "")];
+                        .lhs <- gsub(rex::rex(capture("nlmixr_",except_any_of("=")),"="),"\\1~",.lhs)
                         .pred.only  <- paste0(.pred.only, paste(.lhs, collapse="\n"));
                         .toLines <- function(x){
                             if(is.null(x)) return(NULL);
