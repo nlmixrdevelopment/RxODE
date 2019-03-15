@@ -52,7 +52,7 @@ IntegerVector toCmt(RObject inCmt, CharacterVector state){
 	      List tmpList(extraCmt.size()+1);
 	      for (int i = extraCmt.size(); i--;) tmpList[i] = extraCmt[i];
 	      tmpList[extraCmt.size()]= curLvl;
-	      extraCmt = curLvl;
+	      extraCmt = tmpList;
 	      lvlI[i] = state.size() + k;
 	    }
 	  }
