@@ -1211,22 +1211,22 @@ genCmt0 <- function(ncmt=1, oral=FALSE){
     ## 2 cmt: rx_k12, rx_k21
     ## 3 cmt: rx_k13, rx_k31
     rx0 <- "";
-    rxc <- "d/dt(central) ~ -rx_k*rx1";
+    rxc <- "d/dt(central) ~ -rx_k*central";
     rxp <- "";
     rx3 <- ""
     if (ncmt >= 2){
-        rxc <- paste(rxc, "- rx_k12*rx1 + rx_k21*rx2")
-        rxp <- "d/dt(peripheral) ~ rx_k12*rx1 - rx_k21*rx2";
+        rxc <- paste(rxc, "- rx_k12*central + rx_k21*peripheral")
+        rxp <- "d/dt(peripheral) ~ rx_k12*central - rx_k21*peripheral";
     }
     if (ncmt == 3){
-        rxc <- paste(rxc, "- rx_k13*rx1 + rx_k31*rx3")
-        rx3 <- "d/dt(peripheral2) ~ rx_k13*rx1 - rx_k31*rx3";
+        rxc <- paste(rxc, "- rx_k13*central + rx_k31*peripheral2")
+        rx3 <- "d/dt(peripheral2) ~ rx_k13*central - rx_k31*peripheral2";
     }
     if (oral){
-        rxc <- paste(rxc, "+ rx_ka*rx0");
-        rx0 <- "d/dt(depot) ~ -rx_ka*rx0";
+        rxc <- paste(rxc, "+ rx_ka*depot");
+        rx0 <- "d/dt(depot) ~ -rx_ka*depot";
     }
-    fin <- "rx1c = rx1/rx_v";
+    fin <- "rx1c = central/rx_v";
     ret <- c(rx0, rxc, rxp, rx3, fin);
     ret <- ret[ret != ""];
     paste(ret, collapse=";\n")
