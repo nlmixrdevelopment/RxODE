@@ -466,7 +466,15 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false){
     else if (inSs[i] == 2 && cii > 0) ss=20;
     if (cmtCol != -1){
       tmpCmt = inCmt[i];
-      if (inCmt[i] == 0) stop("Compartment cannot be zero");
+      if (inCmt[i] == 0){
+	if (evidCol == -1){
+	  tmpCmt=1;
+	} else if (inEvid[i] == 0){
+	  tmpCmt=1;
+	} else {
+	  stop("Compartment cannot be zero");
+	}
+      }
       if (IntegerVector::is_na(inCmt[i])){
 	tmpCmt = 1;
       } else if (inCmt[i] < 0){
