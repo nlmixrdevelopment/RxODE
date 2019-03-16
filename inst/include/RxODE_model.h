@@ -164,6 +164,10 @@ typedef void (*_update_par_ptr_p)(double t, unsigned int id, rx_solve *rx, int i
 
 _update_par_ptr_p _update_par_ptr_=NULL;
 
+RxODE_fn0i _prodType = NULL;
+RxODE_fn0i _sumType = NULL;
+
+
 void _update_par_ptr(double t, unsigned int id, rx_solve *rx, int idx){
   if (_update_par_ptr_ == NULL){
     // This shouldn't happen but occasionally does with SAEM causing R crashes
@@ -192,8 +196,5 @@ void _update_par_ptr(double t, unsigned int id, rx_solve *rx, int idx){
   }
   _update_par_ptr_(t, id, rx, idx);
 }
-
-RxODE_fn0i _prodType = NULL;
-RxODE_fn0i _sumType = NULL;
 
 #endif// __RxODE_model_H__
