@@ -428,9 +428,6 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false){
   int curIdx=0;
   double cdv;
   int nobs=0, ndose=0;
-  bool needSort=false;
-  int lastId = -1;
-  double lastTime = -1;
   for (int i = 0; i < inTime.size(); i++){
     if (idCol == -1) cid = 1;
     else cid = inId[i];
@@ -442,13 +439,6 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false){
     }
     if (iiCol == -1) cii = 0;
     else cii = inIi[i];
-    if (lastId == cid && lastTime > ctime){
-      needSort=true;
-    } else if (lastId != cid && lastId > cid){
-      needSort=true;
-    }
-    lastTime = ctime;
-    lastId = cid;
     if (std::find(allId.begin(), allId.end(), cid) == allId.end()){
       allId.push_back(cid);
       // New ID
@@ -726,7 +716,6 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false){
 	evid.push_back(cevid);
 	cmtF.push_back(cmt);
 	time.push_back(ctime+dur);
-	needSort=true;
 	amt.push_back(-rate);
 	ii.push_back(0.0);
 	idx.push_back(-1);
@@ -737,7 +726,6 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false){
 	amt.push_back(camt);
       }
       if (cii > 0 && caddl > 0 && ss < 10){
-	needSort=true;
 	for (j=caddl;j--;){
 	  ctime+=cii;
 	  id.push_back(cid);
@@ -784,35 +772,33 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false){
     }
   }
   NumericVector fPars = NumericVector(pars.size()*nid, NA_REAL);
-  if (needSort){
-    std::sort(idxO.begin(),idxO.end(),
-	      [id,time,evid,amt](int a, int b){
-		if (id[a] == id[b]){
-		  if (time[a] == time[b]){
-		    if (evid[a] == evid[b]){
-		      return a < b;
-		    }
-		    // Reset should be before all other events.
-		    if (evid[a] == 3){
-		      return true;
-		    }
-		    if (evid[b] == 3){
-		      return false;
-		    }
-		    // Zero amts turn on and off compartments and should be first.
-		    if (amt[a] == 0){
-		      return true;
-		    }
-		    if (amt[b] == 0){
-		      return false;
-		    }
-		    return evid[a] > evid[b];
+  std::sort(idxO.begin(),idxO.end(),
+	    [id,time,evid,amt](int a, int b){
+	      if (id[a] == id[b]){
+		if (time[a] == time[b]){
+		  if (evid[a] == evid[b]){
+		    return a < b;
 		  }
-		  return time[a] < time[b];
+		  // Reset should be before all other events.
+		  if (evid[a] == 3){
+		    return true;
+		  }
+		  if (evid[b] == 3){
+		    return false;
+		  }
+		  // Zero amts turn on and off compartments and should be first.
+		  if (amt[a] == 0){
+		    return true;
+		  }
+		  if (amt[b] == 0){
+		    return false;
+		  }
+		  return evid[a] > evid[b];
 		}
-		return id[a] < id[b];
-	      });
-  }
+		return time[a] < time[b];
+	      }
+	      return id[a] < id[b];
+	    });
   // sorted create the vectors/list
   int baseSize;
   if (addCmt && !hasCmt){
@@ -874,7 +860,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false){
   }
 
   IntegerVector ivTmp;
-  lastId = id[idxO[idxO.size()-1]]+1;
+  int lastId = id[idxO[idxO.size()-1]]+1;
   bool addId = false, added=false;
   int idx1=nid, nTv=0;
   std::vector<int> covParPosTV;
