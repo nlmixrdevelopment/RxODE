@@ -2437,16 +2437,16 @@ SEXP rxSolve_(const RObject &obj,
       List etE = cls.attr(".RxODE.lst");
       int nobs = etE["nobs"];
       if (nobs == 0){
-	warning("Adding observations, for more control use et/add.sampling.");
-	List ev1a = etTrans(as<List>(ev1), obj, false);
-	NumericVector newObs(200);
-	// ((to - from)/(length.out - 1))
-	List et = as<List>(ev1);
-	double by = (max(as<NumericVector>(ev1a["time"]))+24)/199.0;
-	for (int i = 200; i--;){
-	  newObs[i]=by*i;
-	}
-	ev1 = et_(List::create(newObs), as<List>(ev1));
+    	warning("Adding observations, for more control use et/add.sampling.");
+    	List ev1a = etTrans(as<List>(ev1), obj, false);
+    	NumericVector newObs(200);
+    	// ((to - from)/(length.out - 1))
+    	List et = as<List>(ev1);
+    	double by = (max(as<NumericVector>(ev1a["time"]))+24)/199.0;
+    	for (int i = 200; i--;){
+    	  newObs[i]=by*i;
+    	}
+    	ev1 = et_(List::create(newObs), as<List>(ev1));
       }
     }
     if (rxIs(ev1, "data.frame") && !rxIs(ev1, "rxEtTrans")){
