@@ -3000,7 +3000,7 @@ SEXP rxSolve_(const RObject &obj,
     rx->nsim = nPopPar / rx->nsub;
     if (rx->nsim < 1) rx->nsim=1;
 
-    gsolveSetup(rx->nall*(state.size()+rx->nsub*state.size())*rx->nsim);
+    gsolveSetup(rx->nall*rx->nsub*state.size()*rx->nsim);
     // Not needed since we use Calloc.
     // std::fill_n(&_globals.gsolve[0], rx->nall*state.size()*rx->nsim, 0.0);
     gOnSetup(rx->nsub*rx->nsim*state.size());
@@ -3108,8 +3108,6 @@ SEXP rxSolve_(const RObject &obj,
 	    ind->ix = &_globals.gix[curIdx];
 	    std::iota(ind->ix,ind->ix+ind->n_all_times,0);
 	    curEvent += eLen;
-	    ind->solveSave=&_globals.gsolve[curEvent];
-	    curEvent += op->neq;
 	    ind->on=&_globals.gon[curOn];
 	    curOn +=op->neq;
 	    curIdx += ind->n_all_times;

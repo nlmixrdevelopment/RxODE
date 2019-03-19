@@ -594,6 +594,7 @@ int handle_evid(int evid, int neq,
       }
       if (!ind->doSS && ind->wh0 == 20){
 	// Save for adding at the end
+	ind->solveSave = Calloc(neq, double);
 	memcpy(ind->solveSave, yp, neq*sizeof(double));
       }
       switch(ind->whI){
@@ -913,6 +914,7 @@ void handleSS(int *neq,
     if (doSS2){
       // Add at the end
       for (j = neq[0];j--;) yp[j]+=ind->solveSave[j];
+      Free(ind->solveSave);
     }
     ind->idx=*i;
     getWh(ind->evid[ind->ix[*i]], &(ind->wh), &(ind->cmt), &(ind->wh100), &(ind->whI), &(ind->wh0));
@@ -2329,8 +2331,7 @@ extern void rxSingleSolve(int subid, double *_theta, double *timep,
 			  int *on, int *ix,
 			  int *slvr_counter, int *dadt_counter, int *jac_counter,
 			  double *InfusionRate, int *BadDose, int *idose,
-			  double *scale, int *stateIgnore, double *mtime,
-			  double *solveSave){
+			  double *scale, int *stateIgnore, double *mtime){
   double *theta = get_theta(_theta);
   /* protectOld(); */
   rx_solve *rx = &rx_global;
@@ -2388,7 +2389,6 @@ extern void rxSingleSolve(int subid, double *_theta, double *timep,
   rx->add_cov =0;
   rx->matrix =0;
   ind->mtime = mtime;
-  ind->solveSave = solveSave;
   // Solve without the option of updating residuals.
   ind_solve(rx, subid, dydt_liblsoda, dydt_lsoda_dum, jdum_lsoda,
 	      dydt, update_inis, global_jt);
