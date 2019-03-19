@@ -514,12 +514,11 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false){
 	rateI = 8;
       } else if (rate > 0){
 	// Rate is fixed
-	if (evidCol == -1){
+	if (evidCol == -1 || inEvid[i] == 1 || inEvid[i] == 4){
 	  rateI = 1;
-	} else if (inEvid[i] > 4){
-	  rateI=0;
 	} else {
-	  rateI = 1;
+	  rateI = 0;
+	  rate = 0.0;
 	}
       }
     } else if (rateCol == -1 || inRate[i] == 0 || ISNA(inRate[i])) {
@@ -534,16 +533,13 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false){
 	rateI = 8;
       } else if (inDur[i] > 0){
 	// Duration is fixed
-	if (evidCol == -1){
+	if (evidCol == -1 || inEvid[i] == 1 || inEvid[i] == 4){
 	  rateI = 2;
 	  rate = camt/inDur[i];
 	} else if (inEvid[i] > 4){
 	  rateI=0;
-	} else {
-	  rateI = 2;
-	  rate = camt/inDur[i];
-	}
-	
+	  rate = 0.0;
+	}  
       }
     } else {
       stop("'rate' and/or 'dur' are not specified correctly.");
