@@ -282,6 +282,8 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false, bool allTimeVar
   }
   std::vector<int> id;
   std::vector<int> allId;
+  std::vector<int> obsId;
+  std::vector<int> doseId;
   std::vector<int> evid;
   std::vector<double> time;
   std::vector<double> amt;
@@ -560,12 +562,18 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false, bool allTimeVar
 	allBolus=false;
       } else {
 	cevid = 0;
+	if (std::find(obsId.begin(), obsId.end(), cid) == obsId.end()){
+	  obsId.push_back(cid);
+	}
       }
     } else {
       switch(inEvid[i]){
       case 0:
 	nobs++;
 	cevid = 0;
+	if (std::find(obsId.begin(), obsId.end(), cid) == obsId.end()){
+	  obsId.push_back(cid);
+	}
 	if (caddl > 0){
 	  warning("addl is ignored with observations.");
 	}
@@ -784,9 +792,27 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false, bool allTimeVar
       }
     }
   }
-  NumericVector fPars = NumericVector(pars.size()*nid, NA_REAL);
+  bool redoId=false;
+  if (obsId.size() != allId.size()){
+    std::string idWarn = "IDs without observations dropped:";
+    for (j = allId.size(); j--;){
+      if (std::find(obsId.begin(), obsId.end(), allId[j]) == obsId.end()){
+	idWarn = idWarn + " " +as<std::string>(idLvl[allId[j]-1]);
+	doseId.push_back(allId[j]);
+      }
+    }
+    warning(idWarn.c_str());
+    redoId=true;
+  }
   std::sort(idxO.begin(),idxO.end(),
-	    [id,time,evid,amt](int a, int b){
+	    [id,time,evid,amt,doseId](int a, int b){
+	      // Bad IDs are pushed to the end to be popped off.
+	      if (!(std::find(doseId.begin(), doseId.end(), id[a]) == doseId.end())){
+		return false;
+	      }
+	      if (!(std::find(doseId.begin(), doseId.end(), id[b]) == doseId.end())){
+		return true;
+	      }
 	      if (id[a] == id[b]){
 		if (time[a] == time[b]){
 		  if (evid[a] == evid[b]){
@@ -812,6 +838,11 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false, bool allTimeVar
 	      }
 	      return id[a] < id[b];
 	    });
+  while (std::find(doseId.begin(), doseId.end(), id[idxO.back()]) != doseId.end()){
+    idxO.pop_back();
+  }
+  nid = obsId.size();
+  NumericVector fPars = NumericVector(pars.size()*nid, NA_REAL);
   // sorted create the vectors/list
   int baseSize;
   if (addCmt && !hasCmt){
@@ -986,14 +1017,17 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false, bool allTimeVar
     }
   }
 
+  CharacterVector cls = CharacterVector::create("rxEtTran","data.frame");
+
   IntegerVector tmp = lst1F[0];
-  if (renumberId){
+  if (redoId){
     Function convId = rx[".convertId"];
     tmp = convId(tmp);//as<IntegerVector>();
+    idLvl = tmp.attr("levels");
+    tmp.attr("class")  = R_NilValue;
     tmp.attr("levels") = R_NilValue;
     lst1F[0] = tmp;
   }
-  CharacterVector cls = CharacterVector::create("rxEtTran","data.frame");
   
   lst1F.attr("names") = nme1F;
   lst1F.attr("class") = CharacterVector::create("data.frame");
@@ -1024,7 +1058,15 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false, bool allTimeVar
   e["cmtInfo"] = cmtInfo;
   e.attr("class") = "rxHidden";
   cls.attr(".RxODE.lst") = e;
-  IntegerVector tmp = lstF[0];
+  tmp = lstF[0];
+  if (redoId){
+    Function convId = rx[".convertId"];
+    tmp = convId(tmp);//as<IntegerVector>();
+    idLvl = tmp.attr("levels");
+    tmp.attr("class")  = R_NilValue;
+    tmp.attr("levels") = R_NilValue;
+    lstF[0]=tmp;
+  }
   if (!addCmt){
     tmp.attr("class") = "factor";
     tmp.attr("levels") = idLvl;
