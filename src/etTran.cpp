@@ -163,7 +163,38 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false, bool allTimeVar
     CharacterVector cls = inData.attr("class");
     List e0 = cls.attr(".RxODE.lst");
     if (as<std::string>(trans["lib.name"]) == as<std::string>(e0["lib.name"])){
-      return inData;
+      if (as<bool>(e0["allTimeVar"]) && !allTimeVar){
+	LogicalVector sub0 = as<LogicalVector>(e0["sub0"]);
+	int baseSize = as<int>(e0["baseSize"]);
+	int nTv = as<int>(e0["nTv"]);
+	List lst = as<List>(e0["lst"]);
+	CharacterVector nme = as<CharacterVector>(e0["nme"]);
+	List e = clone(e0);
+	e["baseSize"] = R_NilValue;
+	e["nTv"] = R_NilValue;
+	e["lst"] = R_NilValue;
+	e["nme"] = R_NilValue;	
+	e["sub0"] = R_NilValue;
+	e["allTimeVar"] = false;
+	cls.attr(".RxODE.lst") = e;
+	List lstF = List(baseSize+nTv);
+	CharacterVector nmeF = CharacterVector(baseSize+nTv);
+	int j=0;
+	for (int i = 0; i < lst.size();i++){
+	  if (sub0[i]){
+	    lstF[j]=lst[i];
+	    nmeF[j]=nme[i];
+	    j++;
+	  }
+	}
+	lstF.attr("names") = nmeF;
+	lstF.attr("class") = cls;
+	IntegerVector tmp = lstF[0];
+	lstF.attr("row.names") = IntegerVector::create(NA_INTEGER,-tmp.size());
+	return(lstF);
+      } else {
+	return inData;
+      }
     }
     // stop("This dataset was prepared for another model.");
   }
@@ -967,7 +998,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false, bool allTimeVar
 	    added = true;
 	  } else if (sub1[1+j]) {
 	    nvTmp = as<NumericVector>(lst1[1+j]);
-	    if (allTimeVar || nvTmp[idx1] != nvTmp2[idx[idxO[i]]]){
+	    if (nvTmp[idx1] != nvTmp2[idx[idxO[i]]]){
 	      sub0[baseSize+j] = true;
 	      sub1[1+j] = false;
 	      fPars[idx1*pars.size()+covParPos[j]] = NA_REAL;
@@ -996,11 +1027,18 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false, bool allTimeVar
     tmpN.attr("units") = amtUnits;
   }
   // Now subset based on time-varying covariates
-  List lstF(baseSize+nTv);
-  CharacterVector nmeF(baseSize+nTv);
+  List lstF;
+  CharacterVector nmeF;
+  if (allTimeVar){
+    lstF = List(baseSize+covCol.size());
+    nmeF = CharacterVector(baseSize+covCol.size());
+  } else {
+    lstF = List(baseSize+nTv);
+    nmeF = CharacterVector(baseSize+nTv);
+  }
   j=0;
   for (i = 0; i < lst.size();i++){
-    if (sub0[i]){
+    if (allTimeVar || sub0[i]){
       lstF[j]=lst[i];
       nmeF[j]=nme[i];
       j++;
@@ -1018,7 +1056,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false, bool allTimeVar
   }
 
   CharacterVector cls = CharacterVector::create("rxEtTran","data.frame");
-
+  
   IntegerVector tmp = lst1F[0];
   if (redoId){
     Function convId = rx[".convertId"];
@@ -1039,6 +1077,13 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false, bool allTimeVar
   e["cov1"] = lst1F;
   e["covParPos"]  = wrap(covParPos);
   e["covParPosTV"] = wrap(covParPosTV); // Time-varying pos
+  if (allTimeVar){
+    e["sub0"] = wrap(sub0);
+    e["baseSize"] = baseSize;
+    e["nTv"] = nTv;
+    e["lst"] = lst;
+    e["nme"] = nme;
+  }
   std::vector<int> covParPos0;
   for (j = covParPos.size();j--;){
     if (std::find(covParPosTV.begin(), covParPosTV.end(), covParPos[j]) == covParPosTV.end()){
@@ -1057,6 +1102,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false, bool allTimeVar
   e["addCmt"] = addCmt;
   e["cmtInfo"] = cmtInfo;
   e["idLvl"] = idLvl;
+  e["allTimeVar"] = allTimeVar;
   e.attr("class") = "rxHidden";
   cls.attr(".RxODE.lst") = e;
   tmp = lstF[0];
