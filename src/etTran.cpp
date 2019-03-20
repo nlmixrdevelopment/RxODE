@@ -855,26 +855,26 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false, bool allTimeVar
   CharacterVector nme(baseSize+covCol.size());
   
   lst[0] = IntegerVector(idxO.size());
-  nme[0] = "id";
+  nme[0] = "ID";
   
   lst[1] = NumericVector(idxO.size());
-  nme[1] = "time";
+  nme[1] = "TIME";
   
   lst[2] = IntegerVector(idxO.size());
-  nme[2] = "evid";
+  nme[2] = "EVID";
   
   lst[3] = NumericVector(idxO.size());
-  nme[3] = "amt";
+  nme[3] = "AMT";
   
   lst[4] = NumericVector(idxO.size());
-  nme[4] = "ii";
+  nme[4] = "II";
   
   lst[5] = NumericVector(idxO.size());
-  nme[5] = "dv";
+  nme[5] = "DV";
 
   if (baseSize == 7){
     lst[6] = IntegerVector(idxO.size());
-    nme[6] = "cmt";
+    nme[6] = "CMT";
   }
   
 
@@ -883,7 +883,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false, bool allTimeVar
   std::vector<bool> sub1(1+covCol.size(), true);
 
   lst1[0] = IntegerVector(nid);
-  nme1[0] = "id";
+  nme1[0] = "ID";
   
   for (j = 0; j < (int)(covCol.size()); j++){
     if (as<std::string>(lName[covCol[j]]) == "cmt"){
@@ -1056,6 +1056,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false, bool allTimeVar
   e["lib.name"] = trans["lib.name"];
   e["addCmt"] = addCmt;
   e["cmtInfo"] = cmtInfo;
+  e["idLvl"] = idLvl;
   e.attr("class") = "rxHidden";
   cls.attr(".RxODE.lst") = e;
   tmp = lstF[0];
