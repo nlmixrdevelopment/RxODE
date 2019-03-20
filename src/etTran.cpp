@@ -1,5 +1,7 @@
-#include <Rcpp.h>
+#include <RcppArmadillo.h>
 #include <algorithm>
+#include "../inst/include/RxODE.h"
+
 #define rxModelVars(a) rxModelVars_(a)
 #define max2( a , b )  ( (a) > (b) ? (a) : (b) )
 using namespace Rcpp;
@@ -149,11 +151,12 @@ IntegerVector toCmt(RObject inCmt, CharacterVector state){
 //' @param inData Data frame to translate
 //' @param obj Model to translate data 
 //' @param addCmt Add compartment to data frame, and drop units
+//' @param allTimeVar Treat all covariates as if they were time-varying
 //' @return Object for solving in RxODE
 //' @keywords internal
 //' @export
 //[[Rcpp::export]]
-List etTrans(List inData, const RObject &obj, bool addCmt=false){
+List etTrans(List inData, const RObject &obj, bool addCmt=false, bool allTimeVar=false){
   List mv = rxModelVars_(obj);
   CharacterVector trans = mv["trans"];
   if (rxIs(inData,"rxEtTran")){
@@ -933,7 +936,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false){
 	    added = true;
 	  } else if (sub1[1+j]) {
 	    nvTmp = as<NumericVector>(lst1[1+j]);
-	    if (nvTmp[idx1] != nvTmp2[idx[idxO[i]]]){
+	    if (allTimeVar || nvTmp[idx1] != nvTmp2[idx[idxO[i]]]){
 	      sub0[baseSize+j] = true;
 	      sub1[1+j] = false;
 	      fPars[idx1*pars.size()+covParPos[j]] = NA_REAL;
@@ -982,7 +985,14 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false){
       j++;
     }
   }
-  
+
+  IntegerVector tmp = lst1F[0];
+  if (renumberId){
+    Function convId = rx[".convertId"];
+    tmp = convId(tmp);//as<IntegerVector>();
+    tmp.attr("levels") = R_NilValue;
+    lst1F[0] = tmp;
+  }
   CharacterVector cls = CharacterVector::create("rxEtTran","data.frame");
   
   lst1F.attr("names") = nme1F;

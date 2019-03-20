@@ -87,15 +87,16 @@ BEGIN_RCPP
 END_RCPP
 }
 // etTrans
-List etTrans(List inData, const RObject& obj, bool addCmt);
-RcppExport SEXP _RxODE_etTrans(SEXP inDataSEXP, SEXP objSEXP, SEXP addCmtSEXP) {
+List etTrans(List inData, const RObject& obj, bool addCmt, bool allTimeVar);
+RcppExport SEXP _RxODE_etTrans(SEXP inDataSEXP, SEXP objSEXP, SEXP addCmtSEXP, SEXP allTimeVarSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< List >::type inData(inDataSEXP);
     Rcpp::traits::input_parameter< const RObject& >::type obj(objSEXP);
     Rcpp::traits::input_parameter< bool >::type addCmt(addCmtSEXP);
-    rcpp_result_gen = Rcpp::wrap(etTrans(inData, obj, addCmt));
+    Rcpp::traits::input_parameter< bool >::type allTimeVar(allTimeVarSEXP);
+    rcpp_result_gen = Rcpp::wrap(etTrans(inData, obj, addCmt, allTimeVar));
     return rcpp_result_gen;
 END_RCPP
 }

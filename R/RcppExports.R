@@ -26,11 +26,12 @@ etRep_ <- function(curEt, times, wait, ids, handleSamples, waitType, ii) {
 #' @param inData Data frame to translate
 #' @param obj Model to translate data 
 #' @param addCmt Add compartment to data frame, and drop units
+#' @param allTimeVar Treat all covariates as if they were time-varying
 #' @return Object for solving in RxODE
 #' @keywords internal
 #' @export
-etTrans <- function(inData, obj, addCmt = FALSE) {
-    .Call(`_RxODE_etTrans`, inData, obj, addCmt)
+etTrans <- function(inData, obj, addCmt = FALSE, allTimeVar = FALSE) {
+    .Call(`_RxODE_etTrans`, inData, obj, addCmt, allTimeVar)
 }
 
 #' Check the type of an object using Rcpp
