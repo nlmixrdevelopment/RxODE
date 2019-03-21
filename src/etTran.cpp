@@ -891,7 +891,6 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false, bool allTimeVar
     idxO.pop_back();
     rmAmt--;
   }
-  Rprintf("Size: %d\n", idxO.size()-rmAmt);
   nid = obsId.size();
   NumericVector fPars = NumericVector(pars.size()*nid, NA_REAL);
   // sorted create the vectors/list
