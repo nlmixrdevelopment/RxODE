@@ -872,6 +872,26 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false, bool allTimeVar
   while (std::find(doseId.begin(), doseId.end(), id[idxO.back()]) != doseId.end()){
     idxO.pop_back();
   }
+  int lastId = id[idxO.back()]+42;
+  int rmAmt = 0;
+  // Remove trailing doses
+  for (j =idxO.size(); j--; ){
+    if (lastId != id[idxO[j]]){
+      // New id
+      lastId = id[idxO[j]];
+      while (isDose(evid[idxO[j]]) && j--){
+	idxO[j+1] = -1;
+	rmAmt++;
+      }
+      if (j <= 0) break;
+    }
+  }
+  // Remove trailing dose from idO
+  while(idxO.back() == -1){
+    idxO.pop_back();
+    rmAmt--;
+  }
+  Rprintf("Size: %d\n", idxO.size()-rmAmt);
   nid = obsId.size();
   NumericVector fPars = NumericVector(pars.size()*nid, NA_REAL);
   // sorted create the vectors/list
@@ -885,26 +905,26 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false, bool allTimeVar
   std::vector<bool> sub0(baseSize+covCol.size(), true);
   CharacterVector nme(baseSize+covCol.size());
   
-  lst[0] = IntegerVector(idxO.size());
+  lst[0] = IntegerVector(idxO.size()-rmAmt);
   nme[0] = "ID";
   
-  lst[1] = NumericVector(idxO.size());
+  lst[1] = NumericVector(idxO.size()-rmAmt);
   nme[1] = "TIME";
   
-  lst[2] = IntegerVector(idxO.size());
+  lst[2] = IntegerVector(idxO.size()-rmAmt);
   nme[2] = "EVID";
   
-  lst[3] = NumericVector(idxO.size());
+  lst[3] = NumericVector(idxO.size()-rmAmt);
   nme[3] = "AMT";
   
-  lst[4] = NumericVector(idxO.size());
+  lst[4] = NumericVector(idxO.size()-rmAmt);
   nme[4] = "II";
   
-  lst[5] = NumericVector(idxO.size());
+  lst[5] = NumericVector(idxO.size()-rmAmt);
   nme[5] = "DV";
 
   if (baseSize == 7){
-    lst[6] = IntegerVector(idxO.size());
+    lst[6] = IntegerVector(idxO.size()-rmAmt);
     nme[6] = "CMT";
   }
   
@@ -918,14 +938,14 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false, bool allTimeVar
   
   for (j = 0; j < (int)(covCol.size()); j++){
     if (as<std::string>(lName[covCol[j]]) == "cmt"){
-      lst[baseSize+j] = IntegerVector(idxO.size());
+      lst[baseSize+j] = IntegerVector(idxO.size()-rmAmt);
       nme[baseSize+j] = pars[covParPos[j]];
       sub0[baseSize+j] = false;
       lst1[1+j] = IntegerVector(nid);
       nme1[1+j] = nme[baseSize+j];
       sub1[1+j] = true;
     } else {
-      lst[baseSize+j] = NumericVector(idxO.size());
+      lst[baseSize+j] = NumericVector(idxO.size()-rmAmt);
       nme[baseSize+j] = pars[covParPos[j]];
       sub0[baseSize+j] = false;
       lst1[1+j] = NumericVector(nid);
@@ -935,85 +955,90 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false, bool allTimeVar
   }
 
   IntegerVector ivTmp;
-  int lastId = id[idxO[idxO.size()-1]]+1;
+  // Since we removed the -1 in idx, you can get the last id here.
+  lastId = id[idxO.back()]+1;
   bool addId = false, added=false;
   int idx1=nid, nTv=0;
   std::vector<int> covParPosTV;
   bool cmtFadd = false;
+  int jj = idxO.size()-rmAmt;
   for (i =idxO.size(); i--;){
-    ivTmp = as<IntegerVector>(lst[0]);
-    ivTmp[i] = id[idxO[i]];
-    if (lastId != id[idxO[i]]){
-      addId=true;
-      idx1--;
-      // Add ID
-      ivTmp = as<IntegerVector>(lst1[0]);
-      ivTmp[idx1] = id[idxO[i]];
-      lastId=id[idxO[i]];
-    }
-    // retId[i]=id[idxO[i]];
-    nvTmp = as<NumericVector>(lst[1]);
-    // retTime[i]=time[idxO[i]];
-    nvTmp[i] = time[idxO[i]];
-    ivTmp = as<IntegerVector>(lst[2]);
-    ivTmp[i] = evid[idxO[i]];
-    // retEvid[i]=evid[idxO[i]];
-    nvTmp = as<NumericVector>(lst[3]);
-    // retAmt[i]=amt[idxO[i]];
-    nvTmp[i] = amt[idxO[i]];
-    nvTmp = as<NumericVector>(lst[4]);
-    nvTmp[i]=ii[idxO[i]];
-    nvTmp = as<NumericVector>(lst[5]);
-    nvTmp[i]=dv[idxO[i]];
-    if (baseSize == 7){
-      ivTmp = as<IntegerVector>(lst[6]);
-      ivTmp[i] = cmtF[idxO[i]];
-    }
-    // Now add the other items.
-    added=false;
-    for (j = 0; j < (int)(covCol.size()); j++){
-      if (as<std::string>(lName[covCol[j]]) == "cmt"){
-	ivTmp = as<IntegerVector>(lst[baseSize+j]);
-	ivTmp[i] = cmtF[idxO[i]];
-	if (!cmtFadd){
-	  sub0[baseSize+j] = true;
-	  sub1[1+j] = false;
-	  covParPosTV.push_back(covParPos[j]);
-	  cmtFadd=true;
-	  nTv++;
-	}
-      } else {
-	nvTmp = as<NumericVector>(lst[baseSize+j]);
-	if (idx[idxO[i]] == -1){
-	  // These should be ignored for interpolation.
-	  nvTmp[i] = NA_REAL;
+    if (idxO[i] != -1){
+      jj--;
+      ivTmp = as<IntegerVector>(lst[0]);
+      ivTmp[jj] = id[idxO[i]];
+      if (lastId != id[idxO[i]]){
+	addId=true;
+	idx1--;
+	// Add ID
+	ivTmp = as<IntegerVector>(lst1[0]);
+	ivTmp[idx1] = id[idxO[i]];
+	lastId=id[idxO[i]];
+      }
+      // retId[i]=id[idxO[i]];
+      nvTmp = as<NumericVector>(lst[1]);
+      // retTime[i]=time[idxO[i]];
+      nvTmp[jj] = time[idxO[i]];
+      ivTmp = as<IntegerVector>(lst[2]);
+      ivTmp[jj] = evid[idxO[i]];
+      // retEvid[i]=evid[idxO[i]];
+      nvTmp = as<NumericVector>(lst[3]);
+      // retAmt[i]=amt[idxO[i]];
+      nvTmp[jj] = amt[idxO[i]];
+      nvTmp = as<NumericVector>(lst[4]);
+      nvTmp[jj]=ii[idxO[i]];
+      nvTmp = as<NumericVector>(lst[5]);
+      nvTmp[jj]=dv[idxO[i]];
+      if (baseSize == 7){
+	ivTmp = as<IntegerVector>(lst[6]);
+	ivTmp[jj] = cmtF[idxO[i]];
+      }
+      // Now add the other items.
+      added=false;
+      for (j = 0; j < (int)(covCol.size()); j++){
+	if (as<std::string>(lName[covCol[j]]) == "cmt"){
+	  ivTmp = as<IntegerVector>(lst[baseSize+j]);
+	  ivTmp[jj] = cmtF[idxO[i]];
+	  if (!cmtFadd){
+	    sub0[baseSize+j] = true;
+	    sub1[1+j] = false;
+	    covParPosTV.push_back(covParPos[j]);
+	    cmtFadd=true;
+	    nTv++;
+	  }
 	} else {
-	  // These covariates are added.
-	  nvTmp2   = as<NumericVector>(inData[covCol[j]]);
-	  nvTmp[i] = nvTmp2[idx[idxO[i]]];
-	  if (addId){
-	    nvTmp = as<NumericVector>(lst1[1+j]);
-	    nvTmp[idx1] = nvTmp2[idx[idxO[i]]];
-	    fPars[idx1*pars.size()+covParPos[j]] = nvTmp[idx1];
-	    added = true;
-	  } else if (sub1[1+j]) {
-	    nvTmp = as<NumericVector>(lst1[1+j]);
-	    if (nvTmp[idx1] != nvTmp2[idx[idxO[i]]]){
-	      sub0[baseSize+j] = true;
-	      sub1[1+j] = false;
-	      fPars[idx1*pars.size()+covParPos[j]] = NA_REAL;
-	      if (std::find(covParPosTV.begin(), covParPosTV.end(), covParPos[j]) == covParPosTV.end()){
-		covParPosTV.push_back(covParPos[j]);
+	  nvTmp = as<NumericVector>(lst[baseSize+j]);
+	  if (idx[idxO[i]] == -1){
+	    // These should be ignored for interpolation.
+	    nvTmp[jj] = NA_REAL;
+	  } else {
+	    // These covariates are added.
+	    nvTmp2   = as<NumericVector>(inData[covCol[j]]);
+	    nvTmp[jj] = nvTmp2[idx[idxO[i]]];
+	    if (addId){
+	      nvTmp = as<NumericVector>(lst1[1+j]);
+	      nvTmp[idx1] = nvTmp2[idx[idxO[i]]];
+	      fPars[idx1*pars.size()+covParPos[j]] = nvTmp[idx1];
+	      added = true;
+	    } else if (sub1[1+j]) {
+	      nvTmp = as<NumericVector>(lst1[1+j]);
+	      if (nvTmp[idx1] != nvTmp2[idx[idxO[i]]]){
+		sub0[baseSize+j] = true;
+		sub1[1+j] = false;
+		fPars[idx1*pars.size()+covParPos[j]] = NA_REAL;
+		if (std::find(covParPosTV.begin(), covParPosTV.end(), covParPos[j]) == covParPosTV.end()){
+		  covParPosTV.push_back(covParPos[j]);
+		}
+		nTv++;
 	      }
-	      nTv++;
 	    }
 	  }
 	}
       }
-    }
-    if (added && addId){
-      addId=false;
-      added=false;
+      if (added && addId){
+	addId=false;
+	added=false;
+      }
     }
   }
   if (!addCmt && addTimeUnits){
@@ -1120,6 +1145,6 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false, bool allTimeVar
   }  
   lstF.attr("names") = nmeF;
   lstF.attr("class") = cls;
-  lstF.attr("row.names") = IntegerVector::create(NA_INTEGER,-idxO.size());
+  lstF.attr("row.names") = IntegerVector::create(NA_INTEGER,-idxO.size()+rmAmt);
   return lstF;
 }
