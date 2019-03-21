@@ -77,10 +77,14 @@ rxControl <- function(scale = NULL,
         method <- 1;
     }
     if (length(covsInterpolation) > 1) covsInterpolation <- covsInterpolation[1];
-    covsInterpolation <- tolower(match.arg(covsInterpolation,
-                                           c("linear", "locf", "LOCF", "constant", "nocb", "NOCB", "midpoint")))
-    if (covsInterpolation == "constant") covsInterpolation <- "locf";
-    covsInterpolation  <- as.integer(which(covsInterpolation == c("linear", "locf", "nocb", "midpoint")) - 1);
+    if (!rxIs(covsInterpolation, "integer")){
+        covsInterpolation <- tolower(match.arg(covsInterpolation,
+                                               c("linear", "locf", "LOCF", "constant",
+                                                 "nocb", "NOCB", "midpoint")))
+        if (covsInterpolation == "constant") covsInterpolation <- "locf";
+        covsInterpolation  <- as.integer(which(covsInterpolation ==
+                                               c("linear", "locf", "nocb", "midpoint")) - 1);
+    }
     if (any(duplicated(names(.xtra)))){
         stop("Duplicate arguments do not make sense.");
     }
