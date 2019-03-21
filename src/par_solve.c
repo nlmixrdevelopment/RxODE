@@ -958,6 +958,10 @@ extern void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda_opt
   evid = ind->evid;
   BadDose = ind->BadDose;
   InfusionRate = ind->InfusionRate;
+  for (int j = neq[0]; j--;) {
+    ind->InfusionRate[j] = 0;
+    ind->on[j] = 1;
+  }
   dose = ind->dose;
   ret = ind->solve;
   x = ind->all_times;
@@ -1252,6 +1256,10 @@ extern void ind_lsoda0(rx_solve *rx, rx_solving_options *op, int solveid, int *n
   double xout;
 
   //--- inits the system
+  for (int j = neq[0]; j--;) {
+    ind->InfusionRate[j] = 0;
+    ind->on[j] = 1;
+  }
   memcpy(ind->solve, op->inits, neq[0]*sizeof(double));
   u_inis(neq[1], ind->solve); // Update initial conditions
   if (rx->nMtime) calc_mtime(neq[1], ind->mtime);
@@ -1412,6 +1420,10 @@ extern void ind_dop0(rx_solve *rx, rx_solving_options *op, int solveid, int *neq
   rc= ind->rc;
   double xp = x[0];
   //--- inits the system
+  for (int j = neq[0]; j--;) {
+    ind->InfusionRate[j] = 0;
+    ind->on[j] = 1;
+  }
   memcpy(ret,inits, neq[0]*sizeof(double));
   u_inis(neq[1], ret); // Update initial conditions
   if (rx->nMtime) calc_mtime(neq[1], ind->mtime);
