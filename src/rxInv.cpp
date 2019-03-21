@@ -148,7 +148,10 @@ RObject rxSymInvCholEnvCalculate(List obj, std::string what, Nullable<NumericVec
         stop("theta for omega calculations not setup yet.");
       }
       int ntheta = theta.size(), i=0;
-      if (what == "chol.omegaInv"){
+      if (what == "theta.diag"){
+	Function fn = as<Function>(invObj["fn"]);
+	e["theta.diag"] = fn(R_NilValue, R_NilValue);
+      } else if (what == "chol.omegaInv"){
         e["chol.omegaInv"]=as<NumericMatrix>(rxSymInvChol(invObj, theta, "cholOmegaInv"));
       } else if (what == "omegaInv"){
         e["omegaInv"]= as<NumericMatrix>(rxSymInvChol(invObj, theta, "omegaInv",-1));

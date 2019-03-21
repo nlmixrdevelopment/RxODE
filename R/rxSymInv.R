@@ -322,7 +322,11 @@ rxSymInvCreateC_ <- function(mat, diag.xform=c("sqrt", "log", "identity")){
             ##signature(theta="numeric", tn="integer")
             ## FIXME move these functions to Cpp?
             fn <- eval(bquote(function(theta, tn){
-                if (is.na(tn)){
+                if (is.null(tn)){
+                    .ret <- matrix(rep(TRUE,.(d*d)),nrow=.(d));
+                    .ret[lower.tri(.ret)] <- FALSE;
+                    return(.ret[lower.tri(.ret,TRUE)])
+                } else if (is.na(tn)){
                     new.theta <- rep(0.0, .((d + 1) * d / 2));
                     new.theta[.(w)] <- theta;
                     return(.Call(`_rxCholInv`, .(as.integer(d)), as.double(new.theta), NA_integer_));
@@ -368,12 +372,32 @@ rxSymInvCreateC_ <- function(mat, diag.xform=c("sqrt", "log", "identity")){
         ## Drop the dependency on Matrix (since this is partially run in R)
         fn <- eval(bquote(function(theta, tn){
             force(matI);
-            if (!is.na(tn)){
+            theta.part <- .(theta.part);
+            if (is.null(tn)){
+                if (is.null(theta)){
+                    return(unlist(lapply(theta.part,
+                                         function(x){
+                        .j <- .k <- 1;
+                        .ret <- logical(length(x));
+                        for (.i in seq_along(x)){
+                            if (.j==.k){
+                                .ret[.i] <- TRUE;
+                                .k <- .k + 1;
+                                .j <- 1;
+                            } else {
+                                .ret[.i] <- FALSE
+                                .j <- .j + 1;
+                            }
+                        }
+                        return(.ret)
+                    })));
+                }
+            } else if (!is.na(tn)){
                 if (tn == -2L){
                     return(.(ntheta));
                 }
             }
-            theta.part <- .(theta.part);
+
             lst <- lapply(seq_along(theta.part),
                           function(x){
                 mt <- matI[[x]];
@@ -505,5 +529,6 @@ str.rxSymInvCholEnv <- function(object, ...){ # nocov start
     cat(" $ log.det.OMGAinv.5 : log(det(Omega^-1))\n")
     cat(" $ tr.28             : -0.5*tr(Omega^-1 %*% d(Omega)) = 0.5*tr(d(Omega^-1) %*% Omega); (Almquist 2015 #28)\n")
     cat(" $ omega.47          : d(Omega^-1)*d(eta) (Almquist 2015 #47)\n")
+    cat(" $ theta.diag        : indicator of diagonal theta values\n")
 } #nocov end
 
