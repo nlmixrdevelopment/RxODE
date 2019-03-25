@@ -82,7 +82,7 @@ rxClean <- function(wd){
         owd <- getwd();
         setwd(wd);
         on.exit(setwd(owd));
-        pat <- "^(Makevars|(rx.*)[.](o|dll|s[ol]|c|rx|prd|inv|dvdx|rxd))$"
+        pat <- "^(Makevars|(rx.*)[.](o|dll|s[ol]|c|rx|prd|inv|dvdx|rxd|saemd|uid))$"
         files <- list.files(pattern = pat);
         for (f in files){
             if (f == "Makevars"){
@@ -92,7 +92,7 @@ rxClean <- function(wd){
                 }
             } else {
                 try(dyn.unload(f), silent = TRUE);
-                unlink(f, recursive = TRUE);
+                unlink(f, recursive = TRUE, force=TRUE);
             }
         }
         if (.normalizePath(wd) != .normalizePath(getFromNamespace("RxODE.cache.directory", "RxODE"))){
