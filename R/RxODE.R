@@ -343,7 +343,7 @@ RxODE <- function(model, modName = basename(wd),
     wd <- .normalizePath(wd, "/", mustWork=FALSE)
     if (.env$missing.modName){
         if (RxODE.tempfiles){
-            .env$mdir <- suppressMessages(.normalizePath(.rxTempDir(), mustWork=FALSE));
+            .env$mdir <- suppressMessages(.normalizePath(rxTempDir(), mustWork=FALSE));
         } else {
             .env$mdir <- suppressMessages(.normalizePath(wd, mustWork=FALSE))
         }
@@ -1166,7 +1166,7 @@ rxCompile.rxModelVars <-  function(model, # Model
     }
     if (is.null(dir)){
         if (RxODE.tempfiles){
-            .dir <- file.path(.rxTempDir(), paste0(prefix, ".rxd"))
+            .dir <- file.path(rxTempDir(), paste0(prefix, ".rxd"))
         } else {
             .dir <- getwd();
         }

@@ -20,7 +20,11 @@
 
 .rxTempDir0 <- NULL;
 .cacheDefault <- "~/.rxCache";
-.rxTempDir <- function(){
+##' Get the RxODE temporary directory
+##'
+##' @return RxODE temporary directory.
+##' @export
+rxTempDir <- function(){
     if (is.null(getFromNamespace(".rxTempDir0", "RxODE"))){
         .tmp <- Sys.getenv("rxTempDir")
         if (.tmp == ""){

@@ -73,7 +73,7 @@ rxPrint <- function(x, ...){
 ##' @export
 rxClean <- function(wd){
     if (missing(wd)){
-        ret <- rxClean(getwd()) && rxClean(.rxTempDir());
+        ret <- rxClean(getwd()) && rxClean(rxTempDir());
         if (getFromNamespace("RxODE.cache.directory", "RxODE") != "."){
             ret <- ret && rxClean(getFromNamespace("RxODE.cache.directory", "RxODE"))
         }

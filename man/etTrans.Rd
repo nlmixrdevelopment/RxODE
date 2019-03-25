@@ -4,7 +4,7 @@
 \alias{etTrans}
 \title{Event translation for RxODE}
 \usage{
-etTrans(inData, obj, addCmt = FALSE)
+etTrans(inData, obj, addCmt = FALSE, allTimeVar = FALSE)
 }
 \arguments{
 \item{inData}{Data frame to translate}
@@ -12,6 +12,8 @@ etTrans(inData, obj, addCmt = FALSE)
 \item{obj}{Model to translate data}
 
 \item{addCmt}{Add compartment to data frame, and drop units}
+
+\item{allTimeVar}{Treat all covariates as if they were time-varying}
 }
 \value{
 Object for solving in RxODE
