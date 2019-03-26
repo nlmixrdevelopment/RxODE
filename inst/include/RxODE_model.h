@@ -166,16 +166,13 @@ solveLinB_p solveLinB;
 
 typedef void (*_update_par_ptr_p)(double t, unsigned int id, rx_solve *rx, int idx);
 
-_update_par_ptr_p _update_par_ptr_=NULL;
+_update_par_ptr_p _update_par_ptr=NULL;
 
 RxODE_fn0i _prodType = NULL;
 RxODE_fn0i _sumType = NULL;
 
-
-void _update_par_ptr(double t, unsigned int id, rx_solve *rx, int idx){
-  if (_update_par_ptr_ == NULL){
-    // This shouldn't happen but occasionally does with SAEM causing R crashes
-    // This seems to not be thread safe either...
+static void _assignFuns(){
+  if (_assign_ptr == NULL){
 #ifdef _OPENMP
 #pragma omp critical
 #endif
@@ -195,10 +192,9 @@ void _update_par_ptr(double t, unsigned int id, rx_solve *rx, int idx){
       _powerDD=(RxODE_fn3i)R_GetCCallable("RxODE", "powerDD");
       _powerDDD=(RxODE_fn3i)R_GetCCallable("RxODE", "powerDDD");
       solveLinB=(solveLinB_p)R_GetCCallable("RxODE", "solveLinB");
-      _update_par_ptr_ = (_update_par_ptr_p) R_GetCCallable("RxODE","_update_par_ptr");
+      _update_par_ptr = (_update_par_ptr_p) R_GetCCallable("RxODE","_update_par_ptr");
     }
   }
-  _update_par_ptr_(t, id, rx, idx);
 }
 
 #endif// __RxODE_model_H__
