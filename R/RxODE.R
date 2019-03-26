@@ -969,9 +969,6 @@ rxMd5 <- function(model,         # Model File
         .ret <- c(.ret, digest::digest(.tmp$path, file=TRUE, algo="md5"));
         ## Add version and github repository information
         .ret <- c(.ret, RxODE::rxVersion());
-        message("================================================================================")
-        print(.ret);
-        print(digest::digest(.ret, algo="md5"))
         return(list(text = model,
                     digest = digest::digest(.ret, algo="md5")));
     } else {
