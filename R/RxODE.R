@@ -907,15 +907,7 @@ print.rxCoefSolve <- function(x, ...){
         .mv <- rxModelVars(model);
         if (.Call(`_RxODE_codeLoaded`) == 0L) .rxModelVarsCharacter(setNames(rxNorm(.mv),NULL));
         .cache <- .rxModelVarsCCache
-        .modelPrefix <- NULL
-        if (!is.null(.modelPrefix)){
-            if (.cache[[1]]){
-                .modelPrefix <- sprintf("%s_", gsub("\\W", "_", gsub("[.].*$", "", basename(.cache[[2]]))));
-            }
-        }
-        if (is.null(.modelPrefix)) {
-            .modelPrefix <- paste0("rx_", .mv$md5["parsed_md5"], "_", .Platform$r_arch, "_");
-        }
+        .modelPrefix <- paste0("rx_", .mv$md5["parsed_md5"], "_", .Platform$r_arch, "_");
     }
     return(.modelPrefix);
 }
@@ -951,12 +943,16 @@ rxMd5 <- function(model,         # Model File
     if (is(model, "character")){
         if (length(model) == 1){
             if (file.exists(model)){
-                .ret <- digest::digest(model, file = TRUE, algo = "md5")
+                .ret <- readLines(model,warn=FALSE);## digest::digest(model, file = TRUE, algo = "md5")
             } else {
                 .ret <- model
             }
         } else {
-            .ret <- model;
+            if (any(names(model)=="normModel")){
+                .ret <- setNames(model["normModel"], NULL);
+            } else {
+                stop("Unknown model.");
+            }
         }
         if (is(extraC, "character")){
             if (file.exists(extraC)){
@@ -973,6 +969,9 @@ rxMd5 <- function(model,         # Model File
         .ret <- c(.ret, digest::digest(.tmp$path, file=TRUE, algo="md5"));
         ## Add version and github repository information
         .ret <- c(.ret, RxODE::rxVersion());
+        message("================================================================================")
+        print(.ret);
+        print(digest::digest(.ret, algo="md5"))
         return(list(text = model,
                     digest = digest::digest(.ret, algo="md5")));
     } else {
