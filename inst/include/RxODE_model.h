@@ -169,7 +169,7 @@ _update_par_ptr_p _update_par_ptr=NULL;
 RxODE_fn0i _prodType = NULL;
 RxODE_fn0i _sumType = NULL;
 
-static void _assignFuns(){
+void _assignFuns(){
   if (_assign_ptr == NULL){
     _assign_ptr=(RxODE_assign_ptr) R_GetCCallable("RxODE","RxODE_assign_fn_pointers");
     _rxRmModelLib=(_rxRmModelLibType) R_GetCCallable("RxODE","rxRmModelLib");
