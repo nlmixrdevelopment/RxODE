@@ -173,27 +173,22 @@ RxODE_fn0i _sumType = NULL;
 
 static void _assignFuns(){
   if (_assign_ptr == NULL){
-#ifdef _OPENMP
-#pragma omp critical
-#endif
-    {
-      _assign_ptr=(RxODE_assign_ptr) R_GetCCallable("RxODE","RxODE_assign_fn_pointers");
-      _rxRmModelLib=(_rxRmModelLibType) R_GetCCallable("RxODE","rxRmModelLib");
-      _rxGetModelLib=(_rxGetModelLibType) R_GetCCallable("RxODE","rxGetModelLib");
-      _RxODE_rxAssignPtr=(_rx_asgn)R_GetCCallable("RxODE","_RxODE_rxAssignPtr");
-      _rxIsCurrentC = (_rxIsCurrentC_type)R_GetCCallable("RxODE","rxIsCurrentC");
-      _sumPS  = (_rxSumType) R_GetCCallable("PreciseSums","PreciseSums_sum_r");
-      _prodPS = (_rxProdType) R_GetCCallable("PreciseSums","PreciseSums_prod_r");
-      _prodType=(RxODE_fn0i)R_GetCCallable("PreciseSums", "PreciseSums_prod_get");
-      _sumType=(RxODE_fn0i)R_GetCCallable("PreciseSums", "PreciseSums_sum_get");
-      _ptrid=(RxODE_fn0i)R_GetCCallable("RxODE", "RxODE_current_fn_pointer_id");
-      _powerD=(RxODE_fn3i)R_GetCCallable("RxODE", "powerD");
-      _powerDi=(RxODE_fn3i)R_GetCCallable("RxODE", "powerDi");
-      _powerDD=(RxODE_fn3i)R_GetCCallable("RxODE", "powerDD");
-      _powerDDD=(RxODE_fn3i)R_GetCCallable("RxODE", "powerDDD");
-      solveLinB=(solveLinB_p)R_GetCCallable("RxODE", "solveLinB");
-      _update_par_ptr = (_update_par_ptr_p) R_GetCCallable("RxODE","_update_par_ptr");
-    }
+    _assign_ptr=(RxODE_assign_ptr) R_GetCCallable("RxODE","RxODE_assign_fn_pointers");
+    _rxRmModelLib=(_rxRmModelLibType) R_GetCCallable("RxODE","rxRmModelLib");
+    _rxGetModelLib=(_rxGetModelLibType) R_GetCCallable("RxODE","rxGetModelLib");
+    _RxODE_rxAssignPtr=(_rx_asgn)R_GetCCallable("RxODE","_RxODE_rxAssignPtr");
+    _rxIsCurrentC = (_rxIsCurrentC_type)R_GetCCallable("RxODE","rxIsCurrentC");
+    _sumPS  = (_rxSumType) R_GetCCallable("PreciseSums","PreciseSums_sum_r");
+    _prodPS = (_rxProdType) R_GetCCallable("PreciseSums","PreciseSums_prod_r");
+    _prodType=(RxODE_fn0i)R_GetCCallable("PreciseSums", "PreciseSums_prod_get");
+    _sumType=(RxODE_fn0i)R_GetCCallable("PreciseSums", "PreciseSums_sum_get");
+    _ptrid=(RxODE_fn0i)R_GetCCallable("RxODE", "RxODE_current_fn_pointer_id");
+    _powerD=(RxODE_fn3i)R_GetCCallable("RxODE", "powerD");
+    _powerDi=(RxODE_fn3i)R_GetCCallable("RxODE", "powerDi");
+    _powerDD=(RxODE_fn3i)R_GetCCallable("RxODE", "powerDD");
+    _powerDDD=(RxODE_fn3i)R_GetCCallable("RxODE", "powerDDD");
+    solveLinB=(solveLinB_p)R_GetCCallable("RxODE", "solveLinB");
+    _update_par_ptr = (_update_par_ptr_p) R_GetCCallable("RxODE","_update_par_ptr");
   }
 }
 

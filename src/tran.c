@@ -1783,8 +1783,8 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   sAppend(&sbOut, "    SEXP normState= PROTECT(allocVector(STRSXP, %d));pro++;\n",statei-sensi);
   sAppend(&sbOut, "    SEXP fn_ini   = PROTECT(allocVector(STRSXP, %d));pro++;\n",fdi);
   sAppend(&sbOut, "    SEXP dfdy     = PROTECT(allocVector(STRSXP, %d));pro++;\n",tb.ndfdy);
-  sAppendN(&sbOut, "    SEXP tran     = PROTECT(allocVector(STRSXP, 19));pro++;\n", 60);
-  sAppendN(&sbOut, "    SEXP trann    = PROTECT(allocVector(STRSXP, 19));pro++;\n", 60);
+  sAppendN(&sbOut, "    SEXP tran     = PROTECT(allocVector(STRSXP, 20));pro++;\n", 60);
+  sAppendN(&sbOut, "    SEXP trann    = PROTECT(allocVector(STRSXP, 20));pro++;\n", 60);
   sAppendN(&sbOut, "    SEXP mmd5     = PROTECT(allocVector(STRSXP, 2));pro++;\n", 59);
   sAppendN(&sbOut, "    SEXP mmd5n    = PROTECT(allocVector(STRSXP, 2));pro++;\n", 59);
   sAppendN(&sbOut, "    SEXP model    = PROTECT(allocVector(STRSXP, 1));pro++;\n", 59);
@@ -1980,6 +1980,9 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   sAppendN(&sbOut, "    SET_STRING_ELT(trann,18,mkChar(\"mtime\"));\n", 46);
   sAppend(&sbOut,  "    SET_STRING_ELT(tran, 18,mkChar(\"%smtime\"));\n", prefix);
 
+  sAppendN(&sbOut, "    SET_STRING_ELT(trann,19,mkChar(\"assignFuns\"));\n", 51);
+  sAppend(&sbOut,  "    SET_STRING_ELT(tran, 19,mkChar(\"%sassignFuns\"));\n", prefix);
+
   sAppendN(&sbOut, "    setAttrib(tran, R_NamesSymbol, trann);\n", 43);
   sAppendN(&sbOut, "    setAttrib(mmd5, R_NamesSymbol, mmd5n);\n", 43);
   sAppendN(&sbOut, "    setAttrib(model, R_NamesSymbol, modeln);\n", 45);
@@ -2004,9 +2007,11 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
 	  prefix,prefix);
   sAppend(&sbOut,"extern void %scalc_jac_lsoda(int *neq, double *t, double *A,int *ml, int *mu, double *JAC, int *nrowpd){\n  // Update all covariate parameters\n  %scalc_jac(neq, *t, A, JAC, *nrowpd);\n}\n",
 	  prefix, prefix);
-  sAppend(&sbOut,"\n//Initilize the dll to match RxODE's calls\nvoid R_init_%s(DllInfo *info){\n  // Get C callables on load; Otherwise it isn't thread safe\n", libname);
+  sAppend(&sbOut,"\n//Create function to call from R's main thread that assigns the required functions. Sometimes they don't get assigned.\nextern void %sassignFuns(){\n  _assignFuns();\n  }\n", prefix);
+  sAppend(&sbOut,"\n//Initialize the dll to match RxODE's calls\nvoid R_init_%s(DllInfo *info){\n  // Get C callables on load; Otherwise it isn't thread safe\n", libname);
   sAppendN(&sbOut, "  _assignFuns();\n", 17);
   /* sAppendN(&sbOut,"  _assign_ptr=(RxODE_assign_ptr) R_GetCCallable(\"RxODE\",\"RxODE_assign_fn_pointers\");\n  _rxRmModelLib=(_rxRmModelLibType) R_GetCCallable(\"RxODE\",\"rxRmModelLib\");\n  _rxGetModelLib=(_rxGetModelLibType) R_GetCCallable(\"RxODE\",\"rxGetModelLib\");\n  _RxODE_rxAssignPtr=(_rx_asgn)R_GetCCallable(\"RxODE\",\"_RxODE_rxAssignPtr\");\n  _rxIsCurrentC = (_rxIsCurrentC_type)R_GetCCallable(\"RxODE\",\"rxIsCurrentC\");\n  _sumPS  = (_rxSumType) R_GetCCallable(\"PreciseSums\",\"PreciseSums_sum_r\");\n  _prodPS = (_rxProdType) R_GetCCallable(\"PreciseSums\",\"PreciseSums_prod_r\");\n  _prodType=(RxODE_fn0i)R_GetCCallable(\"PreciseSums\", \"PreciseSums_prod_get\");\n  _sumType=(RxODE_fn0i)R_GetCCallable(\"PreciseSums\", \"PreciseSums_sum_get\");\n  _ptrid=(RxODE_fn0i)R_GetCCallable(\"RxODE\", \"RxODE_current_fn_pointer_id\");\n  _powerD=(RxODE_fn3i)R_GetCCallable(\"RxODE\", \"powerD\");\n  _powerDi=(RxODE_fn3i)R_GetCCallable(\"RxODE\", \"powerDi\");\n  _powerDD=(RxODE_fn3i)R_GetCCallable(\"RxODE\", \"powerDD\");\n  _powerDDD=(RxODE_fn3i)R_GetCCallable(\"RxODE\", \"powerDDD\");\n  solveLinB=(solveLinB_p)R_GetCCallable(\"RxODE\", \"solveLinB\");\n  _update_par_ptr_=(_update_par_ptr_p) R_GetCCallable(\"RxODE\",\"_update_par_ptr\");\n  // Register the outside functions\n", 1199); */
+  sAppend(&sbOut, "  R_RegisterCCallable(\"%s\",\"%sassignFuns\", (DL_FUNC) %sassignFuns);\n", libname, prefix, prefix);
   sAppend(&sbOut, "  R_RegisterCCallable(\"%s\",\"%stheta\", (DL_FUNC) %stheta);\n", libname, prefix, prefix);
   sAppend(&sbOut, "  R_RegisterCCallable(\"%s\",\"%sinis\",(DL_FUNC) %sinis);\n", libname, prefix, prefix);
   sAppend(&sbOut, "  R_RegisterCCallable(\"%s\",\"%sdydt\",(DL_FUNC) %sdydt);\n", libname, prefix, prefix);
@@ -2136,7 +2141,6 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 	  sAppendN(&sbOut,  "  (void)_pld;\n", 14);
 	}
       }
-      sAppendN(&sbOut, "  _assignFuns();\n", 17);
       if (show_ode == 3){
 	sAppendN(&sbOut, "  _update_par_ptr(0.0, _cSub, _solveData, _idx);\n", 49);
       } else if (show_ode == 6 || show_ode == 7 || show_ode == 8 || show_ode == 9){
@@ -2617,8 +2621,8 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
   int *iMtime  = INTEGER(sMtime);
   iMtime[0] = (int)nmtime;
   
-  SEXP tran  = PROTECT(allocVector(STRSXP, 19));pro++;
-  SEXP trann = PROTECT(allocVector(STRSXP, 19));pro++;
+  SEXP tran  = PROTECT(allocVector(STRSXP, 20));pro++;
+  SEXP trann = PROTECT(allocVector(STRSXP, 20));pro++;
 
   SEXP state    = PROTECT(allocVector(STRSXP,tb.statei));pro++;
   SEXP stateRmS = PROTECT(allocVector(INTSXP,tb.statei));pro++;
@@ -2876,6 +2880,10 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
   sprintf(buf,"%smtime",model_prefix);
   SET_STRING_ELT(trann,18,mkChar("mtime"));
   SET_STRING_ELT(tran, 18,mkChar(buf));
+
+  sprintf(buf,"%sassignFuns",model_prefix);
+  SET_STRING_ELT(trann,19,mkChar("assignFuns"));
+  SET_STRING_ELT(tran, 19,mkChar(buf));
 
   SET_STRING_ELT(modeln,0,mkChar("normModel"));
   SET_STRING_ELT(model,0,mkChar(sbNrm.s));

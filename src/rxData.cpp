@@ -4140,7 +4140,8 @@ List rxUpdateTrans_(List ret, std::string prefix, std::string libName){
 				   _["Lag"] = prefix + "Lag",
 				   _["Rate"] = prefix + "Rate",
 				   _["Dur"] = prefix + "Dur",
-				   _["mtime"] = prefix + "mtime");
+				   _["mtime"] = prefix + "mtime",
+				   _["assignFuns"] = prefix + "assignFuns");
   return(ret);
 }
 
