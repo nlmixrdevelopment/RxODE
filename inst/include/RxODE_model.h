@@ -47,8 +47,6 @@ typedef double (*RxODE_val) (rx_solve *rx, unsigned int id);
 typedef void (*RxODE_assign_ptr)(SEXP);
 typedef void (*RxODE_ode_solver_old_c)(int *neq,double *theta,double *time,int *evid,int *ntime,double *inits,double *dose,double *ret,double *atol,double *rtol,int *stiff,int *transit_abs,int *nlhs,double *lhs,int *rc);
 
-RxODE_fn3i _powerD, _powerDD, _powerDDD, _powerDi;
-
 RxODE_assign_ptr _assign_ptr = NULL;
 
 typedef void (*_rxRmModelLibType)(const char *inp);
@@ -183,10 +181,6 @@ static void _assignFuns(){
     _prodType=(RxODE_fn0i)R_GetCCallable("PreciseSums", "PreciseSums_prod_get");
     _sumType=(RxODE_fn0i)R_GetCCallable("PreciseSums", "PreciseSums_sum_get");
     _ptrid=(RxODE_fn0i)R_GetCCallable("RxODE", "RxODE_current_fn_pointer_id");
-    _powerD=(RxODE_fn3i)R_GetCCallable("RxODE", "powerD");
-    _powerDi=(RxODE_fn3i)R_GetCCallable("RxODE", "powerDi");
-    _powerDD=(RxODE_fn3i)R_GetCCallable("RxODE", "powerDD");
-    _powerDDD=(RxODE_fn3i)R_GetCCallable("RxODE", "powerDDD");
     solveLinB=(solveLinB_p)R_GetCCallable("RxODE", "solveLinB");
     _update_par_ptr = (_update_par_ptr_p) R_GetCCallable("RxODE","_update_par_ptr");
   }
