@@ -152,11 +152,13 @@ IntegerVector toCmt(RObject inCmt, CharacterVector state){
 //' @param obj Model to translate data 
 //' @param addCmt Add compartment to data frame, and drop units
 //' @param allTimeVar Treat all covariates as if they were time-varying
+//' @param keepDosingOnly keep the individuals who only have dosing records and any
+//'   trailing dosing records after the last observation.
 //' @return Object for solving in RxODE
 //' @keywords internal
 //' @export
 //[[Rcpp::export]]
-List etTrans(List inData, const RObject &obj, bool addCmt=false, bool allTimeVar=false){
+List etTrans(List inData, const RObject &obj, bool addCmt=false, bool allTimeVar=false,bool keepDosingOnly=false){
   List mv = rxModelVars_(obj);
   CharacterVector trans = mv["trans"];
   if (rxIs(inData,"rxEtTran")){
@@ -824,25 +826,29 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false, bool allTimeVar
     }
   }
   bool redoId=false;
-  if (obsId.size() != allId.size()){
-    std::string idWarn = "IDs without observations dropped:";
-    for (j = allId.size(); j--;){
-      if (std::find(obsId.begin(), obsId.end(), allId[j]) == obsId.end()){
-	idWarn = idWarn + " " +as<std::string>(idLvl[allId[j]-1]);
-	doseId.push_back(allId[j]);
+  if (!keepDosingOnly){
+    if (obsId.size() != allId.size()){
+      std::string idWarn = "IDs without observations dropped:";
+      for (j = allId.size(); j--;){
+	if (std::find(obsId.begin(), obsId.end(), allId[j]) == obsId.end()){
+	  idWarn = idWarn + " " +as<std::string>(idLvl[allId[j]-1]);
+	  doseId.push_back(allId[j]);
+	}
       }
+      warning(idWarn.c_str());
+      redoId=true;
     }
-    warning(idWarn.c_str());
-    redoId=true;
   }
   std::sort(idxO.begin(),idxO.end(),
-	    [id,time,evid,amt,doseId](int a, int b){
+	    [id,time,evid,amt,doseId,keepDosingOnly](int a, int b){
 	      // Bad IDs are pushed to the end to be popped off.
-	      if (!(std::find(doseId.begin(), doseId.end(), id[a]) == doseId.end())){
-		return false;
-	      }
-	      if (!(std::find(doseId.begin(), doseId.end(), id[b]) == doseId.end())){
-		return true;
+	      if (!keepDosingOnly){
+		if (!(std::find(doseId.begin(), doseId.end(), id[a]) == doseId.end())){
+		  return false;
+		}
+		if (!(std::find(doseId.begin(), doseId.end(), id[b]) == doseId.end())){
+		  return true;
+		}
 	      }
 	      if (id[a] == id[b]){
 		if (time[a] == time[b]){
@@ -869,27 +875,31 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false, bool allTimeVar
 	      }
 	      return id[a] < id[b];
 	    });
-  while (std::find(doseId.begin(), doseId.end(), id[idxO.back()]) != doseId.end()){
-    idxO.pop_back();
+  if (!keepDosingOnly){
+    while (std::find(doseId.begin(), doseId.end(), id[idxO.back()]) != doseId.end()){
+      idxO.pop_back();
+    }
   }
   int lastId = id[idxO.back()]+42;
   int rmAmt = 0;
   // Remove trailing doses
-  for (j =idxO.size(); j--; ){
-    if (lastId != id[idxO[j]]){
-      // New id
-      lastId = id[idxO[j]];
-      while (isDose(evid[idxO[j]]) && j--){
-	idxO[j+1] = -1;
-	rmAmt++;
+  if (!keepDosingOnly){
+    for (j =idxO.size(); j--; ){
+      if (lastId != id[idxO[j]]){
+	// New id
+	lastId = id[idxO[j]];
+	while (isDose(evid[idxO[j]]) && j--){
+	  idxO[j+1] = -1;
+	  rmAmt++;
+	}
+	if (j <= 0) break;
       }
-      if (j <= 0) break;
     }
-  }
-  // Remove trailing dose from idO
-  while(idxO.back() == -1){
-    idxO.pop_back();
-    rmAmt--;
+    // Remove trailing dose from idO
+    while(idxO.back() == -1){
+      idxO.pop_back();
+      rmAmt--;
+    }
   }
   nid = obsId.size();
   NumericVector fPars = NumericVector(pars.size()*nid, NA_REAL);
@@ -1127,6 +1137,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false, bool allTimeVar
   e["cmtInfo"] = cmtInfo;
   e["idLvl"] = idLvl;
   e["allTimeVar"] = allTimeVar;
+  e["keepDosingOnly"] = true;
   e.attr("class") = "rxHidden";
   cls.attr(".RxODE.lst") = e;
   tmp = lstF[0];

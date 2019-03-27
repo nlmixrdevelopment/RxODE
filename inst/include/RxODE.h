@@ -161,6 +161,7 @@ rx_solving_options_ind *rxOptionsIniEnsure(int mx);
 void rxUpdateFuns(SEXP trans);
 
 #define _eps sqrt(DOUBLE_EPS)
+static double _powerDi(double x, double lambda, int yj)  __attribute__((unused));
 static double _powerDi(double x, double lambda, int yj){
   double x0=x, ret, l2;
   switch(yj){
@@ -200,6 +201,7 @@ static double _powerDi(double x, double lambda, int yj){
   return NA_REAL;
 }
 
+static double _powerD(double x, double lambda, int yj)  __attribute__((unused));
 static double _powerD(double x, double lambda, int yj){
   double x0=x, l2;
   switch (yj){
@@ -227,6 +229,7 @@ static double _powerD(double x, double lambda, int yj){
   return NA_REAL;
 }
 
+static double _powerDD(double x, double lambda, int yj)  __attribute__((unused));
 static double _powerDD(double x, double lambda, int yj){
   double x0 = x;
   switch(yj){
@@ -254,6 +257,7 @@ static double _powerDD(double x, double lambda, int yj){
   return NA_REAL;
 }
 
+static double _powerDDD(double x, double lambda, int yj) __attribute__((unused));
 static double _powerDDD(double x, double lambda, int yj){
   double x0 = x;
   switch(yj){
@@ -281,6 +285,7 @@ static double _powerDDD(double x, double lambda, int yj){
   return NA_REAL;
 }
 
+static double _powerL(double x, double lambda, int yj) __attribute__((unused));
 static double _powerL(double x, double lambda, int yj){
   double x0 = x;
   switch(yj){
@@ -315,6 +320,7 @@ static double _powerL(double x, double lambda, int yj){
   // log(dh/dy) = (1-lambda)*log(-x+1)
 }
 
+static double _powerDL(double x, double lambda, int yj) __attribute__((unused));
 static double _powerDL(double x, double lambda, int yj){
   // d(logLik/dlambda)
   double x0 = x;
