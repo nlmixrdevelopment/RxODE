@@ -52,6 +52,12 @@ rxLinCmtTrans <- function(modText){
     if (length(.w) == 0){
         return(modText);
     } else if (length(.w) == 1){
+        .regIniCenter  <- rex::rex(start,any_spaces,"central",any_spaces,
+                                   "(",any_spaces,"0",any_spaces, ")", any_spaces,
+                                   or("=", "<-"))
+        .regIniDepot  <- rex::rex(start,any_spaces,"depot",any_spaces,
+                                  "(",any_spaces,"0",any_spaces, ")", any_spaces,
+                                  or("=", "<-"))
         .regFdepot <- rex::rex(start, any_spaces, or("f", "F"),  any_spaces, "(",
                                any_spaces, "depot", any_spaces,
                                ")",any_spaces,or("=","<-"),any_spaces,capture(anything));
@@ -200,6 +206,10 @@ rxLinCmtTrans <- function(modText){
         } else {
             .lines[length(.lines) + 1]  <- sprintf("rx_dur ~ 0")
         }
+        .iniDepot  <- which(regexpr(.regIniDepot, .txt)!=-1);
+        if (length(.iniDepot)!=0L) stop("depot(0) is not supported in the solved system, use an ODE.");
+        .iniCenter  <- which(regexpr(.regIniCenter, .txt)!=-1);
+        if (length(.iniCenter)!=0L) stop("central(0) is not supported in the solved system use an ODE.");
         .lagDepot  <- which(regexpr(.regLagDepot,.txt)!=-1)
         if (length(.lagDepot)==1L){
             .tmp <- .txt[.lagDepot];

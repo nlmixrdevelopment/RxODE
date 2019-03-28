@@ -602,6 +602,7 @@ rxSolve(m1, ev) %>% plot(C2)
 By using the `ss=2` flag, you can use the super-positioning principle
 in linear kinetics to get steady state nonstandard dosing
 (i.e. morning 100 mg vs evening 150 mg). This is done by:
+
  - Saving all the state values
  - Resetting all the states and solving the system to steady state
  - Adding back all the prior state values

@@ -4,7 +4,8 @@
 \alias{etTrans}
 \title{Event translation for RxODE}
 \usage{
-etTrans(inData, obj, addCmt = FALSE, allTimeVar = FALSE)
+etTrans(inData, obj, addCmt = FALSE, allTimeVar = FALSE,
+  keepDosingOnly = FALSE)
 }
 \arguments{
 \item{inData}{Data frame to translate}
@@ -14,6 +15,9 @@ etTrans(inData, obj, addCmt = FALSE, allTimeVar = FALSE)
 \item{addCmt}{Add compartment to data frame, and drop units}
 
 \item{allTimeVar}{Treat all covariates as if they were time-varying}
+
+\item{keepDosingOnly}{keep the individuals who only have dosing records and any
+trailing dosing records after the last observation.}
 }
 \value{
 Object for solving in RxODE

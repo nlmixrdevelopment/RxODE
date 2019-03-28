@@ -1,5 +1,5 @@
 ---
-title: "RxODE Solved Systems and ODEs"
+title: "RxODE additional model types"
 author: "Matthew L. Fidler, Melissa Hallow, and Wenping Wang"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
@@ -14,6 +14,88 @@ options(knitr.table.format = "html")
 htmltools::img(src = knitr::image_uri("logo.png"),
                alt = 'RxODE',
                style = 'position:absolute; top:0; right:0; padding:10px; border: 0;')
+```
+
+As suggested in the name, RxODE is often concerned with solutions to
+ordinary differential equations.  The syntax of the ODE models is
+covered in the [RxODE syntax vignette](RxODE-syntax.html)
+
+However, you can create other types of models with RxODE:
+
+- Prediction only models without ODE systems in them (`$PRED` models
+  in NONMEM).
+- 1, 2 and 3 solved compartment models (`ADVAN/TRANS` in NONMEM).
+- Mixing any of these items with ODE systems.
+
+# Prediction only models
+
+Prediction only models are simple to create.  You use the RxODE syntax
+without any ODE systems in them.  A very simple example is a one-compartment model.
+
+```{r}
+mod <- RxODE({
+    ipre <- 10 * exp(-ke * t);
+})
+mod
+```
+
+Solving the RxODE models are the same as saving the simple ODE system, but faster of course.
+
+```{r}
+et  <- et(seq(0,24,length.out=50))
+cmt1 <- rxSolve(mod,et,params=c(ke=0.5))
+cmt1
+```
+
+# Solved compartment models
+
+Solved models are also simple to create. You simply place the
+`linCmt()` psuedo-function into your code.  The `linCmt()` function
+figures out the type of model to use based on the parameter names
+specified.
+
+Most often, pharmacometric models are parameterized in terms of volume
+and clearances. Clearances are specified by NONMEM-style names of
+`CL`, `Q`, `Q1`, `Q2`, etc. or distributional clearances `CLD`,
+`CLD2`. Volumes are specified by Central (`VC` or `V`),
+Peripheral/Tissue (`VP`, `VT`).
+
+Another popular parameterization is in terms of micro-constants. RxODE
+assumes compartment `1` is the central compartment.  The elimination
+constant would be specified by `K`, `Ke` or `Kel`.
+
+Once the `linCmt()` sleuthing is complete, the `1`, `2` or `3`
+compartment model solution is used as the value of `linCmt()`.
+
+The compartments where you can dose in a linear solved system are
+`depot` and `central` when there is an linear absorption constant in
+the model `ka`.  Without any additional ODEs, these compartments are
+numbered `depot=1` and `central=2`.
+
+When the absorption constant `ka` is missing, you may only dose to the
+`central` compartment.  Without any additional ODEs the compartment
+number is `central=1`.
+
+These compartments take the same sort of events that a ODE model can
+take, and are discussed in the [RxODE events
+vignette](RxODE-events.html). 
+
+```{r}
+mod <- RxODE({
+    ke <- 0.5
+    ipre <- linCmt();
+})
+mod
+```
+
+This then acts as an ODE model; You specify a dose to the depot
+compartment and then solve the system:
+
+```{r}
+et  <- et(amt=10,time=0,cmt=depot) %>%
+    et(seq(0,24,length.out=50))
+cmt1 <- rxSolve(mod,et,params=c(ke=0.5))
+cmt1
 ```
 
 # Mixing Solved Systems and ODEs.
@@ -59,22 +141,6 @@ mod2 <- RxODE({
 })
 ```
 
-Like a Sherlock Holmes on the case of a mystery, the `linCmt()`
-function figures out the type of model to use based on the parameter
-names specified.
-
-Most often, pharmacometric models are parameterized in terms of volume
-and clearances. Clearances are specified by NONMEM-style names of
-`CL`, `Q`, `Q1`, `Q2`, etc. or distributional clearances `CLD`,
-`CLD2`. Volumes are specified by Central (`VC` or `V`),
-Peripheral/Tissue (`VP`, `VT`).
-
-Another popular parameterization is in terms of micro-constants. RxODE assumes
-compartment `1` is the central compartment.  The elimination constant
-would be specified by `K`, `Ke` or `Kel`.
-
-Once the `linCmt()` sleuthing is complete, the `1`, `2` or `3`
-compartment model solution is used as the value of `linCmt()`.
 
 This allows the indirect response model above to assign the
 2-compartment model to the `C2` variable and the used in the indirect

@@ -50,7 +50,7 @@ describes the communication of variables between `R` and the
 ## Syntax
 
 An `RxODE` model specification consists of one or more 
-statements terminated by semi-colons `;` and
+statements optionally terminated by semi-colons `;` and
 optional comments (comments are delimited by `#` and an 
 end-of-line). 
 
@@ -106,9 +106,8 @@ factorial operator and function (either `!` or `factorial` as in R)
 can be used. Notice that the modulo operator `%` is currently
 unsupported.
 
-You may also access the R's functions in
-the
-[R math libraries](https://cran.r-project.org/doc/manuals/r-release/R-exts.html#Numerical-analysis-subroutines),
+You may also access the R's functions in the [R math
+libraries](https://cran.r-project.org/doc/manuals/r-release/R-exts.html#Numerical-analysis-subroutines),
 like `lgammafn` for the log gamma function
 
 
@@ -133,14 +132,18 @@ Identifiers in a model specification can refer to:
 * Others, as created by assignments as part of the model specification;
   these are referred as *LHS* (left-hand side) variable.
 
-Currently, the `RxODE` modeling language only recognizes system state 
-variables and "parameters", thus, any values that need to be passed 
-from R to the ODE model (e.g., `age`) should be passed in the `params` 
-argument of the integrator function `solve()`.
+Currently, the `RxODE` modeling language only recognizes system state
+variables and "parameters", thus, any values that need to be passed
+from R to the ODE model (e.g., `age`) should be either passed in the
+`params` argument of the integrator function `solve()` or be in the
+supplied event data-set.
 
-Sometimes RxODE generates variables that are fed back to RxODE.  These
-variables start with the `rx` prefix.  To avoid any problems, it is
-suggested to not use these variables starting with the `rx` prefix.
+Sometimes RxODE generates variables that are fed back to RxODE.
+Similarly, nlmixr generates some variables that are used in nlmixr
+estimation and simulation.  These variables start with the either the
+`rx` or `nlmixr` prefixes.  To avoid any problems, it is suggested to
+not use these variables starting with either the `rx` or `nlmixr`
+prefixes.
 
 
 ## Interface and data handling between R and the generated C code
