@@ -311,6 +311,28 @@ List etSort(List curEt){
   return newEt;
 }
 
+List etSimulate(List curEt){
+  CharacterVector cls = clone(as<CharacterVector>(curEt.attr("class")));
+  List lst = clone(curEt);
+  NumericVector time = lst["time"];
+  NumericVector low = lst["low"];
+  NumericVector high = lst["high"];
+  bool recalcTime=false;
+  for (int i = time.size(); i--;){
+    if (!ISNA(low[i]) && !ISNA(high[i])){
+      time[i] = Rf_runif(low[i], high[i]);
+      recalcTime=true;
+    }
+  }
+  if (!recalcTime){
+    warning("The event table wasn't updated (no dose/sampling windows).");
+    return curEt;
+  } else {
+    lst.attr("class") = cls;
+    return etSort(lst);
+  }
+}
+
 
 List etAddWindow(List windowLst, IntegerVector IDs, RObject cmt, bool turnOnShowCmt, List curEt){
   std::vector<double> time = as<std::vector<double>>(curEt["time"]);
@@ -1944,6 +1966,8 @@ RObject et_(List input, List et__){
 	  return e["nobs"];
 	} else if (nm[0] == "get.dose"){
 	  return e["nobs"];
+	} else if (nm[0] == "simulate"){
+	  return etUpdateObj(etSimulate(as<List>(curEt)), doUpdateObj, inputSolve);
 	} else if (nm[0] == "copy"){
 	  // Make sure that the object is cloned
 	  return etUpdateObj(as<List>(curEt),false, false);

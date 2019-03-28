@@ -263,6 +263,13 @@ et.default <- function(...,time, amt, evid, cmt, ii, addl, ss, rate, dur, until,
     return(.Call(`_RxODE_etUpdate`, obj, arg, NULL, exact))
 }
 
+##' @export
+simulate.rxEt <- function (object, nsim = 1, seed = NULL, ...){
+    if (!missing(nsim)) warning("'nsim' is ignored when simulating event tables");
+    if(!is.null(seed)) set.seed(seed);
+    return(.Call(`_RxODE_et_`, list(simulate=TRUE), object))
+}
+
 
 ##'@export
 print.rxEt <- function(x,...){
