@@ -88,6 +88,13 @@ rxPermissive({
     ## now resize back up
     et3 <- et2 %>% et(id=1:10)
 
+    test_that("Using simulate with et without windows will warn",{
+        f1 <- as.data.frame(et3)
+        f2 <- suppressWarnings({as.data.frame(simulate(et3))})
+        expect_equal(f1$time,f2$time);
+        expect_warning(simulate(et3));
+    })
+
 
 
     et3 <- et3 %>% set_units(mg);
@@ -306,6 +313,18 @@ rxPermissive({
                   c(12,24))) %>%
         et(amt=10) %>%
         et(c(11,13),amt=10,addl=3,ii=12)
+
+    test_that("Using simulate with et works and gives a different data frame",{
+        et2 <- as.data.frame(simulate(et))
+        et1 <- as.data.frame(et)
+        expect_false(all(et1$time==et2$time))
+        et3 <- as.data.frame(et);
+        expect_true(all(et1$time==et3$time))
+        et$simulate();
+        et3 <- as.data.frame(et)
+        expect_false(all(et1$time==et3$time))
+
+    })
 
     test_that("Low/High middle tests; i.e windows",{
         et2 <- et[which(!is.na(et$low)),]
