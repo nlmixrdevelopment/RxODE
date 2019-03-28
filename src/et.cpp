@@ -1885,7 +1885,9 @@ RObject et_(List input, List et__){
     else if (inN[i] == "ss") ssIx = i;
     else if (inN[i] == "rate") rateIx = i;
     else if (inN[i] == "dur" || inN[i] == "duration") durIx = i;
-    else if (inN[i] != "" &&  !doUpdateObj) stop("unused argument '%s'", (as<std::string>(inN[i])).c_str());
+    else if (inN[i] != "" && inN[i] != "simulate" &&  !doUpdateObj){
+      stop("unused argument '%s'", (as<std::string>(inN[i])).c_str());
+    }
   }
   // missing argument name handling.
   for (i = 0; i <(int)inN.size(); i++){
