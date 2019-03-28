@@ -2594,7 +2594,7 @@ SEXP rxSolve_(const RObject &obj,
 	      nSub0++;
 	    }
 	    if (isObs(evid[j])) rx->nobs++;
-	    if (evid[j] == 0) rx->nobs2++;
+	    if (evid[j] == 2) rx->nobs2++;
 	  }
 	} else {
 	  nSub0 =1;
@@ -2603,7 +2603,7 @@ SEXP rxSolve_(const RObject &obj,
           rx->nall = evid.size();
           for (unsigned int j =rx->nall; j--;){
             if (isObs(evid[j])) rx->nobs++;
-	    if (evid[j] == 0) rx->nobs2++;
+	    if (evid[j] == 2) rx->nobs2++;
           }
 	}
       }
@@ -2615,7 +2615,7 @@ SEXP rxSolve_(const RObject &obj,
       }
       if (addDosing.isNull()){
 	// only evid=0
-	curObs= rx->nobs2;
+	curObs= rx->nobs - rx->nobs2;
       } else {
 	LogicalVector addDosing1 = as<LogicalVector>(addDosing);
 	if (LogicalVector::is_na(addDosing1[0])){
@@ -2829,7 +2829,6 @@ SEXP rxSolve_(const RObject &obj,
           ndoses++; nall++; j++;
         } else {
           nobs++; nobst++; nall++;
-	  if (_globals.gevid[i] == 0) nobs2++;
 	  if (!ISNA(tlast)){
             tmp = time0[i]-tlast;
             if (tmp < 0){
