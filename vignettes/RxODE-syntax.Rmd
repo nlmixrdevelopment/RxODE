@@ -69,6 +69,14 @@ be:
 - special **initial-condition** assignments where the left hand
   specifies the compartment of the initial condition being specified,
   e.g. `depot(0) = 0`
+- special model event changes including **bioavailability**
+  (`f(depot)=1`), **lag time** (`lag(depot)=0`), **modeled rate**
+  (`rate(depot)=2`) and **modeled duration** (`dur(depot)=2`). An
+  example of these model features and the event specification for the
+  modeled infusions the RxODE data specification is found in [RxODE
+  events vignette](RxODE-events.html).
+- special change point syntax, or model times.  These model times are
+  specified by `mtime(var)=time`
 - special **Jacobian-derivative** assignments, where the left hand
   specifies the change in the compartment ode with respect to a
   variable.  For example, if `d/dt(y) = dy`, then a Jacobian for this
@@ -121,6 +129,7 @@ underscore `_` or period `.` characters, but the first character
 cannot be a digit or underscore `_`.
 
 Identifiers in a model specification can refer to:
+
 * State variables in the dynamic system (e.g., compartments in a
   pharmacokinetics model).
 * Implied input variable, `t` (time), `tlast` (last time point), and 

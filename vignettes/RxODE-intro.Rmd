@@ -19,6 +19,7 @@ htmltools::img(src = knitr::image_uri("logo.png"),
 ```
 
 # Introduction
+
 `RxODE` is an R package that facilitates simulation with ODE models in
 R. It is designed with pharmacometrics models in mind, but can be
 applied more generally to any ODE model.
@@ -159,10 +160,13 @@ below:
 library(ggplot2)
 plot(x,C2) + ylab("Central Concentration") + xlab("Time");
 ```
+
 Or, 
+
 ```{r}
 plot(x,eff)  + ylab("Effect") + xlab("Time");
 ```
+
 Note that the labels are automatically labeled with the units from the initial event table. This is because 
 RxODE uses the `units` package to handle units and `ggforce` to handle the plotting.
 

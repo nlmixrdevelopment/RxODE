@@ -22,13 +22,17 @@ d/dt(blood)     = a*intestine - b*blood
         et(time=0.2,cmt="-intestine") %>%
         as.data.frame
 
-    ett1 <- RxODE:::etTrans(et, mod)
-    tmp1 <- sort(unique(ett1$evid));
+    test_that("error for empty data",{
+        expect_error(RxODE:::etTrans(et, mod));
+    })
 
-    et$cmt <- factor(et$cmt)
-    ett2 <- RxODE:::etTrans(et, mod);
+    ett1 <- RxODE:::etTrans(et, mod, keepDosingOnly=TRUE)
+    tmp1 <- sort(unique(ett1$EVID));
 
-    tmp2 <- sort(unique(ett2$evid));
+    et$cmt <- factor(et$CMT)
+    ett2 <- RxODE:::etTrans(et, mod, keepDosingOnly=TRUE);
+
+    tmp2 <- sort(unique(ett2$EVID));
 
     test_that("factor and character give same compartment information",{
         expect_equal(attr(class(ett2), ".RxODE.lst")$cmtInfo, attr(class(ett1), ".RxODE.lst")$cmtInfo);
@@ -48,9 +52,9 @@ d/dt(blood)     = a*intestine - b*blood
         et(amt=3,time=0.5,cmt="-out") %>% as.data.frame
 
     test_that("error for negative non ODE compartments",{
-        expect_error(RxODE:::etTrans(et, mod))
+        expect_error(RxODE:::etTrans(et, mod, keepDosingOnly=TRUE))
         et$cmt <- factor(et$cmt)
-        expect_error(RxODE:::etTrans(et, mod))
+        expect_error(RxODE:::etTrans(et, mod, keepDosingOnly=TRUE))
     })
 
     et <- eventTable()
@@ -61,15 +65,15 @@ d/dt(blood)     = a*intestine - b*blood
         et(amt=3,time=0.5,cmt="-out") %>% as.data.frame
 
     test_that("error for negative non ODE compartments after defined compartment", {
-        expect_error(RxODE:::etTrans(et, mod))
+        expect_error(RxODE:::etTrans(et, mod, keepDosingOnly=TRUE))
         et$cmt <- factor(et$cmt)
-        expect_error(RxODE:::etTrans(et, mod))
+        expect_error(RxODE:::etTrans(et, mod, keepDosingOnly=TRUE))
     })
 
     et <- et() %>% et(amt=3,time=0.24,evid=4)
 
     test_that("EVID=4 makes sense", {
-        expect_equal(RxODE:::etTrans(et, mod)$evid, c(3L, 101L))
+        expect_equal(RxODE:::etTrans(et, mod, keepDosingOnly=TRUE)$EVID, c(3L, 101L))
     })
 
 
@@ -551,7 +555,7 @@ d/dt(blood)     = a*intestine - b*blood
 297L, 298L, 299L, 300L, 301L), class = "data.frame")
 
     test_that("strange rate doesn't affect model",{
-        expect_false(any(etTrans(dat,mod) < 0))
+        expect_false(any(etTrans(dat,mod)$AMT < 0,na.rm=TRUE))
     })
 
 }, cran=TRUE, silent=TRUE)

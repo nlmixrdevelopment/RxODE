@@ -83,6 +83,7 @@ vignette](RxODE-events.html).
 ```{r}
 mod <- RxODE({
     ke <- 0.5
+    V <- 1
     ipre <- linCmt();
 })
 mod

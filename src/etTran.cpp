@@ -876,10 +876,11 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false, bool allTimeVar
 	      return id[a] < id[b];
 	    });
   if (!keepDosingOnly){
-    while (std::find(doseId.begin(), doseId.end(), id[idxO.back()]) != doseId.end()){
+    while (idxO.size() > 0 && std::find(doseId.begin(), doseId.end(), id[idxO.back()]) != doseId.end()){
       idxO.pop_back();
     }
   }
+  if (idxO.size()==0) stop("Empty data.");
   int lastId = id[idxO.back()]+42;
   int rmAmt = 0;
   // Remove trailing doses
@@ -896,11 +897,12 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false, bool allTimeVar
       }
     }
     // Remove trailing dose from idO
-    while(idxO.back() == -1){
+    while(idxO.size() > 0 && idxO.back() == -1){
       idxO.pop_back();
       rmAmt--;
     }
   }
+  if (idxO.size()-rmAmt <= 0) stop("Empty data.");
   nid = obsId.size();
   NumericVector fPars = NumericVector(pars.size()*nid, NA_REAL);
   // sorted create the vectors/list
