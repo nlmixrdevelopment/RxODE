@@ -2760,7 +2760,7 @@ SEXP rxSolve_(const RObject &obj,
       // Get the number of subjects
       // Get the number of observations
       // Get the number of doses
-      unsigned int nall = 0, nobst=0, lasti =0, ii=0, nobs2=0;
+      unsigned int nall = 0, nobst=0, lasti =0, ii=0, nobs2t=0;
       nsub = 0;
       ind = &(rx->subjects[0]);
       ind->idx=0;
@@ -2817,7 +2817,6 @@ SEXP rxSolve_(const RObject &obj,
 	  j=i;
 	  ndoses=0;
 	  nobs=0;
-	  nobs2=0;
 	  tlast = NA_REAL;
         }
 	// Create index
@@ -2829,7 +2828,7 @@ SEXP rxSolve_(const RObject &obj,
           ndoses++; nall++; j++;
         } else {
           nobs++; nobst++; nall++;
-	  if (_globals.gevid[i] == 0) nobs2++;
+	  if (_globals.gevid[i] == 0) nobs2t++;
 	  if (!ISNA(tlast)){
             tmp = time0[i]-tlast;
             if (tmp < 0){
@@ -2857,7 +2856,7 @@ SEXP rxSolve_(const RObject &obj,
 	hmax2  = hmax2m;
       }
       rx->nobs = nobst;
-      rx->nobs2 = nobs2;
+      rx->nobs2 = nobs2t;
       rx->nall = nall;
       // Finalize the prior individual
       ind->n_all_times    = ndoses+nobs;
