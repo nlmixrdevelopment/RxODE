@@ -2588,6 +2588,8 @@ SEXP rxSolve_(const RObject &obj,
 	  IntegerVector evid  = as<IntegerVector>(dataf[rxcEvid]);
 	  int lastid= id[id.size()-1]+42;
 	  rx->nall = evid.size();
+	  rx->nobs=0;
+	  rx->nobs2=0;
 	  for (unsigned int j = rx->nall; j--;){
 	    if (lastid != id[j]){
 	      lastid=id[j];
@@ -2601,6 +2603,8 @@ SEXP rxSolve_(const RObject &obj,
 	  DataFrame dataf = as<DataFrame>(ev1);
           IntegerVector evid  = as<IntegerVector>(dataf[rxcEvid]);
           rx->nall = evid.size();
+	  rx->nobs=0;
+	  rx->nobs2=0;
           for (unsigned int j =rx->nall; j--;){
             if (isObs(evid[j])) rx->nobs++;
 	    if (evid[j] == 2) rx->nobs2++;
@@ -2829,6 +2833,7 @@ SEXP rxSolve_(const RObject &obj,
           ndoses++; nall++; j++;
         } else {
           nobs++; nobst++; nall++;
+	  if (_globals.gevid[i] == 0) nobs2++;
 	  if (!ISNA(tlast)){
             tmp = time0[i]-tlast;
             if (tmp < 0){
