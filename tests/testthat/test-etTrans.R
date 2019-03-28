@@ -23,13 +23,13 @@ d/dt(blood)     = a*intestine - b*blood
         as.data.frame
 
     test_that("error for empty data",{
-        expect_error(RxODE:::etTrans(et, mod));
+        expect_error(suppressWarnings({RxODE:::etTrans(et, mod)}));
     })
 
     ett1 <- RxODE:::etTrans(et, mod, keepDosingOnly=TRUE)
     tmp1 <- sort(unique(ett1$EVID));
 
-    et$cmt <- factor(et$CMT)
+    et$cmt <- factor(et$cmt)
     ett2 <- RxODE:::etTrans(et, mod, keepDosingOnly=TRUE);
 
     tmp2 <- sort(unique(ett2$EVID));
