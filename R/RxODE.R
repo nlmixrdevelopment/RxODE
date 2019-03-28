@@ -1204,7 +1204,7 @@ rxCompile.rxModelVars <-  function(model, # Model
             }
             message("");
             if (!(file.exists(.cDllFile))){
-                error("Error building model on another thread.");
+                stop("Error building model on another thread.");
             }
         } else {
             sink(.lock);cat("\n");sink();
