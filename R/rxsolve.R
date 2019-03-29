@@ -17,7 +17,8 @@ rxControl <- function(scale = NULL,
                       seed=NULL, nsim=NULL,
                       minSS=7, maxSS=7000,
                       atolSS=atol, rtolSS=rtol,
-                      params=NULL,events=NULL){
+                      params=NULL,events=NULL,
+                      istateReset=TRUE){
     .xtra <- list(...);
     if (is.null(transitAbs) && !is.null(.xtra$transit_abs)){
         transitAbs <- .xtra$transit_abs;
@@ -134,7 +135,8 @@ rxControl <- function(scale = NULL,
                  seed=seed,
                  nsim=nsim,
                  minSS=minSS, maxSS=maxSS,
-                 atolSS=atolSS, rtolSS=rtolSS);
+                 atolSS=atolSS, rtolSS=rtolSS,
+                 istateReset=istateReset);
     return(.ret)
 }
 
@@ -380,6 +382,10 @@ rxControl <- function(scale = NULL,
 ##'
 ##' @param rtolSS Relative tolerance to check if a solution arrived at
 ##'     steady state.
+##'
+##' @param istateReset When TRUE, reset the ISTATE variable to 1 for
+##'     lsoda and liblsoda with doses, like deSolve; When FALSE, do
+##'     not reset the ISTATE variable with doses.
 ##'
 ##' @return An \dQuote{rxSolve} solve object that stores the solved
 ##'     value in a matrix with as many rows as there are sampled time

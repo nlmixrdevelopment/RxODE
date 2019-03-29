@@ -763,6 +763,7 @@ void handleSS(int *neq,
 	      rx_solving_options_ind *ind,
 	      t_update_inis u_inis,
 	      void *ctx){
+  rx_solve *rx = &rx_global;
   int j;
   int doSS2=0;
   /* Rprintf("evid: %d\n", ind->evid[ind->ixds-1]); */
@@ -815,7 +816,7 @@ void handleSS(int *neq,
     }
     memcpy(yp,op->inits, neq[0]*sizeof(double));
     u_inis(neq[1], yp); // Update initial conditions @ current time
-    *istate = 1;
+    if (rx->istateReset) *istate = 1;
     int k;
     double curSum = 0.0, lastSum=0.0, xp2, xout2;
     xp2 = xp;
@@ -1010,7 +1011,7 @@ extern void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda_opt
 	}
 	memcpy(yp,inits, neq[0]*sizeof(double));
 	u_inis(neq[1], yp); // Update initial conditions @ current time
-	ctx.state = 1;
+	if (rx->istateReset) ctx.state = 1;
 	xp=xout;
 	ind->ixds++;
       } else if (handle_evid(evid[ind->ix[i]], neq[0], BadDose, InfusionRate, dose, yp,
@@ -1020,7 +1021,7 @@ extern void ind_liblsoda0(rx_solve *rx, rx_solving_options *op, struct lsoda_opt
 	if (ind->wh0 == 30){
 	  ret[ind->cmt] = inits[ind->cmt];
 	}
-	ctx.state = 1;
+	if (rx->istateReset) ctx.state = 1;
 	xp = xout;
       }
       if (i+1 != nx) memcpy(ret+neq[0]*(i+1), yp, neq[0]*sizeof(double));
@@ -1307,7 +1308,7 @@ extern void ind_lsoda0(rx_solve *rx, rx_solving_options *op, int solveid, int *n
 	}
 	memcpy(yp, op->inits, neq[0]*sizeof(double));
 	u_inis(neq[1], yp); // Update initial conditions @ current time
-	istate = 1;
+	if (rx->istateReset) istate = 1;
 	ind->ixds++;
 	xp = xout;
       } else if (handle_evid(ind->evid[ind->ix[i]], neq[0], ind->BadDose, ind->InfusionRate, ind->dose, yp,
@@ -1317,7 +1318,7 @@ extern void ind_lsoda0(rx_solve *rx, rx_solving_options *op, int solveid, int *n
 	if (ind->wh0 == 30){
 	  ind->solve[ind->cmt] = op->inits[ind->cmt];
 	}
-	istate = 1;
+	if (rx->istateReset) istate = 1;
 	xp = xout;
       }
       // Copy to next solve so when assigned to yp=ind->solve[neq[0]*i]; it will be the prior values

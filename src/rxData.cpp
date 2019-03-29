@@ -2401,6 +2401,7 @@ SEXP rxSolve_(const RObject &obj,
     rx->needSort = as<int>(mv["needSort"]);
     rx->nMtime = as<int>(mv["nMtime"]);
     rx->add_cov = (int)(addCov);
+    rx->istateReset = as<int>(rxControl["istateReset"]);
     op->stiff = method;
     if (method != 2){
       op->cores =1;
