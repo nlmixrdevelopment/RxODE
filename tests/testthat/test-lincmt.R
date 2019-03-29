@@ -705,16 +705,18 @@ rxPermissive({
         d/dt(centr) = - CL*C2 - Q*C2 + Q*C3  - Q2*C2 + Q2*C4;
         d/dt(peri)  = Q*C2 - Q*C3;
         d / dt(peri2) = Q2 * C2 - Q2 * C4
+        rate(centr) = rt
     })
 
     sol.3c <- RxODE({
         ## double solvedC(double t, int parameterization, int cmt, unsigned int col, double p1, double p2, double p3, double p4, double p5, double p6, double p7, double p8);
         C2=linCmt(V, CL, V2, Q, Q2, V3);
+        rate(central) = rt
     })
 
     for (rt in seq(0.5, 1, 1.5)){
-        o.3c <- ode.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400, rt=rt), events=et)
         s.3c <- sol.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400, rt=rt), events=et)
+        o.3c <- ode.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400, rt=rt), events=et)
         test_that(sprintf("3 compartment solved models and ODEs same for rate-modeled infusion: %s", rt), {
             expect_equal(o.3c$C2, s.3c$C2,tolerance=1e-4)
         })

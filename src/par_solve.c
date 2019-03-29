@@ -373,8 +373,7 @@ void updateRate(int idx, rx_solving_options_ind *ind){
 	  error("Rate is zero/negative");
 	} else {
 	  // FIXME don't error out with linear compartmental model
-	  /* error("Modeled rate requested in event table, but not in model; use 'rate(cmt) ='; %d %d", */
-	  /* 	ind->cmt, op->neq); */
+	  error("Modeled rate requested in event table, but not in model; use 'rate(cmt) ='");
 	}
       }
       // error rate is zero/negative
