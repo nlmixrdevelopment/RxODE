@@ -27,7 +27,7 @@ rxControl(scale = NULL, method = c("liblsoda", "lsoda", "dop853"),
   dfSub = 0, dfObs = 0, returnType = c("rxSolve", "matrix",
   "data.frame", "data.frame.TBS"), seed = NULL, nsim = NULL,
   minSS = 7, maxSS = 7000, atolSS = atol, rtolSS = rtol,
-  params = NULL, events = NULL)
+  params = NULL, events = NULL, istateReset = TRUE)
 
 rxSolve(object, ...)
 
@@ -299,6 +299,10 @@ parameter identifiers used in the ODE specification;}
 \item{events}{an \code{eventTable} object describing the input
 (e.g., doses) to the dynamic system and observation sampling
 time points (see \code{\link{eventTable}});}
+
+\item{istateReset}{When TRUE, reset the ISTATE variable to 1 for
+lsoda and liblsoda with doses, like deSolve; When FALSE, do
+not reset the ISTATE variable with doses.}
 
 \item{object}{is a either a RxODE family of objects, or a file-name
 with a RxODE model specification, or a string with a RxODE

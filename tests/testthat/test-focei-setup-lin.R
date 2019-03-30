@@ -20,17 +20,25 @@ rxPermissive({
     }
 
     mod <- RxODE({
-        rx_ka ~ 0
-        rx_tlag ~ 0
-        rx_v ~ Vc
-        rx_k ~ Cl/Vc
-        rx_alpha ~ rx_k
-        rx_A ~ 1.0 / rx_v
-        rx_beta ~ 0
-        rx_B ~ 0
-        rx_gamma ~ 0
-        rx_C ~ 0
-        Central=solveLinB(rx__PTR__, t, 0, 0, 0, rx_A, rx_alpha, rx_B, rx_beta, rx_C, rx_gamma, rx_ka, rx_tlag);
+        rx_ka~0;
+        rx_rate~0;
+        rx_dur~0;
+        rx_tlag~0;
+        rx_tlag2~0;
+        rx_F~1;
+        rx_F2~1;
+        rx_v~Vc;
+        rx_k~Cl/Vc;
+        rx_alpha~rx_k;
+        rx_A~1.0/rx_v;
+        rx_A2~0.0;
+        rx_beta~0;
+        rx_B~0;
+        rx_B2~0;
+        rx_gamma~0;
+        rx_C~0;
+        rx_C2~0;
+        Central=solveLinB(rx__PTR__,t,0,rx_A,rx_A2,rx_alpha,rx_B,rx_B2,rx_beta,rx_C,rx_C2,rx_gamma,rx_ka,rx_tlag,rx_tlag2,rx_F,rx_F2,rx_rate,rx_dur);
     })
 
     ## 1 compartment model
@@ -58,17 +66,25 @@ rxPermissive({
     }
 
     mod <- RxODE({
-        rx_ka ~ KA
-        rx_tlag ~ 0
-        rx_v ~ Vc
-        rx_k ~ Cl/Vc
-        rx_alpha ~ rx_k
-        rx_A ~ rx_ka / (rx_ka - rx_alpha) / rx_v
-        rx_beta ~ 0
-        rx_B ~ 0
-        rx_gamma ~ 0
-        rx_C ~ 0
-        Central=solveLinB(rx__PTR__, t, 0, 0, 0, rx_A, rx_alpha, rx_B, rx_beta, rx_C, rx_gamma, rx_ka, rx_tlag);
+        rx_ka~KA;
+        rx_rate~0;
+        rx_dur~0;
+        rx_tlag~0;
+        rx_tlag2~0;
+        rx_F~1;
+        rx_F2~1;
+        rx_v~Vc;
+        rx_k~Cl/Vc;
+        rx_alpha~rx_k;
+        rx_A~rx_ka/(rx_ka-rx_alpha)/rx_v;
+        rx_A2~1.0/rx_v;
+        rx_beta~0;
+        rx_B~0;
+        rx_B2~0;
+        rx_gamma~0;
+        rx_C~0;
+        rx_C2~0;
+        Central=solveLinB(rx__PTR__,t,0,rx_A,rx_A2,rx_alpha,rx_B,rx_B2,rx_beta,rx_C,rx_C2,rx_gamma,rx_ka,rx_tlag,rx_tlag2,rx_F,rx_F2,rx_rate,rx_dur);
     })
 
     ## 1 compartment oral
@@ -81,19 +97,27 @@ rxPermissive({
     })
 
     mod <- RxODE({
-        rx_ka ~ 0
-        rx_tlag ~ 0
-        rx_v ~ Vc
-        rx_k ~ Cl/Vc
-        rx_k12 ~ Q/Vc
-        rx_k21 ~ Q/Vp
-        rx_beta  ~ 0.5 * (rx_k12 + rx_k21 + rx_k - sqrt((rx_k12 + rx_k21 + rx_k) * (rx_k12 + rx_k21 + rx_k) - 4.0 * rx_k21 * rx_k))
-        rx_alpha ~ rx_k21 * rx_k / rx_beta
-        rx_A ~ (rx_alpha - rx_k21) / (rx_alpha - rx_beta) / rx_v
-        rx_B ~ (rx_beta - rx_k21) / (rx_beta - rx_alpha) / rx_v;
-        rx_gamma ~ 0
-        rx_C ~ 0
-        Central=solveLinB(rx__PTR__, t, 0, 0, 0, rx_A, rx_alpha, rx_B, rx_beta, rx_C, rx_gamma, rx_ka, rx_tlag);
+        rx_ka~0;
+        rx_rate~0;
+        rx_dur~0;
+        rx_tlag~0;
+        rx_tlag2~0;
+        rx_F~1;
+        rx_F2~1;
+        rx_v~Vc;
+        rx_k~Cl/Vc;
+        rx_k12~Q/Vc;
+        rx_k21~Q/Vp;
+        rx_beta~0.5*(rx_k12+rx_k21+rx_k-sqrt((rx_k12+rx_k21+rx_k)*(rx_k12+rx_k21+rx_k)-4.0*rx_k21*rx_k));
+        rx_alpha~rx_k21*rx_k/rx_beta;
+        rx_A~(rx_alpha-rx_k21)/(rx_alpha-rx_beta)/rx_v;
+        rx_B~(rx_beta-rx_k21)/(rx_beta-rx_alpha)/rx_v;
+        rx_A2~0;
+        rx_B2~0;
+        rx_gamma~0;
+        rx_C~0;
+        rx_C2~0;
+        Central=solveLinB(rx__PTR__,t,0,rx_A,rx_A2,rx_alpha,rx_B,rx_B2,rx_beta,rx_C,rx_C2,rx_gamma,rx_ka,rx_tlag,rx_tlag2,rx_F,rx_F2,rx_rate,rx_dur);
     })
 
     pk <- function () {
@@ -142,19 +166,27 @@ rxPermissive({
     }
 
     mod <- RxODE({
-        rx_ka ~ KA
-        rx_tlag ~ 0
-        rx_v ~ Vc
-        rx_k ~ Cl/Vc
-        rx_k12 ~ Q/Vc
-        rx_k21 ~ Q/Vp
-        rx_beta  ~ 0.5 * (rx_k12 + rx_k21 + rx_k - sqrt((rx_k12 + rx_k21 + rx_k) * (rx_k12 + rx_k21 + rx_k) - 4.0 * rx_k21 * rx_k))
-        rx_alpha ~ rx_k21 * rx_k / rx_beta
-        rx_A ~ rx_ka / (rx_ka - rx_alpha) * (rx_alpha - rx_k21) / (rx_alpha - rx_beta) / rx_v
-        rx_B ~ rx_ka / (rx_ka - rx_beta) * (rx_beta - rx_k21) / (rx_beta - rx_alpha) / rx_v;
-        rx_gamma ~ 0
-        rx_C ~ 0
-        Central=solveLinB(rx__PTR__, t, 0, 0, 0, rx_A, rx_alpha, rx_B, rx_beta, rx_C, rx_gamma, rx_ka, rx_tlag);
+        rx_ka~KA;
+        rx_rate~0;
+        rx_dur~0;
+        rx_tlag~0;
+        rx_tlag2~0;
+        rx_F~1;
+        rx_F2~1;
+        rx_v~Vc;
+        rx_k~Cl/Vc;
+        rx_k12~Q/Vc;
+        rx_k21~Q/Vp;
+        rx_beta~0.5*(rx_k12+rx_k21+rx_k-sqrt((rx_k12+rx_k21+rx_k)*(rx_k12+rx_k21+rx_k)-4.0*rx_k21*rx_k));
+        rx_alpha~rx_k21*rx_k/rx_beta;
+        rx_A~rx_ka/(rx_ka-rx_alpha)*(rx_alpha-rx_k21)/(rx_alpha-rx_beta)/rx_v;
+        rx_B~rx_ka/(rx_ka-rx_beta)*(rx_beta-rx_k21)/(rx_beta-rx_alpha)/rx_v;
+        rx_A2~(rx_alpha-rx_k21)/(rx_alpha-rx_beta)/rx_v;
+        rx_B2~(rx_beta-rx_k21)/(rx_beta-rx_alpha)/rx_v;
+        rx_gamma~0;
+        rx_C~0;
+        rx_C2~0;
+        Central=solveLinB(rx__PTR__,t,0,rx_A,rx_A2,rx_alpha,rx_B,rx_B2,rx_beta,rx_C,rx_C2,rx_gamma,rx_ka,rx_tlag,rx_tlag2,rx_F,rx_F2,rx_rate,rx_dur);
     })
 
     pk1 <- rxSymPySetupPred(mod, predfn=pred, pkpars=pk, err=err)
@@ -189,29 +221,27 @@ rxPermissive({
     }
 
     mod <- RxODE({
-        rx_tlag ~ 0
-        rx_ka ~ 0
-        rx_v ~ Vc
-        rx_k ~ Cl/Vc
-        rx_k12 ~ Q/Vc
-        rx_k21 ~ Q/Vp
-        rx_k13 ~ Q2/Vc
-        rx_k31 ~ Q2/V2
-        rx_a0 ~ rx_k * rx_k21 * rx_k31
-        rx_a1 ~ rx_k * rx_k31 + rx_k21 * rx_k31 + rx_k21 * rx_k13 + rx_k * rx_k21 + rx_k31 * rx_k12
-        rx_a2 ~ rx_k + rx_k12 + rx_k13 + rx_k21 + rx_k3
-        rx_p ~ rx_a1 - rx_a2 * rx_a2 / 3.0
-        rx_q ~ 2.0 * rx_a2 * rx_a2 * rx_a2 / 27.0 - rx_a1 * rx_a2 /3.0 + rx_a
-        rx_r1 ~ sqrt(-rx_p * rx_p * rx_p / 27.0)
-        rx_r2 ~ 2 * rx_r1^(1.0/3.0)
-        rx_theta ~ acos(-rx_q / (2.0 * rx_r1)) / 3
-        rx_alpha ~ -(cos(rx_theta) * rx_r2 - rx_a2 / 3.0)
-        rx_beta ~ -(cos(rx_theta + 2.0 / 3.0 * pi) * rx_r2 - rx_a2 / 3.0)
-        rx_gamma ~ -(cos(rx_theta + 4.0 / 3.0 * pi) * rx_r2 - rx_a2 / 3.0)
-        rx_A ~ (rx_k21 - rx_alpha) * (rx_k31 - rx_alpha) / (rx_alpha - rx_beta) / (rx_alpha - rx_gamma) / rx_v
-        rx_B ~ (rx_k21 - rx_beta) * (rx_k31 - rx_beta) / (rx_beta - rx_alpha) / (rx_beta - rx_gamma) / rx_v
-        rx_C ~ (rx_k21 - rx_gamma) * (rx_k31 - rx_gamma) / (rx_gamma - rx_alpha) / (rx_gamma - rx_beta) / rx_v
-        Central=solveLinB(rx__PTR__, t, 0, 0, 0, rx_A, rx_alpha, rx_B, rx_beta, rx_C, rx_gamma, rx_ka, rx_tlag);
+        rx_ka~0;
+        rx_rate~0;
+        rx_dur~0;
+        rx_tlag~0;
+        rx_tlag2~0;
+        rx_F~1;
+        rx_F2~1;
+        rx_v~Vc;
+        rx_k~Cl/Vc;
+        rx_k12~Q/Vc;
+        rx_k21~Q/Vp;
+        rx_beta~0.5*(rx_k12+rx_k21+rx_k-sqrt((rx_k12+rx_k21+rx_k)*(rx_k12+rx_k21+rx_k)-4.0*rx_k21*rx_k));
+        rx_alpha~rx_k21*rx_k/rx_beta;
+        rx_A~(rx_alpha-rx_k21)/(rx_alpha-rx_beta)/rx_v;
+        rx_B~(rx_beta-rx_k21)/(rx_beta-rx_alpha)/rx_v;
+        rx_A2~0;
+        rx_B2~0;
+        rx_gamma~0;
+        rx_C~0;
+        rx_C2~0;
+        Central=solveLinB(rx__PTR__,t,0,rx_A,rx_A2,rx_alpha,rx_B,rx_B2,rx_beta,rx_C,rx_C2,rx_gamma,rx_ka,rx_tlag,rx_tlag2,rx_F,rx_F2,rx_rate,rx_dur);
     })
 
     pk1 <- rxSymPySetupPred(mod, predfn=pred, pkpars=pk, err=err)
@@ -249,29 +279,27 @@ rxPermissive({
     }
 
     mod <- RxODE({
-        rx_tlag ~ 0
-        rx_ka ~ Ka
-        rx_v ~ Vc
-        rx_k ~ Cl/Vc
-        rx_k12 ~ Q/Vc
-        rx_k21 ~ Q/Vp
-        rx_k13 ~ Q2/Vc
-        rx_k31 ~ Q2/V2
-        rx_a0 ~ rx_k * rx_k21 * rx_k31
-        rx_a1 ~ rx_k * rx_k31 + rx_k21 * rx_k31 + rx_k21 * rx_k13 + rx_k * rx_k21 + rx_k31 * rx_k12
-        rx_a2 ~ rx_k + rx_k12 + rx_k13 + rx_k21 + rx_k3
-        rx_p ~ rx_a1 - rx_a2 * rx_a2 / 3.0
-        rx_q ~ 2.0 * rx_a2 * rx_a2 * rx_a2 / 27.0 - rx_a1 * rx_a2 /3.0 + rx_a
-        rx_r1 ~ sqrt(-rx_p * rx_p * rx_p / 27.0)
-        rx_r2 ~ 2 * rx_r1^(1.0/3.0)
-        rx_theta ~ acos(-rx_q / (2.0 * rx_r1)) / 3
-        rx_alpha ~ -(cos(rx_theta) * rx_r2 - rx_a2 / 3.0)
-        rx_beta ~ -(cos(rx_theta + 2.0 / 3.0 * pi) * rx_r2 - rx_a2 / 3.0)
-        rx_gamma ~ -(cos(rx_theta + 4.0 / 3.0 * pi) * rx_r2 - rx_a2 / 3.0)
-        rx_A ~ (rx_k21 - rx_alpha) * (rx_k31 - rx_alpha) / (rx_alpha - rx_beta) / (rx_alpha - rx_gamma) / rx_v
-        rx_B ~ (rx_k21 - rx_beta) * (rx_k31 - rx_beta) / (rx_beta - rx_alpha) / (rx_beta - rx_gamma) / rx_v
-        rx_C ~ (rx_k21 - rx_gamma) * (rx_k31 - rx_gamma) / (rx_gamma - rx_alpha) / (rx_gamma - rx_beta) / rx_v
-        Central=solveLinB(rx__PTR__, t, 0, 0, 0, rx_A, rx_alpha, rx_B, rx_beta, rx_C, rx_gamma, rx_ka, rx_tlag);
+        rx_ka~Ka;
+        rx_rate~0;
+        rx_dur~0;
+        rx_tlag~0;
+        rx_tlag2~0;
+        rx_F~1;
+        rx_F2~1;
+        rx_v~Vc;
+        rx_k~Cl/Vc;
+        rx_k12~Q/Vc;
+        rx_k21~Q/Vp;
+        rx_beta~0.5*(rx_k12+rx_k21+rx_k-sqrt((rx_k12+rx_k21+rx_k)*(rx_k12+rx_k21+rx_k)-4.0*rx_k21*rx_k));
+        rx_alpha~rx_k21*rx_k/rx_beta;
+        rx_A~rx_ka/(rx_ka-rx_alpha)*(rx_alpha-rx_k21)/(rx_alpha-rx_beta)/rx_v;
+        rx_B~rx_ka/(rx_ka-rx_beta)*(rx_beta-rx_k21)/(rx_beta-rx_alpha)/rx_v;
+        rx_A2~(rx_alpha-rx_k21)/(rx_alpha-rx_beta)/rx_v;
+        rx_B2~(rx_beta-rx_k21)/(rx_beta-rx_alpha)/rx_v;
+        rx_gamma~0;
+        rx_C~0;
+        rx_C2~0;
+        Central=solveLinB(rx__PTR__,t,0,rx_A,rx_A2,rx_alpha,rx_B,rx_B2,rx_beta,rx_C,rx_C2,rx_gamma,rx_ka,rx_tlag,rx_tlag2,rx_F,rx_F2,rx_rate,rx_dur);
     })
 
     pk1 <- rxSymPySetupPred(mod, predfn=pred, pkpars=pk, err=err)
