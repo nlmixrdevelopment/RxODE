@@ -589,15 +589,15 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false, bool allTimeVar
     // EVID flag
     if (evidCol == -1){
       // Missing EVID
-      if (rateI != 0 || !ISNA(camt)){
-	// For Rates and non-zero amts, assume dosing event
-	cevid = cmt100*100000+rateI*10000+cmt99*100+ss;
-	allBolus=false;
-      } else {
+      if (rateI == 0 && (ISNA(camt) || camt == 0.0)){
 	cevid = 0;
 	if (std::find(obsId.begin(), obsId.end(), cid) == obsId.end()){
 	  obsId.push_back(cid);
 	}
+      } else {
+	// For Rates and non-zero amts, assume dosing event
+	cevid = cmt100*100000+rateI*10000+cmt99*100+ss;
+	allBolus=false;
       }
     } else {
       switch(inEvid[i]){
@@ -829,6 +829,8 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false, bool allTimeVar
   if (!keepDosingOnly){
     if (obsId.size() != allId.size()){
       std::string idWarn = "IDs without observations dropped:";
+      print(wrap(obsId));
+      print(wrap(allId));
       for (j = allId.size(); j--;){
 	if (std::find(obsId.begin(), obsId.end(), allId[j]) == obsId.end()){
 	  idWarn = idWarn + " " +as<std::string>(idLvl[allId[j]-1]);
@@ -843,10 +845,10 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false, bool allTimeVar
 	    [id,time,evid,amt,doseId,keepDosingOnly](int a, int b){
 	      // Bad IDs are pushed to the end to be popped off.
 	      if (!keepDosingOnly){
-		if (!(std::find(doseId.begin(), doseId.end(), id[a]) == doseId.end())){
+		if (doseId.size() > 0 && !(std::find(doseId.begin(), doseId.end(), id[a]) == doseId.end())){
 		  return false;
 		}
-		if (!(std::find(doseId.begin(), doseId.end(), id[b]) == doseId.end())){
+		if (doseId.size() > 0 && !(std::find(doseId.begin(), doseId.end(), id[b]) == doseId.end())){
 		  return true;
 		}
 	      }
@@ -875,7 +877,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false, bool allTimeVar
 	      }
 	      return id[a] < id[b];
 	    });
-  if (!keepDosingOnly){
+  if (!keepDosingOnly && doseId.size() > 0){
     while (idxO.size() > 0 && std::find(doseId.begin(), doseId.end(), id[idxO.back()]) != doseId.end()){
       idxO.pop_back();
     }

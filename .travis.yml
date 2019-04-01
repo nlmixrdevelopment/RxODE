@@ -33,8 +33,6 @@ matrix:
     os: osx
   - r: 3.3
     os: osx
-  - r: 3.2
-    os: osx
 
 addons:
   apt:
