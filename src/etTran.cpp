@@ -829,8 +829,6 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false, bool allTimeVar
   if (!keepDosingOnly){
     if (obsId.size() != allId.size()){
       std::string idWarn = "IDs without observations dropped:";
-      print(wrap(obsId));
-      print(wrap(allId));
       for (j = allId.size(); j--;){
 	if (std::find(obsId.begin(), obsId.end(), allId[j]) == obsId.end()){
 	  idWarn = idWarn + " " +as<std::string>(idLvl[allId[j]-1]);
