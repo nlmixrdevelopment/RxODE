@@ -258,6 +258,26 @@ namespace RxODE {
         return Rcpp::as<NumericVector >(rcpp_result_gen);
     }
 
+    inline void atolRtolFactor_(double factor) {
+        typedef SEXP(*Ptr_atolRtolFactor_)(SEXP);
+        static Ptr_atolRtolFactor_ p_atolRtolFactor_ = NULL;
+        if (p_atolRtolFactor_ == NULL) {
+            validateSignature("void(*atolRtolFactor_)(double)");
+            p_atolRtolFactor_ = (Ptr_atolRtolFactor_)R_GetCCallable("RxODE", "_RxODE_atolRtolFactor_");
+        }
+        RObject rcpp_result_gen;
+        {
+            RNGScope RCPP_rngScope_gen;
+            rcpp_result_gen = p_atolRtolFactor_(Shield<SEXP>(Rcpp::wrap(factor)));
+        }
+        if (rcpp_result_gen.inherits("interrupted-error"))
+            throw Rcpp::internal::InterruptedException();
+        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
+            throw Rcpp::LongjumpException(rcpp_result_gen);
+        if (rcpp_result_gen.inherits("try-error"))
+            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
+    }
+
     inline RObject cvPost(double nu, RObject omega, int n = 1, bool omegaIsChol = false, bool returnChol = false) {
         typedef SEXP(*Ptr_cvPost)(SEXP,SEXP,SEXP,SEXP,SEXP);
         static Ptr_cvPost p_cvPost = NULL;

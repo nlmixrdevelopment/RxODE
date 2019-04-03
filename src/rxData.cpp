@@ -1302,6 +1302,17 @@ void grtol2Setup(int n){
   }
 }
 
+//[[Rcpp::export]]
+void atolRtolFactor_(double factor){
+  rx_solve* rx = getRxSolve_();
+  rx_solving_options* op = rx->op;
+  for (int i = _globals.grtol2n;i--;){
+    _globals.grtol2[i] = _globals.grtol2[i]*factor;
+    _globals.gatol2[i] = _globals.gatol2[i]*factor;
+  }
+  op->ATOL = op->ATOL*factor;
+  op->RTOL = op->RTOL*factor;
+}
 
 extern "C" double * getAol(int n, double atol){
   gatol2Setup(n+1);
@@ -1605,7 +1616,7 @@ NumericMatrix cvPost0(double nu, NumericMatrix omega, bool omegaIsChol = false,
 //' @param nu Degrees of Freedom (Number of Observations) for 
 //'        covariance matrix simulation.
 //' @param omega Estimate of Covariance matrix.
-//' @param n Number of Matricies to sample.  By default this is 1.
+//' @param n Number of Matrices to sample.  By default this is 1.
 //' @param omegaIsChol is an indicator of if the omega matrix is in the cholesky decomposition. 
 //' @param returnChol Return the cholesky decomposition of the covariance matrix sample.
 //'

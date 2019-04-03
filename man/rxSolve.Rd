@@ -26,7 +26,7 @@ rxControl(scale = NULL, method = c("liblsoda", "lsoda", "dop853"),
   thetaMat = NULL, thetaDf = NULL, thetaIsChol = FALSE, nStud = 1L,
   dfSub = 0, dfObs = 0, returnType = c("rxSolve", "matrix",
   "data.frame", "data.frame.TBS"), seed = NULL, nsim = NULL,
-  minSS = 7, maxSS = 7000, atolSS = atol, rtolSS = rtol,
+  minSS = 7, maxSS = 7000, atolSS = atol[1], rtolSS = rtol[1],
   params = NULL, events = NULL, istateReset = TRUE)
 
 rxSolve(object, ...)

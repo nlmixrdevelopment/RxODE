@@ -12,7 +12,7 @@ covariance matrix simulation.}
 
 \item{omega}{Estimate of Covariance matrix.}
 
-\item{n}{Number of Matricies to sample.  By default this is 1.}
+\item{n}{Number of Matrices to sample.  By default this is 1.}
 
 \item{omegaIsChol}{is an indicator of if the omega matrix is in the cholesky decomposition.}
 

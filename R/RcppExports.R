@@ -166,6 +166,10 @@ rxSetupScale <- function(obj, scale = NULL, extraArgs = NULL) {
     .Call(`_RxODE_rxSetupScale`, obj, scale, extraArgs)
 }
 
+atolRtolFactor_ <- function(factor) {
+    invisible(.Call(`_RxODE_atolRtolFactor_`, factor))
+}
+
 #' Sample a covariance Matrix from the Posteior Inverse Wishart distribution.
 #'
 #' Note this Inverse wishart rescaled to match the original scale of the covariance matrix.
@@ -176,7 +180,7 @@ rxSetupScale <- function(obj, scale = NULL, extraArgs = NULL) {
 #' @param nu Degrees of Freedom (Number of Observations) for 
 #'        covariance matrix simulation.
 #' @param omega Estimate of Covariance matrix.
-#' @param n Number of Matricies to sample.  By default this is 1.
+#' @param n Number of Matrices to sample.  By default this is 1.
 #' @param omegaIsChol is an indicator of if the omega matrix is in the cholesky decomposition. 
 #' @param returnChol Return the cholesky decomposition of the covariance matrix sample.
 #'
