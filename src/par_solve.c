@@ -701,7 +701,7 @@ void solveSS_1(int *neq,
     break;
   case 1:
     F77_CALL(dlsoda)(dydt_lsoda_dum, neq, yp, &xp, &xout,
-		     &gitol, op->rtol2, op->atol2, &gitask,
+		     &gitol, &(op->RTOL), &(op->ATOL), &gitask,
 		     istate, &giopt, global_rworkp,
 		     &glrw, global_iworkp, &gliw, jdum_lsoda, &global_jt);
     if (*istate <= 0) {
@@ -1241,7 +1241,7 @@ extern void ind_lsoda0(rx_solve *rx, rx_solving_options *op, int solveid, int *n
   
   
   int istate = 1, i = 0;
-  gitol = 4; gitask = 1; giopt = 1;
+  gitol = 1; gitask = 1; giopt = 1;
   gliw = liw;
   glrw = lrw;
 
@@ -1284,7 +1284,7 @@ extern void ind_lsoda0(rx_solve *rx, rx_solving_options *op, int solveid, int *n
     xout = getTime(ind->ix[i], ind);
     yp   = ind->solve+neq[0]*i;
     if(ind->evid[ind->ix[i]] != 3 && xout - xp > DBL_EPSILON*max(fabs(xout),fabs(xp))) {
-      F77_CALL(dlsoda)(dydt_lsoda, neq, yp, &xp, &xout, &gitol, op->rtol2, op->atol2, &gitask,
+      F77_CALL(dlsoda)(dydt_lsoda, neq, yp, &xp, &xout, &gitol, &(op->RTOL), &(op->ATOL), &gitask,
 		       &istate, &giopt, rwork, &lrw, iwork, &liw, jdum, &jt);
       if (istate <= 0) {
 	REprintf("IDID=%d, %s\n", istate, err_msg_ls[-(istate)-1]);
