@@ -1251,21 +1251,34 @@ genCmtMod <- function(mod){
     if (oral){
         oral <- (rxSymPy("rx_ka") != "0") && (rxSymPy("rx_ka") != "rx_ka");
     }
+    dur <- rxSymPyExists("rx_dur");
+    if (dur){
+        dur <- (rxSymPy("rx_dur") != "0") && (rxSymPy("rx_dur") != "rx_dur")
+    }
+    rate <- rxSymPyExists("rx_rate");
+    if (rate){
+        rate <- (rxSymPy("rx_rate") != "0") && (rxSymPy("rx_rate") != "rx_rate")
+    }
     tlag <- rxSymPyExists("rx_tlag");
     if (tlag){
         tlag <- (rxSymPy("rx_tlag") != "0") && (rxSymPy("rx_tlag") != "rx_tlag")
     }
-    if (tlag){
-        stop("tlag not supported yet.");
+    tlag2 <- rxSymPyExists("rx_tlag2");
+    if (tlag2){
+        tlag2 <- (rxSymPy("rx_tlag2") != "0") && (rxSymPy("rx_tlag2") != "rx_tlag2")
     }
-    tlag <- rxSymPyExists("rx_tlag2");
-    if (tlag){
-        tlag <- (rxSymPy("rx_tlag2") != "0") && (rxSymPy("rx_tlag2") != "rx_tlag2")
+    f2 <- rxSymPyExists("rx_F2");
+    if (f2){
+        f2 <- suppressWarnings(as.numeric(rxSymPy("rx_F2")));
+        if (is.na(f2)) f2  <- 0;
+        f2 <- (f2 != 1) && (rxSymPy("rx_F2") != "rx_F2")
     }
-    if (tlag){
-        stop("tlag2 not supported yet.");
+    f <- rxSymPyExists("rx_F");
+    if (f){
+        f <- suppressWarnings(as.numeric(rxSymPy("rx_F")));
+        if (is.na(f)) f  <- 0;
+        f <- (f != 1) && (rxSymPy("rx_F") != "rx_F")
     }
-
     if (rxSymPyExists("rx_k13")){
         extra <- genCmt0(3, oral);
     } else if (rxSymPyExists("rx_k12")){
@@ -1282,6 +1295,60 @@ genCmtMod <- function(mod){
     ka <- NULL;
     if (oral)
         ka <- get.var("rx_ka")
+    if (tlag){
+        tmp1 <- rxSymPy("rx_tlag");
+        tmp1 <- rxFromSymPy(tmp1);
+        if (oral){
+            extra <- c(extra,
+                       sprintf("lag(depot) = %s;", tmp1));
+        } else {
+            extra <- c(extra,
+                       sprintf("lag(central) = %s;", tmp1));
+        }
+    }
+    if (tlag2){
+        tmp1 <- rxSymPy("rx_tlag2");
+        tmp1 <- rxFromSymPy(tmp1);
+        if (oral){
+            extra <- c(extra,
+                       sprintf("lag(central) = %s;", tmp1));
+        } else {
+            stop("Cannot handle this tlag combination.");
+        }
+    }
+    if (f){
+        tmp1 <- rxSymPy("rx_F");
+        tmp1 <- rxFromSymPy(tmp1);
+        if (oral){
+            extra <- c(extra,
+                       sprintf("F(depot) = %s;", tmp1));
+        } else {
+            extra <- c(extra,
+                       sprintf("F(central) = %s;", tmp1));
+        }
+    }
+    if (f2){
+        tmp1 <- rxSymPy("rx_F2");
+        tmp1 <- rxFromSymPy(tmp1);
+        if (oral){
+            extra <- c(extra,
+                       sprintf("F(central) = %s;", tmp1));
+        } else {
+            stop("Cannot handle this F(.) combination.");
+        }
+    }
+    if (dur){
+        tmp1 <- rxSymPy("rx_dur");
+        tmp1 <- rxFromSymPy(tmp1);
+        extra <- c(extra,
+                   sprintf("dur(central) = %s;", tmp1));
+    }
+    if (rate){
+        tmp1 <- rxSymPy("rx_rate");
+        tmp1 <- rxFromSymPy(tmp1);
+        extra <- c(extra,
+                   sprintf("rate(central) = %s;", tmp1));
+    }
     ret <- paste(c(get.var("rx_v"),
                    ka,
                    get.var("rx_k"),
@@ -1298,7 +1365,8 @@ genCmtMod <- function(mod){
                        return(sprintf("d/dt(%s) %s %s;", cur.state, sep, v));
                    }),
                    sapply(mv.1$lhs, function(v){
-                       v1 <- rxSymPy(v);
+                       v1  <- rxToSymPy(v)
+                       v1 <- rxSymPy(v1);
                        v1 <- rxFromSymPy(v1);
                        return(sprintf("%s=%s;", v, v1));
                    })), collapse="\n")
