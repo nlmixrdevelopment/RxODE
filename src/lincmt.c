@@ -12,18 +12,25 @@ void getWh(int evid, int *wh, int *cmt, int *wh100, int *whI, int *wh0);
 
 static inline int _locateDoseIndex(const double obs_time,  rx_solving_options_ind *ind){
   // Uses bisection for slightly faster lookup of dose index.
-  int i, j, ij;
+  int i, j, ij, idose;
   i = 0;
   j = ind->ndoses - 1;
-  if (obs_time < ind->all_times[ind->idose[i]]){
+  /* Rprintf("_locateDoseIndex ind->ndoses: %d; ind->id: %d\n",ind->ndoses, ind->id); */
+  idose = ind->idose[i];
+  /* if (idose < 0 || idose >= ind->n_all_times) error("idose corrupted #1."); */
+  if (obs_time < ind->all_times[idose]){
     return i;
   }
-  if (obs_time > ind->all_times[ind->idose[j]]){
+  idose = ind->idose[j];
+  /* if (idose < 0 || idose >= ind->n_all_times) error("idose corrupted #2"); */
+  if (obs_time > ind->all_times[idose]){
     return j;
   }
   while(i < j - 1) { /* x[i] <= obs_time <= x[j] */
     ij = (i + j)/2; /* i+1 <= ij <= j-1 */
-    if(obs_time < ind->all_times[ind->idose[ij]])
+    idose = ind->idose[ij];
+    /* if (idose < 0 || idose >= ind->n_all_times) error("idose corrupted #3"); */
+    if(obs_time < ind->all_times[idose])
       j = ij;
     else
       i = ij;

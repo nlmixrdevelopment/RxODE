@@ -1492,9 +1492,25 @@ rxNorm <- function(obj, condition=NULL, removeInis, removeJac, removeSens){
     if (length(obj) == 1){
         .parseModel <- tempfile("parseModel4");
         .prefix <- paste0(basename(.parseModel), "_", .Platform$r_arch, "_");
-        .exists <- try(file.exists(obj), silent = TRUE)
-        if (inherits(.exists, "try-error")) .exists <- FALSE;
+        .exists <- try(file.exists(obj), silent = TRUE);
+        if (inherits(.exists, "try-error")){
+            .exists <- FALSE;
+        } else {
+            .exists  <- TRUE;
+        }
         if (.exists){
+            ## .loadable  <- try(eval(dyn.load(obj),envir=globalenv()),silent=TRUE);
+            ## if (inherits(.loadable, "try-error")){
+            ##     .loadable <- FALSE;
+            ## } else {
+            ##     .loadable  <- TRUE;
+            ## }
+            ## if (.loadable){
+            ##     .dll  <- basename(obj);
+            ##     .dll <- substr(.dll, 1, nchar(.dll) - nchar(.Platform$dynlib.ext) - nchar(.Platform$r_arch))
+            ##     .mv <- .Call(paste0(.dll,"model_vars"),PACKAGE=.dll)
+            ##     return(.mv);
+            ## }
             .parseModel <- obj;
         } else {
             .parseModel <- paste(obj, collapse="\n");

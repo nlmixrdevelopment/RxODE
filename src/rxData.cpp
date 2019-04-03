@@ -2459,6 +2459,7 @@ SEXP rxSolve_(const RObject &obj,
     	for (int i = 200; i--;){
     	  newObs[i]=by*i;
     	}
+	rx->nobs2 = 200;
     	ev1 = et_(List::create(newObs), as<List>(ev1));
       }
     }
@@ -2470,6 +2471,11 @@ SEXP rxSolve_(const RObject &obj,
       rxcId   = 0;
       rxcDv   = 5;
       rxcIi   = 4;
+    }
+    if (rxIs(ev1, "rxEtTrans")){
+      CharacterVector cls = ev1.attr("class");
+      List tmpL = cls.attr(".RxODE.lst");
+      rx->nobs2 = as<int>(tmpL["nobs"]);
     }
     // Now get the parameters (and covariates)
     //
