@@ -16,7 +16,7 @@ rxControl <- function(scale = NULL,
                       nStud = 1L, dfSub=0.0, dfObs=0.0, returnType=c("rxSolve", "matrix", "data.frame", "data.frame.TBS"),
                       seed=NULL, nsim=NULL,
                       minSS=7, maxSS=7000,
-                      atolSS=atol, rtolSS=rtol,
+                      atolSS=atol[1], rtolSS=rtol[1],
                       params=NULL,events=NULL,
                       istateReset=TRUE){
     .xtra <- list(...);
@@ -135,7 +135,7 @@ rxControl <- function(scale = NULL,
                  seed=seed,
                  nsim=nsim,
                  minSS=minSS, maxSS=maxSS,
-                 atolSS=atolSS, rtolSS=rtolSS,
+                 atolSS=atolSS[1], rtolSS=rtolSS[1],
                  istateReset=istateReset);
     return(.ret)
 }

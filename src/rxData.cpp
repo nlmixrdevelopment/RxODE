@@ -21,6 +21,7 @@
 #include "../inst/include/RxODE.h"
 #include "ode.h"
 #define rxModelVars(a) rxModelVars_(a)
+#define min2( a , b )  ( (a) < (b) ? (a) : (b) )
 using namespace Rcpp;
 using namespace arma;
 
@@ -2247,8 +2248,8 @@ SEXP rxSolve_(const RObject &obj,
   RObject scale = rxControl["scale"];
   int method = as<int>(rxControl["method"]);
   Nullable<LogicalVector> transit_abs = rxControl["transitAbs"];
-  double atol = as<double>(rxControl["atol"]);
-  double rtol = as<double>(rxControl["rtol"]);
+  NumericVector atolNV = as<NumericVector>(rxControl["atol"]);
+  NumericVector rtolNV = as<NumericVector>(rxControl["rtol"]);
   int maxsteps = as<int>(rxControl["maxsteps"]);
   double hmin = as<double>(rxControl["hmin"]);
   Nullable<NumericVector> hmax = rxControl["hmax"];
@@ -2474,18 +2475,20 @@ SEXP rxSolve_(const RObject &obj,
     op->neq = state.size();
     op->badSolve = 0;
     op->abort = 0;
-    op->ATOL = atol;          //absolute error
-    op->RTOL = rtol;          //relative error
+    op->ATOL = atolNV[0];          //absolute error
+    op->RTOL = rtolNV[0];          //relative error
 
     op->minSS = as<int>(rxControl["minSS"]);
     op->maxSS = as<int>(rxControl["maxSS"]);
     op->atolSS = as<double>(rxControl["atolSS"]);
-    op->rtolSS = as<double>(rxControl["rtol"]);
+    op->rtolSS = as<double>(rxControl["rtolSS"]);
     
     gatol2Setup(op->neq);
     grtol2Setup(op->neq);
-    std::fill_n(&_globals.gatol2[0],op->neq, atol);
-    std::fill_n(&_globals.grtol2[0],op->neq, rtol);
+    std::fill_n(&_globals.gatol2[0],op->neq, atolNV[0]);
+    std::fill_n(&_globals.grtol2[0],op->neq, rtolNV[0]);
+    std::copy(atolNV.begin(), atolNV.begin() + min2(op->neq, atolNV.size()), &_globals.gatol2[0]);
+    std::copy(rtolNV.begin(), rtolNV.begin() + min2(op->neq, rtolNV.size()), &_globals.grtol2[0]);
     op->atol2 = &_globals.gatol2[0];
     op->rtol2 = &_globals.grtol2[0];
     op->H0 = hini;
