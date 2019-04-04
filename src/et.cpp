@@ -829,7 +829,8 @@ List etImportEventTable(List inData){
   std::vector<double> amt;
   NumericVector oldAmt;
   if (amtCol == -1){
-    oldAmt = NumericVector(oldEvid.size(), 0);
+    oldAmt = NumericVector(oldEvid.size());
+    std::fill(oldAmt.begin(), oldAmt.end(), 0);
   } else {
     oldAmt = as<NumericVector>(inData[amtCol]);
   }
