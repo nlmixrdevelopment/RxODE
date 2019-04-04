@@ -18,7 +18,8 @@ rxControl <- function(scale = NULL,
                       minSS=7, maxSS=7000,
                       atolSS=atol[1], rtolSS=rtol[1],
                       params=NULL,events=NULL,
-                      istateReset=TRUE){
+                      istateReset=TRUE,
+                      subsetNonmem=TRUE){
     .xtra <- list(...);
     if (is.null(transitAbs) && !is.null(.xtra$transit_abs)){
         transitAbs <- .xtra$transit_abs;
@@ -136,7 +137,8 @@ rxControl <- function(scale = NULL,
                  nsim=nsim,
                  minSS=minSS, maxSS=maxSS,
                  atolSS=atolSS[1], rtolSS=rtolSS[1],
-                 istateReset=istateReset);
+                 istateReset=istateReset,
+                 subsetNonmem=subsetNonmem);
     return(.ret)
 }
 
@@ -300,36 +302,6 @@ rxControl <- function(scale = NULL,
 ##' @param eta A vector of parameters that will be named ETA[#] and
 ##'     added to parameters
 ##'
-##' @param addDosing Boolean indicating if the solve should add RxODE
-##'     EVID and related columns.  This will also include dosing
-##'     information and estimates at the doses.  Be default, RxODE
-##'     only includes estimates at the observations. (default
-##'     \code{FALSE}). When \code{addDosing} is \code{NULL}, only
-##'     include \code{EVID=0} on solve and exclude any model-times or
-##'     \code{EVID=2}. If \code{addDosing} is \code{NA} the
-##'     classic \code{RxODE} EVID events. When \code{addDosing} is
-##'     \code{TRUE} add the event information in NONMEM-style format,
-##'     with extra event types (\code{EVID}) for ending infusion and
-##'     modeled times:
-##'
-##' \itemize{
-##'
-##' \item \code{EVID=-1} when the modeled rate infusions are turned
-##' off (matches \code{rate=-1})
-##'
-##' \item \code{EVID=-2} When the modeled duration infusions are
-##' turned off (matches \code{rate=-2})
-##'
-##' \item \code{EVID=-10} When the specified \code{rate} infusions are
-##' turned off (matches \code{rate>0})
-##'
-##' \item \code{EVID=-20} When the specified \code{dur} infusions are
-##' turned off (matches \code{dur>0})
-##'
-##' \item \code{EVID=101,102,103,...} Modeled time where 101 is the
-##' first model time, 102 is the second etc.
-##'
-##' }
 ##'
 ##' @param stateTrim When amounts/concentrations in one of the states
 ##'     are above this value, trim them to be this value. By default
@@ -386,6 +358,39 @@ rxControl <- function(scale = NULL,
 ##' @param istateReset When TRUE, reset the ISTATE variable to 1 for
 ##'     lsoda and liblsoda with doses, like deSolve; When FALSE, do
 ##'     not reset the ISTATE variable with doses.
+##'
+##'  @param addDosing Boolean indicating if the solve should add RxODE
+##'     EVID and related columns.  This will also include dosing
+##'     information and estimates at the doses.  Be default, RxODE
+##'     only includes estimates at the observations. (default
+##'     \code{FALSE}). When \code{addDosing} is \code{NULL}, only
+##'     include \code{EVID=0} on solve and exclude any model-times or
+##'     \code{EVID=2}. If \code{addDosing} is \code{NA} the classic
+##'     \code{RxODE} EVID events. When \code{addDosing} is \code{TRUE}
+##'     add the event information in NONMEM-style format; If
+##'     \code{subsetNonmem=FALSE} RxODE will also extra event types
+##'     (\code{EVID}) for ending infusion and modeled times:
+##'
+##' \itemize{
+##'
+##' \item \code{EVID=-1} when the modeled rate infusions are turned
+##' off (matches \code{rate=-1})
+##'
+##' \item \code{EVID=-2} When the modeled duration infusions are
+##' turned off (matches \code{rate=-2})
+##'
+##' \item \code{EVID=-10} When the specified \code{rate} infusions are
+##' turned off (matches \code{rate>0})
+##'
+##' \item \code{EVID=-20} When the specified \code{dur} infusions are
+##' turned off (matches \code{dur>0})
+##'
+##' \item \code{EVID=101,102,103,...} Modeled time where 101 is the
+##' first model time, 102 is the second etc.
+##'
+##' }
+##'
+##' @param subsetNonmem subset to NONMEM compatible EVIDs only.  By default TRUE.
 ##'
 ##' @return An \dQuote{rxSolve} solve object that stores the solved
 ##'     value in a matrix with as many rows as there are sampled time

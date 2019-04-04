@@ -1717,23 +1717,78 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
   int doDose;
   int evid0 = 0;
   int nmevid=0;
+  int subsetEvid = 0;
   if (doDose0 == -1){
     nobs = rx->nobs2;
     doDose=0;
     evid0=1;
-  } else if (doDose0 == 2){
+  } else if (doDose0 == 2 || doDose0 == 3){
     // rate dur ii ss
     doDose=1;
     nmevid=1;
+    if (doDose0 == 3){
+      subsetEvid=1;
+      doDose0 = 2;
+    }
   } else {
     doDose=doDose0;
   }
-  rx->nr = (doDose == 1 ? nall : nobs)*nsim;
+  int di = 0;
+  double *dose;
+  double *dfp;
+  int *dfi;
+  int ii=0, jj = 0, ntimes;
+  double *solve;
+  double *cov_ptr;
+  int nBadDose;
+  int *BadDose;
+  int extraCmt = op->extraCmt;
+  int *svar = op->svar;
+  int kk = 0;
+  int wh, cmt, wh100, whI, wh0;
+  int dullEvid = 1, dullRate=1, dullDur=1,
+    dullSS=1, dullIi=1;
+  int csub = 0, evid;
+  int nsub = rx->nsub;
   int *rmState = rx->stateIgnore;
   int nPrnState =0;
   int i, j;
   int neq[2];
-  double *scale;
+  double *scale;  
+  rx_solving_options_ind *ind;  
+  if (subsetEvid == 1){
+    rx->nr=0;
+    for (int csim = 0; csim < nsim; csim++){
+      for (csub = 0; csub < nsub; csub++){
+	neq[1] = csub+csim*nsub;
+	ind = &(rx->subjects[neq[1]]);
+	ind->id = neq[1];
+	ntimes = ind->n_all_times;
+	dose = ind->dose;
+	di = 0;
+	for (i = 0; i < ntimes; i++){
+	  evid = ind->evid[ind->ix[i]];
+	  if (isDose(evid)){
+	    getWh(evid, &wh, &cmt, &wh100, &whI, &wh0);
+	    if (whI != 7  && whI != 6){
+	      if (dose[di++] > 0){
+		rx->nr++;
+	      }
+	    } else {
+	      di++;
+	    }
+	  } else if (isObs(evid)){
+	    if (evid < 10){
+	      rx->nr++;
+	    }
+	  }
+	}
+      }
+    }
+    di = 0;
+  } else {
+      rx->nr = (doDose == 1 ? nall : nobs)*nsim;
+  }
   scale = op->scale;
   neq[0] = op->neq;
   neq[1] = 0;
@@ -1760,9 +1815,6 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
       warning("Some ID(s) could not solve the ODEs correctly; These values are replaced with NA.");
     }
   }  
-  int csub = 0, evid;
-  int nsub = rx->nsub;
-  rx_solving_options_ind *ind;
   SEXP df = PROTECT(allocVector(VECSXP,ncols+nidCols+doseCols+doTBS*2+5*nmevid)); pro++;
   for (i = nidCols; i--;){
     SET_VECTOR_ELT(df, i, PROTECT(allocVector(INTSXP, rx->nr))); pro++;
@@ -1795,21 +1847,6 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
     SET_VECTOR_ELT(df, i, PROTECT(allocVector(REALSXP, rx->nr))); pro++;
   }
   // Now create the data frame
-  double *dfp;
-  int *dfi;
-  int ii=0, jj = 0, ntimes;
-  double *solve;
-  double *cov_ptr;
-  int nBadDose;
-  int *BadDose;
-  int extraCmt = op->extraCmt;
-  double *dose;
-  int *svar = op->svar;
-  int di = 0;
-  int kk = 0;
-  int wh, cmt, wh100, whI, wh0;
-  int dullEvid = 1, dullRate=1, dullDur=1,
-    dullSS=1, dullIi=1;
   for (int csim = 0; csim < nsim; csim++){
     for (csub = 0; csub < nsub; csub++){
       neq[1] = csub+csim*nsub;
@@ -1838,6 +1875,21 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
       }	
       for (i = 0; i < ntimes; i++){
         evid = ind->evid[ind->ix[i]];
+	if (subsetEvid == 1){
+	  if (isObs(evid) && evid >= 10) continue;
+	  if (isDose(evid)){
+	    getWh(evid, &wh, &cmt, &wh100, &whI, &wh0);
+	    if (whI == 7 || whI == 6){
+	      dullRate=0;
+	      di++;
+	      continue;
+	    }
+	    if (dose[di] <= 0){
+	      di++;
+	      continue;
+	    }
+	  }
+	}
 	if (isDose(evid)) ind->tlast = getTime(ind->ix[i], ind);
         if (updateErr){
           for (j=0; j < errNcol; j++){
@@ -1845,7 +1897,7 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
           }
 	  if ( (evid0 == 0 && isObs(evid)) || (evid0 == 1 && evid==0) || doDose){
 	    // Only incerement if this is an observation or of this a
-	    // simulation that requests dosing infomration too.
+	    // simulation that requests dosing information too.
             kk++;
 	  }
         }
@@ -1897,14 +1949,13 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
 		getWh(evid, &wh, &cmt, &wh100, &whI, &wh0);
 		dfi = INTEGER(VECTOR_ELT(df, jj++));
 		double curAmt = dose[di];
-		switch (whI){
-		case 7: // End modeled rate
+		if (whI == 7){
 		  dullRate=0;
 		  dfi[ii] = -1;
-		case 6: // end modeled duration
+		} else if (whI == 6){
 		  dullRate=0;
 		  dfi[ii] = -2; // evid
-		default:
+		} else {
 		  if (curAmt > 0) {
 		    dfi[ii] = 1; // evid
 		  } else {

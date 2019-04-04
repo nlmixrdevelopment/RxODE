@@ -3235,6 +3235,7 @@ SEXP rxSolve_(const RObject &obj,
 	doDose = 1;
       } else if (addDosing1[0]){
 	doDose = 2;
+	if (as<bool>(rxControl["subsetNonmem"])) doDose = 3;
       } else {
 	doDose = 0;
       }
