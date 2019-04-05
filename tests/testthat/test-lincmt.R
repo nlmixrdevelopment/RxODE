@@ -1,5 +1,5 @@
 rxPermissive({
-
+    tol  <- 3e-4 ## Current difference for all equations
     context("Test the solved equations")
 
     et <- eventTable() %>% add.dosing(dose=3, nbr.doses=6, dosing.interval=8) %>%
@@ -49,8 +49,8 @@ rxPermissive({
     })
 
     test_that("1 compartment solved models and ODEs same.", {
-        expect_equal(round(o.1c$C2,4), round(s.1c$C2,4))
-        expect_equal(round(o.1c$C2,4), round(s.2c$C2,4))
+        expect_equal(o.1c$C2, s.1c$C2, tolerance=tol)
+        expect_equal(o.1c$C2, s.2c$C2, tolerance=tol)
     })
 
     ## Test steady state doses.
@@ -66,8 +66,8 @@ rxPermissive({
     s.2c <- ode.1cs %>% solve(theta=c(20, 1), events=etSs)
 
     test_that("1 compartment steady-state solved models and ODEs same.", {
-        expect_equal(round(o.1c$C2,4), round(s.1c$C2,4))
-        expect_equal(round(o.1c$C2,4), round(s.2c$C2,4))
+        expect_equal(o.1c$C2, s.1c$C2, tolerance=tol)
+        expect_equal(o.1c$C2, s.2c$C2, tolerance=tol)
     })
 
 
@@ -91,7 +91,7 @@ rxPermissive({
     s.1c <- sol.1c.ka %>% solve(params=c(V=20, CL=25, KA=2), events=et)
 
     test_that("1 compartment oral solved models and ODEs same.", {
-        expect_equal(round(o.1c$C2,4), round(s.1c$C2,4))
+        expect_equal(o.1c$C2, s.1c$C2, tolerance=tol)
     })
 
     ## Note the strange-looking dip at 4 hours.  This is because ss=1 resets the system first.
@@ -100,7 +100,7 @@ rxPermissive({
     s.1c <- sol.1c.ka %>% solve(params=c(V=20, CL=2, KA=2), events=etSs)
 
     test_that("1 compartment oral solved models steady state ODEs same.", {
-        expect_equal(round(o.1c$C2,4), round(s.1c$C2,4))
+        expect_equal(o.1c$C2, s.1c$C2, tolerance=tol)
     })
 
     ode.2c <- RxODE({
@@ -120,7 +120,7 @@ rxPermissive({
 
 
     test_that("2 compartment solved models and ODEs same.", {
-        expect_equal(round(o.2c$C2,4), round(s.2c$C2,4))
+        expect_equal(o.2c$C2, s.2c$C2, tolerance=tol)
     })
 
     ode.2c.ka <- RxODE({
@@ -140,7 +140,7 @@ rxPermissive({
     s.2c <- sol.2c.ka %>% solve(params=c(V=40, CL=18, V2=297, Q=10, KA=0.3), events=et)
 
     test_that("2 compartment oral solved models and ODEs same.", {
-        expect_equal(round(o.2c$C2,4), round(s.2c$C2,4))
+        expect_equal(o.2c$C2, s.2c$C2, tolerance=tol)
     })
 
     o.2c <- ode.2c.ka %>% solve(params=c(V=40, CL=1, V2=297, Q=10, KA= 0.3), events=etSs,maxsteps=100000)
@@ -148,7 +148,7 @@ rxPermissive({
     s.2c <- sol.2c.ka %>% solve(params=c(V=40, CL=1, V2=297, Q=10, KA=0.3), events=etSs)
 
     test_that("2 compartment oral steady-state solved models and ODEs same.", {
-        expect_equal(round(o.2c$C2,4), round(s.2c$C2,4),tolerance=1e-3)
+        expect_equal(o.2c$C2, s.2c$C2,tolerance=tol)
     })
 
     ode.3c <- RxODE({
@@ -170,7 +170,7 @@ rxPermissive({
     s.3c <- sol.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=et)
 
     test_that("3 compartment solved models and ODEs same.", {
-        expect_equal(round(o.3c$C2,4), round(s.3c$C2,4))
+        expect_equal(o.3c$C2, s.3c$C2, tolerance=tol)
     })
 
     o.3c <- ode.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=etSs,maxsteps=10000)
@@ -178,7 +178,7 @@ rxPermissive({
     s.3c <- sol.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=etSs)
 
     test_that("3 compartment solved models and ODEs same with steady state.", {
-        expect_equal(round(o.3c$C2,4), round(s.3c$C2,4))
+        expect_equal(o.3c$C2, s.3c$C2, tolerance=tol)
     })
 
 
@@ -203,7 +203,7 @@ rxPermissive({
 
 
     test_that("3 compartment oral solved models and ODEs same.", {
-        expect_equal(round(o.3c$C2,4), round(s.3c$C2,4),tolerance=1e-3)
+        expect_equal(o.3c$C2, s.3c$C2,tolerance=tol)
     })
 
     o.3c <- ode.3c.ka %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400, KA=0.3), events=etSs, maxsteps=10000)
@@ -212,7 +212,7 @@ rxPermissive({
 
     ## Again the 4 hour strange discontinuity because ss=1
     test_that("3 compartment oral solved models and ODEs same for steady state.", {
-        expect_equal(round(o.3c$C2,4), round(s.3c$C2,4), tolerance=1e-3)
+        expect_equal(o.3c$C2, s.3c$C2, tolerance=tol)
     })
 
     context("Infusion Models")
@@ -254,8 +254,8 @@ rxPermissive({
     s.2c <- ode.1cs %>% solve(theta=c(20, 25), events=et)
 
     test_that("1 compartment solved models and ODEs same.", {
-        expect_equal(round(o.1c$C2,4), round(s.1c$C2,4))
-        expect_equal(round(o.1c$C2,4), round(s.2c$C2,4))
+        expect_equal(o.1c$C2, s.1c$C2, tolerance=tol)
+        expect_equal(o.1c$C2, s.2c$C2, tolerance=tol)
     })
 
     o.1c <- ode.1c %>% solve(params=c(V=20, CL=10), events=etSs)
@@ -265,8 +265,8 @@ rxPermissive({
     s.2c <- ode.1cs %>% solve(theta=c(20, 10), events=etSs)
 
     test_that("1 compartment solved models and ODEs same; Steady State", {
-        expect_equal(round(o.1c$C2,4), round(s.1c$C2,4))
-        expect_equal(round(o.1c$C2,4), round(s.2c$C2,4))
+        expect_equal(o.1c$C2, s.1c$C2,tolerance=tol)
+        expect_equal(o.1c$C2, s.2c$C2,tolerance=tol)
     })
 
     ode.2c <- RxODE({
@@ -285,7 +285,7 @@ rxPermissive({
     s.2c <- sol.2c %>% solve(params=c(V=40, CL=18, V2=297, Q=10), events=et)
 
     test_that("2 compartment solved models and ODEs same.", {
-        expect_equal(round(o.2c$C2,4), round(s.2c$C2,4))
+        expect_equal(o.2c$C2, s.2c$C2,tolerance=tol)
     })
 
     o.2c <- ode.2c %>% solve(params=c(V=40, CL=18, V2=297, Q=10), events=etSs, maxsteps=10000)
@@ -293,7 +293,7 @@ rxPermissive({
     s.2c <- sol.2c %>% solve(params=c(V=40, CL=18, V2=297, Q=10), events=etSs)
 
     test_that("2 compartment steady state solved models and ODEs same.", {
-        expect_equal(round(o.2c$C2,4), round(s.2c$C2,4))
+        expect_equal(o.2c$C2, s.2c$C2,tolerance=tol)
     })
 
     ode.3c <- RxODE({
@@ -315,7 +315,7 @@ rxPermissive({
     s.3c <- sol.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=et)
 
     test_that("3 compartment solved models and ODEs same.", {
-        expect_equal(round(o.3c$C2,4), round(s.3c$C2,4))
+        expect_equal(o.3c$C2, s.3c$C2, tolerance=tol)
     })
 
     o.3c <- ode.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=etSs, maxsteps=100000)
@@ -323,7 +323,7 @@ rxPermissive({
     s.3c <- sol.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=etSs)
 
     test_that("3 compartment steady state solved models and ODEs same.", {
-        expect_equal(round(o.3c$C2,4), round(s.3c$C2,4))
+        expect_equal(o.3c$C2, s.3c$C2,tolerance=tol)
     })
 
     context("Infusion + Bolus")
@@ -361,8 +361,8 @@ rxPermissive({
     s.2c <- ode.1cs %>% solve(theta=c(20, 25), events=et)
 
     test_that("1 compartment solved models and ODEs same.", {
-        expect_equal(round(o.1c$C2,4), round(s.1c$C2,4))
-        expect_equal(round(o.1c$C2,4), round(s.2c$C2,4))
+        expect_equal(o.1c$C2, s.1c$C2, tolerance=tol)
+        expect_equal(o.1c$C2, s.2c$C2, tolerance=tol)
     })
 
     ode.2c <- RxODE({
@@ -381,7 +381,7 @@ rxPermissive({
     s.2c <- sol.2c %>% solve(params=c(V=40, CL=18, V2=297, Q=10), events=et)
 
     test_that("2 compartment solved models and ODEs same.", {
-        expect_equal(round(o.2c$C2,4), round(s.2c$C2,4))
+        expect_equal(o.2c$C2, s.2c$C2, tolerance=tol)
     })
 
     ode.3c <- RxODE({
@@ -403,7 +403,7 @@ rxPermissive({
     s.3c <- sol.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=et)
 
     test_that("3 compartment solved models and ODEs same.", {
-        expect_equal(round(o.3c$C2,4), round(s.3c$C2,4))
+        expect_equal(o.3c$C2, s.3c$C2, tolerance=tol)
     })
 
     context("Oral + Infusion + Bolus")
@@ -427,7 +427,7 @@ rxPermissive({
     s.1c <- sol.1c.ka %>% solve(params=c(V=20, CL=25, KA=2), events=et)
 
     test_that("1 compartment solved models and ODEs same for mixed oral, iv and infusion.", {
-        expect_equal(round(o.1c$C2,4), round(s.1c$C2,4))
+        expect_equal(o.1c$C2, s.1c$C2, tolerance=tol)
     })
 
     ode.2c.ka <- RxODE({
@@ -447,7 +447,7 @@ rxPermissive({
     s.2c <- sol.2c.ka %>% solve(params=c(V=40, CL=18, V2=297, Q=10, KA=0.3), events=et)
 
     test_that("2 compartment solved models and ODEs same for mixed oral, iv and infusion.", {
-        expect_equal(round(o.2c$C2,4), round(s.2c$C2,4))
+        expect_equal(o.2c$C2, s.2c$C2, tolerance=tol)
     })
 
     ode.3c.ka <- RxODE({
@@ -470,7 +470,7 @@ rxPermissive({
     s.3c <- sol.3c.ka %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400, KA=0.3), events=et)
 
     test_that("3 compartment solved models and ODEs same for mixed oral, iv and infusion.", {
-        expect_equal(round(o.3c$C2,4), round(s.3c$C2,4),tolerance=2e-4)
+        expect_equal(o.3c$C2, s.3c$C2,tolerance=tol)
     })
 
     context("Modeled bioavailability");
@@ -499,7 +499,7 @@ rxPermissive({
             o.1c <- ode.1c.ka %>% solve(params=c(V=20, CL=25, KA=2,fDepot=fd,fCenter=fc), events=et)
             s.1c <- sol.1c.ka %>% solve(params=c(V=20, CL=25, KA=2, fDepot=fd, fCenter=fc), events=et)
             test_that(sprintf("1 compartment solved models and ODEs same for mixed oral, iv and infusion + Fd=%f,Fc=%f", fd,fc), {
-                expect_equal(round(o.1c$C2,4), round(s.1c$C2,4))
+                expect_equal(o.1c$C2, s.1c$C2, tolerance=tol)
             })
         }
     }
@@ -527,7 +527,7 @@ rxPermissive({
             o.2c <- ode.2c.ka %>% solve(params=c(V=40, CL=18, V2=297, Q=10, KA= 0.3, fDepot=fd, fCenter=fc), events=et)
             s.2c <- sol.2c.ka %>% solve(params=c(V=40, CL=18, V2=297, Q=10, KA=0.3, fDepot=fd, fCenter=fc), events=et)
             test_that(sprintf("2 compartment solved models and ODEs same for mixed oral, iv and infusion + Fd=%f,Fc=%f", fd,fc), {
-                expect_equal(o.2c$C2, s.2c$C2,tolerance=1e-4)
+                expect_equal(o.2c$C2, s.2c$C2,tolerance=tol)
             })
         }
     }
@@ -558,7 +558,7 @@ rxPermissive({
             s.3c <- sol.3c.ka %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400, KA=0.3,
                                                  fDepot=fd, fCenter=fc), events=et)
             test_that(sprintf("3 compartment solved models and ODEs same for mixed oral, iv and infusion + Fd=%f,Fc=%f", fd,fc), {
-                expect_equal(o.3c$C2, s.3c$C2,tolerance=1e-4)
+                expect_equal(o.3c$C2, s.3c$C2,tolerance=tol)
             })
         }
     }
@@ -589,7 +589,7 @@ rxPermissive({
             o.1c <- ode.1c.ka %>% solve(params=c(V=20, CL=25, KA=2,lagDepot=fd,lagCenter=fc), events=et)
             s.1c <- sol.1c.ka %>% solve(params=c(V=20, CL=25, KA=2, lagDepot=fd, lagCenter=fc), events=et)
             test_that(sprintf("1 compartment solved models and ODEs same for mixed oral, iv and infusion + Fd=%f,Fc=%f", fd,fc), {
-                expect_equal(o.1c$C2, s.1c$C2, tolerance=1e-4)
+                expect_equal(o.1c$C2, s.1c$C2, tolerance=tol)
             })
         }
     }
@@ -617,7 +617,7 @@ rxPermissive({
             o.2c <- ode.2c.ka %>% solve(params=c(V=40, CL=18, V2=297, Q=10, KA= 0.3, lagDepot=fd, lagCenter=fc), events=et)
             s.2c <- sol.2c.ka %>% solve(params=c(V=40, CL=18, V2=297, Q=10, KA=0.3, lagDepot=fd, lagCenter=fc), events=et)
             test_that(sprintf("2 compartment solved models and ODEs same for mixed oral, iv and infusion + Fd=%f,Fc=%f", fd,fc), {
-                expect_equal(o.2c$C2, s.2c$C2,tolerance=1e-4)
+                expect_equal(o.2c$C2, s.2c$C2,tolerance=tol)
             })
         }
     }
@@ -648,7 +648,7 @@ rxPermissive({
             s.3c <- sol.3c.ka %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400, KA=0.3,
                                                  lagDepot=fd, lagCenter=fc), events=et)
             test_that(sprintf("3 compartment solved models and ODEs same for mixed oral, iv and infusion + Fd=%f,Fc=%f", fd,fc), {
-                expect_equal(o.3c$C2, s.3c$C2,tolerance=1e-4)
+                expect_equal(o.3c$C2, s.3c$C2,tolerance=tol)
             })
         }
     }
@@ -673,7 +673,7 @@ rxPermissive({
         o.1c <- ode.1c %>% solve(params=c(V=20, CL=25,rt=rt), events=et)
         s.1c <- sol.1c %>% solve(params=c(V=20, CL=25,rt=rt), events=et)
         test_that(sprintf("1 compartment solved models and ODEs same for rate-modeled infusion: %s", rt), {
-            expect_equal(o.1c$C2, s.1c$C2,tolerance=1e-4)
+            expect_equal(o.1c$C2, s.1c$C2,tolerance=tol)
         })
     }
 
@@ -694,7 +694,7 @@ rxPermissive({
         o.2c <- ode.2c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, rt=rt), events=et)
         s.2c <- sol.2c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, rt=rt), events=et)
         test_that(sprintf("2 compartment solved models and ODEs same for rate-modeled infusion: %s", rt), {
-            expect_equal(o.2c$C2, s.2c$C2,tolerance=1e-4)
+            expect_equal(o.2c$C2, s.2c$C2,tolerance=tol)
         })
     }
 
@@ -718,7 +718,7 @@ rxPermissive({
         s.3c <- sol.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400, rt=rt), events=et)
         o.3c <- ode.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400, rt=rt), events=et)
         test_that(sprintf("3 compartment solved models and ODEs same for rate-modeled infusion: %s", rt), {
-            expect_equal(o.3c$C2, s.3c$C2,tolerance=1e-4)
+            expect_equal(o.3c$C2, s.3c$C2,tolerance=tol)
         })
     }
 
@@ -742,7 +742,7 @@ rxPermissive({
         o.1c <- ode.1c %>% solve(params=c(V=20, CL=25,dr=dur), events=et)
         s.1c <- sol.1c %>% solve(params=c(V=20, CL=25,dr=dur), events=et)
         test_that(sprintf("1 compartment solved models and ODEs same for dur-modeled infusion: %s", dur), {
-            expect_equal(o.1c$C2, s.1c$C2,tolerance=1e-4)
+            expect_equal(o.1c$C2, s.1c$C2,tolerance=tol)
         })
     }
 
@@ -763,7 +763,7 @@ rxPermissive({
         o.2c <- ode.2c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, dr=dur), events=et)
         s.2c <- sol.2c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, dr=dur), events=et)
         test_that(sprintf("2 compartment solved models and ODEs same for dur-modeled infusion: %s", dur), {
-            expect_equal(o.2c$C2, s.2c$C2,tolerance=1e-4)
+            expect_equal(o.2c$C2, s.2c$C2,tolerance=tol)
         })
     }
 
@@ -787,7 +787,7 @@ rxPermissive({
         o.3c <- ode.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400, dr=dur), events=et)
         s.3c <- sol.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400, dr=dur), events=et)
         test_that(sprintf("3 compartment solved models and ODEs same for dur-modeled infusion: %s", dur), {
-            expect_equal(o.3c$C2, s.3c$C2,tolerance=1e-4)
+            expect_equal(o.3c$C2, s.3c$C2,tolerance=tol)
         })
     }
 

@@ -6,6 +6,12 @@
 #include <R_ext/Rdynload.h>
 #include "../inst/include/RxODE.h"
 
+// From https://cran.r-project.org/web/packages/Rmpfr/vignettes/log1mexp-note.pdf
+double log1mex(double a){
+  if (a < M_LN2) return log(-expm1(-a));
+  return(log1p(-exp(-a)));
+}
+
 void getWh(int evid, int *wh, int *cmt, int *wh100, int *whI, int *wh0);
 
 // Linear compartment models/functions
@@ -61,40 +67,40 @@ double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt,
   unsigned int ncmt = 1;
   double beta1=0, gamma1=0, alpha1=0;
   double alpha = d_alpha;
-  double A = d_A;
   double beta = d_beta;
-  double B = d_B;
   double gamma = d_gamma;
-  double C = d_C;
   double ka = d_ka;
   double tlag = d_tlag;
   double F = d_F;
+  double A = d_A;
+  double B = d_B;
+  double C = d_C;
   if (d_gamma > 0.){
     ncmt = 3;
-    gamma1 = 1.0/gamma;
-    beta1 = 1.0/beta;
-    alpha1 = 1.0/alpha;
+    gamma1 = -log(gamma); // 1/gamma log(1)-log(gamma) = -log(gamma)
+    beta1 = -log(beta);
+    alpha1 = -log(alpha);
   } else if (d_beta > 0.){
     ncmt = 2;
-    beta1 = 1.0/beta;
-    alpha1 = 1.0/alpha;
+    beta1 = -log(beta);
+    alpha1 = -log(alpha);
   } else if (d_alpha > 0.){
     ncmt = 1;
-    alpha1 = 1.0/alpha;
+    alpha1 = -log(alpha);
   } else {
     return 0.0;
     //error("You need to specify at least A(=%f) and alpha (=%f). (@t=%f, d1=%d, d2=%d)", d_A, d_alpha, t, diff1, diff2);
   }
   rx_solving_options *op = rx->op;
-  double ATOL = op->ATOL;          //absolute error
-  double RTOL = op->RTOL;          //relative error
+  /* double ATOL = op->ATOL; //absolute error */
+  /* double RTOL = op->RTOL; //relative error */
   int oral0, oral, cmt;
   oral0 = (ka > 0) ? 1 : 0;
-  double ret = 0,cur=0, tmp=0;
+  double ret = 0,cur=0;
   unsigned int m=0, l = 0, p = 0;
   int evid, wh, wh100, whI, wh0;
-  double thisT = 0.0, tT = 0.0, res, t1, t2, tinf, dose = 0, tau;
-  double rate;
+  double thisT = 0.0, tT = 0.0, res, t1, t2, tinf, dose = 0, tau, expr1;
+  double logRate;
   rx_solving_options_ind *ind = &(rx->subjects[id]);
   // don't need to adjust based on tlag t is the most conservative.
   // When tadr - tlag < 0 ignore the dose.
@@ -135,11 +141,11 @@ double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt,
       thisT = tT - tlag;
       tau = ind->ii[l];
       if (whI == 9){
-	tinf  = dose/d_rate;
-	rate  = d_rate;
+	tinf  = exp(log(dose)-log(d_rate));
+	logRate  = log(d_rate);
       } else {
 	tinf  = d_dur;
-	rate  = dose/d_dur;
+	logRate  = log(dose)-log(d_dur);
       }
       dose=NA_REAL;
     case 2:
@@ -163,7 +169,7 @@ double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt,
 	}
 	tinf  = ind->all_times[ind->idose[p]] - ind->all_times[ind->idose[l]];
 	tau = ind->ii[l];
-	rate  = dose;
+	logRate  = log(dose);
 	if (tT >= tinf) continue;
       } else {
 	// After  infusion
@@ -178,39 +184,43 @@ double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt,
 	tau = ind->ii[p];
 	tT = t - ind->all_times[ind->idose[p]];
 	thisT = tT -tlag;
-	rate  = -dose;
+	logRate  = log(-dose);
       }
       if (thisT < 0) continue;
       if (F <= 0) error("Bioavailability cannot be negative or zero.");
       if (whI == 1){ // Duration changes
 	tinf = tinf*F;
       } else { // Rate Changes
-	rate = F*rate;
+	logRate += log(F);
       }
       if (wh0 == 10 || wh0 == 20){
 	if (tinf >= tau){
 	  error("Infusion time greater then inter-dose interval, ss cannot be calculated.");
 	} 
 	if (thisT < tinf){ // during infusion
-	  cur += rate*A*alpha1*((1-exp(-alpha*thisT))+
-				exp(-alpha*tau)*(1-exp(-alpha*tinf))*exp(-alpha*(thisT-tinf))/(1-exp(-alpha*tau)));
+	  expr1= logRate+alpha1;
+	  cur += A*exp(expr1+log1mex(alpha*thisT))+
+	    A*exp(expr1-alpha*tau+log1mex(alpha*tinf)-alpha*(thisT-tinf)-log1mex(alpha*tau));
 	  if (ncmt >= 2){
-	    cur += rate*B*beta1*((1-exp(-beta*thisT))+
-				 exp(-beta*tau)*(1-exp(-beta*tinf))*exp(-beta*(thisT-tinf))/
-				 (1-exp(-beta*tau)));
+	    expr1= logRate+beta1;
+	    cur += B*exp(expr1+log1mex(beta*thisT))+
+	      B*exp(expr1-beta*tau+log1mex(beta*tinf)-beta*(thisT-tinf)-log1mex(beta*tau));
 	    if (ncmt >= 3){
-	      cur += rate*C*gamma1*((1-exp(-gamma*thisT))+
-				    exp(-gamma*tau)*(1-exp(-gamma*tinf))*exp(-gamma*(thisT-tinf))/
-				    (1-exp(-gamma*tau)));
+	      expr1= logRate+gamma1;
+	      cur += C*exp(expr1+log1mex(gamma*thisT))+
+		C*exp(expr1-gamma*tau+log1mex(gamma*tinf)-gamma*(thisT-tinf)-log1mex(gamma*tau));
 	    }
 	  }
 	  if (wh0 == 10) return (ret+cur);
 	} else { // after infusion
-	  cur += rate*A*alpha1*((1-exp(-alpha*tinf))*exp(-alpha*(thisT-tinf))/(1-exp(-alpha*tau)));
+	  expr1=logRate+alpha1;
+	  cur += A*exp(expr1+log1mex(alpha*tinf)-alpha*(thisT-tinf)-log1mex(alpha*tau));
 	  if (ncmt >= 2){
-	    cur += rate*B*beta1*((1-exp(-beta*tinf))*exp(-beta*(thisT-tinf))/(1-exp(-beta*tau)));
+	    expr1=logRate+beta1;
+	    cur += B*exp(expr1+log1mex(beta*tinf)-beta*(thisT-tinf)-log1mex(beta*tau));
 	    if (ncmt >= 3){
-	      cur += rate*C*gamma1*((1-exp(-gamma*tinf))*exp(-gamma*(thisT-tinf))/(1-exp(-gamma*tau)));
+	      expr1=logRate+gamma1;
+	      cur += C*exp(expr1+log1mex(gamma*tinf)-gamma*(thisT-tinf)-log1mex(gamma*tau));
 	    }
 	  }
 	  if (wh0 == 10) return (ret+cur);
@@ -218,11 +228,11 @@ double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt,
       } else {
 	t1  = ((thisT < tinf) ? thisT : tinf);        //during infusion
 	t2  = ((thisT > tinf) ? thisT - tinf : 0.0);  // after infusion
-	cur +=  rate*A*alpha1*(1.0-exp(-alpha*t1))*exp(-alpha*t2);
+	cur +=  A*exp(logRate+alpha1+log1mex(alpha*t1)-alpha*t2);
 	if (ncmt >= 2){
-	  cur +=  rate*B*beta1*(1.0-exp(-beta*t1))*exp(-beta*t2);
+	  cur +=  B*exp(logRate+beta1+log1mex(beta*t1)-beta*t2);
 	  if (ncmt >= 3){
-	    cur +=  rate*C*gamma1*(1.0-exp(-gamma*t1))*exp(-gamma*t2);
+	    cur +=  C*exp(logRate+gamma1+log1mex(gamma*t1)-gamma*t2);
 	  }
 	}
       }
@@ -234,12 +244,13 @@ double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt,
 	thisT = tT -tlag;
 	if (thisT < 0) continue;
 	tau = ind->ii[l];
-	res = ((oral == 1) ? exp(-ka*thisT)/(1-exp(-ka*tau)) : 0.0);
-	cur += dose*F*A*(exp(-alpha*thisT)/(1-exp(-alpha*tau))-res);
+	expr1 = log(dose)+log(F);
+	res = ((oral == 1) ? exp(expr1-ka*thisT-log1mex(ka*tau)) : 0.0);
+	cur += A*(exp(expr1-alpha*thisT-log1mex(alpha*tau))-res);
 	if (ncmt >= 2){
-	  cur +=  dose*F*B*(exp(-beta*thisT)/(1-exp(-beta*tau))-res);
+	  cur +=  B*(exp(expr1-beta*thisT-log1mex(beta*tau))-res);
 	  if (ncmt >= 3){
-	    cur += dose*F*C*(exp(-gamma*thisT)/(1-exp(-gamma*tau))-res);
+	    cur += C*(exp(expr1-gamma*thisT-log1mex(gamma*tau))-res);
 	  }
 	}
 	// ss=1 is equivalent to a reset + ss dose
@@ -250,12 +261,13 @@ double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt,
 	tT = t - ind->all_times[ind->idose[l]];
 	thisT = tT -tlag;
 	if (thisT < 0) continue;
-	res = ((oral == 1) ? exp(-ka*thisT) : 0.0);
-	cur +=  dose*F*A*(exp(-alpha*thisT)-res);
+	expr1 = log(dose)+log(F);
+	res = ((oral == 1) ? exp(expr1-ka*thisT) : 0.0);
+	cur +=  A*(exp(expr1-alpha*thisT)-res);
 	if (ncmt >= 2){
-	  cur +=  dose*F*B*(exp(-beta*thisT)-res);
+	  cur +=  B*(exp(expr1-beta*thisT)-res);
 	  if (ncmt >= 3){
-	    cur += dose*F*C*(exp(-gamma*thisT)-res);
+	    cur += C*(exp(expr1-gamma*thisT)-res);
 	  }
 	}
       }
@@ -275,11 +287,11 @@ double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt,
     //
     // For this calcuation all values should be > 0.  If they are less
     // than 0 then it is approximately zero.
-    tmp = fabs(ret+cur);
-    if (fabs(cur) < RTOL*tmp+ATOL){ 
-      ret=ret+cur;
-      break;
-    }
+    /* tmp = fabs(ret+cur); */
+    /* if (fabs(cur) < RTOL*tmp+ATOL){  */
+    /*   ret=ret+cur; */
+    /*   break; */
+    /* } */
     ret = ret+cur;
   } //l
   return ret;
