@@ -1746,7 +1746,8 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
   int *svar = op->svar;
   int kk = 0;
   int wh, cmt, wh100, whI, wh0;
-  int dullEvid = 1, dullRate=1, dullDur=1,
+  int //dullEvid = 1,
+    dullRate=1, dullDur=1,
     dullSS=1, dullIi=1;
   int csub = 0, evid;
   int nsub = rx->nsub;
@@ -1922,9 +1923,9 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
 		dfi = INTEGER(VECTOR_ELT(df, jj++));
 		if (evid >= 10){
 		  dfi[ii] = evid+91; // mtime 101 102 103...
-		  dullEvid=0;
+		  /* dullEvid=0; */
 		} else {
-		  if (evid == 2) dullEvid=0;
+		  /* if (evid == 2) dullEvid=0; */
 		  dfi[ii] = evid;
 		}
 		// cmt

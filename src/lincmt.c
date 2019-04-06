@@ -91,7 +91,6 @@ double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt,
     return 0.0;
     //error("You need to specify at least A(=%f) and alpha (=%f). (@t=%f, d1=%d, d2=%d)", d_A, d_alpha, t, diff1, diff2);
   }
-  rx_solving_options *op = rx->op;
   /* double ATOL = op->ATOL; //absolute error */
   /* double RTOL = op->RTOL; //relative error */
   int oral0, oral, cmt;
