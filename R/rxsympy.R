@@ -1740,7 +1740,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                             if (rxSymPyExists(.mtime)){
                                 .mtime <- try(rxSymPy(x), silent=TRUE);
                                 if (inherits(.mtime, "try-error")) return("");
-                                mtime <- try(rxFromSympy(x), silent=TRUE)
+                                mtime <- try(rxFromSymPy(x), silent=TRUE)
                                 if (inherits(.mtime, "try-error")) return("");
                                 return(sprintf("%s=%s;", x, .mtime));
                             }
