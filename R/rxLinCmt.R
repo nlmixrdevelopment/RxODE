@@ -145,9 +145,9 @@ rxLinCmtTrans <- function(modText){
         } else{
             if (length(.w) > 0){
                 .minQ <- min(as.numeric(gsub(.reg, "\\1", .varsUp[.w])));
-                .vs <- paste0("Q", seq(.minQ, .minQ + 2))
+                .qs <- paste0("Q", seq(.minQ, .minQ + 2))
             } else {
-                .vs <- paste0("Q", 1:3);
+                .qs <- paste0("Q", 1:3);
             }
         }
         .oral <- any(.varsUp == "KA");
