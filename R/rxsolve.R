@@ -359,7 +359,7 @@ rxControl <- function(scale = NULL,
 ##'     lsoda and liblsoda with doses, like deSolve; When FALSE, do
 ##'     not reset the ISTATE variable with doses.
 ##'
-##'  @param addDosing Boolean indicating if the solve should add RxODE
+##' @param addDosing Boolean indicating if the solve should add RxODE
 ##'     EVID and related columns.  This will also include dosing
 ##'     information and estimates at the doses.  Be default, RxODE
 ##'     only includes estimates at the observations. (default

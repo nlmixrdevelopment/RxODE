@@ -188,6 +188,37 @@ added to parameters}
 \item{eta}{A vector of parameters that will be named ETA[#] and
 added to parameters}
 
+\item{addDosing}{Boolean indicating if the solve should add RxODE
+    EVID and related columns.  This will also include dosing
+    information and estimates at the doses.  Be default, RxODE
+    only includes estimates at the observations. (default
+    \code{FALSE}). When \code{addDosing} is \code{NULL}, only
+    include \code{EVID=0} on solve and exclude any model-times or
+    \code{EVID=2}. If \code{addDosing} is \code{NA} the classic
+    \code{RxODE} EVID events. When \code{addDosing} is \code{TRUE}
+    add the event information in NONMEM-style format; If
+    \code{subsetNonmem=FALSE} RxODE will also extra event types
+    (\code{EVID}) for ending infusion and modeled times:
+
+\itemize{
+
+\item \code{EVID=-1} when the modeled rate infusions are turned
+off (matches \code{rate=-1})
+
+\item \code{EVID=-2} When the modeled duration infusions are
+turned off (matches \code{rate=-2})
+
+\item \code{EVID=-10} When the specified \code{rate} infusions are
+turned off (matches \code{rate>0})
+
+\item \code{EVID=-20} When the specified \code{dur} infusions are
+turned off (matches \code{dur>0})
+
+\item \code{EVID=101,102,103,...} Modeled time where 101 is the
+first model time, 102 is the second etc.
+
+}}
+
 \item{stateTrim}{When amounts/concentrations in one of the states
 are above this value, trim them to be this value. By default
 Inf.  Also trims to -stateTrim for lage negative
@@ -271,39 +302,8 @@ parameter identifiers used in the ODE specification;}
 time points (see \code{\link{eventTable}});}
 
 \item{istateReset}{When TRUE, reset the ISTATE variable to 1 for
-    lsoda and liblsoda with doses, like deSolve; When FALSE, do
-    not reset the ISTATE variable with doses.
-
- @param addDosing Boolean indicating if the solve should add RxODE
-    EVID and related columns.  This will also include dosing
-    information and estimates at the doses.  Be default, RxODE
-    only includes estimates at the observations. (default
-    \code{FALSE}). When \code{addDosing} is \code{NULL}, only
-    include \code{EVID=0} on solve and exclude any model-times or
-    \code{EVID=2}. If \code{addDosing} is \code{NA} the classic
-    \code{RxODE} EVID events. When \code{addDosing} is \code{TRUE}
-    add the event information in NONMEM-style format; If
-    \code{subsetNonmem=FALSE} RxODE will also extra event types
-    (\code{EVID}) for ending infusion and modeled times:
-
-\itemize{
-
-\item \code{EVID=-1} when the modeled rate infusions are turned
-off (matches \code{rate=-1})
-
-\item \code{EVID=-2} When the modeled duration infusions are
-turned off (matches \code{rate=-2})
-
-\item \code{EVID=-10} When the specified \code{rate} infusions are
-turned off (matches \code{rate>0})
-
-\item \code{EVID=-20} When the specified \code{dur} infusions are
-turned off (matches \code{dur>0})
-
-\item \code{EVID=101,102,103,...} Modeled time where 101 is the
-first model time, 102 is the second etc.
-
-}}
+lsoda and liblsoda with doses, like deSolve; When FALSE, do
+not reset the ISTATE variable with doses.}
 
 \item{subsetNonmem}{subset to NONMEM compatible EVIDs only.  By default TRUE.}
 
