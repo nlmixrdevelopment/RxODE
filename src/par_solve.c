@@ -539,6 +539,7 @@ int handle_evid(int evid, int neq,
 		rx_solving_options_ind *ind){
   if (isObs(evid)) return 0;
   int wh = evid, cmt, foundBad, j;
+  double tmp;
   if (wh) {
     /* wh100 = ind->wh100; */
     wh = ind->wh;
@@ -611,27 +612,45 @@ int handle_evid(int evid, int neq,
 	// Rate already calculated and saved in the next dose record
 	ind->on[cmt] = 1;
 	InfusionRate[cmt] -= dose[ind->ixds+1];
+	if (ind->wh0 == 20 && AMT(id, cmt, dose[ind->ixds], xout) != dose[ind->ixds]){
+	  error("SS=2 & Modeled F does not work");
+	}
 	break;
       case 7: // End modeled rate
       case 6: // end modeled duration
 	// If cmt is off, don't remove rate....
 	// Probably should throw an error if the infusion rate is on still.
 	InfusionRate[cmt] += dose[ind->ixds]*((double)(ind->on[cmt]));
+	if (ind->wh0 == 20 && AMT(id, cmt, dose[ind->ixds], xout) != dose[ind->ixds]){
+	  error("SS=2 & Modeled F does not work");
+	}
 	break;
       case 2:
 	// In this case bio-availability changes the rate, but the duration remains constant.
 	// rate = amt/dur
 	ind->on[cmt] = 1;
-	InfusionRate[cmt] += AMT(id, cmt, dose[ind->ixds], xout);
+	tmp = AMT(id, cmt, dose[ind->ixds], xout);
+	InfusionRate[cmt] += tmp;
+	if (ind->wh0 == 20 && tmp != dose[ind->ixds]){
+	  error("SS=2 & Modeled F does not work");
+	}
 	break;
       case 1:
 	ind->on[cmt] = 1;
 	InfusionRate[cmt] += dose[ind->ixds];
+	if (ind->wh0 == 20 && dose[ind->ixds] > 0 && AMT(id, cmt, dose[ind->ixds], xout) != dose[ind->ixds]){
+	  error("SS=2 & Modeled F does not work");
+	}
 	break;
       case 0:
 	if (do_transit_abs) {
 	  ind->on[cmt] = 1;
-	  ind->podo = AMT(id, cmt, dose[ind->ixds], xout);
+	  if (ind->wh0 == 20){
+	    tmp = AMT(id, cmt, dose[ind->ixds], xout);
+	    ind->podo = tmp;
+	  } else {
+	    ind->podo = AMT(id, cmt, dose[ind->ixds], xout);
+	  }
 	  ind->tlast = xout;
 	} else {
 	  ind->on[cmt] = 1;
