@@ -98,8 +98,8 @@ double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt,
   double ret = 0,cur=0;
   unsigned int m=0, l = 0, p = 0;
   int evid, wh, wh100, whI, wh0;
-  double thisT = 0.0, tT = 0.0, res, t1, t2, tinf, dose = 0, tau, expr1;
-  double logRate;
+  double thisT = 0.0, tT = 0.0, res, t1, t2, tinf = 0, dose = 0, tau = 0, expr1;
+  double logRate=0;
   rx_solving_options_ind *ind = &(rx->subjects[id]);
   // don't need to adjust based on tlag t is the most conservative.
   // When tadr - tlag < 0 ignore the dose.

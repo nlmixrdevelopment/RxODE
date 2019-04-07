@@ -1735,17 +1735,30 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                         }
                         .r <- rxToSymPy("rx_r_");
                         .r <- rxSymPy(.r);
+                        .mtime <- sapply(.rxMtimes, function(x){
+                            .mtime <- rxToSymPy(x);
+                            if (rxSymPyExists(.mtime)){
+                                .mtime <- try(rxSymPy(x), silent=TRUE);
+                                if (inherits(.mtime, "try-error")) return("");
+                                mtime <- try(rxFromSympy(x), silent=TRUE)
+                                if (inherits(.mtime, "try-error")) return("");
+                                return(sprintf("%s=%s;", x, .mtime));
+                            }
+                            return("");
+                        })
+                        .mtime <- .mtime[.mtime != ""];
+
                         if (!only.numeric){
                             .inner <- paste0(.states,
                                              "rx_pred_=", rxFromSymPy(.pred), ";")
-                            .inner <- paste(c(.inner, .newlines,
+                            .inner <- paste(c(.inner, .newlines, .mtime,
                                             paste0("rx_r_=", rxFromSymPy(.r0), ";"),
                                             .newlinesR), collapse="\n");
                         } else {
                             .inner <- NULL
                         }
                         ## PRED only R has etas on it.
-                        .pred.only <- paste0(.pred.only,
+                        .pred.only <- paste0(.pred.only, paste(.mtime, collapse="\n"),
                                              paste0("rx_r_=", rxFromSymPy(.r), ";"));
                         .lhs <- setNames(sapply(.oLhs, function(x){
                             .lhs <- rxToSymPy(x);
@@ -1761,7 +1774,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                                 }
                             }
                             return("");
-                        }), .oLhs);
+                         }), .oLhs);
                         .lhs <- .lhs[which(.lhs != "")];
                         .lhs <- gsub(rex::rex(capture("nlmixr_",except_any_of("=")),"="),"\\1~",.lhs)
                         .pred.only  <- paste0(.pred.only, paste(.lhs, collapse="\n"));

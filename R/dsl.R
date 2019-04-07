@@ -289,6 +289,13 @@ rxSymPyFEnv$lag <- function(e1){
 }
 rxSymPyFEnv$alag <- rxSymPyFEnv$lag
 
+.rxMtimes <- c();
+
+## rxSymPyFEnv$mtime <- function(e2){
+##     assignInMyNamespace(".rxMtimes", unique(c(paste0(e2), .rxMtimes)));
+##     return(e2);
+## }
+
 ## rx -> sympy
 rxSymPyFEnv$bessel_i <- besselOp("i");
 rxSymPyFEnv$bessel_j <- besselOp("j");
