@@ -510,7 +510,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false, bool allTimeVar
 	} else if (inEvid[i] == 0){
 	  tmpCmt=1;
 	} else {
-	  stop("Compartment cannot be zero");
+	  tmpCmt=1;
 	}
       }
       if (IntegerVector::is_na(inCmt[i])){
