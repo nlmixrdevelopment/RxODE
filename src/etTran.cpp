@@ -223,8 +223,8 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false, bool allTimeVar
     else if (tmpS == "evid") evidCol=i;
     else if (tmpS == "time") timeCol=i;
     else if (tmpS == "amt") amtCol=i;
-    else if (tmpS == "cmt" || tmpS == "ytype") cmtCol=i;
-    else if (tmpS == "dv" || tmpS == "y") dvCol=i;
+    else if (tmpS == "cmt") cmtCol=i;
+    else if (tmpS == "dv") dvCol=i;
     else if (tmpS == "ss")   ssCol=i;
     else if (tmpS == "rate") rateCol=i;
     else if (tmpS == "dur") durCol=i;
