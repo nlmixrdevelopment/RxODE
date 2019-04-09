@@ -425,6 +425,9 @@ rxLinCmtTrans <- function(modText){
         .txt <- paste(sub(.re, sprintf("%s\n\\1%s\\3", .lines, .solve), .txt), collapse="\n");
         return(rxGetModel(.txt))
     } else {
+        message(cli::rule(left="model with multiple linCmt()"))
+        message(paste(modText, collapse="\n"));
+        message(cli::rule())
         stop("Can only have one linCmt() function in the model.  Assign it to a variable if you need the concentrations more than once.");
     }
 }

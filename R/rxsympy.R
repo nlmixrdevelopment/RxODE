@@ -1610,6 +1610,24 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                     .fullState <- rxState(.full);
                     rxCat("Load into sympy...");
                     rxSymPySetup(.full);
+                    if (!only.numeric && !is.null(.ncond)){
+                        .tmp <- .ncond[.i];
+                        if (regexpr(rex::rex("(!"), .tmp) != -1){
+                            .tmp <- sub(rex::rex(start, any_spaces, "(!", capture(anything), ")", any_spaces, end),
+                                        "\\1", .tmp);
+                        }
+                        .p <- rxModelVars(paste0("if ", .tmp, "{rx_tmp=1.0+2.0;}"))$params;
+                        for (.v in .p){
+                            .tmp <- rxToSymPy(.v);
+                            if (rxSymPyExists(.tmp)){
+                                .tmp <- rxSymPy(.tmp);
+                                .tmp <- rxFromSymPy(.tmp);
+                                if (regexpr(rex::rex(except_some_of("H"), "ETA[", any_numbers, "]"), .tmp) != -1){
+                                    stop("if/else depends on ETAs, currently not supported by FOCEi/CWRES");
+                                }
+                            }
+                        }
+                    }
                     if (!is.null(.ncond)){
                         ## FIXME use parsing to fix these LHS quantities.
                         for(.v in .oLhs[order(sapply(.oLhs, function(.x){ -nchar(.x)}))]){
