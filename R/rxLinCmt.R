@@ -217,6 +217,9 @@ rxLinCmtTrans <- function(modText){
             if (.oral){
                 .lines[length(.lines)+1]  <- sub(.regLagDepot,"rx_tlag ~ \\1", .tmp);
             } else {
+                message(cli::rule(left="model without ka"))
+                message(paste(modText, collapse="\n"));
+                message(cli::rule())
                 stop("lag(depot) does not exist without a depot compartment, specify a 'ka' parameter");
             }
         } else if (length(.lagDepot)>1L){
