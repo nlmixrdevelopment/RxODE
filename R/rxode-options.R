@@ -44,11 +44,13 @@ rxTempDir <- function(){
         .tmp <- .normalizePath(.tmp);
         Sys.setenv(rxTempDir=.tmp);
         utils::assignInMyNamespace(".rxTempDir0", .tmp)
+        utils::assignInMyNamespace("RxODE.cache.directory", .tmp)
         return(.tmp)
     } else {
         .tmp <- getFromNamespace(".rxTempDir0", "RxODE");
         if (!file.exists(.tmp))
             dir.create(.tmp, recursive = TRUE);
+        utils::assignInMyNamespace("RxODE.cache.directory", .tmp)
         return(.tmp);
     }
 }
