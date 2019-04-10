@@ -1428,6 +1428,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
     check.good(pkpars);
     check.good(errfn);
     ##
+    rxTempDir();
     if (!grad.internal && !theta.internal){
         if (RxODE.cache.directory == "."){
             cache.file <- "";
@@ -2015,6 +2016,7 @@ rxFoExpandEta <-function(expr){
 ##' @export
 rxSymPyLincmtDvdx <- function(model, ncmt, parameterization, optExpression=TRUE){
     .mod <- rxGetModel(model)
+    rxTempDir();
     if (RxODE.cache.directory == "."){
         .file <- "";
     } else {

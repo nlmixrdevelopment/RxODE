@@ -204,7 +204,8 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false, bool allTimeVar
   // Translates events + model into translated events
   CharacterVector lName = clone(as<CharacterVector>(inData.attr("names")));
   int i, idCol = -1, evidCol=-1, timeCol=-1, amtCol=-1, cmtCol=-1,
-    dvCol=-1, ssCol=-1, rateCol=-1, addlCol=-1, iiCol=-1, durCol=-1, j;
+    dvCol=-1, ssCol=-1, rateCol=-1, addlCol=-1, iiCol=-1, durCol=-1, j,
+    mdvCol=-1;
   std::string tmpS;
   
   CharacterVector pars = as<CharacterVector>(mv["params"]);
@@ -230,6 +231,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false, bool allTimeVar
     else if (tmpS == "dur") durCol=i;
     else if (tmpS == "addl") addlCol=i;
     else if (tmpS == "ii")   iiCol=i;
+    else if (tmpS == "mdv") mdvCol=i;
     for (j = pars.size(); j--;){
       // Check lower case
       if (tmpS == as<std::string>(pars[j])){
@@ -383,6 +385,15 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false, bool allTimeVar
       inEvid = as<IntegerVector>(inData[evidCol]);
     } else {
       stop("Event id (evid) needs to be an integer");
+    }
+  }
+  IntegerVector inMdv;
+  if (mdvCol != -1){
+    if (rxIs(inData[mdvCol], "integer") || rxIs(inData[mdvCol], "numeric") ||
+	rxIs(inData[mdvCol], "logical")){
+      inMdv = as<IntegerVector>(inData[mdvCol]);
+    } else {
+      stop("Missing dependent variable (MDV) needs to be an integer");
     }
   }
   NumericVector inRate;
@@ -591,10 +602,16 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false, bool allTimeVar
       // Missing EVID
       if (rateI == 0 && (ISNA(camt) || camt == 0.0)){
 	cevid = 0;
+	if (mdvCol != -1 && inMdv[i] == 1){
+	  cevid=2;
+	}
 	if (std::find(obsId.begin(), obsId.end(), cid) == obsId.end()){
 	  obsId.push_back(cid);
 	}
       } else {
+	if (mdvCol != -1 && inMdv[i] == 0){
+	  stop("amt or dur/rate are non-zero therefore MDV cannot = 0.");
+	}
 	// For Rates and non-zero amts, assume dosing event
 	cevid = cmt100*100000+rateI*10000+cmt99*100+ss;
 	allBolus=false;
@@ -604,6 +621,9 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false, bool allTimeVar
       case 0:
 	nobs++;
 	cevid = 0;
+	if (mdvCol != -1 && inMdv[i] == 1){
+	  cevid = 2;
+	}
 	if (std::find(obsId.begin(), obsId.end(), cid) == obsId.end()){
 	  obsId.push_back(cid);
 	}
@@ -627,7 +647,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false, bool allTimeVar
 	  cevid = -1;
 	} else {
 	  id.push_back(cid);
-	  evid.push_back(0);
+	  evid.push_back(cevid);
 	  cmtF.push_back(cmt);
 	  time.push_back(ctime);
 	  amt.push_back(NA_REAL);
@@ -639,6 +659,9 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false, bool allTimeVar
 	}
 	break;
       case 1:
+	if (mdvCol != -1 && inMdv[i] == 0){
+	  stop("MDV cannot be 0 when EVID=1");
+	}
 	cevid = cmt100*100000+rateI*10000+cmt99*100+ss;
 	if (rateI == 0) allInf=false;
 	else allBolus=false;
@@ -704,6 +727,9 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false, bool allTimeVar
 	cevid = -1;
 	break;
       case 4:
+	if (mdvCol != -1 && inMdv[i] == 0){
+	  stop("MDV cannot be 0 when EVID=4");
+	}
 	id.push_back(cid);
 	evid.push_back(3);
 	cmtF.push_back(cmt);
