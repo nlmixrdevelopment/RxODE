@@ -55,10 +55,10 @@ transit3   : 'transit' '(' trans_const ',' trans_const ',' trans_const ')';
 dfdy        : 'df' '(' identifier_r_no_output ')/dy(' (theta0_noout | theta_noout | eta_noout | identifier_r_no_output) ')' ('=' | '<-' ) additive_expression;
 dfdy_rhs    : 'df' '(' identifier_r_no_output ')/dy(' (theta0_noout | theta_noout | eta_noout | identifier_r_no_output) ')';
 
-fbio        : ('f' | 'F')  '(' identifier_r_no_output ')' ('=' | '<-' ) additive_expression;
-alag        : ('lag' | 'alag')  '(' identifier_r_no_output ')' ('=' | '<-' ) additive_expression;
-rate        : ('r' | 'rate')  '(' identifier_r_no_output ')' ('=' | '<-' ) additive_expression;
-dur        : ('d' | 'dur')  '(' identifier_r_no_output ')' ('=' | '<-' ) additive_expression;
+fbio        : ('f' | 'F')  '(' identifier_r_no_output ')' ('=' | '<-' | '~' ) additive_expression;
+alag        : ('lag' | 'alag')  '(' identifier_r_no_output ')' ('=' | '<-' | '~' ) additive_expression;
+rate        : ('r' | 'rate')  '(' identifier_r_no_output ')' ('=' | '<-' | '~' ) additive_expression;
+dur        : ('d' | 'dur')  '(' identifier_r_no_output ')' ('=' | '<-' | '~' ) additive_expression;
 
 
 jac_command : 'jac' | 'df/dy';
