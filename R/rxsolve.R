@@ -43,6 +43,12 @@ rxControl <- function(scale = NULL,
             nStud <- nsim;
         }
     }
+    if (is(omega, "list")){
+        .omega <- as.matrix(Matrix::bdiag(omega));
+        .d <- unlist(lapply(seq_along(omega), function(x){dimnames(omega[[x]])[2]}))
+        dimnames(.omega) <- list(.d, .d);
+        omega <- .omega;
+    }
     ## stiff = TRUE, transitAbs = NULL,
     ## atol = 1.0e-8, rtol = 1.0e-6, maxsteps = 5000, hmin = 0, hmax = NULL, hini = 0, maxordn = 12,
     ## maxords = 5, ..., covsInterpolation = c("linear", "constant", "NOCB", "midpoint"),
@@ -328,6 +334,10 @@ rxControl <- function(scale = NULL,
 ##'
 ##' @param seed an object specifying if and how the random number
 ##'    generator should be initialized
+##'
+##' @param omega Estimate of Covariance matrix. When omega is a list,
+##'     assume it is a block matrix and convert it to a full matrix
+##'     for simulations.
 ##'
 ##' @inheritParams rxSimThetaOmega
 ##'
