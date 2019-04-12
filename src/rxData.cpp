@@ -3907,6 +3907,11 @@ IntegerVector rxCores(){
 std::string rxDll(RObject obj){
   if (rxIs(obj,"RxODE")){
     Environment e = as<Environment>(obj);
+    Nullable<CharacterVector>pkgn = e["package"];
+    if (!pkgn.isNull()){
+      Function rxPkgDll = getRxFn(".rxPkgDll");
+      return(as<std::string>(rxPkgDll(wrap(obj))));
+    } 
     return as<std::string>((as<List>(e["rxDll"]))["dll"]);
   } else if (rxIs(obj,"rxSolve")) {
     CharacterVector cls = obj.attr("class");

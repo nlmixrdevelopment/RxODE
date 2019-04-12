@@ -54,6 +54,8 @@ rex::register_shortcuts("RxODE");
 ##' @param collapseModel boolean indicating if RxODE will remove all
 ##'     LHS variables when calculating sensitivities.
 ##'
+##' @param package Package name for pre-compiled binaries.
+##'
 ##' @param ... ignored arguments.
 ##'
 ##' The \dQuote{Rx} in the name \code{RxODE} is meant to suggest the
@@ -308,7 +310,13 @@ rex::register_shortcuts("RxODE");
 RxODE <- function(model, modName = basename(wd),
                   wd = getwd(),
                   filename = NULL, extraC = NULL, debug = FALSE, calcJac=NULL, calcSens=NULL,
-                  collapseModel=FALSE, ...) {
+                  collapseModel=FALSE, package=NULL, ...) {
+    if (!is.null(package)){
+        if (missing(modName)){
+            stop("With packages modName is required!");
+        }
+        modName <- paste0(package, "_", modName)
+    }
     if (!missing(model) && !missing(filename))
         stop("Must specify exactly one of 'model' or 'filename'.")
     if (missing(model) && !missing(filename)){
@@ -323,6 +331,10 @@ RxODE <- function(model, modName = basename(wd),
             }
             model <- paste(model, collapse="\n");
         } else if (rxIs(model, "RxODE")){
+            package <- get("package", model)
+            if (!is.null(package)){
+                modName <- get("modName", model);
+            }
             model <- model$.model
             class(model) <- NULL
         }
@@ -363,6 +375,10 @@ RxODE <- function(model, modName = basename(wd),
     .env$collapseModel <- collapseModel;
 
     .env$wd <- wd;
+    .env$package <- package;
+    if (!is.null(.env$package)){
+        .env$mdir <- file.path(system.file(package=package), "rx")
+    }
     .env$compile <- eval(bquote(function(){
         with(.(.env), {
             .lwd <- getwd();
@@ -379,7 +395,6 @@ RxODE <- function(model, modName = basename(wd),
             }
             assign("rxDll", .rxDll, envir=.(.env));
             assign(".mv", .rxDll$modVars, envir=.(.env));
-
         });
     }));
 
@@ -468,6 +483,20 @@ RxODE <- function(model, modName = basename(wd),
     class(.env) <- "RxODE"
     reg.finalizer(.env, eval(bquote(function(...){try(dyn.unload(.(rxDll(.env))), silent=TRUE)})));
     RxODE::rxForget();
+    if (!is.null(.env$package)){
+        .c <- RxODE::rxC(.env);
+        if (file.exists(.c)){
+            unlink(.c)
+        }
+        .o <- paste0(substr(.c, 0, nchar(.c) - 2), ".0");
+        if (file.exists(.o)){
+            unlink(.o);
+        }
+        .make <- file.path(.env$mdir, "Makevars");
+        if (file.exists(.make)){
+            unlink(.make);
+        }
+    }
     return(.env);
 }
 
@@ -479,7 +508,7 @@ RxODE <- function(model, modName = basename(wd),
 ##' @author Matthew L. Fidler
 ##' @export
 ##' @keywords internal
-rxGetModel <- function(model, calcSens=NULL, calcJac=NULL, collapseModel=NULL){
+ rxGetModel <- function(model, calcSens=NULL, calcJac=NULL, collapseModel=NULL){
     if (is(substitute(model), "call")){
         model <- model;
     }

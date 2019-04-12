@@ -230,7 +230,9 @@ well as returning a new object.  You probably should not
 modify it's \code{FALSE} default unless you are willing to
 have unexpected results.}
 
-\item{omega}{Named omega matrix.}
+\item{omega}{Estimate of Covariance matrix. When omega is a list,
+assume it is a block matrix and convert it to a full matrix
+for simulations.}
 
 \item{omegaDf}{The degrees of freedom of a t-distribution for
 simulation.  By default this is \code{NULL} which is

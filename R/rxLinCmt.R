@@ -11,7 +11,8 @@ findLhs <- function(x) {
         character()
     } else if (is.call(x)) {
         if ((identical(x[[1]], quote(`<-`)) ||
-              identical(x[[1]], quote(`=`))) &&
+             identical(x[[1]], quote(`=`)) ||
+             identical(x[[1]], quote(`~`))) &&
              is.name(x[[2]])) {
             .lhs <- as.character(x[[2]])
         } else {
@@ -114,7 +115,7 @@ rxLinCmtTrans <- function(modText){
                 .linCmt <- .linCmt - 1;
             }
         }
-        .vars <- unique(c(.vars, rxLhs(modText), rxParam(modText)))
+        .vars <- unique(c(.vars, rxLhs(modText), rxParam(modText), findLhs(eval(parse(text=sprintf("quote({%s})", rxNorm(modText)))))))
         .varsUp <- toupper(.vars);
         .reg <- rex::rex(start, "V", capture(number), end);
         .w <- which(regexpr(.reg, .varsUp) != -1);

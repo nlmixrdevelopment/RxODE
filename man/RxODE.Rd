@@ -6,7 +6,7 @@
 \usage{
 RxODE(model, modName = basename(wd), wd = getwd(), filename = NULL,
   extraC = NULL, debug = FALSE, calcJac = NULL, calcSens = NULL,
-  collapseModel = FALSE, ...)
+  collapseModel = FALSE, package = NULL, ...)
 }
 \arguments{
 \item{model}{This is the ODE model specification.  It can be:
@@ -58,6 +58,8 @@ sennsitivities according to the specified ODEs.}
 
 \item{collapseModel}{boolean indicating if RxODE will remove all
 LHS variables when calculating sensitivities.}
+
+\item{package}{Package name for pre-compiled binaries.}
 
 \item{...}{ignored arguments.
 
