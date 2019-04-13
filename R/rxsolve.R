@@ -3,7 +3,7 @@
 rxControl <- function(scale = NULL,
                       method = c("liblsoda", "lsoda", "dop853"),
                       transitAbs = NULL, atol = 1.0e-8, rtol = 1.0e-6,
-                      maxsteps = 5000L, hmin = 0L, hmax = NA, hini = 0, maxordn = 12L, maxords = 5L, ...,
+                      maxsteps = 50000L, hmin = 0L, hmax = NA, hmaxSd= 0, hini = 0, maxordn = 12L, maxords = 5L, ...,
                       cores,
                       covsInterpolation = c("locf", "linear", "nocb", "midpoint"),
                       addCov = FALSE, matrix = FALSE, sigma = NULL, sigmaDf = NULL,
@@ -15,11 +15,12 @@ rxControl <- function(scale = NULL,
                       nSub = 1L, thetaMat = NULL, thetaDf = NULL, thetaIsChol = FALSE,
                       nStud = 1L, dfSub=0.0, dfObs=0.0, returnType=c("rxSolve", "matrix", "data.frame", "data.frame.TBS"),
                       seed=NULL, nsim=NULL,
-                      minSS=7, maxSS=7000,
-                      atolSS=atol[1], rtolSS=rtol[1],
+                      minSS=7, maxSS=70000,
+                      atolSS=1e-9, rtolSS=1e-9,
                       params=NULL,events=NULL,
                       istateReset=TRUE,
-                      subsetNonmem=TRUE){
+                      subsetNonmem=TRUE,
+                      linLog=FALSE){
     .xtra <- list(...);
     if (is.null(transitAbs) && !is.null(.xtra$transit_abs)){
         transitAbs <- .xtra$transit_abs;
@@ -144,7 +145,8 @@ rxControl <- function(scale = NULL,
                  minSS=minSS, maxSS=maxSS,
                  atolSS=atolSS[1], rtolSS=rtolSS[1],
                  istateReset=istateReset,
-                 subsetNonmem=subsetNonmem);
+                 subsetNonmem=subsetNonmem,
+                 linLog=linLog, hmaxSd=hmaxSd);
     return(.ret)
 }
 
@@ -208,10 +210,13 @@ rxControl <- function(scale = NULL,
 ##'     value is 0.
 ##'
 ##' @param hmax The maximum absolute step size allowed.  When
-##'     \code{hmax=NA} (default), uses the avearge difference in times
+##'     \code{hmax=NA} (default), uses the average difference (+hmaxSd*sd) in times
 ##'     and sampling events. When \code{hmax=NULL} RxODE uses the
 ##'     maximum difference in times in your sampling and events.  The
 ##'     value 0 is equivalent to infinite maximum absolute step size.
+##'
+##' @param hmaxSd The number of standard deviations of the time
+##'     difference to add to hmax. The default is 0
 ##'
 ##' @param hini The step size to be attempted on the first step. The
 ##'     default value is determined by the solver (when hini = 0)
@@ -401,6 +406,10 @@ rxControl <- function(scale = NULL,
 ##' }
 ##'
 ##' @param subsetNonmem subset to NONMEM compatible EVIDs only.  By default TRUE.
+##'
+##' @param linLog Boolean indicating if linear compartment models be
+##'     calculated more accurately in the log-space (slower) By
+##'     default this is off (\code{FALSE})
 ##'
 ##' @return An \dQuote{rxSolve} solve object that stores the solved
 ##'     value in a matrix with as many rows as there are sampled time

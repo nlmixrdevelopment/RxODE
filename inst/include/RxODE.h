@@ -69,6 +69,7 @@ typedef struct {
   int maxSS;
   double atolSS;
   double rtolSS;
+  int linLog;
 } rx_solving_options;
 
 

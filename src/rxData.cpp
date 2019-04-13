@@ -2415,6 +2415,7 @@ SEXP rxSolve_(const RObject &obj,
     rx->add_cov = (int)(addCov);
     rx->istateReset = as<int>(rxControl["istateReset"]);
     op->stiff = method;
+    op->linLog=as<int>(rxControl["linLog"]);
     if (method != 2){
       op->cores =1;
     } else {
@@ -2898,7 +2899,7 @@ SEXP rxSolve_(const RObject &obj,
       if (doMean){
 	hmax1s = hmax1s/(hmax1n-1);
 	hmax1  = hmax1m;
-	ind->HMAX = hmax1;
+	ind->HMAX = hmax1 + as<double>(rxControl["hmaxSd"])*sqrt(hmax1s);
       } else if (hmax0 == 0.0){
 	ind->HMAX = hmax1;
       } else {

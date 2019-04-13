@@ -72,6 +72,7 @@ rxPrint <- function(x, ...){
 ##' @author Matthew L. Fidler
 ##' @export
 rxClean <- function(wd){
+    rxTempDir()
     if (missing(wd)){
         ret <- rxClean(getwd()) && rxClean(rxTempDir());
         if (getFromNamespace("RxODE.cache.directory", "RxODE") != "."){

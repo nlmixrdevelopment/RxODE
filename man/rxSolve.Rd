@@ -14,10 +14,10 @@
 \title{Solves a ODE equation}
 \usage{
 rxControl(scale = NULL, method = c("liblsoda", "lsoda", "dop853"),
-  transitAbs = NULL, atol = 1e-08, rtol = 1e-06, maxsteps = 5000L,
-  hmin = 0L, hmax = NA, hini = 0, maxordn = 12L, maxords = 5L,
-  ..., cores, covsInterpolation = c("locf", "linear", "nocb",
-  "midpoint"), addCov = FALSE, matrix = FALSE, sigma = NULL,
+  transitAbs = NULL, atol = 1e-08, rtol = 1e-06, maxsteps = 50000L,
+  hmin = 0L, hmax = NA, hmaxSd = 0, hini = 0, maxordn = 12L,
+  maxords = 5L, ..., cores, covsInterpolation = c("locf", "linear",
+  "nocb", "midpoint"), addCov = FALSE, matrix = FALSE, sigma = NULL,
   sigmaDf = NULL, nCoresRV = 1L, sigmaIsChol = FALSE,
   nDisplayProgress = 10000L, amountUnits = NA_character_,
   timeUnits = "hours", stiff, theta = NULL, eta = NULL,
@@ -26,9 +26,9 @@ rxControl(scale = NULL, method = c("liblsoda", "lsoda", "dop853"),
   thetaMat = NULL, thetaDf = NULL, thetaIsChol = FALSE, nStud = 1L,
   dfSub = 0, dfObs = 0, returnType = c("rxSolve", "matrix",
   "data.frame", "data.frame.TBS"), seed = NULL, nsim = NULL,
-  minSS = 7, maxSS = 7000, atolSS = atol[1], rtolSS = rtol[1],
+  minSS = 7, maxSS = 70000, atolSS = 1e-09, rtolSS = 1e-09,
   params = NULL, events = NULL, istateReset = TRUE,
-  subsetNonmem = TRUE)
+  subsetNonmem = TRUE, linLog = FALSE)
 
 rxSolve(object, ...)
 
@@ -88,10 +88,13 @@ during one call to the solver. (5000 by default)}
 value is 0.}
 
 \item{hmax}{The maximum absolute step size allowed.  When
-\code{hmax=NA} (default), uses the avearge difference in times
+\code{hmax=NA} (default), uses the average difference (+hmaxSd*sd) in times
 and sampling events. When \code{hmax=NULL} RxODE uses the
 maximum difference in times in your sampling and events.  The
 value 0 is equivalent to infinite maximum absolute step size.}
+
+\item{hmaxSd}{The number of standard deviations of the time
+difference to add to hmax. The default is 0}
 
 \item{hini}{The step size to be attempted on the first step. The
 default value is determined by the solver (when hini = 0)}
@@ -308,6 +311,10 @@ lsoda and liblsoda with doses, like deSolve; When FALSE, do
 not reset the ISTATE variable with doses.}
 
 \item{subsetNonmem}{subset to NONMEM compatible EVIDs only.  By default TRUE.}
+
+\item{linLog}{Boolean indicating if linear compartment models be
+calculated more accurately in the log-space (slower) By
+default this is off (\code{FALSE})}
 
 \item{object}{is a either a RxODE family of objects, or a file-name
 with a RxODE model specification, or a string with a RxODE

@@ -14,8 +14,43 @@
 "oral3cmt"
 
 .rxPkgDll <- function(obj){
-    obj$mdir <- file.path(system.file(package=obj$package), "include")
+    obj$mdir <- file.path(system.file(package=obj$package), "rx")
     file.path(system.file(package=obj$package), "rx", basename(obj$rxDll$dll))
+}
+
+##' Use model object in your package
+##' @param obj model to save.
+##' @export
+rxUse <- function(obj, internal = FALSE, overwrite = TRUE, compress = "bzip2"){
+    rxReq("usethis")
+    rxReq("devtools")
+    if (missing(obj)){
+        .env <- new.env();
+        assign("internal", internal, .env)
+        assign("overwrite", overwrite, .env)
+        assign("compress", compress, .env)
+        for (.f in list.files(path=devtools::package_file("data"),pattern="\\.rda$",full.names=TRUE)){
+            load(.f, envir=.env)
+            .f2 <- basename(.f);
+            .f2 <- substr(.f2, 0, nchar(.f2) - 4)
+            if (rxIs(.env[[.f2]], "RxODE")){
+                message(sprintf("Recompile %s (if needed)", .f2))
+                eval(parse(text=sprintf("RxODE::rxUse(%s, internal=internal, overwrite=overwrite, compress=compress)", .f2)),
+                     envir=.env)
+            }
+        }
+    } else {
+        .modName <- as.character(substitute(obj));
+        .pkg <- basename(usethis::proj_get())
+        .env <- new.env();
+        assign(.modName, RxODE(rxNorm(obj), package=.pkg, modName=.modName), .env);
+        assign("internal", internal, .env)
+        assign("overwrite", overwrite, .env)
+        assign("compress", compress, .env)
+        eval(parse(text=sprintf("usethis::use_data(%s, internal=internal, overwrite=overwrite, compress=compress)", .modName)),
+             envir=.env)
+
+    }
 }
 
 .rxModLib <- function(){
@@ -86,21 +121,39 @@
 
     message("oral3cmt")
     oral3cmt <- RxODE({
-        cl <- 1
-        v <- 20
-        ka <- 1
-        vp <- 10
-        q <- 2
-        q2 <- 2
-        vp2 <- 100
-        lagDepot <- 0
-        lagCentral <- 0
-        rateCentral <- 0
-        durCentral <- 0
-        lag(depot) <- lagDepot
-        lag(central) <- lagCentral
-        rate(central) <- rateCentral
-        dur(central) <- durCentral
+        popCl <- 1
+        popV <- 20
+        popKa <- 1
+        popVp <- 10
+        popQ <- 2
+        popQ2 <- 2
+        popVp2 <- 100
+        bsvCl <- 0
+        bsvV <- 0
+        bsvKa <- 0
+        bsvVp <- 0
+        bsvQ <- 0
+        bsvQ2 <- 0
+        bsvVp2 <- 0
+        cl ~ popCl * exp(bsvCl)
+        v ~ popV * exp(bsvV)
+        ka ~ popKa * exp(bsvKa)
+        q ~ popQ * exp(bsvQ)
+        vp ~ popVp * exp(bsvVp)
+        q2 ~ popQ2 * exp(bsvQ2)
+        vp2 ~ popVp2 * exp(bsvVp2)
+        popLagDepot <- 0
+        popLagCentral <- 0
+        popRateCentral <- 0
+        popDurCentral <- 0
+        bsvLagDepot <- 0
+        bsvLagCentral <- 0
+        bsvRateCentral <- 0
+        bsvDurCentral <- 0
+        lag(depot)    <- popLagDepot * exp(bsvLagDepot)
+        lag(central)  <- popLagCentral * exp(bsvLagCentral)
+        rate(central) <- popRateCentral * exp(bsvRateCentral)
+        dur(central)  <- popDurCentral * exp(bsvDurCentral)
         cp <- linCmt()
     });
     oral3cmt <- RxODE(rxOptExpr(rxNorm(oral3cmt)), package="RxODE", modName="oral3cmt")

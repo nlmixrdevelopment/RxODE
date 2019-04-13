@@ -311,6 +311,7 @@ RxODE <- function(model, modName = basename(wd),
                   wd = getwd(),
                   filename = NULL, extraC = NULL, debug = FALSE, calcJac=NULL, calcSens=NULL,
                   collapseModel=FALSE, package=NULL, ...) {
+    rxTempDir();
     if (!is.null(package)){
         if (missing(modName)){
             stop("With packages modName is required!");
@@ -488,7 +489,8 @@ RxODE <- function(model, modName = basename(wd),
         if (file.exists(.c)){
             unlink(.c)
         }
-        .o <- paste0(substr(.c, 0, nchar(.c) - 2), ".0");
+        .o <- rxDll(.env);
+        .o <- paste0(substr(.o, 0, nchar(.o) - nchar(.Platform$dynlib.ext)), ".o");
         if (file.exists(.o)){
             unlink(.o);
         }
