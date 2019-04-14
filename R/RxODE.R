@@ -1251,21 +1251,11 @@ rxCompile.rxModelVars <-  function(model, # Model
                 .firstMake <- readLines(.Makevars, 1);
                 if (length(.firstMake) == 0){
                     unlink(.Makevars)
-                    ## on.exit({if (file.exists(.Makevars)){unlink(.Makevars)}}, add=TRUE);
                 } else if ("#RxODE Makevars" == .firstMake){
                     unlink(.Makevars)
-                    ## on.exit({if (file.exists(.Makevars)){unlink(.Makevars)}}, add=TRUE);
                 } else {
                     file.rename(.Makevars, paste0(.Makevars, ".bakrx"));
-                    ## on.exit({
-                    ##     if (file.exists(.Makevars)){
-                    ##         unlink(.Makevars)
-                    ##     };
-                    ##     file.rename(paste0(.Makevars, ".bakrx"), .Makevars)
-                    ## }, add=TRUE)
                 }
-            } else {
-                ## on.exit({if (file.exists(.Makevars)){unlink(.Makevars)}}, add=TRUE);
             }
             .trans <- model
             if (file.exists(.cDllFile)){
@@ -1314,7 +1304,9 @@ rxCompile.rxModelVars <-  function(model, # Model
 
                 .defs <- ""
                 .ret <- sprintf("#RxODE Makevars\nPKG_CFLAGS=%s -I\"%s\"\nPKG_LIBS=$(BLAS_LIBS) $(LAPACK_LIBS) $(FLIBS)\n",
-                                .defs, .normalizePath(system.file("include", package="RxODE")));
+                                .defs,
+                                ifelse(file.exists("../include/RxODE.h"), "../include",
+                                       .normalizePath(system.file("include", package="RxODE"))));
                 ## .ret <- paste(.ret, "-g");
                 sink(.Makevars);
                 cat(.ret);
@@ -1350,8 +1342,6 @@ rxCompile.rxModelVars <-  function(model, # Model
         } else {
             .badBuild("Error, model doesn't have correct model variables.");
         }
-
-
     }
     .call <- function(...){return(.Call(...))};
     .args <- list(model = model, dir = .dir, prefix = prefix,
@@ -1535,18 +1525,6 @@ rxNorm <- function(obj, condition=NULL, removeInis, removeJac, removeSens){
             .exists  <- TRUE;
         }
         if (.exists){
-            ## .loadable  <- try(eval(dyn.load(obj),envir=globalenv()),silent=TRUE);
-            ## if (inherits(.loadable, "try-error")){
-            ##     .loadable <- FALSE;
-            ## } else {
-            ##     .loadable  <- TRUE;
-            ## }
-            ## if (.loadable){
-            ##     .dll  <- basename(obj);
-            ##     .dll <- substr(.dll, 1, nchar(.dll) - nchar(.Platform$dynlib.ext) - nchar(.Platform$r_arch))
-            ##     .mv <- .Call(paste0(.dll,"model_vars"),PACKAGE=.dll)
-            ##     return(.mv);
-            ## }
             .parseModel <- obj;
         } else {
             .parseModel <- paste(obj, collapse="\n");

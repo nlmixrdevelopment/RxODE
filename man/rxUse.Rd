@@ -4,7 +4,7 @@
 \alias{rxUse}
 \title{Use model object in your package}
 \usage{
-rxUse(obj, overwrite = TRUE)
+rxUse(obj, internal = FALSE, overwrite = TRUE, compress = "bzip2")
 }
 \arguments{
 \item{obj}{model to save.}

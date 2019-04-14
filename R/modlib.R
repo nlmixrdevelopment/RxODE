@@ -1,18 +1,3 @@
-##' RxODE one compartment model (solved)
-##' @examples
-##' oral1cmt %>% solve(et(timeUnits="hr") %>% et(amt=100)) %>% plot
-"oral1cmt"
-
-##' RxODE two compartment model (solved)
-##' @examples
-##' oral2cmt %>% solve(et(timeUnits="hr") %>% et(amt=100)) %>% plot
-"oral2cmt"
-
-##' RxODE three compartment model (solved)
-##' @examples
-##' oral3cmt %>% solve(et(timeUnits="hr") %>% et(amt=100)) %>% plot
-"oral3cmt"
-
 .rxPkgInst <- function(obj){
     .wd <- getwd()
     if (regexpr(obj$package, .wd) != -1){
@@ -58,7 +43,7 @@ rxUse <- function(obj, internal = FALSE, overwrite = TRUE, compress = "bzip2"){
                      envir=.env)
             }
         }
-        return(TRUE)
+        return(invisible(TRUE))
     } else {
         .modName <- as.character(substitute(obj));
         .pkg <- basename(usethis::proj_get())
@@ -73,109 +58,4 @@ rxUse <- function(obj, internal = FALSE, overwrite = TRUE, compress = "bzip2"){
     }
 }
 
-.rxModLib <- function(){
-    ## First Create Model
-    message("oral1cmt")
-    oral1cmt <- RxODE({
-        popCl <- 1
-        popV <- 20
-        popKa <- 1
-        bsvCl <- 0
-        bsvV  <- 0
-        bsvKa <- 0
-        cl ~ popCl * exp(bsvCl)
-        v ~ popV * exp(bsvV)
-        ka ~ popKa * exp(bsvKa)
-        popLagDepot <- 0
-        popLagCentral <- 0
-        popRateCentral <- 0
-        popDurCentral <- 0
-        bsvLagDepot <- 0
-        bsvLagCentral <- 0
-        bsvRateCentral <- 0
-        bsvDurCentral <- 0
-        lag(depot) <- popLagDepot * exp(bsvLagDepot)
-        lag(central) <- popLagCentral * exp(bsvLagCentral)
-        rate(central) <- popRateCentral *  exp(bsvRateCentral)
-        dur(central) <- popDurCentral * exp(bsvDurCentral)
-        cp <- linCmt()
-    });
-    rxDelete(oral1cmt);
-    ## Second optimize expressions and recompile using the package= option
-    oral1cmt <- RxODE(rxOptExpr(rxNorm(oral1cmt)), package="RxODE", modName="oral1cmt");
-    usethis::use_data(oral1cmt, overwrite = TRUE);
 
-    message("oral2cmt")
-    oral2cmt <- RxODE({
-        popCl <- 1
-        popV <- 20
-        popKa <- 1
-        popVp <- 10
-        popQ <- 2
-        bsvCl <-0
-        bsvV <- 0
-        bsvKa <-0
-        bsvVp <- 0
-        bsvQ <-0
-        cl ~ popCl * exp(bsvCl)
-        v ~ popV * exp(bsvV)
-        ka ~ popKa * exp(bsvKa)
-        q ~ popQ * exp(bsvQ)
-        vp ~ popVp * exp(bsvVp)
-        popLagDepot <- 0
-        popLagCentral <- 0
-        popRateCentral <- 0
-        popDurCentral <- 0
-        bsvLagDepot <- 0
-        bsvLagCentral <- 0
-        bsvRateCentral <- 0
-        bsvDurCentral <- 0
-        lag(depot) <- popLagDepot * exp(bsvLagDepot)
-        lag(central) <- popLagCentral * exp(bsvLagCentral)
-        rate(central) <- popRateCentral * exp(bsvRateCentral)
-        dur(central) <- popDurCentral * exp(bsvDurCentral)
-        cp <- linCmt()
-    });
-    oral2cmt <- RxODE(rxOptExpr(rxNorm(oral2cmt)), package="RxODE", modName="oral2cmt")
-    usethis::use_data(oral2cmt, overwrite = TRUE);
-
-    message("oral3cmt")
-    oral3cmt <- RxODE({
-        popCl <- 1
-        popV <- 20
-        popKa <- 1
-        popVp <- 10
-        popQ <- 2
-        popQ2 <- 2
-        popVp2 <- 100
-        bsvCl <- 0
-        bsvV <- 0
-        bsvKa <- 0
-        bsvVp <- 0
-        bsvQ <- 0
-        bsvQ2 <- 0
-        bsvVp2 <- 0
-        cl ~ popCl * exp(bsvCl)
-        v ~ popV * exp(bsvV)
-        ka ~ popKa * exp(bsvKa)
-        q ~ popQ * exp(bsvQ)
-        vp ~ popVp * exp(bsvVp)
-        q2 ~ popQ2 * exp(bsvQ2)
-        vp2 ~ popVp2 * exp(bsvVp2)
-        popLagDepot <- 0
-        popLagCentral <- 0
-        popRateCentral <- 0
-        popDurCentral <- 0
-        bsvLagDepot <- 0
-        bsvLagCentral <- 0
-        bsvRateCentral <- 0
-        bsvDurCentral <- 0
-        lag(depot)    <- popLagDepot * exp(bsvLagDepot)
-        lag(central)  <- popLagCentral * exp(bsvLagCentral)
-        rate(central) <- popRateCentral * exp(bsvRateCentral)
-        dur(central)  <- popDurCentral * exp(bsvDurCentral)
-        cp <- linCmt()
-    });
-    oral3cmt <- RxODE(rxOptExpr(rxNorm(oral3cmt)), package="RxODE", modName="oral3cmt")
-    usethis::use_data(oral3cmt, overwrite = TRUE);
-}
