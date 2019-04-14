@@ -353,7 +353,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false, bool allTimeVar
   IntegerVector inCmt;
   RObject cmtInfo = R_NilValue;
   if (cmtCol != -1){
-    inCmt = as<IntegerVector>(toCmt(inData[cmtCol], mv["state"]));//as<IntegerVector>();
+    inCmt = as<IntegerVector>(toCmt(inData[cmtCol], state));//as<IntegerVector>();
     cmtInfo = inCmt.attr("cmtNames");
     inCmt.attr("cmtNames") = R_NilValue;
   }
