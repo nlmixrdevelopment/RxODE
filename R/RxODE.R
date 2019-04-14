@@ -5,12 +5,17 @@ rex::register_shortcuts("RxODE");
 ##' into fast C code
 ##'
 ##' @param model This is the ODE model specification.  It can be:
+##'
 ##' \itemize{
+##'
 ##'  \item a string containing the set of ordinary differential
 ##'     equations (ODE) and other expressions defining the changes in
 ##'     the dynamic system.
+##'
 ##'  \item a file name where the ODE system equation is contained
+##'
 ##'  \item An ODE expression enclosed in \code{\{\}}
+##'
 ##'   }
 ##'
 ##' (see also the \code{filename} argument). For
@@ -331,7 +336,7 @@ RxODE <- function(model, modName = basename(wd),
                 model <- model[-length(model)];
             }
             model <- paste(model, collapse="\n");
-        } else if (rxIs(model, "RxODE")){
+        } else if (is(model, "RxODE")){
             package <- get("package", model)
             if (!is.null(package)){
                 modName <- get("modName", model);
@@ -378,7 +383,7 @@ RxODE <- function(model, modName = basename(wd),
     .env$wd <- wd;
     .env$package <- package;
     if (!is.null(.env$package)){
-        .env$mdir <- file.path(system.file(package=package), "rx")
+        .env$mdir <- .rxPkgDir(.env);
     }
     .env$compile <- eval(bquote(function(){
         with(.(.env), {
