@@ -764,9 +764,11 @@ SEXP rxInits(const RObject &obj,
 	  break;
 	}
       }
-      ret += as<std::string>(nms[j]);
-      if (isState) ret += "(0)";
-      ret += "=" + std::to_string(inits[j]) + ";\n";
+      if (as<std::string>(nms[j]) != ""){
+	ret += as<std::string>(nms[j]);
+	if (isState) ret += "(0)";
+	ret += "=" + std::to_string(inits[j]) + ";\n";
+      }
     }
     return wrap(ret);
   } else if (vec.isNULL()){
