@@ -15,10 +15,10 @@ SOURCES_FORTAN = dlsoda.f opkda1_abbr.f opkda2.f
 
 OBJECTS = $(SOURCES_C:.c=.o) $(SOURCES_FORTAN:.f=.o) $(SOURCES_CPP:.cpp=.o)
 
-.PHONY: all mylibs
+.PHONY: all 
 all: $(SHLIB)
-$(SHLIB): mylibs
-mylibs:  
-	$(CC) -I"$(R_INCLUDE_DIR)" $(CFLAGS) $(CPPFLAGS) $(SHLIB_CFLAGS) $(CPICFLAGS) -I../inst/include/ ../inst/include/RxODE_model.h || $(CC) --version
+#$(SHLIB): mylibs
+# mylibs:  
+# 	$(CC) -I"$(R_INCLUDE_DIR)" $(CFLAGS) $(CPPFLAGS) $(SHLIB_CFLAGS) $(CPICFLAGS) -I../inst/include/ ../inst/include/RxODE_model.h || $(CC) --version
 
 
