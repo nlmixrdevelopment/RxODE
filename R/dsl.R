@@ -1422,6 +1422,13 @@ rxErrEnvF$`return` <- function(est){
 ##     eval(parse(text=sprintf("c(%s)",paste(paste0("rxParseErr(",c(...),")"),collapse=","))))
 ## }
 
+rxErrEnvF$`|`  <- binaryOp(" | ")
+rxErrEnvF$`||`  <- binaryOp(" || ")
+rxErrEnvF$`&&`  <- binaryOp(" && ")
+rxErrEnvF$`<=`  <- binaryOp(" <= ")
+rxErrEnvF$`>=`  <- binaryOp(" >= ")
+rxErrEnvF$`==`  <- binaryOp(" == ")
+
 rxErrEnvF$prop <- function(est){
     if (rxErrEnv.ret != "rx_r_"){
         stop("The prop(.) can only be in an error function.")

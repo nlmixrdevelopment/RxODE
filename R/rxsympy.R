@@ -1592,7 +1592,8 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
             .zeroSens <- FALSE;
             if (only.numeric) calcSens = FALSE;
             .mods <- lapply(seq_along(.cond), function(.i){
-                if ((regexpr(rex::rex("rx_pred_="), .cond[.i]) == -1) | (regexpr(rex::rex("rx_r_="), .cond[.i]) == -1)){
+                if ((regexpr(rex::rex("rx_pred_="), .cond[.i]) == -1) |
+                    (regexpr(rex::rex("rx_r_="), .cond[.i]) == -1)){
                     return(NULL)
                 } else {
                     if (!is.null(.ncond)){
