@@ -21,7 +21,7 @@
 }
 
 .rxTempDir0 <- NULL;
-.cacheDefault <- NULL#tempdir();#"~/.rxCache";
+.cacheDefault <- "~/.rxCache";
 ##' Get the RxODE temporary directory
 ##'
 ##' @return RxODE temporary directory.

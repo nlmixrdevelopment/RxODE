@@ -6,10 +6,9 @@ articles:
   RxODE-data-frame: RxODE-data-frame.html
   RxODE-events: RxODE-events.html
   RxODE-intro: RxODE-intro.html
-  RxODE-mix-lin-ode: RxODE-mix-lin-ode.html
+  RxODE-model-types: RxODE-model-types.html
   RxODE-shiny: RxODE-shiny.html
   RxODE-sim-var: RxODE-sim-var.html
-  RxODE-speed: RxODE-speed.html
   RxODE-stiff: RxODE-stiff.html
   RxODE-syntax: RxODE-syntax.html
   RxODE-transit-compartments: RxODE-transit-compartments.html

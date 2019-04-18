@@ -1,4 +1,7 @@
-<img src="https://raw.githubusercontent.com/nlmixrdevelopment/RxODE/master/vignettes/logo.png" width="150" alt="RxODE logo (by Justin)">
+---
+output: github_document
+---
+# pkgdown <img src="vignettes/logo.png" align="right" alt="" width="120"  alt="RxODE logo (by Justin Wilkins)"/>
 
 # RxODE
 

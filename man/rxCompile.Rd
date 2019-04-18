@@ -8,10 +8,11 @@
 \title{Compile a model if needed}
 \usage{
 rxCompile(model, dir, prefix, extraC = NULL, force = FALSE,
-  modName = NULL, ...)
+  modName = NULL, package = NULL, ...)
 
 \method{rxCompile}{character}(model, dir = NULL, prefix = NULL,
-  extraC = NULL, force = FALSE, modName = NULL, ...)
+  extraC = NULL, force = FALSE, modName = NULL, package = NULL,
+  ...)
 
 \method{rxCompile}{rxDll}(model, ...)
 
@@ -66,6 +67,8 @@ is used for naming various aspects of the computations,
 including generating C symbol names, dynamic libraries,
 etc. Therefore, it is necessary that \code{modName} consists of
 simple ASCII alphanumeric characters starting with a letter.}
+
+\item{package}{Package name for pre-compiled binaries.}
 
 \item{...}{Other arguments sent to the \code{\link{rxTrans}}
 function.}

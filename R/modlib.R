@@ -59,6 +59,7 @@
 
 ##' Use model object in your package
 ##' @param obj model to save.
+##' @inheritParams usethis::use_data
 ##' @export
 rxUse <- function(obj, internal = FALSE, overwrite = TRUE, compress = "bzip2"){
     rxReq("usethis")
@@ -144,7 +145,7 @@ rxUse <- function(obj, internal = FALSE, overwrite = TRUE, compress = "bzip2"){
             dir.create(devtools::package_file("src"),recursive=TRUE);
         }
         .pkg <- basename(usethis::proj_get())
-        sapply(list.files(devtools::package_file("inst/rx"),pattern="[.]c",full=TRUE),
+        sapply(list.files(devtools::package_file("inst/rx"),pattern="[.]c",full.names=TRUE),
                function(x){
             message(sprintf("copy %s", basename(x)))
             .f0  <- readLines(x);
