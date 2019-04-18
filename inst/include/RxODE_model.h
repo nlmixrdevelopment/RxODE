@@ -1,6 +1,10 @@
 #ifndef __RxODE_model_H__
 #define __RxODE_model_H__
+#ifdef _isRxODE_
+#include "RxODE.h"
+#else
 #include <RxODE.h>
+#endif
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -47,111 +51,27 @@ typedef double (*RxODE_val) (rx_solve *rx, unsigned int id);
 typedef void (*RxODE_assign_ptr)(SEXP);
 typedef void (*RxODE_ode_solver_old_c)(int *neq,double *theta,double *time,int *evid,int *ntime,double *inits,double *dose,double *ret,double *atol,double *rtol,int *stiff,int *transit_abs,int *nlhs,double *lhs,int *rc);
 
-RxODE_assign_ptr _assign_ptr = NULL;
-
 typedef void (*_rxRmModelLibType)(const char *inp);
-_rxRmModelLibType _rxRmModelLib = NULL;
-
 typedef SEXP (*_rxGetModelLibType)(const char *s);
-_rxGetModelLibType _rxGetModelLib = NULL;
-
-RxODE_ode_solver_old_c _old_c = NULL;
-
-RxODE_fn0i _ptrid=NULL;
-
 typedef  SEXP (*_rx_asgn) (SEXP objectSEXP);
-_rx_asgn _RxODE_rxAssignPtr =NULL;
-
 typedef int(*_rxIsCurrentC_type)(SEXP);
-_rxIsCurrentC_type _rxIsCurrentC=NULL;
-
 typedef double(*_rxSumType)(double *, int, double *, int, int);
-_rxSumType _sumPS = NULL;
 
-double _sum(double *input, double *pld, int m, int type, int n, ...){
-  va_list valist;
-  va_start(valist, n);
-  for (unsigned int i = 0; i < n; i++){
-    input[i] = va_arg(valist, double);
-  }
-  va_end(valist);
-  return _sumPS(input, n, pld, m, type);
-}
+double _sum(double *input, double *pld, int m, int type, int n, ...);
 
 typedef double(*_rxProdType)(double*, double*, int, int);
-_rxProdType _prodPS = NULL;
 
-double _prod(double *input, double *p, int type, int n, ...){
-  va_list valist;
-  va_start(valist, n);
-  for (unsigned int i = 0; i < n; i++){
-    input[i] = va_arg(valist, double);
-  }
-  va_end(valist);
-  return _prodPS(input, p, n, type);
-}
+double _prod(double *input, double *p, int type, int n, ...);
 
-double _sign(unsigned int n, ...){
-  va_list valist;
-  va_start(valist, n);
-  double s = 1;
-  for (unsigned int i = 0; i < n; i++){
-    s = sign(va_arg(valist, double))*s;
-    if (s == 0){
-      break;
-    }
-  }
-  va_end(valist);
-  return s;
-}
+double _sign(unsigned int n, ...);
 
-double _max(unsigned int n, ...){
-  va_list valist;
-  va_start(valist, n);
-  double mx = NA_REAL;
-  double tmp = 0;
-  if (n >= 1){
-    mx = va_arg(valist, double);
-    for (unsigned int i = 1; i < n; i++){
-      tmp = va_arg(valist, double);
-      if (tmp>mx) mx=tmp;
-    }
-    va_end(valist);
-  }
-  return mx;
-}
+double _max(unsigned int n, ...);
 
-double _min(unsigned int n, ...){
-  va_list valist;
-  va_start(valist, n);
-  double mn = NA_REAL;
-  double tmp = 0;
-  if (n >= 1){
-    mn = va_arg(valist, double);
-    for (unsigned int i = 1; i < n; i++){
-      tmp = va_arg(valist, double);
-      if (tmp<mn) mn=tmp;
-    }
-    va_end(valist);
-  }
-  return mn;
-}
+double _min(unsigned int n, ...);
 
-rx_solve *_solveData = NULL;
+double _transit4P(double t, unsigned int id, double n, double mtt, double bio);
 
-double _transit4P(double t, unsigned int id, double n, double mtt, double bio){
-  double ktr = (n+1)/mtt;
-  double lktr = log(n+1)-log(mtt);
-  double tc = (t-(_solveData->subjects[id].tlast));
-  return exp(log(bio*(_solveData->subjects[id].podo))+lktr+n*(lktr+log(tc))-ktr*(tc)-lgamma1p(n));
-}
-
-double _transit3P(double t, unsigned int id, double n, double mtt){
-  double ktr = (n+1)/mtt;
-  double lktr = log(n+1)-log(mtt);
-  double tc = (t-(_solveData->subjects[id].tlast));
-  return exp(log(_solveData->subjects[id].podo)+lktr+n*(lktr+log(tc))-ktr*(tc)-lgamma1p(n));
-}
+double _transit3P(double t, unsigned int id, double n, double mtt);
 
 typedef double (*solveLinB_p) (rx_solve *rx, unsigned int id, double t, int linCmt,
 			       double d_A, double d_A2, double d_alpha,
@@ -160,30 +80,38 @@ typedef double (*solveLinB_p) (rx_solve *rx, unsigned int id, double t, int linC
 			       double d_ka, double d_tlag, double d_tlag2, double d_F, double d_F2,
 			       double d_rate, double d_dur);
 
-solveLinB_p solveLinB;
 
 typedef void (*_update_par_ptr_p)(double t, unsigned int id, rx_solve *rx, int idx);
 
-_update_par_ptr_p _update_par_ptr=NULL;
+void _assignFuns();
 
-RxODE_fn0i _prodType = NULL;
-RxODE_fn0i _sumType = NULL;
 
-void _assignFuns(){
-  if (_assign_ptr == NULL){
-    _assign_ptr=(RxODE_assign_ptr) R_GetCCallable("RxODE","RxODE_assign_fn_pointers");
-    _rxRmModelLib=(_rxRmModelLibType) R_GetCCallable("RxODE","rxRmModelLib");
-    _rxGetModelLib=(_rxGetModelLibType) R_GetCCallable("RxODE","rxGetModelLib");
-    _RxODE_rxAssignPtr=(_rx_asgn)R_GetCCallable("RxODE","_RxODE_rxAssignPtr");
-    _rxIsCurrentC = (_rxIsCurrentC_type)R_GetCCallable("RxODE","rxIsCurrentC");
-    _sumPS  = (_rxSumType) R_GetCCallable("PreciseSums","PreciseSums_sum_r");
-    _prodPS = (_rxProdType) R_GetCCallable("PreciseSums","PreciseSums_prod_r");
-    _prodType=(RxODE_fn0i)R_GetCCallable("PreciseSums", "PreciseSums_prod_get");
-    _sumType=(RxODE_fn0i)R_GetCCallable("PreciseSums", "PreciseSums_sum_get");
-    _ptrid=(RxODE_fn0i)R_GetCCallable("RxODE", "RxODE_current_fn_pointer_id");
-    solveLinB=(solveLinB_p)R_GetCCallable("RxODE", "solveLinB");
-    _update_par_ptr = (_update_par_ptr_p) R_GetCCallable("RxODE","_update_par_ptr");
-  }
-}
+extern RxODE_assign_ptr _assign_ptr;
+extern _rxRmModelLibType _rxRmModelLib;
+extern _rxGetModelLibType _rxGetModelLib;
+extern RxODE_ode_solver_old_c _old_c;
+extern RxODE_fn0i _ptr;
+extern _rxIsCurrentC_type _rxIsCurrentC;
+extern _rxSumType _sumPS;
+extern _rxProdType _prodPS;
+extern RxODE_fn0i _prodType;
+extern RxODE_fn0i _sumType;
+extern rx_solve *_solveData;
+
+#ifdef _isRxODE_
+double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt,
+		 double d_A, double d_A2, double d_alpha,
+		 double d_B, double d_B2, double d_beta,
+		 double d_C, double d_C2, double d_gamma,
+		 double d_ka, double d_tlag, double d_tlag2,
+		 double d_F, double d_F2,
+		 double d_rate, double d_dur);
+void _update_par_ptr(double t, unsigned int id, rx_solve *rx, int idx);
+SEXP _RxODE_rxAssignPtr(SEXP);
+#else
+extern solveLinB_p solveLinB;
+extern _update_par_ptr_p _update_par_ptr;
+extern _rx_asgn _RxODE_rxAssignPtr;
+#endif
 
 #endif// __RxODE_model_H__

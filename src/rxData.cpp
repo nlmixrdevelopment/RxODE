@@ -363,9 +363,54 @@ List rxModelVars_(const RObject &obj){
     return ret;
   } else if (rxIs(obj,"RxODE")) {
     Environment e = as<Environment>(obj);
-    List rxDll = e["rxDll"];
-    List ret = rxDll["modVars"];
-    return ret;
+    List rxDll = as<List>(e["rxDll"]);
+    List ret = as<List>(rxDll["modVars"]);
+    RObject pkgR = e["package"];
+    if (rxIs(pkgR,"NULL")){
+      return ret;
+    } else {
+      bool isV;
+      Function isValid = e["isValid"];
+      isV = as<bool>(isValid());
+      if (isV){
+	return ret;
+      } else {
+	std::string sobj = as<std::string>(e["modName"]);
+	if (sobj.find("_new")!=std::string::npos){
+	  return ret;
+	}
+	Function pkgLoaded = getRxFn(".rxPkgLoaded");
+	isV = as<bool>(pkgLoaded(pkgR));
+	if (isV){
+	  Environment ns;
+	  if (as<std::string>(pkgR) == "RxODE"){
+	    return ret;
+	  } else {
+	    ns=loadNamespace(pkgR);
+	  }
+	  if (ns.exists(".rxUpdated")){
+	    Environment rxU = ns[".rxUpdated"];
+	    if (rxU.exists(sobj)){
+	      e = rxU[sobj];
+	      rxDll = e["rxDll"];
+	      ret = rxDll["modVars"];
+	      return ret;
+	    } else {
+	      Function rxode = getRxFn("RxODE");
+	      e["modName"] = sobj + "_new"; // For RxODE parsing add "new"
+	      Environment newRx = rxode(e);
+	      e["modName"] = sobj; // Put back
+	      rxU[sobj] = newRx;
+	      return rxModelVars_(as<RObject>(newRx));
+	    }
+	  } else {
+	    return ret;
+	  }
+	} else {
+	  return ret;
+	}
+      }
+    }
   } else if (rxIs(obj,"rxSolve")){
     CharacterVector cls = obj.attr("class");
     Environment e = as<Environment>(cls.attr(".RxODE.env"));
@@ -4045,6 +4090,16 @@ bool rxDynLoad(RObject obj){
 //' @export
 //[[Rcpp::export]]
 bool rxDynUnload(RObject obj){
+  if (rxIs(obj, "RxODE")){
+    Environment e = as<Environment>(obj);
+    Nullable<CharacterVector> pkg = e["package"];
+    if (!pkg.isNull()){
+      std::string sobj = as<std::string>(e["modName"]);
+      if (sobj.find("_new")==std::string::npos){
+	stop("Package-based models cannot be unloaded");
+      }
+    }
+  }
   List mv = rxModelVars(obj);
   CharacterVector trans = mv["trans"];
   std::string ptr = as<std::string>(trans["model_vars"]);
@@ -4070,6 +4125,16 @@ bool rxDynUnload(RObject obj){
 //' @export
 //[[Rcpp::export]]
 bool rxDelete(RObject obj){
+  if (rxIs(obj, "RxODE")){
+    Environment e = as<Environment>(obj);
+    Nullable<CharacterVector> pkg = e["package"];
+    if (!pkg.isNull()){
+      std::string sobj = as<std::string>(e["modName"]);
+      if (sobj.find("_new")==std::string::npos){
+	stop("Package-based models cannot be deleted");
+      }
+    }
+  }
   std::string file = rxDll(obj);
   if (rxDynUnload(obj)){
     CharacterVector cfileV = rxC(obj);
