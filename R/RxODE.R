@@ -883,13 +883,13 @@ print.RxODE <-
     if (!any(names(list(...)) == "rxSuppress") && .valid){
         .cur <- RxODE::rxState(x);
         if (length(.cur) > 0)
-            message(paste0(.pkg,crayon::yellow(.bound), crayon::blue$bold("$state"), ": ", paste(.cur, collapse=", ")))
+            message(paste0(crayon::yellow(.bound), crayon::blue$bold("$state"), ": ", paste(.cur, collapse=", ")))
         .cur <- RxODE::rxParams(x);
         if (length(.cur) > 0)
-            message(paste0(.pkg,crayon::yellow(.bound), crayon::blue$bold("$params"), ": ", paste(.cur, collapse=", ")))
+            message(paste0(crayon::yellow(.bound), crayon::blue$bold("$params"), ": ", paste(.cur, collapse=", ")))
         .cur <- RxODE::rxLhs(x);
         if (length(.cur) > 0)
-            message(paste0(.pkg,crayon::yellow(.bound), crayon::blue$bold("$lhs"), ": ", paste(.cur, collapse=", ")))
+            message(paste0(crayon::yellow(.bound), crayon::blue$bold("$lhs"), ": ", paste(.cur, collapse=", ")))
     }
     invisible(x)
 }
