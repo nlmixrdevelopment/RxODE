@@ -538,10 +538,10 @@ RxODE <- function(model, modName = basename(wd),
     reg.finalizer(.env, eval(bquote(function(...){try(dyn.unload(.(rxDll(.env))), silent=TRUE)})));
     RxODE::rxForget();
     if (!is.null(.env$package)){
-        .c <- RxODE::rxC(.env);
-        if (file.exists(.c)){
-            unlink(.c)
-        }
+        ## .c <- RxODE::rxC(.env);
+        ## if (file.exists(.c)){
+        ##     unlink(.c)
+        ## }
         .o <- rxDll(.env);
         .o <- paste0(substr(.o, 0, nchar(.o) - nchar(.Platform$dynlib.ext)), ".o");
         if (file.exists(.o)){
