@@ -83,9 +83,9 @@ double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt,
       beta1 = -log(beta);
       alpha1 = -log(alpha);
     } else {
-      gamma1 = 1/(gamma); // 1/gamma log(1)-log(gamma) = -log(gamma)
-      beta1 = 1/(beta);
-      alpha1 = 1/(alpha);
+      gamma1 = 1.0/gamma; // 1/gamma log(1)-log(gamma) = -log(gamma)
+      beta1 = 1.0/beta;
+      alpha1 = 1.0/alpha;
     }
     
   } else if (d_beta > 0.){
@@ -94,15 +94,15 @@ double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt,
       beta1 = -log(beta);
       alpha1 = -log(alpha);
     } else {
-      beta1 = 1/(beta);
-      alpha1 = 1/(alpha);
+      beta1 = 1.0/beta;
+      alpha1 = 1.0/alpha;
     }
   } else if (d_alpha > 0.){
     ncmt = 1;
     if (op->linLog){
       alpha1 = -log(alpha);
     } else {
-      alpha1 = -1/(alpha);
+      alpha1 = 1.0/alpha;
     }
   } else {
     return 0.0;
@@ -164,7 +164,6 @@ double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt,
 	  tinf  = dose/d_rate;
 	  rate  = d_rate;
 	}
-	
       } else {
 	if (op->linLog){
 	  tinf  = d_dur;
@@ -198,7 +197,7 @@ double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt,
 	tinf  = ind->all_times[ind->idose[p]] - ind->all_times[ind->idose[l]];
 	tau = ind->ii[l];
 	if (op->linLog){
-	  logRate  = log(dose);
+	  logRate = log(dose);
 	} else {
 	  rate  = dose;
 	}
@@ -254,10 +253,12 @@ double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt,
 	    }
 	  } else {
 	    cur += rate*A*alpha1*((1-exp(-alpha*thisT))+
-				  exp(-alpha*tau)*(1-exp(-alpha*tinf))*exp(-alpha*(thisT-tinf))/(1-exp(-alpha*tau)));
+				  exp(-alpha*tau)*(1-exp(-alpha*tinf))*
+				  exp(-alpha*(thisT-tinf))/(1-exp(-alpha*tau)));
 	    if (ncmt >= 2){
 	      cur += rate*B*beta1*((1-exp(-beta*thisT))+
-				   exp(-beta*tau)*(1-exp(-beta*tinf))*exp(-beta*(thisT-tinf))/
+				   exp(-beta*tau)*(1-exp(-beta*tinf))*
+				   exp(-beta*(thisT-tinf))/
 				   (1-exp(-beta*tau)));
 	      if (ncmt >= 3){
 		cur += rate*C*gamma1*((1-exp(-gamma*thisT))+
@@ -265,8 +266,8 @@ double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt,
 				      (1-exp(-gamma*tau)));
 	      }
 	    }
-	    if (wh0 == 10) return (ret+cur);
 	  }
+	  if (wh0 == 10) return (ret+cur);
 	} else { // after infusion
 	  if (op->linLog){
 	    expr1=logRate+alpha1;
@@ -288,7 +289,6 @@ double solveLinB(rx_solve *rx, unsigned int id, double t, int linCmt,
 	      }
 	    }
 	  }
-	  
 	  if (wh0 == 10) return (ret+cur);
 	}
       } else {

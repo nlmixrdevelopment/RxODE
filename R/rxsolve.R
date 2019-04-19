@@ -3,7 +3,7 @@
 rxControl <- function(scale = NULL,
                       method = c("liblsoda", "lsoda", "dop853"),
                       transitAbs = NULL, atol = 1.0e-8, rtol = 1.0e-6,
-                      maxsteps = 50000L, hmin = 0L, hmax = NA, hmaxSd= 0, hini = 0, maxordn = 12L, maxords = 5L, ...,
+                      maxsteps = 500000L, hmin = 0L, hmax = NA, hmaxSd= 0, hini = 0, maxordn = 12L, maxords = 5L, ...,
                       cores,
                       covsInterpolation = c("locf", "linear", "nocb", "midpoint"),
                       addCov = FALSE, matrix = FALSE, sigma = NULL, sigmaDf = NULL,
@@ -480,7 +480,7 @@ rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, ...)
 
     ## }
     ## ## stiff = TRUE, transitAbs = NULL,
-    ## ## atol = 1.0e-8, rtol = 1.0e-6, maxsteps = 5000, hmin = 0, hmax = NULL, hini = 0, maxordn = 12,
+    ## ## atol = 1.0e-8, rtol = 1.0e-6, maxsteps = 50000, hmin = 0, hmax = NULL, hini = 0, maxordn = 12,
     ## ## maxords = 5, ..., covsInterpolation = c("linear", "constant", "NOCB", "midpoint"),
     ## ## theta=numeric(), eta=numeric(), matrix=TRUE,addCov=FALSE,
     ## ## inC=FALSE, counts=NULL, doSolve=TRUE
