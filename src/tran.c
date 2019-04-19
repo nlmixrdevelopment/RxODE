@@ -2955,6 +2955,9 @@ SEXP _RxODE_codegen(SEXP c_file, SEXP prefix, SEXP libname,
   if (!isString(c_file) || length(c_file) != 1){
     error("c_file should only be 1 file");
   }
+  if (length(libname) != 2){
+    error("libname needs 2 elements");
+  }
   fpIO = fopen(CHAR(STRING_ELT(c_file,0)), "wb");
   err_msg((intptr_t) fpIO, "error opening output c file\n", -2);
   sIniTo(&sbOut, (int)((sbPm.sN)*5.3));

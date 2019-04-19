@@ -8,6 +8,13 @@
 
 <title>Create an ODE-based model specification — RxODE • RxODE</title>
 
+<!-- favicons -->
+<link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png">
+<link rel="apple-touch-icon" type="image/png" sizes="180x180" href="../apple-touch-icon.png" />
+<link rel="apple-touch-icon" type="image/png" sizes="120x120" href="../apple-touch-icon-120x120.png" />
+<link rel="apple-touch-icon" type="image/png" sizes="76x76" href="../apple-touch-icon-76x76.png" />
+<link rel="apple-touch-icon" type="image/png" sizes="60x60" href="../apple-touch-icon-60x60.png" />
 <!-- jquery -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
 <!-- Bootstrap -->
@@ -34,6 +41,8 @@
 
 <meta property="og:description" content="Create a dynamic ODE-based model object suitably for translation
 into fast C code" />
+
+<meta property="og:image" content="/logo.png" />
 <meta name="twitter:card" content="summary" />
 
 
@@ -64,7 +73,7 @@ into fast C code" />
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">RxODE</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.8.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.9.0.5</span>
       </span>
     </div>
 
@@ -99,16 +108,13 @@ into fast C code" />
       <a href="../articles/RxODE-intro.html">Introduction to RxODE</a>
     </li>
     <li>
-      <a href="../articles/RxODE-mix-lin-ode.html">RxODE Solved Systems and ODEs</a>
+      <a href="../articles/RxODE-model-types.html">RxODE additional model types</a>
     </li>
     <li>
       <a href="../articles/RxODE-shiny.html">RxODE and Shiny</a>
     </li>
     <li>
       <a href="../articles/RxODE-sim-var.html">RxODE Simulation</a>
-    </li>
-    <li>
-      <a href="../articles/RxODE-speed.html">RxODE Benchmarking</a>
     </li>
     <li>
       <a href="../articles/RxODE-stiff.html">RxODE Jacobian specification and Stiff Systems</a>
@@ -124,12 +130,7 @@ into fast C code" />
       </ul>
       
       <ul class="nav navbar-nav navbar-right">
-        <li>
-  <a href="https://github.com/nlmixrdevelopment/RxODE">
-    <span class="fa fa-github fa-lg"></span>
-     
-  </a>
-</li>
+        
       </ul>
       
     </div><!--/.nav-collapse -->
@@ -143,7 +144,7 @@ into fast C code" />
   <div class="col-md-9 contents">
     <div class="page-header">
     <h1>Create an ODE-based model specification</h1>
-    <small class="dont-index">Source: <a href='https://github.com/nlmixrdevelopment/RxODE/blob/master/R/RxODE.R'><code>R/RxODE.R</code></a></small>
+    
     <div class="hidden name"><code>RxODE.Rd</code></div>
     </div>
 
@@ -156,14 +157,15 @@ into fast C code</p>
 
     <pre class="usage"><span class='fu'>RxODE</span>(<span class='no'>model</span>, <span class='kw'>modName</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/basename'>basename</a></span>(<span class='no'>wd</span>), <span class='kw'>wd</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/getwd'>getwd</a></span>(), <span class='kw'>filename</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
   <span class='kw'>extraC</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>debug</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>calcJac</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>calcSens</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>collapseModel</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='no'>...</span>)</pre>
+  <span class='kw'>collapseModel</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>package</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='no'>...</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
       <th>model</th>
-      <td><p>This is the ODE model specification.  It can be:</p><ul>
+      <td><p>This is the ODE model specification.  It can be:</p>
+<ul>
 <li><p>a string containing the set of ordinary differential
     equations (ODE) and other expressions defining the changes in
     the dynamic system.</p></li>
@@ -227,6 +229,10 @@ sennsitivities according to the specified ODEs.</p></td>
       <th>collapseModel</th>
       <td><p>boolean indicating if RxODE will remove all
 LHS variables when calculating sensitivities.</p></td>
+    </tr>
+    <tr>
+      <th>package</th>
+      <td><p>Package name for pre-compiled binaries.</p></td>
     </tr>
     <tr>
       <th>...</th>
@@ -417,8 +423,8 @@ Springer-Verlag (1993).</p>
    d/dt(eff)  = Kin - Kout*(1-C2/(EC50+C2))*eff;
 "</span>
 
-<span class='no'>m1</span> <span class='kw'>&lt;-</span> <span class='fu'>RxODE</span>(<span class='kw'>model</span> <span class='kw'>=</span> <span class='no'>ode</span>, <span class='kw'>modName</span> <span class='kw'>=</span> <span class='st'>"m1"</span>)
-<span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/print'>print</a></span>(<span class='no'>m1</span>)</div><div class='output co'>#&gt; <span class='message'><span style='font-weight: bold;'>RxODE </span><span>0.8.1-0 model named </span><span style='color: #BBBB00;font-weight: bold;'>m1</span><span> model (</span><span style='color: #00BB00;'>✔</span><span> </span><span style='color: #00BB00;font-weight: bold;'>ready</span><span>).</span></div><div class='output co'>#&gt; <span class='message'></span><span style='color: #0000BB;font-weight: bold;'>$state</span><span>: depot, centr, peri, eff</span></div><div class='output co'>#&gt; <span class='message'></span><span style='color: #0000BB;font-weight: bold;'>$params</span><span>: V2, V3, KA, CL, Q, Kin, Kout, EC50</span></div><div class='output co'>#&gt; <span class='message'></span><span style='color: #0000BB;font-weight: bold;'>$lhs</span><span>: C2, C3</span></div><div class='input'>
+<span class='no'>m1</span> <span class='kw'>&lt;-</span> <span class='fu'>RxODE</span>(<span class='kw'>model</span> <span class='kw'>=</span> <span class='no'>ode</span>)
+<span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/print'>print</a></span>(<span class='no'>m1</span>)</div><div class='output co'>#&gt; <span class='message'><span style='font-weight: bold;'>RxODE </span><span>0.9.0-5 model named </span><span style='color: #BBBB00;font-weight: bold;'>rx_cbfba1ebc2e305e73da2d4d271b23eaa</span><span> model (</span><span style='color: #00BB00;'>✔</span><span> </span><span style='color: #00BB00;font-weight: bold;'>ready</span><span>).</span></div><div class='output co'>#&gt; <span class='message'></span><span style='color: #0000BB;font-weight: bold;'>$state</span><span>: depot, centr, peri, eff</span></div><div class='output co'>#&gt; <span class='message'></span><span style='color: #0000BB;font-weight: bold;'>$params</span><span>: V2, V3, KA, CL, Q, Kin, Kout, EC50</span></div><div class='output co'>#&gt; <span class='message'></span><span style='color: #0000BB;font-weight: bold;'>$lhs</span><span>: C2, C3</span></div><div class='input'>
 <span class='co'># Step 2 - Create the model input as an EventTable,</span>
 <span class='co'># including dosing and observation (sampling) events</span>
 
@@ -459,7 +465,27 @@ Springer-Verlag (1993).</p>
 
 <span class='no'>inits</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='kw'>eff</span> <span class='kw'>=</span> <span class='fl'>1</span>);
 
-<span class='no'>qd.cp</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/solve'>solve</a></span>(<span class='no'>m1</span>, <span class='no'>theta</span>, <span class='kw'>events</span> <span class='kw'>=</span> <span class='no'>qd</span>, <span class='no'>inits</span>);</div></span></pre>
+<span class='no'>qd.cp</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/solve'>solve</a></span>(<span class='no'>m1</span>, <span class='no'>theta</span>, <span class='kw'>events</span> <span class='kw'>=</span> <span class='no'>qd</span>, <span class='no'>inits</span>);
+
+<span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/print'>print</a></span>(<span class='no'>qd.cp</span>)</div><div class='output co'>#&gt; ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂ </span><span style='font-weight: bold;'>Solved RxODE object</span><span> ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂ 
+#&gt; ── </span><span style='font-weight: bold;'>Parameters</span><span> (</span><span style='color: #0000BB;font-weight: bold;'>$params</span><span>): ─────────────────────────────────────────────────────── 
+#&gt;      V2      V3      KA      CL       Q     Kin    Kout    EC50 
+#&gt;  40.200 297.000   0.291  18.600  10.500   1.000   1.000 200.000 
+#&gt; ── </span><span style='font-weight: bold;'>Initial Conditions</span><span> (</span><span style='color: #0000BB;font-weight: bold;'>$inits</span><span>): ──────────────────────────────────────────────── 
+#&gt; depot centr  peri   eff 
+#&gt;     0     0     0     1 
+#&gt; ── </span><span style='font-weight: bold;'>First part of data (object):</span><span> ──────────────────────────────────────────────── 
+#&gt; </span><span style='color: #555555;'># A tibble: 37 x 7</span><span>
+#&gt;    time    C2    C3  depot centr  peri   eff
+#&gt;     </span><span style='color: #555555;'>[h]</span><span> </span><span style='color: #555555;font-style: italic;'>&lt;dbl&gt;</span><span> </span><span style='color: #555555;font-style: italic;'>&lt;dbl&gt;</span><span>  </span><span style='color: #555555;font-style: italic;'>&lt;dbl&gt;</span><span> </span><span style='color: #555555;font-style: italic;'>&lt;dbl&gt;</span><span> </span><span style='color: #555555;font-style: italic;'>&lt;dbl&gt;</span><span> </span><span style='color: #555555;font-style: italic;'>&lt;dbl&gt;</span><span>
+#&gt; </span><span style='color: #555555;'>1</span><span>     0   0   0     </span><span style='text-decoration: underline;'>10</span><span>000     0     0   1   
+#&gt; </span><span style='color: #555555;'>2</span><span>     1  44.0 0.911  </span><span style='text-decoration: underline;'>7</span><span>475. </span><span style='text-decoration: underline;'>1</span><span>769.  271.  1.08
+#&gt; </span><span style='color: #555555;'>3</span><span>     2  54.5 2.65   </span><span style='text-decoration: underline;'>5</span><span>588. </span><span style='text-decoration: underline;'>2</span><span>191.  787.  1.18
+#&gt; </span><span style='color: #555555;'>4</span><span>     3  51.7 4.42   </span><span style='text-decoration: underline;'>4</span><span>177. </span><span style='text-decoration: underline;'>2</span><span>076. </span><span style='text-decoration: underline;'>1</span><span>314.  1.23
+#&gt; </span><span style='color: #555555;'>5</span><span>     4  44.4 5.94   </span><span style='text-decoration: underline;'>3</span><span>122. </span><span style='text-decoration: underline;'>1</span><span>784. </span><span style='text-decoration: underline;'>1</span><span>765.  1.23
+#&gt; </span><span style='color: #555555;'>6</span><span>     5  36.5 7.14   </span><span style='text-decoration: underline;'>2</span><span>334. </span><span style='text-decoration: underline;'>1</span><span>466. </span><span style='text-decoration: underline;'>2</span><span>120.  1.21
+#&gt; </span><span style='color: #555555;'># … with 31 more rows</span><span></div><div class='output co'>#&gt; <span class='message'>▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂</span></div><div class='input'>
+</div></span></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>

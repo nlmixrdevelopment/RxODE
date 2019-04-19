@@ -33,6 +33,7 @@ Prediction only models are simple to create.  You use the RxODE syntax
 without any ODE systems in them.  A very simple example is a one-compartment model.
 
 ```{r}
+library(RxODE)
 mod <- RxODE({
     ipre <- 10 * exp(-ke * t);
 })
@@ -169,9 +170,9 @@ ev <- eventTable(amount.units='mg', time.units='hours') %>%
 
 This can be solved with the following command:
 
-```{r,results="asis"}
+```{r}
 x <- mod2 %>%  solve(theta, ev)
-rxHtml(x)
+print(x)
 ```
 
 Note this solving did not require specifying the effect compartment
@@ -179,9 +180,9 @@ initial condition to be `1`.  Rather, this is already pre-specified by `eff(0)=1
 
 This can be solved for different initial conditions easily:
 
-```{r,results="asis"}
+```{r}
 x <- mod2 %>%  solve(theta, ev,c(eff=2))
-rxHtml(x)
+print(x)
 ```
 
 The RxODE detective also does not require you to specify the variables
@@ -207,13 +208,13 @@ mod3 <- RxODE({
 })
 
 x <- mod3 %>%  solve(ev)
-rxHtml(x)
+print(x)
 ```
 
 Note that you do not specify the parameters when solving the system
 since they are built into the model, but you can override the parameters:
 
-```{r,results="asis"}
+```{r}
 x <- mod3 %>%  solve(c(KA=10),ev)
-rxHtml(x)
+print(x)
 ```

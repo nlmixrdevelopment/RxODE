@@ -6,8 +6,15 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Solves a ODE equation — rxSolve • RxODE</title>
+<title>Solves a ODE equation — rxControl • RxODE</title>
 
+<!-- favicons -->
+<link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png">
+<link rel="apple-touch-icon" type="image/png" sizes="180x180" href="../apple-touch-icon.png" />
+<link rel="apple-touch-icon" type="image/png" sizes="120x120" href="../apple-touch-icon-120x120.png" />
+<link rel="apple-touch-icon" type="image/png" sizes="76x76" href="../apple-touch-icon-76x76.png" />
+<link rel="apple-touch-icon" type="image/png" sizes="60x60" href="../apple-touch-icon-60x60.png" />
 <!-- jquery -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
 <!-- Bootstrap -->
@@ -30,10 +37,12 @@
 
 
 
-<meta property="og:title" content="Solves a ODE equation — rxSolve" />
+<meta property="og:title" content="Solves a ODE equation — rxControl" />
 
 <meta property="og:description" content="This uses RxODE family of objects, file, or model specification to
 solve a ODE system." />
+
+<meta property="og:image" content="/logo.png" />
 <meta name="twitter:card" content="summary" />
 
 
@@ -64,7 +73,7 @@ solve a ODE system." />
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">RxODE</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.8.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.9.0.5</span>
       </span>
     </div>
 
@@ -99,16 +108,13 @@ solve a ODE system." />
       <a href="../articles/RxODE-intro.html">Introduction to RxODE</a>
     </li>
     <li>
-      <a href="../articles/RxODE-mix-lin-ode.html">RxODE Solved Systems and ODEs</a>
+      <a href="../articles/RxODE-model-types.html">RxODE additional model types</a>
     </li>
     <li>
       <a href="../articles/RxODE-shiny.html">RxODE and Shiny</a>
     </li>
     <li>
       <a href="../articles/RxODE-sim-var.html">RxODE Simulation</a>
-    </li>
-    <li>
-      <a href="../articles/RxODE-speed.html">RxODE Benchmarking</a>
     </li>
     <li>
       <a href="../articles/RxODE-stiff.html">RxODE Jacobian specification and Stiff Systems</a>
@@ -124,12 +130,7 @@ solve a ODE system." />
       </ul>
       
       <ul class="nav navbar-nav navbar-right">
-        <li>
-  <a href="https://github.com/nlmixrdevelopment/RxODE">
-    <span class="fa fa-github fa-lg"></span>
-     
-  </a>
-</li>
+        
       </ul>
       
     </div><!--/.nav-collapse -->
@@ -143,7 +144,7 @@ solve a ODE system." />
   <div class="col-md-9 contents">
     <div class="page-header">
     <h1>Solves a ODE equation</h1>
-    <small class="dont-index">Source: <a href='https://github.com/nlmixrdevelopment/RxODE/blob/master/R/rxsolve.R'><code>R/rxsolve.R</code></a></small>
+    
     <div class="hidden name"><code>rxSolve.Rd</code></div>
     </div>
 
@@ -154,24 +155,28 @@ solve a ODE system.</p>
     
     </div>
 
-    <pre class="usage"><span class='fu'>rxSolve</span>(<span class='no'>object</span>, <span class='no'>...</span>)
+    <pre class="usage"><span class='fu'>rxControl</span>(<span class='kw'>scale</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>method</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='st'>"liblsoda"</span>, <span class='st'>"lsoda"</span>, <span class='st'>"dop853"</span>),
+  <span class='kw'>transitAbs</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>atol</span> <span class='kw'>=</span> <span class='fl'>1e-08</span>, <span class='kw'>rtol</span> <span class='kw'>=</span> <span class='fl'>1e-06</span>, <span class='kw'>maxsteps</span> <span class='kw'>=</span> <span class='fl'>50000L</span>,
+  <span class='kw'>hmin</span> <span class='kw'>=</span> <span class='fl'>0L</span>, <span class='kw'>hmax</span> <span class='kw'>=</span> <span class='fl'>NA</span>, <span class='kw'>hmaxSd</span> <span class='kw'>=</span> <span class='fl'>0</span>, <span class='kw'>hini</span> <span class='kw'>=</span> <span class='fl'>0</span>, <span class='kw'>maxordn</span> <span class='kw'>=</span> <span class='fl'>12L</span>,
+  <span class='kw'>maxords</span> <span class='kw'>=</span> <span class='fl'>5L</span>, <span class='no'>...</span>, <span class='no'>cores</span>, <span class='kw'>covsInterpolation</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='st'>"locf"</span>, <span class='st'>"linear"</span>,
+  <span class='st'>"nocb"</span>, <span class='st'>"midpoint"</span>), <span class='kw'>addCov</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>matrix</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>sigma</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>sigmaDf</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>nCoresRV</span> <span class='kw'>=</span> <span class='fl'>1L</span>, <span class='kw'>sigmaIsChol</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>nDisplayProgress</span> <span class='kw'>=</span> <span class='fl'>10000L</span>, <span class='kw'>amountUnits</span> <span class='kw'>=</span> <span class='fl'>NA_character_</span>,
+  <span class='kw'>timeUnits</span> <span class='kw'>=</span> <span class='st'>"hours"</span>, <span class='no'>stiff</span>, <span class='kw'>theta</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>eta</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>addDosing</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>stateTrim</span> <span class='kw'>=</span> <span class='fl'>Inf</span>, <span class='kw'>updateObject</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>omega</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>omegaDf</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>omegaIsChol</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>nSub</span> <span class='kw'>=</span> <span class='fl'>1L</span>,
+  <span class='kw'>thetaMat</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>thetaDf</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>thetaIsChol</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>nStud</span> <span class='kw'>=</span> <span class='fl'>1L</span>,
+  <span class='kw'>dfSub</span> <span class='kw'>=</span> <span class='fl'>0</span>, <span class='kw'>dfObs</span> <span class='kw'>=</span> <span class='fl'>0</span>, <span class='kw'>returnType</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='st'>"rxSolve"</span>, <span class='st'>"matrix"</span>,
+  <span class='st'>"data.frame"</span>, <span class='st'>"data.frame.TBS"</span>), <span class='kw'>seed</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>nsim</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>minSS</span> <span class='kw'>=</span> <span class='fl'>7</span>, <span class='kw'>maxSS</span> <span class='kw'>=</span> <span class='fl'>70000</span>, <span class='kw'>atolSS</span> <span class='kw'>=</span> <span class='fl'>1e-09</span>, <span class='kw'>rtolSS</span> <span class='kw'>=</span> <span class='fl'>1e-09</span>,
+  <span class='kw'>params</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>events</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>istateReset</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
+  <span class='kw'>subsetNonmem</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>linLog</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>)
+
+<span class='fu'>rxSolve</span>(<span class='no'>object</span>, <span class='no'>...</span>)
 
 <span class='co'># S3 method for default</span>
 <span class='fu'>rxSolve</span>(<span class='no'>object</span>, <span class='kw'>params</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>events</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>inits</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>scale</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>method</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='st'>"liblsoda"</span>, <span class='st'>"lsoda"</span>,
-  <span class='st'>"dop853"</span>), <span class='kw'>transitAbs</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>atol</span> <span class='kw'>=</span> <span class='fl'>1e-08</span>, <span class='kw'>rtol</span> <span class='kw'>=</span> <span class='fl'>1e-06</span>,
-  <span class='kw'>maxsteps</span> <span class='kw'>=</span> <span class='fl'>5000L</span>, <span class='kw'>hmin</span> <span class='kw'>=</span> <span class='fl'>0L</span>, <span class='kw'>hmax</span> <span class='kw'>=</span> <span class='fl'>NA</span>, <span class='kw'>hini</span> <span class='kw'>=</span> <span class='fl'>0</span>,
-  <span class='kw'>maxordn</span> <span class='kw'>=</span> <span class='fl'>12L</span>, <span class='kw'>maxords</span> <span class='kw'>=</span> <span class='fl'>5L</span>, <span class='no'>...</span>, <span class='no'>cores</span>,
-  <span class='kw'>covsInterpolation</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='st'>"locf"</span>, <span class='st'>"linear"</span>, <span class='st'>"nocb"</span>, <span class='st'>"midpoint"</span>),
-  <span class='kw'>addCov</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>matrix</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>sigma</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>sigmaDf</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>nCoresRV</span> <span class='kw'>=</span> <span class='fl'>1L</span>, <span class='kw'>sigmaIsChol</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>nDisplayProgress</span> <span class='kw'>=</span> <span class='fl'>10000L</span>,
-  <span class='kw'>amountUnits</span> <span class='kw'>=</span> <span class='fl'>NA_character_</span>, <span class='kw'>timeUnits</span> <span class='kw'>=</span> <span class='st'>"hours"</span>, <span class='no'>stiff</span>,
-  <span class='kw'>theta</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>eta</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>addDosing</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>stateTrim</span> <span class='kw'>=</span> <span class='fl'>Inf</span>,
-  <span class='kw'>updateObject</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>omega</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>omegaDf</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>omegaIsChol</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>nSub</span> <span class='kw'>=</span> <span class='fl'>1L</span>, <span class='kw'>thetaMat</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>thetaDf</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>thetaIsChol</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>nStud</span> <span class='kw'>=</span> <span class='fl'>1L</span>, <span class='kw'>dfSub</span> <span class='kw'>=</span> <span class='fl'>0</span>, <span class='kw'>dfObs</span> <span class='kw'>=</span> <span class='fl'>0</span>,
-  <span class='kw'>returnType</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='st'>"rxSolve"</span>, <span class='st'>"matrix"</span>, <span class='st'>"data.frame"</span>, <span class='st'>"data.frame.TBS"</span>),
-  <span class='kw'>seed</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>nsim</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>setupOnly</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>)
+  <span class='kw'>inits</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='no'>...</span>)
 
 <span class='co'># S3 method for rxSolve</span>
 <span class='fu'><a href='https://www.rdocumentation.org/packages/stats/topics/update'>update</a></span>(<span class='no'>object</span>, <span class='no'>...</span>)
@@ -198,44 +203,12 @@ solve a ODE system.</p>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>object</th>
-      <td><p>is a either a RxODE family of objects, or a file-name
-with a RxODE model specification, or a string with a RxODE
-model specification.</p></td>
-    </tr>
-    <tr>
-      <th>...</th>
-      <td><p>Other arguments including scaling factors for each
-compartment.  This includes S# = numeric will scale a compartment
-# by a dividing the compartment amount by the scale factor,
-like NONMEM.</p></td>
-    </tr>
-    <tr>
-      <th>params</th>
-      <td><p>a numeric named vector with values for every
-parameter in the ODE system; the names must correspond to the
-parameter identifiers used in the ODE specification;</p></td>
-    </tr>
-    <tr>
-      <th>events</th>
-      <td><p>an <code>eventTable</code> object describing the input
-(e.g., doses) to the dynamic system and observation sampling
-time points (see <code><a href='eventTable.html'>eventTable</a></code>);</p></td>
-    </tr>
-    <tr>
-      <th>inits</th>
-      <td><p>a vector of initial values of the state variables
-(e.g., amounts in each compartment), and the order in this
-vector must be the same as the state variables (e.g., PK/PD
-compartments);</p></td>
-    </tr>
-    <tr>
       <th>scale</th>
       <td><p>a numeric named vector with scaling for ode
 parameters of the system.  The names must correstond to the
 parameter identifiers in the ODE specification. Each of the
 ODE variables will be divided by the scaling factor.  For
-example <code>scale=(center=2)</code> will divide the center ODE
+example <code>scale=c(center=2)</code> will divide the center ODE
 variable by 2.</p></td>
     </tr>
     <tr>
@@ -282,10 +255,15 @@ value is 0.</p></td>
     <tr>
       <th>hmax</th>
       <td><p>The maximum absolute step size allowed.  When
-<code>hmax=NA</code> (default), uses the avearge difference in times
+<code>hmax=NA</code> (default), uses the average difference (+hmaxSd*sd) in times
 and sampling events. When <code>hmax=NULL</code> RxODE uses the
 maximum difference in times in your sampling and events.  The
 value 0 is equivalent to infinite maximum absolute step size.</p></td>
+    </tr>
+    <tr>
+      <th>hmaxSd</th>
+      <td><p>The number of standard deviations of the time
+difference to add to hmax. The default is 0</p></td>
     </tr>
     <tr>
       <th>hini</th>
@@ -302,6 +280,13 @@ default value is determined by the solver (when hini = 0)</p></td>
       <th>maxords</th>
       <td><p>The maximum order to be allowed for the stiff (BDF)
 method.  The default value is 5.  This can be between 1 and 5.</p></td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td><p>Other arguments including scaling factors for each
+compartment.  This includes S# = numeric will scale a compartment
+# by a dividing the compartment amount by the scale factor,
+like NONMEM.</p></td>
     </tr>
     <tr>
       <th>cores</th>
@@ -411,10 +396,28 @@ added to parameters</p></td>
     <tr>
       <th>addDosing</th>
       <td><p>Boolean indicating if the solve should add RxODE
-evid and amt columns.  This will also include dosing
-information and estimates at the doses.  Be default, RxODE
-only includes estimates at the observations. (default
-<code>FALSE</code>).</p></td>
+    EVID and related columns.  This will also include dosing
+    information and estimates at the doses.  Be default, RxODE
+    only includes estimates at the observations. (default
+    <code>FALSE</code>). When <code>addDosing</code> is <code>NULL</code>, only
+    include <code>EVID=0</code> on solve and exclude any model-times or
+    <code>EVID=2</code>. If <code>addDosing</code> is <code>NA</code> the classic
+    <code>RxODE</code> EVID events. When <code>addDosing</code> is <code>TRUE</code>
+    add the event information in NONMEM-style format; If
+    <code>subsetNonmem=FALSE</code> RxODE will also extra event types
+    (<code>EVID</code>) for ending infusion and modeled times:</p>
+<ul>
+<li><p><code>EVID=-1</code> when the modeled rate infusions are turned
+off (matches <code>rate=-1</code>)</p></li>
+<li><p><code>EVID=-2</code> When the modeled duration infusions are
+turned off (matches <code>rate=-2</code>)</p></li>
+<li><p><code>EVID=-10</code> When the specified <code>rate</code> infusions are
+turned off (matches <code>rate&gt;0</code>)</p></li>
+<li><p><code>EVID=-20</code> When the specified <code>dur</code> infusions are
+turned off (matches <code>dur&gt;0</code>)</p></li>
+<li><p><code>EVID=101,102,103,...</code> Modeled time where 101 is the
+first model time, 102 is the second etc.</p></li>
+</ul></td>
     </tr>
     <tr>
       <th>stateTrim</th>
@@ -433,7 +436,9 @@ have unexpected results.</p></td>
     </tr>
     <tr>
       <th>omega</th>
-      <td><p>Named omega matrix.</p></td>
+      <td><p>Estimate of Covariance matrix. When omega is a list,
+assume it is a block matrix and convert it to a full matrix
+for simulations.</p></td>
     </tr>
     <tr>
       <th>omegaDf</th>
@@ -510,10 +515,63 @@ you supply single subject event tables (created with
 eventTable)</p></td>
     </tr>
     <tr>
-      <th>setupOnly</th>
-      <td><p>Only setup the internal C structure, do not
-solve.  After setting it up, and using the structure in C, it
-needs to be freed by <code><a href='rxSolveFree.html'>rxSolveFree</a></code>.</p></td>
+      <th>minSS</th>
+      <td><p>Minimum number of iterations for a steady-state dose</p></td>
+    </tr>
+    <tr>
+      <th>maxSS</th>
+      <td><p>Maximum number of iterations for a steady-state dose</p></td>
+    </tr>
+    <tr>
+      <th>atolSS</th>
+      <td><p>Absolute tolerance to check if a solution arrived at
+steady state.</p></td>
+    </tr>
+    <tr>
+      <th>rtolSS</th>
+      <td><p>Relative tolerance to check if a solution arrived at
+steady state.</p></td>
+    </tr>
+    <tr>
+      <th>params</th>
+      <td><p>a numeric named vector with values for every
+parameter in the ODE system; the names must correspond to the
+parameter identifiers used in the ODE specification;</p></td>
+    </tr>
+    <tr>
+      <th>events</th>
+      <td><p>an <code>eventTable</code> object describing the input
+(e.g., doses) to the dynamic system and observation sampling
+time points (see <code><a href='eventTable.html'>eventTable</a></code>);</p></td>
+    </tr>
+    <tr>
+      <th>istateReset</th>
+      <td><p>When TRUE, reset the ISTATE variable to 1 for
+lsoda and liblsoda with doses, like deSolve; When FALSE, do
+not reset the ISTATE variable with doses.</p></td>
+    </tr>
+    <tr>
+      <th>subsetNonmem</th>
+      <td><p>subset to NONMEM compatible EVIDs only.  By default TRUE.</p></td>
+    </tr>
+    <tr>
+      <th>linLog</th>
+      <td><p>Boolean indicating if linear compartment models be
+calculated more accurately in the log-space (slower) By
+default this is off (<code>FALSE</code>)</p></td>
+    </tr>
+    <tr>
+      <th>object</th>
+      <td><p>is a either a RxODE family of objects, or a file-name
+with a RxODE model specification, or a string with a RxODE
+model specification.</p></td>
+    </tr>
+    <tr>
+      <th>inits</th>
+      <td><p>a vector of initial values of the state variables
+(e.g., amounts in each compartment), and the order in this
+vector must be the same as the state variables (e.g., PK/PD
+compartments);</p></td>
     </tr>
     <tr>
       <th>a</th>

@@ -238,7 +238,7 @@ ode <- "
    d/dt(eff)  = Kin - Kout*(1-C2/(EC50+C2))*eff;
 "
 
-m1 <- RxODE(model = ode, modName = "m1")
+m1 <- RxODE(model = ode)
 print(m1)
 
 # Step 2 - Create the model input as an EventTable,
@@ -278,6 +278,8 @@ head(qd.cp)
 inits <- c(eff = 1);
 
 qd.cp <- solve(m1, theta, events = qd, inits);
+
+print(qd.cp)
 
 }
 \references{
