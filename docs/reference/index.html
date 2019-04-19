@@ -18,8 +18,8 @@
 <!-- jquery -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
 <!-- Bootstrap -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/3.3.7/flatly/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous" />
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha256-916EbMg70RQy9LHiGkXzG8hSg9EdNy97GazNG/aiY1w=" crossorigin="anonymous" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha256-U5ZEeKfGNOja007MMD3YBI0A3OSZOQbeG6z2f2Y0hu8=" crossorigin="anonymous"></script>
 
 <!-- Font Awesome icons -->
@@ -76,58 +76,69 @@
 
     <div id="navbar" class="navbar-collapse collapse">
       <ul class="nav navbar-nav">
-        <li>
-  <a href="../index.html">
-    <span class="fa fa-home fa-lg"></span>
-     
-  </a>
-</li>
-<li>
-  <a href="../reference/index.html">Reference</a>
-</li>
-<li class="dropdown">
+        <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
     Articles
      
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu">
+    <li class="divider"></li>
+    <li class="dropdown-header">Getting started</li>
     <li>
-      <a href="../articles/RxODE-covariates.html">RxODE Covariates</a>
+      <a href="../articles/RxODE-intro.html">Introduction</a>
     </li>
     <li>
-      <a href="../articles/RxODE-data-frame.html">RxODE Data Frames</a>
+      <a href="../articles/RxODE-syntax.html">RxODE mini language syntax</a>
+    </li>
+    <li class="divider"></li>
+    <li class="dropdown-header">Events and Simulations &amp; RxODE data frames</li>
+    <li>
+      <a href="../articles/RxODE-events.html">Creating Dosing Events &amp; Observations</a>
     </li>
     <li>
-      <a href="../articles/RxODE-events.html">RxODE Events</a>
+      <a href="../articles/RxODE-simulation.html">Multiple Subject RxODE Simulation</a>
     </li>
     <li>
-      <a href="../articles/RxODE-intro.html">Introduction to RxODE</a>
+      <a href="../articles/RxODE-data-frame.html">Interactive RxODE Data Frames</a>
+    </li>
+    <li class="divider"></li>
+    <li class="dropdown-header">Advanced Features, Model Types, Technical Details</li>
+    <li>
+      <a href="../articles/RxODE-model-types.html">RxODE model types</a>
     </li>
     <li>
-      <a href="../articles/RxODE-model-types.html">RxODE additional model types</a>
+      <a href="../articles/RxODE-transit-compartments.html">RxODE transit compartment models</a>
     </li>
     <li>
-      <a href="../articles/RxODE-shiny.html">RxODE and Shiny</a>
+      <a href="../articles/RxODE-shiny.html">Using Shiny with RxODE</a>
     </li>
     <li>
-      <a href="../articles/RxODE-sim-var.html">RxODE Simulation</a>
+      <a href="../articles/RxODE-covariates.html">How RxODE handles time-varying covariates</a>
     </li>
     <li>
-      <a href="../articles/RxODE-stiff.html">RxODE Jacobian specification and Stiff Systems</a>
-    </li>
-    <li>
-      <a href="../articles/RxODE-syntax.html">RxODE ODE solving syntax</a>
-    </li>
-    <li>
-      <a href="../articles/RxODE-transit-compartments.html">RxODE Transit Compartment Models</a>
+      <a href="../articles/RxODE-stiff.html">Stiff Systems and Jacobian specification</a>
     </li>
   </ul>
+</li>
+<li>
+  <a href="../reference/index.html">Functions</a>
 </li>
       </ul>
       
       <ul class="nav navbar-nav navbar-right">
-        
+        <li>
+  <a href="https://github.com/nlmixrdevelopment/RxODE">
+    <span class="fa fa-github fa-lg"></span>
+     
+  </a>
+</li>
+<li>
+  <a href="https://github.com/nlmixrdevelopment/RxODE/releases">
+    <span class="fa fa-download"></span>
+     
+  </a>
+</li>
       </ul>
       
     </div><!--/.nav-collapse -->
@@ -154,7 +165,7 @@
     <tbody>
       <tr>
         <th colspan="2">
-          <h2 id="section-all-functions" class="hasAnchor"><a href="#section-all-functions" class="anchor"></a>All functions</h2>
+          <h2 id="section-creating-rxode-compiled-objects" class="hasAnchor"><a href="#section-creating-rxode-compiled-objects" class="anchor"></a>Creating RxODE compiled objects</h2>
           <p class="section-desc"></p>
         </th>
       </tr>
@@ -164,67 +175,15 @@
           <p><code><a href="RxODE.html">RxODE()</a></code> </p>
         </td>
         <td><p>Create an ODE-based model specification</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="add.dosing.html">add.dosing()</a></code> </p>
-        </td>
-        <td><p>Add dosing to eventTable</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="add.sampling.html">add.sampling()</a></code> </p>
-        </td>
-        <td><p>Add sampling to eventTable</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="as.et.html">as.et()</a></code> </p>
-        </td>
-        <td><p>Coerce object to data.frame</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="coef.RxODE.html">coef(<i>&lt;RxODE&gt;</i>)</a></code> <code><a href="coef.RxODE.html">coef(<i>&lt;RxCompilationManager&gt;</i>)</a></code> <code><a href="coef.RxODE.html">coef(<i>&lt;solveRxODE&gt;</i>)</a></code> <code><a href="coef.RxODE.html">coef(<i>&lt;rxDll&gt;</i>)</a></code> </p>
-        </td>
-        <td><p>Return the RxODE coefficients</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="cvPost.html">cvPost()</a></code> </p>
-        </td>
-        <td><p>Sample a covariance Matrix from the Posteior Inverse Wishart distribution.</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="dot-rxFindPow.html">.rxFindPow()</a></code> </p>
-        </td>
-        <td><p>Find power THETAs for appropriate scaling</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="dot-rxRmPrint.html">.rxRmPrint()</a></code> </p>
-        </td>
-        <td><p>Remove print statements</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="dot-rxRmSens.html">.rxRmSens()</a></code> </p>
-        </td>
-        <td><p>Remove sensitivity equations</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="dot-rxSymPyJacobian.html">.rxSymPyJacobian()</a></code> </p>
-        </td>
-        <td><p>Calculate the full Jacobian for a model</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="dot-rxWinRtoolsPath.html">.rxWinRtoolsPath()</a></code> </p>
-        </td>
-        <td><p>Setup Rtools path</p></td>
-      </tr><tr>
+      </tr>
+    </tbody><tbody>
+      <tr>
+        <th colspan="2">
+          <h2 id="section-creating-rxode-event-tables-data-frames" class="hasAnchor"><a href="#section-creating-rxode-event-tables-data-frames" class="anchor"></a>Creating RxODE event tables/data frames</h2>
+          <p class="section-desc"></p>
+        </th>
+      </tr>
+      <tr>
         
         <td>
           <p><code><a href="et.html">et()</a></code> </p>
@@ -239,7 +198,7 @@
       </tr><tr>
         
         <td>
-          <p><code><a href="etRep.html">etRep()</a></code> </p>
+          <p><code><a href="etRep.html">etRep()</a></code> <code><a href="etRep.html">rep(<i>&lt;rxEt&gt;</i>)</a></code> </p>
         </td>
         <td><p>Repeat an RxODE event table</p></td>
       </tr><tr>
@@ -251,179 +210,78 @@
       </tr><tr>
         
         <td>
+          <p><code><a href="as.et.html">as.et()</a></code> </p>
+        </td>
+        <td><p>Coerce object to data.frame</p></td>
+      </tr><tr>
+        
+        <td>
           <p><code><a href="eventTable.html">eventTable()</a></code> </p>
         </td>
         <td><p>Create an event table object</p></td>
       </tr><tr>
         
         <td>
-          <p><code><a href="genShinyApp.template.html">genShinyApp.template()</a></code> <code><a href="genShinyApp.template.html">write.template.server()</a></code> <code><a href="genShinyApp.template.html">write.template.ui()</a></code> </p>
+          <p><code><a href="add.dosing.html">add.dosing()</a></code> </p>
         </td>
-        <td><p>Generate an example (template) of a dosing regimen shiny app</p></td>
+        <td><p>Add dosing to eventTable</p></td>
       </tr><tr>
         
         <td>
-          <p><code><a href="is.rxEt.html">is.rxEt()</a></code> </p>
+          <p><code><a href="add.sampling.html">add.sampling()</a></code> </p>
         </td>
-        <td><p>Check to see if this is an rxEt object.</p></td>
-      </tr><tr>
+        <td><p>Add sampling to eventTable</p></td>
+      </tr>
+    </tbody><tbody>
+      <tr>
+        <th colspan="2">
+          <h2 id="section-solving-simulating-and-solving-options" class="hasAnchor"><a href="#section-solving-simulating-and-solving-options" class="anchor"></a>Solving, Simulating and Solving options</h2>
+          <p class="section-desc"></p>
+        </th>
+      </tr>
+      <tr>
         
         <td>
-          <p><code><a href="is.rxSolve.html">is.rxSolve()</a></code> </p>
+          <p><code><a href="rxSolve.html">rxControl()</a></code> <code><a href="rxSolve.html">rxSolve()</a></code> <code><a href="rxSolve.html">update(<i>&lt;rxSolve&gt;</i>)</a></code> <code><a href="rxSolve.html">predict(<i>&lt;RxODE&gt;</i>)</a></code> <code><a href="rxSolve.html">predict(<i>&lt;rxSolve&gt;</i>)</a></code> <code><a href="rxSolve.html">simulate(<i>&lt;RxODE&gt;</i>)</a></code> <code><a href="rxSolve.html">simulate(<i>&lt;rxSolve&gt;</i>)</a></code> <code><a href="rxSolve.html">solve(<i>&lt;rxSolve&gt;</i>)</a></code> <code><a href="rxSolve.html">solve(<i>&lt;RxODE&gt;</i>)</a></code> </p>
         </td>
-        <td><p>Check to see if this is an rxSolve object.</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="print.RxODE.html">print(<i>&lt;RxODE&gt;</i>)</a></code> </p>
-        </td>
-        <td><p>Print information about the RxODE object.</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="print.rxCoefSolve.html">print(<i>&lt;rxCoefSolve&gt;</i>)</a></code> </p>
-        </td>
-        <td><p>Print the rxCoefSolve object</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="rinvchisq.html">rinvchisq()</a></code> </p>
-        </td>
-        <td><p>Scaled Inverse Chi Squared distribution</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="rxAddReturn.html">rxAddReturn()</a></code> </p>
-        </td>
-        <td><p>Add a return statment to a function.</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="rxAssignPtr.html">rxAssignPtr()</a></code> </p>
-        </td>
-        <td><p>Assign pointer based on model variables</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="rxChain.html">rxChain()</a></code> <code><a href="rxChain.html">`+`(<i>&lt;solveRxDll&gt;</i>)</a></code> </p>
-        </td>
-        <td><p>rxChain  Chain or add item to solved system of equations</p></td>
-      </tr><tr>
+        <td><p>Solving \&amp; Simulation of a ODE/solved system (and solving options) equation</p></td>
+      </tr>
+    </tbody><tbody>
+      <tr>
+        <th colspan="2">
+          <h2 id="section-cleaning-caches" class="hasAnchor"><a href="#section-cleaning-caches" class="anchor"></a>Cleaning caches</h2>
+          <p class="section-desc"></p>
+        </th>
+      </tr>
+      <tr>
         
         <td>
           <p><code><a href="rxClean.html">rxClean()</a></code> </p>
         </td>
         <td><p>Cleanup anonymous DLLs</p></td>
-      </tr><tr>
+      </tr>
+    </tbody><tbody>
+      <tr>
+        <th colspan="2">
+          <h2 id="section-using-rxode-in-packages" class="hasAnchor"><a href="#section-using-rxode-in-packages" class="anchor"></a>Using RxODE in Packages</h2>
+          <p class="section-desc"></p>
+        </th>
+      </tr>
+      <tr>
         
         <td>
-          <p><code><a href="rxCompile.html">rxCompile()</a></code> </p>
+          <p><code><a href="rxUse.html">rxUse()</a></code> </p>
         </td>
-        <td><p>Compile a model if needed</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="rxCores.html">rxCores()</a></code> </p>
-        </td>
-        <td><p>Get the number of cores in a system</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="rxDelete.html">rxDelete()</a></code> </p>
-        </td>
-        <td><p>Delete the DLL for the model</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="rxDfdy.html">rxDfdy()</a></code> </p>
-        </td>
-        <td><p>Jacobian and parameter derivatives</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="rxFoExpandEta.html">rxFoExpandEta()</a></code> </p>
-        </td>
-        <td><p>First Order Expansion of ETA</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="rxGetRxODE.html">rxGetRxODE()</a></code> </p>
-        </td>
-        <td><p>Get RxODE model from object</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="rxHtml.html">rxHtml()</a></code> </p>
-        </td>
-        <td><p>Format rxSolve and related objects as html.</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="rxInv.html">rxInv()</a></code> </p>
-        </td>
-        <td><p>Invert matrix using Rcpp Armadilo.</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="rxIsCurrent.html">rxIsCurrent()</a></code> </p>
-        </td>
-        <td><p>Checks if the RxODE object was built with the current build</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="rxLhs.html">rxLhs()</a></code> </p>
-        </td>
-        <td><p>Left handed Variables</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="rxNorm.html">rxNorm()</a></code> </p>
-        </td>
-        <td><p>Get the normalized model</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="rxOptExpr.html">rxOptExpr()</a></code> </p>
-        </td>
-        <td><p>Optimize RxODE for computer evaluation</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="rxOptions.html">rxOptions()</a></code> </p>
-        </td>
-        <td><p>Options for RxODE</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="rxParams.html">rxParams()</a></code> <code><a href="rxParams.html">rxParam()</a></code> </p>
-        </td>
-        <td><p>Parameters specified by the model</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="rxPermissive.html">rxPermissive()</a></code> <code><a href="rxPermissive.html">rxStrict()</a></code> </p>
-        </td>
-        <td><p>Permissive or Strict RxODE sytax options</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="rxProgress.html">rxProgress()</a></code> <code><a href="rxProgress.html">rxTick()</a></code> <code><a href="rxProgress.html">rxProgressStop()</a></code> <code><a href="rxProgress.html">rxProgressAbort()</a></code> </p>
-        </td>
-        <td><p>RxODE progress bar functions</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="rxSetProd.html">rxSetProd()</a></code> </p>
-        </td>
-        <td><p>Choose the type of product to use in RxODE.  These are used in the
-RxODE <code>prod</code> blocks</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="rxSetSum.html">rxSetSum()</a></code> </p>
-        </td>
-        <td><p>Choose the type of sums to use for RxODE.</p></td>
-      </tr><tr>
+        <td><p>Use model object in your package</p></td>
+      </tr>
+    </tbody><tbody>
+      <tr>
+        <th colspan="2">
+          <h2 id="section-exploring-rxode-and-creating-models-with-shiny" class="hasAnchor"><a href="#section-exploring-rxode-and-creating-models-with-shiny" class="anchor"></a>Exploring RxODE and creating models with Shiny</h2>
+          <p class="section-desc"></p>
+        </th>
+      </tr>
+      <tr>
         
         <td>
           <p><code><a href="rxShiny.html">rxShiny()</a></code> </p>
@@ -432,111 +290,23 @@ RxODE <code>prod</code> blocks</p></td>
       </tr><tr>
         
         <td>
-          <p><code><a href="rxSimThetaOmega.html">rxSimThetaOmega()</a></code> </p>
+          <p><code><a href="genShinyApp.template.html">genShinyApp.template()</a></code> <code><a href="genShinyApp.template.html">write.template.server()</a></code> <code><a href="genShinyApp.template.html">write.template.ui()</a></code> </p>
         </td>
-        <td><p>Simulate Parameters from a Theta/Omega specification</p></td>
-      </tr><tr>
+        <td><p>Generate an example (template) of a dosing regimen shiny app</p></td>
+      </tr>
+    </tbody><tbody>
+      <tr>
+        <th colspan="2">
+          <h2 id="section-specialized-simulation-functions" class="hasAnchor"><a href="#section-specialized-simulation-functions" class="anchor"></a>Specialized Simulation functions</h2>
+          <p class="section-desc"></p>
+        </th>
+      </tr>
+      <tr>
         
         <td>
-          <p><code><a href="rxSolve.html">rxControl()</a></code> <code><a href="rxSolve.html">rxSolve()</a></code> <code><a href="rxSolve.html">update(<i>&lt;rxSolve&gt;</i>)</a></code> <code><a href="rxSolve.html">predict(<i>&lt;RxODE&gt;</i>)</a></code> <code><a href="rxSolve.html">predict(<i>&lt;rxSolve&gt;</i>)</a></code> <code><a href="rxSolve.html">simulate(<i>&lt;RxODE&gt;</i>)</a></code> <code><a href="rxSolve.html">simulate(<i>&lt;rxSolve&gt;</i>)</a></code> <code><a href="rxSolve.html">solve(<i>&lt;rxSolve&gt;</i>)</a></code> <code><a href="rxSolve.html">solve(<i>&lt;RxODE&gt;</i>)</a></code> </p>
+          <p><code><a href="cvPost.html">cvPost()</a></code> </p>
         </td>
-        <td><p>Solves a ODE equation</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="rxStack.html">rxStack()</a></code> </p>
-        </td>
-        <td><p>Stack a solved object for things like ggplot</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="rxState.html">rxState()</a></code> </p>
-        </td>
-        <td><p>State variables</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="rxSumProdModel.html">rxSumProdModel()</a></code> </p>
-        </td>
-        <td><p>Recast model in terms of sum/prod</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="rxSymInvChol.html">rxSymInvChol()</a></code> </p>
-        </td>
-        <td><p>Get Omega^-1 and derivatives</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="rxSymPyFix.html">rxSymPyFix()</a></code> </p>
-        </td>
-        <td><p>Fix SymPy expressions to be R parsable expressions</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="rxSymPySensitivity.html">rxSymPySensitivity()</a></code> </p>
-        </td>
-        <td><p>Calculate the sensitivity equations for a model</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="rxSymPyVersion.html">rxSymPyVersion()</a></code> </p>
-        </td>
-        <td><p>Return the version of SymPy that is running</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="rxSyncOptions.html">rxSyncOptions()</a></code> </p>
-        </td>
-        <td><p>Sync options with RxODE varaibles</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="rxTempDir.html">rxTempDir()</a></code> </p>
-        </td>
-        <td><p>Get the RxODE temporary directory</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="rxTrans.html">rxTrans()</a></code> </p>
-        </td>
-        <td><p>Translate the model to C code if needed</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="rxUse.html">rxUse()</a></code> </p>
-        </td>
-        <td><p>Use model object in your package</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="rxValidate.html">rxValidate()</a></code> <code><a href="rxValidate.html">rxTest()</a></code> </p>
-        </td>
-        <td><p>Validate RxODE</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="rxWinPythonSetup.html">rxWinPythonSetup()</a></code> </p>
-        </td>
-        <td><p>Setup Python and SymPy for windows</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="rxWinSetup.html">rxWinSetup()</a></code> </p>
-        </td>
-        <td><p>Setup Windows components for RxODE</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="summary.RxODE.html">summary(<i>&lt;RxODE&gt;</i>)</a></code> </p>
-        </td>
-        <td><p>Print expanded information about the RxODE object.</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="tibble.html">type_sum.units()</a></code> <code><a href="tibble.html">format_type_sum.type_sum_units()</a></code> <code><a href="tibble.html">pillar_shaft.units()</a></code> <code><a href="tibble.html">type_sum.mixed_units()</a></code> <code><a href="tibble.html">pillar_shaft.mixed_units()</a></code> </p>
-        </td>
-        <td><p>type_sum function for units</p></td>
+        <td><p>Sample a covariance Matrix from the Posteior Inverse Wishart distribution.</p></td>
       </tr>
     </tbody>
     </table>
@@ -545,7 +315,13 @@ RxODE <code>prod</code> blocks</p></td>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>
     <ul class="nav nav-pills nav-stacked">
-      <li><a href="#section-all-functions">All functions</a></li>
+      <li><a href="#section-creating-rxode-compiled-objects">Creating RxODE compiled objects</a></li>
+      <li><a href="#section-creating-rxode-event-tables-data-frames">Creating RxODE event tables/data frames</a></li>
+      <li><a href="#section-solving-simulating-and-solving-options">Solving, Simulating and Solving options</a></li>
+      <li><a href="#section-cleaning-caches">Cleaning caches</a></li>
+      <li><a href="#section-using-rxode-in-packages">Using RxODE in Packages</a></li>
+      <li><a href="#section-exploring-rxode-and-creating-models-with-shiny">Exploring RxODE and creating models with Shiny</a></li>
+      <li><a href="#section-specialized-simulation-functions">Specialized Simulation functions</a></li>
     </ul>
   </div>
 </div>

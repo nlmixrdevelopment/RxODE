@@ -1,0 +1,73 @@
+template:
+  params:
+    bootswatch: flatly
+ 
+
+reference:
+- title: Creating RxODE compiled objects
+  contents:
+  - RxODE
+- title: Creating RxODE event tables/data frames
+  contents:
+  - et
+  - etRbind
+  - etRep
+  - etSeq
+  - as.et
+  - eventTable
+  - add.dosing
+  - add.sampling
+- title: Solving, Simulating and Solving options
+  contents:
+  - rxSolve
+- title: Cleaning caches
+  contents:
+  - rxClean
+- title: Using RxODE in Packages
+  contents:
+  - rxUse
+- title: Exploring RxODE and creating models with Shiny
+  contents:
+  - rxShiny
+  - genShinyApp.template
+- title: Specialized Simulation functions
+  contents:
+  - cvPost
+
+navbar:
+  left:
+  - text: Articles
+    menu:
+        - text: "--------------------------"
+        - text: "Getting started"
+        - text: "Introduction"
+          href: articles/RxODE-intro.html
+        - text: "RxODE mini language syntax"
+          href: articles/RxODE-syntax.html
+        - text: "--------------------------"
+        - text: "Events and Simulations & RxODE data frames"
+        - text: "Creating Dosing Events & Observations"
+          href: articles/RxODE-events.html
+        - text: "Multiple Subject RxODE Simulation"
+          href: articles/RxODE-simulation.html
+        - text: "Interactive RxODE Data Frames"
+          href: articles/RxODE-data-frame.html
+        - text: "--------------------------"
+        - text: "Advanced Features, Model Types, Technical Details"
+        - text: "RxODE model types"
+          href: articles/RxODE-model-types.html
+        - text: "RxODE transit compartment models"
+          href: articles/RxODE-transit-compartments.html
+        - text: "Using Shiny with RxODE"
+          href: articles/RxODE-shiny.html
+        - text: "How RxODE handles time-varying covariates"
+          href: articles/RxODE-covariates.html
+        - text: "Stiff Systems and Jacobian specification"
+          href: articles/RxODE-stiff.html
+  - text: "Functions"
+    href: reference/index.html
+  right:
+  - icon: fa-github fa-lg
+    href: https://github.com/nlmixrdevelopment/RxODE
+  - icon: fa-download
+    href: https://github.com/nlmixrdevelopment/RxODE/releases

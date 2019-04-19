@@ -12,7 +12,7 @@
 <link rel="apple-touch-icon" type="image/png" sizes="120x120" href="../apple-touch-icon-120x120.png">
 <link rel="apple-touch-icon" type="image/png" sizes="76x76" href="../apple-touch-icon-76x76.png">
 <link rel="apple-touch-icon" type="image/png" sizes="60x60" href="../apple-touch-icon-60x60.png">
-<!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script><!-- Bootstrap --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha256-916EbMg70RQy9LHiGkXzG8hSg9EdNy97GazNG/aiY1w=" crossorigin="anonymous">
+<!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script><!-- Bootstrap --><link href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/3.3.7/flatly/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha256-U5ZEeKfGNOja007MMD3YBI0A3OSZOQbeG6z2f2Y0hu8=" crossorigin="anonymous"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha256-eZrrJcwDc/3uDhsdt61sL2oOBY362qM3lon1gyExkL0=" crossorigin="anonymous">
 <!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.4/clipboard.min.js" integrity="sha256-FiZwavyI2V6+EXO1U+xzLG3IKldpiTFf3153ea9zikQ=" crossorigin="anonymous"></script><!-- sticky kit --><script src="https://cdnjs.cloudflare.com/ajax/libs/sticky-kit/1.1.3/sticky-kit.min.js" integrity="sha256-c4Rlo1ZozqTPE2RLuvbusY3+SU1pQaJC0TjuhygMipw=" crossorigin="anonymous"></script><!-- pkgdown --><link href="../pkgdown.css" rel="stylesheet">
 <script src="../pkgdown.js"></script><meta property="og:title" content="RxODE Jacobian specification and Stiff Systems">
@@ -43,15 +43,6 @@
 
     <div id="navbar" class="navbar-collapse collapse">
       <ul class="nav navbar-nav">
-<li>
-  <a href="../index.html">
-    <span class="fa fa-home fa-lg"></span>
-     
-  </a>
-</li>
-<li>
-  <a href="../reference/index.html">Reference</a>
-</li>
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
     Articles
@@ -59,40 +50,62 @@
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu">
-<li>
-      <a href="../articles/RxODE-covariates.html">RxODE Covariates</a>
+<li class="divider">
+    <li class="dropdown-header">Getting started</li>
+    <li>
+      <a href="../articles/RxODE-intro.html">Introduction</a>
     </li>
     <li>
-      <a href="../articles/RxODE-data-frame.html">RxODE Data Frames</a>
+      <a href="../articles/RxODE-syntax.html">RxODE mini language syntax</a>
+    </li>
+    <li class="divider">
+    <li class="dropdown-header">Events and Simulations &amp; RxODE data frames</li>
+    <li>
+      <a href="../articles/RxODE-events.html">Creating Dosing Events &amp; Observations</a>
     </li>
     <li>
-      <a href="../articles/RxODE-events.html">RxODE Events</a>
+      <a href="../articles/RxODE-simulation.html">Multiple Subject RxODE Simulation</a>
     </li>
     <li>
-      <a href="../articles/RxODE-intro.html">Introduction to RxODE</a>
+      <a href="../articles/RxODE-data-frame.html">Interactive RxODE Data Frames</a>
+    </li>
+    <li class="divider">
+    <li class="dropdown-header">Advanced Features, Model Types, Technical Details</li>
+    <li>
+      <a href="../articles/RxODE-model-types.html">RxODE model types</a>
     </li>
     <li>
-      <a href="../articles/RxODE-model-types.html">RxODE additional model types</a>
+      <a href="../articles/RxODE-transit-compartments.html">RxODE transit compartment models</a>
     </li>
     <li>
-      <a href="../articles/RxODE-shiny.html">RxODE and Shiny</a>
+      <a href="../articles/RxODE-shiny.html">Using Shiny with RxODE</a>
     </li>
     <li>
-      <a href="../articles/RxODE-sim-var.html">RxODE Simulation</a>
+      <a href="../articles/RxODE-covariates.html">How RxODE handles time-varying covariates</a>
     </li>
     <li>
-      <a href="../articles/RxODE-stiff.html">RxODE Jacobian specification and Stiff Systems</a>
-    </li>
-    <li>
-      <a href="../articles/RxODE-syntax.html">RxODE ODE solving syntax</a>
-    </li>
-    <li>
-      <a href="../articles/RxODE-transit-compartments.html">RxODE Transit Compartment Models</a>
+      <a href="../articles/RxODE-stiff.html">Stiff Systems and Jacobian specification</a>
     </li>
   </ul>
 </li>
+<li>
+  <a href="../reference/index.html">Functions</a>
+</li>
       </ul>
-<ul class="nav navbar-nav navbar-right"></ul>
+<ul class="nav navbar-nav navbar-right">
+<li>
+  <a href="https://github.com/nlmixrdevelopment/RxODE">
+    <span class="fa fa-github fa-lg"></span>
+     
+  </a>
+</li>
+<li>
+  <a href="https://github.com/nlmixrdevelopment/RxODE/releases">
+    <span class="fa fa-download"></span>
+     
+  </a>
+</li>
+      </ul>
 </div>
 <!--/.nav-collapse -->
   </div>
@@ -142,294 +155,48 @@ et<span class="op">$</span><span class="kw"><a href="../reference/add.sampling.h
 et<span class="op">$</span><span class="kw"><a href="../reference/add.dosing.html">add.dosing</a></span>(<span class="dv">20</span>, <span class="dt">start.time=</span><span class="dv">0</span>);
 
 s1 &lt;-<span class="st"> </span>Vtpol2 <span class="op">%&gt;%</span><span class="st">  </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/solve">solve</a></span>(et, <span class="dt">method=</span><span class="st">"lsoda"</span>)
-<span class="kw"><a href="../reference/rxHtml.html">rxHtml</a></span>(s1)</code></pre></div>
-<style>
-         th,td{
-             padding:2px 5px 2px 5px;
-         }
-    </style>
-<table class="table">
-<tr>
-<td style="text-align: center; padding: 5px;">
-<strong>Solved RxODE object</strong>
-</td>
-</tr>
-<tr>
-<td>
-<strong>Parameters</strong> (<span style="color: Orange;"></span><strong blue>$params</strong>):
-</td>
-</tr>
-<tr>
-<td>
-<table class="table">
-<thead><tr>
-<th style="text-align:right;">
-mu
-</th>
-</tr></thead>
-<tbody><tr>
-<td style="text-align:right;">
-1
-</td>
-</tr></tbody>
-</table>
-</td>
-</tr>
-<tr>
-<td>
-<strong>Initial Conditions</strong> (<span style="color: Orange;"> </span><strong blue>$inits</strong>):
-</td>
-</tr>
-<tr>
-<td>
-<table class="table">
-<thead><tr>
-<th style="text-align:right;">
-y
-</th>
-<th style="text-align:right;">
-dy
-</th>
-</tr></thead>
-<tbody><tr>
-<td style="text-align:right;">
-2
-</td>
-<td style="text-align:right;">
-0
-</td>
-</tr></tbody>
-</table>
-<strong>First part of data (object):</strong>
-<table class="table">
-<thead><tr>
-<th style="text-align:right;">
-time
-</th>
-<th style="text-align:right;">
-y
-</th>
-<th style="text-align:right;">
-dy
-</th>
-</tr></thead>
-<tbody>
-<tr>
-<td style="text-align:right;">
-0.0000000
-</td>
-<td style="text-align:right;">
-22.00000
-</td>
-<td style="text-align:right;">
-0.0000000
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-0.0502513
-</td>
-<td style="text-align:right;">
-21.99781
-</td>
-<td style="text-align:right;">
--0.0455530
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-0.1005025
-</td>
-<td style="text-align:right;">
-21.99552
-</td>
-<td style="text-align:right;">
--0.0455578
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-0.1507538
-</td>
-<td style="text-align:right;">
-21.99323
-</td>
-<td style="text-align:right;">
--0.0455625
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-0.2010050
-</td>
-<td style="text-align:right;">
-21.99094
-</td>
-<td style="text-align:right;">
--0.0455673
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-0.2512563
-</td>
-<td style="text-align:right;">
-21.98865
-</td>
-<td style="text-align:right;">
--0.0455721
-</td>
-</tr>
-</tbody>
-</table>
-</td>
-</tr>
-</table>
+<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/print">print</a></span>(s1)</code></pre></div>
+<pre><code>## ___________________________ Solved RxODE object ___________________________ 
+## -- Parameters ($params): -------------------------------------------------- 
+## mu 
+##  1 
+## -- Initial Conditions ($inits): ------------------------------------------- 
+##  y dy 
+##  2  0 
+## -- First part of data (object): ------------------------------------------- 
+## # A tibble: 200 x 3
+##     time     y      dy
+##    &lt;dbl&gt; &lt;dbl&gt;   &lt;dbl&gt;
+## 1 0       22    0     
+## 2 0.0503  22.0 -0.0456
+## 3 0.101   22.0 -0.0456
+## 4 0.151   22.0 -0.0456
+## 5 0.201   22.0 -0.0456
+## 6 0.251   22.0 -0.0456
+## # ... with 194 more rows</code></pre>
+<pre><code>## ___________________________________________________________________________</code></pre>
 <p>While this is not stiff at mu=1, mu=1000 is a stiff system</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">s2 &lt;-<span class="st"> </span>Vtpol2 <span class="op">%&gt;%</span><span class="st">  </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/solve">solve</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="dt">mu=</span><span class="dv">1000</span>), et)
-<span class="kw"><a href="../reference/rxHtml.html">rxHtml</a></span>(s2)</code></pre></div>
-<style>
-         th,td{
-             padding:2px 5px 2px 5px;
-         }
-    </style>
-<table class="table">
-<tr>
-<td style="text-align: center; padding: 5px;">
-<strong>Solved RxODE object</strong>
-</td>
-</tr>
-<tr>
-<td>
-<strong>Parameters</strong> (<span style="color: Orange;"></span><strong blue>$params</strong>):
-</td>
-</tr>
-<tr>
-<td>
-<table class="table">
-<thead><tr>
-<th style="text-align:right;">
-mu
-</th>
-</tr></thead>
-<tbody><tr>
-<td style="text-align:right;">
-1000
-</td>
-</tr></tbody>
-</table>
-</td>
-</tr>
-<tr>
-<td>
-<strong>Initial Conditions</strong> (<span style="color: Orange;"> </span><strong blue>$inits</strong>):
-</td>
-</tr>
-<tr>
-<td>
-<table class="table">
-<thead><tr>
-<th style="text-align:right;">
-y
-</th>
-<th style="text-align:right;">
-dy
-</th>
-</tr></thead>
-<tbody><tr>
-<td style="text-align:right;">
-2
-</td>
-<td style="text-align:right;">
-0
-</td>
-</tr></tbody>
-</table>
-<strong>First part of data (object):</strong>
-<table class="table">
-<thead><tr>
-<th style="text-align:right;">
-time
-</th>
-<th style="text-align:right;">
-y
-</th>
-<th style="text-align:right;">
-dy
-</th>
-</tr></thead>
-<tbody>
-<tr>
-<td style="text-align:right;">
-0.0000000
-</td>
-<td style="text-align:right;">
-22.00000
-</td>
-<td style="text-align:right;">
-0.00e+00
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-0.0502513
-</td>
-<td style="text-align:right;">
-22.00000
-</td>
-<td style="text-align:right;">
--4.55e-05
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-0.1005025
-</td>
-<td style="text-align:right;">
-22.00000
-</td>
-<td style="text-align:right;">
--4.55e-05
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-0.1507538
-</td>
-<td style="text-align:right;">
-21.99999
-</td>
-<td style="text-align:right;">
--4.55e-05
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-0.2010050
-</td>
-<td style="text-align:right;">
-21.99999
-</td>
-<td style="text-align:right;">
--4.55e-05
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-0.2512563
-</td>
-<td style="text-align:right;">
-21.99999
-</td>
-<td style="text-align:right;">
--4.55e-05
-</td>
-</tr>
-</tbody>
-</table>
-</td>
-</tr>
-</table>
+<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/print">print</a></span>(s2)</code></pre></div>
+<pre><code>## ___________________________ Solved RxODE object ___________________________ 
+## -- Parameters ($params): -------------------------------------------------- 
+##   mu 
+## 1000 
+## -- Initial Conditions ($inits): ------------------------------------------- 
+##  y dy 
+##  2  0 
+## -- First part of data (object): ------------------------------------------- 
+## # A tibble: 200 x 3
+##     time     y         dy
+##    &lt;dbl&gt; &lt;dbl&gt;      &lt;dbl&gt;
+## 1 0       22    0        
+## 2 0.0503  22.0 -0.0000455
+## 3 0.101   22.0 -0.0000455
+## 4 0.151   22.0 -0.0000455
+## 5 0.201   22.0 -0.0000455
+## 6 0.251   22.0 -0.0000455
+## # ... with 194 more rows</code></pre>
+<pre><code>## ___________________________________________________________________________</code></pre>
 <p>While this is easy enough to do, it is a bit tedious. If you have RxODE setup appropriately, that is you have:</p>
 <ul>
 <li>
@@ -451,7 +218,7 @@ dy
     mu = 1 ## nonstiff; 10 moderately stiff; 1000 stiff
 }, calcJac=TRUE)
 </code></pre>
-<p>To see the generated model, you can use <code>rxCat</code>:</p>
+<p>To see the generated model, you can use <code><a href="../reference/rxCat.html">rxCat()</a></code>:</p>
 <pre><code>&gt; rxCat(Vtpol)
 d/dt(y)=dy;
 d/dt(dy)=mu*(1-y^2)*dy-y;

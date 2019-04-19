@@ -191,7 +191,7 @@ Therefore, the following function will also work to solve the same
 system.
 
 
-```{r,results="asis"}
+```{r}
 mod3 <- RxODE({
     KA=2.94E-01;
     CL=1.86E+01;

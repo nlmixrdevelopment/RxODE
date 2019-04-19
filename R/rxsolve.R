@@ -150,7 +150,7 @@ rxControl <- function(scale = NULL,
     return(.ret)
 }
 
-##' Solves a ODE equation
+##' Solving \& Simulation of a ODE/solved system (and solving options) equation
 ##'
 ##' This uses RxODE family of objects, file, or model specification to
 ##' solve a ODE system.

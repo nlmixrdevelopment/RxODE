@@ -2,11 +2,14 @@
 % Please edit documentation in R/et.R
 \name{etRep}
 \alias{etRep}
+\alias{rep.rxEt}
 \title{Repeat an RxODE event table}
 \usage{
 etRep(x, times = 1, length.out = NA, each = NA, n = NULL,
   wait = 0, id = integer(0), samples = c("clear", "use"),
   waitII = c("smart", "+ii"), ii = 24)
+
+\method{rep}{rxEt}(x, ...)
 }
 \arguments{
 \item{x}{An RxODE event table}
@@ -63,6 +66,8 @@ inter-dose interval
 
 \item{ii}{When specifying a dose, this is the inter-dose interval
 for \code{ss}, \code{addl} and \code{until} options (described below).}
+
+\item{...}{Times or event tables.  They can also be one of the named arguments below.}
 }
 \value{
 A new event table

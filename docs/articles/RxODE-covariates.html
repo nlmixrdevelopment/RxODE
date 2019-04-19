@@ -12,7 +12,7 @@
 <link rel="apple-touch-icon" type="image/png" sizes="120x120" href="../apple-touch-icon-120x120.png">
 <link rel="apple-touch-icon" type="image/png" sizes="76x76" href="../apple-touch-icon-76x76.png">
 <link rel="apple-touch-icon" type="image/png" sizes="60x60" href="../apple-touch-icon-60x60.png">
-<!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script><!-- Bootstrap --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha256-916EbMg70RQy9LHiGkXzG8hSg9EdNy97GazNG/aiY1w=" crossorigin="anonymous">
+<!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script><!-- Bootstrap --><link href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/3.3.7/flatly/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha256-U5ZEeKfGNOja007MMD3YBI0A3OSZOQbeG6z2f2Y0hu8=" crossorigin="anonymous"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha256-eZrrJcwDc/3uDhsdt61sL2oOBY362qM3lon1gyExkL0=" crossorigin="anonymous">
 <!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.4/clipboard.min.js" integrity="sha256-FiZwavyI2V6+EXO1U+xzLG3IKldpiTFf3153ea9zikQ=" crossorigin="anonymous"></script><!-- sticky kit --><script src="https://cdnjs.cloudflare.com/ajax/libs/sticky-kit/1.1.3/sticky-kit.min.js" integrity="sha256-c4Rlo1ZozqTPE2RLuvbusY3+SU1pQaJC0TjuhygMipw=" crossorigin="anonymous"></script><!-- pkgdown --><link href="../pkgdown.css" rel="stylesheet">
 <script src="../pkgdown.js"></script><meta property="og:title" content="RxODE Covariates">
@@ -43,15 +43,6 @@
 
     <div id="navbar" class="navbar-collapse collapse">
       <ul class="nav navbar-nav">
-<li>
-  <a href="../index.html">
-    <span class="fa fa-home fa-lg"></span>
-     
-  </a>
-</li>
-<li>
-  <a href="../reference/index.html">Reference</a>
-</li>
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
     Articles
@@ -59,40 +50,62 @@
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu">
-<li>
-      <a href="../articles/RxODE-covariates.html">RxODE Covariates</a>
+<li class="divider">
+    <li class="dropdown-header">Getting started</li>
+    <li>
+      <a href="../articles/RxODE-intro.html">Introduction</a>
     </li>
     <li>
-      <a href="../articles/RxODE-data-frame.html">RxODE Data Frames</a>
+      <a href="../articles/RxODE-syntax.html">RxODE mini language syntax</a>
+    </li>
+    <li class="divider">
+    <li class="dropdown-header">Events and Simulations &amp; RxODE data frames</li>
+    <li>
+      <a href="../articles/RxODE-events.html">Creating Dosing Events &amp; Observations</a>
     </li>
     <li>
-      <a href="../articles/RxODE-events.html">RxODE Events</a>
+      <a href="../articles/RxODE-simulation.html">Multiple Subject RxODE Simulation</a>
     </li>
     <li>
-      <a href="../articles/RxODE-intro.html">Introduction to RxODE</a>
+      <a href="../articles/RxODE-data-frame.html">Interactive RxODE Data Frames</a>
+    </li>
+    <li class="divider">
+    <li class="dropdown-header">Advanced Features, Model Types, Technical Details</li>
+    <li>
+      <a href="../articles/RxODE-model-types.html">RxODE model types</a>
     </li>
     <li>
-      <a href="../articles/RxODE-model-types.html">RxODE additional model types</a>
+      <a href="../articles/RxODE-transit-compartments.html">RxODE transit compartment models</a>
     </li>
     <li>
-      <a href="../articles/RxODE-shiny.html">RxODE and Shiny</a>
+      <a href="../articles/RxODE-shiny.html">Using Shiny with RxODE</a>
     </li>
     <li>
-      <a href="../articles/RxODE-sim-var.html">RxODE Simulation</a>
+      <a href="../articles/RxODE-covariates.html">How RxODE handles time-varying covariates</a>
     </li>
     <li>
-      <a href="../articles/RxODE-stiff.html">RxODE Jacobian specification and Stiff Systems</a>
-    </li>
-    <li>
-      <a href="../articles/RxODE-syntax.html">RxODE ODE solving syntax</a>
-    </li>
-    <li>
-      <a href="../articles/RxODE-transit-compartments.html">RxODE Transit Compartment Models</a>
+      <a href="../articles/RxODE-stiff.html">Stiff Systems and Jacobian specification</a>
     </li>
   </ul>
 </li>
+<li>
+  <a href="../reference/index.html">Functions</a>
+</li>
       </ul>
-<ul class="nav navbar-nav navbar-right"></ul>
+<ul class="nav navbar-nav navbar-right">
+<li>
+  <a href="https://github.com/nlmixrdevelopment/RxODE">
+    <span class="fa fa-github fa-lg"></span>
+     
+  </a>
+</li>
+<li>
+  <a href="https://github.com/nlmixrdevelopment/RxODE/releases">
+    <span class="fa fa-download"></span>
+     
+  </a>
+</li>
+      </ul>
 </div>
 <!--/.nav-collapse -->
   </div>
@@ -149,224 +162,28 @@ ev &lt;-<span class="st"> </span><span class="kw"><a href="../reference/eventTab
 ev<span class="op">$</span>ctime &lt;-<span class="st"> </span>(ev<span class="op">$</span>time<span class="op">+</span><span class="kw"><a href="https://www.rdocumentation.org/packages/units/topics/set_units">set_units</a></span>(<span class="dv">8</span>,hr)) <span class="op">%%</span><span class="st"> </span><span class="dv">24</span></code></pre></div>
 <p>Now there is a covariate present, the system can be solved using the cov option</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">r1 &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/solve">solve</a></span>(mod3, ev, <span class="dt">covs_interpolation=</span><span class="st">"linear"</span>)
-<span class="kw"><a href="../reference/rxHtml.html">rxHtml</a></span>(r1)</code></pre></div>
-<style>
-         th,td{
-             padding:2px 5px 2px 5px;
-         }
-    </style>
-<table class="table">
-<tr>
-<td style="text-align: center; padding: 5px;">
-<strong>Solved RxODE object</strong>
-</td>
-</tr>
-<tr>
-<td>
-<strong>Parameters</strong> (<span style="color: Orange;"></span><strong blue>$params</strong>):
-</td>
-</tr>
-<tr>
-<td>
-<table class="table">
-<thead><tr>
-<th style="text-align:right;">
-KA
-</th>
-<th style="text-align:right;">
-CL
-</th>
-<th style="text-align:right;">
-V2
-</th>
-<th style="text-align:right;">
-Q
-</th>
-<th style="text-align:right;">
-V3
-</th>
-<th style="text-align:right;">
-Kin0
-</th>
-<th style="text-align:right;">
-Kout
-</th>
-<th style="text-align:right;">
-EC50
-</th>
-<th style="text-align:right;">
-Tz
-</th>
-<th style="text-align:right;">
-amp
-</th>
-<th style="text-align:right;">
-pi
-</th>
-</tr></thead>
-<tbody><tr>
-<td style="text-align:right;">
-0.294
-</td>
-<td style="text-align:right;">
-18.6
-</td>
-<td style="text-align:right;">
-40.2
-</td>
-<td style="text-align:right;">
-10.5
-</td>
-<td style="text-align:right;">
-297
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-200
-</td>
-<td style="text-align:right;">
-8
-</td>
-<td style="text-align:right;">
-0.1
-</td>
-<td style="text-align:right;">
-3.141593
-</td>
-</tr></tbody>
-</table>
-</td>
-</tr>
-<tr>
-<td>
-<strong>Initial Conditions</strong> (<span style="color: Orange;"> </span><strong blue>$inits</strong>):
-</td>
-</tr>
-<tr>
-<td>
-<table class="table">
-<thead><tr>
-<th style="text-align:right;">
-eff
-</th>
-</tr></thead>
-<tbody><tr>
-<td style="text-align:right;">
-1
-</td>
-</tr></tbody>
-</table>
-<strong>First part of data (object):</strong>
-<table class="table">
-<thead><tr>
-<th style="text-align:right;">
-time
-</th>
-<th style="text-align:right;">
-C2
-</th>
-<th style="text-align:right;">
-Kin
-</th>
-<th style="text-align:right;">
-eff
-</th>
-</tr></thead>
-<tbody>
-<tr>
-<td style="text-align:right;">
-0.0000000 [h]
-</td>
-<td style="text-align:right;">
-0.00000
-</td>
-<td style="text-align:right;">
-1.100000
-</td>
-<td style="text-align:right;">
-1.000000
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-0.4848485 [h]
-</td>
-<td style="text-align:right;">
-27.76574
-</td>
-<td style="text-align:right;">
-1.099195
-</td>
-<td style="text-align:right;">
-1.067827
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-0.9696970 [h]
-</td>
-<td style="text-align:right;">
-43.67518
-</td>
-<td style="text-align:right;">
-1.096795
-</td>
-<td style="text-align:right;">
-1.146279
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-1.4545455 [h]
-</td>
-<td style="text-align:right;">
-51.75572
-</td>
-<td style="text-align:right;">
-1.092837
-</td>
-<td style="text-align:right;">
-1.215451
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-1.9393939 [h]
-</td>
-<td style="text-align:right;">
-54.76289
-</td>
-<td style="text-align:right;">
-1.087385
-</td>
-<td style="text-align:right;">
-1.268582
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-2.4242424 [h]
-</td>
-<td style="text-align:right;">
-54.57072
-</td>
-<td style="text-align:right;">
-1.080527
-</td>
-<td style="text-align:right;">
-1.304216
-</td>
-</tr>
-</tbody>
-</table>
-</td>
-</tr>
-</table>
+<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/print">print</a></span>(r1)</code></pre></div>
+<pre><code>## ___________________________ Solved RxODE object ___________________________ 
+## -- Parameters ($params): -------------------------------------------------- 
+##         KA         CL         V2          Q         V3       Kin0 
+##   0.294000  18.600000  40.200000  10.500000 297.000000   1.000000 
+##       Kout       EC50         Tz        amp         pi 
+##   1.000000 200.000000   8.000000   0.100000   3.141593 
+## -- Initial Conditions ($inits): ------------------------------------------- 
+## eff 
+##   1 
+## -- First part of data (object): ------------------------------------------- 
+## # A tibble: 100 x 4
+##        time    C2   Kin   eff
+##         [h] &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+## 1 0.0000000   0    1.1   1   
+## 2 0.4848485  27.8  1.10  1.07
+## 3 0.9696970  43.7  1.10  1.15
+## 4 1.4545455  51.8  1.09  1.22
+## 5 1.9393939  54.8  1.09  1.27
+## 6 2.4242424  54.6  1.08  1.30
+## # ... with 94 more rows</code></pre>
+<pre><code>## ___________________________________________________________________________</code></pre>
 <p>When solving ODE equations, the solver may sample times outside of the data. When this happens, this ODE solver uses linear interpolation between the covariate values. This is the default value. It is equivalent to R’s <code>approxfun</code> with <code>method="linear"</code>, which is the default <code>approxfun</code>.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(ggplot2)
 <span class="kw"><a href="https://www.rdocumentation.org/packages/graphics/topics/plot">plot</a></span>(r1,C2) <span class="op">+</span><span class="kw"><a href="https://www.rdocumentation.org/packages/ggplot2/topics/labs">ylab</a></span>(<span class="st">"Central Concentration"</span>) <span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/ggplot2/topics/labs">xlab</a></span>(<span class="st">"Time"</span>);</code></pre></div>
@@ -376,224 +193,28 @@ eff
 <p>Note that the linear approximation in this case leads to some kinks in the solved system at 24-hours where the covariate has a linear interpolation between near 24 and near 0.</p>
 <p>In RxODE, covariate interpolation can also be the last observation carried forward, or constant approximation. This is equivalent to R’s <code>approxfun</code> with <code>method="constant"</code>.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">r1 &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/solve">solve</a></span>(mod3, ev,<span class="dt">covs_interpolation=</span><span class="st">"constant"</span>)
-<span class="kw"><a href="../reference/rxHtml.html">rxHtml</a></span>(r1)</code></pre></div>
-<style>
-         th,td{
-             padding:2px 5px 2px 5px;
-         }
-    </style>
-<table class="table">
-<tr>
-<td style="text-align: center; padding: 5px;">
-<strong>Solved RxODE object</strong>
-</td>
-</tr>
-<tr>
-<td>
-<strong>Parameters</strong> (<span style="color: Orange;"></span><strong blue>$params</strong>):
-</td>
-</tr>
-<tr>
-<td>
-<table class="table">
-<thead><tr>
-<th style="text-align:right;">
-KA
-</th>
-<th style="text-align:right;">
-CL
-</th>
-<th style="text-align:right;">
-V2
-</th>
-<th style="text-align:right;">
-Q
-</th>
-<th style="text-align:right;">
-V3
-</th>
-<th style="text-align:right;">
-Kin0
-</th>
-<th style="text-align:right;">
-Kout
-</th>
-<th style="text-align:right;">
-EC50
-</th>
-<th style="text-align:right;">
-Tz
-</th>
-<th style="text-align:right;">
-amp
-</th>
-<th style="text-align:right;">
-pi
-</th>
-</tr></thead>
-<tbody><tr>
-<td style="text-align:right;">
-0.294
-</td>
-<td style="text-align:right;">
-18.6
-</td>
-<td style="text-align:right;">
-40.2
-</td>
-<td style="text-align:right;">
-10.5
-</td>
-<td style="text-align:right;">
-297
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-200
-</td>
-<td style="text-align:right;">
-8
-</td>
-<td style="text-align:right;">
-0.1
-</td>
-<td style="text-align:right;">
-3.141593
-</td>
-</tr></tbody>
-</table>
-</td>
-</tr>
-<tr>
-<td>
-<strong>Initial Conditions</strong> (<span style="color: Orange;"> </span><strong blue>$inits</strong>):
-</td>
-</tr>
-<tr>
-<td>
-<table class="table">
-<thead><tr>
-<th style="text-align:right;">
-eff
-</th>
-</tr></thead>
-<tbody><tr>
-<td style="text-align:right;">
-1
-</td>
-</tr></tbody>
-</table>
-<strong>First part of data (object):</strong>
-<table class="table">
-<thead><tr>
-<th style="text-align:right;">
-time
-</th>
-<th style="text-align:right;">
-C2
-</th>
-<th style="text-align:right;">
-Kin
-</th>
-<th style="text-align:right;">
-eff
-</th>
-</tr></thead>
-<tbody>
-<tr>
-<td style="text-align:right;">
-0.0000000 [h]
-</td>
-<td style="text-align:right;">
-0.00000
-</td>
-<td style="text-align:right;">
-1.100000
-</td>
-<td style="text-align:right;">
-1.000000
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-0.4848485 [h]
-</td>
-<td style="text-align:right;">
-27.76574
-</td>
-<td style="text-align:right;">
-1.099195
-</td>
-<td style="text-align:right;">
-1.067944
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-0.9696970 [h]
-</td>
-<td style="text-align:right;">
-43.67518
-</td>
-<td style="text-align:right;">
-1.096795
-</td>
-<td style="text-align:right;">
-1.146816
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-1.4545455 [h]
-</td>
-<td style="text-align:right;">
-51.75572
-</td>
-<td style="text-align:right;">
-1.092837
-</td>
-<td style="text-align:right;">
-1.216609
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-1.9393939 [h]
-</td>
-<td style="text-align:right;">
-54.76289
-</td>
-<td style="text-align:right;">
-1.087385
-</td>
-<td style="text-align:right;">
-1.270489
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-2.4242424 [h]
-</td>
-<td style="text-align:right;">
-54.57072
-</td>
-<td style="text-align:right;">
-1.080527
-</td>
-<td style="text-align:right;">
-1.306947
-</td>
-</tr>
-</tbody>
-</table>
-</td>
-</tr>
-</table>
+<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/print">print</a></span>(r1)</code></pre></div>
+<pre><code>## ___________________________ Solved RxODE object ___________________________ 
+## -- Parameters ($params): -------------------------------------------------- 
+##         KA         CL         V2          Q         V3       Kin0 
+##   0.294000  18.600000  40.200000  10.500000 297.000000   1.000000 
+##       Kout       EC50         Tz        amp         pi 
+##   1.000000 200.000000   8.000000   0.100000   3.141593 
+## -- Initial Conditions ($inits): ------------------------------------------- 
+## eff 
+##   1 
+## -- First part of data (object): ------------------------------------------- 
+## # A tibble: 100 x 4
+##        time    C2   Kin   eff
+##         [h] &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+## 1 0.0000000   0    1.1   1   
+## 2 0.4848485  27.8  1.10  1.07
+## 3 0.9696970  43.7  1.10  1.15
+## 4 1.4545455  51.8  1.09  1.22
+## 5 1.9393939  54.8  1.09  1.27
+## 6 2.4242424  54.6  1.08  1.31
+## # ... with 94 more rows</code></pre>
+<pre><code>## ___________________________________________________________________________</code></pre>
 <p>which gives the following plots:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/graphics/topics/plot">plot</a></span>(r1,C2) <span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/ggplot2/topics/labs">ylab</a></span>(<span class="st">"Central Concentration"</span>) <span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/ggplot2/topics/labs">xlab</a></span>(<span class="st">"Time"</span>);</code></pre></div>
 <p><img src="RxODE-covariates_files/figure-html/unnamed-chunk-7-1.png" width="700"></p>
@@ -602,224 +223,28 @@ eff
 <p>In this case, the plots seem to be smoother.</p>
 <p>You can also use NONMEM’s preferred interpolation style of next observation carried backward (NOCB):</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">r1 &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/solve">solve</a></span>(mod3, ev,<span class="dt">covs_interpolation=</span><span class="st">"nocb"</span>)
-<span class="kw"><a href="../reference/rxHtml.html">rxHtml</a></span>(r1)</code></pre></div>
-<style>
-         th,td{
-             padding:2px 5px 2px 5px;
-         }
-    </style>
-<table class="table">
-<tr>
-<td style="text-align: center; padding: 5px;">
-<strong>Solved RxODE object</strong>
-</td>
-</tr>
-<tr>
-<td>
-<strong>Parameters</strong> (<span style="color: Orange;"></span><strong blue>$params</strong>):
-</td>
-</tr>
-<tr>
-<td>
-<table class="table">
-<thead><tr>
-<th style="text-align:right;">
-KA
-</th>
-<th style="text-align:right;">
-CL
-</th>
-<th style="text-align:right;">
-V2
-</th>
-<th style="text-align:right;">
-Q
-</th>
-<th style="text-align:right;">
-V3
-</th>
-<th style="text-align:right;">
-Kin0
-</th>
-<th style="text-align:right;">
-Kout
-</th>
-<th style="text-align:right;">
-EC50
-</th>
-<th style="text-align:right;">
-Tz
-</th>
-<th style="text-align:right;">
-amp
-</th>
-<th style="text-align:right;">
-pi
-</th>
-</tr></thead>
-<tbody><tr>
-<td style="text-align:right;">
-0.294
-</td>
-<td style="text-align:right;">
-18.6
-</td>
-<td style="text-align:right;">
-40.2
-</td>
-<td style="text-align:right;">
-10.5
-</td>
-<td style="text-align:right;">
-297
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-200
-</td>
-<td style="text-align:right;">
-8
-</td>
-<td style="text-align:right;">
-0.1
-</td>
-<td style="text-align:right;">
-3.141593
-</td>
-</tr></tbody>
-</table>
-</td>
-</tr>
-<tr>
-<td>
-<strong>Initial Conditions</strong> (<span style="color: Orange;"> </span><strong blue>$inits</strong>):
-</td>
-</tr>
-<tr>
-<td>
-<table class="table">
-<thead><tr>
-<th style="text-align:right;">
-eff
-</th>
-</tr></thead>
-<tbody><tr>
-<td style="text-align:right;">
-1
-</td>
-</tr></tbody>
-</table>
-<strong>First part of data (object):</strong>
-<table class="table">
-<thead><tr>
-<th style="text-align:right;">
-time
-</th>
-<th style="text-align:right;">
-C2
-</th>
-<th style="text-align:right;">
-Kin
-</th>
-<th style="text-align:right;">
-eff
-</th>
-</tr></thead>
-<tbody>
-<tr>
-<td style="text-align:right;">
-0.0000000 [h]
-</td>
-<td style="text-align:right;">
-0.00000
-</td>
-<td style="text-align:right;">
-1.100000
-</td>
-<td style="text-align:right;">
-1.000000
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-0.4848485 [h]
-</td>
-<td style="text-align:right;">
-27.76574
-</td>
-<td style="text-align:right;">
-1.099195
-</td>
-<td style="text-align:right;">
-1.067628
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-0.9696970 [h]
-</td>
-<td style="text-align:right;">
-43.67518
-</td>
-<td style="text-align:right;">
-1.096795
-</td>
-<td style="text-align:right;">
-1.145649
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-1.4545455 [h]
-</td>
-<td style="text-align:right;">
-51.75572
-</td>
-<td style="text-align:right;">
-1.092837
-</td>
-<td style="text-align:right;">
-1.214230
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-1.9393939 [h]
-</td>
-<td style="text-align:right;">
-54.76289
-</td>
-<td style="text-align:right;">
-1.087385
-</td>
-<td style="text-align:right;">
-1.266671
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-2.4242424 [h]
-</td>
-<td style="text-align:right;">
-54.57072
-</td>
-<td style="text-align:right;">
-1.080527
-</td>
-<td style="text-align:right;">
-1.301568
-</td>
-</tr>
-</tbody>
-</table>
-</td>
-</tr>
-</table>
+<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/print">print</a></span>(r1)</code></pre></div>
+<pre><code>## ___________________________ Solved RxODE object ___________________________ 
+## -- Parameters ($params): -------------------------------------------------- 
+##         KA         CL         V2          Q         V3       Kin0 
+##   0.294000  18.600000  40.200000  10.500000 297.000000   1.000000 
+##       Kout       EC50         Tz        amp         pi 
+##   1.000000 200.000000   8.000000   0.100000   3.141593 
+## -- Initial Conditions ($inits): ------------------------------------------- 
+## eff 
+##   1 
+## -- First part of data (object): ------------------------------------------- 
+## # A tibble: 100 x 4
+##        time    C2   Kin   eff
+##         [h] &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+## 1 0.0000000   0    1.1   1   
+## 2 0.4848485  27.8  1.10  1.07
+## 3 0.9696970  43.7  1.10  1.15
+## 4 1.4545455  51.8  1.09  1.21
+## 5 1.9393939  54.8  1.09  1.27
+## 6 2.4242424  54.6  1.08  1.30
+## # ... with 94 more rows</code></pre>
+<pre><code>## ___________________________________________________________________________</code></pre>
 <p>which gives the following plots:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/graphics/topics/plot">plot</a></span>(r1,C2) <span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/ggplot2/topics/labs">ylab</a></span>(<span class="st">"Central Concentration"</span>) <span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/ggplot2/topics/labs">xlab</a></span>(<span class="st">"Time"</span>);</code></pre></div>
 <p><img src="RxODE-covariates_files/figure-html/unnamed-chunk-10-1.png" width="700"></p>

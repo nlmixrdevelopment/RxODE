@@ -735,6 +735,7 @@ etRep <- function(x, times=1, length.out=NA, each=NA, n=NULL, wait=0, id=integer
           setNames(.waitIx[match.arg(waitII)],NULL), as.double(ii))
 }
 
+##'@rdname etRep
 ##'@export
 rep.rxEt <- function(x, ...){
     do.call(etRep,list(x=x,...));

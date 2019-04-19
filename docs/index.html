@@ -12,7 +12,7 @@
 <link rel="apple-touch-icon" type="image/png" sizes="120x120" href="apple-touch-icon-120x120.png">
 <link rel="apple-touch-icon" type="image/png" sizes="76x76" href="apple-touch-icon-76x76.png">
 <link rel="apple-touch-icon" type="image/png" sizes="60x60" href="apple-touch-icon-60x60.png">
-<!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script><!-- Bootstrap --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha256-916EbMg70RQy9LHiGkXzG8hSg9EdNy97GazNG/aiY1w=" crossorigin="anonymous">
+<!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script><!-- Bootstrap --><link href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/3.3.7/flatly/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha256-U5ZEeKfGNOja007MMD3YBI0A3OSZOQbeG6z2f2Y0hu8=" crossorigin="anonymous"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha256-eZrrJcwDc/3uDhsdt61sL2oOBY362qM3lon1gyExkL0=" crossorigin="anonymous">
 <!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.4/clipboard.min.js" integrity="sha256-FiZwavyI2V6+EXO1U+xzLG3IKldpiTFf3153ea9zikQ=" crossorigin="anonymous"></script><!-- sticky kit --><script src="https://cdnjs.cloudflare.com/ajax/libs/sticky-kit/1.1.3/sticky-kit.min.js" integrity="sha256-c4Rlo1ZozqTPE2RLuvbusY3+SU1pQaJC0TjuhygMipw=" crossorigin="anonymous"></script><!-- pkgdown --><link href="pkgdown.css" rel="stylesheet">
 <script src="pkgdown.js"></script><meta property="og:title" content="Facilities for Simulating from ODE-Based Models">
@@ -54,15 +54,6 @@
 
     <div id="navbar" class="navbar-collapse collapse">
       <ul class="nav navbar-nav">
-<li>
-  <a href="index.html">
-    <span class="fa fa-home fa-lg"></span>
-     
-  </a>
-</li>
-<li>
-  <a href="reference/index.html">Reference</a>
-</li>
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
     Articles
@@ -70,40 +61,62 @@
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu">
-<li>
-      <a href="articles/RxODE-covariates.html">RxODE Covariates</a>
+<li class="divider">
+    <li class="dropdown-header">Getting started</li>
+    <li>
+      <a href="articles/RxODE-intro.html">Introduction</a>
     </li>
     <li>
-      <a href="articles/RxODE-data-frame.html">RxODE Data Frames</a>
+      <a href="articles/RxODE-syntax.html">RxODE mini language syntax</a>
+    </li>
+    <li class="divider">
+    <li class="dropdown-header">Events and Simulations &amp; RxODE data frames</li>
+    <li>
+      <a href="articles/RxODE-events.html">Creating Dosing Events &amp; Observations</a>
     </li>
     <li>
-      <a href="articles/RxODE-events.html">RxODE Events</a>
+      <a href="articles/RxODE-simulation.html">Multiple Subject RxODE Simulation</a>
     </li>
     <li>
-      <a href="articles/RxODE-intro.html">Introduction to RxODE</a>
+      <a href="articles/RxODE-data-frame.html">Interactive RxODE Data Frames</a>
+    </li>
+    <li class="divider">
+    <li class="dropdown-header">Advanced Features, Model Types, Technical Details</li>
+    <li>
+      <a href="articles/RxODE-model-types.html">RxODE model types</a>
     </li>
     <li>
-      <a href="articles/RxODE-model-types.html">RxODE additional model types</a>
+      <a href="articles/RxODE-transit-compartments.html">RxODE transit compartment models</a>
     </li>
     <li>
-      <a href="articles/RxODE-shiny.html">RxODE and Shiny</a>
+      <a href="articles/RxODE-shiny.html">Using Shiny with RxODE</a>
     </li>
     <li>
-      <a href="articles/RxODE-sim-var.html">RxODE Simulation</a>
+      <a href="articles/RxODE-covariates.html">How RxODE handles time-varying covariates</a>
     </li>
     <li>
-      <a href="articles/RxODE-stiff.html">RxODE Jacobian specification and Stiff Systems</a>
-    </li>
-    <li>
-      <a href="articles/RxODE-syntax.html">RxODE ODE solving syntax</a>
-    </li>
-    <li>
-      <a href="articles/RxODE-transit-compartments.html">RxODE Transit Compartment Models</a>
+      <a href="articles/RxODE-stiff.html">Stiff Systems and Jacobian specification</a>
     </li>
   </ul>
 </li>
+<li>
+  <a href="reference/index.html">Functions</a>
+</li>
       </ul>
-<ul class="nav navbar-nav navbar-right"></ul>
+<ul class="nav navbar-nav navbar-right">
+<li>
+  <a href="https://github.com/nlmixrdevelopment/RxODE">
+    <span class="fa fa-github fa-lg"></span>
+     
+  </a>
+</li>
+<li>
+  <a href="https://github.com/nlmixrdevelopment/RxODE/releases">
+    <span class="fa fa-download"></span>
+     
+  </a>
+</li>
+      </ul>
 </div>
 <!--/.nav-collapse -->
   </div>
@@ -115,20 +128,11 @@
       </header><div class="row">
   <div class="contents col-md-9">
 
-<hr>
-<div id="output-github_document" class="section level2">
-<h2 class="hasAnchor">
-<a href="#output-github_document" class="anchor"></a>output: github_document</h2>
-</div>
-<div id="pkgdown" class="section level1">
-<div class="page-header"><h1 class="hasAnchor">
-<a href="#pkgdown" class="anchor"></a>pkgdown <img src="articles/logo.png" align="right" alt="" width="120">
-</h1></div>
-</div>
+<p><img src="https://raw.githubusercontent.com/nlmixrdevelopment/RxODE/master/vignettes/logo.png" width="120" alt="RxODE logo (by Justin Wilkins)" style="position:absolute; top:0; right:0; padding:10px; border: 0;"></p>
 <div id="rxode" class="section level1">
-<h1 class="hasAnchor">
-<a href="#rxode" class="anchor"></a>RxODE</h1>
-
+<div class="page-header"><h1 class="hasAnchor">
+<a href="#rxode" class="anchor"></a>RxODE</h1></div>
+<p><a href="https://travis-ci.org/nlmixrdevelopment/RxODE"><img src="https://travis-ci.org/nlmixrdevelopment/RxODE.svg?branch=master" alt="Build Status"></a> <a href="https://ci.appveyor.com/project/mattfidler/rxode"><img src="https://ci.appveyor.com/api/projects/status/8vv1e3hncve9tnva?svg=true" alt="AppVeyor Build status"></a> <a href="https://codecov.io/github/nlmixrdevelopment/RxODE?branch=master"><img src="https://codecov.io/github/nlmixrdevelopment/RxODE/coverage.svg?branch=master" alt="codecov.io"></a> <a href="https://cran.r-project.org/package=RxODE"><img src="http://www.r-pkg.org/badges/version/RxODE" alt="CRAN version"></a> <a href="https://cran.r-project.org/package=RxODE"><img src="https://cranlogs.r-pkg.org/badges/grand-total/RxODE" alt="CRAN total downloads"></a> <a href="https://dependencyci.com/github/nlmixrdevelopment/RxODE"><img src="https://dependencyci.com/github/nlmixrdevelopment/RxODE/badge" alt="Dependency Status"></a></p>
 <p><strong>RxODE</strong> is an R package for solving and simulating from ode-based models. These models are convert the RxODE mini-language to C and create a compiled dll for fast solving.</p>
 <div id="basic-installation" class="section level2">
 <h2 class="hasAnchor">
@@ -232,18 +236,7 @@ demo("demo1","RxODE")</a></code></pre>
 </ul>
 </div>
 
-  <div class="dev-status">
-<h2>Dev status</h2>
-<ul class="list-unstyled">
-<li><a href="https://travis-ci.org/nlmixrdevelopment/RxODE"><img src="https://travis-ci.org/nlmixrdevelopment/RxODE.svg?branch=master" alt="Build Status"></a></li>
-<li><a href="https://ci.appveyor.com/project/mattfidler/rxode"><img src="https://ci.appveyor.com/api/projects/status/8vv1e3hncve9tnva?svg=true" alt="AppVeyor Build status"></a></li>
-<li><a href="https://codecov.io/github/nlmixrdevelopment/RxODE?branch=master"><img src="https://codecov.io/github/nlmixrdevelopment/RxODE/coverage.svg?branch=master" alt="codecov.io"></a></li>
-<li><a href="https://cran.r-project.org/package=RxODE"><img src="http://www.r-pkg.org/badges/version/RxODE" alt="CRAN version"></a></li>
-<li><a href="https://cran.r-project.org/package=RxODE"><img src="https://cranlogs.r-pkg.org/badges/grand-total/RxODE" alt="CRAN total downloads"></a></li>
-<li><a href="https://dependencyci.com/github/nlmixrdevelopment/RxODE"><img src="https://dependencyci.com/github/nlmixrdevelopment/RxODE/badge" alt="Dependency Status"></a></li>
-</ul>
-</div>
-</div>
+  </div>
 </div>
 
       <footer><div class="copyright">

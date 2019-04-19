@@ -11,7 +11,7 @@
 \alias{simulate.rxSolve}
 \alias{solve.rxSolve}
 \alias{solve.RxODE}
-\title{Solves a ODE equation}
+\title{Solving \& Simulation of a ODE/solved system (and solving options) equation}
 \usage{
 rxControl(scale = NULL, method = c("liblsoda", "lsoda", "dop853"),
   transitAbs = NULL, atol = 1e-08, rtol = 1e-06, maxsteps = 50000L,

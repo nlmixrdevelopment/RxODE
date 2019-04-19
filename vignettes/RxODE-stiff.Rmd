@@ -37,7 +37,7 @@ equations.
 
 In RxODE these can be specified by the following:
 
-```{r,results="asis"}
+```{r}
 library(RxODE)
 
 Vtpol2 <- RxODE({
@@ -59,14 +59,14 @@ et$add.sampling(seq(0, 10, length.out=200));
 et$add.dosing(20, start.time=0);
 
 s1 <- Vtpol2 %>%  solve(et, method="lsoda")
-rxHtml(s1)
+print(s1)
 ```
 
 While this is not stiff at mu=1, mu=1000 is a stiff system
 
-```{r,results="asis"}
+```{r}
 s2 <- Vtpol2 %>%  solve(c(mu=1000), et)
-rxHtml(s2)
+print(s2)
 ```
 
 While this is easy enough to do, it is a bit tedious.  If you have
@@ -93,7 +93,7 @@ Vtpol <- RxODE({
 }, calcJac=TRUE)
 
 ```
-To see the generated model, you can use `rxCat`:
+To see the generated model, you can use `rxCat()`:
 
 ```
 > rxCat(Vtpol)

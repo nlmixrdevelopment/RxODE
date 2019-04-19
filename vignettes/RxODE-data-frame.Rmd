@@ -21,7 +21,7 @@ htmltools::img(src = knitr::image_uri("logo.png"),
 RxODE supports returning a solved object that is a modified data-frame.
 This is done by the `predict()`, `solve()`, or `rxSolve()` methods.
 
-```{r,results="asis"}
+```{r}
 
 library(RxODE)
 library(units)
@@ -54,20 +54,20 @@ ev <- eventTable(amount.units="mg", time.units="hours") %>%
 
 ## Now solve
 x <- predict(mod1,theta, ev, inits)
-rxHtml(x)
+print(x)
 ```
 or
 
-```{r,results="asis"}
+```{r}
 x <- solve(mod1,theta, ev, inits)
-rxHtml(x)
+print(x)
 ```
 
 Or with `mattigr`
 
-```{r,results="asis"}
+```{r}
 x <- mod1 %>% solve(theta, ev, inits)
-rxHtml(x)
+print(x)
 ```
 
 The solved object acts as a `data.frame` or `tbl` that can be filtered
@@ -91,6 +91,7 @@ First we need to recreate the original solved system:
 
 ```{r}
 x <- mod1 %>% solve(theta,ev,inits);
+print(x)
 ```
 
 To examine or change initial conditions, you can use the syntax
@@ -105,9 +106,10 @@ which shows the initial condition of the effect compartment.  If you
 wished to change this initial condition to 2, this can be done easily
 by:
 
-```{r, results="asis"}
+```{r}
 x$eff0 <- 2
-rxHtml(x)
+print(x)
+plot(x)
 ```
 
 Notice that the inital effect is now `2`.
@@ -115,9 +117,10 @@ Notice that the inital effect is now `2`.
 You can also change the sampling times easily by this method by
 changing `t` or `time`.  For example:
 
-```{r,results="asis"}
+```{r}
 x$t <- seq(0,5,length.out=20)
-rxHtml(x)
+print(x)
+plot(x)
 ```
 
 You can also access or change parameters by the `$` operator.  For
@@ -129,9 +132,9 @@ x$KA
 
 And you may change it by assigning it to a new value.
 
-```{r,results="asis"}
+```{r}
 x$KA <- 1;
-rxHtml(x)
+print(x)
 ```
 
 
