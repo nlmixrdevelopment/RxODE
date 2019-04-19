@@ -20,23 +20,77 @@ reference:
 - title: Solving, Simulating and Solving options
   contents:
   - rxSolve
-- title: Cleaning caches
-  contents:
-  - rxClean
-- title: Using RxODE in Packages
-  contents:
-  - rxUse
 - title: Exploring RxODE and creating models with Shiny
   contents:
   - rxShiny
   - genShinyApp.template
+- title: Cleaning caches
+  contents:
+  - rxClean
+  - rxTempDir
+- title: Using RxODE in Packages
+  contents:
+  - rxUse
 - title: Specialized Simulation functions
   contents:
   - cvPost
-
+  - rinvchisq
+- title: Optimizing models and/or adding precision
+  contents:
+  - rxOptExpr
+  - rxSumProdModel
+  - rxSetProd
+  - rxSetSum
+- title: Running unit tests in RxODE
+  contents:
+  - rxValidate
+- title: Internal functions
+  contents:
+  - coef.RxODE
+  - .rxFindPow
+  - .rxRmPrint
+  - .rxRmSens
+  - .rxSymPyJacobian
+  - .rxWinRtoolsPath
+  - is.rxEt
+  - is.rxSolve
+  - print.RxODE
+  - print.rxCoefSolve
+  - rxAddReturn
+  - rxAssignPtr
+  - rxChain
+  - rxCompile
+  - rxCores
+  - rxDelete
+  - rxDfdy
+  - rxFoExpandEta
+  - rxGetRxODE
+  - rxHtml
+  - rxInv
+  - rxIsCurrent
+  - rxLhs
+  - rxNorm
+  - rxOptions
+  - rxParams
+  - rxPermissive
+  - rxProgress
+  - rxSimThetaOmega
+  - rxStack
+  - rxState
+  - rxSymInvChol
+  - rxSymPyFix
+  - rxSymPySensitivity
+  - rxSymPyVersion
+  - rxSyncOptions
+  - rxTrans
+  - rxWinPythonSetup
+  - rxWinSetup
+  - summary.RxODE
+  - tibble
 navbar:
   left:
   - text: Articles
+    icon: fas fa-book
     menu:
         - text: "--------------------------"
         - text: "Getting started"
@@ -64,9 +118,13 @@ navbar:
           href: articles/RxODE-covariates.html
         - text: "Stiff Systems and Jacobian specification"
           href: articles/RxODE-stiff.html
-        - text: "Adding compiled RxODE to your package"
+        - text: "Adding compiled RxODE models to your package"
           href: articles/RxODE-rxUse.html
+  - text: "Tutorial"
+    icon: fa-life-ring
+    href: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4728294/pdf/PSP4-5-03.pdf
   - text: "Functions"
+    icon: fa-file-code-o
     href: reference/index.html
   right:
   - icon: fa-github fa-lg

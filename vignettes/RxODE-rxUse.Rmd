@@ -22,7 +22,7 @@ pkgPath  <- file.path(rxTempDir(),"MyRxModel")
 create_package(pkgPath);
 use_gpl3_license("Matt")
 use_package("RxODE", "LinkingTo")
-use_package("RxODE", "Depends") ## Imports RxODE on load; Can use imports instead.
+use_package("RxODE", "Depends") ##  library(RxODE) on load; Can use imports instead.
 use_roxygen_md()
 ##use_readme_md()
 library(RxODE);
@@ -150,6 +150,7 @@ If you want to integrate with other sources in your `Rcpp` or
   replaced by your package name).
   
 Once this is complete, you can compile/document by the standard methods:
+
 ```
 devtools::load_all()
 devtools::document()
@@ -177,6 +178,3 @@ directory.  As with all RxODE objects, a `summary` will show one way to recreate
 
 An example of compiled models package can be found in the
 [rxModels](https://github.com/nlmixrdevelopment/rxModels) repository.
-
-
-Seq
