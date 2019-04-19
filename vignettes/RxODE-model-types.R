@@ -6,6 +6,7 @@ htmltools::img(src = knitr::image_uri("logo.png"),
                style = 'position:absolute; top:0; right:0; padding:10px; border: 0;')
 
 ## ------------------------------------------------------------------------
+library(RxODE)
 mod <- RxODE({
     ipre <- 10 * exp(-ke * t);
 })
@@ -72,15 +73,15 @@ ev <- eventTable(amount.units='mg', time.units='hours') %>%
     add.dosing(dose=20000, nbr.doses=5, start.time=120,dosing.interval=24,dosing.to=2) %>%
     add.sampling(0:240);
 
-## ----results="asis"------------------------------------------------------
+## ------------------------------------------------------------------------
 x <- mod2 %>%  solve(theta, ev)
-rxHtml(x)
+print(x)
 
-## ----results="asis"------------------------------------------------------
+## ------------------------------------------------------------------------
 x <- mod2 %>%  solve(theta, ev,c(eff=2))
-rxHtml(x)
+print(x)
 
-## ----results="asis"------------------------------------------------------
+## ------------------------------------------------------------------------
 mod3 <- RxODE({
     KA=2.94E-01;
     CL=1.86E+01;
@@ -97,9 +98,9 @@ mod3 <- RxODE({
 })
 
 x <- mod3 %>%  solve(ev)
-rxHtml(x)
+print(x)
 
-## ----results="asis"------------------------------------------------------
+## ------------------------------------------------------------------------
 x <- mod3 %>%  solve(c(KA=10),ev)
-rxHtml(x)
+print(x)
 

@@ -38,10 +38,9 @@ ev <- eventTable(amount.units="mg", time.units="hours") %>%
 ev$ctime <- (ev$time+set_units(8,hr)) %% 24
 
 
-## ----results="asis"------------------------------------------------------
-
+## ------------------------------------------------------------------------
 r1 <- solve(mod3, ev, covs_interpolation="linear")
-rxHtml(r1)
+print(r1)
 
 ## ------------------------------------------------------------------------
 library(ggplot2)
@@ -50,9 +49,9 @@ plot(r1,C2) +ylab("Central Concentration") + xlab("Time");
 ## ------------------------------------------------------------------------
 plot(r1,eff) + ylab("Effect") + xlab("Time");
 
-## ----results="asis"------------------------------------------------------
+## ------------------------------------------------------------------------
 r1 <- solve(mod3, ev,covs_interpolation="constant")
-rxHtml(r1)
+print(r1)
 
 ## ------------------------------------------------------------------------
 plot(r1,C2) + ylab("Central Concentration") + xlab("Time");
@@ -60,9 +59,9 @@ plot(r1,C2) + ylab("Central Concentration") + xlab("Time");
 ## ------------------------------------------------------------------------
 plot(r1,eff) + ylab("Effect") + xlab("Time");
 
-## ----results="asis"------------------------------------------------------
+## ------------------------------------------------------------------------
 r1 <- solve(mod3, ev,covs_interpolation="nocb")
-rxHtml(r1)
+print(r1)
 
 ## ------------------------------------------------------------------------
 plot(r1,C2) + ylab("Central Concentration") + xlab("Time");

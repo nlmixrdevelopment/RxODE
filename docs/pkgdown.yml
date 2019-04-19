@@ -7,6 +7,7 @@ articles:
   RxODE-events: RxODE-events.html
   RxODE-intro: RxODE-intro.html
   RxODE-model-types: RxODE-model-types.html
+  RxODE-rxUse: RxODE-rxUse.html
   RxODE-shiny: RxODE-shiny.html
   RxODE-sim-var: RxODE-sim-var.html
   RxODE-stiff: RxODE-stiff.html

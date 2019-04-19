@@ -64,6 +64,8 @@ navbar:
           href: articles/RxODE-covariates.html
         - text: "Stiff Systems and Jacobian specification"
           href: articles/RxODE-stiff.html
+        - text: "Adding compiled RxODE to your package"
+          href: articles/RxODE-rxUse.html
   - text: "Functions"
     href: reference/index.html
   right:

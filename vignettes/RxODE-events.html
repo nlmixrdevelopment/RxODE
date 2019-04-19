@@ -12,7 +12,7 @@
 
 <meta name="author" content="Matthew L. Fidler, Melissa Hallow, and Wenping Wang" />
 
-<meta name="date" content="2019-04-18" />
+<meta name="date" content="2019-04-19" />
 
 <title>RxODE Events</title>
 
@@ -92,7 +92,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">RxODE Events</h1>
 <h4 class="author"><em>Matthew L. Fidler, Melissa Hallow, and Wenping Wang</em></h4>
-<h4 class="date"><em>2019-04-18</em></h4>
+<h4 class="date"><em>2019-04-19</em></h4>
 
 
 
@@ -927,6 +927,7 @@ ev</code></pre></div>
 <div id="classic-rxode-evid-values" class="section level2">
 <h2>Classic RxODE evid values</h2>
 <p>While RxODE still supports these values, this is primarily provided for historic information, and we recommend using the normal NONMEM dataset standard that is used by many modeling tools like NONMEM, Monolix and nlmixr, described above.</p>
+<p><details></p>
 <p>Classically, RxODE supported event coding in a single event id <code>evid</code> described in the following table.</p>
 <table style="width:100%;">
 <colgroup>
@@ -1287,6 +1288,7 @@ ev</code></pre></div>
 <li>The infusion is turned off by subtracting <code>amt</code> with the same <code>evid</code> at the stop of the infusion.</li>
 </ul>
 <p>For compartments greater or equal to 100, the 100s place and above digits are transfered to the 100,000th place digit. For doses to the 99th compartment the <code>evid</code> for a bolus dose would be <code>9901</code> and the <code>evid</code> for an infusion would be <code>19901</code>. For a bolus dose to the <code>199</code>th compartment the <code>evid</code> for the bolus dose would be <code>109901</code>. An infusion dosing record for the <code>199</code>th compartment would be <code>119901</code>.</p>
+<p></details></p>
 </div>
 </div>
 

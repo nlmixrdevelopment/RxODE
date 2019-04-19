@@ -12,7 +12,7 @@
 
 <meta name="author" content="Matthew L. Fidler, Melissa Hallow, and Wenping Wang" />
 
-<meta name="date" content="2019-04-18" />
+<meta name="date" content="2019-04-19" />
 
 <title>RxODE additional model types</title>
 
@@ -92,7 +92,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">RxODE additional model types</h1>
 <h4 class="author"><em>Matthew L. Fidler, Melissa Hallow, and Wenping Wang</em></h4>
-<h4 class="date"><em>2019-04-18</em></h4>
+<h4 class="date"><em>2019-04-19</em></h4>
 
 
 
@@ -107,11 +107,12 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <div id="prediction-only-models" class="section level1">
 <h1>Prediction only models</h1>
 <p>Prediction only models are simple to create. You use the RxODE syntax without any ODE systems in them. A very simple example is a one-compartment model.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">mod &lt;-<span class="st"> </span><span class="kw">RxODE</span>({
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(RxODE)
+mod &lt;-<span class="st"> </span><span class="kw">RxODE</span>({
     ipre &lt;-<span class="st"> </span><span class="dv">10</span> <span class="op">*</span><span class="st"> </span><span class="kw">exp</span>(<span class="op">-</span>ke <span class="op">*</span><span class="st"> </span>t);
 })
 mod</code></pre></div>
-<pre><code>## RxODE 0.9.0-5 model named rx_160b81f4c86f8c63b4b322c6908f2a87 model (ready).</code></pre>
+<pre><code>## RxODE 0.9.0-5 model named rx_1649a77c17407a31f2798871d401cb4e model (ready).</code></pre>
 <pre><code>## x$params: ke</code></pre>
 <pre><code>## x$lhs: ipre</code></pre>
 <p>Solving the RxODE models are the same as saving the simple ODE system, but faster of course.</p>
@@ -152,7 +153,7 @@ cmt1</code></pre></div>
     ipre &lt;-<span class="st"> </span><span class="kw">linCmt</span>();
 })
 mod</code></pre></div>
-<pre><code>## RxODE 0.9.0-5 model named rx_316eb1a4f9ebe211c6bca230a20fa68d model (ready).</code></pre>
+<pre><code>## RxODE 0.9.0-5 model named rx_3b244ce3155579210391c6c0edf3d63a model (ready).</code></pre>
 <pre><code>## x$params: ke, V</code></pre>
 <pre><code>## x$lhs: ipre</code></pre>
 <p>This then acts as an ODE model; You specify a dose to the depot compartment and then solve the system:</p>
@@ -226,385 +227,49 @@ mod2 &lt;-<span class="st"> </span><span class="kw">RxODE</span>({
 <span class="st">    </span><span class="kw">add.sampling</span>(<span class="dv">0</span><span class="op">:</span><span class="dv">240</span>);</code></pre></div>
 <p>This can be solved with the following command:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">x &lt;-<span class="st"> </span>mod2 <span class="op">%&gt;%</span><span class="st">  </span><span class="kw">solve</span>(theta, ev)
-<span class="kw">rxHtml</span>(x)</code></pre></div>
-<style>
-         th,td{
-             padding:2px 5px 2px 5px;
-         }
-    </style>
-<table style="border-radius: 10px 10px 10px 10px; -moz-border-radius: 10px 10px 10px 10px; -webkit-border-radius: 10px 10px 10px 10px; border: 5px solid #7b3e3e;">
-<tr>
-<td style="text-align: center; padding: 5px;">
-<strong>Solved RxODE object</strong>
-</td>
-<tr>
-<td>
-<strong>Parameters</strong> (<span style="color: Orange;"></span><strong "color: Blue;">$params</strong>):
-</td>
-</tr>
-<tr>
-<td>
-<table>
-<thead>
-<tr>
-<th style="text-align:right;">
-KA
-</th>
-<th style="text-align:right;">
-V2
-</th>
-<th style="text-align:right;">
-CL
-</th>
-<th style="text-align:right;">
-Q
-</th>
-<th style="text-align:right;">
-V3
-</th>
-<th style="text-align:right;">
-Kin
-</th>
-<th style="text-align:right;">
-Kout
-</th>
-<th style="text-align:right;">
-EC50
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:right;">
-0.294
-</td>
-<td style="text-align:right;">
-40.2
-</td>
-<td style="text-align:right;">
-18.6
-</td>
-<td style="text-align:right;">
-10.5
-</td>
-<td style="text-align:right;">
-297
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-200
-</td>
-</tr>
-</tbody>
-</table>
-</td>
-</tr>
-<tr>
-<td>
-<strong>Initial Conditions</strong> (<span style="color: Orange;"> </span><strong "color: Blue;">$inits</strong>):
-</td>
-</tr>
-<tr>
-<td>
-<table>
-<thead>
-<tr>
-<th style="text-align:right;">
-eff
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:right;">
-1
-</td>
-</tr>
-</tbody>
-</table>
-<strong>First part of data (object):</strong>
-<table>
-<thead>
-<tr>
-<th style="text-align:right;">
-time
-</th>
-<th style="text-align:right;">
-C2
-</th>
-<th style="text-align:right;">
-eff
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:right;">
-0 [h]
-</td>
-<td style="text-align:right;">
-0.00000
-</td>
-<td style="text-align:right;">
-1.000000
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-1 [h]
-</td>
-<td style="text-align:right;">
-44.37555
-</td>
-<td style="text-align:right;">
-1.084665
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-2 [h]
-</td>
-<td style="text-align:right;">
-54.88295
-</td>
-<td style="text-align:right;">
-1.180826
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-3 [h]
-</td>
-<td style="text-align:right;">
-51.90342
-</td>
-<td style="text-align:right;">
-1.228914
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-4 [h]
-</td>
-<td style="text-align:right;">
-44.49737
-</td>
-<td style="text-align:right;">
-1.234610
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-5 [h]
-</td>
-<td style="text-align:right;">
-36.48434
-</td>
-<td style="text-align:right;">
-1.214743
-</td>
-</tr>
-</tbody>
-</table>
-</td>
-</tr>
-</table>
+<span class="kw">print</span>(x)</code></pre></div>
+<pre><code>## ______________________________ Solved RxODE object _____________________________ 
+## -- Parameters ($params): ------------------------------------------------------- 
+##      KA      V2      CL       Q      V3     Kin    Kout    EC50 
+##   0.294  40.200  18.600  10.500 297.000   1.000   1.000 200.000 
+## -- Initial Conditions ($inits): ------------------------------------------------ 
+## eff 
+##   1 
+## -- First part of data (object): ------------------------------------------------ 
+## # A tibble: 241 x 3
+##    time    C2   eff
+##     [h] &lt;dbl&gt; &lt;dbl&gt;
+## 1     0   0    1   
+## 2     1  44.4  1.08
+## 3     2  54.9  1.18
+## 4     3  51.9  1.23
+## 5     4  44.5  1.23
+## 6     5  36.5  1.21
+## # ... with 235 more rows</code></pre>
+<pre><code>## ________________________________________________________________________________</code></pre>
 <p>Note this solving did not require specifying the effect compartment initial condition to be <code>1</code>. Rather, this is already pre-specified by <code>eff(0)=1</code>.</p>
 <p>This can be solved for different initial conditions easily:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">x &lt;-<span class="st"> </span>mod2 <span class="op">%&gt;%</span><span class="st">  </span><span class="kw">solve</span>(theta, ev,<span class="kw">c</span>(<span class="dt">eff=</span><span class="dv">2</span>))
-<span class="kw">rxHtml</span>(x)</code></pre></div>
-<style>
-         th,td{
-             padding:2px 5px 2px 5px;
-         }
-    </style>
-<table style="border-radius: 10px 10px 10px 10px; -moz-border-radius: 10px 10px 10px 10px; -webkit-border-radius: 10px 10px 10px 10px; border: 5px solid #7b3e3e;">
-<tr>
-<td style="text-align: center; padding: 5px;">
-<strong>Solved RxODE object</strong>
-</td>
-<tr>
-<td>
-<strong>Parameters</strong> (<span style="color: Orange;"></span><strong "color: Blue;">$params</strong>):
-</td>
-</tr>
-<tr>
-<td>
-<table>
-<thead>
-<tr>
-<th style="text-align:right;">
-KA
-</th>
-<th style="text-align:right;">
-V2
-</th>
-<th style="text-align:right;">
-CL
-</th>
-<th style="text-align:right;">
-Q
-</th>
-<th style="text-align:right;">
-V3
-</th>
-<th style="text-align:right;">
-Kin
-</th>
-<th style="text-align:right;">
-Kout
-</th>
-<th style="text-align:right;">
-EC50
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:right;">
-0.294
-</td>
-<td style="text-align:right;">
-40.2
-</td>
-<td style="text-align:right;">
-18.6
-</td>
-<td style="text-align:right;">
-10.5
-</td>
-<td style="text-align:right;">
-297
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-200
-</td>
-</tr>
-</tbody>
-</table>
-</td>
-</tr>
-<tr>
-<td>
-<strong>Initial Conditions</strong> (<span style="color: Orange;"> </span><strong "color: Blue;">$inits</strong>):
-</td>
-</tr>
-<tr>
-<td>
-<table>
-<thead>
-<tr>
-<th style="text-align:right;">
-eff
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:right;">
-2
-</td>
-</tr>
-</tbody>
-</table>
-<strong>First part of data (object):</strong>
-<table>
-<thead>
-<tr>
-<th style="text-align:right;">
-time
-</th>
-<th style="text-align:right;">
-C2
-</th>
-<th style="text-align:right;">
-eff
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:right;">
-0 [h]
-</td>
-<td style="text-align:right;">
-0.00000
-</td>
-<td style="text-align:right;">
-2.000000
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-1 [h]
-</td>
-<td style="text-align:right;">
-44.37555
-</td>
-<td style="text-align:right;">
-1.496778
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-2 [h]
-</td>
-<td style="text-align:right;">
-54.88295
-</td>
-<td style="text-align:right;">
-1.366782
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-3 [h]
-</td>
-<td style="text-align:right;">
-51.90342
-</td>
-<td style="text-align:right;">
-1.313536
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-4 [h]
-</td>
-<td style="text-align:right;">
-44.49737
-</td>
-<td style="text-align:right;">
-1.272430
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-5 [h]
-</td>
-<td style="text-align:right;">
-36.48434
-</td>
-<td style="text-align:right;">
-1.231204
-</td>
-</tr>
-</tbody>
-</table>
-</td>
-</tr>
-</table>
+<span class="kw">print</span>(x)</code></pre></div>
+<pre><code>## ______________________________ Solved RxODE object _____________________________ 
+## -- Parameters ($params): ------------------------------------------------------- 
+##      KA      V2      CL       Q      V3     Kin    Kout    EC50 
+##   0.294  40.200  18.600  10.500 297.000   1.000   1.000 200.000 
+## -- Initial Conditions ($inits): ------------------------------------------------ 
+## eff 
+##   2 
+## -- First part of data (object): ------------------------------------------------ 
+## # A tibble: 241 x 3
+##    time    C2   eff
+##     [h] &lt;dbl&gt; &lt;dbl&gt;
+## 1     0   0    2   
+## 2     1  44.4  1.50
+## 3     2  54.9  1.37
+## 4     3  51.9  1.31
+## 5     4  44.5  1.27
+## 6     5  36.5  1.23
+## # ... with 235 more rows</code></pre>
+<pre><code>## ________________________________________________________________________________</code></pre>
 <p>The RxODE detective also does not require you to specify the variables in the <code>linCmt()</code> function if they are already defined in the block. Therefore, the following function will also work to solve the same system.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">mod3 &lt;-<span class="st"> </span><span class="kw">RxODE</span>({
     KA=<span class="fl">2.94E-01</span>;
@@ -622,384 +287,48 @@ eff
 })
 
 x &lt;-<span class="st"> </span>mod3 <span class="op">%&gt;%</span><span class="st">  </span><span class="kw">solve</span>(ev)
-<span class="kw">rxHtml</span>(x)</code></pre></div>
-<style>
-         th,td{
-             padding:2px 5px 2px 5px;
-         }
-    </style>
-<table style="border-radius: 10px 10px 10px 10px; -moz-border-radius: 10px 10px 10px 10px; -webkit-border-radius: 10px 10px 10px 10px; border: 5px solid #7b3e3e;">
-<tr>
-<td style="text-align: center; padding: 5px;">
-<strong>Solved RxODE object</strong>
-</td>
-<tr>
-<td>
-<strong>Parameters</strong> (<span style="color: Orange;"></span><strong "color: Blue;">$params</strong>):
-</td>
-</tr>
-<tr>
-<td>
-<table>
-<thead>
-<tr>
-<th style="text-align:right;">
-KA
-</th>
-<th style="text-align:right;">
-CL
-</th>
-<th style="text-align:right;">
-V2
-</th>
-<th style="text-align:right;">
-Q
-</th>
-<th style="text-align:right;">
-V3
-</th>
-<th style="text-align:right;">
-Kin
-</th>
-<th style="text-align:right;">
-Kout
-</th>
-<th style="text-align:right;">
-EC50
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:right;">
-0.294
-</td>
-<td style="text-align:right;">
-18.6
-</td>
-<td style="text-align:right;">
-40.2
-</td>
-<td style="text-align:right;">
-10.5
-</td>
-<td style="text-align:right;">
-297
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-200
-</td>
-</tr>
-</tbody>
-</table>
-</td>
-</tr>
-<tr>
-<td>
-<strong>Initial Conditions</strong> (<span style="color: Orange;"> </span><strong "color: Blue;">$inits</strong>):
-</td>
-</tr>
-<tr>
-<td>
-<table>
-<thead>
-<tr>
-<th style="text-align:right;">
-eff
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:right;">
-1
-</td>
-</tr>
-</tbody>
-</table>
-<strong>First part of data (object):</strong>
-<table>
-<thead>
-<tr>
-<th style="text-align:right;">
-time
-</th>
-<th style="text-align:right;">
-C2
-</th>
-<th style="text-align:right;">
-eff
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:right;">
-0 [h]
-</td>
-<td style="text-align:right;">
-0.00000
-</td>
-<td style="text-align:right;">
-1.000000
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-1 [h]
-</td>
-<td style="text-align:right;">
-44.37555
-</td>
-<td style="text-align:right;">
-1.084665
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-2 [h]
-</td>
-<td style="text-align:right;">
-54.88295
-</td>
-<td style="text-align:right;">
-1.180826
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-3 [h]
-</td>
-<td style="text-align:right;">
-51.90342
-</td>
-<td style="text-align:right;">
-1.228914
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-4 [h]
-</td>
-<td style="text-align:right;">
-44.49737
-</td>
-<td style="text-align:right;">
-1.234610
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-5 [h]
-</td>
-<td style="text-align:right;">
-36.48434
-</td>
-<td style="text-align:right;">
-1.214743
-</td>
-</tr>
-</tbody>
-</table>
-</td>
-</tr>
-</table>
+<span class="kw">print</span>(x)</code></pre></div>
+<pre><code>## ______________________________ Solved RxODE object _____________________________ 
+## -- Parameters ($params): ------------------------------------------------------- 
+##      KA      CL      V2       Q      V3     Kin    Kout    EC50 
+##   0.294  18.600  40.200  10.500 297.000   1.000   1.000 200.000 
+## -- Initial Conditions ($inits): ------------------------------------------------ 
+## eff 
+##   1 
+## -- First part of data (object): ------------------------------------------------ 
+## # A tibble: 241 x 3
+##    time    C2   eff
+##     [h] &lt;dbl&gt; &lt;dbl&gt;
+## 1     0   0    1   
+## 2     1  44.4  1.08
+## 3     2  54.9  1.18
+## 4     3  51.9  1.23
+## 5     4  44.5  1.23
+## 6     5  36.5  1.21
+## # ... with 235 more rows</code></pre>
+<pre><code>## ________________________________________________________________________________</code></pre>
 <p>Note that you do not specify the parameters when solving the system since they are built into the model, but you can override the parameters:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">x &lt;-<span class="st"> </span>mod3 <span class="op">%&gt;%</span><span class="st">  </span><span class="kw">solve</span>(<span class="kw">c</span>(<span class="dt">KA=</span><span class="dv">10</span>),ev)
-<span class="kw">rxHtml</span>(x)</code></pre></div>
-<style>
-         th,td{
-             padding:2px 5px 2px 5px;
-         }
-    </style>
-<table style="border-radius: 10px 10px 10px 10px; -moz-border-radius: 10px 10px 10px 10px; -webkit-border-radius: 10px 10px 10px 10px; border: 5px solid #7b3e3e;">
-<tr>
-<td style="text-align: center; padding: 5px;">
-<strong>Solved RxODE object</strong>
-</td>
-<tr>
-<td>
-<strong>Parameters</strong> (<span style="color: Orange;"></span><strong "color: Blue;">$params</strong>):
-</td>
-</tr>
-<tr>
-<td>
-<table>
-<thead>
-<tr>
-<th style="text-align:right;">
-KA
-</th>
-<th style="text-align:right;">
-CL
-</th>
-<th style="text-align:right;">
-V2
-</th>
-<th style="text-align:right;">
-Q
-</th>
-<th style="text-align:right;">
-V3
-</th>
-<th style="text-align:right;">
-Kin
-</th>
-<th style="text-align:right;">
-Kout
-</th>
-<th style="text-align:right;">
-EC50
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:right;">
-10
-</td>
-<td style="text-align:right;">
-18.6
-</td>
-<td style="text-align:right;">
-40.2
-</td>
-<td style="text-align:right;">
-10.5
-</td>
-<td style="text-align:right;">
-297
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-200
-</td>
-</tr>
-</tbody>
-</table>
-</td>
-</tr>
-<tr>
-<td>
-<strong>Initial Conditions</strong> (<span style="color: Orange;"> </span><strong "color: Blue;">$inits</strong>):
-</td>
-</tr>
-<tr>
-<td>
-<table>
-<thead>
-<tr>
-<th style="text-align:right;">
-eff
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:right;">
-1
-</td>
-</tr>
-</tbody>
-</table>
-<strong>First part of data (object):</strong>
-<table>
-<thead>
-<tr>
-<th style="text-align:right;">
-time
-</th>
-<th style="text-align:right;">
-C2
-</th>
-<th style="text-align:right;">
-eff
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:right;">
-0 [h]
-</td>
-<td style="text-align:right;">
-0.00000
-</td>
-<td style="text-align:right;">
-1.000000
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-1 [h]
-</td>
-<td style="text-align:right;">
-130.61937
-</td>
-<td style="text-align:right;">
-1.340982
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-2 [h]
-</td>
-<td style="text-align:right;">
-64.75317
-</td>
-<td style="text-align:right;">
-1.392185
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-3 [h]
-</td>
-<td style="text-align:right;">
-33.17930
-</td>
-<td style="text-align:right;">
-1.298397
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-4 [h]
-</td>
-<td style="text-align:right;">
-18.02218
-</td>
-<td style="text-align:right;">
-1.191799
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-5 [h]
-</td>
-<td style="text-align:right;">
-10.72199
-</td>
-<td style="text-align:right;">
-1.115887
-</td>
-</tr>
-</tbody>
-</table>
-</td>
-</tr>
-</table>
+<span class="kw">print</span>(x)</code></pre></div>
+<pre><code>## ______________________________ Solved RxODE object _____________________________ 
+## -- Parameters ($params): ------------------------------------------------------- 
+##    KA    CL    V2     Q    V3   Kin  Kout  EC50 
+##  10.0  18.6  40.2  10.5 297.0   1.0   1.0 200.0 
+## -- Initial Conditions ($inits): ------------------------------------------------ 
+## eff 
+##   1 
+## -- First part of data (object): ------------------------------------------------ 
+## # A tibble: 241 x 3
+##    time    C2   eff
+##     [h] &lt;dbl&gt; &lt;dbl&gt;
+## 1     0   0    1   
+## 2     1 131.   1.34
+## 3     2  64.8  1.39
+## 4     3  33.2  1.30
+## 5     4  18.0  1.19
+## 6     5  10.7  1.12
+## # ... with 235 more rows</code></pre>
+<pre><code>## ________________________________________________________________________________</code></pre>
 </div>
 
 
