@@ -58,8 +58,81 @@ You will still need to:
 ```
 ##' @importFrom RxODE RxODE
 ##' @export
-RxODE <- RxODE::RxODE
+RxODE::RxODE
 ```
+
+If you want to use `Suggests` instead of `Depends` in your package,
+you way want to export all of RxODE's normal routines
+
+
+```
+##' @importFrom RxODE RxODE
+##' @export
+RxODE::RxODE
+
+##' @importFrom RxODE et
+##' @export
+RxODE::et
+
+##' @importFrom RxODE etRep
+##' @export
+RxODE::etRep
+
+##' @importFrom RxODE etSeq
+##' @export
+RxODE::etSeq
+
+##' @importFrom RxODE as.et
+##' @export
+RxODE::as.et
+
+##' @importFrom RxODE eventTable
+##' @export
+RxODE::eventTable
+
+##' @importFrom RxODE add.dosing
+##' @export
+RxODE::add.dosing
+
+##' @importFrom RxODE add.sampling
+##' @export
+RxODE::add.sampling
+
+##' @importFrom RxODE rxSolve
+##' @export
+RxODE::rxSolve
+
+##' @importFrom RxODE rxControl
+##' @export
+RxODE::rxControl
+
+##' @importFrom RxODE rxClean
+##' @export
+RxODE::rxClean
+
+##' @importFrom RxODE rxUse
+##' @export
+RxODE::rxUse
+
+##' @importFrom RxODE rxShiny
+##' @export
+RxODE::rxShiny
+
+##' @importFrom RxODE genShinyApp.template
+##' @export
+RxODE::genShinyApp.template
+
+##' @importFrom RxODE cvPost
+##' @export
+RxODE::cvPost
+
+# This is actually from `magrittr` but allows less imports
+##' @importFrom RxODE %>%
+##' @export
+RxODE::`%>%`
+```
+
+
 - You also need to instruct R to load the model library models
   included in the model's dll.  This is done by:
 
@@ -100,11 +173,10 @@ devtools::install()
 
 **Note** you do not have to include the `RxODE` code required to
 generate the model to regenerate the RxODE c-code in the `src`
-directory.  Also a version of the code is included in the
-automatically generated documentation object.  (Once created these
-files are not overwritten.)
+directory.  As with all RxODE objects, a `summary` will show one way to recreate the same model. 
 
 An example of compiled models package can be found in the
 [rxModels](https://github.com/nlmixrdevelopment/rxModels) repository.
 
 
+Seq

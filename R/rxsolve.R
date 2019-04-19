@@ -834,7 +834,10 @@ dimnames.rxSolve <- function(x){
 ##'@export
 print.rxModelText <- function(x, ...){
     cat(cli::rule(center=crayon::bold("RxODE Model Syntax"), line="bar2"), "\n");
-    cat(as.vector(x), "\n");
+    .code <- deparse(body(eval(parse(text=paste("function(){",as.vector(x),"}")))))
+    .code[1]  <- "RxODE({"
+    .code[length(.code)]  <- "})";
+    cat(paste(.code,collapse="\n"), "\n");
     cat(cli::rule(line="bar2"), "\n");
 }
 

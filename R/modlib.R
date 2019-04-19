@@ -127,15 +127,19 @@ rxUse <- function(obj, internal = FALSE, overwrite = TRUE, compress = "bzip2"){
                         cat("##' }\n")
                     }
                     cat("##'\n")
-                    cat(sprintf("##' \\emph{Model Code}\n",.f2))
-                    cat("##'\n")
-                    .code  <- deparse(body(eval(parse(text=paste("function(){",rxNorm(.tmp),"}")))))
-                    .code[1]  <- "RxODE({"
-                    .code[length(.code)]  <- "})";
-                    cat(paste(paste0("##' ",.code,"\n"),collapse=""));
-                    cat("##'\n")
+                    ## cat(sprintf("##' \\emph{Model Code}\n",.f2))
+                    ## cat("##'\n")
+                    ## .code  <- deparse(body(eval(parse(text=paste("function(){",rxNorm(.tmp),"}")))))
+                    ## .code[1]  <- "RxODE({"
+                    ## .code[length(.code)]  <- "})";
+                    ## cat(paste(paste0("##' ",.code,"\n"),collapse=""));
+                    ## cat("##'\n")
                     cat(paste(paste0("##' @seealso \\code{\\link[RxODE]{eventTable}}, \\code{\\link[RxODE]{et}}, \\code{\\link[RxODE]{rxSolve}}, \\code{\\link[RxODE]{RxODE}}\n")))
-                    cat("##' \n")
+                    cat("##' \n");
+                    cat("##' @examples\n");
+                    cat("##' ## Showing the model code\n");
+                    cat(sprintf("##' summary(%s)\n", .f2));
+                    cat("##'\n");
                     cat(sprintf('"%s"\n',.f2));
                     sink();
                 }

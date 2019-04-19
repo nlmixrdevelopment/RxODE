@@ -721,8 +721,6 @@ for historic information, and we recommend using the normal NONMEM
 dataset standard that is used by many modeling tools like NONMEM,
 Monolix and nlmixr, described above.
 
-<details>
-
 Classically, RxODE supported event coding in a single event id `evid` described in the following table.
 
 
@@ -873,4 +871,3 @@ digits are transfered to the 100,000th place digit. For doses to the
 `109901`. An infusion dosing record for the `199`th compartment would
 be `119901`.
 
-</details>
