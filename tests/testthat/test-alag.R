@@ -1,15 +1,21 @@
 ## Tests for absorption lag time.
 rxPermissive({
-    for (m in c("liblsoda", "lsoda", "dop853")){
-        context(sprintf("Test absorption lag-time with IV dosing (%s)",m))
-
-        ## 6.1
-        mod <- RxODE({
+    ## 6.1
+    mod <- RxODE({
+        a = 6
+        b = 0.6
+        d/dt(intestine) = -a*intestine
+        d/dt(blood)     = a*intestine - b*blood
+    })
+    mod2 <- RxODE({
             a = 6
             b = 0.6
             d/dt(intestine) = -a*intestine
+            alag(intestine)    = 2
             d/dt(blood)     = a*intestine - b*blood
         })
+    for (m in c("liblsoda", "lsoda", "dop853")){
+        context(sprintf("Test absorption lag-time with IV dosing (%s)",m))
 
         obs <- units::set_units(seq(0,10,by=1/24),"days");
 
@@ -20,14 +26,6 @@ rxPermissive({
 
 
         solve1 <- solve(mod,et, method=m)
-
-        mod2 <- RxODE({
-            a = 6
-            b = 0.6
-            d/dt(intestine) = -a*intestine
-            alag(intestine)    = 2
-            d/dt(blood)     = a*intestine - b*blood
-        })
 
         solve2 <- solve(mod2,et, method=m)
 
