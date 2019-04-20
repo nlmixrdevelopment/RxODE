@@ -3,7 +3,7 @@
 rxControl <- function(scale = NULL,
                       method = c("liblsoda", "lsoda", "dop853"),
                       transitAbs = NULL, atol = 1.0e-8, rtol = 1.0e-6,
-                      maxsteps = 500000L, hmin = 0L, hmax = NA, hmaxSd= 0, hini = 0, maxordn = 12L, maxords = 5L, ...,
+                      maxsteps = 70000L, hmin = 0L, hmax = NA, hmaxSd= 0, hini = 0, maxordn = 12L, maxords = 5L, ...,
                       cores,
                       covsInterpolation = c("locf", "linear", "nocb", "midpoint"),
                       addCov = FALSE, matrix = FALSE, sigma = NULL, sigmaDf = NULL,

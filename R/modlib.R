@@ -61,9 +61,10 @@
 ##' @param obj model to save.
 ##' @inheritParams usethis::use_data
 ##' @export
-rxUse <- function(obj, internal = FALSE, overwrite = TRUE, compress = "bzip2"){
+rxUse <- function(obj, overwrite = TRUE, compress = "bzip2"){
     rxReq("usethis")
     rxReq("devtools")
+    internal  <-  FALSE;
     if (missing(obj)){
         .env <- new.env();
         assign("internal", internal, .env)
@@ -210,39 +211,39 @@ rxUse <- function(obj, internal = FALSE, overwrite = TRUE, compress = "bzip2"){
         .modName <- as.character(substitute(obj));
         .pkg <- basename(usethis::proj_get())
         .env <- new.env(parent=baseenv());
-        if (.pkg=="RxODE"){
-            ## Don't recompile, just update internals
-            obj$package <- "RxODE";
-            obj$modName <- paste0("RxODE_",.modName);
-            obj$mdir  <- devtools::package_file("inst/rx");
-            .updateRxModelLib(obj);
-            .dll <- obj$rxDll;
-            .mv <- rxUpdateTrans_(.dll$modVars, paste0("RxODE_",.modName,"_"),
-                                  "RxODE");
-            .dll$modVars <- .mv
-            obj$rxDll <- .dll
-            rxCompile(.mv,
-                      dir=devtools::package_file("inst/rx"),
-                      prefix=paste0("RxODE_",.modName,"_"),
-                      extraC = NULL,
-                      debug = NULL,
-                      modName = paste("RxODE_",.modName),
-                      package="RxODE");
-            assign(.modName, obj, .env);
-            assign("internal", internal, .env)
-            assign("overwrite", overwrite, .env)
-            assign("compress", compress, .env)
-            eval(parse(text=sprintf("usethis::use_data(%s, internal=internal, overwrite=overwrite, compress=compress)", .modName)),
-                 envir=.env)
-        } else {
-            obj$package <- NULL;
-            assign(.modName, RxODE(rxNorm(obj), package=.pkg, modName=.modName), .env);
-            assign("internal", internal, .env)
-            assign("overwrite", overwrite, .env)
-            assign("compress", compress, .env)
-            eval(parse(text=sprintf("usethis::use_data(%s, internal=internal, overwrite=overwrite, compress=compress)", .modName)),
-                 envir=.env)
-        }
+        ## if (.pkg=="RxODE"){
+        ##     ## Don't recompile, just update internals
+        ##     obj$package <- "RxODE";
+        ##     obj$modName <- paste0("RxODE_",.modName);
+        ##     obj$mdir  <- devtools::package_file("inst/rx");
+        ##     .updateRxModelLib(obj);
+        ##     .dll <- obj$rxDll;
+        ##     .mv <- rxUpdateTrans_(.dll$modVars, paste0("RxODE_",.modName,"_"),
+        ##                           "RxODE");
+        ##     .dll$modVars <- .mv
+        ##     obj$rxDll <- .dll
+        ##     rxCompile(.mv,
+        ##               dir=devtools::package_file("inst/rx"),
+        ##               prefix=paste0("RxODE_",.modName,"_"),
+        ##               extraC = NULL,
+        ##               debug = NULL,
+        ##               modName = paste("RxODE_",.modName),
+        ##               package="RxODE");
+        ##     assign(.modName, obj, .env);
+        ##     assign("internal", internal, .env)
+        ##     assign("overwrite", overwrite, .env)
+        ##     assign("compress", compress, .env)
+        ##     eval(parse(text=sprintf("usethis::use_data(%s, internal=internal, overwrite=overwrite, compress=compress)", .modName)),
+        ##          envir=.env)
+        ## }
+        ## else {
+        obj$package <- NULL;
+        assign(.modName, RxODE(rxNorm(obj), package=.pkg, modName=.modName), .env);
+        assign("internal", internal, .env)
+        assign("overwrite", overwrite, .env)
+        assign("compress", compress, .env)
+        eval(parse(text=sprintf("usethis::use_data(%s, internal=internal, overwrite=overwrite, compress=compress)", .modName)), envir=.env);
+        ## }
 
     }
 }

@@ -4,20 +4,10 @@
 \alias{rxUse}
 \title{Use model object in your package}
 \usage{
-rxUse(obj, internal = FALSE, overwrite = TRUE, compress = "bzip2")
+rxUse(obj, overwrite = TRUE, compress = "bzip2")
 }
 \arguments{
 \item{obj}{model to save.}
-
-\item{internal}{If \code{FALSE}, saves each object in its own \code{.rda}
-file in the \code{data/} directory. These data files bypass the usual
-export mechanism and are available whenever the package is loaded
-(or via \code{\link[=data]{data()}} if \code{LazyData} is not true).
-
-If \code{TRUE}, stores all objects in a single \code{R/sysdata.rda} file.
-Objects in this file follow the usual export rules. Note that this means
-they will be exported if you are using the common \code{exportPattern()}
-rule which exports all objects except for those that start with \code{.}.}
 
 \item{overwrite}{By default, \code{use_data()} will not overwrite existing
 files. If you really want to do so, set this to \code{TRUE}.}

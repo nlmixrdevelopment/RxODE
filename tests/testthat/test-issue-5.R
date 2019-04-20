@@ -1,5 +1,6 @@
 rxPermissive({
     context("Bad solve");
+
     model <- RxODE({
         C2 = centr/V2;
         C3 = peri/V3;
@@ -30,7 +31,8 @@ rxPermissive({
     test_that("Bad solve raises error", {
         tf <- tempfile();
         sink(tf)
-        expect_error(model %>% solve(c(KA= -10), event_table), rex::rex("Could not solve the system."))
+        expect_error(model %>% solve(c(KA= -10), event_table,maxsteps=5000),
+                     rex::rex("Could not solve the system."))
         sink()
         unlink(tf)
     });
