@@ -144,6 +144,7 @@ et.default <- function(...,time, amt, evid, cmt, ii, addl, ss, rate, dur, until,
     }
     if (!missing(evid)){
         .evid <- as.character(substitute(evid))
+        if (length(.evid) !=1) stop("only a single 'evid' can be specified.");
         if (.evid=="obs" || .evid=="0"){
             .tmp <- try(eval(evid, envir=envir), silent=TRUE);
             if (inherits(.tmp, "try-error")){
@@ -185,6 +186,7 @@ et.default <- function(...,time, amt, evid, cmt, ii, addl, ss, rate, dur, until,
     }
     if (!missing(cmt)){
         .cmt <- as.character(substitute(cmt));
+        if (length(.cmt) !=1) stop("only a single compartment 'cmt' can be specified.");
         .cmt1 <- try(suppressWarnings(as.integer(cmt)), silent=TRUE);
         if (inherits(.cmt1, "try-error")){
             .lst$cmt <- .cmt
@@ -198,6 +200,7 @@ et.default <- function(...,time, amt, evid, cmt, ii, addl, ss, rate, dur, until,
     }
     if (!missing(rate)){
         .rate <- as.character(substitute(rate));
+        if (length(.rate) !=1) stop("only a single rate 'rate' can be specified.");
         if (.rate=="model" || .rate=="modeled" ||
             .rate=="modelled" || .rate=="rate"){
             .rate <- try(eval(rate, envir=envir), silent=TRUE);
@@ -219,6 +222,7 @@ et.default <- function(...,time, amt, evid, cmt, ii, addl, ss, rate, dur, until,
     }
     if (!missing(dur)){
         .dur <- as.character(substitute(dur));
+        if (length(.dur) !=1) stop("only a single duration 'dur' can be specified.");
         if (.dur=="model" || .dur=="modeled" ||
             .dur=="modelled" || .dur=="dur" ||
             .dur=="duration"){
@@ -231,6 +235,7 @@ et.default <- function(...,time, amt, evid, cmt, ii, addl, ss, rate, dur, until,
             }
         } else if (.dur=="rate"){
             .dur <- try(eval(dur,envir=envir), silent=TRUE);
+            if (length(.dur) !=1) stop("only a single rate 'rate' can be specified.");
             if (inherits(.dur, "try-error")){
                 .lst$rate <- -1.0;
                 .lst <- .lst[names(.lst) != "dur"];
@@ -246,7 +251,7 @@ et.default <- function(...,time, amt, evid, cmt, ii, addl, ss, rate, dur, until,
     .unitNames <- .unitNames[regexpr("^(amount|time)",.unitNames) != -1];
     .unitNames <- .unitNames[.unitNames != "time"];
     for (.u in .unitNames){
-        if (class(.lst[[.u]])=="name"){
+        if (inherits(.lst[[.u]], "name")){
             .tmp <- .lst[[.u]];
             .tmp <- deparse(substitute(.tmp))
             .lst[[.u]] <- .tmp
