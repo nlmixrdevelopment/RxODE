@@ -67,15 +67,17 @@ event ids (EVID):
 - EVID = -20 when a duration specified zero-order infusion ends (corresponds to dur > 0)
 - EVID = 101, 102, 103,... These correspond to the 1, 2, 3, ... modeled time (mtime).
 
-These can only be accessed when solving with the option
-`addDosing=TRUE`. If you want to see the classic `EVID` equivalents
-you can use `addDosing=NA`.
+These can only be accessed when solving with the option combination
+`addDosing=TRUE` and `subsetNonmem=FALSE`. If you want to see the
+classic `EVID` equivalents you can use `addDosing=NA`.
  
 ## Creating RxODE's event tables
 An event table in RxODE is a specialized data frame that acts as a
 container for all of RxODE's events and observation times.
 
-To create an RxODE event table you may use the code `eventTable()` or `et()`
+To create an RxODE event table you may use the code `eventTable()`,
+`et()`, or even create your own data frame with the right event
+information contained in it.
 
 ```{r}
 library(RxODE)

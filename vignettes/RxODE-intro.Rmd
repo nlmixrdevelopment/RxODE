@@ -131,7 +131,7 @@ need for compartment renumbering.
 These events can also be combined and expanded (to multi-subject
 events and complex regimens) with `rbind`, `c`, `seq`, and `rep`. For
 more information about creating complex dosing regimens using RxODE
-see the RxODE events vignette.
+see the [RxODE events vignette](RxODE-events.html).
 
 
 # Solving ODEs
@@ -148,13 +148,13 @@ knitr::kable(head(x))
 You can also solve this and create a RxODE data frame:
 
 
-```{r, results="asis"}
+```{r}
 x <- mod1 %>% solve(theta, ev, inits);
-rxHtml(x)
+x
 ```
 
-This returns a matrix.  You can see the compartment values in the plot
-below:
+This returns a modified data frame.  You can see the compartment
+values in the plot below:
 
 ```{r}
 library(ggplot2)

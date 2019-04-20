@@ -7,7 +7,7 @@ vignette: >
   %\VignetteIndexEntry{RxODE ODE solving syntax}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
----
+---r
 
 ```{r, echo=FALSE}
 options(cli.unicode=FALSE, crayon.enabled=FALSE);
@@ -110,7 +110,7 @@ however, no character nor integer expressions are currently supported.
 Numeric expressions can include the following numeric operators `+, -,
 *, /, ^` and those mathematical functions defined in the C or the R
 math libraries (e.g., `fabs`, `exp`, `log`, `sin`, `abs`).  In addition, the
-factorial operator and function (either `!` or `factorial` as in R)
+factorial operator and function (either `!` or `factorial` as in R; Note that `!` is only supported in text-file syntax as it is not legal R syntax)
 can be used. Notice that the modulo operator `%` is currently
 unsupported.
 
@@ -190,4 +190,9 @@ open source tool *DParser*, Plevyak (2015).
 
 ## Bugs and/or deficiencies
 
-The modulo operator `%` is currently unsupported. 
+- The modulo operator `%` is currently unsupported. 
+- `else if`  is not currently supported 
+- Conditional statements inside a single statement like `ifelse` are
+  not currently supported.
+- Logical expressions within a statement are not supported, that is
+  `(cmt==2)*1+(cmt==3)*4` is not supported

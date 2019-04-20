@@ -1328,14 +1328,11 @@ rxCompile.rxModelVars <-  function(model, # Model
         if (is.loaded(.modVars)){
             .allModVars <- eval(parse(text = sprintf(".Call(\"%s\")", .modVars)), envir = .GlobalEnv)
             .modVars <- .allModVars$md5;
-        }
-        if (!any(names(.modVars) == "file_md5")){
-            .needCompile <- FALSE;
-        } else {
-            ## print(.modVars$md5)
-            ## if (.modVars["file_md5"] == .md5$digest){
+            if (!any(names(.modVars) == "file_md5")){
                 .needCompile <- FALSE;
-            ## }
+            } else {
+                .needCompile <- FALSE;
+            }
         }
     }
     if (force || .needCompile){
@@ -1367,9 +1364,11 @@ rxCompile.rxModelVars <-  function(model, # Model
             }
             .trans <- model
             if (file.exists(.cDllFile)){
-                if (.modVars["parsed_md5"] == .trans["parsed_md5"]){
-                    RxODE::rxCat("Don't need to recompile, minimal change to model detected.\n");
-                    .needCompile <- FALSE;
+                if (inherits(.modVars, "list")){
+                    if (.modVars["parsed_md5"] == .trans["parsed_md5"]){
+                        RxODE::rxCat("Don't need to recompile, minimal change to model detected.\n");
+                        .needCompile <- FALSE;
+                    }
                 }
             }
             if (force || .needCompile){
@@ -1466,6 +1465,9 @@ rxCompile.rxModelVars <-  function(model, # Model
     .args <- list(model = model, dir = .dir, prefix = prefix,
                  extraC = extraC, force = force, modName = modName,
                  ...);
+    if (is.null(.allModVars)){
+        stop("Something went wrong in compilation");
+    }
     ret <- suppressWarnings({list(dll     = .cDllFile,
                                   c       = .cFile,
                                   model   = .allModVars$model["normModel"],
