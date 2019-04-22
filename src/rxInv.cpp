@@ -40,7 +40,7 @@ arma::mat rxToCholOmega(arma::mat cholMat){
     success = inv(cholO, cholMat);
     if (success) return cholO;
     stop("Cannot invert in `rxToCholOmega`");
-  } catch {
+  } catch (...) {
     success = inv(cholO, cholMat);
     if (success) return cholO;
     stop("Cannot invert in `rxToCholOmega`");
@@ -61,7 +61,7 @@ arma::mat rxToOmega(arma::mat cholMat){
     success = inv(U1, cholMat);
     if (success) return U1*trans(U1);
     stop("Cannot invert in `rxToOmega`");
-  } catch {
+  } catch (...) {
     success = inv(U1, cholMat);
     if (success) return U1*trans(U1);
     stop("Cannot invert in `rxToOmega`");
