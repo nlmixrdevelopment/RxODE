@@ -74,7 +74,7 @@ Imports:
     pillar,
     rex,
     sys,
-    units,
+    units(>= 0.6-0),
     utils,
     assertthat
 Description: Facilities for running simulations from ordinary
