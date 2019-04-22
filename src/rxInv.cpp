@@ -29,15 +29,44 @@ NumericVector rxInv(SEXP matrix){
 }
 
 arma::mat rxToCholOmega(arma::mat cholMat){
-  // Only the cholesky is needed for the liklihood caclation
-  return inv(trimatu(cholMat));
+  // Only the cholesky is needed for the liklihood calculation
+  // trimatu is faster, but it seems to have problems sometimes with certain BLAS combinations:
+  // See https://github.com/nlmixrdevelopment/RxODE/issues/84
+  arma::mat cholO;
+  bool success;
+  try {
+    success = inv(cholO, trimatu(cholMat));
+    if (success) return cholO;
+    success = inv(cholO, cholMat);
+    if (success) return cholO;
+    stop("Cannot invert in `rxToCholOmega`");
+  } catch {
+    success = inv(cholO, cholMat);
+    if (success) return cholO;
+    stop("Cannot invert in `rxToCholOmega`");
+  }
+  // should not get here.
+  return cholO;
 }
 
 // [[Rcpp::export]]
 arma::mat rxToOmega(arma::mat cholMat){
   // The Omega is need.
   // U^-1*trans(U^1) = Omega
-  arma::mat U1 = inv(trimatu(cholMat));
+  arma::mat U1;
+  bool success;
+  try {
+    success = inv(U1, trimatu(cholMat));
+    if (success) return U1*trans(U1);
+    success = inv(U1, cholMat);
+    if (success) return U1*trans(U1);
+    stop("Cannot invert in `rxToOmega`");
+  } catch {
+    success = inv(U1, cholMat);
+    if (success) return U1*trans(U1);
+    stop("Cannot invert in `rxToOmega`");
+  }
+  // should not get here.
   return U1*trans(U1);
 }
 //' Get Omega^-1 and derivatives
