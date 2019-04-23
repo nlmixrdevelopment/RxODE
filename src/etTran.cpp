@@ -266,23 +266,8 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false, bool allTimeVar
 	warning("Using subject since the id column was not found.");
 	idCol=i;
       }
-      else if (tmpS == "dose"){
-	warning("Using dose since the amt column was not found.");
-	amtCol=i;
-      }
       else if (tmpS == "y"){
-	warning("Using y since the dv column was not found.")
-	dvCol=i;
-      }
-    }
-  }
-  if (dvCol == -1){
-    for (i = lName.size(); i--;){
-      tmpS0= as<std::string>(lName[i]);
-      tmpS = as<std::string>(lName[i]);
-      std::transform(tmpS.begin(), tmpS.end(), tmpS.begin(), ::tolower);
-      else if (tmpS == "conc"){
-	warning("Using conc since the dv column was not found.")
+	warning("Using y since the dv column was not found.");
 	dvCol=i;
       }
     }
