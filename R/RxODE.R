@@ -1441,6 +1441,8 @@ rxCompile.rxModelVars <-  function(model, # Model
                     message(paste(rawToChar(.out$stdout),sep="\n"))
                     message(cli::rule(left="stderr output"));
                     message(paste(rawToChar(.out$stderr),sep="\n"))
+                    message(cli::rule(left="c source"));
+                    message(paste(readLines(.cFile),collapse="\n"))
                     stop(msg, call.=FALSE);
                 }
                 if (!(.out$status==0 & file.exists(.cDllFile))){
