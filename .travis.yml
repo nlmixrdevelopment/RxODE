@@ -37,11 +37,9 @@ addons:
       - libudunits2-dev
 
 r_github_packages:
-  - r-lib/covr
   - nlmixrdevelopment/n1qn1
   - nlmixrdevelopment/dparser-R
   - nlmixrdevelopment/PreciseSums
   - nlmixrdevelopment/SnakeCharmR
-
 after_success:
-  - Rscript -e 'covr::codecov(function_exclusions="(print\\.|summary\\.|\\.onLoad)")'
+  - Rscript -e 'covr::codecov()'
