@@ -2055,17 +2055,6 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
       sAppend(&sbOut, "SEXP %smodel_vars();\n", prefix);
       sAppend(&sbOut, "%s\nextern double* %stheta(double *theta){\n  %s\n  return _theta;\n}\n", fixInis0, prefix, fixInis1);
       sAppendN(&sbOut,"\n", 1);
-      for (i = 0; i < (int)strlen(extra_buf); i++){
-	if (extra_buf[i] == '"'){
-	  sAppendN(&sbOut,"\"", 1);
-	} else if (extra_buf[i] == '\n'){
-	  sAppendN(&sbOut,"\n", 1);
-	} else if (extra_buf[i] == '\t'){
-	  sAppendN(&sbOut,"\t", 1);
-	} else if (extra_buf[i] >= 32  && extra_buf[i] <= 126){ // ASCII only
-	  sPut(&sbOut, extra_buf[i]);//fprintf(outpt,"%c",extra_buf[i]);
-	}
-      }
       sAppendN(&sbOut, "\n// prj-specific differential eqns\nvoid ", 40);
       sAppend(&sbOut, "%sdydt(int *_neq, double t, double *__zzStateVar__, double *__DDtStateVar__)\n{\n  int _cSub = _neq[1];\n", prefix);
     } else if (show_ode == 2){
