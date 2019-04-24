@@ -134,9 +134,9 @@
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
       <h1>RxODE Covariates</h1>
-                        <h4 class="author">Matthew L. Fidler, Melissa Hallow, and Wenping Wang</h4>
+                        <h4 class="author">Matthew L. Fidler, and Wenping Wang</h4>
             
-            <h4 class="date">2019-04-19</h4>
+            <h4 class="date">2019-04-23</h4>
       
       
       <div class="hidden name"><code>RxODE-covariates.Rmd</code></div>
@@ -179,16 +179,16 @@ ev<span class="op">$</span>ctime &lt;-<span class="st"> </span>(ev<span class="o
 <p>Now there is a covariate present, the system can be solved using the cov option</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">r1 &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/solve">solve</a></span>(mod3, ev, <span class="dt">covs_interpolation=</span><span class="st">"linear"</span>)
 <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/print">print</a></span>(r1)</code></pre></div>
-<pre><code>## ___________________________ Solved RxODE object ___________________________ 
-## -- Parameters ($params): -------------------------------------------------- 
+<pre><code>## ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂ Solved RxODE object ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂ 
+## ── Parameters ($params): ────────────────────────────────────────────────── 
 ##         KA         CL         V2          Q         V3       Kin0 
 ##   0.294000  18.600000  40.200000  10.500000 297.000000   1.000000 
 ##       Kout       EC50         Tz        amp         pi 
 ##   1.000000 200.000000   8.000000   0.100000   3.141593 
-## -- Initial Conditions ($inits): ------------------------------------------- 
+## ── Initial Conditions ($inits): ─────────────────────────────────────────── 
 ## eff 
 ##   1 
-## -- First part of data (object): ------------------------------------------- 
+## ── First part of data (object): ─────────────────────────────────────────── 
 ## # A tibble: 100 x 4
 ##        time    C2   Kin   eff
 ##         [h] &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
@@ -198,8 +198,8 @@ ev<span class="op">$</span>ctime &lt;-<span class="st"> </span>(ev<span class="o
 ## 4 1.4545455  51.8  1.09  1.22
 ## 5 1.9393939  54.8  1.09  1.27
 ## 6 2.4242424  54.6  1.08  1.30
-## # ... with 94 more rows</code></pre>
-<pre><code>## ___________________________________________________________________________</code></pre>
+## # … with 94 more rows</code></pre>
+<pre><code>## ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂</code></pre>
 <p>When solving ODE equations, the solver may sample times outside of the data. When this happens, this ODE solver uses linear interpolation between the covariate values. This is the default value. It is equivalent to R’s <code>approxfun</code> with <code>method="linear"</code>, which is the default <code>approxfun</code>.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(ggplot2)
 <span class="kw"><a href="https://www.rdocumentation.org/packages/graphics/topics/plot">plot</a></span>(r1,C2) <span class="op">+</span><span class="kw"><a href="https://www.rdocumentation.org/packages/ggplot2/topics/labs">ylab</a></span>(<span class="st">"Central Concentration"</span>) <span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/ggplot2/topics/labs">xlab</a></span>(<span class="st">"Time"</span>);</code></pre></div>
@@ -210,16 +210,16 @@ ev<span class="op">$</span>ctime &lt;-<span class="st"> </span>(ev<span class="o
 <p>In RxODE, covariate interpolation can also be the last observation carried forward, or constant approximation. This is equivalent to R’s <code>approxfun</code> with <code>method="constant"</code>.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">r1 &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/solve">solve</a></span>(mod3, ev,<span class="dt">covs_interpolation=</span><span class="st">"constant"</span>)
 <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/print">print</a></span>(r1)</code></pre></div>
-<pre><code>## ___________________________ Solved RxODE object ___________________________ 
-## -- Parameters ($params): -------------------------------------------------- 
+<pre><code>## ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂ Solved RxODE object ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂ 
+## ── Parameters ($params): ────────────────────────────────────────────────── 
 ##         KA         CL         V2          Q         V3       Kin0 
 ##   0.294000  18.600000  40.200000  10.500000 297.000000   1.000000 
 ##       Kout       EC50         Tz        amp         pi 
 ##   1.000000 200.000000   8.000000   0.100000   3.141593 
-## -- Initial Conditions ($inits): ------------------------------------------- 
+## ── Initial Conditions ($inits): ─────────────────────────────────────────── 
 ## eff 
 ##   1 
-## -- First part of data (object): ------------------------------------------- 
+## ── First part of data (object): ─────────────────────────────────────────── 
 ## # A tibble: 100 x 4
 ##        time    C2   Kin   eff
 ##         [h] &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
@@ -229,8 +229,8 @@ ev<span class="op">$</span>ctime &lt;-<span class="st"> </span>(ev<span class="o
 ## 4 1.4545455  51.8  1.09  1.22
 ## 5 1.9393939  54.8  1.09  1.27
 ## 6 2.4242424  54.6  1.08  1.31
-## # ... with 94 more rows</code></pre>
-<pre><code>## ___________________________________________________________________________</code></pre>
+## # … with 94 more rows</code></pre>
+<pre><code>## ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂</code></pre>
 <p>which gives the following plots:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/graphics/topics/plot">plot</a></span>(r1,C2) <span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/ggplot2/topics/labs">ylab</a></span>(<span class="st">"Central Concentration"</span>) <span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/ggplot2/topics/labs">xlab</a></span>(<span class="st">"Time"</span>);</code></pre></div>
 <p><img src="RxODE-covariates_files/figure-html/unnamed-chunk-7-1.png" width="700"></p>
@@ -240,16 +240,16 @@ ev<span class="op">$</span>ctime &lt;-<span class="st"> </span>(ev<span class="o
 <p>You can also use NONMEM’s preferred interpolation style of next observation carried backward (NOCB):</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">r1 &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/solve">solve</a></span>(mod3, ev,<span class="dt">covs_interpolation=</span><span class="st">"nocb"</span>)
 <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/print">print</a></span>(r1)</code></pre></div>
-<pre><code>## ___________________________ Solved RxODE object ___________________________ 
-## -- Parameters ($params): -------------------------------------------------- 
+<pre><code>## ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂ Solved RxODE object ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂ 
+## ── Parameters ($params): ────────────────────────────────────────────────── 
 ##         KA         CL         V2          Q         V3       Kin0 
 ##   0.294000  18.600000  40.200000  10.500000 297.000000   1.000000 
 ##       Kout       EC50         Tz        amp         pi 
 ##   1.000000 200.000000   8.000000   0.100000   3.141593 
-## -- Initial Conditions ($inits): ------------------------------------------- 
+## ── Initial Conditions ($inits): ─────────────────────────────────────────── 
 ## eff 
 ##   1 
-## -- First part of data (object): ------------------------------------------- 
+## ── First part of data (object): ─────────────────────────────────────────── 
 ## # A tibble: 100 x 4
 ##        time    C2   Kin   eff
 ##         [h] &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
@@ -259,8 +259,8 @@ ev<span class="op">$</span>ctime &lt;-<span class="st"> </span>(ev<span class="o
 ## 4 1.4545455  51.8  1.09  1.21
 ## 5 1.9393939  54.8  1.09  1.27
 ## 6 2.4242424  54.6  1.08  1.30
-## # ... with 94 more rows</code></pre>
-<pre><code>## ___________________________________________________________________________</code></pre>
+## # … with 94 more rows</code></pre>
+<pre><code>## ▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂</code></pre>
 <p>which gives the following plots:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/graphics/topics/plot">plot</a></span>(r1,C2) <span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/ggplot2/topics/labs">ylab</a></span>(<span class="st">"Central Concentration"</span>) <span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/ggplot2/topics/labs">xlab</a></span>(<span class="st">"Time"</span>);</code></pre></div>
 <p><img src="RxODE-covariates_files/figure-html/unnamed-chunk-10-1.png" width="700"></p>

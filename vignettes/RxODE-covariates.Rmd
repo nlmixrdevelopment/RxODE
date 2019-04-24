@@ -1,6 +1,6 @@
 ---
 title: "RxODE Covariates"
-author: "Matthew L. Fidler, Melissa Hallow, and Wenping Wang"
+author: "Matthew L. Fidler, and Wenping Wang"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
@@ -10,7 +10,14 @@ vignette: >
 ---
 
 ```{r, echo=FALSE}
-options(knitr.table.format = "html")
+## options(knitr.table.format = "html")
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  message = FALSE,
+  warning = FALSE,
+  out.width = "100%"
+)
 htmltools::img(src = knitr::image_uri("logo.png"), 
                alt = 'RxODE', 
                style = 'position:absolute; top:0; right:0; padding:10px; border: 0;')

@@ -136,7 +136,7 @@
       <h1>RxODE Events</h1>
                         <h4 class="author">Matthew L. Fidler, Melissa Hallow, and Wenping Wang</h4>
             
-            <h4 class="date">2019-04-19</h4>
+            <h4 class="date">2019-04-23</h4>
       
       
       <div class="hidden name"><code>RxODE-events.Rmd</code></div>
@@ -245,13 +245,13 @@
 <li>EVID = -20 when a duration specified zero-order infusion ends (corresponds to dur &gt; 0)</li>
 <li>EVID = 101, 102, 103,… These correspond to the 1, 2, 3, … modeled time (mtime).</li>
 </ul>
-<p>These can only be accessed when solving with the option <code>addDosing=TRUE</code>. If you want to see the classic <code>EVID</code> equivalents you can use <code>addDosing=NA</code>.</p>
+<p>These can only be accessed when solving with the option combination <code>addDosing=TRUE</code> and <code>subsetNonmem=FALSE</code>. If you want to see the classic <code>EVID</code> equivalents you can use <code>addDosing=NA</code>.</p>
 </div>
 <div id="creating-rxodes-event-tables" class="section level2">
 <h2 class="hasAnchor">
 <a href="#creating-rxodes-event-tables" class="anchor"></a>Creating RxODE’s event tables</h2>
 <p>An event table in RxODE is a specialized data frame that acts as a container for all of RxODE’s events and observation times.</p>
-<p>To create an RxODE event table you may use the code <code><a href="../reference/eventTable.html">eventTable()</a></code> or <code><a href="../reference/et.html">et()</a></code></p>
+<p>To create an RxODE event table you may use the code <code><a href="../reference/eventTable.html">eventTable()</a></code>, <code><a href="../reference/et.html">et()</a></code>, or even create your own data frame with the right event information contained in it.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(RxODE)
 (ev &lt;-<span class="st"> </span><span class="kw"><a href="../reference/eventTable.html">eventTable</a></span>());</code></pre></div>
 <pre><code>#&gt; --------------------------- EventTable with 0 records -------------------------- 

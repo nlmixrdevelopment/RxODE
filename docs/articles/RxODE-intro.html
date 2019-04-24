@@ -136,7 +136,7 @@
       <h1>Introduction to RxODE</h1>
                         <h4 class="author">Matthew L. Fidler, Melissa Hallow, and Wenping Wang</h4>
             
-            <h4 class="date">2019-04-19</h4>
+            <h4 class="date">2019-04-23</h4>
       
       
       <div class="hidden name"><code>RxODE-intro.Rmd</code></div>
@@ -588,7 +588,7 @@ NA
 <span class="st">    </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="dt">time=</span><span class="dv">120</span>, <span class="dt">amt=</span><span class="dv">2000</span>, <span class="dt">addl=</span><span class="dv">4</span>, <span class="dt">ii=</span><span class="dv">14</span>, <span class="dt">cmt=</span><span class="st">"depot"</span>) <span class="op">%&gt;%</span>
 <span class="st">    </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="dv">0</span><span class="op">:</span><span class="dv">240</span>) <span class="co"># Assumes sampling when there is no dosing information</span></code></pre></div>
 <p>You can see from the above code, you can dose to the compartment named in the RxODE model. This slight deviation from NONMEM can reduce the need for compartment renumbering.</p>
-<p>These events can also be combined and expanded (to multi-subject events and complex regimens) with <code>rbind</code>, <code>c</code>, <code>seq</code>, and <code>rep</code>. For more information about creating complex dosing regimens using RxODE see the RxODE events vignette.</p>
+<p>These events can also be combined and expanded (to multi-subject events and complex regimens) with <code>rbind</code>, <code>c</code>, <code>seq</code>, and <code>rep</code>. For more information about creating complex dosing regimens using RxODE see the <a href="RxODE-events.html">RxODE events vignette</a>.</p>
 </div>
 </div>
 <div id="solving-odes" class="section level1">
@@ -764,288 +764,27 @@ eff
 </table>
 <p>You can also solve this and create a RxODE data frame:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">x &lt;-<span class="st"> </span>mod1 <span class="op">%&gt;%</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/solve">solve</a></span>(theta, ev, inits);
-<span class="kw"><a href="../reference/rxHtml.html">rxHtml</a></span>(x)</code></pre></div>
-<style>
-         th,td{
-             padding:2px 5px 2px 5px;
-         }
-    </style>
-<table class="table">
-<tr>
-<td style="text-align: center; padding: 5px;">
-<strong>Solved RxODE object</strong>
-</td>
-</tr>
-<tr>
-<td>
-<strong>Parameters</strong> (<span style="color: Orange;"></span><strong blue>$params</strong>):
-</td>
-</tr>
-<tr>
-<td>
-<table class="table">
-<thead><tr>
-<th style="text-align:right;">
-V2
-</th>
-<th style="text-align:right;">
-V3
-</th>
-<th style="text-align:right;">
-KA
-</th>
-<th style="text-align:right;">
-CL
-</th>
-<th style="text-align:right;">
-Q
-</th>
-<th style="text-align:right;">
-Kin
-</th>
-<th style="text-align:right;">
-Kout
-</th>
-<th style="text-align:right;">
-EC50
-</th>
-</tr></thead>
-<tbody><tr>
-<td style="text-align:right;">
-40.2
-</td>
-<td style="text-align:right;">
-297
-</td>
-<td style="text-align:right;">
-0.294
-</td>
-<td style="text-align:right;">
-18.6
-</td>
-<td style="text-align:right;">
-10.5
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-200
-</td>
-</tr></tbody>
-</table>
-</td>
-</tr>
-<tr>
-<td>
-<strong>Initial Conditions</strong> (<span style="color: Orange;"> </span><strong blue>$inits</strong>):
-</td>
-</tr>
-<tr>
-<td>
-<table class="table">
-<thead><tr>
-<th style="text-align:right;">
-depot
-</th>
-<th style="text-align:right;">
-centr
-</th>
-<th style="text-align:right;">
-peri
-</th>
-<th style="text-align:right;">
-eff
-</th>
-</tr></thead>
-<tbody><tr>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-1
-</td>
-</tr></tbody>
-</table>
-<strong>First part of data (object):</strong>
-<table class="table">
-<thead><tr>
-<th style="text-align:right;">
-time
-</th>
-<th style="text-align:right;">
-C2
-</th>
-<th style="text-align:right;">
-C3
-</th>
-<th style="text-align:right;">
-depot
-</th>
-<th style="text-align:right;">
-centr
-</th>
-<th style="text-align:right;">
-peri
-</th>
-<th style="text-align:right;">
-eff
-</th>
-</tr></thead>
-<tbody>
-<tr>
-<td style="text-align:right;">
-0 [h]
-</td>
-<td style="text-align:right;">
-0.00000
-</td>
-<td style="text-align:right;">
-0.0000000
-</td>
-<td style="text-align:right;">
-10000.000
-</td>
-<td style="text-align:right;">
-0.000
-</td>
-<td style="text-align:right;">
-0.0000
-</td>
-<td style="text-align:right;">
-1.000000
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-1 [h]
-</td>
-<td style="text-align:right;">
-44.37555
-</td>
-<td style="text-align:right;">
-0.9198298
-</td>
-<td style="text-align:right;">
-7452.765
-</td>
-<td style="text-align:right;">
-1783.897
-</td>
-<td style="text-align:right;">
-273.1895
-</td>
-<td style="text-align:right;">
-1.084664
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-2 [h]
-</td>
-<td style="text-align:right;">
-54.88296
-</td>
-<td style="text-align:right;">
-2.6729825
-</td>
-<td style="text-align:right;">
-5554.370
-</td>
-<td style="text-align:right;">
-2206.295
-</td>
-<td style="text-align:right;">
-793.8758
-</td>
-<td style="text-align:right;">
-1.180825
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-3 [h]
-</td>
-<td style="text-align:right;">
-51.90343
-</td>
-<td style="text-align:right;">
-4.4564927
-</td>
-<td style="text-align:right;">
-4139.542
-</td>
-<td style="text-align:right;">
-2086.518
-</td>
-<td style="text-align:right;">
-1323.5783
-</td>
-<td style="text-align:right;">
-1.228914
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-4 [h]
-</td>
-<td style="text-align:right;">
-44.49738
-</td>
-<td style="text-align:right;">
-5.9807076
-</td>
-<td style="text-align:right;">
-3085.103
-</td>
-<td style="text-align:right;">
-1788.795
-</td>
-<td style="text-align:right;">
-1776.2702
-</td>
-<td style="text-align:right;">
-1.234610
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-5 [h]
-</td>
-<td style="text-align:right;">
-36.48434
-</td>
-<td style="text-align:right;">
-7.1774981
-</td>
-<td style="text-align:right;">
-2299.255
-</td>
-<td style="text-align:right;">
-1466.670
-</td>
-<td style="text-align:right;">
-2131.7169
-</td>
-<td style="text-align:right;">
-1.214742
-</td>
-</tr>
-</tbody>
-</table>
-</td>
-</tr>
-</table>
-<p>This returns a matrix. You can see the compartment values in the plot below:</p>
+x</code></pre></div>
+<pre><code>## ___________________________ Solved RxODE object ___________________________ 
+## -- Parameters (x$params): ------------------------------------------------- 
+##      V2      V3      KA      CL       Q     Kin    Kout    EC50 
+##  40.200 297.000   0.294  18.600  10.500   1.000   1.000 200.000 
+## -- Initial Conditions (x$inits): ------------------------------------------ 
+## depot centr  peri   eff 
+##     0     0     0     1 
+## -- First part of data (object): ------------------------------------------- 
+## # A tibble: 241 x 7
+##    time    C2    C3  depot centr  peri   eff
+##     [h] &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+## 1     0   0   0     10000     0     0   1   
+## 2     1  44.4 0.920  7453. 1784.  273.  1.08
+## 3     2  54.9 2.67   5554. 2206.  794.  1.18
+## 4     3  51.9 4.46   4140. 2087. 1324.  1.23
+## 5     4  44.5 5.98   3085. 1789. 1776.  1.23
+## 6     5  36.5 7.18   2299. 1467. 2132.  1.21
+## # ... with 235 more rows</code></pre>
+<pre><code>## ___________________________________________________________________________</code></pre>
+<p>This returns a modified data frame. You can see the compartment values in the plot below:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(ggplot2)
 <span class="kw"><a href="https://www.rdocumentation.org/packages/graphics/topics/plot">plot</a></span>(x,C2) <span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/ggplot2/topics/labs">ylab</a></span>(<span class="st">"Central Concentration"</span>) <span class="op">+</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/ggplot2/topics/labs">xlab</a></span>(<span class="st">"Time"</span>);</code></pre></div>
 <p><img src="RxODE-intro_files/figure-html/unnamed-chunk-13-1.png" width="700"></p>

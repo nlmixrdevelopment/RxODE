@@ -256,22 +256,6 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false, bool allTimeVar
       }
     }
   }
-  if (idCol == -1 || dvCol == -1 || amtCol == -1){
-    for (i = lName.size(); i--;){
-      tmpS0= as<std::string>(lName[i]);
-      tmpS = as<std::string>(lName[i]);
-      std::transform(tmpS.begin(), tmpS.end(), tmpS.begin(), ::tolower);
-      lName[i] = tmpS;
-      if (tmpS == "subject"){
-	warning("Using subject since the id column was not found.");
-	idCol=i;
-      }
-      else if (tmpS == "y"){
-	warning("Using y since the dv column was not found.");
-	dvCol=i;
-      }
-    }
-  }
   List covUnits(covCol.size());
   CharacterVector covUnitsN(covCol.size());
   NumericVector nvTmp, nvTmp2;
