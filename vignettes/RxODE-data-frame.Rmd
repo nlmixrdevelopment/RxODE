@@ -14,9 +14,19 @@ options(knitr.table.format = "html")
 htmltools::img(src = knitr::image_uri("logo.png"), 
                alt = 'RxODE', 
                style = 'position:absolute; top:0; right:0; padding:10px; border: 0;')
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  message = FALSE,
+  warning = FALSE,
+  out.width = "100%"
+)
+```
+
 ```
 
 # Using RxODE data frames
+## Creating an interactive data frame
 
 RxODE supports returning a solved object that is a modified data-frame.
 This is done by the `predict()`, `solve()`, or `rxSolve()` methods.
@@ -70,6 +80,7 @@ x <- mod1 %>% solve(theta, ev, inits)
 print(x)
 ```
 
+## Using the solved object as a simple data frame
 The solved object acts as a `data.frame` or `tbl` that can be filtered
 by `dpylr`.  For example you could filter it easily.
 
@@ -82,6 +93,7 @@ x <- mod1 %>% solve(theta,ev,inits) %>% filter(time <= set_units(3, hr)) %>% as.
 x
 ```
 
+## Updating the data-set interactively 
 However it isn't just a simple data object.  You can use the solved
 object to update paramters on the fly, or even change the sampling
 time.
@@ -93,6 +105,7 @@ First we need to recreate the original solved system:
 x <- mod1 %>% solve(theta,ev,inits);
 print(x)
 ```
+### Modifying initial conditions
 
 To examine or change initial conditions, you can use the syntax
 `cmt.0`, `cmt0`, or `cmt_0`. In the case of the `eff` compartment
@@ -112,6 +125,7 @@ print(x)
 plot(x)
 ```
 
+### Modifying observation times for RxODE
 Notice that the inital effect is now `2`.
 
 You can also change the sampling times easily by this method by
@@ -123,6 +137,7 @@ print(x)
 plot(x)
 ```
 
+### Modifying simulation parameters
 You can also access or change parameters by the `$` operator.  For
 example, accessing `KA` can be done by:
 

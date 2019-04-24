@@ -103,7 +103,7 @@ navbar:
         - text: "Creating Dosing Events & Observations"
           href: articles/RxODE-events.html
         - text: "Multiple Subject RxODE Simulation"
-          href: articles/RxODE-simulation.html
+          href: articles/RxODE-sim-var.html
         - text: "Interactive RxODE Data Frames"
           href: articles/RxODE-data-frame.html
         - text: "--------------------------"
