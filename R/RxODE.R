@@ -240,7 +240,7 @@ rex::register_shortcuts("RxODE");
 ##'
 ##' @author Melissa Hallow, Wenping Wang and Matthew Fidler
 ##'
-##' @seealso \code{\link{eventTable}}
+##' @seealso \code{\link{eventTable}}, \code{\link{et}}, \code{\link{add.sampling}}, \code{\link{add.dosing}}
 ##'
 ##' @examples
 ##' # Step 1 - Create a model specification
@@ -298,6 +298,8 @@ rex::register_shortcuts("RxODE");
 ##' qd.cp <- solve(m1, theta, events = qd, inits);
 ##'
 ##' print(qd.cp)
+##'
+##' plot(qd.cp)
 ##'
 ##' @keywords models nonlinear
 ##' @concept Nonlinear regression

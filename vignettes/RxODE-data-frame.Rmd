@@ -93,7 +93,7 @@ x <- mod1 %>% solve(theta,ev,inits) %>% filter(time <= set_units(3, hr)) %>% as.
 x
 ```
 
-## Updating the data-set interactively 
+# Updating the data-set interactively 
 However it isn't just a simple data object.  You can use the solved
 object to update paramters on the fly, or even change the sampling
 time.
@@ -105,7 +105,7 @@ First we need to recreate the original solved system:
 x <- mod1 %>% solve(theta,ev,inits);
 print(x)
 ```
-### Modifying initial conditions
+## Modifying initial conditions
 
 To examine or change initial conditions, you can use the syntax
 `cmt.0`, `cmt0`, or `cmt_0`. In the case of the `eff` compartment
@@ -125,7 +125,7 @@ print(x)
 plot(x)
 ```
 
-### Modifying observation times for RxODE
+## Modifying observation times for RxODE
 Notice that the inital effect is now `2`.
 
 You can also change the sampling times easily by this method by
@@ -137,7 +137,7 @@ print(x)
 plot(x)
 ```
 
-### Modifying simulation parameters
+## Modifying simulation parameters
 You can also access or change parameters by the `$` operator.  For
 example, accessing `KA` can be done by:
 
@@ -150,6 +150,7 @@ And you may change it by assigning it to a new value.
 ```{r}
 x$KA <- 1;
 print(x)
+plot(x)
 ```
 
 
