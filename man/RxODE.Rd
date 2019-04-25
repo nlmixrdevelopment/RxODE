@@ -281,6 +281,8 @@ qd.cp <- solve(m1, theta, events = qd, inits);
 
 print(qd.cp)
 
+plot(qd.cp)
+
 }
 \references{
 Chamber, J. M. and Temple Lang, D. (2001)
@@ -307,7 +309,7 @@ Plevyek, J.
 \emph{Dparser}, \url{http://dparser.sourceforge.net}. Web. 12 Oct. 2015.
 }
 \seealso{
-\code{\link{eventTable}}
+\code{\link{eventTable}}, \code{\link{et}}, \code{\link{add.sampling}}, \code{\link{add.dosing}}
 }
 \author{
 Melissa Hallow, Wenping Wang and Matthew Fidler
