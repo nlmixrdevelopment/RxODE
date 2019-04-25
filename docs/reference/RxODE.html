@@ -433,7 +433,7 @@ Springer-Verlag (1993).</p>
     
     <h2 class="hasAnchor" id="see-also"><a class="anchor" href="#see-also"></a>See also</h2>
 
-    <div class='dont-index'><p><code><a href='eventTable.html'>eventTable</a></code></p></div>
+    <div class='dont-index'><p><code><a href='eventTable.html'>eventTable</a></code>, <code><a href='et.html'>et</a></code>, <code><a href='add.sampling.html'>add.sampling</a></code>, <code><a href='add.dosing.html'>add.dosing</a></code></p></div>
     
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
@@ -451,7 +451,7 @@ Springer-Verlag (1993).</p>
 "</span>
 
 <span class='no'>m1</span> <span class='kw'>&lt;-</span> <span class='fu'>RxODE</span>(<span class='kw'>model</span> <span class='kw'>=</span> <span class='no'>ode</span>)
-<span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/print'>print</a></span>(<span class='no'>m1</span>)</div><div class='output co'>#&gt; <span class='message'><span style='font-weight: bold;'>RxODE </span><span>0.9.0-5 model named </span><span style='color: #BBBB00;font-weight: bold;'>rx_b6d08426394cc47f0ae3c267e87d070b</span><span> model (</span><span style='color: #00BB00;'>✔</span><span> </span><span style='color: #00BB00;font-weight: bold;'>ready</span><span>).</span></div><div class='output co'>#&gt; <span class='message'></span><span style='color: #0000BB;font-weight: bold;'>$state</span><span>: depot, centr, peri, eff</span></div><div class='output co'>#&gt; <span class='message'></span><span style='color: #0000BB;font-weight: bold;'>$params</span><span>: V2, V3, KA, CL, Q, Kin, Kout, EC50</span></div><div class='output co'>#&gt; <span class='message'></span><span style='color: #0000BB;font-weight: bold;'>$lhs</span><span>: C2, C3</span></div><div class='input'>
+<span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/print'>print</a></span>(<span class='no'>m1</span>)</div><div class='output co'>#&gt; <span class='message'><span style='font-weight: bold;'>RxODE </span><span>0.9.0-5 model named </span><span style='color: #BBBB00;font-weight: bold;'>rx_74705a4a7206911aabfd2a462e32205f</span><span> model (</span><span style='color: #00BB00;'>✔</span><span> </span><span style='color: #00BB00;font-weight: bold;'>ready</span><span>).</span></div><div class='output co'>#&gt; <span class='message'></span><span style='color: #0000BB;font-weight: bold;'>$state</span><span>: depot, centr, peri, eff</span></div><div class='output co'>#&gt; <span class='message'></span><span style='color: #0000BB;font-weight: bold;'>$params</span><span>: V2, V3, KA, CL, Q, Kin, Kout, EC50</span></div><div class='output co'>#&gt; <span class='message'></span><span style='color: #0000BB;font-weight: bold;'>$lhs</span><span>: C2, C3</span></div><div class='input'>
 <span class='co'># Step 2 - Create the model input as an EventTable,</span>
 <span class='co'># including dosing and observation (sampling) events</span>
 
@@ -512,6 +512,7 @@ Springer-Verlag (1993).</p>
 #&gt; </span><span style='color: #555555;'>5</span><span>     4  44.4 5.94   </span><span style='text-decoration: underline;'>3</span><span>122. </span><span style='text-decoration: underline;'>1</span><span>784. </span><span style='text-decoration: underline;'>1</span><span>765.  1.23
 #&gt; </span><span style='color: #555555;'>6</span><span>     5  36.5 7.14   </span><span style='text-decoration: underline;'>2</span><span>334. </span><span style='text-decoration: underline;'>1</span><span>466. </span><span style='text-decoration: underline;'>2</span><span>120.  1.21
 #&gt; </span><span style='color: #555555;'># … with 31 more rows</span><span></div><div class='output co'>#&gt; <span class='message'>▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂</span></div><div class='input'>
+<span class='fu'><a href='https://www.rdocumentation.org/packages/graphics/topics/plot'>plot</a></span>(<span class='no'>qd.cp</span>)</div><div class='img'><img src='RxODE-1.png' alt='' width='700' height='433' /></div><div class='input'>
 </div></span></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">

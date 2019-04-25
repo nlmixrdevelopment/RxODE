@@ -136,7 +136,7 @@
       <h1>RxODE Data Frames</h1>
                         <h4 class="author">Matthew L. Fidler, Melissa Hallow, and Wenping Wang</h4>
             
-            <h4 class="date">2019-04-24</h4>
+            <h4 class="date">2019-04-25</h4>
       
       
       <div class="hidden name"><code>RxODE-data-frame.Rmd</code></div>
@@ -265,9 +265,10 @@ x
 <span class="co">#&gt; 3     2  54.9 2.67   5554. 2206.  794.  1.18</span>
 <span class="co">#&gt; 4     3  51.9 4.46   4140. 2087. 1324.  1.23</span></code></pre></div>
 </div>
-<div id="updating-the-data-set-interactively" class="section level2">
-<h2 class="hasAnchor">
-<a href="#updating-the-data-set-interactively" class="anchor"></a>Updating the data-set interactively</h2>
+</div>
+<div id="updating-the-data-set-interactively" class="section level1">
+<h1 class="hasAnchor">
+<a href="#updating-the-data-set-interactively" class="anchor"></a>Updating the data-set interactively</h1>
 <p>However it isn’t just a simple data object. You can use the solved object to update paramters on the fly, or even change the sampling time.</p>
 <p>First we need to recreate the original solved system:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">x &lt;-<span class="st"> </span>mod1 <span class="op">%&gt;%</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/solve">solve</a></span>(theta,ev,inits);
@@ -290,9 +291,9 @@ x
 <span class="co">#&gt; 5     4  44.5 5.98   3085. 1789. 1776.  1.23</span>
 <span class="co">#&gt; 6     5  36.5 7.18   2299. 1467. 2132.  1.21</span>
 <span class="co">#&gt; # ... with 235 more rows</span></code></pre></div>
-<div id="modifying-initial-conditions" class="section level3">
-<h3 class="hasAnchor">
-<a href="#modifying-initial-conditions" class="anchor"></a>Modifying initial conditions</h3>
+<div id="modifying-initial-conditions" class="section level2">
+<h2 class="hasAnchor">
+<a href="#modifying-initial-conditions" class="anchor"></a>Modifying initial conditions</h2>
 <p>To examine or change initial conditions, you can use the syntax <code>cmt.0</code>, <code>cmt0</code>, or <code>cmt_0</code>. In the case of the <code>eff</code> compartment defined by the model, this is:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">x<span class="op">$</span>eff0
 <span class="co">#&gt; [1] 1</span></code></pre></div>
@@ -320,9 +321,9 @@ x
 <span class="kw"><a href="https://www.rdocumentation.org/packages/graphics/topics/plot">plot</a></span>(x)</code></pre></div>
 <p><img src="RxODE-data-frame_files/figure-html/unnamed-chunk-8-1.png" width="100%"></p>
 </div>
-<div id="modifying-observation-times-for-rxode" class="section level3">
-<h3 class="hasAnchor">
-<a href="#modifying-observation-times-for-rxode" class="anchor"></a>Modifying observation times for RxODE</h3>
+<div id="modifying-observation-times-for-rxode" class="section level2">
+<h2 class="hasAnchor">
+<a href="#modifying-observation-times-for-rxode" class="anchor"></a>Modifying observation times for RxODE</h2>
 <p>Notice that the inital effect is now <code>2</code>.</p>
 <p>You can also change the sampling times easily by this method by changing <code>t</code> or <code>time</code>. For example:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">x<span class="op">$</span>t &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/seq">seq</a></span>(<span class="dv">0</span>,<span class="dv">5</span>,<span class="dt">length.out=</span><span class="dv">20</span>)
@@ -348,9 +349,9 @@ x
 <span class="kw"><a href="https://www.rdocumentation.org/packages/graphics/topics/plot">plot</a></span>(x)</code></pre></div>
 <p><img src="RxODE-data-frame_files/figure-html/unnamed-chunk-9-1.png" width="100%"></p>
 </div>
-<div id="modifying-simulation-parameters" class="section level3">
-<h3 class="hasAnchor">
-<a href="#modifying-simulation-parameters" class="anchor"></a>Modifying simulation parameters</h3>
+<div id="modifying-simulation-parameters" class="section level2">
+<h2 class="hasAnchor">
+<a href="#modifying-simulation-parameters" class="anchor"></a>Modifying simulation parameters</h2>
 <p>You can also access or change parameters by the <code>$</code> operator. For example, accessing <code>KA</code> can be done by:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">x<span class="op">$</span>KA
 <span class="co">#&gt; [1] 0.294</span></code></pre></div>
@@ -374,10 +375,11 @@ x
 <span class="co">#&gt; 4 0.7894737  99.8 1.75   4541. 4010.  519.   1.69</span>
 <span class="co">#&gt; 5 1.0526316 106.  2.69   3490. 4273.  800.   1.67</span>
 <span class="co">#&gt; 6 1.3157895 106.  3.66   2683. 4272. 1086.   1.64</span>
-<span class="co">#&gt; # ... with 14 more rows</span></code></pre></div>
+<span class="co">#&gt; # ... with 14 more rows</span>
+<span class="kw"><a href="https://www.rdocumentation.org/packages/graphics/topics/plot">plot</a></span>(x)</code></pre></div>
+<p><img src="RxODE-data-frame_files/figure-html/unnamed-chunk-11-1.png" width="100%"></p>
 <p>You can access/change all the parametrs, initilizations or events with the <code>$params</code>, <code>$inits</code>, <code>$events</code> accessor syntax, similar to what is used above.</p>
 <p>This syntax makes it easy to update and explore the effect of various parameters on the solved object.</p>
-</div>
 </div>
 </div>
   </div>
@@ -391,7 +393,13 @@ x
 <a href="#using-rxode-data-frames">Using RxODE data frames</a><ul class="nav nav-pills nav-stacked">
 <li><a href="#creating-an-interactive-data-frame">Creating an interactive data frame</a></li>
       <li><a href="#using-the-solved-object-as-a-simple-data-frame">Using the solved object as a simple data frame</a></li>
-      <li><a href="#updating-the-data-set-interactively">Updating the data-set interactively</a></li>
+      </ul>
+</li>
+      <li>
+<a href="#updating-the-data-set-interactively">Updating the data-set interactively</a><ul class="nav nav-pills nav-stacked">
+<li><a href="#modifying-initial-conditions">Modifying initial conditions</a></li>
+      <li><a href="#modifying-observation-times-for-rxode">Modifying observation times for RxODE</a></li>
+      <li><a href="#modifying-simulation-parameters">Modifying simulation parameters</a></li>
       </ul>
 </li>
       </ul>

@@ -2,7 +2,7 @@
 % Please edit documentation in R/rxsolve.R
 \name{rxMatrix}
 \alias{rxMatrix}
-\title{Parse matrix for simulation}
+\title{Easily Parse block-diagonal matrices with lower triangular info}
 \usage{
 rxMatrix(x, ...)
 }
@@ -17,7 +17,7 @@ named symmetric matrix useful in RxODE simulations (and
     perhaps elsewhere)
 }
 \description{
-Parse matrix for simulation
+Easily Parse block-diagonal matrices with lower triangular info
 }
 \details{
 This can take an R matrix, a list including matrices or expressions, or expressions

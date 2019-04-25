@@ -1,5 +1,5 @@
 ## nlmixr-style parsing of omega matrix expressions.
-##' Parse matrix for simulation
+##' Easily Parse block-diagonal matrices with lower triangular info
 ##'
 ##' @param x list, matrix or expression, see details
 ##'

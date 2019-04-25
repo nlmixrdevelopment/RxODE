@@ -20,6 +20,7 @@ reference:
 - title: Solving, Simulating and Solving options
   contents:
   - rxSolve
+  - rxMatrix
 - title: Exploring RxODE and creating models with Shiny
   contents:
   - rxShiny
