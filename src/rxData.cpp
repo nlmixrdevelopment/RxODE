@@ -25,7 +25,8 @@
 using namespace Rcpp;
 using namespace arma;
 
-List etTrans(List inData, const RObject &obj, bool addCmt, bool allTimeVar, bool keepDosingOnly);
+List etTrans(List inData, const RObject &obj, bool addCmt, bool allTimeVar, bool keepDosingOnly,
+	     Nullable<LogicalVector> combineDvid=R_NilValue);
 List etImportEventTable(List inData);
 RObject et_(List input, List et__);
 void setEvCur(RObject cur);
@@ -801,9 +802,9 @@ SEXP rxInits(const RObject &obj,
     CharacterVector state = mv["state"];
     std::string ret="";
     bool isState;
-    for (unsigned int j=inits.size(); j--;){
+    for (int j=inits.size(); j--;){
       isState=false;
-      for (unsigned int k=state.size(); k--;){
+      for (int k=state.size(); k--;){
 	if (nms[j] == state[k]){
 	  isState=true;
 	  break;
@@ -822,9 +823,6 @@ SEXP rxInits(const RObject &obj,
     List vecL = as<List>(vec);
     Function unlist("unlist", R_BaseNamespace);
     NumericVector vec2 = as<NumericVector>(unlist(vec));
-    // if (!vec2.hasAttribute("names")){
-    //   stop("When using a list for inits or scales, the list must be named. list(depot=1)");
-    // }
     if (vec2.size() != vecL.size()){
       stop("Only one estimate per named list item; i.e. list(x=1) instead of list(x=1:2).");
     }

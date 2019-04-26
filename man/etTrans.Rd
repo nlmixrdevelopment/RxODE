@@ -5,7 +5,7 @@
 \title{Event translation for RxODE}
 \usage{
 etTrans(inData, obj, addCmt = FALSE, allTimeVar = FALSE,
-  keepDosingOnly = FALSE)
+  keepDosingOnly = FALSE, combineDvid = NULL)
 }
 \arguments{
 \item{inData}{Data frame to translate}
@@ -17,7 +17,13 @@ etTrans(inData, obj, addCmt = FALSE, allTimeVar = FALSE,
 \item{allTimeVar}{Treat all covariates as if they were time-varying}
 
 \item{keepDosingOnly}{keep the individuals who only have dosing records and any
-trailing dosing records after the last observation.}
+  trailing dosing records after the last observat
+ion.}
+
+\item{combineDvid}{is a boolean indicating if RxODE will use DVID on observation
+records to change the cmt value; Useful for multiple-endpoint nlmixr models.  By default
+this is determined by code{option("RxODE.combine.dvid")} and if the option has not been set,
+this is \code{TRUE}. This typically does not affect RxODE simulations.}
 }
 \value{
 Object for solving in RxODE

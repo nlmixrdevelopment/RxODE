@@ -15,6 +15,7 @@ statement
   | dfdy       end_statement
   | mtime      end_statement
   | printf_statement end_statement
+  | cmt_statement end_statement
   | compound_statement
   | selection_statement
   | end_statement ;
@@ -24,6 +25,9 @@ compound_statement : '{' statement_list? '}' ;
 
 selection_statement
   : 'if' '(' logical_or_expression ')' statement ('else' statement)?;
+
+cmt_statement
+    : 'cmt' '(' identifier_r_no_output ')';
 
 printf_statement
   : printf_command '(' string (',' additive_expression )* ')';

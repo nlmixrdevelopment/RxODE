@@ -26,6 +26,11 @@ In general, RxODE event tables follow NONMEM convention with the exceptions:
  - The compartment data item (`cmt`) can be a string/factor with compartment names
    - You may turn off a compartment with a negative compartment number
      or "-cmt" where cmt is the compartment name.
+   - The compartment data item (`cmt`) can still be a number, the
+     number of the compartment is defined by the appearance of the
+     compartment name in the model. This can be tedious to count, so
+     you can specify compartment numbers easier by using the
+     `cmt(cmtName)` at the beginning of the model.
  - An additional column, `dur` can specify the duration of infusions; 
     - Bioavailability changes will change the rate of infusion since
       `dur`/`amt` are fixed in the input data.

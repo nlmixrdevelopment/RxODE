@@ -287,7 +287,12 @@ rxSymPyFEnv$F <- rxSymPyFEnv$f
 rxSymPyFEnv$lag <- function(e1){
     paste0("rx_lag_",e1,"_");
 }
+
 rxSymPyFEnv$alag <- rxSymPyFEnv$lag
+
+rxSymPyFEnv$cmt  <- function(e1){
+    return("");
+}
 
 .rxMtimes <- c();
 
@@ -1060,7 +1065,8 @@ rxToSymPy <- function(x, envir=parent.frame(1)) {
         force(x);
         if (length(x) == 1){
             names(x) <- NULL;
-            txt <- strsplit(gsub(";", "\n", x), "\n+")[[1]];
+            txt  <- gsub(rex::rex(boundary,"cmt(",except_any_of(")"),")"), "", x,perl=TRUE)
+            txt <- strsplit(gsub(";", "\n", txt), "\n+")[[1]];
             txt <- strsplit(txt, rex::rex(or("=", "~", "<-")));
             tmp <- unlist(lapply(txt, function(x){length(x)}));
             if (length(tmp) > 1){

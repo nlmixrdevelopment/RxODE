@@ -179,6 +179,7 @@ typedef struct symtab {
   int ini0[MXSYM];        /* state initial variable assignment =2 if there are two assignments */
   int di[MXDER];        /* ith of state vars */
   int idi[MXDER];       /* should ith state variable be ignored 0/1 */
+  int idu[MXDER];       /* Has the ith state been used in a derivative expression? */
   int fdi[MXDER];        /* Functional initialization of state variable */
   int nv;                       /* nbr of symbols */
   int ix;                       /* ith of curr symbol */
@@ -189,6 +190,7 @@ typedef struct symtab {
   int pos_de;
   int ini_i; // #ini
   int statei; // # states
+  int nExtra;
   int fdn; // # conditional states
   int sensi;
   int li; // # lhs
@@ -544,6 +546,7 @@ typedef struct nodeInfo {
   int theta;
   int transit2;
   int transit3;
+  int cmt_statement;
 } nodeInfo;
 
 #define NIB(what) ni.what
@@ -595,6 +598,7 @@ void niReset(nodeInfo *ni){
   ni->theta0_noout = -1;
   ni->transit2 = -1;
   ni->transit3 = -1;
+  ni->cmt_statement = -1;
 }
 
 
@@ -805,6 +809,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 
       if ((nodeHas(theta) || nodeHas(eta)) && i != 2) continue;
       if (nodeHas(mtime) && (i == 0 || i == 1 || i == 3)) continue;
+      if (nodeHas(cmt_statement) && (i == 0 || i == 1 || i == 3)) continue;
       
       tb.fn = (nodeHas(function) && i==0) ? 1 : 0;
 
@@ -1157,14 +1162,24 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         rx_podo = 1;
       }
       if ((nodeHas(fbio) || nodeHas(alag) || 
-	   nodeHas(dur) || nodeHas(rate)) && i==2) {
+	   nodeHas(dur) || nodeHas(rate) ||
+	   nodeHas(cmt_statement)) && i==2) {
         /* sprintf(sb.s, "__DDtStateVar__[%d] = InfusionRate(%d) +", tb.nd, tb.nd); */
         /* sb.o = strlen(sb.s); */
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+	int hasLhs=0;
+	if (nodeHas(cmt_statement)){
+	  new_or_ith(v);
+	  if (tb.lh[tb.ix] || tb.ini[tb.ix]){
+	    hasLhs=1;
+	    tb.ini[tb.ix]=2;
+	  }
+	}
         sprintf(tb.ddt, "%s",v);
         if (new_de(v)){
 	  if (rx_syntax_require_ode_first){
-	    if (!strcmp("depot", v)){
+	    if (nodeHas(cmt_statement)){
+	    } else if (!strcmp("depot", v)){
 	      tb.hasDepot = 1;
 	    } else if (!strcmp("central", v)){
 	      tb.hasCentral = 1;
@@ -1206,11 +1221,18 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    if (foundRate == 0) needSort+=8;// & 8 when rate
 	    foundRate=1;
 	    aType(RATE);
-          }
+          } else if (nodeHas(cmt_statement)){
+	    sb.o=0;sbDt.o=0; sbt.o=0;
+	    sAppend(&sbt, "cmt(%s)", v);
+	    sAppend(&sbNrm, "%s;\n", sbt.s);
+	  }
           new_or_ith(v);
 	  aProp(tb.nd);
           /* Rprintf("%s; tb.ini = %d; tb.ini0 = %d; tb.lh = %d\n",v,tb.ini[tb.ix],tb.ini0[tb.ix],tb.lh[tb.ix]); */
           tb.lh[tb.ix] = 9;
+	  if (hasLhs){
+	    tb.lh[tb.ix] = 19;
+	  }	  
           tb.di[tb.nd] = tb.ix;
           sprintf(tb.de+tb.pos_de, "%s,", v);
           tb.pos_de += strlen(v)+1;
@@ -1288,7 +1310,9 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
           sAppend(&sbt, "d/dt(%s)", v);
 	  new_or_ith(v);
           /* Rprintf("%s; tb.ini = %d; tb.ini0 = %d; tb.lh = %d\n",v,tb.ini[tb.ix],tb.ini0[tb.ix],tb.lh[tb.ix]); */
-          if (!rx_syntax_allow_assign_state && ((tb.ini[tb.ix] == 1 && tb.ini0[tb.ix] == 0) || tb.lh[tb.ix] == 1)){
+          if (!rx_syntax_allow_assign_state &&
+	      ((tb.ini[tb.ix] == 1 && tb.ini0[tb.ix] == 0) ||
+	       tb.lh[tb.ix] == 1)){
             sprintf(buf,"Cannot assign state variable %s; For initial condition assignment use '%s(0) = #'.\n  Changing states can break sensitivity analysis (for nlmixr glmm/focei).\n  To override this behavior set 'options(RxODE.syntax.assign.state = TRUE)'.\n",v,v);
             trans_syntax_error_report_fn(buf);
           }
@@ -1299,6 +1323,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  Free(v);
 	  xpn = d_get_child(pn,4);
           v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+	  tb.idu[tb.nd] = 1;
           if (!strcmp("~",v)){
             tb.idi[tb.nd] = 1;
 	    sAppendN(&sbt, "~", 1);
@@ -1311,8 +1336,14 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  new_or_ith(v);
 	  /* printf("de[%d]->%s[%d]\n",tb.id,v,tb.ix); */
 	  sb.o =0; sbDt.o =0;
-          sAppend(&sb, "__DDtStateVar__[%d] = ((double)(_ON[%d]))*(", tb.id, tb.id);
-	  sAppend(&sbDt, "__DDtStateVar_%d__ = ((double)(_ON[%d]))*(", tb.id, tb.id);
+	  if (tb.idu[tb.id] == 0){
+	    sAppend(&sb, "__DDtStateVar__[%d] = ((double)(_ON[%d]))*(_IR[%d] ", tb.id, tb.id, tb.id);
+	    sAppend(&sbDt, "__DDtStateVar_%d__ = ((double)(_ON[%d]))*(_IR[%d] ", tb.id, tb.id, tb.id);
+	  } else {
+	    sAppend(&sb, "__DDtStateVar__[%d] = ((double)(_ON[%d]))*(", tb.id, tb.id);
+	    sAppend(&sbDt, "__DDtStateVar_%d__ = ((double)(_ON[%d]))*(", tb.id, tb.id);
+	  }
+	  tb.idu[tb.id]=1;
 	  aType(TDDT);
 	  aProp(tb.id);
 	  sbt.o=0;
@@ -1360,7 +1391,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 		sAppend(&sb,   "__DDtStateVar_%d__", tb.id);
 		sAppend(&sbDt, "__DDtStateVar_%d__", tb.id);
 	      } else {
-		sAppend(&sb, "__DDtStateVar__[%d]", tb.id);
+		sAppend(&sb,   "__DDtStateVar__[%d]", tb.id);
 		sAppend(&sbDt, "__DDtStateVar_%d__", tb.id);
 		aType(TDDT);
 	      }
@@ -1381,9 +1412,9 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
           trans_syntax_error_report_fn(buf);
         } else {
 	  if (strcmp(tb.ddt, v)){
-	    sAppend(&sb, "_InfusionRate[%d]", tb.id);
+	    sAppend(&sb,   "_InfusionRate[%d]", tb.id);
 	    sAppend(&sbDt, "_InfusionRate[%d]", tb.id);
-            sAppend(&sbt, "rxRate(%s)", v);
+            sAppend(&sbt,  "rxRate(%s)", v);
           } else {
 	    aAppendN("0.0", 3);
             sAppend(&sbt, "rxRate(%s)", v);
@@ -1423,8 +1454,13 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
             }
           }
           if (nodeHas(ini) && !new_de(v)){
-            sprintf(buf,"Cannot assign state variable %s; For initial condition assigment use '%s(0) ='.\n",v,v);
-            trans_syntax_error_report_fn(buf);
+	    if (tb.idu[tb.id] == 0){
+	      new_or_ith(v);
+	      tb.lh[tb.ix] = 19;
+	    } else {
+	      sprintf(buf,"Cannot assign state variable %s; For initial condition assigment use '%s(0) ='.\n",v,v);
+	      trans_syntax_error_report_fn(buf);
+	    }
           }
           if (!rx_syntax_allow_ini0 && nodeHas(ini0)){
             sprintf(buf,NOINI0,v);
@@ -1444,8 +1480,16 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
             }
           }
           if (!new_de(v)){
-            sprintf(buf,"Cannot assign state variable %s; For initial condition assigment use '%s(0) ='.\n",v,v);
-            trans_syntax_error_report_fn(buf);
+	    if (tb.idu[tb.id] == 0){
+	      // Change to 19 for LHS w/stateExtra
+	      new_or_ith(v);
+	      tb.lh[tb.ix] = 19;
+	    } else {
+	      sprintf(buf,"Cannot assign state variable %s; For initial condition assigment use '%s(0) ='.\n",v,v);
+	      trans_syntax_error_report_fn(buf);
+	      
+	    }
+            
           }
 	  aType(TASSIGN);
         }
@@ -1699,9 +1743,9 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   char buf[512], buf2[512];
   for (i=0; i<tb.nv; i++) {
     islhs = tb.lh[i];
-    if (islhs>1) continue;      /* is a state var */
+    if (islhs>1 && islhs != 19) continue;      /* is a state var */
     retieve_var(i, buf);
-    if (islhs == 1){
+    if (islhs == 1 || islhs == 19){
       sprintf(s_aux_info+o, "  SET_STRING_ELT(lhs,%d,mkChar(\"%s\"));\n", li++, buf);
     } else {
       for (j = 1; j <= tb.maxtheta;j++){
@@ -1720,26 +1764,33 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
     }
     o = (int)strlen(s_aux_info);
   }
+  int nExtra=0;
   for (i=0; i<tb.nd; i++) {                     /* name state vars */
     retieve_var(tb.di[i], buf);
-    if (strncmp(buf, "rx__sens_", 9) == 0){
-      sprintf(s_aux_info+o, "    SET_STRING_ELT(sens,%d,mkChar(\"%s\"));\n", sensi++, buf);
+    if (tb.idu[i] == 1){
+      if (strncmp(buf, "rx__sens_", 9) == 0){
+	sprintf(s_aux_info+o, "    SET_STRING_ELT(sens,%d,mkChar(\"%s\"));\n", sensi++, buf);
+	o = (int)strlen(s_aux_info);
+	sprintf(s_aux_info+o, "    SET_STRING_ELT(state,%d,mkChar(\"%s\"));\n", statei++, buf);
+	o = (int)strlen(s_aux_info);
+	sprintf(s_aux_info+o, "    _SR[%d] = %d;\n", statei-1, tb.idi[i]);
+      } else {
+	sprintf(s_aux_info+o, "    SET_STRING_ELT(state,%d,mkChar(\"%s\"));\n", statei++, buf);
+	o = (int)strlen(s_aux_info);
+	sprintf(s_aux_info+o, "    SET_STRING_ELT(normState,%d,mkChar(\"%s\"));\n", normi++, buf);
+	o = (int)strlen(s_aux_info);
+	sprintf(s_aux_info+o, "    _SR[%d] = %d;\n", statei-1, tb.idi[i]);
+      }
+      if (tb.fdi[i]){
+	o = (int)strlen(s_aux_info);
+	sprintf(s_aux_info+o, "    SET_STRING_ELT(fn_ini,%d,mkChar(\"%s\"));\n", fdi++, buf);
+      }
       o = (int)strlen(s_aux_info);
-      sprintf(s_aux_info+o, "    SET_STRING_ELT(state,%d,mkChar(\"%s\"));\n", statei++, buf);
-      o = (int)strlen(s_aux_info);
-      sprintf(s_aux_info+o, "    _SR[%d] = %d;\n", statei-1, tb.idi[i]);
     } else {
-      sprintf(s_aux_info+o, "    SET_STRING_ELT(state,%d,mkChar(\"%s\"));\n", statei++, buf);
+      sprintf(s_aux_info+o, "    SET_STRING_ELT(extraState, %d, mkChar(\"%s\"));\n", nExtra++, buf);
       o = (int)strlen(s_aux_info);
-      sprintf(s_aux_info+o, "    SET_STRING_ELT(normState,%d,mkChar(\"%s\"));\n", normi++, buf);
-      o = (int)strlen(s_aux_info);
-      sprintf(s_aux_info+o, "    _SR[%d] = %d;\n", statei-1, tb.idi[i]);
     }
-    if (tb.fdi[i]){
-      o = (int)strlen(s_aux_info);
-      sprintf(s_aux_info+o, "    SET_STRING_ELT(fn_ini,%d,mkChar(\"%s\"));\n", fdi++, buf);
-    }
-    o = (int)strlen(s_aux_info);
+    
   }
   for (i=0; i<tb.ndfdy; i++) {                     /* name state vars */
     retieve_var(tb.df[i], buf);
@@ -1764,8 +1815,8 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   sAppend(&sbOut, "extern SEXP %smodel_vars(){\n  int pro=0;\n", prefix);
   sAppend(&sbOut, "  SEXP _mv = PROTECT(_rxGetModelLib(\"%smodel_vars\"));pro++;\n", prefix);
   sAppendN(&sbOut, "  if (!_rxIsCurrentC(_mv)){\n", 28);
-  sAppendN(&sbOut, "    SEXP lst      = PROTECT(allocVector(VECSXP, 18));pro++;\n", 60);
-  sAppendN(&sbOut, "    SEXP names    = PROTECT(allocVector(STRSXP, 18));pro++;\n", 60);
+  sAppendN(&sbOut, "    SEXP lst      = PROTECT(allocVector(VECSXP, 19));pro++;\n", 60);
+  sAppendN(&sbOut, "    SEXP names    = PROTECT(allocVector(STRSXP, 19));pro++;\n", 60);
   sAppendN(&sbOut, "    SEXP sNeedSort = PROTECT(allocVector(INTSXP,1));pro++;\n", 59);
   sAppendN(&sbOut, "    int *iNeedSort  = INTEGER(sNeedSort);\n", 42);
   sAppend(&sbOut, "    iNeedSort[0] = %d;\n", needSort);
@@ -1778,6 +1829,7 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   sAppend(&sbOut, "    SEXP params   = PROTECT(allocVector(STRSXP, %d));pro++;\n",pi);
   sAppend(&sbOut, "    SEXP lhs      = PROTECT(allocVector(STRSXP, %d));pro++;\n",li);
   sAppend(&sbOut, "    SEXP state    = PROTECT(allocVector(STRSXP, %d));pro++;\n",statei);
+  sAppend(&sbOut, "  SEXP extraState = PROTECT(allocVector(STRSXP, %d));pro++;\n",nExtra);
   sAppend(&sbOut, "    SEXP stateRmS = PROTECT(allocVector(INTSXP, %d));pro++;\n",statei);
   sAppendN(&sbOut, "    SEXP timeInt = PROTECT(allocVector(INTSXP, 1));pro++;\n", 58);
   sAppend(&sbOut, "    INTEGER(timeInt)[0] = %s;\n", timeId);
@@ -1906,12 +1958,15 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
 
   sAppendN(&sbOut, "    SET_STRING_ELT(names,15,mkChar(\"extraCmt\"));\n", 49);
   sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  15,sExtraCmt);\n", 40);
+  
+  sAppendN(&sbOut, "    SET_STRING_ELT(names, 16, mkChar(\"stateExtra\"));\n", 53);
+  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  16, extraState);\n", 42);
 
-  sAppendN(&sbOut, "    SET_STRING_ELT(names,16,mkChar(\"timeId\"));\n", 47);
-  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  16,timeInt);\n", 38);
+  sAppendN(&sbOut, "    SET_STRING_ELT(names,17,mkChar(\"timeId\"));\n", 47);
+  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  17,timeInt);\n", 38);
 
-  sAppendN(&sbOut, "    SET_STRING_ELT(names,17,mkChar(\"md5\"));\n", 43);
-  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  17,mmd5);\n", 34);
+  sAppendN(&sbOut, "    SET_STRING_ELT(names,18,mkChar(\"md5\"));\n", 43);
+  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  18,mmd5);\n", 34);
 
   // const char *rxVersion(const char *what)
   
@@ -2312,7 +2367,7 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
     } else if (show_ode == 0 && tb.li){
       sAppendN(&sbOut,  "\n", 1);
       for (i=0, j=0; i<tb.nv; i++) {
-	if (tb.lh[i] != 1) continue;
+	if (tb.lh[i] != 1 && tb.lh[i] != 19) continue;
 	retieve_var(i, buf);
 	sAppend(&sbOut,  "  _lhs[%d]=", j);
 	for (k = 0; k < (int)strlen(buf); k++){
@@ -2376,6 +2431,8 @@ void reset (){
   memset(tb.fdi,        0, MXDER*sizeof(int));
   memset(tb.dy,		0, MXSYM*sizeof(int));
   memset(tb.sdfdy,	0, MXSYM*sizeof(int));
+  memset(tb.idu,        0, MXDER*sizeof(int));
+  memset(tb.idi,        0, MXDER*sizeof(int));
   // Reset integers
   tb.nv		= 0;
   tb.ix		= 0;
@@ -2385,6 +2442,7 @@ void reset (){
   tb.pos	= 0;
   tb.pos_de	= 0;
   tb.ini_i	= 0;
+  tb.nExtra     = 0;
   tb.statei	= 0;
   tb.sensi	= 0;
   tb.li		= 0;
@@ -2496,7 +2554,7 @@ void trans_internal(char* parse_file, int isStr){
 	for (j=0; j<tb.nv; j++) {
           islhs = tb.lh[j];
 	  retieve_var(j, buf2);
-          if (islhs>1) continue; /* is a state var */
+          if (islhs>1 && tb.lh[i] != 19) continue; /* is a state var */
           retieve_var(j, buf2);
           if ((islhs != 1 || tb.ini[j] == 1) &&!strcmp(buf1, buf2)){
 	    found=1;
@@ -2525,7 +2583,7 @@ void trans_internal(char* parse_file, int isStr){
 SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SEXP parseStr){
   char *in;
   char buf[1024], buf2[512], df[128], dy[128];
-  int i, j, islhs, pi=0, li=0, ini_i = 0,k=0, l=0, m=0;
+  int i, j, islhs, pi=0, li=0, ini_i = 0,k=0, l=0, m=0, p=0;
 
   int isStr =INTEGER(parseStr)[0];
   reset(); 
@@ -2590,8 +2648,8 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
   }
   for (i=0; i<tb.nv; i++) {
     islhs = tb.lh[i];
-    if (islhs>1) continue;      /* is a state var */
-    if (islhs == 1){
+    if (islhs>1 && islhs != 19) continue;      /* is a state var */
+    if (islhs == 1 || islhs == 19){
       li++;
     } else {
       pi++;
@@ -2601,8 +2659,8 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
   tb.li=li;
   
   int pro = 0;
-  SEXP lst   = PROTECT(allocVector(VECSXP, 16));pro++;
-  SEXP names = PROTECT(allocVector(STRSXP, 16));pro++;
+  SEXP lst   = PROTECT(allocVector(VECSXP, 17));pro++;
+  SEXP names = PROTECT(allocVector(STRSXP, 17));pro++;
 
   SEXP sNeedSort = PROTECT(allocVector(INTSXP,1));pro++;
   int *iNeedSort  = INTEGER(sNeedSort);
@@ -2615,12 +2673,28 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
   SEXP tran  = PROTECT(allocVector(STRSXP, 20));pro++;
   SEXP trann = PROTECT(allocVector(STRSXP, 20));pro++;
 
-  SEXP state    = PROTECT(allocVector(STRSXP,tb.statei));pro++;
-  SEXP stateRmS = PROTECT(allocVector(INTSXP,tb.statei));pro++;
-  int *stateRm  = INTEGER(stateRmS);
+  int offCmt=0,nExtra = 0;
+  for (int i = 0; i < tb.statei; i++){
+    if (offCmt == 0 && tb.idu[i] == 0){
+      offCmt = 1;
+      nExtra++;
+      retieve_var(tb.di[i], buf);
+    } else if (offCmt == 1 && tb.idu[i] == 1){
+      // There is an compartment that doesn't have a derivative
+      UNPROTECT(pro);
+      error("Compartment '%s' needs differential equations defined", buf);
+    } else if (offCmt == 1 && tb.idu[i] == 0){
+      nExtra++;
+    }
+  }
+
+  SEXP state      = PROTECT(allocVector(STRSXP,tb.statei-nExtra));pro++;
+  SEXP stateRmS   = PROTECT(allocVector(INTSXP,tb.statei-nExtra));pro++;
+  int *stateRm    = INTEGER(stateRmS);
+  SEXP extraState = PROTECT(allocVector(STRSXP,nExtra));pro++;
   
   SEXP sens     = PROTECT(allocVector(STRSXP,tb.sensi));pro++;
-  SEXP normState= PROTECT(allocVector(STRSXP,tb.statei-tb.sensi));pro++;
+  SEXP normState= PROTECT(allocVector(STRSXP,tb.statei-tb.sensi-nExtra));pro++;
   
   SEXP fn_ini   = PROTECT(allocVector(STRSXP, tb.fdn));pro++;
 
@@ -2685,20 +2759,28 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
   
   SEXP model  = PROTECT(allocVector(STRSXP,1));pro++;
   SEXP modeln = PROTECT(allocVector(STRSXP,1));pro++;
-  k=0;j=0;l=0;m=0;
+  k=0;j=0;l=0;m=0,p=0;
   for (i=0; i<tb.nd; i++) {                     /* name state vars */
     retieve_var(tb.di[i], buf);
-    if (strncmp(buf,"rx__sens_", 9) == 0){
-      SET_STRING_ELT(sens,j++,mkChar(buf));
-      SET_STRING_ELT(state,k++,mkChar(buf));
-      stateRm[k-1]=tb.idi[i];
+    if (tb.idu[i] == 1){
+      if (strncmp(buf,"rx__sens_", 9) == 0){
+	SET_STRING_ELT(sens,j++,mkChar(buf));
+	SET_STRING_ELT(state,k++,mkChar(buf));
+	stateRm[k-1]=tb.idi[i];
+      } else {
+	SET_STRING_ELT(normState,m++,mkChar(buf));
+	SET_STRING_ELT(state,k++,mkChar(buf));
+	stateRm[k-1]=tb.idi[i];
+      }
+      if (tb.fdi[i]){
+	SET_STRING_ELT(fn_ini,l++,mkChar(buf));
+      }
     } else {
-      SET_STRING_ELT(normState,m++,mkChar(buf));
-      SET_STRING_ELT(state,k++,mkChar(buf));
-      stateRm[k-1]=tb.idi[i];
-    }
-    if (tb.fdi[i]){
-      SET_STRING_ELT(fn_ini,l++,mkChar(buf));
+      if (tb.fdi[i]){
+	UNPROTECT(pro);
+	error("Initialization of non-ODE compartment '%s' makes no sense", buf);
+      }
+      SET_STRING_ELT(extraState, p++, mkChar(buf));
     }
   }
   for (i=0; i<tb.ndfdy; i++) {                     /* name state vars */
@@ -2722,9 +2804,9 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
   li=0, pi=0;
   for (i=0; i<tb.nv; i++) {
     islhs = tb.lh[i];
-    if (islhs>1) continue;      /* is a state var */
+    if (islhs>1 && islhs != 19) continue;      /* is a state var */
     retieve_var(i, buf);
-    if (islhs == 1){
+    if (islhs == 1 || islhs == 19){
       SET_STRING_ELT(lhs,li++,mkChar(buf));
     } else {
       for (j = 1; j <= tb.maxtheta;j++){
@@ -2793,6 +2875,9 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
   SEXP sExtraCmt = PROTECT(allocVector(INTSXP,1));pro++;
   INTEGER(sExtraCmt)[0] = extraCmt;
   SET_VECTOR_ELT(lst, 15, sExtraCmt);
+
+  SET_STRING_ELT(names, 16, mkChar("stateExtra"));
+  SET_VECTOR_ELT(lst,  16, extraState);
 
   sprintf(buf,"%.*s", (int)strlen(model_prefix)-1, model_prefix);
   SET_STRING_ELT(trann,0,mkChar("lib.name"));

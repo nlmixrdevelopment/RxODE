@@ -1506,6 +1506,19 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
             assignInMyNamespace("rxErrEnv.yj", NULL);
             assignInMyNamespace("rxSymPyExpThetas", c());
             assignInMyNamespace("rxSymPyExpEtas", c());
+            .mv0 <- rxModelVars(obj);
+            .state0  <- .mv0$state;
+            if (length(.state0) > 0){
+                .state0 <- paste(paste0("cmt(",.mv0$state,");\n"),collapse="");
+            } else {
+                .state0 <- "";
+            }
+            .statef  <- .mv0$stateExtra;
+            if (length(.statef) > 0){
+                .statef <- paste0(paste(paste0("\ncmt(",.mv0$stateExtra,");"),collapse=""),"\n");
+            } else {
+                .statef <- "";
+            }
             gobj <- obj;
             oobj <- genCmtMod(obj);
             obj <- oobj;
@@ -1895,17 +1908,17 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                     print(setdiff(thetas, .missTheta));
                     stop("Predictions do not depend on all the population parameters (theas) defined")
                 }
-                if (optExpression){
-                    rxCat(sprintf("Optimizing expressions in %s model...", what));
-                    .mod <- rxOptExpr(x)
-                    rxCat("done\n");
-                } else {
-                    .mod <- x;
-                }
                 if (sum.prod){
                     rxCat(sprintf("Stabilizing round off errors in products & sums in %s model...", what));
                     .mod <- rxSumProdModel(.mod);
                     rxCat("done\n");
+                }
+                if (optExpression){
+                    rxCat(sprintf("Optimizing expressions in %s model...", what));
+                    .mod <- paste0(.state0, rxOptExpr(x), .statef)
+                    rxCat("done\n");
+                } else {
+                    .mod <- paste0(.state0, x, .statef);
                 }
                 rxCat(sprintf("Compiling %s model...", what));
                 .ret <- RxODE(.mod);

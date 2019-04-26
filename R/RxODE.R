@@ -423,6 +423,14 @@ RxODE <- function(model, modName = basename(wd),
         })
     }))
     .env$state <- .env$.mv$state;
+    if (.env$.mv$extraCmt==1){
+        .extra  <- c("central", .env$.mv$stateExtra);
+    } else if (.env$.mv$extraCmt==2){
+        .extra  <- c("depot", "central", .env$.mv$stateExtra);
+    } else {
+        .extra  <- .env$.mv$stateExtra;
+    }
+    .env$stateExtra <- .extra;
     .env$lhs <- .env$.mv$lhs;
     .env$params <- .env$.mv$params;
     .env$version <- RxODE::rxVersion()["version"];
@@ -852,6 +860,9 @@ print.RxODE <-
         .cur <- RxODE::rxState(x);
         if (length(.cur) > 0)
             message(paste0(crayon::yellow(.bound), crayon::blue$bold("$state"), ": ", paste(.cur, collapse=", ")))
+        .cur <- x$stateExtra
+        if (length(.cur) > 0)
+            message(paste0(crayon::yellow(.bound), crayon::blue$bold("$stateExtra"), ": ", paste(.cur, collapse=", ")))
         .cur <- RxODE::rxParams(x);
         if (length(.cur) > 0)
             message(paste0(crayon::yellow(.bound), crayon::blue$bold("$params"), ": ", paste(.cur, collapse=", ")))
@@ -870,6 +881,9 @@ print.rxModelVars <- function(x, ...)
     .cur <- x$state;
     if (length(.cur) > 0)
         message(paste0(crayon::yellow(.bound), crayon::blue$bold("$state"), ": ", paste(.cur, collapse=", ")))
+    .cur <- x$stateExtra;
+    if (length(.cur) > 0)
+        message(paste0(crayon::yellow(.bound), crayon::blue$bold("$stateExtra"), ": ", paste(.cur, collapse=", ")))
     .cur <- x$params;
     if (length(.cur) > 0)
         message(paste0(crayon::yellow(.bound), crayon::blue$bold("$params"), ": ", paste(.cur, collapse=", ")))

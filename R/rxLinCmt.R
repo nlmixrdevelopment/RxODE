@@ -427,6 +427,7 @@ rxLinCmtTrans <- function(modText){
         .solve <- sprintf("solveLinB(rx__PTR__, t, %s, rx_A, rx_A2, rx_alpha, rx_B, rx_B2, rx_beta, rx_C, rx_C2, rx_gamma, rx_ka, rx_tlag, rx_tlag2, rx_F, rx_F2, rx_rate, rx_dur)", .linCmt);
         .lines <- paste(.lines, collapse="\n");
         .txt <- paste(sub(.re, sprintf("%s\n\\1%s\\3", .lines, .solve), .txt), collapse="\n");
+        ## Put in extra compartment information
         return(rxGetModel(.txt))
     } else {
         message(cli::rule(left="model with multiple linCmt()"))

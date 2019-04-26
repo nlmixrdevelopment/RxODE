@@ -10,7 +10,7 @@ List rxModelVars_(const RObject &obj);
 bool rxIs(const RObject &obj, std::string cls);
 Environment RxODEenv();
 
-IntegerVector toCmt(RObject inCmt, CharacterVector state){
+IntegerVector toCmt(RObject inCmt, CharacterVector state, bool isDvid=false){
   RObject cmtInfo = R_NilValue;
   List extraCmt;
   if (rxIs(inCmt, "numeric") || rxIs(inCmt, "integer")){
@@ -71,6 +71,11 @@ IntegerVector toCmt(RObject inCmt, CharacterVector state){
       ret.attr("cmtNames") = newCmt;
       return ret;
     } else {
+      if (isDvid){
+	Environment rx = RxODEenv();
+	Function convertDvid = rx[".convertDvid"];
+	return as<IntegerVector>(convertDvid(inCmt));
+      }
       return as<IntegerVector>(inCmt);
     }
   } else if (rxIs(inCmt, "character")) {
@@ -153,12 +158,26 @@ IntegerVector toCmt(RObject inCmt, CharacterVector state){
 //' @param addCmt Add compartment to data frame, and drop units
 //' @param allTimeVar Treat all covariates as if they were time-varying
 //' @param keepDosingOnly keep the individuals who only have dosing records and any
-//'   trailing dosing records after the last observation.
+//'   trailing dosing records after the last observat
+//' ion.
+//' @param combineDvid is a boolean indicating if RxODE will use DVID on observation
+//'     records to change the cmt value; Useful for multiple-endpoint nlmixr models.  By default
+//'     this is determined by code{option("RxODE.combine.dvid")} and if the option has not been set,
+//'     this is \code{TRUE}. This typically does not affect RxODE simulations.
 //' @return Object for solving in RxODE
 //' @keywords internal
 //' @export
 //[[Rcpp::export]]
-List etTrans(List inData, const RObject &obj, bool addCmt=false, bool allTimeVar=false,bool keepDosingOnly=false){
+List etTrans(List inData, const RObject &obj, bool addCmt=false, bool allTimeVar=false,bool keepDosingOnly=false,
+	     Nullable<LogicalVector> combineDvid=R_NilValue){
+  bool combineDvidB = false;
+  if (!combineDvid.isNull()){
+    combineDvidB = (as<LogicalVector>(combineDvid))[1];
+  } else {
+    Environment b=Rcpp::Environment::base_namespace();
+    Function getOption = b["getOption"];
+    combineDvidB = as<bool>(getOption("RxODE.combine.dvid", true));
+  }
   List mv = rxModelVars_(obj);
   CharacterVector trans = mv["trans"];
   if (rxIs(inData,"rxEtTran")){
@@ -205,7 +224,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false, bool allTimeVar
   CharacterVector lName = clone(as<CharacterVector>(inData.attr("names")));
   int i, idCol = -1, evidCol=-1, timeCol=-1, amtCol=-1, cmtCol=-1,
     dvCol=-1, ssCol=-1, rateCol=-1, addlCol=-1, iiCol=-1, durCol=-1, j,
-    mdvCol=-1;
+    mdvCol=-1, dvidCol=-1;
   std::string tmpS;
   
   CharacterVector pars = as<CharacterVector>(mv["params"]);
@@ -232,6 +251,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false, bool allTimeVar
     else if (tmpS == "addl") addlCol=i;
     else if (tmpS == "ii")   iiCol=i;
     else if (tmpS == "mdv") mdvCol=i;
+    else if (tmpS == "dvid") dvidCol=i;
     for (j = pars.size(); j--;){
       // Check lower case
       if (tmpS == as<std::string>(pars[j])){
@@ -300,20 +320,28 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false, bool allTimeVar
   // xx = 30, Turn off compartment
   // Steady state events need a II data item > 0
   
-  CharacterVector state = as<CharacterVector>(mv["state"]);
+  CharacterVector state0 = as<CharacterVector>(mv["state"]);
+  CharacterVector stateE = as<CharacterVector>(mv["stateExtra"]);
   int extraCmt  = as<int>(mv["extraCmt"]);
   // Enlarge compartments
   if (extraCmt == 2){
-    CharacterVector newState(state.size()+2);
-    for (int j = state.size();j--;) newState[j] = state[j];
-    newState[state.size()] = "depot";
-    newState[state.size()+1] = "central";
-    state = newState;
+    CharacterVector newState(state0.size()+2);
+    for (int j = state0.size();j--;) newState[j] = state0[j];
+    newState[state0.size()] = "depot";
+    newState[state0.size()+1] = "central";
+    state0 = newState;
   } else if (extraCmt==1){
-    CharacterVector newState(state.size()+1);
-    for (int j = state.size();j--;) newState[j] = state[j];
-    newState[state.size()] = "central";
-    state = newState;
+    CharacterVector newState(state0.size()+1);
+    for (int j = state0.size();j--;) newState[j] = state0[j];
+    newState[state0.size()] = "central";
+    state0 = newState;
+  }
+  CharacterVector state(state0.size() + stateE.size());
+  for (int i = 0; i < state0.size(); i++){
+    state[i] = state0[i];
+  }
+  for (int i = 0; i < stateE.size(); i++){
+    state[i+state0.size()] = stateE[i];
   }
   std::vector<int> id;
   std::vector<int> allId;
@@ -325,6 +353,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false, bool allTimeVar
   std::vector<double> ii;
   std::vector<int> idx;
   std::vector<int> cmtF;
+  std::vector<int> dvidF;
   std::vector<double> dv;
   std::vector<int> idxO;
   if (timeCol== -1){
@@ -356,6 +385,13 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false, bool allTimeVar
     inCmt = as<IntegerVector>(toCmt(inData[cmtCol], state));//as<IntegerVector>();
     cmtInfo = inCmt.attr("cmtNames");
     inCmt.attr("cmtNames") = R_NilValue;
+  }
+  RObject dvidInfo = R_NilValue;
+  IntegerVector inDvid;
+  if (dvidCol != -1){
+    inDvid = as<IntegerVector>(toCmt(inData[dvidCol], stateE, true));//as<IntegerVector>();
+    dvidInfo = inDvid.attr("cmtNames");
+    inDvid.attr("cmtNames") = R_NilValue;
   }
   int tmpCmt = 1;
   IntegerVector inId;
@@ -495,7 +531,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false, bool allTimeVar
       for (j = nMtime; j--;){
 	id.push_back(cid);
 	evid.push_back(j+10);
-	cmtF.push_back(cmt);
+	cmtF.push_back(0);
 	time.push_back(0.0);
 	amt.push_back(NA_REAL);
 	ii.push_back(0.0);
@@ -523,7 +559,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false, bool allTimeVar
 	} else {
 	  tmpCmt=1;
 	}
-      }
+      }      
       if (IntegerVector::is_na(inCmt[i])){
 	tmpCmt = 1;
       } else if (inCmt[i] < 0){
@@ -531,9 +567,11 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false, bool allTimeVar
 	ss = 30;
 	tmpCmt = -tmpCmt;
       }
+      cmt = tmpCmt;
+    } else if (cmtCol == -1) {
+      cmt = 1;
     }
     // CMT flag
-    if (cmtCol == -1) cmt = 1;
     else cmt = tmpCmt;
     if (cmt <= 99){
       cmt100=0;
@@ -544,14 +582,12 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false, bool allTimeVar
     }
     mxCmt = max2(cmt,mxCmt);
 
-
     // Amt
     if (amtCol == -1) camt = 0.0;
     else camt = inAmt[i];
     
     rateI = 0;
     // Rate
-    
     if (durCol == -1 || inDur[i] == 0 || ISNA(inDur[i])){
       if (rateCol == -1 || inRate[i] == 0 || ISNA(inRate[i])) rate = 0.0;
       else rate = inRate[i];
@@ -619,6 +655,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false, bool allTimeVar
     } else {
       switch(inEvid[i]){
       case 0:
+	// Observation
 	nobs++;
 	cevid = 0;
 	if (mdvCol != -1 && inMdv[i] == 1){
@@ -646,6 +683,10 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false, bool allTimeVar
 	  idxO.push_back(curIdx);curIdx++;
 	  cevid = -1;
 	} else {
+	  if (combineDvidB && dvidCol != -1 && !IntegerVector::is_na(inDvid[i]) &&
+	      inDvid[i]>0){
+	    cmt = state0.size()+inDvid[i];
+	  }
 	  id.push_back(cid);
 	  evid.push_back(cevid);
 	  cmtF.push_back(cmt);
@@ -1163,6 +1204,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false, bool allTimeVar
   e["lib.name"] = trans["lib.name"];
   e["addCmt"] = addCmt;
   e["cmtInfo"] = cmtInfo;
+  e["dvidInfo"] = dvidInfo;
   e["idLvl"] = idLvl;
   e["allTimeVar"] = allTimeVar;
   e["keepDosingOnly"] = true;

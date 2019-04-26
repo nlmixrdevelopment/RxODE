@@ -28,12 +28,17 @@ etRep_ <- function(curEt, times, wait, ids, handleSamples, waitType, ii) {
 #' @param addCmt Add compartment to data frame, and drop units
 #' @param allTimeVar Treat all covariates as if they were time-varying
 #' @param keepDosingOnly keep the individuals who only have dosing records and any
-#'   trailing dosing records after the last observation.
+#'   trailing dosing records after the last observat
+#' ion.
+#' @param combineDvid is a boolean indicating if RxODE will use DVID on observation
+#'     records to change the cmt value; Useful for multiple-endpoint nlmixr models.  By default
+#'     this is determined by code{option("RxODE.combine.dvid")} and if the option has not been set,
+#'     this is \code{TRUE}. This typically does not affect RxODE simulations.
 #' @return Object for solving in RxODE
 #' @keywords internal
 #' @export
-etTrans <- function(inData, obj, addCmt = FALSE, allTimeVar = FALSE, keepDosingOnly = FALSE) {
-    .Call(`_RxODE_etTrans`, inData, obj, addCmt, allTimeVar, keepDosingOnly)
+etTrans <- function(inData, obj, addCmt = FALSE, allTimeVar = FALSE, keepDosingOnly = FALSE, combineDvid = NULL) {
+    .Call(`_RxODE_etTrans`, inData, obj, addCmt, allTimeVar, keepDosingOnly, combineDvid)
 }
 
 #' Check the type of an object using Rcpp

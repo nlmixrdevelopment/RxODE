@@ -1,3 +1,8 @@
+.convertDvid  <- function(id){
+    .udvid  <- sort(unique(id))
+    .ndvid  <- seq_along(.udvid);
+    as.integer(factor(id,levels=.udvid,.ndvid))
+}
 .convertId <- function(id){
     .pid <- paste(id);
     .lvl <- unique(.pid);

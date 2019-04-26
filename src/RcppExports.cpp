@@ -87,8 +87,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // etTrans
-List etTrans(List inData, const RObject& obj, bool addCmt, bool allTimeVar, bool keepDosingOnly);
-RcppExport SEXP _RxODE_etTrans(SEXP inDataSEXP, SEXP objSEXP, SEXP addCmtSEXP, SEXP allTimeVarSEXP, SEXP keepDosingOnlySEXP) {
+List etTrans(List inData, const RObject& obj, bool addCmt, bool allTimeVar, bool keepDosingOnly, Nullable<LogicalVector> combineDvid);
+RcppExport SEXP _RxODE_etTrans(SEXP inDataSEXP, SEXP objSEXP, SEXP addCmtSEXP, SEXP allTimeVarSEXP, SEXP keepDosingOnlySEXP, SEXP combineDvidSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -97,7 +97,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< bool >::type addCmt(addCmtSEXP);
     Rcpp::traits::input_parameter< bool >::type allTimeVar(allTimeVarSEXP);
     Rcpp::traits::input_parameter< bool >::type keepDosingOnly(keepDosingOnlySEXP);
-    rcpp_result_gen = Rcpp::wrap(etTrans(inData, obj, addCmt, allTimeVar, keepDosingOnly));
+    Rcpp::traits::input_parameter< Nullable<LogicalVector> >::type combineDvid(combineDvidSEXP);
+    rcpp_result_gen = Rcpp::wrap(etTrans(inData, obj, addCmt, allTimeVar, keepDosingOnly, combineDvid));
     return rcpp_result_gen;
 END_RCPP
 }
