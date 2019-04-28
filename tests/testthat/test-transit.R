@@ -33,7 +33,7 @@ d/dt(cen) = ka*depot-k*cen
                      dat1);
     })
 
-    transit <- rxSolve(mod, et)
+    transit <- expect_warning(rxSolve(mod, et))
 
     test_that("Transit absorption is not specified, but still works.", {
         expect_equal(round(as.data.frame(transit[c(1:15,seq(194-15,194)),]), 4),
@@ -64,7 +64,7 @@ d/dt(depot) = exp(log(bio*podo)+log(ktr)+n*log(ktr*t)-ktr*t-lgamma1p(n))-ka*depo
 d/dt(cen) = ka*depot-k*cen
 ")
 
-    transit <- rxSolve(mod, et);
+    transit <- expect_warning(rxSolve(mod, et));
 
     test_that("Transit absorption using lagmma1p works.", {
         expect_equal(round(as.data.frame(transit[c(1:15,seq(194-15,194)),]), 4),
@@ -86,7 +86,7 @@ d/dt(depot) = exp(log(bio*podo)+log(ktr)+n*log(ktr*t)-ktr*t-log(n!))-ka*depot
 d/dt(cen) = ka*depot-k*cen
 ")
 
-    transit <- rxSolve(mod, et);
+    transit <- expect_warning(rxSolve(mod, et));
 
     test_that("Transit absorption using !.", {
         expect_equal(round(as.data.frame(transit[c(1:15,seq(194-15,194)),]), 4), dat1);
@@ -107,7 +107,7 @@ d/dt(depot) = exp(log(bio*podo)+log(ktr)+n*log(ktr*t)-ktr*t-lgamma(n+1))-ka*depo
 d/dt(cen) = ka*depot-k*cen
 ")
 
-    transit <- rxSolve(mod, et);
+    transit <- expect_warning(rxSolve(mod, et));
 
     test_that("Transit absorption using C's lgamma function.", {
         expect_equal(round(as.data.frame(transit[c(1:15,seq(194-15,194)),]), 4), dat1)
@@ -128,7 +128,7 @@ d/dt(depot) = exp(log(bio*podo)+log(ktr)+n*log(ktr*t)-ktr*t-lfactorial(n))-ka*de
 d/dt(cen) = ka*depot-k*cen
 ")
 
-    transit <- rxSolve(mod, et);
+    transit <- expect_warning(rxSolve(mod, et));
 
     test_that("Transit absorption using lfactorial", {
         expect_equal(round(as.data.frame(transit[c(1:15,seq(194-15,194)),]), 4), dat1)
@@ -149,7 +149,7 @@ d/dt(depot) = exp(log(bio*podo)+log(ktr)+n*log(ktr*t)-ktr*t-log(factorial(n)))-k
 d/dt(cen) = ka*depot-k*cen
 ")
 
-    transit <- rxSolve(mod, et);
+    transit <- expect_warning(rxSolve(mod, et));
 
     test_that("Transit absorption using log(factorial)", {
         expect_equal(round(as.data.frame(transit[c(1:15,seq(194-15,194)),]), 4), dat1);
@@ -169,7 +169,7 @@ d/dt(depot) = transit(n, mtt)-ka*depot
 d/dt(cen) = ka*depot-k*cen
 ")
 
-    transit2 <- rxSolve(mod, et);
+    transit2 <- expect_warning(rxSolve(mod, et));
 
     test_that("Transit absorption is function that can take 2 arguments", {
         expect_equal(round(as.data.frame(transit)[,names(transit) != "ktr"], 4),
@@ -189,7 +189,7 @@ d/dt(depot) = transit(n, mtt, bio)-ka*depot
 d/dt(cen) = ka*depot-k*cen
 ")
 
-    transit2 <- rxSolve(mod, et);
+    transit2 <- expect_warning(rxSolve(mod, et));
 
     test_that("Transit absorption is function that can take 3 arguments", {
         expect_equal(round(as.data.frame(transit)[,names(transit) != "ktr"], 4),
@@ -209,7 +209,7 @@ d/dt(depot) = transit(n, mtt, 1)-ka*depot
 d/dt(cen) = ka*depot-k*cen
 ")
 
-    transit2 <- rxSolve(mod, et);
+    transit2 <- expect_warning(rxSolve(mod, et));
 
     test_that("Transit absorption can take numeric arguments", {
         expect_equal(round(as.data.frame(transit)[,names(transit) != "ktr"], 4),
