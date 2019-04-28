@@ -1910,7 +1910,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                 }
                 if (sum.prod){
                     rxCat(sprintf("Stabilizing round off errors in products & sums in %s model...", what));
-                    .mod <- rxSumProdModel(.mod);
+                    x <- rxSumProdModel(x);
                     rxCat("done\n");
                 }
                 if (optExpression){
