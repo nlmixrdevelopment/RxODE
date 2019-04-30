@@ -7,6 +7,7 @@ sudo: required
 env:
  global:
    - _R_CHECK_FORCE_SUGGESTS_: FALSE
+   - CODECOV_TOKEN: c1a47ffb-e5b5-420a-a0ed-6df480bcb833
 
 r:
   - 3.4
@@ -42,4 +43,4 @@ r_github_packages:
   - nlmixrdevelopment/PreciseSums
   - nlmixrdevelopment/SnakeCharmR
 after_success:
-  - Rscript -e 'covr::codecov()'
+  - Rscript -e 'covr::codecov(token="c1a47ffb-e5b5-420a-a0ed-6df480bcb833")'
