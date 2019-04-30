@@ -181,6 +181,8 @@ typedef struct symtab {
   int idi[MXDER];       /* should ith state variable be ignored 0/1 */
   int idu[MXDER];       /* Has the ith state been used in a derivative expression? */
   int fdi[MXDER];        /* Functional initialization of state variable */
+  int dvid[MXDER];
+  int dvidn;
   int nv;                       /* nbr of symbols */
   int ix;                       /* ith of curr symbol */
   int id;                       /* ith of curr symbol */
@@ -547,6 +549,8 @@ typedef struct nodeInfo {
   int transit2;
   int transit3;
   int cmt_statement;
+  int dvid_statementI;
+  int dvid_statementS;
 } nodeInfo;
 
 #define NIB(what) ni.what
@@ -599,6 +603,8 @@ void niReset(nodeInfo *ni){
   ni->transit2 = -1;
   ni->transit3 = -1;
   ni->cmt_statement = -1;
+  ni->dvid_statementI = -1;
+  ni->dvid_statementS = -1;
 }
 
 
@@ -627,6 +633,9 @@ void wprint_node(int depth, char *name, char *value, void *client_data) {
     aAppendN("_solveData->subjects[_cSub].podo", 32);
     sAppendN(&sbt, "podo", 4);
     rx_podo = 1;
+  } else if (!strcmp("CMT",value)){
+    aAppendN("_CMT", 4);
+    sAppendN(&sbt, "CMT", 3);
   } else if (!strcmp("tlast",value)){
     aAppendN("_solveData->subjects[_cSub].tlast", 33);
     sAppendN(&sbt, "tlast", 5);
@@ -726,37 +735,33 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       !strcmp("=", name)
       )
     fn(depth, name, value, client_data);
-
+  
   // Operator synonyms  
   if (!strcmp("<-",name)){
     aAppendN(" =", 2);
     sAppendN(&sbt, "=", 1);
-  }
-
-  // Suppress LHS calculation with ~
-  if (!strcmp("~",name)){
+  } else if (!strcmp("~",name)){
+    // Suppress LHS calculation with ~
     aAppendN(" =", 2);
     sAppendN(&sbt, "~", 1);
     tb.lh[tb.ix] = 10; // Suppress LHS printout.
-  }
-  
-  if (!strcmp("|",name)){
+  } else if (!strcmp("|",name)){
     aAppendN(" ||", 3);
     sAppendN(&sbt, "||", 2);
-  }
-
-  if (!strcmp("&",name)){
+  } else if (!strcmp("&",name)){
     aAppendN(" &&", 3);
     sAppendN(&sbt, "&&", 2);
+  } else if (!strcmp("~~", name)){
+    aAppendN(" ==", 3);
+    sAppendN(&sbt, "==", 2);
+  } else if (!strcmp("<~", name)){
+    aAppendN(" <=", 3);
+    sAppendN(&sbt, "<=", 2);
+  } else if (!strcmp(">~", name)){
+    aAppendN(" >=", 3);
+    sAppendN(&sbt, ">=", 2);
   }
 
-  if (!strcmp("<>",name) ||
-      !strcmp("~=",name) ||
-      !strcmp("/=",name) 
-      ){
-    aAppendN(" !=", 3);
-    sAppendN(&sbt, "!=", 2);
-  }
   Free(value);
 
   //depth++;
@@ -767,7 +772,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
     for (i = 0; i < nch; i++) {
       if (!rx_syntax_assign  &&
           ((i == 4 && nodeHas(derivative)) ||
-           (i == 6 && nodeHas(jac)) ||
            (i == 6 && nodeHas(dfdy)))) {
         D_ParseNode *xpn = d_get_child(pn,i);
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
@@ -783,13 +787,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       
       if ((i == 3 || i < 2) && (nodeHas(der_rhs) || nodeHas(inf_rhs))) continue;
       
-      if (nodeHas(jac)     && i< 2)   continue;
-      if (nodeHas(jac_rhs) && i< 2)   continue;
-      if (nodeHas(jac)     && i == 3) continue;
-      if (nodeHas(jac_rhs) && i == 3) continue;
-      if (nodeHas(jac)     && i == 5) continue;
-      if (nodeHas(jac_rhs) && i == 5) continue;
-      if (nodeHas(jac)     && i == 6) continue;
 
       if (nodeHas(dfdy)     && i< 2)   continue;
       if (nodeHas(dfdy_rhs) && i< 2)   continue;
@@ -804,18 +801,48 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       if (nodeHas(transit2) && i == 1) continue;
       if (nodeHas(transit3) && i == 1) continue;
 
-      if (nodeHas(lfactorial) && i != 1) continue;
-      if (nodeHas(factorial) && i != 0) continue;
 
       if ((nodeHas(theta) || nodeHas(eta)) && i != 2) continue;
       if (nodeHas(mtime) && (i == 0 || i == 1 || i == 3)) continue;
       if (nodeHas(cmt_statement) && (i == 0 || i == 1 || i == 3)) continue;
-      
+      if (i != 0 && (nodeHas(dvid_statementI) || nodeHas(dvid_statementS))) continue;
       tb.fn = (nodeHas(function) && i==0) ? 1 : 0;
 
       if (tb.fn) depth = 0;
 
       D_ParseNode *xpn = d_get_child(pn,i);
+
+      if (nodeHas(dvid_statementI)){
+	if (tb.dvidn == 0){
+	  // dvid->cmt translation
+	  sb.o=0;sbDt.o=0; sbt.o=0;
+	  xpn = d_get_child(pn,2);
+	  char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
+	  tb.dvid[0]=atoi(v);
+	  sAppend(&sbt, "dvid(%d", tb.dvid[0]);
+	  xpn = d_get_child(pn,3);
+	  tb.dvidn = d_get_number_of_children(xpn)+1;
+	  D_ParseNode *xpn2;
+	  for (i = 0; i < tb.dvidn-1; i++){
+	    xpn2 = d_get_child(xpn, i);
+	    v = (char*)rc_dup_str(xpn2->start_loc.s, xpn2->end);
+	    tb.dvid[i+1]=atoi(v+1);
+	    sAppend(&sbt, ",%d", tb.dvid[i+1]);
+	  }
+	  sAppend(&sbNrm, "%s);\n", sbt.s);
+	  continue;
+	} else {
+	  error("RxODE only supports one integer dvid() statement");
+	}
+	continue;
+      }
+      if (nodeHas(dvid_statementS)){
+	error("dvid(\"cmt\", \"cmt2\", ...) are not yet supported.");
+	ii = d_get_number_of_children(d_get_child(pn,3))+1;
+	continue;
+      }
+            
+
       
       if (tb.fn){
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
@@ -968,11 +995,10 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         continue;
       } 
 
-      if ( (nodeHas(jac) || nodeHas(jac_rhs) ||
-            nodeHas(dfdy) || nodeHas(dfdy_rhs)) && i == 2){
+      if ((nodeHas(dfdy) || nodeHas(dfdy_rhs)) && i == 2){
         found_jac = 1;
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-        if (nodeHas(jac_rhs) || nodeHas(dfdy_rhs)){
+        if (nodeHas(dfdy_rhs)){
           // Continuation statement
 	  switch(sbPm.lType[sbPm.n]){
 	  case FBIO:
@@ -1019,44 +1045,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
         Free(v);
         continue;
       }
-      if (nodeHas(factorial_exp) && i == 0){
-        sb.o--;sbDt.o--;
-        aAppendN("exp(lgamma1p(", 13);
-        continue;
-      }
-      if (nodeHas(lfactorial_exp) && i == 0){
-        aAppendN("lgamma1p(", 9);
-        sAppendN(&sbt, "log((", 5);
-        continue;
-      }
-      if (nodeHas(lfactorial_exp) && i == 2){
-        aAppendN(")", 1);
-        sAppendN(&sbt, ")!)", 3);
-        continue;
-      }
-      if (nodeHas(factorial_exp) && i == 3) {
-        sb.o--;sbDt.o--;
-        aAppendN(")", 1);
-        continue;
-      }      
-      if (nodeHas(factorial)){
-        char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-        sAppend(&sb, "exp(lgamma1p(%s))",v);
-	sAppend(&sbDt, "exp(lgamma1p(%s))",v);
-        sAppend(&sbt, "%s!",v);
-        Free(v);
-        continue;
-      }
-      if (nodeHas(lfactorial)){
-        char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-        sAppend(&sb, "lgamma1p(%s)",v);
-	sAppend(&sbDt, "lgamma1p(%s)",v);
-        sAppend(&sbt, "log(%s!)",v);
-        Free(v);
-        continue;
-      }
-      if ((nodeHas(jac)  || nodeHas(jac_rhs) ||
-           nodeHas(dfdy) || nodeHas(dfdy_rhs)) && i == 4){
+      if ((nodeHas(dfdy) || nodeHas(dfdy_rhs)) && i == 4){
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
 	ii = 0;
 	if (strstr(v,"THETA[") != NULL){
@@ -1085,8 +1074,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    good_jac = 0;
 	  }
         }
-        if (nodeHas(jac) ||
-            strcmp("dfdy",name) == 0){
+        if (strcmp("dfdy",name) == 0){
           aAppendN(" = ", 3);
           sAppendN(&sbt ,"=", 1);
 	  if (ii == 1){
@@ -1563,7 +1551,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       }
     }
 
-    if (nodeHas(assignment) || nodeHas(ini) || nodeHas(jac) || nodeHas(dfdy) ||
+    if (nodeHas(assignment) || nodeHas(ini) || nodeHas(dfdy) ||
         nodeHas(ini0) || nodeHas(ini0f) || nodeHas(fbio) || nodeHas(alag) || nodeHas(rate) || 
 	nodeHas(dur) || nodeHas(mtime)){
       addLine(&sbPm,     "%s;\n", sb.s);
@@ -1815,8 +1803,8 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   sAppend(&sbOut, "extern SEXP %smodel_vars(){\n  int pro=0;\n", prefix);
   sAppend(&sbOut, "  SEXP _mv = PROTECT(_rxGetModelLib(\"%smodel_vars\"));pro++;\n", prefix);
   sAppendN(&sbOut, "  if (!_rxIsCurrentC(_mv)){\n", 28);
-  sAppendN(&sbOut, "    SEXP lst      = PROTECT(allocVector(VECSXP, 19));pro++;\n", 60);
-  sAppendN(&sbOut, "    SEXP names    = PROTECT(allocVector(STRSXP, 19));pro++;\n", 60);
+  sAppendN(&sbOut, "    SEXP lst      = PROTECT(allocVector(VECSXP, 20));pro++;\n", 60);
+  sAppendN(&sbOut, "    SEXP names    = PROTECT(allocVector(STRSXP, 20));pro++;\n", 60);
   sAppendN(&sbOut, "    SEXP sNeedSort = PROTECT(allocVector(INTSXP,1));pro++;\n", 59);
   sAppendN(&sbOut, "    int *iNeedSort  = INTEGER(sNeedSort);\n", 42);
   sAppend(&sbOut, "    iNeedSort[0] = %d;\n", needSort);
@@ -1962,11 +1950,20 @@ void print_aux_info(char *model, const char *prefix, const char *libname, const 
   sAppendN(&sbOut, "    SET_STRING_ELT(names, 16, mkChar(\"stateExtra\"));\n", 53);
   sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  16, extraState);\n", 42);
 
-  sAppendN(&sbOut, "    SET_STRING_ELT(names,17,mkChar(\"timeId\"));\n", 47);
-  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  17,timeInt);\n", 38);
+  sAppendN(&sbOut, "    SET_STRING_ELT(names, 17, mkChar(\"dvid\"));\n", 47);
+  sAppend(&sbOut,   "    SEXP sDvid = PROTECT(allocVector(INTSXP,%d));pro++;\n", tb.dvidn);
+  
+  for (int di = 0; di < tb.dvidn; di++){
+    sAppend(&sbOut, "    INTEGER(sDvid)[%d] = %d;\n",di, tb.dvid[di]);
+  }
+  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst, 17, sDvid);\n", 36);
 
-  sAppendN(&sbOut, "    SET_STRING_ELT(names,18,mkChar(\"md5\"));\n", 43);
-  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  18,mmd5);\n", 34);
+
+  sAppendN(&sbOut, "    SET_STRING_ELT(names,18,mkChar(\"timeId\"));\n", 47);
+  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  18,timeInt);\n", 38);
+
+  sAppendN(&sbOut, "    SET_STRING_ELT(names,19,mkChar(\"md5\"));\n", 43);
+  sAppendN(&sbOut, "    SET_VECTOR_ELT(lst,  19,mmd5);\n", 34);
 
   // const char *rxVersion(const char *what)
   
@@ -2105,6 +2102,17 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
       int mx = maxSumProdN;
       if (SumProdLD > mx) mx = SumProdLD;
       sAppend(&sbOut,"#define __MAX_PROD__ %d\n", mx);
+      int baseSize = tb.statei-tb.nExtra+extraCmt - tb.sensi;
+      if (tb.sensi > 0){
+	// This converts CMT to user CMT in model
+	// Hence CMT = 4 could translate in data to 44 with sensi=10
+	// Then cmt=44 translates back to cmt-10 or 4.
+	// This makes the sensitivity equations insensitive to CMT changes that occur in FOCEi
+	sAppend(&sbOut,"#define _CMT ((abs(CMT)<=%d) ? CMT : ((CMT<0) ? CMT+%d: CMT-%d))\n",
+	      baseSize, tb.sensi, tb.sensi);
+      } else {
+	sAppendN(&sbOut,"#define _CMT CMT\n", 17);
+      }
       sAppend(&sbOut, "extern void  %sode_solver_solvedata (rx_solve *solve){\n  _solveData = solve;\n}\n",prefix);
       sAppend(&sbOut, "extern rx_solve *%sode_solver_get_solvedata(){\n  return _solveData;\n}\n", prefix);
       sAppend(&sbOut, "SEXP %smodel_vars();\n", prefix);
@@ -2433,7 +2441,9 @@ void reset (){
   memset(tb.sdfdy,	0, MXSYM*sizeof(int));
   memset(tb.idu,        0, MXDER*sizeof(int));
   memset(tb.idi,        0, MXDER*sizeof(int));
+  memset(tb.dvid,       0, MXDER*sizeof(int));
   // Reset integers
+  tb.dvidn      = 0;
   tb.nv		= 0;
   tb.ix		= 0;
   tb.id		= 0;
@@ -2659,8 +2669,8 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
   tb.li=li;
   
   int pro = 0;
-  SEXP lst   = PROTECT(allocVector(VECSXP, 17));pro++;
-  SEXP names = PROTECT(allocVector(STRSXP, 17));pro++;
+  SEXP lst   = PROTECT(allocVector(VECSXP, 18));pro++;
+  SEXP names = PROTECT(allocVector(STRSXP, 18));pro++;
 
   SEXP sNeedSort = PROTECT(allocVector(INTSXP,1));pro++;
   int *iNeedSort  = INTEGER(sNeedSort);
@@ -2687,9 +2697,10 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
       nExtra++;
     }
   }
+  tb.nExtra=nExtra;
 
-  SEXP state      = PROTECT(allocVector(STRSXP,tb.statei-nExtra));pro++;
-  SEXP stateRmS   = PROTECT(allocVector(INTSXP,tb.statei-nExtra));pro++;
+  SEXP state      = PROTECT(allocVector(STRSXP,tb.statei-tb.nExtra));pro++;
+  SEXP stateRmS   = PROTECT(allocVector(INTSXP,tb.statei-tb.nExtra));pro++;
   int *stateRm    = INTEGER(stateRmS);
   SEXP extraState = PROTECT(allocVector(STRSXP,nExtra));pro++;
   
@@ -2878,6 +2889,11 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
 
   SET_STRING_ELT(names, 16, mkChar("stateExtra"));
   SET_VECTOR_ELT(lst,  16, extraState);
+
+  SET_STRING_ELT(names, 17, mkChar("dvid"));
+  SEXP sDvid = PROTECT(allocVector(INTSXP,tb.dvidn));pro++;
+  for (i = 0; i < tb.dvidn; i++) INTEGER(sDvid)[i]=tb.dvid[i];
+  SET_VECTOR_ELT(lst,  17, sDvid);
 
   sprintf(buf,"%.*s", (int)strlen(model_prefix)-1, model_prefix);
   SET_STRING_ELT(trann,0,mkChar("lib.name"));

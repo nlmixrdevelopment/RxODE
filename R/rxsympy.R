@@ -179,26 +179,6 @@ rxSymPyStart <- function(){
     }
     start("reticulate");
     start("SnakeCharmR");
-    ## start("rPython");
-    ## start("PythonInR");
-    ## if (is.null(.rxSymPy$started)){
-        ## if (any(RxODE.sympy.engine == c("", "rSymPy"))) {
-        ##     if (requireNamespace("rSymPy", quietly = TRUE)){
-        ##         if (!exists(".Jython", .GlobalEnv)){
-        ##             rxCat("Using sympy via rSymPy (creating jython process)\n");
-        ##             rSymPy::sympyStart()
-        ##             .rxSymPy$started <- "rSymPy";
-        ##             try({.Jython$exec("import gc")});
-        ##         } else {
-        ##             rxCat("Using sympy via rSymPy (with exisiting jython)\n");
-        ##             rSymPy::sympyStart()
-        ##             .rxSymPy$started <- "rSymPy";
-        ##             try({.Jython$exec("import gc")});
-        ##         }
-        ##     }
-        ## }
-    ## }
-
     if (is.null(.rxSymPy$started)){
         rxCat("RxODE requires SymPy for this function.\n");
         rxCat("We recommend you install SymPy for Python and then interact with Python using reticulate.\n");
@@ -1412,7 +1392,7 @@ genCmtMod <- function(mod){
 rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, grad=FALSE, sum.prod=FALSE, pred.minus.dv=TRUE,
                              theta.derivs=FALSE,only.numeric=FALSE,
                              grad.internal=FALSE, theta.internal=FALSE,
-                             optExpression=TRUE, run.internal=RxODE.sympy.run.internal,
+                             optExpression=TRUE, run.internal=TRUE,#RxODE.sympy.run.internal,
                              interaction=TRUE){
     rxSolveFree();
     good.fns <- c(".GlobalEnv", "package:RxODE", "package:nlmixr")
@@ -1507,6 +1487,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
             assignInMyNamespace("rxSymPyExpThetas", c());
             assignInMyNamespace("rxSymPyExpEtas", c());
             .mv0 <- rxModelVars(obj);
+            .curDvid <- .mv0$dvid;
             .state0  <- .mv0$state;
             if (length(.state0) > 0){
                 .state0 <- paste(paste0("cmt(",.mv0$state,");\n"),collapse="");
@@ -1518,6 +1499,17 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                 .statef <- paste0(paste(paste0("\ncmt(",.mv0$stateExtra,");"),collapse=""),"\n");
             } else {
                 .statef <- "";
+            }
+            if (length(.curDvid) > 1){
+                .dvidF <- paste0("\ndvid(",
+                                 paste(.curDvid, collapse=","),");\n");
+            } else {
+                .dvidF <- "";
+            }
+
+            .endpoints  <- c(.mv0$state, .mv0$stateExtra)
+            if (length(.endpoints) > 0){
+                names(.endpoints) <- paste0("(CMT==",seq_along(.endpoints),")")
             }
             gobj <- obj;
             oobj <- genCmtMod(obj);
@@ -1611,7 +1603,11 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                 } else {
                     if (!is.null(.ncond)){
                         rxCat("################################################################################\n");
-                        rxCat(sprintf("## %s %s\n", crayon::bold("Condition:"), .ncond[.i]));
+                        if (any(names(.endpoints)==.ncond[.i])){
+                            rxCat(sprintf("## %s %s\n", crayon::bold("Endpoint:"), .endpoints[.ncond[.i]]));
+                        } else {
+                            rxCat(sprintf("## %s %s\n", crayon::bold("Condition:"), .ncond[.i]));
+                        }
                         rxCat("################################################################################\n");
                     }
                     .origStates <- rxState(.cond[.i])
@@ -1915,10 +1911,10 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                 }
                 if (optExpression){
                     rxCat(sprintf("Optimizing expressions in %s model...", what));
-                    .mod <- paste0(.state0, rxOptExpr(x), .statef)
+                    .mod <- paste0(.state0, rxOptExpr(x), .statef, .dvidF)
                     rxCat("done\n");
                 } else {
-                    .mod <- paste0(.state0, x, .statef);
+                    .mod <- paste0(.state0, x, .statef, .dvidF);
                 }
                 rxCat(sprintf("Compiling %s model...", what));
                 .ret <- RxODE(.mod);

@@ -1,7 +1,11 @@
-.convertDvid  <- function(id){
+.convertDvid  <- function(id, maxDvid=0L){
     .udvid  <- sort(unique(id))
-    .ndvid  <- seq_along(.udvid);
-    as.integer(factor(id,levels=.udvid,.ndvid))
+    if (max(.udvid) > maxDvid){
+        .ndvid  <- seq_along(.udvid);
+        as.integer(factor(id,levels=.udvid,.ndvid))
+    } else {
+        return(id)
+    }
 }
 .convertId <- function(id){
     .pid <- paste(id);

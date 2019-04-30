@@ -10,7 +10,10 @@ List rxModelVars_(const RObject &obj);
 bool rxIs(const RObject &obj, std::string cls);
 Environment RxODEenv();
 
-IntegerVector toCmt(RObject inCmt, CharacterVector state, bool isDvid=false){
+IntegerVector curDvid;
+
+IntegerVector toCmt(RObject inCmt, CharacterVector state, bool isDvid=false,
+		    int stateSize = 0, int sensSize=0){
   RObject cmtInfo = R_NilValue;
   List extraCmt;
   if (rxIs(inCmt, "numeric") || rxIs(inCmt, "integer")){
@@ -63,20 +66,85 @@ IntegerVector toCmt(RObject inCmt, CharacterVector state, bool isDvid=false){
       IntegerVector cmtIn = IntegerVector(inCmt);
       IntegerVector ret(cmtIn.size());
       for (j=ret.size(); j--;){
-	ret[j] = lvlI[cmtIn[j]-1];
+	if (IntegerVector::is_na(cmtIn[j])){
+	  ret[j] = NA_INTEGER;
+	} else {
+	  ret[j] = lvlI[cmtIn[j]-1];
+	}
       }
       CharacterVector newCmt(state.size()+extraCmt.size());
       for (int j = state.size(); j--;) newCmt[j]=state[j];
-      for (int j = extraCmt.size(); j--;) newCmt[j+state.size()] = as<std::string>(extraCmt[j]);
+      for (int j = extraCmt.size(); j--;)
+	newCmt[j+state.size()] = as<std::string>(extraCmt[j]);
       ret.attr("cmtNames") = newCmt;
       return ret;
     } else {
       if (isDvid){
+	// This converts DVID to cmt; Things that don't match become -9999
 	Environment rx = RxODEenv();
 	Function convertDvid = rx[".convertDvid"];
-	return as<IntegerVector>(convertDvid(inCmt));
+	IntegerVector in = convertDvid(inCmt, curDvid.length());
+	IntegerVector out(in.size());
+	IntegerVector conv = curDvid;
+	std::vector<int> warnDvid;
+	std::vector<int> warnConvertDvid;
+	std::string warnC = "'dvid' were not numbered 1, 2, etc\nThey were converted from->to:";
+	IntegerVector cmtIn = IntegerVector(inCmt);
+	int curConv;
+	for (int i = in.size(); i--;){
+	  if (in[i] != cmtIn[i]){
+	    if (std::find(warnConvertDvid.begin(), warnConvertDvid.end(), in[i]) == warnConvertDvid.end()){
+	      warnConvertDvid.push_back(in[i]);
+	      warnC = warnC + " " + std::to_string(cmtIn[i]) + "->" + std::to_string(in[i]);
+	    }
+	  }
+	  if (in[i] > 0 && in[i] <= conv.size()){
+	    curConv= conv[in[i]-1];
+	    if (curConv > 0){
+	      out[i] = curConv;
+	    } else {
+	      out[i] = curConv +state.size()+1;
+	    }
+	  } else {
+	    if (std::find(warnDvid.begin(), warnDvid.end(), in[i]) == warnDvid.end()){
+	      warnDvid.push_back(in[i]);
+	    }
+	    out[i] = -9999;
+	  }
+	}
+	if (warnDvid.size() > 0){
+	  std::string warn = "Undefined 'dvid' integer values in data: ";
+	  std::sort(warnDvid.begin(), warnDvid.end());
+	  for (int i = 0; i < (int)(warnDvid.size()-1); i++){
+	    warn = warn + std::to_string(warnDvid[i]) + ", ";
+	  }
+	  warn = warn + std::to_string(warnDvid[warnDvid.size()-1]);
+	  warning(warn);
+	}
+	if (warnConvertDvid.size() > 0){
+	  warning(warnC);
+	}
+	return out;
+      } else {
+	IntegerVector in = as<IntegerVector>(inCmt);
+	IntegerVector out(in.size());
+	int baseSize = stateSize - sensSize;
+	// Sensitivity equations are ignored in CMT data items.
+	for (int i = in.size(); i--;){
+	  if (in[i] > 0 && in[i] <= baseSize){
+	    out[i] = in[i];
+	  } else if (in[i] > 0) {
+	    out[i] = in[i]+sensSize;
+	  } else if (in[i] < 0 && in[i] >= -baseSize){
+	    out[i] = in[i];
+	  } else if (in[i] < 0){
+	    out[i] = in[i] - sensSize;
+	  } else {
+	    out[i] = 0;
+	  }
+	}
+	return out;
       }
-      return as<IntegerVector>(inCmt);
     }
   } else if (rxIs(inCmt, "character")) {
     CharacterVector iCmt = as<CharacterVector>(inCmt);
@@ -155,11 +223,11 @@ IntegerVector toCmt(RObject inCmt, CharacterVector state, bool isDvid=false){
 //'
 //' @param inData Data frame to translate
 //' @param obj Model to translate data 
-//' @param addCmt Add compartment to data frame, and drop units
+//' @param addCmt Add compartment to data frame (default code{FALSE}).
+//' @param dropUnits Boolean to drop the units (default \code{FALSE}).
 //' @param allTimeVar Treat all covariates as if they were time-varying
 //' @param keepDosingOnly keep the individuals who only have dosing records and any
-//'   trailing dosing records after the last observat
-//' ion.
+//'   trailing dosing records after the last observation.
 //' @param combineDvid is a boolean indicating if RxODE will use DVID on observation
 //'     records to change the cmt value; Useful for multiple-endpoint nlmixr models.  By default
 //'     this is determined by code{option("RxODE.combine.dvid")} and if the option has not been set,
@@ -168,8 +236,10 @@ IntegerVector toCmt(RObject inCmt, CharacterVector state, bool isDvid=false){
 //' @keywords internal
 //' @export
 //[[Rcpp::export]]
-List etTrans(List inData, const RObject &obj, bool addCmt=false, bool allTimeVar=false,bool keepDosingOnly=false,
-	     Nullable<LogicalVector> combineDvid=R_NilValue){
+List etTrans(List inData, const RObject &obj, bool addCmt=false,
+	     bool dropUnits=false, bool allTimeVar=false,
+	     bool keepDosingOnly=false, Nullable<LogicalVector> combineDvid=R_NilValue){
+  Environment rx = RxODEenv();
   bool combineDvidB = false;
   if (!combineDvid.isNull()){
     combineDvidB = (as<LogicalVector>(combineDvid))[1];
@@ -179,6 +249,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false, bool allTimeVar
     combineDvidB = as<bool>(getOption("RxODE.combine.dvid", true));
   }
   List mv = rxModelVars_(obj);
+  curDvid = clone(as<IntegerVector>(mv["dvid"]));
   CharacterVector trans = mv["trans"];
   if (rxIs(inData,"rxEtTran")){
     CharacterVector cls = inData.attr("class");
@@ -219,7 +290,6 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false, bool allTimeVar
     }
     // stop("This dataset was prepared for another model.");
   }
-  Environment rx = RxODEenv();
   // Translates events + model into translated events
   CharacterVector lName = clone(as<CharacterVector>(inData.attr("names")));
   int i, idCol = -1, evidCol=-1, timeCol=-1, amtCol=-1, cmtCol=-1,
@@ -285,7 +355,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false, bool allTimeVar
     nvTmp2 = NumericVector::create(1.0);
     if (as<std::string>(lName[covCol[i]]) != "cmt"){
       nvTmp = as<NumericVector>(inData[covCol[i]]);
-      if (!addCmt && rxIs(nvTmp, "units")){
+      if (!dropUnits && rxIs(nvTmp, "units")){
 	nvTmp2.attr("class") = "units";
 	nvTmp2.attr("units") = nvTmp.attr("units");
       }
@@ -322,6 +392,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false, bool allTimeVar
   
   CharacterVector state0 = as<CharacterVector>(mv["state"]);
   CharacterVector stateE = as<CharacterVector>(mv["stateExtra"]);
+  CharacterVector stateS = as<CharacterVector>(mv["sens"]);
   int extraCmt  = as<int>(mv["extraCmt"]);
   // Enlarge compartments
   if (extraCmt == 2){
@@ -342,6 +413,13 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false, bool allTimeVar
   }
   for (int i = 0; i < stateE.size(); i++){
     state[i+state0.size()] = stateE[i];
+  }
+  // Now adjust the compartment numbers if needed.
+  int baseSize = state0.size() - stateS.size();
+  for (int i = curDvid.size(); i--;){
+    if (curDvid[i] > baseSize){
+      curDvid[i] = stateS.size()+curDvid[i];
+    }
   }
   std::vector<int> id;
   std::vector<int> allId;
@@ -382,15 +460,15 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false, bool allTimeVar
   IntegerVector inCmt;
   RObject cmtInfo = R_NilValue;
   if (cmtCol != -1){
-    inCmt = as<IntegerVector>(toCmt(inData[cmtCol], state));//as<IntegerVector>();
+    inCmt = as<IntegerVector>(toCmt(inData[cmtCol], state, false,
+				    state0.size(), stateS.size()));//as<IntegerVector>();
     cmtInfo = inCmt.attr("cmtNames");
     inCmt.attr("cmtNames") = R_NilValue;
   }
-  RObject dvidInfo = R_NilValue;
   IntegerVector inDvid;
   if (dvidCol != -1){
-    inDvid = as<IntegerVector>(toCmt(inData[dvidCol], stateE, true));//as<IntegerVector>();
-    dvidInfo = inDvid.attr("cmtNames");
+    inDvid = as<IntegerVector>(toCmt(inData[dvidCol], state, true,
+				    state0.size(), stateS.size()));//as<IntegerVector>();
     inDvid.attr("cmtNames") = R_NilValue;
   }
   int tmpCmt = 1;
@@ -632,7 +710,6 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false, bool allTimeVar
     
     if (addlCol == -1) caddl=0;
     else caddl = inAddl[i];
-
     // EVID flag
     if (evidCol == -1){
       // Missing EVID
@@ -652,111 +729,126 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false, bool allTimeVar
 	cevid = cmt100*100000+rateI*10000+cmt99*100+ss;
 	allBolus=false;
       }
+      
     } else {
-      switch(inEvid[i]){
-      case 0:
-	// Observation
-	nobs++;
-	cevid = 0;
-	if (mdvCol != -1 && inMdv[i] == 1){
-	  cevid = 2;
-	}
-	if (std::find(obsId.begin(), obsId.end(), cid) == obsId.end()){
-	  obsId.push_back(cid);
-	}
-	if (caddl > 0){
-	  warning("addl is ignored with observations.");
-	}
-	if (ss != 1){
-	  // warning("ss is ignored with observations.");
-	  ss=1;
-	}
-	if (ISNA(ctime)){
-	  id.push_back(cid);
-	  evid.push_back(2);
-	  cmtF.push_back(cmt);
-	  time.push_back(ctime);
-	  amt.push_back(NA_REAL);
-	  ii.push_back(0.0);
-	  idx.push_back(i);
-	  dv.push_back(cdv);
-	  idxO.push_back(curIdx);curIdx++;
-	  cevid = -1;
-	} else {
+      cevid = inEvid[i];
+    }
+    switch(cevid){
+    case 0:
+      // Observation
+      nobs++;
+      cevid = 0;
+      if (mdvCol != -1 && inMdv[i] == 1){
+	cevid = 2;
+      }
+      if (std::find(obsId.begin(), obsId.end(), cid) == obsId.end()){
+	obsId.push_back(cid);
+      }
+      if (caddl > 0){
+	warning("addl is ignored with observations.");
+      }
+      if (ss != 1){
+	// warning("ss is ignored with observations.");
+	ss=1;
+      }
+      if (ISNA(ctime)){
+	id.push_back(cid);
+	evid.push_back(2);
+	cmtF.push_back(cmt);
+	time.push_back(ctime);
+	amt.push_back(NA_REAL);
+	ii.push_back(0.0);
+	idx.push_back(i);
+	dv.push_back(cdv);
+	idxO.push_back(curIdx);curIdx++;
+	cevid = -1;
+      } else {
+	bool goodCmt = false;
+	int cmpCmt;
+	if ((curDvid.size()) > 1){
+	  for (j=curDvid.size();j--;){
+	    if (curDvid[j] > 0){
+	      if (curDvid[j] == cmt || curDvid[j] == -cmt){
+		goodCmt=true;
+		break;
+	      }
+	    } else {
+	      cmpCmt = state.size()+curDvid[j]+1;
+	      if (cmpCmt == cmt || cmpCmt == -cmt){
+		goodCmt=true;
+		break;
+	      }
+	    }
+	  }
 	  if (combineDvidB && dvidCol != -1 && !IntegerVector::is_na(inDvid[i]) &&
 	      inDvid[i]>0){
-	    cmt = state0.size()+inDvid[i];
+	    if (goodCmt && cmt != inDvid[i]){
+	      stop("'cmt' and 'dvid' specify different compartments; Please correct.");
+	    }
+	    cmt = inDvid[i];
+	    goodCmt=true;
 	  }
-	  id.push_back(cid);
-	  evid.push_back(cevid);
-	  cmtF.push_back(cmt);
-	  time.push_back(ctime);
-	  amt.push_back(NA_REAL);
-	  ii.push_back(0.0);
-	  idx.push_back(i);
-	  dv.push_back(cdv);
-	  idxO.push_back(curIdx);curIdx++;
-	  cevid = -1;
+	} else {
+	  goodCmt = true;
+	  if (combineDvidB && dvidCol != -1 && !IntegerVector::is_na(inDvid[i]) &&
+	      inDvid[i]>0){
+	    cmt = inDvid[i];
+	  }
 	}
-	break;
-      case 1:
-	if (mdvCol != -1 && inMdv[i] == 0){
-	  stop("MDV cannot be 0 when EVID=1");
+	if (!goodCmt){
+	  IntegerVector dvidDF(curDvid.size());
+	  for (i = dvidDF.size(); i--;){
+	    dvidDF[i] = i+1;
+	  }
+	  List dvidTrans = List::create(_["dvid"]=dvidDF, _["modeled cmt"]=curDvid);
+	  dvidTrans.attr("class") = "data.frame";
+	  dvidTrans.attr("row.names") = IntegerVector::create(NA_INTEGER, -dvidDF.size());
+	  Rprintf("DVID/CMT translation:\n");
+	  print(dvidTrans);
+	  if (dvidCol != -1){
+	    Rprintf("DVID: %d\t", inDvid[i]);
+	  }
+	  Rprintf("CMT: %d\n", cmt);
+	  stop("'dvid'->'cmt' or 'cmt' on observation record is not a modeled compartment.");
 	}
+	id.push_back(cid);
+	evid.push_back(cevid);
+	cmtF.push_back(cmt);
+	time.push_back(ctime);
+	amt.push_back(NA_REAL);
+	ii.push_back(0.0);
+	idx.push_back(i);
+	dv.push_back(cdv);
+	idxO.push_back(curIdx);curIdx++;
+	cevid = -1;
+      }
+      break;
+    case 1:
+      if (mdvCol != -1 && inMdv[i] == 0){
+	stop("MDV cannot be 0 when EVID=1");
+      }
+      cevid = cmt100*100000+rateI*10000+cmt99*100+ss;
+      if (rateI == 0) allInf=false;
+      else allBolus=false;
+      break;
+    case 2:
+      cevid = 2;
+      if (ss == 30){
 	cevid = cmt100*100000+rateI*10000+cmt99*100+ss;
 	if (rateI == 0) allInf=false;
 	else allBolus=false;
-	break;
-      case 2:
-	cevid = 2;
-	if (ss == 30){
-	  cevid = cmt100*100000+rateI*10000+cmt99*100+ss;
-	  if (rateI == 0) allInf=false;
-	  else allBolus=false;
-	} else {
-	  cevid = cmt100*100000+rateI*10000+cmt99*100+1;
-	  if (rateI == 0) allInf=false;
-	  else allBolus=false;
-	  if (caddl > 0){
-	    warning("addl is ignored with EVID=2.");
-	  }
-	  if (ss != 1){
-	    warning("ss is ignored with EVID=2.");
-	  }	
-	  id.push_back(cid);
-	  evid.push_back(2);
-	  cmtF.push_back(cmt);
-	  time.push_back(ctime);
-	  amt.push_back(NA_REAL);
-	  ii.push_back(0.0);
-	  idx.push_back(i);
-	  dv.push_back(NA_REAL);
-	  idxO.push_back(curIdx);curIdx++;
-	  ndose++;
-	  // + cmt needs to turn on cmts.
-	  id.push_back(cid);
-	  evid.push_back(cevid);
-	  cmtF.push_back(cmt);
-	  time.push_back(ctime);
-	  amt.push_back(0.0);
-	  ii.push_back(0.0);
-	  idx.push_back(i);
-	  dv.push_back(NA_REAL);
-	  idxO.push_back(curIdx);curIdx++;
-	  ndose++;
-	  cevid = -1;
-	}
-	break;
-      case 3:
-	cevid = 3;
+      } else {
+	cevid = cmt100*100000+rateI*10000+cmt99*100+1;
+	if (rateI == 0) allInf=false;
+	else allBolus=false;
 	if (caddl > 0){
-	  warning("addl is ignored with EVID=3.");
+	  warning("addl is ignored with EVID=2.");
 	}
 	if (ss != 1){
-	  warning("ss is ignored with EVID=3.");
-	}
+	  warning("ss is ignored with EVID=2.");
+	}	
 	id.push_back(cid);
-	evid.push_back(3);
+	evid.push_back(2);
 	cmtF.push_back(cmt);
 	time.push_back(ctime);
 	amt.push_back(NA_REAL);
@@ -765,32 +857,62 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false, bool allTimeVar
 	dv.push_back(NA_REAL);
 	idxO.push_back(curIdx);curIdx++;
 	ndose++;
-	cevid = -1;
-	break;
-      case 4:
-	if (mdvCol != -1 && inMdv[i] == 0){
-	  stop("MDV cannot be 0 when EVID=4");
-	}
+	// + cmt needs to turn on cmts.
 	id.push_back(cid);
-	evid.push_back(3);
+	evid.push_back(cevid);
 	cmtF.push_back(cmt);
 	time.push_back(ctime);
-	amt.push_back(NA_REAL);
+	amt.push_back(0.0);
 	ii.push_back(0.0);
-	idx.push_back(-1);
+	idx.push_back(i);
 	dv.push_back(NA_REAL);
 	idxO.push_back(curIdx);curIdx++;
 	ndose++;
-	// Now use the transformed compartment
-	cevid = cmt100*100000+rateI*10000+cmt99*100+ss;
-	if (rateI == 0) allInf=false;
-	else allBolus=false;
-	break;
-      default:
-	cevid = inEvid[i];
-	if (cevid > 10 && cevid < 99){
-	  continue;
-	}
+	cevid = -1;
+      }
+      break;
+    case 3:
+      cevid = 3;
+      if (caddl > 0){
+	warning("addl is ignored with EVID=3.");
+      }
+      if (ss != 1){
+	warning("ss is ignored with EVID=3.");
+      }
+      id.push_back(cid);
+      evid.push_back(3);
+      cmtF.push_back(cmt);
+      time.push_back(ctime);
+      amt.push_back(NA_REAL);
+      ii.push_back(0.0);
+      idx.push_back(i);
+      dv.push_back(NA_REAL);
+      idxO.push_back(curIdx);curIdx++;
+      ndose++;
+      cevid = -1;
+      break;
+    case 4:
+      if (mdvCol != -1 && inMdv[i] == 0){
+	stop("MDV cannot be 0 when EVID=4");
+      }
+      id.push_back(cid);
+      evid.push_back(3);
+      cmtF.push_back(cmt);
+      time.push_back(ctime);
+      amt.push_back(NA_REAL);
+      ii.push_back(0.0);
+      idx.push_back(-1);
+      dv.push_back(NA_REAL);
+      idxO.push_back(curIdx);curIdx++;
+      ndose++;
+      // Now use the transformed compartment
+      cevid = cmt100*100000+rateI*10000+cmt99*100+ss;
+      if (rateI == 0) allInf=false;
+      else allBolus=false;
+      break;
+    default:
+      if (cevid > 10 && cevid < 99){
+	continue;
       }
     }
     if (cevid != -1){
@@ -973,7 +1095,6 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false, bool allTimeVar
   nid = obsId.size();
   NumericVector fPars = NumericVector(pars.size()*nid, NA_REAL);
   // sorted create the vectors/list
-  int baseSize;
   if (addCmt && !hasCmt){
     baseSize = 7;
   } else {
@@ -1119,12 +1240,12 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false, bool allTimeVar
       }
     }
   }
-  if (!addCmt && addTimeUnits){
+  if (!dropUnits && addTimeUnits){
     NumericVector tmpN = as<NumericVector>(lst[1]);
     tmpN.attr("class") = "units";
     tmpN.attr("units") = timeUnits;
   }
-  if (!addCmt && addAmtUnits){
+  if (!dropUnits && addAmtUnits){
     NumericVector tmpN = as<NumericVector>(lst[3]);
     tmpN.attr("class") = "units";
     tmpN.attr("units") = amtUnits;
@@ -1204,7 +1325,6 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false, bool allTimeVar
   e["lib.name"] = trans["lib.name"];
   e["addCmt"] = addCmt;
   e["cmtInfo"] = cmtInfo;
-  e["dvidInfo"] = dvidInfo;
   e["idLvl"] = idLvl;
   e["allTimeVar"] = allTimeVar;
   e["keepDosingOnly"] = true;
@@ -1219,7 +1339,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false, bool allTimeVar
     tmp.attr("levels") = R_NilValue;
     lstF[0]=tmp;
   }
-  if (!addCmt){
+  if (!dropUnits){
     tmp.attr("class") = "factor";
     tmp.attr("levels") = idLvl;
   }  

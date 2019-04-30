@@ -18,7 +18,8 @@ SEXP _RxODE_rxSolve_(SEXP, SEXP, SEXP, SEXP, SEXP,
 SEXP _RxODE_rxStack(SEXP, SEXP);
 SEXP _RxODE_etUpdate(SEXP, SEXP, SEXP, SEXP);
 SEXP _RxODE_et_(SEXP, SEXP);
-SEXP _RxODE_etTrans(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP _RxODE_etTrans(SEXP, SEXP, SEXP, SEXP, SEXP,
+		    SEXP, SEXP);
 SEXP _RxODE_rxUpdateTrans_(SEXP, SEXP, SEXP);
 double powerDi(double x, double lambda, int yj);
 double powerD(double x, double lambda, int yj);
@@ -200,7 +201,7 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_setProgSupported", (DL_FUNC) &_RxODE_setProgSupported, 1},
     {"_RxODE_getProgSupported", (DL_FUNC) &_RxODE_getProgSupported, 0},
     {"_RxODE_rxUpdateTrans_", (DL_FUNC) &_RxODE_rxUpdateTrans_, 3},
-    {"_RxODE_etTrans", (DL_FUNC) &_RxODE_etTrans, 6},
+    {"_RxODE_etTrans", (DL_FUNC) &_RxODE_etTrans, 7},
     {"_RxODE_et_", (DL_FUNC) &_RxODE_et_, 2},
     {"_RxODE_etUpdate", (DL_FUNC) &_RxODE_etUpdate, 4},
     {"_RxODE_rxStack", (DL_FUNC) &_RxODE_rxStack, 2},

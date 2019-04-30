@@ -201,12 +201,6 @@ rxPermissive({
     goodParse(desc = 'Assignment with <- supported #4',
               'y_2 <- 1+7;d/dt(y_1) = F*y')
 
-    goodParse(desc = 'Assignment with <- supported #5',
-              'd/dt(y_1) = F*y; jac(y_1,y_1)<-0')
-
-    goodParse(desc = 'Assignment with <- supported #6',
-              'd/dt(y_1) = F*y; df/dy(y_1,y_1)<-0')
-
     goodParse(desc = 'Assignment with <- supported #7',
               'd/dt(y_1) = F*y; df(y_1)/dy(y_1) <- 0')
 
@@ -222,12 +216,6 @@ rxPermissive({
 
     badParse(desc = 'Assignment with <- not supported #4',
              'y_2 <- 1+7;d/dt(y_1) = F*y')
-
-    badParse(desc = 'Assignment with <- not supported #5',
-             'd/dt(y_1) = F*y; jac(y_1,y_1)<-y')
-
-    badParse(desc = 'Assignment with <- not supported #6',
-             'd/dt(y_1) = F*y; df/dy(y_1,y_1)<-y')
 
     badParse(desc = 'Assignment with <- not supported #7',
              'd/dt(y_1) = F*y; df(y_1)/dy(F) <- y')
@@ -340,7 +328,7 @@ d/dt(dy) = mu*(1-y^2)*dy - y
 df(y)/dy(dy)  = 1
 df(dy)/dy(y)  = -2*dy*mu*y - 1
 df(dy)/dy(dy) = mu*(1-y^2)
-jac(mu,y)=0;
+df(mu)/dy(y)=0;
 ## Initial conditions
 y(0) = 2
 dy(0) = 0

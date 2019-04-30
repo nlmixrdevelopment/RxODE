@@ -294,6 +294,10 @@ rxSymPyFEnv$cmt  <- function(e1){
     return("");
 }
 
+rxSymPyFEnv$dvid  <- function(...){
+    return("");
+}
+
 .rxMtimes <- c();
 
 ## rxSymPyFEnv$mtime <- function(e2){
@@ -1065,7 +1069,7 @@ rxToSymPy <- function(x, envir=parent.frame(1)) {
         force(x);
         if (length(x) == 1){
             names(x) <- NULL;
-            txt  <- gsub(rex::rex(boundary,"cmt(",except_any_of(")"),")"), "", x,perl=TRUE)
+            txt  <- gsub(rex::rex(boundary,or("cmt","dvid"),"(",except_any_of(")"),")"), "", x,perl=TRUE)
             txt <- strsplit(gsub(";", "\n", txt), "\n+")[[1]];
             txt <- strsplit(txt, rex::rex(or("=", "~", "<-")));
             tmp <- unlist(lapply(txt, function(x){length(x)}));

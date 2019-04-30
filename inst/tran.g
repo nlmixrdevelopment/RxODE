@@ -11,11 +11,11 @@ statement
   | rate       end_statement
   | dur        end_statement 
   | derivative end_statement
-  | jac        end_statement
   | dfdy       end_statement
   | mtime      end_statement
   | printf_statement end_statement
   | cmt_statement end_statement
+  | dvid_statementI end_statement
   | compound_statement
   | selection_statement
   | end_statement ;
@@ -35,20 +35,19 @@ printf_statement
 printf_command
   : 'printf' | 'Rprintf' | 'print';
 
-ini0      : identifier_r ('(0)' | '{0}' | '[0]') ('=' | '<-' ) ini_const;
+dvid_statementI
+  : 'dvid' '(' decimalintN (',' decimalintN )* ')';
 
-ini0f     : identifier_r ('(0)' | '{0}' | '[0]') ('=' | '<-' ) additive_expression;
+decimalintN
+  : '-'? decimalint;
+ini0      : identifier_r '(0)' ('=' | '<-' ) ini_const;
+
+ini0f     : identifier_r '(0)' ('=' | '<-' ) additive_expression;
 
 ini        : identifier_r ('=' | '<-' ) ini_const;
 
 derivative : 'd/dt' '(' identifier_r_no_output ')' ('=' | '<-' | '~') ('+' | '-' | ) additive_expression;
 der_rhs    : 'd/dt' '(' identifier_r_no_output ')';
-
-jac        : jac_command '(' identifier_r_no_output ',' (theta0_noout | theta_noout | eta_noout | identifier_r_no_output) ')' ('=' | '<-' ) additive_expression;
-jac_rhs    : jac_command '(' identifier_r_no_output ',' (theta0_noout | theta_noout | eta_noout | identifier_r_no_output) ')';
-
-inf_cmd    : ('rxRate');
-inf_rhs    : inf_cmd '(' identifier_r_no_output ')';
 
 // transit(n,mtt) -> transit3(t,n,mtt)
 transit2   : 'transit' '(' trans_const ',' trans_const ')';
@@ -61,11 +60,10 @@ dfdy_rhs    : 'df' '(' identifier_r_no_output ')/dy(' (theta0_noout | theta_noou
 
 fbio        : ('f' | 'F')  '(' identifier_r_no_output ')' ('=' | '<-' | '~' ) additive_expression;
 alag        : ('lag' | 'alag')  '(' identifier_r_no_output ')' ('=' | '<-' | '~' ) additive_expression;
-rate        : ('r' | 'rate')  '(' identifier_r_no_output ')' ('=' | '<-' | '~' ) additive_expression;
-dur        : ('d' | 'dur')  '(' identifier_r_no_output ')' ('=' | '<-' | '~' ) additive_expression;
+rate        : 'rate'  '(' identifier_r_no_output ')' ('=' | '<-' | '~' ) additive_expression;
+dur        : 'dur'  '(' identifier_r_no_output ')' ('=' | '<-' | '~' ) additive_expression;
 
 
-jac_command : 'jac' | 'df/dy';
 
 end_statement : (';')* ;
 
@@ -84,7 +82,7 @@ equality_expression0 : equality_expression |
     '!' '(' equality_expression ')';
 
 equality_expression : relational_expression 
-    (('!=' | '~=' | '<>' | '/=' | '==') relational_expression)* ;
+    (('!=' | '==' | '~~') relational_expression)* ;
 
 relational_expression : additive_expression
     (('<' | '>' | '<=' | '>=') additive_expression)* ;
@@ -112,28 +110,16 @@ primary_expression
   | theta
   | eta
   | der_rhs
-  | inf_rhs
-  | jac_rhs
   | dfdy_rhs
   | transit2
   | transit3
   | function
-  | factorial 
-  | factorial_exp 
-  | lfactorial 
-  | lfactorial_exp
   | '(' additive_expression ')'
   ;
-
-factorial_exp: '(' additive_expression ')' '!';
-factorial: fact_const '!';
-lfactorial: "log *[(]" fact_const "! *[)]";
-lfactorial_exp: "log *[(] *[(] *" additive_expression "[)] *! *[)]";
 
 function : identifier '(' (additive_expression)* (',' additive_expression)* ')' ;
 
 ini_const : '-'? constant;
-fact_const: identifier_r_no_output | '-'? (decimalint | float1 | float2) ;
 trans_const: identifier_r | '-'? constant;
 
 constant : decimalint | float1 | float2;

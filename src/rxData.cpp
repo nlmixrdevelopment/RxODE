@@ -25,8 +25,9 @@
 using namespace Rcpp;
 using namespace arma;
 
-List etTrans(List inData, const RObject &obj, bool addCmt, bool allTimeVar, bool keepDosingOnly,
-	     Nullable<LogicalVector> combineDvid=R_NilValue);
+List etTrans(List inData, const RObject &obj, bool addCmt=false,
+	     bool dropUnits=false, bool allTimeVar=false,
+	     bool keepDosingOnly=false, Nullable<LogicalVector> combineDvid=R_NilValue);
 List etImportEventTable(List inData);
 RObject et_(List input, List et__);
 void setEvCur(RObject cur);
@@ -2443,6 +2444,15 @@ SEXP rxSolve_(const RObject &obj,
     }
     // Get model 
     List mv = rxModelVars(object);
+    CharacterVector pars = mv["params"];
+    int npars = pars.size();
+    bool hasCmt = false;
+    for (int i = npars; i--;){
+      if (as<std::string>(pars[i]) == "CMT"){
+	hasCmt=true;
+	break;
+      }
+    }
     // Assign Pointers
     RxODE_assign_fn_pointers(as<SEXP>(mv));
     // Get the C solve object
@@ -2497,7 +2507,7 @@ SEXP rxSolve_(const RObject &obj,
       int nobs = etE["nobs"];
       if (nobs == 0){
     	warning("Adding observations, for more control use et/add.sampling.");
-    	List ev1a = etTrans(as<List>(ev1), obj, false, false, true);
+    	List ev1a = etTrans(as<List>(ev1), obj, hasCmt, false, false, true);
     	NumericVector newObs(200);
     	// ((to - from)/(length.out - 1))
     	List et = as<List>(ev1);
@@ -2510,7 +2520,7 @@ SEXP rxSolve_(const RObject &obj,
       }
     }
     if (rxIs(ev1, "data.frame") && !rxIs(ev1, "rxEtTrans")){
-      ev1 = as<List>(etTrans(as<List>(ev1), obj, false, false, true));
+      ev1 = as<List>(etTrans(as<List>(ev1), obj, hasCmt, false, false, true));
       rxcEvid = 2;
       rxcTime = 1;
       rxcAmt  = 3;
@@ -2530,8 +2540,6 @@ SEXP rxSolve_(const RObject &obj,
     // The event table can contain covariate information, if it is acutally a data frame or matrix.
     Nullable<CharacterVector> covnames0, simnames0;
     CharacterVector covnames, simnames;
-    CharacterVector pars = mv["params"];
-    int npars = pars.size();
     IntegerVector eGparPos(npars);
     CharacterVector state = mv["state"];
     CharacterVector lhs = mv["lhs"];
