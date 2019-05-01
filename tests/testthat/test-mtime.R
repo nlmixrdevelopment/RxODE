@@ -36,4 +36,4 @@ rxPermissive({
         expect_false(any(s$time==0.6))
     })
 
-})
+},cran=TRUE)

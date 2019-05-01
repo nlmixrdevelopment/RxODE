@@ -18,6 +18,10 @@ for (d in seq(1, ifelse(identical(Sys.getenv("RxODE_VALIDATION_FULL"), "true"), 
             expect_equal(v$log.det.OMGAinv.5, 0.5 * log(det(solve(mcov))),tolerance=1e-4)
             expect_equal(length(v$d.omegaInv), v$ntheta,tolerance=1e-4)
             expect_equal(length(v$d.D.omegaInv), v$ntheta,tolerance=1e-4)
+            ## This is to make sure there is no run-time error in calculation
+            expect_true(inherits(v$tr.28, "numeric"))
+            expect_true(inherits(v$omega.47, "list"))
+            if (d!=1) expect_error(v$theta <- 3)
         })
     }
 

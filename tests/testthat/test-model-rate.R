@@ -176,7 +176,7 @@ rxPermissive({
             expect_equal(as.data.frame(f.a),as.data.frame(f.b))
         })
     }
-})
+}, cran=TRUE)
 
 
 ## et <- eventTable(time.units="days")
