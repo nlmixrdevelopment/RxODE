@@ -82,7 +82,7 @@ equality_expression0 : equality_expression |
     '!' '(' equality_expression ')';
 
 equality_expression : relational_expression 
-    (('!=' | '==' | '~~') relational_expression)* ;
+    (('!=' | '==' ) relational_expression)* ;
 
 relational_expression : additive_expression
     (('<' | '>' | '<=' | '>=') additive_expression)* ;

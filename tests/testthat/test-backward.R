@@ -57,8 +57,8 @@ rxPermissive({
 
     ## Now try environmental solve
     object <- RxODE({
-        d/dt(depot)=rxRate(depot)+-depot*exp(ETA[1]+THETA[1]);
-        d/dt(center)=rxRate(center)+-center*exp(ETA[2]+THETA[2])*exp(-ETA[3]-THETA[3])+depot*exp(ETA[1]+THETA[1]);
+        d/dt(depot)=-depot*exp(ETA[1]+THETA[1]);
+        d/dt(center)=-center*exp(ETA[2]+THETA[2])*exp(-ETA[3]-THETA[3])+depot*exp(ETA[1]+THETA[1]);
         d/dt(rx__sens_depot_BY_ETA_1___)=-depot*exp(ETA[1]+THETA[1])-rx__sens_depot_BY_ETA_1___*exp(ETA[1]+THETA[1]);
         d/dt(rx__sens_depot_BY_ETA_2___)=-rx__sens_depot_BY_ETA_2___*exp(ETA[1]+THETA[1]);
         d/dt(rx__sens_depot_BY_ETA_3___)=-rx__sens_depot_BY_ETA_3___*exp(ETA[1]+THETA[1]);
@@ -88,8 +88,8 @@ rxPermissive({
 
 
     object <- RxODE({
-        d/dt(depot)=rxRate(depot)+prod(-depot,exp(ETA[1]+THETA[1]));
-        d/dt(center)=rxRate(center)+prod(-center,exp(-ETA[3]-THETA[3]),exp(ETA[2]+THETA[2]+prod(THETA[4],WT)))+prod(depot,exp(ETA[1]+THETA[1]));
+        d/dt(depot)=prod(-depot,exp(ETA[1]+THETA[1]));
+        d/dt(center)=prod(-center,exp(-ETA[3]-THETA[3]),exp(ETA[2]+THETA[2]+prod(THETA[4],WT)))+prod(depot,exp(ETA[1]+THETA[1]));
         d/dt(rx__sens_depot_BY_ETA_1___)=prod(-depot,exp(ETA[1]+THETA[1]))-prod(rx__sens_depot_BY_ETA_1___,exp(ETA[1]+THETA[1]));
         d/dt(rx__sens_depot_BY_ETA_2___)=prod(-rx__sens_depot_BY_ETA_2___,exp(ETA[1]+THETA[1]));
         d/dt(rx__sens_depot_BY_ETA_3___)=prod(-rx__sens_depot_BY_ETA_3___,exp(ETA[1]+THETA[1]));
@@ -203,187 +203,5 @@ rxPermissive({
     test_that("rxModelVars takes character vector.",{
         expect_equal(class(x), "rxModelVars")
     })
-
-    if (FALSE){
-
-        library(RxODE)
-        demo <- structure(list(ID = c(1012, 1012, 1012, 1012, 1012, 1012, 1012, 1012), TIME = c(588.5, 600.5, 612.5, 624.5, 636.5, 648.5, 660.5, 672.5), DOSE = c(2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000), AMT = c(1000, 1000, 1000, 1000, 1000, 1000, 1000, 0), TAD = c(0, 0, 0, 0, 0, 0, 0, 12), CL = c(5.851496056, 5.851496056, 5.851496056, 5.851496056, 5.851496056, 5.851496056, 5.851496056, 5.851496056), V = c(49.3930186, 49.3930186, 49.3930186, 49.3930186, 49.3930186, 49.3930186, 49.3930186, 49.3930186), KA = c(3.320205555, 3.320205555, 3.320205555, 3.320205555, 3.320205555, 3.320205555, 3.320205555, 3.320205555), TAD4 = c(0, 12, 24, 36, 48, 60, 72, 84)), .Names = c("ID", "TIME", "DOSE", "AMT", "TAD", "CL", "V", "KA", "TAD4"), row.names = c(NA, -8L), class = c("data.frame"), sorted = c("ID", "TIME"));
-
-        ode1KA <- "
-d/dt(abs)    = -KA*abs;
-d/dt(centr)  =  KA*abs-(CL/V)*centr;
-C1=centr/V;
-"
-
-        StepSize=1
-        Extension=6
-
-        mod1KA <- RxODE(model=ode1KA)
-
-        params <- demo[1,rxModelVars(mod1KA)$params]
-
-        ev<-eventTable()
-        DOSi<-as.data.frame(demo[demo$AMT>0,])
-        for (j in 1:length(DOSi$AMT)){
-            dos<-DOSi[j,]
-            ev$add.dosing(dose=as.numeric(dos$AMT),nbr.doses=1,dosing.to=1,rate=NULL,start.time=as.numeric(dos$TAD4))
-        }
-
-        timei<-demo$TIME
-        minimum<-min(timei)
-        maximum<-max(timei)+Extension
-        times<-sort(unique(c(timei,seq(minimum,maximum,StepSize))))
-        ev$add.sampling(times)
-
-        ## test old solving.
-        event.table <- RxODE:::etTrans(ev, mod1KA)
-        rxSolve(mod1KA,params=params,event.table,.setupOnly=2L,method="lsoda");
-
-        modelVars <- mod1KA$get.modelVars()
-        state_vars <- modelVars$state;
-        neq <- length(state_vars);
-        lhs_vars <- modelVars$lhs;
-        nlhs <- length(lhs_vars);
-
-        ntime <- dim(event.table)[1];
-        ret <- rep(0.0, ntime * neq);
-        lhs <- rep(0.0, ntime * nlhs);
-        rc <- as.integer(0)
-
-        inits <- rep(0.0, neq)
-
-        cmpMgr <- mod1KA$cmpMgr;
-
-        cmpMgr$dynLoad()
-
-        atol <- 1e-8
-        rtol <- 1e-6
-        transit_abs <- FALSE
-        stiff <- TRUE
-
-        sink("test.cpp")
-        cat('
-// [[Rcpp::depends(RcppArmadillo)]]
-// [[Rcpp::depends(RxODE)]]
-#include <RcppArmadillo.h>
-#include <RxODE.h>
-using namespace Rcpp;
-typedef void (*rxSingleSolve_t)(double *_theta, double *timep,
-                                int *evidp, int *ntime,
-                                double *initsp, double *dosep,
-                                double *ii, double *retp,
-                                double *lhsp, int *rc);
-void rxSingleSolve(double *_theta, double *timep,
-                   int *evidp, int *ntime, double *initsp,
-                   double *dosep, double *ii, double *retp,
-                   double *lhsp, int *rc){
-    static rxSingleSolve_t fun=NULL;
-    if (fun == NULL) fun = (rxSingleSolve_t) R_GetCCallable("RxODE","rxSingleSolve");
-    fun(_theta, timep, evidp, ntime, initsp, dosep, ii, retp, lhsp, rc);
-}
-//[[Rcpp::export]]
-List testSingle(NumericVector theta, NumericVector time, IntegerVector evid, NumericVector inits,
-                NumericVector dose, NumericVector ii, NumericVector ret, NumericVector lhs,
-                IntegerVector rc){
-  int ntime = time.size();
-  rxSingleSolve(&theta[0], &time[0], &evid[0], &ntime, &inits[0],
-                   &dose[0], &ii[0], &ret[0],
-                   &lhs[0], &rc[0]);
-  return List::create(_["ret"] = ret, _["lhs"] = lhs);
-}
-')
-        sink()
-
-        Rcpp::sourceCpp("test.cpp")
-
-        xx <- testSingle(as.double(params), event.table$time, event.table$evid, inits,
-                         event.table$amt[event.table$evid > 0], event.table$ii[event.table$evid > 0],
-                         ret, lhs, rc);
-
-        x2 <- cbind(matrix(xx$ret, ncol=neq, byrow=T),
-                    matrix(xx$lhs, ncol = nlhs, byrow = TRUE))
-        colnames(x2) <- c(lhs_vars, state_vars);
-
-        x2 <- cbind(time=event.table$time, x2)[ev$get.obs.rec(), ];
-        x2 <- as.data.frame(x2)
-
-        x <- as.data.frame(mod1KA$run(params, ev))
-
-        test_that("run works with a data frame param", {
-            expect_equal(class(x), "data.frame")
-        })
-
-        x3 <- as.data.frame(mod1KA$run(params * 10, ev))
-
-        test_that("Old routine works correctly", {
-            expect_equal(x2, x);
-        })
-        ## Constant problems
-        mod1KA <- RxODE({
-            KA = 3.320205555
-            d/dt(abs)    = -KA*abs;
-            d/dt(centr)  =  KA*abs-(CL/V)*centr;
-            C1=centr/V;
-        })
-
-        params <- demo[1,rxModelVars(mod1KA)$params]
-        params <- params[-1]
-
-        ev<-eventTable()
-        DOSi<-as.data.frame(demo[demo$AMT>0,])
-        for (j in 1:length(DOSi$AMT)){
-            dos<-DOSi[j,]
-            ev$add.dosing(dose=as.numeric(dos$AMT),nbr.doses=1,dosing.to=1,rate=NULL,start.time=as.numeric(dos$TAD4))
-        }
-
-        timei<-demo$TIME
-        minimum<-min(timei)
-        maximum<-max(timei)+Extension
-        times<-sort(unique(c(timei,seq(minimum,maximum,StepSize))))
-        ev$add.sampling(times)
-
-        ## test old solving.
-        event.table <- RxODE:::etTrans(ev$get.EventTable(),mod1KA)
-        modelVars <- mod1KA$get.modelVars()
-        state_vars <- modelVars$state;
-        neq <- length(state_vars);
-        lhs_vars <- modelVars$lhs;
-        nlhs <- length(lhs_vars);
-
-        ntime <- dim(event.table)[1];
-        ret <- rep(0.0, ntime * neq);
-        lhs <- rep(0.0, ntime * nlhs);
-        rc <- as.integer(0)
-
-        inits <- rep(0.0, neq)
-
-        cmpMgr <- mod1KA$cmpMgr;
-
-        cmpMgr$dynLoad()
-
-        atol <- 1e-8
-        rtol <- 1e-6
-        transit_abs <- FALSE
-        stiff <- TRUE
-
-        rxSolve(mod1KA,params=params,event.table,.setupOnly=2L,method="lsoda");
-        xx <- testSingle(as.double(params), event.table$time, event.table$evid, inits,
-                         event.table$amt[event.table$evid > 0], event.table$ii[event.table$evid > 0],
-                         ret, lhs, rc);
-
-        x2 <- cbind(matrix(xx$ret, ncol=neq, byrow=T),
-                    matrix(xx$lhs, ncol = nlhs, byrow = TRUE))
-        colnames(x2) <- c(lhs_vars, state_vars);
-
-        x2 <- cbind(time=event.table$time, x2)[ev$get.obs.rec(), ];
-        x2 <- as.data.frame(x2)
-
-        x <- as.data.frame(mod1KA$run(params, ev))
-
-        test_that("Old routine works correctly", {
-            expect_equal(x2, x);
-        })
-
-    }
 
 }, silent=TRUE)

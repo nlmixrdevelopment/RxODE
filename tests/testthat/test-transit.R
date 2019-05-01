@@ -72,26 +72,6 @@ d/dt(cen) = ka*depot-k*cen
         expect_warning(rxSolve(mod, et));
     })
 
-    mod <- RxODE("
-## Table 3 from Savic 2007
-cl = 17.2 # (L/hr)
-vc = 45.1 # L
-ka = 0.38 # 1/hr
-mtt = 0.37 # hr
-bio=1
-n = 20.1
-k = cl/vc
-ktr = (n+1)/mtt
-d/dt(depot) = exp(log(bio*podo)+log(ktr)+n*log(ktr*t)-ktr*t-log(n!))-ka*depot
-d/dt(cen) = ka*depot-k*cen
-")
-
-    transit <- expect_warning(rxSolve(mod, et));
-
-    test_that("Transit absorption using !.", {
-        expect_equal(round(as.data.frame(transit[c(1:15,seq(194-15,194)),]), 4), dat1);
-        expect_warning(rxSolve(mod, et));
-    })
 
     mod <- RxODE("
 ## Table 3 from Savic 2007

@@ -262,7 +262,7 @@ rxSymInvCreateC_ <- function(mat, diag.xform=c("sqrt", "log", "identity")){
     elts <- as.vector(mat3)[w];
     ini <- as.vector(mat3)[as.vector(upper.tri(mat3, TRUE))];
     th.unscaled <- c();
-    for (i in 1:length(elts)){
+    for (i in seq_along(elts)){
         if (elts[i] != 0){
             th.unscaled[length(th.unscaled) + 1] <- elts[i];
         }

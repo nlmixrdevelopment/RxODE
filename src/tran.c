@@ -522,7 +522,6 @@ typedef struct nodeInfo {
   int identifier;
   int identifier_r;
   int identifier_r_no_output;
-  int inf_rhs;
   int ini0;
   int ini0f;
   int ini;
@@ -550,7 +549,6 @@ typedef struct nodeInfo {
   int transit3;
   int cmt_statement;
   int dvid_statementI;
-  int dvid_statementS;
 } nodeInfo;
 
 #define NIB(what) ni.what
@@ -576,7 +574,6 @@ void niReset(nodeInfo *ni){
   ni->identifier = -1;
   ni->identifier_r = -1;
   ni->identifier_r_no_output = -1;
-  ni->inf_rhs = -1;
   ni->ini = -1;
   ni->ini0 = -1;
   ni->ini0f = -1;
@@ -604,7 +601,6 @@ void niReset(nodeInfo *ni){
   ni->transit3 = -1;
   ni->cmt_statement = -1;
   ni->dvid_statementI = -1;
-  ni->dvid_statementS = -1;
 }
 
 
@@ -751,15 +747,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
   } else if (!strcmp("&",name)){
     aAppendN(" &&", 3);
     sAppendN(&sbt, "&&", 2);
-  } else if (!strcmp("~~", name)){
-    aAppendN(" ==", 3);
-    sAppendN(&sbt, "==", 2);
-  } else if (!strcmp("<~", name)){
-    aAppendN(" <=", 3);
-    sAppendN(&sbt, "<=", 2);
-  } else if (!strcmp(">~", name)){
-    aAppendN(" >=", 3);
-    sAppendN(&sbt, ">=", 2);
   }
 
   Free(value);
@@ -785,7 +772,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  (nodeHas(derivative) ||nodeHas(fbio) || nodeHas(alag) ||
 	   nodeHas(rate) || nodeHas(dur))) continue;
       
-      if ((i == 3 || i < 2) && (nodeHas(der_rhs) || nodeHas(inf_rhs))) continue;
+      if ((i == 3 || i < 2) && nodeHas(der_rhs)) continue;
       
 
       if (nodeHas(dfdy)     && i< 2)   continue;
@@ -805,7 +792,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       if ((nodeHas(theta) || nodeHas(eta)) && i != 2) continue;
       if (nodeHas(mtime) && (i == 0 || i == 1 || i == 3)) continue;
       if (nodeHas(cmt_statement) && (i == 0 || i == 1 || i == 3)) continue;
-      if (i != 0 && (nodeHas(dvid_statementI) || nodeHas(dvid_statementS))) continue;
+      if (i != 0 && nodeHas(dvid_statementI)) continue;
       tb.fn = (nodeHas(function) && i==0) ? 1 : 0;
 
       if (tb.fn) depth = 0;
@@ -819,6 +806,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  xpn = d_get_child(pn,2);
 	  char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
 	  tb.dvid[0]=atoi(v);
+	  if (tb.dvid[0] == 0) error("dvid() cannot have zeros in it");
 	  sAppend(&sbt, "dvid(%d", tb.dvid[0]);
 	  xpn = d_get_child(pn,3);
 	  tb.dvidn = d_get_number_of_children(xpn)+1;
@@ -827,23 +815,16 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    xpn2 = d_get_child(xpn, i);
 	    v = (char*)rc_dup_str(xpn2->start_loc.s, xpn2->end);
 	    tb.dvid[i+1]=atoi(v+1);
+	    if (tb.dvid[i+1] == 0) error("dvid() cannot have zeros in it");
 	    sAppend(&sbt, ",%d", tb.dvid[i+1]);
 	  }
 	  sAppend(&sbNrm, "%s);\n", sbt.s);
 	  continue;
 	} else {
-	  error("RxODE only supports one integer dvid() statement");
+	  error("RxODE only supports one dvid() statement per model");
 	}
 	continue;
       }
-      if (nodeHas(dvid_statementS)){
-	error("dvid(\"cmt\", \"cmt2\", ...) are not yet supported.");
-	ii = d_get_number_of_children(d_get_child(pn,3))+1;
-	continue;
-      }
-            
-
-      
       if (tb.fn){
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
         if (!strcmp("prod",v) || !strcmp("sum",v) || !strcmp("sign",v) ||
@@ -939,47 +920,12 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       if (nodeHas(printf_statement)){
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
         if (i == 0){
-          if (!strcmp(v,"ode0")){
-	    sb.o =0; sbDt.o =0; sbt.o=0;
-	    aType(PODE0);
-	    aAppendN("ODE0_Rprintf(", 12);
-            sAppendN(&sbt,"ode0_printf(", 12);
-	    sb.o--;sbDt.o--;sbt.o--;
-          } else if (!strcmp(v,"jac0")) {
-	    aType(PJAC0);
-	    sb.o =0; sbDt.o =0; sbt.o=0;
-            aAppendN("JAC0_Rprintf(", 12);
-            sAppendN(&sbt,"jac0_printf(", 12);
-	    sb.o--;sbDt.o--;sbt.o--;
-          } else if (!strcmp(v,"ode")){
-	    sb.o =0; sbDt.o =0;
-	    sbt.o=0;
-	    aType(PODE);
-            aAppendN("ODE_Rprintf(", 11);
-            sAppendN(&sbt,"ode_printf(", 11);
-	    sb.o--;sbDt.o--;sbt.o--;
-          } else if (!strcmp(v,"jac")){
-	    sb.o =0; sbDt.o =0;
-	    sbt.o=0;
-	    aType(PJAC);
-            aAppendN("JAC_Rprintf(", 11);
-            sAppendN(&sbt,"jac_printf(", 11);
-	    sb.o--;sbDt.o--;sbt.o--;
-          } else if (!strcmp(v,"lhs")){
-	    sb.o =0; sbDt.o =0;
-	    sbt.o=0;
-	    aType(PLHS);
-            aAppendN("LHS_Rprintf(", 11);
-            sAppendN(&sbt,"lhs_printf(", 11);
-	    sb.o--;sbDt.o--;sbt.o--;
-          } else {
-	    sb.o =0; sbDt.o =0;
-	    sbt.o=0;
-	    aType(PPRN);
-            aAppendN("Rprintf(", 8);
-            sAppendN(&sbt,"printf(", 7);
-	    sb.o--;sbDt.o--;sbt.o--;
-          }
+	  sb.o =0; sbDt.o =0;
+	  sbt.o=0;
+	  aType(PPRN);
+	  aAppendN("Rprintf(", 8);
+	  sAppendN(&sbt,"printf(", 7);
+	  sb.o--;sbDt.o--;sbt.o--;
         }
         if (i == 2){
           sAppend(&sb,"%s",v);
@@ -1390,25 +1336,6 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  } 
 	}
         
-        continue;
-      }
-
-      if (nodeHas(inf_rhs)) {
-        char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-        if (new_de(v)){
-          sprintf(buf,"Tried to use rxRate(%s) before d/dt(%s) was defined",v,v);
-          trans_syntax_error_report_fn(buf);
-        } else {
-	  if (strcmp(tb.ddt, v)){
-	    sAppend(&sb,   "_InfusionRate[%d]", tb.id);
-	    sAppend(&sbDt, "_InfusionRate[%d]", tb.id);
-            sAppend(&sbt,  "rxRate(%s)", v);
-          } else {
-	    aAppendN("0.0", 3);
-            sAppend(&sbt, "rxRate(%s)", v);
-	  }
-        }
-        Free(v);
         continue;
       }
 
@@ -2095,7 +2022,7 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
   if (show_ode == 4) {
     print_aux_info(model, prefix, libname, pMd5, timeId, libname2);
   } else {
-    int i, j, k, print_ode=0, print_vars = 0, print_parm = 0, print_jac=0;
+    int i, j, k;
     char buf[64];
     if (show_ode == 1){
       sAppendN(&sbOut,"#include <RxODE_model_shared.h>\n",32);
@@ -2306,44 +2233,6 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 	sAppendN(&sbOut, "\n  return _f[_cmt]*_amt;\n", 25);
 	break;
       }
-    }
-    if (print_ode && show_ode != 0 && show_ode != 9){
-      sAppendN(&sbOut, "  if (__print_ode__ == 1){\n", 27);
-      for (i=0; i<tb.nd; i++) {                   /* name state vars */
-	retieve_var(tb.di[i], buf);
-	sAppend(&sbOut,  "    Rprintf(\"d/dt(%s)[%d]:\\t%%f\\t%s:\\t%%f\\n\", __DDtStateVar__[%d],%s);\n", buf, i,buf,i,buf);
-      }
-      sAppendN(&sbOut, "  }\n", 4);
-    }
-    if (print_jac && show_ode == 2){
-      sAppendN(&sbOut, "  if (__print_jac__ == 1){\n", 27);
-      sAppendN(&sbOut, "  Rprintf(\"Fixme\\n\");", 21);
-      sAppendN(&sbOut, "  }\n", 4);
-    }
-    if (print_vars){
-      sAppendN(&sbOut, "  if (__print_vars__ == 1){\n", 28);
-      sAppendN(&sbOut, "    Rprintf(\".Left Handed Variables:.........................................................\\n\");\n", 99);
-      for (i=0, j=0; i<tb.nv; i++) {
-	if (tb.lh[i] != 1) continue;
-	retieve_var(i, buf);
-	sAppend(&sbOut,  "    Rprintf(\"%s = %%f\\n\", %s);\n", buf, buf);
-      }
-      sAppendN(&sbOut, "  }\n", 4);
-    }
-    if (print_parm){
-      sAppendN(&sbOut, "  if (__print_parm__ == 1){\n", 28);
-      sAppendN(&sbOut, "    Rprintf(\".User Supplied Variables:.......................................................\\n\");\n", 99);
-      for (i=0, j=0; i<tb.nv; i++) {
-	if (tb.lh[i]>0) continue;
-	j++;
-	retieve_var(i, buf);
-	sAppend(&sbOut,  "    Rprintf(\"%s=%%f\\t_par_ptr[%d]=%%f\\n\",%s,_PP[%d]);\n", buf, j-1, buf,j-1);
-      }
-      sAppendN(&sbOut, "  }\n", 4);
-    }
-    if (print_jac || print_vars || print_ode || print_parm){
-      sAppendN(&sbOut, "  if (__print_jac__ || __print_vars__ || __print_ode__ || __print_parm__){\n", 75);
-      sAppendN(&sbOut, "    Rprintf(\"================================================================================\\n\\n\\n\");\n  }\n", 107);
     }
     if (show_ode == 1){
       sAppendN(&sbOut,  "  (&_solveData->subjects[_cSub])->dadt_counter[0]++;\n}\n\n", 56);

@@ -16,14 +16,14 @@
 
 .convertExtra <- function(dat){
     d <- as.data.frame(dat);
-    col.names <- colnames(d)
-    col.names <- toupper(col.names);
+    .colNames0 <- colnames(d)
+    col.names <- toupper(.colNames0);
     ## Handle DATE TIME; DAT1 TIME; DAT2 TIME and DAT3 TIME
     ## Note NONMEM handles dates of the format DAY-MONTH and DAY as well for the DATE class of objects.
     ## It is too complex to handle, and not very common so it will throw an error
     do.date <- FALSE;
-    bad.msg <- "Dates formatted as MONTH-DAY or DAY alone are not supported in this conversion."
-    dup.date <- "Dates can only be specified by one of DATE, DAT1, DAT2, DAT3 / TIME;  This data has multiple DATE columns."
+    bad.msg <- "Dates formatted as MONTH-DAY or DAY alone are not supported in this conversion"
+    dup.date <- "Dates can only be specified by one of DATE, DAT1, DAT2, DAT3 / TIME;  This data has multiple DATE columns"
     check.bad <- function(d){
         d <- paste(d);
         if (any(unlist(lapply(strsplit(d, "[^0-9]+"), length)) != 3)){
@@ -102,11 +102,17 @@
     }
     if (do.date){
         if (any(is.na(d$DATE.TIME))){
-            stop("The date time format was not correctly specified.")
+            stop("The date time format was not correctly specified")
         }
     }
     if (do.date){
         ## Sort by date/time (though this should have been done already...)
+        if (!any(names(d)=="ID")){
+            d$ID  <- 1L;
+        }
+        if (!any(names(d)=="EVID")){
+            d$EVID  <- 0L;
+        }
         d <- d[order(d$ID, d$DATE.TIME, -d$EVID), ];
         d$TIME <- as.vector(unlist(sapply(unique(d$ID), function(id){
             d0 <- d[d$ID == id, ];
@@ -114,7 +120,8 @@
         })))
         d <- d[, -which(names(d) == "DATE.TIME")];
     }
-    return(d);
+    if (is(d$TIME, "numeric") || is(d$TIME, "integer")) return(d)
+    stop("Cannot figure out a numeric time")
 }
 
 ##'@export

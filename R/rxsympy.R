@@ -79,7 +79,7 @@ rxExpandIfElse <- function(model, removeInis=TRUE, removePrint=TRUE){
         lst <- list();
         last <- "";
         known <- list();
-        for (i in 1:length(model)){
+        for (i in seq_along(model)){
             if (any(i == w1)){
                 if (regexpr(regElse, model[i]) != -1){
                     curr.expr[length(curr.expr) + 1] <- sprintf("!(%s)", last);
@@ -102,18 +102,18 @@ rxExpandIfElse <- function(model, removeInis=TRUE, removePrint=TRUE){
         }
         ret <- list();
         rm <- c();
-        for (i in 1:length(known)){
+        for (i in seq_along(known)){
             mod <- c();
-            for (j in 1:length(model)){
+            for (j in seq_along(model)){
                 if (identical(lst[[j]], c(""))){
                     mod[length(mod) + 1] <- model[j];
                 } else {
                     i1 <- lst[[j]][-1];
                     i2 <- known[[i]][-1];
-                    i3 <- i2[1:min(length(i1), length(i2))];
+                    i3 <- i2[seq(1,min(length(i1), length(i2)))];
                     if (!identical(i2, i3)){
                         ## Find the expression to remove
-                        for (k in 1:length(known)){
+                        for (k in seq_along(known)){
                             i4 <- known[[k]][-1];
                             if (identical(i4, i3)){
                                 rm <- c(rm, known[[k]][1]);
@@ -847,7 +847,7 @@ rxSymPySensitivity.single <- function(model, calcSens, calcJac){
         rxCat("Expanding Jacobian for sensitivities.")
         jac2 <- expand.grid(s1=unique(all.sens), s2=unique(c(all.sens, rxState(model))),
                             stringsAsFactors=FALSE)
-        for (i in 1:length(jac2$s1)){
+        for (i in seq_along(jac2$s1)){
             extraLines[length(extraLines) + 1] <- rxSymPyDfDy(NULL, jac2$s1[i], jac2$s2[i]);
             rxCat(".");
             if (i %% 5 == 0){

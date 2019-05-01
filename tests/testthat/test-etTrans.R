@@ -1,4 +1,3 @@
-
 require(RxODE);
 
 rxPermissive({
@@ -32,7 +31,6 @@ d/dt(blood)     = a*intestine - b*blood
     et$cmt <- factor(et$cmt)
     ett2 <- RxODE:::etTrans(et, mod, keepDosingOnly=TRUE);
 
-    tmp2 <- sort(unique(ett2$EVID));
 
     test_that("factor and character give same compartment information",{
         expect_equal(attr(class(ett2), ".RxODE.lst")$cmtInfo, attr(class(ett1), ".RxODE.lst")$cmtInfo);
@@ -40,10 +38,37 @@ d/dt(blood)     = a*intestine - b*blood
     })
 
     test_that("factor and character give same evids",{
-        expect_equal(tmp1,tmp2);
-        expect_equal(tmp1, c(2L, 101L, 110L, 120L, 130L, 301L, 10101L))
+        expect_equal(ett1$EVID,ett2$EVID);
     })
 
+    et0  <- et;
+
+    et$cmt  <- paste(et$cmt);
+    et$cmt[1:2]  <- NA_character_
+
+    ett1 <- RxODE::etTrans(et, mod, keepDosingOnly=TRUE, addCmt=TRUE);
+
+    test_that("string NA gives 1 for default compartment",{
+        expect_equal(ett1$EVID,ett2$EVID)
+    })
+
+    et  <- et0;
+    et$cmt[1:2]  <- NA_integer_
+    ett2 <- RxODE:::etTrans(et, mod, keepDosingOnly=TRUE, addCmt=TRUE);
+
+    test_that("factor NA gives 1 for default compartment",{
+        expect_equal(ett2$EVID,ett1$EVID)
+    })
+
+    et$cmt  <- as.integer(et$cmt)
+
+    et$cmt[1:2]  <- NA_integer_
+
+    ett2 <- RxODE:::etTrans(et, mod, keepDosingOnly=TRUE, addCmt=TRUE);
+
+    test_that("factor NA gives 1 for default compartment",{
+        expect_equal(ett2$EVID[1:2],ett1$EVID[1:2])
+    })
 
     et <- eventTable()
     et$add.dosing(dose=2/24,rate=2,start.time=0,
@@ -659,5 +684,138 @@ row.names = c(NA, -144L), class = "data.frame")
         expect_equal(t1$II, t2$II)
         expect_equal(t1$DV, t2$DV)
     })
+
+    ## Test non-standard inputs
+    tmp <- as.data.frame(et() %>% et(amt=3,time=0.24,evid=4))
+    for (col in c("ss", "evid", "dur", "amt", "addl","dv", "mdv", "rate", "ii")){
+        et  <- data.frame(col="a", tmp[,names(tmp) != col], stringsAsFactors=FALSE)
+        names(et)[1]  <- col
+        test_that(sprintf("Non-numeric inputs raise errors (%s)", col),{
+            expect_error(etTrans(et, mod), col)
+        })
+    }
+
+    ## Test dates
+    d1 <- data.frame(DATE=c("10-1-86", "10-1-86", "10-2-86"), TIME=c("9:15", "14:40", "8:30"), stringsAsFactors=F)
+       d1$DV <- 0;
+
+    d2 <- rbind(data.frame(ID=1, d1, stringsAsFactors=F), data.frame(ID=2, d1, stringsAsFactors=F))
+    d2[d2$ID == 2, "DATE"] <- gsub("^10", "11", d2[d2$ID == 2, "DATE"]);
+
+    d3 <- d1;
+    d3$DATE <- c("10-1-1986", "10-1-1986", "10-2-1986");
+
+    d4 <- d1;
+    d4$DATE <- c("10 1 1986", "10/1/86", "10-2-1986");
+
+    test_that("DATE conversion works correctly", {
+        tmp <- etTrans(d1, mod);
+        expect_equal(c(0, 5.41666666666667, 23.25), tmp$TIME)
+        tmp <- etTrans(d2, mod);
+        expect_equal(c(0, 5.41666666666667, 23.25, 0, 5.41666666666667, 23.25), tmp$TIME)
+        tmp <- etTrans(d3, mod);
+        expect_equal(c(0, 5.41666666666667, 23.25), tmp$TIME)
+        tmp <- etTrans(d4, mod);
+        expect_equal(c(0, 5.41666666666667, 23.25), tmp$TIME)
+    })
+
+     ## Dat1= day month year
+    d1 <- data.frame(DV=0, DAT1=c("1-10-86", "1-10-86", "2-10-86"), TIME=c("9:15", "14:40", "8:30"), stringsAsFactors=F)
+
+    d2 <- rbind(data.frame(ID=1, d1, stringsAsFactors=F), data.frame(ID=2, d1, stringsAsFactors=F))
+    d2[d2$ID == 2, "DAT1"] <- gsub("-10-", "-11-", d2[d2$ID == 2, "DAT1"]);
+
+    d3 <- d1;
+    d3$DAT1 <- c("1-10-1986", "1-10-1986", "2-10-1986");
+
+    d4 <- d1;
+    d4$DAT1 <- c("1-10-1986", "1-10-86", "2-10-1986");
+
+    test_that("DAT1 conversion works correctly", {
+        tmp <- etTrans(d1, mod);
+        expect_equal(c(0, 5.41666666666667, 23.25), tmp$TIME)
+        tmp <- etTrans(d2, mod);
+        expect_equal(c(0, 5.41666666666667, 23.25, 0, 5.41666666666667, 23.25), tmp$TIME)
+        tmp <- etTrans(d3, mod);
+        expect_equal(c(0, 5.41666666666667, 23.25), tmp$TIME)
+        tmp <- etTrans(d4, mod);
+        expect_equal(c(0, 5.41666666666667, 23.25), tmp$TIME)
+    })
+
+    ## Dat2 = year month day
+
+    d1 <- data.frame(DAT2=c("86-10-1", "86-10-1", "86-10-2"), TIME=c("9:15", "14:40", "8:30"), stringsAsFactors=F)
+    d1$DV <- 0;
+
+    d2 <- rbind(data.frame(ID=1, d1, stringsAsFactors=F), data.frame(ID=2, d1, stringsAsFactors=F))
+    d2[d2$ID == 2, "DAT2"] <- gsub("-10-", "-11-", d2[d2$ID == 2, "DAT2"]);
+
+    d3 <- d1;
+    d3$DAT2 <- c("1986-10-1", "1986-10-1", "1986-10-2");
+
+    d4 <- d1;
+    d4$DAT2 <- c("1986-10-1", "86-10-1", "1986-10-2");
+
+    test_that("DAT2 conversion works correctly", {
+        tmp <- etTrans(d1, mod);
+        expect_equal(c(0, 5.41666666666667, 23.25), tmp$TIME)
+        tmp <- etTrans(d2, mod);
+        expect_equal(c(0, 5.41666666666667, 23.25, 0, 5.41666666666667, 23.25), tmp$TIME)
+        tmp <- etTrans(d3, mod);
+        expect_equal(c(0, 5.41666666666667, 23.25), tmp$TIME)
+        tmp <- etTrans(d4, mod);
+        expect_equal(c(0, 5.41666666666667, 23.25), tmp$TIME)
+    })
+
+    ## DAT3 conversion
+    d1 <- data.frame(DAT3=c("86-1-10", "86-1-10", "86-2-10"), TIME=c("9:15", "14:40", "8:30"), stringsAsFactors=F)
+    d1$DV <- 0;
+
+    d2 <- rbind(data.frame(ID=1, d1, stringsAsFactors=F), data.frame(ID=2, d1, stringsAsFactors=F))
+    d2[d2$ID == 2, "DAT3"] <- gsub("-10$", "-11", d2[d2$ID == 2, "DAT3"]);
+
+    d3 <- d1;
+    d3$DAT3 <- c("1986-1-10", "1986-1-10", "1986-2-10");
+
+    d4 <- d1;
+    d4$DAT3 <- c("1986-1-10", "86-1-10", "1986-2-10");
+
+    test_that("DAT3 conversion works correctly", {
+        tmp <- etTrans(d1, mod);
+        expect_equal(c(0, 5.41666666666667, 23.25), tmp$TIME)
+        tmp <- etTrans(d2, mod);
+        expect_equal(c(0, 5.41666666666667, 23.25, 0, 5.41666666666667, 23.25), tmp$TIME)
+        tmp <- etTrans(d3, mod);
+        expect_equal(c(0, 5.41666666666667, 23.25), tmp$TIME)
+        tmp <- etTrans(d4, mod);
+        expect_equal(c(0, 5.41666666666667, 23.25), tmp$TIME)
+    })
+
+    d1 <- data.frame(DV=0, DATE=c("10-1-86", "10-1-86", "10-2-86"), TIME=c("9:15", "14:40", "8:30"), stringsAsFactors=F)
+
+    d2 <- d1;
+    d2$DAT1 <- d2$DATE
+
+    d3 <- d1;
+    d3$DAT2 <- d3$DATE
+
+    d4 <- d1;
+    d4$DAT3 <- d4$DATE
+
+    test_that("Multiple DATE errors", {
+        expect_error(etTrans(d2, mod))
+        expect_error(etTrans(d3, mod))
+        expect_error(etTrans(d4, mod))
+    })
+
+
+    d1 <- data.frame(DV=0, DATE=c("10-1-86", "10-1-86", "10-2-86"), TIME=c("9.15", "14:40", "8:30"), stringsAsFactors=F)
+
+    test_that("Bad Date/Time combination", {
+        expect_error(etTrans(d1, mod), rex::rex("The date time format was not correctly specified."))
+    })
+
+
+    ## Test infinite inputs
 
 }, cran=TRUE, silent=TRUE)

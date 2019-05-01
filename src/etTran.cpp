@@ -164,7 +164,7 @@ IntegerVector toCmt(RObject inCmt, CharacterVector state, bool isDvid=false,
 	isNeg = false;
       }
       foundState=false;
-      if (strCmt == "(default)" || strCmt == "(obs)"){
+      if (strCmt == "(default)" || strCmt == "(obs)" || CharacterVector::is_na(iCmt[i])){
 	foundState=true;
 	newCmt.push_back(1);
       } else {
@@ -186,7 +186,6 @@ IntegerVector toCmt(RObject inCmt, CharacterVector state, bool isDvid=false,
 	      foundState = true;
 	      if (isNeg){
 		stop("Negative compartments on non-ode cmt (%s) do not make sense.", strCmt.c_str());
-		newCmt.push_back(-state.size()-j-1);
 	      } else {
 		newCmt.push_back(state.size()+j+1);
 	      }
@@ -444,11 +443,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
     List newInData = clone(inData);
     Function convDate = rx[".convertExtra"];
     newInData =  convDate(newInData);
-    if (newInData[timeCol]){
-      return etTrans(newInData, obj, addCmt);
-    } else {
-      stop("Cannot figure out a numeric time.");
-    }
+    return etTrans(newInData, obj, addCmt, dropUnits, allTimeVar, keepDosingOnly, combineDvid);
   }
   // save units information
   bool addTimeUnits = false;
@@ -489,7 +484,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       // NA by default is NA_logical
       inSs = as<IntegerVector>(inData[ssCol]);
     } else {
-      stop("Steady state column (ss) has needs to be an integer");
+      stop("Steady state column (ss) needs to be an integer");
     }
   }
   IntegerVector inEvid;
@@ -507,7 +502,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	rxIs(inData[mdvCol], "logical")){
       inMdv = as<IntegerVector>(inData[mdvCol]);
     } else {
-      stop("Missing dependent variable (MDV) needs to be an integer");
+      stop("Missing dependent variable (mdv) needs to be an integer");
     }
   }
   NumericVector inRate;

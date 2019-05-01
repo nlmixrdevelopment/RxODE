@@ -986,7 +986,7 @@ print.rxCoef <- function(x, ...){
     cat(cli::rule(left="Compartments:"), "\n");
     .tmp <- RxODE::rxState(.rxDllObj);
     if (length(.tmp) > 0){
-        names(.tmp) <- paste0("cmt=", 1:length(.tmp));
+        names(.tmp) <- paste0("cmt=", seq_along(.tmp));
         if (length(x$sens) > 0){
             .tmp1 <- .tmp[regexpr(getFromNamespace("regSens", "RxODE"), .tmp) == -1];
             print(.tmp1);
@@ -1024,7 +1024,7 @@ print.rxCoefSolve <- function(x, ...){
     }
     cat("\nCompartments:\n");
     tmp <- RxODE::rxState(rxDllObj);
-    names(tmp) <- paste0("cmt=", 1:length(tmp));
+    names(tmp) <- paste0("cmt=", seq_along(tmp));
     sens <- tmp[regexpr(getFromNamespace("regSens", "RxODE"), tmp) != -1];
     if (length(sens) > 0){
         tmp <- tmp[regexpr(getFromNamespace("regSens", "RxODE"), tmp) == -1]
@@ -1743,13 +1743,13 @@ rxThetaEta <- function(theta=NULL, eta=NULL){
     .ltheta <- length(theta);
     leta <- length(eta)
     if (.ltheta > 0){
-        .ntheta <- paste0("THETA[", 1:length(theta), "]")
+        .ntheta <- paste0("THETA[", seq_along(theta), "]")
     } else  {
         .ntheta <- character()
         theta <- numeric()
     }
     if (leta > 0){
-        .neta <- paste0("ETA[", 1:length(eta), "]");
+        .neta <- paste0("ETA[", seq_along(eta), "]");
     } else {
         .neta <- character();
         eta <- numeric();
