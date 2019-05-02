@@ -1367,40 +1367,6 @@ RcppExport SEXP _RxODE_rxInv(SEXP matrixSEXP) {
     UNPROTECT(1);
     return rcpp_result_gen;
 }
-// rxToOmega
-arma::mat rxToOmega(arma::mat cholMat);
-static SEXP _RxODE_rxToOmega_try(SEXP cholMatSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::traits::input_parameter< arma::mat >::type cholMat(cholMatSEXP);
-    rcpp_result_gen = Rcpp::wrap(rxToOmega(cholMat));
-    return rcpp_result_gen;
-END_RCPP_RETURN_ERROR
-}
-RcppExport SEXP _RxODE_rxToOmega(SEXP cholMatSEXP) {
-    SEXP rcpp_result_gen;
-    {
-        Rcpp::RNGScope rcpp_rngScope_gen;
-        rcpp_result_gen = PROTECT(_RxODE_rxToOmega_try(cholMatSEXP));
-    }
-    Rboolean rcpp_isInterrupt_gen = Rf_inherits(rcpp_result_gen, "interrupted-error");
-    if (rcpp_isInterrupt_gen) {
-        UNPROTECT(1);
-        Rf_onintr();
-    }
-    bool rcpp_isLongjump_gen = Rcpp::internal::isLongjumpSentinel(rcpp_result_gen);
-    if (rcpp_isLongjump_gen) {
-        Rcpp::internal::resumeJump(rcpp_result_gen);
-    }
-    Rboolean rcpp_isError_gen = Rf_inherits(rcpp_result_gen, "try-error");
-    if (rcpp_isError_gen) {
-        SEXP rcpp_msgSEXP_gen = Rf_asChar(rcpp_result_gen);
-        UNPROTECT(1);
-        Rf_error(CHAR(rcpp_msgSEXP_gen));
-    }
-    UNPROTECT(1);
-    return rcpp_result_gen;
-}
 // rxSymInvChol
 RObject rxSymInvChol(RObject invObjOrMatrix, Nullable<NumericVector> theta, std::string type, int thetaNumber);
 static SEXP _RxODE_rxSymInvChol_try(SEXP invObjOrMatrixSEXP, SEXP thetaSEXP, SEXP typeSEXP, SEXP thetaNumberSEXP) {
@@ -1527,7 +1493,6 @@ static int _RxODE_RcppExport_validate(const char* sig) {
         signatures.insert("List(*rxUpdateTrans_)(List,std::string,std::string)");
         signatures.insert("List(*dropUnitsRxSolve)(List)");
         signatures.insert("NumericVector(*rxInv)(SEXP)");
-        signatures.insert("arma::mat(*rxToOmega)(arma::mat)");
         signatures.insert("RObject(*rxSymInvChol)(RObject,Nullable<NumericVector>,std::string,int)");
         signatures.insert("RObject(*rxSymInvCholEnvCalculate)(List,std::string,Nullable<NumericVector>)");
     }
@@ -1572,7 +1537,6 @@ RcppExport SEXP _RxODE_RcppExport_registerCCallable() {
     R_RegisterCCallable("RxODE", "_RxODE_rxUpdateTrans_", (DL_FUNC)_RxODE_rxUpdateTrans__try);
     R_RegisterCCallable("RxODE", "_RxODE_dropUnitsRxSolve", (DL_FUNC)_RxODE_dropUnitsRxSolve_try);
     R_RegisterCCallable("RxODE", "_RxODE_rxInv", (DL_FUNC)_RxODE_rxInv_try);
-    R_RegisterCCallable("RxODE", "_RxODE_rxToOmega", (DL_FUNC)_RxODE_rxToOmega_try);
     R_RegisterCCallable("RxODE", "_RxODE_rxSymInvChol", (DL_FUNC)_RxODE_rxSymInvChol_try);
     R_RegisterCCallable("RxODE", "_RxODE_rxSymInvCholEnvCalculate", (DL_FUNC)_RxODE_rxSymInvCholEnvCalculate_try);
     R_RegisterCCallable("RxODE", "_RxODE_RcppExport_validate", (DL_FUNC)_RxODE_RcppExport_validate);

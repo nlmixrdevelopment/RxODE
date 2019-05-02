@@ -780,27 +780,6 @@ namespace RxODE {
         return Rcpp::as<NumericVector >(rcpp_result_gen);
     }
 
-    inline arma::mat rxToOmega(arma::mat cholMat) {
-        typedef SEXP(*Ptr_rxToOmega)(SEXP);
-        static Ptr_rxToOmega p_rxToOmega = NULL;
-        if (p_rxToOmega == NULL) {
-            validateSignature("arma::mat(*rxToOmega)(arma::mat)");
-            p_rxToOmega = (Ptr_rxToOmega)R_GetCCallable("RxODE", "_RxODE_rxToOmega");
-        }
-        RObject rcpp_result_gen;
-        {
-            RNGScope RCPP_rngScope_gen;
-            rcpp_result_gen = p_rxToOmega(Shield<SEXP>(Rcpp::wrap(cholMat)));
-        }
-        if (rcpp_result_gen.inherits("interrupted-error"))
-            throw Rcpp::internal::InterruptedException();
-        if (Rcpp::internal::isLongjumpSentinel(rcpp_result_gen))
-            throw Rcpp::LongjumpException(rcpp_result_gen);
-        if (rcpp_result_gen.inherits("try-error"))
-            throw Rcpp::exception(Rcpp::as<std::string>(rcpp_result_gen).c_str());
-        return Rcpp::as<arma::mat >(rcpp_result_gen);
-    }
-
     inline RObject rxSymInvChol(RObject invObjOrMatrix, Nullable<NumericVector> theta = R_NilValue, std::string type = "cholOmegaInv", int thetaNumber = 0) {
         typedef SEXP(*Ptr_rxSymInvChol)(SEXP,SEXP,SEXP,SEXP);
         static Ptr_rxSymInvChol p_rxSymInvChol = NULL;

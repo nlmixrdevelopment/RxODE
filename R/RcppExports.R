@@ -440,10 +440,6 @@ rxInv <- function(matrix) {
     .Call(`_RxODE_rxInv`, matrix)
 }
 
-rxToOmega <- function(cholMat) {
-    .Call(`_RxODE_rxToOmega`, cholMat)
-}
-
 #' Get Omega^-1 and derivatives
 #'
 #' @param invObjOrMatrix Object for inverse-type calculations.  If this is a matrix,

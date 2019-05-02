@@ -21,7 +21,11 @@ for (d in seq(1, ifelse(identical(Sys.getenv("RxODE_VALIDATION_FULL"), "true"), 
             ## This is to make sure there is no run-time error in calculation
             expect_true(inherits(v$tr.28, "numeric"))
             expect_true(inherits(v$omega.47, "list"))
-            if (d!=1) expect_error(v$theta <- 3)
+            if (d!=1) {
+                expect_error(v$theta <- 3)
+            } else {
+                v$theta  <- 3; # Should work
+            }
         })
     }
 

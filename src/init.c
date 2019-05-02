@@ -65,8 +65,6 @@ SEXP _RxODE_rxAssignPtr(SEXP objectSEXP);
 SEXP _RxODE_dynLoad(SEXP dllSEXP);
 SEXP RxODE_get_mv();
 
-SEXP _RxODE_rxToOmega(SEXP cholInv);
-
 static R_NativePrimitiveArgType RxODE_Sum_t[] = {
   REALSXP, INTSXP
 };
@@ -165,7 +163,6 @@ void R_init_RxODE(DllInfo *info){
     {"_RxODE_rxInv", (DL_FUNC) &_RxODE_rxInv, 1},
     {"_RxODE_removableDrive", (DL_FUNC) &_RxODE_removableDrive, 1},
     {"_rxCholInv", (DL_FUNC) &_rxCholInv, 3},
-    {"_RxODE_rxToOmega", (DL_FUNC) &_RxODE_rxToOmega, 1},
     {"_RxODE_rxSymInvCholEnvCalculate", (DL_FUNC) &_RxODE_rxSymInvCholEnvCalculate, 3},
     {"_RxODE_rxSymInvChol", (DL_FUNC) &_RxODE_rxSymInvChol, 4},
     {"_RxODE_rxIs", (DL_FUNC) &_RxODE_rxIs, 2},

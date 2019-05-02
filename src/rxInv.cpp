@@ -52,26 +52,6 @@ arma::mat rxToCholOmega(arma::mat cholMat){
   return cholO;
 }
 
-// [[Rcpp::export]]
-arma::mat rxToOmega(arma::mat cholMat){
-  // The Omega is need.
-  // U^-1*trans(U^1) = Omega
-    arma::mat U1;
-  bool success;
-  try {
-    success = inv(U1, trimatu(cholMat));
-    if (success) return U1*trans(U1);
-    success = inv(U1, cholMat);
-    if (success) return U1*trans(U1);
-    stop("Cannot invert in `rxToOmega`");
-  } catch (...) {
-    success = inv(U1, cholMat);
-    if (success) return U1*trans(U1);
-    stop("Cannot invert in `rxToOmega`");
-  }
-  // should not get here.
-  return U1*trans(U1);
-}
 //' Get Omega^-1 and derivatives
 //'
 //' @param invObjOrMatrix Object for inverse-type calculations.  If this is a matrix,
