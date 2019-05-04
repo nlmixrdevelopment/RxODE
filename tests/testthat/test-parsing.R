@@ -466,5 +466,15 @@ mu = 1+bad ## nonstiff; 10 moderately stiff; 1000 stiff
     ##     }
     ## })
 
+    ## Bad parse:
+    for (var in c('rate', 'dur', 'dvid')){
+        badParse(sprintf("Cannot use the reserved %s variable", var),
+                  sprintf("x = %s + 3"))
+    }
 
+    ## 'rate' and 'dur' can be data items, so they cannot be variables in an RxODE model
+    for (var in c("lag", "alag", "f", "F")){
+        goodParse(sprintf("Parsing of %s as a variable and function work.", var),
+                  sprintf("d/dt(x) = -k*x;%s(x) = %s;", var, var))
+    }
 }, silent=TRUE);

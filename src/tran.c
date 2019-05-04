@@ -456,6 +456,10 @@ int new_or_ith(const char *s) {
     trans_syntax_error_report_fn("'ii' cannot be a variable in an RxODE model.");
     return 0;
   }
+  if (!strcmp("dvid", s)){
+    trans_syntax_error_report_fn("'dvid' cannot be a variable in an RxODE model.");
+    return 0;
+  }
   if (!strcmp("time", s)) return 0;
   if (!strcmp("podo", s)) return 0;
   if (!strcmp("rx__PTR__", s)) return 0;
