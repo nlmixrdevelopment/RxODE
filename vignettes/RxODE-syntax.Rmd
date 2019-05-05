@@ -113,14 +113,24 @@ however, no character nor integer expressions are currently supported.
 
 Numeric expressions can include the following numeric operators `+, -,
 *, /, ^` and those mathematical functions defined in the C or the R
-math libraries (e.g., `fabs`, `exp`, `log`, `sin`, `abs`).  In addition, the
-factorial operator and function (either `!` or `factorial` as in R; Note that `!` is only supported in text-file syntax as it is not legal R syntax)
-can be used. Notice that the modulo operator `%` is currently
-unsupported.
+math libraries (e.g., `fabs`, `exp`, `log`, `sin`, `abs`).  Notice
+that the modulo operator `%` is currently unsupported.
 
 You may also access the R's functions in the [R math
 libraries](https://cran.r-project.org/doc/manuals/r-release/R-exts.html#Numerical-analysis-subroutines),
-like `lgammafn` for the log gamma function
+like `lgammafn` for the log gamma function.
+
+There are certain variable names that are in the `RxODE` event tables.
+To avoid confusion, the following event table-related items cannot be
+used in a RxODE model specification:
+
+- `rate`
+- `amt`
+- `ss`
+- `addl`
+- `evid`
+- `ii`
+- `dvid`
 
 
 The `RxODE` syntax is case-sensitive, i.e., `ABC` is different 

@@ -436,6 +436,10 @@ int new_or_ith(const char *s) {
     trans_syntax_error_report_fn("'rate' cannot be a variable in an RxODE model.");
     return 0;
   }
+  if (!strcmp("dur", s)){
+    trans_syntax_error_report_fn("'dur' cannot be a variable in an RxODE model.");
+    return 0;
+  }
   if (!strcmp("amt", s)){
     trans_syntax_error_report_fn("'amt' cannot be a variable in an RxODE model.");
     return 0;
