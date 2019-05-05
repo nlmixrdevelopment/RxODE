@@ -568,7 +568,11 @@ rxSymPyDfDy <- function(model, df, dy, vars=FALSE){
 rxSymPyDfDyFull <- function(model, vars, cond){
     if (rxIs(vars,"logical")){
         if (vars){
-            jac <- expand.grid(s1=rxState(model), s2=c(rxState(model), rxParams(model, FALSE)),
+            .pars  <- rxParams(model, FALSE);
+            if (any(.pars=="ETA[1]")){
+                .pars  <- .pars[regexpr(rex::rex(start,"ETA[",any_numbers,"]"), .pars) != -1]
+            }
+            jac <- expand.grid(s1=rxState(model), s2=c(rxState(model), .pars),
                                stringsAsFactors=FALSE);
         } else  {
             jac <- expand.grid(s1=rxState(model), s2=rxState(model),
