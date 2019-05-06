@@ -1850,6 +1850,10 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
     if (sigmaIsChol){
       sigmaMC = sigmaM;
     } else {
+      arma::mat tmpM = as<arma::mat>(sigmaM);
+      if (!tmpM.is_sympd()){
+	stop("'sigma' must be symmetric");
+      }
       sigmaMC = wrap(arma::chol(as<arma::mat>(sigmaM)));
     }
     sigmaN = as<CharacterVector>((as<List>(sigmaM.attr("dimnames")))[1]);
@@ -1880,6 +1884,12 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
     if (!thetaM.hasAttribute("dimnames")){
       stop("'thetaMat' must be a named Matrix.");
     }
+    if (!thetaIsChol){
+      arma::mat tmpM = as<arma::mat>(thetaMat);
+      if (!tmpM.is_sympd()){
+	stop("'thetaMat' must be symmetric");
+      }
+    }
     thetaM = as<NumericMatrix>(rxSimSigma(as<RObject>(thetaMat), as<RObject>(thetaDf), nCoresRV, thetaIsChol, nStud));
     thetaN = as<CharacterVector>((as<List>(thetaM.attr("dimnames")))[1]);
     for (i = 0; i < parN.size(); i++){
@@ -1908,6 +1918,10 @@ List rxSimThetaOmega(const Nullable<NumericVector> &params    = R_NilValue,
     if (omegaIsChol){
       omegaMC = omegaM;
     } else {
+      arma::mat tmpM = as<arma::mat>(omegaM);
+      if (!tmpM.is_sympd()){
+	stop("'omega' must be symmetric.");
+      }
       omegaMC = wrap(arma::chol(as<arma::mat>(omegaM)));
     }
     omegaN = as<CharacterVector>((as<List>(omegaM.attr("dimnames")))[1]);
@@ -2699,6 +2713,14 @@ SEXP rxSolve_(const RObject &obj,
 	  curObs = rx->nall;
 	} else {
 	  curObs = rx->nobs;
+	}
+      }
+      if (rxIs(as<RObject>(thetaMat), "matrix")){
+	if (!thetaIsChol){
+	  arma::mat tmpM = as<arma::mat>(thetaMat);
+	  if (!tmpM.is_sympd()){
+	    stop("'thetaMat' must be symmetric");
+	  }
 	}
       }
       par1 =  as<RObject>(rxSimThetaOmega(as<Nullable<NumericVector>>(par1), omega, omegaDf, omegaIsChol, nSub0, thetaMat, thetaDf, thetaIsChol, nStud,
