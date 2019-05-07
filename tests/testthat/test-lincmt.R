@@ -1,5 +1,5 @@
 rxPermissive({
-    tol  <- 7e-4 ## Current difference for all equations
+    tol  <- 1e-6 ## Current difference for all equations
     rxClean()
 
     for (ll in c(TRUE, FALSE)){
