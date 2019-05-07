@@ -1,18 +1,19 @@
 rxPermissive({
 
-    tran1  <- expand.grid(Ka=NA,## c("Ka",NA),
-                          Vc=c("V","Vc","V1", NA),
-                          Cl=c("Cl",NA),
-                          Q=c("Q","Q1", "Cld", NA),
-                          Vp=c("V2","Vp", "Vt", NA),
-                          Q2=c("Q2","Cld2", NA),
-                          Vp2=c("Vp2","V3", "Vt2", NA))
+    tran1  <- expand.grid(Ka=c("ka",NA),
+                          Vc=c("v","vc","v1", NA),
+                          Cl=c("cl",NA),
+                          Q=c("q","q1", "cld", NA),
+                          Vp=c("v2","vp", "vt", "vss", NA),
+                          Q2=c("q2","cld2", NA),
+                          Vp2=c("vp2","v3", "vt2", NA))
 
     library(RxODE);
     library(testthat)
 
+    .clDf <- list()
+
     .fun  <- function(x){
-        assign(".x", x, globalenv())
         x  <- setNames(x,names(tran1))
         .v1  <- as.character(na.omit(c(x["Vc"], x["Vp"], x["Vp2"])))
         .v2  <- as.character(na.omit(c(x["Cl"], x["Q"], x["Q2"])))
@@ -25,7 +26,6 @@ rxPermissive({
                         ifelse(is.na(x["Vp2"]), "", paste0(x["Vp2"], "=tvp2*exp(eta.tvp2)")),
                         "cp=linCmt()"
                         ),collapse="\n");
-        assign(".rx", .rx, globalenv());
         .good <- FALSE;
         if (length(.v1) ==length(.v2)){
             .good <- TRUE;
@@ -69,6 +69,13 @@ rxPermissive({
                 if (any("CLD2"==.varsUp) && !any("CLD"==.varsUp)){
                     .good <- FALSE
                 }
+                .hasVss  <- any(.varsUp=="VSS");
+                if (.hasVss && length(.v1)!=2){
+                    .good <- FALSE
+                }
+                if (.hasVss && (.hasVp || .hasVt || sum(regexpr("^V[1-9]+$", .varsUp)!=-1) > 1)){
+                    .good <- FALSE;
+                }
             }
         }
         if (is.na(.good)){
@@ -76,6 +83,12 @@ rxPermissive({
             test_that(sprintf("linCmt() successful with parameters: %s", paste(na.omit(x),collapse=", ")),{
                 .rx <- RxODE(.rx)
                 expect_true(inherits(.rx, "RxODE"));
+                .tmp <- na.omit(c(x["Ka"], sort(c(.v1,.v2))))
+                .tmp <- c(.tmp, rep("",7-length(.tmp)));
+                names(.tmp)  <- paste0("par",seq_along(.tmp));
+                .tmp["ncmt"]  <- length(.v1);
+                .clDf[[length(.clDf)+1]] <- as.data.frame(t(.tmp))
+                .clDf <<- .clDf;
             })
         } else {
             test_that(sprintf("linCmt() should error with parameters: %s", paste(na.omit(x),collapse=", ")),{
@@ -86,5 +99,19 @@ rxPermissive({
 
     context("Cl style translations")
     apply(tran1, 1, .fun)
+
+    .clDf <- do.call(rbind, .clDf);
+    write.csv(.clDf, file=devtools::package_file("vignettes/cl-lincmt.csv"),
+              row.names=FALSE)
+
+    context("Kel style translations")
+    tran2  <- expand.grid(Ka=c("ka",NA),
+                          Vc=c("v","vc","v1", NA),
+                          k=c("k","ke","kel", NA),
+                          k12=c("k12", NA),
+                          k21=c("k21", NA),
+                          k13=c("k13", NA),
+                          k31=c("k31", NA))
+
 
 }, on.validate=TRUE);

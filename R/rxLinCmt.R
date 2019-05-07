@@ -324,13 +324,31 @@ rxLinCmtTrans <- function(modText){
             if (toupper(.v)=="V" && any(.varsUp=="VC")){
                 stop(sprintf("Ambiguous %s/%s specification", .v, .getVar("VC")))
             }
-            if (.v !=.vs[1]){
+            if (toupper(.v) !=.vs[1]){
                 .vs <- c(.v, .vs);
             }
             .lines[length(.lines) + 1] <- sprintf("rx_v ~ %s", .v);
             .lines[length(.lines) + 1] <- sprintf("rx_k ~ %s/%s", .cl, .v);
-            if ((any(.varsUp == .vs[2]) || any(.varsUp==.vs[3]) ||
-                 any(.varsUp == "VP"))){
+            .hasVss  <- FALSE
+            if (any(.varsUp == "VSS")){
+                .ncmt <- 2;
+                .Q <- .getVar(c("CLD", .qs[1]));
+                .vss <- .getVar("VSS");
+                .hasVss <- TRUE
+                if (.hasVp){
+                    stop("Cannot define Vp with a VSS defined");
+                }
+                if (.hasVt){
+                    stop("Cannot define Vt with a VSS defined");
+                }
+                .tmp <- .varsUp[.varsUp != toupper(.v)];
+                if (any(regexpr("^V[0-9]*$", .tmp)!=-1)){
+                    stop("Cannot have Volumes other than Vss and central volume defined.");
+                }
+                .lines[length(.lines) + 1] <- sprintf("rx_k12 ~ %s/%s", .Q, .v);
+                .lines[length(.lines) + 1] <- sprintf("rx_k21 ~ %s/(%s-%s)", .Q, .vss, .v);
+            } else if ((any(.varsUp == .vs[2]) || any(.varsUp==.vs[3]) ||
+                        any(.varsUp == "VP"))){
                 .ncmt <- 2;
                 .Q <- .getVar(c("CLD",.qs[1]));
                 .v2 <- .getVar(c("VP", .vs[2], .vs[3]));
@@ -357,36 +375,42 @@ rxLinCmtTrans <- function(modText){
                 }
                 .lines[length(.lines) + 1] <- sprintf("rx_k12 ~ %s/%s", .Q, .v);
                 .lines[length(.lines) + 1] <- sprintf("rx_k21 ~ %s/%s", .Q, .v2);
-            } else if (any(.varsUp == "VSS")){
-                .ncmt <- 2;
-                .Q <- .getVar(.qs[1]);
-                .vss <- .getVar("VSS");
-                .lines[length(.lines) + 1] <- sprintf("rx_k12 ~ %s/%s", .Q, .v);
-                .lines[length(.lines) + 1] <- sprintf("rx_k21 ~ %s/(%s-%s)", .Q, .vss, .v);
             } else if (any(.varsUp==.qs[1])){
                 stop(sprintf("Defined '%s' without corresponding volume", .qs[1]));
             } else if (any(.varsUp=="CLD")){
                 stop("Defined 'CLD' without corresponding volume");
             }
-            if (any(.varsUp == .vs[3])){
+            if (any(.varsUp == toupper(.vs[3]))){
+                if (.hasVss){
+                    stop("Vss only supported with 2 compartment models")
+                }
                 .ncmt <- 3;
                 .v3 <- .getVar(.vs[3]);
                 .q2 <- .getVar(c("CLD2", .qs[2]));
                 .lines[length(.lines) + 1] <- sprintf("rx_k13 ~ %s/%s", .q2, .v);
                 .lines[length(.lines) + 1] <- sprintf("rx_k31 ~ %s/%s", .q2, .v3);
             } else if (any(.varsUp=="VP2")){
+                if (.hasVss){
+                    stop("Vss only supported with 2 compartment models")
+                }
                 .ncmt <- 3;
                 .v3 <- .getVar("VP2");
                 .q2 <- .getVar(c(.qs[2],"CLD2"));
                 .lines[length(.lines) + 1] <- sprintf("rx_k13 ~ %s/%s", .q2, .v);
                 .lines[length(.lines) + 1] <- sprintf("rx_k31 ~ %s/%s", .q2, .v3);
             } else if (any(.varsUp == "VT2")) {
+                if (.hasVss){
+                    stop("Vss only supported with 2 compartment models")
+                }
                 .ncmt <- 3;
                 .v3 <- .getVar("VT2");
                 .q2 <- .getVar(c(.qs[2], "CLD2"));
                 .lines[length(.lines) + 1] <- sprintf("rx_k13 ~ %s/%s", .q2, .v);
                 .lines[length(.lines) + 1] <- sprintf("rx_k31 ~ %s/%s", .q2, .v3);
             } else if (any(.varsUp==.qs[2])){
+                if (.hasVss){
+                    stop("Vss only supported with 2 compartment models")
+                }
                 stop(sprintf("Defined '%s' without corresponding volume", .qs[2]));
             } else if (any(.varsUp=="CLD2")){
                 stop("Defined 'CLD2' without corresponding volume");
@@ -400,7 +424,7 @@ rxLinCmtTrans <- function(modText){
             if (toupper(.v)=="VC" && any(.varsUp==.vs[1])){
                 stop(sprintf("Ambiguous %s/%s specification", .v, .getVar(.vs[1])))
             }
-            if (.v !=.vs[1]){
+            if (toupper(.v) !=.vs[1]){
                 .vs <- c(.v, .vs);
             }
             .lines[length(.lines) + 1] <- sprintf("rx_v ~ %s", .v);
@@ -428,7 +452,7 @@ rxLinCmtTrans <- function(modText){
             if (toupper(.v)=="VC" && any(.varsUp==.vs[1])){
                 stop(sprintf("Ambiguous %s/%s specification", .v, .getVar(.vs[1])))
             }
-            if (.v !=.vs[1]){
+            if (toupper(.v) !=.vs[1]){
                 .vs <- c(.v, .vs);
             }
             .aob <- .getVar("AOB");
@@ -450,7 +474,7 @@ rxLinCmtTrans <- function(modText){
             if (toupper(.v)=="VC" && any(.varsUp==.vs[1])){
                 stop(sprintf("Ambiguous %s/%s specification", .v, .getVar(.vs[1])))
             }
-            if (.v !=.vs[1]){
+            if (toupper(.v) !=.vs[1]){
                 .vs <- c(.v, .vs);
             }
             .lines[length(.lines) + 1] <- sprintf("rx_v ~ %s", .v);
