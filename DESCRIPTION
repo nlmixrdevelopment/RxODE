@@ -32,6 +32,7 @@ Depends:
     R (>= 3.4.0)
 Suggests:
     knitr,
+    DT,
     nlme,
     shiny,
     tcltk,

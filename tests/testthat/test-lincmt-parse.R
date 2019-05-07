@@ -115,7 +115,6 @@ rxPermissive({
 
 
     .fun  <- function(x){
-        assign(".x",x,globalenv())
         x  <- setNames(x,names(tran2))
         .rx  <- paste(c(ifelse(is.na(x["Ka"]), "", paste0(x["Ka"], "=tKa*exp(eta.ka)")),
                         ifelse(is.na(x["Vc"]), "", paste0(x["Vc"], "=tVc*exp(eta.vc)")),
@@ -126,7 +125,6 @@ rxPermissive({
                         ifelse(is.na(x["k31"]), "", paste0(x["k31"], "=tK31*exp(eta.k31)")),
                         "cp=linCmt()"
                         ),collapse="\n");
-        assign(".rx",.rx,globalenv())
         .good <- TRUE;
         .v1  <- as.character(na.omit(c(x["Ka"],x["Vc"],x["k"],
                                        x["k12"], x["k21"], x["k13"], x["k31"])));
@@ -192,6 +190,136 @@ rxPermissive({
     write.csv(.kDf, file=devtools::package_file("vignettes/kel-lincmt.csv"),
               row.names=FALSE)
 
+    tran3  <- expand.grid(Ka=c("ka",NA),
+                          Vc=c("v","vc","v1", NA),
+                          alpha=c("alpha",NA),
+                          beta=c("beta",NA),
+                          aob=c("aob", "k21", NA))
+
+
+    .fun  <- function(x){
+        x  <- setNames(x,names(tran3))
+        .rx  <- paste(c(ifelse(is.na(x["Ka"]), "", paste0(x["Ka"], "=tKa*exp(eta.ka)")),
+                        ifelse(is.na(x["Vc"]), "", paste0(x["Vc"], "=tVc*exp(eta.vc)")),
+                        ifelse(is.na(x["alpha"]), "", paste0(x["alpha"], "=tAlpha*exp(eta.alpha)")),
+                        ifelse(is.na(x["beta"]), "", paste0(x["beta"], "=tBeta*exp(eta.beta)")),
+                        ifelse(is.na(x["aob"]), "", paste0(x["aob"], "=tAob*exp(eta.aob)")),
+                        "cp=linCmt()"
+                        ),collapse="\n");
+        .good <- TRUE;
+        .v1  <- as.character(na.omit(c(x["Ka"],x["Vc"],x["alpha"],
+                                       x["beta"], x["aob"])));
+        .ncmt <- 1
+        if (length(.v1)==0){
+        } else {
+            .ncmt <- 1
+            if (is.na(x["Vc"])){
+                .good <- FALSE;
+            }
+            if (is.na(x["alpha"])){
+                .good <- FALSE
+            }
+            .s <- sum(is.na(c(x["beta"],x["aob"])))
+            if (.s==1){
+                .good <- FALSE
+            } else if (.s==2){
+                .ncmt <- 2;
+            }
+            if (.good){
+                test_that(sprintf("linCmt() successful with parameters: %s", paste(na.omit(.v1),collapse=", ")),{
+                    .rx <- RxODE(.rx)
+                    expect_true(inherits(.rx, "RxODE"));
+                    .tmp <- c(.v1, rep("",7-length(.v1)));
+                    names(.tmp)  <- paste0("par",seq_along(.tmp));
+                    .tmp["ncmt"]  <- .ncmt;
+                    .kAlpha[[length(.kAlpha)+1]] <- as.data.frame(t(.tmp))
+                    .kAlpha <<- .kAlpha;
+                })
+            } else {
+                test_that(sprintf("linCmt() should error with parameters: %s", paste(na.omit(x),collapse=", ")),{
+                    expect_error(RxODE(.rx))
+                })
+            }
+        }
+    }
+
+    .kAlpha <- list();
+    context("alpha/V style translations")
+    apply(tran3, 1, .fun)
+
+    tran4  <- expand.grid(Ka=c("ka",NA),
+                          a=c("a", NA),
+                          alpha=c("alpha",NA),
+                          b=c("b", NA),
+                          beta=c("beta",NA),
+                          c=c("c", NA),
+                          gamma=c("gamma",NA)
+                          )
+
+    .fun  <- function(x){
+        x  <- setNames(x,names(tran4))
+        .rx  <- paste(c(ifelse(is.na(x["Ka"]), "", paste0(x["Ka"], "=tKa*exp(eta.ka)")),
+                        ifelse(is.na(x["a"]), "", paste0(x["a"], "=tA*exp(eta.a)")),
+                        ifelse(is.na(x["alpha"]), "", paste0(x["alpha"], "=tAlpha*exp(eta.alpha)")),
+                        ifelse(is.na(x["b"]), "", paste0(x["b"], "=tB*exp(eta.b)")),
+                        ifelse(is.na(x["beta"]), "", paste0(x["beta"], "=tBeta*exp(eta.beta)")),
+                        ifelse(is.na(x["c"]), "", paste0(x["c"], "=tC*exp(eta.c)")),
+                        ifelse(is.na(x["gamma"]), "", paste0(x["gamma"], "=tGamma*exp(eta.gamma)")),
+                        "cp=linCmt()"
+                        ),collapse="\n");
+        .good <- TRUE;
+        .v1  <- as.character(na.omit(c(x["Ka"],x["a"],x["alpha"],
+                                       x["b"], x["beta"], x["c"],x["gamma"])));
+        .ncmt <- 1
+        if (length(.v1)==0){
+        } else {
+            .good <- TRUE
+            .ncmt <- 0
+            .s <- sum(!is.na(c(x["a"],x["alpha"])))
+            if (.s==2){
+                .ncmt <- 1
+            } else {
+                .good <- FALSE
+            }
+            .s <- sum(!is.na(c(x["b"],x["beta"])))
+            if (.s==2){
+                if (.ncmt !=1) .good <- FALSE
+                .ncmt <- 2
+            } else if (.s==1){
+                .good <- FALSE
+            }
+            .s <- sum(!is.na(c(x["c"],x["gamma"])));
+            if (.s==2){
+                if (.ncmt !=2) .good <- FALSE
+                .ncmt <- 3
+            } else if (.s==1){
+                .good <- FALSE
+            }
+            if (.good){
+                test_that(sprintf("linCmt() successful with parameters: %s", paste(na.omit(.v1),collapse=", ")),{
+                    .rx <- RxODE(.rx)
+                    expect_true(inherits(.rx, "RxODE"));
+                    .tmp <- c(.v1, rep("",7-length(.v1)));
+                    names(.tmp)  <- paste0("par",seq_along(.tmp));
+                    .tmp["ncmt"]  <- .ncmt;
+                    .kAlpha[[length(.kAlpha)+1]] <- as.data.frame(t(.tmp))
+                    .kAlpha <<- .kAlpha;
+                })
+            } else {
+                test_that(sprintf("linCmt() should error with parameters: %s", paste(na.omit(x),collapse=", ")),{
+                    expect_error(RxODE(.rx))
+                })
+            }
+        }
+    }
+
+    context("alpha/A style translations")
+    apply(tran4, 1, .fun)
+
+
+    .kAlpha <- do.call(rbind, .kAlpha);
+    write.csv(.kAlpha, file=devtools::package_file("vignettes/alpha-lincmt.csv"),
+              row.names=FALSE)
 
 
 }, on.validate=TRUE);

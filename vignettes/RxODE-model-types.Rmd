@@ -1,6 +1,5 @@
 ---
 title: "RxODE additional model types"
-author: "Matthew L. Fidler, Melissa Hallow, and Wenping Wang"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
@@ -59,11 +58,33 @@ Most often, pharmacometric models are parameterized in terms of volume
 and clearances. Clearances are specified by NONMEM-style names of
 `CL`, `Q`, `Q1`, `Q2`, etc. or distributional clearances `CLD`,
 `CLD2`. Volumes are specified by Central (`VC` or `V`),
-Peripheral/Tissue (`VP`, `VT`).
+Peripheral/Tissue (`VP`, `VT`).  While more translations are
+available, some example translations are below:
+
+```{r}
+clLinCmt <- read.csv("cl-lincmt.csv");
+library(DT)
+datatable(clLinCmt, rownames = FALSE, filter="top", options = list(pageLength = 5, scrollX=T) )
+```
+
 
 Another popular parameterization is in terms of micro-constants. RxODE
 assumes compartment `1` is the central compartment.  The elimination
-constant would be specified by `K`, `Ke` or `Kel`.
+constant would be specified by `K`, `Ke` or `Kel`. Some example translations are below:
+
+```{r}
+kelLinCmt <- read.csv("kel-lincmt.csv");
+datatable(kelLinCmt, rownames = FALSE, filter="top", options = list(pageLength = 5, scrollX=T) )
+```
+
+The last parameterization possible is using `alpha` and `V` and/or
+`A`/`B`/`C`. Some example translations are below:
+
+```{r}
+alphaLinCmt <- read.csv("alpha-lincmt.csv");
+datatable(alphaLinCmt, rownames = FALSE, filter="top", options = list(pageLength = 5, scrollX=T) )
+```
+
 
 Once the `linCmt()` sleuthing is complete, the `1`, `2` or `3`
 compartment model solution is used as the value of `linCmt()`.
@@ -99,6 +120,8 @@ et  <- et(amt=10,time=0,cmt=depot) %>%
 cmt1 <- rxSolve(mod,et,params=c(ke=0.5))
 cmt1
 ```
+
+
 
 # Mixing Solved Systems and ODEs.
 

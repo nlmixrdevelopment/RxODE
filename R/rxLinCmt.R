@@ -486,18 +486,43 @@ rxLinCmtTrans <- function(modText){
             .lines[length(.lines) + 1] <- sprintf("rx_k12 ~ %s+%s - rx_k21 - rx_k", .alpha, .beta);
         } else if (any(.varsUp == "ALPHA") && any(.varsUp == "A")) {
             .isDirect  <- TRUE
+        } else if (any(.varsUp=="ALPHA")){
+            .ncmt <- 1;
+            .v <- .getVar(c("V", "VC", .vs[1]));
+            .alpha <- .getVar("ALPHA");
+            if (toupper(.v)=="V" && any(.varsUp=="VC")){
+                stop(sprintf("Ambiguous %s/%s specification", .v, .getVar("VC")))
+            }
+            if (toupper(.v)=="VC" && any(.varsUp==.vs[1])){
+                stop(sprintf("Ambiguous %s/%s specification", .v, .getVar(.vs[1])))
+            }
+            if (any(.varsUp=="GAMMA")){
+                stop("A gamma parameter requires A/B/C and alpha/beta");
+            }
+            if (any(.varsUp=="K21")){
+                stop("K21 requires a beta parameter.")
+            }
+            if (any(.varsUp=="AOB")){
+                stop("AOB requires a beta parameter.")
+            }
+            if (any(.varsUp=="BETA")){
+                stop("Beta requires AOB or K21 parameter.");
+            }
+            .lines[length(.lines) + 1] <- sprintf("rx_v ~ %s", .v);
+            .lines[length(.lines) + 1] <- sprintf("rx_k ~ %s", .alpha);
+
         } else {
             stop("Could not figure out the linCmt() from the defined parameters.")
         }
         if (.isDirect){
             .alpha <- .getVar("ALPHA");
             .a  <- .getVar("A");
-            if (any(.varsUp=="BETA")){
+            if (any(.varsUp=="BETA") || any(.varsUp=="B")){
                 .beta <- .getVar("BETA");
                 .b <- .getVar("B");
-                if (any(.varsUp=="GAMMA")){
+                if (any(.varsUp=="GAMMA") || any(.varsUp=="C")){
                     ## 3 cmt
-                    .gamma <- .getVar("gamma");
+                    .gamma <- .getVar("GAMMA");
                     .c <- .getVar("C");
                     .lines[length(.lines) + 1] <- sprintf("rx_alpha ~ %s;", .alpha);
                     .lines[length(.lines) + 1] <- sprintf("rx_beta ~ %s;", .beta);
@@ -538,13 +563,16 @@ rxLinCmtTrans <- function(modText){
 
                 }
             } else {
+                if (any(.varsUp=="GAMMA") || any(.varsUp=="C")){
+                    stop("A three compartment model requires BETA/B");
+                }
                 ## 1 cmt
                 .lines[length(.lines) + 1] <- sprintf("rx_alpha ~ %s", .alpha);
                 if (.oral){
                     .lines[length(.lines) + 1] <- sprintf("rx_A ~ rx_ka / (rx_ka - rx_alpha) * %s", .a);
                     .lines[length(.lines) + 1] <- sprintf("rx_A2 ~ %s", .a);
                 } else {
-                    .lines[length(.lines) + 1] <- sprint("rx_A ~ %s", .a);
+                    .lines[length(.lines) + 1] <- sprintf("rx_A ~ %s", .a);
                     .lines[length(.lines) + 1] <- "rx_A2 ~ 0.0";
                 }
 
