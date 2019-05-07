@@ -4,6 +4,9 @@
     rxPermissive(respect=TRUE); ## need to call respect on the first time
     suppressMessages(.rxWinRtoolsPath(retry=NA))
     rxTempDir();
+    if (!interactive()){
+        setProgSupported(0);
+    }
 } ## nocov end
 
 .onAttach <- function(libname, pkgname){
@@ -11,6 +14,9 @@
     rxPermissive(respect=TRUE); ## need to call respect on the first time
     if (!.rxWinRtoolsPath(retry=NA)){
         packageStartupMessage("Rtools is not set up correctly!\n\nYou need a working Rtools installation for RxODE to work.\nYou can set up Rtools using the command 'rxWinSetup()'.\n");
+    }
+    if (!interactive()){
+        setProgSupported(0);
     }
     rxTempDir();
 }
