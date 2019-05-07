@@ -104,7 +104,6 @@ rxPermissive({
     write.csv(.clDf, file=devtools::package_file("vignettes/cl-lincmt.csv"),
               row.names=FALSE)
 
-    context("Kel style translations")
     tran2  <- expand.grid(Ka=c("ka",NA),
                           Vc=c("v","vc","v1", NA),
                           k=c("k","ke","kel", NA),
@@ -112,6 +111,87 @@ rxPermissive({
                           k21=c("k21", NA),
                           k13=c("k13", NA),
                           k31=c("k31", NA))
+
+
+
+    .fun  <- function(x){
+        assign(".x",x,globalenv())
+        x  <- setNames(x,names(tran2))
+        .rx  <- paste(c(ifelse(is.na(x["Ka"]), "", paste0(x["Ka"], "=tKa*exp(eta.ka)")),
+                        ifelse(is.na(x["Vc"]), "", paste0(x["Vc"], "=tVc*exp(eta.vc)")),
+                        ifelse(is.na(x["k"]), "", paste0(x["k"], "=tK*exp(eta.ka)")),
+                        ifelse(is.na(x["k12"]), "", paste0(x["k12"], "=tK12*exp(eta.k12)")),
+                        ifelse(is.na(x["k21"]), "", paste0(x["k21"], "=tK21*exp(eta.k21)")),
+                        ifelse(is.na(x["k13"]), "", paste0(x["k13"], "=tK13*exp(eta.k13)")),
+                        ifelse(is.na(x["k31"]), "", paste0(x["k31"], "=tK31*exp(eta.k31)")),
+                        "cp=linCmt()"
+                        ),collapse="\n");
+        assign(".rx",.rx,globalenv())
+        .good <- TRUE;
+        .v1  <- as.character(na.omit(c(x["Ka"],x["Vc"],x["k"],
+                                       x["k12"], x["k21"], x["k13"], x["k31"])));
+        .up <- toupper(.v1);
+        .ncmt <- 1
+        if (length(.up)==0){
+        } else {
+            if (is.na(x["k"])){
+                .good <- FALSE;
+            }
+            if (is.na(x["Vc"])){
+                .good <- FALSE
+            }
+            if (any(.up=="K12")){
+                if (any(.up=="k21")){
+                    .ncmt <- 2;
+                } else {
+                    .good <- FALSE
+                }
+            }
+            if (any(.up=="K12")){
+                if (any(.up=="K21")){
+                    .ncmt <- 2;
+                } else {
+                    .good <- FALSE
+                }
+            } else if (any(.up=="K21")){
+                .good <- FALSE
+            }
+            if (any(.up=="K13")){
+                if (any(.up=="K31")){
+                    if (.ncmt !=2) .good <- FALSE
+                    .ncmt <- 3;
+                } else {
+                    .good <- FALSE
+                }
+            } else if (any(.up=="K31")){
+                .good <- FALSE
+            }
+            if (.good){
+                test_that(sprintf("linCmt() successful with parameters: %s", paste(na.omit(.v1),collapse=", ")),{
+                    .rx <- RxODE(.rx)
+                    expect_true(inherits(.rx, "RxODE"));
+                    .tmp <- c(.v1, rep("",7-length(.v1)));
+                    names(.tmp)  <- paste0("par",seq_along(.tmp));
+                    .tmp["ncmt"]  <- .ncmt;
+                    .kDf[[length(.kDf)+1]] <- as.data.frame(t(.tmp))
+                    .kDf <<- .kDf;
+                })
+            } else {
+                test_that(sprintf("linCmt() should error with parameters: %s", paste(na.omit(x),collapse=", ")),{
+                    expect_error(RxODE(.rx))
+                })
+            }
+        }
+    }
+
+    .kDf <- list();
+    context("Kel style translations")
+    apply(tran2, 1, .fun)
+
+    .kDf <- do.call(rbind, .kDf);
+    write.csv(.kDf, file=devtools::package_file("vignettes/kel-lincmt.csv"),
+              row.names=FALSE)
+
 
 
 }, on.validate=TRUE);

@@ -429,14 +429,17 @@ rxLinCmtTrans <- function(modText){
             }
             .lines[length(.lines) + 1] <- sprintf("rx_v ~ %s", .v);
             .lines[length(.lines) + 1] <- sprintf("rx_k ~ %s", .k);
-            if (any(.varsUp == "K12")){
+            if (any(.varsUp == "K12") || any(.varsUp == "K21")){
                 .ncmt <- 2;
                 .k12 <- .getVar("K12")
                 .k12 <- .getVar("K21")
                 .lines[length(.lines) + 1] <- sprintf("rx_k12 ~ %s", .k12);
                 .lines[length(.lines) + 1] <- sprintf("rx_k21 ~ %s", .k21);
             }
-            if (any(.varsUp == "K13")){
+            if (any(.varsUp == "K13") || any(.varsUp=="K31")){
+                if (.ncmt !=2){
+                    stop("K12 and K21 need to be defined for a 3 compartment model.");
+                }
                 .ncmt <- 3;
                 .k13 <- .getVar("K13")
                 .k31 <- .getVar("K31")
