@@ -432,7 +432,7 @@ rxLinCmtTrans <- function(modText){
             if (any(.varsUp == "K12") || any(.varsUp == "K21")){
                 .ncmt <- 2;
                 .k12 <- .getVar("K12")
-                .k12 <- .getVar("K21")
+                .k21 <- .getVar("K21")
                 .lines[length(.lines) + 1] <- sprintf("rx_k12 ~ %s", .k12);
                 .lines[length(.lines) + 1] <- sprintf("rx_k21 ~ %s", .k21);
             }
@@ -529,7 +529,7 @@ rxLinCmtTrans <- function(modText){
                     .lines[length(.lines) + 1] <- sprintf("rx_gamma ~ %s;", .gamma);
                     .lines[length(.lines) + 1] <- sprintf("rx_A ~ %s;",.a);
                     .lines[length(.lines) + 1] <- sprintf("rx_B ~ %s;",.b);
-                    .lines[length(.lines) + 1] <- sprintf("rx_B ~ %s;",.c);
+                    .lines[length(.lines) + 1] <- sprintf("rx_C ~ %s;",.c);
                     if (.oral){
                         .lines[length(.lines) + 1] <- "rx_A2 ~ rx_A";
                         .lines[length(.lines) + 1] <- "rx_B2 ~ rx_B";
