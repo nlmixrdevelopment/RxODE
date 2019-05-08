@@ -100,17 +100,7 @@ rxClean <- function(wd){
             ## rxCat("Cleaning cache directory as well.\n");
             rxClean(getFromNamespace("RxODE.cache.directory", "RxODE"));
         }
-        .dlls <- getLoadedDLLs()
-        .dllNames <- names(.dlls)
-        .rxDlls <- .dllNames[regexpr("^rx_", .dllNames) != -1]
-        .dlls <- .dlls[.rxDlls]
-        gc(verbose=FALSE)
-        for (.dll in .dlls) {
-            .name <- .dll[["name"]]
-            .path <- .dll[["path"]]
-            .libpath <- dirname(dirname(.path))
-            try({dyn.unload(.path)}, silent=TRUE)
-        }
+        .unloadRx()
         return(length(list.files(pattern = pat)) == 0);
     } else {
         return(TRUE)

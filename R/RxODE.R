@@ -1463,17 +1463,7 @@ rxCompile.rxModelVars <-  function(model, # Model
         .tmp  <- try(dynLoad(.cDllFile), silent=TRUE);
         if (inherits(.tmp, "try-error")){
             ## Try unloading RxODE dlls now...
-            .dlls <- getLoadedDLLs()
-            .dllNames <- names(.dlls)
-            .rxDlls <- .dllNames[regexpr("^rx_", .dllNames) != -1]
-            .dlls <- .dlls[.rxDlls]
-            gc(verbose=FALSE)
-            for (.dll in .dlls) {
-                .name <- .dll[["name"]]
-                .path <- .dll[["path"]]
-                .libpath <- dirname(dirname(.path))
-                try({dyn.unload(.path)}, silent=TRUE)
-            }
+            .unloadRx()
             .tmp  <- try(dynLoad(.cDllFile), silent=TRUE);
             if (inherits(.tmp, "try-error")){
                 .badBuild("Error loading model (though dll exists)");
