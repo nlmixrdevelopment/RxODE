@@ -20,3 +20,7 @@ a vector of inverse chi squared deviates .
 \description{
 Scaled Inverse Chi Squared distribution
 }
+\examples{
+rinvchisq(3, 4, 1) ## Scale = 1, degrees of freedom = 4
+rinvchisq(2, 4, 2) ## Scale = 2, degrees of freedom = 4
+}

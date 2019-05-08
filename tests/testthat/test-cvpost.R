@@ -27,3 +27,8 @@ test_that("cvPost of 3 items make sense.",{
         expect_equal(draw3[[1]], draw3c[[1]])
     }
 })
+context("rinvchisq")
+test_that("rinvchisq produces proper output",{
+    expect_equal(length(rinvchisq(3, 4, 1)), 3) ## Scale = 1, degrees of freedom = 4
+    expect_equal(length(rinvchisq(3, 4, 1)), 3) ## Scale = 1, degrees of freedom = 4
+})

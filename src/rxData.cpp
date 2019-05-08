@@ -1717,6 +1717,9 @@ RObject cvPost(double nu, RObject omega, int n = 1, bool omegaIsChol = false, bo
 //' @param scale  Scale of inverse chi squared distribution 
 //'         (default is 1).
 //' @return a vector of inverse chi squared deviates .
+//' @examples
+//' rinvchisq(3, 4, 1) ## Scale = 1, degrees of freedom = 4
+//' rinvchisq(2, 4, 2) ## Scale = 2, degrees of freedom = 4
 //' @export
 //[[Rcpp::export]]
 NumericVector rinvchisq(const int n = 1, const double &nu = 1.0, const double &scale = 1){

@@ -28,6 +28,19 @@ Note this Inverse wishart rescaled to match the original scale of the covariance
 If your covariance matrix is a 1x1 matrix, this uses an scaled inverse chi-squared which 
 is equivalent to the Inverse Wishart distribution in the uni-directional case.
 }
+\examples{
+
+## Sample a single covariance.
+draw1 <- cvPost(3, matrix(c(1,.3,.3,1),2,2))
+
+## Sample 3 covariances
+set.seed(42)
+draw3 <- cvPost(3, matrix(c(1,.3,.3,1),2,2), n=3)
+
+## Sample 3 covariances, but return the cholesky decomposition
+set.seed(42)
+draw3c <- cvPost(3, matrix(c(1,.3,.3,1),2,2), n=3, returnChol=TRUE)
+}
 \author{
 Matthew L.Fidler & Wenping Wang
 }

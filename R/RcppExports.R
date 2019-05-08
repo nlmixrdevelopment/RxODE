@@ -204,7 +204,7 @@ atolRtolFactor_ <- function(factor) {
 #' 
 #' ## Sample 3 covariances, but return the cholesky decomposition
 #' set.seed(42)
-#' draw3c <- cvPost(3, matrix(c(1,.3,.3,1),2,2), n=3, returnChol)
+#' draw3c <- cvPost(3, matrix(c(1,.3,.3,1),2,2), n=3, returnChol=TRUE)
 #' @export
 cvPost <- function(nu, omega, n = 1L, omegaIsChol = FALSE, returnChol = FALSE) {
     .Call(`_RxODE_cvPost`, nu, omega, n, omegaIsChol, returnChol)
@@ -217,6 +217,9 @@ cvPost <- function(nu, omega, n = 1L, omegaIsChol = FALSE, returnChol = FALSE) {
 #' @param scale  Scale of inverse chi squared distribution 
 #'         (default is 1).
 #' @return a vector of inverse chi squared deviates .
+#' @examples
+#' rinvchisq(3, 4, 1) ## Scale = 1, degrees of freedom = 4
+#' rinvchisq(2, 4, 2) ## Scale = 2, degrees of freedom = 4
 #' @export
 rinvchisq <- function(n = 1L, nu = 1.0, scale = 1) {
     .Call(`_RxODE_rinvchisq`, n, nu, scale)
