@@ -112,7 +112,7 @@ IntegerVector toCmt(RObject inCmt, CharacterVector state, bool isDvid=false,
 	    out[i] = -9999;
 	  }
 	}
-	if (warnDvid.size() > 0){
+	if (warnDvid.size() > 1){
 	  std::string warn = "Undefined 'dvid' integer values in data: ";
 	  std::sort(warnDvid.begin(), warnDvid.end());
 	  for (int i = 0; i < (int)(warnDvid.size()-1); i++){
@@ -120,6 +120,8 @@ IntegerVector toCmt(RObject inCmt, CharacterVector state, bool isDvid=false,
 	  }
 	  warn = warn + std::to_string(warnDvid[warnDvid.size()-1]);
 	  warning(warn);
+	} else if (warnDvid.size() == 1){
+	  std::fill_n(out.begin(), out.size(), 1);
 	}
 	if (warnConvertDvid.size() > 0){
 	  warning(warnC);
