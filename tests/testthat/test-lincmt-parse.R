@@ -101,8 +101,8 @@ rxPermissive({
     apply(tran1, 1, .fun)
 
     .clDf <- do.call(rbind, .clDf);
-    write.csv(.clDf, file=devtools::package_file("vignettes/cl-lincmt.csv"),
-              row.names=FALSE)
+    try(write.csv(.clDf, file=devtools::package_file("vignettes/cl-lincmt.csv"),
+                  row.names=FALSE))
 
     tran2  <- expand.grid(Ka=c("ka",NA),
                           Vc=c("v","vc","v1", NA),
@@ -116,6 +116,7 @@ rxPermissive({
 
     .fun  <- function(x){
         x  <- setNames(x,names(tran2))
+        assign(".x",x, globalenv())
         .rx  <- paste(c(ifelse(is.na(x["Ka"]), "", paste0(x["Ka"], "=tKa*exp(eta.ka)")),
                         ifelse(is.na(x["Vc"]), "", paste0(x["Vc"], "=tVc*exp(eta.vc)")),
                         ifelse(is.na(x["k"]), "", paste0(x["k"], "=tK*exp(eta.ka)")),
@@ -125,6 +126,7 @@ rxPermissive({
                         ifelse(is.na(x["k31"]), "", paste0(x["k31"], "=tK31*exp(eta.k31)")),
                         "cp=linCmt()"
                         ),collapse="\n");
+        assign(".rx",.rx, globalenv())
         .good <- TRUE;
         .v1  <- as.character(na.omit(c(x["Ka"],x["Vc"],x["k"],
                                        x["k12"], x["k21"], x["k13"], x["k31"])));
@@ -139,7 +141,7 @@ rxPermissive({
                 .good <- FALSE
             }
             if (any(.up=="K12")){
-                if (any(.up=="k21")){
+                if (any(.up=="K21")){
                     .ncmt <- 2;
                 } else {
                     .good <- FALSE
@@ -187,8 +189,8 @@ rxPermissive({
     apply(tran2, 1, .fun)
 
     .kDf <- do.call(rbind, .kDf);
-    write.csv(.kDf, file=devtools::package_file("vignettes/kel-lincmt.csv"),
-              row.names=FALSE)
+    try(write.csv(.kDf, file=devtools::package_file("vignettes/kel-lincmt.csv"),
+              row.names=FALSE))
 
     tran3  <- expand.grid(Ka=c("ka",NA),
                           Vc=c("v","vc","v1", NA),
@@ -318,8 +320,8 @@ rxPermissive({
 
 
     .kAlpha <- do.call(rbind, .kAlpha);
-    write.csv(.kAlpha, file=devtools::package_file("vignettes/alpha-lincmt.csv"),
-              row.names=FALSE)
+    try(write.csv(.kAlpha, file=devtools::package_file("vignettes/alpha-lincmt.csv"),
+                  row.names=FALSE))
 
 
 }, on.validate=TRUE);
