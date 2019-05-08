@@ -121,7 +121,7 @@ IntegerVector toCmt(RObject inCmt, CharacterVector state, bool isDvid=false,
 	  warn = warn + std::to_string(warnDvid[warnDvid.size()-1]);
 	  warning(warn);
 	} else if (warnDvid.size() == 1){
-	  std::fill_n(out.begin(), out.size(), 1);
+	  std::fill_n(out.begin(), out.size(), 0);
 	}
 	if (warnConvertDvid.size() > 0){
 	  warning(warnC);
@@ -779,7 +779,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	  }
 	  if (combineDvidB && dvidCol != -1 && !IntegerVector::is_na(inDvid[i]) &&
 	      inDvid[i]>0){
-	    if (goodCmt && cmt != inDvid[i]){
+	    if (goodCmt && cmt != inDvid[i] && cmt != 1 && cmt != 0){
 	      stop("'cmt' and 'dvid' specify different compartments; Please correct.");
 	    }
 	    cmt = inDvid[i];
@@ -788,7 +788,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	} else {
 	  goodCmt = true;
 	  if (combineDvidB && dvidCol != -1 && !IntegerVector::is_na(inDvid[i]) &&
-	      inDvid[i]>0){
+	      inDvid[i]>0  && cmt != 1 && cmt != 0){
 	    cmt = inDvid[i];
 	  }
 	}
@@ -806,7 +806,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	    Rprintf("DVID: %d\t", inDvid[i]);
 	  }
 	  Rprintf("CMT: %d\n", cmt);
-	  stop("'dvid'->'cmt' or 'cmt' on observation record is not a modeled compartment.");
+	  stop("'dvid'->'cmt' or 'cmt' on observation record on a undefined compartment (use `cmt()` `dvid()`).");
 	}
 	id.push_back(cid);
 	evid.push_back(cevid);
