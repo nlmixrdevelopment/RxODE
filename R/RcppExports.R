@@ -192,7 +192,19 @@ atolRtolFactor_ <- function(factor) {
 #' @return a matrix (n=1) or a list of matricies (n > 1)
 #'
 #' @author Matthew L.Fidler & Wenping Wang
+#'
+#' @examples
 #' 
+#' ## Sample a single covariance.
+#' draw1 <- cvPost(3, matrix(c(1,.3,.3,1),2,2))
+#'
+#' ## Sample 3 covariances
+#' set.seed(42)
+#' draw3 <- cvPost(3, matrix(c(1,.3,.3,1),2,2), n=3)
+#' 
+#' ## Sample 3 covariances, but return the cholesky decomposition
+#' set.seed(42)
+#' draw3c <- cvPost(3, matrix(c(1,.3,.3,1),2,2), n=3, returnChol)
 #' @export
 cvPost <- function(nu, omega, n = 1L, omegaIsChol = FALSE, returnChol = FALSE) {
     .Call(`_RxODE_cvPost`, nu, omega, n, omegaIsChol, returnChol)

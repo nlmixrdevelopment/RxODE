@@ -1669,13 +1669,25 @@ NumericMatrix cvPost0(double nu, NumericMatrix omega, bool omegaIsChol = false,
 //' @return a matrix (n=1) or a list of matricies (n > 1)
 //'
 //' @author Matthew L.Fidler & Wenping Wang
+//'
+//' @examples
 //' 
+//' ## Sample a single covariance.
+//' draw1 <- cvPost(3, matrix(c(1,.3,.3,1),2,2))
+//'
+//' ## Sample 3 covariances
+//' set.seed(42)
+//' draw3 <- cvPost(3, matrix(c(1,.3,.3,1),2,2), n=3)
+//' 
+//' ## Sample 3 covariances, but return the cholesky decomposition
+//' set.seed(42)
+//' draw3c <- cvPost(3, matrix(c(1,.3,.3,1),2,2), n=3, returnChol=TRUE)
 //' @export
 //[[Rcpp::export]]
 RObject cvPost(double nu, RObject omega, int n = 1, bool omegaIsChol = false, bool returnChol = false){
   if (n == 1){
     if (rxIs(omega,"numeric.matrix") || rxIs(omega,"integer.matrix")){
-      return as<RObject>(cvPost0(nu, as<NumericMatrix>(omega), omegaIsChol));
+      return as<RObject>(cvPost0(nu, as<NumericMatrix>(omega), omegaIsChol, returnChol));
     } else if (rxIs(omega, "numeric") || rxIs(omega, "integer")){
       NumericVector om1 = as<NumericVector>(omega);
       if (om1.size() % 2 == 0){
