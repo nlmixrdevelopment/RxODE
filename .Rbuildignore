@@ -1,3 +1,4 @@
+^codemeta\.json$
 ^codecov\.yml$
 ^logo.png$
 ^pkgdown$
