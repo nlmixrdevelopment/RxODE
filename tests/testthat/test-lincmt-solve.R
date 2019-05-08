@@ -52,7 +52,7 @@ rxPermissive({
         ode.1cs2 <- RxODE({
             C2 = linCmt(CL, V);
         })
-        
+
         test_that("linear compartment model gives extraCmt=1",{
             expect_equal(rxModelVars(ode.1cs2)$extraCmt,1L);
         })
@@ -198,8 +198,8 @@ rxPermissive({
             K12x <- Q/Vx
             K21x <- Q/V2x
             beta <- 0.5 * (K12x + K21x + Kx -
-                           sqrt((K12x + 
-                                   K21x + Kx) * (K12x + K21x + Kx) - 4 * K21x * 
+                           sqrt((K12x +
+                                   K21x + Kx) * (K12x + K21x + Kx) - 4 * K21x *
                                   Kx))
             alpha <- K21x * Kx/beta
             A <- (alpha - K21x)/(alpha - beta)/Vx
@@ -217,8 +217,8 @@ rxPermissive({
             K12x <- Q/V
             K21 <- Q/V2x
             beta <- 0.5 * (K12x + K21 + Kx -
-                           sqrt((K12x + 
-                                   K21 + Kx) * (K12x + K21 + Kx) - 4 * K21 * 
+                           sqrt((K12x +
+                                   K21 + Kx) * (K12x + K21 + Kx) - 4 * K21 *
                                   Kx))
             alpha <- K21 * Kx/beta
             C2=linCmt();
@@ -234,8 +234,8 @@ rxPermissive({
             K12x <- Q/V
             K21x <- Q/V2x
             beta <- 0.5 * (K12x + K21x + Kx -
-                           sqrt((K12x + 
-                                   K21x + Kx) * (K12x + K21x + Kx) - 4 * K21x * 
+                           sqrt((K12x +
+                                   K21x + Kx) * (K12x + K21x + Kx) - 4 * K21x *
                                   Kx))
             alpha <- K21x * Kx/beta
             Ax <- (alpha - K21x)/(alpha - beta)/V
@@ -296,8 +296,8 @@ rxPermissive({
             K12x <- Q/Vx
             K21x <- Q/V2x
             beta <- 0.5 * (K12x + K21x + Kx -
-                           sqrt((K12x + 
-                                   K21x + Kx) * (K12x + K21x + Kx) - 4 * K21x * 
+                           sqrt((K12x +
+                                   K21x + Kx) * (K12x + K21x + Kx) - 4 * K21x *
                                   Kx))
             alpha <- K21x * Kx/beta
             A <- (alpha - K21x)/(alpha - beta)/Vx
@@ -316,8 +316,8 @@ rxPermissive({
             K12x <- Q/V
             K21 <- Q/V2x
             beta <- 0.5 * (K12x + K21 + Kx -
-                           sqrt((K12x + 
-                                   K21 + Kx) * (K12x + K21 + Kx) - 4 * K21 * 
+                           sqrt((K12x +
+                                   K21 + Kx) * (K12x + K21 + Kx) - 4 * K21 *
                                   Kx))
             alpha <- K21 * Kx/beta
             C2=linCmt();
@@ -334,8 +334,8 @@ rxPermissive({
             K12x <- Q/V
             K21x <- Q/V2x
             beta <- 0.5 * (K12x + K21x + Kx -
-                           sqrt((K12x + 
-                                   K21x + Kx) * (K12x + K21x + Kx) - 4 * K21x * 
+                           sqrt((K12x +
+                                   K21x + Kx) * (K12x + K21x + Kx) - 4 * K21x *
                                   Kx))
             alpha <- K21x * Kx/beta
             Ax <- (alpha - K21x)/(alpha - beta)/V
@@ -373,7 +373,7 @@ rxPermissive({
         s.2cA3 <- sol.2cA3 %>% solve(theta=c(V=40, CL=18, V2=297, Q=10, ka=0.3), events=et,linLog=ll)
         s.2cSS <- sol.2cSS %>% solve(theta=c(V=40, CL=18, V2=297, Q=10, ka=0.3), events=et,linLog=ll)
         s.2cT <- sol.2cT %>% solve(theta=c(V=40, CL=18, V2=297, Q=10, ka=0.3), events=et,linLog=ll)
-        
+
         test_that("2 compartment oral solved models and ODEs same.", {
             expect_equal(o.2c$C2, s.2c$C2, tolerance=tol)
             expect_equal(o.2c$C2, s.2cK$C2, tolerance=tol)
@@ -434,7 +434,7 @@ rxPermissive({
             K13x <- Q2x/Vx
             K31x <- Q2x/V3x
             a0 <- Kx * K21x * K31x
-            a1 <- Kx * K31x + K21x * K31x + K21x * K13x + 
+            a1 <- Kx * K31x + K21x * K31x + K21x * K13x +
                 Kx * K21x + K31x * K12x
             a2 <- Kx + K12x + K13x + K21x + K31x
             p <- a1 - a2 * a2/3
@@ -541,7 +541,7 @@ rxPermissive({
             K13x <- Q2x/Vx
             K31x <- Q2x/V3x
             a0 <- Kx * K21x * K31x
-            a1 <- Kx * K31x + K21x * K31x + K21x * K13x + 
+            a1 <- Kx * K31x + K21x * K31x + K21x * K13x +
                 Kx * K21x + K31x * K12x
             a2 <- Kx + K12x + K13x + K21x + K31x
             p <- a1 - a2 * a2/3
@@ -1199,9 +1199,10 @@ rxPermissive({
 
     }
 
-    ode.1cs2 <- RxODE({
-        C2 = linCmt(CL, V);
-        C2 = linCmt(CL, V);
-    })
+    test_that("double linCmt has error",
+              expect_error(RxODE({
+                  C2 = linCmt(CL, V);
+                  C2 = linCmt(CL, V);
+              })))
 
 }, silent=TRUE)
