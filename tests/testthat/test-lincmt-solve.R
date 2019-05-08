@@ -173,7 +173,7 @@ rxPermissive({
         })
 
         sol.2c <- RxODE({
-            C2=linCmt(V, CL, V2, Q);
+            C2=linCmt(V, CL, V2, Q1);
         })
 
         sol.2cK <- RxODE({
@@ -245,7 +245,7 @@ rxPermissive({
         })
 
         o.2c <- ode.2c %>% solve(params=c(V=40, CL=18, V2=297, Q=10), events=et,linLog=ll)
-        s.2c <- sol.2c %>% solve(params=c(V=40, CL=18, V2=297, Q=10), events=et,linLog=ll)
+        s.2c <- sol.2c %>% solve(params=c(V=40, CL=18, V2=297, Q1=10), events=et,linLog=ll)
         s.2cK <- sol.2cK %>% solve(theta=c(V=40, CL=18, V2=297, Q=10), events=et,linLog=ll)
         s.2cA1 <- sol.2cA1 %>% solve(theta=c(V=40, CL=18, V2=297, Q=10), events=et,linLog=ll)
         s.2cA2 <- sol.2cA2 %>% solve(theta=c(V=40, CL=18, V2=297, Q=10), events=et,linLog=ll)

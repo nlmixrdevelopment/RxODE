@@ -52,10 +52,12 @@ rxCat <- function(a, ...){
 ##' @export
 ##' @keywords internal
 rxPrint <- function(x, ...){
+    ## nocov start
     this.env <- environment();
     message(invisible(paste(R.utils::captureOutput(assign("x", print(x, ...), this.env)),
                             collapse="\n")), appendLF=TRUE);
     invisible(x)
+    ## nocov end
 }
 
 ##' Cleanup anonymous DLLs

@@ -325,6 +325,7 @@ simulate.rxEt <- function (object, nsim = 1, seed = NULL, ...){
 
 ##'@export
 print.rxEt <- function(x,...){
+    ## nocov start
     if (rxIs(x, "rxEt")){
         bound <- .getBound(x, parent.frame(2));
         cat(cli::rule(center=crayon::bold(paste0("EventTable with ",x$nobs+x$ndose, " records"))), "\n");
@@ -351,10 +352,12 @@ print.rxEt <- function(x,...){
     } else {
         print.data.frame(x)
     }
+    ## nocov end
 }
 
 ##'@export
 str.rxEt <- function(object, ...){
+    ## nocov start
     cat("rxEt methods and properties:\n");
     cat(" $ get.EventTable   :function ()\n");
     cat(" $ get.obs.rec      :function ()  \n");
@@ -369,16 +372,21 @@ str.rxEt <- function(object, ...){
     cat(" $ import.EventTable:function ()  \n");
     cat(" $ copy             :function ()  \n");
     return(invisible(NextMethod("str", ...)))
+    ## nocov end
 }
 
 ##'@export
 print.rxHidden <- function(x,...){
+    ## nocov start
     cat("\r");
+    ##nocov end
 }
 
 ##'@export
 str.rxHidden <- function(object,...){
+    ##nocov start
     cat("\r");
+    ##nocov end
 }
 
 ##'@export

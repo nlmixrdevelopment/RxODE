@@ -634,69 +634,6 @@ rxSolve <- function(object, ...){
 rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, ...){
     on.exit({rxSolveFree()});
     .xtra <- list(...);
-    ## if (is.null(transitAbs) && !is.null(.xtra$transit_abs)){
-    ##     transitAbs <- .xtra$transit_abs;
-    ## }
-    ## if (missing(updateObject) && !is.null(.xtra$update.object)){
-    ##     updateObject <- .xtra$update.object;
-    ## }
-    ## if (missing(covsInterpolation) && !is.null(.xtra$covs_interpolation)){
-    ##     covsInterpolation <- .xtra$covs_interpolation;
-    ## }
-    ## if (missing(addCov) && !is.null(.xtra$add.cov)){
-    ##     addCov <- .xtra$add.cov;
-    ## }
-    ## if (!is.null(seed)){
-    ##     set.seed(seed);
-    ## }
-    ## if (!is.null(nsim)){
-    ##     if (rxIs(params, "eventTable") || rxIs(events, "eventTable") && nSub == 1L){
-    ##         nSub <- nsim;
-    ##     } else if (nStud == 1L){
-    ##         nStud <- nsim;
-    ##     }
-
-    ## }
-    ## ## stiff = TRUE, transitAbs = NULL,
-    ## ## atol = 1.0e-8, rtol = 1.0e-6, maxsteps = 50000, hmin = 0, hmax = NULL, hini = 0, maxordn = 12,
-    ## ## maxords = 5, ..., covsInterpolation = c("linear", "constant", "NOCB", "midpoint"),
-    ## ## theta=numeric(), eta=numeric(), matrix=TRUE,addCov=FALSE,
-    ## ## inC=FALSE, counts=NULL, doSolve=TRUE
-    ## if (!missing(stiff) && missing(method)){
-    ##     if (rxIs(stiff, "logical")){
-    ##         if (stiff){
-    ##             method <- "lsoda"
-    ##             warning("stiff=TRUE has been replaced with method = \"lsoda\".")
-    ##         } else {
-    ##             method <- "dop853"
-    ##             warning("stiff=FALSE has been replaced with method = \"dop853\".")
-    ##         }
-    ##     }
-    ## } else {
-    ##     if (!rxIs(method, "integer")){
-    ##         method <- match.arg(method);
-    ##     }
-    ## }
-    ## .matrixIdx <- c("rxSolve"=0, "matrix"=1, "data.frame"=2, "data.frame.TBS"=3);
-    ## if (!missing(returnType)){
-    ##     matrix <- .matrixIdx[match.arg(returnType)];
-    ## } else if (!is.null(.xtra$return.type)){
-    ##     matrix <- .matrixIdx[.xtra$return.type];
-    ## } else {
-    ##     matrix <- as.integer(matrix);
-    ## }
-    ## if (!rxIs(method, "integer")){
-    ##     .methodIdx <- c("lsoda"=1, "dop853"=0, "liblsoda"=2);
-    ##     method <- as.integer(.methodIdx[method]);
-    ## }
-    ## if (Sys.info()[["sysname"]] == "SunOS" && method == 2){
-    ##     method <- 1;
-    ## }
-    ## if (length(covsInterpolation) > 1) covsInterpolation <- covsInterpolation[1];
-    ## covsInterpolation <- tolower(match.arg(covsInterpolation,
-    ##                                        c("linear", "locf", "LOCF", "constant", "nocb", "NOCB", "midpoint")))
-    ## if (covsInterpolation == "constant") covsInterpolation <- "locf";
-    ## covsInterpolation  <- as.integer(which(covsInterpolation == c("linear", "locf", "nocb", "midpoint")) - 1);
     if (any(duplicated(names(.xtra)))){
         stop("Duplicate arguments do not make sense.");
     }
@@ -1017,7 +954,7 @@ dimnames.rxSolve <- function(x){
 
 ##'@export
 print.rxModelText <- function(x, ...){
-    ## nocov stop
+    ## nocov start
     cat(cli::rule(center=crayon::bold("RxODE Model Syntax"), line="bar2"), "\n");
     .code <- deparse(body(eval(parse(text=paste("function(){",as.vector(x),"}")))))
     .code[1]  <- "RxODE({"

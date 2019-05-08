@@ -46,13 +46,17 @@ rxLinCmtTrans <- function(modText){
                                ")",any_spaces,or("=","<-"),any_spaces,capture(anything))
     .txt <- try({strsplit(rxNorm(modText), "\n")[[1]]}, silent = TRUE);
     if (inherits(.txt, "try-error")){
+        ## nocov start
         return(modText);
+        ## nocov end
     }
     .re <- rex::rex(capture(anything), boundary, "linCmt(", capture(except_any_of(")")), ")", capture(anything));
     .w <- which(regexpr(.re, .txt, perl=TRUE) != -1)
     .isDirect <- FALSE
     if (length(.w) == 0){
+        ## nocov start
         return(modText);
+        ## nocov end
     } else if (length(.w) == 1){
         .regIniCenter  <- rex::rex(start,any_spaces,"central",any_spaces,
                                    "(",any_spaces,"0",any_spaces, ")", any_spaces,
@@ -91,10 +95,6 @@ rxLinCmtTrans <- function(modText){
         .linCmt <- gsub(.re, "\\2", .txt[.w]);
         if (.linCmt == ""){
             .tmp <- rxState(modText);
-            .w <- which(.tmp=="depot");
-            if (length(.w) > 0) .tmp <- .tmp[-.w];
-            .w <- which(.tmp=="central");
-            if (length(.w) > 0) .tmp <- .tmp[-.w];
             .linCmt  <- length(.tmp);
         } else {
             .linCmt <- gsub(rex::rex(any_spaces, capture(anything), any_spaces), "\\1",

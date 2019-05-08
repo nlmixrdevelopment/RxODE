@@ -26,7 +26,9 @@
     .Call(`_RxODE_setRstudio`, Sys.getenv("RSTUDIO")=="1")
     rxPermissive(respect=TRUE); ## need to call respect on the first time
     if (!.rxWinRtoolsPath(retry=NA)){
+        ## nocov start
         packageStartupMessage("Rtools is not set up correctly!\n\nYou need a working Rtools installation for RxODE to work.\nYou can set up Rtools using the command 'rxWinSetup()'.\n");
+        ## nocov end
     }
     if (!interactive()){
         setProgSupported(0);

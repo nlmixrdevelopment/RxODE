@@ -742,19 +742,24 @@ rxChain2.EventTable <- function(obj, solvedObject){
 }
 
 .isLatex <- function() {
+    ## nocov start
     if (!("knitr" %in% loadedNamespaces())) return(FALSE)
     get("is_latex_output", asNamespace("knitr"))()
+    ## nocov end
 }
 
 .useUtf <- function() {
+    ## nocov start
     opt <- getOption("cli.unicode", NULL)
     if (! is.null(opt)) {
         isTRUE(opt)
     } else {
         l10n_info()$`UTF-8` && !.isLatex()
     }
+    ## nocov end
 }
 .getBound <- function(x, parent=parent.frame(2)){
+    ## nocov start
     .isRx <- try(rxIs(x, "RxODE"),silent=TRUE)
     if (inherits(.isRx, "try-error")) .isRx  <- FALSE
     if (.isRx){
@@ -782,6 +787,7 @@ rxChain2.EventTable <- function(obj, solvedObject){
         }
     }
     return(bound)
+    ## nocov end
 }
 .getReal  <- function(x){
     ## Should always be in sync
@@ -808,6 +814,7 @@ rxChain2.EventTable <- function(obj, solvedObject){
 ##' @author Matthew L.Fidler
 ##' @export
 print.RxODE <- function(x, ...){
+    ## nocov start
     rxModelVars(x);
     x  <- .getReal(x);
     .bound <- .getBound(x, parent.frame(2));
@@ -865,11 +872,13 @@ print.RxODE <- function(x, ...){
             message(paste0(crayon::yellow(.bound), crayon::blue$bold("$lhs"), ": ", paste(.cur, collapse=", ")))
     }
     invisible(x)
+    ##nocov end
 }
 
 ##'@export
 print.rxModelVars <- function(x, ...)
 {
+    ## nocov start
     .bound <- .getBound(x, parent.frame(2));
     message("RxODE model variables (see str to see all variables)");
     .cur <- x$state;
@@ -885,6 +894,7 @@ print.rxModelVars <- function(x, ...)
     if (length(.cur) > 0)
         message(paste0(crayon::yellow(.bound), crayon::blue$bold("$lhs"), ": ", paste(.cur, collapse=", ")))
     invisible(x)
+    ## nocov end
 }
 
 ##' Print expanded information about the RxODE object.
@@ -897,9 +907,11 @@ print.rxModelVars <- function(x, ...)
 ##' @export
 summary.RxODE <- function(object, ...)
 {
+    ##nocov start
     print.RxODE(object, rxSuppress=TRUE);
     summary.rxDll(object$cmpMgr$rxDll(), noprint = TRUE)
     invisible(object)
+    ##nocov end
 }
 
 ##' Return the RxODE coefficients
@@ -967,6 +979,7 @@ coef.rxDll <- function(...){
 ##' @author Matthew L.Fidler
 ##' @export
 print.rxCoef <- function(x, ...){
+    ## nocov start
     .rxDllObj <- x$RxODE;
     if (length(rxParams(.rxDllObj)) > 0){
         cat(cli::rule(left="User supplied parameters:"), "\n");
@@ -1001,6 +1014,7 @@ print.rxCoef <- function(x, ...){
         cat("No ODEs in this DLL.\n");
     }
     return(invisible());
+    ## nocov stop
 }
 
 ##' Print the rxCoefSolve object
@@ -1013,6 +1027,7 @@ print.rxCoef <- function(x, ...){
 ##' @author Matthew L.Fidler
 ##' @export
 print.rxCoefSolve <- function(x, ...){
+    ## nocov start
     cat("\nUser supplied parameters ($params):\n");
     print(x$params);
     cat("\nUser initial conditions ($state):\n");
@@ -1036,6 +1051,7 @@ print.rxCoefSolve <- function(x, ...){
         print(sens)
     }
     return(invisible());
+    ## nocov end
 }
 
 .rxPre <- function(model,
@@ -1528,14 +1544,18 @@ rxCompile.rxDll <- function(model, ...){
 
 ##' @export
 print.rxC <- function(x, ...){
+    ## nocov start
     message(sprintf("C File: %s  (summary for code)", x));
+    ## nocov end
 }
 
 ##' @export
 summary.rxC <- function(object, ...){
+    ## nocov start
     message(sprintf("//C File: %s", object));
     message("//");
     suppressWarnings(message(paste(readLines(object), collapse="\n")));
+    ## nocov end
 }
 
 ##' @rdname rxCompile
@@ -1687,6 +1707,7 @@ rxNorm <- function(obj, condition=NULL, removeInis, removeJac, removeSens){
 ##' @author Matthew L.Fidler
 ##' @export
 print.rxDll <- function(x, ...){
+    ## nocov start
     if (file.exists(x$dll)){
         cat(sprintf("RxODE DLL named \"%s\"", basename(x$dll)));
         if (rxDllLoaded(x)){
@@ -1698,6 +1719,7 @@ print.rxDll <- function(x, ...){
         cat(sprintf("RxODE DLL named \"%s\" has been deleted.\n", basename(x$dll)));
     }
     invisible(x);
+    ## nocov end
 }
 
 ##' Summary of rxDll object
@@ -1715,6 +1737,7 @@ print.rxDll <- function(x, ...){
 ##' @author Matthew L.Fidler
 ##' @export
 summary.rxDll <- function(object, ...){
+    ## nocov start
     .args <- as.list(match.call(expand.dots = TRUE));
     if (any(names(.args) == "noprint")){
         .noprint <- .args$noprint;
@@ -1736,34 +1759,7 @@ summary.rxDll <- function(object, ...){
     class(.tmp) <- "rxModelText"
     print(.tmp)
     return(invisible(object))
-}
-##' Format theta and eta for parameter estimate values in RxODE
-##'
-##' @param theta A vector of theta estimates
-##' @param eta A vector of eta estimates
-##' @return A named vector for initial values.
-##' @author Matthew L. Fidler
-##' @keywords internal
-##' @export
-rxThetaEta <- function(theta=NULL, eta=NULL){
-    .ret <- c(theta, eta)
-    .ltheta <- length(theta);
-    leta <- length(eta)
-    if (.ltheta > 0){
-        .ntheta <- paste0("THETA[", seq_along(theta), "]")
-    } else  {
-        .ntheta <- character()
-        theta <- numeric()
-    }
-    if (leta > 0){
-        .neta <- paste0("ETA[", seq_along(eta), "]");
-    } else {
-        .neta <- character();
-        eta <- numeric();
-    }
-    .ret <- c(theta, eta);
-    names(.ret) <- c(.ntheta, .neta)
-    return(.ret)
+    ## nocov end
 }
 
 ##' @rdname rxInits
