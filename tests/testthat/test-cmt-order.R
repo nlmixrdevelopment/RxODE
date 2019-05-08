@@ -1,9 +1,7 @@
-if (file.exists(devtools::package_file("tests/testthat/warfarin.rda"))){
+if (file.exists("warfarin.rda")){
     rxPermissive({
-
         context("Compartment order & extra CMTs with cmt()");
-
-        load(devtools::package_file("tests/testthat/warfarin.rda"))
+        load("warfarin.rda")
 
         test_that("cmt() syntax makes sense", {
 
