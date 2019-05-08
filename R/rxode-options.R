@@ -22,8 +22,10 @@
 }
 
 .onUnload <- function (libpath) {
+    ## nocov start
     rxSolveFree();
     library.dynam.unload("RxODE", libpath)
+    ## nocov end
 }
 
 .rxTempDir0 <- NULL;

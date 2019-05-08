@@ -223,9 +223,6 @@ rxLinCmtTrans <- function(modText){
             if (.oral){
                 .lines[length(.lines)+1]  <- sub(.regLagDepot,"rx_tlag ~ \\1", .tmp);
             } else {
-                message(cli::rule(left="model without ka"))
-                message(paste(modText, collapse="\n"));
-                message(cli::rule())
                 stop("lag(depot) does not exist without a depot compartment, specify a 'ka' parameter");
             }
         } else if (length(.lagDepot)>1L){
@@ -382,7 +379,7 @@ rxLinCmtTrans <- function(modText){
             }
             if (any(.varsUp == toupper(.vs[3]))){
                 if (.hasVss){
-                    stop("Vss only supported with 2 compartment models")
+                    stop("Vss only supported with 2 compartment models.")
                 }
                 .ncmt <- 3;
                 .v3 <- .getVar(.vs[3]);
@@ -651,9 +648,6 @@ rxLinCmtTrans <- function(modText){
         ## Put in extra compartment information
         return(rxGetModel(.txt))
     } else {
-        message(cli::rule(left="model with multiple linCmt()"))
-        message(paste(modText, collapse="\n"));
-        message(cli::rule())
         stop("Can only have one linCmt() function in the model.  Assign it to a variable if you need the concentrations more than once.");
     }
 }

@@ -120,6 +120,7 @@ refresh <- function(derivs=FALSE){
 }
 
 ode.h <- function(){
+    ## nocov start
     cat("Generate header string.\n");
     r.files <- list.files(devtools::package_file("R"), "[.]R$", full.names=TRUE);
     r.files <- r.files[regexpr("RxODE_md5.R", r.files, fixed=TRUE) == -1]
@@ -148,6 +149,7 @@ ode.h <- function(){
     writeLines(hd, devtools::package_file("src/ode.h"))
     writeLines(sprintf("RxODE.md5 <- \"%s\"", md5),
                devtools::package_file("R/RxODE_md5.R"));
+    ## nocov end
 }
 
 
@@ -194,14 +196,3 @@ rxSetProd <- function(type=c("long double", "double", "logify")){
     PreciseSums::psSetProd(type);
 }
 
-
-## Required for npde
-.nearPd <- function(mat){
-    if (any(is.na(mat))){
-        ## cat("Bad matrix:\n");
-        ## print(mat);
-        return(mat)
-    } else {
-        return(as.matrix(Matrix::nearPD(mat)$mat));
-    }
-}

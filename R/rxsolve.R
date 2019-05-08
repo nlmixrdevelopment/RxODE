@@ -767,6 +767,7 @@ solve.rxSolve <- function(a, b, ...){
 solve.RxODE <- solve.rxSolve
 
 .sharedPrint <- function(x, n, width, bound=""){
+    ## nocov start
     .isDplyr <- requireNamespace("dplyr", quietly = TRUE) && RxODE.display.tbl;
     ## cat(sprintf("Dll: %s\n\n", rxDll(x)))
     df <- x$params.single
@@ -822,6 +823,7 @@ solve.RxODE <- solve.rxSolve
         }
     }
     return(invisible(.isDplyr));
+    ## nocov end
 }
 
 ##' @author Matthew L.Fidler
@@ -859,6 +861,7 @@ print.rxSolve <- function(x, ...){
 ##' @author Matthew L.Fidler
 ##' @export
 summary.rxSolve <- function(object, ...){
+    ## nocov start
     if (rxIs(object, "rxSolve")){
         bound <- .getBound(object, parent.frame(2));
         cat(cli::rule(center=crayon::bold("Summary of Solved RxODE object"), line="bar2"), "\n");
@@ -884,6 +887,7 @@ summary.rxSolve <- function(object, ...){
         class(object) <- "data.frame"
         NextMethod("summary", object);
     }
+    ## nocov end
 }
 
 ##' Check to see if this is an rxSolve object.
@@ -1011,16 +1015,19 @@ dimnames.rxSolve <- function(x){
 
 ##'@export
 print.rxModelText <- function(x, ...){
+    ## nocov stop
     cat(cli::rule(center=crayon::bold("RxODE Model Syntax"), line="bar2"), "\n");
     .code <- deparse(body(eval(parse(text=paste("function(){",as.vector(x),"}")))))
     .code[1]  <- "RxODE({"
     .code[length(.code)]  <- "})";
     cat(paste(.code,collapse="\n"), "\n");
     cat(cli::rule(line="bar2"), "\n");
+    ## nocov end
 }
 
 ##'@export
 plot.rxSolve <- function(x,y,...){
+    ## nocov start
     .cmts <- c(as.character(substitute(y)),
                names(sapply(as.character(as.list(match.call()[-(1:3)])),`c`)))
     if (length(.cmts)==1 &&.cmts[1]==""){
@@ -1055,6 +1062,7 @@ plot.rxSolve <- function(x,y,...){
                 geom_line(size=1.2) +facet_wrap(~ trt, scales="free_y")
         }
     }
+    ## nocov stop
 }
 
 ##'@export

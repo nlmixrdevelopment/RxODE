@@ -344,19 +344,44 @@ rxPermissive({
             C2=linCmt();
         })
 
+        sol.2cSS <- RxODE({
+            V <- theta[1]
+            CL <- theta[2]
+            V2x <- theta[3]
+            Q <- theta[4]
+            Ka <- theta[5]
+            Vss <- V+V2x
+            C2=linCmt();
+        })
+
+        sol.2cT <- RxODE({
+            V <- theta[1]
+            CL <- theta[2]
+            VT <- theta[3]
+            Q <- theta[4]
+            Ka <- theta[5]
+            C2=linCmt();
+        })
+
+
+
         o.2c <- ode.2c.ka %>% solve(params=c(V=40, CL=18, V2=297, Q=10, KA= 0.3), events=et,linLog=ll)
         s.2c <- sol.2c.ka %>% solve(params=c(V=40, CL=18, V2=297, Q=10, KA=0.3), events=et,linLog=ll)
         s.2cK <- sol.2cK %>% solve(theta=c(V=40, CL=18, V2=297, Q=10, ka=0.3), events=et,linLog=ll)
         s.2cA1 <- sol.2cA1 %>% solve(theta=c(V=40, CL=18, V2=297, Q=10, ka=0.3), events=et,linLog=ll)
         s.2cA2 <- sol.2cA2 %>% solve(theta=c(V=40, CL=18, V2=297, Q=10, ka=0.3), events=et,linLog=ll)
         s.2cA3 <- sol.2cA3 %>% solve(theta=c(V=40, CL=18, V2=297, Q=10, ka=0.3), events=et,linLog=ll)
-
+        s.2cSS <- sol.2cSS %>% solve(theta=c(V=40, CL=18, V2=297, Q=10, ka=0.3), events=et,linLog=ll)
+        s.2cT <- sol.2cT %>% solve(theta=c(V=40, CL=18, V2=297, Q=10, ka=0.3), events=et,linLog=ll)
+        
         test_that("2 compartment oral solved models and ODEs same.", {
             expect_equal(o.2c$C2, s.2c$C2, tolerance=tol)
             expect_equal(o.2c$C2, s.2cK$C2, tolerance=tol)
             expect_equal(o.2c$C2, s.2cA1$C2, tolerance=tol)
             expect_equal(o.2c$C2, s.2cA2$C2, tolerance=tol)
             expect_equal(o.2c$C2, s.2cA3$C2, tolerance=tol)
+            expect_equal(o.2c$C2, s.2cSS$C2, tolerance=tol)
+            expect_equal(o.2c$C2, s.2cT$C2, tolerance=tol)
         })
 
         o.2c <- ode.2c.ka %>% solve(params=c(V=40, CL=1, V2=297, Q=10, KA= 0.3), events=etSs,linLog=ll)
@@ -426,16 +451,40 @@ rxPermissive({
             C2=linCmt();
         })
 
+        sol.3cVp <- RxODE({
+            V <- theta[1]
+            CL <- theta[2]
+            Vp <- theta[3]
+            Q <- theta[4]
+            Q2 <- theta[5]
+            Vp2 <- theta[6]
+            C2=linCmt();
+        })
+
+        sol.3cVt <- RxODE({
+            V <- theta[1]
+            CL <- theta[2]
+            Vt <- theta[3]
+            Q <- theta[4]
+            Q2 <- theta[5]
+            Vt2 <- theta[6]
+            C2=linCmt();
+        })
+
         o.3c <- ode.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=et,linLog=ll)
 
         s.3c <- sol.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=et,linLog=ll)
         s.3cK <- sol.3cK %>% solve(theta=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=et,linLog=ll)
         s.3cA1 <- sol.3cA1 %>% solve(theta=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=et,linLog=ll)
+        s.3cVp <- sol.3cVp %>% solve(theta=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=et,linLog=ll)
+        s.3cVt <- sol.3cVt %>% solve(theta=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=et,linLog=ll)
 
         test_that("3 compartment solved models and ODEs same.", {
             expect_equal(o.3c$C2, s.3c$C2, tolerance=tol)
             expect_equal(o.3c$C2, s.3cK$C2, tolerance=tol)
             expect_equal(o.3c$C2, s.3cA1$C2, tolerance=tol)
+            expect_equal(o.3c$C2, s.3cVp$C2, tolerance=tol)
+            expect_equal(o.3c$C2, s.3cVt$C2, tolerance=tol)
         })
 
         o.3c <- ode.3c %>% solve(params=c(V=40, CL=18, V2=297, Q=10, Q2=7, V3=400), events=etSs,linLog=ll)
@@ -1149,5 +1198,10 @@ rxPermissive({
         })
 
     }
+
+    ode.1cs2 <- RxODE({
+        C2 = linCmt(CL, V);
+        C2 = linCmt(CL, V);
+    })
 
 }, silent=TRUE)
