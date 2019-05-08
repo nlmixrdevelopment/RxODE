@@ -155,9 +155,11 @@ rxPermissive <- function(expr, silent=.isTestthat(),
 rxStrict <- function(expr, silent=.isTestthat(), respect=FALSE,
                      rxclean=.isTestthat(),
                      cran=FALSE, on.validate=FALSE){
+    ## nocov start
     args  <- as.list(match.call())[-1];
     args$op.rx <- 1;
     do.call(getFromNamespace("rxOptions", "RxODE"), args, envir=parent.frame(1));
+    ## nocov end
 }
 ##' Options for RxODE
 ##'
