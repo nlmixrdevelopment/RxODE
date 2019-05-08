@@ -1,10 +1,9 @@
 ---
 title: "RxODE Data Frames"
-author: "Matthew L. Fidler, Melissa Hallow, and Wenping Wang"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{RxODE data frames}
+  %\VignetteIndexEntry{RxODE Data Frames}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

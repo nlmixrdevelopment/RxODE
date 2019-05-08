@@ -1,10 +1,9 @@
 ---
 title: "RxODE Events"
-author: "Matthew L. Fidler, Melissa Hallow, and Wenping Wang"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{RxODE Event Coding}
+  %\VignetteIndexEntry{RxODE Events}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

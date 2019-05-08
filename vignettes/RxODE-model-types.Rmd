@@ -3,7 +3,7 @@ title: "RxODE additional model types"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{RxODE Solved Systems and ODEs}
+  %\VignetteIndexEntry{RxODE additional model types}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

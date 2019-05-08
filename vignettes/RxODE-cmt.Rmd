@@ -1,10 +1,9 @@
 ---
 title: "Changing RxODE compartment numbers"
-author: "Matthew L. Fidler, and Wenping Wang"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{RxODE Event Coding}
+  %\VignetteIndexEntry{Changing RxODE compartment numbers}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

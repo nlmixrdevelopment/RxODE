@@ -1,6 +1,5 @@
 ---
 title: "RxODE Covariates"
-author: "Matthew L. Fidler, and Wenping Wang"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
