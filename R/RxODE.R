@@ -1014,7 +1014,7 @@ print.rxCoef <- function(x, ...){
         cat("No ODEs in this DLL.\n");
     }
     return(invisible());
-    ## nocov stop
+    ## nocov end
 }
 
 ##' Print the rxCoefSolve object
