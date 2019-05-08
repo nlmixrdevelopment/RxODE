@@ -23,6 +23,17 @@
 
 .onUnload <- function (libpath) {
     ## nocov start
+    .dlls <- getLoadedDLLs()
+    .dllNames <- names(.dlls)
+    .rxDlls <- .dllNames[regexpr("^rx_", .dllNames) != -1]
+    .dlls <- .dlls[.rxDlls]
+    gc(verbose=FALSE)
+    for (.dll in .dlls) {
+        .name <- .dll[["name"]]
+        .path <- .dll[["path"]]
+        .libpath <- dirname(dirname(.path))
+        try({dyn.unload(.path)}, silent=TRUE)
+    }
     rxSolveFree();
     library.dynam.unload("RxODE", libpath)
     ## nocov end
@@ -231,7 +242,10 @@ rxOptions <- function(expr, op.rx=NULL, silent=.isTestthat(), respect=FALSE,
                 if (silent){
                     setProgSupported(-1);
                 }
-                on.exit({options(opOld); setProgSupported(.oldProg); rxSyncOptions(); if (rxclean){rxClean();}});
+                on.exit({options(opOld);
+                    setProgSupported(.oldProg);
+                    rxSyncOptions();
+                    if (rxclean){rxClean();}});
             }
             if (respect){
                 op <- options();
