@@ -2531,6 +2531,9 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
 
   if (isString(model_md5) && length(model_md5) == 1){
     md5 = r_dup_str(CHAR(STRING_ELT(model_md5,0)),0);
+    if (strlen(md5)!= 32){
+      md5[0] = '\0';
+    }
   } else {
     md5 = R_alloc(1,sizeof(char));
     md5[0] = '\0';
