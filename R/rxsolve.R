@@ -1001,7 +1001,7 @@ plot.rxSolve <- function(x,y,...){
                 geom_line(size=1.2) +facet_wrap(~ trt, scales="free_y")
         }
     }
-    ## nocov stop
+    ## nocov end
 }
 
 ##'@export

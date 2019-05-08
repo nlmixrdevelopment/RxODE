@@ -131,6 +131,8 @@ this is \code{FALSE}.}
 }
 \value{
 A new event table
+
+A new event table
 }
 \description{
 Event Table Function

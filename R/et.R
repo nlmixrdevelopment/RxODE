@@ -115,6 +115,7 @@
 ##'     this is \code{FALSE}.
 ##'
 ##' @inheritParams base::eval
+##' @return A new event table
 ##'
 ##' @template etExamples
 ##'
@@ -448,10 +449,7 @@ set_units.rxEt <- function(x, value, ..., mode = units::units_options("set_units
 ##' @return eventTable with updated dosing (note the event table will
 ##'     be updated anyway)
 ##' @author Matthew L. Fidler
-##' @seealso \code{\link{eventTable}}, \code{\link{RxODE}},
-##'     \code{\link{et}}, \code{\link{add.sampling}},
-##'     \code{\link{etRep}}, \code{\link{etSeq}},
-##'     \code{\link{etRbind}}
+##' @template etExamples
 ##' @export
 add.dosing <- function(eventTable, dose, nbr.doses = 1L, dosing.interval = 24, dosing.to = 1L, rate = NULL, amount.units = NA_character_, start.time = 0.0, do.sampling = FALSE, time.units = NA_character_, ...) {
     .lst <- list(dose=dose,
@@ -484,8 +482,7 @@ add.dosing <- function(eventTable, dose, nbr.doses = 1L, dosing.interval = 24, d
 ##'     \code{EventTable} was initialized.
 ##' @return eventTable with updated sampling.  (Note the event table
 ##'     will be updated even if you don't reassign the eventTable)
-##' @author Matthew L. Fidler
-##' @seealso \code{\link{eventTable}}, \code{\link{RxODE}}
+##' @template etExamples
 ##' @export
 add.sampling <- function(eventTable, time, time.units = NA){
     .lst <- list(time=time);
@@ -734,6 +731,11 @@ etSeq <- function(...,samples=c("clear", "use"), waitII=c("smart", "+ii"), ii=24
 ##'     \code{rbind} is ignored.
 ##'
 ##' @author Matthew L Fidler
+##'
+##' @return An event table
+##'
+##' @template etExamples
+##'
 ##' @export
 etRbind <- function(...,samples=c("use", "clear"),waitII=c("smart", "+ii"),
                     id=c("merge", "unique")){

@@ -74,7 +74,6 @@
 ##'
 ##' plot(repCycle4, C2)
 ##'
-##' @return A new event table
 ##'
 ##' @author Matthew L Fidler, Wenping Wang
 ##'
