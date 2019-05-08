@@ -1638,31 +1638,7 @@ extern void rxode_assign_rx(rx_solve *rx){
   _globalRx=rx;
 }
 
-extern int rxEvidP(int i, rx_solve *rx, unsigned int id){
-  rx_solving_options_ind *ind;
-  ind = getRxId(rx, id);
-  if (i < ind->n_all_times){
-    return(ind->evid[ind->ix[i]]); // invalid read of size 4
-  } else {
-    error("Trying to access EVID outside of defined events.\n");
-  }
-}
-extern unsigned int nDosesP(rx_solve *rx, unsigned int id){
-  rx_solving_options_ind *ind;
-  ind = getRxId(rx, id);
-  if (ind->ndoses < 0){
-    ind->ndoses=0;
-    for (int i = 0; i < ind->n_all_times; i++){
-      if (rxEvidP(i, rx, id)){
-        ind->ndoses++;
-        ind->idose[ind->ndoses-1] = i;
-      }
-    }
-    return ind->ndoses;
-  } else {
-    return ind->ndoses;
-  }
-}
+
 extern double rxLhsP(int i, rx_solve *rx, unsigned int id){
   rx_solving_options_ind *ind;
   ind = getRxId(rx, id);
@@ -1699,21 +1675,6 @@ extern void setExtraCmtP(int xtra, rx_solve *rx){
 void setExtraCmt(int xtra){
   setExtraCmtP(xtra, _globalRx);
 }
-
-double rxDoseP(int i, rx_solve *rx, unsigned int id){
-  if ((unsigned int)i < nDosesP(rx, id)){
-    rx_solving_options_ind *ind;
-    ind = getRxId(rx, id);
-    return(ind->dose[i]);
-  } else {
-    error("Dose cannot be retrived (%dth entry).",i);
-  }
-  return 0;
-}
-double rxDose(int i){
-  return(rxDoseP(i, _globalRx, 0));
-}
-
 
 SEXP rxStateNames(char *ptr);
 SEXP rxLhsNames(char *ptr);
