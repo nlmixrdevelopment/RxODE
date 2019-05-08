@@ -829,6 +829,7 @@ solve.RxODE <- solve.rxSolve
 ##' @author Matthew L.Fidler
 ##' @export
 print.rxSolve <- function(x, ...){
+    ##nocov start
     if (rxIs(x, "rxSolve")){
         bound <- .getBound(x, parent.frame(2));
         cat(cli::rule(center=crayon::bold("Solved RxODE object"), line="bar2"), "\n");
@@ -856,6 +857,7 @@ print.rxSolve <- function(x, ...){
     } else {
         print.data.frame(x)
     }
+    ##nocov end
 }
 
 ##' @author Matthew L.Fidler
