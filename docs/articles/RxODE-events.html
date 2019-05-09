@@ -134,9 +134,8 @@
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
       <h1>RxODE Events</h1>
-                        <h4 class="author">Matthew L. Fidler, Melissa Hallow, and Wenping Wang</h4>
             
-            <h4 class="date">2019-04-25</h4>
+            <h4 class="date">2019-05-08</h4>
       
       
       <div class="hidden name"><code>RxODE-events.Rmd</code></div>
@@ -152,6 +151,7 @@
 <ul>
 <li>The compartment data item (<code>cmt</code>) can be a string/factor with compartment names</li>
 <li>You may turn off a compartment with a negative compartment number or “-cmt” where cmt is the compartment name.</li>
+<li>The compartment data item (<code>cmt</code>) can still be a number, the number of the compartment is defined by the appearance of the compartment name in the model. This can be tedious to count, so you can specify compartment numbers easier by using the <code>cmt(cmtName)</code> at the beginning of the model.</li>
 <li>An additional column, <code>dur</code> can specify the duration of infusions;
 <ul>
 <li>Bioavailability changes will change the rate of infusion since <code>dur</code>/<code>amt</code> are fixed in the input data.</li>

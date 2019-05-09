@@ -180,8 +180,8 @@
     
     </div>
 
-    <pre class="usage"><span class='fu'>etTrans</span>(<span class='no'>inData</span>, <span class='no'>obj</span>, <span class='kw'>addCmt</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>allTimeVar</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>keepDosingOnly</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>)</pre>
+    <pre class="usage"><span class='fu'>etTrans</span>(<span class='no'>inData</span>, <span class='no'>obj</span>, <span class='kw'>addCmt</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>dropUnits</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>allTimeVar</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>keepDosingOnly</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>combineDvid</span> <span class='kw'>=</span> <span class='kw'>NULL</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -196,7 +196,11 @@
     </tr>
     <tr>
       <th>addCmt</th>
-      <td><p>Add compartment to data frame, and drop units</p></td>
+      <td><p>Add compartment to data frame (default codeFALSE).</p></td>
+    </tr>
+    <tr>
+      <th>dropUnits</th>
+      <td><p>Boolean to drop the units (default <code>FALSE</code>).</p></td>
     </tr>
     <tr>
       <th>allTimeVar</th>
@@ -206,6 +210,13 @@
       <th>keepDosingOnly</th>
       <td><p>keep the individuals who only have dosing records and any
 trailing dosing records after the last observation.</p></td>
+    </tr>
+    <tr>
+      <th>combineDvid</th>
+      <td><p>is a boolean indicating if RxODE will use DVID on observation
+records to change the cmt value; Useful for multiple-endpoint nlmixr models.  By default
+this is determined by codeoption("RxODE.combine.dvid") and if the option has not been set,
+this is <code>TRUE</code>. This typically does not affect RxODE simulations.</p></td>
     </tr>
     </table>
     

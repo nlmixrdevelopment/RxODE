@@ -218,6 +218,18 @@ covariance matrix simulation.</p></td>
 is equivalent to the Inverse Wishart distribution in the uni-directional case.</p>
     
 
+    <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
+    <pre class="examples"><div class='input'>
+<span class='co'>## Sample a single covariance.</span>
+<span class='no'>draw1</span> <span class='kw'>&lt;-</span> <span class='fu'>cvPost</span>(<span class='fl'>3</span>, <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/matrix'>matrix</a></span>(<span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='fl'>1</span>,<span class='fl'>.3</span>,<span class='fl'>.3</span>,<span class='fl'>1</span>),<span class='fl'>2</span>,<span class='fl'>2</span>))
+
+<span class='co'>## Sample 3 covariances</span>
+<span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/Random'>set.seed</a></span>(<span class='fl'>42</span>)
+<span class='no'>draw3</span> <span class='kw'>&lt;-</span> <span class='fu'>cvPost</span>(<span class='fl'>3</span>, <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/matrix'>matrix</a></span>(<span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='fl'>1</span>,<span class='fl'>.3</span>,<span class='fl'>.3</span>,<span class='fl'>1</span>),<span class='fl'>2</span>,<span class='fl'>2</span>), <span class='kw'>n</span><span class='kw'>=</span><span class='fl'>3</span>)
+
+<span class='co'>## Sample 3 covariances, but return the cholesky decomposition</span>
+<span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/Random'>set.seed</a></span>(<span class='fl'>42</span>)
+<span class='no'>draw3c</span> <span class='kw'>&lt;-</span> <span class='fu'>cvPost</span>(<span class='fl'>3</span>, <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/matrix'>matrix</a></span>(<span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='fl'>1</span>,<span class='fl'>.3</span>,<span class='fl'>.3</span>,<span class='fl'>1</span>),<span class='fl'>2</span>,<span class='fl'>2</span>), <span class='kw'>n</span><span class='kw'>=</span><span class='fl'>3</span>, <span class='kw'>returnChol</span><span class='kw'>=</span><span class='fl'>TRUE</span>)</div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>
@@ -227,7 +239,9 @@ is equivalent to the Inverse Wishart distribution in the uni-directional case.</
       <li><a href="#value">Value</a></li>
 
       <li><a href="#details">Details</a></li>
-          </ul>
+      
+      <li><a href="#examples">Examples</a></li>
+    </ul>
 
     <h2>Author</h2>
     <p>Matthew L.Fidler &amp; Wenping Wang</p>
