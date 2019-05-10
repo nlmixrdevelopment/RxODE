@@ -1353,11 +1353,11 @@ void atolRtolFactor_(double factor){
   rx_solve* rx = getRxSolve_();
   rx_solving_options* op = rx->op;
   for (int i = _globals.grtol2n;i--;){
-    _globals.grtol2[i] = _globals.grtol2[i]*factor;
-    _globals.gatol2[i] = _globals.gatol2[i]*factor;
+    _globals.grtol2[i] = min2(_globals.grtol2[i]*factor, 0.1);
+    _globals.gatol2[i] = min2(_globals.gatol2[i]*factor, 0.1);
   }
-  op->ATOL = op->ATOL*factor;
-  op->RTOL = op->RTOL*factor;
+  op->ATOL = min2(op->ATOL*factor, 0.1);
+  op->RTOL = min2(op->RTOL*factor, 0.1);
 }
 
 extern "C" double * getAol(int n, double atol){
