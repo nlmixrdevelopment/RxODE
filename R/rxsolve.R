@@ -204,7 +204,8 @@ rxControl <- function(scale = NULL,
                       params=NULL,events=NULL,
                       istateReset=TRUE,
                       subsetNonmem=TRUE,
-                      linLog=FALSE){
+                      linLog=FALSE,
+                      maxAtolRtolFactor=0.1){
     .xtra <- list(...);
     if (is.null(transitAbs) && !is.null(.xtra$transit_abs)){
         transitAbs <- .xtra$transit_abs;
@@ -324,7 +325,8 @@ rxControl <- function(scale = NULL,
                  atolSS=atolSS[1], rtolSS=rtolSS[1],
                  istateReset=istateReset,
                  subsetNonmem=subsetNonmem,
-                 linLog=linLog, hmaxSd=hmaxSd);
+                 linLog=linLog, hmaxSd=hmaxSd,
+                 maxAtolRtolFactor=maxAtolRtolFactor);
     return(.ret)
 }
 
@@ -588,6 +590,9 @@ rxControl <- function(scale = NULL,
 ##' @param linLog Boolean indicating if linear compartment models be
 ##'     calculated more accurately in the log-space (slower) By
 ##'     default this is off (\code{FALSE})
+##'
+##' @param maxAtolRtolFactor The maximum atol/rtol that FOCEi and
+##'     other routines may adjust to.  By default 0.1
 ##'
 ##' @return An \dQuote{rxSolve} solve object that stores the solved
 ##'     value in a matrix with as many rows as there are sampled time

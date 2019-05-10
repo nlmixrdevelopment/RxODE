@@ -1348,16 +1348,18 @@ void grtol2Setup(int n){
   }
 }
 
+double maxAtolRtolFactor = 0.1;
+
 //[[Rcpp::export]]
 void atolRtolFactor_(double factor){
   rx_solve* rx = getRxSolve_();
   rx_solving_options* op = rx->op;
   for (int i = _globals.grtol2n;i--;){
-    _globals.grtol2[i] = min2(_globals.grtol2[i]*factor, 0.1);
-    _globals.gatol2[i] = min2(_globals.gatol2[i]*factor, 0.1);
+    _globals.grtol2[i] = min2(_globals.grtol2[i]*factor, maxAtolRtolFactor);
+    _globals.gatol2[i] = min2(_globals.gatol2[i]*factor, maxAtolRtolFactor);
   }
-  op->ATOL = min2(op->ATOL*factor, 0.1);
-  op->RTOL = min2(op->RTOL*factor, 0.1);
+  op->ATOL = min2(op->ATOL*factor, maxAtolRtolFactor);
+  op->RTOL = min2(op->RTOL*factor, maxAtolRtolFactor);
 }
 
 extern "C" double * getAol(int n, double atol){
@@ -2331,6 +2333,7 @@ SEXP rxSolve_(const RObject &obj,
   if (rxIs(rxControl,"rxControl")){
     stop("Control list not setup correctly.");
   }
+  maxAtolRtolFactor = as<double>(rxControl["maxAtolRtolFactor"]);
   RObject scale = rxControl["scale"];
   int method = as<int>(rxControl["method"]);
   Nullable<LogicalVector> transit_abs = rxControl["transitAbs"];
