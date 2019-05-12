@@ -103,6 +103,8 @@ navbar:
         - text: "Events and Simulations & RxODE data frames"
         - text: "Creating Dosing Events & Observations"
           href: articles/RxODE-events.html
+        - text: "Speeding up RxODE ODE solving"
+          href: articles/speed.html
         - text: "Multiple Subject RxODE Simulation"
           href: articles/RxODE-sim-var.html
         - text: "Interactive RxODE Data Frames"

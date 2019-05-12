@@ -131,8 +131,6 @@ this is \code{FALSE}.}
 }
 \value{
 A new event table
-
-A new event table
 }
 \description{
 Event Table Function
@@ -212,6 +210,7 @@ et <- etRep(qd, times=4, wait=set_units(1,"weeks")) \%>\%
 repCycle4 <- rxSolve(mod1, et)
 
 plot(repCycle4, C2)
+
 
 }
 \references{

@@ -69,9 +69,6 @@ for \code{ss}, \code{addl} and \code{until} options (described below).}
 
 \item{...}{Times or event tables.  They can also be one of the named arguments below.}
 }
-\value{
-A new event table
-}
 \description{
 Repeat an RxODE event table
 }
@@ -150,6 +147,7 @@ et <- etRep(qd, times=4, wait=set_units(1,"weeks")) \%>\%
 repCycle4 <- rxSolve(mod1, et)
 
 plot(repCycle4, C2)
+
 
 }
 \references{

@@ -1,0 +1,176 @@
+---
+title: "Speeding up RxODE"
+author: "Matthew Fidler"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+  )
+options(cli.unicode=FALSE, crayon.enabled=FALSE);
+options(knitr.table.format = "html")
+htmltools::img(src = knitr::image_uri("logo.png"), 
+               alt = 'RxODE', 
+               style = 'position:absolute; top:0; right:0; padding:10px; border: 0;')
+
+```
+
+# Increasing RxODE speed by multi-subject parallel solving
+`RxODE` originally developed as an ODE solver that allowed an ODE
+solve for a single subject.  This flexibility is still supported.
+
+The original code from the `RxODE` tutorial is below:
+
+```{r}
+
+library(RxODE)
+library(microbenchmark)
+library(mvnfast)
+
+mod1 <- RxODE({
+    C2 = centr/V2;
+    C3 = peri/V3;
+    d/dt(depot) = -KA*depot;
+    d/dt(centr) = KA*depot - CL*C2 - Q*C2 + Q*C3;
+    d/dt(peri) = Q*C2 - Q*C3;
+    d/dt(eff) = Kin - Kout*(1-C2/(EC50+C2))*eff;
+    eff(0) = 1
+})
+
+## Create an event table
+
+ev <- et() %>%
+    et(amt=10000, addl=9,ii=12) %>%
+    et(time=120, amt=20000, addl=4, ii=24) %>%
+    et(0:240) ## Add Sampling
+
+nsub <- 100 # 100 subproblems
+sigma <- matrix(c(0.09,0.08,0.08,0.25),2,2) # IIV covariance matrix
+mv <- rmvn(n=nsub, rep(0,2), sigma) # Sample from covariance matrix
+CL <- 7*exp(mv[,1])
+V2 <- 40*exp(mv[,2])
+params.all <- cbind(KA=0.3, CL=CL, V2=V2, Q=10, V3=300,
+                    Kin=0.2, Kout=0.2, EC50=8)
+```
+
+## For Loop
+The slowest way to code this is to use a `for` loop.  In this example
+we will enclose it in a function to compare timing.
+
+```{r}
+runFor <- function(){
+    res <- NULL
+    for (i in 1:nsub) {
+        params <- params.all[i,]
+        x <- mod1$solve(params, ev)
+        ##Store results for effect compartment
+        res <- cbind(res, x[, "eff"])
+    }
+    return(res)
+}
+```
+## Running with apply 
+
+In general for R, the `apply` types of functions perform better than a
+`for` loop, so the tutorial also suggests this speed enhancement
+
+```{r}
+runSapply <- function(){
+    res <- apply(params.all, 1, function(theta)
+        mod1$run(theta, ev)[, "eff"])
+}
+```
+## Run using a single-threaded solve
+
+You can also have RxODE solve all the subject simultaneously without
+collecting the results in R, using a single threaded solve.
+
+The data output is slightly different here, but still gives the same
+information:
+
+```{r}
+runSingleThread <- function(){
+    solve(mod1, params.all, ev, cores=1)[,c("sim.id", "time", "eff")]
+}
+```
+
+## Run a 2 threaded solve
+
+RxODE supports multi-threaded solves, so another option is to have `2`
+threads (called `cores` in the solve options, you can see the options
+in `rxControl()` or `rxSolve()`). 
+
+```{r}
+run2Thread <- function(){
+    solve(mod1, params.all, ev, cores=2)[,c("sim.id", "time", "eff")]
+}
+```
+
+## Compare the times between all the methods
+
+Now the moment of truth, the timings:
+
+```{r}
+if (file.exists("benchAll.rds")){
+    load(file="benchAll.rds");
+} else {
+    bench <- microbenchmark(runFor(), runSapply(), runSingleThread(),run2Thread())
+    save(bench,file="benchAll.rds");
+}
+print(bench)
+```
+
+```{r}
+plot(bench)
+```
+
+It is clear that the **largest** jump in performance when using the
+`solve` method and providing *all* the parameters to RxODE to solve
+without looping over each subject with either a `for` or a `sapply`.
+The number of cores/threads applied to the solve also plays a role in
+the solving.
+
+We can explore the number of threads further with the following code:
+
+```{r}
+runThread <- function(n){
+    solve(mod1, params.all, ev, cores=n)[,c("sim.id", "time", "eff")]
+}
+
+if (file.exists("benchThread.rds")){
+    load(file="benchThread.rds");
+} else {
+    bench <- eval(parse(text=sprintf("microbenchmark(%s)",
+                                     paste(paste0("runThread(", 1:12,")"),
+                                           collapse=","))))
+    save(bench,file="benchThread.rds");
+}
+
+print(bench)
+```
+
+```{r}
+plot(bench)
+```
+
+In this case, the best number of threads to choose is 4 threads.  The
+complexity of the ODE solving and the number of subjects may affect
+this arbitrary number of threads.  At the same time 4 is a good number
+to use without any prior knowledge because most systems these days
+have at least 4 threads (or 2 processors with 4 threads).
+
+## Want more ways to run multi-subject simulations
+The version since the tutorial has even more ways to run multi-subject
+simulations, including adding variability in sampling and dosing times
+with `et()` (see [RxODE events](RxODE-events.html#add-doses-and-samples-within-a-sampling-window) for more
+information), ability to supply both an `omega` and `sigma` matrix as
+well as adding as a `thetMat` to R to simulate with uncertainty in the
+`omega`, `sigma` and `theta` matrices; see [RxODE simulation
+vignette](RxODE-sim-var.html).

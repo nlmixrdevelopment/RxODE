@@ -18,8 +18,6 @@ units. Defaults to the units specified when the
 \value{
 eventTable with updated sampling.  (Note the event table
     will be updated even if you don't reassign the eventTable)
-
-A new event table
 }
 \description{
 This adds a dosing event to the event table.  This is provided for
@@ -100,6 +98,7 @@ et <- etRep(qd, times=4, wait=set_units(1,"weeks")) \%>\%
 repCycle4 <- rxSolve(mod1, et)
 
 plot(repCycle4, C2)
+
 
 }
 \references{

@@ -49,9 +49,6 @@ inter-dose interval
 table, assume that the interdose interval is given by this
 \code{ii} value.  By default this is \code{24}.}
 }
-\value{
-A new event table
-}
 \description{
 This combines a sequence of event tables.
 }
@@ -139,6 +136,7 @@ et <- etRep(qd, times=4, wait=set_units(1,"weeks")) \%>\%
 repCycle4 <- rxSolve(mod1, et)
 
 plot(repCycle4, C2)
+
 
 }
 \references{

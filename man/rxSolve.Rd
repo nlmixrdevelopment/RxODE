@@ -28,7 +28,7 @@ rxControl(scale = NULL, method = c("liblsoda", "lsoda", "dop853"),
   "data.frame", "data.frame.TBS"), seed = NULL, nsim = NULL,
   minSS = 7, maxSS = 70000, atolSS = 1e-09, rtolSS = 1e-09,
   params = NULL, events = NULL, istateReset = TRUE,
-  subsetNonmem = TRUE, linLog = FALSE)
+  subsetNonmem = TRUE, linLog = FALSE, maxAtolRtolFactor = 0.1)
 
 rxSolve(object, ...)
 
@@ -315,6 +315,9 @@ not reset the ISTATE variable with doses.}
 \item{linLog}{Boolean indicating if linear compartment models be
 calculated more accurately in the log-space (slower) By
 default this is off (\code{FALSE})}
+
+\item{maxAtolRtolFactor}{The maximum atol/rtol that FOCEi and
+other routines may adjust to.  By default 0.1}
 
 \item{object}{is a either a RxODE family of objects, or a file-name
 with a RxODE model specification, or a string with a RxODE
