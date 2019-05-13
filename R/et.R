@@ -833,6 +833,8 @@ as.data.frame.rxEt <- function(x, row.names = NULL, optional = FALSE, ...){
 ##'
 ##' @param x RxODE event table
 ##'
+##' @param ... Other arguments to \code{as.tbl}
+##'
 ##' @return tibble
 ##'
 ##' @export as.tbl.rxEt
@@ -841,9 +843,9 @@ as.tbl.rxEt <- function(x, ...){
     if (rxIs(x, "rxEt")){
         .tmp <- x[,x$show,drop = FALSE];
         class(.tmp) <- c("rxEt2", "data.frame");
-        return(dplyr::as.tbl(.tmp, row.names = NULL, optional = FALSE, ...))
+        return(dplyr::as.tbl(.tmp, ...))
     } else {
-        return(dplyr::as.tbl(x, row.names = NULL, optional = FALSE, ...))
+        return(dplyr::as.tbl(x, ...))
     }
 }
 

@@ -8,6 +8,8 @@ as.tbl.rxEt(x, ...)
 }
 \arguments{
 \item{x}{RxODE event table}
+
+\item{...}{Other arguments to \code{as.tbl}}
 }
 \value{
 tibble
