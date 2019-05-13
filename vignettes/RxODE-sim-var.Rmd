@@ -92,12 +92,12 @@ s <-sim %>% group_by(time) %>%
     mutate(Percentile=factor(sprintf("%d%%",p*100),levels=c("5%","50%","95%")))
 
 ggplot(s,aes(time,centr,color=Percentile)) + geom_line(size=1) + coord_trans(y = "log10") + ylab("Central Concentration") +
-    xlab("Time (hr)")
+    xlab("Time")
 ```
 
 ```{r}
 ggplot(s,aes(time,eff,color=Percentile)) + geom_line(size=1) + ylab("Effect") +
-    xlab("Time (hr)") + guides(color=FALSE)
+    xlab("Time") + guides(color=FALSE)
 
 ```
 
@@ -165,12 +165,12 @@ s <-sim %>% group_by(time) %>%
     mutate(Percentile=factor(sprintf("%d%%",p*100),levels=c("5%","50%","95%")))
 
 ggplot(s,aes(time,centr,color=Percentile)) + geom_line(size=1) + coord_trans(y = "log10") + ylab("Central Concentration") +
-    xlab("Time (hr)")
+    xlab("Time")
 ```
 
 ```{r}
 ggplot(s,aes(time,eff,color=Percentile)) + geom_line(size=1) + ylab("Effect") +
-    xlab("Time (hr)") + guides(color=FALSE)
+    xlab("Time") + guides(color=FALSE)
 ```
 
 
@@ -248,7 +248,7 @@ single virtual study:
   the degrees of freedom given by the number of observations being
   simulated.
   
-The covariance/variance prior is simulated from `RxODE`s `cvPost` function.
+The covariance/variance prior is simulated from `RxODE`s `cvPost()` function.
 
 An example of this simulation is below:
 
@@ -271,13 +271,13 @@ s <-sim %>% group_by(time) %>%
     mutate(Percentile=factor(sprintf("%d%%",p*100),levels=c("5%","50%","95%")))
 
 ggplot(s,aes(time,centr,color=Percentile)) + geom_line(size=1) + coord_trans(y = "log10") + ylab("Central Concentration") +
-    xlab("Time (hr)")
+    xlab("Time")
 ```
 
 
 ```{r}
 ggplot(s,aes(time,eff,color=Percentile)) + geom_line(size=1) + ylab("Effect") +
-    xlab("Time (hr)") + guides(color=FALSE)
+    xlab("Time") + guides(color=FALSE)
 ```
 
 If you wish you can see what `omega` and `sigma` was used for each
@@ -312,13 +312,13 @@ s <-sim %>% group_by(time) %>%
 
 
 ggplot(s,aes(time,centr,color=Percentile)) + geom_line(size=1) + coord_trans(y = "log10") + ylab("Central Concentration") +
-    xlab("Time (hr)")
+    xlab("Time")
 
 ```
 
 ```{r}
 ggplot(s,aes(time,eff,color=Percentile)) + geom_line(size=1) + ylab("Effect") +
-    xlab("Time (hr)") + guides(color=FALSE)
+    xlab("Time") + guides(color=FALSE)
 ```
 
 Note since realizations of `omega` and `sigma` were not simulated, `$omega.list` and
@@ -337,8 +337,9 @@ certain point the speed of solving is limited by things other than
 computing power.
 
 You can also speed up simulation by using the multi-cores to generate
-random deviates with `mvnfast`.  This is controlled by the `nCoresRV`
-parameter.  For example:
+random deviates with `mvnfast` (either `mvnfast::rmvn()` or
+`mvnfast::rmvt()`).  This is controlled by the `nCoresRV` parameter.
+For example:
 
 ```{r}
 sim  <- rxSolve(mod, theta, ev, omega=omega, nSub=100, sigma=sigma, thetaMat=tMat, nStud=10,
@@ -354,12 +355,12 @@ s <-sim %>% group_by(time) %>%
 
 
 ggplot(s,aes(time,centr,color=Percentile)) + geom_line(size=1) + coord_trans(y = "log10") + ylab("Central Concentration") +
-    xlab("Time (hr)")
+    xlab("Time")
 ```
 
 ```{r}
 ggplot(s,aes(time,eff,color=Percentile)) + geom_line(size=1) + ylab("Effect") +
-    xlab("Time (hr)") + guides(color=FALSE)
+    xlab("Time") + guides(color=FALSE)
 ```
 
 The default for this is `1` core since the result depends on the

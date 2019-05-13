@@ -170,6 +170,6 @@ The version since the tutorial has even more ways to run multi-subject
 simulations, including adding variability in sampling and dosing times
 with `et()` (see [RxODE events](RxODE-events.html#add-doses-and-samples-within-a-sampling-window) for more
 information), ability to supply both an `omega` and `sigma` matrix as
-well as adding as a `thetMat` to R to simulate with uncertainty in the
+well as adding as a `thetaMat` to R to simulate with uncertainty in the
 `omega`, `sigma` and `theta` matrices; see [RxODE simulation
 vignette](RxODE-sim-var.html).
