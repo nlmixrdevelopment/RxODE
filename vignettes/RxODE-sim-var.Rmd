@@ -11,13 +11,15 @@ vignette: >
 
 
 ```{r, echo=FALSE}
-options(cli.unicode=FALSE, crayon.enabled=FALSE);
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+  )
 options(knitr.table.format = "html")
 htmltools::img(src = knitr::image_uri("logo.png"), 
                alt = 'RxODE', 
                style = 'position:absolute; top:0; right:0; padding:10px; border: 0;')
 ```
-
 
 # Simulation of Variability with RxODE
 Variability in model parameters can be simulated by creating a matrix
@@ -48,7 +50,7 @@ the simulation for each set of parameters of in the parameter matrix.
 
 ```{r}
 ## the column names of the omega matrix need to match the parameters specified by RxODE
-omega <- matrix(0.4^2,dimnames=list(NULL,c("eta.Cl")))
+omega <- rxMatrix(eta.Cl ~ 0.4^2)
 
 ev <- eventTable(amount.units="mg", time.units="hours") %>%
     add.dosing(dose=10000, nbr.doses=1, dosing.to=2) %>%
@@ -58,13 +60,19 @@ sim  <- rxSolve(mod,theta,ev,omega=omega,nSub=100)
 
 library(ggplot2)
 
-ggplot(sim,aes(time,centr,color=factor(sim.id))) + geom_line(size=1) + coord_trans(y = "log10") + ylab("Central Concentration") +
-    xlab("Time (hr)") + guides(color=FALSE)
+plot(sim, "centr") +
+    coord_trans(y = "log10") +
+    ylab("Central Concentration") +
+    xlab("Time") +
+    guides(color=FALSE)
 ```
 
 ```{r}
-ggplot(sim,aes(time,eff,color=factor(sim.id))) + geom_line(size=1) + coord_trans(y = "log10") + ylab("Effect") +
-    xlab("Time (hr)") + guides(color=FALSE)
+plot(sim, "eff") +
+    coord_trans(y = "log10") +
+    ylab("Effect") +
+    xlab("Time") +
+    guides(color=FALSE)
 ```
 
 It is now straightforward to perform calculations and generate plots
@@ -103,10 +111,10 @@ You can also supply a data-frame of parameters to simulate instead of
 using an omega simulation.  In this contrived example we will use the
 previously simulated data.
 
-```{r,results="asis"}
+```{r}
 theta <- sim$param;
 sim  <- rxSolve(mod,theta,ev)
-rxHtml(sim)
+print(sim)
 ```
 
 Even though multiple subjects were simulated, this is still a reactive
@@ -115,9 +123,9 @@ data frame, meaning you can change things about the model on the fly.
 For example, if the effect at time 0 should have been 100, you can fix
 this by:
 
-```{r,results="asis"}
+```{r}
 sim$eff0 <- 100
-rxHtml(sim)
+print(sim)
 ```
 
 #### Simulation of unexplained variability 
@@ -143,8 +151,7 @@ theta <- c(KA=2.94E-01, TCl=1.86E+01, V2=4.02E+01,  # central
            Q=1.05E+01, V3=2.97E+02,                # peripheral
            Kin=1, Kout=1, EC50=200)                # effects  
 
-sigma <- diag(2)*0.1
-dimnames(sigma) <- list(NULL, c("eff.err","cp.err"))
+sigma <- rxMatrix(eff.err ~ 0.1, cp.err ~ 0.1)
 
 
 sim  <- rxSolve(mod, theta, ev, omega=omega, nSub=100, sigma=sigma)
