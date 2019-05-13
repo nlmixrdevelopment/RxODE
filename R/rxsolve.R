@@ -66,7 +66,10 @@ rxMatrix  <- function(x, ...){
         omega  <- lapply(x, rxMatrix);
         if (is(omega, "list")){
             .omega <- as.matrix(Matrix::bdiag(omega));
-            .d <- unlist(lapply(seq_along(omega), function(x){dimnames(omega[[x]])[2]}))
+            .d <- unlist(lapply(seq_along(omega),
+                                function(x){
+                dimnames(omega[[x]])[2]
+            }))
             dimnames(.omega) <- list(.d, .d);
             omega <- .omega;
         }
@@ -127,9 +130,20 @@ rxMatrix  <- function(x, ...){
                                 }  else {
                                     stop("The left handed side of the expression must match the number of items in the lower triangular matrix.");
                                 }
+                            } else {
+                                stop("Omega expression should be 'name ~ c(lower-tri)'")
                             }
                         } else {
-                            stop("Omega expression should be 'name ~ c(lower-tri)'");
+                            .val <- try(eval(x[[3]]), silent=TRUE)
+                            if (is.numeric(.val) || is.integer(.val)){
+                                env$netas <- 1;
+                                env$eta1 <- env$eta1 + 1;
+                                env$names  <- c(env$names, as.character(x[[2]]));
+                                env$df  <- rbind(env$df,
+                                                 data.frame(i=env$eta1, j=env$eta1, x=.val));
+                            } else {
+                                stop("Omega expression should be 'name ~ c(lower-tri)'");
+                            }
                         }
                     }
                 } else if (identical(x[[1]], quote(`{`))){
@@ -139,12 +153,9 @@ rxMatrix  <- function(x, ...){
                 } else {
                     stop("Omega expression should be 'name ~ c(lower-tri)'")
                 }
-            } else if (is.pairlist(x)) {
-                lapply(x, .f, env=env);
-            } else if (is.atomic(x)){
-                stop("Something wrong with matrix parsing, likely a number is on a line without an identifier.");
             } else {
-                stop("Unknown element in matrix parsing")
+                ## is.pairlist OR is.atomic OR unknown...
+                stop("Bad matrix specification.");
             }
         }
         .sX  <- substitute(x)
@@ -154,21 +165,6 @@ rxMatrix  <- function(x, ...){
             }
         }
         .doParse  <- TRUE
-        if (is.call(.sX)){
-            if (identical(.sX[[1]], quote(`matrix`))){
-                return(x);
-            } else if (identical(.sX[[1]], quote(`list`))){
-                omega  <- lapply(x, rxMatrix);
-                if (is(omega, "list")){
-                    .omega <- as.matrix(Matrix::bdiag(omega));
-                    .d <- unlist(lapply(seq_along(omega), function(x){dimnames(omega[[x]])[2]}))
-                    dimnames(.omega) <- list(.d, .d);
-                    omega <- .omega;
-                }
-                .ret  <- omega
-                .doParse  <- FALSE
-            }
-        }
         if (.doParse){
             .f(.sX,.env);
             .ret <- diag(.env$eta1);
