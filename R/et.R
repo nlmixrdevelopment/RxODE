@@ -829,6 +829,24 @@ as.data.frame.rxEt <- function(x, row.names = NULL, optional = FALSE, ...){
     }
 }
 
+##' Convert to tbl
+##'
+##' @param x RxODE event table
+##'
+##' @return tibble
+##'
+##' @export as.tbl.rxEt
+as.tbl.rxEt <- function(x, ...){
+    rxReq("dplyr");
+    if (rxIs(x, "rxEt")){
+        .tmp <- x[,x$show,drop = FALSE];
+        class(.tmp) <- c("rxEt2", "data.frame");
+        return(dplyr::as.tbl(.tmp, row.names = NULL, optional = FALSE, ...))
+    } else {
+        return(dplyr::as.tbl(x, row.names = NULL, optional = FALSE, ...))
+    }
+}
+
 ##' Check to see if this is an rxEt object.
 ##'
 ##' @param x object to check to see if it is rxEt
