@@ -438,7 +438,54 @@ List rxModelVars_(const RObject &obj){
     CharacterVector modList = as<CharacterVector>(obj);
     if (modList.size() == 1){
       std::string sobj =as<std::string>(obj);
-      if (fileExists(sobj)){
+      if (sobj == ""){
+	// Blank RxODE model
+	List ret(20);
+	CharacterVector retN(20);
+	ret[0]  = CharacterVector::create(); // params
+	retN[0] = "params";
+	ret[1]  = CharacterVector::create(); // lhs
+	retN[1] = "lhs";
+	ret[2]  = CharacterVector::create(); // state
+	retN[2] = "state";
+	ret[3]  = CharacterVector::create(); // trans
+	retN[3] = "trans";
+	ret[4]  = CharacterVector::create(_["normModel"] = ""); // model
+	retN[4] = "model";
+	ret[5]  = NumericVector::create(); // ini
+	retN[5] = "ini";
+	ret[6]  = LogicalVector::create(false); // podo
+	retN[6] = "podo";
+	ret[7]  = LogicalVector::create(); // dfdy
+	retN[7] = "dfdy";
+	ret[8]  = LogicalVector::create(); // sens
+	retN[8] = "sens";
+	ret[9]  = LogicalVector::create(); // fn.ini
+	retN[9] = "fn.ini";
+	ret[10] = IntegerVector::create(); // state.ignore
+	retN[10] = "state.ignore";
+	ret[11] = CharacterVector::create(); // version
+	retN[11] = "version";
+	ret[12] = CharacterVector::create(); // normal.state
+	retN[12] = "normal.state";
+	ret[13] = IntegerVector::create(0); // need sort
+	retN[13] = "needSort";
+	ret[14] = IntegerVector::create(0); // nMtime
+	retN[14] = "nMtime";
+	ret[15] = IntegerVector::create(0); // extraCmt
+	retN[15] = "extraCmt";
+	ret[16] = CharacterVector::create(); // stateExtra
+	retN[16] = "stateExtra";
+	ret[17] = IntegerVector::create(); // dvid
+	retN[17] = "dvid";
+	ret[18] = IntegerVector::create(0); // timeId
+	retN[18] = "timeId";
+	ret[19] =CharacterVector::create(_["file_md5"] = "", _["parsed_md5"] = ""); // md5
+	retN[19] = "md5";
+	ret.attr("names") = retN;
+	ret.attr("class") = "rxModelVars";
+	return ret;
+      } else if (fileExists(sobj)){
 	Function f = getRxFn(".rxModelVarsCharacter");
 	return f(obj);
       } else if ((sobj.find("=") == std::string::npos) &&
