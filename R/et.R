@@ -346,7 +346,7 @@ print.rxEt <- function(x,...){
                     crayon::blue("add.sampling"), crayon::blue("et")))
         if (x$nobs!=0 | x$ndose!=0){
             cat(cli::rule(crayon::bold(paste0("First part of ",crayon::yellow(bound),":"))), "\n");
-            print(dplyr::as.tbl(data.frame(x)[, x$show, drop = FALSE]));
+            print(dplyr::as.tbl(data.frame(x)));
         }
         cat(cli::rule(), "\n");
         invisible(x)
