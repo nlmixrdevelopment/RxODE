@@ -160,70 +160,42 @@ rxPermissive({
 
         e4 <- seq(e1, wait=72, e2, wait=72, e1) %>% as.data.frame
 
-        expect_equal(structure(list(id = c(1L, 1L, 1L),
-                                    low = c(NA_real_, NA_real_,NA_real_),
-                                    time = c(0, 216, 432),
-                                    high = c(NA_real_, NA_real_, NA_real_),
-                                    cmt = c("(default)", "(default)", "(default)"),
+        expect_equal(structure(list(time = c(0, 216, 432),
                                     amt = c(100,200, 100),
-                                    rate = c(0, 0, 0),
                                     ii = c(24, 24, 24),
                                     addl = c(6L,6L, 6L),
-                                    evid = c(1L, 1L, 1L),
-                                    ss = c(0L, 0L, 0L),
-                                    dur=c(0,0,0)),
+                                    evid = c(1L, 1L, 1L)),
                                class = "data.frame",
                                row.names = c(NA,-3L)), e4)
 
         e5 <- etSeq(e1, wait=72, e2, wait=72, e1, waitII="+ii") %>%
             as.data.frame
 
-        expect_equal(structure(list(id = c(1L, 1L, 1L),
-                                    low = c(NA_real_, NA_real_,NA_real_),
-                                    time = c(0, 240, 480),
-                                    high = c(NA_real_, NA_real_,NA_real_),
-                                    cmt = c("(default)", "(default)", "(default)"),
+        expect_equal(structure(list(time = c(0, 240, 480),
                                     amt = c(100,200, 100),
-                                    rate = c(0, 0, 0),
                                     ii = c(24, 24, 24),
                                     addl = c(6L,6L, 6L),
-                                    evid = c(1L, 1L, 1L),
-                                    ss = c(0L, 0L, 0L),
-                                    dur=c(0,0,0)),
+                                    evid = c(1L, 1L, 1L)),
                                class = "data.frame",
                                row.names = c(NA, -3L)), e5)
 
         e1 <- et(amt=500)
         e2 <- et(amt=250, ii=24, addl=4)
 
-        expect_equal(structure(list(id = c(1L, 1L),
-                                    low = c(NA_real_, NA_real_),
-                                    time = c(0, 24),
-                                    high = c(NA_real_, NA_real_),
-                                    cmt = c("(default)", "(default)"),
+        expect_equal(structure(list(time = c(0, 24),
                                     amt = c(500, 250),
-                                    rate = c(0, 0),
                                     ii = c(0, 24),
                                     addl = c(0L, 4L),
-                                    evid = c(1L, 1L),
-                                    ss = c(0L, 0L),
-                                    dur=c(0,0)),
+                                    evid = c(1L, 1L)),
                                class = "data.frame",
                                row.names = c(NA, -2L)),
                      c(e1, e2) %>% as.data.frame)
 
-        expect_equal(structure(list(id = c(1L, 1L, 1L),
-                                    low = c(NA_real_, NA_real_, NA_real_),
-                                    time = c(0, 120, 144),
-                                    high = c(NA_real_, NA_real_, NA_real_),
-                                    cmt = c("(default)", "(default)", "(default)"),
+        expect_equal(structure(list(time = c(0, 120, 144),
                                     amt = c(250, 500, 250),
-                                    rate = c(0, 0, 0),
                                     ii = c(24, 0, 24),
                                     addl = c(4L, 0L, 4L),
-                                    evid = c(1L, 1L, 1L),
-                                    ss = c(0L, 0L, 0L),
-                                    dur=c(0,0,0)),
+                                    evid = c(1L, 1L, 1L)),
                                class = "data.frame",
                                row.names = c(NA, -3L)),
                      c(e2,e1,e2) %>% as.data.frame)
@@ -234,36 +206,22 @@ rxPermissive({
 
         e4 <- suppressWarnings(c(e1,e3) %>% as.data.frame)
 
-        expect_equal(structure(list(id = c(1L, 1L),
-                                    low = c(NA_real_, NA_real_),
-                                    time = c(0, 24),
-                                    high = c(NA_real_, NA_real_),
-                                    cmt = c("(default)", "(default)"),
+        expect_equal(structure(list(time = c(0, 24),
                                     amt = c(500, 200),
-                                    rate = c(0, 0),
                                     ii = c(0, 0),
                                     addl = c(0L, 0L),
-                                    evid = c(1L, 1L),
-                                    ss = c(0L, 0L),
-                                    dur=c(0,0)),
+                                    evid = c(1L, 1L)),
                                class = "data.frame",
                                row.names = c(NA, -2L)),
                      e4)
 
         e4 <- suppressWarnings(c(e1,e3,ii=12) %>% as.data.frame)
 
-        expect_equal(structure(list(id = c(1L, 1L),
-                                    low = c(NA_real_, NA_real_),
-                                    time = c(0, 12),
-                                    high = c(NA_real_, NA_real_),
-                                    cmt = c("(default)", "(default)"),
+        expect_equal(structure(list(time = c(0, 12),
                                     amt = c(500, 200),
-                                    rate = c(0, 0),
                                     ii = c(0, 0),
                                     addl = c(0L, 0L),
-                                    evid = c(1L, 1L),
-                                    ss = c(0L, 0L),
-                                    dur=c(0,0)),
+                                    evid = c(1L, 1L)),
                                class = "data.frame",
                                row.names = c(NA, -2L)),
                      e4)
