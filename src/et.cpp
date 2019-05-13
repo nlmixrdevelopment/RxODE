@@ -1979,7 +1979,27 @@ RObject et_(List input, List et__){
 	  if (as<int>(e["nobs"]) == 0 && as<int>(e["ndose"]) == 0){
 	    return R_NilValue;
 	  } else {
-	    List ret = clone(as<List>(curEt));
+	    CharacterVector cls = clone(as<CharacterVector>(curEt.attr("class")));
+	    List e = clone(as<List>(cls.attr(".RxODE.lst")));
+	    LogicalVector show = e["show"];
+	    List cur = clone(as<List>(curEt));
+	    CharacterVector curN = cur.attr("names");
+	    int lenShow=0;
+	    for (int i = show.size();i--;){
+	      if (show[i]) lenShow++;
+	    }
+	    List ret(lenShow);
+	    CharacterVector nm(lenShow);
+	    int j=0;
+	    for (int i = 0; i < show.size(); i++){
+	      if (show[i]){
+		ret[j] = cur[i];
+		nm[j]= curN[i];
+		j++;
+	      }
+	    }
+	    ret.attr("names") = nm;
+	    ret.attr("row.names") = cur.attr("row.names");
 	    ret.attr("class") = "data.frame";
 	    return as<RObject>(ret);
 	  }

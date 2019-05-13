@@ -818,6 +818,13 @@ as.et.default <- function(x,...){
     return(.e);
 }
 
+##'@export
+as.data.frame.rxEt <- function(x, row.names = NULL, optional = FALSE, ...){
+    .tmp <- x[,x$show,drop = FALSE];
+    class(.tmp) <- c("rxEt2", "data.frame");
+    as.data.frame(.tmp, row.names = NULL, optional = FALSE, ...)
+}
+
 ##' Check to see if this is an rxEt object.
 ##'
 ##' @param x object to check to see if it is rxEt
