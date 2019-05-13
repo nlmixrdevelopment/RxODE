@@ -567,7 +567,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       stop("The dependent variable (dv) needs to be a number");
     }
   }
-  int ss = 0;
+  int flg = 0;
   int cid = 0;
   int nMtime = as<int>(mv["nMtime"]);
   double rate = 0.0;
@@ -616,12 +616,12 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
     }
     
     // SS flag
-    ss=1;
-    if (ssCol == -1) ss=1;
-    else if (inSs[i] == 0) ss=1;
-    else if (IntegerVector::is_na(inSs[i])) ss=1;
-    else if (inSs[i] == 1 && cii > 0) ss=10;
-    else if (inSs[i] == 2 && cii > 0) ss=20;
+    flg=1;
+    if (ssCol == -1) flg=1;
+    else if (inSs[i] == 0) flg=1;
+    else if (IntegerVector::is_na(inSs[i])) flg=1;
+    else if (inSs[i] == 1 && cii > 0) flg=10;
+    else if (inSs[i] == 2 && cii > 0) flg=20;
     if (cmtCol != -1){
       tmpCmt = inCmt[i];
       if (inCmt[i] == 0){
@@ -636,8 +636,8 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       if (IntegerVector::is_na(inCmt[i])){
 	tmpCmt = 1;
       } else if (inCmt[i] < 0){
-	if (ss != 1) stop("Steady state records cannot be on negative compartments.");
-	ss = 30;
+	if (flg != 1) stop("Steady state records cannot be on negative compartments.");
+	flg = 30;
 	tmpCmt = -tmpCmt;
       }
       cmt = tmpCmt;
@@ -702,7 +702,6 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
     } else {
       stop("'rate' and/or 'dur' are not specified correctly.");
     }
-    
     if (addlCol == -1) caddl=0;
     else caddl = inAddl[i];
     // EVID flag
@@ -721,10 +720,9 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	  stop("amt or dur/rate are non-zero therefore MDV cannot = 0.");
 	}
 	// For Rates and non-zero amts, assume dosing event
-	cevid = cmt100*100000+rateI*10000+cmt99*100+ss;
+	cevid = cmt100*100000+rateI*10000+cmt99*100+flg;
 	allBolus=false;
       }
-      
     } else {
       cevid = inEvid[i];
     }
@@ -742,9 +740,9 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       if (caddl > 0){
 	warning("addl is ignored with observations.");
       }
-      if (ss != 1){
+      if (flg != 1){
 	// warning("ss is ignored with observations.");
-	ss=1;
+	flg=1;
       }
       if (ISNA(ctime)){
 	id.push_back(cid);
@@ -822,14 +820,14 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       if (mdvCol != -1 && inMdv[i] == 0){
 	stop("MDV cannot be 0 when EVID=1");
       }
-      cevid = cmt100*100000+rateI*10000+cmt99*100+ss;
+      cevid = cmt100*100000+rateI*10000+cmt99*100+flg;
       if (rateI == 0) allInf=false;
       else allBolus=false;
       break;
     case 2:
       cevid = 2;
-      if (ss == 30){
-	cevid = cmt100*100000+rateI*10000+cmt99*100+ss;
+      if (flg == 30){
+	cevid = cmt100*100000+rateI*10000+cmt99*100+flg;
 	if (rateI == 0) allInf=false;
 	else allBolus=false;
       } else {
@@ -839,7 +837,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	if (caddl > 0){
 	  warning("addl is ignored with EVID=2.");
 	}
-	if (ss != 1){
+	if (flg != 1){
 	  warning("ss is ignored with EVID=2.");
 	}	
 	id.push_back(cid);
@@ -871,7 +869,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       if (caddl > 0){
 	warning("addl is ignored with EVID=3.");
       }
-      if (ss != 1){
+      if (flg != 1){
 	warning("ss is ignored with EVID=3.");
       }
       id.push_back(cid);
@@ -901,13 +899,19 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       idxO.push_back(curIdx);curIdx++;
       ndose++;
       // Now use the transformed compartment
-      cevid = cmt100*100000+rateI*10000+cmt99*100+ss;
+      cevid = cmt100*100000+rateI*10000+cmt99*100+flg;
       if (rateI == 0) allInf=false;
       else allBolus=false;
       break;
     default:
       if (cevid > 10 && cevid < 99){
 	continue;
+      }
+      if (rateI != 0){
+	stop("'rate' or 'dur' cannot be used with classic RxODE EVIDs.");
+      }
+      if (flg!=1){ // ss=1 is the same as ss=0 for NONMEM
+	stop("'ss' cannot be used with classic RxODE EVIDs.");
       }
     }
     if (cevid != -1){
@@ -920,7 +924,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       evid.push_back(cevid);
       cmtF.push_back(cmt);
       time.push_back(ctime);
-      if (ss >= 10){
+      if (flg >= 10){
 	ii.push_back(cii);
 	if (caddl > 0){
 	  stop("ss with addl not supported yet.");
@@ -963,7 +967,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       } else {
 	amt.push_back(camt);
       }
-      if (cii > 0 && caddl > 0 && ss < 10){
+      if (cii > 0 && caddl > 0 && flg < 10){
 	for (j=caddl;j--;){
 	  ctime+=cii;
 	  id.push_back(cid);
