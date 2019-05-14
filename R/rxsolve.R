@@ -614,9 +614,6 @@ simulate.RxODE <- function(object, nsim = 1L, seed = NULL, ...){
 ##' @export
 simulate.rxSolve <- simulate.RxODE
 
-##' @rdname rxSolve
-##' @export
-simulate.rxEt <- simulate.RxODE
 
 ##' @rdname rxSolve
 ##' @export

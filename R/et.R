@@ -374,9 +374,13 @@ et.default <- function(x,...,time, amt, evid, cmt, ii, addl, ss, rate, dur, unti
 
 ##' @export
 simulate.rxEt <- function (object, nsim = 1, seed = NULL, ...){
-    if (!missing(nsim)) warning("'nsim' is ignored when simulating event tables");
-    if(!is.null(seed)) set.seed(seed);
-    return(.Call(`_RxODE_et_`, list(simulate=TRUE), object))
+    if (is.null(.pipelineRx)){
+        if (!missing(nsim)) warning("'nsim' is ignored when simulating event tables");
+        if(!is.null(seed)) set.seed(seed);
+        return(.Call(`_RxODE_et_`, list(simulate=TRUE), object))
+    } else {
+        return(rxSolve(object, ..., seed=seed, nsim=nsim));
+    }
 }
 
 
