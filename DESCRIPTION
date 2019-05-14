@@ -77,7 +77,8 @@ Imports:
     sys,
     units(>= 0.6-0),
     utils,
-    assertthat
+    assertthat,
+    lotri
 Description: Facilities for running simulations from ordinary
     differential equation (ODE) models, such as pharmacometrics and other
     compartmental models.  A compilation manager translates the ODE model

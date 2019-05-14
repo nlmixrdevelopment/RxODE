@@ -2560,6 +2560,7 @@ SEXP rxSolve_(const RObject &obj,
     RObject ev0  = events;
     RObject ev1;
     RObject par1;
+    RObject par1ini;
     bool swappedEvents = false;
     bool doMean=true;
     NumericVector initsC;
@@ -2725,6 +2726,7 @@ SEXP rxSolve_(const RObject &obj,
       evT.attr("class") = R_NilValue;
       covUnits = evT["covUnits"];
     }
+    par1ini = par1;      
     if (!thetaMat.isNull() || !omega.isNull() || !sigma.isNull()){
       // Simulated Variable3
       if (!rxIs(par1, "numeric")){
@@ -2788,6 +2790,7 @@ SEXP rxSolve_(const RObject &obj,
 	  }
 	}
       }
+
       par1 =  as<RObject>(rxSimThetaOmega(as<Nullable<NumericVector>>(par1), omega, omegaDf, omegaIsChol, nSub0, thetaMat, thetaDf, thetaIsChol, nStud,
                                           sigma, sigmaDf, sigmaIsChol, nCoresRV, curObs, dfSub, dfObs, simSubjects));
       usePar1=true;
@@ -3479,6 +3482,7 @@ SEXP rxSolve_(const RObject &obj,
       e["nobs"] = rx->nobs;
       e["args.object"] = object;
       e["dll"] = rxDll(object);
+      e["args.par0"] = par1ini;
       if (!swappedEvents){
 	if (usePar1){
           e["args.params"] = par1;

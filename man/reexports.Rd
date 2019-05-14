@@ -18,6 +18,7 @@
 \alias{drop_units}
 \alias{ylab}
 \alias{xlab}
+\alias{lotri}
 \title{Objects exported from other packages}
 \keyword{internal}
 \description{
@@ -28,6 +29,8 @@ below to see their documentation.
   \item{ggforce}{\code{\link[ggforce]{facet_wrap_paginate}}, \code{\link[ggforce]{facet_grid_paginate}}, \code{\link[ggforce]{ScaleContinuousPositionUnit}}, \code{\link[ggforce]{scale_x_unit}}, \code{\link[ggforce]{scale_y_unit}}}
 
   \item{ggplot2}{\code{\link[ggplot2]{aes}}, \code{\link[ggplot2]{facet_wrap}}, \code{\link[ggplot2]{geom_line}}, \code{\link[ggplot2]{ggplot}}, \code{\link[ggplot2]{scale_type}}, \code{\link[ggplot2]{ylab}}, \code{\link[ggplot2]{xlab}}}
+
+  \item{lotri}{\code{\link[lotri]{lotri}}}
 
   \item{magrittr}{\code{\link[magrittr]{\%>\%}}}
 

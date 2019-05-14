@@ -166,6 +166,17 @@ Or,
 plot(x,eff)  + ylab("Effect") + xlab("Time");
 ```
 
-Note that the labels are automatically labeled with the units from the initial event table. This is because 
-RxODE uses the `units` package to handle units and `ggforce` to handle the plotting.
+Note that the labels are automatically labeled with the units from the
+initial event table. This is because RxODE uses the `units` package to
+handle units and `ggforce` to handle the plotting.
+
+## What Now?
+
+Now that you have learned the basics of RxODE, there are a few things
+you may wish to explore:
+
+- Simulating in a pipeline (tidyverse style of simulation/updating)
+- Dynamic RxODE solved datasets
+- Multiple-subject simulations (with and without variability)
+- Simulation from already existing data
 

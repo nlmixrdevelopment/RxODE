@@ -2,12 +2,21 @@
 % Please edit documentation in R/et.R
 \name{et}
 \alias{et}
+\alias{et.RxODE}
+\alias{et.rxSolve}
+\alias{et.rxParams}
 \alias{et.default}
 \title{Event Table Function}
 \usage{
-et(..., envir = parent.frame())
+et(x, ..., envir = parent.frame())
 
-\method{et}{default}(..., time, amt, evid, cmt, ii, addl, ss, rate, dur,
+\method{et}{RxODE}(x, ..., envir = parent.frame())
+
+\method{et}{rxSolve}(x, ..., envir = parent.frame())
+
+\method{et}{rxParams}(x, ..., envir = parent.frame())
+
+\method{et}{default}(x, ..., time, amt, evid, cmt, ii, addl, ss, rate, dur,
   until, id, amountUnits, timeUnits, addSampling, envir = parent.frame())
 }
 \arguments{

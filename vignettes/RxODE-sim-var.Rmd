@@ -49,7 +49,7 @@ the simulation for each set of parameters of in the parameter matrix.
 
 ```{r}
 ## the column names of the omega matrix need to match the parameters specified by RxODE
-omega <- rxMatrix(eta.Cl ~ 0.4^2)
+omega <- lotri(eta.Cl ~ 0.4^2)
 
 ev <- eventTable(amount.units="mg", time.units="hours") %>%
     add.dosing(dose=10000, nbr.doses=1, dosing.to=2) %>%
@@ -150,7 +150,7 @@ theta <- c(KA=2.94E-01, TCl=1.86E+01, V2=4.02E+01,  # central
            Q=1.05E+01, V3=2.97E+02,                # peripheral
            Kin=1, Kout=1, EC50=200)                # effects  
 
-sigma <- rxMatrix(eff.err ~ 0.1, cp.err ~ 0.1)
+sigma <- lotri(eff.err ~ 0.1, cp.err ~ 0.1)
 
 
 sim  <- rxSolve(mod, theta, ev, omega=omega, nSub=100, sigma=sigma)

@@ -125,3 +125,11 @@ ggplot2::ylab
 ##'@importFrom ggplot2 xlab
 ##'@export
 ggplot2::xlab
+
+##'@importFrom lotri lotri
+##'@export
+lotri::lotri
+
+##'@export
+rxMatrix <- lotri::lotri
+

@@ -2,23 +2,77 @@
 % Please edit documentation in R/RxODE.R
 \name{rxParams}
 \alias{rxParams}
+\alias{rxParams.RxODE}
+\alias{rxParams.rxSolve}
+\alias{rxParams.rxEt}
 \alias{rxParam}
 \title{Parameters specified by the model}
 \usage{
-rxParams(obj, constants = TRUE)
+rxParams(obj, ...)
 
-rxParam(obj, constants = TRUE)
+\method{rxParams}{RxODE}(obj, constants = TRUE, ..., cov = NULL,
+  params = NULL, inits = NULL, thetaMat = NULL, thetaDf = NULL,
+  omega = NULL, omegaDf = NULL, sigma = NULL, sigmaDf = NULL)
+
+\method{rxParams}{rxSolve}(obj, constants = TRUE, ..., cov = NULL,
+  params = NULL, inits = NULL, thetaMat = NULL, thetaDf = NULL,
+  omega = NULL, omegaDf = NULL, sigma = NULL, sigmaDf = NULL)
+
+\method{rxParams}{rxEt}(obj, ..., cov = NULL, params = NULL,
+  inits = NULL, thetaMat = NULL, thetaDf = NULL, omega = NULL,
+  omegaDf = NULL, sigmaDf = NULL)
+
+rxParam(obj, ...)
 }
 \arguments{
 \item{obj}{RxODE family of objects}
+
+\item{...}{Other arguments including scaling factors for each
+compartment.  This includes S# = numeric will scale a compartment
+# by a dividing the compartment amount by the scale factor,
+like NONMEM.}
 
 \item{constants}{is a boolean indicting if constants should be
 included in the list of parameters. Currently RxODE parses
 constants into variables in case you wish to change them
 without recompiling the RxODE model.}
+
+\item{params}{a numeric named vector with values for every
+parameter in the ODE system; the names must correspond to the
+parameter identifiers used in the ODE specification;}
+
+\item{inits}{a vector of initial values of the state variables
+(e.g., amounts in each compartment), and the order in this
+vector must be the same as the state variables (e.g., PK/PD
+compartments);}
+
+\item{thetaMat}{Named theta matrix.}
+
+\item{thetaDf}{The degrees of freedom of a t-distribution for
+simulation.  By default this is \code{NULL} which is
+equivalent to \code{Inf} degrees, or to simulate from a normal
+distribution instead of a t-distribution.}
+
+\item{omega}{Estimate of Covariance matrix. When omega is a list,
+assume it is a block matrix and convert it to a full matrix
+for simulations.}
+
+\item{omegaDf}{The degrees of freedom of a t-distribution for
+simulation.  By default this is \code{NULL} which is
+equivalent to \code{Inf} degrees, or to simulate from a normal
+distribution instead of a t-distribution.}
+
+\item{sigma}{Named sigma covariance or Cholesky decomposition of a
+covariance matrix.  The names of the columns indicate
+parameters that are simulated.  These are simulated for every
+observation in the solved system.}
+
+\item{sigmaDf}{Degrees of freedom of the sigma t-distribution.  By
+default it is equivalent to \code{Inf}, or a normal distribution.}
 }
 \value{
-a character vector listing the parameters in the model.
+When extracting the parameters from an RxODE model, a
+    character vector listing the parameters in the model.
 }
 \description{
 This return the model's parameters that are required to solve the

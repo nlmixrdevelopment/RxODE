@@ -120,23 +120,79 @@
 ##' @template etExamples
 ##'
 ##' @export
-et <- function(..., envir=parent.frame()){
-    .lst <- as.list(match.call()[-1]);
-    if (rxIs(.lst[1], "numeric") || rxIs(.lst[1], "integer") ||
-        rxIs(.lst[1], "list") || rxIs(.lst[1], "rxEt")){
-        ## Use do call on a match.call() to preserve lazy evaluation
-        ## By doing this evid=obs will work as well as evid="obs" and evid=1
-        do.call(et.default, .lst, envir=envir);
-    } else {
-        UseMethod("et");
-    }
+et <- function(x, ..., envir=parent.frame()){
+    UseMethod("et");
+}
+
+.pipelineRx       <- NULL
+.pipelineInits    <- NULL
+.pipelineEvents   <- NULL
+.pipelineParams   <- NULL
+.pipelineThetaMat <- NULL
+.pipelineOmega    <- NULL
+.pipelineSigma    <- NULL
+.pipelineDfObs    <- NULL
+.pipelineDfSub    <- NULL
+
+##' @rdname et
+##' @export
+et.RxODE <- function(x,...,envir=parent.frame()){
+    assignInMyNamespace(".pipelineRx", x);
+    do.call(et, c(list(...), list(envir=envir)), envir=envir);
+}
+##' @rdname et
+##' @export
+et.rxSolve <- function(x, ..., envir=parent.frame()){
+    ## Need to extract:
+    ## 1. RxODE model
+    assignInMyNamespace(".pipelineRx",x$args.object)
+    ## 2. RxODE parameters
+    assignInMyNamespace(".pipelineParams", x$args.par0);
+    ## 3. RxODE inits
+    assignInMyNamespace(".pipelineInits", x$args.inits);
+    ## 4. RxODE thetaMat
+    assignInMyNamespace(".pipelineThetaMat", x$args$thetaMat);
+    ## 5. RxODE omega
+    assignInMyNamespace(".pipelineOmega", x$args$omega);
+    ## 6. RxODE sigma
+    assignInMyNamespace(".pipelineSigma", x$args$sigma);
+    ## 7. RxODE dfObs
+    assignInMyNamespace(".pipelineDfObs", x$env$args$dfObs)
+    ## 8. RxODE dfSub
+    assignInMyNamespace(".pipelineDfSub", x$env$args$dfSub)
+    do.call(et, c(list(...), list(envir=envir)), envir=envir);
 }
 
 ##'@rdname et
 ##'@export
-et.default <- function(...,time, amt, evid, cmt, ii, addl, ss, rate, dur, until, id,
+et.rxParams <- function(x,..., envir=parent.frame()){
+    ## Need to extract:
+    ## 1. RxODE model
+    ## 2. RxODE parameters
+    if (!is.null(x$params)) assignInMyNamespace(".pipelineParams", x$params);
+    ## 3. RxODE inits
+    if (!is.null(x$inits)) assignInMyNamespace(".pipelineInits", x$inits);
+    ## 4. RxODE thetaMat
+    if (!is.null(x$thetaMat)) assignInMyNamespace(".pipelineThetaMat", x$thetaMat);
+    ## 5. RxODE omega
+    if (!is.null(x$omega)) assignInMyNamespace(".pipelineOmega", x$omega);
+    ## 6. RxODE sigma
+    if (!is.null(x$sigma)) assignInMyNamespace(".pipelineSigma", x$sigma);
+    ## 7. RxODE dfObs
+    if (!is.null(x$dfObs)) assignInMyNamespace(".pipelineDfObs", x$dfObs);
+    ## 8. RxODE dfSub
+    if (!is.null(x$dfSub)) assignInMyNamespace(".pipelineDfSub", x$dfSub);
+    do.call(et, c(list(...), list(envir=envir)), envir=envir);
+}
+
+##'@rdname et
+##'@export
+et.default <- function(x,...,time, amt, evid, cmt, ii, addl, ss, rate, dur, until, id,
                        amountUnits, timeUnits, addSampling, envir=parent.frame()){
     .lst <- as.list(match.call()[-1]);
+    if (!missing(x)){
+        names(.lst)[1] <- "";
+    }
     if (!missing(time)){
         .lst$time <- time;
     }

@@ -7,10 +7,16 @@
 \alias{update.rxSolve}
 \alias{predict.RxODE}
 \alias{predict.rxSolve}
+\alias{predict.rxEt}
+\alias{predict.rxParams}
 \alias{simulate.RxODE}
 \alias{simulate.rxSolve}
+\alias{simulate.rxEt}
+\alias{simulate.rxParams}
 \alias{solve.rxSolve}
 \alias{solve.RxODE}
+\alias{solve.rxParams}
+\alias{solve.rxEt}
 \title{Solving \& Simulation of a ODE/solved system (and solving options) equation}
 \usage{
 rxControl(scale = NULL, method = c("liblsoda", "lsoda", "dop853"),
@@ -41,13 +47,25 @@ rxSolve(object, ...)
 
 \method{predict}{rxSolve}(object, ...)
 
+\method{predict}{rxEt}(object, ...)
+
+\method{predict}{rxParams}(object, ...)
+
 \method{simulate}{RxODE}(object, nsim = 1L, seed = NULL, ...)
 
 \method{simulate}{rxSolve}(object, nsim = 1L, seed = NULL, ...)
 
+\method{simulate}{rxEt}(object, nsim = 1L, seed = NULL, ...)
+
+\method{simulate}{rxParams}(object, nsim = 1L, seed = NULL, ...)
+
 \method{solve}{rxSolve}(a, b, ...)
 
 \method{solve}{RxODE}(a, b, ...)
+
+\method{solve}{rxParams}(a, b, ...)
+
+\method{solve}{rxEt}(a, b, ...)
 }
 \arguments{
 \item{scale}{a numeric named vector with scaling for ode

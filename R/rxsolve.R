@@ -1,183 +1,3 @@
-## nlmixr-style parsing of omega matrix expressions.
-##' Easily Parse block-diagonal matrices with lower triangular info
-##'
-##' @param x list, matrix or expression, see details
-##'
-##' @param ... Other arguments treated as a list that will be
-##'     concatenated then reapplied to this function.
-##'
-##' @return named symmetric matrix useful in RxODE simulations (and
-##'     perhaps elsewhere)
-##'
-##' @details
-##'
-##'  This can take an R matrix, a list including matrices or expressions, or expressions
-##'
-##'  Expressions can take the form
-##'
-##'  name ~ estimate
-##'
-##'  Or the lower triangular matrix when "adding" the names
-##'
-##'  name1 + name2 ~ c(est1,
-##'                    est2, est3)
-##'
-##'  The matricies are concatenated into a block diagonal matrix, like
-##'  \code{\link[Matrix]{bdiag}}, but allows expressions to specify
-##'  matrices easier.
-##'
-##'
-##' @examples
-##'
-##' ## A few ways to specify the same matrix
-##' rxMatrix({et2 + et3 + et4 ~ c(40,
-##'                                0.1, 20,
-##'                                0.1, 0.1, 30)})
-##'
-##' ## You  do not need to enclose in {}
-##' rxMatrix(et2 + et3 + et4 ~ c(40,
-##'                                0.1, 20,
-##'                                0.1, 0.1, 30),
-##'           et5 ~ 6)
-##' ## But if you do enclose in {}, you can use multi-line matrix specifications:
-##'
-##' rxMatrix({et2 + et3 + et4 ~ c(40,
-##'                                0.1, 20,
-##'                                0.1, 0.1, 30);
-##'           et5 ~ 6;
-##'           })
-##'
-##' ## You can also add lists or actual R matrices as in this example:
-##' rxMatrix(list(et2 + et3 + et4 ~ c(40,
-##'                                   0.1, 20,
-##'                                   0.1, 0.1, 30),
-##'               matrix(1,dimnames=list("et5","et5"))))
-##'
-##' ## Overall this is a flexible way to specify symmetric block diagonal matrices.
-##'
-##' @author Matthew L Fidler
-##' @seealso \code{\link{rxSolve}}
-##' @export
-rxMatrix  <- function(x, ...){
-    .lst  <- list(...);
-    if (is.null(x)){
-        .ret  <- NULL;
-    } else if (is.list(x)){
-        omega  <- lapply(x, rxMatrix);
-        if (is(omega, "list")){
-            .omega <- as.matrix(Matrix::bdiag(omega));
-            .d <- unlist(lapply(seq_along(omega),
-                                function(x){
-                dimnames(omega[[x]])[2]
-            }))
-            dimnames(.omega) <- list(.d, .d);
-            omega <- .omega;
-        }
-        .ret  <- omega
-    } else if (is.matrix(x)) {
-        .ret  <- x
-    } else {
-        .env  <- new.env(parent=emptyenv());
-        .env$df  <- NULL;
-        .env$eta1 <- 0L;
-        .f  <- function(x, env){
-            if (is.name(x)){
-                return(character())
-            } else if (is.call(x)){
-                if (identical(x[[1]], quote(`~`))){
-                    if (length(x[[3]]) == 1){
-                        ## et1 ~ 0.2
-                        env$netas <- 1;
-                        env$eta1 <- env$eta1 + 1;
-                        env$names  <- c(env$names, as.character(x[[2]]));
-                        env$df  <- rbind(env$df,
-                                         data.frame(i=env$eta1, j=env$eta1, x=as.numeric(eval(x[[3]]))));
-                    } else {
-                        ## et1+et2+et3~c() lower triangular matrix
-                        ## Should fixed be allowed????
-                        if (any(tolower(as.character(x[[3]][[1]])) == c("c", "fix", "fixed"))){
-                            if (any(tolower(as.character(x[[3]][[1]])) == c("fix", "fixed"))){
-                                stop("fix/fixed are not allowed with RxODE omega specifications.");
-                            }
-                            env$netas <- length(x[[3]]) - 1;
-                            .num <- sqrt(1+env$netas*8)/2-1/2
-                            if (round(.num) == .num){
-                                .n <- unlist(strsplit(as.character(x[[2]]), " +[+] +"));
-                                .n <- .n[.n != "+"];
-                                if(length(.n) == .num){
-                                    env$names  <- c(env$names, .n);
-                                    .r <- x[[3]][-1];
-                                    .r <- sapply(.r, function(x){
-                                        return(as.numeric(eval(x)));
-                                    });
-                                    .i <- 0
-                                    .j <- 1;
-                                    for (.k in seq_along(.r)){
-                                        .v <- .r[.k];
-                                        .i <- .i + 1;
-                                        if (.i==.j){
-                                            env$df  <- rbind(env$df,
-                                                             data.frame(i=env$eta1+.i, j=env$eta1+.i, x=.v));
-                                            .j <- .j + 1;
-                                            .i <- 0;
-                                        } else {
-                                            env$df  <- rbind(env$df,
-                                                             data.frame(i=c(env$eta1+.i, env$eta1+.j),
-                                                                        j=c(env$eta1+.j, env$eta1+.i), x=.v));
-                                        }
-                                    }
-                                    env$eta1 <- env$eta1 + .num;
-                                }  else {
-                                    stop("The left handed side of the expression must match the number of items in the lower triangular matrix.");
-                                }
-                            } else {
-                                stop("Omega expression should be 'name ~ c(lower-tri)'")
-                            }
-                        } else {
-                            .val <- try(eval(x[[3]]), silent=TRUE)
-                            if (is.numeric(.val) || is.integer(.val)){
-                                env$netas <- 1;
-                                env$eta1 <- env$eta1 + 1;
-                                env$names  <- c(env$names, as.character(x[[2]]));
-                                env$df  <- rbind(env$df,
-                                                 data.frame(i=env$eta1, j=env$eta1, x=.val));
-                            } else {
-                                stop("Omega expression should be 'name ~ c(lower-tri)'");
-                            }
-                        }
-                    }
-                } else if (identical(x[[1]], quote(`{`))){
-                    lapply(x, .f, env=env)
-                } else if (identical(x[[1]], quote(`quote`))){
-                    lapply(x[[2]], .f, env=env)
-                } else {
-                    stop("Omega expression should be 'name ~ c(lower-tri)'")
-                }
-            } else {
-                ## is.pairlist OR is.atomic OR unknown...
-                stop("Bad matrix specification.");
-            }
-        }
-        .sX  <- substitute(x)
-        if (is.call(.sX)){
-            if (identical(.sX[[1]], quote(`[[`))){
-                .sX  <- x
-            }
-        }
-        .doParse  <- TRUE
-        if (.doParse){
-            .f(.sX,.env);
-            .ret <- diag(.env$eta1);
-            for (.i in seq_along(.env$df$i)){
-                .ret[.env$df$i[.i], .env$df$j[.i]]  <- .env$df$x[.i];
-            }
-            dimnames(.ret)  <- list(.env$names,.env$names)
-        }
-    }
-    if (length(.lst)==0) return(.ret)
-    else return(rxMatrix(c(list(.ret),.lst)))
-}
-
 ##'@rdname rxSolve
 ##'@export
 rxControl <- function(scale = NULL,
@@ -633,7 +453,78 @@ rxSolve <- function(object, ...){
 ##' @rdname rxSolve
 ##' @export
 rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, ...){
-    on.exit({rxSolveFree()});
+    on.exit({
+        rxSolveFree();
+        assignInMyNamespace(".pipelineRx", NULL)
+        assignInMyNamespace(".pipelineInits", NULL)
+        assignInMyNamespace(".pipelineEvents", NULL)
+        assignInMyNamespace(".pipelineParams", NULL)
+        assignInMyNamespace(".pipelineThetaMat", NULL)
+        assignInMyNamespace(".pipelineOmega", NULL)
+        assignInMyNamespace(".pipelineSigma", NULL)
+        assignInMyNamespace(".pipelineDfObs", NULL)
+        assignInMyNamespace(".pipelineDfSub", NULL)
+    });
+    .applyParams <- FALSE
+    .rxParams <- NULL
+    if (rxIs(object, "rxEt")){
+        if (!is.null(events)){
+            stop("Events in pipeline AND in solving arguments, please provide just one.")
+        }
+        if (is.null(.pipelineRx)){
+            stop("Need an RxODE compiled model as the start of the pipeline");
+        } else {
+            events <- object
+            object <- .pipelineRx
+        }
+    } else if (rxIs(object, "rxParams")){
+        .applyParams <- TRUE
+        if (!is.null(object$cov) && !is.null(params)){
+            stop("combine cov and params")
+        }
+        if (is.null(params) && !is.null(object$params)){
+            params <- object$params;
+        }
+        if (is.null(.pipelineRx)){
+            stop("Need an RxODE compiled model as the start of the pipeline");
+        } else {
+            .rxParams <- object
+            object <- .pipelineRx
+        }
+        if (is.null(.pipelineEvents)){
+            stop("Need an RxODE events as a part of the pipeline")
+        } else {
+            events <- .pipelineEvents;
+            assignInMyNamespace(".pipelineEvents", NULL);
+        }
+
+    }
+    if (!is.null(.pipelineEvents) && is.null(events) && is.null(params)){
+        events <- .pipelineEvents;
+    } else if (!is.null(.pipelineEvents) && !is.null(events)){
+        stop("'events' in pipeline AND in solving arguments, please provide just one.")
+    } else if (!is.null(.pipelineEvents) && !is.null(params) &&
+               rxIs(params, "event.data.frame")){
+        stop("'events' in pipeline AND in solving arguments, please provide just one.")
+    }
+
+    if (!is.null(.pipelineParams) && is.null(params)){
+        params <- .pipelineParams;
+    } else if (!is.null(.pipelineParams) && !is.null(params)){
+        stop("'params' in pipeline AND in solving arguments, please provide just one.")
+    }
+
+    if (!is.null(.pipelineInits) && is.null(inits)){
+        inits <- .pipelineInits;
+    } else if (!is.null(.pipelineInits) && !is.null(inits)){
+        stop("'inits' in pipeline AND in solving arguments, please provide just one.")
+    }
+
+    if (.applyParams){
+        if (!is.null(.rxParams$inits)){
+            inits <- .rxParams$inits
+        }
+    }
     .xtra <- list(...);
     if (any(duplicated(names(.xtra)))){
         stop("Duplicate arguments do not make sense.");
@@ -642,19 +533,49 @@ rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, ...)
         stop("Covariates can no longer be specified by 'covs' include them in the event dataset.");
     }
     .nms <- names(as.list(match.call())[-1]);
-    ## if (rxIs(object, "rxSolve")){
-    ##     if (rxIs(params, "rx.event") && is.null(events)){
-    ##         .nms <- c("events",.nms);
-    ##         events <- params
-    ##         params <- NULL;
-    ##     }
-    ## }
     .lst <- list(...);
     .setupOnly <- 0L
     if (any(names(.lst)==".setupOnly")){
         .setupOnly <- .lst$.setupOnly;
     }
-    rxSolve_(object, rxControl(...,events=events,params=params), .nms, .xtra,
+    .ctl <- rxControl(...,events=events,params=params);
+    if (!is.null(.pipelineThetaMat) && is.null(.ctl$thetaMat)){
+        .ctl$thetaMat <- .pipelineThetaMat;
+    }
+    if (!is.null(.pipelineOmega) && is.null(.ctl$omega)){
+        .ctl$omega <- .pipelineOmega;
+    }
+    if (!is.null(.pipelineSigma) && is.null(.ctl$sigma)){
+        .ctl$sigma <- .pipelineSigma;
+    }
+    if (!is.null(.pipelineDfObs) && .ctl$dfObs==0){
+        .ctl$dfObs <- .pipelineDfObs;
+    }
+    if (!is.null(.pipelineDfSub) && .ctl$dfSub==0){
+        .ctl$dfSub <- .pipelineDfSub;
+    }
+    if (.applyParams){
+        if (!is.null(.rxParams$thetaMat) && is.null(.ctl$thetaMat)){
+            .ctl$thetaMat <- .rxParams$thetaMat;
+        }
+        if (!is.null(.rxParams$omega) && is.null(.ctl$omega)){
+            .ctl$omega <- .rxParams$omega;
+        }
+        if (!is.null(.rxParams$sigma) && is.null(.ctl$sigma)){
+            .ctl$sigma <- .rxParams$sigma;
+        }
+        if (!is.null(.rxParams$dfSub)){
+            if (.ctl$dfSub== 0){
+                .ctl$dfSub <- .rxParams$dfSub;
+            }
+        }
+        if (!is.null(.rxParams$dfObs)){
+            if (.ctl$dfObs == 0){
+                .ctl$dfObs <- .rxParams$dfObs;
+            }
+        }
+    }
+    rxSolve_(object, .ctl, .nms, .xtra,
              params, events, inits,setupOnly=.setupOnly);
 }
 
@@ -674,6 +595,14 @@ predict.RxODE <- function(object, ...){
 ##' @export
 predict.rxSolve <- predict.RxODE
 
+##' @rdname rxSolve
+##' @export
+predict.rxEt <- predict.RxODE
+
+##' @rdname rxSolve
+##' @export
+predict.rxParams <- predict.RxODE
+
 ##' @importFrom stats simulate
 
 ##' @rdname rxSolve
@@ -684,6 +613,14 @@ simulate.RxODE <- function(object, nsim = 1L, seed = NULL, ...){
 ##' @rdname rxSolve
 ##' @export
 simulate.rxSolve <- simulate.RxODE
+
+##' @rdname rxSolve
+##' @export
+simulate.rxEt <- simulate.RxODE
+
+##' @rdname rxSolve
+##' @export
+simulate.rxParams <- simulate.RxODE
 
 ##' @rdname rxSolve
 ##' @export
@@ -703,6 +640,14 @@ solve.rxSolve <- function(a, b, ...){
 ##' @rdname rxSolve
 ##' @export
 solve.RxODE <- solve.rxSolve
+
+##' @rdname rxSolve
+##' @export
+solve.rxParams <- solve.rxSolve
+
+##' @rdname rxSolve
+##' @export
+solve.rxEt <- solve.rxSolve
 
 .sharedPrint <- function(x, n, width, bound=""){
     ## nocov start
@@ -749,7 +694,7 @@ solve.RxODE <- solve.rxSolve
         if (!is.null(x$omegaList)){
             .uncert <- c(.uncert, paste0("omega matrix (", crayon::yellow(bound), crayon::bold$blue("$omegaList"), ")"))
         }
-        if (!is.null(x$omegaList)){
+        if (!is.null(x$sigmaList)){
             .uncert <- c(.uncert, paste0("sigma matrix (", crayon::yellow(bound), crayon::bold$blue("$sigmaList"), ")"))
         }
         if (length(.uncert) == 0L){
