@@ -336,6 +336,18 @@ default this is off (\code{FALSE})}
 \item{maxAtolRtolFactor}{The maximum atol/rtol that FOCEi and
 other routines may adjust to.  By default 0.1}
 
+\item{from}{When there is no observations in the event table,
+start observations at this value. By default this is zero.}
+
+\item{to}{When there is no observations in the event table, end
+observations at this value. By default this is 24 + maximum dose time.}
+
+\item{by}{When there are no observations in the event table, this
+is the amount to increment for the observations between `from` and `to`.}
+
+\item{length.out}{The number of observations to create if there
+isn't any observations in the event table. By default this is 200.}
+
 \item{iCov}{A data frame of individual non-time varying covariates
 to combine with the \code{params} to form a parameter
 data.frame.}

@@ -24,13 +24,11 @@ rxParams <- function(obj, ...){
 ##' @rdname rxParams
 ##' @export
 rxParams.RxODE <- function(obj, constants=TRUE, ...,
-                           cov=NULL,
                            params=NULL, inits=NULL, iCov=NULL,
                            thetaMat = NULL,
                            omega = NULL, dfSub = NULL,
                            sigma=NULL, dfObs = NULL){
-    .ret <- list(cov=cov,
-                 params=params, inits=inits, iCov=iCov,
+    .ret <- list(params=params, inits=inits, iCov=iCov,
                  thetaMat = thetaMat,
                  omega = omega, dfSub = dfSub,
                  sigma=sigma, dfObs = dfObs);
@@ -48,13 +46,11 @@ rxParams.RxODE <- function(obj, constants=TRUE, ...,
 ##' @rdname rxParams
 ##' @export
 rxParams.rxSolve <- function(obj, constants=TRUE, ...,
-                             cov=NULL,
                              params=NULL, inits=NULL, iCov=NULL,
                              thetaMat = NULL,
                              omega = NULL, dfSub = NULL,
                              sigma=NULL, dfObs = NULL){
-    .ret <- list(cov=cov,
-                 params=params, inits=inits, iCov=iCov,
+    .ret <- list(params=params, inits=inits, iCov=iCov,
                  thetaMat = thetaMat,
                  omega = omega, dfSub = dfSub,
                  sigma=sigma, dfObs = dfObs);
@@ -93,15 +89,13 @@ rxParams.rxSolve <- function(obj, constants=TRUE, ...,
 ##' @rdname rxParams
 ##' @export
 rxParams.rxEt <- function(obj, ...,
-                          cov=NULL,
                           params=NULL, inits=NULL, iCov=NULL,
                           thetaMat = NULL,
                           omega = NULL, dfSub = NULL,
                           sigma=NULL, dfObs = NULL){
     # et() %>% rxParams() %>%
     assignInMyNamespace(".pipelineEvents", obj);
-    .ret <- list(cov=cov,
-                 params=params, inits=inits, iCov=iCov,
+    .ret <- list(params=params, inits=inits, iCov=iCov,
                  thetaMat = thetaMat, omega = omega, dfSub = dfSub,
                  sigma=sigma, dfObs = dfObs);
     class(.ret) <- "rxParams"

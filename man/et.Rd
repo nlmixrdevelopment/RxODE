@@ -20,6 +20,10 @@ et(x, ..., envir = parent.frame())
   until, id, amountUnits, timeUnits, addSampling, envir = parent.frame())
 }
 \arguments{
+\item{x}{This is the first argument supplied to the event table.
+This is named to allow \code{et} to be used in a piple-line
+with arbitrary objects.}
+
 \item{...}{Times or event tables.  They can also be one of the named arguments below.}
 
 \item{envir}{the \code{\link{environment}} in which \code{expr} is to

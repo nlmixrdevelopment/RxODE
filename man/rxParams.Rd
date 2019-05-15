@@ -10,17 +10,17 @@
 \usage{
 rxParams(obj, ...)
 
-\method{rxParams}{RxODE}(obj, constants = TRUE, ..., cov = NULL,
-  params = NULL, inits = NULL, iCov = NULL, thetaMat = NULL,
-  omega = NULL, dfSub = NULL, sigma = NULL, dfObs = NULL)
-
-\method{rxParams}{rxSolve}(obj, constants = TRUE, ..., cov = NULL,
-  params = NULL, inits = NULL, iCov = NULL, thetaMat = NULL,
-  omega = NULL, dfSub = NULL, sigma = NULL, dfObs = NULL)
-
-\method{rxParams}{rxEt}(obj, ..., cov = NULL, params = NULL,
+\method{rxParams}{RxODE}(obj, constants = TRUE, ..., params = NULL,
   inits = NULL, iCov = NULL, thetaMat = NULL, omega = NULL,
   dfSub = NULL, sigma = NULL, dfObs = NULL)
+
+\method{rxParams}{rxSolve}(obj, constants = TRUE, ..., params = NULL,
+  inits = NULL, iCov = NULL, thetaMat = NULL, omega = NULL,
+  dfSub = NULL, sigma = NULL, dfObs = NULL)
+
+\method{rxParams}{rxEt}(obj, ..., params = NULL, inits = NULL,
+  iCov = NULL, thetaMat = NULL, omega = NULL, dfSub = NULL,
+  sigma = NULL, dfObs = NULL)
 
 rxParam(obj, ...)
 }

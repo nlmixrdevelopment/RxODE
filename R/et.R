@@ -114,6 +114,10 @@
 ##'     should be added at the same time as a dosing time.  By default
 ##'     this is \code{FALSE}.
 ##'
+##' @param x This is the first argument supplied to the event table.
+##'     This is named to allow \code{et} to be used in a piple-line
+##'     with arbitrary objects.
+##'
 ##' @inheritParams base::eval
 ##' @return A new event table
 ##'

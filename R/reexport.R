@@ -130,6 +130,14 @@ ggplot2::xlab
 ##'@export
 lotri::lotri
 
+##' Specify lower triangular matrix
+##'
+##' @inheritParams lotri::lotri
+##'
+##' @return Matrix
+##'
 ##'@export
-rxMatrix <- lotri::lotri
+rxMatrix <- function(x, ...){
+    lotri::lotri(x, ...);
+}
 

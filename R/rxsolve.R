@@ -424,6 +424,18 @@ rxControl <- function(scale = NULL,
 ##' @param maxAtolRtolFactor The maximum atol/rtol that FOCEi and
 ##'     other routines may adjust to.  By default 0.1
 ##'
+##' @param from When there is no observations in the event table,
+##'     start observations at this value. By default this is zero.
+##'
+##' @param to When there is no observations in the event table, end
+##'     observations at this value. By default this is 24 + maximum dose time.
+##'
+##' @param length.out The number of observations to create if there
+##'     isn't any observations in the event table. By default this is 200.
+##'
+##' @param by When there are no observations in the event table, this
+##'     is the amount to increment for the observations between `from` and `to`.
+##'
 ##' @return An \dQuote{rxSolve} solve object that stores the solved
 ##'     value in a matrix with as many rows as there are sampled time
 ##'     points and as many columns as system variables (as defined by
