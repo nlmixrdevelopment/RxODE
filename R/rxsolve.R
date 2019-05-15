@@ -398,6 +398,12 @@ rxControl <- function(scale = NULL,
 ##'     \code{subsetNonmem=FALSE} RxODE will also extra event types
 ##'     (\code{EVID}) for ending infusion and modeled times:
 ##'
+##' @param keep Columns to keep from either the input dataset or the
+##'     \code{iCov} dataset.  With the \code{iCov} dataset, the column
+##'     is kept once per line.  For the input dataset, if any records
+##'     are added to the data LOCF (Last Observation Carried forward)
+##'     imputation is performed.
+##'
 ##' \itemize{
 ##'
 ##' \item \code{EVID=-1} when the modeled rate infusions are turned
