@@ -139,6 +139,7 @@ typedef struct {
   int *stateIgnore;
   int nCov0;
   int *cov0;
+  int nKeep0;
   int istateReset;
 } rx_solve;
   

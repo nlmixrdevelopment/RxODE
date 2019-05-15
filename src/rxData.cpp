@@ -2368,6 +2368,18 @@ LogicalVector rxSolveFree(){
 }
 extern "C" void RxODE_assign_fn_pointers(SEXP);
 
+List keepIcov;
+
+extern "C" double get_ikeep(int col, int id){
+  NumericVector nv = as<NumericVector>(keepIcov[col]);
+  return nv[id];
+}
+extern "C" const char* get_ikeepn(int col){
+  CharacterVector cv = keepIcov.attr("names");
+  std::string retS = as<std::string>(cv[col]);
+  return retS.c_str();
+}
+
 //[[Rcpp::export]]
 SEXP rxSolve_(const RObject &obj,
 	      const List &rxControl,
@@ -2538,6 +2550,7 @@ SEXP rxSolve_(const RObject &obj,
     rx_solve* rx = getRxSolve_();
     rx_solving_options* op = rx->op;
     rx_solving_options_ind* ind;
+    rx->nKeep0 = 0;
     if (ISNA(stateTrim)){
       rx->stateTrim = R_PosInf;
     } else {
@@ -2842,8 +2855,8 @@ SEXP rxSolve_(const RObject &obj,
 				 dfSub, dfObs, simSubjects);
       par1 =  as<RObject>(lst);
       usePar1=true;
-      
-      // The parameters are in the same format as they would be if they were specified as part of the original dataset.
+      // The parameters are in the same format as they would be if they were
+      // specified as part of the original dataset.
     }
     // .sigma could be reassigned in an update, so check outside simulation function.
     if (_rxModels.exists(".sigma")){
@@ -2871,6 +2884,12 @@ SEXP rxSolve_(const RObject &obj,
       RObject iCov = rxControl["iCov"];
       if (!rxIs(iCov, "NULL")){
 	// Create a data frame
+	CharacterVector keepC, keepCf;
+	if (rxIs(rxControl["keep"], "character")){
+	  keepC = as<CharacterVector>(rxControl["keep"]);
+	}
+	IntegerVector keepIv(keepC.size());
+	std::fill_n(keepIv.begin(), keepC.size(), -1);
 	List lstT=as<List>(iCov);
 	parDf = as<DataFrame>(iCov);
 	int nr = parDf.nrows();
@@ -2884,10 +2903,31 @@ SEXP rxSolve_(const RObject &obj,
 	  lstF[ii] = tmp;
 	  nmF[ii] = nmL[ii];
 	}
+	int nKeepi=0;
 	for (int ii=lstT.size(); ii--;){
 	  lstF[ii+parNumeric.size()] = lstT[ii];
 	  nmF[ii+parNumeric.size()] = nmT[ii];
+	  for (int jj = keepC.size(); jj--;){
+	    if (nmT[ii] == keepC[jj]){
+	      keepIv[jj] = ii;
+	      nKeepi++;
+	      break;
+	    }
+	  }
 	}
+	keepIcov=List(nKeepi);
+	keepCf = CharacterVector(nKeepi);
+	int iii=0;
+	for (int ii=keepC.size(); ii--;){
+	  if (keepIv[ii] != -1){
+	    keepIcov[iii] = lstT[keepIv[ii]];
+	    keepCf[iii++] = nmT[keepIv[ii]];
+	  }
+	}
+	keepIcov.attr("names") = keepCf;
+	keepIcov.attr("class") = "data.frame";
+	keepIcov.attr("row.names") = lstT.attr("row.names");
+	rx->nKeep0 = nKeepi;
 	lstF.attr("names") = nmF;
 	lstF.attr("class") = "data.frame";
 	lstF.attr("row.names") = lstT.attr("row.names");
@@ -2911,10 +2951,36 @@ SEXP rxSolve_(const RObject &obj,
 	  lstF[ii] = lst[ii];
 	  nmF[ii] = nmL[ii];
 	}
+	int nKeepi=0;
+	CharacterVector keepC, keepCf;
+	if (rxIs(rxControl["keep"], "character")){
+	  keepC = as<CharacterVector>(rxControl["keep"]);
+	}
+	IntegerVector keepIv(keepC.size());
 	for (int ii=lstT.size(); ii--;){
 	  lstF[ii+lst.size()] = lstT[ii];
 	  nmF[ii+lst.size()] = nmT[ii];
+	  for (int jj = keepC.size(); jj--;){
+	    if (nmT[ii] == keepC[jj]){
+	      keepIv[jj] = ii;
+	      nKeepi++;
+	      break;
+	    }
+	  }
 	}
+	keepIcov=List(nKeepi);
+	keepCf = CharacterVector(nKeepi);
+	int iii=0;
+	for (int ii=keepC.size(); ii--;){
+	  if (keepIv[ii] != -1){
+	    keepIcov[iii] = lstT[keepIv[ii]];
+	    keepCf[iii++] = nmT[keepIv[ii]];
+	  }
+	}
+	keepIcov.attr("names") = keepCf;
+	keepIcov.attr("class") = "data.frame";
+	keepIcov.attr("row.names") = lstT.attr("row.names");
+	rx->nKeep0 = nKeepi;
 	lstF.attr("names") = nmF;
 	lstF.attr("class") = "data.frame";
 	lstF.attr("row.names") = lst.attr("row.names");

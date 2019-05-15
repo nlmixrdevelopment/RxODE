@@ -26,7 +26,8 @@ rxControl <- function(scale = NULL,
                       to=NULL,
                       by=NULL,
                       length.out=NULL,
-                      iCov=NULL){
+                      iCov=NULL,
+                      keep=NULL){
     .xtra <- list(...);
     if (is.null(transitAbs) && !is.null(.xtra$transit_abs)){
         transitAbs <- .xtra$transit_abs;
@@ -152,7 +153,8 @@ rxControl <- function(scale = NULL,
                  to=to,
                  by=by,
                  length.out=length.out,
-                 iCov=iCov);
+                 iCov=iCov,
+                 keep=keep);
     return(.ret)
 }
 

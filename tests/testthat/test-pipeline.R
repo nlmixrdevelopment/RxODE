@@ -150,4 +150,46 @@ rxPermissive({
 
     expect_true(!any(duplicated(p1$params$WT)))
 
+    set.seed(99)
+    p1 <- popex %>%
+        rxParams(params=c(ECL=0, EV=0, EKA=0, err=0),
+                 iCov=data.frame(WT=rnorm(10,70,4))) %>%
+        et(amountUnits="mg", timeUnits="hours") %>%
+        et(amt=100, ii=12, until=48) %>%
+        rxSolve(keep="WT")
+
+    ## add evid too
+    p1 <- popex %>%
+        rxParams(params=c(ECL=0, EV=0, EKA=0, err=0),
+                 iCov=data.frame(WT=rnorm(10,70,4))) %>%
+        et(amountUnits="mg", timeUnits="hours") %>%
+        et(amt=100, ii=12, until=48) %>%
+        rxSolve(keep="WT",addDosing=TRUE)
+
+    ##
+    set.seed(99)
+    p1 <- popex %>%
+        rxParams(omega=lotri(ECL ~ 0.3,
+                             EV ~ 0.1,
+                             EKA ~ 0.5),
+                 sigma=lotri(err ~ 0.1),
+                 iCov=data.frame(WT=rnorm(10,70,4))) %>%
+        et(amountUnits="mg", timeUnits="hours") %>%
+        et(amt=100, ii=12, until=48) %>%
+        rxSolve(keep="WT")
+
+    set.seed(99)
+    p2 <- popex %>%
+        et(amountUnits="mg", timeUnits="hours") %>%
+        et(amt=100, ii=12, until=48) %>%
+        rxParams(omega=lotri(ECL ~ 0.3,
+                             EV ~ 0.1,
+                             EKA ~ 0.5),
+                 sigma=lotri(err ~ 0.1),
+                 iCov=data.frame(WT=rnorm(10,70,4))) %>%
+        rxSolve(keep="WT")
+
+    expect_equal(p1, p2)
+
+
 })
