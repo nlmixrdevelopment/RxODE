@@ -2586,16 +2586,62 @@ SEXP rxSolve_(const RObject &obj,
       List etE = cls.attr(".RxODE.lst");
       int nobs = etE["nobs"];
       if (nobs == 0){
-    	warning("Adding observations, for more control use et/add.sampling.");
+    	// warning("Adding observations, for more control use et/add.sampling.");
     	List ev1a = etTrans(as<List>(ev1), obj, hasCmt, false, false, true);
-    	NumericVector newObs(200);
+	int lenOut = 200;
+	double by = NA_REAL;
+	double to;
+	double from = 0.0;
+	NumericVector tmp;
+	IntegerVector tmpI;
+	if (rxIs(rxControl["from"], "integer") || rxIs(rxControl["from"], "numeric")){
+	  tmp = as<NumericVector>(rxControl["from"]);
+	  if (tmp.size() != 1){
+	    stop("'from' must be of length 1");
+	  }
+	  from = tmp[0];
+	}
+	if (rxIs(rxControl["to"], "integer") || rxIs(rxControl["to"], "numeric")){
+	  tmp = as<NumericVector>(rxControl["to"]);
+	  if (tmp.size() != 1){
+	    stop("'to' must be of length 1");
+	  }
+	  to = tmp[0];
+	} else {
+	  to = (max(as<NumericVector>(ev1a["TIME"]))+24);
+	}
+	if (rxIs(rxControl["by"], "integer") || rxIs(rxControl["by"], "numeric")){
+	  tmp = as<NumericVector>(rxControl["by"]);
+	  if (tmp.size() != 1){
+	    stop("'by' must be of length 1");
+	  }
+	  by = tmp[0];
+	}
+	if (rxIs(rxControl["length.out"], "integer") || rxIs(rxControl["length.out"], "numeric")){
+	  tmpI = as<IntegerVector>(rxControl["length.out"]);
+	  if (tmpI.size() != 1){
+	    stop("'length.out' must be of length 1");
+	  }
+	  lenOut = tmpI[0];
+	  if (!ISNA(by)){
+	    // Matches seq(0,1,by=0.1,length.out=3)
+	    // stop("too many arguments");
+	    stop("Cannot use both 'by' and 'length.out' for RxODE simulations");
+	  }
+	  by = (to-from)/(lenOut-1);
+	} else if (ISNA(by)) {
+	  lenOut=200;
+	  by = (to-from)/(lenOut-1);
+	} else {
+	  lenOut= (int)((to-from)/by+1.0);
+	}
+    	NumericVector newObs(lenOut);
     	// ((to - from)/(length.out - 1))
     	List et = as<List>(ev1);
-    	double by = (max(as<NumericVector>(ev1a["TIME"]))+24)/199.0;
-    	for (int i = 200; i--;){
-    	  newObs[i]=by*i;
+    	for (int i = lenOut; i--;){
+    	  newObs[i]=by*i+from;
     	}
-	rx->nobs2 = 200;
+	rx->nobs2 = lenOut;
     	ev1 = et_(List::create(newObs), as<List>(ev1));
       }
     }

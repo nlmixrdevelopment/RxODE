@@ -21,7 +21,11 @@ rxControl <- function(scale = NULL,
                       istateReset=TRUE,
                       subsetNonmem=TRUE,
                       linLog=FALSE,
-                      maxAtolRtolFactor=0.1){
+                      maxAtolRtolFactor=0.1,
+                      from=NULL,
+                      to=NULL,
+                      by=NULL,
+                      length.out=NULL){
     .xtra <- list(...);
     if (is.null(transitAbs) && !is.null(.xtra$transit_abs)){
         transitAbs <- .xtra$transit_abs;
@@ -142,7 +146,11 @@ rxControl <- function(scale = NULL,
                  istateReset=istateReset,
                  subsetNonmem=subsetNonmem,
                  linLog=linLog, hmaxSd=hmaxSd,
-                 maxAtolRtolFactor=maxAtolRtolFactor);
+                 maxAtolRtolFactor=maxAtolRtolFactor,
+                 from=from,
+                 to=to,
+                 by=by,
+                 length.out=length.out);
     return(.ret)
 }
 
