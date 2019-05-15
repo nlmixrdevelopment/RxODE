@@ -27,7 +27,8 @@ using namespace arma;
 
 List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	     bool dropUnits=false, bool allTimeVar=false,
-	     bool keepDosingOnly=false, Nullable<LogicalVector> combineDvid=R_NilValue);
+	     bool keepDosingOnly=false, Nullable<LogicalVector> combineDvid=R_NilValue,
+	     CharacterVector keep = CharacterVector(0));
 List etImportEventTable(List inData);
 RObject et_(List input, List et__);
 void setEvCur(RObject cur);
@@ -2369,13 +2370,28 @@ LogicalVector rxSolveFree(){
 extern "C" void RxODE_assign_fn_pointers(SEXP);
 
 List keepIcov;
+List keepFcov;
+extern void setFkeep(List keep){
+  keepFcov=keep;
+}
 
 extern "C" double get_ikeep(int col, int id){
   NumericVector nv = as<NumericVector>(keepIcov[col]);
   return nv[id];
 }
+
+extern "C" double get_fkeep(int col, int id){
+  NumericVector nv = as<NumericVector>(keepFcov[col]);
+  return nv[id];
+}
 extern "C" const char* get_ikeepn(int col){
   CharacterVector cv = keepIcov.attr("names");
+  std::string retS = as<std::string>(cv[col]);
+  return retS.c_str();
+}
+
+extern "C" const char* get_fkeepn(int col){
+  CharacterVector cv = keepFcov.attr("names");
   std::string retS = as<std::string>(cv[col]);
   return retS.c_str();
 }
@@ -2551,6 +2567,7 @@ SEXP rxSolve_(const RObject &obj,
     rx_solving_options* op = rx->op;
     rx_solving_options_ind* ind;
     rx->nKeep0 = 0;
+    rx->nKeepF = 0;
     if (ISNA(stateTrim)){
       rx->stateTrim = R_PosInf;
     } else {
@@ -2600,7 +2617,10 @@ SEXP rxSolve_(const RObject &obj,
       int nobs = etE["nobs"];
       if (nobs == 0){
     	// warning("Adding observations, for more control use et/add.sampling.");
-    	List ev1a = etTrans(as<List>(ev1), obj, hasCmt, false, false, true);
+	// KEEP/DROP?
+    	List ev1a = etTrans(as<List>(ev1), obj, hasCmt, false, false, true, R_NilValue,
+			    rxControl["keepF"]);
+	rx->nKeepF = keepFcov.size();
 	int lenOut = 200;
 	double by = NA_REAL;
 	double to;
@@ -2659,7 +2679,9 @@ SEXP rxSolve_(const RObject &obj,
       }
     }
     if (rxIs(ev1, "data.frame") && !rxIs(ev1, "rxEtTrans")){
-      ev1 = as<List>(etTrans(as<List>(ev1), obj, hasCmt, false, false, true));
+      ev1 = as<List>(etTrans(as<List>(ev1), obj, hasCmt, false, false, true, R_NilValue,
+			     rxControl["keepF"]));
+      rx->nKeepF = keepFcov.size();
       rxcEvid = 2;
       rxcTime = 1;
       rxcAmt  = 3;
@@ -2885,8 +2907,8 @@ SEXP rxSolve_(const RObject &obj,
       if (!rxIs(iCov, "NULL")){
 	// Create a data frame
 	CharacterVector keepC, keepCf;
-	if (rxIs(rxControl["keep"], "character")){
-	  keepC = as<CharacterVector>(rxControl["keep"]);
+	if (rxIs(rxControl["keepI"], "character")){
+	  keepC = as<CharacterVector>(rxControl["keepI"]);
 	}
 	IntegerVector keepIv(keepC.size());
 	std::fill_n(keepIv.begin(), keepC.size(), -1);
@@ -2953,8 +2975,8 @@ SEXP rxSolve_(const RObject &obj,
 	}
 	int nKeepi=0;
 	CharacterVector keepC, keepCf;
-	if (rxIs(rxControl["keep"], "character")){
-	  keepC = as<CharacterVector>(rxControl["keep"]);
+	if (rxIs(rxControl["keepI"], "character")){
+	  keepC = as<CharacterVector>(rxControl["keepI"]);
 	}
 	IntegerVector keepIv(keepC.size());
 	for (int ii=lstT.size(); ii--;){

@@ -89,7 +89,7 @@ rxPermissive({
     dimnames(tM) <- list(tMat, tMat);
     tM[1,2] <- 2
 
-    omega  <- rxMatrix({
+    omega  <- lotri({
         eta.Vg + eta.Q + eta.Vi ~
             c(0.0887,
               -0.1920, 0.73,

@@ -119,7 +119,7 @@ rxControl <- function(scale = NULL,
                  cores=cores,
                  addCov=addCov,
                  matrix=matrix,
-                 sigma=rxMatrix(sigma),
+                 sigma=lotri(sigma),
                  sigmaDf=sigmaDf,
                  nCoresRV=nCoresRV,
                  sigmaIsChol=sigmaIsChol,
@@ -131,7 +131,7 @@ rxControl <- function(scale = NULL,
                  addDosing=addDosing,
                  stateTrim=stateTrim,
                  updateObject=updateObject,
-                 omega=rxMatrix(omega),
+                 omega=lotri(omega),
                  omegaDf=omegaDf,
                  omegaIsChol=omegaIsChol,
                  nSub=nSub,
@@ -620,6 +620,22 @@ rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, ...)
             stop("'nSub'*'nStud' does not match the number of subjects in iCov");
         }
     }
+    if (!is.null(.ctl$keep)){
+        .mv <- rxModelVars(object);
+        .vars <- c(.mv$lhs, .mv$state);
+        .keepF <- setdiff(.ctl$keep, .vars)
+        if (!is.null(.ctl$iCov)){
+            .keepI <- intersect(.keepF, names(.ctl$iCov));
+            .keepF <- setdiff(.keepF, .keepI);
+        } else {
+            .keepI <- character(0);
+        }
+    } else {
+        .keepI <- character(0)
+        .keepF <- character(0)
+    }
+    .ctl$keepI <- .keepI
+    .ctl$keepF <- .keepF
     .ret <- rxSolve_(object, .ctl, .nms, .xtra,
                      params, events, inits,setupOnly=.setupOnly);
 }

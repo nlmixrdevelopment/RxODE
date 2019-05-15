@@ -21,7 +21,7 @@ rxPermissive({
                               Q=1.05E+01,  V3=2.97E+02,              # peripheral
                               Kin=1, Kout=1, EC50=200),
                      inits=c(eff=1),
-                     omega=rxMatrix(eta.Cl ~ 0.4^2)) %>%
+                     omega=lotri(eta.Cl ~ 0.4^2)) %>%
             et(amountUnits="mg", timeUnits="hours") %>%
             et(amt=10000, cmt=2, ii=12, until=48) %>%
             et(seq(0,48,length.out=100));
@@ -48,7 +48,7 @@ rxPermissive({
                               Q=1.05E+01,  V3=2.97E+02,              # peripheral
                               Kin=1, Kout=1, EC50=200),
                      inits=c(eff=1),
-                     omega=rxMatrix(eta.Cl ~ 0.4^2));
+                     omega=lotri(eta.Cl ~ 0.4^2));
         if (type=="rxSolve"){
             p2 <- p2 %>%
                 rxSolve(nSub=30)
@@ -79,7 +79,7 @@ rxPermissive({
                               Q=1.05E+01,  V3=2.97E+02,              # peripheral
                               Kin=1, Kout=1, EC50=200),
                      inits=c(eff=1),
-                     omega=rxMatrix(eta.Cl ~ 0.4^2)) %>%
+                     omega=lotri(eta.Cl ~ 0.4^2)) %>%
             et(amountUnits="mg", timeUnits="hours") %>%
             et(amt=10000, cmt=2, ii=12, until=48) %>%
         et(seq(0,48,length.out=100)) %>%
@@ -191,5 +191,30 @@ rxPermissive({
 
     expect_equal(p1, p2)
 
+    ## Test WT in both iCov and data used.
+
+    source("theoSd.R")
+
+    mod  <- RxODE({
+        ka <- exp(tka + eta.ka)
+        cl <- exp(tcl + eta.cl)
+        v <- exp(tv + eta.v)
+        cp <- linCmt()
+    })
+
+    tmp <- mod %>% solve(theoSd, c(tka=1, tcl=2, tv=3, eta.ka=0, eta.cl=0, eta.v=0), keep="WT")
+    expect_true(any(names(tmp)=="WT"))
+
+    tmp <- mod %>% solve(theoSd, c(tka=1, tcl=2, tv=3, eta.ka=0, eta.cl=0, eta.v=0))
+    expect_false(any(names(tmp)=="WT"))
+
+
+    tmp <- mod %>% solve(theoSd, c(tka=1, tcl=2, tv=3, eta.ka=0, eta.cl=0, eta.v=0), keep="WT",
+                         addDosing=TRUE)
+    expect_true(any(names(tmp)=="WT"))
+
+    tmp <- mod %>% solve(theoSd, c(tka=1, tcl=2, tv=3, eta.ka=0, eta.cl=0, eta.v=0),
+                         addDosing=TRUE)
+    expect_false(any(names(tmp)=="WT"))
 
 })

@@ -35,7 +35,7 @@ rxControl(scale = NULL, method = c("liblsoda", "lsoda", "dop853"),
   params = NULL, events = NULL, istateReset = TRUE,
   subsetNonmem = TRUE, linLog = FALSE, maxAtolRtolFactor = 0.1,
   from = NULL, to = NULL, by = NULL, length.out = NULL,
-  iCov = NULL)
+  iCov = NULL, keep = NULL)
 
 rxSolve(object, ...)
 

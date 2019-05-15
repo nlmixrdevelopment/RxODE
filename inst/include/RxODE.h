@@ -140,6 +140,7 @@ typedef struct {
   int nCov0;
   int *cov0;
   int nKeep0;
+  int nKeepF;
   int istateReset;
 } rx_solve;
   

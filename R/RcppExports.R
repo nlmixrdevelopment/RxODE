@@ -34,11 +34,13 @@ etRep_ <- function(curEt, times, wait, ids, handleSamples, waitType, ii) {
 #'     records to change the cmt value; Useful for multiple-endpoint nlmixr models.  By default
 #'     this is determined by code{option("RxODE.combine.dvid")} and if the option has not been set,
 #'     this is \code{TRUE}. This typically does not affect RxODE simulations.
+#' @param keep This is a named vector of items you want to keep in the final RxODE dataset.
+#'     For added RxODE event records (if seen), last observation carried forward will be used.
 #' @return Object for solving in RxODE
 #' @keywords internal
 #' @export
-etTrans <- function(inData, obj, addCmt = FALSE, dropUnits = FALSE, allTimeVar = FALSE, keepDosingOnly = FALSE, combineDvid = NULL) {
-    .Call(`_RxODE_etTrans`, inData, obj, addCmt, dropUnits, allTimeVar, keepDosingOnly, combineDvid)
+etTrans <- function(inData, obj, addCmt = FALSE, dropUnits = FALSE, allTimeVar = FALSE, keepDosingOnly = FALSE, combineDvid = NULL, keep = character(0)) {
+    .Call(`_RxODE_etTrans`, inData, obj, addCmt, dropUnits, allTimeVar, keepDosingOnly, combineDvid, keep)
 }
 
 #' Check the type of an object using Rcpp

@@ -218,6 +218,8 @@ IntegerVector toCmt(RObject inCmt, CharacterVector state, bool isDvid=false,
   return IntegerVector::create(0);
 }
 
+extern void setFkeep(List keep);
+
 //' Event translation for RxODE
 //'
 //' @param inData Data frame to translate
@@ -231,13 +233,16 @@ IntegerVector toCmt(RObject inCmt, CharacterVector state, bool isDvid=false,
 //'     records to change the cmt value; Useful for multiple-endpoint nlmixr models.  By default
 //'     this is determined by code{option("RxODE.combine.dvid")} and if the option has not been set,
 //'     this is \code{TRUE}. This typically does not affect RxODE simulations.
+//' @param keep This is a named vector of items you want to keep in the final RxODE dataset.
+//'     For added RxODE event records (if seen), last observation carried forward will be used.
 //' @return Object for solving in RxODE
 //' @keywords internal
 //' @export
 //[[Rcpp::export]]
 List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	     bool dropUnits=false, bool allTimeVar=false,
-	     bool keepDosingOnly=false, Nullable<LogicalVector> combineDvid=R_NilValue){
+	     bool keepDosingOnly=false, Nullable<LogicalVector> combineDvid=R_NilValue,
+	     CharacterVector keep = CharacterVector(0)){
   Environment rx = RxODEenv();
   bool combineDvidB = false;
   if (!combineDvid.isNull()){
@@ -290,7 +295,9 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
     // stop("This dataset was prepared for another model.");
   }
   // Translates events + model into translated events
-  CharacterVector lName = clone(as<CharacterVector>(inData.attr("names")));
+  CharacterVector dName = as<CharacterVector>(inData.attr("names"));
+  CharacterVector lName = clone(dName);
+
   int i, idCol = -1, evidCol=-1, timeCol=-1, amtCol=-1, cmtCol=-1,
     dvCol=-1, ssCol=-1, rateCol=-1, addlCol=-1, iiCol=-1, durCol=-1, j,
     mdvCol=-1, dvidCol=-1;
@@ -299,6 +306,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   CharacterVector pars = as<CharacterVector>(mv["params"]);
   std::vector<int> covCol;
   std::vector<int> covParPos;
+  std::vector<int> keepCol;
   std::string tmpS0;
   bool allBolus = true;
   bool allInf = true;
@@ -321,6 +329,12 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
     else if (tmpS == "ii")   iiCol=i;
     else if (tmpS == "mdv") mdvCol=i;
     else if (tmpS == "dvid") dvidCol=i;
+    for (j = keep.size(); j--;){
+      if (as<std::string>(dName[i]) == as<std::string>(keep[j])){
+	keepCol.push_back(i);
+	break;
+      }
+    }
     for (j = pars.size(); j--;){
       // Check lower case
       if (tmpS == as<std::string>(pars[j])){
@@ -463,7 +477,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   IntegerVector inDvid;
   if (dvidCol != -1){
     inDvid = as<IntegerVector>(toCmt(inData[dvidCol], state, true,
-				    state0.size(), stateS.size()));//as<IntegerVector>();
+				     state0.size(), stateS.size()));//as<IntegerVector>();
     inDvid.attr("cmtNames") = R_NilValue;
   }
   int tmpCmt = 1;
@@ -1151,6 +1165,12 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       sub1[1+j] = true;
     }
   }
+  List keepL = List(keepCol.size());
+  CharacterVector keepN(keepCol.size());
+  for (j = 0; j < (int)(keepCol.size()); j++){
+    keepL[j] = NumericVector(idxO.size()-rmAmt);
+    keepN[j] = dName[keepCol[j]];
+  }
 
   IntegerVector ivTmp;
   // Since we removed the -1 in idx, you can get the last id here.
@@ -1193,6 +1213,22 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
       }
       // Now add the other items.
       added=false;
+      for (j = 0; j < (int)(keepCol.size()); j++){
+	nvTmp = as<NumericVector>(keepL[j]);
+	if (idx[idxO[i]] == -1){
+	  // Implement LOCF
+	  if (addId){
+	    nvTmp[jj] = NA_REAL;
+	  } else {
+	    // LOCF
+	    nvTmp[jj] = nvTmp[jj-1];
+	  }
+	} else {
+	  // These keepers are added.
+	  nvTmp2   = as<NumericVector>(inData[keepCol[j]]);
+	  nvTmp[jj] = nvTmp2[idx[idxO[i]]];
+	}
+      }
       for (j = 0; j < (int)(covCol.size()); j++){
 	if (as<std::string>(lName[covCol[j]]) == "cmt"){
 	  ivTmp = as<IntegerVector>(lst[baseSize+j]);
@@ -1327,6 +1363,10 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   e["idLvl"] = idLvl;
   e["allTimeVar"] = allTimeVar;
   e["keepDosingOnly"] = true;
+  keepL.attr("names") = keepN;
+  keepL.attr("class") = CharacterVector::create("data.frame");
+  keepL.attr("row.names") = IntegerVector::create(NA_INTEGER,-idxO.size()+rmAmt);
+  setFkeep(keepL);
   e.attr("class") = "rxHidden";
   cls.attr(".RxODE.lst") = e;
   tmp = lstF[0];
@@ -1341,7 +1381,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
   if (!dropUnits){
     tmp.attr("class") = "factor";
     tmp.attr("levels") = idLvl;
-  }  
+  }
   lstF.attr("names") = nmeF;
   lstF.attr("class") = cls;
   lstF.attr("row.names") = IntegerVector::create(NA_INTEGER,-idxO.size()+rmAmt);

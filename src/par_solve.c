@@ -1685,6 +1685,8 @@ extern int rxGetErrsNcol();
 
 extern double get_ikeep(int col, int id);
 extern const char * get_ikeepn(int col);
+extern double get_fkeep(int col, int id);
+extern const char * get_fkeepn(int col);
 
 extern SEXP RxODE_df(int doDose0, int doTBS){
   rx_solve *rx;
@@ -1694,6 +1696,7 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
   int ncov = op->ncov;
   int ncov0 = rx->nCov0;
   int nkeep0 = rx->nKeep0;
+  int nkeep  = rx->nKeepF;
   int nlhs = op->nlhs;
   int nobs = rx->nobs;
   int nsim = rx->nsim;
@@ -1786,7 +1789,7 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
   // Multiple simulation data?
   int sm = 0;
   if (rx->nsim > 1) sm = 1;
-  int ncols =add_cov*(ncov+ncov0)+nkeep0+1+nPrnState+nlhs;
+  int ncols =add_cov*(ncov+ncov0)+nkeep0+nkeep+1+nPrnState+nlhs;
   int doseCols = 0;
   if (doDose){
     doseCols = 2;
@@ -2186,6 +2189,12 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
 	    dfp = REAL(VECTOR_ELT(df, jj));
 	    dfp[ii] = get_ikeep(j, neq[1]);
 	  }
+	  for (j = 0; j < nkeep; j++){
+	    dfp = REAL(VECTOR_ELT(df, jj));
+	    // is this ntimes = nAllTimes or nObs time for this subject...?
+	    dfp[ii] = get_fkeep(j, i);
+	    jj++;
+	  }
 	  // 
 	  if (doTBS){
 	    dfp = REAL(VECTOR_ELT(df, jj));
@@ -2275,6 +2284,10 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
   }
   for (i = 0; i < nkeep0; i++){
     SET_STRING_ELT(sexp_colnames,jj, mkChar(get_ikeepn(i)));
+    jj++;
+  }
+  for (i = 0; i < nkeep; i++){
+    SET_STRING_ELT(sexp_colnames,jj, mkChar(get_fkeepn(i)));
     jj++;
   }
   if (doTBS){
@@ -2380,6 +2393,11 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
       SET_STRING_ELT(sexp_colnames2,jj, mkChar(get_ikeepn(i)));
       SET_VECTOR_ELT(df2, jj, VECTOR_ELT(df, kk));
       jj++;kk++;
+    }
+    for (i = 0; i < nkeep; i++){
+      SET_STRING_ELT(sexp_colnames2,jj, mkChar(get_fkeepn(i)));
+      SET_VECTOR_ELT(df2, jj, VECTOR_ELT(df, kk));
+      jj++; kk++;
     }
     if (doTBS){
       SET_STRING_ELT(sexp_colnames2, jj, mkChar("rxLambda"));
