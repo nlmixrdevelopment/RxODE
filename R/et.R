@@ -128,6 +128,7 @@ et <- function(x, ..., envir=parent.frame()){
 .pipelineInits    <- NULL
 .pipelineEvents   <- NULL
 .pipelineParams   <- NULL
+.pipelineICov     <- NULL
 .pipelineThetaMat <- NULL
 .pipelineOmega    <- NULL
 .pipelineSigma    <- NULL
@@ -148,6 +149,7 @@ et.rxSolve <- function(x, ..., envir=parent.frame()){
     assignInMyNamespace(".pipelineRx",x$args.object)
     ## 2. RxODE parameters
     assignInMyNamespace(".pipelineParams", x$args.par0);
+    assignInMyNamespace(".pipelineICov", x$args.iCov);
     ## 3. RxODE inits
     assignInMyNamespace(".pipelineInits", x$args.inits);
     ## 4. RxODE thetaMat
@@ -170,6 +172,7 @@ et.rxParams <- function(x,..., envir=parent.frame()){
     ## 1. RxODE model
     ## 2. RxODE parameters
     if (!is.null(x$params)) assignInMyNamespace(".pipelineParams", x$params);
+    if (!is.null(x$iCov)) assignInMyNamespace(".pipelineICov", x$iCov);
     ## 3. RxODE inits
     if (!is.null(x$inits)) assignInMyNamespace(".pipelineInits", x$inits);
     ## 4. RxODE thetaMat

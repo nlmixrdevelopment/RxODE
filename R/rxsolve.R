@@ -25,7 +25,8 @@ rxControl <- function(scale = NULL,
                       from=NULL,
                       to=NULL,
                       by=NULL,
-                      length.out=NULL){
+                      length.out=NULL,
+                      iCov=NULL){
     .xtra <- list(...);
     if (is.null(transitAbs) && !is.null(.xtra$transit_abs)){
         transitAbs <- .xtra$transit_abs;
@@ -150,7 +151,8 @@ rxControl <- function(scale = NULL,
                  from=from,
                  to=to,
                  by=by,
-                 length.out=length.out);
+                 length.out=length.out,
+                 iCov=iCov);
     return(.ret)
 }
 
@@ -175,6 +177,9 @@ rxControl <- function(scale = NULL,
 ##'     (e.g., amounts in each compartment), and the order in this
 ##'     vector must be the same as the state variables (e.g., PK/PD
 ##'     compartments);
+##'
+##' @param iCov A data frame of individual covariates to combine with
+##'     the \code{params} to form a parameter data.frame.
 ##'
 ##' @param scale a numeric named vector with scaling for ode
 ##'     parameters of the system.  The names must correstond to the
@@ -467,6 +472,7 @@ rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, ...)
         assignInMyNamespace(".pipelineInits", NULL)
         assignInMyNamespace(".pipelineEvents", NULL)
         assignInMyNamespace(".pipelineParams", NULL)
+        assignInMyNamespace(".pipelineICov", NULL)
         assignInMyNamespace(".pipelineThetaMat", NULL)
         assignInMyNamespace(".pipelineOmega", NULL)
         assignInMyNamespace(".pipelineSigma", NULL)
@@ -487,9 +493,6 @@ rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, ...)
         }
     } else if (rxIs(object, "rxParams")){
         .applyParams <- TRUE
-        if (!is.null(object$cov) && !is.null(params)){
-            stop("combine cov and params")
-        }
         if (is.null(params) && !is.null(object$params)){
             params <- object$params;
         }
@@ -562,6 +565,9 @@ rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, ...)
     if (!is.null(.pipelineDfSub) && .ctl$dfSub==0){
         .ctl$dfSub <- .pipelineDfSub;
     }
+    if (!is.null(.pipelineICov) && is.null(.ctl$iCov)){
+        .ctl$iCov <- .pipelineICov;
+    }
     if (.applyParams){
         if (!is.null(.rxParams$thetaMat) && is.null(.ctl$thetaMat)){
             .ctl$thetaMat <- .rxParams$thetaMat;
@@ -582,9 +588,25 @@ rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, ...)
                 .ctl$dfObs <- .rxParams$dfObs;
             }
         }
+        if (!is.null(.rxParams$iCov)){
+            if (is.null(.ctl$iCov)){
+                .ctl$iCov <- .rxParams$iCov;
+            }
+        }
     }
-    rxSolve_(object, .ctl, .nms, .xtra,
-             params, events, inits,setupOnly=.setupOnly);
+    if (.ctl$nSub==1 && inherits(.ctl$iCov, "data.frame")){
+        .ctl$nSub <- length(.ctl$iCov[,1])
+    } else if (.ctl$nSub !=1 && .ctl$nStud !=1 && inherits(.ctl$iCov, "data.frame")){
+        if (.ctl$nSub !=length(.ctl$iCov[,1])){
+            stop("'nSub' does not match the number of subjects in iCov");
+        }
+    } else if (.ctl$nSub !=1 && !.ctl$nStud !=1 && inherits(.ctl$iCov, "data.frame")){
+        if (.ctl$nSub*.ctl$nStud !=length(.ctl$iCov[,1])){
+            stop("'nSub'*'nStud' does not match the number of subjects in iCov");
+        }
+    }
+    .ret <- rxSolve_(object, .ctl, .nms, .xtra,
+                     params, events, inits,setupOnly=.setupOnly);
 }
 
 ##' @rdname rxSolve

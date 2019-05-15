@@ -101,5 +101,41 @@ rxPermissive({
         expect_true(is(ps1, "rxSolve"))
     })
 
+    ## Now test iCov
+    popex <- RxODE({
+        TVKA = 0.5;
+        TVCL = 1
+        TVV = 24
+        WT=70
+        CL = exp(log(TVCL) + 0.75*log(WT/70) + ECL);
+        V  = exp(log(TVV)  +      log(WT/70) + EV );
+        KA = exp(log(TVKA)                   + EKA);
+        IPRED = linCmt();
+        DV = IPRED*exp(err);
+    })
+
+    set.seed(99)
+    p1 <- popex %>%
+        rxParams(omega=lotri(ECL ~ 0.3,
+                             EV ~ 0.1,
+                             EKA ~ 0.5),
+                 sigma=lotri(err ~ 0.1),
+                 iCov=data.frame(WT=rnorm(10,70,4))) %>%
+        et(amountUnits="mg", timeUnits="hours") %>%
+        et(amt=100, ii=12, until=48) %>%
+        rxSolve()
+
+    set.seed(99)
+    p2 <- popex %>%
+        et(amountUnits="mg", timeUnits="hours") %>%
+        et(amt=100, ii=12, until=48) %>%
+        rxParams(omega=lotri(ECL ~ 0.3,
+                             EV ~ 0.1,
+                             EKA ~ 0.5),
+                 sigma=lotri(err ~ 0.1),
+                 iCov=data.frame(WT=rnorm(10,70,4))) %>%
+        rxSolve()
+
+    expect_equal(p1, p2)
 
 })

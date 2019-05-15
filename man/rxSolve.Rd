@@ -11,7 +11,6 @@
 \alias{predict.rxParams}
 \alias{simulate.RxODE}
 \alias{simulate.rxSolve}
-\alias{simulate.rxEt}
 \alias{simulate.rxParams}
 \alias{solve.rxSolve}
 \alias{solve.RxODE}
@@ -34,12 +33,13 @@ rxControl(scale = NULL, method = c("liblsoda", "lsoda", "dop853"),
   "data.frame", "data.frame.TBS"), seed = NULL, nsim = NULL,
   minSS = 7, maxSS = 70000, atolSS = 1e-09, rtolSS = 1e-09,
   params = NULL, events = NULL, istateReset = TRUE,
-  subsetNonmem = TRUE, linLog = FALSE, maxAtolRtolFactor = 0.1)
+  subsetNonmem = TRUE, linLog = FALSE, maxAtolRtolFactor = 0.1,
+  from = NULL, to = NULL, by = NULL, length.out = NULL)
 
 rxSolve(object, ...)
 
 \method{rxSolve}{default}(object, params = NULL, events = NULL,
-  inits = NULL, ...)
+  inits = NULL, iCov = NULL, ...)
 
 \method{update}{rxSolve}(object, ...)
 
@@ -54,8 +54,6 @@ rxSolve(object, ...)
 \method{simulate}{RxODE}(object, nsim = 1L, seed = NULL, ...)
 
 \method{simulate}{rxSolve}(object, nsim = 1L, seed = NULL, ...)
-
-\method{simulate}{rxEt}(object, nsim = 1L, seed = NULL, ...)
 
 \method{simulate}{rxParams}(object, nsim = 1L, seed = NULL, ...)
 
@@ -345,6 +343,9 @@ model specification.}
 (e.g., amounts in each compartment), and the order in this
 vector must be the same as the state variables (e.g., PK/PD
 compartments);}
+
+\item{iCov}{A data frame of individual covariates to combine with
+the \code{params} to form a parameter data.frame.}
 
 \item{a}{when using \code{solve}, this is equivalent to the
 \code{object} argument.  If you specify \code{object} later in

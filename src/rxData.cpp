@@ -2836,9 +2836,33 @@ SEXP rxSolve_(const RObject &obj,
 	  }
 	}
       }
-
-      par1 =  as<RObject>(rxSimThetaOmega(as<Nullable<NumericVector>>(par1), omega, omegaDf, omegaIsChol, nSub0, thetaMat, thetaDf, thetaIsChol, nStud,
-                                          sigma, sigmaDf, sigmaIsChol, nCoresRV, curObs, dfSub, dfObs, simSubjects));
+      List lst = rxSimThetaOmega(as<Nullable<NumericVector>>(par1), omega, omegaDf, omegaIsChol,
+				 nSub0, thetaMat, thetaDf, thetaIsChol, nStud,
+				 sigma, sigmaDf, sigmaIsChol, nCoresRV, curObs,
+				 dfSub, dfObs, simSubjects);
+      RObject iCov = rxControl["iCov"];
+      List lstF;
+      if (rxIs(iCov, "NULL")){
+	lstF = lst;
+      } else {
+	List lstT=as<List>(iCov);
+	lstF = List(lst.size()+lstT.size());
+	CharacterVector nmF(lstF.size());
+	CharacterVector nmL = lst.attr("names");
+	CharacterVector nmT = lstT.attr("names");
+	for (int ii = lst.size(); ii--;){
+	  lstF[ii] = lst[ii];
+	  nmF[ii] = nmL[ii];
+	}
+	for (int ii=lstT.size(); ii--;){
+	  lstF[ii+lst.size()] = lstT[ii];
+	  nmF[ii+lst.size()] = nmT[ii];
+	}
+	lstF.attr("names") = nmF;
+	lstF.attr("class") = "data.frame";
+	lstF.attr("row.names") = lst.attr("row.names");
+      }
+      par1 =  as<RObject>(lstF);
       usePar1=true;
       
       // The parameters are in the same format as they would be if they were specified as part of the original dataset.
@@ -3529,6 +3553,7 @@ SEXP rxSolve_(const RObject &obj,
       e["args.object"] = object;
       e["dll"] = rxDll(object);
       e["args.par0"] = par1ini;
+      e["args.iCov"] = rxControl["iCov"];
       if (!swappedEvents){
 	if (usePar1){
           e["args.params"] = par1;

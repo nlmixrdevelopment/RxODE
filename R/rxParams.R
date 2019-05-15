@@ -25,12 +25,12 @@ rxParams <- function(obj, ...){
 ##' @export
 rxParams.RxODE <- function(obj, constants=TRUE, ...,
                            cov=NULL,
-                           params=NULL, inits=NULL,
+                           params=NULL, inits=NULL, iCov=NULL,
                            thetaMat = NULL,
                            omega = NULL, dfSub = NULL,
                            sigma=NULL, dfObs = NULL){
     .ret <- list(cov=cov,
-                 params=params, inits=inits,
+                 params=params, inits=inits, iCov=iCov,
                  thetaMat = thetaMat,
                  omega = omega, dfSub = dfSub,
                  sigma=sigma, dfObs = dfObs);
@@ -49,12 +49,12 @@ rxParams.RxODE <- function(obj, constants=TRUE, ...,
 ##' @export
 rxParams.rxSolve <- function(obj, constants=TRUE, ...,
                              cov=NULL,
-                             params=NULL, inits=NULL,
+                             params=NULL, inits=NULL, iCov=NULL,
                              thetaMat = NULL,
                              omega = NULL, dfSub = NULL,
                              sigma=NULL, dfObs = NULL){
     .ret <- list(cov=cov,
-                 params=params, inits=inits,
+                 params=params, inits=inits, iCov=iCov,
                  thetaMat = thetaMat,
                  omega = omega, dfSub = dfSub,
                  sigma=sigma, dfObs = dfObs);
@@ -72,6 +72,7 @@ rxParams.rxSolve <- function(obj, constants=TRUE, ...,
         assignInMyNamespace(".pipelineEvents", .x$args.events)
         ## 2. RxODE parameters
         assignInMyNamespace(".pipelineParams", .x$args.par0);
+        assignInMyNamespace(".pipelineICov", .x$args.iCov);
         ## 3. RxODE inits
         assignInMyNamespace(".pipelineInits", .x$args.inits);
         ## 4. RxODE thetaMat
@@ -93,16 +94,16 @@ rxParams.rxSolve <- function(obj, constants=TRUE, ...,
 ##' @export
 rxParams.rxEt <- function(obj, ...,
                           cov=NULL,
-                          params=NULL, inits=NULL,
+                          params=NULL, inits=NULL, iCov=NULL,
                           thetaMat = NULL,
                           omega = NULL, dfSub = NULL,
-                          dfObs = NULL){
+                          sigma=NULL, dfObs = NULL){
     # et() %>% rxParams() %>%
     assignInMyNamespace(".pipelineEvents", obj);
     .ret <- list(cov=cov,
-                 params=params, inits=inits,
+                 params=params, inits=inits, iCov=iCov,
                  thetaMat = thetaMat, omega = omega, dfSub = dfSub,
-                 dfObs = dfObs);
+                 sigma=sigma, dfObs = dfObs);
     class(.ret) <- "rxParams"
     return(.ret)
 }
@@ -117,7 +118,7 @@ rxParams.default <- function(obj,..., constants=TRUE){
         return(.ret);
     } else {
         .lst <- list(...);
-        .nm <- c("cov", "params", "inits",
+        .nm <- c("cov", "params", "inits", "iCov",
                  "thetaMat",
                  "omega", "dfSub",
                  "sigma", "dfObs")
