@@ -398,12 +398,6 @@ rxControl <- function(scale = NULL,
 ##'     \code{subsetNonmem=FALSE} RxODE will also extra event types
 ##'     (\code{EVID}) for ending infusion and modeled times:
 ##'
-##' @param keep Columns to keep from either the input dataset or the
-##'     \code{iCov} dataset.  With the \code{iCov} dataset, the column
-##'     is kept once per line.  For the input dataset, if any records
-##'     are added to the data LOCF (Last Observation Carried forward)
-##'     imputation is performed.
-##'
 ##' \itemize{
 ##'
 ##' \item \code{EVID=-1} when the modeled rate infusions are turned
@@ -443,6 +437,13 @@ rxControl <- function(scale = NULL,
 ##'
 ##' @param by When there are no observations in the event table, this
 ##'     is the amount to increment for the observations between `from` and `to`.
+##'
+##' @param keep Columns to keep from either the input dataset or the
+##'     \code{iCov} dataset.  With the \code{iCov} dataset, the column
+##'     is kept once per line.  For the input dataset, if any records
+##'     are added to the data LOCF (Last Observation Carried forward)
+##'     imputation is performed.
+##'
 ##'
 ##' @return An \dQuote{rxSolve} solve object that stores the solved
 ##'     value in a matrix with as many rows as there are sampled time
@@ -494,6 +495,7 @@ rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, ...)
         assignInMyNamespace(".pipelineEvents", NULL)
         assignInMyNamespace(".pipelineParams", NULL)
         assignInMyNamespace(".pipelineICov", NULL)
+        assignInMyNamespace(".pipelineKeep", NULL)
         assignInMyNamespace(".pipelineThetaMat", NULL)
         assignInMyNamespace(".pipelineOmega", NULL)
         assignInMyNamespace(".pipelineSigma", NULL)
@@ -589,6 +591,9 @@ rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, ...)
     if (!is.null(.pipelineICov) && is.null(.ctl$iCov)){
         .ctl$iCov <- .pipelineICov;
     }
+    if (!is.null(.pipelineKeep) && is.null(.ctl$keep)){
+        .ctl$keep <- .pipelineKeep;
+    }
     if (.applyParams){
         if (!is.null(.rxParams$thetaMat) && is.null(.ctl$thetaMat)){
             .ctl$thetaMat <- .rxParams$thetaMat;
@@ -612,6 +617,11 @@ rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, ...)
         if (!is.null(.rxParams$iCov)){
             if (is.null(.ctl$iCov)){
                 .ctl$iCov <- .rxParams$iCov;
+            }
+        }
+        if (!is.null(.rxParams$keep)){
+            if (is.null(.ctl$keep)){
+                .ctl$keep <- .rxParams$keep;
             }
         }
     }

@@ -1,5 +1,5 @@
 rxPermissive({
-    context("seq tests")
+    context("seq test for rxSolve")
     test_that("seq tests", {
 
         m1 <-RxODE({
@@ -47,6 +47,27 @@ rxPermissive({
         expect_error(rxSolve(m1, ev,from=1, to=10:11, by=0.5), "'to'")
         expect_error(rxSolve(m1, ev,from=1, to=10, by=c(0.5,1)), "'by'")
         expect_error(rxSolve(m1, ev,from=1, to=10, length.out=10:11), "'length.out'")
+    })
+
+    context("seq test for et")
+    test_that("et seq", {
+
+        expect_error(et(1,2,3))
+        expect_equal(et(1,10)$time,seq(1,10))
+        expect_equal(et(1)$time,seq(1))
+        expect_equal(et(1,length.out=4)$time,seq(1,length.out=4))
+        expect_equal(et(1,by=0.1)$time,seq(1,length.out=0.1))
+        expect_equal(et(1,10,by=0.1)$time,seq(1,10,by=0.1))
+        expect_equal(et(1,10,length.out=7)$time,seq(1,10,length.out=7))
+
+        expect_error(et(0.5) %>% et(1,2,3))
+        expect_equal((et(0.5) %>% et(1, 10))$time, c(0.5, seq(1, 10)))
+        expect_equal((et(0.5) %>% et(1))$time, c(0.5, seq(1)))
+        expect_equal((et(0.5) %>% et(1, length.out=4))$time, c(0.5, seq(1, length.out=4)))
+        expect_equal((et(0.5) %>% et(1, by=0.1))$time, c(0.5, seq(1, by=0.1)))
+        expect_equal((et(0.5) %>% et(1, 10, by=0.1))$time, c(0.5, seq(1, 10, by=0.1)))
+        expect_equal((et(0.5) %>% et(1, 10, length.out=7))$time, c(0.5, seq(1, 10, length.out=7)))
+
     })
 })
 

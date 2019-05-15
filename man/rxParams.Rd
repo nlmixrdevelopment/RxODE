@@ -11,16 +11,16 @@
 rxParams(obj, ...)
 
 \method{rxParams}{RxODE}(obj, constants = TRUE, ..., params = NULL,
-  inits = NULL, iCov = NULL, thetaMat = NULL, omega = NULL,
-  dfSub = NULL, sigma = NULL, dfObs = NULL)
+  inits = NULL, iCov = NULL, keep = keep, thetaMat = NULL,
+  omega = NULL, dfSub = NULL, sigma = NULL, dfObs = NULL)
 
 \method{rxParams}{rxSolve}(obj, constants = TRUE, ..., params = NULL,
-  inits = NULL, iCov = NULL, thetaMat = NULL, omega = NULL,
-  dfSub = NULL, sigma = NULL, dfObs = NULL)
+  inits = NULL, iCov = NULL, keep = NULL, thetaMat = NULL,
+  omega = NULL, dfSub = NULL, sigma = NULL, dfObs = NULL)
 
 \method{rxParams}{rxEt}(obj, ..., params = NULL, inits = NULL,
-  iCov = NULL, thetaMat = NULL, omega = NULL, dfSub = NULL,
-  sigma = NULL, dfObs = NULL)
+  iCov = NULL, keep = NULL, thetaMat = NULL, omega = NULL,
+  dfSub = NULL, sigma = NULL, dfObs = NULL)
 
 rxParam(obj, ...)
 }
@@ -49,6 +49,31 @@ compartments);}
 \item{iCov}{A data frame of individual non-time varying covariates
 to combine with the \code{params} to form a parameter
 data.frame.}
+
+\item{keep}{Columns to keep from either the input dataset or the
+    \code{iCov} dataset.  With the \code{iCov} dataset, the column
+    is kept once per line.  For the input dataset, if any records
+    are added to the data LOCF (Last Observation Carried forward)
+    imputation is performed.
+
+\itemize{
+
+\item \code{EVID=-1} when the modeled rate infusions are turned
+off (matches \code{rate=-1})
+
+\item \code{EVID=-2} When the modeled duration infusions are
+turned off (matches \code{rate=-2})
+
+\item \code{EVID=-10} When the specified \code{rate} infusions are
+turned off (matches \code{rate>0})
+
+\item \code{EVID=-20} When the specified \code{dur} infusions are
+turned off (matches \code{dur>0})
+
+\item \code{EVID=101,102,103,...} Modeled time where 101 is the
+first model time, 102 is the second etc.
+
+}}
 
 \item{thetaMat}{Named theta matrix.}
 

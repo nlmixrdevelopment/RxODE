@@ -25,10 +25,11 @@ rxParams <- function(obj, ...){
 ##' @export
 rxParams.RxODE <- function(obj, constants=TRUE, ...,
                            params=NULL, inits=NULL, iCov=NULL,
+                           keep=NULL,
                            thetaMat = NULL,
                            omega = NULL, dfSub = NULL,
                            sigma=NULL, dfObs = NULL){
-    .ret <- list(params=params, inits=inits, iCov=iCov,
+    .ret <- list(params=params, inits=inits, iCov=iCov, keep=keep,
                  thetaMat = thetaMat,
                  omega = omega, dfSub = dfSub,
                  sigma=sigma, dfObs = dfObs);
@@ -47,10 +48,11 @@ rxParams.RxODE <- function(obj, constants=TRUE, ...,
 ##' @export
 rxParams.rxSolve <- function(obj, constants=TRUE, ...,
                              params=NULL, inits=NULL, iCov=NULL,
+                             keep=NULL,
                              thetaMat = NULL,
                              omega = NULL, dfSub = NULL,
                              sigma=NULL, dfObs = NULL){
-    .ret <- list(params=params, inits=inits, iCov=iCov,
+    .ret <- list(params=params, inits=inits, iCov=iCov, keep=keep,
                  thetaMat = thetaMat,
                  omega = omega, dfSub = dfSub,
                  sigma=sigma, dfObs = dfObs);
@@ -90,12 +92,13 @@ rxParams.rxSolve <- function(obj, constants=TRUE, ...,
 ##' @export
 rxParams.rxEt <- function(obj, ...,
                           params=NULL, inits=NULL, iCov=NULL,
+                          keep=NULL,
                           thetaMat = NULL,
                           omega = NULL, dfSub = NULL,
                           sigma=NULL, dfObs = NULL){
     # et() %>% rxParams() %>%
     assignInMyNamespace(".pipelineEvents", obj);
-    .ret <- list(params=params, inits=inits, iCov=iCov,
+    .ret <- list(params=params, inits=inits, iCov=iCov, keep=keep,
                  thetaMat = thetaMat, omega = omega, dfSub = dfSub,
                  sigma=sigma, dfObs = dfObs);
     class(.ret) <- "rxParams"
@@ -112,7 +115,7 @@ rxParams.default <- function(obj,..., constants=TRUE){
         return(.ret);
     } else {
         .lst <- list(...);
-        .nm <- c("cov", "params", "inits", "iCov",
+        .nm <- c("cov", "params", "inits", "iCov", "keep",
                  "thetaMat",
                  "omega", "dfSub",
                  "sigma", "dfObs")

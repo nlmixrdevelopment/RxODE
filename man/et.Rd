@@ -17,7 +17,8 @@ et(x, ..., envir = parent.frame())
 \method{et}{rxParams}(x, ..., envir = parent.frame())
 
 \method{et}{default}(x, ..., time, amt, evid, cmt, ii, addl, ss, rate, dur,
-  until, id, amountUnits, timeUnits, addSampling, envir = parent.frame())
+  until, id, amountUnits, timeUnits, addSampling, envir = parent.frame(),
+  by = NULL, length.out = NULL)
 }
 \arguments{
 \item{x}{This is the first argument supplied to the event table.
@@ -141,6 +142,12 @@ negative IDs in this vector will be removed.}
 \item{addSampling}{This is a boolean indicating if a sampling time
 should be added at the same time as a dosing time.  By default
 this is \code{FALSE}.}
+
+\item{by}{When there are no observations in the event table, this
+is the amount to increment for the observations between `from` and `to`.}
+
+\item{length.out}{The number of observations to create if there
+isn't any observations in the event table. By default this is 200.}
 }
 \value{
 A new event table

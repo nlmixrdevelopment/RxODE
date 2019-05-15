@@ -119,6 +119,7 @@
 ##'     with arbitrary objects.
 ##'
 ##' @inheritParams base::eval
+##' @inheritParams rxSolve
 ##' @return A new event table
 ##'
 ##' @template etExamples
@@ -133,6 +134,7 @@ et <- function(x, ..., envir=parent.frame()){
 .pipelineEvents   <- NULL
 .pipelineParams   <- NULL
 .pipelineICov     <- NULL
+.pipelineKeep     <- NULL
 .pipelineThetaMat <- NULL
 .pipelineOmega    <- NULL
 .pipelineSigma    <- NULL
@@ -154,6 +156,7 @@ et.rxSolve <- function(x, ..., envir=parent.frame()){
     ## 2. RxODE parameters
     assignInMyNamespace(".pipelineParams", x$args.par0);
     assignInMyNamespace(".pipelineICov", x$args$iCov);
+    assignInMyNamespace(".pipelineKeep", x$args$keep);
     ## 3. RxODE inits
     assignInMyNamespace(".pipelineInits", x$args.inits);
     ## 4. RxODE thetaMat
@@ -177,6 +180,7 @@ et.rxParams <- function(x,..., envir=parent.frame()){
     ## 2. RxODE parameters
     if (!is.null(x$params)) assignInMyNamespace(".pipelineParams", x$params);
     if (!is.null(x$iCov)) assignInMyNamespace(".pipelineICov", x$iCov);
+    if (!is.null(x$keep)) assignInMyNamespace(".pipelineKeep", x$keep);
     ## 3. RxODE inits
     if (!is.null(x$inits)) assignInMyNamespace(".pipelineInits", x$inits);
     ## 4. RxODE thetaMat
@@ -195,11 +199,116 @@ et.rxParams <- function(x,..., envir=parent.frame()){
 ##'@rdname et
 ##'@export
 et.default <- function(x,...,time, amt, evid, cmt, ii, addl, ss, rate, dur, until, id,
-                       amountUnits, timeUnits, addSampling, envir=parent.frame()){
+                       amountUnits, timeUnits, addSampling, envir=parent.frame(),
+                       by=NULL, length.out=NULL){
     .lst <- as.list(match.call()[-1]);
+
+    .isPipe <- as.character(substitute(x));
+    if (length(.isPipe)==1) {
+        .isPipe <- (.isPipe==".");
+    } else {
+        .isPipe <- FALSE
+    }
     if (!missing(x)){
         names(.lst)[1] <- "";
     }
+    if (!missing(by)){
+        if (!missing(length.out)){
+            stop("Cannot supply 'by' and 'length.out', only use one.");
+        }
+        .lst <- .lst[names(.lst) != "by"];
+        .lst <- .lst[names(.lst) != "envir"];
+        if (.isPipe){
+            if (length(.lst)==3){
+                .from <- .lst[[2]];
+                .to <- .lst[[3]];
+                .lst <- .lst[-3];
+                .lst[[2]] <- seq(from=.from, to=.to, by=by);
+                return(do.call(et.default, .lst, envir=envir))
+            } else {
+                .from <- .lst[[2]];
+                .lst[[2]] <- seq(from=.from, by=by);
+                return(do.call(et.default, .lst, envir=envir))
+            }
+        } else {
+            if (length(.lst)==2){
+                .from <- .lst[[1]];
+                .to <- .lst[[2]];
+                .lst <- .lst[-2];
+                .lst[[1]] <- seq(from=.from, to=.to, by=by);
+                return(do.call(et.default, .lst, envir=envir))
+            } else {
+                .from <- .lst[[1]];
+                .lst[[1]] <- seq(from=.from, by=by);
+                return(do.call(et.default, .lst, envir=envir))
+            }
+        }
+    }
+    if (!missing(length.out)){
+        .lst <- .lst[names(.lst) != "length.out"];
+        .lst <- .lst[names(.lst) != "envir"];
+        if (.isPipe){
+            if (length(.lst)==3){
+                .from <- .lst[[2]];
+                .to <- .lst[[3]];
+                .lst <- .lst[-3];
+                .lst[[2]] <- seq(from=.from, to=.to, length.out=length.out);
+                return(do.call(et.default, .lst, envir=envir))
+            } else {
+                .from <- .lst[[2]];
+                .lst[[2]] <- seq(from=.from, length.out=length.out);
+                return(do.call(et.default, .lst, envir=envir))
+            }
+        } else {
+            if (length(.lst)==2){
+                .from <- .lst[[1]];
+                .to <- .lst[[2]];
+                .lst <- .lst[-2];
+                .lst[[1]] <- seq(from=.from, to=.to, length.out=length.out);
+                return(do.call(et.default, .lst, envir=envir))
+            } else {
+                .from <- .lst[[1]];
+                .lst[[1]] <- seq(from=.from, length.out=length.out);
+                return(do.call(et.default, .lst, envir=envir))
+            }
+        }
+    }
+    if (!.isPipe){
+        if (all(names(.lst)=="") && length(.lst)==2){
+            if ((is(.lst[[1]], "numeric") || is(.lst[[1]], "integer")) &&
+                (is(.lst[[2]], "numeric") || is(.lst[[2]], "integer"))){
+                .from <- .lst[[1]];
+                .to <- .lst[[2]];
+                .lst <- .lst[-2];
+                .lst[[1]] <- seq(from=.from, to=.to);
+                return(do.call(et.default, .lst, envir=envir))
+            }
+        }
+        .len <- sum(names(.lst)=="");
+        if (.len==2 && is(.lst[[2]], "character")){
+        } else if (.len > 1){
+            stop("Improper arguments to et(); Can be like seq or call out dosing elements.")
+        }
+    } else {
+        if (all(names(.lst)[-1]=="") && length(.lst)==3){
+            if ((is(.lst[[2]], "numeric") || is(.lst[[2]], "integer")) &&
+                (is(.lst[[3]], "numeric") || is(.lst[[3]], "integer"))){
+                .from <- .lst[[2]];
+                .to <- .lst[[3]];
+                .lst <- .lst[-3];
+                .lst[[2]] <- seq(from=.from, to=.to);
+                return(do.call(et.default, .lst, envir=envir))
+            }
+        }
+        .len <- sum(names(.lst)[-1]=="");
+        if (.len==2 && is(.lst[[3]], "character")){
+        } else if (.len > 1){
+            if (sum(names(.lst)[-1]=="") > 1){
+                stop("Improper arguments to et(); Can be like seq or call out dosing elements.")
+            }
+        }
+    }
+
     if (!missing(time)){
         .lst$time <- time;
     }
