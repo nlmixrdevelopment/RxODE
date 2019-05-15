@@ -72,7 +72,7 @@ rxParams.rxSolve <- function(obj, constants=TRUE, ...,
         assignInMyNamespace(".pipelineEvents", .x$args.events)
         ## 2. RxODE parameters
         assignInMyNamespace(".pipelineParams", .x$args.par0);
-        assignInMyNamespace(".pipelineICov", .x$args.iCov);
+        assignInMyNamespace(".pipelineICov", .x$args$iCov);
         ## 3. RxODE inits
         assignInMyNamespace(".pipelineInits", .x$args.inits);
         ## 4. RxODE thetaMat

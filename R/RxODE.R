@@ -536,8 +536,8 @@ RxODE <- function(model, modName = basename(wd),
                 get.modelVars = eval(bquote(function(){with(.(.env), get.modelVars())})),
                 delete = eval(bquote(function(){with(.(.env), delete())})),
                 get.index = eval(bquote(function(...){with(.(.env), get.index(...))})),
-                extraC        = .env$extraC,
-                .rxDll         = .env$rxDll,
+                extraC    = .env$extraC,
+                .rxDll    = .env$rxDll,
                 rxDll=eval(bquote(function(){with(.(.env), return(rxDll))})));
     tmp <- list2env(tmp, parent=.env);
     class(tmp) <- "RxCompilationManager"

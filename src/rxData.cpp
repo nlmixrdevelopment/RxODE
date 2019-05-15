@@ -3553,7 +3553,6 @@ SEXP rxSolve_(const RObject &obj,
       e["args.object"] = object;
       e["dll"] = rxDll(object);
       e["args.par0"] = par1ini;
-      e["args.iCov"] = rxControl["iCov"];
       if (!swappedEvents){
 	if (usePar1){
           e["args.params"] = par1;
