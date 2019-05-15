@@ -20,7 +20,7 @@ rxParams(obj, ...)
 
 \method{rxParams}{rxEt}(obj, ..., cov = NULL, params = NULL,
   inits = NULL, iCov = NULL, thetaMat = NULL, omega = NULL,
-  dfSub = NULL, dfObs = NULL)
+  dfSub = NULL, sigma = NULL, dfObs = NULL)
 
 rxParam(obj, ...)
 }
@@ -46,8 +46,9 @@ parameter identifiers used in the ODE specification;}
 vector must be the same as the state variables (e.g., PK/PD
 compartments);}
 
-\item{iCov}{A data frame of individual covariates to combine with
-the \code{params} to form a parameter data.frame.}
+\item{iCov}{A data frame of individual non-time varying covariates
+to combine with the \code{params} to form a parameter
+data.frame.}
 
 \item{thetaMat}{Named theta matrix.}
 

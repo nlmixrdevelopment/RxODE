@@ -178,8 +178,9 @@ rxControl <- function(scale = NULL,
 ##'     vector must be the same as the state variables (e.g., PK/PD
 ##'     compartments);
 ##'
-##' @param iCov A data frame of individual covariates to combine with
-##'     the \code{params} to form a parameter data.frame.
+##' @param iCov A data frame of individual non-time varying covariates
+##'     to combine with the \code{params} to form a parameter
+##'     data.frame.
 ##'
 ##' @param scale a numeric named vector with scaling for ode
 ##'     parameters of the system.  The names must correstond to the

@@ -34,12 +34,13 @@ rxControl(scale = NULL, method = c("liblsoda", "lsoda", "dop853"),
   minSS = 7, maxSS = 70000, atolSS = 1e-09, rtolSS = 1e-09,
   params = NULL, events = NULL, istateReset = TRUE,
   subsetNonmem = TRUE, linLog = FALSE, maxAtolRtolFactor = 0.1,
-  from = NULL, to = NULL, by = NULL, length.out = NULL)
+  from = NULL, to = NULL, by = NULL, length.out = NULL,
+  iCov = NULL)
 
 rxSolve(object, ...)
 
 \method{rxSolve}{default}(object, params = NULL, events = NULL,
-  inits = NULL, iCov = NULL, ...)
+  inits = NULL, ...)
 
 \method{update}{rxSolve}(object, ...)
 
@@ -335,6 +336,10 @@ default this is off (\code{FALSE})}
 \item{maxAtolRtolFactor}{The maximum atol/rtol that FOCEi and
 other routines may adjust to.  By default 0.1}
 
+\item{iCov}{A data frame of individual non-time varying covariates
+to combine with the \code{params} to form a parameter
+data.frame.}
+
 \item{object}{is a either a RxODE family of objects, or a file-name
 with a RxODE model specification, or a string with a RxODE
 model specification.}
@@ -343,9 +348,6 @@ model specification.}
 (e.g., amounts in each compartment), and the order in this
 vector must be the same as the state variables (e.g., PK/PD
 compartments);}
-
-\item{iCov}{A data frame of individual covariates to combine with
-the \code{params} to form a parameter data.frame.}
 
 \item{a}{when using \code{solve}, this is equivalent to the
 \code{object} argument.  If you specify \code{object} later in
