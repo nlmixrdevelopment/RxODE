@@ -138,4 +138,16 @@ rxPermissive({
 
     expect_equal(p1, p2)
 
+
+    ## Test parameters as a vector only with iCov
+    set.seed(99)
+    p1 <- popex %>%
+        rxParams(params=c(ECL=0, EV=0, EKA=0, err=0),
+                 iCov=data.frame(WT=rnorm(10,70,4))) %>%
+        et(amountUnits="mg", timeUnits="hours") %>%
+        et(amt=100, ii=12, until=48) %>%
+        rxSolve()
+
+    expect_true(!any(duplicated(p1$params$WT)))
+
 })

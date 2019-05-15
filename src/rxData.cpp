@@ -2840,29 +2840,7 @@ SEXP rxSolve_(const RObject &obj,
 				 nSub0, thetaMat, thetaDf, thetaIsChol, nStud,
 				 sigma, sigmaDf, sigmaIsChol, nCoresRV, curObs,
 				 dfSub, dfObs, simSubjects);
-      RObject iCov = rxControl["iCov"];
-      List lstF;
-      if (rxIs(iCov, "NULL")){
-	lstF = lst;
-      } else {
-	List lstT=as<List>(iCov);
-	lstF = List(lst.size()+lstT.size());
-	CharacterVector nmF(lstF.size());
-	CharacterVector nmL = lst.attr("names");
-	CharacterVector nmT = lstT.attr("names");
-	for (int ii = lst.size(); ii--;){
-	  lstF[ii] = lst[ii];
-	  nmF[ii] = nmL[ii];
-	}
-	for (int ii=lstT.size(); ii--;){
-	  lstF[ii+lst.size()] = lstT[ii];
-	  nmF[ii+lst.size()] = nmT[ii];
-	}
-	lstF.attr("names") = nmF;
-	lstF.attr("class") = "data.frame";
-	lstF.attr("row.names") = lst.attr("row.names");
-      }
-      par1 =  as<RObject>(lstF);
+      par1 =  as<RObject>(lst);
       usePar1=true;
       
       // The parameters are in the same format as they would be if they were specified as part of the original dataset.
@@ -2890,12 +2868,67 @@ SEXP rxSolve_(const RObject &obj,
       } else {
         stop("If parameters are not named, they must match the order and size of the parameters in the model.");
       }
+      RObject iCov = rxControl["iCov"];
+      if (!rxIs(iCov, "NULL")){
+	// Create a data frame
+	List lstT=as<List>(iCov);
+	parDf = as<DataFrame>(iCov);
+	int nr = parDf.nrows();
+	List lstF(parNumeric.size()+lstT.size());
+	CharacterVector nmF(lstF.size());
+	CharacterVector nmL = nmP;
+	CharacterVector nmT = lstT.attr("names");
+	for (int ii = parNumeric.size(); ii--;){
+	  NumericVector tmp(nr);
+	  std::fill_n(tmp.begin(), nr, parNumeric[ii]);
+	  lstF[ii] = tmp;
+	  nmF[ii] = nmL[ii];
+	}
+	for (int ii=lstT.size(); ii--;){
+	  lstF[ii+parNumeric.size()] = lstT[ii];
+	  nmF[ii+parNumeric.size()] = nmT[ii];
+	}
+	lstF.attr("names") = nmF;
+	lstF.attr("class") = "data.frame";
+	lstF.attr("row.names") = lstT.attr("row.names");
+	par1 = as<RObject>(lstF);
+	parDf = as<DataFrame>(par1);
+	parType = 2;
+	nmP = parDf.names();
+	nPopPar = parDf.nrows();
+	usePar1=true;
+      }
     } else if (rxIs(par1, "data.frame")){
+      RObject iCov = rxControl["iCov"];
+      if (!rxIs(iCov, "NULL")){
+	List lstT=as<List>(iCov);
+	List lst = as<List>(par1);
+	List lstF(lst.size()+lstT.size());
+	CharacterVector nmF(lstF.size());
+	CharacterVector nmL = lst.attr("names");
+	CharacterVector nmT = lstT.attr("names");
+	for (int ii = lst.size(); ii--;){
+	  lstF[ii] = lst[ii];
+	  nmF[ii] = nmL[ii];
+	}
+	for (int ii=lstT.size(); ii--;){
+	  lstF[ii+lst.size()] = lstT[ii];
+	  nmF[ii+lst.size()] = nmT[ii];
+	}
+	lstF.attr("names") = nmF;
+	lstF.attr("class") = "data.frame";
+	lstF.attr("row.names") = lst.attr("row.names");
+	par1 = as<RObject>(lstF);
+      }
       parDf = as<DataFrame>(par1);
       parType = 2;
       nmP = parDf.names();
       nPopPar = parDf.nrows();
     } else if (rxIs(par1, "matrix")){
+      RObject iCov = rxControl["iCov"];
+      if (!rxIs(iCov, "NULL")){
+	stop("matrix parameters with iCov data frame is not supported.");
+      }
       parMat = as<NumericMatrix>(par1);
       nPopPar = parMat.nrow();
       parType = 3;
