@@ -626,6 +626,8 @@ rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, ...)
             stop("'nSub'*'nStud' does not match the number of subjects in iCov");
         }
     }
+    .keepI <- character(0)
+    .keepF <- character(0)
     if (!is.null(.ctl$keep)){
         .mv <- rxModelVars(object);
         .vars <- c(.mv$lhs, .mv$state);
@@ -633,12 +635,7 @@ rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, ...)
         if (!is.null(.ctl$iCov)){
             .keepI <- intersect(.keepF, names(.ctl$iCov));
             .keepF <- setdiff(.keepF, .keepI);
-        } else {
-            .keepI <- character(0);
         }
-    } else {
-        .keepI <- character(0)
-        .keepF <- character(0)
     }
     .ctl$keepI <- .keepI
     .ctl$keepF <- .keepF

@@ -331,6 +331,7 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
     else if (tmpS == "dvid") dvidCol=i;
     for (j = keep.size(); j--;){
       if (as<std::string>(dName[i]) == as<std::string>(keep[j])){
+	if (tmpS == "evid") stop("Cannot keep 'evid'; try 'addDosing'");
 	keepCol.push_back(i);
 	break;
       }
