@@ -104,15 +104,20 @@ rxParams.rxEt <- function(obj, ...,
     class(.ret) <- "rxParams"
     return(.ret)
 }
+
+.rxParams <- function(obj, constants=TRUE){
+    .ret <- rxParams_(obj)
+    if (!constants){
+        .init <- RxODE::rxInit(obj);
+        .ret <- .ret[!(.ret %in% names(.init))]
+    }
+    return(.ret);
+
+}
 ##' @export
 rxParams.default <- function(obj,..., constants=TRUE){
     if (!missing(obj)){
-        .ret <- rxParams_(obj)
-        if (!constants){
-            .init <- RxODE::rxInit(obj);
-            .ret <- .ret[!(.ret %in% names(.init))]
-        }
-        return(.ret);
+        return(.rxParams(obj, constants));
     } else {
         .lst <- list(...);
         .nm <- c("cov", "params", "inits", "iCov", "keep",

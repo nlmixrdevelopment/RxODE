@@ -155,7 +155,7 @@ shiny::column(width = 7,
 
                     values$m1<-RxODE(model = input$ode, wd = tmp)
                     values$cmts = rxState(values$m1)
-                    values$pars = rxParams(values$m1)
+                    values$pars = .rxParams(values$m1)
 
                 }, error = function(e) return(e))
             )

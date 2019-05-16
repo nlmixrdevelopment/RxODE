@@ -405,7 +405,7 @@ rxSymPyVars <- function(model){
         } else if (rxIs(model,"character") && length(model) == 1 && regexpr(rex::rex(or("=", "<-", "~")), model) == -1){
             vars <- model;
         } else {
-            vars <- c(rxParams(model),
+            vars <- c(.rxParams(model),
                       rxState(model),
                       "podo", "t", "time", "tlast",
                       "rx__PTR__", "rx1c",
@@ -568,7 +568,7 @@ rxSymPyDfDy <- function(model, df, dy, vars=FALSE){
 rxSymPyDfDyFull <- function(model, vars, cond){
     if (rxIs(vars,"logical")){
         if (vars){
-            .pars  <- rxParams(model, FALSE);
+            .pars  <- .rxParams(model, FALSE);
             if (any(.pars=="ETA[1]")){
                 .pars  <- .pars[regexpr(rex::rex(start,"ETA[",any_numbers,"]"), .pars) != -1]
             }
@@ -672,7 +672,7 @@ rxSymPySensitivityFull <- function(state, calcSens, model, cond){
     rxCat(rxSymPySensitivityFull.text, "\n");
     all.sens <- extraLines <- c();
     if (length(calcSens) == 0L){
-        calcSens <- rxParams(model);
+        calcSens <- .rxParams(model);
     }
     if (length(calcSens) == 0L){
         stop("Can not calculate sensitivities with no parameters.")
@@ -894,11 +894,11 @@ rxSymPySensitivity.single <- function(model, calcSens, calcJac){
 rxSymPySensitivity <- function(model, calcSens, calcJac=FALSE, keepState=NULL,
                                collapseModel=FALSE){
     if (missing(calcSens)){
-        calcSens <- rxParams(model, FALSE);
+        calcSens <- .rxParams(model, FALSE);
     }
     if (rxIs(calcSens,"logical")){
         if (calcSens){
-            calcSens <- rxParams(model, FALSE);
+            calcSens <- .rxParams(model, FALSE);
         } else {
             stop("It is pointless to request a sensitivity calculation when calcSens=FALSE.")
         }
@@ -1543,7 +1543,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
                 obj <- newmod;
                 lhs <- c(rxLhs(newmod), rxLhs(oobj));
             } else {
-                calcSens <- rxParams(obj, FALSE)
+                calcSens <- .rxParams(obj, FALSE)
                 newmod <- obj;
             }
             ##
@@ -1554,7 +1554,7 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
             ## Get maximum theta.
             txt <- rxParsePred(predfn, init=init);
             pred.mod <- rxGetModel(txt);
-            pars <- rxParams(rxGetModel(paste0(rxNorm(obj), "\n", rxNorm(pred.mod))), FALSE);
+            pars <- .rxParams(rxGetModel(paste0(rxNorm(obj), "\n", rxNorm(pred.mod))), FALSE);
             w <- which(sapply(pars, function(x){
                 return(substr(x, 0, 2) == "TH")
             }))
@@ -1566,14 +1566,14 @@ rxSymPySetupPred <- function(obj, predfn, pkpars=NULL, errfn=NULL, init=NULL, gr
             pred.mod <- rxGetModel(pred.mod)
             full <- paste0(rxNorm(obj), "\n", rxNorm(pred.mod));
             full <- rxGetModel(full);
-            etas <- rxParams(full, FALSE);
+            etas <- .rxParams(full, FALSE);
             thetas <- etas[regexpr(regTheta, etas) != -1];
             etas <- etas[regexpr(regEta, etas) != -1];
             if (length(etas) > 0 && !theta.internal && !grad.internal && !only.numeric){
                 rxCat("Calculate ETA-based prediction and error derivatives:\n")
                 calcSens <- etas;
             } else {
-                calcSens <- rxParams(full, FALSE);
+                calcSens <- .rxParams(full, FALSE);
             }
             if (grad.internal){
                 rxCat("Calculate THETA/ETA-based prediction and error 1st and 2nd order derivatives:\n")
@@ -1989,7 +1989,7 @@ rxSymPyExpand <- function(x, expr="expand"){
 ##' @author Matthew L. Fidler
 rxFoExpandEta <-function(expr){
     rxSymPySetup(expr);
-    .vars <- rxParams(expr)
+    .vars <- .rxParams(expr)
     .etas <- .vars[regexpr(rex::rex(start, "ETA[", any_numbers, "]", end), .vars) != -1]
     .fn <- function(line, .w="~"){
         .l2 <- strsplit(line, .w)[[1]]
@@ -2054,7 +2054,7 @@ rxSymPyLincmtDvdx <- function(model, ncmt, parameterization, optExpression=TRUE)
         .pars <- .pm[ncmt, parameterization][[1]];
 
         .lhs <- rxLhs(.mod)
-        .etas <- rxParams(.mod);
+        .etas <- .rxParams(.mod);
         .etas <- .etas[regexpr(rex::rex(start, "ETA[",any_numbers, "]"), .etas) != -1]
         .etas <- max(as.numeric(sub(rex::rex(start, "ETA[",capture(any_numbers), "]"), "\\1", .etas)))
         rxSymPySetup(model)
