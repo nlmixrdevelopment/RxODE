@@ -154,7 +154,7 @@ rxControl <- function(scale = NULL,
                  by=by,
                  length.out=length.out,
                  iCov=iCov,
-                 keep=keep);
+                 keep=keep, keepF=character(0), keepI=character(0));
     return(.ret)
 }
 
