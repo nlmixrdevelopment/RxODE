@@ -2534,12 +2534,12 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
     Free(md5);
     md5 = rc_dup_str(CHAR(STRING_ELT(model_md5,0)),0);
     if (strlen(md5)!= 32){
-      md5 = Calloc(1,sizeof(char));
+      md5 = Calloc(1,char);
       md5[0] = '\0';
     }
   } else {
     Free(md5);
-    md5 = Calloc(1,sizeof(char));
+    md5 = Calloc(1,char);
     md5[0] = '\0';
   }
   
