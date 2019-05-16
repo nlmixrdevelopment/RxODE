@@ -39,8 +39,8 @@
 
 <meta property="og:title" content="Parameters specified by the model — rxParams" />
 
-<meta property="og:description" content="This return the model's parameters that are required to solve the
-ODE system." />
+<meta property="og:description" content="This returns the model's parameters that are required to solve the
+ODE system, and can be used to pipe parameters into an RxODE solve" />
 
 <meta property="og:image" content="/logo.png" />
 <meta name="twitter:card" content="summary" />
@@ -116,6 +116,9 @@ ODE system." />
       <a href="../articles/RxODE-model-types.html">RxODE model types</a>
     </li>
     <li>
+      <a href="../articles/RxODE-cmt.html">Chainging RxODE compartment numbers</a>
+    </li>
+    <li>
       <a href="../articles/RxODE-transit-compartments.html">RxODE transit compartment models</a>
     </li>
     <li>
@@ -180,14 +183,29 @@ ODE system." />
 
     <div class="ref-description">
     
-    <p>This return the model's parameters that are required to solve the
-ODE system.</p>
+    <p>This returns the model's parameters that are required to solve the
+ODE system, and can be used to pipe parameters into an RxODE solve</p>
     
     </div>
 
-    <pre class="usage"><span class='fu'>rxParams</span>(<span class='no'>obj</span>, <span class='kw'>constants</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>)
+    <pre class="usage"><span class='fu'>rxParams</span>(<span class='no'>obj</span>, <span class='no'>...</span>)
 
-<span class='fu'>rxParam</span>(<span class='no'>obj</span>, <span class='kw'>constants</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>)</pre>
+<span class='co'># S3 method for RxODE</span>
+<span class='fu'>rxParams</span>(<span class='no'>obj</span>, <span class='kw'>constants</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='no'>...</span>, <span class='kw'>params</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>inits</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>iCov</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>keep</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>thetaMat</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>omega</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>dfSub</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>sigma</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>dfObs</span> <span class='kw'>=</span> <span class='kw'>NULL</span>)
+
+<span class='co'># S3 method for rxSolve</span>
+<span class='fu'>rxParams</span>(<span class='no'>obj</span>, <span class='kw'>constants</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='no'>...</span>, <span class='kw'>params</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>inits</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>iCov</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>keep</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>thetaMat</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>omega</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>dfSub</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>sigma</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>dfObs</span> <span class='kw'>=</span> <span class='kw'>NULL</span>)
+
+<span class='co'># S3 method for rxEt</span>
+<span class='fu'>rxParams</span>(<span class='no'>obj</span>, <span class='no'>...</span>, <span class='kw'>params</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>inits</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>iCov</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>keep</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>thetaMat</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>omega</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>dfSub</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>sigma</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>dfObs</span> <span class='kw'>=</span> <span class='kw'>NULL</span>)
+
+<span class='fu'>rxParam</span>(<span class='no'>obj</span>, <span class='no'>...</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -197,17 +215,79 @@ ODE system.</p>
       <td><p>RxODE family of objects</p></td>
     </tr>
     <tr>
+      <th>...</th>
+      <td><p>Other arguments including scaling factors for each
+compartment.  This includes S# = numeric will scale a compartment
+# by a dividing the compartment amount by the scale factor,
+like NONMEM.</p></td>
+    </tr>
+    <tr>
       <th>constants</th>
       <td><p>is a boolean indicting if constants should be
 included in the list of parameters. Currently RxODE parses
 constants into variables in case you wish to change them
 without recompiling the RxODE model.</p></td>
     </tr>
+    <tr>
+      <th>params</th>
+      <td><p>a numeric named vector with values for every
+parameter in the ODE system; the names must correspond to the
+parameter identifiers used in the ODE specification;</p></td>
+    </tr>
+    <tr>
+      <th>inits</th>
+      <td><p>a vector of initial values of the state variables
+(e.g., amounts in each compartment), and the order in this
+vector must be the same as the state variables (e.g., PK/PD
+compartments);</p></td>
+    </tr>
+    <tr>
+      <th>iCov</th>
+      <td><p>A data frame of individual non-time varying covariates
+to combine with the <code>params</code> to form a parameter
+data.frame.</p></td>
+    </tr>
+    <tr>
+      <th>keep</th>
+      <td><p>Columns to keep from either the input dataset or the
+<code>iCov</code> dataset.  With the <code>iCov</code> dataset, the column
+is kept once per line.  For the input dataset, if any records
+are added to the data LOCF (Last Observation Carried forward)
+imputation is performed.</p></td>
+    </tr>
+    <tr>
+      <th>thetaMat</th>
+      <td><p>Named theta matrix.</p></td>
+    </tr>
+    <tr>
+      <th>omega</th>
+      <td><p>Estimate of Covariance matrix. When omega is a list,
+assume it is a block matrix and convert it to a full matrix
+for simulations.</p></td>
+    </tr>
+    <tr>
+      <th>dfSub</th>
+      <td><p>Degrees of freedom to sample the between subject variaiblity matrix from the 
+inverse Wishart distribution (scaled) or scaled inverse chi squared distribution.</p></td>
+    </tr>
+    <tr>
+      <th>sigma</th>
+      <td><p>Named sigma covariance or Cholesky decomposition of a
+covariance matrix.  The names of the columns indicate
+parameters that are simulated.  These are simulated for every
+observation in the solved system.</p></td>
+    </tr>
+    <tr>
+      <th>dfObs</th>
+      <td><p>Degrees of freedom to sample the unexplained variaiblity matrix from the 
+inverse Wishart distribution (scaled) or scaled inverse chi squared distribution.</p></td>
+    </tr>
     </table>
     
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>a character vector listing the parameters in the model.</p>
+    <p>When extracting the parameters from an RxODE model, a
+    character vector listing the parameters in the model.</p>
     
 
   </div>

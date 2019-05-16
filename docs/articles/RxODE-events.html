@@ -80,6 +80,9 @@
       <a href="../articles/RxODE-model-types.html">RxODE model types</a>
     </li>
     <li>
+      <a href="../articles/RxODE-cmt.html">Chainging RxODE compartment numbers</a>
+    </li>
+    <li>
       <a href="../articles/RxODE-transit-compartments.html">RxODE transit compartment models</a>
     </li>
     <li>
@@ -138,7 +141,7 @@
     <div class="page-header toc-ignore">
       <h1>RxODE Events</h1>
             
-            <h4 class="date">2019-05-13</h4>
+            <h4 class="date">2019-05-15</h4>
       
       
       <div class="hidden name"><code>RxODE-events.Rmd</code></div>
@@ -355,8 +358,6 @@ ev</code></pre></div>
 <p>Notice that the units were specified in the table. When specified, the units use the <code>units</code> package to keep track of the units and convert them if needed. Additionally, <code>ggforce</code> uses them to label the <code>ggplot</code> axes. The <code>set_units</code> and <code>drop_units</code> are useful to set and drop the RxODE event table units.</p>
 <p>In this example, you can see the time axes is labeled:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/rxSolve.html">rxSolve</a></span>(m1, ev) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/graphics/topics/plot">plot</a></span>(C2)</code></pre></div>
-<pre><code>#&gt; Warning in rxSolve_(object, rxControl(..., events = events, params = params), :
-#&gt; Adding observations, for more control use et/add.sampling.</code></pre>
 <p><img src="RxODE-events_files/figure-html/unnamed-chunk-6-1.png" width="700"></p>
 <p>If you are more familiar with the NONMEM/RxODE event records, you can also specify dosing using <code>et</code> with the dose elements directly:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">ev &lt;-<span class="st"> </span><span class="kw"><a href="../reference/et.html">et</a></span>(<span class="dt">timeUnits=</span><span class="st">"hr"</span>) <span class="op">%&gt;%</span>
@@ -374,8 +375,6 @@ ev</code></pre></div>
 #&gt; --------------------------------------------------------------------------------</code></pre>
 <p>Which gives:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/rxSolve.html">rxSolve</a></span>(m1, ev) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/graphics/topics/plot">plot</a></span>(C2)</code></pre></div>
-<pre><code>#&gt; Warning in rxSolve_(object, rxControl(..., events = events, params = params), :
-#&gt; Adding observations, for more control use et/add.sampling.</code></pre>
 <p><img src="RxODE-events_files/figure-html/unnamed-chunk-8-1.png" width="700"></p>
 <p>This shows how easy creating event tables can be.</p>
 </div>

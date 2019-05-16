@@ -20,7 +20,6 @@ reference:
 - title: Solving, Simulating and Solving options
   contents:
   - rxSolve
-  - rxMatrix
 - title: Exploring RxODE and creating models with Shiny
   contents:
   - rxShiny
@@ -113,8 +112,8 @@ navbar:
         - text: "Advanced Features, Model Types, Technical Details"
         - text: "RxODE model types"
           href: articles/RxODE-model-types.html
-	- text: "Chainging RxODE compartment numbers"
-	  href: articles/RxODE-cmt.html
+        - text: "Chainging RxODE compartment numbers"
+          href: articles/RxODE-cmt.html
         - text: "RxODE transit compartment models"
           href: articles/RxODE-transit-compartments.html
         - text: "Using Shiny with RxODE"

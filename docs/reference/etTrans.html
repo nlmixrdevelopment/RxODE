@@ -115,6 +115,9 @@
       <a href="../articles/RxODE-model-types.html">RxODE model types</a>
     </li>
     <li>
+      <a href="../articles/RxODE-cmt.html">Chainging RxODE compartment numbers</a>
+    </li>
+    <li>
       <a href="../articles/RxODE-transit-compartments.html">RxODE transit compartment models</a>
     </li>
     <li>
@@ -184,7 +187,8 @@
     </div>
 
     <pre class="usage"><span class='fu'>etTrans</span>(<span class='no'>inData</span>, <span class='no'>obj</span>, <span class='kw'>addCmt</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>dropUnits</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>allTimeVar</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>keepDosingOnly</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>combineDvid</span> <span class='kw'>=</span> <span class='kw'>NULL</span>)</pre>
+  <span class='kw'>allTimeVar</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>keepDosingOnly</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>combineDvid</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>keep</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/character'>character</a></span>(<span class='fl'>0</span>))</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -220,6 +224,11 @@ trailing dosing records after the last observation.</p></td>
 records to change the cmt value; Useful for multiple-endpoint nlmixr models.  By default
 this is determined by codeoption("RxODE.combine.dvid") and if the option has not been set,
 this is <code>TRUE</code>. This typically does not affect RxODE simulations.</p></td>
+    </tr>
+    <tr>
+      <th>keep</th>
+      <td><p>This is a named vector of items you want to keep in the final RxODE dataset.
+For added RxODE event records (if seen), last observation carried forward will be used.</p></td>
     </tr>
     </table>
     
