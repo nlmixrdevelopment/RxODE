@@ -923,10 +923,12 @@ List etTrans(List inData, const RObject &obj, bool addCmt=false,
 	continue;
       }
       if (rateI != 0){
-	stop("'rate' or 'dur' cannot be used with classic RxODE EVIDs.");
+	warning("'rate' or 'dur' is ignored with classic RxODE EVIDs");
+	rateI = 0;
       }
       if (flg!=1){ // ss=1 is the same as ss=0 for NONMEM
-	stop("'ss' cannot be used with classic RxODE EVIDs.");
+	warning("'ss' is ignored with classic RxODE EVIDs.");
+	flg=1;
       }
     }
     if (cevid != -1){

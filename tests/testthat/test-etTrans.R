@@ -712,7 +712,7 @@ d/dt(blood)     = a*intestine - b*blood
 
     ## Test mixed classic RxODE and NONMEM inputs
     context("Mix RxODE EVIDs and NONMEM EVIDs")
-    test_that("mixed EVID/data throws an error", {
+    test_that("mixed EVID/data gives a warning", {
         mod <- RxODE({
             d1 <- exp(td1 + eta.d1)
             cl <- exp(tcl + eta.cl)
@@ -728,7 +728,7 @@ d/dt(blood)     = a*intestine - b*blood
                             WT = c(79.6, 79.6, 79.6), RATE = c(-2, 0, 0)),
                        row.names = c(NA, 3L), class = "data.frame")
 
-        expect_error(etTrans(d, mod), "'rate'")
+        expect_warning(etTrans(d, mod), "'rate'")
 
         d <- structure(list(ID = c(1L, 1L, 1L), TIME = c(0, 0, 0.25),
                             DV = c(0, 0.74, 2.84),
@@ -736,7 +736,7 @@ d/dt(blood)     = a*intestine - b*blood
                             WT = c(79.6, 79.6, 79.6), DUR = c(-2, 0, 0)),
                        row.names = c(NA, 3L), class = "data.frame")
 
-        expect_error(etTrans(d, mod), "'dur'")
+        expect_warning(etTrans(d, mod), "'dur'")
 
         d <- structure(list(ID = c(1L, 1L, 1L), TIME = c(0, 0, 0.25),
                             DV = c(0, 0.74, 2.84),
@@ -745,7 +745,7 @@ d/dt(blood)     = a*intestine - b*blood
                             II=c(24,0,0)),
                        row.names = c(NA, 3L), class = "data.frame")
 
-        expect_error(etTrans(d, mod),"'ss'")
+        expect_warning(etTrans(d, mod),"'ss'")
     })
 
 
