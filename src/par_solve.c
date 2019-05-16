@@ -1684,9 +1684,9 @@ extern double *rxGetErrs();
 extern int rxGetErrsNcol();
 
 extern double get_ikeep(int col, int id);
-extern const char * get_ikeepn(int col);
+extern const SEXP get_ikeepn();
 extern double get_fkeep(int col, int id);
-extern const char * get_fkeepn(int col);
+extern const SEXP get_fkeepn();
 
 extern SEXP RxODE_df(int doDose0, int doTBS){
   rx_solve *rx;
@@ -2282,12 +2282,14 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
     SET_STRING_ELT(sexp_colnames,jj, STRING_ELT(paramNames, par_cov[i]));
     jj++;
   }
+  SEXP ikeepNames = PROTECT(get_ikeepn()); pro++;
   for (i = 0; i < nkeep0; i++){
-    SET_STRING_ELT(sexp_colnames,jj, mkChar(get_ikeepn(i)));
+    SET_STRING_ELT(sexp_colnames,jj, STRING_ELT(ikeepNames, i));
     jj++;
   }
+  SEXP fkeepNames = PROTECT(get_ikeepn()); pro++;
   for (i = 0; i < nkeep; i++){
-    SET_STRING_ELT(sexp_colnames,jj, mkChar(get_fkeepn(i)));
+    SET_STRING_ELT(sexp_colnames,jj, STRING_ELT(fkeepNames, i));
     jj++;
   }
   if (doTBS){
@@ -2390,12 +2392,12 @@ extern SEXP RxODE_df(int doDose0, int doTBS){
       jj++;kk++;
     }
     for (i = 0; i < nkeep0; i++){
-      SET_STRING_ELT(sexp_colnames2,jj, mkChar(get_ikeepn(i)));
+      SET_STRING_ELT(sexp_colnames2,jj, STRING_ELT(ikeepNames, i));
       SET_VECTOR_ELT(df2, jj, VECTOR_ELT(df, kk));
       jj++;kk++;
     }
     for (i = 0; i < nkeep; i++){
-      SET_STRING_ELT(sexp_colnames2,jj, mkChar(get_fkeepn(i)));
+      SET_STRING_ELT(sexp_colnames2,jj, STRING_ELT(fkeepNames, i));
       SET_VECTOR_ELT(df2, jj, VECTOR_ELT(df, kk));
       jj++; kk++;
     }

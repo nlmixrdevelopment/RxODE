@@ -2384,16 +2384,12 @@ extern "C" double get_fkeep(int col, int id){
   NumericVector nv = as<NumericVector>(keepFcov[col]);
   return nv[id];
 }
-extern "C" const char* get_ikeepn(int col){
-  CharacterVector cv = keepIcov.attr("names");
-  std::string retS = as<std::string>(cv[col]);
-  return retS.c_str();
+extern "C" SEXP get_ikeepn(){
+  return as<SEXP>(keepIcov.attr("names"));
 }
 
-extern "C" const char* get_fkeepn(int col){
-  CharacterVector cv = keepFcov.attr("names");
-  std::string retS = as<std::string>(cv[col]);
-  return retS.c_str();
+extern "C" SEXP get_fkeepn(){
+  return as<SEXP>(keepFcov.attr("names"));
 }
 
 //[[Rcpp::export]]
