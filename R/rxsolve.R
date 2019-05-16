@@ -636,6 +636,7 @@ rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, ...)
             stop("'nSub'*'nStud' does not match the number of subjects in iCov");
         }
     }
+    ## Prefers individual keep over keeping from the input data
     .keepI <- character(0)
     .keepF <- character(0)
     if (!is.null(.ctl$keep)){

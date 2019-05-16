@@ -419,7 +419,7 @@ void curLineType(vLines *sbb, int propId){
 vLines sbPm, sbPmDt;
 sbuf sbNrm;
 
-char *extra_buf, *model_prefix, *md5;
+char *extra_buf, *model_prefix, *md5 = NULL;
 int foundF=0,foundLag=0, foundRate=0, foundDur=0, foundF0=0, needSort=0;
 
 sbuf sbOut;
@@ -2387,6 +2387,7 @@ void reset (){
   foundF=0;
   foundF0=0;
   nmtime=0;
+  Free(md5);
 }
 
 void writeSb(sbuf *sbb, FILE *fp){
@@ -2530,12 +2531,15 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
   }
 
   if (isString(model_md5) && length(model_md5) == 1){
-    md5 = r_dup_str(CHAR(STRING_ELT(model_md5,0)),0);
+    Free(md5);
+    md5 = rc_dup_str(CHAR(STRING_ELT(model_md5,0)),0);
     if (strlen(md5)!= 32){
+      md5 = Calloc(1,sizeof(char));
       md5[0] = '\0';
     }
   } else {
-    md5 = R_alloc(1,sizeof(char));
+    Free(md5);
+    md5 = Calloc(1,sizeof(char));
     md5[0] = '\0';
   }
   
