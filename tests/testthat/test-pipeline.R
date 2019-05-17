@@ -190,6 +190,17 @@ rxPermissive({
                  iCov=data.frame(WT=rnorm(10,70,4))) %>%
         rxSolve(keep="WT")
 
+    expect_error(popex %>%
+                 et(amountUnits="mg", timeUnits="hours") %>%
+                 et(amt=100, ii=12, until=48) %>%
+                 rxParams(omega=lotri(ECL ~ 0.3,
+                                      EV ~ 0.1,
+                                      EKA ~ 0.5),
+                          sigma=lotri(err ~ 0.1),
+                          atol=1e-3,
+                          iCov=data.frame(WT=rnorm(10,70,4))) %>%
+                 rxSolve(keep="WT"))
+
     expect_equal(p1, p2)
 
     ## Test WT in both iCov and data used.

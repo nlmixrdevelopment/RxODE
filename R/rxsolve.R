@@ -490,17 +490,7 @@ rxSolve <- function(object, ...){
 rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, ...){
     on.exit({
         rxSolveFree();
-        assignInMyNamespace(".pipelineRx", NULL)
-        assignInMyNamespace(".pipelineInits", NULL)
-        assignInMyNamespace(".pipelineEvents", NULL)
-        assignInMyNamespace(".pipelineParams", NULL)
-        assignInMyNamespace(".pipelineICov", NULL)
-        assignInMyNamespace(".pipelineKeep", NULL)
-        assignInMyNamespace(".pipelineThetaMat", NULL)
-        assignInMyNamespace(".pipelineOmega", NULL)
-        assignInMyNamespace(".pipelineSigma", NULL)
-        assignInMyNamespace(".pipelineDfObs", NULL)
-        assignInMyNamespace(".pipelineDfSub", NULL)
+        .clearPipe();
     });
     .applyParams <- FALSE
     .rxParams <- NULL
@@ -588,6 +578,12 @@ rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, ...)
     if (!is.null(.pipelineDfSub) && .ctl$dfSub==0){
         .ctl$dfSub <- .pipelineDfSub;
     }
+    if (!is.null(.pipelineNSub) && .ctl$nSub==1){
+        .ctl$nSub <- .pipelineNSub;
+    }
+    if (!is.null(.pipelineNStud) && .ctl$nStud==1){
+        .ctl$nStud <- .pipelineNStud;
+    }
     if (!is.null(.pipelineICov) && is.null(.ctl$iCov)){
         .ctl$iCov <- .pipelineICov;
     }
@@ -607,6 +603,16 @@ rxSolve.default <- function(object, params=NULL, events=NULL, inits = NULL, ...)
         if (!is.null(.rxParams$dfSub)){
             if (.ctl$dfSub== 0){
                 .ctl$dfSub <- .rxParams$dfSub;
+            }
+        }
+        if (!is.null(.rxParams$nSub)){
+            if (.ctl$nSub== 1){
+                .ctl$nSub <- .rxParams$nSub;
+            }
+        }
+        if (!is.null(.rxParams$nStud)){
+            if (.ctl$nStud== 1){
+                .ctl$nStud <- .rxParams$nStud;
             }
         }
         if (!is.null(.rxParams$dfObs)){

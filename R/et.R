@@ -140,10 +140,30 @@ et <- function(x, ..., envir=parent.frame()){
 .pipelineSigma    <- NULL
 .pipelineDfObs    <- NULL
 .pipelineDfSub    <- NULL
+.pipelineNSub    <- NULL
+.pipelineNStud    <- NULL
+
+.clearPipe <- function(){
+    assignInMyNamespace(".pipelineRx", NULL)
+    assignInMyNamespace(".pipelineInits", NULL)
+    assignInMyNamespace(".pipelineEvents", NULL)
+    assignInMyNamespace(".pipelineParams", NULL)
+    assignInMyNamespace(".pipelineICov", NULL)
+    assignInMyNamespace(".pipelineKeep", NULL)
+    assignInMyNamespace(".pipelineThetaMat", NULL)
+    assignInMyNamespace(".pipelineOmega", NULL)
+    assignInMyNamespace(".pipelineSigma", NULL)
+    assignInMyNamespace(".pipelineDfObs", NULL)
+    assignInMyNamespace(".pipelineDfSub", NULL)
+    assignInMyNamespace(".pipelineNSub", NULL)
+    assignInMyNamespace(".pipelineNStud", NULL)
+}
+
 
 ##' @rdname et
 ##' @export
 et.RxODE <- function(x,...,envir=parent.frame()){
+    .clearPipe();
     assignInMyNamespace(".pipelineRx", x);
     do.call(et, c(list(...), list(envir=envir)), envir=envir);
 }
@@ -193,6 +213,9 @@ et.rxParams <- function(x,..., envir=parent.frame()){
     if (!is.null(x$dfObs)) assignInMyNamespace(".pipelineDfObs", x$dfObs);
     ## 8. RxODE dfSub
     if (!is.null(x$dfSub)) assignInMyNamespace(".pipelineDfSub", x$dfSub);
+    if (!is.null(x$nSub)) assignInMyNamespace(".pipelineNSub", x$nSub);
+    if (!is.null(x$nStud)) assignInMyNamespace(".pipelineNStud", x$nStud);
+
     do.call(et, c(list(...), list(envir=envir)), envir=envir);
 }
 
