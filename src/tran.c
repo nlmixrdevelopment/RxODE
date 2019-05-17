@@ -2595,8 +2595,14 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
       retieve_var(tb.di[i], buf);
     } else if (offCmt == 1 && tb.idu[i] == 1){
       // There is an compartment that doesn't have a derivative
-      UNPROTECT(pro);
-      error("Compartment '%s' needs differential equations defined", buf);
+      if (tb.linCmt == 0){
+	UNPROTECT(pro);
+	error("Compartment '%s' needs differential equations defined", buf);
+      } else if (!strcmp("depot", buf) || !strcmp("central", buf)) {
+      } else {
+	UNPROTECT(pro);
+	error("Compartment '%s' needs differential equations defined", buf);
+      }
     } else if (offCmt == 1 && tb.idu[i] == 0){
       nExtra++;
     }
