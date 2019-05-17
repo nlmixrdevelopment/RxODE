@@ -4,7 +4,7 @@
 \alias{rxUse}
 \title{Use model object in your package}
 \usage{
-rxUse(obj, overwrite = TRUE, compress = "bzip2")
+rxUse(obj, overwrite = TRUE, compress = "bzip2", internal = FALSE)
 }
 \arguments{
 \item{obj}{model to save.}
@@ -14,6 +14,8 @@ files. If you really want to do so, set this to \code{TRUE}.}
 
 \item{compress}{Choose the type of compression used by \code{\link[=save]{save()}}.
 Should be one of "gzip", "bzip2", or "xz".}
+
+\item{internal}{If this is run internally.  By default this is FALSE}
 }
 \description{
 Use model object in your package

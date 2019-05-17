@@ -59,12 +59,14 @@
 
 ##' Use model object in your package
 ##' @param obj model to save.
+##' @param internal If this is run internally.  By default this is FALSE
 ##' @inheritParams usethis::use_data
 ##' @export
-rxUse <- function(obj, overwrite = TRUE, compress = "bzip2"){
+rxUse <- function(obj, overwrite = TRUE, compress = "bzip2",
+                  internal=FALSE){
     rxReq("usethis")
     rxReq("devtools")
-    internal  <-  FALSE;
+    internal  <-  internal;
     if (missing(obj)){
         .env <- new.env();
         assign("internal", internal, .env)
@@ -104,7 +106,7 @@ rxUse <- function(obj, overwrite = TRUE, compress = "bzip2"){
                     cat(paste(paste0("##'   \\item{",.tmp$params,"}{",.defs,"}\n"),collapse=""))
                     cat("##'}\n");
                     .state  <- .tmp$state
-
+                    ##
                     if (.mv$extraCmt==2){
                         .state  <- c(.state, "depot", "central");
                     } else if (.mv$extraCmt==1){
