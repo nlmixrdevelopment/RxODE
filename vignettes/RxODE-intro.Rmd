@@ -1,4 +1,4 @@
-y---
+---
 title: "Introduction to RxODE"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
@@ -105,11 +105,11 @@ The functions `get.dosing()` and `get.sampling()` can be used to
 retrieve information from the event table.
 
 ```{r}
-knitr::kable(head(ev$get.dosing()))
+head(ev$get.dosing())
 ```
 
 ```{r}
-knitr::kable(head(ev$get.sampling()))
+head(ev$get.sampling())
 ```
 
 You may notice that these are similar to NONMEM event tables; If you
@@ -176,7 +176,7 @@ Now that you have learned the basics of RxODE, there are a few things
 you may wish to explore:
 
 - Simulating in a pipeline (tidyverse style of simulation/updating)
-- Dynamic RxODE solved datasets
+- [Dynamic RxODE solved datasets](RxODE-data-frame.html)
 - Multiple-subject simulations (with and without variability)
 - Simulation from already existing data
 

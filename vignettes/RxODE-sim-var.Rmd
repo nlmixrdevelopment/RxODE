@@ -20,17 +20,24 @@ htmltools::img(src = knitr::image_uri("logo.png"),
                style = 'position:absolute; top:0; right:0; padding:10px; border: 0;')
 ```
 
-# Simulation of Variability with RxODE
-Variability in model parameters can be simulated by creating a matrix
-of parameter values for use in the simulation. In the example below,
-40% variability in clearance is simulated.
+# Population Simulations with RxODE
+
+## Simulation of Variability with RxODE
+
+In pharmacometrics the nonlinear-mixed effect modeling software (like
+nlmixr) characterizes the between-subject varaibility.  With this
+between subject varibility you can simulate new subjects.
+
+Assuming that you have a 2-compartment, indirect response model, you
+can set create an RxODE model describing this system below:
+
+### Setting up the RxODE model
 
 ```{r}
-set.seed(42);
 library(RxODE)
 mod <- RxODE({
     eff(0) = 1
-    C2 = centr/V2;
+    C2 = centr/V2*(1+prop.err);
     C3 = peri/V3;
     CL =  TCl*exp(eta.Cl) ## This is coded as a variable in the model
     d/dt(depot) =-KA*depot;
@@ -38,33 +45,75 @@ mod <- RxODE({
     d/dt(peri)  =                    Q*C2 - Q*C3;
     d/dt(eff)  = Kin - Kout*(1-C2/(EC50+C2))*eff;
 })
-
-theta <- c(KA=2.94E-01, TCl=1.86E+01, V2=4.02E+01,  # central 
-               Q=1.05E+01, V3=2.97E+02,                # peripheral
-               Kin=1, Kout=1, EC50=200)                # effects  
 ```
 
-Each subproblem can be simulated by using the rxSolve function to run
-the simulation for each set of parameters of in the parameter matrix.
+### Adding  the parameter estimates
+
+The next step is to get the parameters into R so that you can start the simulation:
+
+```{r}
+theta <- c(KA=2.94E-01, TCl=1.86E+01, V2=4.02E+01,  # central 
+           Q=1.05E+01, V3=2.97E+02,                # peripheral
+           Kin=1, Kout=1, EC50=200, prop.err=0)      # effects
+```
+
+In this case, I use `lotri` to specify the omega since it uses similar
+lower-triangular matrix specification as nlmixr (also similar to
+NONMEM):
 
 ```{r}
 ## the column names of the omega matrix need to match the parameters specified by RxODE
 omega <- lotri(eta.Cl ~ 0.4^2)
+omega
+```
 
-ev <- eventTable(amount.units="mg", time.units="hours") %>%
-    add.dosing(dose=10000, nbr.doses=1, dosing.to=2) %>%
-    add.sampling(seq(0,48,length.out=100));
+### Simulating 
 
+The next step to simulate is to create the dosing regimen for overall simulation:
+
+```{r}
+ev <- et(amount.units="mg", time.units="hours") %>%
+    et(amt=10000, cmt="centr")
+```
+If you wish, you can also add sampling times (though now RxODE can fill these in for you):
+
+```{r}
+ev <- ev %>% et(0,48, length.out=100);
+```
+
+Note the `et` takes similar arguments as `seq` when adding sampling
+times.  There are more methods to adding sampling times and events to
+make complex dosing regimens (See [the event
+vignette](RxODE-events.html)). This includes ways to add variability
+to the [both the sampling and dosing
+times](RxODE-events.html#add-doses-and-samples-within-a-sampling-window)).
+
+Once this is complete you can simulate using the `rxSolve` routine:
+
+```{r}
 sim  <- rxSolve(mod,theta,ev,omega=omega,nSub=100)
+```
 
+To quickly look and customize your simulation you use the default
+`plot` routine.  Since this is an RxODE object, it will create a
+`ggplot2` object that you can modify as you wish.  The extra parameter
+to the `plot` tells `RxODE`/`R` what piece of information you are
+interested in plotting. In this case, we are interested in looking at
+the derived parameter `C2`:
+
+### Checking the simulation by a simple ggplot 
+
+```{r}
 library(ggplot2)
 
-plot(sim, "centr") +
+plot(sim, C2) +
     coord_trans(y = "log10") +
-    ylab("Central Concentration") +
+    ylab("Central Compartment") +
     xlab("Time") +
     guides(color=FALSE)
 ```
+
+Of course this additional parameter could also be a state value, like `eff`:
 
 ```{r}
 plot(sim, "eff") +
@@ -73,6 +122,25 @@ plot(sim, "eff") +
     xlab("Time") +
     guides(color=FALSE)
 ```
+
+Or you could even look at the two side-by-side:
+
+```{r}
+plot(sim, C2, eff) +
+    coord_trans(y = "log10") +
+    ylab("Effect") +
+    xlab("Time") +
+    guides(color=FALSE)
+```
+
+### Processing the data to create summary plots
+
+Usually in pharmacometric simulations it is not enough to simply
+simulate the system.  We have to do something easier to digest, like
+look at the central and extreme tendencies of the simulation.
+
+Since the `RxODE` solve object is a type of [data
+frame](RxODE-data-frame.html)
 
 It is now straightforward to perform calculations and generate plots
 with the simulated data. Below,  the 5th, 50th, and 95th percentiles
@@ -106,28 +174,7 @@ Note that you can see the parameters that were simulated for the example
 head(sim$param)
 ```
 
-You can also supply a data-frame of parameters to simulate instead of
-using an omega simulation.  In this contrived example we will use the
-previously simulated data.
-
-```{r}
-theta <- sim$param;
-sim  <- rxSolve(mod,theta,ev)
-print(sim)
-```
-
-Even though multiple subjects were simulated, this is still a reactive
-data frame, meaning you can change things about the model on the fly.
-
-For example, if the effect at time 0 should have been 100, you can fix
-this by:
-
-```{r}
-sim$eff0 <- 100
-print(sim)
-```
-
-#### Simulation of unexplained variability 
+### Simulation of unexplained variability 
 
 In addition to conveniently simulating between subject variability,
 you can also easily simulate unexplained variability.
@@ -173,7 +220,7 @@ ggplot(s,aes(time,eff,color=Percentile)) + geom_line(size=1) + ylab("Effect") +
 ```
 
 
-#### Simulation of Individuals
+### Simulation of Individuals
 
 Sometimes you may want to match the dosing and observations of
 individuals in a clinical trial.  To do this you will have to create a
