@@ -12,15 +12,18 @@ rxParams(obj, ...)
 
 \method{rxParams}{RxODE}(obj, constants = TRUE, ..., params = NULL,
   inits = NULL, iCov = NULL, keep = NULL, thetaMat = NULL,
-  omega = NULL, dfSub = NULL, sigma = NULL, dfObs = NULL)
+  omega = NULL, dfSub = NULL, sigma = NULL, dfObs = NULL,
+  nSub = NULL, nStud = NULL)
 
 \method{rxParams}{rxSolve}(obj, constants = TRUE, ..., params = NULL,
   inits = NULL, iCov = NULL, keep = NULL, thetaMat = NULL,
-  omega = NULL, dfSub = NULL, sigma = NULL, dfObs = NULL)
+  omega = NULL, dfSub = NULL, sigma = NULL, dfObs = NULL,
+  nSub = NULL, nStud = NULL)
 
 \method{rxParams}{rxEt}(obj, ..., params = NULL, inits = NULL,
   iCov = NULL, keep = NULL, thetaMat = NULL, omega = NULL,
-  dfSub = NULL, sigma = NULL, dfObs = NULL)
+  dfSub = NULL, sigma = NULL, dfObs = NULL, nSub = NULL,
+  nStud = NULL)
 
 rxParam(obj, ...)
 }
@@ -72,6 +75,12 @@ observation in the solved system.}
 
 \item{dfObs}{Degrees of freedom to sample the unexplained variaiblity matrix from the 
 inverse Wishart distribution (scaled) or scaled inverse chi squared distribution.}
+
+\item{nSub}{Number between subject variabilities (ETAs) simulated for every 
+realization of the parameters.}
+
+\item{nStud}{Number virtual studies to characterize uncertainty in estimated 
+parameters.}
 }
 \value{
 When extracting the parameters from an RxODE model, a
