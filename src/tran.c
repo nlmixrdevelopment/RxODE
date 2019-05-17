@@ -56,14 +56,14 @@
 #define TASSIGN 17
 #define TMTIME 18
 
-#define NOASSIGN "'<-' not supported, use '=' instead or set 'options(RxODE.syntax.assign = TRUE)'."
-#define NEEDSEMI "Lines need to end with ';' or to match R's handling of line endings set 'options(RxODE.syntax.require.semicolon = FALSE)'."
-#define NEEDPOW "'**' not supported, use '^' instead or set 'options(RxODE.syntax.star.pow = TRUE)'."
-#define NODOT "'.' in variables and states not supported, use '_' instead or set 'options(RxODE.syntax.allow.dots = TRUE)'."
-#define NOINI0 "'%s(0)' for initialization not allowed.  To allow set 'options(RxODE.syntax.allow.ini0 = TRUE)'."
-#define NOSTATE "Defined 'df(%s)/dy(%s)', but '%s' is not a state!"
-#define NOSTATEVAR "Defined 'df(%s)/dy(%s)', but '%s' is not a state or variable!"
-#define ODEFIRST "ODEs compartment 'd/dt(%s)' must be defined before changing its properties (f/alag/rate/dur).\nIf you want to change this set 'options(RxODE.syntax.require.ode.first = FALSE).\nBe warned this will RxODE numbers compartments based on first occurance of property or ODE."
+#define NOASSIGN "'<-' not supported, use '=' instead or set 'options(RxODE.syntax.assign = TRUE)'"
+#define NEEDSEMI "Lines need to end with ';'\n     To match R's handling of line endings set 'options(RxODE.syntax.require.semicolon = FALSE)'"
+#define NEEDPOW "'**' not supported, use '^' instead or set 'options(RxODE.syntax.star.pow = TRUE)'"
+#define NODOT "'.' in variables and states not supported, use '_' instead or set 'options(RxODE.syntax.allow.dots = TRUE)'"
+#define NOINI0 "'%s(0)' for initialization not allowed.  To allow set 'options(RxODE.syntax.allow.ini0 = TRUE)'"
+#define NOSTATE "Defined 'df(%s)/dy(%s)', but '%s' is not a state"
+#define NOSTATEVAR "Defined 'df(%s)/dy(%s)', but '%s' is not a state or variable"
+#define ODEFIRST "ODEs compartment 'd/dt(%s)' must be defined before changing its properties (f/alag/rate/dur).\nIf you want to change this set 'options(RxODE.syntax.require.ode.first = FALSE).\nBe warned this will RxODE numbers compartments based on first occurance of property or ODE"
 
 #include <string.h>
 #include <stdlib.h>
@@ -128,10 +128,15 @@ char * r_sbuf_read(const char *pathname) {
   return buf;
 }
 
-
+int syntaxErrorExtra = 0;
+int isEsc=0;
+const char *lastStr;
+int lastStrLoc=0;
 // Taken from dparser and changed to use Calloc
 char * rc_dup_str(const char *s, const char *e) {
+  lastStr=s;
   int l = e ? e-s : (int)strlen(s);
+  syntaxErrorExtra=l-1;
   char *ss = Calloc(l+1,char);
   memcpy(ss, s, l);
   ss[l] = 0;
@@ -148,12 +153,6 @@ char * r_dup_str(const char *s, const char *e) {
 }
 
 int rx_syntax_error = 0, rx_suppress_syntax_info=0, rx_podo = 0, rx_syntax_require_ode_first = 1;
-static void trans_syntax_error_report_fn(char *err) {
-  if (!rx_suppress_syntax_info)
-    Rprintf("%s\n",err);
-  rx_syntax_error = 1;
-}
-
 
 extern D_ParserTables parser_tables_RxODE;
 
@@ -209,6 +208,8 @@ typedef struct symtab {
   int maxeta;
   int hasDepot;
   int hasCentral;
+  int hasDepotCmt;
+  int hasCentralCmt;
   int hasKa;
 } symtab;
 symtab tb;
@@ -426,6 +427,11 @@ sbuf sbOut;
 
 static FILE *fpIO;
 
+int lastSyntaxErrorLine=0;
+static void trans_syntax_error_report_fn(char *err);
+char *getLine (char *src, int line, int *lloc);
+void updateSyntaxCol();
+
 /* new symbol? if no, find it's ith */
 int new_or_ith(const char *s) {
   int i, len, len_s=(int)strlen(s);
@@ -433,35 +439,43 @@ int new_or_ith(const char *s) {
   if (tb.fn) return 0;
   if (!strcmp("t", s)) return 0;
   if (!strcmp("rate", s)){
-    trans_syntax_error_report_fn("'rate' cannot be a variable in an RxODE model.");
+    updateSyntaxCol();
+    trans_syntax_error_report_fn("'rate' cannot be a variable in an RxODE model");
     return 0;
   }
   if (!strcmp("dur", s)){
-    trans_syntax_error_report_fn("'dur' cannot be a variable in an RxODE model.");
+    updateSyntaxCol();
+    trans_syntax_error_report_fn("'dur' cannot be a variable in an RxODE model");
     return 0;
   }
   if (!strcmp("amt", s)){
-    trans_syntax_error_report_fn("'amt' cannot be a variable in an RxODE model.");
+    updateSyntaxCol();
+    trans_syntax_error_report_fn("'amt' cannot be a variable in an RxODE model");
     return 0;
   }
   if (!strcmp("ss", s)){
+    updateSyntaxCol();
     trans_syntax_error_report_fn("'ss' cannot be a variable in an RxODE model.");
     return 0;
   }
   if (!strcmp("addl", s)){
-    trans_syntax_error_report_fn("'addl' cannot be a variable in an RxODE model.");
+    updateSyntaxCol();
+    trans_syntax_error_report_fn("'addl' cannot be a variable in an RxODE model");
     return 0;
   }
   if (!strcmp("evid", s)){
-    trans_syntax_error_report_fn("'evid' cannot be a variable in an RxODE model.");
+    updateSyntaxCol();
+    trans_syntax_error_report_fn("'evid' cannot be a variable in an RxODE model");
     return 0;
   }
   if (!strcmp("ii", s)){
-    trans_syntax_error_report_fn("'ii' cannot be a variable in an RxODE model.");
+    updateSyntaxCol();
+    trans_syntax_error_report_fn("'ii' cannot be a variable in an RxODE model");
     return 0;
   }
   if (!strcmp("dvid", s)){
-    trans_syntax_error_report_fn("'dvid' cannot be a variable in an RxODE model.");
+    updateSyntaxCol();
+    trans_syntax_error_report_fn("'dvid' cannot be a variable in an RxODE model");
     return 0;
   }
   if (!strcmp("time", s)) return 0;
@@ -673,6 +687,7 @@ void wprint_node(int depth, char *name, char *value, void *client_data) {
 	aAppendN("_DoT_", 5);
 	sAppendN(&sbt, ".", 1);
         if (rx_syntax_allow_dots == 0){
+	  updateSyntaxCol();
           trans_syntax_error_report_fn(NODOT);
         }
       } else {
@@ -683,7 +698,9 @@ void wprint_node(int depth, char *name, char *value, void *client_data) {
     }
   }
 }
-
+char *gBuf;
+int gBufLast;
+D_Parser *curP;
 void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_fn_t fn, void *client_data) {
   char *name = (char*)pt.symbols[pn->symbol].name;
   nodeInfo ni;
@@ -691,6 +708,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
   int nch = d_get_number_of_children(pn), i, k, ii, found, safe_zero = 0;
   char *value = (char*)rc_dup_str(pn->start_loc.s, pn->end);
   char buf[1024];
+  char buf2[1024];
   double d;
   if ((nodeHas(identifier) || nodeHas(identifier_r) ||
        nodeHas(identifier_r_no_output)  ||
@@ -770,7 +788,8 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
            (i == 6 && nodeHas(dfdy)))) {
         D_ParseNode *xpn = d_get_child(pn,i);
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
-        if (!strcmp("<-",v)){
+	if (!strcmp("<-",v)){
+	  updateSyntaxCol();
           trans_syntax_error_report_fn(NOASSIGN);
         }
         Free(v);
@@ -903,6 +922,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       wprint_parsetree(pt, xpn, depth, fn, client_data);
       if (rx_syntax_require_semicolon && nodeHas(end_statement) && i == 0){
         if (xpn->start_loc.s ==  xpn->end){
+	  updateSyntaxCol();
           trans_syntax_error_report_fn(NEEDSEMI);
         } 
       }
@@ -956,15 +976,19 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
           // Continuation statement
 	  switch(sbPm.lType[sbPm.n]){
 	  case FBIO:
+	    updateSyntaxCol();
 	    trans_syntax_error_report_fn("Bioavailability cannot depend on Jacobian values.");
 	    break;
 	  case ALAG:
+	    updateSyntaxCol();
 	    trans_syntax_error_report_fn("Absorption Lag-time cannot depend on Jacobian values.");
 	    break;
 	  case RATE:
+	    updateSyntaxCol();
 	    trans_syntax_error_report_fn("Model-based rate cannot depend on Jacobian values.");
 	    break;
 	  case DUR:
+	    updateSyntaxCol();
 	    trans_syntax_error_report_fn("Model-based duration cannot depend on Jacobian values.");
 	    break;
 	  default: {
@@ -972,6 +996,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    sAppend(&sbDt, "__PDStateVar_%s_SeP_",v);
 	    sAppend(&sbt,"df(%s)/dy(",v);
 	    if (new_de(v)){
+	      updateSyntaxCol();
 	      sprintf(buf,"d/dt(%s) needs to be defined before using a Jacobians for this state.",v);
 	      trans_syntax_error_report_fn(buf);
 	    } else {
@@ -988,6 +1013,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  sAppend(&sbDt,"__PDStateVar_%s_SeP_",v);
 	  sAppend(&sbt,"df(%s)/dy(",v);
 	  if (new_de(v)){
+	    updateSyntaxCol();
 	    sprintf(buf,"d/dt(%s) needs to be defined before using a Jacobians for this state.",v);
             trans_syntax_error_report_fn(buf);
 	  } else {
@@ -1089,6 +1115,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       if (!rx_syntax_star_pow && i == 1 &&nodeHas(power_expression)){
         char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
         if (!strcmp("**",v)){
+	  updateSyntaxCol();
           trans_syntax_error_report_fn(NEEDPOW);
         }
         Free(v);
@@ -1116,6 +1143,11 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    hasLhs=1;
 	    tb.ini[tb.ix]=2;
 	  }
+	  if (!strcmp("depot", v)){
+	    tb.hasDepotCmt = 1;
+	  } else if (!strcmp("central", v)){
+	    tb.hasCentralCmt = 1;
+	  }
 	}
         sprintf(tb.ddt, "%s",v);
         if (new_de(v)){
@@ -1126,6 +1158,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    } else if (!strcmp("central", v)){
 	      tb.hasCentral = 1;
 	    } else {
+	      updateSyntaxCol();
 	      sprintf(buf,ODEFIRST,v);
 	      trans_syntax_error_report_fn(buf);
 	    }
@@ -1241,6 +1274,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    tb.sensi++;
 	  }
 	  if (rx_syntax_allow_dots == 0 && strstr(v, ".")){
+	    updateSyntaxCol();
 	    trans_syntax_error_report_fn(NODOT);
 	  }
 	  sb.o =0; sbDt.o =0;
@@ -1256,6 +1290,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	      ((tb.ini[tb.ix] == 1 && tb.ini0[tb.ix] == 0) ||
 	       tb.lh[tb.ix] == 1)){
             sprintf(buf,"Cannot assign state variable %s; For initial condition assignment use '%s(0) = #'.\n  Changing states can break sensitivity analysis (for nlmixr glmm/focei).\n  To override this behavior set 'options(RxODE.syntax.assign.state = TRUE)'.\n",v,v);
+	    updateSyntaxCol();
             trans_syntax_error_report_fn(buf);
           }
 	  tb.lh[tb.ix] = 9;
@@ -1308,15 +1343,19 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       if (nodeHas(der_rhs)) {
 	switch(sbPm.lType[sbPm.n]){
 	case TMTIME:
+	  updateSyntaxCol();
 	  trans_syntax_error_report_fn("Modeling times cannot depend on state values.");
 	  break;
 	case FBIO:
+	  updateSyntaxCol();
 	  trans_syntax_error_report_fn("Bioavailability cannot depend on state values.");
 	  break;
 	case ALAG:
+	  updateSyntaxCol();
 	  trans_syntax_error_report_fn("Absorption Lag-time cannot depend on state values.");
 	  break;
 	case RATE:
+	  updateSyntaxCol();
 	  trans_syntax_error_report_fn("Model-based rate cannot depend on state values.");
 	  break;
 	case DUR:
@@ -1324,8 +1363,11 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  break;
 	default:
 	  {
+	    updateSyntaxCol();
 	    char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
 	    if (new_de(v)){
+	      sprintf(buf2,"d/dt(%s)",v);
+	      updateSyntaxCol();
 	      sprintf(buf,"Tried to use d/dt(%s) before it was defined",v);
 	      trans_syntax_error_report_fn(buf);
 	    } else {
@@ -1369,6 +1411,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
             if (v[k] == '.'){
                 aAppendN("_DoT_", 5);
 		if (rx_syntax_allow_dots == 0){
+	          updateSyntaxCol();
 		  trans_syntax_error_report_fn(NODOT);
 		}
             } else {
@@ -1381,12 +1424,14 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	      new_or_ith(v);
 	      tb.lh[tb.ix] = 19;
 	    } else {
+	      updateSyntaxCol();
 	      sprintf(buf,"Cannot assign state variable %s; For initial condition assigment use '%s(0) ='.\n",v,v);
 	      trans_syntax_error_report_fn(buf);
 	    }
           }
           if (!rx_syntax_allow_ini0 && nodeHas(ini0)){
             sprintf(buf,NOINI0,v);
+	    updateSyntaxCol();
             trans_syntax_error_report_fn(buf);
           }
         } else {
@@ -1395,6 +1440,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
             if (v[k] == '.'){
 	      aAppendN("_DoT_", 5);
 	      if (rx_syntax_allow_dots == 0){
+		updateSyntaxCol();
 		trans_syntax_error_report_fn(NODOT);
 	      }
             } else {
@@ -1409,6 +1455,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	      tb.lh[tb.ix] = 19;
 	    } else {
 	      sprintf(buf,"Cannot assign state variable %s; For initial condition assigment use '%s(0) ='.\n",v,v);
+	      updateSyntaxCol();
 	      trans_syntax_error_report_fn(buf);
 	      
 	    }
@@ -1470,6 +1517,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	      tb.lh[tb.ix] = 1;
 	      if (nodeHas(ini0) && tb.ini0[tb.ix] == 1){
 		sprintf(buf,"Cannot have conditional initial conditions for %s",v);
+		updateSyntaxCol();
 		trans_syntax_error_report_fn(buf);
 	      } else if (tb.ini0[tb.ix] == 1){
 		tb.iniv[tb.ix] = NA_REAL;
@@ -1509,6 +1557,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
       D_ParseNode *xpn = d_get_child(pn,i);
       char *v = (char*)rc_dup_str(xpn->start_loc.s, xpn->end);
       if (!strcmp("<-",v)){
+	updateSyntaxCol();
         trans_syntax_error_report_fn(NOASSIGN);
       }
       Free(v);
@@ -1605,6 +1654,7 @@ void prnt_vars(int scenario, int lhs, const char *pre_str, const char *post_str,
         if (buf[k] == '.'){
           sAppend(&sbOut,"_DoT_");
           if (rx_syntax_allow_dots == 0){
+	    updateSyntaxCol();
             trans_syntax_error_report_fn(NODOT);
           }
         } else {
@@ -1627,6 +1677,7 @@ void prnt_vars(int scenario, int lhs, const char *pre_str, const char *post_str,
         if (buf[k] == '.'){
           sAppendN(&sbOut,"_DoT_", 5);
           if (rx_syntax_allow_dots == 0){
+	    updateSyntaxCol();
             trans_syntax_error_report_fn(NODOT);
           }
         } else {
@@ -1645,6 +1696,7 @@ void prnt_vars(int scenario, int lhs, const char *pre_str, const char *post_str,
         if (buf[k] == '.'){
           sAppendN(&sbOut,"_DoT_", 5);
           if (rx_syntax_allow_dots == 0){
+	    updateSyntaxCol();
             trans_syntax_error_report_fn(NODOT);
           }
         } else {
@@ -2147,6 +2199,7 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 	    if (buf[k] == '.'){
 	      sAppendN(&sbOut, "_DoT_", 5);
 	      if (rx_syntax_allow_dots == 0){
+		updateSyntaxCol();
 		trans_syntax_error_report_fn(NODOT);
 	      }
 	    } else {
@@ -2257,6 +2310,7 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 	    if (buf[k] == '.'){
 	      sAppendN(&sbOut, "_DoT_", 5);
 	      if (rx_syntax_allow_dots == 0){
+		updateSyntaxCol();
 		trans_syntax_error_report_fn(NODOT);
 	      }
 	    } else {
@@ -2279,6 +2333,7 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 	  if (buf[k] == '.'){
 	    sAppendN(&sbOut, "_DoT_", 5);
 	    if (rx_syntax_allow_dots == 0){
+	      updateSyntaxCol();
 	      trans_syntax_error_report_fn(NODOT);
 	    }
 	  } else {
@@ -2299,6 +2354,7 @@ void codegen(char *model, int show_ode, const char *prefix, const char *libname,
 	  if (buf[k] == '.'){
 	    sAppendN(&sbOut, "_DoT_", 5);
 	    if (rx_syntax_allow_dots == 0){
+	      updateSyntaxCol();
 	      trans_syntax_error_report_fn(NODOT);
 	    }
 	  } else {
@@ -2364,6 +2420,8 @@ void reset (){
   tb.hasDepot   = 0;
   tb.hasCentral = 0;
   tb.hasKa      = 0;
+  tb.hasDepotCmt = 0;
+  tb.hasCentralCmt = 0;
   // reset globals
   good_jac = 1;
   found_jac = 0;
@@ -2388,6 +2446,9 @@ void reset (){
   foundF0=0;
   nmtime=0;
   Free(md5);
+  lastSyntaxErrorLine=0;
+  gBufLast=0;
+  lastStrLoc=0;
 }
 
 void writeSb(sbuf *sbb, FILE *fp){
@@ -2410,8 +2471,8 @@ void writeSb(sbuf *sbb, FILE *fp){
     error("IO error writing parsed C file.");
   }
 }
+static void rxSyntaxError(struct D_Parser *ap);
 
-char *gBuf;
 void trans_internal(char* parse_file, int isStr){
   char buf1[512], buf2[512], bufe[2048];
   int i,j,found,islhs;
@@ -2419,7 +2480,9 @@ void trans_internal(char* parse_file, int isStr){
   /* any number greater than sizeof(D_ParseNode_User) will do;
      below 1024 is used */
   D_Parser *p = new_D_Parser(&parser_tables_RxODE, 1024);
+  curP = p;
   p->save_parse_tree = 1;
+  p->syntax_error_fn = rxSyntaxError;
   if (isStr){
     gBuf = parse_file;
   } else {
@@ -2480,9 +2543,6 @@ void trans_internal(char* parse_file, int isStr){
       }
     }
   } else {
-    Rprintf("Parsing error, Model:\n================================================================================\n");
-    Rprintf("%s", gBuf);
-    Rprintf("\n================================================================================\n");
     rx_syntax_error = 1;
   }
   free_D_Parser(p);
@@ -2504,7 +2564,6 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
   rx_syntax_allow_ini  = R_get_option("RxODE.syntax.allow.ini",1);
   rx_syntax_allow_assign_state = R_get_option("RxODE.syntax.assign.state",0);
   rx_syntax_require_ode_first = R_get_option("RxODE.syntax.require.ode.first",1);
-  rx_syntax_error = 0;
   set_d_use_r_headers(0);
   set_d_rdebug_grammar_level(0);
   set_d_verbose_level(0);
@@ -2551,11 +2610,21 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
     } else {
       extraCmt=1;
     }
+    if (tb.hasDepotCmt){
+      updateSyntaxCol();
+      trans_syntax_error_report_fn("cmt(depot) does not work with linCmt()");
+    }
+    if (tb.hasCentralCmt) {
+      updateSyntaxCol();
+      trans_syntax_error_report_fn("cmt(central) does not work with linCmt()");
+    }
   } else {
     if (tb.hasDepot && rx_syntax_require_ode_first){
+      updateSyntaxCol();
       sprintf(buf,ODEFIRST,"depot");
       trans_syntax_error_report_fn(buf);
     } else if (tb.hasCentral && rx_syntax_require_ode_first){
+      updateSyntaxCol();
       sprintf(buf,ODEFIRST,"central");
       trans_syntax_error_report_fn(buf);
     }
@@ -2899,6 +2968,19 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
   
   UNPROTECT(pro);
   if (rx_syntax_error){
+    if (gBuf[gBufLast] != '\0'){
+      gBufLast++;
+      REprintf("\n:%03d: ", lastSyntaxErrorLine);
+      for (; gBuf[gBufLast] != '\0'; gBufLast++){
+	if (gBuf[gBufLast] == '\n'){
+	  REprintf("\n:%03d: ", ++lastSyntaxErrorLine);
+	} else{
+	  REprintf("%c", gBuf[gBufLast]);
+	}
+      }
+    }
+    if (isEsc)REprintf("\n\033[1m================================================================================\033[0m\n");
+    else REprintf("\n================================================================================\n");
     error("Syntax Errors (see above)");
   }
   /* Free(sbPm); Free(sbNrm); */
@@ -2982,3 +3064,144 @@ SEXP _RxODE_codegen(SEXP c_file, SEXP prefix, SEXP libname,
   return R_NilValue;
 }
 
+char *getLine (char *src, int line, int *lloc)
+{
+  int cur = 1, col=0, i;
+  for(i = 0; src[i] != '\0' && cur != line; i++){
+    if(src[i] == '\n') cur++;
+  }
+  for(col = 0; src[i + col] != '\n' && src[i + col] != '\0'; col++);
+  *lloc=i+col;
+  char *buf = Calloc(col + 1, char);
+  memcpy(buf, src + i, col);
+  buf[col] = '\0';
+  return buf;
+}
+
+static void rxSyntaxError(struct D_Parser *ap) {
+  if (!rx_suppress_syntax_info){
+    if (lastSyntaxErrorLine == 0){
+      if (isEsc)REprintf("\033[1mRxODE Model Syntax Error:\n================================================================================\033[0m");
+      else REprintf("RxODE Model Syntax Error:\n================================================================================");
+      lastSyntaxErrorLine=1;
+    }
+    char *buf;
+    Parser *p = (Parser *)ap;
+    for (; lastSyntaxErrorLine < p->user.loc.line; lastSyntaxErrorLine++){
+      buf = getLine(gBuf, lastSyntaxErrorLine, &gBufLast);
+      REprintf("\n:%03d: %s", lastSyntaxErrorLine, buf);
+    }
+    char *after = 0;
+    ZNode *z = p->snode_hash.last_all ? p->snode_hash.last_all->zns.v[0] : 0;
+    while (z && z->pn->parse_node.start_loc.s == z->pn->parse_node.end)
+      z = (z->sns.v && z->sns.v[0]->zns.v) ? z->sns.v[0]->zns.v[0] : 0;
+    if (z && z->pn->parse_node.start_loc.s != z->pn->parse_node.end)
+      after = rc_dup_str(z->pn->parse_node.start_loc.s, z->pn->parse_node.end);
+    if (after){
+      if (isEsc) REprintf("\n\n\033[1mRxODE syntax error after\033[0m '\033[35m\033[1m%s\033[0m':\n",  after);
+      else REprintf("\n\nRxODE syntax error after '%s':\n",  after);
+    }
+    else{
+      if (isEsc) REprintf("\n\n\033[1mRxODE syntax error\033[0m:\n");
+      else REprintf("\n\nRxODE syntax error:\n");
+    }
+
+    buf = getLine(gBuf, p->user.loc.line, &gBufLast);
+    if (lastSyntaxErrorLine <= p->user.loc.line) lastSyntaxErrorLine++;
+    if (isEsc) REprintf("\033[1m:%03d:\033[0m ", p->user.loc.line);
+    else REprintf(":%03d: ", p->user.loc.line);
+    /* REprintf("      "); */
+    /* REprintf("%s\n", buf); */
+    int col = 0, len= strlen(buf), lenv, i;
+    for (i = 0; i < p->user.loc.col; i++){
+      REprintf("%c", buf[i]);
+    }
+    if (isEsc) REprintf("\033[35m\033[1m%c\033[0m", buf[i++]);
+    else REprintf("%c", buf[i++]);
+    for (; i < len; i++){
+      REprintf("%c", buf[i]);
+    }
+    REprintf("\n      ");
+    
+    if (after){
+      lenv = strlen(after);
+      while (col != len && strncmp(buf + col, after, lenv) != 0) col++;
+      if (col == len) col = 0;
+      if (col){
+	for (int i = col; i--;) REprintf(" ");
+	for (int i = p->user.loc.col - col; i--;) REprintf("~");
+	if (isEsc) REprintf("\033[35m\033[1m^\033[0m");
+	else REprintf("^");
+      } else {
+	for (int i = p->user.loc.col; i--;) REprintf(" ");
+	if (isEsc) REprintf("\033[35m\033[1m^\033[0m");
+	else REprintf("^");
+      }
+    } else {
+      for (int i = p->user.loc.col; i--;) REprintf(" ");
+      if (isEsc) REprintf("\033[35m\033[1m^\033[0m");
+      else REprintf("^");
+    }
+    Free(buf);
+    if (after) Free(after);
+  }
+  rx_syntax_error = 1;
+}
+
+static void trans_syntax_error_report_fn(char *err) {
+  if (!rx_suppress_syntax_info){
+    if (lastSyntaxErrorLine == 0){
+      if (isEsc) REprintf("\033[1mRxODE Model Syntax Error:\n================================================================================\033[0m");
+      else REprintf("RxODE Model Syntax Error:\n================================================================================");
+      lastSyntaxErrorLine=1;
+    }
+    Parser *p = (Parser *)curP;
+    char *buf;
+    for (; lastSyntaxErrorLine < p->user.loc.line; lastSyntaxErrorLine++){
+      buf = getLine(gBuf, lastSyntaxErrorLine, &gBufLast);
+      REprintf("\n:%03d: %s", lastSyntaxErrorLine, buf);
+    }
+    if (lastSyntaxErrorLine <= p->user.loc.line){
+      REprintf("\n");
+      lastSyntaxErrorLine++;
+    }
+    if (isEsc) REprintf("\n\033[1m:%03d:\033[0m %s:\n", p->user.loc.line, err);
+    else REprintf("\n:%03d: %s:\n", p->user.loc.line, err);
+    buf = getLine(gBuf, p->user.loc.line, &gBufLast);
+    REprintf("      ");
+    int i, len = strlen(buf);
+    for (i = 0; i < p->user.loc.col; i++){
+      REprintf("%c", buf[i]);
+    }
+    if (isEsc) REprintf("\033[35m\033[1m%c\033[0m", buf[i++]);
+    else REprintf("%c", buf[i++]);
+    for (; i < len; i++){
+      REprintf("%c", buf[i]);
+    }
+    REprintf("\n      ");
+    Free(buf);
+    for (int i = p->user.loc.col; i--;) REprintf(" ");
+    if (isEsc) REprintf("\033[35m\033[1m^\033[0m");
+    else REprintf("^");
+    for (int i = syntaxErrorExtra; i--;) REprintf("~");
+    syntaxErrorExtra=0;
+  }
+  rx_syntax_error = 1;
+}
+
+
+void updateSyntaxCol(){
+  int i = lastStrLoc, lineNum=1, colNum=0;
+  for(i = 0; gBuf[i] != '\0' && lastStr != gBuf + i; i++){
+    if(gBuf[i] == '\n'){
+      lineNum++;
+      colNum=0;
+    } else {
+      colNum++;
+    }
+  }
+  lastStrLoc=i;
+  Parser *p = (Parser *)curP;
+  p->user.loc.line=lineNum;
+  p->user.loc.col=colNum;
+}

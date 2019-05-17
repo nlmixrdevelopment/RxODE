@@ -563,4 +563,91 @@ mu = 1+bad ## nonstiff; 10 moderately stiff; 1000 stiff
     cp <- linCmt()
     d/dt(ce) = keo*(cp-ce)
     effect = E0 - Emax*(Ce^gamma)/((Ce^gamma)+(Ec50^gamma));")
+
+    badParse("cmt(depot) doesn't work with linCmt()", "popCl <- 1
+    cmt(depot)
+    popV <- 20
+    popKa <- 1
+    popVp <- 10
+    popQ <- 2
+    bsvCl <-0
+    bsvV <- 0
+    bsvKa <-0
+    bsvVp <- 0
+    bsvQ <-0
+    popKeo <- 1.4
+    bsvKeo <- 0
+    popE0 <- 0
+    popEmax <- 1
+    popEC50 <- 5
+    popGamma <- 1
+    bsvE0 <- 0
+    bsvEmax <- 0
+    bsvEC50 <- 0
+    ##
+    cl ~ popCl * exp(bsvCl)
+    v ~ popV * exp(bsvV)
+    ka ~ popKa * exp(bsvKa)
+    q ~ popQ * exp(bsvQ)
+    vp ~ popVp * exp(bsvVp)
+    keo ~ popKeo * exp(bsvKeo)
+    popLagDepot <- 0
+    popLagCentral <- 0
+    popRateCentral <- 0
+    popDurCentral <- 0
+    bsvLagDepot <- 0
+    bsvLagCentral <- 0
+    bsvRateCentral <- 0
+    bsvDurCentral <- 0
+    lag(depot) <- popLagDepot * exp(bsvLagDepot)
+    lag(central) <- popLagCentral * exp(bsvLagCentral)
+    rate(central) <- popRateCentral * exp(bsvRateCentral)
+    dur(central) <- popDurCentral * exp(bsvDurCentral)
+    cp <- linCmt()
+    d/dt(ce) = keo*(cp-ce)
+    effect = E0 - Emax*(Ce^gamma)/((Ce^gamma)+(Ec50^gamma));")
+
+    badParse("cmt(depot) doesn't work with linCmt()", "popCl <- 1
+    cmt(depot)
+    popV <- 20
+    popKa <- 1
+    popVp <- 10
+    popQ <- 2
+    bsvCl <-0
+    bsvV <- 0
+    bsvKa <-0
+    bsvVp <- 0
+    bsvQ <-0
+    popKeo <- 1.4
+    bsvKeo <- 0
+    popE0 <- 0
+    popEmax <- 1
+    popEC50 <- 5
+    popGamma <- 1
+    bsvE0 <- 0
+    bsvEmax <- 0
+    bsvEC50 <- 0
+    ##
+    cl ~ popCl * exp(bsvCl)
+    v ~ popV * exp(bsvV)
+    ka ~ popKa * exp(bsvKa)
+    q ~ popQ * exp(bsvQ)
+    vp ~ popVp * exp(bsvVp)
+    keo ~ popKeo * exp(bsvKeo)
+    popLagDepot <- 0
+    popLagCentral <- 0
+    popRateCentral <- 0
+    popDurCentral <- 0
+    bsvLagDepot <- 0
+    bsvLagCentral <- 0
+    bsvRateCentral <- 0
+    bsvDurCentral <- 0
+    lag(depot) <- popLagDepot * exp(bsvLagDepot)
+    lag(central) <- popLagCentral * exp(bsvLagCentral)
+    rate(central) <- popRateCentral * exp(bsvRateCentral)
+    dur(central) <- popDurCentral * exp(bsvDurCentral)
+    cp <- linCmt()
+    d/dt(ce) = keo*(cp-ce)
+    effect = E0 - Emax*(Ce^gamma)/((Ce^gamma)+(Ec50^gamma));")
+
 }, silent=TRUE);
