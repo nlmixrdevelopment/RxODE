@@ -478,6 +478,8 @@ mu = 1+bad ## nonstiff; 10 moderately stiff; 1000 stiff
                   sprintf("d/dt(x) = -k*x;%s(x) = %s;", var, var))
     }
 
+    options(RxODE.syntax.assign = TRUE)
+
     goodParse("mix lincmt with lags etc", "popCl <- 1
     popV <- 20
     popKa <- 1
@@ -607,8 +609,8 @@ mu = 1+bad ## nonstiff; 10 moderately stiff; 1000 stiff
     d/dt(ce) = keo*(cp-ce)
     effect = E0 - Emax*(Ce^gamma)/((Ce^gamma)+(Ec50^gamma));")
 
-    badParse("cmt(depot) doesn't work with linCmt()", "popCl <- 1
-    cmt(depot)
+    badParse("cmt(central) doesn't work with linCmt()", "popCl <- 1
+    cmt(central)
     popV <- 20
     popKa <- 1
     popVp <- 10
