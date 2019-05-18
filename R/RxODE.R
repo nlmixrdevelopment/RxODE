@@ -1228,7 +1228,8 @@ rxTrans.character <- function(model,
         md5 <- rxMd5(model, extraC)$digest
     }
     RxODE::rxReq("dparser");
-    .ret <- .Call(`_RxODE_trans`, model, extraC, modelPrefix, md5, .isStr);
+    .ret <- .Call(`_RxODE_trans`, model, extraC, modelPrefix, md5, .isStr,
+                  as.integer(crayon::has_color()));
     if (inherits(.ret, "try-error")){
         message("Model")
         if (.isStr == 0L){

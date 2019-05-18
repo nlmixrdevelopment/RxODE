@@ -34,7 +34,7 @@ SEXP _rxProgressStop(SEXP);
 SEXP _rxProgressAbort();
 SEXP _RxODE_codeLoaded();
 
-SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SEXP isStr);
+SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SEXP isStr, SEXP);
 SEXP _RxODE_codegen(SEXP c_file, SEXP prefix, SEXP libname, SEXP pMd5, SEXP timeId,
 		    SEXP fixInis);
 SEXP _RxODE_parseModel(SEXP type);
@@ -154,7 +154,7 @@ void R_init_RxODE(DllInfo *info){
     {"_rxTick", (DL_FUNC) &_rxTick, 0},
     {"_rxProgressStop", (DL_FUNC) &_rxProgressStop, 1},
     {"_rxProgressAbort", (DL_FUNC) &_rxProgressAbort, 0},
-    {"_RxODE_trans", (DL_FUNC) &_RxODE_trans, 5},
+    {"_RxODE_trans", (DL_FUNC) &_RxODE_trans, 6},
     {"_RxODE_codegen", (DL_FUNC) &_RxODE_codegen, 6},
     {"_RxODE_codeLoaded", (DL_FUNC) &_RxODE_codeLoaded, 0},
     {"_RxODE_parseModel", (DL_FUNC) &_RxODE_parseModel, 1},

@@ -136,7 +136,7 @@ int lastStrLoc=0;
 char * rc_dup_str(const char *s, const char *e) {
   lastStr=s;
   int l = e ? e-s : (int)strlen(s);
-  syntaxErrorExtra=l-1;
+  syntaxErrorExtra=min(l-1, 40);
   char *ss = Calloc(l+1,char);
   memcpy(ss, s, l);
   ss[l] = 0;
@@ -429,6 +429,7 @@ static FILE *fpIO;
 
 int lastSyntaxErrorLine=0;
 static void trans_syntax_error_report_fn(char *err);
+static void trans_syntax_error_report_fn0(char *err);
 char *getLine (char *src, int line, int *lloc);
 void updateSyntaxCol();
 
@@ -455,7 +456,7 @@ int new_or_ith(const char *s) {
   }
   if (!strcmp("ss", s)){
     updateSyntaxCol();
-    trans_syntax_error_report_fn("'ss' cannot be a variable in an RxODE model.");
+    trans_syntax_error_report_fn("'ss' cannot be a variable in an RxODE model");
     return 0;
   }
   if (!strcmp("addl", s)){
@@ -977,19 +978,19 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  switch(sbPm.lType[sbPm.n]){
 	  case FBIO:
 	    updateSyntaxCol();
-	    trans_syntax_error_report_fn("Bioavailability cannot depend on Jacobian values.");
+	    trans_syntax_error_report_fn("Bioavailability cannot depend on Jacobian values");
 	    break;
 	  case ALAG:
 	    updateSyntaxCol();
-	    trans_syntax_error_report_fn("Absorption Lag-time cannot depend on Jacobian values.");
+	    trans_syntax_error_report_fn("Absorption Lag-time cannot depend on Jacobian values");
 	    break;
 	  case RATE:
 	    updateSyntaxCol();
-	    trans_syntax_error_report_fn("Model-based rate cannot depend on Jacobian values.");
+	    trans_syntax_error_report_fn("Model-based rate cannot depend on Jacobian values");
 	    break;
 	  case DUR:
 	    updateSyntaxCol();
-	    trans_syntax_error_report_fn("Model-based duration cannot depend on Jacobian values.");
+	    trans_syntax_error_report_fn("Model-based duration cannot depend on Jacobian values");
 	    break;
 	  default: {
 	    aType(TJAC);
@@ -997,7 +998,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	    sAppend(&sbt,"df(%s)/dy(",v);
 	    if (new_de(v)){
 	      updateSyntaxCol();
-	      sprintf(buf,"d/dt(%s) needs to be defined before using a Jacobians for this state.",v);
+	      sprintf(buf,"d/dt(%s) needs to be defined before using a Jacobians for this state",v);
 	      trans_syntax_error_report_fn(buf);
 	    } else {
 	      sAppend(&sb, "__PDStateVar__[%d*(__NROWPD__)+",tb.id);
@@ -1014,7 +1015,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	  sAppend(&sbt,"df(%s)/dy(",v);
 	  if (new_de(v)){
 	    updateSyntaxCol();
-	    sprintf(buf,"d/dt(%s) needs to be defined before using a Jacobians for this state.",v);
+	    sprintf(buf,"d/dt(%s) needs to be defined before using a Jacobians for this state",v);
             trans_syntax_error_report_fn(buf);
 	  } else {
 	    sAppend(&sb,"__PDStateVar__[%d*(__NROWPD__)+",tb.id);
@@ -1289,9 +1290,9 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
           if (!rx_syntax_allow_assign_state &&
 	      ((tb.ini[tb.ix] == 1 && tb.ini0[tb.ix] == 0) ||
 	       tb.lh[tb.ix] == 1)){
-            sprintf(buf,"Cannot assign state variable %s; For initial condition assignment use '%s(0) = #'.\n  Changing states can break sensitivity analysis (for nlmixr glmm/focei).\n  To override this behavior set 'options(RxODE.syntax.assign.state = TRUE)'.\n",v,v);
 	    updateSyntaxCol();
-            trans_syntax_error_report_fn(buf);
+            sprintf(buf,"Cannot assign state variable %s; For initial condition assignment use '%s(0) = #'.\n  Changing states can break sensitivity analysis (for nlmixr glmm/focei).\n  To override this behavior set 'options(RxODE.syntax.assign.state = TRUE)'",v,v);
+            trans_syntax_error_report_fn0(buf);
           }
 	  tb.lh[tb.ix] = 9;
           tb.di[tb.nd] = tb.ix;
@@ -1344,22 +1345,23 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	switch(sbPm.lType[sbPm.n]){
 	case TMTIME:
 	  updateSyntaxCol();
-	  trans_syntax_error_report_fn("Modeling times cannot depend on state values.");
+	  trans_syntax_error_report_fn("Modeling times cannot depend on state values");
 	  break;
 	case FBIO:
 	  updateSyntaxCol();
-	  trans_syntax_error_report_fn("Bioavailability cannot depend on state values.");
+	  trans_syntax_error_report_fn("Bioavailability cannot depend on state values");
 	  break;
 	case ALAG:
 	  updateSyntaxCol();
-	  trans_syntax_error_report_fn("Absorption Lag-time cannot depend on state values.");
+	  trans_syntax_error_report_fn("Absorption Lag-time cannot depend on state values");
 	  break;
 	case RATE:
 	  updateSyntaxCol();
-	  trans_syntax_error_report_fn("Model-based rate cannot depend on state values.");
+	  trans_syntax_error_report_fn("Model-based rate cannot depend on state values");
 	  break;
 	case DUR:
-	  trans_syntax_error_report_fn("Model-based duration cannot depend on state values.");
+	  updateSyntaxCol();
+	  trans_syntax_error_report_fn("Model-based duration cannot depend on state values");
 	  break;
 	default:
 	  {
@@ -1369,6 +1371,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	      sprintf(buf2,"d/dt(%s)",v);
 	      updateSyntaxCol();
 	      sprintf(buf,"Tried to use d/dt(%s) before it was defined",v);
+	      updateSyntaxCol();
 	      trans_syntax_error_report_fn(buf);
 	    } else {
 	      if (sbPm.lType[sbPm.n] == TJAC){
@@ -1425,7 +1428,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	      tb.lh[tb.ix] = 19;
 	    } else {
 	      updateSyntaxCol();
-	      sprintf(buf,"Cannot assign state variable %s; For initial condition assigment use '%s(0) ='.\n",v,v);
+	      sprintf(buf,"Cannot assign state variable %s; For initial condition assigment use '%s(0) ='",v,v);
 	      trans_syntax_error_report_fn(buf);
 	    }
           }
@@ -1454,7 +1457,7 @@ void wprint_parsetree(D_ParserTables pt, D_ParseNode *pn, int depth, print_node_
 	      new_or_ith(v);
 	      tb.lh[tb.ix] = 19;
 	    } else {
-	      sprintf(buf,"Cannot assign state variable %s; For initial condition assigment use '%s(0) ='.\n",v,v);
+	      sprintf(buf,"Cannot assign state variable %s; For initial condition assigment use '%s(0) ='",v,v);
 	      updateSyntaxCol();
 	      trans_syntax_error_report_fn(buf);
 	      
@@ -2446,6 +2449,7 @@ void reset (){
   foundF0=0;
   nmtime=0;
   Free(md5);
+  syntaxErrorExtra=0;
   lastSyntaxErrorLine=0;
   gBufLast=0;
   lastStrLoc=0;
@@ -2509,7 +2513,7 @@ void trans_internal(char* parse_file, int isStr){
       if (!found){
 	retieve_var(tb.dy[i], buf2);
 	sprintf(bufe,NOSTATE,buf1,buf2,buf1);
-	trans_syntax_error_report_fn(bufe);
+	trans_syntax_error_report_fn0(bufe);
       }
       // Now the dy()
       retieve_var(tb.dy[i], buf1);
@@ -2539,7 +2543,7 @@ void trans_internal(char* parse_file, int isStr){
         retieve_var(tb.df[i], buf1);
       	retieve_var(tb.dy[i], buf2);
       	sprintf(bufe,NOSTATEVAR,buf1,buf2,buf2);
-        trans_syntax_error_report_fn(bufe);
+        trans_syntax_error_report_fn0(bufe);
       }
     }
   } else {
@@ -2548,10 +2552,13 @@ void trans_internal(char* parse_file, int isStr){
   free_D_Parser(p);
 }
 
-SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SEXP parseStr){
+SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SEXP parseStr,
+		  SEXP isEscIn){
   char *in;
   char buf[1024], buf2[512], df[128], dy[128];
   int i, j, islhs, pi=0, li=0, ini_i = 0,k=0, l=0, m=0, p=0;
+
+  isEsc=INTEGER(isEscIn)[0];
 
   int isStr =INTEGER(parseStr)[0];
   reset(); 
@@ -2611,22 +2618,18 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
       extraCmt=1;
     }
     if (tb.hasDepotCmt){
-      updateSyntaxCol();
-      trans_syntax_error_report_fn("cmt(depot) does not work with linCmt()");
+      trans_syntax_error_report_fn0("cmt(depot) does not work with linCmt()");
     }
     if (tb.hasCentralCmt) {
-      updateSyntaxCol();
-      trans_syntax_error_report_fn("cmt(central) does not work with linCmt()");
+      trans_syntax_error_report_fn0("cmt(central) does not work with linCmt()");
     }
   } else {
     if (tb.hasDepot && rx_syntax_require_ode_first){
-      updateSyntaxCol();
       sprintf(buf,ODEFIRST,"depot");
-      trans_syntax_error_report_fn(buf);
+      trans_syntax_error_report_fn0(buf);
     } else if (tb.hasCentral && rx_syntax_require_ode_first){
-      updateSyntaxCol();
       sprintf(buf,ODEFIRST,"central");
-      trans_syntax_error_report_fn(buf);
+      trans_syntax_error_report_fn0(buf);
     }
   }
   for (i=0; i<tb.nv; i++) {
@@ -3107,7 +3110,7 @@ static void rxSyntaxError(struct D_Parser *ap) {
     }
 
     buf = getLine(gBuf, p->user.loc.line, &gBufLast);
-    if (lastSyntaxErrorLine <= p->user.loc.line) lastSyntaxErrorLine++;
+    if (lastSyntaxErrorLine < p->user.loc.line) lastSyntaxErrorLine++;
     if (isEsc) REprintf("\033[1m:%03d:\033[0m ", p->user.loc.line);
     else REprintf(":%03d: ", p->user.loc.line);
     /* REprintf("      "); */
@@ -3115,6 +3118,7 @@ static void rxSyntaxError(struct D_Parser *ap) {
     int col = 0, len= strlen(buf), lenv, i;
     for (i = 0; i < p->user.loc.col; i++){
       REprintf("%c", buf[i]);
+      if (i == len-2) { i++; break;}
     }
     if (isEsc) REprintf("\033[35m\033[1m%c\033[0m", buf[i++]);
     else REprintf("%c", buf[i++]);
@@ -3128,22 +3132,47 @@ static void rxSyntaxError(struct D_Parser *ap) {
       while (col != len && strncmp(buf + col, after, lenv) != 0) col++;
       if (col == len) col = 0;
       if (col){
-	for (int i = col; i--;) REprintf(" ");
-	for (int i = p->user.loc.col - col; i--;) REprintf("~");
+	for (int i = 0; i < col; i++){
+	  REprintf(" ");
+	  if (i == len-2) { i++; break;}
+	}
+	len = p->user.loc.col - col;
+	if (len > 0 && len < 40){
+	  for (int i = len; i--;) REprintf("~");
+	}
 	if (isEsc) REprintf("\033[35m\033[1m^\033[0m");
 	else REprintf("^");
       } else {
-	for (int i = p->user.loc.col; i--;) REprintf(" ");
+	for (int i = 0; i < p->user.loc.col; i++){
+	  REprintf(" ");
+	  if (i == len-2) { i++; break;}
+	}
 	if (isEsc) REprintf("\033[35m\033[1m^\033[0m");
 	else REprintf("^");
       }
     } else {
-      for (int i = p->user.loc.col; i--;) REprintf(" ");
+      for (int i = 0; i < p->user.loc.col; i++){
+	REprintf(" ");
+	if (i == len-2) { i++; break;}
+      }
       if (isEsc) REprintf("\033[35m\033[1m^\033[0m");
       else REprintf("^");
     }
     Free(buf);
     if (after) Free(after);
+  }
+  rx_syntax_error = 1;
+}
+
+static void trans_syntax_error_report_fn0(char *err){
+  if (!rx_suppress_syntax_info){
+    if (lastSyntaxErrorLine == 0){
+      if (isEsc) REprintf("\033[1mRxODE Model Syntax Error:\n================================================================================\033[0m");
+      else REprintf("RxODE Model Syntax Error:\n================================================================================");
+      lastSyntaxErrorLine=1;
+    }
+    if (isEsc) REprintf("\n\033[1m:ERR:\033[0m %s:\n",  err);
+    else REprintf("\n:ERR: %s:\n", err);
   }
   rx_syntax_error = 1;
 }
@@ -3161,7 +3190,7 @@ static void trans_syntax_error_report_fn(char *err) {
       buf = getLine(gBuf, lastSyntaxErrorLine, &gBufLast);
       REprintf("\n:%03d: %s", lastSyntaxErrorLine, buf);
     }
-    if (lastSyntaxErrorLine <= p->user.loc.line){
+    if (lastSyntaxErrorLine < p->user.loc.line){
       REprintf("\n");
       lastSyntaxErrorLine++;
     }
@@ -3172,6 +3201,7 @@ static void trans_syntax_error_report_fn(char *err) {
     int i, len = strlen(buf);
     for (i = 0; i < p->user.loc.col; i++){
       REprintf("%c", buf[i]);
+      if (i == len-2) { i++; break;}
     }
     if (isEsc) REprintf("\033[35m\033[1m%c\033[0m", buf[i++]);
     else REprintf("%c", buf[i++]);
@@ -3180,10 +3210,15 @@ static void trans_syntax_error_report_fn(char *err) {
     }
     REprintf("\n      ");
     Free(buf);
-    for (int i = p->user.loc.col; i--;) REprintf(" ");
+    for (int i = 0; i < p->user.loc.col; i++){
+      REprintf(" ");
+      if (i == len-2) { i++; break;}
+    }
     if (isEsc) REprintf("\033[35m\033[1m^\033[0m");
     else REprintf("^");
-    for (int i = syntaxErrorExtra; i--;) REprintf("~");
+    if (syntaxErrorExtra > 0 && syntaxErrorExtra < 40){
+      for (int i = syntaxErrorExtra; i--;) REprintf("~");
+    }
     syntaxErrorExtra=0;
   }
   rx_syntax_error = 1;
