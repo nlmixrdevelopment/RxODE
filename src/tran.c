@@ -2971,19 +2971,21 @@ SEXP _RxODE_trans(SEXP parse_file, SEXP extra_c, SEXP prefix, SEXP model_md5, SE
   
   UNPROTECT(pro);
   if (rx_syntax_error){
-    if (gBuf[gBufLast] != '\0'){
-      gBufLast++;
-      REprintf("\n:%03d: ", lastSyntaxErrorLine);
-      for (; gBuf[gBufLast] != '\0'; gBufLast++){
-	if (gBuf[gBufLast] == '\n'){
-	  REprintf("\n:%03d: ", ++lastSyntaxErrorLine);
-	} else{
-	  REprintf("%c", gBuf[gBufLast]);
+    if(!rx_suppress_syntax_info){
+      if (gBuf[gBufLast] != '\0'){
+	gBufLast++;
+	REprintf("\n:%03d: ", lastSyntaxErrorLine);
+	for (; gBuf[gBufLast] != '\0'; gBufLast++){
+	  if (gBuf[gBufLast] == '\n'){
+	    REprintf("\n:%03d: ", ++lastSyntaxErrorLine);
+	  } else{
+	    REprintf("%c", gBuf[gBufLast]);
+	  }
 	}
       }
+      if (isEsc)REprintf("\n\033[1m================================================================================\033[0m\n");
+      else REprintf("\n================================================================================\n");
     }
-    if (isEsc)REprintf("\n\033[1m================================================================================\033[0m\n");
-    else REprintf("\n================================================================================\n");
     error("Syntax Errors (see above)");
   }
   /* Free(sbPm); Free(sbNrm); */
