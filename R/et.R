@@ -143,21 +143,35 @@ et <- function(x, ..., envir=parent.frame()){
 .pipelineNSub    <- NULL
 .pipelineNStud    <- NULL
 
-.clearPipe <- function(){
-    assignInMyNamespace(".pipelineRx", NULL)
-    assignInMyNamespace(".pipelineInits", NULL)
-    assignInMyNamespace(".pipelineEvents", NULL)
-    assignInMyNamespace(".pipelineParams", NULL)
-    assignInMyNamespace(".pipelineICov", NULL)
-    assignInMyNamespace(".pipelineKeep", NULL)
-    assignInMyNamespace(".pipelineThetaMat", NULL)
-    assignInMyNamespace(".pipelineOmega", NULL)
-    assignInMyNamespace(".pipelineSigma", NULL)
-    assignInMyNamespace(".pipelineDfObs", NULL)
-    assignInMyNamespace(".pipelineDfSub", NULL)
-    assignInMyNamespace(".pipelineNSub", NULL)
-    assignInMyNamespace(".pipelineNStud", NULL)
+##' Clear/Set pipeline
+##'
+##' @inheritParams rxControl
+##' @param rx RxODE object
+##' @keywords intenral
+##'@export
+.clearPipe <- function(rx=NULL, inits=NULL,
+                       events=NULL, params=NULL,
+                       iCov=NULL, keep=NULL,
+                       thetaMat=NULL, omega=NULL,
+                       sigma=NULL, dfObs=NULL,
+                       dfSub=NULL, nSub=NULL,
+                       nStud=NULL){
+    assignInMyNamespace(".pipelineRx", rx)
+    assignInMyNamespace(".pipelineInits", inits)
+    assignInMyNamespace(".pipelineEvents", events)
+    assignInMyNamespace(".pipelineParams", params)
+    assignInMyNamespace(".pipelineICov", iCov)
+    assignInMyNamespace(".pipelineKeep", keep)
+    assignInMyNamespace(".pipelineThetaMat", thetaMat)
+    assignInMyNamespace(".pipelineOmega", omega)
+    assignInMyNamespace(".pipelineSigma", sigma)
+    assignInMyNamespace(".pipelineDfObs", dfObs)
+    assignInMyNamespace(".pipelineDfSub", dfSub)
+    assignInMyNamespace(".pipelineNSub", nSub)
+    assignInMyNamespace(".pipelineNStud", nStud)
 }
+
+
 
 
 ##' @rdname et
