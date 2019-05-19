@@ -315,6 +315,12 @@ rxPermissive({
         expect_error(et(c(0,2,3),amt=30))
         expect_error(et(c(2,0),amt=30))
     })
+    context("until is inclusive")
+    test_that("until is inclusive",{
+        expect_equal(et(amt=1, time=50, until=57.5, ii=1.5)$addl, 5)
+        expect_equal(et(amt=1, time=50, until=57.49999, ii=1.5)$addl, 4)
+        expect_equal(et(amt=1, time=50, until=57.50001, ii=1.5)$addl, 5)
+    })
 
 
 }, silent=TRUE, cran=TRUE)

@@ -2441,14 +2441,26 @@ RObject et_(List input, List et__){
 	  if (time.size() == 1){
 	    double tmp = until[0] - time[0] - ii[0];
 	    if (tmp > 0){
-	      addl[0] = ceil(tmp/ii[0]);
+	      tmp = tmp/ii[0];
+	      double tmp2 = ceil(tmp);
+	      if (tmp2 == tmp){
+		addl[0] = tmp + 1;
+	      } else {
+		addl[0] = tmp2;
+	      }
 	    } else {
 	      addl[0] = 0;
 	    }
 	  } else if (time.size() == 2){
 	    double tmp = until[0] - time[1] - ii[0];
 	    if (tmp > 0){
-	      addl[0] = ceil(tmp/ii[0]);
+	      tmp = tmp/ii[0];
+	      double tmp2 = ceil(tmp);
+	      if (tmp2 == tmp){
+		addl[0] = tmp + 1;
+	      } else {
+		addl[0] = tmp2;
+	      }
 	    } else {
 	      addl[0] = 0;
 	    }
