@@ -322,5 +322,10 @@ rxPermissive({
         expect_equal(et(amt=1, time=50, until=57.50001, ii=1.5)$addl, 5)
     })
 
+    context("et Expected errors")
+    test_that("et errors",{
+        expect_error(et(list(c(1,2),c(3,4)), amt=3))
+    })
+
 
 }, silent=TRUE, cran=TRUE)

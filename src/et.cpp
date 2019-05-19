@@ -2314,6 +2314,7 @@ RObject et_(List input, List et__){
 	  }
 	}
       } else {
+	if (timeIx != -1 && rxIs(input[timeIx], "list")) stop("'time' cannot be a list on a dosing record");
 	if (evidIx == -1 && !cmtNeg) evid[0]=1;
 	else if (evidIx == -1 && cmtNeg){
 	  evid[0]=2;
