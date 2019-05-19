@@ -322,7 +322,6 @@ rxPermissive({
     context("et Expected errors")
     test_that("et errors",{
         expect_error(et(list(c(2,1),c(3,4)), amt=3))
-        expect_error(et(list(c(1,2),c(3)), amt=3))
         expect_error(et(list(c(1,2),c(3), c(1,2,3)), amt=3))
         expect_error(et(list(c(1,2),c(3), TRUE), amt=3))
     })
